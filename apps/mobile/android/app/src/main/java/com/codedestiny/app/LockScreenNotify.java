@@ -111,7 +111,7 @@ final class LockScreenNotify {
             String localDate = date.format(now.getTime());
             String key = localDate + "|" + options.optString("talismanId") + "|" + snapshot.optString("locale") + "|" + snapshot.optInt("version", 2) + "|" + kind;
             if (!test && key.equals(prefs.getString("posted_" + id, ""))) return false;
-            String title = card.optString("title", "CODE DESTINY");
+            String title = talisman ? null : card.optString("title", "CODE DESTINY");
             String text = card.optString("text");
             JSONObject pools = snapshot.optJSONObject("publicPools");
             if (!"daily".equals(kind) && pools != null) {
@@ -137,10 +137,10 @@ final class LockScreenNotify {
             } catch (java.io.IOException ignored) { /* Text remains usable when an asset is unavailable. */ }
             if (talisman && character == null) return false;
             Notification publicVersion = new NotificationCompat.Builder(ctx, CHANNEL_ALARM)
-                    .setSmallIcon(R.drawable.ic_stat_yeongnyangi).setLargeIcon(character).setContentTitle(title).setContentText(safe)
+                    .setSmallIcon(R.drawable.ic_stat_yeongnyangi).setLargeIcon(character).setContentTitle(title).setContentText(talisman ? null : safe)
                     .setStyle(talisman ? new NotificationCompat.BigPictureStyle().bigPicture(character) : new NotificationCompat.BigTextStyle().bigText(safe)).setContentIntent(tap).build();
             Notification notification = new NotificationCompat.Builder(ctx, CHANNEL_ALARM)
-                    .setSmallIcon(R.drawable.ic_stat_yeongnyangi).setLargeIcon(character).setContentTitle(title).setContentText(text)
+                    .setSmallIcon(R.drawable.ic_stat_yeongnyangi).setLargeIcon(character).setContentTitle(title).setContentText(talisman ? null : text)
                     .setStyle(talisman ? new NotificationCompat.BigPictureStyle().bigPicture(character) : new NotificationCompat.BigTextStyle().bigText(text))
                     .setVisibility(NotificationCompat.VISIBILITY_PRIVATE).setPublicVersion(publicVersion)
                     .setCategory(NotificationCompat.CATEGORY_REMINDER).setAutoCancel(true)
