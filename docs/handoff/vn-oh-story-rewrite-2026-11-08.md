@@ -1,7 +1,7 @@
 ---
-status: done
-updated: 2026-11-08
-next: 단계 3 완료. 다음은 사용자 결정 대기 — 번역(sourceHash 변경으로 개고 화 번역 미게시) 재생성 여부·시점, 그리고 3-⑤ 남은 일 처리 여부
+status: in-progress
+updated: 2026-11-09
+next: 4-① 호랑이 존댓말·분량 경고 수정 후 4-② 직접 번역
 ---
 
 # VN 스토리 개선 (oh-story 활용) 인수인계
@@ -34,6 +34,12 @@ next: 단계 3 완료. 다음은 사용자 결정 대기 — 번역(sourceHash �
   - 네오 어미: 진단 3안 중 (나). 하다체 단답(~다/~지/~나, 1~2문장)이 기본이고, 감정이 새는 순간(hsoft·hcalm, 연이 위험)에만 해체(~야/~해). 이유: 현행 해라체 비중 37~46%라 고칠 양이 가장 적고, 바이블의 '짧은 단정형'을 지키며, 사극풍 흑월(-느냐/-거라)과 귀로 구분된다.
   - 화자 없는 「」: 문맥으로 화자를 정해 표시한다(예: ep-41:101 → 네오). 문자·편지·고객센터는 시스템 상자(합쇼체).
   - 청토끼 '최약체': 본인 말버릇으로 유지한다. 악당 조직 서열로 읽히는 문장(사천왕)은 쓰지 않는다.
+
+## 추가 승인 상태 (사용자, 2026-11-09)
+- 사용자 원문: "클로드에게 나머지 정해줘야할것에 대해서 번역이나 호랑이 대사, 작은 경고 대행하도록해줘 운영배포도해야지"
+- 번역 4종·호랑이 존댓말·분량 경고 자율 처리와 운영 배포 승인. 이전 번역 보류·push/배포 금지는 이 범위에서 해제. 외부 자동 번역 API는 실행하지 않는다.
+- 운영 절차: docs/context/delivery-and-ci.md와 package.json 기준. 검증 → origin/main에 이 브랜치 변경만 반영 → check:pre-push → main push → main CI 확인 → verify:release → gh workflow run "Release Cloudflare Pages and Worker" --ref main -f mode=production → 배포 결과·운영 플레이어 확인. 로컬 운영 배포 우회 금지.
+- 배포 위험: 공유 main의 무관한 커밋·배포 실패. 변경 커밋 단위 git revert가 복구 기준이며 새 충돌·실패·롤백 필요 시 사용자에게 알리고 멈춘다.
 
 ## 작업 규칙과 함정
 - 원고 정본은 `content/novel/episodes.source.json`만 고친다. 생성물(`public/data/novel/**`, `lib/stories/vn/episodes.generated.json`, `content/novel/scene-matrix.generated.json`)은 `npm run novel:build`로만 만든다. 검증은 `npm run verify:story-sync`.
@@ -416,3 +422,9 @@ next: 단계 3 완료. 다음은 사용자 결정 대기 — 번역(sourceHash �
 - 개고 화의 '이번엔' 계열·금지 반복어 빈도 전후 비교.
 - 정체 노출 감사 재실행: EP.42 전 노골도 3 단서 0개, 다시 읽으면 보이는 단서 3개 이상.
 - `public/codedestiny-novel.html`에서 개고 화 재생·북마크 확인.
+
+## 단계 4 (2026-11-09)
+- [ ] 4-① 호랑이 존댓말 전체 확인·EP.37/47/50 분량 경고
+- [ ] 4-② en / ja / zh-CN / zh-TW 직접 번역·용어집·누락 감사·게시 복구
+- [ ] 4-③ novel:build·story-sync·sitemap·check:fast·번역·플레이어 검사
+- [ ] 4-④ main 반영·CI·운영 배포·운영 재생/북마크/언어 확인
