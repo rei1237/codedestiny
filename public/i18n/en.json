@@ -2526,6 +2526,10 @@
     "mobileEntry": {
       "menu": "Menu",
       "find": "Find by concern"
+    },
+    "widget": {
+      "title": "Customize home screen",
+      "description": "Choose a note from Yeoni, a flower meaning, a daily reading or a talisman."
     }
   },
   "terms": {

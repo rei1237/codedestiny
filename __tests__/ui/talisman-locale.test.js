@@ -18,6 +18,7 @@ function compile(file, requireModule, scope = {}) {
   return exports;
 }
 const { getTalismanCopy } = compile("app/app/talismans/copy.ts", () => { throw Error("Unexpected import"); });
+const looks = compile("app/app/home-widget/looks.ts", () => { throw Error("Unexpected import"); });
 const locales = ["ko", "en", "ja", "zh-CN", "zh-TW", "vi", "hi", "es", "fr", "de", "nl", "ms"];
 
 test("지원 언어의 부적 문구와 적용 대상 자리표시자가 빠지지 않는다", () => {
@@ -50,13 +51,14 @@ test("한국어 SSR 뒤 12개 앱 언어를 반영하고 직접 적용과 시스
     window: dom.window, document: dom.window.document, innerWidth: 390, devicePixelRatio: 1,
     fetch: async () => ({ ok: true, arrayBuffer: async () => new ArrayBuffer(8) }),
     URL: { createObjectURL: () => "blob:test", revokeObjectURL: () => {} },
-    File: dom.window.File, FileReader: dom.window.FileReader, AbortController,
+    URLSearchParams, File: dom.window.File, FileReader: dom.window.FileReader, AbortController,
     getComputedStyle: () => ({ getPropertyValue: () => "#111827" }),
   };
   const Studio = compile("app/app/talismans/TalismanStudio.tsx", name => {
     if (name === "react" || name === "react/jsx-runtime") return require(name);
     if (name === "lucide-react") return Object.fromEntries(["ArrowLeft", "Download", "Moon", "Share2", "Smartphone"].map(key => [key, () => null]));
     if (name === "@/constants/loadingMessages") return { getCurrentLoadingLocale: () => locale };
+    if (name === "../home-widget/looks") return looks;
     if (name === "./copy") return { getTalismanCopy };
     if (name === "./catalog") return { approvedAssets: () => [asset], verifyOriginal: async () => {},
       scenes: [{ id: "yeongnyangi" }, { id: "yeoni-lotus" }, { id: "yeoni-teahouse" }],

@@ -2526,6 +2526,10 @@
     "mobileEntry": {
       "menu": "菜单",
       "find": "按烦恼查找"
+    },
+    "widget": {
+      "title": "装饰主屏幕",
+      "description": "挑选延伊的寄语、花语、今日运势或护身符。"
     }
   },
   "terms": {

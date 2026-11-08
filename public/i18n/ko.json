@@ -2375,6 +2375,10 @@
     "mobileEntry": {
       "menu": "메뉴",
       "find": "고민으로 찾기"
+    },
+    "widget": {
+      "title": "홈 화면 꾸미기",
+      "description": "연이의 한마디, 꽃말, 오늘의 운세와 부적을 골라 보세요."
     }
   },
   "footer": {

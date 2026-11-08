@@ -2526,6 +2526,10 @@
     "mobileEntry": {
       "menu": "Menu",
       "find": "Cari mengikut persoalan"
+    },
+    "widget": {
+      "title": "Hias skrin utama",
+      "description": "Pilih pesanan Yeoni, makna bunga, ramalan harian atau azimat."
     }
   },
   "terms": {

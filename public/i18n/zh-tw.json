@@ -2526,6 +2526,10 @@
     "mobileEntry": {
       "menu": "選單",
       "find": "依煩惱尋找"
+    },
+    "widget": {
+      "title": "佈置主畫面",
+      "description": "挑選延伊的寄語、花語、今日運勢或護身符。"
     }
   },
   "terms": {

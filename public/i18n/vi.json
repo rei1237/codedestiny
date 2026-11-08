@@ -2526,6 +2526,10 @@
     "mobileEntry": {
       "menu": "Menu",
       "find": "Tìm theo điều băn khoăn"
+    },
+    "widget": {
+      "title": "Trang trí màn hình chính",
+      "description": "Chọn lời nhắn của Yeoni, ý nghĩa loài hoa, vận trình hôm nay hoặc bùa may mắn."
     }
   },
   "terms": {

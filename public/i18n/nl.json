@@ -2526,6 +2526,10 @@
     "mobileEntry": {
       "menu": "Menu",
       "find": "Zoek op vraag"
+    },
+    "widget": {
+      "title": "Startscherm aanpassen",
+      "description": "Kies een bericht van Yeoni, een bloem, de dagduiding of een talisman."
     }
   },
   "terms": {

@@ -2526,6 +2526,10 @@
     "mobileEntry": {
       "menu": "Menu",
       "find": "Chercher par préoccupation"
+    },
+    "widget": {
+      "title": "Personnaliser l’écran d’accueil",
+      "description": "Choisissez un mot de Yeoni, une fleur, la lecture du jour ou un talisman."
     }
   },
   "terms": {

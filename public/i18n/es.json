@@ -2526,6 +2526,10 @@
     "mobileEntry": {
       "menu": "Menú",
       "find": "Buscar por inquietud"
+    },
+    "widget": {
+      "title": "Personalizar pantalla de inicio",
+      "description": "Elige un mensaje de Yeoni, una flor, la lectura del día o un talismán."
     }
   },
   "terms": {
