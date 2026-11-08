@@ -34,6 +34,7 @@ const SavedLovePdfButton = dynamic(() => import('./SavedLovePdfButton'));
 const SavedNewYearPdfButton = dynamic(() => import('./SavedNewYearPdfButton'));
 const SavedLifeBookPdfButton = dynamic(() => import('./SavedLifeBookPdfButton'));
 const SavedKarmaPdfButton = dynamic(() => import('./SavedKarmaPdfButton'));
+const SavedHumanDesignPdfButton = dynamic(() => import('./SavedHumanDesignPdfButton'));
 const VedicStructured = dynamic(() => import('@/app/vedic-ai/VedicAiClient').then(m=>m.StructuredReadingResult));
 
 function assistantObject(row:Record<string,unknown>) {
@@ -94,7 +95,8 @@ export default function SavedServiceReading({source,serviceId,value,status}:{sou
  if(family==='ziwei') return <div className={styles.reader}>{answerFirst(<SavedZiwei value={model.ziweiChart||model.chart}/>,body)}</div>;
  if(family==='human-design') {
   const chart=row.calculation||object(row.basis).chart||row.chart;
-  return <div className={styles.reader}>{answerFirst(<SavedHumanDesign value={chart}/>,body)}</div>;
+  const reportPdf=serviceId==='human-design'&&!!chart&&list(row.sections).some(s=>!!text(object(s).body));
+  return <div className={styles.reader}>{reportPdf&&<SavedHumanDesignPdfButton row={row} chart={chart} locale={locale}/>}{answerFirst(<SavedHumanDesign value={chart}/>,body)}</div>;
  }
  if(family==='saju'||family==='pet') return <div className={styles.letter}>{answerFirst(<>{saju?<SavedSaju value={saju}/>:<SavedSaju value={model}/>}<SavedFacts value={object(model.facts)}/></>,body)}</div>;
  if(family==='sukuyo') return <div className={sukuyoStyles.screen+' '+styles.nativeSukuyo} style={{minHeight:0}}>{answerFirst(<><SavedSukuyoSummary value={model}/><SavedFacts value={model.sukuyoResult||object(model.meta).relation}/></>,body)}</div>;
