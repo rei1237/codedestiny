@@ -6,11 +6,23 @@ const dom=new JSDOM('<div id="root"></div>',{url:'https://miniapp.example/checko
 const source=path.join(repo,'apps/toss/service/Checkout.jsx');
 const bundle=await build({entryPoints:[source],bundle:true,write:false,platform:'node',format:'cjs',jsx:'automatic',external:['react','react/jsx-runtime'],plugins:[{name:'offline-boundaries',setup(b){b.onResolve({filter:/^(\.\.\/src\/platform|@\/app\/_lib\/auth-store|@\/app\/checkout\/yeongnyangi-checkout\.module\.css)$/},a=>({path:a.path,namespace:'mock'}));b.onLoad({filter:/.*/,namespace:'mock'},a=>({loader:'js',contents:a.path.includes('platform')?`export const saleProducts=()=>globalThis.checkoutPolicy.sale();export const purchase=(...args)=>globalThis.checkoutPolicy.purchase(...args);export const paymentRequiresReview=()=>Boolean(globalThis.checkoutPolicy.uncertain);`:a.path.includes('auth-store')?`export const useAuthStore=()=>globalThis.checkoutPolicy.auth;export const getAuthState=()=>globalThis.checkoutPolicy.auth;export const subscribeAuth=fn=>{globalThis.checkoutPolicy.authListener=fn;return()=>{if(globalThis.checkoutPolicy)delete globalThis.checkoutPolicy.authListener;};};`:`export default new Proxy({},{get:(_t,k)=>String(k)});`}));}}]});
 const loaded=new Module(path.join(repo,'apps/toss/checkout-offline.cjs'));loaded.paths=Module._nodeModulePaths(path.join(repo,'apps/toss'));loaded._compile(bundle.outputFiles[0].text,loaded.id);const Checkout=loaded.exports.default;
-async function mount(sale,purchase,onPrepare=async()=>({id:'a'.repeat(64),paid:false,state:'CREATED',product:{id:'p'}}),uncertain=false){
- globalThis.checkoutPolicy={sale,purchase,uncertain,auth:{isAuthenticated:true,user:{id:'owner'}}};const root=createRoot(document.getElementById('root'));const draft={requestId:'a'.repeat(64),question:'이전 비공개 질문',product:{id:'p',name:'상담',fishId:'mackerel',fishName:'기본'},chapters:1,ready:true,onPrepare};await React.act(async()=>root.render(React.createElement(Checkout,{draft})));return ()=>React.act(()=>root.unmount());
+async function mount(sale,purchase,onPrepare=async()=>({id:'a'.repeat(64),paid:false,state:'CREATED',product:{id:'p'}}),uncertain=false,reopened=true){
+ globalThis.checkoutPolicy={sale,purchase,uncertain,auth:{isAuthenticated:true,user:{id:'owner'}}};const root=createRoot(document.getElementById('root'));const draft={...(reopened?{requestId:'a'.repeat(64)}:{}),question:'이전 비공개 질문',product:{id:'p',name:'상담',fishId:'mackerel',fishName:'기본'},chapters:1,ready:true,onPrepare};await React.act(async()=>root.render(React.createElement(Checkout,{draft})));return ()=>React.act(()=>root.unmount());
 }
 const denied=()=>Object.assign(new Error('ACCESS_DENIED'),{status:403,code:'ACCESS_DENIED'});
 const available=async()=>[{id:'p',sku:'sku',displayAmount:'모의 상품',approvedPriceKRW:5000}];
+test('inline checkout pays the new verified request while rejecting a wrong product or malformed ID',async()=>{
+ const id='b'.repeat(64);
+ for(const [row,expected] of [[{id,product:{id:'p'}},[id]],[{id,product:{id:'other'}},[]],[{id:'invalid',product:{id:'p'}},[]]]){
+  const requests=[];
+  const close=await mount(available,(_sale,requestId)=>{requests.push(requestId);return ()=>{};},
+    async()=>({...row,paid:false,state:'CREATED'}),false,false);
+  try{
+   const buy=[...document.querySelectorAll('button')].find(b=>b.textContent.includes('단건 결제로 상담'));
+   await React.act(async()=>buy.click());assert.deepEqual(requests,expected);
+  }finally{await close();}
+ }
+});
 test('403 from product listing remains a permission error',async()=>{const close=await mount(async()=>{throw denied()},()=>assert.fail());try{assert.match(document.querySelector('[role="alert"]').textContent,/권한/);}finally{close();}});
 test('403 from payment callback remains a permission error',async()=>{const close=await mount(available,(_p,_id,_ok,onError)=>{onError(denied());return ()=>{};});try{const button=[...document.querySelectorAll('button')].find(x=>x.textContent.includes('단건 결제로 상담'));await React.act(async()=>button.click());assert.match(document.querySelector('[role="alert"]').textContent,/권한/);}finally{close();}});
 test('403 from preparing the order remains a permission error',async()=>{const close=await mount(available,()=>assert.fail(),async()=>{throw denied()});try{const button=[...document.querySelectorAll('button')].find(x=>x.textContent.includes('단건 결제로 상담'));await React.act(async()=>button.click());assert.match(document.querySelector('[role="alert"]').textContent,/권한/);}finally{close();}});

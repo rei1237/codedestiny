@@ -37,7 +37,10 @@ export default function TossCheckout({draft}){
   try{
    const row=await draft.onPrepare();if(!same())return;
    if(!row){locked.current=false;setBusy(false);return;}
-   if(!/^[a-f0-9]{64}$/.test(row.id||'')||row.id!==draft.requestId||typeof row.paid!=='boolean'||row.product?.id!==draft.product.id)throw Object.assign(new Error('RESULT_MISMATCH'),{code:'RESULT_MISMATCH'});
+   // Inline checkout learns its request ID from authenticated preparation.
+   // A checkout reopened by URL already has an ID and must keep that exact request.
+   const changedRequest=Object.hasOwn(draft,'requestId')&&row.id!==draft.requestId;
+   if(!/^[a-f0-9]{64}$/.test(row.id||'')||changedRequest||typeof row.paid!=='boolean'||row.product?.id!==draft.product.id)throw Object.assign(new Error('RESULT_MISMATCH'),{code:'RESULT_MISMATCH'});
    if(row.state==='REFUNDED')throw Object.assign(new Error('ORDER_REFUNDED'),{code:'ORDER_REFUNDED'});
    if(!row.paid&&row.state!=='CREATED')throw new Error('RESULT_MISMATCH');
    if(row.paid){location.assign('/yeongnyangi/result/?id='+encodeURIComponent(row.id));return;}
