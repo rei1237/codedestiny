@@ -458,3 +458,9 @@ next: 4-② 언어별 변경/신규 비트 직접 번역 후 완결성 검사
 - 별도 전달 워크트리 D:/Development/codedestiny-worktrees/vn-finish-delivery-20261109 는 detached origin/main=9e8cec0a6에서 생성. cc1ae9598 이후 이 브랜치 커밋을 cherry-pick 중. 기존 3단계 커밋은 자동 병합 성공.
 - b7029897a를 적용하다 config/sitemap-lastmod.json의 월별 서명/2026-11-08↔09 생성값 충돌. 원고 충돌 없음. 전달 HEAD=59d6ff273, cherry-pick 시퀀스 진행 중. 해결/abort/continue/push/배포는 아직 안 함.
 - 사용자 규칙(다른 사람 커밋과 충돌하면 멈추고 확인)에 따라 2026-11-09 채팅에서 생성기를 이용한 충돌 해소 후 계속할지 질문함. 답변 전에는 의존 작업 진행 금지. 번역은 독립적으로 계속.
+
+## 생성물 충돌 해소 추가 승인 (사용자, 2026-11-09)
+- 질문: config/sitemap-lastmod.json의 생성값 충돌을 최신 main 기준으로 해소한 뒤 sitemap:generate로 재생성해 검증·배포를 계속해도 될까요?
+- 사용자 답변 원문: 「생성기로 충돌 해소 후 계속 (추천)」. 생성 기록은 최신 main 기준으로 두고 원고가 적용된 트리에서 생성기로 다시 만든다. 소스 충돌에는 이 승인을 확대하지 않는다.
+
+- 4-③ 추가: npm run verify:release(=deploy:critical) 종료0 통과. mock 핵심 테스트·결제/인증 회귀·typecheck·worker dry-run·strict-core 인코딩 포함. 실 LLM/실결제/운영 DB 쓰기는 없음. 상세 로그는 일시 .tmp/vn-finish/release-check.log(종료 정리 대상).
