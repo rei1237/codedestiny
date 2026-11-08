@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
+import { createRequire } from 'node:module';
 import { Seasons } from 'astronomy-engine';
 import { sunSignForDate } from '../../scripts/lib/moon-sky.mjs';
 import { loadTsModule } from '../../scripts/lib/load-ts-module.mjs';
@@ -12,7 +13,19 @@ const { buildPeriodFaqs } = loadTsModule('lib/fortune/period-faqs.ts');
 const { resolveKey, resolveVars } = loadTsModule('lib/i18n/dictionary.ts');
 const { buildSignViewModel } = loadTsModule('lib/fortune/build-view.ts');
 
-test('every period resolves each animal and zodiac protagonist name in non-Korean narratives', () => {
+test('every period resolves each animal and zodiac protagonist name in non-Korean narratives', (t) => {
+  // Exercise the real view builder without depending on prebuild output or today's clock.
+  const dailyData = createRequire(import.meta.url)('../../lib/fortune/daily-data.ts');
+  const entry = { keyword: { kr: '준비' }, score: { overall: 5, love: 5, money: 5, health: 5, work: 5 }, lucky: { color_kr: '파랑', number: 3 }, sections: {} };
+  const pkg = {
+    date: '2026-11-09',
+    calendar: { ilchin: '丁亥', wolgeon: '己亥', lunar_date: '10월 1일' },
+    sky_today: { moon_sign: 'Scorpio', moon_phase: 'New moon' },
+    animals: Object.fromEntries(SIGN_PROFILES.filter(p => p.kind === 'animal').map(p => [p.id, entry])),
+    zodiacs: Object.fromEntries(SIGN_PROFILES.filter(p => p.kind === 'zodiac').map(p => [p.id, entry])),
+  };
+  t.mock.method(dailyData, 'loadDailyPackage', () => pkg);
+  t.mock.method(dailyData, 'resolvePeriodDate', () => pkg.date);
   for (const basename of ['en', 'ja', 'zh-cn', 'zh-tw']) {
     const dictionary = JSON.parse(readFileSync(new URL(`../../public/i18n/${basename}.json`, import.meta.url), 'utf8'));
     for (const profile of SIGN_PROFILES) for (const period of ['today', 'tomorrow', 'weekly', 'monthly']) {
