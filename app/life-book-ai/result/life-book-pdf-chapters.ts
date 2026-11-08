@@ -54,8 +54,8 @@ const text = (value: unknown) => (typeof value === "string" ? value.trim() : "")
 function toBookBody(value: string) {
   return value.replace(/\r\n/g, "\n").split("\n")
     .map((line) => {
-      const heading = line.trim().match(/^(?:#{1,3}\s*)?\*\*([^*]+)\*\*[:：]?$/);
-      return heading ? `● ${heading[1].trim()}` : line.replace(/\*\*/g, "");
+      const heading = line.trim().match(/^(?:#{1,3}\s*)?\*\*([^*]+)\*\*[:：]?$/) || line.trim().match(/^#{1,3}\s+(.+)$/);
+      return heading ? `● ${heading[1].replace(/\*\*/g, "").trim()}` : line.replace(/\*\*/g, "");
     })
     .join("\n");
 }

@@ -1440,7 +1440,8 @@ function cleanEvidenceRefs(value) {
 }
 
 function evidenceRefRoot(ref = "") {
-  return clean(ref, 160).split(".")[0] || "";
+  // `yearlyLuck[0].pillar`처럼 배열 첨자로 오는 경로도 루트는 `yearlyLuck`다(실측 2026-11-08, 9장·판독 4 전달 실패).
+  return clean(ref, 160).split(/[.[]/)[0] || "";
 }
 
 function hasValidEvidenceRefs(refs = [], minCount = 1) {

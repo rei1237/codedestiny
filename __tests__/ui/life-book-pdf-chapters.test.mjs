@@ -14,7 +14,7 @@ const report = {
   title: '인생의 책',
   chapters: [
     {chapterNumber: 1, title: '타고난 사주의 원형', summary: '단단한 뿌리의 사람이에요.', content: '**뿌리의 뜻**\n일간이 **단단**하다는 건 버티는 힘이 크다는 뜻이에요.', advice: ['아침을 먼저 지켜요.']},
-    {chapterNumber: 2, title: '성격과 내면의 작동 방식', summary: '', content: '마음은 천천히 데워져요.', advice: []},
+    {chapterNumber: 2, title: '성격과 내면의 작동 방식', summary: '', content: '### 천천히 데워지는 마음\n마음은 천천히 데워져요.', advice: []},
   ],
   expertReadings: [{title: '일간과 월지가 여는 중심 기질', content: '일간과 월지가 만나는 자리예요.', guidance: ['쉬는 날을 정해요.']}],
   finalMessage: '다음 장은 같이 써 봐요.',
@@ -31,6 +31,7 @@ test('보관함(assistant JSON)과 결과 API(reportJson)는 같은 윤달 장 �
     ['맺는 말', '맺는 말', '윤달'],
   ]);
   assert.equal(fromRecord[0].body, '단단한 뿌리의 사람이에요.\n\n● 뿌리의 뜻\n일간이 단단하다는 건 버티는 힘이 크다는 뜻이에요.\n\n● 윤달의 조언\n- 아침을 먼저 지켜요.');
+  assert.equal(fromRecord[1].body, '● 천천히 데워지는 마음\n마음은 천천히 데워져요.');
 });
 
 test('인생 총운 장 제목도 부 이름을 받고, 모르는 제목은 빈 부 이름이다', () => {

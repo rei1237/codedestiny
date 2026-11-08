@@ -327,6 +327,9 @@ test('short life-book candidates retain structure, evidence and repetition check
   expect(accepts({ ...valid, content: '   ' })).toBe(false);
   expect(accepts({ ...valid, summary: '' })).toBe(false);
   expect(accepts({ ...valid, evidenceRefs: ['invented.path'] })).toBe(false);
+  // 실측 2026-11-08: 세운 장은 배열 첨자 경로로 근거를 단다. 루트가 정본이면 받고, 지어낸 루트는 첨자가 있어도 막는다.
+  expect(accepts({ ...valid, evidenceRefs: ['yearlyLuck[0].pillar', 'yearlyLuck[1].natalInteractions', 'majorLuck.cycles[4].pillar'] })).toBe(true);
+  expect(accepts({ ...valid, evidenceRefs: ['yearlyLuck[0].pillar', 'invented[0].path', 'majorLuck.currentCycle'] })).toBe(false);
   expect(accepts({ ...valid, content: '선택의 의미를 일상에서 관찰하면서 상대의 속도를 돌아보고 작은 행동으로 확인하는 과정이 필요합니다. '.repeat(60) })).toBe(false);
 });
 
