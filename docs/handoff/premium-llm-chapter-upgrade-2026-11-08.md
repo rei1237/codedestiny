@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-08
-next: 7c 자미 심층 V2(1장 본성·질문 1회, 구제 배달, 장 없을 때만 환불) + 보관함 PDF (7단계 진행 메모 참고)
+next: 7d 자미 검증(tsc·jest·node --test·verify·build) + 모의 실행 + 실호출 상품당 1회 결과 기록 (7단계 진행 메모 참고)
 ---
 
 # 3만원 이상 유료 LLM — 상품별 챕터·분량·PDF·전달 개선 인수인계
@@ -595,7 +595,13 @@ next: 7c 자미 심층 V2(1장 본성·질문 1회, 구제 배달, 장 없을 �
   - `ZiweiAiClient.tsx`: 판 2에만 차례(`.zwToc`, 링크 높이 44px), "N장 · 부 이름" 키커, 무성 칩을 단다. 판 1 화면은 그대로다. PDF는 조판(`exportConsultationBookPdf`, coverTheme ziwei, byline 무성)을 먼저 쓰고, `PdfFontError`일 때만 캡처로 되돌아간다
   - 보관함: `app/records/view/SavedZiweiAiPdfButton.tsx`. `SavedServiceReading.tsx` ziwei 비섬 분기에서 `view.fields.includes('messages')`일 때만 단다. 이 조건이면 ziwei-ai만 해당되고(executions·paid-results 별칭 포함), 심층·궁합은 빠진다
   - 테스트: `__tests__/ui/ziwei-ai-chapters.test.mjs` 3개. 클라이언트 소스를 읽던 가드 4곳은 공용 모듈도 함께 읽게 고쳤다(verify-analysis-basis-contract, verify-ziwei-ai-consultation-flow, verify-ziwei-personality-context, ziwei-result-disclosure 테스트). consultation-intro-hydration 하네스에는 새 모듈 모의를 넣었다. 모르는 import는 leaf 함수가 되어 `isZiweiAiPlanV2`에서 터진다
-- [ ] 7c. 심층 prompt·route V2 + 테스트 + 보관함 PDF
+- [x] 7c. 심층 prompt·route V2 + 테스트 + 보관함 PDF
+  - 새 모듈 `worker/lib/ziwei-deep-delivery-v2.js`(판 고정·끄는 스위치 `ZIWEI_DEEP_DELIVERY_V2_ENABLED=false`, settled 판정, 소프트 검사·힌트·걷어 내기, 초안 구제). 프롬프트 `buildZiweiDeepChapterPrompt(..., { planVersion: 2 })`는 overview만 질문 줄을 받고 "● 타고난 본성 / ● 질문에 대한 답"으로 연다. 다른 장은 "질문 답은 1장에서 이미 했다"와 주제 한 줄만 받는다. 분량 문구는 "넉넉하게"다
+  - route: 새 리포트에 `llmMeta.deliveryPlanVersion: 2`. `generateChapter` 9번째 인자 `options`({planVersion, hint}), 판 2 캐시 키 `ziwei-deep-report-v2`, 거절된 실제 응답은 `draft`로 돌려준다. 판 2 루프: 거절된 초안은 `llmMeta.drafts.<id>`({body,chars}, 더 긴 것만)에 남긴다. 소프트 이슈(말투 이탈·질문 재인용)가 있으면 마지막 시도 전에는 초안으로 남기고 `:softRepair`를 단 뒤 다음 시도에 [보정] 힌트를 붙인다. 마지막 시도에서는 걷어 내고 저장한다. 시도를 다 쓴 장은 초안에서 다른 장과 겹치는 문장을 걷어 내 `provider:'salvaged'`로 저장하고 `:salvaged`를 단다. 초안이 없으면 `:skipped`. 배치 전후로 정리한다. 모든 장이 정리되면 배달하고, 유효 장이 0이면 `LLM_QUALITY_CHECK_FAILED`로 환불한다. `publicStoredReport`는 판 2에서 정리된 장을 nextIndex에서 건너뛰고, 구제·건너뛴 장이 있으면 degraded이며 `deliveryPlanVersion`을 노출한다. 스키마가 strict라 salvaged 표시는 provider에 둔다
+  - 판 1 바이트 고정: `__tests__/worker/ziwei-deep-v1-prompt-bytes.test.js`(15장 + 질문 없는 overview, 모킹 없이 sha256). 판 2 질문 1회 테스트도 같은 파일에 있다
+  - 하네스 `__tests__/ui/ziwei-deep-paid-delivery.behavior.test.js`: fixture ctx에 판 1 스텁(`ziweiDeepDeliveryV2Enabled:()=>false` 등)을 넣었다. 판 2 테스트 3개(구제 배달·환불 0, 건너뛰기/전부 빈 장이면 환불, 말투 이탈 [보정] 힌트)는 실제 모듈을 덮어 넣는다. 61개 통과
+  - 보관함: `app/records/view/SavedZiweiDeepPdfButton.tsx`(`exportZiweiReportPdf`, 무성 byline·표지는 캐릭터 플래그가 켜졌을 때만). `SavedServiceReading.tsx` ziwei 분기에서 `view.fields.includes('chapters')`일 때만 단다(ziwei-deep만 해당)
+  - 확인: tsc 통과, jest worker ziwei·record·paid-report 18개 파일 201개 통과, node --test ui ziwei·record 152개 통과. verify 실패 4개(all-paid-services-payment-flow: MONGO_URI 없음, fusion-paid-efficiency, ziwei-brightness-constraints, ziwei-deep-paid-reopen-browser: structuredClone 없음)는 stash한 기준에서도 실패하는 기존 문제다
 - [ ] 7d. tsc·jest·node --test·verify·build, 모의 실행, 실호출 상품당 1회, 결과 기록
 
 ## 단계별 결과

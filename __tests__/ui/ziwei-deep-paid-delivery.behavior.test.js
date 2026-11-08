@@ -73,6 +73,9 @@ function fixture(accessType = 'pass') {
     GENERATING_FRESHNESS_MS: 150000, CHAPTER_MAX_ATTEMPTS: 3, CHAPTER_BATCH_SIZE: 4, CHAPTER_CONCURRENCY: 4, MIN_DELIVERABLE_CHARS: 20000, MIN_DELIVERABLE_CHAPTERS: 15,
     ZIWEI_DEEP_CHAPTERS: definitions, ZIWEI_DEEP_PDF_META: { minTotalChars: 34000 }, FEATURE_KEY: 'ziwei-deep-pdf', TITLE: '심화', MESSAGES: {},
     ZiweiDeepReport: model, resolveSourceTransactionId: () => 'original-receipt',
+    // 판 1 고정. 판 2 테스트는 실제 worker/lib/ziwei-deep-delivery-v2.js 를 덮어 넣는다.
+    ZIWEI_DEEP_DELIVERY_PLAN_VERSION: 2, ziweiDeepDeliveryV2Enabled: () => false, isZiweiDeepPlanV2: () => false,
+    isZiweiDeepChapterSettled: () => false, ziweiDeepSoftIssues: () => [], ziweiDeepRepairHint: () => '', scrubZiweiDeepBody: body => body, salvageZiweiDeepChapter: () => '',
     startRefundableExecution: async (_env, _owner, receipt, key) => { assert.equal(receipt, 'original-receipt'); assert.equal(key, 'original-paid-key'); starts++; },
     completeRefundableExecution: async () => { assert.equal(doc.status, 'completed'); return true; }, refundExecution: async () => { refunds++; return true; },
     generateChapter: async (_env, chart, _birth, definition) => {
@@ -459,4 +462,53 @@ test('숙요의 긴 결과 카드도 화면 진입 비율 없이 본문을 표�
   vm.runInContext(ts.transpileModule(fn.getText(ast), { compilerOptions: { target: ts.ScriptTarget.ES2022, jsx: ts.JsxEmit.React } }).outputText, ctx);
   const content = '긴숙요결과본문'.repeat(3000); const html = renderToStaticMarkup(ctx.SukuyoReveal({ children: content }));
   assert.ok(html.includes(content)); assert.doesNotMatch(html, /opacity|visibility|display:none|transform/);
+});
+
+// 판 2(2026-11-08): 시도를 다 쓴 장은 환불 대신 구제·건너뛰기, 장이 하나도 없을 때만 환불, 말투 이탈은 1회 힌트 수리.
+async function fixtureV2() {
+  const f = fixture();
+  Object.assign(f.ctx, await import('../../worker/lib/ziwei-deep-delivery-v2.js'));
+  return f;
+}
+const v2Body = (id, n = 70) => Array.from({ length: n }, (_, i) => `${id}의 ${i}번째 흐름은 계산한 명반의 조건을 바탕으로 현실에서 선택할 수 있는 행동을 구체적으로 설명합니다.`).join('\n');
+async function drive(f, limit = 12) {
+  let response;
+  for (let i = 0; i < limit; i++) { response = await f.post(); if (response.status !== 202) break; }
+  return response;
+}
+test('판 2: 새 리포트는 판을 고정하고, 시도를 다 쓴 장은 초안에서 구제해 환불 없이 배달한다', async () => {
+  const f = await fixtureV2();
+  f.ctx.generateChapter = async (_env, _chart, _birth, definition) => definition.id === 'chapter3'
+    ? { id: definition.id, title: definition.title, body: 'fallback', chars: 8, provider: 'fallback', ok: false, draft: v2Body('chapter3', 20) }
+    : { id: definition.id, title: definition.title, body: v2Body(definition.id), chars: 1, provider: 'fixture', ok: true };
+  const response = await drive(f);
+  assert.equal(response.status, 200, await response.text());
+  assert.equal(f.doc.llmMeta.deliveryPlanVersion, 2); assert.equal(f.doc.status, 'completed'); assert.equal(f.refunds, 0);
+  assert.equal(f.doc.llmMeta.attempts['chapter3:salvaged'], 1);
+  assert.equal(f.doc.chapters.find(ch => ch.id === 'chapter3').provider, 'salvaged');
+});
+test('판 2: 초안 없는 장은 건너뛰고, 모든 장이 비면 환불한다', async () => {
+  const skip = await fixtureV2();
+  skip.ctx.generateChapter = async (_env, _chart, _birth, definition) => definition.id === 'chapter5'
+    ? { id: definition.id, title: definition.title, body: 'fallback', chars: 8, provider: 'fallback', ok: false }
+    : { id: definition.id, title: definition.title, body: v2Body(definition.id), chars: 1, provider: 'fixture', ok: true };
+  assert.equal((await drive(skip)).status, 200);
+  assert.equal(skip.doc.llmMeta.attempts['chapter5:skipped'], 1); assert.equal(skip.refunds, 0);
+  assert.equal(skip.doc.chapters.some(ch => ch.id === 'chapter5'), false);
+  const empty = await fixtureV2();
+  empty.ctx.generateChapter = async (_env, _chart, _birth, definition) => ({ id: definition.id, title: definition.title, body: 'fallback', chars: 8, provider: 'fallback', ok: false });
+  await drive(empty, 20);
+  assert.equal(empty.doc.status !== 'completed', true); assert.ok(empty.refunds >= 1);
+});
+test('판 2: 말투 이탈 장은 초안으로 남기고 다음 시도에 [보정] 힌트를 붙인다', async () => {
+  const f = await fixtureV2(); const hints = [];
+  f.ctx.ziweiDeepSoftIssues = body => String(body).includes('DRIFT') ? [{ code: 'REGISTER_DRIFT', sentences: ['DRIFT'] }] : [];
+  f.ctx.generateChapter = async (_env, _chart, _birth, definition, _c, _l, attempt, _t, options) => {
+    if (definition.id === 'chapter0') hints.push(options?.hint || '');
+    const body = definition.id === 'chapter0' && attempt === 1 ? `${v2Body('chapter0')}\nDRIFT` : v2Body(definition.id);
+    return { id: definition.id, title: definition.title, body, chars: 1, provider: 'fixture', ok: true };
+  };
+  assert.equal((await drive(f)).status, 200);
+  assert.equal(hints.length, 2); assert.equal(hints[0], ''); assert.match(hints[1], /\[보정\]/);
+  assert.doesNotMatch(f.doc.chapters.find(ch => ch.id === 'chapter0').body, /DRIFT/);
 });
