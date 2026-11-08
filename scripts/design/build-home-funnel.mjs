@@ -311,7 +311,7 @@ function localizedPassBenefits() {
     const nameKey = 'home.overseasCopy.pass' + offer.id[0].toUpperCase() + offer.id.slice(1);
     labels.set(offer.name + ' 이용권 확인하기', { key: 'home.benefitsCopy.cta', values: { name: '@' + nameKey } });
   }
-  const dom = new JSDOM(renderPassBenefits('honey', 'ggul-honey-pass'));
+  const dom = new JSDOM(renderPassBenefits('honey', 'ggul-honey-pass', { ctaBelowPrice: true }));
   try {
     const walker = dom.window.document.createTreeWalker(dom.window.document.body, dom.window.NodeFilter.SHOW_TEXT);
     const nodes = [];
