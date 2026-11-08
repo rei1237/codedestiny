@@ -1,12 +1,17 @@
+import {
+  LOCALES as LOCALE_LIST,
+  LOCALE_DATA,
+  PUBLIC_LOCALES as PUBLIC_LOCALE_LIST,
+  SEO_INDEXABLE_LOCALES as SEO_INDEXABLE_LOCALE_LIST,
+} from "./locale-data.mjs";
+
 export type Locale = "ko" | "ja" | "zh" | "zh-TW" | "en";
 
-export const LOCALES = ["ko", "ja", "zh", "zh-TW", "en"] as const;
-export const PUBLIC_LOCALES = ["ja", "zh", "zh-TW", "en"] as const;
-// 2026-07: 일본 오가닉 유입 확보를 위해 다국어 색인 개방.
-// 2026-08: 대만 번체(zh-TW)를 zh(중국 간체)와 분리된 별도 로케일로 개방.
-// ja/zh/zh-TW/en SSR 페이지(app/[locale]/*)는 네이티브 품질 번역이 완료된 상태
-// (lib/seo/i18nKeywords.ts, lib/seo/i18nInsights.ts 참고).
-export const SEO_INDEXABLE_LOCALES = ["ko", "ja", "zh", "zh-TW", "en"] as const;
+// 값의 원본은 lib/i18n/locale-data.mjs(빌드 스크립트와 공유). 여기서는 타입만 입힌다.
+export const LOCALES = LOCALE_LIST as unknown as readonly ["ko", "ja", "zh", "zh-TW", "en"];
+export const PUBLIC_LOCALES = PUBLIC_LOCALE_LIST as unknown as readonly ["ja", "zh", "zh-TW", "en"];
+// 2026-07 ja/zh/en, 2026-08 zh-TW 색인 개방. 근거는 locale-data.mjs 주석.
+export const SEO_INDEXABLE_LOCALES = SEO_INDEXABLE_LOCALE_LIST as unknown as readonly ["ko", "ja", "zh", "zh-TW", "en"];
 export const LOCALE_NAVIGATION_LOCALES = LOCALES;
 
 const LOCALE_LABELS_TEXT_TRANSLATIONS = {
@@ -17,61 +22,31 @@ const LOCALE_LABELS_TEXT_TRANSLATIONS = {
   en: "English",
 } as const;
 
-export const LOCALE_CONFIG: Record<Locale, {
+type LocaleConfigEntry = {
   label: string;
   htmlLang: string;
   pathPrefix: string;
   siteName: string;
   ogLocale: string;
   hrefLang: string;
+  /** 범위를 넓히는 hreflang 별칭만(설계 판단 8). hreflang 링크는 lib/seo/hreflang.mjs 가 낸다. */
   hrefLangAliases?: string[];
-}> = {
-  ko: {
-    label: LOCALE_LABELS_TEXT_TRANSLATIONS.ko,
-    htmlLang: "ko",
-    pathPrefix: "",
-    siteName: "꿀꿀 운세",
-    ogLocale: "ko_KR",
-    hrefLang: "ko",
-    hrefLangAliases: ["ko-KR"],
-  },
-  ja: {
-    label: LOCALE_LABELS_TEXT_TRANSLATIONS.ja,
-    htmlLang: "ja-JP",
-    pathPrefix: "/ja",
-    siteName: "꿀꿀 운세",
-    ogLocale: "ja_JP",
-    hrefLang: "ja",
-    hrefLangAliases: ["ja-JP"],
-  },
-  zh: {
-    label: LOCALE_LABELS_TEXT_TRANSLATIONS.zh,
-    htmlLang: "zh-CN",
-    pathPrefix: "/zh",
-    siteName: "꿀꿀 운세",
-    ogLocale: "zh_CN",
-    hrefLang: "zh-CN",
-    hrefLangAliases: ["zh", "zh-Hans"],
-  },
-  "zh-TW": {
-    label: LOCALE_LABELS_TEXT_TRANSLATIONS["zh-TW"],
-    htmlLang: "zh-TW",
-    pathPrefix: "/zh-tw",
-    siteName: "꿀꿀 운세",
-    ogLocale: "zh_TW",
-    hrefLang: "zh-TW",
-    hrefLangAliases: ["zh-Hant"],
-  },
-  en: {
-    label: LOCALE_LABELS_TEXT_TRANSLATIONS.en,
-    htmlLang: "en",
-    pathPrefix: "/en",
-    siteName: "꿀꿀 운세",
-    ogLocale: "en_US",
-    hrefLang: "en",
-    hrefLangAliases: ["en-US"],
-  },
 };
+
+export const LOCALE_CONFIG: Record<Locale, LocaleConfigEntry> = Object.fromEntries(
+  LOCALES.map((locale) => {
+    const data = LOCALE_DATA[locale];
+    return [locale, {
+      label: LOCALE_LABELS_TEXT_TRANSLATIONS[locale],
+      htmlLang: data.htmlLang,
+      pathPrefix: data.pathPrefix,
+      siteName: "꿀꿀 운세",
+      ogLocale: data.ogLocale,
+      hrefLang: data.hrefLang,
+      hrefLangAliases: [...data.hrefLangAliases],
+    }];
+  }),
+) as Record<Locale, LocaleConfigEntry>;
 
 export function isLocale(value: string): value is Locale {
   const normalized = String(value || "").toLowerCase();
@@ -97,7 +72,8 @@ export function resolveLocaleTag(value?: string): Locale | null {
   return (
     LOCALES.find((locale) => {
       const config = LOCALE_CONFIG[locale];
-      return [locale, config.htmlLang, config.hrefLang, config.ogLocale, ...(config.hrefLangAliases || [])].some(same);
+      // ko-KR·ja-JP·en-US 는 hreflang 에서 뺐지만(legacyTags) 표기 판정은 예전대로 받는다.
+      return [locale, config.htmlLang, config.hrefLang, config.ogLocale, ...(config.hrefLangAliases || []), ...LOCALE_DATA[locale].legacyTags].some(same);
     }) ?? null
   );
 }

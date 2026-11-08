@@ -175,7 +175,9 @@ const RUNTIME_READ_RE = /\breadFileSync\s*\(/;
 const CONSTRAINED_SEGMENTS = new Map([["[locale]", readLocaleSegments]]);
 
 function readLocaleSegments(rootDir) {
-  const source = readFileSync(resolve(rootDir, "lib/i18n/locales.ts"), "utf8");
+  // 로케일 데이터 원본은 lib/i18n/locale-data.mjs 다(locales.ts 는 타입만 입힌다). 옛 구조 픽스처는 locales.ts 로 받는다.
+  const dataSource = resolve(rootDir, "lib/i18n/locale-data.mjs");
+  const source = readFileSync(existsSync(dataSource) ? dataSource : resolve(rootDir, "lib/i18n/locales.ts"), "utf8");
   const segments = [...source.matchAll(/pathPrefix:\s*"([^"]*)"/g)]
     .map((match) => match[1].replace(/^\//, ""))
     .filter(Boolean);

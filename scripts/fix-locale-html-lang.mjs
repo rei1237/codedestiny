@@ -25,12 +25,13 @@ const KOREAN_HTML_TAG = /<html lang="ko"/;
 
 /** lib/i18n/locales.ts 의 LOCALE_CONFIG[*].pathPrefix 에서 로케일 디렉터리를 전수 발견한다. */
 function discoverLocaleSegments() {
-  const source = readFileSync(resolve(rootDir, "lib", "i18n", "locales.ts"), "utf8");
+  // 값의 원본은 lib/i18n/locale-data.mjs 다(locales.ts 는 타입만 입힌다).
+  const source = readFileSync(resolve(rootDir, "lib", "i18n", "locale-data.mjs"), "utf8");
   const segments = [...source.matchAll(/pathPrefix:\s*"([^"]*)"/g)]
     .map((match) => match[1].replace(/^\//, ""))
     .filter(Boolean);
   if (segments.length < 2) {
-    throw new Error("[locale-html-lang] lib/i18n/locales.ts 에서 pathPrefix 를 읽지 못했다 — 파서가 깨졌다.");
+    throw new Error("[locale-html-lang] lib/i18n/locale-data.mjs 에서 pathPrefix 를 읽지 못했다 — 파서가 깨졌다.");
   }
   const missing = segments.filter((segment) => !LOCALE_LANG[segment]);
   if (missing.length) {

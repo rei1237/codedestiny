@@ -7,12 +7,12 @@ const vm = require("node:vm");
 const root = path.resolve(__dirname, "../..");
 const read = (rel) => fs.readFileSync(path.join(root, rel), "utf8");
 
-/** lib/i18n/locales.ts 가 로케일 프리픽스의 정본이다. 손으로 적지 않고 거기서 뽑는다. */
+/** lib/i18n/locale-data.mjs 가 로케일 프리픽스의 정본이다(locales.ts 는 타입만 입힌다). 손으로 적지 않고 거기서 뽑는다. */
 function canonicalPrefixes() {
-  const prefixes = [...read("lib/i18n/locales.ts").matchAll(/pathPrefix:\s*"([^"]*)"/g)]
+  const prefixes = [...read("lib/i18n/locale-data.mjs").matchAll(/pathPrefix:\s*"([^"]*)"/g)]
     .map((m) => m[1])
     .filter(Boolean);
-  assert.ok(prefixes.length > 0, "lib/i18n/locales.ts 에서 pathPrefix 를 찾지 못했다");
+  assert.ok(prefixes.length > 0, "lib/i18n/locale-data.mjs 에서 pathPrefix 를 찾지 못했다");
   return new Set(prefixes);
 }
 

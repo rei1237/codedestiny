@@ -148,13 +148,10 @@ test("92개 라우트가 타는 공유 빌더와 로케일 표의 ko 항목이 �
   );
 
   const locales = fs.readFileSync(path.join(root, "lib", "i18n", "locales.ts"), "utf8");
-  const koBlock = /ko:\s*\{[\s\S]*?\}/.exec(locales);
-  assert.ok(koBlock, "lib/i18n/locales.ts 에서 ko 항목을 찾지 못했습니다.");
-  assert.match(
-    koBlock[0],
-    new RegExp(`siteName:\\s*"${BRAND}"`),
-    `로케일 표의 ko 항목 siteName 이 브랜드명("${BRAND}")이 아닙니다.`,
-  );
+  // LOCALE_CONFIG 는 로케일마다 같은 siteName 리터럴 하나로 만든다(ko 포함).
+  const siteNames = [...locales.matchAll(/siteName:\s*"([^"]*)"/g)].map((match) => match[1]);
+  assert.ok(siteNames.length > 0, "lib/i18n/locales.ts 에서 siteName 을 찾지 못했습니다.");
+  assert.deepEqual([...new Set(siteNames)], [BRAND], `로케일 표의 siteName(ko 포함)이 브랜드명("${BRAND}")이 아닙니다.`);
 });
 
 test("홈 셸(6개 미러 포함)은 application-name 을 브랜드명으로 선언한다", () => {
