@@ -10,6 +10,7 @@ import {requestMatchesService,tossFortuneAccessIssue} from './services.js';
 import {readRequest} from '../yeongnyangi/repository.js';
 import {readAndContinueFortune} from '../yeongnyangi/delivery.js';
 import {checkOrder} from './policy.js';
+import {isReviewSale} from './review-products.js';
 
 const DOMAINS=new Set(['saju','ziwei','sukuyo','vedic','astrology','tarot']);
 function assertLetterDeliverable(row){const issue=tossFortuneAccessIssue(row);if(issue)throw new TossError(issue,409);}
@@ -26,6 +27,8 @@ export function approvedLetterSale(domain,approved=APPROVED_TOSS_PRODUCTS){
 }
 export async function prepareTossLetter(env,auth,body,approved=APPROVED_TOSS_PRODUCTS){
  if(!body||typeof body!=='object'||Array.isArray(body)||body.persona!=='yeoni'||body.questionDecision!==undefined||body.fishId!==undefined)throw new TossError('INVALID_REQUEST',400);
+ if(!DOMAINS.has(body.domain))throw new TossError('PRODUCT_NOT_FOUND',404);
+ if(!isReviewSale('chat_'+body.domain,body.persona))throw new TossError('TOSS_PRODUCT_NOT_APPROVED',503);
  const sale=approvedLetterSale(body.domain,approved);
  const row=await prepareFortune(env,auth.userId,body,{persona:'yeoni'});
  if(!/^[a-f0-9]{64}$/.test(String(row?._id||''))||row.productId!==sale.productId||row.amountKRW!==sale.approvedPriceKRW||row.persona!=='yeoni')throw new TossError('TOSS_PRODUCT_NOT_APPROVED',503);

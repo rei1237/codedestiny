@@ -7,11 +7,12 @@ import {TossError} from './policy.js';
 import {libraryPage} from './library.js';
 import {requestMatchesPurchase} from './services.js';
 import {resolveStoredProduct} from '../yeongnyangi/payments/catalog.ts';
+import {isReviewSale} from './review-products.js';
 
 // The original screens keep their response contract. Authentication and payment
 // remain owned by /api/toss; this is never dispatched from a web-cookie route.
 export function canonicalProducts(approved=APPROVED_TOSS_PRODUCTS) {
-  return products.filter(product=>!product.id.startsWith('chat_')).map(product=>({
+  return products.filter(product=>isReviewSale(product.id)).map(product=>({
     ...product,available:approved.some(item=>{
       try { return approvedProduct(item.sku,approved).productId===product.id
         && (!item.serviceId||item.serviceId==='yeongnyangi') && item.approvedPriceKRW===product.priceKRW; }
@@ -40,6 +41,7 @@ export async function canonicalProfiles(auth,input) {
   return {ok:true,profiles:rows.map(toClientProfile),currentId:rows[0]?.profileId||''};
 }
 export async function prepareCanonicalFortune(env,auth,input) {
+  if(!isReviewSale(input.productId))throw new TossError('TOSS_PRODUCT_NOT_APPROVED',503);
   const sale=canonicalSale(input.productId);
   // Keep the complete original input: scope, voice, locale, selected profiles and
   // tarot spread. Server preparation validates all of it and snapshots the chart.

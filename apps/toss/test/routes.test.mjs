@@ -249,16 +249,15 @@ test('flower requires verified Toss session before calculation and never writes 
  try{const denied=await request({birth,userId:'attacker'},'/flower/match');assert.equal(denied.status,401);assert.equal(mocks.flowerCalls,0);}finally{mocks.denyAuth=false;}
  const allowed=await request({birth,userId:'attacker'},'/flower/match');assert.equal(allowed.status,200);assert.equal(mocks.flowerCalls,1);assert.equal(calls.profiles.length,0);
 });
-test('birth-based consultation systems preserve product and authenticated owner across preparation',async()=>{
- for(const domain of ['saju','astrology','ziwei','vedic','sukuyo']){
-  const r=await request({...input(),sku:domain+'_mackerel',birth:{...birth,date:{...birth.date,timeUnknown:false,hour:14,minute:30}}});
-  assert.equal(r.status,200,domain);assert.equal(calls.prepared[0].body.productId,domain+'_mackerel');assert.equal(calls.prepared[0].user,'owner');
- }
+test('representative Saju preparation preserves its product and verified owner',async()=>{
+ const r=await request({...input(),sku:'saju_mackerel',birth:{...birth,date:{...birth.date,timeUnknown:false,hour:14,minute:30}}});
+ assert.equal(r.status,200);assert.equal(calls.prepared[0].body.productId,'saju_mackerel');assert.equal(calls.prepared[0].user,'owner');
 });
-test('tarot preparation drops supplied birth data and does not create a profile',async()=>{
- const r=await request({...input(),sku:'tarot_mackerel',birth:undefined,tarotSpreadId:'test-spread',tarotInputs:{period:'week'}});
- assert.equal(r.status,200);assert.equal(calls.profiles.length,0);
- assert.equal(calls.prepared[0].body.profileId,'tarot-question');assert.equal(calls.prepared[0].body.tarotSpreadId,'test-spread');assert.equal(calls.prepared[0].body.timeUnknown,undefined);
+test('deferred systems cannot prepare a new sale or create a profile even with a known SKU',async()=>{
+ for(const domain of ['tarot','astrology','ziwei','vedic','sukuyo']){
+  const r=await request({...input(),sku:domain+'_mackerel',tarotSpreadId:'test-spread'});
+  assert.equal(r.status,503,domain);assert.equal(calls.profiles.length,0);assert.equal(calls.prepared.length,0);
+ }
 });
 test('draw route checks authenticated ownership and matching approved product before drawing',async()=>{
  let draws=0;mocks.read=async(_env,user,id)=>{assert.equal(user,'owner');assert.equal(id,'a'.repeat(64));return {productId:'tarot_mackerel'};};
@@ -269,14 +268,10 @@ test('draw route checks authenticated ownership and matching approved product be
 });
 
 
-test('chat preparation derives persona and domain from server catalog, ignoring forged input',async()=>{
+test('a forged persona cannot turn a deferred chat product into a representative sale',async()=>{
  for(const service of ['yeoni','neo']){
   const r=await request({...input(),sku:service+':chat_saju_mackerel',persona:'attacker',domain:'tarot',fishId:'tuna'});
-  assert.equal(r.status,200);
-  assert.deepEqual(calls.prepared[0].options,{persona:service});
-  assert.equal(calls.prepared[0].body.domain,'saju');
-  assert.equal(calls.prepared[0].body.fishId,'mackerel');
-  assert.equal(calls.prepared[0].body.productId,'chat_saju_mackerel');
+  assert.equal(r.status,503);assert.equal(calls.prepared.length,0);assert.equal(calls.profiles.length,0);
  }
 });
 

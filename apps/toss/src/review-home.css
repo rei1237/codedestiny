@@ -1,0 +1,18 @@
+.review-home h1 { margin: 24px 0 16px; }
+.review-home h2 { margin: 24px 0 8px; }
+.review-home .unified-brand a { margin-left: auto; font-size: 14px; padding: 12px 0; }
+.review-home a { text-decoration: none; }
+.review-home .review-today {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  padding: 14px 18px; border-radius: 14px; background: var(--moon-paper); color: var(--moon-ink);
+}
+.review-today h2 { margin: 0; }
+.review-today p { margin: 4px 0 12px; font-size: 14px; }
+.review-today span { color: var(--moon-accent); font-size: 14px; font-weight: 700; }
+.review-today img { width: min(28%, 110px); height: auto; object-fit: contain; }
+.review-links a { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 60px; padding: 8px 2px; border-bottom: 1px solid var(--moon-line-soft); }
+.review-links strong, .review-links small { display: block; }
+.review-links strong { font-size: 17px; color: var(--moon-ink); }
+.review-links small { margin-top: 2px; font-size: 14px; }
+.review-support { display: flex; flex-wrap: wrap; gap: 16px; margin-top: 24px; }
+.review-support a { padding: 10px 0; font-size: 14px; }

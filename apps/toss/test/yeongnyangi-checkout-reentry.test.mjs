@@ -13,6 +13,7 @@ globalThis.window=dom.window;globalThis.document=dom.window.document;globalThis.
 const source=path.resolve(import.meta.dirname,'../service/PreparedCheckout.jsx');
 const bundle=await build({entryPoints:[source],bundle:true,write:false,platform:'node',format:'cjs',jsx:'automatic',external:['react','react/jsx-runtime'],plugins:[{name:'offline-screen-boundaries',setup(b){
  b.onLoad({filter:/PreparedCheckout\.jsx$/},async()=>({contents:await readFile(source,'utf8'),loader:'jsx'}));
+ b.onResolve({filter:/worker\/toss\/review-products\.js$/},()=>({path:path.join(repo,'worker/toss/review-products.js')}));
  b.onResolve({filter:/.*/},args=>args.kind==='entry-point'||args.path==='react'||args.path==='react/jsx-runtime'?undefined:{path:args.path,namespace:'fixture'});
  b.onLoad({filter:/.*/,namespace:'fixture'},()=>({contents:`
   import React from 'react';
@@ -27,14 +28,25 @@ const loaded=new Module(path.resolve(import.meta.dirname,'checkout-reentry.cjs')
 loaded.paths=Module._nodeModulePaths(path.join(repo,'apps/toss'));loaded._compile(bundle.outputFiles[0].text,loaded.id);
 const Screen=loaded.exports.default,id='a'.repeat(64);
 const fortune={id,paid:false,state:'CREATED',product:{id:'saju_mackerel',name:'원본 상품'},consultation:{question:'원본 질문'},manifest:[{id:'first'}]};
-async function mount(send,query='?requestId='+id){
+async function mount(send,query='?requestId='+id,reviewOnly=false){
  const calls=[],redirects=[],drafts=[];
  globalThis.location={origin:dom.window.location.origin,search:query,replace:href=>redirects.push(href)};
  globalThis.checkoutReentry={auth:{isAuthenticated:true,user:{id:'owner'}},drafts,send:(...args)=>{calls.push(args);return send(...args);}};
  const root=createRoot(document.getElementById('root'));
- await React.act(async()=>root.render(React.createElement(Screen)));
+ await React.act(async()=>root.render(React.createElement(Screen,{reviewOnly})));
  return {calls,redirects,drafts,close:()=>React.act(()=>root.unmount())};
 }
+test('review checkout blocks a new non-Saju product and reopens a previously paid one',async()=>{
+ const product={id:'tarot_mackerel',name:'타로'};
+ for(const paid of [false,true]){
+  const view=await mount(async()=>Response.json({fortune:{...fortune,product,paid}}),'?requestId='+id,true);
+  try{
+   assert.equal(view.drafts.length,0);
+   if(paid)assert.deepEqual(view.redirects,['/yeongnyangi/result/?id='+id]);
+   else assert.match(document.body.textContent,/신규 구매는 열려 있지 않아요/);
+  }finally{await view.close();}
+ }
+});
 test('a server-verified paid consultation reopens its original result without mounting the sale checkout',async()=>{
  const view=await mount(async()=>Response.json({fortune:{...fortune,paid:true,state:'COMPLETED'}}));
  try{assert.deepEqual(view.redirects,['/yeongnyangi/result/?id='+id]);assert.equal(view.drafts.length,0);assert.equal(view.calls.length,1);assert.equal(view.calls[0][0],'/canonical/yeongnyangi/requests/'+id);}

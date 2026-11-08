@@ -28,6 +28,7 @@ type Props = {
   profile: ReactNode; profileName: string; ready: boolean;
   busy: boolean; guest: boolean; enabled: boolean | null; onCreate: () => void;
   paymentSurface?: "toss"; tossPrice?: string; recoveredOrder?: boolean; lockedDomain?: ChatDomain; tossUnavailable?: boolean;
+  showOnlyLockedDomain?: boolean;
 };
 
 export default function ConsultationIntake(props: Props) {
@@ -35,6 +36,7 @@ export default function ConsultationIntake(props: Props) {
   const heading = useRef<HTMLHeadingElement>(null);
   const changedStep = useRef(false);
   const method = METHODS.find((item) => item.id === props.domain)!;
+  const visibleMethods = props.showOnlyLockedDomain ? METHODS.filter(item => item.id === props.lockedDomain) : METHODS;
   const move = (next: number) => { changedStep.current = true; setStep(next); };
   useEffect(() => {
     if (changedStep.current) heading.current?.focus({ preventScroll: true });
@@ -78,7 +80,7 @@ export default function ConsultationIntake(props: Props) {
     {step === 1 && <div className={styles.answer}>
       <details className={styles.examples}><summary>처음 상담한다면, 진행 방법 살펴보기</summary><YeoniIllustratedGuide kind="steps"/></details>
       <fieldset className={styles.methods}><legend>해석 방식</legend>
-        {METHODS.map((item) => <button key={item.id} type="button" disabled={!!props.lockedDomain && props.lockedDomain !== item.id} aria-pressed={item.id === props.domain} onClick={() => props.onDomain(item.id)}>
+        {visibleMethods.map((item) => <button key={item.id} type="button" disabled={!!props.lockedDomain && props.lockedDomain !== item.id} aria-pressed={item.id === props.domain} onClick={() => props.onDomain(item.id)}>
           <span><strong>{item.label}</strong><small>{item.description}</small></span><span className={styles.selectionDot} aria-hidden="true">{item.id === props.domain && <Check size={13} />}</span>
         </button>)}
       </fieldset>

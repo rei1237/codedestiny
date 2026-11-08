@@ -69,7 +69,7 @@ import {localizedTarotSpread} from '../_lib/tarot-spread-catalog-locales';
 const hasReviews=visibleReviews().length>0;
 // Every locale opens tarot on the question-first spread order.
 const defaultKind=(domainId:string)=>domainId==='tarot'?consultationKinds.tarot.find(k=>k.id===TAROT_SPREAD_KIND)!:consultationKinds[domainId][0];
-export default function Consultation({initialQuestion=''}:{initialQuestion?:string}){
+export default function Consultation({initialQuestion='',sajuOnly=false}:{initialQuestion?:string;sajuOnly?:boolean}){
  const [relationshipStage,setRelationshipStage]=useState(''),[relationshipQuestionId,setRelationshipQuestionId]=useState('');
  const [participants,setParticipants]=useState({self:'',partner:''});
  const [touched,setTouched]=useState<Record<string,boolean>>({});
@@ -178,12 +178,13 @@ export default function Consultation({initialQuestion=''}:{initialQuestion?:stri
  useEffect(()=>{if(!profileState.loading&&partnerId&&(partnerId===profileId||!profiles.some(p=>profileKey(p)===partnerId)))setPartnerId('');},[profileId,profiles,partnerId,profileState.loading]);
  useEffect(()=>{
   const params=new URLSearchParams(window.location.search),requested=params.get('domain')||'saju';
-  setDomainFixed(params.has('domain')||params.has('product'));
+  setDomainFixed(sajuOnly||params.has('domain')||params.has('product'));
   const questionEntry=params.get('flow')==='question';
   const reportEntry=!questionEntry&&(params.get('flow')==='legacy'||params.get('flow')==='relationship'||params.has('consultationKind')||params.has('domain')||params.has('product')||params.has('fish'));
   if(reportEntry)setQuestionMode(false);
   if(params.get('flow')==='relationship')setRelationshipStage('question');
-  const selected=products.find(p=>p.id===params.get('product'))||(requested==='fusion'?products.find(p=>p.readingKind==='pair'):undefined)||products.find(p=>p.domain===requested&&p.fishId===params.get('fish')&&p.readingKind==='single')||products.find(p=>p.domain===requested&&p.readingKind==='single')||products[0];
+  const entryProducts=sajuOnly?products.filter(p=>p.domain==='saju'&&p.readingKind==='single'):products;
+  const selected=entryProducts.find(p=>p.id===params.get('product'))||(requested==='fusion'?entryProducts.find(p=>p.readingKind==='pair'):undefined)||entryProducts.find(p=>p.domain===requested&&p.fishId===params.get('fish')&&p.readingKind==='single')||entryProducts.find(p=>p.domain===requested&&p.readingKind==='single')||entryProducts[0];
   if(selected.readingKind==='single'&&(params.has('fish')||params.has('product')))setQuestionFish(selected.fishId as QuestionFish);
   setProductId(selected.id);setDomain(selected.readingKind==='single'?selected.domain:'fusion');
   const nextDomain=consultationDomain(selected);
@@ -204,7 +205,7 @@ export default function Consultation({initialQuestion=''}:{initialQuestion?:stri
   if(requestedTopic && Object.hasOwn(topicCatalog,requestedTopic))setTopicId(requestedTopic);
   try{
    const draft=JSON.parse(sessionStorage.getItem(loginDraftKey)||'null');
-   if(draft&&draft.path===window.location.pathname+window.location.search&&(!draft.accountId||draft.accountId===readDestinyProfileAccountId())&&Date.now()-draft.savedAt<3600000){
+   if(draft&&(!sajuOnly||(entryProducts.some(p=>p.id===draft.productId)&&(!draft.intakeDomain||draft.intakeDomain==='saju')&&!draft.relationshipStage))&&draft.path===window.location.pathname+window.location.search&&(!draft.accountId||draft.accountId===readDestinyProfileAccountId())&&Date.now()-draft.savedAt<3600000){
     const savedProduct=products.find(p=>p.id===draft.productId);
     const savedDomain=savedProduct?consultationDomain(savedProduct):nextDomain;
     const savedKind=consultationKinds[savedDomain].find(k=>k.id===draft.consultationKind)||consultationKinds[savedDomain][0];
@@ -319,7 +320,7 @@ export default function Consultation({initialQuestion=''}:{initialQuestion?:stri
   }
   prep.push({id:'language',prompt:voiceStyle==='honorific'?'결과를 어떤 언어로 읽으시겠어요?':'결과는 어떤 언어로 읽고 싶어?',answer:readingLanguageNames[locale],valid:true,content:<ReadingLanguageSelect locale={locale} siteLocale={siteLocale} fallback={fallback} disabled={busy||kind.koOnly} onChange={value=>{setLocale(value);setError('');}}/>});
   const plan=recommendQuestion(intake.domain,intake.decision,question);
-  const confirmIntake=(next:IntakeValue)=>{const d={...next.decision,confirmed:true};setDecision(d);setScopeDraft(d);const fish=intakeFish(next);setQuestionFish(fish);setProductId(next.domain+'_'+fish);setDomain(next.domain);setKindId(next.domain==='tarot'?TAROT_SPREAD_KIND:d.target==='pair'?'compatibility':'ask');setTopicId(d.category);setRelationshipStage('');consultationAttemptId.current='';setError('');};
+  const confirmIntake=(next:IntakeValue)=>{if(sajuOnly&&next.domain!=='saju')return;const d={...next.decision,confirmed:true};setDecision(d);setScopeDraft(d);const fish=intakeFish(next);setQuestionFish(fish);setProductId(next.domain+'_'+fish);setDomain(next.domain);setKindId(next.domain==='tarot'?TAROT_SPREAD_KIND:d.target==='pair'?'compatibility':'ask');setTopicId(d.category);setRelationshipStage('');consultationAttemptId.current='';setError('');};
   const openQuestionCheckout=()=>{const category=questionCandidate(question)||intake.decision.category;confirmIntake({...intake,decision:{...intake.decision,category,situation:intake.decision.situation||question.slice(0,600)}});setChatStep('checkout');};
   initialOpen.current=openQuestionCheckout;
   return <QuestionCheckout value={intake} open={chatStep==='checkout'} busy={busy}
@@ -333,7 +334,7 @@ export default function Consultation({initialQuestion=''}:{initialQuestion?:stri
    </>}}/>}/>;
  }
 
- if(relationshipStage&&relationshipStage!=='consultation')return <RelationshipJourney locale={siteLocale} stage={relationshipStage} setStage={setRelationshipStage} questionId={relationshipQuestionId} onQuestion={(id,text)=>{setRelationshipQuestionId(id);setQuestion(text);}} participants={participants} onParticipants={setParticipants} profileState={profileState} partnerId={partnerId} onPartner={setPartnerId} onEngine={chooseRelationshipEngine}/>;
+ if(!sajuOnly&&relationshipStage&&relationshipStage!=='consultation')return <RelationshipJourney locale={siteLocale} stage={relationshipStage} setStage={setRelationshipStage} questionId={relationshipQuestionId} onQuestion={(id,text)=>{setRelationshipQuestionId(id);setQuestion(text);}} participants={participants} onParticipants={setParticipants} profileState={profileState} partnerId={partnerId} onPartner={setPartnerId} onEngine={chooseRelationshipEngine}/>;
  return <section className={`${styles.consultation} ${styles.consultationRoom}`}>
   {relationshipStage&&<button onClick={()=>setRelationshipStage('question')}>{relationshipCopy.change}</button>}
   <header className={styles.consultationHeader}><div><h1>{ui.title}</h1><p>{ui.intro}</p></div><Moon size={36} strokeWidth={1} aria-hidden="true"/></header>
@@ -341,8 +342,8 @@ export default function Consultation({initialQuestion=''}:{initialQuestion?:stri
   {(()=>{const settings=<><ReadingLanguageSelect locale={locale} siteLocale={siteLocale} fallback={fallback} disabled={busy||kind.koOnly} onChange={value=>{setLocale(value);setError('');}}/></>;
   // 한국어 화면은 결과 언어를 기본값으로 접어 두고, 상담 종류와 생선 선택을 먼저 보인다.
   return siteLocale==='ko'?<details className={styles.readingSettings}><summary>세부 설정 · {readingLanguageNames[locale]}</summary>{settings}</details>:settings;})()}
-  {!questionActive&&<a className={styles.spiritEntry} href={`/yeongnyangi/fortune/?mode=spirit&lang=${siteLocale}`}><img src="/assets/yeongnyangi/spirit/eastern-oracle-128.webp" width={64} height={68} alt=""/><span><strong>{spiritEntryCopy.title}</strong><br/>{spiritEntryCopy.description}</span></a>}
-  {!questionActive&&<><div className={styles.tabs} role="group" aria-label={siteLocale==='ko'?'운세 종류':ui.methodTitle}>{[...Object.entries(systemNames),['fusion','복합 운세']].map(([id,label])=><button key={id} aria-pressed={domain===id} onClick={()=>chooseDomain(id)}>{siteLocale==='ko'?label:localizedSystem(id,siteLocale)}</button>)}<a href={`/yeongnyangi/fortune/?mode=spirit&lang=${siteLocale}`}>{spiritEntryCopy.title}</a></div>
+  {!sajuOnly&&!questionActive&&<a className={styles.spiritEntry} href={`/yeongnyangi/fortune/?mode=spirit&lang=${siteLocale}`}><img src="/assets/yeongnyangi/spirit/eastern-oracle-128.webp" width={64} height={68} alt=""/><span><strong>{spiritEntryCopy.title}</strong><br/>{spiritEntryCopy.description}</span></a>}
+  {!questionActive&&<>{!sajuOnly&&<div className={styles.tabs} role="group" aria-label={siteLocale==='ko'?'운세 종류':ui.methodTitle}>{[...Object.entries(systemNames),['fusion','복합 운세']].map(([id,label])=><button key={id} aria-pressed={domain===id} onClick={()=>chooseDomain(id)}>{siteLocale==='ko'?label:localizedSystem(id,siteLocale)}</button>)}<a href={`/yeongnyangi/fortune/?mode=spirit&lang=${siteLocale}`}>{spiritEntryCopy.title}</a></div>}
   <div className={styles.kindChoices} role="group" aria-label={siteLocale==='ko'?'상담 종류':ui.summary}>{consultationKinds[domain].filter(item=>!item.koOnly||siteLocale==='ko').sort((a,b)=>Number(b.id===TAROT_SPREAD_KIND)-Number(a.id===TAROT_SPREAD_KIND)).map(item=><button key={item.id} aria-pressed={kind.id===item.id} onClick={()=>chooseKind(item.id)}><strong>{kindLabel(item.id)}</strong>{(siteLocale==='ko'||additionalKindDescription(item.id,siteLocale))&&<span>{siteLocale==='ko'?item.description:additionalKindDescription(item.id,siteLocale)}</span>}</button>)}</div>
 
   </>}

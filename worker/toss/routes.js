@@ -3,6 +3,7 @@ import {checkOrder,TossError,requireTossOrigin,verifiedUserKey,analyticsEvent} f
 import {callbackAuthorized,identityId,hash} from './crypto.js';
 import {createTossSession,requireTossSession,invalidateIdentity,disconnectIdentity} from './session.js';
 import {APPROVED_TOSS_PRODUCTS,APPROVED_TOSS_TAROT_LIBRARY_PRODUCTS,APPROVED_TOSS_NATIVE_PRODUCTS,approvedProduct,assertUniqueApprovedSaleSkus} from './catalog.js';
+import {isReviewSale} from './review-products.js';
 import {TossPurchase,TossSession} from './models.js';
 import {lookupOrder} from './partner.js';
 import {grantVerifiedOrder} from './grant.js';
@@ -70,7 +71,7 @@ export async function handleTossRoutes(request,env) {
     if(request.method==='OPTIONS')return new Response(null,{status:204,headers:{...headers,
       'Access-Control-Allow-Methods':'GET, POST, OPTIONS','Access-Control-Allow-Headers':'Authorization, Content-Type'}});
     if((path==='/catalog'||path==='/tarot-library/catalog')&&request.method==='GET')assertUniqueApprovedSaleSkus();
-    if(path==='/catalog'&&request.method==='GET')return reply({products:APPROVED_TOSS_PRODUCTS.map(item=>{
+    if(path==='/catalog'&&request.method==='GET')return reply({products:APPROVED_TOSS_PRODUCTS.filter(item=>isReviewSale(item.productId,item.serviceId)).map(item=>{
       const approved=approvedProduct(item.sku),product=resolveStoredProduct(approved.productId),service=consultationService(approved);
       return {id:consultationSelection(approved),productId:product.id,serviceId:service.id,name:`${service.name} ${product.name} ${product.fishName} 상담`,sku:item.sku,approvedPriceKRW:item.approvedPriceKRW,
         chapters:product.chapterCount,available:item.approved&&product.priceKRW===item.approvedPriceKRW};
@@ -430,6 +431,7 @@ export async function handleTossRoutes(request,env) {
       assertUniqueApprovedSaleSkus();
       await limit(env,auth._id,'prepare',6);
       const input=await bodyOf(request),product=approvedProduct(input.sku);
+      if(!isReviewSale(product.productId,product.serviceId))throw new TossError('TOSS_PRODUCT_NOT_APPROVED',503);
       const {validatePreparation}=await import('./preparation.js');
       const canonical=resolveStoredProduct(product.productId),service=consultationService(product);
       const tarot=canonical.domain==='tarot';
