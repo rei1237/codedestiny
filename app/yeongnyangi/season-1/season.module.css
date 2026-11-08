@@ -1,7 +1,7 @@
 .wrap{max-width:680px;margin:0 auto;padding:8px 0 48px;color:#eee3d0;word-break:keep-all}
 .head{padding:28px 18px 22px;text-align:center}
 .head small{display:block;color:#d7b984;font-size:13px;letter-spacing:.08em}
-.head h1{margin:8px 0 10px;font-family:'Yeongnyangi Myeongjo',serif;font-size:clamp(26px,7vw,34px);line-height:1.3}
+.head h1{margin:8px 0 10px;font-family:var(--font-display);font-size:clamp(26px,7vw,34px);line-height:1.3}
 .head p{margin:0 auto;max-width:30em;color:#c9bba5;font-size:15px;line-height:1.75}
 .latest{display:inline-block;margin-top:18px;padding:12px 22px;border-radius:999px;background:#d7b984;color:#1b1526;font-weight:700;text-decoration:none}
 .list{list-style:none;margin:0;padding:0 16px;display:grid;gap:14px}
@@ -14,9 +14,9 @@
 .note a{color:#d7b984}
 .episodeHead{padding:22px 18px 18px;text-align:center}
 .episodeHead small{color:#d7b984;font-size:13px;letter-spacing:.06em}
-.episodeHead h1{margin:6px 0 6px;font-family:'Yeongnyangi Myeongjo',serif;font-size:clamp(26px,7vw,32px)}
+.episodeHead h1{margin:6px 0 6px;font-family:var(--font-display);font-size:clamp(26px,7vw,32px)}
 .episodeHead time{color:#c9bba5;font-size:13px}
-.question{margin:8px 18px 0;font-family:'Yeongnyangi Myeongjo',serif;font-size:17px;line-height:1.8;text-align:center;color:#eee3d0}
+.question{margin:8px 18px 0;font-family:var(--font-reading);font-size:17px;line-height:1.8;text-align:center;color:#eee3d0}
 .pager{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:26px 16px 0}
 .pager a,.pager span{display:block;padding:14px;border:1px solid #4a3d5c;border-radius:14px;color:#eee3d0;font-size:14px;line-height:1.5;text-decoration:none}
 .pager small{display:block;color:#d7b984;font-size:12px}

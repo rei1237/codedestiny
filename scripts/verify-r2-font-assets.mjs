@@ -35,6 +35,7 @@ const readIfExists = (relativePath) => {
 // @font-face 를 선언하는 소스 전부. 셸은 크리티컬 인라인 CSS 안에 직접 선언한다.
 const FONT_FACE_SOURCES = [
   "styles/globals.css",
+  "styles/fonts-ui.generated.css",
   "styles/fonts-serif.css",
   "index.html",
   "public/index.html",

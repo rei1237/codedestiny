@@ -1,5 +1,5 @@
 .guide {color:var(--yn-ivory);text-align:left;line-height:1.75;font-size:16px;overflow-wrap:anywhere}
-.guide :is(h2,h3) {font-size:var(--yn-t-card);line-height:1.5;color:var(--yn-ivory);margin:30px 0 10px;font-family:var(--serif)}
+.guide > :is(h2,h3), .guide > section > :is(h2,h3) {font-size:var(--yn-t-card);line-height:1.5;color:var(--yn-ivory);margin:30px 0 10px;font-family:var(--serif)}
 .guide > section > :is(h2,h3) {font-size:var(--yn-t-section);line-height:1.4}
 /* 금 제목은 첫 상담 안내 하나만. */
 .guide > .offer > :is(h2,h3) {color:var(--yn-gold)}
@@ -16,7 +16,7 @@
 .chapters li {padding:5px 0}
 .sample {border-block:1px solid var(--yn-line);padding:20px 0;margin:32px 0;scroll-margin-top:24px}
 .sample summary {cursor:pointer;min-height:44px;align-content:center;color:var(--yn-gold);font-weight:700}
-.sample blockquote,.testimonial blockquote {margin:20px 0;font-family:var(--serif);font-size:18px;line-height:1.9;color:var(--yn-ivory);max-width:var(--yn-reading-width)}
+.sample blockquote,.testimonial blockquote {margin:20px 0;font-family:var(--font-reading);font-size:var(--type-reading-size);line-height:var(--type-reading-leading);color:var(--yn-ivory);max-width:var(--yn-reading-width)}
 .sampleMethod {padding-top:16px;border-top:1px solid var(--yn-line)}
 .sampleMethod strong {color:var(--yn-gold)}
 .testimonial {margin:32px 0;padding-block:4px 24px;border-bottom:1px solid var(--yn-line)}

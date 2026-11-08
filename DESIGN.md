@@ -25,7 +25,7 @@ typography:
   display:
     fontFamily: "var(--font-display)"
     fontSize: "clamp(1.5rem, 3vw, 2.05rem)"
-    fontWeight: 700
+    fontWeight: 400
     letterSpacing: "-0.01em"
     note: "fontSize 는 --cd-t-display(styles/theme-tokens.css:361). 아래 section/card/caption 과 함께 §7 의 타입 스케일 5단을 이룬다 — 새 화면은 리터럴 대신 이 토큰을 참조한다."
   section:
@@ -47,6 +47,16 @@ typography:
   premium:
     fontFamily: "var(--font-body)"
     lineHeight: 1.75
+  brand-rounded:
+    fontFamily: "'CodeDestinyRounded', sans-serif"
+    fontWeight: 400
+    note: "주아체 제목. OFL, same-origin WOFF2 unicode-range 서브셋. 가짜 굵기 없음."
+  reading:
+    fontFamily: "var(--font-reading)"
+    fontSize: "1.0625rem"
+    lineHeight: 1.8
+    letterSpacing: "0"
+    note: "768px 이상은 1.125rem. 최대 38rem, 문단 간격 1em. 작은 비교 카드 메타는 0.875rem, 카드 제목은 1.25rem."
   label:
     fontFamily: "var(--font-body)"
     fontSize: "0.78rem"
@@ -188,7 +198,7 @@ Code Destiny는 한 명의 사용자가 언제든 펼쳐볼 수 있는 두 권�
 
 ## 3. Typography
 
-**2026-11-03 통합 규칙(아래 과거 서체 설명보다 우선):** 꿀꿀 운세·영냥이의 제목과 짧은 캐릭터 안내는 기존 OFL 고운돋움(`CodeDestinyPlayful`), 본문·가격·입력·긴 결과는 기존 native 본문 스택이다. 정본은 `styles/brand-typography.css`. `--font-display/serif/playful/decorative`는 같은 제목 역할, `--font-body/premium`은 본문 역할이다. 모바일·데스크톱에서 서체를 바꾸지 않는다. 한자 전용 local 폴백을 유지하며 새 폰트 다운로드나 픽셀 서체를 추가하지 않는다. 영냥이의 남색·금색 팔레트는 유지한다.
+**2026-11-09 승인 타이포그래피(아래 과거 서체 설명보다 우선):** 꿀꿀 운세·영냥이의 제목·주요 메뉴는 주아체(`CodeDestinyRounded`, 실제 400 굵기), 본문·가격·입력·긴 결과는 Pretendard(`CodeDestinyBody`)다. 정본은 `styles/brand-typography.css`. `--font-display/serif/playful/decorative`는 제목 역할, `--font-body/premium`은 일반 정보, `--font-reading`은 결과 본문·내부 소제목 역할이다. 결과는 모바일 17px·데스크톱 18px, 행간 1.8, 최대 38rem, 자간 0, 문단 간격 1em이다. 두 폰트는 같은 사이트의 OFL WOFF2 문자 범위별 서브셋이며 생성 명령은 `node scripts/build-ui-font-assets.mjs`, 무네트워크 검증은 `--check`다. 한자 local 폴백·다국어 폴백·전용 포스터 글꼴·영냥이 밤 팔레트를 유지한다. 폰트 전체 preload와 가짜 굵기는 사용하지 않는다. 홈 탐색은 `docs/design/typography-home-20261109.md`를 따른다.
 
 
 **Display Font:** `CodeDestinyDisplay` (fallback: `CodeDestinyBody` → Pretendard → 시스템 한글 폰트)

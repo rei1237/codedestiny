@@ -119,11 +119,11 @@ html[data-cd-theme="neo"] {
  * 나머지는 caller의 기존 색을 그대로 쓰도록 currentColor로 둔다.
  */
 :root {
-  --cd-prose-font-size: 16px;
-  --cd-prose-line-height: 1.75;
-  --cd-prose-measure: 66ch;
-  --cd-prose-paragraph-gap: 1.15em;
-  --cd-prose-letter-spacing: -0.01em;
+  --cd-prose-font-size: var(--type-reading-size);
+  --cd-prose-line-height: var(--type-reading-leading);
+  --cd-prose-measure: var(--type-reading-measure);
+  --cd-prose-paragraph-gap: var(--type-reading-paragraph-gap);
+  --cd-prose-letter-spacing: 0;
   --cd-prose-body-color: currentColor;
 }
 

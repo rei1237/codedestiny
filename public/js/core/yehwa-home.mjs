@@ -12,6 +12,7 @@ export function mountYehwaHome(root) {
   const secondary = shell?.querySelectorAll('.yh-secondary') || [];
   function revealFragment() {
     const target = root.ownerDocument.getElementById(location.hash.slice(1));
+    if (target?.dataset.pickerFragment) selectConcern(target.dataset.pickerFragmentGroup, false, target.dataset.pickerFragment);
     const fold = target?.closest('.yh-secondary,.yh-find');
     if (fold && !fold.open) {
       fold.open = true;
@@ -19,11 +20,11 @@ export function mountYehwaHome(root) {
     }
   }
   function adaptLayout() {
-    concerns.open = desktop.matches || location.hash === '#homeConcerns';
+    if (concerns instanceof HTMLDetailsElement) concerns.open = desktop.matches || location.hash === '#homeConcerns';
     secondary.forEach(fold => { fold.open = desktop.matches; });
     revealFragment();
     if (menu) menu.open = desktop.matches;
-    if (desktop.matches && root.querySelector('#yhResults').hidden) root.querySelector('[data-yh-concern]').click();
+
   }
   let step = 0;
   const lines = [
@@ -38,7 +39,7 @@ export function mountYehwaHome(root) {
   }
   function show() {
     root.querySelectorAll('[data-yh-highlight]').forEach(node => node.removeAttribute('data-yh-highlight'));
-    const target = step === 1 ? root.querySelector('.yh-card-list:not([hidden]) .yh-card') : root.querySelector(`[data-yh-target="${step}"]`);
+    const target = step === 1 ? root.querySelector('[data-picker-card]:not([hidden]) .cd-picker-main') : root.querySelector(`[data-yh-target="${step}"]`);
     if (!target || target.hidden) { close(); return; }
     target.setAttribute('data-yh-highlight', '');
     target.after(guide);
@@ -64,21 +65,21 @@ export function mountYehwaHome(root) {
     if (rect.bottom > availableBottom || rect.top < 0) guide.scrollIntoView({block:'start',behavior:'instant'});
   }
   root.addEventListener('click', event => {
-    const serviceLink = event.target.closest('a[data-cd-service-id]');
+    const serviceLink = event.target.closest('a[data-cd-service-id],a[data-picker-service-id]');
     if (serviceLink && root.contains(serviceLink)) {
       root.ownerDocument.defaultView.cdTrackDiscovery?.('select_item', {
-        itemId: serviceLink.dataset.cdServiceId, itemListId: 'home',
+        itemId: serviceLink.dataset.cdServiceId || serviceLink.dataset.pickerServiceId, itemListId: 'home',
       });
     }
     const button = event.target.closest('button');
     if (!button || !root.contains(button)) return;
     if (button.hasAttribute('data-yh-concern')) {
-      const value = button.dataset.yhConcern;
-      root.querySelector('#yhResults').hidden = false;
-      root.querySelectorAll('[data-yh-concern]').forEach(node=>node.setAttribute('aria-pressed', String(node === button)));
-      root.querySelectorAll('[data-yh-group]').forEach(node=>{node.hidden=node.dataset.yhGroup !== value;});
-      root.querySelector('[data-yh-selection]').textContent = button.textContent.replace('✓','').trim();
+      selectConcern(button.dataset.yhConcern);
       if (!guide.hidden) show();
+    } else if (button.hasAttribute('data-picker-more')) {
+      selectConcern(selectedConcern, button.getAttribute('aria-expanded') !== 'true', selectedTopic);
+    } else if (button.hasAttribute('data-picker-topic')) {
+      selectConcern(selectedConcern, false, button.dataset.pickerTopic);
     } else if (button.hasAttribute('data-yh-start')) {
       if (root.querySelector('#yhResults').hidden) root.querySelector('[data-yh-concern]').click();
       step = 0;
@@ -100,6 +101,35 @@ export function mountYehwaHome(root) {
       }
     }, {signal:controller.signal});
   }
+  let selectedConcern = 'love', selectedTopic = 'all';
+  function selectConcern(value, expanded = false, topic = 'all') {
+    selectedConcern = value;
+    selectedTopic = topic;
+    let matches = 0;
+    root.querySelectorAll('[data-yh-concern]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.yhConcern === value)));
+    root.querySelectorAll('[data-picker-card]').forEach(card => {
+      const match = (value === 'all' || card.dataset.pickerGroups.split(' ').includes(value)) && (topic === 'all' || card.dataset.pickerTopics.split(' ').includes(topic));
+      card.hidden = !match || (!expanded && matches >= 3);
+      if (match) matches++;
+    });
+    const more = root.querySelector('[data-picker-more]');
+    more.hidden = matches <= 3;
+    more.setAttribute('aria-expanded', String(expanded));
+    more.textContent = expanded ? '접기' : '관련 상담 더 보기';
+    root.querySelectorAll('[data-picker-topic]').forEach(button=>{
+      button.hidden = button.dataset.pickerTopic !== 'all' && value !== 'all' && button.dataset.pickerTopicGroup !== value;
+      button.setAttribute('aria-pressed', String(button.dataset.pickerTopic === topic));
+    });
+    root.querySelector('[data-picker-topics]').hidden = ![...root.querySelectorAll('[data-picker-topic]:not([hidden])')].some(button=>button.dataset.pickerTopic !== 'all');
+    root.querySelector('[data-yh-selection]').textContent = root.querySelector('[data-yh-concern="' + value + '"]').textContent;
+  }
+  root.querySelector('.cd-picker-tabs')?.addEventListener('keydown', event => {
+    const buttons = [...root.querySelectorAll('[data-yh-concern]')], index = buttons.indexOf(event.target);
+    const next = event.key === 'ArrowRight' ? (index + 1) % buttons.length : event.key === 'ArrowLeft' ? (index + buttons.length - 1) % buttons.length : event.key === 'Home' ? 0 : event.key === 'End' ? buttons.length - 1 : -1;
+    if (index < 0 || next < 0) return;
+    event.preventDefault(); selectConcern(buttons[next].dataset.yhConcern); buttons[next].focus({preventScroll:true});
+  }, {signal:controller.signal});
+  selectConcern('love');
   adaptLayout();
   desktop.addEventListener('change', adaptLayout, {signal:controller.signal});
   root.ownerDocument.defaultView.addEventListener('hashchange', revealFragment, {signal:controller.signal});

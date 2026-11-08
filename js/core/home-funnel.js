@@ -240,8 +240,8 @@
       if (Number(localStorage.getItem(hideUntilKey)) > Date.now()) return;
     } catch (_) {}
 
-    var mobileEntries = home.querySelector('.yh-entries');
-    var desktopEntries = home.querySelector('.cdh-free');
+    var mobileEntries = home.querySelector('#cdSignatureConsult');
+    var desktopEntries = home.querySelector('#cdSignatureConsult');
     if (!mobileEntries || !desktopEntries) return;
     var desktop = window.matchMedia('(min-width:700px)');
     var letter = document.createElement('details');
@@ -256,7 +256,7 @@
     var index = 0;
     function renderLetter() {
       var card = cards[index];
-      var art = card.querySelector('.cd-sig-card__img');
+      var art = card.querySelector('.cd-sig-card__img, .cd-picker-main > img');
       var image = letter.querySelector('img');
       if (art) {
         image.sizes = '(max-width: 600px) 100px, 180px';
@@ -264,8 +264,8 @@
         image.src = art.getAttribute('src');
       }
       image.hidden = !art;
-      letter.querySelector('h3').textContent = card.querySelector('.cd-sig-card__title').textContent;
-      letter.querySelector('p').textContent = card.getAttribute('data-cd-popup-copy') || card.querySelector('.cd-sig-card__q')?.textContent || '';
+      letter.querySelector('h3').textContent = card.querySelector('.cd-sig-card__title, h3').textContent;
+      letter.querySelector('p').textContent = card.getAttribute('data-cd-popup-copy') || card.querySelector('.cd-sig-card__q, .cd-picker-copy p')?.textContent || '';
       var link = letter.querySelector('a');
       link.href = card.href;
       link.firstElementChild.textContent = [card.querySelector('.cd-sig-card__cta span')?.textContent || '상담 보기',

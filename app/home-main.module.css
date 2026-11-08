@@ -28,7 +28,7 @@
   pointer-events: none;
 }
 :global(html[data-cd-theme='neo']) .page { --hm-floral: url('/images/home/illustrated/moon-floral-dark-480.webp'); }
-.page :where(h1, h2) { margin: 0; font-family: var(--font-serif); font-weight: 700; color: var(--cd-text); letter-spacing: -0.01em; text-wrap: balance; }
+.page :where(h1, h2) { margin: 0; font-family: var(--font-display); font-weight: 700; color: var(--cd-text); letter-spacing: -0.01em; text-wrap: balance; }
 .page :where(p) { margin: 0; }
 .page :where(ul) { list-style: none; margin: 0; padding: 0; }
 .page :where(a) { color: inherit; text-underline-offset: 0.25em; }
@@ -36,7 +36,7 @@
 .page ::selection { background: var(--cd-text); color: var(--cd-bg); }
 .brandRow { display: flex; align-items: center; gap: 8px; justify-content: center; min-height: 44px; padding-block: 16px 8px; max-width:1120px; margin-inline:auto; }
 .brandMark { width: 28px; height: 28px; flex: none; }
-.wordmark { font-family: var(--font-serif); font-size: 1rem; font-weight: 800; letter-spacing: 0.12em; }
+.wordmark { font-family: var(--font-display); font-size: 1rem; font-weight: 400; letter-spacing: 0; }
 .stage { display: grid; justify-items: center; gap: 24px; padding-block: 20px 32px; }
 .head { display: grid; justify-items: center; gap: 12px; text-align: center; }
 .page .title { font-size: clamp(1.5rem, 5.8vw, 2.5rem); line-height: 1.35; letter-spacing: -0.02em; }
@@ -91,7 +91,7 @@
 .cardFoil { position: absolute; inset: 8px 8px auto; aspect-ratio: 3 / 4; z-index: 3; overflow: hidden; border-radius: inherit; pointer-events: none; }
 .cardFoil::after { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at var(--hm-shine-x, 50%) var(--hm-shine-y, 30%), color-mix(in srgb, var(--cd-gold-soft) 28%, transparent), transparent 65%), linear-gradient(115deg, transparent 35%, color-mix(in srgb, var(--cd-gold-soft) 16%, transparent) 49%, transparent 63%); opacity: 0; transition: opacity 450ms ease-out; }
 .ynCard .cardFoil::after { background: radial-gradient(ellipse at var(--hm-shine-x, 50%) var(--hm-shine-y, 30%), color-mix(in srgb, var(--yn-gold) 30%, transparent), transparent 65%); }
-.cardNumeral { position: absolute; top: -15px; left: 50%; z-index: 3; display: grid; place-items: center; min-width: 36px; height: 26px; padding-inline: 10px; border: 1px solid var(--hm-card-edge); border-radius: var(--cd-r-pill); transform: translateX(-50%); background: var(--hm-card-bg); color: var(--hm-card-ink); font: 700 .9375rem/1 var(--font-serif); }
+.cardNumeral { position: absolute; top: -15px; left: 50%; z-index: 3; display: grid; place-items: center; min-width: 36px; height: 26px; padding-inline: 10px; border: 1px solid var(--hm-card-edge); border-radius: var(--cd-r-pill); transform: translateX(-50%); background: var(--hm-card-bg); color: var(--hm-card-ink); font: 700 .9375rem/1 var(--font-display); }
 .card[data-hovered] { transform: translateY(-12px) rotateX(var(--hm-rx, 0deg)) rotateY(var(--hm-ry, 0deg)) scale(1.025); transition-duration: 140ms; box-shadow: var(--hm-shadow-x, 0px) 26px 42px -18px color-mix(in oklab, var(--cd-text) 42%, transparent); }
 .card[data-hovered] .cardArt img { transition-duration: 140ms; }
 .card:is([data-hovered], [data-pressed]):not([data-selected]) .cardFoil::after, .card:has(.cardLink:focus-visible) .cardFoil::after { opacity: 1; }
@@ -173,7 +173,7 @@
 }
 
 .footerGroups { width:100%; display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:24px; text-align:left; }
-.footerGroups h2 { width:100%; margin:0 0 6px; font:700 1rem/1.5 var(--font-serif); color:var(--cd-text); }
+.footerGroups h2 { width:100%; margin:0 0 6px; font:700 1rem/1.5 var(--font-display); color:var(--cd-text); }
 .footerGroups .entryHelp,.policyGroup .footerNav { justify-content:flex-start; align-content:start; gap:0 14px; }
 .footerGroups :is(a,button),.footer .business,.footer .notice { font-size:.875rem; }
 .footerGroups .entryNote { margin:0; text-align:left; }

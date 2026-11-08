@@ -457,7 +457,7 @@
   background: var(--deep);
   color: var(--ivory);
   font-family: var(--sans);
-  font-size: 14px;
+  font-size: 16px;
   line-height: 1.65;
   -webkit-font-smoothing: antialiased;
 }

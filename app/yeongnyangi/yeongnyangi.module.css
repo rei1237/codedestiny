@@ -418,7 +418,7 @@
   scroll-margin-top: 24px;
 }
 .chapter h2 {
-  font-family: var(--font-display);
+  font-family: var(--font-reading);
   color: var(--yn-ivory);
   font-size: 1.9rem;
   line-height: 1.5;
@@ -430,7 +430,10 @@
 .chapter p {
   white-space: pre-line;
   overflow-wrap: anywhere;
-  line-height: 1.95;
+  font-family: var(--font-reading);
+  font-size: var(--type-reading-size);
+  line-height: var(--type-reading-leading);
+  letter-spacing: 0;
 }
 .chapter .summary {
   font-size: 1.12rem;
