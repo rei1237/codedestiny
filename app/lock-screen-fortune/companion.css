@@ -69,3 +69,64 @@
 .cd-lock-selector{display:grid;gap:.75rem;padding:1rem;border:1px solid #63536a;border-radius:16px}
 .cd-lock-selector>div:not(.cd-talisman-backdrop){display:flex;flex-wrap:wrap;gap:.75rem}
 .cd-lock-selector label,.cd-lock-selector button{padding:.6rem}
+
+/* 달빛 편지: 위쪽은 캐릭터 삽화, 아래쪽은 선택한 문장 한 개. */
+.cd-companion {
+  --letter-paper: #f9e9dc;
+  --letter-ink: #713950;
+  --letter-line: color-mix(in srgb, currentColor 28%, transparent);
+  --letter-accent: #f1c6c5;
+  --letter-button-ink: #3c2130;
+}
+.cd-companion[data-reading="affirmation"] {
+  --letter-paper: #f5ead7;
+  --letter-ink: #76552f;
+  --letter-accent: #ead4ad;
+  --letter-button-ink: #342838;
+}
+.cd-companion[data-tone="day"] { --letter-line: color-mix(in srgb, currentColor 30%, transparent) }
+.cd-companion-header h1 {font-size:clamp(1.45rem,5vw,2rem);letter-spacing:-.035em}
+.cd-companion .cd-lock-settings {
+  width:48px;height:48px;flex:none;display:grid;place-items:center;padding:0;
+  border:1px solid var(--letter-line);border-radius:50%;
+}
+.cd-companion-reading:has(.cd-reading-illustration),
+.cd-companion-daily:has(.cd-reading-illustration) {
+  overflow:hidden;border:1px solid var(--letter-line);border-radius:32px 32px 18px 18px;
+  background:color-mix(in srgb,currentColor 5%,transparent);
+}
+.cd-companion-reading:has(.cd-reading-illustration) {padding:0 0 28px;gap:0}
+.cd-reading-illustration {
+  position:relative;isolation:isolate;overflow:hidden;display:block;
+  width:100%;height:clamp(126px,23dvh,175px);background:var(--letter-paper);color:var(--letter-ink);
+}
+.cd-reading-illustration::before {
+  content:"";position:absolute;width:65%;height:180%;left:17.5%;top:14%;border-radius:50%;
+  border:1px solid color-mix(in srgb,var(--letter-ink) 24%,transparent);pointer-events:none;
+}
+.cd-reading-illustration img {position:absolute;inset-block-end:0;inset-inline-start:50%;transform:translateX(-50%);width:auto;height:93%;max-width:70%;object-fit:contain}
+.cd-reading-motif {position:absolute;inset-inline-end:clamp(18px,8%,40px);top:22%;transform:rotate(12deg)}
+.cd-companion-reading:has(.cd-reading-illustration) .cd-companion-sentence {
+  margin:26px auto 0;padding:0 20px;font-size:clamp(1.25em,5.7vw,1.75em);line-height:1.55;text-wrap:balance;
+}
+.cd-flower-line {width:100%;padding-top:22px}
+.cd-flower-name {margin:0;font-size:1em;font-weight:650;letter-spacing:.04em}
+.cd-companion-reading .cd-flower-line .cd-companion-sentence {margin-top:6px}
+.cd-companion-daily:has(.cd-reading-illustration)>:not(.cd-reading-illustration) {margin-inline:16px}
+.cd-companion-daily:has(.cd-reading-illustration)>div:not(.cd-reading-illustration) {width:auto}
+.cd-companion-daily:has(.cd-reading-illustration)>a {margin-bottom:10px;align-self:start}
+.cd-companion-actions {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.cd-companion-actions button {
+  display:flex;align-items:center;justify-content:center;gap:8px;padding:10px 12px;min-width:0;
+  border-color:var(--letter-line);border-radius:16px;font-weight:650;line-height:1.35;
+}
+.cd-companion-actions button:first-child {background:var(--letter-accent);color:var(--letter-button-ink);border-color:transparent}
+.cd-companion-actions svg,.cd-companion-return svg {flex:none}
+.cd-companion-actions button:active:not(:disabled),.cd-lock-settings:active {transform:translateY(1px)}
+.cd-companion-return {gap:8px}
+.cd-lock-selector select {display:block;width:100%;min-height:48px;margin-top:6px;padding:8px;border-radius:10px;background:#292032;color:#fff4ed}
+.cd-lock-selector .cd-talisman-apply {background:#f1c6c5;color:#3c2130;font-weight:700}
+@media (max-height:640px) {
+  .cd-reading-illustration {height:108px}
+  .cd-companion-header {margin-bottom:16px}
+}

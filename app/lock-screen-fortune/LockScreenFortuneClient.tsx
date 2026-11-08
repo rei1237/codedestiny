@@ -1,5 +1,6 @@
 "use client";
 
+import { ArrowLeft, Bookmark, Flower2, MoonStar, Settings2, Share2 } from "lucide-react";
 import { TalismanArt, TalismanPicker } from "./Talisman";
 import { DEFAULT_TALISMAN_ID, LOCK_ARTWORK, artworkName, migrateTalisman, resolveTalisman, talismanCopy } from "./talisman-data";
 import { useCompanionDaily } from "./use-companion-daily";
@@ -862,6 +863,16 @@ async function pushAlarmsToNative(prefs: LockPrefs) {
 
 type Sheet = "none" | "settings" | "theme" | "alarms" | "readlist";
 
+function ReadingIllustration({ kind }: { kind: "daily" | "flower" | "affirmation" }) {
+  const cat = kind === "affirmation";
+  const Motif = cat ? MoonStar : Flower2;
+  return <div className="cd-reading-illustration" aria-hidden="true">
+    <Motif className="cd-reading-motif" size={24} strokeWidth={1.4} />
+    <img src={cat ? "/assets/yeongnyangi/companion/quote.webp" : "/assets/yeongnyangi/companion/yeoni.webp"}
+      width={176} height={176} alt="" decoding="async" />
+  </div>;
+}
+
 export default function LockScreenFortuneClient() {
   const copy = useLockScreenCopy();
   const locale = getCurrentLoadingLocale();
@@ -1038,6 +1049,9 @@ export default function LockScreenFortuneClient() {
   const kind = state.prefs.displayKind;
   const labels = { talisman: charmCopy.title, daily: extra.daily, flower: copy.todaysFlowerPrefix, quote: extra.quote, affirmation: extra.affirmation };
   const kindLabel = labels[kind];
+  const illustrated = kind === "daily" || kind === "flower" || kind === "affirmation";
+  const background = illustrated && bg.key === "twilight"
+    ? (kind === "affirmation" ? "#282432" : "#382735") : bg.css;
   const visibleText = kind === "quote" ? (locale === "ko" ? content.quote.text : extra.ownLine)
     : kind === "affirmation" ? (locale === "ko" ? content.affirmation : extra.ownAffirmation)
     : kind === "flower" ? content.flower.name + " · " + content.flower.meaning : "";
@@ -1051,28 +1065,31 @@ export default function LockScreenFortuneClient() {
     });
   };
   return (
-    <main className="cd-companion" style={{ background: bg.css, color: bg.dark ? (state.prefs.fontColorKey === "ink" ? "#fff9ef" : fontColor) : (state.prefs.fontColorKey === "gold" ? "#70551c" : "#241c35") }}>
+    <main className="cd-companion" data-reading={kind} data-tone={bg.dark ? "night" : "day"} style={{ background, color: bg.dark ? (state.prefs.fontColorKey === "ink" ? "#fff9ef" : fontColor) : (state.prefs.fontColorKey === "gold" ? "#70551c" : "#241c35") }}>
       <header className="cd-companion-header">
         {kind !== "talisman" && <div><p>{dateLabel} · KST</p><h1>{kindLabel}</h1></div>}
-        <button className="cd-lock-settings" type="button" onClick={() => setSheet("settings")} aria-label={extra.settings}>⚙</button>
+        <button className="cd-lock-settings" type="button" onClick={() => setSheet("settings")} aria-label={extra.settings}><Settings2 size={21} strokeWidth={1.7} aria-hidden /></button>
       </header>
       {kind === "talisman" && <img className="cd-lock-selected-art" src={resolveTalisman(state.prefs.talismanId).character.image} alt={kindLabel} />}
       {showDaily && <section id="companion-daily" className="cd-companion-daily" aria-label={extra.daily} style={{fontSize: scale + "rem"}}>
-        <>
+        <ReadingIllustration kind="daily" />
           <select aria-label={copy.dailyFortuneSystemHeading} value={dailySystem} onChange={e => updatePrefs({dailyFortuneSystem:e.target.value as DailyFortuneSystem})} style={{minHeight:48,maxWidth:"100%",padding:12,borderRadius:12,background:bg.dark?"#211a32":"#fff9ee",color:"inherit"}}>{DAILY_FORTUNE_SYSTEMS.map(system=><option key={system.key} value={system.key}>{systemLabel(locale, system.key, system.label)}</option>)}</select>
           {dailyFortune ? <DailyFortuneCard fortune={dailyFortune} scale={scale} subColor={subColor} panelBg={panelBg} dark={bg.dark} copy={copy} /> : !daily.failed && !daily.data ? <p role="status">{copy.dailyFortuneLoading}</p> : <><p>{extra.unavailable}</p><button type="button" onClick={daily.retry}>{extra.retry}</button></>}
           <p className="cd-companion-source">{daily.data?.date || content.dateKey} · KST</p>
           {legacyReference && <details><summary>{extra.source}</summary><DailyFortuneCard fortune={legacyReference} scale={scale} subColor={subColor} panelBg={panelBg} dark={bg.dark} copy={copy} /></details>}
           <a href={locale === "ko" ? "/today/" : `${locale === "zh-CN" ? "/zh" : locale === "zh-TW" ? "/zh-tw" : ["en","ja"].includes(locale) ? "/" + locale : "/en"}/today/`}>{extra.web}</a>
-        </>
       </section>}
       {visibleText && <article className="cd-companion-reading" style={{fontSize: scale + "rem"}}>
-        <p className="cd-companion-sentence">{visibleText}</p>
+        {(kind === "affirmation" || kind === "flower") && <ReadingIllustration kind={kind} />}
+        {kind === "flower" ? <div className="cd-flower-line">
+          <p className="cd-flower-name">{content.flower.name}</p>
+          <p className="cd-companion-sentence">{content.flower.meaning}</p>
+        </div> : <p className="cd-companion-sentence">{visibleText}</p>}
         {kind === "quote" && <p className="cd-companion-source">{locale === "ko" ? content.quote.author : extra.ownAuthor}</p>}
       </article>}
-      {visibleText && <div className="cd-companion-actions"><button type="button" style={pillStyle(state.prefs.buttonStyleKey, bg.dark)} onClick={saveText}>{extra.saved}</button><button type="button" disabled={typeof navigator !== "undefined" && !navigator.share} onClick={() => { if (navigator.share) void navigator.share({ title: kindLabel, text: visibleText }).catch(() => {}); }}>{extra.shared}</button></div>}
+      {visibleText && <div className="cd-companion-actions"><button type="button" style={state.prefs.buttonStyleKey === "glass" ? undefined : pillStyle(state.prefs.buttonStyleKey, bg.dark)} onClick={saveText}><Bookmark size={18} aria-hidden />{extra.saved}</button><button type="button" disabled={typeof navigator !== "undefined" && !navigator.share} onClick={() => { if (navigator.share) void navigator.share({ title: kindLabel, text: visibleText }).catch(() => {}); }}><Share2 size={18} aria-hidden />{extra.shared}</button></div>}
       <p role="status" className="cd-companion-source">{announcement}</p>
-      {kind !== "talisman" && <a className="cd-companion-return" href="/yeongnyangi/">{extra.close}</a>}
+      {kind !== "talisman" && <a className="cd-companion-return" href="/yeongnyangi/"><ArrowLeft size={16} aria-hidden />{extra.close}</a>}
       {sheet !== "none" && <SettingsSheet sheet={sheet} setSheet={setSheet} state={state} updatePrefs={updatePrefs} updateAlarm={updateAlarm} copy={copy} />}
     </main>
   );
