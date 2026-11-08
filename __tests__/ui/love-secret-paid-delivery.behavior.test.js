@@ -213,7 +213,7 @@ for (const failed of [false, true]) {
       LOVE_SECRET_AI_GROUPS: groups, LOVE_SECRET_AI_GROUP_TIMEOUT_MS: 54000, LOVE_SECRET_AI_REPAIR_TIMEOUT_MS: 24000,
       LOVE_SECRET_AI_LLM_DEADLINE_MS: 86000, LOVE_SECRET_AI_REPAIR_MIN_REMAINING_MS: 22000,
       LOVE_SECRET_AI_MIN_USABLE_GROUPS: 6, LOVE_SECRET_AI_MIN_TOTAL_BODY_CHARS: 20000,
-      LOVE_SECRET_AI_GROUP_MIN_CHARS: 5000, LOVE_SECRET_AI_GROUP_MAX_CHARS: 6500, buildLoveSecretRejectionRepairLines: () => [],
+      LOVE_SECRET_AI_GROUP_MIN_CHARS: 5000, LOVE_SECRET_AI_GROUP_MAX_CHARS: 6500, loveSecretGroupCharRange: group => group?.perspective ? [6000, 7500] : [5000, 6500], buildLoveSecretRejectionRepairLines: () => [],
       createLlmCacheStore: () => null, cmsPromptText: async () => '', LOVE_SECRET_AI_SYSTEM_PROMPT: '',
       buildLoveSecretGroundingTerms: () => [], logLoveSecretAi() {}, clean: value => String(value || ''),
       assembleLoveSecretConsultation: rows => ({ answer: '가'.repeat(21000), rows }),

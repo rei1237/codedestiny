@@ -31,7 +31,7 @@ import { sajuAuthorityOn } from "../lib/saju-authority-consumer.js";
 import {
   LOVE_SECRET_AI_GROUPS,
   LOVE_SECRET_AI_GROUP_MIN_CHARS,
-  LOVE_SECRET_AI_GROUP_MAX_CHARS,
+  loveSecretGroupCharRange,
   LOVE_SECRET_AI_MIN_TOTAL_BODY_CHARS,
   LOVE_SECRET_AI_SYSTEM_PROMPT,
   LOVE_SPEAKER_BY_GROUP,
@@ -63,6 +63,8 @@ const FEATURE_KEY = "love-secret-ai-consultation";
 // 동시에 생성해 벽시계를 "합계 → 최댓값"으로 바꾼다(worker/routes/new-year-ai.js 선례).
 // tokensRequiredForChars(6,500) = (6500 + 1500) × 1.5 = 12,000 → 여유를 둬 12,500.
 const LOVE_SECRET_AI_GROUP_MAX_OUTPUT_TOKENS = 12500;
+// V2 그룹(6,000~7,500자, 2026-11-08 분량 넉넉): tokensRequiredForChars(7,500) = 13,500 + 여유 1,500. 7,500자 ≈ 34초(≈220자/초)로 54초 안이다.
+const LOVE_SECRET_AI_V2_GROUP_MAX_OUTPUT_TOKENS = 15000;
 const LOVE_SECRET_AI_GROUP_TIMEOUT_MS = 54000;
 const LOVE_SECRET_AI_REPAIR_TIMEOUT_MS = 24000;
 const LOVE_SECRET_AI_REPAIR_MIN_REMAINING_MS = 22000;
@@ -787,9 +789,10 @@ async function generateLoveSecretGroup(env, {
 }) {
   const startedAt = Date.now();
   // 앞 시도가 토큰 상한에서 끊겼으면 이번 시도만 예산 2배(최대 32768)로 산다. 기본 예산은 비용 추정·검증 스크립트가 쓴다.
+  const baseTokens = group?.perspective ? LOVE_SECRET_AI_V2_GROUP_MAX_OUTPUT_TOKENS : LOVE_SECRET_AI_GROUP_MAX_OUTPUT_TOKENS;
   const maxTokens = clipped
-    ? Math.max(LOVE_SECRET_AI_GROUP_MAX_OUTPUT_TOKENS, Math.min(32768, LOVE_SECRET_AI_GROUP_MAX_OUTPUT_TOKENS * 2))
-    : LOVE_SECRET_AI_GROUP_MAX_OUTPUT_TOKENS;
+    ? Math.max(baseTokens, Math.min(32768, baseTokens * 2))
+    : baseTokens;
   const fail = (reason) => ({
     key: group.key,
     ok: false,
@@ -971,7 +974,7 @@ async function generateFirstConsultation(env, input, sajuResult, logContext = {}
           ...(repairKeys.get(key) || []),
           ...buildLoveSecretRejectionRepairLines(prior?.rejection || prior?.lastRejection),
           ...(prior?.registerDrift?.includes("hapnida") ? ["직전 글에 '~합니다/~습니다' 합니다체가 많았습니다. 문장 끝을 모두 해요체(~해요, ~예요, ~세요)로 바꿔 쓰세요."] : []),
-          ...(lengthRepairKey ? [`이 부분이 너무 짧습니다(지금 약 ${Number(prior?.chars || 0).toLocaleString("ko-KR")}자). 이미 쓴 내용은 살리되 새 근거·새 생활 장면·구체적 행동을 더해 섹션마다 문단을 늘려 ${LOVE_SECRET_AI_GROUP_MIN_CHARS.toLocaleString("ko-KR")}~${LOVE_SECRET_AI_GROUP_MAX_CHARS.toLocaleString("ko-KR")}자로 다시 쓰세요.`] : []),
+          ...(lengthRepairKey ? [`이 부분이 너무 짧습니다(지금 약 ${Number(prior?.chars || 0).toLocaleString("ko-KR")}자). 이미 쓴 내용은 살리되 새 근거·새 생활 장면·구체적 행동을 더해 섹션마다 문단을 늘려 ${loveSecretGroupCharRange(selected[0])[0].toLocaleString("ko-KR")}~${loveSecretGroupCharRange(selected[0])[1].toLocaleString("ko-KR")}자로 다시 쓰세요.`] : []),
         ],
         previousResult: prior?.ok ? prior : null,
         // 마지막 시도면 걸린 문장만 덜어 내고 받는다(그룹을 통째로 비우지 않게).

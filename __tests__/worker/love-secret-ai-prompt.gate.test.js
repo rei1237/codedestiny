@@ -256,6 +256,15 @@ describe("그룹 계획 V1/V2", () => {
     ["self", "partner", "risk", "timing", "action"].forEach((key) => expect(prompts[key]).toContain("사용자의 질문을 다시 인용하지 않습니다"));
     expect(prompts.core).not.toContain("타고난 성향 총론을 먼저 짚는다");
   });
+
+  test("분량: V2 그룹은 6000~7500자·섹션 최소 분량을, V1 그룹은 5000~6500자를 요구한다", () => {
+    LOVE_SECRET_AI_GROUPS.forEach((group) => {
+      const prompt = buildLoveSecretGroupPrompt(input, saju, group);
+      expect(prompt).toContain("합계는 6000~7500자");
+      expect(prompt).toContain("짧게 요약하고 끝내지 말고");
+    });
+    LOVE_SECRET_AI_GROUPS_V1.forEach((group) => expect(buildLoveSecretGroupPrompt(input, saju, group)).toContain("합계는 5000~6500자"));
+  });
 });
 
 describe("그룹 사이 되풀이 문장 정리", () => {

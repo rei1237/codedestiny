@@ -742,6 +742,17 @@ const SINGLE_CALL_FLOOR_CEILING = 6000;
     sourcePath: "worker/routes/love-secret-ai.js",
   });
 
+  // V2 그룹(2026-11-08 분량 넉넉): 6,000~7,500자를 요구하므로 V2 토큰 상한이 그 상한을 여유까지 담고, 54초 안에 끝나야 한다.
+  {
+    const promptModule = await import("../worker/lib/love-secret-ai-prompt.js");
+    const v2Min = promptModule.LOVE_SECRET_AI_V2_GROUP_MIN_CHARS, v2Max = promptModule.LOVE_SECRET_AI_V2_GROUP_MAX_CHARS;
+    const v2Tokens = Number((source.match(/const LOVE_SECRET_AI_V2_GROUP_MAX_OUTPUT_TOKENS = (\d+);/) || [])[1]);
+    checks += 3;
+    assertBudget(`${feature}:v2`, { minChars: v2Min, maxChars: v2Max, maxOutputTokens: v2Tokens, tokenConstantName: "LOVE_SECRET_AI_V2_GROUP_MAX_OUTPUT_TOKENS", sourcePath: "worker/routes/love-secret-ai.js" });
+    assert(v2Tokens >= tokensRequiredForChars(v2Max) + 1500, `${feature}:v2: 토큰 상한 ${v2Tokens} < 필요 ${tokensRequiredForChars(v2Max)} + 1500`);
+    assert(v2Min >= promptModule.LOVE_SECRET_AI_GROUP_MIN_CHARS && v2Max / 220 <= 54, `${feature}:v2: V2 그룹 분량이 V1 하한 아래이거나 54초 시한을 넘는다`);
+  }
+
   // 🔴 clampSyncLlmTimeoutMs는 0/음수를 받으면 상한 85s로 되돌아간다. 예산이 바닥났을 때
   //    호출을 건너뛰는 가드가 그 앞에 있어야 한다.
   checks += 1;

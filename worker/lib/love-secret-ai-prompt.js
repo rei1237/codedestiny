@@ -225,6 +225,15 @@ export function buildAdminLabPrompt() {
 
 export const LOVE_SECRET_AI_GROUP_MIN_CHARS = 5000;
 export const LOVE_SECRET_AI_GROUP_MAX_CHARS = 6500;
+// V2 그룹(perspective 가 있는 그룹)이 프롬프트에서 요구하는 분량(2026-11-08 분량 넉넉). 전달 하한·수리 문턱은 위 V1 값 그대로라
+// 짧게 와도 실패하지 않는다. V1 그룹 프롬프트는 위 값을 그대로 써 바이트 단위로 같다.
+export const LOVE_SECRET_AI_V2_GROUP_MIN_CHARS = 6000;
+export const LOVE_SECRET_AI_V2_GROUP_MAX_CHARS = 7500;
+export function loveSecretGroupCharRange(group) {
+  return group?.perspective
+    ? [LOVE_SECRET_AI_V2_GROUP_MIN_CHARS, LOVE_SECRET_AI_V2_GROUP_MAX_CHARS]
+    : [LOVE_SECRET_AI_GROUP_MIN_CHARS, LOVE_SECRET_AI_GROUP_MAX_CHARS];
+}
 
 // V1: 2026-11-08 이전 6개 그룹. groupPlanVersion 이 없는 저장 세션은 이 계획으로 이어 쓴다.
 // 🔴 프롬프트가 바이트 단위로 그대로여야 한다 — 이 표는 고치지 않는다.
@@ -453,10 +462,10 @@ const LOVE_V2_READABILITY_LINES = Object.freeze([
 
 function loveSecretV2SectionLengthLine(group) {
   const count = Math.max(1, group.sections.length);
-  const min = Math.round(LOVE_SECRET_AI_GROUP_MIN_CHARS / count / 100) * 100;
-  const max = Math.round(LOVE_SECRET_AI_GROUP_MAX_CHARS / count / 100) * 100;
+  const min = Math.round(LOVE_SECRET_AI_V2_GROUP_MIN_CHARS / count / 100) * 100;
+  const max = Math.round(LOVE_SECRET_AI_V2_GROUP_MAX_CHARS / count / 100) * 100;
   const paragraphs = Math.max(3, Math.ceil(min / 300));
-  return `각 섹션의 body는 최소 ${min}자(목표 ${min}~${max}자)이고 ${paragraphs}문단 이상, 문단마다 4~6문장으로 씁니다. 근거 → 생활 장면 → 할 일 순서로 문단을 늘리고, 첫 문장 구조를 반복하지 않습니다.`;
+  return `각 섹션의 body는 최소 ${min}자 이상(목표 ${min}~${max}자)이고 ${paragraphs}문단 이상, 문단마다 4~6문장으로 넉넉하게 씁니다. 짧게 요약하고 끝내지 말고, 근거 → 생활 장면 → 할 일 순서로 문단을 늘리며, 첫 문장 구조를 반복하지 않습니다.`;
 }
 
 /**
@@ -496,7 +505,7 @@ export function buildLoveSecretGroupPrompt(input = {}, sajuResult = {}, group, o
     "",
     "[작성 방식]",
     "아래 JSON 형식만 출력합니다. JSON 밖에 다른 문장을 붙이지 않습니다.",
-    `이 부분의 sections body 합계는 ${LOVE_SECRET_AI_GROUP_MIN_CHARS}~${LOVE_SECRET_AI_GROUP_MAX_CHARS}자로 씁니다. 마지막 문장을 중간에 끊지 말고 반드시 완결합니다.`,
+    `이 부분의 sections body 합계는 ${loveSecretGroupCharRange(group)[0]}~${loveSecretGroupCharRange(group)[1]}자로 씁니다. 마지막 문장을 중간에 끊지 말고 반드시 완결합니다.`,
     group.perspective
       ? loveSecretV2SectionLengthLine(group)
       :"각 섹션의 body는 900~1,300자 안팎의 밀도 있는 문단으로 쓰되 첫 문장 구조를 반복하지 않습니다.",
