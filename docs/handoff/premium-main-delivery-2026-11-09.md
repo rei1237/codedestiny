@@ -1,7 +1,7 @@
 ---
-status: in-progress
+status: done
 updated: 2026-11-09
-next: 최신 main 병합 커밋에서 check:fast(delta base 9c9b0d135)를 전체 실행하고 최종 pre-push·push를 완료한다.
+next: 코드 main 반영은 완료됐다. 이 종료 기록을 커밋·push하고 자기 워크트리 배수 후 CI 상태를 최종 보고한다.
 ---
 
 # 고가 운세 개선 main 전달
@@ -18,6 +18,7 @@ next: 최신 main 병합 커밋에서 check:fast(delta base 9c9b0d135)를 전체
 - 통합 대상: `feat/premium-llm-chapter-upgrade`의 `b52216502`. `git merge --no-commit --no-ff`로 충돌 없이 통합한 상태에서 시작했다.
 - 통합·미러 갱신 커밋: `158f29e26` (원격 push 전).
 - 사이트맵 원장 갱신: `ea604d61a` (원격 push 전). check:pre-push 전체 통과.
+- 최종 코드 전달: `687f283a61e76ae4da90892d7a7038aac16a476d`, 원격 main fast-forward push 완료.
 - 이전 집중·회귀 검사 790개 통과. 이번에는 통합된 트리에서 종합 검사를 완료한다.
 - `node_modules`는 공유 정션이다. 제거 시 정션만 먼저 해제한다. 다른 체크아웃은 정리하지 않는다.
 - 공유 Next는 15.5.15, 현재 package.json은 ^15.5.28이다. sync 종료 뒤 이 워크트리의 정션만 해제하고 `npm ci --no-audit --no-fund --prefer-offline`로 로컬 의존성을 설치한다. 잠금 파일과 다른 세션의 공유 모듈은 수정하지 않는다.
@@ -50,10 +51,10 @@ next: 최신 main 병합 커밋에서 check:fast(delta base 9c9b0d135)를 전체
 - [x] premium 브랜치 커밋 병합, 충돌 없음
 - [x] 정적 미러 16개 재생성 및 커밋, 미러 신선도 검사 통과
 - [x] check:fast 계획 확인 및 전 단계 실행, 실패 해결 (구간별 실행 기록 아래 참조)
-- [ ] 커밋된 트리에서 check:pre-push 통과
-- [ ] 최신 main을 확인하고 fast-forward push
-- [ ] main CI 1회 확인, 보존 상태 확인
-- [ ] 문서 done 및 자기 임시 워크트리 배수
+- [x] 커밋된 트리에서 check:pre-push 통과
+- [x] 최신 main을 확인하고 fast-forward push
+- [x] push 전 기존 main CI 성공 확인, 다른 작업 보존 확인
+- [x] 문서 done 처리. 이 문서는 정리 직전 기록이며 실제 배수 및 push 후 CI 결과는 최종 보고에 남긴다.
 
 ## 검증 진행
 
@@ -79,3 +80,8 @@ next: 최신 main 병합 커밋에서 check:fast(delta base 9c9b0d135)를 전체
 - `9c9b0d135`에서 사주 검증기를 보정한 뒤 남은 26/26 단계가 모두 통과했다. 워커 빌드·미선언 변수·크론 DB 범위·환경 정합성·상담 흐름 포함. Jest는 466 suites / 7902 tests 통과, 기존 1 suite / 1 test skip 유지. 새 제외·skip 추가 없음.
 - 검증 도중 다른 세션이 main에 VN 번역·SEO 문서를 추가했다. 최신 `ebb19eae8`까지 병합한다. 기존 premium 변경과 겹치는 파일은 사이트맵 13개뿐이며 worker·의존성 변경은 없다. 유일한 충돌은 config/sitemap-lastmod.json이다. 최신 main의 원장을 기준으로 실제 합쳐진 소스에서 사이트맵을 재생성하여 양쪽 내용을 보존한다. 최초 9e7ee8997 병합은 수정 전에 abort하고 최신 fetch 후 다시 시작했다.
 - 최신 main에는 공통 SEO 라우팅·페이지 삭제가 포함되어 delta 검사 계획도 critical이다(649 files). 따라서 이 병합 뒤에는 앞서 통과한 원본 premium 검사와 별개로 해당 계획 전체를 다시 실행한다. 계획은 `.tmp/premium-latest-main-plan.log`, 실행 로그는 `.tmp/premium-latest-main-check.log`다. 새 사이트맵은 1062 URL 유지, 원장 33개 갱신이다.
+- 최신 main 병합 커밋 `0c63bd708`에서 `npm run check:fast -- --base=9c9b0d135 --committed-head` 전체가 exit 0으로 완료됐다. 결제·운세 77/77, lint, typecheck, Node 4772/4772, 모든 개별 가드, 워커 빌드, Jest 466 suites / 7902 tests 통과. 기존 skip 1 suite / 1 test는 유지했다.
+- 그 사이 추가된 main `cbdfa52e5`는 잠금화면 표현 2파일과 문서 2파일뿐이다. `687f283a6`에서 충돌 없이 병합했다. JSX·스타일 변경만 확인했고 결제·저장 callback은 동일하다. typecheck, 해당 TSX lint, 잠금화면 관련 Node 30/30 통과. 사이트맵은 재생성 갱신 0개.
+- 최종 `npm run check:pre-push` 전체 통과: 홈 레지스트리, public 미러 신선도, 사이트맵 1062 URL, llms 문서, SEO 원장, repo hygiene. 마지막 push 직전 기존 main `cbdfa52e5`의 CI 성공도 확인했다.
+- 기존 3개 체크아웃의 미커밋 git diff 해시는 시작 시점과 정확히 일치했다(루트 30개, premium 4개, 로컬 main 8개). 원본 파일·브랜치를 바꾸거나 stash/reset하지 않았으며 그 변경을 이 커밋에 포함하지 않았다. 로컬 main 체크아웃을 보호하기 위해 격리 HEAD를 `git push origin HEAD:main`으로 전달했다.
+- 실제 LLM·실결제·운영 DB 쓰기·프로덕션 승격 없음. push 시 GitHub가 기존 의존성 보안 경고 76개(치명 1)를 안내했다. 잠금 파일·의존성은 변경하지 않았고 경고 해소는 이번 범위 밖이다.
