@@ -3,6 +3,7 @@ package com.codedestiny.app;
 import android.app.PendingIntent;
 import android.appwidget.AppWidgetManager;
 import android.content.Context;
+import android.content.ComponentName;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
@@ -41,7 +42,14 @@ public class CodeDestinyHomeWidgetPlugin extends Plugin {
     }
 
     private static int[] installedIds(Context context) {
-        try { return AppWidgetManager.getInstance(context).getAppWidgetIds(HomeWidgetProvider.component(context)); }
+        try {
+            AppWidgetManager manager = AppWidgetManager.getInstance(context);
+            int[] large = manager.getAppWidgetIds(new ComponentName(context, FortuneWidgetProvider.class));
+            int[] regular = manager.getAppWidgetIds(HomeWidgetProvider.component(context));
+            int[] ids = java.util.Arrays.copyOf(large, large.length + regular.length);
+            System.arraycopy(regular, 0, ids, large.length, regular.length);
+            return ids;
+        }
         catch (Exception ignored) { return new int[0]; }
     }
 
@@ -88,12 +96,28 @@ public class CodeDestinyHomeWidgetPlugin extends Plugin {
         call.resolve(response);
     }
 
+    // A character is an artwork choice for one fortune slot, not another pin.
+    private boolean replaceFortune(Context context, HomeWidgetPolicy.Choice choice) {
+        if (!"fortune".equals(choice.kind)) return false;
+        boolean found = false;
+        for (int id : installedIds(context)) {
+            HomeWidgetPolicy.Choice old = HomeWidgetStore.get(context, id);
+            if (old != null && "fortune".equals(old.kind)) {
+                HomeWidgetStore.put(context, id, choice);
+                HomeWidgetProvider.render(context, AppWidgetManager.getInstance(context), id);
+                found = true;
+            }
+        }
+        return found;
+    }
+
     @PluginMethod
     public void requestPin(PluginCall call) {
         Context context = getContext();
         HomeWidgetPolicy.Choice choice = readChoice(call);
         if (choice == null) { call.reject("invalid widget choice"); return; }
         JSObject response = new JSObject();
+        if (replaceFortune(context, choice)) { response.put("status", "updated"); call.resolve(response); return; }
         if (!pinSupported(context)) { response.put("status", "unsupported"); call.resolve(response); return; }
         String token = UUID.randomUUID().toString();
         HomeWidgetStore.setPending(context, choice, token, System.currentTimeMillis());
@@ -105,7 +129,9 @@ public class CodeDestinyHomeWidgetPlugin extends Plugin {
         Bundle extras = new Bundle();
         extras.putParcelable(AppWidgetManager.EXTRA_APPWIDGET_PREVIEW, HomeWidgetProvider.views(context, choice));
         boolean shown;
-        try { shown = AppWidgetManager.getInstance(context).requestPinAppWidget(HomeWidgetProvider.component(context), extras, success); }
+        ComponentName provider = "fortune".equals(choice.kind)
+                ? new ComponentName(context, FortuneWidgetProvider.class) : HomeWidgetProvider.component(context);
+        try { shown = AppWidgetManager.getInstance(context).requestPinAppWidget(provider, extras, success); }
         catch (Exception ignored) { shown = false; }
         response.put("status", shown ? "requested" : "unsupported");
         response.put("token", token);
@@ -122,8 +148,10 @@ public class CodeDestinyHomeWidgetPlugin extends Plugin {
         for (int id : installedIds(context)) installed |= id == widgetId;
         JSObject response = new JSObject();
         if (!installed) { response.put("status", "missing"); call.resolve(response); return; }
-        HomeWidgetStore.put(context, widgetId, choice);
-        HomeWidgetProvider.render(context, AppWidgetManager.getInstance(context), widgetId);
+        if (!replaceFortune(context, choice)) {
+            HomeWidgetStore.put(context, widgetId, choice);
+            HomeWidgetProvider.render(context, AppWidgetManager.getInstance(context), widgetId);
+        }
         response.put("status", "updated");
         call.resolve(response);
     }

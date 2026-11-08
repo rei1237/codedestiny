@@ -43,6 +43,7 @@ export default function HomeWidgetStudio() {
   const [affirmation, setAffirmation] = useState<AffirmationId>("own-pace");
   const [status, setStatus] = useState<WidgetStatus>("idle");
   const [pinSupported, setPinSupported] = useState(true);
+  const [fortuneCount, setFortuneCount] = useState(0);
   const [editId, setEditId] = useState(0);
   const [busy, setBusy] = useState(false);
   const pendingToken = useRef("");
@@ -101,7 +102,12 @@ export default function HomeWidgetStudio() {
     if (!plugin) { setStatus("web"); return; }
     let active = true;
     let handle: Handle | undefined;
-    const settle = (token?: string) => setStatus(current => nextWidgetStatus(current, { type: "added", token, pendingToken: pendingToken.current }));
+    const settle = (token?: string) => {
+      setStatus(current => nextWidgetStatus(current, { type: "added", token, pendingToken: pendingToken.current }));
+      if (token && token === pendingToken.current) void plugin.getState().then(state => {
+        if (active) setFortuneCount(state.widgets.filter(widget => widget.kind === "fortune").length);
+      }).catch(() => undefined);
+    };
     void Promise.resolve(plugin.addListener("widgetAdded", data => settle(data.token)))
       .then(h => { if (active) handle = h; else void h.remove(); })
       .catch(() => undefined);
@@ -109,6 +115,7 @@ export default function HomeWidgetStudio() {
     plugin.getState().then(state => {
       if (!active) return;
       setPinSupported(state.pinSupported);
+      setFortuneCount(state.widgets.filter(widget => widget.kind === "fortune").length);
       const mine = Number.isInteger(requested) && requested > 0 ? state.widgets.find(widget => widget.widgetId === requested) : undefined;
       if (!mine) return;
       setEditId(requested);
@@ -154,6 +161,7 @@ export default function HomeWidgetStudio() {
         setStatus(current => nextWidgetStatus(current, { type: "update", status: result.status }));
       } else {
         const result = await plugin.requestPin({ kind, itemId, text, pool });
+        if (result.status === "updated") { setFortuneCount(n => Math.max(1, n)); setStatus("updated"); return; }
         pendingToken.current = result.token || "";
         setStatus(current => nextWidgetStatus(current, { type: "pin", status: result.status }));
       }
@@ -200,11 +208,14 @@ export default function HomeWidgetStudio() {
           <fieldset disabled={busy}><legend>{copy.kindLegend}</legend><div className="cd-talisman-options cd-home-widget-kinds">
             {(["affirmation", mode === "yeoni" ? "flower" : "fortune", "talisman"] as const).map(value => <label key={value}><input type="radio" name="home-widget-kind" checked={kind === value} onChange={() => choose(() => setKind(value))} /><span>{value === "talisman" ? copy.talisman : value === "flower" ? (ko ? "오늘의 꽃말" : "Today’s flower") : value === "fortune" ? (ko ? "오늘의 운세" : "Today’s fortune") : copy.affirmation}</span></label>)}
           </div></fieldset>
-          {kind === "fortune" && <fieldset disabled={busy}><legend>{ko ? "운세 그림" : "Fortune illustration"}</legend>
+          {kind === "fortune" && <fieldset disabled={busy}><legend>{ko ? "오늘의 운세에 담을 친구 한 명" : "Choose one fortune companion"}</legend>
             <div className="cd-talisman-options">{(["cat-star-chart", "pig-moon-tea"] as const).map(id =>
               <label key={id}><input type="radio" name="fortune-art" checked={fortuneArt === id} onChange={() => choose(() => setFortuneArt(id))} />
-                <span><img className="cd-widget-swatch" src={`/assets/talismans/widget/${id}-face.webp`} width="34" height="34" alt="" />{lookName(id, locale)}</span>
-              </label>)}</div></fieldset>}
+                <span><img className="cd-widget-swatch" src={`/assets/talismans/widget/${id}-face.webp`} width="34" height="34" alt="" />{id === "cat-star-chart" ? (ko ? "영냥이" : "Yeongnyangi") : (ko ? "꽃돼지 연이" : "Yeoni")}</span>
+              </label>)}</div>
+            <p>{ko ? "한 명을 골라 적용하세요. 다음에 친구를 바꾸면 같은 위젯의 그림이 바뀝니다." : "Choose one companion. Changing it replaces the picture in the same widget."}</p>
+            {fortuneCount > 1 && <p>{ko ? "이전 버전에서 두 개를 놓았다면 홈에서 하나를 길게 눌러 삭제하세요." : "If two older widgets are on your home screen, long-press one to remove it."}</p>}
+          </fieldset>}
           {kind === "talisman"
             ? <>
               <details open={mode === "yeongnyangi" || selected?.scene !== "yeoni-wardrobe" || selected?.id === "yeoni-pig-moon"}>
@@ -229,7 +240,7 @@ export default function HomeWidgetStudio() {
       <div className="cd-home-widget-dock">
         <div className="cd-talisman-actions" aria-busy={busy}>
           {kind === "talisman" && selected && <a className="cd-widget-wallpaper" href={(IS_APP_BUILD ? "/app/talismans/index.html" : "/app/talismans/") + "?asset=" + encodeURIComponent(selected.id)}>{ko ? "배경화면으로 설정" : "Set wallpaper"}</a>}
-          {status !== "web" && <button type="button" disabled={busy} onClick={() => void place()}>{editId ? copy.change : copy.add}</button>}
+          {status !== "web" && <button type="button" disabled={busy} onClick={() => void place()}>{kind === "fortune" && fortuneCount > 0 ? (ko ? "선택한 친구로 변경" : "Change companion") : editId ? copy.change : copy.add}</button>}
         </div>
         <p className="cd-talisman-status" role="status" aria-live="polite">{message}</p>
       </div>

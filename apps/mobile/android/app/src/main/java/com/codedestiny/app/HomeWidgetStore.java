@@ -55,12 +55,15 @@ final class HomeWidgetStore {
     static HomeWidgetPolicy.Choice resolveFor(Context context, int widgetId, HomeWidgetPolicy.Choice fallback, long now) {
         SharedPreferences p = prefs(context);
         HomeWidgetPolicy.Choice stored = get(context, widgetId);
+        HomeWidgetPolicy.Choice lastChoice = last(context);
+        // Manual placement through the general picker must not clone an already pinned fortune.
+        if (stored == null && lastChoice != null && "fortune".equals(lastChoice.kind)) lastChoice = fallback;
         HomeWidgetPolicy.Choice choice = HomeWidgetPolicy.resolve(
                 stored,
                 HomeWidgetPolicy.decode(p.getString(KEY_PENDING, null)),
                 p.getLong(KEY_PENDING_AT, 0L),
                 now,
-                last(context),
+                lastChoice,
                 fallback);
         if (stored == null) p.edit().putString(widgetKey(widgetId), HomeWidgetPolicy.encode(choice)).apply();
         return choice;

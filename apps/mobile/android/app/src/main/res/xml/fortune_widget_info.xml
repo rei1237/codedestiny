@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The launcher schedules offline daily updates. -->
+<appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
+    android:description="@string/home_widget_fortune_title"
+    android:widgetFeatures="hide_from_picker"
+    android:initialLayout="@layout/widget_fortune"
+    android:minWidth="250dp"
+    android:minHeight="250dp"
+    android:minResizeWidth="80dp"
+    android:minResizeHeight="80dp"
+    android:previewImage="@drawable/widget_cat_star_chart_fortune"
+    android:previewLayout="@layout/widget_fortune"
+    android:resizeMode="horizontal|vertical"
+    android:targetCellWidth="4"
+    android:targetCellHeight="4"
+    android:updatePeriodMillis="3600000"
+    android:widgetCategory="home_screen" />

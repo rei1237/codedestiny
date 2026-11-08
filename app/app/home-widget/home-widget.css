@@ -5,7 +5,7 @@
 .cd-home-widget-tile { grid-column: span 2; grid-row: span 3; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; min-width: 0; padding: 4px; border: 1px solid #e5c58e; border-radius: 16px; background: #101b2c; color: #f3eee5; overflow: hidden; }
 .cd-home-widget-tile > img { display: block; width: 100%; height: 100%; object-fit: contain; }
 .cd-home-widget-tile[data-kind="affirmation"] { padding: 12px 10px; }
-.cd-home-widget-tile[data-kind="fortune"] { display:grid; grid-template-rows:minmax(0,2fr) minmax(0,1fr); gap:0; }
+.cd-home-widget-tile[data-kind="fortune"] { grid-column:1 / -1; grid-row:auto; aspect-ratio:1 / 1.15; display:grid; grid-template-rows:minmax(0,1fr) auto; gap:4px; }
 .cd-home-widget-tile[data-kind="fortune"] > strong { align-self:center; font-size:.75rem; line-height:1.25; }
 .cd-home-widget-tile > small { color: #e5c58e; font-size: .62rem; letter-spacing: .02em; }
 .cd-home-widget-tile > strong { font-family: var(--font-serif); font-size: .92rem; font-weight: 500; line-height: 1.45; text-align: center; word-break: keep-all; overflow-wrap: anywhere; }
