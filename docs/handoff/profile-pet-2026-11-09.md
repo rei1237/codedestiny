@@ -1,22 +1,22 @@
 ---
-status: in-progress
+status: done
 updated: 2026-11-09
-next: .tmp/pet-check-fast-green.log의 최종 검사와 sitemap 서명 갱신 후 pre-push를 확인하고 원격 main에 직접 전달한다.
+next: 구현 완료. 원격 main 커밋과 최종 CI 상태는 이 작업의 최종 보고를 참고한다.
 ---
 
 # 프로필 카드 운세 다마고치 통합
 
 ## 첫 행동
 
-`D:/Development/codedestiny-worktrees/profile-pet-20261109-052334`에서 `.tmp/pet-check-fast-green.log`와 실행 세션 54204 상태를 확인한다. 검사는 mock guard 아래 실행 중이다. 운영 DB·실결제·실 LLM을 호출하지 않는다.
+추가 구현은 없다. 이 문서를 포함한 마지막 전달 커밋을 원격 main에 올리고 CI를 한 번 확인한다. 운영 DB·실결제·실 LLM은 개발 검증에 사용하지 않았다.
 
 ## 지금 상태
 
 - 원본 작업 폴더: D:/Development/code-destiny, 다른 세션 변경 다수. 절대 reset/stash/checkout으로 정리하지 않는다.
 - 내 워크트리: D:/Development/codedestiny-worktrees/profile-pet-20261109-052334
 - 내 브랜치: wt/profile-pet-20261109-052334, 시작 origin/main 4ee6c81148d5ccc19afbd0143232aa81d4ad0bcb.
-- 마지막 구현 커밋: 2bad57256(UI·원화·캐시 핀·동결 해시 포함). 앞 커밋 268eb90b1은 서버 배정·돌봄, fbce1c4f1은 반복 요청 멱등·트랜잭션 읽기 직렬화·탈퇴 정리다.
-- 원본 워크트리 변경을 복사하지 않았다. push 전이다. 사이트맵 원장은 생성기로 6개 서명만 갱신했고 날짜·URL은 불변이다.
+- 마지막 통합 구현 커밋: d9281fc92. 원격 main의 1b08d236b까지의 폰트·홈·SEO 작업을 보존해 병합했다. 앞 커밋 268eb90b1은 서버 배정·돌봄, fbce1c4f1은 멱등·직렬화·탈퇴 정리, 2bad57256은 UI·원화, b67134337은 다국어 접근성, 2a78b7ea3은 투명 컷아웃·친밀도 상한 안내다.
+- 원본 워크트리의 미커밋 변경을 복사하지 않았다. 사이트맵 충돌은 원격 원장을 보존한 뒤 생성기로 다시 계산했다. 마지막 전달의 push·CI 조회 결과는 최종 답변에 기록한다.
 - 로컬 main 체크아웃 C:/Users/user/Documents/Codex/worktrees/yeongnyangi-blue-passes-20261024-050530은 e6aa5a287이며 다른 세션의 꿀방울·상담 수정이 있다. origin/main보다 오래됐고 변경 파일이 겹친다. 이 체크아웃은 건드리지 않는다. 내 검증된 커밋을 최신 origin/main에 맞춘 뒤 HEAD:main fast-forward push로 전달하고 원격 main 도달을 확인한다. PR은 만들지 않는다.
 
 ## 승인 상태
@@ -36,7 +36,10 @@ next: .tmp/pet-check-fast-green.log의 최종 검사와 sitemap 서명 갱신 �
 - Ego 브라우저 공간 67은 finish({keep:[]})로 닫았고 .tmp/profile-pet-server.mjs 서버도 종료했다. 모든 API는 mock, CSP로 외부 트래픽을 차단했다.
 - Ego의 페이지 행동 뒤 viewport가 원복될 수 있으므로 캡처 직전에 CDP metrics를 다시 설정했다. 실제 프로필 시트 닫기/복귀는 Escape로 검증했고 단일 노드 1개가 홈에 돌아온다.
 - Ego 업데이트 안내가 있었으나 업그레이드는 요청하지 않았고 실행하지 않았다.
-- check:fast 두 번째 실행은 77개 결제/인증 가드 중 76개 통과, billing-client 캐시 핀 변경에 따른 동결 해시 1개가 실패했다. 실제 diff가 캐시 핀 1줄임을 확인하고 신규 결제 모듈에 옮길 정책 변경이 없음을 검토한 뒤 --update했다. config/payment-freeze.json에는 해당 파일 해시 1개만 바뀌었다. 현재 전체 check:fast 재실행 중이며 76개 성공을 숨기거나 검사를 줄이지 않았다.
+- check:fast 두 번째 실행은 77개 결제/인증 가드 중 76개 통과, billing-client 캐시 핀 변경에 따른 동결 해시 1개가 실패했다. 실제 diff가 캐시 핀 1줄임을 검토한 뒤 --update했다. config/payment-freeze.json에는 해당 파일 해시 1개만 바뀌었다. 재실행에서는 77개 모두 통과했다.
+- 전체 Node 4,781개 중 새 홈 영역 aria-label의 번역 누락 11개가 실패했다. 기존 home.myGarden.garden 키에 연결한 뒤 11개 언어를 모두 재검증해 통과했다. 앞서 통과한 4,770개를 불필요하게 반복하지 않고, check:fast가 아직 실행하지 않은 나머지 계획을 동일 mock 환경으로 이어서 실행했다. 나머지 계약·워커 빌드·Jest가 모두 통과했다. 원래 check:fast 프로세스의 exit 1을 숨기거나 exit 0으로 보고하지 않는다.
+- Jest 전체: 467개 스위트 통과, 7,920개 테스트 통과, 기존 1개 스위트/1개 테스트 skip. 최신 main 통합 후 날짜 계산·11개 언어·반려 캐릭터·원화 검사 24개도 통과했다.
+- 전체 원화 검사에서 뱀·기린 및 양·사자 수면의 종이 배경을 찾아 image_gen으로 컷아웃을 교정했다. 각 프레임의 내부 경계까지 확인하도록 검사를 강화했고 35개 최종 시트가 통과했다.
 - 첫 pre-push는 public mirror와 home registry가 통과했으나 사이트맵 원장 서명 6개가 낡아 실패했다. npm run sitemap:generate로 이 서명만 재생성했다.
 
 ## 설계
@@ -53,8 +56,9 @@ next: .tmp/pet-check-fast-green.log의 최종 검사와 sitemap 서명 갱신 �
 - [x] verify-profile-characters --skip-assets, verify-profile-card-level, verify-profile-card-action-policy 통과
 - [x] 360/390/430/1280 브라우저 캡처, 가로 넘침 없음·주요 버튼 최소48px 확인. 독립 시각 검수 최종 SHIP.
 - [x] 독립 기술 검수의 2개 실제 결함 수정 및 회귀 테스트 추가. Detector 정확히1회: 23건(달 그림자 side-tab 오탐1, 보조 글자 크기 advisory22). .tmp/pet-detector.json.
-- [ ] check:fast --base=4ee6c81148d5ccc19afbd0143232aa81d4ad0bcb 최종 완료 확인. 재실행 세션54204, .tmp/pet-check-fast-green.log.
+- [x] check:fast 계획의 모든 항목 검증. 실패한 국제화 11건은 수정 후 재검증했고 미실행 나머지 계획은 이어서 실행해 통과했다.
 - [x] UI/원화/문서/미러/캐시 핀 커밋
-- [ ] 사이트맵 서명 커밋 후 npm run check:pre-push 재실행
-- [ ] origin/main 최신 상태·CI 확인 후 main 직접 push, 최종 CI 1회 확인(진행중이면 URL 보고하고 종료, 폴링 금지)
-- [ ] 이 문서 status:done 정리, 검수 서버/Ego 종료, 내 .tmp 파일·워크트리·wt 브랜치 배수
+- [x] 사이트맵 서명 갱신 후 check:pre-push 통과. 통합/최종 문서 커밋 뒤에도 전달 직전 다시 확인한다.
+- [x] 이 문서 status:done 정리, 검수 서버/Ego 종료
+
+남은 표준 전달은 이 문서 커밋 → pre-push → 원격 main fast-forward push → CI 상태 1회 조회이며 별도 운영 승격은 하지 않는다. 전달 뒤 내 .tmp·워크트리·wt 브랜치만 배수한다. 최종 원화 미리보기는 사용자 시각화 작업 폴더의 profile-pets-sleep-preview.png에 보존했다.
