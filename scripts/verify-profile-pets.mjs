@@ -18,6 +18,22 @@ for (const item of manifest) {
   const stats = await sharp(buffer).stats();
   assert.equal(stats.channels[3].min, 0, item.id + ' transparent margins');
   assert.ok(stats.channels[3].max > 200, item.id + ' visible art');
+  // Body cutouts must not hide an opaque paper rectangle inside letterboxing.
+  const { data: rgba, info } = await sharp(buffer).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+  if (item.file.endsWith('-body.webp') || item.file.endsWith('-sleep.webp')) {
+    for (let row = 0; row < item.rows; row++) for (let col = 0; col < item.columns; col++) {
+      const alphaAt = (x, y) => rgba[((row * item.cellSize + y) * info.width + col * item.cellSize + x) * 4 + 3];
+      let left = item.cellSize, top = item.cellSize, right = 0, bottom = 0;
+      for (let y = 8; y < item.cellSize - 8; y++) for (let x = 8; x < item.cellSize - 8; x++) if (alphaAt(x, y) > 32) {
+        left = Math.min(left, x); right = Math.max(right, x); top = Math.min(top, y); bottom = Math.max(bottom, y);
+      }
+      let cornerAlpha = 0;
+      for (const x of [left + 2, right - 7]) for (const y of [top + 2, bottom - 7]) {
+        for (let dy = 0; dy < 6; dy++) for (let dx = 0; dx < 6; dx++) cornerAlpha += alphaAt(x + dx, y + dy);
+      }
+      assert.ok(cornerAlpha / 144 < 128, item.id + ' frame ' + row + ':' + col + ' has a paper background inside its padding');
+    }
+  }
   assert.ok((await stat(url)).size < 350000, item.id + ' size budget');
   const hash = createHash('sha256').update(buffer).digest('hex');
   assert.ok(!hashes.has(hash), item.id + ' unique authored sheet'); hashes.add(hash);

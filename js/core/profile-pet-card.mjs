@@ -96,7 +96,7 @@ export async function mountPetGarden(target, { profileId, preview, owner, api, c
           const reaction = target.querySelector('.pg-reaction');
           if (reaction && data?.pet) reaction.textContent = petReaction(data.pet.affection);
         }, 3200);
-        announce(data.rewarded ? '오늘의 돌봄 완료. 꿀방울 ' + data.rewarded + '개를 받았어요.' : data.firstCare ? '조금 더 가까워졌어요. 친밀도 +' + data.affectionGain : '오늘 돌봄은 완료했어요. 함께하는 시간은 계속 즐겨도 좋아요.');
+        announce(data.rewarded ? '오늘의 돌봄 완료. 꿀방울 ' + data.rewarded + '개를 받았어요.' : data.firstCare ? '오늘의 돌봄을 기록했어요. 함께해줘서 고마워요.' : '오늘 돌봄은 완료했어요. 함께하는 시간은 계속 즐겨도 좋아요.');
         syncHoney();
       }
     } catch (error) { if (valid()) failure = error.message; }
