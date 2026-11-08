@@ -21,6 +21,7 @@ const names = new Set([
   "detectSajuAIIncompleteResult", "countSajuAICategoryMatches", "scoreSajuAISectionRow", "isSajuAISectionRowShort",
   "buildSajuAIStatusPayload", "mapSajuAIExecutionStatus", "buildSajuAIProgress", "normalizeSajuAIStoredResult",
   "findSajuAIExecutionForRead", "handleSajuAIConsultationStatus", "handleSajuAIConsultationResult",
+  "sajuAIDeliveryV2Enabled", "isSajuAIDeliveryV2", "readSajuAIBestSectionText", "assembleSajuAIBestEffortText",
 ]);
 const constants = new Set([
   "SAJU_AI_REQUIRED_CHAPTER_PATTERNS",
@@ -41,6 +42,7 @@ const constants = new Set([
   "SAJU_AI_PERSONA_SUMMARY_START",
   "SAJU_AI_PERSONA_SUMMARY_END",
   "SAJU_AI_PERSONA_SUMMARY_FIELDS",
+  "SAJU_AI_DELIVERY_PLAN_VERSION",
 ]);
 const extracted = ast.statements.filter((node) => ts.isFunctionDeclaration(node) && names.has(node.name?.text)
   || ts.isVariableStatement(node) && node.declarationList.declarations.some((d) => constants.has(d.name.getText(ast))))
@@ -74,7 +76,9 @@ function groupBody(group) {
     return `${chapter.no}. ${chapter.title}\n${body}`;
   }).join("\n\n");
 }
-function harness(mode = "single") {
+// 기존 테스트는 1판 기록으로 돈다(끄는 스위치). 2판 테스트는 env {}(기본 켜짐)로 새 기록을 만든다.
+const V1_ENV = { SAJU_AI_DELIVERY_V2_ENABLED: "false" };
+function harness(mode = "single", env = V1_ENV) {
   let record = null;
   let tick = 0;
   let fault = "";
@@ -155,7 +159,8 @@ function harness(mode = "single") {
   return {
     ctx, calls, charges,
     record: () => record, fault: (value) => { fault = value; },
-    post: (input = body, owner = "owner") => ctx.handleSajuAIPrompt(new Request("https://mock.invalid/create", { method: "POST", body: JSON.stringify(input) }), { userId: owner }, {}),
+    post: (input = body, owner = "owner") => ctx.handleSajuAIPrompt(new Request("https://mock.invalid/create", { method: "POST", body: JSON.stringify(input) }), { userId: owner }, env),
+    setEnv: (value) => { env = value; },
   };
 }
 
@@ -359,5 +364,130 @@ describe("rejected section recovery", () => {
     expect(h.record().result.sections[0]).toMatchObject({ valid: false, attempts: 1, truncated: true });
     expect((await h.post()).status).toBe(202);
     expect(h.ctx.callGeminiText.mock.calls[1][2].maxOutputTokens).toBe(prompt.SAJU_AI_SECTION_MAX_OUTPUT_TOKENS * 2);
+  });
+});
+
+// ── 배달 2판 (새 기록만, 끄는 스위치 SAJU_AI_DELIVERY_V2_ENABLED=false) ──
+describe("delivery plan v2", () => {
+  const { createHash } = require("node:crypto");
+  const sha = (text) => createHash("sha256").update(String(text)).digest("hex");
+  const groupOf = (text) => {
+    const block = text.slice(text.indexOf("[이번에 쓸 챕터]"), text.indexOf("다음 챕터"));
+    return prompt.SAJU_AI_SECTION_GROUPS.find((g) => g.chapters.every((c) => block.includes(`${c.no}. ${c.title}`)));
+  };
+  async function drive(h, limit = 20) {
+    const statuses = [];
+    for (let i = 0; i < limit; i += 1) {
+      const res = await h.post();
+      statuses.push(res.status);
+      if (res.status !== 202) return { res, statuses };
+    }
+    return { res: null, statuses };
+  }
+
+  test("new records carry deliveryPlanVersion 2; kill switch and existing v1 records stay v1", async () => {
+    const v2 = harness("single", {});
+    await v2.post();
+    expect(v2.record().result.deliveryPlanVersion).toBe(2);
+    const off = harness("single", { SAJU_AI_DELIVERY_V2_ENABLED: "false" });
+    await off.post();
+    expect(off.record().result.deliveryPlanVersion).toBeUndefined();
+    // 1판으로 시작한 기록은 스위치를 켠 뒤에도 1판으로 끝난다.
+    const legacy = harness("single", V1_ENV); legacy.fault("short");
+    expect((await legacy.post()).status).toBe(503);
+    legacy.setEnv({});
+    await legacy.post();
+    expect(legacy.record().result.deliveryPlanVersion).toBeUndefined();
+    expect(legacy.record().status).toBe("generation_failed");
+  });
+
+  test("v1 and v2 send byte-identical prompts (sha256)", async () => {
+    const v1 = harness("single", V1_ENV); const v2 = harness("single", {});
+    for (let i = 0; i < 5; i += 1) { await v1.post(); await v2.post(); }
+    const a = v1.ctx.callGeminiText.mock.calls.map((args) => sha(args[1]));
+    const b = v2.ctx.callGeminiText.mock.calls.map((args) => sha(args[1]));
+    expect(a).toHaveLength(5);
+    expect(b).toEqual(a);
+    expect(v2.record().status).toBe("completed");
+  });
+
+  test("an invalid group with attempts left returns a 202 checkpoint instead of failing", async () => {
+    const h = harness("single", {}); h.fault("short");
+    const res = await h.post();
+    expect(res.status).toBe(202);
+    expect(h.record().status).toBe("partial");
+    expect(h.record().result.sections[0]).toMatchObject({ valid: false, attempts: 1 });
+    expect(h.ctx.refundSajuAIPromptMonthlyCredit).not.toHaveBeenCalled();
+  });
+
+  test("one group that never validates: other groups continue and the best text is delivered without refund", async () => {
+    const h = harness("single", {});
+    const broken = prompt.SAJU_AI_SECTION_GROUPS[2];
+    const claim = "금 기운이 강해 연봉이 오르고 승진이 빨라집니다. 그래서 부동산 투자를 추천합니다.";
+    h.ctx.callGeminiText.mockImplementation(async (_env, text) => {
+      const group = groupOf(text);
+      // 장 제목이 하나 빠지고 근거 밖 조언이 든 초안 — 구조 검증을 끝내 통과하지 못한다.
+      if (group.key === broken.key) return { ok: true, text: `${groupBody(group).split(`\n\n${group.chapters[1].no}.`)[0]}\n${claim}\n`, model: "mock", provider: "mock" };
+      return { ok: true, text: groupBody(group), model: "mock", provider: "mock" };
+    });
+    const { res, statuses } = await drive(h);
+    expect(statuses.slice(0, -1).every((status) => status === 202)).toBe(true);
+    expect(res.status).toBe(200);
+    const data = await res.json();
+    expect(h.record().status).toBe("completed");
+    expect(data.resultText).toContain(`${broken.chapters[0].no}. ${broken.chapters[0].title}`);
+    expect(data.resultText).not.toContain("승진이 빨라집니다");
+    expect(data.qualityWarning).toBeTruthy();
+    expect(h.ctx.callGeminiText).toHaveBeenCalledTimes(6);
+    expect(h.ctx.refundSajuAIPromptMonthlyCredit).not.toHaveBeenCalled();
+  });
+
+  test("all groups short: delivers the drafts that exist instead of failing or stalling", async () => {
+    const h = harness("single", {}); h.fault("short");
+    const { res } = await drive(h);
+    expect(res?.status).toBe(200);
+    expect(h.record().status).toBe("completed");
+    expect((await res.json()).resultText).toContain("짧은 본문입니다.");
+    expect(h.ctx.callGeminiText).toHaveBeenCalledTimes(prompt.SAJU_AI_SECTION_GROUPS.length * 2);
+    expect(h.ctx.refundSajuAIPromptMonthlyCredit).not.toHaveBeenCalled();
+  });
+
+  test("refunds only when no section has any text", async () => {
+    const h = harness("single", {});
+    h.ctx.callGeminiText.mockImplementation(async () => ({ ok: true, text: "", model: "mock", provider: "mock" }));
+    const { res } = await drive(h);
+    expect(res?.status).toBe(503);
+    expect(h.record().status).toBe("generation_failed");
+    expect(h.ctx.refundSajuAIPromptMonthlyCredit).not.toHaveBeenCalled();
+    const calls = h.ctx.callGeminiText.mock.calls.length;
+    // 두 번째 실패(2-스트라이크)에서 환불한다. 시도가 다 쓰여 더 부르지 않는다.
+    expect((await h.post()).status).toBe(503);
+    expect(h.ctx.refundSajuAIPromptMonthlyCredit).toHaveBeenCalledTimes(1);
+    expect(h.ctx.callGeminiText).toHaveBeenCalledTimes(calls);
+  });
+
+  test("a final quality failure resets attempts once, then delivers the scrubbed text with a warning", async () => {
+    const h = harness("single", {});
+    const original = h.ctx.validateSajuAIResultText;
+    h.ctx.validateSajuAIResultText = (...args) => ({ ...original(...args), ok: false, reason: "cross-chapter" });
+    for (let i = 0; i < 5; i += 1) expect((await h.post()).status).toBe(202);
+    expect(h.record().result.sections.find((row) => row.key === "life_domains"))
+      .toMatchObject({ valid: false, qualityRepair: true, attempts: 0, qualityRepairs: 1 });
+    const { res, statuses } = await drive(h);
+    expect(statuses).toEqual([202, 200]);
+    expect(h.record().status).toBe("completed");
+    expect((await res.json()).qualityWarning).toBe("cross-chapter");
+    expect(h.ctx.callGeminiText).toHaveBeenCalledTimes(7);
+    expect(h.ctx.refundSajuAIPromptMonthlyCredit).not.toHaveBeenCalled();
+  });
+
+  test("v1 keeps throwing on a final quality failure", async () => {
+    const h = harness("single", V1_ENV);
+    const original = h.ctx.validateSajuAIResultText;
+    h.ctx.validateSajuAIResultText = (...args) => ({ ...original(...args), ok: false, reason: "cross-chapter" });
+    const { res } = await drive(h);
+    expect(res.status).toBe(503);
+    expect(h.record().status).toBe("generation_failed");
+    expect(h.record().result.sections.find((row) => row.key === "life_domains")).toMatchObject({ qualityRepair: true, attempts: 1 });
   });
 });
