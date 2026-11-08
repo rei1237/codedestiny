@@ -1150,7 +1150,7 @@ async function rescueFusionPlan2EmptyChapters({ composed, groups, exhaustedOptio
     console.warn("[fusion-fortune-chapter-rescue-skipped]", { requestId: text(requestId, 120), remainingMs: remainingMs(), chapters: chapters.map(({ key }) => key) });
     return { pending: [...new Set(chapters.map(({ group }) => group.id))] };
   }
-  // 일반 생성과 같은 요청당 두 호출 한도를 지킨다. 남은 장은 저장된 예약 횟수로 다음 요청에서 잇는다.
+  // 일반 생성처럼 요청당 최대 두 장만 구제한다. 남은 장은 저장된 예약 횟수로 다음 요청에서 잇는다.
   const batch = chapters.slice(0, 2);
   const progress = { phase: "rescue", total: batch.length, done: 0 };
   const settled = await Promise.allSettled(batch.map(({ group, key }) => runGroup(group, { attempts: 1, progress, attemptId: `rescue-${key}` })));

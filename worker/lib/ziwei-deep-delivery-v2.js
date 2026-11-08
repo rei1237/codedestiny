@@ -18,7 +18,7 @@ export function isZiweiDeepPlanV2(doc) {
   return Number(doc?.llmMeta?.deliveryPlanVersion) === ZIWEI_DEEP_DELIVERY_PLAN_VERSION;
 }
 
-/** 시도를 다 썼거나(구제) 본문이 없어 건너뛴 장. 다시 생성하지 않는다. */
+/** 구제된 장 또는 별도 빈 장 구제 예약까지 소진한 장. 완료본은 라우트에서 먼저 재열람한다. */
 export function isZiweiDeepChapterSettled(id, attempts = {}) {
   return Boolean(attempts?.[`${id}:salvaged`] || (attempts?.[`${id}:skipped`] && attempts?.[`${id}:emptyRescue`]));
 }
