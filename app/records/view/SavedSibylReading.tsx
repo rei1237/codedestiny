@@ -7,6 +7,8 @@ import { asRecord as object, asList as list, storedText as text } from '@/lib/re
 import { SavedText } from './SavedReadingParts';
 import styles from './SavedSibylReading.module.css';
 
+const SIBYL_PARTIAL_MAX_WAVES=6;
+
 export default function SavedSibylReading({value}:{value:unknown}) {
   const copy=recordReaderCopy(useLocale());
   const [busy,setBusy]=useState(false), [message,setMessage]=useState('');
@@ -15,11 +17,21 @@ export default function SavedSibylReading({value}:{value:unknown}) {
     if(busy) return;
     setBusy(true);setMessage('');
     try {
-      const response=await authFetch('/api/sibyl/report',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({profileId:report.profileId,year:report.year})});
-      const result=await response.json();
-      if(!response.ok) throw new Error(result.message || copy.resumeError);
-      if(response.status===202) setMessage(copy.resumePending);
-      else window.location.reload();
+      const post=async()=>{
+        const response=await authFetch('/api/sibyl/report',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({profileId:report.profileId,year:report.year})});
+        const result=await response.json();
+        if(!response.ok) throw new Error(result.message || copy.resumeError);
+        return {status:response.status,partial:response.status===202 && result?.partial===true};
+      };
+      // 배달 2판: 202 partial 은 남은 장이 있다는 뜻이라 짧게 쉬고 다시 보낸다. 상한을 넘으면 버튼으로 넘긴다.
+      let outcome=await post();
+      for(let wave=1;wave<=SIBYL_PARTIAL_MAX_WAVES && outcome.partial;wave++) {
+        setMessage(copy.resumePartial);
+        await new Promise(resolve=>setTimeout(resolve,wave===1?1000:2000));
+        outcome=await post();
+      }
+      if(outcome.status!==202) window.location.reload();
+      else setMessage(outcome.partial?copy.resumePartialStalled:copy.resumePending);
     } catch(error) {setMessage(error instanceof Error?error.message:copy.connectionError);}
     finally {setBusy(false);}
   }
