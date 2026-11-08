@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-08
-next: 6c-5 — sibyl / sibyl-annual 장 단위 재시도와 분량 경고화(통과한 장은 남기고 실패한 장만 다시 만든다). 그다음 6c-6~6c-7, 끝나면 6d
+next: 6c-6 — ziwei-island-ai 옛 기록: 코드로 `llmMeta.parts` 구제 경로만 넣는다(운영 DB 조회는 사용자 승인 대기). 그다음 6c-7(빌드), 끝나면 6d
 ---
 
 # 3만원 이상 유료 LLM — 상품별 챕터·분량·PDF·전달 개선 인수인계
@@ -221,7 +221,19 @@ next: 6c-5 — sibyl / sibyl-annual 장 단위 재시도와 분량 경고화(통
       - 테스트: `__tests__/worker/pet-paid-delivery.test.js` 하네스가 env를 받는다(기본 `{}` = 2판). 2판 테스트 10개 추가(판 고정·hash/프롬프트 동일, 1판 멈춤 유지, 실패 파트 4회 뒤 완료, 빈 파트 검토 시점, 반복 글 구제, 짧은 완결 문장 배달, floor 미만만 수리 3회, floor 이상 무수리, 빈 본문만 환불, 옵션 없는 어댑터 1판). 기존 "Toss exhaustion" 테스트는 2판 예산에 맞춰 attempts를 4로 둔다.
       - 검증: 엔진 사용처 jest 20개 스위트 648개 통과, `apps/toss/test/native-pet-paid.test.mjs` 6개, verify-paid-gate-ui-regression·verify-llm-generation-resilience·verify-cron-mongo-op-coverage 통과, `npx tsc --noEmit` 통과. 실호출·운영 DB 없음.
       - 남은 위험: 공급자가 한 파트에 4번 다 빈 응답을 주면 그 기록은 여전히 검토로 멈춘다(지어낸 대체문을 넣지 않기 위해). 1판 기록의 영구 202는 그대로다. 짧거나 반복이 남은 글도 마지막 시도면 배달된다. 분량 수리는 파트마다 호출 1회가 더 든다(기록당 최대 3회).
-  - [ ] 6c-5. sibyl / sibyl-annual: 장 단위 재시도와 분량 경고화.
+  - [x] 6c-5. sibyl / sibyl-annual: 장 단위 재시도와 분량 경고화.
+    - 결과(2026-11-08): `f5d5f771e` 배달 2판(`worker/lib/sibyl-report-store.js`). sibyl-annual은 같은 저장소 경로(`readOrGenerateSibyl`) 하나라 함께 고쳐졌다. 라우트 `worker/routes/sibyl.js`의 옛 `validateSibylReport` 계열은 테스트 유틸로만 남아 있어 손대지 않았다.
+      - 판 고정: upsert `$setOnInsert`의 `metadata.deliveryPlanVersion=2`(스위치 켜짐일 때만). 판 필드가 없는 옛 `failed` 기록은 스위치와 상관없이 1판으로 끝난다. 끄는 스위치 `SIBYL_DELIVERY_V2_ENABLED=false`. metadata가 Mixed라 스키마 변경 없음.
+      - 체크포인트 `metadata.sibylDelivery.chapters[key]`(valid·attempts·content·draft·issues·degraded·lengthRepaired)와 `lengthRepairs`. 첫 호출은 1판 프롬프트 그대로(`buildSibylCounselPrompt`로 뽑아냄, sha256 `39e62255…` 테스트 고정), 그다음은 실패한 장만 담은 수리 프롬프트(`buildSibylCounselRepairPrompt`, 장별 `보완 요청:` 줄. 금지 어간을 힌트에 넣지 않았다).
+      - 분량은 치명이 아니다: 400자 바닥 아래 장만 기록당 3장까지 한 번 수리, 그 뒤엔 그대로 받는다. 2,400자 초과·합계 5,000자 미만도 받는다.
+      - 숫자·간지·단정어·월 이름·전문용어·근거 ID는 장 단위 이슈다. 장마다 세 번째 시도는 마지막 시도로, 걸린 문장만 덜어 내고(`scrubSibylText`) 근거 ID는 허용된 것만, 없으면 `annual`. `qualityWarnings`에 남긴다.
+      - 글이 없는 장은 빼지 않는다. 글이 올 때까지 다음 요청마다 그 장만 다시 만든다(상한 없음, 사용자 요청이 구동).
+      - 시간: 요청당 호출 2회, 예산 70초(클라이언트 fetch 75초, 엣지 100초). 첫 호출 60초, 수리 호출은 min(45초, 남은 시간−3초)이고 20초 미만이면 하지 않는다. 장이 남으면 체크포인트를 저장하고 잠금을 풀고 202 `{status:"generating", partial:true}`.
+      - 공급자 실패는 시도를 세지 않는다. 글이 하나도 없으면 1판처럼 `SIBYL_GENERATION_UNAVAILABLE` → 503 retryable. 환불 경로는 원래 없다(평생 출생 이용권).
+      - 크론: 시빌라 기록은 `status:"failed"`로 남아 `pending`만 보는 회수·환불 크론에 잡히지 않는다(1판과 같음). 이어 만들기는 사용자 요청으로만 돈다.
+    - 테스트: `__tests__/worker/sibyl-report-store-v2.test.js` 10개(프롬프트 sha256, 판 고정·스위치·1판 기록 유지, 실패한 장만 재생성, 짧은 출력 배달·수리 3장 한도, 2400자 초과 무수리, 마지막 시도 scrub과 요청을 넘는 이어 만들기, 빠진 장 끝까지 재생성, 근거 ID 거르기, 느린 첫 호출 뒤 수리 호출 생략, 공급자 실패와 체크포인트 보존). 기존 `sibyl-report-store.test.js`는 env `{}`(2판)로 그대로 통과.
+    - 검증: sibyl·record-library jest 7개 스위트 77개 통과, `npx tsc --noEmit` 통과. 실호출·운영 DB 없음.
+    - 남은 위험: 부분 진행 202는 클라이언트(`js/sibyl-system.js`, `SavedSibylReading.tsx`)가 자동으로 다시 부르지 않고 "진행 상태 확인하기" 버튼을 보여 준다(문구가 "다른 창에서 시작한 분석"이라 조금 어긋난다). 옛 1판 실패 기록은 계속 1판(한 장 실패 시 전부 재생성)이다. 마지막 시도의 scrub 글은 짧거나 흐름이 끊길 수 있다. sha 테스트의 YEAR는 `max(2030, 올해)`라 2031년부터 해시가 바뀐다.
   - [ ] 6c-6. ziwei-island-ai 옛 기록: 코드로 `llmMeta.parts` 구제 경로만 넣는다. 운영 DB 조회는 사용자 승인 대기다.
   - [ ] 6c-7. `ALLOW_DEV_SERVER_DURING_BUILD=1 npm run build`. 빌드가 바꾼 sitemap·shell 파일은 되돌린다. 그다음 6c를 체크하고 `next`를 6d로 둔다.
 - [ ] 6d. 영냥이 이미지 리포트: 지금 있는지 확인하고, 더 고퀄리티로 만들고, 상품 설명에서 잘 알아볼 수 있게 넣는다. 읽기 전용 조사가 진행 중이다.
