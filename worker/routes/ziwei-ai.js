@@ -1986,10 +1986,14 @@ async function generateCheckpointedZiweiV2(env, { input, chart, logContext, chec
     && typeof value[key]?.body === 'string' && countPaidReportBodyChars(value[key].body) >= 40)
     && !hasRepeatedReportPassage(ziweiSectionBody(value)) && !collectZiweiCrossSectionDuplicates(value).length;
   const soft = (group, value) => detectZiweiSoftIssues(value, { questionOwner: group.questionOwner === true, question });
+  const missingSections = group => group.sections.filter(key => typeof groups[group.id]?.[key]?.body !== 'string'
+    || countPaidReportBodyChars(groups[group.id][key].body) < 40);
+  const needsEmptyRescue = group => Number(attempts[group.id] || 0) >= ZIWEI_GROUP_MAX_ATTEMPTS
+    && !attempts[`${group.id}:emptyRescue`] && missingSections(group).length > 0;
   const settled = group => Boolean(attempts[`${group.id}:salvaged`] || attempts[`${group.id}:skipped`]);
   const exhausted = group => Number(attempts[group.id] || 0) >= ZIWEI_GROUP_MAX_ATTEMPTS;
-  const accepted = group => settled(group) || (valid(group, groups[group.id])
-    && (exhausted(group) || (chars(groups[group.id]) >= group.minChars && !soft(group, groups[group.id]).length)));
+  const accepted = group => !needsEmptyRescue(group) && (settled(group) || (valid(group, groups[group.id])
+    && (exhausted(group) || (chars(groups[group.id]) >= group.minChars && !soft(group, groups[group.id]).length))));
   // 시도를 다 쓰고도 쓸 수 없는 묶음: 저장본과 마지막 응답 중 반복을 걷어 낸 뒤 더 긴 쪽을 배달한다.
   const salvage = async group => {
     const prior = priorFor(group.id);
@@ -2001,15 +2005,18 @@ async function generateCheckpointedZiweiV2(env, { input, chart, logContext, chec
     await checkpoint({ groups, attempts, meta, rawResponses });
   };
   let group = specs.find(row => !accepted(row));
-  while (group && exhausted(group)) { await salvage(group); group = specs.find(row => !accepted(row)); }
+  while (group && exhausted(group) && !needsEmptyRescue(group)) { await salvage(group); group = specs.find(row => !accepted(row)); }
   if (group) {
+    const emptyRescue = needsEmptyRescue(group);
+    const generationGroup = emptyRescue ? { ...group, sections: missingSections(group) } : group;
     const saved = groups[group.id];
     const savedValid = valid(group, saved);
     const lengthShort = savedValid && chars(saved) < group.minChars;
     const savedSoft = savedValid && !lengthShort ? soft(group, saved) : [];
     if (lengthShort) attempts[`${group.id}:lengthRepair`] = 1;
     if (savedSoft.length) attempts[`${group.id}:softRepair`] = 1;
-    attempts[group.id] = Number(attempts[group.id] || 0) + 1;
+    if (emptyRescue) attempts[`${group.id}:emptyRescue`] = 1;
+    else attempts[group.id] = Number(attempts[group.id] || 0) + 1;
     await checkpoint({ groups, attempts, meta, rawResponses }); // Reserve before the provider; a lost response consumes this attempt.
     const config = await cmsPromptModelConfig(env, "ziwei-ai", { minTokens: tokensRequiredForChars(MIN_INITIAL_CONSULTATION_BODY_CHARS), maxTokens: INITIAL_CONSULTATION_MAX_OUTPUT_TOKENS });
     const groupTokens = attempts[`${group.id}:truncated`] ? Math.max(SECTION_GROUP_TARGET_TOKENS, Math.min(32768, SECTION_GROUP_TARGET_TOKENS * 2)) : SECTION_GROUP_TARGET_TOKENS;
@@ -2017,14 +2024,14 @@ async function generateCheckpointedZiweiV2(env, { input, chart, logContext, chec
     let generated;
     try {
       generated = await callGeminiJsonWithRetry(env, [
-        buildSectionGroupPrompt(input, chart, group, ZIWEI_V2_PLAN),
+        buildSectionGroupPrompt(input, chart, generationGroup, ZIWEI_V2_PLAN),
         `제목과 공백을 제외한 본문 목표 ${group.targetChars}자, 최소 ${group.minChars}자. 각 필수 섹션을 빠짐없이 작성하세요.`,
         ...(lengthShort ? [`직전 본문은 공백 제외 ${chars(saved)}자입니다. 같은 문장 반복 없이 계산 근거와 행동 조언을 보강해 완결된 JSON으로 다시 작성하세요.`] : []),
         ...(savedSoft.length ? [ziweiSoftIssueHint(savedSoft)] : []),
         ...(!savedValid && attempts[group.id] > 1 ? [buildZiweiDuplicateInstruction(duplicates, group)].filter(Boolean) : []),
       ].join("\n"), {
         systemPrompt: await resolveSystemPrompt(env, input.locale, answerVoice), taskType: "fortune", responseMimeType: "application/json",
-        responseSchema: jsonSchemaFromExample({ sections: buildSectionSchemaFor(group.sections) }),
+        responseSchema: jsonSchemaFromExample({ sections: buildSectionSchemaFor(generationGroup.sections) }),
         temperature: config.temperature ?? 0.72, attempts: 1, timeoutMs: 45000,
         baseTokens: Math.max(groupTokens, Math.floor(Number(config.maxOutputTokens || INITIAL_CONSULTATION_MAX_OUTPUT_TOKENS) / specs.length)),
         capTokens: groupTokens, fallbackToWorkersAI: false,
@@ -2038,7 +2045,9 @@ async function generateCheckpointedZiweiV2(env, { input, chart, logContext, chec
     rawResponses[group.id] = generated?.ok && !mockBlocked ? (generated?.rawText || generated?.text || '') : '';
     if (generated?.truncated) attempts[`${group.id}:truncated`] = 1;
     await checkpoint({ groups, attempts, meta, rawResponses });
-    const { source = {}, next = {} } = ziweiGroupSectionsFromText(group, rawResponses[group.id]);
+    const parsedGroup = ziweiGroupSectionsFromText(generationGroup, rawResponses[group.id]);
+    const source = emptyRescue ? { ...(saved || {}), ...(parsedGroup.source || {}) } : (parsedGroup.source || {});
+    const next = emptyRescue ? { ...(saved || {}), ...(parsedGroup.next || {}) } : (parsedGroup.next || {});
     const others = Object.assign({}, ...specs.filter(row => row.id !== group.id).map(row => groups[row.id] || {}));
     const candidate = { ...others, ...next };
     const candidateValid = valid(group, source) && valid(group, next)
@@ -2047,7 +2056,7 @@ async function generateCheckpointedZiweiV2(env, { input, chart, logContext, chec
     const priorIssueCodes = new Set(enforceZiweiChartFacts(JSON.stringify({ meta: {}, sections: { ...others, ...(saved || {}) } }), chart).issues.map(issue => issue.split(":")[0]));
     const noNewGrounding = !enforceZiweiChartFacts(JSON.stringify({ meta: {}, sections: candidate }), chart).issues.some(issue => !priorIssueCodes.has(issue.split(":")[0]));
     const softCount = value => soft(group, value).reduce((sum, issue) => sum + issue.sentences.length, 0);
-    const better = !savedValid
+    const better = emptyRescue || !savedValid
       || (lengthShort && noNewGrounding && chars(next) > chars(saved))
       || (savedSoft.length > 0 && noNewGrounding && softCount(next) < softCount(saved) && chars(next) >= chars(saved) * 0.85);
     if (candidateValid && better) {

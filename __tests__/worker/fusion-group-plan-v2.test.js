@@ -270,4 +270,27 @@ describe("plan 2 never drops a chapter after a 400", () => {
     }
     expect(calls.some((call) => call.id === "domainHanbi" && !call.schema && call.prompt.includes("응답 JSON 스키마"))).toBe(true);
   });
+  it("resumes failed chapter rescues while their saved attempt budget remains", async () => {
+    const rescueCalls = {};
+    const { generated, attempts } = await runBook((call) => {
+      if (call.id !== "domainHanbi") return false;
+      if (call.keys.length !== 1) return true;
+      const key = call.keys[0];
+      rescueCalls[key] = (rescueCalls[key] || 0) + 1;
+      // 첫 구제 시도의 구조화·단순화 요청을 모두 실패시킨다.
+      return rescueCalls[key] <= 2;
+    });
+    expect(generated.deliverable).toBe(true);
+    expect(generated.qualityIssues).not.toContain("domain_chapter_missing");
+    for (const key of chapterKeys("domainHanbi")) {
+      expect(generated.result[key]?.content.length).toBeGreaterThan(100);
+      expect(attempts[`rescue-${key}`]).toBe(2);
+    }
+  });
+  it("stops at the saved rescue cap when the provider cannot fill a chapter", async () => {
+    const { generated, attempts } = await runBook(call => call.id === "domainHanbi");
+    expect(generated.deliverable).toBe(true);
+    expect(generated.qualityIssues).toContain("domain_chapter_missing");
+    for (const key of chapterKeys("domainHanbi")) expect(attempts[`rescue-${key}`]).toBe(2);
+  });
 });

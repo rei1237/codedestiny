@@ -20,7 +20,7 @@ export function isZiweiDeepPlanV2(doc) {
 
 /** 시도를 다 썼거나(구제) 본문이 없어 건너뛴 장. 다시 생성하지 않는다. */
 export function isZiweiDeepChapterSettled(id, attempts = {}) {
-  return Boolean(attempts?.[`${id}:salvaged`] || attempts?.[`${id}:skipped`]);
+  return Boolean(attempts?.[`${id}:salvaged`] || (attempts?.[`${id}:skipped`] && attempts?.[`${id}:emptyRescue`]));
 }
 
 /** 한국어 무성 말투 이탈과, 1장이 아닌 장의 질문 재인용. 다른 언어는 검사하지 않는다. */
