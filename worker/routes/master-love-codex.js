@@ -832,11 +832,28 @@ function codexNeedsRepair(row) {
   return row?.lengthDraft === true || (Array.isArray(row?.softIssues) && row.softIssues.length > 0);
 }
 
+/**
+ * F19 (2026-11-08): at most this many chapter repairs (length or V2 soft issue) per book. Live V2 samples
+ * repaired 16/20 and 14/20 chapters (~38 provider calls, 9~10 minutes). Length is guidance; delivery first.
+ */
+export const CODEX_SESSION_REPAIR_CAP = 4;
+
+function codexRepairRatio(spec, row) {
+  return countPaidReportBodyChars(row?.body || "") / (Number(spec?.minChars) || 2400);
+}
+
 function splitPendingChapters(expected, readyIds, attempts = {}, saved = new Map()) {
   // A saved length (or V2 soft-issue) draft gets its one repair (rule L2) only while the shared cap has room.
   // It is never "exhausted": the draft itself is deliverable, so it cannot close or refund the book.
-  const pending = expected.filter(spec => !readyIds.has(spec.id)
-    || (codexNeedsRepair(saved.get(spec.id)) && !attempts[`${spec.id}:lengthRepair`] && Number(attempts[spec.id] || 0) < CHAPTER_ATTEMPT_LIMIT));
+  // Repairs wait until every chapter has a draft, then go shortest-first within CODEX_SESSION_REPAIR_CAP.
+  const drafting = expected.some(spec => !readyIds.has(spec.id));
+  const used = expected.filter(spec => attempts[`${spec.id}:lengthRepair`]).length;
+  const repairIds = new Set(drafting ? [] : expected
+    .filter(spec => codexNeedsRepair(saved.get(spec.id)) && !attempts[`${spec.id}:lengthRepair`] && Number(attempts[spec.id] || 0) < CHAPTER_ATTEMPT_LIMIT)
+    .sort((a, b) => codexRepairRatio(a, saved.get(a.id)) - codexRepairRatio(b, saved.get(b.id)) || Number(a.order || 0) - Number(b.order || 0))
+    .slice(0, Math.max(0, CODEX_SESSION_REPAIR_CAP - used))
+    .map(spec => spec.id));
+  const pending = expected.filter(spec => !readyIds.has(spec.id) || repairIds.has(spec.id));
   return {
     pending,
     actionable: pending.filter(spec => Number(attempts[spec.id] || 0) < CHAPTER_ATTEMPT_LIMIT),

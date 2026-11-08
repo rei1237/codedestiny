@@ -196,6 +196,30 @@ describe('V2 soft issues: register drift and re-quoted questions', () => {
   });
 });
 
+describe('F19: bounded, shortest-first length repair', () => {
+  it('waits for every first draft, then repairs only the four shortest chapters below the floor', async () => {
+    const ratios = { gate: 0.96, temperament: 0.77, attraction: 0.94, timing: 0.8, letter: 0.84, 'three-years': 0.9, 'spark-to-bond': 0.86, marriage: 0.92 }; const actual = {};
+    const ids = new Set();
+    provider.mockImplementation(async (_env, { chapter, previousError }) => {
+      ids.add(chapter.id);
+      const ratio = !previousError && ratios[chapter.id];
+      if (!ratio) return okChapter(chapter);
+      const lines = body(chapter).split('\n'); let text = '';
+      for (const line of lines) { if ((text + line).length > chapter.minChars * ratio) break; text += `${line}\n`; }
+      actual[chapter.id] = text.length / chapter.minChars; return okChapter(chapter, text);
+    });
+    await runToEnd(20);
+    expect(docs[0].status).toBe('completed');
+    expect(docs[0].chapters).toHaveLength(20);
+    expect(provider).toHaveBeenCalledTimes(24);
+    const repaired = provider.mock.calls.slice(20).map(([, input]) => input.chapter.id);
+    const shortest = Object.entries(actual).sort((a, b) => a[1] - b[1]).slice(0, 4).map(([id]) => id);
+    expect(new Set(repaired)).toEqual(new Set(shortest));
+    expect(provider.mock.calls.slice(0, 20).map(([, input]) => input.chapter.id)).toHaveLength(new Set(provider.mock.calls.slice(0, 20).map(([, input]) => input.chapter.id)).size);
+    expect(refund).not.toHaveBeenCalled();
+  });
+});
+
 describe('final-attempt salvage and evidence sub-paths', () => {
   const person = { birthDate: '1990-05-12', birthTime: '09:30', gender: 'female', calendarType: 'solar' };
   async function contractFor(chapter) {
