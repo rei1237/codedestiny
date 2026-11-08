@@ -46,9 +46,9 @@
     },
     {
       "id": "ep-18:7",
-      "source": "위층에서 끝났으면 좋았을 텐데. 꼭 아래까지 따라오네.",
-      "sourceHash": "0e8c103ed4965e6171ace10e7aef1ba5b88217e0e275ec08fbc6c37102660855",
-      "t": "It would have been better if it had ended upstairs. But you had to follow me down."
+      "source": "위층에서 끝났으면 좋았을 텐데요. 꼭 아래까지 따라오시네요.",
+      "sourceHash": "704b1630660fdf9f0f41a01fd2387be867cf4c7259fe16961fc4b246843a2783",
+      "t": "It would have been pleasant to finish upstairs. Yet here you are, following me down."
     },
     {
       "id": "ep-18:8",
@@ -58,9 +58,9 @@
     },
     {
       "id": "ep-18:9",
-      "source": "카드는 젖으면 번져. 이름도 마찬가지고.",
-      "sourceHash": "6dd44700c7e3d707b0ce2d59f6bd9c1bdf26ad73401d0f599331d27df3e285e1",
-      "t": "Cards blur when they get wet. Names, too."
+      "source": "카드는 젖으면 번져요. 이름도 마찬가지고요.",
+      "sourceHash": "bec5105ecc2949b696f5854ff77ce327282773fadb854298e4ca801b771a8c1a",
+      "t": "Cards blur when wet. Names do too."
     },
     {
       "id": "ep-18:10",
@@ -235,9 +235,9 @@
     },
     {
       "id": "ep-18:38",
-      "source": "보지 마. 그건 네가 볼 게 아니야.",
-      "sourceHash": "5edb13bb93d37279e2cff9029181b22dd0cd352b3e9ed0fe1dfc35eb6ec0dcbd",
-      "t": "Don't look. That isn't for you to see."
+      "source": "보지 마세요. 손님께서 보실 게 아니에요.",
+      "sourceHash": "84d30b68c14b4195a91fe0e509516f6f98e34608620a4b15f6e8d0d36f4e157b",
+      "t": "Please don't look. That is not yours to see."
     },
     {
       "id": "ep-18:39",
@@ -247,9 +247,9 @@
     },
     {
       "id": "ep-18:40",
-      "source": "모르는 게 나은 빚도 있어. 갚을 수 없는 빚이면 더더욱.",
-      "sourceHash": "65b087a32cb79a7736bcf7b9c124ca17882f99627711b43af486ab2b401b82eb",
-      "t": "Some debts are better left unknown. Especially ones you can never repay."
+      "source": "모르시는 게 나은 빚도 있어요. 갚을 수 없는 빚이면 더더욱요.",
+      "sourceHash": "07dc5cab25b9a5705c941cf0251abed53f95c3efa9a440b2d721c2c77080f210",
+      "t": "Some debts are better left unknown. Especially those that cannot be repaid."
     },
     {
       "id": "ep-18:41",
@@ -265,9 +265,9 @@
     },
     {
       "id": "ep-18:43",
-      "source": "몰라. 알 필요도 없고. 나는 장부에 적힌 걸 거둘 뿐이야.",
-      "sourceHash": "de9b561c837d730ee599a683ce42bb439b28a33324d6c83a28cd20f84f43b109",
-      "t": "No. And I don't need to. I only collect what's written in the ledger."
+      "source": "몰라요. 알 필요도 없이 장부에 적힌 걸 거둘 뿐이에요.",
+      "sourceHash": "24061c9942a260a5630df1b86b350f64b819b81b58fd2b5edf314f56b8b0c450",
+      "t": "I don't know. Nor need I. I merely collect what the ledger records."
     },
     {
       "id": "ep-18:44",
@@ -402,9 +402,9 @@
     },
     {
       "id": "ep-18:65",
-      "source": "용까지 데리고 다니는 줄은 몰랐네. 다음엔 그것도 안 통해.",
-      "sourceHash": "be13e407c96db2054f458f323c5436be84c1f702453d738b7b792fad2b70bb8b",
-      "t": "I didn't know you traveled with a dragon, too. That won't work next time, either."
+      "source": "용까지 데리고 다니시는 줄은 몰랐네요. 다음엔 그것도 통하지 않을 거예요.",
+      "sourceHash": "c2616159c14c1e927720a768dda677a420393620918c885227ba2d258389fc76",
+      "t": "I hadn't realized you traveled with a dragon too. That won't work next time."
     },
     {
       "id": "ep-18:66",
@@ -414,9 +414,9 @@
     },
     {
       "id": "ep-18:67",
-      "source": "착각이야. 물속에선 다 느려 보여.",
-      "sourceHash": "b11b0327725a2f410c50e0b7883d20ea75cbe3464b4949e14417917ac4c98bd9",
-      "t": "You imagined it. Everything looks slow underwater."
+      "source": "착각이에요. 물속에선 다 느려 보여요.",
+      "sourceHash": "74eb9e2729d0c7d0082fd0c036d7d895923df8e3425cf1355adf35cf0c9a8ce6",
+      "t": "A mistaken impression. Everything looks slow underwater."
     },
     {
       "id": "ep-18:68",

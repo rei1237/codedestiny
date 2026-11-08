@@ -100,9 +100,9 @@
     },
     {
       "id": "ep-16:16",
-      "source": "무게로. 이 금고에서 길이로 재는 건 토끼 장부뿐이야.",
-      "sourceHash": "7a27f85588708b8812a1efd7026d0462e8aaac51c8160a6bf3e7432b25490a8f",
-      "t": "Weight. The only thing in this vault that measures length is the rabbit's ledger."
+      "source": "무게로 재요. 이 금고에서 길이로 재는 건 토끼 장부뿐이에요.",
+      "sourceHash": "94b670bac17f93f1414444acdddc7c11539d67a67bebbd557a80d55629b769d6",
+      "t": "By weight. Only the rabbit's ledger is measured by length in this vault."
     },
     {
       "id": "ep-16:17",
@@ -238,9 +238,9 @@
     },
     {
       "id": "ep-16:39",
-      "source": "그만. 금고는 여기까지야.",
-      "sourceHash": "395a14f6938413e2d0cd2f0ca1cea3745b6d700db948dc46ed3d27188ee3f8db",
-      "t": "Enough. This is as far as you go."
+      "source": "그만하세요. 금고는 여기까지예요.",
+      "sourceHash": "05f4d8b3c30f5eb651654224274c7e0781cd5ca926027b495a0cf05e9238d1ca",
+      "t": "Enough, please. This is as far as you go in the vault."
     },
     {
       "id": "ep-16:40",
@@ -250,9 +250,9 @@
     },
     {
       "id": "ep-16:41",
-      "source": "언니 하루는 가져가. 그건 토끼 몫이었으니까. 알은 안 돼. 그건 내 장부야.",
-      "sourceHash": "be0b629286436ba84c413f62b461e2cdeebbaaecdb3d7fc785f7c8b1f9e4cfb8",
-      "t": "Take her day. That was the rabbit's share. But not the egg. That's in my ledger."
+      "source": "언니 하루는 토끼 몫이었으니 가져가세요. 알은 제 장부에 있으니 안 돼요.",
+      "sourceHash": "6541ceee6df9dd4ccc345412202d2dfc373c0e9f4190e673283afff85aec05db",
+      "t": "Take the elder sister's day; that was the rabbit's. The egg belongs to my ledger. It stays."
     },
     {
       "id": "ep-16:42",
@@ -262,9 +262,9 @@
     },
     {
       "id": "ep-16:43",
-      "source": "비어 있던 집에 내가 먼저 들어왔으니까.",
-      "sourceHash": "975d57b46b4e77c2825f89f69582969e958db49555e0d54b4e5c0767174e5a52",
-      "t": "Because I got into the empty house first."
+      "source": "비어 있던 집에 제가 먼저 들어왔으니까요.",
+      "sourceHash": "92d658bbd1d45985fa1dadb1de57ab20f623fd837578fb8ea5d8d14c1278bc5b",
+      "t": "Because I entered the empty house first."
     },
     {
       "id": "ep-16:44",
@@ -298,9 +298,9 @@
     },
     {
       "id": "ep-16:49",
-      "source": "돼지! 알은?",
-      "sourceHash": "82184a7ef752e85cb7303685f0fadac419da09d1757a2d821a7d93c77d469652",
-      "t": "Pig! What about the egg?"
+      "source": "손님! 알은요?",
+      "sourceHash": "d02a94c1f2ced2b73fc872969cacc1eaeb61e4239366616e593f149e40002142",
+      "t": "Dear guest! The egg?"
     },
     {
       "id": "ep-16:50",
@@ -406,9 +406,9 @@
     },
     {
       "id": "ep-16:67",
-      "source": "바보 같은 돼지. 그 1분이면 네 장부 줄 하나쯤은 갚았을 텐데.",
-      "sourceHash": "f4ae9415cce2a60786271acacc7d9910c06ff858b4e4dc15d250bcdbd4895f1e",
-      "t": "Stupid pig. That minute could have paid off a line or so in your ledger."
+      "source": "어리석으시네요. 그 1분이면 손님 장부 줄 하나쯤은 갚으셨을 텐데요.",
+      "sourceHash": "7e64c0adbdcc7bb4f2a3d92ece9a97ee05b983037a37361c645a04ac3c3e0f2d",
+      "t": "How foolish. That minute could have settled a line in your own ledger."
     },
     {
       "id": "ep-16:68",
@@ -436,9 +436,9 @@
     },
     {
       "id": "ep-16:72",
-      "source": "장부에 적힌 내 알이었는데. 왜 너한테 가.",
-      "sourceHash": "47fa9f39a06cfd11596124721bc1e4c4ec04a49e85a3d01caa55e50dee017b87",
-      "t": "It was my egg. Written in my ledger. Why is it going to you?"
+      "source": "장부에 적힌 제 알이었는데요. 왜 손님께 가나요.",
+      "sourceHash": "8bc4e74e99db2c46cdb74d52f855cceb4f59d34df55150057b0fad141fc6c1f4",
+      "t": "It was my egg, entered in my ledger. Why does it go to you?"
     },
     {
       "id": "ep-16:73",
@@ -472,9 +472,9 @@
     },
     {
       "id": "ep-16:78",
-      "source": "오늘은 미수야. 다음엔 다 거둬 간다.",
-      "sourceHash": "f13fca64fde410e08e50bc1af29861fce39513242cbbd980b4b14255c55b8d59",
-      "t": "Uncollected today. Next time, I collect everything."
+      "source": "오늘은 미수예요. 다음엔 다 거두어 갈게요.",
+      "sourceHash": "86747da11f4be0a6ad81727084bb6d91d35deccf72584d8614a7077bda36dd88",
+      "t": "Today, an outstanding debt. Next time, I shall collect it all."
     },
     {
       "id": "ep-16:79",

@@ -220,9 +220,15 @@
     },
     {
       "id": "ep-17:36",
-      "source": "다들 웃는 사이, 영냥이만 목록을 오래 보았다. 지워진 대출자 칸 위에 아주 작은 물방울 하나가 맺혀 있었다.",
-      "sourceHash": "dd41babb4ac2b13d775324cc7ed1cde3560c387a6c14e9e101ca210ef6e23928",
-      "t": "While the others laughed, Yeongnyangi studied the catalog. A tiny bead of water had formed over the erased borrower's name."
+      "source": "다들 웃는 사이, 윤달이 먼저 웃음을 거두었다. 영냥이는 목록을 말없이 보았다. 지워진 대출자 칸 위에 아주 작은 물방울 하나가 맺혀 있었다.",
+      "sourceHash": "574cda76cb8037b54fb7d841fb9d4c9ca269fe5628aabec7b664645bc3b146f6",
+      "t": "Amid the laughter, Yundal stopped smiling first. Yeongnyangi studied the list silently. A tiny drop had gathered above the erased borrower's field."
+    },
+    {
+      "id": "ep-17:r1-yun",
+      "source": "세 글자네요. 흔한 이름이죠.",
+      "sourceHash": "05412d621187e46c8a0ad7c84a6573086aa259dc46273b76fe0a7e9fdde269e6",
+      "t": "Three syllables. A common sort of name."
     },
     {
       "id": "ep-17:37",
@@ -310,9 +316,9 @@
     },
     {
       "id": "ep-17:51",
-      "source": "제목 짓는 건 어릴 때랑 똑같네.",
-      "sourceHash": "4cc62a82dd396007f1297f635b96d350f9d806adf92c08639640217e59323e8e",
-      "t": "Your way of naming things hasn't changed since childhood."
+      "source": "제목 짓는 솜씨는 별 하나다.",
+      "sourceHash": "4db20c99fb7b548e06c126057b373073a6e4d76a3e4d1654a2c9e910d2fec957",
+      "t": "One star for the title."
     },
     {
       "id": "ep-17:52",
@@ -618,9 +624,9 @@
     },
     {
       "id": "ep-17:102",
-      "source": "첫 번째 봄은 내가 가져간다. 너는 거기서 떠내려가, 돼지.",
-      "sourceHash": "320cfad1ae17eb11f527f7fe81ef37f1a7096108d343b4b859b9aef4e2612e70",
-      "t": "I'm taking The First Spring. You can wash away right there, pig."
+      "source": "첫 번째 봄은 제가 가져가겠어요. 손님은 거기서 떠내려가세요.",
+      "sourceHash": "b9a5effc9bb4ce3bacc3b3aafcdb25b63637c26b55d7c28add7b3557f7db0c67",
+      "t": "I shall take the First Spring. Please drift away there, dear guest."
     },
     {
       "id": "ep-17:103",
