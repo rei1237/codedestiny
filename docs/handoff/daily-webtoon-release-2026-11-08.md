@@ -1,7 +1,7 @@
 ---
-status: active
+status: blocked
 updated: 2026-11-08
-next: "Play 내부 테스트 트랙에 final7 AAB(59/1.0.59) 업로드: ego-browser TaskSpace 59가 업로드 도중 사라져 멈췄다. 사용자가 직접 올리거나 새 브라우저 작업을 승인하면 진행"
+next: "Play 빌드·업로드 보류(2026-11-08 사용자: \"앱은 아직 업데이트할게 있어서 빌드하진마\"). 앱 쪽 추가 업데이트가 끝난 뒤 사용자가 요청하면 새로 빌드한다. final7(59) AAB는 쓰지 않는다. VERSION_CODE 57·58은 Play에 이미 있으니 59 이상을 쓴다"
 ---
 
 # 오늘·내일 운세 웹툰 마무리와 세 브랜치 운영·Play 배포
