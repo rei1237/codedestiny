@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-08
-next: 7단계 자미두수 (상담 + 심층 PDF, 6c 감사의 ziwei 문제 포함)
+next: 7a 자미 상담 worker V2 (7단계 진행 메모 참고)
 ---
 
 # 3만원 이상 유료 LLM — 상품별 챕터·분량·PDF·전달 개선 인수인계
@@ -571,6 +571,23 @@ next: 7단계 자미두수 (상담 + 심층 PDF, 6c 감사의 ziwei 문제 포�
 - 근거 하위 경로 대체 조회(위). 화면: 목차 번호·제목·화자, 장 머리 칩·kicker, 1장 강조, 360px 확인. 조판 PDF `src/features/master-love-codex/_lib/codex-pdf-chapters.ts`(`buildMasterLoveCodexPdfChapters`)를 리더에서 쓰고(결과·보관함 공통) PdfFontError일 때만 캡처 대체.
 - 테스트 먼저: `__tests__/worker/master-love-codex-chapter-plan-v2.test.js`(V1 바이트 동일 solo·compat, V2 구성, 연성 이슈, 마지막 시도 scrub로 completed, 장 빠짐 없음, 분량 수리 상한, 근거 하위 경로 대체).
 - 실호출: 스크래치 `karma-live\` 하네스를 복사해 solo·compat 각 1회, DB·결제·배포 없음.
+
+## 7단계 진행 메모 (조사 완료, 구현 중 — 2026-11-08)
+
+### 조사로 확인한 사실 (이 워크트리 기준)
+- 자미 상담 `worker/routes/ziwei-ai.js`: `SECTION_GROUP_SPECS` 6그룹(foundation·essence·flow·achievement·relation·closing), 실경로는 `generateCheckpointedZiwei`. 그룹 2회 실패 시 `REPORT_QUALITY_FAILED`를 던지고(P1) catch에서 환불한다. 메타 소개는 한 번만 부르고 실패해도 빈 채로 완료한다(P2). `buildConsultationHeaderLines`가 모든 그룹 프롬프트에 질문을 넣는다(P5). 말투 drift 검사는 없다(P4, `musungRegisterDrift`가 `worker/lib/expert-character-persona-text.js`에 있음). 새 문서는 `handleStart`에서 `llmMeta: { resumeBody, groups, attempts, chartSnapshot, ... }`로 만든다.
+- 자미 상담 화면 `app/ziwei-ai/ZiweiAiClient.tsx`: `SECTION_ORDER`가 core_answer부터 시작한다. PDF는 캡처 `exportResultPdf`다(handlePdfDownload 근처). 안내 문구 "저장된 n/6 묶음"의 6은 고정값이다.
+- 자미 심층 `worker/routes/ziwei-deep-report.js`: 15장, 장 2회 실패 시 `LLM_QUALITY_CHECK_FAILED`를 던지고 환불한다(P1). `judgeDeliverable`은 15장 전부를 요구한다. `worker/lib/ziwei-deep-report-prompt.mjs`의 `buildConsultationLines`가 모든 장에 질문을 넣는다(P5). 결과 화면에는 이미 조판 PDF(`ZiweiDeepPdfPanel.tsx`, `lib/pdf/export-ziwei-report-pdf.ts`)가 있고, 보관함 PDF는 없다(P7).
+
+### 설계
+- 상담 V2: 새 문서에만 `llmMeta.groupPlanVersion: 2`를 쓴다. 끄는 스위치는 `ZIWEI_AI_DELIVERY_V2_ENABLED=false`다. 첫 그룹이 타고난 본성과 공감(personality_profile·essence)을 맡고, 질문은 그 그룹만 받는다. V1 프롬프트 바이트는 바꾸지 않고 sha256 테스트로 지킨다. 마지막 시도에서는 반복과 섹션 간 중복을 걷어 내고 배달한다(degraded). 본문이 하나도 없을 때만 환불한다. 메타는 2회 시도하고, 그래도 실패하면 명반 사실로 결정적 메타를 만든다. 말투 drift는 1회 힌트 수리한다. 화면은 버전에 따라 성향 섹션을 먼저 보이고 차례·장 번호·키커·무성 칩을 단다. 조판 PDF 빌더는 결과 화면과 보관함이 함께 쓴다.
+- 심층 V2: `llmMeta.deliveryPlanVersion: 2`로 고정한다. 1장은 본성과 공감을 다루고 질문 답은 1장에서 한 번만 한다. 질문 줄은 1장에만 넣는다. 마지막 시도에서는 가장 나은 초안을 받고, 빈 장만 건너뛴다. 장이 하나도 없을 때만 환불한다. 보관함 PDF는 기존 심층 조판 내보내기를 쓴다.
+
+### 하위 단계
+- [ ] 7a. 상담 worker V2 + 테스트
+- [ ] 7b. 상담 화면(차례·칩·조판 PDF) + 보관함 PDF
+- [ ] 7c. 심층 prompt·route V2 + 테스트 + 보관함 PDF
+- [ ] 7d. tsc·jest·node --test·verify·build, 모의 실행, 실호출 상품당 1회, 결과 기록
 
 ## 단계별 결과
 (단계를 마칠 때마다 커밋 SHA, 바꾼 파일, 검증 결과, 남은 일을 여기에 적는다.)
