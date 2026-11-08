@@ -5,7 +5,6 @@
     "approvalPacket": "D:/Development/seo-audit/code-destiny-20261101/bundle-3/approval-packet.md",
     "followupImplementationSha": "d3ee5d140",
     "approval": {"date": "2026-11-09", "userText": "main push + 운영 승격 1회 승인", "scope": "묶음 ③ 및 후속 수정 main push·운영 승격 1회"},
-    "additionalApproval": {"date": "2026-11-09", "userText": "3개 포함해 운영 승격 진행", "commits": ["90e7c43f4", "5027fdb66", "87c6e54dd"], "note": "검사 도중 main에 추가된 잠금화면 변경을 이번 운영 승격에 함께 포함"},
     "productionObservedSha": "9e8cec0a654040cf9115a5a2a2b3a1fe7eb75dea",
     "productionObservation": "GET /version.json HTTP 200. 이번 세션에서는 운영 승격을 실행하지 않았다.",
     "changes": [
@@ -17,23 +16,11 @@
       "detectorMockTests": "67 passed",
       "indexNowTests": "7 passed",
       "canonicalTests": "38 passed",
-      "nodeRegressionTests": "4700 passed, 0 failed",
-      "localCheckFast": "All steps before Jest passed. Local Jest stopped after prolonged execution without a result summary; check:fast exit 1. Full Jest verification delegated to main CI and required before production promotion.",
-      "preRebasePrePush": "passed on committed 938098262; must rerun after upstream rebase",
       "indexNowDryRun": "1062 sitemap URLs; no external submission",
       "existingDist": "0 failing rules, 0 warning rules; existing build, not rebuilt this session",
       "verifyDistReport": "D:/Development/seo-audit/code-destiny-20261101/bundle-3/verify-dist-20261109.json",
       "latestObservedSeoOperations": "https://github.com/rei1237/codedestiny/actions/runs/42421948698",
       "latestObservedSeoOperationsConclusion": "success"
-    },
-    "bundle4PreliminaryLengthMeasurement": {
-      "source": "existing local dist, not a fresh build or live production",
-      "pages": 13,
-      "minimumMainTextCharacters": 3974,
-      "below1800Characters": 0,
-      "method": "parse5 DOM first main; exclude script/style/svg; collapse whitespace",
-      "report": "D:/Development/seo-audit/code-destiny-20261101/bundle-4/new-year-ssr-length-20261109.json",
-      "notMeasured": ["공유 본문 비율", "고유 본문 비율", "검색 성과"]
     },
     "preserved": ["결제·이용권·월정석·단건 결제 정책", "인증·API·DB·운세 계산 로직", "기존 canonical·색인 상태·사이트맵 포함 정책", "홈 hreflang ko·x-default=/ggulggul/"],
     "remaining": [
