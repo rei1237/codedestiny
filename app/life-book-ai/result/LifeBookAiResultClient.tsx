@@ -1454,7 +1454,7 @@ function LifeBookResultContent({ paymentSurface }: { paymentSurface?: "toss" }) 
       }
       if (response.status === 202 && ["partial", "delivery_pending"].includes(payload.status || "")) {
         setResult(payload); setLoading(false);
-        if (document.hidden || resumeCallsRef.current >= 12) return;
+        if (document.hidden || resumeCallsRef.current >= 36) return;
         const flight = Symbol("life-book-resume");
         resumeInFlightRef.current = flight;
         resumeCallsRef.current += 1;

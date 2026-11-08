@@ -78,7 +78,7 @@ function fixture(accessType = 'pass', env = {}) {
     loginRequired: () => new Response('', { status: 401 }), invalidInput: (_message, status = 422) => new Response('', { status }),
     paymentVerifyFailed: () => new Response('', { status: 402 }), serverError: () => new Response('server', { status: 500 }),
     MESSAGES: { llmFailed: 'failed' }, startLocks: new Map(), SECTION_LOCK_TTL_MS: 90000,
-    MAX_GENERATION_WAVES: 8, SECTION_BATCH_SIZE: 4, SECTION_CONCURRENCY: 4, LIFE_BOOK_MAX_SECTION_ATTEMPTS: 3, LIFE_BOOK_LENGTH_BOOST_MAX: 2,
+    MAX_GENERATION_WAVES: 8, LIFE_BOOK_SECTION_PLAN_VERSION: 2, LIFE_FORTUNE_SECTION_PLAN_VERSION: 3, SECTION_BATCH_SIZE: 4, SECTION_CONCURRENCY: 4, LIFE_BOOK_MAX_SECTION_ATTEMPTS: 3, LIFE_BOOK_LENGTH_BOOST_MAX: 2,
     publicSession: row => ({ ok: true, sessionId: row.id, status: row.status, saved: row.status === 'completed', messages: row.messages }),
     restoreAccessBeforeGenerationFailure: async () => { refunds++; return true; },
     applyUsageOnce: async ({ idempotencyKey }) => {
@@ -92,7 +92,8 @@ function fixture(accessType = 'pass', env = {}) {
     LifeBookAiConsultation: model,
     buildSectionPlan: () => plan, buildSectionDigest: () => '', buildSectionPrompt: () => 'mock', pickSajuSlice: v => v,
     createLlmCacheStore: () => null,
-    lifeBookSectionValid: () => true, hasRepeatedReportPassage: () => false,
+    lifeBookSectionValid: () => true, hasRepeatedReportPassage: () => false, hasForbiddenResultTerms: () => false,
+    countPaidReportBodyChars: text => String(text || '').replace(/\s/g, '').length,
     sectionBodyChars: (_section, body) => body?.content?.replace(/\s/g, '').length || 0,
     generateSectionOnce: async (_env, section) => {
       calls.push(section.id);
@@ -103,7 +104,7 @@ function fixture(accessType = 'pass', env = {}) {
     reportTotalContentChars: () => 25000, extractTitle: () => 'mock report', extractKeywords: () => [],
   });
   load(ctx, 'worker/lib/result-storage.js', ['resultStorageUnavailable', 'resultStorageFailurePayload']);
-  load(ctx, 'worker/routes/life-book-ai.js', ['handleStart', 'runWithConcurrency', 'reserveProviderCallOnce', 'releaseSectionLock', 'saveLifeBookState', 'finishLifeBookDelivery', 'lifeBookLengthOptions', 'isLifeBookLengthOnlyIssue', 'lifeBookLengthBoostTarget']);
+  load(ctx, 'worker/routes/life-book-ai.js', ['handleStart', 'runWithConcurrency', 'reserveProviderCallOnce', 'releaseSectionLock', 'saveLifeBookState', 'finishLifeBookDelivery', 'lifeBookLengthOptions', 'isLifeBookLengthOnlyIssue', 'lifeBookLengthBoostTarget', 'generationWaveCap', 'buildPriorHalfExcerpt', 'lifeBookV3HasChapterBody', 'lifeBookV3DeliverableSections']);
   const post = (body = {}) => ctx.handleStart(new Request('https://mock.test/api/life-book-ai/generate', {
     method: 'POST', headers: { 'Content-Type': 'application/json', 'idempotency-key': 'original-paid-request' }, body: JSON.stringify(body),
   }), env);
@@ -593,4 +594,33 @@ test('F9: length-only final issues deliver, structural issues still fail', async
   bad.ctx.getLifeBookReportQualityIssues = () => ['chapter_3_content_too_short', 'chapter_3_summary_missing'];
   for (let i = 0; i < 12 && !['completed', 'generation_failed'].includes(bad.doc?.status); i++) await bad.post();
   assert.notEqual(bad.doc.status, 'completed');
+});
+
+// 2026-11-08 6e: 인생 총운 판 3은 장 본문이 하나라도 있으면 배달하고, 완전히 비었을 때만 실패(환불)한다.
+function v3Fixture() {
+  const f = fixture();
+  f.ctx.buildSectionPlan = () => Array.from({ length: 15 }, (_, i) => ({ id: `section${i}`, kind: 'chapter', planVersion: 3, chapterId: `chapter-${Math.floor(i / 2) + 1}`, half: i % 2 ? 'b' : 'a', evidenceRefs: [], minChars: 1200, targetChars: 2200 }));
+  return f;
+}
+const terminalFailure = { ok: false, body: null, error: 'LLM_INPUT_TOKEN_COUNT_UNAVAILABLE',
+  failure: { code: 'LLM_INPUT_TOKEN_COUNT_UNAVAILABLE', status: 400, providerCode: 'GEMINI_API_KEY_INVALID', retryable: false, message: 'Provider request failed.' } };
+
+test('6e: V3 structural final issues still deliver (degraded) while a chapter body exists', async () => {
+  const f = v3Fixture();
+  f.ctx.getLifeBookReportQualityIssues = () => ['chapter_3_summary_missing'];
+  for (let i = 0; i < 40 && !['completed', 'generation_failed'].includes(f.doc?.status); i++) await f.post();
+  assert.equal(f.doc.status, 'completed'); assert.equal(f.doc.llmMeta.degraded, true);
+  assert.equal(f.charges, 1); assert.equal(f.refunds, 0);
+});
+
+test('6e: V3 terminal provider failure after a body gives up only that section; with no body it still refunds', async () => {
+  const late = v3Fixture(); const base = late.ctx.generateSectionOnce;
+  late.ctx.generateSectionOnce = async (env, section) => section.id === 'section5' ? (late.calls.push(section.id), terminalFailure) : base(env, section);
+  for (let i = 0; i < 40 && !['completed', 'generation_failed'].includes(late.doc?.status); i++) await late.post();
+  assert.equal(late.doc.status, 'completed'); assert.equal(late.refunds, 0);
+  assert.equal(late.calls.filter(id => id === 'section5').length, 1);
+  const early = v3Fixture();
+  early.ctx.generateSectionOnce = async () => terminalFailure;
+  for (let i = 0; i < 4 && !['completed', 'generation_failed'].includes(early.doc?.status); i++) await early.post();
+  assert.equal(early.doc.status, 'generation_failed'); assert.equal(early.refunds, 1);
 });

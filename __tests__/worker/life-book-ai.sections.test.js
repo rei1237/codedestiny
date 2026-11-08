@@ -8,6 +8,7 @@
 import { __lifeBookAiTestUtils, nativeLifeBookContract } from "../../worker/routes/life-book-ai.js";
 import { calculateLifeBookAiSaju } from "../../worker/lib/life-book-ai-saju.js";
 import { tokensRequiredForChars } from "../../worker/lib/llm-budget.js";
+import { createHash } from "node:crypto";
 
 const {
   lifeBookLengthOptions,
@@ -20,6 +21,10 @@ const {
   getLifeBookReportQualityIssues,
   scrubBirthValues,
   scrubSectionBody,
+  generationWaveCap,
+  buildPriorHalfExcerpt,
+  normalizeEvidenceRefs,
+  lifeBookV3HasChapterBody,
 } = __lifeBookAiTestUtils;
 
 test('a missing middle chapter cannot shift the identity or short-draft allowance of later chapters', () => {
@@ -257,14 +262,15 @@ describe("결손은 책임 섹션에만 매핑된다", () => {
     expect(mapIssuesToSections(issues, plan, sections).targets).toContain("chapter-3");
   });
 
-  test("깊은 판독 2의 evidenceRefs 결손은 expert-2 로 매핑된다", () => {
+  test("깊은 판독 2의 빈 evidenceRefs 는 조립 때 기본값으로 채우고, 이슈가 오면 expert-2 로 매핑된다", () => {
     const plan = buildSectionPlan(lifeFortuneInput);
     const sections = buildSectionsAtTarget(plan);
     sections["expert-2"] = { ...sections["expert-2"], body: { ...sections["expert-2"].body, evidenceRefs: [] } };
     const report = assembleReport(lifeFortuneInput, plan, sections);
     const issues = getLifeBookReportQualityIssues(JSON.stringify(report), lifeFortuneInput);
-    expect(issues).toContain("expert_reading_2_evidence_refs_missing");
-    expect(mapIssuesToSections(issues, plan, sections).targets).toEqual(["expert-2"]);
+    expect(issues).not.toContain("expert_reading_2_evidence_refs_missing");
+    expect(report.expertReadings[1].evidenceRefs.length).toBeGreaterThanOrEqual(2);
+    expect(mapIssuesToSections(["expert_reading_2_evidence_refs_missing"], plan, sections).targets).toEqual(["expert-2"]);
   });
 
   test("분량 초과는 재생성 대상이 아니라 절단(trimOnly)으로 해소한다", () => {
@@ -402,6 +408,90 @@ describe("출생값 0건", () => {
   });
 });
 
+
+describe("인생 총운 판 3(장별 두 번 생성)", () => {
+  const planV3 = () => buildSectionPlan(lifeFortuneInput, { version: 3 });
+
+  test("장 10개가 a·b 반쪽 20개로 나뉘어 25섹션이 되고, 웨이브 상한은 판 길이를 따른다", () => {
+    const plan = planV3();
+    const halves = plan.filter((s) => s.kind === "chapter");
+    expect(plan).toHaveLength(25);
+    expect(halves.map((s) => s.id).slice(0, 4)).toEqual(["chapter-1-a", "chapter-1-b", "chapter-2-a", "chapter-2-b"]);
+    expect(halves.every((s) => s.planVersion === 3 && s.chapterId === `chapter-${s.index + 1}` && s.minChars === 1200)).toBe(true);
+    expect(halves.filter((s) => s.questionOwner).map((s) => s.id)).toEqual(["chapter-1-a"]);
+    expect(halves.find((s) => s.id === "chapter-2-b").targetChars).toBe(2200);
+    expect(generationWaveCap(plan)).toBe(52);
+    expect(generationWaveCap(buildSectionPlan(lifeFortuneInput))).toBe(32);
+    expect(buildSectionPlan(lifeBookInput, { version: 3 })).toHaveLength(15);
+  });
+
+  test("조립하면 반쪽이 이어 붙은 장 10개가 되고 게이트를 통과한다", () => {
+    const plan = planV3();
+    const sections = buildSectionsAtTarget(plan);
+    const report = assembleReport(lifeFortuneInput, plan, sections);
+    expect(report.chapters.map((c) => c.chapterNumber)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+    expect(report.chapters[1].content).toBe(`${sections["chapter-2-a"].body.content}
+
+${sections["chapter-2-b"].body.content}`);
+    expect(report.chapters[1].summary).toBe(sections["chapter-2-a"].body.summary);
+    expect(getLifeBookReportQualityIssues(JSON.stringify(report), lifeFortuneInput, lifeBookLengthOptions(plan, sections))).toEqual([]);
+    expect(lifeBookLengthOptions(plan, sections).lengthAcceptedIds.has("chapter-2")).toBe(true);
+  });
+
+  test("장 이슈는 통과 못 한 반쪽, 둘 다 통과면 더 짧은 반쪽으로 간다", () => {
+    const plan = planV3();
+    const sections = buildSectionsAtTarget(plan);
+    sections["chapter-3-a"] = { ...sections["chapter-3-a"], chars: 100 };
+    expect(mapIssuesToSections(["chapter_3_content_too_short"], plan, sections).targets).toEqual(["chapter-3-a"]);
+    sections["chapter-3-b"] = { ...sections["chapter-3-b"], ok: false };
+    expect(mapIssuesToSections(["chapter_3_title_mismatch"], plan, sections).targets).toEqual(["chapter-3-b"]);
+  });
+
+  test("뒤 반 프롬프트에는 반쪽 안내와 앞 반 요지가 들어간다", () => {
+    const plan = planV3();
+    const sections = buildSectionsAtTarget(plan);
+    const saju = calculateLifeBookAiSaju(birthInfo);
+    const a = plan.find((s) => s.id === "chapter-4-a");
+    const b = plan.find((s) => s.id === "chapter-4-b");
+    const priorHalf = buildPriorHalfExcerpt(plan, sections, b);
+    expect(priorHalf).toContain(sections["chapter-4-a"].body.content.slice(0, 50));
+    expect(buildPriorHalfExcerpt(plan, sections, a)).toBe("");
+    const promptB = buildSectionPrompt(lifeFortuneInput, pickSajuSlice(saju, b.evidenceRefs), b, "", { priorHalf });
+    expect(promptB).toContain("뒤 반입니다");
+    expect(promptB).toContain(priorHalf);
+    expect(buildSectionPrompt(lifeFortuneInput, pickSajuSlice(saju, a.evidenceRefs), a, "")).toContain("앞 반입니다");
+  });
+
+  test("본문이 하나라도 있으면 V3는 배달 가능, 비었거나 V2면 아니다", () => {
+    const plan = planV3();
+    const sections = buildSectionsAtTarget(plan);
+    expect(lifeBookV3HasChapterBody(plan, { "chapter-5-b": sections["chapter-5-b"] })).toBe(true);
+    expect(lifeBookV3HasChapterBody(plan, { frame: sections.frame })).toBe(false);
+    const v2 = buildSectionPlan(lifeFortuneInput);
+    expect(lifeBookV3HasChapterBody(v2, buildSectionsAtTarget(v2))).toBe(false);
+  });
+});
+
+describe("근거 경로 정규화(모든 판)", () => {
+  test("접두어를 떼고, 허용 밖 루트는 버리고, 모자라면 기본값으로 채운다", () => {
+    expect(normalizeEvidenceRefs(["$.sajuResult.dayMaster", "saju.monthPillar.branch", "sajuAuthority.dayMaster", "dayMaster"], ["yearPillar", "hourPillar"], 3))
+      .toEqual(["dayMaster", "monthPillar.branch", "yearPillar"]);
+    expect(normalizeEvidenceRefs([], ["yearPillar", "hourPillar", "dayPillar"], 2)).toEqual(["yearPillar", "hourPillar", "dayPillar"]);
+  });
+});
+
+test("판 1·2 프롬프트 바이트는 바뀌지 않는다(sha256 고정)", () => {
+  const saju = calculateLifeBookAiSaju(birthInfo);
+  const hashOf = ({ consultationType }, version) => {
+    const input = { consultationType, topic: "전체", birthInfo };
+    const hash = createHash("sha256");
+    for (const section of buildSectionPlan(input, { version })) hash.update(buildSectionPrompt(input, pickSajuSlice(saju, section.evidenceRefs), section, "- 앞: 문장"));
+    return hash.digest("hex");
+  };
+  expect(hashOf(lifeFortuneInput, 1)).toBe("1b17be70daa352e82c8b79b2ca92f2ec1ba628a8cbbf99863292f020cb80d3f4");
+  expect(hashOf(lifeFortuneInput, 2)).toBe("00c5ef4bf5ab9a59179aea0d9b8b1caaff8f7e08df09028402f896a7dd18be5c");
+  expect(hashOf(lifeBookInput, 1)).toBe("08b293fa86449c64a5d8f902989d08ec851b18e0083e651a9e4af7777472c3f3");
+});
 
 test('native life-book orders keep original validation, mode pricing keys and normalized input identity', () => {
   const body={idempotencyKey:'native-original-request',birthInfo,focusArea:'overall',consultationType:'lifeBook'};
