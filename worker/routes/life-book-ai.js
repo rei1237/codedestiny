@@ -3,7 +3,7 @@ import { jsonSchemaFromExample } from "../lib/json-text-repair.js";
 import { createHash } from "node:crypto";
 import { resultStorageUnavailable, resultStorageFailurePayload } from "../lib/result-storage.js";
 import { isStoredPaidResultRevoked } from "../lib/paid-result-revocation.js";
-import { countPaidReportBodyChars, hasRepeatedReportPassage } from "../lib/paid-report-quality.js";
+import { countPaidReportBodyChars, dropRepeatedReportSentences, hasRepeatedReportPassage } from "../lib/paid-report-quality.js";
 import { reserveSupportRecoveryAttempt, supportRecoveryGenerationOptions, assertSupportRecoveryPreserved } from "../lib/support-recovery-budget.js";
 import { safeGeminiFailure } from "../../lib/gemini-provider-errors.mjs";
 import { consultationRefundResponse } from "../lib/consultation-refund-state.js";
@@ -111,7 +111,8 @@ const LIFE_BOOK_EXPECTED_CHAPTER_COUNT = 10;
 // 채우는 크기 안쪽이다). 총합 하한 15,000자 = A4 10장.
 const LIFE_BOOK_MIN_CHAPTER_CONTENT_CHARS = 2000;
 const LIFE_BOOK_MIN_TOTAL_CONTENT_CHARS = 20000;
-const LIFE_BOOK_MAX_TOTAL_CONTENT_CHARS = 32000;
+// 구성 V2(장당 3,000자·1장 3,400자) 총합 ≈ 32,800자라 상한을 38,000자로 둔다. 장 상한 7,000토큰(4,666자)×10 안쪽이다.
+const LIFE_BOOK_MAX_TOTAL_CONTENT_CHARS = 38000;
 const LIFE_FORTUNE_MIN_CHAPTER_CONTENT_CHARS = 2400;
 const LIFE_FORTUNE_MIN_EXPERT_READING_CONTENT_CHARS = 1200;
 const LIFE_FORTUNE_MAX_TOTAL_CONTENT_CHARS = 60000;
@@ -1138,16 +1139,61 @@ function buildSystemPrompt(consultationType = "lifeBook") {
   ].join("\n");
 }
 
+// 구성 버전. V1 은 옛 세션(저장된 llmMeta.plan)이 그대로 쓰므로 객체를 바꾸지 않는다.
+// V2 는 장마다 맡는 관점(perspective)·1장 공감 장면·질문 1회 인용·조립 단계 중복 문장 제거를 더한다.
+const LIFE_BOOK_SECTION_PLAN_VERSION = 2;
+const SECTION_TARGETS_V2 = Object.freeze({
+  lifeFortune: Object.freeze({ chapterTargetChars: 3200, firstChapterTargetChars: 3500 }),
+  lifeBook: Object.freeze({ chapterTargetChars: 3000, firstChapterTargetChars: 3400 }),
+});
+const LIFE_BOOK_FIRST_CHAPTER_GUIDE_V2 = "일간과 월지, 지장간, 오행 분포 근거를 먼저 짚고 그 뜻을 쉬운 말로 풉니다. 이어서 이 사람이 일상에서 '맞아, 내가 이래' 하고 알아볼 생활 장면 2~3개(일을 시작하는 방식, 지칠 때의 반응, 사람을 처음 대하는 태도처럼 구체적인 순간)로 공감해 주고, 마지막에는 이 원형이 이 책의 다음 장들(성격·일·사랑·재물·시기)에서 어떻게 펼쳐지는지 한두 문장으로 이어 줍니다.";
+const LIFE_FORTUNE_FIRST_CHAPTER_GUIDE_V2 = "년주·월주·일주·시주, 일간, 월지, 지장간, 오행 분포, 신강·신약 근거를 먼저 짚고 그 뜻을 쉬운 말로 풉니다. 이어서 이 사람이 일상에서 '맞아, 내가 이래' 하고 알아볼 생활 장면 2~3개(일을 시작하는 방식, 지칠 때의 반응, 사람을 처음 대하는 태도처럼 구체적인 순간)로 공감해 주고, 마지막에는 이 중심축이 다음 장들(성격·일·재물·사랑·시기)에서 어떻게 펼쳐지는지 한두 문장으로 이어 줍니다.";
+const LIFE_BOOK_CHAPTER_PERSPECTIVES_V2 = Object.freeze([
+  "타고난 그릇의 기본 결만 봅니다. 성격의 작동, 일, 사랑, 시기의 구체적인 이야기는 뒤 장에 맡깁니다.",
+  "마음이 안에서 움직이는 방식, 곧 감정을 지키고 회복하는 습관만 봅니다.",
+  "밖으로 쓰이는 힘, 곧 재능이 일과 역할로 바뀌는 자리만 봅니다.",
+  "가까운 한 사람과의 거리, 곧 끌림과 거리 조절만 봅니다.",
+  "돈과 생활 기반이 들어오고 나가는 리듬만 봅니다.",
+  "가족 안의 역할과 주변 사람과의 경계만 봅니다.",
+  "몸이 먼저 반응하는 리듬, 곧 조후와 오행의 과부족이 몸에 드러나는 지점만 봅니다.",
+  "10년 단위로 인생의 큰 장면이 바뀌는 흐름만 봅니다.",
+  "가까운 몇 해의 해마다 달라지는 결만 봅니다.",
+  "앞 장의 내용을 되풀이하지 않고, 이 사람에게 남길 선택 기준과 마지막 문장만 씁니다.",
+]);
+const LIFE_FORTUNE_CHAPTER_PERSPECTIVES_V2 = Object.freeze([
+  "명식 전체의 중심축만 봅니다. 성격의 작동, 일, 재물, 사랑, 시기의 구체적인 이야기는 뒤 장에 맡깁니다.",
+  "마음이 안에서 움직이는 방식, 곧 방어·회복·감정 습관만 봅니다.",
+  "밖으로 쓰이는 힘, 곧 재능이 일과 직업 선택으로 바뀌는 자리만 봅니다.",
+  "돈과 생활 기반이 들어오고 나가는 리듬만 봅니다.",
+  "가까운 한 사람과의 거리, 곧 끌림과 거리 조절만 봅니다.",
+  "가족 안의 역할과 인간관계에서 지는 책임과 경계만 봅니다.",
+  "몸과 생활 리듬, 곧 조후와 오행의 과부족이 몸에 드러나는 지점만 봅니다.",
+  "현재 대운의 배경과 다음 전환의 준비만 봅니다.",
+  "가까운 5년의 해마다 달라지는 기회와 주의만 봅니다.",
+  "앞 장의 내용을 되풀이하지 않고, 삶을 조율할 순서와 선택 기준만 씁니다.",
+]);
+const EXPERT_READING_PERSPECTIVES_V2 = Object.freeze([
+  "일간과 월지가 만나는 자리 하나만 깊게 봅니다. 장에서 쓴 생활 장면은 다시 쓰지 않습니다.",
+  "기운의 과부족과 계절의 온도가 청하는 보완만 봅니다.",
+  "십성 배치가 관계와 일에서 만드는 방식만 봅니다.",
+  "대운과 세운이 겹치는 시기의 선택만 봅니다.",
+]);
+const LIFE_BOOK_V2_STYLE_RULES = Object.freeze([
+  "'결국 중요한 것은', '다시 말해', '앞서 말했듯' 같은 되풀이 연결어를 쓰지 않습니다.",
+  "다른 장과 같은 여는 문장이나 같은 맺는 문장을 되풀이하지 말고, 이 장만의 장면으로 열고 닫습니다.",
+]);
+
 function getSectionTargets(lifeFortune) {
   return lifeFortune ? SECTION_TARGETS.lifeFortune : SECTION_TARGETS.lifeBook;
 }
 
 // 15섹션(장 10 + 깊은 판독 4 + 프레임 1). 장 제목·evidenceRefs 는 품질 게이트가 검사하는 정본을 그대로 쓴다.
-function buildSectionPlan(input = {}) {
+function buildSectionPlan(input = {}, { version = LIFE_BOOK_SECTION_PLAN_VERSION } = {}) {
   const lifeFortune = isLifeFortuneInput(input);
   const targets = getSectionTargets(lifeFortune);
   const chapterTitles = lifeFortune ? LIFE_FORTUNE_CHAPTER_TITLES : LIFE_BOOK_CHAPTER_TITLES;
   const chapterGuides = lifeFortune ? LIFE_FORTUNE_CHAPTER_GUIDES : LIFE_BOOK_CHAPTER_GUIDES;
+  if (version >= 2) return buildSectionPlanV2(input, lifeFortune, targets, chapterGuides);
   const sections = chapterTitles.map((title, index) => ({
     id: `chapter-${index + 1}`,
     kind: "chapter",
@@ -1187,6 +1233,31 @@ function buildSectionPlan(input = {}) {
     minAdvice: 0,
   });
   return sections;
+}
+
+// V2: V1 객체에 planVersion·perspective·questionOwner 를 더하고, 1장 guide 와 장 목표 분량만 바꾼다.
+function buildSectionPlanV2(input, lifeFortune, targets, chapterGuides) {
+  const v2Targets = lifeFortune ? SECTION_TARGETS_V2.lifeFortune : SECTION_TARGETS_V2.lifeBook;
+  const chapterPerspectives = lifeFortune ? LIFE_FORTUNE_CHAPTER_PERSPECTIVES_V2 : LIFE_BOOK_CHAPTER_PERSPECTIVES_V2;
+  return buildSectionPlan(input, { version: 1 }).map((section) => {
+    if (section.kind === "chapter") {
+      const first = section.index === 0;
+      const targetChars = first ? v2Targets.firstChapterTargetChars : v2Targets.chapterTargetChars;
+      return {
+        ...section,
+        planVersion: 2,
+        guide: first ? (lifeFortune ? LIFE_FORTUNE_FIRST_CHAPTER_GUIDE_V2 : LIFE_BOOK_FIRST_CHAPTER_GUIDE_V2) : chapterGuides[section.index] || "",
+        perspective: chapterPerspectives[section.index] || "",
+        questionOwner: first,
+        targetChars,
+        maxOutputTokens: Math.max(targets.chapter.maxOutputTokens, tokensRequiredForChars(targetChars)),
+      };
+    }
+    if (section.kind === "expert") {
+      return { ...section, planVersion: 2, perspective: EXPERT_READING_PERSPECTIVES_V2[section.index] || "", questionOwner: false };
+    }
+    return { ...section, planVersion: 2 };
+  });
 }
 
 // 섹션이 실제로 참조하는 루트만 추린다. 계산 JSON 전량을 15번 반복 전송하면 입력 토큰이 15배가 되고
@@ -1288,6 +1359,16 @@ function buildSectionPrompt(input, sajuSlice, section, digest = "") {
       section.guide ? `이 장에서 풀 내용: ${section.guide}` : "",
       `summary 는 이 장의 핵심을 한 문장으로, content 는 공백 제외 최소 ${section.minChars}자 이상(목표 ${section.targetChars}자 안팎), advice 는 ${section.minAdvice}개 이상 담으세요.`,
       "content 는 명식 근거 → 삶에서 드러나는 의미 → 현실에서 조정할 선택의 순서로 자연스럽게 이어 주세요.",
+    );
+  }
+
+  if (section.perspective) {
+    lines.push(
+      `이 조각만 맡는 관점: ${section.perspective} 다른 조각과 같은 이야기를 이 관점으로만 다시 씁니다.`,
+      ...LIFE_BOOK_V2_STYLE_RULES,
+      section.questionOwner
+        ? "상담 주제는 이 장에서만 딱 한 번 그대로 인용하고, 이 장의 관점으로 첫 답을 줍니다."
+        : "상담 주제를 다시 인용하거나 되묻지 말고, 이 조각의 관점에서 주제에 대한 답을 한 겹 더합니다.",
     );
   }
 
@@ -1642,6 +1723,7 @@ function assembleReport(input, plan, sections) {
     .filter((section) => section.kind === "expert")
     .map((section) => sections[section.id]?.body)
     .filter(Boolean);
+  if (plan.some((section) => section.planVersion >= 2)) dedupeReportBodies(plan, chapters, expertReadings);
   return {
     title: clean(frame?.title, 120) || (lifeFortune ? "인생 총운" : "인생의 책"),
     subtitle: clean(frame?.subtitle, 300) || (lifeFortune
@@ -1660,6 +1742,36 @@ function assembleReport(input, plan, sections) {
     finalMessage: clean(frame?.finalMessage, 2000),
     pdfSections: [],
   };
+}
+
+// V2 조립: 앞 장·판독과 같은 문장을 뒤쪽에서 지운다. 실패하거나 섹션 하한 밑으로 줄면 원문을 그대로 둔다.
+// 저장된 섹션 본문은 건드리지 않는다(장은 assembleReport 가 이미 복사본을 만들고, 판독은 여기서 복사한다).
+function dedupeReportBodies(plan, chapters, expertReadings) {
+  const minOf = (kind, index) => Number(plan.find((section) => section.kind === kind && section.index === index)?.minChars || 0);
+  let prior = "";
+  const visit = (body, kind, index) => {
+    const original = typeof body?.content === "string" ? body.content : "";
+    if (!original) return;
+    if (prior) {
+      try {
+        const deduped = dropRepeatedReportSentences(original, prior);
+        const minChars = minOf(kind, index);
+        if (deduped && deduped !== original
+          && (countPaidReportBodyChars(deduped) >= minChars || countPaidReportBodyChars(original) < minChars)) {
+          body.content = deduped;
+        }
+      } catch {
+        // 중복 제거는 보조 단계다. 실패해도 원문으로 전달한다.
+      }
+    }
+    prior += `\n\n${body.content}`;
+  };
+  chapters.forEach((chapter) => visit(chapter, "chapter", Number(chapter.chapterNumber) - 1));
+  expertReadings.forEach((reading, index) => {
+    const copy = { ...reading };
+    visit(copy, "expert", index);
+    expertReadings[index] = copy;
+  });
 }
 
 function reportTotalContentChars(report) {

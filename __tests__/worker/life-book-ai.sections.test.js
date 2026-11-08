@@ -123,11 +123,86 @@ describe("섹션 계획", () => {
     expect(total).toBeLessThanOrEqual(60000);
   });
 
-  test("인생의 책 섹션 목표 합계가 요구 분량(20,000~32,000자) 안에 있다", () => {
+  test("인생의 책 섹션 목표 합계가 요구 분량(20,000~38,000자) 안에 있다", () => {
     const plan = buildSectionPlan(lifeBookInput);
     const total = plan.reduce((sum, s) => sum + s.targetChars, 0);
     expect(total).toBeGreaterThanOrEqual(20000);
-    expect(total).toBeLessThanOrEqual(32000);
+    expect(total).toBeLessThanOrEqual(38000);
+  });
+
+  test("인생의 책 섹션 토큰 상한도 10,000 이하다", () => {
+    for (const section of buildSectionPlan(lifeBookInput)) {
+      expect(section.maxOutputTokens).toBeLessThanOrEqual(10000);
+    }
+  });
+});
+
+describe("구성 V2", () => {
+  test("V1 계획은 옛 세션이 쓰던 객체 그대로다(관점·버전 필드 없음, 1장 목표 2,600자)", () => {
+    const v1 = buildSectionPlan(lifeBookInput, { version: 1 });
+    expect(v1.some((s) => "planVersion" in s || "perspective" in s || "questionOwner" in s)).toBe(false);
+    expect(v1[0]).toMatchObject({ targetChars: 2600, maxOutputTokens: 7000 });
+    expect(v1[0].guide).toBe("일간과 월지, 지장간, 오행 분포로 타고난 성정의 원형을 이야기처럼 풉니다.");
+  });
+
+  test("V1 섹션 프롬프트에는 V2 관점·질문 규칙 줄이 없다", () => {
+    for (const input of [lifeBookInput, lifeFortuneInput]) {
+      const prompt = buildSectionPrompt(input, {}, buildSectionPlan(input, { version: 1 })[0], "");
+      expect(prompt).not.toContain("이 조각만 맡는 관점");
+      expect(prompt).not.toContain("상담 주제는 이 장에서만");
+    }
+  });
+
+  test("새 세션 기본은 V2: 장·판독마다 관점이 있고 1장만 질문을 맡는다", () => {
+    for (const input of [lifeBookInput, lifeFortuneInput]) {
+      const plan = buildSectionPlan(input);
+      const parts = plan.filter((s) => s.kind !== "frame");
+      expect(parts.every((s) => s.planVersion === 2 && s.perspective)).toBe(true);
+      expect(parts.filter((s) => s.questionOwner).map((s) => s.id)).toEqual(["chapter-1"]);
+    }
+  });
+
+  test("V2 1장 프롬프트: 근거의 쉬운 뜻 → 생활 장면 공감 2~3개 → 다음 장 연결, 질문은 한 번만 인용", () => {
+    for (const input of [lifeBookInput, lifeFortuneInput]) {
+      const plan = buildSectionPlan(input);
+      const first = buildSectionPrompt(input, {}, plan[0], "");
+      expect(first).toMatch(/쉬운 말로 풉니다[\s\S]*생활 장면 2~3개[\s\S]*다음 장들/);
+      expect(first).toContain("상담 주제는 이 장에서만 딱 한 번 그대로 인용");
+      const later = buildSectionPrompt(input, {}, plan[4], "");
+      expect(later).toContain("상담 주제를 다시 인용하거나 되묻지 말고");
+      expect(later).toContain(`이 조각만 맡는 관점: ${plan[4].perspective}`);
+      expect(later).toContain("'결국 중요한 것은', '다시 말해', '앞서 말했듯'");
+    }
+  });
+
+  test("V2 장 목표는 올리되 전달 하한(minChars)은 그대로다", () => {
+    const lb = buildSectionPlan(lifeBookInput);
+    const lbV1 = buildSectionPlan(lifeBookInput, { version: 1 });
+    expect(lb[0].targetChars).toBe(3400);
+    expect(lb[1].targetChars).toBe(3000);
+    expect(lb.map((s) => s.minChars)).toEqual(lbV1.map((s) => s.minChars));
+    const lf = buildSectionPlan(lifeFortuneInput);
+    expect(lf[0].targetChars).toBe(3500);
+    expect(lf[1].targetChars).toBe(3200);
+  });
+
+  test("V2 조립은 앞 장과 같은 문장을 뒤 장에서 지우고, 하한 밑으로 줄면 원문을 둔다", () => {
+    const repeated = "윤달이 펼친 책장 위에서 이 사람은 늘 먼저 손을 내밀고 끝까지 책임을 지는 쪽을 고릅니다.";
+    for (const version of [1, 2]) {
+      const plan = buildSectionPlan(lifeBookInput, { version });
+      const sections = buildSectionsAtTarget(plan);
+      sections["chapter-1"].body.content = `${repeated}\n\n${sections["chapter-1"].body.content}`;
+      sections["chapter-2"].body.content = `${sections["chapter-2"].body.content}\n\n${repeated}`;
+      const report = assembleReport(lifeBookInput, plan, sections);
+      expect(report.chapters[1].content.includes(repeated)).toBe(version === 1);
+      expect(report.chapters[0].content).toContain(repeated);
+      expect(sections["chapter-2"].body.content).toContain(repeated);
+    }
+    const plan = buildSectionPlan(lifeBookInput);
+    const sections = buildSectionsAtTarget(plan);
+    sections["chapter-1"].body.content = `${repeated}\n\n${sections["chapter-1"].body.content}`;
+    sections["chapter-2"].body.content = `${filler("짧은장", plan[1].minChars - 10)}\n\n${repeated}`;
+    expect(assembleReport(lifeBookInput, plan, sections).chapters[1].content).toContain(repeated);
   });
 });
 
