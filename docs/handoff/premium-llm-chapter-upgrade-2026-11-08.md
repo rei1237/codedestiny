@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-08
-next: 6c — 서비스 공통 배달 안전 수정(6단계 문제 목록을 다른 유료 LLM 서비스에 적용, 아래 "6c 배달 안전 감사" 참고). 그 전에 6단계 400 수정의 실호출 재검증 여부를 사용자에게 확인
+next: 6c-2 — heukwol 배달 안전 수정(시도 소진·40,000자 관문 환불 제거). 그다음 6c-3~6c-7, 끝나면 6d. 아래 "6c 진행 결과" 참고
 ---
 
 # 3만원 이상 유료 LLM — 상품별 챕터·분량·PDF·전달 개선 인수인계
@@ -126,6 +126,69 @@ next: 6c — 서비스 공통 배달 안전 수정(6단계 문제 목록을 다�
   6. P4: neo의 이탈 검사와 보정을 다른 서비스로 옮긴다. neo도 보정 뒤 이탈이 남으면 한 번 더 보정한다.
   7. P6: fortune.js 금융상품 검사가 부정문을 구분하게 한다. `love-secret-ai-prompt.js:42-48`의 윈도우 방식을 다시 쓴다.
   8. P7: 보관함 PDF 버튼을 넣고, 캡처 PDF를 조판으로 바꾸고, neo에 PDF를 더한다.
+
+  **6c 진행 결과 (2026-11-08)**
+
+  - [x] 6c-1. human-design, destiny-compass, 사주 AI의 P6를 고쳤다. 커밋은 넷이다.
+    - `956a85152` human-design-report 배달 2판
+      - 마지막 시도 초안을 살리고 위험 문장만 지운다. 빈 섹션은 구제 시도를 한다.
+      - 본문이 완전히 비었을 때만 환불한다. 분량 수리는 4회까지다. 반복 문장을 덜어 낸다.
+      - 판 정보는 `deliveryPlanVersion` 스키마 필드에 두었다(models.js). 끄는 스위치는 `HD_REPORT_DELIVERY_V2_ENABLED=false`다.
+    - `6cd06f523` 보관함에 휴먼디자인 조판 PDF 버튼을 넣었다(`app/records/view/SavedHumanDesignPdfButton.tsx`). `SavedServiceReading.tsx`에서 차트와 본문이 있을 때만 보인다.
+    - `f180d1846` destiny-compass 배달 2판
+      - 판 정보는 `llmMeta.deliveryPlanVersion=2`에 두었다. llmMeta가 Mixed라 스키마 변경이 없다. 끄는 스위치는 `COMPASS_REPORT_DELIVERY_V2_ENABLED=false`다.
+      - 마지막 시도 초안은 위험 문장만 지우고 degraded로 배달한다. 빈 섹션은 구제 시도를 3회까지 한다.
+      - 말투 이탈과 floor(목표의 0.75) 미달은 부드러운 수리로 다룬다. 3회까지만 하고, 이탈한 장부터, 그다음 짧은 장부터 고친다.
+      - 조립할 때 반복 문장을 덜어 낸다. 결과가 85% 미만으로 줄면 원문을 둔다.
+      - 고민 원문은 opening 장에만 넣는다. V1 프롬프트 sha256이 같은 것을 확인했다.
+      - 새 함수 `banmalRegisterDrift`를 `expert-character-persona-text.js`에 더했다.
+    - `4a327e9d0` fortune.js 금융상품 검사가 부정문을 구분한다(앞 226자 안의 상품어 + 뒤 32자 안의 부정어 윈도우).
+      - 새 이름은 `__tests__/worker/saju-paid-delivery-recovery.test.js` 하네스의 names·constants에도 넣어야 한다.
+  - 검증
+    - jest: HD·compass·saju 관련 스위트가 통과한다. `npx tsc --noEmit`도 통과한다(2026-11-08).
+    - `npm run build`는 아직 돌리지 않았다. 6c 마지막 단계에서 돌린다.
+    - 원래 실패하던 테스트가 있다. 이번 작업 때문이 아니다(git stash로 HEAD에서 확인).
+      - `__tests__/worker/fortune-today-hub.route.test.js` 8개
+      - `__tests__/ui/paid-report-partial.behavior.test.js`의 codex 2개
+  - 남은 위험
+    - destiny-compass는 캡처 PDF만 있다. 조판 PDF가 없어 보관함 PDF 버튼을 넣지 않았다(P7).
+    - compass 클라이언트(`useCompassReport.ts`)는 물결을 24번까지만 돈다. 2판 최악의 경우 이를 넘으면 다시 시도 버튼이 뜨고, cron 재개가 이어 받는다.
+  - 실호출 샘플은 한 번도 하지 않았다(6c는 실호출 승인이 없다). 목 테스트만 했다.
+
+  **6c 가벼운 감사 결과 (2026-11-08, 읽기 전용, 코드 줄은 이 워크트리 기준)**
+
+  | 서비스 | 판정 | 근거 | 최소 수정 |
+  |---|---|---|---|
+  | heukwol | P1+P3 | `heukwol.js:68-69` 시도 3회면 장이 최대 26개 있어도 `forceRefundOnClose` 환불. `heukwol-report.js:80` 장 1500자 미만·6000자 초과면 throw. `heukwol.js:54` 전체 40,000자 미만이면 매번 throw → 27장이 다 있어도 3번 뒤 환불 | 전체 40,000자 관문을 없앤다. 마지막 시도의 짧은 장은 받는다. 시도가 끝나도 장이 있으면 환불하지 말고 있는 장으로 완료한다 |
+  | 사주 AI(fortune.js) | P1 | `resolveSajuAIPromptFailureBilling`의 `refundOnFailure: status==="generation_failed"`(1634)로 다른 그룹이 저장돼 있어도 환불(catch 5212-5253, 상태 5271). 그룹 검사 throw 5096-5097, 전체 검사 throw 5135-5150. 또 5136-5139가 `qualityRepair=true`로 두면서 `attempts`를 되돌리지 않아, 5043에서 고를 그룹이 없으면 5100-5103이 202 partial을 영원히 돌려준다 | `qualityRepair`를 둘 때 attempts를 되돌린다. 시도가 끝나면 조립된 최선의 글을 품질 경고와 함께 배달하고, 유효 그룹이 있으면 환불하지 않는다 |
+  | pet-saju-ai | P1(멈춤) | 공용 엔진 `worker/lib/paid-narrative-delivery.js:178-179`. 한 파트가 2회 실패하면(46) `partialReview`가 되어 남은 파트를 만들지 않는다. `ready()`(45)가 참이 되지 않아 73-75가 202 `retryable:false, DELIVERY_REVIEW_REQUIRED`를 계속 돌려준다. 환불 훅(240)은 파트가 0개일 때만 | `limited`여도 남은 파트를 만든다. 더 시도할 것이 없으면 소진 파트를 빼고 완료한다(`renderPetNarrative`가 이미 `filter(Boolean)`). **공용 엔진이라 다른 서비스 영향을 먼저 확인한다** |
+  | sibyl / sibyl-annual | P1+P3 | `sibyl-report-store.js:39-41` 한 번에 10장을 만들고 한 장이라도 `validateSibylCounsel`에서 떨어지면 전부 버린다. 21: 장 400자 미만·2400자 초과·숫자·간지 글자, 24: 금지어, 27: 전체 5000자 미만이 모두 치명. 71에서 `failed`, `sibyl.js:489`가 503. 환불은 없지만 재시도마다 전체를 다시 만든다 | 통과한 장은 남기고 실패한 장만 다시 만든다. 분량은 경고로 바꾼다 |
+  | ziwei-island-ai | P1(옛 기록 멈춤) | 생성은 모두 410(`ziwei-island-ai.js:92-93`). `generating/partial/delivery_pending` 옛 기록은 그대로 돌려준다(66-71, 83). 결과는 assistant 메시지에서만 읽고(24) `llmMeta.parts`는 쓰지 않는다. 복구 등록부(`consultation-recovery-registry.js:4`)는 `ziwei-ai`만 | 그 상태면 `llmMeta.parts`로 `palaceResult`(`palace-delivery.js:58`)를 만들어 완료하거나, 환불·고객 지원으로 넘긴다. **운영 DB에 그런 기록이 실제로 있는지 먼저 본다(읽기 전용 조회는 사용자 승인 필요)** |
+  | ziwei-island-report | OK | LLM 호출이 없는 결정적 보고서(`ziwei-island-report.js:134`) | 없음 |
+
+  `/g` 정규식을 `.test()`에 쓰는 곳은 위 파일에서 찾지 못했다.
+
+  **Gemini 응답 스키마 "too complex" 위험 (2026-11-08, 읽기 전용)**
+
+  - 공용 호출부는 400을 스키마 없이 다시 보내지 않는다.
+    - `worker/lib/gemini.js:138`은 스키마를 넘기기만 하고, 190-191은 `toFailure(error)`만 돌려준다.
+    - `lib/llm-client.ts:1153-1164`는 400·403·404를 재시도하지 않는다.
+    - 400 코드는 `GEMINI_INVALID_REQUEST`(`lib/gemini-provider-errors.mjs:57`)이고, 이 코드를 처리하는 곳은 fusion뿐이다(`fusion-fortune.js:757, 1425-1427`).
+  - `jsonSchemaFromExample`(`worker/lib/json-text-repair.js:53-59`)는 enum을 만들지 않는다. 그래서 그 함수로 만드는 스키마는 모두 낮은 위험이다.
+
+  | 위험 | 서비스 | 위치 | 내용 | 대응 |
+  |---|---|---|---|---|
+  | 높음 | 영냥이 유료 장(모든 등급, 질문 먼저 장, v7, 한국어 아닌 상징) | 만듦 `worker/yeongnyangi/providers/chapter.ts:699-702`(`sourceIds` 555-558, `askFactIds`/`askTimingIds` 553-554). 조각 `fortune/reading-v7-prompt.ts:94,97`, `fortune/symbolic-locale.ts:56`, `fortune/block-anchors.ts:65`, `fortune/ziwei/block-palaces.ts:24`. 보냄 `providers/code-destiny.ts:84` | 런타임 enum. `sourceIds`(50~150개, 한 벌 1~3천 자)가 2~4곳에 복사돼 합계 약 2천~1만 자. `askFactIds`는 100개를 넘을 수 있다. 400 대체 경로와 enum 예산이 없고, 장 재시도도 같은 스키마를 보낸다. 크기는 추정이다(실측 아님) | **영냥이는 7~13단계 범위라 6c에서 고치지 않았다.** 해당 단계에서 `CodeDestinyProvider.generate`에 fusion 방식(예산 2000자, 넘으면 enum을 빼고 프롬프트에 나열, 400이면 단순 스키마, 그다음 스키마 없이)을 넣으면 모든 등급이 한 번에 막힌다 |
+  | 중간 | 초융합 v1 그룹·1단계 신호 | `fusion-fortune-prompt.js:1061-1090` → `fusion-fortune.js:1384` | 예산(1092)은 plan v2 소장 `evidenceKeys`에만 적용된다. 1단계 `signals.evidenceKeys`와 v1 그룹은 예산이 없다 | 400 대체 경로가 있어 배달은 된다. 다만 대체될 때마다 호출이 한 번 더 든다. 6c에서는 고치지 않았다 |
+  | 낮음 | 초융합 v2 그룹 | `fusion-fortune-prompt.js:1092-1100` | e929c2114로 해결 | 없음 |
+  | 낮음 | 영냥이 질문 분석·무료/기본, 찻집, 연애 비책, 자미두수, 사주 궁합 기본, 손금, 인생의 책, vedic, 숙요 궁합, nakshatra, neo, 휴먼디자인, 관계·질문 배달, 타로, 동물 토템, destiny-anatomy, yoga, `NARRATIVE_RESPONSE_SCHEMA` 계열 | 각 `jsonSchemaFromExample` 호출부 | enum 없음, 깊이 4 이하 | 없음 |
+
+  - [ ] 6c-2. heukwol P1+P3를 고친다. 위 표의 수정대로 하고, 새 세션만 판 분기한다. 환불 경로는 본문이 완전히 비었을 때만 남긴다.
+  - [ ] 6c-3. 사주 AI(fortune.js) P1을 고친다. qualityRepair가 attempts를 되돌리게 하고, 소진 시 최선의 글로 배달하며, 유효 그룹이 있으면 환불하지 않는다. 테스트 하네스의 names·constants 등록을 잊지 않는다.
+  - [ ] 6c-4. pet-saju-ai(공용 `paid-narrative-delivery.js`)의 202 멈춤을 고친다. 공용 엔진을 쓰는 다른 서비스를 먼저 grep하고, 동작이 바뀌면 옵션으로 pet에만 켠다.
+  - [ ] 6c-5. sibyl / sibyl-annual: 장 단위 재시도와 분량 경고화.
+  - [ ] 6c-6. ziwei-island-ai 옛 기록: 코드로 `llmMeta.parts` 구제 경로만 넣는다. 운영 DB 조회는 사용자 승인 대기다.
+  - [ ] 6c-7. `ALLOW_DEV_SERVER_DURING_BUILD=1 npm run build`. 빌드가 바꾼 sitemap·shell 파일은 되돌린다. 그다음 6c를 체크하고 `next`를 6d로 둔다.
 - [ ] 6d. 영냥이 이미지 리포트: 지금 있는지 확인하고, 더 고퀄리티로 만들고, 상품 설명에서 잘 알아볼 수 있게 넣는다. 읽기 전용 조사가 진행 중이다.
   - 사용자 원문(2026-11-08): "어느정도 이미지를 넣어서 직관적으로 만들어주면 좋겠다"
   - 이미지 리포트와 상품 설명 절에 실제 이미지(기존 영냥이 스틸·에셋)를 적당히 넣어 한눈에 알게 한다. 이미지와 실제 에셋만 쓰고, 코드로 그린 도형·손글씨는 쓰지 않는다. 영냥이 스틸은 원본 크기로 보고 귀가 정확히 2개인지 센다.
