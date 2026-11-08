@@ -207,7 +207,7 @@
     }
   }
 
-  setupSignatureConsultPopup(Array.prototype.slice.call(home.querySelectorAll('#cdSigGrid [data-cd-service-id]')));
+  setupSignatureLetter(Array.prototype.slice.call(home.querySelectorAll('#cdSigGrid [data-cd-service-id]')));
 
   // 결제 복귀 문서에서는 대표 상담 팝업이 결제한 콘텐츠를 덮으면 안 된다. 재개(js/destiny-profile.js)가
   // 먼저 돌아 복귀 쿼리와 티켓을 지울 수 있으므로, 쿼리는 문서가 처음 받은 주소에서도 읽는다.
@@ -228,206 +228,70 @@
     });
   }
 
-  function setupSignatureConsultPopup(cards) {
+  function setupSignatureLetter(cards) {
     var pathname = String(location.pathname || '');
     var localFixture = /^(?:localhost|127\.0\.0\.1)$/i.test(location.hostname) && /\/(?:static\/)?index\.html$/.test(pathname);
-    if ((!/^ko(?:-|$)/i.test(document.documentElement.lang || 'ko')) || (pathname !== '/ggulggul/' && !localFixture) || cards.length !== 6 || location.hash) return;
-    // 고객이 닫은 것이 아니므로 닫음 기록은 남기지 않는다. 다음 일반 방문에서는 그대로 열린다.
-    if (isPaymentReturnDocument()) return;
+    if (!/^ko(?:-|$)/i.test(document.documentElement.lang || 'ko') ||
+        (pathname !== '/ggulggul/' && !localFixture) || !cards.length ||
+        location.hash || new URLSearchParams(location.search).has('action') || isPaymentReturnDocument()) return;
 
-    var HIDE_UNTIL_KEY = 'cd_signature_consult_hide_until_v1';
-    var SESSION_CLOSED_KEY = 'cd_signature_consult_session_closed_v1';
-    var LOCK_KEY = 'signature-consult-popup';
-    var popup = null, sheet = null, previousFocus = null, popupIndex = 0;
-    var popupPaused = false, popupHover = false, popupFocus = false;
-    var popupTimer = 0, popupResumeTimer = 0, popupManualUntil = 0;
-    var eligibilityObserver = null, eligibilityFrame = 0, delayElapsed = false;
-    var popupMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+    var hideUntilKey = 'cd_signature_consult_hide_until_v1';
+    try {
+      if (Number(localStorage.getItem(hideUntilKey)) > Date.now()) return;
+    } catch (_) {}
 
-    function sessionClosed() {
-      try { return sessionStorage.getItem(SESSION_CLOSED_KEY) === '1'; } catch (_) { return false; }
-    }
-    function hiddenToday() {
-      try { return Number(localStorage.getItem(HIDE_UNTIL_KEY) || 0) > Date.now(); } catch (_) { return false; }
-    }
-    function markSessionClosed() {
-      try { sessionStorage.setItem(SESSION_CLOSED_KEY, '1'); } catch (_) {}
-    }
-    function hasBlockingSurface() {
-      if (document.documentElement.classList.contains('cdh-input-open')) return true;
-      return Array.prototype.some.call(document.querySelectorAll('dialog[open],[role="dialog"][aria-modal="true"]:not([hidden]),.payment-modal.active,#cdCookieConsent.is-visible'), function (node) {
-        return node !== popup && node.getClientRects().length > 0 && getComputedStyle(node).visibility !== 'hidden';
-      });
-    }
-    function popupItems() {
-      return cards.map(function (card) {
-        var image = card.querySelector('.cd-sig-card__img');
-        return {
-          id: card.getAttribute('data-cd-service-id') || '',
-          title: card.querySelector('.cd-sig-card__title')?.textContent.trim() || '',
-          copy: card.getAttribute('data-cd-popup-copy') || card.querySelector('.cd-sig-card__q')?.textContent.trim() || '',
-          price: card.querySelector('.cd-sig-card__price')?.textContent.trim() || '',
-          href: card.getAttribute('href') || '#cdSignatureConsult',
-          cta: card.querySelector('.cd-sig-card__cta span')?.textContent.trim() || '상담 시작하기',
-          image: image?.getAttribute('src') || '',
-          srcset: image?.getAttribute('srcset') || '',
-          alt: (card.querySelector('.cd-sig-card__title')?.textContent.trim() || '대표 상담') + ' 대표 이미지'
-        };
-      });
-    }
-    var items = popupItems();
-
-    function buildPopup() {
-      if (popup) return popup;
-      popup = document.createElement('div');
-      popup.id = 'cdSignatureConsultPopup';
-      popup.className = 'cd-signature-popup';
-      popup.hidden = true;
-      popup.lang = 'ko';
-      popup.innerHTML = '<section class="cd-signature-popup__sheet" role="dialog" aria-modal="true" aria-labelledby="cdSignaturePopupTitle" aria-describedby="cdSignaturePopupIntro" tabindex="-1">' +
-        '<button type="button" class="cd-signature-popup__close" data-signature-popup-close aria-label="대표 상담 안내 닫기"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>' +
-        '<div class="cd-signature-popup__visual"><img data-signature-popup-image src="/images/service-introductions/fortune-tea-house-640.webp" width="640" height="360" alt="대표 상담 이미지" decoding="async"></div>' +
-        '<div class="cd-signature-popup__content"><h2 id="cdSignaturePopupTitle">오늘, 어떤 상담이 필요하세요?</h2><p class="cd-signature-popup__intro" id="cdSignaturePopupIntro">지금 마음에 가장 가까운 고민부터 골라보세요. 상담 구성과 이용 조건은 시작 전에 확인할 수 있어요.</p>' +
-        '<div class="cd-signature-popup__service" aria-live="off"><p class="cd-signature-popup__name" data-signature-popup-name></p><p class="cd-signature-popup__copy" data-signature-popup-copy></p><p class="cd-signature-popup__price" data-signature-popup-price></p><a class="cd-signature-popup__cta" data-signature-popup-cta><span></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h15m-6-6 6 6-6 6"/></svg></a></div>' +
-        '<div class="cd-signature-popup__controls"><button type="button" data-signature-popup-prev aria-label="이전 상담"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5m6-6-6 6 6 6"/></svg></button><div class="cd-signature-popup__dots" data-signature-popup-dots aria-label="대표 상담 위치"></div><span data-signature-popup-position></span><button type="button" data-signature-popup-next aria-label="다음 상담"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></button><button type="button" data-signature-popup-pause aria-pressed="false" aria-label="상담 팝업 자동 넘김 멈추기"><svg class="cd-signature-popup__pause" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6v12m6-12v12"/></svg><svg class="cd-signature-popup__play" viewBox="0 0 24 24" aria-hidden="true"><path d="m8 6 10 6-10 6Z"/></svg></button></div>' +
-        '<button type="button" class="cd-signature-popup__today" data-signature-popup-today>오늘 하루 보지 않기</button></div></section>';
-      document.body.appendChild(popup);
-      sheet = popup.querySelector('.cd-signature-popup__sheet');
-      var dots = popup.querySelector('[data-signature-popup-dots]');
-      items.forEach(function (item, index) {
-        var dot = document.createElement('button');
-        dot.type = 'button';
-        dot.dataset.signaturePopupSlide = String(index);
-        dot.setAttribute('aria-label', item.title + ' 보기');
-        dots.appendChild(dot);
-      });
-      popup.querySelector('[data-signature-popup-close]').addEventListener('click', function () { closePopup(true); });
-      popup.querySelector('[data-signature-popup-today]').addEventListener('click', hidePopupToday);
-      popup.querySelector('[data-signature-popup-prev]').addEventListener('click', function () { movePopup(popupIndex - 1, true); });
-      popup.querySelector('[data-signature-popup-next]').addEventListener('click', function () { movePopup(popupIndex + 1, true); });
-      popup.querySelector('[data-signature-popup-pause]').addEventListener('click', function () {
-        popupPaused = !popupPaused;
-        if (!popupPaused) popupManualUntil = 0;
-        schedulePopup();
-      });
-      dots.addEventListener('click', function (event) {
-        var dot = event.target.closest('[data-signature-popup-slide]');
-        if (dot) movePopup(Number(dot.dataset.signaturePopupSlide), true);
-      });
-      popup.querySelector('[data-signature-popup-cta]').addEventListener('click', markSessionClosed);
-      popup.addEventListener('click', function (event) { if (event.target === popup) closePopup(true); });
-      popup.addEventListener('pointerdown', function () { popupFocus = false; }, { passive: true });
-      popup.addEventListener('keydown', trapPopupFocus);
-      sheet.addEventListener('mouseenter', function () { popupHover = true; schedulePopup(); });
-      sheet.addEventListener('mouseleave', function () { popupHover = false; schedulePopup(); });
-      sheet.addEventListener('focusout', function () { requestAnimationFrame(function () { if (!sheet.contains(document.activeElement)) popupFocus = false; schedulePopup(); }); });
-      popupMotion.addEventListener('change', schedulePopup);
-      document.addEventListener('visibilitychange', schedulePopup);
-      renderPopup();
-      return popup;
-    }
-    function renderPopup() {
-      if (!popup) return;
-      var item = items[popupIndex];
-      var image = popup.querySelector('[data-signature-popup-image]');
-      popup.dataset.serviceId = item.id;
-      image.src = item.image;
-      image.parentElement.style.backgroundImage = 'url(' + JSON.stringify(item.image) + ')';
-      if (item.srcset) image.srcset = item.srcset; else image.removeAttribute('srcset');
-      image.sizes = '(max-width: 760px) calc(100vw - 32px), 340px';
-      image.alt = item.alt;
-      popup.querySelector('[data-signature-popup-name]').textContent = item.title;
-      popup.querySelector('[data-signature-popup-copy]').textContent = item.copy;
-      popup.querySelector('[data-signature-popup-price]').textContent = item.price;
-      var cta = popup.querySelector('[data-signature-popup-cta]');
-      cta.href = item.href;
-      cta.querySelector('span').textContent = item.cta;
-      popup.querySelector('[data-signature-popup-position]').textContent = (popupIndex + 1) + ' / ' + items.length;
-      Array.prototype.forEach.call(popup.querySelector('[data-signature-popup-dots]').children, function (dot, index) { dot.setAttribute('aria-pressed', String(index === popupIndex)); });
-    }
-    function schedulePopup() {
-      window.clearInterval(popupTimer); popupTimer = 0;
-      window.clearTimeout(popupResumeTimer); popupResumeTimer = 0;
-      if (!popup || popup.hidden) return;
-      var pause = popup.querySelector('[data-signature-popup-pause]');
-      pause.hidden = popupMotion.matches;
-      pause.setAttribute('aria-pressed', String(popupPaused));
-      pause.setAttribute('aria-label', popupPaused ? '상담 팝업 자동 넘김 다시 시작하기' : '상담 팝업 자동 넘김 멈추기');
-      if (popupPaused || popupMotion.matches || popupHover || popupFocus || document.hidden) return;
-      var remaining = popupManualUntil - Date.now();
-      if (remaining > 0) {
-        popupResumeTimer = window.setTimeout(function () {
-          popupManualUntil = 0;
-          if (popupPaused || popupMotion.matches || popupHover || popupFocus || document.hidden) { schedulePopup(); return; }
-          movePopup(popupIndex + 1, false);
-        }, remaining + 40);
-        return;
+    var mobileEntries = home.querySelector('.yh-entries');
+    var desktopEntries = home.querySelector('.cdh-free');
+    if (!mobileEntries || !desktopEntries) return;
+    var desktop = window.matchMedia('(min-width:700px)');
+    var letter = document.createElement('details');
+    letter.className = 'cd-consult-letter';
+    letter.open = true;
+    letter.innerHTML = '<summary><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M22 4a12 12 0 1 0 6 18A15 15 0 0 1 22 4Z"/></svg>달빛 추천 편지</summary>' +
+      '<div class="cd-consult-letter__body"><img width="320" height="180" loading="lazy" decoding="async" alt="">' +
+      '<div class="cd-consult-letter__reading" aria-live="polite"><h3></h3><p></p><a><span></span> <span aria-hidden="true">→</span></a></div></div>' +
+      '<div class="cd-consult-letter__foot"><button type="button" data-hide>오늘 숨기기</button>' +
+      '<nav aria-label="추천 편지 이동"><button type="button" data-prev aria-label="이전 추천">‹</button><span data-position></span>' +
+      '<button type="button" data-next aria-label="다음 추천">›</button></nav></div>';
+    var index = 0;
+    function renderLetter() {
+      var card = cards[index];
+      var art = card.querySelector('.cd-sig-card__img');
+      var image = letter.querySelector('img');
+      if (art) {
+        image.sizes = '(max-width: 600px) 100px, 180px';
+        image.srcset = art.getAttribute('srcset') || '';
+        image.src = art.getAttribute('src');
       }
-      popupTimer = window.setInterval(function () { movePopup(popupIndex + 1, false); }, 6000);
+      image.hidden = !art;
+      letter.querySelector('h3').textContent = card.querySelector('.cd-sig-card__title').textContent;
+      letter.querySelector('p').textContent = card.getAttribute('data-cd-popup-copy') || card.querySelector('.cd-sig-card__q')?.textContent || '';
+      var link = letter.querySelector('a');
+      link.href = card.href;
+      link.firstElementChild.textContent = [card.querySelector('.cd-sig-card__cta span')?.textContent || '상담 보기',
+        card.querySelector('.cd-sig-card__price')?.textContent].filter(Boolean).join(' · ');
+      letter.querySelector('[data-position]').textContent = (index + 1) + ' / ' + cards.length;
     }
-    function movePopup(index, manual) {
-      if (manual) popupManualUntil = Date.now() + 12000;
-      popupIndex = (index + items.length) % items.length;
-      renderPopup();
-      schedulePopup();
+    function placeLetter() {
+      (desktop.matches ? desktopEntries : mobileEntries).after(letter);
     }
-    function trapPopupFocus(event) {
-      if (event.key === 'Escape') { event.preventDefault(); closePopup(true); return; }
-      if (event.key === 'Tab' || event.key === 'ArrowLeft' || event.key === 'ArrowRight') { popupFocus = true; schedulePopup(); }
-      if (event.key !== 'Tab') return;
-      var focusable = popup.querySelectorAll('button:not([hidden]):not([disabled]),a[href]');
-      if (!focusable.length) return;
-      var first = focusable[0], last = focusable[focusable.length - 1];
-      if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
-      else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+    function moveLetter(step) {
+      index = (index + step + cards.length) % cards.length;
+      renderLetter();
     }
-    function openPopup() {
-      if (sessionClosed() || hiddenToday() || hasBlockingSurface() || document.hidden) return false;
-      buildPopup();
-      previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-      popup.hidden = false;
-      document.documentElement.setAttribute('data-signature-popup-open', '');
-      if (typeof window.__cdLockBodyScroll === 'function') window.__cdLockBodyScroll(LOCK_KEY);
-      requestAnimationFrame(function () { sheet.focus({ preventScroll: true }); });
-      schedulePopup();
-      if (eligibilityObserver) eligibilityObserver.disconnect();
-      return true;
-    }
-    function closePopup(rememberSession) {
-      if (!popup || popup.hidden) return;
-      if (rememberSession !== false) markSessionClosed();
-      popup.hidden = true;
-      document.documentElement.removeAttribute('data-signature-popup-open');
-      window.clearInterval(popupTimer); window.clearTimeout(popupResumeTimer);
-      if (typeof window.__cdUnlockBodyScroll === 'function') window.__cdUnlockBodyScroll(LOCK_KEY);
-      if (previousFocus && document.contains(previousFocus)) previousFocus.focus({ preventScroll: true });
-      previousFocus = null;
-    }
-    function hidePopupToday() {
-      try {
-        var tomorrow = new Date();
-        tomorrow.setHours(24, 0, 0, 0);
-        localStorage.setItem(HIDE_UNTIL_KEY, String(tomorrow.getTime()));
-      } catch (_) {}
-      closePopup(true);
-    }
-    function tryOpenPopup() {
-      eligibilityFrame = 0;
-      if (sessionClosed() || hiddenToday()) { if (eligibilityObserver) eligibilityObserver.disconnect(); return; }
-      if (!delayElapsed) return;
-      openPopup();
-    }
-    // On phones the same featured consultations are opened from the home menu.
-    if (window.matchMedia('(max-width:699px)').matches) return;
-    eligibilityObserver = new MutationObserver(function () {
-      if (!eligibilityFrame) eligibilityFrame = requestAnimationFrame(tryOpenPopup);
+    letter.querySelector('[data-prev]').addEventListener('click', function () { moveLetter(-1); });
+    letter.querySelector('[data-next]').addEventListener('click', function () { moveLetter(1); });
+    letter.querySelector('[data-hide]').addEventListener('click', function () {
+      var tomorrow = new Date();
+      tomorrow.setHours(24, 0, 0, 0);
+      try { localStorage.setItem(hideUntilKey, String(tomorrow.getTime())); } catch (_) {}
+      desktop.removeEventListener('change', placeLetter);
+      (desktop.matches ? desktopEntries : mobileEntries).querySelector('a')?.focus({ preventScroll: true });
+      letter.remove();
     });
-    eligibilityObserver.observe(document.body, { subtree: true, childList: true, attributes: true, attributeFilter: ['open','hidden','class','aria-hidden','aria-modal'] });
-    window.setTimeout(function () { delayElapsed = true; tryOpenPopup(); }, 1500);
-    window.addEventListener('pagehide', function () {
-      window.clearInterval(popupTimer); window.clearTimeout(popupResumeTimer);
-      if (eligibilityObserver) eligibilityObserver.disconnect();
-    }, { once: true });
+    renderLetter();
+    placeLetter();
+    desktop.addEventListener('change', placeLetter);
   }
 
   var formPanel = document.getElementById('dpDestinyPanel');

@@ -67,12 +67,11 @@ html.neo-mode .yh-hero{--yh-garden:url("/images/home/illustrated/yeoni-moon-gard
 .yh-entry-scene{grid-template-columns:1fr;min-height:0;padding:8px;background:var(--yh-garden) center 45%/cover no-repeat}
 .yh-entry-scene .yh-art{width:clamp(144px,20vw,200px)}
 .yh-entry-title{margin-block:20px 10px!important;font-size:clamp(1.5rem,4vw,2rem)}
-.yh-entries{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
-.yh-home .yh-entry{display:grid;place-items:center;align-content:center;gap:3px;min-height:88px;padding:8px 2px;border-radius:var(--cd-r-section);color:var(--cd-text);background:color-mix(in srgb,var(--cd-accent) 10%,var(--cd-surface));font-weight:700;text-align:center;text-decoration:none}
-.yh-entry:nth-child(3n+2){background:color-mix(in srgb,var(--cdh-lilac-soft) 72%,var(--cd-surface))}
-.yh-entry:nth-child(3n){background:color-mix(in srgb,var(--cdh-gold-soft) 75%,var(--cd-surface))}
-.yh-entry span{font-size:clamp(.8rem,3.4vw,.95rem);line-height:1.25;word-break:keep-all}
-.yh-entry img{width:clamp(44px,13vw,64px);height:auto;aspect-ratio:1;object-fit:contain}
+.yh-entries{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.yh-home .yh-entry{display:grid;place-items:center;align-content:center;gap:3px;min-height:96px;padding:8px 4px;border-radius:var(--cd-r-section);color:var(--cd-text);background:color-mix(in srgb,var(--cd-accent) 10%,var(--cd-surface));font-weight:700;text-align:center;text-decoration:none}
+.yh-home .yh-entry:nth-child(3n+2){background:color-mix(in srgb,var(--cdh-lilac-soft) 72%,var(--cd-surface))}
+.yh-home .yh-entry:nth-child(3n){background:color-mix(in srgb,var(--cdh-gold-soft) 75%,var(--cd-surface))}
+.yh-entry img{width:clamp(52px,17vw,72px);height:auto;aspect-ratio:1;object-fit:contain}
 .yh-find{margin-top:12px;border-block:1px solid var(--cd-line)}
 .yh-find>summary,.yh-home .yh-all{display:flex;align-items:center;justify-content:space-between;min-height:48px;padding:8px 4px;font-weight:700;list-style:none;text-decoration:none}
 .yh-find>summary::-webkit-details-marker,.yh-menu>summary::-webkit-details-marker{display:none}
@@ -109,3 +108,34 @@ html.neo-mode .yh-hero{--yh-garden:url("/images/home/illustrated/yeoni-moon-gard
 .yh-secondary>summary:after{content:"";width:8px;height:8px;flex:none;border:solid currentColor;border-width:0 2px 2px 0;transform:rotate(45deg)}
 .yh-secondary[open]>summary:after{transform:rotate(225deg)}
 @media(min-width:700px){.yh-secondary{border:0}.yh-secondary[open]>summary{display:none}}
+
+/* The honey pass and the story link belong to the illustrated service home. */
+.yh-home .pb--honey {
+  --pb-line: color-mix(in srgb, var(--cdh-gold) 30%, var(--cdh-card));
+  --pb-accent: var(--cdh-accent);
+  padding: clamp(16px, 3vw, 32px); margin-inline: auto;
+}
+.yh-home .pb__banner { border: 0; background: color-mix(in srgb, var(--cdh-accent) 5%, var(--cd-surface)); }
+.yh-home .pb__choice { background: var(--cd-surface); }
+.yh-home .pb__choice:has(input:checked) { background: color-mix(in srgb, var(--cdh-accent) 9%, var(--cd-surface)); }
+.yh-home .pb__choice small { margin-top: auto; }
+.yh-home .pb__detail { padding: clamp(14px, 2vw, 22px); background: var(--pb-paper); border: 1px solid var(--pb-line); border-radius: var(--cd-r-card); }
+.yh-home .pb .pb__cta { background: var(--pb-accent); color: var(--cdh-card); min-height: 50px; padding-inline: 18px; margin-block: 12px; }
+.yh-home .pb .pb__cta:hover { text-decoration: underline; text-underline-offset: 4px; }
+.yh-home .pb__light-list summary, .yh-home .yh-webtoon-link {
+  display: flex; align-items: center; gap: 14px; min-height: 50px;
+  padding: 8px 16px; border: 1px solid var(--cdh-line); border-radius: var(--cd-r-control);
+  color: var(--cdh-ink); font-weight: 700; text-decoration: none; list-style: none;
+}
+.yh-home .pb__light-list summary::-webkit-details-marker { display: none; }
+.yh-home .pb__light-list ul { margin-top: 12px; }
+.yh-home .yh-webtoon-link {
+  max-width: 960px; margin: 16px auto; min-height: 68px;
+  background: color-mix(in srgb, var(--cdh-gold) 8%, var(--cdh-card));
+  font-family: var(--cdh-serif); border-radius: var(--cd-r-card);
+}
+.yh-webtoon-link img { border-radius: 50%; object-fit: cover; }
+.yh-webtoon-link span:last-child { margin-inline-start: auto; }
+@media (max-width: 699px) {
+  .yh-home .yh-secondary:has(.pb)>summary { margin-block: 10px; padding-inline: 16px; border: 1px solid var(--cdh-line); border-radius: var(--cd-r-control); background: var(--cdh-card); }
+}
