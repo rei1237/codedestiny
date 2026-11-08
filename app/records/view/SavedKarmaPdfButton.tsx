@@ -13,7 +13,7 @@ export default function SavedKarmaPdfButton({ row, locale }: { row: Record<strin
     if (loading) return;
     setLoading(true); setError('');
     try {
-      const [{ exportConsultationBookPdf }, { buildKarmaPdfChapters, KARMA_PDF_BYLINE }] = await Promise.all([
+      const [{ exportConsultationBookPdf }, { buildKarmaPdfChapters, buildKarmaPdfSummary, KARMA_PDF_BYLINE }] = await Promise.all([
         import('@/lib/pdf/export-consultation-book-pdf'),
         import('@/app/karma-destiny-ai/result/karma-pdf-chapters'),
       ]);
@@ -30,6 +30,7 @@ export default function SavedKarmaPdfButton({ row, locale }: { row: Record<strin
         date: text(row.createdAt).slice(0, 10) || new Date().toISOString().slice(0, 10),
         fileName: `karma-destiny-report-${id}.pdf`,
         chapters,
+        summary: buildKarmaPdfSummary(row),
       });
     } catch {
       setError(copy.pdfError);

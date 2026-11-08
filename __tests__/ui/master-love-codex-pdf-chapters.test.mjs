@@ -9,7 +9,7 @@ const load = async (entry) => {
     alias: {'@': process.cwd()}, loader: {'.ts': 'ts', '.tsx': 'tsx'}});
   return import(`data:text/javascript;base64,${Buffer.from(bundle.outputFiles[0].text).toString('base64')}`);
 };
-const {buildMasterLoveCodexPdfChapters, codexChapterKicker, MASTER_LOVE_CODEX_PDF_BYLINE} = await load('src/features/master-love-codex/_lib/codex-pdf-chapters.ts');
+const {buildMasterLoveCodexPdfChapters, buildMasterLoveCodexPdfSummary, codexChapterKicker, MASTER_LOVE_CODEX_PDF_BYLINE} = await load('src/features/master-love-codex/_lib/codex-pdf-chapters.ts');
 
 const chapters = [
   {id: 'temperament', order: 2, title: '제2장 · 사랑을 시작하는 태도', body: '## 첫 태도\n당신은 **천천히** 다가갑니다.',
@@ -46,6 +46,7 @@ test('리더가 조판 PDF 를 먼저 쓰고 글꼴 실패에만 캡처로 되�
   const reader = fs.readFileSync('src/features/master-love-codex/components/CodexReader.tsx', 'utf8');
   const stored = fs.readFileSync('app/records/view/StoredReading.tsx', 'utf8');
   assert.match(reader, /buildMasterLoveCodexPdfChapters/);
+  assert.match(reader, /summary: buildMasterLoveCodexPdfSummary\(\{ loveDna/);
   assert.match(reader, /exportConsultationBookPdf/);
   assert.match(reader, /coverTheme: "codex"/);
   assert.match(reader, /PdfFontError[\s\S]*exportResultPdf/);
@@ -53,4 +54,13 @@ test('리더가 조판 PDF 를 먼저 쓰고 글꼴 실패에만 캡처로 되�
   const chapter = fs.readFileSync('src/features/master-love-codex/components/CodexChapter.tsx', 'utf8');
   assert.match(chapter, /speakerChip/);
   assert.match(chapter, /open=\{forceVisible \|\| opening\}/);
+});
+
+test('요약 쪽은 유형 이름·요약과 연애 DNA 지표를 저장된 점수 그대로 따로 싣는다', () => {
+  const loveDna = {typeName: '등불형', typeSummary: '천천히 켜집니다.', metrics: [{key: 'care', label: '돌봄', score: 82, basis: '정관'}, {key: 'jealousy', label: '질투', score: 41}]};
+  const summary = buildMasterLoveCodexPdfSummary({loveDna, totalCharCount: 24800, chapterCount: 20});
+  assert.equal(summary.title, '한눈에 보는 상담');
+  assert.deepEqual([summary.figures[0].text, summary.figures[0].body, summary.figures[0].meta], ['등불형', '천천히 켜집니다.', ['20장', '24,800자']]);
+  assert.deepEqual(summary.figures[1].rows, [{label: '돌봄', value: 82, note: '정관'}, {label: '질투', value: 41, note: ''}]);
+  assert.equal(buildMasterLoveCodexPdfSummary({loveDna: null}), null);
 });

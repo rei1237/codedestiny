@@ -7,9 +7,24 @@ import { bookParagraphs } from './book-paragraphs';
 import { ziweiReportBlocks } from './ziwei-report-plan';
 import { loadReportArt, type ReportArt } from './report-art';
 import { REPORT_COVER_THEMES, type ReportCoverTheme } from './report-cover-theme';
+import { drawRadarChart } from './radar-chart';
 
 /** 장 하나. kicker 는 부 이름, speaker 는 그 장을 쓰는 마스터의 표시 이름이다. */
 export type ConsultationBookChapter = { kicker?: string; title: string; body: string; speaker?: string };
+
+/**
+ * 장 앞에 싣는 요약·도표 한 덩어리. 결과 화면이 그리는 저장 값(점수·기여도·요약 문장)만 담는다.
+ * 숫자는 생성 문장에서 추정하지 않는다 — 빌더가 저장된 필드에서 옮긴다.
+ */
+export type ConsultationBookFigure =
+  | { kind: 'lead'; title: string; text: string; body?: string; meta?: string[] }
+  | { kind: 'bars'; title: string; rows: Array<{ label: string; value: number; note?: string }>; note?: string }
+  | { kind: 'radar'; title: string; axes: Array<{ label: string; score: number }>; caption?: string }
+  | { kind: 'list'; title: string; items: string[] }
+  | { kind: 'timeline'; title: string; items: Array<{ label: string; detail: string; source?: string }> };
+
+/** 요약 쪽. 차례 첫 줄(번호 없음)과 장 앞의 새 쪽으로 들어간다. 그릴 것이 없으면 싣지 않는다. */
+export type ConsultationBookSummary = { kicker?: string; title: string; figures: ConsultationBookFigure[] };
 
 export type ConsultationBookOptions = {
   title: string;
@@ -23,7 +38,67 @@ export type ConsultationBookOptions = {
   date?: string;
   fileName: string;
   chapters: ConsultationBookChapter[];
+  /** 장 앞에 싣는 요약·도표 쪽(선택). */
+  summary?: ConsultationBookSummary | null;
 };
+
+const clean = (value: unknown) => String(value ?? '').trim();
+
+/** 그릴 내용이 남는 도표만 고른다. 빈 도표 때문에 빈 쪽이 생기지 않게 한다. */
+export function consultationSummaryFigures(summary?: ConsultationBookSummary | null): ConsultationBookFigure[] {
+  return (summary?.figures || []).filter((figure) => {
+    if (!figure || !clean(figure.title)) return false;
+    if (figure.kind === 'lead') return Boolean(clean(figure.text));
+    if (figure.kind === 'bars') return figure.rows.some((row) => clean(row.label) && Number.isFinite(Number(row.value)));
+    if (figure.kind === 'radar') return figure.axes.filter((axis) => clean(axis.label) && Number.isFinite(Number(axis.score))).length >= 3;
+    if (figure.kind === 'list') return figure.items.some((item) => clean(item));
+    if (figure.kind === 'timeline') return figure.items.some((item) => clean(item.label) && clean(item.detail));
+    return false;
+  });
+}
+
+/** 도표 제목이 쪽 바닥에 홀로 남지 않도록 뒤따를 첫 줄 몫을 함께 잡는다. */
+const FIGURE_KEEP_MM = 24;
+
+function drawSummaryFigure(pdf: JsPDFInstance, fonts: PdfFonts, writer: ReturnType<typeof createTypesetWriter>, figure: ConsultationBookFigure) {
+  if (figure.kind === 'lead') {
+    writer.heading(figure.title, FIGURE_KEEP_MM);
+    writer.quote(clean(figure.text));
+    if (clean(figure.body)) writer.body(clean(figure.body));
+    const meta = (figure.meta || []).map(clean).filter(Boolean);
+    if (meta.length) writer.caption(meta.join('  ·  '));
+    return;
+  }
+  if (figure.kind === 'bars') {
+    const rows = figure.rows.filter((row) => clean(row.label) && Number.isFinite(Number(row.value)));
+    writer.heading(figure.title, FIGURE_KEEP_MM);
+    writer.meterBar(rows.map((row) => {
+      const value = Math.max(0, Math.min(100, Math.round(Number(row.value))));
+      return { label: clean(row.label), value, max: 100, display: String(value) };
+    }));
+    const notes = rows.filter((row) => clean(row.note)).map((row) => `${clean(row.label)} — ${clean(row.note)}`);
+    if (notes.length) writer.bullets(notes);
+    if (clean(figure.note)) writer.caption(clean(figure.note));
+    return;
+  }
+  if (figure.kind === 'radar') {
+    writer.heading(figure.title, 90);
+    const axes = figure.axes.filter((axis) => clean(axis.label) && Number.isFinite(Number(axis.score)));
+    if (!drawRadarChart(pdf, writer, fonts.body, axes)) {
+      writer.keyValueTable(axes.map((axis) => ({ label: clean(axis.label), value: `${Math.round(Number(axis.score))}%` })));
+    }
+    if (clean(figure.caption)) writer.caption(clean(figure.caption));
+    return;
+  }
+  if (figure.kind === 'list') {
+    writer.heading(figure.title, FIGURE_KEEP_MM);
+    writer.bullets(figure.items.map(clean).filter(Boolean));
+    return;
+  }
+  writer.heading(figure.title, FIGURE_KEEP_MM);
+  writer.keyValueTable(figure.items.filter((item) => clean(item.label) && clean(item.detail))
+    .map((item) => ({ label: clean(item.label), value: clean(item.source) ? `${clean(item.detail)} (${clean(item.source)})` : clean(item.detail) })));
+}
 
 /** 장 머리의 작은 줄: "부 이름 · 화자". 둘 다 없으면 빈 줄. */
 export function consultationChapterKicker(chapter: ConsultationBookChapter): string {
@@ -66,12 +141,21 @@ export function typesetConsultationBook(pdf: JsPDFInstance, fonts: PdfFonts, opt
   // 표지용 픽셀 글꼴 대신 본문 한글 글꼴을 상담서 전체에 쓴다(자미두수 상담서와 같은 판단).
   fonts = { title: fonts.body, body: fonts.body };
   drawCover(pdf, fonts, { ...options, chapters }, art);
-  const toc = planLinkedContents(pdf, fonts, chapters.map(consultationContentsLabel));
+  const figures = consultationSummaryFigures(options.summary);
+  const summaryTitle = figures.length ? clean(options.summary?.title) : '';
+  const labels = chapters.map(consultationContentsLabel);
+  const toc = planLinkedContents(pdf, fonts, summaryTitle ? [summaryTitle, ...labels] : labels);
+  const offset = summaryTitle ? 1 : 0;
   for (let page = 0; page < toc.pages; page += 1) { pdf.addPage(); paintPaper(pdf); }
   const writer = createTypesetWriter(pdf, fonts);
+  if (summaryTitle) {
+    writer.chapter(clean(options.summary?.kicker), summaryTitle);
+    toc.entries[0].destination = writer.page;
+    for (const figure of figures) drawSummaryFigure(pdf, fonts, writer, figure);
+  }
   for (const [index, chapter] of chapters.entries()) {
     writer.chapter(consultationChapterKicker(chapter), `${String(index + 1).padStart(2, '0')}  ${chapter.title}`);
-    toc.entries[index].destination = writer.page;
+    toc.entries[index + offset].destination = writer.page;
     for (const block of ziweiReportBlocks(chapter.body)) {
       if (block.kind === 'heading') writer.heading(block.text);
       else for (const paragraph of bookParagraphs(block.text)) writer.body(paragraph);
@@ -80,7 +164,7 @@ export function typesetConsultationBook(pdf: JsPDFInstance, fonts: PdfFonts, opt
   drawLinkedContents(pdf, fonts, toc);
   drawFooters(pdf, fonts, `Code Destiny · ${options.productLabel}`, toc.pages + 2);
   pdf.setProperties({ title: options.title || options.productLabel, subject: options.productLabel, author: options.byline || 'Code Destiny' });
-  return { pdf, chapters: chapters.length, contentsPages: toc.pages, destinations: toc.entries.map(entry => entry.destination) };
+  return { pdf, chapters: chapters.length, summaryFigures: figures.length, contentsPages: toc.pages, destinations: toc.entries.map(entry => entry.destination) };
 }
 
 /** 글꼴을 싣지 못하면 PdfFontError — 호출자는 캡처 저장으로 되돌아간다. */

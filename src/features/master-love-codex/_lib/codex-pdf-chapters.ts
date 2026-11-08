@@ -1,3 +1,5 @@
+import type { ConsultationBookFigure, ConsultationBookSummary } from "@/lib/pdf/export-consultation-book-pdf";
+import type { CodexLoveDna } from "../components/CodexLoveDna";
 import { actForChapter, type CodexActMode } from "../data/acts";
 import type { CodexConsultation } from "./consultation";
 import type { CodexChapterData } from "../components/CodexChapter";
@@ -83,4 +85,39 @@ export function buildMasterLoveCodexPdfChapters({ chapters, mode = "solo", consu
       speaker: MASTER_LOVE_CODEX_SPEAKER,
     }))
     .filter((chapter) => chapter.title && chapter.body.trim());
+}
+
+const SUMMARY_COPY = {
+  kicker: "요약과 도표",
+  title: "한눈에 보는 상담",
+  type: "연애 유형",
+  dna: "연애 DNA",
+  metricsNote: "각 지표는 서로 다른 성향을 설명합니다. 궁합의 우열이나 성공 확률, 심리검사 결과를 뜻하지 않습니다.",
+};
+
+/**
+ * 결과 화면의 "한눈에 보는 상담"(유형 이름·요약)과 연애 DNA 지표 막대를 조판 PDF 요약 쪽으로 옮긴다.
+ * 지표는 저장된 점수 그대로 따로 싣는다 — 화면과 같이 서로 다른 성향을 하나의 등급으로 합치지 않는다.
+ */
+export function buildMasterLoveCodexPdfSummary({ loveDna, totalCharCount = 0, chapterCount = 0 }: {
+  loveDna: CodexLoveDna | null | undefined;
+  totalCharCount?: number;
+  chapterCount?: number;
+}): ConsultationBookSummary | null {
+  if (!loveDna) return null;
+  const metrics = Array.isArray(loveDna.metrics) ? loveDna.metrics : [];
+  const total = Number(totalCharCount) || 0;
+  const typeName = text(loveDna.typeName);
+  const typeSummary = text(loveDna.typeSummary);
+  const figures: ConsultationBookFigure[] = [
+    {
+      kind: "lead", title: SUMMARY_COPY.type, text: typeName || typeSummary, body: typeName ? typeSummary : "",
+      meta: [chapterCount > 0 ? `${chapterCount}장` : "", total > 0 ? `${total.toLocaleString("ko-KR")}자` : ""],
+    },
+    {
+      kind: "bars", title: SUMMARY_COPY.dna, note: SUMMARY_COPY.metricsNote,
+      rows: metrics.map((metric) => ({ label: text(metric.label), value: Number(metric.score), note: text(metric.basis) })),
+    },
+  ];
+  return { kicker: SUMMARY_COPY.kicker, title: SUMMARY_COPY.title, figures };
 }

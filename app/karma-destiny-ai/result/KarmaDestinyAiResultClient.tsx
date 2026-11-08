@@ -1135,7 +1135,7 @@ function KarmaDestinyResultInner({paymentSurface}:{paymentSurface:"web"|"toss"})
     // 받은 리포트 전체를 글자로 조판한다(한국어 다섯 렌즈 판). 글꼴을 못 실을 때만 아래 화면 캡처로 되돌아간다.
     if (showChapterMeta && tossLocale === "ko") {
       try {
-        const [{ exportConsultationBookPdf }, { PdfFontError }, { buildKarmaPdfChapters, KARMA_PDF_BYLINE }] = await Promise.all([
+        const [{ exportConsultationBookPdf }, { PdfFontError }, { buildKarmaPdfChapters, buildKarmaPdfSummary, KARMA_PDF_BYLINE }] = await Promise.all([
           import("@/lib/pdf/export-consultation-book-pdf"),
           import("@/lib/pdf/typeset-writer"),
           import("./karma-pdf-chapters"),
@@ -1149,6 +1149,7 @@ function KarmaDestinyResultInner({paymentSurface}:{paymentSurface:"web"|"toss"})
             date: formatDate(result?.generatedAt, getCurrentLoadingLocale()),
             fileName: `karma-destiny-report_${userName.replace(/[\\/:*?"<>|]/g, "_")}_${new Date().toISOString().slice(0, 10)}.pdf`,
             chapters: buildKarmaPdfChapters({ chapters, messages: result?.messages }),
+            summary: buildKarmaPdfSummary(result ? { ...result, chapters } : null),
           });
           setDownloading(false);
           return;

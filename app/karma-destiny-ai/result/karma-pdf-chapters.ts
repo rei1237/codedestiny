@@ -1,3 +1,6 @@
+import type { ConsultationBookFigure, ConsultationBookSummary } from "@/lib/pdf/export-consultation-book-pdf";
+import { normalizeReport, type KarmaResult } from "./_lib/report-model";
+
 export type KarmaPdfChapter = { kicker: string; title: string; body: string; speaker: string };
 
 type SourceChapter = { id?: string; order?: number; title?: string; content?: string; summary?: string; keyTakeaways?: string[] };
@@ -101,4 +104,47 @@ export function buildKarmaPdfChapters(source: KarmaPdfSource): KarmaPdfChapter[]
     return [{ kicker: "", title: KARMA_PDF_FALLBACK_TITLE, body: toBookBody(answer), speaker: BOTH }];
   }
   return chapters;
+}
+
+const SUMMARY_COPY = {
+  kicker: "요약과 도표",
+  title: "한눈에 보기",
+  core: "이번 삶을 관통하는 한 문장",
+  energy: "영역별 에너지 강도 · 지금 어디에 힘이 실려 있는가",
+  energyNote: "각 영역을 실제로 분석한 장이 그 장의 계산 근거만으로 판정한 값입니다.",
+  radar: "체계 기여도 레이더",
+  radarFive: "각 관점이 이 리포트에 실제로 근거를 제공한 정도입니다. 운세의 강약이 아닙니다.",
+  radarThree: "이 리포트는 세 관점 기준으로 작성되었습니다. 각 관점이 실제로 계산된 정도를 표시합니다.",
+  map: "운명 지도 · 흐름이 갈라지는 지점",
+  action: "지금 할 수 있는 것 · 행동 전략",
+};
+
+/**
+ * 결과 화면 앞머리(핵심 문장·영역별 에너지·체계 기여도 레이더·운명 지도·행동 전략)를 조판 PDF 요약 쪽으로 옮긴다.
+ * 화면과 같은 정규화(normalizeReport)를 거쳐 저장된 점수·근거만 쓴다. 그릴 것이 없으면 null.
+ */
+export function buildKarmaPdfSummary(source: KarmaResult | Record<string, unknown> | null | undefined): ConsultationBookSummary | null {
+  const result = source as KarmaResult | null | undefined;
+  const report = normalizeReport(result || null);
+  if (!report || !report.chapters.length) return null;
+  const total = Number(result?.totalCharCount || 0);
+  const keywords = (Array.isArray(result?.summaryCards?.keywords) ? result!.summaryCards!.keywords! : []).map(text).filter(Boolean).slice(0, 3);
+  const figures: ConsultationBookFigure[] = [
+    {
+      kind: "lead", title: SUMMARY_COPY.core, text: report.heroSentence,
+      meta: [total > 0 ? `${total.toLocaleString("ko-KR")}자` : "", `${report.chapters.length}장`, ...keywords],
+    },
+    {
+      kind: "bars", title: SUMMARY_COPY.energy, note: SUMMARY_COPY.energyNote,
+      rows: report.energyScores.map((score) => ({ label: text(score.label), value: Number(score.value), note: text(score.basis) })),
+    },
+    ...(report.radar.kind === "none" ? [] : [{
+      kind: "radar" as const, title: SUMMARY_COPY.radar,
+      axes: report.radar.axes.map((axis) => ({ label: axis.label, score: axis.score })),
+      caption: report.radar.kind === "three" ? SUMMARY_COPY.radarThree : SUMMARY_COPY.radarFive,
+    }]),
+    { kind: "timeline", title: SUMMARY_COPY.map, items: report.timeline.map((node) => ({ label: node.label, detail: node.detail, source: node.source })) },
+    { kind: "list", title: SUMMARY_COPY.action, items: report.actionItems },
+  ];
+  return { kicker: SUMMARY_COPY.kicker, title: SUMMARY_COPY.title, figures };
 }

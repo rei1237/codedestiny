@@ -268,7 +268,7 @@ export default function CodexReader({
     // 글꼴을 못 실을 때만 아래 화면 캡처로 되돌아간다.
     if (locale === "ko") {
       try {
-        const [{ exportConsultationBookPdf }, { PdfFontError }, { buildMasterLoveCodexPdfChapters, MASTER_LOVE_CODEX_PDF_BYLINE }] = await Promise.all([
+        const [{ exportConsultationBookPdf }, { PdfFontError }, { buildMasterLoveCodexPdfChapters, buildMasterLoveCodexPdfSummary, MASTER_LOVE_CODEX_PDF_BYLINE }] = await Promise.all([
           import("@/lib/pdf/export-consultation-book-pdf"),
           import("@/lib/pdf/typeset-writer"),
           import("../_lib/codex-pdf-chapters"),
@@ -282,6 +282,7 @@ export default function CodexReader({
             date: today,
             fileName,
             chapters: buildMasterLoveCodexPdfChapters({ chapters: ordered, mode, consultation }),
+            summary: buildMasterLoveCodexPdfSummary({ loveDna, totalCharCount, chapterCount: ordered.length }),
           });
           setPdfLoading(false);
           return;
@@ -317,7 +318,7 @@ export default function CodexReader({
       setIsExporting(false);
       setPdfLoading(false);
     }
-  }, [sealed, birthLine, bookTitle, loveDna?.typeName, name, rows.length, pdfLoading, copy, locale, ordered, mode, consultation]);
+  }, [sealed, birthLine, bookTitle, loveDna, totalCharCount, name, rows.length, pdfLoading, copy, locale, ordered, mode, consultation]);
 
   if (!decrypted) {
     return (
