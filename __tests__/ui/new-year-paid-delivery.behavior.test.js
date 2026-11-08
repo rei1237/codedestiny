@@ -75,7 +75,8 @@ function fixture(accessType = 'pass', currentSections = null) {
     paymentVerifyFailed: () => new Response('', { status: 402 }), serverError: () => new Response('server', { status: 500 }),
     NEW_YEAR_AI_GENERATING_FRESH_MS: 120000, NEW_YEAR_AI_LLM_BUDGET_MS: 82000, NEW_YEAR_AI_SECTION_TIMEOUT_MS: 52000,
     NEW_YEAR_AI_REPAIR_MIN_REMAINING_MS: 18000, NEW_YEAR_AI_SECTION_MAX_ATTEMPTS: 2, NEW_YEAR_AI_SECTION_MIN_LENGTH: 300, NEW_YEAR_AI_MIN_TOTAL_CHARS: 20000, NEW_YEAR_AI_MAX_TOTAL_CHARS: currentSections ? 33000 : 26000,
-    NEW_YEAR_AI_SECTIONS: plan, LLM_ERROR_MESSAGE: 'generation failed', SERVER_ERROR_MESSAGE: 'server error',
+    NEW_YEAR_AI_SECTIONS: plan, NEW_YEAR_AI_SECTIONS_V1: plan, NEW_YEAR_AI_SECTIONS_V2: plan, NEW_YEAR_AI_SECTION_PLAN_VERSION: 2,
+    NEW_YEAR_AI_V2_MAX_TOTAL_CHARS: currentSections ? 40000 : 26000, LLM_ERROR_MESSAGE: 'generation failed', SERVER_ERROR_MESSAGE: 'server error',
     publicSession: row => ({ ok: true, sessionId: row.id, status: row.status, saved: row.status === 'completed', messages: row.messages }),
     callDeferredUsageRoute: async ({ path, idempotencyKey }) => {
       assert.equal(idempotencyKey, 'original-paid-request');
@@ -98,7 +99,7 @@ function fixture(accessType = 'pass', currentSections = null) {
   load(ctx, 'worker/lib/paid-report-quality.js', ['paidReportBody', 'countPaidReportBodyChars', 'reportSentenceKey', 'hasRepeatedReportPassage']);
   load(ctx, 'worker/lib/master-love-codex-quality.js', ['dedupeCodexBody']);
   load(ctx, 'worker/lib/paid-report-length.js', ['trimPaidReportText', 'lastSentenceBoundary']);
-  load(ctx, 'worker/routes/new-year-ai.js', ['handleNewYearAiRoutes', 'handleStart', 'resolveNewYearRequestAccess', 'generateNewYearWave', 'assembleConsultationSections', 'trimToLastCompleteSentence', 'saveNewYearState', 'finishNewYearDelivery', 'startEvidenceIds']);
+  load(ctx, 'worker/routes/new-year-ai.js', ['handleNewYearAiRoutes', 'handleStart', 'resolveNewYearRequestAccess', 'generateNewYearWave', 'assembleConsultationSections', 'trimToLastCompleteSentence', 'saveNewYearState', 'finishNewYearDelivery', 'startEvidenceIds', 'newYearSectionsForPlan', 'ownsQuestion', 'planMaxTotalChars']);
   ctx.generateConsultationText = ctx.generateNewYearWave;
   const post = (body = {}, env = {}) => ctx.handleNewYearAiRoutes(new Request('https://mock.test/api/new-year-ai/start', {
     method: 'POST', headers: { 'Content-Type': 'application/json', 'idempotency-key': 'original-paid-request' }, body: JSON.stringify(body),
@@ -315,12 +316,13 @@ test('P2 initial and repair calls retain expanded token budget and timeout', asy
     buildSectionPrompt: () => 'mock prompt', buildSystemPrompt: () => 'mock system', appendExpertPersona: async (_env, _key, base) => base,
     callGeminiText: async (_env, _prompt, options) => { calls.push(options); return { ok: true, provider: 'gemini', text: '본문'.repeat(300) }; },
   });
-  for (const name of ['NEW_YEAR_AI_SECTIONS', 'NEW_YEAR_AI_SECTION_MAX_OUTPUT_TOKENS', 'NEW_YEAR_AI_SECTION_MIN_LENGTH', 'NEW_YEAR_AI_SECTION_TIMEOUT_MS']) {
+  for (const name of ['NEW_YEAR_AI_SECTIONS_V1', 'NEW_YEAR_AI_SECTIONS_V2', 'NEW_YEAR_AI_SECTION_MAX_OUTPUT_TOKENS', 'NEW_YEAR_AI_SECTION_MIN_LENGTH', 'NEW_YEAR_AI_SECTION_TIMEOUT_MS']) {
     const declaration = ast.statements.filter(ts.isVariableStatement).flatMap(row => [...row.declarationList.declarations]).find(row => row.name.getText(ast) === name);
     assert.ok(declaration, name);
     vm.runInContext(`var ${declaration.getText(ast)};`, ctx);
   }
   load(ctx, file, ['generateConsultationSection']);
+  ctx.NEW_YEAR_AI_SECTIONS = [...ctx.NEW_YEAR_AI_SECTIONS_V1, ...ctx.NEW_YEAR_AI_SECTIONS_V2];
   for (const section of ctx.NEW_YEAR_AI_SECTIONS) for (const repairLines of [[], ['내용 보강']]) {
     const result = await ctx.generateConsultationSection({}, { section, repairLines, timeoutMs: ctx.NEW_YEAR_AI_SECTION_TIMEOUT_MS });
     assert.equal(result.ok, true);
@@ -371,12 +373,12 @@ for (const accessType of ['pass', 'subscription', 'paid']) test(accessType + ': 
   const ast = ts.createSourceFile('new-year-ai.js', source, ts.ScriptTarget.Latest, true, ts.ScriptKind.JS);
   let declaration;
   for (const statement of ast.statements) if (ts.isVariableStatement(statement)) {
-    declaration ||= statement.declarationList.declarations.find(row => row.name.getText(ast) === 'NEW_YEAR_AI_SECTIONS');
+    declaration ||= statement.declarationList.declarations.find(row => row.name.getText(ast) === 'NEW_YEAR_AI_SECTIONS_V2');
   }
   assert.ok(declaration);
   const sections = vm.runInNewContext(declaration.initializer.getText(ast));
-  assert.equal(sections.length, 6);
-  assert.equal(sections[0].key, 'opening');
+  assert.equal(sections.length, 7);
+  assert.equal(sections[0].key, 'nature');
   const f = fixture(accessType, sections);
   for (let i = 0; i < sections.length; i++) {
     const response = await f.post(i ? { resumeSessionId: f.doc.id } : {});
@@ -385,9 +387,10 @@ for (const accessType of ['pass', 'subscription', 'paid']) test(accessType + ': 
     assert.equal(f.charges, i === sections.length - 1 ? 1 : 0);
   }
   assert.deepEqual(Array.from(f.doc.llmMeta.sections, row => row.key), Array.from(sections, row => row.key));
+  assert.equal(f.doc.llmMeta.sectionPlanVersion, 2);
   assert.equal(f.doc.idempotencyKey, 'original-paid-request');
   assert.equal((await f.post()).status, 200);
-  assert.equal(f.calls, 6);
+  assert.equal(f.calls, 7);
   assert.equal(f.charges, 1);
   assert.equal(f.refunds, 0);
 });
@@ -402,10 +405,10 @@ test('대기 화면 진행 단계는 서버 생성 섹션과 같은 순서·같�
     }).join('\n');
   };
   const ctx = vm.createContext({});
-  vm.runInContext(ts.transpileModule(declarations('app/new-year-ai-consultation/_lib/answer-sections.ts', ts.ScriptKind.TS, ['DOMAIN_CARDS', 'READING_STEPS', 'READING_SECTION_TOTAL']), { compilerOptions: { target: ts.ScriptTarget.ES2022 } }).outputText, ctx);
-  vm.runInContext(declarations('worker/routes/new-year-ai.js', ts.ScriptKind.JS, ['NEW_YEAR_AI_SECTIONS']), ctx);
-  assert.deepEqual(ctx.READING_STEPS.map(step => step.key), ctx.NEW_YEAR_AI_SECTIONS.map(section => section.key));
-  assert.equal(ctx.READING_SECTION_TOTAL, ctx.NEW_YEAR_AI_SECTIONS.length);
+  vm.runInContext(ts.transpileModule(declarations('app/new-year-ai-consultation/_lib/answer-sections.ts', ts.ScriptKind.TS, ['DOMAIN_CARDS', 'MONTHLY_CHAPTER', 'READING_STEP_KEYS', 'READING_STEPS', 'READING_SECTION_TOTAL']), { compilerOptions: { target: ts.ScriptTarget.ES2022 } }).outputText, ctx);
+  vm.runInContext(declarations('worker/routes/new-year-ai.js', ts.ScriptKind.JS, ['NEW_YEAR_AI_SECTIONS_V2']), ctx);
+  assert.deepEqual(ctx.READING_STEPS.map(step => step.key), ctx.NEW_YEAR_AI_SECTIONS_V2.map(section => section.key));
+  assert.equal(ctx.READING_SECTION_TOTAL, ctx.NEW_YEAR_AI_SECTIONS_V2.length);
   const source = fs.readFileSync('app/new-year-ai-consultation/NewYearAiClient.tsx', 'utf8');
   assert.doesNotMatch(source, /progress\?\.total \|\| \d/);
   assert.doesNotMatch(source, /DOMAIN_CARDS\.length\}개 분야/);
