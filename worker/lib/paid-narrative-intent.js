@@ -81,7 +81,7 @@ async function seedIntent(env, featureKey, body, userId) {
     case "petSajuReport":
     case "petCompatReport": {
       const { seedPetNarrative } = await import("../routes/pet-saju-ai.js");
-      return seedPetNarrative(featureKey === "pet-saju-ai-consultation" ? "report" : "compat", body);
+      return seedPetNarrative(featureKey === "pet-saju-ai-consultation" ? "report" : "compat", body, env);
     }
     case "dreamPsychoAnalysis": {
       const { seedDreamPsychoNarrative } = await import("../routes/dream.js");

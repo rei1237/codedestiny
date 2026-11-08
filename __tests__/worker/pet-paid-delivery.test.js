@@ -6,7 +6,8 @@ const timeoutPolicy = jest.requireActual('../../worker/lib/sync-llm-timeout.js')
 jest.unstable_mockModule('../../worker/lib/sync-llm-timeout.js', () => ({ ...timeoutPolicy, PAID_LLM_PARTS_PER_REQUEST: 4 }));
 
 import { HttpError } from '../../worker/lib/http.js';
-let route,lab,seedPet,docs,provider,revoked,userId,fault,lost,external,kind,mode,tossRow,tossDeny;
+import { createHash } from 'node:crypto';
+let route,lab,seedPet,docs,provider,revoked,userId,fault,lost,external,kind,mode,tossRow,tossDeny,env;
 const owner='64b7f2a1c3d4e5f601234567',clone=value=>structuredClone(value);
 const get=(doc,key)=>key.split('.').reduce((value,key)=>value?.[key],doc);
 function matches(doc,filter){return Object.entries(filter).every(([key,value])=>{
@@ -32,7 +33,7 @@ beforeAll(async()=>{
  jest.unstable_mockModule('../../worker/lib/structured-consultation.js',()=>({...structured,callGeminiJsonWithRetry:(...args)=>provider(...args)}));
  ({handlePetSajuAiRoutes:route,buildAdminLabPrompt:lab,seedPetNarrative:seedPet}=await import('../../worker/routes/pet-saju-ai.js'));
 });
-beforeEach(()=>{docs=[];revoked=false;userId=owner;fault=null;lost=false;kind='report';mode='pass';tossRow=null;tossDeny=null;
+beforeEach(()=>{env={};docs=[];revoked=false;userId=owner;fault=null;lost=false;kind='report';mode='pass';tossRow=null;tossDeny=null;
  provider=jest.fn(async(_env,prompt,options)=>{expect(options.attempts).toBe(1);expect(options.timeoutMs).toBeLessThanOrEqual(45000);expect(options.fallbackToWorkersAI).toBe(false);
   const evidenceHash=prompt.match(/evidenceHash":"([a-f0-9]{64})/)?.[1],label=prompt.split('[이번 호출 범위]\n')[1].split('\n')[0].replace(/[.!?]/g,'');
   return {ok:true,provider:'gemini',text:JSON.stringify({evidenceHash,body:Array.from({length:45},(_,i)=>`${label} ${i}번째 사례는 생활의 리듬과 각자의 반응을 함께 살펴보며 적용 조건을 확인합니다. ${label} ${i}번째 선택에서는 관찰된 행동과 휴식의 차이를 바탕으로 일상을 조정할 수 있습니다.`).join('\n\n')})};
@@ -41,7 +42,7 @@ beforeEach(()=>{docs=[];revoked=false;userId=owner;fault=null;lost=false;kind='r
 afterEach(()=>{expect(external).not.toHaveBeenCalled();external.mockRestore();});
 const pet={name:'나비',species:'cat',birthDate:'2020-01-01',birthTimeUnknown:true,breed:'generic'};
 const original=()=>({requestId:'original-paid-request',date:'2026-09-15',transactionId:'paid-'+mode,...(kind==='report'?{pet}:{petA:pet,petB:{...pet,name:'달이',birthDate:'2021-02-02'}})});
-const post=body=>route(new Request('https://mock.test/api/pet-saju-ai/'+kind,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(body)}),{});
+const post=body=>route(new Request('https://mock.test/api/pet-saju-ai/'+kind,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(body)}),env);
 const start=()=>post(original()),resume=()=>post({resumeResultId:docs[0].executionKey});
 async function nativeFixture(overrides={}){
  const {runPaidNarrativeDelivery}=await import('../../worker/lib/paid-narrative-delivery.js'),{petNarrativeAdapter}=await import('../../worker/routes/pet-saju-ai.js');
@@ -81,7 +82,7 @@ test('Toss saved result rechecks its order even if a stale web proof exists',asy
  const native=await nativeFixture();let response=await native.run();for(let i=0;i<8&&response.status===202;i++)response=await native.run({resumeResultId:docs[0].executionKey});expect(response.status).toBe(200);docs[0].metadata.paidNarrativeProof={source:'web',transactionId:'unrelated'};const deny=Object.assign(new Error('ACCESS_DENIED'),{status:403,code:'ACCESS_DENIED'});native.adapter.verify=jest.fn(async()=>{throw deny;});const count=provider.mock.calls.length;await expect(native.run({resultId:docs[0].executionKey},'GET')).rejects.toBe(deny);expect(provider).toHaveBeenCalledTimes(count);
 });
 test('Toss exhaustion remains a review state and never invokes the web refund hook',async()=>{
- provider.mockResolvedValue({ok:false});const refund=jest.fn(),native=await nativeFixture({onExhausted:refund});await native.run();for(const task of docs[0].metadata.paidNarrative.tasks)docs[0].metadata.paidNarrative.attempts[task.id]=2;const result=await native.run({resumeResultId:docs[0].executionKey});expect(result.status).toBe(202);expect(await result.json()).toMatchObject({reviewRequired:true,retryable:false});expect(refund).not.toHaveBeenCalled();
+ provider.mockResolvedValue({ok:false});const refund=jest.fn(),native=await nativeFixture({onExhausted:refund});await native.run();for(const task of docs[0].metadata.paidNarrative.tasks)docs[0].metadata.paidNarrative.attempts[task.id]=4;const result=await native.run({resumeResultId:docs[0].executionKey});expect(result.status).toBe(202);expect(await result.json()).toMatchObject({reviewRequired:true,retryable:false});expect(refund).not.toHaveBeenCalled();
 });
 test('Toss scheduled recovery requires fresh order verification before any provider call',async()=>{
  const native=await nativeFixture();await native.run();const count=provider.mock.calls.length,{resumePaidNarrativeOnServer}=await import('../../worker/lib/paid-narrative-delivery.js');await expect(resumePaidNarrativeOnServer({},docs[0],native.adapter)).rejects.toMatchObject({code:'TOSS_RECOVERY_UNAVAILABLE'});expect(provider).toHaveBeenCalledTimes(count);
@@ -164,4 +165,74 @@ test('pet prompts translate the controlling relation into care instead of human 
  expect(seeded.systemPrompt).toContain('적용하거나');
  expect(seeded.prompt).not.toMatch(/부족 기운과의 관계: 재(?:\n|$)/);
  expect(seeded.prompt).toContain('금전 해석 아님');
+});
+
+// 6c-4 배달 2판: 공용 엔진의 deliveryV2 옵션은 pet 어댑터만 켜고, 판은 새 기록에 고정한다.
+const V1_ENV={PET_SAJU_DELIVERY_V2_ENABLED:'false'};
+const sha=text=>createHash('sha256').update(text).digest('hex');
+const FIRST='명식·종·성장 단계로 읽는 기본 기질과 강점';
+const firstPart=prompt=>prompt.split('[이번 호출 범위]\n')[1].startsWith(FIRST);
+async function drain(limit=40){let response;for(let n=0;n<limit;n++){response=await resume();if(response.status!==202||(await response.clone().json()).reviewRequired)break;}return response;}
+const state=()=>docs[0].metadata.paidNarrative;
+test('v2 is pinned on new records only and leaves the evidence hash and prompt bytes unchanged',async()=>{
+ await start();const v2=clone(docs[0]),v2Prompt=provider.mock.calls[0][1];docs=[];provider.mockClear();
+ env=V1_ENV;await start();const v1=docs[0],v1Prompt=provider.mock.calls[0][1];
+ expect(v2.metadata.paidNarrative.deliveryPlanVersion).toBe(2);expect(v1.metadata.paidNarrative).not.toHaveProperty('deliveryPlanVersion');
+ expect(v2.metadata.paidNarrative.evidenceHash).toBe(v1.metadata.paidNarrative.evidenceHash);expect(sha(v2Prompt)).toBe(sha(v1Prompt));
+ env={};await resume();expect(state()).not.toHaveProperty('deliveryPlanVersion');
+});
+test('v1 record keeps the old hold: a part failing twice stops the rest for review',async()=>{
+ env=V1_ENV;const base=provider.getMockImplementation();provider.mockImplementation(async(...args)=>firstPart(args[1])?{ok:false}:base(...args));
+ await start();const response=await drain();expect(response.status).toBe(202);expect(await response.json()).toMatchObject({reviewRequired:true,retryable:false,code:'DELIVERY_REVIEW_REQUIRED'});
+ expect(Object.keys(state().parts).length).toBeLessThan(state().tasks.length-1);
+});
+test('v2: a part failing twice no longer stops the others and completes once it answers',async()=>{
+ const base=provider.getMockImplementation();let fails=0;provider.mockImplementation(async(...args)=>firstPart(args[1])&&fails++<3?{ok:false}:base(...args));
+ await start();const response=await drain();expect(response.status).toBe(200);expect(state().attempts['personality:0']).toBe(4);
+ expect(Object.keys(state().parts)).toHaveLength(state().tasks.length);expect(docs[0].premiumStatus).toBe('completed');
+});
+test('v2: a part with no text at all is never dropped; review comes only after every other part is saved',async()=>{
+ const base=provider.getMockImplementation();provider.mockImplementation(async(...args)=>firstPart(args[1])?{ok:false}:base(...args));
+ await start();let response=await resume();expect(state().attempts['personality:0']).toBe(2);expect(response.status).toBe(202);expect((await response.json()).retryable).toBe(true);
+ response=await drain();expect(await response.json()).toMatchObject({reviewRequired:true,retryable:false});
+ expect(state().attempts['personality:0']).toBe(4);expect(Object.keys(state().parts)).toHaveLength(state().tasks.length-1);expect(docs[0].premiumStatus).not.toBe('completed');
+ const calls=provider.mock.calls.length;await resume();expect(provider).toHaveBeenCalledTimes(calls);
+});
+test('v2: the last attempt salvages and scrubs text the first attempt rejected',async()=>{
+ const base=provider.getMockImplementation(),repeated='아이는 아침마다 창가에서 햇빛을 받으며 천천히 몸을 풀고 하루를 시작합니다.';
+ provider.mockImplementation(async(...args)=>{if(!firstPart(args[1]))return base(...args);return {ok:true,provider:'gemini',text:JSON.stringify({body:`${repeated}\n\n${repeated}\n\n보호자는 그 시간을 지켜 주면 됩니다.`})};});
+ await start();const response=await drain();expect(response.status).toBe(200);const part=state().parts['personality:0'];
+ expect(part.split(repeated)).toHaveLength(2);expect(part).toContain('보호자는 그 시간을 지켜 주면 됩니다.');expect(state().attempts['personality:0']).toBe(2);
+});
+test('v2: a short complete sentence is delivered on the last attempt instead of held',async()=>{
+ const base=provider.getMockImplementation();provider.mockImplementation(async(...args)=>firstPart(args[1])?{ok:true,provider:'gemini',text:JSON.stringify({body:'짧지만 완결된 결과입니다.'})}:base(...args));
+ await start();expect((await drain()).status).toBe(200);expect(state().parts['personality:0']).toBe('짧지만 완결된 결과입니다.');
+});
+const prose=(label,n)=>Array.from({length:n},(_,i)=>`${label} ${i}번째 장면에서는 아이의 반응과 휴식 리듬을 함께 보며 보호자가 조정할 지점을 차분히 정리합니다.`).join('\n\n');
+const labelOf=prompt=>prompt.split('[이번 호출 범위]\n')[1].split('\n')[0].slice(0,12);
+test('v2: length repair runs only below the floor and at most three times per record',async()=>{
+ provider.mockImplementation(async(_env,prompt)=>({ok:true,provider:'gemini',text:JSON.stringify({body:prose(labelOf(prompt),prompt.includes('[저장된 초안 보완]')?30:3)})}));
+ await start();expect((await drain()).status).toBe(200);const {tasks,parts,lengthRepairs}=state();
+ expect(lengthRepairs).toBe(3);expect(provider).toHaveBeenCalledTimes(tasks.length+3);expect(Object.keys(parts)).toHaveLength(tasks.length);
+});
+test('v2: a part above the floor is accepted without a repair call even below its target',async()=>{
+ provider.mockImplementation(async(_env,prompt)=>({ok:true,provider:'gemini',text:JSON.stringify({body:prose(labelOf(prompt),22)})}));
+ await start();expect((await drain()).status).toBe(200);expect(state().lengthRepairs).toBeUndefined();expect(provider).toHaveBeenCalledTimes(state().tasks.length);
+});
+test('v2 refunds only a truly empty body',async()=>{
+ const {runPaidNarrativeDelivery}=await import('../../worker/lib/paid-narrative-delivery.js'),{petNarrativeAdapter}=await import('../../worker/routes/pet-saju-ai.js');
+ const run=async(onExhausted,ok)=>{docs=[];provider.mockImplementation(async(_env,prompt)=>ok(prompt)?{ok:true,provider:'gemini',text:JSON.stringify({body:prose(labelOf(prompt),30)})}:{ok:false});
+  const adapter={...petNarrativeAdapter({},'petSajuReport'),featureKey:'pet-saju-ai-consultation',verify:async()=>{},seed:value=>seedPet('report',value,{}),onExhausted};
+  const call=body=>runPaidNarrativeDelivery(new Request('https://mock.test',{method:'POST'}),{},{userId:owner},body,adapter);
+  let response=await call(original());for(let n=0;n<60&&response.status===202&&!(await response.clone().json()).reviewRequired;n++)response=await call({resumeResultId:docs[0].executionKey});return response;};
+ const empty=jest.fn(async()=>({ok:false,refunded:true}));expect((await run(empty,()=>false)).status).toBe(500);expect(empty).toHaveBeenCalledTimes(1);
+ const partial=jest.fn();expect((await run(partial,prompt=>!firstPart(prompt))).status).toBe(202);expect(partial).not.toHaveBeenCalled();
+});
+test('the engine ignores a pinned v2 seed for an adapter that did not opt in',async()=>{
+ const {runPaidNarrativeDelivery}=await import('../../worker/lib/paid-narrative-delivery.js');
+ const produce=jest.fn(async task=>task.id==='a'?null:{body:'다른 부분입니다. 충분히 완결된 문장으로 끝나는 본문이 여기에 있습니다.'});
+ const adapter={featureKey:'web-feature',reportType:'webReport',verify:async()=>{},seed:async()=>({deliveryPlanVersion:2,tasks:[{id:'a',minChars:10},{id:'b',minChars:10}]}),produce,render:()=>({})};
+ const call=body=>runPaidNarrativeDelivery(new Request('https://mock.test/web',{method:'POST'}),{},{userId:owner},body,adapter);
+ await call({requestId:'not-opted-in-request'});let response;for(let n=0;n<4;n++)response=await call({resumeResultId:docs[0].executionKey});
+ expect(await response.json()).toMatchObject({reviewRequired:true,retryable:false});expect(docs[0].metadata.paidNarrative.attempts.a).toBe(2);expect(produce.mock.calls.filter(([task])=>task.id==='a')).toHaveLength(2);
 });
