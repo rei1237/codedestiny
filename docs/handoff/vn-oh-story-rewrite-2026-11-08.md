@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-09
-next: 4-③ 통합 검증 후 최신 main 전달 트리에서 4-④ 배포
+next: 4-④ pre-push 검사 후 main push·CI 확인·승인된 운영 배포·운영 확인
 ---
 
 # VN 스토리 개선 (oh-story 활용) 인수인계
@@ -426,7 +426,7 @@ next: 4-③ 통합 검증 후 최신 main 전달 트리에서 4-④ 배포
 ## 단계 4 (2026-11-09)
 - [x] 4-① 호랑이 존댓말 전체 확인·EP.37/47/50 분량 경고
 - [x] 4-② en / ja / zh-CN / zh-TW 직접 번역·용어집·누락 감사·게시 복구
-- [ ] 4-③ novel:build·story-sync·sitemap·check:fast·번역·플레이어 검사
+- [x] 4-③ novel:build·story-sync·sitemap·check:fast·번역·플레이어 검사
 - [ ] 4-④ main 반영·CI·운영 배포·운영 재생/북마크/언어 확인
 
 ## 4-① 결과 (2026-11-09)
@@ -481,3 +481,9 @@ next: 4-③ 통합 검증 후 최신 main 전달 트리에서 4-④ 배포
 - main이9e8cec0a6→87c6e54dd로 이동(잠금화면8파일, 소설 변경과 겹침0). 최종 검사 완료 후 git rebase --onto origin/main 9e8cec0a6 HEAD 로 최신main 위로 옮기고 생성 드리프트 확인 후 pre-push. 더 이동했으면 다시fetch하고 충돌없는 최신main보존.
 - 운영 브라우저 ego taskSpace63, p1, URL https://code-destiny.com/codedestiny-novel.html . 아직 기존 운영판 확인만 함, 배포 후 확인 필수. 기존 북마크·소설언어는 원래워크트리 .tmp/vn-finish/browser-original-state.json에 저장. 운영검증 끝난 뒤 두 키만 복원하고 task.finish({keep:[]}). Ego 업데이트 안내는 있으나 업그레이드는 안 함.
 - source 워크트리 .tmp/vn-finish와 전달 트리 .tmp/vn-finish는 이 세션 생성 임시 파일. 최종 결과 문서로 옮긴 뒤 정리. 다른 작업의 .tmp/파일/워크트리는 건드리지 않는다.
+
+## 4-③ 최종 결과 (2026-11-09)
+- check:fast -- --base=origin/main --plan 및 실행 종료0. paid-gate77/0(389.6s), lint·typecheck·sitemap-drift1062URL통과, Node4671/4671(실패/취소/skip0), Jest456스위트7715테스트통과·기존1스위트/1테스트skip(전체457/7716). 약815s Jest.
+- novel:build, verify:story-sync, sitemap:generate, verify-novel-locale-completeness, verify:novel-runtime, verify:novel-player-start, locale/UI 단위15개 모두 통과. verify:release도 종료0.
+- 최종 main기준2faaa262b(잠금화면+SEO업데이트)로37개 커밋 rebase 완료. 생성원장1파일 충돌만 승인대로 최신 main값+생성기로 해결. 소스충돌0. 관련 없는 main변경 보존. 다시 전체검사를 반복하지 않고 통합main CI와pre-push로 전달 확인.
+- 생성물 수동편집0. 결제·이용권/월정석/단건 정책, 인증,API,DB,라우팅 로직에 이 작업이 바꾼 파일0. 남은11개 본문/fx경고는 앞4-① 결과대로 보존.
