@@ -589,6 +589,7 @@ next: 6c — 서비스 공통 배달 안전 수정(6단계 문제 목록을 다�
 - 운명의 업: `buildKarmaPdfSummary`(한 문장·글자 수·장 수·키워드, 에너지 막대+근거, 렌즈 기여 레이더, 운명 지도, 실천 목록). 결과 화면(`KarmaDestinyAiResultClient.tsx`)과 보관함(`SavedKarmaPdfButton.tsx`) 양쪽에 넣었다.
 - 인연의 서(개인·궁합): `buildMasterLoveCodexPdfSummary`(연애 유형·요약·장 수·글자 수, 연애 DNA 막대+근거). `CodexReader.tsx`가 결과·보관함 공용이다. 화면에 레이더가 없어 PDF에도 넣지 않았다.
 - 검증: PDF 테스트 13개, ui pdf·karma·codex 115개 통과, `npx tsc --noEmit` 통과. Paperlogy 글꼴로 만든 샘플(scratchpad `pdf6b/{karma,codex-solo,codex-compat}.pdf`)을 `pdftotext -enc UTF-8 -layout`으로 확인했다: 목차 "한눈에 보기", 막대 값, 레이더 축 라벨·%, 운명 지도, 실천 목록. 래스터라이저가 없어(pdftoppm·python 없음) 이미지로는 확인하지 못했다. 레이더 모양은 사람이 한 번 봐야 한다.
+- 빌드: 6a·6b 반영 뒤 `ALLOW_DEV_SERVER_DURING_BUILD=1 npm run build` EXIT 0. build가 고친 sitemap·lastmod·셸 index.html(빌드 해시만)은 되돌렸다.
 - 함정: `pdftotext`는 `-enc UTF-8` 없이 쓰면 한글이 사라진다. `__tests__/ui`는 jest가 무시하므로 `node --test`로 돌린다.
 
 ## 6단계 진행 메모 (조사 완료, 구현 전 — 2026-11-08)
