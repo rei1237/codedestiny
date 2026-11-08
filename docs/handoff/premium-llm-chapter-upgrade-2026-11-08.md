@@ -271,7 +271,7 @@ next: 5단계 마스터 인연의 서 (+궁합) — 조사 완료(5단계 진행
 - 화면: 목차(번호·제목·화자), 장 머리 칩과 kicker, 기질 카드 강조. 조판 PDF `app/karma-destiny-ai/result/karma-pdf-chapters.ts`(`buildKarmaPdfChapters`, chapters가 없으면 assistant 메시지를 `## N장.` 머리로 나눠 대체), byline "네오 · 서한비", coverTheme 'karma', PdfFontError일 때만 캡처 대체. 보관함 karma 분기에 `app/records/view/SavedKarmaPdfButton.tsx`.
 - 테스트 먼저: `__tests__/worker/karma-chapter-plan-v2.test.js`(V1 프롬프트 바이트 동일, V2 16장·질문 소유, 연성 이슈, scrub, 짧지만 유효한 출력이 completed에 도달, 분량 수리 상한), 빌더·버튼 UI 테스트.
 
-## 5단계 진행 메모 (조사 완료, 설계·TDD부터)
+## 5단계 진행 메모 (설계 확정, 구현 중)
 
 ### 조사로 확인한 사실
 - 한 라우트에 두 상품이 있다: `worker/routes/master-love-codex.js`(약 1,729줄)의 `MODES`에 solo(`master-love-codex`, cacheKeyExtra "master-love-codex-v2-natal-v2")와 compat(`master-love-codex-compat`, "master-love-codex-compat-v1-natal-v2")가 있다. featureKey가 다르니 **실호출 샘플은 2회**(solo 1, compat 1).
@@ -288,7 +288,16 @@ next: 5단계 마스터 인연의 서 (+궁합) — 조사 완료(5단계 진행
 - 보관함: `app/records/view/StoredReading.tsx` 약 63줄 `source === 'codex'`가 `<CodexReader ... completed/>`를 그린다. 리더 안 PDF 버튼이 보관함에도 이미 보이지만 캡처 방식이다 → 조판 PDF로 바꾸면 보관함도 함께 해결.
 - 테스트: `__tests__/worker/master-love-codex-*`(consultation, evidence, paid-bootstrap, paid-delivery, pass-refund, quality, recovery-task, recovery, repair-plan), `__tests__/ui/master-love-codex-*`(content-i18n.static, outline-render, progress-gauge, purchase-recovery, reader-navigation, resume-on-result). 스크립트 `scripts/verify-master-love-codex-reader.mjs`, `verify-master-love-codex-sharing.mjs`, `verify-llm-generation-resilience.mjs`.
 
-### 결정 초안 (구현 전에 compat 프롬프트·acts.ts를 읽고 확정)
+### 결정 (확정, 2026-11-08 compat 프롬프트·acts.ts 확인 뒤)
+- **장 수·id·제목은 그대로 20장**(5막×4장, acts.ts·manifest·공유 링크 무변경). V2 표 `MASTER_LOVE_CODEX_CHAPTERS_V2`·`MASTER_LOVE_CODEX_COMPAT_CHAPTERS_V2`를 V1에서 파생해 `planVersion: 2`·`perspective`·`targetChars [min+800, min+1200]`만 더한다. solo 1장 gate·compat 1장 facing은 V2 scope를 "기질(두 사람 기질) 근거의 쉬운 뜻 → 공감 장면 2~3개 → 연애(이 관계)와 연결"로 바꾸고 2장에 1장과 겹치지 않게 avoid를 더한다.
+- 계획 선택: `codexChaptersForPlan(mode, version)`. `expectedChapters`가 `deliveryMeta.chapterPlanVersion`을 보고, 새 세션에만 `chapterPlanVersion: 2`. 없으면 V1.
+- V2 전용 프롬프트 줄은 `chapter.perspective`가 있을 때만(관점·상투구 금지·여닫는 문장 다양화·한 장 한 말투·질문은 배정 장에서만 인용). 편집 계약·JSON body 줄·토큰 계획·분량 수리 지시도 `chapter.targetChars`가 있을 때만 그 값을 쓴다. V1 프롬프트 바이트는 스크래치 기준 덤프와 비교한다.
+- 연성 이슈(V2만): REGISTER_DRIFT(종결 6개 이상, 해요·합니다 둘 다 30% 초과), QUESTION_REQUOTED(비배정 장에서 질문·상황과 6자 n-gram 3개 이상 공유 문장이 2개 초과). 1차는 저장 + `:lengthRepair` 자리로 힌트 수리 1회, 조립 때 표시 문장을 85% 이상 남을 때만 덜어 낸다.
+- 마지막 시도 scrub(모든 세션, 프롬프트 무변경): 근거·질문·시기·DNA·필드·반복·JSON 오류를 마지막 시도에서는 던지지 않고 결정적으로 보충해 저장. 본문이 아예 비면 그때만 실패. 물결의 반복 판정은 `dropRepeatedReportSentences`로 덜어 내고 저장. 조립에서 `byId.delete` 금지.
+- 근거 하위 경로 대체 조회: `findCodexRecord`가 끝의 `[n]`·`.segment`를 하나씩 떼며 다시 찾는다.
+- 화면: 장 머리 화자 칩·kicker(막 이름), 1장 강조, 조판 PDF `src/features/master-love-codex/_lib/codex-pdf-chapters.ts`를 CodexReader 안에서 써서 결과·보관함 공통(PdfFontError일 때만 캡처).
+
+### 결정 초안 (위 확정본으로 대체)
 - V2(`deliveryMeta.chapterPlanVersion: 2`, 새 세션만): 장 수를 바꾸지 않는 쪽을 우선 검토한다 — 1장 "gate"를 V2에서 "기질 근거의 쉬운 뜻 → 공감 장면 2~3개 → 연애와 연결"로 재범위화(perspective)하고 2장 temperament와 겹치지 않게 avoid를 더한다. 20장·5막×4장 구조, manifest id, acts.ts, 공유 링크가 그대로라 위험이 가장 낮다. 장을 더해야 하면 V2 전용 제목·막 표를 따로 둔다.
 - 장마다 `perspective` 한 줄, 상투구 금지, 여는·맺는 문장 다양화, 질문은 `questionOrder` 소유 장에서만 한 번 인용. V2 전용 줄은 `chapter.perspective`가 있을 때만 넣어 V1 바이트 동일.
 - 넉넉한 분량: V2 본문 목표를 min+800~min+1,200 정도로 올리고 토큰은 목표 상한×1.2 기준, 45초 시간 상한 안인지 샘플로 확인. MIN은 올리지 않는다.
