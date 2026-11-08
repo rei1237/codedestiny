@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-08
-next: 7d 자미 검증(tsc·jest·node --test·verify·build) + 모의 실행 + 실호출 상품당 1회 결과 기록 (7단계 진행 메모 참고)
+next: 7d-2 자미 심층(ziwei-deep) 모의 실행 + 실호출 1회 + build, 결과 기록 뒤 7단계 체크 (7d 진행 메모 참고)
 ---
 
 # 3만원 이상 유료 LLM — 상품별 챕터·분량·PDF·전달 개선 인수인계
@@ -603,6 +603,19 @@ next: 7d 자미 검증(tsc·jest·node --test·verify·build) + 모의 실행 + 
   - 보관함: `app/records/view/SavedZiweiDeepPdfButton.tsx`(`exportZiweiReportPdf`, 무성 byline·표지는 캐릭터 플래그가 켜졌을 때만). `SavedServiceReading.tsx` ziwei 분기에서 `view.fields.includes('chapters')`일 때만 단다(ziwei-deep만 해당)
   - 확인: tsc 통과, jest worker ziwei·record·paid-report 18개 파일 201개 통과, node --test ui ziwei·record 152개 통과. verify 실패 4개(all-paid-services-payment-flow: MONGO_URI 없음, fusion-paid-efficiency, ziwei-brightness-constraints, ziwei-deep-paid-reopen-browser: structuredClone 없음)는 stash한 기준에서도 실패하는 기존 문제다
 - [ ] 7d. tsc·jest·node --test·verify·build, 모의 실행, 실호출 상품당 1회, 결과 기록
+  - 7d-1 완료(2026-11-08): 검증은 7c 메모와 같다(tsc 통과, jest 201, node --test 152, verify 실패 4개는 기존 문제).
+  - 하네스(커밋 안 함): `D:/Development/Temp/claude/ec29f026d20d029c/05a9e1e1-86ab-494f-9630-9a5b686c0c61/scratchpad/ziwei-live/`
+    - `register.mjs`/`hooks.mjs`가 db·auth·models·entitlement·pass·moonstone·billing·cms·cache·claim·portone·payment-refund를 `stubs/`로 바꾼다. `stubs/models.mjs`는 메모리 컬렉션(ZiweiAiConsultation, ZiweiDeepReport, ServiceExecutionTransaction)
+    - `run-ai.mjs [--live]`: POST `/api/ziwei-ai/start`를 끝날 때까지 반복(idempotency-key `ziwei-live-<mode>-20261108`). 결과는 `out-ai-mock/`·`out-ai-live/`(summary.json·response.json·doc.json), 품질 검사는 `check-ai.mjs`. 키는 `D:/Development/code-destiny/.env.local`의 GEMINI 키를 읽기만 한다
+    - 함정: Gemini 호출 전에 `:countTokens`를 부른다. 모의 fetch는 `{totalTokens}`로 답해야 한다(없으면 LLM_INPUT_TOKEN_COUNT_UNAVAILABLE). 그룹 판별은 `generationConfig.responseSchema.properties.sections.properties`의 키로 한다. 섹션 본문은 `consultation.messages` 마지막 assistant 메시지의 JSON 안에 있다
+  - ziwei-ai 모의: 완료, 판 2, 요청 12회, 생성 호출 12회, 섹션 19개, 22,758자, 질문 재인용 0
+  - ziwei-ai 실호출(gemini-2.5-flash, 사전 승인 "llm 샘플 생성 허가한다" 2026-11-08): 완료, 판 2, 요청 8회, 생성 호출 8회(countTokens 포함 fetch 16), 172초, 전부 STOP, 섹션 19개, 33,496자(assistant 본문 35,203자). nature만 2회(길이 수리 1회), meta 1회. 섹션 길이 309자(reading_guide)~4,240자(domain_matrix). 반복 없음, 금칙어 없음, 환불 없음. 질문 재인용은 nature 그룹(core_answer) 안에서만 2건이고 다른 그룹에는 없다. personality_profile이 질문 공감으로 열고 타고난 본성(명궁 태음 화과…)으로 이어진다. meta 키: name·gender·mingong·shengong·sihua·dayun·scores
+  - 7d-2 남은 일(다음 에이전트):
+    - 같은 로더로 `run-deep.mjs` 작성. `resolveGenerateAccess`(route 631행)는 `verifyAccessToken`, PaidExecutionRecord·Payment·PointHistory·MonthlyCreditLedger의 findOne(전부 null), `isAdmin(auth)`이면 바로 통과한다. 관리자 auth 스텁이 가장 간단하다. 아니면 behavior 테스트처럼 vm으로 실제 `generateChapter`·`callGeminiText`·판 2 모듈을 돌린다
+    - 모의 실행 뒤 실호출 1회. 상태·요청 수·호출 수·초·장 수·장별 글자 수·salvaged/skipped·반복·overview 밖 질문 인용·환불을 적는다
+    - build: `ALLOW_DEV_SERVER_DURING_BUILD=1`, 바뀐 sitemap·shell 파일은 되돌린다
+    - 끝나면 7d와 7단계를 체크하고 next를 "8단계 숙요점 궁합 (6c sukuyo 문제 포함)"으로 바꾼다
+  - 위험: 실호출 표본 1개뿐, reading_guide가 짧다(309자), salvaged 표시가 provider에 있다(스키마 strict)
 
 ## 단계별 결과
 (단계를 마칠 때마다 커밋 SHA, 바꾼 파일, 검증 결과, 남은 일을 여기에 적는다.)
