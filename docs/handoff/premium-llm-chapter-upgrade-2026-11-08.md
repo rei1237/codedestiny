@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-08
-next: 1단계 연애 비책 — nature 그룹·반복 제거·결과 UI·글자형 PDF·보관함 PDF
+next: 2단계 신년운세(네오) — 1단계 패턴(구성 버전 분기·장 메타·공용 조판 PDF·보관함 PDF)을 신년운세에 적용
 ---
 
 # 3만원 이상 유료 LLM — 상품별 챕터·분량·PDF·전달 개선 인수인계
@@ -41,7 +41,7 @@ next: 1단계 연애 비책 — nature 그룹·반복 제거·결과 UI·글자�
 
 ## 단계
 - [x] 0. 준비: 워크트리를 만들고 설계 문서와 이 문서를 커밋했다.
-- [ ] 1. 연애 비책 (연이·서한비) + 공용 글자형 PDF 모듈 + 보관함 PDF
+- [x] 1. 연애 비책 (연이·서한비) + 공용 글자형 PDF 모듈 + 보관함 PDF
 - [ ] 2. 신년운세 (네오)
 - [ ] 3. 인생의 책 / 인생 총운 (윤달)
 - [ ] 4. 운명의 업
@@ -55,7 +55,7 @@ next: 1단계 연애 비책 — nature 그룹·반복 제거·결과 UI·글자�
 - [ ] 12. 사주 맞춤 작명
 - [ ] 13. 영냥이 참치·모둠·오마카세
 
-## 1단계 진행 메모 (코드 수정 전, 조사·결정만 끝남)
+## 1단계 진행 메모 (완료, 결과는 아래 단계별 결과)
 첫 에이전트가 조사 중 컨텍스트가 압축되어 결정만 적고 돌아왔다. 코드 파일은 아직 하나도 바꾸지 않았다. 아래 결정대로 바로 구현한다.
 
 ### 조사로 확인한 사실
@@ -121,3 +121,28 @@ next: 1단계 연애 비책 — nature 그룹·반복 제거·결과 UI·글자�
 
 ## 단계별 결과
 (단계를 마칠 때마다 커밋 SHA, 바꾼 파일, 검증 결과, 남은 일을 여기에 적는다.)
+
+### 1단계 연애 비책 — 완료 (2026-11-08)
+- 커밋(이 순서)
+  - `d593cb405`: V2 7그룹 계획(nature 맨 앞), `groupPlanVersion` 분기(옛 세션은 V1, V1 프롬프트는 바이트 그대로), 반복 문장 제거(실패해도 전달), 분량 35,000~45,500, `totalGroups`
+  - `0fa74bb9f`: 결과 섹션 표에 nature 장, 장 메타(`LOVE_SECRET_CHAPTER_GROUPS`, `loveChapterKicker`), 저장 본문 재분할(`splitLoveSecretAnswerByTitles`)
+  - `a3f93759e`: 상세 패널 28장→30장(타고난 연애 기질 2장 앞에), 매니페스트·생성 JSON 동기화
+  - `21ea0cb08`: 결과 화면 장 번호·키커·화자 차례(접이식), nature 카드, 진행률 분모 `totalGroups`, 미리보기 픽스처 30장. 결과 PDF 버튼 전환 코드도 이 커밋에 들어감
+  - `d1beebbbf`: `lib/pdf/export-consultation-book-pdf.ts`(공용 조판), `buildLoveSecretPdfChapters`, 결과 PDF는 조판·PdfFontError 때만 캡처, 보관함 연애 비책 PDF 버튼(`app/records/view/SavedLovePdfButton.tsx`)
+  - `30f533f41`: 생성 중 안내 12개 로케일과 마스터 소개의 "여섯"→"일곱"
+  - `1b0e5d35a`: 차례에서 덱 장 이동 수정(한 장씩 보기에서 숨은 쪽으로 스크롤이 안 되던 문제)
+- 검증(실제 출력)
+  - `node --test` speaker·pdf-chapters·signature-detail: 19/19. love-secret paid-delivery·wake-recovery·records-locale: 46/46. records-reading-content 6/6. mobile-pricing-source·fusion static 25/25
+  - jest worker: love-secret-ai-prompt.gate, love-secret-native-contract, paid-report-length(-recovery) 4 suites 52/52
+  - `node scripts/verify-love-secret-ai-flow.mjs`: groups=7 sections=30 body chars=27969 PASS. verify-paid-gate-ui-regression PASS, verify-fusion-fortune-pdf PASS
+  - `npx tsc --noEmit -p .`: exit 0. 바꾼 파일 eslint: 오류 0(경고는 기존 것)
+  - `npm run build`: exit 0(1894/1894). 함정 두 가지: ① 메인 저장소의 dev 서버를 가드가 잡는다. 이 워크트리 `.next`와 무관하므로 `ALLOW_DEV_SERVER_DURING_BUILD=1`. ② 그날 운세 데이터가 없으면 `/fortune/today/*` 정적 생성에서 멈춘다. 먼저 `npm run fortune:build-data`. 빌드가 sitemap 파일들을 바꾸므로 끝나면 `git checkout --`로 되돌린다
+  - 조판 PDF: malgun 글꼴로 30장을 렌더해 63쪽, 차례 2쪽, 1장이 4쪽(구조만 확인, 이미지 렌더 도구 없음)
+  - 360px(`next dev -p 3917`, `?preview=success`): 가로 넘침 없음(scrollWidth 360), 차례 28항목·화자 표시, nature 카드 첫 장, 흐름 장·덱 장 이동 확인
+- 남은 일·후속
+  - 실제 LLM 샘플 1회(연애 비책)는 사용자 승인을 받아야 한다. 아직 하지 않았다
+  - 분량 하한: 설계는 "약 36,000"이지만 verify 불변식(7×5,000)에 맞춰 35,000
+  - 결과 화면에서 요약 그룹 2장(현재 관계의 자리…, 핵심 연애운 —)은 원래 히어로가 대신해 그려지지 않는다(d864217f2부터, 이번 범위 밖). 그래서 화면 차례는 28항목, PDF는 30장 전부
+  - 상세 패널 이미지(webp)의 주제 번호가 2씩 밀림. 마케팅 문구 "6부 28개 섹션"/"여섯 부를 스물여덟 개 섹션"이 `index.html`·`public/*/index.html`·`lib/marketing/feature-marketing-copy.generated.json`·`docs/purchase-journey/inventory.json`에 남아 있음
+  - 상세 패널 30장 변경은 검색엔진에 보이는 변경이다
+  - 공용 조판 모듈의 표지·키커 문구(productLabel, 부 이름)는 한국어 고정이다. 다른 로케일 PDF는 화자 이름만 바뀐다
