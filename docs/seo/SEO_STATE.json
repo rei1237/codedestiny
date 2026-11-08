@@ -82,7 +82,12 @@
     "status": "bundle-3-production-verified",
     "productionRun": "https://github.com/rei1237/codedestiny/actions/runs/42505123236",
     "documentationDeliveryGate": {
-      "state": "awaiting approval for one-line shared CI repair; final records kept locally",
+      "state": "resolved by upstream; final SEO records ready for delivery",
+      "approval": {"date": "2026-11-09", "userText": "한 줄 수정과 후속 push 승인"},
+      "resolutionCommit": "9e7ee899717beab7a6d168a32796ab8c13318a0f",
+      "resolutionCi": "https://github.com/rei1237/codedestiny/actions/runs/42507044209",
+      "resolutionCiConclusion": "success",
+      "resolution": "Upstream already normalized the VN handoff to active. Preserve that change and deliver final SEO records.",
       "mainCi": "https://github.com/rei1237/codedestiny/actions/runs/42505056922",
       "mainSha": "72fed768472e292055df9c29a5bec27ee9e0e934",
       "conclusion": "failure",
