@@ -23,7 +23,7 @@ import { FEATURE_KEY_PRICE_TABLE } from "../lib/paid-feature-registry.js";
 // 버리지 않는다 — 렌더 가능한 분량이 남아 있으면 degraded 로 전달하고 결제를 유지한다.
 
 import { resultStorageUnavailable, resultStorageFailurePayload } from "../lib/result-storage.js";
-import { countPaidReportBodyChars, hasRepeatedReportPassage } from "../lib/paid-report-quality.js";
+import { countPaidReportBodyChars, dropRepeatedReportSentences, hasRepeatedReportPassage } from "../lib/paid-report-quality.js";
 import { tokensRequiredForChars } from "../lib/llm-budget.js";
 import { isPaidResultRevoked, isStoredPaidResultRevoked } from "../lib/paid-result-revocation.js";
 import { getRoutePath, json, methodNotAllowed, notFound, readJson, HttpError } from "../lib/http.js";
@@ -56,6 +56,7 @@ import {
   hdReportFallbackMinChars,
   rememberSentences,
   requiredSubsectionIds,
+  scrubHumanDesignFactualSentences,
   sectionCharCount,
   validateHumanDesignReportSection,
 } from "../lib/human-design-report-contract.js";
@@ -458,6 +459,9 @@ async function handleStart(request, env) {
     accessType: proof.source === "pass" ? "pass" : (proof.source === "monthly" ? "membership_credit" : "paid"),
     accessSource: clean(proof.source, 40),
     billingRequestId: requestId,
+    // 🔴 배달 2판은 새 문서에만 붙는다(진행 중인 1판 문서는 옛 동작으로 끝난다).
+    deliveryPlanVersion: hdDeliveryV2Enabled(env) ? HD_DELIVERY_PLAN_VERSION : 1,
+    lengthRepairsUsed: 0,
   };
 
   try {
@@ -523,6 +527,74 @@ async function handleStart(request, env) {
   );
 }
 
+// ── 배달 2판 (2026-11-08) ────────────────────────────────────────────────────
+// 새 /start 문서에만 deliveryPlanVersion 2 를 박는다. 진행 중인 1판 문서는 옛 동작 그대로 끝난다.
+//   · 마지막 시도도 실패한 섹션은 확정값과 어긋나는 문장만 덜어 내고 degraded 로 배달한다(partial 멈춤 없음).
+//   · 본문이 하나도 없는 섹션은 한 번 더(구제) 부른다. 그래도 비면 나머지를 배달한다.
+//   · 분량 미달(하한 아래) 섹션만, 첫 초안이 다 나온 뒤 가장 짧은 것부터 책당 최대 4개를 한 번씩 수리한다.
+//   · 섹션 사이 반복 문장은 완성을 막지 않고 덜어 낸다.
+//   · 환불은 모든 섹션 본문이 비었을 때만이다.
+// 되돌리기: HD_REPORT_DELIVERY_V2_ENABLED=false (새 문서만 1판으로 만든다).
+const HD_DELIVERY_PLAN_VERSION = 2;
+const HD_LENGTH_REPAIR_CAP = 4;
+const HD_RESCUE_MAX_ATTEMPTS = HD_REPORT_MAX_SECTION_ATTEMPTS + 1;
+function hdDeliveryV2Enabled(env) {
+  return String(env?.HD_REPORT_DELIVERY_V2_ENABLED ?? "").trim().toLowerCase() !== "false";
+}
+function isHdPlan2(doc) {
+  return Number(doc?.deliveryPlanVersion) === HD_DELIVERY_PLAN_VERSION;
+}
+function hdBodyChars(row) {
+  return countPaidReportBodyChars(hdSectionBody(row));
+}
+/** 2판: 길이 말고 다른 이유로 아직 다시 부를 섹션(빈 섹션은 구제 1회 더). */
+function hdPlan2Retryable(row) {
+  if (row.status === "ok" || hdLengthOnly(row)) return false;
+  const attempts = Number(row.attempts || 0);
+  return attempts < HD_REPORT_MAX_SECTION_ATTEMPTS || (!hdBodyChars(row) && attempts < HD_RESCUE_MAX_ATTEMPTS);
+}
+/** 2판 웨이브 선택. 첫 초안·재시도가 끝난 뒤에만 분량 수리를 고른다. */
+function hdPlan2Selection(doc) {
+  const sections = doc.sections || [];
+  const retry = sections.filter(hdPlan2Retryable)
+    .sort((a, b) => Number(a.attempts || 0) - Number(b.attempts || 0) || a.order - b.order);
+  if (retry.length) return { pending: retry.slice(0, HD_REPORT_SECTION_CONCURRENCY), lengthKeys: new Set(), settleLengthOnly: false };
+  const left = Math.max(0, HD_LENGTH_REPAIR_CAP - Number(doc.lengthRepairsUsed || 0));
+  const lengthRows = sections
+    .filter(row => row.status !== "ok" && hdLengthOnly(row) && Number(row.attempts || 0) < HD_REPORT_MAX_SECTION_ATTEMPTS)
+    .sort((a, b) => hdBodyChars(a) - hdBodyChars(b) || a.order - b.order)
+    .slice(0, Math.min(left, HD_REPORT_SECTION_CONCURRENCY));
+  return { pending: lengthRows, lengthKeys: new Set(lengthRows.map(row => row.key)), settleLengthOnly: lengthRows.length === 0 };
+}
+/** 2판 마지막 시도 구제: 확정값과 어긋나는 문장만 덜어 낸다. */
+function scrubHdPlan2Section(section, snapshot, allowed) {
+  if (!section?.body && !(section?.subsections || []).length) return section;
+  const scrub = text => scrubHumanDesignFactualSentences(text, snapshot, allowed);
+  const subsections = (section.subsections || []).map(row => ({ ...row, body: scrub(row.body) }));
+  const body = scrub(section.body);
+  return { ...section, body, subsections, chars: sectionCharCount({ body, subsections }) };
+}
+/** 2판 조립: 앞 섹션과 같은 문장을 뒤 섹션에서 덜어 낸다. 85% 아래로 줄면 원문을 둔다. */
+function dedupeHdPlan2Sections(sections) {
+  let prior = "";
+  return sections.slice().sort((a, b) => a.order - b.order).map(row => {
+    if (!hdBodyChars(row)) return row;
+    const before = hdBodyChars(row);
+    const body = dropRepeatedReportSentences(String(row.body || ""), prior);
+    const subsections = [];
+    let running = `${prior}\n${body}`;
+    for (const sub of row.subsections || []) {
+      const subBody = dropRepeatedReportSentences(String(sub.body || ""), running);
+      subsections.push({ ...sub, body: subBody });
+      running = `${running}\n${subBody}`;
+    }
+    const next = { ...row, body, subsections };
+    const kept = hdBodyChars(next) >= before * 0.85 && countPaidReportBodyChars(body) > 0 ? next : row;
+    prior = `${prior}\n${hdSectionBody(kept)}`;
+    return kept === row ? row : { ...kept, chars: sectionCharCount(kept) };
+  }).sort((a, b) => a.order - b.order);
+}
+
 function hdSectionBody(section) {
   return [section.body || "", ...(section.subsections || []).map(row => row.body || "")].join("\n");
 }
@@ -581,14 +653,27 @@ async function handleGenerate(request, env, recoveryAuth = null) {
     const snapshot = current.basis?.snapshot, rawAllowed = current.basis?.allowed;
     if (!snapshot || !rawAllowed) return json({ ok: false, reason: "CALCULATION_INCOMPLETE" }, { status: 422 });
     const allowed = { ...rawAllowed, all: new Set(rawAllowed.all || []) };
-    // Reservation survives a lost response: a saved valid draft needs no second length repair.
-    if (current.sections.some(row => hdLengthOnly(row))) {
+    const plan2 = isHdPlan2(current);
+    let plan2Selection = null;
+    if (plan2) {
+      plan2Selection = waveBudgetExhausted ? { pending: [], lengthKeys: new Set(), settleLengthOnly: true } : hdPlan2Selection(current);
+      // 수리 차례가 끝난(예산 소진·시도 소진) 분량 미달 초안은 그대로 정상으로 둔다 — 분량은 치명이 아니다.
+      const settle = row => row.status !== "ok" && hdLengthOnly(row) && !plan2Selection.lengthKeys.has(row.key)
+        && (plan2Selection.settleLengthOnly || Number(row.attempts || 0) >= HD_REPORT_MAX_SECTION_ATTEMPTS);
+      if (current.sections.some(settle)) {
+        current = await saveHdDelivery(env, filter, { sections: current.sections.map(row => settle(row) ? { ...row, status: "ok", issues: [] } : row) }, reportId);
+      }
+    } else if (current.sections.some(row => hdLengthOnly(row))) {
+      // Reservation survives a lost response: a saved valid draft needs no second length repair.
       current = await saveHdDelivery(env, filter, { sections: current.sections.map(row => hdLengthOnly(row) ? { ...row, status: "ok", issues: [] } : row) }, reportId);
     }
-    const pending = waveBudgetExhausted ? [] : current.sections.filter(row => row.status !== "ok" && row.attempts < HD_REPORT_MAX_SECTION_ATTEMPTS).slice(0, HD_REPORT_SECTION_CONCURRENCY);
+    const pending = waveBudgetExhausted ? [] : plan2 ? plan2Selection.pending
+      : current.sections.filter(row => row.status !== "ok" && row.attempts < HD_REPORT_MAX_SECTION_ATTEMPTS).slice(0, HD_REPORT_SECTION_CONCURRENCY);
     if (pending.length) {
       const keys = new Set(pending.map(row => row.key));
+      const lengthRepairs = plan2 ? plan2Selection.lengthKeys.size : 0;
       current = await saveHdDelivery(env, filter, { sections: current.sections.map(row => keys.has(row.key) ? { ...row, attempts: Number(row.attempts || 0) + 1, lengthRepair: row.lengthRepair || hdLengthOnly(row) } : row),
+        ...(lengthRepairs ? { lengthRepairsUsed: Number(current.lengthRepairsUsed || 0) + lengthRepairs } : {}),
         llmMeta: { ...current.llmMeta, unknownAttempt: Boolean(current.llmMeta?.unknownAttempt || current.llmMeta?.waveInFlight), waveInFlight: true } }, reportId);
       const done = current.sections.filter(row => row.status === "ok"), seenSentences = new Set();
       done.forEach(row => rememberSentences(seenSentences, row));
@@ -603,6 +688,8 @@ async function handleGenerate(request, env, recoveryAuth = null) {
         result.attempts = prior.attempts + 1;
         let section = result.payload ? toStoredSection(spec, current.locale, result)
           : { ...prior, attempts: result.attempts, status: prior.body ? "degraded" : "pending", issues: result.issues };
+        // 2판: 통과하지 못한 초안도 버리지 않는다. 확정값과 어긋나는 문장만 덜어 낸다.
+        if (plan2 && result.payload && !result.ok) section = scrubHdPlan2Section(section, snapshot, allowed);
         const write = queue.catch(() => {}).then(async () => {
           // Read back under the same lease before merging a sibling. A previous write
           // may have succeeded even when its confirmation was lost.
@@ -613,9 +700,11 @@ async function handleGenerate(request, env, recoveryAuth = null) {
           const normalBodies = current.sections.filter(row => row.key !== section.key && hdValidDraft(row)).map(hdSectionBody);
           const valid = row => hdValidDraft(row) && !hasRepeatedReportPassage(normalBodies.concat(hdSectionBody(row)).join("\n"));
           if (valid(stored) && (!valid(section) || countPaidReportBodyChars(hdSectionBody(stored)) >= countPaidReportBodyChars(hdSectionBody(section)))) section = { ...stored };
-          else if (hdValidDraft(section) && !valid(section)) section = { ...section, status: "degraded", issues: ["repeated_body"] };
+          // 2판은 섹션 사이 반복을 조립할 때 덜어 낸다(여기서 반려하면 시도만 태운다).
+          else if (!plan2 && hdValidDraft(section) && !valid(section)) section = { ...section, status: "degraded", issues: ["repeated_body"] };
           section = { ...section, attempts: result.attempts, lengthRepair: stored.lengthRepair };
-          if (hdLengthOnly(section)) section = { ...section, status: "ok", issues: [] };
+          // 2판: 분량만 모자란 초안은 수리 차례를 기다린다(웨이브 선택이 정상으로 정리한다).
+          if (hdLengthOnly(section) && (!plan2 || section.attempts >= HD_REPORT_MAX_SECTION_ATTEMPTS)) section = { ...section, status: "ok", issues: [] };
           if (valid(section) && section.issues?.includes("report_total_too_short")) section = { ...section, status: "ok", issues: [] };
           const sections = current.sections.map(row => row.key === section.key ? section : row);
           const totalChars = sections.filter(row => row.status === "ok" || row.status === "degraded").reduce((sum, row) => sum + countPaidReportBodyChars(hdSectionBody(row)), 0);
@@ -626,6 +715,7 @@ async function handleGenerate(request, env, recoveryAuth = null) {
       if (failure) throw failure.reason;
       current = await saveHdDelivery(env, filter, { llmMeta: { ...current.llmMeta, waveInFlight: false } }, reportId);
     }
+    if (plan2) return await finishHdPlan2({ env, auth, filter, reportId, current, waveBudgetExhausted });
     const normal = current.sections.filter(row => row.status === "ok");
     const reportBody = normal.map(hdSectionBody).join("\n");
     if (normal.length === HD_REPORT_SECTIONS.length && !hasRepeatedReportPassage(reportBody)) {
@@ -646,6 +736,38 @@ async function handleGenerate(request, env, recoveryAuth = null) {
     if (exhausted) current = await saveHdDelivery(env, filter, { status: "partial", generationError: { reason: "QUALITY_REPAIR_REQUIRED" } }, reportId);
     return json({ ok: true, ...publicReport(current), retryable: true }, { status: 202, headers: noStore });
   } finally { await releaseLock(env, auth.userId, reportId, claimed.lock.token); }
+}
+
+/** 2판 마무리: 더 부를 섹션이 없으면 본문이 있는 만큼 배달한다. 환불은 본문이 하나도 없을 때만. */
+async function finishHdPlan2({ env, auth, filter, reportId, current, waveBudgetExhausted }) {
+  const selection = waveBudgetExhausted ? { pending: [] } : hdPlan2Selection(current);
+  const unsettled = current.sections.some(row => row.status !== "ok" && hdLengthOnly(row) && Number(row.attempts || 0) < HD_REPORT_MAX_SECTION_ATTEMPTS);
+  if (selection.pending.length || (!waveBudgetExhausted && unsettled)) {
+    return json({ ok: true, ...publicReport(current), retryable: true }, { status: 202, headers: noStore });
+  }
+  const totalBody = current.sections.reduce((sum, row) => sum + hdBodyChars(row), 0);
+  if (!totalBody) {
+    if (current.llmMeta?.unknownAttempt || current.llmMeta?.waveInFlight) throw resultStorageUnavailable(reportId);
+    current = await saveHdDelivery(env, filter, { status: "generation_failed", generationError: { reason: "EMPTY_REPORT" } }, reportId);
+    const refunded = await refundExecution(env, auth.userId, current.billingRequestId, reportId, "report body empty");
+    if (refunded) current = await saveHdDelivery(env, filter, { generationError: { reason: "EMPTY_REPORT", refunded: true } }, reportId);
+    return json({ ok: false, reason: "REPORT_UNDELIVERABLE", refunded, message: MESSAGES.failed }, { status: 503 });
+  }
+  // 본문이 있는 섹션은 모두 보인다(빈 섹션만 pending 으로 남아 화면에서 빠진다).
+  const sections = dedupeHdPlan2Sections(current.sections.map(row => (row.status !== "ok" && row.status !== "degraded" && hdBodyChars(row)) ? { ...row, status: "degraded" } : row));
+  const missing = sections.filter(row => !hdBodyChars(row)).map(row => row.key);
+  const qualityIssues = [
+    ...missing.map(key => `section_missing:${key}`),
+    ...sections.filter(row => row.status === "degraded").map(row => `section_degraded:${row.key}`),
+    ...(hasRepeatedReportPassage(sections.map(hdSectionBody).join("\n")) ? ["repeated_passage"] : []),
+  ].slice(0, 40);
+  const totalChars = sections.reduce((sum, row) => sum + hdBodyChars(row), 0);
+  current = await saveHdDelivery(env, filter, { sections, totalChars, qualityIssues, degraded: qualityIssues.length > 0, status: "delivery_pending" }, reportId);
+  if (!await verifyStoredHdAccess(current)) return json({ ok: false, reason: "PAYMENT_VERIFY_FAILED" }, { status: 402 });
+  current = await saveHdDelivery(env, filter, { status: "completed", completedAt: new Date(), lock: null }, reportId);
+  if (qualityIssues.length) console.warn("[human-design-report] plan2 degraded delivery", reportId, qualityIssues.slice(0, 8).join(","));
+  await closeExecution(env, auth.userId, current.billingRequestId, reportId).catch(error => console.warn("[human-design-report] completion record", clean(error?.message, 120)));
+  return json({ ok: true, ...publicReport(current) }, { headers: noStore });
 }
 
 async function handleResult(request, env) {

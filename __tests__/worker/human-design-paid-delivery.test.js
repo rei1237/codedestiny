@@ -5,7 +5,7 @@ import { jest } from '@jest/globals';
 const timeoutPolicy = jest.requireActual('../../worker/lib/sync-llm-timeout.js');
 jest.unstable_mockModule('../../worker/lib/sync-llm-timeout.js', () => ({ ...timeoutPolicy, PAID_LLM_PARTS_PER_REQUEST: 4 }));
 
-let docs,fault,lostConfirmation,route,provider,refund,owner,fetchBlock,revokedSource,specs;
+let validate,closed,docs,fault,lostConfirmation,route,provider,refund,owner,fetchBlock,revokedSource,specs;
 const uid='64b7f2a1c3d4e5f601234567';
 const clone = value => value == null ? value : structuredClone(value);
 function query(value) { const result = Promise.resolve(value); result.lean = async () => clone(value); result.select = result.sort = () => result; return result; }
@@ -70,13 +70,13 @@ beforeAll(async()=>{
  jest.unstable_mockModule('../../worker/lib/models.js',()=>({...models,HumanDesignReport:model,
  PaidExecutionRecord:{findOne:()=>query(revokedSource===0?{}:null)},Payment:{findOne:()=>query(revokedSource===1?{}:null)},PointHistory:{findOne:()=>query(revokedSource===2?{}:null)},MonthlyCreditLedger:{findOne:()=>query(revokedSource===3?{}:null)}}));
  jest.unstable_mockModule('../../worker/lib/structured-consultation.js',()=>({callGeminiJsonWithRetry:(...args)=>provider(...args)}));
- jest.unstable_mockModule('../../worker/lib/service-execution-task.js',()=>({startServiceExecution:async()=>({}),completeServiceExecution:async()=>({}),failServiceExecution:(...args)=>refund(...args)}));
+ jest.unstable_mockModule('../../worker/lib/service-execution-task.js',()=>({startServiceExecution:async()=>({}),completeServiceExecution:async()=>{closed++;return{}},failServiceExecution:(...args)=>refund(...args)}));
  jest.unstable_mockModule('../../worker/lib/llm-cache-store.js',()=>({createLlmCacheStore:()=>null}));
- jest.unstable_mockModule('../../worker/lib/human-design-report-contract.js',()=>({...contract,requiredSubsectionIds:()=>[],validateHumanDesignReportSection:()=>({ok:true,issues:[],keptSubsections:[],evidence:[]})}));
+ jest.unstable_mockModule('../../worker/lib/human-design-report-contract.js',()=>({...contract,requiredSubsectionIds:()=>[],validateHumanDesignReportSection:(...args)=>validate(...args)}));
  jest.unstable_mockModule('../../worker/lib/human-design-report-prompt.js',()=>({HD_REPORT_SECTION_TITLES:{},buildHumanDesignReportSectionPrompt:({spec})=>({prompt:spec.key,systemPrompt:'fixture'}),sectionDigest:()=>''}));
  ({handleHumanDesignReportRoutes:route}=await import('../../worker/routes/human-design-report.js'));
 });
-beforeEach(()=>{owner=uid;fault=null;lostConfirmation=false;revokedSource=-1;refund=jest.fn(async()=>({}));
+beforeEach(()=>{validate=()=>({ok:true,issues:[],keptSubsections:[],evidence:[]});closed=0;owner=uid;fault=null;lostConfirmation=false;revokedSource=-1;refund=jest.fn(async()=>({}));
  docs=[{id:'saved-hd',userId:uid,idempotencyKey:'original-request',billingRequestId:'original-request',status:'generating',locale:'ko',waveCount:0,lock:null,basis:{snapshot:{type:'Generator'},allowed:{all:[]}},sections:specs.map(spec=>({key:spec.key,order:spec.order,body:'',status:'pending',attempts:0}))}];
  provider=jest.fn(async(_env,key,options)=>{expect(options.attempts).toBe(1);expect(options.timeoutMs).toBe(45000);expect(options.fallbackToWorkersAI).toBe(false);const spec=specs.find(row=>row.key===key);let body='';for(let i=0;body.replace(/\s/g,'').length<spec.minChars+100;i++)body+=`${key}의 ${i}번째 계산 근거와 생활 선택을 살펴보며 반대 조건과 구체적인 행동을 함께 설명합니다.\n`;return{ok:true,text:JSON.stringify({body,keyPoints:[]})}});
  fetchBlock=jest.spyOn(globalThis,'fetch').mockImplementation(()=>{throw new Error('External fetch blocked')});
@@ -148,4 +148,74 @@ it('human design delivers a result at the new target',async()=>{
  provider.mockImplementation(async(_env,key)=>{const spec=specs.find(row=>row.key===key);let body='';for(let i=0;body.replace(/\s/g,'').length<Math.ceil(spec.minChars/0.8);i++)body+=`${key}의 ${i}번째 계산 근거와 생활 선택을 살펴보며 반대 조건과 구체적인 행동을 함께 설명합니다.\n`;return{ok:true,text:JSON.stringify({body,keyPoints:[]})}});
  for(let i=0;i<5;i++)await generate();
  expect(docs[0].status).toBe('completed');expect(provider).toHaveBeenCalledTimes(18);expect(refund).not.toHaveBeenCalled();
+});
+
+describe('delivery plan 2 (new sessions only)', () => {
+  const v2 = () => { docs[0].deliveryPlanVersion = 2; docs[0].lengthRepairsUsed = 0; };
+  async function drive(max = 20) { for (let i = 0; i < max && !['completed', 'generation_failed'].includes(docs[0].status); i++) await generate(); }
+  const bodyOf = key => docs[0].sections.find(row => row.key === key).body;
+
+  it('a section whose last attempt still fails validation is scrubbed and delivered, not paused', async () => {
+    v2();
+    docs[0].basis.snapshot = { type: 'Generator', profile: '1/3', channels: [] }; docs[0].basis.allowed = { all: [], openCenters: [] };
+    const base = provider.getMockImplementation();
+    provider.mockImplementation(async (...args) => {
+      const out = await base(...args); if (args[1] !== 'type') return out;
+      const parsed = JSON.parse(out.text); parsed.body = `${parsed.body}당신의 프로파일은 3/5 라서 실험이 많습니다.\n`; return { ok: true, text: JSON.stringify(parsed) };
+    });
+    validate = (payload, options) => options.spec.key === 'type' ? { ok: false, issues: ['foreign_profile:3/5'], keptSubsections: [], evidence: [] } : { ok: true, issues: [], keptSubsections: [], evidence: [] };
+    await drive();
+    expect(docs[0].status).toBe('completed'); expect(docs[0].degraded).toBe(true);
+    expect(bodyOf('type')).not.toContain('3/5'); expect(bodyOf('type').length).toBeGreaterThan(200);
+    expect(refund).not.toHaveBeenCalled(); expect(closed).toBe(1);
+  });
+
+  it('a section with no text after its attempts gets one rescue call, then the rest is delivered', async () => {
+    v2(); const base = provider.getMockImplementation();
+    provider.mockImplementation(async (...args) => args[1] === 'channels' ? { ok: false, error: 'timeout' } : base(...args));
+    await drive();
+    expect(docs[0].status).toBe('completed'); expect(docs[0].degraded).toBe(true);
+    expect(provider.mock.calls.filter(call => call[1] === 'channels')).toHaveLength(3);
+    expect(docs[0].sections.filter(row => row.body).length).toBe(17);
+    expect(refund).not.toHaveBeenCalled(); expect(closed).toBe(1);
+  });
+
+  it('refunds only when every section is empty', async () => {
+    v2(); provider.mockImplementation(async () => ({ ok: false, error: 'down' }));
+    await drive(30);
+    expect(docs[0].status).toBe('generation_failed'); expect(refund).toHaveBeenCalledTimes(1); expect(closed).toBe(0);
+  });
+
+  it('short but readable sections are delivered (V1 would refund below the 400-char floor)', async () => {
+    v2(); provider.mockImplementation(async (_e, key) => ({ ok: true, text: JSON.stringify({ body: `${key} 오늘 선택을 천천히 관찰하고 작은 행동으로 확인해 보세요. 마음이 편한 쪽을 고르세요.`, keyPoints: [] }) }));
+    await drive(30);
+    expect(docs[0].status).toBe('completed'); expect(docs[0].sections.every(row => row.body)).toBe(true);
+    expect(refund).not.toHaveBeenCalled(); expect(closed).toBe(1);
+  });
+
+  it('length repair runs only for sections below the floor, shortest first, at most four per report', async () => {
+    v2(); const base = provider.getMockImplementation(); const shortKeys = ['type', 'profile', 'channels', 'lifeWork', 'lifeSelf', 'practicalGuide'];
+    const shortBody = (key, n) => `${key} ${'선택을 관찰하고 작은 행동으로 확인해 보세요. '.repeat(n)}`;
+    provider.mockImplementation(async (...args) => {
+      const key = args[1]; if (!shortKeys.includes(key)) return base(...args);
+      const prior = docs[0].sections.find(row => row.key === key);
+      if (prior.attempts > 1) return base(...args);
+      return { ok: true, text: JSON.stringify({ body: shortBody(key, 3 + shortKeys.indexOf(key)), keyPoints: [] }) };
+    });
+    await drive(30);
+    expect(docs[0].status).toBe('completed');
+    const repaired = provider.mock.calls.map(call => call[1]).filter((key, i, all) => all.indexOf(key) !== i);
+    expect(repaired.sort()).toEqual(['channels', 'profile', 'type', 'lifeWork'].sort());
+    expect(provider).toHaveBeenCalledTimes(22); expect(docs[0].lengthRepairsUsed).toBe(4);
+    expect(refund).not.toHaveBeenCalled();
+  });
+
+  it('a sentence repeated across accepted sections is removed instead of blocking completion', async () => {
+    v2(); const base = provider.getMockImplementation(); const shared = '반복되는 이 문장은 모든 장에 똑같이 들어가 완성을 막던 바로 그 문장입니다.';
+    provider.mockImplementation(async (...args) => { const out = JSON.parse((await base(...args)).text); out.body = `${shared}\n${out.body}`; return { ok: true, text: JSON.stringify(out) }; });
+    await drive();
+    expect(docs[0].status).toBe('completed');
+    expect(docs[0].sections.filter(row => row.body.includes(shared))).toHaveLength(1);
+    expect(refund).not.toHaveBeenCalled();
+  });
 });

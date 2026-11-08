@@ -30,7 +30,7 @@ test("human design quality pause preserves result and never closes or refunds ex
     lock: { token: "mine" }, basis: { snapshot: {}, allowed: {} } };
   const generate = runFunction("worker/routes/human-design-report.js", "handleGenerate", {
     requireAuth: async () => ({ userId: "owner" }), readJson: async () => ({ reportId: "owned" }),
-    verifyStoredHdAccess: async () => true, HD_REPORT_MAX_WAVES: 10,
+    verifyStoredHdAccess: async () => true, HD_REPORT_MAX_WAVES: 10, isHdPlan2: () => false,
     hdSectionBody: row => row.body, countPaidReportBodyChars: body => body.length,
     hdLengthOnly: runFunction("worker/routes/human-design-report.js", "hdLengthOnly", {
       hdSectionBody: row => row.body, countPaidReportBodyChars: body => body.length,
