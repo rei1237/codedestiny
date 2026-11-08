@@ -239,6 +239,24 @@ const SAJU_AI_ELEMENT_ORGAN = String.raw`(?:폐|대장|피부|뼈|관절|심장|
 const sajuAIElementCausality = (outcome) => new RegExp(
   `${SAJU_AI_ELEMENT}${SAJU_AI_SENTENCE}{0,160}${SAJU_AI_ELEMENT_STATE}${SAJU_AI_SENTENCE}{0,200}${outcome}`
   + `|${outcome}${SAJU_AI_SENTENCE}{0,160}${SAJU_AI_ELEMENT}${SAJU_AI_SENTENCE}{0,40}${SAJU_AI_ELEMENT_STATE}`, "u");
+// Financial-product endorsement: a product word up to 220 chars before an endorsing verb, unless the
+// verb's own clause (next 32 chars, up to a comma or stop) negates or warns — same window as love-secret-ai-prompt.js.
+const SAJU_AI_FINANCIAL_PRODUCT = /(?:부동산|채권|배당주|주식|코인|금융\s*상품|투자\s*상품|예금|적금|연금)/u;
+const SAJU_AI_FINANCIAL_ENDORSE = /(?:관심을\s*가질|관심을\s*가져|권해|추천|적합|유리|현명|가입|이용|선택|활용|큰\s*수익|재산을\s*불)/gu;
+const SAJU_AI_FINANCIAL_NEGATION_WINDOW = 32;
+const SAJU_AI_FINANCIAL_NEGATION = /지\s*(?:마|말|않)|않|안\s*(?:돼|됩|되|좋)|금물|금지|삼가|피하|피해|멈추|멈춰|그만|아니|없[어습고]|보다|대신|위험|해롭|해로/u;
+function sajuAIFinancialProductClaim(text) {
+  const value = String(text || "");
+  const endorse = new RegExp(SAJU_AI_FINANCIAL_ENDORSE.source, SAJU_AI_FINANCIAL_ENDORSE.flags);
+  let match;
+  while ((match = endorse.exec(value))) {
+    const before = value.slice(Math.max(0, match.index - 226), match.index);
+    if (!SAJU_AI_FINANCIAL_PRODUCT.test(before)) continue;
+    const tail = value.slice(match.index + match[0].length, match.index + match[0].length + SAJU_AI_FINANCIAL_NEGATION_WINDOW);
+    if (!SAJU_AI_FINANCIAL_NEGATION.test(tail.split(/[,.!?\n。]/u)[0])) return true;
+  }
+  return false;
+}
 const SAJU_AI_RESULT_UNSUPPORTED_PATTERNS = Object.freeze([
   Object.freeze({
     key: "element-causality",
@@ -250,7 +268,8 @@ const SAJU_AI_RESULT_UNSUPPORTED_PATTERNS = Object.freeze([
   }),
   Object.freeze({
     key: "specific-financial-product",
-    pattern: /(?:부동산|채권|배당주|주식|코인|금융\s*상품|투자\s*상품|예금|적금|연금).{0,220}(?:관심을\s*가질|관심을\s*가져|권해|추천|적합|유리|현명|가입|이용|선택|활용|큰\s*수익|재산을\s*불)/s,
+    // 6c 2026-11-08: "주식은 추천하지 않습니다"처럼 권유를 부정하는 문장은 통과시킨다(.test 계약을 유지하는 객체).
+    pattern: Object.freeze({ test: sajuAIFinancialProductClaim }),
   }),
   Object.freeze({
     key: "fortune-score-label",
