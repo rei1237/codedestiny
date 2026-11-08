@@ -10,9 +10,9 @@
   "beats": [
     {
       "id": "ep-22:1",
-      "source": "연이는 창틀을 넘어 지붕으로 기어 올라갔다. 기와가 미끄러웠다. 돼지 앞발로 붙잡기엔 너무 둥근 지붕이었다.",
-      "sourceHash": "bde1fd0b32fe692e5e1cf3ec1193aa9d9e0d3a3b10c47e7ad48dfe24f92b88a7",
-      "t": "Yeoni climbed over the window frame and onto the roof. The tiles were slippery. The roof was far too round for a pig's hooves to grip."
+      "source": "연이는 창틀을 넘어 지붕으로 기어 올라갔다. 기와가 미끄러웠다. 돼지 앞발로 붙잡기엔 너무 둥근 지붕이었다. 삔 왼 뒷발이 기와를 디딜 때마다 시큰거렸다.",
+      "sourceHash": "ee5091457f6bc82006195f4566304a96356e4a90a60e54527ca7b0871d5ff005",
+      "t": "Yeoni clambered through the window onto the roof. The tiles were slippery, the curve too round for pig's forelegs. Her sprained left hind leg ached whenever it took a step."
     },
     {
       "id": "ep-22:2",
@@ -40,9 +40,9 @@
     },
     {
       "id": "ep-22:6",
-      "source": "오늘은 여기까지 할게. 장부에 적을 일은 없었으니까.",
-      "sourceHash": "56efea6232c7db89facf9e9829b464c0fb05faf14372c8787f0b2ed36b6f8a59",
-      "t": "That's enough for today. Nothing to put in the ledger."
+      "source": "오늘은 여기까지 할게요. 장부에 적을 일은 없었으니까요.",
+      "sourceHash": "cf256f67426e6ccd1c397e30d24bff2d7509061f17ff78fff1e5f2238a890731",
+      "t": "That will be all for today. There was nothing to enter in the ledger."
     },
     {
       "id": "ep-22:7",
@@ -52,9 +52,9 @@
     },
     {
       "id": "ep-22:8",
-      "source": "궁금하면 고양이한테 물어봐. 그 눈이 왜 가끔 금색이 되는지.",
-      "sourceHash": "9f7fd099b5b9addbacf26cc777cb1d442a0b398451c00d1bc511cd224c2893a3",
-      "t": "If you're curious, ask the cat. Why his eyes sometimes turn gold."
+      "source": "궁금하시면 고양이 씨께 물어보세요. 그 눈이 왜 가끔 금색이 되는지요.",
+      "sourceHash": "730b43f1e87ee0bb944a368a6092c2239c4b8ee0a9d082311c45d4708e4d9768",
+      "t": "If you're curious, please ask Mr. Cat why his eyes sometimes turn gold."
     },
     {
       "id": "ep-22:9",
@@ -478,9 +478,9 @@
     },
     {
       "id": "ep-22:79",
-      "source": "(그 자리에 앉는 사람. 처음 눈 떴을 때부터 계속 옆에 있던 고양이.)",
-      "sourceHash": "9cec0b73d65e9af25e204ae83fa6206ba42fd2e0ca3459c8ab87d6eafa08aa3b",
-      "t": "(Someone who sits in that place. The cat who's stayed beside me since I first opened my eyes.)"
+      "source": "(그 자리에 앉는 사람이라. 별 이름치고는 너무 사람 같네.)",
+      "sourceHash": "a3f38094682b1ae6b200b837d34e02febd598067c5bac6fccf4fa040e13748ae",
+      "t": "(Someone who sits in that place. Sounds much too human for a star's name.)"
     },
     {
       "id": "ep-22:80",

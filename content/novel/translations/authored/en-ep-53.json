@@ -19,9 +19,9 @@
     },
     {
       "id": "ep-53:2",
-      "source": "냉장고 문에는 사진 한 장이 붙어 있었다. 바닷가. 우산 두 개. 김밥 옆구리가 터진 도시락. 네 사람이 다 눈을 감은 채로 찍힌 사진.",
-      "sourceHash": "86db1596e210ab0b979c3507e8820f0bc3813a1235414f78e0178ce2f816739a",
-      "t": "A photograph clung to the refrigerator door. The seaside. Two umbrellas. A lunch box of split-open gimbap. Four people, all caught with their eyes closed."
+      "source": "냉장고 문에는 사진 한 장이 붙어 있었다. 오월 둘째 주 토요일의 바닷가. 우산 두 개, 옆구리 터진 김밥 도시락. 네 사람이 다 눈을 감은 채로 찍혀 있었다.",
+      "sourceHash": "0e727cb0f0f13aef6e7ebcf9ab061103d6d5f4968622145910f592f0b3ede9dc",
+      "t": "A photo was pinned to the refrigerator: the seaside on the second Saturday of May. Two umbrellas, a lunchbox of split gimbap. All four people had their eyes closed."
     },
     {
       "id": "ep-53:3",
@@ -313,9 +313,9 @@
     },
     {
       "id": "ep-53:51",
-      "source": "벚나무 아래 짧은 길. 그 끝에 박병하가 서 있었다. 하얀 머리카락 한 줄기는 그대로였다. 정장 넥타이가 조금 삐뚤었다.",
-      "sourceHash": "340e0221447344e217799f900120dfc5784b5df0352f2ee45258680d9e4a7097",
-      "t": "A short aisle beneath cherry trees. At its end stood Park Byeongha. The white strand of hair remained. His tie was slightly crooked."
+      "source": "벚나무 아래 짧은 길. 그 끝에 박병하가 서 있었다. 은발은 그대로였다. 정장 넥타이가 조금 삐뚤었다.",
+      "sourceHash": "9786e2cc432f882ccb822fdc13b1307e65606158bb597a6c6e04b68c5280792d",
+      "t": "A short path beneath cherry trees. Park Byeongha stood at its end, silver hair unchanged, his suit's tie slightly crooked."
     },
     {
       "id": "ep-53:52",

@@ -218,9 +218,9 @@
     },
     {
       "id": "ep-28c:35",
-      "source": "그 말, 예전에도 들었어요. 아주 오래전에. 똑같은 정류장에서.",
-      "sourceHash": "678bd656cb277dfcef06954e83ea901dcd4255e782d3f62b0c928ec2d152dec2",
-      "t": "I've heard those words before. A very long time ago. At the same bus stop.",
+      "source": "그 말, 예전에도 들은 적이 있어요. 비 오는 정류장에서.",
+      "sourceHash": "a59565c51ae4a5d75ce861081f224c0e4144d208f3674b4be4461ae8a9070838",
+      "t": "I've heard that before. At a bus stop in the rain.",
       "nm": "Woman Next Door"
     },
     {
@@ -231,22 +231,22 @@
     },
     {
       "id": "ep-28c:37",
-      "source": "아니요. 당신이 아니에요. 당신일 리가 없어요. 당신은 기억 못 하니까.",
-      "sourceHash": "6770daba5fced5dd095a7eadc2b0ae26813fb7eaa4529089265f9a336662c8b5",
-      "t": "No. Not you. It can't be you. You don't remember.",
+      "source": "아니요. 제가 사람을 잘못 봤나 봐요.",
+      "sourceHash": "7a04689d5a24117974dfa65d48899e637adc14df519fa42861f6080010a11512",
+      "t": "No. I must have mistaken you for someone else.",
       "nm": "Woman Next Door"
     },
     {
       "id": "ep-28c:38",
-      "source": "그 말은 대답이 아니었다. 고백도 아니었다. 혼잣말에 가까웠다.",
-      "sourceHash": "3b03a117bdb488705f40f246d42c6c451e4ae7f482c98e09d373a8b456e5ba4f",
-      "t": "It was neither an answer nor a confession. Closer to speaking to herself."
+      "source": "여자는 연이의 얼굴을 한 번 더 보더니 고개를 저었다. 대답이라기보다 혼잣말에 가까웠다.",
+      "sourceHash": "08f16d3386322d22111bad4c698183c4f7be259a7dabd324f2ef22a2e79888c4",
+      "t": "The woman looked at Yeoni once more and shook her head. It was closer to talking to herself than answering."
     },
     {
       "id": "ep-28c:39",
-      "source": "기억 못 해도 괜찮아요. 지금 같이 쓰고 있잖아요. 이건 지금 거예요.",
-      "sourceHash": "a23738e06a78f838c12dc63794be65713471a7f1fd76d277a825b2da17ab2f5b",
-      "t": "It's okay not to remember. We're sharing now. This belongs to now."
+      "source": "잘못 봐도 괜찮아요. 지금 같이 쓰는 이 우산은 지금 거니까요.",
+      "sourceHash": "5f6d86f70e71c2115787eb4e507b3bda45a6849d3812cbb75b6f685d7776620a",
+      "t": "That's okay. This umbrella we're sharing belongs to right now."
     },
     {
       "id": "ep-28c:40",
@@ -354,9 +354,9 @@
     },
     {
       "id": "ep-28c:57",
-      "source": "「또 그 여자지. 이번엔 냄새가 더 진하다. 비와, 눈물.」",
-      "sourceHash": "f17205f89224c5a410028423119407bf0535e30000c59d813d67669db2110238",
-      "t": "“That woman again. Stronger smell this time. Rain and tears.”"
+      "source": "「또 그 여자지. 냄새가 더 진하다. 비와, 눈물.」",
+      "sourceHash": "6f9db79b0dfe471eda46d58d0f5fdb0b7553212961e7d26163786ffa9073d16b",
+      "t": "'That woman again. A stronger smell. Rain, and tears.'"
     },
     {
       "id": "ep-28c:58",

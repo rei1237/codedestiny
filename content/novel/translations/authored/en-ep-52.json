@@ -9,6 +9,18 @@
   "status": "draft",
   "beats": [
     {
+      "id": "ep-52:reply-1",
+      "source": "답장은 사흘 뒤 새벽에 왔다. 연이는 1이 사라진 화면을 보고 침대에서 굴러떨어질 뻔했다.",
+      "sourceHash": "9e592b56efc16adc0ffeaa1e2c6e8a12c2a4e78e923b08af216bd4774110f19b",
+      "t": "The reply came at dawn three days later. Seeing the 1 gone, Yeoni nearly rolled off her bed."
+    },
+    {
+      "id": "ep-52:reply-2",
+      "source": "[ 문자 · 박병하: 액정이 나가서 이제 봤다. 목요일 네 시, 동쪽 벤치. 늦지 않는다 ]",
+      "sourceHash": "811ec1b549e194163976fed49da79a242745b91015e792fabbf5660d2054fdd2",
+      "t": "[ Text · Park Byeongha: Screen broke. Only just saw this. Thursday, four. East bench. Won't be late. ]"
+    },
+    {
       "id": "ep-52:1",
       "source": "목요일. 연이는 수업이 끝나자마자 자전거를 끌고 강변으로 나갔다. 휴대폰 지도에 병하와 정한 벤치가 찍혀 있었다. 약속까지 삼십 분이었다.",
       "sourceHash": "994f7bf4dde6efbaca05a83b0b250ab7f81b9843cceafe5d5d47adfd67f6bb78",
@@ -148,15 +160,15 @@
     },
     {
       "id": "ep-52:24",
-      "source": "남자의 머리카락 한 줄기가 하얗게 바래 있었다. 염색이 아니라 원래 그런 것처럼. 눈매는 무뚝뚝했고 목소리는 낮았다.",
-      "sourceHash": "2349c1c72a85cad19f7f2f462fcf22a9654e9a9d09ffb65bfc6044f738af5afe",
-      "t": "One strand of the man's hair was white, as though naturally so rather than dyed. His eyes were reserved, his voice low."
+      "source": "남자의 머리는 은빛이었다. 강바람에 흐트러진 은발 사이로 무뚝뚝한 눈매가 보였다. 그는 연이를 처음 보는 사람처럼 고개만 까딱했다.",
+      "sourceHash": "77b96ec864f69d198bcfb6cb209bac94df711dd027d9e37905455f09e3958bff",
+      "t": "The man's hair was silver. Beneath the river-tousled strands were those blunt eyes. He only nodded as though seeing her for the first time."
     },
     {
       "id": "ep-52:25",
-      "source": "연이는 숨을 참았다. 배 위에서 처음 마주했던 사람의 얼굴이었다. 남자도 연이를 보았다. 책장을 누른 손끝이 멈췄다.",
-      "sourceHash": "515bcf0c1f880d613f9f412e6045d337107ade81c5c020bceb0c2e4fb1fa95ac",
-      "t": "Yeoni held her breath. It was the face she had first seen on the boat. He looked at her too. His fingers stopped against the page."
+      "source": "연이는 숨을 참았다. 배 위에서 처음 손을 잡았던 사람이었다. 그런데 저 사람이 지금 모르는 척을 하고 있었다.",
+      "sourceHash": "a93fa7986156f9bdd1e808a5981c954e707f70c6a15cde1c37d8686e25a24fec",
+      "t": "Yeoni held her breath. The person whose hand she'd first held on the boat. And now he was pretending not to know her."
     },
     {
       "id": "ep-52:26",
@@ -190,33 +202,33 @@
     },
     {
       "id": "ep-52:31",
-      "source": "연이는 대답하지 못했다. 입술을 꼭 물었다. 눈이 뜨거워졌다. 남자는 당황한 얼굴로 책을 덮었다.",
-      "sourceHash": "ce7a9cff4b97a7dace0e536ae78e5d0fdfa0b56e815d2619bbe1b93b9516fa51",
-      "t": "Yeoni couldn't answer. They bit their lip. Their eyes burned. Looking alarmed, the man closed his book."
+      "source": "삼 초였다. 모르는 사람 연기는 거기까지였다. 연이는 입술을 꼭 물었고, 남자는 아차 하는 얼굴로 책을 덮었다.",
+      "sourceHash": "fb46c7cfa5552edc221691b6c85dcc70f8b871501ef3fe910a4259f5a2c66f9e",
+      "t": "Three seconds. That was how long the stranger act lasted. Yeoni bit her lip; he closed his book with an oops expression."
     },
     {
       "id": "ep-52:32",
-      "source": "…보고 싶었다는 말부터 하려고 했는데. 양말이 먼저 보이네.",
-      "sourceHash": "b6c7f672770eca0d10f41e32a8e7c0d36eeea8354186151ceb24737d3213adc1",
-      "t": "…I meant to say I missed you first. But I noticed the socks before I could."
+      "source": "…모르는 척하려고 했다. 양말 때문에 망했다.",
+      "sourceHash": "2bde60df9457a7abaccb8ac0ea8dba0ae86b19b8331401e385a92c91bf2c5219",
+      "t": "…Tried pretending I didn't know you. Socks ruined it."
     },
     {
       "id": "ep-52:33",
-      "source": "괜찮아요. 맨날 듣던 말이라서요.",
-      "sourceHash": "e3d6f300ec09c41396c4768b203b0a311a68d5441aeb8a585bbbd4792bb55320",
-      "t": "It's okay. I used to hear it every day."
+      "source": "삼 초도 못 참았어. 연기 별점 하나.",
+      "sourceHash": "9db3315a934d18faa4366675cca8792da6414b6ab5da336c3e617adfc626f6dd",
+      "t": "Couldn't last three seconds. One star for acting."
     },
     {
       "id": "ep-52:34",
-      "source": "집 앞에도 가 보고 학교 앞에서도 기다렸어. 새벽 씨를 좀 일찍 찾아갈걸.",
-      "sourceHash": "d1df5b3317a470ed90c22ac667b6a8d2140c28db576319e7c03ef6fb91c67e21",
-      "t": "I went to your place and waited near campus too. I should have gone to Saebyeok sooner."
+      "source": "버스 창에 붙은 손바닥, 봤다. 뛰었는데 못 따라잡았다.",
+      "sourceHash": "a2491cb0397fc4def85ce69fad8f42d12fbec1ea44e011cc4bb17a38bf4a5ce8",
+      "t": "I saw your palm on the bus window. Ran, but couldn't catch it."
     },
     {
       "id": "ep-52:35",
-      "source": "나도 네가 있을 것 같은 데만 찾아다녔어. 이렇게 잔소리 들을 수 있는데, 혼자 연습까지 했네.",
-      "sourceHash": "c288bda265f578494041b1c0143a5233713c30ad7f70d555fc475b8d3b1f35b8",
-      "t": "I kept looking in places I thought you might be too. And here you are, nagging me again. I even rehearsed talking to you alone."
+      "source": "그럼 손이라도 흔들지. 나 다음 정류장에서 내려서 뛰었단 말이야.",
+      "sourceHash": "a95fa155696a983d4f5b872a389782c24d224decabb7ff1641776d8eec648156",
+      "t": "Then you could've waved. I got off at the next stop and ran back!"
     },
     {
       "id": "ep-52:36",
@@ -226,33 +238,33 @@
     },
     {
       "id": "ep-52:37",
-      "source": "그 사람, 지금 네 앞에 있는데. 혼내도 돼.",
-      "sourceHash": "202474629520d829eb7d2f6302323f5c0b0a4d086183ab5005166d8eae43e45f",
-      "t": "That person is right here in front of you. You can tell him off."
+      "source": "그래서 오늘은 일찍 왔다. 한 시간.",
+      "sourceHash": "5bac06c715e3966147749c4ddcbb18f39c1175b5de5777a4291e7b671c2a3f34",
+      "t": "That's why I came early today. An hour."
     },
     {
       "id": "ep-52:38",
-      "source": "이번엔 번호 저장했어. 또 혼자 돌아다니지 말고 전화해. 나도 그럴게.",
-      "sourceHash": "923de0d1409fb6c3867a17ec2b34f3a7783e4d1a4fd033c4f75ab21b0eea0ef0",
-      "t": "I’ve saved your number now. Next time, call instead of wandering around alone. I’ll do the same."
+      "source": "한 시간이나? 그럼 아까 그 연기도 한 시간 연습한 거야?",
+      "sourceHash": "60ecc02927b21f8eb9acf80f181ea41a83e1f9a1695bb0672940988a0420aa6e",
+      "t": "An hour? Did you practice that act for an hour too?"
     },
     {
       "id": "ep-52:39",
-      "source": "많이 기다리게 했네요. 그분이.",
-      "sourceHash": "4337c2b4930fa80eec27e742388eedea587af88091804b8502c08ed2fafb1153",
-      "t": "He's made you wait a long time."
+      "source": "연습은 십 분이면 됐습니다. 나머지는 고양이가 자리를 안 비켜서요.",
+      "sourceHash": "3034cb76b3475461b864c29e50a18ab9ee66c59e4e6194f1aa9c08bf2d250d89",
+      "t": "Ten minutes was quite sufficient for rehearsal. The rest was spent waiting for a cat to vacate the seat."
     },
     {
       "id": "ep-52:40",
-      "source": "그러게요. 기다렸다는 말보다 양말부터 봤잖아요. 끝까지 그럴 거예요?",
-      "sourceHash": "f5d664374b735f2bea205e33d0a90770cafe8934ab9a9379809f285763d4b651",
-      "t": "He did. And he noticed my socks before saying he’d been waiting. Is he always going to do that?"
+      "source": "존댓말 그만해. 소름 돋아.",
+      "sourceHash": "18e55a4bc8fc680ff4e894b014c2813e8dc95c861f8170e13a563be38221b6c3",
+      "t": "Stop being polite. You're giving me chills."
     },
     {
       "id": "ep-52:41",
-      "source": "그건 좀 너무했네요. 변명은 못 하겠습니다.",
-      "sourceHash": "79c37c9276e9743d13eb29964e5f8677a582d3bcf6ac6ea7abc54bc9f9cfc5a3",
-      "t": "That was pretty terrible of him. I have no excuse."
+      "source": "그건 좀 아쉬운데. 알았다.",
+      "sourceHash": "c38da1bca59182222972c1039c15a82dc0a69b4c70c99630f5b294d1e2e47401",
+      "t": "A shame. All right."
     },
     {
       "id": "ep-52:42",
@@ -274,69 +286,69 @@
     },
     {
       "id": "ep-52:45",
-      "source": "이상한 얘기 하나 해도 돼요? 요즘 계속 같은 꿈을 꿔요.",
-      "sourceHash": "832226da188aafb56c34de1328e2946d016a784ecd438cc471842644d5d94788",
-      "t": "May I tell you something strange? I keep having the same dream lately."
+      "source": "일주일 동안 고양이 세 마리한테 길을 물었다. 다들 재채기만 시키고 갔다.",
+      "sourceHash": "c61ea1496b8bad257931df31b68e42b1bf9fa60c1e3b961f5a558bfedaae1dfd",
+      "t": "Asked three cats for directions this week. All they did was make me sneeze."
     },
     {
       "id": "ep-52:46",
-      "source": "무슨 꿈인데요?",
-      "sourceHash": "072e30333139308e5551463171316763c71db7db0aef63c377c85f9a5fa0da40",
-      "t": "What dream?"
+      "source": "고양이한테 왜 물어.",
+      "sourceHash": "5edaf00e8d50838faa4f64a7b61b977f2fa068e3adf610da0236708cb92ba24a",
+      "t": "Why ask cats?"
     },
     {
       "id": "ep-52:47",
-      "source": "노란 우산 든 사람이랑 이 길을 걷는 꿈이요. 그리고 가끔 돼지가 나와요. 분홍색 꽃 달린.",
-      "sourceHash": "8ccee411a3faec74c0c5bef2795284f10c6c55958b5275df2326ba7ce5210e01",
-      "t": "Walking this path with someone carrying a yellow umbrella. Sometimes there's a pig. With pink flowers."
+      "source": "말이 통할 줄 알았다. 습관이 무섭더라.",
+      "sourceHash": "a5bb9d51f1d7856d4d2f437227878db8a5890ef83551aa47f0478b2c2dd0b0f2",
+      "t": "Thought they'd understand. Habits are frightening."
     },
     {
       "id": "ep-52:48",
-      "source": "돼지요?",
-      "sourceHash": "3e83d8e287421c325eb6e684a440231381988817bfba88e59aeaa75eea4b876c",
-      "t": "A pig?"
+      "source": "그래서 소매에 흰 털이 묻었구나. 새벽 씨가 그랬어.",
+      "sourceHash": "c324b4f3b48d1ca299357e80ee855b7b1944c8a1d0772a930a86395fa54b73b8",
+      "t": "So that's why your sleeve had white fur. Saebyeok told me."
     },
     {
       "id": "ep-52:49",
-      "source": "로또 사라는 꿈인 줄 알고 세 번 샀어요. 다 꽝이었어요.",
-      "sourceHash": "dc9b581b55c305305b8323ca443e9ec04e910d7510734a2942e66aaca96f445c",
-      "t": "Thought it meant lottery luck, so I bought tickets three times. All lost."
+      "source": "그 점쟁이는 남의 소매까지 보나.",
+      "sourceHash": "6b24055df2a8c2594b8bb36cf969d663f6a76e9429d82972d1a705315a7e7f45",
+      "t": "That fortune-teller checks people's sleeves too?"
     },
     {
       "id": "ep-52:50",
-      "source": "그건 로또 꿈이 아니에요. 진짜로.",
-      "sourceHash": "fc7e0257918b9959cd5cf7ff93c07d385769d847d21bfd953c9a60b5a73cf954",
-      "t": "It's not a lottery dream. Really."
+      "source": "손금 보는 사람이잖아. 손 근처는 다 봐.",
+      "sourceHash": "cf42dc1a37b04c4878da3af681c241b2ac5709145365b6db042449c1ccf443ac",
+      "t": "He reads palms. Anything near a hand is fair game."
     },
     {
       "id": "ep-52:51",
-      "source": "그럼 무슨 꿈인데요? 해몽 아세요?",
-      "sourceHash": "6c97ac44fca668d75db68e7e0012c7594c5e34580721099b65c3eacbc9a8d970",
-      "t": "Then what is it? Do you interpret dreams?"
+      "source": "오늘은 소매 털고 왔다. 확인해 봐라.",
+      "sourceHash": "b444ad58a3a833a59c571a9d9257f9d9a8f529f01ac4b95d2c6fce5a30faf5fe",
+      "t": "Brushed my sleeves today. Check."
     },
     {
       "id": "ep-52:52",
-      "source": "돼지가 나오면 귀인을 만나는 꿈이래요. 방금 지어냈어요.",
-      "sourceHash": "fe991590fdbea24edd178f84ad5d9fb1cb33f14609b2bd7198bc550edc0eb00b",
-      "t": "Apparently pigs mean you'll meet someone who helps you. I just made that up."
+      "source": "확인했어. 한 올 남았어, 하얀 거.",
+      "sourceHash": "d9b008fe21a3987dbcd5c3db033f5fad2ad6944a16b3dc9314b71f9efd6ebf5c",
+      "t": "Checked. One hair left. White."
     },
     {
       "id": "ep-52:53",
-      "source": "병하는 그제야 소리 내어 웃었다. 연이도 웃음을 그치지 못했다. 꽃잎 하나가 그의 하얀 머리카락에 걸렸다.",
-      "sourceHash": "3aeccedee9ad3cd706b68f4e51929837dec8f9eb2344e05e28e11c919f7844d2",
-      "t": "At last, Byeongha laughed aloud. Yeoni couldn’t stop laughing either. A petal caught in his white lock of hair."
+      "source": "병하는 그제야 소리 내어 웃었다. 연이도 웃음을 그치지 못했다. 꽃잎 하나가 그의 은발에 걸렸다.",
+      "sourceHash": "edded5dd3e79be0351713da95e81ef4ac9793397645afb23772c84cd21a725ba",
+      "t": "Only then did Byeongha laugh aloud. Yeoni couldn't stop laughing either. A petal caught in his silver hair."
     },
     {
       "id": "ep-52:54",
-      "source": "우리 다시 소개할까요? 이번엔 숨기는 이름 없이.",
-      "sourceHash": "e80096ade3ec4230b2dfb273e7f8cc5b3cfeed444f6ff65a9b2e03867609b822",
-      "t": "Shall we introduce ourselves again? With no hidden names this time."
+      "source": "우리 다시 소개할래? 숨기는 이름 없이.",
+      "sourceHash": "b649bc3ab8a8e773f99c527849aa36ed363b3481d0a2900148320ff959295826",
+      "t": "Want to introduce ourselves again? No hidden names."
     },
     {
       "id": "ep-52:55",
-      "source": "박병하요. 그쪽은요?",
-      "sourceHash": "a9dd45668520d8c684b2f7932a0bf5f24929ac05b5de9b198ffe3d4a0ff7ee8e",
-      "t": "Park Byeongha. Yours?"
+      "source": "박병하입니다. 그쪽은요?",
+      "sourceHash": "709093115b4ac9231da875f52445f0135d541220ae8f860805b05116d9e27c00",
+      "t": "Park Byeongha. And you are?"
     },
     {
       "id": "ep-52:56",
@@ -358,9 +370,9 @@
     },
     {
       "id": "ep-52:59",
-      "source": "연이는 고개를 저었다. 부를 이름은 따로 있었다. 자기가 지어 준 이름. 별점 하나를 걸고 지어 준 이름.",
-      "sourceHash": "c1abd047ea61a96b342b778f28cfaf9c7c83f61a702c1dde06a3295066d5862c",
-      "t": "Yeoni shook their head. There was another name to call. One they'd given him. One tied to a one-star rating."
+      "source": "연이는 고개를 저었다. 부를 이름은 따로 있었다. 공망 속에서 메모 한 장을 붙들고, 다 잊은 사람을 다시 불러낸 이름.",
+      "sourceHash": "99fb5b99b308327482eed73f9b5e1cc0834272d0ecf31a125921d32ded2e1620",
+      "t": "She shook her head. There was another name to call. The one she'd used in the Void, clutching one note, to call back someone she'd forgotten entirely."
     },
     {
       "id": "ep-52:60",
@@ -376,9 +388,9 @@
     },
     {
       "id": "ep-52:62",
-      "source": "지금부터 내가 지은 이름으로 부를게요. 이번에는 바로 대답해 줘요.",
-      "sourceHash": "633a332d46b975f5363c440b2444f4832cbf66deee80ea7632209c0697f213d6",
-      "t": "I’m going to call you by the name I gave you. This time, answer me right away."
+      "source": "지금부터 내가 지은 이름으로 부를게요. 바로 대답해 줘요.",
+      "sourceHash": "8656db636e8673addc47f6a24ac32eb4955b4888911c5470313d41b726eee207",
+      "t": "From now on, I'll use the name I gave you. Please answer right away."
     },
     {
       "id": "ep-52:63",
@@ -400,21 +412,21 @@
     },
     {
       "id": "ep-52:66",
-      "source": "그가 이마를 짚고 잠깐 눈을 감았다. 울음을 참느라 숨이 길어졌다. 기억 속 목소리가 마침내 눈앞의 연이에게서 들렸다.",
-      "sourceHash": "e49fd82cde622c6f8ed27bae2ecd6209dac6f03df118ad414fec19832d17d09b",
-      "t": "He touched his forehead and briefly closed his eyes. His breath lengthened as he held back tears. The voice he remembered was finally coming from Yeoni, here before him."
+      "source": "그가 자기 손을 내려다보았다. 이름이 불렸는데 손끝은 비치지 않았다. 그는 그걸 확인하듯 손을 두 번 쥐었다 폈다.",
+      "sourceHash": "b064c22f9015ab60aa9d80b428d8cfe4360d98bd565059f6ae2c0f335a3bffad",
+      "t": "He looked at his hand. His name had been called, yet his fingertips weren't transparent. He opened and closed his hand twice, checking."
     },
     {
       "id": "ep-52:67",
-      "source": "비 오는 정류장. 뒤집힌 우산. 침대 끝의 고양이 자리. 식상의 섬의 해. 금고의 용 알. 물에 잠긴 서가. 공망 속의 하얀 빛.",
-      "sourceHash": "13463c19d893552176e1633de8eaea2dd2259bb4204fdab7b18ecbd45bd9599f",
-      "t": "A rainy bus stop. An inside-out umbrella. A cat's place at the foot of a bed. The sun of the Island of Expression. A dragon egg in a vault. Drowned bookshelves. White light inside the Void."
+      "source": "그때 첫 빗방울이 떨어졌다. 강물 위에 동그라미가 하나, 둘 번졌다.",
+      "sourceHash": "3d720530479d5da6fc72f3577dca35ace096043bfab9f15d1a4bde6d6a44edde",
+      "t": "The first raindrop fell. One ring, then another spread across the river."
     },
     {
       "id": "ep-52:68",
-      "source": "그리고 강 위의 배에서 사람 손을 처음 잡아 주던 연이. 그때 어깨에 닿았던 온기.",
-      "sourceHash": "f78e1d7bd80d3a457d4cd7a6f35af06795345009fd8ea3fe530d7be6f5054ef2",
-      "t": "And Yeoni, first taking his human hand on the boat above the river. The warmth against his shoulder then."
+      "source": "연이는 가방에서 테이프 세 겹 감긴 노란 우산을 꺼내 폈다. 그리고 그의 쪽으로 반쯤 기울였다. 자기 왼쪽 어깨가 젖어 들었다.",
+      "sourceHash": "ae51d80ce69215379c22f482d04a92fd6bcde03d7b155cfc3142320813d2fe25",
+      "t": "She opened the yellow umbrella from her bag, handle wrapped in three layers of tape, and tilted half toward him. Her left shoulder began to soak."
     },
     {
       "id": "ep-52:69",
@@ -430,9 +442,9 @@
     },
     {
       "id": "ep-52:71",
-      "source": "별점은 정했어? 정하면 알려 준댔잖아.",
-      "sourceHash": "1a20e0058a5183ae505f94605e5f0858f17a102a0d927de2a6daee4b007ad6e4",
-      "t": "Decided on the rating? You said you'd tell me when you did."
+      "source": "어깨 젖는다. 이리 줘.",
+      "sourceHash": "4d95349830df9f77790a19502c6a52f4301b0a6b9b175a5edbdfece783b179eb",
+      "t": "Your shoulder's getting wet. Give it here."
     },
     {
       "id": "ep-52:72",
@@ -442,27 +454,33 @@
     },
     {
       "id": "ep-52:73",
-      "source": "다섯 개. 늦게 와서 하나 빼려다가 참았어. 대신 리뷰는 길게 쓸 거야.",
-      "sourceHash": "fc019384bb1a5dce8a5617d941031332b9a45e2cc28173218c6675ae2dbf931e",
-      "t": "Five stars. Almost took one off for being late, but I didn't. The review will be long, though."
+      "source": "싫어. 오늘은 내가 들 거야.",
+      "sourceHash": "1c9787b9fa4e2376beff10a53f7e114ae1ebde78bbbd2fbca663abfe8e0eb265",
+      "t": "No. I'm holding it today."
     },
     {
       "id": "ep-52:74",
-      "source": "후하네.",
-      "sourceHash": "0c3db80da50ca8ee842908e518e72afd27fad41235a83732b10cf106d2d68e6f",
-      "t": "Generous."
+      "source": "고집은 그대로군.",
+      "sourceHash": "fa47c3b9e782fe51ce73ac566eb7e473425af213aa35bf32b062553145ea723d",
+      "t": "Still stubborn."
     },
     {
       "id": "ep-52:75",
-      "source": "연이는 그의 셔츠를 붙잡고 울었다. 병하가 잠깐 망설이다 연이의 등을 감쌌다. 이번에는 몸 어디도 흐려지지 않았다.",
-      "sourceHash": "4e1646a97ab936ac08c00756340fc0c381091ad5ac2ba32ebc867ec09e60e135",
-      "t": "Yeoni gripped his shirt and cried. Byeongha hesitated briefly, then wrapped his arms around their back. This time, no part of him faded."
+      "source": "병하가 우산대를 쥔 연이의 손을 감쌌다. 우산이 둘 사이 한가운데로 돌아왔다. 이번에는 몸 어디도 흐려지지 않았다.",
+      "sourceHash": "e168b626c33951335aa7a60a42eb1392ab0e15557fc2711bbb2afd06f38c6c19",
+      "t": "Byeongha wrapped his hand around hers on the shaft. The umbrella returned to the middle. This time, no part of him faded."
+    },
+    {
+      "id": "ep-52:f029",
+      "source": "…안 놓쳤다.",
+      "sourceHash": "46def9c7750e98fbb4223d98d2a76343c487e9e69503fcef288105f8085b39fe",
+      "t": "…Didn't lose you."
     },
     {
       "id": "ep-52:76",
-      "source": "이번엔 손이 안 비치네. 이렇게 안아 줘도… 괜찮지?",
-      "sourceHash": "796c2da8ba90ecf6f48d9b2e7da35a61a995532a68f9a601e7b5bfd4f127d501",
-      "t": "My hands don't show through now. Holding you like this... is okay, right?"
+      "source": "손 안 비친다. 이렇게 안아도… 괜찮지?",
+      "sourceHash": "194ce496179921a92ae2d278bd32d8f6861ecf276e5242f9b57c99899c65a53d",
+      "t": "My hands aren't transparent. Even if I hold you like this… it's all right, isn't it?"
     },
     {
       "id": "ep-52:77",
@@ -526,9 +544,9 @@
     },
     {
       "id": "ep-52:87",
-      "source": "네가 지어 준 이름으로 불러 줘. 영냥이. 다른 사람들 앞에서는 병하고. 회사에서 영냥이라고 부르면 설명이 길어져.",
-      "sourceHash": "57aa40b01b734f5607bbf37bd2d88d116dd386f5147f8c265c98d2340c90e8f2",
-      "t": "The name you gave me. Yeongnyangi. Byeongha around other people. If you call me Yeongnyangi at work, explanations get long."
+      "source": "네가 지어 준 이름으로 불러, 네오. 회사에서는 병하로 해 줘, 설명이 길어지니까.",
+      "sourceHash": "da260b91bc0fd1e00a103ad84fed70f02d279b620eb57e14804142ea84caae99",
+      "t": "Use the name you gave me. Neo. At work, Byeongha, please. Otherwise there's too much to explain."
     },
     {
       "id": "ep-52:88",
@@ -550,21 +568,21 @@
     },
     {
       "id": "ep-52:91",
-      "source": "꿈에서 이 길을 걸었다. 평범한 봄에. 너랑.",
-      "sourceHash": "8cddd672b1c9f9ed9b124111a1ebd8a912d7a414f43da3356165fb51bafd787e",
-      "t": "I walked this path in a dream. In an ordinary spring. With you."
+      "source": "첫 번째 봄에 이 길을 같이 걷자고 했었다. 못 걸었지.",
+      "sourceHash": "bf14143ea048afcf2dd2d54423dc03f8219eee49b0397df486c5834472cd1663",
+      "t": "In the first spring, we promised to walk this road together. Never did."
     },
     {
       "id": "ep-52:92",
-      "source": "꿈에서 우리 뭐 했는데? 설마 싸웠어?",
-      "sourceHash": "c1d13215c8d5ebd979322f01e1dd4042dcd9ac243abac17272641174bda5cca7",
-      "t": "What did we do in the dream? Don't tell me we fought."
+      "source": "그 봄의 우리, 뭐 하려고 했는데? 설마 싸우려고?",
+      "sourceHash": "41310d6aee34887d272522043781a7f04d1f3db21795fc79e9eef8d8898a9746",
+      "t": "What were we planning that spring? Not to fight, surely?"
     },
     {
       "id": "ep-52:93",
-      "source": "아무것도. 그냥 걸었다. 그게 제일 좋았다. 싸움은 깨서 했다.",
-      "sourceHash": "02cbeeabb5c6bf50adc65c45ec9fcc7553dadaf07d1e1e970078042ec6bab421",
-      "t": "Nothing. Just walked. That was the best part. We fought after I woke."
+      "source": "아무것도. 그냥 걸으려고 했다, 싸움은 걷고 나서 하고.",
+      "sourceHash": "980029540ad1f4107e349898a68a91e6989c62d24d63667063a81240ca4b14c1",
+      "t": "Nothing. Just a walk. Fighting could wait until afterward."
     },
     {
       "id": "ep-52:94",
@@ -574,9 +592,9 @@
     },
     {
       "id": "ep-52:95",
-      "source": "약속은 지키라고 있는 거다. 비 오면 우산은 네가 들어라. 노란 거.",
-      "sourceHash": "467fa187f0207ee6361e3f76fdd5ca1a5a35517c31fa77226b7f60ab0e7ddb30",
-      "t": "Promises are made to be kept. If it rains, you carry the umbrella. The yellow one."
+      "source": "약속은 지키라고 있는 거다. 우산은 번갈아 들고.",
+      "sourceHash": "26f9d4be7eec44eb5457cad408ea9102b5757769ca09aaf3dd4bffcbba9ec14f",
+      "t": "Promises are for keeping. We take turns with the umbrella."
     },
     {
       "id": "ep-52:96",
@@ -601,6 +619,18 @@
       "source": "연이는 답장을 썼다. 한 명 추가. 사람임. 털 없음. 양말 검사 담당.",
       "sourceHash": "238139809206672092385f849218c7d0d41f26d83f887f79a88ee3836a194cc9",
       "t": "Yeoni replied: Adding one. Human. No fur. Sock inspector."
+    },
+    {
+      "id": "ep-52:sea-1",
+      "source": "바다는 처음이다. 그 봄엔 끝내 못 갔으니까.",
+      "sourceHash": "0d92dec7ac1956501648e7f20e68e414d8c215751dc3c6556b3ef1163d47c4fd",
+      "t": "The sea will be a first. We never made it there that spring."
+    },
+    {
+      "id": "ep-52:sea-2",
+      "source": "그럼 김밥은 네가 말아. 옆구리 터지면 별점 하나.",
+      "sourceHash": "2ed7757472bbc3b49d5d7fa4118c49124cc92f1baa7ae18754d64e21261c09d8",
+      "t": "Then you roll the gimbap. One star if the sides split."
     },
     {
       "id": "ep-52:100",
@@ -634,9 +664,9 @@
     },
     {
       "id": "ep-52:105",
-      "source": "백 점 아니면 그 점쟁이 별점 하나 줘라.",
-      "sourceHash": "a3b8cdd38a26b3624c2118d5d3d5274c583a7c058fc1530a8b85ac5c482ef117",
-      "t": "If it's not a hundred, give that fortune-teller one star."
+      "source": "백 점 아니면 그 점쟁이 다시 보지 마라.",
+      "sourceHash": "83fae5c964a228049f87681497f3059c919696b1eacbc5e2ca36c9da1a1123f9",
+      "t": "If it's not a hundred, don't see that fortune-teller again."
     },
     {
       "id": "ep-52:106",

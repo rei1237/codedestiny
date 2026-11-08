@@ -183,6 +183,12 @@
       "t": "Almost no energy left. About one drop of water. Less than a hundredth of what you had as a tiger."
     },
     {
+      "id": "ep-39:hanbi-flinch",
+      "source": "윤달이 입을 열자 서한비의 어깨가 움찔했다. 그녀는 윤달의 얼굴을 한참 보다가 시선을 내렸다. 그 목소리를 어디서 들었는지 더듬는 눈이었다.",
+      "sourceHash": "0ffecef934d6cff1fd9aa413508dcd9f60bf7c11676204d2dcfa9bf2ec5ffce6",
+      "t": "When Yundal spoke, Hanbi's shoulders flinched. She studied his face, then looked down, searching for where she'd heard that voice."
+    },
+    {
       "id": "ep-39:30",
       "source": "정확하시네요. 그분 손이 원래 그렇게 정확해요?",
       "sourceHash": "8f949cfcf42554f915ceebb8ca987f582040c2532649329854ee3b69098c1f3f",
@@ -406,15 +412,15 @@
     },
     {
       "id": "ep-39:67",
-      "source": "연이가 펜을 멈췄다. 실을 타고 올라온 장면이 머릿속에 남아 있었다. 비 오는 정류장. 그리고 흰 우산을 떨어뜨린 남자.",
-      "sourceHash": "8824ab52324ff38caa80e597fa778d710fd2dea15da3a34d995631d952f78d08",
-      "t": "Yeoni's pen stopped. The scene that had traveled up the thread remained in their mind. The rainy bus stop. The man who dropped his white umbrella."
+      "source": "연이가 펜을 멈췄다. 실을 타고 올라온 장면이 머릿속에 남아 있었다. 비 오는 정류장. 흰 우산을 떨어뜨린 남자. 연이는 우물 건너편의 윤달을 보았다.",
+      "sourceHash": "0fd6bd40a90d8c174c742b022182dc2d515952ef8d1b9ebb494900ddec72359b",
+      "t": "Yeoni stopped her pen. The scene carried up the thread remained: rain, a bus stop, a man dropping a white umbrella. She looked at Yundal across the well."
     },
     {
       "id": "ep-39:68",
-      "source": "네오. 그 정류장에 너도 있었어?",
-      "sourceHash": "d41914ccdc4498f33b4a9cb16a38b4e303a7f7b27462f432a02edb79f822535f",
-      "t": "Neo. Were you at that bus stop too?"
+      "source": "윤달. 그 정류장에 혹시 윤달도 있었어요?",
+      "sourceHash": "4854151fc772835fc4e8b329e95a8a0b2f45809c2548bba3467d687854130ff8",
+      "t": "Yundal. Were you at that bus stop too, by any chance?"
     },
     {
       "id": "ep-39:69",
@@ -424,15 +430,15 @@
     },
     {
       "id": "ep-39:70",
-      "source": "흰 우산. 늦었구나, 내가 또. 그 목소리, 너였잖아.",
-      "sourceHash": "0b3628bf9306aab7784510ddeafc980cff0e495f765b2b9e69644184c846608a",
-      "t": "The white umbrella. 'Too late. Again.' That voice was yours."
+      "source": "정류장이요? 저는 버스를 하도 놓쳐서, 정류장이라면 웬만한 데는 다 가 봤죠.",
+      "sourceHash": "93fb850a925ee2b78ff25422b189e6db27f098bc9b097fee113383bfafbfc7e4",
+      "t": "Bus stop? I've missed so many buses, I've been to practically all of them."
     },
     {
       "id": "ep-39:71",
-      "source": "네오의 손이 멈췄다. 그는 대답 대신 자기 팔을 내려다보았다. 어깨까지 투명했다.",
-      "sourceHash": "d5dda022cb13a14b5c685eea5e8879f1d4fb2453bf618e00871954bd78301f52",
-      "t": "Neo's hand went still. Instead of answering, he looked down at his arm. It was transparent to the shoulder."
+      "source": "윤달은 웃으며 장갑 낀 손을 흔들었고, 대답은 거기서 끝이었다. 연이가 고개를 돌리자 네오는 자기 팔만 내려다보고 있었다. 어깨까지 투명한 팔이었다.",
+      "sourceHash": "02f5013eeb355f4a62bc4203c6fa1564bba5a86b09630f5828a0ba51d1ad02d9",
+      "t": "He smiled and waved a gloved hand. That ended the answer. Yeoni turned to find Neo studying his own arm, transparent to the shoulder."
     },
     {
       "id": "ep-39:72",
@@ -466,15 +472,15 @@
     },
     {
       "id": "ep-39:77",
-      "source": "그럼 하나만 대답해. 그 봄에도, 너 내 편이었어?",
-      "sourceHash": "82d56b28d543f6107f575ffb866df88b553c7acad45aa0ed9574479a33cd1ac2",
-      "t": "Then answer just one thing. That spring too—were you on my side?"
+      "source": "그럼 하나만 대답해. 너, 내 편이야?",
+      "sourceHash": "68b6c1d47d2f4182262d05b2337b35e2014d7433e499af7b5b9c5ec4b5586a18",
+      "t": "Then answer just one thing. Are you on my side?"
     },
     {
       "id": "ep-39:78",
-      "source": "그건 말할 수 있어. 네 편이야. 처음부터 지금까지.",
-      "sourceHash": "f4bef005bf926c292640b409961802abca0816b64443fe992003957fbf9be83d",
-      "t": "That I can say. I'm on your side. From the beginning to now."
+      "source": "그건 대답할 수 있어. 처음부터 네 편이야.",
+      "sourceHash": "6a1cc85bba8ce07dda84d75aa1f31c01eb52239633aa2e2e449e7667e0aef7dd",
+      "t": "That I can answer. From the beginning, I've been on your side."
     },
     {
       "id": "ep-39:79",
@@ -496,27 +502,27 @@
     },
     {
       "id": "ep-39:82",
-      "source": "그때 늦게 온 거, 당신이죠. 흰 우산.",
-      "sourceHash": "e9f3488b2ca1eed5d212b0704886c357b50ba51cf894e177129a40cb9f7dadf8",
-      "t": "You were the one who arrived late then. The white umbrella."
+      "source": "그날 정류장에 온 사람, 혹시 알아요? 흰 우산을 떨어뜨린.",
+      "sourceHash": "d1ec5aed8f416c6022a560972077b4402a070d98ed748e0237706fe7944d520d",
+      "t": "Do you know who came to the stop that day? The man who dropped the white umbrella?"
     },
     {
       "id": "ep-39:83",
-      "source": "그래. 너는 거기 남아 있었고.",
-      "sourceHash": "8aab0daf9c7628d3534372a737c4d4f534e6aae3343280b4bb4a11d2400c55fb",
-      "t": "Yes. And you were still there."
+      "source": "네오는 대답하지 않았다. 달 하나가 구름에 가려질 때까지 우물 안만 내려다보았다.",
+      "sourceHash": "ec0ceaaede5afeb9859b8abb96ddc841fa50cf532a05e0ef8535df286539875e",
+      "t": "Neo didn't answer. He looked into the well until a moon passed behind a cloud."
     },
     {
       "id": "ep-39:84",
-      "source": "둘 다 못 지켰네요.",
-      "sourceHash": "a8c6b73bd9aeaa76625e50fe0e948fab027d24961356427fa882ea0c6c5f96b6",
-      "t": "Neither of us protected her."
+      "source": "대답 안 하실 거면 됐어요. 저도 못 지킨 게 많아서 따질 처지는 아니에요.",
+      "sourceHash": "f6e2b59cf55069a31ffa1dcdef75661310880d128696cc0ee0cb7a6b2a2c0459",
+      "t": "If you won't answer, that's all right. There's too much I failed to protect for me to press you."
     },
     {
       "id": "ep-39:85",
-      "source": "이번엔 다르게 할 거다. 너도.",
-      "sourceHash": "fa28cac747d2ad0bfeaa7dde11466e25a4e635918271375a093c1a30f266df7a",
-      "t": "This time will be different. For you too."
+      "source": "못 지킨 건 다시 지키면 된다. 너도.",
+      "sourceHash": "f92ffb5474fba8d2fbfb7271c9ba7e95de5833b51f531ce481873b68ef190b0c",
+      "t": "What you failed to protect, protect again. You too."
     },
     {
       "id": "ep-39:86",
@@ -640,9 +646,9 @@
     },
     {
       "id": "ep-39:106",
-      "source": "없어요. 그런데 이번엔 저쪽으로 안 걸어갈 거예요.",
-      "sourceHash": "9cff79e5a9d35397efb696b78f608d8d7ab4b771823cd0ad06cfb49367a81778",
-      "t": "I don't. But this time I won't walk toward that side."
+      "source": "없어요. 그래도 다시는 저쪽으로 안 걸어갈 거예요.",
+      "sourceHash": "7bd591e338537098325edbec3be88b1c8c3c81107d3c0e8371dfcedb085e0602",
+      "t": "Nowhere. Even so, I'll never walk back that way."
     },
     {
       "id": "ep-39:107",
