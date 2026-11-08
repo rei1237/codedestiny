@@ -543,7 +543,12 @@
         "symbol": "./structured-consultation.js"
       },
       {
-        "line": 39,
+        "line": 43,
+        "kind": "call",
+        "symbol": "callGeminiJsonWithRetry"
+      },
+      {
+        "line": 161,
         "kind": "call",
         "symbol": "callGeminiJsonWithRetry"
       }
@@ -1003,32 +1008,37 @@
     "file": "worker/routes/sukuyo-compatibility-ai.js",
     "matches": [
       {
-        "line": 23,
+        "line": 26,
         "kind": "import-or-injected-call",
         "symbol": "../lib/gemini.js"
       },
       {
-        "line": 27,
+        "line": 30,
         "kind": "import-or-injected-call",
         "symbol": "../lib/structured-consultation.js"
       },
       {
-        "line": 1501,
+        "line": 1527,
         "kind": "call",
         "symbol": "callGeminiJsonWithRetry"
       },
       {
-        "line": 1549,
+        "line": 1579,
         "kind": "call",
         "symbol": "callGeminiJsonWithRetry"
       },
       {
-        "line": 1642,
+        "line": 1768,
         "kind": "call",
         "symbol": "callGeminiText"
       },
       {
-        "line": 2194,
+        "line": 1806,
+        "kind": "call",
+        "symbol": "callGeminiText"
+      },
+      {
+        "line": 2416,
         "kind": "call",
         "symbol": "callGeminiText"
       }
@@ -1068,37 +1078,47 @@
     "file": "worker/routes/ziwei-ai.js",
     "matches": [
       {
-        "line": 30,
+        "line": 33,
         "kind": "import-or-injected-call",
         "symbol": "../lib/gemini.js"
       },
       {
-        "line": 32,
+        "line": 35,
         "kind": "import-or-injected-call",
         "symbol": "../lib/structured-consultation.js"
       },
       {
-        "line": 1687,
+        "line": 1706,
         "kind": "call",
         "symbol": "callGeminiJsonWithRetry"
       },
       {
-        "line": 1698,
+        "line": 1717,
         "kind": "call",
         "symbol": "callGeminiText"
       },
       {
-        "line": 1732,
+        "line": 1751,
         "kind": "call",
         "symbol": "callGeminiText"
       },
       {
-        "line": 1878,
+        "line": 1897,
         "kind": "call",
         "symbol": "callGeminiJsonWithRetry"
       },
       {
-        "line": 1929,
+        "line": 1948,
+        "kind": "call",
+        "symbol": "callGeminiJsonWithRetry"
+      },
+      {
+        "line": 2026,
+        "kind": "call",
+        "symbol": "callGeminiJsonWithRetry"
+      },
+      {
+        "line": 2077,
         "kind": "call",
         "symbol": "callGeminiJsonWithRetry"
       }
