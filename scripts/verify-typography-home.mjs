@@ -67,7 +67,7 @@ try {
       assert.ok(await page.locator('#cdSignatureTitle').isVisible(),'font failure keeps title visible');
     }
     report.push({route:'shell',width,...fonts});
-    if([390,1440].includes(width)) {
+    if([390,1440].includes(width) && !process.argv.includes('--home-only')) {
       await context.unroute('**/assets/fonts/ui/*.woff2');
       for(const route of (process.argv.includes('--reading-only') ? [`/yeongnyangi/result/?id=${id}`] : ['/','/yeongnyangi/','/yeongnyangi/readings/saju/','/yeongnyangi/library/',`/yeongnyangi/result/?id=${id}`])) {
         console.log(`[typography-home] ${width}px ${route.split('?')[0]}`);
@@ -95,5 +95,6 @@ try {
     await context.close();
   }
 } finally {await browser.close();}
-await writeFile(`${output}/metrics.json`,JSON.stringify(report,null,2));
+const metricsFile=process.argv.includes('--reading-only')?'reading-only-metrics.json':process.argv.includes('--home-only')?'home-only-metrics.json':'metrics.json';
+await writeFile(`${output}/${metricsFile}`,JSON.stringify(report,null,2));
 console.log(`[typography-home] PASS ${report.length} viewport/route cases; mock-only; screenshots and metrics in ${output}`);

@@ -115,7 +115,9 @@ export function mountYehwaHome(root) {
     const more = root.querySelector('[data-picker-more]');
     more.hidden = matches <= 3;
     more.setAttribute('aria-expanded', String(expanded));
-    more.textContent = expanded ? '접기' : '관련 상담 더 보기';
+    const moreKey = 'home.typographyPicker.' + (expanded ? 'less' : 'more');
+    more.setAttribute('data-cd-trans', moreKey);
+    more.textContent = window.cdTranslate?.(moreKey, null, expanded ? '접기' : '관련 상담 더 보기') || (expanded ? '접기' : '관련 상담 더 보기');
     root.querySelectorAll('[data-picker-topic]').forEach(button=>{
       button.hidden = button.dataset.pickerTopic !== 'all' && value !== 'all' && button.dataset.pickerTopicGroup !== value;
       button.setAttribute('aria-pressed', String(button.dataset.pickerTopic === topic));

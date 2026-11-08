@@ -2530,6 +2530,15 @@
     "widget": {
       "title": "Personnaliser l’écran d’accueil",
       "description": "Choisissez un mot de Yeoni, une fleur, la lecture du jour ou un talisman."
+    },
+    "typographyPicker": {
+      "lead": "Choisissez ce qui vous préoccupe, puis comparez les consultations et leur contenu.",
+      "allConsultations": "Toutes les consultations",
+      "specific": "Préoccupations précises",
+      "all": "Tout",
+      "compare": "Comparer les consultations",
+      "more": "Voir d’autres consultations liées",
+      "less": "Réduire"
     }
   },
   "terms": {

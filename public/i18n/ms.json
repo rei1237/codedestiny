@@ -2530,6 +2530,15 @@
     "widget": {
       "title": "Hias skrin utama",
       "description": "Pilih pesanan Yeoni, makna bunga, ramalan harian atau azimat."
+    },
+    "typographyPicker": {
+      "lead": "Pilih perkara yang merisaukan anda, kemudian bandingkan cara konsultasi dan hasilnya.",
+      "allConsultations": "Semua konsultasi",
+      "specific": "Kebimbangan khusus",
+      "all": "Semua",
+      "compare": "Bandingkan konsultasi",
+      "more": "Lihat lebih banyak konsultasi berkaitan",
+      "less": "Ringkaskan"
     }
   },
   "terms": {

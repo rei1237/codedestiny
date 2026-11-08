@@ -2530,6 +2530,15 @@
     "widget": {
       "title": "Trang trí màn hình chính",
       "description": "Chọn lời nhắn của Yeoni, ý nghĩa loài hoa, vận trình hôm nay hoặc bùa may mắn."
+    },
+    "typographyPicker": {
+      "lead": "Chọn điều bạn đang băn khoăn, rồi so sánh cách tư vấn và nội dung nhận được.",
+      "allConsultations": "Tất cả tư vấn",
+      "specific": "Băn khoăn cụ thể",
+      "all": "Tất cả",
+      "compare": "So sánh tư vấn",
+      "more": "Xem thêm tư vấn liên quan",
+      "less": "Thu gọn"
     }
   },
   "terms": {

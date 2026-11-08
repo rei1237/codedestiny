@@ -2530,6 +2530,15 @@
     "widget": {
       "title": "ホーム画面を飾る",
       "description": "ヨニのひとこと、花言葉、今日の運勢、お守りから選べます。"
+    },
+    "typographyPicker": {
+      "lead": "気になる悩みを選び、相談の方法と受け取れる内容を比べてみましょう。",
+      "allConsultations": "すべての相談",
+      "specific": "詳しい悩み",
+      "all": "すべて",
+      "compare": "相談を比較する",
+      "more": "関連する相談をもっと見る",
+      "less": "閉じる"
     }
   },
   "terms": {

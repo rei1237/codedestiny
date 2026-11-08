@@ -73,7 +73,7 @@ test('seals are child spans on the signature deck cards', () => {
   assert.equal((html.match(/class="cd-yehwa-seal" aria-hidden="true"/g) || []).length, 8, 'every seal must be aria-hidden');
   // 🔴 ::before/::after 로 바꾸지 말 것 — .cd-sig-card 는 animation-fill-mode:backwards 인 cdSigRise 를 돌아
   // 의사요소가 시작 프레임 값에 붙들린다. 자식 span 이라야 카드와 함께 움직인다(hover/active 실측 동일 좌표).
-  const sig = html.match(/<a class="cd-sig-card(?: cd-sig-card--[a-z]+)?"[^>]*>[^<]*<span class="cd-yehwa-seal"/g) || [];
+  const sig = html.match(/<a class="cd-picker-main"[^>]*>[^<]*<span class="cd-yehwa-seal"/g) || [];
   assert.equal(sig.length, 8, `대표 상담 8장에 인장이 있어야 한다 (현재 ${sig.length})`);
   // 🔴 빠른 서비스 카드에는 인장을 두지 않는다(2026-09-03 사용자 결정) — 182x106px 카드에서
   // 72px 인장은 높이의 68% 이고, 그 크기에서는 꽃잎이 직선 방사살로 잘려 "시계 밴드"로 읽혔다.

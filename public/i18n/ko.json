@@ -2379,6 +2379,15 @@
     "widget": {
       "title": "홈 화면 꾸미기",
       "description": "연이의 한마디, 꽃말, 오늘의 운세와 부적을 골라 보세요."
+    },
+    "typographyPicker": {
+      "lead": "마음에 남은 고민을 고르고, 상담 방식과 받을 결과를 비교해 보세요.",
+      "allConsultations": "전체 상담",
+      "specific": "구체적인 고민",
+      "all": "모두",
+      "compare": "상담 비교하기",
+      "more": "관련 상담 더 보기",
+      "less": "접기"
     }
   },
   "footer": {

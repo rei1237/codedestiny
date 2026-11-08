@@ -17,7 +17,7 @@ test('room restores all sixteen anchovy fortunes without a provider call',()=>{
 test('home keeps one clear Yeongnyangi consultation entry without a repeated free CTA',()=>{
   const shell=read('index.html');
   assert.doesNotMatch(shell,/class="cdh-free__more"/);
-  const entry=shell.match(/<a class="cd-sig-card cd-sig-card--intro" data-cd-signature-id="yeongnyangi-question"[^>]+>/)?.[0]||'';
+  const entry=shell.match(/<a class="cd-picker-main"[^>]*data-cd-signature-id="yeongnyangi-question"[^>]+>/)?.[0]||'';
   assert.match(entry,/href="\/yeongnyangi\/"/);
   assert.match(entry,/data-cd-portal-placement="home_hero"/);
   assert.ok(existsSync('app/yeongnyangi/room/page.tsx'));

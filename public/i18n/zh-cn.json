@@ -2530,6 +2530,15 @@
     "widget": {
       "title": "装饰主屏幕",
       "description": "挑选延伊的寄语、花语、今日运势或护身符。"
+    },
+    "typographyPicker": {
+      "lead": "选择心中的烦恼，再比较咨询方式与结果内容。",
+      "allConsultations": "全部咨询",
+      "specific": "具体烦恼",
+      "all": "全部",
+      "compare": "比较咨询",
+      "more": "查看更多相关咨询",
+      "less": "收起"
     }
   },
   "terms": {
