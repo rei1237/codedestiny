@@ -1,7 +1,7 @@
 ---
-status: in-progress
+status: done
 updated: 2026-11-09
-next: "2026-11-09 후속 구현의 critical 검사와 모바일 검증을 마치고 커밋. push·main 머지·배포 보류 유지."
+next: "없음 — 로컬 후속 구현·검증 완료. push·main 머지·배포 승인 보류 유지."
 ---
 
 # 무료 바이럴 퍼널 (초간단 무료 사주 + 운명의 꽃·최애 운명 무료 개방)
@@ -12,6 +12,7 @@ next: "2026-11-09 후속 구현의 critical 검사와 모바일 검증을 마치
 3. 아래 단계 중 체크 안 된 첫 단계만 한다. 끝나면 체크·결과 메모를 이 문서에 적고 커밋한다.
 
 ## 지금 상태
+- 후속 기능 커밋: `802cb9a491f2dd2fba99be51f3eb2639900ca7d1`. 최종 코드 커밋: `82e82b282ef52b3e4cf81f7c31ce1cf6c7af1c72`. push·main 머지·배포는 기존 승인 보류 유지.
 - 워크트리: `D:\Development\codedestiny-worktrees\free-viral-funnel-20261108-110954`
 - 브랜치: `wt/free-viral-funnel-20261108-110954` (base origin/main `1a9f0fb18`)
 - 주 체크아웃 `D:\Development\code-destiny` 는 다른 세션의 `feat/world-cast-page` + 미커밋 작업 → **건드리지 않는다.**
@@ -44,7 +45,7 @@ next: "2026-11-09 후속 구현의 critical 검사와 모바일 검증을 마치
 - [x] 6. 전체 검증(타입·린트·테스트·사이트맵 --check·브라우저 390px)
 - [x] 7. 후속: 공유 바 색·복사 UTM·레거시 계측·이미지 CSP·블러 게이트 모션/토큰·꽃 무료/상세 안내와 12개 언어·Play 표시·SEO 내부 링크.
 - [x] 8. 후속: 동일 최애·생일 구매 결과의 계정별 서버 보존/재열람, 영수증 재사용·환불 차단, 보관함 연결.
-- [ ] 9. 후속 검증 결과 기록·커밋·스크래치 정리(push·머지·배포 보류).
+- [x] 9. 후속 검증 결과 기록·커밋·스크래치 정리(push·머지·배포 보류).
 
 ## 2b 설계(완료, 커밋 `2131ba7b9`)
 - 사실: `POST /api/destiny-flower/match` 는 2단계 전에도 requireAuth 뿐이고 해금 검사가 없었다 → 로그인 사용자에게 4갈래 전체가 이미 내려갔다(게이트는 클라이언트뿐). 2단계로 비로그인까지 넓어졌다.
@@ -180,10 +181,10 @@ next: "2026-11-09 후속 구현의 critical 검사와 모바일 검증을 마치
 - /saju/free 링크 복사에 withShareUtm(...,'link') 적용. 올해 천간 안내에서 1월생과 조회일 입춘 전을 혼동하던 설명 수정.
 - 다른 .cd-guide 페이지의 추정 결함은 재현된 수정 범위가 아니므로 전역 CSS를 바꾸지 않았다. 성별 입력 유지, /saju/free 전체 다국어화·실기기·localhost 외부 폰트 CORS는 추가 확장/환경 확인으로 남긴다.
 
-### 검증 진행
+### 후속 검증 결과
 - node --test __tests__/ui/destiny-bias-details-recovery.test.mjs __tests__/ui/destiny-bias-paid-details.static.test.mjs: 10/10 통과. 원문 불변, 계정 분리, 환불, 조회 장애, 미결제, 영수증 별칭 재사용 차단을 포함한다.
 - node --test __tests__/ui/share-service.test.mjs __tests__/ui/free-saju-landing.test.mjs: 12/12 통과.
-- npx tsc --noEmit --pretty false: 최초 구현 시 EXIT=0. 최종 트리는 check:fast로 검사 중.
+- npx tsc --noEmit --pretty false: 최초 구현 시 EXIT=0. 최종 변경의 npm run lint / npm run typecheck도 EXIT=0.
 - impeccable detect --json: 변경 UI 세 파일 [] EXIT=0. 독립 Assessment A/B가 기존 방향·토큰 대비를 검토했다. 불투명 오버레이 후보를 토큰 기반 투명 그라디언트로 보완했다.
 - 모의 dev 127.0.0.1:26144, Ego task space 62에서 무료 만세력 제출→링크 복사→키워드 sessionStorage=1 확인. viewport 390, scrollWidth 375, CTA267×48, 공유138×44. 최애 최종 공유 버튼은 bg rgb(10,6,22)/ink rgb(247,241,255), 대비18.07:1, 높이44px, 가로넘침390/390. 독립 A/B가 모바일·데스크톱과 무료 블러 CTA의 잘림 없음/가독성을 확인했다. 무료 공유 버튼의 최종 캡처는 다른 영역을 담아 이미지 판정에서 제외하고 실측/소스/동작으로만 검증했다. Ego space62와 모의 dev는 종료했다.
 - npm run check:fast -- --plan: critical. NODE_OPTIONS=--experimental-vm-modules npm run check:fast 실행. 결제 가드77/77, lint/typecheck/sitemap1061 정합 통과. Node4693개 중4680통과/13실패였으며, 아래 원인을 고치고 해당39검사를 재실행해 전부 통과했다. 통과한 결제77개를 반복하지 않고 같은 공식 계획의 test:node 다음 단계부터 이어 실행한다(임시 continue-check.mjs, mock-network-guard/LLM_DRY_RUN 유지). 최종 변경의 lint/typecheck/sitemap을 이 재개 실행에서 다시 통과했다. 전체 Node 재실행은 하지 않았다.
@@ -273,3 +274,14 @@ next: "2026-11-09 후속 구현의 critical 검사와 모바일 검증을 마치
 - `worker/routes/destiny-bias-details.js`
 - `worker/routes/destiny-bias.js`
 - `scripts/verify-paid-gate-ui-regression.mjs`
+
+
+### 최종 전달 결과 (2026-11-09)
+- 구현 커밋: 802cb9a491f2dd2fba99be51f3eb2639900ca7d1 (73파일, 정적 미러/12개 로케일/사이트맵 포함).
+- 결제 키 발견 계약 수정: 82e82b282ef52b3e4cf81f7c31ce1cf6c7af1c72. 새 키를 *_FEATURE_KEY 이름과 기존 import/선언 형식으로 맞췄다. 실제 writer·reader를 사용하는 per-use-proof-roundtrip 76/76 및 상세 보존6/6 통과. 검사 조건은 수정하지 않았다.
+- 동일 critical 계획의 남은 검사를 mock-network-guard로 모두 실행했다. 분석 이벤트·재시도·Mongo·관리자 오류 문맥·정적 셸 strict-core 인코딩 가드 통과. Worker dry-run 빌드 통과(--dry-run: exiting now), 상수명 마감 후 빌드도 EXIT=0.
+- 전체 Jest는 455스위트 중454통과, 7707개 중7705통과/2실패였다. 두 실패 모두 새 라우트 키 발견 계약이었으며 위76개 검사 재실행으로 해소했다. 454개 통과 스위트는 반복하지 않았다. 전체 Jest를 다시 실행해 통과했다고 주장하지 않는다.
+- npm run check:pre-push: 홈 레지스트리63개/타일46개·정적 미러 신선도·사이트맵1061·llms 문서·SEO entity61·저장소 위생 PASS. 최종 문서 커밋 뒤 같은 전달 검사를 재확인한다.
+- GitHub main CI·스테이징·프로덕션은 실행/확인하지 않았다. 사용자 원래 지시의 push·main 머지·배포 보류가 전달 절차의 명시적 예외다. 검증된 로컬 커밋을 보존하며 워크트리는 미병합 상태라 삭제하지 않는다.
+- 모의 개발 서버와 브라우저 공간은 종료했다. 캡처·스크래치·로그는 최종 검증 후 이 세션 소유분만 제거한다. 다른 세션의 루트 변경·워크트리·문서는 보존했다.
+- 상세 기능 추가 없이 남긴 범위: 원문/입력 연결이 없는 과거 결제의 운영 수선, 실기기/실결제/실제 게시 검수, /saju/free 전체 번역, 근거가 없는 다른 .cd-guide 전역 문제. 기존 무료 카탈로그 항목과 /flower noindex는 유지했다.
