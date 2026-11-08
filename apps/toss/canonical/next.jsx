@@ -1,8 +1,9 @@
 import React, {lazy, Suspense, useSyncExternalStore} from 'react';
+import {tossImageSource} from '../service/bundle-art.mjs';
 
 // CSR equivalents shared by the original-screen release and isolated test entries.
 export function Image({src,fill,priority,quality,unoptimized,loader,placeholder,blurDataURL,onLoadingComplete,style,...props}) {
-  return <img {...props} src={typeof src==='string'?src:src.src} loading={priority?'eager':props.loading} style={fill?{position:'absolute',inset:0,width:'100%',height:'100%',...style}:style} onLoad={event=>{props.onLoad?.(event);onLoadingComplete?.(event.currentTarget);}}/>;
+  return <img {...props} src={tossImageSource(typeof src==='string'?src:src.src)} loading={priority?'eager':props.loading} style={fill?{position:'absolute',inset:0,width:'100%',height:'100%',...style}:style} onLoad={event=>{props.onLoad?.(event);onLoadingComplete?.(event.currentTarget);}}/>;
 }
 export function Link({href,replace,prefetch,scroll,locale,...props}) {
   const path=typeof href==='string'?href:href.pathname;

@@ -3,6 +3,7 @@ import {fileURLToPath} from 'node:url';
 import {resolve,dirname,sep,extname} from 'node:path';
 import {createHash} from 'node:crypto';
 import {extractOmikujiEngine} from './omikuji-engine-loader.mjs';
+import {TOSS_WEBP_ART} from './bundle-art.mjs';
 const publicRoot=fileURLToPath(new URL('../../../public/',import.meta.url)).replace(/[\\/]$/,'');
 const shim=fileURLToPath(new URL('../canonical/next.jsx',import.meta.url)).replaceAll('\\','/');
 const defaults={'next/image':'Image','next/link':'Link','next/dynamic':'dynamic'};
@@ -136,6 +137,7 @@ export default function serviceCompat(){
      const path=resolve(folder,entry.name);
      if(entry.isDirectory()){if(path.startsWith(prefix)||prefix.startsWith(path+sep))await collect(path,prefix);}
      else if(path.startsWith(prefix)&&mime[extname(path)]&&!emitted.has(path)){
+      if(Object.hasOwn(TOSS_WEBP_ART,'/'+path.slice(publicRoot.length+1).replaceAll('\\','/')))continue;
       emitted.add(path);this.emitFile({type:'asset',fileName:path.slice(publicRoot.length+1).replaceAll('\\','/'),source:await readFile(path)});
      }
     }
@@ -144,7 +146,7 @@ export default function serviceCompat(){
     const path=resolve(publicRoot,'.'+ref);
     if(!path.startsWith(publicRoot+sep))continue;
     let info;try{info=await stat(path);}catch{/* Dynamic filename prefix. */}
-    if(info?.isFile()){if(!emitted.has(path)){emitted.add(path);this.emitFile({type:'asset',fileName:ref.slice(1),source:await readFile(path)});}continue;}
+    if(info?.isFile()){if(!Object.hasOwn(TOSS_WEBP_ART,ref)&&!emitted.has(path)){emitted.add(path);this.emitFile({type:'asset',fileName:ref.slice(1),source:await readFile(path)});}continue;}
     const folder=info?.isDirectory()?path:dirname(path);
     try{await collect(folder,path);}catch(error){if(error.code!=='ENOENT')throw error;}
    }
