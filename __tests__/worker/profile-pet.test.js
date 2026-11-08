@@ -2,12 +2,18 @@ import { jest } from '@jest/globals';
 import { createHttpError } from '../../worker/lib/http.js';
 const clone = value => value == null ? value : structuredClone(value);
 const uid = '507f1f77bcf86cd799439011';
-let db, failOn = '', tail = Promise.resolve(), signedIn = true;
+let db, failOn = '', tail = Promise.resolve(), signedIn = true, transactionActive = false, concurrentReads = 0, maxTransactionReads = 0;
+async function readMock(get) {
+  if (!transactionActive) return clone(get());
+  concurrentReads++; maxTransactionReads = Math.max(maxTransactionReads, concurrentReads);
+  await Promise.resolve(); concurrentReads--;
+  return clone(get());
+}
 const matches = (row, filter) => Object.entries(filter).every(([key, value]) => String(row[key]) === String(value));
 function collection(name) {
   const rows = () => db[name] ||= [];
   return {
-    findOne: async filter => clone(rows().find(row => matches(row, filter)) || null),
+    findOne: filter => readMock(() => rows().find(row => matches(row, filter)) || null),
     insertOne: async row => {
       if (failOn === name) throw new Error('injected failure');
       if (rows().some(item => item._id === row._id)) throw Object.assign(new Error('duplicate'), { code: 11000 });
@@ -28,11 +34,11 @@ const mongoose = { connection: { db: { collection } }, startSession: async () =>
   endSession: async () => {},
   withTransaction: async callback => {
     const previous = tail; let release; tail = new Promise(resolve => { release = resolve; }); await previous;
-    const backup = clone(db);
-    try { return await callback(); } catch (error) { db = backup; throw error; } finally { release(); }
+    const backup = clone(db); transactionActive = true;
+    try { return await callback(); } catch (error) { db = backup; throw error; } finally { transactionActive = false; release(); }
   },
 }) };
-const query = read => { const q = { select: () => q, session: () => q, lean: async () => clone(read()) }; return q; };
+const query = read => { const q = { select: () => q, session: () => q, lean: () => readMock(read) }; return q; };
 jest.unstable_mockModule('../../worker/lib/db.js', () => ({ mongoose, withMongoRetry: async (_env, callback) => callback(), mongoTransactionOptions: () => ({}), connectDb: async () => {} }));
 jest.unstable_mockModule('../../worker/lib/db-scope-connection.js', () => ({ scopeConnection: () => null }));
 jest.unstable_mockModule('../../worker/lib/models.js', () => ({
@@ -52,7 +58,7 @@ beforeAll(async () => {
   ({ handleRpgRoutes: route } = await import('../../worker/routes/rpg.js'));
 });
 beforeEach(() => {
-  failOn = ''; signedIn = true;
+  failOn = ''; signedIn = true; maxTransactionReads = 0; concurrentReads = 0;
   db = { users: [{ _id: uid, email: 'ordinary@example.test' }], profiles: ['one', 'two'].map(profileId => ({
     userId: uid, profileId, gender: 'male', birth: { year: 1990, month: 1, day: 15, timeUnknown: true, calType: 'solar' },
   })), fortune_tea_house_honey_wallets: [{ userId: uid, serviceScope: 'FORTUNE_TEA_HOUSE', balance: 20, totalEarned: 20 }] };
@@ -102,6 +108,10 @@ test('같은 캐릭터의 먹이·놀이 완료에만 계정 하루 +1개, 최�
   expect(db.fortune_tea_house_honey_ledgers).toHaveLength(1);
   expect(db.profile_pets.every(row => row.affection === 10)).toBe(true);
 });
+test('트랜잭션의 Mongo 읽기를 병렬로 실행하지 않는다', async () => {
+  await hatch(); await care('feed'); await care('play');
+  expect(maxTransactionReads).toBe(1);
+});
 test('여러 프로필·동시 요청에서도 보상은 계정당 한 번이다', async () => {
   await hatch(); await hatch('two');
   const results = await Promise.all(Array.from({ length: 12 }, (_, index) => care(index < 6 ? 'feed' : 'play', index % 2 ? 'one' : 'two', 'race-request-' + index)));
@@ -131,6 +141,13 @@ test('다른 프로필·행동으로 요청 키 재사용은 거절한다', asyn
   await hatch(); await hatch('two'); await care('feed');
   await expect(care('play', 'one', 'one-feed-request-0001')).rejects.toMatchObject({ status: 409 });
   await expect(care('feed', 'two', 'one-feed-request-0001')).rejects.toMatchObject({ status: 409 });
+});
+test('보상 없는 반복 돌봄도 자정을 넘긴 같은 요청을 새 돌봄으로 처리하지 않는다', async () => {
+  await hatch(); const before = new Date('2026-11-09T14:59:59Z'), after = new Date('2026-11-09T15:00:01Z');
+  await care('feed', 'one', 'first-feed-before', before);
+  expect((await care('feed', 'one', 'repeat-feed-before', before)).firstCare).toBe(false);
+  const retry = await care('feed', 'one', 'repeat-feed-before', after);
+  expect(retry.firstCare).toBe(false); expect(retry.pet.fed).toBe(false); expect(retry.pet.affection).toBe(5);
 });
 test('생년 정정에도 특성과 친밀도는 보존하고 일반종만 실제 일주로 갱신한다', async () => {
   await hatch(); db.profile_pets[0].traits.rareSpecies = null; await care('feed');

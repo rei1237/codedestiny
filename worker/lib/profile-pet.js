@@ -47,12 +47,17 @@ function publicPet(state, character, day, exclusiveSpecies) {
 }
 async function snapshot(uid, profileId, profile, now, session) {
   const day = kstDay(now), { wallets, ledgers } = honeyCollections();
-  const [state, wallet, reward, exclusiveSpecies] = await Promise.all([
-    states().findOne({ _id: `${uid}:${profileId}` }, { session }),
-    wallets.findOne({ userId: uid, serviceScope: HONEY_SCOPE }, { session }),
-    ledgers.findOne({ _id: ledgerId(uid, day) }, { session }),
-    exclusivePet(uid, session),
-  ]);
+  const reads = [
+    () => states().findOne({ _id: `${uid}:${profileId}` }, { session }),
+    () => wallets.findOne({ userId: uid, serviceScope: HONEY_SCOPE }, { session }),
+    () => ledgers.findOne({ _id: ledgerId(uid, day) }, { session }),
+    () => exclusivePet(uid, session),
+  ];
+  const result = [];
+  // Mongo sessions do not support parallel operations inside a transaction.
+  if (session) { for (const read of reads) result.push(await read()); }
+  else result.push(...await Promise.all(reads.map(read => read())));
+  const [state, wallet, reward, exclusiveSpecies] = result;
   const preview = previewFor(profile, now);
   return { ...preview, day, exclusiveSpecies, pet: publicPet(state, preview.character, day, exclusiveSpecies), balance: Math.max(0, Number(wallet?.balance) || 0),
     careRewardClaimed: Boolean(reward), careHoney: PET_CARE_HONEY, affectionGain: PET_AFFECTION_GAIN };
@@ -102,7 +107,10 @@ export async function careForProfilePet(env, userId, body, now = new Date()) {
     const today = state.careDay === day;
     const flag = action === 'feed' ? 'fed' : 'played';
     const firstCare = !(today && state[flag]);
-    if (!firstCare) return { ...await snapshot(uid, profileId, profile, now, session), firstCare: false, rewarded: 0 };
+    if (!firstCare) {
+      await receipts().insertOne({ _id: receiptKey, userId: uid, profileId, action, day, createdAt: now }, { session });
+      return { ...await snapshot(uid, profileId, profile, now, session), firstCare: false, rewarded: 0 };
+    }
     const next = { careDay: day, fed: today && state.fed === true, played: today && state.played === true,
       affection: Math.min(100, state.affection + (firstCare ? PET_AFFECTION_GAIN : 0)), updatedAt: now };
     next[flag] = true;

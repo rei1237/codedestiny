@@ -366,6 +366,13 @@ describe("탈퇴 처리 — 비식별화 범위", () => {
     expect(JSON.stringify(entry)).not.toContain("테스터");
   });
 
+  test("탈퇴 시 반려 캐릭터와 돌봄 기록도 문자열 계정 ID로 삭제한다", async () => {
+    await callWithdraw();
+    for (const name of ['profile_pets', 'profile_pet_actions']) {
+      expect(collectionCalls.get(name).deleteMany).toHaveBeenCalledWith({ userId: USER_ID }, { maxTimeMS: 8000 });
+    }
+  });
+
   test("탈퇴 후 리프레시 세션이 전부 폐기된다", async () => {
     await callWithdraw();
     expect(mockRevokeSessions).toHaveBeenCalled();

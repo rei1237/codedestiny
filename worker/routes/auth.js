@@ -4233,6 +4233,10 @@ async function handleWithdraw(request, env) {
       { userId: objectId },
       { maxTimeMS: 8000 },
     );
+    // Companion data uses string account IDs in native collections.
+    for (const collection of ['profile_pets', 'profile_pet_actions']) {
+      await User.db.collection(collection).deleteMany({ userId: String(userId) }, { maxTimeMS: 8000 });
+    }
   } catch (error) {
     partialFailure = true;
     console.error("[auth/withdraw] profile card delete failed:", error);
