@@ -28,6 +28,7 @@ import { buildOpenGraphImageUrl, getCanonicalUrl, isIndexableRoute, normalizePat
 import { truncateToDisplayWidth } from "./seo";
 import { ogLocaleFor, resolveLocaleTag } from "./i18n/locales";
 import { ROBOTS_META } from "./seo/index-policy.mjs";
+import { alternatesFor, toNextLanguages } from "./seo/hreflang.mjs";
 
 const SITE_ORIGIN = siteSeo.siteUrl.replace(/\/$/, "");
 const DEFAULT_OG_IMAGE_URL = siteSeo.defaultOgImage;
@@ -159,13 +160,8 @@ export function generatePageMetadata(opts: FortunePageMeta) {
 
   const ogImage = buildOpenGraphImageUrl({ image: image || DEFAULT_OG_IMAGE_URL });
 
-  const languagesMap: Record<string, string> = {};
-  if (hreflangPaths) {
-    for (const [lang, localizedPath] of Object.entries(hreflangPaths)) {
-      if (!localizedPath) continue;
-      languagesMap[lang] = getCanonicalUrl(String(localizedPath));
-    }
-  }
+  // hreflang 집합은 사이트맵과 같은 함수 하나가 만든다(색인 형제만, 2개 미만이면 없음, x-default=ko).
+  const languagesMap: Record<string, string> = hreflangPaths ? toNextLanguages(alternatesFor(hreflangPaths)) : {};
   const hasLanguages = Object.keys(languagesMap).length > 0;
 
   return {

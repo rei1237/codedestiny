@@ -10,7 +10,6 @@ import { TAROT_CARDS, buildImageCandidates } from "../../lib/tarot/tarot-cards.m
 import { buildCaretaroCardImageUrl } from "../../lib/tarot/caretaro-card-images.mjs";
 import { getTarotCardImageUrl } from "@/src/features/fortune-tea-house/lib/tarotCardImageMap";
 import { buildSeoMetadata } from "../../lib/seo";
-import { createHreflangFromRoutes } from "../../lib/seo/createHreflang";
 import { getAlternatesByRouteKey } from "../../lib/i18n/routes";
 import { SEO_LANDING_PAGES } from "../../lib/seo-landing-pages";
 import {
@@ -35,7 +34,7 @@ export const metadata = buildSeoMetadata({
   title: page.title,
   description: page.description,
   keywords: page.keywords,
-  hreflang: createHreflangFromRoutes(getAlternatesByRouteKey("today")),
+  hreflang: getAlternatesByRouteKey("today"),
 });
 
 // 다른 SEO 랜딩 6종은 SeoLandingTemplate 을 통해 WebPage/Service/BreadcrumbList/FAQPage 를 낸다.

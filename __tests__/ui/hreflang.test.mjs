@@ -2,12 +2,12 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { register } from "node:module";
 
-// locales.ts·routes.ts 는 확장자 없는 상대 import 를 쓴다. 노드가 .ts 를 찾도록 후보를 더한다.
+// locales.ts·routes.ts·seo.ts 는 확장자 없는 상대 import 를 쓴다("./seo.v2" 포함). 노드가 .ts 를 찾도록 후보를 더한다.
 register(`data:text/javascript,${encodeURIComponent(`
 export async function resolve(specifier, context, next) {
   try { return await next(specifier, context); } catch (error) {
     const relative = specifier.startsWith("./") || specifier.startsWith("../");
-    if (!relative || specifier.split("/").pop().includes(".")) throw error;
+    if (!relative || [".ts", ".tsx", ".mjs", ".js", ".json"].some((ext) => specifier.endsWith(ext))) throw error;
     for (const suffix of [".ts", ".mjs", ".js"]) { try { return await next(specifier + suffix, context); } catch {} }
     throw error;
   }
@@ -105,4 +105,29 @@ test("locales.ts and routes.ts export the same values as before (alias field asi
   assert.equal(routes.I18N_ROUTE_MAP.home.ko, "/ggulggul");
   assert.equal(routes.I18N_ROUTE_MAP.insightZiweiBasics["zh-TW"], "/zh-tw/insights/ziwei-basics-tw");
   assert.deepEqual([...routes.I18N_ROUTE_KEYS], Object.keys(localeData.I18N_ROUTE_MAP));
+});
+
+test("Korean fortune period and sign pages emit x-default through the shared builder", async () => {
+  const { readFileSync } = await import("node:fs");
+  for (const file of ["app/fortune/[period]/page.tsx", "app/fortune/[period]/[sign]/page.tsx"]) {
+    const source = readFileSync(new URL(`../../${file}`, import.meta.url), "utf8");
+    assert.match(source, /hreflang:\s*localeSiblings\(seo\.path\)/, file);
+  }
+  const { buildSeoMetadata } = await import("../../lib/seo.ts");
+  const meta = buildSeoMetadata({ path: "/fortune/today", title: "t", description: "d", hreflang: localeSiblings("/fortune/today") });
+  assert.deepEqual(meta.alternates.languages, toNextLanguages(alternatesFor(localeSiblings("/fortune/today"))));
+  assert.equal(meta.alternates.languages["x-default"], `${ORIGIN}/fortune/today/`);
+  assert.equal(meta.alternates.languages["zh-CN"], `${ORIGIN}/zh/fortune/today/`);
+});
+
+test("generatePageMetadata and createI18nMetadata emit the same set as alternatesFor", async () => {
+  const { generatePageMetadata } = await import("../../lib/generate-page-metadata.ts");
+  const { createI18nMetadata } = await import("../../lib/seo/createI18nMetadata.ts");
+  const { I18N_POLICY_ROUTE_MAP } = await import("../../lib/i18n/routes.ts");
+  const policy = generatePageMetadata({ path: "/privacy", title: "t", description: "d", hreflangPaths: I18N_POLICY_ROUTE_MAP.privacy });
+  assert.deepEqual(policy.alternates.languages, toNextLanguages(alternatesFor(I18N_POLICY_ROUTE_MAP.privacy)));
+  const routes = localeData.I18N_ROUTE_MAP.today;
+  const i18n = createI18nMetadata({ locale: "ja", routeByLocale: routes, title: "t", description: "d" });
+  assert.deepEqual(i18n.alternates.languages, toNextLanguages(alternatesFor(routes)));
+  assert.equal(i18n.alternates.canonical, `${ORIGIN}/ja/today/`);
 });

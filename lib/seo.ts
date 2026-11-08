@@ -10,6 +10,7 @@ import {
 } from "./seo/siteSeo";
 import { ogLocaleFor } from "./i18n/locales";
 import { ROBOTS_META } from "./seo/index-policy.mjs";
+import { alternatesFor, toNextLanguages } from "./seo/hreflang.mjs";
 
 export const SEO_SITE_URL = siteSeo.siteUrl;
 export const SEO_DEFAULT_OG_IMAGE = siteSeo.defaultOgImage;
@@ -84,13 +85,8 @@ export function buildSeoMetadata(options: BuildSeoMetadataOptions): Metadata {
     options.keywords,
   );
 
-  const languages: Record<string, string> = {};
-  if (options.hreflang) {
-    for (const [locale, localePath] of Object.entries(options.hreflang)) {
-      if (!localePath) continue;
-      languages[locale] = toCanonicalUrl(localePath);
-    }
-  }
+  // hreflang 집합은 사이트맵과 같은 함수 하나가 만든다(색인 형제만, 2개 미만이면 없음, x-default=ko).
+  const languages: Record<string, string> = options.hreflang ? toNextLanguages(alternatesFor(options.hreflang)) : {};
 
   return {
     metadataBase: new URL(siteSeo.siteUrl),

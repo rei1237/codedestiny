@@ -7,7 +7,7 @@ import { siteSeo } from "@/lib/seo/siteSeo";
 import FortuneTeaHouseClient from "./FortuneTeaHouseClient";
 import TeaHouseExperience from "@/src/features/fortune-tea-house/FortuneTeaHousePage";
 import ServiceIntroSection from "@/app/components/ServiceIntroSection";
-import { createHreflangFromRoutes } from "@/lib/seo/createHreflang";
+import { alternatesFor, toNextLanguages } from "@/lib/seo/hreflang.mjs";
 import { introductionRoutes } from "@/lib/i18n/feature-introductions.mjs";
 
 export const metadata: Metadata = {
@@ -16,7 +16,7 @@ export const metadata: Metadata = {
     "꽃돼지 연이와 고민을 나누고 사주·타로·숙요점으로 근거와 행동 방향을 살펴보세요. 상담 결과는 내 상담함에서 다시 읽을 수 있습니다.",
   alternates: {
     canonical: "https://code-destiny.com/fortune-tea-house",
-    languages: createHreflangFromRoutes(introductionRoutes("fortune-tea-house")),
+    languages: toNextLanguages(alternatesFor(introductionRoutes("fortune-tea-house"))),
   },
   openGraph: {
     title: "연이의 운명 찻집 · 사주·타로·숙요점 상담 | 꿀꿀 운세",

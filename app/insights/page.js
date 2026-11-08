@@ -4,7 +4,6 @@ import { FEATURE_GUIDES } from "./feature-guides";
 import { INSIGHT_SEED_ARTICLES } from "./seed-articles";
 import { EDITORIAL_READING_PATHS, EDITORIAL_READING_SLUGS } from "./editorial-reading-paths.mjs";
 import { buildSeoMetadata } from "../../lib/seo";
-import { createHreflangFromRoutes } from "../../lib/seo/createHreflang";
 import { getAlternatesByRouteKey } from "../../lib/i18n/routes";
 import { buildBreadcrumbJsonLd, buildWebPageJsonLd } from "../../lib/structured-data";
 import { publishedCelebritySajuSeeds } from "../../lib/famous-saju/celebrity-saju-service";
@@ -79,7 +78,7 @@ export const metadata = buildSeoMetadata({
   title: pageTitle,
   description: pageDescription,
   keywords: ["운세 인사이트", "사주 공부", "자미두수 보는 법", "숙요점 보는 법", "타로 해석", "점성술 가이드"],
-  hreflang: createHreflangFromRoutes(getAlternatesByRouteKey("insights")),
+  hreflang: getAlternatesByRouteKey("insights"),
 });
 
 function getInsightFilters(items) {

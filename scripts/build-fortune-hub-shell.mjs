@@ -17,9 +17,15 @@ import { readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { BRAND_FACTS } from "../lib/brand/brand-facts.mjs";
+import { alternatesFor, localeSiblings } from "../lib/seo/hreflang.mjs";
 import { NEW_YEAR_SEASON, NEW_YEAR_SIGNS } from "../lib/fortune/new-year-registry.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+// hreflang 은 페이지 메타·사이트맵과 같은 함수(lib/seo/hreflang.mjs)로 만든다.
+const hreflangLinks = alternatesFor(localeSiblings("/fortune"))
+  .map(({ hreflang, href }) => `  <link rel="alternate" hreflang="${hreflang}" href="${href}">`)
+  .join("\n");
 const root = path.join(__dirname, "..");
 
 export const HUB_SHELL_PATH = path.join(root, "fortune", "index.html");
@@ -239,12 +245,7 @@ ${renderPeriodLinkList(id, allSigns)}
   <meta name="twitter:image" content="https://code-destiny.com/og/code-destiny-og-vvip.png?v=42dedf5c85">
   <meta name="google-adsense-account" content="ca-pub-9863227498729828">
   <link rel="canonical" href="https://code-destiny.com/fortune/">
-  <link rel="alternate" hreflang="ko" href="https://code-destiny.com/fortune/">
-  <link rel="alternate" hreflang="en" href="https://code-destiny.com/en/fortune/">
-  <link rel="alternate" hreflang="ja" href="https://code-destiny.com/ja/fortune/">
-  <link rel="alternate" hreflang="zh-CN" href="https://code-destiny.com/zh/fortune/">
-  <link rel="alternate" hreflang="zh-TW" href="https://code-destiny.com/zh-tw/fortune/">
-  <link rel="alternate" hreflang="x-default" href="https://code-destiny.com/fortune/">
+${hreflangLinks}
   <link rel="icon" href="/icons/app-logo-192.png">
   <script type="application/ld+json">
 ${JSON.stringify(jsonLd, null, 2)}
