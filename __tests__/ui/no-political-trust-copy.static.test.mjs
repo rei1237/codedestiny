@@ -20,6 +20,7 @@ const ALLOWED = {
   'lib/brand/differentiation-faqs.mjs': { count: 7, reason: '2026-10-22 사용자 요청: 차별점 FAQ에 대통령 공개 기록 제작자 소개. 주석 1건 포함, 적중률·보장 표현 제외. 2026-10-31 사용자 요청: "잘 맞나요?" 문항이 공개 기록 이름 1건을 가리킴' },
   'app/faq/page.js': { count: 1, reason: '2026-10-22 사용자 요청: 차별점 FAQ가 가리키는 공개 분석 기록 칩 1건' },
   'app/insights/[slug]/page.js': { count: 1, reason: '공개 기록 페이지에만 가시 FAQ와 일치하는 schema 적용' },
+  'app/business/api/page.jsx': { count: 2, reason: '2026-11-08 사용자 지정 기업 API 제목과 원문 링크. 공개 기록의 시점과 사건 방식 차이를 함께 표시' },
   'lib/seo/public-record-copy.mjs': { count: 17, reason: '2026-10-28 사용자 요청: 종합 운세 플랫폼 제작자 소개를 공개 원문 비교와 연결. 적중률이나 사건 방식의 일치 보장 없음' },
   'app/insights/public-record-article.js': { count: 3, reason: '2026-10-05 승인한 원문 3건의 날짜·사건·일치 한계 비교 문서' },
   'i18n/authored/globalReading-01.json': { count: 2, reason: '2026-10-05 해외 현지화 요청: 기존 공개 기록 소개 번역, 미래 적중 보장 제외' },

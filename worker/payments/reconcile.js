@@ -117,6 +117,7 @@ export async function expireStalePendingOrders(db, { now = new Date(), limit = 5
     Payment,
     {
       status: "pending",
+      "pricingSnapshot.billingType": {$ne:"business_api"},
       createdAt: { $lt: cutoff },
       "metadata.reconcile.lastPgStatus": { $exists: true, $nin: ["paid"] },
       $or:[{'pricingSnapshot.moonstoneDiscount':{$exists:false}},

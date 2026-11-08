@@ -89,6 +89,7 @@ const noindexPathPrefixes = [
   "/fortune/date",
   '/neo-operation-room/strategy-books',
   '/records',
+  '/business/api/dashboard',
   '/consultations',
   "/animal/physio",
   // 개인 다이어리 — 검색 대상이 아니다(로그인 없이도 열리지만 내용은 전부 사용자 기기 안에 있다).
@@ -300,6 +301,8 @@ const coreRoutes = [
   // 캐릭터·세계관 안내(app/world). 노벨 본편이 아니라 그 인물·장소를 설명하는 보조 문서라
   // /stories 보다 우선순위를 낮춘다.
   { path: "/world", changefreq: "monthly", priority: 0.7 },
+  { path: "/business/api", changefreq: "monthly", priority: 0.75 },
+  { path: "/business/api/docs", changefreq: "monthly", priority: 0.65 },
   { path: "/insights/saju", changefreq: "weekly", priority: 0.84 },
   { path: "/insights/ziwei", changefreq: "weekly", priority: 0.88 },
   { path: "/insights/sukuyo", changefreq: "weekly", priority: 0.88 },

@@ -32,6 +32,7 @@ import {
   normalizePaidFeaturePricingShape,
 } from "../lib/billing-policy.js";
 import { isLightFortuneFeatureKey } from "../lib/light-fortune-catalog.js";
+import {BUSINESS_API_TERMS_VERSION, businessProduct, perMinute, saleReason} from '../../lib/business-api/products.mjs';
 import { paymentError } from "./errors.js";
 
 /* 🔴 이용권으로 **결제할 수 없는** 기능. 등급과 무관하다(family 포함).
@@ -52,6 +53,18 @@ const UNLOCK_PRODUCT_ID_BY_FEATURE_KEY = Object.freeze(
   }, Object.create(null)),
 );
 
+// Corporate access is sold only through the direct KRW prepare path.
+export function businessCheckoutProduct(body,env) {
+  const entry=businessProduct(body.productId || body.featureKey);
+  if(!entry) return null;
+  perMinute(env);
+  const reason=saleReason(entry,env);
+  if(reason) throw paymentError('PRODUCT_SALE_DISABLED',reason);
+  if((body.featureKey && body.featureKey!==entry.id) || (body.paymentMethod && body.paymentMethod!=='card_general') || body.payMethod || body.moonstoneQuantity || body.purchaseType==='GIFT' || body.refundConsent!==true)
+    throw paymentError('INVALID_REQUEST','기업 API는 이용 조건 확인 후 원화 카드 결제로 구매해 주세요.');
+  return {featureKey:entry.id,productId:entry.id,label:entry.name,productName:entry.name,priceKRW:entry.priceKRW,
+    businessTermsVersion:BUSINESS_API_TERMS_VERSION, priceCoins:0,monthlyCost:0,billingType:'business_api',directOnly:true,monthlyExcluded:true,passExcluded:true};
+}
 function lookupSpec(productId, featureKey) {
   if (productId && PIG_COIN_UNLOCK_PRODUCTS[productId]) {
     return { spec: PIG_COIN_UNLOCK_PRODUCTS[productId], productId };

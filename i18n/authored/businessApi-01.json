@@ -1,0 +1,58 @@
+{
+  "footer.businessAudience": {
+    "ko": "기업·개발자",
+    "en": "Business & developers",
+    "ja": "法人・開発者向け",
+    "zh-CN": "企业与开发者",
+    "zh-TW": "企業與開發者",
+    "vi": "Doanh nghiệp và nhà phát triển",
+    "hi": "व्यवसाय और डेवलपर",
+    "es": "Empresas y desarrolladores",
+    "fr": "Entreprises et développeurs",
+    "de": "Unternehmen und Entwickler",
+    "nl": "Bedrijven en ontwikkelaars",
+    "ms": "Perniagaan dan pembangun"
+  },
+  "footer.businessApiLink": {
+    "ko": "운세 API · 요금 및 연동",
+    "en": "Fortune API · Pricing and integration",
+    "ja": "占いAPIの料金と連携",
+    "zh-CN": "命理 API · 定价与接入",
+    "zh-TW": "命理 API · 價格與串接",
+    "vi": "API xem vận mệnh · Giá và tích hợp",
+    "hi": "फलादेश API · मूल्य और एकीकरण",
+    "es": "API de lecturas · Precios e integración",
+    "fr": "API de divination · Tarifs et intégration",
+    "de": "Orakel-API · Preise und Integration",
+    "nl": "Orakel-API · Prijzen en integratie",
+    "ms": "API ramalan · Harga dan integrasi"
+  },
+  "footer.businessApiInvite": {
+    "ko": "내 서비스에 운세 기능을 넣고 싶다면?",
+    "en": "Add fortune readings to your service",
+    "ja": "サービスに占いを追加したい方へ",
+    "zh-CN": "想在自己的服务中加入命理功能？",
+    "zh-TW": "想在自己的服務中加入命理功能？",
+    "vi": "Thêm tính năng xem vận mệnh vào dịch vụ của bạn",
+    "hi": "अपनी सेवा में फलादेश जोड़ें",
+    "es": "Añade lecturas a tu servicio",
+    "fr": "Ajouter des lectures à votre service",
+    "de": "Deutungen in den eigenen Dienst einbinden",
+    "nl": "Voeg duidingen toe aan je dienst",
+    "ms": "Tambahkan bacaan ramalan pada perkhidmatan anda"
+  },
+  "footer.businessApiManage": {
+    "ko": "내 API 관리",
+    "en": "Manage my API",
+    "ja": "API管理",
+    "zh-CN": "管理我的 API",
+    "zh-TW": "管理我的 API",
+    "vi": "Quản lý API của tôi",
+    "hi": "मेरी API प्रबंधित करें",
+    "es": "Gestionar mi API",
+    "fr": "Gérer mon API",
+    "de": "Meine API verwalten",
+    "nl": "Mijn API beheren",
+    "ms": "Urus API saya"
+  }
+}

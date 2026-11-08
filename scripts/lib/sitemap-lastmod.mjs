@@ -214,7 +214,7 @@ function collectAppPages(rootDir) {
       const abs = join(absDir, name);
       if (statSync(abs).isDirectory()) {
         // _ 로 시작하는 폴더는 라우트가 아니고, api 는 사이트맵 대상이 아니다.
-        if (name.startsWith("_") || name === "api") continue;
+        if (name.startsWith("_") || (segments.length === 0 && name === "api")) continue;
         // (group) 은 URL 에 나타나지 않는다.
         walk(abs, /^\(.*\)$/.test(name) ? segments : [...segments, name]);
         continue;

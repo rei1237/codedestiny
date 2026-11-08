@@ -15,7 +15,9 @@ test("locale sitemaps partition canonical URLs without changing lastmod or alter
     for (const match of data.matchAll(/<loc>([^<]+)<\/loc>/g)) {
       const segment = new URL(match[1]).pathname.split("/")[1];
       assert.equal(["ja", "en", "zh", "zh-tw"].includes(segment) ? segment : "ko", locale);
-      assert.ok(!/\/(?:payment|checkout|admin|api|test|staging|account)(?:\/|$)/.test(new URL(match[1]).pathname));
+      const pathname = new URL(match[1]).pathname;
+      const publicBusinessPage = ["/business/api/", "/business/api/docs/"].includes(pathname);
+      assert.ok(publicBusinessPage || !/\/(?:payment|checkout|admin|api|test|staging|account)(?:\/|$)/.test(pathname));
     }
     assert.equal(fs.readFileSync(path.join(root, file), "utf8"), data);
     assert.equal(fs.readFileSync(path.join(root, "public", file), "utf8"), data);

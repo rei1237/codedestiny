@@ -2789,7 +2789,11 @@
     },
     "disclaimerNote": "Readings are interpretations grounded in Myeongri theory. For important medical, legal, or investment decisions, please decide together with a qualified professional in that field.",
     "byline": "Saju readings designed by Park Byeong-ha, a Myeongri scholar with 10 years of experience",
-    "allServices": "All services"
+    "allServices": "All services",
+    "businessAudience": "Business & developers",
+    "businessApiLink": "Fortune API · Pricing and integration",
+    "businessApiInvite": "Add fortune readings to your service",
+    "businessApiManage": "Manage my API"
   },
   "common": {
     "cancel": "Cancel",

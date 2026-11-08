@@ -2693,7 +2693,11 @@
     },
     "disclaimerNote": "Die Analysen sind Deutungen auf Grundlage der Myeongri-Theorie. Wichtige medizinische, rechtliche oder finanzielle Entscheidungen treffen Sie bitte gemeinsam mit einer Fachkraft des jeweiligen Gebiets.",
     "byline": "Saju-Beratung, gestaltet von Park Byeong-ha, Myeongri-Fachmann mit 10 Jahren Erfahrung",
-    "allServices": "Alle Dienste"
+    "allServices": "Alle Dienste",
+    "businessAudience": "Unternehmen und Entwickler",
+    "businessApiLink": "Orakel-API · Preise und Integration",
+    "businessApiInvite": "Deutungen in den eigenen Dienst einbinden",
+    "businessApiManage": "Meine API verwalten"
   },
   "branches": {
     "자수": {

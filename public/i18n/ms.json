@@ -2693,7 +2693,11 @@
     },
     "disclaimerNote": "Analisis ialah tafsiran berdasarkan teori Myeongri. Untuk keputusan penting berkaitan perubatan, undang-undang atau pelaburan, sila buat keputusan bersama pakar dalam bidang tersebut.",
     "byline": "Perundingan Saju yang direka oleh Park Byeong-ha, pakar Myeongri dengan 10 tahun pengalaman",
-    "allServices": "Semua perkhidmatan"
+    "allServices": "Semua perkhidmatan",
+    "businessAudience": "Perniagaan dan pembangun",
+    "businessApiLink": "API ramalan · Harga dan integrasi",
+    "businessApiInvite": "Tambahkan bacaan ramalan pada perkhidmatan anda",
+    "businessApiManage": "Urus API saya"
   },
   "branches": {
     "자수": {

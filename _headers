@@ -50,6 +50,9 @@
 # 날짜별 재방문 자료는 유지하되 검색·광고용 독립 원고로 배포하지 않는다.
 /fortune/date*
   X-Robots-Tag: noindex, follow
+/business/api/dashboard*
+  Cache-Control: private, no-store
+  X-Robots-Tag: noindex, nofollow
 /account/delete*
   X-Robots-Tag: noindex, nofollow
 /account/password*

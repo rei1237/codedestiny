@@ -1,0 +1,141 @@
+.business-api {
+  background: #171b32;
+  color: #f8f3e7;
+  min-height: 100vh;
+  font: inherit;
+  line-height: 1.65;
+  padding: 0 clamp(16px, 5vw, 80px) 5rem;
+}
+.biz-wrap {
+  max-width: 70rem;
+  margin: auto;
+  min-width: 0;
+}
+.business-api nav,
+.biz-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: center;
+}
+.business-api nav {
+  padding: 1.3rem 0;
+  border-bottom: 1px solid #54546a;
+}
+.business-api nav a:first-child {
+  margin-right: auto;
+}
+.business-api h1 {
+  font-family: serif;
+  font-size: clamp(2rem, 5vw, 4rem);
+  max-width: 19em;
+  line-height: 1.25;
+  margin: 1.5em 0 0.55em;
+  text-wrap: balance;
+}
+.business-api h2 {
+  font-size: 1.6rem;
+  margin: 2rem 0 0.75rem;
+}
+.business-api h3 {
+  font-size: 1.24rem;
+  color: #ffdfa1;
+}
+.business-api a {
+  color: #ffdfa1;
+  text-decoration: underline;
+  text-underline-offset: 0.22em;
+}
+.business-api button,
+.business-api select,
+.biz-actions a {
+  border: 1px solid #92877a;
+  border-radius: 1.6rem;
+  padding: 0.6rem 1rem;
+  color: #fff7eb;
+  background: #252b45;
+  font: inherit;
+}
+.business-api button,
+.biz-actions a {
+  cursor: pointer;
+}
+.business-api button:disabled {
+  opacity: 0.65;
+  cursor: default;
+}
+.business-api .biz-primary {
+  background: #f8d99e;
+  color: #262033;
+  text-decoration: none;
+}
+.business-api :focus-visible {
+  outline: 3px solid #ffdda0;
+  outline-offset: 3px;
+}
+.biz-actions {
+  margin: 1.5rem 0;
+}
+.business-api aside,
+.biz-card {
+  border-top: 1px solid #555970;
+  padding: 1rem 0;
+}
+.business-api aside p,
+.biz-card small {
+  color: #d1cee0;
+}
+.biz-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr));
+  gap: 1.25rem;
+}
+.biz-card {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.biz-card[aria-current="true"] {
+  border-top-color: #efca88;
+}
+.biz-card > * {
+  margin: 0.4rem 0;
+}
+.biz-card button,
+.biz-card small {
+  display: block;
+}
+.business-api pre {
+  max-width: 100%;
+  min-width: 0;
+  max-height: 32rem;
+  overflow: auto;
+  background: #101426;
+  color: #f3ead6;
+  padding: 1rem;
+  border-radius: 0.75rem;
+  white-space: pre;
+  font-size: 0.9rem;
+}
+.business-api output {
+  overflow-wrap: anywhere;
+}
+.business-api section {
+  scroll-margin-top: 2rem;
+}
+.business-api label {
+  display: block;
+  margin: 1rem 0;
+}
+.business-api .biz-message {
+  color: #ffe2a7;
+}
+.biz-hero {
+  padding-bottom: 1rem;
+}
+.business-api button:hover:enabled,
+.biz-actions a:hover {
+  filter: brightness(1.15);
+}
+.biz-hero h1 {
+  word-break: keep-all;
+}

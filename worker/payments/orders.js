@@ -220,6 +220,7 @@ export async function createOrder(db, {
             priceCoins: product.priceCoins,
             monthlyCost: product.monthlyCost,
             billingType: product.billingType,
+            ...(product.billingType === 'business_api' ? { currency: 'KRW', businessTermsVersion: product.businessTermsVersion } : {}),
             ...(product.fulfillmentType==='service_pack'?{fulfillmentType:'service_pack',packSnapshot:product.packSnapshot}:{}),
             profileId, contentKey, scope, returnPath: normalizeOrderReturnPath(returnPath),
             ...birthSnapshotFields(birth),
@@ -233,7 +234,7 @@ export async function createOrder(db, {
           // 이유는 policy-versions.js buildRefundConsentRecord 머리주석(구버전 앱·옛 셸 보호).
           // 🔴 $setOnInsert 다: 같은 키로 재전송해도 **첫 기록이 이긴다**(이용권 passes.js 와 같은 계약) —
           // 증빙은 사용자가 처음 동의한 사실이고, 나중 요청이 그것을 덧쓰면 증빙이 아니게 된다.
-          refundConsent: buildRefundConsentRecord(refundConsent, { now, source: "direct_modal" }),
+          refundConsent: buildRefundConsentRecord(refundConsent, { now, source: product.billingType === "business_api" ? "business_api_checkout" : "direct_modal" }),
           createdAt: now,
           updatedAt: now,
         },
@@ -487,8 +488,8 @@ export async function markOrderFailed(db, { orderId, failureCode, failureMessage
 }
 
 /** T4 · PENDING → CANCELLED. 사용자가 결제창을 닫았거나, 크론이 만료 주문을 정리한다. */
-export async function markOrderCancelled(db, { orderId, userId, reason = "USER_CANCELLED", olderThan = null }) {
-  const filter = { merchantUid: orderId, status: "pending" };
+export async function markOrderCancelled(db, { orderId, userId, reason = "USER_CANCELLED", olderThan = null, includeFailed = false }) {
+  const filter = { merchantUid: orderId, status: includeFailed ? { $in: ["pending", "failed"] } : "pending" };
   // 사용자 요청이면 소유권을 함께 건다. 크론에는 주체가 없으므로 대신 나이 조건을 건다.
   if (userId) filter.userId = toObjectId(userId);
   if (olderThan) filter.createdAt = { $lt: olderThan };

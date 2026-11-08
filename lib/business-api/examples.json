@@ -1,0 +1,127 @@
+{
+  "saju": {
+    "pillars": {
+      "year": "甲戌",
+      "month": "己巳",
+      "day": "甲辰",
+      "hour": "戊辰"
+    },
+    "dayMaster": "甲"
+  },
+  "ziwei": {
+    "mingGong": "축",
+    "shenGong": "유",
+    "palaces": [
+      {
+        "name": "명궁",
+        "branch": "축",
+        "stars": [
+          "무곡",
+          "탐랑",
+          "천괴",
+          "타라"
+        ]
+      },
+      {
+        "name": "형제궁",
+        "branch": "자",
+        "stars": [
+          "천동",
+          "태음"
+        ]
+      },
+      {
+        "name": "부부궁",
+        "branch": "해",
+        "stars": [
+          "천부"
+        ]
+      },
+      {
+        "name": "자녀궁",
+        "branch": "술",
+        "stars": []
+      },
+      {
+        "name": "재백궁",
+        "branch": "유",
+        "stars": [
+          "염정",
+          "파군"
+        ]
+      },
+      {
+        "name": "질액궁",
+        "branch": "신",
+        "stars": [
+          "문곡",
+          "천마"
+        ]
+      },
+      {
+        "name": "천이궁",
+        "branch": "미",
+        "stars": [
+          "좌보",
+          "우필",
+          "천월",
+          "지공",
+          "영성"
+        ]
+      },
+      {
+        "name": "교우궁",
+        "branch": "오",
+        "stars": [
+          "문창"
+        ]
+      },
+      {
+        "name": "관록궁",
+        "branch": "사",
+        "stars": [
+          "자미",
+          "칠살",
+          "화성"
+        ]
+      },
+      {
+        "name": "전택궁",
+        "branch": "진",
+        "stars": [
+          "천기",
+          "천량"
+        ]
+      },
+      {
+        "name": "복덕궁",
+        "branch": "묘",
+        "stars": [
+          "천상",
+          "경양",
+          "지겁"
+        ]
+      },
+      {
+        "name": "부모궁",
+        "branch": "인",
+        "stars": [
+          "태양",
+          "거문",
+          "녹존"
+        ]
+      }
+    ]
+  },
+  "tarot": {
+    "spread": "one_card",
+    "cards": [
+      {
+        "id": "M00",
+        "name": "바보",
+        "direction": "upright",
+        "position": "오늘의 핵심"
+      }
+    ]
+  }
+}

@@ -11,7 +11,7 @@ function collectAppPages(rootDir) {
     for (const name of readdirSync(directory).sort()) {
       const absolutePath = join(directory, name);
       if (statSync(absolutePath).isDirectory()) {
-        if (name.startsWith("_") || name === "api") continue;
+        if (name.startsWith("_") || (segments.length === 0 && name === "api")) continue;
         walk(absolutePath, /^\(.*\)$/.test(name) ? segments : [...segments, name]);
         continue;
       }

@@ -2693,7 +2693,11 @@
     },
     "disclaimerNote": "Los análisis son interpretaciones basadas en la teoría del Myeongri. Para decisiones importantes de salud, legales o de inversión, decida junto con un profesional del área.",
     "byline": "Consultas de Saju diseñadas por Park Byeong-ha, especialista en Myeongri con 10 años de experiencia",
-    "allServices": "Todos los servicios"
+    "allServices": "Todos los servicios",
+    "businessAudience": "Empresas y desarrolladores",
+    "businessApiLink": "API de lecturas · Precios e integración",
+    "businessApiInvite": "Añade lecturas a tu servicio",
+    "businessApiManage": "Gestionar mi API"
   },
   "branches": {
     "자수": {

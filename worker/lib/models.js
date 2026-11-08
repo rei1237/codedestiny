@@ -2033,6 +2033,10 @@ userSchema.index({ referralCode: 1 }, { sparse: true });
 
 export const User = scopedModel(mongoose.models.User || mongoose.model("User", userSchema));
 export const ProfileCard = scopedModel(mongoose.models.ProfileCard || mongoose.model("ProfileCard", profileCardSchema));
+// Native collection operations use account or account/product as the unique _id.
+const businessApiSchema=new mongoose.Schema({_id:String},{strict:false});
+export const BusinessCredential=scopedModel(mongoose.models.BusinessCredential || mongoose.model('BusinessCredential',businessApiSchema));
+export const BusinessMeter=scopedModel(mongoose.models.BusinessMeter || mongoose.model('BusinessMeter',businessApiSchema));
 export const Payment = scopedModel(mongoose.models.Payment || mongoose.model("Payment", paymentSchema));
 // Browser-scoped analytics withdrawal receipts. Never contains a GA/client/customer ID.
 const analyticsWithdrawalSchema = new mongoose.Schema({
