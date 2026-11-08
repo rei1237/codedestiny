@@ -16,7 +16,7 @@ next: 1단계 연애 비책 — nature 그룹·반복 제거·결과 UI·글자�
 ## 지금 상태
 - 워크트리: `D:\Development\codedestiny-worktrees\premium-llm-chapter-upgrade-20261108`
 - 브랜치: `feat/premium-llm-chapter-upgrade`, origin/main `70eaf737b`에서 분기
-- 이 워크트리에는 `node_modules`가 없다. 처음 시작할 때 `npm ci`를 하거나, 메인 저장소의 `D:\Development\code-destiny\node_modules`를 쓰는 방법을 정해 이 문서에 적는다.
+- `node_modules`: 워크트리의 `node_modules`를 메인 저장소 `D:\Development\code-destiny\node_modules`로 가리키는 junction으로 만들었다(2026-11-08, `scripts/create-safe-worktree.ps1` 관례, `npm run worktree:remove`가 junction을 먼저 끊는다). 주의: 메인 체크아웃은 옛 브랜치라 버전이 뒤처진다(예: next 15.5.15 설치, package.json은 ^15.5.28. tiptap·capacitor도 다름). typecheck·build가 버전 차이로 실패하면 junction을 끊고 이 워크트리에서 `npm ci`를 한다.
 - 메인 저장소(`D:\Development\code-destiny`)는 다른 브랜치(feat/world-cast-page)에 미커밋 변경이 있다. 그쪽은 건드리지 않는다.
 
 ## 승인 상태 (2026-11-08)
@@ -54,6 +54,70 @@ next: 1단계 연애 비책 — nature 그룹·반복 제거·결과 UI·글자�
 - [ ] 11. 팩폭 작전실 (네오)
 - [ ] 12. 사주 맞춤 작명
 - [ ] 13. 영냥이 참치·모둠·오마카세
+
+## 1단계 진행 메모 (코드 수정 전, 조사·결정만 끝남)
+첫 에이전트가 조사 중 컨텍스트가 압축되어 결정만 적고 돌아왔다. 코드 파일은 아직 하나도 바꾸지 않았다. 아래 결정대로 바로 구현한다.
+
+### 조사로 확인한 사실
+- 운영에서는 handleStart가 항상 onCheckpoint를 넘기므로 요청 한 번에 그룹 하나(처음 실패한 그룹 또는 수리 대상)만 생성한다. 클라이언트는 202 `partial`이면 다시 요청한다. 그룹을 늘려도 그룹당 예산(12,500토큰 = tokensRequiredForChars(6500) 12,000 이상, 54초, 수리 24초, LLM 마감 86초)은 그대로다.
+- `LOVE_SECRET_AI_MIN_USABLE_GROUPS = LOVE_SECRET_AI_GROUPS.length`이다. 이 값은 구성(plan)마다 따로 계산해야 한다.
+- 라우트에서 `LOVE_SECRET_AI_GROUPS`를 쓰는 곳은 `generateFirstConsultation`(~875, 889, 895, 935)과 `publicSession`의 `retryable`(~1222)이다. 시드 `llmMeta.delivery`는 ~1585-1615에 있고, `existing`은 재시도 세션이다. `llmMeta`는 Mixed 타입이라 `llmMeta.delivery.groupPlanVersion`에 저장할 수 있다.
+- 보관함(`worker/lib/record-library.js`의 `withoutSecrets`)은 `llmMeta`를 지운다. 그래서 보관함 연애 비책에는 `sections`와 `reading`이 없다. 남는 것은 `messages`이고, 첫 assistant 메시지 = `answer` = 섹션들을 `제목\n본문`으로 만들어 `\n\n`으로 이은 글이다(PARSE max에서 자른다). 보관함 PDF 빌더는 알려진 섹션 제목으로 answer를 다시 나눠야 한다.
+- `buildLoveSecretGroupFacts`는 모르는 키를 core 빌더로 처리한다. 그래서 `nature`는 따로 수정하지 않아도 core 근거를 받는다.
+- 새 제목 두 개는 기존 `groupLoveSections`·`HANBI_TITLE` 정규식 어디에도 걸리지 않고, 화자는 yeoni로 나온다.
+- 갱신해야 할 테스트와 픽스처:
+  - `__tests__/worker/love-secret-ai-prompt.gate.test.js` (187행이 LOVE_SPEAKER_BY_GROUP 객체 전체를 비교한다)
+  - `__tests__/ui/love-secret-speaker.test.mjs`
+  - `__tests__/ui/signature-detail-chapters.test.mjs` (상세 패널 장 목록을 그룹 섹션·라벨·화자와 비교한다)
+  - `__tests__/worker/llm-json-output-schemas.test.js`
+  - `__tests__/worker/paid-report-length-recovery.test.js`
+  - `__tests__/ui/love-secret-paid-delivery.behavior.test.js`
+  - `scripts/verify-love-secret-ai-flow.mjs` (불변식: groups×GROUP_MIN ≥ TARGET_MIN, 섹션 수 = SECTION_TITLES 수, 조립 글자 수 ≤ MAX)
+  - `lib/dev-preview/fixtures/love-secret.ts`
+  - `content/product-details/love-secret/panels.cjs`: 28장 → 30장으로 바꾼다. hook "28개 주제", chaptersLabel "…28장", notice 문구를 함께 고친다. 공개 상세 페이지라 SEO 영향을 보고에 적는다.
+- 글자형 PDF는 `lib/pdf/export-ziwei-report-pdf.ts`를 바탕으로 만든다. 이 파일은 `registerPdfFontsSafely`가 null을 돌려주면 `PdfFontError`를 던지고, `createTypesetWriter`, `drawContentsPage`, `drawFooters`를 쓴다. 캡처 방식 대체의 선례는 `FusionFortuneClient.tsx` ~2757-2790이다(아직 읽지 않음).
+
+### 결정
+- **구성 버전**
+  - 지금 6그룹은 글자 하나 바꾸지 않고 `LOVE_SECRET_AI_GROUPS_V1`(version 1)로 둔다.
+  - 새 구성 `LOVE_SECRET_AI_GROUPS`(version 2)는 `[nature, core, self, partner, risk, timing, action]`이다.
+  - 기존 섹션 제목과 필드는 모두 그대로 둔다. guide와 covered만 고치고, `perspective` 필드("이 장만 맡는 관점")를 새로 넣는다.
+  - `loveSecretGroupsForPlan(version)`와 `LOVE_SECRET_AI_GROUP_PLAN_VERSION = 2`를 export한다. `STRUCTURED_SECTION_FIELDS`는 두 구성의 합집합으로 만든다.
+- **nature 그룹**
+  - 화자는 연이이고 필드는 두 개다.
+    - `natureArchetype`: "타고난 연애 기질 — 당신이 사랑하는 방식의 원형"
+    - `natureEmpathyScenes`: "그래서 이런 순간 마음이 먼저 움직여요"
+  - 본문 순서는 근거(일간·월지·오행)를 쉬운 말로 → 일상 장면 2~3개 → 이번 상담 주제로 연결이다.
+  - `LOVE_SPEAKER_BY_GROUP`에 `nature: "yeoni"`를 추가한다.
+- **프롬프트 규칙**
+  - 새 규칙 줄은 `group.perspective`가 있을 때만 넣는다. 그래야 V1 프롬프트가 글자 그대로 남는다.
+  - 모든 V2 그룹에 넣는 줄:
+    - 관점 한 줄
+    - "결국 중요한 것은/다시 말해/앞서 말했듯" 금지
+    - 같은 여는 말·맺는 말 반복 금지
+  - core: 질문을 첫 문장에서 한 번 인용한다. 성향 총론은 core 첫 섹션 guide에서 nature로 옮긴다.
+  - 나머지 V2 그룹: 질문을 다시 인용하지 않는다.
+  - nature: 질문에 답하거나 인용하지 않고, 마지막에 주제로 연결한다.
+  - 결과에 보이는 글에 "PDF"·"챕터"를 쓰지 않는다.
+  - `buildAdminLabPrompt`의 "6개 그룹" 문구를 구성 길이에 맞춘다.
+- **분량**
+  - TARGET_MIN 35,000 / TARGET_MAX 45,500(7×5,000 / 7×6,500), MAX_TOTAL과 PARSE_TEXT_MAX는 52,000으로 한다. MIN 20,000과 그룹당 5,000~6,500은 그대로 둔다.
+  - 설계는 "약 36,000"이지만 verify 불변식(groups×GROUP_MIN ≥ TARGET_MIN) 때문에 35,000으로 한다. 이 차이를 보고에 적는다.
+- **라우트**
+  - 시드 delivery에 `groupPlanVersion: existing ? (existing.llmMeta?.delivery?.groupPlanVersion || 1) : 2`를 넣는다.
+  - `generateFirstConsultation`에 구성 그룹을 넘기고, MIN_USABLE은 구성 길이로 계산한다. `publicSession`의 retryable도 저장된 버전의 구성을 쓴다. 진행용 `totalGroups`를 내보낸다.
+  - 조립 뒤에 섹션마다 `dropRepeatedReportSentences(body, 앞선 누적 텍스트)`를 적용한다. try/catch로 감싸고, 결과가 비면 원문을 쓴다. 그 뒤 answer와 totalChars를 다시 계산한다. 이 단계 때문에 전달이 실패하면 안 된다.
+  - 클라이언트에 그룹 수 6이 박혀 있는지 grep으로 확인한다(아직 하지 않음).
+- **결과 UI**
+  - variant `nature`를 추가한다. flow 배치의 강조 카드이고, 표시 순서와 MATCH_ORDER에서 맨 앞이다. match는 `/타고난\s*연애\s*기질|이런\s*순간\s*마음/`이다.
+  - `styles.cardNature`, `GROUP_ICON`, `VARIANT_CLASS`를 추가한다.
+  - 장 머리에 번호, 화자 칩, kicker를 넣는다. 목차(TOC)에 화자를 표시한다. 360px에서 확인한다.
+  - V2 순서의 제목 목록을 `love-secret-sections.ts`에 두고, 워커 제목과 같은지 테스트한다.
+- **PDF**
+  - `lib/pdf/export-consultation-book-pdf.ts`에 `typesetConsultationBook`과 `exportConsultationBookPdf`를 만든다. 입력은 `{title, productLabel, byline, coverArtSrc, coverTheme, chapters:[{kicker,title,body,speaker?}]}`이고, 글꼴 실패 시 PdfFontError를 던진다.
+  - 호출하는 쪽은 PdfFontError를 잡아 `exportResultPdf` 캡처로 대체한다.
+  - `app/love-secret-ai/result/love-secret-pdf-chapters.ts`에 `buildLoveSecretPdfChapters(consultation)`를 만든다. 섹션은 pdfSections 또는 sections에서 가져오고, 없으면 첫 assistant 메시지를 알려진 제목으로 나눈다. kicker는 그룹 라벨, speaker는 연이 또는 서한비다. 표지 byline은 "연이 · 서한비"다.
+  - 결과 화면 버튼과 보관함(`app/records/view/SavedServiceReading.tsx`의 love 분기에 버튼 추가)이 같은 빌더를 쓴다.
 
 ## 단계별 결과
 (단계를 마칠 때마다 커밋 SHA, 바꾼 파일, 검증 결과, 남은 일을 여기에 적는다.)
