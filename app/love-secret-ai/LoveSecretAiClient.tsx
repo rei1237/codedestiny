@@ -172,7 +172,7 @@ const LOVE_SECRET_CLIENT_EN: LoveSecretClientCopy = {
     "Building your chart from your birth info",
     "Examining the Five Elements, seasonal balance, Ten Gods, and divine stars",
     "Calculating your Major Luck, this year's flow, and good dates",
-    "Writing six branches of consultation at once",
+    "Writing seven branches of consultation at once",
     "Re-reading to make sure no part is missing evidence",
     "Getting ready to open the reading report in a new window",
   ],
@@ -287,7 +287,7 @@ const LOVE_SECRET_CLIENT_COPY: Partial<Record<LoadingLocale, LoveSecretClientCop
     },
     generatingSteps: [
       "생년 정보로 명식을 세우고 있어요", "오행·조후·십성과 신살을 살피고 있어요",
-      "대운과 올해 흐름, 좋은 날짜를 계산하고 있어요", "여섯 갈래의 상담을 동시에 쓰고 있어요",
+      "대운과 올해 흐름, 좋은 날짜를 계산하고 있어요", "일곱 갈래의 상담을 동시에 쓰고 있어요",
       "근거가 빠진 대목이 없는지 다시 읽고 있어요", "상담 리포트를 새 창에서 열 준비를 하고 있어요",
     ],
     analysisItems: [
@@ -395,7 +395,7 @@ const LOVE_SECRET_CLIENT_COPY: Partial<Record<LoadingLocale, LoveSecretClientCop
     },
     generatingSteps: [
       "生年情報から命式を立てています", "五行・調候・十神と神殺を調べています",
-      "大運と今年の流れ、良い日を計算しています", "六つの相談を同時に作成しています",
+      "大運と今年の流れ、良い日を計算しています", "七つの相談を同時に作成しています",
       "根拠が抜けている箇所がないか再確認しています", "相談レポートを新しいウィンドウで開く準備をしています",
     ],
     analysisItems: [
@@ -502,7 +502,7 @@ const LOVE_SECRET_CLIENT_COPY: Partial<Record<LoadingLocale, LoveSecretClientCop
     },
     generatingSteps: [
       "正在根据出生信息排出命盘", "正在查看五行、调候、十神与神煞",
-      "正在计算大运与今年走势、吉日", "正在同时撰写六个方向的咨询",
+      "正在计算大运与今年走势、吉日", "正在同时撰写七个方向的咨询",
       "正在重新检查是否有缺乏依据之处", "正在准备在新窗口打开咨询报告",
     ],
     analysisItems: [
@@ -609,7 +609,7 @@ const LOVE_SECRET_CLIENT_COPY: Partial<Record<LoadingLocale, LoveSecretClientCop
     },
     generatingSteps: [
       "正在根據出生資訊排出命盤", "正在查看五行、調候、十神與神煞",
-      "正在計算大運與今年走勢、吉日", "正在同時撰寫六個方向的諮詢",
+      "正在計算大運與今年走勢、吉日", "正在同時撰寫七個方向的諮詢",
       "正在重新檢查是否有缺乏依據之處", "正在準備在新視窗開啟諮詢報告",
     ],
     analysisItems: [
@@ -722,7 +722,7 @@ const LOVE_SECRET_CLIENT_COPY: Partial<Record<LoadingLocale, LoveSecretClientCop
     },
     generatingSteps: [
       "Đang lập lá số từ thông tin ngày sinh", "Đang xem xét Ngũ Hành, điều hầu, Thập Thần và Thần Sát",
-      "Đang tính toán Đại Vận, dòng chảy năm nay và ngày tốt", "Đang viết đồng thời sáu nhánh tư vấn",
+      "Đang tính toán Đại Vận, dòng chảy năm nay và ngày tốt", "Đang viết đồng thời bảy nhánh tư vấn",
       "Đang đọc lại để đảm bảo không thiếu bằng chứng", "Đang chuẩn bị mở báo cáo tư vấn trong cửa sổ mới",
     ],
     analysisItems: [
@@ -831,7 +831,7 @@ const LOVE_SECRET_CLIENT_COPY: Partial<Record<LoadingLocale, LoveSecretClientCop
     },
     generatingSteps: [
       "जन्म जानकारी से कुंडली बनाई जा रही है", "पंचतत्व, ऋतु संतुलन, दस देवता और शुभ-अशुभ सितारों की जांच हो रही है",
-      "महादशा, इस वर्ष का प्रवाह और शुभ तिथियां गणना हो रही हैं", "छह दिशाओं में परामर्श एक साथ लिखा जा रहा है",
+      "महादशा, इस वर्ष का प्रवाह और शुभ तिथियां गणना हो रही हैं", "सात दिशाओं में परामर्श एक साथ लिखा जा रहा है",
       "कोई प्रमाण छूटा तो नहीं, दोबारा जांचा जा रहा है", "परामर्श रिपोर्ट को नई विंडो में खोलने की तैयारी हो रही है",
     ],
     analysisItems: [
@@ -945,7 +945,7 @@ const LOVE_SECRET_CLIENT_COPY: Partial<Record<LoadingLocale, LoveSecretClientCop
     },
     generatingSteps: [
       "Construyendo tu carta a partir de tu información de nacimiento", "Examinando los Cinco Elementos, el equilibrio estacional, los Diez Dioses y las estrellas divinas",
-      "Calculando tu Gran Fortuna, el flujo de este año y las buenas fechas", "Escribiendo seis ramas de la consulta a la vez",
+      "Calculando tu Gran Fortuna, el flujo de este año y las buenas fechas", "Escribiendo siete ramas de la consulta a la vez",
       "Releyendo para asegurarnos de que no falte evidencia en ninguna parte", "Preparándonos para abrir el informe de la consulta en una nueva ventana",
     ],
     analysisItems: [
@@ -1059,7 +1059,7 @@ const LOVE_SECRET_CLIENT_COPY: Partial<Record<LoadingLocale, LoveSecretClientCop
     },
     generatingSteps: [
       "Construction de votre thème à partir de vos informations de naissance", "Examen des Cinq Éléments, de l'équilibre saisonnier, des Dix Dieux et des étoiles divines",
-      "Calcul de votre Grande Fortune, du flux de cette année et des bonnes dates", "Rédaction simultanée de six branches de consultation",
+      "Calcul de votre Grande Fortune, du flux de cette année et des bonnes dates", "Rédaction simultanée de sept branches de consultation",
       "Relecture pour s'assurer qu'aucune preuve ne manque", "Préparation de l'ouverture du rapport de consultation dans une nouvelle fenêtre",
     ],
     analysisItems: [
@@ -1173,7 +1173,7 @@ const LOVE_SECRET_CLIENT_COPY: Partial<Record<LoadingLocale, LoveSecretClientCop
     },
     generatingSteps: [
       "Erstellung Ihres Charts aus Ihren Geburtsinformationen", "Untersuchung der Fünf Elemente, des jahreszeitlichen Gleichgewichts, der Zehn Götter und der göttlichen Sterne",
-      "Berechnung Ihres großen Glücks, des diesjährigen Verlaufs und guter Termine", "Gleichzeitiges Schreiben von sechs Beratungszweigen",
+      "Berechnung Ihres großen Glücks, des diesjährigen Verlaufs und guter Termine", "Gleichzeitiges Schreiben von sieben Beratungszweigen",
       "Erneutes Lesen, um sicherzustellen, dass keine Beweise fehlen", "Vorbereitung, den Beratungsbericht in einem neuen Fenster zu öffnen",
     ],
     analysisItems: [
@@ -1287,7 +1287,7 @@ const LOVE_SECRET_CLIENT_COPY: Partial<Record<LoadingLocale, LoveSecretClientCop
     },
     generatingSteps: [
       "Je horoscoop wordt opgesteld op basis van je geboortegegevens", "De Vijf Elementen, seizoensbalans, Tien Goden en goddelijke sterren worden onderzocht",
-      "Je grote geluk, de stroom van dit jaar en goede data worden berekend", "Zes takken van consult worden tegelijk geschreven",
+      "Je grote geluk, de stroom van dit jaar en goede data worden berekend", "Zeven takken van consult worden tegelijk geschreven",
       "Er wordt opnieuw gelezen om te zorgen dat nergens bewijs ontbreekt", "Het consultrapport wordt klaargemaakt om in een nieuw venster te openen",
     ],
     analysisItems: [
@@ -1401,7 +1401,7 @@ const LOVE_SECRET_CLIENT_COPY: Partial<Record<LoadingLocale, LoveSecretClientCop
     },
     generatingSteps: [
       "Membina carta anda daripada maklumat kelahiran anda", "Meneliti Lima Elemen, keseimbangan musim, Sepuluh Dewa dan bintang ketuhanan",
-      "Mengira Nasib Besar anda, aliran tahun ini dan tarikh baik", "Menulis enam cabang perundingan secara serentak",
+      "Mengira Nasib Besar anda, aliran tahun ini dan tarikh baik", "Menulis tujuh cabang perundingan secara serentak",
       "Membaca semula untuk memastikan tiada bukti yang tertinggal", "Bersedia untuk membuka laporan perundingan dalam tetingkap baharu",
     ],
     analysisItems: [
@@ -2517,7 +2517,7 @@ export default function LoveSecretAiPage({ paymentNotice, paymentSurface = "web"
       {/* 소개용 공동 마스터 프로필 — 상담 진행·결과 안내 중에는 내리고, 사전이 없는 다른 로케일에는 띄우지 않는다. */}
       {copy === LOVE_SECRET_CLIENT_COPY.ko && !busy && !resultUrl && <MasterProfileGroup id={LOVE_MASTERS_ANCHOR_ID}
         title="연애 비책을 함께 쓰는 두 마스터"
-        lead="연이가 당신의 마음과 다가가는 방법을, 서한비가 상대와 두 사람 사이의 거리·갈등·시기를 맡아 여섯 부를 나눠 씁니다."
+        lead="연이가 당신의 마음과 다가가는 방법을, 서한비가 상대와 두 사람 사이의 거리·갈등·시기를 맡아 일곱 부를 나눠 씁니다."
         profiles={LOVE_MASTERS} />}
     </main>
   );
