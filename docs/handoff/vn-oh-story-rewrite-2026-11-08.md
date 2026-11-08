@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-09
-next: 4-① 호랑이 존댓말·분량 경고 수정 후 4-② 직접 번역
+next: 4-② 언어별 변경/신규 비트 직접 번역 후 완결성 검사
 ---
 
 # VN 스토리 개선 (oh-story 활용) 인수인계
@@ -424,7 +424,19 @@ next: 4-① 호랑이 존댓말·분량 경고 수정 후 4-② 직접 번역
 - `public/codedestiny-novel.html`에서 개고 화 재생·북마크 확인.
 
 ## 단계 4 (2026-11-09)
-- [ ] 4-① 호랑이 존댓말 전체 확인·EP.37/47/50 분량 경고
+- [x] 4-① 호랑이 존댓말 전체 확인·EP.37/47/50 분량 경고
 - [ ] 4-② en / ja / zh-CN / zh-TW 직접 번역·용어집·누락 감사·게시 복구
 - [ ] 4-③ novel:build·story-sync·sitemap·check:fast·번역·플레이어 검사
 - [ ] 4-④ main 반영·CI·운영 배포·운영 재생/북마크/언어 확인
+
+## 4-① 결과 (2026-11-09)
+- tiger 전 화 246개 대사를 읽고 134개 존댓말로 수정(대상 14화). 독백도 존댓말이며 pje 관계 말투는 유지. EP.28D:54는 「그 애한테서 손 떼세요. 당장요!」로 긴장 보존. EP.10 별 둘 평가는 연이 전용 장치와 충돌해 「그럭저럭」으로 수정. 비트 id·rev 유지. 바이블 말투 표에 예외 없는 tiger 규칙 추가.
+- EP.37 등잔을 돌아올 때 확인하려는 행동 2비트, EP.47 돌아갈 방향을 국자 박자로 익히는 장면 1비트, EP.50 모르는 이름의 반환과 두 세계 선택의 망설임 3비트. EP.50 기존 내면 장면 2곳에 im 표시(새 자산 없음). 세 화 본문·im 경고 해소.
+- novel:build 통과(73화 7,928비트), verify:story-sync OK, sitemap:generate 완료. 남은 11개 경고는 다른 화 분량·기존 fx 밀도이며 요청 범위 밖. fx를 경고 해소용으로 남발하지 않음. 결제·인증·API·DB·라우팅 불변.
+
+## 4-② 재개 기준·분담 (2026-11-09)
+- 컨텍스트가 길어져 AGENTS.md 인수인계 규칙에 따라 번역을 새 에이전트에 언어별로 나누어 전달한다. en / ja / zh(CN+TW) 각각 자기 번역 파일만 편집·소규모 커밋. 원고는 4-①에서 고정되었으며 현재 7,928비트.
+- authored 형식은 en: beats[].t, ja: rows[].translations.ja, zh: rows[].translations[zh-CN/zh-TW]. 각 행 source/sourceHash가 원문과 같아야 한다. 언어당 변경 약 1,258+신규 286. 정확한 수치는 번역 감사에서 계산.
+- scripts/lib/novel-authored-merge.mjs의 assembleNovelAuthored로 오프라인 조립 가능. 실행기 merge-novel-authored.mjs는 없으며 자동 번역 실행 금지. 이전 번역 sourceHash는 34490a1621a056bc7c4d9c4f625bd71b787a7711fc83a5790846b911dc731be0.
+- check:fast --plan 실행, check:fast 진행 중(시작 PID 17692; 완료 출력은 아직 미회수). 최종 단계에서 결과 확인이 필요.
+- root/main에는 origin/main..main 커밋이 없었음. fetch 후 origin/main=9e8cec0a6(다른 작업 진행 중이므로 최종 재확인). 현 브랜치 기준 cc1ae9598 이후의 이 작업 18개 기존 커밋+이번 커밋만 반영할 것.
