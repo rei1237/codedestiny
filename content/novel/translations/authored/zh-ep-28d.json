@@ -494,11 +494,11 @@
     },
     {
       "id": "ep-28d:54",
-      "source": "그 애한테서 손 떼.",
-      "sourceHash": "0e064a3593ad8e808b1aefc1e8841a57842379d1d075d1a420cfbf940b5929bb",
+      "source": "그 애한테서 손 떼세요. 당장요!",
+      "sourceHash": "9fae07dceaac0856ec26770acb0c19e47560578fc5089eaba343f0b4d2367a1d",
       "translations": {
-        "zh-CN": "把手从她身上拿开。",
-        "zh-TW": "把手從她身上拿開。"
+        "zh-CN": "把手从那孩子身上拿开。现在就拿开！",
+        "zh-TW": "把手從那孩子身上拿開。現在就拿開！"
       }
     },
     {
@@ -521,11 +521,11 @@
     },
     {
       "id": "ep-28d:57",
-      "source": "안 잊었어. 그래서 이번엔 내가 갚는 거야.",
-      "sourceHash": "a6ded3825347b8a8dc51f82385db41665316aec49a5d8ebc5d67beb98be19fd7",
+      "source": "안 잊었어요. 그래서 제가 갚겠다는 거예요.",
+      "sourceHash": "5a2aa8d0531ad631544fdee7d54bea29ea8797c82358e3336d6d4711f1c0f4b6",
       "translations": {
-        "zh-CN": "没忘。所以，这次由我来还。",
-        "zh-TW": "沒忘。所以，這次由我來還。"
+        "zh-CN": "没有忘。所以才要由我来还。",
+        "zh-TW": "沒有忘。所以才要由我來還。"
       }
     },
     {
