@@ -64,10 +64,10 @@ next: "2단계 후속: main PR CI Static guards 실패(verify:saju-summary-brows
 - [x] `git push origin HEAD:main`. 그 뒤 main CI 결과를 한 번만 확인한다(폴링 금지). 다른 사람 커밋으로 main이 이미 빨갛다면 그 커밋을 보고한다.
 
 ### 3. 운영 승격 (승인됨, 1회)
-- [ ] main CI 통과를 확인한다. 운영 릴리스 전 검증으로 `npm run verify:release`를 한다(CLAUDE.md 92행).
-- [ ] `gh workflow run "Release Cloudflare Pages and Worker" --ref main -f mode=production`
-- [ ] 그 실행 하나의 결과를 확인한다(`gh run watch <id>` 한 번). 릴리스 잡이 스모크, SHA 대조, 실패 시 자동 롤백을 맡는다.
-- [ ] 운영에서 `/fortune/today/pig/`와 `/fortune/tomorrow/aries/`를 열어 웹툰 7컷과 대사를 확인한다. legacy-cleanup 301 매핑표(`docs/seo/2026-11-08-legacy-cleanup-redirects.md`)에서 몇 개를 골라 301 한 번에 200이 나오는지 본다.
+- [x] main CI 통과를 확인한다. 운영 릴리스 전 검증으로 `npm run verify:release`를 한다(CLAUDE.md 92행).
+- [x] `gh workflow run "Release Cloudflare Pages and Worker" --ref main -f mode=production`
+- [x] 그 실행 하나의 결과를 확인한다(`gh run watch <id>` 한 번). 릴리스 잡이 스모크, SHA 대조, 실패 시 자동 롤백을 맡는다.
+- [x] 운영에서 `/fortune/today/pig/`와 `/fortune/tomorrow/aries/`를 열어 웹툰 7컷과 대사를 확인한다. legacy-cleanup 301 매핑표(`docs/seo/2026-11-08-legacy-cleanup-redirects.md`)에서 몇 개를 골라 301 한 번에 200이 나오는지 본다.
 - 롤백: Actions → *Release Cloudflare Pages and Worker* → `mode: rollback`(`npm run deploy:rollback -- --list`로 대상 확인).
 
 ### 4. Play 배포 절차 (승인됨)
@@ -99,6 +99,12 @@ next: "2단계 후속: main PR CI Static guards 실패(verify:saju-summary-brows
     - 별건(CI 밖, 손대지 않음): `verify-relationship-inline-browser`는 3107 포트 외부 서버가 있어야 돈다. `verify-fortune-consultation-ux`는 입구 클릭 뒤 99행(`#letterContent .saju-letter` readingMode 대기)에서 타임아웃 — 입구 변경과 무관.
 
   - push `70eaf737b..cc1ae9598` 뒤 PR CI 42431515558도 실패: 이번엔 Static guards 첫 단계 `verify:handoff-contract`(허용 status는 active|blocked|done, 전역 규칙의 `in-progress`는 이 저장소에서 쓰면 안 됨) — 이 문서·android 문서 `status: active`, legacy 문서에 프론트매터 추가. 같은 잡의 나머지 가드 124개를 로컬에서 전부 돌려 `verify:mobile-entry-actions` 실패 1건(`/tadagochi` 삭제, 301은 `public/_worker.js`라 가드가 못 봄)을 더 찾아 `docs/design/mobile-feature-registry.md` 입구를 `/ggulggul/#dpMasterCard`로 고쳤다.
+
+  - push `cc1ae9598..1a9f0fb18` → PR CI **42435934902 success**(CI required success).
+- 3단계: 운영 릴리스 run **42437586072 success**(release 잡, Pages·Worker SHA 모두 1a9f0fb18d02). verify:release는 70eaf737b 기준 exit 0, 이후 변경은 테스트·문서뿐.
+  - 운영 `/fortune/today/pig/`·`/fortune/tomorrow/aries/` 200, 웹툰 7컷, 컷 이미지 7장 200, 네오 대사 `일진은 병술(丙戌)일이야`·`정해(丁亥)일이야`.
+  - 301 확인 10건 모두 301 한 번 → 200: /fpti, /saju-picture, /famous/, /fortune/sikojen-povailu, /dev-status, /tadagochi(.html), /static/geomancy-oracle-v4.html, /fortune-tea-house/tarot-debug, /sukyo/relationship-encyclopedia.
+- 4단계: 병합 워크트리(1a9f0fb18)에서 VERSION_CODE 58 빌드. 스크립트 `D:\Development\Temp\claude\ec29f026d20d029c\ccecc842-2a09-4af6-b3e9-689ca5d1e944\scratchpad\build-android-58.ps1`(서명 설정 `release-signing.properties`를 android 워크트리에서 복사, git 무시 파일). 출력 `D:\Development\code-destiny\output\android-size-widget-20261107\final6`.
 
 ## 이어받는 쪽 첫 행동 (2026-11-08 갱신)
 1. 병합 워크트리 `D:\Development\codedestiny-worktrees\release-merge-20261108`(detached, node_modules junction)에서 `git fetch origin`. origin/main이 앞서 있으면 rebase한다.
