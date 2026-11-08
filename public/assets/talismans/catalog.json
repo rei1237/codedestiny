@@ -227,7 +227,7 @@
       "src": "/assets/talismans/originals/yeoni-pig-moon.png",
       "width": 852,
       "height": 1846,
-      "sha256": "30781543ba73b11f8c00c7917852f94e66eb2bc6c104b7ba1f5f24c788210fd2"
+      "sha256": "023fd96bebfd50e97645173977da5acef58372d16056bce1c8445797f69745d7"
     },
     {
       "id": "pig-gold-seed",
@@ -250,8 +250,8 @@
       "language": "ko",
       "src": "/assets/talismans/originals/pig-camellias.png",
       "width": 852,
-      "height": 1847,
-      "sha256": "f85be27df28b82f91a2f11caba084e38a782b787f0a45dc66bd6c9b7ef470f98"
+      "height": 1846,
+      "sha256": "73b709dbaa2638003468f45f5334498c1e75a9f86ae04e681eb0f5bccfe0a4ba"
     },
     {
       "id": "pig-reunion-knot",
@@ -263,7 +263,7 @@
       "src": "/assets/talismans/originals/pig-reunion-knot.png",
       "width": 852,
       "height": 1846,
-      "sha256": "b028b9010993a34dba27dc5f696bc323ff45fa9925c4ef2b2db58b6e01950016"
+      "sha256": "0dab490466ff175e987c7c03647189e222d704b3f44761e4a937420425a28e19"
     },
     {
       "id": "cat-star-chart",
@@ -287,7 +287,7 @@
       "src": "/assets/talismans/originals/pig-moon-tea.png",
       "width": 852,
       "height": 1846,
-      "sha256": "afb6ded3e2ac5382447ed586a88b03eae50cecd927e662c7295ebaa5242dd781"
+      "sha256": "a45d5e3ad870179690e6a0934bf46508b0ce1088cc5042243cfe17be5350ed38"
     }
   ]
 }
