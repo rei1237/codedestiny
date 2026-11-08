@@ -2030,3 +2030,101 @@
   letter-spacing: 0.02em;
   color: #fff;
 }
+
+/* ---------- ④-1 슬롯 공개(계산 → 결과): 후보 카드 릴이 감속해 멈춘 뒤 뒤집힌다 ---------- */
+.slotReveal {
+  display: grid;
+  justify-items: center;
+  text-align: center;
+  gap: 12px;
+  padding: 24px 0;
+}
+
+.slotWindow {
+  position: relative;
+  width: 168px;
+  height: 236px;
+  overflow: hidden;
+  border-radius: var(--dbk-radius);
+  box-shadow: var(--dbk-shadow);
+  perspective: 900px;
+}
+
+.slotReel {
+  display: flex;
+  height: 100%;
+  will-change: transform;
+}
+
+.slotCard {
+  position: relative;
+  flex: 0 0 168px;
+  height: 100%;
+}
+
+.slotTarget {
+  perspective: 900px;
+}
+
+.slotFlip {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+}
+
+.slotFace {
+  position: absolute;
+  inset: 8px;
+  display: grid;
+  grid-template-rows: 1fr auto;
+  justify-items: center;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 8px 12px;
+  border-radius: 16px;
+  border: 1px solid var(--dbk-line);
+  background: var(--dbk-card);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.slotFace img {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  object-fit: contain;
+}
+
+.slotFace b {
+  font-size: 14px;
+  color: var(--dbk-ink);
+}
+
+.slotBack {
+  transform: rotateY(180deg);
+  border-color: var(--dbk-gold);
+  background: radial-gradient(circle at 50% 35%, var(--dbk-lilac), var(--dbk-card) 70%);
+}
+
+.slotBack b {
+  color: var(--dbk-gold);
+}
+
+/* ---------- ⑥ 상세 리포트 잠금(details 단계 진입 전) ---------- */
+.detailsLock {
+  display: grid;
+  gap: 12px;
+  border: 1px solid var(--dbk-gold);
+}
+
+.detailsLockList {
+  margin: 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 4px;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--dbk-ink-soft);
+}

@@ -324,7 +324,8 @@ const RAW_FEATURE_KEY_PRICE_TABLE = Object.freeze({
   "psychotest-reading": { cost: 30, amountKRW: 3000, reason: "심리테스트 티저 해석" },
   "mbti-animal-compat": { cost: 30, amountKRW: 3000, reason: "MBTI 동물 궁합 티저 해석" },
   "nakshatra-basic-reading": { cost: 30, amountKRW: 3000, reason: "나크샤트라 티저 해석" },
-  "destiny-bias-analyze": { cost: 50, amountKRW: 5000, reason: "최애운명 케미 분석" },
+  // 2026-11-08: 결과 카드·포토카드·공유는 무료, 이 키는 상세 케미 리포트(details 단계)만 연다.
+  "destiny-bias-analyze": { cost: 50, amountKRW: 5000, reason: "최애운명 상세 케미 리포트" },
   destiny_meeting_place: { cost: 50, amountKRW: 5000, reason: "사주로 보는 인연의 장소 1회 분석" },
   premiumTarot: { cost: 100, reason: "프리미엄 타로 리딩" },
   // 손금은 Gemini Vision 판독(손당 1회) + 심층 해석까지 한 번에 제공하는 단일 상품이다.

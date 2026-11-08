@@ -1,7 +1,8 @@
 "use client";
 
 // 최애운명 — "내 최애 × 나 케미" 오케스트레이터.
-// 7단계: hook → pick → info → computing → result(core) → details → share.
+// 7단계: hook → pick → info → computing → (슬롯 공개) → result(core) → details → share.
+// 결과 카드·포토카드·공유는 무료, details(상세 케미 리포트)만 destiny-bias-analyze 단건 결제다(2026-11-08 사용자 결정 "결과 카드만 무료").
 // 계산은 전부 결정론(lib/idol-chemi). 생년월일은 메모리·프로필 카드에서만 쓰고 저장·URL·카드에 넣지 않는다.
 
 import { RecommendationResult } from "@/app/components/recommendations/RecommendationResult";
@@ -39,6 +40,8 @@ import ChemiHook from "./components/chemi/ChemiHook";
 import IdolPicker from "./components/chemi/IdolPicker";
 import MyInfoPanel, { type MyInfoValue } from "./components/chemi/MyInfoPanel";
 import ChemiComputing from "./components/chemi/ChemiComputing";
+import ChemiSlotReveal from "./components/chemi/ChemiSlotReveal";
+import ViralShareBar from "@/app/components/ViralShareBar";
 import ChemiReportTabs from "./components/chemi/ChemiReportTabs";
 import ChemiCoreCard, { toPhotocardView } from "./components/chemi/ChemiCoreCard";
 import PhotocardDeco from "./components/chemi/PhotocardDeco";
@@ -177,6 +180,11 @@ function engineErrorMessage(caught: unknown) {
   return friendlyErrorMessage(caught, "계산 중 문제가 생겼어요. 잠시 후 다시 시도해 주세요.");
 }
 
+/** 상세 리포트 해금 단위: 같은 최애 × 같은 생일. 무드·테마를 바꿔도 다시 결제하지 않는다. */
+function detailsKeyFor(partner: ChemiPartnerRef, infoValue: MyInfoValue) {
+  return `${partner.kind}:${partner.id}:${infoValue.birthDateInput}:${infoValue.calendarType}`;
+}
+
 function buildInviteUrl(partner: ChemiPartnerRef, channel: string) {
   const origin = typeof window !== "undefined" ? window.location.origin : "https://code-destiny.com";
   const key = partner.kind === "roster" ? "m" : "p";
@@ -245,6 +253,9 @@ export default function DestinyBiasClient() {
   const [moods, setMoods] = useState<Moods>({ biasMood: DEFAULT_BIAS_MOOD, relationMood: DEFAULT_RELATION_MOOD });
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
   const [resultSeq, setResultSeq] = useState(0);
+  const [revealing, setRevealing] = useState(false);
+  const [unlockedDetailKeys, setUnlockedDetailKeys] = useState<string[]>([]);
+  const [detailsError, setDetailsError] = useState("");
 
   const coreCardRef = useRef<HTMLDivElement | null>(null);
   const shareCanvasRef = useRef<HTMLDivElement | null>(null);
@@ -313,12 +324,12 @@ export default function DestinyBiasClient() {
 
   // 결과 도착 시 포커스 이동(스크린리더·키보드)
   useEffect(() => {
-    if (step !== "result" || !resultSeq) return;
+    if (step !== "result" || !resultSeq || revealing) return;
     const node = coreCardRef.current;
     if (!node) return;
     node.focus({ preventScroll: true });
     node.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "start" });
-  }, [step, resultSeq, reduceMotion]);
+  }, [step, resultSeq, reduceMotion, revealing]);
 
   useBackNavigation({
     scope: "analysis",
@@ -356,6 +367,7 @@ export default function DestinyBiasClient() {
       }
       setInfoError("");
       setShareStatus(null);
+      setDetailsError("");
       const token = ++computingTokenRef.current;
       setStep("computing");
       const startedAt = Date.now();
@@ -385,6 +397,7 @@ export default function DestinyBiasClient() {
         return;
       }
       setOutcome(next);
+      setRevealing(!reduceMotion);
       setResultSeq((value) => value + 1);
       setStep("result");
       setRecentResults(
@@ -417,6 +430,16 @@ export default function DestinyBiasClient() {
     [from, moods, reduceMotion, themeKey, trackClick, trackFunnelStep],
   );
 
+  // 결과는 무료로 바로 계산한다(결제·로그인 없음).
+  const compute = computeCore;
+
+  const unlockDetails = useCallback((target: ChemiPartnerRef, infoValue: MyInfoValue) => {
+    const key = detailsKeyFor(target, infoValue);
+    setUnlockedDetailKeys((keys) => (keys.includes(key) ? keys : [...keys, key]));
+    trackFunnelStep({ funnel: FUNNEL, step: "details_unlocked", stepIndex: 5 });
+  }, [trackFunnelStep]);
+
+  // 로그인·결제 페이지를 다녀온 뒤: 같은 입력으로 결과를 다시 만들고 상세 리포트를 연다.
   const buildAnalyzeResume = usePaidResume(DESTINY_BIAS_ANALYZE_FEATURE_KEY, async (args) => {
     const payload = unpackPaidResumeArg<{
       partner: ChemiPartnerRef;
@@ -429,45 +452,39 @@ export default function DestinyBiasClient() {
     setPartner(resumedPartner);
     setInfo(payload.info);
     await computeCore(resumedPartner, payload.info, payload.source);
+    unlockDetails(resumedPartner, payload.info);
     return true;
   });
 
-  const compute = useCallback(
-    async (target: ChemiPartnerRecord, infoValue: MyInfoValue, source: "form" | "switch" | "replay") => {
-      if (isPaying) return;
-      const validation = validateBirthInput(infoValue.birthDateInput);
-      if (validation) {
-        setInfoError(validation);
-        setStep("info");
-        return;
+  /** details 단계 진입: 상세 케미 리포트는 destiny-bias-analyze 단건 결제(로그인·결제 모달은 공용 게이트가 띄운다). */
+  const openDetails = useCallback(async () => {
+    if (!outcome || isPaying) return;
+    setDetailsError("");
+    trackClick("destiny_bias_details_open", { chemi_type_id: outcome.result.chemiTypeId });
+    if (!DESTINY_BIAS_ANALYZE_PRICING) {
+      setDetailsError("결제 가격을 확인하지 못했어요. 잠시 후 다시 시도해 주세요.");
+      return;
+    }
+    const target = outcome.partner;
+    const gate = await ensurePaidAccess({
+      resume: buildAnalyzeResume({
+        payload: packPaidResumeArg({ partner: { kind: target.kind, id: target.id }, info, source: "form" }),
+      }),
+      featureKey: DESTINY_BIAS_ANALYZE_FEATURE_KEY,
+      coinPrice: DESTINY_BIAS_ANALYZE_PRICING.cost,
+      cost: DESTINY_BIAS_ANALYZE_PRICING.cost,
+      amountKRW: DESTINY_BIAS_ANALYZE_PRICING.amountKRW,
+      reason: "최애운명 상세 케미 리포트",
+      requestId: `${DESTINY_BIAS_ANALYZE_FEATURE_KEY}:${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
+    });
+    if (!gate.ok) {
+      if (gate.code !== "PAYMENT_CANCELLED") {
+        setDetailsError(gate.message || "결제를 완료하지 못했어요. 잠시 후 다시 시도해 주세요.");
       }
-      if (!DESTINY_BIAS_ANALYZE_PRICING) {
-        setInfoError("결제 가격을 확인하지 못했어요. 잠시 후 다시 시도해 주세요.");
-        setStep("info");
-        return;
-      }
-      const gate = await ensurePaidAccess({
-        resume: buildAnalyzeResume({
-          payload: packPaidResumeArg({ partner: { kind: target.kind, id: target.id }, info: infoValue, source }),
-        }),
-        featureKey: DESTINY_BIAS_ANALYZE_FEATURE_KEY,
-        coinPrice: DESTINY_BIAS_ANALYZE_PRICING.cost,
-        cost: DESTINY_BIAS_ANALYZE_PRICING.cost,
-        amountKRW: DESTINY_BIAS_ANALYZE_PRICING.amountKRW,
-        reason: "최애운명 케미 분석",
-        requestId: `${DESTINY_BIAS_ANALYZE_FEATURE_KEY}:${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
-      });
-      if (!gate.ok) {
-        if (gate.code !== "PAYMENT_CANCELLED") {
-          setInfoError(gate.message || "결제를 완료하지 못했어요. 잠시 후 다시 시도해 주세요.");
-        }
-        setStep("info");
-        return;
-      }
-      await computeCore(target, infoValue, source);
-    },
-    [buildAnalyzeResume, computeCore, ensurePaidAccess, isPaying],
-  );
+      return;
+    }
+    unlockDetails(target, info);
+  }, [buildAnalyzeResume, ensurePaidAccess, info, isPaying, outcome, trackClick, unlockDetails]);
 
   /** 무드를 바꾸면 같은 입력으로 리포트만 다시 만든다(계산 화면·스크롤 이동 없음). */
   const handleMoodChange = useCallback(
@@ -534,19 +551,6 @@ export default function DestinyBiasClient() {
   }, [trackClick]);
 
   const shareTitle = outcome ? `${outcome.partner.displayName} × 나 = ${outcome.result.chemiTypeNameKo}` : "최애운명";
-
-  const handleInvite = useCallback(async () => {
-    if (!outcome) return;
-    const url = buildInviteUrl(outcome.partner, "copy");
-    trackShare({ feature: "destiny-bias-chemi", channel: "link" });
-    trackFunnelStep({ funnel: FUNNEL, step: "share_click", stepIndex: 5 });
-    const res = await shareThrough("copy", { title: shareTitle, text: outcome.copy.oneLiner, url });
-    setShareStatus(
-      res.status === "copied"
-        ? { tone: "ok", text: "친구에게 보낼 링크를 복사했어요. 친구는 자기 생일만 넣으면 같은 최애와 케미를 볼 수 있어요." }
-        : { tone: "warn", text: `복사가 막혀 있어요. 이 주소를 직접 보내 주세요: ${url}` },
-    );
-  }, [outcome, shareTitle, trackFunnelStep, trackShare]);
 
   /** 1080px 공유 카드를 PNG 로 찍는다. 실패하면 null(호출자가 폴백을 고른다). */
   const exportShareCardBlob = useCallback(async (includeDevicePhoto = false): Promise<Blob | null> => {
@@ -633,25 +637,6 @@ export default function DestinyBiasClient() {
     }
   }, [exportShareCardBlob, outcome, shareBusy, shareRatio, trackFunnelStep, trackShare]);
 
-  /** X 글쓰기 창에 생일 없는 친구 초대 링크를 넣는다. */
-  const handleShareToX = useCallback(async () => {
-    if (!outcome || shareBusy) return;
-    const popup = window.open("about:blank", "_blank");
-    if (popup) popup.opener = null;
-    setShareBusy(true);
-    try {
-      const url = buildInviteUrl(outcome.partner, "x");
-      const text = `내 최애 ${outcome.partner.displayName}와 나는 「${outcome.result.chemiTypeNameKo}」 #최애운명`;
-      const intent = `https://x.com/intent/post?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`;
-      if (popup) popup.location.href = intent;
-      else window.location.href = intent;
-      trackShare({ feature: "destiny-bias-chemi", channel: "x" });
-      setShareStatus({ tone: "ok", text: "X 글쓰기 창을 열었어요. 링크에는 생일이 들어가지 않아요." });
-    } finally {
-      setShareBusy(false);
-    }
-  }, [outcome, shareBusy, trackShare]);
-
   /** 인스타그램은 웹 공유 주소가 없어 카드 저장 + 링크 복사 후 스토리 업로드를 안내한다. */
   const handleShareToInstagram = useCallback(async () => {
     if (!outcome || shareBusy) return;
@@ -675,6 +660,8 @@ export default function DestinyBiasClient() {
       setShareBusy(false);
     }
   }, [exportShareCardBlob, outcome, shareBusy, shareRatio, shareTitle, trackShare]);
+
+  const detailsUnlocked = Boolean(outcome && unlockedDetailKeys.includes(detailsKeyFor(outcome.partner, info)));
 
   const stickyLabel = step === "hook" ? "내 최애 고르기" : step === "info" ? "케미 계산하기" : "";
   const stickyAction = () => {
@@ -717,7 +704,16 @@ export default function DestinyBiasClient() {
 
         {step === "computing" && partner ? <ChemiComputing partnerName={partner.displayName} /> : null}
 
-        {step === "result" && outcome ? (
+        {step === "result" && outcome && revealing ? (
+          <ChemiSlotReveal
+            partner={outcome.partner}
+            typeId={outcome.result.chemiTypeId}
+            typeName={outcome.result.chemiTypeNameKo}
+            onDone={() => setRevealing(false)}
+          />
+        ) : null}
+
+        {step === "result" && outcome && !revealing ? (
           <section className={styles.result} aria-labelledby="dbk-result-title">
             <h2 id="dbk-result-title" className="sr-only">케미 결과</h2>
             <ChemiCoreCard ref={coreCardRef} report={outcome.report} themeKey={themeKey} photoUrl={photoUrl} />
@@ -733,10 +729,16 @@ export default function DestinyBiasClient() {
               status={shareStatus}
               onShareCard={() => void handleShareCard()}
               onSaveImage={() => void handleSaveImage()}
-              onInviteFriend={() => void handleInvite()}
-              onShareToX={() => void handleShareToX()}
               onShareToInstagram={() => void handleShareToInstagram()}
               onPickAnother={resetToPick}
+            />
+            {/* X·스레드·링크 복사. 이미지 저장은 위 공유 카드(포토카드) 노드 버튼이 맡는다. 해제 조건 없음. */}
+            <ViralShareBar
+              url={buildInviteUrl(outcome.partner, "share_bar")}
+              text={`내 최애 ${outcome.partner.displayName}와 나는 「${outcome.result.chemiTypeNameKo}」 #최애운명`}
+              title={shareTitle}
+              feature="destiny-bias-chemi"
+              onShared={() => trackFunnelStep({ funnel: FUNNEL, step: "share_click", stepIndex: 5 })}
             />
             <ChemiShareCard
               ref={shareCanvasRef}
@@ -761,9 +763,41 @@ export default function DestinyBiasClient() {
               onBiasMoodChange={(biasMood) => handleMoodChange({ biasMood })}
               onRelationMoodChange={(relationMood) => handleMoodChange({ relationMood })}
             />
-            <ChemiSections copy={outcome.copy} />
-            <ChemiReportTabs vm={outcome.report.vm} onOpen={(tab) => trackClick("destiny_bias_report_tab", { tab })} />
-            <ChemiEvidencePanel result={outcome.result} />
+            {detailsUnlocked ? (
+              <>
+                <ChemiSections copy={outcome.copy} />
+                <ChemiReportTabs vm={outcome.report.vm} onOpen={(tab) => trackClick("destiny_bias_report_tab", { tab })} />
+                <ChemiEvidencePanel result={outcome.result} />
+              </>
+            ) : (
+              <section className={`${styles.sectionCard} ${styles.detailsLock}`} aria-labelledby="dbk-details-lock-title">
+                <h3 id="dbk-details-lock-title" className={styles.sectionTitle}>상세 케미 리포트</h3>
+                <p className={styles.sectionBody}>
+                  카드와 공유는 무료예요. 왜 이 케미인지 자세히 보려면 상세 리포트를 열어 주세요.
+                </p>
+                <ul className={styles.detailsLockList}>
+                  <li>케미 포인트 3가지와 명식 근거</li>
+                  <li>상상 시나리오 · 티키타카 주의 구간</li>
+                  <li>오행 차트 · 5가지 풀이 · 덕질 리포트 탭</li>
+                  <li>연·월·일주 근거표</li>
+                </ul>
+                <button type="button" className={styles.ctaPrimary} onClick={() => void openDetails()} disabled={isPaying} aria-busy={isPaying}>
+                  {isPaying
+                    ? "이용권 확인 중"
+                    : `상세 리포트 열기 · ${(DESTINY_BIAS_ANALYZE_PRICING?.amountKRW ?? 5000).toLocaleString("ko-KR")}원`}
+                </button>
+                {detailsError ? (
+                  <p className={styles.shareStatus} role="alert" data-tone="warn">
+                    {detailsError}
+                  </p>
+                ) : null}
+                <ul className={styles.noticeList} aria-label="안내">
+                  {outcome.copy.notices.map((n) => (
+                    <li key={n}>{n}</li>
+                  ))}
+                </ul>
+              </section>
+            )}
             <MemberSwitcher current={outcome.partner} onSwitch={handleSwitch} />
             <TypeCollection collected={collected} currentTypeId={outcome.result.chemiTypeId} />
             <RecentResults items={recentResults.filter((r) => r.partner.id !== outcome.partner.id)} onReplay={handleReplay} />

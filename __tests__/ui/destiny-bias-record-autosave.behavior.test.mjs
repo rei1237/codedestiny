@@ -13,7 +13,8 @@ test('free result has no archive/autosave hooks, collection actions or records l
 });
 // Run the production sharing handlers with local image and share-dialog fixtures.
 // Any new fetch call fails, including a hidden share-snapshot write.
-for (const name of ['handleShareCard', 'handleSaveImage', 'handleShareToX', 'handleShareToInstagram']) {
+// X·스레드·링크 복사는 공용 ViralShareBar(서버 저장 없음)가 맡는다(2026-11-08).
+for (const name of ['handleShareCard', 'handleSaveImage', 'handleShareToInstagram']) {
   test(name + ' shares or downloads without any server result storage', async () => {
     const node = component.body.statements.find(node => ts.isVariableStatement(node) && node.declarationList.declarations.some(row => row.name.getText(ast) === name));
     assert.ok(node, 'production handler exists');

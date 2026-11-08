@@ -9,20 +9,16 @@ type Props = {
   status: ShareBarStatus;
   onShareCard: () => void;
   onSaveImage: () => void;
-  onInviteFriend: () => void;
-  onShareToX: () => void;
   onShareToInstagram: () => void;
   onPickAnother: () => void;
 };
 
-/** 결과 하단 액션. 공유·저장·초대·재시도 4버튼. */
+/** 결과 하단 액션. 카드 공유(기기 공유 → 카카오 → 복사)·포토카드 이미지 저장·다른 최애. X·스레드·링크 복사는 ViralShareBar 가 맡는다. */
 export default function ChemiShareBar({
   busy,
   status,
   onShareCard,
   onSaveImage,
-  onInviteFriend,
-  onShareToX,
   onShareToInstagram,
   onPickAnother,
 }: Props) {
@@ -35,9 +31,6 @@ export default function ChemiShareBar({
         <button type="button" className={styles.ctaSecondary} onClick={onSaveImage} disabled={busy}>
           이미지 저장
         </button>
-        <button type="button" className={styles.ctaGhost} onClick={onInviteFriend} disabled={busy}>
-          친구도 해보기
-        </button>
         <button type="button" className={styles.ctaGhost} onClick={onPickAnother}>
           다른 최애와 보기
         </button>
@@ -45,9 +38,6 @@ export default function ChemiShareBar({
       <details className={styles.shareMore}>
         <summary className={styles.linkButton}>더 보기</summary>
         <div className={styles.shareMoreGrid}>
-          <button type="button" className={styles.ctaGhost} onClick={onShareToX} disabled={busy}>
-            X에 올리기
-          </button>
           <button type="button" className={styles.ctaGhost} onClick={onShareToInstagram} disabled={busy}>
             인스타 스토리용
           </button>
