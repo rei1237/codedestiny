@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-08
-next: 6d — 영냥이 이미지 리포트(등급별 여러 절, 실제 에셋, 귀 2개 확인). 운명의 섬 옛 기록 운영 DB 읽기 전용 조회는 사용자 승인 대기
+next: 6e — 인생 총운 F9b, 장마다 생성을 요청 2개(앞·뒤 반)로 나눠 목표 약 4,400자. 운명의 섬 옛 기록 운영 DB 읽기 전용 조회는 사용자 승인 대기
 ---
 
 # 3만원 이상 유료 LLM — 상품별 챕터·분량·PDF·전달 개선 인수인계
@@ -250,7 +250,7 @@ next: 6d — 영냥이 이미지 리포트(등급별 여러 절, 실제 에셋, 
       - `scripts/verify-llm-generation-resilience.mjs`·`scripts/verify-paid-gate-ui-regression.mjs` 통과(exit 0).
       - 빌드 exit 0. 빌드가 바꾼 sitemap 12개·`config/sitemap-lastmod.json`·셸(index.html 계열, js/app.js·js/core/* 해시와 public 사본)은 되돌렸다. `public/js/sibyl-system.js`는 원본 미러라 `72642b3c9`로 따로 커밋했다.
       - 기존 실패(6c 전 `ef256173f`에서 같은 수로 실패하는 것을 임시 워크트리로 확인): `fortune-today-hub.route` 8개, `ui/paid-report-partial.behavior` 2개, `ui/paid-result-locale-copy` 1개(F20). 6c와 무관하다.
-- [ ] 6d. 영냥이 이미지 리포트: 지금 있는지 확인하고, 더 고퀄리티로 만들고, 상품 설명에서 잘 알아볼 수 있게 넣는다. 읽기 전용 조사가 진행 중이다.
+- [x] 6d. 영냥이 이미지 리포트: 지금 있는지 확인하고, 더 고퀄리티로 만들고, 상품 설명에서 잘 알아볼 수 있게 넣는다. (완료 2026-11-08, 결과는 아래 "6d 결과")
   - 사용자 원문(2026-11-08): "어느정도 이미지를 넣어서 직관적으로 만들어주면 좋겠다"
   - 이미지 리포트와 상품 설명 절에 실제 이미지(기존 영냥이 스틸·에셋)를 적당히 넣어 한눈에 알게 한다. 이미지와 실제 에셋만 쓰고, 코드로 그린 도형·손글씨는 쓰지 않는다. 영냥이 스틸은 원본 크기로 보고 귀가 정확히 2개인지 센다.
   - 조사 결과(2026-11-08, 읽기 전용, 원문은 scratchpad `research/yeongnyangi-image-report-findings.md`)
@@ -276,6 +276,19 @@ next: 6d — 영냥이 이미지 리포트(등급별 여러 절, 실제 에셋, 
     - 2x 레티나로 그린다. 한글 글꼴은 실제로 로드한다. 줄은 단어 단위로 바꾼다.
     - 결과 화면과 보관함 양쪽에서 받을 수 있게 한다. ProductGuide와 등급 manifest에 미리보기 이미지와 함께 넣는다.
     - 귀 확인을 마친 에셋은 `hero.webp`와 `report-art/cover.webp`뿐이다. 나머지는 쓰기 전에 원본 크기로 귀 2개를 확인한다.
+  - 6d 결과(2026-11-08, 커밋 63c616732·e3d7babd8)
+    - `app/yeongnyangi/_lib/image-report.ts`: 저장된 유료 COMPLETED 결과로 여러 장 리포트를 브라우저에서 그린다. LLM·이미지 생성·업로드 없음.
+      - 순서: 표지(cover-print + 생선 아이콘 + 등급·장 수·상담 기준일 + 명조 제목, 융합은 체계 칩) → 핵심 키워드 → 한 줄 요약 → 질문에 대한 답 → insight-print 띠 + 장별 하이라이트(전 장, 8장 넘으면 compact 카드) → choices-print 띠 + 영냥이의 처방 → closing-print + 마지막 한마디·사이트·면책.
+      - 등급별 양(`REPORT_TIERS`): 키워드·처방 고등어 3·연어 4·광어 5·참치 6·모둠 6·오마카세 8, 질문 답 1·2·3·3·3·3. 오마카세(6체계)는 "여섯 체계 종합 리포트".
+      - 720 CSS px × 2배(1440px), 쪽 최대 1280 CSS px, 단어 단위 줄바꿈·말줄임, 쪽마다 측정한 푸터(브랜드·n / N), 2쪽부터 머리글. WebP 0.9, 안 되면 JPEG 0.92.
+      - 글꼴: Yeongnyangi Noto / Yeongnyangi Myeongjo. 모든 글꼴 규격마다 그리는 글자 전체로 `document.fonts.load`.
+    - `_components/ImageReport.tsx`: `id="image-report"` 절. 누르면 생성, 썸네일, 모두 저장·이미지 공유·장별 저장. `#image-report`로 열면 그 절로 스크롤. Result.tsx 두 COMPLETED 경로에 붙임. 기존 글귀 카드(ResultSharing)·무료 운세는 그대로.
+    - 보관함: 유료 COMPLETED 항목에 "이미지 리포트 만들기" 링크(`…&source=library#image-report`). 보관함 동작 테스트의 링크 셀렉터에서 이 링크를 뺐다.
+    - 상품 설명: ProductGuide 결과 미리보기에 예시 리포트 2장(`public/assets/yeongnyangi/report-preview/sample-{cover,chapters}.webp`, 가상 결과로 렌더, 표지에 "예시"), 무료·유료 차이 문단에 리포트 저장 안내, 등급 요약에 "장별 하이라이트 N개 · 처방 최대 M개". 등급·융합 상세 manifest 28종의 마지막 패널 앞에 `report-preview` 패널(textBelowImage, 장 수 포함). overview·prashna는 손대지 않음. LocalizedProductGuide(비한국어)는 손대지 않음.
+    - 글꼴 정리: 분류모자 카드(`hat-card.ts`)와 인사이트 카드(`lib/insight-card-image.ts`)가 Yeongnyangi Noto(·Myeongjo)를 쓰고, 모자 카드는 그리는 글자 전부를 미리 로드.
+    - 귀 2개 확인(원본 크기): 통과 — `report-art/{cover,insight,choices,closing}-print.webp`, `expressions/{calm,curious,welcome,chic}.webp`, (이전) `hero.webp`·`report-art/cover.webp`. 사용 안 함 — `fish/reaction-tuna.webp`(한쪽 귀가 모자 옆에 낮게 있어 애매), `fish/reaction-omakase.webp`(귀 1개만 분명). `fish/{mackerel,salmon,flounder,tuna,assorted,omakase}.webp`는 생선만 있는 아이콘.
+    - 검증: 새 단위 테스트 7개(`__tests__/ui/yeongnyangi-image-report.test.mjs`), 관련 UI 테스트 684개 통과, `npx tsc --noEmit` 통과, `ALLOW_DEV_SERVER_DURING_BUILD=1 npm run build` 통과(정적 1894쪽, 빌드가 바꾼 sitemap·shell 파일은 되돌림). 참치(6쪽)·오마카세(5쪽)·고등어 예시(4쪽) 렌더와 모바일·데스크톱 갤러리 캡처를 scratchpad `yeongnyangi-report/`에서 확인.
+    - 남은 위험: 실제 운영 결과의 긴 제목·하이라이트는 2줄 말줄임으로 자른다. 오래된 결과(manifest 판이 다른 것)는 화면 검증을 하지 않았다. Safari 구버전은 WebP 인코딩이 없어 JPEG로 저장된다.
 - [ ] 6e. 인생 총운 F9b 수정. 장마다 생성을 요청 2개(앞·뒤 반)로 나눠 장이 목표 약 4,400자에 닿게 한다.
   - 판 분기를 두어 진행 중인 세션은 기존 계획을 유지한다. V1 바이트는 그대로 둔다. 분량은 치명이 아니다.
   - 요청마다 100초 엣지 한도와 복구 cron을 확인한다. 목 dry-run 뒤 실호출 샘플 1회를 한다.
