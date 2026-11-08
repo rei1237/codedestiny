@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-09
-next: 사이트맵 드리프트를 생성기로 수정·커밋한 뒤 check:pre-push 및 check:fast 전체를 완료한다.
+next: Node 실패 8건 보정 커밋 및 사이트맵 갱신 후 check:fast 전체를 다시 완료한다.
 ---
 
 # 고가 운세 개선 main 전달
@@ -17,6 +17,7 @@ next: 사이트맵 드리프트를 생성기로 수정·커밋한 뒤 check:pre-
 - 기준 main: `87c6e54dd0ed74b333c6b6f38a7e668371008dd5`
 - 통합 대상: `feat/premium-llm-chapter-upgrade`의 `b52216502`. `git merge --no-commit --no-ff`로 충돌 없이 통합한 상태에서 시작했다.
 - 통합·미러 갱신 커밋: `158f29e26` (원격 push 전).
+- 사이트맵 원장 갱신: `ea604d61a` (원격 push 전). check:pre-push 전체 통과.
 - 이전 집중·회귀 검사 790개 통과. 이번에는 통합된 트리에서 종합 검사를 완료한다.
 - `node_modules`는 공유 정션이다. 제거 시 정션만 먼저 해제한다. 다른 체크아웃은 정리하지 않는다.
 - 공유 Next는 15.5.15, 현재 package.json은 ^15.5.28이다. sync 종료 뒤 이 워크트리의 정션만 해제하고 `npm ci --no-audit --no-fund --prefer-offline`로 로컬 의존성을 설치한다. 잠금 파일과 다른 세션의 공유 모듈은 수정하지 않는다.
@@ -60,3 +61,12 @@ next: 사이트맵 드리프트를 생성기로 수정·커밋한 뒤 check:pre-
 - `git diff --check 87c6e54dd...HEAD`: 통과. 기존 UI 헬퍼 마지막 빈 줄 1개를 정리했다.
 - `npm run check:fast -- --base=87c6e54dd0ed74b333c6b6f38a7e668371008dd5 --committed-head --plan`: critical 전체 단계 확인. `.tmp/premium-check-plan.log`.
 - 첫 `npm run check:pre-push`: 홈 레지스트리·미러 신선도는 통과. `verify:sitemap-drift`에서 수정일 원장 5개 드리프트 확인. `.tmp/premium-pre-push.log`. 사이트맵 URL 집합은 동일하다.
+- `npm run sitemap:generate` 후 pre-push 전체 통과. URL 1062개 유지. 휘발성 운세의 KST 날짜 갱신이 함께 반영되어 원장 및 언어별 사이트맵 13개를 생성했다.
+- 첫 `check:fast` 전체 실행: 결제·운세 77/77, lint, typecheck 통과. Node 4743개 중 4735 통과·8 실패로 그 단계에서 종료했다. `.tmp/premium-check-fast-attempt1.log`.
+- 실패 8건의 원인과 보정:
+  - 사주 CAS 및 authority VM 하네스(3건): 실제 새 배달 판 함수·상수가 누락됐다. 실제 함수·상수를 로드하여 V2 및 authority ON/OFF 재개를 함께 검증한다. 원래 동시성·저장·재열람 assertions는 유지한다.
+  - 인연의 서 재개 하네스(2건): 새 수리 판정·앞 장 본문·소프트 품질 helper가 빠졌다. 실제 함수를 로드한다. 저장 실패 뒤 20장 완료·재열람 assertions는 유지한다.
+  - 초융합 정적 검사(1건): 문서에 명시된 PDF capture backgroundColor 예외가 큰따옴표에만 적용됐다. 같은 JS 문자열인 작은따옴표도 인식한다.
+  - 연애 비책 로케일 키(1건): ko에만 chaptersHeading이 있었다. en·ja·zh-CN·zh-TW 번역을 추가하고 타입의 필수 키로 고정한다. 디자인·레이아웃 변경 없음.
+  - 숙요 렌더러 보존 해시(1건): 승인된 8b `0a632d3a0`의 장/서한비 표시·planV2 전달을 옛 기준이 반려했다. 해당 두 함수만 그 승인 커밋과 현재 해시가 일치함을 확인하여 고정했다. 다른 모든 함수 및 결제·저장·파싱 기준은 유지한다.
+- 위 실패 8건을 포함한 해당 파일 6개 집중 검사: 64/64 통과. `.tmp/premium-node-repairs.log`. 테스트 제외·assertion 삭제 없음.

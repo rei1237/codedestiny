@@ -61,6 +61,8 @@ test('other service presentation changes preserve named payment, storage and par
       const visit = node => { if (ts.isFunctionDeclaration(node) && node.name) result[node.name.text] = node.getText(ast).replaceAll('\r\n','\n'); ts.forEachChild(node,visit); };
       visit(ast); return result;
     };
+    // 숙요 렌더러 두 기준은 승인된 8b(0a632d3a0)의 장·서한비 표시와 planV2 전달을 포함한다.
+    // 결제·저장·파싱 함수 및 그 밖의 기존 해시는 그대로 보존한다.
     const previous = JSON.parse(fs.readFileSync('__tests__/fixtures/result-presentation-preservation.json', 'utf8')).functions[file];
     const current = functions(fs.readFileSync(file,'utf8'));
     for (const [name, hash] of Object.entries(previous)) if (!allowed.includes(name)) assert.equal(createHash('sha256').update(current[name] || '').digest('hex'), hash, `${file}: ${name}`);

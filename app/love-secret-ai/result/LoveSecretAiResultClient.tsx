@@ -70,8 +70,8 @@ type LoveSecretResultCopy = {
   userQuestionHeading: string;
   deepAnalysisHeading: string;
   tocAria: string;
-  /** 장 차례 접힘 제목. 없으면 tocAria 를 쓴다. */
-  chaptersHeading?: string;
+  /** 장 차례 접힘 제목. */
+  chaptersHeading: string;
   deckLabel: string;
   finalWordLabel: string;
   yeoniSignature: string;
@@ -114,6 +114,7 @@ const LOVE_SECRET_RESULT_EN: LoveSecretResultCopy = {
   userQuestionHeading: "Your Question",
   deepAnalysisHeading: "Detailed Love Strategy Analysis",
   tocAria: "Reading table of contents",
+  chaptersHeading: "In this reading",
   deckLabel: "Love Strategy Reading",
   finalWordLabel: "💌 One Last Word",
   yeoniSignature: "With love, Yeoni & Seo Hanbi",
@@ -198,6 +199,7 @@ const LOVE_SECRET_RESULT_COPY: Partial<Record<LoadingLocale, LoveSecretResultCop
     userQuestionHeading: "相談内容",
     deepAnalysisHeading: "恋愛秘策の詳細分析",
     tocAria: "鑑定結果の目次",
+    chaptersHeading: "この鑑定の目次",
     deckLabel: "恋愛秘策 鑑定結果",
     finalWordLabel: "💌 最後のひとこと",
     yeoniSignature: "ヨニとソ・ハンビより",
@@ -238,6 +240,7 @@ const LOVE_SECRET_RESULT_COPY: Partial<Record<LoadingLocale, LoveSecretResultCop
     userQuestionHeading: "咨询问题",
     deepAnalysisHeading: "恋爱秘诀详细分析",
     tocAria: "咨询结果目录",
+    chaptersHeading: "本次咨询目录",
     deckLabel: "恋爱秘诀咨询结果",
     finalWordLabel: "💌 最后一句话",
     yeoniSignature: "妍伊・徐寒菲 敬上",
@@ -278,6 +281,7 @@ const LOVE_SECRET_RESULT_COPY: Partial<Record<LoadingLocale, LoveSecretResultCop
     userQuestionHeading: "諮詢問題",
     deepAnalysisHeading: "戀愛秘訣詳細分析",
     tocAria: "諮詢結果目錄",
+    chaptersHeading: "本次諮詢目錄",
     deckLabel: "戀愛秘訣諮詢結果",
     finalWordLabel: "💌 最後一句話",
     yeoniSignature: "妍伊・徐寒菲 敬上",
