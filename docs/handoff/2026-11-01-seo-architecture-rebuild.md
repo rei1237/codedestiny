@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-11-09
-next: "⑤ 1차 2dabfcdfc의 check:fast 결과 기록 → pre-push → ④ main CI 1회 확인 후 ⑤ 전달. 네이버 로그인 회신 뒤 Space65 재개·원자료·UI 확인. 운영 승격은 미승인."
+next: "⑤ 1차 최종 기록 pre-push·main push 뒤 최종 CI를 1회 확인. 네이버 로그인 회신 뒤 Space65 재개·남은 P0 원자료·UI 확인. 관계 마커·차별화·번역 noindex·운영 승격은 아직 남음."
 ---
 
 # SEO 아키텍처 재구축
@@ -32,6 +32,8 @@ next: "⑤ 1차 2dabfcdfc의 check:fast 결과 기록 → pre-push → ④ main 
 - ④ 구현 커밋은 최초 55af67578(rebase 전), 커밋된 트리 check:pre-push 통과. 다른 세션이 fc460e1efaf03cf5400351cfbd1c36c2e0f6cf77에서 premium handoff를 수정했고 PR CI42512760338 success. 앞선 한 줄 수정 문의는 필요가 없어졌다. 최신 main으로 rebase 후 후속 기록·pre-push·main push를 수행한다. 화면 검증과 운영 승격은 아직 하지 않았다.
 - ④ main 전달 완료: 구현2c431a13e·최종 기록770012970f3723cca5880407c90fbcf9de2e1c05。rebase 뒤 committed-tree pre-push 통과. 공식 CI는 다음 push/최종 보고 전 1회 확인한다. 운영 승격하지 않았다.
 - ⑤ 1차 로컬 구현2dabfcdfc: daily-copy.ts의 한국어 대상일 인용 함수를 상세의 원고와 웹툰 인용에 재사용. 웹툰·로케일16개 통과(24sign·입력 불변성 포함). plan은 `2026-11-09-seo-bundle-5-daily-copy.md`. check:fast는 lint/typecheck/sitemap drift 통과 후 Node 전체 진행 중, exec session33088 및 외부 bundle-5/check-fast-20261109.log. 관계 마커·준비 문구·본문 차별화·번역 noindex는 아직 안 했고 ⑤ 전체 완료/오늘0이라고 보고하지 않는다. 로그 결과 확인 후 pre-push·main 전달하고 CI는 규칙대로 최종 1회만 확인한다.
+- ⑤ 1차 검증 종료: 전체 Node4774/4774, 정책·mock 게이트·Worker dry-run 빌드·인코딩까지 통과. 로컬 Jest는 요약 없이 실행되어 이 실행의 Jest 프로세스 트리만 중단했고 check:fast exit1. 모든 검사 성공으로 포장하지 않으며 공식 CI가 전체 Jest를 확인해야 한다. 해당 로그는 보존했다. 다른 세션 프로세스는 중단하지 않았다. 84ad9519e의 pre-push 통과, 최종 기록 뒤 다시 실행한다.
+- ⑤ 전달 준비 시 ④ PR CI42513561435는 in_progress(실패 아님), 원격 main은 여전히770012970이었다. 반복 대기하지 않는다. 최종 보고에서는 새 main CI를1회 확인한다. 네이버 로그인은 여전히 회신 대기이며 Space65를 임의로 재개하지 않는다.
 - 운영 승격은 ④·⑤ 각각 새 승인 필요. 이 작업의 임시 대기는 원자료 로그인/공유 CI 경계이며 SEO 전체 완료가 아니다. 현재 작업·워크트리를 지우지 않는다.
 
 ### 2026-11-09 묶음 ③ 운영 반영 완료
