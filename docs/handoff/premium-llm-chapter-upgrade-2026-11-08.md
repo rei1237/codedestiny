@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-08
-next: 4단계 운명의 업 — 1~3단계 패턴(구성 버전 분기·장 관점·1장 공감·질문 1회 인용·공용 조판 PDF·보관함 PDF)을 적용하고 실호출 샘플 1회
+next: 4단계 운명의 업 구현 — '4단계 진행 메모'의 결정대로 테스트부터(넉넉한 분량·분량 비치명 포함), 이어서 실호출 샘플 1회
 ---
 
 # 3만원 이상 유료 LLM — 상품별 챕터·분량·PDF·전달 개선 인수인계
@@ -42,6 +42,11 @@ next: 4단계 운명의 업 — 1~3단계 패턴(구성 버전 분기·장 관�
 - 글자형 PDF는 자미두수 모듈(`lib/pdf/export-ziwei-report-pdf.ts`)을 일반화한다. 글꼴을 불러오지 못하면 `exportResultPdf` 캡처 방식으로 대체한다.
 - 보관함 렌더러는 `app/records/view/SavedServiceReading.tsx`이고 상품 결과 클라이언트와 따로 있다. 보관함 PDF는 결과 화면과 같은 장 빌더를 쓴다.
 - 커밋 메시지 끝에는 `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`을 붙인다.
+- **분량 부족으로 전달이 실패하면 안 된다(사용자 지시 2026-11-08 원문: "분량은 넉넉하게 생성되도록해서 분량 부족으로 실패가 나와서 전달이 안되는 일이 없도록해줘").**
+  - 넉넉하게 생성한다. 장·섹션 목표 분량과 프롬프트 최소 분량에 여유를 두어, 보통 출력이 MIN을 크게 넘기게 한다(겨우 넘기는 수준이 아니다). 토큰 예산은 시간 상한 안에서 `tokensRequiredForChars`로 잡는다.
+  - 분량 관련 이슈(합계 MIN 미달, 장·섹션 content_too_short)는 절대 치명 이슈가 아니다. 횟수 제한이 있는 분량 수리를 한 뒤 그대로 전달하고, 섹션을 비우지 않는다.
+  - 상품마다 품질 게이트에서 분량 이슈가 치명으로 남아 있는지 확인해 비치명으로 바꾼다. "짧지만 유효한 출력이 completed에 도달한다"는 행동 테스트를 넣는다.
+  - 연애 비책·신년운세·인생의 책·총운(love-secret-ai*, new-year-ai*, life-book-ai*)은 별도 에이전트가 같은 수정을 하고 있다(2026-11-08). 공용 파일(paid-report-quality.js, llm-budget.js)은 최소·하위 호환으로만 고치고, git index.lock이 나면 다시 시도한다.
 
 ### 1-2 보정에서 얻은 교훈 (bbc894f3b·83dbf2e43·fc5b189ca, 자세한 수치는 `docs/verification/premium-llm-samples-2026-11-08.md` 재검증 절)
 - 반려 사유와 걸린 구절을 처음부터 체크포인트에 기록한다(연애: `rejection.flagged`). 1차 샘플은 사유가 남지 않아 원인을 추정만 했다.
@@ -225,6 +230,44 @@ next: 4단계 운명의 업 — 1~3단계 패턴(구성 버전 분기·장 관�
 - PDF는 `app/life-book-ai/result/life-book-pdf-chapters.ts`로 조판한다.
   - 폰트가 실패(PdfFontError)할 때만 기존 캡처 방식으로 대체한다.
   - 보관함 'book' 분기에 `SavedLifeBookPdfButton`을 붙인다.
+
+## 4단계 진행 메모 (진행 중, 코드 변경 전 — 조사·설계만 끝남)
+
+### 조사로 확인한 사실
+- 상품 파일은 `worker/routes/karma-destiny-ai.js`(약 3,030줄)이다. 결과 화면은 `app/karma-destiny-ai/result/KarmaDestinyAiResultClient.tsx`, 모델은 `app/karma-destiny-ai/result/_lib/report-model.ts`다.
+- `REPORT_SCHEMA_VERSION = 2`. 이 값을 바꾸면 `handleGenerateBatch`가 다른 버전 문서에 409 `REPORT_SCHEMA_CHANGED`를 돌려준다. **올리지 않는다.** 구성 분기는 `llmMeta.chapterPlanVersion`으로 따로 둔다.
+  - seed의 llmMeta는 `{...existing?.llmMeta, resumeBody, answerVoice}`이다. 새 세션만 `chapterPlanVersion: 2`를 받고, 옛 세션은 저장값이나 1을 쓴다.
+- `PREMIUM_CHAPTERS`는 15장이다(chapter-01~15, minLength 1800, 목표 `PREMIUM_CHAPTER_TARGET_LENGTH = "2,250~2,500자"`, 14장은 1,000~1,200자). 14·13·15장은 id로 찾는다(KEY_SENTENCES·SYNTHESIS·FINAL_LETTER).
+- `INITIAL_CONSULTATION_MIN_LENGTH = 30000`이지만 배치 경로는 `acceptUsableDrafts: true`이고 `lengthAcceptedIds`가 모든 id라 합계 분량으로 막지는 않는다. `CHAPTER_MAX_OUTPUT_TOKENS = 7000`.
+- 장 수·순서에 기대는 곳: `buildBaseSystemPrompt`(`${PREMIUM_CHAPTERS.length}개 장`), `buildCoveredHint`, `validatePremiumReportQuality`(`PREMIUM_CHAPTERS[order-1]`), `buildGenerationProgress`(totalChapters), `parseKarmaConsultationSections`(`[order-1]`), `handleGenerateBatch` 대상 목록, 레거시 `generateChapterBatch`·`reinforcePremiumReport`. `LENS_USAGE_WEIGHTS`는 V1 그대로 둔다.
+- `buildChapterPrompt`는 모든 장에 `현재 질문: ${userQuestion}`을 넣는다(질문 되풀이의 원인). 말투는 격식체(합니다체)이고 프롬프트 화자는 중립 "운명의 업 상담가"다(네오·서한비 없음).
+- `FORBIDDEN_RESULT_PATTERN`에는 /g가 없다(문제없음).
+- **전달 위험:** `handleGenerateBatch`(약 2714줄)에서 대상 장 중 `llmMeta.attempts[id] >= 2`가 있으면 REPORT_QUALITY_FAILED를 던져 generation_failed·환불로 간다. 또 후보 보고서가 `hasRepeatedReportPassage`이면 장을 조용히 저장하지 않아 결국 실패로 갈 수 있다.
+- `karmaChapterReady(chapter, def, acceptShort)`: 본문, 분량(acceptShort가 아니면), takeaways 3개 이상, 반복 구절 없음, 금지 표현 없음, 일반론 경고 없음. 분량 조건이 2회 시도 뒤 실패로 이어지는지 꼭 확인한다(새 사용자 지시: 분량은 비치명).
+- 완료 시 messages에 `## N장. 제목
+
+본문
+
+이번 장의 핵심
+- ...` 형식 assistant 메시지를 저장한다. `publicSession`은 schemaVersion과 장(id, order, title, content, summary, keyTakeaways, highlightQuotes, symbol, leadLens, evidence, energyScore)을 내보낸다.
+- 근거 경로는 서버 경로이고 배열 첨자가 없어 d78175aac 버그는 해당 없음(보고서에 적는다).
+- 보관함 karma 분기는 `app/records/view/SavedServiceReading.tsx` 약 74줄(`normalizeReport` 사용). 'book' 분기의 `SavedLifeBookPdfButton` 패턴을 따른다. `REPORT_COVER_THEMES.karma`가 이미 있다(`lib/pdf/report-cover-theme.ts`).
+- 결과 화면 `handleDownload`(약 1126줄)는 `exportResultPdf` 캡처(cover "karma")를 쓴다. 장 덱(약 1397~1484줄)에 `kdo-deck__toc`와 장 머리(상징·제목·렌즈 배지)가 있고 문구는 12개 로캘이다.
+- 테스트: `__tests__/worker/karma-*`(wake-recovery, follow-up-recovery, paid-resume, relationship-input), `__tests__/ui/karma-paid-delivery.test.js`, `karma-relationship-analysis.test.js`. 스크립트 `scripts/verify-karma-destiny-ai-flow.mjs`, 픽스처 `lib/dev-preview/fixtures/karma-destiny.ts`.
+
+### 결정
+- V2 구성(`chapterPlanVersion: 2`, 새 세션만): 16장. 맨 앞에 새 장(id `chapter-00`, order 1, "타고난 기질과 마음의 결", 주 saju·보조 western/ziwei: 근거의 쉬운 뜻 → 공감 장면 2~3개 → 주제와 연결, 질문 인용 없음)을 두고, 기존 15장은 id·렌즈를 그대로 두고 order만 +1.
+  - 장마다 `perspective` 한 줄. chapter-01이 `questionOwner`로 질문을 한 번만 인용해 바로 답한다. chapter-02 notCovered에 "일상 기질 장면(1장 담당)"을 더한다.
+  - V2 전용 프롬프트 줄은 `definition.perspective`가 있을 때만 넣어 V1 프롬프트를 바이트 그대로 지킨다(관점, 상투구 금지, 여는·맺는 문장 다양화, 질문 재인용 금지 — 비소유 장에는 질문을 "이미 답한 배경"으로만 준다).
+- `karmaChaptersForPlan(version)` 도우미로 위 장 수 의존 지점을 구성별로 바꾸고 order 첨자 대신 id로 찾는다. publicSession에 `chapterPlanVersion`을 내보낸다.
+- **넉넉한 분량(새 지시):** V2 목표를 장 2,700~3,000자, 1장(기질) 3,000~3,300자, 14장 1,300~1,500자 정도로 올리고 prompt 최소를 MIN보다 충분히 높게 둔다. maxOutputTokens = max(7000, tokensRequiredForChars(목표 상한×1.2)), 시간 상한 안인지 확인. MIN(1800·30000)은 올리지 않는다.
+- V2 검증기 연성 이슈: `QUESTION_REQUOTED`(비소유 장에서 질문과 5~6자 n-gram을 공유하는 문장이 상한 초과), `REGISTER_DRIFT`(종결 6개 이상 중 해요체 0.4 초과). 1차 시도는 표적 수리, 2차 이상은 상한 2를 넘는 문장만 덜어 내고(길이 85% 이상 유지) 수용. 저장 비교는 연성 이슈가 적은 쪽을 우선.
+- **마지막 시도 scrub:** attempts ≥ 2에서 던지지 않고 금지 표현 정리, 일반론 문장 제거, 다른 장과 중복 제거, normalizeChapter로 takeaways 채움 → 저장. 분량 부족은 어떤 경우에도 치명이 아니다(acceptShort).
+- **분량 수리(V2):** 모든 장이 준비된 뒤 합계 < 30,000이면 비율이 가장 짧은 장을 최대 2회 다시 만들고 길어질 때만 채택. 그래도 모자라면 그대로 전달.
+- 조립 중복 제거: delivery_pending 전에 `dropRepeatedReportSentences` 누적 적용, try/catch, 비면 원문.
+- 화자(화면 전용, 프롬프트 화자는 중립 격식체 유지): 서한비 chapter-05·06, 네오·서한비 공동 chapter-01·12·13·14·15, 나머지(기질 장 포함) 네오.
+- 화면: 목차(번호·제목·화자), 장 머리 칩과 kicker, 기질 카드 강조. 조판 PDF `app/karma-destiny-ai/result/karma-pdf-chapters.ts`(`buildKarmaPdfChapters`, chapters가 없으면 assistant 메시지를 `## N장.` 머리로 나눠 대체), byline "네오 · 서한비", coverTheme 'karma', PdfFontError일 때만 캡처 대체. 보관함 karma 분기에 `app/records/view/SavedKarmaPdfButton.tsx`.
+- 테스트 먼저: `__tests__/worker/karma-chapter-plan-v2.test.js`(V1 프롬프트 바이트 동일, V2 16장·질문 소유, 연성 이슈, scrub, 짧지만 유효한 출력이 completed에 도달, 분량 수리 상한), 빌더·버튼 UI 테스트.
 
 ## 단계별 결과
 (단계를 마칠 때마다 커밋 SHA, 바꾼 파일, 검증 결과, 남은 일을 여기에 적는다.)
