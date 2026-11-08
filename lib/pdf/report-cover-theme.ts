@@ -7,6 +7,7 @@ export const REPORT_COVER_THEMES = {
   lifeBook: { paper: [21,39,33], ink: [245,240,229], muted: [215,205,175], accent: [211,189,131], artwork: 'life-book-ai' },
   love: { paper: [251,240,236], ink: [64,37,48], muted: [112,74,87], accent: [139,81,105], artwork: 'love-secret-ai' },
   karma: { paper: [34,23,43], ink: [246,235,248], muted: [213,193,222], accent: [203,170,143], artwork: 'karma-destiny-ai' },
+  codex: { paper: [12,10,26], ink: [244,236,220], muted: [196,184,162], accent: [212,175,105], artwork: 'master-love-codex' },
   sukuyo: { paper: [24,27,53], ink: [242,238,250], muted: [207,201,228], accent: [205,189,230], artwork: 'sukuyo' },
 } as const;
 export type ReportCoverTheme = keyof typeof REPORT_COVER_THEMES;

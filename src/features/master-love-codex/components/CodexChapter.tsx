@@ -11,7 +11,7 @@ import CodexConsultationAnswers from "./CodexConsultationAnswers";
 import type { CodexConsultation, CodexQuestionAnswer, CodexPeriodReading } from "../_lib/consultation";
 import AiResultProse from "@/components/fortune/AiResultProse";
 import CodexReveal from "./CodexReveal";
-import { CODEX_CHAPTER_ANCHOR_PREFIX } from "../data/acts";
+import { CODEX_CHAPTER_ANCHOR_PREFIX, actForChapter, type CodexActMode } from "../data/acts";
 import { useMasterLoveCodexCopy } from "../_lib/copy";
 import styles from "../styles/codex.module.css";
 
@@ -45,6 +45,8 @@ interface CodexChapterProps {
   chapter: CodexChapterData;
   /** PDF 캡처 중 — 등장 애니메이션을 건너뛰고 즉시 노출 */
   forceVisible?: boolean;
+  /** 장 머리의 막 이름이 모드에 따라 갈린다 */
+  mode?: CodexActMode;
 }
 
 /**
@@ -67,17 +69,21 @@ export function stripChapterPrefix(title: string): string {
   return String(title || "").replace(/^제\s*\d+\s*장\s*·\s*/, "");
 }
 
-export default function CodexChapter({ chapter, forceVisible = false, consultation }: CodexChapterProps) {
+export default function CodexChapter({ chapter, forceVisible = false, consultation, mode = "solo" }: CodexChapterProps) {
   const copy = useMasterLoveCodexCopy();
   const heading = stripChapterPrefix(chapter.title);
   const content = chapter.content;
   const hasEditorialContent = Boolean(content?.narration || content?.insight || content?.evidence?.length || content?.actions?.length);
+  // 1장은 기질과 공감 장면으로 책을 여는 장이다 — 본문을 접어 두지 않고 바로 읽히게 연다.
+  const opening = Number(chapter.order) === 1;
+  const act = Number(chapter.order) > 0 ? actForChapter(Number(chapter.order), mode) : null;
 
   return (
     <article
       id={`${CODEX_CHAPTER_ANCHOR_PREFIX}${chapter.order}`}
       data-codex-pdf-page
       data-codex-chapter={chapter.order}
+      data-codex-opening={opening ? "true" : undefined}
       tabIndex={-1}
       className={styles.section}
     >
@@ -89,6 +95,10 @@ export default function CodexChapter({ chapter, forceVisible = false, consultati
             aria-hidden="true"
           >
             {String(chapter.order).padStart(2, "0")}
+          </p>
+          <p className={styles.chapterKicker}>
+            {act ? <span>{act.title}</span> : null}
+            <span className={styles.speakerChip}>{copy.narratorName}</span>
           </p>
           <h2 className={`${styles.chapterTitle} mt-3`}>
             <span className="sr-only">{copy.chapterOrderSrLabel(chapter.order)}</span>
@@ -156,7 +166,7 @@ export default function CodexChapter({ chapter, forceVisible = false, consultati
           ) : null}
 
           {hasEditorialContent ? (
-            <details className={styles.detailProse} open={forceVisible}>
+            <details className={styles.detailProse} open={forceVisible || opening}>
               <summary>{copy.chapterDetailSummary}</summary>
               <AiResultProse value={normalizeHeadings(chapter.body)} className={styles.prose} />
             </details>
