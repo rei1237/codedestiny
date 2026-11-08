@@ -83,7 +83,7 @@
 | 베다 점성술 | 코즈믹 & 별자리 컬렉션 | `navigateToVedic`, `/vedic-ai`, `/vedic/` | 기본 무료, AI 상담 유료 | 기본/AI가 혼재 | route bundle | 기본 차트와 AI 상담 분리 |
 | 올림푸스 신탁 | 코즈믹 & 별자리 컬렉션 | `openOlympusOracleModal` | 해금 10,000원 | modal 진입이 카드 안에 묻힘 | lazy script | 별자리 chip 내부 |
 | 운명의 꽃 & 해몽 | 모바일 빠른 탐색, 꽃/해몽 컬렉션 | `flowerCollection`, `openDestinyFlowerStudio` | 무료/유료 혼합 | 꽃 1종과 해몽 2종 | studio modal/engine, dream modal 혼합 | 꽃/해몽 탭에서 대표 카드와 더보기 |
-| 운명의 꽃 아틀리에 | 운명의 꽃 & 해몽 컬렉션 | `openDestinyFlowerStudio`, `/flower` | 전체 해금 10,000원(사주·점성술·자미두수·숙요 4종 전부) | — (2026-08-23 카드 4장을 1장으로 통합) | studio modal/engine | 꽃·해몽 chip 하위 |
+| 운명의 꽃 아틀리에 | 운명의 꽃 & 해몽 컬렉션 | `openDestinyFlowerStudio`, `/flower` | 결과 카드·공유 무료(로그인 없이), 아틀리에 상세(세 갈래·후보·꽃말 심화) flower-fc 5,000원 — 2026-11-08 | — (2026-08-23 카드 4장을 1장으로 통합) | studio modal/engine | 꽃·해몽 chip 하위 |
 | 드림 프롬프트 | 운명의 꽃 & 해몽 컬렉션 | `openDreamModal`, `/dream/tarot` | 무료 | 해몽 기능이 꽃 아래에 섞임 | hidden modal | 꽃·해몽 chip 내부 |
 | 정신분석 해몽 | 운명의 꽃 & 해몽 컬렉션 | `openPsychoDreamModal`, `/dream/psycho` | 1회 3,000원 | 결과 sheet가 길어질 수 있음 | lazy script | preview 후 열기 |
 | VVIP 운명 서고 | 모바일 빠른 탐색, VVIP 컬렉션 | `vvipCollection`, `/premium-unlock` | AI 상담/프리미엄 유료 | 고가 상담과 이용권 설명이 길어짐 | AI route/API, 결제 확인 flow | 대표 상담 2개 우선, 나머지 접힘 |
@@ -101,7 +101,7 @@
 | AI 이모이 오미쿠지 | 기타 컬렉션 | `/emoi_omikuji_v2.html` | 무료 | 정적 HTML 혼재 | static HTML | 기타 chip 내부 |
 | 연이의 마음 별자리 | 기타 컬렉션 | `/yeon-star-hug` | 무료 | 작은 무료 콘텐츠가 묻힘 | Next route bundle | 기타 chip 내부 |
 | 혈액형 테스트 | 기타 컬렉션 | `/blood-type-app.html` | 무료 | 정적 HTML 혼재 | static HTML | 기타 chip 내부 |
-| 최애운명 | 기타 컬렉션 | `/saju/destiny-bias` | 무료 | 입력/결과/공유가 긴 route | Next route bundle | 카드 preview 후 이동 |
+| 최애운명 | 기타 컬렉션 | `/saju/destiny-bias` | 결과 카드·공유 무료, 상세 케미 리포트 1회 5,000원 — 2026-11-08 | 입력/결과/공유가 긴 route | Next route bundle | 카드 preview 후 이동 |
 | 사주 FPTI | 기타 컬렉션 | `/saju-fpti` | 무료, 심화 리포트 가능 | 무료 테스트와 리포트가 혼재 | route bundle | 무료 시작 후 심화 분리 |
 | 우주 신비 도서관 | 홈 인사이트 섹션 | `/insights`, `/insights/[slug]` | 무료 콘텐츠 | 홈 후반에 있어 찾기 어려움 | 기사/이미지 목록 | 모바일에서는 보조 링크 |
 | 유명인 사주 분석 아카이브 | 홈 아카이브 카드, 인사이트 | `/famous-saju`, `/insights/famous-saju`, `/insights/famous-saju/[slug]` | 무료 콘텐츠 | 홈 후반 검색 UI가 길어짐 | 유명인 DB/카드 렌더 | 상세는 insights 정경로, `/famous-saju/:slug` 는 301 |

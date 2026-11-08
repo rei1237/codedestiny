@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-11-08
-next: "5단계 — 문서: 공유 미션 예외 기록(docs/purchase-journey/IMPLEMENTATION.md:71), 이 문서 status 정리"
+next: "6단계 — 전체 검증(check:fast·sitemap --check·브라우저 390px)"
 ---
 
 # 무료 바이럴 퍼널 (초간단 무료 사주 + 운명의 꽃·최애 운명 무료 개방)
@@ -38,7 +38,7 @@ next: "5단계 — 문서: 공유 미션 예외 기록(docs/purchase-journey/IMP
 - [x] 2b. 꽃 결과 카드만 무료: 셸 `openDestinyFlowerStudio`/`_dfRequirePaidSourceUnlock` 게이트를 상세 영역 앞으로 옮기고, 타일 "🔒 해금 5,000원" 표시를 결과 무료·상세 유료에 맞게 정리. `__tests__/worker/free-flower-billing.test.js`·`pass-verdict.js:132` 정합 유지.
 - [x] 3b. 최애 상세 리포트 재결제 위험: 결제 뒤 새로고침·재방문 때 같은 최애·생일로 다시 돈을 받는지 확인(`ensurePaidAccess`/`useCoinGate` 가 서버 권한을 보는지). 이전(3단계 전)에도 같았는지 비교. 새로 생긴 위험이면 고친다(결제 뒤 전달이 최우선).
 - [x] 4. `/saju/free` 초간단 무료 사주(폼·70/30·블러·공유 미션·PNG 카드·SEO·사이트맵)
-- [ ] 5. 문서: 공유 미션 예외 기록, 이 문서 status 정리
+- [x] 5. 문서: 공유 미션 예외 기록, 이 문서 status 정리
 - [ ] 6. 전체 검증(타입·린트·테스트·사이트맵 --check·브라우저 390px)
 
 ## 2b 설계(완료, 커밋 `2131ba7b9`)
@@ -86,6 +86,9 @@ next: "5단계 — 문서: 공유 미션 예외 기록(docs/purchase-journey/IMP
   - 흐름: 폼(생년월일 텍스트 입력·양/음력+윤달·시간/모름·성별) → 제출 → 결과 70%(기둥 줄, 카드 4장: 올해 키워드=올해 천간의 십신, 타고난 무기=일간, 오행 막대, 12운성=일간×일지) → 블러 30%(재물 시기 → `/new-year-ai-consultation/`, 히든 매칭 → `/saju/destiny-bias/?from=free-saju`, 보조 링크 `/flower/?from=free-saju`) → 공유 미션(ViralShareBar 아무 채널 성공 = 재물 시크릿 키워드 해제, sessionStorage `cd:free-saju:wealth-unlock`, 막히면 메모리). 퍼널 `free_saju` 단계 form_view·submit·result·blur_click·share_unlock.
   - 공유 PNG: 화면 밖 1080×1350 카드(키워드·무기·12운성·오행 막대·꽃/최애 티저). 생일은 이미지·링크에 넣지 않는다.
   - 검증: 집중 테스트 6/6, `typed-birth-input`·`saju-bundle-copy` 가드 통과, `npx tsc --noEmit` 무출력, eslint 0. `NODE_OPTIONS=--experimental-vm-modules npm run check:fast` EXIT=0 — test:node 4680/4680, jest 455 suites·7704 tests, paid-gate 77/0, sitemap --check OK(1061 URL).
+- 5단계(2026-11-08, 문서만)
+  - `docs/purchase-journey/IMPLEMENTATION.md:71` 에 예외 1건 기록(`/saju/free` 인라인 공유 미션 → 글자 키워드, 코인·금전 없음, 카카오 무조건, 팝업 없음, 사용자 결정 2026-11-08).
+  - `docs/design/mobile-feature-registry.md` 꽃 아틀리에(낡은 "전체 해금 10,000원")·최애운명(낡은 "무료") 행을 무료/유료 분할로 고침.
 
 ## 함정(4단계에서 발견)
 - 🔴 생년월일 `type="date"` 금지: `__tests__/ui/typed-birth-input.test.js:356` 가 app 전체에서 birth/생년월일/생일 문맥의 `type="date"` 를 잡는다. `birthDateTextInputProps`(`lib/birthDateInputProps.ts`)를 쓴다. 단 그 헬퍼의 onBlur 정규화는 양력 실재 날짜만 통과시켜 음력 2월 30일 같은 날을 지운다 → `lib/free-saju/birth-date.ts` 로 달력 종류별 정규화를 덮어썼다.
