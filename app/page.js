@@ -133,10 +133,12 @@ export default function HomePage() {
         {!IS_APP_BUILD && <StoryDiscovery />}
         <HomeDailyEntry />
         {!IS_APP_BUILD && <HomeInstallEntry />}
+        {!IS_APP_BUILD && <a className={styles.businessApiCard} href="/business/api/">내 서비스에 운세 기능을 넣고 싶다면? <span aria-hidden="true">→</span></a>}
       </main>
 
       {!IS_APP_BUILD && <MobileHomeNav/>}
       <footer className={styles.footer}>
+        {!IS_APP_BUILD && <nav className={styles.footerNav} aria-label="기업·개발자"><b>기업·개발자</b><a href="/business/api/">운세 API · 요금 및 연동</a></nav>}
         <div className={styles.footerGroups}>
           {!IS_APP_BUILD && <nav className={styles.entryHelp} aria-label="주요 운세 바로가기">
             <h2>운세 바로가기</h2>

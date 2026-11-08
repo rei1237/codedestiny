@@ -69,7 +69,7 @@ export const TERMS_SECTIONS = [
     heading: "6. 금지행위 / Prohibited Conduct",
     body: (
       <p>
-        (1) 서비스 역설계, 크롤링, 무단 자동화 접근 (2) 악성코드 유포 및 보안 취약점 악용 (3) 타인의 개인정보 무단 수집/도용 (4) 불법 콘텐츠 게시 (5) 운영을 방해하는 일체의 행위는 금지됩니다. We may block or suspend access for violations.
+        (1) 서비스 역설계, 크롤링, 무단 자동화 접근 (2) 악성코드 유포 및 보안 취약점 악용 (3) 타인의 개인정보 무단 수집/도용 (4) 불법 콘텐츠 게시 (5) 운영을 방해하는 일체의 행위는 금지됩니다. 기업 API 구매 계정에는 기업 API 이용 특약(v1)이 적용됩니다. 구매한 상품의 이용 기간과 문서에 표시된 호출 한도 안에서 서버 키로 공식 API를 호출하고 사업자 소유 앱·웹사이트에 응답을 표시할 수 있습니다. 키를 제3자에게 공유할 수 없습니다. We may block or suspend access for violations.
       </p>
     ),
   },
