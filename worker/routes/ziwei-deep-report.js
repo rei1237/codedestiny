@@ -56,6 +56,7 @@ import {
   ziweiDeepRepairHint,
   scrubZiweiDeepBody,
   salvageZiweiDeepChapter,
+  tidyZiweiDeepBody,
 } from "../lib/ziwei-deep-delivery-v2.js";
 
 const SERVICE_KEY = "ziwei-deep-report";
@@ -282,7 +283,9 @@ async function generateChapter(env, chart, birthInfo, chapter, consultation, loc
       // 제공자 폴백 이후에도 아래에서 챕터 전체 분량과 반복 여부를 검증한다.
       fallbackMinChars: Math.round((chapter.minChars || 2200) * 0.3),
     });
-    const body = typeof ai?.text === "string" ? clean(ai.text) : "";
+    const raw = typeof ai?.text === "string" ? clean(ai.text) : "";
+    // 판 2만: **굵게** 별표와 맨 앞 장 제목 되풀이 줄을 걷어 낸다(판 1 저장본·출력은 그대로).
+    const body = v2 ? tidyZiweiDeepBody(raw, chapter) : raw;
     truncated = Boolean(ai?.ok) && (ai.truncated === true || /^(MAX_TOKENS|length)$/i.test(clean(ai.finishReason)));
     if (v2 && ai?.ok && ai.isMock !== true && !['staging-mock', 'mock', 'fallback'].includes(clean(ai.provider).toLowerCase())
       && countPaidReportBodyChars(body) > 0) draft = body;

@@ -49,3 +49,21 @@ export function salvageZiweiDeepChapter(drafts = [], prior = "") {
     .sort((a, b) => countPaidReportBodyChars(b) - countPaidReportBodyChars(a))[0] || "";
   return countPaidReportBodyChars(best) >= SALVAGE_MIN_CHARS ? best : "";
 }
+
+/**
+ * 판 2 본문 정리(2026-11-08 실호출에서 발견). 화면은 본문을 그대로 찍고 PDF도 ●/# 제목만 해석하므로
+ * 마크다운 굵게 표시(**…**)가 별표째 보였고, 일부 장은 본문 첫 줄에 "제6장 · 장 제목"을 되풀이했다.
+ * 굵게 표식만 벗기고, 맨 앞의 장 제목 되풀이 줄만 지운다. 다른 문장은 건드리지 않는다.
+ */
+export function tidyZiweiDeepBody(body, chapter = {}) {
+  const text = String(body || "").replace(/\*\*([^*\n]+?)\*\*/g, "$1").replace(/\*\*/g, "");
+  const lines = text.split("\n");
+  const first = lines.findIndex((line) => line.trim());
+  if (first < 0) return text;
+  const head = lines[first].trim().replace(/^#{1,4}\s+/, "");
+  const title = String(chapter?.title || "").trim();
+  if ((title && head === title) || /^제\s*\d+\s*장\s*[·:.\-]/.test(head)) {
+    return lines.slice(first + 1).join("\n").replace(/^\s*\n/, "");
+  }
+  return text;
+}
