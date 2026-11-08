@@ -27,6 +27,10 @@ next: 3단계 인생의 책 / 인생 총운(윤달) — 1·2단계 패턴(구성
 - 커밋은 자동으로 한다. **push와 배포는 사용자가 요청할 때만** 한다.
 - **실제 LLM 호출은 상품마다 1회 샘플만, 그때마다 사용자 승인을 받는다.** 목이나 단위 테스트로 할 수 있는 것은 실호출 없이 한다.
 - 메일·카카오 발송은 범위 밖이다.
+- 실호출 샘플 승인(2026-11-08): 사용자 원문은 "llm 샘플 생성 허가한다"이다. 범위는 이 프로젝트에서 상품마다 실호출 샘플 1회이고, 그 이상은 하지 않는다. 이후 단계는 다시 묻지 않고 상품마다 1회를 돌린다.
+- 사용자 결정 대기
+  - 개발 서버 정리: 포트 3917 dev 서버(PID 22212)를 끝내도 되는지 허락을 기다린다. 허락 전에는 임시 워크트리에서 빌드한다.
+  - 네오 문구: `NEO_NEW_YEAR_PERSONA_KO`의 "사자 장군 '네오'" 문구를 어떻게 할지 결정을 기다린다(F8). 결정 전에는 수정하지 않는다.
 
 ## 작업 규칙과 함정
 - 분량은 목표일 뿐이고 전달 하한(MIN)은 올리지 않는다. 짧으면 한 번 수리하고 그대로 전달한다(`docs/context/ai-and-db.md`의 LLM 안전 규칙).
@@ -54,6 +58,27 @@ next: 3단계 인생의 책 / 인생 총운(윤달) — 1·2단계 패턴(구성
 - [ ] 11. 팩폭 작전실 (네오)
 - [ ] 12. 사주 맞춤 작명
 - [ ] 13. 영냥이 참치·모둠·오마카세
+
+## 후속 과제 (상품 단계 13 이후 진행, 사용자 요청 2026-11-08)
+- [ ] F1. 홈·마케팅의 "6부 28개 섹션" 문구를 "7부 30장"으로 바꾼다. 검색 노출 문구다.
+  - `index.html`
+  - `public/*/index.html`
+  - `lib/marketing/feature-marketing-copy.generated.json`
+  - `docs/purchase-journey/inventory.json`
+- [ ] F2. 연애 비책 상세 패널 webp 이미지에서 주제 번호가 2칸씩 밀려 있다. 연애 비책 상세 패널 이미지와 그 생성 매니페스트를 고친다.
+- [ ] F3. 조판 PDF의 표지와 부 이름 문구를 로케일화한다. 지금은 한국어로 고정되어 있다.
+  - `lib/pdf/export-consultation-book-pdf.ts`
+  - 상품별 빌더: `app/love-secret-ai/result/love-secret-pdf-chapters.ts`, `app/new-year-ai-consultation/_lib/new-year-pdf-chapters.ts`, `app/life-book-ai/result/life-book-pdf-chapters.ts`
+- [ ] F4. 연애 비책 요약 그룹 2장이 d864217f2부터 결과 화면에 그려지지 않는다. 그래서 화면 차례는 28장이고 PDF는 30장이다. 고칠 곳은 `app/love-secret-ai/result/` 결과 클라이언트의 그룹 분류(`groupLoveSections`)다.
+- [ ] F5. 신년운세 `READING_STAGES`의 "재물과 직업" 라벨을 재물과 직업으로 나눈다. 고칠 파일은 `app/new-year-ai-consultation/NewYearAiClient.tsx`다.
+- [ ] F6. 신년운세 진행 표시는 4,000자를 기준으로 하는데, 성향 장의 최소 분량은 2,800자다. 둘을 맞춘다.
+  - `app/new-year-ai-consultation/NewYearAiClient.tsx`
+  - `worker/routes/new-year-ai.js`
+- [ ] F7. 보관함 PDF 버튼은 글꼴을 불러오지 못하면 캡처 방식으로 대체하지 않는다.
+  - `app/records/view/SavedLovePdfButton.tsx`
+  - `app/records/view/SavedNewYearPdfButton.tsx`
+  - `app/records/view/SavedLifeBookPdfButton.tsx`
+- [ ] F8. `NEO_NEW_YEAR_PERSONA_KO`의 "사자 장군 '네오'" 문구가 사용자 메모 "네오는 인간"과 어긋난다. 사용자 결정을 기다리며, 결정 전에는 수정하지 않는다. 파일은 `worker/lib/expert-character-persona-text.js`다.
 
 ## 1단계 진행 메모 (완료, 결과는 아래 단계별 결과)
 첫 에이전트가 조사 중 컨텍스트가 압축되어 결정만 적고 돌아왔다. 코드 파일은 아직 하나도 바꾸지 않았다. 아래 결정대로 바로 구현한다.
