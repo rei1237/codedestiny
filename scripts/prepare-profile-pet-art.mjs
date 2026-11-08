@@ -23,5 +23,11 @@ for (const source of sources) {
   await sharp({ create: { width: cols * size, height: rows * size, channels: 4, background: { r: 0, g: 0, b: 0, alpha: 0 } } }).composite(cells).webp({ quality: 88, alphaQuality: 100 }).toFile(resolve(output, name + '.webp'));
   manifest.push({ id: source.id, file: name + '.webp', columns: cols, rows, cellSize: size, origin: source.path.split(/[\\\\/]/).pop(), prompt: source.prompt, tool: 'image_gen', transparent: true });
 }
+for (const item of manifest) {
+  const source = sources.find(row => row.id === item.id);
+  item.sourceRows = source.sourceRows || item.rows;
+  item.rowOffset = source.rowOffset || 0;
+  item.frames = source.frames || Array.from({ length: item.columns }, (_, index) => index);
+}
 await writeFile(resolve(output, 'art-manifest.json'), JSON.stringify(manifest, null, 2) + '\n');
 console.log('Prepared ' + manifest.length + ' original pet sprite atlases.');

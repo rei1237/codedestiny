@@ -22,7 +22,10 @@ for (const item of manifest) {
   const hash = createHash('sha256').update(buffer).digest('hex');
   assert.ok(!hashes.has(hash), item.id + ' unique authored sheet'); hashes.add(hash);
   assert.equal(item.tool, 'image_gen'); assert.ok(item.prompt.length > 100);
+  assert.equal(item.frames.length, item.columns, item.id + ' source frame mapping');
+  assert.ok(item.rowOffset + item.rows <= item.sourceRows, item.id + ' source row mapping');
 }
+assert.deepEqual(manifest.find(item => item.id === 'yeongnyangi-sleep').frames, [1, 2, 3, 2], 'the unique mascot uses only closed-eye sleeping poses');
 for (const species of PET_SPECIES) {
   assert.ok(manifest.some(item => item.file === species.id + '-body.webp' && item.columns === 4 && item.rows === 3), species.id + ' idle/feed/play');
   assert.ok(manifest.some(item => item.file === species.id + '-sleep.webp' && item.columns === 4 && item.rows === 1), species.id + ' sleep');
