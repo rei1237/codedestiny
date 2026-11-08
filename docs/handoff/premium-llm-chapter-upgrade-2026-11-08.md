@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-08
-next: 8단계 8a 마무리 — 판 2 집중 테스트 추가부터 (아래 8단계 진행 메모 참고)
+next: 8단계 8b — 숙요 결과 화면 챕터 UI·조판 PDF·보관함 PDF
 ---
 
 # 3만원 이상 유료 LLM — 상품별 챕터·분량·PDF·전달 개선 인수인계
@@ -641,9 +641,12 @@ next: 8단계 8a 마무리 — 판 2 집중 테스트 추가부터 (아래 8단�
 - 화면(판 2만): 차례·"N장 · 부 이름" 키커·서한비 칩. 공용 `lib/sukuyo/sukuyo-compat-chapters.ts`. 조판 PDF(coverTheme sukuyo, byline 서한비), `PdfFontError`일 때만 캡처. 보관함 `app/records/view/SavedSukuyoCompatPdfButton.tsx`.
 
 ### 하위 단계
-- [ ] 8a. worker V2 + V1 바이트 sha256 테스트 + 판 2 테스트, 기존 테스트 판 1 고정
+- [x] 8a. worker V2 + V1 바이트 sha256 테스트 + 판 2 테스트, 기존 테스트 판 1 고정
   - 완료(4dfe59bf9): `worker/lib/sukuyo-compat-delivery-v2.js`, 라우트 판 2 분기(`createCompatibilityAnswerV2`·`createPersonalAnswerV2`, handleStart 시드·catch에서 본문 있으면 보류 없이 202 retryable), `__tests__/worker/sukuyo-compat-v1-prompt-bytes.test.js`(판 1 프롬프트 10종 sha256), 기존 중복 생성 테스트 `ENV`에 스위치 false 고정 + `V2_ENV` 상수 추가. 43건 통과.
-  - 남은 일: 같은 파일 끝에 `V2_ENV`로 판 2 집중 테스트 — 새 문서 groupPlanVersion 2·질문은 nature 프롬프트에만, 시도 소진 그룹 살리기·배달(환불·recoveryReviewRequired 없음), 분량 보완 2회 한도, 말투 [보정] 1회, 요약 2회 실패 뒤 대체(`attempts["summary:fallback"]`), 본문 0이면 generation_failed 환불, 개인 판 2 짧은 글 수용·재시도. 그다음 sukuyo UI behavior 테스트와 verify 스크립트(llm-generation-resilience·analysis-basis-contract·sukuyo-role-direction·paid-gate-ui-regression) 실행 후 커밋·8a 체크.
+  - 완료(8138cac0b): 같은 파일 끝에 판 2 집중 테스트 10건(라우트 웨이브·`createCompatibilityAnswerV2`·`createPersonalAnswer` 직접 호출). 새 상담 groupPlanVersion 2·질문은 nature 프롬프트에만(요약 포함 나머지 5호출에는 없음), 스위치 false면 판 1, attraction 3회 빈손이어도 8호출에 200·completed(12장, `attraction:skipped` 3, 환불·`recoveryReviewRequired` 없음), 짧은 본문은 nature만 3회·`lengthRepairs` 2·나머지 1회로 200, 말투(찻잔) [보정] 1회 뒤 정리·걸린 문장 걷힘, 요약 2회 실패 뒤 `summary:fallback`·두 번째 요약 캐시 없음, 15호출 모두 빈손일 때만 503·generation_failed·환불 1회, 개인 판 2 빈손→재시도(캐시 없음)·짧은 글 수용·둘 다 비면 LLM_FAILED, 판 1 개인은 240자 하한 유지.
+  - 같이 고친 것: 판 2 개인 호출에 `fallbackMinChars: 72`(판 1의 240자 하한이 없어 짧은 Workers AI 스텁만 막음, 240×0.3). `verify-llm-generation-resilience`의 sukuyo 호출부 기대값 4→5. `apps/toss/test/sukuyo-failed-retry.test.mjs`는 handleStart를 vm으로 떼어 돌리므로 4dfe59bf9 뒤 `isSukuyoCompatPlanV2 is not defined`로 2건 실패하던 것을 컨텍스트에 판 1 고정 함수를 넣어 고쳤다.
+  - 검증: jest `__tests__/worker/sukuyo*` 13 suites 165/165(중복 생성 파일 52/52), paid-completed-result-access·paid-delivery-inventory 104/104, `node --test __tests__/ui/sukuyo-*` 35/35, `apps/toss` sukuyo 67/67, verify llm-generation-resilience(1357 checks)·analysis-basis-contract·sukuyo-role-direction·paid-gate-ui-regression·ai-locale-pipeline·per-use-never-unlocks 모두 exit 0.
+  - 함정: `testUtils.calculateSukuyo`는 async다. 기존 P3 단위 테스트 몇 개는 await 없이 Promise를 넘기는데 그래도 통과한다(손대지 않음). 새 테스트는 await한다. 요약 호출은 섹션 페이로드를 주면 null이 되어 대체 요약으로 한 번 더 돈다 — 웨이브 수를 세는 테스트는 요약 스키마(headline)에 요약 JSON을 돌려주는 mock(`v2Mock`)을 쓴다.
   - 함정: worker jest는 ESM이라 `NODE_OPTIONS=--experimental-vm-modules npx jest <파일> --runInBand --testEnvironment node`로 돌린다(그냥 npx jest는 import 구문 오류). 판 2 그룹 식별은 mock에 들어온 responseSchema 키로 한다.
 - [ ] 8b. 화면(차례·칩·조판 PDF) + 공용 장 모듈 + 보관함 PDF + 테스트
 - [ ] 8c. tsc·jest·node --test·verify·build, 모의 실행, 실호출 1회, 결과 기록(`docs/verification/premium-llm-samples-2026-11-08.md`), PDF 쪽 이미지 확인
