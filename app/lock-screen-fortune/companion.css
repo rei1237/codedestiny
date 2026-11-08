@@ -97,15 +97,13 @@
 }
 .cd-companion-reading:has(.cd-reading-illustration) {padding:0 0 28px;gap:0}
 .cd-reading-illustration {
-  position:relative;isolation:isolate;overflow:hidden;display:block;
-  width:100%;height:clamp(126px,23dvh,175px);background:var(--letter-paper);color:var(--letter-ink);
+  position:relative;isolation:isolate;overflow:hidden;width:100%;
+  height:clamp(160px,31dvh,246px);background:var(--letter-paper);
+  border-block-end:2px solid var(--yh-metal);
 }
-.cd-reading-illustration::before {
-  content:"";position:absolute;width:65%;height:180%;left:17.5%;top:14%;border-radius:50%;
-  border:1px solid color-mix(in srgb,var(--letter-ink) 24%,transparent);pointer-events:none;
-}
-.cd-reading-illustration img {position:absolute;inset-block-end:0;inset-inline-start:50%;transform:translateX(-50%);width:auto;height:93%;max-width:70%;object-fit:contain}
-.cd-reading-motif {position:absolute;inset-inline-end:clamp(18px,8%,40px);top:22%;transform:rotate(12deg)}
+.cd-reading-scene {display:block;width:100%;height:100%;object-fit:cover;object-position:50% 46%}
+.cd-companion[data-reading="daily"] .cd-reading-scene {object-position:66% 45%}
+.cd-reading-florist {position:absolute;inset-inline-start:12%;bottom:4%;width:auto;height:84%;object-fit:contain}
 .cd-companion-reading:has(.cd-reading-illustration) .cd-companion-sentence {
   margin:26px auto 0;padding:0 20px;font-size:clamp(1.25em,5.7vw,1.75em);line-height:1.55;text-wrap:balance;
 }
@@ -127,6 +125,59 @@
 .cd-lock-selector select {display:block;width:100%;min-height:48px;margin-top:6px;padding:8px;border-radius:10px;background:#292032;color:#fff4ed}
 .cd-lock-selector .cd-talisman-apply {background:#f1c6c5;color:#3c2130;font-weight:700}
 @media (max-height:640px) {
-  .cd-reading-illustration {height:108px}
+  .cd-reading-illustration {height:145px}
   .cd-companion-header {margin-bottom:16px}
 }
+
+/* 달빛 예화의 샴페인 금선과 가지 문양을 조작부와 그림 아래에 공유한다. */
+.cd-companion {
+  --yh-metal:#c7ab7e;
+  --yh-etched:color-mix(in srgb,var(--yh-metal) 65%,transparent);
+  --yh-wash:color-mix(in srgb,var(--yh-metal) 9%,transparent);
+}
+.cd-companion[data-tone="day"] {--yh-metal:#846644}
+.cd-companion-reading:has(.cd-reading-illustration),.cd-companion-daily:has(.cd-reading-illustration) {
+  border-color:var(--yh-etched);border-radius:24px 24px 14px 14px;
+  box-shadow:0 8px 20px -14px #171018;
+}
+.cd-reading-illustration + .cd-flower-line::before,
+.cd-reading-illustration + .cd-companion-sentence::before {
+  content:"";display:block;width:min(9rem,65%);height:15px;margin:0 auto 12px;
+  background:var(--yh-metal);mask:url("/icons/yehwa-branch.svg") center / contain no-repeat;
+}
+.cd-companion .cd-lock-settings,
+.cd-companion-actions button,
+.cd-companion .cd-lock-selector .cd-talisman-apply,
+.cd-companion .cd-talisman-picker .cd-talisman-apply {
+  border:1px solid var(--yh-metal);
+  position:relative;
+}
+.cd-companion-actions button,.cd-companion .cd-lock-selector .cd-talisman-apply,
+.cd-companion .cd-talisman-picker .cd-talisman-apply {border-radius:999px;min-height:52px}
+.cd-companion-actions button:first-child,.cd-companion .cd-lock-selector .cd-talisman-apply,
+.cd-companion .cd-talisman-picker .cd-talisman-apply {
+  background:linear-gradient(110deg,#f7e5c7,#e9cca4);color:#37263a;
+  border-color:#efe0c2;box-shadow:inset 0 0 0 3px #f1dfbf,inset 0 0 0 4px #af8c60,0 3px 8px -5px #291f2a;
+}
+.cd-companion-actions button:not(:first-child),.cd-companion .cd-lock-settings {background:var(--yh-wash)}
+.cd-companion button:focus-visible,.cd-companion a:focus-visible,.cd-companion select:focus-visible {
+  outline:3px solid var(--yh-metal);outline-offset:3px;
+}
+.cd-companion-actions button:active:not(:disabled),.cd-companion .cd-talisman-apply:active {filter:brightness(.94)}
+@media(hover:hover){
+  .cd-companion-actions button:not(:disabled):hover,.cd-companion .cd-lock-settings:hover,
+  .cd-companion .cd-talisman-apply:hover {border-color:currentColor}
+}
+
+.cd-companion-actions button:not(:first-child)::after,.cd-companion .cd-lock-settings::after {
+  content:"";position:absolute;inset:3px;border:1px solid var(--yh-etched);
+  border-radius:inherit;pointer-events:none;
+}
+.cd-companion-daily select {
+  justify-self:start;min-height:48px;max-width:calc(100% - 32px);
+  border:1px solid var(--yh-etched);border-radius:999px;padding:8px 16px;
+  background:var(--yh-wash);color:inherit;font:inherit;
+}
+.cd-companion[data-tone="night"] .cd-companion-daily select {color-scheme:dark}
+.cd-companion-daily select option {color:CanvasText;background:Canvas}
+.cd-lock-selector input[type="radio"] {accent-color:#d9bc87}

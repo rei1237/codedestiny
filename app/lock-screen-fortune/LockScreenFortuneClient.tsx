@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeft, Bookmark, Flower2, MoonStar, Settings2, Share2 } from "lucide-react";
+import { ArrowLeft, Bookmark, Settings2, Share2 } from "lucide-react";
 import { TalismanArt, TalismanPicker } from "./Talisman";
 import { DEFAULT_TALISMAN_ID, LOCK_ARTWORK, artworkName, migrateTalisman, resolveTalisman, talismanCopy } from "./talisman-data";
 import { useCompanionDaily } from "./use-companion-daily";
@@ -864,12 +864,15 @@ async function pushAlarmsToNative(prefs: LockPrefs) {
 type Sheet = "none" | "settings" | "theme" | "alarms" | "readlist";
 
 function ReadingIllustration({ kind }: { kind: "daily" | "flower" | "affirmation" }) {
-  const cat = kind === "affirmation";
-  const Motif = cat ? MoonStar : Flower2;
+  const scenicArt = {
+    affirmation: "/assets/yeongnyangi/scenes/self-640.webp",
+    daily: "/images/fortune-tea-house/renewal/yeoni-tea-welcome.webp",
+    flower: "/images/home/illustrated/yeoni-moon-garden-640.webp",
+  };
   return <div className="cd-reading-illustration" aria-hidden="true">
-    <Motif className="cd-reading-motif" size={24} strokeWidth={1.4} />
-    <img src={cat ? "/assets/yeongnyangi/companion/quote.webp" : "/assets/yeongnyangi/companion/yeoni.webp"}
-      width={176} height={176} alt="" decoding="async" />
+    <img className="cd-reading-scene" src={scenicArt[kind]} width={640} height={360} alt="" decoding="async" />
+    {kind === "flower" && <img className="cd-reading-florist"
+      src="/images/fortune-tea-house/flower-pig-flower.webp" width={180} height={180} alt="" decoding="async" />}
   </div>;
 }
 
@@ -1073,7 +1076,7 @@ export default function LockScreenFortuneClient() {
       {kind === "talisman" && <img className="cd-lock-selected-art" src={resolveTalisman(state.prefs.talismanId).character.image} alt={kindLabel} />}
       {showDaily && <section id="companion-daily" className="cd-companion-daily" aria-label={extra.daily} style={{fontSize: scale + "rem"}}>
         <ReadingIllustration kind="daily" />
-          <select aria-label={copy.dailyFortuneSystemHeading} value={dailySystem} onChange={e => updatePrefs({dailyFortuneSystem:e.target.value as DailyFortuneSystem})} style={{minHeight:48,maxWidth:"100%",padding:12,borderRadius:12,background:bg.dark?"#211a32":"#fff9ee",color:"inherit"}}>{DAILY_FORTUNE_SYSTEMS.map(system=><option key={system.key} value={system.key}>{systemLabel(locale, system.key, system.label)}</option>)}</select>
+          <select aria-label={copy.dailyFortuneSystemHeading} value={dailySystem} onChange={e => updatePrefs({dailyFortuneSystem:e.target.value as DailyFortuneSystem})}>{DAILY_FORTUNE_SYSTEMS.map(system=><option key={system.key} value={system.key}>{systemLabel(locale, system.key, system.label)}</option>)}</select>
           {dailyFortune ? <DailyFortuneCard fortune={dailyFortune} scale={scale} subColor={subColor} panelBg={panelBg} dark={bg.dark} copy={copy} /> : !daily.failed && !daily.data ? <p role="status">{copy.dailyFortuneLoading}</p> : <><p>{extra.unavailable}</p><button type="button" onClick={daily.retry}>{extra.retry}</button></>}
           <p className="cd-companion-source">{daily.data?.date || content.dateKey} · KST</p>
           {legacyReference && <details><summary>{extra.source}</summary><DailyFortuneCard fortune={legacyReference} scale={scale} subColor={subColor} panelBg={panelBg} dark={bg.dark} copy={copy} /></details>}
