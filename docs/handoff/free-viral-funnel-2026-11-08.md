@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-11-08
-next: "2b·3b단계 — 꽃 결과 카드만 무료(사용자 결정 2026-11-08) + 최애 상세 리포트 재결제 위험 점검"
+next: "4단계 — /saju/free 초간단 무료 사주(시작 때 '무료 사주' 문자열 가드 판단·보고)"
 ---
 
 # 무료 바이럴 퍼널 (초간단 무료 사주 + 운명의 꽃·최애 운명 무료 개방)
@@ -35,17 +35,17 @@ next: "2b·3b단계 — 꽃 결과 카드만 무료(사용자 결정 2026-11-08)
 - [x] 1. 공용: 스레드 intent + 공용 공유 바(X·스레드·복사·이미지 저장) + trackShare
 - [x] 2. 운명의 꽃 무료 개방(worker requireAuth 제거 + IP 제한, 레거시 클라이언트, 공유 바·CSS 공개 연출)
 - [x] 3. 최애 운명: 결제 검사를 details 로 이동, 슬롯 공개 연출, 문구·레지스트리 설명, 공유 바 교체
-- [ ] 2b. 꽃 결과 카드만 무료: 셸 `openDestinyFlowerStudio`/`_dfRequirePaidSourceUnlock` 게이트를 상세 영역 앞으로 옮기고, 타일 "🔒 해금 5,000원" 표시를 결과 무료·상세 유료에 맞게 정리. `__tests__/worker/free-flower-billing.test.js`·`pass-verdict.js:132` 정합 유지.
-- [ ] 3b. 최애 상세 리포트 재결제 위험: 결제 뒤 새로고침·재방문 때 같은 최애·생일로 다시 돈을 받는지 확인(`ensurePaidAccess`/`useCoinGate` 가 서버 권한을 보는지). 이전(3단계 전)에도 같았는지 비교. 새로 생긴 위험이면 고친다(결제 뒤 전달이 최우선).
+- [x] 2b. 꽃 결과 카드만 무료: 셸 `openDestinyFlowerStudio`/`_dfRequirePaidSourceUnlock` 게이트를 상세 영역 앞으로 옮기고, 타일 "🔒 해금 5,000원" 표시를 결과 무료·상세 유료에 맞게 정리. `__tests__/worker/free-flower-billing.test.js`·`pass-verdict.js:132` 정합 유지.
+- [x] 3b. 최애 상세 리포트 재결제 위험: 결제 뒤 새로고침·재방문 때 같은 최애·생일로 다시 돈을 받는지 확인(`ensurePaidAccess`/`useCoinGate` 가 서버 권한을 보는지). 이전(3단계 전)에도 같았는지 비교. 새로 생긴 위험이면 고친다(결제 뒤 전달이 최우선).
 - [ ] 4. `/saju/free` 초간단 무료 사주(폼·70/30·블러·공유 미션·PNG 카드·SEO·사이트맵)
 - [ ] 5. 문서: 공유 미션 예외 기록, 이 문서 status 정리
 - [ ] 6. 전체 검증(타입·린트·테스트·사이트맵 --check·브라우저 390px)
 
-## 2b 설계(진행 중, 2026-11-08 압축 뒤 기록)
+## 2b 설계(완료, 커밋 `2131ba7b9`)
 - 사실: `POST /api/destiny-flower/match` 는 2단계 전에도 requireAuth 뿐이고 해금 검사가 없었다 → 로그인 사용자에게 4갈래 전체가 이미 내려갔다(게이트는 클라이언트뿐). 2단계로 비로그인까지 넓어졌다.
-- 서버: rate limit 뒤 `getOptionalUserFromRequest(..., {surfaceDbInfraError:true})` → `hasPurchasedAccountContentAccess(env,{userId, featureKey:'flower-fc'})`. 해금자는 전체 + `atelierUnlocked:true`. 비해금은 사주 결과 카드 필드만 + `atelierUnlocked:false`, 다른 3갈래·theme·후보·이야기·꽃말 심화 없음. 로그인 사용자 권한 조회 DB 실패는 503 `DB_DEGRADED`(구매자에게 결제 유도 금지).
+- 서버: rate limit 뒤 `getOptionalUserFromRequest(..., {surfaceDbInfraError:true})` → `hasPurchasedAccountContentAccess(env,{userId, featureKey:'flower-fc'})`. 해금자는 전체 + `atelierUnlocked:true`. 비해금은 사주 결과 카드 필드만(`toFreeSajuCard`) + `atelierUnlocked:false`, 다른 3갈래·후보·이야기·꽃말 심화 없음(theme 는 화면 색이라 모두에게 준다). 권한 조회 실패는 503 대신 무료 카드 + `entitlementDegraded:true` → 클라이언트 잠금 카드가 결제 대신 "다시 확인하기"를 보인다(구매자에게 결제 유도 금지).
 - 클라이언트: `openDestinyFlowerStudio` 는 게이트 없이 연다. 사주 외 탭은 `_dfRequirePaidSourceUnlock` 유지. 잠금이면 상세 영역을 숨기고 인라인 잠금 카드 CTA 로 기존 타일 미리보기 결제를 연다. 토큰 있으면 Bearer 헤더를 다시 보내고, 해금 여부를 fingerprint 에 넣어 결제 뒤 다시 받는다.
-- 타일 라벨: "결과 무료 · 상세 5,000원", data-tile-lock-* 는 유지.
+- 타일: 잠금 속성을 홈 타일에 두면 `__cdRequireTileLockGate`·미리보기 인터셉터가 비구매자를 시트에서 막아 무료 카드에 못 닿는다. 그래서 홈 타일에서 `data-tile-lock-key/cost` 를 빼고(`data-feature-key` 는 유지), 같은 속성을 가진 숨은 `#dfAtelierPurchaseAnchor` 를 `#destinyFlowerStudioSheet` 안에 두었다. `_dfResolveLockTileBySource` 가 문서 전체에서 이 앵커를 찾아 기존 미리보기 결제 흐름을 그대로 쓴다. 배지 "결과 무료 · 상세 5,000원".
 
 ## 결과 메모
 - 1단계(2026-11-08, 커밋 `2ece773c4`)
@@ -68,6 +68,23 @@ next: "2b·3b단계 — 꽃 결과 카드만 무료(사용자 결정 2026-11-08)
   - 문구: `page.tsx` ko/en/ja 설명, `ChemiHook` "결과 카드와 공유는 무료, 자세한 리포트는 단건 결제". 레지스트리 `worker/lib/paid-feature-registry.js` reason 만 변경(가격 그대로) + `lib/payment/light-fortunes.generated.json` 재생성. 서버 쪽은 코인 게이트 가격표뿐이라 추가 검증 경로 없음.
   - 테스트: 새 `__tests__/ui/destiny-bias-paid-details.static.test.mjs`(4). `paid-non-llm-delivery-fixtures` consumer 마커를 `<ChemiSections copy={outcome.copy} />` 로, autosave 테스트 핸들러 목록에서 handleShareToX 제거.
   - 검증: destiny-bias node 테스트 98/98, 워커 jest 4 suites 48/48, qa-destiny-bias-touch PASS, verify-paid-gate-ui-regression PASS, light-fortunes fresh, payment-p0-inventory PASS. `npm run check:fast` 첫 실행은 sitemap-drift FAIL → `npm run sitemap:generate` 후 재실행 EXIT=0(sitemap OK 1060, typecheck, lint, test:node 4673/4673, jest 455 suites·7703 tests).
+- 2b단계(2026-11-08, 커밋 `2131ba7b9`)
+  - 무료(로그인 없이): 사주가 고른 꽃 한 송이·결과 카드·`#dfViralShare`. 서버 응답은 `toFreeSajuCard` 필드(일간·계절·꽃·sticker/badge/season/scenario 라벨·saju_verdict·share_hook)뿐.
+  - 유료(flower-fc 5,000원, 계정 해금): 점성술·자미두수·숙요 세 갈래, 후보·이야기·꽃말·정원사의 말·색 처방 등 상세. 서버가 권한 없으면 아예 안 보낸다(2단계 전부터 있던 "로그인 비구매자에게 전체가 내려가던" 누수도 함께 닫힘). 기존 구매자는 서버 권한(`atelierUnlocked:true`)과 기존 기기 해금 지도로 그대로 연다.
+  - 셸: `openDestinyFlowerStudio` 는 항상 열고 비해금이면 사주 탭으로 고정. 잠금이면 `.df-studio--atelier-locked` 로 상세 영역을 숨기고 `#dfAtelierLock` 카드("상세 해금 · 5,000원" → `_dfRequirePaidSourceUnlock` → 기존 미리보기 결제). 권한 조회 장애면 "다시 확인하기". 해금 여부가 fingerprint 끝(`|card`/`|atelier`)에 들어가 결제 뒤 다시 받는다.
+  - 홈 타일: 잠금 속성 제거, 숨은 `#dfAtelierPurchaseAnchor`(studio 안)로 이동, 배지·미리보기 cost "결과 무료 · 상세 5,000원". `free-flower-billing`·`pass-verdict.js:132` 는 그대로(판매 중 상품).
+  - 검증: route jest + free-flower-billing 18/18, `node --test __tests__/ui/destiny-flower-*.static.test.js` 56/56(새 "홈 꽃 타일은 무료로 열리고…" 포함), verify-home-service-registry OK, `npm run check:fast` EXIT=0(sitemap OK 1060, typecheck PASS, test:node 4674/4674, jest 455 suites·7704 tests). 브라우저 확인은 6단계.
+- 3b단계(2026-11-08, 코드 변경 없음)
+  - 결론: 새로고침·재방문 뒤 같은 최애·생일로 상세를 다시 열면 **다시 결제된다.** 하지만 3단계가 만든 위험이 아니라 원래 있던 동작이다.
+  - 근거: `destiny-bias-analyze` 는 per-use(`worker/lib/paid-feature-registry.js` 회당 목록). 회당 결제는 서버 보유 목록에 남지 않고(`useCoinGate.ts` 주석), `ensurePaidAccess` 의 `requestId` 는 매번 `Date.now()+random` 이라 서버 멱등도 안 걸린다. 구제는 리다이렉트 복귀 영수증(`consumePaidGrantReceipt`, 1회 소비)과 `usePaidResume` 뿐이고 둘 다 그대로 동작한다.
+  - 3단계 전(`85d8f7281^`)에는 `compute` 가 form·switch·replay 마다 결제했다 → 새로고침·멤버 바꾸기·최근 결과 다시 보기마다 결제. 지금은 상세 진입에서만, 세션 안 같은 최애×생일은 한 번만 결제 → 결제 횟수는 줄었다. 결제 직후 전달(인라인 성공 → `unlockDetails`, 리다이렉트 → resume 으로 재계산+해금)도 확인. 범위를 넓히지 않고 보고만 한다.
+
+## 함정(2b에서 발견)
+- 🔴 홈 타일에 `data-tile-lock-key/cost` 가 남으면 `__cdRequireTileLockGate`(런타임)·미리보기 인터셉터(`_hasPaidPreviewSignal`)가 비구매자를 로그인 확인·미리보기 시트에서 막는다 → 무료 카드에 못 닿는다. 잠금 속성은 숨은 앵커에만 둔다. `destiny-flower-single-card` 가드는 마크업 `data-tile-lock-key="flower-fc"` 가 정확히 1개이길 요구한다.
+- 마케팅 사전(`FEATURE_MARKETING_COPY`)에 FAQ 를 더하면 `sync:marketing-copy` 재생성 + 11개 로케일 번역(`feature-marketing-modal-i18n` 가드)이 필요하다 → 이번엔 FAQ 추가를 되돌렸다.
+- sync 스크립트는 en/ja/zh/zh-tw 의 `pb__light-list` 줄(라이트 운세 이름)도 바꾼다 — 무관해서 되돌렸다. og 이미지 토큰도 되돌림.
+- bash heredoc·sed 는 정규식 백슬래시(`/|card$/`)를 먹는다. 백슬래시가 든 코드는 Edit/Write 도구로.
+- `__tests__/ui/mock-test-runner.test.mjs` 는 부하가 크면 spawnSync ETIMEDOUT 으로 실패한다(단독 5/5 통과, 재실행 통과). 코드와 무관한 흔들림.
 
 ## 함정(3단계에서 발견)
 - 소스 파일을 바꾸면 sitemap lastmod 가 바뀌어 `verify:sitemap-drift` 가 실패한다. 커밋 전에 `npm run sitemap:generate` 를 같은 커밋에 담는다.
@@ -91,3 +108,8 @@ next: "2b·3b단계 — 꽃 결과 카드만 무료(사용자 결정 2026-11-08)
 - `/flower` noindex(`app/flower/page.tsx:11-16`)는 로그인과 무관: AdSense "가치 낮은 콘텐츠" 거절 뒤 얇은 본문(449자, 2026-08-17 측정) 때문. noindexPathPrefixes 로 옮기면 ShareWidget 이 숨는다는 주석도 있다. 그대로 둔다.
 - i18n `fortune.destinyFlower.ui.status.atelierLocked`·`status.loginRequired`(`i18n/authored/destinyFlower-03.json`)는 이제 미사용. 새 키 `viral.*`·`status.rateLimited` 는 번역 없음(한국어 폴백).
 - 레거시 공유 줄에는 trackShare 분석 이벤트가 없다.
+- 꽃 2b: 새 i18n 키 `atelierLock.*`(잠금 카드 문구)는 번역 없음(한국어 폴백). 앱(Play) 안에서는 `play-display-price.js` 가 타일 배지 글자를 Play 가격으로 덮어 "결과 무료" 문구가 사라진다(표시만).
+- 꽃 2b: 해금 뒤에도 홈 타일 배지는 "결과 무료 · 상세 5,000원" 그대로다(잠금 시각 처리는 이제 앵커에만 걸리고, 앵커는 그림 영역이 없어 건너뜀). "해금됨" 표시가 필요하면 별도 작업.
+- 꽃 2b: 홈 가이드 카드(`scripts/design/build-home-funnel.mjs` 생성, `/flower/` 링크)는 아직 "해금 5,000원". `/flower` 랜딩·마케팅 사전 문구(FAQ "해금하면 무엇이 열리나요?")도 무료 카드 언급이 없다 — 번역이 필요해 미룸.
+- 꽃 2b: 기기 해금 지도는 해금인데 서버가 비해금이라고 하면(오래된 캐시) 잠금 카드가 보이고 버튼은 재조회만 한다. 서버가 정본이라 결제는 안 일어난다.
+- 최애 3b: 상세 해금을 새로고침 뒤에도 유지하려면 per-use 영수증을 서버에 남겨 (최애×생일) 키로 복원해야 한다 — 결제 모델 결정이라 사용자 판단.
