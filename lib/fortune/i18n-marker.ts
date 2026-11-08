@@ -65,8 +65,20 @@ export const TRINE_KEY: Record<string, string> = {
   "금국(金局)": "fortuneVar.trine.metal",
 };
 
-/** sign id → 키. zodiac 12개만 있다(띠는 ANIMAL_KEY_BY_BRANCH 쪽). */
+/** sign id → 이름 키. 관계 설명의 지지는 ANIMAL_KEY_BY_BRANCH, 페이지 주인공은 이 표를 쓴다. */
 export const SIGN_KEY: Record<string, string> = {
+  rat: "fortuneVar.animal.rat",
+  ox: "fortuneVar.animal.ox",
+  tiger: "fortuneVar.animal.tiger",
+  rabbit: "fortuneVar.animal.rabbit",
+  dragon: "fortuneVar.animal.dragon",
+  snake: "fortuneVar.animal.snake",
+  horse: "fortuneVar.animal.horse",
+  goat: "fortuneVar.animal.goat",
+  monkey: "fortuneVar.animal.monkey",
+  rooster: "fortuneVar.animal.rooster",
+  dog: "fortuneVar.animal.dog",
+  pig: "fortuneVar.animal.pig",
   aries: "fortuneVar.sign.aries",
   taurus: "fortuneVar.sign.taurus",
   gemini: "fortuneVar.sign.gemini",

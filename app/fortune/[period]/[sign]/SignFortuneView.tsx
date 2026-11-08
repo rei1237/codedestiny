@@ -176,7 +176,7 @@ export default function SignFortuneView({ vm: sourceVm, locale = "ko" }: { vm: S
         )}
 
         {period === "tomorrow" && (
-          <section aria-labelledby="preparation-heading" className={tomorrowStyles.preparation}>
+          <section lang={locale} data-cd-no-trans={locale === "ko" ? "" : undefined} aria-labelledby="preparation-heading" className={tomorrowStyles.preparation}>
             <h2 id="preparation-heading">{tomorrowCopy.heading}</h2>
             <p>{preparationReading}</p>
             <p className={tomorrowStyles.note}>{tomorrowCopy.note}</p>
@@ -275,7 +275,7 @@ export default function SignFortuneView({ vm: sourceVm, locale = "ko" }: { vm: S
           </div>
         </section>
 
-        {preparationDetails && <section aria-labelledby="tomorrow-practice-heading" className={tomorrowStyles.guide}>
+        {preparationDetails && <section lang="ko" data-cd-no-trans aria-labelledby="tomorrow-practice-heading" className={tomorrowStyles.guide}>
           <h2 id="tomorrow-practice-heading">{preparationDetails.heading}</h2>
           {preparationDetails.paragraphs.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
           <nav className={tomorrowStyles.jumpLinks}>
@@ -364,13 +364,13 @@ export default function SignFortuneView({ vm: sourceVm, locale = "ko" }: { vm: S
           </section>
         )}
 
-        {/* 상시 톤 — 날짜와 무관한 값이므로 라벨을 그렇게 붙인다 */}
+        {/* 기준일 원고 — 상시 성향과 구분해 분야별로 읽는다 */}
         <section aria-labelledby="tone-heading" className="mt-12">
           <h2 id="tone-heading" className="break-keep text-lg font-extrabold">
-            {`${profile.nameKo} · ${copy.profile}`}
+            {locale === "ko" ? `${currentPeriodLabel} · 분야별 조언` : `${profile.nameKo} · ${copy.profile}`}
           </h2>
           <p className={`mt-2 break-keep text-sm leading-7 ${MUTED}`}>
-            {locale === "ko" ? `아래는 날짜와 무관하게 이 ${kindLabel}가 늘 지니는 성향입니다. 위의 점수·관계가 그날그날 달라지는 부분이고, 이 문단은 그 위에 깔리는 바탕입니다.` : locale === "en" ? "These are enduring tendencies. The scores and relationships above change with the date; this section describes their background." : locale === "ja" ? "ここでは日付に左右されない基本的な傾向を紹介します。上のスコアや関係は日々変化しますが、この部分はその土台です。" : locale === "zh-CN" ? "以下是不随日期改变的基本倾向。上方评分和关系随日期变化，这一部分说明其基础。" : "以下是不隨日期改變的基本傾向。上方評分和關係隨日期變化，這一部分說明其基礎。"}
+            {locale === "ko" ? `아래는 기준일의 분야별 원고예요. 위의 점수·관계와 함께 읽고, 지금의 상황에 맞는 조언을 골라보세요.` : locale === "en" ? "These are enduring tendencies. The scores and relationships above change with the date; this section describes their background." : locale === "ja" ? "ここでは日付に左右されない基本的な傾向を紹介します。上のスコアや関係は日々変化しますが、この部分はその土台です。" : locale === "zh-CN" ? "以下是不随日期改变的基本倾向。上方评分和关系随日期变化，这一部分说明其基础。" : "以下是不隨日期改變的基本傾向。上方評分和關係隨日期變化，這一部分說明其基礎。"}
           </p>
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
             {SCORE_AXES.map((axis) => (
@@ -421,6 +421,15 @@ export default function SignFortuneView({ vm: sourceVm, locale = "ko" }: { vm: S
           </h2>
           <p className={`mt-3 break-keep text-sm leading-7 ${MUTED}`}>{profile.essence}</p>
 
+          {locale === "ko" && period === "tomorrow" ? (
+            <p className={`mt-3 break-keep text-sm leading-7 ${MUTED}`}>
+              날짜와 무관한 강점·주의점·생활 습관은 한곳에 모아두었어요. 내일의 준비와 구분해서 살펴보세요.{" "}
+              <Link className="underline underline-offset-4" href={`/fortune/today/${profile.id}/#profile-heading`}>
+                {profile.nameKo} 기본 성향 이어 읽기
+              </Link>
+              {" · "}<Link className="underline underline-offset-4" href={`/fortune/today/${profile.id}/#faq-heading`}>기본 해석 자주 묻는 질문</Link>
+            </p>
+          ) : (<>
           <h3 className={`mt-6 break-keep text-sm font-extrabold ${ACCENT}`}>{copy.strength}</h3>
           <p className={`mt-2 break-keep text-sm leading-7 ${MUTED}`}>{profile.strength}</p>
 
@@ -436,6 +445,7 @@ export default function SignFortuneView({ vm: sourceVm, locale = "ko" }: { vm: S
             {preparationReading}
           </p>
           </details>)}
+          </>)}
         </section>
 
         {/* 궁합 */}
