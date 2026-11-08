@@ -76,6 +76,11 @@ const MUST_DIFFER_KEYS = new Set([
 
 /** 스테이징에만 있어야 하는 키. 프로덕션에 나타나면 실패한다. */
 const STAGING_ONLY_KEYS = new Set([
+  // First Toss review uses a staging client certificate. Production binding
+  // requires its own approved rollout and expiry.
+  "mtls_certificates.TOSS_MTLS.binding",
+  "mtls_certificates.TOSS_MTLS.certificate_id",
+  "vars.TOSS_MTLS_EXPIRES_AT",
   "vars.APP_ENV",
   "vars.STAGING_LLM_MOCK_ENABLED",
   "vars.CORS_ORIGIN",
@@ -464,10 +469,14 @@ const BASE_STAGING = [
   'binding = "FEEDBACK_IMAGES_BUCKET"',
   'bucket_name = "bugs-staging"',
   '',
+  '[[mtls_certificates]]',
+  'binding = "TOSS_MTLS"',
+  'certificate_id = "test-certificate"',
   '',
   '[vars]',
   'NODE_ENV = "production"',
   'APP_ENV = "staging"',
+  'TOSS_MTLS_EXPIRES_AT = "2030-01-01T00:00:00Z"',
   'STAGING_LLM_MOCK_ENABLED = "true"',
   'CORS_ORIGIN = "https://staging.code-destiny.com"',
   'PAYMENT_TEST_AMOUNT_KRW = "1000"',
@@ -484,10 +493,17 @@ const BASE_STAGING = [
   'crons = []',
 ].join("\n");
 
-/** 스테이징 픽스처에서 스테이징 전용 키 하나를 뺀다. services.* 는 바인딩 블록째 뺀다. */
+/** 스테이징 픽스처에서 해당 변수 또는 인증서 바인딩 필드를 뺀다. */
 function withoutStagingOnlyKey(fixture, key) {
   if (key.startsWith("vars.")) {
     return fixture.split("\n").filter((line) => !line.startsWith(`${key.slice(5)} =`)).join("\n");
+  }
+  if (key.startsWith("mtls_certificates.TOSS_MTLS.")) {
+    const field = key.split(".").at(-1);
+    return fixture.replace(/\[\[mtls_certificates\]\][^[]*/, (block) => {
+      if (field === "binding") return "";
+      return block.split("\n").filter((line) => !line.startsWith(field + " =")).join("\n");
+    });
   }
   throw new Error(`self-test 가 모르는 스테이징 전용 키 종류: ${key}`);
 }

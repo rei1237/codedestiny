@@ -115,6 +115,10 @@ bucket_name = "codedestinyassets-staging"
 # with `wrangler secret put` or in the Cloudflare dashboard.
 # Turnstile secret:
 # `wrangler secret put TURNSTILE_SECRET_KEY`
+[[mtls_certificates]]
+binding = "TOSS_MTLS"
+certificate_id = "54538b62-1dfb-4189-a7af-9b1356c536bb"
+
 [vars]
 NODE_ENV = "production"
 # 🔴 NODE_ENV 를 development 로 내리지 말 것. worker/lib/auth.js 의 isExplicitLocalDevEnv 가
@@ -125,6 +129,7 @@ NODE_ENV = "production"
 # "production" 이라 그 값이 이겨서 /dev-payment-tester(이용권·월정석 무제한 지급구)가 403 으로
 # 닫혀 있다. NODE_ENV 를 "staging" 으로 바꾸면 공개 URL 에서 그 지급구가 열린다.
 APP_ENV = "staging"
+TOSS_MTLS_EXPIRES_AT = "2027-12-03T00:27:15Z"
 # 실결제 이후 결과 저장·재조회 파이프라인을 검증할 때 사용하는 스테이징 전용 mock.
 # APP_ENV=staging 및 WORKERS_AI_ENABLED=false와 함께일 때만 lib/llm-client.ts가 읽는다.
 # 프로덕션 wrangler.toml에는 절대 추가하지 않는다.
