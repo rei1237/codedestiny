@@ -1,0 +1,11 @@
+.report{margin:24px 0;padding:20px;border:1px solid #e8dccb;border-radius:20px;background:#fbf6ee;color:#2b2238;scroll-margin-top:80px}
+.report h2{display:flex;align-items:center;gap:8px;margin:0 0 8px;font-size:1.2rem}
+.report p{margin:0 0 12px;line-height:1.6}
+.make{min-height:48px;padding:0 20px;border:0;border-radius:999px;background:#161a33;color:#f6efe2;font-weight:700;cursor:pointer}
+.make:disabled{opacity:.7;cursor:progress}
+.actions{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.actions button,.pages button{display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:0 16px;border:1px solid #d9c8ad;border-radius:999px;background:#fff;color:#2b2238;cursor:pointer}
+.pages{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;margin:0;padding:0;list-style:none}
+.pages li{display:grid;gap:8px;justify-items:start}
+.pages img{display:block;width:100%;height:auto;border-radius:12px;box-shadow:0 2px 10px rgba(22,26,51,.12)}
+.notice{min-height:1.6em;font-size:.9rem;color:#6d6176}
