@@ -57,3 +57,27 @@ test('SDK loading deduplicates, times out, and can retry after a blocked append'
   assert.equal(await retry, true);
   assert.equal(appends, 2);
 });
+
+test('X and Threads intents carry channel UTM, keep result params, and drop the hash', async () => {
+  const { socialIntentUrl, withShareUtm } = await import('../../js/share-service.mjs');
+  const base = 'https://code-destiny.com/saju/destiny-bias/?m=idol-1#result';
+  const tagged = new URL(withShareUtm(base, 'threads'));
+  assert.equal(tagged.searchParams.get('m'), 'idol-1');
+  assert.equal(tagged.searchParams.get('utm_source'), 'threads');
+  assert.equal(tagged.searchParams.get('utm_medium'), 'share');
+  assert.equal(tagged.searchParams.get('utm_campaign'), 'public_share');
+  assert.equal(tagged.hash, '');
+
+  const threads = new URL(socialIntentUrl('threads', { text: '내 운명의 꽃 🌸', url: base }));
+  assert.equal(threads.origin + threads.pathname, 'https://www.threads.net/intent/post');
+  const body = threads.searchParams.get('text');
+  assert.match(body, /^내 운명의 꽃 🌸\nhttps:\/\/code-destiny\.com\/saju\/destiny-bias\/\?m=idol-1&utm_source=threads/);
+
+  const x = new URL(socialIntentUrl('x', { text: '최애 운명', url: base }));
+  assert.equal(x.origin + x.pathname, 'https://x.com/intent/post');
+  assert.equal(x.searchParams.get('text'), '최애 운명');
+  assert.equal(new URL(x.searchParams.get('url')).searchParams.get('utm_source'), 'x');
+
+  assert.throws(() => socialIntentUrl('kakao', { text: 'a', url: base }), /UNSUPPORTED_INTENT_CHANNEL/);
+  assert.throws(() => withShareUtm('javascript:alert(1)'), /UNSAFE_SHARE_URL|Invalid URL/);
+});

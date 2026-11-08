@@ -3,5 +3,8 @@ export type ShareData = { title: string; text: string; url: string; image?: stri
 export type ShareOutcome = { status: 'copied' | 'manual' | 'shared' | 'cancelled' | 'failed' | 'unavailable' | 'opened' };
 export const KAKAO_SDK_URL: string;
 export function publicShareUrl(value: string, origin?: string): string;
+export type SocialIntentChannel = 'x' | 'threads';
+export function withShareUtm(value: string, source?: string): string;
+export function socialIntentUrl(channel: SocialIntentChannel, data: { text: string; url: string }): string;
 export function prepareKakao(key: string | undefined): Promise<boolean>;
 export function shareThrough(channel: ShareChannel, data: ShareData): Promise<ShareOutcome>;

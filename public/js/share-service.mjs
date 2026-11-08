@@ -15,6 +15,26 @@ export function publicShareUrl(value, origin = 'https://code-destiny.com') {
   return url.toString();
 }
 
+/** Same UTM convention as lib/share.v2.ts buildUtmShareUrl; keeps the path and other params. */
+export function withShareUtm(value, source = 'share') {
+  const url = new URL(value);
+  if (!['https:', 'http:'].includes(url.protocol)) throw new Error('UNSAFE_SHARE_URL');
+  url.hash = '';
+  url.searchParams.set('utm_source', source);
+  url.searchParams.set('utm_medium', 'share');
+  url.searchParams.set('utm_campaign', 'public_share');
+  return url.toString();
+}
+
+/** Web compose intents. Threads gets the link inside the text so it never depends on an extra url slot. */
+export function socialIntentUrl(channel, data) {
+  const url = withShareUtm(data.url, channel);
+  const text = String(data.text || '').trim();
+  if (channel === 'x') return `https://x.com/intent/post?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`;
+  if (channel === 'threads') return `https://www.threads.net/intent/post?text=${encodeURIComponent(text ? `${text}\n${url}` : url)}`;
+  throw new Error('UNSUPPORTED_INTENT_CHANNEL');
+}
+
 export function prepareKakao(key, host = window) {
   if (!key) return Promise.resolve(false);
   if (host.Kakao?.isInitialized?.()) return Promise.resolve(Boolean(host.Kakao.Share));

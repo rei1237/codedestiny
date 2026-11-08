@@ -19,7 +19,7 @@ import { trackEvent } from "../../lib/analytics";
 /** 결제창의 세 갈래. 결제창 카드의 data-mode 와 같은 축이다. */
 export type PaymentMethod = "pass-store" | "single" | "moonstone";
 
-export type ShareChannel = "kakao" | "link" | "x" | "facebook" | "download" | "etc";
+export type ShareChannel = "kakao" | "link" | "x" | "threads" | "facebook" | "download" | "etc";
 
 /** 클릭 계측. target 은 버튼의 역할("checkout-cta" 등)이지 화면 문구가 아니다. */
 function trackClick(target: string, params?: Record<string, unknown>): void {
