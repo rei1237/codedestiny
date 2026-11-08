@@ -1,22 +1,22 @@
 ---
 status: in-progress
 updated: 2026-11-09
-next: check:fast 최종 로그를 확인하고 UI·원화 커밋 및 pre-push 검사 뒤 원격 main에 직접 전달한다.
+next: .tmp/pet-check-fast-green.log의 최종 검사와 sitemap 서명 갱신 후 pre-push를 확인하고 원격 main에 직접 전달한다.
 ---
 
 # 프로필 카드 운세 다마고치 통합
 
 ## 첫 행동
 
-`D:/Development/codedestiny-worktrees/profile-pet-20261109-052334`에서 `.tmp/pet-check-fast-final.log`와 실행 세션 82007 상태를 확인한다. 검사는 mock guard 아래 실행 중이다. 운영 DB·실결제·실 LLM을 호출하지 않는다.
+`D:/Development/codedestiny-worktrees/profile-pet-20261109-052334`에서 `.tmp/pet-check-fast-green.log`와 실행 세션 54204 상태를 확인한다. 검사는 mock guard 아래 실행 중이다. 운영 DB·실결제·실 LLM을 호출하지 않는다.
 
 ## 지금 상태
 
 - 원본 작업 폴더: D:/Development/code-destiny, 다른 세션 변경 다수. 절대 reset/stash/checkout으로 정리하지 않는다.
 - 내 워크트리: D:/Development/codedestiny-worktrees/profile-pet-20261109-052334
 - 내 브랜치: wt/profile-pet-20261109-052334, 시작 origin/main 4ee6c81148d5ccc19afbd0143232aa81d4ad0bcb.
-- 마지막 커밋: fbce1c4f1. 앞 커밋 268eb90b1은 서버 배정·돌봄 구현, 마지막은 반복 요청 멱등·트랜잭션 읽기 직렬화·탈퇴 데이터 정리.
-- UI/원화/문서/자동 생성 미러/공용 프로필 스크립트 캐시 핀은 미커밋이며 모두 내 변경이다. 원본 워크트리의 변경을 복사하지 않았다. push 전이다.
+- 마지막 구현 커밋: 2bad57256(UI·원화·캐시 핀·동결 해시 포함). 앞 커밋 268eb90b1은 서버 배정·돌봄, fbce1c4f1은 반복 요청 멱등·트랜잭션 읽기 직렬화·탈퇴 정리다.
+- 원본 워크트리 변경을 복사하지 않았다. push 전이다. 사이트맵 원장은 생성기로 6개 서명만 갱신했고 날짜·URL은 불변이다.
 - 로컬 main 체크아웃 C:/Users/user/Documents/Codex/worktrees/yeongnyangi-blue-passes-20261024-050530은 e6aa5a287이며 다른 세션의 꿀방울·상담 수정이 있다. origin/main보다 오래됐고 변경 파일이 겹친다. 이 체크아웃은 건드리지 않는다. 내 검증된 커밋을 최신 origin/main에 맞춘 뒤 HEAD:main fast-forward push로 전달하고 원격 main 도달을 확인한다. PR은 만들지 않는다.
 
 ## 승인 상태
@@ -33,9 +33,11 @@ next: check:fast 최종 로그를 확인하고 UI·원화 커밋 및 pre-push �
 - 영냥이 최초 시트에는 이웃 셀 조각이 섞여 다시 그렸다. 최종 unique-sleep은 원본 마지막 행의 눈감은 셀 [1,2,3,2]를 사용한다. 기존 마스터 원본은 불변이다.
 - .tmp/profile-pet-sources-final.json은 원화 절대 경로와 생성 프롬프트를 포함한 기술 준비 입력이다. 전역 C:/Users/user/.codex/generated_images의 원본은 보존한다. 준비 스크립트는 자르기·8px 여백·리사이즈·WebP 최적화만 한다. 프로젝트에는 최적화 35개 시트와 art-manifest.json이 있다.
 - sync:public만으로 독립 정적 페이지의 destiny-profile.js 핀이 갱신되지 않아 첫 check:fast가 실패했다. scripts/restamp-paid-runtime-pins.mjs로 24개 참조를 재생성했다. 결제 로직 수정이 아니다.
-- Ego 브라우저 공간 67, p1. 서버는 .tmp/profile-pet-server.mjs, localhost:13378. 모든 API는 mock, CSP로 외부 트래픽 차단. Windows node 프로세스 명령줄이 이 정확한 파일인 프로세스만 종료할 것.
+- Ego 브라우저 공간 67은 finish({keep:[]})로 닫았고 .tmp/profile-pet-server.mjs 서버도 종료했다. 모든 API는 mock, CSP로 외부 트래픽을 차단했다.
 - Ego의 페이지 행동 뒤 viewport가 원복될 수 있으므로 캡처 직전에 CDP metrics를 다시 설정했다. 실제 프로필 시트 닫기/복귀는 Escape로 검증했고 단일 노드 1개가 홈에 돌아온다.
-- Ego 업데이트 안내가 있었으나 업그레이드는 요청하지 않았고 실행하지 않는다. 작업 종료 전 공간을 finish({keep:[]})로 닫는다.
+- Ego 업데이트 안내가 있었으나 업그레이드는 요청하지 않았고 실행하지 않았다.
+- check:fast 두 번째 실행은 77개 결제/인증 가드 중 76개 통과, billing-client 캐시 핀 변경에 따른 동결 해시 1개가 실패했다. 실제 diff가 캐시 핀 1줄임을 확인하고 신규 결제 모듈에 옮길 정책 변경이 없음을 검토한 뒤 --update했다. config/payment-freeze.json에는 해당 파일 해시 1개만 바뀌었다. 현재 전체 check:fast 재실행 중이며 76개 성공을 숨기거나 검사를 줄이지 않았다.
+- 첫 pre-push는 public mirror와 home registry가 통과했으나 사이트맵 원장 서명 6개가 낡아 실패했다. npm run sitemap:generate로 이 서명만 재생성했다.
 
 ## 설계
 
@@ -51,7 +53,8 @@ next: check:fast 최종 로그를 확인하고 UI·원화 커밋 및 pre-push �
 - [x] verify-profile-characters --skip-assets, verify-profile-card-level, verify-profile-card-action-policy 통과
 - [x] 360/390/430/1280 브라우저 캡처, 가로 넘침 없음·주요 버튼 최소48px 확인. 독립 시각 검수 최종 SHIP.
 - [x] 독립 기술 검수의 2개 실제 결함 수정 및 회귀 테스트 추가. Detector 정확히1회: 23건(달 그림자 side-tab 오탐1, 보조 글자 크기 advisory22). .tmp/pet-detector.json.
-- [ ] check:fast --base=268eb90b1^ 최종 완료 확인. 첫 실패는 캐시 핀 수정으로 해결 중이며 재실행 세션82007.
-- [ ] UI/원화/문서/미러/캐시 핀 커밋, npm run check:pre-push
+- [ ] check:fast --base=4ee6c81148d5ccc19afbd0143232aa81d4ad0bcb 최종 완료 확인. 재실행 세션54204, .tmp/pet-check-fast-green.log.
+- [x] UI/원화/문서/미러/캐시 핀 커밋
+- [ ] 사이트맵 서명 커밋 후 npm run check:pre-push 재실행
 - [ ] origin/main 최신 상태·CI 확인 후 main 직접 push, 최종 CI 1회 확인(진행중이면 URL 보고하고 종료, 폴링 금지)
 - [ ] 이 문서 status:done 정리, 검수 서버/Ego 종료, 내 .tmp 파일·워크트리·wt 브랜치 배수
