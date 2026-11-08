@@ -1,0 +1,644 @@
+{
+  "locale": "ja",
+  "episodeId": "prologue",
+  "sourceTitle": "이상한 앱이 깔렸다",
+  "sourceTag": "프롤로그 · 이상한 앱이 깔렸다",
+  "title": "見知らぬアプリが入っていた",
+  "tag": "プロローグ · 見知らぬアプリが入っていた",
+  "method": "directly authored; no translation API",
+  "status": "draft",
+  "rows": [
+    {
+      "id": "prologue:1",
+      "source": "연이는 요즘 되는 일이 없었다. 하루쯤 운이 나쁜 거라면 넘겼을 텐데, 작은 어긋남이 며칠째 쌓이고 있었다.",
+      "sourceHash": "6943902bb9100c50e7c81f2d1e22fe94553d0cd14d525b79bfb185ba5191d0e0",
+      "translations": {
+        "ja": "最近のYeoniは、何をやってもうまくいかなかった。一日くらい運が悪いだけなら流せたはずなのに、小さな食い違いが何日も積み重なっていた。"
+      }
+    },
+    {
+      "id": "prologue:2",
+      "source": "그날 아침도 그랬다. 알람은 분명 세 개였다. 7시 10분, 7시 15분, 7시 20분. 이름까지 야무지게 붙여 뒀다.",
+      "sourceHash": "a79a6e1bc72efe9a0269e0d4a1ca8e43c321719dd17339f2c5780ad76d8f0b14",
+      "translations": {
+        "ja": "その朝も同じだった。アラームは確かに三つ。七時十分、十五分、二十分。それぞれ名前までつけておいたのに。"
+      }
+    },
+    {
+      "id": "prologue:3",
+      "source": "[ 일어나 ]   [ 진짜 일어나 ]   [ 이러다 인생 망함 ]",
+      "sourceHash": "a259fbdf06063208d97679f963996c755c90656c0dbd657617c2eab065c99d09",
+      "translations": {
+        "ja": "［ 起きろ ］   ［ 本当に起きろ ］   ［ このままだと人生終わる ］"
+      }
+    },
+    {
+      "id": "prologue:4",
+      "source": "하나도 울리지 않았다. 눈을 떴을 때 커튼 틈으로 들어온 빛은 이미 노랬다. 딱 '늦었다'의 색이었다.",
+      "sourceHash": "9a59ead25d07f58197cb92a9929e3b6b921fe52a52affcf8c70ad71015ef6b37",
+      "translations": {
+        "ja": "一つも鳴らなかった。目を開けると、カーテンの隙間から差す光はもう黄色かった。まさに「遅刻」の色だ。"
+      }
+    },
+    {
+      "id": "prologue:5",
+      "source": "휴대폰은 1퍼센트였다. 충전기는 콘센트에 얌전히 꽂혀 있었고, 빠진 건 휴대폰 쪽이었다. 잠금 화면에 처음 보는 알림이 한 줄 떠 있었다. [ 운세 손상 감지 · 알림을 끄시겠습니까? ] 연이는 광고인 줄 알고 옆으로 밀어 버렸다.",
+      "sourceHash": "4e6e0df0f45acf69341066fb4a35a73cf9a403671eb1cd3c552f465db6322aef",
+      "translations": {
+        "ja": "スマホの充電は一パーセント。充電器はおとなしくコンセントに収まり、抜けていたのはスマホ側だった。ロック画面に見知らぬ通知が一行。[ 運勢の損傷を検知 · 通知をオフにしますか？ ] Yeoniは広告だと思って横へ払った。"
+      }
+    },
+    {
+      "id": "prologue:6",
+      "source": "…너도 나랑 손절했냐?",
+      "sourceHash": "b97ecc3e140524e8ed6dee5960fdc7ffc5a759643873f96102690f398acc5811",
+      "translations": {
+        "ja": "……お前まで縁を切るの？"
+      }
+    },
+    {
+      "id": "prologue:7",
+      "source": "충전기는 대답하지 않았다. 그날따라 세상 모든 게 연이한테만 조용히 등을 돌린 것 같았다.",
+      "sourceHash": "ed7149c5b5a3e51cbcf4391c1ac406f5661add2077b9ccba44c5eb26de068a4c",
+      "translations": {
+        "ja": "充電器は答えなかった。その日は何もかもが、Yeoniにだけそっと背を向けている気がした。"
+      }
+    },
+    {
+      "id": "prologue:8",
+      "source": "신고 나온 양말은 왼쪽 흰색, 오른쪽 회색. 무늬까지 달랐다. 발을 내려다보는 데 3초쯤 걸렸다.",
+      "sourceHash": "1bff15dd48ecb1bf4d24539554e7f0162d8f931e9fc78c683dd65223d805a226",
+      "translations": {
+        "ja": "履いてきた靴下は左が白、右が灰色。柄まで違った。足元を見つめること、三秒ほど。"
+      }
+    },
+    {
+      "id": "prologue:9",
+      "source": "…요즘은 믹스매치도 패션이라던데.",
+      "sourceHash": "5c4321314da6490376e3d834b4abcafc0eeaef2fbca9efab11b4265baa198724",
+      "translations": {
+        "ja": "……最近はミックスマッチもおしゃれっていうし。"
+      }
+    },
+    {
+      "id": "prologue:10",
+      "source": "연이는 긍정적으로 생각하기로 했다. 긍정은 연이가 불운을 견디는 유일한 방법이었다.",
+      "sourceHash": "634d68060781cfd8d85d49ab3fb66ee3c1cb33b72803c1ba8081bc156f25d5a0",
+      "translations": {
+        "ja": "Yeoniは前向きに考えることにした。そうするのが、不運に耐える唯一の方法だった。"
+      }
+    },
+    {
+      "id": "prologue:11",
+      "source": "문제는 버스였다. 카드를 댔다. 삑. 다시 대주세요.",
+      "sourceHash": "666d72d1dc3fc04e3752cebb84500fbc1313597fa04cff822fcdf7be234ee5f4",
+      "translations": {
+        "ja": "問題はバスだった。カードをかざす。ピッ。もう一度タッチしてください。"
+      }
+    },
+    {
+      "id": "prologue:12",
+      "source": "다시 댔다. 삑, 다시 대주세요. 또 댔다. 삑, 다시 대주세요. 뒤에 선 사람들이 아무 말 없이 연이를 봤다.",
+      "sourceHash": "6504abebd50052d2a53951ff3faaebd6e2d41eb0e74168f7c10a64afd54a5a0a",
+      "translations": {
+        "ja": "もう一度かざす。ピッ、もう一度タッチしてください。またかざす。ピッ、もう一度。後ろの人たちが黙ってYeoniを見た。"
+      }
+    },
+    {
+      "id": "prologue:13",
+      "source": "(그 침묵이 제일 무서웠다.) …너 어제까진 멀쩡했잖아.",
+      "sourceHash": "7d38a0f388bd928920daef59833151b404909f908e812ae4e4d69de4544b47e0",
+      "translations": {
+        "ja": "（あの沈黙がいちばん怖かった。）……昨日まではちゃんと動いてたじゃん。"
+      }
+    },
+    {
+      "id": "prologue:14",
+      "source": "카드는 네 번째에야 찍혔지만, 둘 사이엔 이미 금이 가 있었다. 연이는 속으로 별점을 매겼다.",
+      "sourceHash": "ad91dc9e76b18812e87b8a9fbb7f22b80876195dbda3981674a2998c4751c75a",
+      "translations": {
+        "ja": "四度目でようやく読み取られたが、二人の間にはすでに亀裂が入っていた。Yeoniは心の中で星をつけた。"
+      }
+    },
+    {
+      "id": "prologue:15",
+      "source": "(교통카드 별 하나. 사유: 네 번 만에 인식, 재구매 의사 없음.)",
+      "sourceHash": "84865555a85be01fde4f72a3aa365472361534e1695e283b10b1424db9d98b47",
+      "translations": {
+        "ja": "（交通カード、星一つ。理由：読み取りに四回。リピートする気なし。）"
+      }
+    },
+    {
+      "id": "prologue:16",
+      "source": "점심엔 참치마요 삼각김밥을 샀다. 뜯자마자 바닥으로 엎어졌다. 밥알이 흩어지고 김이 반쯤 벗겨진 얼굴이 처참했다.",
+      "sourceHash": "9be7e91c8e9778bda9a95b585415ffcfa7460b1e0768f437b42a5f3c0959aaa0",
+      "translations": {
+        "ja": "昼にはツナマヨのおにぎりを買った。開けた途端、床にひっくり返った。米粒は散らばり、海苔が半分はがれた顔は無残だった。"
+      }
+    },
+    {
+      "id": "prologue:17",
+      "source": "(제 운명을 못 받아들인 얼굴이었다.) …미안하다, 넌 좋은 참치마요였어.",
+      "sourceHash": "129c3662c0db68e7df995e3ce224c6c55a6ae347714ccf5688d797394f292052",
+      "translations": {
+        "ja": "（自分の運命を受け入れられない顔だった。）……ごめん。いいツナマヨだったよ、君は。"
+      }
+    },
+    {
+      "id": "prologue:18",
+      "source": "다시 샀고, 떨어뜨리지 않았다. 그런데 한입 물자마자 입안이 불탔다. 매운 제육이었다. 포장엔 분명 참치마요라고 적혀 있었다.",
+      "sourceHash": "3d26a4aba00f259b9419465b256699c37a49a9fdb2615175fd88f30e889d1933",
+      "translations": {
+        "ja": "買い直して、今度は落とさなかった。けれど一口かじった途端、口の中が燃えた。辛い豚肉炒めだ。包装には確かにツナマヨと書いてあった。"
+      }
+    },
+    {
+      "id": "prologue:19",
+      "source": "아니, 이제 삼각김밥도 나를 속이네?",
+      "sourceHash": "0291d66c2cdbb461c8ec342f82f1d069f8f157db2858db504c06e3d700570b89",
+      "translations": {
+        "ja": "ちょっと、今度はおにぎりまで私をだますの？"
+      }
+    },
+    {
+      "id": "prologue:20",
+      "source": "삼각김밥은 대답하지 않았다. 당연했다. 그건 삼각김밥이니까.",
+      "sourceHash": "b3ca508bbe4dd305840d6346c615631a6e1de572de076419756b1841a6ff99f5",
+      "translations": {
+        "ja": "おにぎりは答えなかった。当然だった。おにぎりなのだから。"
+      }
+    },
+    {
+      "id": "prologue:21",
+      "source": "포장은 참치마요, 속은 매운 제육. 이거 허위광고잖아, 소비자원에 민원 넣는다.",
+      "sourceHash": "d6173a053c5c764e1bf31969882683f56189ac5d7b651a820889111e318597ed",
+      "translations": {
+        "ja": "外はツナマヨ、中は激辛豚肉。虚偽広告じゃん。消費者相談に通報する。"
+      }
+    },
+    {
+      "id": "prologue:22",
+      "source": "거기까지는 웃겼다. 친구한테 말하면 'ㅋㅋㅋ 너 오늘 왜 그래'로 넘어갈 정도였다.",
+      "sourceHash": "4a7386deadef49aa0ea76e28e61d33c9d7f1fd40e933ac62d28a2cc022ed7dfc",
+      "translations": {
+        "ja": "そこまでは笑えた。友達に話せば「今日どうしたの、ウケる」で済む程度だった。"
+      }
+    },
+    {
+      "id": "prologue:23",
+      "source": "그런데 며칠 뒤부터는 웃기지 않았다.",
+      "sourceHash": "68f61aa57c4702c3347eff574a460d053a8f40e608d3f612d7834ed80ef5caef",
+      "translations": {
+        "ja": "けれど数日たつと、笑えなくなった。"
+      }
+    },
+    {
+      "id": "prologue:24",
+      "source": "아르바이트 면접은 당일 취소됐다. 과제 파일은 제출 직전에 깨졌다. 택배는 다른 동으로 갔다. 카페 쿠폰은 쓰려고 보니 어제 만료였다.",
+      "sourceHash": "c4c1b800607bb21c4ccc56224f29aab9149fa2a9cc95cd87ee436d673ee56bb6",
+      "translations": {
+        "ja": "バイトの面接は当日中止。課題のファイルは提出直前に壊れた。荷物は別の棟へ届き、カフェのクーポンは使おうとしたら昨日で切れていた。"
+      }
+    },
+    {
+      "id": "prologue:25",
+      "source": "중요한 메시지에는 전송 실패가 떴다. 사과는 늘 한발 늦었고 잘해 보려던 말은 엉뚱한 뜻으로 전해졌다.",
+      "sourceHash": "dad59679d586ca35ef70dcaffb1df9a98bf8b3ec8019082f717db0e99cec6d98",
+      "translations": {
+        "ja": "大事なメッセージには送信失敗の表示。謝るのはいつも一歩遅く、うまく伝えたかった言葉は違う意味で届いた。"
+      }
+    },
+    {
+      "id": "prologue:26",
+      "source": "한 번은 답장창에 점 세 개가 반짝였다. 먼저 미안하다고 보낸 메시지 아래였다. 뭔가 오려다가 스르르 사라졌다.",
+      "sourceHash": "e4a01fccaeb51ee6052f388788e531226944a073570c85681d5fc93511900e86",
+      "translations": {
+        "ja": "一度、返信欄に三つの点が光った。先に謝って送ったメッセージの下だった。何かが届きかけて、そのまま消えた。"
+      }
+    },
+    {
+      "id": "prologue:27",
+      "source": "연이는 점 세 개가 지워진 자리를 한참 보다가 휴대폰을 뒤집어 놓았다.",
+      "sourceHash": "b2226c982d7269dd4f62c5d87680268e065dab0afd92eb9328cb70ea233ae3c4",
+      "translations": {
+        "ja": "Yeoniは三つの点が消えた場所をしばらく見つめ、スマホを伏せた。"
+      }
+    },
+    {
+      "id": "prologue:28",
+      "source": "엎어 놓은 휴대폰 위로 방 안의 어둠이 내려앉았다. 연이는 이불을 코끝까지 끌어올렸다. 누구 탓도 아닌데 자꾸 미안해지는 밤이었다.",
+      "sourceHash": "4f3a35d5c301c21d19a641607465feedccd110c485e1b961eb926359082f346b",
+      "translations": {
+        "ja": "伏せたスマホに部屋の闇が降り積もる。Yeoniは布団を鼻まで引き上げた。誰のせいでもないのに、何度も謝りたくなる夜だった。"
+      }
+    },
+    {
+      "id": "prologue:29",
+      "source": "…요즘 왜 이렇게 꼬이지. 내가 뭘 잘못했나.",
+      "sourceHash": "9638669ad2aea7e6c64ae927431098d5e43fad68abe1806e6cd7e207afda11fa",
+      "translations": {
+        "ja": "……最近、なんでこんなにうまくいかないの。何か悪いことしたかな。"
+      }
+    },
+    {
+      "id": "prologue:30",
+      "source": "처음엔 우연이라 웃어넘겼다. 그런데 우연도 며칠씩 겹치면 등 뒤에 누가 서 있는 것처럼 목덜미가 서늘해진다. 웃자고 시작한 하루가 자꾸 변명거리를 찾는 하루로 바뀌어 있었다.",
+      "sourceHash": "6bb3c858aa34de31588e194cf604cccc39d00456a6b8079cb585397970d2f347",
+      "translations": {
+        "ja": "最初は偶然だと笑っていた。けれど何日も重なると、背後に誰かいるように首筋が冷える。笑って始めた一日が、言い訳を探す一日に変わっていた。"
+      }
+    },
+    {
+      "id": "prologue:31",
+      "source": "그래도 연이는 운명 같은 걸 믿고 싶지 않았다. 운명은 너무 편한 말이었다.",
+      "sourceHash": "1cb60218d7afd58d35406ea3630e6be9cbe3fe79a4fef0149b856c9ef74180dc",
+      "translations": {
+        "ja": "それでもYeoniは運命なんて信じたくなかった。運命は、あまりに都合のいい言葉だった。"
+      }
+    },
+    {
+      "id": "prologue:32",
+      "source": "망하면 운명, 헤어지면 인연 아님, 늦으면 때가 아님. 그런 말은 늘 나만 제자리에 남겨 두더라.",
+      "sourceHash": "1cdbf4e6b2a6c2f30577b1ef91f2a804aa521f29b5a1824d0c4680e112c2abf9",
+      "translations": {
+        "ja": "失敗したら運命、別れたら縁がなかった、遅れたら時期じゃない。そんな言葉って、いつも私だけ同じ場所に置いてく。"
+      }
+    },
+    {
+      "id": "prologue:33",
+      "source": "그렇게 말하면 설명은 쉬워진다. 마음은 하나도 안 쉬워진다.",
+      "sourceHash": "f702c8dca48034696e2ab8848679c39440577b0be2be264f50e181d42a6891f7",
+      "translations": {
+        "ja": "そう言えば説明は楽になる。心はちっとも楽にならない。"
+      }
+    },
+    {
+      "id": "prologue:34",
+      "source": "그날 밤, 연이는 젖은 양말을 벗어 던지고 침대에 쓰러졌다. 오늘 일은 더 생각하고 싶지 않았다.",
+      "sourceHash": "b29508ea6c29f98d73164827d869605651734d82fd0200ec072f4754e32cc87b",
+      "translations": {
+        "ja": "その夜、Yeoniは濡れた靴下を脱ぎ捨て、ベッドに倒れ込んだ。今日のことは、もう考えたくなかった。"
+      }
+    },
+    {
+      "id": "prologue:35",
+      "source": "오늘은… 진짜 레전드였다.",
+      "sourceHash": "488fc83d48c52b4b2ecc8c0b6d2eee8ca91928e1e5564d4b5adb965dd7d6d9cf",
+      "translations": {
+        "ja": "今日は……ほんと、伝説級だった。"
+      }
+    },
+    {
+      "id": "prologue:36",
+      "source": "배터리 4퍼센트. 충전기를 꽂으려는데 화면이 혼자 켜졌다.",
+      "sourceHash": "c37909f5f969dd1869985ff2118092d7fa8c789b46e628417fb0a9aada9a5745",
+      "translations": {
+        "ja": "充電は四パーセント。ケーブルを挿そうとすると、画面がひとりでに点いた。"
+      }
+    },
+    {
+      "id": "prologue:37",
+      "source": "…뭐야?",
+      "sourceHash": "e7d7ac295636526b963885c6d3d28bc606643ae5f8f5006b495faac1c6869b44",
+      "translations": {
+        "ja": "……何？"
+      }
+    },
+    {
+      "id": "prologue:38",
+      "source": "홈 화면 한가운데 처음 보는 앱이 있었다. 검은 밤하늘, 달빛으로 그려진 문, 작은 별 하나. 그리고 두 단어.",
+      "sourceHash": "6f72bd43ff5048cb36e6dd93450a0d5a5577777664e6a0366900851bde905157",
+      "translations": {
+        "ja": "ホーム画面の真ん中に見知らぬアプリがあった。黒い夜空、月明かりで描かれた扉、小さな星。そして二つの言葉。"
+      }
+    },
+    {
+      "id": "prologue:39",
+      "source": "〈  Code Destiny  〉",
+      "sourceHash": "9a22eda6a4ba212ef5ac9d9967a9741962e12adee94b4738eb9c9d44408b416d",
+      "translations": {
+        "ja": "〈  Code Destiny  〉"
+      }
+    },
+    {
+      "id": "prologue:40",
+      "source": "내가… 이런 걸 깔았나?",
+      "sourceHash": "aed857b6d78701a238261d4d2926f1c3547162324301a81af1f2682d658871bd",
+      "translations": {
+        "ja": "私……こんなの入れたっけ？"
+      }
+    },
+    {
+      "id": "prologue:41",
+      "source": "기억에 없었다. 삭제하려고 앱을 길게 눌렀더니 화면이 대답했다.",
+      "sourceHash": "72894013d9ed4e67dce1ab7bd2a41d174c52df04455bbb3371ed78be6a516519",
+      "translations": {
+        "ja": "覚えがなかった。消そうと長押しすると、画面が答えた。"
+      }
+    },
+    {
+      "id": "prologue:42",
+      "source": "[ 이 앱은 삭제할 수 없습니다. ]\n[ 이 앱은 운명과 연결되어 있습니다. ]",
+      "sourceHash": "16e4e0e25e31187bbd25c3f0da4409b45bcbce7e6fce86d30cf042bfd68d2770",
+      "translations": {
+        "ja": "［ このアプリは削除できません。 ］\n［ このアプリは運命と接続されています。 ］"
+      }
+    },
+    {
+      "id": "prologue:43",
+      "source": "요즘 앱, 진짜 기세 미쳤네.",
+      "sourceHash": "0bec290b3c64eed3e5dea7ab3d7eff552811eff7d547dceb917a5ef8968fd4a7",
+      "translations": {
+        "ja": "最近のアプリ、態度でかすぎでしょ。"
+      }
+    },
+    {
+      "id": "prologue:44",
+      "source": "결제한 적도 없는데 환불도 삭제도 안 돼. 배짱 하나는 별 다섯 개다.",
+      "sourceHash": "d406bcba958f1b84bfbfe028759632c45d680b78a4cb0f19922c4965be21eaf9",
+      "translations": {
+        "ja": "お金も払ってないのに、返金も削除もできないんだ。度胸だけは星五つ。"
+      }
+    },
+    {
+      "id": "prologue:45",
+      "source": "설정으로 들어가 봤다. 앱 목록에도 저장 공간에도 없었다. 그런데 홈 화면에는 너무 당당하게 있었다. 원래부터 제 자리였다는 듯이.",
+      "sourceHash": "2a0a79d6b631ca49c64cc962df656d51cbd5566e439180d4fa8bd761ac0211a3",
+      "translations": {
+        "ja": "設定を開いてみた。アプリ一覧にもストレージにもない。それなのにホーム画面には堂々と居座っていた。初めからそこが自分の場所だったように。"
+      }
+    },
+    {
+      "id": "prologue:46",
+      "source": "그때 아침에 밀어 버린 알림이 다시 떴다.",
+      "sourceHash": "467b99f7a247df2c85a6d4367845b1370385c6f39bb9ea2e53c1fd4a454f73e2",
+      "translations": {
+        "ja": "朝に払いのけた通知が、また現れた。"
+      }
+    },
+    {
+      "id": "prologue:47",
+      "source": "[ 사용자 운세 손상 감지 ]\n[ 행운 누수 · 인연 코드 일부 훼손 · 재물 코드 비정상 유출 ]",
+      "sourceHash": "1a47afbf95a3dd2a4d68ae1c74d7e70564265e774d71a2964778fb26b1b3f418",
+      "translations": {
+        "ja": "[ ユーザーの運勢に損傷を検知 ]\n[ 幸運の漏出 · 縁コードの一部損傷 · 財運コードの異常流出 ]"
+      }
+    },
+    {
+      "id": "prologue:48",
+      "source": "[ 사용자: 연이 ]  [ 나이: 23 ]  [ 일간 후보: 乙 ]  [ 일주 코드: 乙亥 ]",
+      "sourceHash": "0908c428be682c4c242c36d611e36b0ccff497c621c367ebfc3eee81722435ba",
+      "translations": {
+        "ja": "［ ユーザー：Yeoni ］  ［ 年齢：23 ］  ［ 日干候補：乙 ］  ［ 日柱コード：乙亥 ］"
+      }
+    },
+    {
+      "id": "prologue:49",
+      "source": "내… 내 이름이랑 나이를 어떻게 알아?",
+      "sourceHash": "4e0b723c057225d6318e35d13c72135771dccd377128f421b229dedecf7aaeb2",
+      "translations": {
+        "ja": "な……なんで私の名前と年齢を知ってるの？"
+      }
+    },
+    {
+      "id": "prologue:50",
+      "source": "[ 우주는 원래 알고 있습니다. ]",
+      "sourceHash": "b08e075f3a069809463df1a18ea0b75789081f36d5c97e6167c61b24e1dc89e4",
+      "translations": {
+        "ja": "［ 宇宙は初めから知っています。 ］"
+      }
+    },
+    {
+      "id": "prologue:51",
+      "source": "아니, 말투가 더 무섭잖아!",
+      "sourceHash": "44d6d19903d288e8a41347f7d8b9305a7e58122b667e4e4cdd8b788458867671",
+      "translations": {
+        "ja": "いや、その言い方が余計に怖いんだけど！"
+      }
+    },
+    {
+      "id": "prologue:52",
+      "source": "됐고, 고객센터 어디야. 상담원 연결, 지금 당장.",
+      "sourceHash": "3c9d5772008b4b5bc60346869e5be9e101e1636ea91d2cea49f331c0256000c8",
+      "translations": {
+        "ja": "もういい。問い合わせ先はどこ。オペレーターにつないで、今すぐ。"
+      }
+    },
+    {
+      "id": "prologue:53",
+      "source": "[ 고객센터: 우주 ]\n[ 상담원: 없음 · 대기 순번: ∞ ]",
+      "sourceHash": "94d04de3ee4776af08e9ec2f2a5449400833e32f230e2b3f7b0141ec1da21afe",
+      "translations": {
+        "ja": "［ カスタマーサポート：宇宙 ］\n［ 担当者：不在・待ち順：∞ ］"
+      }
+    },
+    {
+      "id": "prologue:complaint",
+      "source": "[ 접수된 민원 1건 · 교통카드 · 별 하나 ]\n[ 사유: 네 번 만에 인식 · 처리 대기 ]",
+      "sourceHash": "63f927d625bec1285a2837f416f5ed2e6607e38a4ff06563bed20d7fd66dd1c5",
+      "translations": {
+        "ja": "[ 受理済みの苦情一件 · 交通カード · 星一つ ]\n[ 理由：読み取りに四回 · 対応待ち ]"
+      }
+    },
+    {
+      "id": "prologue:complaint-2",
+      "source": "그건 속으로 한 건데?!",
+      "sourceHash": "0d0492f2bad56bc99807715fa5b3fba72d98ef0e1eabe5ba0d0650699e32c719",
+      "translations": {
+        "ja": "それ、心の中で言ったんだけど？！"
+      }
+    },
+    {
+      "id": "prologue:54",
+      "source": "연이는 휴대폰을 베개 위로 던졌다. 휴대폰은 통통 튀더니 다시 화면을 밝혔다.",
+      "sourceHash": "48966e4ade749650cf32122a38007d781f94ac9f6bec5a92fe8d8948774d50f6",
+      "translations": {
+        "ja": "Yeoniはスマホを枕に投げた。ぽんぽんと跳ねたスマホが、また画面を光らせた。"
+      }
+    },
+    {
+      "id": "prologue:55",
+      "source": "[ 운명 복구를 시작하시겠습니까? ]     [ YES ]     [ 나중에 ]",
+      "sourceHash": "23fa41a562df69c632cdbbfccedebcfaff7ea8a4ead54c7a120949112cc42fdf",
+      "translations": {
+        "ja": "［ 運命の修復を開始しますか？ ］     ［ YES ］     ［ あとで ］"
+      }
+    },
+    {
+      "id": "prologue:56",
+      "source": "연이는 당연히 [나중에]를 눌렀다. 화면이 바뀌었다.",
+      "sourceHash": "abfc4d23b93aaa08e646ba5f75d7c740bb778cab3d8aac95ada7efdd2158faec",
+      "translations": {
+        "ja": "Yeoniは当然[ あとで ]を押した。画面が切り替わった。"
+      }
+    },
+    {
+      "id": "prologue:57",
+      "source": "[ 나중에는 없습니다. ]",
+      "sourceHash": "b4039137b6ed275805b103e7d947e103f71924bcae48dae59fdcdc4a057e64ca",
+      "translations": {
+        "ja": "［ あとではありません。 ］"
+      }
+    },
+    {
+      "id": "prologue:58",
+      "source": "…그럼 왜 물어봤는데?",
+      "sourceHash": "6fa2a33f61795142751aaa7964d2882ceba60964d150db09f724d1c070f428c5",
+      "translations": {
+        "ja": "……じゃあ、なんで聞いたの？"
+      }
+    },
+    {
+      "id": "prologue:59",
+      "source": "[ YES ]     [ YES ]",
+      "sourceHash": "816f97342b9f11c8b96bc96b1d0976a91f4484988ea5b0edbbc0c2d2d3b1c728",
+      "translations": {
+        "ja": "［ YES ］     ［ YES ］"
+      }
+    },
+    {
+      "id": "prologue:60",
+      "source": "이건 선택지가 아니라, 납치 예고잖아.",
+      "sourceHash": "cdf344b8ff7adbe0f4e745121ba4871626e4212cce5edddad58f9e89f915c1c8",
+      "translations": {
+        "ja": "これ、選択肢じゃなくて誘拐予告でしょ。"
+      }
+    },
+    {
+      "id": "prologue:61",
+      "source": "[ 이용약관 제1조 ]\n[ 사용자는 태어난 순간, 이미 모든 항목에 동의함 ]",
+      "sourceHash": "68ec47841a1ba0d6852b22cb0bc0b531db8890ddf4ece190e77b421e30fc3778",
+      "translations": {
+        "ja": "［ 利用規約 第1条 ］\n［ ユーザーは生まれた瞬間、すでに全項目に同意済みです ］"
+      }
+    },
+    {
+      "id": "prologue:62",
+      "source": "그때 화면 위로 타로 카드 한 장이 떠올랐다. 검은 배경에 달빛으로 된 문, 문 앞엔 작은 꽃 한 송이. 카드 아래엔 [ THE DOOR ]라고 적혀 있었다.",
+      "sourceHash": "a3aedc70a1d742cd509fdcc4bc67bd9dac16b067f34a2e9655697acf94c01f8a",
+      "translations": {
+        "ja": "画面の上に一枚のタロットカードが浮かんだ。黒地に月明かりの扉、その前には小さな花。カードの下には[ THE DOOR ]とあった。"
+      }
+    },
+    {
+      "id": "prologue:63",
+      "source": "타로에… 이런 카드가 있었나?",
+      "sourceHash": "e4a01b73990ced5d49240f932dc1b4bdbef62a4c0ed31af04332ecddd0767252",
+      "translations": {
+        "ja": "タロットに……こんなカードあった？"
+      }
+    },
+    {
+      "id": "prologue:64",
+      "source": "카드 속 문이 열렸다. 끼이이익. 소리는 휴대폰이 아니라 방 안에서 났다.",
+      "sourceHash": "313288d9fe3906c794e70127a8b9018405236241c4cfb92e99bf39407787b964",
+      "translations": {
+        "ja": "カードの扉が開いた。ぎいい。音はスマホではなく部屋の中から聞こえた。"
+      }
+    },
+    {
+      "id": "prologue:65",
+      "source": "침대 앞 허공에 진짜 달빛 문이 서 있었다. 문틈 너머로 낯선 밤하늘이 소용돌이쳤다.",
+      "sourceHash": "9259992594d4a5dc8f5df2c6e4aec22e566063973895b0a364ababa607d6c3ff",
+      "translations": {
+        "ja": "ベッドの前の空中に、本物の月明かりの扉が立っていた。隙間の向こうで見知らぬ夜空が渦を巻いた。"
+      }
+    },
+    {
+      "id": "prologue:66",
+      "source": "이거… 지금 내 방 맞지?",
+      "sourceHash": "575d7097a880725ad3a82d5866d5b2172c9d68aacc757ba8a15dfaf1aa95ed69",
+      "translations": {
+        "ja": "ここ……今、私の部屋だよね？"
+      }
+    },
+    {
+      "id": "prologue:67",
+      "source": "대답 대신 문 안에서 카드들이 쏟아져 나왔다. 별, 달, 태양, 운명의 수레바퀴. 책상 위 과제물과 뒤집힌 우산, 먹다 만 컵라면까지 방 안을 빙글빙글 돌았다. 우산 옆에 엎어진 별 카드 한 장만은 돌지 않고 가만히 떠 있었다.",
+      "sourceHash": "69623cadcbf565ff6c16c7546cf09bddf89e795cffc0dcb0c1c4951b447cf757",
+      "translations": {
+        "ja": "答える代わりに、扉からカードがあふれた。星、月、太陽、運命の輪。机の課題も裏返った傘も食べかけのカップ麺も、部屋をぐるぐる回る。傘の横に伏せられた星のカードだけは、回らず静かに浮いていた。"
+      }
+    },
+    {
+      "id": "prologue:68",
+      "source": "내 과제, 내 우산, 내 컵라면. …아니 컵라면은 됐고!",
+      "sourceHash": "1badf2f5672599fd9b3e2b67b23b15f936bc39b01352a2fd6af117dc11a2b37f",
+      "translations": {
+        "ja": "私の課題、傘、カップ麺……いやカップ麺はいいけど！"
+      }
+    },
+    {
+      "id": "prologue:69",
+      "source": "[ 타로의 문 개방 ]  [ 운세 세계 접속 중 ]  [ 사주의 강 좌표 확인 ]",
+      "sourceHash": "047a3b6a9cd2a0207002568b7e4b7077a15aca4dba9f4bef719759c9c8eb1697",
+      "translations": {
+        "ja": "［ タロットの門、開放 ］  ［ 運勢世界に接続中 ］  ［ 四柱の川の座標を確認 ］"
+      }
+    },
+    {
+      "id": "prologue:70",
+      "source": "닫으라고! 강은 무슨, 여긴 원룸인데!",
+      "sourceHash": "8970bfc995877ca29e1784aa207c5955b5344b116d85ef52058dfa6546689170",
+      "translations": {
+        "ja": "閉めてってば！ 川って何、ここワンルームなんだけど！"
+      }
+    },
+    {
+      "id": "prologue:71",
+      "source": "[ 초기 아바타 변환 중 ]",
+      "sourceHash": "78c39f0f54f2cf59669ef6fb06ec0afd772e72761bfde1da0c38883a80b1b143",
+      "translations": {
+        "ja": "［ 初期アバター変換中 ］"
+      }
+    },
+    {
+      "id": "prologue:72",
+      "source": "문 안쪽에서 빛이 터졌다. 연이는 끝까지 침대 헤드를 붙잡았다. 침대 헤드는 생각보다 의리가 없었다. 뚝.",
+      "sourceHash": "fa8b844472ee2186fddb79c630ef3f748c9f224068df9900a3530f8e8c6096f5",
+      "translations": {
+        "ja": "扉の奥で光がはじけた。Yeoniは最後までベッドのヘッドボードにしがみついた。けれどヘッドボードは案外、薄情だった。ぽき。"
+      }
+    },
+    {
+      "id": "prologue:73",
+      "source": "배신자!",
+      "sourceHash": "bc607a7946ea873fd0670eca4705778714ef085282e3d8aed8463318ed22902e",
+      "translations": {
+        "ja": "裏切り者！"
+      }
+    },
+    {
+      "id": "prologue:74",
+      "source": "연이는 그대로 타로의 문 안으로 빨려 들어갔다.",
+      "sourceHash": "82e16d8b391ec44c47087dd84d54abec39404ad367226e36bdfb7d377115aa71",
+      "translations": {
+        "ja": "Yeoniはそのままタロットの扉へ吸い込まれた。"
+      }
+    },
+    {
+      "id": "prologue:75",
+      "source": "문 너머는 끝없는 밤이었다. 위도 밤, 아래도 밤. 별자리들이 강물처럼 흐르고 수많은 타로 카드가 연이 주변을 돌며 속삭였다. 선택. 추락. 시작. 변신.",
+      "sourceHash": "e672413df98fcfb4dc3f7865937e2d1b8f27dc27c4c6b8c4d314728dce511d4e",
+      "translations": {
+        "ja": "扉の向こうは果てしない夜だった。上も下も夜。星座が川のように流れ、無数のタロットカードがYeoniの周りを巡り、ささやいた。選択。落下。始まり。変身。"
+      }
+    },
+    {
+      "id": "prologue:76",
+      "source": "[ 운명 코드 접속 완료 ]  [ 손상된 운세 세계로 진입합니다. ]",
+      "sourceHash": "7305743745beeb87bef654598582061c02a50835c41bb4f90cae221b87ce06cc",
+      "translations": {
+        "ja": "［ 運命コード接続完了 ］  ［ 損傷した運勢世界へ入ります。 ］"
+      }
+    },
+    {
+      "id": "prologue:77",
+      "source": "나는 동의한 적이—",
+      "sourceHash": "323386afcbe88c1bec2436dc331e3ed66afa9e15f9c8db9953d678524b493b07",
+      "translations": {
+        "ja": "私、同意なんてしてな――"
+      }
+    }
+  ]
+}
