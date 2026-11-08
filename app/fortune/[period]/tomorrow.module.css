@@ -6,6 +6,7 @@
 .hero h1, .preparation h2, .guide h2 {
   font-family: var(--font-serif);
   text-wrap: balance;
+  word-break: keep-all;
 }
 .hero h1 { font-size: var(--cd-t-display); line-height: 1.4; }
 .date { margin-top: .75rem; font-variant-numeric: tabular-nums; }

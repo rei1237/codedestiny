@@ -8,7 +8,7 @@ const approaches = [
 ];
 
 export default function CompatibilityGuide() {
-  return <section aria-labelledby="compatibility-guide-heading" className="mt-10">
+  return <section lang="ko" data-cd-no-trans aria-labelledby="compatibility-guide-heading" className="mt-10">
     <h2 id="compatibility-guide-heading" className="font-[family-name:var(--font-serif)] text-[length:var(--cd-t-section)] font-bold">두 사람의 어떤 점이 궁금한가요?</h2>
     <p className="mt-4 max-w-[68ch] leading-relaxed text-[var(--cd-text-muted)]">오래 반복되는 관계의 방식과 지금의 감정은 서로 다른 질문이에요. 아래 비교표에서 필요한 정보를 확인하고, 내 질문에 맞는 관점부터 골라보세요.</p>
     <div className="mt-5 overflow-x-auto" tabIndex={0} role="region" aria-label="궁합 체계 비교표, 가로로 이동 가능">

@@ -12,8 +12,8 @@
  *   월건·절기 구간을 계산한다(`lib/fortune/build-view.ts` 의 `buildWeekly`·`buildMonthly`).
  *   즉 화면과 설명이 어긋나 있었다.
  *
- * 여기서 만드는 FAQ 는 기존 sign FAQ 를 **대체하지 않고 앞에 덧붙인다** — 기존 문답은
- * sign 마다 내용이 달라(24개가 서로 다른 질문) 지울 이유가 없다.
+ * 기존 sign FAQ 는 유지한다. 한국어 내일 페이지는 날짜별 질문을 제공하고, 상시 문답은
+ * 오늘 페이지의 기본 성향·FAQ 링크로 이어 읽어 같은 설명을 다시 펼치지 않는다.
  */
 
 import type { FortunePeriodId } from "./periods";
@@ -50,11 +50,11 @@ const PERIOD_BASIS: Record<FortunePeriodId, BasisCopy> = {
       + `총운·연애운·재물운·건강운·직장운 점수는 콘텐츠의 흐름 지표이며 사건의 발생 확률이나 개인 정밀 진단은 아닙니다.`,
   },
   tomorrow: {
-    question: (name) => `${name} 내일 운세는 오늘 것과 어떻게 다른가요?`,
+    question: (name) => `${name} 내일 운세는 어느 날짜를 기준으로 계산하나요?`,
     answer: (p) =>
       `${p.nameKo} 내일 운세는 기준 날짜를 하루 뒤로 옮겨 `
       + (p.kind === "animal" ? `일진의 지지 관계와 천간 오행, 달의 위상을 다시 계산합니다. ` : `한국시간 정오의 태양·달 별자리와 달의 위상을 다시 계산합니다. `)
-      + `그 결과로 약속·지출·업무의 우선순위를 미리 점검해 보세요. 지표가 같은 구간에서는 오늘과 내일의 점수가 같을 수도 있습니다.`,
+      + `페이지 위에 표시된 날짜와 계산 근거를 확인한 뒤 약속·지출·업무의 우선순위를 미리 점검해 보세요. 기준 지표가 같으면 서로 다른 날짜의 점수가 같을 수도 있습니다.`,
   },
   weekly: {
     question: (name) => `${name} 주간 운세는 하루 운세를 일곱 번 더한 건가요?`,
@@ -161,6 +161,7 @@ export function buildPeriodFaqs(profile: SignProfile, period: FortunePeriodId, l
     answer: `연애운은 대화의 속도와 기대를, 재물운은 소비 계획과 지출 습관을, 직장운은 협업과 업무 우선순위를 점검하는 질문으로 읽어보세요. 건강운은 생활 리듬을 돌아보는 참고이며 의학적 판단에 사용하지 않습니다. 같은 ${profile.kind === "animal" ? "띠" : "별자리"}라도 실제 성향과 상황은 다릅니다.`,
   }] : [];
   if (locale === "ko" && profile.id === "tiger") topics.push({ question: "범띠 운세와 호랑이띠 운세는 다른가요?", answer: "범띠와 호랑이띠는 같은 인(寅)의 띠입니다. 두 검색어 모두 이 페이지의 동일한 일진 계산과 기간별 해석을 가리킵니다." });
-  if (locale === "ko" && profile.id === "sagittarius") topics.push({ question: "사수자리 운세와 궁수자리 운세는 같은가요?", answer: "사수자리와 궁수자리는 모두 Sagittarius를 가리킵니다. 이 페이지에서는 궁수자리라는 이름으로 오늘·내일·주간·월간 흐름을 안내합니다." });
-  return [buildPeriodBasisFaq(profile, period, locale), ...topics, ...profile.faqs];
+  if (locale === "ko" && profile.id === "sagittarius") topics.push({ question: "사수자리 운세와 궁수자리 운세는 같은가요?", answer: "사수자리와 궁수자리는 모두 Sagittarius를 가리킵니다. 이 페이지에서는 궁수자리라는 이름으로 기간별 흐름을 안내합니다." });
+  const backgroundFaqs = locale === "ko" && period === "tomorrow" ? [] : profile.faqs;
+  return [buildPeriodBasisFaq(profile, period, locale), ...topics, ...backgroundFaqs];
 }
