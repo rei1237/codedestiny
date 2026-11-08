@@ -102,3 +102,26 @@ it('the public session reports progress against the plan the session was created
   expect(utils.publicSession(doc).progress.total).toBe(6);
   expect(utils.publicSession({ ...doc, llmMeta: { savedSections: [], sectionPlanVersion: 2 } }).progress.total).toBe(7);
 });
+
+// 2026-11-08 샘플 후속(1-2 보정): 커리어·건강은 2~3개 달만, 월별 소제목 키워드는 달마다 다르게, 숫자 점수·풀지 않은 용어 금지.
+it('V2 career and health pick only two or three key months and monthly keywords must differ', () => {
+  expect(promptFor('career')).toContain('2~3개 달만');
+  expect(promptFor('career')).toContain('사정(질문 속 상황)을 이 장에서 다시 요약하지 않습니다');
+  expect(promptFor('health')).toContain('2~3개 달만');
+  expect(promptFor('monthly')).toContain('핵심 키워드는 달마다 모두 달라야 합니다');
+  ['nature', 'overview', 'money', 'career', 'romance', 'monthly', 'health'].forEach(key => {
+    expect(promptFor(key)).toContain("'4.7점', '토 기운 4개' 금지");
+    expect(promptFor(key)).toContain('귀문관살');
+  });
+  expect(promptFor('overview')).not.toContain('사정(질문 속 상황)을 이 장에서 다시 요약하지 않습니다');
+});
+
+it('V1 section prompts carry none of the V2 readability rules', () => {
+  // 바이트 동일성은 HEAD(96282eecc) 모듈과 sha256 을 맞대어 확인했다(4ffc7bdb…, 211,188자).
+  utils.NEW_YEAR_AI_SECTIONS_V1.forEach(section => {
+    const prompt = buildAdminLabPrompt(body, { section }).prompt;
+    expect(prompt).not.toContain("'4.7점', '토 기운 4개' 금지");
+    expect(prompt).not.toContain('2~3개 달만');
+    expect(prompt).not.toContain('핵심 키워드는 달마다 모두 달라야 합니다');
+  });
+});
