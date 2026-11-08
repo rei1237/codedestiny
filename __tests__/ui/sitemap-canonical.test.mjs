@@ -508,3 +508,18 @@ test('the same @id declared with the same @type on two pages is not a jsonld-id-
   const result = await runLd({ '/a/': ldScript(node), '/b/': ldScript({ '@graph': [node] }) });
   assert.deepEqual(result.counts, { 'jsonld-syntax': 0, 'jsonld-id-type': 0, 'organization-name': 0 });
 });
+
+test('generated sitemap: /fortune/ carries alternates, at most one x-default per url, no regional duplicate codes', () => {
+  const xml = readFileSync(new URL('../../sitemap.xml', import.meta.url), 'utf8');
+  const urls = [...xml.matchAll(/<url>([\s\S]*?)<\/url>/g)].map(([, body]) => ({
+    loc: /<loc>([^<]+)<\/loc>/.exec(body)[1],
+    codes: [...body.matchAll(/hreflang="([^"]+)"/g)].map((match) => match[1]),
+  }));
+  const hub = urls.find((url) => url.loc === 'https://code-destiny.com/fortune/');
+  assert.ok(hub, '/fortune/ is in the sitemap');
+  assert.deepEqual(hub.codes, ['ko', 'ja', 'zh-CN', 'zh', 'zh-Hans', 'zh-TW', 'zh-Hant', 'en', 'x-default']);
+  for (const url of urls) {
+    assert.ok(url.codes.filter((code) => code === 'x-default').length <= 1, url.loc);
+    for (const dropped of ['ko-kr', 'ja-jp', 'en-us']) assert.ok(!url.codes.some((code) => code.toLowerCase() === dropped), `${url.loc} ${dropped}`);
+  }
+});

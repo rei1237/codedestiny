@@ -11,6 +11,7 @@ import { pathToFileURL } from "node:url";
 import { STATIC_CANONICAL_ROUTES } from "./static-canonical-route-map.mjs";
 import { SITEMAP_EXCLUDED_EXACT_PATHS, SITEMAP_NOINDEX_PREFIXES, SITEMAP_PRIVATE_ROUTE_PATTERNS } from "../lib/seo/index-policy.mjs";
 import { createSitemapLastmodLedger } from "./lib/sitemap-lastmod.mjs";
+import { alternatesFor, localeSiblings } from "../lib/seo/hreflang.mjs";
 import { kstYmdToday } from "./lib/fortune-date.mjs";
 import { kstYmdPreviousDay } from "./lib/fortune-date.mjs";
 import { createLiveRouteMatcher } from "./lib/live-route-matcher.mjs";
@@ -172,7 +173,8 @@ const coreRoutes = [
   // 만들면서 그 근거가 사라져 셋(사이트맵·_headers·verify-adsense-readiness 목록)을 함께 풀었다.
   // 클러스터 96개의 루트이므로 기간 허브와 같은 0.9 로 둔다. AdSense 비대상 라우트라
   // verify-adsense-readiness 가 렌더 텍스트 1,800자를 요구한다.
-  { path: "/fortune", changefreq: "daily", priority: 0.9 },
+  // 2026-11-08: 로케일 허브 4곳(/en·/ja·/zh·/zh-tw/fortune)이 이 셸을 ko 로 지목하므로 같은 묶음을 여기도 싣는다.
+  { path: "/fortune", changefreq: "daily", priority: 0.9, alternates: alternatesFor(localeSiblings("/fortune"), { origin: siteBaseUrl }) },
   { path: "/fortune/prompt-hub", changefreq: "monthly", priority: 0.7 },
   { path: "/oracle/rune", changefreq: "weekly", priority: 0.86 },
   { path: "/love-secret-ai", changefreq: "monthly", priority: 0.86 },
@@ -241,14 +243,6 @@ const coreRoutes = [
   { path: "/health-report/guide", changefreq: "monthly", priority: 0.78 },
   { path: "/music/guide", changefreq: "monthly", priority: 0.78 },
 ];
-
-const localeHreflangAliases = {
-  ko: ["ko", "ko-KR"],
-  ja: ["ja", "ja-JP"],
-  zh: ["zh-CN", "zh", "zh-Hans"],
-  "zh-TW": ["zh-TW", "zh-Hant"],
-  en: ["en", "en-US"],
-};
 
 const i18nRouteGroups = [
   // introductionRoutes()는 앱 라우트 세그먼트와 맞추려 소문자 "zh-tw" 키를 쓴다 —
@@ -470,12 +464,8 @@ function extractFortuneSignRoutes() {
   // /zh 는 간체, /zh-tw 는 번체 URL 계약이다.
   const localized = ["en", "ja", "zh", "zh-tw"];
   // href 는 <loc> 과 같은 정규화(끝 슬래시)를 거친다 — 슬래시 없는 URL 은 308 로 한 번 더 튀어 hreflang 상호 확인이 깨진다.
-  // ko 정본이 x-default 다(lib/i18n/routes.ts 의 hreflang 계약과 같다).
-  const hreflang = (base) => [
-    { hreflang: "ko", href: toUrl(normalizeSitemapPath(base)) },
-    ...localized.map((locale) => ({ hreflang: locale === "zh" ? "zh-CN" : locale === "zh-tw" ? "zh-TW" : locale, href: toUrl(normalizeSitemapPath(`/${locale}${base}`)) })),
-    { hreflang: "x-default", href: toUrl(normalizeSitemapPath(base)) },
-  ];
+  // ko 정본이 x-default 다. 묶음은 페이지 메타와 같은 함수(lib/seo/hreflang.mjs)가 만든다.
+  const hreflang = (base) => alternatesFor(localeSiblings(base), { origin: siteBaseUrl });
   const routes = [];
   for (const [period, changefreq] of Object.entries(periodChangefreq)) {
     routes.push({ path: `/fortune/${period}`, changefreq, priority: 0.9, alternates: hreflang(`/fortune/${period}`) });
@@ -619,25 +609,9 @@ function escapeXml(value) {
     .replace(/"/g, "&quot;");
 }
 
+// 페이지 메타와 같은 함수 하나가 묶음을 만든다 — 색인 형제만, 2개 미만이면 없음, x-default=ko(설계 판단 8).
 function buildI18nAlternates(paths) {
-  const links = [];
-  const seen = new Set();
-
-  for (const locale of ["ko", "ja", "zh", "zh-TW", "en"]) {
-    const path = paths[locale];
-    if (!path) continue;
-    const href = toUrl(normalizeSitemapPath(path));
-    for (const hreflang of localeHreflangAliases[locale] || []) {
-      const key = `${hreflang}|${href}`;
-      if (seen.has(key)) continue;
-      seen.add(key);
-      links.push({ hreflang, href });
-    }
-  }
-
-  const defaultHref = toUrl(normalizeSitemapPath(paths.ko || "/"));
-  links.push({ hreflang: "x-default", href: defaultHref });
-  return links;
+  return alternatesFor(paths, { origin: siteBaseUrl });
 }
 
 function buildI18nRouteEntries() {
