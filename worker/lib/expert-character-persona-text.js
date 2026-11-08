@@ -214,8 +214,20 @@ export function yeoniRegisterDrift(text) {
   return issues;
 }
 
-// 연애 비책 연이는 손금과 금지어가 같다.
-export const yeoniLoveRegisterDrift = (text) => yeoniRegisterDrift(text);
+// 합니다체 종결(-니다/-니까). 연애 비책 V2는 연이·서한비 모두 해요체만 쓴다. 인용 몇 줄은 허용하려고 비율로 본다.
+export function hapnidaDrift(text) {
+  const sentences = splitSentences(text).filter((sentence) => sentenceBody(sentence).length >= 4);
+  if (!sentences.length) return false;
+  const formal = sentences.filter((sentence) => /니(?:다|까)$/u.test(sentenceBody(sentence))).length;
+  return formal >= 3 && formal / sentences.length > 0.25;
+}
+
+// 연애 비책 연이는 손금과 금지어가 같고, 여기에 합니다체 비율을 더 본다(로그·수리용, 전달을 막지 않는다).
+export function yeoniLoveRegisterDrift(text) {
+  const issues = yeoniRegisterDrift(text);
+  if (hapnidaDrift(text)) issues.push("hapnida");
+  return issues;
+}
 
 const HANBI_LOVE_FOREIGN = [...HANBI_FOREIGN, "본명숙", "숙요"];
 // 공망·卯時는 사주 상담에서 정상 용어라 인생의 책 검사에서는 뺀다.
@@ -224,6 +236,7 @@ const YUN_LIFE_BOOK_FOREIGN = ["청토끼", "흑월", "강새벽", "하우스", 
 export function hanbiLoveRegisterDrift(text) {
   const issues = [];
   if (banmalDrift(text)) issues.push("banmal");
+  if (hapnidaDrift(text)) issues.push("hapnida");
   issues.push(...loreHits(text, HANBI_LOVE_FOREIGN));
   return issues;
 }

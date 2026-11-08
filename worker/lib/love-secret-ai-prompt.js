@@ -6,34 +6,122 @@ import { expertSubchapterPromptLines } from "./expert-subchapter-prompt.js";
 import { followupSolutionPromptLines } from "./followup-solution-prompt.js";
 import { compactFollowupMessages } from "./followup-context.js";
 
+// 🔴 /g 플래그를 쓰지 않는다. RegExp.test() 는 /g 일 때 lastIndex 를 기억해, 같은 패턴으로 두 번째
+//    호출하면 앞부분 일치를 건너뛰어 거짓 음성이 난다(같은 본문이 호출마다 다르게 판정된다).
 const FORBIDDEN_RESULT_PATTERNS = Object.freeze([
   /\bAI\b/i,
-  /프롬프트/g,
-  /시스템/g,
+  /프롬프트/,
+  /시스템/,
   /\bPDF\b/i,
-  /챕터/g,
+  /챕터/,
   /\bchapter\b/i,
   /\bjob\b/i,
   /\bprogress\b/i,
   /\bmock\b/i,
   /\btemplate\b/i,
-  /이\s*기능은/g,
-  /이\s*결과는/g,
-  /분석\s*결과는/g,
-  /콘텐츠\s*블록/g,
+  /이\s*기능은/,
+  /이\s*결과는/,
+  /분석\s*결과는/,
+  /콘텐츠\s*블록/,
 ]);
 
 const UNSAFE_ADVICE_PATTERNS = Object.freeze([
-  /스토킹/g,
-  /감시하/g,
-  /뒤쫓/g,
-  /심리\s*조종/g,
-  /죄책감을\s*유발/g,
-  /무조건\s*(연락|기다|붙잡|밀어붙|이뤄|이루어|잘\s*풀|성공)/g,
-  /반드시\s*(돌아|좋아|싫어|연락|이뤄|이루어|결혼|사귀|재회|성공)/g,
-  /100\s*%\s*(이뤄|성공|돌아|확실)/g,
-  /틀림없이\s*(이뤄|돌아|사귀|결혼)/g,
+  /스토킹/,
+  /감시하/,
+  /뒤쫓/,
+  /심리\s*조종/,
+  /죄책감을\s*유발/,
+  /무조건\s*(연락|기다|붙잡|밀어붙|이뤄|이루어|잘\s*풀|성공)/,
+  /반드시\s*(돌아|좋아|싫어|연락|이뤄|이루어|결혼|사귀|재회|성공)/,
+  /100\s*%\s*(이뤄|성공|돌아|확실)/,
+  /틀림없이\s*(이뤄|돌아|사귀|결혼)/,
 ]);
+
+// 일치 뒤 같은 절(쉼표·마침표 전, 최대 32자) 안에 금지·부정·경고 표현이 오면 '하지 말라'는 안전한 조언으로 본다.
+// 예: "감시하지 마세요", "무조건 연락하기보다", "반드시 연락하려 들면 관계를 망쳐요".
+const UNSAFE_NEGATION_WINDOW = 32;
+const UNSAFE_NEGATION_PATTERN = /지\s*(마|말|않)|않|안\s*(돼|됩|되|좋)|금물|금지|삼가|피하|피해|멈추|멈춰|그만|아니|없[어습고]|보다|대신|위험|해롭|해로|망치|망쳐|망가|독이|역효과|처럼\s*(보|느껴|비)|듯/;
+
+function unsafeMatchIsNegated(text, index, length) {
+  const tail = text.slice(index + length, index + length + UNSAFE_NEGATION_WINDOW);
+  const clause = tail.split(/[,.!?\n。]/)[0];
+  return UNSAFE_NEGATION_PATTERN.test(clause);
+}
+
+/** 위험 조언으로 판정된 일치만 돌려준다(부정·금지 문맥의 일치는 뺀다). */
+function findUnsafeAdviceMatches(text) {
+  const value = String(text || "");
+  const found = [];
+  UNSAFE_ADVICE_PATTERNS.forEach((pattern) => {
+    const global = new RegExp(pattern.source, `${pattern.flags.replace("g", "")}g`);
+    let match;
+    while ((match = global.exec(value))) {
+      if (!unsafeMatchIsNegated(value, match.index, match[0].length)) found.push({ index: match.index, phrase: match[0] });
+      if (match[0].length === 0) global.lastIndex += 1;
+    }
+  });
+  return found.sort((a, b) => a.index - b.index);
+}
+
+function findForbiddenResultMatches(text) {
+  const value = String(text || "");
+  return FORBIDDEN_RESULT_PATTERNS.map((pattern) => {
+    const match = pattern.exec(value);
+    return match ? { index: match.index, phrase: match[0] } : null;
+  }).filter(Boolean).sort((a, b) => a.index - b.index);
+}
+
+function excerptAround(text, index, length, radius = 30) {
+  const value = String(text || "");
+  const from = Math.max(0, index - radius);
+  const to = Math.min(value.length, index + length + radius);
+  return `${from > 0 ? "…" : ""}${value.slice(from, to).replace(/\s+/g, " ").trim()}${to < value.length ? "…" : ""}`;
+}
+
+/**
+ * 반려 사유를 짚는다 — 어떤 표현이 어느 문맥에서 걸렸는지.
+ * 그룹 체크포인트·로그와 수리 프롬프트("이 표현을 바꾸세요")에 쓴다.
+ */
+export function explainLoveSecretTextIssues(text, limit = 3) {
+  const value = String(text || "");
+  const forbidden = findForbiddenResultMatches(value).slice(0, limit)
+    .map((match) => ({ issue: "FORBIDDEN_RESULT_TEXT", phrase: match.phrase, excerpt: excerptAround(value, match.index, match.phrase.length) }));
+  const unsafe = findUnsafeAdviceMatches(value).slice(0, limit)
+    .map((match) => ({ issue: "UNSAFE_RELATIONSHIP_ADVICE", phrase: match.phrase, excerpt: excerptAround(value, match.index, match.phrase.length) }));
+  return [...forbidden, ...unsafe];
+}
+
+function loveSecretFlaggedPhraseLine(flagged = []) {
+  const phrases = [...new Set((flagged || []).map((item) => clean(item?.phrase, 24)).filter(Boolean))].slice(0, 4);
+  if (!phrases.length) return "";
+  return ` 문제가 된 표현: ${phrases.map((phrase) => `'${phrase}'`).join(", ")}. 부정문이라도 이 어구를 그대로 쓰지 말고 다른 말로 바꾸세요.`;
+}
+
+/**
+ * 직전 시도가 반려된 사유로 수리 지시를 만든다. 사유를 모르면 빈 배열(평소 프롬프트로 다시 쓴다).
+ * rejection: { reason, issues, flagged }
+ */
+export function buildLoveSecretRejectionRepairLines(rejection) {
+  if (!rejection) return [];
+  const issues = new Set([...(rejection.issues || []), rejection.reason].filter(Boolean));
+  const lines = [];
+  if (issues.has("FORBIDDEN_RESULT_TEXT")) {
+    lines.push(`직전 응답이 제작물·시스템을 가리키는 표현 때문에 반려됐습니다.${loveSecretFlaggedPhraseLine((rejection.flagged || []).filter((item) => item.issue === "FORBIDDEN_RESULT_TEXT"))}`);
+  }
+  if (issues.has("UNSAFE_RELATIONSHIP_ADVICE")) {
+    lines.push(`직전 응답이 감시·압박·단정으로 읽히는 표현 때문에 반려됐습니다.${loveSecretFlaggedPhraseLine((rejection.flagged || []).filter((item) => item.issue === "UNSAFE_RELATIONSHIP_ADVICE"))} 피해야 할 행동은 '상대의 일상을 하나하나 확인하려는 마음', '답을 재촉하는 연락'처럼 풀어 쓰세요.`);
+  }
+  if (issues.has("REQUIRED_SECTIONS_INCOMPLETE") || issues.has("NO_SECTIONS") || issues.has("SECTION_EMPTY") || issues.has("INVALID_SECTION_BODY")) {
+    lines.push("직전 응답에 빠진 섹션이 있었습니다. sections 배열에 지정된 제목을 한 글자도 바꾸지 말고 모두, 각각 한 번씩 넣으세요. body 는 문자열입니다.");
+  }
+  if (issues.has("REPEATED_PASSAGE")) {
+    lines.push("직전 응답에 같은 문장이 되풀이됐습니다. 섹션마다 새 근거와 새 장면으로 쓰세요.");
+  }
+  if (issues.has("PARSE_FAILED") || issues.has("EMPTY_RESPONSE") || issues.has("EMPTY_LLM_RESPONSE")) {
+    lines.push("직전 응답이 JSON 으로 읽히지 않았습니다. 설명 없이 지정된 JSON 객체 하나만 출력하세요.");
+  }
+  return lines;
+}
 
 // 분량 문턱은 2단이다.
 //  - TARGET_*  : 목표치. 미달/초과하면 "책임 그룹만" 다시 쓰는 수리(wave 2) 트리거.
@@ -76,11 +164,19 @@ function extractJsonObject(text) {
 }
 
 function hasForbiddenResultText(text) {
-  return FORBIDDEN_RESULT_PATTERNS.some((pattern) => pattern.test(String(text || "")));
+  const value = String(text || "");
+  return FORBIDDEN_RESULT_PATTERNS.some((pattern) => pattern.test(value));
 }
 
 function hasUnsafeAdvice(text) {
-  return UNSAFE_ADVICE_PATTERNS.some((pattern) => pattern.test(String(text || "")));
+  return findUnsafeAdviceMatches(text).length > 0;
+}
+
+/** 금지·위험 표현이 든 문장만 덜어 낸다. 마지막 시도에서 그룹 전체를 버리는 대신 쓴다. */
+function scrubFlaggedSentences(body) {
+  const parts = String(body || "").split(/(?<=[.!?。])\s+/);
+  const kept = parts.filter((sentence) => !hasForbiddenResultText(sentence) && !hasUnsafeAdvice(sentence));
+  return { body: kept.join(" ").trim(), dropped: parts.length - kept.length };
 }
 
 export const LOVE_SECRET_AI_SYSTEM_PROMPT = `당신은 30년 경력의 사주 명리학자이자 실제 연애 상담 경험이 풍부한 상담사입니다.
@@ -214,6 +310,9 @@ export const LOVE_SECRET_AI_GROUPS_V1 = Object.freeze([
 const V2_COVERED_NATURE = "타고난 연애 기질(사랑하는 방식의 원형과 생활 장면)";
 const V2_SECTION_GUIDES = Object.freeze({
   "현재 관계의 자리와 질문의 핵심": "사용자의 자유 질문을 첫 문장에서 한 번만 인용해 정면으로 받고 한 줄로 답한다. 타고난 기질 총론은 다른 부분이 이미 맡았으니 되풀이하지 않는다. 그 답 위에서 지금 관계가 어느 자리에 서 있는지 확정하고, 왜 그렇게 보는지 명식 근거로 받친다.",
+  // V1 guide 의 "감시·압박·집착은 어떤 경우에도 조언하지 않는다"는 금지 어간을 본문에 그대로 끌어와 반려를 불렀다(2026-11-08 샘플).
+  "피해야 할 선택과 자기 보호": "지켜야 할 경계와 물러설 지점을 구체적으로 정한다. 피해야 할 행동은 '상대의 하루를 하나하나 확인하고 싶어지는 마음', '답을 재촉하는 연락'처럼 생활 장면으로 풀어 쓰고, 그 대신 지킬 나의 리듬을 함께 제시한다.",
+  "상대에게 다가가는 대화 문장": "그대로 보낼 수 있는 문장을 따옴표로 제시하고, 피하면 좋은 말은 '재촉처럼 들리는 말'처럼 성격으로 짚은 뒤 바꿔 말할 문장을 함께 준다.",
 });
 const V2_GROUP_OVERRIDES = Object.freeze({
   core: { perspective: "질문에 답하는 시선 — 지금 관계의 자리와 질문의 답을 정합니다.", questionRule: "core", covered: `${V2_COVERED_NATURE}/나의 연애 반복 패턴·장단점/상대와 궁합·이상형/갈등·바람기·재회/타이밍·좋은 날짜·결혼운/실행 전략과 마무리` },
@@ -338,7 +437,26 @@ function loveSecretPerspectiveLines(group) {
     "'결국 중요한 것은', '다시 말해', '앞서 말했듯' 같은 되풀이 연결어를 쓰지 않습니다.",
     "섹션마다 같은 여는 문장이나 같은 맺는 문장을 되풀이하지 않습니다.",
     LOVE_QUESTION_RULES[group.questionRule] || LOVE_QUESTION_RULES.other,
+    ...(group.questionRule === "core" ? [] : [LOVE_SITUATION_RULE]),
+    ...LOVE_V2_READABILITY_LINES,
   ];
+}
+
+// 첫 샘플(2026-11-08)에서 '연락이 뜸'이 16번 나왔다. 상황 요약은 core 가 한 번만 맡는다.
+const LOVE_SITUATION_RULE = "사용자가 적은 상황(예: 연락이 뜸해졌다는 사정)을 다시 요약하거나 되풀이하지 않습니다. 상황을 가리켜야 하면 이 부분 전체에서 한 번, 짧게만 씁니다.";
+const LOVE_V2_READABILITY_LINES = Object.freeze([
+  "점수와 개수를 숫자로 쓰지 않습니다('4.7점', '토 기운 4개' 금지). '토 기운이 넉넉한 편', '끌림이 강한 편'처럼 말로 풉니다.",
+  "억부·신강·신약·합·충·형·파·해·귀문관살 같은 명리 용어는 꼭 필요할 때만 처음 한 번 쓰고 바로 쉬운 말로 뜻을 풀며, 그 뒤로는 풀어 쓴 말로만 부릅니다.",
+  "같은 비유(빚, 온도, 다리, 문, 계절 같은 이미지)는 이 부분에서 한 번만 씁니다.",
+  "문장 끝은 해요체(~해요, ~예요, ~거든요, ~세요)로만 맺습니다. '~합니다', '~입니다', '~습니다' 같은 합니다체는 쓰지 않습니다.",
+]);
+
+function loveSecretV2SectionLengthLine(group) {
+  const count = Math.max(1, group.sections.length);
+  const min = Math.round(LOVE_SECRET_AI_GROUP_MIN_CHARS / count / 100) * 100;
+  const max = Math.round(LOVE_SECRET_AI_GROUP_MAX_CHARS / count / 100) * 100;
+  const paragraphs = Math.max(3, Math.ceil(min / 300));
+  return `각 섹션의 body는 최소 ${min}자(목표 ${min}~${max}자)이고 ${paragraphs}문단 이상, 문단마다 4~6문장으로 씁니다. 근거 → 생활 장면 → 할 일 순서로 문단을 늘리고, 첫 문장 구조를 반복하지 않습니다.`;
 }
 
 /**
@@ -380,8 +498,8 @@ export function buildLoveSecretGroupPrompt(input = {}, sajuResult = {}, group, o
     "아래 JSON 형식만 출력합니다. JSON 밖에 다른 문장을 붙이지 않습니다.",
     `이 부분의 sections body 합계는 ${LOVE_SECRET_AI_GROUP_MIN_CHARS}~${LOVE_SECRET_AI_GROUP_MAX_CHARS}자로 씁니다. 마지막 문장을 중간에 끊지 말고 반드시 완결합니다.`,
     group.perspective
-      ? `각 섹션의 body는 ${Math.round(LOVE_SECRET_AI_GROUP_MIN_CHARS / group.sections.length / 100) * 100}~${Math.round(LOVE_SECRET_AI_GROUP_MAX_CHARS / group.sections.length / 100) * 100}자 안팎의 밀도 있는 문단으로 쓰되 첫 문장 구조를 반복하지 않습니다.`
-      : "각 섹션의 body는 900~1,300자 안팎의 밀도 있는 문단으로 쓰되 첫 문장 구조를 반복하지 않습니다.",
+      ? loveSecretV2SectionLengthLine(group)
+      :"각 섹션의 body는 900~1,300자 안팎의 밀도 있는 문단으로 쓰되 첫 문장 구조를 반복하지 않습니다.",
     ...loveSecretPerspectiveLines(group),
     "각 섹션은 반드시 명리 근거(일간·일지·오행·조후·십성·신살·대운/세운·궁합 관계 중 해당되는 것)를 최소 1회 명시하고, 그 근거를 관계 심리와 현실 행동 처방으로 이어 씁니다. 근거 없이 누구에게나 통하는 일반 연애 조언은 금지합니다.",
     "명식 근거는 용어를 나열하지 말고 사랑에서 드러나는 감정, 거리감, 표현 방식, 선택 습관으로 번역합니다.",
@@ -654,7 +772,7 @@ function trimToLastCompleteSentence(text) {
 /**
  * 그룹 응답 파싱. **절대 throw 하지 않는다** — 실패는 값으로 돌려 한 그룹이 나머지를 죽이지 못하게 한다.
  */
-export function parseLoveSecretGroupResponse(text, group, { lengthRepair = false } = {}) {
+export function parseLoveSecretGroupResponse(text, group, { lengthRepair = false, scrubUnsafe = false } = {}) {
   const base = { key: group?.key || "", ok: false, sections: [], extras: {}, chars: 0, issues: [], reason: "" };
   const raw = clean(text);
   if (!raw) return { ...base, reason: "EMPTY_RESPONSE", issues: ["EMPTY_LLM_RESPONSE"] };
@@ -696,9 +814,28 @@ export function parseLoveSecretGroupResponse(text, group, { lengthRepair = false
 
   if (!sections.length) return { ...base, reason: "NO_SECTIONS", issues: ["SECTION_EMPTY"] };
 
-  const trimmed = sections.map((section) => ({ title: section.title, body: trimToLastCompleteSentence(stripMetricKeyTails(section.body)) }));
+  let trimmed = sections.map((section) => ({ title: section.title, body: trimToLastCompleteSentence(stripMetricKeyTails(section.body)) }));
+  let issues = scanConsultationTextIssues(trimmed.map((section) => section.body).join("\n"));
+  const textFlag = (issue) => issue === "FORBIDDEN_RESULT_TEXT" || issue === "UNSAFE_RELATIONSHIP_ADVICE";
+  // 금지·위험 표현에 걸리면 무엇이 어느 문맥에서 걸렸는지 남긴다(재시도 프롬프트가 그 표현을 짚어 고치게).
+  const flagged = issues.some(textFlag) ? explainLoveSecretTextIssues(trimmed.map((section) => section.body).join("\n")) : [];
+  let scrubbed = 0;
+  if (scrubUnsafe && flagged.length && issues.every(textFlag)) {
+    // 마지막 시도: 그룹을 통째로 비우는 대신 걸린 문장만 덜어 낸다.
+    let dropped = 0;
+    const cleaned = trimmed.map((section) => {
+      const result = scrubFlaggedSentences(section.body);
+      dropped += result.dropped;
+      return { title: section.title, body: result.body };
+    });
+    const rescanned = scanConsultationTextIssues(cleaned.map((section) => section.body).join("\n"));
+    if (!rescanned.length) {
+      trimmed = cleaned;
+      issues = rescanned;
+      scrubbed = dropped;
+    }
+  }
   const chars = countSectionBodyChars(trimmed);
-  const issues = scanConsultationTextIssues(trimmed.map((section) => section.body).join("\n"));
   const sectionFloor = Math.ceil(LOVE_SECRET_AI_GROUP_MIN_CHARS * 0.7 / Math.max(1, titles.length));
   const lengthShort = titles.some(title => !trimmed.some(section => section.title === title && countPaidReportBodyChars(section.body) >= sectionFloor))
     || chars < LOVE_SECRET_AI_GROUP_MIN_CHARS * 0.7;
@@ -731,7 +868,10 @@ export function parseLoveSecretGroupResponse(text, group, { lengthRepair = false
     });
   }
 
-  return { ...base, ok: requiredSectionsPresent && issues.length === 0, sections: trimmed, extras, chars, issues, lengthShort };
+  const result = { ...base, ok: requiredSectionsPresent && issues.length === 0, sections: trimmed, extras, chars, issues, lengthShort };
+  if (flagged.length) result.flagged = flagged;
+  if (scrubbed) result.scrubbed = scrubbed;
+  return result;
 }
 
 /** 그룹 제목 범위 안에서만 프로즈를 쪼갠다(전역 15섹션 폴백의 그룹 스코프 버전). */
@@ -965,7 +1105,7 @@ export function mapLoveSecretIssuesToGroups(quality = {}, groupResults = []) {
         ? "제작물·시스템을 가리키는 표현을 지우고 상담 언어로만 쓰세요."
         : "감시·압박·집착·단정 표현을 지우고 사용자가 실제로 할 수 있는 건강한 선택으로 바꾸세요.";
       groupResults.filter((result) => result?.ok && scanConsultationTextIssues(textOf(result)).includes(issue))
-        .forEach((result) => push(result.key, line));
+        .forEach((result) => push(result.key, `${line}${loveSecretFlaggedPhraseLine(explainLoveSecretTextIssues(textOf(result)).filter((item) => item.issue === issue))}`));
       return;
     }
     if (issue.startsWith("SECTION_EMPTY:") || issue.startsWith("SECTION_MIN_CHARS:")) {
@@ -991,5 +1131,7 @@ export function mapLoveSecretIssuesToGroups(quality = {}, groupResults = []) {
 export const __loveSecretAiPromptTestUtils = {
   hasForbiddenResultText,
   hasUnsafeAdvice,
+  findUnsafeAdviceMatches,
+  scrubFlaggedSentences,
   countSectionBodyChars,
 };

@@ -24,13 +24,15 @@ import { isStagingLlmMockEnabled } from "../lib/staging-llm-mock.js";
 import { callGeminiJsonWithRetry } from "../lib/structured-consultation.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
 import { cmsPromptText } from "../lib/cms-prompts.js";
-import { appendExpertPersona, resolveExpertPersona } from "../lib/expert-character-personas.js";
+import { appendExpertPersona, hanbiLoveRegisterDrift, resolveExpertPersona, yeoniLoveRegisterDrift } from "../lib/expert-character-personas.js";
 import { appendAnswerVoice, pinAnswerVoice } from "../lib/consultation-answer-contract.js";
 import { calculateLoveSecretAiSaju, normalizeLoveSecretAiInput } from "../lib/love-secret-ai-calculation.js";
 import { sajuAuthorityOn } from "../lib/saju-authority-consumer.js";
 import {
   LOVE_SECRET_AI_GROUPS,
   LOVE_SECRET_AI_GROUP_MIN_CHARS,
+  LOVE_SECRET_AI_GROUP_MAX_CHARS,
+  LOVE_SECRET_AI_MIN_TOTAL_BODY_CHARS,
   LOVE_SECRET_AI_SYSTEM_PROMPT,
   LOVE_SPEAKER_BY_GROUP,
   LOVE_SECRET_AI_GROUP_PLAN_VERSION,
@@ -40,6 +42,7 @@ import {
   buildLoveSecretGroupPrompt,
   buildLoveSecretGroupResponseSchema,
   buildLoveSecretGroupSystemPrompt,
+  buildLoveSecretRejectionRepairLines,
   countLoveSecretConsultationBodyChars,
   dedupeLoveSecretSections,
   loveSecretGroupsForPlan,
@@ -780,6 +783,7 @@ async function generateLoveSecretGroup(env, {
   repairLines = [],
   previousResult = null,
   clipped = false,
+  scrubUnsafe = false,
 }) {
   const startedAt = Date.now();
   // 앞 시도가 토큰 상한에서 끊겼으면 이번 시도만 예산 2배(최대 32768)로 산다. 기본 예산은 비용 추정·검증 스크립트가 쓴다.
@@ -841,8 +845,38 @@ async function generateLoveSecretGroup(env, {
       return { ...fail(clean(ai?.error || ai?.message || "LLM_FAILED", 60)), provider, model, ...(cutOff && { truncated: true }) };
     }
 
-    const parsed = parseLoveSecretGroupResponse(ai.text, group, { lengthRepair: true });
-    if (!parsed.ok) return { ...fail(parsed.reason || "PARSE_FAILED"), provider, model, ...(ai.recoveredLocally === true && { truncated: true }) };
+    const parsed = parseLoveSecretGroupResponse(ai.text, group, { lengthRepair: true, scrubUnsafe });
+    if (!parsed.ok) {
+      // 🔴 사유를 버리지 않는다 — 섹션은 읽혔지만 이슈로 반려된 경우 parsed.reason 은 빈 문자열이다.
+      const reason = clean(parsed.reason || parsed.issues?.[0] || "PARSE_FAILED", 60);
+      logLoveSecretAi("Group Rejected", {
+        ...logContext,
+        groupKey: group.key,
+        reason,
+        issues: (parsed.issues || []).slice(0, 6),
+        chars: Number(parsed.chars || 0),
+        excerpt: clean(parsed.flagged?.[0]?.excerpt, 120),
+      }, "warn");
+      return {
+        ...fail(reason),
+        issues: (parsed.issues || []).slice(0, 6),
+        ...(parsed.flagged?.length && { flagged: parsed.flagged.slice(0, 4) }),
+        provider,
+        model,
+        ...(ai.recoveredLocally === true && { truncated: true }),
+      };
+    }
+    // 말투 점검(V2 그룹만). 전달을 막지 않는다 — 로그를 남기고, 이 그룹이 어차피 다시 쓰일 때 수리 지시에 싣는다.
+    const registerDrift = group.perspective
+      ? (LOVE_SPEAKER_BY_GROUP[group.key] === "hanbi" ? hanbiLoveRegisterDrift : yeoniLoveRegisterDrift)(parsed.sections.map((section) => section.body).join("\n"))
+      : [];
+    if (registerDrift.length) {
+      parsed.registerDrift = registerDrift;
+      logLoveSecretAi("Register Drift", { ...logContext, groupKey: group.key, drift: registerDrift }, "warn");
+    }
+    if (parsed.scrubbed) {
+      logLoveSecretAi("Group Scrubbed", { ...logContext, groupKey: group.key, droppedSentences: parsed.scrubbed, excerpt: clean(parsed.flagged?.[0]?.excerpt, 120) }, "warn");
+    }
     return { ...parsed, key: group.key, provider, model, startedAt, endedAt: Date.now() };
   } catch (error) {
     logLoveSecretAi("Group Generation Error", {
@@ -885,7 +919,17 @@ async function generateFirstConsultation(env, input, sajuResult, logContext = {}
   const qualityOf = rows => validateLoveSecretConsultation(assembleLoveSecretConsultation(rows, { input, sajuResult }), { sajuResult, groundingTerms: buildLoveSecretGroundingTerms(sajuResult) });
   const contentIssues = value => value.issues.filter(issue => !/^(?:TOTAL_(?:BELOW|ABOVE)_TARGET|SECTION_MIN_CHARS):/.test(issue));
   const choose = (previous, candidate) => {
-    if (!candidate?.ok) return previous;
+    if (!candidate?.ok) {
+      // 반려 사유와 걸린 문맥을 체크포인트에 남긴다 — 다음 시도가 그 표현을 짚어 고치고, 운영에서 원인을 읽을 수 있게.
+      const rejection = {
+        reason: clean(candidate?.reason || "UNKNOWN", 60),
+        issues: Array.isArray(candidate?.issues) ? candidate.issues.slice(0, 6) : [],
+        ...(candidate?.flagged?.length && { flagged: candidate.flagged.slice(0, 4).map(item => ({ issue: item.issue, phrase: clean(item.phrase, 40), excerpt: clean(item.excerpt, 120) })) }),
+        attempt: Number(attempts[candidate?.key || previous?.key] || 0),
+      };
+      if (previous?.ok) return { ...previous, lastRejection: rejection };
+      return { ...(previous || {}), ...(candidate || {}), ok: false, reason: rejection.reason, rejection };
+    }
     const before = contentIssues(qualityOf(results));
     const after = contentIssues(qualityOf(results.map(row => row.key === candidate.key ? candidate : row)));
     if (previous?.ok && (after.some(issue => !before.includes(issue))
@@ -893,15 +937,50 @@ async function generateFirstConsultation(env, input, sajuResult, logContext = {}
     return candidate;
   };
   let selected = planGroups;
+  let selectedRepair = null;
+  // 분량 수리 후보: 모든 그룹이 내용상 통과했는데 합계가 전달 하한(MIN) 아래일 때만, 가장 짧은 그룹 하나.
+  // 그룹당 1회·세션당 최대 2회. 후보가 없으면 분량은 전달을 막지 않는다.
+  const lengthRepairUsed = () => Object.keys(attempts).filter(name => name.startsWith("length:")).length;
+  const lengthRepairCandidate = (rows, quality) => {
+    if (rows.length !== minUsableGroups || rows.some(row => !row.ok) || contentIssues(quality).length) return "";
+    if (countLoveSecretConsultationBodyChars(assembleLoveSecretConsultation(rows, { input, sajuResult })) >= LOVE_SECRET_AI_MIN_TOTAL_BODY_CHARS) return "";
+    if (lengthRepairUsed() >= 2) return "";
+    return [...rows]
+      .filter(row => (attempts[row.key] || 0) < 2 && !attempts[`length:${row.key}`] && row.chars < LOVE_SECRET_AI_GROUP_MIN_CHARS)
+      .sort((a, b) => a.chars - b.chars)[0]?.key || "";
+  };
   if (checkpointed) {
     const priorQuality = validateLoveSecretConsultation(assembleLoveSecretConsultation(results, { input, sajuResult }), { sajuResult, groundingTerms: buildLoveSecretGroundingTerms(sajuResult) });
     const repairKeys = mapLoveSecretIssuesToGroups({ ...priorQuality, issues: contentIssues(priorQuality) }, results);
     const available = key => (attempts[key] || 0) < 2;
-    const key = results.find(row => !row.ok && available(row.key))?.key || [...repairKeys.keys()].find(available);
+    let key = results.find(row => !row.ok && available(row.key))?.key || [...repairKeys.keys()].find(available);
+    let lengthRepairKey = "";
+    if (!key && lengthRepairCandidate) {
+      key = lengthRepairCandidate(results, priorQuality);
+      lengthRepairKey = key || "";
+    }
     selected = planGroups.filter(group => group.key === key);
     if (selected.length) {
       const key = selected[0].key;
       const used = attempts[key] || 0;
+      const prior = results.find(row => row.key === key);
+      // 체크포인트 모드도 수리 지시를 싣는다: 품질 이슈 매핑 + 직전 반려 사유(걸린 표현을 짚어서).
+      selectedRepair = {
+        key,
+        lines: [
+          ...(repairKeys.get(key) || []),
+          ...buildLoveSecretRejectionRepairLines(prior?.rejection || prior?.lastRejection),
+          ...(prior?.registerDrift?.includes("hapnida") ? ["직전 글에 '~합니다/~습니다' 합니다체가 많았습니다. 문장 끝을 모두 해요체(~해요, ~예요, ~세요)로 바꿔 쓰세요."] : []),
+          ...(lengthRepairKey ? [`이 부분이 너무 짧습니다(지금 약 ${Number(prior?.chars || 0).toLocaleString("ko-KR")}자). 이미 쓴 내용은 살리되 새 근거·새 생활 장면·구체적 행동을 더해 섹션마다 문단을 늘려 ${LOVE_SECRET_AI_GROUP_MIN_CHARS.toLocaleString("ko-KR")}~${LOVE_SECRET_AI_GROUP_MAX_CHARS.toLocaleString("ko-KR")}자로 다시 쓰세요.`] : []),
+        ],
+        previousResult: prior?.ok ? prior : null,
+        // 마지막 시도면 걸린 문장만 덜어 내고 받는다(그룹을 통째로 비우지 않게).
+        scrubUnsafe: used + 1 >= 2,
+      };
+      if (lengthRepairKey) {
+        attempts[`length:${key}`] = 1;
+        logLoveSecretAi("Group Length Repair", { ...logContext, groupKey: key, chars: Number(prior?.chars || 0), totalChars: countLoveSecretConsultationBodyChars(assembleLoveSecretConsultation(results, { input, sajuResult })) }, "warn");
+      }
       await options.onReserve(key);
       attempts[key] = used + 1;
     }
@@ -918,6 +997,11 @@ async function generateFirstConsultation(env, input, sajuResult, logContext = {}
     timeoutMs: budgetedTimeout(groupTimeoutCap),
     logContext,
     clipped: previous?.truncated === true,
+    ...(selectedRepair?.key === group.key && {
+      repairLines: selectedRepair.lines,
+      previousResult: selectedRepair.previousResult,
+      scrubUnsafe: selectedRepair.scrubUnsafe,
+    }),
     });
     const row = choose(previous, generated);
     if (row.ok) row.lengthRepair = true;
@@ -958,6 +1042,7 @@ async function generateFirstConsultation(env, input, sajuResult, logContext = {}
         repairLines,
         previousResult,
         clipped: previousResult?.truncated === true,
+        scrubUnsafe: true,
       });
       const row = choose(previousResult, generated);
       row.lengthRepair = true;
@@ -1004,7 +1089,9 @@ async function generateFirstConsultation(env, input, sajuResult, logContext = {}
   });
 
   const completionIssues = contentIssues(quality);
-  const complete = usableGroups === minUsableGroups && renderable && completionIssues.length === 0;
+  // 분량은 치명적이지 않다: 아직 분량 수리 후보가 남아 있을 때만 다음 요청으로 미룬다.
+  const lengthPending = checkpointed && Boolean(lengthRepairCandidate(results, quality));
+  const complete = usableGroups === minUsableGroups && renderable && completionIssues.length === 0 && !lengthPending;
   if (!checkpointed && !complete) {
     const error = new Error(`love secret generation incomplete (groups ${usableGroups}/${results.length}, chars ${totalChars})`);
     error.code = "LLM_GENERATION_FAILED";
