@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-11-09
-next: "④ main 전달 CI를 최종 보고 전 1회 확인. 네이버 로그인 회신 뒤 Space 65 재개·남은 원자료·화면 검증 → 운영 승인 패킷. ⑤ 시점·중복 수정은 별도 커밋으로 계속."
+next: "⑤ 1차 2dabfcdfc의 check:fast 결과 기록 → pre-push → ④ main CI 1회 확인 후 ⑤ 전달. 네이버 로그인 회신 뒤 Space65 재개·원자료·UI 확인. 운영 승격은 미승인."
 ---
 
 # SEO 아키텍처 재구축
@@ -30,6 +30,8 @@ next: "④ main 전달 CI를 최종 보고 전 1회 확인. 네이버 로그인 
 - ④ 로컬: 사주 title/description·fallback H1·breadcrumb 의도 분리, 궁합 SSR 비교표, 감사 대상 5쪽의 관련 링크 보강. canonical·hreflang·robots·색인 URL 집합·결제/인증/API/DB/계산 로직 변경 없음. 첫 check:fast는 sitemap drift에서 중단. 생성 뒤 재실행에서 lint/typecheck 통과, Node 4772개 중4770통과·2실패(새 ‘무료 사주’ 문구가 기존 상품 정책과 충돌). 해당 표현을 철회하고 ‘사주 원국 확인·사주팔자 해석 안내’로 좁힌 뒤 관련 정책 파일22개 전부 통과. 전체 Node 재실행은 하지 않았다. 로그는 외부 bundle-4/check-fast-20261109-retry.log·saju-policy-regression-20261109.log. 제목 최종 수정 뒤 sitemap을 공식 생성기로 다시 갱신했다. UI 화면 검증은 네이버 로그인 제어 인계로 아직 미실행이다.
 - ⑤의 시점 오류 원인·구현 경계는 외부 `bundle-5/implementation-boundaries-20261109.md`. 아직 소스 구현·noindex·승격하지 않았다. ④ 전달 경계를 먼저 정리한다.
 - ④ 구현 커밋은 최초 55af67578(rebase 전), 커밋된 트리 check:pre-push 통과. 다른 세션이 fc460e1efaf03cf5400351cfbd1c36c2e0f6cf77에서 premium handoff를 수정했고 PR CI42512760338 success. 앞선 한 줄 수정 문의는 필요가 없어졌다. 최신 main으로 rebase 후 후속 기록·pre-push·main push를 수행한다. 화면 검증과 운영 승격은 아직 하지 않았다.
+- ④ main 전달 완료: 구현2c431a13e·최종 기록770012970f3723cca5880407c90fbcf9de2e1c05。rebase 뒤 committed-tree pre-push 통과. 공식 CI는 다음 push/최종 보고 전 1회 확인한다. 운영 승격하지 않았다.
+- ⑤ 1차 로컬 구현2dabfcdfc: daily-copy.ts의 한국어 대상일 인용 함수를 상세의 원고와 웹툰 인용에 재사용. 웹툰·로케일16개 통과(24sign·입력 불변성 포함). plan은 `2026-11-09-seo-bundle-5-daily-copy.md`. check:fast는 lint/typecheck/sitemap drift 통과 후 Node 전체 진행 중, exec session33088 및 외부 bundle-5/check-fast-20261109.log. 관계 마커·준비 문구·본문 차별화·번역 noindex는 아직 안 했고 ⑤ 전체 완료/오늘0이라고 보고하지 않는다. 로그 결과 확인 후 pre-push·main 전달하고 CI는 규칙대로 최종 1회만 확인한다.
 - 운영 승격은 ④·⑤ 각각 새 승인 필요. 이 작업의 임시 대기는 원자료 로그인/공유 CI 경계이며 SEO 전체 완료가 아니다. 현재 작업·워크트리를 지우지 않는다.
 
 ### 2026-11-09 묶음 ③ 운영 반영 완료
