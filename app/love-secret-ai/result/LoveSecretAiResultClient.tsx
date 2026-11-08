@@ -1239,8 +1239,11 @@ function LoveSecretResultPageContent({
 
   function jumpToChapter(entry: { number: number; deckPage: number }) {
     if (entry.deckPage >= 0) setActivePage(entry.deckPage);
+    // 한 장씩 보기에서는 덱의 다른 쪽이 숨어 있으므로, 쪽을 바꾼 뒤 덱 머리로 간다(보이는 쪽이 곧 그 장이다).
     window.requestAnimationFrame(() => {
-      const target = document.getElementById(`love-chapter-${entry.number}`) || document.getElementById("love-secret-deck");
+      const target = entry.deckPage >= 0 && !viewAll
+        ? document.getElementById("love-secret-deck")
+        : document.getElementById(`love-chapter-${entry.number}`) || document.getElementById("love-secret-deck");
       target?.scrollIntoView({ behavior: "smooth", block: "start" });
     });
   }
