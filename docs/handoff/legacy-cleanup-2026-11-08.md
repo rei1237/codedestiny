@@ -1,14 +1,15 @@
 ---
-status: active
+status: done
 updated: 2026-11-08
-next: "main 반영 완료(70eaf737b). 운영 승격 뒤 301 매핑표 몇 개를 운영에서 확인한다(daily-webtoon-release-2026-11-08.md 3단계가 맡음)"
+next: "없음. main 70eaf737b 반영, 운영 run 42437586072(1a9f0fb18)로 승격, 운영 301 10건 확인 완료"
 ---
 
 # 레거시 페이지·코드 정리 인수인계 (2026-11-08)
 
 - 워크트리: `D:\Development\codedestiny-worktrees\legacy-cleanup-20261108-034220`
 - 브랜치: `wt/legacy-cleanup-20261108-034220` (기준 origin/main `db59b37f7`)
-- 상태: 정리 커밋 완료, 검증 통과, **push·배포 전**. 운영 반영은 사용자 승인 뒤.
+- 상태: **완료.** main `70eaf737b`로 반영(push `6d93669df..70eaf737b`). 운영 릴리스 run 42437586072(Pages·Worker 1a9f0fb18d02) success. 운영 301 10건(/fpti, /saju-picture, /famous/, /fortune/sikojen-povailu, /dev-status, /tadagochi, /tadagochi.html, /static/geomancy-oracle-v4.html, /fortune-tea-house/tarot-debug, /sukyo/relationship-encyclopedia) 모두 301 한 번 → 200. 워크트리는 2026-11-08 `npm run worktree:remove`로 제거했고 브랜치는 남겼다.
+- (옛 기록) 정리 커밋 완료, 검증 통과, push·배포 전이었다.
 
 ## 무엇을 했나
 
