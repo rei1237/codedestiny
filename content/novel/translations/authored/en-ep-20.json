@@ -208,9 +208,9 @@
     },
     {
       "id": "ep-20:34",
-      "source": "끈질기네. 도서관에서는 조용히 하라고 배우지 않았어?",
-      "sourceHash": "d81b0f4e8b13411291c0ffa6b8ceb613c9e3ca5dcd800a6754f00a72add47b80",
-      "t": "Persistent. Weren't you taught to be quiet in libraries?"
+      "source": "끈질기시네요. 도서관에서는 조용히 하라고 배우지 않으셨어요?",
+      "sourceHash": "9ceba9a68677c535292864ecad06621d45e1c9d9e367c11aa79214792c77ff15",
+      "t": "How persistent. Were you never taught to keep quiet in a library?"
     },
     {
       "id": "ep-20:35",
@@ -220,8 +220,8 @@
     },
     {
       "id": "ep-20:36",
-      "source": "남의 책 아니야. 그 책은 처음부터 내 장부에 있었어.",
-      "sourceHash": "de3993812a95f5197886c3286028d1f54496549d0048d9117789455a6f5d53f2",
+      "source": "남의 책이 아니에요. 그 책은 처음부터 제 장부에 있었어요.",
+      "sourceHash": "11b1a05629c94b2113c84b6ee310f424fa4c7639897db8c156f8ce4a95a5f64a",
       "t": "It isn't someone else's book. It was in my ledger from the start."
     },
     {
@@ -310,9 +310,9 @@
     },
     {
       "id": "ep-20:51",
-      "source": "놔.",
-      "sourceHash": "03b24838127c1153146902259c4a6aa1c0d6983a7cbe65378e7ce5f98612266f",
-      "t": "Let go."
+      "source": "놓으세요.",
+      "sourceHash": "ef3014e2adae183f5ba93c758f3b4f7460513f824a43e4a88cf47498d099959c",
+      "t": "Please let go."
     },
     {
       "id": "ep-20:52",
@@ -322,9 +322,9 @@
     },
     {
       "id": "ep-20:53",
-      "source": "넘기면 끝이니까. 끝나면 그 애 손목 흉터는 영영 안 아물어.",
-      "sourceHash": "fe6ffa34c60954c039ab04afe1ad43fdf80e552977e60bdf120a37d44743cc01",
-      "t": "Because handing it over is the end. Once it's over, the scars on his wrists will never heal."
+      "source": "넘기면 끝이니까요. 그러면 그 애 손목 흉터는 영영 아물지 않아요.",
+      "sourceHash": "b41aeb2efd77bad28fb6687164dcf6963c0b4181bdf0c76d9949fdba16acb87f",
+      "t": "Hand it over, and it's finished. That child's wrist scar will never heal."
     },
     {
       "id": "ep-20:54",
@@ -334,9 +334,9 @@
     },
     {
       "id": "ep-20:55",
-      "source": "착각하지 마. 보관 중일 뿐이야. 언제든 넘길 수 있어.",
-      "sourceHash": "86858a2e7764a647a20620e5e6e192421d8aa143ab9c1ac3394a9acc1db645b2",
-      "t": "Don't get the wrong idea. I'm only holding it. I can hand it over any time."
+      "source": "착각하지 마세요. 보관 중일 뿐이니 언제든 넘길 수 있어요.",
+      "sourceHash": "c68cbace4e3fb6cac6639d6d37919ae911814b80a50b7698041ec83d7e980aa3",
+      "t": "Don't misunderstand. I am merely holding it. I can hand it over at any time."
     },
     {
       "id": "ep-20:56",
@@ -358,8 +358,8 @@
     },
     {
       "id": "ep-20:59",
-      "source": "이름은 빚이야.",
-      "sourceHash": "de65ed98582300ee824e7cf9f29dbd21a5c27ffacabdf947fec6bcc324ccc13f",
+      "source": "이름은 빚이에요.",
+      "sourceHash": "011bb2c494921871d0a65869c29a01f014df56758943c462db6b1bdd0943ba09",
       "t": "A name is a debt."
     },
     {
@@ -370,9 +370,9 @@
     },
     {
       "id": "ep-20:61",
-      "source": "누가 불러 주면, 그 사람한테 빚지는 거야. 나는 더는 아무한테도 빚 안 져.",
-      "sourceHash": "4c502c29327cc4676be651492b0a82bd55a6d5c666957f426212520ea1529a77",
-      "t": "When someone calls it, you owe them. I'm not owing anyone anything ever again."
+      "source": "누가 불러 주면 그 사람한테 빚지는 거예요. 저는 더는 아무한테도 빚지지 않겠어요.",
+      "sourceHash": "52aaaec441a7ac862ba5f468f570ea3d217bbf054a03e9405d30a4dbd023396a",
+      "t": "When someone calls you by it, you owe them. I shall owe no one anything again."
     },
     {
       "id": "ep-20:62",
@@ -382,9 +382,9 @@
     },
     {
       "id": "ep-20:63",
-      "source": "그런 말, 예전에도 들은 적 있어. 그 대가가 이 목줄이야.",
-      "sourceHash": "9f7c23885774720bd52255ef187747a464da4dddcc9ac243f9e67a945dba445b",
-      "t": "I've heard that before. This collar is what it cost."
+      "source": "그런 말은 예전에도 들었어요. 그 대가가 이 목줄이에요.",
+      "sourceHash": "17ca594d9e3dff2864037e9a7b4a398cfe1f7c92c1b07fd296117b76ef8c2490",
+      "t": "I've heard such words before. This collar is what they cost me."
     },
     {
       "id": "ep-20:64",
@@ -413,9 +413,9 @@
     },
     {
       "id": "ep-20:68",
-      "source": "비켜, 돼지. 지금 내 옆에 있으면 너까지 쓸려.",
-      "sourceHash": "cb507b532c737d71e69a54eff227da199ead207919c29743130a49bfa4446c83",
-      "t": "Move, pig. Stay next to me now, and you'll get swept away, too."
+      "source": "비키세요, 손님. 지금 제 옆에 계시면 손님까지 쓸려요.",
+      "sourceHash": "533466130e686779854958bfcb904587c5bd21c8fbc60bbcbe88e61bcd55e262",
+      "t": "Step aside, dear guest. Stay beside me now, and you'll be swept away too."
     },
     {
       "id": "ep-20:69",
@@ -486,9 +486,9 @@
     },
     {
       "id": "ep-20:80",
-      "source": "녹이려고 하지 마.",
-      "sourceHash": "b35189c8431877b107c1aa1c306e9bfcb43a30ecb517db6bf5fe602c88285bbf",
-      "t": "Don't try to thaw it."
+      "source": "녹이려고 하지 마세요.",
+      "sourceHash": "3b4151ff1cb01c126653a496e7d71d61805e99c748c61c2a06bf0dc04fcd186f",
+      "t": "Please don't try to melt it."
     },
     {
       "id": "ep-20:81",
@@ -498,9 +498,9 @@
     },
     {
       "id": "ep-20:82",
-      "source": "녹으면 아파. 그 안에 든 거, 너는 아직 몰라도 돼.",
-      "sourceHash": "05dc3a070570562850d39489c2c32fa61c4954392362ffdd85e67fe3b31cc8b4",
-      "t": "It will hurt if it melts. You don't need to know what's inside it yet."
+      "source": "녹으면 아파요. 그 안에 든 건 아직 모르셔도 돼요.",
+      "sourceHash": "cb85d530b4c1575eee67421a1cfaf64089fb78662e5328969ce1fc3af6614e45",
+      "t": "It hurts when it thaws. You needn't know what's inside yet."
     },
     {
       "id": "ep-20:83",

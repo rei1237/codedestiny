@@ -358,9 +358,9 @@
     },
     {
       "id": "ep-08:59",
-      "source": "너랑 말하면 꼭 여기서 막히더라.",
-      "sourceHash": "346fdc9dea261322fa06a0b0544f1634b2544a52adf49405b766f0e502bbd626",
-      "t": "Talking to you always gets stuck at this point."
+      "source": "너는 위험하다는 말을 꼭 출발 신호로 듣는군.",
+      "sourceHash": "12d6447d35a7578259c0706e44e784909a51558cef559f7628a0e0fe17dea37a",
+      "t": "You always hear danger as a starting signal."
     },
     {
       "id": "ep-08:60",
@@ -502,9 +502,9 @@
     },
     {
       "id": "ep-08:83",
-      "source": "공연 잘 봤어. 그럼 이제 정산하자.",
-      "sourceHash": "6b1fb6e819878f53f61391d450d48c68b36937f0840fbadd13e11060bb013903",
-      "t": "Lovely performance. Now let's settle the account."
+      "source": "공연 잘 봤어요. 그럼 이제 정산하지요.",
+      "sourceHash": "513dd2dcb082b807daaf59d0ac28f4869084a39cc95cd8fa523c8a5ce789f877",
+      "t": "A fine performance. Shall we settle up now?"
     },
     {
       "id": "ep-08:84",
@@ -520,9 +520,9 @@
     },
     {
       "id": "ep-08:86",
-      "source": "또 만났네, 연이. 모자 쓴 고양이는 여전히 옆에 있고. 섬을 옮겨도 안 떨어지는구나.",
-      "sourceHash": "d65462ac26606bfea00782ac6d41fc22a72a723631a0355723c25a6bdb7ad503",
-      "t": "We meet again, Yeoni. And the cat in the hat is still beside you. Even changing islands can't separate you."
+      "source": "또 뵙네요, 손님. 모자 쓴 고양이는 섬을 옮겨도 곁을 지키시고요.",
+      "sourceHash": "20306e8fa4e9e4e10384294a3f12644807a48810f89b9662628f18cb7b99d881",
+      "t": "We meet again, dear guest. The cat in the hat stays at your side, even across islands."
     },
     {
       "id": "ep-08:87",
@@ -532,9 +532,9 @@
     },
     {
       "id": "ep-08:88",
-      "source": "일. 이 사람들 중에 박수를 빌려 간 사람들이 있거든. 오늘이 갚는 날이야.",
-      "sourceHash": "1e9274adbd2c36f3f4a5628170d3fda50b028a0a4fb9398cb877a6d6db8d2b55",
-      "t": "Working. Some of these people borrowed applause. Today is repayment day."
+      "source": "일이지요. 이분들 중에 박수를 빌려 가신 분들이 있거든요. 오늘이 갚는 날이에요.",
+      "sourceHash": "8b00576524fa3f471f2c0c8ca14d9f124c09944e005c3102d17d9a6ba12637b4",
+      "t": "Business. Some of these people borrowed applause. Today is their due date."
     },
     {
       "id": "ep-08:89",
@@ -544,9 +544,9 @@
     },
     {
       "id": "ep-08:90",
-      "source": "장사가 잘돼. 이 섬은 특히. 다들 박수가 고팠거든.",
-      "sourceHash": "08dff2a4193b6c8f61698175057c016dd6e7b5069b1302786450f1037340bd85",
-      "t": "Business is good. Especially here. Everyone was starving for applause."
+      "source": "장사가 잘돼요. 이 섬은 특히 다들 박수가 고프셨거든요.",
+      "sourceHash": "d94e33256ea2caf02d133be2bac20a10ea72b18949e8c40f877de9720e34e39b",
+      "t": "Business is good. On this island especially, everyone was starved for applause."
     },
     {
       "id": "ep-08:91",
@@ -562,15 +562,15 @@
     },
     {
       "id": "ep-08:93",
-      "source": "그래서 받았잖아. 커다란 박수. 그날 밤 이 무대가 무너질 만큼.",
-      "sourceHash": "578efbf5ce934cdc5dbc233174a900a46b7a87c64950b5ad91c1002212a65871",
-      "t": "And she did. Great applause. Enough to bring this stage down that night."
+      "source": "그래서 받으셨잖아요. 그날 밤 이 무대가 무너질 만큼 커다란 박수를요.",
+      "sourceHash": "ed8a49ab62c06aa578ec696dbdeaeb1c6af220281c2b15cb7b3cbb65d2388cd6",
+      "t": "And they received it. Enough applause that night to bring this stage down."
     },
     {
       "id": "ep-08:94",
-      "source": "받은 건 돌려줘야지. 박수는 박수로 갚을 수 없어. 목소리로 갚아.",
-      "sourceHash": "e553ffd0b955f630a7f117d628ba9b3a565faa954cc3cabb9c11c70b91e6256f",
-      "t": "What you receive must be returned. Applause cannot be repaid with applause. You pay with your voice."
+      "source": "받은 건 돌려주셔야지요. 박수로는 갚을 수 없으니 목소리로 갚으세요.",
+      "sourceHash": "7ed4a265e6ba4171b6e6fe1b77801585a77a2994c59250583c0b0564d0fa85b4",
+      "t": "What you've received must be returned. Applause cannot repay applause, so please pay with your voices."
     },
     {
       "id": "ep-08:95",
@@ -598,9 +598,9 @@
     },
     {
       "id": "ep-08:99",
-      "source": "내가 원한 게 뭔지 네가 어떻게 알아.",
-      "sourceHash": "c4623291c4d0397cf13373668f9c64b8aa109c19fb873d453b6cc754677a78d3",
-      "t": "How do you know what I wanted?"
+      "source": "제가 원한 게 뭔지 손님이 어떻게 아세요.",
+      "sourceHash": "41e1604c0d8663e15368b65bd2f8ee7265bea8a5af43d5aed22acc376c3562ed",
+      "t": "How would you know what I wanted?"
     },
     {
       "id": "ep-08:100",
@@ -622,9 +622,9 @@
     },
     {
       "id": "ep-08:103",
-      "source": "남의 빚을 대신 지겠다고? 이자도 모르면서?",
-      "sourceHash": "2756b5241641549e46fd20ee058d1e95d7a4497986456f1079858088e33ff574",
-      "t": "You'd take someone else's debt? Without even knowing the interest?"
+      "source": "남의 빚을 대신 지시겠다고요? 이자도 모르시면서요?",
+      "sourceHash": "91b42d9ab827e397b6ce6503a2505fe54e4d91e20bfa14aab2efe63b31f5a733",
+      "t": "You'll take someone else's debt? Without even knowing the interest?"
     },
     {
       "id": "ep-08:104",
@@ -634,15 +634,15 @@
     },
     {
       "id": "ep-08:105",
-      "source": "…다친 걸 보면 멈추는 버릇. 여전하네.",
-      "sourceHash": "19a05098b15cdffae913fb8b18127db28c51001f9d88e8856c19438f6c8eb1dc",
-      "t": "...That habit of stopping when someone is hurt. Still the same."
+      "source": "…다친 걸 보면 멈추시는 버릇은 여전하시네요.",
+      "sourceHash": "cac16145cf02e66d562ae0a88e2d9641be5d5bb9f6da096a5cec38c46fa3dd0e",
+      "t": "…Still stopping whenever you see someone hurt, I see."
     },
     {
       "id": "ep-08:106",
-      "source": "아직은 안 받을게. 네 값은 지금보다 훨씬 오를 테니까.",
-      "sourceHash": "454f0072bd49d38e906fb89cdfd24b45cde7800ab4b3ab97b279a09edd4ce5f6",
-      "t": "I won't collect from you yet. Your value will rise far beyond this."
+      "source": "아직은 받지 않을게요. 손님 값은 지금보다 훨씬 오를 테니까요.",
+      "sourceHash": "2a1d18a946f1f3f8c343723cd14e36ef5ca3f535f69540d021ce15ab715dddb7",
+      "t": "I won't collect yet. Your value will rise far higher, dear guest."
     },
     {
       "id": "ep-08:107",
@@ -652,9 +652,9 @@
     },
     {
       "id": "ep-08:108",
-      "source": "줄무늬도 무늬야. 남의 무늬는 함부로 부르는 거 아니야, 수달.",
-      "sourceHash": "4a06e61f271ecbb371c328cdc38e348510001b3828a494e91a490c90ba76819a",
-      "t": "Stripes are markings too. Don't address someone else's markings carelessly, otter."
+      "source": "줄무늬도 무늬예요. 남의 무늬는 함부로 부르는 게 아니에요, 수달 씨.",
+      "sourceHash": "d3478cb5dc39ab3e19dabebf9b1166b213039096ecaa80e788ad2269cfba13f6",
+      "t": "Stripes are markings too. Kindly refrain from naming others' markings, Mr. Otter."
     },
     {
       "id": "ep-08:109",
