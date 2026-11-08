@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "sourceHash": "d73320176b2f431869acfa64cd2a6d9b1910f361443ae91aaa26099c393b4c02",
+  "sourceHash": "6001727b09826c85844875a6817ec4f47d4bfae6c81639f8cd46008714585b3a",
   "note": "정본 비트에서 생성한 연출 검수 매트릭스입니다. 목적과 갈등은 각 화 제목/사건 신호를 보존하며, 장면·감정 호흡·접근성 큐를 한 곳에서 검수합니다.",
   "episodes": [
     {
@@ -13967,11 +13967,11 @@
       "id": "ep-52",
       "title": "벚꽃 강가의 약속",
       "purpose": "벚꽃 강가의 약속",
-      "conflictBeatId": "ep-52:4",
+      "conflictBeatId": "ep-52:reply-2",
       "emotionPath": [
         {
           "phase": "진입",
-          "beatId": "ep-52:1",
+          "beatId": "ep-52:reply-1",
           "pacing": "normal"
         },
         {
@@ -13986,6 +13986,16 @@
         }
       ],
       "visualCues": [
+        {
+          "beatId": "ep-52:reply-1",
+          "background": "room",
+          "transition": "crossfade",
+          "tone": "natural",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "drift",
+          "accessibility": "room 배경에서 진행되는 서술"
+        },
         {
           "beatId": "ep-52:1",
           "background": "river",
@@ -14372,7 +14382,7 @@
       "id": "ep-52s",
       "title": "열린 문의 편지",
       "purpose": "열린 문의 편지",
-      "conflictBeatId": "ep-52s:22",
+      "conflictBeatId": "ep-52s:14",
       "emotionPath": [
         {
           "phase": "진입",
