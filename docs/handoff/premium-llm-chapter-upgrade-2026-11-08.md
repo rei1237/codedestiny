@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-08
-next: 5단계 마스터 인연의 서 (+궁합) — 조사 완료(5단계 진행 메모), compat 프롬프트·acts.ts 확인 뒤 설계 확정·TDD부터, 실호출 샘플 solo·compat 각 1회
+next: 6단계 초융합 운세 — 대상 라우트·프롬프트·결과 화면·보관함을 조사해 "6단계 진행 메모"를 쓰고 설계 확정·TDD부터, 실호출 샘플 1회(5단계 결과·하네스 참고)
 ---
 
 # 3만원 이상 유료 LLM — 상품별 챕터·분량·PDF·전달 개선 인수인계
@@ -65,7 +65,7 @@ next: 5단계 마스터 인연의 서 (+궁합) — 조사 완료(5단계 진행
 - [x] 2. 신년운세 (네오)
 - [x] 3. 인생의 책 / 인생 총운 (윤달)
 - [x] 4. 운명의 업
-- [ ] 5. 마스터 인연의 서 (+궁합)
+- [x] 5. 마스터 인연의 서 (+궁합)
 - [ ] 6. 초융합 운세
 - [ ] 7. 자미두수 상담 / 심층 PDF (무성)
 - [ ] 8. 숙요점 궁합 (서한비)
@@ -107,6 +107,8 @@ next: 5단계 마스터 인연의 서 (+궁합) — 조사 완료(5단계 진행
 - [ ] F9b. 인생 총운 장 분량이 아직 2,100~2,700자로 목표 4,400자에 못 미친다. 모델이 일찍 멈춘다(finishReason STOP). 구조 변경이 필요하다(예: 장 하나를 요청 2개로 나눔). `worker/routes/life-book-ai.js`
 - 참고: 연애 비책 V2 분량 상향 `dc6422d33`(그룹 6,000~7,500자, 15,000토큰). 검증 문서 「분량 넉넉·비치명화」 절은 `a7ff45b2c`.
 - [ ] F18. d78175aac(인생 총운 전달 실패 버그, 운영에도 있음)를 운영에 먼저 내보낼지 사용자 결정을 기다린다. **push·배포하지 않는다.**
+- [ ] F19. 마스터 인연의 서 V2 실호출에서 첫 초안이 거의 모든 장에서 minChars 근처(약 2,100~2,900자)로 멈춰 길이 수리가 장마다 한 번씩 돈다(solo 16장·compat 14장). 그래서 생성 호출이 20회가 아니라 약 38회이고, 생성 시간이 9~10분이다. 배달에는 영향이 없다. 수리 기준(repair floor = minChars)을 낮출지, V2 목표 min+800~1,200을 낮출지, 모델·토큰을 바꿀지 사용자가 정한다(F9b와 같은 모양). `worker/lib/master-love-codex-quality.js`·`worker/routes/master-love-codex.js`
+- [ ] F20. `__tests__/ui/paid-result-locale-copy.test.js`의 "로케일 카피 표는 로케일마다 같은 키 집합을 갖는다"는 5단계 전부터 실패한다(`app/love-secret-ai/result/LoveSecretAiResultClient.tsx` LoveSecretResultCopy의 en에 `chaptersHeading`이 남음). 5단계 변경과 무관하다. 1단계 화면 작업의 잔여로 보고 고친다.
 
 ## 1단계 진행 메모 (완료, 결과는 아래 단계별 결과)
 첫 에이전트가 조사 중 컨텍스트가 압축되어 결정만 적고 돌아왔다. 코드 파일은 아직 하나도 바꾸지 않았다. 아래 결정대로 바로 구현한다.
@@ -271,7 +273,7 @@ next: 5단계 마스터 인연의 서 (+궁합) — 조사 완료(5단계 진행
 - 화면: 목차(번호·제목·화자), 장 머리 칩과 kicker, 기질 카드 강조. 조판 PDF `app/karma-destiny-ai/result/karma-pdf-chapters.ts`(`buildKarmaPdfChapters`, chapters가 없으면 assistant 메시지를 `## N장.` 머리로 나눠 대체), byline "네오 · 서한비", coverTheme 'karma', PdfFontError일 때만 캡처 대체. 보관함 karma 분기에 `app/records/view/SavedKarmaPdfButton.tsx`.
 - 테스트 먼저: `__tests__/worker/karma-chapter-plan-v2.test.js`(V1 프롬프트 바이트 동일, V2 16장·질문 소유, 연성 이슈, scrub, 짧지만 유효한 출력이 completed에 도달, 분량 수리 상한), 빌더·버튼 UI 테스트.
 
-## 5단계 진행 메모 (설계 확정, 구현 중)
+## 5단계 진행 메모 (완료, 결과는 아래 단계별 결과)
 
 ### 조사로 확인한 사실
 - 한 라우트에 두 상품이 있다: `worker/routes/master-love-codex.js`(약 1,729줄)의 `MODES`에 solo(`master-love-codex`, cacheKeyExtra "master-love-codex-v2-natal-v2")와 compat(`master-love-codex-compat`, "master-love-codex-compat-v1-natal-v2")가 있다. featureKey가 다르니 **실호출 샘플은 2회**(solo 1, compat 1).
@@ -397,3 +399,23 @@ next: 5단계 마스터 인연의 서 (+궁합) — 조사 완료(5단계 진행
   - 장 분량이 V2 목표보다 짧은 경향(F9와 같은 모양). 합계는 넉넉해 배달에는 영향 없음
   - 360px 화면 확인은 하지 않았다(dev 서버를 띄우지 않음)
   - d78175aac(배열 첨자 근거 경로)는 karma 근거 경로가 첨자를 쓰지 않아 해당 없음
+
+### 5단계 마스터 인연의 서 (+궁합) — 완료 (2026-11-08)
+- 커밋
+  - `15e969fc6`: lib. V2 표 `MASTER_LOVE_CODEX_CHAPTERS_V2`·`MASTER_LOVE_CODEX_COMPAT_CHAPTERS_V2`(20장·id·제목·minChars 그대로, `planVersion: 2`·`perspective`·`targetChars [min+800, min+1200]`, 1장 gate/facing은 기질 쉬운 뜻→일상 공감 장면 2~3개→연애(관계) 연결로 재범위, 2장 avoid 추가). `codexBodyTarget`·`codexV2PromptLines`(perspective 있을 때만 → V1 프롬프트 바이트 동일, 스크래치 덤프 82항목 SAME_AS_BASELINE). 마지막 시도 구제 `salvageCodexChapter`(근거·질문·시기·DNA·필드·반복·JSON 오류를 던지지 않고 결정적으로 보충, 본문이 비면만 실패). 연성 이슈 `detectCodexSoftIssues`(REGISTER_DRIFT = 한 장 안 해요·합니다 둘 다 30% 초과, QUESTION_REQUOTED)·`codexSoftIssueHint`·`scrubCodexSoftIssues`. `findCodexRecord` 하위 경로·`[n]` 대체 조회
+  - `7145b876c`: 라우트. `CODEX_CHAPTER_PLAN_VERSION = 2`, `codexChaptersForPlan(mode, version)`, 새 세션 seed에만 `deliveryMeta.chapterPlanVersion: 2`(없으면 V1). 연성 이슈는 저장 + `:lengthRepair` 자리로 힌트 수리 1회(previousError LLM_SOFT_ISSUES), 마지막 유료 시도는 `finalAttempt`로 구제. 물결의 반복 판정은 `dropRepeatedReportSentences`로 덜어 내고 저장. 조립 때 중복 제거가 장을 비우면 원문 유지(**`byId.delete` 없음**). publicSession·sessions에 `chapterPlanVersion`. 저장 때 `softIssues` 제거
+  - `daa71c5a8`: 화면. 장 머리에 막 이름 kicker + "연애 고수" 칩, 1장은 기본 펼침·금색 테두리, `src/features/master-love-codex/_lib/codex-pdf-chapters.ts`(`buildMasterLoveCodexPdfChapters`)로 CodexReader 안에서 조판 PDF(`exportConsultationBookPdf`, 표지 테마 `codex`, ko만). PdfFontError일 때만 캡처로 대체. 보관함은 같은 CodexReader를 쓰니 함께 바뀐다
+- 테스트
+  - 새 `__tests__/worker/master-love-codex-chapter-plan-v2.test.js` 12개, codex 워커 jest 전체 273/273
+  - UI `node --test __tests__/ui/master-love-codex-*.test.js` 56/56(reader-navigation vm 컨텍스트에 `actForChapter` 주입), 새 `__tests__/ui/master-love-codex-pdf-chapters.test.mjs` 3개 + karma-pdf 7/7
+  - verify: flow·batch-budget·compat-determinism·efficiency(solo/compat 20호출, 다시 열기 0)·payment-recovery·`verify-llm-generation-resilience`(1331 checks) ok. reader(360·390·430·1280px: 목차·초점·읽기·저장소 차단·터치 대상·가로 넘침)·sharing(390·1280) PASS — `out/`을 로컬 정적 서버(3107)로 띄워 확인하고 껐다. reader는 첫 실행 1회가 "element was detached" 클릭 타임아웃으로 실패하고 이어 3회 연속 통과(콜드 로드 중 flaky로 판단)
+  - `npx tsc --noEmit` exit 0, `npm run build` exit 0(✓ Compiled successfully in 5.0min, 1894/1894). 다른 세션의 dev 서버가 메인 저장소에 떠 있어 `ALLOW_DEV_SERVER_DURING_BUILD=1`로 빌드했다(이 워크트리는 `.next`가 따로다). 빌드가 바꾼 sitemap·lastmod는 `git checkout --`로 되돌렸다
+- 실호출 샘플(승인 2026-11-08 "llm 샘플 생성 허가한다", 상품당 1회, gemini-2.5-flash, plan V2). 하네스 `scratchpad\codex-live\`(로더 훅으로 db·auth(admin)·models·cache만 메모리 대역, 실제 handleStart → /generate 루프, DB·결제·배포 없음)
+  - 하네스 실수로 끊긴 실행 2회가 있다: ① 캐시 대역이 null이라 저장 단계에서 매번 실패(생성 7회 낭비, 결과 없음) ② 요청 상한 20이 장당 2요청 속도에 모자라 10요청에서 중단(생성 10회). 고친 뒤 한 번씩 끝까지 돌린 것이 아래 결과다
+  - solo(`master-love-codex`): **completed**, 요청 39(start 1 + generate 38), 제공자 fetch 76(요청마다 컨텍스트 캐시 1 + 생성 1), 551초, 20장, 총 40,399자, 장 2,151~4,265자. minChars 미만 4장(spouse-image 2,639/2,700, spark-to-bond 2,151/2,500, marriage 2,433/2,600, cross-check 2,700/2,800). 길이 수리 16장. 연성 이슈 0, 반복 false, 금지 표현 없음, 환불 없음. 질문 2개 모두 9장(timing) `questionAnswers`에서만 답하고 다른 장 재인용 0. 말투는 전 장 합니다체 위주(해요 종결 장당 0~14). 1장은 일간·명궁 기질 → 모임·직장 장면 → 연애로 잇는다
+  - compat(`master-love-codex-compat`): **completed**, 요청 40, fetch 78, 618초, 20장, 총 39,712자, 장 2,099~3,769자. minChars 미만 8장(최저 yongshin 2,099/2,500·daystem 2,110/2,600·spouse 2,154/2,700). 길이 수리 14장, 최대 시도 2. 연성 이슈 0, 반복 false, 금지 표현 없음, 환불 없음. 질문은 13장(temperature)·16장(future)에서만 답하고 재인용 0. 전 장 합니다체 위주
+  - V2 목표(min+800~1,200)에는 두 상품 모두 못 미친다. 모델이 출력 토큰 2,300~3,200에서 STOP한다(F19)
+- 남은 위험·후속
+  - F19(장마다 길이 수리 → 생성 호출 약 2배·9~10분). F20(5단계와 무관한 기존 실패)
+  - 조판 PDF에는 캡처 PDF의 차트·연애 DNA 레이더·요약 페이지가 없다. 비ko 로캘과 V1 세션은 기존 캡처 그대로
+  - META minTotalChars 46,000은 이번 샘플 합계(약 4만 자)보다 크지만 분량 비치명이라 배달된다. 상품 안내 문구가 분량을 약속하는지 확인 필요
