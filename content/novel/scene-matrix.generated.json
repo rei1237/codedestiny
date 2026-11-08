@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "sourceHash": "34490a1621a056bc7c4d9c4f625bd71b787a7711fc83a5790846b911dc731be0",
+  "sourceHash": "59228122a8d691bdbd85ad282d3444af141015dae8ea23f10a4f8c1aa03b964a",
   "note": "정본 비트에서 생성한 연출 검수 매트릭스입니다. 목적과 갈등은 각 화 제목/사건 신호를 보존하며, 장면·감정 호흡·접근성 큐를 한 곳에서 검수합니다.",
   "episodes": [
     {
@@ -6024,7 +6024,7 @@
           "ambient": null,
           "eventEffect": null,
           "camera": "focus",
-          "accessibility": "eclipseSky 배경에서 진행되는 neo의 대사"
+          "accessibility": "eclipseSky 배경에서 진행되는 tiger의 대사"
         },
         {
           "beatId": "ep-21a:63",
@@ -7586,7 +7586,7 @@
         },
         {
           "phase": "압력·전환",
-          "beatId": "ep-27b:29",
+          "beatId": "ep-27b:22",
           "pacing": "impact"
         },
         {
@@ -11836,7 +11836,7 @@
         },
         {
           "phase": "정리·다음 걸음",
-          "beatId": "ep-42:99",
+          "beatId": "ep-42:yun-umbrella",
           "pacing": "normal"
         }
       ],
