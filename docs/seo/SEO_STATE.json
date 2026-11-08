@@ -5410,14 +5410,15 @@
       "status": "held; no follow-up push"
     },
     "productionPromotion": "Not dispatched by this session; new approval required",
-    "rawManifestRows": 451,
+    "rawManifestRows": 487,
     "indexedInformationReports": 21,
     "browser": {
-      "spaceId": 65,
-      "ownership": "user after handOff",
-      "lastRound": 219,
-      "nextRound": 220,
-      "next": "Wait for Bing login confirmation; resume same space only"
+      "provider": "Chrome extension",
+      "browserId": "4",
+      "tabId": "1473085815",
+      "site": "https://www.bing.com/webmasters?siteUrl=https://code-destiny.com/",
+      "status": "Core Bing evidence collected; browser task ended after repeated detailed-report timeouts",
+      "egoSpace65": "Existing space retained, not used for Bing collection; p2 closed. Do not replay rounds220/221."
     },
     "lastLocalPrePush": {
       "sha": "3d964fecfa3225952f3f89641b6324ea671ecc8e",
@@ -5433,6 +5434,25 @@
       "records": 233,
       "unique": 233,
       "sha256Mismatches": 0
+    },
+    "bingCollection": {
+      "date": "2026-11-09",
+      "nativeCsv": 8,
+      "capturePairs": 14,
+      "keywordRows": 436,
+      "pageRows": 122,
+      "dailyRows": 90,
+      "actualFirstDate": "2026-08-08",
+      "actualLastDate": "2026-11-05",
+      "clicks": 56,
+      "impressions": 1655,
+      "indexNowRows": 1000,
+      "indexNowTruncated": true,
+      "inspectedUrls": 5,
+      "settingsChanged": false,
+      "push": "held per user",
+      "limitation": "Additional recommendation URL details and recursive crawler errors incomplete after repeated Chrome response timeouts",
+      "evidenceRoot": "D:/Development/seo-data/code-destiny/2026-11-09/bing"
     }
   }
 }

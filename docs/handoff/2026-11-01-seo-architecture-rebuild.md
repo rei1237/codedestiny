@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-11-09
-next: "사용자 지시로 Toss 실패 해소 전 push 보류. main CI42526922672의 Toss expanded102804422>100MB는 미수정. 로컬42fa9fca8·f031d1f60 및 기록 보존. Bing 로그인 회신 후 Space65 takeover→신규round220; 원자료451항목/핵심21URL 검사 확보."
+next: "Bing 핵심 원자료8CSV/14전사·JPEG쌍 수집, manifest487항목. 추가269파일해시/중복검증 통과. 사용자 Toss 해소 전 push 보류 유지. 새 수집 근거를④⑤검토에 반영; GA4추가기간·SERP/Trends·공식CI/fresh산출물/운영승격은 남음."
 ---
 
 # SEO 아키텍처 재구축
@@ -19,6 +19,16 @@ next: "사용자 지시로 Toss 실패 해소 전 push 보류. main CI4252692267
 4. 실제 새 수집본은 `D:\Development\seo-data\code-destiny\2026-11-09\`다. `README.md`와 `manifest.csv`를 정본으로 읽는다. 이전 날짜 폴더로 소급 표기하지 않는다.
 
 ## 지금 상태
+
+### 2026-11-09 크롬 복구 후 Bing 수집
+
+- 사용자 최신 요청: “브라우저 연결 복구해서 로그인된 크롬으로 Bing 원자료 수집 계속해줘. Toss 실패 해소 전 push 보류는 유지해.”
+- 브라우저 접근 복구 성공: CUA의Chrome확장 browser4/사용자탭1473085815에서 로그인·code-destiny속성확인. 이전 sky는URL정책으로중단했지만 이번 새 사용자 요청에서 정상확장API를사용했고 보안제약을우회하지않았다. Chrome재시작/디버그설정/쿠키·토큰조회없음. 기존Ego Space65 p2는닫힌상태라사용하지않음.
+- Bing 핵심 native CSV8개+전사/JPEG14쌍, manifest487항목. 검색어436·페이지122·일별90행(실제08/08~11/05),56클릭/1655노출. UI선택END11/07과원본last11/05구분. 사이트맵2개성공, IndexNow최근1000상한. 원본파일바이트보존.
+- Bing색인검사5개:root/ggulggul/saju/en색인됨,2027알려지지않음. 색인요청/라이브검사/설정변경없음. 높은심각도설명누락2URL은www이미지WebP이며HTML결함으로간주하지않음. 짧은설명216/ALT18은과거보고서,현재수정대상확정아님. 탐색기609색인/2오류/250경고/60제외,루트4040행을사이트전체0으로해석금지.
+- CUA상세조회에서30초timeout/kernel reset반복. 같은browser4의documented API로탭목록/DOM복구후에도다시timeout. 핵심자료확보완료후CUA completion_summary 1회전송. 추가권장사항URL상세/재귀오류목록은미완료로기록. 브라우저재로그인요청하지않음.
+- 외부정본 README/manifest, bing/validation-and-evidence.json, bundle-4/bing-search-evidence-20261109.md 갱신. Bing8CSV의열수검증·개인쿼리검사통과. JPEG14쌍서명확인,추가269항목SHA256/중복오류0.
+- push보류명시지시계속유효. 이번에는문서상태만로컬커밋하며새pre-push/공식CI/운영승격은실행하지않는다. 이전pre-push Native Realloc실패도해소됐다고주장하지않는다.
 
 ### 사용자 최신 지시와 수집 구간 정리
 
