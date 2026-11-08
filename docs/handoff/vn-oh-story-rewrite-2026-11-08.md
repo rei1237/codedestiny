@@ -46,7 +46,7 @@ next: 1단계 B — 진단 병렬(아크별 리뷰·황금 3장·정체 노출·
 - 拆文 결과: `拆文库/코드데스티니/`(概要·拆文报告·剧情/节奏·情绪模块·散落情节·角色/·设定/·文风.md·章节/第N章_摘要.md). 5단계 모두 completed.
 - 추적: `코드데스티니/追踪/_tracking-state.json`, `上下文.md`, `伏笔.md`, `角色状态/`, `时间线/`, `逐章记录/`. 원본 입력 `.story/work/init.json`. 결정적 검사 `PYTHONUTF8=1 py C:/Users/user/.agents/skills/story-import/scripts/tracking_commit.py check --project 코드데스티니`(작업실 루트에서) → `{"last_committed_chapter": 73, "state_revision": 0}`, exit 0.
 - 복선 원장: 31행(바이블 §5 24행 F001–F024 + 신규 7행 F025–F031). 已回收 30, 已埋 1(F023 바다 약속, 여행 자체 미등장). 상기 없음 1행(F022 박병하 가운데 글자). 비트 id까지 적은 상세판은 `코드데스티니/参考资料/伏笔원장_상세.md`. 바이블과 본문이 다른 곳(검은 깃털 EP.06, 그릇은 비어야 EP.12A, 첫 번째 봄 책 EP.16, 化忌 무곡 EP.30 심기, 金克木 한자는 ep-24:22 처음, 흰 털 EP.43 문장 없음 → EP.51 심기, 네오 화상 앞발 좌우 혼재)은 본문을 따르고 비고에 적었다. 2단계 바이블 재설계 때 반영할 것.
-- 리뷰어 에이전트 호출: `.claude/agents/*.md`(story-explorer, consistency-checker, narrative-writer, story-architect, character-designer, chapter-extractor, story-researcher)는 배포 세션에 등록되지 않는다. 새 세션을 작업실에서 열거나, Agent 도구 general-purpose(sonnet)에 "먼저 `D:\Development\story-lab\code-destiny-vn\.claudegents\{이름}.md`를 읽고 그 계약대로 하라"고 지시해 쓴다. `/story-review`는 agent가 없으면 solo로 떨어지므로 위 방식으로 4관점을 병렬로 돌린다.
+- 리뷰어 에이전트 호출: `.claude/agents/*.md`(story-explorer, consistency-checker, narrative-writer, story-architect, character-designer, chapter-extractor, story-researcher)는 배포 세션에 등록되지 않는다. 새 세션을 작업실에서 열거나, Agent 도구 general-purpose(sonnet)에 "먼저 `D:\Development\story-lab\code-destiny-vn\.claude\agents\{이름}.md`를 읽고 그 계약대로 하라"고 지시해 쓴다. `/story-review`는 agent가 없으면 solo로 떨어지므로 위 방식으로 4관점을 병렬로 돌린다.
 
 ## 1A에서 알게 된 함정
 - 파이썬은 `py`. 반드시 `PYTHONUTF8=1 PYTHONIOENCODING=utf-8`를 붙인다(안 그러면 cp949로 한글 깨짐).
