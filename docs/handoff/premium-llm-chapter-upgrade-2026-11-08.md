@@ -139,6 +139,47 @@ next: 3단계 인생의 책 / 인생 총운(윤달) — 1·2단계 패턴(구성
 ### 진행
 - 완료. 커밋과 검증은 아래 "2단계 신년운세" 결과에 있다.
 
+## 3단계 진행 메모 (진행 중)
+
+### 조사로 확인한 사실
+- 두 SKU(`life-book-ai-consultation`, `life-fortune-ai-consultation`)는 모두 `worker/routes/life-book-ai.js`에 있다.
+  - 세션 하나는 15섹션이다: 장 10, 전문가 해설 4, frame 1.
+  - 요청마다 한 섹션을 만든다. 섹션당 시간 상한은 45초, 시도는 2회다.
+- 계획(`llmMeta.plan`)은 새 세션 seed(`!existing`)에서만 저장되고, 재개할 때는 저장된 plan을 쓴다.
+  - 그래서 V2 프롬프트 줄을 V2에만 있는 필드(`section.perspective`)가 있을 때만 넣으면, 옛 세션 프롬프트는 바이트 그대로 유지된다.
+  - 캐시 키에도 프롬프트가 들어가므로, 바뀐 V2 프롬프트가 옛 캐시에 걸리지 않는다.
+- 품질 게이트는 다섯 가지를 본다: 장 10개, 인생 총운 장 제목, evidenceRefs, 총량 MIN·MAX, 장 사이 중복(20자 이상 같은 문장이 3개 이상).
+  - total_content_too_long을 뺀 나머지 이슈가 하나라도 있으면 전달이 실패한다.
+  - 그래서 조립 단계에서 중복 문장을 미리 지우면 전달 실패가 줄어든다.
+- `scripts/verify-llm-generation-resilience.mjs`는 인생의 책 장 maxOutputTokens가 ceil(MAX_TOTAL/10)자 이상을 담는지 검사한다.
+  - 지금 값 7000토큰은 4,666자를 담으므로, MAX_TOTAL은 46,660자까지 올릴 수 있다.
+- 윤달 페르소나(`YUN_LIFE_BOOK_PERSONA_KO`)에는 책장·책갈피·다음 장 비유를 섹션마다 하나로 제한하는 규칙이 이미 있다. 페르소나는 손대지 않는다.
+- 보관함 기록에는 최종 assistant 메시지(`JSON.stringify(finalReport)`)가 남는다. 보관함 PDF 빌더는 이 JSON을 파싱해서 쓴다.
+
+### 결정
+- 장 수는 SKU마다 10개를 유지한다. 품질 게이트가 장 10개와 장 제목을 고정해 두었기 때문이다.
+- `buildSectionPlan(input, {version})`은 V1 객체를 그대로 두고, V2 객체에만 다음 필드를 더한다.
+  - `planVersion: 2`
+  - 장·전문가 해설마다 `perspective`
+  - 1장에 `questionOwner`
+  - 1장에 공감 장면 guide: 근거의 쉬운 뜻 → 생활 장면 공감 2~3개 → 이 책의 다음 장들과 연결
+- V2 프롬프트에는 다음 줄을 넣는다.
+  - 관점 줄
+  - 상투구 금지
+  - 여는 문장·맺는 문장을 섹션마다 바꿔 쓰기
+  - 질문 규칙: 1장만 상담 주제를 한 번 인용한다. 나머지 장은 다시 인용하지 않고 자기 관점의 답만 더한다.
+- V2 목표 분량은 다음과 같다.
+  - 인생의 책: 장 3,000자, 1장 3,400자. `LIFE_BOOK_MAX_TOTAL_CONTENT_CHARS`는 32,000에서 38,000으로 올린다.
+  - 인생 총운: 장 3,200자, 1장 3,500자.
+  - 장의 maxOutputTokens는 max(기존 값, tokensRequiredForChars(목표))로 정하고, 모두 10,000 이하다.
+  - 전달 MIN은 그대로 둔다.
+- V2 조립(`assembleReport`)에서는 `dropRepeatedReportSentences`로 장과 전문가 해설에서 앞에 나온 문장과 겹치는 문장을 누적해서 지운다.
+  - 이 단계가 실패해도 전달을 막지 않는다: try/catch로 감싸고, 결과가 비면 원문을 쓴다.
+- 결과 화면에 윤달 칩, 장 kicker(장 제목별 맵, 두 SKU 모두), 1장 강조를 더한다. 옛 세션 글은 그대로 보인다.
+- PDF는 `app/life-book-ai/result/life-book-pdf-chapters.ts`로 조판한다.
+  - 폰트가 실패(PdfFontError)할 때만 기존 캡처 방식으로 대체한다.
+  - 보관함 'book' 분기에 `SavedLifeBookPdfButton`을 붙인다.
+
 ## 단계별 결과
 (단계를 마칠 때마다 커밋 SHA, 바꾼 파일, 검증 결과, 남은 일을 여기에 적는다.)
 
