@@ -434,10 +434,10 @@
     },
     {
       "id": "ep-28d:54",
-      "source": "그 애한테서 손 떼.",
-      "sourceHash": "0e064a3593ad8e808b1aefc1e8841a57842379d1d075d1a420cfbf940b5929bb",
+      "source": "그 애한테서 손 떼세요. 당장요!",
+      "sourceHash": "9fae07dceaac0856ec26770acb0c19e47560578fc5089eaba343f0b4d2367a1d",
       "translations": {
-        "ja": "あの子から手を離せ。"
+        "ja": "その子から手をお放しなさい。今すぐ！"
       }
     },
     {
@@ -458,10 +458,10 @@
     },
     {
       "id": "ep-28d:57",
-      "source": "안 잊었어. 그래서 이번엔 내가 갚는 거야.",
-      "sourceHash": "a6ded3825347b8a8dc51f82385db41665316aec49a5d8ebc5d67beb98be19fd7",
+      "source": "안 잊었어요. 그래서 제가 갚겠다는 거예요.",
+      "sourceHash": "5a2aa8d0531ad631544fdee7d54bea29ea8797c82358e3336d6d4711f1c0f4b6",
       "translations": {
-        "ja": "忘れていない。だから今度は、私が返す。"
+        "ja": "忘れていません。だから、私が返すのです。"
       }
     },
     {
