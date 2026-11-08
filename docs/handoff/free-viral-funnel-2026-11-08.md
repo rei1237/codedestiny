@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-11-08
-next: "3단계 — 최애 운명: 결제 검사를 details 로 이동, 슬롯 공개 연출, 문구·레지스트리 설명, 공유 바 교체 (시작 전 아래 \"2단계 함정\"의 꽃 클라이언트 유료 게이트 결정 여부 확인)"
+next: "4단계 — `/saju/free` 초간단 무료 사주 (꽃 클라이언트 유료 게이트는 아직 사용자 결정 대기: 아래 \"2단계 함정\" 참고, 4단계를 막지 않음)"
 ---
 
 # 무료 바이럴 퍼널 (초간단 무료 사주 + 운명의 꽃·최애 운명 무료 개방)
@@ -32,7 +32,7 @@ next: "3단계 — 최애 운명: 결제 검사를 details 로 이동, 슬롯 �
 ## 단계
 - [x] 1. 공용: 스레드 intent + 공용 공유 바(X·스레드·복사·이미지 저장) + trackShare
 - [x] 2. 운명의 꽃 무료 개방(worker requireAuth 제거 + IP 제한, 레거시 클라이언트, 공유 바·CSS 공개 연출)
-- [ ] 3. 최애 운명: 결제 검사를 details 로 이동, 슬롯 공개 연출, 문구·레지스트리 설명, 공유 바 교체
+- [x] 3. 최애 운명: 결제 검사를 details 로 이동, 슬롯 공개 연출, 문구·레지스트리 설명, 공유 바 교체
 - [ ] 4. `/saju/free` 초간단 무료 사주(폼·70/30·블러·공유 미션·PNG 카드·SEO·사이트맵)
 - [ ] 5. 문서: 공유 미션 예외 기록, 이 문서 status 정리
 - [ ] 6. 전체 검증(타입·린트·테스트·사이트맵 --check·브라우저 390px)
@@ -49,6 +49,20 @@ next: "3단계 — 최애 운명: 결제 검사를 details 로 이동, 슬롯 �
   - 레거시 셸 `js/core/index-inline-runtime.js`(+public 미러): Authorization 헤더 제거, 402·401 분기 → 429 `limited` 상태 안내(`status.rateLimited`).
   - 공유 줄 `#dfViralShare`(`.df-studio-main` 뒤): X·스레드(`socialIntentUrl`, `import('/js/share-service.mjs?v=build-…')`), 링크 복사(`_dfShareCopy`), 이미지 저장(기존 `_dfRenderShareCard` 스토리 카드). 꽃이 바뀔 때 `.df-studio-main.is-revealing` 카드 뒤집기(`dfCardFlipIn`·`dfBloomGlow`, reduced-motion 에서 none). CSS 는 `styles/destiny-flower-cosmic.css` 끝.
   - 검증: route jest + free-flower-billing 17/17, `node --test __tests__/ui/destiny-flower-*.static.test.js` 55/55, `npm run check:fast` EXIT=0(sitemap-drift OK 1060 URL, typecheck, lint, test:node 4670/4670, jest 455 suites·7703 tests).
+- 3단계(2026-11-08, 커밋 `85d8f7281`)
+  - `DestinyBiasClient.tsx`: `compute = computeCore`(결제·로그인 없음). 결제는 `openDetails()` 한 곳(`ensurePaidAccess`, featureKey `destiny-bias-analyze`, 50코인/5,000원, reason "최애운명 상세 케미 리포트"). 비로그인·결제 모달은 공용 게이트(useCoinGate)가 띄운다. "DestinyBiasCoinModal" 같은 전용 모달은 코드에 없다.
+  - details 단계 = 결과 화면 안 `ChemiSections`·`ChemiReportTabs`·`ChemiEvidencePanel`. 해금 전에는 잠금 카드(목록·가격 버튼·고지 notices)만 보인다. 해금 단위는 `partner.kind:id:생일:달력`(무드·테마 변경은 재결제 없음, 메모리에만 — 새로고침하면 다시 잠김). 결제 재개(usePaidResume, 같은 키)는 결과를 다시 계산하고 해금한다.
+  - 무료 구간: 포토카드(앞·뒷면 세부 점수 게이지 포함), 사진 넣기, 공유 카드, 꾸미기, 멤버 바꾸기, 최근 결과.
+  - 슬롯 공개: `components/chemi/ChemiSlotReveal.tsx`(framer `m`). 같은 그룹 멤버(모자라면 로스터)로 14칸 릴이 1.5초 감속 → 내 최애 카드가 rotateY 로 뒤집혀 케미 유형 엠블럼 → 0.5초 뒤 결과. "바로 결과 보기" 버튼, reduced-motion 이면 연출 없음(`revealing` 을 켜지 않음).
+  - 공유: `ViralShareBar`(X·스레드·링크 복사, url=`buildInviteUrl(partner,"share_bar")`) 추가. 이미지 저장은 기존 `handleSaveImage`(공유 카드 노드 shareCanvasRef, 기기 사진 포함)를 유지해 ViralShareBar 에는 이미지 props 를 주지 않았다 — ViralShareBar 의 이미지 버튼은 navigator.share 로 기기 사진까지 공유해 "공유 파일에서 사진 레이어 제외" 규칙과 어긋나기 때문. `ChemiShareBar` 에서 X·"친구도 해보기"(링크 복사 중복)를 뺐다. 카카오(카드 공유 폴백)는 그대로, 해제 조건 없음.
+  - 문구: `page.tsx` ko/en/ja 설명, `ChemiHook` "결과 카드와 공유는 무료, 자세한 리포트는 단건 결제". 레지스트리 `worker/lib/paid-feature-registry.js` reason 만 변경(가격 그대로) + `lib/payment/light-fortunes.generated.json` 재생성. 서버 쪽은 코인 게이트 가격표뿐이라 추가 검증 경로 없음.
+  - 테스트: 새 `__tests__/ui/destiny-bias-paid-details.static.test.mjs`(4). `paid-non-llm-delivery-fixtures` consumer 마커를 `<ChemiSections copy={outcome.copy} />` 로, autosave 테스트 핸들러 목록에서 handleShareToX 제거.
+  - 검증: destiny-bias node 테스트 98/98, 워커 jest 4 suites 48/48, qa-destiny-bias-touch PASS, verify-paid-gate-ui-regression PASS, light-fortunes fresh, payment-p0-inventory PASS. `npm run check:fast` 첫 실행은 sitemap-drift FAIL → `npm run sitemap:generate` 후 재실행 EXIT=0(sitemap OK 1060, typecheck, lint, test:node 4673/4673, jest 455 suites·7703 tests).
+
+## 함정(3단계에서 발견)
+- 소스 파일을 바꾸면 sitemap lastmod 가 바뀌어 `verify:sitemap-drift` 가 실패한다. 커밋 전에 `npm run sitemap:generate` 를 같은 커밋에 담는다.
+- `paid-feature-registry.js` reason 을 바꾸면 `node scripts/lib/build-light-fortunes.mjs` 로 `light-fortunes.generated.json` 을 다시 만들어야 `verify:light-fortunes` 가 통과한다.
+- `docs/payments/payment-p0-inventory.{json,md}` 라벨은 아직 "최애운명 케미 분석"(검증 스크립트는 라벨을 보지 않음).
 
 ## 함정(1단계에서 발견)
 - 🔴 `__tests__/ui/saju-bundle-copy.static.test.js:264` 가드: `public·docs·__tests__·marketing` 밖에서 "무료 사주"/"무료사주" 문자열(주석 포함)이 나오면 실패한다("무료 만세력"으로 쓰라고 함). 4단계 `/saju/free` 의 화면 문구·title·메타·주석에 "무료 사주"를 쓰면 막힌다 → 문구를 "무료 만세력"·"초간단 사주 풀이" 등으로 쓰거나, 정말 필요하면 그 가드의 허용 목록을 사용자 결정으로 바꿔야 한다(문서에 없는 결정이라 4단계 시작 때 판단·보고).
@@ -61,6 +75,9 @@ next: "3단계 — 최애 운명: 결제 검사를 details 로 이동, 슬롯 �
 - sync 스크립트가 바꾼 index.html 류 토큰 중 og-vvip 이미지 등 무관한 것은 되돌리고 `destiny-flower-cosmic.css`·`index-inline-runtime.js` 토큰만 남겼다.
 
 ## 후속(범위 밖, 보고만)
+- 최애 운명: `ViralShareBar` 는 `cd-*` 토큰을 써서 라이트 테마에서는 최애 운명의 어두운 `--dbk-*` 화면과 색이 어긋날 수 있다(브라우저 확인은 6단계).
+- 최애 운명 상세 해금은 메모리 상태라 새로고침 뒤 다시 잠긴다(per_use 상품이라 재결제 요구 가능). 서버 영수증으로 복원할지는 사용자 결정.
+- `scripts/verify-paid-gate-ui-regression.mjs:336` 주석 "destiny-bias 2026-08-21 전면 무료" 는 사실과 다르다(그대로 둠).
 - `/flower` noindex(`app/flower/page.tsx:11-16`)는 로그인과 무관: AdSense "가치 낮은 콘텐츠" 거절 뒤 얇은 본문(449자, 2026-08-17 측정) 때문. noindexPathPrefixes 로 옮기면 ShareWidget 이 숨는다는 주석도 있다. 그대로 둔다.
 - i18n `fortune.destinyFlower.ui.status.atelierLocked`·`status.loginRequired`(`i18n/authored/destinyFlower-03.json`)는 이제 미사용. 새 키 `viral.*`·`status.rateLimited` 는 번역 없음(한국어 폴백).
 - 레거시 공유 줄에는 trackShare 분석 이벤트가 없다.
