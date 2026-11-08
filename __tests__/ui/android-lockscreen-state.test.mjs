@@ -2,9 +2,9 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import ts from 'typescript';
-const dataModule={exports:{}};
-new Function('exports',ts.transpileModule(fs.readFileSync('app/lock-screen-fortune/talisman-data.ts','utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS}}).outputText)(dataModule.exports);
-const {DEFAULT_TALISMAN_ID,migrateTalisman,resolveTalisman,TALISMAN_CHARACTERS,TALISMAN_CATEGORIES}=dataModule.exports;
+import {build} from 'esbuild';
+const bundle=await build({entryPoints:['app/lock-screen-fortune/talisman-data.ts'],platform:'node',bundle:true,format:'esm',write:false});
+const {DEFAULT_TALISMAN_ID,migrateTalisman,resolveTalisman,TALISMAN_CHARACTERS,TALISMAN_CATEGORIES,LOCK_ARTWORK}=await import('data:text/javascript;base64,'+Buffer.from(bundle.outputFiles[0].text).toString('base64'));
 const source=fs.readFileSync('app/lock-screen-fortune/LockScreenFortuneClient.tsx','utf8');
 const ast=ts.createSourceFile('lock.tsx',source,ts.ScriptTarget.Latest,true,ts.ScriptKind.TSX);
 const names=['buildDefaultState','mergeState','loadState'];
@@ -45,4 +45,12 @@ test('one selected kind survives reload; ambiguous or incompatible selections us
  assert.equal(read({displayKind:'flower',talismanId:'peace:yeoni'}),'flower');
  assert.equal(read({displayKind:'flower',talismanId:'peace:yeongnyangi'}),'talisman');
  assert.equal(read({displayKind:'daily',talismanId:'peace:yeongnyangi'}),'daily');
+});
+
+test('applied catalog art keeps its full illustration across reload',()=>{
+ for(const art of LOCK_ARTWORK){
+  const id='art:'+art.id;
+  assert.equal(harness().mergeState({prefs:{displayKind:'talisman',talismanId:id}},copy).prefs.talismanId,id);
+  assert.ok(fs.existsSync('public'+resolveTalisman(id).character.image),id);
+ }
 });

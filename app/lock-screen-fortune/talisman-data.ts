@@ -1,3 +1,6 @@
+import { approvedAssets, categories, scenes } from "../app/talismans/catalog";
+import { lookName } from "../app/home-widget/looks";
+
 // Official names and portraits follow app/world/world-data.js.
 export const TALISMAN_CATEGORIES = [
  {id:'peace',label:'마음의 평온',en:'Peace of mind',line:'잠시 숨을 고르고, 나의 속도를 되찾아요.',english:'Pause, breathe, and return to your own pace.',color:'#d8c8ed'},
@@ -22,7 +25,23 @@ export const TALISMAN_CHARACTERS = [
  {id:'universe',group:'world',name:'우주',en:'Universe',image:'/images/novel/world/universe.webp',alt:'헤드셋을 쓴 상담원 우주'},
 ] as const;
 export const DEFAULT_TALISMAN_ID = 'peace:yeongnyangi';
+export const LOCK_ARTWORK = approvedAssets().filter(asset => asset.category !== "daily");
+export function artworkName(asset: (typeof LOCK_ARTWORK)[number], locale: string) {
+ const title = lookName(asset.id, locale);
+ if (title !== asset.id) return title;
+ const scene = scenes.find(scene => scene.id === asset.scene);
+ const category = categories.find(category => category.id === asset.category);
+ return locale === "ko" ? [scene?.ko, category?.ko].filter(Boolean).join(" · ") : asset.id;
+}
 export function resolveTalisman(id: unknown) {
+ const art = typeof id === "string" && id.startsWith("art:") ? LOCK_ARTWORK.find(asset => "art:" + asset.id === id) : undefined;
+ if (art) {
+  const companion = TALISMAN_CHARACTERS.find(c => c.id === (art.scene === "yeongnyangi" ? "yeongnyangi" : "yeoni"))!;
+  const categoryId = art.category === "wealth" || art.category === "career" ? "work" : art.category === "study" ? "study" : "love";
+  const category = TALISMAN_CATEGORIES.find(c => c.id === categoryId)!;
+  const image = "/assets/talismans/widget/" + art.id.replace("-yeongnyangi-v2", "") + ".webp";
+  return {id: "art:" + art.id, category, character: {...companion, image, alt: artworkName(art,"ko"), en: artworkName(art,"en")}};
+ }
  const [categoryId,characterId,extra] = typeof id === 'string' ? id.split(':') : [];
  const category=TALISMAN_CATEGORIES.find(c=>c.id===categoryId);
  const character=TALISMAN_CHARACTERS.find(c=>c.id===characterId);

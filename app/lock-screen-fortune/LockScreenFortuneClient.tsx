@@ -1,7 +1,7 @@
 "use client";
 
 import { TalismanArt, TalismanPicker } from "./Talisman";
-import { DEFAULT_TALISMAN_ID, migrateTalisman, resolveTalisman, talismanCopy } from "./talisman-data";
+import { DEFAULT_TALISMAN_ID, LOCK_ARTWORK, artworkName, migrateTalisman, resolveTalisman, talismanCopy } from "./talisman-data";
 import { useCompanionDaily } from "./use-companion-daily";
 import { companionCopy, systemLabel, categoryLabel } from "./companion-copy";
 
@@ -1126,6 +1126,13 @@ function ContentSelector({prefs, copy, onApply}: {prefs: LockPrefs; copy: LockSc
       if ((kind === "daily" && nextGroup !== "cat") || (kind === "flower" && nextGroup !== "yeoni")) setKind("talisman");
       setId(next); setPicking(false);
     }} />}
+    {kind === "talisman" && <label>{ko ? "부적 그림" : "Talisman artwork"}
+      <select value={id.startsWith("art:") ? id : ""} onChange={e => setId(e.target.value || "peace:" + resolveTalisman(id).character.id)}>
+        <option value="">{ko ? "캐릭터 그림" : "Companion portrait"}</option>
+        {LOCK_ARTWORK.filter(art => (art.scene === "yeongnyangi" ? "cat" : "yeoni") === group).map(art =>
+          <option key={art.id} value={"art:" + art.id}>{artworkName(art, locale)}</option>)}
+      </select>
+    </label>}
     {kind === "talisman" ? <TalismanArt id={id} locale={locale} /> : <p>{kind === "quote" ? (ko ? preview.quote.text : extra.ownLine) : kind === "affirmation" ? (ko ? preview.affirmation : extra.ownAffirmation) : kind === "flower" ? preview.flower.name + " · " + preview.flower.meaning : extra.privateSummary}</p>}
     <button type="button" className="cd-talisman-apply" onClick={() => onApply({displayKind: kind, talismanId: id})}>{ko ? "잠금 화면에 적용" : "Apply to lock screen"}</button>
   </fieldset>;
