@@ -15,7 +15,9 @@ import { jest } from "@jest/globals";
 
 const USER_ID = "64b7f2a1c3d4e5f601234567";
 const KEY = "sukuyo-ai-duplicate-window-test";
-const ENV = { GEMINIF_API_KEY: "test-key" };
+// 기존 테스트는 판 1 동작을 지킨다. 판 2 테스트는 파일 끝에서 V2_ENV 로 돈다.
+const ENV = { GEMINIF_API_KEY: "test-key", SUKUYO_COMPAT_AI_DELIVERY_V2_ENABLED: "false" };
+const V2_ENV = { GEMINIF_API_KEY: "test-key" };
 
 const SAMPLE_BODY = {
   consultationType: "compatibility",
