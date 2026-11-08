@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "sourceHash": "6caaca2d3a1871b07f911a46855234313d08e7732d38733aab9b07d12e200b82",
+  "sourceHash": "d73320176b2f431869acfa64cd2a6d9b1910f361443ae91aaa26099c393b4c02",
   "note": "정본 비트에서 생성한 연출 검수 매트릭스입니다. 목적과 갈등은 각 화 제목/사건 신호를 보존하며, 장면·감정 호흡·접근성 큐를 한 곳에서 검수합니다.",
   "episodes": [
     {
@@ -1407,7 +1407,7 @@
       "id": "ep-05",
       "title": "같은 나의 편",
       "purpose": "같은 나의 편",
-      "conflictBeatId": "ep-05:2",
+      "conflictBeatId": "ep-05:sync-5",
       "emotionPath": [
         {
           "phase": "진입",
@@ -1444,16 +1444,6 @@
           "ambient": null,
           "eventEffect": "veil",
           "camera": "drift",
-          "accessibility": "islandIn 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-05:8",
-          "background": "islandIn",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "focus",
           "accessibility": "islandIn 배경에서 진행되는 서술"
         },
         {
@@ -1517,20 +1507,10 @@
           "accessibility": "islandIn 배경에서 진행되는 서술"
         },
         {
-          "beatId": "ep-05:35",
-          "background": "islandIn",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "islandIn 배경에서 진행되는 서술"
-        },
-        {
           "beatId": "ep-05:42",
           "background": "islandIn",
           "transition": "hold",
-          "tone": "natural",
+          "tone": "desat",
           "ambient": null,
           "eventEffect": null,
           "camera": "focus",
@@ -1540,7 +1520,7 @@
           "beatId": "ep-05:48",
           "background": "islandIn",
           "transition": "hold",
-          "tone": "natural",
+          "tone": "desat",
           "ambient": null,
           "eventEffect": "veil",
           "camera": "drift",
@@ -1647,20 +1627,10 @@
           "accessibility": "islandIn 배경에서 진행되는 서술"
         },
         {
-          "beatId": "ep-05:106",
-          "background": "islandIn",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "islandIn 배경에서 진행되는 서술"
-        },
-        {
           "beatId": "ep-05:116",
           "background": "islandIn",
           "transition": "hold",
-          "tone": "natural",
+          "tone": "dark",
           "ambient": null,
           "eventEffect": null,
           "camera": "focus",
@@ -1670,7 +1640,7 @@
           "beatId": "ep-05:117",
           "background": "islandIn",
           "transition": "hold",
-          "tone": "natural",
+          "tone": "dark",
           "ambient": null,
           "eventEffect": "veil",
           "camera": "drift",
@@ -1777,6 +1747,16 @@
           "accessibility": "islandIn 배경에서 진행되는 geo의 대사"
         },
         {
+          "beatId": "ep-05:167",
+          "background": "islandIn",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "focus",
+          "accessibility": "islandIn 배경에서 진행되는 시스템 메시지"
+        },
+        {
           "beatId": "ep-05:164",
           "background": "islandIn",
           "transition": "hold",
@@ -1785,16 +1765,6 @@
           "eventEffect": null,
           "camera": "steady",
           "accessibility": "islandIn 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-05:167",
-          "background": "islandIn",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "focus",
-          "accessibility": "islandIn 배경에서 진행되는 시스템 메시지"
         },
         {
           "beatId": "ep-05:178",
@@ -1814,7 +1784,7 @@
           "ambient": null,
           "eventEffect": null,
           "camera": "focus",
-          "accessibility": "islandIn 배경에서 진행되는 시스템 메시지"
+          "accessibility": "islandIn 배경에서 진행되는 yeon의 대사"
         }
       ]
     },
@@ -1831,7 +1801,7 @@
         },
         {
           "phase": "압력·전환",
-          "beatId": "ep-06:72",
+          "beatId": "ep-06:97",
           "pacing": "normal"
         },
         {
@@ -1882,20 +1852,10 @@
           "accessibility": "islandIn 배경에서 진행되는 서술"
         },
         {
-          "beatId": "ep-06:38",
-          "background": "islandIn",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "islandIn 배경에서 진행되는 yeon의 대사"
-        },
-        {
           "beatId": "ep-06:40",
           "background": "islandIn",
           "transition": "hold",
-          "tone": "natural",
+          "tone": "dark",
           "ambient": null,
           "eventEffect": "burst",
           "camera": "drift",
@@ -1949,7 +1909,7 @@
           "ambient": null,
           "eventEffect": null,
           "camera": "steady",
-          "accessibility": "islandIn 배경에서 진행되는 geo의 대사"
+          "accessibility": "islandIn 배경에서 진행되는 yeon의 대사"
         },
         {
           "beatId": "ep-06:89",
@@ -1963,16 +1923,6 @@
         },
         {
           "beatId": "ep-06:97",
-          "background": "islandIn",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": "burst",
-          "camera": "drift",
-          "accessibility": "islandIn 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-06:110",
           "background": "islandIn",
           "transition": "hold",
           "tone": "natural",
@@ -3297,7 +3247,7 @@
       "id": "ep-12",
       "title": "정오의 노래",
       "purpose": "정오의 노래",
-      "conflictBeatId": "ep-12:13",
+      "conflictBeatId": "ep-12:clock-1",
       "emotionPath": [
         {
           "phase": "진입",
@@ -3405,6 +3355,26 @@
           "eventEffect": null,
           "camera": "focus",
           "accessibility": "siksang4 배경에서 진행되는 crow의 대사"
+        },
+        {
+          "beatId": "ep-12:knot-1",
+          "background": "siksang4",
+          "transition": "hold",
+          "tone": "natural",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "focus",
+          "accessibility": "siksang4 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-12:knot-6",
+          "background": "siksang4",
+          "transition": "hold",
+          "tone": "natural",
+          "ambient": null,
+          "eventEffect": "fire",
+          "camera": "focus",
+          "accessibility": "siksang4 배경에서 진행되는 서술"
         },
         {
           "beatId": "ep-12:59",
@@ -3554,7 +3524,7 @@
           "ambient": null,
           "eventEffect": null,
           "camera": "focus",
-          "accessibility": "siksang3 배경에서 진행되는 tiger의 대사"
+          "accessibility": "siksang3 배경에서 진행되는 서술"
         }
       ]
     },
@@ -7186,7 +7156,7 @@
         },
         {
           "phase": "압력·전환",
-          "beatId": "ep-27:38",
+          "beatId": "ep-27:22",
           "pacing": "impact"
         },
         {
@@ -7275,6 +7245,16 @@
           "eventEffect": null,
           "camera": "focus",
           "accessibility": "jae 배경에서 진행되는 yeon의 대사"
+        },
+        {
+          "beatId": "ep-27:petal-1",
+          "background": "jae",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "focus",
+          "accessibility": "jae 배경에서 진행되는 서술"
         },
         {
           "beatId": "ep-27:41",
@@ -7387,6 +7367,16 @@
           "accessibility": "tarotDoor 배경에서 진행되는 서술"
         },
         {
+          "beatId": "ep-27:choice-1",
+          "background": "tarotDoor",
+          "transition": "hold",
+          "tone": "natural",
+          "ambient": "moonlight",
+          "eventEffect": null,
+          "camera": "focus",
+          "accessibility": "tarotDoor 배경에서 진행되는 서술"
+        },
+        {
           "beatId": "ep-27:102",
           "background": "tarotDoor",
           "transition": "hold",
@@ -7431,7 +7421,7 @@
         },
         {
           "phase": "압력·전환",
-          "beatId": "ep-27a:22",
+          "beatId": "ep-27a:43",
           "pacing": "impact"
         },
         {
