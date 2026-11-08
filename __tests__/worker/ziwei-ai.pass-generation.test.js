@@ -152,7 +152,7 @@ function mockStructuredResponse(prompt) {
   const match = prompt.match(/- 위 JSON 의 ([^\n]+?) 만 작성합니다\./);
   if (!match) throw new Error("section group prompt was not recognized");
   const keys = match[1].split(",").map((key) => key.trim()).filter(Boolean);
-  const targets = { reading_guide: 3600, evidence_basis: 4500, flow: 4400, career: 4400, relationship: 4200, caution: 4000 };
+  const targets = { personality_profile: 5100, reading_guide: 3600, evidence_basis: 4500, flow: 4400, career: 4400, relationship: 4200, caution: 4000 };
   const target = Math.floor(targets[keys[0]] / keys.length);
   return JSON.stringify({
     sections: Object.fromEntries(keys.map((key) => [key, {

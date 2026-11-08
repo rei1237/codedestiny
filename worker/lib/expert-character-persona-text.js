@@ -183,7 +183,7 @@ function sentenceBody(sentence) {
 
 // 해라체·반말 종결. '-니다'는 존댓말이라 뺀다. 인용·목록 몇 줄은 허용하려고 비율로 판정한다.
 const BANMAL_ENDING = /(?:[^니]다|[^니]냐|거든|잖아|구나|란다|하자|해라|니\?)$/u;
-function isBanmalSentence(sentence) {
+export function isBanmalSentence(sentence) {
   const body = sentenceBody(sentence);
   if (body.length < 4) return false;
   return BANMAL_ENDING.test(body) || /니$/.test(body) && /\?\s*$/.test(sentence);

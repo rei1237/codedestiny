@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-08
-next: 7a 자미 상담 worker V2 (7단계 진행 메모 참고)
+next: 7b 자미 상담 화면(차례·칩·조판 PDF) + 보관함 PDF (7단계 진행 메모 참고)
 ---
 
 # 3만원 이상 유료 LLM — 상품별 챕터·분량·PDF·전달 개선 인수인계
@@ -584,7 +584,12 @@ next: 7a 자미 상담 worker V2 (7단계 진행 메모 참고)
 - 심층 V2: `llmMeta.deliveryPlanVersion: 2`로 고정한다. 1장은 본성과 공감을 다루고 질문 답은 1장에서 한 번만 한다. 질문 줄은 1장에만 넣는다. 마지막 시도에서는 가장 나은 초안을 받고, 빈 장만 건너뛴다. 장이 하나도 없을 때만 환불한다. 보관함 PDF는 기존 심층 조판 내보내기를 쓴다.
 
 ### 하위 단계
-- [ ] 7a. 상담 worker V2 + 테스트
+- [x] 7a. 상담 worker V2 + 테스트
+  - 새 모듈 `worker/lib/ziwei-ai-delivery-v2.js`(그룹 계획·소프트 검사·구제·결정적 메타), `generateCheckpointedZiweiV2`는 `worker/routes/ziwei-ai.js`의 `saveZiweiDelivery` 바로 앞에 있다. 판 2 그룹은 nature(personality_profile·essence·core_answer, 질문 소유)→foundation(reading_guide·structure_core·influence_factors·evidence_basis)→flow→achievement→relation→closing(caution·action_plan·prescription)이다. 목표 합 28,500, 하한 합 22,590
+  - 한 요청에 공급자 호출은 하나다. 마지막 그룹을 부른 요청에서는 메타를 부르지 않는다. 그래서 7웨이브(6그룹+메타)는 판 1과 같다
+  - 판 1 바이트 고정: `__tests__/worker/ziwei-ai-v1-prompt-bytes.test.js`(모킹 없이 sha256). HEAD와 작업본 둘 다 통과
+  - 기존 테스트 조정: ziwei-paid-delivery는 `start()`를 판 1(`ZIWEI_AI_DELIVERY_V2_ENABLED:"false"`)로 고정하고 끝에 판 2 테스트 6개를 붙였다. pass-generation 모의의 목표 표에 personality_profile, expired-order 모의의 그룹 조회에 판 2 그룹, lifecycle vm 하네스에 `ziweiAiDeliveryV2Enabled:()=>false`를 넣었다. verify-llm-generation-resilience 호출부 수는 5→7
+  - 함정: paid-delivery 파일은 `formatStarWithBrightness`를 모킹해 프롬프트가 달라지므로 해시 테스트를 그 파일에 두면 안 된다. 같은 본문을 두 번 이어 붙인 것은 반복 검사에 걸리지 않는다. 구제 테스트는 섹션끼리 같은 본문을 쓴다
 - [ ] 7b. 상담 화면(차례·칩·조판 PDF) + 보관함 PDF
 - [ ] 7c. 심층 prompt·route V2 + 테스트 + 보관함 PDF
 - [ ] 7d. tsc·jest·node --test·verify·build, 모의 실행, 실호출 상품당 1회, 결과 기록
