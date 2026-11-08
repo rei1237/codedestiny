@@ -242,7 +242,10 @@ const FREE_SAJU_COMMENT_ONLY_FILES = new Set([
 ]);
 const FREE_SAJU_COMMENT_ONLY_PREFIXES = ['scripts/'];
 // 검색어 조사용 시드 목록이다. 고객에게 보이는 문구가 아니라 실제 검색어 "무료사주"를 그대로 적는다.
-const FREE_SAJU_ALLOWED_FILES = new Set(['scripts/seo/keyword-research.mjs']);
+// 무료 사주 모음 랜딩(/saju/free) 문구 정본. 2026-11-08 사용자 결정으로 이 한 곳만 "무료 사주"를 쓴다.
+// 무료 범위와 유료 경계를 페이지 안에 함께 적는 조건이다. 다른 판매 표면은 계속 금지다.
+const FREE_SAJU_LANDING_FILES = new Set(['lib/seo/free-saju-landing.mjs']);
+const FREE_SAJU_ALLOWED_FILES = new Set(['scripts/seo/keyword-research.mjs', ...FREE_SAJU_LANDING_FILES]);
 
 // 주석 줄로 인정하는 경우: 줄이 주석 표지로 시작하거나, 문자열 밖(따옴표 짝수)에서 시작한 // 또는 /* 뒤에 적힌 경우.
 // 문자열 안의 // (URL 등)나 코드 뒤에 문구가 붙은 줄은 통과시키지 않는다.
