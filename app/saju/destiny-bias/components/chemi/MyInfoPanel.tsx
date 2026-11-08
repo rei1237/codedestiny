@@ -110,7 +110,7 @@ export default function MyInfoPanel({ partner, value, error, seededFromProfile, 
         </fieldset>
 
         <p className={styles.noteBox}>
-          출생 시간은 받지 않아요. 최애의 출생 시간이 공개 정보가 아니라, 공정하게 양쪽 모두 연·월·일주 세 기둥으로만 비교해요. 생일은 이 기기 안에서만 쓰이고 카드·링크·서버 저장에 들어가지 않아요.
+          출생 시간은 받지 않아요. 양쪽 모두 연·월·일주 세 기둥으로 비교해요. 무료 카드는 이 기기에서 계산하고, 구매한 상세 리포트는 계정에 보관해요. 생일은 공유 카드와 링크, 저장된 리포트 본문에 넣지 않아요.
         </p>
 
         <button type="submit" className={`${styles.ctaPrimary} ${styles.inlineCta}`}>

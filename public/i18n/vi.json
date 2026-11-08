@@ -2263,12 +2263,15 @@
       "webtoonTitle": "Lời cảnh báo của Trăng Đen",
       "webtoonDesc": "Liệu có con đường nào khác ngoài tương lai Trăng Đen báo trước? Yeoni và Neo cùng xem bản tính và dòng chảy mười hai tháng để tìm những lựa chọn nên tránh.",
       "webtoonStart": "Đọc cảnh đầu tiên",
-      "webtoonMore": "Xem webtoon tư vấn của các chuyên gia khác"
+      "webtoonMore": "Xem webtoon tư vấn của các chuyên gia khác",
+      "freeResultDetails": "Kết quả miễn phí · Chi tiết {amount} KRW"
     },
     "playPrice": {
       "from": "Từ {price}",
       "unlock": "Mở khóa với {price}",
-      "perUse": "{price}/lần"
+      "perUse": "{price}/lần",
+      "freeResultDetails": "Kết quả miễn phí · Chi tiết {price}",
+      "detailsOwned": "Đã mở chi tiết"
     },
     "choice": {
       "lead": "Xem cách tư vấn rồi chọn điều bạn đang băn khoăn.",
@@ -5234,7 +5237,8 @@
           "aiBlocked": "Có vẻ tab mới đã bị chặn. Hãy cho phép cửa sổ bật lên trong trình duyệt hoặc tự mở trang AI bạn muốn.",
           "summaryCopied": "Đã sao chép bản tóm tắt vào bộ nhớ tạm.",
           "promptCopied": "Đã sao chép prompt chính của hoa AI vào bộ nhớ tạm.",
-          "promptPackCopied": "Đã sao chép bộ prompt chính/phủ định vào bộ nhớ tạm."
+          "promptPackCopied": "Đã sao chép bộ prompt chính/phủ định vào bộ nhớ tạm.",
+          "rateLimited": "Vui lòng đợi một lát rồi thử lại."
         },
         "fallback": {
           "astrology": {
@@ -5323,7 +5327,8 @@
         "guide": {
           "allBloomed": "Tất cả các hoa đã nở. Hãy mở lại tab bạn muốn để ngắm nhé.",
           "startSaju": "Bước tiếp theo: hãy mở hoa Tứ Trụ trước để bắt đầu nở hoa.",
-          "next": "Bước tiếp theo: chuyển sang hoa {source} để tiếp tục nở hoa."
+          "next": "Bước tiếp theo: chuyển sang hoa {source} để tiếp tục nở hoa.",
+          "availableBloomed": "Xem lại thẻ hoa đã mở hoặc khám phá chi tiết xưởng hoa."
         },
         "tab": {
           "lockLabel": "Mở khi mở khóa xưởng hoa"
@@ -5506,6 +5511,29 @@
           "hot": "Ôn Táo",
           "cold": "Hàn Thấp",
           "balanced": "Trung Hòa"
+        },
+        "viral": {
+          "ask": "Hãy khám phá loài hoa của bạn.",
+          "threads": "Threads",
+          "link": "Sao chép liên kết",
+          "download": "Lưu ảnh",
+          "aria": "Chia sẻ hoa định mệnh",
+          "title": "Cho bạn bè xem hoa của bạn",
+          "opened": "Đã mở cửa sổ chia sẻ.",
+          "x": "X"
+        },
+        "atelierLock": {
+          "aria": "Mở khóa chi tiết xưởng hoa",
+          "kicker": "Thẻ hoa và tính năng chia sẻ đều miễn phí.",
+          "title": "Chi tiết xưởng hoa",
+          "item1": "Ba loài hoa từ chiêm tinh, Tử vi và Sukuyo",
+          "item2": "Lý do chọn hoa này và câu chuyện nở hoa",
+          "item3": "Ý nghĩa hoa, lời người làm vườn và gợi ý màu sắc",
+          "desc": "Xem lại chi tiết bằng tài khoản đã mở khóa.",
+          "degraded": "Chưa thể xác nhận thông tin mua. Nếu đã mở khóa, vui lòng kiểm tra lại.",
+          "retry": "Kiểm tra lại",
+          "cta": "Mở chi tiết · {price}",
+          "owned": "Đã mở chi tiết"
         }
       }
     }
@@ -15534,7 +15562,7 @@
       }
     },
     "flower_fc": {
-      "tagline": "The energy of the day you were born chooses a flower's kind and color. Through four lenses (Saju, astrology, Ziwei Doushu, and Sukuyo), meet the flower that blooms for you in each, all with a single unlock.",
+      "tagline": "Your Saju flower card and sharing are free. Unlock atelier details to explore flowers from astrology, Zi Wei Dou Shu and Sukuyo, with their meanings, colors and readings.",
       "feats": {
         "0": "The flowers of all four branches (Saju, astrology, Ziwei Doushu, and Sukuyo) at once",
         "1": "Your flower and color, chosen from an eighty-nine-species field guide",
@@ -15636,28 +15664,28 @@
           "detail": "Once the flower blooms, we explain part by part why it was chosen, along with its colors and flower language."
         }
       },
-      "faq": {
-        "0": {
+      "faq": [
+        {
           "q": "What does unlocking open?",
-          "a": "A single unlock opens the flowers of all four branches (Saju, astrology, Ziwei Doushu, and Sukuyo), together with each branch's palette, flower language, and explanation."
+          "a": "Your Saju flower card and sharing are free. Unlock atelier details to explore flowers from astrology, Zi Wei Dou Shu and Sukuyo, with their meanings, colors and readings."
         },
-        "1": {
+        {
           "q": "Do I need to know my birth time?",
           "a": "No. Your date of birth is enough. If you don't know the time and place, noon in Seoul is used; if you do, those values are used."
         },
-        "2": {
+        {
           "q": "Will the flower change if I look again?",
           "a": "The same details always bloom the same flower, because nothing is drawn at random. Changing your birth time or place may change the result."
         },
-        "3": {
+        {
           "q": "Can I save the flower image?",
           "a": "The Destiny Flower does not create an image file. Instead, you can copy the flower description into the image AI of your choice to draw it, and share the result text on KakaoTalk or by copying it. Flowers you bloom stay in the blooming records on this device."
         },
-        "4": {
+        {
           "q": "How do refunds work?",
           "a": "You can request withdrawal under the conditions set out in the refund policy. Withdrawal may be limited for parts you have already started viewing, and Moonstones are not eligible for cash refunds. Please see the refund policy for details."
         }
-      }
+      ]
     },
     "palm_reading": {
       "tagline": "Examine four main lines, nine types of secondary lines, seven palm mounts and six special markings, then write an integrated reading targeting about 3,000 characters.",

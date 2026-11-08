@@ -41,7 +41,7 @@ export default function ChemiHook({ groupNames, totalMembers, onStart }: Props) 
           <strong>{groupNames.length}그룹 {totalMembers}명</strong> 공식 프로필 생년월일 기준
         </li>
         <li>
-          <strong>로그인 없이</strong> 바로 결과 · 저장만 로그인
+          <strong>로그인 없이</strong> 바로 결과 · 상세는 구매 후
         </li>
         <li>
           <strong>생일은 카드에 안 실려요</strong> · 공유는 유형과 한 줄만

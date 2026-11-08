@@ -229,7 +229,7 @@ export async function readRecord(userId, sourceId, id) {
       (source.dynamic && (doc.featureKey || doc.featureId) && await isStoredPaidResultRevoked(userId, doc.featureKey || doc.featureId, doc))) {
     throw createHttpError(403, '취소·환불된 상담 결과는 제공할 수 없어요.', { code: 'RESULT_REVOKED' });
   }
-  let content = source.id === 'executions' ? doc.metadata?.result || doc.metadata?.archive || doc.metadata?.palmResult || doc.metadata?.celestialDelivery?.reading || {} :
+  let content = (source.id === 'executions' || source.id === 'destiny-bias-details') ? doc.metadata?.result || doc.metadata?.archive || doc.metadata?.palmResult || doc.metadata?.celestialDelivery?.reading || {} :
     source.id === 'paid-results' ? doc.result : source.id === 'legacy-naming' ? doc.namingPrompt || doc.pricingSnapshot?.namingPrompt : doc;
   if (source.id === 'codex') content = { ...doc, status: record.status, consultationHash: undefined, consultation: doc.consultation ? { ...doc.consultation, records: undefined } : null };
   if (source.id === 'chat-consultation') {

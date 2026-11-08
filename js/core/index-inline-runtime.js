@@ -5627,7 +5627,7 @@ function _dfGetNextRecommendedSource() {
 
 function _dfBuildSourceFlowGuide() {
   var nextSource = _dfGetNextRecommendedSource();
-  if (!nextSource) return _dfUiText('guide.allBloomed', '모든 꽃이 개화되었습니다. 원하는 탭에서 다시 감상해 보세요.');
+  if (!nextSource) return _dfUiText('guide.availableBloomed', '열린 꽃 카드를 다시 감상하거나, 아틀리에 상세를 확인해 보세요.');
   // 지금 탭에 결과가 떠 있으면 "다음 단계" 안내는 결과 문구와 어긋나므로 내지 않는다.
   var shown = _dfStudioState.selection;
   if (shown && shown.flower && _dfNormalizeSource(shown.source || 'saju') === _dfNormalizeSource(_dfStudioState.activeSource || 'saju')) return '';
@@ -8631,6 +8631,14 @@ function _dfIsAtelierDetailOpen() {
 function _dfRenderAtelierLock(selection) {
   var sheet = document.getElementById('destinyFlowerStudioSheet');
   var locked = !_dfIsAtelierDetailOpen();
+  document.querySelectorAll('[data-cd-price-key="flower-fc"]').forEach(function(badge) {
+    badge.setAttribute('data-cd-detail-owned', locked ? 'false' : 'true');
+    badge.setAttribute('data-cd-play-kind', 'freeResultDetails');
+    var price = _dfAtelierWebPrice();
+    badge.textContent = locked
+      ? (window.cdTranslate ? window.cdTranslate('home.playPrice.freeResultDetails', { price: price }, '결과 무료 · 상세 ' + price) : '결과 무료 · 상세 ' + price)
+      : _dfUiText('atelierLock.owned', '상세 해금됨');
+  });
   if (sheet && sheet.classList) sheet.classList.toggle('df-studio--atelier-locked', locked);
   var card = _dfEnsureAtelierLockCard();
   if (!card) return;
@@ -8647,8 +8655,15 @@ function _dfRenderAtelierLock(selection) {
   if (btn) {
     btn.textContent = degraded
       ? _dfUiText('atelierLock.retry', '다시 확인하기')
-      : _dfUiText('atelierLock.cta', '상세 해금 · 5,000원');
+      : _dfUiText('atelierLock.cta', '상세 해금 · {price}', { price: _dfAtelierWebPrice() });
   }
+  if (window.__cdPlayDisplayPrice) window.__cdPlayDisplayPrice.refresh();
+}
+
+function _dfAtelierWebPrice() {
+  var badge = document.querySelector('[data-cd-price-key="flower-fc"][data-price-krw]');
+  var amount = badge && Number(badge.getAttribute('data-price-krw'));
+  return amount > 0 ? amount.toLocaleString(_dfServerMatchLang()) + (_dfServerMatchLang() === 'ko' ? '원' : ' KRW') : (window.cdTranslate ? window.cdTranslate('preview.priceUnknown', {}, '가격 확인 필요') : '가격 확인 필요');
 }
 
 /** 잠금 카드 버튼. 장애였으면 다시 묻고, 아니면 홈 타일과 같은 결제 흐름을 연다. 이미 해금된 기기면 상세를 다시 받는다. */
@@ -8677,6 +8692,7 @@ function _dfRunViralShare(channel) {
     _dfSetStudioStatus(_dfUiText('sheet.notReady', '내 꽃이 피면 공유할 수 있어요.'));
     return;
   }
+  if (typeof window.cdTrack === 'function') window.cdTrack('destiny_flower_share_click', { feature: 'destiny-flower', channel: channel });
   if (channel === 'x' || channel === 'threads') {
     var openIntent = function(mod) {
       window.open(mod.socialIntentUrl(channel, { text: _dfFlowerIntentText(ctx), url: ctx.url }), '_blank', 'noopener,noreferrer');

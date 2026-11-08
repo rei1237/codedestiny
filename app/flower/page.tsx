@@ -5,7 +5,7 @@ const META = {
   path: "/flower",
   title: "운명의 꽃 - 통합 아틀리에 | 꿀꿀 운세",
   description:
-    "사주의 오행과 십성, 점성술의 행성 배치, 자미두수의 명궁, 숙요점의 27수 — 네 학문이 각각 짚어낸 기운을 소스 탭으로 넘겨 보며, 나만의 운명 꽃 한 송이로 모읍니다.",
+    "사주가 고른 꽃 카드와 공유는 무료예요. 아틀리에 상세를 해금하면 점성술·자미두수·숙요점의 꽃과 꽃말·색·해설을 함께 볼 수 있어요.",
   keywords: ["운명의 꽃", "사주 꽃", "점성술 꽃", "자미두수 꽃", "숙요 꽃", "destiny flower"],
   image: "https://code-destiny.com/images/consultation/destiny-flower-editorial-v1-960.webp",
   // 결제 유도 스텁이라 크롤러가 보는 고유 본문이 449자뿐이다(2026-08-17 out/ 실측).
@@ -32,7 +32,7 @@ const SERVICE = {
       title: "Flower of Destiny - Integrated Atelier",
       h1: "Flower of Destiny Atelier",
       description:
-        "Open Saju, astrology, Zi Wei Dou Shu, and Sukuyo in source tabs, then watch your flower of destiny and palette bloom.",
+        "Your Saju flower card and sharing are free. Unlock atelier details to explore flowers from astrology, Zi Wei Dou Shu and Sukuyo, with their meanings, colors and readings.",
       landingPoints: ["Switch four fortune-source tabs", "Flowers, keywords, and panels by source", "Prompt, save, and share tools"],
       seoText:
         "Flower of Destiny Atelier blossoms four fortune energies into flowers, palettes, and interpretation panels.",
@@ -41,7 +41,7 @@ const SERVICE = {
       title: "運命の花 - 統合アトリエ",
       h1: "運命の花アトリエ",
       description:
-        "四柱推命、占星術、紫微斗数、宿曜をソースタブで切り替え、あなただけの運命の花とパレットが咲く様子をご覧ください。",
+        "四柱推命の花カードと共有は無料です。アトリエの詳細を開くと、占星術・紫微斗数・宿曜の花と花言葉・色・解説も確認できます。",
       landingPoints: ["4つの運勢ソースをタブ切替", "ソース別の花・キーワード・解釈パネル", "プロンプト・保存・共有ツール"],
       seoText:
         "運命の花アトリエは、四柱推命・占星術・紫微斗数・宿曜という4つの運勢エネルギーを花とパレット、解釈パネルへと咲かせます。",
@@ -50,7 +50,7 @@ const SERVICE = {
       title: "命运之花 - 综合工坊",
       h1: "命运之花工坊",
       description:
-        "在四柱、占星、紫微斗数、宿曜四个来源标签间切换，看专属于你的命运之花与色彩逐渐绽放。",
+        "四柱花卡和分享免费。解锁工坊详情后，可查看占星、紫微斗数和宿曜之花，以及花语、色彩和解读。",
       landingPoints: ["四种运势来源标签切换", "按来源区分的花朵、关键词与解读面板", "提示词、保存、分享工具"],
       seoText:
         "命运之花工坊将四柱、占星、紫微斗数、宿曜四种运势能量绽放为花朵、色彩与解读面板。",
@@ -59,7 +59,7 @@ const SERVICE = {
       title: "命運之花 - 綜合工坊",
       h1: "命運之花工坊",
       description:
-        "在四柱、占星、紫微斗數、宿曜四個來源標籤間切換，看專屬於你的命運之花與色彩逐漸綻放。",
+        "四柱花卡與分享免費。解鎖工坊詳情後，可查看占星、紫微斗數與宿曜之花，以及花語、色彩與解讀。",
       landingPoints: ["四種運勢來源標籤切換", "依來源區分的花朵、關鍵字與解讀面板", "提示詞、儲存、分享工具"],
       seoText:
         "命運之花工坊將四柱、占星、紫微斗數、宿曜四種運勢能量綻放為花朵、色彩與解讀面板。",

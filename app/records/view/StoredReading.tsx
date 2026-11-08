@@ -47,7 +47,7 @@ export default function StoredReading({ source, serviceId, value, status }: { so
   const locale = useLocale(), c = recordsCopy(locale), row = object(value);
   const reader = recordReaderCopy(locale);
   const canonical = object(row.canonical), vm = object(canonical.viewModel);
-  if (source === 'destiny-bias' && canonical.version === 'destiny-bias-record-v1' && Object.prototype.hasOwnProperty.call(canonical,'chemiReport')) {
+  if ((source === 'destiny-bias' || serviceId === 'destiny-bias-analyze') && canonical.version === 'destiny-bias-record-v1' && Object.prototype.hasOwnProperty.call(canonical,'chemiReport')) {
     if (!isStoredChemiReport(canonical.chemiReport)) return <IncompleteBiasReading row={row} notice={c.formatUnavailable} noBody={c.noBody} />;
     const report = canonical.chemiReport as ChemiReport;
     return <div data-saved-chemi className={`${biasStyles.page} space-y-6 rounded-[var(--cd-r-card)] p-4`} style={{background:'var(--dbk-cream)'}}><ChemiCoreCard report={report} themeKey={String(canonical.themeKey || '')} /><ChemiSections copy={report.copy} /><ChemiReportTabs vm={report.vm} /><ChemiEvidencePanel result={report.result} /></div>;

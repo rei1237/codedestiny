@@ -213,6 +213,13 @@ export async function handleDestinyBiasRoutes(request, env) {
     const method = String(request.method || "GET").toUpperCase();
     const path = getRoutePath(request, "/api/destiny-bias");
 
+    if (path === "/details/lookup" || path === "/details") {
+      const { handleDestinyBiasDetails } = await import("./destiny-bias-details.js");
+      const response = await handleDestinyBiasDetails(request, env, path === "/details");
+      response.headers.set("Cache-Control", "private, no-store");
+      return response;
+    }
+
     if (method === "GET" && path === "/og") {
       return handleOgImage(request);
     }

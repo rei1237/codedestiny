@@ -87,3 +87,21 @@ test('feature reads deduplicate a shared server SKU and retain from-price wordin
     assert.ok(app.calls.some(call => call.url?.includes('featureKey=feature-b&reason=context')));
   } finally { app.close(); }
 });
+
+test('free result remains visible while Play details load, after resolution and after ownership changes', async () => {
+  const app = await setup({ delayed: true });
+  try {
+    const el = app.win.document.querySelector('[data-cd-play-price]');
+    el.setAttribute('data-cd-play-kind', 'freeResultDetails');
+    app.win.__cdPlayDisplayPrice.refresh();
+    assert.equal(el.textContent, '결과 무료 · 상세 Check price');
+    app.release(); await tick();
+    assert.equal(el.textContent, '결과 무료 · 상세 ¥1,290');
+    el.setAttribute('data-cd-detail-owned', 'true');
+    app.win.__cdPlayDisplayPrice.refresh(); await tick();
+    assert.equal(el.textContent, '상세 해금됨');
+    el.setAttribute('data-cd-detail-owned', 'false');
+    app.win.__cdPlayDisplayPrice.refresh(); await tick();
+    assert.equal(el.textContent, '결과 무료 · 상세 ¥1,290');
+  } finally { app.close(); }
+});

@@ -42,7 +42,7 @@ export const PAID_NON_LLM_DELIVERY_FIXTURES = Object.freeze([
     "per_use",
     "app/saju/destiny-bias/DestinyBiasClient.tsx",
     "featureKey: DESTINY_BIAS_ANALYZE_FEATURE_KEY",
-    "<ChemiSections copy={outcome.copy} />",
+    "<ChemiSections copy={detailReport!.copy} />",
   ),
   sameSurface(
     "daily-fortune-reading",

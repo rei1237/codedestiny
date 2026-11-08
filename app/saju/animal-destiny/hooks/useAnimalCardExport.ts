@@ -3,6 +3,7 @@
 import { useCallback, useState } from "react";
 import { toast } from "sonner";
 import { toPng } from "html-to-image";
+import { dataUrlToBlob } from "@/lib/share-image";
 import { getCurrentLoadingLocale } from "@/constants/loadingMessages";
 
 const ANIMAL_CARD_EXPORT_TEXT_TRANSLATIONS = {
@@ -111,8 +112,7 @@ export function useAnimalCardExport() {
       const dataUrl = await makeCardDataUrl(element);
       if (!dataUrl) return;
 
-      const response = await fetch(dataUrl);
-      const blob = await response.blob();
+      const blob = dataUrlToBlob(dataUrl);
       const file = new File([blob], `${filename}.png`, { type: "image/png" });
 
       if (navigator.share && navigator.canShare?.({ files: [file] })) {
@@ -133,7 +133,7 @@ export function useAnimalCardExport() {
       URL.revokeObjectURL(fallbackUrl);
       toast.message(animalCardExportText("fallbackSaved"));
     } catch (e) {
-      toast.error(animalCardExportText("shareError"));
+      if ((e as { name?: string })?.name !== "AbortError") toast.error(animalCardExportText("shareError"));
     } finally {
       setIsExporting(false);
     }

@@ -285,3 +285,20 @@ test('free results are absent from lists and direct detail URLs while paid resul
   expect((await route(request('/detail?source=human-design-chart&id=record-3'))).status).toBe(200);
   expect((await route(request('/detail?source=executions&id=paid'))).status).toBe(200);
 });
+
+test('verified Chemi snapshots have a dedicated owner-only archive; legacy free cards stay excluded', async () => {
+  const original = { canonical: { version: 'destiny-bias-record-v1', chemiReport: { original: '구매 원문' } } };
+  stores.serviceexecutiontransactions = [
+    seed('1','01',{featureKey:'destiny-bias-analyze',metadata:{archive:{title:'과거 무료'}}}),
+    seed('2','02',{featureKey:'destiny-bias-analyze',status:'success',metadata:{biasPaidDetailsVersion:1,result:original}}),
+    seed('3','03',{userId:foreign,featureKey:'destiny-bias-analyze',status:'success',metadata:{biasPaidDetailsVersion:1,result:original}}),
+  ];
+  const listed = await library.listRecords(owner,new URLSearchParams());
+  expect(listed.items.map(row=>[row.source,row.id])).toEqual([['destiny-bias-details','000000000000000000000002']]);
+  const detail = await library.readRecord(owner,'destiny-bias-details','000000000000000000000002');
+  expect(detail.content).toEqual(original);
+  expect(await library.readRecord(owner,'destiny-bias-details','000000000000000000000001')).toBeNull();
+  expect(await library.readRecord(foreign,'destiny-bias-details','000000000000000000000002')).toBeNull();
+  revoked = true;
+  await expect(library.readRecord(owner,'destiny-bias-details','000000000000000000000002')).rejects.toMatchObject({status:403});
+});

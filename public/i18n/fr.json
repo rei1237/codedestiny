@@ -2263,12 +2263,15 @@
       "webtoonTitle": "L’avertissement de la Lune noire",
       "webtoonDesc": "Existe-t-il une autre voie que l’avenir annoncé par la Lune noire ? Yeoni et Neo examinent votre nature et les douze mois à venir pour repérer les choix qu’il vaut mieux éviter.",
       "webtoonStart": "Lire la première scène",
-      "webtoonMore": "Voir les webtoons de consultation des autres maîtres"
+      "webtoonMore": "Voir les webtoons de consultation des autres maîtres",
+      "freeResultDetails": "Résultat gratuit · Détails {amount} KRW"
     },
     "playPrice": {
       "from": "À partir de {price}",
       "unlock": "Débloquer pour {price}",
-      "perUse": "{price} par lecture"
+      "perUse": "{price} par lecture",
+      "freeResultDetails": "Résultat gratuit · Détails {price}",
+      "detailsOwned": "Détails déverrouillés"
     },
     "choice": {
       "lead": "Découvrez les consultations, puis choisissez ce qui vous préoccupe.",
@@ -5234,7 +5237,8 @@
           "aiBlocked": "Le nouvel onglet semble avoir été bloqué. Autorisez les fenêtres pop-up dans votre navigateur ou ouvrez directement le site d’IA de votre choix.",
           "summaryCopied": "Résumé copié dans le presse-papiers.",
           "promptCopied": "L’invite principale de la fleur IA a été copiée dans le presse-papiers.",
-          "promptPackCopied": "L’ensemble d’invites principale et négative a été copié dans le presse-papiers."
+          "promptPackCopied": "L’ensemble d’invites principale et négative a été copié dans le presse-papiers.",
+          "rateLimited": "Patientez un instant avant de réessayer."
         },
         "fallback": {
           "astrology": {
@@ -5323,7 +5327,8 @@
         "guide": {
           "allBloomed": "Toutes les fleurs ont éclos. Revoyez-les dans l’onglet de votre choix.",
           "startSaju": "Étape suivante : ouvrez d’abord votre fleur Saju pour commencer la floraison.",
-          "next": "Étape suivante : passez à votre fleur {source} pour poursuivre la floraison."
+          "next": "Étape suivante : passez à votre fleur {source} pour poursuivre la floraison.",
+          "availableBloomed": "Retrouvez vos cartes disponibles ou explorez les détails de l’atelier."
         },
         "tab": {
           "lockLabel": "S’ouvre au déblocage de l’atelier"
@@ -5506,6 +5511,29 @@
           "hot": "Chaud et sec",
           "cold": "Froid et humide",
           "balanced": "Équilibré"
+        },
+        "viral": {
+          "ask": "Découvrez aussi votre fleur.",
+          "threads": "Threads",
+          "link": "Copier le lien",
+          "download": "Enregistrer l’image",
+          "aria": "Partager votre fleur du destin",
+          "title": "Montrez votre fleur à un proche",
+          "opened": "La fenêtre de partage est ouverte.",
+          "x": "X"
+        },
+        "atelierLock": {
+          "aria": "Déverrouiller les détails de l’atelier",
+          "kicker": "La carte Saju et son partage sont gratuits",
+          "title": "Détails de l’atelier floral",
+          "item1": "Trois autres fleurs issues de l’astrologie, du Zi Wei Dou Shu et du Sukuyo",
+          "item2": "Le choix de cette fleur et son histoire",
+          "item3": "Langage des fleurs, mot du jardinier et conseils de couleurs",
+          "desc": "Retrouvez les détails avec le compte qui les a déverrouillés.",
+          "degraded": "L’achat ne peut pas être vérifié pour le moment. Si déjà déverrouillé, réessayez.",
+          "retry": "Vérifier à nouveau",
+          "cta": "Ouvrir les détails · {price}",
+          "owned": "Détails déverrouillés"
         }
       }
     }
@@ -15534,7 +15562,7 @@
       }
     },
     "flower_fc": {
-      "tagline": "The energy of the day you were born chooses a flower's kind and color. Through four lenses (Saju, astrology, Ziwei Doushu, and Sukuyo), meet the flower that blooms for you in each, all with a single unlock.",
+      "tagline": "Your Saju flower card and sharing are free. Unlock atelier details to explore flowers from astrology, Zi Wei Dou Shu and Sukuyo, with their meanings, colors and readings.",
       "feats": {
         "0": "The flowers of all four branches (Saju, astrology, Ziwei Doushu, and Sukuyo) at once",
         "1": "Your flower and color, chosen from an eighty-nine-species field guide",
@@ -15636,28 +15664,28 @@
           "detail": "Once the flower blooms, we explain part by part why it was chosen, along with its colors and flower language."
         }
       },
-      "faq": {
-        "0": {
+      "faq": [
+        {
           "q": "What does unlocking open?",
-          "a": "A single unlock opens the flowers of all four branches (Saju, astrology, Ziwei Doushu, and Sukuyo), together with each branch's palette, flower language, and explanation."
+          "a": "Your Saju flower card and sharing are free. Unlock atelier details to explore flowers from astrology, Zi Wei Dou Shu and Sukuyo, with their meanings, colors and readings."
         },
-        "1": {
+        {
           "q": "Do I need to know my birth time?",
           "a": "No. Your date of birth is enough. If you don't know the time and place, noon in Seoul is used; if you do, those values are used."
         },
-        "2": {
+        {
           "q": "Will the flower change if I look again?",
           "a": "The same details always bloom the same flower, because nothing is drawn at random. Changing your birth time or place may change the result."
         },
-        "3": {
+        {
           "q": "Can I save the flower image?",
           "a": "The Destiny Flower does not create an image file. Instead, you can copy the flower description into the image AI of your choice to draw it, and share the result text on KakaoTalk or by copying it. Flowers you bloom stay in the blooming records on this device."
         },
-        "4": {
+        {
           "q": "How do refunds work?",
           "a": "You can request withdrawal under the conditions set out in the refund policy. Withdrawal may be limited for parts you have already started viewing, and Moonstones are not eligible for cash refunds. Please see the refund policy for details."
         }
-      }
+      ]
     },
     "palm_reading": {
       "tagline": "Examine four main lines, nine types of secondary lines, seven palm mounts and six special markings, then write an integrated reading targeting about 3,000 characters.",

@@ -333,8 +333,8 @@ const gateRunBillingFeatureSources = [
   { label: "destiny-meeting-place", source: readFileSync(resolve(root, "app/saju/destiny-meeting-place/components/DestinyMeetingPlacePage.tsx"), "utf8") },
   { label: "palm-reading", source: readFileSync(resolve(root, "app/palm-reading/PalmDestinyMain.tsx"), "utf8") },
 ];
-// destiny-bias(최애운명)는 2026-08-21부로 전면 무료 전환되어 공용 코인 게이트를 거치지 않는다.
-// DestinyBiasClient.tsx 는 이제 openPaidFeatureGate/runBillingCoinGate 를 호출하지 않는다(의도된 변경).
+// 최애운명 결과 카드와 공유는 무료이며, 상세 케미 리포트는 useCoinGate의 공용 결제 검사를 거친다.
+// 저장된 구매 원문은 추가 결제 없이 재열람한다.
 for (const feature of gateRunBillingFeatureSources) {
   const commonGateMarker = feature.source.includes("runPaidAccessGate") ? "runPaidAccessGate" : "runBillingCoinGate";
   assertContains(feature.source, "openPaidFeatureGate", `${feature.label} opens paid gate overlay`);

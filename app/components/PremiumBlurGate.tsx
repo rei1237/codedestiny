@@ -14,7 +14,7 @@
  */
 
 import { useEffect, useState } from "react";
-import { m, AnimatePresence } from "framer-motion";
+import { m, useReducedMotion } from "framer-motion";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 
 /* ─────────────────────────────────────────
@@ -45,7 +45,7 @@ interface PremiumBlurGateProps {
   ctaLabel?: string;
   /** CTA 아래 작은 글자. 없으면 "1회 결제" 기본 문구. */
   footnote?: string;
-  /** 잠금 아이콘·잠긴 배지 글자. 없으면 기본(🔐 · 👑 PREMIUM). */
+  /** 잠금 아이콘·잠긴 배지 글자. 없으면 기본 잠금 도형·상품명. */
   lockIcon?: string;
   badgeLabel?: string;
 }
@@ -77,7 +77,7 @@ const PREMIUM_BLUR_GATE_COPY: Record<LoadingLocale, PremiumBlurGateCopy> = {
     freeBadge: "✦ 무료 분석 결과",
     moreItems: (count) => `+ ${count}개 항목 더...`,
     coinCta: (price) => `${price} 결제로 해금하기`,
-    priceCta: (productName, price) => `🔓 ${productName} 해금 — ${price}`,
+    priceCta: (productName, price) => `${productName} 해금 — ${price}`,
     footnote: "· 1회 결제 · 앱 설치 없이 즉시 확인",
   },
   en: {
@@ -88,7 +88,7 @@ const PREMIUM_BLUR_GATE_COPY: Record<LoadingLocale, PremiumBlurGateCopy> = {
     freeBadge: "✦ Free preview result",
     moreItems: (count) => `+ ${count} more items...`,
     coinCta: (price) => `Unlock with ${price}`,
-    priceCta: (productName, price) => `🔓 Unlock ${productName} — ${price}`,
+    priceCta: (productName, price) => `Unlock ${productName} — ${price}`,
     footnote: "· One-time payment · Instant access without app install",
   },
   ja: {
@@ -99,7 +99,7 @@ const PREMIUM_BLUR_GATE_COPY: Record<LoadingLocale, PremiumBlurGateCopy> = {
     freeBadge: "✦ 無料プレビュー結果",
     moreItems: (count) => `+ さらに${count}項目...`,
     coinCta: (price) => `${price}で解錠`,
-    priceCta: (productName, price) => `🔓 ${productName} — ${price}`,
+    priceCta: (productName, price) => `${productName} — ${price}`,
     footnote: "· 1回決済 · アプリ不要ですぐ確認",
   },
   "zh-CN": {
@@ -110,7 +110,7 @@ const PREMIUM_BLUR_GATE_COPY: Record<LoadingLocale, PremiumBlurGateCopy> = {
     freeBadge: "✦ 免费预览结果",
     moreItems: (count) => `+ 还有 ${count} 项...`,
     coinCta: (price) => `用 ${price} 解锁`,
-    priceCta: (productName, price) => `🔓 解锁${productName} — ${price}`,
+    priceCta: (productName, price) => `解锁${productName} — ${price}`,
     footnote: "· 单次支付 · 无需安装应用即可查看",
   },
   "zh-TW": {
@@ -121,7 +121,7 @@ const PREMIUM_BLUR_GATE_COPY: Record<LoadingLocale, PremiumBlurGateCopy> = {
     freeBadge: "✦ 免費預覽結果",
     moreItems: (count) => `+ 還有 ${count} 項...`,
     coinCta: (price) => `用 ${price} 解鎖`,
-    priceCta: (productName, price) => `🔓 解鎖${productName} — ${price}`,
+    priceCta: (productName, price) => `解鎖${productName} — ${price}`,
     footnote: "· 單次付款 · 無需安裝應用即可查看",
   },
   vi: {
@@ -132,7 +132,7 @@ const PREMIUM_BLUR_GATE_COPY: Record<LoadingLocale, PremiumBlurGateCopy> = {
     freeBadge: "✦ Kết quả xem trước miễn phí",
     moreItems: (count) => `+ thêm ${count} mục...`,
     coinCta: (price) => `Mở khóa với ${price}`,
-    priceCta: (productName, price) => `🔓 Mở khóa ${productName} — ${price}`,
+    priceCta: (productName, price) => `Mở khóa ${productName} — ${price}`,
     footnote: "· Thanh toán một lần · Xem ngay, không cần cài app",
   },
   hi: {
@@ -143,7 +143,7 @@ const PREMIUM_BLUR_GATE_COPY: Record<LoadingLocale, PremiumBlurGateCopy> = {
     freeBadge: "✦ मुफ्त पूर्वावलोकन परिणाम",
     moreItems: (count) => `+ ${count} और आइटम...`,
     coinCta: (price) => `${price} से अनलॉक करें`,
-    priceCta: (productName, price) => `🔓 ${productName} अनलॉक — ${price}`,
+    priceCta: (productName, price) => `${productName} अनलॉक — ${price}`,
     footnote: "· एक बार भुगतान · ऐप इंस्टॉल किए बिना तुरंत देखें",
   },
   es: {
@@ -154,7 +154,7 @@ const PREMIUM_BLUR_GATE_COPY: Record<LoadingLocale, PremiumBlurGateCopy> = {
     freeBadge: "✦ Resultado gratuito de vista previa",
     moreItems: (count) => `+ ${count} elementos más...`,
     coinCta: (price) => `Desbloquear con ${price}`,
-    priceCta: (productName, price) => `🔓 Desbloquear ${productName} — ${price}`,
+    priceCta: (productName, price) => `Desbloquear ${productName} — ${price}`,
     footnote: "· Pago único · Acceso inmediato sin instalar app",
   },
   fr: {
@@ -165,7 +165,7 @@ const PREMIUM_BLUR_GATE_COPY: Record<LoadingLocale, PremiumBlurGateCopy> = {
     freeBadge: "✦ Résultat d'aperçu gratuit",
     moreItems: (count) => `+ ${count} éléments de plus...`,
     coinCta: (price) => `Déverrouiller avec ${price}`,
-    priceCta: (productName, price) => `🔓 Déverrouiller ${productName} — ${price}`,
+    priceCta: (productName, price) => `Déverrouiller ${productName} — ${price}`,
     footnote: "· Paiement unique · Accès immédiat sans installer d'application",
   },
   de: {
@@ -176,7 +176,7 @@ const PREMIUM_BLUR_GATE_COPY: Record<LoadingLocale, PremiumBlurGateCopy> = {
     freeBadge: "✦ Kostenloses Vorschauergebnis",
     moreItems: (count) => `+ ${count} weitere Punkte...`,
     coinCta: (price) => `Mit ${price} freischalten`,
-    priceCta: (productName, price) => `🔓 ${productName} freischalten — ${price}`,
+    priceCta: (productName, price) => `${productName} freischalten — ${price}`,
     footnote: "· Einmalzahlung · Sofort ansehen, keine App-Installation",
   },
   nl: {
@@ -187,7 +187,7 @@ const PREMIUM_BLUR_GATE_COPY: Record<LoadingLocale, PremiumBlurGateCopy> = {
     freeBadge: "✦ Gratis voorbeeldresultaat",
     moreItems: (count) => `+ ${count} extra items...`,
     coinCta: (price) => `Ontgrendel met ${price}`,
-    priceCta: (productName, price) => `🔓 ${productName} ontgrendelen — ${price}`,
+    priceCta: (productName, price) => `${productName} ontgrendelen — ${price}`,
     footnote: "· Eenmalige betaling · Direct bekijken zonder app-installatie",
   },
   ms: {
@@ -198,7 +198,7 @@ const PREMIUM_BLUR_GATE_COPY: Record<LoadingLocale, PremiumBlurGateCopy> = {
     freeBadge: "✦ Keputusan pratonton percuma",
     moreItems: (count) => `+ ${count} item lagi...`,
     coinCta: (price) => `Buka kunci dengan ${price}`,
-    priceCta: (productName, price) => `🔓 Buka ${productName} — ${price}`,
+    priceCta: (productName, price) => `Buka ${productName} — ${price}`,
     footnote: "· Bayaran sekali · Akses segera tanpa pasang aplikasi",
   },
 };
@@ -243,8 +243,8 @@ function DefaultLockedContent({ items }: { items: string[] }) {
     <div className="space-y-3 p-4">
       {items.map((item, i) => (
         <div key={i} className="flex items-start gap-3">
-          <span className="text-amber-400 mt-0.5 text-sm flex-shrink-0">✦</span>
-          <p className="text-sm text-violet-100/90 leading-relaxed">{item}</p>
+          <span className="text-[var(--cd-sukuyo-gold)] mt-0.5 text-sm flex-shrink-0">✦</span>
+          <p className="text-sm text-[var(--cd-sukuyo-silver)] leading-relaxed">{item}</p>
         </div>
       ))}
     </div>
@@ -255,12 +255,14 @@ function DefaultLockedContent({ items }: { items: string[] }) {
    별 파티클 (잠금 오버레이용)
 ───────────────────────────────────────── */
 function LockParticles() {
+  const reduceMotion = useReducedMotion();
+  if (reduceMotion) return null;
   return (
     <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-xl">
       {[...Array(12)].map((_, i) => (
         <m.div
           key={i}
-          className="absolute text-amber-400/30 select-none"
+          className="absolute text-[var(--cd-sukuyo-gold)] select-none"
           style={{
             left: `${8 + (i * 137.5) % 84}%`,
             top: `${10 + (i * 73) % 80}%`,
@@ -322,6 +324,7 @@ export default function PremiumBlurGate({
   badgeLabel,
 }: PremiumBlurGateProps) {
   const [isHovering, setIsHovering] = useState(false);
+  const reduceMotion = useReducedMotion();
   const [locale, setLocale] = useState<LoadingLocale>("ko");
 
   useEffect(() => {
@@ -342,15 +345,15 @@ export default function PremiumBlurGate({
       {/* ── 무료 미리보기 섹션 ───────────────── */}
       {previewContent && (
         <m.div
-          className="relative rounded-2xl overflow-hidden border border-violet-700/20 bg-gradient-to-b from-violet-950/40 to-slate-900/60 p-5"
-          initial={{ opacity: 0, y: 12 }}
+          className="relative rounded-2xl overflow-hidden border border-[var(--cd-sukuyo-rule)] bg-[var(--cd-sukuyo-surface)] p-5"
+          initial={reduceMotion ? false : { opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
           {/* FREE 배지 */}
           <div className="flex items-center gap-2 mb-3">
             <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold tracking-widest"
-              style={{ background: "rgba(167,139,250,0.18)", color: "#a78bfa", border: "1px solid rgba(167,139,250,0.3)" }}>
+              style={{ background: "color-mix(in srgb, var(--cd-sukuyo-gold) 15%, transparent)", color: "var(--cd-sukuyo-gold)", border: "1px solid var(--cd-sukuyo-rule)" }}>
               {copy.freeBadge}
             </span>
           </div>
@@ -361,8 +364,8 @@ export default function PremiumBlurGate({
       {/* ── 잠긴 프리미엄 섹션 ───────────────── */}
       <m.div
         className="relative rounded-2xl overflow-hidden"
-        style={{ border: "1px solid rgba(212,168,67,0.25)" }}
-        initial={{ opacity: 0, y: 16 }}
+        style={{ border: "1px solid var(--cd-sukuyo-rule)" }}
+        initial={reduceMotion ? false : { opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.15 }}
       >
@@ -370,7 +373,7 @@ export default function PremiumBlurGate({
         <div
           className="relative"
           style={{
-            background: "linear-gradient(180deg, rgba(30,20,60,0.85) 0%, rgba(20,12,40,0.95) 100%)",
+            background: "var(--cd-sukuyo-surface)",
             filter: "blur(4px)",
             userSelect: "none",
             pointerEvents: "none",
@@ -380,8 +383,8 @@ export default function PremiumBlurGate({
           <div className="p-4 pb-2">
             <div className="flex items-center gap-2 mb-3">
               <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold tracking-widest"
-                style={{ background: "rgba(212,168,67,0.18)", color: "#d4a843", border: "1px solid rgba(212,168,67,0.3)" }}>
-                {badgeLabel || "👑 PREMIUM"}
+                style={{ background: "var(--cd-sukuyo-surface)", color: "var(--cd-sukuyo-gold)", border: "1px solid var(--cd-sukuyo-rule)" }}>
+                {badgeLabel || displayProductName}
               </span>
             </div>
             {lockedContent || <DefaultLockedContent items={displayLockedItems} />}
@@ -390,38 +393,38 @@ export default function PremiumBlurGate({
 
         {/* 잠금 오버레이 */}
         <div className="absolute inset-0 flex flex-col items-center justify-center p-6"
-          style={{ background: "linear-gradient(180deg, rgba(8,5,20,0.2) 0%, rgba(8,5,20,0.88) 40%, rgba(8,5,20,0.97) 100%)" }}>
+          style={{ background: "linear-gradient(180deg, color-mix(in srgb, var(--cd-sukuyo-night) 20%, transparent) 0%, color-mix(in srgb, var(--cd-sukuyo-night) 88%, transparent) 40%, color-mix(in srgb, var(--cd-sukuyo-night) 97%, transparent) 100%)" }}>
           <LockParticles />
 
           <div className="relative z-10 text-center max-w-xs">
             {/* 잠금 아이콘 */}
             <m.div
-              className="w-14 h-14 rounded-full mx-auto mb-4 flex items-center justify-center text-2xl"
-              style={{ background: "linear-gradient(135deg,rgba(212,168,67,0.2),rgba(212,168,67,0.08))", border: "1px solid rgba(212,168,67,0.4)" }}
-              animate={{ boxShadow: ["0 0 12px rgba(212,168,67,0.2)", "0 0 30px rgba(212,168,67,0.5)", "0 0 12px rgba(212,168,67,0.2)"] }}
+              className="w-14 h-14 rounded-full mx-auto mb-4 flex items-center justify-center text-2xl text-[var(--cd-sukuyo-gold)]"
+              style={{ background: "var(--cd-sukuyo-surface)", border: "1px solid var(--cd-sukuyo-rule)" }}
+              animate={reduceMotion ? undefined : { opacity: [0.85, 1, 0.85] }}
               transition={{ duration: 2.5, repeat: Infinity }}
             >
-              {lockIcon || "🔐"}
+              {lockIcon || <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true"><rect x="5" y="10" width="14" height="11" rx="3" /><path d="M8 10V7a4 4 0 0 1 8 0v3M12 14v3" /></svg>}
             </m.div>
 
             {/* 제목 */}
-            <h3 className="text-base font-bold text-white mb-1 leading-tight">
+            <h3 className="text-base font-bold text-[var(--cd-sukuyo-pearl)] mb-1 leading-tight">
               {displayLockedTitle}
             </h3>
-            <p className="text-xs text-violet-300/60 mb-4 leading-relaxed">
+            <p className="text-xs text-[var(--cd-sukuyo-silver)] mb-4 leading-relaxed">
               {displaySubDesc}
             </p>
 
             {/* 잠긴 항목 힌트 */}
             <div className="text-left space-y-1.5 mb-5">
               {displayLockedItems.slice(0, 3).map((item, i) => (
-                <div key={i} className="flex items-center gap-2 text-xs text-violet-200/50">
-                  <span className="text-amber-500/60 flex-shrink-0">⊹</span>
+                <div key={i} className="flex items-center gap-2 text-xs text-[var(--cd-sukuyo-silver)]">
+                  <span className="text-[var(--cd-sukuyo-gold)] flex-shrink-0">⊹</span>
                   <span className="truncate">{item}</span>
                 </div>
               ))}
               {displayLockedItems.length > 3 && (
-                <div className="text-xs text-violet-400/40 pl-4">{copy.moreItems(displayLockedItems.length - 3)}</div>
+                <div className="text-xs text-[var(--cd-sukuyo-silver)] pl-4">{copy.moreItems(displayLockedItems.length - 3)}</div>
               )}
             </div>
 
@@ -441,18 +444,18 @@ export default function PremiumBlurGate({
               onHoverEnd={() => setIsHovering(false)}
               className="relative min-h-12 w-full touch-manipulation overflow-hidden rounded-xl py-3.5 text-sm font-bold tracking-wide disabled:cursor-wait disabled:opacity-75"
               style={{
-                background: "linear-gradient(135deg,#d4a843 0%,#f0c060 50%,#b8860b 100%)",
-                color: "#1a0e00",
-                boxShadow: "0 4px 24px rgba(212,168,67,0.35)",
+                background: "var(--cd-sukuyo-gold)",
+                color: "var(--cd-sukuyo-night)",
+                boxShadow: "0 4px 24px color-mix(in srgb, var(--cd-sukuyo-night) 35%, transparent)",
               }}
-              whileHover={{ scale: 1.02, boxShadow: "0 6px 32px rgba(212,168,67,0.55)" }}
-              whileTap={{ scale: 0.98 }}
+              whileHover={reduceMotion ? undefined : { scale: 1.02 }}
+              whileTap={reduceMotion ? undefined : { scale: 0.98 }}
             >
               {/* 버튼 빛 효과 */}
               <m.div
                 className="absolute inset-0 rounded-xl"
-                style={{ background: "linear-gradient(90deg,transparent,rgba(255,255,255,0.3),transparent)" }}
-                animate={isHovering ? { x: ["-100%", "100%"] } : { x: "-100%" }}
+                style={{ background: "linear-gradient(90deg,transparent,var(--cd-sukuyo-pearl),transparent)" }}
+                animate={!reduceMotion && isHovering ? { x: ["-100%", "100%"] } : { x: "-100%" }}
                 transition={{ duration: 0.6, ease: "easeInOut" }}
               />
               <span className="relative z-10">
@@ -466,7 +469,7 @@ export default function PremiumBlurGate({
               </span>
             </m.button>
 
-            <p className="text-[10px] text-violet-400/35 mt-2.5">
+            <p className="text-[10px] text-[var(--cd-sukuyo-silver)] mt-2.5">
               {footnote ?? copy.footnote}
             </p>
           </div>

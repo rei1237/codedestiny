@@ -30,8 +30,10 @@ const LIGHT_FORTUNES = [
 vars.lightFortunes = LIGHT_FORTUNES.map(item => {
   const product = item.key && (FEATURE_KEY_PRICE_TABLE[item.key] || UNLOCK_PRODUCT_BY_FEATURE_KEY[item.key]);
   if (item.key && (!Number.isSafeInteger(product?.amountKRW) || product.amountKRW <= 0)) throw new Error('Missing light fortune price: ' + item.key);
-  const price = product ? (product.accessModel === 'unlock' ? '해금 ' : '1회 ') + product.amountKRW.toLocaleString('ko-KR') + '원' : '무료';
-  return '<a class="cdh-light__item" href="' + item.href + '"><img src="' + item.image + '" width="160" height="100" loading="lazy" decoding="async" alt=""><span class="cdh-light__copy"><strong>' + item.name + '</strong><span>' + item.desc + '</span><small' + (item.key ? ' data-cd-play-price data-cd-play-feature="' + item.key + '" data-cd-play-kind="' + (product.accessModel === 'unlock' ? 'unlock' : 'perUse') + '" data-cd-price-key="' + item.key + '" data-price-krw="' + product.amountKRW + '"' : ' data-cd-price-free="true"') + '>' + price + '</small></span></a>';
+  const splitDetails = ['flower-fc', 'destiny-bias-analyze'].includes(item.key);
+  const detailPrice = product ? product.amountKRW.toLocaleString('ko-KR') + '원' : '';
+  const price = splitDetails ? '결과 무료 · 상세 ' + detailPrice : product ? (product.accessModel === 'unlock' ? '해금 ' : '1회 ') + product.amountKRW.toLocaleString('ko-KR') + '원' : '무료';
+  return '<a class="cdh-light__item" href="' + item.href + '"><img src="' + item.image + '" width="160" height="100" loading="lazy" decoding="async" alt=""><span class="cdh-light__copy"><strong>' + item.name + '</strong><span>' + item.desc + '</span><small' + (item.key ? ' data-cd-play-price data-cd-play-feature="' + item.key + '" data-cd-play-kind="' + (splitDetails ? 'freeResultDetails' : product.accessModel === 'unlock' ? 'unlock' : 'perUse') + '" data-cd-price-key="' + item.key + '" data-price-krw="' + product.amountKRW + '"' : ' data-cd-price-free="true"') + '>' + price + '</small></span></a>';
 }).join('');
 
 const introductionArt = JSON.parse(readFileSync('lib/marketing/service-introduction-art.json', 'utf8'));
@@ -410,6 +412,9 @@ homeHtml = homeHtml.replace(/<[a-z][^>]*data-cd-trans-attr="([^"]+)"[^>]*>/g, (t
   return tag;
 });
 homeHtml = homeHtml.replace(/(<[a-z][^>]*>)([^<>]+)(<\/[a-z][a-z0-9]*>)/g, (whole, open, text, close) => {
+  if (/^결과 무료 · 상세 \d[\d,]*원$/.test(text) && !/\sdata-cd-trans(?=[\s=>])/.test(open)) {
+    return open.slice(0, -1) + ' data-cd-trans="home.guideCopy.freeResultDetails"' + varsAttribute({ amount: text.replace(/^결과 무료 · 상세 |원$/g, '') }) + '>' + text + close;
+  }
   if (/^해금 \d[\d,]*원$/.test(text) && !/\sdata-cd-trans(?=[\s=>])/.test(open)) {
     return open.slice(0, -1) + ' data-cd-trans="home.guideCopy.unlockPrice"' + varsAttribute({ amount: text.replace(/^해금 |원$/g, '') }) + '>' + text + close;
   }

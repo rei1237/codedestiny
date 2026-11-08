@@ -41,6 +41,12 @@
   function inputOf(el) {
     return { featureKey: el.getAttribute('data-cd-play-feature') || el.getAttribute('data-cd-price-key'), reason: el.getAttribute('data-cd-play-reason') || el.getAttribute('data-cd-price-reason'), passTier: el.getAttribute('data-cd-play-pass'), passPolicyVersion: el.getAttribute('data-cd-play-policy') };
   }
+  function displayLabel(el, price) {
+    if (el.getAttribute('data-cd-detail-owned') === 'true') return translate('home.playPrice.detailsOwned', '상세 해금됨');
+    var kind = el.getAttribute('data-cd-play-kind');
+    if (kind === 'freeResultDetails') return translate('home.playPrice.freeResultDetails', '결과 무료 · 상세 {price}').replace(/\{price\}/g, price);
+    return price;
+  }
   function refresh() {
     if (!isApp() || !root.document) return;
     var version = generation;
@@ -48,7 +54,7 @@
       var input = inputOf(el);
       // A Play-only display must never present the web KRW amount while it loads.
       if (!el.hasAttribute('data-cd-play-resolved')) {
-        var pending = label(null); if (el.textContent !== pending) el.textContent = pending;
+        var pending = displayLabel(el, label(null)); if (el.textContent !== pending) el.textContent = pending;
       }
       var endKey = el.getAttribute('data-cd-price-key-to');
       void Promise.all([read(input), endKey ? read({ featureKey: endKey, reason: el.getAttribute('data-cd-price-reason-to') }) : null]).then(function (results) {
@@ -61,6 +67,7 @@
           next = translate('home.playPrice.' + kind, fallback).replace(/\{price\}/g, next);
         }
         el.setAttribute('data-cd-play-resolved', '');
+        next = displayLabel(el, next);
         if (el.textContent !== next) el.textContent = next;
       });
     });

@@ -22,6 +22,7 @@ export default function SajuServiceCatalog() {
         <h2 id="sajuServicesTitle">사주 서비스 한눈에 보기</h2>
         <p>꿀꿀운세의 사주 기능 {SAJU_SERVICE_ITEMS.length}가지를 한곳에 모았어요. 대표 상담부터 무료 풀이, 리포트, 공부까지.</p>
       </div>
+      <p className={styles.lead}><a href="/saju/free/">초간단 만세력으로 올해 키워드와 타고난 강점 보기</a></p>
       <nav aria-label="사주 서비스 묶음" className={styles.chips}>
         {SAJU_SERVICE_GROUPS.map((group) => <a key={group.id} href={`#${group.id}`}>{group.title}</a>)}
       </nav>

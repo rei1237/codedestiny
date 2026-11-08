@@ -2128,3 +2128,13 @@
   line-height: 1.55;
   color: var(--dbk-ink-soft);
 }
+
+/* Share controls use the result's stage surface and ink. */
+.viralShare button, .viralShare input {
+  background: var(--dbk-cream);
+  color: var(--dbk-ink);
+  border-color: var(--dbk-lilac-deep);
+}
+.viralShare button:hover { background: var(--dbk-card); }
+.viralShare button:focus-visible { outline-color: var(--dbk-lilac-deep); }
+.viralShare p { color: var(--dbk-ink-soft); }

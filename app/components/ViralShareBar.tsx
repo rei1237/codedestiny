@@ -1,7 +1,8 @@
 "use client";
 
 import { useCallback, useRef, useState, type RefObject } from "react";
-import { shareThrough, socialIntentUrl } from "@/js/share-service.mjs";
+import { shareThrough, socialIntentUrl, withShareUtm } from "@/js/share-service.mjs";
+import { dataUrlToBlob } from "@/lib/share-image";
 import { useAnalytics } from "@/app/hooks/useAnalytics";
 
 /**
@@ -43,19 +44,6 @@ type Status = { tone: "ok" | "warn"; text: string } | null;
 function resolveUrl(url: string) {
   const origin = typeof window !== "undefined" ? window.location.origin : "https://code-destiny.com";
   return new URL(url, origin).toString();
-}
-
-/**
- * data: URL → Blob. 🔴 fetch(dataUrl) 를 쓰지 않는다: 운영 CSP(public/_headers)의 connect-src 에 data: 가 없어
- * fetch 가 막히고 이미지 저장 전체가 실패한다.
- */
-function dataUrlToBlob(dataUrl: string) {
-  const comma = dataUrl.indexOf(",");
-  const mime = /^data:([^;,]+)/.exec(dataUrl)?.[1] || "image/png";
-  const binary = atob(dataUrl.slice(comma + 1));
-  const bytes = new Uint8Array(binary.length);
-  for (let i = 0; i < binary.length; i += 1) bytes[i] = binary.charCodeAt(i);
-  return new Blob([bytes], { type: mime });
 }
 
 function downloadDataUrl(href: string, filename: string) {
@@ -124,7 +112,7 @@ export default function ViralShareBar({
     trackShare({ feature, channel: "link" });
     let shareUrl: string;
     try {
-      shareUrl = resolveUrl(url);
+      shareUrl = withShareUtm(resolveUrl(url), "link");
     } catch {
       setStatus({ tone: "warn", text: "공유 주소를 만들지 못했어요." });
       return;

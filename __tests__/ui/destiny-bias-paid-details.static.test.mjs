@@ -24,7 +24,7 @@ test("결제 게이트는 details 진입(openDetails) 한 곳에서만 부른다
   const details = slice("const openDetails = useCallback(", "/** 무드를 바꾸면");
   assert.match(details, /await ensurePaidAccess\(/);
   assert.match(details, /featureKey: DESTINY_BIAS_ANALYZE_FEATURE_KEY/);
-  assert.match(details, /unlockDetails\(target, info\)/);
+  assert.match(details, /unlockDetails\(target, info, stored\)/);
 });
 
 test("상세 리포트 컴포넌트는 해금 뒤에만 그리고, 무료 화면은 공유 바·포토카드를 그린다", () => {

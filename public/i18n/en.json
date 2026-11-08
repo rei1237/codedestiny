@@ -2263,12 +2263,15 @@
       "webtoonTitle": "The Black Moon’s Warning",
       "webtoonDesc": "Is there another path beyond the future foretold by the Black Moon? Yeoni and Neo trace your nature and the year ahead to find the choices worth avoiding.",
       "webtoonStart": "Read the first scene",
-      "webtoonMore": "Explore other masters’ consultation webtoons"
+      "webtoonMore": "Explore other masters’ consultation webtoons",
+      "freeResultDetails": "Free result · Details {amount} KRW"
     },
     "playPrice": {
       "from": "From {price}",
       "unlock": "Unlock for {price}",
-      "perUse": "{price} per reading"
+      "perUse": "{price} per reading",
+      "freeResultDetails": "Free result · Details {price}",
+      "detailsOwned": "Details unlocked"
     },
     "choice": {
       "lead": "Explore the consultations, then choose what is on your mind.",
@@ -5234,7 +5237,8 @@
           "aiBlocked": "The new tab seems to have been blocked. Allow pop-ups in your browser or open the AI site you want directly.",
           "summaryCopied": "Summary copied to the clipboard.",
           "promptCopied": "The main AI flower prompt has been copied to the clipboard.",
-          "promptPackCopied": "The main/negative prompt set has been copied to the clipboard."
+          "promptPackCopied": "The main/negative prompt set has been copied to the clipboard.",
+          "rateLimited": "Please wait a moment before trying again."
         },
         "fallback": {
           "astrology": {
@@ -5323,7 +5327,8 @@
         "guide": {
           "allBloomed": "All flowers have bloomed. Revisit any tab you like.",
           "startSaju": "Next step: open your Saju flower first to start blooming.",
-          "next": "Next step: move on to your {source} flower to keep blooming."
+          "next": "Next step: move on to your {source} flower to keep blooming.",
+          "availableBloomed": "Revisit your available flower cards or explore atelier details."
         },
         "tab": {
           "lockLabel": "Opens when the atelier is unlocked"
@@ -5506,6 +5511,29 @@
           "hot": "Warm & dry",
           "cold": "Cold & damp",
           "balanced": "Balanced"
+        },
+        "viral": {
+          "ask": "Discover your flower, too.",
+          "threads": "Threads",
+          "link": "Copy link",
+          "download": "Save image",
+          "aria": "Share your destiny flower",
+          "title": "Show your flower to a friend",
+          "opened": "The sharing window is open.",
+          "x": "X"
+        },
+        "atelierLock": {
+          "aria": "Unlock atelier details",
+          "kicker": "Your Saju flower card and sharing are free",
+          "title": "Flower atelier details",
+          "item1": "Three more flowers from astrology, Zi Wei Dou Shu and Sukuyo",
+          "item2": "Why this flower fits you and its story",
+          "item3": "Flower meaning, gardener’s note and color guidance",
+          "desc": "Revisit atelier details with the account that unlocked them.",
+          "degraded": "Purchase information is temporarily unavailable. If already unlocked, please check again.",
+          "retry": "Check again",
+          "cta": "Unlock details · {price}",
+          "owned": "Details unlocked"
         }
       }
     }
@@ -15534,7 +15562,7 @@
       }
     },
     "flower_fc": {
-      "tagline": "The energy of the day you were born chooses a flower's kind and color. Through four lenses (Saju, astrology, Ziwei Doushu, and Sukuyo), meet the flower that blooms for you in each, all with a single unlock.",
+      "tagline": "Your Saju flower card and sharing are free. Unlock atelier details to explore flowers from astrology, Zi Wei Dou Shu and Sukuyo, with their meanings, colors and readings.",
       "feats": {
         "0": "The flowers of all four branches (Saju, astrology, Ziwei Doushu, and Sukuyo) at once",
         "1": "Your flower and color, chosen from an eighty-nine-species field guide",
@@ -15636,28 +15664,28 @@
           "detail": "Once the flower blooms, we explain part by part why it was chosen, along with its colors and flower language."
         }
       },
-      "faq": {
-        "0": {
+      "faq": [
+        {
           "q": "What does unlocking open?",
-          "a": "A single unlock opens the flowers of all four branches (Saju, astrology, Ziwei Doushu, and Sukuyo), together with each branch's palette, flower language, and explanation."
+          "a": "Your Saju flower card and sharing are free. Unlock atelier details to explore flowers from astrology, Zi Wei Dou Shu and Sukuyo, with their meanings, colors and readings."
         },
-        "1": {
+        {
           "q": "Do I need to know my birth time?",
           "a": "No. Your date of birth is enough. If you don't know the time and place, noon in Seoul is used; if you do, those values are used."
         },
-        "2": {
+        {
           "q": "Will the flower change if I look again?",
           "a": "The same details always bloom the same flower, because nothing is drawn at random. Changing your birth time or place may change the result."
         },
-        "3": {
+        {
           "q": "Can I save the flower image?",
           "a": "The Destiny Flower does not create an image file. Instead, you can copy the flower description into the image AI of your choice to draw it, and share the result text on KakaoTalk or by copying it. Flowers you bloom stay in the blooming records on this device."
         },
-        "4": {
+        {
           "q": "How do refunds work?",
           "a": "You can request withdrawal under the conditions set out in the refund policy. Withdrawal may be limited for parts you have already started viewing, and Moonstones are not eligible for cash refunds. Please see the refund policy for details."
         }
-      }
+      ]
     },
     "palm_reading": {
       "tagline": "Examine four main lines, nine types of secondary lines, seven palm mounts and six special markings, then write an integrated reading targeting about 3,000 characters.",
