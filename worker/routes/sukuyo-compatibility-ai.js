@@ -1809,6 +1809,8 @@ async function createPersonalAnswerV2(env, input, calculation) {
       temperature: 0.74,
       timeoutMs: attempt === 1 ? baseTimeout : clampSyncLlmTimeoutMs(Math.min(baseTimeout, remaining)),
       maxOutputTokens: 4096,
+      // 판 1의 240자 하한이 없으니 짧은 Workers AI 폴백 스텁만 막는다(관례: 240 × 0.3).
+      fallbackMinChars: 72,
       cache: attempt === 1 ? sukuyoSectionCache(env, "plan2-personal") : undefined,
     }).catch((error) => ({ ok: false, error: error?.message || String(error) }));
     const provider = clean(ai?.provider || "");

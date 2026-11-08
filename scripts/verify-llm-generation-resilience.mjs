@@ -1082,7 +1082,8 @@ const EXPECTED_LLM_CALL_SITES = {
   // vedic 1건: 그룹 생성 하나로 웨이브 1(전 그룹 동시)·2(분량 미달)·3(품질 미달)이 모두 지나간다.
   // 구 2건은 단일 호출 상담(callConsultationLlm)의 JSON/프로즈 두 갈래였고, 그룹 전환으로 사라졌다
   // — 이 라우트에는 후속 질문 경로가 없어 프로즈 갈래는 호출자가 0이었다.
-  "worker/lib/paid-narrative-delivery.js": 1, "worker/routes/sukuyo-compatibility-ai.js": 4, "worker/routes/vedic-ai.js": 1,
+  // sukuyo 5건: 묶음·요약(판 1·2 공용)·판 1 개인·후속 4건 + 판 2 개인(createPersonalAnswerV2, 짧은 폴백만 fallbackMinChars 72로 막음).
+  "worker/lib/paid-narrative-delivery.js": 1, "worker/routes/sukuyo-compatibility-ai.js": 5, "worker/routes/vedic-ai.js": 1,
   // Ziwei: two checkpointed calls (body/meta) per plan (판 1·판 2), all disable fallback and use one bounded attempt; legacy helpers retain three calls.
   "worker/routes/yoga-guru.js": 1, "worker/routes/saju-compat-basic.js": 1, "worker/routes/ziwei-ai.js": 7, "worker/routes/ziwei-deep-report.js": 1,
   "worker/lib/fusion-fortune.js": 1, "worker/lib/palm-vision.js": 2,
