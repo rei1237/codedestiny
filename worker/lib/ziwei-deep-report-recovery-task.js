@@ -4,6 +4,7 @@ import { readOrderResumeContext, RESUME_APPROVED_TTL_MS } from '../payments/resu
 import { runZiweiDeepReportDeliveryBatch } from '../routes/ziwei-deep-report.js';
 import { ZIWEI_DEEP_CHAPTERS, ZIWEI_DEEP_PDF_META } from './ziwei-deep-report-prompt.mjs';
 import { __ziweiDeepReportTestUtils } from '../routes/ziwei-deep-report.js';
+import { isZiweiDeepPlanV2 } from './ziwei-deep-delivery-v2.js';
 
 const FEATURE_KEY = ZIWEI_DEEP_PDF_META.featureKey;
 const ABANDONED_AFTER_MS = 300000, TASK_BUDGET_MS = 240000, BATCH_BUDGET_MS = 65000, MAX_PER_TICK = 3;
@@ -81,7 +82,9 @@ export async function runZiweiDeepReportRecovery(env, options = {}) {
     const userId = String(candidate.userId || ''), requestId = String(candidate.idempotencyKey || '');
     if (!userId || !requestId) continue;
     const chapters = reusableDeepChapters(candidate);
-    const exhausted = ZIWEI_DEEP_CHAPTERS.some(definition => !isDeepChapterComplete(chapters.find(ch => ch.id === definition.id), definition) && Number(candidate.llmMeta?.attempts?.[definition.id] || 0) >= CHAPTER_MAX_ATTEMPTS);
+    // 판 2는 라우트가 저장된 구제 예산과 초안을 정리한다. 옛 예산 검사로 먼저 막으면
+    // 브라우저를 닫은 구매의 빈 장은 구제 경로에 도달하지 못한다.
+    const exhausted = !isZiweiDeepPlanV2(candidate) && ZIWEI_DEEP_CHAPTERS.some(definition => !isDeepChapterComplete(chapters.find(ch => ch.id === definition.id), definition) && Number(candidate.llmMeta?.attempts?.[definition.id] || 0) >= CHAPTER_MAX_ATTEMPTS);
     if (exhausted) {
       await withMongoRetry(env, () => ZiweiDeepReport.updateOne({ id: candidate.id, userId, ...buildAbandonedZiweiDeepFilter(now) },
         { $set: { 'llmMeta.recovery.reviewRequired': true } }), { retries: 0 });

@@ -517,6 +517,28 @@ test('판 2: 시도 소진으로 비었던 장은 저장된 별도 구제 1회�
   await f.post();
   assert.equal(calls.chapter5, 4, '완료본 재열람에서는 구제 호출도 반복하지 않는다');
 });
+
+test('판 2: 브라우저를 닫아도 서버 복구가 빈 장 구제까지 이어 완료한다', async () => {
+  const { f, ctx, env } = await approvedFixture();
+  Object.assign(ctx, await import('../../worker/lib/ziwei-deep-delivery-v2.js'));
+  const calls = {};
+  ctx.generateChapter = async (_env, _chart, _birth, definition) => {
+    calls[definition.id] = (calls[definition.id] || 0) + 1;
+    if (definition.id === 'chapter4' && calls[definition.id] <= 3)
+      return { id: definition.id, title: definition.title, body: '', ok: false };
+    return { id: definition.id, title: definition.title, body: v2Body(definition.id), provider: 'fixture', ok: true };
+  };
+  for (let tick = 0; tick < 12 && f.doc?.status !== 'completed'; tick++) {
+    if (f.doc) f.doc.updatedAt = new Date(Date.now() - 600000);
+    await ctx.runZiweiDeepReportRecovery(env);
+  }
+  assert.equal(f.doc.status, 'completed');
+  assert.equal(f.doc.chapters.length, 15);
+  assert.equal(calls.chapter4, 4);
+  assert.equal(f.doc.llmMeta.attempts['chapter4:emptyRescue'], 1);
+  assert.equal(f.doc.llmMeta.recovery?.reviewRequired, undefined);
+  assert.equal(f.refunds, 0);
+});
 test('판 2: 말투 이탈 장은 초안으로 남기고 다음 시도에 [보정] 힌트를 붙인다', async () => {
   const f = await fixtureV2(); const hints = [];
   f.ctx.ziweiDeepSoftIssues = body => String(body).includes('DRIFT') ? [{ code: 'REGISTER_DRIFT', sentences: ['DRIFT'] }] : [];

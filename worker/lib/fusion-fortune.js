@@ -1163,7 +1163,7 @@ async function rescueFusionPlan2EmptyChapters({ composed, groups, exhaustedOptio
   });
   console.warn("[fusion-fortune-chapter-rescue]", { requestId: text(requestId, 120), chapters: report });
   const pending = chapters.filter(({ key }) => !text(composed[key]?.content, 50000) && Number(attemptCounts[`rescue-${key}`] || 0) < attemptLimit);
-  return pending.length ? { pending: [...new Set(pending.map(({ group }) => group.id))] } : {};
+  return pending.length ? { pending: [...new Set(pending.map(({ group }) => group.id))], ran: true } : { ran: true };
 }
 
 async function repairFusionPlan2Groups({ context, composed, groups, waveGroups, attemptCounts, attemptLimit, priorSnapshot, validationOptions, runGroup, merged, prior, onCheckpoint, remainingMs, abortSignal, requestId }) {
@@ -1622,8 +1622,10 @@ export async function generateFusionFortuneWithRealLLM({
       automaticRetryAllowed: missing.some(group => !fusionGroupWaitsForPlan(group, context, stageNumber, composed) && Number(attemptCounts[group.id] || 0) < attemptLimit),
       pendingGroups: missing.map(group => group.id), qualityIssues: ["groups_incomplete"], stage: stageNumber };
   }
+  let rescuedThisWave = false;
   if (plan2 && stageNumber === 2) {
     const rescue = await rescueFusionPlan2EmptyChapters({ composed, groups, exhaustedOptional, attemptCounts, attemptLimit, runGroup, waveGroups, checkpointed: typeof onCheckpoint === "function", remainingMs, abortSignal, requestId });
+    rescuedThisWave = rescue.ran === true;
     if (rescue.pending) {
       return { result: composed, deliverable: false, generationSource: "gemini_partial", providerCalls, ...(modelFallbacks ? { modelFallbacks } : {}),
         automaticRetryAllowed: true, pendingGroups: rescue.pending, qualityIssues: ["rescue_pending"], stage: stageNumber };
@@ -1631,7 +1633,7 @@ export async function generateFusionFortuneWithRealLLM({
   }
   if (plan2 && stageNumber === 2) {
     // 🔴 수리는 모든 초안이 나온 뒤 책당 최대 2그룹만. 분량은 끝내 모자라도 배달을 막지 않는다.
-    const repair = await repairFusionPlan2Groups({ context, composed, groups, waveGroups, attemptCounts, attemptLimit, priorSnapshot, validationOptions, runGroup, merged, prior, onCheckpoint, remainingMs, abortSignal, requestId });
+    const repair = await repairFusionPlan2Groups({ context, composed, groups, waveGroups: rescuedThisWave ? [{ id: "chapter-rescue" }] : waveGroups, attemptCounts, attemptLimit, priorSnapshot, validationOptions, runGroup, merged, prior, onCheckpoint, remainingMs, abortSignal, requestId });
     if (repair.pending) {
       return { result: composed, deliverable: false, generationSource: "gemini_partial", providerCalls, ...(modelFallbacks ? { modelFallbacks } : {}),
         automaticRetryAllowed: true, pendingGroups: repair.pending, qualityIssues: ["repair_pending"], stage: stageNumber };
