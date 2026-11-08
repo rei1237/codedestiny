@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-08
-next: 6단계 초융합 운세 — 대상 라우트·프롬프트·결과 화면·보관함을 조사해 "6단계 진행 메모"를 쓰고 설계 확정·TDD부터, 실호출 샘플 1회(5단계 결과·하네스 참고)
+next: 6단계 초융합 운세 구현 — "6단계 진행 메모"의 설계 초안 1~10을 TDD로 확정·구현하고 검증, 목 dry-run 뒤 실호출 샘플 1회, 끝나면 next = 7단계 자미두수
 ---
 
 # 3만원 이상 유료 LLM — 상품별 챕터·분량·PDF·전달 개선 인수인계
@@ -446,6 +446,16 @@ next: 6단계 초융합 운세 — 대상 라우트·프롬프트·결과 화면
   - `lib/marketing/feature-marketing-copy.generated.json:8352,8508` "20개 챕터 합계 목표 50,000자"
   - `docs/purchase-journey/inventory.json:8261,8484` "46,000자"
   - 개인판만 "2~3만 자"로 바꿀지 사용자가 정한다.
+
+#### 5단계 보정 실호출 샘플 (개인판, 2026-11-08, 커밋 bd6392a12 기준)
+- 결과: completed, plan 2, 20장. 장 순서와 제목은 계획 그대로이고 outline 이슈는 0개다.
+- 분량: 총 26,372자로 목표 20~30k 안이다. 장별 1,389~2,601자이고 floor 미만인 장은 없다.
+  - 18/20장이 장별 상한(hi)을 넘었다. 총량이 범위 안이라 지금은 두지만, 장별 상한은 지켜지지 않는다.
+- 호출: 요청 25회, 생성 호출 24회(provider_call 로그 48줄 중 24줄은 0자 예열·캐시 호출), 323초.
+  - 재시도 4장: timing, parting-reunion, cross-check, three-years. F19 상한 4 안이다.
+- 반복과 인용: crossRepeat 0, 저장된 softIssues 0, 질문 재인용 0, 금칙어 0, 환불 없음.
+- 산출물: `scratchpad\codex-solo-v3\live\out-solo\{summary.json,doc.json,full.md}`(저장소 밖).
+- 하네스는 `scratchpad\codex-solo-v3\live\`(run.mjs, register.mjs, stubs, `--mock` 모드)다. 6단계 하네스를 만들 때 본뜬다.
 
 ## 6단계 진행 메모 (조사 완료, 구현 전 — 2026-11-08)
 
