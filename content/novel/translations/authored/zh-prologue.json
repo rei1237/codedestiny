@@ -1,0 +1,796 @@
+{
+  "status": "draft",
+  "method": "directly authored; no translation API",
+  "episodeId": "prologue",
+  "metadata": {
+    "zh-CN": {
+      "title": "手机里多了个奇怪的应用",
+      "tag": "序章 · 手机里多了个奇怪的应用"
+    },
+    "zh-TW": {
+      "title": "手機裡多了個奇怪的應用程式",
+      "tag": "序章 · 手機裡多了個奇怪的應用程式"
+    }
+  },
+  "sourceTitle": "이상한 앱이 깔렸다",
+  "sourceTag": "프롤로그 · 이상한 앱이 깔렸다",
+  "rows": [
+    {
+      "id": "prologue:1",
+      "source": "연이는 요즘 되는 일이 없었다. 하루쯤 운이 나쁜 거라면 넘겼을 텐데, 작은 어긋남이 며칠째 쌓이고 있었다.",
+      "sourceHash": "6943902bb9100c50e7c81f2d1e22fe94553d0cd14d525b79bfb185ba5191d0e0",
+      "translations": {
+        "en": "Nothing had been going Yeoni’s way lately. One unlucky day would have been easy enough to shrug off, but little things had been going wrong for days.",
+        "ja": "最近のYeoniは、何をやってもうまくいかなかった。一日くらい運が悪いだけなら流せたはずなのに、小さな食い違いが何日も積み重なっていた。",
+        "zh-CN": "Yeoni最近诸事不顺。要只是倒霉一天，忍忍也就过去了，可这些小小的差错已经接连堆积了好几天。",
+        "zh-TW": "Yeoni最近諸事不順。要只是倒楣一天，忍忍也就過去了，可這些小小的差錯已經接連堆積了好幾天。"
+      }
+    },
+    {
+      "id": "prologue:2",
+      "source": "그날 아침도 그랬다. 알람은 분명 세 개였다. 7시 10분, 7시 15분, 7시 20분. 이름까지 야무지게 붙여 뒀다.",
+      "sourceHash": "a79a6e1bc72efe9a0269e0d4a1ca8e43c321719dd17339f2c5780ad76d8f0b14",
+      "translations": {
+        "zh-CN": "那天早晨也是。明明设了三个闹钟：7点10分、7点15分、7点20分，连名字都认真起好了。",
+        "zh-TW": "那天早晨也是。明明設了三個鬧鐘：7點10分、7點15分、7點20分，連名字都認真起好了。"
+      }
+    },
+    {
+      "id": "prologue:3",
+      "source": "[ 일어나 ]   [ 진짜 일어나 ]   [ 이러다 인생 망함 ]",
+      "sourceHash": "a259fbdf06063208d97679f963996c755c90656c0dbd657617c2eab065c99d09",
+      "translations": {
+        "en": "[ Get up ]   [ Seriously, get up ]   [ Keep this up and your life is over ]",
+        "ja": "［ 起きろ ］   ［ 本当に起きろ ］   ［ このままだと人生終わる ］",
+        "zh-CN": "［ 起床 ］   ［ 真的该起床了 ］   ［ 再这样下去人生就完了 ］",
+        "zh-TW": "［ 起床 ］   ［ 真的該起床了 ］   ［ 再這樣下去人生就完了 ］"
+      }
+    },
+    {
+      "id": "prologue:4",
+      "source": "하나도 울리지 않았다. 눈을 떴을 때 커튼 틈으로 들어온 빛은 이미 노랬다. 딱 '늦었다'의 색이었다.",
+      "sourceHash": "9a59ead25d07f58197cb92a9929e3b6b921fe52a52affcf8c70ad71015ef6b37",
+      "translations": {
+        "zh-CN": "一个也没响。睁眼时，窗帘缝里透进来的光已经黄了，分明就是「迟到了」的颜色。",
+        "zh-TW": "一個也沒響。睜眼時，窗簾縫裡透進來的光已經黃了，分明就是「遲到了」的顏色。"
+      }
+    },
+    {
+      "id": "prologue:5",
+      "source": "휴대폰은 1퍼센트였다. 충전기는 콘센트에 얌전히 꽂혀 있었고, 빠진 건 휴대폰 쪽이었다. 잠금 화면에 처음 보는 알림이 한 줄 떠 있었다. [ 운세 손상 감지 · 알림을 끄시겠습니까? ] 연이는 광고인 줄 알고 옆으로 밀어 버렸다.",
+      "sourceHash": "4e6e0df0f45acf69341066fb4a35a73cf9a403671eb1cd3c552f465db6322aef",
+      "translations": {
+        "zh-CN": "手机只剩1%的电，充电器好端端插在插座上，脱落的是手机那头。锁屏上冒出一条陌生通知：［ 检测到运势受损 · 是否关闭通知？ ］Yeoni以为是广告，随手划掉了。",
+        "zh-TW": "手機只剩1%的電，充電器好端端插在插座上，脫落的是手機那頭。鎖屏上冒出一條陌生通知：［ 檢測到運勢受損 · 是否關閉通知？ ］Yeoni以為是廣告，隨手劃掉了。"
+      }
+    },
+    {
+      "id": "prologue:6",
+      "source": "…너도 나랑 손절했냐?",
+      "sourceHash": "b97ecc3e140524e8ed6dee5960fdc7ffc5a759643873f96102690f398acc5811",
+      "translations": {
+        "en": "…You cutting me off too?",
+        "ja": "……お前まで縁を切るの？",
+        "zh-CN": "……连你也要跟我绝交？",
+        "zh-TW": "……連你也要跟我絕交？"
+      }
+    },
+    {
+      "id": "prologue:7",
+      "source": "충전기는 대답하지 않았다. 그날따라 세상 모든 게 연이한테만 조용히 등을 돌린 것 같았다.",
+      "sourceHash": "ed7149c5b5a3e51cbcf4391c1ac406f5661add2077b9ccba44c5eb26de068a4c",
+      "translations": {
+        "zh-CN": "充电器没有回答。那天好像全世界都只对Yeoni默默转过了身。",
+        "zh-TW": "充電器沒有回答。那天好像全世界都只對Yeoni默默轉過了身。"
+      }
+    },
+    {
+      "id": "prologue:8",
+      "source": "신고 나온 양말은 왼쪽 흰색, 오른쪽 회색. 무늬까지 달랐다. 발을 내려다보는 데 3초쯤 걸렸다.",
+      "sourceHash": "1bff15dd48ecb1bf4d24539554e7f0162d8f931e9fc78c683dd65223d805a226",
+      "translations": {
+        "en": "The sock on the left was white; the one on the right, gray. Even the patterns were different. Yeoni stared down for about three seconds.",
+        "ja": "履いてきた靴下は左が白、右が灰色。柄まで違った。足元を見つめること、三秒ほど。",
+        "zh-CN": "穿出门的袜子，左脚白色，右脚灰色，连花纹都不一样。Yeoni低头看了大约三秒。",
+        "zh-TW": "穿出門的襪子，左腳白色，右腳灰色，連花紋都不一樣。Yeoni低頭看了大約三秒。"
+      }
+    },
+    {
+      "id": "prologue:9",
+      "source": "…요즘은 믹스매치도 패션이라던데.",
+      "sourceHash": "5c4321314da6490376e3d834b4abcafc0eeaef2fbca9efab11b4265baa198724",
+      "translations": {
+        "en": "…They say mixing and matching is fashionable these days.",
+        "ja": "……最近はミックスマッチもおしゃれっていうし。",
+        "zh-CN": "……现在不都说混搭也是时尚吗。",
+        "zh-TW": "……現在不都說混搭也是時尚嗎。"
+      }
+    },
+    {
+      "id": "prologue:10",
+      "source": "연이는 긍정적으로 생각하기로 했다. 긍정은 연이가 불운을 견디는 유일한 방법이었다.",
+      "sourceHash": "634d68060781cfd8d85d49ab3fb66ee3c1cb33b72803c1ba8081bc156f25d5a0",
+      "translations": {
+        "zh-CN": "Yeoni决定往好处想。乐观是她熬过坏运气的唯一办法。",
+        "zh-TW": "Yeoni決定往好處想。樂觀是她熬過壞運氣的唯一辦法。"
+      }
+    },
+    {
+      "id": "prologue:11",
+      "source": "문제는 버스였다. 카드를 댔다. 삑. 다시 대주세요.",
+      "sourceHash": "666d72d1dc3fc04e3752cebb84500fbc1313597fa04cff822fcdf7be234ee5f4",
+      "translations": {
+        "zh-CN": "问题出在公交车上。刷卡，嘀——请重新刷卡。",
+        "zh-TW": "問題出在公交車上。刷卡，嘀——請重新刷卡。"
+      }
+    },
+    {
+      "id": "prologue:12",
+      "source": "다시 댔다. 삑, 다시 대주세요. 또 댔다. 삑, 다시 대주세요. 뒤에 선 사람들이 아무 말 없이 연이를 봤다.",
+      "sourceHash": "6504abebd50052d2a53951ff3faaebd6e2d41eb0e74168f7c10a64afd54a5a0a",
+      "translations": {
+        "zh-CN": "再刷，嘀——请重新刷卡。又刷，还是那句。身后的人一声不吭地看着她。",
+        "zh-TW": "再刷，嘀——請重新刷卡。又刷，還是那句。身後的人一聲不吭地看著她。"
+      }
+    },
+    {
+      "id": "prologue:13",
+      "source": "(그 침묵이 제일 무서웠다.) …너 어제까진 멀쩡했잖아.",
+      "sourceHash": "7d38a0f388bd928920daef59833151b404909f908e812ae4e4d69de4544b47e0",
+      "translations": {
+        "en": "(That silence was the worst part.) …You worked fine yesterday.",
+        "ja": "（あの沈黙がいちばん怖かった。）……昨日まではちゃんと動いてたじゃん。",
+        "zh-CN": "（那种沉默才最可怕。）……你昨天不是还好好的吗。",
+        "zh-TW": "（那種沉默才最可怕。）……你昨天不是還好好的嗎。"
+      }
+    },
+    {
+      "id": "prologue:14",
+      "source": "카드는 네 번째에야 찍혔지만, 둘 사이엔 이미 금이 가 있었다. 연이는 속으로 별점을 매겼다.",
+      "sourceHash": "ad91dc9e76b18812e87b8a9fbb7f22b80876195dbda3981674a2998c4751c75a",
+      "translations": {
+        "zh-CN": "第四次终于刷上了，可她和这张卡之间已经有了裂痕。Yeoni在心里打起了评分。",
+        "zh-TW": "第四次終於刷上了，可她和這張卡之間已經有了裂痕。Yeoni在心裡打起了評分。"
+      }
+    },
+    {
+      "id": "prologue:15",
+      "source": "(교통카드 별 하나. 사유: 네 번 만에 인식, 재구매 의사 없음.)",
+      "sourceHash": "84865555a85be01fde4f72a3aa365472361534e1695e283b10b1424db9d98b47",
+      "translations": {
+        "zh-CN": "（交通卡一星。理由：刷四次才识别，不会回购。）",
+        "zh-TW": "（交通卡一星。理由：刷四次才識別，不會回購。）"
+      }
+    },
+    {
+      "id": "prologue:16",
+      "source": "점심엔 참치마요 삼각김밥을 샀다. 뜯자마자 바닥으로 엎어졌다. 밥알이 흩어지고 김이 반쯤 벗겨진 얼굴이 처참했다.",
+      "sourceHash": "9be7e91c8e9778bda9a95b585415ffcfa7460b1e0768f437b42a5f3c0959aaa0",
+      "translations": {
+        "zh-CN": "午饭买了金枪鱼蛋黄酱三角饭团，刚拆开就倒扣在地上。米粒散了一地，海苔脱了一半，模样惨不忍睹。",
+        "zh-TW": "午飯買了金槍魚蛋黃醬三角飯糰，剛拆開就倒扣在地上。米粒散了一地，海苔脫了一半，模樣慘不忍睹。"
+      }
+    },
+    {
+      "id": "prologue:17",
+      "source": "(제 운명을 못 받아들인 얼굴이었다.) …미안하다, 넌 좋은 참치마요였어.",
+      "sourceHash": "129c3662c0db68e7df995e3ce224c6c55a6ae347714ccf5688d797394f292052",
+      "translations": {
+        "zh-CN": "（一副接受不了自己命运的表情。）……对不起，你本来是个好好的金枪鱼饭团。",
+        "zh-TW": "（一副接受不了自己命運的表情。）……對不起，你本來是個好好的金槍魚飯糰。"
+      }
+    },
+    {
+      "id": "prologue:18",
+      "source": "다시 샀고, 떨어뜨리지 않았다. 그런데 한입 물자마자 입안이 불탔다. 매운 제육이었다. 포장엔 분명 참치마요라고 적혀 있었다.",
+      "sourceHash": "3d26a4aba00f259b9419465b256699c37a49a9fdb2615175fd88f30e889d1933",
+      "translations": {
+        "zh-CN": "重新买了一个，这回没掉。可刚咬一口，嘴里便烧了起来——竟然是辣猪肉，包装上分明写着金枪鱼蛋黄酱。",
+        "zh-TW": "重新買了一個，這回沒掉。可剛咬一口，嘴裡便燒了起來——竟然是辣豬肉，包裝上分明寫著金槍魚蛋黃醬。"
+      }
+    },
+    {
+      "id": "prologue:19",
+      "source": "아니, 이제 삼각김밥도 나를 속이네?",
+      "sourceHash": "0291d66c2cdbb461c8ec342f82f1d069f8f157db2858db504c06e3d700570b89",
+      "translations": {
+        "en": "Seriously? Even the rice triangles are lying to me now?",
+        "ja": "ちょっと、今度はおにぎりまで私をだますの？",
+        "zh-CN": "不是吧，现在连三角饭团也来骗我？",
+        "zh-TW": "不是吧，現在連三角飯糰也來騙我？"
+      }
+    },
+    {
+      "id": "prologue:20",
+      "source": "삼각김밥은 대답하지 않았다. 당연했다. 그건 삼각김밥이니까.",
+      "sourceHash": "b3ca508bbe4dd305840d6346c615631a6e1de572de076419756b1841a6ff99f5",
+      "translations": {
+        "en": "The rice triangle said nothing. Naturally. It was a rice triangle.",
+        "ja": "おにぎりは答えなかった。当然だった。おにぎりなのだから。",
+        "zh-CN": "饭团没有回答。那当然。毕竟它只是个饭团。",
+        "zh-TW": "飯糰沒有回答。那當然。畢竟它只是個飯糰。"
+      }
+    },
+    {
+      "id": "prologue:21",
+      "source": "포장은 참치마요, 속은 매운 제육. 이거 허위광고잖아, 소비자원에 민원 넣는다.",
+      "sourceHash": "d6173a053c5c764e1bf31969882683f56189ac5d7b651a820889111e318597ed",
+      "translations": {
+        "zh-CN": "包装金枪鱼，里面辣猪肉。这是假广告吧，我要去消费者保护机构投诉。",
+        "zh-TW": "包裝金槍魚，裡面辣豬肉。這是假廣告吧，我要去消費者保護機構投訴。"
+      }
+    },
+    {
+      "id": "prologue:22",
+      "source": "거기까지는 웃겼다. 친구한테 말하면 'ㅋㅋㅋ 너 오늘 왜 그래'로 넘어갈 정도였다.",
+      "sourceHash": "4a7386deadef49aa0ea76e28e61d33c9d7f1fd40e933ac62d28a2cc022ed7dfc",
+      "translations": {
+        "zh-CN": "到这里还算好笑。告诉朋友，大概也就换来一句「哈哈，你今天怎么回事」。",
+        "zh-TW": "到這裡還算好笑。告訴朋友，大概也就換來一句「哈哈，你今天怎麼回事」。"
+      }
+    },
+    {
+      "id": "prologue:23",
+      "source": "그런데 며칠 뒤부터는 웃기지 않았다.",
+      "sourceHash": "68f61aa57c4702c3347eff574a460d053a8f40e608d3f612d7834ed80ef5caef",
+      "translations": {
+        "zh-CN": "可是几天之后，就笑不出来了。",
+        "zh-TW": "可是幾天之後，就笑不出來了。"
+      }
+    },
+    {
+      "id": "prologue:24",
+      "source": "아르바이트 면접은 당일 취소됐다. 과제 파일은 제출 직전에 깨졌다. 택배는 다른 동으로 갔다. 카페 쿠폰은 쓰려고 보니 어제 만료였다.",
+      "sourceHash": "c4c1b800607bb21c4ccc56224f29aab9149fa2a9cc95cd87ee436d673ee56bb6",
+      "translations": {
+        "zh-CN": "兼职面试当天取消，作业文件提交前损坏，快递送到别栋楼，咖啡店优惠券拿出来才发现昨天刚过期。",
+        "zh-TW": "兼職面試當天取消，作業檔案提交前損壞，快遞送到別棟樓，咖啡店優惠券拿出來才發現昨天剛過期。"
+      }
+    },
+    {
+      "id": "prologue:25",
+      "source": "중요한 메시지에는 전송 실패가 떴다. 사과는 늘 한발 늦었고 잘해 보려던 말은 엉뚱한 뜻으로 전해졌다.",
+      "sourceHash": "dad59679d586ca35ef70dcaffb1df9a98bf8b3ec8019082f717db0e99cec6d98",
+      "translations": {
+        "zh-CN": "重要消息总是发送失败，道歉总晚一步，想好好说的话也总被理解成别的意思。",
+        "zh-TW": "重要訊息總是傳送失敗，道歉總晚一步，想好好說的話也總被理解成別的意思。"
+      }
+    },
+    {
+      "id": "prologue:26",
+      "source": "한 번은 답장창에 점 세 개가 반짝였다. 먼저 미안하다고 보낸 메시지 아래였다. 뭔가 오려다가 스르르 사라졌다.",
+      "sourceHash": "e4a01fccaeb51ee6052f388788e531226944a073570c85681d5fc93511900e86",
+      "translations": {
+        "zh-CN": "有一次，她先发去的道歉下面，回复框闪起了三个小点。仿佛有什么要过来，却又悄悄消失了。",
+        "zh-TW": "有一次，她先發去的道歉下面，回覆框閃起了三個小點。彷彿有什麼要過來，卻又悄悄消失了。"
+      }
+    },
+    {
+      "id": "prologue:27",
+      "source": "연이는 점 세 개가 지워진 자리를 한참 보다가 휴대폰을 뒤집어 놓았다.",
+      "sourceHash": "b2226c982d7269dd4f62c5d87680268e065dab0afd92eb9328cb70ea233ae3c4",
+      "translations": {
+        "zh-CN": "Yeoni看着那三个小点消失的地方，许久才把手机扣了过去。",
+        "zh-TW": "Yeoni看著那三個小點消失的地方，許久才把手機扣了過去。"
+      }
+    },
+    {
+      "id": "prologue:28",
+      "source": "엎어 놓은 휴대폰 위로 방 안의 어둠이 내려앉았다. 연이는 이불을 코끝까지 끌어올렸다. 누구 탓도 아닌데 자꾸 미안해지는 밤이었다.",
+      "sourceHash": "4f3a35d5c301c21d19a641607465feedccd110c485e1b961eb926359082f346b",
+      "translations": {
+        "zh-CN": "屋里的黑暗落在扣着的手机上。她把被子拉到鼻尖。明明谁都没有错，却总觉得抱歉的一夜。",
+        "zh-TW": "屋裡的黑暗落在扣著的手機上。她把被子拉到鼻尖。明明誰都沒有錯，卻總覺得抱歉的一夜。"
+      }
+    },
+    {
+      "id": "prologue:29",
+      "source": "…요즘 왜 이렇게 꼬이지. 내가 뭘 잘못했나.",
+      "sourceHash": "9638669ad2aea7e6c64ae927431098d5e43fad68abe1806e6cd7e207afda11fa",
+      "translations": {
+        "zh-CN": "……最近怎么什么都不顺。我做错什么了吗。",
+        "zh-TW": "……最近怎麼什麼都不順。我做錯什麼了嗎。"
+      }
+    },
+    {
+      "id": "prologue:30",
+      "source": "처음엔 우연이라 웃어넘겼다. 그런데 우연도 며칠씩 겹치면 등 뒤에 누가 서 있는 것처럼 목덜미가 서늘해진다. 웃자고 시작한 하루가 자꾸 변명거리를 찾는 하루로 바뀌어 있었다.",
+      "sourceHash": "6bb3c858aa34de31588e194cf604cccc39d00456a6b8079cb585397970d2f347",
+      "translations": {
+        "zh-CN": "起初她笑着说是巧合。可巧合接连几天，后颈也会发凉，像背后站了个人。本来想笑着过的一天，总在寻找解释中结束。",
+        "zh-TW": "起初她笑著說是巧合。可巧合接連幾天，後頸也會發涼，像背後站了個人。本來想笑著過的一天，總在尋找解釋中結束。"
+      }
+    },
+    {
+      "id": "prologue:31",
+      "source": "그래도 연이는 운명 같은 걸 믿고 싶지 않았다. 운명은 너무 편한 말이었다.",
+      "sourceHash": "1cb60218d7afd58d35406ea3630e6be9cbe3fe79a4fef0149b856c9ef74180dc",
+      "translations": {
+        "zh-CN": "可她还是不愿相信命运之类的话。命运这个说法，太省事了。",
+        "zh-TW": "可她還是不願相信命運之類的話。命運這個說法，太省事了。"
+      }
+    },
+    {
+      "id": "prologue:32",
+      "source": "망하면 운명, 헤어지면 인연 아님, 늦으면 때가 아님. 그런 말은 늘 나만 제자리에 남겨 두더라.",
+      "sourceHash": "1cdbf4e6b2a6c2f30577b1ef91f2a804aa521f29b5a1824d0c4680e112c2abf9",
+      "translations": {
+        "zh-CN": "搞砸了就是命，分手了就是没缘分，迟到了就是时机未到。说来说去，总只剩我还在原地。",
+        "zh-TW": "搞砸了就是命，分手了就是沒緣分，遲到了就是時機未到。說來說去，總只剩我還在原地。"
+      }
+    },
+    {
+      "id": "prologue:33",
+      "source": "그렇게 말하면 설명은 쉬워진다. 마음은 하나도 안 쉬워진다.",
+      "sourceHash": "f702c8dca48034696e2ab8848679c39440577b0be2be264f50e181d42a6891f7",
+      "translations": {
+        "zh-CN": "这样解释很容易，心却一点也轻松不起来。",
+        "zh-TW": "這樣解釋很容易，心卻一點也輕鬆不起來。"
+      }
+    },
+    {
+      "id": "prologue:34",
+      "source": "그날 밤, 연이는 젖은 양말을 벗어 던지고 침대에 쓰러졌다. 오늘 일은 더 생각하고 싶지 않았다.",
+      "sourceHash": "b29508ea6c29f98d73164827d869605651734d82fd0200ec072f4754e32cc87b",
+      "translations": {
+        "en": "That night, Yeoni peeled off the wet socks, tossed them aside, and collapsed onto the bed. Enough thinking about today.",
+        "ja": "その夜、Yeoniは濡れた靴下を脱ぎ捨て、ベッドに倒れ込んだ。今日のことは、もう考えたくなかった。",
+        "zh-CN": "那天晚上，Yeoni脱下湿袜子扔到一边，倒在床上。今天的事，一点也不想再想了。",
+        "zh-TW": "那天晚上，Yeoni脫下濕襪子扔到一邊，倒在床上。今天的事，一點也不想再想了。"
+      }
+    },
+    {
+      "id": "prologue:35",
+      "source": "오늘은… 진짜 레전드였다.",
+      "sourceHash": "488fc83d48c52b4b2ecc8c0b6d2eee8ca91928e1e5564d4b5adb965dd7d6d9cf",
+      "translations": {
+        "en": "Today was… one for the history books.",
+        "ja": "今日は……ほんと、伝説級だった。",
+        "zh-CN": "今天……真是可以载入史册。",
+        "zh-TW": "今天……真是可以載入史冊。"
+      }
+    },
+    {
+      "id": "prologue:36",
+      "source": "배터리 4퍼센트. 충전기를 꽂으려는데 화면이 혼자 켜졌다.",
+      "sourceHash": "c37909f5f969dd1869985ff2118092d7fa8c789b46e628417fb0a9aada9a5745",
+      "translations": {
+        "zh-CN": "电量4%。正要插上充电器，屏幕自己亮了。",
+        "zh-TW": "電量4%。正要插上充電器，螢幕自己亮了。"
+      }
+    },
+    {
+      "id": "prologue:37",
+      "source": "…뭐야?",
+      "sourceHash": "e7d7ac295636526b963885c6d3d28bc606643ae5f8f5006b495faac1c6869b44",
+      "translations": {
+        "en": "…What?",
+        "ja": "……何？",
+        "zh-CN": "……什么？",
+        "zh-TW": "……什麼？"
+      }
+    },
+    {
+      "id": "prologue:38",
+      "source": "홈 화면 한가운데 처음 보는 앱이 있었다. 검은 밤하늘, 달빛으로 그려진 문, 작은 별 하나. 그리고 두 단어.",
+      "sourceHash": "6f72bd43ff5048cb36e6dd93450a0d5a5577777664e6a0366900851bde905157",
+      "translations": {
+        "zh-CN": "主屏正中多了个陌生应用：黑色夜空，月光画成的门，一颗小星星。还有两个词。",
+        "zh-TW": "主屏正中多了個陌生應用：黑色夜空，月光畫成的門，一顆小星星。還有兩個詞。"
+      }
+    },
+    {
+      "id": "prologue:39",
+      "source": "〈  Code Destiny  〉",
+      "sourceHash": "9a22eda6a4ba212ef5ac9d9967a9741962e12adee94b4738eb9c9d44408b416d",
+      "translations": {
+        "en": "〈  Code Destiny  〉",
+        "ja": "〈  Code Destiny  〉",
+        "zh-CN": "〈  Code Destiny  〉",
+        "zh-TW": "〈  Code Destiny  〉"
+      }
+    },
+    {
+      "id": "prologue:40",
+      "source": "내가… 이런 걸 깔았나?",
+      "sourceHash": "aed857b6d78701a238261d4d2926f1c3547162324301a81af1f2682d658871bd",
+      "translations": {
+        "en": "Did I… install this?",
+        "ja": "私……こんなの入れたっけ？",
+        "zh-CN": "我……装过这个吗？",
+        "zh-TW": "我……裝過這個嗎？"
+      }
+    },
+    {
+      "id": "prologue:41",
+      "source": "기억에 없었다. 삭제하려고 앱을 길게 눌렀더니 화면이 대답했다.",
+      "sourceHash": "72894013d9ed4e67dce1ab7bd2a41d174c52df04455bbb3371ed78be6a516519",
+      "translations": {
+        "zh-CN": "她毫无印象。长按想删除，屏幕却回了话。",
+        "zh-TW": "她毫無印象。長按想刪除，螢幕卻回了話。"
+      }
+    },
+    {
+      "id": "prologue:42",
+      "source": "[ 이 앱은 삭제할 수 없습니다. ]\n[ 이 앱은 운명과 연결되어 있습니다. ]",
+      "sourceHash": "16e4e0e25e31187bbd25c3f0da4409b45bcbce7e6fce86d30cf042bfd68d2770",
+      "translations": {
+        "en": "[ This app cannot be deleted. ]\n[ This app is connected to destiny. ]",
+        "ja": "［ このアプリは削除できません。 ］\n［ このアプリは運命と接続されています。 ］",
+        "zh-CN": "［ 无法删除此应用。 ］\n［ 此应用已与命运连接。 ］",
+        "zh-TW": "［ 無法刪除此應用程式。 ］\n［ 此應用程式已與命運連線。 ］"
+      }
+    },
+    {
+      "id": "prologue:43",
+      "source": "요즘 앱, 진짜 기세 미쳤네.",
+      "sourceHash": "0bec290b3c64eed3e5dea7ab3d7eff552811eff7d547dceb917a5ef8968fd4a7",
+      "translations": {
+        "en": "Apps these days have some serious nerve.",
+        "ja": "最近のアプリ、態度でかすぎでしょ。",
+        "zh-CN": "现在的应用，气焰也太嚣张了吧。",
+        "zh-TW": "現在的應用程式，氣焰也太囂張了吧。"
+      }
+    },
+    {
+      "id": "prologue:44",
+      "source": "결제한 적도 없는데 환불도 삭제도 안 돼. 배짱 하나는 별 다섯 개다.",
+      "sourceHash": "d406bcba958f1b84bfbfe028759632c45d680b78a4cb0f19922c4965be21eaf9",
+      "translations": {
+        "zh-CN": "我都没付过钱，居然既不能退款也不能删。光这胆量就值五星。",
+        "zh-TW": "我都沒付過錢，居然既不能退款也不能刪。光這膽量就值五星。"
+      }
+    },
+    {
+      "id": "prologue:45",
+      "source": "설정으로 들어가 봤다. 앱 목록에도 저장 공간에도 없었다. 그런데 홈 화면에는 너무 당당하게 있었다. 원래부터 제 자리였다는 듯이.",
+      "sourceHash": "2a0a79d6b631ca49c64cc962df656d51cbd5566e439180d4fa8bd761ac0211a3",
+      "translations": {
+        "zh-CN": "她打开设置。应用列表和存储空间里都没有它，可它理直气壮地待在主屏上，仿佛那里本来就是它的位置。",
+        "zh-TW": "她開啟設定。應用列表和儲存空間裡都沒有它，可它理直氣壯地待在主屏上，彷彿那裡本來就是它的位置。"
+      }
+    },
+    {
+      "id": "prologue:46",
+      "source": "그때 아침에 밀어 버린 알림이 다시 떴다.",
+      "sourceHash": "467b99f7a247df2c85a6d4367845b1370385c6f39bb9ea2e53c1fd4a454f73e2",
+      "translations": {
+        "zh-CN": "这时，早晨被划掉的通知又出现了。",
+        "zh-TW": "這時，早晨被劃掉的通知又出現了。"
+      }
+    },
+    {
+      "id": "prologue:47",
+      "source": "[ 사용자 운세 손상 감지 ]\n[ 행운 누수 · 인연 코드 일부 훼손 · 재물 코드 비정상 유출 ]",
+      "sourceHash": "1a47afbf95a3dd2a4d68ae1c74d7e70564265e774d71a2964778fb26b1b3f418",
+      "translations": {
+        "zh-CN": "［ 检测到用户运势受损 ］\n［ 好运泄漏 · 缘分代码部分损坏 · 财运代码异常流出 ］",
+        "zh-TW": "［ 檢測到使用者運勢受損 ］\n［ 好運洩漏 · 緣分程式碼部分損壞 · 財運程式碼異常流出 ］"
+      }
+    },
+    {
+      "id": "prologue:48",
+      "source": "[ 사용자: 연이 ]  [ 나이: 23 ]  [ 일간 후보: 乙 ]  [ 일주 코드: 乙亥 ]",
+      "sourceHash": "0908c428be682c4c242c36d611e36b0ccff497c621c367ebfc3eee81722435ba",
+      "translations": {
+        "en": "[ User: Yeoni ]  [ Age: 23 ]  [ Day Master candidate: 乙 ]  [ Day Pillar code: 乙亥 ]",
+        "ja": "［ ユーザー：Yeoni ］  ［ 年齢：23 ］  ［ 日干候補：乙 ］  ［ 日柱コード：乙亥 ］",
+        "zh-CN": "［ 用户：Yeoni ］  ［ 年龄：23 ］  ［ 日干候选：乙 ］  ［ 日柱代码：乙亥 ］",
+        "zh-TW": "［ 使用者：Yeoni ］  ［ 年齡：23 ］  ［ 日干候選：乙 ］  ［ 日柱代碼：乙亥 ］"
+      }
+    },
+    {
+      "id": "prologue:49",
+      "source": "내… 내 이름이랑 나이를 어떻게 알아?",
+      "sourceHash": "4e0b723c057225d6318e35d13c72135771dccd377128f421b229dedecf7aaeb2",
+      "translations": {
+        "en": "How… how do you know my name and age?",
+        "ja": "な……なんで私の名前と年齢を知ってるの？",
+        "zh-CN": "你……你怎么知道我的名字和年龄？",
+        "zh-TW": "你……你怎麼知道我的名字和年齡？"
+      }
+    },
+    {
+      "id": "prologue:50",
+      "source": "[ 우주는 원래 알고 있습니다. ]",
+      "sourceHash": "b08e075f3a069809463df1a18ea0b75789081f36d5c97e6167c61b24e1dc89e4",
+      "translations": {
+        "en": "[ The universe has always known. ]",
+        "ja": "［ 宇宙は初めから知っています。 ］",
+        "zh-CN": "［ 宇宙本来就知道。 ］",
+        "zh-TW": "［ 宇宙本來就知道。 ］"
+      }
+    },
+    {
+      "id": "prologue:51",
+      "source": "아니, 말투가 더 무섭잖아!",
+      "sourceHash": "44d6d19903d288e8a41347f7d8b9305a7e58122b667e4e4cdd8b788458867671",
+      "translations": {
+        "en": "That makes it even creepier!",
+        "ja": "いや、その言い方が余計に怖いんだけど！",
+        "zh-CN": "不是，你这样说更吓人了好吗！",
+        "zh-TW": "不是，你這樣說更嚇人了好嗎！"
+      }
+    },
+    {
+      "id": "prologue:52",
+      "source": "됐고, 고객센터 어디야. 상담원 연결, 지금 당장.",
+      "sourceHash": "3c9d5772008b4b5bc60346869e5be9e101e1636ea91d2cea49f331c0256000c8",
+      "translations": {
+        "zh-CN": "别说了，客服在哪儿。转人工，现在就转。",
+        "zh-TW": "別說了，客服在哪兒。轉人工，現在就轉。"
+      }
+    },
+    {
+      "id": "prologue:53",
+      "source": "[ 고객센터: 우주 ]\n[ 상담원: 없음 · 대기 순번: ∞ ]",
+      "sourceHash": "94d04de3ee4776af08e9ec2f2a5449400833e32f230e2b3f7b0141ec1da21afe",
+      "translations": {
+        "en": "[ Customer support: The universe ]\n[ Agents: None · Your place in the queue: ∞ ]",
+        "ja": "［ カスタマーサポート：宇宙 ］\n［ 担当者：不在・待ち順：∞ ］",
+        "zh-CN": "［ 客服中心：宇宙 ］\n［ 客服人员：无·当前排队序号：∞ ］",
+        "zh-TW": "［ 客服中心：宇宙 ］\n［ 客服人員：無·目前排隊號碼：∞ ］"
+      }
+    },
+    {
+      "id": "prologue:complaint",
+      "source": "[ 접수된 민원 1건 · 교통카드 · 별 하나 ]\n[ 사유: 네 번 만에 인식 · 처리 대기 ]",
+      "sourceHash": "63f927d625bec1285a2837f416f5ed2e6607e38a4ff06563bed20d7fd66dd1c5",
+      "translations": {
+        "zh-CN": "［ 已受理投诉1件 · 交通卡 · 一星 ］\n［ 原因：刷四次才识别 · 等待处理 ］",
+        "zh-TW": "［ 已受理投訴1件 · 交通卡 · 一星 ］\n［ 原因：刷四次才識別 · 等待處理 ］"
+      }
+    },
+    {
+      "id": "prologue:complaint-2",
+      "source": "그건 속으로 한 건데?!",
+      "sourceHash": "0d0492f2bad56bc99807715fa5b3fba72d98ef0e1eabe5ba0d0650699e32c719",
+      "translations": {
+        "zh-CN": "那是我在心里说的啊？！",
+        "zh-TW": "那是我在心裡說的啊？！"
+      }
+    },
+    {
+      "id": "prologue:54",
+      "source": "연이는 휴대폰을 베개 위로 던졌다. 휴대폰은 통통 튀더니 다시 화면을 밝혔다.",
+      "sourceHash": "48966e4ade749650cf32122a38007d781f94ac9f6bec5a92fe8d8948774d50f6",
+      "translations": {
+        "zh-CN": "她把手机扔到枕头上。手机弹了两下，又亮起屏幕。",
+        "zh-TW": "她把手機扔到枕頭上。手機彈了兩下，又亮起螢幕。"
+      }
+    },
+    {
+      "id": "prologue:55",
+      "source": "[ 운명 복구를 시작하시겠습니까? ]     [ YES ]     [ 나중에 ]",
+      "sourceHash": "23fa41a562df69c632cdbbfccedebcfaff7ea8a4ead54c7a120949112cc42fdf",
+      "translations": {
+        "en": "[ Begin destiny restoration? ]     [ YES ]     [ Later ]",
+        "ja": "［ 運命の修復を開始しますか？ ］     ［ YES ］     ［ あとで ］",
+        "zh-CN": "［ 是否开始修复命运？ ］     ［ YES ］     ［ 稍后 ］",
+        "zh-TW": "［ 是否開始修復命運？ ］     ［ YES ］     ［ 稍後 ］"
+      }
+    },
+    {
+      "id": "prologue:56",
+      "source": "연이는 당연히 [나중에]를 눌렀다. 화면이 바뀌었다.",
+      "sourceHash": "abfc4d23b93aaa08e646ba5f75d7c740bb778cab3d8aac95ada7efdd2158faec",
+      "translations": {
+        "zh-CN": "Yeoni当然按了［稍后］，画面便变了。",
+        "zh-TW": "Yeoni當然按了［稍後］，畫面便變了。"
+      }
+    },
+    {
+      "id": "prologue:57",
+      "source": "[ 나중에는 없습니다. ]",
+      "sourceHash": "b4039137b6ed275805b103e7d947e103f71924bcae48dae59fdcdc4a057e64ca",
+      "translations": {
+        "en": "[ There is no later. ]",
+        "ja": "［ あとではありません。 ］",
+        "zh-CN": "［ 没有稍后。 ］",
+        "zh-TW": "［ 沒有稍後。 ］"
+      }
+    },
+    {
+      "id": "prologue:58",
+      "source": "…그럼 왜 물어봤는데?",
+      "sourceHash": "6fa2a33f61795142751aaa7964d2882ceba60964d150db09f724d1c070f428c5",
+      "translations": {
+        "en": "…Then why did you ask?",
+        "ja": "……じゃあ、なんで聞いたの？",
+        "zh-CN": "……那你还问什么？",
+        "zh-TW": "……那你還問什麼？"
+      }
+    },
+    {
+      "id": "prologue:59",
+      "source": "[ YES ]     [ YES ]",
+      "sourceHash": "816f97342b9f11c8b96bc96b1d0976a91f4484988ea5b0edbbc0c2d2d3b1c728",
+      "translations": {
+        "en": "[ YES ]     [ YES ]",
+        "ja": "［ YES ］     ［ YES ］",
+        "zh-CN": "［ YES ］     ［ YES ］",
+        "zh-TW": "［ YES ］     ［ YES ］"
+      }
+    },
+    {
+      "id": "prologue:60",
+      "source": "이건 선택지가 아니라, 납치 예고잖아.",
+      "sourceHash": "cdf344b8ff7adbe0f4e745121ba4871626e4212cce5edddad58f9e89f915c1c8",
+      "translations": {
+        "en": "That isn’t a choice. That’s a kidnapping notice.",
+        "ja": "これ、選択肢じゃなくて誘拐予告でしょ。",
+        "zh-CN": "这哪是选项，根本是绑架预告吧。",
+        "zh-TW": "這哪是選項，根本是綁架預告吧。"
+      }
+    },
+    {
+      "id": "prologue:61",
+      "source": "[ 이용약관 제1조 ]\n[ 사용자는 태어난 순간, 이미 모든 항목에 동의함 ]",
+      "sourceHash": "68ec47841a1ba0d6852b22cb0bc0b531db8890ddf4ece190e77b421e30fc3778",
+      "translations": {
+        "en": "[ Terms of Service, Article 1 ]\n[ By being born, the user has already agreed to all provisions. ]",
+        "ja": "［ 利用規約 第1条 ］\n［ ユーザーは生まれた瞬間、すでに全項目に同意済みです ］",
+        "zh-CN": "［ 用户协议第1条 ］\n［ 用户自出生之时起，即已同意全部条款 ］",
+        "zh-TW": "［ 使用者條款第1條 ］\n［ 使用者自出生之時起，即已同意全部條款 ］"
+      }
+    },
+    {
+      "id": "prologue:62",
+      "source": "그때 화면 위로 타로 카드 한 장이 떠올랐다. 검은 배경에 달빛으로 된 문, 문 앞엔 작은 꽃 한 송이. 카드 아래엔 [ THE DOOR ]라고 적혀 있었다.",
+      "sourceHash": "a3aedc70a1d742cd509fdcc4bc67bd9dac16b067f34a2e9655697acf94c01f8a",
+      "translations": {
+        "zh-CN": "一张塔罗牌浮在屏幕上。黑底上有扇月光之门，门前开着一朵小花，牌下写着［ THE DOOR ］。",
+        "zh-TW": "一張塔羅牌浮在螢幕上。黑底上有扇月光之門，門前開著一朵小花，牌下寫著［ THE DOOR ］。"
+      }
+    },
+    {
+      "id": "prologue:63",
+      "source": "타로에… 이런 카드가 있었나?",
+      "sourceHash": "e4a01b73990ced5d49240f932dc1b4bdbef62a4c0ed31af04332ecddd0767252",
+      "translations": {
+        "en": "Is that… even a tarot card?",
+        "ja": "タロットに……こんなカードあった？",
+        "zh-CN": "塔罗里……有这张牌吗？",
+        "zh-TW": "塔羅裡……有這張牌嗎？"
+      }
+    },
+    {
+      "id": "prologue:64",
+      "source": "카드 속 문이 열렸다. 끼이이익. 소리는 휴대폰이 아니라 방 안에서 났다.",
+      "sourceHash": "313288d9fe3906c794e70127a8b9018405236241c4cfb92e99bf39407787b964",
+      "translations": {
+        "zh-CN": "牌里的门开了。吱呀——声音来自房间，并非手机。",
+        "zh-TW": "牌裡的門開了。吱呀——聲音來自房間，並非手機。"
+      }
+    },
+    {
+      "id": "prologue:65",
+      "source": "침대 앞 허공에 진짜 달빛 문이 서 있었다. 문틈 너머로 낯선 밤하늘이 소용돌이쳤다.",
+      "sourceHash": "9259992594d4a5dc8f5df2c6e4aec22e566063973895b0a364ababa607d6c3ff",
+      "translations": {
+        "zh-CN": "床前的半空中，真的立起了一扇月光之门。门缝后，陌生的夜空在旋转。",
+        "zh-TW": "床前的半空中，真的立起了一扇月光之門。門縫後，陌生的夜空在旋轉。"
+      }
+    },
+    {
+      "id": "prologue:66",
+      "source": "이거… 지금 내 방 맞지?",
+      "sourceHash": "575d7097a880725ad3a82d5866d5b2172c9d68aacc757ba8a15dfaf1aa95ed69",
+      "translations": {
+        "en": "This is… still my room, right?",
+        "ja": "ここ……今、私の部屋だよね？",
+        "zh-CN": "这里……还是我的房间，对吧？",
+        "zh-TW": "這裡……還是我的房間，對吧？"
+      }
+    },
+    {
+      "id": "prologue:67",
+      "source": "대답 대신 문 안에서 카드들이 쏟아져 나왔다. 별, 달, 태양, 운명의 수레바퀴. 책상 위 과제물과 뒤집힌 우산, 먹다 만 컵라면까지 방 안을 빙글빙글 돌았다. 우산 옆에 엎어진 별 카드 한 장만은 돌지 않고 가만히 떠 있었다.",
+      "sourceHash": "69623cadcbf565ff6c16c7546cf09bddf89e795cffc0dcb0c1c4951b447cf757",
+      "translations": {
+        "zh-CN": "回答她的是门内倾泻的牌：星星、月亮、太阳、命运之轮。桌上的作业、翻倒的伞、吃剩的杯面，全在屋里盘旋。唯独伞旁一张扣着的星星牌，静静悬着，没有转动。",
+        "zh-TW": "回答她的是門內傾瀉的牌：星星、月亮、太陽、命運之輪。桌上的作業、翻倒的傘、吃剩的杯面，全在屋裡盤旋。唯獨傘旁一張扣著的星星牌，靜靜懸著，沒有轉動。"
+      }
+    },
+    {
+      "id": "prologue:68",
+      "source": "내 과제, 내 우산, 내 컵라면. …아니 컵라면은 됐고!",
+      "sourceHash": "1badf2f5672599fd9b3e2b67b23b15f936bc39b01352a2fd6af117dc11a2b37f",
+      "translations": {
+        "zh-CN": "我的作业、我的伞、我的杯面……算了，杯面不要了！",
+        "zh-TW": "我的作業、我的傘、我的杯面……算了，杯麵不要了！"
+      }
+    },
+    {
+      "id": "prologue:69",
+      "source": "[ 타로의 문 개방 ]  [ 운세 세계 접속 중 ]  [ 사주의 강 좌표 확인 ]",
+      "sourceHash": "047a3b6a9cd2a0207002568b7e4b7077a15aca4dba9f4bef719759c9c8eb1697",
+      "translations": {
+        "en": "[ Tarot gate open ]  [ Connecting to the fortune world ]  [ River of Saju coordinates confirmed ]",
+        "ja": "［ タロットの門、開放 ］  ［ 運勢世界に接続中 ］  ［ 四柱の川の座標を確認 ］",
+        "zh-CN": "［ 塔罗之门开启 ］  ［ 正在连接运势世界 ］  ［ 已确认四柱之河坐标 ］",
+        "zh-TW": "［ 塔羅之門開啟 ］  ［ 正在連線至運勢世界 ］  ［ 已確認四柱之河座標 ］"
+      }
+    },
+    {
+      "id": "prologue:70",
+      "source": "닫으라고! 강은 무슨, 여긴 원룸인데!",
+      "sourceHash": "8970bfc995877ca29e1784aa207c5955b5344b116d85ef52058dfa6546689170",
+      "translations": {
+        "zh-CN": "叫你关上！什么河啊，这里是单间公寓！",
+        "zh-TW": "叫你關上！什麼河啊，這裡是單間公寓！"
+      }
+    },
+    {
+      "id": "prologue:71",
+      "source": "[ 초기 아바타 변환 중 ]",
+      "sourceHash": "78c39f0f54f2cf59669ef6fb06ec0afd772e72761bfde1da0c38883a80b1b143",
+      "translations": {
+        "en": "[ Converting initial avatar ]",
+        "ja": "［ 初期アバター変換中 ］",
+        "zh-CN": "［ 正在转换初始形象 ］",
+        "zh-TW": "［ 正在轉換初始形象 ］"
+      }
+    },
+    {
+      "id": "prologue:72",
+      "source": "문 안쪽에서 빛이 터졌다. 연이는 끝까지 침대 헤드를 붙잡았다. 침대 헤드는 생각보다 의리가 없었다. 뚝.",
+      "sourceHash": "fa8b844472ee2186fddb79c630ef3f748c9f224068df9900a3530f8e8c6096f5",
+      "translations": {
+        "zh-CN": "门内迸出光。Yeoni死抓着床头不放，可床头没想象中讲义气。咔嚓。",
+        "zh-TW": "門內迸出光。Yeoni死抓著床頭不放，可床頭沒想象中講義氣。咔嚓。"
+      }
+    },
+    {
+      "id": "prologue:73",
+      "source": "배신자!",
+      "sourceHash": "bc607a7946ea873fd0670eca4705778714ef085282e3d8aed8463318ed22902e",
+      "translations": {
+        "en": "Traitor!",
+        "ja": "裏切り者！",
+        "zh-CN": "叛徒！",
+        "zh-TW": "叛徒！"
+      }
+    },
+    {
+      "id": "prologue:74",
+      "source": "연이는 그대로 타로의 문 안으로 빨려 들어갔다.",
+      "sourceHash": "82e16d8b391ec44c47087dd84d54abec39404ad367226e36bdfb7d377115aa71",
+      "translations": {
+        "zh-CN": "她就这样被吸进了塔罗之门。",
+        "zh-TW": "她就這樣被吸進了塔羅之門。"
+      }
+    },
+    {
+      "id": "prologue:75",
+      "source": "문 너머는 끝없는 밤이었다. 위도 밤, 아래도 밤. 별자리들이 강물처럼 흐르고 수많은 타로 카드가 연이 주변을 돌며 속삭였다. 선택. 추락. 시작. 변신.",
+      "sourceHash": "e672413df98fcfb4dc3f7865937e2d1b8f27dc27c4c6b8c4d314728dce511d4e",
+      "translations": {
+        "zh-CN": "门后是无尽的夜，上下都一样。星座如河流淌，无数塔罗牌围着她转，低声说着：选择。坠落。开始。变身。",
+        "zh-TW": "門後是無盡的夜，上下都一樣。星座如河流淌，無數塔羅牌圍著她轉，低聲說著：選擇。墜落。開始。變身。"
+      }
+    },
+    {
+      "id": "prologue:76",
+      "source": "[ 운명 코드 접속 완료 ]  [ 손상된 운세 세계로 진입합니다. ]",
+      "sourceHash": "7305743745beeb87bef654598582061c02a50835c41bb4f90cae221b87ce06cc",
+      "translations": {
+        "en": "[ Destiny code connection complete ]  [ Entering the damaged fortune world. ]",
+        "ja": "［ 運命コード接続完了 ］  ［ 損傷した運勢世界へ入ります。 ］",
+        "zh-CN": "［ 命运代码连接完成 ］  ［ 即将进入受损的运势世界。 ］",
+        "zh-TW": "［ 命運代碼連線完成 ］  ［ 即將進入受損的運勢世界。 ］"
+      }
+    },
+    {
+      "id": "prologue:77",
+      "source": "나는 동의한 적이—",
+      "sourceHash": "323386afcbe88c1bec2436dc331e3ed66afa9e15f9c8db9953d678524b493b07",
+      "translations": {
+        "en": "I never agreed to—",
+        "ja": "私、同意なんてしてな――",
+        "zh-CN": "我根本没有同意——",
+        "zh-TW": "我根本沒有同意——"
+      }
+    }
+  ]
+}
