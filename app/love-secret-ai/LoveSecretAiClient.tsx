@@ -1561,6 +1561,7 @@ type ConsultationResult = {
   saved?: boolean;
   resumeSessionId?: string;
   completedGroups?: string[];
+  totalGroups?: number;
   keywords?: string[];
   strategy?: string;
   sections?: ResultSection[];
@@ -2135,7 +2136,7 @@ export default function LoveSecretAiPage({ paymentNotice, paymentSurface = "web"
       if (result.status === "generating") result = await pollResult(result.sessionId || idempotencyKey);
       if (!isCurrent()) return false;
       if (result.status !== "partial" || !result.sessionId) break;
-      setProgress(Math.min(90, Math.round((result.completedGroups?.length || 0) / 6 * 90)));
+      setProgress(Math.min(90, Math.round((result.completedGroups?.length || 0) / (result.totalGroups || 6) * 90)));
       const partialUrl = buildResultUrl({ sessionId: result.sessionId, requestId: idempotencyKey, pending: true });
       setResultUrl(partialUrl);
       if (document.hidden) break;

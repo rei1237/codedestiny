@@ -39,7 +39,7 @@ import theme from "../love-secret-theme.module.css";
 import styles from "./LoveSecretAiResultClient.module.css";
 import LoveSecretChecklist, { type ActionSecret } from "./LoveSecretChecklist";
 import PremiumResultShare from "@/components/fortune/PremiumResultShare";
-import { groupLoveSections, resolveLoveSpeaker, type LoveCardVariant, type LoveSectionGroup, type LoveSpeaker } from "./love-secret-sections";
+import { groupLoveSections, loveChapterKicker, resolveLoveSpeaker, splitLoveSecretAnswerByTitles, LOVE_SECRET_SECTION_TITLES_V1, type LoveCardVariant, type LoveSectionGroup, type LoveSpeaker } from "./love-secret-sections";
 import LoveSecretResultSection, { LoveSpeakerChip } from "./LoveReadingChapter";
 import { ANSWER_FIRST_LAYOUT_V1 } from "@/lib/result-layout";
 import { getCurrentLoadingLocale, INTL_LOCALE_BY_LOADING_LOCALE, type LoadingLocale } from "@/constants/loadingMessages";
@@ -70,6 +70,8 @@ type LoveSecretResultCopy = {
   userQuestionHeading: string;
   deepAnalysisHeading: string;
   tocAria: string;
+  /** 장 차례 접힘 제목. 없으면 tocAria 를 쓴다. */
+  chaptersHeading?: string;
   deckLabel: string;
   finalWordLabel: string;
   yeoniSignature: string;
@@ -154,6 +156,7 @@ const LOVE_SECRET_RESULT_COPY: Partial<Record<LoadingLocale, LoveSecretResultCop
     userQuestionHeading: "상담 질문",
     deepAnalysisHeading: "연애 비책 상세 분석",
     tocAria: "상담 결과 목차",
+    chaptersHeading: "이 상담의 차례",
     deckLabel: "연애 비책 상담 결과",
     finalWordLabel: "💌 마지막 한마디",
     yeoniSignature: "연이 · 서한비 드림",
@@ -658,6 +661,7 @@ type Consultation = {
   status?: string;
   saved?: boolean;
   completedGroups?: string[];
+  totalGroups?: number;
   accessType?: string;
   myInfo?: PersonInfo | null;
   partnerInfo?: PersonInfo | null;
@@ -699,40 +703,12 @@ const TOSS_LOVE_FOLLOW: Record<LoadingLocale, [string,string,string,string,strin
   de:["Weitere Frage","Frage nach dem, was du vertiefen möchtest.","Fragen","Versuche dieselbe Frage erneut.","Kontaktiere den Support, um die Antwort zu prüfen."],nl:["Vervolgvraag","Vraag wat je verder wilt onderzoeken.","Vragen","Probeer dezelfde vraag opnieuw.","Neem contact op met de klantenservice voor je antwoord."],ms:["Soalan lanjutan","Tanya perkara yang ingin anda ketahui lebih lanjut.","Tanya","Cuba soalan yang sama sekali lagi.","Hubungi sokongan untuk menyemak jawapan anda."]
 };
 
-// 서버가 sections 없이 messages 만 줬을 때 프로즈를 되살리는 제목 집합(worker 그룹 정의와 같은 순서).
-const FALLBACK_SECTIONS = [
-  "현재 관계의 자리와 질문의 핵심",
-  "핵심 연애운 — 명식이 사랑에서 그리는 큰 결",
-  "오행과 조후로 보는 감정의 온도",
-  "나의 명식이 사랑에서 반복하는 방식",
-  "십성으로 보는 애착과 표현 방식",
-  "연애 장점 — 상대가 먼저 알아보는 힘",
-  "연애 약점 — 반복해서 걸려 넘어지는 자리",
-  "애정 표현 스타일과 연애 심리",
-  "상대의 기운과 감정 거리감",
-  "두 사람 사이 끌림이 살아나는 조건",
-  "속궁합과 친밀감 리듬",
-  "이상형 분석 — 내 명식이 끌리는 사람",
-  "상대가 원하는 연애 스타일",
-  "갈등의 뿌리와 회복 방식",
-  "바람기와 마음이 흩어지는 조건",
-  "재회 가능성과 그 조건",
-  "피해야 할 선택과 자기 보호",
-  "연락/고백/재회/관계 진전 타이밍",
-  "올해 연애운 — 좋은 달과 조심할 달",
-  "좋은 날짜 — 계산된 일진으로 고른 날",
-  "결혼운과 인연이 굳어지는 시기",
-  "30일 관계 흐름 처방",
-  "썸에서 확신으로 가는 전략",
-  "관계 단계별 실행 비책",
-  "상대에게 다가가는 대화 문장",
-  "매력적으로 보이는 방법 — 이미지·말투·스타일",
-  "7일 실천 가이드",
-  "마지막 상담사의 한마디",
-];
+// 서버가 sections 없이 messages 만 줬을 때 프로즈를 되살리는 제목 집합. 알려진 제목이 없는 옛 본문은 예전 28장 순서로 나눈다.
+const FALLBACK_SECTIONS = LOVE_SECRET_SECTION_TITLES_V1;
 
 // 카드 차별화는 variant → CSS 클래스 맵으로만 표현한다(JSX 분기 금지).
 const VARIANT_CLASS: Record<LoveCardVariant, string> = {
+  nature: styles.cardNature,
   summary: styles.cardSummary,
   insight: styles.cardInsight,
   strategy: styles.cardStrategy,
@@ -813,6 +789,9 @@ function splitAssistantSections(content: string) {
     normalized = extractReadableTextFromJsonLike(normalized);
     if (!normalized) return [];
   }
+  // 저장된 본문은 "제목\n본문" 장을 빈 줄로 이어 붙인 것이다. 알려진 장 제목으로 먼저 나눈다.
+  const known = splitLoveSecretAnswerByTitles(normalized);
+  if (known.length >= 3) return known;
   const headingMatches: RegExpExecArray[] = [];
   const headingPattern = /^(?:#{1,3}\s*)?(\d{1,2}[.)]\s*)?([^\n]{2,46})\n+/gm;
   let match = headingPattern.exec(normalized);
@@ -1035,12 +1014,33 @@ export default function LoveSecretAiResultClient({ paymentSurface }: { paymentSu
     if (!element || pdfLoading || !consultation) return;
     setPdfLoading(true);
     setActionError("");
+    const fileName = `love-secret-reading-${safeFilePart(consultation.sessionId || consultation.attemptId || "result")}.pdf`;
     try {
+      // 받은 상담 전체를 글자로 조판한다. 글꼴을 못 실을 때만 화면 캡처로 되돌아간다.
+      const [{ exportConsultationBookPdf }, { PdfFontError }, { buildLoveSecretPdfChapters, LOVE_SECRET_PDF_BYLINE }] = await Promise.all([
+        import("@/lib/pdf/export-consultation-book-pdf"),
+        import("@/lib/pdf/typeset-writer"),
+        import("./love-secret-pdf-chapters"),
+      ]);
+      try {
+        await exportConsultationBookPdf({
+          title: summaryTitle,
+          productLabel: "연애 비책",
+          byline: copy.speakerNames ? `${copy.speakerNames.yeoni} · ${copy.speakerNames.hanbi}` : LOVE_SECRET_PDF_BYLINE,
+          coverTheme: "love",
+          date: new Date().toISOString().slice(0, 10),
+          fileName,
+          chapters: buildLoveSecretPdfChapters(consultation, copy.speakerNames),
+        });
+        return;
+      } catch (error) {
+        if (!(error instanceof PdfFontError)) throw error;
+      }
       await withExportMode(async () => {
         const { exportResultPdf } = await import("@/lib/pdf/export-result-pdf");
         await exportResultPdf({
           captureTargets: ["#love-secret-result-document"],
-          fileName: `love-secret-reading-${safeFilePart(consultation.sessionId || consultation.attemptId || "result")}.pdf`,
+          fileName,
           // 캡처 시점의 실제 모드로 해석한다(하드코딩하면 라이트 사용자가 검은 배경을 받는다).
           backgroundColor: prefersDark() ? "#24081a" : "#fffaf7",
           cover: {
@@ -1133,7 +1133,7 @@ export default function LoveSecretAiResultClient({ paymentSurface }: { paymentSu
 
         {!loading && consultation?.status === "partial" && (
           <div role="status" className="mb-4 rounded-2xl border border-[var(--ls-line)] p-4 text-[var(--ls-text)]">
-            <p>{consultation.completedGroups?.length || 0} / 6</p>
+            <p>{consultation.completedGroups?.length || 0} / {consultation.totalGroups || 6}</p>
             <button type="button" onClick={() => setReloadEpoch(value => value + 1)} className={`${theme.focusRing} mt-2 min-h-11 rounded-full px-4 font-bold`}>
               {copy.retryCheckLabel}
             </button>
@@ -1218,9 +1218,32 @@ function LoveSecretResultPageContent({
   const copy = useLoveSecretResultCopy();
   const topic = toText(consultation.topic) || copy.topicFallback;
   const groups = useMemo(() => groupLoveSections(sections), [sections]);
-  const flowGroups = groups.filter((group) => group.spec.placement === "flow");
-  const deckGroups = groups.filter((group) => group.spec.placement === "deck");
+  const flowGroups = useMemo(() => groups.filter((group) => group.spec.placement === "flow"), [groups]);
+  const deckGroups = useMemo(() => groups.filter((group) => group.spec.placement === "deck"), [groups]);
   const [activePage, setActivePage] = useState(0);
+
+  // 장 번호는 화면에 그려지는 순서(흐름 카드 → 상세 덱 → 편지)로 매긴다. 히어로가 대신하는 요약 그룹은 번호가 없다.
+  const chapterEntries = useMemo(() => {
+    const entries: Array<{ section: ResultSection; number: number; deckPage: number }> = [];
+    const push = (section: ResultSection, deckPage = -1) => entries.push({ section, number: entries.length + 1, deckPage });
+    flowGroups.filter((group) => group.spec.id !== "summary" && group.spec.id !== "letter").forEach((group) => group.sections.forEach((section) => push(section)));
+    let page = 0;
+    deckGroups.forEach((group) => group.sections.forEach((section) => push(section, page++)));
+    flowGroups.filter((group) => group.spec.id === "letter").forEach((group) => group.sections.forEach((section) => push(section)));
+    return entries;
+  }, [flowGroups, deckGroups]);
+  const chapterNumberOf = useMemo(() => {
+    const numbers = new Map(chapterEntries.map((entry) => [entry.section, entry.number]));
+    return (section: ResultSection) => numbers.get(section);
+  }, [chapterEntries]);
+
+  function jumpToChapter(entry: { number: number; deckPage: number }) {
+    if (entry.deckPage >= 0) setActivePage(entry.deckPage);
+    window.requestAnimationFrame(() => {
+      const target = document.getElementById(`love-chapter-${entry.number}`) || document.getElementById("love-secret-deck");
+      target?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  }
 
   // 덱은 그룹 순서대로 평탄화한다. 각 페이지는 자기 그룹을 들고 다녀 목차 점프에 쓰인다.
   const deckPages = useMemo(() => {
@@ -1230,13 +1253,13 @@ function LoveSecretResultPageContent({
         pages.push({
           id: `love-secret-${group.spec.id}-${index}`,
           label: toDisplayText(section.title).slice(0, 12) || copy.chapterFallback(pages.length + 1),
-          content: <LoveSecretResultSection index={pages.length} section={section} speakerNames={copy.speakerNames} />,
+          content: <LoveSecretResultSection index={pages.length} number={chapterNumberOf(section)} kicker={copy.speakerNames ? loveChapterKicker(section.title) : ""} section={section} speakerNames={copy.speakerNames} />,
           groupId: group.spec.id,
         });
       });
     });
     return pages;
-  }, [deckGroups, copy]);
+  }, [deckGroups, copy, chapterNumberOf]);
 
   const deckJumpTargets = useMemo(() => deckGroups.map((group) => ({
     id: group.spec.id,
@@ -1305,9 +1328,35 @@ function LoveSecretResultPageContent({
           </section>
         )}
 
+        {chapterEntries.length > 1 && !expandForExport && (
+          <details className={`${styles.card} ${styles.chapterToc} mt-5`}>
+            <summary className={`${theme.focusRing} ${styles.chapterTocSummary}`}>
+              <BookOpen className="h-5 w-5 text-[var(--ls-accent)]" aria-hidden="true" />
+              <span>{copy.chaptersHeading || copy.tocAria}</span>
+              <span className={styles.chapterTocCount}>{chapterEntries.length}</span>
+            </summary>
+            <nav aria-label={copy.tocAria}>
+              <ol className={styles.chapterTocList}>
+                {chapterEntries.map((entry) => {
+                  const speaker = resolveLoveSpeaker(entry.section.title);
+                  return (
+                    <li key={entry.number}>
+                      <button type="button" onClick={() => jumpToChapter(entry)} className={`${theme.focusRing} ${styles.chapterTocItem}`}>
+                        <span className={styles.chapterNumber}>{String(entry.number).padStart(2, "0")}</span>
+                        <span className={styles.chapterTocTitle}>{entry.section.title}</span>
+                        {copy.speakerNames && <span className={styles.chapterTocSpeaker} data-speaker={speaker}>{copy.speakerNames[speaker]}</span>}
+                      </button>
+                    </li>
+                  );
+                })}
+              </ol>
+            </nav>
+          </details>
+        )}
+
         {/* 요약 그룹은 히어로가 이미 담당하므로 흐름 배치에서 제외한다. */}
         {flowGroups.filter((group) => group.spec.id !== "summary" && group.spec.id !== "letter").map((group) => (
-          <LoveSecretGroupCard key={group.spec.id} group={group} expandForExport={expandForExport}>
+          <LoveSecretGroupCard key={group.spec.id} group={group} expandForExport={expandForExport} chapterNumberOf={chapterNumberOf}>
             {group.spec.id === "practice" && (secrets.length > 0 || (reading?.sevenDayGuide || []).length > 0) ? (
               <LoveSecretChecklist
                 secrets={secrets}
@@ -1323,7 +1372,7 @@ function LoveSecretResultPageContent({
         ))}
 
         {deckPages.length > 0 && (
-          <section className="mt-8">
+          <section id="love-secret-deck" className={`${styles.deckSection} mt-8`}>
             <div className="mb-4 flex items-center gap-2 text-[var(--ls-accent)]">
               <BookOpen className="h-5 w-5" aria-hidden="true" />
               <h2 className="text-xl font-black text-[var(--ls-text)]">{copy.deepAnalysisHeading}</h2>
@@ -1363,7 +1412,7 @@ function LoveSecretResultPageContent({
         )}
 
         {flowGroups.filter((group) => group.spec.id === "letter").map((group) => (
-          <LoveSecretGroupCard key={group.spec.id} group={group} expandForExport={expandForExport} />
+          <LoveSecretGroupCard key={group.spec.id} group={group} expandForExport={expandForExport} chapterNumberOf={chapterNumberOf} />
         ))}
 
         {consultation.finalLine && (
@@ -1402,6 +1451,7 @@ function LoveSecretResultPageContent({
 }
 
 const GROUP_ICON = {
+  flame: Flame,
   heart: Heart,
   book: BookOpen,
   compass: Compass,
@@ -1416,10 +1466,12 @@ const GROUP_ICON = {
 function LoveSecretGroupCard({
   group,
   expandForExport,
+  chapterNumberOf,
   children,
 }: {
   group: LoveSectionGroup;
   expandForExport: boolean;
+  chapterNumberOf?: (section: ResultSection) => number | undefined;
   children?: ReactNode;
 }) {
   const copy = useLoveSecretResultCopy();
@@ -1454,15 +1506,21 @@ function LoveSecretGroupCard({
       <div id={bodyId} className={`${styles.collapsible} mt-4`} data-open={isOpen ? "true" : "false"}>
         <div>
           <div className="grid gap-5">
-            {group.sections.map((section, index) => (
-              <article key={`${group.spec.id}-${index}`}>
+            {group.sections.map((section, index) => {
+              const number = chapterNumberOf?.(section);
+              const kicker = copy.speakerNames ? loveChapterKicker(section.title) : "";
+              return (
+              <article key={`${group.spec.id}-${index}`} id={number ? `love-chapter-${number}` : undefined} className={styles.chapterArticle}>
+                {kicker && <p className={styles.chapterKicker}>{kicker}</p>}
                 <div className={styles.sectionHead}>
+                  {number ? <span className={styles.chapterNumber}>{String(number).padStart(2, "0")}</span> : null}
                   <h3 className="text-base font-black text-[var(--ls-text)]">{section.title}</h3>
                   <LoveSpeakerChip title={section.title} names={copy.speakerNames} />
                 </div>
                 <ConsultationReading kind="love" value={section.body} index={index} speaker={resolveLoveSpeaker(section.title)} className={`${styles.chapterProse} mt-2 text-[var(--ls-text-muted)]`} />
               </article>
-            ))}
+              );
+            })}
           </div>
           {children}
         </div>
