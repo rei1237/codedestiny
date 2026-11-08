@@ -568,6 +568,15 @@ next: 6a — 초융합 실호출에서 domainYun·domainHanbi·domainNeo가 GEMI
 - 원인(확정에 가까운 추정): 세 묶음은 본문 키가 2개씩이고, 키마다 `subchapters.items.evidenceKeys.items.enum`에 6체계 전체 근거 경로 약 60개(문자 약 1,650)를 반복해 넣는다(`systems: []`라 전 체계). maxItems 6과 곱하면 enum 상태가 통과 묶음의 2배(문자 3,312~3,317, enum 값 126개)라 Gemini가 "스키마가 너무 복잡함" 400을 생성 전에 돌려준다(약 1초). 통과 묶음은 모두 enum 문자 ≤1,656. 토큰·프롬프트 길이·모델·thinking은 통과 묶음과 같다.
 - 운영 영향: 옛 계획 스키마도 바이트가 같다 → origin/main(159c40eef, 2026-10-17부터)에도 있다. 플래그 `FUSION_PREMIUM_V2_ENABLED` 미설정 = v2라 운영 v2 주문은 분야 장 6개가 조용히 빠진 degraded로 나갔을 가능성이 높다(운영 로그는 확인 못 함).
 - 수정 방향: 2판에서 enum 예산 초과 시 subchapter evidenceKeys enum을 빼고 경로 목록을 프롬프트에 둔다(2판 수용은 `normalizeFusionPlan2Subchapters`가 잘못된 키를 고쳐 안전). 400이면 단순 스키마→스키마 없음으로 같은 시도 안에서 다시 보낸다. 오류 본문을 잘라·가려 기록한다. 빈 분야 장은 배달하지 않는다.
+- 수정 완료 `e929c2114`:
+  - 2판 enum 예산(`FUSION_GEMINI_ENUM_CHAR_BUDGET` = 2,000). 넘으면 소챕터 근거 enum을 빼고 경로 목록을 프롬프트 끝에 둔다. 실제 컨텍스트에서 분야 3묶음은 3,315 → 약 30, Musung·Yeoni는 1,656 그대로(실호출 통과분).
+  - `fusionGeminiSchemaIssues`로 전송 스키마를 검사하는 회귀 테스트(실제 근거 키 이름·개수).
+  - 400이면 같은 시도 안에서 단순 스키마(enum·개수 제한 없음) → 스키마 없음(JSON 형식은 프롬프트) 순서로 다시 보낸다(`[fusion-fortune-schema-fallback]`).
+  - 시도를 다 쓴 선택 묶음의 빈 장은 장 하나씩 `rescue-<키>` 예약으로 다시 요청한다(장마다 최대 2회, `[fusion-fortune-chapter-rescue]`). 그래도 비면 배달은 막지 않는다(domain_chapter_missing 강등) — 사용자 결정 필요 항목.
+  - `lib/llm-client.ts` `[llm provider_error]`: 상태·providerStatus·sectionGroup·hasResponseSchema·오류 본문 300자(키·URL·이메일·긴 인용 가림).
+  - 옛 계획(v1·expert·premiumV1·premiumV2) sha256 기준선 그대로. 옛 2판 이전 세션도 런타임 400 재전송·구제의 혜택은 받는다(스키마 바이트는 그대로라 첫 호출은 여전히 400).
+- 검증: jest 초융합+gemini-json 228개 통과, node gemini-model-routing·input-token-limit·total-generation-budget 통과, `npx tsc --noEmit` 통과. 목 dry-run `run.mjs --mock` 14/14·full·56,528자. `run.mjs --mock --reject400`(예산 초과 스키마·domainNeo enum·domainHanbi 2장 요청을 400으로): 예산 초과 400 0회, domainNeo 같은 시도 안 단순 스키마로 성공, domainHanbi 2시도×3단계 400 뒤 장 단위 구제로 2장 채움 → 14/14·full·실제 fetch 0.
+- 🔴 실호출 재검증은 사용자 승인이 필요하다(승인분 소진). 하네스는 준비됨: 작업 트리 cwd에서 `node <scratchpad>/fusion-live/run.mjs --live`.
 
 ## 6단계 진행 메모 (조사 완료, 구현 전 — 2026-11-08)
 
