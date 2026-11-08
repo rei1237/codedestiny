@@ -344,7 +344,7 @@ test('Family confirmed terminal failure with no chapter restores quota, but a pa
   expect(refundPass).toHaveBeenCalledTimes(1);
   expect(requests[1].state).toBe('FORTUNE_FAILED');
 });
-test.each(['ENGINE_FACT_CONTEXT_MISMATCH','ENGINE_FACT_SNAPSHOT_INVALID','ENGINE_FACT_SNAPSHOT_REQUIRED'])('%s holds on the first attempt with no buyer retry',async code=>{
+test.each(['LLM_CONTENT_BLOCKED','ENGINE_FACT_CONTEXT_MISMATCH','ENGINE_FACT_SNAPSHOT_INVALID','ENGINE_FACT_SNAPSHOT_REQUIRED'])('%s holds on the first attempt with no buyer retry',async code=>{
   requests.push({_id:'facts',userId:owner,...values,state:'GENERATING',paymentId:'pay',completedChapters:0,chapters:[],leaseToken:'lease',snapshot:{manifest:[{}],deliveryContract:'x'}});
   await repo.failChapter({},owner,'facts','lease',code,1,'provider',3,'saju-advancedFactors',0);
   expect(requests[0]).toMatchObject({state:'FORTUNE_FAILED',errorCode:'GENERATION_REVIEW_REQUIRED',nextAttemptAt:null,lastFailure:{code}});

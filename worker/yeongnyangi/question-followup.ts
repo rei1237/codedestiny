@@ -99,8 +99,11 @@ export async function questionConversation(env:any,userId:string,id:string,body:
    fallbackToWorkersAI:false,responseMimeType:'application/json',taskType:'yeongnyangi-followup',
    logContext:{requestId:id,sectionGroup:'followup',attempt:next.pending!.attempts},
   });
-  if(!response.ok||response.isMock||!response.text||response.truncated||response.finishReason==='MAX_TOKENS')throw new FortuneError('FORTUNE_PROVIDER_FAILED',502);
-  const reply=pruneFollowup(validateFollowup(response.text,new Set(facts.map((f:any)=>f.id))),snapshot,row.chapters,next.exchanges,budgetGuide);
+  const blocked=!response.ok&&response.error==='LLM_CONTENT_BLOCKED';
+  if(!blocked&&(!response.ok||response.isMock||!response.text||response.truncated||response.finishReason==='MAX_TOKENS'))throw new FortuneError('FORTUNE_PROVIDER_FAILED',502);
+  const reply=blocked
+    ? {kind:'support' as const,text:'이 질문에는 안전하게 답하기 어려워요. 다른 질문으로 상담을 이어갈 수 있어요.',sources:[]}
+    : pruneFollowup(validateFollowup(response.text,new Set(facts.map((f:any)=>f.id))),snapshot,row.chapters,next.exchanges,budgetGuide);
   const funded=await readRequest(env,userId,id); // Recheck funding/revocation before persisting.
   if(funded.state!=='COMPLETED'||deliveryRefundPending(funded)||!hasRequestAccess(funded))throw new FortuneError('FOLLOWUP_NOT_AVAILABLE',409);
   await saveConversation(env,userId,id,next,finishConversation(next,token,reply,contract.followups));

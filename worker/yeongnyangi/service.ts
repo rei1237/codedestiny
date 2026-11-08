@@ -376,6 +376,7 @@ async function reviewTunaChapter(env:Record<string,unknown>,row:any,requestId:st
     log('rewritten',{after});
     return {raw,body:{...body,selfReview:'rewritten'}};
   } catch(error:any) {
+    if(error instanceof FortuneError&&error.code==='LLM_CONTENT_BLOCKED')throw error;
     log('failed',{error:String(error?.code||error?.message||'unknown').slice(0,80)});
     return undefined;
   }
@@ -540,7 +541,7 @@ export async function generateNextChapter(env: Record<string, unknown>, userId: 
         // chapter.ts corrects the reader's pillars first; a claim left here keeps a quality code so the one repair can name it.
         if(natalFacts)try{assertSajuPillarClaims(result||short,natalFacts);}catch{throw new FortuneError('SAJU_PILLAR_CONTRADICTION');}
       } catch(error) {
-        if(!kept?.body)throw error;
+        if(!kept?.body || (error instanceof FortuneError && error.code==='LLM_CONTENT_BLOCKED'))throw error;
         result=undefined;short=undefined;
       }
       if(!result){

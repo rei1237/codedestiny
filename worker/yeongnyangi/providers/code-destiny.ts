@@ -52,6 +52,7 @@ export class CodeDestinyProvider implements LLMProvider {
       logContext:{...this.logContext,sectionGroup:'question-analysis'},
       cache:chapterResponseCache(this.env,this.cacheContext.owner,this.logContext.requestId,'question-analysis',this.cacheContext.skipRead),
     });
+    if(!response.ok&&response.error==='LLM_CONTENT_BLOCKED')throw new FortuneError('LLM_CONTENT_BLOCKED',422);
     if(!response.ok||response.isMock||!response.text||response.truncated||/^(MAX_TOKENS|LENGTH)$/.test(response.finishReason||''))throw new FortuneError('ASK_ANALYSIS_FAILED',502);
     return response.text;
   }
@@ -97,6 +98,7 @@ export class CodeDestinyProvider implements LLMProvider {
       response=await send(GEMINI_PROSE_MODEL,undefined,remaining);
     }
     const model=modelFallback?GEMINI_PROSE_MODEL:this.model;
+    if(!response.ok&&response.error==='LLM_CONTENT_BLOCKED')throw new FortuneError('LLM_CONTENT_BLOCKED',422);
     this.receipt={provider:response.provider || 'gemini',model:response.model || model || 'gemini-2.5-flash',
       finishReason:response.finishReason || '',inputTokens:response.usage?.inputTokens ?? null,outputTokens:response.usage?.outputTokens ?? null,
       estimated:response.usage?Boolean(response.usage.estimated):null,thinkingTokens:response.usage?.thinkingTokens ?? null,

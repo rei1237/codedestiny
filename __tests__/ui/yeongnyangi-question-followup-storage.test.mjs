@@ -9,7 +9,7 @@ globalThis.__conversationTest={};
 const mocks={
  'worker/lib/db.js':`export const connectDb=async()=>{};export const withMongoRetry=async(e,f)=>f();`,
  'worker/yeongnyangi/repository.js':`export const ownerId=x=>x;export const readRequest=async(e,u,id)=>{const t=globalThis.__conversationTest;if(u!==t.row.userId||id!==t.row._id)throw Error('NOT_FOUND');if(t.revoked)throw Error('PAYMENT_NOT_ACTIVE');return structuredClone(t.row);};export const YeongnyangiRequest={findOneAndUpdate:(q,update)=>({lean:async()=>{const t=globalThis.__conversationTest,c=t.row.generationCheckpoint?.conversation,rev=q['generationCheckpoint.conversation.revision'];if(q.userId!==t.row.userId||q.state!==t.row.state||(typeof rev==='number'?c?.revision!==rev:c!==undefined))return null;const after=update.$set['generationCheckpoint.conversation'];if(t.failBeforeSave&&after.exchanges.length)throw Error('STORAGE_FAILED');t.row.generationCheckpoint={conversation:structuredClone(after)};if(t.failAfterSave&&after.exchanges.length)throw Error('WRITE_RESPONSE_LOST');return structuredClone(t.row);}})};`,
- 'worker/lib/gemini.js':`export const callGeminiText=async(e,input,options)=>{const t=globalThis.__conversationTest;t.sent={input:JSON.parse(input),options};t.calls++;if(t.barrier)await t.barrier;if(t.providerFailed)throw Error('PROVIDER_FAILED');return {ok:true,text:JSON.stringify(t.reply),finishReason:'STOP'};};`,
+ 'worker/lib/gemini.js':`export const callGeminiText=async(e,input,options)=>{const t=globalThis.__conversationTest;t.sent={input:JSON.parse(input),options};t.calls++;if(t.barrier)await t.barrier;if(t.blocked)return {ok:false,error:'LLM_CONTENT_BLOCKED'};if(t.providerFailed)throw Error('PROVIDER_FAILED');return {ok:true,text:JSON.stringify(t.reply),finishReason:'STOP'};};`,
 };
 const bundle=await build({stdin:{contents:"export {questionConversation} from './worker/yeongnyangi/question-followup';",resolveDir:process.cwd(),loader:'ts'},bundle:true,platform:'node',format:'cjs',write:false,plugins:[{name:'isolated-paid-boundaries',setup(b){b.onLoad({filter:/worker[\\/]/},args=>{const key=Object.keys(mocks).find(k=>args.path.replaceAll('\\','/').endsWith(k));return key?{contents:mocks[key],loader:'ts'}:undefined;});}}]});
 const loaded=new Module(path.resolve('question-storage-test.cjs'));loaded.paths=Module._nodeModulePaths(process.cwd());loaded._compile(bundle.outputFiles[0].text,loaded.id);
@@ -27,6 +27,15 @@ test('concurrent posts reserve one slot; duplicate retry returns saved answer wi
  await questionConversation({},user,id,body);
  assert.equal(t.calls,1);assert.deepEqual(t.row.chapters,original);
 });
+test('a blocked model answer stores only a support notice without consuming a follow-up',async()=>{
+ const t=globalThis.__conversationTest;t.blocked=true;
+ await questionConversation({},user,id,body);
+ const saved=t.row.generationCheckpoint.conversation;
+ assert.equal(saved.used,0);assert.equal(saved.exchanges[0].reply.kind,'support');
+ assert.match(saved.exchanges[0].reply.text,/다른 질문/);
+ await questionConversation({},user,id,body);assert.equal(t.calls,1);
+});
+
 test('a lost save response rereads durable answer and does not charge twice',async()=>{
  const t=globalThis.__conversationTest;t.failAfterSave=true;
  const saved=await questionConversation({},user,id,body);

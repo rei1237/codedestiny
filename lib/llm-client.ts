@@ -154,6 +154,7 @@ const DEFAULT_TIMEOUT_MS = 30_000;
 export { isStagingLlmMockEnabled };
 
 type GeminiPayload = {
+  promptFeedback?: { blockReason?: string; safetyRatings?: Array<{blocked?: boolean}> };
   candidates?: Array<{
     content?: {
       parts?: Array<{
@@ -162,6 +163,7 @@ type GeminiPayload = {
       }>;
     };
     finishReason?: string;
+    safetyRatings?: Array<{blocked?: boolean}>;
   }>;
   usageMetadata?: {
     promptTokenCount?: number;
@@ -174,6 +176,21 @@ type GeminiPayload = {
     message?: string;
   };
 };
+
+const blockedFinishReasons = new Set([
+  "SAFETY", "RECITATION", "BLOCKLIST", "PROHIBITED_CONTENT", "SPII", "MODEL_ARMOR",
+  "IMAGE_SAFETY", "IMAGE_PROHIBITED_CONTENT", "IMAGE_RECITATION", "CONTENT_FILTER",
+]);
+
+class ProviderContentBlocked extends Error {
+  readonly code = "LLM_CONTENT_BLOCKED";
+  readonly status = 422;
+  constructor() { super("The provider blocked this content."); }
+}
+
+function assertAllowedFinish(reason?: string) {
+  if (blockedFinishReasons.has(String(reason || "").trim().toUpperCase())) throw new ProviderContentBlocked();
+}
 
 // 1순위는 캐노니컬 GEMINIF_API_KEY(문서 정책). 배포 시크릿이 표준 이름으로
 // 남아 있어도 동작하도록 표준 키 이름을 폴백으로 함께 인식한다.
@@ -941,6 +958,13 @@ async function callGeminiPrimary(
       throw requestError;
     }
 
+    const promptBlock = payload.promptFeedback?.blockReason;
+    if ((promptBlock && !["BLOCK_REASON_UNSPECIFIED", "BLOCKED_REASON_UNSPECIFIED"].includes(promptBlock))
+      || payload.promptFeedback?.safetyRatings?.some(rating => rating.blocked === true)
+      || payload.candidates?.[0]?.safetyRatings?.some(rating => rating.blocked === true)) {
+      throw new ProviderContentBlocked();
+    }
+    assertAllowedFinish(payload.candidates?.[0]?.finishReason);
     const text = extractGeminiText(payload);
     if (!text) throw new Error("Gemini returned an empty response.");
 
@@ -1068,9 +1092,10 @@ async function callCloudflareWorkersAI(
         `Cloudflare Workers AI (${model}) timed out after ${remainingMs}ms.`,
       );
 
+      const finishReason = extractWorkersAiFinishReason(result);
+      assertAllowedFinish(finishReason);
       const text = extractWorkersAiText(result);
       if (!text) throw new Error("Cloudflare Workers AI returned an empty response.");
-      const finishReason = extractWorkersAiFinishReason(result);
 
       // Workers AI 가 공식 usage 를 주면 실측값을 보존한다. 모델/응답 형식에 따라 usage 가
       // 없을 때만 문자수 휴리스틱으로 내려가며, 원가 집계는 estimated=true 를 확정 원가로 쓰지 않는다.
@@ -1089,6 +1114,7 @@ async function callCloudflareWorkersAI(
         ...(finishReason ? { finishReason } : {}),
       };
     } catch (error) {
+      if (error instanceof ProviderContentBlocked) throw error;
       if (isGenerationTimeout(error)) throw generationTimeoutFailure(error);
       // 폐기(5028)·스키마 거부·빈 응답은 남은 예산 안에서 다음 모델로 넘긴다.
       // 마지막 모델까지 실패하면 사유를 전부 합쳐 올린다.
@@ -1208,6 +1234,7 @@ async function callLLMUncached(
     try {
       return await callGeminiWithRetry(request, env, deadlineAt, budget);
     } catch (error) {
+      if (error instanceof ProviderContentBlocked) throw error;
       if (isGenerationTimeout(error)) throw generationTimeoutFailure(error);
       geminiError = error;
     }
@@ -1228,6 +1255,7 @@ async function callLLMUncached(
     try {
       return await callGeminiWithRetry(withoutContextCache, env, deadlineAt, budget);
     } catch (error) {
+      if (error instanceof ProviderContentBlocked) throw error;
       if (isGenerationTimeout(error)) throw generationTimeoutFailure(error);
       geminiError = error;
     }
@@ -1252,6 +1280,7 @@ async function callLLMUncached(
   try {
     return await callCloudflareWorkersAI(request, env, deadlineAt, budget);
   } catch (cloudflareError) {
+    if (cloudflareError instanceof ProviderContentBlocked) throw cloudflareError;
     if (isGenerationTimeout(cloudflareError)) throw cloudflareError;
     const failureCode = String((geminiError as { code?: string })?.code || "");
     const fallbackCode = String((cloudflareError as { code?: string })?.code || "");
@@ -1299,7 +1328,10 @@ export async function callLLM(
     return buildStagingMockResponse(localized);
   }
   if (localized.cache?.store) {
-    return withLLMCache(localized, (req) => callLLMUncached(req, env), localized.cache);
+    const result = await withLLMCache(localized, (req) => callLLMUncached(req, env), localized.cache);
+    // Earlier releases could store partial text alongside a blocked finish reason.
+    assertAllowedFinish(result.finishReason);
+    return result;
   }
   return callLLMUncached(localized, env);
 }

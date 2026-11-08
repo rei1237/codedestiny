@@ -795,7 +795,7 @@ async function restorePassQuota(env,userId,requestId,access,{cycleKey,cost,evide
 export async function failChapter(env, userId, requestId, token, code, attempt = 1, stage = '', allowedAttempts = AUTOMATIC_CHAPTER_ATTEMPTS, detail = '', ordinal = null, receipt = null) {
   const limited=code==='ASK_LIMITED_REVIEW_REQUIRED';
   // A stored fact snapshot fails the same way on every attempt, so it holds at once and never offers a buyer retry.
-  const permanent=['GENERATION_REVIEW_REQUIRED','INVALID_MANIFEST'].includes(code)||String(code).startsWith('ENGINE_FACT_');
+  const permanent=['GENERATION_REVIEW_REQUIRED','INVALID_MANIFEST','LLM_CONTENT_BLOCKED'].includes(code)||String(code).startsWith('ENGINE_FACT_');
   const stopped=attempt>=allowedAttempts&&!permanent&&!limited;
   const result=await withMongoRetry(env, () => YeongnyangiRequest.updateOne({_id:requestId,userId:ownerId(userId),leaseToken:token,state:'GENERATING'},
     {$set:{state:'FORTUNE_FAILED',leaseToken:'',leaseUntil:null,errorCode:limited?'ASK_LIMITED_REVIEW_REQUIRED':permanent?'GENERATION_REVIEW_REQUIRED':stopped?'AUTOMATIC_RECOVERY_STOPPED':String(code).slice(0,80),lastFailure:{code:String(code).slice(0,80),stage,at:new Date()},nextAttemptAt:limited||permanent||stopped?null:new Date(Date.now()+(stage==='quality'?QUALITY_RETRY_MS:attempt===1?30000:120000)),
