@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-11-09
-next: "리베이스한 트리의 pre-push → main 전달 → 공식 CI의 Jest 완료 확인 → 스테이징 SHA 확인 → 승인된 운영 승격 1회 → 운영 실측·SEO Operations 기록."
+next: "릴리스 2faaa262b9ceb7fc01f77496b711d0972ccc1000의 스테이징 런 42503516402 완료 확인 → 공식 CI·양쪽 SHA 확인 → 승인된 운영 dispatch 1회 → 운영 실측·SEO Operations 기록."
 ---
 
 # SEO 아키텍처 재구축
@@ -21,6 +21,9 @@ next: "리베이스한 트리의 pre-push → main 전달 → 공식 CI의 Jest 
 ## 지금 상태
 
 ### 2026-11-09 재개
+
+- **main push 완료**: `2faaa262b9ceb7fc01f77496b711d0972ccc1000`. 리베이스 뒤 `check:pre-push` exit 0, 추가 upstream 잠금화면 테스트 10/10. 스테이징 런 https://github.com/rei1237/codedestiny/actions/runs/42503516402 (이전 스테이징 뒤에서 pending). 로컬 `gh run watch 42503516402 --exit-status --interval 45`로 이 최종 릴리스 배포만 확인 중, 로그 `D:/Development/seo-audit/code-destiny-20261101/bundle-3/staging-watch-20261109.log`. 운영 dispatch 아직 실행 안 함. 이후 로컬 문서 커밋이 생겨도 운영 대상은 **origin/main의 이 SHA**이며, 승인된 승격 전까지 문서 때문에 추가 push하지 않는다.
+- 운영 배포 전 표본 재실측: `/fortune/` robots 1·googlebot 0, `/en/` robots 1·googlebot 0(지역 중복 코드), `/saju/` robots 1·googlebot 1(옛 zh 계열). 모두 200. 운영 SHA `9e8cec0a6`, 증거 `D:/Development/seo-audit/code-destiny-20261101/bundle-3/production-before-20261109.json`.
 
 - 사용자 요청: `D:\Development\seo-audit\code-destiny-20261101\bundle-3\approval-packet.md 참조해서 남은 seo 작업 마무리해줘`.
 - origin/main과 운영 `/version.json`은 여전히 `9e8cec0a654040cf9115a5a2a2b3a1fe7eb75dea`. main CI 성공: https://github.com/rei1237/codedestiny/actions/runs/42465450472. 재리베이스 불필요. 루트 체크아웃의 다른 세션 변경은 건드리지 않는다.
