@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-08
-next: 6c-2 — heukwol 배달 안전 수정(시도 소진·40,000자 관문 환불 제거). 그다음 6c-3~6c-7, 끝나면 6d. 아래 "6c 진행 결과" 참고
+next: 6c-3 — 사주 AI(fortune.js) P1(qualityRepair attempts 되돌림·소진 시 최선의 글 배달·유효 그룹 있으면 환불 금지). 그다음 6c-4~6c-7, 끝나면 6d. 아래 "6c 진행 결과" 참고
 ---
 
 # 3만원 이상 유료 LLM — 상품별 챕터·분량·PDF·전달 개선 인수인계
@@ -183,7 +183,12 @@ next: 6c-2 — heukwol 배달 안전 수정(시도 소진·40,000자 관문 환�
   | 낮음 | 초융합 v2 그룹 | `fusion-fortune-prompt.js:1092-1100` | e929c2114로 해결 | 없음 |
   | 낮음 | 영냥이 질문 분석·무료/기본, 찻집, 연애 비책, 자미두수, 사주 궁합 기본, 손금, 인생의 책, vedic, 숙요 궁합, nakshatra, neo, 휴먼디자인, 관계·질문 배달, 타로, 동물 토템, destiny-anatomy, yoga, `NARRATIVE_RESPONSE_SCHEMA` 계열 | 각 `jsonSchemaFromExample` 호출부 | enum 없음, 깊이 4 이하 | 없음 |
 
-  - [ ] 6c-2. heukwol P1+P3를 고친다. 위 표의 수정대로 하고, 새 세션만 판 분기한다. 환불 경로는 본문이 완전히 비었을 때만 남긴다.
+  - [x] 6c-2. heukwol P1+P3를 고친다. 위 표의 수정대로 하고, 새 세션만 판 분기한다. 환불 경로는 본문이 완전히 비었을 때만 남긴다.
+    - `3bffc1010` 배달 2판(`metadata.deliveryPlanVersion=2`, 끄는 스위치 `HEUKWOL_DELIVERY_V2_ENABLED=false`).
+      - 2판은 전체 40,000자 관문이 없다. 장 1,500자 미만·반복·말투 이탈(연이 반말, 네오 합니다체)·근거 ID·확정 표현은 부드러운 이슈다. `metadata.lastIssue`로 다음 시도 프롬프트 끝에 `보완 요청:` 한 줄을 붙인다(힌트가 없으면 1판 프롬프트와 바이트가 같다, sha256 확인).
+      - 세 번째 시도(`attempts>=2`)는 `finalAttempt`다. 확정 표현 문장만 지우고, 모르는 근거 ID는 거르고, 짧아도 받는다. 세 칸이 모두 비었을 때만 거절한다.
+      - 실패 물결은 503 대신 202를 돌려 클라이언트가 이어 간다. 장이 3번 다 실패하면 그 장만 `metadata.skippedChapters`에 넣고 다음 장으로 간다. 비운 장이 3개가 되면 있는 장으로 완료한다.
+      - 환불은 저장된 장이 0개일 때만이다. 모든 장이 끝났는데 완료 저장만 실패하면 닫지 않고 시도를 0으로 되돌린다(1시간 timeout과 cron이 뒤를 받는다).
   - [ ] 6c-3. 사주 AI(fortune.js) P1을 고친다. qualityRepair가 attempts를 되돌리게 하고, 소진 시 최선의 글로 배달하며, 유효 그룹이 있으면 환불하지 않는다. 테스트 하네스의 names·constants 등록을 잊지 않는다.
   - [ ] 6c-4. pet-saju-ai(공용 `paid-narrative-delivery.js`)의 202 멈춤을 고친다. 공용 엔진을 쓰는 다른 서비스를 먼저 grep하고, 동작이 바뀌면 옵션으로 pet에만 켠다.
   - [ ] 6c-5. sibyl / sibyl-annual: 장 단위 재시도와 분량 경고화.
