@@ -5418,6 +5418,21 @@
       "lastRound": 219,
       "nextRound": 220,
       "next": "Wait for Bing login confirmation; resume same space only"
+    },
+    "lastLocalPrePush": {
+      "sha": "3d964fecfa3225952f3f89641b6324ea671ecc8e",
+      "conclusion": "failure",
+      "passed": [
+        "home-service-registry",
+        "public-mirror-fresh"
+      ],
+      "failed": "Node native Realloc assertion during crypto Hash.update in sitemap source hashing; exit1; not reported as gate success",
+      "workingTree": "clean after generator verification restored mirrors"
+    },
+    "additionalRawValidation": {
+      "records": 233,
+      "unique": 233,
+      "sha256Mismatches": 0
     }
   }
 }

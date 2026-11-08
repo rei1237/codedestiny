@@ -22,6 +22,8 @@ next: "사용자 지시로 Toss 실패 해소 전 push 보류. main CI4252692267
 
 ### 사용자 최신 지시와 수집 구간 정리
 
+- 최종 로컬 검증: 3d964fecf에서 check:pre-push 실행. home registry/public mirror 통과, 사이트맵 서명 계산 crypto Hash.update에서 Node native Realloc assertion으로 exit1. 통과로 기록하지 않는다. 생성기는 임시 미러를 자동 복원했고 git status는 clean. 추가 원자료233항목 중복0·SHA256불일치0.
+
 - **2026-11-09 사용자 원문: “Toss 실패 해소 전 push 보류”**. 앞선 예외 요청은 승인되지 않았다. 후속 로컬 수정과 기록을 커밋으로 보존하되 원격 push/운영 승격을 실행하지 않는다. Toss 빌드 용량은 102804422/100000000 bytes, 관련 테스트1435/1435. 별도 Toss 코드·제한값 수정도 이번에 하지 않았다.
 - GSC 핵심20URL+내일허브=21개 indexed-information 전사/PNG 확보. manifest451항목(추가233+GSC native218). 2027/fortune허브 발견됨미색인, fortune/today는 알려지지 않은URL, 내일허브는5/31과거404기록. 현재 공개응답 원인과 혼동하거나 무분별한noindex로 해결하지 않는다.
 - Bing은 Sign In 화면으로 로그인 필요. Space65 p2를 사용자 제어로 handOff했다. 마지막 신규round219, **로그인 완료 회신 전 브라우저 제어 재개 금지**, 확인 후 같은 Space65에서takeOver→round220부터. p1=GSC검사,p2=Bing로그인. finish하지 않았다.
