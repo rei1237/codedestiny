@@ -22,6 +22,7 @@ import { useBodyScrollLock } from "@/app/_lib/body-scroll-lock";
 import { extractReadableTextFromJsonLike, looksLikeRawJson, toDisplayText } from "@/lib/llm-text";
 import AiResultProse from "@/components/fortune/AiResultProse";
 import ConsultationReading from "@/components/fortune/ConsultationReading";
+import { SUKUYO_COMPAT_COVER_ART, SUKUYO_COMPAT_PRODUCT_LABEL, SUKUYO_COMPAT_SPEAKER, buildSukuyoCompatPdfChapters, buildSukuyoCompatPdfSummary, orderSukuyoCompatSections } from "@/lib/sukuyo/sukuyo-compat-chapters";
 import AnalysisBasisLoading from "@/components/fortune/AnalysisBasisLoading";
 import AnalysisBasisPanel from "@/components/fortune/AnalysisBasisPanel";
 import ResultReference from '@/components/fortune/ResultReference';
@@ -236,6 +237,7 @@ type Consultation = {
   analysisBasis?: AnalysisBasis | null;
   relationshipType: string;
   topic: string;
+  groupPlanVersion?: number;
   messages: ConsultationMessage[];
 };
 type ScoreKey = "destiny" | "harmony" | "emotion" | "growth" | "stability";
@@ -913,12 +915,18 @@ function CompatSummaryHeader({ meta }: { meta: CompatResult["meta"] }) {
   );
 }
 
-function ChapterReadingArticle({ sectionKey, section }: { sectionKey: string; section: { title: string; body: string } }) {
+function ChapterReadingArticle({ sectionKey, section, chapterLabel = "" }: { sectionKey: string; section: { title: string; body: string }; chapterLabel?: string }) {
   const locale = useSukuyoCompatLocale();
   // 마지막 편지에만 서명한다 — 화면과 PDF 가 같은 컴포넌트를 쓰므로 둘 다 남는다.
   const signoff = sectionKey === "closingLetter" && isExpertCharacterEnabled("hanbi") ? getExpertLine("hanbi", "result.signoff", locale).text : "";
   return (
     <article className={styles.readingSection}>
+      {chapterLabel && (
+        <p className={styles.chapterKicker}>
+          <span>{chapterLabel}</span>
+          <span className={styles.speakerChip}>{SUKUYO_COMPAT_SPEAKER}</span>
+        </p>
+      )}
       <div>
         <span>{SECTION_ICONS[sectionKey] || "✦"}</span>
         <h3>{section.title}</h3>
@@ -1056,14 +1064,17 @@ function QuoteWelcomeCard({ quote }: { quote: string }) {
   );
 }
 
-function CompatResultModal({ result, onClose, onDownloadError, basis = null, completed = false }: { completed?: boolean; result: CompatResult; onClose: () => void; onDownloadError: (message: string) => void; basis?: AnalysisBasis | null }) {
+function CompatResultModal({ result, onClose, onDownloadError, basis = null, completed = false, planV2 = false }: { completed?: boolean; result: CompatResult; onClose: () => void; onDownloadError: (message: string) => void; basis?: AnalysisBasis | null; planV2?: boolean }) {
   const locale = useSukuyoCompatLocale();
   const copy = getSukuyoCompatCopy(locale);
   const hanbiOpen = getExpertLine("hanbi", "result.open", locale);
   const [isDownloading, setIsDownloading] = useState(false);
   const { meta, sections } = result;
-  const readingPages = useMemo(() => chunkReadingSections(sections), [sections]);
-  const chapterEntries = useMemo(() => Object.entries(sections), [sections]);
+  // 판 2 상담은 두 별의 본성 장부터 차례·"N장 · 부 이름"·서한비 표시를 단다. 판 1은 예전 순서·화면 그대로다.
+  const chapterSections = useMemo(() => (planV2 ? orderSukuyoCompatSections(sections, true) : []), [sections, planV2]);
+  const chapterEntries = useMemo(() => (planV2 ? chapterSections.map((section) => [section.key, section] as [string, { title: string; body: string }]) : Object.entries(sections)), [sections, planV2, chapterSections]);
+  const readingPages = useMemo(() => (planV2 ? chapterEntries.map((entry) => [entry]) : chunkReadingSections(sections)), [sections, planV2, chapterEntries]);
+  const chapterLabel = (index: number) => (planV2 ? `${index + 1}장${chapterSections[index]?.kicker ? ` · ${chapterSections[index].kicker}` : ""}` : "");
   const [activeChapter, setActiveChapter] = useState(0);
   const [chapterViewAll, setChapterViewAll] = usePagedViewerMode("sukuyoCompatChapterViewerV1");
   const [detailOpen, setDetailOpen] = useState(true);
@@ -1101,12 +1112,38 @@ function CompatResultModal({ result, onClose, onDownloadError, basis = null, com
   };
 
   const handlePDF = async () => {
-    const element = document.getElementById("compat-result-body");
-    if (!element || isDownloading) return;
+    if (isDownloading) return;
     setIsDownloading(true);
     try {
-      const { exportResultPdf } = await import("@/lib/pdf/export-result-pdf");
       const fileName = `달빛궁합_${meta.person_a.name}_${meta.person_b.name}_${new Date().toLocaleDateString(INTL_LOCALE_BY_LOADING_LOCALE[getCurrentLoadingLocale()]).replace(/\./g, "").replace(/ /g, "")}.pdf`.replace(/[\\/:*?"<>|]/g, "_");
+      // 받은 상담 전체를 글자로 조판한다. 글꼴을 못 실을 때만 화면 캡처로 되돌아간다.
+      const [{ exportConsultationBookPdf }, { PdfFontError }] = await Promise.all([
+        import("@/lib/pdf/export-consultation-book-pdf"),
+        import("@/lib/pdf/typeset-writer"),
+      ]);
+      const bookSource = { groupPlanVersion: planV2 ? 2 : 1, messages: [{ role: "assistant", content: JSON.stringify(result) }] };
+      const chapters = buildSukuyoCompatPdfChapters(bookSource);
+      if (chapters.length) {
+        try {
+          await exportConsultationBookPdf({
+            title: `${meta.person_a.name}님과 ${meta.person_b.name}님의 ${SUKUYO_COMPAT_PRODUCT_LABEL}`,
+            productLabel: SUKUYO_COMPAT_PRODUCT_LABEL,
+            byline: SUKUYO_COMPAT_SPEAKER,
+            coverTheme: "sukuyo",
+            coverArtSrc: SUKUYO_COMPAT_COVER_ART,
+            date: new Date().toISOString().slice(0, 10),
+            fileName,
+            chapters,
+            summary: buildSukuyoCompatPdfSummary(bookSource),
+          });
+          return;
+        } catch (cause) {
+          if (!(cause instanceof PdfFontError)) throw cause;
+        }
+      }
+      // 캡처 대체: 화면 밖 전체 렌더(#compat-result-body)를 그대로 찍는다.
+      if (!document.getElementById("compat-result-body")) throw new Error("PDF source missing");
+      const { exportResultPdf } = await import("@/lib/pdf/export-result-pdf");
       await exportResultPdf({
         captureTargets: ["#compat-result-body [data-pdf-section]"],
         fileName,
@@ -1182,6 +1219,20 @@ function CompatResultModal({ result, onClose, onDownloadError, basis = null, com
             </nav>
           )}
           <div id="compat-detail-panel" hidden={!detailOpen}>
+            {planV2 && chapterEntries.length > 1 && (
+              <nav className={styles.chapterToc} aria-label="상담 차례">
+                <p className={styles.chapterTocHead}>차례 · {SUKUYO_COMPAT_SPEAKER}</p>
+                <ol>
+                  {chapterEntries.map(([key, section], index) => (
+                    <li key={key}>
+                      <button type="button" onClick={() => openChapter(index)} aria-current={index === activeChapter ? "true" : undefined}>
+                        <span>{index + 1}</span>{section.title}
+                      </button>
+                    </li>
+                  ))}
+                </ol>
+              </nav>
+            )}
             <nav className={styles.chapterNav} aria-label={copy.chapterNavAria}>
               {chapterEntries.map(([key, section], index) => (
                 <button
@@ -1201,7 +1252,7 @@ function CompatResultModal({ result, onClose, onDownloadError, basis = null, com
               pages={chapterEntries.map(([key, section], index) => ({
                 id: key,
                 label: `${index + 1}장`,
-                content: <ChapterReadingArticle sectionKey={key} section={section} />,
+                content: <ChapterReadingArticle sectionKey={key} section={section} chapterLabel={chapterLabel(index)} />,
               }))}
               deckLabel={`달빛 궁합 ${chapterEntries.length}장 해설`}
               className={styles.pagedViewer}
@@ -2136,6 +2187,7 @@ export default function SukuyoCompatibilityAiClient({paymentSurface="web",draftO
           onDownloadError={setError}
           basis={consultation?.analysisBasis || basis}
           completed={consultation?.status === "completed" && !busy}
+          planV2={consultation?.groupPlanVersion === 2}
         />
       )}
     </main>

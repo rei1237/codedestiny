@@ -37,6 +37,7 @@ const SavedKarmaPdfButton = dynamic(() => import('./SavedKarmaPdfButton'));
 const SavedHumanDesignPdfButton = dynamic(() => import('./SavedHumanDesignPdfButton'));
 const SavedZiweiAiPdfButton = dynamic(() => import('./SavedZiweiAiPdfButton'));
 const SavedZiweiDeepPdfButton = dynamic(() => import('./SavedZiweiDeepPdfButton'));
+const SavedSukuyoCompatPdfButton = dynamic(() => import('./SavedSukuyoCompatPdfButton'));
 const VedicStructured = dynamic(() => import('@/app/vedic-ai/VedicAiClient').then(m=>m.StructuredReadingResult));
 
 function assistantObject(row:Record<string,unknown>) {
@@ -101,7 +102,7 @@ export default function SavedServiceReading({source,serviceId,value,status}:{sou
   return <div className={styles.reader}>{reportPdf&&<SavedHumanDesignPdfButton row={row} chart={chart} locale={locale}/>}{answerFirst(<SavedHumanDesign value={chart}/>,body)}</div>;
  }
  if(family==='saju'||family==='pet') return <div className={styles.letter}>{answerFirst(<>{saju?<SavedSaju value={saju}/>:<SavedSaju value={model}/>}<SavedFacts value={object(model.facts)}/></>,body)}</div>;
- if(family==='sukuyo') return <div className={sukuyoStyles.screen+' '+styles.nativeSukuyo} style={{minHeight:0}}>{answerFirst(<><SavedSukuyoSummary value={model}/><SavedFacts value={model.sukuyoResult||object(model.meta).relation}/></>,body)}</div>;
+ if(family==='sukuyo') return <div className={sukuyoStyles.screen+' '+styles.nativeSukuyo} style={{minHeight:0}}>{view.fields.includes('messages')&&<SavedSukuyoCompatPdfButton row={row} locale={locale}/>}{answerFirst(<><SavedSukuyoSummary value={model}/><SavedFacts value={model.sukuyoResult||object(model.meta).relation}/></>,body)}</div>;
  if(family.startsWith('tarot')||family==='celestial') return <div className={styles.night}><SavedCards value={model.cards||model.savedCards||object(model.reading).cards} variant={family}/>{body}</div>;
  if(family==='geomancy') return <SavedGeomancy row={model}/>;
  if(family==='yoga') return <SavedYoga row={model}/>;
