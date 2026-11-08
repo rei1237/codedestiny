@@ -472,3 +472,12 @@ next: 4-③ 통합 검증 후 최신 main 전달 트리에서 4-④ 배포
 - 용어집·직접 번역/오프라인 조립 세부는 docs/webnovel_review/vn-translation-finish-2026-11-09.md.
 - novel:build에서 미게시 경고0, verify:story-sync73화7,928비트 통과, verify-novel-locale-completeness 네언어 완결성 통과.
 - 전달 트리 생성값 충돌은 승인받은 방식으로 main 쪽 원장 선택 후 sitemap:generate 실행하여 해결. b7029897a→88323a8ff, 나머지 c88bc4383까지6511b59b1, 0fc52190c까지4d49eba57. 다음 cherry-pick은0fc52190c 이후부터.
+
+## 최종 전달 재개 지점 (2026-11-09)
+- 작업 정본 후보: D:/Development/codedestiny-worktrees/vn-finish-delivery-20261109 (detached HEAD,72f1eb62d). 원래 VN 브랜치는 c7745334f까지 반영 완료. node_modules는 D:/Development/code-destiny/node_modules로 이어지는 이 세션의 정션. 정리 시 정션부터 제거.
+- sourceHash1822d08b1cf0edd0475c92c0afa22fe040cec6e8e632f2e40817de52b7dfdd2e,73화7,928비트. manifest ko/en/ja/zh-CN/zh-TW 모두 게시. 전달 트리 novel:build/story-sync/sitemap/locale-completeness 통과, 생성 드리프트0.
+- 전 언어 authored73문서에서 오프라인 재조립 →7928/7928·missing0·게시파일 비트 차이0. source 브랜치 runtime/player-start 재검사도 통과.
+- check:fast -- --base=origin/main 실행 중. 로그 .tmp/vn-finish/check-fast.log, exec session72909. paid77/0(389.6s), lint통과, sitemap-drift1062URL통과, 현재typecheck이후 진행. 시작한 옛 source브랜치 checkfast는 중복실행을 종료했으며 최종 전달트리 검사로 대체(미검증으로 남기지 않을 것).
+- main이9e8cec0a6→87c6e54dd로 이동(잠금화면8파일, 소설 변경과 겹침0). 최종 검사 완료 후 git rebase --onto origin/main 9e8cec0a6 HEAD 로 최신main 위로 옮기고 생성 드리프트 확인 후 pre-push. 더 이동했으면 다시fetch하고 충돌없는 최신main보존.
+- 운영 브라우저 ego taskSpace63, p1, URL https://code-destiny.com/codedestiny-novel.html . 아직 기존 운영판 확인만 함, 배포 후 확인 필수. 기존 북마크·소설언어는 원래워크트리 .tmp/vn-finish/browser-original-state.json에 저장. 운영검증 끝난 뒤 두 키만 복원하고 task.finish({keep:[]}). Ego 업데이트 안내는 있으나 업그레이드는 안 함.
+- source 워크트리 .tmp/vn-finish와 전달 트리 .tmp/vn-finish는 이 세션 생성 임시 파일. 최종 결과 문서로 옮긴 뒤 정리. 다른 작업의 .tmp/파일/워크트리는 건드리지 않는다.
