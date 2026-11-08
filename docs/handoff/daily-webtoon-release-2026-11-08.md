@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-11-08
-next: "2단계 후속: main PR CI Static guards 실패(verify:saju-summary-browser, 홈 무료 사주 카드 not visible)를 고쳐 push → CI 통과 확인 → 3단계 운영 승격 → 4단계 Play → 5단계 정리"
+next: "Play 내부 테스트 트랙에 final7 AAB(59/1.0.59) 업로드: ego-browser TaskSpace 59가 업로드 도중 사라져 멈췄다. 사용자가 직접 올리거나 새 브라우저 작업을 승인하면 진행"
 ---
 
 # 오늘·내일 운세 웹툰 마무리와 세 브랜치 운영·Play 배포
@@ -71,14 +71,14 @@ next: "2단계 후속: main PR CI Static guards 실패(verify:saju-summary-brows
 - 롤백: Actions → *Release Cloudflare Pages and Worker* → `mode: rollback`(`npm run deploy:rollback -- --list`로 대상 확인).
 
 ### 4. Play 배포 절차 (승인됨)
-- [ ] android 인수인계 문서의 next를 따른다: main HEAD에서 final6 릴리스 빌드(`build-android.ps1 -Out D:\Development\code-destiny\output\android-size-widget-20261107\final6`), VERSION_CODE는 Play에 올린 마지막 값보다 크게 한다.
-- [ ] benchmark APK로 실기기 확인: `/oracle/hwatu-life/`, `/tarot/love/` 히어로 이미지, 홈 첫 줄 7개, 위젯 진입 버튼, 깨진 이미지 0, 오늘의 운세 웹툰.
-- [ ] 문서에 적힌 업로드 방식으로 내부 테스트 트랙에 AAB를 올린다. 업로드 수단(API 키나 Play Console 로그인)이 없으면 AAB 경로와 출시 노트 초안을 사용자에게 넘긴다.
+- [x] android 인수인계 문서의 next를 따른다: main HEAD에서 final6 릴리스 빌드(`build-android.ps1 -Out D:\Development\code-destiny\output\android-size-widget-20261107\final6`), VERSION_CODE는 Play에 올린 마지막 값보다 크게 한다.
+- [ ] (못 함: adb 기기 미연결, benchmark 빌드 생략) benchmark APK로 실기기 확인: `/oracle/hwatu-life/`, `/tarot/love/` 히어로 이미지, 홈 첫 줄 7개, 위젯 진입 버튼, 깨진 이미지 0, 오늘의 운세 웹툰.
+- [ ] (멈춤, 아래 결과 참고) 문서에 적힌 업로드 방식으로 내부 테스트 트랙에 AAB를 올린다. 업로드 수단(API 키나 Play Console 로그인)이 없으면 AAB 경로와 출시 노트 초안을 사용자에게 넘긴다.
 - [ ] 스토어 스크린샷과 홍보 이미지는 사용자가 만든다. 손대지 않는다.
 
 ### 5. 마무리
-- [ ] 이 문서와 android, legacy-cleanup 문서에 결과(SHA, 운영 run id, AAB 크기와 VERSION_CODE)를 적고 `status: done`.
-- [ ] 병합이 끝난 워크트리 세 개는 `npm run worktree:remove`로 정리한다. 미병합 커밋이 남았으면 남긴다.
+- [x] 이 문서와 android, legacy-cleanup 문서에 결과(SHA, 운영 run id, AAB 크기와 VERSION_CODE)를 적고 `status: done`.
+- [x] 병합이 끝난 워크트리 세 개는 `npm run worktree:remove`로 정리한다. 미병합 커밋이 남았으면 남긴다.
 - [ ] 사용자에게 한국어로 보고: 운영 반영 내용, 301 확인, Play 업로드 결과, 남은 위험.
 
 ## 결과 기록
@@ -107,6 +107,10 @@ next: "2단계 후속: main PR CI Static guards 실패(verify:saju-summary-brows
 - 4단계: 병합 워크트리(1a9f0fb18)에서 VERSION_CODE 58 빌드. 스크립트 `D:\Development\Temp\claude\ec29f026d20d029c\ccecc842-2a09-4af6-b3e9-689ca5d1e944\scratchpad\build-android-58.ps1`(서명 설정 `release-signing.properties`를 android 워크트리에서 복사, git 무시 파일). 출력 `D:\Development\code-destiny\output\android-size-widget-20261107\final6`.
   - final6 AAB(267,484,818 B, 58/1.0.58)를 Play 내부 테스트 트랙 초안(releases/17)에 올렸더니 🔴 **"58 버전 코드는 이미 사용되었습니다"**. App Bundle 탐색기를 보니 58(1.0.58)은 2026-11-06 흑월 세션(heukwol-release-review 문서, bb148a00e 빌드)이 이미 올렸고 활성이다. 57(11-05 업로드)도 있다. 위 "57은 업로드하지 않았다"는 틀린 기록이다. **VERSION_CODE를 정할 때는 문서 대신 App Bundle 탐색기의 최고값을 본다.**
   - 그래서 **59/1.0.59**로 다시 빌드한다. 스크립트 `...\scratchpad\build-android-59.ps1`, 출력 `D:\Development\code-destiny\output\android-size-widget-20261107\final7`. 기기가 연결돼 있지 않아 benchmark 단계는 뺐다(final6 benchmark 빌드는 중단). final6 AAB는 쓰지 않는다.
+  - **final7 빌드 성공**(기준 796af18a3 = 1a9f0fb18 + 문서 커밋, sync 22분 + bundleRelease 42분). `D:\Development\code-destiny\output\android-size-widget-20261107\final7\app-release.aab` **267,491,772 B**, bundletool 확인 versionCode **59** / 1.0.59, package com.codedestiny.app, 서명 SHA256 73:C0:04:…:2C:50:14:27(final4·final6과 같음). sync가 바꾼 capacitor gradle 생성 파일 2개는 되돌렸다.
+  - 🔴 **업로드 멈춤**: 초안(releases/17)에서 실패한 58 항목은 지웠고 초안은 저장하지 않았다. 59를 올리려는데 ego-browser TaskSpace 59가 목록에서 사라졌다(남은 공간 56~58은 다른 작업, 누군가 59를 닫은 것으로 보임). 규칙대로 새 공간으로 우회하지 않고 멈췄다. 내부 테스트 트랙(4701642016388647854) → 새 버전 만들기 → final7 AAB 업로드 → 출시명 `59 (1.0.59)` → ko-KR 출시 노트(아래) → 다음 → 내부 테스트로 출시. 프로덕션 트랙은 건드리지 않는다(사용자 확인 필요).
+  - 출시 노트 초안(ko-KR): 홈 첫 줄에 여섯 운세 체계와 오늘의 운세를 모았습니다 / 오늘·내일 운세에 연이와 네오의 웹툰을 더했습니다 / 앱 크기를 줄이고 첫 화면을 더 빠르게 했습니다 / 홈 화면 위젯(부적·확언) 진입을 추가했습니다
+  - 워크트리 정리(2026-11-08): daily-webtoon·legacy-cleanup·android-size-widget 세 개를 `npm run worktree:remove -- <경로> --force`로 지웠다. cherry-pick이라 SHA가 달라 --force가 필요했고, 커밋 제목으로 main 반영을 모두 확인했다(android의 d9138b654·12c8e67ec는 사이트맵 재생성 전용이라 병합 때 다시 만들어 대체됨). 브랜치 `wt/*` 셋은 남겼다. android 폴더는 11-07 세션이 띄워 둔 정적 서버(포트 4180·4181, serve-public.mjs)가 작업 폴더로 잡고 있어 그 프로세스를 끝내고 지웠다.
   - Play 화면 정보: 개발자 8929260153073799668, 앱 4971977067602742831, 내부 테스트 트랙 4701642016388647854(이전 최신 49/1.0.49).
 
 ## 이어받는 쪽 첫 행동 (2026-11-08 갱신)

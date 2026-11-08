@@ -1,12 +1,13 @@
 ---
 status: active
 updated: 2026-11-08
-next: "final6 빌드(88c8d17dc 포함) 뒤 /oracle/hwatu-life/·/tarot/love/ 히어로 이미지 재확인, 그다음 사용자 승인 받아 push·내부 테스트 트랙"
+next: "Play 내부 테스트 트랙에 final7 AAB(59/1.0.59) 업로드: ego-browser TaskSpace 59가 업로드 도중 사라져 멈췄다. 사용자가 직접 올리거나 새 브라우저 작업을 승인하면 진행"
 ---
 
 # Android 앱 용량·속도·홈 화면 위젯 (wt/android-size-widget-20261107-021350)
 
 ## 상태
+- **2026-11-08 갱신**: 이 브랜치는 main에 병합돼 운영에 반영됐다(push `6d93669df..70eaf737b`, 이후 1a9f0fb18, 운영 run 42437586072). 최종 AAB는 `D:\Development\code-destiny\output\android-size-widget-20261107\final7\app-release.aab`(267,491,772 B, **59/1.0.59**, 기준 796af18a3). 58은 11-06 흑월 세션이 이미 Play에 올려서 쓸 수 없었다. Play 내부 테스트 업로드는 아직 하지 않았다(daily-webtoon-release-2026-11-08.md 4단계 참고). 워크트리는 제거했고 브랜치는 남겼다. 아래는 옛 기록이다.
 - 빌드 기준 커밋: 869eb11c2. push·Play 업로드는 하지 않았다(사용자 승인 필요).
 - 최종 릴리스 빌드: D:\Development\code-destiny\output\android-size-widget-20261107\final4\app-release.aab (283,330,476 B, VERSION_CODE 57 / 1.0.57). 같은 폴더에 app-benchmark.apk. final3(aa2a69ff4, 280,982,450 B)는 범위 밖 수정 이전 빌드.
 - check-changed(--base=origin/main --committed-head, ALLOW_DEV_SERVER_DURING_BUILD=1): node 4625/4625, Jest 7666/7666, 빌드 단계까지 exit 0. 로그: output\android-size-widget-20261107\check-changed-aa2a69ff4-b.log
