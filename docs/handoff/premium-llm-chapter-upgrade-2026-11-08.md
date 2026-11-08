@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-08
-next: 8단계 8b — 숙요 결과 화면 챕터 UI·조판 PDF·보관함 PDF
+next: 8단계 8c — 숙요 build·모의 실행·실호출 1회·PDF 확인
 ---
 
 # 3만원 이상 유료 LLM — 상품별 챕터·분량·PDF·전달 개선 인수인계
@@ -648,7 +648,13 @@ next: 8단계 8b — 숙요 결과 화면 챕터 UI·조판 PDF·보관함 PDF
   - 검증: jest `__tests__/worker/sukuyo*` 13 suites 165/165(중복 생성 파일 52/52), paid-completed-result-access·paid-delivery-inventory 104/104, `node --test __tests__/ui/sukuyo-*` 35/35, `apps/toss` sukuyo 67/67, verify llm-generation-resilience(1357 checks)·analysis-basis-contract·sukuyo-role-direction·paid-gate-ui-regression·ai-locale-pipeline·per-use-never-unlocks 모두 exit 0.
   - 함정: `testUtils.calculateSukuyo`는 async다. 기존 P3 단위 테스트 몇 개는 await 없이 Promise를 넘기는데 그래도 통과한다(손대지 않음). 새 테스트는 await한다. 요약 호출은 섹션 페이로드를 주면 null이 되어 대체 요약으로 한 번 더 돈다 — 웨이브 수를 세는 테스트는 요약 스키마(headline)에 요약 JSON을 돌려주는 mock(`v2Mock`)을 쓴다.
   - 함정: worker jest는 ESM이라 `NODE_OPTIONS=--experimental-vm-modules npx jest <파일> --runInBand --testEnvironment node`로 돌린다(그냥 npx jest는 import 구문 오류). 판 2 그룹 식별은 mock에 들어온 responseSchema 키로 한다.
-- [ ] 8b. 화면(차례·칩·조판 PDF) + 공용 장 모듈 + 보관함 PDF + 테스트
+- [x] 8b. 화면(차례·칩·조판 PDF) + 공용 장 모듈 + 보관함 PDF + 테스트
+  - 완료(0a632d3a0): 공용 모듈 `lib/sukuyo/sukuyo-compat-chapters.ts`(부 이름 5개: 1부 두 별의 본성·2부 끌림과 마음의 방향·3부 흐름과 갈등·4부 인연의 뜻·5부 앞으로의 길, `buildSukuyoCompatPdfChapters`·`buildSukuyoCompatPdfSummary`·`orderSukuyoCompatSections`·`isSukuyoCompatChapterPlanV2`). 판 2 판정은 결과 API `groupPlanVersion`(1이면 판 1로 확정), 저장 `llmMeta.groupPlanVersion`, 그리고 보관함용으로 sections 첫 본문 키가 twoStars인지로 한다(보관함 상세는 `withoutSecrets`가 llmMeta를 걷는다. 판 1은 overview부터 저장)
+  - 화면 `SukuyoCompatibilityAiClient.tsx`: `CompatResultModal`에 `planV2` prop(`consultation.groupPlanVersion === 2`). 판 2에만 상세 패널 안 차례(`.chapterToc`, 버튼 44px, 누르면 그 장으로), 장마다 "N장 · 부 이름" 키커와 서한비 칩(`ChapterReadingArticle`의 `chapterLabel`). 판 1은 `Object.entries(sections)`·`chunkReadingSections` 그대로. 키커를 제목 div 앞에 넣으려고 CSS `.readingSection > div:first-child > span`을 `:first-of-type`으로 바꿨다(판 1 모양 같음)
+  - PDF: `exportConsultationBookPdf`(coverTheme sukuyo, 표지 그림 `/images/service-introductions/sukuyo-compatibility-ai-960.webp` 실제 에셋, byline 서한비, 요약 쪽 = 한 줄 요약·insight lead, 다섯 지표 레이더(20점→%), 관계 점수 8축 막대+scoreNotes). `PdfFontError`일 때만 기존 캡처(`#compat-result-body`)로 되돌아간다. PDF 제목은 "☯ 總論 — 종합 궁합 총평"에서 "— " 뒤 한글만, 본문은 `**` 걷기·굵은 소제목 줄은 "● "
+  - 보관함: `app/records/view/SavedSukuyoCompatPdfButton.tsx`, `SavedServiceReading.tsx` sukuyo 분기에서 `view.fields.includes('messages')`일 때만(sukuyo-compat만 해당). 구조화되지 않은 예전/개인 답은 "숙요점 상담" 한 장
+  - 테스트 `__tests__/ui/sukuyo-compat-chapters.test.mjs` 3개. 확인: tsc 통과, node --test ui sukuyo·records·hydration·ziwei-ai-chapters 등 78/78, apps/toss sukuyo 관련 253/253, verify paid-gate-ui-regression·analysis-basis-contract·sukuyo-role-direction exit 0. verify-mobile-runtime-readiness("bottom navigation covers main slots")는 stash한 기준에서도 실패하는 기존 문제
+  - 8c에서 볼 것: 판 2 화면 실제 렌더(차례·키커)는 행동 테스트가 없다 — 모의 결과로 화면을 한 번 띄워 본다. 조판 PDF 쪽 이미지에서 Paperlogy가 장 본문의 이모지·한자를 그리는지 확인한다(제목은 한글만 쓰게 했다)
 - [ ] 8c. tsc·jest·node --test·verify·build, 모의 실행, 실호출 1회, 결과 기록(`docs/verification/premium-llm-samples-2026-11-08.md`), PDF 쪽 이미지 확인
 
 ## 단계별 결과
