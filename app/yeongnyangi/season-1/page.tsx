@@ -3,10 +3,13 @@ import { SEASON_ONE } from '@/lib/yeongnyangi/season-1.mjs';
 import { formatKst, latestEpisode, nextRelease, publishedEpisodes, serialNow } from '@/lib/yeongnyangi/serial.mjs';
 import type { WebtoonCut } from '@/app/components/webtoon/CutReader';
 import styles from './season.module.css';
+import { pageOpenGraph } from '@/lib/seo/page-open-graph';
 
 const TITLE = '영냥이의 점술방 시즌 1 | 꿀꿀 운세';
 const DESCRIPTION = '달빛 점술방의 츤데레 고양이 영냥이와 연이의 겨울 이야기. 데워 둔 방석과 젖은 봉투에서 시작해 매주 토요일 밤 9시에 한 화씩 공개되는 시즌 1 웹툰입니다.';
-export const metadata: Metadata = { title: TITLE, description: DESCRIPTION, alternates: { canonical: '/yeongnyangi/season-1/' }, openGraph: { title: TITLE, description: DESCRIPTION } };
+const PAGE_URL = 'https://code-destiny.com/yeongnyangi/season-1/';
+// 페이지가 openGraph를 선언하면 루트 layout의 og:image·og:url이 통째로 사라진다. pageOpenGraph가 공통 값을 함께 채운다.
+export const metadata: Metadata = { title: TITLE, description: DESCRIPTION, alternates: { canonical: PAGE_URL }, openGraph: { ...pageOpenGraph(PAGE_URL), title: TITLE, description: DESCRIPTION } };
 
 export default function SeasonOne() {
   const now = serialNow();
