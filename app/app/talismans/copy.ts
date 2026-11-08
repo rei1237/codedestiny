@@ -55,6 +55,7 @@ export type TalismanCopy = {
   iosSeparate: string;
   iosHint: string;
   systemHint: string;
+  androidWebGuide: string;
   symbolic: string;
   imageFailed: string;
   imageLanguage: string;
@@ -124,6 +125,7 @@ const COPY: Record<LoadingLocale, TalismanCopy> = {
     "iosBoth": "‘한 쌍의 배경화면으로 설정’을 선택하면 홈·잠금화면에 함께 적용돼요.",
     "iosSeparate": "‘홈 화면 사용자화’에서 홈 화면 배경은 따로 선택할 수 있어요.",
     "iosHint": "사진 저장만으로 배경화면이 바뀌지는 않아요. 확대하지 않고 하단 문구까지 보이는지 확인해 주세요.",
+    "androidWebGuide": "Android에서는 이미지를 저장한 뒤 휴대폰의 배경화면 설정을 열어 보세요. 저장한 사진과 적용할 화면을 고르면 돼요.",
     "systemHint": "시스템 설정에서는 적용 대상을 다시 선택할 수 있어요. 확대하면 문구가 잘릴 수 있으니 전체 그림을 확인해 주세요.",
     "symbolic": "부적은 마음을 다잡는 상징이에요. 특정한 결과를 보장하지 않아요.",
     "imageFailed": "이미지를 불러오지 못했어요. 연결을 확인한 뒤 다시 선택해 주세요.",
@@ -191,6 +193,7 @@ const COPY: Record<LoadingLocale, TalismanCopy> = {
     "iosBoth": "「壁紙を両方に設定」を選ぶとホーム・ロック画面に適用されます。",
     "iosSeparate": "「ホーム画面をカスタマイズ」でホーム画面の背景を別に選べます。",
     "iosHint": "写真を保存しただけでは壁紙は変わりません。拡大せず、下の文字まで見えることを確認してください。",
+    "androidWebGuide": "Android では画像を保存し、端末の壁紙設定で保存した写真と適用先の画面を選んでください。",
     "systemHint": "システム設定では適用先を選び直せます。拡大すると文字が切れる場合があるため、全体を確認してください。",
     "symbolic": "お守りは心を整えるためのシンボルです。特定の結果を保証するものではありません。",
     "imageFailed": "画像を読み込めませんでした。接続を確認して選び直してください。",
@@ -258,6 +261,7 @@ const COPY: Record<LoadingLocale, TalismanCopy> = {
     "iosBoth": "Choose Set as Wallpaper Pair to apply it to both home and lock screens.",
     "iosSeparate": "Choose Customize Home Screen to select a different home screen background.",
     "iosHint": "Saving a photo does not change your wallpaper. Keep the full image visible, including the text at the bottom.",
+    "androidWebGuide": "On Android, save the image, open your phone’s wallpaper settings, then choose the saved picture and the screen to use it on.",
     "systemHint": "You can choose the target again in system settings. Zooming may crop the text, so check the whole picture.",
     "symbolic": "Talismans are symbols for focusing your intentions. They do not guarantee any particular outcome.",
     "imageFailed": "Could not load the image. Check your connection and select it again.",
@@ -325,6 +329,7 @@ const COPY: Record<LoadingLocale, TalismanCopy> = {
     "iosBoth": "选择“设为墙纸对”，即可同时应用到主屏幕和锁屏。",
     "iosSeparate": "选择“自定主屏幕”，可另外选择主屏幕背景。",
     "iosHint": "仅保存照片不会更改壁纸。请勿放大，并确认底部文字完整可见。",
+    "androidWebGuide": "在 Android 上，保存图片后打开手机的壁纸设置，选择已保存的照片和要应用的屏幕。",
     "systemHint": "可在系统设置中重新选择应用位置。放大可能裁掉文字，请确认完整画面。",
     "symbolic": "护符是帮助整理心意的象征，并不保证特定结果。",
     "imageFailed": "图片加载失败。请检查网络后重新选择。",
@@ -392,6 +397,7 @@ const COPY: Record<LoadingLocale, TalismanCopy> = {
     "iosBoth": "選擇「設為背景圖片配對」，即可同時套用至主畫面與鎖定畫面。",
     "iosSeparate": "選擇「自訂主畫面」，可另外選擇主畫面背景。",
     "iosHint": "僅儲存照片不會更改背景圖片。請勿放大，並確認底部文字完整可見。",
+    "androidWebGuide": "在 Android 上，儲存圖片後開啟手機的桌布設定，選擇已儲存的照片和要套用的畫面。",
     "systemHint": "可在系統設定中重新選擇套用位置。放大可能裁掉文字，請確認完整畫面。",
     "symbolic": "護符是幫助整理心意的象徵，並不保證特定結果。",
     "imageFailed": "圖片載入失敗。請檢查網路後重新選擇。",
@@ -459,6 +465,7 @@ const COPY: Record<LoadingLocale, TalismanCopy> = {
     "iosBoth": "Chọn Đặt làm cặp hình nền để áp dụng cho cả màn hình chính và màn hình khóa.",
     "iosSeparate": "Chọn Tùy chỉnh Màn hình chính để chọn hình nền chính khác.",
     "iosHint": "Lưu ảnh chưa làm thay đổi hình nền. Không phóng to và kiểm tra để thấy đủ chữ ở cuối ảnh.",
+    "androidWebGuide": "Trên Android, hãy lưu ảnh, mở cài đặt hình nền của điện thoại rồi chọn ảnh đã lưu và màn hình muốn áp dụng.",
     "systemHint": "Có thể chọn lại màn hình trong cài đặt hệ thống. Phóng to có thể làm mất chữ, nên hãy kiểm tra toàn bộ tranh.",
     "symbolic": "Lá bùa là biểu tượng giúp bạn vững tâm, không bảo đảm một kết quả cụ thể.",
     "imageFailed": "Không tải được ảnh. Kiểm tra kết nối rồi chọn lại.",
@@ -526,6 +533,7 @@ const COPY: Record<LoadingLocale, TalismanCopy> = {
     "iosBoth": "दोनों स्क्रीन पर लगाने के लिए वॉलपेपर जोड़ी के रूप में सेट करने का विकल्प चुनें।",
     "iosSeparate": "अलग होम स्क्रीन पृष्ठभूमि चुनने के लिए होम स्क्रीन कस्टमाइज़ करें।",
     "iosHint": "फ़ोटो सेव करने से वॉलपेपर नहीं बदलता। बिना ज़ूम किए नीचे का पूरा पाठ दिखाई देना चाहिए।",
+    "androidWebGuide": "Android पर चित्र सहेजें, फ़ोन की वॉलपेपर सेटिंग खोलें और सहेजा हुआ चित्र व स्क्रीन चुनें।",
     "systemHint": "सिस्टम सेटिंग में स्क्रीन फिर चुन सकते हैं। ज़ूम करने से पाठ कट सकता है, इसलिए पूरा चित्र जाँचें।",
     "symbolic": "तावीज़ मन को केंद्रित करने का प्रतीक है। यह किसी खास परिणाम की गारंटी नहीं देता।",
     "imageFailed": "तस्वीर लोड नहीं हुई। कनेक्शन जाँचकर फिर चुनें।",
@@ -593,6 +601,7 @@ const COPY: Record<LoadingLocale, TalismanCopy> = {
     "iosBoth": "Elige la opción de usar el par de fondos para aplicarlo al inicio y al bloqueo.",
     "iosSeparate": "Personaliza la pantalla de inicio para elegir un fondo diferente.",
     "iosHint": "Guardar la foto no cambia el fondo. No amplíes la imagen y comprueba que se vea el texto inferior.",
+    "androidWebGuide": "En Android, guarda la imagen, abre los ajustes de fondo de pantalla y elige la foto guardada y la pantalla donde usarla.",
     "systemHint": "Puedes volver a elegir el destino en los ajustes. Ampliar puede recortar el texto; comprueba la imagen completa.",
     "symbolic": "Los talismanes son símbolos para centrar tus intenciones. No garantizan un resultado concreto.",
     "imageFailed": "No se pudo cargar la imagen. Revisa la conexión y vuelve a seleccionarla.",
@@ -660,6 +669,7 @@ const COPY: Record<LoadingLocale, TalismanCopy> = {
     "iosBoth": "Choisissez l’option de paire de fonds d’écran pour l’appliquer à l’accueil et à l’écran verrouillé.",
     "iosSeparate": "Personnalisez l’écran d’accueil pour choisir un fond différent.",
     "iosHint": "Enregistrer la photo ne change pas le fond d’écran. Évitez de zoomer et vérifiez que le texte du bas reste visible.",
+    "androidWebGuide": "Sur Android, enregistrez l’image, ouvrez les réglages du fond d’écran, puis choisissez la photo et l’écran souhaité.",
     "systemHint": "Vous pouvez choisir à nouveau l’écran dans les réglages. Le zoom peut couper le texte : vérifiez l’image entière.",
     "symbolic": "Les talismans sont des symboles pour recentrer vos intentions. Ils ne garantissent aucun résultat particulier.",
     "imageFailed": "Impossible de charger l’image. Vérifiez la connexion et sélectionnez-la à nouveau.",
@@ -727,6 +737,7 @@ const COPY: Record<LoadingLocale, TalismanCopy> = {
     "iosBoth": "Wähle Als Hintergrundbildpaar festlegen, um beide Bildschirme einzurichten.",
     "iosSeparate": "Über Home-Bildschirm anpassen kannst du einen anderen Hintergrund für den Startbildschirm wählen.",
     "iosHint": "Das Speichern eines Fotos ändert den Hintergrund noch nicht. Vergrößere es nicht und prüfe, ob der untere Text sichtbar bleibt.",
+    "androidWebGuide": "Speichere auf Android das Bild, öffne die Hintergrundeinstellungen und wähle das gespeicherte Foto und den gewünschten Bildschirm aus.",
     "systemHint": "In den Systemeinstellungen kannst du das Ziel erneut wählen. Beim Vergrößern kann Text abgeschnitten werden; prüfe das ganze Bild.",
     "symbolic": "Talismane sind Symbole, um die eigenen Absichten zu sammeln. Sie garantieren kein bestimmtes Ergebnis.",
     "imageFailed": "Das Bild konnte nicht geladen werden. Prüfe die Verbindung und wähle es erneut.",
@@ -794,6 +805,7 @@ const COPY: Record<LoadingLocale, TalismanCopy> = {
     "iosBoth": "Kies Stel in als achtergrondpaar om beide schermen in te stellen.",
     "iosSeparate": "Kies Pas beginscherm aan om een andere achtergrond voor het beginscherm te kiezen.",
     "iosHint": "Een foto opslaan verandert je achtergrond niet. Zoom niet in en controleer of de tekst onderaan zichtbaar is.",
+    "androidWebGuide": "Sla de afbeelding op Android op, open de achtergrondinstellingen en kies de opgeslagen foto en het scherm waarop je die wilt gebruiken.",
     "systemHint": "Je kunt het doelscherm opnieuw kiezen in de instellingen. Inzoomen kan tekst afsnijden; controleer de hele afbeelding.",
     "symbolic": "Talismannen zijn symbolen om je intenties te richten. Ze garanderen geen bepaalde uitkomst.",
     "imageFailed": "De afbeelding kon niet worden geladen. Controleer je verbinding en kies opnieuw.",
@@ -861,6 +873,7 @@ const COPY: Record<LoadingLocale, TalismanCopy> = {
     "iosBoth": "Pilih tetapan pasangan kertas dinding untuk menggunakannya pada skrin utama dan kunci.",
     "iosSeparate": "Pilih Sesuaikan Skrin Utama untuk memilih latar utama yang berbeza.",
     "iosHint": "Menyimpan foto tidak menukar kertas dinding. Jangan zum dan pastikan teks di bahagian bawah kelihatan sepenuhnya.",
+    "androidWebGuide": "Pada Android, simpan gambar, buka tetapan kertas dinding telefon, kemudian pilih foto yang disimpan dan skrin yang diingini.",
     "systemHint": "Anda boleh memilih skrin sasaran semula dalam tetapan sistem. Zum boleh memotong teks, jadi semak seluruh gambar.",
     "symbolic": "Tangkal ialah simbol untuk menenangkan dan memusatkan niat. Ia tidak menjamin hasil tertentu.",
     "imageFailed": "Imej tidak dapat dimuatkan. Semak sambungan dan pilih semula.",

@@ -176,7 +176,8 @@ export default function TalismanStudio() {
             <button type="button" disabled={!ready || busy} onClick={() => void exportImage("share")}><Share2 size={18} aria-hidden />{copy.shareFit}</button>
           </div>
           <p className="cd-talisman-status" role="status" aria-live="polite">{message || (ready ? copy.ready : copy.verifying)}</p>
-          {device === "ios" ? <details className="cd-talisman-instructions" open={savedFit || undefined}><summary>{copy.iosTitle}</summary><p>{target === "home" ? copy.iosHome : copy.iosLock}</p>{target !== "home" ? <p>{target === "both" ? copy.iosBoth : copy.iosSeparate}</p> : null}<p>{copy.iosHint}</p></details> : <p className="cd-talisman-caption">{copy.systemHint}</p>}
+          {device === "web" && <p className="cd-talisman-caption">{copy.androidWebGuide}</p>}
+          {device !== "android" ? <details className="cd-talisman-instructions" open={savedFit || undefined}><summary>{copy.iosTitle}</summary><p>{target === "home" ? copy.iosHome : copy.iosLock}</p>{target !== "home" ? <p>{target === "both" ? copy.iosBoth : copy.iosSeparate}</p> : null}<p>{copy.iosHint}</p></details> : <p className="cd-talisman-caption">{copy.systemHint}</p>}
           <p className="cd-talisman-caption">{copy.symbolic}</p>
         </section>
       </div>
