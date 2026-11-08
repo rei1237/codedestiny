@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-08
-next: 6e — 인생 총운 F9b, 장마다 생성을 요청 2개(앞·뒤 반)로 나눠 목표 약 4,400자. 운명의 섬 옛 기록 운영 DB 읽기 전용 조회는 사용자 승인 대기
+next: 6e — 인생 총운 장별 2회 생성(판 3) 구현부터. 조사·설계는 6e 항목 아래 메모에 있음. 운명의 섬 옛 기록 운영 DB 읽기 전용 조회는 사용자 승인 대기
 ---
 
 # 3만원 이상 유료 LLM — 상품별 챕터·분량·PDF·전달 개선 인수인계
@@ -293,6 +293,24 @@ next: 6e — 인생 총운 F9b, 장마다 생성을 요청 2개(앞·뒤 반)로
   - 판 분기를 두어 진행 중인 세션은 기존 계획을 유지한다. V1 바이트는 그대로 둔다. 분량은 치명이 아니다.
   - 요청마다 100초 엣지 한도와 복구 cron을 확인한다. 목 dry-run 뒤 실호출 샘플 1회를 한다.
   - 배열 인덱스 근거 경로 수정(d78175aac)이 인생의 책·인생 총운의 모든 근거 경로를 덮는지 다시 확인하고, 남은 근거 경로 오류를 고친다.
+  - **6e 조사 메모 (2026-11-08, 첫 에이전트. 코드는 아직 바꾸지 않음)**
+    - 지금 구조: `worker/routes/life-book-ai.js`는 요청 하나에 섹션 하나(`SECTION_BATCH_SIZE=1`)를 만든다. 섹션 시한은 45초, 시도는 2회다. 그래서 반쪽도 요청 하나씩이면 엣지 100초 안에 든다.
+    - `llmMeta.plan`은 새 세션 seed(`!existing`)에서만 저장된다. 재개할 때는 저장된 plan을 쓴다(약 2881행). 그래서 판 분기가 자연히 된다.
+    - V2 프롬프트 줄은 `section.perspective`가 있을 때만 붙는다. 그래서 V1 바이트가 유지된다. 확인은 기준 커밋과 새 커밋의 V1 `buildSectionPrompt` 출력 sha256을 비교해서 한다.
+    - 복구 cron: `consultation-recovery-task.js`는 `'life-book-ai'`를 `routes/life-book-ai.js`의 `resumeConsultationOnServer`로 동적 import한다. 레지스트리 필터는 `llmMeta.resumeBody $exists`다. plan id를 따로 보지 않으므로, 저장된 plan을 그대로 이어 받는다.
+    - 반쪽 섹션이 생겨도 클라이언트 진행 표시는 `{completed,total}`만 쓴다. evidenceRefs는 UI·PDF 어디에서도 쓰이지 않는 메타데이터다.
+    - `MAX_GENERATION_WAVES=32`는 4곳에서 쓴다: `reserveProviderCallOnce`의 `waveCount $lt` 필터, GENERATION_STALLED throw, `stillPending && waveCount < MAX`, catch의 `$gte`. 판 3은 섹션이 25개라 32를 넘을 수 있다. 상한은 plan 길이에 따라 정하고(예: `plan.length*2+2`), 네 곳 모두에 같은 값을 넘긴다. V1/V2는 32로 둔다. "/generate 하루 60회" 레이트리밋은 세션 내부 웨이브와 관계가 있는지 확인해야 한다.
+    - 이전 실호출(V2): 모든 호출이 STOP으로 끝났고, 모델이 목표 4,400자의 절반쯤(2,100~2,700자)에서 스스로 멈췄다. 그래서 반쪽마다 약 2,200자를 목표로 두면 장 합계가 4,400자 근처가 된다.
+  - **6e 설계 (구현할 것)**
+    - 새 판 `LIFE_FORTUNE_SECTION_PLAN_VERSION=3`은 인생 총운에만 쓴다. 인생의 책은 V2를 유지한다. 새 인생 총운 seed만 `buildSectionPlan(input,{version:3})`을 쓴다.
+    - plan V3: 장마다 `chapter-N-a`·`chapter-N-b` 두 섹션을 둔다. 둘은 관점이 다르다(a: 원국 근거와 흐름, b: 시기·선택·실천). 목표는 각 약 2,200자, 게이트 하한은 각 약 1,200자다. 전문가 해설 4개와 frame은 V2와 같다. 총 섹션 수는 25다.
+    - b 프롬프트에는 a의 요지(또는 앞부분)를 넣고 "되풀이 금지, 이어서"라고 지시한다. `buildSectionDigest`도 계속 쓴다.
+    - `assembleReport`: 같은 장의 a+b 본문을 이어 붙여 한 장으로 만든다. summary는 a 것을 쓰고, advice와 evidenceRefs는 합친 뒤 중복을 뺀다. 보고서 모양(장 10개)은 그대로다.
+    - 이슈 매핑: `chapter_N_*`는 그 장의 반쪽 중 무효이거나 더 짧은 쪽에 매핑한다. `lengthAcceptedIds`는 두 반쪽이 다 ok일 때만 `chapter-N`을 넣는다. 보강·dedupe `minOf`·캐시 키도 반쪽 id에 맞춘다.
+    - 마무리(V3만): 장 본문이 하나라도 있으면 분량 외 이슈가 있어도 배달한다. 이때 `degraded`와 `qualityIssues`를 기록한다. 본문이 완전히 비었을 때만 throw한다(그 뒤 환불). V1/V2 마무리는 바꾸지 않는다.
+    - 근거 오류(모든 판 공통, 프롬프트 바이트는 그대로): 프롬프트는 "첫 경로만" 허용 루트를 요구하는데, 게이트 `hasValidEvidenceRefs`는 **모든** ref를 검사한다(`every`). 그리고 `pickSajuSlice`는 `sajuAuthority`를 슬라이스에 넣지만, 그 루트는 `LIFE_FORTUNE_EVIDENCE_REF_ROOTS`에 없다. `normalizeSectionBody`는 무효 ref를 거르지 않는다. 고칠 방법: 인생 총운 refs를 정규화한다. `$.`/`sajuResult.`/`saju.` 접두를 떼고, `sajuAuthority.*` 같은 비허용 루트를 빼고, 개수가 모자라면(장 3, 전문가 해설 2) 섹션 기본 refs로 채운다. 허용 루트 배열은 프롬프트에 들어가므로 바꾸지 않는다. 게이트용 집합이 필요하면 따로 둔다.
+    - 테스트: `__tests__/worker/life-book-ai.sections.test.js`(342-349행 근거 테스트 근처)와 `__tests__/ui/life-book-paid-delivery.behavior.test.js`(vm 하네스) 크기에 맞춰, 행동 하나에 테스트 하나씩 둔다. 대상 행동은 V3 계획, 조립, 이슈 매핑, 비치명 마무리, ref 정규화, 웨이브 상한, V1 sha256이다.
+    - 샘플: scratchpad `llm-sample/run-sample.mjs`·`hooks.mjs`·`lifefortune-runner.txt` 하네스를 V3에 맞게 고친다. 목 dry-run을 먼저 하고, 그다음 실호출을 1회 한다(승인 있음).
 - [ ] 7. 자미두수 상담 / 심층 PDF (무성)
 - [ ] 8. 숙요점 궁합 (서한비)
 - [ ] 9. 점성술 (윤달)
