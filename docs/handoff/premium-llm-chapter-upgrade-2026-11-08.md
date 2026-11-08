@@ -446,3 +446,47 @@ next: 6단계 초융합 운세 — 대상 라우트·프롬프트·결과 화면
   - `lib/marketing/feature-marketing-copy.generated.json:8352,8508` "20개 챕터 합계 목표 50,000자"
   - `docs/purchase-journey/inventory.json:8261,8484` "46,000자"
   - 개인판만 "2~3만 자"로 바꿀지 사용자가 정한다.
+
+## 6단계 진행 메모 (조사 완료, 구현 전 — 2026-11-08)
+
+### 조사로 확인한 사실 (파일:줄은 이 워크트리 기준)
+- 판이 셋이다. v1은 `reportVersion`이 없다. expert는 `context.version === "fusion-expert.v2"`(`worker/lib/fusion-expert-contract.js:1`)다. premium은 `reportVersion` "fusion-premium.v1"/"fusion-premium.v2"(`lib/fusion-premium-report.js:3-6`)다. 클라이언트는 항상 V2를 보낸다(`app/fusion-fortune/FusionFortuneClient.tsx:2508`). 서버는 `FUSION_PREMIUM_V2_ENABLED=false`이고 이전 결과가 V2가 아니면 v1로 낮춘다(`worker/lib/fusion-fortune.js:1553`). 입력 해시에 reportVersion이 들어간다.
+- 구성은 "2단계 · 9그룹"이다(`worker/lib/fusion-fortune-prompt.js:12-16`, `FUSION_SECTION_GROUP_SPECS` :232-339).
+  - 1단계: saju(첫 장, "타고난 기질과 선택의 뿌리"), ziwei, vedic, sukuyo, astrology, tarot.
+  - 2단계: integration, action, verdict.
+  - V2는 선택 그룹 domainMusung·Yun·Yeoni·Hanbi·Neo를 더한다(:352-380). 이 그룹들의 8장 정의는 `lib/fusion-premium-report.js:20-29`이고, 장마다 min = target×0.72다.
+  - V2 총량: min 48,000, 목표 60~80k(`lib/fusion-premium-report.js:42`).
+- 호출 방식
+  - 그룹 하나에 provider 호출 1회다. 결제·체크포인트 경로는 요청당 미완료 그룹을 최대 2개 처리한다(필수 그룹 먼저, 시도가 적은 그룹 먼저, :1150-1157).
+  - 체크포인트는 `onCheckpoint(snapshot)`로 저장하고, 시도 횟수는 `snapshot.attempts`에 있다. 시도는 그룹당 2회다(`FUSION_GROUP_MAX_ATTEMPTS`, :716-719).
+  - premium 토큰은 chars(target×1.3)+4096이고 상한은 65536이다(:763-769). 그룹 타임아웃은 85초다(:707, :1168).
+- 품질 게이트
+  - 그룹 수락은 `ignoreLength: true`라서 분량 때문에 반려되지 않는다(:1131).
+  - 전달(`resolveFusionFortuneDelivery` :651-661)에서 분량·깊이·반복 이슈는 "degraded"로 보내고 치명이 아니다(:554-564).
+  - **분량 수리 경로가 없다**(R5 분량 수리는 2026-10-30에 제거됨, :1129-1130).
+  - **시도를 다 쓴 필수 그룹은 `deliverable:false, gemini_partial`로 끝난다(:1414-1418). 구제나 scrub 없이 환불 대상이 된다**(`worker/lib/fusion-fortune-recovery-task.js:74-112`). V2 선택 도메인 그룹은 시도를 다 쓰면 버려진다(:1411) — 이것은 "장 삭제 금지" 위반이다.
+  - premium 치명 검사는 consultation_plan, subchapter_evidence, subchapters(4~6개)다(:1267-1281). Gemini 스키마는 소장을 1~6개 허용하는데 수락은 4~6개라서 1~3개 응답이 시도를 낭비한다(prompt:994 vs fusion-fortune.js:1280).
+  - 말투 drift(`fusionVoiceDrift`, `worker/lib/expert-character-persona-text.js:370`)는 로그만 남긴다(:1300-1305).
+  - 질문: premium은 `customerQuestion`과 `consultationPlan`을 모든 그룹 프롬프트에 넣는다(:966-967). `attachQuestionFocusedFusionReading`이 opening·summary·action 앞에 초점 라벨을 붙인다(fusion-fortune.js:691-703). 재인용 검사는 없다.
+  - 반복 검사: 필드 안 반복(:972)은 그룹 실패다. 그룹 사이 60자·2회(:985)는 재시도다. 70자 문장이 3개 섹션 이상에 나오면(:535) degraded다. 본문에서 빼는 dedupe는 없다.
+- 근거 경로
+  - expert 신호 경로는 `[0]`을 `.0`으로 정규화한다(`fusion-expert-contract.js:28-29`). 맨 `yearlyLuck[0].pillar`처럼 시스템 접두가 없는 경로는 owner 검사에서 반려된다.
+  - premium 소장 evidenceKeys는 `Set.has` 정확 일치이고, 맞지 않으면 치명이다(fusion-fortune.js:1278-1279). 스키마 enum이 있어 위험은 낮다.
+- 화면·보관함·PDF
+  - 결과 화면은 TOC 레일이 있는 장 화면이다(`app/fusion-fortune/_lib/toc.ts:35`, FusionResultRail).
+  - 보관함은 `SavedFusionReading`(`app/fusion-fortune/SavedFusionReading.tsx`)이고 **PDF 버튼이 없다**.
+  - 조판 PDF는 `lib/pdf/export-fusion-report-pdf.ts`(`exportFusionReportPdf` :157)와 `lib/pdf/fusion-report-plan.js`다. 결과 화면(`FusionFortuneClient.tsx:2806`)에서만 쓴다.
+- 프롬프트 분기점은 `buildFusionSectionSystemPrompt`(:651), `buildFusionSectionPromptPrefix`(:674), `buildFusionSectionGroupPrompt`(:686)다. 셋 다 expert 판으로 분기한다. premium 문구는 `expertPromptPrefix`(:850)와 `buildExpertGroupPrompt`(:923-1015)에 있다. **캐시 prefix는 바이트가 같아야 한다**(:666-672).
+- 테스트 목 진입점은 `generateFusionFortuneWithRealLLM`(fusion-fortune.js:1088)의 `providerCall` 인자다. `options.logContext.sectionGroup`으로 그룹을 가른다. 스위트는 `__tests__/worker/fusion-fortune.test.js`, `fusion-paid-delivery-route.test.js`, `fusion-snapshot-delivery.test.js`다. verify 스크립트는 `scripts/verify-fusion-fortune-{premium,premium-v2,quality,delivery-floor,pdf,stage-flow,retry-payload,reopen,live}.mjs`다.
+
+### 설계 초안 (다음 에이전트가 TDD로 확정)
+1. **판 분기**: 새 결제 세션에만 snapshot에 `groupPlanVersion: 2`를 박는다. 진행 중인 세션과 v1·expert·옛 premium-v2는 지금 동작과 프롬프트 바이트 그대로 끝낸다. 바이트 해시 테스트를 5단계처럼 둔다. reportVersion 문자열은 바꾸지 않는다(입력 해시와 클라이언트 영향).
+2. **장 삭제 금지·마지막 시도 구제**: plan 2에서는 필수·선택 그룹 모두 마지막 시도를 `finalAttempt`로 표시한다. 파싱되는 필드는 살리고 위험 문장만 덜어 낸다. 소장 1~3개는 수락해 정규화한다. 필수 그룹이 비어 환불로 가는 경로와 도메인 그룹 drop을 막는 행동 테스트를 둔다.
+3. **분량**: min 미만인 그룹만 수리하고, 가장 짧은 그룹부터 책당 최대 2개까지만 한다(F19 교훈: 모든 초안이 나온 뒤 시작). 분량은 치명이 아니다.
+4. **1장 기질·공감**: saju 그룹의 plan 2 scope를 기질의 쉬운 뜻과 공감되는 일상 장면 2~3개로 바꾼다.
+5. **질문 인용 1회**: plan 2에서는 질문 원문을 saju(또는 integration) 한 그룹에만 준다. 다른 그룹에는 요약 초점만 준다. 재인용은 소프트 이슈로 잡아 힌트를 붙여 수리하고, 조립할 때 85% 이상 남는 동안만 지운다(5단계 `codexRequotedSentences` 참고).
+6. **말투**: `fusionVoiceDrift`를 plan 2에서는 로그에서 소프트 이슈로 올린다. 수리는 3번의 상한 안에서만 한다.
+7. **dedupe**: 조립할 때 그룹 사이 같은 문장과 거의 같은 반복을 뺀다(`dedupeCodexBody`·`codexCrossRepeatSentences` 방식). 그룹이 비게 되면 원본을 둔다.
+8. **보관함 PDF**: `SavedFusionReading`에 `exportFusionReportPdf`를 쓰는 PDF 버튼을 넣는다(1~4단계 Saved*PdfButton 관례). 글꼴을 불러오지 못하면 캡처로 대체한다.
+9. **근거 경로**: 시스템 접두가 없는 `yearlyLuck[0].pillar`도 owner를 추론하거나 정규화하게 한다. 테스트를 둔다.
+10. 검증: jest fusion 스위트, verify-fusion-* 전부, `npx tsc --noEmit`, `npm run build`, 360px 확인. 그다음 목 dry-run 1회와 실호출 샘플 1회를 한다(scratchpad 하네스는 `codex-solo-v3/live`를 본떠 만든다).
