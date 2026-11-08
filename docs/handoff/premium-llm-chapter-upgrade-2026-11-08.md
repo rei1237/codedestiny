@@ -557,7 +557,7 @@ next: 6a — 초융합 실호출에서 domainYun·domainHanbi·domainNeo가 GEMI
 
 - 커밋: adda62200 (그룹 계획 2판: 마지막 시도 구제·분량/소프트 수리 최대 2묶음·질문은 사주 프롬프트에만·조립 반복 정리 85% 하한·근거 경로 소유), 2e14642bb (보관함 초융합 PDF 저장 버튼), 9666472ee (6c 감사 요약).
 - 2판은 새 세션에만 `groupPlanVersion: 2`로 고정, `FUSION_GROUP_PLAN_V2_ENABLED=false`로 되돌림. 옛 프롬프트 sha256 기준선은 그대로(jest로 확인).
-- 검증: jest 초융합 5개 묶음 218개 통과, `npx tsc --noEmit` 통과. verify-fusion-* 통과, 단 `verify-fusion-paid-efficiency.mjs`는 HEAD에서도 실패하는 기존 실패(옛 SHA 20fd46f6과 비교, 묶음당 입력 +약 500자), `verify-fusion-paid-reopen-browser.mjs`(360px)는 13070 서버가 필요해 미실행. `npm run build`는 메인 트리 dev 서버 가드 때문에 `ALLOW_DEV_SERVER_DURING_BUILD=1`로 돌렸고 정적 페이지 생성 중에 이 세션을 넘김(결과 미확인, build가 sitemap 파일을 고치므로 커밋하지 말고 되돌릴 것).
+- 검증: jest 초융합 5개 묶음 218개 통과, `npx tsc --noEmit` 통과. verify-fusion-* 통과, 단 `verify-fusion-paid-efficiency.mjs`는 HEAD에서도 실패하는 기존 실패(옛 SHA 20fd46f6과 비교, 묶음당 입력 +약 500자), `verify-fusion-paid-reopen-browser.mjs`(360px)는 13070 서버가 필요해 미실행. `npm run build`는 메인 트리 dev 서버 가드 때문에 `ALLOW_DEV_SERVER_DURING_BUILD=1`로 돌렸고 성공(EXIT 0). build가 고친 sitemap 파일은 되돌림.
 - 목 dry-run: 9요청·목 호출 16·실제 fetch 0·14/14묶음·56,528자, domainYun 3,325→6,619 수리, 사주 REGISTER_DRIFT 수리, 반복·질문 재인용 0.
 - 실호출 샘플 1회(승인분 소진): 완료됐지만 qualityTier `degraded`("일부 묶음이 목표 분량에 못 미친 상태로 전해 드립니다."). 11요청·생성 호출 19(캐시·count 포함 provider 60)·310초·11/14묶음·본문 32,293자(2판 하한 48k 미달). 0자: lifeCycle·marriage·wealth·career·health·relations — domainYun·domainHanbi·domainNeo가 두 번 다 `GEMINI_INVALID_REQUEST:400`(약 1초씩 6회, 응답 본문 미기록). domainMusung·domainYeoni는 성공. 사주 수리 2576→3160(soft 1 남음), 숙요 수리. 마지막 호출 MAX_TOKENS. 묶음 간 중복 3·repeatedPassage true, 질문 재인용 0.
 - 미해결: 세 도메인 묶음 400 원인(오프라인으로 2판/옛 v2 프롬프트·스키마 비교, gemini 오류 본문 기록 필요, 실호출 재시도는 별도 승인), 내용 없는 필수 묶음 소진 시 배달 차단, 선택 타로 카드 검사는 구제 불가, 400 뒤 선택 도메인 묶음은 결과에서 빠짐.
