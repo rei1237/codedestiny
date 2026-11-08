@@ -31,6 +31,7 @@ const LensRadar = dynamic(() => import('@/app/karma-destiny-ai/result/_component
 const EvidenceDisclosure = dynamic(() => import('@/app/karma-destiny-ai/result/_components/EvidenceDisclosure'));
 const LoveSecretChecklist = dynamic(() => import('@/app/love-secret-ai/result/LoveSecretChecklist'));
 const SavedLovePdfButton = dynamic(() => import('./SavedLovePdfButton'));
+const SavedNewYearPdfButton = dynamic(() => import('./SavedNewYearPdfButton'));
 const VedicStructured = dynamic(() => import('@/app/vedic-ai/VedicAiClient').then(m=>m.StructuredReadingResult));
 
 function assistantObject(row:Record<string,unknown>) {
@@ -98,7 +99,7 @@ export default function SavedServiceReading({source,serviceId,value,status}:{sou
  if(family.startsWith('tarot')||family==='celestial') return <div className={styles.night}><SavedCards value={model.cards||model.savedCards||object(model.reading).cards} variant={family}/>{body}</div>;
  if(family==='geomancy') return <SavedGeomancy row={model}/>;
  if(family==='yoga') return <SavedYoga row={model}/>;
- if(family==='year') return <div className={styles.timeline}>{answerFirst(saju?<SavedSaju value={saju}/>:null,body)}</div>;
+ if(family==='year') return <div className={styles.timeline}><SavedNewYearPdfButton row={row} locale={locale}/>{answerFirst(saju?<SavedSaju value={saju}/>:null,body)}</div>;
  if(family==='dream') return <div className={styles.notebook}>{list(model.chapters).length?body:<SavedChapters value={object(model.record).markdown||model}/>}</div>;
  if(family==='totem') return <SavedTotem row={model}/>;
  if(family==='palm') return <div className={styles.notebook}>{Object.entries(object(model.lines||model.lineReadings)).map(([key,value])=><section className={styles.chapter} key={key}><h2>{readingLabel(key,locale)}</h2><SavedChapters value={value} showEmpty={false}/></section>)}<SavedChapters value={model} omit={['lines','lineReadings']} fields={['mounts','fingers','palmResult']}/></div>;

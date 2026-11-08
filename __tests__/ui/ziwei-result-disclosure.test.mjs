@@ -52,7 +52,7 @@ test('other service presentation changes preserve named payment, storage and par
   const scopes = {
     'app/vedic-ai/VedicAiClient.tsx': ['VedicAiClient', 'StructuredReadingResult', 'handlePdfDownload'],
     'app/astrology-ai/result/AstrologyAiResultClient.tsx': ['AstrologyAiResultClient'],
-    'app/new-year-ai-consultation/NewYearAiClient.tsx': ['NewYearAiConsultationPage'],
+    'app/new-year-ai-consultation/NewYearAiClient.tsx': ['NewYearAiConsultationPage', 'DomainConsultationCards'],
     'app/sukuyo-compatibility-ai/SukuyoCompatibilityAiClient.tsx': ['CompatResultModal'],
   };
   for (const [file, allowed] of Object.entries(scopes)) {
