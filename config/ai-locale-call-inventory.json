@@ -1,5 +1,35 @@
 [
   {
+    "file": "apps/toss/test/provider-content-safety.test.mjs",
+    "matches": [
+      {
+        "line": 4,
+        "kind": "import-or-injected-call",
+        "symbol": "../../../lib/llm-client.ts"
+      },
+      {
+        "line": 22,
+        "kind": "call",
+        "symbol": "callLLM"
+      },
+      {
+        "line": 27,
+        "kind": "call",
+        "symbol": "callLLM"
+      },
+      {
+        "line": 34,
+        "kind": "call",
+        "symbol": "callLLM"
+      },
+      {
+        "line": 42,
+        "kind": "call",
+        "symbol": "callLLM"
+      }
+    ]
+  },
+  {
     "file": "lib/fusion-premium-report.js",
     "matches": [
       {
