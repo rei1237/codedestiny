@@ -5,6 +5,7 @@ import { FUSION_PREMIUM_VERSION, fusionGroupModel, fusionReasoningTask, FUSION_P
 import { fusionEvidenceReferences, fusionLocaleLengthScale, fusionExpertEvidenceReady, FUSION_EXPERT_VERSION, validFusionSignals, normalizeFusionSignals, buildFusionEvidenceCrossCheck, fusionInputIdentity, fusionCheckpointMatches } from "./fusion-expert-contract.js";
 import { tokensRequiredForChars } from "./llm-budget.js";
 import { fusionVoiceDrift } from "./expert-character-persona-text.js";
+import { isFusionGroupPlanV2, shouldPinFusionGroupPlanV2, FUSION_GROUP_PLAN_VERSION, FUSION_PLAN2_REPAIR_LIMIT, FUSION_PLAN2_REQUOTE_LIMIT, FUSION_PLAN2_SCRUB_KEEP_RATIO, scrubFusionGroupValue, dedupeFusionFieldSentences, normalizeFusionPlan2Subchapters, fallbackFusionConsultationPlan, fusionPlan2QuestionOwner, fusionRequotedSentences, fusionCrossRepeatSentences, boundedFusionScrub, fusionSoftIssueHint } from "./fusion-group-plan.js";
 import { FusionFortuneGenerationAttempt } from "./models.js";
 import { countPaidReportBodyChars, PAID_REPORT_MIN_BODY_CHARS } from "./paid-report-quality.js";
 import { mongoose, withMongoRetry } from "./db.js";
@@ -98,6 +99,34 @@ const FORBIDDEN_ADVERB_PATTERNS = [
 const FORBIDDEN_MATCHERS = [...FORBIDDEN, ...FORBIDDEN_ADVERB_PATTERNS];
 function hasForbiddenPhrase(source) {
   return FORBIDDEN_MATCHERS.some((matcher) => (typeof matcher === "string" ? source.includes(matcher) : matcher.test(source)));
+}
+/** 반려 사유와 함께 남길 걸린 대목(앞뒤 20자). 정규식은 /g 없이 exec 로만 본다. */
+function forbiddenPhraseExcerpt(source) {
+  for (const matcher of FORBIDDEN_MATCHERS) {
+    const index = typeof matcher === "string" ? source.indexOf(matcher) : (matcher.exec(source)?.index ?? -1);
+    if (index >= 0) return source.slice(Math.max(0, index - 20), index + 40);
+  }
+  return "";
+}
+/** 구제 때 핵심 정리가 3개 미만이면 문단 첫 문장에서 채운다(본문에 이미 있는 말만 쓴다). */
+function fusionSalvageKeyPoints(content) {
+  return String(content || "").split(/\n\s*\n/).map((paragraph) => paragraph.trim().replace(/^#+\s*/, ""))
+    .map((paragraph) => (paragraph.match(/^[^.!?。！？\n]+[.!?。！？]?/u)?.[0] || "").trim())
+    .filter((sentence) => sentence.length >= 12).map((sentence) => sentence.slice(0, 90)).slice(0, 5);
+}
+/** plan 2 마지막 시도 구제: 그룹 검증이 반려하는 문장 하나하나를 판정한다(문장 단위라 부정 인식이 그대로 산다). */
+function fusionSalvageSentenceIsBad(sentence, { birthTimeKnown = true, birthPlaceKnown = true, sensitiveValues = [], selectedTarotCards = [] } = {}) {
+  const source = String(sentence || "");
+  if (hasForbiddenPhrase(source) || INTERNAL_DATA_PATTERN.test(source)) return true;
+  if (sensitiveValues.map((item) => text(item, 100)).some((item) => item.length >= 4 && source.includes(item))) return true;
+  if (!birthTimeKnown && BIRTH_TIME_OVERCLAIM_PATTERN.test(source)) return true;
+  if (!birthPlaceKnown && BIRTH_PLACE_OVERCLAIM_PATTERN.test(source)) return true;
+  const selectedNames = selectedTarotCards.map((card) => text(card?.name, 100)).filter(Boolean);
+  if (selectedNames.length) {
+    const knownNames = TAROT_CARDS.flatMap((card) => [text(card?.nameKo, 100), text(card?.nameEn, 100)]).filter(Boolean);
+    if (knownNames.some((name) => !selectedNames.includes(name) && (source.includes(`${name} 카드`) || source.includes(`카드 ${name}`)))) return true;
+  }
+  return false;
 }
 
 function text(value, max = 1200) { return String(value || "").trim().slice(0, max); }
@@ -881,7 +910,7 @@ export function validateFusionFortuneGroup(value = {}, group, { birthTimeKnown =
   if (repeatedField) return { ok: false, issue: "repeated_sentence", detail: repeatedField };
 
   const source = JSON.stringify(value || {});
-  if (hasForbiddenPhrase(source)) return { ok: false, issue: "unsafe_phrase" };
+  if (hasForbiddenPhrase(source)) return { ok: false, issue: "unsafe_phrase", detail: forbiddenPhraseExcerpt(source) };
   if (INTERNAL_DATA_PATTERN.test(source)) return { ok: false, issue: "internal_data_exposed" };
   if (sensitiveValues.map((item) => text(item, 100)).some((item) => item.length >= 4 && source.includes(item))) return { ok: false, issue: "private_input_exposed" };
   if (!birthTimeKnown && BIRTH_TIME_OVERCLAIM_PATTERN.test(source)) return { ok: false, issue: "birth_time_overclaim" };
@@ -1080,6 +1109,109 @@ export function fusionStageReservationId(requestId, stage) {
  * 1단계 배달은 tier "partial" — 전체 계약(총 분량·요약 깊이)은 2단계가 있어야 잴 수 있다.
  * 안전 검사(위험 표현·개인정보·타로 환각)는 그룹 검증이 단계와 무관하게 막는다.
  */
+/** plan 2 소프트 이슈 — 배달을 막지 않고 수리 후보와 조립 덜어 내기만 정한다. */
+export function fusionPlan2SoftIssues(source, group, context) {
+  const issues = [];
+  if (!fusionPlan2QuestionOwner(group)) {
+    const sentences = group.keys.flatMap((key) => fusionRequotedSentences(fusionKeyProse(source, key), context?.customerQuestion));
+    if (sentences.length > FUSION_PLAN2_REQUOTE_LIMIT) issues.push({ code: "QUESTION_REQUOTED", sentences });
+  }
+  const narration = fusionGroupNarration(group, context);
+  if (narration.narrator && (context?.locale || "ko").startsWith("ko")) {
+    const drift = [...new Set(narration.keys.flatMap((key) => fusionVoiceDrift(narration.narrator, fusionKeyProse(source, key))))];
+    if (drift.length) issues.push({ code: "REGISTER_DRIFT", drift });
+  }
+  return issues;
+}
+const fusionSoftScore = (issues) => issues.reduce((sum, issue) => sum + (issue.sentences?.length || issue.drift?.length || 1), 0);
+
+/**
+ * plan 2 수리 — 책(1·2단계 그룹) 가운데 분량 미달(짧은 순)·소프트 이슈 그룹을 최대 2개만 한 번씩 다시 쓴다.
+ * 체크포인트(유료) 경로는 이 요청이 초안을 하나도 안 쓴 요청일 때만 부른다(요청당 2호출·엣지 100초).
+ * 그렇지 않으면 pending 을 돌려 다음 요청이 수리한다. 수리본은 더 나을 때만 받는다.
+ */
+async function repairFusionPlan2Groups({ context, composed, groups, waveGroups, attemptCounts, attemptLimit, priorSnapshot, validationOptions, runGroup, merged, prior, onCheckpoint, remainingMs, abortSignal, requestId }) {
+  const repaired = priorSnapshot?.lengthRepairs || {};
+  const room = Math.max(0, FUSION_PLAN2_REPAIR_LIMIT - Object.values(repaired).filter((value) => value === true).length);
+  if (!room) return { updates: {} };
+  const scale = fusionLocaleLengthScale(context.locale);
+  const floorOf = (group) => group.keys.reduce((sum, key) => sum + Number(group.minChars?.[key] || 0) * scale, 0);
+  const book = [...fusionGroupsForStage(1, context), ...groups];
+  const candidates = book
+    .filter((group) => repaired[group.id] !== true && Number(attemptCounts[group.id] || 0) < attemptLimit && validateFusionFortuneGroup(composed, group, validationOptions).ok)
+    .map((group) => {
+      const chars = countFusionGroupChars(composed, group);
+      const floor = floorOf(group);
+      return { group, chars, floor, short: floor > 0 && chars < floor, issues: fusionPlan2SoftIssues(composed, group, context) };
+    })
+    .filter((candidate) => candidate.short || candidate.issues.length)
+    .sort((a, b) => Number(b.short) - Number(a.short) || (a.short && b.short ? a.chars / a.floor - b.chars / b.floor : fusionSoftScore(b.issues) - fusionSoftScore(a.issues)))
+    .slice(0, room);
+  if (!candidates.length) return { updates: {} };
+  const checkpointed = typeof onCheckpoint === "function";
+  if (checkpointed && waveGroups.length) return { pending: candidates.map((candidate) => candidate.group.id) };
+  if (abortSignal?.aborted || remainingMs() <= FUSION_GROUP_RETRY_MIN_BUDGET_MS) {
+    console.warn("[fusion-fortune-repair-skipped]", { requestId: text(requestId, 120), remainingMs: remainingMs(), groups: candidates.map((candidate) => candidate.group.id) });
+    return { updates: {} };
+  }
+  const progress = { phase: "repair", total: candidates.length, done: 0 };
+  const settled = await Promise.allSettled(candidates.map((candidate) => runGroup(candidate.group, {
+    attempts: 1,
+    extraInstruction: [candidate.short ? buildFusionShortfallInstruction(candidate.group, candidate.chars) : "", fusionSoftIssueHint(candidate.issues)].filter(Boolean).join("\n\n"),
+    progress,
+    persist: false,
+    lengthRepair: true,
+  })));
+  const storageFailure = settled.find((outcome) => outcome.status === "rejected" && outcome.reason?.code === "RESULT_STORAGE_UNAVAILABLE");
+  if (storageFailure) throw storageFailure.reason;
+  const updates = {};
+  const report = [];
+  for (const [index, outcome] of settled.entries()) {
+    const candidate = candidates[index];
+    if (outcome.status !== "fulfilled" || !outcome.value.ok) {
+      report.push({ group: candidate.group.id, accepted: false, issue: text(outcome.status === "fulfilled" ? outcome.value.issue : outcome.reason?.message, 80) });
+      continue;
+    }
+    const next = outcome.value.value;
+    const nextChars = countFusionGroupChars(next, candidate.group);
+    const nextIssues = fusionPlan2SoftIssues({ ...composed, ...next }, candidate.group, context);
+    const better = candidate.short ? nextChars > candidate.chars
+      : fusionSoftScore(nextIssues) < fusionSoftScore(candidate.issues) && nextChars >= candidate.chars * FUSION_PLAN2_SCRUB_KEEP_RATIO;
+    report.push({ group: candidate.group.id, accepted: better, short: candidate.short, before: candidate.chars, after: nextChars, softBefore: fusionSoftScore(candidate.issues), softAfter: fusionSoftScore(nextIssues) });
+    if (better) Object.assign(updates, next);
+  }
+  if (Object.keys(updates).length) {
+    Object.assign(merged, updates);
+    if (checkpointed) await onCheckpoint({ ...prior, ...merged });
+  }
+  console.warn("[fusion-fortune-repair]", { requestId: text(requestId, 120), groups: report });
+  return { updates };
+}
+
+/** 조립 덜어 내기 — 읽는 순서대로 앞 장과 겹치는 문장·질문 재인용을 85% 이상 남는 동안만 뺀다. */
+export function scrubFusionPlan2Assembly(composed, context, requestId = "") {
+  const ownerKeys = new Set(fusionGroupsForStage(1, context).filter(fusionPlan2QuestionOwner).flatMap((group) => group.keys));
+  const proseOf = (value) => (typeof value === "string" ? value : typeof value?.content === "string" ? value.content : "");
+  const earlier = [];
+  const removed = {};
+  for (const key of ["openingMessage", ...FUSION_PROSE_KEYS]) {
+    const verdict = key === "finalVerdict";
+    const value = verdict ? composed.finalVerdict?.rationale : composed[key];
+    const prose = proseOf(value);
+    if (!prose) continue;
+    const sentences = [...new Set([...(ownerKeys.has(key) ? [] : fusionRequotedSentences(prose, context?.customerQuestion)), ...fusionCrossRepeatSentences(prose, earlier)])];
+    const next = boundedFusionScrub(value, sentences, proseOf);
+    if (next !== value) {
+      removed[key] = prose.length - proseOf(next).length;
+      if (verdict) composed.finalVerdict = { ...composed.finalVerdict, rationale: next };
+      else composed[key] = next;
+    }
+    earlier.push(proseOf(next));
+  }
+  if (Object.keys(removed).length) console.warn("[fusion-fortune-assembly-scrub]", { requestId: text(requestId, 120), removedChars: removed });
+  return composed;
+}
+
 export async function generateFusionFortuneWithRealLLM({
   input = {},
   context = {},
@@ -1131,6 +1263,8 @@ export async function generateFusionFortuneWithRealLLM({
   const validationOptions = { ...fusionValidationOptions(context, input), locale: context.locale, ignoreLength: true };
   const attemptCounts = { ...priorSnapshot?.attempts };
   const attemptLimit = fusionGroupAttemptLimit(priorSnapshot);
+  // 그룹 계획 2판(새 결제 세션만). 옛 세션은 아래 분기를 하나도 타지 않는다.
+  const plan2 = isFusionGroupPlanV2(context);
   const providers = new Set();
   const models = new Set();
   let providerCalls = 0;
@@ -1168,7 +1302,7 @@ export async function generateFusionFortuneWithRealLLM({
   const groupTimeoutMs = isPremiumFusion(context) ? 85000 : fusionGroupTimeoutMs(env);
   const flashTimeoutMs = profile.flashTimeoutMs || groupTimeoutMs;
   const timeoutFor = group => profile.proTimeoutMs ? (isProModel(modelFor(group)) ? profile.proTimeoutMs : flashTimeoutMs) : groupTimeoutMs;
-  const runGroup = async (group, { attempts = FUSION_GROUP_ATTEMPTS, timeoutMs = timeoutFor(group), extraInstruction = "", progress = composeProgress, persist = true } = {}) => {
+  const runGroup = async (group, { attempts = FUSION_GROUP_ATTEMPTS, timeoutMs = timeoutFor(group), extraInstruction = "", progress = composeProgress, persist = true, lengthRepair = false } = {}) => {
     // 🔴 데드라인을 그룹 호출 **안에서** 강제한다. 예전에는 1차 병렬이 예산을 전혀 보지 않고
     //    attempts×timeoutMs(최악 110초)를 다 쓴 뒤에야 다음 물결에서 남은 예산을 확인했다.
     //    컨텍스트 빌드(6개 계산기)까지 같은 120초 예산을 소모하므로, 그대로면 Cloudflare 엣지
@@ -1194,8 +1328,11 @@ export async function generateFusionFortuneWithRealLLM({
     const groupPrompt = buildFusionSectionGroupPrompt({ context, group, priorSections: { ...prior, ...merged }, extraInstruction, schemaInPrompt: false, referenceDate: now });
     let model = modelFor(group);
     if (Number(attemptCounts[group.id] || 0) >= attemptLimit) return { ok: savedValid, group, value: savedValid ? saved : undefined, issue: "budget_exhausted" };
-    const reservedAttempt = typeof onAttempt === "function" ? await onAttempt(group.id, {}) : null;
+    const reservedAttempt = typeof onAttempt === "function" ? await onAttempt(group.id, lengthRepair ? { lengthRepair: true } : {}) : null;
     attemptCounts[group.id] = reservedAttempt || Number(attemptCounts[group.id] || 0) + 1;
+    // 🔴 plan 2: 이 그룹이 더는 시도를 살 수 없는 호출이면 반려 대신 위험 문장만 덜어 내고 살린다.
+    //    수리 호출은 이미 유효한 초안이 있으니 구제하지 않는다(덜 좋은 수리본은 버리면 된다).
+    const finalAttempt = plan2 && !lengthRepair && Number(attemptCounts[group.id] || 0) >= attemptLimit;
     // Paid requests do not persist why the last attempt failed. A retry that still has no valid draft is
     // almost always a cut-off answer (salvage drops the cut key), so it gets twice the room; the base stays the cost plan.
     const plannedTokens = fusionGroupTokens(group, env, context);
@@ -1252,7 +1389,7 @@ export async function generateFusionFortuneWithRealLLM({
       // A call Gemini never billed hands its reservation back (bounded per group in storage).
       // If the hand-back fails the attempt stays spent — never more calls than reserved.
       if (isUnbilledFusionFailure(response) && typeof onAttempt === "function") {
-        const returned = await onAttempt(group.id, { unbilled: true }).catch(() => null);
+        const returned = await onAttempt(group.id, lengthRepair ? { unbilled: true, lengthRepair: true } : { unbilled: true }).catch(() => null);
         if (Number.isInteger(returned) && returned >= 0) attemptCounts[group.id] = returned;
       }
       // providerCode·status 만 남긴다 — 사고 때 countTokens 실패의 HTTP 상태가 로그에 없어 원인을 못 갈랐다.
@@ -1267,15 +1404,24 @@ export async function generateFusionFortuneWithRealLLM({
     if (isPremiumFusion(context)) {
       const savedPlan = merged.consultationPlan || prior.consultationPlan;
       if (group.id === "saju" && validFusionConsultationPlan(savedPlan)) picked.consultationPlan = savedPlan;
-      const plan = picked.consultationPlan || merged.consultationPlan || prior.consultationPlan;
+      let plan = picked.consultationPlan || merged.consultationPlan || prior.consultationPlan;
+      if (!validFusionConsultationPlan(plan) && finalAttempt && group.id === "saju") {
+        plan = picked.consultationPlan = fallbackFusionConsultationPlan(FUSION_PREMIUM_VERSION);
+        console.warn("[fusion-fortune-final-salvage]", { requestId: text(requestId, 120), sectionGroup: group.id, issue: "consultation_plan_fallback" });
+      }
       if (!validFusionConsultationPlan(plan)) return { ok: false, group, issue: "consultation_plan" };
       const questionIds = new Set(plan.questions.map(q => q.id));
       for (const key of group.keys) {
         if (!picked[key]?.content) continue;
-        picked[key] = normalizeFusionSubchapters(picked[key]);
-        const chapters = fusionSubchapters(picked[key]);
         const systems = group.systems.length ? group.systems : Object.keys(context.systems || {});
         const references = new Set(systems.flatMap(system => fusionEvidenceReferences(system, context.systems?.[system])));
+        // plan 2: 소장 1~6개를 받고, 범위·근거 경로·질문 연결은 버리지 않고 맞춘다(소장 때문에 장을 잃지 않는다).
+        if (plan2) {
+          picked[key] = normalizeFusionPlan2Subchapters(picked[key], { references: [...references], questionIds: [...questionIds] });
+          continue;
+        }
+        picked[key] = normalizeFusionSubchapters(picked[key]);
+        const chapters = fusionSubchapters(picked[key]);
         if (chapters.some(c => !Array.isArray(c.evidenceKeys) || !c.evidenceKeys.length || c.evidenceKeys.some(ref => !references.has(ref)))) return { ok: false, group, issue: "subchapter_evidence" };
         if (chapters.length < 4 || chapters.length > 6 || chapters.some(c => !c.questionIds?.length || c.questionIds.some(id => !questionIds.has(id)))) return { ok: false, group, issue: "subchapters" };
       }
@@ -1289,9 +1435,24 @@ export async function generateFusionFortuneWithRealLLM({
     if (collapsedChars >= FUSION_WHITESPACE_COLLAPSE_LOG_CHARS) {
       console.warn("[fusion-fortune-whitespace-collapsed]", { requestId: text(requestId, 120), stage: stageNumber, sectionGroup: group.id, collapsedChars });
     }
-    const checked = validateFusionFortuneGroup(picked, group, validationOptions);
+    let checked = validateFusionFortuneGroup(picked, group, validationOptions);
     if (response.provider) providers.add(text(response.provider, 40));
     if (response.model) models.add(text(response.model, 100));
+    if (!checked.ok && finalAttempt) {
+      // 🔴 마지막 시도는 던지지 않는다 — 걸린 문장만 빼고, 필드 안 반복을 접고, 핵심 정리를 채워 다시 본다.
+      const first = checked;
+      const scrubbed = dedupeFusionFieldSentences(scrubFusionGroupValue(picked, (sentence) => fusionSalvageSentenceIsBad(sentence, validationOptions)));
+      for (const key of group.keys) {
+        const section = scrubbed[key];
+        if (!STRUCTURED_SECTION_KEYS.includes(key) || !section || typeof section.content !== "string") continue;
+        const points = (Array.isArray(section.keyPoints) ? section.keyPoints : []).filter((point) => typeof point === "string" && point.trim());
+        const extra = fusionSalvageKeyPoints(section.content).filter((point) => !points.includes(point));
+        if (points.length < 3) scrubbed[key] = { ...section, keyPoints: [...points, ...extra].slice(0, Math.max(3, points.length)) };
+      }
+      const rechecked = validateFusionFortuneGroup(scrubbed, group, validationOptions);
+      console.warn("[fusion-fortune-final-salvage]", { requestId: text(requestId, 120), stage: stageNumber, sectionGroup: group.id, issue: first.issue, detail: text(first.detail, 120), salvaged: rechecked.ok, after: rechecked.ok ? "" : text(rechecked.issue, 80) });
+      if (rechecked.ok) { Object.keys(picked).forEach((key) => delete picked[key]); Object.assign(picked, scrubbed); checked = rechecked; }
+    }
     if (!checked.ok) return { ok: false, group, issue: checked.issue, detail: checked.detail, value: picked };
     if (context.version === FUSION_EXPERT_VERSION && group.stage === 1
       && !group.systems.every((system) => validFusionSignals(picked[`${system}Section`], system, context))) {
@@ -1416,6 +1577,16 @@ export async function generateFusionFortuneWithRealLLM({
       // A group still waiting for the plan cannot run, so its unspent attempts never justify another try.
       automaticRetryAllowed: missing.some(group => !fusionGroupWaitsForPlan(group, context, stageNumber, composed) && Number(attemptCounts[group.id] || 0) < attemptLimit),
       pendingGroups: missing.map(group => group.id), qualityIssues: ["groups_incomplete"], stage: stageNumber };
+  }
+  if (plan2 && stageNumber === 2) {
+    // 🔴 수리는 모든 초안이 나온 뒤 책당 최대 2그룹만. 분량은 끝내 모자라도 배달을 막지 않는다.
+    const repair = await repairFusionPlan2Groups({ context, composed, groups, waveGroups, attemptCounts, attemptLimit, priorSnapshot, validationOptions, runGroup, merged, prior, onCheckpoint, remainingMs, abortSignal, requestId });
+    if (repair.pending) {
+      return { result: composed, deliverable: false, generationSource: "gemini_partial", providerCalls, ...(modelFallbacks ? { modelFallbacks } : {}),
+        automaticRetryAllowed: true, pendingGroups: repair.pending, qualityIssues: ["repair_pending"], stage: stageNumber };
+    }
+    Object.assign(composed, repair.updates);
+    scrubFusionPlan2Assembly(composed, context, requestId);
   }
   if (context.version === FUSION_EXPERT_VERSION) composed.evidenceCrossCheck = buildFusionEvidenceCrossCheck(composed, context);
   if (stageNumber === 1) return { result: composed, deliverable: true, generationSource: "gemini", providerCalls, qualityTier: "partial", stage: 1 };
@@ -1594,6 +1765,8 @@ export async function generateFusionFortuneRequest({ input = {}, userId = "", re
     if (!contextResult?.ok) throw Object.assign(new Error("context"), { code: FUSION_FORTUNE_ERROR_CODES.CONTEXT_FAILED });
     // 질문 직답 계약 버전은 새 계산 컨텍스트에만 고정한다. 재개는 저장된 컨텍스트의 값(없으면 OFF)을 쓴다.
     if (!priorSnapshot?.context && !priorResult && selectAnswerVoice(env)) contextResult.context = { ...contextResult.context, answerVoice: selectAnswerVoice(env) };
+    // 그룹 계획 2판도 새 계산 컨텍스트에만 박는다 — 진행 중인 세션은 저장된 컨텍스트(판 없음)대로 끝난다.
+    if (!priorSnapshot?.context && !priorResult && shouldPinFusionGroupPlanV2(contextResult.context, env)) contextResult.context = { ...contextResult.context, groupPlanVersion: FUSION_GROUP_PLAN_VERSION };
     if (!priorSnapshot?.context && typeof onSnapshot === "function") await onSnapshot({ requestId: safeId, input: normalized, context: contextResult.context, calculatedAt: calculationDate.toISOString(), lease: deliveryLease });
     throwIfFusionFortuneAborted(abortSignal);
     // 🔴 데드라인 시계를 요청 시작 시점(결제 증빙 직후)으로 고정해 넘긴다. 컨텍스트 빌드(6개
