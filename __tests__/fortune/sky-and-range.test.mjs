@@ -5,10 +5,34 @@ import { Seasons } from 'astronomy-engine';
 import { sunSignForDate } from '../../scripts/lib/moon-sky.mjs';
 import { loadTsModule } from '../../scripts/lib/load-ts-module.mjs';
 const { loadWeekRange, loadMonthRange } = loadTsModule('lib/fortune/range-data.ts');
-const { animalDayRelation, sunSignIdOf } = loadTsModule('lib/fortune/day-relation.ts');
+const { animalDayRelation, zodiacDayRelation, sunSignIdOf } = loadTsModule('lib/fortune/day-relation.ts');
 const { SIGN_PROFILES } = loadTsModule('lib/fortune/sign-profiles.ts');
 const { computeSignScore } = loadTsModule('lib/fortune/fortune-score.ts');
 const { buildPeriodFaqs } = loadTsModule('lib/fortune/period-faqs.ts');
+const { resolveKey } = loadTsModule('lib/i18n/dictionary.ts');
+
+test('shared day relations keep Korean SSR and runtime text aligned for either target date', () => {
+  const dictionary = JSON.parse(readFileSync(new URL('../../public/i18n/ko.json', import.meta.url), 'utf8'));
+  const relations = [];
+  for (const profile of SIGN_PROFILES) {
+    if (profile.kind === 'animal') {
+      for (const branch of '子丑寅卯辰巳午未申酉戌亥') relations.push(animalDayRelation(profile.id, `甲${branch}`));
+    } else {
+      for (const month of ['01', '04', '07', '10']) {
+        for (const moon of ['Aries', profile.nameEn]) relations.push(zodiacDayRelation(profile, `2026-${month}-15`, moon));
+      }
+      relations.push(zodiacDayRelation(profile, 'invalid', 'Aries'));
+    }
+  }
+  for (const relation of relations) {
+    assert.ok(relation);
+    for (const field of ['detail', 'badge']) {
+      const marker = relation[`${field}I18n`];
+      assert.equal(resolveKey(dictionary, marker.key, 'ko', marker.vars), relation[field]);
+      assert.doesNotMatch(relation[field], /오늘|내일/);
+    }
+  }
+});
 
 test('solar sign follows each year’s actual equinox/solstice at KST noon', () => {
   for (const year of [2023, 2024, 2025, 2026, 2027, 2028]) {
