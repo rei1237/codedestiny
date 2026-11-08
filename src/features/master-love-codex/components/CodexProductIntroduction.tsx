@@ -14,7 +14,7 @@ export default function CodexProductIntroduction({ onEnter, onReplayPrologue, ha
 }) {
   const [mode, setMode] = useState<MasterLoveCodexMode>('solo');
   const markup = useMemo(() => {
-    const detail = mode === 'solo' ? {...detailData, edition: '개인판 · 20개 챕터 · 총 5만 자 목표'} : {
+    const detail = mode === 'solo' ? {...detailData, edition: '개인판 · 20개 챕터 · 총 2~3만 자 목표'} : {
       ...detailData,
       headline: '가까워질수록 다른 우리, 두 마음의 지도를 겹쳐볼까요?',
       description: '서로에게 끌린 이유부터 같은 다툼을 반복하는 자리까지. 두 사람의 사주와 자미두수를 나란히 펼쳐, 함께 바꿔볼 선택을 찾습니다.',
