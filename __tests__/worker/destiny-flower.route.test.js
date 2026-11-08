@@ -1,5 +1,5 @@
 /** @jest-environment node */
-// Authentication and server computation remain; no purchase is required from 2026-10-08.
+// Server computation remains; no purchase from 2026-10-08, no login from 2026-11-08 (per-IP limit instead).
 import { jest } from "@jest/globals";
 
 const USER_ID = "507f1f77bcf86cd799439011";
@@ -13,8 +13,11 @@ const PROFILE = Object.freeze({
 
 /** 사용자 문서의 unlockedFeatures. 각 테스트가 갈아 끼운다. */
 let unlockedFeatures = [];
-/** requireAuth 결과. null 이면 401 을 던진다. */
+/** requireAuth 결과. null 이면 401 을 던진다. 라우트는 더는 부르지 않는다(부르면 테스트가 잡는다). */
 let authResult = { userId: USER_ID };
+let authCalls = 0;
+/** incrementRateLimit 대역. 각 테스트가 갈아 끼운다. */
+let rateLimit;
 
 let handleDestinyFlowerRoutes;
 let FLOWER_UNLOCK_FEATURE_KEY;
@@ -36,6 +39,7 @@ beforeAll(async () => {
     })),
     jest.unstable_mockModule("../../worker/lib/auth.js", () => ({
       requireAuth: async () => {
+        authCalls += 1;
         if (!authResult) {
           const error = new Error("UNAUTHORIZED");
           error.status = 401;
@@ -43,6 +47,9 @@ beforeAll(async () => {
         }
         return authResult;
       },
+    })),
+    jest.unstable_mockModule("../../worker/lib/rate-limit.js", () => ({
+      incrementRateLimit: (...args) => rateLimit(...args),
     })),
   ]);
 
@@ -54,12 +61,14 @@ beforeAll(async () => {
 beforeEach(() => {
   unlockedFeatures = [];
   authResult = { userId: USER_ID };
+  authCalls = 0;
+  rateLimit = jest.fn(async () => ({ count: 1, resetAt: Date.now() + 60000 }));
 });
 
-function post(body, path = "/api/destiny-flower/match") {
+function post(body, path = "/api/destiny-flower/match", ip = "203.0.113.7") {
   return new Request("https://code-destiny.com" + path, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", "CF-Connecting-IP": ip },
     body: JSON.stringify(body),
   });
 }
@@ -75,13 +84,48 @@ test("과거 구매 키는 기록 호환을 위해 유지한다", () => {
   expect(FLOWER_UNLOCK_FEATURE_KEY).toBe("flower-fc");
 });
 
-test("로그인하지 않으면 401 이고 DB 조회까지 가지 않는다", async () => {
+test("로그인하지 않아도 200 으로 네 체계를 받고 인증을 확인하지 않는다", async () => {
   authResult = null;
   const res = await handleDestinyFlowerRoutes(post({ profile: PROFILE }), {});
-  expect(res.status).toBe(401);
+  expect(res.status).toBe(200);
   const data = await res.json();
-  expect(data.code).toBe("UNAUTHORIZED");
+  expect(data.ok).toBe(true);
+  expect(Object.keys(data.sources).sort()).toEqual(["astrology", "jamidusu", "saju", "sukuyo"]);
+  expect(authCalls).toBe(0);
+});
+
+test("IP 한도는 해시한 IP 로 세고 원문 IP 를 저장소에 넘기지 않는다", async () => {
+  await handleDestinyFlowerRoutes(post({ profile: PROFILE }), {});
+  expect(rateLimit).toHaveBeenCalledTimes(1);
+  const arg = rateLimit.mock.calls[0][0];
+  expect(arg.endpoint).toBe("destiny-flower:match");
+  expect(arg.windowMs).toBe(60000);
+  expect(arg.subjectHash).toMatch(/^[0-9a-f]{64}$/);
+  expect(JSON.stringify(arg)).not.toContain("203.0.113.7");
+});
+
+test("한도를 넘으면 429 이고 매칭을 돌리지 않는다", async () => {
+  rateLimit = jest.fn(async () => ({ count: 31, resetAt: Date.now() + 60000 }));
+  const res = await handleDestinyFlowerRoutes(post({ profile: PROFILE }), {});
+  expect(res.status).toBe(429);
+  expect(res.headers.get("Retry-After")).toBe("60");
+  const data = await res.json();
+  expect(data.code).toBe("RATE_LIMITED");
   expect(data.sources).toBeUndefined();
+});
+
+test("한도 저장소가 실패하면 아이솔레이트 폴백으로 같은 한도를 센다", async () => {
+  rateLimit = jest.fn(async () => { throw new Error("db down"); });
+  const warn = jest.spyOn(console, "warn").mockImplementation(() => {});
+  const ip = "198.51.100.99";
+  const statuses = [];
+  for (let i = 0; i < 31; i += 1) {
+    statuses.push((await handleDestinyFlowerRoutes(post({ profile: PROFILE }, "/api/destiny-flower/match", ip), {})).status);
+  }
+  expect(statuses.slice(0, 30).every((status) => status === 200)).toBe(true);
+  expect(statuses[30]).toBe(429);
+  expect(warn).toHaveBeenCalled();
+  warn.mockRestore();
 });
 
 test("해금 보유자에게는 네 체계를 모두 내려준다", async () => {

@@ -4934,9 +4934,8 @@ function _dfGetServerMatchPayload() {
  * 서버 매칭 결과 캐시.
  *
  * 🔴 매칭은 브라우저에서 하지 않는다 (2026-08-24). 엔진이 `worker/lib/destiny-flower-engine.js`
- * 로 옮겨 갔고, 결과를 주는 곳은 `POST /api/destiny-flower/match` 하나다. 그 라우트가
- * `flower-fc` 해금을 서버에서 확인한다 — 예전에는 결제만 서버에서 차감되고 결과는 브라우저가
- * 만들어서, 콘솔 한 줄로 1만원짜리 결과를 공짜로 뽑을 수 있었다.
+ * 로 옮겨 갔고, 결과를 주는 곳은 `POST /api/destiny-flower/match` 하나다. 2026-11-08 부터 그 라우트는
+ * 로그인도 해금도 보지 않고 IP 한도(429)만 건다 — 토큰을 싣지 않고, 401·402 분기도 없다.
  *
  * 렌더 경로는 전부 동기라, 여기서는 캐시만 읽고 없으면 null 을 돌려준다. 요청이 도착하면
  * `_dfRefreshStudioForSource` 를 다시 불러 화면을 채운다(4-up 의 "판정 대기" 칸이 그 사이를 메운다).
@@ -4979,10 +4978,8 @@ function _dfRequestServerMatch(payload, onSettled) {
   if (_dfServerMatch.fingerprint === fingerprint && _dfServerMatch.sources) return null;
   if (_dfServerMatch.fingerprint === fingerprint && _dfServerMatch.inflight) return _dfServerMatch.inflight;
 
-  var token = __cdGetAuthTokenForLockSync();
   var url = __cdResolveApiBaseForLockSync() + '/api/destiny-flower/match';
   var headers = { 'Content-Type': 'application/json' };
-  if (token) headers.Authorization = 'Bearer ' + token;
 
   _dfServerMatch.fingerprint = fingerprint;
   _dfServerMatch.sources = null;
@@ -5002,10 +4999,8 @@ function _dfRequestServerMatch(payload, onSettled) {
       _dfServerMatch.sources = result.data.sources || {};
       _dfServerMatch.theme = result.data.theme || null;
       _dfServerMatch.status = 'ready';
-    } else if (result.status === 402) {
-      _dfServerMatch.status = 'locked';
-    } else if (result.status === 401) {
-      _dfServerMatch.status = 'unauthorized';
+    } else if (result.status === 429) {
+      _dfServerMatch.status = 'limited';
     } else {
       _dfServerMatch.status = 'error';
     }
@@ -5045,10 +5040,8 @@ function _dfGetServerMatched(source) {
  */
 function _dfOnServerMatchSettled(status) {
   if (status !== 'ready') {
-    if (status === 'locked' || status === 'unauthorized') {
-      _dfSetStudioStatus(status === 'locked'
-        ? _dfUiText('status.atelierLocked', '운명의 꽃 아틀리에 해금이 필요합니다.')
-        : _dfUiText('status.loginRequired', '로그인 후 운명의 꽃을 볼 수 있습니다.'));
+    if (status === 'limited') {
+      _dfSetStudioStatus(_dfUiText('status.rateLimited', '요청이 잠시 많아요. 1분 뒤 다시 시도해 주세요.'));
     }
     return;
   }
@@ -6880,6 +6873,9 @@ function _dfSetEmptyLoadButtonState(isLoading, source, canLoad) {
 function _dfShowStudioEmptyState(source, message, showLoadButton) {
   var normalized = _dfNormalizeSource(source || _dfStudioState.activeSource || 'saju');
   var main = document.querySelector('.df-studio-main');
+  var viralShare = document.getElementById('dfViralShare');
+  if (viralShare) viralShare.hidden = true;
+  _dfRevealedFlowerKey = '';
   var panels = document.querySelector('.df-studio-panels');
   var historySection = document.querySelector('.df-studio-history');
   var narrativeEl = document.getElementById('dfStudioNarrative');
@@ -7632,6 +7628,8 @@ function _dfApplyStudioSelection(selection) {
   }
   _dfUpdateStudioPrompt(selection);
   _dfRenderFriendFlower();
+  _dfRenderViralShareRow(selection);
+  _dfPlayFlowerReveal(selection);
   _dfApplyGeneratedFlowerImage(imageEl, selection, selection.source || 'saju');
   if (auraEl) {
     auraEl.style.background =
@@ -8494,6 +8492,143 @@ function _dfShareStoryCard(st) {
   if (!st.rendering) { run(st.blob); return; }
   _dfShareNote(_dfUiText('card.drawing', '카드를 그리는 중이에요. 잠시만 기다려 주세요.'));
   st.waiters.push(run);
+}
+
+/* ═══ 결과 안 공유 줄(2026-11-08 무료 바이럴 퍼널) — X·스레드·링크 복사·이미지 저장 ═══
+   팝업이 아니라 결과 카드 바로 아래 인라인 줄이다. 해제 조건·보상은 없다(카카오는 기존 공유 시트에 그대로).
+   intent·UTM 은 React 공유 바(app/components/ViralShareBar.tsx)와 같은 js/share-service.mjs 가 만든다.
+   링크는 기존 꽃 공유 링크(_dfFlowerShareUrl, fl·fs 만 실음) — 받는 쪽은 공개 카드 GET /api/destiny-flower/flower/:id 로 꽃을 본다. */
+var _DF_VIRAL_SHARE_ICON = {
+  x: '<path d="M3.2 2.8h2.6l7 10.4h-2.6z"/><path d="M12.6 2.8L8.9 7.1M7.1 8.9l-3.7 4.3"/>',
+  threads: '<path d="M10.6 7.6c-.2-1.7-1.3-2.6-2.7-2.6-1.6 0-2.7 1.2-2.7 3s1.1 3 2.7 3c1.5 0 2.5-1 2.5-2.7V6.9"/><path d="M13.1 8.4c-.2 2.8-2.3 4.8-5.1 4.8C5 13.2 2.9 11 2.9 8S5 2.8 8 2.8c2.3 0 4 1.2 4.7 3.1"/>',
+  link: _DF_SHARE_ICON.link,
+  download: '<path d="M8 2.5v7.2M5.2 7l2.8 2.8L10.8 7"/><path d="M3 11.2v1.3c0 .6.4 1 1 1h8c.6 0 1-.4 1-1v-1.3"/>'
+};
+var _dfShareServiceModule = null;
+var _dfShareServicePromise = null;
+
+function _dfLoadShareService() {
+  if (_dfShareServiceModule) return Promise.resolve(_dfShareServiceModule);
+  if (!_dfShareServicePromise) {
+    _dfShareServicePromise = import('/js/share-service.mjs?v=build-3c7392f8ec0f').then(function(mod) {
+      _dfShareServiceModule = mod;
+      return mod;
+    }, function(error) {
+      _dfShareServicePromise = null;
+      throw error;
+    });
+  }
+  return _dfShareServicePromise;
+}
+
+/** X·스레드에 넣을 본문. 링크는 intent 가 따로 붙이므로 여기엔 넣지 않는다. */
+function _dfFlowerIntentText(ctx) {
+  var tag = String(ctx.name || '').replace(/[\s\-'’·.()]+/g, '');
+  return [
+    _dfUiText('share.hookTitle', '🌸 내 운명의 꽃은 \'' + ctx.name + '\'' + _dfJosa(ctx.name, '이래', '래'), { name: ctx.name }),
+    ctx.language ? _dfUiText('share.hookLanguage', '꽃말: ' + ctx.language, { language: ctx.language }) : '',
+    _dfUiText('viral.ask', '너는 무슨 꽃일까?'),
+    tag ? _dfUiText('share.hashtagsNamed', '#운명의꽃 #나의꽃은' + tag, { tag: tag }) : _dfUiText('share.hashtag', '#운명의꽃')
+  ].filter(Boolean).join('\n');
+}
+
+function _dfEnsureViralShareRow() {
+  var row = document.getElementById('dfViralShare');
+  if (row) return row;
+  var main = document.querySelector('#destinyFlowerStudioSheet .df-studio-main');
+  if (!main || !main.parentNode) return null;
+  var actions = [
+    ['x', _dfUiText('viral.x', 'X')],
+    ['threads', _dfUiText('viral.threads', '스레드')],
+    ['link', _dfUiText('viral.link', '링크 복사')],
+    ['download', _dfUiText('viral.download', '이미지 저장')]
+  ];
+  row = document.createElement('section');
+  row.id = 'dfViralShare';
+  row.className = 'df-viral-share';
+  row.hidden = true;
+  row.setAttribute('aria-label', _dfUiText('viral.aria', '운명의 꽃 공유'));
+  row.innerHTML = '<p class="df-viral-share-title">' + _dfEscapeHtml(_dfUiText('viral.title', '내 꽃을 친구에게 보여 주기')) + '</p>'
+    + '<div class="df-viral-share-actions">' + actions.map(function(action) {
+      return '<button type="button" class="df-viral-share-btn" data-df-viral="' + action[0] + '">'
+        + '<svg class="df-ico" viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.3"'
+        + ' stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">' + _DF_VIRAL_SHARE_ICON[action[0]] + '</svg>'
+        + '<span>' + _dfEscapeHtml(action[1]) + '</span></button>';
+    }).join('') + '</div>';
+  // 오버레이 닫기 히트테스트·전역 data-action 위임이 이 줄의 탭을 가져가지 않게 여기서 끝낸다.
+  row.addEventListener('click', function(e) {
+    var target = e.target && e.target.closest ? e.target.closest('[data-df-viral]') : null;
+    if (!target || !row.contains(target)) return;
+    e.preventDefault();
+    e.stopPropagation();
+    _dfRunViralShare(target.getAttribute('data-df-viral'));
+  });
+  main.parentNode.insertBefore(row, main.nextSibling);
+  return row;
+}
+
+function _dfRenderViralShareRow(selection) {
+  var row = _dfEnsureViralShareRow();
+  if (!row) return;
+  var ready = !!_dfShareContext(selection);
+  row.hidden = !ready;
+  // X·스레드 창은 탭 순간 동기로 열어야 팝업 차단을 피한다 — 모듈을 미리 받아 둔다.
+  if (ready) _dfLoadShareService().catch(function() {});
+}
+
+function _dfRunViralShare(channel) {
+  var ctx = _dfShareContext();
+  if (!ctx) {
+    _dfSetStudioStatus(_dfUiText('sheet.notReady', '내 꽃이 피면 공유할 수 있어요.'));
+    return;
+  }
+  if (channel === 'x' || channel === 'threads') {
+    var openIntent = function(mod) {
+      window.open(mod.socialIntentUrl(channel, { text: _dfFlowerIntentText(ctx), url: ctx.url }), '_blank', 'noopener,noreferrer');
+      _dfSetStudioStatus(_dfUiText('viral.opened', '공유 창을 열었어요.'));
+    };
+    if (_dfShareServiceModule) { openIntent(_dfShareServiceModule); return; }
+    _dfLoadShareService().then(openIntent, function() {
+      _dfShareCopy(ctx.text, _dfUiText('share.copiedText', '공유 문구를 복사했어요. 카카오톡에 붙여넣어 보내 보세요.'));
+    });
+    return;
+  }
+  if (channel === 'link') {
+    _dfShareCopy(ctx.text, _dfUiText('sheet.linkCopied', '꽃말과 링크를 복사했어요. 친구에게 붙여넣어 보내 보세요.'));
+    return;
+  }
+  if (channel === 'download') {
+    var st = { ctx: ctx, blob: null, rendering: true, waiters: [], trigger: null };
+    _dfShareState = st;
+    _dfShareStoryCard(st);
+    _dfEnsureShareScript(function() {
+      if (_dfShareState !== st) return;
+      st.ctx = _dfShareContext(ctx.selection) || ctx;
+      _dfRenderShareCard(st.ctx, _dfOnShareCard(st));
+    });
+  }
+}
+
+/** 꽃이 바뀔 때만(첫 개화·체계 탭 전환) 표본 카드를 뒤집어 공개한다. 동작은 CSS(prefers-reduced-motion 존중)가 맡는다. */
+var _dfRevealedFlowerKey = '';
+function _dfPlayFlowerReveal(selection) {
+  var main = document.querySelector('#destinyFlowerStudioSheet .df-studio-main');
+  if (!main || !selection || !selection.flower) return;
+  var key = _dfNormalizeSource(selection.source || 'saju') + ':' + String(selection.flower.id || selection.flower.name || '');
+  if (key === _dfRevealedFlowerKey) return;
+  _dfRevealedFlowerKey = key;
+  main.classList.remove('is-revealing');
+  void main.offsetWidth;
+  main.classList.add('is-revealing');
+  var finished = false;
+  var finish = function(e) {
+    if (finished || (e && e.target !== main)) return;
+    finished = true;
+    main.classList.remove('is-revealing');
+    main.removeEventListener('animationend', finish);
+  };
+  main.addEventListener('animationend', finish);
+  setTimeout(finish, 1600);
 }
 
 function _dfShareKakao(ctx) {

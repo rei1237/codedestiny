@@ -169,8 +169,11 @@ test("자미두수 차트를 서버로 실어 보낸다", () => {
   );
 });
 
-test("무료 꽃은 서버 계산과 인증을 유지하고 구매 DB를 조회하지 않는다",()=>{
- const route=stripComments(read(ROUTE_REL));assert.match(route,/requireAuth/);assert.doesNotMatch(route,/hasFlowerUnlock|status:\s*402|User\.findById/);
+// 2026-11-08 무료 바이럴 퍼널: 로그인 대신 IP 한도. 한도가 빠지면 무제한 공개 계산 경로가 된다.
+test("무료 꽃은 서버 계산과 IP 한도를 유지하고 인증·구매 DB를 조회하지 않는다",()=>{
+ const route=stripComments(read(ROUTE_REL));
+ assert.match(route,/incrementRateLimit\(/);assert.match(route,/status:\s*429/);
+ assert.doesNotMatch(route,/requireAuth|hasFlowerUnlock|status:\s*40[12]|User\.findById/);
 });
 
 test("라우트가 워커에 배선돼 있다", () => {

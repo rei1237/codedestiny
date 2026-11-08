@@ -1267,3 +1267,77 @@ html:has(#destinyFlowerStudioOverlay.is-show) { scrollbar-gutter: auto !importan
   #destinyFlowerStudioOverlay .df-share-action:focus-visible,
   #destinyFlowerStudioOverlay .df-share-action:active { transform: none; }
 }
+
+/* 2026-11-08 무료 바이럴 퍼널: 결과 카드 공개 연출 + 공유 줄(X·스레드·링크 복사·이미지 저장). */
+@keyframes dfCardFlipIn {
+  0% { opacity: 0; transform: perspective(1200px) rotateY(-90deg) scale(0.96); filter: brightness(1.6); }
+  55% { opacity: 1; transform: perspective(1200px) rotateY(8deg) scale(1.01); filter: brightness(1.15); box-shadow: 0 0 0 1px var(--dfd-gold), 0 0 42px rgba(232, 201, 138, 0.55); }
+  100% { opacity: 1; transform: perspective(1200px) rotateY(0) scale(1); filter: none; }
+}
+@keyframes dfBloomGlow {
+  0% { opacity: 0; transform: scale(0.82); filter: drop-shadow(0 0 0 rgba(232, 201, 138, 0)); }
+  60% { opacity: 1; transform: scale(1.04); filter: drop-shadow(0 0 22px rgba(232, 201, 138, 0.8)); }
+  100% { opacity: 1; transform: scale(1); filter: drop-shadow(0 0 8px rgba(232, 201, 138, 0.35)); }
+}
+#destinyFlowerStudioOverlay .df-studio-sheet .df-studio-main.is-revealing {
+  transform-origin: 50% 50%;
+  backface-visibility: hidden;
+  animation: dfCardFlipIn 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+#destinyFlowerStudioOverlay .df-studio-sheet .df-studio-main.is-revealing .df-studio-visual img {
+  animation: dfBloomGlow 0.75s ease-out 0.15s both;
+}
+
+#destinyFlowerStudioOverlay .df-viral-share {
+  margin: 14px 0 4px;
+  padding: 14px;
+  border: 1px solid var(--dfd-hairline, rgba(232, 201, 138, 0.75));
+  border-radius: 16px;
+  background: var(--dfd-card-strong);
+  box-shadow: var(--dfd-shadow);
+}
+#destinyFlowerStudioOverlay .df-viral-share[hidden] { display: none; }
+#destinyFlowerStudioOverlay .df-viral-share-title {
+  margin: 0 0 10px;
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--dfd-ink);
+}
+#destinyFlowerStudioOverlay .df-viral-share-actions {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+#destinyFlowerStudioOverlay .df-viral-share-btn {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-height: 56px;
+  padding: 8px 4px;
+  border: 1px solid var(--dfd-hairline, rgba(232, 201, 138, 0.75));
+  border-radius: 12px;
+  background: var(--dfd-paper, #FFFDF8);
+  color: var(--dfd-gold-ink);
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease;
+}
+#destinyFlowerStudioOverlay .df-viral-share-btn svg { width: 20px; height: 20px; }
+#destinyFlowerStudioOverlay .df-viral-share-btn:hover { background: var(--dfd-petal, #FBEFD3); transform: translateY(-1px); }
+#destinyFlowerStudioOverlay .df-viral-share-btn:focus-visible {
+  outline: 2px solid var(--dfd-gold-ink);
+  outline-offset: 2px;
+}
+@media (max-width: 380px) {
+  #destinyFlowerStudioOverlay .df-viral-share-actions { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (prefers-reduced-motion: reduce) {
+  #destinyFlowerStudioOverlay .df-studio-sheet .df-studio-main.is-revealing,
+  #destinyFlowerStudioOverlay .df-studio-sheet .df-studio-main.is-revealing .df-studio-visual img { animation: none; }
+  #destinyFlowerStudioOverlay .df-viral-share-btn { transition: none; }
+  #destinyFlowerStudioOverlay .df-viral-share-btn:hover { transform: none; }
+}
