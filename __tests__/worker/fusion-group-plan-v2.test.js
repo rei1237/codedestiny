@@ -4,7 +4,7 @@ import { createHash } from "node:crypto";
 import { describe, expect, it, jest } from "@jest/globals";
 import { FUSION_PREMIUM_VERSION, FUSION_PREMIUM_V2, FUSION_PREMIUM_TARGETS_V2 as targets } from "../../lib/fusion-premium-report.js";
 import { FUSION_EXPERT_VERSION, fusionEvidenceReferences, normalizeFusionSignals, ownFusionEvidencePath } from "../../worker/lib/fusion-expert-contract.js";
-import { buildFusionSectionGroupPrompt, fusionGroupsForStage } from "../../worker/lib/fusion-fortune-prompt.js";
+import { FUSION_GEMINI_ENUM_CHAR_BUDGET, buildFusionSectionGroupPrompt, fusionGeminiSchemaIssues, fusionGroupsForStage } from "../../worker/lib/fusion-fortune-prompt.js";
 import { createMemoryFusionFortuneStore, fusionPlan2SoftIssues, generateFusionFortuneRequest, generateFusionFortuneWithRealLLM, scrubFusionPlan2Assembly } from "../../worker/lib/fusion-fortune.js";
 import { normalizeFusionPlan2Subchapters, resolveFusionEvidenceReference, scrubFusionSection } from "../../worker/lib/fusion-group-plan.js";
 
@@ -189,5 +189,85 @@ describe("plan 2 soft issues, assembly scrub and evidence paths", () => {
     const section = normalizeFusionSignals({ signals: [{ domain: "work", stance: "adapt", period: "current", summary: "준비", evidenceKeys: ["yearlyLuck[0].pillar"] }] }, "saju", context);
     expect(section.signals).toHaveLength(1);
     expect(resolveFusionEvidenceReference("yearlyLuck[0].pillar", ["saju.expertEvidence.yearlyLuck"])).toBe("saju.expertEvidence.yearlyLuck");
+  });
+});
+
+// 🔴 2026-11-08 실호출: 분야 묶음 3개(본문 키 2개씩)가 키마다 6체계 근거 경로 enum(약 1,650자)을 반복해
+//    Gemini가 생성 전에 400(스키마 과복잡)을 돌려줬다. 실제 근거 키 이름·개수로 요청 본문을 검사한다.
+describe("plan 2 request bodies stay inside Gemini's schema limits", () => {
+  const EVIDENCE = {
+    saju: ["usefulGod", "unfavorableGod", "majorLuck", "yearlyLuck", "natalInteractions", "seasonalBalance", "gyeokguk", "hiddenStemExposures"],
+    ziwei: ["palaces", "lifePalace", "bodyPalace", "fourTransformations", "majorLuck", "minorLuck", "yearlyLuck", "sanFangSiZheng", "bureau"],
+    vedic: ["lagna", "moon", "moonNakshatra", "houses", "transits", "dasha"],
+    sukuyo: ["birth", "target", "targetDate", "dayFortune"],
+    astrology: ["planets", "houseCusps", "houseSystem", "aspects", "ascendant", "midheaven", "transits"],
+  };
+  const card = (n) => ({ name: `카드${n}`, orientation: "upright", positionKey: `p${n}`, meaningSummary: "시작" });
+  const real = { ...plan2, systems: { ...Object.fromEntries(Object.entries(EVIDENCE).map(([system, keys]) => [system, { expertEvidence: Object.fromEntries(keys.map((key) => [key, "값"])) }])), tarot: { cards: [1, 2, 3, 4, 5, 6].map(card) } } };
+  const prompts = () => allGroups(real).map((group) => [group, buildFusionSectionGroupPrompt({ context: real, group, priorSections: { consultationPlan: plan }, schemaInPrompt: false })]);
+
+  it("keeps every group's response schema under the enum budget with supported keywords only", () => {
+    expect(prompts().map(([group, prompt]) => [group.id, fusionGeminiSchemaIssues(prompt.geminiSchema)])).toEqual(allGroups(real).map((group) => [group.id, []]));
+  });
+  it("moves the evidence path list into the prompt when the schema cannot carry it", () => {
+    const refs = systems.flatMap((system) => fusionEvidenceReferences(system, real.systems[system]));
+    const yun = prompts().find(([group]) => group.id === "domainYun")[1];
+    expect(JSON.stringify(yun.geminiSchema)).not.toContain("tarot.cards.0.name");
+    for (const ref of refs) expect(yun.userPrompt).toContain(ref);
+    const saju = prompts().find(([group]) => group.id === "saju")[1];
+    expect(JSON.stringify(saju.geminiSchema)).toContain("saju.expertEvidence.gyeokguk");
+  });
+  it("flags the schema shape that Gemini rejected", () => {
+    const enumValues = Array.from({ length: 100 }, (_, i) => `astrology.expertEvidence.k${i}`);
+    expect(fusionGeminiSchemaIssues({ type: "OBJECT", properties: { a: { type: "ARRAY", items: { type: "STRING", enum: enumValues } } }, required: ["a"] })).toContain("enum_chars");
+    expect(fusionGeminiSchemaIssues({ type: "OBJECT", properties: {}, additionalProperties: false })).toContain("keyword:additionalProperties");
+    expect(enumValues.join("").length).toBeGreaterThan(FUSION_GEMINI_ENUM_CHAR_BUDGET);
+  });
+});
+
+describe("plan 2 never drops a chapter after a 400", () => {
+  const rejected = { ok: false, error: "GEMINI_INVALID_REQUEST", providerCode: "GEMINI_INVALID_REQUEST", status: 400, retryable: false };
+  async function runBook(reject) {
+    let prior = {}; const attempts = {}; const calls = []; let generated;
+    for (const stage of [1, 2]) for (let wave = 0; wave < 16; wave++) {
+      generated = await generateFusionFortuneWithRealLLM({ context: plan2, stage, requestId: "plan2-400", env, priorResult: prior, priorSnapshot: { attempts: { ...attempts } },
+        onCheckpoint: async (result) => { prior = { ...prior, ...result }; },
+        onAttempt: async (id, options = {}) => { if (options.unbilled) return attempts[id]; attempts[id] = (attempts[id] || 0) + 1; return attempts[id]; },
+        providerCall: async (_env, prompt, options) => {
+          const id = options.logContext.sectionGroup;
+          const group = allGroups(plan2).find((item) => item.id === id);
+          const keys = Object.keys(options.responseSchema?.properties || {});
+          const call = { id, schema: options.responseSchema ? JSON.stringify(options.responseSchema) : "", keys, prompt };
+          calls.push(call);
+          if (reject(call)) return rejected;
+          const one = keys.length ? { ...group, keys: group.keys.filter((key) => keys.includes(key)) } : group;
+          return { ok: true, text: JSON.stringify(payload(one, plan2)), provider: "gemini", model: options.model };
+        } });
+      prior = generated.result;
+      if (generated.deliverable) break;
+    }
+    return { generated, calls, attempts };
+  }
+  const chapterKeys = (id) => allGroups(plan2).find((group) => group.id === id).keys.filter((key) => targets[key]);
+
+  it("resends a rejected schema simplified inside the same attempt", async () => {
+    const { generated, calls, attempts } = await runBook((call) => call.id === "domainYun" && call.schema.includes('"enum"'));
+    expect(generated.deliverable).toBe(true);
+    expect(generated.qualityIssues).not.toContain("domain_chapter_missing");
+    for (const key of chapterKeys("domainYun")) expect(generated.result[key].content.length).toBeGreaterThan(100);
+    const yun = calls.filter((call) => call.id === "domainYun");
+    expect(yun).toHaveLength(2);
+    expect(yun[1].schema).not.toContain('"enum"');
+    expect(attempts.domainYun).toBe(1);
+  });
+  it("falls back to no schema, then splits chapters, before shipping a group empty", async () => {
+    const { generated, calls, attempts } = await runBook((call) => call.id === "domainHanbi" && call.keys.length !== 1);
+    expect(generated.deliverable).toBe(true);
+    expect(generated.qualityIssues).not.toContain("domain_chapter_missing");
+    for (const key of chapterKeys("domainHanbi")) {
+      expect(generated.result[key].content.length).toBeGreaterThan(100);
+      expect(attempts[`rescue-${key}`]).toBe(1);
+    }
+    expect(calls.some((call) => call.id === "domainHanbi" && !call.schema && call.prompt.includes("응답 JSON 스키마"))).toBe(true);
   });
 });

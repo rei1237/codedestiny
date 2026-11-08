@@ -6,8 +6,8 @@ import {PRO_TASK_POLICY,proFallbackCause,selectGeminiModel} from '../../lib/gemi
 import {readFileSync,readdirSync} from 'node:fs';
 import path from 'node:path';
 
-const bundle=await build({stdin:{contents:"export {callLLM,createGeminiContextCache} from './lib/llm-client.ts';",resolveDir:process.cwd(),loader:'ts'},bundle:true,platform:'node',format:'esm',write:false});
-const {callLLM,createGeminiContextCache}=await import('data:text/javascript;base64,'+Buffer.from(bundle.outputFiles[0].text).toString('base64'));
+const bundle=await build({stdin:{contents:"export {callLLM,createGeminiContextCache,sanitizeProviderErrorMessage} from './lib/llm-client.ts';",resolveDir:process.cwd(),loader:'ts'},bundle:true,platform:'node',format:'esm',write:false});
+const {callLLM,createGeminiContextCache,sanitizeProviderErrorMessage}=await import('data:text/javascript;base64,'+Buffer.from(bundle.outputFiles[0].text).toString('base64'));
 
 test('Pro requires an explicit server-owned synthesis task, never a model override or prompt',()=>{
  for(const model of ['gemini-2.5-pro','gemini-3.1-pro-preview','models/gemini-2.5-pro','GEMINI-2.5-PRO'])assert.equal(selectGeminiModel(model),'gemini-2.5-flash');
@@ -62,4 +62,24 @@ test('every Pro task names a Flash fallback and every Pro caller handles a refus
  const callers=[...walk('worker'),...walk('lib')].filter(file=>!transports.has(file)&&/\breasoningTask\s*[:,}]/.test(readFileSync(file,'utf8')));
  assert.ok(callers.length>=2,callers.join());
  for(const file of callers)assert.match(readFileSync(file,'utf8'),/proFallbackCause/,file);
+});
+
+test('a rejected request logs the provider error body, truncated and without secrets (mock only)',async()=>{
+ const original=globalThis.fetch;const originalWarn=console.warn;const logs=[];
+ const echo='"'+'고객의 질문 원문 '.repeat(12)+'"';
+ globalThis.fetch=async(url)=>{
+  if(String(url).includes(':countTokens'))return Response.json({totalTokens:1000});
+  return Response.json({error:{status:'INVALID_ARGUMENT',message:`The specified schema produces a constraint that has too many states for serving. ${echo} see https://ai.google.dev/x?key=AIzaSyMockMockMockMockMockMock1234 `+'x'.repeat(500)}},{status:400});
+ };
+ console.warn=(label,value)=>{if(label==='[llm provider_error]')logs.push(value);};
+ try{
+  await callLLM({prompt:'schema test',responseMimeType:'application/json',responseSchema:{type:'OBJECT',properties:{a:{type:'STRING'}}},maxProviderAttempts:1,fallbackToWorkersAI:false,logContext:{requestId:'r-400',featureKey:'fusion_fortune',sectionGroup:'domainYun'}},{GEMINIF_API_KEY:'mock-only',LLM_DRY_RUN:'false'}).catch(()=>null);
+ }finally{globalThis.fetch=original;console.warn=originalWarn;}
+ assert.equal(logs.length,1);
+ const [log]=logs;
+ assert.equal(log.status,400);assert.equal(log.providerStatus,'INVALID_ARGUMENT');assert.equal(log.sectionGroup,'domainYun');assert.equal(log.hasResponseSchema,true);
+ assert.match(log.message,/too many states/);
+ assert(log.message.length<=300);
+ for(const secret of ['AIza','key=','https://','고객의 질문 원문 고객의'])assert(!log.message.includes(secret),secret);
+ assert.equal(sanitizeProviderErrorMessage('a@b.com'),'[email]');
 });

@@ -19,6 +19,7 @@ import {
   fusionGroupsForStage,
   fusionGroupCeilingChars,
   fusionExpertGroupCeilingChars,
+  fusionSchemaFallbackRequest,
 } from "./fusion-fortune-prompt.js";
 import {
   FUSION_VISUAL_SYSTEMS,
@@ -751,6 +752,10 @@ export function fusionGroupAttemptLimit(snapshot) {
 //    판정 정본은 lib/gemini-provider-errors.mjs isUnbilledGeminiFailure(네오 작전실과 같은 규칙).
 export const FUSION_UNBILLED_RETRY_LIMIT = 3;
 export const isUnbilledFusionFailure = isUnbilledGeminiFailure;
+/** 요청 본문(스키마) 거절 400. countTokens 지역 거절(GEMINI_PRECONDITION_FAILED)은 여기 들지 않는다. */
+export function fusionSchemaRejected(response) {
+  return Boolean(response && !response.ok && (response.providerCode === "GEMINI_INVALID_REQUEST" || (!response.providerCode && Number(response.status) === 400)));
+}
 // 🔴 Pro가 응답하지 않으면 같은 프롬프트를 Flash로 보낸다(전달 우선). 2026-10-30: gemini-2.5-pro가 이 프로젝트에서
 //    404로 은퇴해 프리미엄 integration·verdict 호출이 전부 countTokens에서 실패했고, 그 주문은 끝내 완료되지 못했다.
 const isProModel = isGeminiProModel;
@@ -1130,6 +1135,34 @@ const fusionSoftScore = (issues) => issues.reduce((sum, issue) => sum + (issue.s
  * 체크포인트(유료) 경로는 이 요청이 초안을 하나도 안 쓴 요청일 때만 부른다(요청당 2호출·엣지 100초).
  * 그렇지 않으면 pending 을 돌려 다음 요청이 수리한다. 수리본은 더 나을 때만 받는다.
  */
+/**
+ * 🔴 장을 버리지 않는다(2026-11-08 실호출: 분야 묶음 3개가 시도를 다 쓰고 6장이 빈 채 배달됐다).
+ * 시도를 다 쓴 선택 묶음의 빈 장은 장 하나씩 따로 다시 요청한다. 예약 id `rescue-<장 키>`라 장마다
+ * 최대 attemptLimit회로 저장소에 묶인다. 그래도 비면 배달은 막지 않는다(domain_chapter_missing 강등).
+ */
+async function rescueFusionPlan2EmptyChapters({ composed, groups, exhaustedOptional, attemptCounts, attemptLimit, runGroup, waveGroups, checkpointed, remainingMs, abortSignal, requestId }) {
+  const chapters = groups.filter(exhaustedOptional).flatMap((group) => group.keys
+    .filter((key) => STRUCTURED_SECTION_KEYS.includes(key) && !text(composed[key]?.content, 50000) && Number(attemptCounts[`rescue-${key}`] || 0) < attemptLimit)
+    .map((key) => ({ group: { ...group, keys: [key] }, key })));
+  if (!chapters.length) return {};
+  if (checkpointed && waveGroups.length) return { pending: [...new Set(chapters.map(({ group }) => group.id))] };
+  if (abortSignal?.aborted || remainingMs() <= FUSION_GROUP_RETRY_MIN_BUDGET_MS) {
+    console.warn("[fusion-fortune-chapter-rescue-skipped]", { requestId: text(requestId, 120), remainingMs: remainingMs(), chapters: chapters.map(({ key }) => key) });
+    return {};
+  }
+  const progress = { phase: "rescue", total: chapters.length, done: 0 };
+  const settled = await Promise.allSettled(chapters.map(({ group, key }) => runGroup(group, { attempts: 1, progress, attemptId: `rescue-${key}` })));
+  const storageFailure = settled.find((outcome) => outcome.status === "rejected" && outcome.reason?.code === "RESULT_STORAGE_UNAVAILABLE");
+  if (storageFailure) throw storageFailure.reason;
+  const report = settled.map((outcome, index) => {
+    const ok = outcome.status === "fulfilled" && outcome.value.ok;
+    if (ok) Object.assign(composed, outcome.value.value);
+    return { key: chapters[index].key, ok, issue: ok ? "" : text(outcome.status === "fulfilled" ? outcome.value.issue : outcome.reason?.message, 80) };
+  });
+  console.warn("[fusion-fortune-chapter-rescue]", { requestId: text(requestId, 120), chapters: report });
+  return {};
+}
+
 async function repairFusionPlan2Groups({ context, composed, groups, waveGroups, attemptCounts, attemptLimit, priorSnapshot, validationOptions, runGroup, merged, prior, onCheckpoint, remainingMs, abortSignal, requestId }) {
   const repaired = priorSnapshot?.lengthRepairs || {};
   const room = Math.max(0, FUSION_PLAN2_REPAIR_LIMIT - Object.values(repaired).filter((value) => value === true).length);
@@ -1302,7 +1335,7 @@ export async function generateFusionFortuneWithRealLLM({
   const groupTimeoutMs = isPremiumFusion(context) ? 85000 : fusionGroupTimeoutMs(env);
   const flashTimeoutMs = profile.flashTimeoutMs || groupTimeoutMs;
   const timeoutFor = group => profile.proTimeoutMs ? (isProModel(modelFor(group)) ? profile.proTimeoutMs : flashTimeoutMs) : groupTimeoutMs;
-  const runGroup = async (group, { attempts = FUSION_GROUP_ATTEMPTS, timeoutMs = timeoutFor(group), extraInstruction = "", progress = composeProgress, persist = true, lengthRepair = false } = {}) => {
+  const runGroup = async (group, { attempts = FUSION_GROUP_ATTEMPTS, timeoutMs = timeoutFor(group), extraInstruction = "", progress = composeProgress, persist = true, lengthRepair = false, attemptId = group.id } = {}) => {
     // 🔴 데드라인을 그룹 호출 **안에서** 강제한다. 예전에는 1차 병렬이 예산을 전혀 보지 않고
     //    attempts×timeoutMs(최악 110초)를 다 쓴 뒤에야 다음 물결에서 남은 예산을 확인했다.
     //    컨텍스트 빌드(6개 계산기)까지 같은 120초 예산을 소모하므로, 그대로면 Cloudflare 엣지
@@ -1327,26 +1360,28 @@ export async function generateFusionFortuneWithRealLLM({
     // Keep the display prompt intact; send each schema only once to the provider.
     const groupPrompt = buildFusionSectionGroupPrompt({ context, group, priorSections: { ...prior, ...merged }, extraInstruction, schemaInPrompt: false, referenceDate: now });
     let model = modelFor(group);
-    if (Number(attemptCounts[group.id] || 0) >= attemptLimit) return { ok: savedValid, group, value: savedValid ? saved : undefined, issue: "budget_exhausted" };
-    const reservedAttempt = typeof onAttempt === "function" ? await onAttempt(group.id, lengthRepair ? { lengthRepair: true } : {}) : null;
-    attemptCounts[group.id] = reservedAttempt || Number(attemptCounts[group.id] || 0) + 1;
+    if (Number(attemptCounts[attemptId] || 0) >= attemptLimit) return { ok: savedValid, group, value: savedValid ? saved : undefined, issue: "budget_exhausted" };
+    const reservedAttempt = typeof onAttempt === "function" ? await onAttempt(attemptId, lengthRepair ? { lengthRepair: true } : {}) : null;
+    attemptCounts[attemptId] = reservedAttempt || Number(attemptCounts[attemptId] || 0) + 1;
+    const rescue = attemptId !== group.id;
     // 🔴 plan 2: 이 그룹이 더는 시도를 살 수 없는 호출이면 반려 대신 위험 문장만 덜어 내고 살린다.
     //    수리 호출은 이미 유효한 초안이 있으니 구제하지 않는다(덜 좋은 수리본은 버리면 된다).
-    const finalAttempt = plan2 && !lengthRepair && Number(attemptCounts[group.id] || 0) >= attemptLimit;
+    //    장 단위 구제 호출(rescue)도 마지막 기회라 같은 구제를 받는다.
+    const finalAttempt = plan2 && !lengthRepair && (rescue || Number(attemptCounts[group.id] || 0) >= attemptLimit);
     // Paid requests do not persist why the last attempt failed. A retry that still has no valid draft is
     // almost always a cut-off answer (salvage drops the cut key), so it gets twice the room; the base stays the cost plan.
     const plannedTokens = fusionGroupTokens(group, env, context);
-    const groupTokens = !savedValid && Number(attemptCounts[group.id]) > 1 ? Math.max(plannedTokens, Math.min(32768, plannedTokens * 2)) : plannedTokens;
-    const send = async (callModel, callTimeoutMs) => {
+    const groupTokens = !savedValid && Number(attemptCounts[attemptId]) > 1 ? Math.max(plannedTokens, Math.min(32768, plannedTokens * 2)) : plannedTokens;
+    const send = async (callModel, callTimeoutMs, request = groupPrompt) => {
       providerCalls += 1;
       try {
-        return await providerCall(env, groupPrompt.userPrompt, {
+        return await providerCall(env, request.userPrompt, {
           systemPrompt: groupPrompt.systemPrompt,
           responseMimeType: "application/json",
           // 🔴 구조화 출력을 켜는 유일한 지점이다 — 다른 호출부는 이 옵션을 세우지 않으므로
           //    공용 경로(gemini.js·llm-client.ts)는 초융합 밖에서 바디가 이전과 같다.
           //    해제할 때는 위 schemaInPrompt도 true로 되돌려 출력 계약을 유지한다.
-          responseSchema: groupPrompt.geminiSchema,
+          responseSchema: request.geminiSchema,
           attempts,
           maxOutputTokens: groupTokens,
           temperature: 0.62,
@@ -1385,12 +1420,18 @@ export async function generateFusionFortuneWithRealLLM({
         response = await send(model, Math.max(1000, Math.min(flashTimeoutMs, remainingForFallback - profile.tailReserveMs)));
       }
     }
+    // 🔴 2026-11-08 실호출: 분야 묶음 3개가 스키마 과복잡 400으로 두 시도를 다 날려 6장이 비었다. 400은 생성 전에
+    //    거절된 것이라 같은 시도 안에서 단순 스키마 → 스키마 없음 순서로 다시 보낸다(장을 버리지 않는다).
+    for (let level = 1; level <= 2 && fusionSchemaRejected(response) && remainingMs() > profile.tailReserveMs + 1000; level += 1) {
+      console.warn("[fusion-fortune-schema-fallback]", { requestId: text(requestId, 120), stage: stageNumber, sectionGroup: group.id, level, cause: [response?.providerCode, response?.status].filter(Boolean).join(":") });
+      response = await send(model, Math.max(1000, Math.min(clampedTimeoutMs, remainingMs() - profile.tailReserveMs)), fusionSchemaFallbackRequest(groupPrompt, level));
+    }
     if (!response?.ok) {
       // A call Gemini never billed hands its reservation back (bounded per group in storage).
       // If the hand-back fails the attempt stays spent — never more calls than reserved.
       if (isUnbilledFusionFailure(response) && typeof onAttempt === "function") {
-        const returned = await onAttempt(group.id, lengthRepair ? { unbilled: true, lengthRepair: true } : { unbilled: true }).catch(() => null);
-        if (Number.isInteger(returned) && returned >= 0) attemptCounts[group.id] = returned;
+        const returned = await onAttempt(attemptId, lengthRepair ? { unbilled: true, lengthRepair: true } : { unbilled: true }).catch(() => null);
+        if (Number.isInteger(returned) && returned >= 0) attemptCounts[attemptId] = returned;
       }
       // providerCode·status 만 남긴다 — 사고 때 countTokens 실패의 HTTP 상태가 로그에 없어 원인을 못 갈랐다.
       return { ok: false, group, issue: text(response?.error, 80) || "provider_failed", detail: [response?.providerCode, response?.status].filter(Boolean).join(":") };
@@ -1577,6 +1618,13 @@ export async function generateFusionFortuneWithRealLLM({
       // A group still waiting for the plan cannot run, so its unspent attempts never justify another try.
       automaticRetryAllowed: missing.some(group => !fusionGroupWaitsForPlan(group, context, stageNumber, composed) && Number(attemptCounts[group.id] || 0) < attemptLimit),
       pendingGroups: missing.map(group => group.id), qualityIssues: ["groups_incomplete"], stage: stageNumber };
+  }
+  if (plan2 && stageNumber === 2) {
+    const rescue = await rescueFusionPlan2EmptyChapters({ composed, groups, exhaustedOptional, attemptCounts, attemptLimit, runGroup, waveGroups, checkpointed: typeof onCheckpoint === "function", remainingMs, abortSignal, requestId });
+    if (rescue.pending) {
+      return { result: composed, deliverable: false, generationSource: "gemini_partial", providerCalls, ...(modelFallbacks ? { modelFallbacks } : {}),
+        automaticRetryAllowed: true, pendingGroups: rescue.pending, qualityIssues: ["rescue_pending"], stage: stageNumber };
+    }
   }
   if (plan2 && stageNumber === 2) {
     // 🔴 수리는 모든 초안이 나온 뒤 책당 최대 2그룹만. 분량은 끝내 모자라도 배달을 막지 않는다.
