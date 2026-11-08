@@ -51,7 +51,8 @@ public class HomeWidgetProvider extends AppWidgetProvider {
             views.setImageViewResource(R.id.home_widget_image, talismanDrawable(choice.itemId));
             views.setContentDescription(R.id.home_widget_image, context.getString(R.string.home_widget_talisman_description));
         } else {
-            views = new RemoteViews(context.getPackageName(), R.layout.widget_affirmation);
+            boolean fortune = "fortune".equals(choice.kind);
+            views = new RemoteViews(context.getPackageName(), fortune ? R.layout.widget_fortune : R.layout.widget_affirmation);
             String text = choice.text;
             if (HomeWidgetPolicy.isDaily(choice.kind, choice.itemId)) {
                 String raw = choice.text;
@@ -62,8 +63,8 @@ public class HomeWidgetProvider extends AppWidgetProvider {
                 } catch (org.json.JSONException ignored) { /* Use the bundled default if storage is damaged. */ }
             }
             int artwork = choice.itemId.startsWith("cat-") ? R.drawable.widget_friend_cat : R.drawable.widget_friend_yeoni;
-            if ("fortune".equals(choice.kind)) artwork = "cat-daily-tea".equals(choice.itemId)
-                    ? R.drawable.widget_pig_moon_tea_face : R.drawable.widget_cat_star_chart_face;
+            if (fortune) artwork = "cat-daily-tea".equals(choice.itemId)
+                    ? R.drawable.widget_pig_moon_tea_fortune : R.drawable.widget_cat_star_chart_fortune;
             if ("flower".equals(choice.kind)) artwork = R.drawable.widget_pig_moon_tea_face;
             views.setImageViewResource(R.id.home_widget_friend, artwork);
             views.setTextViewText(R.id.home_widget_text, text.isEmpty() ? context.getString(R.string.home_widget_default_affirmation) : text);

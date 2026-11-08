@@ -27,6 +27,14 @@ for (const entry of catalog.assets.filter(asset => asset.approval === "approved"
   const webp = await sharp(original).resize({ height: HEIGHT }).webp({ quality: 82, effort: 6 }).toBuffer();
   await writeFile(path.join(drawableDir, `widget_talisman_${id.replaceAll("-", "_")}.webp`), webp);
   await writeFile(path.join(webDir, `${id}.webp`), webp);
+  if (entry.category === "daily") {
+    // 얼굴만 잘라내면 그림 위쪽의 '오늘의 운세'가 사라진다. 제목과 얼굴을 함께 담는다.
+    const fortune = await sharp(original).extract({
+      left: 0, top: Math.round(entry.height * 0.19), width: entry.width, height: Math.round(entry.height * 0.58),
+    }).resize({ width: 420 }).webp({ quality: 87 }).toBuffer();
+    await writeFile(path.join(drawableDir, `widget_${id.replaceAll("-", "_")}_fortune.webp`), fortune);
+    await writeFile(path.join(webDir, `${id}-fortune.webp`), fortune);
+  }
   console.log(`${id}: ${(webp.length / 1024).toFixed(1)} KB`);
 }
 

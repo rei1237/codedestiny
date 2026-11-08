@@ -180,7 +180,8 @@ export default function HomeWidgetStudio() {
               {kind === "talisman"
                 // eslint-disable-next-line @next/next/no-img-element
                 ? <img src={`/assets/talismans/widget/${talisman}.webp`} width={304} height={540} alt="" decoding="async" />
-                : <><img className="cd-widget-companion" src={kind === "fortune" ? `/assets/talismans/widget/${fortuneArt}-face.webp` : kind === "flower" ? "/assets/talismans/widget/pig-moon-tea-face.webp" : mode === "yeoni" ? "/images/home/illustrated/yeoni-hanbok-240.webp" : "/assets/yeongnyangi/original/hero-480.webp"} alt="" /><small>{WIDGET_CAPTION}</small><strong>{line}</strong></>}
+                : kind === "fortune" ? <><img className="cd-widget-fortune-art" src={`/assets/talismans/widget/${fortuneArt}-fortune.webp`} alt={ko ? "오늘의 운세" : "Today’s fortune"} /><strong>{line}</strong></>
+                : <><img className="cd-widget-companion" src={kind === "flower" ? "/assets/talismans/widget/pig-moon-tea-face.webp" : mode === "yeoni" ? "/images/home/illustrated/yeoni-hanbok-240.webp" : "/assets/yeongnyangi/original/hero-480.webp"} alt="" /><small>{WIDGET_CAPTION}</small><strong>{line}</strong></>}
             </div>
             {Array.from({ length: 6 }, (_, i) => <i key={i} />)}
           </div>
