@@ -1,5 +1,6 @@
 /** @jest-environment node */
-// Server computation remains; no purchase from 2026-10-08, no login from 2026-11-08 (per-IP limit instead).
+// Server computation, per-IP limit, no login needed (2026-11-08). The saju result card is free; the atelier detail
+// (other three sources, candidates, story, deep flower language) goes only to flower-fc holders (user decision 2026-11-08).
 import { jest } from "@jest/globals";
 
 const USER_ID = "507f1f77bcf86cd799439011";
@@ -13,9 +14,11 @@ const PROFILE = Object.freeze({
 
 /** 사용자 문서의 unlockedFeatures. 각 테스트가 갈아 끼운다. */
 let unlockedFeatures = [];
-/** requireAuth 결과. null 이면 401 을 던진다. 라우트는 더는 부르지 않는다(부르면 테스트가 잡는다). */
+/** getOptionalUserFromRequest 결과. null 이면 비로그인. */
 let authResult = { userId: USER_ID };
 let authCalls = 0;
+/** 권한 조회가 던질 오류(DB 장애 흉내). */
+let accessError = null;
 /** incrementRateLimit 대역. 각 테스트가 갈아 끼운다. */
 let rateLimit;
 
@@ -38,14 +41,15 @@ beforeAll(async () => {
       },
     })),
     jest.unstable_mockModule("../../worker/lib/auth.js", () => ({
-      requireAuth: async () => {
+      getOptionalUserFromRequest: async () => {
         authCalls += 1;
-        if (!authResult) {
-          const error = new Error("UNAUTHORIZED");
-          error.status = 401;
-          throw error;
-        }
         return authResult;
+      },
+    })),
+    jest.unstable_mockModule("../../worker/lib/paid-content-read-access.js", () => ({
+      hasPurchasedAccountContentAccess: async (_env, { userId, featureKey }) => {
+        if (accessError) throw accessError;
+        return Boolean(userId) && unlockedFeatures.includes(featureKey);
       },
     })),
     jest.unstable_mockModule("../../worker/lib/rate-limit.js", () => ({
@@ -62,6 +66,7 @@ beforeEach(() => {
   unlockedFeatures = [];
   authResult = { userId: USER_ID };
   authCalls = 0;
+  accessError = null;
   rateLimit = jest.fn(async () => ({ count: 1, resetAt: Date.now() + 60000 }));
 });
 
@@ -73,25 +78,51 @@ function post(body, path = "/api/destiny-flower/match", ip = "203.0.113.7") {
   });
 }
 
-test("미해금 로그인 사용자도 네 체계를 무료로 받는다", async()=>{
+const DETAIL_FIELDS = ["candidates", "narrative", "rationale_points", "bloom_story", "destiny_flower_language", "day_master_environment", "algorithm"];
+
+function expectFreeCardOnly(data) {
+  expect(data.ok).toBe(true);
+  expect(data.atelierUnlocked).toBe(false);
+  expect(Object.keys(data.sources)).toEqual(["saju"]);
+  const card = data.sources.saju;
+  expect(card.flower?.name).toBeTruthy();
+  expect(card.saju_verdict).toBeTruthy();
+  expect(card.profile.domains.saju.day_master).toBeTruthy();
+  for (const field of DETAIL_FIELDS) expect(card[field]).toBeUndefined();
+  expect(Object.keys(card.flower_data).every((key) => ["sticker_label", "day_master_badge", "season_label", "scenario_title", "scenario_reason"].includes(key))).toBe(true);
+  expect(JSON.stringify(card)).not.toMatch(/ritual_tip|relationship_theme|career_theme|growth_cycle/);
+}
+
+test("미해금 로그인 사용자는 사주 결과 카드만 받는다", async()=>{
  const res=await handleDestinyFlowerRoutes(post({profile:PROFILE}),{});
- expect(res.status).toBe(200);const data=await res.json();expect(data.ok).toBe(true);
- expect(Object.keys(data.sources).sort()).toEqual(['astrology','jamidusu','saju','sukuyo']);
- expect(data.sources.saju?.flower?.name).toBeTruthy();
+ expect(res.status).toBe(200);
+ expectFreeCardOnly(await res.json());
 });
 
 test("과거 구매 키는 기록 호환을 위해 유지한다", () => {
   expect(FLOWER_UNLOCK_FEATURE_KEY).toBe("flower-fc");
 });
 
-test("로그인하지 않아도 200 으로 네 체계를 받고 인증을 확인하지 않는다", async () => {
+test("로그인하지 않아도 200 으로 결과 카드를 받고 상세는 없다", async () => {
   authResult = null;
+  unlockedFeatures = ["flower-fc"];
   const res = await handleDestinyFlowerRoutes(post({ profile: PROFILE }), {});
   expect(res.status).toBe(200);
   const data = await res.json();
-  expect(data.ok).toBe(true);
-  expect(Object.keys(data.sources).sort()).toEqual(["astrology", "jamidusu", "saju", "sukuyo"]);
-  expect(authCalls).toBe(0);
+  expectFreeCardOnly(data);
+  expect(data.entitlementDegraded).toBe(false);
+});
+
+test("권한 조회가 DB 장애면 결과 카드는 주고 degraded 로 알린다(미구매로 바꾸지 않는다)", async () => {
+  unlockedFeatures = ["flower-fc"];
+  accessError = new Error("mongo down");
+  const warn = jest.spyOn(console, "warn").mockImplementation(() => {});
+  const res = await handleDestinyFlowerRoutes(post({ profile: PROFILE }), {});
+  warn.mockRestore();
+  expect(res.status).toBe(200);
+  const data = await res.json();
+  expectFreeCardOnly(data);
+  expect(data.entitlementDegraded).toBe(true);
 });
 
 test("IP 한도는 해시한 IP 로 세고 원문 IP 를 저장소에 넘기지 않는다", async () => {
@@ -134,7 +165,10 @@ test("해금 보유자에게는 네 체계를 모두 내려준다", async () => 
   expect(res.status).toBe(200);
   const data = await res.json();
   expect(data.ok).toBe(true);
+  expect(data.atelierUnlocked).toBe(true);
   expect(Object.keys(data.sources).sort()).toEqual(["astrology", "jamidusu", "saju", "sukuyo"]);
+  expect(Array.isArray(data.sources.saju.candidates)).toBe(true);
+  expect(data.sources.saju.destiny_flower_language).toBeTruthy();
   // 사주는 이 입력으로 반드시 꽃이 나온다(엔진 직접 호출로 확인한 값).
   expect(data.sources.saju?.flower?.name).toBeTruthy();
 });
@@ -210,6 +244,7 @@ test("친구 꽃 공개 카드는 로그인 없이 꽃 정보만 주고 모르�
 });
 
 test("lang 을 보내면 꽃 이름·꽃말·나의 꽃말을 그 언어로 내려주고 ko 는 그대로다", async () => {
+  unlockedFeatures = ["flower-fc"];
   const pick = async (body) => (await (await handleDestinyFlowerRoutes(post(body), {})).json()).sources.saju;
   const ko = await pick({ profile: PROFILE });
   const ja = await pick({ profile: PROFILE, lang: "ja" });

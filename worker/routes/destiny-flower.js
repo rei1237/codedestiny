@@ -1,7 +1,9 @@
-/** Free Flower of Destiny: public, server-calculated matching limited per IP (plus a public per-flower card for share links), no purchase or result storage. Historical flower-fc purchases remain in the payment ledger. */
+/** Flower of Destiny: public, server-calculated matching limited per IP (plus a public per-flower card for share links). The saju result card is free; the full atelier detail (other three sources, theme story, candidates, deep flower language) is returned only to accounts holding the flower-fc unlock. No result storage. */
 import { createHash } from "node:crypto";
 import { getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { incrementRateLimit } from "../lib/rate-limit.js";
+import { getOptionalUserFromRequest } from "../lib/auth.js";
+import { hasPurchasedAccountContentAccess } from "../lib/paid-content-read-access.js";
 import {
   matchDestinyFlower,
   matchAstrologyFlower,
@@ -62,6 +64,42 @@ async function checkRateLimit(request, env) {
   }
 }
 
+/**
+ * 2026-11-08 사용자 결정 "결과 카드만 무료": 해금 없는 요청에는 사주 결과 카드에 필요한 필드만 보낸다.
+ * 🔴 상세(나머지 세 체계, 후보 꽃, 이야기·근거, 나의 꽃말, flower_data 의 의식·관계·일 테마 등)는
+ *    flower-fc 권한이 있을 때만 응답에 실린다 — 클라이언트 잠금만 믿지 않는다.
+ */
+function toFreeSajuCard(matched) {
+  if (!matched || typeof matched !== "object") return null;
+  const saju = (matched.profile && matched.profile.domains && matched.profile.domains.saju) || {};
+  const flowerData = matched.flower_data || {};
+  const pick = (obj, keys) => Object.fromEntries(keys.filter((key) => obj[key] !== undefined).map((key) => [key, obj[key]]));
+  return {
+    profile: { domains: { saju: pick(saju, ["day_master", "day_master_stem", "day_master_hanja", "day_master_element", "season"]) } },
+    flower: matched.flower || matched.flowerSymbology || null,
+    flower_data: pick(flowerData, ["sticker_label", "day_master_badge", "season_label", "scenario_title", "scenario_reason"]),
+    saju_verdict: matched.saju_verdict || "",
+    share_hook: matched.share_hook || null,
+    fallback_logic: { used: Boolean(matched.fallback_logic && matched.fallback_logic.used) },
+  };
+}
+
+/**
+ * 아틀리에 상세 권한. 로그인하지 않았으면 false.
+ * 🔴 인증·권한 조회의 DB 장애는 "미구매"로 바꾸지 않는다 — degraded 로 알려 클라이언트가 결제 버튼 대신 재시도를 보이게 한다.
+ */
+async function resolveAtelierAccess(request, env) {
+  try {
+    const auth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true });
+    if (!auth?.userId) return { unlocked: false, degraded: false };
+    const unlocked = await hasPurchasedAccountContentAccess(env, { userId: auth.userId, featureKey: FLOWER_UNLOCK_FEATURE_KEY });
+    return { unlocked: Boolean(unlocked), degraded: false };
+  } catch (error) {
+    console.warn("[destiny-flower] atelier access check failed", String(error?.message || error).slice(0, 200));
+    return { unlocked: false, degraded: true };
+  }
+}
+
 const SOURCES = Object.freeze(["saju", "astrology", "jamidusu", "sukuyo"]);
 
 const MATCHER_BY_SOURCE = Object.freeze({
@@ -95,8 +133,9 @@ async function handleMatch(request, env) {
 
   // 꽃 이름·꽃말·근거 문장은 요청 로케일로 번역해 내보낸다. 없거나 ko 면 한국어 원문 그대로.
   const lang = typeof body.lang === "string" ? body.lang : (request.headers.get("x-code-destiny-locale") || "");
+  const access = await resolveAtelierAccess(request, env);
   const sources = {};
-  for (const source of normalizeSources(body.sources)) {
+  for (const source of access.unlocked ? normalizeSources(body.sources) : ["saju"]) {
     try {
       sources[source] = withDestinyFlowerLocale(lang, () => MATCHER_BY_SOURCE[source](payload, env)) || null;
     } catch (error) {
@@ -113,7 +152,11 @@ async function handleMatch(request, env) {
     theme = null;
   }
 
-  return json({ ok: true, sources, theme });
+  if (!access.unlocked) {
+    sources.saju = toFreeSajuCard(sources.saju);
+    return json({ ok: true, atelierUnlocked: false, entitlementDegraded: access.degraded, sources, theme });
+  }
+  return json({ ok: true, atelierUnlocked: true, sources, theme });
 }
 
 /** 친구 꽃 미리보기: 로그인 없이 꽃 id 로 공개 정보만 돌려준다. 카탈로그에 없는 id 는 404. */

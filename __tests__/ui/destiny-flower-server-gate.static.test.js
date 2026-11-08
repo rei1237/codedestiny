@@ -170,10 +170,14 @@ test("자미두수 차트를 서버로 실어 보낸다", () => {
 });
 
 // 2026-11-08 무료 바이럴 퍼널: 로그인 대신 IP 한도. 한도가 빠지면 무제한 공개 계산 경로가 된다.
-test("무료 꽃은 서버 계산과 IP 한도를 유지하고 인증·구매 DB를 조회하지 않는다",()=>{
+// 같은 날 사용자 결정 "결과 카드만 무료": 상세는 서버가 flower-fc 권한으로 거른다(클라이언트 잠금만 믿지 않는다).
+test("꽃 매칭은 IP 한도를 두고, 로그인 없이 결과 카드를 주며, 상세는 서버 권한으로 거른다",()=>{
  const route=stripComments(read(ROUTE_REL));
  assert.match(route,/incrementRateLimit\(/);assert.match(route,/status:\s*429/);
- assert.doesNotMatch(route,/requireAuth|hasFlowerUnlock|status:\s*40[12]|User\.findById/);
+ assert.doesNotMatch(route,/requireAuth|status:\s*40[12]/);
+ assert.match(route,/getOptionalUserFromRequest\(/);
+ assert.match(route,/hasPurchasedAccountContentAccess\([^)]*FLOWER_UNLOCK_FEATURE_KEY/);
+ assert.match(route,/toFreeSajuCard\(/);
 });
 
 test("라우트가 워커에 배선돼 있다", () => {

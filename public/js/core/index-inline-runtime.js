@@ -4935,7 +4935,8 @@ function _dfGetServerMatchPayload() {
  *
  * 🔴 매칭은 브라우저에서 하지 않는다 (2026-08-24). 엔진이 `worker/lib/destiny-flower-engine.js`
  * 로 옮겨 갔고, 결과를 주는 곳은 `POST /api/destiny-flower/match` 하나다. 2026-11-08 부터 그 라우트는
- * 로그인도 해금도 보지 않고 IP 한도(429)만 건다 — 토큰을 싣지 않고, 401·402 분기도 없다.
+ * 로그인 없이 IP 한도(429)만 걸고, 사주 결과 카드는 누구에게나 준다. 상세(나머지 세 체계·근거·꽃말 심화)는
+ * 서버가 flower-fc 권한을 보고 실어 보낸다(`atelierUnlocked`). 토큰이 있으면 실어 보내 구매자가 상세를 받게 한다.
  *
  * 렌더 경로는 전부 동기라, 여기서는 캐시만 읽고 없으면 null 을 돌려준다. 요청이 도착하면
  * `_dfRefreshStudioForSource` 를 다시 불러 화면을 채운다(4-up 의 "판정 대기" 칸이 그 사이를 메운다).
@@ -4945,7 +4946,11 @@ var _dfServerMatch = {
   sources: null,
   theme: null,
   inflight: null,
-  status: 'idle'
+  status: 'idle',
+  /** 서버가 판정한 아틀리에 상세 권한. null 은 아직 모름. */
+  atelierUnlocked: null,
+  /** 권한 조회가 DB 장애로 실패했다(미구매가 아니다) — 결제 버튼 대신 다시 확인을 보인다. */
+  entitlementDegraded: false
 };
 
 /** 서버가 꽃 이름·꽃말·근거 문장을 번역할 로케일. */
@@ -4964,7 +4969,9 @@ function _dfServerMatchFingerprint(payload) {
     birth.year, birth.month, birth.day, birth.hour, birth.minute, birth.calType,
     ziwei.main_star || ziwei.mainStar, ziwei.palace, ziwei.brightness,
     astro.sun_sign || astro.sunSign, astro.moon_sign || astro.moonSign, astro.rising_sign || astro.risingSign,
-    sukuyo.mansion, sukuyo.phase, _dfServerMatchLang()
+    sukuyo.mansion, sukuyo.phase, _dfServerMatchLang(),
+    // 결제 직후(해금 지도가 바뀌면) 상세를 다시 받는다.
+    _dfIsFlowerAtelierUnlocked() ? 'atelier' : 'card'
   ].join('|');
 }
 
@@ -4980,6 +4987,8 @@ function _dfRequestServerMatch(payload, onSettled) {
 
   var url = __cdResolveApiBaseForLockSync() + '/api/destiny-flower/match';
   var headers = { 'Content-Type': 'application/json' };
+  var authToken = __cdGetAuthTokenForLockSync();
+  if (authToken) headers.Authorization = 'Bearer ' + authToken;
 
   _dfServerMatch.fingerprint = fingerprint;
   _dfServerMatch.sources = null;
@@ -4998,6 +5007,10 @@ function _dfRequestServerMatch(payload, onSettled) {
     if (result.status === 200 && result.data && result.data.ok) {
       _dfServerMatch.sources = result.data.sources || {};
       _dfServerMatch.theme = result.data.theme || null;
+      _dfServerMatch.atelierUnlocked = result.data.atelierUnlocked === true;
+      _dfServerMatch.entitlementDegraded = result.data.entitlementDegraded === true;
+      // 서버가 해금을 확인했으면 지문도 상세 쪽으로 맞춘다 — 같은 프로필로 한 번 더 묻지 않게.
+      if (_dfServerMatch.atelierUnlocked) _dfServerMatch.fingerprint = fingerprint = fingerprint.replace(/\|card$/, '|atelier');
       _dfServerMatch.status = 'ready';
     } else if (result.status === 429) {
       _dfServerMatch.status = 'limited';
@@ -5633,6 +5646,8 @@ var _DF_ATELIER_LOCK_KEY = 'flower-fc';
  * 있으면 타일을 정본으로 쓰고, 없으면(홈이 아닌 화면에서 스튜디오를 연 경우) 해금 키만 본다.
  */
 function _dfIsFlowerAtelierUnlocked() {
+  // 서버가 이 계정의 flower-fc 권한을 확인했으면 그것이 정본이다(기기 해금 지도가 비어 있어도).
+  if (_dfServerMatch && _dfServerMatch.atelierUnlocked === true) return true;
   var tile = document.querySelector('[data-tile-lock-key="' + _DF_ATELIER_LOCK_KEY + '"]');
   if (tile) {
     var lockCost = Number(tile.getAttribute('data-tile-lock-cost') || 0);
@@ -6875,6 +6890,8 @@ function _dfShowStudioEmptyState(source, message, showLoadButton) {
   var main = document.querySelector('.df-studio-main');
   var viralShare = document.getElementById('dfViralShare');
   if (viralShare) viralShare.hidden = true;
+  var atelierLock = document.getElementById('dfAtelierLock');
+  if (atelierLock) atelierLock.hidden = true;
   _dfRevealedFlowerKey = '';
   var panels = document.querySelector('.df-studio-panels');
   var historySection = document.querySelector('.df-studio-history');
@@ -7629,6 +7646,7 @@ function _dfApplyStudioSelection(selection) {
   _dfUpdateStudioPrompt(selection);
   _dfRenderFriendFlower();
   _dfRenderViralShareRow(selection);
+  _dfRenderAtelierLock(selection);
   _dfPlayFlowerReveal(selection);
   _dfApplyGeneratedFlowerImage(imageEl, selection, selection.source || 'saju');
   if (auraEl) {
@@ -7707,6 +7725,7 @@ function _dfRequirePaidSourceUnlock(source) {
   var lockKey = lockTile.getAttribute('data-tile-lock-key') || '';
   var lockCost = Number(lockTile.getAttribute('data-tile-lock-cost') || 0);
   if (!lockKey || lockCost <= 0) return false;
+  if (_dfServerMatch.atelierUnlocked === true) return true;
   if (_dfIsLockKeyUnlocked(lockKey)) return true;
   if (lockTile.classList && lockTile.classList.contains('tarot-tile--tileUnlocked')) return true;
 
@@ -7730,12 +7749,17 @@ function _dfRequirePaidSourceUnlock(source) {
 /**
  * 체계 하나를 열어도 되는가.
  *
+ * 2026-11-08 사용자 결정 "결과 카드만 무료": 사주 결과 카드는 누구나 연다. 나머지 세 체계는
+ * 아틀리에 상세라 해금(flower-fc)이 있어야 열린다.
+ *
  * 해금 상품이 하나(5,000원 전체 해금)뿐이라 판정도 하나다. 예전에는 여기서 "이전 단계를 먼저
  * 완료하면 열립니다" 안내를 띄웠는데, 순차 잠금을 없앤 지금은 결제 게이트를 통과했으면
  * 네 갈래가 전부 열린다.
  */
 function _dfRequireSourceCoinPayment(source) {
-  return _dfRequirePaidSourceUnlock(_dfNormalizeSource(source));
+  var normalized = _dfNormalizeSource(source);
+  if (normalized === 'saju') return true;
+  return _dfRequirePaidSourceUnlock(normalized);
 }
 
 function openAstrologyFlowerStudio() {
@@ -7802,8 +7826,10 @@ function openDestinyFlowerStudio(source, gatePassed) {
   _dfCaptureOriginalTitle();
   _dfBindTitleRestoreGuards();
   var requestedSource = _dfNormalizeSource(source || (_dfStudioState && _dfStudioState.activeSource) || 'saju');
-  if (gatePassed !== true && !_dfRequireSourceCoinPayment(requestedSource)) {
-    return;
+  // 결과 카드는 무료다 — 스튜디오는 늘 연다. 해금 전에 다른 체계를 고르면 사주 결과 카드로 열고,
+  // 상세 잠금 카드가 결제 안내를 맡는다(여기서 결제 창을 먼저 띄우지 않는다).
+  if (gatePassed !== true && requestedSource !== 'saju' && !_dfIsFlowerAtelierUnlocked()) {
+    requestedSource = 'saju';
   }
   var _dfActiveSource = _dfSetActiveSource(requestedSource);
   var overlay = document.getElementById('destinyFlowerStudioOverlay');
@@ -8565,6 +8591,75 @@ function _dfEnsureViralShareRow() {
   });
   main.parentNode.insertBefore(row, main.nextSibling);
   return row;
+}
+
+/** 해금 전 상세 영역 자리에 두는 잠금 카드. 결제는 홈 타일과 같은 미리보기·결제 흐름(_dfRequirePaidSourceUnlock)을 쓴다. */
+function _dfEnsureAtelierLockCard() {
+  var card = document.getElementById('dfAtelierLock');
+  if (card) return card;
+  var anchor = document.getElementById('dfViralShare') || document.querySelector('#destinyFlowerStudioSheet .df-studio-main');
+  if (!anchor || !anchor.parentNode) return null;
+  card = document.createElement('section');
+  card.id = 'dfAtelierLock';
+  card.className = 'df-atelier-lock';
+  card.hidden = true;
+  card.setAttribute('aria-label', _dfUiText('atelierLock.aria', '아틀리에 상세 해금'));
+  card.innerHTML = '<p class="df-atelier-lock-kicker">' + _dfEscapeHtml(_dfUiText('atelierLock.kicker', '결과 카드와 공유는 무료예요')) + '</p>'
+    + '<h3 class="df-atelier-lock-title">' + _dfEscapeHtml(_dfUiText('atelierLock.title', '꽃 아틀리에 상세')) + '</h3>'
+    + '<p class="df-atelier-lock-desc" data-df-lock-desc></p>'
+    + '<ul class="df-atelier-lock-list">'
+    + ['atelierLock.item1|점성술·자미두수·숙요가 고른 꽃 세 송이', 'atelierLock.item2|이 꽃을 고른 이유와 개화 이야기', 'atelierLock.item3|나의 꽃말, 정원사의 말, 색 처방']
+      .map(function(row) { var parts = row.split('|'); return '<li>' + _dfEscapeHtml(_dfUiText(parts[0], parts[1])) + '</li>'; }).join('')
+    + '</ul>'
+    + '<button type="button" class="df-atelier-lock-btn" data-df-atelier-unlock></button>';
+  card.addEventListener('click', function(e) {
+    var target = e.target && e.target.closest ? e.target.closest('[data-df-atelier-unlock]') : null;
+    if (!target || !card.contains(target)) return;
+    e.preventDefault();
+    e.stopPropagation();
+    _dfOpenAtelierUnlock();
+  });
+  anchor.parentNode.insertBefore(card, anchor.nextSibling);
+  return card;
+}
+
+/** 상세가 응답에 실렸는가. 서버 판정이 정본이고, 응답 전에는 잠긴 것으로 그린다. */
+function _dfIsAtelierDetailOpen() {
+  return _dfServerMatch.atelierUnlocked === true;
+}
+
+function _dfRenderAtelierLock(selection) {
+  var sheet = document.getElementById('destinyFlowerStudioSheet');
+  var locked = !_dfIsAtelierDetailOpen();
+  if (sheet && sheet.classList) sheet.classList.toggle('df-studio--atelier-locked', locked);
+  var card = _dfEnsureAtelierLockCard();
+  if (!card) return;
+  card.hidden = !(locked && selection && selection.flower);
+  if (card.hidden) return;
+  var degraded = _dfServerMatch.entitlementDegraded === true;
+  var desc = card.querySelector('[data-df-lock-desc]');
+  var btn = card.querySelector('[data-df-atelier-unlock]');
+  if (desc) {
+    desc.textContent = degraded
+      ? _dfUiText('atelierLock.degraded', '구매 정보를 잠시 확인하지 못했어요. 이미 해금했다면 다시 확인해 주세요.')
+      : _dfUiText('atelierLock.desc', '한 번 해금하면 이 계정에서 계속 볼 수 있어요.');
+  }
+  if (btn) {
+    btn.textContent = degraded
+      ? _dfUiText('atelierLock.retry', '다시 확인하기')
+      : _dfUiText('atelierLock.cta', '상세 해금 · 5,000원');
+  }
+}
+
+/** 잠금 카드 버튼. 장애였으면 다시 묻고, 아니면 홈 타일과 같은 결제 흐름을 연다. 이미 해금된 기기면 상세를 다시 받는다. */
+function _dfOpenAtelierUnlock() {
+  if (_dfServerMatch.entitlementDegraded === true || _dfRequirePaidSourceUnlock('saju')) {
+    _dfServerMatch.fingerprint = '';
+    _dfServerMatch.sources = null;
+    _dfServerMatch.atelierUnlocked = null;
+    _dfServerMatch.entitlementDegraded = false;
+    _dfRequestUnifiedServerMatch();
+  }
 }
 
 function _dfRenderViralShareRow(selection) {

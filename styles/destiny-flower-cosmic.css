@@ -1341,3 +1341,37 @@ html:has(#destinyFlowerStudioOverlay.is-show) { scrollbar-gutter: auto !importan
   #destinyFlowerStudioOverlay .df-viral-share-btn { transition: none; }
   #destinyFlowerStudioOverlay .df-viral-share-btn:hover { transform: none; }
 }
+
+/* 2026-11-08 "결과 카드만 무료": 해금 전에는 상세 영역을 숨기고 잠금 카드 하나만 둔다. 상세 데이터는 서버가 애초에 보내지 않는다. */
+#destinyFlowerStudioOverlay .df-studio--atelier-locked .df-studio-quad,
+#destinyFlowerStudioOverlay .df-studio--atelier-locked .df-studio-panels,
+#destinyFlowerStudioOverlay .df-studio--atelier-locked #dfStudioBouquet,
+#destinyFlowerStudioOverlay .df-studio--atelier-locked #dfStudioWhy,
+#destinyFlowerStudioOverlay .df-studio--atelier-locked #dfStudioSpecimen,
+#destinyFlowerStudioOverlay .df-studio--atelier-locked #dfStudioSajuBadges,
+#destinyFlowerStudioOverlay .df-studio--atelier-locked #dfStudioNarrative { display: none !important; }
+#destinyFlowerStudioOverlay .df-atelier-lock {
+  margin: 14px 0 4px;
+  padding: 16px;
+  border: 1px solid var(--dfd-hairline, rgba(232, 201, 138, 0.75));
+  border-radius: 16px;
+  background: var(--dfd-card-strong);
+  box-shadow: var(--dfd-shadow);
+  color: var(--dfd-ink);
+}
+#destinyFlowerStudioOverlay .df-atelier-lock[hidden] { display: none; }
+#destinyFlowerStudioOverlay .df-atelier-lock-kicker { margin: 0 0 4px; font-size: 0.78rem; font-weight: 600; color: var(--dfd-gold-ink); }
+#destinyFlowerStudioOverlay .df-atelier-lock-title { margin: 0 0 6px; font-size: 1rem; font-weight: 700; color: var(--dfd-ink); }
+#destinyFlowerStudioOverlay .df-atelier-lock-desc { margin: 0 0 10px; font-size: 0.86rem; line-height: 1.55; }
+#destinyFlowerStudioOverlay .df-atelier-lock-list { margin: 0 0 14px; padding-left: 1.1em; font-size: 0.86rem; line-height: 1.7; }
+#destinyFlowerStudioOverlay .df-atelier-lock-btn {
+  width: 100%;
+  min-height: 48px;
+  border: 1px solid var(--dfd-hairline, rgba(232, 201, 138, 0.75));
+  border-radius: 12px;
+  background: var(--dfd-petal, #FBEFD3);
+  color: var(--dfd-gold-ink);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}

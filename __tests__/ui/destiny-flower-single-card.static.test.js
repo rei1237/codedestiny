@@ -41,6 +41,18 @@ test("꽃은 하나의 5,000원 상품으로 소개하고 공용 해금 키를 �
  assert.doesNotMatch(read('worker/lib/billing-feature-registry.js'),/FEATURE_NOW_FREE/);
 });
 
+// 2026-11-08 "결과 카드만 무료": 홈 타일은 잠금 속성 없이 바로 열리고, 잠금 키·비용은 아틀리에 안 결제 앵커가 든다.
+// 홈 타일에 잠금 속성이 남으면 __cdRequireTileLockGate 가 비구매자를 미리보기 시트에서 막아 무료 카드에 닿지 못한다.
+test("홈 꽃 타일은 무료로 열리고 상세 해금 앵커는 아틀리에 안에 있다", () => {
+ const tile = shell.match(/<button class="tarot-tile tarot-tile--bloom"[^>]*>/);
+ assert.ok(tile, "홈 꽃 타일을 찾지 못했다");
+ assert.doesNotMatch(tile[0], /data-tile-lock-(key|cost)=/);
+ assert.match(tile[0], /data-feature-key="flower-fc"/);
+ assert.match(shell, /data-cd-price-key="flower-fc"[^>]*>결과 무료 · 상세 5,000원</);
+ const studio = shell.slice(shell.indexOf('id="destinyFlowerStudioSheet"'), shell.indexOf('id="destinyFlowerStudioSheet"') + 4000);
+ assert.match(studio, /id="dfAtelierPurchaseAnchor"[^>]*\shidden[\s\S]*?data-tile-lock-key="flower-fc"[\s\S]*?data-tile-lock-cost="50"/);
+});
+
 test("랜딩은 /flower 하나이고 옛 경로는 리다이렉트다", () => {
   assert.ok(exists("app/flower/page.tsx"), "app/flower/page.tsx 가 없다");
   for (const slug of ["destiny", "astrology", "jamidusu", "sukuyo"]) {
