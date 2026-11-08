@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-08
-next: 2단계 신년운세(네오) — 1단계 패턴(구성 버전 분기·장 메타·공용 조판 PDF·보관함 PDF)을 신년운세에 적용
+next: 3단계 인생의 책 / 인생 총운(윤달) — 1·2단계 패턴(구성 버전 분기·장 메타·공용 조판 PDF·보관함 PDF)을 적용
 ---
 
 # 3만원 이상 유료 LLM — 상품별 챕터·분량·PDF·전달 개선 인수인계
@@ -42,7 +42,7 @@ next: 2단계 신년운세(네오) — 1단계 패턴(구성 버전 분기·장 
 ## 단계
 - [x] 0. 준비: 워크트리를 만들고 설계 문서와 이 문서를 커밋했다.
 - [x] 1. 연애 비책 (연이·서한비) + 공용 글자형 PDF 모듈 + 보관함 PDF
-- [ ] 2. 신년운세 (네오)
+- [x] 2. 신년운세 (네오)
 - [ ] 3. 인생의 책 / 인생 총운 (윤달)
 - [ ] 4. 운명의 업
 - [ ] 5. 마스터 인연의 서 (+궁합)
@@ -119,7 +119,7 @@ next: 2단계 신년운세(네오) — 1단계 패턴(구성 버전 분기·장 
   - `app/love-secret-ai/result/love-secret-pdf-chapters.ts`에 `buildLoveSecretPdfChapters(consultation)`를 만든다. 섹션은 pdfSections 또는 sections에서 가져오고, 없으면 첫 assistant 메시지를 알려진 제목으로 나눈다. kicker는 그룹 라벨, speaker는 연이 또는 서한비다. 표지 byline은 "연이 · 서한비"다.
   - 결과 화면 버튼과 보관함(`app/records/view/SavedServiceReading.tsx`의 love 분기에 버튼 추가)이 같은 빌더를 쓴다.
 
-## 2단계 진행 메모 (진행 중)
+## 2단계 진행 메모 (완료, 결과는 아래 단계별 결과)
 
 ### 조사로 확인한 사실
 - 운영은 항상 onCheckpoint를 넘겨 `generateNewYearWave`로 요청마다 한 섹션을 만든다. 섹션 상한은 12,000토큰·52초, 전체 MIN 20,000·MAX 33,000자다. fallbackMinChars = minChars×0.3이다.
@@ -137,7 +137,7 @@ next: 2단계 신년운세(네오) — 1단계 패턴(구성 버전 분기·장 
 - PDF는 `_lib/new-year-pdf-chapters.ts`로 조판한다. 폰트가 실패(PdfFontError)할 때만 캡처로 대체한다. 보관함 'year' 분기에 SavedNewYearPdfButton을 붙인다.
 
 ### 진행
-- 아직 코드를 고치지 않았다(14a62411c 기준). 다음은 워커 V2 구성 테스트부터 TDD로 한다.
+- 완료. 커밋과 검증은 아래 "2단계 신년운세" 결과에 있다.
 
 ## 단계별 결과
 (단계를 마칠 때마다 커밋 SHA, 바꾼 파일, 검증 결과, 남은 일을 여기에 적는다.)
@@ -166,3 +166,25 @@ next: 2단계 신년운세(네오) — 1단계 패턴(구성 버전 분기·장 
   - 상세 패널 이미지(webp)의 주제 번호가 2씩 밀림. 마케팅 문구 "6부 28개 섹션"/"여섯 부를 스물여덟 개 섹션"이 `index.html`·`public/*/index.html`·`lib/marketing/feature-marketing-copy.generated.json`·`docs/purchase-journey/inventory.json`에 남아 있음
   - 상세 패널 30장 변경은 검색엔진에 보이는 변경이다
   - 공용 조판 모듈의 표지·키커 문구(productLabel, 부 이름)는 한국어 고정이다. 다른 로케일 PDF는 화자 이름만 바뀐다
+
+### 2단계 신년운세 — 완료 (2026-11-08)
+- 커밋(이 순서)
+  - `3a31d972e`: 조사·설계 진행 메모
+  - `6f0b78593`: 워커 V2 7섹션(nature 성향 전용 → overview 질문 답변+총운 → money → career → romance → monthly → health). 새 세션은 `llmMeta.sectionPlanVersion: 2`, 버전 없는 세션은 V1(프롬프트 바이트 그대로, 기준선 cmp로 확인). 섹션별 perspective 줄, `ownsQuestion`, 섹션당 12,000토큰, V2 섹션 maxChars ≤5,500, V2 전체 MAX 40,000(MIN 20,000 그대로), 시스템 프롬프트 분량 34,000~38,000자. 클라이언트 `answer-sections.ts`: DOMAIN_CARDS를 V1∪V2(kicker 포함), V2 마커가 있으면 옛 분류 매핑 끔, 서버 카드 본문의 질문 답변 제거, `MONTHLY_CHAPTER`, `READING_STEP_KEYS`
+  - `4e50c20e3`: 결과 화면 차례(`nyai-toc`)·번호 장·kicker·네오 칩·성향 장 강조, 열두 달 흐름도 번호 장(건강 앞). `_lib/new-year-pdf-chapters.ts`(`buildNewYearPdfChapters`)로 공용 조판 PDF, PdfFontError 때만 캡처. 보관함 'year' 분기에 `app/records/view/SavedNewYearPdfButton.tsx`
+- 검증(실제 출력)
+  - `node --test`: new-year-paid-delivery 53/53, new-year-question-answer 7/7, new-year-pdf-chapters 3/3, new-year-saved-result-load 3/3, new-year-ai-wake-recovery 1/1, saju-authority-new-year 6/6, signature-detail-chapters 10/10, records-locale 5/5, records-reading-content 6/6, love-secret-pdf-chapters 3/3, ziwei-result-disclosure 6/6
+  - jest `__tests__/worker/new-year`: 4 suites 32/32(새 `new-year-section-plan-v2.test.js` 10개 포함)
+  - `node scripts/verify-new-year-ai-flow.mjs`: ok
+  - `npx tsc --noEmit`: exit 0(마지막 커밋 4e50c20e3 뒤 다시 실행)
+  - `npm run build`: exit 0(✓ Compiled successfully in 3.6min, Generating static pages 1894/1894). 함정: 1단계가 이 워크트리에 띄운 `next dev -p 3917`(PID 22212, 10:55부터)이 같은 `.next`에 개발 캐시를 써서, 이 워크트리의 `next build`가 "Creating an optimized production build" 전에 CPU 0으로 멈췄다(두 번). 종료 권한이 거부되어 같은 커밋의 임시 워크트리(`../ny-build-tmp`, node_modules 정션)에서 빌드하고 `npm run worktree:remove -- ../ny-build-tmp --force`로 지웠다. 다음 단계도 그 dev 서버가 살아 있으면 같은 방법을 쓰거나 사용자에게 종료를 부탁한다(그 dev 서버는 지금 500을 낸다)
+  - 360px 화면 확인은 하지 않았다(차례 그리드는 `minmax(0,1fr)`·`overflow-wrap:anywhere`). 미리보기 픽스처 `lib/dev-preview/fixtures/new-year.ts`는 V1 본문이다
+- 남은 일·후속
+  - 실제 LLM 샘플 1회(신년운세 V2)는 사용자 승인을 받아야 한다. 아직 하지 않았다
+  - 페르소나 `NEO_NEW_YEAR_PERSONA_KO`의 "사자 장군 '네오'"는 사용자 메모(네오는 인간)와 어긋난다
+  - 생성 중 시간 기반 단계 라벨(`READING_STAGES`)에 아직 "재물과 직업"이 남아 있다(작음)
+  - 진행 카운터 문턱 `>=4000`과 nature `minChars` 2,800이 맞지 않는다(작음)
+  - 보관함 PDF 버튼은 글꼴 실패 때 캡처 대체가 없다(연애 비책과 같음)
+  - 가정: 차례·번호 장·열두 달 장 배치는 옛(V1) 세션에도 적용된다. 본문 글자는 바뀌지 않는다
+  - SEO·상세 문구는 바꾸지 않았다(signature-detail-chapters 통과)
+  - ziwei-result-disclosure의 보존 해시 허용 목록에 `DomainConsultationCards`를 넣었다(의도한 표현 변경)
