@@ -440,3 +440,9 @@ next: 4-② 언어별 변경/신규 비트 직접 번역 후 완결성 검사
 - scripts/lib/novel-authored-merge.mjs의 assembleNovelAuthored로 오프라인 조립 가능. 실행기 merge-novel-authored.mjs는 없으며 자동 번역 실행 금지. 이전 번역 sourceHash는 34490a1621a056bc7c4d9c4f625bd71b787a7711fc83a5790846b911dc731be0.
 - check:fast --plan 실행, check:fast 진행 중(시작 PID 17692; 완료 출력은 아직 미회수). 최종 단계에서 결과 확인이 필요.
 - root/main에는 origin/main..main 커밋이 없었음. fetch 후 origin/main=9e8cec0a6(다른 작업 진행 중이므로 최종 재확인). 현 브랜치 기준 cc1ae9598 이후의 이 작업 18개 기존 커밋+이번 커밋만 반영할 것.
+
+## 4-③ 선행 검증 (2026-11-09)
+- 4-① 커밋 b7029897a. 본문 EP.37 4,022 / EP.47 4,036 / EP.50 4,036자, im 8/10/8.
+- verify:novel-player-start 통과. verify:novel-runtime는 옛 고정 EXPECTED_BEAT_COUNT=7844로 실패 → 검사 파일 지시대로 정본 7928로 수정 후 통과(shell 177,254 bytes / 73 episodes / 7,928 beats). 검사 약화 없이 개고 수량을 반영.
+- node --test __tests__/ui/novel-locales.test.mjs __tests__/ui/novel-language-switch.test.mjs __tests__/ui/novel-authored-merge.test.mjs __tests__/ui/novel-ui-copy.test.mjs → 15/15 통과.
+- 현재 main CI 9e8cec0a6 success: https://github.com/rei1237/codedestiny/actions/runs/42465450472 . cc1ae9598..origin/main 중 content/novel·lib/stories/vn·플레이어·빌드 변경 없음. 배포 직전 재확인.
