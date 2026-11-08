@@ -75,7 +75,7 @@ try {
         await page.waitForFunction(()=>document.fonts.status==='loaded',undefined,{timeout:30000});
         if(route.includes('/result/')) {
           const paragraph=page.locator('[data-reading-chapter] p').first();
-          await paragraph.waitFor({timeout:30000});
+          await paragraph.waitFor({timeout:30000}).catch(async error=>{console.error('[reading fixture timeout]',await page.url(),(await page.locator('body').innerText()).slice(0,1800));throw error;});
           await page.evaluate(()=>document.querySelector('[data-reading-chapter] p').scrollIntoView({block:'center',behavior:'instant'}));
           const essential=page.getByRole('button',{name:'필수만 사용',exact:true});
           if(await essential.isVisible())await essential.click();
@@ -83,6 +83,9 @@ try {
           await page.waitForFunction(()=>{const node=document.querySelector('[data-reading-chapter] p');return node&&getComputedStyle(node).fontFamily.includes('CodeDestinyBody');},undefined,{timeout:15000}).catch(async error=>{console.error('[reading fixture state]',await page.url(),(await page.locator('body').innerText()).slice(0,1200));throw error;});
           const style=await page.evaluate(()=>{const n=document.querySelector('[data-reading-chapter] p'),c=getComputedStyle(n);return{family:c.fontFamily,size:parseFloat(c.fontSize),leading:parseFloat(c.lineHeight),measure:n.getBoundingClientRect().width};});
           assert.match(style.family,/CodeDestinyBody/);assert.equal(style.size,width<768?17:18);assert.ok(Math.abs(style.leading/style.size-1.8)<.01);assert.ok(style.measure<=608);
+          const headings=await page.locator('[data-reading-chapter] h2, [data-reading-chapter] h3').evaluateAll(nodes=>nodes.map(n=>{const c=getComputedStyle(n);return{family:c.fontFamily,size:parseFloat(c.fontSize),weight:Number(c.fontWeight)};}));
+          assert.ok(headings.length>0);
+          for(const heading of headings){assert.match(heading.family,/CodeDestinyBody/);assert.doesNotMatch(heading.family,/CodeDestinyRounded/);assert.ok(heading.size>=20&&heading.size<=24);assert.ok(heading.weight>=600&&heading.weight<=700);}
           await page.screenshot({path:`${output}/reading-${width}.png`});
           report.push({route:'reading',width,...style});
         } else {
