@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-11-08
-next: "4단계 — /saju/free 초간단 무료 사주(시작 때 '무료 사주' 문자열 가드 판단·보고)"
+next: "5단계 — 문서: 공유 미션 예외 기록(docs/purchase-journey/IMPLEMENTATION.md:71), 이 문서 status 정리"
 ---
 
 # 무료 바이럴 퍼널 (초간단 무료 사주 + 운명의 꽃·최애 운명 무료 개방)
@@ -37,7 +37,7 @@ next: "4단계 — /saju/free 초간단 무료 사주(시작 때 '무료 사주'
 - [x] 3. 최애 운명: 결제 검사를 details 로 이동, 슬롯 공개 연출, 문구·레지스트리 설명, 공유 바 교체
 - [x] 2b. 꽃 결과 카드만 무료: 셸 `openDestinyFlowerStudio`/`_dfRequirePaidSourceUnlock` 게이트를 상세 영역 앞으로 옮기고, 타일 "🔒 해금 5,000원" 표시를 결과 무료·상세 유료에 맞게 정리. `__tests__/worker/free-flower-billing.test.js`·`pass-verdict.js:132` 정합 유지.
 - [x] 3b. 최애 상세 리포트 재결제 위험: 결제 뒤 새로고침·재방문 때 같은 최애·생일로 다시 돈을 받는지 확인(`ensurePaidAccess`/`useCoinGate` 가 서버 권한을 보는지). 이전(3단계 전)에도 같았는지 비교. 새로 생긴 위험이면 고친다(결제 뒤 전달이 최우선).
-- [ ] 4. `/saju/free` 초간단 무료 사주(폼·70/30·블러·공유 미션·PNG 카드·SEO·사이트맵)
+- [x] 4. `/saju/free` 초간단 무료 사주(폼·70/30·블러·공유 미션·PNG 카드·SEO·사이트맵)
 - [ ] 5. 문서: 공유 미션 예외 기록, 이 문서 status 정리
 - [ ] 6. 전체 검증(타입·린트·테스트·사이트맵 --check·브라우저 390px)
 
@@ -79,6 +79,22 @@ next: "4단계 — /saju/free 초간단 무료 사주(시작 때 '무료 사주'
   - 근거: `destiny-bias-analyze` 는 per-use(`worker/lib/paid-feature-registry.js` 회당 목록). 회당 결제는 서버 보유 목록에 남지 않고(`useCoinGate.ts` 주석), `ensurePaidAccess` 의 `requestId` 는 매번 `Date.now()+random` 이라 서버 멱등도 안 걸린다. 구제는 리다이렉트 복귀 영수증(`consumePaidGrantReceipt`, 1회 소비)과 `usePaidResume` 뿐이고 둘 다 그대로 동작한다.
   - 3단계 전(`85d8f7281^`)에는 `compute` 가 form·switch·replay 마다 결제했다 → 새로고침·멤버 바꾸기·최근 결과 다시 보기마다 결제. 지금은 상세 진입에서만, 세션 안 같은 최애×생일은 한 번만 결제 → 결제 횟수는 줄었다. 결제 직후 전달(인라인 성공 → `unlockDetails`, 리다이렉트 → resume 으로 재계산+해금)도 확인. 범위를 넓히지 않고 보고만 한다.
 
+- 4단계(2026-11-08, 커밋 `bd06a89a8`)
+  - 라우트 `/saju/free/`(새 폴더, 충돌 없음. 옛 `/saju-free` → `/saju/` 301 은 별개). 문구 가드 때문에 "무료 사주" 대신 "초간단 (무료) 만세력"으로 썼다 — 가드는 건드리지 않음.
+  - 파일: `app/saju/free/{page.tsx,FreeSajuClient.tsx,free-saju.module.css}`, `lib/free-saju/{compute,engine,copy,unlock,birth-date}.ts`, `__tests__/ui/free-saju-landing.test.mjs`, `app/components/PremiumBlurGate.tsx`(선택 props `ctaLabel`·`footnote`·`lockIcon`·`badgeLabel`, 기존 호출부 그대로), `scripts/generate-sitemap.mjs`(+재생성 사이트맵·원장).
+  - 엔진: `calculateNatalSaju`(@/lib/korean-calendar)를 동적 import, 폼 포커스·포인터다운 때 미리 받는다. node 24 실측 평균 0.29ms(첫 호출 콜드 ~22ms) / 무거운 `computeNatalFromInput` 1.55ms. 번들 179KB(42KB gz) vs 534KB(139KB gz). 기둥은 5개 날짜(음력·23:40 포함)에서 일치(테스트). 올해 천간은 서울 오늘 12시의 연주(입춘 기준).
+  - 흐름: 폼(생년월일 텍스트 입력·양/음력+윤달·시간/모름·성별) → 제출 → 결과 70%(기둥 줄, 카드 4장: 올해 키워드=올해 천간의 십신, 타고난 무기=일간, 오행 막대, 12운성=일간×일지) → 블러 30%(재물 시기 → `/new-year-ai-consultation/`, 히든 매칭 → `/saju/destiny-bias/?from=free-saju`, 보조 링크 `/flower/?from=free-saju`) → 공유 미션(ViralShareBar 아무 채널 성공 = 재물 시크릿 키워드 해제, sessionStorage `cd:free-saju:wealth-unlock`, 막히면 메모리). 퍼널 `free_saju` 단계 form_view·submit·result·blur_click·share_unlock.
+  - 공유 PNG: 화면 밖 1080×1350 카드(키워드·무기·12운성·오행 막대·꽃/최애 티저). 생일은 이미지·링크에 넣지 않는다.
+  - 검증: 집중 테스트 6/6, `typed-birth-input`·`saju-bundle-copy` 가드 통과, `npx tsc --noEmit` 무출력, eslint 0. `NODE_OPTIONS=--experimental-vm-modules npm run check:fast` EXIT=0 — test:node 4680/4680, jest 455 suites·7704 tests, paid-gate 77/0, sitemap --check OK(1061 URL).
+
+## 함정(4단계에서 발견)
+- 🔴 생년월일 `type="date"` 금지: `__tests__/ui/typed-birth-input.test.js:356` 가 app 전체에서 birth/생년월일/생일 문맥의 `type="date"` 를 잡는다. `birthDateTextInputProps`(`lib/birthDateInputProps.ts`)를 쓴다. 단 그 헬퍼의 onBlur 정규화는 양력 실재 날짜만 통과시켜 음력 2월 30일 같은 날을 지운다 → `lib/free-saju/birth-date.ts` 로 달력 종류별 정규화를 덮어썼다.
+- 사이트 기본 테마는 라이트다. 어두운 토큰은 `--cd-sukuyo-*` 뿐이라 module CSS 는 사설 `--fs-*` 로 기존 `--cd-*` 를 받아 썼다(새 hex 없음). ViralShareBar 는 라이트 `cd-*` 클래스라 다크 화면 위 밝은 패널(`bg-cd-surface`) 안에 둔다.
+- 정적 export: 오늘 날짜(`max` 등)를 렌더 때 계산하면 빌드 날짜로 굳고 수화 불일치가 난다 → 제출 때 `seoulToday()` 로 검사.
+- 정적 문자열 테스트는 주석을 먼저 지운다(헤더 주석의 "카카오 없음"이 `doesNotMatch(/카카오/)` 에 걸린다).
+- check:fast 가 도는 중에 소스를 고치면 sitemap lastmod 가 바뀌어 drift 로 막힌다. 고친 뒤 `npm run sitemap:generate` 하고 다시 돌린다.
+- bash heredoc·sed·perl 은 또 백슬래시를 먹었다(`/\D/g` → `/D/g`). 정규식이 든 수정은 Edit 도구로.
+
 ## 함정(2b에서 발견)
 - 🔴 홈 타일에 `data-tile-lock-key/cost` 가 남으면 `__cdRequireTileLockGate`(런타임)·미리보기 인터셉터(`_hasPaidPreviewSignal`)가 비구매자를 로그인 확인·미리보기 시트에서 막는다 → 무료 카드에 못 닿는다. 잠금 속성은 숨은 앵커에만 둔다. `destiny-flower-single-card` 가드는 마크업 `data-tile-lock-key="flower-fc"` 가 정확히 1개이길 요구한다.
 - 마케팅 사전(`FEATURE_MARKETING_COPY`)에 FAQ 를 더하면 `sync:marketing-copy` 재생성 + 11개 로케일 번역(`feature-marketing-modal-i18n` 가드)이 필요하다 → 이번엔 FAQ 추가를 되돌렸다.
@@ -113,3 +129,6 @@ next: "4단계 — /saju/free 초간단 무료 사주(시작 때 '무료 사주'
 - 꽃 2b: 홈 가이드 카드(`scripts/design/build-home-funnel.mjs` 생성, `/flower/` 링크)는 아직 "해금 5,000원". `/flower` 랜딩·마케팅 사전 문구(FAQ "해금하면 무엇이 열리나요?")도 무료 카드 언급이 없다 — 번역이 필요해 미룸.
 - 꽃 2b: 기기 해금 지도는 해금인데 서버가 비해금이라고 하면(오래된 캐시) 잠금 카드가 보이고 버튼은 재조회만 한다. 서버가 정본이라 결제는 안 일어난다.
 - 최애 3b: 상세 해금을 새로고침 뒤에도 유지하려면 per-use 영수증을 서버에 남겨 (최애×생일) 키로 복원해야 한다 — 결제 모델 결정이라 사용자 판단.
+- 4단계: `lib/saju/saju-service-catalog.mjs:34` 의 무료 항목은 "무료 만세력"(href `/?action=cdOneStepFreeSajuEntry`, registry 'saju'·온보딩·ActivationGuide 에 묶임). "무료 사주 풀이"라는 항목은 없다. 권고: 그 항목은 그대로 두고, `/saju/free` 는 카탈로그에 별도 항목으로 더하거나 SEO 쪽 링크로만 잇는다 — 사용자 결정.
+- 4단계: `PremiumBlurGate` 에 하드코딩 hex·👑/🔐 기본 아이콘·reduced-motion 을 무시하는 무한 애니메이션이 남아 있다(이번엔 선택 props 만 추가).
+- 4단계: 성별은 입력만 받고 계산에 쓰지 않는다(대운 방향이 필요해질 때 사용). 페이지는 한국어 전용(번역 없음). ImmersiveRelatedLinks·ROUTE_DATES 등 다른 연결 목록에는 등록하지 않았다. 390px 브라우저 확인은 6단계.
