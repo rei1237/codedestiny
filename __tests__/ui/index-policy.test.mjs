@@ -37,7 +37,7 @@ const SITEMAP_EXCLUDED_EXACT_BEFORE = [
 ];
 const SITEMAP_NOINDEX_PREFIXES_BEFORE = [
   "/saju/love-simulation", "/secret-house_real", "/destiny-poker", "/mini-games", "/fortune/date",
-  "/neo-operation-room/strategy-books", "/records", "/consultations", "/animal/physio", "/diary", "/maya",
+  "/neo-operation-room/strategy-books", "/records", "/business/api/dashboard", "/consultations", "/animal/physio", "/diary", "/maya",
   "/oracle/royal-tea", "/oracle/sikojen-povailu", "/palm-reading", "/pdf", "/premium", "/premium-reports",
   "/oracle/juyuk", "/oracle/hwatu", "/blog", "/fortune/sikojen-povailu", "/guides/category", "/flower",
 ];
@@ -116,4 +116,33 @@ test("robots meta constants and robots.txt re-exports", () => {
   assert.deepEqual(ROBOTS_META.NOINDEX, { index: false, follow: false });
   assert.equal(PRIVATE_DISALLOW_RULES, robotsPolicy.PRIVATE_DISALLOW_RULES);
   assert.equal(buildRobotsRules, robotsPolicy.buildRobotsRules);
+});
+
+// Task 3: 예전 목록을 들고 있던 곳이 이제 원장을 읽는다.
+import { readFileSync } from "node:fs";
+const source = (file) => readFileSync(new URL(`../../${file}`, import.meta.url), "utf8");
+
+test("siteSeo.ts reads its meta noindex list from the ledger", () => {
+  const text = source("lib/seo/siteSeo.ts");
+  assert.match(text, /import \{[^}]*\bMETA_NOINDEX_PREFIXES\b[^}]*\bisMetaNoindexPath\b[^}]*\} from "\.\/index-policy\.mjs"/);
+  assert.match(text, /export const noindexPathPrefixes = META_NOINDEX_PREFIXES;/);
+  assert.match(text, /return isMetaNoindexPath\(pathOrUrl\);/);
+  assert.doesNotMatch(text, /noindexPathPrefixes = \[/);
+});
+
+test("generate-sitemap.mjs reads its exclusion lists from the ledger", () => {
+  const text = source("scripts/generate-sitemap.mjs");
+  for (const name of ["SITEMAP_EXCLUDED_EXACT_PATHS", "SITEMAP_NOINDEX_PREFIXES", "SITEMAP_PRIVATE_ROUTE_PATTERNS"]) {
+    assert.match(text, new RegExp(`import \\{[^}]*\\b${name}\\b[^}]*\\} from "\\.\\./lib/seo/index-policy\\.mjs"`), name);
+  }
+  assert.doesNotMatch(text, /const (noindexPathPrefixes|privateRoutePatterns) = \[/);
+  assert.doesNotMatch(text, /const excludedExactSitemapPaths = new Set\(\[/);
+});
+
+test("adsense sitemapForbiddenPrefixes stays a ledger-noindex subset (kept outside the ledger)", () => {
+  const block = source("scripts/verify-adsense-readiness.mjs").match(/const sitemapForbiddenPrefixes = \[([\s\S]*?)\n\];/);
+  assert.ok(block, "sitemapForbiddenPrefixes 배열을 찾지 못했다");
+  const prefixes = [...block[1].matchAll(/^\s*"([^"]+)",?\s*$/gm)].map((m) => m[1]);
+  assert.ok(prefixes.length > 10);
+  for (const prefix of prefixes) assert.equal(isIndexablePath(prefix), false, `${prefix}: 사이트맵 금지인데 원장에서 색인 대상`);
 });

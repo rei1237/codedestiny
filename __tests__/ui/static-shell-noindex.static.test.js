@@ -3,7 +3,7 @@
  *
  * 🔴 이 라우트들은 body 가 루트 index.html 과 사실상 동일한 SPA 딥링크다. 홈과 중복이라
  *    **색인시키지 않는 것이 제품 결정**이고(2026-08-23 사용자 확정), generate-sitemap.mjs 의
- *    noindexPathPrefixes 와 주입기의 robots 값이 그 결정을 함께 지킨다.
+ *    noindexPathPrefixes(정본은 lib/seo/index-policy.mjs 원장)와 주입기의 robots 값이 그 결정을 함께 지킨다.
  *
  * 왜 가드가 필요한가: 실제로 한 번 어긋났었다. 같은 주입기가 두 스크립트에 복사돼 있었고
  * prepare-cloudflare-dist 쪽은 `index, follow` + 슬래시 없는 canonical 을 쓰고 있었다.
@@ -41,10 +41,11 @@ async function loadInjector() {
   return injectStaticShellRouteMeta;
 }
 
-function readNoindexPrefixes() {
-  const block = sitemapSource.match(/const noindexPathPrefixes = \[([\s\S]*?)\n\];/);
-  assert.ok(block, "generate-sitemap.mjs 에서 noindexPathPrefixes 배열을 찾지 못했다");
-  return [...block[1].matchAll(/"([^"]+)"/g)].map((m) => m[1]);
+// generate-sitemap.mjs 의 noindexPathPrefixes 는 색인 원장(lib/seo/index-policy.mjs)의 SITEMAP_NOINDEX_PREFIXES 다.
+async function readNoindexPrefixes() {
+  assert.match(sitemapSource, /const noindexPathPrefixes = SITEMAP_NOINDEX_PREFIXES;/);
+  const { SITEMAP_NOINDEX_PREFIXES } = await import(toModuleUrl("lib/seo/index-policy.mjs"));
+  return [...SITEMAP_NOINDEX_PREFIXES];
 }
 
 function pick(html, pattern) {
@@ -104,7 +105,7 @@ test("셸 사본의 소셜 카드는 홈이 아니라 그 라우트를 가리킨
 
 test("셸 사본 라우트는 noindexPathPrefixes 에 있고 사이트맵에는 없다", async () => {
   const routes = await loadStaticShellRoutes();
-  const prefixes = readNoindexPrefixes();
+  const prefixes = await readNoindexPrefixes();
 
   for (const route of routes) {
     assert.ok(
