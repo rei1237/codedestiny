@@ -41,6 +41,12 @@ next: "2b·3b단계 — 꽃 결과 카드만 무료(사용자 결정 2026-11-08)
 - [ ] 5. 문서: 공유 미션 예외 기록, 이 문서 status 정리
 - [ ] 6. 전체 검증(타입·린트·테스트·사이트맵 --check·브라우저 390px)
 
+## 2b 설계(진행 중, 2026-11-08 압축 뒤 기록)
+- 사실: `POST /api/destiny-flower/match` 는 2단계 전에도 requireAuth 뿐이고 해금 검사가 없었다 → 로그인 사용자에게 4갈래 전체가 이미 내려갔다(게이트는 클라이언트뿐). 2단계로 비로그인까지 넓어졌다.
+- 서버: rate limit 뒤 `getOptionalUserFromRequest(..., {surfaceDbInfraError:true})` → `hasPurchasedAccountContentAccess(env,{userId, featureKey:'flower-fc'})`. 해금자는 전체 + `atelierUnlocked:true`. 비해금은 사주 결과 카드 필드만 + `atelierUnlocked:false`, 다른 3갈래·theme·후보·이야기·꽃말 심화 없음. 로그인 사용자 권한 조회 DB 실패는 503 `DB_DEGRADED`(구매자에게 결제 유도 금지).
+- 클라이언트: `openDestinyFlowerStudio` 는 게이트 없이 연다. 사주 외 탭은 `_dfRequirePaidSourceUnlock` 유지. 잠금이면 상세 영역을 숨기고 인라인 잠금 카드 CTA 로 기존 타일 미리보기 결제를 연다. 토큰 있으면 Bearer 헤더를 다시 보내고, 해금 여부를 fingerprint 에 넣어 결제 뒤 다시 받는다.
+- 타일 라벨: "결과 무료 · 상세 5,000원", data-tile-lock-* 는 유지.
+
 ## 결과 메모
 - 1단계(2026-11-08, 커밋 `2ece773c4`)
   - intent: `js/share-service.mjs` 의 `withShareUtm(url, source)`·`socialIntentUrl('x'|'threads', {text, url})`(+`.d.mts`, `public/js` 미러). UTM 은 `utm_source=<채널>&utm_medium=share&utm_campaign=public_share`. 스레드는 `https://www.threads.net/intent/post?text=<본문\n링크>`. 레거시 셸(`/flower`)도 같은 모듈을 import 해 쓸 수 있다.
