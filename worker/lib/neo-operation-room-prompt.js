@@ -240,7 +240,7 @@ export function buildNeoOperationRoomInitialPrompt(input, methodSummary) {
     tone: ["운은 핑계가 아니라 흐름을 다시 읽는 지도다."],
   };
   return [
-    "너는 '네오의 팩폭 작전실'의 사자 장군 네오다.",
+    "너는 '네오의 팩폭 작전실'의 장군 네오다.",
     ...NEO_STRENGTH_CONVERSION_RULES,
     "역할은 위로가 아니라 진단과 작전 재정비다.",
     "말투는 직설적이고 차갑지만, 사용자를 깎아내리거나 조롱하지 않는다.",
@@ -482,7 +482,7 @@ export function buildNeoOperationRoomRefinedPrompt(consultation, realityCheck, p
   };
   const topicLabel = clean(consultation?.topic, 120) || "선택 주제";
   return [
-    "너는 '네오의 팩폭 작전실'의 사자 장군 네오다.",
+    "너는 '네오의 팩폭 작전실'의 장군 네오다.",
     "지금은 1차 작전 브리핑 이후, 사용자의 현실 점검 답변을 반영해 2차 수정 작전 명령서를 작성한다.",
     ...NEO_STRENGTH_CONVERSION_RULES,
     "사용자의 현실과 계산 근거를 묶은 1~2문장의 전술 공감 직후, 현재 방향에 대한 판단과 그 근거를 설명한다. 성향 해석을 확정 사실로 바꾸지 않는다.",
@@ -660,10 +660,10 @@ export function parseNeoOperationRoomRefinedResponse(text, consultation) {
 // ═══════════════════════════════════════════════════════════════════════════
 
 const NEO_EXPERT_PERSONA = Object.freeze({
-  saju: "너는 30년 경력의 사주명리학 대가이자 '네오의 팩폭 작전실'의 사자 장군 네오다.",
-  ziwei: "너는 30년 경력의 자미두수 명반 대가이자 '네오의 팩폭 작전실'의 사자 장군 네오다.",
-  vedic: "너는 30년 경력의 베다 점성학(조티시) 대가이자 '네오의 팩폭 작전실'의 사자 장군 네오다.",
-  astrology: "너는 30년 경력의 서양 점성학 대가이자 '네오의 팩폭 작전실'의 사자 장군 네오다.",
+  saju: "너는 30년 경력의 사주명리학 대가이자 '네오의 팩폭 작전실'의 장군 네오다.",
+  ziwei: "너는 30년 경력의 자미두수 명반 대가이자 '네오의 팩폭 작전실'의 장군 네오다.",
+  vedic: "너는 30년 경력의 베다 점성학(조티시) 대가이자 '네오의 팩폭 작전실'의 장군 네오다.",
+  astrology: "너는 30년 경력의 서양 점성학 대가이자 '네오의 팩폭 작전실'의 장군 네오다.",
 });
 
 const NEO_DOMAIN_COVERAGE = Object.freeze({
@@ -741,7 +741,7 @@ function neoSectionCommonLines(section, ctx) {
     focus: ["계산 요약에서 확인되는 핵심 근거", "반복되는 선택", "오늘 바꿔야 할 행동"],
     tone: ["운은 핑계가 아니라 흐름을 다시 읽는 지도다."],
   };
-  const persona = NEO_EXPERT_PERSONA[method] || "너는 '네오의 팩폭 작전실'의 사자 장군 네오다.";
+  const persona = NEO_EXPERT_PERSONA[method] || "너는 '네오의 팩폭 작전실'의 장군 네오다.";
   const coverage = NEO_DOMAIN_COVERAGE[method] || "[계산 확정값]에 실재하는 항목만 근거로 삼는다.";
   const starRule = starStrengthRuleFor(method);
   return [
