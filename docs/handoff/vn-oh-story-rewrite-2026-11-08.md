@@ -446,3 +446,10 @@ next: 4-② 언어별 변경/신규 비트 직접 번역 후 완결성 검사
 - verify:novel-player-start 통과. verify:novel-runtime는 옛 고정 EXPECTED_BEAT_COUNT=7844로 실패 → 검사 파일 지시대로 정본 7928로 수정 후 통과(shell 177,254 bytes / 73 episodes / 7,928 beats). 검사 약화 없이 개고 수량을 반영.
 - node --test __tests__/ui/novel-locales.test.mjs __tests__/ui/novel-language-switch.test.mjs __tests__/ui/novel-authored-merge.test.mjs __tests__/ui/novel-ui-copy.test.mjs → 15/15 통과.
 - 현재 main CI 9e8cec0a6 success: https://github.com/rei1237/codedestiny/actions/runs/42465450472 . cc1ae9598..origin/main 중 content/novel·lib/stories/vn·플레이어·빌드 변경 없음. 배포 직전 재확인.
+
+## 4-② 번역 구조·정확한 차이 감사
+- 기존 4언어의 sourceHash=34490a1621a056bc7c4d9c4f625bd71b787a7711fc83a5790846b911dc731be0는 cc1ae9598 원고 원문 SHA256와 일치. baseline과 현 정본 비교: 변경 1,302 + 추가 209 = 언어당 1,511비트, 삭제 125, 총 7,928비트. 제목·태그 변경 0, 텍스트 유지한 화자 단독 변경 0. 정확한 id는 docs/webnovel_review/vn-translation-delta-2026-11-09.json.
+- 게시 차단 이유: build-novel-runtime → localizeNovelRuntime가 파일 전체 sourceHash 및 episode/beat id·개수·번역 필드 완전성을 검사한다. 낡으면 manifest.availableLocales에서 제외(현재 ko만). hash만 새것으로 바꾸지 않고 바뀐 비트 직접 저작과 ID 재조립 뒤 게시한다.
+- 기존 번역 누락은 모든 원고 비트와 nm/skill/choice/ending 메타까지 최종 완결성 검사로 확인. sourceHash는 원고 bytes 기준, authored 행 해시는 해당 t의 UTF-8 기준.
+- prologue는 공용 prologue-001/002/003·metadata 문서이므로 언어별 en-prologue/ja-prologue/zh-prologue를 새로 저작하고, 조립 시 해당 언어의 새 prologue만 선택. 공용 기존 문서는 보존한다.
+- SEO 동반 점검: stories 공개 URL·제목·설명·canonical·hreflang·색인 구조는 불변, 본문 변경에 따른 sitemap lastmod는 생성기로 갱신. 정적 플레이어 기존 noindex,nofollow 유지.
