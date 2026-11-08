@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-09
-next: 4-② 언어별 변경/신규 비트 직접 번역 후 완결성 검사
+next: 4-③ 통합 검증 후 최신 main 전달 트리에서 4-④ 배포
 ---
 
 # VN 스토리 개선 (oh-story 활용) 인수인계
@@ -425,7 +425,7 @@ next: 4-② 언어별 변경/신규 비트 직접 번역 후 완결성 검사
 
 ## 단계 4 (2026-11-09)
 - [x] 4-① 호랑이 존댓말 전체 확인·EP.37/47/50 분량 경고
-- [ ] 4-② en / ja / zh-CN / zh-TW 직접 번역·용어집·누락 감사·게시 복구
+- [x] 4-② en / ja / zh-CN / zh-TW 직접 번역·용어집·누락 감사·게시 복구
 - [ ] 4-③ novel:build·story-sync·sitemap·check:fast·번역·플레이어 검사
 - [ ] 4-④ main 반영·CI·운영 배포·운영 재생/북마크/언어 확인
 
@@ -464,3 +464,11 @@ next: 4-② 언어별 변경/신규 비트 직접 번역 후 완결성 검사
 - 사용자 답변 원문: 「생성기로 충돌 해소 후 계속 (추천)」. 생성 기록은 최신 main 기준으로 두고 원고가 적용된 트리에서 생성기로 다시 만든다. 소스 충돌에는 이 승인을 확대하지 않는다.
 
 - 4-③ 추가: npm run verify:release(=deploy:critical) 종료0 통과. mock 핵심 테스트·결제/인증 회귀·typecheck·worker dry-run·strict-core 인코딩 포함. 실 LLM/실결제/운영 DB 쓰기는 없음. 상세 로그는 일시 .tmp/vn-finish/release-check.log(종료 정리 대상).
+
+## 4-② 완료 (2026-11-09)
+- EN 1,511 / JA 1,517 / zh-CN 1,511 / zh-TW 1,511비트 직접 검토·번역. JA 추가6개는 기존 tiger 정중체/여성1인칭 보정(ep-12a:21, ep-33:44, ep-36a:3/8, ep-38:86/107). CN/TW는7개가 기존 번역과 동일 의미라 출력문 동일.
+- 각 언어73화×7,928비트, 누락0. 삭제125id 제거, 미변경 보존 EN/CN/TW6,417 / JA6,411. assembleNovelAuthored 오프라인 조립만 사용. 외부번역 API·자동 번역기 실행0.
+- 번역 커밋 EN bfd5a422d/90bdcd1c3/e51265c46, JA f66f2cde2/b2c475c50/97c464c58/743a01fd2, ZH226379f10/6dd53b33d/2e7946687/1f4396e61.
+- 용어집·직접 번역/오프라인 조립 세부는 docs/webnovel_review/vn-translation-finish-2026-11-09.md.
+- novel:build에서 미게시 경고0, verify:story-sync73화7,928비트 통과, verify-novel-locale-completeness 네언어 완결성 통과.
+- 전달 트리 생성값 충돌은 승인받은 방식으로 main 쪽 원장 선택 후 sitemap:generate 실행하여 해결. b7029897a→88323a8ff, 나머지 c88bc4383까지6511b59b1, 0fc52190c까지4d49eba57. 다음 cherry-pick은0fc52190c 이후부터.
