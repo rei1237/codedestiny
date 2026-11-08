@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-08
-next: 7d-2 자미 심층(ziwei-deep) 모의 실행 + 실호출 1회 + build, 결과 기록 뒤 7단계 체크 (7d 진행 메모 참고)
+next: 8단계 숙요점 궁합 (6c sukuyo 문제 포함)
 ---
 
 # 3만원 이상 유료 LLM — 상품별 챕터·분량·PDF·전달 개선 인수인계
@@ -323,7 +323,7 @@ next: 7d-2 자미 심층(ziwei-deep) 모의 실행 + 실호출 1회 + build, 결
     - 실호출 1회(승인분, gemini-2.5-flash): completed, degraded 아님, finalIssues 없음. 총 39,042자(V2 31,145자), 장 10개, 전문가 4개. 장별 [2444, 2859, 4710, 2753, 3531, 3696, 2713, 2998, 3742, 2729], 평균 약 3,400자(목표 4,400). 호출 34회, 웨이브 34/52, 모두 STOP. 372.9초(약 6.2분), 가장 긴 호출 16.5초. 장 사이 반복 문단과 금칙어는 없다. 산출물: scratchpad `llm-sample/out/lifefortune-v3-*`.
     - 실호출에서 찾은 문제: 10장 중 9장의 b가 a의 첫 8~14문장을 그대로 다시 썼다(프롬프트에 a의 앞 900자를 넣었기 때문이다). 그래서 b가 반복 문단 검증에 걸려 재시도했고, 9회 호출이 더 들었다. 조립 dedupe가 베낀 문장을 빼서 최종본은 깨끗하지만, b가 보탠 새 글은 장마다 약 1,100~1,500자뿐이었다. `2f30a43e4`에서 프롬프트에는 a 요약과 끝 400자만 넘기고, b 결과는 검증 전에 a와 겹치는 문장을 빼도록 고쳤다. 저장된 b 본문 10개를 오프라인 재생하면 dedupe 뒤에도 모두 1,539~3,278자로 하한 1,200을 넘는다. 그래서 재시도 9회는 없어졌을 것으로 본다. **수정 뒤 실호출은 하지 않았다.** 다시 돌리려면 사용자 승인이 필요하다.
     - 남은 위험: 장 평균이 아직 목표 4,400자보다 약 1,000자 짧다. degraded 배달은 섹션이 빠진 채 나갈 수 있다. 인생의 책 장에도 조립할 때 `evidenceRefs`(빈 배열일 수 있음) 필드가 붙는다. 클라이언트 상한 36+36은 V3 최대 52웨이브보다 작아 나머지를 cron에 기댄다.
-- [ ] 7. 자미두수 상담 / 심층 PDF (무성)
+- [x] 7. 자미두수 상담 / 심층 PDF (무성)
 - [ ] 8. 숙요점 궁합 (서한비)
 - [ ] 9. 점성술 (윤달)
 - [ ] 10. 베다점 / 나크샤트라 2종 (윤달)
@@ -602,7 +602,7 @@ next: 7d-2 자미 심층(ziwei-deep) 모의 실행 + 실호출 1회 + build, 결
   - 하네스 `__tests__/ui/ziwei-deep-paid-delivery.behavior.test.js`: fixture ctx에 판 1 스텁(`ziweiDeepDeliveryV2Enabled:()=>false` 등)을 넣었다. 판 2 테스트 3개(구제 배달·환불 0, 건너뛰기/전부 빈 장이면 환불, 말투 이탈 [보정] 힌트)는 실제 모듈을 덮어 넣는다. 61개 통과
   - 보관함: `app/records/view/SavedZiweiDeepPdfButton.tsx`(`exportZiweiReportPdf`, 무성 byline·표지는 캐릭터 플래그가 켜졌을 때만). `SavedServiceReading.tsx` ziwei 분기에서 `view.fields.includes('chapters')`일 때만 단다(ziwei-deep만 해당)
   - 확인: tsc 통과, jest worker ziwei·record·paid-report 18개 파일 201개 통과, node --test ui ziwei·record 152개 통과. verify 실패 4개(all-paid-services-payment-flow: MONGO_URI 없음, fusion-paid-efficiency, ziwei-brightness-constraints, ziwei-deep-paid-reopen-browser: structuredClone 없음)는 stash한 기준에서도 실패하는 기존 문제다
-- [ ] 7d. tsc·jest·node --test·verify·build, 모의 실행, 실호출 상품당 1회, 결과 기록
+- [x] 7d. tsc·jest·node --test·verify·build, 모의 실행, 실호출 상품당 1회, 결과 기록
   - 7d-1 완료(2026-11-08): 검증은 7c 메모와 같다(tsc 통과, jest 201, node --test 152, verify 실패 4개는 기존 문제).
   - 하네스(커밋 안 함): `D:/Development/Temp/claude/ec29f026d20d029c/05a9e1e1-86ab-494f-9630-9a5b686c0c61/scratchpad/ziwei-live/`
     - `register.mjs`/`hooks.mjs`가 db·auth·models·entitlement·pass·moonstone·billing·cms·cache·claim·portone·payment-refund를 `stubs/`로 바꾼다. `stubs/models.mjs`는 메모리 컬렉션(ZiweiAiConsultation, ZiweiDeepReport, ServiceExecutionTransaction)
@@ -610,12 +610,21 @@ next: 7d-2 자미 심층(ziwei-deep) 모의 실행 + 실호출 1회 + build, 결
     - 함정: Gemini 호출 전에 `:countTokens`를 부른다. 모의 fetch는 `{totalTokens}`로 답해야 한다(없으면 LLM_INPUT_TOKEN_COUNT_UNAVAILABLE). 그룹 판별은 `generationConfig.responseSchema.properties.sections.properties`의 키로 한다. 섹션 본문은 `consultation.messages` 마지막 assistant 메시지의 JSON 안에 있다
   - ziwei-ai 모의: 완료, 판 2, 요청 12회, 생성 호출 12회, 섹션 19개, 22,758자, 질문 재인용 0
   - ziwei-ai 실호출(gemini-2.5-flash, 사전 승인 "llm 샘플 생성 허가한다" 2026-11-08): 완료, 판 2, 요청 8회, 생성 호출 8회(countTokens 포함 fetch 16), 172초, 전부 STOP, 섹션 19개, 33,496자(assistant 본문 35,203자). nature만 2회(길이 수리 1회), meta 1회. 섹션 길이 309자(reading_guide)~4,240자(domain_matrix). 반복 없음, 금칙어 없음, 환불 없음. 질문 재인용은 nature 그룹(core_answer) 안에서만 2건이고 다른 그룹에는 없다. personality_profile이 질문 공감으로 열고 타고난 본성(명궁 태음 화과…)으로 이어진다. meta 키: name·gender·mingong·shengong·sihua·dayun·scores
-  - 7d-2 남은 일(다음 에이전트):
-    - 같은 로더로 `run-deep.mjs` 작성. `resolveGenerateAccess`(route 631행)는 `verifyAccessToken`, PaidExecutionRecord·Payment·PointHistory·MonthlyCreditLedger의 findOne(전부 null), `isAdmin(auth)`이면 바로 통과한다. 관리자 auth 스텁이 가장 간단하다. 아니면 behavior 테스트처럼 vm으로 실제 `generateChapter`·`callGeminiText`·판 2 모듈을 돌린다
-    - 모의 실행 뒤 실호출 1회. 상태·요청 수·호출 수·초·장 수·장별 글자 수·salvaged/skipped·반복·overview 밖 질문 인용·환불을 적는다
-    - build: `ALLOW_DEV_SERVER_DURING_BUILD=1`, 바뀐 sitemap·shell 파일은 되돌린다
-    - 끝나면 7d와 7단계를 체크하고 next를 "8단계 숙요점 궁합 (6c sukuyo 문제 포함)"으로 바꾼다
-  - 위험: 실호출 표본 1개뿐, reading_guide가 짧다(309자), salvaged 표시가 provider에 있다(스키마 strict)
+  - 7d-2 완료(2026-11-08)
+    - 하네스 `run-deep.mjs [--live|--dirty]`: 관리자 auth 스텁(`globalThis.__authRole`)으로 `resolveGenerateAccess` 통과. `stubs/portone.mjs`에 `cancelPortOnePayment` 추가가 필요했다. 결과는 `out-deep-mock/`·`out-deep-live/`·`out-deep-mock-dirty/`
+    - 모의: 완료, 판 2, 요청 15회, 생성 15회, 15장, 39,912자, salvaged·skipped·환불 0, 질문은 overview 프롬프트에만
+    - 실호출(gemini-2.5-flash, 같은 사전 승인): 완료, 판 2, 요청 15회(장당 1회), 생성 15회(countTokens 포함 fetch 30), 207초, 전부 STOP, 요청당 8~17초. 15장 43,549자. salvaged·skipped·softRepair 0, degraded 아님, 환불 0, HTTP 200. 장 사이 중복 문장 없음. 질문 그대로 인용 0, "이직"은 overview의 "● 질문에 대한 답"에만
+    - 장별 글자: overview 2764 / ming 2755 / siblings 3008 / spouse 2100 / children 3053 / wealth 1776 / health 3104 / travel 2789 / friends 2844 / career 2479 / property 3499 / fortune 2437 / parents 3056 / sihua 4193 / masterplan 3692
+    - 결함과 수정 `cf696e3a2`: 15장 모두 `**굵게**` 별표가 그대로 남았고(화면·PDF에 노출), wealth·sihua 첫 줄이 "제N장 · …" 제목 되풀이였다. 판 2만 `tidyZiweiDeepBody`(worker/lib/ziwei-deep-delivery-v2.js)로 걷어 낸다. 테스트 `__tests__/worker/ziwei-deep-delivery-v2-tidy.test.js` 3개 + v1 바이트 테스트 통과, deep behavior `node --test` 61개 통과, `--dirty` 모의(별표·제목 줄 주입)에서 최종 본문 별표 0·제목 줄 0. **수정 확인용 실호출 2회차가 필요하다(이번에는 하지 않음, 승인은 상품당 1회)**
+    - build: `ALLOW_DEV_SERVER_DURING_BUILD=1 npm run build` EXIT 0. 바뀐 sitemap·shell·js 파일은 `git checkout --`로 되돌렸다(빌드는 worker 수정 전에 시작, worker는 Next 빌드 대상 아님)
+    - 조판 PDF(하네스 `pdf/make.mjs`, Paperlogy 글꼴, 표지 그림 없이, pdf.js로 쪽 이미지 확인): ziwei-ai 43쪽 19장, 표지·차례·"1부 · 타고난 본성 · 무성" 키커와 "01 이 사람의 핵심 성향" 머리 정상. ziwei-deep 48쪽 15장, 차례 정상, 3쪽 1장 제목 정상. 17쪽 제목 중복·36쪽 `**`는 위 수정 대상(새 출력으로 다시 렌더하지는 않음)
+  - 위험·후속
+    - 실호출 표본은 상품당 1개뿐. 수정 뒤 ziwei-deep 실호출 재확인 필요
+    - wealth(1776)·spouse(2100)가 장 minChars 미만. 판 2에는 길이 수리 경로가 없다(총합은 34,000 이상)
+    - 말투가 합니다체에 "~요" 끝맺음이 섞인다(softRepair 기준에는 안 걸림)
+    - 이미 저장된 판 1·판 2 리포트의 `**`는 그대로다(새 생성만 정리)
+    - ziwei-ai 실호출에도 `**` 1건, ziwei-ai PDF 차례 모든 줄 끝에 "· 무성"이 붙는다(겉모양 문제)
+    - reading_guide가 짧다(309자), salvaged 표시가 provider에 있다(스키마 strict)
 
 ## 단계별 결과
 (단계를 마칠 때마다 커밋 SHA, 바꾼 파일, 검증 결과, 남은 일을 여기에 적는다.)
