@@ -3,12 +3,24 @@
   "featureKey": "love-secret-ai-consultation",
   "title": "연애 비책",
   "hook": "왜 비슷한 관계를 반복할까요? 나의 연애 성향과 관계의 거리감을 함께 살펴보세요.",
-  "chaptersLabel": "연이와 서한비가 나눠 쓰는 연애 비책 28장",
+  "chaptersLabel": "연이와 서한비가 나눠 쓰는 연애 비책 30장",
   "masters": [
     "yeoniLove",
     "hanbiLove"
   ],
   "chapters": [
+    {
+      "title": "타고난 연애 기질 — 당신이 사랑하는 방식의 원형",
+      "detail": "타고난 연애 기질",
+      "master": "yeoniLove",
+      "gain": "질문에 답하기 전에, 일간·오행·십성으로 당신이 사랑하는 방식의 원형부터 비춰 드려요"
+    },
+    {
+      "title": "그래서 이런 순간 마음이 먼저 움직여요",
+      "detail": "타고난 연애 기질",
+      "master": "yeoniLove",
+      "gain": "그 기질이 실제 연애 장면에서 어떻게 드러나는지, 고개가 끄덕여지는 순간들로 풀어 드려요"
+    },
     {
       "title": "현재 관계의 자리와 질문의 핵심",
       "detail": "핵심 연애운과 질문의 답",
