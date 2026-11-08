@@ -14,12 +14,20 @@
       "Visible locale quality plus i18n deployment status before any noindex list",
       "Separate production approval and 2-4 week index observation"
     ],
-    "productionPromotion": "not dispatched"
+    "productionPromotion": "not dispatched",
+    "relationshipFollowup": {
+      "implementationSha": "2d9042d91",
+      "scope": "9 shared Korean relationship strings and corresponding runtime dictionary use target-date-neutral 기준일; calculations/keys/other locales unchanged",
+      "checks": "18 targeted tests; marker-key integrity; all4775 Node tests; lint/typecheck/policy/mock/worker dry-run/encoding passed. Local Jest interrupted after >5min without summary; check:fast exit1. Official CI pending."
+    }
   },
   "seoBundle4SearchEvidence20261109": {
     "status": "main-delivered-awaiting-ci-and-browser",
     "mainDeliverySha": "770012970f3723cca5880407c90fbcf9de2e1c05",
-    "lastObservedCi": { "url": "https://github.com/rei1237/codedestiny/actions/runs/42513561435", "status": "in_progress" },
+    "lastObservedCi": {
+      "url": "https://github.com/rei1237/codedestiny/actions/runs/42513561435",
+      "status": "in_progress"
+    },
     "rawDataRoot": "D:/Development/seo-data/code-destiny/2026-11-09",
     "manifest": "D:/Development/seo-data/code-destiny/2026-11-09/manifest.csv",
     "gscEnd": "2026-11-06",
@@ -54,7 +62,13 @@
       "headingSource": "lib/fortune-landings.mjs; existing visible 사주 풀이 H1 retained, fallback H1 and breadcrumb aligned",
       "policy": "Existing free/paid scopes preserved; no pricing or entitlement changes."
     },
-    "unavailableSources": ["Naver login pending", "GA4 not collected", "Cloudflare not collected", "Naver keyword tool not collected", "Bing/SERP/Trends not collected"],
+    "unavailableSources": [
+      "Naver login pending",
+      "GA4 not collected",
+      "Cloudflare not collected",
+      "Naver keyword tool not collected",
+      "Bing/SERP/Trends not collected"
+    ],
     "indexChanges": "none",
     "verification": {
       "lint": "passed in check:fast",
@@ -151,7 +165,10 @@
     "productionRun": "https://github.com/rei1237/codedestiny/actions/runs/42505123236",
     "documentationDeliveryGate": {
       "state": "resolved by upstream; final SEO records ready for delivery",
-      "approval": {"date": "2026-11-09", "userText": "한 줄 수정과 후속 push 승인"},
+      "approval": {
+        "date": "2026-11-09",
+        "userText": "한 줄 수정과 후속 push 승인"
+      },
       "resolutionCommit": "9e7ee899717beab7a6d168a32796ab8c13318a0f",
       "resolutionCi": "https://github.com/rei1237/codedestiny/actions/runs/42507044209",
       "resolutionCiConclusion": "success",
@@ -5255,5 +5272,55 @@
         }
       }
     }
+  },
+  "seoAdditionalEvidence20261109": {
+    "status": "partial-source-collection",
+    "rawDataRoot": "D:/Development/seo-data/code-destiny/2026-11-09",
+    "manifestEntries": 389,
+    "latestConfirmedCi": {
+      "sha": "4ee6c81148d5ccc19afbd0143232aa81d4ad0bcb",
+      "url": "https://github.com/rei1237/codedestiny/actions/runs/42515132032",
+      "conclusion": "success"
+    },
+    "naver": {
+      "performanceEnd": "2026-11-08",
+      "nativeCsv": 7,
+      "topTables": "Top30 queries and URLs, 30/90 days; capped",
+      "aligned28d": {
+        "start": "2026-10-10",
+        "end": "2026-11-06",
+        "clicks": 3308,
+        "impressions": 523428
+      }
+    },
+    "keywords": {
+      "nativeXlsx": 10,
+      "rowsIncludingCrossGroupDuplicates": 5923,
+      "toolCapPossible": "g08, 1000 rows"
+    },
+    "ga4": {
+      "measurementId": "G-FMHV4ZHY3G",
+      "propertyId": "526361229",
+      "timezone": "Asia/Seoul",
+      "currency": "USD",
+      "period": [
+        "2026-10-10",
+        "2026-11-06"
+      ],
+      "sourceMediumRows": 41,
+      "landingPathRows": 101,
+      "method": "v2 visible aggregate transcriptions and screenshots; native CSV unavailable",
+      "caveat": "Initial provisional captures mixed transitional rows and must not be analyzed. Displayed 815 sessions; source row sum816 and landing813; no corrections. All traffic, not organic-only."
+    },
+    "cloudflare": {
+      "method": "read-only UI settings and rolling30d sampled security event logs; IP and request identifiers omitted",
+      "botFightMode": false,
+      "browserIntegrityCheck": false,
+      "verifiedBotSkipRule": true,
+      "sample": "Googlebot25 (24Skip/1Block), Yeti25Skip, bingbot25Skip, Daumoa0 displayed rows; not total event counts",
+      "blockedUaDetail": "music.code-destiny.com/wp-config.php; AS400529 Infraly LLC; UA string is not verified crawler identity."
+    },
+    "remaining": "GA4 additional periods/channel cross-tabs/event and link configuration; Cloudflare remaining settings; GSC additional index reasons and inspections; P1 sources",
+    "externalChanges": "No console submissions or account/advertising/security configuration changes."
   }
 }

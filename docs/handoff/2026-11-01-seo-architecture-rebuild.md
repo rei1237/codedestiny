@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-11-09
-next: "⑤ 1차 최종 기록 pre-push·main push 뒤 최종 CI를 1회 확인. 네이버 로그인 회신 뒤 Space65 재개·남은 P0 원자료·UI 확인. 관계 마커·차별화·번역 noindex·운영 승격은 아직 남음."
+next: "2d9042d91 관계 문구와 후속 수집 기록 pre-push·main 전달 후 24sign 내일 준비 원고 적용·본문 차별화·SSR 재측정·UI 확인. Space65 agent 제어, 신규 round169부터. 번역 품질·④⑤ 승인 패킷·운영 승격은 남음."
 ---
 
 # SEO 아키텍처 재구축
@@ -19,6 +19,20 @@ next: "⑤ 1차 최종 기록 pre-push·main push 뒤 최종 CI를 1회 확인. 
 4. 실제 새 수집본은 `D:\Development\seo-data\code-destiny\2026-11-09\`다. `README.md`와 `manifest.csv`를 정본으로 읽는다. 이전 날짜 폴더로 소급 표기하지 않는다.
 
 ## 지금 상태
+
+### 2026-11-09 로그인 후 추가 수집·⑤ 관계 문구
+
+- 사용자 원문: “네이버 로그인 완료했어. 최신 CI 결과 확인하고, 남은 검색 원자료 수집과 ④·⑤ SEO 작업 계속 진행해줘.” 기존 main4ee6c81148d5ccc19afbd0143232aa81d4ad0bcb의 CI42515132032 성공 확인. 아래 과거 in_progress·네이버 로그인 대기 기록을 대체한다.
+- 사용자 확인 뒤 Ego Space65를 round44에서 takeOver했다. 현재 agent 제어이며 p1=GA4 방문 페이지 마지막 쪽, p2=Cloudflare 보안 이벤트 Googlebot 상세(로컬 표시만 개인정보 가림). 마지막 round168, 다음 신규169. 새 공간을 만들거나 예전 라운드를 재실행하지 않는다. 이 작업의 수집·UI 확인이 끝나기 전 finish하지 않는다.
+- 외부 원자료 정본 README·manifest 갱신: `D:/Development/seo-data/code-destiny/2026-11-09/`。GSC29ZIP/189CSV에 네이버 nativeCSV7개, 검색어/URL Top30×30/90일 전사, 진단·robots·6URL 검사, 키워드 nativeXLSX10개(중복 포함5,923행), GA4 및 Cloudflare 전사를 추가해 manifest389항목. 키워드 g08=1000행은 도구 상한 가능성 Y. 원본 SHA256·행/열 검증 보존.
+- 네이버 성과 END11/08,90일08/11~11/08=8,147클릭/1,478,702노출。GSC 정렬28일10/10~11/06=3,308/523,428。내일 상세가 상위 URL 다수라 Google 저성과만으로 noindex/폐기하지 않는다. Top30과 진단의 일부 페이지는 전수 자료가 아니다. 진단 최신11/07, 과거 경로는 현재 공개 응답을 확인하기 전 수정하지 않는다.
+- GA4 ID G-FMHV4ZHY3G의 property526361229(FortuneDevelope), Korea·USD 확인. 28일10/10~11/06 소스/매체41행5쪽·방문 경로101행11쪽은 `_v2_transcribed`만 분석에 사용。초기 캡처는 페이지 전환 중 옛 데이터가 섞였으므로 잠정 자료로만 보존。v2는 그리드 안정/네트워크 유휴 후 수집。표시815세션에 행합계816·813으로 차이 있어 보정하지 않음。전체 트래픽이며 organic 수익으로 해석하지 않음。nativeCSV2회 timeout, 다른 기간·채널 교차·이벤트/연결 설정은 미완료.
+- Cloudflare 읽기 전용: Bot Fight Mode/BIC/관리형robots 동기화/Under Attack Mode 꺼짐, Allow Verified Bots 활성。활성 속도 제한은 IP당600/10초 초과→10초 차단。4봇 문자열별 최근30일 표본: Googlebot25(24Skip/1Block),Yeti25Skip,bingbot25Skip,Daumoa 표시0행。전체 건수로 환산하지 않음。Googlebot 차단 상세는 music.code-destiny.com/wp-config.php,AS400529 Infraly,LLC,관리형 규칙。UA 문자열은 신원 증명이 아니며 본 서비스 SEO 경로 차단 증거로 보지 않음。IP·Ray ID 제외/PNG 가림。설정 변경 없음。
+- 브라우저 이벤트 전체 dump는 요청 메타데이터를 출력할 수 있으므로 금지。이전 round71에서 불필요한 메타데이터가 도구에 출력됐지만 파일/커밋 저장하지 않았고 사용자에게 알림。JavaScript alert는 events에서 Page.javascriptDialogOpening.message만 추출하고 나머지 값을 출력하지 않음。개인 출생정보 쿼리 URL·개별 사용자 자료 다운로드 금지。
+- ⑤ 관계 표현 구현2d9042d91: day-relation.ts와 ko.json의9문구를 오늘→기준일로 맞춤。계산/타언어/마커키는 보존。SSR↔실제 resolveKey 동일성+대상일 중립성(144동물조합·별자리/잘못된 날짜)을 기존 테스트에 추가。target18개·마커48변수/21템플릿×12locale 통과。check:fast 첫 실행은 sitemap서명 drift, 공식 생성 후 재실행은 lint/typecheck/Node4775/4775·정책/mock/Worker dry-run/encoding 통과。로컬 Jest는5분 이상 요약 없이 실행돼 이 check13892의 Jest36924/3472만 신원 확인 후 중단해 exit1。전체 성공으로 포장하지 않고 공식CI가 최종 게이트。
+- 다음 차별화 원고는 외부 `_analysis/tomorrow-preparation-additions.mjs`에22sign×3문단으로 준비했으나 아직 소스 적용하지 않음。기존pig/snake 보존。내일 상시 프로필은 요약+오늘의 profile 앵커로 연결해 반복을 줄이고, 날짜별 원고·점수·관계는 유지하는 방향。상세 기간 도입은 period-readings.ts의24tomorrow문장을 직접 다듬고 공용 문자열 전역 치환하지 않음。
+- UI 검증은 아직 안 함。design-canon.md:68에 실제 화면을 visual-checker 에이전트가 판정하도록 명시돼 있으므로 캡처 뒤 해당 검토만 위임 가능。메인 세션은 UI 스크린샷을 직접 읽지 않음。mock/네트워크 가드, 기존 Space65 재사용。
+- ④⑤ 운영 승격은 새 묶음별 승인 필요。③ 승인/기존 VN 한 줄 수정을 확대 해석하지 않는다。개발/원자료 수집은 계속하며 전체 SEO 완료/워크트리 배수로 처리하지 않는다。
 
 ### 2026-11-09 검색 원자료·④ 로컬 구현
 
