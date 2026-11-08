@@ -36,7 +36,7 @@ try{
   await page.waitForFunction(()=>typeof window.cdOneStepFreeSajuEntry==='function');
   // 무료 사주 카드(퀵 서비스)는 연이의 정원 안이다 — 사용자처럼 정원을 먼저 연다.
   if (await page.locator('#cdhMore:not([open]) > summary').count()) await page.locator('#cdhMore > summary').click();
-  await page.locator('#cdQuickServices a[data-action="cdOneStepFreeSajuEntry"]').click();
+  await page.locator('#cdQuickServices a[data-action="cdOneStepFreeSajuEntry"], .yh-entries a[data-action="cdOneStepFreeSajuEntry"]').filter({visible:true}).first().click();
   await page.locator('#birthDate').fill('19900515');
   await page.locator('#nameInput').fill('입력복원검증');
   await page.locator('#run-btn').click();
@@ -54,7 +54,7 @@ try{
   await page.reload({waitUntil:'domcontentloaded'});
   // 무료 사주 카드(퀵 서비스)는 연이의 정원 안이다 — 사용자처럼 정원을 먼저 연다.
   if (await page.locator('#cdhMore:not([open]) > summary').count()) await page.locator('#cdhMore > summary').click();
-  await page.locator('#cdQuickServices a[data-action="cdOneStepFreeSajuEntry"]').click();
+  await page.locator('#cdQuickServices a[data-action="cdOneStepFreeSajuEntry"], .yh-entries a[data-action="cdOneStepFreeSajuEntry"]').filter({visible:true}).first().click();
   await page.waitForFunction(()=>document.getElementById('birthDate').value.replaceAll('-','')==='19900515');
   assert.equal(await page.locator('#cdLoginRequiredModal.is-open').count(),0);
   await page.locator('#run-btn').click();

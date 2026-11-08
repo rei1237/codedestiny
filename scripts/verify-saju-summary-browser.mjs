@@ -124,9 +124,9 @@ try {
   page.on('console', message => { if (message.type() === 'error' && /Summary|renderSummary/.test(message.text())) console.log(message.text()); });
   await page.goto(origin, {waitUntil:'domcontentloaded'});
   await page.waitForFunction(() => typeof window.cdOneStepFreeSajuEntry === 'function');
-  // 무료 사주 카드(퀵 서비스)는 연이의 정원 안이다 — 사용자처럼 정원을 먼저 연다.
+  // 무료 사주 입구: 700px 미만은 첫 줄 7개 입구(.yh-entries)만 보이고 아래 '무료로 먼저' 격자는 중복이라 숨긴다(6e44d94eb). 화면에 보이는 쪽을 누른다.
   if (await page.locator('#cdhMore:not([open]) > summary').count()) await page.locator('#cdhMore > summary').click();
-  await page.locator('#cdQuickServices a[data-action="cdOneStepFreeSajuEntry"]').click();
+  await page.locator('#cdQuickServices a[data-action="cdOneStepFreeSajuEntry"], .yh-entries a[data-action="cdOneStepFreeSajuEntry"]').filter({visible:true}).first().click();
   await page.locator('#nameInput').fill('회귀검증');
   await page.locator('#birthDate').fill('1990-05-15');
   if (alreadyUnlocked) await page.evaluate(() => {
