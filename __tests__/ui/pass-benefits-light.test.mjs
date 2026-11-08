@@ -56,7 +56,7 @@ test('offer math', () => {
     assert.equal(offer.consultLimit, plan.monthlyLimitCoin * 100);
     const panel = text(doc.querySelector('#t-panel-' + index));
     assert.ok(panel.includes(`최대 ${Math.floor((1 - plan.wonPrice / value) * 100)}% 절약`), panel);
-    assert.equal(doc.querySelector(`#t-panel-${index} .pb__prices s`).textContent, won(value));
+    assert.equal(doc.querySelector(`#t-panel-${index} .pb__comparison s`).textContent, won(value));
     assert.equal(doc.querySelector(`#t-panel-${index} .pb__prices strong`).textContent, won(plan.wonPrice));
   }
 });
@@ -65,24 +65,26 @@ test('banner and panel copy', () => {
   const data = generated();
   const doc = body(renderPassBenefits('honey', 't'));
   const banner = doc.querySelector('.pb__banner');
-  assert.equal(text(banner.querySelector('strong')), `작은 꿀단지 하나면, 라이트 운세 ${data.count}종이 전부 열려요.`);
-  assert.ok(text(banner).includes('대표 상담을 제외한 라이트 운세를 횟수 제한 없이 이용하세요. 중간·큰·패밀리 꿀단지에도 똑같이 포함돼요.'));
-  assert.ok(banner.compareDocumentPosition(doc.querySelector('.pb__selection')) & 4, 'banner sits above the chooser');
-  assert.equal(banner.querySelector('a').getAttribute('href'), '/terms/#terms-revision');
-
+  assert.match(text(banner.querySelector('p')), new RegExp('라이트 운세 ' + data.count + '종'));
+  assert.deepEqual([...banner.children].map(line => line.getAttribute('aria-hidden')), ['false','true','true']);
+  assert.ok(banner.compareDocumentPosition(doc.querySelector('.pb__selection')) & 4);
+  assert.equal(doc.querySelector('.pb__revision').getAttribute('href'), '/terms/#terms-revision');
+  const night = body(renderPassBenefits('honey', 't', { host:'yeongnyangi' }));
+  assert.equal(night.querySelector('.pb__line b').textContent, '영냥이');
+  assert.equal(doc.querySelector('.pb__line b').textContent, '연이');
   for (const [index, offer] of passBenefitOffers('honey').entries()) {
     const panel = doc.querySelector('#t-panel-' + index);
     const includes = text(panel.querySelector('.pb__includes'));
     assert.ok(includes.includes(`라이트 운세 ${data.count}종 횟수 제한 없이`), includes);
-    assert.ok(includes.includes(`${won(data.valueKRW)} 상당`), includes);
+    assert.ok(text(panel.querySelector('.pb__comparison')).includes(`${won(data.valueKRW)} 상당`));
     assert.ok(includes.includes('전문가 상담 이용 한도'), includes);
     assert.ok(includes.includes(won(offer.consultLimit)), includes);
-    assert.ok(includes.includes(offer.family ? '건당 금액 상한 없음' : `건당 ${won(offer.cap)} 이하`), includes);
-    // 금액의 근거는 접힌 조건 안이 아니라 금액 바로 곁에 있어야 한다(스펙 7.1).
+    assert.ok(text(panel.querySelector('.pb__conditions')).includes(offer.family ? '건당 금액 상한 없음' : `건당 ${won(offer.cap)} 이하`), includes);
+    // 비교액과 그 근거는 같은 영역에서 함께 보인다.
     const basis = [...panel.querySelectorAll('.pb__terms')].find((node) => node.textContent.includes('각 1회'));
     assert.equal(text(basis), '라이트 운세 각 1회와 상담 한도를 모두 이용했을 때의 단건 가격 비교예요.');
-    assert.equal(basis.closest('details'), null, 'the basis stays visible');
-    assert.equal(text(panel.querySelector('.pb__prices span')), '단건 결제 기준 이용 가치');
+    assert.equal(basis.parentElement, panel.querySelector('.pb__comparison s').parentElement, 'the explanation travels with the comparison price');
+    assert.equal(text(panel.querySelector('.pb__comparison span')), '단건 결제 기준 이용 가치');
     const conditions = text(panel.querySelector('.pb__conditions'));
     if (offer.family) assert.doesNotMatch(conditions, /대표 상담은 이 꿀단지로/);
     else assert.ok(conditions.includes(`건당 ${won(offer.cap)}을 넘는 대표 상담은 이 꿀단지로 이용할 수 없어요.`), conditions);
@@ -103,7 +105,7 @@ test('the included list names every light fortune once', () => {
 test('korean-only list stays on the surface other languages never see', () => {
   const doc = body(renderPassBenefits('honey', 't'));
   assert.ok(doc.querySelector('.pb__light-list ul[data-cd-korean-only]'));
-  assert.equal(doc.querySelectorAll('[data-cd-korean-only]').length, 1);
+  assert.ok(doc.querySelector('.pb__scene[data-cd-korean-only]'));
   assert.match(read('styles/pass-benefits.css'), /html:not\(\[lang\^="?ko"?\]\) \.cdh \.pb\{display:none\}/);
 });
 

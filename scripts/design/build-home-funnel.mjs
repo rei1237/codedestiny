@@ -311,7 +311,7 @@ function localizedPassBenefits() {
     const nameKey = 'home.overseasCopy.pass' + offer.id[0].toUpperCase() + offer.id.slice(1);
     labels.set(offer.name + ' 이용권 확인하기', { key: 'home.benefitsCopy.cta', values: { name: '@' + nameKey } });
   }
-  const dom = new JSDOM(renderPassBenefits('honey', 'ggul-honey-pass', { ctaBelowPrice: true }));
+  const dom = new JSDOM(renderPassBenefits('honey', 'ggul-honey-pass', { host: 'ggulggul' }));
   try {
     const walker = dom.window.document.createTreeWalker(dom.window.document.body, dom.window.NodeFilter.SHOW_TEXT);
     const nodes = [];
@@ -337,7 +337,7 @@ function localizedPassBenefits() {
     return dom.window.document.body.innerHTML;
   } finally { dom.window.close(); }
 }
-vars.pass = '<link rel="stylesheet" href="/styles/pass-benefits.css?v=build-000000000000">' + localizedPassBenefits() + `<section class="cdh-pass" data-cd-localized-pass aria-labelledby="cdhPassTitle" data-design-marker="moonlight-pass-banner-v20260626">
+vars.pass = '<script type="module" src="/js/core/pass-duet.js?v=build-000000000000"></script><link rel="stylesheet" href="/styles/fonts-yeongnyangi.css?v=build-000000000000"><link rel="stylesheet" href="/styles/pass-benefits.css?v=build-000000000000">' + localizedPassBenefits() + `<section class="cdh-pass" data-cd-localized-pass aria-labelledby="cdhPassTitle" data-design-marker="moonlight-pass-banner-v20260626">
   <div class="cdh-pass__intro">
     <img class="cdh-pass__mascot" src="/images/home/honey-pot-duo-240.webp" srcset="/images/home/honey-pot-duo-240.webp 240w, /images/home/honey-pot-duo-480.webp 480w" sizes="(max-width: 640px) 104px, 168px" alt="꿀단지 하나를 함께 든 꽃돼지 연이와 영냥이" data-cd-trans-attr="alt:home.gardenCopy.passMascotAlt" width="240" height="240" loading="lazy" decoding="async">
     <div class="cdh-pass__copy">

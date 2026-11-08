@@ -39,7 +39,16 @@ for (const channel of ['chrome', 'msedge']) {
       await letter.waitFor({ state: 'visible' });
       assert.equal(await letter.evaluate(node => node.open && getComputedStyle(node).position !== 'fixed'), true);
       const pass = main.locator('.pb--honey');
-      if (!await pass.isVisible()) await main.locator('.yh-secondary:has(.pb) > summary').click();
+      assert(await pass.isVisible(), 'pass is inline on both mobile and desktop');
+      const dialogue = pass.locator('cd-pass-duet');
+      await dialogue.locator('[data-next]').waitFor({ state: 'visible' });
+      assert.equal(await dialogue.locator('[data-play]').innerText(), '자동 재생', 'reduced motion starts paused');
+      const selectionY = () => pass.locator('fieldset').evaluate(n => n.getBoundingClientRect().top - n.closest('.pb').getBoundingClientRect().top);
+      const beforeDialogue = await selectionY();
+      for (let index = 0; index < 3; index++) {
+        await dialogue.locator('[data-next]').click();
+        assert.equal(await selectionY(), beforeDialogue, 'changing dialogue keeps the selector in place');
+      }
       for (const choice of await pass.locator('.pb__choice').all()) {
         await choice.click();
         const name = await choice.locator('strong').innerText();

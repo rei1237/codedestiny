@@ -288,7 +288,7 @@ async function assertEssentials(page, label) {
           const parse = (c) => { const n = (c.match(/-?[0-9.]+/g) || []).map(Number); return { a: n.length > 3 ? n[3] : 1 }; };
           const backdrop = (node) => { for (let el = node; el; el = el.parentElement) { const bg = getComputedStyle(el).backgroundColor; if (parse(bg).a >= 0.5) return bg; } return 'rgb(255, 255, 255)'; };
           const pair = (selector) => { const node = document.querySelector(selector); return node ? { selector, color: getComputedStyle(node).color, background: backdrop(node) } : { selector, missing: true }; };
-          return ['#cdSignatureConsult h2', '.cdh-free h2', '.cdh-free-card', '.cdh-all-cta__btn', '.cdh-all-cta__label', '.cdh-links a', '.cdh-free-card__copy strong', '.cdh-story__label strong', '#cdhPass .pb__intro h2', '#cdhPass .pb__prices strong', '#cdhPass .pb__terms', '#cdhPass .pb__cta'].map(pair);
+          return ['#cdSignatureConsult h2', '.cdh-free h2', '.cdh-free-card', '.cdh-all-cta__btn', '.cdh-all-cta__label', '.cdh-links a', '.cdh-free-card__copy strong', '.cdh-story__label strong', '#cdhPass .pb__scene h2', '#cdhPass .pb__prices strong', '#cdhPass .pb__includes li', '#cdhPass .pb__cta'].map(pair);
         });
         for (const item of pairs) {
           assert.ok(!item.missing, `${width}px ${mode} ${item.selector} exists`);

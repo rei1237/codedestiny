@@ -307,11 +307,11 @@ html.cdh-input-open body .cdh-input-return:focus-visible{outline:3px solid var(-
 }
 .cd-consult-letter summary::-webkit-details-marker { display: none; }
 .cd-consult-letter summary svg { width: 24px; height: 24px; fill: none; stroke: var(--cdh-gold); stroke-width: 1.5; }
-.cd-consult-letter summary::after, .yh-home .pb__light-list summary::after {
+.cd-consult-letter summary::after {
   content: ""; width: 8px; height: 8px; margin-inline: auto 4px;
   border: solid currentColor; border-width: 0 1.5px 1.5px 0; transform: rotate(45deg);
 }
-.cd-consult-letter[open] summary::after, .yh-home .pb__light-list[open] summary::after { transform: rotate(225deg); }
+.cd-consult-letter[open] summary::after { transform: rotate(225deg); }
 .cd-consult-letter__body { display: grid; grid-template-columns: clamp(88px, 24vw, 180px) minmax(0,1fr); align-items: center; gap: clamp(12px, 3vw, 24px); padding-top: 14px; border-top: 1px solid var(--cdh-line); }
 .cd-consult-letter__body img { width: 100%; height: auto; aspect-ratio: 4/3; object-fit: cover; border-radius: var(--cd-r-md); }
 .cd-consult-letter__reading h3 { margin: 0; font: 700 clamp(17px,2vw,22px)/1.4 var(--cdh-serif); }

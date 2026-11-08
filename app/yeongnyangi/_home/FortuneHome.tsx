@@ -152,7 +152,7 @@ export default function FortuneHome({offers,guide,passBenefits}:{offers:ProductO
           </div>}
           <QuestionJourney source="home"/>
           <div className={homeStyle.reference}>
-            <HomeDisclosure className={homeStyle.homeFold} label="이용권 살펴보기">{passBenefits}</HomeDisclosure>
+            {passBenefits}
             <HomeDisclosure className={homeStyle.homeFold} label="상담 가격과 이용 안내">{guide}</HomeDisclosure>
           </div>
           <div className="main-content">
