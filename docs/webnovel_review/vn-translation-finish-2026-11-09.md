@@ -86,3 +86,15 @@
 - documents는 en은 authored/en-*.json, ja는 authored/ja-*.json, zh-CN/zh-TW는 authored/zh-*.json만 선택한다. uiCopy는 content/novel/ui-copy.json이다. 기존 공용 prologue-*.json을 함께 넣으면 중복이므로 넣지 않는다.
 - 반환값 missing이 비어 있고 translatedBeats===totalBeats인지 확인한 뒤 translation만 content/novel/translations/<locale>.json에 UTF-8 JSON으로 쓴다. sourceHash를 임의로 인증하지 않는다.
 - npm run novel:build → node scripts/verify-novel-locale-completeness.mjs → npm run verify:story-sync. 생성물은 빌드로만 쓴다. manifest.availableLocales에 ko/en/ja/zh-CN/zh-TW가 모두 있어야 한다.
+
+## 수정 파일 범위와 운영 실측
+
+- content/novel/episodes.source.json: 호랑이14화134대사와37/47/50의선택·대가장면.
+- content/novel/translations/authored/en-*.json / ja-*.json / zh-*.json 및 en.json/ja.json/zh-CN.json/zh-TW.json: 직접 번역 원고와 오프라인 조립본. README.md는현재게시상태로갱신.
+- public/data/novel/**, lib/stories/vn/episodes.generated.json, content/novel/scene-matrix.generated.json: 생성기로만갱신.
+- docs/webnovel_review/SAJU_SERIES_BIBLE.md와번역delta/용어집, docs/handoff/vn-oh-story-rewrite-2026-11-08.md: 규칙·근거·승인·결과.
+- scripts/verify-novel-runtime.mjs: EXPECTED_BEAT_COUNT를개고후7,928로동기화(검사약화없음).
+- config/sitemap-lastmod.json 및 루트/public sitemap*.xml: 최신main원장기준생성. 앞3단계개고의lib/stories/vn/index.ts로그라인변경도같이전달.
+- 결제정책/가격/이용권/월정석/단건결제구조, 인증/API/DB/라우팅로직은변경하지않음.
+
+운영릴리스42505123236은72fed768472e292055df9c29a5bec27ee9e0e934로성공. 운영 /version.json·/api/version은200과같은SHA를반환했다. 소설manifest는200, sourceHash1822d08b1cf0edd0475c92c0afa22fe040cec6e8e632f2e40817de52b7dfdd2e, 7,928비트와ko/en/ja/zh-CN/zh-TW게시를반환했다. 브라우저화면검증은handoff의최종상태를확인한다.
