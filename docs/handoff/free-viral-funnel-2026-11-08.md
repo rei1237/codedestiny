@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-11-08
-next: "2단계 — 운명의 꽃 무료 개방(worker requireAuth 제거 + IP 제한, 레거시 클라이언트, 공유 바·CSS 공개 연출)"
+next: "3단계 — 최애 운명: 결제 검사를 details 로 이동, 슬롯 공개 연출, 문구·레지스트리 설명, 공유 바 교체 (시작 전 아래 \"2단계 함정\"의 꽃 클라이언트 유료 게이트 결정 여부 확인)"
 ---
 
 # 무료 바이럴 퍼널 (초간단 무료 사주 + 운명의 꽃·최애 운명 무료 개방)
@@ -31,7 +31,7 @@ next: "2단계 — 운명의 꽃 무료 개방(worker requireAuth 제거 + IP �
 
 ## 단계
 - [x] 1. 공용: 스레드 intent + 공용 공유 바(X·스레드·복사·이미지 저장) + trackShare
-- [ ] 2. 운명의 꽃 무료 개방(worker requireAuth 제거 + IP 제한, 레거시 클라이언트, 공유 바·CSS 공개 연출)
+- [x] 2. 운명의 꽃 무료 개방(worker requireAuth 제거 + IP 제한, 레거시 클라이언트, 공유 바·CSS 공개 연출)
 - [ ] 3. 최애 운명: 결제 검사를 details 로 이동, 슬롯 공개 연출, 문구·레지스트리 설명, 공유 바 교체
 - [ ] 4. `/saju/free` 초간단 무료 사주(폼·70/30·블러·공유 미션·PNG 카드·SEO·사이트맵)
 - [ ] 5. 문서: 공유 미션 예외 기록, 이 문서 status 정리
@@ -44,10 +44,23 @@ next: "2단계 — 운명의 꽃 무료 개방(worker requireAuth 제거 + IP �
   - `onShared` 는 X·스레드 창 열기, 링크 복사(클립보드 막혀 수동 복사 입력란이 떠도 호출), 이미지 공유·저장 성공 때 부른다. 이미지 공유 시트 취소(AbortError)·생성 실패 때는 부르지 않는다. 카카오는 없다.
   - `trackShare({feature, channel})` 를 버튼마다 쏜다. `useAnalytics` 의 `ShareChannel` 에 `threads` 를 추가했다.
   - 검증: `node --test __tests__/ui/share-service.test.mjs` 6/6 통과(새 intent 테스트 포함). `npm run check:fast` EXIT=0 — typecheck PASS, lint, test:node 4670/4670, jest 455 suites·7700 tests 통과. 페이지 연결은 아직 없음(2~4단계).
+- 2단계(2026-11-08, 커밋 `784ea24ff`)
+  - worker `worker/routes/destiny-flower.js`: requireAuth 제거. `incrementRateLimit`(Mongo `abuse_scores`, destiny-compass·anatomy 와 같은 저장소)로 IP SHA-256 해시 기준 30회/60초(`FLOWER_MATCH_RATE_LIMIT`). 초과 시 429 `RATE_LIMITED` + `Retry-After: 60`. DB 실패 시 아이솔레이트 Map 폴백. 공개 카드 GET `/flower/:id` 는 그대로. `FLOWER_UNLOCK_FEATURE_KEY` 유지.
+  - 레거시 셸 `js/core/index-inline-runtime.js`(+public 미러): Authorization 헤더 제거, 402·401 분기 → 429 `limited` 상태 안내(`status.rateLimited`).
+  - 공유 줄 `#dfViralShare`(`.df-studio-main` 뒤): X·스레드(`socialIntentUrl`, `import('/js/share-service.mjs?v=build-…')`), 링크 복사(`_dfShareCopy`), 이미지 저장(기존 `_dfRenderShareCard` 스토리 카드). 꽃이 바뀔 때 `.df-studio-main.is-revealing` 카드 뒤집기(`dfCardFlipIn`·`dfBloomGlow`, reduced-motion 에서 none). CSS 는 `styles/destiny-flower-cosmic.css` 끝.
+  - 검증: route jest + free-flower-billing 17/17, `node --test __tests__/ui/destiny-flower-*.static.test.js` 55/55, `npm run check:fast` EXIT=0(sitemap-drift OK 1060 URL, typecheck, lint, test:node 4670/4670, jest 455 suites·7703 tests).
 
 ## 함정(1단계에서 발견)
 - 🔴 `__tests__/ui/saju-bundle-copy.static.test.js:264` 가드: `public·docs·__tests__·marketing` 밖에서 "무료 사주"/"무료사주" 문자열(주석 포함)이 나오면 실패한다("무료 만세력"으로 쓰라고 함). 4단계 `/saju/free` 의 화면 문구·title·메타·주석에 "무료 사주"를 쓰면 막힌다 → 문구를 "무료 만세력"·"초간단 사주 풀이" 등으로 쓰거나, 정말 필요하면 그 가드의 허용 목록을 사용자 결정으로 바꿔야 한다(문서에 없는 결정이라 4단계 시작 때 판단·보고).
 - 공용 모듈(`js/share-service.mjs`·`useAnalytics.ts`)을 고치면 `verify:sitemap-drift` 가 실패한다. `npm run sitemap:generate` 결과(28개 URL lastmod)를 같은 커밋에 담았다.
 - `node scripts/sync-legacy-static-to-public.mjs` 는 `index.html`·`public/*/index.html` 의 `?v=build-…` 토큰도 바꾼다. 미러 대상 파일만 남기고 나머지는 되돌린다.
 
+## 함정(2단계에서 발견)
+- 🔴 **꽃은 클라이언트에서 아직 유료다.** 설계 문서와 달리 `openDestinyFlowerStudio` → `_dfRequireSourceCoinPayment` → `_dfRequirePaidSourceUnlock` 가 flower-fc 해금 없는 사람을 막는다(비로그인은 로그인 확인, 로그인은 "해금 후 이용"). index.html 타일도 `data-tile-lock-cost="50"`·"🔒 해금 5,000원". `__tests__/worker/free-flower-billing.test.js` 는 flower-fc 신규 구매가 가능(5,000원)하다고 단언하고, 게이트는 커밋 `e419b55bd`(2026-10-12)로 복구된 것. `js/core/pass-verdict.js:132` 에도 flower-fc. → flower-fc 는 "미사용 키"가 아니라 **판매 중인 5,000원 상품**. 지우거나 게이트를 여는 건 결제 결정이라 2단계에서 하지 않았다. API 는 열렸지만 셸 화면은 여전히 비구매자를 막는다 — 사용자 결정 필요.
+- 워커 jest 는 `NODE_OPTIONS=--experimental-vm-modules npx jest <파일>` 로 돌린다(그냥 npx jest 는 import 구문 오류).
+- sync 스크립트가 바꾼 index.html 류 토큰 중 og-vvip 이미지 등 무관한 것은 되돌리고 `destiny-flower-cosmic.css`·`index-inline-runtime.js` 토큰만 남겼다.
+
 ## 후속(범위 밖, 보고만)
+- `/flower` noindex(`app/flower/page.tsx:11-16`)는 로그인과 무관: AdSense "가치 낮은 콘텐츠" 거절 뒤 얇은 본문(449자, 2026-08-17 측정) 때문. noindexPathPrefixes 로 옮기면 ShareWidget 이 숨는다는 주석도 있다. 그대로 둔다.
+- i18n `fortune.destinyFlower.ui.status.atelierLocked`·`status.loginRequired`(`i18n/authored/destinyFlower-03.json`)는 이제 미사용. 새 키 `viral.*`·`status.rateLimited` 는 번역 없음(한국어 폴백).
+- 레거시 공유 줄에는 trackShare 분석 이벤트가 없다.
