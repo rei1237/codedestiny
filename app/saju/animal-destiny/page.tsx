@@ -100,6 +100,10 @@ export default function Page() {
         </YehwaCard>
       </section>
       <AnimalDestinyRouteClient />
+      <nav aria-label="동물 상징에서 사주 읽기로" className="mx-auto flex max-w-5xl flex-wrap gap-4 px-4 py-6">
+        <Link href="/saju/" className="inline-flex min-h-11 items-center underline underline-offset-4">사주 원국과 기본 성향 확인하기</Link>
+        <Link href="/manse/" className="inline-flex min-h-11 items-center underline underline-offset-4">만세력에서 내 명식 확인하기</Link>
+      </nav>
     </>
   );
 }

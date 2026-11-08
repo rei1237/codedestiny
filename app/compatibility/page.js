@@ -2,6 +2,7 @@ import SeoLandingTemplate from "../components/SeoLandingTemplate";
 import { buildSeoMetadata } from "../../lib/seo";
 import { SEO_LANDING_PAGES } from "../../lib/seo-landing-pages";
 import { introductionRoutes } from "../../lib/i18n/feature-introductions.mjs";
+import CompatibilityGuide from "./CompatibilityGuide";
 
 const page = SEO_LANDING_PAGES.compatibility;
 
@@ -14,5 +15,5 @@ export const metadata = buildSeoMetadata({
 });
 
 export default function CompatibilityLandingPage() {
-  return <SeoLandingTemplate page={page} />;
+  return <SeoLandingTemplate page={page} services={<CompatibilityGuide />} />;
 }

@@ -123,6 +123,8 @@ export default function DestinyCompassPage() {
               { href: "/saju/guide/", label: "사주 명리학 기본 가이드" },
               { href: "/ziwei/guide/", label: "자미두수 명반 읽는 법" },
               { href: "/insights/saju/", label: "사주 인사이트 모아보기" },
+              { href: "/saju/", label: "나의 사주 원국 확인하기" },
+              { href: "/ziwei/", label: "나의 자미두수 명반 확인하기" },
             ].map((link) => (
               <Link
                 key={link.href}

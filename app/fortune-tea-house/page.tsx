@@ -127,6 +127,8 @@ export default function Page() {
         <nav aria-label="상담과 기록" className="flex flex-wrap gap-4">
           <Link href="/consultations/" className="inline-flex min-h-11 items-center underline">고민에 맞는 상담 고르기</Link>
           <Link href="/records/" className="inline-flex min-h-11 items-center underline">나의 기록 보관함</Link>
+          <Link href="/tarot/" className="inline-flex min-h-11 items-center underline">카드로 관계의 질문 정리하기</Link>
+          <Link href="/love/" className="inline-flex min-h-11 items-center underline">나의 연애 흐름 살펴보기</Link>
         </nav>
       </ServiceIntroSection></div>
     </FortuneTeaHouseClient>

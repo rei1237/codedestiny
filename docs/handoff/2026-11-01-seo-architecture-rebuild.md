@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-11-09
-next: "묶음 ④: 검색 원자료 확보 → 검색어×페이지 매핑·홈 역할 결정 → 승인 패킷. ③ 운영 검증과 최종 기록 전달 완료."
+next: "④ 로컬 변경 검증·커밋, 최신 main CI 실패와 네이버 로그인 응답 확인 → 남은 원자료 및 화면 검증 → 승인 패킷. 브라우저 Space 65는 handOff 상태."
 ---
 
 # SEO 아키텍처 재구축
@@ -16,9 +16,20 @@ next: "묶음 ④: 검색 원자료 확보 → 검색어×페이지 매핑·홈 
 1. 이 워크트리에서 이어 간다: `D:\Development\codedestiny-worktrees\seo-architecture-rebuild-20261101-135310`(브랜치 `wt/seo-architecture-rebuild-20261101-135310`). 새 워크트리를 만들지 않는다. 두 문서는 origin/main에도 있다.
 2. `git fetch origin` → `git status` → `git log --oneline -3`. origin/main이 앞서 있으면 `git rebase origin/main`.
 3. 묶음 ③은 운영 반영 완료다. frontmatter next의 묶음 ④부터 필요한 설계 절만 읽고 진행한다. 다음 묶음의 운영 승격은 별도 승인 대상이다.
-4. `D:\Development\seo-data\code-destiny\2026-11-01\`(Codex 수집본, `manifest.csv`·`README.md`)이 생겼는지 본다. 생겼으면 설계 문서 근거 부록 6(원인 판정)과 묶음 ④ 매핑에 반영한다.
+4. 실제 새 수집본은 `D:\Development\seo-data\code-destiny\2026-11-09\`다. `README.md`와 `manifest.csv`를 정본으로 읽는다. 이전 날짜 폴더로 소급 표기하지 않는다.
 
 ## 지금 상태
+
+### 2026-11-09 검색 원자료·④ 로컬 구현
+
+- 사용자 후속 요청 원문: “최종 CI 결과 확인하고, ④·⑤에 필요한 검색 원자료부터 확보해서 남은 SEO 작업도 이어서 진행해줘.”
+- ③ 최종 기록 ebb19eae8의 PR CI 42508086339 성공 확인. 이후 원격 main은 cd136892a까지 119커밋 전진해 clean 상태에서 rebase했다. 그 SHA의 CI 42511932833은 다른 세션 `premium-llm-chapter-upgrade-2026-11-08.md` status: in-progress 때문에 실패했다. active 한 줄 수정·후속 push 여부를 비동기로 문의했고 아직 승인 답변을 기록하지 않았다. 앞선 VN 수정 승인을 이 새 문서로 확대하지 않는다.
+- GSC 도메인 속성에서 7·28·90일 비교·전체 일별 및 핵심 URL 21개 정확 필터 원본 확보. END=11/06. 29 ZIP·189 CSV, manifest 218항목. 비교 열 중복은 ordinal로 보존. 검색어×페이지는 각 정확 페이지 필터 원본만 사용한다. 상세: 외부 `bundle-4/search-findings-20261109.md`, 계획 `docs/superpowers/plans/2026-11-09-seo-bundle-4-search-evidence.md`.
+- GSC 색인 데이터는 10/23 최종 업데이트라 ③ 최근 배포의 효과를 판정할 수 없다. 네이버는 로그인 필요. Ego TaskSpace 65(`seo-raw-data-20261109`), p1 GSC·p2 네이버 로그인. round-43에서 handOff했다. 로그인 완료 사용자 회신 전 브라우저 조작 금지; 회신 뒤 기존 공간을 takeOver하고 신규 round-44부터 실행한다. 이전 라운드 재실행·복구용 새 공간 생성 금지. GA4·Cloudflare·키워드·Bing 등은 아직 미수집이다.
+- 운영 SSR 61쪽을 별도 저장. E1 13쪽 최소 3,835자, 띠별 정확 고유 문단 최저91.88%, 5단어 구문 쌍별 min-set 최대41.96%/Jaccard25.65%. 추가 신년 원고 없이 수치 기준 충족. today/tomorrow 24쌍 Jaccard 최대56.30%, 10쌍≥50%. 내일 페이지에 ‘오늘 일진’과 원고 풀의 오늘 문장 노출. ⑤에서 계산이 아닌 기간별 표현을 수정한다. 한글 혼용만으로 번역 noindex하지 않는다.
+- ④ 로컬: 사주 title/description·fallback H1·breadcrumb 의도 분리, 궁합 SSR 비교표, 감사 대상 5쪽의 관련 링크 보강. canonical·hreflang·robots·색인 URL 집합·결제/인증/API/DB/계산 로직 변경 없음. 첫 check:fast는 sitemap drift에서 중단. 생성 뒤 재실행에서 lint/typecheck 통과, Node 4772개 중4770통과·2실패(새 ‘무료 사주’ 문구가 기존 상품 정책과 충돌). 해당 표현을 철회하고 ‘사주 원국 확인·사주팔자 해석 안내’로 좁힌 뒤 관련 정책 파일22개 전부 통과. 전체 Node 재실행은 하지 않았다. 로그는 외부 bundle-4/check-fast-20261109-retry.log·saju-policy-regression-20261109.log. 제목 최종 수정 뒤 sitemap을 공식 생성기로 다시 갱신했다. UI 화면 검증은 네이버 로그인 제어 인계로 아직 미실행이다.
+- ⑤의 시점 오류 원인·구현 경계는 외부 `bundle-5/implementation-boundaries-20261109.md`. 아직 소스 구현·noindex·승격하지 않았다. ④ 전달 경계를 먼저 정리한다.
+- 운영 승격은 ④·⑤ 각각 새 승인 필요. 이 작업의 임시 대기는 원자료 로그인/공유 CI 경계이며 SEO 전체 완료가 아니다. 현재 작업·워크트리를 지우지 않는다.
 
 ### 2026-11-09 묶음 ③ 운영 반영 완료
 
@@ -65,7 +76,7 @@ next: "묶음 ④: 검색 원자료 확보 → 검색어×페이지 매핑·홈 
   - 스케줄 SEO Operations는 `Test detector with mock inputs`(`keyword-research`, `public-inventory` 테스트)에서 실패한다. 11/01 런에도 같은 실패가 있어 묶음 ② 때문이 아니다. 아직 고치지 않았다.
   - 증거와 승인 패킷: `D:\Development\seo-audit\code-destiny-20261101\bundle-2\`(`approval-packet.md`, `sdd-ledger.md`, `regression\`).
 - 미룬 사소한 항목(약 45건)은 별도 세션으로 넘겼다: `docs/handoff/2026-11-02-seo-bundle-1-followups.md`. 이 흐름은 묶음 ②부터 이어 간다. `verify-dist.mjs`를 같이 고치므로 자주 rebase한다.
-- Codex 수집본 없음. 11/07 홈 title D+30 관찰 대기.
+- 과거의 “Codex 수집본 없음” 상태는 위 2026-11-09 수집 기록으로 대체한다. 홈 브랜드 검색어 공개 표본이 부족해 역할 변경을 자동 확정하지 않는다.
 
 ## 작업 규칙
 

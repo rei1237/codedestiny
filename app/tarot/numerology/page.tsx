@@ -232,6 +232,8 @@ const faqItems = [
 ];
 
 const relatedLinks = [
+  { href: "/tarot/", label: "질문에 맞는 타로 고르기" },
+  { href: "/today/", label: "수비학과 하루의 흐름 살펴보기" },
   { href: "/tarot/guide/", label: numerologyTarotPageText("related.tarotGuide") },
   { href: "/saju/guide/", label: numerologyTarotPageText("related.sajuGuide") },
   { href: "/disclaimer/", label: numerologyTarotPageText("related.disclaimer") },

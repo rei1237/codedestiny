@@ -16,5 +16,5 @@ export const metadata = buildSeoMetadata({
 });
 
 export default function SajuLandingPage() {
-  return <SeoLandingTemplate page={{ ...page, breadcrumbLabel: "무료 만세력" }} hero={<SajuLandingHero />} services={<SajuServiceCatalog />} />;
+  return <SeoLandingTemplate page={{ ...page, breadcrumbLabel: "사주 원국" }} hero={<SajuLandingHero />} services={<SajuServiceCatalog />} />;
 }
