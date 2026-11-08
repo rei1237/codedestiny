@@ -250,6 +250,8 @@ const coreRoutes = [
   { path: "/neo-operation-room", changefreq: "weekly", priority: 0.88 },
   { path: "/saju-guardian", changefreq: "weekly", priority: 0.88 },
   { path: "/saju/destiny-bias", changefreq: "weekly", priority: 0.86 },
+  // 2026-11-08 무료 바이럴 퍼널 4단계: 초간단 만세력 랜딩(서버 H1·안내 본문).
+  { path: "/saju/free", changefreq: "weekly", priority: 0.86 },
   { path: "/oracle/hwatu-life", changefreq: "weekly", priority: 0.88 },
   { path: "/animal/mbti", changefreq: "weekly", priority: 0.87 },
   { path: "/oracle/sikojen-povailu", changefreq: "weekly", priority: 0.87 },

@@ -41,6 +41,13 @@ interface PremiumBlurGateProps {
   subDesc?: string;
   isCheckingAccess?: boolean;
   checkingAccessMessage?: string;
+  /** 가격 대신 보일 CTA 글자(무료 이동 링크 등). 주면 price·coinCost 표시를 쓰지 않는다. */
+  ctaLabel?: string;
+  /** CTA 아래 작은 글자. 없으면 "1회 결제" 기본 문구. */
+  footnote?: string;
+  /** 잠금 아이콘·잠긴 배지 글자. 없으면 기본(🔐 · 👑 PREMIUM). */
+  lockIcon?: string;
+  badgeLabel?: string;
 }
 
 type PremiumBlurGateCopy = {
@@ -309,6 +316,10 @@ export default function PremiumBlurGate({
   subDesc,
   isCheckingAccess = false,
   checkingAccessMessage,
+  ctaLabel,
+  footnote,
+  lockIcon,
+  badgeLabel,
 }: PremiumBlurGateProps) {
   const [isHovering, setIsHovering] = useState(false);
   const [locale, setLocale] = useState<LoadingLocale>("ko");
@@ -370,7 +381,7 @@ export default function PremiumBlurGate({
             <div className="flex items-center gap-2 mb-3">
               <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold tracking-widest"
                 style={{ background: "rgba(212,168,67,0.18)", color: "#d4a843", border: "1px solid rgba(212,168,67,0.3)" }}>
-                👑 PREMIUM
+                {badgeLabel || "👑 PREMIUM"}
               </span>
             </div>
             {lockedContent || <DefaultLockedContent items={displayLockedItems} />}
@@ -390,7 +401,7 @@ export default function PremiumBlurGate({
               animate={{ boxShadow: ["0 0 12px rgba(212,168,67,0.2)", "0 0 30px rgba(212,168,67,0.5)", "0 0 12px rgba(212,168,67,0.2)"] }}
               transition={{ duration: 2.5, repeat: Infinity }}
             >
-              🔐
+              {lockIcon || "🔐"}
             </m.div>
 
             {/* 제목 */}
@@ -447,6 +458,8 @@ export default function PremiumBlurGate({
               <span className="relative z-10">
                 {isCheckingAccess
                   ? displayCheckingAccessMessage
+                  : ctaLabel
+                  ? ctaLabel
                   : coinCost
                   ? copy.coinCta(formattedCoinValue)
                   : copy.priceCta(displayProductName, formattedPrice)}
@@ -454,7 +467,7 @@ export default function PremiumBlurGate({
             </m.button>
 
             <p className="text-[10px] text-violet-400/35 mt-2.5">
-              {copy.footnote}
+              {footnote ?? copy.footnote}
             </p>
           </div>
         </div>
