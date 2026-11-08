@@ -31,7 +31,7 @@ import {EDGE_RESPONSE_DEADLINE_MS, PAID_LLM_PARTS_PER_REQUEST } from "../lib/syn
 import { MasterLoveCodexSession, PaidExecutionRecord, Payment, PointHistory, User } from "../lib/models.js";
 import { findMoonstoneSpendEvidence } from "../lib/moonstone-spend-proof.js";
 import { recoverCodexSession } from "../lib/master-love-codex-session-access.js";
-import { assertCodexChapterQuality, codexChapterRepairFloor, codexDedupedChapterFloor, dedupeCodexBody, qualityCheckedCodexCache, generateCodexChapterResponse, buildCodexChapterMemory, buildCodexStagingChapter, parseChapterJson, detectCodexSoftIssues, codexSoftIssueHint, scrubCodexSoftIssues } from "../lib/master-love-codex-quality.js";
+import { assertCodexChapterQuality, codexChapterRepairFloor, codexDedupedChapterFloor, dedupeCodexBody, qualityCheckedCodexCache, generateCodexChapterResponse, buildCodexChapterMemory, buildCodexStagingChapter, parseChapterJson, detectCodexSoftIssues, codexSoftIssueHint, scrubCodexSoftIssues, scrubCodexCrossRepeats, validateCodexChapterOutline } from "../lib/master-love-codex-quality.js";
 import { buildCodexEvidence, formatCodexEvidence, stripCodexEvidenceIds, CODEX_EVIDENCE_VERSION } from "../lib/master-love-codex-evidence.js";
 import { isStagingLlmMockEnabled } from "../lib/staging-llm-mock.js";
 import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
@@ -819,6 +819,11 @@ function savedChapterRows(doc, expected) {
     .map(row => [row.id, row]));
 }
 
+/** Bodies of chapters that come before this one in the plan — the near-repeat check (compact V2 solo) keeps the earliest copy. */
+function codexEarlierBodies(expected, saved, chapter) {
+  return expected.filter(spec => Number(spec.order) < Number(chapter.order) && saved.has(spec.id)).map(spec => saved.get(spec.id).body);
+}
+
 function codexTotalReady(expected, saved) {
   return expected.every(spec => saved.has(spec.id));
 }
@@ -1580,7 +1585,7 @@ async function runCodexWaveInternal(env, { sessionId, userId, doc, lockToken, de
           birthInfo: doc.birthInfo, partnerInfo: doc.partnerInfo, chapter, prologueChoice: clean(doc.prologueChoice), consultation: doc.consultation, memory, deadlineAt,
           previousError: byId.has(chapter.id) ? (byId.get(chapter.id).lengthDraft !== true && byId.get(chapter.id).softIssues?.length ? "LLM_SOFT_ISSUES" : "LLM_OUTPUT_TOO_SHORT")
             : errors[chapter.id]?.kind === "quality" ? errors[chapter.id].code : "", snapshotKey: snapshotKey(chapter),
-          repairHint: byId.has(chapter.id) && byId.get(chapter.id).lengthDraft !== true ? codexSoftIssueHint(detectCodexSoftIssues(byId.get(chapter.id).body, chapter, doc.consultation)) : "",
+          repairHint: byId.has(chapter.id) && byId.get(chapter.id).lengthDraft !== true ? codexSoftIssueHint(detectCodexSoftIssues(byId.get(chapter.id).body, chapter, doc.consultation, codexEarlierBodies(expected, byId, chapter))) : "",
           // 🔴 마지막 시도는 실패 대신 손질해 저장한다 — 분량·검증 미달로 책이 환불되지 않게(2026-11-08 사용자 규칙).
           finalAttempt: !byId.has(chapter.id) && Number(attempts[chapter.id] || 0) >= CHAPTER_ATTEMPT_LIMIT,
           answerVoice: pinAnswerVoice(doc.deliveryMeta || {}, env), locale: doc.deliveryMeta?.locale || "ko",
@@ -1601,7 +1606,7 @@ async function runCodexWaveInternal(env, { sessionId, userId, doc, lockToken, de
           const valid = result?.status === "ok" && result.chapter?.id === chapter.id && result.chapter.ok
             && typeof result.chapter.body === "string"
             && countPaidReportBodyChars(result.chapter.body) > 0;
-          const softIssues = valid ? detectCodexSoftIssues(result.chapter.body, chapter, doc.consultation).map(issue => issue.code) : [];
+          const softIssues = valid ? detectCodexSoftIssues(result.chapter.body, chapter, doc.consultation, codexEarlierBodies(expected, byId, chapter)).map(issue => issue.code) : [];
           const previous = byId.get(chapter.id);
           const longer = valid && (!previous || countPaidReportBodyChars(result.chapter.body) > countPaidReportBodyChars(previous.body));
           // A soft-issue repair wins when it fixes the issue without falling under the floor; otherwise the longer copy wins.
@@ -1651,10 +1656,16 @@ async function runCodexWaveInternal(env, { sessionId, userId, doc, lockToken, de
       }, sessionId);
       return { outcome: "committed", session: current, done: false };
     }
+    const assembled = [];
     const chapters = expected.map(chapter => {
-      const row = byId.get(chapter.id);
+      const saved = byId.get(chapter.id);
+      // 정확한 챕터(2026-11-08, V2 개인판): id·제목·순서·기호는 모델 응답이 아니라 계획표 그대로 싣는다.
+      const row = chapter.compact ? { ...saved, id: chapter.id, order: chapter.order, symbol: chapter.symbol, title: chapter.title } : saved;
       // V2 assembly scrub: re-quoted question sentences outside their chapter go, only while ≥85% of the body survives.
-      const scrubbed = chapter.perspective ? scrubCodexSoftIssues(row.body, chapter, doc.consultation) : row.body;
+      const requoted = chapter.perspective ? scrubCodexSoftIssues(row.body, chapter, doc.consultation) : row.body;
+      // V2 개인판 "반복 없이": 앞 장 문장을 거의 그대로 되풀이한 문장도 같은 85% 한도 안에서만 지운다.
+      const scrubbed = scrubCodexCrossRepeats(requoted, chapter, assembled);
+      assembled.push(scrubbed);
       if (scrubbed === row.body) return row;
       return { ...row, body: scrubbed, chars: scrubbed.length, ...(row.content ? { content: { ...row.content, body: scrubbed } } : {}) };
     });
@@ -1671,7 +1682,10 @@ async function runCodexWaveInternal(env, { sessionId, userId, doc, lockToken, de
       chapters.splice(0, chapters.length, ...kept);
     }
     chapters.forEach(row => byId.set(row.id, row));
-    if (!codexTotalReady(expected, byId)) {
+    // 🔴 정확한 챕터 검증: 빠진 장·순서·제목이 계획표와 다르면 완료하지 않는다(빠진 장은 다시 생성, 버리지 않는다).
+    const outlineIssues = expected.some(spec => spec.compact) ? validateCodexChapterOutline(chapters, expected) : [];
+    if (outlineIssues.length) console.warn("[master-love-codex] outline", outlineIssues.slice(0, 4).join(","));
+    if (outlineIssues.length || !codexTotalReady(expected, byId)) {
       current = await saveCodexDelivery(lockFilter, { chapters, deliveryMeta: { ...current.deliveryMeta, savedChapters: chapters } }, sessionId);
       return { outcome: "committed", session: current, done: false };
     }

@@ -22,6 +22,10 @@ export function codexV2PromptLines(chapter) {
     "[V2 문장 규칙] '결국 중요한 것은', '다시 말해', '앞서 말했듯', '그렇기 때문에 더더욱' 같은 상투 연결구를 쓰지 않는다. 장을 여는 첫 문장과 닫는 마지막 문장은 앞 장들과 다른 구조(장면·질문·근거 한 줄 등)로 시작한다.",
     "[V2 말투] 한 장 안에서 종결어미를 한 가지로 통일한다(합니다체로 썼다면 끝까지 합니다체). 해요체와 합니다체를 섞지 않는다.",
     "[V2 질문 인용] 상담자의 상황·질문 원문은 그 질문이 배정된 장(questions가 있는 장)에서만 한 번 받아 답한다. 배정되지 않은 장에서는 질문·상황 문장을 다시 옮겨 적지 말고, 이미 들은 배경으로만 삼는다.",
+    ...(chapter.compact ? [
+      `[V2 분량] body는 ${codexBodyTarget(chapter)[0]}~${codexBodyTarget(chapter)[1]}자로 쓰고 ${codexBodyTarget(chapter)[1]}자를 넘기지 않는다. 소제목은 2~3개면 충분하다.`,
+      "[V2 반복 금지] 일간·오행·명궁 주성의 기본 뜻은 1장에서 이미 풀었다. 이 장에서는 그 설명을 되풀이하지 말고, 이 장의 관점에 필요한 근거 한두 개만 짧게 다시 짚은 뒤 새 장면과 판단으로 넘어간다. 앞 장에서 쓴 문장·비유·조언을 다시 쓰지 않는다.",
+    ] : []),
   ];
 }
 
@@ -33,7 +37,7 @@ export function buildCodexEditorialContract(chapter, compatibility) {
   return [
     "[완성 원고 기준 — 요약과 본문을 서로 다르게 활용]",
     `body는 최소 ${min}자이며 안전한 목표는 ${targetLo}~${targetHi}자다. 다른 JSON 필드와 지표는 본문 분량에 포함하지 않는다.`,
-    "body에 4~6개의 소제목(##)을 두고, 각 절에서 근거 → 쉬운 뜻 → 서로 다른 생활 장면 → 선택 가능한 대응 순서로 설명한다. 문단은 2~4문장씩 나눈다. 같은 조언을 바꿔 말해서 분량을 채우지 마라.",
+    `body에 ${chapter.compact ? "2~3" : "4~6"}개의 소제목(##)을 두고, 각 절에서 근거 → 쉬운 뜻 → 서로 다른 생활 장면 → 선택 가능한 대응 순서로 설명한다. 문단은 2~4문장씩 나눈다. 같은 조언을 바꿔 말해서 분량을 채우지 마라.`,
     "narration은 2~3문장, insight는 180~360자의 요약이다. keySentence는 한 문장이다. 요약의 긴 문단을 body에 복사하지 않는다. 본문은 사례와 이유를 추가한다.",
     "evidence는 이 장의 핵심 3~6개만 고른다. 실제 제공된 간지·궁·성요를 쓰고, 궁합에서는 본인/상대/교차 근거 중 누구의 것인지 label에 표시한다. 각 explanation은 해당 배치의 쉬운 뜻 한 문장이다.",
     "자미(묘) 같은 괄호 강약 표기는 독자용 문장에 그대로 복사하지 말고 쉬운 말로 풀어라. 제공되지 않은 별·사화·합충을 만들지 마라. 원국 내부의 합과 두 사람 사이의 합을 혼동하지 마라.",
@@ -214,7 +218,7 @@ export async function generateCodexChapterResponse(call, prompt, { chapter, metr
         ? `\n[재작성] 이전 응답은 LLM_OUTPUT_TOO_SHORT: body가 최소 ${minChars}자에 못 미쳤다. 앞의 근거와 같은 문장을 반복하지 말고 생활 장면·대화 예시·대응 기준을 새로 더해 body를 ${targetLo}~${targetHi}자로 완성하라. 나머지 필드와 JSON 형식은 그대로 지켜라.`
         : `\n[재작성] 이전 응답은 ${failure.message} 기준을 통과하지 못했다. JSON 문자열을 올바르게 닫고, body의 최소 분량·계산 근거·필수 필드를 지켜 완성된 새 응답을 작성하라.`;
     // V2 plans for 1.2× the upper target so the wider range is not cut off; V1 keeps min+900.
-    const planned = Math.max(8000, tokensRequiredForChars((chapter.targetChars ? Math.ceil(chapter.targetChars[1] * 1.2) : (chapter.minChars || 2400) + 900) + (evidenceContract?.consultation ? (evidenceContract.consultation.forecast ? 5000 : evidenceContract.consultation.questions.length * 1600) : 0)));
+    const planned = Math.max(chapter?.compact ? 5000 : 8000, tokensRequiredForChars((chapter.targetChars ? Math.ceil(chapter.targetChars[1] * 1.2) : (chapter.minChars || 2400) + 900) + (evidenceContract?.consultation ? (evidenceContract.consultation.forecast ? 5000 : evidenceContract.consultation.questions.length * 1600) : 0)));
     // A cut-off draft is never salvaged mid-sentence, so its retry gets twice the room (paid delivery beats the length target).
     const tokens = failure?.message === "LLM_OUTPUT_TRUNCATED" ? Math.max(planned, Math.min(32768, planned * 2)) : planned;
     const ai = await call(prompt + instruction, {
@@ -402,12 +406,36 @@ export function codexRequotedSentences(body, sources) {
   });
 }
 
+const repeatKey = text => String(text || "").replace(/[\s.,!?。！？"'“”‘’·…~()[\]「」『』:;—#*-]/gu, "");
+function repeatWindows(flat, size) { const out = []; for (let i = 0; i + size <= flat.length; i += 1) out.push(flat.slice(i, i + size)); return out; }
+
+/**
+ * Sentences that nearly repeat earlier chapters (V2 solo "반복 없이", 2026-11-08). Exact sentence copies are
+ * already cut by dedupeCodexBody; this catches the reworded kind the live solo sample showed — one 20-character
+ * run reused in two or more earlier chapters, or one 32-character run reused from any earlier chapter.
+ */
+export function codexCrossRepeatSentences(body, priorBodies = []) {
+  const short = new Map();
+  const long = new Set();
+  priorBodies.forEach((prior, index) => {
+    const flat = repeatKey(proseSentences(paidReportBody(prior)).join(""));
+    for (const window of repeatWindows(flat, 20)) { let owners = short.get(window); if (!owners) short.set(window, owners = new Set()); owners.add(index); }
+    for (const window of repeatWindows(flat, 32)) long.add(window);
+  });
+  if (!short.size) return [];
+  return proseSentences(body).filter(sentence => {
+    const flat = repeatKey(sentence);
+    return repeatWindows(flat, 20).some(window => (short.get(window)?.size || 0) >= 2) || repeatWindows(flat, 32).some(window => long.has(window));
+  });
+}
+
 /**
  * V2 soft issues: never fatal, they earn one hinted repair and a bounded scrub at assembly.
+ * CROSS_REPEAT — a compact (V2 solo) chapter nearly repeats two or more sentences of earlier chapters.
  * REGISTER_DRIFT — one chapter mixes 해요 and 합니다 (both over 30% of ≥6 endings).
  * QUESTION_REQUOTED — a chapter without an assigned question re-quotes the situation/questions (>2 sentences).
  */
-export function detectCodexSoftIssues(body, chapter, consultation = null) {
+export function detectCodexSoftIssues(body, chapter, consultation = null, priorBodies = []) {
   if (!chapter?.perspective) return [];
   const issues = [];
   const endings = proseSentences(body).map(sentenceEnding);
@@ -419,11 +447,17 @@ export function detectCodexSoftIssues(body, chapter, consultation = null) {
     const quoted = codexRequotedSentences(body, sources);
     if (quoted.length > 2) issues.push({ code: "QUESTION_REQUOTED", sentences: quoted.slice(0, 6) });
   }
+  if (chapter.compact && priorBodies.length) {
+    const repeated = codexCrossRepeatSentences(body, priorBodies);
+    if (repeated.length >= 2) issues.push({ code: "CROSS_REPEAT", sentences: repeated.slice(0, 6) });
+  }
   return issues;
 }
 
 export function codexSoftIssueHint(issues = []) {
-  return issues.map(issue => issue.code === "REGISTER_DRIFT"
+  return issues.map(issue => issue.code === "CROSS_REPEAT"
+    ? `이전 응답은 앞 장에서 이미 쓴 문장을 거의 그대로 다시 썼다(예: "${String(issue.sentences?.[0] || "").slice(0, 60)}"). 앞 장의 기질 설명·조언을 되풀이하지 말고 이 장의 관점에 맞는 새 장면과 판단으로 바꿔 써라.`
+    : issue.code === "REGISTER_DRIFT"
     ? `이전 응답은 한 장 안에서 해요체와 합니다체를 섞었다(${issue.minority}가 섞임). 처음부터 끝까지 한 가지 종결어미로 통일하라.`
     : `이전 응답은 이 장에 배정되지 않은 상담자의 질문·상황 문장을 다시 옮겨 적었다(예: "${String(issue.sentences?.[0] || "").slice(0, 60)}"). 질문 원문을 다시 쓰지 말고 이미 들은 배경으로만 삼아라.`).join(" ");
 }
@@ -436,4 +470,32 @@ export function scrubCodexSoftIssues(body, chapter, consultation = null) {
   for (const sentence of new Set(codexRequotedSentences(body, consultationSources(consultation)))) next = next.replace(sentence, "");
   next = next.replace(/[ \t]{2,}/gu, " ").replace(/\n{3,}/gu, "\n\n").trim();
   return countPaidReportBodyChars(next) >= countPaidReportBodyChars(body) * 0.85 ? next : body;
+}
+
+/** Assembly scrub for compact chapters: drops near-repeats of earlier chapters only while ≥85% of the body survives. */
+export function scrubCodexCrossRepeats(body, chapter, priorBodies = []) {
+  if (!chapter?.compact || !priorBodies.length) return body;
+  const repeated = codexCrossRepeatSentences(body, priorBodies);
+  if (!repeated.length) return body;
+  let next = String(body);
+  for (const sentence of new Set(repeated)) next = next.replace(sentence, "");
+  next = next.replace(/[ \t]{2,}/gu, " ").replace(/\n{3,}/gu, "\n\n").trim();
+  return countPaidReportBodyChars(next) >= countPaidReportBodyChars(body) * 0.85 ? next : body;
+}
+
+/**
+ * "정확한 챕터대로" (2026-11-08): the delivered book has every planned chapter once, in plan order, with the
+ * plan's exact id·title·order. Returns issue codes; empty means the outline is exact.
+ */
+export function validateCodexChapterOutline(chapters = [], expected = []) {
+  const issues = [];
+  if (chapters.length !== expected.length) issues.push("CHAPTER_COUNT");
+  if (new Set(chapters.map(row => row?.id)).size !== chapters.length) issues.push("CHAPTER_DUPLICATE");
+  expected.forEach((spec, index) => {
+    const row = chapters[index];
+    if (!row) { issues.push(`CHAPTER_MISSING:${spec.id}`); return; }
+    if (row.id !== spec.id || Number(row.order) !== Number(spec.order)) issues.push(`CHAPTER_ORDER:${spec.id}`);
+    else if (row.title !== spec.title) issues.push(`CHAPTER_TITLE:${spec.id}`);
+  });
+  return issues;
 }

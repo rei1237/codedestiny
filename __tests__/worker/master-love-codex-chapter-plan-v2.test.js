@@ -47,7 +47,8 @@ beforeAll(async () => {
 
 const body = (chapter, ending = '정합니다.') => {
   let text = '';
-  for (let i = 0; text.length < (chapter.minChars || 2400) + 300; i++) text += `${chapter.id}의 ${i}번째 계산 근거를 바탕으로 생활에서 반복되는 선택과 반대 조건을 구체적으로 살펴보고 실행할 행동을 ${ending}\n`;
+  // Every 20-character run carries this chapter's own token, so distinct chapters never look like near-repeats (CROSS_REPEAT).
+  for (let i = 0; text.length < (chapter.minChars || 2400) + 300; i++) { const t = `${chapter.id}${i}`; text += `${t} 장 계산 근거 ${t} 생활 선택 ${t} 반대 조건 ${t} 실행할 행동을 ${ending}\n`; }
   return text;
 };
 const okChapter = (chapter, text = body(chapter)) => ({ status: 'ok', chapter: { id: chapter.id, title: chapter.title, order: chapter.order, symbol: chapter.symbol, body: text, chars: text.length, ok: true } });
@@ -71,11 +72,14 @@ describe('V2 chapter tables', () => {
     const { codexV2PromptLines, codexBodyTarget } = await import('../../worker/lib/master-love-codex-quality.js');
     for (const [v1, v2, first] of [[solo.MASTER_LOVE_CODEX_CHAPTERS, solo.MASTER_LOVE_CODEX_CHAPTERS_V2, 'gate'], [compat.MASTER_LOVE_CODEX_COMPAT_CHAPTERS, compat.MASTER_LOVE_CODEX_COMPAT_CHAPTERS_V2, 'facing']]) {
       expect(v2).toHaveLength(20);
-      expect(v2.map(row => [row.id, row.order, row.title, row.minChars])).toEqual(v1.map(row => [row.id, row.order, row.title, row.minChars]));
+      expect(v2.map(row => [row.id, row.order, row.title])).toEqual(v1.map(row => [row.id, row.order, row.title]));
+      // 개인판 V2만 2~3만 자(2026-11-08). 궁합판 V2는 V1 분량 그대로다.
+      if (first === 'facing') expect(v2.map(row => row.minChars)).toEqual(v1.map(row => row.minChars));
       for (const row of v2) {
         expect(row.planVersion).toBe(2);
         expect(row.perspective?.length).toBeGreaterThan(10);
-        expect(row.targetChars[0]).toBeGreaterThanOrEqual(row.minChars + 800);
+        expect(Boolean(row.compact)).toBe(first === 'gate');
+        if (first === 'facing') expect(row.targetChars[0]).toBeGreaterThanOrEqual(row.minChars + 800);
         expect(codexBodyTarget(row)).toEqual(row.targetChars);
         expect(codexV2PromptLines(row).length).toBeGreaterThan(0);
       }
@@ -89,6 +93,24 @@ describe('V2 chapter tables', () => {
       expect(opener.scope).toMatch(/일상 장면 2~3개/);
       expect(opener.avoid.join(' ')).toMatch(/상담 질문/);
     }
+  });
+
+  it('solo V2 is a 20,000~30,000-char book with an upper bound in every chapter prompt', async () => {
+    const solo = await import('../../worker/lib/master-love-codex-prompt.mjs');
+    const v2 = solo.MASTER_LOVE_CODEX_CHAPTERS_V2;
+    const sum = index => v2.reduce((total, row) => total + row.targetChars[index], 0);
+    expect(solo.MASTER_LOVE_CODEX_SOLO_V2_LENGTH.minTotalChars).toBeLessThanOrEqual(20200);
+    expect(sum(0)).toBeGreaterThanOrEqual(20000);
+    expect(sum(1)).toBeLessThanOrEqual(30000);
+    for (const row of v2) expect(row.minChars).toBeLessThanOrEqual(1200);
+    expect(solo.MASTER_LOVE_CODEX_META.minTotalChars).toBe(46000);
+    const prompt = solo.buildMasterLoveCodexChapterPrompt({ saju: {}, ziweiChart: {}, birthInfo: {}, chapter: v2[1] });
+    expect(prompt).toContain(`${v2[1].targetChars[1]}자를 넘기지 않는다`);
+    expect(prompt).toContain('소제목 2~3개');
+    expect(prompt).toContain('[V2 반복 금지]');
+    const legacy = solo.buildMasterLoveCodexChapterPrompt({ saju: {}, ziweiChart: {}, birthInfo: {}, chapter: solo.MASTER_LOVE_CODEX_CHAPTERS[1] });
+    expect(legacy).not.toMatch(/V2 분량|V2 반복 금지|소제목 2~3개/);
+    expect(legacy).toContain('4~6개의 소제목');
   });
 
   it('new sessions pin plan 2; legacy sessions without a version stay on V1', async () => {
@@ -193,6 +215,54 @@ describe('V2 soft issues: register drift and re-quoted questions', () => {
     expect(provider.mock.calls.filter(([, input]) => input.chapter.id === 'gate')).toHaveLength(2);
     expect(docs[0].chapters).toHaveLength(20);
     expect(refund).not.toHaveBeenCalled();
+  });
+});
+
+describe('solo V2: no repetition, exact chapters', () => {
+  const repeated = '비겁이 발달하여 경쟁 속에서 존재감을 확인하고 사람들과 함께 움직이려는 욕구가 강합니다.';
+  const repeated2 = '상대방의 입장을 이해하려는 노력이 꾸준히 필요하다는 점을 기억해 두셔야 합니다.';
+
+  it('flags a chapter that nearly repeats sentences of earlier chapters and scrubs them within 85%', async () => {
+    const { codexCrossRepeatSentences, detectCodexSoftIssues, scrubCodexCrossRepeats } = await import('../../worker/lib/master-love-codex-quality.js');
+    const { MASTER_LOVE_CODEX_CHAPTERS_V2: v2 } = await import('../../worker/lib/master-love-codex-prompt.mjs');
+    const compat = (await import('../../worker/lib/master-love-codex-compat-prompt.mjs')).MASTER_LOVE_CODEX_COMPAT_CHAPTERS_V2;
+    const priors = [`${body(v2[0])}${repeated}\n${repeated2}`, `${body(v2[1])}그래서 ${repeated}\n`];
+    const text = `${body(v2[2])}당신은 ${repeated}\n${repeated2}\n`;
+    expect(codexCrossRepeatSentences(text, priors).length).toBe(2);
+    expect(detectCodexSoftIssues(text, v2[2], null, priors).map(issue => issue.code)).toEqual(['CROSS_REPEAT']);
+    expect(detectCodexSoftIssues(text, compat[2], null, priors)).toEqual([]);
+    const scrubbed = scrubCodexCrossRepeats(text, v2[2], priors);
+    expect(scrubbed).not.toContain('존재감을 확인하고');
+    expect(scrubbed).toContain(`${v2[2].id}0 장 계산 근거`);
+    expect(scrubCodexCrossRepeats(text, compat[2], priors)).toBe(text);
+    expect(codexCrossRepeatSentences(body(v2[3]), priors)).toEqual([]);
+  });
+
+  it('a repeating chapter gets one hinted repair; the book keeps only the first copy', async () => {
+    provider.mockImplementation(async (_env, { chapter, previousError }) => {
+      // gate says it first; attraction rewords it (exact copies are already cut by dedupe, near-repeats are CROSS_REPEAT).
+      const extra = chapter.id === 'gate' ? `${repeated}\n${repeated2}\n` : chapter.id === 'attraction' && !previousError ? `당신은 ${repeated}\n그래서 ${repeated2}\n` : '';
+      return okChapter(chapter, body(chapter) + extra);
+    });
+    await runToEnd(20);
+    expect(docs[0].status).toBe('completed');
+    const calls = provider.mock.calls.filter(([, input]) => input.chapter.id === 'attraction');
+    expect(calls).toHaveLength(2);
+    expect(calls[1][1].repairHint).toMatch(/앞 장에서 이미 쓴 문장/);
+    expect(docs[0].chapters.filter(row => row.body.includes('존재감을 확인하고'))).toHaveLength(1);
+  });
+
+  it('delivers all 20 chapters in plan order with plan titles, even when the model returns other titles', async () => {
+    const { validateCodexChapterOutline } = await import('../../worker/lib/master-love-codex-quality.js');
+    const { MASTER_LOVE_CODEX_CHAPTERS_V2: v2 } = await import('../../worker/lib/master-love-codex-prompt.mjs');
+    provider.mockImplementation(async (_env, { chapter }) => { const row = okChapter(chapter); row.chapter.title = `모델이 바꾼 제목 ${chapter.order}`; row.chapter.order = 99; return row; });
+    await runToEnd(20);
+    expect(docs[0].status).toBe('completed');
+    expect(docs[0].chapters.map(row => [row.id, row.order, row.title])).toEqual(v2.map(row => [row.id, row.order, row.title]));
+    expect(validateCodexChapterOutline(docs[0].chapters, v2)).toEqual([]);
+    expect(validateCodexChapterOutline([...docs[0].chapters].reverse(), v2)).toContain('CHAPTER_ORDER:gate');
+    expect(validateCodexChapterOutline(docs[0].chapters.slice(0, 19), v2)).toEqual(['CHAPTER_COUNT', 'CHAPTER_MISSING:letter']);
+    expect(validateCodexChapterOutline(docs[0].chapters.map((row, i) => i ? row : { ...row, title: 'x' }), v2)).toEqual(['CHAPTER_TITLE:gate']);
   });
 });
 

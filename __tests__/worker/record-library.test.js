@@ -253,6 +253,16 @@ test('shared Codex and life-book stores retain the actual billing variant and di
   expect(legacy.serviceName).toBe('인생 총운');expect(legacy.serviceId).toBe('life-book-ai-consultation');
 });
 
+test('a V2 solo Codex book with short (1,000-char plan) chapters is completed, V1 still checks its floor',async()=>{
+  const {recordService}=await import('../../lib/records/service-registry.js');
+  const {MASTER_LOVE_CODEX_CHAPTERS_V2}=await import('../../worker/lib/master-love-codex-prompt.mjs');
+  const source=recordService('codex');
+  const chapterManifest=MASTER_LOVE_CODEX_CHAPTERS_V2.map(spec=>({id:spec.id,ok:true,chars:700}));
+  expect(library.recordStatus({status:'completed',mode:'solo',chapterPlanVersion:2,chapterManifest},source)).toBe('completed');
+  expect(library.recordStatus({status:'completed',mode:'solo',chapterManifest},source)).toBe('partial');
+  expect(library.recordStatus({status:'completed',mode:'solo',chapterPlanVersion:2,chapterManifest:chapterManifest.slice(1)},source)).toBe('partial');
+});
+
 test('compass AI reports carry the deep-report billing key so refund revocation checks the right product',async()=>{
   const {recordService}=await import('../../lib/records/service-registry.js');
   const {FEATURE_KEY_PRICE_TABLE}=await import('../../worker/lib/paid-feature-registry.js');

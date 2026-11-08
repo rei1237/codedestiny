@@ -263,6 +263,8 @@ const SOLO_V2_PERSPECTIVE = {
   "three-years": "앞으로 3년의 흐름을 시기별로 나누어 언제 무엇을 하면 좋을지 본다.",
   "letter": "연애 고수가 책 전체의 핵심을 한 사람에게 건네는 편지로 조용히 닫는다."
 };
+/** 1장(기질·공감)과 3년 흐름은 조금 길게, 마지막 편지는 짧게, 나머지는 1,000자(V2 개인판 전용). */
+const SOLO_V2_MIN_CHARS = { "gate": 1200, "three-years": 1200, "letter": 800 };
 export const MASTER_LOVE_CODEX_CHAPTERS_V2 = Object.freeze(MASTER_LOVE_CODEX_CHAPTERS.map((chapter) => Object.freeze({
   ...chapter,
   ...(chapter.id === "gate" ? {
@@ -273,8 +275,21 @@ export const MASTER_LOVE_CODEX_CHAPTERS_V2 = Object.freeze(MASTER_LOVE_CODEX_CHA
   } : chapter.id === "temperament" ? { avoid: [...chapter.avoid, "기질의 일상 공감 장면 — 1장 담당"] } : {}),
   planVersion: 2,
   perspective: SOLO_V2_PERSPECTIVE[chapter.id],
-  targetChars: [chapter.minChars + 800, chapter.minChars + 1200],
+  // 2026-11-08 사용자 "개인판은 너무 길다 — 2~3만 자, 반복 없이, 정확한 챕터대로": 장당 약 1,000~1,500자.
+  minChars: SOLO_V2_MIN_CHARS[chapter.id] || 1000,
+  targetChars: [(SOLO_V2_MIN_CHARS[chapter.id] || 1000) + 150, (SOLO_V2_MIN_CHARS[chapter.id] || 1000) + 450],
+  compact: true,
 })));
+
+/**
+ * V2 개인판 분량(2026-11-08). V1 META(46,000/50,000)는 옛 세션 기준이라 그대로 두고 새 개인판은 이 값을 쓴다.
+ * minTotalChars는 장 minChars 합(약 2만)이다. 분량은 전달을 막지 않는다 — 장은 0.7배 미만일 때만 다시 받고,
+ * minChars 미만은 책당 최대 4장만 보강한다(F19).
+ */
+export const MASTER_LOVE_CODEX_SOLO_V2_LENGTH = Object.freeze({
+  totalCharTarget: [20000, 30000],
+  minTotalChars: MASTER_LOVE_CODEX_CHAPTERS_V2.reduce((sum, chapter) => sum + chapter.minChars, 0),
+});
 
 /** 연애 DNA(18장) 지표 정의 — JSON 응답 스키마의 근거 */
 export const LOVE_DNA_METRICS = Object.freeze([
@@ -536,7 +551,7 @@ export function buildMasterLoveCodexChapterPrompt({ saju, ziweiChart, birthInfo,
       '  "actions": ["지금 할 수 있는 구체적 행동 1", "행동 2"],',
       '  "bridge": "다음 장으로 이어지는 한 문장",',
       '  "visualization": {"kind":"balance 또는 loop 또는 timeline","title":"정성적 읽기","items":[{"label":"항목","level":"low 또는 balanced 또는 high 또는 watch 또는 opportunity","note":"근거 설명"}]},',
-      `  "body": "근거 밀도에 따라 소제목 2~6개로 유동적으로 나눈 이 장의 완성 원고(Markdown, 공백 포함 ${bodyLo}~${bodyHi}자)"`,
+      `  "body": "근거 밀도에 따라 소제목 ${chapter.compact ? "2~3" : "2~6"}개로 유동적으로 나눈 이 장의 완성 원고(Markdown, 공백 포함 ${bodyLo}~${bodyHi}자)"`,
       "}",
       `- "body"는 공백 포함 최소 ${min}자 이상.`,
       ...(chapter.jsonMode ? [
