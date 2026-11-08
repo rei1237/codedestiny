@@ -1,5 +1,5 @@
 ---
-status: in-progress
+status: active
 updated: 2026-11-08
 next: 8단계 8c — 숙요 build·모의 실행·실호출 1회·PDF 확인
 ---
