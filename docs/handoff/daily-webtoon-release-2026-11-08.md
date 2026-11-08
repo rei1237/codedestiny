@@ -95,6 +95,9 @@ next: "2단계 후속: main PR CI Static guards 실패(verify:saju-summary-brows
     - 실패 로그 사본: `D:\Development\Temp\claude\ec29f026d20d029c\ccecc842-2a09-4af6-b3e9-689ca5d1e944\scratchpad\prci.log`(8342행 부근).
   - **이 실패를 고치고 main PR CI가 초록이 될 때까지 3단계(운영 승격)는 하지 않는다.** 고칠 때는 검증 스크립트를 느슨하게 만들지 말고, 모바일에서 무료 사주 카드가 실제로 보이게 제품 쪽을 고친다. 카드를 의도적으로 숨겼다면 숨긴 쪽의 의도를 읽고 판단한다.
 
+  - **원인 확인·수정(e6d966fb4)**: 가리는 요소는 `styles/yehwa-home.css`의 `@media(max-width:699px){#cdHomeFunnel :is(.cdh-free,.cdh-all-cta){display:none}}`다. android 브랜치 6e44d94eb·d6924ef65가 모바일 첫 줄에 일곱 입구(.yh-entries, 사주 포함 같은 `data-action="cdOneStepFreeSajuEntry"`)를 두고 중복인 '무료로 먼저' 격자를 **일부러** 숨겼다(사용자 요청 작업). 제품을 되돌리지 않고, 검사 4개(saju-summary-browser·saju-result-login·relationship-inline-browser·fortune-consultation-ux)가 같은 action의 입구 중 **화면에 보이는 쪽**을 누르게 했다. 데스크톱은 그대로 #cdQuickServices 카드. 로컬에서 saju-summary-browser·saju-result-login 통과, check:fast exit 0(Jest 7700).
+    - 별건(CI 밖, 손대지 않음): `verify-relationship-inline-browser`는 3107 포트 외부 서버가 있어야 돈다. `verify-fortune-consultation-ux`는 입구 클릭 뒤 99행(`#letterContent .saju-letter` readingMode 대기)에서 타임아웃 — 입구 변경과 무관.
+
 ## 이어받는 쪽 첫 행동 (2026-11-08 갱신)
 1. 병합 워크트리 `D:\Development\codedestiny-worktrees\release-merge-20261108`(detached, node_modules junction)에서 `git fetch origin`. origin/main이 앞서 있으면 rebase한다.
 2. 로컬에서 `npm run build` 뒤 `npm run verify:saju-summary-browser`로 재현한다. 원인을 고치고 check:fast → 커밋. 이 문서 커밋 포함 `git push origin HEAD:main`. PR CI 결과를 한 번만 확인한다.
