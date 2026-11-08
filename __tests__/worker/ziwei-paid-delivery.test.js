@@ -276,7 +276,7 @@ function v2Provider(edit = (_group, parsed) => parsed) {
   };
 }
 const groupCalls = id => provider.mock.calls.filter(call => call[2].logContext.sectionGroup === id);
-async function runV2(limit = 16) { let response; for (let i = 0; i < limit && docs[0]?.status !== "completed" && docs[0]?.status !== "generation_failed"; i++) response = await startV2(); return response; }
+async function runV2(limit = 24) { let response; for (let i = 0; i < limit && docs[0]?.status !== "completed" && docs[0]?.status !== "generation_failed"; i++) response = await startV2(); return response; }
 
 it("V2: new requests pin plan 2, quote the question only in the nature group and finish in seven waves", async () => {
   provider.mockImplementation(v2Provider());
@@ -298,14 +298,30 @@ it("V2: a group that stays repeated is salvaged and delivered instead of refunde
   }));
   expect((await runV2()).status).toBe(200);
   expect(docs[0].status).toBe("completed"); expect(refund).not.toHaveBeenCalled();
-  expect(docs[0].llmMeta.attempts["flow:salvaged"]).toBe(1); expect(groupCalls("flow")).toHaveLength(2);
+  expect(docs[0].llmMeta.attempts["flow:salvaged"]).toBe(1); expect(groupCalls("flow")).toHaveLength(3);
   expect(Object.keys(docs[0].llmMeta.groups.flow).length).toBeGreaterThan(0);
 });
 it("V2: refunds only when every group comes back empty", async () => {
   mode = "paid";
   provider.mockImplementation(async () => ({ ok: true, text: JSON.stringify({ sections: {} }) }));
   expect((await runV2()).status).toBe(503);
-  expect(docs[0].status).toBe("generation_failed"); expect(refund).toHaveBeenCalledTimes(1); expect(provider).toHaveBeenCalledTimes(12);
+  expect(docs[0].status).toBe("generation_failed"); expect(refund).toHaveBeenCalledTimes(1); expect(provider).toHaveBeenCalledTimes(18);
+});
+it("V2: fills missing sections with one saved rescue and preserves existing sections", async () => {
+  let natureCalls = 0;
+  provider.mockImplementation(v2Provider((group, parsed) => {
+    if (group.id === "nature" && ++natureCalls <= 2) delete parsed.sections.essence;
+    return parsed;
+  }));
+  expect((await runV2()).status).toBe(200);
+  expect(docs[0].llmMeta.attempts["nature:emptyRescue"]).toBe(1);
+  expect(groupCalls("nature")).toHaveLength(3);
+  expect(docs[0].llmMeta.groups.nature.essence.body.length).toBeGreaterThan(40);
+  expect(docs[0].llmMeta.groups.nature.personality_profile.body.length).toBeGreaterThan(40);
+  const before = provider.mock.calls.length;
+  await startV2();
+  expect(provider).toHaveBeenCalledTimes(before);
+  expect(refund).not.toHaveBeenCalled();
 });
 it("V2: a missing meta intro falls back to a deterministic one after two calls", async () => {
   provider.mockImplementation(v2Provider());

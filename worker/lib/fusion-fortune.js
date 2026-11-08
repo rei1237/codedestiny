@@ -1148,19 +1148,22 @@ async function rescueFusionPlan2EmptyChapters({ composed, groups, exhaustedOptio
   if (checkpointed && waveGroups.length) return { pending: [...new Set(chapters.map(({ group }) => group.id))] };
   if (abortSignal?.aborted || remainingMs() <= FUSION_GROUP_RETRY_MIN_BUDGET_MS) {
     console.warn("[fusion-fortune-chapter-rescue-skipped]", { requestId: text(requestId, 120), remainingMs: remainingMs(), chapters: chapters.map(({ key }) => key) });
-    return {};
+    return { pending: [...new Set(chapters.map(({ group }) => group.id))] };
   }
-  const progress = { phase: "rescue", total: chapters.length, done: 0 };
-  const settled = await Promise.allSettled(chapters.map(({ group, key }) => runGroup(group, { attempts: 1, progress, attemptId: `rescue-${key}` })));
+  // 일반 생성과 같은 요청당 두 호출 한도를 지킨다. 남은 장은 저장된 예약 횟수로 다음 요청에서 잇는다.
+  const batch = chapters.slice(0, 2);
+  const progress = { phase: "rescue", total: batch.length, done: 0 };
+  const settled = await Promise.allSettled(batch.map(({ group, key }) => runGroup(group, { attempts: 1, progress, attemptId: `rescue-${key}` })));
   const storageFailure = settled.find((outcome) => outcome.status === "rejected" && outcome.reason?.code === "RESULT_STORAGE_UNAVAILABLE");
   if (storageFailure) throw storageFailure.reason;
   const report = settled.map((outcome, index) => {
     const ok = outcome.status === "fulfilled" && outcome.value.ok;
     if (ok) Object.assign(composed, outcome.value.value);
-    return { key: chapters[index].key, ok, issue: ok ? "" : text(outcome.status === "fulfilled" ? outcome.value.issue : outcome.reason?.message, 80) };
+    return { key: batch[index].key, ok, issue: ok ? "" : text(outcome.status === "fulfilled" ? outcome.value.issue : outcome.reason?.message, 80) };
   });
   console.warn("[fusion-fortune-chapter-rescue]", { requestId: text(requestId, 120), chapters: report });
-  return {};
+  const pending = chapters.filter(({ key }) => !text(composed[key]?.content, 50000) && Number(attemptCounts[`rescue-${key}`] || 0) < attemptLimit);
+  return pending.length ? { pending: [...new Set(pending.map(({ group }) => group.id))] } : {};
 }
 
 async function repairFusionPlan2Groups({ context, composed, groups, waveGroups, attemptCounts, attemptLimit, priorSnapshot, validationOptions, runGroup, merged, prior, onCheckpoint, remainingMs, abortSignal, requestId }) {

@@ -799,7 +799,7 @@ export async function runZiweiDeepReportDeliveryBatch(request, env, body, auth, 
           await saveDeepCheckpoint({ env, id: reportId, userId: auth.userId, lockToken, values: { [`llmMeta.checkpoints.${definition.id}`]: checkpoint, [`llmMeta.attempts.${definition.id}:salvaged`]: 1 } });
           localChapters.push(checkpoint);
           localAttempts[`${definition.id}:salvaged`] = 1;
-        } else {
+        } else if (Number(localAttempts[`${definition.id}:emptyRescue`] || 0) >= 1) {
           await saveDeepCheckpoint({ env, id: reportId, userId: auth.userId, lockToken, values: { [`llmMeta.attempts.${definition.id}:skipped`]: 1 } });
           localAttempts[`${definition.id}:skipped`] = 1;
         }
@@ -812,10 +812,13 @@ export async function runZiweiDeepReportDeliveryBatch(request, env, body, auth, 
     const batch = pending.slice(0, CHAPTER_BATCH_SIZE);
     await runWithConcurrency(batch, CHAPTER_CONCURRENCY, async definition => {
       const attempt = Number(attempts[definition.id] || 0) + 1;
+      const emptyRescue = v2 && attempt > CHAPTER_MAX_ATTEMPTS;
       const previous = chapters.find(ch => ch.id === definition.id);
       const repairing = isDeepChapterComplete(previous, definition, {}, true);
       await saveDeepCheckpoint({ env, id: reportId, userId: auth.userId, lockToken, values: {
-        [`llmMeta.attempts.${definition.id}`]: attempt,
+        // 빈 장만 별도 1회 구제한다. 예약을 먼저 저장하여 중단·재개 때 무한 호출하지 않는다.
+        ...(emptyRescue ? { [`llmMeta.attempts.${definition.id}:emptyRescue`]: 1 }
+          : { [`llmMeta.attempts.${definition.id}`]: attempt }),
         ...(repairing ? { [`llmMeta.attempts.${definition.id}:lengthRepair`]: 1 } : {}),
       } });
       const storedDraft = claimed.llmMeta?.drafts?.[definition.id];

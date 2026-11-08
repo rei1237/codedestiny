@@ -487,7 +487,7 @@ test('판 2: 새 리포트는 판을 고정하고, 시도를 다 쓴 장은 초�
   assert.equal(f.doc.llmMeta.attempts['chapter3:salvaged'], 1);
   assert.equal(f.doc.chapters.find(ch => ch.id === 'chapter3').provider, 'salvaged');
 });
-test('판 2: 초안 없는 장은 건너뛰고, 모든 장이 비면 환불한다', async () => {
+test('판 2: 초안 없는 장은 구제 예산도 소진한 뒤 건너뛰고, 모든 장이 비면 환불한다', async () => {
   const skip = await fixtureV2();
   skip.ctx.generateChapter = async (_env, _chart, _birth, definition) => definition.id === 'chapter5'
     ? { id: definition.id, title: definition.title, body: 'fallback', chars: 8, provider: 'fallback', ok: false }
@@ -499,6 +499,23 @@ test('판 2: 초안 없는 장은 건너뛰고, 모든 장이 비면 환불한�
   empty.ctx.generateChapter = async (_env, _chart, _birth, definition) => ({ id: definition.id, title: definition.title, body: 'fallback', chars: 8, provider: 'fallback', ok: false });
   await drive(empty, 20);
   assert.equal(empty.doc.status !== 'completed', true); assert.ok(empty.refunds >= 1);
+});
+
+test('판 2: 시도 소진으로 비었던 장은 저장된 별도 구제 1회로 채운다', async () => {
+  const f = await fixtureV2(); const calls = {};
+  f.ctx.generateChapter = async (_env, _chart, _birth, definition) => {
+    calls[definition.id] = (calls[definition.id] || 0) + 1;
+    if (definition.id === 'chapter5' && calls[definition.id] <= 3)
+      return { id: definition.id, title: definition.title, body: '', ok: false };
+    return { id: definition.id, title: definition.title, body: v2Body(definition.id), provider: 'fixture', ok: true };
+  };
+  assert.equal((await drive(f, 20)).status, 200);
+  assert.equal(calls.chapter5, 4);
+  assert.equal(f.doc.llmMeta.attempts['chapter5:emptyRescue'], 1);
+  assert.ok(f.doc.chapters.find(ch => ch.id === 'chapter5')?.body);
+  assert.equal(f.refunds, 0);
+  await f.post();
+  assert.equal(calls.chapter5, 4, '완료본 재열람에서는 구제 호출도 반복하지 않는다');
 });
 test('판 2: 말투 이탈 장은 초안으로 남기고 다음 시도에 [보정] 힌트를 붙인다', async () => {
   const f = await fixtureV2(); const hints = [];
