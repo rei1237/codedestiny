@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-09
-next: Node 실패 8건 보정 커밋 및 사이트맵 갱신 후 check:fast 전체를 다시 완료한다.
+next: check:fast 계획의 verify:env-parity 이후 26개 단계를 같은 순서로 실행하여 빌드·Jest까지 완료한다.
 ---
 
 # 고가 운세 개선 main 전달
@@ -71,3 +71,6 @@ next: Node 실패 8건 보정 커밋 및 사이트맵 갱신 후 check:fast 전�
   - 숙요 렌더러 보존 해시(1건): 승인된 8b `0a632d3a0`의 장/서한비 표시·planV2 전달을 옛 기준이 반려했다. 해당 두 함수만 그 승인 커밋과 현재 해시가 일치함을 확인하여 고정했다. 다른 모든 함수 및 결제·저장·파싱 기준은 유지한다.
 - 위 실패 8건을 포함한 해당 파일 6개 집중 검사: 64/64 통과. `.tmp/premium-node-repairs.log`. 테스트 제외·assertion 삭제 없음.
 - 두 번째 check:fast는 77/77·lint 통과 후 타입 검사에서 중단됐다. 첫 수정이 chaptersHeading을 필수로 바꾸면서 7개 언어를 빠뜨렸다. 해당 커밋 `2f292c6d3`은 `850e5949b`에서 revert했다. 그 뒤 테스트 보정은 복원하고, 새 키 확장 대신 기존 12개 언어 tocAria 재사용으로 접근을 바꿨다. `.tmp/premium-check-fast-attempt2.log`.
+- 수정본 커밋 `32e76cb4f`: 타입 검사·집중 64개·Impeccable detect(`[]`) 통과. 사이트맵 재생성도 갱신 0개다.
+- 세 번째 check:fast: 77/77·lint·typecheck·Node 4743/4743 통과. 이후 env-parity에서 FUSION_GROUP_PLAN_V2_ENABLED 계약 누락 1건으로 종료했다. `.tmp/premium-check-fast.log`.
+- 실제 환경값·환경 파일을 바꾸지 않고 `config/env.contract.json`에 해당 선택 스위치의 메타데이터만 등록했다. env-parity 재검사 PASS(기존 alias 경고 7건). 통과한 대형 검사를 반복하지 않고, 갱신된 계획의 앞 단계가 같은지 확인한 뒤 실패 단계부터 남은 26개를 모두 같은 순서로 실행한다. 단계 제외·검사기 변경은 하지 않는다.
