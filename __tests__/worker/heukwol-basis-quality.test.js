@@ -80,3 +80,52 @@ test('a later chapter cannot reuse the same long passages to reach the paid leng
     .rejects.toThrow('HEUKWOL_CHAPTER_INVALID');
   expect(first).toEqual(saved);
 });
+
+describe('delivery plan v2 chapter acceptance', () => {
+  const v2 = (extra = {}) => ({ deliveryPlanVersion: 2, ...extra });
+  const shortValue = { ...value, interpretation: '연이는 이 조건을 천천히 살펴보길 권해요.', strategy: '네오는 오늘 할 일 하나만 정해.' };
+  const providerOf = v => async () => ({ ok: true, text: JSON.stringify(v) });
+  test('non-final short draft is a soft issue; the final attempt delivers it as-is', async () => {
+    await expect(generateHeukwolChapter({}, analysis, HEUKWOL_CHAPTERS[0], '질문', [], providerOf(shortValue), v2()))
+      .rejects.toMatchObject({ heukwolIssue: 'HEUKWOL_CHAPTER_SHORT' });
+    const out = await generateHeukwolChapter({}, analysis, HEUKWOL_CHAPTERS[0], '질문', [], providerOf(shortValue), v2({ finalAttempt: true }));
+    expect(out.totalChars).toBeLessThan(1500);
+    expect(out.interpretation).toBe(shortValue.interpretation);
+  });
+  test('final attempt scrubs only the unsupported sentence and filters unknown evidence IDs', async () => {
+    const risky = { ...value, warning: '서두르면 균열이 커져. 반드시 사고가 난다.', evidenceIds: ['natal-saju', 'made-up-id'] };
+    await expect(generateHeukwolChapter({}, analysis, HEUKWOL_CHAPTERS[0], '질문', [], providerOf(risky), v2()))
+      .rejects.toMatchObject({ heukwolIssue: 'HEUKWOL_UNSUPPORTED_CLAIM' });
+    const out = await generateHeukwolChapter({}, analysis, HEUKWOL_CHAPTERS[0], '질문', [], providerOf(risky), v2({ finalAttempt: true }));
+    expect(out.warning).toBe('서두르면 균열이 커져.');
+    expect(out.evidenceIds).toEqual(['natal-saju']);
+  });
+  test('final attempt keeps a chapter whose fields partly duplicate earlier chapters', async () => {
+    const first = await generateHeukwolChapter({}, analysis, HEUKWOL_CHAPTERS[0], '질문', [], provider, v2({ finalAttempt: true }));
+    const later = { ...value, warning: '이번 장의 새 경고는 약속의 속도를 늦추는 데서 시작해.' };
+    await expect(generateHeukwolChapter({}, analysis, HEUKWOL_CHAPTERS[1], '질문', [first], providerOf(later), v2()))
+      .rejects.toMatchObject({ heukwolIssue: 'HEUKWOL_CHAPTER_INVALID' });
+    const out = await generateHeukwolChapter({}, analysis, HEUKWOL_CHAPTERS[1], '질문', [first], providerOf(later), v2({ finalAttempt: true }));
+    expect(out.warning).toBe(later.warning);
+    expect(out.interpretation).toBe('');
+  });
+  test('a fully empty body is still rejected on the final attempt', async () => {
+    await expect(generateHeukwolChapter({}, analysis, HEUKWOL_CHAPTERS[0], '질문', [], providerOf({ warning: '', interpretation: '', strategy: '', checkpoints: [], evidenceIds: [] }), v2({ finalAttempt: true })))
+      .rejects.toThrow('HEUKWOL_CHAPTER_INVALID');
+  });
+  test('register drift is a soft issue that adds a repair hint only on the retry', async () => {
+    const prompts = [];
+    const drift = { ...value, interpretation: Array.from({ length: 6 }, (_, i) => `연이가 보기엔 ${i + 1}번째 조건부터 다시 봐야 해.`).join(' ') + prose('연이') };
+    const capture = async (_env, prompt) => { prompts.push(prompt); return { ok: true, text: JSON.stringify(drift) }; };
+    await expect(generateHeukwolChapter({}, analysis, HEUKWOL_CHAPTERS[0], '질문', [], capture, v2()))
+      .rejects.toMatchObject({ heukwolIssue: 'HEUKWOL_CHAPTER_REGISTER' });
+    await generateHeukwolChapter({}, analysis, HEUKWOL_CHAPTERS[0], '질문', [], capture, v2({ finalAttempt: true, repairIssue: 'HEUKWOL_CHAPTER_REGISTER' }));
+    expect(prompts[0]).toBe(heukwolPrompt(analysis, HEUKWOL_CHAPTERS[0], '질문', []));
+    expect(prompts[1].startsWith(prompts[0])).toBe(true);
+    expect(prompts[1]).toContain('보완 요청:');
+  });
+  test('without the v2 option the v1 validator still rejects short chapters', async () => {
+    await expect(generateHeukwolChapter({}, analysis, HEUKWOL_CHAPTERS[0], '질문', [], providerOf(shortValue)))
+      .rejects.toThrow('HEUKWOL_CHAPTER_QUALITY');
+  });
+});
