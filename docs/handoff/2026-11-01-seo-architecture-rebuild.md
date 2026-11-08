@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-11-09
-next: "④ 로컬 변경 검증·커밋, 최신 main CI 실패와 네이버 로그인 응답 확인 → 남은 원자료 및 화면 검증 → 승인 패킷. 브라우저 Space 65는 handOff 상태."
+next: "④ main 전달 CI를 최종 보고 전 1회 확인. 네이버 로그인 회신 뒤 Space 65 재개·남은 원자료·화면 검증 → 운영 승인 패킷. ⑤ 시점·중복 수정은 별도 커밋으로 계속."
 ---
 
 # SEO 아키텍처 재구축
@@ -29,6 +29,7 @@ next: "④ 로컬 변경 검증·커밋, 최신 main CI 실패와 네이버 로�
 - 운영 SSR 61쪽을 별도 저장. E1 13쪽 최소 3,835자, 띠별 정확 고유 문단 최저91.88%, 5단어 구문 쌍별 min-set 최대41.96%/Jaccard25.65%. 추가 신년 원고 없이 수치 기준 충족. today/tomorrow 24쌍 Jaccard 최대56.30%, 10쌍≥50%. 내일 페이지에 ‘오늘 일진’과 원고 풀의 오늘 문장 노출. ⑤에서 계산이 아닌 기간별 표현을 수정한다. 한글 혼용만으로 번역 noindex하지 않는다.
 - ④ 로컬: 사주 title/description·fallback H1·breadcrumb 의도 분리, 궁합 SSR 비교표, 감사 대상 5쪽의 관련 링크 보강. canonical·hreflang·robots·색인 URL 집합·결제/인증/API/DB/계산 로직 변경 없음. 첫 check:fast는 sitemap drift에서 중단. 생성 뒤 재실행에서 lint/typecheck 통과, Node 4772개 중4770통과·2실패(새 ‘무료 사주’ 문구가 기존 상품 정책과 충돌). 해당 표현을 철회하고 ‘사주 원국 확인·사주팔자 해석 안내’로 좁힌 뒤 관련 정책 파일22개 전부 통과. 전체 Node 재실행은 하지 않았다. 로그는 외부 bundle-4/check-fast-20261109-retry.log·saju-policy-regression-20261109.log. 제목 최종 수정 뒤 sitemap을 공식 생성기로 다시 갱신했다. UI 화면 검증은 네이버 로그인 제어 인계로 아직 미실행이다.
 - ⑤의 시점 오류 원인·구현 경계는 외부 `bundle-5/implementation-boundaries-20261109.md`. 아직 소스 구현·noindex·승격하지 않았다. ④ 전달 경계를 먼저 정리한다.
+- ④ 구현 커밋은 최초 55af67578(rebase 전), 커밋된 트리 check:pre-push 통과. 다른 세션이 fc460e1efaf03cf5400351cfbd1c36c2e0f6cf77에서 premium handoff를 수정했고 PR CI42512760338 success. 앞선 한 줄 수정 문의는 필요가 없어졌다. 최신 main으로 rebase 후 후속 기록·pre-push·main push를 수행한다. 화면 검증과 운영 승격은 아직 하지 않았다.
 - 운영 승격은 ④·⑤ 각각 새 승인 필요. 이 작업의 임시 대기는 원자료 로그인/공유 CI 경계이며 SEO 전체 완료가 아니다. 현재 작업·워크트리를 지우지 않는다.
 
 ### 2026-11-09 묶음 ③ 운영 반영 완료
