@@ -56,16 +56,22 @@ try {
     const page = await context.newPage();
     page.on('pageerror', error => errors.push(error.message));
     await page.goto(base + '/ggulggul/', { waitUntil: 'domcontentloaded', timeout: 120000 });
-    // 대표 상담은 접힘 목록에서 가로 탐색으로 바뀌었다. 실제 카드와 탐색 영역을 검증한다.
-    await expect(page.locator('.cd-sig__viewport')).toBeVisible();
+    // 대표 상담은 고정 비교 카드와 고민 필터를 사용한다. 사라진 슬라이드
+    // 레일 대신 실제 진입 영역과 기존 여섯 유료 서비스의 보존을 검증한다.
+    await expect(page.locator('#cdSignatureConsult')).toBeVisible();
+    await expect(page.locator('#cdSigGrid.cd-picker-grid')).toBeVisible();
+    await expect(page.locator('[data-yh-concern]')).toHaveCount(6);
     await expect(page.locator('a[href="/#homeStoryTitle"]')).toHaveCount(1);
-    const signatureCards = page.locator('#cdSigGrid > .cd-story-entry > a[data-cd-service-id][data-pvw-paid]');
+    const signatureCards = page.locator('#cdSigGrid [data-picker-card] > a[data-cd-service-id][data-pvw-paid]');
     await expect(signatureCards).toHaveCount(6);
     const signatureDestinations = await signatureCards.evaluateAll(cards => cards.map(card => ({
       id: card.getAttribute('data-cd-service-id'),
       path: new URL(card.href).pathname,
     })));
     assert.equal(new Set(signatureDestinations.map(card => card.id)).size, 6, 'signature service ids must stay unique');
+    assert.deepEqual(signatureDestinations.map(card => card.id).sort(),
+      ['fortune-tea-house', 'life-book-ai', 'love-secret-ai', 'master-love-codex', 'neo-operation-room', 'new-year-ai'],
+      'the six original paid detail entries remain reachable through the comparison picker');
     assert.equal(new Set(signatureDestinations.map(card => card.path)).size, 6, 'signature cards must keep distinct service destinations');
     assert.ok(signatureDestinations.every(card => /^\/[a-z0-9-]+\/$/.test(card.path)),
       `signature cards must link directly to service routes: ${JSON.stringify(signatureDestinations)}`);
@@ -80,24 +86,13 @@ try {
       if (await disclosure.count() && !await disclosure.evaluate(element => element.open)) {
         await disclosure.locator('summary').first().click();
       }
-      // Concern cards are intentionally hidden until their real selector is chosen.
-      const concern = card.locator('xpath=ancestor::*[@data-yh-group][1]');
-      if (await concern.count()) {
-        const group = await concern.getAttribute('data-yh-group');
-        await page.locator('[data-yh-concern="' + group + '"]').click();
+      // Returning from a service resets the compact picker. Use its actual
+      // controls to expose every retained paid card before exercising details.
+      if (await card.locator('xpath=ancestor::*[@data-picker-card][1]').count()) {
+        await page.locator('[data-yh-concern="all"]').click();
+        const more = page.locator('[data-picker-more]');
+        if (await more.getAttribute('aria-expanded') === 'false') await more.click();
         await expect(card).toBeVisible();
-      }
-      // Move carousel cards into the active window before opening them. The
-      // off-screen cards are inert by design and cannot receive restored focus.
-      const signatureIndex = await card.evaluate(element => {
-        const grid = element.closest('#cdSigGrid');
-        return grid ? Array.from(grid.querySelectorAll('.cd-sig-card')).indexOf(element) : -1;
-      });
-      if (signatureIndex >= 0) {
-        const dots = page.locator('[data-sig-dots] [data-sig-slide]');
-        const lastDotIndex = Math.max(0, (await dots.count()) - 1);
-        await dots.nth(Math.min(signatureIndex, lastDotIndex)).click();
-        await expect.poll(() => card.evaluate(element => !element.closest('[inert]'))).toBe(true);
       }
       await card.scrollIntoViewIfNeeded();
       await card.click();
