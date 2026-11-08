@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-08
-next: 6a — 초융합 실호출에서 domainYun·domainHanbi·domainNeo가 GEMINI 400으로 빠진 원인 오프라인 진단과 6a 진행(6단계 결과 참고)
+next: 6c — 서비스 공통 배달 안전 수정(6단계 문제 목록을 다른 유료 LLM 서비스에 적용, 아래 "6c 배달 안전 감사" 참고). 그 전에 6단계 400 수정의 실호출 재검증 여부를 사용자에게 확인
 ---
 
 # 3만원 이상 유료 LLM — 상품별 챕터·분량·PDF·전달 개선 인수인계
@@ -67,8 +67,8 @@ next: 6a — 초융합 실호출에서 domainYun·domainHanbi·domainNeo가 GEMI
 - [x] 4. 운명의 업
 - [x] 5. 마스터 인연의 서 (+궁합)
 - [x] 6. 초융합 운세
-- [ ] 6a. 인연의 서 개인판 분량 약속 문구를 "5만 자"에서 "2~3만 자"로 바꾼다(사용자 승인). 위치는 5단계 보정 절에 있다. 생성 JSON과 SEO·메타 문구도 포함한다. 궁합판 문구는 개인판 분량을 말하는 곳이 아니면 그대로 둔다.
-- [ ] 6b. 운명의 업·인연의 서(개인·궁합) 조판 PDF에 차트·레이더·요약 페이지를 되살린다. 결과 화면과 보관함 양쪽에 넣는다.
+- [x] 6a. 인연의 서 개인판 분량 약속 문구를 "5만 자"에서 "2~3만 자"로 바꾼다(사용자 승인). 위치는 5단계 보정 절에 있다. 생성 JSON과 SEO·메타 문구도 포함한다. 궁합판 문구는 개인판 분량을 말하는 곳이 아니면 그대로 둔다.
+- [x] 6b. 운명의 업·인연의 서(개인·궁합) 조판 PDF에 차트·레이더·요약 페이지를 되살린다. 결과 화면과 보관함 양쪽에 넣는다.
 - [ ] 6c. 서비스 공통 배달 안전 수정. 6단계 문제 목록을 같은 문제가 있는 다른 유료 LLM 서비스에 모두 적용한다. 목록은 시도 소진 시 환불·배달 불가, 선택 그룹 삭제, 분량 보충 경로 없음, 말투 이탈 로그만, 모든 그룹에 질문 인용, 보관함 PDF 없음이다. 읽기 전용 감사 결과는 아래 "6c 배달 안전 감사"에 있다(원본: scratchpad `research/llm-delivery-audit-6c.md`).
   - **나누는 방식**
     - 7~13단계 상품(ziwei, ziwei-deep, sukuyo, astrology, vedic/nakshatra, neo, naming, 영냥이)은 각자의 단계에서 고친다.
@@ -577,6 +577,19 @@ next: 6a — 초융합 실호출에서 domainYun·domainHanbi·domainNeo가 GEMI
   - 옛 계획(v1·expert·premiumV1·premiumV2) sha256 기준선 그대로. 옛 2판 이전 세션도 런타임 400 재전송·구제의 혜택은 받는다(스키마 바이트는 그대로라 첫 호출은 여전히 400).
 - 검증: jest 초융합+gemini-json 228개 통과, node gemini-model-routing·input-token-limit·total-generation-budget 통과, `npx tsc --noEmit` 통과. 목 dry-run `run.mjs --mock` 14/14·full·56,528자. `run.mjs --mock --reject400`(예산 초과 스키마·domainNeo enum·domainHanbi 2장 요청을 400으로): 예산 초과 400 0회, domainNeo 같은 시도 안 단순 스키마로 성공, domainHanbi 2시도×3단계 400 뒤 장 단위 구제로 2장 채움 → 14/14·full·실제 fetch 0.
 - 🔴 실호출 재검증은 사용자 승인이 필요하다(승인분 소진). 하네스는 준비됨: 작업 트리 cwd에서 `node <scratchpad>/fusion-live/run.mjs --live`.
+
+#### 6a 인연의 서 개인판 분량 문구 (2026-11-08)
+- 커밋 `e85004c5a`. 원본은 셸 `index.html`이고 `npm run sync:marketing-copy`로 생성 JSON(`lib/marketing/feature-marketing-copy.generated.json`, `feature-visual-details.generated.json`)을 다시 만들었다. public 각 언어 index.html, `public/feature-details/master-love-codex.json`, `app/master-love-codex/page.tsx` 메타, `MasterLoveCodexRouteClient.tsx`, `CodexProductIntroduction.tsx`(개인판만), `lib/marketing/result-samples.json`을 고쳤다.
+- 개인판: "20개 챕터 합계 목표 20,000~30,000자" / "총 2~3만 자". 궁합판 "총 5만 자"는 그대로다. 공용 문장은 "개인판은 총 2~3만 자·궁합판은 총 5만 자를 목표로"로 바꿨다.
+- 건드리지 않음: 흑월 "약 5만 자"(다른 상품), `worker/` 코드 주석, `docs/purchase-journey/inventory.json`(문서 스냅숏).
+- 검증: consultation-samples·feature-visual-details 21개, feature-marketing-copy-generated·codex i18n static 9개 통과, `verify-feature-marketing-schema` OK.
+
+#### 6b 조판 PDF 요약·도표 페이지 (2026-11-08)
+- 커밋 `e82d1dd89`. 새 `lib/pdf/radar-chart.ts`(저장된 점수로 레이더, 축 3개 미만이면 표로 대체). `typesetConsultationBook`에 `summary` 옵션을 추가했다: 1장 앞에 번호 없는 목차 항목과 단독 페이지로 들어가고, 그림 종류는 lead·bars·radar·list·timeline이다. summary가 없으면 출력 바이트가 같다.
+- 운명의 업: `buildKarmaPdfSummary`(한 문장·글자 수·장 수·키워드, 에너지 막대+근거, 렌즈 기여 레이더, 운명 지도, 실천 목록). 결과 화면(`KarmaDestinyAiResultClient.tsx`)과 보관함(`SavedKarmaPdfButton.tsx`) 양쪽에 넣었다.
+- 인연의 서(개인·궁합): `buildMasterLoveCodexPdfSummary`(연애 유형·요약·장 수·글자 수, 연애 DNA 막대+근거). `CodexReader.tsx`가 결과·보관함 공용이다. 화면에 레이더가 없어 PDF에도 넣지 않았다.
+- 검증: PDF 테스트 13개, ui pdf·karma·codex 115개 통과, `npx tsc --noEmit` 통과. Paperlogy 글꼴로 만든 샘플(scratchpad `pdf6b/{karma,codex-solo,codex-compat}.pdf`)을 `pdftotext -enc UTF-8 -layout`으로 확인했다: 목차 "한눈에 보기", 막대 값, 레이더 축 라벨·%, 운명 지도, 실천 목록. 래스터라이저가 없어(pdftoppm·python 없음) 이미지로는 확인하지 못했다. 레이더 모양은 사람이 한 번 봐야 한다.
+- 함정: `pdftotext`는 `-enc UTF-8` 없이 쓰면 한글이 사라진다. `__tests__/ui`는 jest가 무시하므로 `node --test`로 돌린다.
 
 ## 6단계 진행 메모 (조사 완료, 구현 전 — 2026-11-08)
 
