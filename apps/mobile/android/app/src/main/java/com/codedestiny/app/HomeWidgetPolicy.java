@@ -11,7 +11,25 @@ final class HomeWidgetPolicy {
     static final String KIND_TALISMAN = "talisman";
     static final String KIND_AFFIRMATION = "affirmation";
     /** 승인된 영냥이 부적 원본(public/assets/talismans/originals/*-yeongnyangi-v2.png)의 분야. */
-    static final List<String> TALISMANS = Arrays.asList("study", "wealth", "love", "contact", "success");
+    static final List<String> TALISMANS = Arrays.asList("study",
+            "study-flower-pig-v2",
+            "study-yeoni-v2",
+            "wealth",
+            "wealth-flower-pig-v2",
+            "wealth-yeoni-v2",
+            "love",
+            "love-flower-pig-v2",
+            "love-yeoni-v2",
+            "contact",
+            "contact-flower-pig-v2",
+            "contact-yeoni-v2",
+            "success",
+            "success-flower-pig-v2",
+            "success-yeoni-v2",
+            "yeoni-hanbok",
+            "yeoni-moon",
+            "yeoni-tea",
+            "yeoni-pig-moon");
     static final String DEFAULT_AFFIRMATION_ID = "own-pace";
     /** 작은 위젯에서 네 줄 안에 읽히는 길이. */
     static final int MAX_TEXT = 40;
@@ -46,10 +64,23 @@ final class HomeWidgetPolicy {
     static Choice parse(String kind, String itemId, String text) {
         if (kind == null || itemId == null) return null;
         if (KIND_TALISMAN.equals(kind)) return TALISMANS.contains(itemId) ? new Choice(kind, itemId, "") : null;
+        if (isDaily(kind, itemId)) return text != null && text.startsWith("[") && text.endsWith("]") ? new Choice(kind, itemId, text) : null;
         if (!KIND_AFFIRMATION.equals(kind) || !itemId.matches("[a-z0-9-]{1,24}") || text == null) return null;
         String line = text.replaceAll("\\s+", " ").trim();
         if (line.isEmpty() || line.codePointCount(0, line.length()) > MAX_TEXT) return null;
         return new Choice(kind, itemId, line);
+    }
+
+    static boolean isDaily(String kind, String id) {
+        return ("flower".equals(kind) && "pig-daily".equals(id))
+                || ("fortune".equals(kind) && "cat-daily".equals(id))
+                || (KIND_AFFIRMATION.equals(kind) && ("cat-daily".equals(id) || "pig-daily".equals(id)));
+    }
+
+    static int dailyIndex(long now, String kind, int length) {
+        long day = Math.floorDiv(now + 9L * 3600000, 86400000L);
+        int offset = "flower".equals(kind) ? 13 : KIND_AFFIRMATION.equals(kind) ? 7 : 0;
+        return (int) Math.floorMod(day + offset, (long) length);
     }
 
     static String encode(Choice choice) {

@@ -368,3 +368,12 @@ export function getDailyFortune(system: DailyFortuneSystem, input: DailyFortuneI
     };
   }
 }
+
+// KST epoch-day index modulo 60 gives the same solar day pillar on every cycle.
+// Widgets keep only the public day pillar and its interpretation, never a birth profile.
+export function getPublicWidgetFortunes(): string[] {
+  return Array.from({ length: 60 }, (_, day) => {
+    const reading = buildSaju({}, new Date(day * 86400000));
+    return reading.anchor.replace("오늘의 일진 · ", "") + " · " + reading.headline;
+  });
+}

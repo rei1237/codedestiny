@@ -128,7 +128,7 @@ export default function HomePage() {
             </li>;
           })}
         </HomeCardDeck>
-        {IS_APP_BUILD && <a className={styles.widgetEntry} href="/app/home-widget/index.html" data-cd-home-widget-entry><NativeHomeText>홈 화면에 부적·확언 놓기</NativeHomeText></a>}
+        <a className={styles.widgetEntry} href={IS_APP_BUILD ? "/app/home-widget/index.html" : "/app/home-widget/"} data-cd-home-widget-entry><img src="/images/home/illustrated/yeoni-hanbok-240.webp" alt="" width="48" height="64" loading="lazy" /><span><strong><NativeHomeText>홈 화면 꾸미기</NativeHomeText></strong><small><NativeHomeText>연이의 한마디, 꽃말, 오늘의 운세와 부적을 골라 보세요.</NativeHomeText></small></span></a>
         {!IS_APP_BUILD && <HomeQuestionGuide />}
         {!IS_APP_BUILD && <StoryDiscovery />}
         <HomeDailyEntry />

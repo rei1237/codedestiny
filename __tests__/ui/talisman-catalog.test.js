@@ -23,7 +23,7 @@ const asset = {
   src: "/assets/talismans/originals/test-only.png", width: 1440, height: 3120, sha256: "a".repeat(64),
 };
 test("공개 카탈로그는 승인 원본만 허용한다", () => {
-  assert.equal(approvedAssets().length, 15);
+  assert.equal(approvedAssets().length, 19);
   assert.equal(approvedAssets({ version: 1, assets: [{ ...asset, approval: "draft" }] }).length, 0);
   assert.equal(approvedAssets({ version: 1, assets: [asset] }).length, 1);
 });
@@ -48,7 +48,7 @@ test("승인된 941x1672 원본은 확대 없이 등록할 수 있다", () => {
 });
 
 
-test("승인 v2 15개는 실제 파일의 PNG 크기와 SHA256이 일치한다", async () => {
+test("등록된 모든 부적은 실제 파일의 PNG 크기와 SHA256이 일치한다", async () => {
   for (const item of approvedAssets()) {
     const png = fs.readFileSync(path.join(root, "public", item.src));
     await verifyOriginal(Uint8Array.from(png).buffer, item);

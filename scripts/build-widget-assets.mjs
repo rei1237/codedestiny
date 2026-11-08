@@ -10,7 +10,7 @@ import { fileURLToPath } from "node:url";
 import sharp from "sharp";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const TALISMANS = ["study", "wealth", "love", "contact", "success"];
+
 const HEIGHT = 540;
 const catalog = JSON.parse(await readFile(path.join(root, "public/assets/talismans/catalog.json"), "utf8"));
 const drawableDir = path.join(root, "apps/mobile/android/app/src/main/res/drawable-nodpi");
@@ -18,15 +18,21 @@ const webDir = path.join(root, "public/assets/talismans/widget");
 await mkdir(drawableDir, { recursive: true });
 await mkdir(webDir, { recursive: true });
 
-for (const id of TALISMANS) {
-  const src = `/assets/talismans/originals/${id}-yeongnyangi-v2.png`;
-  const entry = catalog.assets.find(asset => asset.src === src && asset.approval === "approved");
-  if (!entry) throw new Error(`승인 목록에 없는 원본: ${src}`);
+for (const entry of catalog.assets.filter(asset => asset.approval === "approved")) {
+  const src = entry.src;
+  const id = entry.id.replace("-yeongnyangi-v2", "");
   const original = await readFile(path.join(root, "public", src));
   const sha = createHash("sha256").update(original).digest("hex");
   if (sha !== entry.sha256) throw new Error(`원본 해시 불일치: ${src}`);
   const webp = await sharp(original).resize({ height: HEIGHT }).webp({ quality: 82, effort: 6 }).toBuffer();
-  await writeFile(path.join(drawableDir, `widget_talisman_${id}.webp`), webp);
+  await writeFile(path.join(drawableDir, `widget_talisman_${id.replaceAll("-", "_")}.webp`), webp);
   await writeFile(path.join(webDir, `${id}.webp`), webp);
   console.log(`${id}: ${(webp.length / 1024).toFixed(1)} KB`);
+}
+
+for (const [name, file] of Object.entries({
+  yeoni: "public/images/home/illustrated/yeoni-hanbok-240.webp",
+  cat: "public/assets/yeongnyangi/original/hero-480.webp",
+})) {
+  await sharp(path.join(root, file)).resize({ height: 112 }).webp().toFile(path.join(drawableDir, `widget_friend_${name}.webp`));
 }

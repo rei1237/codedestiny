@@ -45,6 +45,30 @@ public class CodeDestinyHomeWidgetPlugin extends Plugin {
         catch (Exception ignored) { return new int[0]; }
     }
 
+    @Override
+    protected void handleOnResume() {
+        super.handleOnResume();
+        Context context = getContext();
+        AppWidgetManager manager = AppWidgetManager.getInstance(context);
+        for (int id : installedIds(context)) HomeWidgetProvider.render(context, manager, id);
+    }
+
+    private HomeWidgetPolicy.Choice readChoice(PluginCall call) {
+        String kind = call.getString("kind");
+        String id = call.getString("itemId");
+        String text = call.getString("text", "");
+        if (HomeWidgetPolicy.isDaily(kind, id)) {
+            JSArray pool = call.getArray("pool");
+            if (pool == null || pool.length() == 0 || pool.length() > 2000) return null;
+            for (int i = 0; i < pool.length(); i++) {
+                Object value = pool.opt(i);
+                if (!(value instanceof String) || ((String) value).isEmpty() || ((String) value).length() > 512) return null;
+            }
+            text = pool.toString();
+        }
+        return HomeWidgetPolicy.parse(kind, id, text);
+    }
+
     @PluginMethod
     public void getState(PluginCall call) {
         Context context = getContext();
@@ -67,7 +91,7 @@ public class CodeDestinyHomeWidgetPlugin extends Plugin {
     @PluginMethod
     public void requestPin(PluginCall call) {
         Context context = getContext();
-        HomeWidgetPolicy.Choice choice = HomeWidgetPolicy.parse(call.getString("kind"), call.getString("itemId"), call.getString("text", ""));
+        HomeWidgetPolicy.Choice choice = readChoice(call);
         if (choice == null) { call.reject("invalid widget choice"); return; }
         JSObject response = new JSObject();
         if (!pinSupported(context)) { response.put("status", "unsupported"); call.resolve(response); return; }
@@ -92,7 +116,7 @@ public class CodeDestinyHomeWidgetPlugin extends Plugin {
     public void update(PluginCall call) {
         Context context = getContext();
         Integer widgetId = call.getInt("widgetId");
-        HomeWidgetPolicy.Choice choice = HomeWidgetPolicy.parse(call.getString("kind"), call.getString("itemId"), call.getString("text", ""));
+        HomeWidgetPolicy.Choice choice = readChoice(call);
         if (widgetId == null || choice == null) { call.reject("invalid widget choice"); return; }
         boolean installed = false;
         for (int id : installedIds(context)) installed |= id == widgetId;

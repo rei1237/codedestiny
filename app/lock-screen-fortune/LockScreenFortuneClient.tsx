@@ -1,7 +1,7 @@
 "use client";
 
 import { TalismanArt, TalismanPicker } from "./Talisman";
-import { DEFAULT_TALISMAN_ID, migrateTalisman, talismanCopy } from "./talisman-data";
+import { DEFAULT_TALISMAN_ID, migrateTalisman, resolveTalisman, talismanCopy } from "./talisman-data";
 import { useCompanionDaily } from "./use-companion-daily";
 import { companionCopy, systemLabel, categoryLabel } from "./companion-copy";
 
@@ -910,8 +910,10 @@ export default function LockScreenFortuneClient() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [affirmationCatsKey]);
 
+  const companionGroup = resolveTalisman(state?.prefs.talismanId).character.group;
+  const showDaily = companionGroup === "cat" && Boolean(state?.prefs.dailyEnabled);
   const dailySystem = state?.prefs.dailyFortuneSystem ?? "sukuyo";
-  const daily = useCompanionDaily(locale, content?.dateKey || getKstDateKey(new Date()), runtimeOk === true);
+  const daily = useCompanionDaily(locale, content?.dateKey || getKstDateKey(new Date()), runtimeOk === true && showDaily);
   const serverDaily = daily.data?.systems?.[dailySystem];
   const dailyFortune: DailyFortune | null = serverDaily ? { ...serverDaily, system: dailySystem, emoji: "", label: serverDaily.label || extra.daily } : null;
   // These two legacy systems have no today-hub result. Preserve their original reading
@@ -922,7 +924,7 @@ export default function LockScreenFortuneClient() {
   const pagerCards: PagerCard[] = useMemo(() => {
     if (!content) return [{ type: "daily" }];
     const seq = getDailyLockScreenSequence(new Date(), state?.prefs.affirmationCats);
-    const out: PagerCard[] = state?.prefs.dailyEnabled ? [{ type: "daily" }] : [];
+    const out: PagerCard[] = showDaily ? [{ type: "daily" }] : [];
     seq.forEach((card) => {
       if (card.kind === "quote" && !state?.prefs.quoteEnabled) return;
       if (card.kind !== "quote" && !state?.prefs.affirmationEnabled) return;
@@ -930,7 +932,7 @@ export default function LockScreenFortuneClient() {
     });
     return out;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [content?.dateKey, affirmationCatsKey, state?.prefs.quoteEnabled, state?.prefs.dailyEnabled, state?.prefs.affirmationEnabled]);
+  }, [content?.dateKey, affirmationCatsKey, state?.prefs.quoteEnabled, showDaily, state?.prefs.affirmationEnabled]);
 
   useEffect(() => {
     if (!state || !content || entrySelected.current || !pagerCards.length) return;
@@ -979,7 +981,7 @@ export default function LockScreenFortuneClient() {
   useEffect(() => {
     if (!state || !content) return;
     const snapshot = {
-      locale, dateKey: content.dateKey, version: 3,
+      locale, dateKey: content.dateKey, version: 3, companionGroup,
       publicPools: locale === "ko" ? getPublicLockScreenPools(state.prefs.affirmationCats) : {
         quote: [`${extra.ownLine} — ${extra.ownAuthor}`], affirmation: [extra.ownAffirmation],
       },
@@ -992,7 +994,7 @@ export default function LockScreenFortuneClient() {
       await persistState({ ...state, prefs: { ...state.prefs, locale } });
       await plugin?.setPublicContent?.({ value: JSON.stringify(snapshot) });
     })().catch(() => { /* Settings remain available offline. */ });
-  }, [state, content, locale, extra]);
+  }, [state, content, locale, extra, companionGroup]);
 
   useEffect(() => {
     const refresh = () => {
@@ -1065,8 +1067,8 @@ export default function LockScreenFortuneClient() {
       <TalismanArt id={state.prefs.talismanId} locale={locale} />
       {state.prefs.affirmationEnabled && <section className="cd-companion-affirmation" style={{fontSize: scale + "rem"}}><h2>{extra.affirmation}</h2><p>{locale === "ko" ? content.affirmation : extra.ownAffirmation}</p></section>}
       <section id="companion-daily" className="cd-companion-daily" aria-label={extra.daily} style={{fontSize: scale + "rem"}}>
-        {state.prefs.dailyEnabled && <h2>{extra.daily}</h2>}
-        {state.prefs.dailyEnabled && <>
+        {showDaily && <h2>{extra.daily}</h2>}
+        {showDaily && <>
           <select aria-label={copy.dailyFortuneSystemHeading} value={dailySystem} onChange={e => updatePrefs({dailyFortuneSystem:e.target.value as DailyFortuneSystem})} style={{minHeight:48,maxWidth:"100%",padding:12,borderRadius:12,background:bg.dark?"#211a32":"#fff9ee",color:"inherit"}}>{DAILY_FORTUNE_SYSTEMS.map(system=><option key={system.key} value={system.key}>{systemLabel(locale, system.key, system.label)}</option>)}</select>
           {dailyFortune ? <DailyFortuneCard fortune={dailyFortune} scale={scale} subColor={subColor} panelBg={panelBg} dark={bg.dark} copy={copy} /> : !daily.failed && !daily.data ? <p role="status">{copy.dailyFortuneLoading}</p> : <><p>{extra.unavailable}</p><button type="button" onClick={daily.retry}>{extra.retry}</button></>}
           <p className="cd-companion-source">{daily.data?.date || content.dateKey} · KST</p>
@@ -1076,6 +1078,7 @@ export default function LockScreenFortuneClient() {
       </section>
       <nav className="cd-companion-tabs" aria-label={extra.kind}>
         {([['daily', extra.daily], ['quote', extra.quote], ['affirmation', extra.affirmation]] as const).map(([kind, label]) => {
+          if (kind === "daily" && companionGroup !== "cat") return null;
           const target = pagerCards.findIndex(c => kind === 'daily' ? c.type === 'daily' : c.type === 'seq' && c.card.kind === kind);
           return <button type="button" key={kind} disabled={target < 0} aria-pressed={kindLabel === label} onClick={() => { setPage(target); if (kind === "daily") document.getElementById("companion-daily")?.scrollIntoView({block:"start"}); }}>{label}</button>;
         })}
@@ -1095,7 +1098,7 @@ export default function LockScreenFortuneClient() {
       </div>
       {visibleText && <div className="cd-companion-actions"><button type="button" style={pillStyle(state.prefs.buttonStyleKey, bg.dark)} onClick={saveText}>{extra.saved}</button><button type="button" disabled={typeof navigator !== "undefined" && !navigator.share} onClick={() => { if (navigator.share) void navigator.share({ title: kindLabel, text: visibleText }).catch(() => {}); }}>{extra.shared}</button></div>}
       <p role="status" className="cd-companion-source">{announcement}</p>
-      {locale === "ko" && <p className="cd-companion-source" style={{textAlign:"center",marginTop:20}}>{copy.todaysFlowerPrefix} · {content.flower.name} — {content.flower.meaning}</p>}
+      {companionGroup === "yeoni" && locale === "ko" && <p className="cd-companion-source" style={{textAlign:"center",marginTop:20}}>{copy.todaysFlowerPrefix} · {content.flower.name} — {content.flower.meaning}</p>}
       <a className="cd-companion-return" href="/yeongnyangi/">{extra.close}</a>
       {sheet === "talisman" && <TalismanPicker id={state.prefs.talismanId} locale={locale} onClose={() => setSheet("none")} onApply={id => { updatePrefs({talismanId:id}); setSheet("none"); setAnnouncement(charmCopy.saved); }} />}
       {sheet !== "none" && sheet !== "talisman" && <SettingsSheet sheet={sheet} setSheet={setSheet} state={state} updatePrefs={updatePrefs} updateAlarm={updateAlarm} copy={copy} />}

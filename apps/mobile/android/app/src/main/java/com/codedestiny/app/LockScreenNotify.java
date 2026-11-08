@@ -75,6 +75,7 @@ final class LockScreenNotify {
             int start = test ? 0 : Math.floorMod(now.get(Calendar.DAY_OF_YEAR) + id - 2000, kinds.length);
             for (int n = 0; n < kinds.length; n++) {
                 String candidate = kinds[(start + n) % kinds.length];
+                if ("daily".equals(candidate) && !"cat".equals(snapshot.optString("companionGroup", "cat"))) continue;
                 if (options.optBoolean(candidate + "Enabled", true)) { kind = candidate; break; }
             }
             if (kind == null) return false;

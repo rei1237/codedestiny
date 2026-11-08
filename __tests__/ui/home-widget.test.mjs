@@ -20,26 +20,11 @@ test('home widget becomes complete only on the success callback of the dialog it
   assert.equal(nextWidgetStatus('web', { type: 'pin', status: 'requested' }), 'web');
 });
 
-test('home widget entry is a plain Android-app link without startup work', () => {
+test('both service homes expose the studio and native builds use their local HTML route', () => {
   const page = read('../../app/page.js');
-  const entry = page.match(/\{IS_APP_BUILD && <a [^\n]*data-cd-home-widget-entry[^\n]*<\/a>\}/);
-  assert.ok(entry, 'entry renders only in the app build');
-  assert.match(entry[0], /href="\/app\/home-widget\/index\.html"/);
-  assert.ok(page.indexOf('data-cd-home-widget-entry') > page.indexOf('</HomeCardDeck>'), 'entry sits below the fortune cards');
-  const css = read('../../app/home-main.module.css');
-  assert.match(css, /\.widgetEntry \{ display: none;/);
-  // React drops attributes it did not render from <html> on mount, so the Android reveal lives
-  // in a head <style> the bridge adds, not in an <html data-*> flag.
-  const bridge = read('../../scripts/app-native-bridge.js');
-  assert.doesNotMatch(css + bridge, /native-platform|nativePlatform/);
-  const chromeStyle = bridge.slice(bridge.indexOf("appChromeStyle.textContent"), bridge.indexOf("appChromeStyle);"));
-  assert.doesNotMatch(chromeStyle, /html\[data-runtime-target="mobile-app"\]/, "app chrome rules must not depend on an <html> attribute");
-  const reveal = bridge.match(/getPlatform\(\) === "android"\)\) \{([\s\S]*?)\n    \}/);
-  assert.ok(reveal, 'reveal runs only on Android');
-  assert.match(reveal[1], /\[data-cd-home-widget-entry\]\{display:inline-flex!important\}/);
-  assert.match(reveal[1], /document\.head \|\| document\.documentElement\)\.appendChild/);
-  const copy = JSON.parse(read('../../lib/i18n/native-home-copy.json'));
-  assert.deepEqual(Object.keys(copy['홈 화면에 부적·확언 놓기']).sort(), Object.keys(copy['마음이 향하는 상담 공간을 골라보세요.']).sort());
+  assert.match(page, /href=\{IS_APP_BUILD \? "\/app\/home-widget\/index\.html" : "\/app\/home-widget\/"\}/);
+  assert.ok(page.indexOf('data-cd-home-widget-entry') > page.indexOf('</HomeCardDeck>'));
+  assert.match(read('../../public/ggulggul/index.html'), /class="cdh-widget-entry" href="\/app\/home-widget\/"/);
 });
 
 test('widget studio keeps one header and the add button docked on screen', () => {

@@ -976,7 +976,7 @@ html:not(.cd-mobile-runtime) .cd-home-guide { content-visibility: auto; contain-
 <meta property="og:description" content="從四柱八字、紫微斗數十二宮到宿曜關係與塔羅問題解讀。用繁體中文了解不同體系的輸入與看盤順序，選擇適合自己的命盤或諮詢入口。">
 <meta property="og:url" content="https://code-destiny.com/zh-tw/">
 <meta property="og:locale" content="zh_TW">
-<meta property="og:image" content="https://code-destiny.com/og/code-destiny-og-zh-tw.png?v=build-71b8e91e203b">
+<meta property="og:image" content="https://code-destiny.com/og/code-destiny-og-zh-tw.png?v=build-ef3bd1b0a59f">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="꿀꿀운세 HONEY FORTUNE — 印有花豬 Yeoni 客串形象與服務介紹的 CODE DESTINY 名片卡">
@@ -985,7 +985,7 @@ html:not(.cd-mobile-runtime) .cd-home-guide { content-visibility: auto; contain-
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="八字排盤·紫微斗數·塔羅占卜｜꿀꿀 운세">
 <meta name="twitter:description" content="從四柱八字、紫微斗數十二宮到宿曜關係與塔羅問題解讀。用繁體中文了解不同體系的輸入與看盤順序，選擇適合自己的命盤或諮詢入口。">
-<meta name="twitter:image" content="https://code-destiny.com/og/code-destiny-og-zh-tw.png?v=build-71b8e91e203b">
+<meta name="twitter:image" content="https://code-destiny.com/og/code-destiny-og-zh-tw.png?v=build-ef3bd1b0a59f">
 <meta name="twitter:image:alt" content="꿀꿀운세 HONEY FORTUNE — 印有花豬 Yeoni 客串形象與服務介紹的 CODE DESTINY 名片卡">
 <script type="application/ld+json">
 {
@@ -1148,7 +1148,7 @@ html:not(.cd-mobile-runtime) .cd-home-guide { content-visibility: auto; contain-
     {
       "@type": "ImageObject",
       "@id": "https://code-destiny.com/#primaryimage",
-      "url": "https://code-destiny.com/og/code-destiny-og-vvip.png?v=build-71b8e91e203b",
+      "url": "https://code-destiny.com/og/code-destiny-og-vvip.png?v=build-ef3bd1b0a59f",
       "width": 1200,
       "height": 630
     },
@@ -7134,6 +7134,10 @@ html.neo-mode #cdHomeFunnel .cdh-scene-art #honeypigLogo{box-shadow:none!importa
 .cd-home-install-entry button:focus-visible,.cd-expert-stories a:focus-visible,#cdHomeFunnel .cd-story-entry__link:focus-visible{outline:3px solid var(--cdh-accent);outline-offset:4px}
 .cd-expert-stories{margin:40px 0;color:var(--cdh-ink)}.cd-expert-stories h2{font:700 26px/1.5 var(--font-serif)}.cd-expert-stories>div{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px}.cd-expert-stories article{padding:20px 0;border-bottom:1px solid var(--cdh-line)}.cd-expert-stories h3{font:700 20px/1.5 var(--font-serif);margin:0 0 8px}.cd-expert-stories p{font-size:14px;line-height:1.8;word-break:keep-all}.cd-expert-stories nav{display:flex;flex-wrap:wrap;gap:0 20px}.cd-expert-stories a{display:inline-flex;align-items:center;min-height:48px;color:var(--cdh-accent);font-size:14px;font-weight:700;text-underline-offset:5px}
 @media(max-width:599px){.cd-home-install-entry{flex-wrap:wrap}.cd-home-install-entry>div{flex:1}.cd-home-install-entry button{width:100%;margin:0}.cd-expert-stories>div{grid-template-columns:1fr;gap:0}}
+
+.cdh-widget-entry { display:flex; align-items:center; gap:12px; margin:16px auto; padding:10px 16px; width:fit-content; max-width:100%; color:inherit; text-decoration:none; }
+.cdh-widget-entry img { object-fit:contain; }
+.cdh-widget-entry small { display:block; margin-top:4px; }
 </style>
 <link rel="stylesheet" href="/styles/yehwa-home.css?v=build-3c2f06918b33">
 <link rel="stylesheet" href="/styles/first-visit-guide.css?v=build-6a507f2c285e">
@@ -11356,6 +11360,7 @@ html:not(.neo-mode) .moon-story-entry__pig--yeon {
   <!-- 다국어 첫 화면(/en/ 등)은 이 셸이라, 영냥이 입구 블록을 뺀 뒤로는 여기가 영냥이로 가는 유일한 길이다(2026-10-17). data-cd-localized-route 로 /en/yeongnyangi/ 등 로케일 주소가 된다. -->
   <a href="/zh-tw/yeongnyangi/" data-cd-localized-route="yeongnyangi" data-cd-trans="sajuReading.catTitle">영냥이 상담</a>
 </nav>
+<a class="cdh-widget-entry" href="/app/home-widget/"><img src="/images/home/illustrated/yeoni-hanbok-240.webp" width="48" height="64" loading="lazy" alt=""><span><strong>홈 화면 꾸미기</strong><small>연이의 한마디, 꽃말, 오늘의 운세와 부적을 골라 보세요.</small></span></a>
 <!-- 운세 컬렉션(#featureBegin·카드 그리드)은 home-funnel.js 가 여기로 옮긴다. 기본은 숨김 — 컬렉션 딥링크(__cdOpenGarden)만 연다. -->
 <section class="cdh-collections" id="cdhCollectionsWrap" aria-labelledby="cdhCollectionsTitle" hidden>
   <div class="cdh-collections__head"><h2 id="cdhCollectionsTitle" data-cd-trans="home.gardenCopy.allFortunes">모든 운세 보기</h2><button type="button" class="cdh-collections__close" data-cdh-garden-close data-cd-trans="home.gardenCopy.moreClose">접기</button></div>
@@ -21050,7 +21055,7 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
     if (!shareUrl) return Promise.reject(new Error('share_url_missing'));
     // 지금 보고 있는 언어의 셸·미리보기 카드로 공유한다(js/share.js). 아직 안 실렸으면 서버 URL 그대로.
     if (typeof window.cdLocalizeShareUrl === 'function') shareUrl = window.cdLocalizeShareUrl(shareUrl);
-    var shareImageUrl = 'https://code-destiny.com/og/code-destiny-og-vvip.png?v=build-71b8e91e203b';
+    var shareImageUrl = 'https://code-destiny.com/og/code-destiny-og-vvip.png?v=build-ef3bd1b0a59f';
     if (typeof window.cdLocalizeShareImage === 'function') shareImageUrl = window.cdLocalizeShareImage(shareImageUrl);
     renderShareUrl(shareUrl, tr('kakaoReferral.rewardReady', '초대 링크가 준비됐어요. 친구 가입 완료 시 추천 보상이 지급됩니다.'));
     return loadKakaoSdk(payload.kakaoJavascriptKey).then(function(ok){
@@ -35032,7 +35037,7 @@ function updateBadge() {
 (function(){
   'use strict';
   var D={
-    '#destinyCardForm':{cat:'사주 · 무료 운명 카드',fallbackTitle:'🌙 나의 달빛 운명 카드',tagline:'생년월일과 출생시간을 바탕으로 사주, 오늘의 흐름, 궁합, 별자리 서비스로 이어지는 기본 프로필을 만듭니다.',feats:['이름·생년월일·출생시간 기반 기본 운명 카드 생성','출생시간을 모를 때 낮 12시 기준으로 보수 계산','사주 결과와 주요 운세 서비스 바로가기 자동 연결','저장한 프로필로 무료·프리미엄 리딩을 더 빠르게 시작'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/%EC%82%AC%EC%A3%BC%EB%B3%B4%EB%8A%94%20%EC%97%B0%EC%9D%B4.webp?v=build-71b8e91e203b',fallbackCta:'운명 카드 만들기'},
+    '#destinyCardForm':{cat:'사주 · 무료 운명 카드',fallbackTitle:'🌙 나의 달빛 운명 카드',tagline:'생년월일과 출생시간을 바탕으로 사주, 오늘의 흐름, 궁합, 별자리 서비스로 이어지는 기본 프로필을 만듭니다.',feats:['이름·생년월일·출생시간 기반 기본 운명 카드 생성','출생시간을 모를 때 낮 12시 기준으로 보수 계산','사주 결과와 주요 운세 서비스 바로가기 자동 연결','저장한 프로필로 무료·프리미엄 리딩을 더 빠르게 시작'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/%EC%82%AC%EC%A3%BC%EB%B3%B4%EB%8A%94%20%EC%97%B0%EC%9D%B4.webp?v=build-ef3bd1b0a59f',fallbackCta:'운명 카드 만들기'},
     gotoZiweiPremium:{cat:'프리미엄 · 자미두수 전문가 상담',fallbackTitle:'자미두수 전문가 상담',tagline:'명궁·신궁·12궁·사화·대운·세운 흐름을 바탕으로 지금의 질문에 답합니다.',feats:['입력은 무료 — 상담 생성 버튼을 누를 때 30,000원 단건 결제 또는 이용권·월정석 확인','결제 확인이 끝나면 상담문이 바로 생성','명궁·재백·관록·부부·질액궁을 질문에 맞춰 연결 해석','상담 결과를 화면에서 바로 확인하고 추가 질문 이어가기'],cost:'30,000원 · 전문가 상담',ct:'paid',img:"/images/service-introductions/ziwei-ai.webp",fallbackCta:'자미두수 상담 받기'},
     '/neo-operation-room':{cat:'프리미엄 · 운명 작전실',fallbackTitle:'네오의 팩폭 운명 작전실',tagline:'사주·자미두수·베다점·점성술의 지도를 한 장의 전략처럼 펼쳐, 지금 밀리는 전선과 다시 잡아야 할 기준을 또렷하게 짚습니다.',feats:['30,000원 상담 이용권 확인','결제 완료 후 네오의 작전실로 바로 이동','사주와 별자리 흐름을 함께 비추는 종합 상담','현재 고민에 맞춘 선택 기준과 다음 행동 정리'],cost:'30,000원 · 전문가 상담',ct:'paid',img:"/images/service-introductions/neo-operation-room.webp",fallbackCta:'작전실 열기'},
     openNamingPromptModal:{cat:'작명 · 전문가 상담',fallbackTitle:'훈민정음 작명소',tagline:'생년월일시와 원하는 이름 조건을 바탕으로 용신·소리오행·한자 의미·수리 풀이를 종합해 전문가가 직접 이름을 짓고, 그 결과를 만든 프롬프트 원문까지 함께 드립니다.',feats:['입력과 무료 초안 추천은 무료로 열립니다','프리미엄 작명 시작 시 30,000원 단건 결제 또는 이용권·월정석 확인이 진행됩니다','사주 보완, 인명용 한자, 소리오행, 자원오행, 원형이정 수리를 종합한 완성형 결과 제공','결제 검증 후 전문가 작명 결과와 PDF 저장, 생성에 사용된 프롬프트 원문까지 다시 확인할 수 있습니다'],cost:'30,000원 · 이용권/월정석 가능',ct:'paid',img:"/images/service-introductions/naming-ai.webp",fallbackCta:'작명 시작하기'},

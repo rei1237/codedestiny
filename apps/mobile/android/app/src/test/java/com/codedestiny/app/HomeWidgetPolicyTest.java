@@ -15,6 +15,21 @@ public class HomeWidgetPolicyTest {
         assertEquals(line, HomeWidgetPolicy.decode(HomeWidgetPolicy.encode(line)));
     }
 
+    @Test public void dailyContentFollowsCompanionAndKoreanMidnight() {
+        String pool = "[\"one\",\"two\",\"three\"]";
+        for (String[] pair : new String[][]{{"flower", "pig-daily"}, {"fortune", "cat-daily"}, {"affirmation", "pig-daily"}}) {
+            HomeWidgetPolicy.Choice choice = HomeWidgetPolicy.parse(pair[0], pair[1], pool);
+            assertNotNull(choice);
+            assertEquals(choice, HomeWidgetPolicy.decode(HomeWidgetPolicy.encode(choice)));
+            long midnight = 15L * 3600000;
+            int first = HomeWidgetPolicy.dailyIndex(midnight - 1, pair[0], 3);
+            assertEquals((first + 1) % 3, HomeWidgetPolicy.dailyIndex(midnight, pair[0], 3));
+        }
+        assertNull(HomeWidgetPolicy.parse("flower", "cat-daily", pool));
+        assertNull(HomeWidgetPolicy.parse("fortune", "pig-daily", pool));
+        assertNotNull(HomeWidgetPolicy.parse("talisman", "yeoni-moon", ""));
+    }
+
     @Test public void invalidChoicesAreRejected() {
         assertNull(HomeWidgetPolicy.parse("talisman", "lottery", ""));
         assertNull(HomeWidgetPolicy.parse("affirmation", "Own Pace", "괜찮아"));

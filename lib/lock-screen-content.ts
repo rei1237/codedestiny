@@ -826,6 +826,14 @@ export function getPublicLockScreenPools(cats?: readonly string[]) {
   };
 }
 
+// Public lines only. Android selects from the same pool after the app closes.
+export function getHomeWidgetPools() {
+  return {
+    affirmation: affirmationPool().map(item => item.text),
+    flower: FLOWERS.map(item => item.name + " · " + item.meaning),
+  };
+}
+
 // 오늘(또는 주어진 날짜)의 잠금화면 콘텐츠 세트를 결정론적으로 반환한다.
 // 풀마다 서로 다른 offset(서로소에 가까운 소수)을 주어 요소들이 각자 독립적으로 변주되게 한다.
 export function getDailyLockScreenContent(

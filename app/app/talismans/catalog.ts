@@ -4,6 +4,7 @@ export const scenes = [
   { id: "yeongnyangi", ko: "영냥이 · 별빛의 길", ja: "ヨンニャンイ・星明かりの道", character: "yeongnyangi" },
   { id: "yeoni-lotus", ko: "연이 · 연꽃의 품", ja: "ヨニ・蓮のぬくもり", character: "yeoni" },
   { id: "yeoni-teahouse", ko: "연이 · 찻집의 평온", ja: "ヨニ・茶屋の安らぎ", character: "yeoni" },
+  { id: "yeoni-wardrobe", ko: "연이 · 달빛 옷장", ja: "ヨニ・月明かりの衣装", character: "yeoni" },
 ] as const;
 export const categories = [
   { id: "study", ko: "학업", ja: "学業" },

@@ -180,6 +180,54 @@
       "width": 941,
       "height": 1672,
       "sha256": "b8ce8446d5a97cb8d078949f09f3b0ca6f94cdf589aed02b2ad618769d8f4a05"
+    },
+    {
+      "id": "yeoni-hanbok",
+      "scene": "yeoni-wardrobe",
+      "category": "love",
+      "composition": "shared",
+      "approval": "approved",
+      "language": "ko",
+      "src": "/assets/talismans/originals/yeoni-hanbok.png",
+      "width": 900,
+      "height": 1800,
+      "sha256": "4960ffe855a0e89ce2fb2b75f531b24c6b70263295af712fc83ad9c332d1f9f8"
+    },
+    {
+      "id": "yeoni-moon",
+      "scene": "yeoni-wardrobe",
+      "category": "love",
+      "composition": "shared",
+      "approval": "approved",
+      "language": "ko",
+      "src": "/assets/talismans/originals/yeoni-moon.png",
+      "width": 900,
+      "height": 1800,
+      "sha256": "8b8e12d5e7f892783da7ff8e67baf881962929c8d7efdd5d9165b3f77f95e52f"
+    },
+    {
+      "id": "yeoni-tea",
+      "scene": "yeoni-wardrobe",
+      "category": "love",
+      "composition": "shared",
+      "approval": "approved",
+      "language": "ko",
+      "src": "/assets/talismans/originals/yeoni-tea.png",
+      "width": 900,
+      "height": 1800,
+      "sha256": "9f80ab387f0853b96ad27fddc9eeb10c78d6afccbd5ff9c0a4867537d37066ae"
+    },
+    {
+      "id": "yeoni-pig-moon",
+      "scene": "yeoni-wardrobe",
+      "category": "love",
+      "composition": "shared",
+      "approval": "approved",
+      "language": "ko",
+      "src": "/assets/talismans/originals/yeoni-pig-moon.png",
+      "width": 852,
+      "height": 1846,
+      "sha256": "30781543ba73b11f8c00c7917852f94e66eb2bc6c104b7ba1f5f24c788210fd2"
     }
   ]
 }

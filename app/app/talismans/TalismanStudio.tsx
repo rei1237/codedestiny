@@ -7,6 +7,7 @@ import { IS_APP_BUILD } from "@/lib/app-build-target";
 import { approvedAssets, categories, scenes, verifyOriginal, type Category, type Scene } from "./catalog";
 import { fittedWallpaper, normalizeScreen, wallpaperFit, type ScreenSize, type WallpaperTarget } from "./wallpaper-fit";
 
+import { lookName } from "../home-widget/looks";
 import { getTalismanCopy } from "./copy";
 
 const TALISMAN_REMOTE_ORIGIN = "https://code-destiny.com";
@@ -47,13 +48,14 @@ export default function TalismanStudio() {
   const [message, setMessage] = useState("");
   const [savedFit, setSavedFit] = useState(false);
   const assets = useMemo(() => approvedAssets(), []);
-  const asset = assets.find(item => item.scene === scene && item.category === category);
+  const [lookId, setLookId] = useState("yeoni-hanbok");
+  const asset = scene === "yeoni-wardrobe" ? assets.find(item => item.id === lookId) : assets.find(item => item.scene === scene && item.category === category);
   const ready = Boolean(asset && loaded?.id === asset.id);
   const fit = asset ? wallpaperFit(asset, screen, size, position) : null;
   const copy = getTalismanCopy(locale);
-  const sceneNames = { yeongnyangi: copy.sceneStarlight, "yeoni-lotus": copy.sceneLotus, "yeoni-teahouse": copy.sceneTeahouse };
+  const sceneNames = { yeongnyangi: copy.sceneStarlight, "yeoni-lotus": copy.sceneLotus, "yeoni-teahouse": copy.sceneTeahouse, "yeoni-wardrobe": locale === "ko" ? "연이 · 달빛 옷장" : "Yeoni’s wardrobe" };
   const categoryNames = { study: copy.wishStudy, wealth: copy.wishWealth, love: copy.wishLove, contact: copy.wishContact, career: copy.wishCareer };
-  const sceneName = sceneNames[scene];
+  const sceneName = scene === "yeoni-wardrobe" ? lookName(lookId, locale) : sceneNames[scene];
   const targetName = target === "both" ? copy.targetBoth : target === "home" ? copy.targetHome : copy.targetLock;
 
   useEffect(() => {
@@ -65,6 +67,12 @@ export default function TalismanStudio() {
       const current = native?.getScreenInfo ? await native.getScreenInfo().catch(() => fallback) : fallback;
       if (active) setScreen(normalizeScreen(current.width, current.height));
     };
+    const requested = new URLSearchParams(window.location.search).get("asset");
+    const selected = approvedAssets().find(item => item.id === requested);
+    if (selected) {
+      setScene(selected.scene); setCategory(selected.category); setLookId(selected.id);
+      setPreview("home"); setTarget("home");
+    }
     sync(); setDevice(platform()); void syncScreen();
     window.addEventListener("cd:locale-ready", sync);
     window.addEventListener("languagechange", sync);
@@ -146,7 +154,7 @@ export default function TalismanStudio() {
       <div className="cd-talisman-workspace">
         <section className="cd-talisman-preview-section" aria-label={copy.preview}>
           <div className="cd-talisman-preview" style={{ aspectRatio: `${screen.width} / ${screen.height}` }}>
-            {ready && loaded && fit ? <img src={loaded.url} alt={sceneName + " · " + categoryNames[category]} style={{ left: `${fit.x / screen.width * 100}%`, top: `${fit.y / screen.height * 100}%`, width: `${fit.width / screen.width * 100}%`, height: `${fit.height / screen.height * 100}%` }} /> : <div className="cd-talisman-empty"><Moon size={36} strokeWidth={1.2} aria-hidden /><strong>{copy.loading}</strong></div>}
+            {ready && loaded && fit ? <img src={loaded.url} alt={scene === "yeoni-wardrobe" ? sceneName : sceneName + " · " + categoryNames[category]} style={{ left: `${fit.x / screen.width * 100}%`, top: `${fit.y / screen.height * 100}%`, width: `${fit.width / screen.width * 100}%`, height: `${fit.height / screen.height * 100}%` }} /> : <div className="cd-talisman-empty"><Moon size={36} strokeWidth={1.2} aria-hidden /><strong>{copy.loading}</strong></div>}
             {guides ? <div className={"cd-talisman-guides " + preview} aria-hidden><span className="cd-talisman-camera" />{preview === "lock" ? <><span className="cd-talisman-clock">09:41</span><span className="cd-talisman-widgets">{copy.widgets}</span></> : <span className="cd-talisman-icons">{Array.from({ length: 16 }, (_, i) => <span key={i} />)}</span>}<span className="cd-talisman-homebar" /></div> : null}
           </div>
           {target === "both" ? <div className="cd-talisman-preview-toggle">{(["lock", "home"] as const).map(value => <button key={value} type="button" aria-pressed={preview === value} onClick={() => setPreview(value)}>{value === "lock" ? copy.previewLock : copy.previewHome}</button>)}</div> : null}
@@ -155,7 +163,7 @@ export default function TalismanStudio() {
         </section>
         <section className="cd-talisman-controls" aria-label={copy.choose}>
           <fieldset disabled={busy}><legend>{copy.sceneLegend}</legend><div className="cd-talisman-scenes">{scenes.map(item => <label key={item.id}><input type="radio" name="talisman-scene" checked={scene === item.id} onChange={() => setScene(item.id)} /><span>{sceneNames[item.id]}</span></label>)}</div></fieldset>
-          <fieldset disabled={busy}><legend>{copy.wishLegend}</legend><div className="cd-talisman-options">{categories.map(item => <label key={item.id}><input type="radio" name="talisman-category" checked={category === item.id} onChange={() => setCategory(item.id)} /><span>{categoryNames[item.id]}</span></label>)}</div></fieldset>
+          {scene === "yeoni-wardrobe" ? <fieldset disabled={busy}><legend>{sceneName}</legend><div className="cd-talisman-options">{assets.filter(item => item.scene === scene).map(item => <label key={item.id}><input type="radio" name="outfit" checked={lookId === item.id} onChange={() => setLookId(item.id)} /><span>{lookName(item.id, locale)}</span></label>)}</div></fieldset> : <fieldset disabled={busy}><legend>{copy.wishLegend}</legend><div className="cd-talisman-options">{categories.map(item => <label key={item.id}><input type="radio" name="talisman-category" checked={category === item.id} onChange={() => setCategory(item.id)} /><span>{categoryNames[item.id]}</span></label>)}</div></fieldset>}
           <fieldset disabled={busy}><legend>{copy.targetLegend}</legend><div className="cd-talisman-options">{(["lock", "home", "both"] as const).map(value => <label key={value}><input type="radio" name="talisman-target" checked={target === value} onChange={() => { setTarget(value); if (value !== "both") setPreview(value); setMessage(""); setSavedFit(false); }} /><span>{value === "lock" ? copy.targetLock : value === "home" ? copy.targetHome : copy.both}</span></label>)}</div></fieldset>
           <fieldset disabled={busy}><legend>{copy.fitLegend}</legend><div className="cd-talisman-fit-controls"><label>{copy.size}<input aria-label={copy.size} type="range" min="60" max="100" value={Math.round(size * 100)} onChange={event => setSize(Number(event.target.value) / 100)} /></label><label>{copy.position}<input aria-label={copy.position} type="range" min="0" max="100" value={Math.round(position * 100)} onChange={event => setPosition(Number(event.target.value) / 100)} /></label></div><p className="cd-talisman-caption">{copy.fitHint}</p></fieldset>
           {asset ? <p className="cd-talisman-caption">{copy.original} {asset.width} × {asset.height}px · {copy.fitted} {screen.width} × {screen.height}px{locale !== "ko" ? " · " + copy.imageLanguage : ""}</p> : null}

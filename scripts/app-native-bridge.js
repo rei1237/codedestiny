@@ -117,15 +117,6 @@
   window.__CODE_DESTINY_RUNTIME_TARGET = "mobile-app";
   try {
     document.documentElement.dataset.runtimeTarget = "mobile-app";
-    // Android-only entries (home screen widget) are revealed by a head <style>, so the home renders
-    // the same markup everywhere and runs no extra script for them. Not an <html data-*> flag:
-    // React drops <html> attributes it did not render when the root mounts.
-    if (window.androidBridge || (window.Capacitor && window.Capacitor.getPlatform && window.Capacitor.getPlatform() === "android")) {
-      var androidOnlyStyle = document.createElement("style");
-      androidOnlyStyle.id = "cdAndroidOnlyStyle";
-      androidOnlyStyle.textContent = "[data-cd-home-widget-entry]{display:inline-flex!important}";
-      (document.head || document.documentElement).appendChild(androidOnlyStyle);
-    }
   } catch (e) { /* noop */ }
 
   // ── 앱 /api/* 리타게팅 (2026-08-29) ─────────────────────────────────────────────

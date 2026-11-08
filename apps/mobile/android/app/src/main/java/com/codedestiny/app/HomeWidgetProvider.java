@@ -52,7 +52,18 @@ public class HomeWidgetProvider extends AppWidgetProvider {
             views.setContentDescription(R.id.home_widget_image, context.getString(R.string.home_widget_talisman_description));
         } else {
             views = new RemoteViews(context.getPackageName(), R.layout.widget_affirmation);
-            views.setTextViewText(R.id.home_widget_text, choice.text);
+            String text = choice.text;
+            if (HomeWidgetPolicy.isDaily(choice.kind, choice.itemId)) {
+                String raw = choice.text;
+                text = "";
+                try {
+                    org.json.JSONArray lines = new org.json.JSONArray(raw);
+                    if (lines.length() > 0) text = lines.optString(HomeWidgetPolicy.dailyIndex(System.currentTimeMillis(), choice.kind, lines.length()));
+                } catch (org.json.JSONException ignored) { /* Use the bundled default if storage is damaged. */ }
+            }
+            views.setImageViewResource(R.id.home_widget_friend, choice.itemId.startsWith("cat-")
+                    ? R.drawable.widget_friend_cat : R.drawable.widget_friend_yeoni);
+            views.setTextViewText(R.id.home_widget_text, text.isEmpty() ? context.getString(R.string.home_widget_default_affirmation) : text);
         }
         return views;
     }
@@ -60,9 +71,24 @@ public class HomeWidgetProvider extends AppWidgetProvider {
     static int talismanDrawable(String itemId) {
         switch (itemId) {
             case "study": return R.drawable.widget_talisman_study;
+            case "study-flower-pig-v2": return R.drawable.widget_talisman_study_flower_pig_v2;
+            case "study-yeoni-v2": return R.drawable.widget_talisman_study_yeoni_v2;
+            case "wealth": return R.drawable.widget_talisman_wealth;
+            case "wealth-flower-pig-v2": return R.drawable.widget_talisman_wealth_flower_pig_v2;
+            case "wealth-yeoni-v2": return R.drawable.widget_talisman_wealth_yeoni_v2;
             case "love": return R.drawable.widget_talisman_love;
+            case "love-flower-pig-v2": return R.drawable.widget_talisman_love_flower_pig_v2;
+            case "love-yeoni-v2": return R.drawable.widget_talisman_love_yeoni_v2;
             case "contact": return R.drawable.widget_talisman_contact;
+            case "contact-flower-pig-v2": return R.drawable.widget_talisman_contact_flower_pig_v2;
+            case "contact-yeoni-v2": return R.drawable.widget_talisman_contact_yeoni_v2;
             case "success": return R.drawable.widget_talisman_success;
+            case "success-flower-pig-v2": return R.drawable.widget_talisman_success_flower_pig_v2;
+            case "success-yeoni-v2": return R.drawable.widget_talisman_success_yeoni_v2;
+            case "yeoni-hanbok": return R.drawable.widget_talisman_yeoni_hanbok;
+            case "yeoni-moon": return R.drawable.widget_talisman_yeoni_moon;
+            case "yeoni-tea": return R.drawable.widget_talisman_yeoni_tea;
+            case "yeoni-pig-moon": return R.drawable.widget_talisman_yeoni_pig_moon;
             default: return R.drawable.widget_talisman_wealth;
         }
     }
