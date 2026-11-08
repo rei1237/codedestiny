@@ -73,6 +73,29 @@ next: 6단계 초융합 운세 구현 — "6단계 진행 메모"의 설계 초�
 - [ ] 6d. 영냥이 이미지 리포트: 지금 있는지 확인하고, 더 고퀄리티로 만들고, 상품 설명에서 잘 알아볼 수 있게 넣는다. 읽기 전용 조사가 진행 중이다.
   - 사용자 원문(2026-11-08): "어느정도 이미지를 넣어서 직관적으로 만들어주면 좋겠다"
   - 이미지 리포트와 상품 설명 절에 실제 이미지(기존 영냥이 스틸·에셋)를 적당히 넣어 한눈에 알게 한다. 이미지와 실제 에셋만 쓰고, 코드로 그린 도형·손글씨는 쓰지 않는다. 영냥이 스틸은 원본 크기로 보고 귀가 정확히 2개인지 센다.
+  - 조사 결과(2026-11-08, 읽기 전용, 원문은 scratchpad `research/yeongnyangi-image-report-findings.md`)
+    - 진짜 이미지 리포트는 없다.
+      - 있는 것은 canvas 글귀 카드 하나다(`app/yeongnyangi/_lib/result-share.ts:39-71` `renderShareCard`, 호출 위치는 `_components/ResultSharing.tsx:32`).
+      - 카드는 1x로 그리고, 글자 단위로 줄을 바꿔 한국어 단어가 잘린다. 글꼴은 본문 글자만 로드한다. 높이 상한이 없다.
+      - 내용은 사용자 발췌문(600자 이하)뿐이다.
+      - 유료 전 등급(고등어·연어·광어·참치·모둠·오마카세)과 무료 일일 운세가 같은 카드를 쓴다(`shareChoices` :29-35).
+    - 다른 이미지 출력
+      - 범용 인사이트 카드(`lib/insight-card-image.ts`): 글꼴 스택이 Noto Sans KR인데 로드되는 패밀리와 맞지 않는다.
+      - 분류모자 카드(`_lib/hat-card.ts`): 한글 글꼴이 없다.
+      - OG 1200×630
+      - ChatGPT 프롬프트 복사(`ExternalImageGuide.tsx`)
+    - 상품 설명에는 이미지 리포트 언급이 없다.
+      - 넣을 곳: `ProductGuide.tsx:74-75`(무료와 유료 차이), `:66`(등급 선택기), `:45`(샘플)
+      - `public/feature-details/crafted/yeongnyangi-*/manifest.json`의 마지막 패널
+    - 보관함(`_components/Library.tsx`)에는 진입점이 없다.
+  - 6d 방향
+    - 등급별로 다른 여러 절 이미지 리포트를 만든다. 발췌 카드 하나로 끝내지 않는다.
+    - 실제 에셋을 쓴다.
+      - `public/assets/yeongnyangi/report-art/{cover,insight,choices,closing}{,-print}.webp`
+      - `fish/` 등급 아이콘, `expressions/`
+    - 2x 레티나로 그린다. 한글 글꼴은 실제로 로드한다. 줄은 단어 단위로 바꾼다.
+    - 결과 화면과 보관함 양쪽에서 받을 수 있게 한다. ProductGuide와 등급 manifest에 미리보기 이미지와 함께 넣는다.
+    - 귀 확인을 마친 에셋은 `hero.webp`와 `report-art/cover.webp`뿐이다. 나머지는 쓰기 전에 원본 크기로 귀 2개를 확인한다.
 - [ ] 6e. 인생 총운 F9b 수정. 장마다 생성을 요청 2개(앞·뒤 반)로 나눠 장이 목표 약 4,400자에 닿게 한다.
   - 판 분기를 두어 진행 중인 세션은 기존 계획을 유지한다. V1 바이트는 그대로 둔다. 분량은 치명이 아니다.
   - 요청마다 100초 엣지 한도와 복구 cron을 확인한다. 목 dry-run 뒤 실호출 샘플 1회를 한다.
