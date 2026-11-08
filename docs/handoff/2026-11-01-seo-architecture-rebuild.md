@@ -1,7 +1,7 @@
 ---
 status: active
-updated: 2026-11-04
-next: "superpowers:writing-plans로 묶음 ③ B+A3 원장·hreflang 계획을 쓴다(묶음 ② 운영 반영은 2026-11-03 실측 끝, 작은 후속은 docs/handoff/2026-11-02-seo-post-promotion-followups.md)"
+updated: 2026-11-08
+next: "묶음 ③ 계획 docs/superpowers/plans/2026-11-08-seo-bundle-3-b-a3-ledger-hreflang.md 의 Task 4(robots meta 1개)부터 이어 간다"
 ---
 
 # SEO 아키텍처 재구축
@@ -20,6 +20,11 @@ next: "superpowers:writing-plans로 묶음 ③ B+A3 원장·hreflang 계획을 �
 
 ## 지금 상태
 
+- 묶음 ③ 진행 중(2026-11-08, origin/main `70eaf737b` 위로 fast-forward). 계획 `1c448dd3c`, T1 `abbaa53ad`, T2 `5f05c0104`, T3 `e26a56301`. 증거는 `D:\Development\seo-audit\code-destiny-20261101\bundle-3\`(기준 `build-before.log`·`verify-dist-before.json`·`index-state-before.json`, T3 뒤 `index-state-t3.json` diff 0줄).
+  - 기준 verify-dist: 실패 0, hreflang-sitemap 경고 185(80·1·100·4).
+  - 빌드에 `ALLOW_DEV_SERVER_DURING_BUILD=1`이 필요하다. 다른 세션 dev 서버(포트 32722)가 돌고 가드는 디렉터리를 가리지 않는다. 이 워크트리 `.next`는 별도 폴더다.
+  - T4 함정: `verify-adsense-readiness`의 `verifyPrivateNoindexRoutes`가 `googleBot.includes("noindex")`를 단언한다. 정적 셸 robots 문자열(`static-shell-route-meta.mjs`)도 T4에서 정한다.
+  - 사이트맵 쪽 파생 목록은 원소만 같고 순서는 다르다(`.some()`이라 무관). adsense 목록 3종은 뜻이 달라 원장 밖에 두고 부분집합 가드 테스트만 넣었다.
 - 운영 SHA `9ecd08743`(2026-11-04, 릴리스 런 https://github.com/rei1237/codedestiny/actions/runs/41739205895). 앞선 운영 `bf9c77a64` 위에 영냥이 AEO 결정 반영과 다른 세션 커밋이 더해졌다. 묶음 ③은 시작하지 않았다.
   - 2026-11-04 릴리스 런 41729564058(`914fca524`)은 배포 전 테스트에서 막혔고, 원인과 수정은 `docs/handoff/2026-11-03-aeo-remaining-work.md`의 "운영 재반영 완료"를 본다.
   - 아래 두 줄의 상세 실측은 이전 운영 `bf9c77a64` 기준이다. `9ecd08743`에서는 SHA, 주요 경로 상태 코드, `ai_source`만 다시 쟀다.
@@ -61,7 +66,7 @@ next: "superpowers:writing-plans로 묶음 ③ B+A3 원장·hreflang 계획을 �
   - [x] main push (2026-11-02, HEAD는 이 문서 커밋)
   - [x] 운영 배포 승인(2026-11-02, 후속 정리 그룹 D 포함) → 승격 런 https://github.com/rei1237/codedestiny/actions/runs/41335766465 (main `6d514ecaf`). `/version.json` gitSha `6d514ecaf` 일치 확인(2026-11-02), 작은 후속은 `docs/handoff/2026-11-02-seo-post-promotion-followups.md`
 - [x] 묶음 ② — vm 하네스 5개국×3UA 불변, 절대 Location 301 한 번, 결제 회귀 통과
-- [ ] 묶음 ③ — 전 URL 색인 상태 diff 0, HTML과 사이트맵의 hreflang 집합 일치
+- [ ] 묶음 ③ — (T1~T3 끝, T4~T10 남음) 전 URL 색인 상태 diff 0, HTML과 사이트맵의 hreflang 집합 일치
 - [ ] Codex 수집본 반영 → 묶음 ④ → 묶음 ⑤ → F
 - [ ] 최종 산출물 6종(설계 문서 '최종 산출물')
 - [ ] 끝: 이 문서 `status: done`, 워크트리 배수(junction 해제 → `git worktree remove --force` → `git branch -d`)
