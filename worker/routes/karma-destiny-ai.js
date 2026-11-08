@@ -29,7 +29,8 @@ import { hasRenderableLlmText, isCompleteLlmResponse } from "../lib/llm-result-d
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
 import { resultStorageUnavailable, resultStorageFailurePayload } from "../lib/result-storage.js";
 import { isStoredPaidResultRevoked } from "../lib/paid-result-revocation.js";
-import { countPaidReportBodyChars, hasRepeatedReportPassage } from "../lib/paid-report-quality.js";
+import { countPaidReportBodyChars, dropRepeatedReportSentences, hasRepeatedReportPassage } from "../lib/paid-report-quality.js";
+import { tokensRequiredForChars } from "../lib/llm-budget.js";
 import {clampSyncLlmTimeoutMs, PAID_LLM_PARTS_PER_REQUEST } from "../lib/sync-llm-timeout.js";
 import { runWithConcurrency } from "../lib/concurrency.js";
 import { normalizeRelationshipContext, buildRelationshipAnalysis, buildRelationshipPrompt, RELATIONSHIP_PRINCIPLES } from "../lib/karma-relationship-analysis.js";
@@ -386,6 +387,76 @@ const LENS_USAGE_WEIGHTS = Object.freeze(PREMIUM_CHAPTERS.reduce((acc, definitio
   }
   return acc;
 }, {}));
+
+/**
+ * 장 구성 판(chapterPlanVersion) 2 — 16장. REPORT_SCHEMA_VERSION 과 별개다(그걸 올리면 진행 중
+ * 문서가 409 로 끊긴다). 새 세션만 llmMeta.chapterPlanVersion=2 를 받고, 저장된 값이 없는 문서는 1(15장)로 끝까지 간다.
+ * 기존 15장의 id·렌즈는 그대로 두고 order 만 한 칸 밀며, 맨 앞에 기질·공감 장(chapter-00)을 더한다.
+ * perspective 가 있는 정의만 V2 전용 프롬프트 줄을 받는다 — V1 프롬프트는 바이트 단위로 그대로다.
+ */
+const KARMA_CHAPTER_PLAN_VERSION = 2;
+const KARMA_QUESTION_OWNER_ID = "chapter-01";
+const KARMA_V2_TARGETS = Object.freeze({ "chapter-00": "3,000~3,300자", "chapter-14": "1,300~1,500자", "chapter-15": "2,200~2,500자" });
+const KARMA_V2_PERSPECTIVES = Object.freeze({
+  "chapter-00": "사용자가 스스로도 설명하기 어려웠던 마음의 결을 먼저 알아봐 주는 공감의 시선",
+  "chapter-01": "질문을 정면으로 받아 이번 삶의 주제와 연결하는 해답의 시선",
+  "chapter-02": "그 기질이 어디서 시작됐는지 뿌리를 캐는 역사가의 시선",
+  "chapter-03": "지금 서 있는 계절을 읽는 기상관의 시선",
+  "chapter-04": "반복되는 숙제를 풀어 주는 스승의 시선",
+  "chapter-05": "곁의 사람들과 주고받는 결을 살피는 관찰자의 시선",
+  "chapter-06": "사랑 앞에서 흔들리는 마음을 다독이는 다정한 시선",
+  "chapter-07": "돈이 들어오고 새는 길을 짚는 살림꾼의 시선",
+  "chapter-08": "일과 소명을 잇는 장인의 시선",
+  "chapter-09": "몸과 마음의 리듬을 듣는 돌봄의 시선",
+  "chapter-10": "아직 쓰지 않은 재능을 발견하는 발굴자의 시선",
+  "chapter-11": "다가오는 갈림길을 미리 보는 길잡이의 시선",
+  "chapter-12": "오늘 할 일로 바꾸는 실천가의 시선",
+  "chapter-13": "흩어진 결론을 한 점으로 모으는 종합자의 시선",
+  "chapter-14": "오래 기억될 문장만 남기는 시인의 시선",
+  "chapter-15": "모든 설명을 내려놓고 곁에 앉는 사람의 시선",
+});
+const KARMA_DISPOSITION_CHAPTER = Object.freeze({
+  id: "chapter-00", order: 1, symbol: "性", title: "타고난 기질과 마음의 결",
+  minLength: 1800, targetLength: KARMA_V2_TARGETS["chapter-00"],
+  leadLens: "saju", supportLens: ["western", "ziwei"],
+  required: [
+    "타고난 기질을 일상 장면으로 먼저 비춰 사용자가 '내 얘기'라고 느끼게 하는 공감",
+    "남들이 쉽게 오해하는 마음의 결과 그 오해 때문에 혼자 감당해 온 것",
+    "그 기질이 가진 강점이 실제로 빛났던 순간의 모양",
+    "이 기질이 앞으로 펼쳐질 이번 삶의 주제와 어떻게 이어지는지 한 문장으로 다리 놓기",
+  ],
+  notCovered: "질문에 대한 답(2장 담당), 기질이 형성된 원인의 상세(3장 담당), 지금이 어느 시기인지(4장 담당)",
+  evidenceKeys: ["saju.dayMaster", "saju.fiveElements", "saju.strength", "western.sun", "western.moon", "ziwei.lifePalace"],
+  relay: "사주가 타고난 결을 세우면, 서양 점성술이 그 결이 마음 안에서 어떻게 느껴지는지로 받고, 자미두수가 그 결이 사람들 앞에서 어떻게 보이는지로 닫는다.",
+});
+const PREMIUM_CHAPTERS_V2 = Object.freeze([KARMA_DISPOSITION_CHAPTER, ...PREMIUM_CHAPTERS.map((definition) => ({
+  ...definition,
+  order: definition.order + 1,
+  targetLength: KARMA_V2_TARGETS[definition.id] || "2,700~3,000자",
+  ...(definition.id === KARMA_QUESTION_OWNER_ID ? { questionOwner: true } : {}),
+  // 원문 notCovered 의 "N장 담당" 번호는 V1 순서다. V2 에서는 한 칸씩 밀린 번호로 고쳐 싣는다.
+  notCovered: shiftChapterRefs(definition.notCovered) + (definition.id === "chapter-02" ? ", 일상 기질 장면(1장 담당)" : ""),
+}))].map((definition) => Object.freeze({
+  ...definition,
+  perspective: KARMA_V2_PERSPECTIVES[definition.id],
+})));
+
+function shiftChapterRefs(text) {
+  return String(text || "").replace(/(\d+)장 담당/g, (_, n) => `${Number(n) + 1}장 담당`);
+}
+
+function karmaPlanVersion(doc) {
+  return Number(doc?.llmMeta?.chapterPlanVersion || 1) === KARMA_CHAPTER_PLAN_VERSION ? KARMA_CHAPTER_PLAN_VERSION : 1;
+}
+
+function karmaChaptersForPlan(version) {
+  return Number(version) === KARMA_CHAPTER_PLAN_VERSION ? PREMIUM_CHAPTERS_V2 : PREMIUM_CHAPTERS;
+}
+
+function upperTargetChars(definition) {
+  const numbers = String(definition?.targetLength || "").replace(/,/g, "").match(/\d+/g) || [];
+  return Number(numbers[numbers.length - 1] || definition?.minLength || INITIAL_CONSULTATION_SECTION_MIN_LENGTH);
+}
 
 // 진행 화면의 별자리 6노드와 1:1로 대응한다(사주 → 자미두수 → 숙요 → 서양 → 베다 → 종합).
 // 클라이언트는 generationProgress.stageIndex 로 어느 노드를 밝힐지 정한다.
@@ -1033,11 +1104,12 @@ export async function buildAdminLabPrompt(body = {}, options = {}) {
   };
 }
 
-function buildSystemPrompt(mode = "initial", answerVoice = null) {
-  return appendAnswerVoice(buildBaseSystemPrompt(mode), answerVoice, { master: "neutral" });
+function buildSystemPrompt(mode = "initial", answerVoice = null, planVersion = 1) {
+  return appendAnswerVoice(buildBaseSystemPrompt(mode, planVersion), answerVoice, { master: "neutral" });
 }
 
-function buildBaseSystemPrompt(mode = "initial") {
+function buildBaseSystemPrompt(mode = "initial", planVersion = 1) {
+  const v2 = mode !== "follow_up" && Number(planVersion) === KARMA_CHAPTER_PLAN_VERSION;
   const shared = [
     "당신은 오래 상담해 온 운명의 업 상담가입니다.",
     LENS_CONSTITUTION,
@@ -1076,8 +1148,10 @@ function buildBaseSystemPrompt(mode = "initial") {
     ...shared,
     "",
     "초기 상담 구조:",
-    `최종 상담은 ${PREMIUM_CHAPTERS.length}개 장으로 완성합니다. 한 번에 전부 쓰지 않고 요청받은 한 장만 깊게 씁니다.`,
-    `각 장은 목표 ${PREMIUM_CHAPTER_TARGET_LENGTH}의 완성된 산문이며, 각 장 마지막에는 “이번 장의 핵심” 3줄을 둡니다.`,
+    `최종 상담은 ${(v2 ? PREMIUM_CHAPTERS_V2 : PREMIUM_CHAPTERS).length}개 장으로 완성합니다. 한 번에 전부 쓰지 않고 요청받은 한 장만 깊게 씁니다.`,
+    v2
+      ? "각 장은 요청에 적힌 목표 분량을 넉넉히 채운 완성된 산문이며, 각 장 마지막에는 “이번 장의 핵심” 3줄을 둡니다."
+      : `각 장은 목표 ${PREMIUM_CHAPTER_TARGET_LENGTH}의 완성된 산문이며, 각 장 마지막에는 “이번 장의 핵심” 3줄을 둡니다.`,
     "장마다 감정적 해석과 현실적 전략을 함께 담되, 그 장에 지정된 주도 렌즈의 언어로 시작하고 닫습니다.",
     "질병, 사망, 사고, 파산, 이혼, 투자 손실 같은 일을 확정 예언하지 않습니다.",
     "법률·의료·투자 판단을 대신하지 않습니다.",
@@ -1090,6 +1164,10 @@ function buildBaseSystemPrompt(mode = "initial") {
     "‘~할 수 있습니다’, ‘~일 것입니다’의 반복적 어미를 피합니다.",
     "마지막에 추가 질문을 유도하지 않습니다.",
     `최종 합산 분량은 실제 사용자가 읽는 plain text 기준 ${INITIAL_CONSULTATION_MIN_LENGTH.toLocaleString("ko-KR")}자 이상이어야 합니다.`,
+    ...(v2 ? [
+      "사용자의 질문은 질문을 맡은 장에서 한 번만 인용하고 답합니다. 다른 장에서는 질문 문장을 다시 옮겨 적지 않습니다.",
+      "모든 문장을 ‘~습니다/~입니다’의 격식체로 맺고 ‘~요’ 체로 흐르지 않습니다.",
+    ] : []),
   ].join("\n");
 }
 
@@ -1305,6 +1383,88 @@ function detectGenericAdviceWarnings(text) {
     .filter((item) => item.count >= 3);
 }
 
+const KARMA_GENERIC_PHRASES = Object.freeze(["자신을 사랑하세요", "긍정적으로 생각하세요", "마음을 열어보세요", "너무 걱정하지 마세요", "천천히 나아가세요", "스스로를 믿으세요"]);
+
+function splitKarmaSentences(text) {
+  return String(text || "").split(/(?<=[.!?。？！…]["'”’)\]」』]*)\s+|\n+/u).map((item) => item.trim()).filter(Boolean);
+}
+
+function compactKarmaText(text) {
+  return String(text || "").replace(/[\s.,!?·…"'“”‘’()[\]「」『』~\-]/g, "");
+}
+
+/**
+ * V2 연성 점검 — ⚠️ 절대 전달을 막지 않는다. 첫 시도에서는 다시 쓰기 힌트로, 마지막 시도에서는 문장 다듬기로만 쓴다.
+ * QUESTION_REQUOTED  질문 담당이 아닌 장이 질문 문장을 다시 옮겨 적었다(질문 6글자 조각 3개 이상을 한 문장이 품음).
+ * REGISTER_DRIFT     격식체(~습니다)로 써야 할 장의 문장 끝 40% 넘게가 ‘~요’ 체다(문장 6개 이상일 때).
+ */
+function detectKarmaSoftIssues(content, definition, question = "") {
+  if (!definition?.perspective) return [];
+  const sentences = splitKarmaSentences(paidReportBodyText(content));
+  const issues = [];
+  const compactQuestion = compactKarmaText(question);
+  if (!definition.questionOwner && compactQuestion.length >= 8) {
+    const grams = new Set();
+    for (let index = 0; index + 6 <= compactQuestion.length; index += 1) grams.add(compactQuestion.slice(index, index + 6));
+    const offending = sentences.filter((sentence) => {
+      const compact = compactKarmaText(sentence);
+      let hits = 0;
+      for (const gram of grams) if (compact.includes(gram)) hits += 1;
+      return hits >= 3;
+    });
+    if (offending.length) issues.push({ code: "QUESTION_REQUOTED", sentences: offending });
+  }
+  const endings = sentences.filter((sentence) => /[가-힣](?:[.!?…"'”’)]*)$/u.test(sentence));
+  const politeYo = endings.filter((sentence) => /요[.!?…"'”’)]*$/u.test(sentence));
+  if (endings.length >= 6 && politeYo.length / endings.length > 0.4) issues.push({ code: "REGISTER_DRIFT", sentences: politeYo });
+  return issues;
+}
+
+function paidReportBodyText(content) {
+  return String(content || "").replace(/\*\*/g, "");
+}
+
+function karmaSoftIssueHint(issues = []) {
+  return issues.map((issue) => issue.code === "QUESTION_REQUOTED"
+    ? "사용자의 질문 문장을 다시 옮겨 적지 말고 이 장의 주제로만 비추세요"
+    : "‘~요’ 체로 끝난 문장을 모두 ‘~습니다/~입니다’ 격식체로 바꾸세요").join(". ");
+}
+
+/** 걸린 문장 중 앞의 2개만 남기고 걷어낸다. 본문이 85% 아래로 줄면 원문을 그대로 둔다(분량이 전달보다 앞서지 않게). */
+function trimKarmaSoftIssueSentences(content, issues = []) {
+  const offending = new Set(issues.flatMap((issue) => issue.sentences.slice(2)));
+  if (!offending.size) return content;
+  const trimmed = String(content).split(/\n\s*\n/u)
+    .map((paragraph) => splitKarmaSentences(paragraph).filter((sentence) => !offending.has(sentence)).join(" "))
+    .filter(Boolean).join("\n\n");
+  return countPaidReportBodyChars(trimmed) >= countPaidReportBodyChars(content) * 0.85 ? trimmed : content;
+}
+
+/**
+ * 마지막 시도의 다듬기 — REPORT_QUALITY_FAILED 로 결제 후 무결과를 내는 대신 문제 문장만 걷어내고 싣는다.
+ * 금지 표현 치환 → 금지 문장 제거 → 상투 조언 2회차부터 제거 → 다른 장과 겹치는 문장 제거 → (V2) 연성 점검 다듬기.
+ * 어느 단계든 본문이 비면 그 단계 이전 본문으로 돌아간다.
+ */
+function scrubKarmaChapter(chapter, definition, otherContents = "", question = "") {
+  if (!chapter || !clean(chapter.content)) return chapter;
+  const keepNonEmpty = (next, prior) => (clean(next) ? next : prior);
+  let content = cleanForbiddenResult(chapter.content);
+  content = keepNonEmpty(content.split(/\n\s*\n/u).map((paragraph) => splitKarmaSentences(paragraph).filter((sentence) => !hasForbiddenResult(sentence)).join(" ")).filter(Boolean).join("\n\n"), content);
+  const genericSeen = new Map();
+  content = keepNonEmpty(content.split(/\n\s*\n/u).map((paragraph) => splitKarmaSentences(paragraph).filter((sentence) => {
+    const phrase = KARMA_GENERIC_PHRASES.find((item) => normalizePlainText(sentence).includes(item));
+    if (!phrase) return true;
+    genericSeen.set(phrase, (genericSeen.get(phrase) || 0) + 1);
+    return genericSeen.get(phrase) <= 1;
+  }).join(" ")).filter(Boolean).join("\n\n"), content);
+  try { content = keepNonEmpty(dropRepeatedReportSentences(content, otherContents), content); } catch {}
+  content = trimKarmaSoftIssueSentences(content, detectKarmaSoftIssues(content, definition, question));
+  const takeaways = safeArray(chapter.keyTakeaways).map((item) => cleanForbiddenResult(clean(item, 220))).filter(Boolean).slice(0, 3);
+  while (takeaways.length < 3) takeaways.push(`${definition.title}의 흐름은 반복되는 감정과 현실 선택을 함께 비춥니다.`);
+  const next = { ...chapter, content, keyTakeaways: takeaways, summary: cleanForbiddenResult(chapter.summary) };
+  return { ...next, charCount: countUserVisibleChars(formatChapterContent(next)) };
+}
+
 // 렌즈별 전용 용어. 그 장의 주도/보조가 아닌 렌즈의 용어가 쏟아지면 분업이 무너진 것이다.
 const LENS_TERMS = Object.freeze({
   saju: /일간|십성|용신|기신|희신|대운|세운|오행|비견|겁재|식신|상관|편재|정재|편관|정관|편인|정인|조후/g,
@@ -1464,15 +1624,16 @@ function normalizeChapter(rawChapter, definition, integratedResult = null) {
 
 function validatePremiumReportQuality(chapters, options = {}) {
   const minLength = Number(options.minLength || INITIAL_CONSULTATION_MIN_LENGTH);
-  const chapterMinCount = Number(options.chapterMinCount || PREMIUM_CHAPTERS.length);
+  const definitions = safeArray(options.definitions).length ? options.definitions : PREMIUM_CHAPTERS;
+  const chapterMinCount = Number(options.chapterMinCount || definitions.length);
   const ordered = safeArray(chapters).sort((a, b) => Number(a.order || 0) - Number(b.order || 0));
   const reportText = formatChaptersAsConsultationText(ordered);
   const totalChars = countUserVisibleChars(reportText);
-  const missingChapters = PREMIUM_CHAPTERS
+  const missingChapters = definitions
     .filter((definition) => !ordered.some((chapter) => chapter.id === definition.id && clean(chapter.content).length > 0))
     .map((definition) => definition.id);
   const shortChapters = ordered
-    .filter((chapter) => !options.lengthAcceptedIds?.has(chapter.id) && countUserVisibleChars(formatChapterContent(chapter)) < Number(PREMIUM_CHAPTERS[Number(chapter.order || 1) - 1]?.minLength || INITIAL_CONSULTATION_SECTION_MIN_LENGTH))
+    .filter((chapter) => !options.lengthAcceptedIds?.has(chapter.id) && countUserVisibleChars(formatChapterContent(chapter)) < Number((definitions === PREMIUM_CHAPTERS ? PREMIUM_CHAPTERS[Number(chapter.order || 1) - 1] : definitions.find((item) => item.id === chapter.id))?.minLength || INITIAL_CONSULTATION_SECTION_MIN_LENGTH))
     .map((chapter) => chapter.id);
   const summaryWarnings = ordered
     .filter((chapter) => safeArray(chapter.keyTakeaways).filter(Boolean).length < 3)
@@ -1707,8 +1868,9 @@ async function generateConsultationText(env, prompt, options = {}) {
 function buildGenerationProgress(doc = {}, overrides = {}) {
   const chapters = safeArray(overrides.chapters || doc.chapters);
   const completedChapters = chapters.length;
-  const totalChapters = PREMIUM_CHAPTERS.length;
-  const nextDefinition = PREMIUM_CHAPTERS[Math.min(completedChapters, totalChapters - 1)] || PREMIUM_CHAPTERS[totalChapters - 1];
+  const plan = karmaChaptersForPlan(karmaPlanVersion(overrides.llmMeta ? overrides : doc));
+  const totalChapters = plan.length;
+  const nextDefinition = plan[Math.min(completedChapters, totalChapters - 1)] || plan[totalChapters - 1];
   const basePercent = Math.min(96, Math.round((completedChapters / totalChapters) * 96));
   const stageIndex = Math.min(GENERATION_STAGES.length - 1, Math.floor((completedChapters / totalChapters) * GENERATION_STAGES.length));
   const status = clean(overrides.status || doc.status || "generating");
@@ -1908,7 +2070,7 @@ function buildLensDigest(integratedResult, definition) {
 
 /** 다른 장이 다루는 주제를 자동으로 나열해 중복 서술을 막는다. */
 function buildCoveredHint(definition) {
-  return PREMIUM_CHAPTERS
+  return (definition?.perspective ? PREMIUM_CHAPTERS_V2 : PREMIUM_CHAPTERS)
     .filter((other) => other.id !== definition.id)
     .map((other) => `${other.order}장 ${other.title}`)
     .join(" / ");
@@ -1945,6 +2107,36 @@ function describeLensRelay(definition, lenses = {}) {
   ].filter(Boolean).join("\n");
 }
 
+/** V1 은 예전 그대로 "현재 질문" 한 줄. V2 는 질문 담당 장만 질문을 인용·응답하고 나머지는 배경으로만 안다. */
+function buildChapterQuestionLines(consultation, definition) {
+  const question = clean(consultation.userQuestion);
+  if (!definition?.perspective) return [`현재 질문: ${consultation.userQuestion || "선택한 상담 주제를 중심으로 봅니다."}`];
+  if (definition.questionOwner) {
+    return [
+      `현재 질문: ${question || "선택한 상담 주제를 중심으로 봅니다."}`,
+      question ? "이 장이 질문을 맡습니다. 질문을 한 번만 짧게 인용한 뒤 정면으로 답하고, 그 답을 이번 삶의 주제와 연결하세요." : "",
+    ].filter(Boolean);
+  }
+  const owner = PREMIUM_CHAPTERS_V2.find((item) => item.questionOwner);
+  if (definition.id === KARMA_DISPOSITION_CHAPTER.id) {
+    return [`질문 처리: 사용자의 질문은 ${owner.order}장에서 답합니다. 이 장에서는 질문을 인용하지도 답하지도 말고, 마지막 문단에서 기질이 ${owner.order}장의 주제로 이어진다는 다리만 놓으세요.`];
+  }
+  return [`질문 배경: 사용자의 질문(${consultation.topic || "상담 주제"})은 이미 ${owner.order}장에서 답했습니다. 질문 문장을 다시 옮겨 적지 말고, 이 장의 주제 안에서 그 고민이 어떻게 보이는지만 비추세요.`];
+}
+
+/** perspective 가 있는(V2) 정의에만 붙는 줄. V1 정의에는 빈 배열이라 프롬프트가 바이트 단위로 같다. */
+function buildChapterV2Lines(definition, context = {}) {
+  if (!definition?.perspective) return [];
+  return [
+    `이 장의 시선: ${definition.perspective}. 앞 장과 같은 말투·같은 구도로 시작하지 마세요.`,
+    "첫 문장과 마지막 문장은 다른 장들과 겹치지 않게 장면, 질문, 고백 중 하나로 새로 여세요.",
+    "‘결국 중요한 것은’, ‘다시 말해’, ‘앞서 말했듯’ 같은 이음 상투구와 앞 장 문장의 되풀이를 쓰지 마세요.",
+    "모든 문장은 ‘~습니다/~입니다’ 격식체로 맺고 ‘~요’ 체로 바꾸지 마세요.",
+    `content 본문은 최소 ${Number(definition.minLength || 0).toLocaleString("ko-KR")}자를 넘기고 목표 ${definition.targetLength}를 넉넉히 채우세요. 짧게 끝내지 말고 계산 근거의 다른 면으로 깊이를 더하세요.`,
+    clean(context.repairHint, 600) ? `이번 다시 쓰기에서 고칠 점: ${clean(context.repairHint, 600)}` : "",
+  ].filter(Boolean);
+}
+
 function buildChapterPrompt(consultation, definition, context = {}) {
   const birth = consultation.birthInfo || {};
   const place = birth.birthPlace || {};
@@ -1966,7 +2158,7 @@ function buildChapterPrompt(consultation, definition, context = {}) {
     `달력: ${birth.calendarType === "lunar" ? "음력" : "양력"}`,
     `출생지: ${[place.city, place.country, place.timezone].filter(Boolean).join(", ")}`,
     `상담 주제: ${consultation.topic}`,
-    `현재 질문: ${consultation.userQuestion || "선택한 상담 주제를 중심으로 봅니다."}`,
+    ...buildChapterQuestionLines(consultation, definition),
     "",
     // 장별 프롬프트는 serializeIntegratedResultForPrompt(#224) 대신 buildLensDigest 를 쓴다.
     // 둘 다 "프롬프트에 실을 근거를 예산 안으로 줄인다"는 같은 문제를 풀지만, 여기서는
@@ -2005,6 +2197,7 @@ function buildChapterPrompt(consultation, definition, context = {}) {
     `이 한 장만 깊게 작성하세요. content는 산문 중심으로 목표 ${definition.targetLength || PREMIUM_CHAPTER_TARGET_LENGTH}를 채우고, 마지막 흐름을 summary와 keyTakeaways 3개로 정리하세요.`,
     "계산 근거에 없는 값은 절대 추정하거나 지어내지 마세요. 근거가 없으면 그 항목을 다루지 말고 있는 근거로 깊이를 만드세요.",
     "사용자가 실제로 취할 수 있는 행동 전략을 장 안에 자연스럽게 넣으세요.",
+    ...buildChapterV2Lines(definition, context),
     energyLabel
       ? `이 장은 '${energyLabel}' 영역을 담당합니다. 이 장에서 실제로 짚은 계산 근거만으로 그 영역의 에너지 강도를 0~100 사이 정수로 판정하고, 그렇게 본 이유 한 문장을 energyScore에 담으세요. 근거 없이 숫자를 만들지 마세요.`
       : "",
@@ -2045,13 +2238,19 @@ async function callRealGeminiText(env, prompt, options = {}) {
  * 한 장을 생성한다. **절대 throw 하지 않는다** — 실패를 값으로 돌려 한 장의 실패가
  * 같은 배치의 나머지 장을 죽이지 않게 한다(new-year-ai.js 의 섹션 생성 철학).
  */
+// V1 은 7,000 그대로. V2 는 목표 상한의 1.25배를 쓸 토큰을 준다(분량 부족으로 전달이 막히지 않게).
+function chapterMaxOutputTokens(definition) {
+  if (!definition?.perspective) return CHAPTER_MAX_OUTPUT_TOKENS;
+  return Math.max(CHAPTER_MAX_OUTPUT_TOKENS, tokensRequiredForChars(Math.round(upperTargetChars(definition) * 1.25)));
+}
+
 async function generateOneChapter(env, consultation, definition, context = {}) {
   try {
     const generated = await callRealGeminiText(env, buildChapterPrompt(consultation, definition, context), {
       temperature: context.retry ? 0.66 : 0.72,
       // 잘린 뒤의 재시도만 두 배 예산 — 기본 상한은 비용 예약에 쓰이므로 그대로 둔다.
-      maxOutputTokens: context.truncatedRetry ? Math.min(32768, CHAPTER_MAX_OUTPUT_TOKENS * 2) : CHAPTER_MAX_OUTPUT_TOKENS,
-      systemPrompt: buildSystemPrompt("initial", pinAnswerVoice(consultation?.llmMeta || {}, env)),
+      maxOutputTokens: context.truncatedRetry ? Math.min(32768, chapterMaxOutputTokens(definition) * 2) : chapterMaxOutputTokens(definition),
+      systemPrompt: buildSystemPrompt("initial", pinAnswerVoice(consultation?.llmMeta || {}, env), definition.perspective ? KARMA_CHAPTER_PLAN_VERSION : 1),
       // 장별 캐시 키 — 재시도 시 이미 성공한 장은 캐시에서 즉시 돌아온다.
       cacheStage: `${context.singleAttempt ? "delivery-v2-" : ""}chapter-${definition.id}`,
       singleAttempt: context.singleAttempt === true, skipCache: context.retry === true,
@@ -2080,7 +2279,8 @@ async function generateOneChapter(env, consultation, definition, context = {}) {
       generated.model = repaired.model || generated.model;
     }
     const raw = safeArray(payload?.chapters).find((item) => clean(item?.id) === definition.id) || payload;
-    if (context.singleAttempt && safeArray(raw?.keyTakeaways).filter(Boolean).length < 3) return { ok: false, definition, reason: "CHAPTER_TAKEAWAYS_MISSING" };
+    // 마지막 시도는 핵심 3줄이 모자라도 본문을 살린다(normalizeChapter 가 채운다) — 전달이 우선이다.
+    if (context.singleAttempt && !context.lastAttempt && safeArray(raw?.keyTakeaways).filter(Boolean).length < 3) return { ok: false, definition, reason: "CHAPTER_TAKEAWAYS_MISSING" };
     if (!clean(raw?.content)) {
       return { ok: false, definition, reason: "EMPTY_CHAPTER_CONTENT" };
     }
@@ -2352,6 +2552,8 @@ function publicSession(doc) {
     summaryCards: doc.summaryCards || null,
     // 1 = 구 16장(3체계), 2 = 15장 다섯 렌즈. 프론트는 이 값으로 레이더·근거 패널 렌더를 가른다.
     schemaVersion: Number(doc.schemaVersion || 1),
+    // 1 = 15장, 2 = 16장(기질 장 + 질문 담당 장). 프론트는 목차·화자 표시를 이 값과 무관하게 장 id 로 정한다.
+    chapterPlanVersion: karmaPlanVersion(doc),
     lensContribution: doc.lensContribution || doc.integratedResult?.lensContribution || null,
     lensAvailability: doc.lensAvailability || doc.integratedResult?.lensAvailability || null,
     chapters,
@@ -2570,7 +2772,9 @@ async function handleStart(request, env, recoveryAuth = null) {
   }
   const resumeBody = { ...body, idempotencyKey, accessType: access.accessType }; delete resumeBody.accessToken;
   const seed = {
-    llmMeta: { ...existing?.llmMeta, resumeBody: existing?.llmMeta?.resumeBody || resumeBody, ...(!existing?.llmMeta && selectAnswerVoice(env) ? { answerVoice: selectAnswerVoice(env) } : {}) },
+    llmMeta: { ...existing?.llmMeta, resumeBody: existing?.llmMeta?.resumeBody || resumeBody, ...(!existing?.llmMeta && selectAnswerVoice(env) ? { answerVoice: selectAnswerVoice(env) } : {}),
+      // 장 구성 판: 이미 쓴 장이 있는 문서는 그 판 그대로(저장값이 없으면 1), 장이 하나도 없으면 새 판(2)으로 시작한다.
+      chapterPlanVersion: resumedChapters.length ? karmaPlanVersion(existing) : KARMA_CHAPTER_PLAN_VERSION },
     id: sessionId,
     reportId: clean(existing?.reportId || sessionId, 120),
     attemptId: idempotencyKey,
@@ -2598,6 +2802,7 @@ async function handleStart(request, env, recoveryAuth = null) {
     qualityCheck: null,
     schemaVersion: REPORT_SCHEMA_VERSION,
     generationProgress: buildGenerationProgress(existing || {}, {
+      llmMeta: { chapterPlanVersion: resumedChapters.length ? karmaPlanVersion(existing) : KARMA_CHAPTER_PLAN_VERSION },
       chapters: resumedChapters,
       stageLabel: GENERATION_STAGES[0],
       activeBatchIndex: Math.floor(resumedChapters.length / PREMIUM_BATCH_SIZE),
@@ -2703,6 +2908,28 @@ async function saveKarmaDelivery(filter, fields, resultId) {
     return saved;
   } catch { throw resultStorageUnavailable(resultId); }
 }
+// 한 장을 몇 번까지 부르는가. 2번째까지 기준 미달이면 다듬어 싣고, 3번 불러도 본문이 없을 때만 실패로 간다.
+const KARMA_CHAPTER_MAX_ATTEMPTS = 3;
+// V2 합계 분량 보강 상한(장 하나씩, 더 길어질 때만 교체).
+const KARMA_LENGTH_REPAIR_MAX = 2;
+
+/** 조립 단계 중복 제거 — 순서대로 앞 장들의 문장을 기준으로 뒤 장의 겹치는 문장을 걷어낸다. */
+function dedupeKarmaAssembly(chapters = []) {
+  const ordered = safeArray(chapters).slice().sort((a, b) => Number(a.order || 0) - Number(b.order || 0));
+  try {
+    let prior = '';
+    return ordered.map((chapter) => {
+      const deduped = clean(dropRepeatedReportSentences(String(chapter.content || ''), prior));
+      prior = [prior, String(chapter.content || '')].filter(Boolean).join("\n\n");
+      if (!deduped || deduped === clean(chapter.content)) return chapter;
+      const next = { ...chapter, content: deduped };
+      return { ...next, charCount: countUserVisibleChars(formatChapterContent(next)) };
+    });
+  } catch {
+    return ordered;
+  }
+}
+
 function karmaChapterReady(chapter, definition, acceptShort = false) {
   const content = clean(chapter?.content);
   return !!content && (acceptShort || (countUserVisibleChars(formatChapterContent(chapter)) >= definition.minLength
@@ -2752,40 +2979,86 @@ async function handleGenerateBatch(request, env, recoveryAuth = null) {
   try {
     let chapters = safeArray(consultation.chapters);
     if (consultation.status !== "delivery_pending") {
+      const planVersion = karmaPlanVersion(consultation);
+      const definitions = karmaChaptersForPlan(planVersion);
+      const question = clean(consultation.userQuestion);
+      const lengthAcceptedIds = new Set(definitions.map(def => def.id));
+      const qualityOptions = { lengthAcceptedIds, acceptUsableDrafts: true, definitions };
+      const rowOf = (list, def) => safeArray(list).find(row => row.id === def.id);
+      const othersText = (list, id) => safeArray(list).filter(row => row.id !== id).sort((a, b) => a.order - b.order).map(row => row.content).join("\n\n");
+      const withChapter = (list, chapter) => [...safeArray(list).filter(row => row.id !== chapter.id), chapter].sort((a, b) => a.order - b.order);
+      /**
+       * 다음에 쓸 장을 고른다. 품질 기준을 두 번 넘지 못한 본문은 버리지 않고 다듬어(scrub) 싣는다 —
+       * 다듬어 실은 장(:scrubbed)은 다시 쓰지 않으므로 반복 루프와 결제 후 무결과가 함께 막힌다.
+       * attempts 는 그 자리에서 고친다(다듬기·분량 보강 표시). 대상이 비면 바로 전달할 수 있다는 뜻이다.
+       */
+      const selectTargets = (list, attempts) => {
+        let next = safeArray(list);
+        let salvaged = false;
+        const settled = def => Boolean(attempts[`${def.id}:scrubbed`]);
+        const salvage = def => {
+          next = withChapter(next, scrubKarmaChapter(rowOf(next, def), def, othersText(next, def.id), question));
+          attempts[`${def.id}:scrubbed`] = 1; salvaged = true;
+        };
+        const targets = [];
+        for (const def of definitions) {
+          if (karmaChapterReady(rowOf(next, def), def, true) || (settled(def) && clean(rowOf(next, def)?.content))) continue;
+          const tries = Number(attempts[def.id] || 0);
+          if (tries >= 2 && clean(rowOf(next, def)?.content)) { salvage(def); continue; }
+          // 세 번 불러도 본문이 한 번도 오지 않았다 = 실제 생성 실패. 이때만 실패·환불로 간다.
+          if (tries >= KARMA_CHAPTER_MAX_ATTEMPTS) { const error = new Error("필수 장을 생성하지 못했습니다."); error.code = "REPORT_QUALITY_FAILED"; throw error; }
+          targets.push({ definition: def, reason: "missing" });
+        }
+        if (targets.length) return { targets, chapters: next, salvaged };
+        const quality = validatePremiumReportQuality(next, qualityOptions);
+        const affected = new Set();
+        if (!quality.ok) {
+          for (const warning of quality.repeatedPhraseWarnings) {
+            next.filter(chapter => normalizePlainText(formatChapterContent(chapter)).replace(/[.,!?。？！\s]/g, "").includes(warning.sample)).slice(1).forEach(chapter => affected.add(chapter.id));
+          }
+          for (const warning of quality.genericAdviceWarnings) {
+            const chapter = [...next].reverse().find(row => formatChapterContent(row).includes(warning.phrase));
+            if (chapter) affected.add(chapter.id);
+          }
+          next.filter(chapter => hasForbiddenResult(formatChapterContent(chapter))).forEach(chapter => affected.add(chapter.id));
+        }
+        const softIssues = {};
+        for (const def of definitions) {
+          const issues = detectKarmaSoftIssues(rowOf(next, def)?.content, def, question);
+          if (issues.length) { softIssues[def.id] = issues; affected.add(def.id); }
+        }
+        for (const def of definitions) {
+          if (!affected.has(def.id) || settled(def)) continue;
+          if (Number(attempts[def.id] || 0) >= 2) { salvage(def); continue; }
+          targets.push({ definition: def, reason: "repair", repairHint: karmaSoftIssueHint(softIssues[def.id]) });
+        }
+        // V2 분량 보강: 합계가 기준 아래면 가장 모자란 장을 최대 2번만 다시 쓰고, 더 길어졌을 때만 바꾼다.
+        // 보강이 실패해도 그대로 전달한다 — 분량은 절대 전달을 막지 않는다.
+        const lengthRounds = Number(attempts.lengthRepairRounds || 0);
+        if (!targets.length && planVersion === KARMA_CHAPTER_PLAN_VERSION && lengthRounds < KARMA_LENGTH_REPAIR_MAX
+          && countUserVisibleChars(formatChaptersAsConsultationText(next)) < INITIAL_CONSULTATION_MIN_LENGTH) {
+          const ratio = def => countPaidReportBodyChars(rowOf(next, def)?.content) / upperTargetChars(def);
+          const shortest = [...definitions].filter(def => !attempts[`${def.id}:lengthRepair`]).sort((a, b) => ratio(a) - ratio(b))[0];
+          if (shortest) {
+            attempts.lengthRepairRounds = lengthRounds + 1;
+            attempts[`${shortest.id}:lengthRepair`] = 1;
+            targets.push({ definition: shortest, reason: "length" });
+          }
+        }
+        return { targets, chapters: next, salvaged };
+      };
       const attempts = { ...consultation.llmMeta?.attempts };
-      const lengthAcceptedIds = new Set(PREMIUM_CHAPTERS.map(def => def.id));
-      const quality = validatePremiumReportQuality(chapters, { lengthAcceptedIds, acceptUsableDrafts: true });
-      let targets = PREMIUM_CHAPTERS.filter(def => !karmaChapterReady(chapters.find(row => row.id === def.id), def, lengthAcceptedIds.has(def.id)));
-      if (!targets.length && (!quality.ok)) {
-        const affected = new Set([...quality.shortChapters, ...quality.missingChapters, ...quality.summaryWarnings]);
-        for (const warning of quality.repeatedPhraseWarnings) {
-          chapters.filter(chapter => normalizePlainText(formatChapterContent(chapter)).replace(/[.,!?。？！\s]/g, "").includes(warning.sample)).slice(1).forEach(chapter => affected.add(chapter.id));
-        }
-        for (const warning of quality.genericAdviceWarnings) {
-          const chapter = [...chapters].reverse().find(row => formatChapterContent(row).includes(warning.phrase));
-          if (chapter) affected.add(chapter.id);
-        }
-        chapters.filter(chapter => hasForbiddenResult(formatChapterContent(chapter))).forEach(chapter => affected.add(chapter.id));
-        targets = PREMIUM_CHAPTERS.filter(def => affected.has(def.id));
-        if (!targets.length) targets = [...PREMIUM_CHAPTERS].filter(def => Number(attempts[def.id] || 0) < 2).sort((a, b) => {
-          const ratio = def => countUserVisibleChars(formatChapterContent(chapters.find(row => row.id === def.id))) / Number(String(def.targetLength).replace(/,/g, "").match(/\d+/)?.[0] || def.minLength);
-          return ratio(a) - ratio(b);
-        });
+      const selected = selectTargets(chapters, attempts);
+      chapters = selected.chapters;
+      const targets = selected.targets.slice(0, PREMIUM_BATCH_SIZE);
+      targets.forEach(target => { if (target.reason !== "length") attempts[target.definition.id] = Number(attempts[target.definition.id] || 0) + 1; });
+      if (targets.length || selected.salvaged) {
+        consultation = await saveKarmaDelivery(filter, { ...(selected.salvaged ? { chapters, totalCharCount: countUserVisibleChars(formatChaptersAsConsultationText(chapters)) } : {}), llmMeta: { ...consultation.llmMeta, resumeBody, attempts } }, consultation.id);
       }
-      targets = targets.slice(0, PREMIUM_BATCH_SIZE);
-      if ((!targets.length && (!quality.ok)) || targets.some(def => Number(attempts[def.id] || 0) >= 2)) { const error = new Error("필수 챕터의 품질 기준을 충족하지 못했습니다."); error.code = "REPORT_QUALITY_FAILED"; throw error; }
-      targets.forEach(def => {
-        const prior = chapters.find(row => row.id === def.id);
-        if (karmaChapterReady(prior, def, true) && !karmaChapterReady(prior, def)) {
-          attempts[`${def.id}:lengthRepair`] = 1;
-        }
-        attempts[def.id] = Number(attempts[def.id] || 0) + 1;
-        if (attempts[`${def.id}:lengthRepair`] || attempts[def.id] >= 3) lengthAcceptedIds.add(def.id);
-      });
-      consultation = await saveKarmaDelivery(filter, { llmMeta: { ...consultation.llmMeta, resumeBody, attempts } }, consultation.id);
       let queue = Promise.resolve();
-      const results = await Promise.allSettled(targets.map(async definition => {
-        const row = await runWithAiLocale(storedAiLocale(consultation), async () => generateOneChapter(env, consultation, definition, { singleAttempt: true, retry: attempts[definition.id] > 1, truncatedRetry: Boolean(attempts[`${definition.id}:truncated`]), previousSummaries: chapters.map(chapter => chapter.summary).slice(-8), siblingDefinitions: targets }));
+      const results = await Promise.allSettled(targets.map(async ({ definition, reason, repairHint }) => {
+        const lastAttempt = reason !== "length" && attempts[definition.id] >= 2;
+        const row = await runWithAiLocale(storedAiLocale(consultation), async () => generateOneChapter(env, consultation, definition, { singleAttempt: true, retry: reason === "length" || attempts[definition.id] > 1, lastAttempt, repairHint, truncatedRetry: Boolean(attempts[`${definition.id}:truncated`]), previousSummaries: chapters.map(chapter => chapter.summary).slice(-8), siblingDefinitions: targets.map(target => target.definition) }));
         if (row.reason === "LLM_OUTPUT_TRUNCATED") {
           // 잘린 장은 표시만 남긴다(최선 노력). 저장이 안 돼도 다음 시도는 기본 예산으로 그대로 돈다.
           const mark = queue.catch(() => {}).then(async () => {
@@ -2793,29 +3066,51 @@ async function handleGenerateBatch(request, env, recoveryAuth = null) {
           });
           queue = mark; await mark; return;
         }
-        if (!row.ok || !karmaChapterReady(row.chapter, definition, true)) return;
+        if (!row.ok) return;
+        let chapter = row.chapter;
+        let scrubbed = false;
+        if (!karmaChapterReady(chapter, definition, true) || (lastAttempt && detectKarmaSoftIssues(chapter.content, definition, question).length)) {
+          if (!lastAttempt) return;
+          // 마지막 시도는 버리지 않고 다듬어 싣는다.
+          chapter = scrubKarmaChapter(chapter, definition, othersText(consultation.chapters, definition.id), question);
+          scrubbed = true;
+        }
+        if (!clean(chapter?.content)) return;
         const save = queue.catch(() => {}).then(async () => {
-          const prior = safeArray(consultation.chapters).find(chapter => chapter.id === definition.id);
-          const priorReport = safeArray(consultation.chapters).map(chapter => chapter.content).join("\n");
-          if (karmaChapterReady(prior, definition, true) && !hasRepeatedReportPassage(priorReport)
-            && !detectRepeatedParagraphs(priorReport).length && !detectGenericAdviceWarnings(priorReport).length
-            && countPaidReportBodyChars(prior.content) >= countPaidReportBodyChars(row.chapter.content)) return;
-          const candidate = [...safeArray(consultation.chapters).filter(chapter => chapter.id !== definition.id), row.chapter].sort((a, b) => a.order - b.order);
-          if (hasRepeatedReportPassage(candidate.map(chapter => chapter.content).join("\n"))) return;
-          consultation = await saveKarmaDelivery(filter, { chapters: candidate, totalCharCount: countUserVisibleChars(formatChaptersAsConsultationText(candidate)), generationProgress: buildGenerationProgress(consultation, { chapters: candidate, lockToken, lockedAt: new Date() }), llmMeta: { ...consultation.llmMeta, provider: row.provider, model: row.model } }, consultation.id);
+          const prior = safeArray(consultation.chapters).find(item => item.id === definition.id);
+          const priorReport = safeArray(consultation.chapters).map(item => item.content).join("\n");
+          const priorLonger = countPaidReportBodyChars(prior?.content) >= countPaidReportBodyChars(chapter.content);
+          if (reason === "length" && priorLonger) return;
+          if (reason === "missing" && karmaChapterReady(prior, definition, true) && !hasRepeatedReportPassage(priorReport)
+            && !detectRepeatedParagraphs(priorReport).length && !detectGenericAdviceWarnings(priorReport).length && priorLonger) return;
+          let candidate = withChapter(consultation.chapters, chapter);
+          if (hasRepeatedReportPassage(candidate.map(item => item.content).join("\n"))) {
+            // 다른 장과 겹치는 문장만 걷어내고 싣는다. 장을 통째로 버리면 같은 장이 끝없이 다시 쓰인다.
+            const deduped = clean(dropRepeatedReportSentences(chapter.content, othersText(consultation.chapters, definition.id)));
+            if (!deduped) return;
+            chapter = { ...chapter, content: deduped, charCount: countUserVisibleChars(formatChapterContent({ ...chapter, content: deduped })) };
+            if (reason === "length" && countPaidReportBodyChars(prior?.content) >= countPaidReportBodyChars(deduped)) return;
+            candidate = withChapter(consultation.chapters, chapter);
+          }
+          const nextAttempts = { ...consultation.llmMeta?.attempts, ...(scrubbed ? { [`${definition.id}:scrubbed`]: 1 } : {}) };
+          consultation = await saveKarmaDelivery(filter, { chapters: candidate, totalCharCount: countUserVisibleChars(formatChaptersAsConsultationText(candidate)), generationProgress: buildGenerationProgress(consultation, { chapters: candidate, lockToken, lockedAt: new Date() }), llmMeta: { ...consultation.llmMeta, attempts: nextAttempts, provider: row.provider, model: row.model } }, consultation.id);
         });
         queue = save; await save;
       }));
       const storageFailure = results.find(row => row.status === "rejected");
       if (storageFailure) throw storageFailure.reason;
-      chapters = safeArray(consultation.chapters);
-      const finalQuality = validatePremiumReportQuality(chapters, { lengthAcceptedIds, acceptUsableDrafts: true });
-      if (!finalQuality.ok || PREMIUM_CHAPTERS.some(def => !karmaChapterReady(chapters.find(row => row.id === def.id), def, lengthAcceptedIds.has(def.id)))) {
-        consultation = await saveKarmaDelivery(filter, { status: "partial", qualityCheck: finalQuality }, consultation.id);
+      // 쓴 뒤 다시 고른다. 남은 대상이 있으면 다음 폴링으로 넘기고, 없으면 같은 요청에서 바로 전달한다.
+      const finalAttempts = { ...consultation.llmMeta?.attempts };
+      const after = selectTargets(safeArray(consultation.chapters), finalAttempts);
+      if (after.targets.length) {
+        consultation = await saveKarmaDelivery(filter, { status: "partial", qualityCheck: validatePremiumReportQuality(safeArray(consultation.chapters), qualityOptions) }, consultation.id);
         return pending(consultation);
       }
+      // 전달 직전 조립 단계 중복 제거 — 앞 장에 이미 나온 문장을 뒤 장에서 걷어낸다. 실패하거나 장이 비면 원문 유지.
+      chapters = dedupeKarmaAssembly(after.chapters);
+      const finalQuality = validatePremiumReportQuality(chapters, qualityOptions);
       const createdAt = new Date();
-      consultation = await saveKarmaDelivery(filter, { status: "delivery_pending", chapters, qualityCheck: finalQuality, totalCharCount: finalQuality.totalCharCount, finalLetter: clean(chapters.find(row => row.id === FINAL_LETTER_CHAPTER_ID)?.content, 14000), messages: [{ role: "user", content: consultation.userQuestion || consultation.topic, createdAt }, { role: "assistant", content: formatChaptersAsConsultationText(chapters), createdAt }] }, consultation.id);
+      consultation = await saveKarmaDelivery(filter, { status: "delivery_pending", chapters, ...(after.salvaged ? { llmMeta: { ...consultation.llmMeta, attempts: finalAttempts } } : {}), qualityCheck: finalQuality, totalCharCount: finalQuality.totalCharCount, finalLetter: clean(chapters.find(row => row.id === FINAL_LETTER_CHAPTER_ID)?.content, 14000), messages: [{ role: "user", content: consultation.userQuestion || consultation.topic, createdAt }, { role: "assistant", content: formatChaptersAsConsultationText(chapters), createdAt }] }, consultation.id);
     }
     if (!(await checkAccess()).ok) return paymentVerifyFailed();
     await applyUsageAfterSuccessfulGeneration({ request, env, auth, consultation, pricing });
@@ -2985,6 +3280,15 @@ export const __karmaDestinyAiTestUtils = {
   validatePremiumReportQuality,
   formatChaptersAsConsultationText,
   PREMIUM_CHAPTERS,
+  PREMIUM_CHAPTERS_V2,
+  KARMA_CHAPTER_PLAN_VERSION,
+  karmaChaptersForPlan,
+  karmaPlanVersion,
+  detectKarmaSoftIssues,
+  trimKarmaSoftIssueSentences,
+  scrubKarmaChapter,
+  dedupeKarmaAssembly,
+  chapterMaxOutputTokens,
   LENS_USAGE_WEIGHTS,
   REPORT_SCHEMA_VERSION,
   FINAL_LETTER_CHAPTER_ID,

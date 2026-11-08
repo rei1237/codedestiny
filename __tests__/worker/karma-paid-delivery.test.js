@@ -90,7 +90,7 @@ beforeEach(() => {
   provider = jest.fn(async (_env, prompt, options) => {
     expect(options.timeoutMs).toBe(45000); expect(options.fallbackToWorkersAI).toBe(false);
     const id = options.cache.keyExtra.match(/chapter-(chapter-\d+)/)[1];
-    const definition = utils.PREMIUM_CHAPTERS.find(row => row.id === id);
+    const definition = utils.PREMIUM_CHAPTERS_V2.find(row => row.id === id);
     return { ok: true, provider: "gemini", model: "fixture", text: JSON.stringify({ id, title: definition.title, content: prose(id, 2250), summary: `${id}에서 확인한 선택`, keyTakeaways: [`${id} 기준 확인`, `${id} 상황 기록`, `${id} 행동 실험`], highlightQuotes: [] }) };
   });
   chart = jest.fn(async () => ({ lenses: { saju: { confidence: "high", data: { dayMaster: "갑" } }, ziwei: { confidence: "none" }, vedic: { confidence: "none" }, western: { confidence: "none" }, sukuyo: { confidence: "none" } }, synthesis: {}, saju: { dayMaster: "갑" } }));
@@ -106,8 +106,9 @@ async function batch() { return route(new Request("https://mock.test/api/karma-d
 for (const paid of ["pass", "monthly", "paid", "deferred"]) it(`${paid}: four bounded waves preserve chapters and original usage key`, async () => {
   mode = paid; expect((await start()).status).toBe(202);
   for (let wave=0;wave<3;wave++) { expect((await batch()).status).toBe(202); expect(docs[0].chapters).toHaveLength((wave+1)*4); expect(usage).not.toHaveBeenCalled(); }
-  expect((await batch()).status).toBe(200); expect(docs[0].status).toBe("completed"); expect(provider).toHaveBeenCalledTimes(15); expect(chart).toHaveBeenCalledTimes(1);
-  expect((await start()).status).toBe(200); expect(provider).toHaveBeenCalledTimes(15); expect(refund).not.toHaveBeenCalled();
+  expect((await batch()).status).toBe(200); expect(docs[0].status).toBe("completed"); expect(provider).toHaveBeenCalledTimes(16); expect(chart).toHaveBeenCalledTimes(1);
+  expect(docs[0].chapters[0].id).toBe("chapter-00"); expect(docs[0].llmMeta.chapterPlanVersion).toBe(2);
+  expect((await start()).status).toBe(200); expect(provider).toHaveBeenCalledTimes(16); expect(refund).not.toHaveBeenCalled();
 });
 for(const status of ["delivery_pending","completed"]) for(const kind of ["null","throw","confirm"]) it(`${status} ${kind}: storage failure preserves generated report`,async()=>{
   mode="deferred"; await start(); for(let i=0;i<3;i++) await batch(); fault={status,kind}; const response=await batch(); expect(response.status).toBe(503); expect(await response.json()).toMatchObject({reason:"RESULT_STORAGE_UNAVAILABLE",retryable:true}); expect(refund).not.toHaveBeenCalled(); const calls=provider.mock.calls.length; fault=null;
@@ -115,11 +116,14 @@ for(const status of ["delivery_pending","completed"]) for(const kind of ["null",
 });
 it("one interrupted chapter does not discard its successful siblings",async()=>{
   await start(); const base=provider.getMockImplementation(); provider.mockImplementation(async(...args)=>args[2].cache.keyExtra.endsWith('chapter-02')?{ok:false}:base(...args));
-  expect((await batch()).status).toBe(202); expect(docs[0].chapters.map(c=>c.id)).toEqual(['chapter-01','chapter-03','chapter-04']); const first=structuredClone(docs[0].chapters[0]);
-  provider.mockImplementation(base); expect((await batch()).status).toBe(202); expect(docs[0].chapters[0]).toEqual(first); expect(provider.mock.calls.filter(c=>c[2].cache.keyExtra.endsWith('chapter-01'))).toHaveLength(1);
+  expect((await batch()).status).toBe(202); expect(docs[0].chapters.map(c=>c.id)).toEqual(['chapter-00','chapter-01','chapter-03']); const first=structuredClone(docs[0].chapters[0]);
+  provider.mockImplementation(base); expect((await batch()).status).toBe(202); expect(docs[0].chapters[0]).toEqual(first); expect(provider.mock.calls.filter(c=>c[2].cache.keyExtra.endsWith('chapter-00'))).toHaveLength(1);
 });
 for(const store of [0,1,2,3]) it(`revoked store ${store} blocks resume before provider`,async()=>{ await start(); blocked=store; expect((await batch()).status).toBe(402); expect(provider).not.toHaveBeenCalled(); });
-it("short output is bounded to three attempts per chapter and never charged",async()=>{await start(); provider.mockImplementation(async()=>({ok:true,text:'{"content":"짧음"}'}));for(let i=0;i<2;i++) expect((await batch()).status).toBe(202);expect((await batch()).status).toBe(503);expect(provider).toHaveBeenCalledTimes(8);expect(usage).not.toHaveBeenCalled();});
+// 2026-11-08 분량은 절대 전달을 막지 않는다: 짧아도 형식이 맞는 본문은 두 번째(마지막) 시도에서 다듬어 실린다.
+it("short valid output is delivered on the last attempt instead of failing",async()=>{await start(); provider.mockImplementation(async(_env,_prompt,options)=>({ok:true,text:JSON.stringify({content:`${options.cache.keyExtra.slice(-10)} 짧은 본문입니다.`})}));for(let i=0;i<12&&docs[0].status!=='completed';i++) expect((await batch()).status).not.toBe(503);expect(docs[0].status).toBe('completed');expect(provider).toHaveBeenCalledTimes(34);expect(refund).not.toHaveBeenCalled();});
+// 본문이 세 번 다 오지 않으면 그때만 실패·미과금으로 끝난다.
+it("a chapter that never returns text fails after three attempts and is never charged",async()=>{await start(); provider.mockImplementation(async()=>({ok:false}));for(let i=0;i<2;i++) expect((await batch()).status).toBe(202);expect((await batch()).status).toBe(503);expect(provider).toHaveBeenCalledTimes(12);expect(usage).not.toHaveBeenCalled();});
 it("apply response loss leaves delivery_pending and retries the same key",async()=>{mode="deferred";await start();for(let i=0;i<3;i++)await batch();usage.mockImplementationOnce(()=>{throw new Error('response lost')});expect((await batch()).status).toBe(503);const calls=provider.mock.calls.length;expect(docs[0].status).toBe('delivery_pending');expect((await batch()).status).toBe(200);expect(provider).toHaveBeenCalledTimes(calls);expect(usage.mock.calls.map(c=>c[0].requestId)).toEqual(['original-paid-request','original-paid-request']);expect(refund).not.toHaveBeenCalled();});
 
 it("server discovery is account-scoped, preserves old completed results, and blocks them after cancellation",async()=>{await start();const id=docs[0].id;let response=await route(new Request('https://mock.test/api/karma-destiny-ai/result'),{});expect(response.status).toBe(202);expect((await response.json()).sessionId).toBe(id);userId='64b7f2a1c3d4e5f601234568';expect((await batch()).status).toBe(404);userId=uid;docs[0].status='completed';docs[0].chapters=[];expect((await route(new Request(`https://mock.test/api/karma-destiny-ai/result?sessionId=${id}`),{})).status).toBe(200);blocked=0;expect((await route(new Request(`https://mock.test/api/karma-destiny-ai/result?sessionId=${id}`),{})).status).toBe(403);});
@@ -177,7 +181,7 @@ it('a chapter cut at the token cap retries once with double the budget and still
     return budgets.length === 1 ? { ...result, truncated: true, finishReason: 'MAX_TOKENS' } : result;
   });
   for (let i = 0; i < 6 && docs[0].status !== 'completed'; i++) await batch();
-  expect(budgets).toEqual([7000, 14000]); expect(docs[0].status).toBe('completed'); expect(refund).not.toHaveBeenCalled();
+  expect(budgets).toEqual([7875, 15750]); expect(docs[0].status).toBe('completed'); expect(refund).not.toHaveBeenCalled();
 });
 
 // 2026-10-16: 결제 1건 = 리포트 1건. 같은 결제를 요청 키만 바꿔 다시 내밀면 409, 계산도 다시 돌지 않는다.
