@@ -45,6 +45,19 @@ function resolveUrl(url: string) {
   return new URL(url, origin).toString();
 }
 
+/**
+ * data: URL → Blob. 🔴 fetch(dataUrl) 를 쓰지 않는다: 운영 CSP(public/_headers)의 connect-src 에 data: 가 없어
+ * fetch 가 막히고 이미지 저장 전체가 실패한다.
+ */
+function dataUrlToBlob(dataUrl: string) {
+  const comma = dataUrl.indexOf(",");
+  const mime = /^data:([^;,]+)/.exec(dataUrl)?.[1] || "image/png";
+  const binary = atob(dataUrl.slice(comma + 1));
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i += 1) bytes[i] = binary.charCodeAt(i);
+  return new Blob([bytes], { type: mime });
+}
+
 function downloadDataUrl(href: string, filename: string) {
   const link = document.createElement("a");
   link.href = href;
@@ -58,7 +71,8 @@ function downloadDataUrl(href: string, filename: string) {
 const buttonBase =
   "inline-flex min-h-[44px] items-center justify-center rounded-full border px-4 text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cd-accent";
 const ghostButton = `${buttonBase} border-cd-border bg-cd-surface text-cd-text hover:bg-cd-surface-2`;
-const primaryButton = `${buttonBase} border-transparent bg-cd-accent text-cd-cta-text hover:opacity-90`;
+// 🔴 cd-cta-text 는 --cd-cta(밝은 그라데이션)용이라 bg-cd-accent 위에서는 대비 2.3:1 로 안 읽힌다(2026-11-08 실측).
+const primaryButton = `${buttonBase} border-cd-accent bg-cd-surface text-cd-accent hover:bg-cd-surface-2`;
 
 export default function ViralShareBar({
   url,
@@ -147,7 +161,7 @@ export default function ViralShareBar({
         ...(imageWidth ? { width: imageWidth } : {}),
         ...(imageHeight ? { height: imageHeight } : {}),
       });
-      const blob = await (await fetch(dataUrl)).blob();
+      const blob = dataUrlToBlob(dataUrl);
       const file = new File([blob], filename, { type: "image/png" });
       if (typeof navigator.share === "function" && navigator.canShare?.({ files: [file] })) {
         try {
