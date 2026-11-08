@@ -33,6 +33,7 @@ const LoveSecretChecklist = dynamic(() => import('@/app/love-secret-ai/result/Lo
 const SavedLovePdfButton = dynamic(() => import('./SavedLovePdfButton'));
 const SavedNewYearPdfButton = dynamic(() => import('./SavedNewYearPdfButton'));
 const SavedLifeBookPdfButton = dynamic(() => import('./SavedLifeBookPdfButton'));
+const SavedKarmaPdfButton = dynamic(() => import('./SavedKarmaPdfButton'));
 const VedicStructured = dynamic(() => import('@/app/vedic-ai/VedicAiClient').then(m=>m.StructuredReadingResult));
 
 function assistantObject(row:Record<string,unknown>) {
@@ -73,7 +74,7 @@ export default function SavedServiceReading({source,serviceId,value,status}:{sou
  }
  if(family==='karma') {
   const report=normalizeReport(row as KarmaResult);
-  return <div className={styles.notebook}>
+  return <div className={styles.notebook}><SavedKarmaPdfButton row={row} locale={locale}/>
     {!!row.lensContribution&&report&&<LensRadar model={report.radar} forceTable/>}
     {list(row.chapters).map((raw,index)=>{const chapter=object(raw);return <section key={index} className={styles.chapter}><h2>{text(chapter.title)||c.result}</h2><SavedText text={text(chapter.content||chapter.body)}/><SavedChapters value={{summary:chapter.summary,keyTakeaways:chapter.keyTakeaways,highlightQuotes:chapter.highlightQuotes}} showEmpty={false}/>{Array.isArray(chapter.evidence)&&<KarmaEvidence items={chapter.evidence as EvidenceItem[]} />}</section>;})}
     <SavedChapters value={row} omit={['chapters']} showEmpty={!list(row.chapters).length}/>

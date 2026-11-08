@@ -377,6 +377,22 @@ export default function ResultStyles() {
           font-size: 1.02rem;
         }
         .kdai-chapter__head h2 { margin: 0; font-size: clamp(1rem, 2.4vw, 1.24rem); }
+        /* 장 머리: 부 이름(작은 줄) → 제목 → 화자 칩. 360px 에서도 한 열로 접힌다. */
+        .kdai-chapter__titles { display: grid; gap: 4px; min-width: 0; }
+        .kdai-chapter__kicker, .kdai-toc__kicker {
+          font-size: 0.7rem; letter-spacing: 0.12em; color: var(--kdo-gold);
+        }
+        .kdai-toc__kicker { display: block; font-size: 0.64rem; line-height: 1.3; }
+        .kdai-speakers { display: flex; flex-wrap: wrap; gap: 6px; }
+        .kdai-speaker {
+          display: inline-flex; align-items: center; gap: 6px;
+          padding: 2px 9px 2px 3px; border-radius: 999px;
+          border: 1px solid var(--kdo-line);
+          font-size: 0.72rem; color: var(--kdo-ink-2);
+        }
+        .kdai-speaker img { width: 20px; height: 20px; border-radius: 50%; object-fit: cover; }
+        /* 첫 장(타고난 기질)은 공감의 문을 여는 장이라 테두리로 앞세운다. */
+        .kdai-chapter--lead { border-color: var(--kdo-gold) !important; box-shadow: 0 0 0 1px rgba(232, 213, 163, 0.28); }
         .kdo-lens-badge {
           font-size: 0.72rem; letter-spacing: 0.04em;
           padding: 5px 10px; border-radius: 999px;
