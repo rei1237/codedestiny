@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-08
-next: "1단계 네오 대사 다듬기 → 2단계 세 브랜치를 origin/main에 올리기 → 3단계 운영 승격 → 4단계 Play 배포"
+next: "2단계 후속: main PR CI Static guards 실패(verify:saju-summary-browser, 홈 무료 사주 카드 not visible)를 고쳐 push → CI 통과 확인 → 3단계 운영 승격 → 4단계 Play → 5단계 정리"
 ---
 
 # 오늘·내일 운세 웹툰 마무리와 세 브랜치 운영·Play 배포
@@ -87,3 +87,19 @@ next: "1단계 네오 대사 다듬기 → 2단계 세 브랜치를 origin/main�
   - 🔴 1차 check-changed 실패 2건, 둘 다 병합 뒤 테스트 문제: ① android 손님 세션 테스트가 legacy가 이름을 바꾼 `_original` 경로를 읽음 ② 일일 타로 브라우저 테스트가 `process is not defined`(android `IS_APP_BUILD`가 esbuild 번들에서 process.env를 읽음, android 브랜치 단독에서도 실패). 테스트만 고쳤다.
   - 2차 check-changed exit 0(node fail 0, Jest 7700, 빌드·verify-dist·AdSense), check:pre-push 6종 통과.
   - push 직전 origin/main에 toss 커밋 4개(6d93669df까지)가 들어와 rebase, toss 테스트 10/10·pre-push 재통과 뒤 `git push origin HEAD:main` → **`6d93669df..70eaf737b`**.
+  - 문서 결과 커밋 `661109b06`(병합 워크트리, 아직 push 안 함).
+  - `npm run verify:release`(=deploy:critical) exit 0 (70eaf737b 기준).
+  - main CI(70eaf737b): 나머지 워크플로는 전부 success, **PR CI run 42427325565만 failure**.
+    - 실패 잡은 Static guards의 "Run the static UI guards the release runs" 단계다. `npm run verify:saju-summary-browser`(scripts/verify-saju-summary-browser.mjs:129)에서 `locator('#cdQuickServices a[data-action="cdOneStepFreeSajuEntry"]').click` 15초 타임아웃: 요소는 찾았지만 **element is not visible**. 진단 출력 `case: mobile-restored`, `SUMMARY DOM: null`. 그 결과 "CI required"도 실패(lane skipped).
+    - 바로 앞 main 커밋 6d93669df의 PR CI는 success였다. 따라서 **세 브랜치 병합이 깨뜨린 것**으로 본다. 홈 첫 줄 레이아웃을 바꾼 android-size-widget 쪽(홈 첫 줄 7개 등)이나 legacy-cleanup의 `_home` 이동이 의심된다. 가리는 요소는 아직 확인하지 않았다.
+    - 실패 로그 사본: `D:\Development\Temp\claude\ec29f026d20d029c\ccecc842-2a09-4af6-b3e9-689ca5d1e944\scratchpad\prci.log`(8342행 부근).
+  - **이 실패를 고치고 main PR CI가 초록이 될 때까지 3단계(운영 승격)는 하지 않는다.** 고칠 때는 검증 스크립트를 느슨하게 만들지 말고, 모바일에서 무료 사주 카드가 실제로 보이게 제품 쪽을 고친다. 카드를 의도적으로 숨겼다면 숨긴 쪽의 의도를 읽고 판단한다.
+
+## 이어받는 쪽 첫 행동 (2026-11-08 갱신)
+1. 병합 워크트리 `D:\Development\codedestiny-worktrees\release-merge-20261108`(detached, node_modules junction)에서 `git fetch origin`. origin/main이 앞서 있으면 rebase한다.
+2. 로컬에서 `npm run build` 뒤 `npm run verify:saju-summary-browser`로 재현한다. 원인을 고치고 check:fast → 커밋. 이 문서 커밋 포함 `git push origin HEAD:main`. PR CI 결과를 한 번만 확인한다.
+3. 3단계부터 진행한다(승인됨).
+4. 4단계 빌드 메모:
+   - 이전 세션 스크립트는 `D:\Development\Temp\claude\ec29f026d20d029c\b796b1ab-c87d-4804-ae0a-3651ac10cc40\scratchpad\build-android.ps1`(`-Out`, `-W <워크트리>`)이다. VERSION_CODE가 57로 하드코딩돼 있으니 **58**로 바꿔 쓴다. 57은 빌드만 했고 업로드하지 않았다.
+   - 빌드 순서는 `mobile:android:sync` → bundleRelease → `prepare-benchmark.mjs`(에셋을 바꾼다) → assembleBenchmark(`D:\Development\code-destiny\output\android-latest-candidate-20261101-214248\benchmark.init.gradle`)이다. 약 1시간 걸리니 백그라운드로 돌린다.
+   - Play API 서비스 계정(`GOOGLE_PLAY_SERVICE_ACCOUNT_JSON`)이 없다. 업로드는 Play Console 브라우저 로그인으로 하고, 그게 안 되면 AAB 경로와 출시 노트 초안을 사용자에게 넘긴다.
