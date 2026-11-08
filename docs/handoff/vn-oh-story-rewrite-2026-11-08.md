@@ -1,5 +1,5 @@
 ---
-status: in-progress
+status: active
 updated: 2026-11-09
 next: 새 ego 공간 생성 승인 응답 후 운영 EP.01/42/52·북마크·언어 검증, 완료 기록과 정리
 ---
@@ -502,3 +502,7 @@ next: 새 ego 공간 생성 승인 응답 후 운영 EP.01/42/52·북마크·언
 - 화면검증을재개하려던 ego taskSpace63이외부에서사라짐(task space not found). listTaskSpaces에는다른사용자공간56/57만남아건드리지않음.
 - ego-browser SKILL.md는 사라지거나멈춘공간의복구를새공간으로우회하지말고확인받으라고명시. 2026-11-09 새검증공간을열지질문함. 응답전새공간/다른브라우저로우회금지. 배포는성공했지만운영UI검증미완료.
 - main CI42505056922는72fed7684에대해진행중. 마지막조회는운영성공후1회, 반복폴링하지않음. 다음push직전/최종보고직전에만확인.
+
+## CI 문서 규약 보정 (2026-11-09)
+- main CI42505056922의Fast와Build는success, Static guards만handoff frontmatter status값으로failure. 사용자공통인수인계예시의in-progress를썼으나현재저장소 _TEMPLATE.md·verify-handoff-contract는active/blocked/done을요구했다. 같은진행중의미인active로맞춘다. CI코드/검사기/운영콘텐츠변경없음.
+- 문서상태오류는이세션수정책임이며운영런42505123236 success·Pages/Worker/원고서버검증결과는유효. 문서규약self-test와실검사후완료기록을push하고main CI결과확인.
