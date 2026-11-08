@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-08
-next: 1단계 A — 작업실에서 /story-setup·/story-import 실행
+next: 1단계 B — 진단 병렬(아크별 리뷰·황금 3장·정체 노출·복선 공정성·말버릇) → reports/*.md
 ---
 
 # VN 스토리 개선 (oh-story 활용) 인수인계
@@ -40,9 +40,26 @@ next: 1단계 A — 작업실에서 /story-setup·/story-import 실행
 - 재미: 화마다 연이의 능동 목표·실패 대가, 웃음 장치 리듬, 설명 구간 축소.
 - 복선: 원장 모든 줄에 심기·상기·회수 세 번 닿기. 약한 떡밥은 합치거나 뺀다.
 
+## 1A 결과 (2026-11-08, 작업실 커밋 d185ed2 → d1850d1 → 10deaba → de9b568)
+- 배포: 작업실에만 `/story-setup`(Claude Code, agents_version 41, setup 1.3.9). `.claude/hooks`·`rules`·`agents`(7종)·`skills/story-setup/references/agent-references`, `CLAUDE.md` 관리 블록, `.claude/settings.local.json`, `.story-deployed`. code-destiny에는 아무것도 배포하지 않았다.
+- 책 디렉터리: `D:\Development\story-lab\code-destiny-vn\코드데스티니`(`.active-book`=코드데스티니). 설정/·大纲/(大纲.md, 卷纲 4권, 细纲_第001~073章.md 73개, 계약 검사 통과)·正文/(73편, 본문·비트 id 원문 그대로)·参考资料/화번호_대응표.md.
+- 拆文 결과: `拆文库/코드데스티니/`(概要·拆文报告·剧情/节奏·情绪模块·散落情节·角色/·设定/·文风.md·章节/第N章_摘要.md). 5단계 모두 completed.
+- 추적: `코드데스티니/追踪/_tracking-state.json`, `上下文.md`, `伏笔.md`, `角色状态/`, `时间线/`, `逐章记录/`. 원본 입력 `.story/work/init.json`. 결정적 검사 `PYTHONUTF8=1 py C:/Users/user/.agents/skills/story-import/scripts/tracking_commit.py check --project 코드데스티니`(작업실 루트에서) → `{"last_committed_chapter": 73, "state_revision": 0}`, exit 0.
+- 복선 원장: 31행(바이블 §5 24행 F001–F024 + 신규 7행 F025–F031). 已回收 30, 已埋 1(F023 바다 약속, 여행 자체 미등장). 상기 없음 1행(F022 박병하 가운데 글자). 비트 id까지 적은 상세판은 `코드데스티니/参考资料/伏笔원장_상세.md`. 바이블과 본문이 다른 곳(검은 깃털 EP.06, 그릇은 비어야 EP.12A, 첫 번째 봄 책 EP.16, 化忌 무곡 EP.30 심기, 金克木 한자는 ep-24:22 처음, 흰 털 EP.43 문장 없음 → EP.51 심기, 네오 화상 앞발 좌우 혼재)은 본문을 따르고 비고에 적었다. 2단계 바이블 재설계 때 반영할 것.
+- 리뷰어 에이전트 호출: `.claude/agents/*.md`(story-explorer, consistency-checker, narrative-writer, story-architect, character-designer, chapter-extractor, story-researcher)는 배포 세션에 등록되지 않는다. 새 세션을 작업실에서 열거나, Agent 도구 general-purpose(sonnet)에 "먼저 `D:\Development\story-lab\code-destiny-vn\.claudegents\{이름}.md`를 읽고 그 계약대로 하라"고 지시해 쓴다. `/story-review`는 agent가 없으면 solo로 떨어지므로 위 방식으로 4관점을 병렬로 돌린다.
+
+## 1A에서 알게 된 함정
+- 파이썬은 `py`. 반드시 `PYTHONUTF8=1 PYTHONIOENCODING=utf-8`를 붙인다(안 그러면 cp949로 한글 깨짐).
+- 작업실은 `core.autocrlf false` + `.gitattributes`(`* -text`). CRLF로 바뀌면 장 해시가 깨진다.
+- 장 번호 ≠ 화 번호: 第N章 = 파일 순서(第1章=PROLOGUE … 第73章=EP.53S). 대응은 `参考资料/화번호_대응표.md`.
+- 第71–73章(EP.51S–53S)은 第68–70章(EP.51–53)과 나란한 대체 결말이다. 둘 다 第67章 EP.50 뒤에 온다. 추적의 "현재 위치"는 第73章이므로 현실 분기를 볼 때 섞지 않는다.
+- 拆文 원문 `拆文库/코드데스티니/原文/原文.txt`는 화 제목 줄을 `第N章 {화 키} {제목}`으로 바꾼 사본이다. 원고 정본은 여전히 code-destiny의 `content/novel/episodes.source.json`이다.
+- 본서 `设定/文风.md`는 작가 확인 전이라 만들지 않았다. 拆文库 쪽 `文风.md`만 있다('이번엔' 105회 + '이번에는' 30회 = 135회 관측).
+- 细纲·角色 카드 일부에 `[待补充]`(근거 부족 칸)가 남아 있다. 진단 재료로 쓰되 사실로 인용하지 않는다.
+
 ## 단계
 - [x] 0. 전역 설치, 작업실 생성, 내보내기 스크립트, 워크트리 생성
-- [ ] 1A. 작업실 `/story-setup`(Claude Code) → `/story-import`(source/正文, 设定)로 추적 상태·복선 원장 생성
+- [x] 1A. 작업실 `/story-setup`(Claude Code) → `/story-import`(source/正文, 设定)로 추적 상태·복선 원장 생성
 - [ ] 1B. 진단 병렬: 아크별 `/story-review full`, 황금 3장·보상 리듬, 정체 노출 감사, 복선 공정성 감사, 문장 말버릇 집계 → `reports/*.md`
 - [ ] 1C. 진단 종합 `docs/webnovel_review/oh-story-diagnosis-2026-11-08.md` 커밋 → **사용자 확인**
 - [ ] 2. 바이블 재설계(§3·§4·§5·§8) 커밋
