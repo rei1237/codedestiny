@@ -24,6 +24,7 @@ const ko = {
   steadyCaution: '연중 비슷한 주의 수준', signs: '생활에서 확인할 징후', actions: '대비와 개운 행동',
   change: '판단을 바꿀 조건', evidence: '계산 근거 확인하기', support: '조율 신호',
   consultation: '당신을 위한 심층 상담', original: '저장된 원본입니다. 다시 열 때 추가 결제나 생성이 필요하지 않아요.',
+  savePdf: 'PDF로 저장하기', preparingPdf: 'PDF를 정리하고 있어요', pdfError: 'PDF로 저장하지 못했어요. 잠시 후 다시 시도해 주세요.',
 };
 type ReaderCopy = typeof ko;
 const en: ReaderCopy = {
@@ -51,6 +52,7 @@ const en: ReaderCopy = {
   steadyCaution: 'Similar caution level throughout the year', signs: 'Signs to notice in daily life', actions: 'Preparation and practical steps',
   change: 'What could change this assessment', evidence: 'View the calculation basis', support: 'Balancing indicators',
   consultation: 'Your in-depth consultation', original: 'This is the saved original. Reopening it requires no additional payment or generation.',
+  savePdf: 'Save as PDF', preparingPdf: 'Preparing the PDF', pdfError: "Couldn't save the PDF. Please try again shortly.",
 };
 const ja: ReaderCopy = {
   pillarNames: ["年柱","月柱","日柱","時柱"],
@@ -77,6 +79,7 @@ const ja: ReaderCopy = {
   steadyCaution: '年間を通じて同程度の注意が必要', signs: '日常で確かめたい兆候', actions: '備えと実践できる行動',
   change: '判断が変わる条件', evidence: '計算の根拠を確認する', support: '調和を助ける兆候',
   consultation: 'あなたのための詳しい相談', original: '保存された元の結果です。再表示に追加の支払いや生成は必要ありません。',
+  savePdf: 'PDFとして保存', preparingPdf: 'PDFを準備しています', pdfError: 'PDFを保存できませんでした。しばらくしてからもう一度お試しください。',
 };
 export function recordReaderCopy(locale: string): ReaderCopy {
   const language = locale.toLowerCase().split(/[-_]/)[0];

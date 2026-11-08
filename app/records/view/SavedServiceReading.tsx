@@ -30,6 +30,7 @@ const SavedSukuyoSummary = dynamic(() => import('@/app/sukuyo-compatibility-ai/S
 const LensRadar = dynamic(() => import('@/app/karma-destiny-ai/result/_components/LensRadar'));
 const EvidenceDisclosure = dynamic(() => import('@/app/karma-destiny-ai/result/_components/EvidenceDisclosure'));
 const LoveSecretChecklist = dynamic(() => import('@/app/love-secret-ai/result/LoveSecretChecklist'));
+const SavedLovePdfButton = dynamic(() => import('./SavedLovePdfButton'));
 const VedicStructured = dynamic(() => import('@/app/vedic-ai/VedicAiClient').then(m=>m.StructuredReadingResult));
 
 function assistantObject(row:Record<string,unknown>) {
@@ -79,7 +80,7 @@ export default function SavedServiceReading({source,serviceId,value,status}:{sou
  if(family==='book') return <div className={bookStyles.readingRoom+' '+styles.book} style={{minHeight:0}}><div className={bookStyles.paperPage}>{answerFirst(saju?<SavedSaju value={saju}/>:null,<SavedChapters value={model} fields={view.fields} omit={['sajuResult','saju','sajuFacts']} chapterClass={bookStyles.chapterProse}/>)}</div></div>;
  if(family==='love') {
   const secrets=list(model.actionSecrets).filter(v=>typeof object(v).action==='string') as ActionSecret[];
-  return <div className={loveTheme.reportTheme+' '+styles.letter}><div className={loveStyles.resultDocument}>{answerFirst(saju?<SavedSaju value={saju}/>:null,<><SavedChapters value={model} omit={[...(secrets.length?['actionSecrets','sevenDayGuide']:[])]} fields={view.fields}/>{!!secrets.length&&<LoveSecretChecklist secrets={secrets} sevenDayGuide={list(model.sevenDayGuide).filter((v):v is string=>typeof v==='string')} consultationKey={text(row.id)} forceExpanded/>}</>)}</div></div>;
+  return <div className={loveTheme.reportTheme+' '+styles.letter}><SavedLovePdfButton row={row} locale={locale}/><div className={loveStyles.resultDocument}>{answerFirst(saju?<SavedSaju value={saju}/>:null,<><SavedChapters value={model} omit={[...(secrets.length?['actionSecrets','sevenDayGuide']:[])]} fields={view.fields}/>{!!secrets.length&&<LoveSecretChecklist secrets={secrets} sevenDayGuide={list(model.sevenDayGuide).filter((v):v is string=>typeof v==='string')} consultationKey={text(row.id)} forceExpanded/>}</>)}</div></div>;
  }
  if(family==='vedic'||family==='prashna') {
   const chart=object(model.vedicChart||object(model.prashnaResult).chart||model.chart), reading=object(model.reading||parsed);
