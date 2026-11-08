@@ -129,4 +129,4 @@ function main() {
   console.log(`[verify-sitemap-canonical] OK — 사이트맵 ${files.length}개 · loc ${locs.size}개 · 리다이렉트 내부 링크 0`);
 }
 
-if (import.meta.url === pathToFileURL(process.argv[1]).href) main();
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) main();

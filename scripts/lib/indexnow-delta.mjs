@@ -1,11 +1,22 @@
 // Canonical sitemap entries are the only source of public notification URLs.
+// Public editorial pages whose segments overlap API/private service names.
+// Exact paths only: dashboards, results and future child routes stay blocked.
+const PUBLIC_SERVICE_PAGES = new Set([
+  '/business/api/',
+  '/business/api/docs/',
+  '/yeongnyangi/',
+  '/yeongnyangi/1000-won-fortune/',
+  '/yeongnyangi/season-1/',
+]);
+
 export function publicNotificationUrl(value, host) {
   try {
     const url=new URL(value);
     if(url.protocol!=='https:' || url.host!==host || url.username || url.password || url.search || url.hash) return false;
     const path=decodeURIComponent(url.pathname);
+    if(PUBLIC_SERVICE_PAGES.has(url.pathname))return url.href===value;
     if(/(?:^|\/)(?:api|admin|auth|login|signup|profile|profiles|payment|payments|checkout|points|result|results|library|callback|debug|test)(?:\/|$)/i.test(path))return false;
-    if(path.startsWith('/yeongnyangi/') && !['/yeongnyangi/','/yeongnyangi/1000-won-fortune/'].includes(path))return false;
+    if(path.startsWith('/yeongnyangi/'))return false;
     return url.href===value;
   }catch{return false;}
 }

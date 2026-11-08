@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { spawnSync } from 'node:child_process';
 import { checkSitemapPage, redirectingLinks } from '../../scripts/verify-sitemap-canonical.mjs';
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -10,6 +11,13 @@ import { renderRobotsTxt } from '../../lib/seo/robots-policy.mjs';
 
 const loc = 'https://code-destiny.com/faq/';
 const page = (head) => `<html><head>${head}</head><body></body></html>`;
+
+test('the canonical verifier can be imported from node eval without a script argv', () => {
+  const moduleUrl = new URL('../../scripts/verify-sitemap-canonical.mjs', import.meta.url).href;
+  const result = spawnSync(process.execPath, ['--input-type=module', '-e', `await import(${JSON.stringify(moduleUrl)})`], { encoding: 'utf8', windowsHide: true });
+  assert.equal(result.status, 0, result.stderr);
+  assert.equal(result.stdout, '');
+});
 
 test('a sitemap page needs exactly one self canonical and no noindex meta', () => {
   assert.deepEqual(checkSitemapPage(page(`<link rel="canonical" href="${loc}">`), loc), []);
