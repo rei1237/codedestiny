@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { ROBOTS_META } from "../../../lib/seo/index-policy.mjs";
 
 // 로그인 사용자 전용 화면이라 색인 대상이 아니다. `/account/password` 레이아웃과 같은 형태를 쓴다.
 export const metadata: Metadata = {
@@ -7,14 +8,7 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "/account/phone/",
   },
-  robots: {
-    index: false,
-    follow: false,
-    googleBot: {
-      index: false,
-      follow: false,
-    },
-  },
+  robots: ROBOTS_META.NOINDEX,
 };
 
 export default function AccountPhoneLayout({ children }: { children: React.ReactNode }) {

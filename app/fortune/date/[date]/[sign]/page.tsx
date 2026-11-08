@@ -5,6 +5,7 @@ import { buildDateSignViewModel } from "@/lib/fortune/build-view";
 import { getSignProfile, getSiblingProfiles } from "@/lib/fortune/sign-profiles";
 import { isValidFortuneDate, resolveFortuneArchiveDates } from "@/lib/fortune/daily-data";
 import DateSignFortuneView from "./DateSignFortuneView";
+import { ROBOTS_META } from "../../../../../lib/seo/index-policy.mjs";
 
 export const dynamicParams = false;
 
@@ -43,7 +44,7 @@ export function generateMetadata({ params }: { params: PageParams }) {
     description,
     keywords: [title, `${vm.profile.nameKo} 일진 운세`, `${vm.profile.nameKo} 재물운`, `${vm.profile.nameKo} 연애운`],
   });
-  return { ...metadata, robots: { index: false, follow: true, googleBot: { index: false, follow: true } } };
+  return { ...metadata, robots: ROBOTS_META.NOINDEX_FOLLOW };
 }
 
 function buildDateFaqs(page: NonNullable<ReturnType<typeof resolvePage>>) {

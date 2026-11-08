@@ -52,7 +52,8 @@ test("로케일 프리픽스와 레이아웃 파일이 1:1 이다", () => {
     "LOCALE_ROUTE_PREFIXES 가 LOCALE_CONFIG 에서 파생되지 않는다(하드코딩 금지)",
   );
 
-  const prefixes = [...read("lib/i18n/locales.ts").matchAll(/pathPrefix:\s*"([^"]*)"/g)]
+  // 값의 원본은 lib/i18n/locale-data.mjs(locales.ts 는 거기서 LOCALE_CONFIG 를 만든다).
+  const prefixes = [...read("lib/i18n/locale-data.mjs").matchAll(/pathPrefix:\s*"([^"]*)"/g)]
     .map((m) => m[1])
     .filter(Boolean);
   assert.deepEqual(prefixes.sort(), ["/en", "/ja", "/zh", "/zh-tw"]);

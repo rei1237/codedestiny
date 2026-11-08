@@ -15,6 +15,9 @@
  *    가 같은 이유로 사이트맵에서도 뺀다. follow 는 유지해 링크 자산은 통과시킨다.
  */
 
+import { I18N_ROUTE_MAP } from "../../lib/i18n/locale-data.mjs";
+import { alternatesFor } from "../../lib/seo/hreflang.mjs";
+
 const SITE_ORIGIN = "https://code-destiny.com";
 
 export function escapeHtmlAttr(value) {
@@ -52,6 +55,35 @@ function withoutHreflangLinks(html) {
   return html.replace(/\s*<link\s+[^>]*rel=["']alternate["'][^>]*hreflang=["'][^"']*["'][^>]*>/gi, "");
 }
 
+/**
+ * 꽃돼지 홈 클러스터 셸(/ggulggul/·/en/·/ja/·/zh/·/zh-tw/)의 hreflang 을 사이트맵과 같은 집합으로 바꾼다(묶음 ③ T8).
+ *
+ * 이 셸들은 루트 index.html 의 hreflang 12줄(ko-KR·ja-JP·en-US 포함)을 그대로 들고 나온다. 설계상 index.html 은
+ * 고치지 않으므로(다른 브랜치가 같은 파일을 만진다) 배포 산출물에서만 alternatesFor(I18N_ROUTE_MAP.home) 로 갈아 끼운다.
+ * 사이트맵(generate-sitemap.mjs)도 같은 지도·같은 함수라 HTML = 사이트맵이 된다.
+ * 첫 hreflang 줄 자리에 새 묶음을 넣고 나머지는 지운다. hreflang 줄이 없으면 그대로 둔다(없는 클러스터를 만들지 않는다).
+ * 🔴 RSS 링크(rel="alternate" type=rss)는 hreflang 이 없어 건드리지 않는다.
+ */
+export const HOME_CLUSTER_SHELL_FILES = Object.freeze([
+  "ggulggul/index.html",
+  "en/index.html",
+  "ja/index.html",
+  "zh/index.html",
+  "zh-tw/index.html",
+]);
+
+export function withHomeClusterHreflang(html, alternates = alternatesFor(I18N_ROUTE_MAP.home)) {
+  const block = alternates
+    .map((alt) => `<link rel="alternate" hreflang="${escapeHtmlAttr(alt.hreflang)}" href="${escapeHtmlAttr(alt.href)}">`)
+    .join("\n");
+  let first = true;
+  return html.replace(/(\s*)<link\s+[^>]*rel=["']alternate["'][^>]*hreflang=["'][^"']*["'][^>]*>/gi, (_, space) => {
+    if (!first) return "";
+    first = false;
+    return block ? `${space}${block}` : "";
+  });
+}
+
 function replaceMetaContent(html, matcher, replacement) {
   return html.replace(matcher, replacement);
 }
@@ -69,7 +101,9 @@ export function injectStaticShellRouteMeta(html, route) {
     .replace(/<title>[\s\S]*?<\/title>/i, `<title>${title}</title>`)
     .replace(/<meta\s+name=["']description["']\s+content=["'][\s\S]*?["']\s*\/?>/i, `<meta name="description" content="${description}">`)
     .replace(/<link\s+rel=["']canonical["']\s+href=["'][\s\S]*?["']\s*\/?>/i, `<link rel="canonical" href="${escapeHtmlAttr(canonicalUrl)}">`)
-    .replace(/<meta\s+name=["']robots["']\s+content=["'][\s\S]*?["']\s*\/?>/i, '<meta name="robots" content="noindex, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">');
+    .replace(/<meta\s+name=["']robots["']\s+content=["'][\s\S]*?["']\s*\/?>/i, '<meta name="robots" content="noindex, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">')
+    // robots 계열 meta 는 페이지당 1개(묶음 ③ T4). 원본 셸에 googlebot meta 가 섞여 들어와도 robots 하나만 남긴다.
+    .replace(/\s*<meta\s+name=["']googlebot["'][^>]*>/gi, "");
 
   nextHtml = withoutHreflangLinks(nextHtml);
 

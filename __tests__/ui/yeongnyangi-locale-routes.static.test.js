@@ -7,7 +7,8 @@ const root = path.resolve(__dirname, "../..");
 const read = (rel) => fs.readFileSync(path.join(root, rel), "utf8");
 
 test("Yeongnyangi exposes canonical pages for the four public locales", () => {
-  const routes = read("lib/i18n/routes.ts");
+  // I18N_ROUTE_MAP 값의 원본은 lib/i18n/locale-data.mjs(routes.ts 는 타입만 입힌다).
+  const routes = read("lib/i18n/locale-data.mjs");
   const sitemap = read("scripts/generate-sitemap.mjs");
   const page = read("app/[locale]/yeongnyangi/page.tsx");
   const languagePaths = [
@@ -17,7 +18,7 @@ test("Yeongnyangi exposes canonical pages for the four public locales", () => {
     ["zh-TW", "/zh-tw/yeongnyangi"],
   ];
 
-  assert.match(routes, /yeongnyangi:\s*\{/);
+  assert.match(routes, /yeongnyangi:\s*(?:Object\.freeze\()?\{/);
   assert.match(page, /generateStaticParams/);
   assert.match(page, /createI18nMetadata/);
   assert.match(page, /getAlternatesByRouteKey\('yeongnyangi'\)/);

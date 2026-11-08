@@ -27,6 +27,8 @@ import { toJsonLdDate } from "./seo/json-ld.mjs";
 import { buildOpenGraphImageUrl, getCanonicalUrl, isIndexableRoute, normalizePath } from "./seo.v2";
 import { truncateToDisplayWidth } from "./seo";
 import { ogLocaleFor, resolveLocaleTag } from "./i18n/locales";
+import { ROBOTS_META } from "./seo/index-policy.mjs";
+import { alternatesFor, toNextLanguages } from "./seo/hreflang.mjs";
 
 const SITE_ORIGIN = siteSeo.siteUrl.replace(/\/$/, "");
 const DEFAULT_OG_IMAGE_URL = siteSeo.defaultOgImage;
@@ -158,13 +160,8 @@ export function generatePageMetadata(opts: FortunePageMeta) {
 
   const ogImage = buildOpenGraphImageUrl({ image: image || DEFAULT_OG_IMAGE_URL });
 
-  const languagesMap: Record<string, string> = {};
-  if (hreflangPaths) {
-    for (const [lang, localizedPath] of Object.entries(hreflangPaths)) {
-      if (!localizedPath) continue;
-      languagesMap[lang] = getCanonicalUrl(String(localizedPath));
-    }
-  }
+  // hreflang 집합은 사이트맵과 같은 함수 하나가 만든다(색인 형제만, 2개 미만이면 없음, x-default=ko).
+  const languagesMap: Record<string, string> = hreflangPaths ? toNextLanguages(alternatesFor(hreflangPaths)) : {};
   const hasLanguages = Object.keys(languagesMap).length > 0;
 
   return {
@@ -192,17 +189,7 @@ export function generatePageMetadata(opts: FortunePageMeta) {
       description: uniqueDescription,
       images: [ogImage],
     },
-    robots: {
-      index: indexable,
-      follow: indexable,
-      googleBot: {
-        index: indexable,
-        follow: indexable,
-        "max-image-preview": "large",
-        "max-snippet": -1,
-        "max-video-preview": -1,
-      },
-    },
+    robots: indexable ? ROBOTS_META.INDEX : ROBOTS_META.NOINDEX,
   };
 }
 
@@ -346,24 +333,7 @@ export function withUniqueRouteMetadata(
       canonical,
     },
     robots: indexable
-      ? metadata?.robots || {
-          index: true,
-          follow: true,
-          googleBot: {
-            index: true,
-            follow: true,
-            "max-image-preview": "large",
-            "max-snippet": -1,
-            "max-video-preview": -1,
-          },
-        }
-      : {
-          index: false,
-          follow: false,
-          googleBot: {
-            index: false,
-            follow: false,
-          },
-        },
+      ? metadata?.robots || ROBOTS_META.INDEX
+      : ROBOTS_META.NOINDEX,
   };
 }

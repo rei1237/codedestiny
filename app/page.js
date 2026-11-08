@@ -19,6 +19,7 @@ import "./yeongnyangi/night-tokens.css";
 import "./yeongnyangi/yehwa-night.generated.css";
 import styles from "./home-main.module.css";
 import { IS_APP_BUILD } from "../lib/app-build-target";
+import { ROBOTS_META } from "../lib/seo/index-policy.mjs";
 
 // `/` 는 꿀꿀 운세의 공식 대표 홈이다(2026-10-15). 상담 앱 입구는 /ggulggul/ 이고,
 // 기능 쿼리가 붙은 `/` 요청은 워커가 앱으로 보낸다(public/_worker.js 루트 분기).
@@ -41,17 +42,7 @@ export const metadata = {
   keywords: [service.name, ...service.alternateNames, `${service.name} 공식`, YEONGNYANGI.serviceName, "무료 만세력", "무료 타로", "영냥이", "자미두수", "베다점", "숙요점", "휴먼 디자인", "MBTI", ...publicSeoPages.home.keywords],
   // 대표 홈은 자기 자신만 정본으로 둔다. /ggulggul/ 로케일 클러스터(hreflang)와 섞지 않는다.
   alternates: { canonical: service.homeUrl },
-  robots: {
-    index: true,
-    follow: true,
-    googleBot: {
-      index: true,
-      follow: true,
-      "max-image-preview": "large",
-      "max-snippet": -1,
-      "max-video-preview": -1,
-    },
-  },
+  robots: ROBOTS_META.INDEX,
   openGraph: {
     type: "website",
     locale: "ko_KR",

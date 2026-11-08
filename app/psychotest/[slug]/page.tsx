@@ -5,6 +5,7 @@ import {
   PSYCHOTESTS,
   getPsychotestBySlug,
 } from "../../../lib/psychotest-catalog";
+import { ROBOTS_META } from "../../../lib/seo/index-policy.mjs";
 
 type PageProps = {
   params: Promise<{ slug: string }>;
@@ -106,11 +107,7 @@ export async function generateMetadata({ params }: PageProps) {
   // 테스트 기능·링크는 그대로 두고 색인만 막는다. 허브 /psychotest(3,502자)는 유지.
   return {
     ...metadata,
-    robots: {
-      index: false,
-      follow: true,
-      googleBot: { index: false, follow: true },
-    },
+    robots: ROBOTS_META.NOINDEX_FOLLOW,
   };
 }
 

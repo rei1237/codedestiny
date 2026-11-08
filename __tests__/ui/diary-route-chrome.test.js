@@ -84,8 +84,11 @@ test("diary components do not reference the shared bottom nav offset", () => {
 
 test("diary is noindex on every surface that has to agree", () => {
   // 한 면만 고치면 GSC 「제출된 URL에 noindex」가 난다.
-  assert.match(read("scripts/generate-sitemap.mjs"), /noindexPathPrefixes = \[[\s\S]*?"\/diary"/);
-  assert.match(read("lib/seo/siteSeo.ts"), /noindexPathPrefixes = \[[\s\S]*?"\/diary"/);
+  // 사이트맵 제외와 메타 noindex 는 둘 다 색인 원장(lib/seo/index-policy.mjs)의 한 항목에서 나온다.
+  // hidden(...) = meta noindex + 사이트맵 제외. 두 소비처가 원장을 읽는지도 함께 본다.
+  assert.match(read("lib/seo/index-policy.mjs"), /^\s*hidden\("\/diary"\),/m);
+  assert.match(read("scripts/generate-sitemap.mjs"), /const noindexPathPrefixes = SITEMAP_NOINDEX_PREFIXES;/);
+  assert.match(read("lib/seo/siteSeo.ts"), /export const noindexPathPrefixes = META_NOINDEX_PREFIXES;/);
   const headers = read("_headers");
   assert.ok(
     /^\/diary\*\n {2}X-Robots-Tag: noindex, nofollow$/m.test(headers),
@@ -97,6 +100,7 @@ test("diary is noindex on every surface that has to agree", () => {
 
   // 🔴 noindex 와 self-canonical 은 서로 모순되는 신호다 — 레이아웃에 canonical 을 두지 않는다.
   const layout = stripComments(read("app/diary/layout.tsx"));
-  assert.match(layout, /robots: \{ index: false, follow: false/);
+  // 묶음 ③ T4: robots 객체는 원장 상수(ROBOTS_META.NOINDEX = noindex, nofollow)로 쓴다.
+  assert.match(layout, /robots: ROBOTS_META\.NOINDEX,/);
   assert.doesNotMatch(layout, /alternates|canonical/);
 });

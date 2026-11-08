@@ -14,6 +14,7 @@ import { truncateToDisplayWidth } from "../../../../lib/seo";
 import { SEARCH_READING_PATHS } from "../../../../lib/i18n/search-reading-paths.mjs";
 import { BRAND_FACTS } from "../../../../lib/brand/brand-facts.mjs";
 import { toJsonLdDate } from "../../../../lib/seo/json-ld.mjs";
+import { ROBOTS_META } from "../../../../lib/seo/index-policy.mjs";
 
 type PageParams = { slug: string };
 type PageProps = { params: Promise<PageParams> };
@@ -90,17 +91,7 @@ function generateFamousSajuMetadata(seo: FamousSajuSeoMeta) {
 function withNoindexFollow(metadata: ReturnType<typeof generateFamousSajuMetadata>) {
   return {
     ...metadata,
-    robots: {
-      index: false,
-      follow: true,
-      googleBot: {
-        index: false,
-        follow: true,
-        "max-image-preview": "large",
-        "max-snippet": -1,
-        "max-video-preview": -1,
-      },
-    },
+    robots: ROBOTS_META.NOINDEX_FOLLOW,
   };
 }
 

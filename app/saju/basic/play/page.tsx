@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { ROBOTS_META } from "../../../../lib/seo/index-policy.mjs";
 
 const SAJU_BASIC_PLAY_METADATA_COPY = {
   ko: {
@@ -28,14 +29,7 @@ const metadataCopy = SAJU_BASIC_PLAY_METADATA_COPY.ko;
 export const metadata = {
   title: metadataCopy.title,
   description: metadataCopy.description,
-  robots: {
-    index: false,
-    follow: false,
-    googleBot: {
-      index: false,
-      follow: false,
-    },
-  },
+  robots: ROBOTS_META.NOINDEX,
 };
 
 export default function SajuBasicPlayPage() {

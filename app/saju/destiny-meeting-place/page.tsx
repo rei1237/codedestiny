@@ -4,6 +4,7 @@ import RouteMetadataLocaleSync from "../../components/RouteMetadataLocaleSync";
 import { pageOpenGraph } from "../../../lib/seo/page-open-graph";
 import ImmersiveRelatedLinks from "../../components/ImmersiveRelatedLinks";
 import YehwaCard from "../../components/service-intro/YehwaCard";
+import { ROBOTS_META } from "../../../lib/seo/index-policy.mjs";
 
 const DESTINY_MEETING_PLACE_METADATA_COPY = {
   ko: {
@@ -39,14 +40,7 @@ export const metadata: Metadata = {
     canonical: PAGE_URL,
   },
   openGraph: pageOpenGraph(PAGE_URL),
-  robots: {
-    index: true,
-    follow: true,
-    googleBot: {
-      index: true,
-      follow: true,
-    },
-  },
+  robots: ROBOTS_META.INDEX,
 };
 
 export default function Page() {

@@ -15,10 +15,22 @@
       "t": "Just before the bell, at the Sundial Stage. The sun had been eaten down to a slender crescent. The sundial's pointer had almost lost its shadow."
     },
     {
+      "id": "ep-12:clock-1",
+      "source": "[ 月柱 丙 · 정지 ]  정오까지 00:09:00",
+      "sourceHash": "641c5801ebde9d9382264119ccf8572a1206167c6d21ae0fffcf8df1d7764a7c",
+      "t": "[ Month Pillar 丙 · Halted ] Time until noon 00:09:00"
+    },
+    {
+      "id": "ep-12:clock-2",
+      "source": "(해가 다 먹히면 내 丙도 여기서 멈춰. 내 목소리도, 이 섬의 정오도.)",
+      "sourceHash": "c9d6b9c45ee69cf63be1b9f1f4a56a1bf5f0b56c45b5382162442fd634e394aa",
+      "t": "(If the sun is swallowed whole, my 丙 stops here too. My voice, and this island's noon.)"
+    },
+    {
       "id": "ep-12:2",
-      "source": "셋은 무대 뒤 계단을 기어올랐다. 연이의 목은 여전히 비어 있었다. 모카의 앞발은 국자를 너무 꽉 쥐어 하얗게 질려 있었다.",
-      "sourceHash": "f3ef93e263a5ff770f695f6fd6a3732d5eae537e8487655807d96dda9268c396",
-      "t": "The three climbed the rear steps. Yeoni's throat was still empty. Moka gripped his ladle so tightly that his paws had gone white."
+      "source": "셋은 무대 뒤 계단을 기어올랐다. 연이의 목은 여전히 비어 있었고 등에는 시장에서 쓰던 칠판이 끈으로 묶여 있었다. 모카의 앞발은 국자를 너무 꽉 쥐어 하얗게 질려 있었다.",
+      "sourceHash": "4dfd9a4678722764a25bb35a849d8e87647f383efd8e3d29b5f980037811d92f",
+      "t": "The three crawled up the backstage stairs. Yeoni's throat was still empty, and the market chalkboard was strapped to her back. Moka gripped the ladle so hard his paws had gone white."
     },
     {
       "id": "ep-12:3",
@@ -40,9 +52,9 @@
     },
     {
       "id": "ep-12:6",
-      "source": "이 그림을 천 장이나 그렸어? 손 아팠겠다.",
-      "sourceHash": "2d830585d091d347a625dd0efe01ee4058a82cc229381ffefbc272fb95407d90",
-      "t": "You drew this a thousand times? Your paws must hurt."
+      "source": "천 장을 다 손으로 그렸나. 앞발이 고생했겠군.",
+      "sourceHash": "ada91154f5544bc7d1ed1d7a4e64226ed4eed3d3ac3ed38593884b8985096790",
+      "t": "Drew all thousand by hand? Your paws must have worked hard."
     },
     {
       "id": "ep-12:7",
@@ -52,8 +64,8 @@
     },
     {
       "id": "ep-12:8",
-      "source": "고양이. 솔직히 말해 봐. 이거 될 것 같아?",
-      "sourceHash": "ae928bab0d7bd87af8e52ab1511edbdf43bffb31bdac3a4467cb8c917e532c28",
+      "source": "고양이, 솔직히 말해 봐. 이거 될 것 같아?",
+      "sourceHash": "aa56e2d67304002eed855c4f0563400ad35639b6fd218917a785908a5ca512e3",
       "t": "Cat. Be honest. Do you think this will work?"
     },
     {
@@ -124,15 +136,15 @@
     },
     {
       "id": "ep-12:20",
-      "source": "그래. 당연하지. 나라도 안 와. 돌아가자.",
-      "sourceHash": "38a223433252f7fce4524227b594f4073b1251a80e4d336c6dd776f4530f2e1a",
-      "t": "Of course. Obviously. I wouldn't come either. Let's go back."
+      "source": "당연하지, 나라도 안 와. 돌아가자.",
+      "sourceHash": "41dbf28ea94822ead223587030127ea3dbf110559c2d5f8d182faa3479dcd56a",
+      "t": "Of course. I wouldn't come either. Let's go back."
     },
     {
       "id": "ep-12:21",
-      "source": "아직 첫 종이야. 서두르지 마.",
-      "sourceHash": "3cfdaf189c6251be855c5d2dde4db94f69e1aaf3876f5b1a7a101db2a5941419",
-      "t": "It's only the first bell. Don't rush."
+      "source": "아직 첫 종이다. 서두르지 마라.",
+      "sourceHash": "f248aca84d7f7865c780af86d31313feebab5ac3955fe1f16221cde68fe011c4",
+      "t": "Only the first bell. Don't rush."
     },
     {
       "id": "ep-12:22",
@@ -160,9 +172,9 @@
     },
     {
       "id": "ep-12:26",
-      "source": "네가 무서워할까 봐 가져온 거다. 보라고 온 게 아니라 같이 하려고 온 거다.",
-      "sourceHash": "9f32613c0b5b46a8c3307d5bb547a5b93bd386f1ea2e26bdde45bac7354b5a5b",
-      "t": "They brought them so you wouldn't be afraid. They didn't come to watch you. They came to join you."
+      "source": "앞줄 뚜껑 몇 개는 네 가게 거다.",
+      "sourceHash": "1f75fce434909b6d5b05a349143028919896413ff46eb56ed90d68e1a3815a69",
+      "t": "Some lids in the front row came from your shop."
     },
     {
       "id": "ep-12:27",
@@ -184,9 +196,9 @@
     },
     {
       "id": "ep-12:30",
-      "source": "모카, 지금 해!",
-      "sourceHash": "d001209fe474d4a01beeead633fc5fe6df01bf3834fc30877742e7888ac7d2af",
-      "t": "Moka, now!"
+      "source": "모카. 지금이다.",
+      "sourceHash": "ef32bee271a73b57bf58feebca50ecfd3bd38b74ef39dea2a0bbe155f909898e",
+      "t": "Moka. Now."
     },
     {
       "id": "ep-12:31",
@@ -250,9 +262,9 @@
     },
     {
       "id": "ep-12:41",
-      "source": "설탕 한 숟갈. 불은 세게. 마음은 약하게.",
-      "sourceHash": "4373835173e98bb69025847b8dfa3a9e8d26396fd73dff8931f142cc74c00a06",
-      "t": "One spoon of sweet. Keep the heart gentle and high the heat."
+      "source": "설탕 한 숟갈. 불은 세게, 마음은 약하게.",
+      "sourceHash": "07660017e87559dd82396068982e78cea39d096223981c72444c826bcd566123",
+      "t": "One spoon of sugar. High heat, tender heart."
     },
     {
       "id": "ep-12:42",
@@ -298,9 +310,9 @@
     },
     {
       "id": "ep-12:49",
-      "source": "아 망했다! 처음부터 다시! 간장 두 숟갈!",
-      "sourceHash": "17117103f9704d93420a0f450311df6bffc571cebe8cc6692676ae22666bfbd5",
-      "t": "Oh, ruined it! From the top! Two spoons of soy!"
+      "source": "아 망했다! 처음부터 다시, 간장 두 숟갈!",
+      "sourceHash": "2c50b86b042bad02eccdce92036eb756e002fa1fe830efef50af82da7f094c8b",
+      "t": "Oh, ruined it! Start again. Two spoons of soy sauce!"
     },
     {
       "id": "ep-12:50",
@@ -316,9 +328,9 @@
     },
     {
       "id": "ep-12:52",
-      "source": "비웃음이 아니다. 같이 웃는 거다.",
-      "sourceHash": "f939534cb83616f5e83aa2aaef27be160d66540624daf804cebdd75eaffc1572",
-      "t": "They aren't laughing at him. They are laughing with him."
+      "source": "할머니가 제일 크게 틀리는군.",
+      "sourceHash": "3401dbc34c6b36dd23462f73a81b050740004f2d592e83c47b96242ea0dce269",
+      "t": "Grandma's making the loudest mistakes."
     },
     {
       "id": "ep-12:53",
@@ -340,87 +352,147 @@
     },
     {
       "id": "ep-12:56",
-      "source": "왜 아무도 화내지 않지. 틀렸는데. 우스운데.",
-      "sourceHash": "bd6e40196e1df9dc8be4cce47b120bcac3435cbbf76ab09bbfdfdc20f7eac493",
-      "t": "Why is nobody angry? It's wrong. Ridiculous."
+      "source": "틀렸는데 왜 아무도 화내지 않지.",
+      "sourceHash": "de405846d0b0bab3c1bb25036328034494f9944cc0ac43ca17b91b10daf77238",
+      "t": "They're wrong. Why is no one angry?"
     },
     {
       "id": "ep-12:57",
-      "source": "(우스우니까 좋은 거야.)",
-      "sourceHash": "48bbe7d01602d8fbd449f1400058151ba38add035b6346f7f6d64b314739fe47",
-      "t": "(It's good because it's ridiculous.)"
+      "source": "(말로는 대답 못 해. 그럼 보여 주면 되지.)",
+      "sourceHash": "d6eed406316b3ba12c7766bf900e3a59e46b663107da00ab5f39fa015de28a23",
+      "t": "(I can't answer with words. Then I'll show him.)"
     },
     {
       "id": "ep-12:58",
-      "source": "연이는 소리 없이 입을 움직였다. 까마귀가 그 입 모양을 보았다.",
-      "sourceHash": "3ca909d44727e7c44ffd0ea59463da02d6f42c8f4f7f32728486829af0ebdb80",
-      "t": "Yeoni moved their mouth without sound. The crow saw the shape of those words."
+      "source": "연이는 등에 멘 칠판을 풀어 그림 속 무대를 덮고 있던 검은 깃털을 털어 냈다. 시장에서 그린 그림이 그대로였다. 무대 위의 작은 사람과 그 아래 손뼉 치는 얼굴들.",
+      "sourceHash": "ecdea586bed2630350ba325861f7580faf66cd63405b700c000db397ad0f839d",
+      "t": "Yeoni unstrapped the board and brushed the black feathers from the drawn stage. The market drawing remained: a little figure onstage, clapping faces below."
+    },
+    {
+      "id": "ep-12:knot-1",
+      "source": "연이는 칠판을 까마귀 앞에 들어 올렸다. 앞발이 떨려서 칠판 모서리가 자꾸 기울었다.",
+      "sourceHash": "05ec1b15a88f0c4292fef2bba83aa28e43d04fdddcd660f94397022e08e17b83",
+      "t": "She held the board up to the crow. Her forelegs shook, tipping its corners again and again."
+    },
+    {
+      "id": "ep-12:knot-2",
+      "source": "까마귀의 날개 끝이 칠판 쪽으로 반쯤 뻗었다가 멈췄다. 벌어진 깃털 사이로 품속의 실이 보였다. 솔과 미로 떨리는 실이 매듭 두 개에 묶여 있었다.",
+      "sourceHash": "01b240af0a0693c9f80b9dc90214005d484ec7bf8e4c677fddf98d0ee6d8a672",
+      "t": "The crow's wing reached halfway toward it, then stopped. Between his parted feathers, she saw the thread against his chest, trembling with sol and mi, held by two knots."
+    },
+    {
+      "id": "ep-12:knot-3",
+      "source": "가슴 쪽 매듭은 회색이었고 제 깃털로 직접 묶은 듯 엉성했다. 바깥쪽 매듭은 검었다. 거기서 가는 그림자 끈이 해의 그늘까지 이어져 있었다.",
+      "sourceHash": "42bc6a66acf9a3deede50ca747008cd2615d8e58ff5f0bd098d47b76d1bfba33",
+      "t": "The knot near his chest was gray and clumsy, as though tied with his own feathers. The outer knot was black. A thin shadow cord ran from it to the sun's darkness."
+    },
+    {
+      "id": "ep-12:knot-4",
+      "source": "(검은 것만. 둘 다 끊으면 저 애 가슴까지 베어.)",
+      "sourceHash": "f4f9813c13872fd989802357a6847c95cea4d7b79e7d2b2ee2bc1f4bf9fdc256",
+      "t": "(Only the black one. Cut both, and I'll cut into his chest.)"
+    },
+    {
+      "id": "ep-12:knot-5",
+      "source": "글자는 칠판에 쓰는 순간 바랜다. 연이는 분필로 칠판 귀퉁이에 짧은 획 하나만 그었다. 가장 짧고 가장 정확한 날이었다.",
+      "sourceHash": "c9365f55e56b552c3fccdb01b185be91fc367a5b2013e703a6086c02acb0fd2e",
+      "t": "Letters faded as soon as she wrote them. Yeoni drew one short stroke in a corner. The shortest, most precise blade."
+    },
+    {
+      "id": "ep-12:knot-6",
+      "source": "소리 없는 입 모양으로 끊어, 하고 입김을 불었다. 분필 획에 불이 붙더니 바늘만큼 가늘게 날아가 검은 매듭 하나만 끊었다.",
+      "sourceHash": "b4efea56157c744e0382f7cfb026423638c726d9cee70e01fc39df2663f818e3",
+      "t": "Her silent lips shaped cut, and she blew. The chalk stroke caught fire, flew thin as a needle, and severed only the black knot."
     },
     {
       "id": "ep-12:59",
-      "source": "그 순간 까마귀의 품 안에서 빛나는 실이 풀려 나왔다. 솔과 미의 모양으로 떨리는 실. 실은 광장의 웃음 쪽으로 끌리듯 날아와 연이의 목으로 돌아갔다.",
-      "sourceHash": "27ba9795c760cdd007e2c8ee33a3d07ad518b61ecac2156e2dc5bc54d99e86d8",
-      "t": "A shining thread unwound from inside the crow's robes. A thread trembling in the shapes of sol and mi. Drawn toward the square's laughter, it flew back into Yeoni's throat."
+      "source": "그림자 끈이 툭 떨어져 나갔다. 까마귀는 칠판에서 눈을 떼지 못한 채 날개를 천천히 폈다. 실이 그 품에서 미끄러져 나와 연이의 목으로 돌아갔다.",
+      "sourceHash": "3aa8f7e113f4854f0d2086f21ee8fe317fa62b208420a6197f5179637c7cc5dd",
+      "t": "The shadow cord dropped away. Unable to look away from the board, the crow slowly opened his wings. The thread slipped from his chest and returned to Yeoni's throat."
+    },
+    {
+      "id": "ep-12:knot-7",
+      "source": "[ 丙 · 재가동 ]",
+      "sourceHash": "a38dae4cc74f9ea63b231392a888969fab4d8348affa1abf833be4107de5a56f",
+      "t": "[ 丙 · Restarted ]"
+    },
+    {
+      "id": "ep-12:knot-8",
+      "source": "해시계 바늘 끝에 멎어 있던 그림자가 한 칸 움직였다.",
+      "sourceHash": "18f6d326f7a228c42148f72505d943b72a6ebf965fbd75abf150a11b17acee5b",
+      "t": "The shadow frozen at the sundial's tip moved one mark."
     },
     {
       "id": "ep-12:60",
-      "source": "꾸우우울!",
-      "sourceHash": "38eb5442679bfda87c8dc07b90747346fd5314ecb7287118df460ad851844a76",
-      "t": "OIIIIIINK!"
+      "source": "꾸, 꾸울!",
+      "sourceHash": "ceaee2bbc69711d99e0c61636e3bd29f9224770500ffd5cafeaffd4ae1122b51",
+      "t": "O-oink!"
     },
     {
       "id": "ep-12:61",
-      "source": "솔에서 미로. 재판정에서 비웃음을 산 그 음정이 광장 한가운데 울려 퍼졌다.",
-      "sourceHash": "6c4d2c0552325c2a7832e57ba1cd998fefda03f2508738d70f2a696190b85549",
-      "t": "Sol to mi. The notes mocked in the courtroom rang through the center of the square."
+      "source": "미는 제자리에 있었다. 솔이 나와야 할 자리에서는 목이 바람 빠진 풍선처럼 갈라졌다. 높은 음 한 칸이 비어 있었다.",
+      "sourceHash": "e8df922fa690d3455b2cd1e7139933894a4cd2d623657e5997b1a003b15b8646",
+      "t": "Mi was back where it belonged. Where sol should have sounded, her throat cracked like a deflating balloon. One high note was empty."
     },
     {
       "id": "ep-12:62",
-      "source": "그거 우리 후렴으로 하자!",
-      "sourceHash": "0d8f495f95f12ad376d106f227178ab969facc946b7274801136cfc49e70433b",
-      "t": "Let's make that our chorus!"
+      "source": "삑사리 났다! 그거 우리 후렴으로 하자!",
+      "sourceHash": "a0ebead7b707f0c457347a3da208d51bfe7fd2b631d52caacb137c4d781ad146",
+      "t": "Voice crack! Let's make that our chorus!"
     },
     {
       "id": "ep-12:63",
-      "source": "돌려준 게 아니다. 실이 제 발로 갔다.",
-      "sourceHash": "80cdfce32e1db636d0885cfcf45e77098d9b3a470dd82ef5674ac7e9a01c84bf",
-      "t": "I didn't return it. The thread went by itself."
+      "source": "네가 끊었다. 내 품에서.",
+      "sourceHash": "861c3cf643f63d5690f27b51e0ff3250c6f0b1706857ab666eac82cb19f8aece",
+      "t": "You cut it. From my chest."
     },
     {
       "id": "ep-12:64",
-      "source": "알아. 그래도 고마워.",
-      "sourceHash": "518ac154b03bb82679b191c3ed944cded3574b1ced3b74769a9ea509d8eebaf5",
-      "t": "I know. Thank you anyway."
+      "source": "끊은 건 매듭뿐이야. 실은 네가 놔준 거고.",
+      "sourceHash": "9b52e4b82202e055fc49ce49e6458bbad8b1c501a0f9d221e9432a89f3463a62",
+      "t": "I only cut the knot. You're the one who let the thread go."
     },
     {
       "id": "ep-12:65",
-      "source": "…고맙다는 말은, 처음 듣는다.",
-      "sourceHash": "905ea1c7dce27357f86e5e67ad6630e07b53c305b543bd98d3d168fa79b94ea0",
-      "t": "...Nobody has said thank you to me before."
+      "source": "…그런 말은 처음 듣는다.",
+      "sourceHash": "da7532a81d3c853537e7bb04c872c2a5a649d760cbc2cf2c2e6ec762c8501598",
+      "t": "…No one has ever said that before."
+    },
+    {
+      "id": "ep-12:knot-9",
+      "source": "솔은 아직 여기 있다. 이건 못 놓겠다.",
+      "sourceHash": "22c04fb612a3008cf005150e88218db32b97a817ca8d3b4144519bbaf7dc6f93",
+      "t": "Sol is still here. I can't let this one go."
+    },
+    {
+      "id": "ep-12:knot-10",
+      "source": "그럼 맡겨 둘게. 나중에 같이 부를 때 돌려줘.",
+      "sourceHash": "5a484f7d396db3781f05a8a11c0c0a792e591f3a51382ed8eb6b5e6be2df5af6",
+      "t": "Then keep it for me. Give it back when we sing together."
     },
     {
       "id": "ep-12:66",
-      "source": "두 번째 종이 울렸다. 해시계의 바늘이 마지막 그림자를 붙잡았다. 해는 거의 다 먹혀 있었다.",
-      "sourceHash": "2ad4e10e58a6c457fbdc73ef840580f395ff46f9aa99e886cfc8209f1e020812",
-      "t": "The second bell rang. The sundial's pointer caught its final shadow. Almost all the sun had been devoured."
+      "source": "두 번째 종이 울렸다. 다시 움직이기 시작한 그림자를 쫓듯 그늘이 해의 남은 가장자리를 갉아먹었다.",
+      "sourceHash": "a436d0e23c0f6d071ccccc3090266cdf23a2877fd63e8b3b9ec88becf70f3821",
+      "t": "The second bell rang. As if chasing the moving shadow, darkness gnawed at the sun's remaining edge."
     },
     {
       "id": "ep-12:67",
-      "source": "연이야. 해를 밀어 올려. 노래로.",
-      "sourceHash": "4f7986a33bcc2c231e913aaf05fb6e1ff15195786b996f34c891015de0339237",
-      "t": "Yeoni. Push the sun upward. With song."
+      "source": "해를 밀어 올려라. 노래로.",
+      "sourceHash": "fc4905b8251884812b26b54290393dfd272f5110ab9774c28a0fb878ac423f0c",
+      "t": "Push the sun up. With your song."
     },
     {
       "id": "ep-12:68",
-      "source": "노래로? 나 노래방 사십칠 점인데?",
-      "sourceHash": "d33eaddec7ef2169e062e5185fd9509fec9cd7cd001f37f1cd076fcd346fc6b9",
-      "t": "Song? My karaoke score is forty-seven."
+      "source": "나 노래방 사십칠 점이야. 이제 솔도 없어.",
+      "sourceHash": "ea2a820e1168a244628d05698a292606c9716aa1206aa357a526d831c67ea000",
+      "t": "I score forty-seven at karaoke. Now I don't even have sol."
     },
     {
       "id": "ep-12:69",
-      "source": "그러니까. 사십칠 점의 노래로.",
-      "sourceHash": "0df26eda1c4c422894eddeff8da8fbaa96804cc2f3674b7fb7e28419c1d87036",
-      "t": "Exactly. With a forty-seven-point song."
+      "source": "있는 음으로 불러라. 사십칠 점이면 된다.",
+      "sourceHash": "09611a2cd71ba531c20cba1f113903e66d6bbedf459305736356434aaf4343cb",
+      "t": "Sing with the notes you have. Forty-seven will do."
     },
     {
       "id": "ep-12:70",
@@ -470,9 +542,9 @@
     },
     {
       "id": "ep-12:77",
-      "source": "백 개의 불씨가 하늘로 올라갔다. 먹힌 해의 가장자리에 닿았다. 검은 그늘이 불에 데인 것처럼 움찔했다.",
-      "sourceHash": "36e01737b1838bb47dd226f6e6708e0a475264f20e3f7ad8d0377681345fe896",
-      "t": "A hundred embers rose into the sky and touched the edge of the devoured sun. The black shadow flinched as though burned."
+      "source": "백 개의 불씨가 하늘로 올라갔다. 솔 자리에서 연이의 목이 또 갈라졌지만 광장이 그 빈칸을 웃음으로 메웠다. 불씨가 먹힌 해의 가장자리에 닿자 검은 그늘이 데인 것처럼 움찔했다.",
+      "sourceHash": "90fa823c780471773d136002a384131fec69a9649f28b2b9ee77083de73b39d2",
+      "t": "A hundred sparks rose. Her voice cracked where sol should be, but the square filled the gap with laughter. As the sparks touched the swallowed sun, the black shadow flinched as though burned."
     },
     {
       "id": "ep-12:78",
@@ -482,9 +554,9 @@
     },
     {
       "id": "ep-12:79",
-      "source": "그때 찢어진 그늘 속에서 검은 손이 쏟아져 나왔다. 손가락은 사람들도 해도 아닌, 단 하나만 향했다. 까마귀였다.",
-      "sourceHash": "ef52a2df17c68978413ad1abf20784edc4dcef2f7da55b39fed66e5f95149891",
-      "t": "Then black hands poured from the torn darkness. Their fingers reached neither for people nor the sun, but for one thing alone. The crow."
+      "source": "찢어진 그늘 속에서 검은 손이 쏟아져 나왔다. 손가락은 사람들도 해도 아닌 단 하나만 향했다. 까마귀였다.",
+      "sourceHash": "6ac0c04333810c56a3769d86afa4f9c7f9da192e71b106c30f38de428ff68684",
+      "t": "Black hands spilled from the torn shadow. Their fingers reached neither for the people nor the sun. Only for the crow."
     },
     {
       "id": "ep-12:80",
@@ -507,16 +579,16 @@
     },
     {
       "id": "ep-12:83",
-      "source": "모자 쓴 고양이로구나. 서두르지 마라. 너는 아직 내 몫이 아니다.",
-      "sourceHash": "0dc9349d90b91636852cc0d3ba85841f9776606f0bca748efec2446595898cfc",
-      "t": "The cat in the hat. Do not hurry. You are not yet my share.",
+      "source": "모자 쓴 고양이로구나. 서두르지 마라, 너는 아직 내 몫이 아니다.",
+      "sourceHash": "cd041eceb50c02e38aa710dd63c460a0e17cc11477e295df13ac38b153c0dc45",
+      "t": "The cat in the hat. Do not hasten. Thou art not yet mine to claim.",
       "nm": "Voice"
     },
     {
       "id": "ep-12:84",
-      "source": "검은 손이 까마귀를 감쌌다. 가면이 산산이 부서졌다. 가면 뒤에 있던 것은 마이크를 쥔 소년의 그림자였다.",
-      "sourceHash": "a0edf4061d14fd61c59a4ba21557579a9935eb5f708d891d86c1dd61477435f1",
-      "t": "Black hands enveloped the crow. The mask shattered. Behind it was the shadow of a boy holding a microphone."
+      "source": "검은 손이 까마귀를 감싸자 가면이 산산이 부서졌다. 가면 뒤에는 마이크를 쥔 소년의 그림자가 있었고 그 가슴께에서 회색 매듭이 작게 반짝였다.",
+      "sourceHash": "acac0f8eb2f7aa5c0581436078257850e10c19f295e96ad962ce56acdaa80e89",
+      "t": "As the hands enveloped the crow, his mask shattered. Behind it was a boy's shadow holding a microphone, a small gray knot glittering at his chest."
     },
     {
       "id": "ep-12:85",
@@ -574,9 +646,9 @@
     },
     {
       "id": "ep-12:94",
-      "source": "맛있었다고. 내 꼬치. 우리 할머니 꼬치랑 똑같다고.",
-      "sourceHash": "c848c93f5b920f67e0ce571de0c845508bf7b2f72cc4392675fa2c7414025e8d",
-      "t": "That it was delicious. My skewer. Just like my grandmother's."
+      "source": "내 꼬치가 맛있었대. 우리 할머니 꼬치랑 똑같대.",
+      "sourceHash": "005e06fc7356e46b73023724eaf5b4ba15581ccd99bdcd077f57c0e56bc86a6b",
+      "t": "She said my skewers were good. Just like Grandma's."
     },
     {
       "id": "ep-12:95",
@@ -592,8 +664,8 @@
     },
     {
       "id": "ep-12:97",
-      "source": "모카야. 너 울고 있어.",
-      "sourceHash": "4a2f4d757bda27ef259ce52487c2d4952363e05f7a30b51288fc579193e19889",
+      "source": "모카. 울고 있다.",
+      "sourceHash": "d18afaaf5454060a6d16d362761cfc1457db4217b24352ad0f3ca13271971515",
       "t": "Moka. You're crying."
     },
     {
@@ -610,9 +682,9 @@
     },
     {
       "id": "ep-12:100",
-      "source": "해시계 바늘 끝에서 두 글자가 떠올랐다. 丙午. 한낮의 해와 한낮의 말. 글자는 연이의 가슴으로 스며들었다.",
-      "sourceHash": "b779a6f99fcaea7440267b379a0e67f1557aa49f9e34df710ee04fbecac7e665",
-      "t": "Two characters rose from the sundial's pointer. 丙午—Byeong-o. The midday sun and the midday Horse. They seeped into Yeoni's chest."
+      "source": "해시계 바늘 끝에서 두 글자가 떠올랐다. 丙午. 한낮의 해와 한낮의 말이 연이의 가슴으로 스며들자 머리 위 꽃잎 네 장이 따뜻하게 달아올랐다. 바랜 한 장만 하얀 채였다.",
+      "sourceHash": "fd04443c4eb3675ffb77b50897d2336645794bb411e1e584b75952352297650b",
+      "t": "Two characters rose from the sundial's tip. 丙午. As the noon sun and noon horse entered her chest, four petals warmed. The faded one alone stayed white."
     },
     {
       "id": "ep-12:101",
@@ -646,9 +718,9 @@
     },
     {
       "id": "ep-12:106",
-      "source": "월주다. 네 계절의 기운. 丙은 상관, 午 속 丁은 식신. 오늘 둘 다 써 봤지.",
-      "sourceHash": "07ac9c62e8359143ba95e77e2ca7d23553f44f7345ec34f06d1518f99da8e020",
-      "t": "Your Month Pillar. The energy of your season. Byeong is Hurting Officer; Jeong within O is Eating God. You used both today."
+      "source": "丙은 상관, 午 속 丁은 식신이다. 오늘 둘 다 써 봤지.",
+      "sourceHash": "c341a8e187db10ea4a6ddffda4c2e9b43337f72fdc0baebb0325013c4a7fe7c6",
+      "t": "丙 is Hurting Officer; 丁 within 午 is Eating God. You used both today."
     },
     {
       "id": "ep-12:107",
@@ -682,15 +754,15 @@
     },
     {
       "id": "ep-12:112",
-      "source": "알아. 그래도.",
-      "sourceHash": "baf64d2ad1ebb505f83c5a4fcaf98fccc4175317f06227526ea1372afd3b2a32",
-      "t": "I know. But still."
+      "source": "알아. 내 솔도 그 애가 갖고 갔어.",
+      "sourceHash": "056bfc3cd9d80815f8e129c6651db8414d3c6383f82ec57526b133b08efe43e7",
+      "t": "I know. He took my sol too."
     },
     {
       "id": "ep-12:113",
-      "source": "…그래도, 노래는 같이 부를 수 있었겠지. 오늘처럼.",
-      "sourceHash": "60691515df0a7243a7c28e0caa5b65d22be56e909cd2cfb6373682d236738f4d",
-      "t": "...Still, we could have sung together. Like today."
+      "source": "그럼 받아 와. 빌려준 국자는 꼭 받아 오는 거야.",
+      "sourceHash": "b04abfeb0f040e9711c103c038a6df46853774f55c9dbc70234f0f2674ffc332",
+      "t": "Then get it back. Always get a borrowed ladle back."
     },
     {
       "id": "ep-12:114",
@@ -796,15 +868,15 @@
     },
     {
       "id": "ep-12:131",
-      "source": "아이는 고개를 끄덕였다. 그리고 상자를 가장 크게 두드렸다.",
-      "sourceHash": "2ca5727d8f3ce37c18fb3913f72a7ac8882e607c746dfd86df6054194be5600b",
-      "t": "He nodded, then struck his box as loudly as he could."
+      "source": "아이는 고개를 끄덕이고는 상자를 가장 크게 두드렸다.",
+      "sourceHash": "4dd953d9a0029cb3b006d2f8c13b10f2bfe396897adde4ada120871d285253d6",
+      "t": "The child nodded and beat the box louder than anyone."
     },
     {
       "id": "ep-12:132",
-      "source": "배에 오르기 직전, 영냥이는 모카와 눈이 마주쳤다. 모카의 시선이 영냥이의 오른 앞발로 내려갔다.",
-      "sourceHash": "c34cdc8ff8e35fc8133f3777fa4b79b6d60612a0b083827d4a66727243d7fd58",
-      "t": "Just before boarding, Yeongnyangi met Moka's eyes. Moka's gaze dropped to his right forepaw."
+      "source": "배에 오르기 직전, 영냥이는 모카와 눈이 마주쳤다. 모카의 시선이 영냥이의 왼 앞발로 내려갔다.",
+      "sourceHash": "7962c685fcd1766af024c7a761b74df3f6cfccda76e96c0d16c22707a8c36592",
+      "t": "Just before boarding, Yeongnyangi met Moka's eyes. The otter's gaze dropped to his left forepaw."
     },
     {
       "id": "ep-12:133",
@@ -832,27 +904,27 @@
     },
     {
       "id": "ep-12:137",
-      "source": "언덕 위. 지는 해를 등지고 검은 호랑이가 앉아 있었다. 바람이 광장에서 회색 깃털 하나를 실어 왔다. 연이의 앞발에서 날아간 깃털이었다.",
-      "sourceHash": "aa1cbe626eb0c88ac3bae2cb08527c508d6377183e6eff66b34adad15de904c1",
-      "t": "On the hill, the black tiger sat against the setting sun. Wind carried a gray feather from the square. The one that had left Yeoni's hoof."
+      "source": "언덕 위. 지는 해를 등지고 검은 호랑이가 앉아 있었다. 바람이 광장에서 회색 깃털 하나를 실어 오자 호랑이는 앞발로 눌러 망토 안에 넣었다.",
+      "sourceHash": "437da78489e80f97ad667588b67cb61bd53a220b074194f035fac0d80d4d860e",
+      "t": "A black tiger sat on the hill against the setting sun. The wind carried a gray feather from the square. She pinned it with a paw and tucked it into her cloak."
     },
     {
       "id": "ep-12:138",
-      "source": "검은 앞발이 깃털을 눌렀다. 호랑이는 한참 깃털을 내려다보다가 망토 안쪽에 넣었다.",
-      "sourceHash": "c1c396b7525d913c466513064b8ee0664c6a3a4ebf188dd32d8895c2a7ad636f",
-      "t": "A black paw pinned it down. After staring at it a long while, the tiger slipped it inside its cloak."
+      "source": "호랑이의 눈이 강가의 연잎 배로 옮겨 갔다. 모자 쓴 고양이의 왼 앞발 쪽이었다. 마침 수달이 앞치마를 털어 펼쳤고 앞발은 그 그늘에 묻혔다.",
+      "sourceHash": "6888d4da6c3ef682c685df1cd008aac296d196b04a5731d924af00d4c7353e46",
+      "t": "Her gaze moved to the leaf boat, to the hatted cat's left forepaw. Just then the otter shook out an apron, hiding it in the cloth's shadow."
     },
     {
       "id": "ep-12:139",
-      "source": "삑사리 섞인 노래로 해를 띄우다니. 별 다섯 개.",
-      "sourceHash": "5982810d964d1923f5d632bb8ac7520a43ee9d18189bfbd54da774e756ec514a",
-      "t": "Raising the sun with a song full of cracked notes. Five stars."
+      "source": "수달이 눈치가 빠르시네요. 다음 섬에서는 가까이서 뵙지요.",
+      "sourceHash": "922f5965ec13a534daf489c756ec670159191327f26377d03d19a46dfb6d975d",
+      "t": "A perceptive otter, I see. I'll see you more closely on the next island."
     },
     {
       "id": "ep-12:140",
-      "source": "비웃음 없는 노래라. 그런 게 있으면, 처음부터 말해 주지.",
-      "sourceHash": "424d9c38d61b16f577fb16ba706a1adb0f35f21fad0df7d39fdb1f5f479c58e8",
-      "t": "A song without ridicule. If such a thing existed, you could have told me from the beginning."
+      "source": "망토 안에서 깃털이 바람도 없이 떨었다. 연이의 목에서 비어 버린 솔 음 높이였다.",
+      "sourceHash": "e4c61925748fc70f01a1a66487630ca81f477da55113ff286b6fa25f13bc8a47",
+      "t": "Inside her cloak, the feather quivered without wind. At the pitch of sol, now missing from Yeoni's throat."
     }
   ]
 }

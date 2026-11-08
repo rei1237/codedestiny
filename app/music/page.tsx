@@ -1,4 +1,5 @@
 import MusicPlayerExample from "./MusicPlayerExample";
+import { ROBOTS_META } from "../../lib/seo/index-policy.mjs";
 
 const MUSIC_PAGE_TEXT_TRANSLATIONS = {
   ko: {
@@ -20,14 +21,7 @@ const musicPageCopy = MUSIC_PAGE_TEXT_TRANSLATIONS.ko;
 export const metadata = {
   title: musicPageCopy.title,
   description: musicPageCopy.description,
-  robots: {
-    index: false,
-    follow: false,
-    googleBot: {
-      index: false,
-      follow: false,
-    },
-  },
+  robots: ROBOTS_META.NOINDEX,
 };
 
 export default function MusicPage() {

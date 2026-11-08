@@ -19,9 +19,93 @@
     },
     {
       "id": "ep-53s:2",
-      "source": "연이의 집 문에는 노란 우산 두 개가 나란히 서 있었다. 하나는 테이프 세 겹, 다른 하나는 금색 꼬리표가 달려 있었다.",
-      "sourceHash": "cb6c986d59b88e7bcb6318fdc470c1bca07c79ac4df4934d37b6eea9a54cbf44",
-      "t": "Two yellow umbrellas stood side by side at Yeoni's door. One had three layers of tape; the other bore a golden tag."
+      "source": "연이의 집 문에는 노란 우산 두 개가 나란히 서 있었다. 둘 다 새것이었다. 테이프 세 겹 감긴 원래 우산은 문 너머 서한비의 손에 있었다.",
+      "sourceHash": "b1b520c85575e5fd9539883ac14a7fd40bd15d343d3083cbfc54e892b95b9fdc",
+      "t": "Two new yellow umbrellas stood side by side at Yeoni's door. The original, wrapped in three layers of tape, was with Hanbi beyond the door."
+    },
+    {
+      "id": "ep-53s:extra-34",
+      "source": "식을 준비하는 세 달 동안 연이는 메모장에 할 일을 적었다. 면사 자수, 하객 자리, 짝 맞는 양말 두 켤레.",
+      "sourceHash": "407a3ba720c6bf74ccace22aac1cf8179a8f4e0962e5d3ed9c6c848d8fe4df3a",
+      "t": "During three months of wedding preparations, Yeoni listed tasks: veil embroidery, guest seats, two matching pairs of socks."
+    },
+    {
+      "id": "ep-53s:extra-35",
+      "source": "병하는 서약 초안을 세 번 고쳤다. 세 번 다 혼자 하겠다는 문장이 들어 있었고, 연이가 세 번 다 지웠다.",
+      "sourceHash": "ea92d99768f4de5f574421b3a286f54cddcd0b5e84d00db85c71810f0ad7e24b",
+      "t": "Byeongha revised his vows three times. Each draft included a promise to do it alone. Each time, Yeoni crossed it out."
+    },
+    {
+      "id": "ep-53s:extra-36",
+      "source": "어떤 일이 오든 먼저 말하겠다. 지킨다는 핑계로 또 혼자 사라지지 않겠다.",
+      "sourceHash": "be69eb0a5e7191c84f343d2768729244084799f45968439cfee8a0a7e335bdde",
+      "t": "Whatever happens, I'll speak first. I won't disappear alone again under the excuse of protecting you."
+    },
+    {
+      "id": "ep-53s:extra-37",
+      "source": "나도 아프면 아프다고 말할게. 너를 안심시키려고 혼자 버티는 사람이 되지 않을게.",
+      "sourceHash": "35727b990fa3b9893b6f5fc30801aae44ba028d077fc99556515d7f3afe993a9",
+      "t": "And I'll tell you when I'm hurting. I won't bear it alone just to reassure you."
+    },
+    {
+      "id": "ep-53s:extra-38",
+      "source": "둘의 혼인 서약은 거창한 예언 대신 짧은 약속들로 채워졌다. 식사를 거르지 않기, 우산을 혼자 들지 않기, 기억이 흐려지면 메모부터 함께 읽기.",
+      "sourceHash": "33505dbf16bbe150672681378b0f9681eabd11b39b5155bcccc765ebd64a1938",
+      "t": "Instead of grand prophecies, their wedding vows filled with small promises. Don't skip meals. Don't hold the umbrella alone. If memories grow hazy, start by reading the notes together."
+    },
+    {
+      "id": "ep-53s:extra-39",
+      "source": "거기에 내 공연을 월 한 번 보러 오기도 넣어. 부부 문화 생활에 필수야.",
+      "sourceHash": "5f7d403fba817db189ec493d6edda611201543c2b4759d6bd4ee8a4a6d59db5b",
+      "t": "Add coming to my show once a month. Essential cultural enrichment for a married couple."
+    },
+    {
+      "id": "ep-53s:extra-40",
+      "source": "그건 서약이 아니라 티켓 구독이잖아.",
+      "sourceHash": "ec54bd3dcafc1f32b5caa3da514014aafebf7f0ab41dd8cd9c00cbc840a7d53d",
+      "t": "That's a ticket subscription, not a vow."
+    },
+    {
+      "id": "ep-53s:extra-41",
+      "source": "결혼식 전날 저녁, 연이는 문 앞 의자에 앉아 빈자리를 오래 보았다. 금빛 선이 잠깐 열렸다. 현실의 강가에도 봄이 와 있었다.",
+      "sourceHash": "1ab8db757711d4b785c82038e7c3113975074391a073ae1609f8121ab5e1e99b",
+      "t": "The evening before the wedding, she watched the empty space from the chair by the door. A golden line briefly opened. Spring had reached the riverbank in reality too."
+    },
+    {
+      "id": "ep-53s:extra-42",
+      "source": "서한비는 정류장에서 밤이 무서운 학생과 노란 우산을 함께 들고 있었다. 정답은 주지 않고, 버스가 올 때까지 그냥 같이 서 있었다.",
+      "sourceHash": "42caa33a7c2af462997a7e239baa44c9fffb2c5139c426f68010e9643d241ef8",
+      "t": "At a bus stop, Hanbi shared a yellow umbrella with a student afraid of the night. No answers offered. She simply stood there until the bus came."
+    },
+    {
+      "id": "ep-53s:extra-43",
+      "source": "한비 씨, 우산 기울이는 거 이제 나보다 잘하네.",
+      "sourceHash": "727bcad48c4dd0136db597e03938a4d7f9d891e5e3f9a2360cd325ff7aa8f50e",
+      "t": "Hanbi, you're better at tilting an umbrella than I am now."
+    },
+    {
+      "id": "ep-53s:extra-44",
+      "source": "연이는 문을 닫고 집으로 돌아왔다. 병하는 현관에서 양말을 정리하고 있었고, 한 쌍은 여전히 짝이 어긋나 있었다.",
+      "sourceHash": "b5805e76e4acbcc05155564e0b560d49360df64c8a09137f922855770386f2ca",
+      "t": "Yeoni closed the door and went home. Byeongha was sorting socks in the entryway, and one pair was still mismatched."
+    },
+    {
+      "id": "ep-53s:extra-45",
+      "source": "이건 네 거야. 내 서랍에 넣어 둔 건 네가 먼저 행방불명으로 만들어서야.",
+      "sourceHash": "46ae4609dd3b2ca43c97f41e7be1c8068e8e6feca5b38002637f4ef78b10233a",
+      "t": "These are yours. I put them in my drawer because you made them go missing first."
+    },
+    {
+      "id": "ep-53s:extra-46",
+      "source": "결혼 전날까지 양말 재판을 하고 있다니. 진짜 우리답다.",
+      "sourceHash": "1e8c8b74f5956f961c9689cdfc2a7829144eb52011cf989bba7bc0a98416fdb2",
+      "t": "A sock trial even on the day before our wedding. That's so us."
+    },
+    {
+      "id": "ep-53s:extra-47",
+      "source": "이튿날 아침, 둘은 식장으로 가기 전 찻집의 불을 하나씩 껐다. 문 앞 의자 위의 작은 등만은 켜 둔 채로 나왔다.",
+      "sourceHash": "36b5832aa155f439e239999656a055368535da3f50a1e59b54940f24930c4f5c",
+      "t": "Next morning, before leaving for the ceremony, they switched off the teahouse lights one by one. Only the little lamp above the chair by the door stayed on."
     },
     {
       "id": "ep-53s:3",
@@ -72,6 +156,36 @@
       "t": "Kang Saebyeok, no asking for birth dates today. Start a compatibility consultation at the wedding and I'll dock your star rating."
     },
     {
+      "id": "ep-53s:extra-48",
+      "source": "세계수 아래에는 여행에서 만난 사람들의 자리가 모두 있었다. 기억을 잃었던 이, 이름을 빼앗겼던 이, 용서를 고르지 않았지만 함께 다음을 준비한 이들의 자리였다.",
+      "sourceHash": "04fdae630cb520ef05d96fafcc1452c26af7e85d74820ee38e172d0819d50aaf",
+      "t": "Beneath the World Tree, there were seats for everyone they had met on the journey. For those who had lost their memories, those whose names had been stolen, and those who had not chosen forgiveness but were preparing what came next together."
+    },
+    {
+      "id": "ep-53s:extra-49",
+      "source": "자리 배치는 오행으로 했어요. 모카 씨는 불이라 냄비랑 떨어뜨려 놨고요.",
+      "sourceHash": "abae1fc181055f5aa3bfed97290e05c3c92a878e2f7fc1088088c0a38929bb2d",
+      "t": "Seats arranged by the Five Elements. Moka is Fire, so I kept the pot far away."
+    },
+    {
+      "id": "ep-53s:extra-50",
+      "source": "냄비 없이 모카가 버틸까.",
+      "sourceHash": "636f7ef01a7532791238fa2c31ec11a635fb56600383c363fc8de430978b5e23",
+      "t": "Can Moka survive without a pot?"
+    },
+    {
+      "id": "ep-53s:extra-51",
+      "source": "달빛 자리에 서자 연이는 세계수의 심장 소리를 들었다. 처음 이 세계에 떨어졌을 때는 두려웠던 소리가, 이제는 집의 시계처럼 편안했다.",
+      "sourceHash": "71e4bd81b4bc8cbd81e3c4ee83437ad2ed00e45a71043a29c41426889107bffd",
+      "t": "Standing in the moonlit place, Yeoni heard the World Tree's heartbeat. The sound that had frightened them on first falling into this world was now as comforting as the clock at home."
+    },
+    {
+      "id": "ep-53s:extra-52",
+      "source": "병하가 손을 내밀었다. 손바닥이 조금 젖어 있었다. 세계를 구할 때보다 긴장한 손이었다.",
+      "sourceHash": "778d8f3d73d52c3bfa9c7237e58a7f6fcc4304f2d4e07bc5c382f44ca7dfc4fa",
+      "t": "Byeongha held out his hand. His palm was slightly damp. More nervous than when saving the world."
+    },
+    {
       "id": "ep-53s:11",
       "source": "스물세 번째 문의 금빛 선이 하객석 한쪽에 열렸다. 선 너머 현실의 벚꽃 강가가 보였다.",
       "sourceHash": "7a735663325eec630d50b95f94f4c0f541f518b51eef1a8cc991ad6d16c00f85",
@@ -79,9 +193,9 @@
     },
     {
       "id": "ep-53s:12",
-      "source": "여기 잘 보여요. 저는 우산을 들고 왔어요. 이번엔 제가 먼저 기울일게요.",
-      "sourceHash": "e1397fc64a642ab482d4a4783493fe849c7d7c460580cc32571b122e61fd4c25",
-      "t": "I can see you perfectly. I brought an umbrella. This time, I'll tilt it toward you first."
+      "source": "선 너머에서 서한비가 테이프 세 겹 감긴 노란 우산을 들어 보였다. 그리고 그 우산을 옆 사람 쪽으로 먼저 기울였다.",
+      "sourceHash": "f4f86b74888b048d957f16d6ba344d30f399f6fa21426022c8f0f78ffa9459fe",
+      "t": "Beyond the line, Hanbi raised the yellow umbrella wrapped in three layers of tape. First, she tilted it toward the person beside her."
     },
     {
       "id": "ep-53s:13",
@@ -139,9 +253,9 @@
     },
     {
       "id": "ep-53s:22",
-      "source": "지금부터 축하 랩 시작! 운명은 판결문이 아니라 둘이 매일 고쳐 쓰는 가사!",
-      "sourceHash": "0d87c40d730e33b18564c732a9b98d5195d50e9ee53e1500cdf99f35f2566921",
-      "t": "Time for the wedding rap! Destiny isn't a verdict; it's lyrics you two rewrite every day!"
+      "source": "지금부터 축하 랩 시작! 운명은 판결문 말고, 둘이 매일 고쳐 쓰는 가사!",
+      "sourceHash": "d2f17d7bd6c32cc3d19d62129e9d382182b4de9bd33716f2201cb45e4a594032",
+      "t": "Congratulations rap, starting now! Fate isn't a verdict—it's lyrics you two rewrite every day!"
     },
     {
       "id": "ep-53s:23",
@@ -163,9 +277,9 @@
     },
     {
       "id": "ep-53s:26",
-      "source": "하객석에서 웃음이 터졌다. 아무도 빌린 박수를 치지 않았고, 아무도 그 박수를 거두어 가지 않았다.",
-      "sourceHash": "b9e16d7e9559ee7cf01618ccd391ec6b744e0b66ed4300d8f6557d384a080e92",
-      "t": "Laughter erupted among the guests. No one offered borrowed applause, and no one took that applause away."
+      "source": "하객석 맨 앞에서 바람 요정이 울음을 터뜨렸다. 연이의 첫 상담 손님이었다. 모카가 국자로 냄비를 두드려 박수를 대신했다.",
+      "sourceHash": "289c659754c5bbbc5cdc63304da0c249665837721356998bba83dec3ae0fcd51",
+      "t": "In the front row, a wind fairy burst into tears: Yeoni's first consultation guest. Moka beat a pot with the ladle in place of applause."
     },
     {
       "id": "ep-53s:27",
@@ -175,9 +289,9 @@
     },
     {
       "id": "ep-53s:28",
-      "source": "연이 씨, 병하 씨. 다음 달에 또 편지할게요. 이쪽의 봄도 잘 지킬게요.",
-      "sourceHash": "f76a230ff2745a4631ee6ff915b5efbe52bce1245f91ff3417ed499d7539b534",
-      "t": "Yeoni, Byeongha. I'll write again next month. I'll take good care of the spring on this side, too."
+      "source": "선 너머에서 서한비가 봉투 하나를 흔들어 보였다. 다음 편지라고, 입모양이 천천히 말했다.",
+      "sourceHash": "9aeb808710e3a3e5a7f128825fe76dad1ecf60c9175cd8eb0370985a8ae8ef1d",
+      "t": "Beyond the line, Hanbi waved an envelope. The next letter, her lips slowly said."
     },
     {
       "id": "ep-53s:29",
@@ -187,9 +301,9 @@
     },
     {
       "id": "ep-53s:30",
-      "source": "스물세 번째 문이 작은 별로 닫혀서도 연이는 서운하지 않았다. 다음 달이 오면 다시 열릴 문이었다.",
-      "sourceHash": "3e3e2ec8515824f9df3c172d4666ae19d788227dacb87ff67aabd796223472d3",
-      "t": "Even when the twenty-third door closed into a little star, Yeoni felt no sadness. It was a door that would open again next month."
+      "source": "스물세 번째 문이 작은 별로 닫혔다. 다음 편지가 언제 올지는 몰랐다. 연이는 그래도 문 앞 의자를 치우지 않았다.",
+      "sourceHash": "b896afcf1a8277b84c8f15e72810923298369affb8080c6329aa4f7f32ae2966",
+      "t": "The Twenty-third Door closed into a little star. No one knew when the next letter would come. Yeoni kept the chair by the door anyway."
     },
     {
       "id": "ep-53s:31",
@@ -208,120 +322,6 @@
       "source": "병하는 연이의 이마에 자신의 이마를 대었다. 달빛이 두 사람의 손 사이에서 따뜻한 금빛으로 바뀌었다.",
       "sourceHash": "98877d1676f80512dcf91ab4a350eb446d76e621f98eaaacd7a5fd0463b71c9b",
       "t": "Byeongha rested his forehead against Yeoni's. Between their hands, the moonlight turned a warm gold."
-    },
-    {
-      "id": "ep-53s:extra-34",
-      "source": "식을 준비하는 세 달 동안 연이는 결혼이 엔딩은 아니라는 문장을 몇 번이나 메모장에 적었다. 두 사람의 약속은 결과가 아니라 매일의 방식이었다.",
-      "sourceHash": "2c5e6baee6785a46d6ce43e00632139ea017de24e08a54dd1da8bc34b58d26fb",
-      "t": "During the three months of wedding preparations, Yeoni wrote many times in a notebook that marriage was not an ending. Their promise was a way to live each day, not a final result."
-    },
-    {
-      "id": "ep-53s:extra-35",
-      "source": "병하는 자신이 회귀자였다는 사실을 더 이상 영웅담처럼 말하지 않았다. 혼자 견딜 시간은 사랑의 증거였지만, 다시 반복할 방법은 아니었다.",
-      "sourceHash": "d3db20eb94b9d4ba3a0a606490c40ff0ef99804249b2d7247452159543c0e52f",
-      "t": "Byeongha no longer spoke of having returned through time as though it were a heroic tale. The time he had endured alone was evidence of love, but not a method to repeat."
-    },
-    {
-      "id": "ep-53s:extra-36",
-      "source": "어떤 일이 오든 먼저 말하겠다. 지킨다는 핑계로 또 혼자 사라지지 않겠다.",
-      "sourceHash": "be69eb0a5e7191c84f343d2768729244084799f45968439cfee8a0a7e335bdde",
-      "t": "Whatever happens, I'll speak first. I won't disappear alone again under the excuse of protecting you."
-    },
-    {
-      "id": "ep-53s:extra-37",
-      "source": "나도 아프면 아프다고 말할게. 너를 안심시키려고 혼자 버티는 사람이 되지 않을게.",
-      "sourceHash": "35727b990fa3b9893b6f5fc30801aae44ba028d077fc99556515d7f3afe993a9",
-      "t": "And I'll tell you when I'm hurting. I won't bear it alone just to reassure you."
-    },
-    {
-      "id": "ep-53s:extra-38",
-      "source": "둘의 혼인 서약은 거창한 예언 대신 짧은 약속들로 채워졌다. 식사를 거르지 않기, 우산을 혼자 들지 않기, 기억이 흐려지면 메모부터 함께 읽기.",
-      "sourceHash": "33505dbf16bbe150672681378b0f9681eabd11b39b5155bcccc765ebd64a1938",
-      "t": "Instead of grand prophecies, their wedding vows filled with small promises. Don't skip meals. Don't hold the umbrella alone. If memories grow hazy, start by reading the notes together."
-    },
-    {
-      "id": "ep-53s:extra-39",
-      "source": "거기에 내 공연을 월 한 번 보러 오기도 넣어. 부부 문화 생활에 필수야.",
-      "sourceHash": "5f7d403fba817db189ec493d6edda611201543c2b4759d6bd4ee8a4a6d59db5b",
-      "t": "Add coming to my show once a month. Essential cultural enrichment for a married couple."
-    },
-    {
-      "id": "ep-53s:extra-40",
-      "source": "그건 서약이 아니라 티켓 구독이잖아.",
-      "sourceHash": "ec54bd3dcafc1f32b5caa3da514014aafebf7f0ab41dd8cd9c00cbc840a7d53d",
-      "t": "That's a ticket subscription, not a vow."
-    },
-    {
-      "id": "ep-53s:extra-41",
-      "source": "결혼식 전날, 연이는 스물세 번째 문을 열어 현실의 강가를 오래 보았다. 가지 않은 길을 후회하려는 것이 아니라, 그 곳에도 봄이 온 것을 확인하려고.",
-      "sourceHash": "a1cecce905ae97f66e285221b924d27c8b1670f09e889bf5af899fea457fc982",
-      "t": "The day before the wedding, Yeoni opened the twenty-third door and gazed a long time at the riverbank in reality. Not to regret the path untaken, but to make sure spring had come there, too."
-    },
-    {
-      "id": "ep-53s:extra-42",
-      "source": "서한비는 정류장의 밤이 무서운 학생과 함께 노란 우산을 들고 있었다. 그녀는 정답을 주지 않고, 버스가 올 때까지 그냥 같이 서 있었다.",
-      "sourceHash": "0f506e0c28c2ccc7c8742b228c1e90f37ec0078c66c15dad7d18be5b205a5131",
-      "t": "Seo Hanbi held a yellow umbrella with a student who was afraid of the bus stop at night. She gave no answers. She simply stood beside the student until the bus came."
-    },
-    {
-      "id": "ep-53s:extra-43",
-      "source": "한비도 자기 봄을 살고 있네. 첫 번째 봄의 증인에서, 다른 누군가의 봄을 기다려 주는 사람으로.",
-      "sourceHash": "6366bc0fd88a977f7750b579d2f1cf1c90029756ba8204105b440c5eac64fb40",
-      "t": "Hanbi is living her own spring, too. From a witness to the first spring to someone who waits for another person's spring."
-    },
-    {
-      "id": "ep-53s:extra-44",
-      "source": "연이는 문을 닫고 집으로 돌아왔다. 병하는 현관에서 양말을 정리하고 있었고, 한 쌍은 여전히 짝이 어긋나 있었다.",
-      "sourceHash": "b5805e76e4acbcc05155564e0b560d49360df64c8a09137f922855770386f2ca",
-      "t": "Yeoni closed the door and went home. Byeongha was sorting socks in the entryway, and one pair was still mismatched."
-    },
-    {
-      "id": "ep-53s:extra-45",
-      "source": "이건 네 거야. 내 서랍에 넣어 둔 건 네가 먼저 행방불명으로 만들어서야.",
-      "sourceHash": "46ae4609dd3b2ca43c97f41e7be1c8068e8e6feca5b38002637f4ef78b10233a",
-      "t": "These are yours. I put them in my drawer because you made them go missing first."
-    },
-    {
-      "id": "ep-53s:extra-46",
-      "source": "결혼 전날까지 양말 재판을 하고 있다니. 진짜 우리답다.",
-      "sourceHash": "1e8c8b74f5956f961c9689cdfc2a7829144eb52011cf989bba7bc0a98416fdb2",
-      "t": "A sock trial even on the day before our wedding. That's so us."
-    },
-    {
-      "id": "ep-53s:extra-47",
-      "source": "둘은 식장으로 가기 전 찻집의 불을 하나씩 확인했다. 매일 반복했던 작은 일이지만, 이런 일들이 세계의 대형 사건보다 더 길게 두 사람을 지켰다.",
-      "sourceHash": "f472b94a961a0fc2753f67466d43bb44aaf50e725f5c62242c1da9510af2c14f",
-      "t": "Before leaving for the ceremony, they checked the teahouse lights one by one. It was a small task they repeated daily, yet such things had protected them longer than the world's great events."
-    },
-    {
-      "id": "ep-53s:extra-48",
-      "source": "세계수 아래에는 여행에서 만난 사람들의 자리가 모두 있었다. 기억을 잃었던 이, 이름을 빼앗겼던 이, 용서를 고르지 않았지만 함께 다음을 준비한 이들의 자리였다.",
-      "sourceHash": "04fdae630cb520ef05d96fafcc1452c26af7e85d74820ee38e172d0819d50aaf",
-      "t": "Beneath the World Tree, there were seats for everyone they had met on the journey. For those who had lost their memories, those whose names had been stolen, and those who had not chosen forgiveness but were preparing what came next together."
-    },
-    {
-      "id": "ep-53s:extra-49",
-      "source": "오늘의 결혼은 운이 지정한 사건이 아니에요. 두 분이 매번 다른 선택을 하고도 다시 같은 방향으로 걸어온 결과예요.",
-      "sourceHash": "121e3d997485d0a5e9fd9528818d1b6f04d4b9733e0fd231dea0ed5fd618cc48",
-      "t": "Today's marriage isn't an event assigned by fortune. It's the result of choosing differently each time and still returning to walk in the same direction."
-    },
-    {
-      "id": "ep-53s:extra-50",
-      "source": "그래서 좋아. 정해져 있어서가 아니라, 오늘도 우리가 서로를 고르는 거니까.",
-      "sourceHash": "964d1742d475138bac30b0c9bd23d0d13f7e2ff25cbc985dc24c10d6a477a9a2",
-      "t": "That's why I like it. Not because it was decided for us, but because we're choosing each other again today."
-    },
-    {
-      "id": "ep-53s:extra-51",
-      "source": "달빛 자리에 서자 연이는 세계수의 심장 소리를 들었다. 처음 이 세계에 떨어졌을 때는 두려웠던 소리가, 이제는 집의 시계처럼 편안했다.",
-      "sourceHash": "71e4bd81b4bc8cbd81e3c4ee83437ad2ed00e45a71043a29c41426889107bffd",
-      "t": "Standing in the moonlit place, Yeoni heard the World Tree's heartbeat. The sound that had frightened them on first falling into this world was now as comforting as the clock at home."
-    },
-    {
-      "id": "ep-53s:extra-52",
-      "source": "병하는 그녀에게 손을 내밀었다. 그 손은 더 이상 미래에서 과거를 되돌리는 손이 아니었다. 지금에서 다음 한 걸음을 함께 내디디는 손이었다.",
-      "sourceHash": "2479912b1bae594abbcfb44fe74362a978677bdf271c86d9f19708758d247127",
-      "t": "Byeongha held out his hand to her. It was no longer a hand reaching from the future to turn back the past. It was a hand taking the next step together from the present."
     },
     {
       "id": "ep-53s:extra-53",

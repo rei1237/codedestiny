@@ -6,6 +6,7 @@ import { siteSeo } from "../../lib/seo/siteSeo";
 import ServiceIntroSection from "../components/ServiceIntroSection";
 import ImmersiveRelatedLinks from "../components/ImmersiveRelatedLinks";
 import { buildKrwOffer } from "@/lib/seo/paid-offer";
+import { ROBOTS_META } from "../../lib/seo/index-policy.mjs";
 
 const PAGE_PATH = "/life-book-ai/";
 const PAGE_TITLE = "인생 총운 | 사주로 보는 평생 운세 리포트 — 인생의 책";
@@ -32,14 +33,7 @@ export const metadata: Metadata = {
     description: PAGE_DESCRIPTION,
     images: [siteSeo.defaultOgImage],
   },
-  robots: {
-    index: true,
-    follow: true,
-    googleBot: {
-      index: true,
-      follow: true,
-    },
-  },
+  robots: ROBOTS_META.INDEX,
 };
 
 // 화면에 FAQ가 없어서 FAQPage는 내지 않는다. 구조화 데이터는 보이는 내용과 같아야 한다.

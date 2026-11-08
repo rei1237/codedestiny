@@ -40,8 +40,8 @@
     },
     {
       "id": "ep-36a:6",
-      "source": "이건, 언제 쓴 거지.",
-      "sourceHash": "58849286c7439382a48e5d7961d723ada07340b63d6117773eb58f096a903b1d",
+      "source": "이건 언제 쓴 거지요.",
+      "sourceHash": "3bafa22ca747e9f546832251ad130592fa62f7cdd9f0bd0a6162f5ea376a0935",
       "t": "When did I write this?"
     },
     {
@@ -64,9 +64,9 @@
     },
     {
       "id": "ep-36a:10",
-      "source": "장부는 거짓말을 안 해요. 그게 내 유일한 자랑이었는데.",
-      "sourceHash": "362570a454493d42da639c6603ddcdd94deee8d2b08623779b88c924eb7a303e",
-      "t": "The ledger doesn't lie. That was the only thing I was proud of."
+      "source": "장부는 거짓말을 안 해요. 그게 제 유일한 자랑이었는데요.",
+      "sourceHash": "ec33a39d63fb35ceafc4bd14e69257cafeae9a4b8b6e498b2bdbdbeb838dfa26",
+      "t": "The ledger never lies. My one source of pride."
     },
     {
       "id": "ep-36a:11",
@@ -82,9 +82,9 @@
     },
     {
       "id": "ep-36a:13",
-      "source": "그 애다.",
-      "sourceHash": "e0af072815856fb6d61fcff7c89f362a07416122038ee3b4c7ce84e3f610b17f",
-      "t": "It's her."
+      "source": "그 애예요.",
+      "sourceHash": "235df00fd43a4ee3bf5d1bfe1a86180bcb8a6ef72784489ee6db2642f51b5291",
+      "t": "It's that girl."
     },
     {
       "id": "ep-36a:14",
@@ -100,9 +100,9 @@
     },
     {
       "id": "ep-36a:16",
-      "source": "나는, 그 애를 알아. 이름은 안 떠오르는데. 알아.",
-      "sourceHash": "d3a30f245422c437b686a2f1cf66be4f830f4364ffa33db48d290a8a54142d91",
-      "t": "I know her. I can't remember her name. But I know her."
+      "source": "저는 그 애를 알아요. 이름은 안 떠오르는데도 알아요.",
+      "sourceHash": "ed6a2f09852441f227e461279767cbbdbe60333661e3d5d63fae152f19483838",
+      "t": "I know her. Even if her name won't come, I know her."
     },
     {
       "id": "ep-36a:17",
@@ -118,9 +118,9 @@
     },
     {
       "id": "ep-36a:19",
-      "source": "갚으려고 했어. 그다음 날 우산을 사 들고 갔어. 그 애는 웃기만 했어. 이미 한 개 있다고.",
-      "sourceHash": "9df7cb087585c5f2b49f34521c00d666d6017122672409b2936801208612b72e",
-      "t": "I tried to repay her. The next day, I bought an umbrella and brought it. She only laughed. Said she already had one."
+      "source": "갚으려고 다음 날 우산을 사 들고 갔어요. 그 애는 이미 한 개 있다며 웃기만 했지요.",
+      "sourceHash": "1b568f2429708cbcb06f9b36dea73939f4d81f9b342dfe93ed6fc2748346a3d4",
+      "t": "I bought an umbrella and went back the next day to repay her. She only smiled and said she already had one."
     },
     {
       "id": "ep-36a:20",
@@ -142,9 +142,9 @@
     },
     {
       "id": "ep-36a:23",
-      "source": "바다. 그래, 바다를 보러 가자고 했어. 그 애가 바다를 한 번도 못 봤다고 해서.",
-      "sourceHash": "4799e06fffab86b3c07883a39a142abbf55b2922bbd912985a1f2f6d8b0764f8",
-      "t": "The sea. Yes, we said we'd go to the sea. She'd never seen it before."
+      "source": "바다를 보러 가자고 했어요. 그 애가 한 번도 못 봤다고 해서요.",
+      "sourceHash": "e64d133e17ce16b0b8d66fee0e85ca122002a478a9a3bad5dc498f377588ee66",
+      "t": "I said we should see the sea. She had never seen it before."
     },
     {
       "id": "ep-36a:24",
@@ -154,9 +154,9 @@
     },
     {
       "id": "ep-36a:25",
-      "source": "반반. 그 애는 늘 그 말을 했어. 우산도, 젤리도, 바다도. 내 몫을 먼저 떼어 놓고 나서야 자기 몫을 셌어.",
-      "sourceHash": "33559109399de3017e7942d61b2b6aeb88776c8b587fcff8db727f4aa8ebed76",
-      "t": "Half each. She always said that. The umbrella, the gummies, the sea. She set aside my share before counting her own."
+      "source": "반반이라며 우산도 젤리도 바다도 나누었지요. 제 몫을 먼저 떼어 놓고서야 자기 몫을 세던 애였어요.",
+      "sourceHash": "00f7a80bd699809aa1d0b030ef37cb1bda7780e0a31e8ba8f49a4253a914b0d9",
+      "t": "Half each, she always said. Umbrellas, sweets, the sea. She set aside my share before counting her own."
     },
     {
       "id": "ep-36a:26",
@@ -166,9 +166,9 @@
     },
     {
       "id": "ep-36a:27",
-      "source": "그런 애가, 왜 그날만 그랬을까.",
-      "sourceHash": "68a0f95e006bf938ebb7cd5e7d05c2ec9e86139eeaf806b5d6f193413481a45c",
-      "t": "Why would someone like that act that way, just that one day?"
+      "source": "그런 애가 왜 그날만 그랬을까요.",
+      "sourceHash": "e1e9f1e33554d2e2bb0c9921ee50434bfa5fce2a84db820333c4e1c3b696bd50",
+      "t": "Why would a girl like that act differently only that day?"
     },
     {
       "id": "ep-36a:28",
@@ -190,21 +190,21 @@
     },
     {
       "id": "ep-36a:31",
-      "source": "그래. 이거야. 이게 내가 기억하는 거야. 그 애가 날 버린 날.",
-      "sourceHash": "dc95b3e96dd9ae02c2491ddb071b30974815aa4094401129c56a3d70cebd58da",
-      "t": "Yes. This is it. This is what I remember. The day she abandoned me."
+      "source": "그래요. 이게 제가 기억하는 거예요. 그 애가 저를 버린 날이요.",
+      "sourceHash": "8cbc00f838f149fdeea4ca726083f91a9f69673129b2b5700c7a882fa2d50ae0",
+      "t": "Yes. This is what I remember. The day she abandoned me."
     },
     {
       "id": "ep-36a:32",
-      "source": "그런데 장부의 그림이 한 번 떨렸다. 돌아서는 아이의 눈동자 뒤에 둥근 그림자가 비쳤다. 해를 가리는 검은 달 같은.",
-      "sourceHash": "96570b5fef4af1badbb9414c52b5fafa6f3fa84a725cd6ace11f2a1780f92e12",
-      "t": "But the picture in the ledger shuddered once. Behind the departing girl's eyes, a round shadow appeared. Like a black moon covering the sun."
+      "source": "그런데 장부의 그림이 한 번 떨렸다. 돌아서는 아이의 얼굴이 아주 잠깐 낯설게 일그러졌다.",
+      "sourceHash": "95e9f6263093575e29b80d16f768c396074e27ab9549be83e1b89709b8174ee4",
+      "t": "But the picture in the ledger trembled once. The turning girl's face briefly twisted into something unfamiliar."
     },
     {
       "id": "ep-36a:33",
-      "source": "…방금 그거, 뭐였지.",
-      "sourceHash": "53e2aab11bcf2158b038e1aeab34ffe761f450c4e1d84454d791973e3b7c9134",
-      "t": "...What was that just now?"
+      "source": "…방금 그건 뭐였지요.",
+      "sourceHash": "8d2cfc1fe348d7c502c7e464cc4393e580a9347495d3416ed5e7c2462863585c",
+      "t": "…What was that just now?"
     },
     {
       "id": "ep-36a:34",
@@ -214,9 +214,9 @@
     },
     {
       "id": "ep-36a:35",
-      "source": "그날 그 애, 이상했어. 내 이름을 부르지 않았어. 늘 부르던 별명이 있었는데.",
-      "sourceHash": "dd4a47f122c96aaf824308253f98c6f5f5427d820d3f39d6172c907304b45048",
-      "t": "She was strange that day. She didn't call my name. She had a nickname she always used."
+      "source": "그날 그 애는 이상했어요. 늘 부르던 별명이 있었는데 제 이름을 부르지 않았어요.",
+      "sourceHash": "0e2d6cec1ec91165c9426d2b5eb3e45bfbe3aa48809b8e9823121208f66ba107",
+      "t": "She was strange that day. She always had a nickname for me, yet she didn't call me by name."
     },
     {
       "id": "ep-36a:36",
@@ -226,9 +226,9 @@
     },
     {
       "id": "ep-36a:37",
-      "source": "그 애가 아니었다면. 아니, 그런 생각은 하면 안 돼. 그럼 내가 한 일이 다.",
-      "sourceHash": "3be890d642966af4dd0829d76a7a0ba6a61c0f28f5aef69c3c031055dd440c68",
-      "t": "If it wasn't her. No, I can't think that. Then everything I've done..."
+      "source": "그 애가 아니었다면요. 아니, 그럼 제가 한 일이 다 어떻게 되나요.",
+      "sourceHash": "2e7df836846715502f8e7a3da0484f03bef4681c13cc8fbb7624cbda83fd9ad8",
+      "t": "What if it wasn't her? No. What would that make everything I've done?"
     },
     {
       "id": "ep-36a:38",
@@ -292,9 +292,9 @@
     },
     {
       "id": "ep-36a:48",
-      "source": "반쪽 우산. 다시 한 번만, 보면 알 수 있을 텐데.",
-      "sourceHash": "fe4fe7e99eb7ce87c8b5bcd24c83dfa3c0664e4d62b7be4006e47b5c59fb796c",
-      "t": "Half an umbrella. If I could see it just once more, I'd know."
+      "source": "반쪽 우산을 다시 한 번만 보면 알 수 있을 텐데요.",
+      "sourceHash": "caac2d08f13ff2846c963d8c261c5ed05a243e80b6d0e074461e99fd3fcb1d02",
+      "t": "If I could see that half-shared umbrella once more, I'd know."
     },
     {
       "id": "ep-36a:49",

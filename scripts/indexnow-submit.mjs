@@ -7,8 +7,8 @@
  *   node scripts/indexnow-submit.mjs --dry-run   # 무엇을 보낼지만 출력. 외부 호출 없음
  *   node scripts/indexnow-submit.mjs             # 실제 POST
  *
- * 🔴 제출 목록은 **sitemap.xml 을 파싱해서** 만든다. lib/seo-site-urls.ts 의
- *    getAllSitemapUrls() 를 쓰면 안 된다 — 그건 실제 배포되는 사이트맵과 별개인 병렬 목록이라
+ * 🔴 제출 목록은 **sitemap.xml 을 파싱해서** 만든다. 예전 lib/seo-site-urls.ts 의
+ *    getAllSitemapUrls()(묶음 ③ T9 에서 삭제) 같은 목록을 쓰면 안 된다 — 그건 실제 배포되는 사이트맵과 별개인 병렬 목록이라
  *    (2026-08-16 실측: sitemap.xml 429 URL vs seo-site-urls 경로 문자열 95개) 사이트맵이 일부러
  *    제외한 noindex URL 을 검색엔진에 제출하게 된다. 색인 품질을 고치려다 정반대가 된다.
  *

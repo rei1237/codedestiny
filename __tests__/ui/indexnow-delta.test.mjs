@@ -33,3 +33,16 @@ test('private paths, credentials and encoded private paths never become notifica
   assert.equal(publicNotificationUrl(`https://user@${host}/saju/`,host),false);
   assert.equal(publicNotificationUrl(url,host),true);
 });
+
+test('public service introductions are accepted without allowing their private descendants',()=>{
+  const paths=['/business/api/','/business/api/docs/','/yeongnyangi/season-1/'];
+  const entries=paths.map(path=>({loc:`https://${host}${path}`,lastmod:'2026-11-09'}));
+  assert.deepEqual(Object.keys(buildSubmissionState(entries,{routes:{}},host).urls),entries.map(entry=>entry.loc));
+  for(const path of ['/business/api/dashboard/','/business/api/docs/private/','/business/%61pi/','/yeongnyangi/season-1/result/','/yeongnyangi/library/']) {
+    assert.equal(publicNotificationUrl(`https://${host}${path}`,host),false,path);
+  }
+  for(const suffix of ['?token=secret','#secret']) {
+    assert.equal(publicNotificationUrl(`https://${host}/business/api/${suffix}`,host),false);
+  }
+  assert.throws(()=>selectSubmissionDelta(state('a'),null,[entries[0].loc]));
+});

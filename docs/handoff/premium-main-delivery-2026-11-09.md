@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-09
-next: check:fast 계획의 verify:env-parity 이후 26개 단계를 같은 순서로 실행하여 빌드·Jest까지 완료한다.
+next: 최신 main 병합 커밋에서 check:fast(delta base 9c9b0d135)를 전체 실행하고 최종 pre-push·push를 완료한다.
 ---
 
 # 고가 운세 개선 main 전달
@@ -49,7 +49,7 @@ next: check:fast 계획의 verify:env-parity 이후 26개 단계를 같은 순�
 - [x] 최신 원격 main 기반 격리 워크트리 생성
 - [x] premium 브랜치 커밋 병합, 충돌 없음
 - [x] 정적 미러 16개 재생성 및 커밋, 미러 신선도 검사 통과
-- [ ] check:fast 계획 확인 및 전체 실행, 실패 해결
+- [x] check:fast 계획 확인 및 전 단계 실행, 실패 해결 (구간별 실행 기록 아래 참조)
 - [ ] 커밋된 트리에서 check:pre-push 통과
 - [ ] 최신 main을 확인하고 fast-forward push
 - [ ] main CI 1회 확인, 보존 상태 확인
@@ -76,3 +76,6 @@ next: check:fast 계획의 verify:env-parity 이후 26개 단계를 같은 순�
 - 실제 환경값·환경 파일을 바꾸지 않고 `config/env.contract.json`에 해당 선택 스위치의 메타데이터만 등록했다. env-parity 재검사 PASS(기존 alias 경고 7건). 통과한 대형 검사를 반복하지 않고, 갱신된 계획의 앞 단계가 같은지 확인한 뒤 실패 단계부터 남은 26개를 모두 같은 순서로 실행한다. 단계 제외·검사기 변경은 하지 않는다.
 - 남은 단계 실행 로그는 `.tmp/premium-check-remainder.log`, 완료 목록은 `.tmp/premium-resumed-checks.json`, 실행기는 `.tmp/premium-resume-checks.cjs`다. 앞 계획이 같고 남은 26단계가 모두 존재하는지 assert한 뒤 공식 npm 명령을 mock 네트워크 가드와 함께 같은 순서로 실행한다. 첫 실패 즉시 종료한다.
 - 첫 이어 실행에서 `verify:ai-consultation-flows`의 기존 사주 정적 검사가 옛 refundOnFailure 직접 분기를 요구하여 중단됐다. 실제 코드는 refundOnFailure에 V2 저장 본문 보존 조건을 더한 refundNow를 사용한다. 검증기에 해당 합성 조건을 명시적으로 검증하는 assertion을 추가하고, 세 환불 분기가 refundNow를 쓰는지 확인하도록 맞췄다. 실제 환불·차감 코드는 변경하지 않았다. 전체 `verify:ai-consultation-flows` 재실행 통과(사주 섹션 240 checks, 네오 1·2차 및 궁합, 나머지 상담 흐름 포함).
+- `9c9b0d135`에서 사주 검증기를 보정한 뒤 남은 26/26 단계가 모두 통과했다. 워커 빌드·미선언 변수·크론 DB 범위·환경 정합성·상담 흐름 포함. Jest는 466 suites / 7902 tests 통과, 기존 1 suite / 1 test skip 유지. 새 제외·skip 추가 없음.
+- 검증 도중 다른 세션이 main에 VN 번역·SEO 문서를 추가했다. 최신 `ebb19eae8`까지 병합한다. 기존 premium 변경과 겹치는 파일은 사이트맵 13개뿐이며 worker·의존성 변경은 없다. 유일한 충돌은 config/sitemap-lastmod.json이다. 최신 main의 원장을 기준으로 실제 합쳐진 소스에서 사이트맵을 재생성하여 양쪽 내용을 보존한다. 최초 9e7ee8997 병합은 수정 전에 abort하고 최신 fetch 후 다시 시작했다.
+- 최신 main에는 공통 SEO 라우팅·페이지 삭제가 포함되어 delta 검사 계획도 critical이다(649 files). 따라서 이 병합 뒤에는 앞서 통과한 원본 premium 검사와 별개로 해당 계획 전체를 다시 실행한다. 계획은 `.tmp/premium-latest-main-plan.log`, 실행 로그는 `.tmp/premium-latest-main-check.log`다. 새 사이트맵은 1062 URL 유지, 원장 33개 갱신이다.

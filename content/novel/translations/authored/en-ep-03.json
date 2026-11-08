@@ -16,27 +16,39 @@
     },
     {
       "id": "ep-03:2",
-      "source": "맞은편에는 연이의 진짜 얼굴을 한 존재가 서 있었다. 젖은 앞머리, 낡은 후드티, 두 다리로 선 사람. 그게 천천히 웃었다.",
-      "sourceHash": "dd77227eefad1bda81f204a0412c0115755bb13d150910bf21791daf32547fea",
-      "t": "Opposite them stood a being with Yeoni's real face. Damp bangs, an old hoodie, a person standing on two legs. It slowly smiled."
+      "source": "맞은편에는 연이의 진짜 얼굴을 한 존재가 서 있었다. 젖은 앞머리, 낡은 후드티, 두 다리로 선 사람. 웃음이 걷힌 입가가 다시 천천히 올라갔다.",
+      "sourceHash": "8b15cbe762817b3203d163c9acdccf1a083972be017a567227009dfe3f4a8fed",
+      "t": "Opposite her stood someone wearing her real face. Damp bangs, an old hoodie, a human on two legs. The smile that had faded slowly returned."
     },
     {
       "id": "ep-03:3",
-      "source": "그럼 증명해봐.",
-      "sourceHash": "c00be2ea5f21668f7988a0873e464503d4a065bac034028dfe9c667dc633a095",
-      "t": "Prove it, then."
+      "source": "말했지. 증명하면 돌려준다고.",
+      "sourceHash": "2e61151d19004de3782de83382d0ec556cf17ab2c0d829599d91725a3152cb38",
+      "t": "I told you. Prove it, and I'll give them back."
     },
     {
       "id": "ep-03:4",
-      "source": "…뭘.",
-      "sourceHash": "f179865156668ac239d0a3f4a61e6ac8685441af4003293edc2a8cac3d8cf1ed",
-      "t": "...Prove what?"
+      "source": "거울 속 연이가 쥐고 있던 손을 폈다. 손바닥 위에서 [乙亥] 두 글자가 희미하게 떠올랐다가, 손가락이 다시 오므라들자 빛을 잃었다.",
+      "sourceHash": "f78cb87c714b40b912e254095c9fbea516756cbb0925e463e6d53dd0d40377d3",
+      "t": "The reflection opened her fist. [乙亥] floated faintly above her palm, then dimmed when her fingers closed again."
     },
     {
       "id": "ep-03:5",
-      "source": "네가 진짜 연이라는 걸.",
-      "sourceHash": "445ee2301a521bf4940de2a1ebbe51376b66d769ecdb333930b07444adbd6620",
-      "t": "That you're the real Yeoni."
+      "source": "뺏을 필요도 없어. 네가 너라는 걸 보이면 글자가 알아서 네 쪽으로 갈 거야.",
+      "sourceHash": "d3c4da58811fa9480dbd855390492e5a50d7c1ee3c6af0cbd6829496ff8b733e",
+      "t": "You don't even need to steal them. Show that you're you, and the characters will come to you themselves."
+    },
+    {
+      "id": "ep-03:open-1",
+      "source": "…그럼 못 보이면?",
+      "sourceHash": "5b3735aa10af7f9d7ce47d92dc6cb4c0d4fcf1dc294778706e2dde8a118dc0a7",
+      "t": "…And if I can't?"
+    },
+    {
+      "id": "ep-03:open-2",
+      "source": "그땐 글자도 네 자리도 내 쪽에 남지.",
+      "sourceHash": "d20ca2967882147bb5ae3f4ba15c2e298abea7aa09fd9e8ffff2c0ca106f5fa0",
+      "t": "Then the characters and your place both stay with me."
     },
     {
       "id": "ep-03:6",
@@ -46,9 +58,9 @@
     },
     {
       "id": "ep-03:7",
-      "source": "우왁?! 야, 이 세계 지진 옵션도 있어? 나 이런 거 신청한 적 없거든?!",
-      "sourceHash": "ee5948bd37b504c1fff887c67e1c56194c19682468648026022c64b52f3c28c1",
-      "t": "Whoa! Hey, this world has an earthquake option too? I never signed up for that!"
+      "source": "우왁, 이 세계 지진 옵션도 있어? 나 이런 거 신청한 적 없거든?!",
+      "sourceHash": "2a61690f62871e47bf83c078e6e7af7ee45c75c366be15ccfd6506c6670ca0c1",
+      "t": "Whoa! This world has an earthquake option too? I never signed up for that!"
     },
     {
       "id": "ep-03:8",
@@ -64,9 +76,9 @@
     },
     {
       "id": "ep-03:10",
-      "source": "[ 본체 인증을 진행합니다. ]   [ 제한 시간 10:00 ]",
-      "sourceHash": "23d91d72f70a15ebe3572fef95b06c9585896dedd4946cfc31380e5994b63aa6",
-      "t": "[ Verifying original identity. ]   [ Time limit 10:00 ]"
+      "source": "[ 본체 인증을 진행합니다. ]   [ 인증 실패 시 귀환 권한이 이전됩니다. ]",
+      "sourceHash": "c586bd183a2e4389a335d1b32145c0d34960c2aacf0a749478f197df39543eaa",
+      "t": "[ Verifying the original user. ] [ If verification fails, return authorization will be transferred. ]"
     },
     {
       "id": "ep-03:11",
@@ -76,9 +88,9 @@
     },
     {
       "id": "ep-03:12",
-      "source": "뭐야. 갑자기 웬 본인 인증. 나 방금 로그인했는데.",
-      "sourceHash": "5e30ea535e36f0c3f9e6481c24d4160ccb1ca1b1f2c775eca51b0c9f7c88482e",
-      "t": "What? Why the sudden identity check? I just logged in."
+      "source": "뭐야, 갑자기 웬 본인 인증? 나 방금 로그인했는데.",
+      "sourceHash": "9a64be486eef12249a9157cae2ee0f39e75ff24d2c7482cea795e7654b1a46ad",
+      "t": "What? Identity verification all of a sudden? I just logged in."
     },
     {
       "id": "ep-03:13",
@@ -118,9 +130,9 @@
     },
     {
       "id": "ep-03:19",
-      "source": "영냥이는 대답하지 않았다. 흰 고양이의 꼬리 끝만 딱, 한 번 멎었다. 그 침묵이 곧 대답이었다.",
-      "sourceHash": "64b45fd68e1417a121aa2528fb2e0d1e52c90ba5036d82a7d1672a740051fe0e",
-      "t": "Yeongnyangi did not answer. Only the tip of the white cat's tail stopped, once. His silence was answer enough."
+      "source": "영냥이는 대답하지 않았다. 흰 고양이의 꼬리 끝만 딱 한 번 멎었다.",
+      "sourceHash": "809cff7d64171d5cc2fad95112190e2a856c4d1176df39db12af9d1f8c3261c7",
+      "t": "Yeongnyangi didn't answer. Only the tip of the white cat's tail stopped, just once."
     },
     {
       "id": "ep-03:20",

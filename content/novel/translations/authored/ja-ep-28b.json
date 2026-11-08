@@ -10,18 +10,18 @@
   "rows": [
     {
       "id": "ep-28b:1",
-      "source": "행운은 일주일째 계속되었다. 연이는 조금 무서워지기 시작했다.",
-      "sourceHash": "12a0b3879f5ea2e9173251e4df1c7ecbb49bf3bef06375739cb143685ee920fa",
+      "source": "불운 없는 날이 일주일째 계속되었다. 연이는 조금 무서워지기 시작했다.",
+      "sourceHash": "41f18d324c4ccbcc2f712fcb2aa02b3ac078fd9e3674a0acef35461093d9d20d",
       "translations": {
-        "ja": "幸運は一週間続いた。Yeoniは少し怖くなってきた。"
+        "ja": "不運のない日が一週間続いた。Yeoniは少し怖くなってきた。"
       }
     },
     {
       "id": "ep-28b:2",
-      "source": "장학금 서류가 한 번에 통과됐다. 사고 싶던 운동화가 반값이었다. 엘리베이터는 연이가 갈 때마다 1층에 서 있었다.",
-      "sourceHash": "13253d8e90c70b82bc6fdae2f0b2da9749df469da13ad9dfd52906f137950e4c",
+      "source": "장학금 서류가 고칠 데 없이 통과됐다. 운동화는 제값이었지만 사이즈가 남아 있었다. 엘리베이터는 고장 없이 제때 왔다.",
+      "sourceHash": "0ca58d1ea71a3f924dbf11ab9d2a66dcad9c07f57ebe047bf726e91977d097f4",
       "translations": {
-        "ja": "奨学金の書類は一度で通った。欲しかったスニーカーは半額だった。エレベーターはYeoniが向かうたび、一階に止まっていた。"
+        "ja": "奨学金の書類は修正なく通った。靴は定価だったがサイズが残り、エレベーターも故障せず時間どおり来た。"
       }
     },
     {
@@ -34,10 +34,10 @@
     },
     {
       "id": "ep-28b:4",
-      "source": "「너는 운이 좋으면 의심부터 하는군.」",
-      "sourceHash": "aa6599a0b44fa4ff6c84033618e7a2af554a1eb4acf525da0b34f3fc81c46c3e",
+      "source": "「너는 일이 순조로우면 의심부터 하는군.」",
+      "sourceHash": "7c364440958bcdf071711c77d94e440cce1ccddb161e868a5cb95b0401ce71a8",
       "translations": {
-        "ja": "「君は運がよくなると、まず疑うんだな」"
+        "ja": "「お前は、物事が順調だとまず疑うんだな。」"
       }
     },
     {
@@ -240,10 +240,10 @@
     },
     {
       "id": "ep-28b:26",
-      "source": "요즘 운이 좋으시죠.",
-      "sourceHash": "f98baff0eda9dc8767ba872a4bef9f9aa647aed9ea8a7a29dbae710ff4aeed64",
+      "source": "요즘 일이 잘 풀리시죠.",
+      "sourceHash": "6bc28de720945c7696d89c1ee3f7e8b14108b74c2f3aded158f061168d43eaa2",
       "translations": {
-        "ja": "最近、運がいいでしょう。"
+        "ja": "最近、物事がうまくいっていますね。"
       },
       "fields": {
         "ja": {
@@ -261,10 +261,10 @@
     },
     {
       "id": "ep-28b:28",
-      "source": "얼굴에 써 있어요. 근데 좋은 운은 오래 안 가요. 그건 아시죠.",
-      "sourceHash": "d6e630d670b8506c663c4a2d0e2904f6f6bc4d52c2a4cb9d6b100018b4ce19d8",
+      "source": "얼굴에 써 있어요. 근데 이런 날은 오래 안 가요.",
+      "sourceHash": "56cc9730d5b5535ac5b1b00da27c99e7ed5710f2d4feeef0d841b051fad07b2f",
       "translations": {
-        "ja": "顔に書いてあります。でも、よい運は長く続きません。それはご存じですよね。"
+        "ja": "お顔に書いてあります。でも、こういう日は長く続きません。"
       },
       "fields": {
         "ja": {

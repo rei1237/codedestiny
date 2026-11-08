@@ -1134,7 +1134,8 @@ function verifyFamousSajuAliasRoutesNoindex(baseDir) {
       continue;
     }
     assert(robots.includes("noindex"), `${htmlPath}: famous-saju detail must contain noindex robots`);
-    assert(googleBot.includes("noindex"), `${htmlPath}: famous-saju detail googlebot must contain noindex`);
+    // robots 계열 meta 는 robots 하나다(묶음 ③ T4). googlebot meta 가 다시 생기면 robots 의 noindex 를 뒤집지 않아야 한다.
+    assert(!googleBot || googleBot.includes("noindex"), `${htmlPath}: famous-saju detail googlebot meta, if present, must contain noindex`);
     assert(!sitemapPaths.has(route), `${sitemapPath}: unreviewed famous-saju detail must not be in sitemap: ${route}`);
   }
 
@@ -1159,7 +1160,8 @@ function verifyPrivateNoindexRoutes(baseDir) {
     const googleBot = getMetaContent(html, "googlebot").toLowerCase();
     assert(robots.includes("noindex"), `${htmlPath}: private route must contain noindex robots`);
     assert(robots.includes("nofollow"), `${htmlPath}: private route must contain nofollow robots`);
-    assert(googleBot.includes("noindex"), `${htmlPath}: private route googlebot must contain noindex`);
+    // robots 계열 meta 는 robots 하나다(묶음 ③ T4). googlebot meta 가 다시 생기면 robots 의 noindex 를 뒤집지 않아야 한다.
+    assert(!googleBot || googleBot.includes("noindex"), `${htmlPath}: private route googlebot meta, if present, must contain noindex`);
   }
 }
 

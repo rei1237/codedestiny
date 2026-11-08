@@ -172,9 +172,9 @@
     },
     {
       "id": "ep-19:28",
-      "source": "영냥이는 그 사이 혼자 앞서 걷고 있었다. 갈림길이 나와도 망설이지 않았다. 몇 번이고 와 본 길처럼.",
-      "sourceHash": "6fa4dc075fd896bc61bde920d55b7cf49954ad482317aaef533c6efacce56aad",
-      "t": "Meanwhile, Yeongnyangi walked ahead alone. Even at forks, he never hesitated. Like a route he'd taken many times."
+      "source": "영냥이는 그 사이 혼자 앞서 걷고 있었다. 갈림길이 나오면 코를 한 번 킁 하고는 바로 방향을 골랐다.",
+      "sourceHash": "dad1deded9d01c7ef57b77eaa0295097aea33426d367834302a47394b9a7429f",
+      "t": "Meanwhile, Yeongnyangi walked ahead alone. At each fork, he sniffed once and chose a direction."
     },
     {
       "id": "ep-19:29",
@@ -547,9 +547,9 @@
     },
     {
       "id": "ep-19:90",
-      "source": "너는… 왜 비 맞으면서 웃어.",
-      "sourceHash": "9ccb22b03f936e1ed0a2bd73e935ae93313605e7a426ecdaad306e5c6dcdcc93",
-      "t": "Why... are you smiling in the rain?"
+      "source": "손님은… 왜 비를 맞으면서 웃으세요.",
+      "sourceHash": "021765eec40a8fb18b241be4ffa917be73ac5e1e231be0394e0d81e303025aa4",
+      "t": "Dear guest… why are you smiling in the rain?"
     },
     {
       "id": "ep-19:91",
@@ -571,9 +571,9 @@
     },
     {
       "id": "ep-19:94",
-      "source": "비는 그냥 비야. 기분 좋을 것도 없어.",
-      "sourceHash": "94f613af9f63b1f3f146be11f8c2957d146ed1bc025d5a7894fe606aab369212",
-      "t": "Rain is just rain. There's nothing to be happy about."
+      "source": "비는 그냥 비예요. 기분 좋을 것도 없어요.",
+      "sourceHash": "7e30740a7b7ee2956cecf0fb63e6ddf0b73d750f61da2b2685e2f4345c1fc239",
+      "t": "Rain is merely rain. Nothing to be happy about."
     },
     {
       "id": "ep-19:95",
@@ -583,9 +583,9 @@
     },
     {
       "id": "ep-19:96",
-      "source": "질문이 많네. 빚진 쪽은 원래 질문을 안 하는 법인데.",
-      "sourceHash": "ad72ed66d8c89ee9d951cc9a7121861302d0cbaad95df058fcb6d0243e815ca3",
-      "t": "So many questions. Debtors aren't supposed to ask questions."
+      "source": "질문이 많으시네요. 빚진 쪽은 원래 질문을 안 하는 법인데요.",
+      "sourceHash": "1167146fa8547a4267de14cf4b65796b3e24fe45e40121ebb41cd63bcb8d007e",
+      "t": "So many questions. People in debt don't usually ask them."
     },
     {
       "id": "ep-19:97",
@@ -595,9 +595,9 @@
     },
     {
       "id": "ep-19:98",
-      "source": "그래. 이번엔 그렇게 끝내. 그게 너한테 나아.",
-      "sourceHash": "9a39687a1482f7066e0066102c6a29b7a9058d95173af168499fce6b607f1bf6",
-      "t": "Yes. Let it end that way this time. That's better for you."
+      "source": "그래요. 이쯤에서 끝내세요. 그게 손님께 나아요.",
+      "sourceHash": "bcf6c5fe9b1c75146bf0b8a5ec22565b5c9bff1149d445cba6b02e1845564df9",
+      "t": "Very well. Let us end it here. That would be better for you."
     },
     {
       "id": "ep-19:99",

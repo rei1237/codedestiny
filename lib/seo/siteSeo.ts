@@ -1,4 +1,5 @@
 import { BRAND_FACTS } from "../brand/brand-facts.mjs";
+import { META_NOINDEX_PREFIXES, isMetaNoindexPath } from "./index-policy.mjs";
 
 const SITE_SEO_TEXT_TRANSLATIONS = {
   ko: {
@@ -366,91 +367,10 @@ export const publicSeoPages: Record<string, PublicSeoPage> = {
   },
 };
 
-export const noindexPathPrefixes = [
-  // 선택형/놀이형 콘텐츠 임시 비노출 (기존 결과는 보존).
-  "/saju/love-simulation",
-  "/secret-house_real",
-  "/destiny-poker",
-  "/mini-games",
-  // 날짜별 보관 화면은 재방문 도구다. 기간별 정본과 반복되는 360개 URL은 검색에서 제외한다.
-  "/fortune/date",
-  '/neo-operation-room/strategy-books',
-  '/records',
-  '/consultations',
-  "/api",
-  "/api-hello-test",
-  "/admin",
-  "/auth",
-  "/login",
-  "/signup",
-  "/profile",
-  "/payment",
-  "/payments",
-  "/checkout",
-  "/success",
-  "/fail",
-  "/debug",
-  "/test",
-  "/dev-status",
-  "/me",
-  "/my",
-  "/points",
-  "/account/delete",
-  "/premium-unlock",
-  "/result",
-  "/results",
-  "/report/progress",
-  // 개인 다이어리. 이 목록은 isNoindexPath → isPrivateRoute 로 이어져 ShareWidget 도 지운다 —
-  // 개인 기록 화면에 공유 위젯이 뜨지 않는 것이 의도한 결과다.
-  "/diary",
-  "/animal/physio",
-  "/maya",
-  "/oracle/royal-tea",
-  "/oracle/sikojen-povailu",
-  "/palm-reading",
-  "/pdf",
-  "/premium",
-  "/premium-reports",
-  // 🔴 /saju-fpti 는 여기 없다. 2026-08-28 에 색인으로 되돌리면서(generate-sitemap.mjs 의
-  //    coreRoutes 주석) 사이트맵·_headers·page metadata 는 index 가 됐는데 이 목록만 남아
-  //    ShareWidget 이 사라져 있었다(2026-09-05 SEO 진단 F-07). 다시 넣지 말 것.
-  "/oracle/juyuk",
-  "/oracle/hwatu",
-
-  "/blog",
-  "/fortune/sikojen-povailu",
-  // AdSense 가 "가치 없는 콘텐츠"로 거절한 뒤 실측(out/, 2026-08-17)해 뺀 얇은 목록형·스텁 라우트.
-  // 고유본문(8-gram shingle 로 공통 크롬 제거) 기준: guides 카테고리 272~558자,
-  // famous-saju 카테고리 289~1,859자(4-gram Jaccard 중복도 84.4%), flower 399~449자.
-  // 🔴 `isNoindexPath` 의 `=== prefix || startsWith(prefix + "/")` 매칭이라 이웃을 삼키지
-  //    않는다 — `/guides/<slug>` 12개는 계속 색인 대상이다. 상위 접두로 줄이지 말 것.
-  //    (`/famous-saju/category` 는 2026-08-17 에 라우트째 삭제해 여기서 뺐다.)
-  // 🔴 이 목록을 고치면 scripts/generate-sitemap.mjs 의 복사본도 같은 커밋에서 함께 고친다.
-  // 🔴 `/flower` 는 **일부러 여기 없다.** 이 목록은 isNoindexPath → lib/seo.v2.ts:85
-  //    isPrivateRoute → lib/share.v2.ts:36 까지 흘러 ShareWidget 을 통째로 숨긴다
-  //    (app/components/ShareWidget.tsx:115). /flower/* 4개는 FeatureLandingPage 가
-  //    공유 버튼을 렌더하는 유료 랜딩이라, 색인만 끄려다 기능을 지우게 된다.
-  //    대신 각 페이지에서 generatePageMetadata({ noindex: true }) 로 선언한다.
-  //    아래 카테고리 18개는 ShareWidget 을 쓰지 않아(실측) 이 경로로 안전하다.
-  "/guides/category",
-  // 🔴 SeoLandingTemplate 계열(/physiognomy·/love·/compatibility·/saju/compatibility·/dream)은
-  //    **일부러 여기 없다.** SeoLandingTemplate.jsx:375 가 DeferredShareWidget 을 렌더하므로
-  //    /flower 와 같은 사유로 공유 버튼이 사라진다. 그쪽은 페이지 단위 noindex 로 처리했다.
-  // 🔴 이 목록을 고치면 scripts/generate-sitemap.mjs 의 복사본도 같은 커밋에서 함께 고친다.
-  //
-  // 🔴 `/fortune/weekly`·`/fortune/monthly` 는 2026-08-17 에 여기 있었고 2026-08-28 에 뺐다.
-  //    다시 넣지 말 것 — 그 48개(+허브 2)는 광고를 못 붙이는 라우트라 색인을 빼도 얻는 것이
-  //    없었고, 색인 재고의 절반을 잠그는 값만 치렀다. 되돌린 근거는 셋이다.
-  //    ① 중복도는 크롬 제거 8-gram Jaccard 24~38% 로, 색인을 유지 중인 today↔tomorrow(31.1%)
-  //       와 같은 범위다 — 그 둘을 두면서 weekly·monthly 만 빼는 근거가 없다.
-  //    ② 기간 축은 #766 이후 실제로 갈린다(lib/fortune/period-readings.ts 96편 ·
-  //       lib/fortune/period-faqs.ts 의 기간별 계산 근거 문답).
-  //    ③ 광고 인벤토리는 그대로 0 이다 — adsense-route-policy.js 의 CONTENT_PREFIXES 에는
-  //       여전히 `/fortune/today`·`/fortune/tomorrow` 만 있다. 색인만 돌려받는다.
-  //    되돌리면서 다시 적용되는 게이트: verify-adsense-readiness 의
-  //    verifyBlockedIndexableSitemapRouteQuality(광고 불가 + 사이트맵 등재 + noindex 아님
-  //    → 가시 텍스트 1,800자 이상)와 색인 제목·설명 표시 폭 검사다.
-] as const;
+// 메타 noindex 접두 목록. 정본은 lib/seo/index-policy.mjs(색인 원장)의 meta:"noindex" 항목이고, 순서까지 예전 배열과 같다.
+// 🔴 이 목록은 isNoindexPath → lib/seo.v2.ts isPrivateRoute → ShareWidget 숨김까지 흐른다. /flower·SeoLandingTemplate 계열을
+//    여기 넣지 않는 이유, /saju-fpti·/fortune/weekly·monthly 를 다시 넣지 않는 이유는 원장 주석에 있다.
+export const noindexPathPrefixes = META_NOINDEX_PREFIXES;
 
 export function normalizeSeoPath(pathOrUrl: string): string {
   const raw = String(pathOrUrl || "/").trim();
@@ -468,8 +388,7 @@ export function normalizeSeoPath(pathOrUrl: string): string {
 }
 
 export function isNoindexPath(pathOrUrl: string): boolean {
-  const path = normalizeSeoPath(pathOrUrl);
-  return noindexPathPrefixes.some((prefix) => path === prefix || path.startsWith(`${prefix}/`));
+  return isMetaNoindexPath(pathOrUrl);
 }
 
 export function toCanonicalUrl(pathOrUrl: string): string {

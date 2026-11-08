@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { generatePageMetadata } from "../../../../lib/generate-page-metadata";
+import { ROBOTS_META } from "../../../../lib/seo/index-policy.mjs";
 
 const SIKOJEN_POVAILU_PLAY_METADATA_COPY = {
   ko: {
@@ -42,14 +43,7 @@ const META = {
 export function generateMetadata() {
   return {
     ...generatePageMetadata(META),
-    robots: {
-      index: false,
-      follow: false,
-      googleBot: {
-        index: false,
-        follow: false,
-      },
-    },
+    robots: ROBOTS_META.NOINDEX,
   };
 }
 

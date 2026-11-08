@@ -9,6 +9,7 @@
  * 지금은 기간마다 실제로 다른 축을 쓴다(lib/fortune/build-view.ts 참고).
  */
 import { notFound } from "next/navigation";
+import { localeSiblings } from "@/lib/seo/hreflang.mjs";
 import { buildSeoMetadata } from "@/lib/seo";
 import {
   buildArticleJsonLd,
@@ -133,13 +134,7 @@ export function generateMetadata({ params }: { params: { period: string; sign: s
     // 이 라우트는 Article JSON-LD 를 내면서 og:type 만 기본값 website 였다(lib/seo.ts:87).
     // 기간 허브(/fortune/{period})는 목록이라 website 가 맞으므로 상세만 바꾼다.
     ogType: "article",
-    hreflang: {
-      ko: seo.path,
-      en: `/en${seo.path}`,
-      ja: `/ja${seo.path}`,
-      "zh-CN": `/zh${seo.path}`,
-      "zh-TW": `/zh-tw${seo.path}`,
-    },
+    hreflang: localeSiblings(seo.path),
   });
 }
 

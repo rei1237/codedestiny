@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { ROBOTS_META } from "../../lib/seo/index-policy.mjs";
 
 const POINTS_LAYOUT_TEXT_TRANSLATIONS = {
   ko: {
@@ -23,14 +24,7 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "/points/",
   },
-  robots: {
-    index: false,
-    follow: false,
-    googleBot: {
-      index: false,
-      follow: false,
-    },
-  },
+  robots: ROBOTS_META.NOINDEX,
 };
 
 // 🔴 여기에 h1 을 두지 말 것 (2026-08-28 제거).

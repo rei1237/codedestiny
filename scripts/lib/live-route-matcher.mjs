@@ -24,9 +24,11 @@ function collectAppPages(rootDir) {
 }
 
 function readLocaleSegments(rootDir) {
-  const localeSource = resolve(rootDir, "lib/i18n/locales.ts");
+  // 로케일 데이터 원본은 lib/i18n/locale-data.mjs 다(locales.ts 는 타입만 입힌다). 옛 구조 픽스처는 locales.ts 로 받는다.
+  const dataSource = resolve(rootDir, "lib/i18n/locale-data.mjs");
+  const localeSource = existsSync(dataSource) ? dataSource : resolve(rootDir, "lib/i18n/locales.ts");
   if (!existsSync(localeSource)) {
-    throw new Error("[sitemap] 활성 로케일 원본 lib/i18n/locales.ts 가 없습니다.");
+    throw new Error("[sitemap] 활성 로케일 원본 lib/i18n/locale-data.mjs 가 없습니다.");
   }
 
   const segments = new Set(
@@ -35,7 +37,7 @@ function readLocaleSegments(rootDir) {
       .filter(Boolean),
   );
   if (segments.size === 0) {
-    throw new Error("[sitemap] lib/i18n/locales.ts 에서 활성 로케일 경로를 찾지 못했습니다.");
+    throw new Error(`[sitemap] ${localeSource} 에서 활성 로케일 경로를 찾지 못했습니다.`);
   }
   return segments;
 }

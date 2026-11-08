@@ -1,7 +1,7 @@
 ---
 status: active
-updated: 2026-11-04
-next: "superpowers:writing-plans로 묶음 ③ B+A3 원장·hreflang 계획을 쓴다(묶음 ② 운영 반영은 2026-11-03 실측 끝, 작은 후속은 docs/handoff/2026-11-02-seo-post-promotion-followups.md)"
+updated: 2026-11-09
+next: "묶음 ④: 검색 원자료 확보 → 검색어×페이지 매핑·홈 역할 결정 → 승인 패킷. ③ 운영 검증과 최종 기록 전달 완료."
 ---
 
 # SEO 아키텍처 재구축
@@ -15,12 +15,37 @@ next: "superpowers:writing-plans로 묶음 ③ B+A3 원장·hreflang 계획을 �
 
 1. 이 워크트리에서 이어 간다: `D:\Development\codedestiny-worktrees\seo-architecture-rebuild-20261101-135310`(브랜치 `wt/seo-architecture-rebuild-20261101-135310`). 새 워크트리를 만들지 않는다. 두 문서는 origin/main에도 있다.
 2. `git fetch origin` → `git status` → `git log --oneline -3`. origin/main이 앞서 있으면 `git rebase origin/main`.
-3. 설계 문서를 끝까지 읽고 superpowers:writing-plans로 묶음 ① 계획을 쓴다. 브레인스토밍과 설계 승인은 끝났다. 설계 문서의 '확정된 결정'·'설계 판단'은 다시 묻지 않고, 운영 승격만 묶음마다 승인받는다.
+3. 묶음 ③은 운영 반영 완료다. frontmatter next의 묶음 ④부터 필요한 설계 절만 읽고 진행한다. 다음 묶음의 운영 승격은 별도 승인 대상이다.
 4. `D:\Development\seo-data\code-destiny\2026-11-01\`(Codex 수집본, `manifest.csv`·`README.md`)이 생겼는지 본다. 생겼으면 설계 문서 근거 부록 6(원인 판정)과 묶음 ④ 매핑에 반영한다.
 
 ## 지금 상태
 
-- 운영 SHA `9ecd08743`(2026-11-04, 릴리스 런 https://github.com/rei1237/codedestiny/actions/runs/41739205895). 앞선 운영 `bf9c77a64` 위에 영냥이 AEO 결정 반영과 다른 세션 커밋이 더해졌다. 묶음 ③은 시작하지 않았다.
+### 2026-11-09 묶음 ③ 운영 반영 완료
+
+- **최종 문서 전달 게이트 해소**: 공유 main 72fed7684의 CI https://github.com/rei1237/codedestiny/actions/runs/42505056922 는 VN 문서 status: in-progress 때문에 실패했었다. 사용자 추가 승인(2026-11-09) 원문 “한 줄 수정과 후속 push 승인”. 재개 시 다른 작업이 9e7ee899717beab7a6d168a32796ab8c13318a0f에서 active로 정규화했고 CI https://github.com/rei1237/codedestiny/actions/runs/42507044209 가 성공했음을 확인했다. 기존 수정을 보존해 최종 SEO 기록을 전달한다. 준비했던 vn-handoff-status-fix.patch는 적용하지 않았다.
+
+- 사용자 요청: 승인 패킷을 참조해 남은 SEO 작업 마무리. 이 세션에서 묶음 ③ main 전달·운영 실측·읽기 전용 SEO Operations를 완료했다. 묶음 ④·⑤와 KPI 관찰은 아래 선행 조건 때문에 완료로 처리하지 않는다.
+- 승인 원문(2026-11-09): “main push + 운영 승격 1회 승인”, 추가 “3개 포함해 운영 승격 진행”. 추가 잠금화면 커밋 90e7c43f4·5027fdb66·87c6e54dd 및 같은 기능의 Java 캡션 후속 e2190a629를 보존했다.
+- SEO 구현 전달 SHA: 2faaa262b9ceb7fc01f77496b711d0972ccc1000. 구현 후속 커밋 37cb17270은 IndexNow 공개 3쪽 오탐과 canonical 검증기의 argv 없는 import 오류를 고쳤다. 비공개 하위 경로·쿼리·해시·인코딩 우회 차단은 유지했다.
+- 공식 CI 성공: https://github.com/rei1237/codedestiny/actions/runs/42503460206 . 스테이징 성공: https://github.com/rei1237/codedestiny/actions/runs/42503516402 . npm run verify:staging -- --sha=2faaa262b9ceb7fc01f77496b711d0972ccc1000에서 Pages·Worker 둘 다 일치.
+- 승격 직전 main이 VN 작업의 37개 커밋을 포함한 72fed768472e292055df9c29a5bec27ee9e0e934로 전진하여 이 세션의 production dispatch는 SHA 안전 검사에서 실행되지 않았다. VN의 별도 운영 승인(2026-11-09, docs/handoff/vn-oh-story-rewrite-2026-11-08.md의 “운영배포도해야지”)으로 이미 시작된 공유 운영 릴리스 https://github.com/rei1237/codedestiny/actions/runs/42505123236 가 성공했다. 이 릴리스는 SEO 전달 SHA를 포함한다. 추가 production dispatch는 하지 않았다.
+- 운영 Pages /version.json 및 Worker /api/version 모두 72fed768472e292055df9c29a5bec27ee9e0e934 실측. /fortune/·/en/·/saju/ 모두 200, 자기 canonical 1개, robots 1개, googlebot 메타 0개, hreflang 9개 집합과 사이트맵 일치. 홈 ko·x-default=/ggulggul/ 유지. 증거 production-before-20261109.json·production-after-20261109.json.
+- 공유 운영 릴리스의 fresh verify-dist: 실패 0·경고 0. IndexNow: 사이트맵 1062 URL, 변경 775 URL, HTTP 200, 성공 체크포인트 저장. 로그 production-release-20261109.log.
+- SEO Operations daily 성공: https://github.com/rei1237/codedestiny/actions/runs/42506670432 . 계정의 사이트맵 재제출·수집 요청은 하지 않았다.
+- 로컬 검증: 검출기 67, IndexNow 7, canonical/verify-dist 38, Node 전체 4700, 잠금화면 10 통과. check:pre-push는 리베이스 후 exit 0. check:fast는 Jest 이전 전부 통과한 뒤 장시간 요약 없는 로컬 Jest만 중단해 exit 1. 전체 통과로 기록하지 않으며 동일 SEO 전달 트리의 공식 CI 성공으로 Jest를 포함한 검증을 완료했다. 실 LLM·실결제·운영 DB 쓰기 없음.
+- 문서 상태 in-progress는 기존 검증기의 active/blocked/done 계약과 달라 실패했다. 해당 문서 커밋 4b2522f83만 4cae63642로 revert하고 active로 복구했다. 다른 세션의 프로세스·루트 미커밋 변경·워크트리를 건드리지 않았다.
+- 예비 측정(기존 dist, build 66e63dee6): 2027 13쪽 main 본문 최소 3974자, 1800자 미달 0. 12띠의 정확히 일치하는 문단 기준 고유 비율 최소 약 91.9%, 문자 5-gram 최대 겹침 약 55.4%. 별도 진단 기준이며 E1 합격 판정이 아니다. 다국어 501쪽 SSR 한글 혼용 비율도 기록했으며 CSS 가시성·클라이언트 렌더·번역 품질은 미판정. 색인 정책 변경 없음.
+- 증거 정본: D:/Development/seo-audit/code-destiny-20261101/bundle-3/approval-packet.md 및 같은 폴더 regression/, delivered-files-20261109.txt. 예비 측정은 bundle-4/와 bundle-5/의 JSON.
+- 남은 조건: D:/Development/seo-data/code-destiny/2026-11-01/ 원자료가 아직 없다. 묶음 ④의 검색어×페이지 매핑·홈 대표 URL 결정을 추정으로 채우지 않는다. ⑤는 설계대로 ④ 이후 50~100쪽씩 검증·승격하며 7·28·90일 성과는 아직 미측정. 이 프로젝트 인수인계와 기존 SEO 워크트리는 후속 단계용으로 유지한다.
+
+### 2026-11-08 이전 기록
+
+- 묶음 ③ 로컬 완료, 승인 대기(2026-11-08). origin/main `9e8cec0a6`(= 운영 `/version.json`) 위로 리베이스해 16커밋, HEAD `66e63dee6` 뒤에 이 문서 커밋. 리베이스 전 상태는 태그 `bundle3-pre-rebase`. 아래 SHA는 리베이스 전 값이다(리베이스 뒤: 계획 `6d801c27a`, T1 `018d10f55`, T2 `a08a0b134`, T3 `a6e87e1e3`, T4 `ea47b6b9a`, T5 `846473190`, T6 `4c9ccfe24`, T7 `4e40665a2`, 정책 페이지 `651667e09`, T8 `665f6489b`, T9 `f847607c4`). 리베이스 판단: upstream `0b70e9801`의 `/business/api/dashboard` 사이트맵 제외를 원장에 `meta: null, sitemap: false`로 옮김. 그 커밋의 coreRoutes 2줄(`/business/api`, `/business/api/docs`)은 첫 충돌 해결 때 빠져 `ea47b6b9a`에서 되살림(`a6e87e1e3`만 두 줄이 없다). 생성 파일 충돌은 생성기를 다시 돌려 해결. T10 결과: 최종 build:cf exit 0, verify-dist 실패 0·경고 0(hreflang-sitemap warn 185 → fail 0), index-state 차이는 upstream 새 페이지 3개뿐, 회귀 묶음 전부 exit 0, `check:pre-push` exit 0. 승인 패킷 `D:/Development/seo-audit/code-destiny-20261101/bundle-3/approval-packet.md`. 이전 기록: 계획 `1c448dd3c`, T1 `abbaa53ad`, T2 `5f05c0104`, T3 `e26a56301`, T4 `f64bb98d2`(googlebot meta 0, 페이지당 robots meta 최대 1, `index-state-t4.json` diff 0줄), T5 `1c2bdba88`, T6 `125794c4c`, T7 `6602003eb`, 정책 페이지 재생성 `4c077642b`, T8 `5a81a33a3`(verify-dist 규칙 robots-meta-count·index-ledger·hreflang-reciprocal 추가, 홈 클러스터 셸 5쪽 hreflang 을 빌드 때 alternatesFor(I18N_ROUTE_MAP.home)로 교체 → hreflang-sitemap 5→0, 네 규칙 모두 실 dist 0건이라 fail 로 올림, `verify-dist-t8.json` 실패 0·경고 0, `index-state-t8.json` diff 0줄), T9 `800556f5d`(submitIndexNowUrls·getAllSitemapUrls 삭제, INDEXNOW_ENDPOINT 는 export 로 유지, 근거 `dead-code-grep.txt`; seo-site-urls 변경으로 사이트맵 서명 120·lastmod 17건 재생성). 남은 것은 T10. T7 뒤 build:cf: verify-dist 실패 0, hreflang-sitemap 185→5(정적 셸 `/ggulggul/`·`/en/`·`/ja/`·`/zh/`·`/zh-tw/`의 index.html 블록 ko-KR·ja-JP·en-US), `index-state-t7.json` diff 0줄. 증거는 `D:\Development\seo-audit\code-destiny-20261101\bundle-3\`(기준 `build-before.log`·`verify-dist-before.json`·`index-state-before.json`, T3 뒤 `index-state-t3.json` diff 0줄).
+  - 기준 verify-dist: 실패 0, hreflang-sitemap 경고 185(80·1·100·4).
+  - 빌드에 `ALLOW_DEV_SERVER_DURING_BUILD=1`이 필요하다. 다른 세션 dev 서버(포트 32722)가 돌고 가드는 디렉터리를 가리지 않는다. 이 워크트리 `.next`는 별도 폴더다.
+  - T4 함정: `verify-adsense-readiness`의 `verifyPrivateNoindexRoutes`가 `googleBot.includes("noindex")`를 단언한다. 정적 셸 robots 문자열(`static-shell-route-meta.mjs`)도 T4에서 정한다.
+  - 사이트맵 쪽 파생 목록은 원소만 같고 순서는 다르다(`.some()`이라 무관). adsense 목록 3종은 뜻이 달라 원장 밖에 두고 부분집합 가드 테스트만 넣었다.
+- 운영 SHA `9e8cec0a6`(2026-11-08 `/version.json` 실측, origin/main과 같다). 그 전 기록: `9ecd08743`(2026-11-04, 릴리스 런 https://github.com/rei1237/codedestiny/actions/runs/41739205895). 앞선 운영 `bf9c77a64` 위에 영냥이 AEO 결정 반영과 다른 세션 커밋이 더해졌다. 묶음 ③은 시작하지 않았다.
   - 2026-11-04 릴리스 런 41729564058(`914fca524`)은 배포 전 테스트에서 막혔고, 원인과 수정은 `docs/handoff/2026-11-03-aeo-remaining-work.md`의 "운영 재반영 완료"를 본다.
   - 아래 두 줄의 상세 실측은 이전 운영 `bf9c77a64` 기준이다. `9ecd08743`에서는 SHA, 주요 경로 상태 코드, `ai_source`만 다시 쟀다.
   - 실측(2026-11-04, 한국 IP, Chrome UA, `Accept: text/html`): `/version.json`·`/api/version`이 `bf9c77a64`. `/`·`/saju/`·`/en/saju/` 200 `private, no-cache`. `/checkout/`·`/account/password/`·`/admin/`·`/login/`·`/diary/` 200 `private, no-store`. `/saju`·`/index.html` 절대 URL 301 `no-store`. `/?lang=en` 302 `private, no-store`. 해외 IP는 측정하지 않았다.
@@ -61,7 +86,7 @@ next: "superpowers:writing-plans로 묶음 ③ B+A3 원장·hreflang 계획을 �
   - [x] main push (2026-11-02, HEAD는 이 문서 커밋)
   - [x] 운영 배포 승인(2026-11-02, 후속 정리 그룹 D 포함) → 승격 런 https://github.com/rei1237/codedestiny/actions/runs/41335766465 (main `6d514ecaf`). `/version.json` gitSha `6d514ecaf` 일치 확인(2026-11-02), 작은 후속은 `docs/handoff/2026-11-02-seo-post-promotion-followups.md`
 - [x] 묶음 ② — vm 하네스 5개국×3UA 불변, 절대 Location 301 한 번, 결제 회귀 통과
-- [ ] 묶음 ③ — 전 URL 색인 상태 diff 0, HTML과 사이트맵의 hreflang 집합 일치
+- [x] 묶음 ③ — main·공식 CI·스테이징·공유 운영 릴리스·SEO 실측·daily Operations 완료(2026-11-09)
 - [ ] Codex 수집본 반영 → 묶음 ④ → 묶음 ⑤ → F
 - [ ] 최종 산출물 6종(설계 문서 '최종 산출물')
 - [ ] 끝: 이 문서 `status: done`, 워크트리 배수(junction 해제 → `git worktree remove --force` → `git branch -d`)

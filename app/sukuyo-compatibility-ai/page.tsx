@@ -9,7 +9,7 @@ import {
 import SukuyoNarrativeSections from "./_sections/SukuyoNarrativeSections";
 import ImmersiveRelatedLinks from "../components/ImmersiveRelatedLinks";
 import { buildKrwOffer } from "@/lib/seo/paid-offer";
-import { createHreflangFromRoutes } from "@/lib/seo/createHreflang";
+import { alternatesFor, toNextLanguages } from "@/lib/seo/hreflang.mjs";
 import { introductionRoutes } from "@/lib/i18n/feature-introductions.mjs";
 
 const PAGE_PATH = "/sukuyo-compatibility-ai/";
@@ -22,7 +22,7 @@ export const metadata: Metadata = {
   description: PAGE_DESCRIPTION,
   alternates: {
     canonical: "/sukuyo-compatibility-ai/",
-    languages: createHreflangFromRoutes(introductionRoutes("sukuyo-compatibility-ai")),
+    languages: toNextLanguages(alternatesFor(introductionRoutes("sukuyo-compatibility-ai"))),
   },
   openGraph: {
     ...ROOT_OPEN_GRAPH,

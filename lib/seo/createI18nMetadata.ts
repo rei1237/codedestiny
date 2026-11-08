@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import { SEO_CORE_KEYWORDS, mergeKeywords } from "../seo-metadata";
 import { getSeoProfileKeywords } from "./entity-registry.mjs";
-import { LOCALE_CONFIG, Locale, SEO_INDEXABLE_LOCALES } from "../i18n/locales";
-import { siteSeo } from "./siteSeo";
-import { createCanonicalFromLocaleRoutes, createHreflangFromRoutes } from "./createHreflang";
+import { LOCALE_CONFIG, type Locale, SEO_INDEXABLE_LOCALES } from "../i18n/locales";
+import { siteSeo, toCanonicalUrl } from "./siteSeo";
+import { alternatesFor, toNextLanguages } from "./hreflang.mjs";
 import { truncateToDisplayWidth } from "../seo";
+import { ROBOTS_META } from "./index-policy.mjs";
 
 type CreateI18nMetadataInput = {
   locale: Locale;
@@ -32,8 +33,10 @@ export function createI18nMetadata(input: CreateI18nMetadataInput): Metadata {
   const localeConfig = LOCALE_CONFIG[locale];
   const localeIsIndexable = (SEO_INDEXABLE_LOCALES as readonly string[]).includes(locale);
   const shouldNoindex = noindex || !localeIsIndexable;
-  const canonical = createCanonicalFromLocaleRoutes(locale, routeByLocale);
-  const languages = localeIsIndexable ? createHreflangFromRoutes(routeByLocale) : undefined;
+  // 색인하지 않는 로케일은 ko 정본을 가리킨다.
+  const canonical = toCanonicalUrl(localeIsIndexable ? routeByLocale[locale] : routeByLocale.ko);
+  const alternates = localeIsIndexable ? toNextLanguages(alternatesFor(routeByLocale)) : {};
+  const languages = Object.keys(alternates).length > 0 ? alternates : undefined;
   const imageUrl = image.startsWith("http") ? image : new URL(image, siteSeo.siteUrl).toString();
   const mergedKeywords = mergeKeywords(
     locale === "ko" ? SEO_CORE_KEYWORDS : [],
@@ -84,25 +87,8 @@ export function createI18nMetadata(input: CreateI18nMetadataInput): Metadata {
       images: [imageUrl],
     },
     robots: shouldNoindex
-      ? {
-          index: false,
-          follow: false,
-          googleBot: {
-            index: false,
-            follow: false,
-          },
-        }
-      : {
-          index: true,
-          follow: true,
-          googleBot: {
-            index: true,
-            follow: true,
-            "max-image-preview": "large",
-            "max-snippet": -1,
-            "max-video-preview": -1,
-          },
-        },
+      ? ROBOTS_META.NOINDEX
+      : ROBOTS_META.INDEX,
     other: {
       "content-language": localeConfig.htmlLang,
     },

@@ -1,7 +1,9 @@
-import { LOCALE_CONFIG, LOCALES, Locale, LOCALE_NAVIGATION_LOCALES } from "./locales";
+import { LOCALE_CONFIG, LOCALES, type Locale, LOCALE_NAVIGATION_LOCALES } from "./locales";
 import { TRUST_LOCALES } from "./public-trust-copy.mjs";
+import { I18N_ROUTE_MAP as ROUTE_MAP_DATA } from "./locale-data.mjs";
 
-export const I18N_ROUTE_KEYS = [
+// 값의 원본은 lib/i18n/locale-data.mjs(빌드 스크립트와 공유). 여기서는 타입만 입힌다.
+export const I18N_ROUTE_KEYS = Object.keys(ROUTE_MAP_DATA) as unknown as readonly [
   "home",
   "yeongnyangi",
   "ziwei",
@@ -10,70 +12,11 @@ export const I18N_ROUTE_KEYS = [
   "insights",
   "insightZiweiBasics",
   "insightSukuyoBasics",
-] as const;
+];
 
 export type I18nRouteKey = (typeof I18N_ROUTE_KEYS)[number];
 
-export const I18N_ROUTE_MAP: Record<I18nRouteKey, Record<Locale, string>> = {
-  home: {
-    // These translated shells describe Flower Pig, whose Korean home is /ggulggul.
-    // The Yeongnyangi root is a different service landing, not their translation.
-    ko: "/ggulggul",
-    ja: "/ja",
-    zh: "/zh",
-    "zh-TW": "/zh-tw",
-    en: "/en",
-  },
-  yeongnyangi: {
-    ko: "/yeongnyangi",
-    ja: "/ja/yeongnyangi",
-    zh: "/zh/yeongnyangi",
-    "zh-TW": "/zh-tw/yeongnyangi",
-    en: "/en/yeongnyangi",
-  },
-  ziwei: {
-    ko: "/ziwei",
-    ja: "/ja/ziwei",
-    zh: "/zh/ziwei",
-    "zh-TW": "/zh-tw/ziwei",
-    en: "/en/ziwei",
-  },
-  sukuyo: {
-    ko: "/sukuyo",
-    ja: "/ja/sukuyo",
-    zh: "/zh/sukuyo",
-    "zh-TW": "/zh-tw/sukuyo",
-    en: "/en/sukuyo",
-  },
-  today: {
-    ko: "/today",
-    ja: "/ja/today",
-    zh: "/zh/today",
-    "zh-TW": "/zh-tw/today",
-    en: "/en/today",
-  },
-  insights: {
-    ko: "/insights",
-    ja: "/ja/insights",
-    zh: "/zh/insights",
-    "zh-TW": "/zh-tw/insights",
-    en: "/en/insights",
-  },
-  insightZiweiBasics: {
-    ko: "/insights/ziwei-basics",
-    ja: "/ja/insights/ziwei-basics-jp",
-    zh: "/zh/insights/ziwei-basics-zh",
-    "zh-TW": "/zh-tw/insights/ziwei-basics-tw",
-    en: "/en/insights/ziwei-basics-en",
-  },
-  insightSukuyoBasics: {
-    ko: "/insights/sukuyo-basics",
-    ja: "/ja/insights/sukuyo-basics-jp",
-    zh: "/zh/insights/sukuyo-basics-zh",
-    "zh-TW": "/zh-tw/insights/sukuyo-basics-tw",
-    en: "/en/insights/sukuyo-basics-en",
-  },
-};
+export const I18N_ROUTE_MAP: Record<I18nRouteKey, Record<Locale, string>> = ROUTE_MAP_DATA;
 
 /**
  * 약관·정책 페이지의 로케일별 URL. `I18N_ROUTE_MAP` 과 분리한 이유는 refund-policy 에 ko 전용 URL 이

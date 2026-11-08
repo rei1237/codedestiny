@@ -9,7 +9,9 @@ import { register } from "node:module";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { STATIC_CANONICAL_ROUTES } from "./static-canonical-route-map.mjs";
+import { SITEMAP_EXCLUDED_EXACT_PATHS, SITEMAP_NOINDEX_PREFIXES, SITEMAP_PRIVATE_ROUTE_PATTERNS } from "../lib/seo/index-policy.mjs";
 import { createSitemapLastmodLedger } from "./lib/sitemap-lastmod.mjs";
+import { alternatesFor, localeSiblings } from "../lib/seo/hreflang.mjs";
 import { kstYmdToday } from "./lib/fortune-date.mjs";
 import { kstYmdPreviousDay } from "./lib/fortune-date.mjs";
 import { createLiveRouteMatcher } from "./lib/live-route-matcher.mjs";
@@ -68,102 +70,12 @@ const volatileToday = kstYmdToday();
 // 라우트·콘텐츠를 바꾸고 사이트맵을 갱신하지 않은 PR 을 CI 에서 잡기 위한 모드다.
 const checkOnly = process.argv.includes("--check");
 const LEDGER_CHECK_LABEL = "config/sitemap-lastmod.json";
-// 확장자가 있는 경로는 normalizeSitemapPath 가 후행 슬래시를 붙이지 않아
-// noindexPathPrefixes(startsWith prefix + "/")로 걸러지지 않는다. 정확 일치로 제외한다.
-const excludedExactSitemapPaths = new Set([
-  "/secret-house_real.html", "/destiny-poker.html",
-  // Retired presentations redirect to their canonical category or home.
-  "/kkul-kkul-unse/", "/saju/basic/", "/oracle/sukuyo/", "/vedic/jyotish/", "/astrology/cosmic/",
-  "/ifa-oracle.html",
-  "/account/delete/",
-]);
-// public/_headers 의 X-Robots-Tag: noindex 정책과 동기화 유지할 것.
-// noindex 경로를 사이트맵에 넣으면 GSC/네이버에서 "제출된 URL에 noindex" 오류가 난다.
-const noindexPathPrefixes = [
-  // 선택형/놀이형 콘텐츠 임시 비노출 (기존 결과는 보존).
-  "/saju/love-simulation",
-  "/secret-house_real",
-  "/destiny-poker",
-  "/mini-games",
-  // 날짜별 보관 화면은 재방문 도구다. 기간별 정본과 반복되는 360개 URL은 검색에서 제외한다.
-  "/fortune/date",
-  '/neo-operation-room/strategy-books',
-  '/records',
-  '/business/api/dashboard',
-  '/consultations',
-  "/animal/physio",
-  // 개인 다이어리 — 검색 대상이 아니다(로그인 없이도 열리지만 내용은 전부 사용자 기기 안에 있다).
-  "/diary",
-  "/maya",
-  "/oracle/royal-tea",
-  "/oracle/sikojen-povailu",
-  "/palm-reading",
-  "/pdf",
-  "/premium",
-  "/premium-reports",
-  // 2026-08-24: 이 목록에서 5개를 뺐다 — /saju/destiny-bias · /saju/love-simulation ·
-  // /saju-guardian · /tarot/healing · /neo-operation-room. 얇아서 뺐던 것이 맞지만 얇았던
-  // 이유는 본문이 없어서가 아니라 **본문이 클라이언트 JS 안에만 있어서**였다. page.tsx 에
-  // 서버 렌더 안내 섹션을 넣어 문장급 본문을 1,300자 이상으로 올린 뒤 색인으로 되돌렸다.
-  // 되돌리려면 lib/seo/siteSeo.ts · 리포 루트의 _headers ·
-  // scripts/verify-adsense-readiness.mjs 의 xRobotsNoindexHeaderPatterns 를 함께 볼 것.
-  // 🔴 _headers 정본은 리포 루트다 — public/_headers 는 sync:public 이 만드는 사본이라
-  //    거기만 고치면 다음 빌드가 되돌린다.
-  //
-  // 셸 사본만 존재하는 라우트(app 페이지가 없어 홈 셸 복사본이 곧 본문이다).
-  // 나머지 9개는 2026-08-23 에 app 랜딩을 살려 색인 대상으로 돌렸다 —
-  // docs/context/seo-and-adsense.md 참고.
-  "/oracle/juyuk",
-  "/oracle/hwatu",
-  "/blog",
-  "/fortune/sikojen-povailu",
-  // AdSense "가치 없는 콘텐츠" 거절 대응 — 얇은 목록형·스텁 22개(2026-08-17 out/ 실측).
-  // lib/seo/siteSeo.ts 의 noindexPathPrefixes 와 짝이다. 한쪽만 고치면
-  // "사이트맵에 있는데 noindex" 가 되어 GSC 가 「제출된 URL에 noindex」로 잡는다.
-  "/guides/category",
-  // (`/famous-saju/category` 는 2026-08-17 에 라우트째 삭제해 여기서 뺐다 — 사이트맵에
-  //  넣을 라우트 자체가 없다. `public/_redirects` 가 301 로 회수한다.)
-  "/flower",
-  // AdSense 재심사 대응 2차(2026-08-17 out/ 실측, 코퍼스=사이트맵 411개).
-  // ① 2026-08-17 에 여기 있던 `/fortune/weekly`·`/fortune/monthly` 는 2026-08-28 에
-  //    색인으로 되돌렸다(상세 48 + 허브 2). 그 라우트들은 광고를 못 붙어(CONTENT_PREFIXES 에
-  //    today·tomorrow 만 있다) 색인을 빼도 얻는 것이 없었고, 크롬 제거 8-gram Jaccard 로 잰
-  //    중복도 24~38% 는 색인을 유지 중인 today↔tomorrow(31.1%)와 같은 범위다.
-  //    🔴 되돌리는 쪽도 lib/seo/siteSeo.ts 의 noindexPathPrefixes 와 짝으로 움직인다 —
-  //    한쪽만 고치면 「사이트맵에 있는데 noindex」가 된다. 사유 전문은 그 파일에 있다.
-  // ② 2026-08-17 에 여기 있던 SeoLandingTemplate 얇은 라우트 5개
-  //    (/physiognomy·/love·/compatibility·/saju/compatibility·/dream)는 2026-08-20 에
-  //    본문을 채우고 색인으로 되돌렸다. 고유 본문 577~690자 → 1,294~1,638자로,
-  //    색인을 유지 중인 /tarot(1,153자)·/today(1,304자) 위다. 각 page.js 의
-  //    buildSeoMetadata({ noindex: true }) 도 같은 커밋에서 함께 걷어냈다.
-  //    `/dream` 을 되살리면 자식 `/dream/psycho`·`/dream/tarot` 의 유일한 인바운드
-  //    링크가 살아나므로 그 둘도 함께 색인된다 — coreRoutes 에 이미 등재돼 있다.
-  //    🔴 되돌릴 일이 생겨도 siteSeo.ts 의 목록에는 넣지 말 것. SeoLandingTemplate.jsx:375 가
-  //    DeferredShareWidget 을 렌더하므로 그쪽에 넣으면 isNoindexPath → isPrivateRoute →
-  //    share.v2 경로로 공유 버튼이 통째로 사라진다(/flower 와 같은 사유).
-];
-const privateRoutePatterns = [
-  /^\/api(?:\/|$)/,
-  /^\/admin(?:\/|$)/,
-  /^\/auth(?:\/|$)/,
-  /^\/login(?:\/|$)/,
-  /^\/signup(?:\/|$)/,
-  /^\/me(?:\/|$)/,
-  /^\/my(?:\/|$)/,
-  /^\/points(?:\/|$)/,
-  /^\/profile(?:\/|$)/,
-  /^\/payment(?:\/|$)/,
-  /^\/payments(?:\/|$)/,
-  /^\/checkout(?:\/|$)/,
-  /^\/premium-unlock(?:\/|$)/,
-  // 로그인 사용자 전용 비밀번호 변경 폼. 본문이 입력창뿐이라 색인 대상이 아니다.
-  /^\/account\/password(?:\/|$)/,
-  /^\/dev-status(?:\/|$)/,
-  /\/play(?:\/|$)/,
-  /\/stage(?:\/|$)/,
-  /\/start(?:\/|$)/,
-  /\/callback(?:\/|$)/,
-];
+// 사이트맵 제외 목록 세 개(정확 일치·noindex 접두·비공개 패턴)의 정본은 lib/seo/index-policy.mjs(색인 원장)다.
+// lib/seo/siteSeo.ts 의 메타 noindex 목록도 같은 원장 항목에서 나온다(한쪽만 고쳐 「사이트맵에 있는데 noindex」가 되는 일을 막는다).
+// 항목별 사유(🔴 포함)는 원장 주석에 옮겼다. 리포 루트 _headers 의 X-Robots-Tag 는 원장을 읽지 않으니 함께 본다.
+const excludedExactSitemapPaths = SITEMAP_EXCLUDED_EXACT_PATHS;
+const noindexPathPrefixes = SITEMAP_NOINDEX_PREFIXES;
+const privateRoutePatterns = SITEMAP_PRIVATE_ROUTE_PATTERNS;
 const isLiveRoute = createLiveRouteMatcher(rootDir);
 const excludedInsightCategories = new Set([
   "상담 윤리",
@@ -261,7 +173,8 @@ const coreRoutes = [
   // 만들면서 그 근거가 사라져 셋(사이트맵·_headers·verify-adsense-readiness 목록)을 함께 풀었다.
   // 클러스터 96개의 루트이므로 기간 허브와 같은 0.9 로 둔다. AdSense 비대상 라우트라
   // verify-adsense-readiness 가 렌더 텍스트 1,800자를 요구한다.
-  { path: "/fortune", changefreq: "daily", priority: 0.9 },
+  // 2026-11-08: 로케일 허브 4곳(/en·/ja·/zh·/zh-tw/fortune)이 이 셸을 ko 로 지목하므로 같은 묶음을 여기도 싣는다.
+  { path: "/fortune", changefreq: "daily", priority: 0.9, alternates: alternatesFor(localeSiblings("/fortune"), { origin: siteBaseUrl }) },
   { path: "/fortune/prompt-hub", changefreq: "monthly", priority: 0.7 },
   { path: "/oracle/rune", changefreq: "weekly", priority: 0.86 },
   { path: "/love-secret-ai", changefreq: "monthly", priority: 0.86 },
@@ -330,14 +243,6 @@ const coreRoutes = [
   { path: "/health-report/guide", changefreq: "monthly", priority: 0.78 },
   { path: "/music/guide", changefreq: "monthly", priority: 0.78 },
 ];
-
-const localeHreflangAliases = {
-  ko: ["ko", "ko-KR"],
-  ja: ["ja", "ja-JP"],
-  zh: ["zh-CN", "zh", "zh-Hans"],
-  "zh-TW": ["zh-TW", "zh-Hant"],
-  en: ["en", "en-US"],
-};
 
 const i18nRouteGroups = [
   // introductionRoutes()는 앱 라우트 세그먼트와 맞추려 소문자 "zh-tw" 키를 쓴다 —
@@ -559,12 +464,8 @@ function extractFortuneSignRoutes() {
   // /zh 는 간체, /zh-tw 는 번체 URL 계약이다.
   const localized = ["en", "ja", "zh", "zh-tw"];
   // href 는 <loc> 과 같은 정규화(끝 슬래시)를 거친다 — 슬래시 없는 URL 은 308 로 한 번 더 튀어 hreflang 상호 확인이 깨진다.
-  // ko 정본이 x-default 다(lib/i18n/routes.ts 의 hreflang 계약과 같다).
-  const hreflang = (base) => [
-    { hreflang: "ko", href: toUrl(normalizeSitemapPath(base)) },
-    ...localized.map((locale) => ({ hreflang: locale === "zh" ? "zh-CN" : locale === "zh-tw" ? "zh-TW" : locale, href: toUrl(normalizeSitemapPath(`/${locale}${base}`)) })),
-    { hreflang: "x-default", href: toUrl(normalizeSitemapPath(base)) },
-  ];
+  // ko 정본이 x-default 다. 묶음은 페이지 메타와 같은 함수(lib/seo/hreflang.mjs)가 만든다.
+  const hreflang = (base) => alternatesFor(localeSiblings(base), { origin: siteBaseUrl });
   const routes = [];
   for (const [period, changefreq] of Object.entries(periodChangefreq)) {
     routes.push({ path: `/fortune/${period}`, changefreq, priority: 0.9, alternates: hreflang(`/fortune/${period}`) });
@@ -708,25 +609,9 @@ function escapeXml(value) {
     .replace(/"/g, "&quot;");
 }
 
+// 페이지 메타와 같은 함수 하나가 묶음을 만든다 — 색인 형제만, 2개 미만이면 없음, x-default=ko(설계 판단 8).
 function buildI18nAlternates(paths) {
-  const links = [];
-  const seen = new Set();
-
-  for (const locale of ["ko", "ja", "zh", "zh-TW", "en"]) {
-    const path = paths[locale];
-    if (!path) continue;
-    const href = toUrl(normalizeSitemapPath(path));
-    for (const hreflang of localeHreflangAliases[locale] || []) {
-      const key = `${hreflang}|${href}`;
-      if (seen.has(key)) continue;
-      seen.add(key);
-      links.push({ hreflang, href });
-    }
-  }
-
-  const defaultHref = toUrl(normalizeSitemapPath(paths.ko || "/"));
-  links.push({ hreflang: "x-default", href: defaultHref });
-  return links;
+  return alternatesFor(paths, { origin: siteBaseUrl });
 }
 
 function buildI18nRouteEntries() {

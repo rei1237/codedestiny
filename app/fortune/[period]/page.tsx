@@ -6,6 +6,7 @@
  */
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { localeSiblings } from "@/lib/seo/hreflang.mjs";
 import { buildSeoMetadata } from "@/lib/seo";
 import { siteSeo } from "@/lib/seo/siteSeo";
 import { fortuneHubCopy } from "@/lib/i18n/fortune-hub-copy.mjs";
@@ -96,13 +97,7 @@ export function generateMetadata({ params }: { params: { period: string } }) {
     title: seo.title,
     description: seo.description,
     keywords: seo.keywords,
-    hreflang: {
-      ko: seo.path,
-      en: `/en${seo.path}`,
-      ja: `/ja${seo.path}`,
-      "zh-CN": `/zh${seo.path}`,
-      "zh-TW": `/zh-tw${seo.path}`,
-    },
+    hreflang: localeSiblings(seo.path),
   });
 }
 
