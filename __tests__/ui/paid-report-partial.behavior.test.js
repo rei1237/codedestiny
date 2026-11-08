@@ -15,14 +15,6 @@ function runFunction(file, name, state) {
   return context[name];
 }
 
-function readConstant(file, name) {
-  const source = fs.readFileSync(path.join(__dirname, "../..", file), "utf8");
-  const ast = ts.createSourceFile(file, source, ts.ScriptTarget.Latest, true);
-  const row = ast.statements.filter(ts.isVariableStatement).flatMap(node => [...node.declarationList.declarations]).find(node => node.name.getText(ast) === name);
-  assert.ok(row?.initializer, name);
-  return vm.runInNewContext(row.initializer.getText(ast));
-}
-
 test("compass storage errors cannot become a completed response", async () => {
   const persist = runFunction("worker/routes/destiny-compass-ai.js", "saveCompassDelivery", {
     resultStorageUnavailable: () => new Error("storage unavailable"),
@@ -92,21 +84,13 @@ for (const mode of ["solo", "compat"]) {
     // 미완 장을 "시도 가능 / 소진"으로 가르는 규칙은 테스트에 복제하지 않고 실제 함수를 꺼내 쓴다
     // — 웨이브·조회·크론이 같은 판정을 본다는 것이 이 수정의 핵심이다.
     const quality = await import("../../worker/lib/paid-report-quality.js");
-    const codexQuality = await import("../../worker/lib/master-love-codex-quality.js");
-    const { codexChapterFloor, codexChapterRepairFloor, codexDedupedChapterFloor } = codexQuality;
+    const { codexChapterFloor, codexChapterRepairFloor, codexDedupedChapterFloor } = await import("../../worker/lib/master-love-codex-quality.js");
     const codexTotalReady = runFunction("worker/routes/master-love-codex.js", "codexTotalReady", { ...quality, codexDedupedChapterFloor });
     const savedChapterRows = runFunction("worker/routes/master-love-codex.js", "savedChapterRows", { ...quality, codexDedupedChapterFloor });
-    const codexNeedsRepair = runFunction("worker/routes/master-love-codex.js", "codexNeedsRepair", {});
-    const codexRepairRatio = runFunction("worker/routes/master-love-codex.js", "codexRepairRatio", quality);
-    const codexEarlierBodies = runFunction("worker/routes/master-love-codex.js", "codexEarlierBodies", {});
-    const splitPendingChapters = runFunction("worker/routes/master-love-codex.js", "splitPendingChapters", {
-      CHAPTER_ATTEMPT_LIMIT: 3, codexTotalReady, codexNeedsRepair, codexRepairRatio,
-      CODEX_SESSION_REPAIR_CAP: readConstant("worker/routes/master-love-codex.js", "CODEX_SESSION_REPAIR_CAP"),
-    });
+    const splitPendingChapters = runFunction("worker/routes/master-love-codex.js", "splitPendingChapters", { CHAPTER_ATTEMPT_LIMIT: 3, codexTotalReady });
     const answerContract = await import("../../worker/lib/consultation-answer-contract.js");
     const wave = runFunction("worker/routes/master-love-codex.js", "runCodexWaveInternal", {
       ...answerContract,
-      ...codexQuality, codexNeedsRepair, codexEarlierBodies,
       sha256: value => value, syncCodexExecution: async () => true, splitPendingChapters, savedChapterRows, codexTotalReady,
       CODEX_EVIDENCE_VERSION: "test-evidence",
       clean: value => String(value || ""), resolveMode: () => ({ mode, chapters }),

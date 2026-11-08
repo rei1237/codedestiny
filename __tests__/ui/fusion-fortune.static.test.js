@@ -303,7 +303,7 @@ test("fusion colour and type come from one scoped token set", () => {
   for (const name of fs.readdirSync(dir).filter((file) => file.endsWith(".tsx"))) {
     const source = read(`app/fusion-fortune/${name}`);
     for (const [index, line] of source.split("\n").entries()) {
-      if (/backgroundColor:\s*["']#/.test(line)) continue;
+      if (/backgroundColor:\s*"#/.test(line)) continue;
       if (/(?:fill|stroke)="#/.test(line)) continue;
       if (/\|\|\s*"#/.test(line)) continue;
       const hex = line.match(/#[0-9a-fA-F]{6}\b/);
