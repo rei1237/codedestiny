@@ -55,6 +55,22 @@ final class LockScreenNotify {
         return new NotificationCompat.Builder(ctx, CHANNEL_ALARM).setSmallIcon(R.drawable.ic_stat_yeongnyangi).build();
     }
 
+    // Version 3 stored text pools but no art. Upgraded alarms may run before the reader opens.
+    private static String legacyImage(JSONObject options) {
+        String id = options.optString("talismanId");
+        String portrait = id.contains(":") ? id.substring(id.indexOf(':') + 1) : options.optString("pigPoseKey");
+        switch (portrait) {
+            case "cat-quote": return "/assets/yeongnyangi/companion/quote.webp";
+            case "cat-daily": return "/assets/yeongnyangi/companion/daily.webp";
+            case "yeoni": return "/assets/yeongnyangi/companion/yeoni.webp";
+            case "pig1": return "/images/fortune-tea-house/flower-pig-single-a.webp";
+            case "pig2": return "/images/fortune-tea-house/flower-pig-single-b.webp";
+            case "moka": case "yun": case "luna": case "rab": case "crow": case "universe":
+                return "/images/novel/world/" + portrait + ".webp";
+            default: return "/assets/yeongnyangi/original/hero-480.webp";
+        }
+    }
+
     static boolean postContent(Context ctx, int id, boolean test) {
         ensureChannels(ctx);
         SharedPreferences prefs = ctx.getSharedPreferences(CodeDestinyLockScreenPlugin.PREFS, Context.MODE_PRIVATE);
@@ -78,12 +94,17 @@ final class LockScreenNotify {
                     kind = candidate;
                 }
             }
+            if (kind.isEmpty()) kind = "talisman";
             if (snapshot.has("displayKind") && (!kind.equals(snapshot.optString("displayKind"))
                     || !options.optString("talismanId").equals(snapshot.optString("talismanId")))) return false;
-            if ("daily".equals(kind) && !"cat".equals(snapshot.optString("companionGroup", "cat"))) return false;
+            if ("daily".equals(kind) && !"cat".equals(snapshot.optString("companionGroup", "cat"))) kind = "talisman";
             if ("flower".equals(kind) && !"yeoni".equals(snapshot.optString("companionGroup"))) return false;
             boolean talisman = "talisman".equals(kind);
             JSONObject card = snapshot.optJSONObject(kind);
+            if (card == null && talisman && !snapshot.has("displayKind")) {
+                card = new JSONObject().put("title", "ko".equals(options.optString("locale", "ko")) ? "오늘의 부적" : "Talisman")
+                        .put("image", legacyImage(options));
+            }
             if (card == null) return false;
             SimpleDateFormat date = new SimpleDateFormat("yyyy-MM-dd", Locale.ROOT);
             date.setTimeZone(TimeZone.getTimeZone("Asia/Seoul"));
@@ -108,7 +129,7 @@ final class LockScreenNotify {
             PendingIntent tap = PendingIntent.getActivity(ctx, id, detail, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
             String safe = "daily".equals(kind) ? snapshot.optString("privateSummary", "CODE DESTINY") : text;
             android.graphics.Bitmap character = null;
-            String asset = snapshot.optJSONObject("talisman") == null ? "" : snapshot.getJSONObject("talisman").optString("image");
+            String asset = card.optString("image");
             if (talisman && asset.startsWith("/") && !asset.contains("..")) try (java.io.InputStream stream = ctx.getAssets().open("public" + asset)) {
                 android.graphics.BitmapFactory.Options bitmapOptions = new android.graphics.BitmapFactory.Options();
                 bitmapOptions.inSampleSize = 2;
