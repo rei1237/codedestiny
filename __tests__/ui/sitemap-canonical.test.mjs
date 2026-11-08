@@ -297,8 +297,8 @@ test('hreflang-sitemap splits HTML/sitemap differences and one-way sitemap annot
   assert.ok(result.details['hreflang-sitemap'].includes(`one-way ${SITE}/en/b/ → ${SITE}/b/`));
   assert.equal(result.counts['duplicate-description'], 1);
   assert.equal(result.counts['duplicate-title'], 0);
-  assert.deepEqual(result.failures, []);
-  assert.equal(result.warnings.length, 2);
+  assert.equal(result.failures.length, 1); // hreflang-sitemap 은 묶음 ③ T8 부터 fail
+  assert.equal(result.warnings.length, 1);
 });
 
 test('hreflang-sitemap: an HTML-only language is html-only, and a language whose href differs is one href-mismatch, not two findings', async () => {
@@ -314,6 +314,92 @@ test('hreflang-sitemap: an HTML-only language is html-only, and a language whose
   });
   const result = await inspectDist({ distDir: dir, edge: false, rules: ['hreflang-sitemap'] });
   assert.deepEqual(result.details['hreflang-sitemap'].sort(), [`href-mismatch ${SITE}/en/a/ [en]`, `html-only ${SITE}/a/ [ja]`]);
+});
+
+// 묶음 ③ T8: 원장 대조·robots meta 1개·HTML hreflang 상호 참조. 정상 1, 위반 1씩.
+const LEDGER_RULES = ['robots-meta-count', 'index-ledger', 'hreflang-reciprocal'];
+const pausedWorker = (names) => `export default { async fetch(request, env) {
+    const url = new URL(request.url);
+    if (/^\\/(?:${names})(?:\\.html|\\/index\\.html)?\\/?$/.test(url.pathname)) {
+      return new Response(null, { status: 302, headers: { Location: new URL('/ggulggul/', url).toString(), 'Cache-Control': 'no-store', 'X-Robots-Tag': 'noindex' } });
+    }
+    return env.ASSETS.fetch(request);
+  } };\n`;
+const hreflangLink = (lang, href) => `<link rel="alternate" hreflang="${lang}" href="${SITE}${href}">`;
+const robotsMeta = (content, name = 'robots') => `<meta name="${name}" content="${content}">`;
+
+function ledgerCleanFixture() {
+  const pair = hreflangLink('ko', '/a/') + hreflangLink('en', '/en/a/') + hreflangLink('x-default', '/a/');
+  return {
+    'sitemap.xml': urlset(['/a/', '/en/a/']),
+    'sitemap-index.xml': sitemapIndex(['sitemap-ko.xml']),
+    'sitemap-ko.xml': urlset(['/a/', '/en/a/']),
+    '_redirects': '',
+    '_headers': '/diary*\n  X-Robots-Tag: noindex, nofollow\n',
+    '_worker.js': pausedWorker('mini-games|saju\\/love-simulation'),
+    'a/index.html': htmlPage('/a/', { head: robotsMeta('index, follow, max-image-preview:large') + pair }),
+    'en/a/index.html': htmlPage('/en/a/', { head: robotsMeta('index, follow') + pair }),
+    'diary/index.html': htmlPage('/diary/', { head: robotsMeta('noindex, follow') }),
+  };
+}
+
+test('ledger rules pass a clean fixture: one robots meta, ledger-consistent meta/_headers/worker, reciprocal hreflang', async () => {
+  const dir = writeDist(ledgerCleanFixture());
+  const result = await inspectDist({ distDir: dir, edge: false, rules: LEDGER_RULES });
+  assert.deepEqual(result.details, { 'robots-meta-count': [], 'index-ledger': [], 'hreflang-reciprocal': [] });
+});
+
+test('ledger rules flag two robots metas, ledger/meta/_headers/worker conflicts, one-way hreflang and two x-defaults', async () => {
+  const dir = writeDist({
+    ...ledgerCleanFixture(),
+    'sitemap.xml': urlset(['/a/', '/en/a/', '/b/', '/en/b/', '/diary/']),
+    'sitemap-ko.xml': urlset(['/a/', '/en/a/', '/b/', '/en/b/', '/diary/']),
+    '_headers': '/diary*\n  X-Robots-Tag: noindex, nofollow\n/b/*\n  X-Robots-Tag: noindex\n',
+    '_worker.js': pausedWorker('mini-games|a'),
+    'a/index.html': htmlPage('/a/', {
+      head: robotsMeta('index, follow') + robotsMeta('index, follow', 'googlebot')
+        + hreflangLink('ko', '/a/') + hreflangLink('en', '/en/a/') + hreflangLink('x-default', '/a/') + hreflangLink('x-default', '/en/a/'),
+    }),
+    'b/index.html': htmlPage('/b/', { head: hreflangLink('ko', '/b/') + hreflangLink('en', '/en/b/') }),
+    'en/b/index.html': htmlPage('/en/b/', { head: hreflangLink('en', '/en/b/') }),
+    'diary/index.html': htmlPage('/diary/', { head: robotsMeta('index, follow') }),
+  });
+  const result = await inspectDist({ distDir: dir, edge: false, rules: LEDGER_RULES });
+  assert.deepEqual(result.details['robots-meta-count'], ['/a/: robots 계열 meta 2개 (index, follow | index, follow)']);
+  assert.deepEqual(result.details['index-ledger'].map((line) => line.replace(/:\s.*$/, '')).sort(), [
+    'header /b/', 'meta /diary/', `sitemap ${SITE}/diary/`, 'worker /a',
+  ].sort());
+  assert.deepEqual(result.details['hreflang-reciprocal'].sort(), [`one-way ${SITE}/b/ → ${SITE}/en/b/`, `xdefault-multiple ${SITE}/a/ (2개)`]);
+  assert.equal(result.failures.length + result.warnings.length, 3);
+});
+
+test('index-ledger counts an unreadable worker paused list instead of passing silently', async () => {
+  const dir = writeDist({ ...ledgerCleanFixture(), '_worker.js': FIXTURE_WORKER });
+  const result = await inspectDist({ distDir: dir, edge: false, rules: ['index-ledger'] });
+  assert.deepEqual(result.details['index-ledger'], ['worker 일시중지 302 목록을 읽지 못함']);
+});
+
+test('the repository worker paused list is readable and every paused path is ledger-excluded', async () => {
+  const { workerPausedPaths } = await import('../../scripts/seo/verify-dist.mjs');
+  const paused = workerPausedPaths(readFileSync(new URL('../../public/_worker.js', import.meta.url), 'utf8'));
+  assert.ok(paused?.includes('/saju/love-simulation'), JSON.stringify(paused));
+});
+
+test('home cluster shells get the alternatesFor(home) hreflang set in place of the root index.html block', async () => {
+  const { HOME_CLUSTER_SHELL_FILES, withHomeClusterHreflang } = await import('../../scripts/lib/static-shell-route-meta.mjs');
+  assert.deepEqual([...HOME_CLUSTER_SHELL_FILES], ['ggulggul/index.html', 'en/index.html', 'ja/index.html', 'zh/index.html', 'zh-tw/index.html']);
+  const shell = readFileSync(new URL('../../public/en/index.html', import.meta.url), 'utf8');
+  const out = withHomeClusterHreflang(shell);
+  const links = [...out.matchAll(/<link\s+[^>]*rel=["']alternate["'][^>]*hreflang=["']([^"']+)["'][^>]*href=["']([^"']+)["']/gi)].map(([, lang, href]) => `${lang} ${href}`);
+  assert.deepEqual(links, [
+    'ko https://code-destiny.com/ggulggul/', 'ja https://code-destiny.com/ja/',
+    'zh-CN https://code-destiny.com/zh/', 'zh https://code-destiny.com/zh/', 'zh-Hans https://code-destiny.com/zh/',
+    'zh-TW https://code-destiny.com/zh-tw/', 'zh-Hant https://code-destiny.com/zh-tw/',
+    'en https://code-destiny.com/en/', 'x-default https://code-destiny.com/ggulggul/',
+  ]);
+  assert.equal(out.match(/type=["']application\/rss\+xml["']/gi)?.length ?? 0, shell.match(/type=["']application\/rss\+xml["']/gi)?.length ?? 0, 'RSS alternate stays');
+  assert.ok(out.includes('<a href="/ggulggul/" hreflang="ko" lang="ko">KR</a>'), 'body language links stay');
+  assert.equal(withHomeClusterHreflang('<head><title>x</title></head>'), '<head><title>x</title></head>', 'no block, no insert');
 });
 
 test('edge rules run the dist worker over emulated Pages assets, and are skipped without a worker', async () => {
@@ -487,7 +573,8 @@ test('jsonld-dates counts future and unparsable dates on any node; valid, bounda
 test('RULES grades are pinned rule by rule', () => {
   assert.deepEqual(RULES, {
     'sitemap-page': 'fail', 'sitemap-set': 'fail', 'page-shape': 'fail', 'internal-404': 'fail', 'home-identity': 'fail',
-    'duplicate-title': 'warn', 'duplicate-description': 'warn', 'og-url': 'fail', 'og-home-title': 'fail', 'hreflang-sitemap': 'warn',
+    'duplicate-title': 'warn', 'duplicate-description': 'warn', 'og-url': 'fail', 'og-home-title': 'fail', 'hreflang-sitemap': 'fail',
+    'robots-meta-count': 'fail', 'index-ledger': 'fail', 'hreflang-reciprocal': 'fail',
     'robots-policy': 'fail', 'jsonld-syntax': 'fail', 'jsonld-id-type': 'fail', 'organization-name': 'fail', 'jsonld-dates': 'fail',
     'i18n-missing-text': 'fail',
     'edge-slash-308': 'fail', 'edge-country-302': 'fail', 'edge-crawler-cookie': 'fail',

@@ -14,11 +14,13 @@ import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from "no
 import { dirname, join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { BRAND_FACTS } from "../../lib/brand/brand-facts.mjs";
+import { isIndexablePath, isMetaNoindexPath } from "../../lib/seo/index-policy.mjs";
 import { renderRobotsTxt } from "../../lib/seo/robots-policy.mjs";
 import { checkSitemapPage, htmlFileFor, redirectSources, sitemapLocs } from "../verify-sitemap-canonical.mjs";
 import { robotsAllows, robotsSamples } from "../lib/robots-groups.mjs";
 import { PAGES, verifyPage } from "../verify-home-identity.mjs";
 import { distAssets, probeEdge } from "./edge-probe.mjs";
+import { collectIndexState } from "./index-state.mjs";
 import {
   decodeHtml, getCanonical, getH1s, getHreflang, getInternalLinks, getJsonLd, getMeta, getTitle, parseJsonLdDate, parseSitemapAlternates, stripTags,
 } from "./health-policy.mjs";
@@ -36,7 +38,13 @@ export const RULES = {
   "og-url": "fail",
   // 루트 레이아웃의 og:title 이 하위 페이지로 상속되면 모든 쪽이 홈과 같은 제목으로 공유된다. 홈이 아닌 쪽의 og:title 이 홈과 같으면 1건.
   "og-home-title": "fail",
-  "hreflang-sitemap": "warn",
+  "hreflang-sitemap": "fail",
+  // dist 의 모든 HTML 에서 robots 계열 meta(robots·googlebot)가 2개 이상이면 1건(묶음 ③ T4 에서 googlebot meta 를 걷었다).
+  "robots-meta-count": "fail",
+  // 원장(lib/seo/index-policy.mjs)과 산출물·엣지 설정의 대조. _headers·_worker.js 는 import 하지 않고 dist 사본을 읽는다.
+  "index-ledger": "fail",
+  // HTML hreflang 끼리의 상호 참조(A→B 면 B→A)와 x-default 1개. 사이트맵 쪽 one-way 는 hreflang-sitemap 이 본다.
+  "hreflang-reciprocal": "fail",
   // dist/robots.txt 가 정본(lib/seo/robots-policy.mjs)과 표본 UA×경로 판정·Sitemap 경로가 모두 같아야 한다.
   "robots-policy": "fail",
   // 사이트 전체 JSON-LD 정체성. 같은 @id 는 어느 페이지에서나 같은 @type, #organization 은 같은 name 이어야 한다.
@@ -396,6 +404,86 @@ function checkHreflangSitemap(site, distDir) {
   return details;
 }
 
+// robots-meta-count: 페이지마다 robots·googlebot meta 개수. 2개 이상이면 1건.
+function checkRobotsMetaCount(state) {
+  return state.filter((page) => page.robots.length > 1).map((page) => `${page.path}: robots 계열 meta ${page.robots.length}개 (${page.robots.join(" | ")})`);
+}
+
+const hasNoindexToken = (values) => values.join(",").toLowerCase().split(",").some((value) => ["noindex", "none"].includes(value.trim()));
+
+// public/_worker.js 의 일시중지 목록: `/^\/(?:mini-games|…)(?:\.html|\/index\.html)?\/?$/.test(…)` 다음 줄이 302 + X-Robots-Tag noindex.
+// 모양이 바뀌어 못 읽으면 null — 규칙이 조용히 약해지지 않게 1건으로 센다.
+const WORKER_PAUSED = /\/\^\\\/\(\?:([\w\-|\\/]+)\)[^\n]*\n\s*return new Response\(null, \{ status: 302\b[^\n]*X-Robots-Tag['"]?\s*:\s*['"]noindex/;
+export function workerPausedPaths(source) {
+  const match = source.match(WORKER_PAUSED);
+  return match ? match[1].split("|").map((name) => `/${name.replace(/\\\//g, "/")}`) : null;
+}
+
+// index-ledger: 원장 대조. 줄 머리말이 종류다.
+//   meta     원장 meta noindex 경로의 dist HTML 이 robots meta 에 noindex 가 없다
+//   header   _headers X-Robots-Tag noindex 가, 원장 색인 대상이고 meta 도 index 인 dist 페이지에 걸린다
+//   sitemap  사이트맵 loc 이 원장에서 색인 대상이 아니다
+//   worker   _worker.js 일시중지(302 noindex) 경로가 원장에서 색인 대상이다
+function checkIndexLedger(state, site, distDir) {
+  const details = [];
+  if (!isFile(join(distDir, "_headers"))) details.push("header _headers 없음");
+  for (const page of state) {
+    const metaNoindex = hasNoindexToken(page.robots);
+    if (isMetaNoindexPath(page.path) && !metaNoindex) details.push(`meta ${page.path}: 원장 noindex 인데 robots meta 가 index`);
+    if (page.headerRobots && hasNoindexToken([page.headerRobots]) && !metaNoindex && isIndexablePath(page.path)) {
+      details.push(`header ${page.path}: _headers ${page.headerRobots} 인데 원장 색인 대상`);
+    }
+  }
+  for (const { loc, path } of site.pages) {
+    let decoded = path;
+    try {
+      decoded = decodeURIComponent(path);
+    } catch { /* 그대로 본다 */ }
+    if (!isIndexablePath(decoded)) details.push(`sitemap ${loc}: 원장에서 색인 제외인데 사이트맵에 있다`);
+  }
+  const worker = readText(join(distDir, "_worker.js"));
+  const paused = worker == null ? null : workerPausedPaths(worker);
+  if (worker == null) details.push("worker _worker.js 없음");
+  else if (!paused) details.push("worker 일시중지 302 목록을 읽지 못함");
+  else for (const path of paused) if (isIndexablePath(path)) details.push(`worker ${path}: 일시중지(302 noindex)인데 원장 색인 대상`);
+  return details;
+}
+
+function comparableUrl(url) {
+  try {
+    return decodeURI(new URL(url).href);
+  } catch {
+    return url;
+  }
+}
+
+// hreflang-reciprocal: 사이트맵 페이지의 HTML hreflang 만 본다. 줄 머리말이 종류다.
+//   xdefault-multiple  x-default 가 2개 이상
+//   one-way            A 의 hreflang 에 B 가 있는데 B 의 HTML hreflang 에 A 가 없다(쌍마다 1건). B 가 사이트맵 밖이면 dist 파일을 읽는다.
+function checkHreflangReciprocal(site, distDir) {
+  const byUrl = new Map(site.pages.filter((page) => page.facts).map((page) => [comparableUrl(page.loc), page.facts.hreflang]));
+  const hrefsOf = (url) => {
+    if (!byUrl.has(url)) {
+      const html = readText(locFile(url, distDir));
+      byUrl.set(url, html == null ? null : getHreflang(html));
+    }
+    const list = byUrl.get(url);
+    return list ? new Set(list.map((alt) => comparableUrl(alt.href))) : null;
+  };
+  const details = [];
+  for (const { loc, facts } of site.pages) {
+    if (!facts?.hreflang.length) continue;
+    const from = comparableUrl(loc);
+    const xDefaults = facts.hreflang.filter((alt) => alt.lang.toLowerCase() === "x-default");
+    if (xDefaults.length > 1) details.push(`xdefault-multiple ${loc} (${xDefaults.length}개)`);
+    for (const to of new Set(facts.hreflang.map((alt) => comparableUrl(alt.href)))) {
+      if (to === from) continue;
+      if (!hrefsOf(to)?.has(from)) details.push(`one-way ${loc} → ${to}`);
+    }
+  }
+  return details;
+}
+
 // robots-policy: dist/robots.txt 와 정본(renderRobotsTxt)의 판정을 표본 UA×경로마다 견준다. 호스트는 보지 않는다
 // (스테이징 빌드의 siteUrl 이 다를 수 있다). 표에 없는 봇은 '*' 그룹 상속을, 소문자 googlebot 은 UA 대소문자
 // 무시를 본다. 경로는 서비스 구역마다 하나씩과 쿼리 규칙(/*?auth= 등)을 밟는 쪽을 고정으로 두고,
@@ -477,6 +565,12 @@ export async function inspectDist({ distDir, origin = BRAND_FACTS.service.siteUr
   if (wants("og-url")) details["og-url"] = checkOgUrl(site);
   if (wants("og-home-title")) details["og-home-title"] = checkOgHomeTitle(site, origin);
   if (wants("hreflang-sitemap")) details["hreflang-sitemap"] = checkHreflangSitemap(site, distDir);
+  if (wants("robots-meta-count") || wants("index-ledger")) {
+    const state = collectIndexState(distDir);
+    if (wants("robots-meta-count")) details["robots-meta-count"] = checkRobotsMetaCount(state);
+    if (wants("index-ledger")) details["index-ledger"] = checkIndexLedger(state, site, distDir);
+  }
+  if (wants("hreflang-reciprocal")) details["hreflang-reciprocal"] = checkHreflangReciprocal(site, distDir);
   if (wants("robots-policy")) details["robots-policy"] = checkRobotsPolicy(distDir, origin);
   if (wants("jsonld-syntax")) details["jsonld-syntax"] = checkJsonLdSyntax(site);
   if (wants("jsonld-id-type")) details["jsonld-id-type"] = checkJsonLdIdType(site);
@@ -516,7 +610,7 @@ export async function inspectDist({ distDir, origin = BRAND_FACTS.service.siteUr
 
 function printTable(result) {
   const breakdown = (rule) => {
-    if (rule !== "hreflang-sitemap" || !result.counts[rule]) return "";
+    if (!["hreflang-sitemap", "index-ledger", "hreflang-reciprocal"].includes(rule) || !result.counts[rule]) return "";
     const kinds = {};
     for (const line of result.details[rule]) kinds[line.split(" ")[0]] = (kinds[line.split(" ")[0]] || 0) + 1;
     return `  (${Object.entries(kinds).map(([kind, n]) => `${kind} ${n}`).join(" · ")})`;

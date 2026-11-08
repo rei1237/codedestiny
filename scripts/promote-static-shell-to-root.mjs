@@ -1,7 +1,7 @@
 import { copyFileSync, cpSync, existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { getStaticShellCanonicalRoutes } from "./static-canonical-route-map.mjs";
-import { injectStaticShellRouteMeta } from "./lib/static-shell-route-meta.mjs";
+import { HOME_CLUSTER_SHELL_FILES, injectStaticShellRouteMeta, withHomeClusterHreflang } from "./lib/static-shell-route-meta.mjs";
 
 const rootDir = process.cwd();
 const publicDir = resolve(rootDir, "public");
@@ -200,6 +200,17 @@ function restoreStaticShellLocaleHtml() {
   }
 }
 
+// 홈 클러스터 셸의 hreflang 을 사이트맵과 같은 alternatesFor 집합으로 맞춘다(소스 public/·index.html 은 그대로).
+function alignHomeClusterHreflang() {
+  for (const routeFile of HOME_CLUSTER_SHELL_FILES) {
+    const destinationPath = resolve(rootDir, "dist", routeFile);
+    if (!existsSync(destinationPath)) continue;
+    const html = readFileSync(destinationPath, "utf8");
+    const nextHtml = withHomeClusterHreflang(html);
+    if (nextHtml !== html) writeFileSync(destinationPath, nextHtml, "utf8");
+  }
+}
+
 function writeStaticShellCanonicalRoutes() {
   if (!existsSync(publicIndexPath)) return;
 
@@ -221,6 +232,7 @@ if (existsSync(publicDir)) {
   cpSync(publicDir, resolve(rootDir, "dist"), { recursive: true, force: true });
   restoreGeneratedRouteHtml();
   restoreStaticShellLocaleHtml();
+  alignHomeClusterHreflang();
   console.log(`[promote-static-shell] public assets: ${publicDir} -> ${resolve(rootDir, "dist")}`);
 
   if (existsSync(generatedSitemapPath)) {
