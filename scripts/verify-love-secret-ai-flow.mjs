@@ -182,7 +182,8 @@ const calendarModule = await importLocalEsm("worker/lib/love-secret-ai-calendar.
 
 // ── 섹션 그룹 계약 ────────────────────────────────────────────────────────
 const groups = promptModule.LOVE_SECRET_AI_GROUPS;
-assert(groups.length === 6, `expected 6 section groups, got ${groups.length}`);
+assert(groups.length === 7 && groups[0].key === "nature", `expected 7 section groups led by nature, got ${groups.map((group) => group.key).join(",")}`);
+assert(promptModule.LOVE_SECRET_AI_GROUPS_V1.length === 6, "legacy V1 plan must keep 6 groups");
 assert(
   groups.reduce((sum, group) => sum + group.sections.length, 0) === promptModule.LOVE_SECRET_AI_SECTION_TITLES.length,
   "section titles must be derived from the group table",

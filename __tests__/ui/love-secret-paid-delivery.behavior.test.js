@@ -49,6 +49,7 @@ function fixture(accessType = 'pass') {
     loginRequired: () => new Response('', { status: 401 }), invalidInput: (_message, status = 422) => new Response('', { status }),
     paymentVerifyFailed: () => new Response('', { status: 402 }), calculationFailed: () => new Response('', { status: 422 }),
     LOVE_SECRET_AI_GENERATING_FRESH_MS: 120000, LOVE_SECRET_AI_LLM_DEADLINE_MS: 86000, LLM_ERROR_MESSAGE: 'mock generation failed',
+    LOVE_SECRET_AI_GROUP_PLAN_VERSION: 2, loveSecretGroupsForPlan: version => (Number(version) >= 2 ? 'v2' : 'v1'),
     publicSession: row => ({ ok: true, sessionId: row.id, status: row.status, saved: row.status === 'completed', messages: row.messages }),
     restoreBillingGateAccessOnFailure: async () => { refunds++; return { restored: true }; },
     applyUsageOnce: async () => {
@@ -387,4 +388,15 @@ test('corrupt pinned love-secret facts stop before provider and refund', async (
  const f=fixture('paid');Object.assign(f.ctx,await import('../../worker/lib/representative-consumer-facts.js'));
  await f.post({}, {SAJU_CONSUMER_FACTS_V1:'true'});const calls=f.calls,refunds=f.refunds;f.doc.sajuResult.dayMaster='tampered';
  const result=await f.post({resumeSessionId:f.doc.id});assert.equal(result.status,409);assert.equal(f.calls,calls);assert.equal(f.refunds,refunds);
+});
+
+test('새 상담은 7개 그룹 계획(V2)으로, 버전 없는 예전 상담은 V1 계획으로 이어 쓴다', async () => {
+  const fresh = fixture();
+  await fresh.post();
+  assert.equal(fresh.doc.llmMeta.delivery.groupPlanVersion, 2);
+  const legacy = fixture();
+  await legacy.post();
+  delete legacy.doc.llmMeta.delivery.groupPlanVersion;
+  await legacy.post({ resumeSessionId: legacy.doc.id });
+  assert.equal(legacy.doc.llmMeta.delivery.groupPlanVersion, 1);
 });

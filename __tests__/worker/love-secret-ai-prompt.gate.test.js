@@ -6,8 +6,15 @@
  * 상담이 결제 후 전체 재생성(비용 2배) 되거나, 반대로 결손을 안은 채 완료 처리된다.
  * 순수 함수만 검증하므로 모킹이 필요 없다.
  */
+import { createHash } from "node:crypto";
 import {
   LOVE_SECRET_AI_GROUPS,
+  LOVE_SECRET_AI_GROUPS_V1,
+  LOVE_SECRET_AI_GROUP_PLAN_VERSION,
+  LOVE_SECRET_AI_SECTION_TITLES,
+  buildLoveSecretGroupPrompt,
+  dedupeLoveSecretSections,
+  loveSecretGroupsForPlan,
   LOVE_SECRET_AI_GROUP_MIN_CHARS,
   LOVE_SECRET_AI_MIN_TOTAL_BODY_CHARS,
   LOVE_SPEAKER_BY_GROUP,
@@ -182,9 +189,9 @@ describe("정밀지표 영문 키 0건", () => {
 });
 
 describe("공동 마스터(연이·서한비) 화자 배정", () => {
-  test("6개 그룹 모두 화자가 있고, 상대·위험·시기는 서한비, 나머지는 연이다", () => {
+  test("7개 그룹 모두 화자가 있고, 상대·위험·시기는 서한비, 나머지는 연이다", () => {
     expect(Object.keys(LOVE_SPEAKER_BY_GROUP).sort()).toEqual(LOVE_SECRET_AI_GROUPS.map((group) => group.key).sort());
-    expect(LOVE_SPEAKER_BY_GROUP).toEqual({ core: "yeoni", self: "yeoni", partner: "hanbi", risk: "hanbi", timing: "hanbi", action: "yeoni" });
+    expect(LOVE_SPEAKER_BY_GROUP).toEqual({ nature: "yeoni", core: "yeoni", self: "yeoni", partner: "hanbi", risk: "hanbi", timing: "hanbi", action: "yeoni" });
   });
 
   test("페르소나가 없으면 그룹 시스템 프롬프트는 예전과 바이트 단위로 같다", () => {
@@ -207,5 +214,74 @@ describe("공동 마스터(연이·서한비) 화자 배정", () => {
     expect(prompt.indexOf("[서한비 페르소나]")).toBeLessThan(prompt.indexOf("이번 응답에서는 상담의 한 부분"));
     const action = LOVE_SECRET_AI_GROUPS.find((group) => group.key === "action");
     expect(buildLoveSecretGroupSystemPrompt("BASE", action, "[연이 페르소나]")).toContain("이번 부는 연이가 씁니다.");
+  });
+});
+
+describe("그룹 계획 V1/V2", () => {
+  const input = { myInfo: { name: "가" }, relationshipStatus: "썸", topic: "연락", userQuestion: "언제 연락할까요?" };
+  const saju = { facts: ["일간 병화"] };
+
+  test("V2 는 타고난 연애 기질(nature, 연이)을 맨 앞에 둔 7개 그룹이고 V1 제목을 모두 품는다", () => {
+    expect(LOVE_SECRET_AI_GROUP_PLAN_VERSION).toBe(2);
+    expect(LOVE_SECRET_AI_GROUPS.map((group) => group.key)).toEqual(["nature", "core", "self", "partner", "risk", "timing", "action"]);
+    expect(LOVE_SECRET_AI_GROUPS[0].sections.map((section) => section.field)).toEqual(["natureArchetype", "natureEmpathyScenes"]);
+    expect(LOVE_SPEAKER_BY_GROUP.nature).toBe("yeoni");
+    const v1Titles = LOVE_SECRET_AI_GROUPS_V1.flatMap((group) => group.sections.map((section) => section.title));
+    expect(v1Titles.every((title) => LOVE_SECRET_AI_SECTION_TITLES.includes(title))).toBe(true);
+    expect(LOVE_SECRET_AI_SECTION_TITLES).toHaveLength(30);
+    expect(LOVE_SECRET_AI_SECTION_TITLES.join("")).not.toMatch(/PDF|챕터/i);
+  });
+
+  test("버전이 없는 예전 세션은 V1 계획을 쓴다", () => {
+    expect(loveSecretGroupsForPlan(undefined)).toBe(LOVE_SECRET_AI_GROUPS_V1);
+    expect(loveSecretGroupsForPlan(1)).toBe(LOVE_SECRET_AI_GROUPS_V1);
+    expect(loveSecretGroupsForPlan(2)).toBe(LOVE_SECRET_AI_GROUPS);
+  });
+
+  test("V1 그룹 프롬프트는 2026-11-08 이전과 바이트 단위로 같다", () => {
+    const joined = LOVE_SECRET_AI_GROUPS_V1.map((group) => buildLoveSecretGroupPrompt(input, saju, group)
+      + "\n#SYS\n" + buildLoveSecretGroupSystemPrompt("BASE", group, "P")).join("\n=====\n");
+    expect(createHash("sha256").update(joined).digest("hex")).toBe("f87e118c79bdb8bfff9c20798ff84c30c7740fbb3e98e4bed9dc000c91e95461");
+  });
+
+  test("V2 프롬프트: 관점·되풀이 금지가 붙고, 질문 인용은 core 첫 문장에서만 한다", () => {
+    const prompts = Object.fromEntries(LOVE_SECRET_AI_GROUPS.map((group) => [group.key, buildLoveSecretGroupPrompt(input, saju, group)]));
+    Object.values(prompts).forEach((prompt) => {
+      expect(prompt).toContain("이 부분의 관점:");
+      expect(prompt).toContain("'결국 중요한 것은', '다시 말해', '앞서 말했듯'");
+      expect(prompt).toContain("같은 여는 문장이나 같은 맺는 문장을 되풀이하지 않습니다");
+    });
+    expect(prompts.core).toContain("첫 문장에서 한 번만 인용");
+    expect(prompts.nature).toContain("질문에 답하지 않고 질문을 인용하지도 않습니다");
+    ["self", "partner", "risk", "timing", "action"].forEach((key) => expect(prompts[key]).toContain("사용자의 질문을 다시 인용하지 않습니다"));
+    expect(prompts.core).not.toContain("타고난 성향 총론을 먼저 짚는다");
+  });
+});
+
+describe("그룹 사이 되풀이 문장 정리", () => {
+  const repeated = "답장을 기다리는 밤마다 마음이 먼저 앞서 나가는 결이 반복됩니다.";
+  test("뒤 섹션의 되풀이 문장만 지우고 answer·reading 을 맞춘다", () => {
+    const assembled = {
+      sections: [
+        { title: "타고난 연애 기질 — 당신이 사랑하는 방식의 원형", body: `${repeated} 일간 병화의 결입니다.` },
+        { title: "현재 관계의 자리와 질문의 핵심", body: `${repeated} 지금은 기다릴 때입니다.` },
+      ],
+      reading: { relationshipCore: `${repeated} 지금은 기다릴 때입니다.` },
+      answer: "",
+    };
+    const result = dedupeLoveSecretSections(assembled);
+    expect(result.sections[0].body).toContain(repeated);
+    expect(result.sections[1].body).toBe("지금은 기다릴 때입니다.");
+    expect(result.reading.relationshipCore).toBe("지금은 기다릴 때입니다.");
+    expect(result.answer).toBe(`${assembled.sections[0].title}
+${assembled.sections[0].body}
+
+${assembled.sections[1].title}
+지금은 기다릴 때입니다.`);
+  });
+
+  test("섹션이 통째로 지워지면 원문을 그대로 둔다", () => {
+    const assembled = { sections: [{ title: "a", body: repeated }, { title: "b", body: repeated }], reading: {}, answer: "x" };
+    expect(dedupeLoveSecretSections(assembled)).toBe(assembled);
   });
 });

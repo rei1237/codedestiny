@@ -1,6 +1,6 @@
 import { salvageTruncatedJsonObject } from "../../lib/llm-text.js";
 import { jsonSchemaFromExample } from "./json-text-repair.js";
-import { countPaidReportBodyChars, hasRepeatedReportPassage } from "./paid-report-quality.js";
+import { countPaidReportBodyChars, dropRepeatedReportSentences, hasRepeatedReportPassage } from "./paid-report-quality.js";
 import { buildLoveSecretGroupFacts, compactSajuForFollowUp } from "./love-secret-ai-facts.js";
 import { expertSubchapterPromptLines } from "./expert-subchapter-prompt.js";
 import { followupSolutionPromptLines } from "./followup-solution-prompt.js";
@@ -40,11 +40,12 @@ const UNSAFE_ADVICE_PATTERNS = Object.freeze([
 //  - MIN/MAX_* : 전달 가능 하한/상한. 벗어나면 throw(=결제 실패 경로).
 // 🔴 MIN 은 degrade 바닥(4개 그룹 × 5,000자)보다 낮아야 한다. 그렇지 않으면 정당한
 //    부분 성공 결과가 결제 후 하드 실패로 뒤집힌다.
-export const LOVE_SECRET_AI_TARGET_MIN_TOTAL_BODY_CHARS = 30000;
-export const LOVE_SECRET_AI_TARGET_MAX_TOTAL_BODY_CHARS = 39000;
+// 목표는 V2(7개 그룹) 기준 7 × 5,000~6,500자. V1(6개 그룹) 저장 세션은 부족분을 수리로 메우지 않아도 MIN 위라 전달된다.
+export const LOVE_SECRET_AI_TARGET_MIN_TOTAL_BODY_CHARS = 35000;
+export const LOVE_SECRET_AI_TARGET_MAX_TOTAL_BODY_CHARS = 45500;
 export const LOVE_SECRET_AI_MIN_TOTAL_BODY_CHARS = 20000;
-export const LOVE_SECRET_AI_MAX_TOTAL_BODY_CHARS = 44000;
-const LOVE_SECRET_AI_PARSE_TEXT_MAX_CHARS = 44000;
+export const LOVE_SECRET_AI_MAX_TOTAL_BODY_CHARS = 52000;
+const LOVE_SECRET_AI_PARSE_TEXT_MAX_CHARS = 52000;
 
 function clean(value, maxLength = 0) {
   const text = String(value ?? "").trim();
@@ -122,14 +123,16 @@ export function buildAdminLabPrompt() {
     systemPrompt: LOVE_SECRET_AI_SYSTEM_PROMPT,
     prompt: "",
     partial: true,
-    partialReason: "사용자 프롬프트는 6개 그룹별로 계산된 명식·궁합 데이터를 입력으로 받습니다. 시스템 프롬프트만 표시합니다.",
+    partialReason: `사용자 프롬프트는 ${LOVE_SECRET_AI_GROUPS.length}개 그룹별로 계산된 명식·궁합 데이터를 입력으로 받습니다. 시스템 프롬프트만 표시합니다.`,
   };
 }
 
 export const LOVE_SECRET_AI_GROUP_MIN_CHARS = 5000;
 export const LOVE_SECRET_AI_GROUP_MAX_CHARS = 6500;
 
-export const LOVE_SECRET_AI_GROUPS = Object.freeze([
+// V1: 2026-11-08 이전 6개 그룹. groupPlanVersion 이 없는 저장 세션은 이 계획으로 이어 쓴다.
+// 🔴 프롬프트가 바이트 단위로 그대로여야 한다 — 이 표는 고치지 않는다.
+export const LOVE_SECRET_AI_GROUPS_V1 = Object.freeze([
   Object.freeze({
     key: "core",
     label: "핵심 연애운과 질문의 답",
@@ -208,8 +211,57 @@ export const LOVE_SECRET_AI_GROUPS = Object.freeze([
   }),
 ]);
 
-export function findLoveSecretGroup(key) {
-  return LOVE_SECRET_AI_GROUPS.find((group) => group.key === key) || null;
+const V2_COVERED_NATURE = "타고난 연애 기질(사랑하는 방식의 원형과 생활 장면)";
+const V2_SECTION_GUIDES = Object.freeze({
+  "현재 관계의 자리와 질문의 핵심": "사용자의 자유 질문을 첫 문장에서 한 번만 인용해 정면으로 받고 한 줄로 답한다. 타고난 기질 총론은 다른 부분이 이미 맡았으니 되풀이하지 않는다. 그 답 위에서 지금 관계가 어느 자리에 서 있는지 확정하고, 왜 그렇게 보는지 명식 근거로 받친다.",
+});
+const V2_GROUP_OVERRIDES = Object.freeze({
+  core: { perspective: "질문에 답하는 시선 — 지금 관계의 자리와 질문의 답을 정합니다.", questionRule: "core", covered: `${V2_COVERED_NATURE}/나의 연애 반복 패턴·장단점/상대와 궁합·이상형/갈등·바람기·재회/타이밍·좋은 날짜·결혼운/실행 전략과 마무리` },
+  self: { perspective: "나를 들여다보는 시선 — 사랑에서 반복하는 선택과 그 이유를 봅니다.", questionRule: "other", covered: `${V2_COVERED_NATURE}/질문의 핵심과 전체 연애운/상대와 궁합·이상형/갈등·바람기·재회/타이밍·좋은 날짜·결혼운/실행 전략과 마무리` },
+  partner: { perspective: "상대를 바라보는 시선 — 상대의 결과 두 사람 사이의 끌림을 봅니다.", questionRule: "other", covered: `${V2_COVERED_NATURE}/질문의 핵심과 전체 연애운/나의 성향·장단점/갈등·바람기·재회/타이밍·좋은 날짜·결혼운/실행 전략과 마무리` },
+  risk: { perspective: "지켜 내는 시선 — 마음이 흔들리는 조건과 물러설 경계를 정합니다.", questionRule: "other", covered: `${V2_COVERED_NATURE}/질문의 핵심과 전체 연애운/나의 성향·장단점/상대와 궁합·이상형/타이밍·좋은 날짜·결혼운/실행 전략과 마무리` },
+  timing: { perspective: "시간의 시선 — 언제 움직이고 언제 기다릴지를 정합니다.", questionRule: "other", covered: `${V2_COVERED_NATURE}/질문의 핵심과 전체 연애운/나의 성향·장단점/상대와 궁합·이상형/갈등·바람기·재회/실행 전략과 마무리` },
+  action: { perspective: "실행의 시선 — 오늘부터 할 행동과 건넬 말을 고릅니다.", questionRule: "other", covered: `${V2_COVERED_NATURE}/질문의 핵심과 전체 연애운/나의 성향·장단점/상대와 궁합·이상형/갈등·바람기·재회/타이밍·좋은 날짜·결혼운` },
+});
+
+const LOVE_SECRET_NATURE_GROUP = Object.freeze({
+  key: "nature",
+  label: "타고난 연애 기질",
+  emits: Object.freeze([]),
+  perspective: "타고난 기질의 시선 — 질문보다 먼저, 이 사람이 사랑하는 방식의 원형을 비춥니다.",
+  questionRule: "nature",
+  covered: "질문의 답과 지금 관계의 자리·전체 연애운/나의 연애 반복 패턴·장단점/상대와 궁합·이상형/갈등·바람기·재회/타이밍·좋은 날짜·결혼운/실행 전략과 마무리",
+  sections: Object.freeze([
+    Object.freeze({ title: "타고난 연애 기질 — 당신이 사랑하는 방식의 원형", field: "natureArchetype", guide: "일간·월지·오행 분포를 쉬운 말로 먼저 풀고, 그 위에서 이 사람이 사랑하는 방식의 원형을 소개한다(핵심 기질 2~3가지, 마음이 움직이는 속도, 가까워질 때와 멀어질 때의 반응, 결정 습관). 계산 사실의 쉬운 뜻 → 생활 장면 순으로 써서 상담자가 '나를 정확히 봤다'고 느끼게 한다." }),
+    Object.freeze({ title: "그래서 이런 순간 마음이 먼저 움직여요", field: "natureEmpathyScenes", guide: "그 기질이 일상에서 드러나는 장면 2~3개를 구체적으로 그린다(답장을 기다리는 밤, 약속 전날, 다툰 뒤 첫 연락 같은 순간). 장면마다 그때 마음속에서 일어나는 일을 다정하게 짚는다. 마지막 문단에서만 이 기질이 이번 상담 주제와 어떻게 이어지는지 한두 문장으로 잇는다." }),
+  ]),
+});
+
+function deriveV2Group(group) {
+  const override = V2_GROUP_OVERRIDES[group.key] || {};
+  return Object.freeze({
+    ...group,
+    ...override,
+    sections: Object.freeze(group.sections.map((section) => (V2_SECTION_GUIDES[section.title]
+      ? Object.freeze({ ...section, guide: V2_SECTION_GUIDES[section.title] })
+      : section))),
+  });
+}
+
+// V2(현재): 타고난 연애 기질(nature)을 맨 앞에 두는 7개 그룹. 제목·필드는 V1 그대로이고 guide·covered·관점만 바뀐다.
+export const LOVE_SECRET_AI_GROUP_PLAN_VERSION = 2;
+export const LOVE_SECRET_AI_GROUPS = Object.freeze([
+  LOVE_SECRET_NATURE_GROUP,
+  ...LOVE_SECRET_AI_GROUPS_V1.map(deriveV2Group),
+]);
+
+/** 저장 세션의 groupPlanVersion 으로 그룹 계획을 고른다. 버전이 없으면(예전 세션) V1. */
+export function loveSecretGroupsForPlan(version) {
+  return Number(version) >= 2 ? LOVE_SECRET_AI_GROUPS : LOVE_SECRET_AI_GROUPS_V1;
+}
+
+export function findLoveSecretGroup(key, version = LOVE_SECRET_AI_GROUP_PLAN_VERSION) {
+  return loveSecretGroupsForPlan(version).find((group) => group.key === key) || null;
 }
 
 export function buildLoveSecretGroupResponseSchema(group) {
@@ -247,10 +299,10 @@ function groupJsonSkeleton(group) {
   return lines.join("\n");
 }
 
-// 연애 비책은 연이·서한비 공동 마스터다. 마음과 실천(core·self·action)은 연이, 상대·위험·시기(partner·risk·timing)는 서한비가 쓴다.
+// 연애 비책은 연이·서한비 공동 마스터다. 마음과 실천(nature·core·self·action)은 연이, 상대·위험·시기(partner·risk·timing)는 서한비가 쓴다.
 // 결과 화면 화자 칩(app/love-secret-ai/result/love-secret-sections.ts)이 이 매핑을 섹션 제목으로 따라간다.
 export const LOVE_SPEAKER_BY_GROUP = Object.freeze({
-  core: "yeoni", self: "yeoni", partner: "hanbi", risk: "hanbi", timing: "hanbi", action: "yeoni",
+  nature: "yeoni", core: "yeoni", self: "yeoni", partner: "hanbi", risk: "hanbi", timing: "hanbi", action: "yeoni",
 });
 const LOVE_SPEAKER_NAMES = Object.freeze({ yeoni: "연이", hanbi: "서한비" });
 
@@ -270,6 +322,23 @@ export function buildLoveSecretGroupSystemPrompt(basePrompt, group, persona = ""
     `이번 응답에서는 상담의 한 부분 — "${group.label}" — 만 씁니다. 나머지 부분은 같은 상담의 다른 곳에서 이미 다루므로 여기서 반복하지 않습니다.`,
     "계산되지 않은 날짜·간지·신살을 만들어 쓰지 않습니다. 제공된 계산 확정값 안에서만 해석합니다.",
   ].join("\n");
+}
+
+const LOVE_QUESTION_RULES = Object.freeze({
+  nature: "이 부분에서는 사용자의 질문에 답하지 않고 질문을 인용하지도 않습니다. 마지막 문단에서만 이번 상담 주제와 이어 줍니다.",
+  core: "사용자의 질문은 이 부분의 첫 문장에서 한 번만 인용하고, 그 뒤로는 다시 인용하지 않습니다.",
+  other: "사용자의 질문을 다시 인용하지 않습니다. 질문에 대한 답은 다른 부분이 이미 했습니다.",
+});
+
+// V2 그룹(perspective 가 있는 그룹)에만 붙는다. V1 그룹 프롬프트는 이 줄이 없어 예전과 바이트 단위로 같다.
+function loveSecretPerspectiveLines(group) {
+  if (!group?.perspective) return [];
+  return [
+    `이 부분의 관점: ${group.perspective} 다른 부분과 같은 이야기를 이 관점으로만 다시 씁니다.`,
+    "'결국 중요한 것은', '다시 말해', '앞서 말했듯' 같은 되풀이 연결어를 쓰지 않습니다.",
+    "섹션마다 같은 여는 문장이나 같은 맺는 문장을 되풀이하지 않습니다.",
+    LOVE_QUESTION_RULES[group.questionRule] || LOVE_QUESTION_RULES.other,
+  ];
 }
 
 /**
@@ -310,7 +379,10 @@ export function buildLoveSecretGroupPrompt(input = {}, sajuResult = {}, group, o
     "[작성 방식]",
     "아래 JSON 형식만 출력합니다. JSON 밖에 다른 문장을 붙이지 않습니다.",
     `이 부분의 sections body 합계는 ${LOVE_SECRET_AI_GROUP_MIN_CHARS}~${LOVE_SECRET_AI_GROUP_MAX_CHARS}자로 씁니다. 마지막 문장을 중간에 끊지 말고 반드시 완결합니다.`,
-    "각 섹션의 body는 900~1,300자 안팎의 밀도 있는 문단으로 쓰되 첫 문장 구조를 반복하지 않습니다.",
+    group.perspective
+      ? `각 섹션의 body는 ${Math.round(LOVE_SECRET_AI_GROUP_MIN_CHARS / group.sections.length / 100) * 100}~${Math.round(LOVE_SECRET_AI_GROUP_MAX_CHARS / group.sections.length / 100) * 100}자 안팎의 밀도 있는 문단으로 쓰되 첫 문장 구조를 반복하지 않습니다.`
+      : "각 섹션의 body는 900~1,300자 안팎의 밀도 있는 문단으로 쓰되 첫 문장 구조를 반복하지 않습니다.",
+    ...loveSecretPerspectiveLines(group),
     "각 섹션은 반드시 명리 근거(일간·일지·오행·조후·십성·신살·대운/세운·궁합 관계 중 해당되는 것)를 최소 1회 명시하고, 그 근거를 관계 심리와 현실 행동 처방으로 이어 씁니다. 근거 없이 누구에게나 통하는 일반 연애 조언은 금지합니다.",
     "명식 근거는 용어를 나열하지 말고 사랑에서 드러나는 감정, 거리감, 표현 방식, 선택 습관으로 번역합니다.",
     "관계 상태와 상담 주제를 모든 판단의 기준으로 삼습니다.",
@@ -388,8 +460,9 @@ export function buildFollowUpConsultationPrompt(consultation = {}, userMessage =
   ].join("\n");
 }
 
-// 섹션 제목 ↔ reading 필드. 그룹 정의(LOVE_SECRET_AI_GROUPS)에서 파생해 한 곳에서만 관리한다.
-// 순서는 그룹 순서 = 화면 표시 순서.
+// 섹션 제목 ↔ reading 필드. 그룹 정의에서 파생해 한 곳에서만 관리한다.
+// V2 의 제목은 V1 제목을 모두 포함한다(제목을 바꾸지 않았다) — V2 목록이 곧 두 계획의 합집합이다.
+// 순서는 V2 그룹 순서 = 화면 표시 순서.
 const STRUCTURED_SECTION_FIELDS = Object.freeze(
   LOVE_SECRET_AI_GROUPS.flatMap((group) => group.sections.map((section) => Object.freeze([section.title, section.field]))),
 );
@@ -755,6 +828,41 @@ export function assembleLoveSecretConsultation(groupResults = [], context = {}) 
       endedAt: Number(result?.endedAt || 0),
     })),
     degraded: usable.length < groupResults.length,
+  };
+}
+
+/**
+ * 그룹 사이에 되풀이된 문장을 뒤쪽 섹션에서 지운다. 실패하거나 섹션이 비면 원문을 그대로 둔다 —
+ * 전달을 막는 단계가 아니다. 섹션이 바뀌면 reading 필드와 answer 도 같이 맞춘다.
+ */
+export function dedupeLoveSecretSections(assembled) {
+  if (!assembled || !Array.isArray(assembled.sections) || !assembled.sections.length) return assembled;
+  let prior = "";
+  const fieldByTitle = new Map(STRUCTURED_SECTION_FIELDS);
+  const reading = { ...(assembled.reading || {}) };
+  let changed = false;
+  const sections = assembled.sections.map((section) => {
+    const body = String(section?.body || "");
+    let next = body;
+    try {
+      next = dropRepeatedReportSentences(body, prior);
+    } catch (_) {
+      next = body;
+    }
+    if (typeof next !== "string" || !next.trim()) next = body;
+    prior = prior ? `${prior}\n\n${next}` : next;
+    if (next === body) return section;
+    changed = true;
+    const field = fieldByTitle.get(section.title);
+    if (field && reading[field] === body) reading[field] = next;
+    return { ...section, body: next };
+  });
+  if (!changed) return assembled;
+  return {
+    ...assembled,
+    sections,
+    reading,
+    answer: clean(sections.map((section) => `${section.title}\n${section.body}`).join("\n\n"), LOVE_SECRET_AI_PARSE_TEXT_MAX_CHARS),
   };
 }
 
