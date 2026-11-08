@@ -9,7 +9,20 @@ const { animalDayRelation, zodiacDayRelation, sunSignIdOf } = loadTsModule('lib/
 const { SIGN_PROFILES } = loadTsModule('lib/fortune/sign-profiles.ts');
 const { computeSignScore } = loadTsModule('lib/fortune/fortune-score.ts');
 const { buildPeriodFaqs } = loadTsModule('lib/fortune/period-faqs.ts');
-const { resolveKey } = loadTsModule('lib/i18n/dictionary.ts');
+const { resolveKey, resolveVars } = loadTsModule('lib/i18n/dictionary.ts');
+const { buildSignViewModel } = loadTsModule('lib/fortune/build-view.ts');
+
+test('every period resolves each animal and zodiac protagonist name in non-Korean narratives', () => {
+  for (const basename of ['en', 'ja', 'zh-cn', 'zh-tw']) {
+    const dictionary = JSON.parse(readFileSync(new URL(`../../public/i18n/${basename}.json`, import.meta.url), 'utf8'));
+    for (const profile of SIGN_PROFILES) for (const period of ['today', 'tomorrow', 'weekly', 'monthly']) {
+      const vm = buildSignViewModel(profile, period);
+      const name = resolveVars(dictionary, vm.narrativeI18n.vars).sign;
+      assert.ok(name && !name.startsWith('@'), `${basename}/${period}/${profile.id}`);
+      assert.doesNotMatch(name, /[가-힣]/, `${basename}/${period}/${profile.id}`);
+    }
+  }
+});
 
 test('shared day relations keep Korean SSR and runtime text aligned for either target date', () => {
   const dictionary = JSON.parse(readFileSync(new URL('../../public/i18n/ko.json', import.meta.url), 'utf8'));
