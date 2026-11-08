@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-09
-next: 운영 릴리스42505123236 완료 확인 후 운영 EP.01/42/52·북마크·언어 검증, 완료 기록과 정리
+next: 새 ego 공간 생성 승인 응답 후 운영 EP.01/42/52·북마크·언어 검증, 완료 기록과 정리
 ---
 
 # VN 스토리 개선 (oh-story 활용) 인수인계
@@ -495,3 +495,10 @@ next: 운영 릴리스42505123236 완료 확인 후 운영 EP.01/42/52·북마�
 - 릴리스 환경키/시크릿/checkout무결성/사이트맵·로케일 미러통과. Pages·Worker배포단계진행중. 완료 전 성공/운영확인으로 기록하지 말 것. 실패/롤백필요면사용자규칙대로멈추고보고.
 - 운영 확인용 ego스크립트는 원래 VN워크트리 .tmp/vn-finish/browser-04.mjs에 준비됨(아직실행전). 스페이스63/p1을재사용. 현재운영원고해시가1822d08b...인지 먼저 검증한 뒤EP.01을 UI로열어snapshot. 이후EP.42/52·저장/재개·4언어전환, 기존두localStorage키복원, task.finish({keep:[]})필수.
 - GitHubpush의기존의존성취약점알림76건(critical1/high36/moderate31/low8)을사용자에게알림. package/lock변경0, 이번내용수정과무관한별도추적영역.
+
+## 운영 승격 성공·화면 검증 재연결 (2026-11-09)
+- 운영런42505123236 completed/success, headSha72fed768472e292055df9c29a5bec27ee9e0e934. Pages와Worker배포·SHA·IndexNow단계모두통과.
+- 운영HTTP실측: /version.json200·/api/version200 모두sha72fed768472e292055df9c29a5bec27ee9e0e934. /data/novel/manifest.json200, sourceHash1822d08b...·locales ko/en/ja/zh-CN/zh-TW·7928비트.
+- 화면검증을재개하려던 ego taskSpace63이외부에서사라짐(task space not found). listTaskSpaces에는다른사용자공간56/57만남아건드리지않음.
+- ego-browser SKILL.md는 사라지거나멈춘공간의복구를새공간으로우회하지말고확인받으라고명시. 2026-11-09 새검증공간을열지질문함. 응답전새공간/다른브라우저로우회금지. 배포는성공했지만운영UI검증미완료.
+- main CI42505056922는72fed7684에대해진행중. 마지막조회는운영성공후1회, 반복폴링하지않음. 다음push직전/최종보고직전에만확인.
