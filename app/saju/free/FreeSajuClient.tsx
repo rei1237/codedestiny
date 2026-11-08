@@ -268,6 +268,7 @@ export default function FreeSajuClient() {
             <p className={styles.cardLine}>{stage.line}</p>
           </m.article>
 
+          <div className={styles.gates}>
           <PremiumBlurGate
             lockedTitle="재물운 상세 시기"
             subDesc="올해 돈 흐름이 열리고 닫히는 달은 신년운세 상담에서 달별로 풀어 드려요."
@@ -289,6 +290,7 @@ export default function FreeSajuClient() {
             footnote="최애 운명과 운명의 꽃은 결과 카드까지 무료예요."
             onUnlock={() => goGate("destiny_bias", DESTINY_BIAS_HREF)}
           />
+          </div>
           <div className={styles.gateLinks}>
             <button type="button" className={styles.textLink} onClick={() => goGate("flower", FLOWER_HREF)}>
               내 운명의 꽃 먼저 보기
@@ -299,7 +301,7 @@ export default function FreeSajuClient() {
             <h3 id="free-saju-mission-title" className="m-0 text-base font-bold">
               {unlocked ? "재물 시크릿 키워드가 열렸어요 🦁" : "공유하면 재물 시크릿 키워드가 열려요"}
             </h3>
-            <p className="mb-3 mt-1 text-sm text-cd-muted">
+            <p className={`mb-3 mt-1 ${styles.missionMuted}`}>
               {unlocked ? "친구 결과도 궁금하다면 링크를 한 번 더 보내 보세요." : "아래 버튼 중 하나만 눌러도 바로 열려요. 생일은 공유 링크에 들어가지 않아요."}
             </p>
             <ViralShareBar
@@ -314,19 +316,19 @@ export default function FreeSajuClient() {
               onShared={handleShared}
             />
             <div className={`${styles.secret} bg-cd-surface-2`} aria-live="polite">
-              <p className="m-0 text-xs font-semibold text-cd-accent">
+              <p className={`m-0 ${styles.missionAccent}`}>
                 재물 시크릿 키워드 · 재성 {ELEMENT_LABEL[reading.wealthElement].name}({ELEMENT_LABEL[reading.wealthElement].hanja})
               </p>
               {unlocked ? (
                 <>
-                  <p className="mb-0 mt-1 text-base font-bold">{secret.title}</p>
-                  <p className="mb-0 mt-1 text-sm leading-relaxed">{secret.line}</p>
-                  <p className="mb-0 mt-1 text-sm leading-relaxed text-cd-muted">{wealthPresenceLine(reading.wealthCount)}</p>
+                  <p className={`mb-0 mt-1 ${styles.missionStrong}`}>{secret.title}</p>
+                  <p className="mb-0 mt-1">{secret.line}</p>
+                  <p className={`mb-0 mt-1 ${styles.missionMuted}`}>{wealthPresenceLine(reading.wealthCount)}</p>
                 </>
               ) : (
                 <div className={styles.secretLocked} aria-hidden="true">
-                  <p className="mb-0 mt-1 text-base font-bold">당신의 돈이 붙는 자리</p>
-                  <p className="mb-0 mt-1 text-sm">공유 버튼을 누르면 이 문장이 선명해져요.</p>
+                  <p className={`mb-0 mt-1 ${styles.missionStrong}`}>당신의 돈이 붙는 자리</p>
+                  <p className="mb-0 mt-1">공유 버튼을 누르면 이 문장이 선명해져요.</p>
                 </div>
               )}
             </div>
