@@ -14,6 +14,13 @@ import LaunchPlannedPrice from '@/app/components/LaunchPlannedPrice';
 import {plannedPriceFor} from '@/lib/brand/launch-offer';
 import {YEONGNYANGI_TESTIMONIAL as testimonial} from '@/lib/brand/trust-stories.mjs';
 import CraftedProductDisclosure from '@/app/components/CraftedProductDisclosure';
+import {REPORT_TIERS,type ReportTier} from '../_lib/image-report';
+
+/** One line on what the paid image report holds for a tier (see _lib/image-report). */
+export function reportSummary(fish:string,chapters:number){
+ const plan=REPORT_TIERS[fish as ReportTier];
+ return plan?`이미지 리포트 · 장별 하이라이트 ${chapters}개 · 처방 최대 ${plan.advice}개`:'';
+}
 
 export type ProductOffer = {id:string; itemId:string; fish:string; fishName:string; price:number; paymentLabel:string; chapters:string[]; depth:string};
 export type ProductOffers = Record<DomainId, ProductOffer[]>;
@@ -45,6 +52,11 @@ export default function ProductGuide({domain,offers,surface='home_catalog'}:{dom
    <Heading>어떤 글을 받는지 먼저 읽어보세요</Heading>
    <p className={styles.note}>형식을 보여주는 가상의 편집 예시예요. 실제 고객 결과나 지금 방문한 분의 운세가 아니에요.</p>
    <blockquote>{copy.example}</blockquote>
+   <figure className={styles.reportPreview}>
+    <img src="/assets/yeongnyangi/report-preview/sample-cover.webp" width={720} height={1258} loading="lazy" alt="영냥이 이미지 리포트 예시 표지: 등급, 장 수, 핵심 키워드, 한 줄 요약"/>
+    <img src="/assets/yeongnyangi/report-preview/sample-chapters.webp" width={720} height={1040} loading="lazy" alt="영냥이 이미지 리포트 예시: 장별 하이라이트 카드"/>
+    <figcaption>유료 결과는 이렇게 여러 장의 이미지 리포트로 저장할 수 있어요. 가상의 예시이고, 실제 리포트에는 내 결과의 장과 처방이 담겨요.</figcaption>
+   </figure>
    <div className={styles.sampleMethod}><strong>내 상담에서는 무엇이 달라질까요?</strong><p>{copy.method}</p><p>실제 상담은 입력 정보와 계산 근거를 바탕으로 AI가 작성해요. 질문 상담을 선택하면 질문에 맞춰 답·근거·해볼 행동을 정리해요.</p></div>
   </section>
   {domain==='saju'&&<section className={styles.testimonial} aria-label="영냥이 참치 사주 분석 이용자 후기">
@@ -65,13 +77,13 @@ export default function ProductGuide({domain,offers,surface='home_catalog'}:{dom
   <p>목차와 분량을 비교해 필요한 리포트를 골라주세요.</p>
   <div id={optionsId} className={styles.tiers} role="group" aria-label="성향 리포트 구성">{offers.map(p=><button key={p.id} type="button" aria-pressed={offer.id===p.id} onClick={()=>{setFish(p.fish);trackProductStep('product_tier_select',domain,p.itemId,surface);}}>{p.fishName}<span>{p.price.toLocaleString('ko-KR')}원</span><span className={styles.tierDepth}>{p.chapters.length}개 챕터 · {p.chapters[0]}</span></button>)}</div>
   {offers.some(p=>p.fish==='flounder')&&offers.some(p=>p.fish==='tuna')&&(()=>{const c=tierComparison('ko',FOLLOWUP_LIMITS);return <table className={styles.comparison} data-tier-comparison><caption>{c.title}</caption><thead><tr><th scope="col"></th><th scope="col">광어</th><th scope="col">참치</th></tr></thead><tbody>{c.rows.map(row=><tr key={row.label}><th scope="row">{row.label}</th><td>{row.flounder}</td><td>{row.tuna}</td></tr>)}</tbody></table>;})()}
-  <p aria-live="polite"><strong>{offer.fishName} · {offer.chapters.length}개 챕터</strong><br/><span data-reading-tier-depth={offer.fish}>{offer.chapters.slice(0,2).join(' · ')}</span></p>
+  <p aria-live="polite"><strong>{offer.fishName} · {offer.chapters.length}개 챕터</strong><br/><span data-reading-tier-depth={offer.fish}>{offer.chapters.slice(0,2).join(' · ')}</span>{reportSummary(offer.fish,offer.chapters.length)&&<><br/><span data-report-summary={offer.fish}>{reportSummary(offer.fish,offer.chapters.length)}</span></>}</p>
   <CraftedProductDisclosure featureKey={offer.itemId}/>
   <a className={styles.cta} href={`/yeongnyangi/fortune/?flow=legacy&domain=${domain}&fish=${offer.fish}`} onClick={()=>trackProductStep('product_start_click',domain,offer.itemId,surface)}>이 구성으로 상담 준비하기 →</a>
   <p className={styles.note}>아래는 기본 해석의 목차예요. 다음 화면에서 궁합·질문 등 상담 종류를 바꾸면 그에 맞는 목차를 다시 확인할 수 있어요.</p>
   <ol className={styles.chapters}>{offer.chapters.map((title,i)=><li key={`${offer.id}-${i}`}>{title}</li>)}</ol>
   <p>{copy.limit}</p>
-  <Heading>무료와 유료, 무엇이 다를까?</Heading><p>무료 운세에서는 요약된 흐름을 살펴봐요. 유료 상담은 선택한 체계와 등급에 맞춘 챕터별 해석을 받고, 같은 계정의 영냥이 보관함에서 이어 읽어요.</p>
+  <Heading>무료와 유료, 무엇이 다를까?</Heading><p>무료 운세에서는 요약된 흐름을 살펴봐요. 유료 상담은 선택한 체계와 등급에 맞춘 챕터별 해석을 받고, 같은 계정의 영냥이 보관함에서 이어 읽어요. 유료 결과는 결과 화면이나 보관함에서 여러 장의 이미지 리포트로 저장할 수 있고, 무료 운세는 한 장짜리 글귀 카드로 저장해요.</p>
   <p>결과는 웹에서 읽고 영냥이 보관함에서 다시 열어요. 생성 시간은 분량과 대기 상태에 따라 달라져요. 지연되면 같은 주문의 진행 상황을 확인하고, 재결제 전에 기존 결과를 확인해 주세요.</p>
   <a href="/yeongnyangi/library/">이미 구매한 상담 확인하기 →</a>
   {[...questionGuides,...contextualQuestionGuides].filter(q=>q.productId.startsWith(domain+'_')).slice(0,2).map(q=><a key={q.id} href={questionGuideHref(q.id)}>{q.question} — 이 고민에 맞는 상담 보기 →</a>)}

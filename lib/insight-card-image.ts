@@ -3,7 +3,7 @@ import {insightArtwork} from './insight-art.mjs';
 export async function renderInsightImage(text:string,brand:string,day:string,story:boolean,character='daily'):Promise<Blob> {
   const canvas=document.createElement('canvas');canvas.width=1080;canvas.height=story?1920:1080;
   const ctx=canvas.getContext('2d');if(!ctx)throw new Error('IMAGE_UNAVAILABLE');
-  const font='"Noto Sans KR", "Malgun Gothic", sans-serif';
+  const font='"Yeongnyangi Noto", "Noto Sans KR", "Malgun Gothic", sans-serif';
   const art=new Image();art.src=insightArtwork(character);
   await Promise.all([art.decode(),document.fonts.load(`52px ${font}`,text)]);
   ctx.fillStyle='#fff8f0';ctx.fillRect(0,0,canvas.width,canvas.height);

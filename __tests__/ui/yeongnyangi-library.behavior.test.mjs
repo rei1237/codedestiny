@@ -43,7 +43,7 @@ async function mount(t,request,props={}){
   const root=createRoot(document.getElementById('root'));
   t.after(async()=>{await act(async()=>root.unmount());dom.window.close();for(const key of keys){const descriptor=saved.get(key);if(descriptor)Object.defineProperty(globalThis,key,descriptor);else delete globalThis[key];}});
   await act(async()=>root.render(React.createElement(fixtureModule.exports.default,props)));
-  return {text:()=>document.body.textContent,links:()=>[...document.querySelectorAll('a[href*="/result/"]')].map(a=>a.href),event:async detail=>act(async()=>window.dispatchEvent(new CustomEvent('cd:auth-changed',{detail}))),owner:async scope=>act(async()=>{globalThis.__yn.scope=scope;for(const notify of globalThis.__yn.listeners)notify();})};
+  return {text:()=>document.body.textContent,links:()=>[...document.querySelectorAll('a[href*="/result/"]:not([href$="#image-report"])')].map(a=>a.href),event:async detail=>act(async()=>window.dispatchEvent(new CustomEvent('cd:auth-changed',{detail}))),owner:async scope=>act(async()=>{globalThis.__yn.scope=scope;for(const notify of globalThis.__yn.listeners)notify();})};
 }
 
 test('same-account refresh failure retains purchased records and shows an error',async t=>{
