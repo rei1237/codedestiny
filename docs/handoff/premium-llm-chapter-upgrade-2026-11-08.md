@@ -563,6 +563,12 @@ next: 6a — 초융합 실호출에서 domainYun·domainHanbi·domainNeo가 GEMI
 - 미해결: 세 도메인 묶음 400 원인(오프라인으로 2판/옛 v2 프롬프트·스키마 비교, gemini 오류 본문 기록 필요, 실호출 재시도는 별도 승인), 내용 없는 필수 묶음 소진 시 배달 차단, 선택 타로 카드 검사는 구제 불가, 400 뒤 선택 도메인 묶음은 결과에서 빠짐.
 - 하네스: scratchpad `fusion-live/run.mjs`(작업 트리 cwd에서 `--mock`/`--live`, requestUrl 필요).
 
+#### 6단계 400 오프라인 진단 (2026-11-08, 실호출 없음)
+- 방법: scratchpad `fusion-400/diag.mjs`가 모든 묶음의 geminiSchema를 2판/옛 계획으로 다시 만든다(google fetch는 막고 ephemeris만 통과).
+- 원인(확정에 가까운 추정): 세 묶음은 본문 키가 2개씩이고, 키마다 `subchapters.items.evidenceKeys.items.enum`에 6체계 전체 근거 경로 약 60개(문자 약 1,650)를 반복해 넣는다(`systems: []`라 전 체계). maxItems 6과 곱하면 enum 상태가 통과 묶음의 2배(문자 3,312~3,317, enum 값 126개)라 Gemini가 "스키마가 너무 복잡함" 400을 생성 전에 돌려준다(약 1초). 통과 묶음은 모두 enum 문자 ≤1,656. 토큰·프롬프트 길이·모델·thinking은 통과 묶음과 같다.
+- 운영 영향: 옛 계획 스키마도 바이트가 같다 → origin/main(159c40eef, 2026-10-17부터)에도 있다. 플래그 `FUSION_PREMIUM_V2_ENABLED` 미설정 = v2라 운영 v2 주문은 분야 장 6개가 조용히 빠진 degraded로 나갔을 가능성이 높다(운영 로그는 확인 못 함).
+- 수정 방향: 2판에서 enum 예산 초과 시 subchapter evidenceKeys enum을 빼고 경로 목록을 프롬프트에 둔다(2판 수용은 `normalizeFusionPlan2Subchapters`가 잘못된 키를 고쳐 안전). 400이면 단순 스키마→스키마 없음으로 같은 시도 안에서 다시 보낸다. 오류 본문을 잘라·가려 기록한다. 빈 분야 장은 배달하지 않는다.
+
 ## 6단계 진행 메모 (조사 완료, 구현 전 — 2026-11-08)
 
 ### 조사로 확인한 사실 (파일:줄은 이 워크트리 기준)
