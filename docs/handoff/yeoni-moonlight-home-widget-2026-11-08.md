@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-08
-next: 통합된 트리의 check:fast와 pre-push 결과를 확인하고 main에 전달한다.
+next: 별도 main 커밋의 정적 검사·Pages 빌드 실패가 복구되면 검사 결과를 확인하고 전달한다.
 ---
 
 # 연이의 달빛 홈 화면
@@ -12,9 +12,9 @@ next: 통합된 트리의 check:fast와 pre-push 결과를 확인하고 main에 
 
 ## 지금 상태와 승인
 
-- 작업 위치: D:/Development/codedestiny-worktrees/yeoni-widget-20261108-140814, 브랜치 wt/yeoni-widget-20261108-140814. 기준 13074e9f8, 기능 최종 커밋 ca36ee873f7f3130f617406b24c70ead23febfc9. 꽃돼지 재물·연애·재회, 운세 그림 두 장은 68a642814. 복구 시도한 main 2c71d2253을 1ec3096d2에 통합했다. main에 미전달.
+- 작업 위치: D:/Development/codedestiny-worktrees/yeoni-widget-20261108-140814, 브랜치 wt/yeoni-widget-20261108-140814. 기준 13074e9f8, 기능 최종 커밋 ca36ee873f7f3130f617406b24c70ead23febfc9. 꽃돼지 재물·연애·재회, 운세 그림 두 장은 68a642814. 복구 시도한 main 2c71d2253을 1ec3096d2에 통합했다. 재물 부적 재작화 b69ed5c3d: 둥근 한글 제목을 포함한 원본과 웹/Android 축소본 교체, 원본 검사 10개 통과. main에 미전달.
 - 2026-11-08 사용자 요청: “연이 모드에서만 오늘의 꽃말이 나오도록해줘 오늘의 운세는 영냥이 모드에서만”. 인간형 옷장, 위젯, 배경화면 범위 구현과 검증 및 main 전달 승인. 실제 결제/운영 DB/릴리스 빌드 제외.
-- main 0b70e9801의 [CI 실패](https://github.com/rei1237/codedestiny/actions/runs/42453171322): 기업 API 환경 변수 BUSINESS_API_PER_MINUTE, BUSINESS_API_SALES 문서 누락 등. 새 [수정 커밋 CI](https://github.com/rei1237/codedestiny/actions/runs/42456002143) 결과가 기준이다.
+- main 0b70e9801의 [CI 실패](https://github.com/rei1237/codedestiny/actions/runs/42453171322): 기업 API 환경 변수 BUSINESS_API_PER_MINUTE, BUSINESS_API_SALES 문서 누락 등. 새 [수정 커밋 CI](https://github.com/rei1237/codedestiny/actions/runs/42456002143) 의 Static guards와 Build Pages and Worker도 실패했다. 이 커밋 위에는 푸시하지 않는다.
 
 ## 설계와 확인
 
@@ -23,7 +23,7 @@ next: 통합된 트리의 check:fast와 pre-push 결과를 확인하고 main에 
 - [x] 좁은/넓은 웹에서 키보드와 이미지 다운로드, iOS 브리지 모의 저장 확인. iPhone·Android 실물과 배포 앱은 미검증.
 - [x] 위젯/자산/언어 검사와 기능 커밋 check:pre-push 통과.
 - [x] 신규 원본 5장과 위젯 썸네일 등록, 카탈로그/언어 테스트 12개, Android 정책 테스트 4개와 assembleDebug 통과. Chrome 375px에서 재회 원본 선택과 운세 그림 두 장의 같은 문장, 연이 전용 꽃말 확인. 그림 추가 커밋 pre-push 통과.
-- [ ] 추가 작업 전체 check:fast, 통합 pre-push 및 전달 확인.
+- [ ] 추가 작업 전체 check:fast 및 main 전달 확인. 통합 pre-push 통과, 새 그림 원본 검증 통과.
 
 ## 작업 규칙과 함정
 
