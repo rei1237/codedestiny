@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-11-09
-next: "묶음 ③ check:fast 결과 확인 → check:pre-push → main push → 스테이징 SHA 확인 → 승인된 운영 승격 1회 → 운영 실측·SEO Operations 기록."
+next: "리베이스한 트리의 pre-push → main 전달 → 공식 CI의 Jest 완료 확인 → 스테이징 SHA 확인 → 승인된 운영 승격 1회 → 운영 실측·SEO Operations 기록."
 ---
 
 # SEO 아키텍처 재구축
@@ -32,6 +32,11 @@ next: "묶음 ③ check:fast 결과 확인 → check:pre-push → main push → 
 - 현재 검증 진도: 추가 가드 77/77, lint, sitemap drift, typecheck 통과 후 Node 테스트 진행 중. 시스템 여유 메모리 약 700MB에서 일시 정체. 동시 실행 수를 낮추려 했으나 프로세스 소유 관계 안전 단언에서 중단되어 종료 조치는 실행되지 않았다. 이후 기존 테스트가 다시 진행됐다. 다른 세션 프로세스에는 손대지 않았다.
 - SEO Operations 최근 런은 성공: https://github.com/rei1237/codedestiny/actions/runs/42421948698. 패킷의 기존 실패 기록은 현재 상태가 아니다. 워크플로 수정 없음.
 - 승인 상태(2026-11-09): 사용자 원문 `main push + 운영 승격 1회 승인`. 묶음 ③ 및 이번 후속 수정의 main 전달·운영 dispatch 1회 승인 완료. 반복 확인하지 않는다. 다른 묶음 승격·검색엔진 계정 제출·운영 DB 접근 승인은 포함하지 않는다.
+- 추가 승인(2026-11-09) 원문 `3개 포함해 운영 승격 진행`: main에 추가된 잠금화면 `90e7c43f4`, `5027fdb66`, `87c6e54dd` 포함 승인. 같은 기능의 후속 `e2190a629`는 부적 알림 캡션의 Android Java 6줄만 수정하며 Cloudflare 배포 워크플로에는 Android/Gradle 빌드가 없다. 목록에 공개하고 보존한다. 새 웹 기능·정책을 추가하는 범위가 아니다. 같은 범위를 다시 승인받지 않는다.
+- `e2190a629125234c05b48bd32c53041ea5dcda3a` 위로 충돌 없이 rebase 완료. 후속 구현 커밋은 `37cb17270`(기존 `d3ee5d140`), 증거·승인 기록은 `9d6d410a0`(기존 `938098262`). 이 시점까지 push 없음. SEO 롤백은 최신 upstream 위의 SEO 소유 커밋만 revert하여 잠금화면 변경을 보존한다.
+- 로컬 check:fast는 Jest 이전 모든 단계 통과: 가드 77/77, lint/typecheck, Node 4700/4700, 정책 검사, Worker dry-run build, 인코딩. Jest가 10분 넘게 요약 없이 실행되어 이 세션의 Jest 프로세스 트리만 종료했다(부모 소유 관계 확인, PID 28796·24844). check:fast exit 1이며 전체 통과로 기록하지 않는다. Jest는 공식 main CI에서 완료하고 통과 전 운영 승격하지 않는다. 다른 세션 프로세스는 종료하지 않았다. 이전 트리 pre-push는 통과했으나 리베이스 후 재실행 필요.
+- 문서 상태값 `in-progress`가 기존 검증기의 허용값(active/blocked/done)에 없어 실패했다. 잘못된 문서 커밋 `4b2522f83`만 `4cae63642`로 revert했다. 기존 active 규약을 유지해 기록을 다시 작성하며 검증기를 바꾸지 않는다.
+- 묶음 ④ E1의 기존 dist 13쪽 SSR 분량만 측정: 첫 main에서 script/style/svg 제외, 공백 정규화 후 최소 3974자, 1800자 미달 0쪽. `D:/Development/seo-audit/code-destiny-20261101/bundle-4/new-year-ssr-length-20261109.json`. 새 빌드·운영 실측이 아니며 공유/고유 본문 비율·검색 성과는 미측정.
 - `D:/Development/seo-data/code-destiny/2026-11-01/`은 없음. 묶음 ④의 키워드 매핑·홈 역할 결정 및 ⑤의 단계별 승격을 완료로 처리하지 않는다. 실제 검색 성과는 미측정.
 
 - 묶음 ③ 로컬 완료, 승인 대기(2026-11-08). origin/main `9e8cec0a6`(= 운영 `/version.json`) 위로 리베이스해 16커밋, HEAD `66e63dee6` 뒤에 이 문서 커밋. 리베이스 전 상태는 태그 `bundle3-pre-rebase`. 아래 SHA는 리베이스 전 값이다(리베이스 뒤: 계획 `6d801c27a`, T1 `018d10f55`, T2 `a08a0b134`, T3 `a6e87e1e3`, T4 `ea47b6b9a`, T5 `846473190`, T6 `4c9ccfe24`, T7 `4e40665a2`, 정책 페이지 `651667e09`, T8 `665f6489b`, T9 `f847607c4`). 리베이스 판단: upstream `0b70e9801`의 `/business/api/dashboard` 사이트맵 제외를 원장에 `meta: null, sitemap: false`로 옮김. 그 커밋의 coreRoutes 2줄(`/business/api`, `/business/api/docs`)은 첫 충돌 해결 때 빠져 `ea47b6b9a`에서 되살림(`a6e87e1e3`만 두 줄이 없다). 생성 파일 충돌은 생성기를 다시 돌려 해결. T10 결과: 최종 build:cf exit 0, verify-dist 실패 0·경고 0(hreflang-sitemap warn 185 → fail 0), index-state 차이는 upstream 새 페이지 3개뿐, 회귀 묶음 전부 exit 0, `check:pre-push` exit 0. 승인 패킷 `D:Developmentseo-auditde-destiny-20261101bundle-3pproval-packet.md`. 이전 기록: 계획 `1c448dd3c`, T1 `abbaa53ad`, T2 `5f05c0104`, T3 `e26a56301`, T4 `f64bb98d2`(googlebot meta 0, 페이지당 robots meta 최대 1, `index-state-t4.json` diff 0줄), T5 `1c2bdba88`, T6 `125794c4c`, T7 `6602003eb`, 정책 페이지 재생성 `4c077642b`, T8 `5a81a33a3`(verify-dist 규칙 robots-meta-count·index-ledger·hreflang-reciprocal 추가, 홈 클러스터 셸 5쪽 hreflang 을 빌드 때 alternatesFor(I18N_ROUTE_MAP.home)로 교체 → hreflang-sitemap 5→0, 네 규칙 모두 실 dist 0건이라 fail 로 올림, `verify-dist-t8.json` 실패 0·경고 0, `index-state-t8.json` diff 0줄), T9 `800556f5d`(submitIndexNowUrls·getAllSitemapUrls 삭제, INDEXNOW_ENDPOINT 는 export 로 유지, 근거 `dead-code-grep.txt`; seo-site-urls 변경으로 사이트맵 서명 120·lastmod 17건 재생성). 남은 것은 T10. T7 뒤 build:cf: verify-dist 실패 0, hreflang-sitemap 185→5(정적 셸 `/ggulggul/`·`/en/`·`/ja/`·`/zh/`·`/zh-tw/`의 index.html 블록 ko-KR·ja-JP·en-US), `index-state-t7.json` diff 0줄. 증거는 `D:\Development\seo-audit\code-destiny-20261101\bundle-3\`(기준 `build-before.log`·`verify-dist-before.json`·`index-state-before.json`, T3 뒤 `index-state-t3.json` diff 0줄).
