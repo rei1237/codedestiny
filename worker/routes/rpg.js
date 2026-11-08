@@ -20,6 +20,7 @@ import { buildSajuProfile } from "../lib/destiny-bias-engine.js";
 import { scopeConnection } from "../lib/db-scope-connection.js";
 import { getProfileSpirits, unlockProfileSpirit, equipProfileSpirit, profileSpiritExp } from "../lib/profile-spirits.js";
 import { profileCharacterPreview } from "../lib/profile-character-preview.js";
+import { getProfilePet, hatchProfilePet, careForProfilePet } from "../lib/profile-pet.js";
 
 const KST_OFFSET_MS = 9 * 60 * 60 * 1000;
 const KST_DAY_MS = 24 * 60 * 60 * 1000;
@@ -1890,6 +1891,16 @@ export async function handleRpgRoutes(request, env) {
     const method = request.method.toUpperCase();
     path = getRoutePath(request, "/api/rpg");
 
+    if (path === '/pet' && method === 'GET') {
+      const auth = await requireAuth(request, env);
+      return json({ ok: true, ...await getProfilePet(env, auth.userId, new URL(request.url).searchParams.get('profileId')) }, { headers: { 'Cache-Control': 'private, no-store' } });
+    }
+    if (method === 'POST' && (path === '/pet/hatch' || path === '/pet/care')) {
+      const auth = await requireAuth(request, env);
+      const body = await readJson(request);
+      const result = path.endsWith('/hatch') ? await hatchProfilePet(env, auth.userId, body) : await careForProfilePet(env, auth.userId, body);
+      return json({ ok: true, ...result }, { headers: { 'Cache-Control': 'private, no-store' } });
+    }
     if (method === "POST" && path === "/character-preview") {
       return json({ ok: true, ...profileCharacterPreview(await readJson(request)) }, { headers: { 'Cache-Control': 'private, no-store' } });
     }
