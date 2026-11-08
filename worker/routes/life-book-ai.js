@@ -1322,6 +1322,23 @@ function generationWaveCap(plan = []) {
   return length > 15 ? Math.max(MAX_GENERATION_WAVES, length * 2 + 2) : MAX_GENERATION_WAVES;
 }
 
+// V3 뒤 반이 앞 반 문장을 다시 쓰면 검증 전에 그 문장을 뺀다(실패하면 원문 그대로).
+function dropPriorHalfRepeats(plan, sections, section, result) {
+  if (section?.half !== "b" || typeof result?.body?.content !== "string" || !result.body.content) return;
+  const prior = plan.find((row) => row.chapterId === section.chapterId && row.half === "a");
+  const priorContent = prior && sections[prior.id]?.body?.content;
+  if (typeof priorContent !== "string" || !priorContent) return;
+  try {
+    const deduped = dropRepeatedReportSentences(result.body.content, priorContent);
+    if (deduped && deduped !== result.body.content) {
+      result.body = { ...result.body, content: deduped };
+      result.chars = sectionBodyChars(section, result.body);
+    }
+  } catch {
+    // 보조 단계다.
+  }
+}
+
 // V3 배달 판단: 장 본문이 한 글자라도 있으면 배달, 완전히 비었을 때만 실패(환불). V1/V2 는 항상 false.
 function lifeBookV3HasChapterBody(plan = [], sections = {}) {
   if (!plan.some(section => section.planVersion >= 3)) return false;
@@ -1342,7 +1359,8 @@ function lifeBookV3DeliverableSections(plan = [], sections = {}) {
   return out;
 }
 
-// V3 뒤 반 프롬프트에 넣을 앞 반의 요지(요약 + 앞부분). 앞 반이 아직 없으면 빈 문자열.
+// V3 뒤 반 프롬프트에 넣을 앞 반의 요지(요약 + 끝부분). 앞 반이 아직 없으면 빈 문자열.
+// 앞부분을 넣으면 모델이 그 문장을 그대로 베껴 시작한다(6e 실호출 2026-11-08, 뒤 반 10개 중 9개가 앞 반 첫 문장 8~14개를 복사).
 function buildPriorHalfExcerpt(plan, sections, section) {
   if (section?.half !== "b") return "";
   const prior = plan.find((row) => row.chapterId === section.chapterId && row.half === "a");
@@ -1350,7 +1368,7 @@ function buildPriorHalfExcerpt(plan, sections, section) {
   const content = clean(body?.content, 20000);
   if (!content) return "";
   const summary = clean(body?.summary, 400);
-  return [summary ? `요약: ${summary}` : "", `앞부분: ${content.slice(0, 900)}`].filter(Boolean).join("\n");
+  return [summary ? `요약: ${summary}` : "", `앞 반의 마지막 부분: …${content.slice(-400)}`].filter(Boolean).join("\n");
 }
 
 // 섹션이 실제로 참조하는 루트만 추린다. 계산 JSON 전량을 15번 반복 전송하면 입력 토큰이 15배가 되고
@@ -1481,7 +1499,7 @@ function buildSectionPrompt(input, sajuSlice, section, digest = "", { priorHalf 
   if (section.halfFocus) {
     lines.push(section.halfFocus);
     if (section.half === "b" && priorHalf) {
-      lines.push("", "[이 장 앞 반의 요지 — 이 내용을 되풀이하지 말고 이어서 쓰세요]", priorHalf);
+      lines.push("", "[이 장 앞 반은 이미 쓰였습니다 — 아래는 그 요약과 끝부분입니다. 앞 반의 문장을 다시 쓰지 말고, 끝부분 바로 다음 이야기부터 새 문장으로 시작하세요]", priorHalf);
     }
   }
 
@@ -3146,6 +3164,7 @@ async function handleStart(request, env, route = "/api/life-book-ai/generate", r
               },
               logContext: { ...baseLogContext, sectionId: section.id, attempt },
             }));
+            dropPriorHalfRepeats(plan, sections, section, result);
             const valid = row => row?.ok && lifeBookSectionValid(section, row.body, normalized.input)
               && !hasRepeatedReportPassage([...Object.entries(sections).filter(([id, value]) => id !== section.id && value.ok).map(([, value]) => value.body?.content || ""), row.body?.content || ""].join("\n"));
             const priorValid = stored?.ok && lifeBookSectionValid(section, stored.body, normalized.input);
@@ -3513,6 +3532,7 @@ export const __lifeBookAiTestUtils = {
   normalizeEvidenceRefs,
   normalizeSectionBody,
   lifeBookV3HasChapterBody,
+  dropPriorHalfRepeats,
   LIFE_FORTUNE_SECTION_PLAN_VERSION,
 };
 

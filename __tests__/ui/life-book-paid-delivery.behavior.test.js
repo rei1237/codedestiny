@@ -92,7 +92,7 @@ function fixture(accessType = 'pass', env = {}) {
     LifeBookAiConsultation: model,
     buildSectionPlan: () => plan, buildSectionDigest: () => '', buildSectionPrompt: () => 'mock', pickSajuSlice: v => v,
     createLlmCacheStore: () => null,
-    lifeBookSectionValid: () => true, hasRepeatedReportPassage: () => false, hasForbiddenResultTerms: () => false,
+    lifeBookSectionValid: () => true, hasRepeatedReportPassage: () => false, hasForbiddenResultTerms: () => false, dropRepeatedReportSentences: text => text,
     countPaidReportBodyChars: text => String(text || '').replace(/\s/g, '').length,
     sectionBodyChars: (_section, body) => body?.content?.replace(/\s/g, '').length || 0,
     generateSectionOnce: async (_env, section) => {
@@ -104,7 +104,7 @@ function fixture(accessType = 'pass', env = {}) {
     reportTotalContentChars: () => 25000, extractTitle: () => 'mock report', extractKeywords: () => [],
   });
   load(ctx, 'worker/lib/result-storage.js', ['resultStorageUnavailable', 'resultStorageFailurePayload']);
-  load(ctx, 'worker/routes/life-book-ai.js', ['handleStart', 'runWithConcurrency', 'reserveProviderCallOnce', 'releaseSectionLock', 'saveLifeBookState', 'finishLifeBookDelivery', 'lifeBookLengthOptions', 'isLifeBookLengthOnlyIssue', 'lifeBookLengthBoostTarget', 'generationWaveCap', 'buildPriorHalfExcerpt', 'lifeBookV3HasChapterBody', 'lifeBookV3DeliverableSections']);
+  load(ctx, 'worker/routes/life-book-ai.js', ['handleStart', 'runWithConcurrency', 'reserveProviderCallOnce', 'releaseSectionLock', 'saveLifeBookState', 'finishLifeBookDelivery', 'lifeBookLengthOptions', 'isLifeBookLengthOnlyIssue', 'lifeBookLengthBoostTarget', 'generationWaveCap', 'buildPriorHalfExcerpt', 'lifeBookV3HasChapterBody', 'lifeBookV3DeliverableSections', 'dropPriorHalfRepeats']);
   const post = (body = {}) => ctx.handleStart(new Request('https://mock.test/api/life-book-ai/generate', {
     method: 'POST', headers: { 'Content-Type': 'application/json', 'idempotency-key': 'original-paid-request' }, body: JSON.stringify(body),
   }), env);

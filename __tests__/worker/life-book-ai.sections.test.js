@@ -25,6 +25,7 @@ const {
   buildPriorHalfExcerpt,
   normalizeEvidenceRefs,
   lifeBookV3HasChapterBody,
+  dropPriorHalfRepeats,
 } = __lifeBookAiTestUtils;
 
 test('a missing middle chapter cannot shift the identity or short-draft allowance of later chapters', () => {
@@ -454,12 +455,25 @@ ${sections["chapter-2-b"].body.content}`);
     const a = plan.find((s) => s.id === "chapter-4-a");
     const b = plan.find((s) => s.id === "chapter-4-b");
     const priorHalf = buildPriorHalfExcerpt(plan, sections, b);
-    expect(priorHalf).toContain(sections["chapter-4-a"].body.content.slice(0, 50));
+    expect(priorHalf).toContain(sections["chapter-4-a"].body.content.slice(-50));
     expect(buildPriorHalfExcerpt(plan, sections, a)).toBe("");
     const promptB = buildSectionPrompt(lifeFortuneInput, pickSajuSlice(saju, b.evidenceRefs), b, "", { priorHalf });
     expect(promptB).toContain("뒤 반입니다");
     expect(promptB).toContain(priorHalf);
     expect(buildSectionPrompt(lifeFortuneInput, pickSajuSlice(saju, a.evidenceRefs), a, "")).toContain("앞 반입니다");
+  });
+
+  test("뒤 반이 앞 반 문장을 다시 쓰면 검증 전에 그 문장을 뺀다", () => {
+    const plan = planV3();
+    const first = "당신의 일간은 땅의 기운이라 만물을 품고 길러 내는 성정이 깊습니다.";
+    const sections = { "chapter-2-a": { ok: true, body: { content: `${first} 그 성정은 관계 속에서 먼저 드러납니다, 오래 지켜본 사람일수록 그 깊이를 압니다.` } } };
+    const result = { ok: true, body: { content: `${first} 이제 시기를 보면 서른 중반의 대운이 선택의 문을 엽니다, 그때는 일의 자리를 먼저 다지세요.` }, chars: 0 };
+    dropPriorHalfRepeats(plan, sections, plan.find((s) => s.id === "chapter-2-b"), result);
+    expect(result.body.content).not.toContain(first);
+    expect(result.body.content).toContain("서른 중반");
+    const untouched = { ok: true, body: { content: first } };
+    dropPriorHalfRepeats(plan, sections, plan.find((s) => s.id === "chapter-2-a"), untouched);
+    expect(untouched.body.content).toBe(first);
   });
 
   test("본문이 하나라도 있으면 V3는 배달 가능, 비었거나 V2면 아니다", () => {
