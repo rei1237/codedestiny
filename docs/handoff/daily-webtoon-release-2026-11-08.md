@@ -105,6 +105,9 @@ next: "2단계 후속: main PR CI Static guards 실패(verify:saju-summary-brows
   - 운영 `/fortune/today/pig/`·`/fortune/tomorrow/aries/` 200, 웹툰 7컷, 컷 이미지 7장 200, 네오 대사 `일진은 병술(丙戌)일이야`·`정해(丁亥)일이야`.
   - 301 확인 10건 모두 301 한 번 → 200: /fpti, /saju-picture, /famous/, /fortune/sikojen-povailu, /dev-status, /tadagochi(.html), /static/geomancy-oracle-v4.html, /fortune-tea-house/tarot-debug, /sukyo/relationship-encyclopedia.
 - 4단계: 병합 워크트리(1a9f0fb18)에서 VERSION_CODE 58 빌드. 스크립트 `D:\Development\Temp\claude\ec29f026d20d029c\ccecc842-2a09-4af6-b3e9-689ca5d1e944\scratchpad\build-android-58.ps1`(서명 설정 `release-signing.properties`를 android 워크트리에서 복사, git 무시 파일). 출력 `D:\Development\code-destiny\output\android-size-widget-20261107\final6`.
+  - final6 AAB(267,484,818 B, 58/1.0.58)를 Play 내부 테스트 트랙 초안(releases/17)에 올렸더니 🔴 **"58 버전 코드는 이미 사용되었습니다"**. App Bundle 탐색기를 보니 58(1.0.58)은 2026-11-06 흑월 세션(heukwol-release-review 문서, bb148a00e 빌드)이 이미 올렸고 활성이다. 57(11-05 업로드)도 있다. 위 "57은 업로드하지 않았다"는 틀린 기록이다. **VERSION_CODE를 정할 때는 문서 대신 App Bundle 탐색기의 최고값을 본다.**
+  - 그래서 **59/1.0.59**로 다시 빌드한다. 스크립트 `...\scratchpad\build-android-59.ps1`, 출력 `D:\Development\code-destiny\output\android-size-widget-20261107\final7`. 기기가 연결돼 있지 않아 benchmark 단계는 뺐다(final6 benchmark 빌드는 중단). final6 AAB는 쓰지 않는다.
+  - Play 화면 정보: 개발자 8929260153073799668, 앱 4971977067602742831, 내부 테스트 트랙 4701642016388647854(이전 최신 49/1.0.49).
 
 ## 이어받는 쪽 첫 행동 (2026-11-08 갱신)
 1. 병합 워크트리 `D:\Development\codedestiny-worktrees\release-merge-20261108`(detached, node_modules junction)에서 `git fetch origin`. origin/main이 앞서 있으면 rebase한다.
