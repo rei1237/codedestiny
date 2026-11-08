@@ -12,7 +12,7 @@ const open = [];
 
 // 복귀 재개가 먼저 돌아 주소를 걷어낸 문서를 재현하려면 before 에서 replaceState 한다.
 function boot({ url = "https://code-destiny.com/ggulggul/", storage = {}, before } = {}) {
-  const dom = new JSDOM(`<!doctype html><html lang="ko"><body><div id="cdHomeFunnel"><nav class="yh-entries"></nav><section class="cdh-free"></section><div id="cdSigGrid">${CARDS}</div></div></body></html>`, {
+  const dom = new JSDOM(`<!doctype html><html lang="ko"><body><div id="cdHomeFunnel"><nav class="yh-entries"></nav><section class="cdh-free"></section><section id="cdSignatureConsult"><div id="cdSigGrid">${CARDS}</div></section></div></body></html>`, {
     url,
     pretendToBeVisual: true,
     runScripts: "outside-only",

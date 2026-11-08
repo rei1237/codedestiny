@@ -1,0 +1,34 @@
+{
+  "home.typographyPicker.lead": {
+    "ko":"마음에 남은 고민을 고르고, 상담 방식과 받을 결과를 비교해 보세요.",
+    "en":"Choose what is on your mind, then compare the consultation styles and results.",
+    "ja":"気になる悩みを選び、相談の方法と受け取れる内容を比べてみましょう。",
+    "zh-CN":"选择心中的烦恼，再比较咨询方式与结果内容。",
+    "zh-TW":"選擇心中的煩惱，再比較諮詢方式與結果內容。",
+    "vi":"Chọn điều bạn đang băn khoăn, rồi so sánh cách tư vấn và nội dung nhận được.",
+    "hi":"अपनी चिंता चुनें, फिर परामर्श के तरीके और मिलने वाली सामग्री की तुलना करें।",
+    "es":"Elige lo que te preocupa y compara las formas de consulta y sus resultados.",
+    "fr":"Choisissez ce qui vous préoccupe, puis comparez les consultations et leur contenu.",
+    "de":"Wähle dein Anliegen und vergleiche Beratungsformen und Ergebnisse.",
+    "nl":"Kies wat je bezighoudt en vergelijk de consultvormen en resultaten.",
+    "ms":"Pilih perkara yang merisaukan anda, kemudian bandingkan cara konsultasi dan hasilnya."
+  },
+  "home.typographyPicker.allConsultations": {
+    "ko":"전체 상담","en":"All consultations","ja":"すべての相談","zh-CN":"全部咨询","zh-TW":"全部諮詢","vi":"Tất cả tư vấn","hi":"सभी परामर्श","es":"Todas las consultas","fr":"Toutes les consultations","de":"Alle Beratungen","nl":"Alle consulten","ms":"Semua konsultasi"
+  },
+  "home.typographyPicker.specific": {
+    "ko":"구체적인 고민","en":"Specific concerns","ja":"詳しい悩み","zh-CN":"具体烦恼","zh-TW":"具體煩惱","vi":"Băn khoăn cụ thể","hi":"खास चिंताएँ","es":"Preocupaciones concretas","fr":"Préoccupations précises","de":"Konkrete Anliegen","nl":"Specifieke vragen","ms":"Kebimbangan khusus"
+  },
+  "home.typographyPicker.all": {
+    "ko":"모두","en":"All","ja":"すべて","zh-CN":"全部","zh-TW":"全部","vi":"Tất cả","hi":"सभी","es":"Todo","fr":"Tout","de":"Alle","nl":"Alles","ms":"Semua"
+  },
+  "home.typographyPicker.compare": {
+    "ko":"상담 비교하기","en":"Compare consultations","ja":"相談を比較する","zh-CN":"比较咨询","zh-TW":"比較諮詢","vi":"So sánh tư vấn","hi":"परामर्श की तुलना करें","es":"Comparar consultas","fr":"Comparer les consultations","de":"Beratungen vergleichen","nl":"Consulten vergelijken","ms":"Bandingkan konsultasi"
+  },
+  "home.typographyPicker.more": {
+    "ko":"관련 상담 더 보기","en":"See more related consultations","ja":"関連する相談をもっと見る","zh-CN":"查看更多相关咨询","zh-TW":"查看更多相關諮詢","vi":"Xem thêm tư vấn liên quan","hi":"और संबंधित परामर्श देखें","es":"Ver más consultas relacionadas","fr":"Voir d’autres consultations liées","de":"Weitere passende Beratungen","nl":"Meer gerelateerde consulten","ms":"Lihat lebih banyak konsultasi berkaitan"
+  },
+  "home.typographyPicker.less": {
+    "ko":"접기","en":"Show less","ja":"閉じる","zh-CN":"收起","zh-TW":"收合","vi":"Thu gọn","hi":"कम दिखाएँ","es":"Mostrar menos","fr":"Réduire","de":"Weniger anzeigen","nl":"Minder tonen","ms":"Ringkaskan"
+  }
+}

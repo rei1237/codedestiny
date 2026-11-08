@@ -35,7 +35,7 @@ test('first-screen translations render before JS; missing translations fail the 
   const fixture = mkdtempSync(join(tmpdir(), 'cd-seo-locale-'));
   try {
     const html = read('index.html');
-    const hero = ['yhDesktopTitle','cdhTitle'].map(id => html.match(new RegExp('<h([12])[^>]*id="' + id + '"[^>]*>[\\s\\S]*?<\\/h\\1>'))[0]).join('');
+    const hero = ['cdhTitle'].map(id => html.match(new RegExp('<h([12])[^>]*id="' + id + '"[^>]*>[\\s\\S]*?<\\/h\\1>'))[0]).join('');
     for (const [locale, dictionary] of [['en','en'],['ja','ja'],['zh','zh-cn'],['zh-tw','zh-tw']]) {
       mkdirSync(join(fixture, 'dist', locale), { recursive: true });
       mkdirSync(join(fixture, 'public', 'i18n'), { recursive: true });
@@ -51,7 +51,8 @@ test('first-screen translations render before JS; missing translations fail the 
       assert.match(output, /data-cd-origin-text=/, 'runtime Korean restoration is preserved');
     }
     const bad = JSON.parse(read('public/i18n/ja.json'));
-    delete bad.home.gardenCopy.quickTitle;
+    const parts=hero.match(/data-cd-trans="([^"]+)"/)[1].split('.');
+    delete parts.slice(0,-1).reduce((node,part)=>node[part],bad)[parts.at(-1)];
     writeFileSync(join(fixture, 'public/i18n/ja.json'), JSON.stringify(bad));
     assert.notEqual(run().status, 0);
   } finally {

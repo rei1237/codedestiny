@@ -14,15 +14,6 @@
 
 /* Shared type roles: brand-typography.css. */
 
-/* Match the shell: native body fonts paint immediately without a full Korean TTF download. */
-@font-face {
-	font-family: "CodeDestinyBody";
-	src: local("Pretendard"), local("Apple SD Gothic Neo"), local("Malgun Gothic");
-	font-weight: 400 900;
-	font-style: normal;
-	font-display: swap;
-}
-
 @font-face {
 	font-family: "CodeDestinyDisplay";
 	src: url("https://assets.code-destiny.com/Mulmaru.woff2") format("woff2");
@@ -43,6 +34,10 @@
 
 /* ─── 모바일 터치·스크롤 기반 (모든 브라우저/OS 동일 경험) ─── */
 @layer base {
+	h1, h2, h3 {
+		font-family: var(--font-display);
+		font-weight: 400;
+	}
 	html {
 		-webkit-text-size-adjust: 100%;
 		text-size-adjust: 100%;

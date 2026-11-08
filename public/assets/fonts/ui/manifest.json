@@ -1,0 +1,1103 @@
+{
+  "sources": [
+    {
+      "family": "CodeDestinyRounded",
+      "name": "Jua",
+      "css": "https://fonts.googleapis.com/css2?family=Jua&display=swap",
+      "license": "https://raw.githubusercontent.com/google/fonts/main/ofl/jua/OFL.txt"
+    },
+    {
+      "family": "CodeDestinyBody",
+      "name": "Pretendard",
+      "css": "https://raw.githubusercontent.com/orioncactus/pretendard/v1.3.9/packages/pretendard/dist/web/variable/pretendardvariable-dynamic-subset.css",
+      "license": "https://raw.githubusercontent.com/orioncactus/pretendard/v1.3.9/LICENSE"
+    }
+  ],
+  "cssSha256": "04663e2ba078b13e5298090efa793041caaa230d994e678c2a8e962cc713a915",
+  "assets": [
+    {
+      "file": "Jua-008d87add3ea672d.woff2",
+      "url": "https://fonts.gstatic.com/s/jua/v18/co3KmW9ljjAjdojPCM3T3NGswha8jSmuzy4jzT-N.111.woff2",
+      "sha256": "008d87add3ea672d4927fe40203c8844cdc01a86fff6ccfd2640e33247a2b0bf",
+      "bytes": 26136
+    },
+    {
+      "file": "Jua-0288c5b4abbceed3.woff2",
+      "url": "https://fonts.gstatic.com/s/jua/v18/co3KmW9ljjAjdojPCM3T3NGswha8jSmuzy4jzT-N.43.woff2",
+      "sha256": "0288c5b4abbceed3d28f9f7cd8c7bbfa571f7000ee3d421bff6d0f0aaa5b8172",
+      "bytes": 7376
+    },
+    {
+      "file": "Jua-0430748065538778.woff2",
+      "url": "https://fonts.gstatic.com/s/jua/v18/co3KmW9ljjAjdojPCM3T3NGswha8jSmuzy4jzT-N.101.woff2",
+      "sha256": "043074806553877847a1cbe78ee9d21a508304f6c9041dc412b69a3a6108eca4",
+      "bytes": 14304
+    },
+    {
+      "file": "Jua-095eb4aa89467b67.woff2",
+      "url": "https://fonts.gstatic.com/s/jua/v18/co3KmW9ljjAjdojPCM3T3NGswha8jSmuzy4jzT-N.16.woff2",
+      "sha256": "095eb4aa89467b67d095e36b788c1d974a7863a31d4d34a52afd77faa032026e",
+      "bytes": 6188
+    },
+    {
+      "file": "Jua-09d3b9fe540e0cfb.woff2",
+      "url": "https://fonts.gstatic.com/s/jua/v18/co3KmW9ljjAjdojPCM3T3NGswha8jSmuzy4jzT-N.36.woff2",
+      "sha256": "09d3b9fe540e0cfbd954f1e3a44687065af18c428fd41334d8166fce10df9d48",
+      "bytes": 2884
+    },
+    {
+      "file": "Jua-0a175bbc5ed886de.woff2",
+      "url": "https://fonts.gstatic.com/s/jua/v18/co3KmW9ljjAjdojPCM3T3NGswha8jSmuzy4jzT-N.3.woff2",
+      "sha256": "0a175bbc5ed886de9709fac0b8ebbb2a5d88b1e342e00f55b5354fbf52d4efbe",
+      "bytes": 7892
+    },
+    {
+      "file": "Jua-0aa10e38be438b7a.woff2",
+      "url": "https://fonts.gstatic.com/s/jua/v18/co3KmW9ljjAjdojPCM3T3NGswha8jSmuzy4jzT-N.26.woff2",
+      "sha256": "0aa10e38be438b7a9b09c0a0f388157e4d315d62dee90d3e3a6f01e70e8cea93",
+      "bytes": 8388
+    },
+    {
+      "file": "Jua-0b8c80d9936a910a.woff2",
+      "url": "https://fonts.gstatic.com/s/jua/v18/co3KmW9ljjAjdojPCM3T3NGswha8jSmuzy4jzT-N.44.woff2",
+      "sha256": "0b8c80d9936a910aea70e96622475332459d988c971f62b3c0692aa4a4a6b4a8",
+      "bytes": 6944
+    },
+    {
+      "file": "Jua-12a250ba49ed1487.woff2",
+      "url": "https://fonts.gstatic.com/s/jua/v18/co3KmW9ljjAjdojPCM3T3NGswha8jSmuzy4jzT-N.19.woff2",
+      "sha256": "12a250ba49ed148758a68cefd908f6a116dbf67601f98dd1d9123b19c52f42e9",
+      "bytes": 4088
+    },
+    {
+      "file": "Jua-1e62cc8d72fce0af.woff2",
+      "url": "https://fonts.gstatic.com/s/jua/v18/co3KmW9ljjAjdojPCM3T3NGswha8jSmuzy4jzT-N.32.woff2",
+      "sha256": "1e62cc8d72fce0af73ed3191fedaf890159f764093e2c779b303b80880fa3003",
+      "bytes": 5832
+    },
+    {
+      "file": "Jua-22662f1bdbdd34ed.woff2",
+      "url": "https://fonts.gstatic.com/s/jua/v18/co3KmW9ljjAjdojPCM3T3NGswha8jSmuzy4jzT-N.119.woff2",
+      "sha256": "22662f1bdbdd34ed54d2a199dc3c0ca2c353006d6982bcbd902ecbd0293a9b6d",
+      "bytes": 17212
+    },
+    {
+      "file": "Jua-22c36e092beece65.woff2",
+      "url": "https://fonts.gstatic.com/s/jua/v18/co3KmW9ljjAjdojPCM3T3NGswha8jSmuzy4jzT-N.50.woff2",
+      "sha256": "22c36e092beece65c43084928d6f0339a201469ba972619dde123267e0e00b10",
+      "bytes": 5296
+    },
+    {
+      "file": "Jua-2490790e982ac265.woff2",
+      "url": "https://fonts.gstatic.com/s/jua/v18/co3KmW9ljjAjdojPCM3T3NGswha8jSmuzy4jzT-N.58.woff2",
+      "sha256": "2490790e982ac265e4ece2f8c68805b8fb2d285df5cf2939ed8b7123dda21fa3",
+      "bytes": 5392
+    },
+    {
+      "file": "Jua-282eafddcf8362ca.woff2",
+      "url": "https://fonts.gstatic.com/s/jua/v18/co3KmW9ljjAjdojPCM3T3NGswha8jSmuzy4jzT-N.63.woff2",
+      "sha256": "282eafddcf8362ca22fe86c020348faa632d456c9bdb8b62abde37b1a6203b2b",
+      "bytes": 8668
+    },
+    {
+      "file": "Jua-2e6a7e9c455ad538.woff2",
+      "url": "https://fonts.gstatic.com/s/jua/v18/co3KmW9ljjAjdojPCM3T3NGswha8jSmuzy4jzT-N.112.woff2",
+      "sha256": "2e6a7e9c455ad538b586c76c31e7646e10d9b302738a0c889b5a3fffd55e8b3b",
+      "bytes": 26516
+    },
+    {
+      "file": "Jua-30cadeee6f9ad782.woff2",
+      "url": "https://fonts.gstatic.com/s/jua/v18/co3KmW9ljjAjdojPCM3T3NGswha8jSmuzy4jzT-N.107.woff2",
+      "sha256": "30cadeee6f9ad782dc21a9ad78f051051b2aa68cf9a1726235c21d4e32daf7c7",
+      "bytes": 24588
+    },
+    {
+      "file": "Jua-33087309ba33cd08.woff2",
+      "url": "https://fonts.gstatic.com/s/jua/v18/co3KmW9ljjAjdojPCM3T3NGswha8jSmuzy4jzT-N.21.woff2",
+      "sha256": "33087309ba33cd0864412161eecafda38183760568a520c1d962bf3eaac256a5",
+      "bytes": 5660
+    },
+    {
+      "file": "Jua-365382eb7b36ce30.woff2",
+      "url": "https://fonts.gstatic.com/s/jua/v18/co3KmW9ljjAjdojPCM3T3NGswha8jSmuzy4jzT-N.18.woff2",
+      "sha256": "365382eb7b36ce30477c86bcc060412e77bfbd110ae8d12c0a3fd4a5bec6a454",
+      "bytes": 5892
+    },
+    {
+      "file": "Jua-36c34127c7adf787.woff2",
+      "url": "https://fonts.gstatic.com/s/jua/v18/co3KmW9ljjAjdojPCM3T3NGswha8jSmuzy4jzT-N.41.woff2",
+      "sha256": "36c34127c7adf78761cf6bf86bcb1d81c866a58edd4dff296a4c1e2a57be6707",
+      "bytes": 5520
+    },
+    {
+      "file": "Jua-38bc60c4580211ad.woff2",
+      "url": "https://fonts.gstatic.com/s/jua/v18/co3KmW9ljjAjdojPCM3T3NGswha8jSmuzy4jzT-N.94.woff2",
+      "sha256": "38bc60c4580211ad066273252129fea842d83934e02e7000a2833f7413509ff3",
+      "bytes": 5940
+    },
+    {
+      "file": "Jua-4032a916faa53dca.woff2",
+      "url": "https://fonts.gstatic.com/s/jua/v18/co3KmW9ljjAjdojPCM3T3NGswha8jSmuzy4jzT-N.47.woff2",
+      "sha256": "4032a916faa53dca91d2947d78e191fe0e9e40b3e8994cfcb832ec6f528dbcd0",
+      "bytes": 5012
+    },
+    {
+      "file": "Jua-42e4a9ba67a2bece.woff2",
+      "url": "https://fonts.gstatic.com/s/jua/v18/co3KmW9ljjAjdojPCM3T3NGswha8jSmuzy4jzT-N.57.woff2",
+      "sha256": "42e4a9ba67a2bece3b99c015d0f5291bc4fbe85773cccd131cf13ade18b15d1d",
+      "bytes": 5368
+    },
+    {
+      "file": "Jua-47ecc4e1f1ea8ab6.woff2",
+      "url": "https://fonts.gstatic.com/s/jua/v18/co3KmW9ljjAjdojPCM3T3NGswha8jSmuzy4jzT-N.6.woff2",
+      "sha256": "47ecc4e1f1ea8ab6b05c60a688ec684de38fe904a57b3b79b866f1f19b346ba6",
+      "bytes": 7940
+    },
+    {
+      "file": "Jua-494c7fabc54458c0.woff2",
+      "url": "https://fonts.gstatic.com/s/jua/v18/co3KmW9ljjAjdojPCM3T3NGswha8jSmuzy4jzT-N.106.woff2",
+      "sha256": "494c7fabc54458c05cdff82fd9c4bffe132f427f1989f3ff6a46fe44b4a44bea",
+      "bytes": 20532
+    },
+    {
+      "file": "Jua-4ba9748f665b8301.woff2",
+      "url": "https://fonts.gstatic.com/s/jua/v18/co3KmW9ljjAjdojPCM3T3NGswha8jSmuzy4jzT-N.110.woff2",
+      "sha256": "4ba9748f665b830153dd7c52bd94e7dd7ad9d7beca891853623a89232ee94853",
+      "bytes": 27176
+    },
+    {
+      "file": "Jua-4c655f16e16c024d.woff2",
+      "url": "https://fonts.gstatic.com/s/jua/v18/co3KmW9ljjAjdojPCM3T3NGswha8jSmuzy4jzT-N.55.woff2",
+      "sha256": "4c655f16e16c024dd51c75eb9ed4b8f3cacb806e57a135f8eabae1da9f4870c3",
+      "bytes": 6172
+    },
+    {
+      "file": "Jua-50613d8bcab5a46b.woff2",
+      "url": "https://fonts.gstatic.com/s/jua/v18/co3KmW9ljjAjdojPCM3T3NGswha8jSmuzy4jzT-N.5.woff2",
+      "sha256": "50613d8bcab5a46bab07857d78e18cf17dfc1ebc2e67d5f5aa90736d76e1ac8c",
+      "bytes": 4424
+    },
+    {
+      "file": "Jua-549ca8bc36220aaf.woff2",
+      "url": "https://fonts.gstatic.com/s/jua/v18/co3KmW9ljjAjdojPCM3T3NGswha8jSmuzy4jzT-N.105.woff2",
+      "sha256": "549ca8bc36220aaff0da1d834b67c601f5503d4fbeb3e6888a2616dc0c150359",
+      "bytes": 18592
+    },
+    {
+      "file": "Jua-54a66dbf26d14b57.woff2",
+      "url": "https://fonts.gstatic.com/s/jua/v18/co3KmW9ljjAjdojPCM3T3NGswha8jSmuzy4jzT-N.64.woff2",
+      "sha256": "54a66dbf26d14b57f406c5d6face216f9b06c071439a8c1f25b43b69fa82fb70",
+      "bytes": 7012
+    },
+    {
+      "file": "Jua-552c36a52e5e151c.woff2",
+      "url": "https://fonts.gstatic.com/s/jua/v18/co3KmW9ljjAjdojPCM3T3NGswha8jSmuzy4jzT-N.118.woff2",
+      "sha256": "552c36a52e5e151c9d1a175b153ef9e1c226e121ab12968a2e4ac174b17f6a9d",
+      "bytes": 27860
+    },
+    {
+      "file": "Jua-55c5b882574db4fa.woff2",
+      "url": "https://fonts.gstatic.com/s/jua/v18/co3KmW9ljjAjdojPCM3T3NGswha8jSmuzy4jzT-N.23.woff2",
+      "sha256": "55c5b882574db4fa9a74bd161bd920a7ca6f249deda7d968a0c832b74c53aac3",
+      "bytes": 5184
+    },
+    {
+      "file": "Jua-5619bb5ad19b083a.woff2",
+      "url": "https://fonts.gstatic.com/s/jua/v18/co3KmW9ljjAjdojPCM3T3NGswha8jSmuzy4jzT-N.59.woff2",
+      "sha256": "5619bb5ad19b083a2c1f16c23d5255c4c141ac8bfbe3a544587d73a0ab063409",
+      "bytes": 6592
+    },
+    {
+      "file": "Jua-5dfed5bd1d55210e.woff2",
+      "url": "https://fonts.gstatic.com/s/jua/v18/co3KmW9ljjAjdojPCM3T3NGswha8jSmuzy4jzT-N.29.woff2",
+      "sha256": "5dfed5bd1d55210e6c2ad8885d9e7fc03f382311e342b431f7bb0aea97cfd16b",
+      "bytes": 5948
+    },
+    {
+      "file": "Jua-60b308927e69438f.woff2",
+      "url": "https://fonts.gstatic.com/s/jua/v18/co3KmW9ljjAjdojPCM3T3NGswha8jSmuzy4jzT-N.13.woff2",
+      "sha256": "60b308927e69438fd209a23bc30c70613c37f54a8a9aa517332c943b021ad10d",
+      "bytes": 5268
+    },
+    {
+      "file": "Jua-60b907f54a0b4460.woff2",
+      "url": "https://fonts.gstatic.com/s/jua/v18/co3KmW9ljjAjdojPCM3T3NGswha8jSmuzy4jzT-N.24.woff2",
+      "sha256": "60b907f54a0b4460e533d6da84901efd09c8bbbade0e3f051cfbae660d87b895",
+      "bytes": 8292
+    },
+    {
+      "file": "Jua-61ec19a5dd2ffde2.woff2",
+      "url": "https://fonts.gstatic.com/s/jua/v18/co3KmW9ljjAjdojPCM3T3NGswha8jSmuzy4jzT-N.37.woff2",
+      "sha256": "61ec19a5dd2ffde294f5655320e4e27982c70b8206a39ea024ae249cd3d55e89",
+      "bytes": 5888
+    },
+    {
+      "file": "Jua-6646ee34f75f1dd7.woff2",
+      "url": "https://fonts.gstatic.com/s/jua/v18/co3KmW9ljjAjdojPCM3T3NGswha8jSmuzy4jzT-N.9.woff2",
+      "sha256": "6646ee34f75f1dd7d1432f81e0cd1f14e6ee49a6eeb88cfb031a8c05a8060334",
+      "bytes": 7396
+    },
+    {
+      "file": "Jua-6773974ee601671c.woff2",
+      "url": "https://fonts.gstatic.com/s/jua/v18/co3KmW9ljjAjdojPCM3T3NGswha8jSmuzy4jzT-N.49.woff2",
+      "sha256": "6773974ee601671ce7d2e9d0c13db1ff7f827c1f9dbaf24ba4e5714750ad8215",
+      "bytes": 4872
+    },
+    {
+      "file": "Jua-6aa7ee541b89c094.woff2",
+      "url": "https://fonts.gstatic.com/s/jua/v18/co3KmW9ljjAjdojPCM3T3NGswha8jSmuzy4jzT-N.35.woff2",
+      "sha256": "6aa7ee541b89c0949bbc3b3d861653c97264b71bd20e7018933aab65cd34dee2",
+      "bytes": 6964
+    },
+    {
+      "file": "Jua-6e10ba7ae4c557b2.woff2",
+      "url": "https://fonts.gstatic.com/s/jua/v18/co3KmW9ljjAjdojPCM3T3NGswha8jSmuzy4jzT-N.103.woff2",
+      "sha256": "6e10ba7ae4c557b224963b7424ba44535177d1e42dfa4c87b1435cd8cfd1eb2a",
+      "bytes": 16252
+    },
+    {
+      "file": "Jua-71ca7df86af2e66d.woff2",
+      "url": "https://fonts.gstatic.com/s/jua/v18/co3KmW9ljjAjdojPCM3T3NGswha8jSmuzy4jzT-N.100.woff2",
+      "sha256": "71ca7df86af2e66dbcb7350344fdcb074d0f03197ba6f3b33ce184b8df03165e",
+      "bytes": 14436
+    },
+    {
+      "file": "Jua-72b13e2343620aa7.woff2",
+      "url": "https://fonts.gstatic.com/s/jua/v18/co3KmW9ljjAjdojPCM3T3NGswha8jSmuzy4jzT-N.30.woff2",
+      "sha256": "72b13e2343620aa7130c75ae5a5b237ff44b405f9b16cb57c263ed890cec72d6",
+      "bytes": 6732
+    },
+    {
+      "file": "Jua-74cb8e51a9dc0ea9.woff2",
+      "url": "https://fonts.gstatic.com/s/jua/v18/co3KmW9ljjAjdojPCM3T3NGswha8jSmuzy4jzT-N.8.woff2",
+      "sha256": "74cb8e51a9dc0ea9a30d9fd0dd72083638954439a66567223353ac9f6f10d3aa",
+      "bytes": 4776
+    },
+    {
+      "file": "Jua-77e639ca37917cb7.woff2",
+      "url": "https://fonts.gstatic.com/s/jua/v18/co3KmW9ljjAjdojPCM3T3NGswha8jSmuzy4jzT-N.51.woff2",
+      "sha256": "77e639ca37917cb7f81bb4391337750dd5c937f3fe4c0d7a01dc2ffe565d7e41",
+      "bytes": 5996
+    },
+    {
+      "file": "Jua-79d0851ae6a27a46.woff2",
+      "url": "https://fonts.gstatic.com/s/jua/v18/co3KmW9ljjAjdojPCM3T3NGswha8jSmuzy4jzT-N.22.woff2",
+      "sha256": "79d0851ae6a27a463a08127aab1ae0d594d30856c78d838d37cd2afc3339e849",
+      "bytes": 7300
+    },
+    {
+      "file": "Jua-7b9685094a653358.woff2",
+      "url": "https://fonts.gstatic.com/s/jua/v18/co3KmW9ljjAjdojPCM3T3NGswha8jSmuzy4jzT-N.33.woff2",
+      "sha256": "7b9685094a6533584a717aa99ca4d3db24644883500f9b41ac3e86fefde7278b",
+      "bytes": 7404
+    },
+    {
+      "file": "Jua-7b9b3307fae297de.woff2",
+      "url": "https://fonts.gstatic.com/s/jua/v18/co3KmW9ljjAjdojPCM3T3NGswha8jSmuzy4jzT-N.62.woff2",
+      "sha256": "7b9b3307fae297decf7188cfd1a421e384561d4b0a6d73d46612ec0b58b9b158",
+      "bytes": 4940
+    },
+    {
+      "file": "Jua-7db2743e1c699ddc.woff2",
+      "url": "https://fonts.gstatic.com/s/jua/v18/co3KmW9ljjAjdojPCM3T3NGswha8jSmuzy4jzT-N.115.woff2",
+      "sha256": "7db2743e1c699ddcd823d85b5a7045e04e54cf0ceb3d60d021c57ebb40ab8665",
+      "bytes": 27240
+    },
+    {
+      "file": "Jua-7f7608348b530998.woff2",
+      "url": "https://fonts.gstatic.com/s/jua/v18/co3KmW9ljjAjdojPCM3T3NGswha8jSmuzy4jzT-N.56.woff2",
+      "sha256": "7f7608348b530998289ff175088cd9d9ae4f95f394ad07d6ca0aa88ffff46b16",
+      "bytes": 5992
+    },
+    {
+      "file": "Jua-807d80a71704609f.woff2",
+      "url": "https://fonts.gstatic.com/s/jua/v18/co3KmW9ljjAjdojPCM3T3NGswha8jSmuzy4jzT-N.7.woff2",
+      "sha256": "807d80a71704609ffc50d5058bc9c290a0d2c7eee9939aed636b5f825e7f1df0",
+      "bytes": 6524
+    },
+    {
+      "file": "Jua-8912ed8725fe2a52.woff2",
+      "url": "https://fonts.gstatic.com/s/jua/v18/co3KmW9ljjAjdojPCM3T3NGswha8jSmuzy4jzT-N.34.woff2",
+      "sha256": "8912ed8725fe2a524c2f4c770ab446f5cd69c25bddec607d6e777c76718d1576",
+      "bytes": 7496
+    },
+    {
+      "file": "Jua-8948e4abe44f7322.woff2",
+      "url": "https://fonts.gstatic.com/s/jua/v18/co3KmW9ljjAjdojPCM3T3NGswha8jSmuzy4jzT-N.102.woff2",
+      "sha256": "8948e4abe44f7322af86554dca9b98e744c41bbfe4fc948b51c29812ff199008",
+      "bytes": 16204
+    },
+    {
+      "file": "Jua-937511030488507e.woff2",
+      "url": "https://fonts.gstatic.com/s/jua/v18/co3KmW9ljjAjdojPCM3T3NGswha8jSmuzy4jzT-N.42.woff2",
+      "sha256": "937511030488507e315d1b78cc6a1bf3754c9c40f357cd81a23d457f754689cb",
+      "bytes": 6992
+    },
+    {
+      "file": "Jua-94b3b57717d29b58.woff2",
+      "url": "https://fonts.gstatic.com/s/jua/v18/co3KmW9ljjAjdojPCM3T3NGswha8jSmuzy4jzT-N.46.woff2",
+      "sha256": "94b3b57717d29b58e2ffb94131728e44c4ce9001cd26f1a9fc68834446472b97",
+      "bytes": 5892
+    },
+    {
+      "file": "Jua-9cab09350bf2324e.woff2",
+      "url": "https://fonts.gstatic.com/s/jua/v18/co3KmW9ljjAjdojPCM3T3NGswha8jSmuzy4jzT-N.38.woff2",
+      "sha256": "9cab09350bf2324ef9dd00743fa0adcc3a19fbaa65e90dee28b994ef7ef10402",
+      "bytes": 6016
+    },
+    {
+      "file": "Jua-a2691ce76c0699eb.woff2",
+      "url": "https://fonts.gstatic.com/s/jua/v18/co3KmW9ljjAjdojPCM3T3NGswha8jSmuzy4jzT-N.17.woff2",
+      "sha256": "a2691ce76c0699eb7b66a68a4440ad4f679e97482c1293ceea589007b647d33b",
+      "bytes": 6036
+    },
+    {
+      "file": "Jua-a317499f46a11810.woff2",
+      "url": "https://fonts.gstatic.com/s/jua/v18/co3KmW9ljjATdOrY.woff2",
+      "sha256": "a317499f46a11810207ace4e5fdf04c9949250abeb914a1e713c391e4606c4f2",
+      "bytes": 16620
+    },
+    {
+      "file": "Jua-a3ccde3a939b1afd.woff2",
+      "url": "https://fonts.gstatic.com/s/jua/v18/co3KmW9ljjAjdojPCM3T3NGswha8jSmuzy4jzT-N.116.woff2",
+      "sha256": "a3ccde3a939b1afdf53558c8ba989bc62803a69567ee6805b0fa3d440608bbe6",
+      "bytes": 28228
+    },
+    {
+      "file": "Jua-a3ee67230466aff9.woff2",
+      "url": "https://fonts.gstatic.com/s/jua/v18/co3KmW9ljjAjdojPCM3T3NGswha8jSmuzy4jzT-N.60.woff2",
+      "sha256": "a3ee67230466aff991b6129d388060864f72b9358abd2ca6079bc4b806d95f87",
+      "bytes": 7024
+    },
+    {
+      "file": "Jua-a6b82def315a11cc.woff2",
+      "url": "https://fonts.gstatic.com/s/jua/v18/co3KmW9ljjAjdojPCM3T3NGswha8jSmuzy4jzT-N.10.woff2",
+      "sha256": "a6b82def315a11ccb6b8ec07290b50a6e65af9a4ec03536a3a513fe4688a198b",
+      "bytes": 5136
+    },
+    {
+      "file": "Jua-a88ead8cd7e166aa.woff2",
+      "url": "https://fonts.gstatic.com/s/jua/v18/co3KmW9ljjAjdojPCM3T3NGswha8jSmuzy4jzT-N.52.woff2",
+      "sha256": "a88ead8cd7e166aaafcd8e76e129a3e1e00d12ea2fac468be113c0586a5bca06",
+      "bytes": 7068
+    },
+    {
+      "file": "Jua-a948c07e7d30c4cd.woff2",
+      "url": "https://fonts.gstatic.com/s/jua/v18/co3KmW9ljjAjdojPCM3T3NGswha8jSmuzy4jzT-N.114.woff2",
+      "sha256": "a948c07e7d30c4cd6e7281c5dd01e77f7ae2d9bbd9023466300c34043e3ce077",
+      "bytes": 26280
+    },
+    {
+      "file": "Jua-ad40047399b49a70.woff2",
+      "url": "https://fonts.gstatic.com/s/jua/v18/co3KmW9ljjAjdojPCM3T3NGswha8jSmuzy4jzT-N.45.woff2",
+      "sha256": "ad40047399b49a70770313736fea52d3739fe1ed23ef28d992bd957f0b389e44",
+      "bytes": 4864
+    },
+    {
+      "file": "Jua-af9bd273a3c07f5f.woff2",
+      "url": "https://fonts.gstatic.com/s/jua/v18/co3KmW9ljjAjdojPCM3T3NGswha8jSmuzy4jzT-N.104.woff2",
+      "sha256": "af9bd273a3c07f5fe6055a55f940da8576f6f81dfa305059bcc0539bbeae4e13",
+      "bytes": 16688
+    },
+    {
+      "file": "Jua-bf49ee0f38296960.woff2",
+      "url": "https://fonts.gstatic.com/s/jua/v18/co3KmW9ljjAjdojPCM3T3NGswha8jSmuzy4jzT-N.95.woff2",
+      "sha256": "bf49ee0f382969604f7e55673faba0921900ca6e578eab00b8000868ec25b646",
+      "bytes": 1752
+    },
+    {
+      "file": "Jua-c1fb39caf6ce8114.woff2",
+      "url": "https://fonts.gstatic.com/s/jua/v18/co3KmW9ljjAjdojPCM3T3NGswha8jSmuzy4jzT-N.14.woff2",
+      "sha256": "c1fb39caf6ce8114b84c0b1b804be954330b94b84907bdc6a90d9e47f24928f5",
+      "bytes": 6312
+    },
+    {
+      "file": "Jua-c3d0bdf34e33a4a7.woff2",
+      "url": "https://fonts.gstatic.com/s/jua/v18/co3KmW9ljjAjdojPCM3T3NGswha8jSmuzy4jzT-N.109.woff2",
+      "sha256": "c3d0bdf34e33a4a7f31aa2917a560f29c8906ea0700c7bd6b345fc6d9460d060",
+      "bytes": 26156
+    },
+    {
+      "file": "Jua-c483afcc1c8f994a.woff2",
+      "url": "https://fonts.gstatic.com/s/jua/v18/co3KmW9ljjAjdojPCM3T3NGswha8jSmuzy4jzT-N.28.woff2",
+      "sha256": "c483afcc1c8f994a2c1bcab445348a178888819a48eeacede6b112cbbcd828be",
+      "bytes": 5712
+    },
+    {
+      "file": "Jua-c8888d0671dd04ac.woff2",
+      "url": "https://fonts.gstatic.com/s/jua/v18/co3KmW9ljjAjdojPCM3T3NGswha8jSmuzy4jzT-N.12.woff2",
+      "sha256": "c8888d0671dd04ac83dc6bac0c16ef771c3720fc071f1e39559834300af6fb1c",
+      "bytes": 4424
+    },
+    {
+      "file": "Jua-cb548a0f3093d965.woff2",
+      "url": "https://fonts.gstatic.com/s/jua/v18/co3KmW9ljjAjdojPCM3T3NGswha8jSmuzy4jzT-N.4.woff2",
+      "sha256": "cb548a0f3093d9653df9b49452c05d24675e1137351f5e195c435f91b21e9111",
+      "bytes": 6592
+    },
+    {
+      "file": "Jua-cbbafaa49bc842e0.woff2",
+      "url": "https://fonts.gstatic.com/s/jua/v18/co3KmW9ljjAjdojPCM3T3NGswha8jSmuzy4jzT-N.2.woff2",
+      "sha256": "cbbafaa49bc842e0a1c68627309aee92455e1ec267a4d51b21a01d09a67f8d1a",
+      "bytes": 6524
+    },
+    {
+      "file": "Jua-cbceaea6ce912ba6.woff2",
+      "url": "https://fonts.gstatic.com/s/jua/v18/co3KmW9ljjAjdojPCM3T3NGswha8jSmuzy4jzT-N.25.woff2",
+      "sha256": "cbceaea6ce912ba6b5770230d0c04ddc31aa05334247891e426fa0bd1ce42335",
+      "bytes": 6748
+    },
+    {
+      "file": "Jua-cfc6f2ffe4eda0d8.woff2",
+      "url": "https://fonts.gstatic.com/s/jua/v18/co3KmW9ljjAjdojPCM3T3NGswha8jSmuzy4jzT-N.39.woff2",
+      "sha256": "cfc6f2ffe4eda0d8e29a6f4dee8e57abfcf78bc5aa88addcea1c3a9746b6f99e",
+      "bytes": 9368
+    },
+    {
+      "file": "Jua-d3b358fdf96c63a9.woff2",
+      "url": "https://fonts.gstatic.com/s/jua/v18/co3KmW9ljjAjdojPCM3T3NGswha8jSmuzy4jzT-N.53.woff2",
+      "sha256": "d3b358fdf96c63a997236a56bfaad57ef3372ff0be4ef109ef00882cc050034a",
+      "bytes": 3260
+    },
+    {
+      "file": "Jua-d50ad03046571b7e.woff2",
+      "url": "https://fonts.gstatic.com/s/jua/v18/co3KmW9ljjAjdojPCM3T3NGswha8jSmuzy4jzT-N.113.woff2",
+      "sha256": "d50ad03046571b7e42574f5e30961612255b70f30a06a10a1658729215bfc427",
+      "bytes": 28112
+    },
+    {
+      "file": "Jua-e05c1c1b4ece5103.woff2",
+      "url": "https://fonts.gstatic.com/s/jua/v18/co3KmW9ljjAjdojPCM3T3NGswha8jSmuzy4jzT-N.65.woff2",
+      "sha256": "e05c1c1b4ece5103ccb0b41f80b18d534b05545cab05cd8b561e6e30a0b55c47",
+      "bytes": 2940
+    },
+    {
+      "file": "Jua-e2f98c65fe415d23.woff2",
+      "url": "https://fonts.gstatic.com/s/jua/v18/co3KmW9ljjAjdojPCM3T3NGswha8jSmuzy4jzT-N.20.woff2",
+      "sha256": "e2f98c65fe415d23a7afe818ad814285c27e544779012c2b9198439bbfdf3152",
+      "bytes": 7064
+    },
+    {
+      "file": "Jua-e4f4e1a66f217c4c.woff2",
+      "url": "https://fonts.gstatic.com/s/jua/v18/co3KmW9ljjAjdojPCM3T3NGswha8jSmuzy4jzT-N.27.woff2",
+      "sha256": "e4f4e1a66f217c4ccc59dfbc0c780014434aa4291d1bf5491980c9d6cbf8e3b2",
+      "bytes": 8448
+    },
+    {
+      "file": "Jua-e664dd6cc6cd6074.woff2",
+      "url": "https://fonts.gstatic.com/s/jua/v18/co3KmW9ljjAjdojPCM3T3NGswha8jSmuzy4jzT-N.11.woff2",
+      "sha256": "e664dd6cc6cd6074faf1d5510e40be2165f8551ff740cb8c6406599f9ce49f23",
+      "bytes": 5188
+    },
+    {
+      "file": "Jua-e6656b78cceac787.woff2",
+      "url": "https://fonts.gstatic.com/s/jua/v18/co3KmW9ljjAjdojPCM3T3NGswha8jSmuzy4jzT-N.40.woff2",
+      "sha256": "e6656b78cceac7876216c39116877dea994ed7a9b45eada38ad6be17497a641b",
+      "bytes": 7148
+    },
+    {
+      "file": "Jua-e680b3c36fe44abd.woff2",
+      "url": "https://fonts.gstatic.com/s/jua/v18/co3KmW9ljjAjdojPCM3T3NGswha8jSmuzy4jzT-N.117.woff2",
+      "sha256": "e680b3c36fe44abd79752b3b6b5e2f700f0d2f0a5e0ff905cf792079d1560e2b",
+      "bytes": 29832
+    },
+    {
+      "file": "Jua-e77e7e0cc0e5de61.woff2",
+      "url": "https://fonts.gstatic.com/s/jua/v18/co3KmW9ljjAjdojPCM3T3NGswha8jSmuzy4jzT-N.61.woff2",
+      "sha256": "e77e7e0cc0e5de61e10d387732fd462c2d6bd83d8c0ac9c5d5235814b8a11166",
+      "bytes": 7556
+    },
+    {
+      "file": "Jua-ed377fbddd8911d1.woff2",
+      "url": "https://fonts.gstatic.com/s/jua/v18/co3KmW9ljjAjdojPCM3T3NGswha8jSmuzy4jzT-N.108.woff2",
+      "sha256": "ed377fbddd8911d1a030c0f9d4392c895fdb48baee9e53cea875163195c84d44",
+      "bytes": 25424
+    },
+    {
+      "file": "Jua-effe0d3cca25bcf9.woff2",
+      "url": "https://fonts.gstatic.com/s/jua/v18/co3KmW9ljjAjdojPCM3T3NGswha8jSmuzy4jzT-N.31.woff2",
+      "sha256": "effe0d3cca25bcf961e3e382b4f10d4ac933159d1c8463466d4e388026c7b5bf",
+      "bytes": 3264
+    },
+    {
+      "file": "Jua-f4fb54fac7afd09a.woff2",
+      "url": "https://fonts.gstatic.com/s/jua/v18/co3KmW9ljjAjdojPCM3T3NGswha8jSmuzy4jzT-N.54.woff2",
+      "sha256": "f4fb54fac7afd09affcee78876ba3637aa423caa4191208bdeb47fa002467749",
+      "bytes": 7844
+    },
+    {
+      "file": "Jua-fb92f4799c846399.woff2",
+      "url": "https://fonts.gstatic.com/s/jua/v18/co3KmW9ljjAjdojPCM3T3NGswha8jSmuzy4jzT-N.15.woff2",
+      "sha256": "fb92f4799c84639970e80d704a170573cebd71a7d7baf8d906c1b1c13b07e521",
+      "bytes": 4544
+    },
+    {
+      "file": "Jua-feede0da6d124983.woff2",
+      "url": "https://fonts.gstatic.com/s/jua/v18/co3KmW9ljjAjdojPCM3T3NGswha8jSmuzy4jzT-N.48.woff2",
+      "sha256": "feede0da6d124983f4854f99f107c365be8326ef711b71df0e2d7ad78231582f",
+      "bytes": 4620
+    },
+    {
+      "file": "Jua-OFL.txt",
+      "url": "https://raw.githubusercontent.com/google/fonts/main/ofl/jua/OFL.txt",
+      "sha256": "44a7c6e4c5572392ae122d3b1d8c6ba6fd640a7797e675384585d947f2773e3c"
+    },
+    {
+      "file": "Pretendard-04ca8277cfe3d272.woff2",
+      "url": "https://raw.githubusercontent.com/orioncactus/pretendard/v1.3.9/packages/pretendard/dist/web/variable/woff2-dynamic-subset/PretendardVariable.subset.87.woff2",
+      "sha256": "04ca8277cfe3d27235573956255b0211575504cb695cdeab644c583df774e257",
+      "bytes": 24664
+    },
+    {
+      "file": "Pretendard-06a4d6ce1c3e1c27.woff2",
+      "url": "https://raw.githubusercontent.com/orioncactus/pretendard/v1.3.9/packages/pretendard/dist/web/variable/woff2-dynamic-subset/PretendardVariable.subset.20.woff2",
+      "sha256": "06a4d6ce1c3e1c277239f490df8f17002cd6524b33a2d1e105b0ed16b2e061a1",
+      "bytes": 36128
+    },
+    {
+      "file": "Pretendard-07f0ddae65c844df.woff2",
+      "url": "https://raw.githubusercontent.com/orioncactus/pretendard/v1.3.9/packages/pretendard/dist/web/variable/woff2-dynamic-subset/PretendardVariable.subset.75.woff2",
+      "sha256": "07f0ddae65c844dfe5d294087749e19b05e95cfd904b20df3501b040f1a5f61e",
+      "bytes": 19996
+    },
+    {
+      "file": "Pretendard-0bbdf492d8597238.woff2",
+      "url": "https://raw.githubusercontent.com/orioncactus/pretendard/v1.3.9/packages/pretendard/dist/web/variable/woff2-dynamic-subset/PretendardVariable.subset.79.woff2",
+      "sha256": "0bbdf492d859723843e118154b24573abdd62e781cb3827378e5dc65eeb8e0e9",
+      "bytes": 26224
+    },
+    {
+      "file": "Pretendard-0c005e3239d3f44e.woff2",
+      "url": "https://raw.githubusercontent.com/orioncactus/pretendard/v1.3.9/packages/pretendard/dist/web/variable/woff2-dynamic-subset/PretendardVariable.subset.19.woff2",
+      "sha256": "0c005e3239d3f44ede30e7464171c93d8f4063b1279bb4805508c256ebe83929",
+      "bytes": 42328
+    },
+    {
+      "file": "Pretendard-0edd124bf5f5fee6.woff2",
+      "url": "https://raw.githubusercontent.com/orioncactus/pretendard/v1.3.9/packages/pretendard/dist/web/variable/woff2-dynamic-subset/PretendardVariable.subset.7.woff2",
+      "sha256": "0edd124bf5f5fee66118c25ce0f7257c701169603817b0ea385707043151bd9c",
+      "bytes": 31912
+    },
+    {
+      "file": "Pretendard-0f3624847670e49b.woff2",
+      "url": "https://raw.githubusercontent.com/orioncactus/pretendard/v1.3.9/packages/pretendard/dist/web/variable/woff2-dynamic-subset/PretendardVariable.subset.56.woff2",
+      "sha256": "0f3624847670e49b273c0d638d0c1385a7178c8e38c70f9cd4afc1971880d279",
+      "bytes": 35184
+    },
+    {
+      "file": "Pretendard-0f36628cfb62fb7c.woff2",
+      "url": "https://raw.githubusercontent.com/orioncactus/pretendard/v1.3.9/packages/pretendard/dist/web/variable/woff2-dynamic-subset/PretendardVariable.subset.61.woff2",
+      "sha256": "0f36628cfb62fb7c6e4c26c0cac303d07578640c0328cd8cce9dbeaa2290af23",
+      "bytes": 35640
+    },
+    {
+      "file": "Pretendard-0fcc3858ccf1bfae.woff2",
+      "url": "https://raw.githubusercontent.com/orioncactus/pretendard/v1.3.9/packages/pretendard/dist/web/variable/woff2-dynamic-subset/PretendardVariable.subset.8.woff2",
+      "sha256": "0fcc3858ccf1bfae9d1a13852583f7273e8a9bcb32b6f42fa47fe19d3041905c",
+      "bytes": 36696
+    },
+    {
+      "file": "Pretendard-12fb5a30e92ed139.woff2",
+      "url": "https://raw.githubusercontent.com/orioncactus/pretendard/v1.3.9/packages/pretendard/dist/web/variable/woff2-dynamic-subset/PretendardVariable.subset.40.woff2",
+      "sha256": "12fb5a30e92ed1397b25125c9b75449f24b3b164ed28455968e8eefefd0cae0a",
+      "bytes": 29840
+    },
+    {
+      "file": "Pretendard-17226de7caa3a041.woff2",
+      "url": "https://raw.githubusercontent.com/orioncactus/pretendard/v1.3.9/packages/pretendard/dist/web/variable/woff2-dynamic-subset/PretendardVariable.subset.38.woff2",
+      "sha256": "17226de7caa3a041d9deb369db637a8480afa5ee9eeb8e5f8169a28ff54f57bd",
+      "bytes": 34808
+    },
+    {
+      "file": "Pretendard-192abc4c6ad933f5.woff2",
+      "url": "https://raw.githubusercontent.com/orioncactus/pretendard/v1.3.9/packages/pretendard/dist/web/variable/woff2-dynamic-subset/PretendardVariable.subset.88.woff2",
+      "sha256": "192abc4c6ad933f53d809d8a46ee6237ae71e766bf66199fdce4678841fe12d7",
+      "bytes": 25640
+    },
+    {
+      "file": "Pretendard-1a2f8d760e6bfeb7.woff2",
+      "url": "https://raw.githubusercontent.com/orioncactus/pretendard/v1.3.9/packages/pretendard/dist/web/variable/woff2-dynamic-subset/PretendardVariable.subset.62.woff2",
+      "sha256": "1a2f8d760e6bfeb7f8611db8df550260145a7d48e8a4336016b21d699502c90f",
+      "bytes": 34876
+    },
+    {
+      "file": "Pretendard-20ccaae02a27753f.woff2",
+      "url": "https://raw.githubusercontent.com/orioncactus/pretendard/v1.3.9/packages/pretendard/dist/web/variable/woff2-dynamic-subset/PretendardVariable.subset.76.woff2",
+      "sha256": "20ccaae02a27753fe5f5b2cc0e6bb7ee3f4c5b61b6bf91cccc515334e97213ac",
+      "bytes": 24924
+    },
+    {
+      "file": "Pretendard-24e38abacceaba89.woff2",
+      "url": "https://raw.githubusercontent.com/orioncactus/pretendard/v1.3.9/packages/pretendard/dist/web/variable/woff2-dynamic-subset/PretendardVariable.subset.67.woff2",
+      "sha256": "24e38abacceaba8979f58c6b06bf0b56e915c32921b08be439befa016268abf5",
+      "bytes": 21840
+    },
+    {
+      "file": "Pretendard-253726dfde6320f5.woff2",
+      "url": "https://raw.githubusercontent.com/orioncactus/pretendard/v1.3.9/packages/pretendard/dist/web/variable/woff2-dynamic-subset/PretendardVariable.subset.18.woff2",
+      "sha256": "253726dfde6320f522bd7e7895df56e02312b677abb609c17ecbbb7952ce68cf",
+      "bytes": 41600
+    },
+    {
+      "file": "Pretendard-2f3c1deae8147772.woff2",
+      "url": "https://raw.githubusercontent.com/orioncactus/pretendard/v1.3.9/packages/pretendard/dist/web/variable/woff2-dynamic-subset/PretendardVariable.subset.35.woff2",
+      "sha256": "2f3c1deae8147772bf706b561701ee9a3ba7459436e9fad45c8102066e90f802",
+      "bytes": 35352
+    },
+    {
+      "file": "Pretendard-30d4f324dc4e4808.woff2",
+      "url": "https://raw.githubusercontent.com/orioncactus/pretendard/v1.3.9/packages/pretendard/dist/web/variable/woff2-dynamic-subset/PretendardVariable.subset.21.woff2",
+      "sha256": "30d4f324dc4e480890682086d9873e4e6ea53617d5cc1526509ac4322b0abcc7",
+      "bytes": 37268
+    },
+    {
+      "file": "Pretendard-37ed0b796e61205c.woff2",
+      "url": "https://raw.githubusercontent.com/orioncactus/pretendard/v1.3.9/packages/pretendard/dist/web/variable/woff2-dynamic-subset/PretendardVariable.subset.54.woff2",
+      "sha256": "37ed0b796e61205cabe4e20590d8800106a9a646d8a6f9e1da38581e637c3b80",
+      "bytes": 33344
+    },
+    {
+      "file": "Pretendard-3802ad32c6c1bfa8.woff2",
+      "url": "https://raw.githubusercontent.com/orioncactus/pretendard/v1.3.9/packages/pretendard/dist/web/variable/woff2-dynamic-subset/PretendardVariable.subset.80.woff2",
+      "sha256": "3802ad32c6c1bfa889c1019bd22d265c19392a6d52bbbd38e3a6fb99fdb0cf8f",
+      "bytes": 28796
+    },
+    {
+      "file": "Pretendard-3af919db7b7432ae.woff2",
+      "url": "https://raw.githubusercontent.com/orioncactus/pretendard/v1.3.9/packages/pretendard/dist/web/variable/woff2-dynamic-subset/PretendardVariable.subset.3.woff2",
+      "sha256": "3af919db7b7432ae34a0ea725f5dbbe4b80f6b351a349437339a07760ae02a62",
+      "bytes": 40648
+    },
+    {
+      "file": "Pretendard-3bea94ae7ab0adfe.woff2",
+      "url": "https://raw.githubusercontent.com/orioncactus/pretendard/v1.3.9/packages/pretendard/dist/web/variable/woff2-dynamic-subset/PretendardVariable.subset.65.woff2",
+      "sha256": "3bea94ae7ab0adfe697bcbf7a4366da48ae4518ff9ec9bc798ba2e0a271376fa",
+      "bytes": 11108
+    },
+    {
+      "file": "Pretendard-3e347fc722ea29c4.woff2",
+      "url": "https://raw.githubusercontent.com/orioncactus/pretendard/v1.3.9/packages/pretendard/dist/web/variable/woff2-dynamic-subset/PretendardVariable.subset.42.woff2",
+      "sha256": "3e347fc722ea29c4c3347b204a139c4e76fe68884bde24159b25b8e0988bd8b5",
+      "bytes": 34608
+    },
+    {
+      "file": "Pretendard-3e680901e55f1684.woff2",
+      "url": "https://raw.githubusercontent.com/orioncactus/pretendard/v1.3.9/packages/pretendard/dist/web/variable/woff2-dynamic-subset/PretendardVariable.subset.86.woff2",
+      "sha256": "3e680901e55f16848b58d16d25870596495a6a073d9e3127fe481583ac4439b6",
+      "bytes": 25716
+    },
+    {
+      "file": "Pretendard-41d390d3f3201a37.woff2",
+      "url": "https://raw.githubusercontent.com/orioncactus/pretendard/v1.3.9/packages/pretendard/dist/web/variable/woff2-dynamic-subset/PretendardVariable.subset.41.woff2",
+      "sha256": "41d390d3f3201a3714fb37f968f132ee78892d382655b64eb94688046fa97e35",
+      "bytes": 33188
+    },
+    {
+      "file": "Pretendard-44634e793e0d50fc.woff2",
+      "url": "https://raw.githubusercontent.com/orioncactus/pretendard/v1.3.9/packages/pretendard/dist/web/variable/woff2-dynamic-subset/PretendardVariable.subset.89.woff2",
+      "sha256": "44634e793e0d50fcdf803a2ad513d8bf0482d9adccbbd4ef534325cae9b2ee01",
+      "bytes": 21864
+    },
+    {
+      "file": "Pretendard-484aaea385bf22d2.woff2",
+      "url": "https://raw.githubusercontent.com/orioncactus/pretendard/v1.3.9/packages/pretendard/dist/web/variable/woff2-dynamic-subset/PretendardVariable.subset.28.woff2",
+      "sha256": "484aaea385bf22d20a06a50c74202275a7a245446451c80ea1da7a96111f494e",
+      "bytes": 38468
+    },
+    {
+      "file": "Pretendard-48b5ad9306b00b62.woff2",
+      "url": "https://raw.githubusercontent.com/orioncactus/pretendard/v1.3.9/packages/pretendard/dist/web/variable/woff2-dynamic-subset/PretendardVariable.subset.6.woff2",
+      "sha256": "48b5ad9306b00b620b6d4acb3b8ba697cac7b271ee20da2f6351ba7c1406afa3",
+      "bytes": 33968
+    },
+    {
+      "file": "Pretendard-493e29967aa59d0f.woff2",
+      "url": "https://raw.githubusercontent.com/orioncactus/pretendard/v1.3.9/packages/pretendard/dist/web/variable/woff2-dynamic-subset/PretendardVariable.subset.82.woff2",
+      "sha256": "493e29967aa59d0f5326ae95fe163ca6e0ce9d95610838cc07a1f543a4a2e289",
+      "bytes": 26500
+    },
+    {
+      "file": "Pretendard-4ae337e8895ac35b.woff2",
+      "url": "https://raw.githubusercontent.com/orioncactus/pretendard/v1.3.9/packages/pretendard/dist/web/variable/woff2-dynamic-subset/PretendardVariable.subset.59.woff2",
+      "sha256": "4ae337e8895ac35b02a749e19d2b49ccb46ecdfabd09c51433c5eed206221579",
+      "bytes": 38972
+    },
+    {
+      "file": "Pretendard-4b170f37c7be9dfa.woff2",
+      "url": "https://raw.githubusercontent.com/orioncactus/pretendard/v1.3.9/packages/pretendard/dist/web/variable/woff2-dynamic-subset/PretendardVariable.subset.55.woff2",
+      "sha256": "4b170f37c7be9dfa2ca332ce97e35dc02da7cb43531d7e2907d733f291b09222",
+      "bytes": 34184
+    },
+    {
+      "file": "Pretendard-4b520857cb0e6272.woff2",
+      "url": "https://raw.githubusercontent.com/orioncactus/pretendard/v1.3.9/packages/pretendard/dist/web/variable/woff2-dynamic-subset/PretendardVariable.subset.25.woff2",
+      "sha256": "4b520857cb0e6272a3582a504f7706e530f0f9718a82fec1c7b9cd13fd57f261",
+      "bytes": 42032
+    },
+    {
+      "file": "Pretendard-4d73796ddeaf1d15.woff2",
+      "url": "https://raw.githubusercontent.com/orioncactus/pretendard/v1.3.9/packages/pretendard/dist/web/variable/woff2-dynamic-subset/PretendardVariable.subset.64.woff2",
+      "sha256": "4d73796ddeaf1d1584f701f3d3761d091160cd78fd2ef05255f605c747e63ad7",
+      "bytes": 8264
+    },
+    {
+      "file": "Pretendard-4f6724848817f8a8.woff2",
+      "url": "https://raw.githubusercontent.com/orioncactus/pretendard/v1.3.9/packages/pretendard/dist/web/variable/woff2-dynamic-subset/PretendardVariable.subset.60.woff2",
+      "sha256": "4f6724848817f8a893c21686fd3c666492176cc453a82f2a1c7fad3170bbd13c",
+      "bytes": 37776
+    },
+    {
+      "file": "Pretendard-523e91cb7665f4a8.woff2",
+      "url": "https://raw.githubusercontent.com/orioncactus/pretendard/v1.3.9/packages/pretendard/dist/web/variable/woff2-dynamic-subset/PretendardVariable.subset.9.woff2",
+      "sha256": "523e91cb7665f4a87767e3b0b5099753decba1bd33e3ce7733b92f71001da9a5",
+      "bytes": 34012
+    },
+    {
+      "file": "Pretendard-52f3cb7bf5d9feea.woff2",
+      "url": "https://raw.githubusercontent.com/orioncactus/pretendard/v1.3.9/packages/pretendard/dist/web/variable/woff2-dynamic-subset/PretendardVariable.subset.11.woff2",
+      "sha256": "52f3cb7bf5d9feeadbe77902217113ea49b89a9bc0f135748e5ad599f322549f",
+      "bytes": 37400
+    },
+    {
+      "file": "Pretendard-530c8e2d2a5e01cc.woff2",
+      "url": "https://raw.githubusercontent.com/orioncactus/pretendard/v1.3.9/packages/pretendard/dist/web/variable/woff2-dynamic-subset/PretendardVariable.subset.51.woff2",
+      "sha256": "530c8e2d2a5e01cc5bfacc40a947f2b3162ee084a718f3f938e5f084b3458462",
+      "bytes": 36024
+    },
+    {
+      "file": "Pretendard-544f73152519f43c.woff2",
+      "url": "https://raw.githubusercontent.com/orioncactus/pretendard/v1.3.9/packages/pretendard/dist/web/variable/woff2-dynamic-subset/PretendardVariable.subset.10.woff2",
+      "sha256": "544f73152519f43c01aeda9489554a82e907019010795aab2fabc990a4e91f5a",
+      "bytes": 33032
+    },
+    {
+      "file": "Pretendard-5481a19ad6067630.woff2",
+      "url": "https://raw.githubusercontent.com/orioncactus/pretendard/v1.3.9/packages/pretendard/dist/web/variable/woff2-dynamic-subset/PretendardVariable.subset.29.woff2",
+      "sha256": "5481a19ad6067630f96a54432fa76a77943c1234bbd37537fba9aeea54710c9f",
+      "bytes": 39288
+    },
+    {
+      "file": "Pretendard-5712a4ee03e83532.woff2",
+      "url": "https://raw.githubusercontent.com/orioncactus/pretendard/v1.3.9/packages/pretendard/dist/web/variable/woff2-dynamic-subset/PretendardVariable.subset.22.woff2",
+      "sha256": "5712a4ee03e83532b8c3efeeefcbf2dd105beea873f735a6373dab370c9d38e2",
+      "bytes": 38680
+    },
+    {
+      "file": "Pretendard-5bbf61d013a4a936.woff2",
+      "url": "https://raw.githubusercontent.com/orioncactus/pretendard/v1.3.9/packages/pretendard/dist/web/variable/woff2-dynamic-subset/PretendardVariable.subset.49.woff2",
+      "sha256": "5bbf61d013a4a9362841671cc56096a356377773d8b92dcb7ce71c89e3ce23da",
+      "bytes": 36052
+    },
+    {
+      "file": "Pretendard-608a2c01bc4ebe32.woff2",
+      "url": "https://raw.githubusercontent.com/orioncactus/pretendard/v1.3.9/packages/pretendard/dist/web/variable/woff2-dynamic-subset/PretendardVariable.subset.26.woff2",
+      "sha256": "608a2c01bc4ebe327b68fadf6b78dd842a912582950d16d56c2696594bd4242d",
+      "bytes": 40324
+    },
+    {
+      "file": "Pretendard-62a20965ab703ba9.woff2",
+      "url": "https://raw.githubusercontent.com/orioncactus/pretendard/v1.3.9/packages/pretendard/dist/web/variable/woff2-dynamic-subset/PretendardVariable.subset.17.woff2",
+      "sha256": "62a20965ab703ba906359c01e56ac49cb28651e5e23efc4777412ef775e949dd",
+      "bytes": 34940
+    },
+    {
+      "file": "Pretendard-647e3532e8e5b2f5.woff2",
+      "url": "https://raw.githubusercontent.com/orioncactus/pretendard/v1.3.9/packages/pretendard/dist/web/variable/woff2-dynamic-subset/PretendardVariable.subset.39.woff2",
+      "sha256": "647e3532e8e5b2f5271c85eca2d909f32ae4791a17911cf66a635e8f6f4726c0",
+      "bytes": 34256
+    },
+    {
+      "file": "Pretendard-67f065415552e8c6.woff2",
+      "url": "https://raw.githubusercontent.com/orioncactus/pretendard/v1.3.9/packages/pretendard/dist/web/variable/woff2-dynamic-subset/PretendardVariable.subset.78.woff2",
+      "sha256": "67f065415552e8c66da5e60fc67a891ec1ba74bfb9370078261bbf9a718a182f",
+      "bytes": 26548
+    },
+    {
+      "file": "Pretendard-73d60e9ad890a3b2.woff2",
+      "url": "https://raw.githubusercontent.com/orioncactus/pretendard/v1.3.9/packages/pretendard/dist/web/variable/woff2-dynamic-subset/PretendardVariable.subset.66.woff2",
+      "sha256": "73d60e9ad890a3b2674fe1fe7daf869708d7af6f4e93e364b19bb0a8bffde8d5",
+      "bytes": 8252
+    },
+    {
+      "file": "Pretendard-757b9fc85ad85a10.woff2",
+      "url": "https://raw.githubusercontent.com/orioncactus/pretendard/v1.3.9/packages/pretendard/dist/web/variable/woff2-dynamic-subset/PretendardVariable.subset.85.woff2",
+      "sha256": "757b9fc85ad85a1024fcacc04a9b688ace2db7af393e9ddc3b5dd2ba605b5a9b",
+      "bytes": 25104
+    },
+    {
+      "file": "Pretendard-78ca0ca3a02fb86f.woff2",
+      "url": "https://raw.githubusercontent.com/orioncactus/pretendard/v1.3.9/packages/pretendard/dist/web/variable/woff2-dynamic-subset/PretendardVariable.subset.71.woff2",
+      "sha256": "78ca0ca3a02fb86ff29c68e80c50555c29aa522f37f286e7ab5b3cd8fb0b2a51",
+      "bytes": 28324
+    },
+    {
+      "file": "Pretendard-7c6aa4751ceb44a9.woff2",
+      "url": "https://raw.githubusercontent.com/orioncactus/pretendard/v1.3.9/packages/pretendard/dist/web/variable/woff2-dynamic-subset/PretendardVariable.subset.57.woff2",
+      "sha256": "7c6aa4751ceb44a9a4af9c0ed80a7e95bc89d334a89231996ed84634093e128b",
+      "bytes": 35960
+    },
+    {
+      "file": "Pretendard-8713e83342c3f5ed.woff2",
+      "url": "https://raw.githubusercontent.com/orioncactus/pretendard/v1.3.9/packages/pretendard/dist/web/variable/woff2-dynamic-subset/PretendardVariable.subset.0.woff2",
+      "sha256": "8713e83342c3f5ed316bf22bf50a3d991a5b5dd16c0c45c54a6ad81f62be7df3",
+      "bytes": 34568
+    },
+    {
+      "file": "Pretendard-8bccc361d2d7ad5c.woff2",
+      "url": "https://raw.githubusercontent.com/orioncactus/pretendard/v1.3.9/packages/pretendard/dist/web/variable/woff2-dynamic-subset/PretendardVariable.subset.70.woff2",
+      "sha256": "8bccc361d2d7ad5c3891a7914505ffd0ed89cf0bd9a5f1f6c320f85af54cb041",
+      "bytes": 27548
+    },
+    {
+      "file": "Pretendard-8bd3bdcc7481b9a6.woff2",
+      "url": "https://raw.githubusercontent.com/orioncactus/pretendard/v1.3.9/packages/pretendard/dist/web/variable/woff2-dynamic-subset/PretendardVariable.subset.44.woff2",
+      "sha256": "8bd3bdcc7481b9a61bb570ab14ad1801b5f8a13df3f61d9bf2625bdad28e2a3b",
+      "bytes": 32136
+    },
+    {
+      "file": "Pretendard-8dcc8a46af706993.woff2",
+      "url": "https://raw.githubusercontent.com/orioncactus/pretendard/v1.3.9/packages/pretendard/dist/web/variable/woff2-dynamic-subset/PretendardVariable.subset.27.woff2",
+      "sha256": "8dcc8a46af7069935ab1209094bb8e1c890f854bfce377711bdcc99516e228ef",
+      "bytes": 35424
+    },
+    {
+      "file": "Pretendard-93f30e304a97b867.woff2",
+      "url": "https://raw.githubusercontent.com/orioncactus/pretendard/v1.3.9/packages/pretendard/dist/web/variable/woff2-dynamic-subset/PretendardVariable.subset.52.woff2",
+      "sha256": "93f30e304a97b867e21f8e8a6dbc86df6047e7d1f2d34818261c381e859e1ded",
+      "bytes": 34356
+    },
+    {
+      "file": "Pretendard-95bd711a06b3a13b.woff2",
+      "url": "https://raw.githubusercontent.com/orioncactus/pretendard/v1.3.9/packages/pretendard/dist/web/variable/woff2-dynamic-subset/PretendardVariable.subset.31.woff2",
+      "sha256": "95bd711a06b3a13b23b44d1b9aa49dc36e759a5ff1989a239fd6af3d750f8fef",
+      "bytes": 41892
+    },
+    {
+      "file": "Pretendard-97a8be68deee3f72.woff2",
+      "url": "https://raw.githubusercontent.com/orioncactus/pretendard/v1.3.9/packages/pretendard/dist/web/variable/woff2-dynamic-subset/PretendardVariable.subset.43.woff2",
+      "sha256": "97a8be68deee3f724890b64cea61a4f59b2886a1d9f39604e24adec371c457a3",
+      "bytes": 30384
+    },
+    {
+      "file": "Pretendard-993fcd2747f4d21f.woff2",
+      "url": "https://raw.githubusercontent.com/orioncactus/pretendard/v1.3.9/packages/pretendard/dist/web/variable/woff2-dynamic-subset/PretendardVariable.subset.4.woff2",
+      "sha256": "993fcd2747f4d21f17b4a60bf5528d1c31825ca6a29ed942280bfba47825bedc",
+      "bytes": 35156
+    },
+    {
+      "file": "Pretendard-9ab92ab7b4e3770a.woff2",
+      "url": "https://raw.githubusercontent.com/orioncactus/pretendard/v1.3.9/packages/pretendard/dist/web/variable/woff2-dynamic-subset/PretendardVariable.subset.77.woff2",
+      "sha256": "9ab92ab7b4e3770a6f3a17ed34b0a26df5a0faf2c4f8e2d2685b36cf248ff751",
+      "bytes": 26044
+    },
+    {
+      "file": "Pretendard-a0f33cbfd1a49928.woff2",
+      "url": "https://raw.githubusercontent.com/orioncactus/pretendard/v1.3.9/packages/pretendard/dist/web/variable/woff2-dynamic-subset/PretendardVariable.subset.68.woff2",
+      "sha256": "a0f33cbfd1a49928487778b69574191ea9f636581860aa8d299156c470a6d0f5",
+      "bytes": 16340
+    },
+    {
+      "file": "Pretendard-a2df48a0029fb847.woff2",
+      "url": "https://raw.githubusercontent.com/orioncactus/pretendard/v1.3.9/packages/pretendard/dist/web/variable/woff2-dynamic-subset/PretendardVariable.subset.72.woff2",
+      "sha256": "a2df48a0029fb84736c5570930e1e0f33af665bd1ec18b5930c7ee1077317e22",
+      "bytes": 19508
+    },
+    {
+      "file": "Pretendard-a2fb59661363e8f3.woff2",
+      "url": "https://raw.githubusercontent.com/orioncactus/pretendard/v1.3.9/packages/pretendard/dist/web/variable/woff2-dynamic-subset/PretendardVariable.subset.32.woff2",
+      "sha256": "a2fb59661363e8f3ce21e344f6cd0c85fe7901b9e910d10a6f805a13c0c2d261",
+      "bytes": 40216
+    },
+    {
+      "file": "Pretendard-a4ad435d7abd6858.woff2",
+      "url": "https://raw.githubusercontent.com/orioncactus/pretendard/v1.3.9/packages/pretendard/dist/web/variable/woff2-dynamic-subset/PretendardVariable.subset.5.woff2",
+      "sha256": "a4ad435d7abd68580606a20397920be734d9d49f1c420829a6493084e855912f",
+      "bytes": 33624
+    },
+    {
+      "file": "Pretendard-b1c51b35964614cf.woff2",
+      "url": "https://raw.githubusercontent.com/orioncactus/pretendard/v1.3.9/packages/pretendard/dist/web/variable/woff2-dynamic-subset/PretendardVariable.subset.1.woff2",
+      "sha256": "b1c51b35964614cf67d44166752af0c6cf3a2a4a50daf304af2a7327611242ae",
+      "bytes": 32044
+    },
+    {
+      "file": "Pretendard-b935b4839e30b688.woff2",
+      "url": "https://raw.githubusercontent.com/orioncactus/pretendard/v1.3.9/packages/pretendard/dist/web/variable/woff2-dynamic-subset/PretendardVariable.subset.74.woff2",
+      "sha256": "b935b4839e30b68835341cb7c195ec2653d5df502281a14574af1593f03e63ff",
+      "bytes": 22392
+    },
+    {
+      "file": "Pretendard-ba87086a06c38a8e.woff2",
+      "url": "https://raw.githubusercontent.com/orioncactus/pretendard/v1.3.9/packages/pretendard/dist/web/variable/woff2-dynamic-subset/PretendardVariable.subset.12.woff2",
+      "sha256": "ba87086a06c38a8eba037034c54756415b5eee8bd386866adf79ccae5e63213d",
+      "bytes": 37940
+    },
+    {
+      "file": "Pretendard-bdaffbd5c9fed912.woff2",
+      "url": "https://raw.githubusercontent.com/orioncactus/pretendard/v1.3.9/packages/pretendard/dist/web/variable/woff2-dynamic-subset/PretendardVariable.subset.34.woff2",
+      "sha256": "bdaffbd5c9fed912fb2d92866f2476953c6075a1c396817011b158fa146ef29f",
+      "bytes": 34720
+    },
+    {
+      "file": "Pretendard-bf5e603a72bcbd65.woff2",
+      "url": "https://raw.githubusercontent.com/orioncactus/pretendard/v1.3.9/packages/pretendard/dist/web/variable/woff2-dynamic-subset/PretendardVariable.subset.23.woff2",
+      "sha256": "bf5e603a72bcbd65ef80522c722caca2df7399dbc6dbd14c3b428f2c4571abdb",
+      "bytes": 40284
+    },
+    {
+      "file": "Pretendard-c1ed2a2f2927a3cc.woff2",
+      "url": "https://raw.githubusercontent.com/orioncactus/pretendard/v1.3.9/packages/pretendard/dist/web/variable/woff2-dynamic-subset/PretendardVariable.subset.30.woff2",
+      "sha256": "c1ed2a2f2927a3ccef124b6763147e12feb497157edc26752cba38646085d888",
+      "bytes": 38448
+    },
+    {
+      "file": "Pretendard-c443e627e1bc68e0.woff2",
+      "url": "https://raw.githubusercontent.com/orioncactus/pretendard/v1.3.9/packages/pretendard/dist/web/variable/woff2-dynamic-subset/PretendardVariable.subset.46.woff2",
+      "sha256": "c443e627e1bc68e004d028eeeef57fad78e6b996ff03adfccc4ab05d551b82e4",
+      "bytes": 36540
+    },
+    {
+      "file": "Pretendard-c9aa76582f8ffb94.woff2",
+      "url": "https://raw.githubusercontent.com/orioncactus/pretendard/v1.3.9/packages/pretendard/dist/web/variable/woff2-dynamic-subset/PretendardVariable.subset.69.woff2",
+      "sha256": "c9aa76582f8ffb946f59639a265ca988a6a794e6d6e2582e9aedad18e6bc4adb",
+      "bytes": 34784
+    },
+    {
+      "file": "Pretendard-cced20f4434401b2.woff2",
+      "url": "https://raw.githubusercontent.com/orioncactus/pretendard/v1.3.9/packages/pretendard/dist/web/variable/woff2-dynamic-subset/PretendardVariable.subset.63.woff2",
+      "sha256": "cced20f4434401b2088f1b6e414eaa193779e1575afb51ea43301066e9fec95a",
+      "bytes": 28816
+    },
+    {
+      "file": "Pretendard-cff4a57ea5e9c112.woff2",
+      "url": "https://raw.githubusercontent.com/orioncactus/pretendard/v1.3.9/packages/pretendard/dist/web/variable/woff2-dynamic-subset/PretendardVariable.subset.58.woff2",
+      "sha256": "cff4a57ea5e9c11218c9a0ca1380a5d6fb8fa7e9d13499038a7b4df12d0e4331",
+      "bytes": 41564
+    },
+    {
+      "file": "Pretendard-d043fdd0fb1d707a.woff2",
+      "url": "https://raw.githubusercontent.com/orioncactus/pretendard/v1.3.9/packages/pretendard/dist/web/variable/woff2-dynamic-subset/PretendardVariable.subset.15.woff2",
+      "sha256": "d043fdd0fb1d707a57ddec602d3c9c5dd230fe1e8921ae1a6a3d0f6f5c504d6a",
+      "bytes": 35668
+    },
+    {
+      "file": "Pretendard-d0cecc926613d63e.woff2",
+      "url": "https://raw.githubusercontent.com/orioncactus/pretendard/v1.3.9/packages/pretendard/dist/web/variable/woff2-dynamic-subset/PretendardVariable.subset.24.woff2",
+      "sha256": "d0cecc926613d63ef9e82b990f5a7dc721f87360bb5047fb53623b9a24e4be01",
+      "bytes": 32300
+    },
+    {
+      "file": "Pretendard-d0fe78c3e77b3f2b.woff2",
+      "url": "https://raw.githubusercontent.com/orioncactus/pretendard/v1.3.9/packages/pretendard/dist/web/variable/woff2-dynamic-subset/PretendardVariable.subset.53.woff2",
+      "sha256": "d0fe78c3e77b3f2b9ad3ceae3cfcd539b5f39a948af850b7912942cfbf7feefc",
+      "bytes": 34572
+    },
+    {
+      "file": "Pretendard-d28ace2d199ca5c6.woff2",
+      "url": "https://raw.githubusercontent.com/orioncactus/pretendard/v1.3.9/packages/pretendard/dist/web/variable/woff2-dynamic-subset/PretendardVariable.subset.84.woff2",
+      "sha256": "d28ace2d199ca5c6304a6191f4233e28ddb225d341d6e0b41db040e9447c2cc9",
+      "bytes": 24492
+    },
+    {
+      "file": "Pretendard-d4e7580fb6bd8db8.woff2",
+      "url": "https://raw.githubusercontent.com/orioncactus/pretendard/v1.3.9/packages/pretendard/dist/web/variable/woff2-dynamic-subset/PretendardVariable.subset.36.woff2",
+      "sha256": "d4e7580fb6bd8db8ac2daf2df3a41082b608476b9e4d8867756b28fb941bc6f8",
+      "bytes": 34688
+    },
+    {
+      "file": "Pretendard-dbf5fc513294d194.woff2",
+      "url": "https://raw.githubusercontent.com/orioncactus/pretendard/v1.3.9/packages/pretendard/dist/web/variable/woff2-dynamic-subset/PretendardVariable.subset.14.woff2",
+      "sha256": "dbf5fc513294d1942090faa226a53e882c8a72bebc1c701399b47cf7566c11ec",
+      "bytes": 36512
+    },
+    {
+      "file": "Pretendard-ddc9557de55b6534.woff2",
+      "url": "https://raw.githubusercontent.com/orioncactus/pretendard/v1.3.9/packages/pretendard/dist/web/variable/woff2-dynamic-subset/PretendardVariable.subset.2.woff2",
+      "sha256": "ddc9557de55b6534fb6802da96e03ca334449474eae71ec1a1eefa9b3fa40fd3",
+      "bytes": 43920
+    },
+    {
+      "file": "Pretendard-dff46d20074b8f3d.woff2",
+      "url": "https://raw.githubusercontent.com/orioncactus/pretendard/v1.3.9/packages/pretendard/dist/web/variable/woff2-dynamic-subset/PretendardVariable.subset.45.woff2",
+      "sha256": "dff46d20074b8f3d9eeb05f7bea4ba0746d7d9887f8ec2dcb2280cadd2889ff7",
+      "bytes": 34664
+    },
+    {
+      "file": "Pretendard-e3dde5ed049d0a2a.woff2",
+      "url": "https://raw.githubusercontent.com/orioncactus/pretendard/v1.3.9/packages/pretendard/dist/web/variable/woff2-dynamic-subset/PretendardVariable.subset.48.woff2",
+      "sha256": "e3dde5ed049d0a2a07050aca649ce4a1a1d7659b30b7871fa1d1bef1fec4da16",
+      "bytes": 37776
+    },
+    {
+      "file": "Pretendard-e5e19247f5eb141d.woff2",
+      "url": "https://raw.githubusercontent.com/orioncactus/pretendard/v1.3.9/packages/pretendard/dist/web/variable/woff2-dynamic-subset/PretendardVariable.subset.37.woff2",
+      "sha256": "e5e19247f5eb141d5ee84994518a3f2fe7f2e4d2978e7451988b8fae73ac52a5",
+      "bytes": 27916
+    },
+    {
+      "file": "Pretendard-ec28ff6556918209.woff2",
+      "url": "https://raw.githubusercontent.com/orioncactus/pretendard/v1.3.9/packages/pretendard/dist/web/variable/woff2-dynamic-subset/PretendardVariable.subset.33.woff2",
+      "sha256": "ec28ff655691820931a57f7b6960922a0f3b7f655fe062c2fd11de86d6893269",
+      "bytes": 34916
+    },
+    {
+      "file": "Pretendard-ed2d605d80cbe4f2.woff2",
+      "url": "https://raw.githubusercontent.com/orioncactus/pretendard/v1.3.9/packages/pretendard/dist/web/variable/woff2-dynamic-subset/PretendardVariable.subset.90.woff2",
+      "sha256": "ed2d605d80cbe4f2c1df801852f7a1d8ad5e1a4972b26d8fee93427317f32f09",
+      "bytes": 20852
+    },
+    {
+      "file": "Pretendard-f0ae631ec332bbaf.woff2",
+      "url": "https://raw.githubusercontent.com/orioncactus/pretendard/v1.3.9/packages/pretendard/dist/web/variable/woff2-dynamic-subset/PretendardVariable.subset.81.woff2",
+      "sha256": "f0ae631ec332bbaf686a493d126ff56a8ac0c6284bdbb7542cef8fedd946fa66",
+      "bytes": 26300
+    },
+    {
+      "file": "Pretendard-f242e40d23d0aac4.woff2",
+      "url": "https://raw.githubusercontent.com/orioncactus/pretendard/v1.3.9/packages/pretendard/dist/web/variable/woff2-dynamic-subset/PretendardVariable.subset.47.woff2",
+      "sha256": "f242e40d23d0aac4583574da52d460b2a804f31d5f7aa435e5dc58ceaab35ac2",
+      "bytes": 35720
+    },
+    {
+      "file": "Pretendard-f3bb8007d522f3d6.woff2",
+      "url": "https://raw.githubusercontent.com/orioncactus/pretendard/v1.3.9/packages/pretendard/dist/web/variable/woff2-dynamic-subset/PretendardVariable.subset.50.woff2",
+      "sha256": "f3bb8007d522f3d67cf6930ed417b0b911189eaaff08a5ab41eed790d18b6bb0",
+      "bytes": 33228
+    },
+    {
+      "file": "Pretendard-f8f1fe652aaf3c75.woff2",
+      "url": "https://raw.githubusercontent.com/orioncactus/pretendard/v1.3.9/packages/pretendard/dist/web/variable/woff2-dynamic-subset/PretendardVariable.subset.83.woff2",
+      "sha256": "f8f1fe652aaf3c759d78f37e48afe1c58c1d335e9261c5be2a2d90ff5bbfb9cc",
+      "bytes": 26964
+    },
+    {
+      "file": "Pretendard-f9473c59d65080b7.woff2",
+      "url": "https://raw.githubusercontent.com/orioncactus/pretendard/v1.3.9/packages/pretendard/dist/web/variable/woff2-dynamic-subset/PretendardVariable.subset.13.woff2",
+      "sha256": "f9473c59d65080b75327d6b5f8ea53a3e2c417542d609fd1f12b0e084079e0b2",
+      "bytes": 35708
+    },
+    {
+      "file": "Pretendard-f9da3e1e2f6ab97b.woff2",
+      "url": "https://raw.githubusercontent.com/orioncactus/pretendard/v1.3.9/packages/pretendard/dist/web/variable/woff2-dynamic-subset/PretendardVariable.subset.16.woff2",
+      "sha256": "f9da3e1e2f6ab97babdaaaf67f74308a3c4cb75a7c0e70efab295aaa62ecde67",
+      "bytes": 37916
+    },
+    {
+      "file": "Pretendard-fc9fcd1bea9c8f43.woff2",
+      "url": "https://raw.githubusercontent.com/orioncactus/pretendard/v1.3.9/packages/pretendard/dist/web/variable/woff2-dynamic-subset/PretendardVariable.subset.91.woff2",
+      "sha256": "fc9fcd1bea9c8f43f97136a1e89bfa6e34db85f820f86538288647b4c24c5b06",
+      "bytes": 37996
+    },
+    {
+      "file": "Pretendard-fe4874885e645073.woff2",
+      "url": "https://raw.githubusercontent.com/orioncactus/pretendard/v1.3.9/packages/pretendard/dist/web/variable/woff2-dynamic-subset/PretendardVariable.subset.73.woff2",
+      "sha256": "fe4874885e6450739e9067af520b94cc5f60e56c36538b6db3df3aa7a37baf42",
+      "bytes": 18336
+    },
+    {
+      "file": "Pretendard-OFL.txt",
+      "url": "https://raw.githubusercontent.com/orioncactus/pretendard/v1.3.9/LICENSE",
+      "sha256": "d31ddd9f2bed32fd7e302a205cf2380ba0de6529152d239ef99cfb6f261bfc04"
+    }
+  ]
+}

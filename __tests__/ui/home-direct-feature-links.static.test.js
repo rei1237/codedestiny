@@ -8,21 +8,20 @@ const read = (file) => fs.readFileSync(path.join(root, file), "utf8");
 const home = read("index.html");
 const registry = read("js/core/service-registry.js");
 const template = read("templates/home-funnel.html");
+const {JSDOM}=require("jsdom");
+const homeDocument=new JSDOM(home).window.document;
 
 // 2026-10-23 강약: 대표 상담 덱 → 초융합 시그니처 띠 → 무료로 먼저(여섯 장) → 꿀방울 출석 → 1:1 상담(연이·네오) → 질문 카테고리 → 이용권 → 모든 운세 버튼 → 작은 운세 모음 → 뮤직비디오 → 달빛 이야기.
 // Approved 2026-11-03 refinement keeps pass comparison immediately after concern discovery.
-const flow = ['{{yehwaHome}}', 'class="cd-help-entry"', 'id="cdhMoonlightMv"', 'id="cdhFusionSignatureSlot"', 'id="cdhNeoLetterSlot"', 'id="cdhFeatured"', 'id="cdhQuickSlot"', 'data-cd-honey-widget', 'class="cdh-all-cta"', 'id="cdhLightFortunes"', 'class="cdh-story"'];
-for (let i = 1; i < flow.length; i += 1) {
-  const prev = template.indexOf(flow[i - 1]);
-  const next = template.indexOf(flow[i]);
-  assert.ok(prev >= 0 && next > prev, `${flow[i - 1]} 가 ${flow[i]} 보다 먼저 와야 합니다`);
-}
+const flow=['.yh-hero','#cdQuickServices','#cdSignatureConsult','.yh-links','#cdhPass','.cd-help-entry','#cdhMoonlightMv','#cdhFusionSignatureSlot','#cdhYeongnyangiSlot','#cdhLightFortunes','.cdh-story'].map(selector=>homeDocument.querySelector(selector));
+assert.ok(flow.every(Boolean),'all existing home surfaces remain');
+for(let i=1;i<flow.length;i++)assert.ok(flow[i-1].compareDocumentPosition(flow[i]) & 4,'home source order follows free → unified comparison → existing sections');
 // 첫 화면 검색과 기존 하단 전체 운세 버튼은 같은 검색을 여는 별도 진입점이다.
 for (const entryClass of ['cdh-all-cta__btn']) {
   const entry = template.match(new RegExp(`<a class="${entryClass}"[^>]*>`))?.[0] || '';
   assert.match(entry, /href="\/\?action=cdOpenAllFortunes" data-action="cdOpenAllFortunes"/, `${entryClass}는 기존 전체 운세 검색을 열어야 합니다`);
 }
-assert.ok(template.indexOf('{{yehwaHome}}') < template.indexOf('id="cdhFeatured"'), '고민과 전체 검색 진입은 대표 상담 앞에 둡니다');
+assert.ok(homeDocument.querySelector('#cdConcernPick').closest('#cdSignatureConsult'), 'concern and consultation selection share one entry');
 const recordsNav = home.match(/<nav class="yh-links"[\s\S]*?<\/nav>/)?.[0] || '';
 assert.ok(recordsNav.includes('/records/') && recordsNav.includes('/yeongnyangi/library/'));
 assert.ok(!recordsNav.includes('cdOpenAllFortunes'));
@@ -32,17 +31,13 @@ for (const gone of ['id="cdhMore"', 'id="cdhServices"', 'id="cdhConcern"', 'id="
 }
 
 // 질문 카테고리: 예전 #cdConcernPick DOM 계약(토글 스크립트·계측이 그대로 읽는다)과 가격 키를 지킨다.
-const concernSection = home.match(/<section data-cd-funnel-section="concern_pick"[\s\S]*?<\/section>/)?.[0] || "";
-assert.ok(concernSection.includes('id="cdConcernPick"'), "홈 질문 카테고리를 찾지 못했습니다");
-assert.deepEqual([...concernSection.matchAll(/data-cd-concern="([^"]+)"/g)].map(m => m[1]), ['love', 'reunion', 'marriage', 'money', 'career', 'future', 'self', 'people']);
-assert.equal([...concernSection.matchAll(/data-cd-concern-panel="/g)].length, 8, "카테고리마다 패널 하나");
-assert.equal([...concernSection.matchAll(/class="cd-concern__panel"[^>]*hidden/g)].length, 7, "처음엔 '사랑' 패널만 열려 있습니다");
-for (const link of concernSection.match(/<a class="cd-concern__q-link[^>]*>/g) || []) {
-  assert.match(link, /data-cd-question="\w+"/, `질문 키 없음: ${link}`);
-  assert.match(link, /data-cd-price-key="[\w-]+"|data-cd-price-free/, `가격 표지 없음: ${link}`);
-}
-assert.match(concernSection, /href="\/fusion-fortune\/\?from=home_question" data-cd-question="futureCross" data-cd-price-key="fusion-fortune-consultation"/);
-assert.ok(home.includes('data-marker="cd-concern-pick-v20260824">'), "질문 카테고리 토글 스크립트가 남아 있어야 합니다");
+const concernSection=homeDocument.querySelector('#cdConcernPick').outerHTML;
+assert.deepEqual([...homeDocument.querySelectorAll('[data-picker-topic]:not([data-picker-topic="all"])')].map(node=>node.dataset.pickerTopic),['love','reunion','marriage','money','career','future','self','people']);
+assert.equal(homeDocument.querySelectorAll('[data-picker-card]:not([hidden])').length,3,'initial selection is compact');
+for(const link of homeDocument.querySelectorAll('.cd-picker-questions [data-cd-question]'))assert.ok(link.hasAttribute('data-cd-price-key')||link.hasAttribute('data-cd-price-free'),'every question retains a price marker');
+const cross=homeDocument.querySelector('[data-cd-question="futureCross"]');
+assert.equal(cross.getAttribute('href'),'/fusion-fortune/?from=home_question');
+assert.equal(cross.dataset.cdPriceKey,'fusion-fortune-consultation');
 
 const fusionBand = home.match(/<section class="cdh-fusion-sig"[\s\S]*?<\/section>/)?.[0] || "";
 assert.match(fusionBand, /href="\/fusion-fortune\/\?from=home_signature"/, "초융합 시그니처 띠는 초융합 페이지로 갑니다");
@@ -66,8 +61,6 @@ assert.doesNotMatch(quickSection, /data-cd-open-collection/, 'home tiles open th
 assert.deepEqual([...quickSection.matchAll(/data-cd-service-id="([^"]+)"/g)].map(m => m[1]), ['saju', 'tarot', 'ziwei', 'sukuyo', 'vedic', 'astrology']);
 assert.equal([...quickSection.matchAll(/href="\/\?action=([^"]+)" data-action="\1"/g)].length, 6, 'early clicks retain the selected action before JavaScript is ready');
 
-const { JSDOM } = require('jsdom');
-const homeDocument = new JSDOM(home).window.document;
 const signatureSection = homeDocument.querySelector('#cdSignatureConsult')?.outerHTML || '';
 assert.ok(homeDocument.querySelector('#cdSignatureConsult #cdConcernPick'), 'Concern selection belongs to the consultation section');
 assert.ok(homeDocument.querySelector('#cdhMoonlightMv'), 'Music video stays on the home');
@@ -76,19 +69,19 @@ assert.ok(homeDocument.querySelector('.cdh-story .cdh-story__card--music[href="/
 assert.equal(homeDocument.querySelectorAll('#cdhMoonlightMv').length, 1);
 assert.doesNotMatch(template, /음악으로 쉬어가기/);
 assert.ok(signatureSection, '대표 운명 상담 섹션을 찾지 못했습니다');
-assert.match(signatureSection, /class="cd-sig__samples-link" href="\/consultation-samples\/"/, 'representative consultations expose the complete sample guide');
+assert.ok(homeDocument.querySelector('#cdSignatureConsult .cd-picker-links a[href="/consultation-samples/"]'),'complete sample guide remains');
 assert.deepEqual(
-  [...signatureSection.matchAll(/data-cd-service-id="([^"]+)"/g)].map((match) => match[1]),
-  ['fortune-tea-house', 'life-book-ai', 'new-year-ai', 'love-secret-ai', 'neo-operation-room', 'master-love-codex'],
+  [...signatureSection.matchAll(/data-cd-service-id="([^"]+)"/g)].map((match) => match[1]).sort(),
+  ['fortune-tea-house', 'life-book-ai', 'new-year-ai', 'love-secret-ai', 'neo-operation-room', 'master-love-codex'].sort(),
   '기존 여섯 상품을 한 번씩 유지합니다',
 );
 assert.deepEqual([...signatureSection.matchAll(/data-cd-signature-id="([^"]+)"/g)].map(match => match[1]), ['fortune-chat', 'yeongnyangi-question']);
-assert.match(signatureSection, /data-sig-next/, '상담 카드를 넘길 수 있어야 합니다');
-assert.equal((signatureSection.match(/class="cd-sig-card__img"/g) || []).length, 8, '상담 카드마다 이미지가 있어야 합니다');
-assert.equal((signatureSection.match(/class="cd-sig-card__price"/g) || []).length, 6, '대표 상담 여섯 장 모두 원화 가격을 보여줘야 합니다');
-assert.equal((signatureSection.match(/class="cd-sig-card__cta"/g) || []).length, 8, '상담 카드마다 CTA가 있어야 합니다');
-const lifeBookCard = signatureSection.match(/<a class="cd-sig-card cd-sig-card--life"[\s\S]*?<\/a>/)?.[0] || '';
-assert.match(lifeBookCard, />30,000원<\/span>/, '인생의 책 대표 카드 가격은 결제 정본과 같은 30,000원이어야 합니다');
+assert.doesNotMatch(signatureSection,/data-sig-next|data-sig-pause/,'comparison does not move automatically');
+const curated=[...homeDocument.querySelectorAll('#cdSigGrid [data-cd-service-id],#cdSigGrid [data-cd-signature-id]')];
+assert.equal(curated.length,8);
+assert.ok(curated.every(card=>card.querySelector('img')&&card.querySelector('.cd-picker-action')),'all eight established entries retain art and CTA');
+assert.equal(homeDocument.querySelectorAll('#cdSigGrid [data-cd-service-id] .cd-sig-card__price').length,6);
+assert.equal(homeDocument.querySelector('#cdSigGrid [data-cd-service-id="life-book-ai"] .cd-sig-card__price').textContent,'30,000원');
 assert.doesNotMatch(home, /id="cdhSamples"/, '중복 결과 샘플 카드 묶음은 홈에 다시 만들지 않습니다');
 
 for (const entry of [

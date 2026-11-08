@@ -2530,6 +2530,15 @@
     "widget": {
       "title": "Startbildschirm gestalten",
       "description": "Wähle Yeonis Gruß, eine Blumenbedeutung, die Tagesdeutung oder einen Talisman."
+    },
+    "typographyPicker": {
+      "lead": "Wähle dein Anliegen und vergleiche Beratungsformen und Ergebnisse.",
+      "allConsultations": "Alle Beratungen",
+      "specific": "Konkrete Anliegen",
+      "all": "Alle",
+      "compare": "Beratungen vergleichen",
+      "more": "Weitere passende Beratungen",
+      "less": "Weniger anzeigen"
     }
   },
   "terms": {

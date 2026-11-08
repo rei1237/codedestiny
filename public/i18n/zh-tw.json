@@ -2530,6 +2530,15 @@
     "widget": {
       "title": "佈置主畫面",
       "description": "挑選延伊的寄語、花語、今日運勢或護身符。"
+    },
+    "typographyPicker": {
+      "lead": "選擇心中的煩惱，再比較諮詢方式與結果內容。",
+      "allConsultations": "全部諮詢",
+      "specific": "具體煩惱",
+      "all": "全部",
+      "compare": "比較諮詢",
+      "more": "查看更多相關諮詢",
+      "less": "收合"
     }
   },
   "terms": {

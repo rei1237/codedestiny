@@ -2530,6 +2530,15 @@
     "widget": {
       "title": "Personalizar pantalla de inicio",
       "description": "Elige un mensaje de Yeoni, una flor, la lectura del día o un talismán."
+    },
+    "typographyPicker": {
+      "lead": "Elige lo que te preocupa y compara las formas de consulta y sus resultados.",
+      "allConsultations": "Todas las consultas",
+      "specific": "Preocupaciones concretas",
+      "all": "Todo",
+      "compare": "Comparar consultas",
+      "more": "Ver más consultas relacionadas",
+      "less": "Mostrar menos"
     }
   },
   "terms": {

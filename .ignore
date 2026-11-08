@@ -346,6 +346,7 @@
 /public/styles/feature-visual-detail.css
 /public/styles/first-visit-guide.css
 /public/styles/fonts-serif.css
+/public/styles/fonts-ui.generated.css
 /public/styles/fonts-yeongnyangi.css
 /public/styles/fortune-consultation-entry.css
 /public/styles/fortune-consultation.css
@@ -353,6 +354,7 @@
 /public/styles/fortune-ui-home.css
 /public/styles/fortune-ui.css
 /public/styles/guide-primitives.css
+/public/styles/home-consultation-picker.css
 /public/styles/home-funnel.css
 /public/styles/home-mv.css
 /public/styles/life-book.css

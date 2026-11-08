@@ -8,13 +8,8 @@
 /* ─── 기본 리셋 및 모바일 터치·스크롤 기반 ─── */
 /* NOTE: @tailwind 지시어는 Next.js 빌드에서만 처리됨.
    static HTML 직접 링크 시에는 순수 CSS 규칙만 유효함. */
-:root {
-	--font-body: "CodeDestinyBody", "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", "Segoe UI", system-ui, -apple-system, sans-serif;
-	--font-display: "CodeDestinyDisplay", var(--font-body);
-	--font-premium: "CodeDestinySerifKR", var(--font-display);
-	--font-playful: "CodeDestinyPlayful", var(--font-display);
-	--font-decorative: "CodeDestinyDecorative", var(--font-display);
-}
+@import "./brand-typography.css";
+h1,h2,h3 { font-family:var(--font-display);font-weight:400; }
 html {
 	-webkit-text-size-adjust: 100%;
 	text-size-adjust: 100%;

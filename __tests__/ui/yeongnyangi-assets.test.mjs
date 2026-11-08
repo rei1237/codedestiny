@@ -4,7 +4,7 @@ import {readFileSync, existsSync} from 'node:fs';
 
 test('home keeps one Yeongnyangi card with its destination and artwork', () => {
  const html = readFileSync('index.html', 'utf8');
- const cards = html.match(/<a class="cd-sig-card cd-sig-card--intro" data-cd-signature-id="yeongnyangi-question"[\s\S]*?<\/a>/g) || [];
+ const cards = html.match(/<a class="cd-picker-main"[^>]*data-cd-signature-id="yeongnyangi-question"[\s\S]*?<\/a>/g) || [];
  assert.equal(cards.length, 1);
  assert.match(cards[0], /href="\/yeongnyangi\/"/);
  assert.match(cards[0], /\/images\/service-introductions\/yeongnyangi-question-v2-640\.webp/);

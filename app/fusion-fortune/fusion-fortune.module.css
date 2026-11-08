@@ -65,18 +65,19 @@
  * 제목에 무게를 줄 수 없었고, 그래서 위계가 평평했다.
  */
 .reading {
-  font-family: var(--font-body);
-  letter-spacing: -0.005em;
+  font-family: var(--font-reading);
+  max-width: var(--type-reading-measure);
+  letter-spacing: 0;
   word-break: keep-all;
   /* 흩어져 있던 임의값(text-[1.06rem] 외 5종)의 정본. 좁은 화면 값은 그대로 두고
      — 모바일 가독성은 글자를 줄이는 대신 스레드 열 폭으로 푼다 — 폭이 남는 화면에서만 키운다. */
-  font-size: 1.06rem;
-  line-height: 1.95;
+  font-size: var(--type-reading-size);
+  line-height: var(--type-reading-leading);
   overflow-wrap: anywhere;
   font-kerning: normal;
 }
 .readingTitle {
-  font-family: var(--fx-serif);
+  font-family: var(--font-reading);
   font-weight: 700;
   letter-spacing: -0.02em;
   word-break: keep-all;
@@ -85,7 +86,7 @@
 .chapterPortrait img { display: block; width: 100%; height: auto; }
 @media (min-width: 1024px) {
   .reading {
-    font-size: 1.125rem;
+    font-size: var(--type-reading-size);
   }
 }
 /* 접기 버튼의 소제목. 44px 터치 타깃(min-h-11)은 호출부가 유지한다. */

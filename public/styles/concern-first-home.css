@@ -1,3 +1,4 @@
+@import "./home-consultation-picker.css";
 /* First visit: one consultation entry, with the full catalogue available on demand. */
 .cdh-start-links{display:flex;flex-wrap:wrap;gap:4px 20px;margin-top:12px}
 .cdh-start-links a{display:inline-flex;align-items:center;min-height:44px;color:var(--cdh-ink);font-size:14px;text-decoration:underline;text-underline-offset:4px}
@@ -163,7 +164,7 @@ html.cdh-input-open body .cdh-input-return svg{flex:none}
 html.cdh-input-open body .cdh-input-return:focus-visible{outline:3px solid var(--cd-accent);outline-offset:3px}
 
 /* Approved consultation home: one selection surface, existing product routes. */
-#cdHomeFunnel.cdh--focused .cd-choice{--cdh-serif:"CodeDestinySerifKR",Batang,serif;--cdh-ink:#fff5e9;--cdh-muted:#e5c8ce;--cdh-gold:#e7cb85;--cdh-card:#442536;--cdh-surface:#38172b;--cdh-line:#956b60;position:relative;isolation:isolate;overflow:hidden;padding:40px 28px 30px;border:1px solid #b79462;border-radius:26px;background:#310f25;color:var(--cdh-ink)}
+#cdHomeFunnel.cdh--focused .cd-choice{--cdh-serif:var(--font-display);--cdh-ink:#fff5e9;--cdh-muted:#e5c8ce;--cdh-gold:#e7cb85;--cdh-card:#442536;--cdh-surface:#38172b;--cdh-line:#956b60;position:relative;isolation:isolate;overflow:hidden;padding:40px 28px 30px;border:1px solid #b79462;border-radius:26px;background:#310f25;color:var(--cdh-ink)}
 #cdHomeFunnel.cdh--focused .cd-choice::before,#cdHomeFunnel.cdh--focused .cd-choice::after{content:none}
 .cd-choice__branch{position:absolute;top:0;width:220px;height:auto;pointer-events:none;z-index:-1}.cd-choice__branch--left{left:0}.cd-choice__branch--right{right:0;transform:scaleX(-1)}
 #cdHomeFunnel.cdh--focused .cd-choice .cd-sig__head{max-width:none;width:100%;margin:0 auto 20px;padding:0 150px 26px;text-align:center;display:block}

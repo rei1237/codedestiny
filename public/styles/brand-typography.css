@@ -1,3 +1,5 @@
+@import './fonts-ui.generated.css';
+
 /* 한자 전용 폴백. Pretendard(=CodeDestinyBody)·Mulmaru(display)·Jamsil(premium)·Nanum Myeongjo(serif)
    에는 한자 글리프가 없거나 불완전해, 작명첩의 한자 이름·자미두수의 命宮/紫微斗數 같은 병기가
    두부(□)로 뜨거나 폰트마다 제각각으로 렌더됐다. unicode-range 로 한자 블록에만 걸리므로
@@ -14,15 +16,28 @@
 	unicode-range: U+2E80-2FDF, U+3005-3007, U+3021-3029, U+3400-4DBF, U+4E00-9FFF, U+F900-FAFF;
 }
 
-/* Shared Korean UI roles. Existing Gowun Dodum OFL subsets are in fonts-serif.css.
-   Legacy role names remain compatible; they no longer select unrelated display faces. */
+/* Jua carries the character; Pretendard carries information and long readings.
+   Both are same-origin OFL WOFF2 subsets. Jua has only its real 400 weight. */
 :root,
 .font-noto-sans-kr-offline {
   --font-body: "CodeDestinyHan", "CodeDestinyBody", "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
-  --font-display: "CodeDestinyHan", "CodeDestinyPlayful", var(--font-body);
+  --font-display: "CodeDestinyHan", "CodeDestinyRounded", var(--font-body);
+  --font-reading: var(--font-body);
   --font-serif: var(--font-display);
   --font-premium: var(--font-body);
   --font-playful: var(--font-display);
   --font-decorative: var(--font-display);
   --font-noto-sans-kr: var(--font-body);
+  --type-reading-size: 1.0625rem;
+  --type-reading-leading: 1.8;
+  --type-reading-measure: 38rem;
+  --type-reading-paragraph-gap: 1em;
+  font-synthesis: none;
+}
+@media (min-width: 768px) {
+  :root, .font-noto-sans-kr-offline { --type-reading-size: 1.125rem; }
+}
+/* Keep non-Korean scripts on their established language/system fallbacks. */
+html:not(:lang(ko)), html:not(:lang(ko)) .font-noto-sans-kr-offline {
+  --font-display: var(--font-body);
 }

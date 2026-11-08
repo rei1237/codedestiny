@@ -2530,6 +2530,15 @@
     "widget": {
       "title": "Customize home screen",
       "description": "Choose a note from Yeoni, a flower meaning, a daily reading or a talisman."
+    },
+    "typographyPicker": {
+      "lead": "Choose what is on your mind, then compare the consultation styles and results.",
+      "allConsultations": "All consultations",
+      "specific": "Specific concerns",
+      "all": "All",
+      "compare": "Compare consultations",
+      "more": "See more related consultations",
+      "less": "Show less"
     }
   },
   "terms": {

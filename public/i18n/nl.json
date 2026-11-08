@@ -2530,6 +2530,15 @@
     "widget": {
       "title": "Startscherm aanpassen",
       "description": "Kies een bericht van Yeoni, een bloem, de dagduiding of een talisman."
+    },
+    "typographyPicker": {
+      "lead": "Kies wat je bezighoudt en vergelijk de consultvormen en resultaten.",
+      "allConsultations": "Alle consulten",
+      "specific": "Specifieke vragen",
+      "all": "Alles",
+      "compare": "Consulten vergelijken",
+      "more": "Meer gerelateerde consulten",
+      "less": "Minder tonen"
     }
   },
   "terms": {
