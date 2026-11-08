@@ -1,7 +1,7 @@
 import Business from "../Business";
 const title = "운세 API v1 개발 문서 | 꿀꿀운세";
 const description =
-  "상품별 입력값, 응답 JSON, 호출 제한과 서버에서 실행하는 첫 cURL 요청을 확인하세요.";
+  "기업용 운세 API v1의 상품별 필수 입력값과 실제 엔진의 응답 JSON을 확인하세요. 서버 키로 실행하는 cURL 예시, 분당 호출 제한과 오류 처리 방법을 안내합니다.";
 export const metadata = {
   title,
   description,
@@ -10,7 +10,7 @@ export const metadata = {
     title,
     description,
     url: "/business/api/docs/",
-    images: ["/og/presidential-public-records.png"],
+    images: ["/og/code-destiny-og-vvip.png"],
   },
 };
 export default function Docs() {

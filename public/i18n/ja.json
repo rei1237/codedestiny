@@ -2689,7 +2689,11 @@
     },
     "disclaimerNote": "分析は命理学の理論に基づく解釈です。医療・法律・投資など重要な判断は、各分野の専門家とご相談のうえ行ってください。",
     "byline": "経験10年の命理学者パク・ビョンハが設計した四柱推命の相談",
-    "allServices": "すべてのサービスを見る"
+    "allServices": "すべてのサービスを見る",
+    "businessAudience": "法人・開発者向け",
+    "businessApiLink": "占いAPIの料金と連携",
+    "businessApiInvite": "サービスに占いを追加したい方へ",
+    "businessApiManage": "API管理"
   },
   "branches": {
     "자수": {

@@ -2689,7 +2689,11 @@
     },
     "disclaimerNote": "De analyses zijn interpretaties op basis van de Myeongri-theorie. Neem belangrijke medische, juridische of financiële beslissingen samen met een deskundige op dat gebied.",
     "byline": "Saju-consulten ontworpen door Park Byeong-ha, Myeongri-specialist met 10 jaar ervaring",
-    "allServices": "Alle diensten"
+    "allServices": "Alle diensten",
+    "businessAudience": "Bedrijven en ontwikkelaars",
+    "businessApiLink": "Orakel-API · Prijzen en integratie",
+    "businessApiInvite": "Voeg duidingen toe aan je dienst",
+    "businessApiManage": "Mijn API beheren"
   },
   "branches": {
     "자수": {

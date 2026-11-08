@@ -185,7 +185,7 @@ export default function SiteFooterHub() {
           )}
         </nav>
 
-        <nav aria-label="기업·개발자"><strong>기업·개발자</strong> <a className={styles.sfhPolicyLink} href="/business/api/">운세 API · 요금 및 연동</a></nav>
+        <nav aria-label="기업·개발자" data-cd-trans-attr="aria-label:footer.businessAudience"><strong data-cd-trans="footer.businessAudience">기업·개발자</strong> <a className={styles.sfhPolicyLink} href="/business/api/" data-cd-trans="footer.businessApiLink">운세 API · 요금 및 연동</a></nav>
         <p className={styles.sfhNotice} data-cd-trans="footer.disclaimerNote">{FOOTER_NOTICE}</p>
 
         <section aria-label="사업자 정보" className={styles.sfhBusiness}>

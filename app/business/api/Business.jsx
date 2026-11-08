@@ -57,6 +57,9 @@ export default function Business({ mode }) {
   const items = catalog?.products || businessProducts;
   const p = items.find((it) => it.slug === slug) || items[0];
   const dashboard = mode === "dashboard";
+  const limitNotice = catalog
+    ? `계정·상품별 분당 ${catalog.perMinute}회까지 호출할 수 있습니다. 한도 초과 시 추가 청구 없이 HTTP 429를 반환합니다.`
+    : "호출 한도를 확인하고 있습니다.";
   async function refresh() {
     const result = await call("/api/business/dashboard");
     setAccount(result);
@@ -201,6 +204,7 @@ export default function Business({ mode }) {
       {mode === "landing" && (
         <section id="pricing">
           <h2>상품별 요금</h2>
+          <p>{limitNotice}</p>
           <UsageTerms />
           <label>
             <input
@@ -393,13 +397,7 @@ export default function Business({ mode }) {
         </section>
       )}
       {example}
-      <p>
-        {catalog
-          ? "계정·상품별 분당 " +
-            catalog.perMinute +
-            "회까지 호출할 수 있습니다. 한도 초과 시 추가 청구 없이 HTTP 429를 반환합니다."
-          : "호출 한도를 확인하고 있습니다."}
-      </p>
+      {mode !== "landing" && <p>{limitNotice}</p>}
       {mode === "docs" && (
         <section>
           <h2>오류 응답</h2>

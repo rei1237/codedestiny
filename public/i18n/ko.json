@@ -2436,7 +2436,11 @@
     },
     "disclaimerNote": "분석은 명리학 이론에 근거한 해석이며, 의료·법률·투자 등 중요한 결정은 해당 분야 전문가와 함께 판단하시기 바랍니다.",
     "byline": "10년 경력 명리학자 박병하가 설계한 사주 상담",
-    "allServices": "전체 서비스 보기"
+    "allServices": "전체 서비스 보기",
+    "businessAudience": "기업·개발자",
+    "businessApiLink": "운세 API · 요금 및 연동",
+    "businessApiInvite": "내 서비스에 운세 기능을 넣고 싶다면?",
+    "businessApiManage": "내 API 관리"
   },
   "common": {
     "cancel": "취소",

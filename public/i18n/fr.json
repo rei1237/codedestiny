@@ -2689,7 +2689,11 @@
     },
     "disclaimerNote": "Les analyses sont des interprétations fondées sur la théorie du Myeongri. Pour toute décision importante d’ordre médical, juridique ou financier, décidez avec un professionnel du domaine.",
     "byline": "Consultations Saju conçues par Park Byeong-ha, spécialiste du Myeongri depuis 10 ans",
-    "allServices": "Tous les services"
+    "allServices": "Tous les services",
+    "businessAudience": "Entreprises et développeurs",
+    "businessApiLink": "API de divination · Tarifs et intégration",
+    "businessApiInvite": "Ajouter des lectures à votre service",
+    "businessApiManage": "Gérer mon API"
   },
   "branches": {
     "자수": {

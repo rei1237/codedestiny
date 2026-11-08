@@ -2689,7 +2689,11 @@
     },
     "disclaimerNote": "分析是基于命理学理论的解读。医疗、法律、投资等重要决定，请与相关领域的专业人士共同判断。",
     "byline": "由拥有十年经验的命理学者 Park Byeong-ha 设计的八字咨询",
-    "allServices": "查看全部服务"
+    "allServices": "查看全部服务",
+    "businessAudience": "企业与开发者",
+    "businessApiLink": "命理 API · 定价与接入",
+    "businessApiInvite": "想在自己的服务中加入命理功能？",
+    "businessApiManage": "管理我的 API"
   },
   "branches": {
     "자수": {

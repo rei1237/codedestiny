@@ -2785,7 +2785,11 @@
     },
     "disclaimerNote": "Phân tích là cách diễn giải dựa trên lý thuyết Myeongri. Với các quyết định quan trọng về y tế, pháp lý hay đầu tư, hãy cân nhắc cùng chuyên gia trong lĩnh vực đó.",
     "byline": "Tư vấn Saju do Park Byeong-ha, chuyên gia Myeongri với 10 năm kinh nghiệm, thiết kế",
-    "allServices": "Tất cả dịch vụ"
+    "allServices": "Tất cả dịch vụ",
+    "businessAudience": "Doanh nghiệp và nhà phát triển",
+    "businessApiLink": "API xem vận mệnh · Giá và tích hợp",
+    "businessApiInvite": "Thêm tính năng xem vận mệnh vào dịch vụ của bạn",
+    "businessApiManage": "Quản lý API của tôi"
   },
   "common": {
     "cancel": "Hủy",
