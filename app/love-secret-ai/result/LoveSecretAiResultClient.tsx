@@ -70,8 +70,6 @@ type LoveSecretResultCopy = {
   userQuestionHeading: string;
   deepAnalysisHeading: string;
   tocAria: string;
-  /** 장 차례 접힘 제목. 없으면 tocAria 를 쓴다. */
-  chaptersHeading?: string;
   deckLabel: string;
   finalWordLabel: string;
   yeoniSignature: string;
@@ -156,7 +154,6 @@ const LOVE_SECRET_RESULT_COPY: Partial<Record<LoadingLocale, LoveSecretResultCop
     userQuestionHeading: "상담 질문",
     deepAnalysisHeading: "연애 비책 상세 분석",
     tocAria: "상담 결과 목차",
-    chaptersHeading: "이 상담의 차례",
     deckLabel: "연애 비책 상담 결과",
     finalWordLabel: "💌 마지막 한마디",
     yeoniSignature: "연이 · 서한비 드림",
@@ -1335,7 +1332,7 @@ function LoveSecretResultPageContent({
           <details className={`${styles.card} ${styles.chapterToc} mt-5`}>
             <summary className={`${theme.focusRing} ${styles.chapterTocSummary}`}>
               <BookOpen className="h-5 w-5 text-[var(--ls-accent)]" aria-hidden="true" />
-              <span>{copy.chaptersHeading || copy.tocAria}</span>
+              <span>{copy.tocAria}</span>
               <span className={styles.chapterTocCount}>{chapterEntries.length}</span>
             </summary>
             <nav aria-label={copy.tocAria}>

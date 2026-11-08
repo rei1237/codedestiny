@@ -240,6 +240,11 @@ for (const priorStatus of [null, 'generation_failed', 'generating']) {
     });
     const declaration = ast.statements.find(node => ts.isFunctionDeclaration(node) && node.name?.text === 'beginSajuAIConsultationGeneratingRecord');
     assert.ok(declaration);
+    // 실제 새 기록의 배달 판 고정도 함께 실행한다. 하네스에서 새 의존성을 빠뜨리지 않는다.
+    const version = ast.statements.find(node => ts.isVariableStatement(node) && node.declarationList.declarations.some(row => row.name.getText(ast) === 'SAJU_AI_DELIVERY_PLAN_VERSION'));
+    const enabled = ast.statements.find(node => ts.isFunctionDeclaration(node) && node.name?.text === 'sajuAIDeliveryV2Enabled');
+    assert.ok(version); assert.ok(enabled);
+    vm.runInContext(version.getText(ast) + '\n' + enabled.getText(ast), context);
     vm.runInContext(declaration.getText(ast), context);
     const input = { auth: { userId: USER }, body: {}, profileId: 'profile', requestId: 'req', resultId: 'result', existingExecution: existing };
     const claims = await Promise.all([context.beginSajuAIConsultationGeneratingRecord(input), context.beginSajuAIConsultationGeneratingRecord(input)]);

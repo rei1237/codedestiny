@@ -161,7 +161,17 @@ function executionFixture() {
       return { then: (a, b) => run().then(a, b), lean: run };
     }, findOne: filter => ({ lean: async () => matches(filter) ? clone(doc) : null }) },
   });
-  load(ctx, 'worker/routes/fortune.js', ['beginSajuAIConsultationGeneratingRecord', 'saveSajuAIConsultationResultRecord', 'sajuStorageError']);
+  // 권한 핀과 새 배달 판을 함께 검사한다. 실제 보정 함수·상수도 로드하여 mock이 판을 우회하지 않는다.
+  load(ctx, 'worker/routes/fortune.js', ['sajuAIFinancialProductClaim']);
+  load(ctx, 'worker/routes/fortune.js', [
+    'normalizeSajuAIResultText', 'dropSajuAIUnsupportedSentences', 'sajuAIDeliveryV2Enabled', 'isSajuAIDeliveryV2',
+    'readSajuAIBestSectionText', 'assembleSajuAIBestEffortText',
+    'beginSajuAIConsultationGeneratingRecord', 'saveSajuAIConsultationResultRecord', 'sajuStorageError',
+  ], [
+    'SAJU_AI_ELEMENT', 'SAJU_AI_ELEMENT_STATE', 'SAJU_AI_SENTENCE', 'SAJU_AI_ELEMENT_MONEY', 'SAJU_AI_ELEMENT_ORGAN', 'sajuAIElementCausality',
+    'SAJU_AI_FINANCIAL_PRODUCT', 'SAJU_AI_FINANCIAL_ENDORSE', 'SAJU_AI_FINANCIAL_NEGATION_WINDOW', 'SAJU_AI_FINANCIAL_NEGATION',
+    'SAJU_AI_RESULT_UNSUPPORTED_PATTERNS', 'SAJU_AI_PERSONA_SUMMARY_START', 'SAJU_AI_PERSONA_SUMMARY_END', 'SAJU_AI_DELIVERY_PLAN_VERSION',
+  ]);
   return { ctx, get doc() { return doc; } };
 }
 
