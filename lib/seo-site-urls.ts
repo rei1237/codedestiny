@@ -149,17 +149,3 @@ const ROUTE_CANDIDATES: SitemapRouteEntry[] = [
 export const ROUTES: SitemapRouteEntry[] = ROUTE_CANDIDATES.filter(
   (route) => route.path !== "/account/delete" && !isNoindexPath(route.path),
 );
-
-export function getAllSitemapUrls(): string[] {
-  const urls: string[] = [];
-  for (const route of ROUTES) {
-    const prefixes = route.noLocale ? [""] : LOCALE_PREFIXES;
-    for (const prefix of prefixes) {
-      const localizedPath = prefix
-        ? `${prefix}${route.path === "/" ? "" : route.path}`
-        : route.path;
-      urls.push(new URL(localizedPath, BASE_URL).toString());
-    }
-  }
-  return urls;
-}
