@@ -1,3 +1,4 @@
+import {consultationSafetyMessages} from '../../../lib/fortune/toss-consultation-safety.mjs';
 import {questionScopes} from '../../../worker/yeongnyangi/fortune/ask/question-policy';
 export const birthSystems=[{id:'saju',name:'사주'},{id:'astrology',name:'서양 점성술'},{id:'ziwei',name:'자미두수'},{id:'vedic',name:'베다점'},{id:'sukuyo',name:'숙요점'},{id:'tarot',name:'타로'}] as const;
 const depths=[
@@ -37,6 +38,7 @@ export const cities=[
   {label:'제주',lat:33.4996,lng:126.5312,tz:'Asia/Seoul'},
 ];
 export const errors:Record<string,string>={
+ ...consultationSafetyMessages,
   GRANT_NOT_DURABLE:'구매한 권한의 저장 확인이 필요해요. 다시 결제하지 말고 구매 복구에서 확인해 주세요.',
   DAILY_PASS_REQUIRED:'오늘의 운세를 먼저 열어 주세요. 출석 화면에서 보유 멸치를 확인할 수 있어요.',
   ANCHOVY_REQUIRED:'오늘의 운세를 열 멸치가 부족해요. 출석으로 모은 뒤 다시 확인해 주세요.',

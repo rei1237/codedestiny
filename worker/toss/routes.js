@@ -1,3 +1,4 @@
+import {checkedConsultationInput,consultationSafetyMessages} from './consultation-safety.js';
 import {questionConversation} from '../yeongnyangi/question-followup.ts';
 import {checkOrder,TossError,requireTossOrigin,verifiedUserKey,analyticsEvent} from './policy.js';
 import {callbackAuthorized,identityId,hash} from './crypto.js';
@@ -99,12 +100,12 @@ export async function handleTossRoutes(request,env) {
     if(path==='/canonical/fortune-chat/consultations'&&request.method==='POST'){
       assertUniqueApprovedSaleSkus();
       await limit(env,auth._id,'letter-prepare',6);
-      return reply(await (await import('./letter.js')).prepareTossLetter(env,auth,await bodyOf(request)),201);
+      return reply(await (await import('./letter.js')).prepareTossLetter(env,auth,checkedConsultationInput(await bodyOf(request))),201);
     }
     if(path==='/canonical/fortune-chat/consultations/recover'&&request.method==='POST'){
       await limit(env,auth._id,'letter-recovery-prepare',6);
       const input=await bodyOf(request);
-      return reply(await (await import('./letter.js')).prepareRecoveredTossLetter(env,auth,input.orderId,input.consultation),201);
+      return reply(await (await import('./letter.js')).prepareRecoveredTossLetter(env,auth,input.orderId,checkedConsultationInput(input.consultation)),201);
     }
     const letterRecovery=path.match(/^\/canonical\/fortune-chat\/recovery\/([a-f0-9-]{36})(?:\/draft\/([a-f0-9]{64}))?$/);
     if(letterRecovery&&request.method==='GET'){
@@ -352,7 +353,7 @@ export async function handleTossRoutes(request,env) {
     if(path==='/canonical/yeongnyangi/profiles'&&['GET','POST'].includes(request.method))return reply(await canonicalProfiles(auth,request.method==='POST'?await bodyOf(request):undefined));
     if(path==='/canonical/yeongnyangi/requests'&&request.method==='POST'){
       await limit(env,auth._id,'prepare',6);
-      return reply(await prepareCanonicalFortune(env,auth,await bodyOf(request)));
+      return reply(await prepareCanonicalFortune(env,auth,checkedConsultationInput(await bodyOf(request))));
     }
     if(path==='/canonical/yeongnyangi/requests'&&request.method==='GET'){
       const rows=await TossPurchase.find({...libraryFilter(auth,url.searchParams.get('cursor')),serviceId:'yeongnyangi',tarotFlowId:''}).sort({grantedAt:-1,_id:-1}).limit(LIBRARY_PAGE_SIZE+1).lean();
@@ -430,7 +431,7 @@ export async function handleTossRoutes(request,env) {
     if(path==='/prepare'&&request.method==='POST') {
       assertUniqueApprovedSaleSkus();
       await limit(env,auth._id,'prepare',6);
-      const input=await bodyOf(request),product=approvedProduct(input.sku);
+      const input=checkedConsultationInput(await bodyOf(request)),product=approvedProduct(input.sku);
       if(!isReviewSale(product.productId,product.serviceId))throw new TossError('TOSS_PRODUCT_NOT_APPROVED',503);
       const {validatePreparation}=await import('./preparation.js');
       const canonical=resolveStoredProduct(product.productId),service=consultationService(product);
@@ -554,7 +555,7 @@ export async function handleTossRoutes(request,env) {
         if(!canonical)throw new TossError('NOT_FOUND',404);
         if(owned.accessMethod!=='TOSS_IAP')throw new TossError('RESULT_NOT_FOUND',404);
         await limit(env,auth._id,'sky-followup',4);
-        const input=await bodyOf(request);
+        const input=checkedConsultationInput(await bodyOf(request));
         if(!input||typeof input!=='object'||Array.isArray(input))throw new TossError('FOLLOWUP_INPUT_INVALID',400);
         const {submitQuestionSkyFollowup}=await import('../yeongnyangi/service.ts');
         try{return reply({fortune:presentFortune(assertDeliverable(await submitQuestionSkyFollowup(env,auth.userId,resultMatch[1],input.question)))},202);}
@@ -562,7 +563,7 @@ export async function handleTossRoutes(request,env) {
       }
       if(resultMatch[2]==='/conversation'){
         await limit(env,auth._id,'followup',4);
-        const fortune=presentFortune(assertDeliverable(await questionConversation(env,auth.userId,resultMatch[1],await bodyOf(request))));
+        const fortune=presentFortune(assertDeliverable(await questionConversation(env,auth.userId,resultMatch[1],checkedConsultationInput(await bodyOf(request)))));
         return reply(canonical?{fortune}:{...fortune,serviceId:consultationService(purchase).id});
       }
       const row=assertDeliverable(resultMatch[2]?await resumeRequest(env,auth.userId,resultMatch[1]):await readRequest(env,auth.userId,resultMatch[1]));
@@ -579,6 +580,7 @@ export async function handleTossRoutes(request,env) {
     throw new TossError('NOT_FOUND',404);
   } catch(error) {
     const known=error instanceof TossError;
+    if(known&&Object.hasOwn(consultationSafetyMessages,error.code))return reply({error:error.code,message:consultationSafetyMessages[error.code],retryable:false},422);
     const dailyErrors={DAILY_PASS_REQUIRED:403,ANCHOVY_REQUIRED:409,FREE_READING_INPUT_FROZEN:409,FREE_READING_PENDING:409,INVALID_CATEGORY:400,INVALID_INPUT:400,FREE_PROFILE_REQUIRED:400,HORARY_FREE_PROMPT_REQUIRED:400};
     if(path.startsWith('/daily/')&&Object.hasOwn(dailyErrors,error?.code))return reply({error:error.code,errorId:crypto.randomUUID()},dailyErrors[error.code]);
     const inputErrors=['QUESTION_SCOPE_REQUIRED','QUESTION_SCOPE_UNSUPPORTED','QUESTION_PRODUCT_MISMATCH','PARTNER_REQUIRED','PARTNER_NOT_SUPPORTED','BIRTH_TIME_REQUIRED','PROFILE_REQUIRED','INVALID_BIRTH','QUESTION_FOLLOWUP_BUSY','QUESTION_FOLLOWUP_SUPPORT','FOLLOWUP_NOT_AVAILABLE','FOLLOWUP_INPUT_INVALID','QUESTION_CONVERSATION_CLOSED'];

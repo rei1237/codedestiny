@@ -30,6 +30,7 @@ export default function QuestionConversation({row,onRow}:{row:FortuneRecord;onRo
    onRow(data.fortune);intent.current=null;setQuestion('');
   }catch(e){
    setError(e instanceof Error?e.message:'답변을 확인하지 못했어요. 같은 질문으로 다시 확인해 주세요.');
+   if(e instanceof Error&&'code' in e&&['TOSS_CRISIS_SUPPORT','TOSS_HARMFUL_REQUEST'].includes(String(e.code))){intent.current=null;return;}
    try{const latest=await fortuneApi<{fortune:FortuneRecord}>(`requests/${row.id}`);onRow(latest.fortune);if(!latest.fortune.conversation?.pending)intent.current=null;}catch{/* Keep the same id when storage is temporarily unavailable. */}
   }
   finally{lock.current=false;setBusy(false);}

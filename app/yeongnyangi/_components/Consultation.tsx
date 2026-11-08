@@ -69,7 +69,7 @@ import {localizedTarotSpread} from '../_lib/tarot-spread-catalog-locales';
 const hasReviews=visibleReviews().length>0;
 // Every locale opens tarot on the question-first spread order.
 const defaultKind=(domainId:string)=>domainId==='tarot'?consultationKinds.tarot.find(k=>k.id===TAROT_SPREAD_KIND)!:consultationKinds[domainId][0];
-export default function Consultation({initialQuestion='',sajuOnly=false}:{initialQuestion?:string;sajuOnly?:boolean}){
+export default function Consultation({initialQuestion='',sajuOnly=false,inputNotice}:{initialQuestion?:string;sajuOnly?:boolean;inputNotice?:(body:{question:string;questionDecision?:unknown})=>string}){
  const [relationshipStage,setRelationshipStage]=useState(''),[relationshipQuestionId,setRelationshipQuestionId]=useState('');
  const [participants,setParticipants]=useState({self:'',partner:''});
  const [touched,setTouched]=useState<Record<string,boolean>>({});
@@ -256,6 +256,8 @@ export default function Consultation({initialQuestion='',sajuOnly=false}:{initia
  }
  async function prepare(inline=false){
   if(lock.current)return;
+  const notice=inputNotice?.({question,questionDecision:decision||scopeDraft});
+  if(notice){setError(notice);return;}
   trackEvent('purchase_attempt',{item_id:product.cdFeatureKey,value:product.priceKRW,currency:product.currency,login_required:guest,service:'yeongnyangi'});
   if(guest){loginWithDraft();return;}
   if(missing.length){setError(missing.join(' '));return;}
@@ -321,17 +323,18 @@ export default function Consultation({initialQuestion='',sajuOnly=false}:{initia
   prep.push({id:'language',prompt:voiceStyle==='honorific'?'결과를 어떤 언어로 읽으시겠어요?':'결과는 어떤 언어로 읽고 싶어?',answer:readingLanguageNames[locale],valid:true,content:<ReadingLanguageSelect locale={locale} siteLocale={siteLocale} fallback={fallback} disabled={busy||kind.koOnly} onChange={value=>{setLocale(value);setError('');}}/>});
   const plan=recommendQuestion(intake.domain,intake.decision,question);
   const confirmIntake=(next:IntakeValue)=>{if(sajuOnly&&next.domain!=='saju')return;const d={...next.decision,confirmed:true};setDecision(d);setScopeDraft(d);const fish=intakeFish(next);setQuestionFish(fish);setProductId(next.domain+'_'+fish);setDomain(next.domain);setKindId(next.domain==='tarot'?TAROT_SPREAD_KIND:d.target==='pair'?'compatibility':'ask');setTopicId(d.category);setRelationshipStage('');consultationAttemptId.current='';setError('');};
-  const openQuestionCheckout=()=>{const category=questionCandidate(question)||intake.decision.category;confirmIntake({...intake,decision:{...intake.decision,category,situation:intake.decision.situation||question.slice(0,600)}});setChatStep('checkout');};
+  const intakeNotice=inputNotice?.({question,questionDecision:intake.decision});
+  const openQuestionCheckout=()=>{if(intakeNotice)return;const category=questionCandidate(question)||intake.decision.category;confirmIntake({...intake,decision:{...intake.decision,category,situation:intake.decision.situation||question.slice(0,600)}});setChatStep('checkout');};
   initialOpen.current=openQuestionCheckout;
-  return <QuestionCheckout value={intake} open={chatStep==='checkout'} busy={busy}
-   guidanceReady={!guest&&!catalogError&&!missing.length&&!plan.missing.length&&!plan.unsupported&&available.some(p=>p.id===productId)}
+  return <>{intakeNotice&&<p role="alert">{intakeNotice}</p>}<QuestionCheckout value={intake} open={chatStep==='checkout'} busy={busy||Boolean(intakeNotice)}
+   guidanceReady={!intakeNotice&&!guest&&!catalogError&&!missing.length&&!plan.missing.length&&!plan.unsupported&&available.some(p=>p.id===productId)}
    onChange={next=>{setQuestion(next.question);setQuestionFish(next.fish);setScopeDraft(next.decision);if(chatStep==='checkout')confirmIntake(next);else setDecision(undefined);}}
    onOpen={openQuestionCheckout}
    preparation={prep.map(item=>({...item,pending:item.pending||Boolean(restoredDraft.current)}))}
-   checkout={children=><CheckoutClient draft={{product,question,chapters:previewCount,hint:[...missing,...plan.missing][0],ready:ready&&!guest&&!missing.length&&!plan.missing.length&&!plan.unsupported&&available.some(p=>p.id===productId)&&!prep.some(item=>!item.valid||item.pending),onLogin:loginWithDraft,onPrepare:()=>prepare(true),children:<>{children}
+   checkout={children=><CheckoutClient draft={{product,question,chapters:previewCount,hint:[...missing,...plan.missing][0],ready:!intakeNotice&&ready&&!guest&&!missing.length&&!plan.missing.length&&!plan.unsupported&&available.some(p=>p.id===productId)&&!prep.some(item=>!item.valid||item.pending),onLogin:loginWithDraft,onPrepare:()=>prepare(true),children:<>{children}
     {(missing.length>0||plan.missing.length>0)&&<ul className={styles.inputHints}>{[...missing,...plan.missing].map(message=><li key={message}>{message}</li>)}</ul>}
     {plan.unsupported&&<p role="alert">{plan.unsupported}</p>}{catalogError&&<p role="alert">{catalogError}</p>}{error&&<p role="alert">{error}</p>}
-   </>}}/>}/>;
+   </>}}/>}/></>;
  }
 
  if(!sajuOnly&&relationshipStage&&relationshipStage!=='consultation')return <RelationshipJourney locale={siteLocale} stage={relationshipStage} setStage={setRelationshipStage} questionId={relationshipQuestionId} onQuestion={(id,text)=>{setRelationshipQuestionId(id);setQuestion(text);}} participants={participants} onParticipants={setParticipants} profileState={profileState} partnerId={partnerId} onPartner={setPartnerId} onEngine={chooseRelationshipEngine}/>;

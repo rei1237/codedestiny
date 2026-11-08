@@ -28,7 +28,7 @@ type Props = {
   profile: ReactNode; profileName: string; ready: boolean;
   busy: boolean; guest: boolean; enabled: boolean | null; onCreate: () => void;
   paymentSurface?: "toss"; tossPrice?: string; recoveredOrder?: boolean; lockedDomain?: ChatDomain; tossUnavailable?: boolean;
-  showOnlyLockedDomain?: boolean;
+  showOnlyLockedDomain?: boolean; questionNotice?: string;
 };
 
 export default function ConsultationIntake(props: Props) {
@@ -97,9 +97,10 @@ export default function ConsultationIntake(props: Props) {
       <div className={styles.priceNote}><PriceBadge featureKey="fortune-chat-consultation" prefix="단건 결제 · " className={styles.price} /><p>이용권 또는 꿀방울 {HONEY_COST}개로도 열 수 있어요.<br />사용 가능한 이용 방법은 다음 화면에서 확인해요.</p></div>
       )}
     </div>}
+    {props.questionNotice&&<p role="alert">{props.questionNotice}</p>}
     <div className={styles.intakeFooter}>
       {step > 0 && <button type="button" className={styles.previous} onClick={() => move(step - 1)} disabled={props.busy}><ArrowLeft size={16} aria-hidden="true" />이전</button>}
-      <button type="button" className={styles.continue} disabled={props.busy || !props.question.trim() || (step > 0 && !props.ready) || (step === 2 && props.enabled === false)}
+      <button type="button" className={styles.continue} disabled={props.busy || !!props.questionNotice || !props.question.trim() || (step > 0 && !props.ready) || (step === 2 && props.enabled === false)}
         onClick={() => step < 2 ? move(step + 1) : props.onCreate()}>
         {props.busy ? "상담을 준비하고 있어요" : step === 2 ? props.guest ? "로그인하고 상담 준비하기" : "상담 준비하기" : "계속하기"}<ArrowRight size={18} aria-hidden="true" />
       </button>
