@@ -196,6 +196,11 @@ function banmalDrift(text) {
   return banmal >= 3 && banmal / sentences.length > 0.2;
 }
 
+/** 해설자 고유 금지어 없이 반말 비율만 본다(운명의 지도 꽃돼지처럼 존댓말 고정 상담용). 로그·부드러운 수리용, 전달을 막지 않는다. */
+export function banmalRegisterDrift(text) {
+  return banmalDrift(text) ? ["banmal"] : [];
+}
+
 function loreHits(text, words) {
   const source = String(text || "");
   return words.filter((word) => source.includes(word)).map((word) => `lore:${word}`);

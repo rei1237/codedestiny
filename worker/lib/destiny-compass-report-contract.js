@@ -361,7 +361,10 @@ export function buildCompassSectionPrompt(input) {
     ...repairLines,
     "",
     "[이번에 쓸 것]",
-    question ? `사용자의 고민: "${clean(question, 300)}"` : "사용자의 고민: (자유 입력 없음)",
+    // 배달 2판: 고민 원문은 첫 장(opening)에만 싣는다. 나머지 장은 한 줄 초점만 받는다.
+    input.questionOpeningOnly && spec.key !== "opening"
+      ? (question ? "사용자의 고민: 원문은 첫 장에서 이미 다뤘다. 다시 옮겨 적거나 되묻지 말고 배경으로만 삼아, 이 장의 근거로 답한다." : "사용자의 고민: (자유 입력 없음)")
+      : question ? `사용자의 고민: "${clean(question, 300)}"` : "사용자의 고민: (자유 입력 없음)",
     emotion ? `지금의 마음 상태: ${clean(emotion, 24)}` : "",
     `섹션 제목: ${spec.title}`,
     `쓰는 법: ${spec.guide}`,
