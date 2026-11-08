@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-08
-next: 6단계 초융합 운세 구현 — "6단계 진행 메모"의 설계 초안 1~10을 TDD로 확정·구현하고 검증, 목 dry-run 뒤 실호출 샘플 1회, 끝나면 next = 7단계 자미두수
+next: 6a — 초융합 실호출에서 domainYun·domainHanbi·domainNeo가 GEMINI 400으로 빠진 원인 오프라인 진단과 6a 진행(6단계 결과 참고)
 ---
 
 # 3만원 이상 유료 LLM — 상품별 챕터·분량·PDF·전달 개선 인수인계
@@ -66,7 +66,7 @@ next: 6단계 초융합 운세 구현 — "6단계 진행 메모"의 설계 초�
 - [x] 3. 인생의 책 / 인생 총운 (윤달)
 - [x] 4. 운명의 업
 - [x] 5. 마스터 인연의 서 (+궁합)
-- [ ] 6. 초융합 운세
+- [x] 6. 초융합 운세
 - [ ] 6a. 인연의 서 개인판 분량 약속 문구를 "5만 자"에서 "2~3만 자"로 바꾼다(사용자 승인). 위치는 5단계 보정 절에 있다. 생성 JSON과 SEO·메타 문구도 포함한다. 궁합판 문구는 개인판 분량을 말하는 곳이 아니면 그대로 둔다.
 - [ ] 6b. 운명의 업·인연의 서(개인·궁합) 조판 PDF에 차트·레이더·요약 페이지를 되살린다. 결과 화면과 보관함 양쪽에 넣는다.
 - [ ] 6c. 서비스 공통 배달 안전 수정. 6단계 문제 목록을 같은 문제가 있는 다른 유료 LLM 서비스에 모두 적용한다. 목록은 시도 소진 시 환불·배달 불가, 선택 그룹 삭제, 분량 보충 경로 없음, 말투 이탈 로그만, 모든 그룹에 질문 인용, 보관함 PDF 없음이다. 읽기 전용 감사 결과는 아래 "6c 배달 안전 감사"에 있다(원본: scratchpad `research/llm-delivery-audit-6c.md`).
@@ -552,6 +552,16 @@ next: 6단계 초융합 운세 구현 — "6단계 진행 메모"의 설계 초�
 - 반복과 인용: crossRepeat 0, 저장된 softIssues 0, 질문 재인용 0, 금칙어 0, 환불 없음.
 - 산출물: `scratchpad\codex-solo-v3\live\out-solo\{summary.json,doc.json,full.md}`(저장소 밖).
 - 하네스는 `scratchpad\codex-solo-v3\live\`(run.mjs, register.mjs, stubs, `--mock` 모드)다. 6단계 하네스를 만들 때 본뜬다.
+
+### 6단계 초융합 운세 (2026-11-08)
+
+- 커밋: adda62200 (그룹 계획 2판: 마지막 시도 구제·분량/소프트 수리 최대 2묶음·질문은 사주 프롬프트에만·조립 반복 정리 85% 하한·근거 경로 소유), 2e14642bb (보관함 초융합 PDF 저장 버튼), 9666472ee (6c 감사 요약).
+- 2판은 새 세션에만 `groupPlanVersion: 2`로 고정, `FUSION_GROUP_PLAN_V2_ENABLED=false`로 되돌림. 옛 프롬프트 sha256 기준선은 그대로(jest로 확인).
+- 검증: jest 초융합 5개 묶음 218개 통과, `npx tsc --noEmit` 통과. verify-fusion-* 통과, 단 `verify-fusion-paid-efficiency.mjs`는 HEAD에서도 실패하는 기존 실패(옛 SHA 20fd46f6과 비교, 묶음당 입력 +약 500자), `verify-fusion-paid-reopen-browser.mjs`(360px)는 13070 서버가 필요해 미실행. `npm run build`는 메인 트리 dev 서버 가드 때문에 `ALLOW_DEV_SERVER_DURING_BUILD=1`로 돌렸고 정적 페이지 생성 중에 이 세션을 넘김(결과 미확인, build가 sitemap 파일을 고치므로 커밋하지 말고 되돌릴 것).
+- 목 dry-run: 9요청·목 호출 16·실제 fetch 0·14/14묶음·56,528자, domainYun 3,325→6,619 수리, 사주 REGISTER_DRIFT 수리, 반복·질문 재인용 0.
+- 실호출 샘플 1회(승인분 소진): 완료됐지만 qualityTier `degraded`("일부 묶음이 목표 분량에 못 미친 상태로 전해 드립니다."). 11요청·생성 호출 19(캐시·count 포함 provider 60)·310초·11/14묶음·본문 32,293자(2판 하한 48k 미달). 0자: lifeCycle·marriage·wealth·career·health·relations — domainYun·domainHanbi·domainNeo가 두 번 다 `GEMINI_INVALID_REQUEST:400`(약 1초씩 6회, 응답 본문 미기록). domainMusung·domainYeoni는 성공. 사주 수리 2576→3160(soft 1 남음), 숙요 수리. 마지막 호출 MAX_TOKENS. 묶음 간 중복 3·repeatedPassage true, 질문 재인용 0.
+- 미해결: 세 도메인 묶음 400 원인(오프라인으로 2판/옛 v2 프롬프트·스키마 비교, gemini 오류 본문 기록 필요, 실호출 재시도는 별도 승인), 내용 없는 필수 묶음 소진 시 배달 차단, 선택 타로 카드 검사는 구제 불가, 400 뒤 선택 도메인 묶음은 결과에서 빠짐.
+- 하네스: scratchpad `fusion-live/run.mjs`(작업 트리 cwd에서 `--mock`/`--live`, requestUrl 필요).
 
 ## 6단계 진행 메모 (조사 완료, 구현 전 — 2026-11-08)
 
