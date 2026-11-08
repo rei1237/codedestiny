@@ -1,12 +1,15 @@
 // Explicitly synthetic, local-only fixture for the official SDK devtools.
+import {handleReviewFixture,reviewCatalog,safetyResponse} from './review-fixture.mjs';
 import {assembleChart} from '../../../../lib/human-design/chart.js';
 import {DIRECT_PLANETS} from '../../../../lib/human-design/planets.js';
 const chartFixture=()=>{const longitudes=shift=>Object.fromEntries(DIRECT_PLANETS.map((planet,index)=>[planet,(index*29+shift)%360]));return {stored:false,chart:assembleChart({personalityLongitudes:longitudes(12),designLongitudes:longitudes(284)})};};
-export function createOfflineFixtureApi(storage){
+export function createOfflineFixtureApi(storage,{now=()=>new Date()}={}){
  let saved;try{saved=JSON.parse(storage?.getItem('toss-offline-fixture')||'null');}catch{saved=null;}
- const state={loggedIn:saved?.loggedIn===true,intents:new Map(saved?.intents||[]),letters:new Map(saved?.letters||[]),orders:new Map(saved?.orders||[]),testOrderSkus:new Map(saved?.testOrderSkus||[]),sequence:Number.isSafeInteger(saved?.sequence)?saved.sequence:0};
- const save=()=>{try{storage?.setItem('toss-offline-fixture',JSON.stringify({loggedIn:state.loggedIn,intents:[...state.intents],letters:[...state.letters],orders:[...state.orders],testOrderSkus:[...state.testOrderSkus],sequence:state.sequence}));}catch{/* The test remains in memory when storage is unavailable. */}};
- const letterProduct={id:'yeoni:chat_saju',name:'테스트 연이 상담',sku:'mock-yeoni',approvedPriceKRW:1,available:true,chapters:1};
+ const state={loggedIn:saved?.loggedIn===true,intents:new Map(saved?.intents||[]),letters:new Map(saved?.letters||[]),fortunes:new Map(saved?.fortunes||[]),
+  // This single mock account starts with two synthetic anchovies, allowing today’s third one to unlock the sample.
+  daily:saved?.daily||{day:null,balance:2,attended:false,unlocked:false,readings:{}},orders:new Map(saved?.orders||[]),testOrderSkus:new Map(saved?.testOrderSkus||[]),sequence:Number.isSafeInteger(saved?.sequence)?saved.sequence:0};
+ const save=()=>{try{storage?.setItem('toss-offline-fixture',JSON.stringify({loggedIn:state.loggedIn,intents:[...state.intents],letters:[...state.letters],fortunes:[...state.fortunes],daily:state.daily,orders:[...state.orders],testOrderSkus:[...state.testOrderSkus],sequence:state.sequence}));return Boolean(storage);}catch{return false;}};
+ const letterProduct=reviewCatalog.find(p=>p.id==='yeoni:chat_saju');
  const product={id:'native:maya:maya-prompt-generator',name:'테스트 상품',sku:'mock-maya',featureKey:'maya-prompt-generator',approvedPriceKRW:1,available:true};
  const sukuyoProduct={id:'native:sukuyo:sukuyo-compatibility-ai',name:'테스트 숙요 상담',sku:'mock-sukuyo',featureKey:'sukuyo-compatibility-ai',approvedPriceKRW:1,available:true};
  const relationshipProduct={id:'native:relationship:relationship-boundary-test',name:'테스트 관계 상담',sku:'mock-relationship',featureKey:'relationship-boundary-test',approvedPriceKRW:1,available:true};
@@ -16,10 +19,11 @@ export function createOfflineFixtureApi(storage){
   const url=new URL(request.url),path=url.pathname.slice('/api/toss'.length),method=request.method;
   if(path==='/login'&&method==='POST'){state.loggedIn=true;save();return respond({token:'local-mock-token'});}
   // Public product lists mirror worker/toss/routes.js; private requests below still require the mock session.
-  if(path==='/catalog'&&method==='GET')return respond({products:[letterProduct]});
+  if(path==='/catalog'&&method==='GET')return respond({products:reviewCatalog});
   if(path==='/tarot-library/catalog'&&method==='GET')return respond({flows:[]});
   if(!state.loggedIn||request.headers.get('Authorization')!=='Bearer local-mock-token')return denied();
   if(path==='/session'&&method==='GET')return respond({authenticated:true,environment:'SANDBOX'});
+  const reviewResponse=await handleReviewFixture(request,url,path,state,save,now);if(reviewResponse)return reviewResponse;
   // This fixed chart is synthetic and never uses the submitted birth data.
   // The offline shell labels all of its output as test-only.
   if((path==='/charts/astrology'||path==='/charts/vedic')&&method==='POST'){
@@ -93,7 +97,7 @@ export function createOfflineFixtureApi(storage){
   const sukuyoIntent=/^\/native\/sukuyo\/intents\/([a-f0-9]{64})$/.exec(path);
   if(sukuyoIntent&&method==='GET'){const intent=state.intents.get(sukuyoIntent[1]);return intent?.service==='sukuyo'?respond(intent):respond({error:'RESULT_NOT_FOUND'},404);}
   if(path==='/canonical/fortune-chat/consultations'&&method==='GET')return respond({ok:true,consultations:[...state.letters.values()].filter(row=>row.paid).map(row=>({id:row.id,persona:row.persona,state:row.state,paid:true,domain:'saju',completedChapters:1,totalChapters:1,question:row.consultation.question,createdAt:row.createdAt})),nextCursor:null});
-  if(path==='/canonical/fortune-chat/consultations'&&method==='POST'){const body=await request.json(),id=(++state.sequence).toString(16).padStart(64,'0'),row={id,persona:'yeoni',productId:'chat_saju',state:'CREATED',paid:false,chapters:[],manifest:[{id:'test',title:'테스트 상담'}],consultation:{question:String(body.question||'테스트 질문')},createdAt:new Date().toISOString(),recovery:{canRetryNow:false,savedChapters:0,totalChapters:1}};state.letters.set(id,row);save();return respond({ok:true,consultation:row});}
+  if(path==='/canonical/fortune-chat/consultations'&&method==='POST'){const body=await request.json(),notice=safetyResponse(body);if(notice)return notice;const id=(++state.sequence).toString(16).padStart(64,'0'),row={id,persona:'yeoni',productId:'chat_saju',state:'CREATED',paid:false,chapters:[],manifest:[{id:'test',title:'테스트 상담'}],consultation:{question:String(body.question||'테스트 질문')},createdAt:new Date().toISOString(),recovery:{canRetryNow:false,savedChapters:0,totalChapters:1}};state.letters.set(id,row);save();return respond({ok:true,consultation:row});}
   const letter=/^\/canonical\/fortune-chat\/consultations\/([a-f0-9]{64})(?:\/(generate))?$/.exec(path);
   if(letter){const row=state.letters.get(letter[1]);if(!row)return respond({error:'RESULT_NOT_FOUND'},404);if(letter[2]&&method==='POST'&&!row.paid)return respond({error:'PAYMENT_REQUIRED'},402);return respond({ok:true,consultation:row});}
   if(path==='/events'&&method==='POST')return respond({ok:true});
