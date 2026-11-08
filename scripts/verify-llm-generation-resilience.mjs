@@ -527,6 +527,28 @@ for (const [feature, path, timeoutVar] of [
     Math.round(widestSectionMin * 0.3) <= 1700,
     `${feature}: 가장 큰 섹션 하한 ${widestSectionMin}자의 폴백 문턱 ${Math.round(widestSectionMin * 0.3)}자가 실측 폴백 분량(~1,700자)을 넘는다`,
   );
+
+  // V2 구성(새 세션)은 장 상한을 7,000자로 넉넉히 잡고 별도 토큰 상수를 쓴다(2026-11-08 분량 넉넉·비치명화).
+  const v2Sections = __newYearAiTestUtils.NEW_YEAR_AI_SECTIONS_V2;
+  const v2Tokens = Number((source.match(/const NEW_YEAR_AI_V2_SECTION_MAX_OUTPUT_TOKENS = (\d+);/) || [])[1]);
+  for (const section of v2Sections) {
+    assertBudget(`${feature}:v2:${section.key}`, {
+      minChars: section.minChars,
+      maxChars: section.maxChars,
+      maxOutputTokens: v2Tokens,
+      tokenConstantName: "NEW_YEAR_AI_V2_SECTION_MAX_OUTPUT_TOKENS",
+      sourcePath: "worker/routes/new-year-ai.js",
+    });
+  }
+  checks += 1;
+  assert(v2Tokens >= tokensRequiredForChars(Math.max(...v2Sections.map(section => section.maxChars))) + 1500, `${feature}:v2: 추가 토큰 여유 부족`);
+  const v2MaxTotal = Number((source.match(/const NEW_YEAR_AI_V2_MAX_TOTAL_CHARS = (\d+);/) || [])[1]);
+  checks += 1;
+  assert(v2Sections.reduce((sum, section) => sum + section.maxChars, 0) <= v2MaxTotal, `${feature}:v2: 장 maxChars 합이 V2 상한 ${v2MaxTotal}을 넘는다`);
+  checks += 1;
+  assert(v2Sections.reduce((sum, section) => sum + section.minChars, 0) >= minTotal, `${feature}:v2: 장 minChars 합이 전체 하한 ${minTotal} 미만`);
+  checks += 1;
+  assert(Math.round(Math.max(...v2Sections.map((section) => section.minChars)) * 0.3) <= 1700, `${feature}:v2: 폴백 문턱이 실측 폴백 분량을 넘는다`);
 }
 {
   const feature = "life-book";

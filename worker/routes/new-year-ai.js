@@ -150,10 +150,13 @@ const NEW_YEAR_AI_SECTIONS_V1 = Object.freeze([
 // 생성 중이던 세션이 같은 프롬프트로 이어 간다. V2의 차이:
 // - 첫 장(nature)은 성향·공감만 맡는다. 근거의 쉬운 뜻 → 생활 장면 공감 2~3개 → 올해 흐름과 연결 순서로 쓰고 질문은 인용하지 않는다.
 // - 질문 결론은 총운(overview)이 맨 앞에서 한 번만 인용해 답한다(questionOwner). 다른 장은 질문을 다시 인용하지 않는다.
-// - 재물·직업을 두 장으로 나눠 전체 분량을 늘린다. 장 하나의 상한은 그대로 5,500자(10,500토큰 < 12,000).
+// - 재물·직업을 두 장으로 나눠 전체 분량을 늘린다. 장 하나의 상한은 7,000자(NEW_YEAR_AI_V2_SECTION_MAX_OUTPUT_TOKENS).
 // - perspective는 "이 장만 맡는 관점" 줄로 프롬프트에 들어간다. 이 필드가 있는 섹션에만 V2 줄이 붙는다.
 const NEW_YEAR_AI_SECTION_PLAN_VERSION = 2;
-const NEW_YEAR_AI_V2_MAX_TOTAL_CHARS = 40000;
+// 2026-11-08 분량 넉넉·비치명화: 실호출에서 장이 목표의 40~60%(2,100자)에서 멈췄다. 프롬프트 목표를 6,000자 이상으로
+// 올리고(첫 장 5,000자), 장 안 항목마다 "최소 N자 이상"을 붙인다. minChars(게이트·폴백 문턱)는 그대로 둔다 —
+// 짧아도 배달하고, 짧으면 한도 안에서 분량 보강을 1~2회 할 뿐이다(generateNewYearWave). 상한 6×7,000 + 6,000 = 48,000자.
+const NEW_YEAR_AI_V2_MAX_TOTAL_CHARS = 49000;
 const NEW_YEAR_AI_SECTIONS_V2 = Object.freeze([
   {
     key: "nature",
@@ -161,8 +164,8 @@ const NEW_YEAR_AI_SECTIONS_V2 = Object.freeze([
     heading: "타고난 성향과 올해 너의 자리",
     categories: [],
     minChars: 2800,
-    targetMinChars: 4000,
-    maxChars: 5000,
+    targetMinChars: 5000,
+    maxChars: 6000,
     planVersion: 2,
     questionOwner: false,
     perspective: "타고난 기질의 시선 — 올해 이야기에 앞서 이 사람이 어떤 사람인지, 그 기질이 생활에서 어떻게 드러나는지를 비춥니다.",
@@ -179,8 +182,8 @@ const NEW_YEAR_AI_SECTIONS_V2 = Object.freeze([
     heading: "올해의 총운",
     categories: ["study"],
     minChars: 4000,
-    targetMinChars: 5000,
-    maxChars: 5500,
+    targetMinChars: 6000,
+    maxChars: 7000,
     planVersion: 2,
     questionOwner: true,
     perspective: "판세의 시선 — 질문에 결론을 내리고, 올해 세운이 원국을 어떻게 움직이는지 큰 흐름을 정합니다.",
@@ -192,8 +195,8 @@ const NEW_YEAR_AI_SECTIONS_V2 = Object.freeze([
     heading: "재물과 수입",
     categories: ["money"],
     minChars: 4000,
-    targetMinChars: 5000,
-    maxChars: 5500,
+    targetMinChars: 6000,
+    maxChars: 7000,
     planVersion: 2,
     questionOwner: false,
     perspective: "돈의 시선 — 올해 돈이 들어오는 길과 새는 자리, 움직일 달과 지킬 달을 가립니다.",
@@ -212,8 +215,8 @@ const NEW_YEAR_AI_SECTIONS_V2 = Object.freeze([
     heading: "직업과 커리어",
     categories: ["career"],
     minChars: 4000,
-    targetMinChars: 5000,
-    maxChars: 5500,
+    targetMinChars: 6000,
+    maxChars: 7000,
     planVersion: 2,
     questionOwner: false,
     perspective: "자리의 시선 — 일과 조직 안에서의 자리와 책임, 이직·도전을 움직일 조건을 가립니다.",
@@ -232,8 +235,8 @@ const NEW_YEAR_AI_SECTIONS_V2 = Object.freeze([
     heading: "애정과 대인관계",
     categories: ["love", "relationship"],
     minChars: 4000,
-    targetMinChars: 5000,
-    maxChars: 5500,
+    targetMinChars: 6000,
+    maxChars: 7000,
     planVersion: 2,
     questionOwner: false,
     perspective: "사람의 시선 — 인연과 귀인, 가족과 주변 관계의 온도를 봅니다.",
@@ -245,8 +248,8 @@ const NEW_YEAR_AI_SECTIONS_V2 = Object.freeze([
     heading: "",
     categories: [],
     minChars: 4000,
-    targetMinChars: 5000,
-    maxChars: 5500,
+    targetMinChars: 6000,
+    maxChars: 7000,
     planVersion: 2,
     questionOwner: false,
     perspective: "달력의 시선 — 열두 달 각각의 기회와 주의를 그 달의 월주로 나눕니다.",
@@ -262,8 +265,8 @@ const NEW_YEAR_AI_SECTIONS_V2 = Object.freeze([
     heading: "건강과 개운법",
     categories: ["health"],
     minChars: 4000,
-    targetMinChars: 5000,
-    maxChars: 5500,
+    targetMinChars: 6000,
+    maxChars: 7000,
     planVersion: 2,
     questionOwner: false,
     perspective: "몸과 리듬의 시선 — 오행의 쏠림이 몸과 마음에 주는 신호와 올해의 개운 습관을 정합니다.",
@@ -296,6 +299,16 @@ function planMaxTotalChars(sections) {
 //    의 실패 기록), 3,000~5,000자는 astrology(4,600)·sukuyo(6,000)·love-secret(6,500)이 이미 쓰고 있는
 //    검증된 구간이다. 한 요청은 한 분야만 생성하며 52초 호출 한도와 토큰 여유를 함께 유지한다.
 const NEW_YEAR_AI_SECTION_MAX_OUTPUT_TOKENS = 12000;
+// V2 장 상한 7,000자 → tokensRequiredForChars(7000) = 12,750 + 추가 여유 1,500. 실측 0.8토큰/자·약 220자/초라
+// 7,000자도 35초 안팎이다(52초 호출 한도 안). V1 상수는 위 그대로 둔다(V1 요청 바이트 동일).
+const NEW_YEAR_AI_V2_SECTION_MAX_OUTPUT_TOKENS = 14250;
+function sectionMaxOutputTokens(section) {
+  return Number(section?.planVersion) >= 2 ? NEW_YEAR_AI_V2_SECTION_MAX_OUTPUT_TOKENS : NEW_YEAR_AI_SECTION_MAX_OUTPUT_TOKENS;
+}
+// V2 분량 보강: 모든 장이 통과한 뒤에도 총합이 하한 미만이거나 한 장이 하한의 60% 미만이면, 가장 짧은 장부터
+// 장마다 1회·세션 2회까지 다시 쓴다. 보강이 실패하거나 더 짧으면 기존 장을 그대로 배달한다(분량은 거부 사유가 아니다).
+const NEW_YEAR_AI_LENGTH_REPAIR_MAX = 2;
+const NEW_YEAR_AI_LENGTH_REPAIR_SECTION_RATIO = 0.6;
 // 섹션 1개의 LLM 대기 상한. 한 요청에서 한 섹션씩 생성하고 저장한다.
 const NEW_YEAR_AI_SECTION_TIMEOUT_MS = 52000;
 // 요청 시작 시점 기준 LLM 총 예산. 남는 18초는 인증·결제·DB 기록·응답 직렬화 몫이다(엣지 100s).
@@ -1525,7 +1538,7 @@ function buildSystemPrompt(section = null, options = {}) {
     "11. PDF, 챕터, progress, job이라는 단어를 쓰지 않습니다.",
     "12. 계산 항목을 나열하는 대신, 왜 그런 흐름이 드러나는지 명식의 근거와 생활 선택을 한 문맥으로 이어 말합니다.",
     Number(options.planVersion) >= 2
-      ? "13. 완성 상담문 전체 본문은 공백을 제외하고 20,000자 이상 40,000자 이하로 씁니다. 권장 분량은 34,000~38,000자이며, 항목마다 20,000자를 쓰라는 뜻이 아닙니다."
+      ? "13. 완성 상담문 전체 본문은 공백을 제외하고 20,000자 이상 48,000자 이하로 씁니다. 권장 분량은 41,000~46,000자로 넉넉하게 쓰며, 항목마다 20,000자를 쓰라는 뜻이 아닙니다."
       : "13. 완성 상담문 전체 본문은 공백을 제외하고 20,000자 이상 33,000자 이하로 씁니다. 권장 분량은 28,500~32,000자이며, 항목마다 20,000자를 쓰라는 뜻이 아닙니다.",
     "14. 분량이 부족할 때는 같은 말을 늘리지 말고, 명리 전문가로서 격국·월령, 용신·기신, 조후, 대운·세운, 천간·지지 합충, 월운, 현실 처방 파트를 새로 보강합니다.",
     "15. 문단 사이는 빈 줄로 구분하고, 핵심 문구는 **굵게** 표시합니다. 필요할 때만 '-' 목록을 쓰고, 그 외 마크다운(제목 #, 코드블록, 표)은 쓰지 않습니다.",
@@ -1697,11 +1710,32 @@ const NEW_YEAR_V2_READABILITY_LINES = Object.freeze([
 // 섹션 모드에서 전체 분량 지시(10,000~20,000자)를 대신하는 줄들.
 // covered로 다른 섹션이 담당하는 내용을 명시해 이어 붙였을 때의 중복을 막는다.
 function buildSectionLengthLines(section) {
+  if (section.perspective) return buildSectionLengthLinesV2(section);
   return [
     `이 부분의 본문은 제목·목차·마크다운 기호·공백을 제외하고 ${(section.targetMinChars || section.minChars).toLocaleString("ko-KR")}자 이상 ${section.maxChars.toLocaleString("ko-KR")}자 이하로 쓰세요.`,
     "위에 나열된 항목들에 분량을 고르게 배분하고, 한 항목만 길게 쓰지 마세요.",
     `다른 부분에서 따로 다루는 내용(${section.covered})은 여기서 반복하지 마세요.`,
     "분량이 부족하면 문장을 길게 늘이지 말고, 격국과 월령, 용신·기신, 조후, 대운과 세운, 천간·지지 합충의 근거를 더 촘촘하게 채우세요.",
+    "마지막 문장을 중간에 끊지 말고 반드시 완결해 끝내세요.",
+  ];
+}
+
+// V2 장 전용(perspective가 있는 섹션). V1 섹션은 위 줄을 그대로 받아 요청이 예전과 바이트 단위로 같다.
+// 실호출에서 모델이 목표의 절반에서 멈춰, 장 전체와 항목마다 "최소 N자 이상"을 따로 못 박는다.
+function buildSectionLengthLinesV2(section) {
+  const min = section.targetMinChars || section.minChars;
+  const items = (section.outline || NEW_YEAR_AI_SECTION_OUTLINES[section.key] || []).length;
+  const perItem = section.key === "monthly"
+    ? Math.floor(min / 12 / 50) * 50
+    : Math.floor(min / Math.max(1, items) / 100) * 100;
+  const ko = (value) => value.toLocaleString("ko-KR");
+  return [
+    `이 장의 본문은 제목·목차·마크다운 기호·공백을 제외하고 최소 ${ko(min)}자 이상, ${ko(section.maxChars)}자 이하로 넉넉하게 씁니다. 짧게 요약하고 끝내지 마세요.`,
+    section.key === "monthly"
+      ? `열두 달 각각을 최소 ${ko(perItem)}자 이상 씁니다. 앞쪽 달만 길고 뒤쪽 달이 짧아지지 않게, 12월까지 같은 밀도를 지킵니다.`
+      : `위에 번호를 붙인 항목마다 최소 ${ko(perItem)}자 이상씩 씁니다. 한 항목만 길게 쓰지 말고, 항목마다 근거 → 쉬운 뜻 → 생활 장면 → 할 일 순서로 채웁니다.`,
+    `다른 장에서 따로 다루는 내용(${section.covered})은 여기서 반복하지 마세요.`,
+    "분량이 부족하면 같은 말을 늘이지 말고, 이 장의 관점에서 계산 근거 하나를 더 꺼내 그 뜻과 생활 장면, 실천 조언을 새 문단으로 보탭니다.",
     "마지막 문장을 중간에 끊지 말고 반드시 완결해 끝내세요.",
   ];
 }
@@ -2117,7 +2151,7 @@ async function generateConsultationSection(env, options) {
       systemPrompt: await appendExpertPersona(env, "neoNewYear", buildSystemPrompt(null, { planVersion: section.planVersion }), { answerVoice: options.answerVoice ?? null }),
       taskType: "fortune",
       temperature: repairLines.length ? 0.62 : 0.72,
-      maxOutputTokens: NEW_YEAR_AI_SECTION_MAX_OUTPUT_TOKENS,
+      maxOutputTokens: sectionMaxOutputTokens(section),
       timeoutMs,
       // 폴백 허용. 섹션 하한의 30% 미만이면 gemini.js가 실패로 돌려 재시도·환불 경로를 지킨다.
       // 섹션 하한 2,800~4,000자라 문턱이 840~1,200자이고, 실측 폴백 분량(~1,700자)이 이를 넘긴다 —
@@ -2262,7 +2296,7 @@ async function generateConsultationText(env, input, fortuneData, options = {}) {
       systemPrompt: await appendExpertPersona(env, "neoNewYear", buildSystemPrompt(longest.section, { planVersion: longest.section.planVersion }), { answerVoice: options.answerVoice ?? null }),
       taskType: "fortune",
       temperature: 0.52,
-      maxOutputTokens: NEW_YEAR_AI_SECTION_MAX_OUTPUT_TOKENS,
+      maxOutputTokens: sectionMaxOutputTokens(longest.section),
       timeoutMs: sectionTimeoutMs(),
       fallbackMinChars: Math.round(longest.section.minChars * 0.3),
       cache: newYearLlmCache,
@@ -2646,20 +2680,39 @@ async function generateNewYearWave(env, input, fortuneData, options) {
     quality.ok = results.every(accepted) && results.every(row => !targets.has(row.key) || !open(row));
     return { quality, targets };
   };
+  // 분량 보강(F17, V2만): 품질 후보가 하나도 없고 모든 장이 통과했을 때만 고른다. 장마다 1회·세션 2회 한도이고
+  // 표시는 attempts['<key>:lengthBoost']에 남겨 다음 요청에서도 다시 고르지 않는다. 대상이 없으면 그대로 배달한다.
+  const lengthBoostPlan = plan.some(section => Number(section.planVersion) >= 2);
+  const lengthBoostCount = () => Object.keys(attempts).filter(key => key.endsWith(':lengthBoost')).length;
+  const sectionChars = row => countPaidReportBodyChars(row.text);
+  const lengthBoostCandidate = () => {
+    if (!lengthBoostPlan || lengthBoostCount() >= NEW_YEAR_AI_LENGTH_REPAIR_MAX || !results.every(accepted)) return null;
+    if (results.some(row => targets.has(row.key) && open(row))) return null;
+    const ratio = row => sectionChars(row) / Math.max(1, row.section.minChars);
+    const short = results.filter(row => !preserved.has(row.key) && !attempts[`${row.key}:lengthBoost`]
+      && used(row.key) < NEW_YEAR_AI_SECTION_MAX_ATTEMPTS && sectionChars(row) < row.section.minChars)
+      .sort((a, b) => ratio(a) - ratio(b));
+    if (!short.length) return null;
+    const totalShort = countPaidReportBodyChars(assembleConsultationSections(results)) < NEW_YEAR_AI_MIN_TOTAL_CHARS;
+    return totalShort || ratio(short[0]) < NEW_YEAR_AI_LENGTH_REPAIR_SECTION_RATIO ? short[0] : null;
+  };
   let { quality, targets } = assess();
   const blocked = results.find(row => row.failure && !preserved.has(row.key));
   if (blocked && (blocked.failure.retryable === false || used(blocked.key) >= NEW_YEAR_AI_SECTION_MAX_ATTEMPTS + 1)) {
     throw Object.assign(new Error(blocked.failure.message), blocked.failure, { code: "LLM_PROVIDER_UNAVAILABLE", retryable: false });
   }
-  const candidate = blocked || results.find(row => !row.text && open(row)) || results.find(row => targets.has(row.key) && open(row))
+  let candidate = blocked || results.find(row => !row.text && open(row)) || results.find(row => targets.has(row.key) && open(row))
     || results.find(rescuable);
   if (!candidate && !results.every(accepted)) {
     throw Object.assign(new Error('신년운세 해당 분야의 생성 한도 안에서 품질을 확인하지 못했습니다.'), { code: 'LLM_QUALITY_CHECK_FAILED' });
   }
+  const lengthBoost = !candidate && Boolean(candidate = lengthBoostCandidate());
   if (candidate) {
     const remaining = Number(options.deadlineAt) - Date.now();
     if (remaining > NEW_YEAR_AI_REPAIR_MIN_REMAINING_MS) {
-      await options.onReserve(candidate.key, valid(candidate) && !mapIssuesToSections({ issues: contentIssues(results) }, results).has(candidate.key));
+      if (lengthBoost) attempts[`${candidate.key}:lengthBoost`] = 1;
+      await options.onReserve(candidate.key, lengthBoost || valid(candidate) && !mapIssuesToSections({ issues: contentIssues(results) }, results).has(candidate.key));
+      const boostChars = sectionChars(candidate);
       const generated = await generateConsultationSection(env, {
         input, fortuneData, section: candidate.section, allowShortDraft: true,
         answerVoice: options.answerVoice ?? null,
@@ -2667,13 +2720,19 @@ async function generateNewYearWave(env, input, fortuneData, options) {
         priorSections: results.filter(row => row.key !== candidate.key && row.ok && !row.truncated && !row.isMock),
         timeoutMs: Math.min(NEW_YEAR_AI_SECTION_TIMEOUT_MS, remaining),
         cache: null, logContext: options.logContext,
-        repairLines: [
+        repairLines: lengthBoost ? [
+          `앞 초안은 본문이 ${boostChars.toLocaleString("ko-KR")}자로 이 장의 목표보다 짧았습니다. 앞 초안의 결론·근거·달 지목은 모두 살리고, 항목마다 계산 근거의 쉬운 뜻과 생활 장면, 실천 조언을 새 문단으로 더해 다시 씁니다.`,
+          `제목·목차·기호·공백을 제외한 본문을 최소 ${(candidate.section.targetMinChars || candidate.section.minChars).toLocaleString("ko-KR")}자 이상 ${candidate.section.maxChars.toLocaleString("ko-KR")}자 이하로 작성하고 같은 문장이나 문단을 반복하지 마세요.`,
+        ] : [
           ...(candidate.text ? buildSectionRepairLines(candidate.section, targets.get(candidate.key) || [], fortuneData) : []),
           `제목·목차·기호·공백을 제외한 본문을 ${candidate.section.targetMinChars || candidate.section.minChars}~${candidate.section.maxChars}자로 작성하고 같은 문장이나 문단을 반복하지 마세요.`,
         ],
         previousText: candidate.text,
       });
-      if (generated.failure) {
+      if (generated.failure && lengthBoost) {
+        // 분량 보강의 실패는 배달을 막지 않는다. 통과한 장을 그대로 두고 다음 판단으로 넘어간다.
+        await options.onCheckpoint(results);
+      } else if (generated.failure) {
         // A provider rejection affects the request, not the other five fields.
         // Keep any accepted draft and its last error before ending this attempt.
         candidate.failure = generated.failure;
@@ -2690,7 +2749,7 @@ async function generateNewYearWave(env, input, fortuneData, options) {
       // 월운처럼 같은 틀을 12번 쓰는 섹션은 상투 문장이 글자 그대로 되풀이되기 쉽다. 문장 하나 때문에 응답을 버리지 않고
       // (원칙 17) 이 섹션 안과 다른 섹션에 이미 있는 문장만 반복 검사와 같은 키로 지운다(NY1 실호출 2026-10-10).
       if (generated.ok) generated.text = dedupeCodexBody(generated.text, results.filter(row => row !== candidate).map(row => row.text));
-      if (valid(generated)) {
+      if (!generated.failure && valid(generated)) {
         const index = results.indexOf(candidate);
         const before = contentIssues(results);
         const sourceRows = results.map((row, i) => i === index ? generated : row);
@@ -2704,13 +2763,17 @@ async function generateNewYearWave(env, input, fortuneData, options) {
         const noNewIssues = [...contentIssues(sourceRows), ...after].every(issue => !isNewIssue(issue, before));
         if (valid(trimmed) && (lastChance || noNewIssues && !hasRepeatedReportPassage(assembleConsultationSections(sourceRows))
           && !hasRepeatedReportPassage(assembleConsultationSections(next))
-          && (!valid(candidate) || improves(after, before) || countPaidReportBodyChars(trimmed.text) > countPaidReportBodyChars(candidate.text)))) Object.assign(candidate, trimmed);
+          && (lengthBoost ? countPaidReportBodyChars(trimmed.text) > boostChars
+            : !valid(candidate) || improves(after, before) || countPaidReportBodyChars(trimmed.text) > countPaidReportBodyChars(candidate.text)))) Object.assign(candidate, trimmed);
       }
       await options.onCheckpoint(results);
       ({ quality, targets } = assess());
     }
   }
-  return { complete: quality.ok, retryable: results.some(row => targets.has(row.key) && open(row) || rescuable(row)), text: quality.text, quality, savedSections: results,
+  // 보강할 장이 남았으면 이번 응답은 partial(202)로 두고 다음 요청이 이어 쓴다. 한도는 lengthBoostCandidate가 지킨다.
+  const boostPending = quality.ok && Boolean(lengthBoostCandidate());
+  return { complete: quality.ok && !boostPending,
+    retryable: boostPending || results.some(row => targets.has(row.key) && open(row) || rescuable(row)), text: quality.text, quality, savedSections: results,
     sections: results.filter(row => row.text).map(row => ({ key: row.key, label: row.section.label, text: cleanForbiddenResult(row.text) })),
     provider: clean(results.find(row => row.provider)?.provider), model: clean(results.find(row => row.model)?.model),
   };
@@ -3100,6 +3163,7 @@ export const __newYearAiTestUtils = {
   NEW_YEAR_AI_SECTIONS_V1,
   NEW_YEAR_AI_SECTIONS_V2,
   NEW_YEAR_AI_SECTION_PLAN_VERSION,
+  NEW_YEAR_AI_V2_SECTION_MAX_OUTPUT_TOKENS,
   newYearSectionsForPlan,
   ownsQuestion,
   buildSectionPrompt,

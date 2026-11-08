@@ -52,16 +52,16 @@ it('every V2 section names its own perspective and bans filler connectors', () =
   }
 });
 
-it('V2 section ceilings fit the 12,000-token output cap', async () => {
+it('V2 section ceilings fit the V2 output cap with 1,500 extra tokens', async () => {
   const { tokensRequiredForChars } = await import('../../worker/lib/llm-budget.js');
-  for (const section of utils.NEW_YEAR_AI_SECTIONS_V2) expect(tokensRequiredForChars(section.maxChars)).toBeLessThanOrEqual(12000);
+  for (const section of utils.NEW_YEAR_AI_SECTIONS_V2) expect(tokensRequiredForChars(section.maxChars) + 1500).toBeLessThanOrEqual(utils.NEW_YEAR_AI_V2_SECTION_MAX_OUTPUT_TOKENS);
   const target = utils.NEW_YEAR_AI_SECTIONS_V2.reduce((sum, s) => sum + s.targetMinChars, 0);
   const v1Target = utils.NEW_YEAR_AI_SECTIONS.reduce((sum, s) => sum + s.targetMinChars, 0);
   expect(target).toBeGreaterThan(v1Target);
 });
 
 it('the V2 system prompt states the longer recommended total and V1 keeps its numbers', () => {
-  expect(utils.buildSystemPrompt(null, { planVersion: 2 })).toContain('권장 분량은 34,000~38,000자');
+  expect(utils.buildSystemPrompt(null, { planVersion: 2 })).toContain('권장 분량은 41,000~46,000자');
   expect(utils.buildSystemPrompt()).toContain('권장 분량은 28,500~32,000자');
 });
 
@@ -84,7 +84,7 @@ it('a V2 wave starts with the nature section and saves V2 keys', async () => {
   });
   expect(Object.keys(attempts)).toEqual(['nature']);
   expect(result.savedSections.map(row => row.key)).toEqual(['nature', 'overview', 'money', 'career', 'romance', 'monthly', 'health']);
-  expect(provider.mock.calls[0][2].systemPrompt).toContain('권장 분량은 34,000~38,000자');
+  expect(provider.mock.calls[0][2].systemPrompt).toContain('권장 분량은 41,000~46,000자');
 });
 
 it('later V2 sections receive the overview question answer as the decision to keep', () => {
