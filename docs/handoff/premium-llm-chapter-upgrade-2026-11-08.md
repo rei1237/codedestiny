@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-08
-next: 8단계 숙요점 궁합 (6c sukuyo 문제 포함)
+next: 8단계 8a 마무리 — 판 2 집중 테스트 추가부터 (아래 8단계 진행 메모 참고)
 ---
 
 # 3만원 이상 유료 LLM — 상품별 챕터·분량·PDF·전달 개선 인수인계
@@ -642,6 +642,9 @@ next: 8단계 숙요점 궁합 (6c sukuyo 문제 포함)
 
 ### 하위 단계
 - [ ] 8a. worker V2 + V1 바이트 sha256 테스트 + 판 2 테스트, 기존 테스트 판 1 고정
+  - 완료(4dfe59bf9): `worker/lib/sukuyo-compat-delivery-v2.js`, 라우트 판 2 분기(`createCompatibilityAnswerV2`·`createPersonalAnswerV2`, handleStart 시드·catch에서 본문 있으면 보류 없이 202 retryable), `__tests__/worker/sukuyo-compat-v1-prompt-bytes.test.js`(판 1 프롬프트 10종 sha256), 기존 중복 생성 테스트 `ENV`에 스위치 false 고정 + `V2_ENV` 상수 추가. 43건 통과.
+  - 남은 일: 같은 파일 끝에 `V2_ENV`로 판 2 집중 테스트 — 새 문서 groupPlanVersion 2·질문은 nature 프롬프트에만, 시도 소진 그룹 살리기·배달(환불·recoveryReviewRequired 없음), 분량 보완 2회 한도, 말투 [보정] 1회, 요약 2회 실패 뒤 대체(`attempts["summary:fallback"]`), 본문 0이면 generation_failed 환불, 개인 판 2 짧은 글 수용·재시도. 그다음 sukuyo UI behavior 테스트와 verify 스크립트(llm-generation-resilience·analysis-basis-contract·sukuyo-role-direction·paid-gate-ui-regression) 실행 후 커밋·8a 체크.
+  - 함정: worker jest는 ESM이라 `NODE_OPTIONS=--experimental-vm-modules npx jest <파일> --runInBand --testEnvironment node`로 돌린다(그냥 npx jest는 import 구문 오류). 판 2 그룹 식별은 mock에 들어온 responseSchema 키로 한다.
 - [ ] 8b. 화면(차례·칩·조판 PDF) + 공용 장 모듈 + 보관함 PDF + 테스트
 - [ ] 8c. tsc·jest·node --test·verify·build, 모의 실행, 실호출 1회, 결과 기록(`docs/verification/premium-llm-samples-2026-11-08.md`), PDF 쪽 이미지 확인
 
