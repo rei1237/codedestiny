@@ -74,3 +74,5 @@ next: check:fast 계획의 verify:env-parity 이후 26개 단계를 같은 순�
 - 수정본 커밋 `32e76cb4f`: 타입 검사·집중 64개·Impeccable detect(`[]`) 통과. 사이트맵 재생성도 갱신 0개다.
 - 세 번째 check:fast: 77/77·lint·typecheck·Node 4743/4743 통과. 이후 env-parity에서 FUSION_GROUP_PLAN_V2_ENABLED 계약 누락 1건으로 종료했다. `.tmp/premium-check-fast.log`.
 - 실제 환경값·환경 파일을 바꾸지 않고 `config/env.contract.json`에 해당 선택 스위치의 메타데이터만 등록했다. env-parity 재검사 PASS(기존 alias 경고 7건). 통과한 대형 검사를 반복하지 않고, 갱신된 계획의 앞 단계가 같은지 확인한 뒤 실패 단계부터 남은 26개를 모두 같은 순서로 실행한다. 단계 제외·검사기 변경은 하지 않는다.
+- 남은 단계 실행 로그는 `.tmp/premium-check-remainder.log`, 완료 목록은 `.tmp/premium-resumed-checks.json`, 실행기는 `.tmp/premium-resume-checks.cjs`다. 앞 계획이 같고 남은 26단계가 모두 존재하는지 assert한 뒤 공식 npm 명령을 mock 네트워크 가드와 함께 같은 순서로 실행한다. 첫 실패 즉시 종료한다.
+- 첫 이어 실행에서 `verify:ai-consultation-flows`의 기존 사주 정적 검사가 옛 refundOnFailure 직접 분기를 요구하여 중단됐다. 실제 코드는 refundOnFailure에 V2 저장 본문 보존 조건을 더한 refundNow를 사용한다. 검증기에 해당 합성 조건을 명시적으로 검증하는 assertion을 추가하고, 세 환불 분기가 refundNow를 쓰는지 확인하도록 맞췄다. 실제 환불·차감 코드는 변경하지 않았다. 전체 `verify:ai-consultation-flows` 재실행 통과(사주 섹션 240 checks, 네오 1·2차 및 궁합, 나머지 상담 흐름 포함).

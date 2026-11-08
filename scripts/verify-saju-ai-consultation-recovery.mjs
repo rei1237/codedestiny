@@ -110,16 +110,21 @@ assert(
 // "추가 결제 없이 다시 생성"이 전부 402 로 떨어진다 — 결제 후 생성 실패 루프의 정체다.
 // 1차 실패는 결제 보존(무료 재시도 실동작), 재시도까지 실패하면 그때 환불하고 그 사실을 정직하게 알린다.
 // 한 번의 사용자 클릭이 두 스트라이크를 다 쓸 수 있다(클라이언트 자동 재시도가 2차 POST) — 의도된 동작이다.
+// 배달 2판은 저장된 유효 본문이 있으면 환불하지 않는 추가 조건(refundNow)을 사용한다.
 assert(
-  /const monthlyRefund = refundOnFailure\s*\n\s*\? await refundSajuAIPromptMonthlyCredit/.test(route),
-  "월정석 환불이 refundOnFailure 로 게이트되지 않았다 — 1차 실패에서 환불되면 무료 재시도가 402 가 된다",
+  /const refundNow = refundOnFailure\s*&& !\(sajuDeliveryV2 && \(sajuBillingSections \|\| \[\]\)\.some\(\(row\) => countSajuAIVisibleChars\(readSajuAIBestSectionText\(row\)\) > 0\)\);/.test(route),
+  "환불 판정이 2-스트라이크 조건과 배달 2판의 저장 본문 보존 조건을 함께 지키지 않는다",
 );
 assert(
-  /if \(!refundOnFailure\) \{[\s\S]{0,160}\} else if \(pointRefundContext\.isPointSpend/.test(route),
-  "코인·카드 환불이 refundOnFailure 로 게이트되지 않았다",
+  /const monthlyRefund = refundNow\s*\n\s*\? await refundSajuAIPromptMonthlyCredit/.test(route),
+  "월정석 환불이 refundNow 로 게이트되지 않았다 — 1차 실패에서 환불되면 무료 재시도가 402 가 된다",
 );
 assert(
-  /const refunded = refundOnFailure && Boolean\(monthlyRefund\.refundOk \|\| pointRefund\.refundOk\)/.test(route),
+  /if \(!refundNow\) \{[\s\S]{0,160}\} else if \(pointRefundContext\.isPointSpend/.test(route),
+  "결제 환불이 refundNow 로 게이트되지 않았다",
+);
+assert(
+  /const refunded = refundNow && Boolean\(monthlyRefund\.refundOk \|\| pointRefund\.refundOk\)/.test(route),
   "환불 '시도'와 '성공'을 구분하지 않는다 — 실패한 환불을 환불됐다고 답하면 살아 있는 결제가 미아가 된다",
 );
 assert(
