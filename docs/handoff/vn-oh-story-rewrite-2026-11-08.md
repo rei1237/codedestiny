@@ -453,3 +453,8 @@ next: 4-② 언어별 변경/신규 비트 직접 번역 후 완결성 검사
 - 기존 번역 누락은 모든 원고 비트와 nm/skill/choice/ending 메타까지 최종 완결성 검사로 확인. sourceHash는 원고 bytes 기준, authored 행 해시는 해당 t의 UTF-8 기준.
 - prologue는 공용 prologue-001/002/003·metadata 문서이므로 언어별 en-prologue/ja-prologue/zh-prologue를 새로 저작하고, 조립 시 해당 언어의 새 prologue만 선택. 공용 기존 문서는 보존한다.
 - SEO 동반 점검: stories 공개 URL·제목·설명·canonical·hreflang·색인 구조는 불변, 본문 변경에 따른 sitemap lastmod는 생성기로 갱신. 정적 플레이어 기존 noindex,nofollow 유지.
+
+## 4-④ 전달 중 새 충돌·사용자 확인 대기 (2026-11-09)
+- 별도 전달 워크트리 D:/Development/codedestiny-worktrees/vn-finish-delivery-20261109 는 detached origin/main=9e8cec0a6에서 생성. cc1ae9598 이후 이 브랜치 커밋을 cherry-pick 중. 기존 3단계 커밋은 자동 병합 성공.
+- b7029897a를 적용하다 config/sitemap-lastmod.json의 월별 서명/2026-11-08↔09 생성값 충돌. 원고 충돌 없음. 전달 HEAD=59d6ff273, cherry-pick 시퀀스 진행 중. 해결/abort/continue/push/배포는 아직 안 함.
+- 사용자 규칙(다른 사람 커밋과 충돌하면 멈추고 확인)에 따라 2026-11-09 채팅에서 생성기를 이용한 충돌 해소 후 계속할지 질문함. 답변 전에는 의존 작업 진행 금지. 번역은 독립적으로 계속.
