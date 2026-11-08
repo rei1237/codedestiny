@@ -1,4 +1,5 @@
 import CrystalSoulRouteClient from "./CrystalSoulRouteClient";
+import { ROBOTS_META } from "../../../lib/seo/index-policy.mjs";
 
 const CRYSTAL_SOUL_PAGE_TEXT_TRANSLATIONS = {
   ko: {
@@ -23,14 +24,7 @@ const crystalSoulPageCopy = CRYSTAL_SOUL_PAGE_TEXT_TRANSLATIONS.ko;
 export const metadata = {
   title: crystalSoulPageCopy.title,
   description: crystalSoulPageCopy.description,
-  robots: {
-    index: false,
-    follow: false,
-    googleBot: {
-      index: false,
-      follow: false,
-    },
-  },
+  robots: ROBOTS_META.NOINDEX,
   openGraph: {
     title: crystalSoulPageCopy.title,
     description: crystalSoulPageCopy.ogDescription,

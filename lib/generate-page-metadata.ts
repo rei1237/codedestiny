@@ -27,6 +27,7 @@ import { toJsonLdDate } from "./seo/json-ld.mjs";
 import { buildOpenGraphImageUrl, getCanonicalUrl, isIndexableRoute, normalizePath } from "./seo.v2";
 import { truncateToDisplayWidth } from "./seo";
 import { ogLocaleFor, resolveLocaleTag } from "./i18n/locales";
+import { ROBOTS_META } from "./seo/index-policy.mjs";
 
 const SITE_ORIGIN = siteSeo.siteUrl.replace(/\/$/, "");
 const DEFAULT_OG_IMAGE_URL = siteSeo.defaultOgImage;
@@ -192,17 +193,7 @@ export function generatePageMetadata(opts: FortunePageMeta) {
       description: uniqueDescription,
       images: [ogImage],
     },
-    robots: {
-      index: indexable,
-      follow: indexable,
-      googleBot: {
-        index: indexable,
-        follow: indexable,
-        "max-image-preview": "large",
-        "max-snippet": -1,
-        "max-video-preview": -1,
-      },
-    },
+    robots: indexable ? ROBOTS_META.INDEX : ROBOTS_META.NOINDEX,
   };
 }
 
@@ -346,24 +337,7 @@ export function withUniqueRouteMetadata(
       canonical,
     },
     robots: indexable
-      ? metadata?.robots || {
-          index: true,
-          follow: true,
-          googleBot: {
-            index: true,
-            follow: true,
-            "max-image-preview": "large",
-            "max-snippet": -1,
-            "max-video-preview": -1,
-          },
-        }
-      : {
-          index: false,
-          follow: false,
-          googleBot: {
-            index: false,
-            follow: false,
-          },
-        },
+      ? metadata?.robots || ROBOTS_META.INDEX
+      : ROBOTS_META.NOINDEX,
   };
 }

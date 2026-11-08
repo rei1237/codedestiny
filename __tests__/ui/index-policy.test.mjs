@@ -146,3 +146,24 @@ test("adsense sitemapForbiddenPrefixes stays a ledger-noindex subset (kept outsi
   assert.ok(prefixes.length > 10);
   for (const prefix of prefixes) assert.equal(isIndexablePath(prefix), false, `${prefix}: 사이트맵 금지인데 원장에서 색인 대상`);
 });
+
+// Task 4: robots 계열 meta 는 페이지당 1개다. googleBot 키는 googlebot meta 를 따로 내보내므로 소스에 두지 않는다.
+import { readdirSync } from "node:fs";
+test("no googleBot key in app, lib or components (one robots meta per page)", () => {
+  const root = new URL("../../", import.meta.url);
+  const offenders = [];
+  const walk = (rel) => {
+    let entries;
+    try { entries = readdirSync(new URL(rel, root), { withFileTypes: true }); } catch { return; }
+    for (const entry of entries) {
+      const child = `${rel}${entry.name}`;
+      if (entry.isDirectory()) { if (entry.name !== "node_modules") walk(`${child}/`); continue; }
+      if (!/\.(m?js|jsx|tsx?)$/.test(entry.name)) continue;
+      const text = source(child);
+      if (/\bgoogleBot\s*:/.test(text)) offenders.push(child);
+    }
+  };
+  for (const dir of ["app/", "lib/", "components/"]) walk(dir);
+  assert.deepEqual(offenders, []);
+  assert.doesNotMatch(source("scripts/design/build-static-policy-pages.mjs"), /name="googlebot"/);
+});

@@ -9,6 +9,7 @@ import { SIGN_PROFILES } from "@/lib/fortune/sign-profiles";
 import { resolveFortuneArchiveDates } from "@/lib/fortune/daily-data";
 import GuideCta from "@/app/components/GuideCta";
 import { GUIDE_CTA_TARGETS } from "@/app/components/guide-cta-targets";
+import { ROBOTS_META } from "../../../lib/seo/index-policy.mjs";
 
 const ANIMAL_PROFILES = SIGN_PROFILES.filter((profile) => profile.kind === "animal");
 const TITLE = "최근 30일 띠별 날짜 운세";
@@ -39,7 +40,7 @@ export function generateMetadata() {
       "최근 30일의 날짜별 띠 운세를 한곳에서 확인하세요. 12띠별 총운·재물운·연애운·직장운·건강운과 일진 근거를 날짜별로 정리합니다.",
     keywords: ["날짜별 띠 운세", "띠별 날짜 운세", "최근 30일 띠 운세", "원숭이띠 날짜 운세"],
   });
-  return { ...metadata, robots: { index: false, follow: true, googleBot: { index: false, follow: true } } };
+  return { ...metadata, robots: ROBOTS_META.NOINDEX_FOLLOW };
 }
 
 function formatDate(date: string) {

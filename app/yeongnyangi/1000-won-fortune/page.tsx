@@ -20,6 +20,7 @@ import {SAJU_BUNDLE_FEATURE_KEY,SAJU_BUNDLE_LABEL,SAJU_BUNDLE_PRODUCT_ID} from '
 import SampleExposure from '../_components/SampleExposure';
 import KakaoChannelInvite from '@/app/components/KakaoChannelInvite';
 import LocalizedGuideScreen from '../_components/LocalizedGuideScreen';
+import { ROBOTS_META } from "../../../lib/seo/index-policy.mjs";
 
 // 천원 운세·천원사주 허브(docs/seo/YEONGNYANGI_SEARCH_STRATEGY.md). 주소는 그대로 두고 내용만 바꿨다.
 // 2026-11-04 부터 옛 1,000원 사주 리포트 3종(FUN)은 개별 판매를 마치고 사주 전체 풀이 평생 소장(saju_lifetime_bundle)에 들어 있다.
@@ -87,7 +88,7 @@ export const metadata:Metadata={
  description:DESCRIPTION,
  keywords:['천원 운세','천원운세','천원사주','천원 사주풀이','사주 리포트','사주 전체 풀이 평생 소장'],
  alternates:{canonical:PAGE_URL},
- robots:{index:true,follow:true,googleBot:{index:true,follow:true,'max-image-preview':'large','max-snippet':-1,'max-video-preview':-1}},
+ robots:ROBOTS_META.INDEX,
  openGraph:{type:'website',locale:'ko_KR',url:PAGE_URL,siteName:siteSeo.brandName,title:OG_TITLE,description:DESCRIPTION,images:[yeongnyangiOgImage]},
  twitter:{card:'summary_large_image',title:OG_TITLE,description:DESCRIPTION,images:[yeongnyangiOgImage.url]},
 };

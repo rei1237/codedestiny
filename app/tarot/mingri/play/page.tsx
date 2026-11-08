@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { ROBOTS_META } from "../../../../lib/seo/index-policy.mjs";
 
 const MINGRI_TAROT_PLAY_PAGE_TEXT_TRANSLATIONS = {
   ko: {
@@ -20,14 +21,7 @@ const mingriTarotPlayPageCopy = MINGRI_TAROT_PLAY_PAGE_TEXT_TRANSLATIONS.ko;
 export const metadata = {
   title: mingriTarotPlayPageCopy.title,
   description: mingriTarotPlayPageCopy.description,
-  robots: {
-    index: false,
-    follow: false,
-    googleBot: {
-      index: false,
-      follow: false,
-    },
-  },
+  robots: ROBOTS_META.NOINDEX,
 };
 
 export default function MingriTarotPlayPage() {

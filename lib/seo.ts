@@ -9,6 +9,7 @@ import {
   toCanonicalUrl,
 } from "./seo/siteSeo";
 import { ogLocaleFor } from "./i18n/locales";
+import { ROBOTS_META } from "./seo/index-policy.mjs";
 
 export const SEO_SITE_URL = siteSeo.siteUrl;
 export const SEO_DEFAULT_OG_IMAGE = siteSeo.defaultOgImage;
@@ -101,25 +102,8 @@ export function buildSeoMetadata(options: BuildSeoMetadataOptions): Metadata {
       ...(Object.keys(languages).length > 0 ? { languages } : {}),
     },
     robots: indexable
-      ? {
-          index: true,
-          follow: true,
-          googleBot: {
-            index: true,
-            follow: true,
-            "max-image-preview": "large",
-            "max-snippet": -1,
-            "max-video-preview": -1,
-          },
-        }
-      : {
-          index: false,
-          follow: false,
-          googleBot: {
-            index: false,
-            follow: false,
-          },
-        },
+      ? ROBOTS_META.INDEX
+      : ROBOTS_META.NOINDEX,
     openGraph: {
       type: options.ogType || "website",
       title,

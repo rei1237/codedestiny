@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { ROBOTS_META } from "../../lib/seo/index-policy.mjs";
 
 const LOGIN_LAYOUT_TEXT_TRANSLATIONS = {
   ko: {
@@ -23,14 +24,7 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "/login/",
   },
-  robots: {
-    index: false,
-    follow: false,
-    googleBot: {
-      index: false,
-      follow: false,
-    },
-  },
+  robots: ROBOTS_META.NOINDEX,
 };
 
 export default function LoginLayout({

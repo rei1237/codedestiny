@@ -2,6 +2,7 @@ import Link from "next/link";
 import { generatePageMetadata } from "../../../lib/generate-page-metadata";
 import { OPERATOR_NAME, SUPPORT_EMAIL, SUPPORT_MAILTO } from "../../../lib/site-policy-config";
 import AccountDeleteActions from "./AccountDeleteActions";
+import { ROBOTS_META } from "../../../lib/seo/index-policy.mjs";
 
 const ACCOUNT_DELETE_METADATA_COPY = {
   ko: {
@@ -27,17 +28,7 @@ export function generateMetadata() {
       ...(metadata.alternates || {}),
       canonical: "https://code-destiny.com/account/delete",
     },
-    robots: {
-      index: false,
-      follow: false,
-      googleBot: {
-        index: false,
-        follow: false,
-        "max-image-preview": "large",
-        "max-snippet": -1,
-        "max-video-preview": -1,
-      },
-    },
+    robots: ROBOTS_META.NOINDEX,
   };
 }
 

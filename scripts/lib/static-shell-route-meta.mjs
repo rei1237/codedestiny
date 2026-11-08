@@ -69,7 +69,9 @@ export function injectStaticShellRouteMeta(html, route) {
     .replace(/<title>[\s\S]*?<\/title>/i, `<title>${title}</title>`)
     .replace(/<meta\s+name=["']description["']\s+content=["'][\s\S]*?["']\s*\/?>/i, `<meta name="description" content="${description}">`)
     .replace(/<link\s+rel=["']canonical["']\s+href=["'][\s\S]*?["']\s*\/?>/i, `<link rel="canonical" href="${escapeHtmlAttr(canonicalUrl)}">`)
-    .replace(/<meta\s+name=["']robots["']\s+content=["'][\s\S]*?["']\s*\/?>/i, '<meta name="robots" content="noindex, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">');
+    .replace(/<meta\s+name=["']robots["']\s+content=["'][\s\S]*?["']\s*\/?>/i, '<meta name="robots" content="noindex, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">')
+    // robots 계열 meta 는 페이지당 1개(묶음 ③ T4). 원본 셸에 googlebot meta 가 섞여 들어와도 robots 하나만 남긴다.
+    .replace(/\s*<meta\s+name=["']googlebot["'][^>]*>/gi, "");
 
   nextHtml = withoutHreflangLinks(nextHtml);
 

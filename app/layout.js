@@ -23,6 +23,7 @@ import {
   buildOrganizationJsonLd,
   buildWebsiteJsonLd,
 } from "../lib/structured-data";
+import { ROBOTS_META } from "../lib/seo/index-policy.mjs";
 
 const notoSansKRVariable = "font-noto-sans-kr-offline";
 
@@ -66,17 +67,7 @@ export const metadata = {
     telephone: false,
     address: false,
   },
-  robots: {
-    index: true,
-    follow: true,
-    googleBot: {
-      index: true,
-      follow: true,
-      "max-image-preview": "large",
-      "max-snippet": -1,
-      "max-video-preview": -1,
-    },
-  },
+  robots: ROBOTS_META.INDEX,
   icons: {
     icon: "/icons/moonlight-garden-v1-96.png",
     shortcut: "/favicon.ico",

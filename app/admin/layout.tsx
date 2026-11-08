@@ -6,6 +6,7 @@ import "./admin-yehwa.css";
 import "./operations-guild.css";
 
 import AdminShell from "./_components/AdminShell";
+import { ROBOTS_META } from "../../lib/seo/index-policy.mjs";
 
 const ADMIN_LAYOUT_TITLE = "Code Destiny Admin";
 const ADMIN_LAYOUT_DESCRIPTION = "Private Code Destiny operations dashboard.";
@@ -16,14 +17,7 @@ const ADMIN_LAYOUT_METADATA: Metadata = {
   alternates: {
     canonical: "/admin/",
   },
-  robots: {
-    index: false,
-    follow: false,
-    googleBot: {
-      index: false,
-      follow: false,
-    },
-  },
+  robots: ROBOTS_META.NOINDEX,
 };
 
 export const metadata = ADMIN_LAYOUT_METADATA;

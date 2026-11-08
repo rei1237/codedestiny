@@ -5,6 +5,7 @@ import { LOCALE_CONFIG, Locale, SEO_INDEXABLE_LOCALES } from "../i18n/locales";
 import { siteSeo } from "./siteSeo";
 import { createCanonicalFromLocaleRoutes, createHreflangFromRoutes } from "./createHreflang";
 import { truncateToDisplayWidth } from "../seo";
+import { ROBOTS_META } from "./index-policy.mjs";
 
 type CreateI18nMetadataInput = {
   locale: Locale;
@@ -84,25 +85,8 @@ export function createI18nMetadata(input: CreateI18nMetadataInput): Metadata {
       images: [imageUrl],
     },
     robots: shouldNoindex
-      ? {
-          index: false,
-          follow: false,
-          googleBot: {
-            index: false,
-            follow: false,
-          },
-        }
-      : {
-          index: true,
-          follow: true,
-          googleBot: {
-            index: true,
-            follow: true,
-            "max-image-preview": "large",
-            "max-snippet": -1,
-            "max-video-preview": -1,
-          },
-        },
+      ? ROBOTS_META.NOINDEX
+      : ROBOTS_META.INDEX,
     other: {
       "content-language": localeConfig.htmlLang,
     },

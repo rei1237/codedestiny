@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import NeoOperationRoomResultClient from "./NeoOperationRoomResultClient";
+import { ROBOTS_META } from "../../../lib/seo/index-policy.mjs";
 
 // 개인 AI 상담 결과 화면이다. description·canonical·robots 가 비어 있으면
 // app/layout.js 기본값이 내려와 홈 설명과 홈 canonical 을 쓰면서 index,follow 로 노출된다
@@ -10,14 +11,7 @@ export const metadata = {
   alternates: {
     canonical: "https://code-destiny.com/neo-operation-room/result",
   },
-  robots: {
-    index: false,
-    follow: false,
-    googleBot: {
-      index: false,
-      follow: false,
-    },
-  },
+  robots: ROBOTS_META.NOINDEX,
 };
 
 export default function NeoOperationRoomResultRoute() {

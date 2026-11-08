@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 import DiaryShell from "./_components/DiaryShell";
+import { ROBOTS_META } from "../../lib/seo/index-policy.mjs";
 
 const DIARY_LAYOUT_TEXT_TRANSLATIONS = {
   ko: {
@@ -30,7 +31,7 @@ const diaryLayoutCopy = DIARY_LAYOUT_TEXT_TRANSLATIONS.ko;
 export const metadata: Metadata = {
   title: diaryLayoutCopy.title,
   description: diaryLayoutCopy.description,
-  robots: { index: false, follow: false, googleBot: { index: false, follow: false } },
+  robots: ROBOTS_META.NOINDEX,
 };
 
 export default function DiaryLayout({ children }: { children: React.ReactNode }) {

@@ -100,6 +100,7 @@ test("diary is noindex on every surface that has to agree", () => {
 
   // 🔴 noindex 와 self-canonical 은 서로 모순되는 신호다 — 레이아웃에 canonical 을 두지 않는다.
   const layout = stripComments(read("app/diary/layout.tsx"));
-  assert.match(layout, /robots: \{ index: false, follow: false/);
+  // 묶음 ③ T4: robots 객체는 원장 상수(ROBOTS_META.NOINDEX = noindex, nofollow)로 쓴다.
+  assert.match(layout, /robots: ROBOTS_META\.NOINDEX,/);
   assert.doesNotMatch(layout, /alternates|canonical/);
 });

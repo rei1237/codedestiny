@@ -3,6 +3,7 @@ import Link from "next/link";
 import AnimalDestinyRouteClient from "./AnimalDestinyRouteClient";
 import YehwaCard from "../../components/service-intro/YehwaCard";
 import { pageOpenGraph } from "../../../lib/seo/page-open-graph";
+import { ROBOTS_META } from "../../../lib/seo/index-policy.mjs";
 
 const ANIMAL_DESTINY_PAGE_TEXT_TRANSLATIONS = {
   ko: {
@@ -33,14 +34,7 @@ export const metadata: Metadata = {
     canonical: PAGE_URL,
   },
   openGraph: pageOpenGraph(PAGE_URL),
-  robots: {
-    index: true,
-    follow: true,
-    googleBot: {
-      index: true,
-      follow: true,
-    },
-  },
+  robots: ROBOTS_META.INDEX,
 };
 
 export default function Page() {
