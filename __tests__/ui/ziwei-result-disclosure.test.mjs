@@ -76,11 +76,13 @@ test('legacy result wrapper mirrors remain byte-identical', () => {
 test('stored conclusions lead the reading while the original guide stays available without content mutation', () => {
   const source = fs.readFileSync('app/ziwei-ai/ZiweiAiClient.tsx', 'utf8');
   const ast = ts.createSourceFile('client.tsx', source, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
-  const names = ['SECTION_ORDER', 'SECTION_GLYPHS', 'splitAssistantSections'];
+  // 순서·글리프는 lib/ziwei/ziwei-ai-chapters.ts로 옮겼다. 화면의 분할 함수는 그 모듈의 정렬을 그대로 쓴다.
+  const { orderZiweiAiSections } = loadTsModule('lib/ziwei/ziwei-ai-chapters.ts');
+  const names = ['splitAssistantSections'];
   const declarations = ast.statements.filter(node =>
     ts.isFunctionDeclaration(node) && names.includes(node.name?.text)
     || ts.isVariableStatement(node) && node.declarationList.declarations.some(declaration => names.includes(declaration.name.getText(ast))));
-  assert.equal(declarations.length, 3);
+  assert.equal(declarations.length, 1);
   const code = ts.transpileModule(declarations.map(node => node.getText(ast)).join('\n'), { compilerOptions: { target: ts.ScriptTarget.ES2022 } }).outputText;
   const record = JSON.stringify({ sections: {
     reading_guide: { title: 'old guide', body: 'original guide' },
@@ -88,7 +90,7 @@ test('stored conclusions lead the reading while the original guide stays availab
     core_answer: { title: 'original answer', body: 'original answer body' },
   } });
   const sections = vm.runInNewContext(code + '\nsplitAssistantSections(record)', {
-    record, parseStructuredZiweiResult: JSON.parse, asRecord: value => value || {}, toText: String,
+    record, parseStructuredZiweiResult: JSON.parse, asRecord: value => value || {}, toText: String, orderZiweiAiSections,
   });
   assert.deepEqual(Array.from(sections.filter(section => !section.isGuide), section => section.body), ['original answer body', 'original character body']);
   assert.deepEqual(Array.from(sections.filter(section => section.isGuide), section => section.body), ['original guide']);

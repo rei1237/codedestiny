@@ -47,6 +47,7 @@ function screenFixture(file) {
     '@/app/_lib/auth-store': { useAuthStore: () => ({user:null,isAuthenticated:false}), refreshAuth: async () => {}, handleSessionInvalidated() {} },
     './v2/NamingEngineFields': { default: leaf, INITIAL_ENGINE_FIELDS:{}, readNamingEngineOptIn: () => state.engineOptIn },
     '@/lib/dev-preview/core': { readDevPreviewState: () => null },
+    '@/lib/ziwei/ziwei-ai-chapters': { ZIWEI_AI_SPEAKER: '무성', isZiweiAiPlanV2: () => false, orderZiweiAiSections: () => [], buildZiweiAiPdfChapters: () => [] },
     '@/components/fortune/PagedResultViewer': { default: leaf, usePagedViewerMode: () => [false, () => {}] },
     'framer-motion': { m: new Proxy({}, { get: () => leaf }), useReducedMotion: () => false },
     '@/src/features/expert-characters': {

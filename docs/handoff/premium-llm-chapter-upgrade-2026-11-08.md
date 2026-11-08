@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-08
-next: 7b 자미 상담 화면(차례·칩·조판 PDF) + 보관함 PDF (7단계 진행 메모 참고)
+next: 7c 자미 심층 V2(1장 본성·질문 1회, 구제 배달, 장 없을 때만 환불) + 보관함 PDF (7단계 진행 메모 참고)
 ---
 
 # 3만원 이상 유료 LLM — 상품별 챕터·분량·PDF·전달 개선 인수인계
@@ -590,7 +590,11 @@ next: 7b 자미 상담 화면(차례·칩·조판 PDF) + 보관함 PDF (7단계 
   - 판 1 바이트 고정: `__tests__/worker/ziwei-ai-v1-prompt-bytes.test.js`(모킹 없이 sha256). HEAD와 작업본 둘 다 통과
   - 기존 테스트 조정: ziwei-paid-delivery는 `start()`를 판 1(`ZIWEI_AI_DELIVERY_V2_ENABLED:"false"`)로 고정하고 끝에 판 2 테스트 6개를 붙였다. pass-generation 모의의 목표 표에 personality_profile, expired-order 모의의 그룹 조회에 판 2 그룹, lifecycle vm 하네스에 `ziweiAiDeliveryV2Enabled:()=>false`를 넣었다. verify-llm-generation-resilience 호출부 수는 5→7
   - 함정: paid-delivery 파일은 `formatStarWithBrightness`를 모킹해 프롬프트가 달라지므로 해시 테스트를 그 파일에 두면 안 된다. 같은 본문을 두 번 이어 붙인 것은 반복 검사에 걸리지 않는다. 구제 테스트는 섹션끼리 같은 본문을 쓴다
-- [ ] 7b. 상담 화면(차례·칩·조판 PDF) + 보관함 PDF
+- [x] 7b. 상담 화면(차례·칩·조판 PDF) + 보관함 PDF
+  - 순서·글리프·부 이름·PDF 장 빌더를 `lib/ziwei/ziwei-ai-chapters.ts`로 옮겼다(화면·보관함 공용). 판 1 순서는 예전 클라이언트 `SECTION_ORDER` 그대로이고, 판 2는 1부 타고난 본성(personality_profile·essence·core_answer)부터 시작한다. 판 2 여부는 결과 API `groupPlanVersion`, 저장본 `llmMeta.groupPlanVersion`, 또는 `groups.nature`로 판단한다
+  - `ZiweiAiClient.tsx`: 판 2에만 차례(`.zwToc`, 링크 높이 44px), "N장 · 부 이름" 키커, 무성 칩을 단다. 판 1 화면은 그대로다. PDF는 조판(`exportConsultationBookPdf`, coverTheme ziwei, byline 무성)을 먼저 쓰고, `PdfFontError`일 때만 캡처로 되돌아간다
+  - 보관함: `app/records/view/SavedZiweiAiPdfButton.tsx`. `SavedServiceReading.tsx` ziwei 비섬 분기에서 `view.fields.includes('messages')`일 때만 단다. 이 조건이면 ziwei-ai만 해당되고(executions·paid-results 별칭 포함), 심층·궁합은 빠진다
+  - 테스트: `__tests__/ui/ziwei-ai-chapters.test.mjs` 3개. 클라이언트 소스를 읽던 가드 4곳은 공용 모듈도 함께 읽게 고쳤다(verify-analysis-basis-contract, verify-ziwei-ai-consultation-flow, verify-ziwei-personality-context, ziwei-result-disclosure 테스트). consultation-intro-hydration 하네스에는 새 모듈 모의를 넣었다. 모르는 import는 leaf 함수가 되어 `isZiweiAiPlanV2`에서 터진다
 - [ ] 7c. 심층 prompt·route V2 + 테스트 + 보관함 PDF
 - [ ] 7d. tsc·jest·node --test·verify·build, 모의 실행, 실호출 상품당 1회, 결과 기록
 

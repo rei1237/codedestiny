@@ -206,7 +206,8 @@ function assertBasis(name, payload, { minGroups = 2, minStages = 2 } = {}) {
 // ── 2. 프런트 렌더 화이트리스트 ────────────────────────
 // 워커가 새 섹션을 만들어도 클라이언트 목록에 없으면 화면에 영영 안 뜬다(조용한 유실).
 {
-  const client = read("app/ziwei-ai/ZiweiAiClient.tsx");
+  // 섹션 순서·글리프는 lib/ziwei/ziwei-ai-chapters.ts(결과 화면·보관함 공용)에 있다.
+  const client = read("app/ziwei-ai/ZiweiAiClient.tsx") + "\n" + read("lib/ziwei/ziwei-ai-chapters.ts");
   for (const key of REASONING_SECTION_KEYS) {
     assert(client.includes(`"${key}"`), `ziwei client: SECTION_ORDER에 ${key} 누락`);
     assert(new RegExp(`${key}:\\s*"`).test(client), `ziwei client: SECTION_GLYPHS에 ${key} 누락`);
