@@ -1,7 +1,7 @@
 ---
-status: in-progress
+status: active
 updated: 2026-11-09
-next: 4-③ 통합 검증 후 최신 main 전달 트리에서 4-④ 배포
+next: 새 ego 공간 생성 승인 응답 후 운영 EP.01/42/52·북마크·언어 검증, 완료 기록과 정리
 ---
 
 # VN 스토리 개선 (oh-story 활용) 인수인계
@@ -426,7 +426,7 @@ next: 4-③ 통합 검증 후 최신 main 전달 트리에서 4-④ 배포
 ## 단계 4 (2026-11-09)
 - [x] 4-① 호랑이 존댓말 전체 확인·EP.37/47/50 분량 경고
 - [x] 4-② en / ja / zh-CN / zh-TW 직접 번역·용어집·누락 감사·게시 복구
-- [ ] 4-③ novel:build·story-sync·sitemap·check:fast·번역·플레이어 검사
+- [x] 4-③ novel:build·story-sync·sitemap·check:fast·번역·플레이어 검사
 - [ ] 4-④ main 반영·CI·운영 배포·운영 재생/북마크/언어 확인
 
 ## 4-① 결과 (2026-11-09)
@@ -472,3 +472,37 @@ next: 4-③ 통합 검증 후 최신 main 전달 트리에서 4-④ 배포
 - 용어집·직접 번역/오프라인 조립 세부는 docs/webnovel_review/vn-translation-finish-2026-11-09.md.
 - novel:build에서 미게시 경고0, verify:story-sync73화7,928비트 통과, verify-novel-locale-completeness 네언어 완결성 통과.
 - 전달 트리 생성값 충돌은 승인받은 방식으로 main 쪽 원장 선택 후 sitemap:generate 실행하여 해결. b7029897a→88323a8ff, 나머지 c88bc4383까지6511b59b1, 0fc52190c까지4d49eba57. 다음 cherry-pick은0fc52190c 이후부터.
+
+## 최종 전달 재개 지점 (2026-11-09)
+- 작업 정본 후보: D:/Development/codedestiny-worktrees/vn-finish-delivery-20261109 (detached HEAD,72f1eb62d). 원래 VN 브랜치는 c7745334f까지 반영 완료. node_modules는 D:/Development/code-destiny/node_modules로 이어지는 이 세션의 정션. 정리 시 정션부터 제거.
+- sourceHash1822d08b1cf0edd0475c92c0afa22fe040cec6e8e632f2e40817de52b7dfdd2e,73화7,928비트. manifest ko/en/ja/zh-CN/zh-TW 모두 게시. 전달 트리 novel:build/story-sync/sitemap/locale-completeness 통과, 생성 드리프트0.
+- 전 언어 authored73문서에서 오프라인 재조립 →7928/7928·missing0·게시파일 비트 차이0. source 브랜치 runtime/player-start 재검사도 통과.
+- check:fast -- --base=origin/main 실행 중. 로그 .tmp/vn-finish/check-fast.log, exec session72909. paid77/0(389.6s), lint통과, sitemap-drift1062URL통과, 현재typecheck이후 진행. 시작한 옛 source브랜치 checkfast는 중복실행을 종료했으며 최종 전달트리 검사로 대체(미검증으로 남기지 않을 것).
+- main이9e8cec0a6→87c6e54dd로 이동(잠금화면8파일, 소설 변경과 겹침0). 최종 검사 완료 후 git rebase --onto origin/main 9e8cec0a6 HEAD 로 최신main 위로 옮기고 생성 드리프트 확인 후 pre-push. 더 이동했으면 다시fetch하고 충돌없는 최신main보존.
+- 운영 브라우저 ego taskSpace63, p1, URL https://code-destiny.com/codedestiny-novel.html . 아직 기존 운영판 확인만 함, 배포 후 확인 필수. 기존 북마크·소설언어는 원래워크트리 .tmp/vn-finish/browser-original-state.json에 저장. 운영검증 끝난 뒤 두 키만 복원하고 task.finish({keep:[]}). Ego 업데이트 안내는 있으나 업그레이드는 안 함.
+- source 워크트리 .tmp/vn-finish와 전달 트리 .tmp/vn-finish는 이 세션 생성 임시 파일. 최종 결과 문서로 옮긴 뒤 정리. 다른 작업의 .tmp/파일/워크트리는 건드리지 않는다.
+
+## 4-③ 최종 결과 (2026-11-09)
+- check:fast -- --base=origin/main --plan 및 실행 종료0. paid-gate77/0(389.6s), lint·typecheck·sitemap-drift1062URL통과, Node4671/4671(실패/취소/skip0), Jest456스위트7715테스트통과·기존1스위트/1테스트skip(전체457/7716). 약815s Jest.
+- novel:build, verify:story-sync, sitemap:generate, verify-novel-locale-completeness, verify:novel-runtime, verify:novel-player-start, locale/UI 단위15개 모두 통과. verify:release도 종료0.
+- 최종 main기준2faaa262b(잠금화면+SEO업데이트)로37개 커밋 rebase 완료. 생성원장1파일 충돌만 승인대로 최신 main값+생성기로 해결. 소스충돌0. 관련 없는 main변경 보존. 다시 전체검사를 반복하지 않고 통합main CI와pre-push로 전달 확인.
+- 생성물 수동편집0. 결제·이용권/월정석/단건 정책, 인증,API,DB,라우팅 로직에 이 작업이 바꾼 파일0. 남은11개 본문/fx경고는 앞4-① 결과대로 보존.
+
+## 4-④ 운영 승격 진행 (2026-11-09)
+- pre-push종료0: 미러 생성 차이0, sitemap1062URL드리프트0, llms/SEOentity/repo-hygiene통과.
+- 배포 커밋72fed768472e292055df9c29a5bec27ee9e0e934를 origin/main에push완료. 다른세션로컬main/dirty checkout은 변경0. push직전원격2faaa262b의CI는진행중이었고red아님.
+- 승인된 gh workflow run "Release Cloudflare Pages and Worker" --ref main -f mode=production 실행. 운영런 https://github.com/rei1237/codedestiny/actions/runs/42505123236 . gh run watch --exit-status --interval30 실행중(session15219), 로그 .tmp/vn-finish/production-run.log. 스테이징은조회/검증하지않음.
+- 릴리스 환경키/시크릿/checkout무결성/사이트맵·로케일 미러통과. Pages·Worker배포단계진행중. 완료 전 성공/운영확인으로 기록하지 말 것. 실패/롤백필요면사용자규칙대로멈추고보고.
+- 운영 확인용 ego스크립트는 원래 VN워크트리 .tmp/vn-finish/browser-04.mjs에 준비됨(아직실행전). 스페이스63/p1을재사용. 현재운영원고해시가1822d08b...인지 먼저 검증한 뒤EP.01을 UI로열어snapshot. 이후EP.42/52·저장/재개·4언어전환, 기존두localStorage키복원, task.finish({keep:[]})필수.
+- GitHubpush의기존의존성취약점알림76건(critical1/high36/moderate31/low8)을사용자에게알림. package/lock변경0, 이번내용수정과무관한별도추적영역.
+
+## 운영 승격 성공·화면 검증 재연결 (2026-11-09)
+- 운영런42505123236 completed/success, headSha72fed768472e292055df9c29a5bec27ee9e0e934. Pages와Worker배포·SHA·IndexNow단계모두통과.
+- 운영HTTP실측: /version.json200·/api/version200 모두sha72fed768472e292055df9c29a5bec27ee9e0e934. /data/novel/manifest.json200, sourceHash1822d08b...·locales ko/en/ja/zh-CN/zh-TW·7928비트.
+- 화면검증을재개하려던 ego taskSpace63이외부에서사라짐(task space not found). listTaskSpaces에는다른사용자공간56/57만남아건드리지않음.
+- ego-browser SKILL.md는 사라지거나멈춘공간의복구를새공간으로우회하지말고확인받으라고명시. 2026-11-09 새검증공간을열지질문함. 응답전새공간/다른브라우저로우회금지. 배포는성공했지만운영UI검증미완료.
+- main CI42505056922는72fed7684에대해진행중. 마지막조회는운영성공후1회, 반복폴링하지않음. 다음push직전/최종보고직전에만확인.
+
+## CI 문서 규약 보정 (2026-11-09)
+- main CI42505056922의Fast와Build는success, Static guards만handoff frontmatter status값으로failure. 사용자공통인수인계예시의in-progress를썼으나현재저장소 _TEMPLATE.md·verify-handoff-contract는active/blocked/done을요구했다. 같은진행중의미인active로맞춘다. CI코드/검사기/운영콘텐츠변경없음.
+- 문서상태오류는이세션수정책임이며운영런42505123236 success·Pages/Worker/원고서버검증결과는유효. 문서규약self-test와실검사후완료기록을push하고main CI결과확인.
