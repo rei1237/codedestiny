@@ -5384,5 +5384,40 @@
         "checks": "audit --check68files/170evidence; browser contract;12-locale fake transport provider contract passed. No real provider/network/DB/payment calls."
       }
     }
+  },
+  "latestDelivery20261109": {
+    "mainSha": "9466a2d3e91b00de3a8caca285abf98dc7b2b56f",
+    "aiLocaleGate": {
+      "run": 42526922649,
+      "conclusion": "success"
+    },
+    "prCi": {
+      "run": 42526922672,
+      "conclusion": "failure",
+      "causes": [
+        "Own added narrative regression depended on generated daily files; f031d1f60 replaces IO with fixed mock package, targeted7/7 passed",
+        "Toss expanded bundle102804422 exceeds100000000;1435 tests passed; no Toss changes"
+      ]
+    },
+    "localFollowups": [
+      "42fa9fca8 exact verified mock signature fingerprint",
+      "f031d1f60 generated-data-independent view regression"
+    ],
+    "secretScan": "Historical fixture slice1commit43529bytes passed; full --all scan interrupted after15min, not a pass; final official scan pending",
+    "pushAuthorization": {
+      "date": "2026-11-09",
+      "verbatim": "Toss 실패 해소 전 push 보류",
+      "status": "held; no follow-up push"
+    },
+    "productionPromotion": "Not dispatched by this session; new approval required",
+    "rawManifestRows": 451,
+    "indexedInformationReports": 21,
+    "browser": {
+      "spaceId": 65,
+      "ownership": "user after handOff",
+      "lastRound": 219,
+      "nextRound": 220,
+      "next": "Wait for Bing login confirmation; resume same space only"
+    }
   }
 }

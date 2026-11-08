@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-11-09
-next: "승인된 AI 호출 목록 갱신 b58fcf669와 최종 기록 pre-push→main push. 다음 작업을 진행한 뒤 최종 CI를1회 확인. Space65 후속 원자료는 신규 round188부터. fresh 산출물·④⑤ 운영 승인·관찰은 남음."
+next: "사용자 지시로 Toss 실패 해소 전 push 보류. main CI42526922672의 Toss expanded102804422>100MB는 미수정. 로컬42fa9fca8·f031d1f60 및 기록 보존. Bing 로그인 회신 후 Space65 takeover→신규round220; 원자료451항목/핵심21URL 검사 확보."
 ---
 
 # SEO 아키텍처 재구축
@@ -19,6 +19,25 @@ next: "승인된 AI 호출 목록 갱신 b58fcf669와 최종 기록 pre-push→m
 4. 실제 새 수집본은 `D:\Development\seo-data\code-destiny\2026-11-09\`다. `README.md`와 `manifest.csv`를 정본으로 읽는다. 이전 날짜 폴더로 소급 표기하지 않는다.
 
 ## 지금 상태
+
+### 사용자 최신 지시와 수집 구간 정리
+
+- **2026-11-09 사용자 원문: “Toss 실패 해소 전 push 보류”**. 앞선 예외 요청은 승인되지 않았다. 후속 로컬 수정과 기록을 커밋으로 보존하되 원격 push/운영 승격을 실행하지 않는다. Toss 빌드 용량은 102804422/100000000 bytes, 관련 테스트1435/1435. 별도 Toss 코드·제한값 수정도 이번에 하지 않았다.
+- GSC 핵심20URL+내일허브=21개 indexed-information 전사/PNG 확보. manifest451항목(추가233+GSC native218). 2027/fortune허브 발견됨미색인, fortune/today는 알려지지 않은URL, 내일허브는5/31과거404기록. 현재 공개응답 원인과 혼동하거나 무분별한noindex로 해결하지 않는다.
+- Bing은 Sign In 화면으로 로그인 필요. Space65 p2를 사용자 제어로 handOff했다. 마지막 신규round219, **로그인 완료 회신 전 브라우저 제어 재개 금지**, 확인 후 같은 Space65에서takeOver→round220부터. p1=GSC검사,p2=Bing로그인. finish하지 않았다.
+- 원자료 README/manifest와 외부 bundle-4/gsc-inspection-findings-20261109.json, bundle-5/review-summary-20261109.md를 갱신한다. GA4추가기간/Bing/SERP/Trends, fresh verify-dist/공식최종CI/운영승격·관찰은 미완료다.
+- 임시 공식 gitleaks 도구 폴더의 native PowerShell 재귀 삭제는 자동승인검토가 blocked by policy로 거부했다. 우회 삭제하지 않았고 외부 bundle-5/_tools/gitleaks-8.24.2를 보존했다. 검증 로그도 audit 증거로 보존.
+
+### 2026-11-09 최신 CI와 추가 색인 원자료
+
+- 아래 과거 ‘호출 목록 승인 대기/로컬 준비’ 상태를 대체한다. 사용자 승인 “호출 목록 갱신과 후속 push 승인”에 따라 b58fcf669와 SEO 후속을9466a2d3e91b00de3a8caca285abf98dc7b2b56f로 main 전달했다. committed-tree pre-push 통과.
+- 최종1회 확인: AI Locale Gate42526922649 성공. PR CI42526922672 실패: Static guards의 새 sky-and-range 회귀테스트가 prebuild 이전 daily-2026-11-09.json을 읽었다. 제 테스트 결함이며 f031d1f60에서 real view builder+고정 mock 패키지로 수정, 대상7/7 통과. 생성 파일/운영 코드 변경 없음.
+- 별도 Critical checks: Toss 테스트1435/1435 통과 후 expanded bundle102804422 >100000000 bytes로 실패. 앱 로직/배포 상한을 바꾸지 않았다. 다른 작업 실패 위 push 금지 때문에 ‘fixture 수정·검증된 mock서명 지문1개·SEO 기록만 push’ 예외를 비동기 질문으로 요청한 상태이며 회신 전 전달하지 않는다. 기존4call 승인으로 이 새 Toss 실패를 승인했다고 간주하지 않는다.
+- Secret Scan42526922699 실패는 역사 커밋 e2aec7d3bfbdd402b0d7ca4edd469fb630d9fe3f의 mock 웹훅 서명이다. 값의 테스트 분류만 확인했고 원값은 출력/저장하지 않았다. 기존 .gitleaksignore 오탐 규칙에 따라 정확한 지문1개와 이유만42fa9fca8에 커밋. 공식 gitleaks8.24.2 SHA256 검증 후 해당 역사 커밋1개 스캔:43529 bytes, no leaks, exit0. 전체 --all 이력은15분 이상 git diff 생성 중이라 본 실행 PID19044/41212/22932만 확인 후 중단했으며 전체 성공을 주장하지 않는다. 공식 최종 Secret Scan은 미확인.
+- 원자료 manifest423항목(추가205+GSC native218). Cloudflare cache/redirect/page rules/AI crawler32행 설정을 읽기 전용으로 추가. AI rolling7d Googlebot허용4.2k, 실패399는 차단 수로 해석하지 않는다. www→apex301규칙1개 활성. 설정/캐시/보안 변경 없음.
+- GSC indexed-information7개 핵심 URL 전사+PNG: root,ggulggul,saju,manse,tarot,en은 색인됨. 2027허브는 발견됨-현재색인생성안됨. 내일허브는5/31과거404이력으로 표시되며 현재응답404라고 단정하지 않는다. 새 추가 검사 진행 중. 실제 URL 테스트/제출/색인요청 없음.
+- Space65 유지, p1=GSC검사,p2=Cloudflare. round214실행 진행, 다음 신규215. ego skill재독 완료. 복구용 공간 생성/캐시 삭제/키 생성 금지.
+- ④⑤ 운영승격은 미승인/미실행. main과 별도 자동/다른 세션 릴리스가 존재할 수 있으나 본 세션에서 dispatch하지 않았다. 전체 SEO/KPI/번역 전수품질은 완료 아님.
 
 ### 2026-11-09 내일 본문 차별화·번역 후속, CI 추가 범위 회신 대기
 
