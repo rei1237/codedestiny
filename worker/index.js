@@ -1068,6 +1068,11 @@ const app = {
         });
       }
 
+      if(url.pathname.startsWith('/api/business/')){
+        if (!isAllowedOrigin(request.headers.get('Origin'),env)) return new Response(null,{status:403});
+        const {handleBusinessApi}=await import('./business-api/routes.js');
+        return withCorsHeaders(request,env,await handleBusinessApi(request,env));
+      }
       const oauthCallbackPageMatch = url.pathname.match(/^\/auth\/(google|naver|kakao)\/callback$/);
       if (request.method === "GET" && oauthCallbackPageMatch) {
         return buildOAuthCallbackShimResponse(request, String(oauthCallbackPageMatch[1] || "").toLowerCase());

@@ -76,6 +76,7 @@ export async function reconcilePendingPayments(env, options = {}) {
   const now = Date.now();
 
   const candidates = await withMongoRetry(env, () => Payment.find({
+    "pricingSnapshot.billingType": {$ne:"business_api"},
     $and: [
       {
         $or: [

@@ -48,7 +48,8 @@ import { decryptPhoneNumber } from "../lib/pii-crypto.js";
 import { PaymentError, classify, contractFor, paymentError, responseHeadersFor } from "./errors.js";
 import { createPaymentContext, toObjectId, withPaymentDb } from "./db.js";
 import { logPayment } from "./log.js";
-import { assertProductSaleOpen, listProducts, resolveProduct } from "./catalog.js";
+import {businessProducts, businessProduct} from "../../lib/business-api/products.mjs";
+import { businessCheckoutProduct, assertProductSaleOpen, listProducts, resolveProduct } from "./catalog.js";
 import { isSajuBundleSaleClosed } from "../lib/saju-bundle-policy.js";
 import { assertFeatureEnabled } from "../lib/billing-feature-registry.js";
 import { resolveNeoOrderProduct } from "../neo-consultation/payment.js";
@@ -182,7 +183,7 @@ async function applyNonPaidPgEvent(db, input) {
   return result;
 }
 
-async function applyNonPaidPgEventState(db, { eventType, orderId }) {
+async function applyNonPaidPgEventState(db, { eventType, orderId, pgStatus }) {
   const type = String(eventType || "").trim().toLowerCase();
 
   if (type === "transaction.failed") {
@@ -195,13 +196,14 @@ async function applyNonPaidPgEventState(db, { eventType, orderId }) {
     return { event: "failed", marked };
   }
 
-  const partial = type === "transaction.partialcancelled";
+  let partial = type === "transaction.partialcancelled";
   const full = type === "transaction.cancelled";
   if (!partial && !full) return { ignored: true, type };
 
   const order = await findOrder(db, { orderId });
   if (!order) return { ignored: true, reason: "ORDER_NOT_FOUND" };
 
+  if (businessProduct(order.productId) && pgStatus==='PARTIAL_CANCELLED') partial=true;
   if (order.purchaseType === "GIFT") {
     const { settleGiftCancellation } = await import("./gifts.js");
     return db.transaction(async tx => {
@@ -221,6 +223,14 @@ async function applyNonPaidPgEventState(db, { eventType, orderId }) {
     return { event: "partial-cancelled", reviewRequired: true };
   }
 
+  if (businessProduct(order.productId)) {
+    // If approval wins the pending-state CAS, settle the now-paid order. Either terminal
+    // state prevents a delayed confirmation from recreating this order's access.
+    const cancelled = await markOrderCancelled(db, { orderId, reason: "PG_CANCELLED", includeFailed: true });
+    const refunded = !cancelled && await settleRefund(db, { orderId });
+    await recordPgCancellationMarkers(db, { orderId, partial: false, reviewRequired: false });
+    return { event: "cancelled", cancelled, refunded, revoked: refunded };
+  }
   const status = toOrderStatus(order);
   if (status === "PENDING") {
     const cancelled = await markOrderCancelled(db, { orderId, reason: "PG_CANCELLED" });
@@ -305,7 +315,7 @@ async function applyNonPaidEventAfterRequery(env, ctx, event, { withDb, fetchPay
   try {
     const outcome = await withDb(env, ctx, async (db) => {
       const applied = confirmed
-        ? await applyNonPaidPgEvent(db, { eventType: event.eventType, orderId: event.paymentId })
+        ? await applyNonPaidPgEvent(db, { eventType: event.eventType, orderId: event.paymentId, pgStatus: pg.rawV2?.status })
         : { ignored: true, reason: "PG_STATUS_MISMATCH", pgStatus: String(pg?.status || "") };
       if (confirmed) {
         const {paymentAttemptSummary}=await import('./pg.js');
@@ -865,6 +875,9 @@ function evaluateConfirmable(ctx, order, { orderId, actorUserId = "", systemActo
 /** 확정 3단계 — PG 사실을 주문에 반영하고 권한을 지급한다. 직렬화 지점은 markOrderPaid 의 CAS 다. */
 async function settleVerifiedOrder(db, ctx, { order, pg }) {
   const orderId = String(order.merchantUid || "");
+  if (businessProduct(order.productId) && (!pg.paidAt || !Number.isFinite(new Date(pg.paidAt).getTime()))) {
+    throw paymentError('INTERNAL_ERROR','PG 승인 일시를 다시 확인하고 있습니다.');
+  }
   const paid = await markOrderPaid(db, { orderId, order, pg });
   if (!paid) {
     // CAS 를 졌다 = 다른 주체가 방금 확정했다. 재조회해 그 결과를 그대로 쓴다.
@@ -924,7 +937,7 @@ async function confirmOrder(env, ctx, { orderId, actorUserId = "", systemActor =
 
   let pg;
   try {
-    pg = await verifyPgPayment(env, { orderId, expectedAmountKRW: Number(begun.order.paymentAmount || 0), paypalCharge: paypalChargeForOrder(begun.order) }, deps);
+    pg = await verifyPgPayment(env, { orderId, expectedAmountKRW: Number(begun.order.paymentAmount || 0), businessCurrency: businessProduct(begun.order.productId) ? String(begun.order.pricingSnapshot?.currency || '') : undefined, paypalCharge: paypalChargeForOrder(begun.order) }, deps);
   } catch (error) {
     const contract = classify(error);
     // 사실이 어긋난 것(422)은 주문을 실패로 확정한다. 닿지 못한 것(503)은 상태를 건드리지 않는다 —
@@ -1022,6 +1035,11 @@ async function grantPassOrderEntitlement(db, order) {
  *  `rethrow` 는 크론·프로필 선택 지급 전용이다 — 원래 오류 코드(MISSING_PROFILE_ID 등)로 종결 여부를 가른다. */
 async function grantOrderEntitlement(db, order, { rethrow = false } = {}) {
   try {
+    if (businessProduct(order.productId)) {
+      // The paid order itself is the grant. A full refund removes it from the period calculation.
+      await markEntitlementGranted(db,{orderId:order.merchantUid});
+      return true;
+    }
     if (order.purchaseType === "GIFT") {
       const { ensureGiftForOrder } = await import("./gifts.js");
       await ensureGiftForOrder(db, order);
@@ -1412,7 +1430,7 @@ const ROUTES = {
       // 🔴 가격 해석은 구 정본(billing-feature-registry) 체인을 그대로 탄다(legacy-pricing.js).
       // 첫 배선은 catalog(resolveProduct)를 썼는데, mode/reportMode/categoryKey 변형 가격을 잃어
       // 해당 기능의 단건 결제가 400(금액 불일치)으로 막히는 라이브 결함이었다(2026-08-12 수정).
-      let listedProduct = preparedProduct || resolveLegacyProduct(body);
+      let listedProduct = preparedProduct || businessCheckoutProduct(body,env) || resolveLegacyProduct(body);
       // 묶음 포함·판매 종료 키: 보유자는 "이미 보유"(주문 키 없음 — 클라이언트는 결제창을 열지 않는다), 미보유자는 금액 대조·PayPal 환율 조회·주문 생성보다 먼저 409.
       if (await guardSaleClosedEntry({ env, ctx, userId, product: listedProduct, body, withDb })) {
         ctx.productId = listedProduct.productId;
@@ -1430,7 +1448,7 @@ const ROUTES = {
          상품 가치와 대야 하고, 청구가와 대면 스테이징에서만 검사가 헐거워진다.
          재개 경로가 주문에 기록된 청구가를 되보내는 경우가 있어 그 값도 정답으로 받는다 —
          프로덕션에서는 두 값이 같아 판정이 종전과 완전히 같다. */
-      const chargeKRW = resolveChargeAmountKRW(env, listedProduct.priceKRW);
+      const chargeKRW = businessProduct(listedProduct.productId) ? listedProduct.priceKRW : resolveChargeAmountKRW(env, listedProduct.priceKRW);
       const clientAmount = Number(body.paymentAmount ?? body.amount);
       if (Number.isFinite(clientAmount) && clientAmount > 0
         && Math.floor(clientAmount) !== Number(listedProduct.priceKRW)
@@ -1441,7 +1459,7 @@ const ROUTES = {
         });
       }
       // 주문에 실리는 금액만 청구가다. pricing(화면 표시가)은 아래 응답 조립에서 정가 상품을 그대로 쓴다.
-      const product = withChargeAmount(env, listedProduct);
+      const product = businessProduct(listedProduct.productId) ? listedProduct : withChargeAmount(env, listedProduct);
       const paidResume = await prepareResumeContext(body.paidResume, {
         userId, requestId: body.requestId || "", featureKey: product.featureKey, env,
       });
@@ -1490,6 +1508,13 @@ const ROUTES = {
         // Mongo sessions cannot run concurrent operations. Ordinary checkouts keep the existing overlap.
         const userPromise = moonstoneDiscount ? Promise.resolve(await userRead) : userRead;
         userPromise.catch(() => {}); // 미관측 거부 경고만 막는다 — 실제 처리는 아래 await 가 한다.
+        if (businessProduct(product.productId) && body.resumeOrderId) {
+          const order=await findOrder(db,{orderId:String(body.resumeOrderId)});
+          assertOrderOwner(order,userId);
+          if(order.productId!==product.productId || order.status!=='pending' || order.paymentAmount!==product.priceKRW)
+            throw paymentError('ORDER_NOT_CONFIRMABLE','주문 상태가 변경됐습니다. 내 API 관리에서 새로고침해 주세요.');
+          return {order,user:await userPromise};
+        }
         const bodyProfileId = String(body.profileId || body.selectedProfileId || "");
         // 출생 기반 해금은 "현재 프로필" 폴백을 쓰지 않는다 — 고른 적 없는 사람의 생년월일에 결제가 붙는다.
         const profileId = bodyProfileId || (isBirthScopedProduct(product) ? "" : String((await userPromise)?.destinyProfilesCurrentId || ""));
@@ -1557,9 +1582,9 @@ const ROUTES = {
 
   "POST /orders/:id/confirm": {
     auth: "required",
-    async handle({ request, env, ctx, userId, params, withDb }) {
+    async handle({ request, env, ctx, userId, params, withDb, pgDeps }) {
       ctx.orderId = params.id;
-      const result = await confirmOrder(env, ctx, { orderId: params.id, actorUserId: userId }, { withDb, request });
+      const result = await confirmOrder(env, ctx, { orderId: params.id, actorUserId: userId }, { withDb, request, deps:pgDeps });
       ctx.paymentStatus = "PAID";
       // 결제 확정이 GET /api/auth/me 의 entitlement/points 필드를 바꾼다 — 30초 엣지 캐시를 지운다
       // (근거는 handlePassConfirm 의 같은 주석, worker/lib/credential-scoped-cache.js).
@@ -2065,6 +2090,7 @@ const ROUTES = {
         await confirmOrder(env, ctx, { orderId: accepted.paymentId, systemActor: true }, {
           withDb,
           begun: accepted.begun,
+          deps: pgDeps,
           afterSettle: async (db, settled) => {
             // PAID 인데 지급이 안 된 주문(재생 포함)은 여기서 지급을 마무리한다 — handlePassConfirm 과 같은 규칙.
             if (!settled.granted) await grantOrderEntitlement(db, settled.order);
@@ -2372,12 +2398,14 @@ export async function runPaymentsV2Reconcile(env) {
     }
     // Reserved discounts also need recovery when the buyer never returns or a webhook is lost.
     // Read candidates in a short DB slot; PG lookups never hold the slot or a transaction.
-    const discounted=await withPaymentDb(env,ctx,db=>db.find(Payment,{
-      'metadata.moonstoneDiscountReserved':true,'metadata.moonstoneDiscountReleasedAt':{$exists:false},
-      status:{$in:['pending','failed','cancelled','refunded']},
+    const pendingPgChecks=await withPaymentDb(env,ctx,db=>db.find(Payment,{
+      $or:[
+        {'metadata.moonstoneDiscountReserved':true,'metadata.moonstoneDiscountReleasedAt':{$exists:false},status:{$in:['pending','failed','cancelled','refunded']}},
+        {productId:{$in:businessProducts.map(p=>p.id)},status:'pending'},
+      ],
       createdAt:{$lt:new Date(Date.now()-5*60_000)},
     },{sort:{'metadata.moonstoneDiscountCheckedAt':1,createdAt:1},limit:20}));
-    for (const candidate of discounted) {
+    for (const candidate of pendingPgChecks) {
       try {
         // Rotate uncertain orders too, so a batch of PG 404s cannot starve later orders.
         await withPaymentDb(env,ctx,db=>db.updateOne(Payment,{merchantUid:candidate.merchantUid},
@@ -2386,7 +2414,7 @@ export async function runPaymentsV2Reconcile(env) {
         if(pg?.paymentId!==candidate.merchantUid)continue;
         if(pg.status==='paid')await confirmOrder(env,ctx,{orderId:candidate.merchantUid,systemActor:true},{withDb:withPaymentDb,deps:{fetchPayment:async()=>pg}});
         else if(['failed','cancelled'].includes(pg.status))await withPaymentDb(env,ctx,db=>applyNonPaidPgEvent(db,{
-          orderId:candidate.merchantUid,eventType:pg.status==='failed'?'transaction.failed':'transaction.cancelled',
+          orderId:candidate.merchantUid,eventType:pg.status==='failed'?'transaction.failed':'transaction.cancelled',pgStatus:pg.rawV2?.status,
         }));
       } catch { /* Uncertain PG status keeps the reservation. The next scheduled sweep can recover it. */ }
     }

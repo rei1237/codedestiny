@@ -109,7 +109,7 @@ export function assertPgConfigured(env) {
  *   네 가지 대조는 결제 정확성의 핵심이라 **실제 PG 를 부르지 않고** 전부 검증할 수 있어야 한다.
  * @returns {Promise<{ pgTransactionId: string, paidAt: Date|null, method: string, summary: object }>}
  */
-export async function verifyPgPayment(env, { orderId, expectedAmountKRW, paypalCharge = null }, deps = {}) {
+export async function verifyPgPayment(env, { orderId, expectedAmountKRW, paypalCharge = null, businessCurrency }, deps = {}) {
   const config = assertPgConfigured(env);
   const fetchPayment = deps.fetchPayment || fetchPortOnePayment;
 
@@ -117,6 +117,9 @@ export async function verifyPgPayment(env, { orderId, expectedAmountKRW, paypalC
   try {
     pg = await fetchPayment(env, orderId);
   } catch (error) {
+    if (businessCurrency === 'KRW' && (error?.status === 404 || error?.code === 'PAYMENT_NOT_FOUND')) {
+      throw paymentError('PG_PAYMENT_NOT_PAID', '기존 주문의 결제창을 다시 열 수 있습니다.', { orderId });
+    }
     if (isPgUnreachable(error)) {
       // 우리도 사용자도 잘못한 게 없다. 유일하게 정당한 503 중 하나.
       throw paymentError("PG_UNAVAILABLE", "결제사 응답이 지연되고 있습니다. 잠시 후 다시 시도해 주세요.", {
@@ -128,7 +131,9 @@ export async function verifyPgPayment(env, { orderId, expectedAmountKRW, paypalC
   }
 
   // ① 우리가 물어본 주문에 대한 답이 맞는가. PG 가 다른 결제를 돌려주면 그 위의 모든 대조가 무의미하다.
-  if (String(pg.paymentId || "") !== String(orderId)) {
+  const businessOrder = businessCurrency !== undefined;
+  const reportedId = businessOrder && pg.rawV2 ? pg.rawV2.paymentId || pg.rawV2.id : pg.paymentId;
+  if (String(reportedId || "") !== String(orderId)) {
     throw paymentError("PAYMENT_ID_MISMATCH", "결제 정보가 주문과 일치하지 않습니다.", {
       orderId,
       pgPaymentId: String(pg.paymentId || ""),
@@ -153,7 +158,8 @@ export async function verifyPgPayment(env, { orderId, expectedAmountKRW, paypalC
   //    PortOne V2 공식 검증 예시는 `amount.total` 이다(developers.portone.io v2 checkout, 2026-09-23 확인).
   //    정규화된 pg.amount 는 amount.paid 를 먼저 읽어 PG 즉시할인이 붙으면 정상 결제가 불일치로 떨어진다.
   const expected = Math.floor(Number(paypalCharge?.totalAmount ?? expectedAmountKRW) || 0);
-  const actual = Math.floor(Number(extractTotalAmount(pg)) || 0);
+  const pgAmount = Number(extractTotalAmount(pg));
+  const actual = businessOrder ? pgAmount : Math.floor(pgAmount || 0);
   if (expected <= 0 || actual !== expected) {
     throw paymentError("AMOUNT_MISMATCH", "결제 금액이 주문 금액과 다릅니다.", {
       orderId,
@@ -163,7 +169,8 @@ export async function verifyPgPayment(env, { orderId, expectedAmountKRW, paypalC
   }
 
   // ④ 통화. 원화 상품에 외화 결제가 붙는 것을 막는다.
-  if (String(pg.currency || "").toUpperCase() !== (paypalCharge ? "USD" : "KRW")) {
+  const expectedCurrency = paypalCharge ? "USD" : "KRW";
+  if ((businessOrder && businessCurrency !== expectedCurrency) || String(pg.currency || "").toUpperCase() !== expectedCurrency) {
     throw paymentError("CURRENCY_MISMATCH", "결제 통화가 올바르지 않습니다.", {
       orderId,
       currency: String(pg.currency || ""),
@@ -199,6 +206,10 @@ export async function verifyPgPayment(env, { orderId, expectedAmountKRW, paypalC
     storeIdCheck: pgStoreId ? "matched" : "absent",
     channelCheck: pgChannelKey ? "matched" : "absent",
   };
+  if (businessOrder && pg.rawV2) {
+    const approvedAt = pg.rawV2.paidAt || pg.rawV2.transaction?.paidAt;
+    summary.paidAt = approvedAt ? new Date(approvedAt) : null;
+  }
   return {
     pgTransactionId: summary.paymentId,
     paidAt: summary.paidAt,
