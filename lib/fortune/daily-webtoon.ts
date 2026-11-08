@@ -9,6 +9,7 @@
 import type { WebtoonCut, WebtoonLine } from "@/app/components/webtoon/CutReader";
 import { dailyTarotReading } from "@/lib/tarot/yeongnyangi-daily-card";
 import type { DailySignEntry } from "./daily-data";
+import { koreanDailyText } from "./daily-copy";
 import { branchOfAnimal, dayBranchOf, dayStemOf, elementOfStem, ganjiKo, hanjaKo, sunSignIdOf, type DayRelation } from "./day-relation";
 import type { ScoreAxis } from "./fortune-score";
 import { getSignProfile, zodiacNameKoFromEn, type SignProfile } from "./sign-profiles";
@@ -188,10 +189,10 @@ function skyLine(input: DailyWebtoonInput, dayWord: string): WebtoonLine {
 function tarotLines(input: DailyWebtoonInput, dayWord: string): WebtoonLine[] {
   const card = dailyTarotReading(input.dateKey, `fortune-sign:${input.profile.id}`);
   // 카드 풀이는 "오늘은 …"으로 쓰여 있다. 내일 페이지에서는 그 날을 가리키도록 맞춘다.
-  const reading = input.period === "tomorrow" ? card.reading.replace(/^오늘/, "내일") : card.reading;
+  const reading = koreanDailyText(card.reading, input.period);
   return [
     say("연이", `${input.profile.nameKo}에게 펼쳐진 ${dayWord}의 카드는 「${card.cardName}」 ${card.orientationLabel}이에요.`, reading),
-    { speaker: "", text: `카드의 조언 — ${card.advice}` },
+    { speaker: "", text: `카드의 조언 — ${koreanDailyText(card.advice, input.period)}` },
   ];
 }
 
@@ -202,18 +203,18 @@ function boardLine(input: DailyWebtoonInput): WebtoonLine {
   const tally = AXES.map(([key, , short]) => `${short} ${score[key]}`).join(" · ");
   const head = `${tally}. 총운은 ${score.overall}점입니다.`;
   if (score[top[0]] === score[low[0]]) {
-    return say("무성", head, `네 갈래가 고르게 ${score[top[0]]}점이라, 어느 한쪽으로 몰지 않는 편이 좋습니다.`, firstSentence(entry.sections.overall?.kr || ""));
+    return say("무성", head, `네 갈래가 고르게 ${score[top[0]]}점이라, 어느 한쪽으로 몰지 않는 편이 좋습니다.`, koreanDailyText(firstSentence(entry.sections.overall?.kr || ""), input.period));
   }
   // 애정운 문장은 서한비 컷이 인용하므로, 애정운이 가장 높으면 가장 낮은 갈래를 짚는다.
   const quoted = top[0] === "love"
-    ? `${josa(low[1], "은", "는")} 이렇게 챙기세요 — ${firstSentence(entry.sections[low[0]]?.kr || "")}`
-    : `${josa(top[1], "은", "는")} 이렇게 읽힙니다 — ${firstSentence(entry.sections[top[0]]?.kr || "")}`;
+    ? `${josa(low[1], "은", "는")} 이렇게 챙기세요 — ${koreanDailyText(firstSentence(entry.sections[low[0]]?.kr || ""), input.period)}`
+    : `${josa(top[1], "은", "는")} 이렇게 읽힙니다 — ${koreanDailyText(firstSentence(entry.sections[top[0]]?.kr || ""), input.period)}`;
   return say("무성", head, `가장 높은 갈래는 ${top[1]}, 가장 아껴 써야 할 갈래는 ${low[1]}입니다.`, quoted);
 }
 
 function heartLine(input: DailyWebtoonInput): WebtoonLine {
   const { entry } = input;
-  const love = firstSentence(entry.sections.love?.kr || "");
+  const love = koreanDailyText(firstSentence(entry.sections.love?.kr || ""), input.period);
   return say(
     "서한비",
     love && `마음 쪽은 이렇게 보여요. ${love}`,
@@ -246,7 +247,7 @@ export function buildDailyWebtoon(input: DailyWebtoonInput): DailyWebtoon {
   const offset = ((dayIndex(dateKey) % middle.length) + middle.length) % middle.length;
   const rotated = [...middle.slice(offset), ...middle.slice(0, offset)];
 
-  const advice = stripSpeakerLabel(entry.sections.advice?.kr || "");
+  const advice = koreanDailyText(stripSpeakerLabel(entry.sections.advice?.kr || ""), period);
   return {
     heading: `${name} ${dayWord}의 운세 웹툰`,
     lead: "사주·별·타로·숫자판·마음, 다섯 갈래 운세가 한 컷씩 말을 걸고 마지막에 연이가 하나로 묶어 드려요.",

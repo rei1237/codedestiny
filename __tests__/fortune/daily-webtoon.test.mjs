@@ -6,7 +6,8 @@ import { loadTsModule } from '../../scripts/lib/load-ts-module.mjs';
 
 const { buildDailyWebtoon, firstSentence } = loadTsModule('lib/fortune/daily-webtoon.ts');
 const { resolveSlotArt, DAILY_WEBTOON_SLOTS } = loadTsModule('lib/fortune/daily-webtoon-slots.ts');
-const { getSignProfile } = loadTsModule('lib/fortune/sign-profiles.ts');
+const { getSignProfile, SIGN_PROFILES } = loadTsModule('lib/fortune/sign-profiles.ts');
+const { koreanDailyText } = loadTsModule('lib/fortune/daily-copy.ts');
 const { animalDayRelation, zodiacDayRelation } = loadTsModule('lib/fortune/day-relation.ts');
 const { computeSignScore } = loadTsModule('lib/fortune/fortune-score.ts');
 const { dailyTarotReading } = loadTsModule('lib/tarot/yeongnyangi-daily-card.ts');
@@ -108,6 +109,27 @@ test('missing relation or element basis still yields seven cuts', () => {
 test('tomorrow speaks of 내일', () => {
   const toon = buildDailyWebtoon(input('rat', '2026-11-09', '丁亥', 'tomorrow'));
   assert.match(text(toon.cuts[0]), /내일/);
+});
+
+test('tomorrow quotes target-day copy in every sign without changing source calculations', () => {
+  for (const profile of SIGN_PROFILES) {
+    const vm = input(profile.id, '2026-11-09', '丁亥', 'tomorrow');
+    // Each quoted branch gets a relative-day phrase, including interior occurrences.
+    vm.entry = structuredClone(ENTRY);
+    for (const section of Object.values(vm.entry.sections)) section.kr = '오늘은 준비를 확인해요. 잠시 쉬고 오늘의 약속도 살펴요.';
+    const before = structuredClone(vm);
+    const toon = buildDailyWebtoon(vm);
+    assert.doesNotMatch(toon.cuts.map(text).join(' '), /오늘/, profile.id);
+    assert.match(text(toon.cuts.at(-1)), /내일/);
+    assert.deepEqual(vm, before, `${profile.id}: input package or calculation changed`);
+  }
+});
+
+test('daily copy changes only the tomorrow quote, preserving the other periods', () => {
+  const original = '오늘은 한 가지를 골라요. 오늘의 약속을 확인해요.';
+  assert.equal(koreanDailyText(original, 'tomorrow'), '내일은 한 가지를 골라요. 내일의 약속을 확인해요.');
+  for (const period of ['today', 'weekly', 'monthly']) assert.equal(koreanDailyText(original, period), original);
+  assert.equal(koreanDailyText('', 'tomorrow'), '');
 });
 
 test('the same sign looks different across days', () => {

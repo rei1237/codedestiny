@@ -20,6 +20,7 @@ import type { SignViewModel } from "@/lib/fortune/build-view";
 import { PERIOD_LABEL, PERIOD_TITLE, type FortunePeriodId } from "@/lib/fortune/periods";
 import { getSignProfile, getSiblingProfiles, type SignProfile } from "@/lib/fortune/sign-profiles";
 import { getPeriodReading } from "@/lib/fortune/period-readings";
+import { koreanDailyText } from "@/lib/fortune/daily-copy";
 import { buildPeriodFaqs } from "@/lib/fortune/period-faqs";
 import { markerAttrs } from "@/lib/fortune/i18n-marker";
 import { fortuneLocaleSegment, FORTUNE_COPY, getLocalizedPeriodReading, langBoxText, getLocalizedProfile, periodLabel as localizedPeriodLabel, sajuInsightText, type FortuneLocale } from "@/lib/fortune/localization";
@@ -119,6 +120,7 @@ function localizeViewModel(source: SignViewModel, locale: FortuneLocale): SignVi
 export default function SignFortuneView({ vm: sourceVm, locale = "ko" }: { vm: SignViewModel; locale?: FortuneLocale }) {
   const vm = localizeViewModel(sourceVm, locale);
   const { profile, entry, period, score } = vm;
+  const dailyText = (text: string) => locale === "ko" ? koreanDailyText(text, period) : text;
   const copy = FORTUNE_COPY[locale];
   const tomorrowCopy = tomorrowReadingCopy[locale];
   const preparationDetails = locale === "ko" && period === "tomorrow"
@@ -374,7 +376,7 @@ export default function SignFortuneView({ vm: sourceVm, locale = "ko" }: { vm: S
             {SCORE_AXES.map((axis) => (
               <article key={axis.key} className={`p-5 ${CARD}`}>
                 <h3 className={`text-sm font-extrabold ${ACCENT}`}>{axisLabel(axis.key, locale)}</h3>
-                <p className={`mt-2 break-keep text-sm leading-7 ${MUTED}`}>{entry.sections[axis.section].kr}</p>
+                <p className={`mt-2 break-keep text-sm leading-7 ${MUTED}`}>{dailyText(entry.sections[axis.section].kr)}</p>
               </article>
             ))}
           </div>
@@ -400,15 +402,15 @@ export default function SignFortuneView({ vm: sourceVm, locale = "ko" }: { vm: S
           <div className="mt-5 flex items-end gap-3">
             <YeoniPortrait mood="cheer" size={64} />
             <div className="min-w-0 flex-1">
-              <p className="break-keep text-sm leading-7">{entry.sections.advice.kr}</p>
+              <p className="break-keep text-sm leading-7">{dailyText(entry.sections.advice.kr)}</p>
               <p className={`mt-2 text-xs font-bold ${ACCENT}`}>{locale === "ko" ? "— 연이" : "— Yeoni"}</p>
             </div>
           </div>
           {entry.planet_message?.kr && (
-            <p className={`mt-3 break-keep text-sm leading-7 ${MUTED}`}>{entry.planet_message.kr}</p>
+            <p className={`mt-3 break-keep text-sm leading-7 ${MUTED}`}>{dailyText(entry.planet_message.kr)}</p>
           )}
           {entry.saju_insight && (
-            <p className={`mt-3 break-keep text-sm leading-7 ${MUTED}`}>{entry.saju_insight}</p>
+            <p className={`mt-3 break-keep text-sm leading-7 ${MUTED}`}>{dailyText(entry.saju_insight)}</p>
           )}
         </section>
 
