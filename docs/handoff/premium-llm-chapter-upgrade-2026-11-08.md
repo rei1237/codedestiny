@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-08
-next: 6c-3 — 사주 AI(fortune.js) 2판 구현(분석·설계는 아래 6c-3 항목에 있음, TDD로 하네스부터). 그다음 6c-4~6c-7, 끝나면 6d
+next: 6c-4 — pet-saju-ai(공용 paid-narrative-delivery.js) 202 멈춤 수정(공용 엔진 사용처를 먼저 grep, 동작 변경은 옵션으로 pet에만). 그다음 6c-5~6c-7, 끝나면 6d
 ---
 
 # 3만원 이상 유료 LLM — 상품별 챕터·분량·PDF·전달 개선 인수인계
@@ -189,7 +189,7 @@ next: 6c-3 — 사주 AI(fortune.js) 2판 구현(분석·설계는 아래 6c-3 �
       - 세 번째 시도(`attempts>=2`)는 `finalAttempt`다. 확정 표현 문장만 지우고, 모르는 근거 ID는 거르고, 짧아도 받는다. 세 칸이 모두 비었을 때만 거절한다.
       - 실패 물결은 503 대신 202를 돌려 클라이언트가 이어 간다. 장이 3번 다 실패하면 그 장만 `metadata.skippedChapters`에 넣고 다음 장으로 간다. 비운 장이 3개가 되면 있는 장으로 완료한다.
       - 환불은 저장된 장이 0개일 때만이다. 모든 장이 끝났는데 완료 저장만 실패하면 닫지 않고 시도를 0으로 되돌린다(1시간 timeout과 cron이 뒤를 받는다).
-  - [ ] 6c-3. 사주 AI(fortune.js) P1을 고친다. qualityRepair가 attempts를 되돌리게 하고, 소진 시 최선의 글로 배달하며, 유효 그룹이 있으면 환불하지 않는다. 테스트 하네스의 names·constants 등록을 잊지 않는다.
+  - [x] 6c-3. 사주 AI(fortune.js) P1을 고친다. qualityRepair가 attempts를 되돌리게 하고, 소진 시 최선의 글로 배달하며, 유효 그룹이 있으면 환불하지 않는다. 테스트 하네스의 names·constants 등록을 잊지 않는다.
     - 분석만 끝났다(2026-11-08, 코드 수정 없음). 위치는 `worker/routes/fortune.js` 기준이다.
       - `handleSajuAIPrompt` runGeneration(약 5031~5302행): sections는 `existingExecution.result.sections`에서 읽는다. `next = sections.find(!valid && attempts<2)`. 물결이 끝나도 무효인 그룹은 5096행 근처에서 `LLM_GENERATION_RETRYABLE`로 throw한다. usableGroups < total이면 5100~5103행에서 202 partial을 돌려준다. **next가 없는데 무효 그룹이 남으면 이 202가 끝없이 반복된다(멈춤 원인).**
       - 조립 글은 `validateSajuAIResultText`로 검사한다. 실패하면(5135~5150행) `life_domains` 섹션을 valid=false, qualityRepair=true로 두지만 **attempts를 되돌리지 않고** throw한다. 그래서 attempts가 이미 2면 next로 뽑히지 않아 위 루프로 빠진다.
@@ -202,6 +202,15 @@ next: 6c-3 — 사주 AI(fortune.js) 2판 구현(분석·설계는 아래 6c-3 �
       4. 수리 예산을 다 쓴 뒤 최종 검사가 실패하면 다듬은 조립 글을 품질 경고와 함께 배달한다.
       5. catch는 글이 있는 섹션이 하나도 없을 때만 환불한다.
     - 테스트 함정: `__tests__/worker/saju-paid-delivery-recovery.test.js`(363행)는 TS AST로 fortune.js에서 이름 붙은 함수·상수를 뽑아 쓴다. 새 헬퍼·상수는 그 파일의 `names`/`constants` 집합에 꼭 넣는다. 하네스의 post는 env로 `{}`를 넘기므로 2판 기본 켜짐이면 1판 기대 테스트("short output never becomes completed" 503·generation_failed, 거절 테스트의 첫 post 503·attempts 1)가 바뀐다. 1판 기록(판 필드 없음)으로 두면 그대로 통과해야 한다. 판은 기록에 고정하므로 기존 테스트 fixture는 1판으로 남고, 2판 테스트는 fixture에 `deliveryPlanVersion:2`를 넣어 만든다.
+    - 결과(2026-11-08): `c09a16ca5` 배달 2판(`result.deliveryPlanVersion=2`, 새 기록만, 끄는 스위치 `SAJU_AI_DELIVERY_V2_ENABLED=false`).
+      - 판 판정: `beginSajuAIConsultationGeneratingRecord`가 `!existingExecution && sajuAIDeliveryV2Enabled(env)`일 때만 판을 넣고, runGeneration은 `existingExecution ? isSajuAIDeliveryV2(result) : 스위치`로 같은 판정을 한다.
+      - 2판은 무효 묶음에서 던지지 않는다. 시도(<2)가 남은 무효 묶음이 있으면 202 partial, 없으면(소진) `assembleSajuAIBestEffortText`로 글이 있는 묶음만 조립해 배달한다. 무효 묶음은 `text || draft`를 `dropSajuAIUnsupportedSentences`로 다듬는다.
+      - 쓰지 못한 초안은 2판에서만 `section.draft`(가장 긴 것)로 남기고, 쓸 수 있는 글이 오면 지운다.
+      - 장 사이 품질 실패(모든 묶음 유효)는 life_domains를 attempts 0·qualityRepair로 되돌리고 202. 카운터는 설계의 `result.qualityRepairs` 대신 **그 섹션 행의 `qualityRepairs`**에 둔다(체크포인트가 sections만 저장하므로). 1회 뒤나 소진 상태에서 최종 검사가 실패하면 다듬은 글을 `resultPayload.qualityWarning`(검증 사유)과 함께 배달한다.
+      - catch 환불은 `refundOnFailure && !(2판 && 글 있는 섹션 존재)`다. 기존 2-스트라이크는 그대로라 빈 글 소진은 첫 실패 보존, 다음 요청에서 환불한다.
+      - 테스트: 하네스가 env를 받게 했다(기본 `V1_ENV={SAJU_AI_DELIVERY_V2_ENABLED:"false"}`라 기존 1판 테스트 본문은 그대로). names에 새 헬퍼 4개, constants에 `SAJU_AI_DELIVERY_PLAN_VERSION`을 넣었다. 2판 테스트 8개: 판 고정·스위치·1판 기록 유지, 1·2판 프롬프트 sha256 동일, 무효 묶음 202, 한 묶음 끝내 무효 → 나머지 계속·최선 글 배달·무환불(호출 6회), 전부 짧음 → 초안 배달(호출 10회), 빈 글 → 2번째 실패에만 환불, 품질 실패 → 1회 리셋 후 경고와 배달(호출 7회), 1판 품질 실패는 여전히 503.
+      - 검증: saju-*·fortune.*·환불·상태 관련 jest 1,279개 통과, `npx tsc --noEmit` 통과. 실호출·운영 DB 없음.
+      - 남은 위험: 전부 짧거나 구조가 깨진 초안도 소진되면 그대로 배달된다(사용자 지시 "분량 부족으로 전달 실패 없음" 우선). 결과 화면이 `qualityWarning`을 쓰지는 않는다(로그·저장용). 1판 기록의 202 무한 반복은 1판이라 그대로다.
   - [ ] 6c-4. pet-saju-ai(공용 `paid-narrative-delivery.js`)의 202 멈춤을 고친다. 공용 엔진을 쓰는 다른 서비스를 먼저 grep하고, 동작이 바뀌면 옵션으로 pet에만 켠다.
   - [ ] 6c-5. sibyl / sibyl-annual: 장 단위 재시도와 분량 경고화.
   - [ ] 6c-6. ziwei-island-ai 옛 기록: 코드로 `llmMeta.parts` 구제 경로만 넣는다. 운영 DB 조회는 사용자 승인 대기다.
