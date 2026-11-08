@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-08
-next: 3단계 인생의 책 / 인생 총운(윤달) — 1·2단계 패턴(구성 버전 분기·장 메타·공용 조판 PDF·보관함 PDF)을 적용
+next: 4단계 운명의 업 — 1~3단계 패턴(구성 버전 분기·장 관점·1장 공감·질문 1회 인용·공용 조판 PDF·보관함 PDF)을 적용하고 실호출 샘플 1회
 ---
 
 # 3만원 이상 유료 LLM — 상품별 챕터·분량·PDF·전달 개선 인수인계
@@ -29,8 +29,8 @@ next: 3단계 인생의 책 / 인생 총운(윤달) — 1·2단계 패턴(구성
 - 메일·카카오 발송은 범위 밖이다.
 - 실호출 샘플 승인(2026-11-08): 사용자 원문은 "llm 샘플 생성 허가한다"이다. 범위는 이 프로젝트에서 상품마다 실호출 샘플 1회이고, 그 이상은 하지 않는다. 이후 단계는 다시 묻지 않고 상품마다 1회를 돌린다.
 - 사용자 결정 대기
-  - 개발 서버 정리: 포트 3917 dev 서버(PID 22212)를 끝내도 되는지 허락을 기다린다. 허락 전에는 임시 워크트리에서 빌드한다.
-  - 네오 문구: `NEO_NEW_YEAR_PERSONA_KO`의 "사자 장군 '네오'" 문구를 어떻게 할지 결정을 기다린다(F8). 결정 전에는 수정하지 않는다.
+  - 개발 서버 정리: 사용자가 2026-11-08 종료를 허락했고, coordinator가 3917 dev 서버(PID 22212/45252)를 껐다. 이제 이 워크트리에서 빌드해도 된다.
+  - 네오 문구(F8): 사용자 2026-11-08 결정 "네오 사자 장군 표현 없애". 33a650891에서 "장군 네오"로 바꿨다.
 
 ## 작업 규칙과 함정
 - 분량은 목표일 뿐이고 전달 하한(MIN)은 올리지 않는다. 짧으면 한 번 수리하고 그대로 전달한다(`docs/context/ai-and-db.md`의 LLM 안전 규칙).
@@ -47,7 +47,7 @@ next: 3단계 인생의 책 / 인생 총운(윤달) — 1·2단계 패턴(구성
 - [x] 0. 준비: 워크트리를 만들고 설계 문서와 이 문서를 커밋했다.
 - [x] 1. 연애 비책 (연이·서한비) + 공용 글자형 PDF 모듈 + 보관함 PDF
 - [x] 2. 신년운세 (네오)
-- [ ] 3. 인생의 책 / 인생 총운 (윤달)
+- [x] 3. 인생의 책 / 인생 총운 (윤달)
 - [ ] 4. 운명의 업
 - [ ] 5. 마스터 인연의 서 (+궁합)
 - [ ] 6. 초융합 운세
@@ -78,7 +78,11 @@ next: 3단계 인생의 책 / 인생 총운(윤달) — 1·2단계 패턴(구성
   - `app/records/view/SavedLovePdfButton.tsx`
   - `app/records/view/SavedNewYearPdfButton.tsx`
   - `app/records/view/SavedLifeBookPdfButton.tsx`
-- [ ] F8. `NEO_NEW_YEAR_PERSONA_KO`의 "사자 장군 '네오'" 문구가 사용자 메모 "네오는 인간"과 어긋난다. 사용자 결정을 기다리며, 결정 전에는 수정하지 않는다. 파일은 `worker/lib/expert-character-persona-text.js`다.
+- [x] F8. 사용자 2026-11-08: 네오 사자 장군 표현 없애. 33a650891에서 처리했다(`worker/lib/expert-character-persona-text.js` NEO_NEW_YEAR, `neo-operation-room-prompt.js` 7곳 → "장군 네오"). 팩폭 작전실의 "사자 휘장" 배지 문구는 남아 있으니 11단계에서 검토한다.
+- [ ] F9. 인생의 책·인생 총운 실호출 장 분량이 V2 목표보다 훨씬 짧다(인생의 책 장 1,351~2,439자, 목표 3,000~3,400·minChars 2,000 / 인생 총운 장 1,183~1,935자, 목표 3,200~3,500·minChars 2,400). 총량 MIN 20,000은 넘어 acceptUsableDrafts로 전달되었다. 프롬프트 분량 지시·목표·모델(gemini-2.5-flash)을 조정할지 정한다. `worker/routes/life-book-ai.js`
+- [ ] F10. 인생 총운 1장 summary가 "이 장에서는 …짚어보며" 같은 메타 서술이다. 1장 summary를 공감 문장으로 열게 프롬프트를 다듬는다. `worker/routes/life-book-ai.js`
+- [ ] F11. 인생의 책 뒤 장(5·6·8장)이 "~라고 하셨지요"로 질문을 다시 풀어 쓴다. 원문 인용은 1장 한 번뿐이라 게이트는 통과하지만, 재인용 금지 지시를 더 분명히 한다. 문장 단위 기계 삭제는 답 문장까지 지워 되돌렸다. `worker/routes/life-book-ai.js`
+- [ ] F12. 인생의 책 결과 화면 360px 확인을 하지 않았다(dev 서버가 500을 내던 때). `app/life-book-ai/result/LifeBookAiResultClient.tsx`
 
 ## 1단계 진행 메모 (완료, 결과는 아래 단계별 결과)
 첫 에이전트가 조사 중 컨텍스트가 압축되어 결정만 적고 돌아왔다. 코드 파일은 아직 하나도 바꾸지 않았다. 아래 결정대로 바로 구현한다.
@@ -164,7 +168,7 @@ next: 3단계 인생의 책 / 인생 총운(윤달) — 1·2단계 패턴(구성
 ### 진행
 - 완료. 커밋과 검증은 아래 "2단계 신년운세" 결과에 있다.
 
-## 3단계 진행 메모 (진행 중)
+## 3단계 진행 메모 (완료, 결과는 아래 단계별 결과)
 
 ### 조사로 확인한 사실
 - 두 SKU(`life-book-ai-consultation`, `life-fortune-ai-consultation`)는 모두 `worker/routes/life-book-ai.js`에 있다.
@@ -254,3 +258,22 @@ next: 3단계 인생의 책 / 인생 총운(윤달) — 1·2단계 패턴(구성
   - 가정: 차례·번호 장·열두 달 장 배치는 옛(V1) 세션에도 적용된다. 본문 글자는 바뀌지 않는다
   - SEO·상세 문구는 바꾸지 않았다(signature-detail-chapters 통과)
   - ziwei-result-disclosure의 보존 해시 허용 목록에 `DomainConsultationCards`를 넣었다(의도한 표현 변경)
+
+### 3단계 인생의 책 / 인생 총운 — 완료 (2026-11-08)
+- 커밋(이 순서)
+  - `ec9ddff77`: 조사·설계 진행 메모
+  - `423424e4f`: 워커 V2 계획(`planVersion: 2`, 장·판독별 perspective, 1장 questionOwner·공감 장면 guide), V2 프롬프트 줄(관점·상투구 금지·여닫는 문장 바꾸기·질문 1장 1회 인용), 목표 분량 인생의 책 3,000/1장 3,400·인생 총운 3,200/1장 3,500, MAX_TOTAL 38,000(MIN 그대로), V2 조립의 반복 문장 제거(실패해도 전달). 옛 세션은 저장된 V1 plan이라 프롬프트 바이트 그대로
+  - `429c9ca41`: 승인 원문·후속 과제 F1~F8(문서)
+  - `96282eecc`: 결과 화면 윤달 칩·장 kicker(두 SKU 장 제목 맵)·1장 강조, `app/life-book-ai/result/life-book-pdf-chapters.ts`(`buildLifeBookPdfChapters`)로 공용 조판 PDF(PdfFontError 때만 캡처), 보관함 'book' 분기에 `app/records/view/SavedLifeBookPdfButton.tsx`
+  - `d78175aac`: 실측 수정. 근거 경로 `yearlyLuck[0].pillar`처럼 배열 첨자가 붙으면 루트를 `yearlyLuck[0]`로 읽어 정본 루트 검사에 떨어지던 기존 버그(V2 이전부터)를 고쳤다. PDF 빌더가 `### 소제목` 줄도 ● 소제목으로 바꾼다
+- 검증(실제 출력)
+  - jest `__tests__/worker/life-book-ai.sections.test.js`: 32/32
+  - `node --test` life-book-pdf-chapters 4/4. 앞서 life-book UI·paid-delivery·wake-recovery 묶음 64/64, paid-llm-sequential 6/6, node UI 묶음 102/102
+  - `node scripts/verify-life-book-ai-flow.mjs`: PASS. `scripts/verify-llm-generation-resilience.mjs`: exit 0. verify-ai-locale-pipeline ok
+  - `npx tsc --noEmit`: exit 0(d78175aac 뒤 다시 실행). 바꾼 파일 eslint 오류 0
+  - `npm run build`: exit 0(✓ Compiled successfully in 4.1min, Generating static pages 1894/1894). 같은 시각 3917 dev 서버가 살아 있어 96282eecc의 임시 워크트리(`../lb-build-tmp`)에서 빌드하고 `npm run worktree:remove -- ../lb-build-tmp --force`로 지웠다. d78175aac(워커 근거 루트 한 줄·PDF 빌더 정규식)는 그 뒤 커밋이라 빌드에 들어 있지 않다. tsc는 d78175aac 뒤 exit 0
+- 실호출 샘플(사용자 승인 2026-11-08 "llm 샘플 생성 허가한다", 상품마다 1회, gemini-2.5-flash, plan V2). 저장소 밖 스크래치 하네스로 handleStart 파도 루프를 그대로 돌렸다(DB·캐시 없음)
+  - 인생의 책: status completed, 15요청·137초, 총 22,449자(MIN 20,000), hasRepeatedReportPassage false. 1장은 성향("타인과 관계 맺으며 성장하는 기질")→공감 장면→己토 일간·겁재 순으로 열린다. 질문 원문은 1장에서 따옴표로 1회 인용
+  - 인생 총운: 실호출은 **failed**(chapter_9_evidence_refs_missing, chapter_9_content_too_short, expert_reading_4_evidence_refs_missing). 18요청·176초. 원인은 위 배열 첨자 근거 경로 버그. d78175aac 뒤 같은 출력을 오프라인 재조립·게이트에 넣으면 issues [], 총 22,932자, 반복 false, 9장 valid. 승인 범위(1회)라 두 번째 실호출은 하지 않았다. 질문 원문 인용은 1장 1회
+  - 두 SKU 모두 장 분량이 목표보다 짧다(F9)
+- 남은 일·후속: F9~F12. 보관함 PDF 라벨 한국어 고정·글꼴 실패 캡처 없음은 F3·F7과 같다. SEO에 보이는 문구는 바꾸지 않았다
