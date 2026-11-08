@@ -44,7 +44,7 @@
 | MBTI 동물 궁합 | 관상 & 심볼 컬렉션 | `openMbtiModal` | 무료 (레지스트리 미등록) | 모달이 홈 안에 존재 | hidden modal | 필요 시 모달 열기 |
 | 애니멀 토템 | 관상 & 심볼 컬렉션 | `openAnimalTotemModal`, `/services/animal-totem` | 3,000원~6,000원 | 카드가 많은 컬렉션에 묻힘 | lazy script 필요 | 심볼 chip 후 카드 노출 |
 | 사주 가디언 소환진 | 관상 & 심볼 컬렉션 | `/saju-guardian`, `openSajuGuardianPage` | 영구 해금 10,000원 | 기능 성격 설명이 길어짐 | Next route bundle | 카드 CTA만 유지 |
-| 운명의 알 / 다마고치 | 관상 & 심볼 컬렉션 | `/tadagochi`, `openDestinyEggPage` | 무료 (레지스트리 미등록) | 작은 게임성 기능이 묻힘 | 별도 route/asset | 심볼 컬렉션 내부 유지 |
+| 운명의 알 / 다마고치 | 관상 & 심볼 컬렉션 | `/ggulggul/#dpMasterCard`, `openDestinyEggPage` (옛 /tadagochi 는 2026-11-08 삭제, 워커 301) | 무료 (레지스트리 미등록) | 작은 게임성 기능이 묻힘 | 별도 route/asset | 심볼 컬렉션 내부 유지 |
 | 포춘텔러 물고기 | 관상 & 심볼 컬렉션 | `/fortune-teller-fish.html` | 1회 500원 | 정적 HTML 진입이 혼재 | static HTML asset | 카드 preview 후 이동 |
 | AI 손금 | 관상 & 심볼 컬렉션 | `/palm-reading`, `/services/palm-reading` | 기본 진입 무료, 세부 분석 30~50스톤, AI 상담 50스톤 | 홈에서 직접 CTA 없음 | 이미지 업로드/AI 분석 route | 심볼 컬렉션 내부 유지, 결과/결제는 route에서 처리 |
 | 네빌 명상 실습 | 명상 컬렉션 | `/neville-meditation.html` | 30분 3,000원, 60분 5,000원 | 명상 기능이 타로 사이에 묻힘 | static HTML | 명상 chip으로 별도 묶음 |

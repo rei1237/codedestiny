@@ -1,3 +1,9 @@
+---
+status: active
+updated: 2026-11-08
+next: "main 반영 완료(70eaf737b). 운영 승격 뒤 301 매핑표 몇 개를 운영에서 확인한다(daily-webtoon-release-2026-11-08.md 3단계가 맡음)"
+---
+
 # 레거시 페이지·코드 정리 인수인계 (2026-11-08)
 
 - 워크트리: `D:\Development\codedestiny-worktrees\legacy-cleanup-20261108-034220`

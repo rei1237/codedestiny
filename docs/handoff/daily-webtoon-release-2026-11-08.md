@@ -1,5 +1,5 @@
 ---
-status: in-progress
+status: active
 updated: 2026-11-08
 next: "2단계 후속: main PR CI Static guards 실패(verify:saju-summary-browser, 홈 무료 사주 카드 not visible)를 고쳐 push → CI 통과 확인 → 3단계 운영 승격 → 4단계 Play → 5단계 정리"
 ---
@@ -97,6 +97,8 @@ next: "2단계 후속: main PR CI Static guards 실패(verify:saju-summary-brows
 
   - **원인 확인·수정(e6d966fb4)**: 가리는 요소는 `styles/yehwa-home.css`의 `@media(max-width:699px){#cdHomeFunnel :is(.cdh-free,.cdh-all-cta){display:none}}`다. android 브랜치 6e44d94eb·d6924ef65가 모바일 첫 줄에 일곱 입구(.yh-entries, 사주 포함 같은 `data-action="cdOneStepFreeSajuEntry"`)를 두고 중복인 '무료로 먼저' 격자를 **일부러** 숨겼다(사용자 요청 작업). 제품을 되돌리지 않고, 검사 4개(saju-summary-browser·saju-result-login·relationship-inline-browser·fortune-consultation-ux)가 같은 action의 입구 중 **화면에 보이는 쪽**을 누르게 했다. 데스크톱은 그대로 #cdQuickServices 카드. 로컬에서 saju-summary-browser·saju-result-login 통과, check:fast exit 0(Jest 7700).
     - 별건(CI 밖, 손대지 않음): `verify-relationship-inline-browser`는 3107 포트 외부 서버가 있어야 돈다. `verify-fortune-consultation-ux`는 입구 클릭 뒤 99행(`#letterContent .saju-letter` readingMode 대기)에서 타임아웃 — 입구 변경과 무관.
+
+  - push `70eaf737b..cc1ae9598` 뒤 PR CI 42431515558도 실패: 이번엔 Static guards 첫 단계 `verify:handoff-contract`(허용 status는 active|blocked|done, 전역 규칙의 `in-progress`는 이 저장소에서 쓰면 안 됨) — 이 문서·android 문서 `status: active`, legacy 문서에 프론트매터 추가. 같은 잡의 나머지 가드 124개를 로컬에서 전부 돌려 `verify:mobile-entry-actions` 실패 1건(`/tadagochi` 삭제, 301은 `public/_worker.js`라 가드가 못 봄)을 더 찾아 `docs/design/mobile-feature-registry.md` 입구를 `/ggulggul/#dpMasterCard`로 고쳤다.
 
 ## 이어받는 쪽 첫 행동 (2026-11-08 갱신)
 1. 병합 워크트리 `D:\Development\codedestiny-worktrees\release-merge-20261108`(detached, node_modules junction)에서 `git fetch origin`. origin/main이 앞서 있으면 rebase한다.
