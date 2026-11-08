@@ -298,33 +298,33 @@
     },
     {
       "id": "ep-38:49",
-      "source": "네오만 웃지 않았다. 그는 호랑이를 오래 보았다. 적을 경계하는 눈빛보다 같은 날 비를 맞았던 사람을 알아보는 눈빛에 가까웠다.",
-      "sourceHash": "e81651806a0ecdb9a1d057c3360f75d74a766785ec99b84ebbf1216aebb79c5e",
-      "t": "Only Neo didn't smile. He watched the tiger for a long time. Less like someone guarding against an enemy than someone recognizing another person caught in the same day's rain."
+      "source": "네오만 웃지 않았다. 그는 호랑이 발밑의 젖은 장부를 오래 보았다.",
+      "sourceHash": "98a2163362f4c0e50cc252493516db85e9b9c4991ee4ab0025d433a498f6d478",
+      "t": "Only Neo didn't smile. He studied the wet ledger at the tiger's feet."
     },
     {
       "id": "ep-38:50",
-      "source": "기억해 내라. 그 봄의 마지막 장면을. 네가 본 그대로 말고, 그 자리에 실제로 있던 것을.",
-      "sourceHash": "d09ae541515ed7bdeaa52d1fd2cf02d7c30c88bbbe5621f0c1ee25f2c58485f0",
-      "t": "Remember the last scene of that spring. Not what you saw. What was actually there."
+      "source": "장부는 쓴 사람이 본 것만 적는다. 다시 읽어 봐라.",
+      "sourceHash": "c1d02a2a80425aff467c263eddae701079f13eef1a4f1aea58e6489192994f00",
+      "t": "A ledger records only what its writer saw. Read it again."
     },
     {
       "id": "ep-38:51",
-      "source": "당신이 뭘 알아요. 그 봄에, 당신은 너무 늦게 왔잖아요.",
-      "sourceHash": "9e9a37a6305e647c322bae821418fee8f08c6e2748c84fe07ed87a63dbc66b98",
-      "t": "What do you know? That spring, you arrived too late."
+      "source": "고양이 주제에 남의 장부를 가르쳐요?",
+      "sourceHash": "a08b8a8f4915a12edc037ec5ecde8529d18f8d7e090a5bcb91342ea6d575e0d0",
+      "t": "A mere cat, lecturing me on my own ledger?"
     },
     {
       "id": "ep-38:52",
-      "source": "그래. 늦었다. 그래서 이번엔 일찍 왔다.",
-      "sourceHash": "c37ba6424eea5eae3c0dd548c8e8054acb5ec3662b888af0d2088b71127a6d72",
-      "t": "Yes. I was late. That's why I came early this time."
+      "source": "가르치는 건 아니다. 읽어 보라는 거지.",
+      "sourceHash": "bee22511556c4bbe3eea604cc3aa71d91e19cf82409bbf422dce93e10a21b411",
+      "t": "Not lecturing. Asking you to read."
     },
     {
       "id": "ep-38:53",
-      "source": "(늦게 왔다고? 네오가? 그 봄에?)",
-      "sourceHash": "7c520a366844fbd85f55ea854b015cb325e86547fe5cc0b495ea7607c82907f0",
-      "t": "(Arrived late? Neo? That spring?)"
+      "source": "(네오가 호랑이 씨 장부 얘기만 나오면 진지해지네.)",
+      "sourceHash": "57c5f3285d8aa5dc9523f8ab48ae7670e26473d14ce03eae23677117db00f1e5",
+      "t": "(Neo gets serious whenever her ledger comes up.)"
     },
     {
       "id": "ep-38:54",
@@ -346,9 +346,9 @@
     },
     {
       "id": "ep-38:57",
-      "source": "연이는 생각하지 않았다. 고민할 질문이 아니었으니까.",
-      "sourceHash": "94dbaf81ac196d72a399ef3dc78b111bda3ec401bee293d47b63c0f6d482b0eb",
-      "t": "Yeoni didn't think. It wasn't a question that needed thought."
+      "source": "연이는 생각하지 않았다. 고민할 질문이 아니었다. 호랑이의 눈은 연이를 지나 윤달이 쥔 접이 우산에서 잠깐 멈췄다.",
+      "sourceHash": "04e9767f4886e7c91a3764b954d1801e69f1b48b291ab2faf946ccec439b6877",
+      "t": "Yeoni didn't think. It wasn't a question that needed thought. The tiger's gaze passed her and paused on Yundal's folding umbrella."
     },
     {
       "id": "ep-38:58",
@@ -472,9 +472,9 @@
     },
     {
       "id": "ep-38:78",
-      "source": "머리가 입을 벌렸다. 하늘의 달 하나가 그 입으로 빨려 들어갔다. 숫양의 두 번째 집, 바라니의 달이었다.",
-      "sourceHash": "1f3fc206eab9aa44db6cc8f080322c6b86477f0911914a34b4926a2473cdc5c0",
-      "t": "The head opened its mouth. One moon was sucked into it: the Moon of Bharani, the Ram's second house."
+      "source": "머리가 입을 벌렸다. 하늘의 달 하나가 그 입으로 빨려 들어갔다. 숫양의 두 번째 집, 등잔이 반쯤 꺼져 있던 바라니의 달이었다.",
+      "sourceHash": "986e3119afe2b27c2964706435217e56f9e63832420b84b38c8d4b1c807a18b8",
+      "t": "The head opened its mouth. A moon was drawn inside: Bharani, the ram's second house, whose lamp had been half-extinguished."
     },
     {
       "id": "ep-38:79",

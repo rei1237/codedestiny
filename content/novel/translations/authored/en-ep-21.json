@@ -138,13 +138,13 @@
       "id": "ep-21:22",
       "source": "乙목 일간이면 庚금이 앉을 자리예요. 관성 자리죠.",
       "sourceHash": "3dc46c18a59e407ae869a7fc2896897b1fd21072913295291ee9f41e735e85a2",
-      "t": "With a Yin Wood Day Master, Yang Metal belongs there. The Officer position."
+      "t": "With an Eul Wood Day Master, Gyeong Metal belongs there. The place of Influence."
     },
     {
       "id": "ep-21:23",
       "source": "관성은 뭔데요. 한 줄로만요.",
       "sourceHash": "880a671bf64cc26e60d9b1c55b7a6307363c95880f1efb53171cb292f5556c57",
-      "t": "What's Officer? One line, please."
+      "t": "What's Influence? One line, please."
     },
     {
       "id": "ep-21:24",
@@ -156,7 +156,7 @@
       "id": "ep-21:25",
       "source": "다른 칸은 다 섬에서 찾았잖아요. 관성의 섬은 본 적이 없어요.",
       "sourceHash": "289f758dbdcf72df07c0be3a90aecbcdeac532db37d3bbadefc4518a0b72a38c",
-      "t": "We found all the others on islands. I've never seen an Island of Officers."
+      "t": "We found all the others on islands. I've never seen an Island of Influence."
     },
     {
       "id": "ep-21:26",
@@ -516,7 +516,7 @@
       "id": "ep-21:75",
       "source": "여자 명식에서 관성은 뜻이 하나 더 있어요. 그건 발목 나으시면 말씀드릴게요.",
       "sourceHash": "bebb3dc161db1c3ff677f351abf629fac4b1052e429375fec7000eab7decb01d",
-      "t": "Officer has another meaning in a woman's chart. I'll tell you when your ankle heals."
+      "t": "Influence has another meaning in a woman's chart. I'll tell you when your ankle heals."
     },
     {
       "id": "ep-21:76",
@@ -550,15 +550,15 @@
     },
     {
       "id": "ep-21:81",
-      "source": "꽃돼지. 관성. 다섯 번째 빛.",
-      "sourceHash": "7e1b3b3ad9b42aff9fd9ab196ef5b953ddf593720160e0f9a933e0a85f245cd1",
-      "t": "Flower Pig. Influence. Fifth light."
+      "source": "꽃돼지, 관성, 다섯 번째 빛.",
+      "sourceHash": "a58b573f06ead2b4967be13306badf914de33138a544702e8802c2e375757e42",
+      "t": "Flower pig, Influence, fifth light."
     },
     {
       "id": "ep-21:82",
-      "source": "카드 위의 글자가 잉크처럼 번졌다가 다시 모였다. 이번에는 결과가 한 줄뿐이었다.",
-      "sourceHash": "1f7157bb4370f2ba2514b8f0734a64e50e08312cc3084b02cef6d6ef989b1012",
-      "t": "The writing on the card spread like ink, then gathered again. This time, the result was a single line."
+      "source": "카드 위의 글자가 잉크처럼 번졌다가 다시 모였다. 결과는 한 줄뿐이었다.",
+      "sourceHash": "05540c66c8376af77aaf70cae017fc55dc30a4670e04af845830ddaef59943a7",
+      "t": "The letters on the card bled like ink, then gathered again. Only one line came back."
     },
     {
       "id": "ep-21:83",
@@ -580,27 +580,27 @@
     },
     {
       "id": "ep-21:86",
-      "source": "있어. 첫날부터 있었어. 불만도 걱정도 접수 안 하는 고객센터.",
-      "sourceHash": "3ea436960c2cf8e64453236b5e22a24f4b75e421974cced67bd8f60665df69a9",
-      "t": "They do. From the very first day. Customer Support that accepts neither complaints nor worries."
+      "source": "있어. 불만도 걱정도 접수 안 하는 고객센터.",
+      "sourceHash": "bc698e42504eed8bbfc1f0f8579d0be84ac7149ec5e9754eb1662b2077cf01ce",
+      "t": "There is. Customer service that accepts neither complaints nor worries."
     },
     {
       "id": "ep-21:87",
-      "source": "연이는 카드를 뒤집어 보았다. 뒷면은 비어 있었다. 아니, 아주 희미하게 앞발 자국 하나가 찍혀 있었다.",
-      "sourceHash": "ab7dde7e9fac99fa2af6b65883227b697008e73cfe84c41b53300f01ab993573",
-      "t": "Yeoni turned the card over. Its back was blank. No—one very faint pawprint marked it."
+      "source": "연이는 카드를 뒤집었다. 뒷면 귀퉁이에 앞발 자국 하나가 희미하게 찍혀 있었다.",
+      "sourceHash": "ccdc14c01098cbdfccbd9a4c939b07fcd705806ef7289208e1d336d6b4cfabfc",
+      "t": "Yeoni turned the card over. A faint pawprint marked one back corner."
     },
     {
       "id": "ep-21:88",
-      "source": "이거 고양이 발이잖아. 크기 봐. 쟤 발 맨날 내 꼬치 위에 올려놔서 내가 알아.",
-      "sourceHash": "9b6452fbd103d7785ffc2572aeaa5463290ca34cc17f13e1288e6828b2cbfc07",
-      "t": "That's a cat paw. Look at the size. I know because he puts that paw on my skewers all the time."
+      "source": "이거 고양이 발이잖아. 쟤가 맨날 내 꼬치 위에 발을 올려놔서 크기를 알아.",
+      "sourceHash": "0eaf4cb31a764f8df3f1c2f2ebf191599f085f55919dfd7a6b4965420fa5a2e8",
+      "t": "That's the cat's paw. He keeps putting it on my skewers. I know the size."
     },
     {
       "id": "ep-21:89",
-      "source": "(네 개의 섬. 다섯 번째 빛은 섬이 아니라 도서관 밖에 있대. 담당자는 고객센터.)",
-      "sourceHash": "4c71130762ebf6773684cacfb572aece7573bddd7e31836d70f59fc03b9c552e",
-      "t": "(Four islands. The fifth light isn't an island. It's outside the library. Contact: Customer Support.)"
+      "source": "(먼저 찾아본 사람이 있었네. 같은 카드로.)",
+      "sourceHash": "ea36b815f634da33fa2485552fabd7e3dbffc7b1a54705b003788e13608e9b04",
+      "t": "(Someone searched before me. With this same card.)"
     },
     {
       "id": "ep-21:90",
@@ -610,9 +610,9 @@
     },
     {
       "id": "ep-21:91",
-      "source": "어? 없어. 왜 나한테 물어. 나 수달이야. 수달은 비밀 같은 거 몰라.",
-      "sourceHash": "83bf92799249c7e3a0bf932cc617b23a19e8b32d19793a958e5a3dcfb0e2e507",
-      "t": "Huh? No. Why ask me? I'm an otter. Otters don't know about secrets."
+      "source": "없어. 수달은 비밀 같은 거 몰라.",
+      "sourceHash": "a5e4c8e250aaad1602336e8c540fee3a0ba5de16cf4e0fa2a9a9963167b0cf4d",
+      "t": "Nope. Otters don't know secrets."
     },
     {
       "id": "ep-21:92",
@@ -634,21 +634,21 @@
     },
     {
       "id": "ep-21:95",
-      "source": "(모카도 알아. 윤달도 아는 눈치였어. 나만 모르는 거야.)",
-      "sourceHash": "0a900711867d337235c3fd974ea2b4048279829a9c16ca578a700b5a019a298d",
-      "t": "(Moka knows, too. Yundal looked like he knew. I'm the only one who doesn't.)"
+      "source": "(사흘이래. 그동안은 도망가는 고양이를 뛰어서 쫓지도 못하겠네.)",
+      "sourceHash": "4d808e145ee1dee4e48b272d45da6daf96843561edff326b27513e8001ce5a20",
+      "t": "(Three days. I can't even run after a cat who keeps leaving until then.)"
     },
     {
       "id": "ep-21:96",
-      "source": "그날 밤. 도서관 깊은 곳의 작은 방에서 다들 잠들어 있었다. 모카는 책 베개를 베고 코를 골았다.",
-      "sourceHash": "7e4dcaeb8d628efb6cdccb47b5afa36bf9bbf55f307ba50cda546009d0ac12b5",
-      "t": "That night, everyone slept in a small room deep inside the library. Moka snored with his head on a book pillow."
+      "source": "그날 밤, 도서관 깊은 곳의 작은 방에서 다들 잠들어 있었다. 모카는 책 베개를 베고 코를 골았다.",
+      "sourceHash": "e167a6479b6076e23c4252673aa47617c8584bfdc30a5ad182a2e3a0b580d0bc",
+      "t": "That night, everyone slept in a little room deep in the library. Moka snored with a book for a pillow."
     },
     {
       "id": "ep-21:97",
-      "source": "(잠이 안 와. 빈칸이 자꾸 생각나.)",
-      "sourceHash": "c619e233a9f8fa54ab4be219b42cea4f3edd3dd3b7824b42180ca9718eeb214d",
-      "t": "(Can't sleep. I keep thinking about that blank.)"
+      "source": "(잠이 안 와. 발목도 빈칸도 계속 욱신거려.)",
+      "sourceHash": "aa442129b1836f76445c0501c929e4c127310f773caed6549824c329d89c451a",
+      "t": "(Can't sleep. My ankle and that empty space both keep aching.)"
     },
     {
       "id": "ep-21:98",
@@ -688,15 +688,15 @@
     },
     {
       "id": "ep-21:104",
-      "source": "(언제부터 우리 고객센터가 이렇게 말없이 문을 닫았지.)",
-      "sourceHash": "5f6cb63b191cee3df907d6f1e2b3b2b62eaa217c401c2eb9d1726724f40212a3",
-      "t": "(Since when does our Customer Support close without a word like this?)"
+      "source": "(낮에는 그렇게 화를 내 놓고 쪽지 한 장이야.)",
+      "sourceHash": "a81a941a8d52c3bfa240c09a0a03954317e031524191343f7e847c3b7e2e8ffa",
+      "t": "(He gets that angry all day, then leaves one note.)"
     },
     {
       "id": "ep-21:105",
-      "source": "연이는 쪽지를 들고 일어났다. 손목의 아기 용이 잠결에 눈을 떴다. 그리고 창문 쪽으로 고개를 돌렸다.",
-      "sourceHash": "cdca3d89f6e540c0719d5866799d735ee16cb21b861e32c6f01331ee5752da59",
-      "t": "Yeoni stood, holding the note. The baby dragon on their wrist opened sleepy eyes, then turned toward the window."
+      "source": "연이는 쪽지를 들고 일어나다 왼 뒷발을 디디고 그대로 주저앉았다. 손목의 아기 용이 잠결에 눈을 뜨더니 창문 쪽으로 고개를 돌렸다.",
+      "sourceHash": "7c2cff6b16e67ea31fc0e178b74ae352ca7d003e9193137d56907ad5dc0faace",
+      "t": "Yeoni rose with the note, stepped on her injured leg, and sat straight back down. The baby dragon on her wrist opened sleepy eyes and turned toward the window."
     },
     {
       "id": "ep-21:106",
@@ -712,39 +712,39 @@
     },
     {
       "id": "ep-21:108",
-      "source": "(물에 잠긴 서가에서도, 사슬 위에서도 났던 냄새. 젖은 망토 냄새.)",
-      "sourceHash": "4572cc051d25ddf6236391e9ba0ad39bfff47d9cea644febdfecebd5fce1102d",
-      "t": "(The smell from the drowned shelves, from above the chains. A wet cloak.)"
+      "source": "(물에 잠긴 서가에서도, 사슬 위에서도 났던 냄새야. 젖은 망토 냄새.)",
+      "sourceHash": "34c6271e60c43aebb2b0c083c508eabfd1b188d1b398361d4284191e6bb87bd0",
+      "t": "(The same smell as the flooded shelves and the chains. A wet cloak.)"
     },
     {
       "id": "ep-21:109",
-      "source": "연이는 쪽지를 접어 앞발에 꼭 쥐었다. 그리고 소리 나지 않게 창문을 열었다.",
-      "sourceHash": "63236abd8fd07d96749dc3edc6a06f1427657a9b45e9fd1b280bc465dda32783",
-      "t": "Yeoni folded the note and clutched it tightly. Then they opened the window without a sound."
+      "source": "연이는 쪽지를 접어 앞발에 쥐고 창가까지 한 발로 깡충거리며 갔다. 창유리에 이마를 대자 바깥 하늘이 보였다.",
+      "sourceHash": "a152f28add73162b8429834d741fc67aec9c812d26ddffe008765d9989b83e3a",
+      "t": "She folded the note into her hoof and hopped to the window. Pressing her forehead to the glass, she could see outside."
     },
     {
       "id": "ep-21:110",
-      "source": "연이는 창틀에 매달려 위를 올려다보았다. 둥근 지붕 꼭대기에 두 개의 그림자가 서 있었다.",
-      "sourceHash": "4e0959dfc4cc910c3ea2aed81ae54211f59913f221826e360c21a369943816e8",
-      "t": "Hanging from the frame, Yeoni looked up. Two shadows stood at the top of the rounded roof."
+      "source": "반쯤 먹힌 해가 밤하늘에 걸려 있었다. 둥근 지붕 꼭대기에 두 개의 그림자가 서 있었다.",
+      "sourceHash": "d98f8a1bcdc53015046245cb88bdece4bf30511816de0d06d17dcbcffdd97b24",
+      "t": "A half-eaten sun hung in the night sky. Two shadows stood atop a round roof."
     },
     {
       "id": "ep-21:111",
-      "source": "하나는 모자를 쓴 하얀 고양이였다. 반쯤 먹힌 해 아래에서도 모자의 초승달이 금빛으로 빛났다.",
-      "sourceHash": "a6e25a82e415f6cf8a9b9cbe29ab9024b43c104119024c0f069ef682b2bec8b1",
-      "t": "One was a white cat in a hat. Even beneath the half-eaten sun, the hat's crescent shone gold."
+      "source": "하나는 모자를 쓴 하얀 고양이였고, 하나는 젖은 망토 끝에서 빗물을 떨구는 검은 호랑이였다.",
+      "sourceHash": "b11aba2827a61ee25d61398774c2723ccec53b9e321fb56a42da9370d7687be9",
+      "t": "One was a white cat in a hat. The other, a black tiger with rain dripping from her cloak."
     },
     {
       "id": "ep-21:112",
-      "source": "다른 하나는 검은 호랑이였다. 젖은 망토 끝에서 빗물이 끊임없이 떨어지고 있었다.",
-      "sourceHash": "e183ec9d9914b3f4c69e40cfb570623f0290c9ccae1e59def506bc0d7e7f87c4",
-      "t": "The other was a black tiger. Rainwater dripped without cease from the hem of its soaked cloak."
+      "source": "둘은 싸우고 있지 않았다. 조금 떨어져서 같은 쪽 하늘을 보고 서 있었다.",
+      "sourceHash": "8de7a5881c4416d65d55b0011cce910ccd8d7957c324b6efbfa5c52f51957e41",
+      "t": "They weren't fighting. They stood a little apart, looking toward the same stretch of sky."
     },
     {
       "id": "ep-21:113",
-      "source": "둘이 왜 같이 있어. 싸우는 거야?",
-      "sourceHash": "5be453861cf7c656adb5ed4cc54658f64116b17c0b779d6554fc9284a6ec2e27",
-      "t": "Why are they together? Are they fighting?"
+      "source": "둘이 왜 같이 있어.",
+      "sourceHash": "9cb6095d7853e38774cc57ef57ef40de3c337ddf3c61b71add82cfacf8bac095",
+      "t": "Why are they together?"
     },
     {
       "id": "ep-21:114",
@@ -754,33 +754,33 @@
     },
     {
       "id": "ep-21:115",
-      "source": "알았어. 조용히 갈게. 너도 숨 참아.",
-      "sourceHash": "78050a1deebce56094e311d7ea8f3900b5e2eeea898490df0323e4a28be4d597",
-      "t": "Okay. I'll be quiet. Hold your breath, too."
+      "source": "알았어, 조용히 갈게. 너도 숨 참아.",
+      "sourceHash": "393161905ef5f473b24760f9edf82118fe865039f1b0d338bde8bc5f1068b037",
+      "t": "Okay, I'll be quiet. You hold your breath too."
     },
     {
       "id": "ep-21:116",
-      "source": "둘은 싸우고 있지 않았다. 조금 떨어져서, 같은 쪽을 보고 서 있었다. 오래 알고 지낸 사이처럼.",
-      "sourceHash": "7b1bcb16c82a5ee8a60f0f130f5da916853818a75168359bfd239142dee1186c",
-      "t": "They were not fighting. They stood a little apart, facing the same direction. Like two who had known each other a long time."
+      "source": "연이는 창틀에 앞발을 걸다가 멈췄다. 삔 뒷발로는 저 둥근 지붕을 기어오를 수 없었다.",
+      "sourceHash": "eb82820fa5c9c0b24fedad8f643def4ac6605781718d4168c64287d6044627c3",
+      "t": "She hooked a foreleg over the window frame, then stopped. She couldn't climb that rounded roof on a sprained hind leg."
     },
     {
       "id": "ep-21:117",
-      "source": "바람이 불었다. 영냥이의 눈이 금빛으로 번쩍였다. 칼날 같은 빛이 지붕을 한 번 가르고 사라졌다.",
-      "sourceHash": "478c8feaf5b78e1a8d026b85c58f18f0f2636ff6fec16396023b3d33c87f0c96",
-      "t": "The wind blew. Yeongnyangi's eyes flashed gold. A blade-like gleam cut across the roof and vanished."
+      "source": "그때 앞발 위에 글자판이 저절로 떠올랐다. 낮에 하얗게 타올랐던 빈칸 안에 처음 보는 획 하나가 그어져 있었다.",
+      "sourceHash": "39ba8fe9d3e6c28245a19b6feb263e5d2e921d77551332b23d6b029904b48298",
+      "t": "The character board floated above her hoof by itself. Inside the space that had blazed white that afternoon was an unfamiliar stroke."
     },
     {
       "id": "ep-21:118",
-      "source": "(영냥아. 너 지금, 누구 편이야.)",
-      "sourceHash": "e3b42658f3fe53487672de672d8579b22204f9ed16cd37949e5b8020b2170714",
-      "t": "(Yeongnyangi. Whose side are you on right now?)"
+      "source": "(아까는 이런 획 없었어.)",
+      "sourceHash": "14cf72009062530193772242c81c6ed5f568b419ea190a89f8113b589e24947b",
+      "t": "(That stroke wasn't there earlier.)"
     },
     {
       "id": "ep-21:119",
-      "source": "연이가 창틀을 넘으려는 순간, 지붕 위의 두 그림자가 동시에 이쪽을 돌아보았다.",
-      "sourceHash": "4aed2af92243f97f6364e18c992aafbca40cdf56b6f3a4807dd8ba4aa9cf909e",
-      "t": "Just as Yeoni was about to climb over the window frame, both shadows on the roof turned toward them at once."
+      "source": "등 뒤에서 누가 몸을 일으키는 소리가 났다. 잠든 줄 알았던 윤달이 접이 우산을 무릎에 올린 채 어둠 속에서 연이의 빈칸을 보고 있었다.",
+      "sourceHash": "99f3326817b01a2fc4f795d78c2a4d1e52bb107daa86f265e7c6ab31acd3b31f",
+      "t": "Someone stirred behind her. Yundal, whom she'd thought asleep, sat with his folding umbrella on his knees, watching her empty space in the dark."
     }
   ]
 }

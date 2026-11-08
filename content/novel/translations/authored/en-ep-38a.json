@@ -16,9 +16,9 @@
     },
     {
       "id": "ep-38a:2",
-      "source": "놓으라니까. 고집은 그때랑 똑같네.",
-      "sourceHash": "3e77e64a5e742f920e970b4d0d75552b7b7ee973c5476b9cf10e0e1075814a77",
-      "t": "I told you to let go. Just as stubborn as back then."
+      "source": "놓으시라니까요. 고집은 그때랑 똑같으시네요.",
+      "sourceHash": "34b9d8e9464c0e3d5b12d070a555b7f5a2f66e4dd552af396f3e466de2e1f158",
+      "t": "I asked you to let go. Just as stubborn as then, aren't you?"
     },
     {
       "id": "ep-38a:3",
@@ -40,15 +40,15 @@
     },
     {
       "id": "ep-38a:6",
-      "source": "실이 환하게 빛났다. 눈앞이 젖은 유리처럼 번졌다. 그 너머로 낡은 버스 정류장이 보였다. 이번에는 장부의 그림이 아니었다. 냄새가 났다.",
-      "sourceHash": "177767e5564ae40182f3fbb625b23276e9e1dd9218c9ddcca7c7fe4c9af76246",
-      "t": "The thread blazed. The world blurred like wet glass. Beyond it stood an old bus stop. This time it wasn't a picture in a ledger. It had a smell."
+      "source": "실이 환하게 빛났다. 눈앞이 젖은 유리처럼 번졌다. 그 너머로 낡은 버스 정류장이 보였다. 장부의 그림과는 달랐다. 냄새가 났다.",
+      "sourceHash": "ff31a723e107a7a05267da5d7cf5b654de3a5f5fe01e3f4f26e4140f037cccfc",
+      "t": "The thread shone. Everything blurred like wet glass. Beyond it stood an old bus stop. Unlike the ledger's pictures, this had a smell."
     },
     {
       "id": "ep-38a:7",
-      "source": "봄비가 내렸다. 정류장 지붕 아래, 교복을 벗은 지 얼마 안 된 여자 둘이 앉아 있었다.",
-      "sourceHash": "6fcd05c7176d9b2e5f5a17747fdecc655bde06ba00cb08deb0eddfb2dd8aa17f",
-      "t": "Spring rain fell. Beneath the bus-stop roof sat two young women, not long out of their school uniforms."
+      "source": "봄비가 내렸다. 정류장 지붕 아래, 스물을 갓 넘긴 여자 둘이 앉아 있었다.",
+      "sourceHash": "63922663caae725fceff12b4a0507f4b3561b9f34e2753104c62ef0de495cb27",
+      "t": "Spring rain fell. Beneath the bus-stop roof sat two women barely into their twenties."
     },
     {
       "id": "ep-38a:8",
@@ -76,9 +76,9 @@
     },
     {
       "id": "ep-38a:12",
-      "source": "반쪽. 그래. 그 애는 나를 그렇게 불렀어. 우산을 반쪽만 씌워 줘서.",
-      "sourceHash": "d5f03019e9ea1c3ccc4c86fd25f41e206e13c5e50d6904ed3ecb0d5ef4eae0b7",
-      "t": "Halfie. Yes. That's what she called me. Because she shared half her umbrella."
+      "source": "반쪽. 우산을 반쪽만 씌워 줬다고 그 애는 저를 그렇게 불렀지요.",
+      "sourceHash": "28072cd04e82334abb4e1201be8e8161a86fcdce17928122d2a8259666e56cc2",
+      "t": "Half. She called me that because she'd covered me with half her umbrella."
     },
     {
       "id": "ep-38a:13",
@@ -100,9 +100,9 @@
     },
     {
       "id": "ep-38a:16",
-      "source": "내일. 그 내일이 오지 않았지.",
-      "sourceHash": "0a4e55caf9db1026129a8e27c03498bc64e0795ede81589b7e8e82b8b2d9a5ef",
-      "t": "Tomorrow. That tomorrow never came."
+      "source": "내일이라고 했지요. 그 내일이 오지 않았어요.",
+      "sourceHash": "9c4024fa9f0e4a60ccd041506fbe9e469b0bce4c478de6533c4d27ea548f7a61",
+      "t": "Tomorrow, she said. That tomorrow never came."
     },
     {
       "id": "ep-38a:17",
@@ -118,9 +118,9 @@
     },
     {
       "id": "ep-38a:19",
-      "source": "이건, 나는 본 적 없는 장면인데.",
-      "sourceHash": "169e80a5ad47ca3be3ae212ff3211160561ee9991407151056f0bbcc7038c6e1",
-      "t": "I've never seen this scene before."
+      "source": "이건 제가 본 적 없는 장면인데요.",
+      "sourceHash": "8c6d22c8a7071463da159884b17b99005401aeaefb332b34706ce202d5a88275",
+      "t": "This is a scene I've never seen."
     },
     {
       "id": "ep-38a:20",
@@ -142,9 +142,9 @@
     },
     {
       "id": "ep-38a:23",
-      "source": "그만둬. 그 애 깨워. 깨우라고!",
-      "sourceHash": "d6ae0691ad91b8420895cb13ae4ba75d59fe9f17741aed3a2490e51b3996240d",
-      "t": "Stop. Wake her up. Wake her!"
+      "source": "그만두세요. 그 애 깨워요. 깨우라고요!",
+      "sourceHash": "d51afb16b650d86b9ce50c7c7fee387fb3a53f4b20e00ada1f58f6e04ba84908",
+      "t": "Please stop. Wake her. I said wake her!"
     },
     {
       "id": "ep-38a:24",
@@ -166,9 +166,9 @@
     },
     {
       "id": "ep-38a:27",
-      "source": "그 애가 아니었어. 처음부터, 그날의 그 애는.",
-      "sourceHash": "899f955f961f6bec14b1b6d18b0df1336c1a2c166f097730f25aa625a6d25abf",
-      "t": "It wasn't her. The one that day was never her."
+      "source": "그 애가 아니었어요. 처음부터 그날의 그 애는요.",
+      "sourceHash": "0381fae8ead51d67662278823091c4a935b1f28f16f1754b365d56b613d3a611",
+      "t": "It wasn't her. The girl that day wasn't her from the start."
     },
     {
       "id": "ep-38a:28",
@@ -226,9 +226,9 @@
     },
     {
       "id": "ep-38a:37",
-      "source": "쫓아가지 그랬어. 왜 그 자리에 서 있었어, 바보같이.",
-      "sourceHash": "b5402adc804ef5b88ac29dd003f232076fbda4745ff1635eb373c13df709b2c8",
-      "t": "Why didn't you run after her? Why did you just stand there, you fool?"
+      "source": "쫓아가지 그러셨어요. 왜 바보같이 그 자리에 서 계셨어요.",
+      "sourceHash": "b3d82342c7bb992f302ae902e3d14a5dc9c5ef1513074cb603677e01ac873b09",
+      "t": "Why didn't you chase her? Why stand there so foolishly?"
     },
     {
       "id": "ep-38a:38",
@@ -238,9 +238,9 @@
     },
     {
       "id": "ep-38a:39",
-      "source": "젊은 남자였다. 흰 우산을 들고 있었는데, 접힌 채였다. 펼 새도 없이 뛰어온 모양이었다. 머리에서 물이 뚝뚝 떨어졌다.",
-      "sourceHash": "084b532b3c5ea21a7f9e23a53f69ddfd3a675d9dfb03db18b7515621f7e05de3",
-      "t": "A young man. He carried a white umbrella, still folded. He seemed to have run there without even taking time to open it. Water dripped from his hair."
+      "source": "젊은 남자였다. 흰 우산을 들고 있었는데, 접힌 채였다. 펼 새도 없이 뛰어온 모양이었다. 깊이 눌러쓴 후드에서 물이 뚝뚝 떨어졌다.",
+      "sourceHash": "b20fddf812a309ebe7a030e316789de673aa2c88efca631b607bb5558214e169",
+      "t": "A young man. He held a white umbrella, still folded, as though he'd run without time to open it. Water dripped from his deeply pulled hood."
     },
     {
       "id": "ep-38a:40",
@@ -274,9 +274,9 @@
     },
     {
       "id": "ep-38a:45",
-      "source": "저 목소리. 그 고양이 목소리야.",
-      "sourceHash": "af52130a6762375934e6ebc34ee95aa4cde1139cd295ef9281c616496dc6e0c6",
-      "t": "That voice. The cat's voice."
+      "source": "어디서 들은 목소리인데요.",
+      "sourceHash": "d0e41cf7cc6ded5fbf44351ce360d8bdad1d7ddfc53e0684421a3941ae69aec0",
+      "t": "I've heard that voice somewhere."
     },
     {
       "id": "ep-38a:46",
@@ -286,9 +286,33 @@
     },
     {
       "id": "ep-38a:47",
-      "source": "그 사람도 그 봄에 있었어. 너무 늦게 와서, 나보다 더 오래 울었겠지.",
-      "sourceHash": "3864e4e64873c5378972d4f0776abe819885f887ad8fc9fddb4b577114fe3b72",
-      "t": "He was in that spring too. Arriving too late, he must have cried even longer than I did."
+      "source": "그 사람도 그 봄에 있었어요. 너무 늦게 와서 저보다 더 오래 울었겠지요.",
+      "sourceHash": "097946ce48e06d381cdf339fbbdd16ae64d564bd159efc47836ccf77f9b03800",
+      "t": "He was in that spring too. Arriving so late, he must have cried longer than I did."
+    },
+    {
+      "id": "ep-38a:failed-future",
+      "source": "서한비는 우산 옆에 오래 서 있었다. 남자가 사라진 쪽에서 빗소리만 계속 들려왔다.",
+      "sourceHash": "f6264411ea22fb8abdad4a8fb86dbf0ef71a6415155a11ad1b4d402074d416e7",
+      "t": "Hanbi stood beside the umbrella a long time. Only rain kept sounding from the direction where the man had vanished."
+    },
+    {
+      "id": "ep-38a:regression-price",
+      "source": "그 우산은 끝내 안 주우셨지요. 주우셨으면 돌려줄 사람이라도 생겼을 텐데요.",
+      "sourceHash": "904f5db351a3f5a253bb4392d4391cfcfd68adaede290f5215c84458680835e9",
+      "t": "You never picked up that umbrella. If you had, at least you'd have had someone to return it to."
+    },
+    {
+      "id": "ep-38a:human-name-price",
+      "source": "호랑이는 그 목소리를 한 번 더 떠올려 보았다. 가까운 데서 들은 것 같은데, 얼굴이 붙지 않았다.",
+      "sourceHash": "9df1f19edc9bb4892711119d2c34be208f6c2db286804e36463ad1d2922ee501",
+      "t": "The tiger tried to recall that voice again. It felt close at hand, but no face would attach to it."
+    },
+    {
+      "id": "ep-38a:hanbi-companion",
+      "source": "실이 다시 빛을 모았다. 정류장의 빗소리가 멀어졌다.",
+      "sourceHash": "ce586b8486429a2fc20edb0f4eca8cd611b9c07a7488a1e9a8c9299eba05845a",
+      "t": "The thread gathered light again. The bus stop's rain receded."
     },
     {
       "id": "ep-38a:48",
@@ -301,30 +325,6 @@
       "source": "열흘째 밤. 서한비의 휴대폰이 혼자 켜졌다. 연이에게 깔렸던 것과 같은 앱이었다. 고객센터 아이콘 대신, 검은 동그라미가 있었다.",
       "sourceHash": "99f390e37a1d53efce97c441ab055c4fb61f62d081c7c8fe7e1f9f13451effdf",
       "t": "On the tenth night, her phone lit up by itself. The same app that had appeared on Yeoni's phone. In place of the customer-support icon was a black circle."
-    },
-    {
-      "id": "ep-38a:failed-future",
-      "source": "연이가 사라진 뒤의 정류장에는 한 남자가 남았다. 박병하. 매일 짝이 다른 양말을 신고, 연이가 오지 않는 길을 볼 사람이었다.",
-      "sourceHash": "17a85b0f0ac73f279c468118197c99b74c14c5a6007effc4244580fc18f128d1",
-      "t": "After Yeoni vanished, one man remained at the bus stop. Park Byeongha. He would wear mismatched socks every day and watch the road where Yeoni never came."
-    },
-    {
-      "id": "ep-38a:regression-price",
-      "source": "그는 운명 고객센터의 닫힌 문을 열어 달라고 해서마다 거절당했다. 끝내 우주가 물었다. 한 번 돌아갈 대가로 무엇을 낼 것인지.",
-      "sourceHash": "945ee97350c3f79efb468a8526819ad211b6f42e4f480b6baa98f1442fb1f2c3",
-      "t": "Every time he asked Destiny Customer Support to open its closed door, he was refused. At last, the universe asked what he would pay to go back once."
-    },
-    {
-      "id": "ep-38a:human-name-price",
-      "source": "박병하는 자신의 인간 몸과 이름을 냈다. 봄은 처음으로 돌아갔고, 그는 연이가 지어 준 이름조차 없던 하얀 고양이로 눈을 떴다.",
-      "sourceHash": "78a19c24191bff3ba30cdd1f0091560bfb502feb04598dbcd4bba5e3e9c7fc08",
-      "t": "Park Byeongha offered his human body and name. Spring returned to its beginning, and he opened his eyes as a white cat who didn't yet even have the name Yeoni would give him."
-    },
-    {
-      "id": "ep-38a:hanbi-companion",
-      "source": "서한비는 그 문이 닫히는 순간 사슬에 매달려 같이 넘어왔다. 회귀를 시작한 사람이 아니라, 실패한 시간의 증인으로.",
-      "sourceHash": "a3f436b0d48c834ad9d1557b77091fa164514a042eeb6fb8cead83e6fd10acb4",
-      "t": "As that door closed, Seo Hanbi crossed with him, hanging from her chain. Not the one who began the rewind, but a witness to the failed timeline."
     },
     {
       "id": "ep-38a:50",
@@ -400,9 +400,9 @@
     },
     {
       "id": "ep-38a:62",
-      "source": "그만해. 받지 마. 그거 받으면 안 돼.",
-      "sourceHash": "0e54b0c46c50adc6fb7e9a227c6575ae967f0f2ffad9af3e7873c2d4936c63dc",
-      "t": "Stop. Don't take it. You mustn't take it."
+      "source": "그만하세요. 받지 마세요. 그거 받으시면 안 돼요.",
+      "sourceHash": "492d1d72f1a5384d529484b50106dd36dc0f56e7754383130e7f42aabf5d3093",
+      "t": "Please stop. Don't accept it. You mustn't take that."
     },
     {
       "id": "ep-38a:63",
@@ -424,9 +424,9 @@
     },
     {
       "id": "ep-38a:66",
-      "source": "다 달라져요. 그 애는 날 버린 적이 없어. 당신이 그 애를 먹었어. 그 애 얼굴로 내 봉투를 가져갔어.",
-      "sourceHash": "5c7d810dfb98528554972771ba9b0a93d5f4dbe9c39349e4d2e4b8496d0a19dc",
-      "t": "Everything. She never abandoned me. You ate her. You took my envelope wearing her face."
+      "source": "다 달라져요. 그 애는 저를 버린 적이 없는데, 당신이 그 애 얼굴로 제 봉투를 가져가고 그 애까지 먹었어요.",
+      "sourceHash": "a49eee904260a308af2cb0c1bf56c0102b7cf22dc0215722e04c0cfbe647f9cf",
+      "t": "It changes everything. She never abandoned me. You took my envelope wearing her face, and then devoured her too."
     },
     {
       "id": "ep-38a:67",
@@ -442,8 +442,8 @@
     },
     {
       "id": "ep-38a:69",
-      "source": "맞아요. 그건 내 손이었어요.",
-      "sourceHash": "c54a8f27b219bd6a16ddaafac11ee2cbb80863228f22dd7ebd9a160669f9b47e",
+      "source": "맞아요. 그건 제 손이었어요.",
+      "sourceHash": "c874b36766765b907c700f76ee48ac0b31808fa48bf9dc05a33ebcad7d6bae67",
       "t": "Yes. That was my hand."
     },
     {
@@ -490,9 +490,9 @@
     },
     {
       "id": "ep-38a:77",
-      "source": "알아요. 공짜는 없다면서요. 이번엔 제가 낼게요.",
-      "sourceHash": "764469cc3b8185c63c49137ff93cf2a19d19d6510aeb45069e2418a4be1cf851",
-      "t": "I know. You said nothing was free. This time, I'll pay."
+      "source": "알아요, 공짜는 없다는 거. 제 몫은 제가 낼게요.",
+      "sourceHash": "0b12a036e91e1e6aa42254c056b99311a592bc0d356d0143f9f2feb2b5d86c51",
+      "t": "I know nothing is free. I'll pay my own share."
     }
   ]
 }

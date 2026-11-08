@@ -22,9 +22,9 @@
     },
     {
       "id": "ep-37:3",
-      "source": "스물일곱 개예요. 여기 하늘은 달이 하룻밤에 한 집씩 묵어 가요. 한 바퀴 도는 데 스물일곱 밤.",
-      "sourceHash": "4e6491761a7078af0c75c9e25ac587c129ad594a6951c60934dee7d21a2f0620",
-      "t": "Twenty-seven. In this sky, the Moon stays in a different house each night. Twenty-seven nights to make a full circuit."
+      "source": "스물일곱 개예요. 여기선 달이 하룻밤에 한 집씩, 스물일곱 밤 동안 묵어 가요.",
+      "sourceHash": "db581e5d353499ebde4afedf7edd4244b3304d19aa249d0cebe5a862818b6e1e",
+      "t": "Twenty-seven. Here the Moon spends one night in each house, staying twenty-seven nights."
     },
     {
       "id": "ep-37:4",
@@ -52,15 +52,15 @@
     },
     {
       "id": "ep-37:8",
-      "source": "같은 실이에요. 거기서는 끝을 보여 주고, 여기서는 이어진 걸 보여 줘요. 생과 생 사이로 이어진 인연.",
-      "sourceHash": "ab6426768206aaf11a5aa3ad7da09b6f65f5d7f4b16c1fa3ca4e16589e0cd82a",
-      "t": "They're the same threads. There, they show endings. Here, connections. Bonds that run from one life to another."
+      "source": "같은 실이에요. 거기선 끝을, 여기선 생과 생 사이로 이어진 걸 보여 줘요.",
+      "sourceHash": "6959466ae6ab0f21d5054a04d0c7fe86b0b3182c36548280127f3c63dc9ba13e",
+      "t": "The same thread. There it showed the end; here it shows the link between lives."
     },
     {
       "id": "ep-37:9",
-      "source": "스물일곱 달의 자리를 읽는 방식이야. 동아시아의 숙요에도 이어졌지만, 여기선 베다점의 나크샤트라를 따라가야 해.",
-      "sourceHash": "97fafec95d2e9d8e76b93882c60e40870fcc3f25443508b01d310740db62c61d",
-      "t": "It's a way of reading twenty-seven lunar stations. It also reached East Asian Sukuyo, but here we need to follow Vedic astrology's nakshatras."
+      "source": "인연을 읽는 하늘이다. 달이 묵는 집이 스물일곱.",
+      "sourceHash": "fbc161497c1299b9b50f3ecb9bda6ee666de989e8bedd83b471b36310158903c",
+      "t": "A sky that reads bonds. Twenty-seven houses where the Moon stays."
     },
     {
       "id": "ep-37:10",
@@ -88,51 +88,51 @@
     },
     {
       "id": "ep-37:14",
-      "source": "이 하늘의 옛이야기예요. 불사의 술을 몰래 마신 괴물이 목이 잘렸대요. 술이 목까지만 넘어가서 머리는 죽지 않았고요.",
-      "sourceHash": "705492af001860d6930b7bf13bfba3c37c5e03b636bea16b89f22c4cc1aef3f2",
-      "t": "An old story of this sky. A monster secretly drank the nectar of immortality and was beheaded. The nectar had only reached its throat, so the head couldn't die."
+      "source": "목 잘린 뱀 이야기예요. 다 들으면 사흘 걸려요.",
+      "sourceHash": "316df90a67cd2659d1db43610d4a090c207a6b9342f8fbb532f4509207bbda80",
+      "t": "A tale of a beheaded serpent. Three days to hear it all."
     },
     {
       "id": "ep-37:15",
-      "source": "그 머리가 라후, 몸통과 꼬리가 케투. 머리는 해와 달을 원망해서 가끔 삼켜요. 그게 일식이에요.",
-      "sourceHash": "acdbc8d6b222b6316e6b2a172da1f92c796ee429dd5b78df1cde3946ec1d74ed",
-      "t": "The head is Rahu; the body and tail, Ketu. The head resents the Sun and Moon and sometimes swallows them. That's an eclipse."
+      "source": "세 줄로.",
+      "sourceHash": "f7070427e0f60756e1a47345aea298d4c425bff4fa8025969c97065623af0172",
+      "t": "Three lines."
     },
     {
       "id": "ep-37:16",
-      "source": "근데 목이 없으니까 삼켜도 다시 빠져나오겠네.",
-      "sourceHash": "d5f91b73405214ef3286f7443eb878029ff5ff876522841ae68b41da6a9889d8",
-      "t": "But without a throat, whatever it swallows must come right back out."
+      "source": "불사의 술을 훔친 뱀이 목이 잘렸어요. 머리 라후는 해를 삼키고, 꼬리 케투는…",
+      "sourceHash": "9576b79f141a3b3d02db3cc2ed81c28db7e580090a02b1df854205af5559697b",
+      "t": "A serpent stole the drink of immortality and was beheaded. Rahu, the head, swallows the sun, while Ketu, the tail…"
     },
     {
       "id": "ep-37:17",
-      "source": "맞아요. 그래서 일식은 늘 끝나요. 이 하늘 사람들은 그걸 믿고 기다려요.",
-      "sourceHash": "c04efcdeaf50a6555cff10ac3969ea501043805646782afd8cb91975a5614cab",
-      "t": "Exactly. That's why eclipses always end. The people of this sky wait, trusting that."
+      "source": "윤달이 말을 멈추고 돌판의 꼬리 그림을 보았다.",
+      "sourceHash": "81cc8567c30b432637a4a8b34df9ccc1c20ac6b5d41fd3b2d802bf08a7ad02f6",
+      "t": "Yundal stopped and looked at the tail carved on the slab."
     },
     {
       "id": "ep-37:18",
-      "source": "그럼 꼬리는요? 꼬리는 뭘 먹어요?",
-      "sourceHash": "68e590ce84795ee18ca9e41ad57db190ea6b2a8fcbb31ba94f6bcbb87c7c70b4",
-      "t": "What about the tail? What does it eat?"
+      "source": "꼬리는 뭐요?",
+      "sourceHash": "f6e2e9b04ea8dec6affcd6ce3714ccc6e4c3aedfe1a9e0b695be61b417b8cb54",
+      "t": "The tail does what?"
     },
     {
       "id": "ep-37:19",
-      "source": "꼬리는 지나간 것을 먹어요. 기억, 전생, 끝난 인연. 그래서 꼬리 쪽 사람들은 자꾸 뒤를 돌아봐요.",
-      "sourceHash": "3b110ce6807736f03a82f145f49e2fb6b7ad0504709a24ae15b03a33473c2abc",
-      "t": "The tail eats what has passed. Memories, past lives, bonds that have ended. That's why people on the tail's side keep looking back."
+      "source": "이따 직접 보게 될 것 같아요.",
+      "sourceHash": "e64291166eb752b0d6cf566466e11f2ecebf367096ac7dff39b285cdab027d0e",
+      "t": "I think we'll see for ourselves soon."
     },
     {
       "id": "ep-37:20",
-      "source": "머리는 앞을 먹고 꼬리는 뒤를 먹고. 식성 한번 골고루네.",
-      "sourceHash": "8b76dc7ff12e73ec55830749d55c34675e752ebf4de24d1832e311e0c9230518",
-      "t": "Head eats what's ahead, tail eats what's behind. Quite a balanced diet."
+      "source": "세 줄도 못 채우네.",
+      "sourceHash": "e46cde041595498387da059eeb72225d12553f875fc6635053b6bf358d82e42f",
+      "t": "Couldn't even fill three lines."
     },
     {
       "id": "ep-37:21",
-      "source": "편식하지 않는 적이 제일 성가시다.",
-      "sourceHash": "4c94823eb86e0b424e43736c147ade549f8cd6c9d1270398bd1e7b8f68a11eeb",
-      "t": "An enemy that isn't a picky eater is the most troublesome kind."
+      "source": "설명보다 빨리 오는 적이다.",
+      "sourceHash": "144948b6502202feae67441a68468588f136e1e1b9c9adf64f242153fc85e281",
+      "t": "An enemy faster than its explanation."
     },
     {
       "id": "ep-37:22",
@@ -142,9 +142,9 @@
     },
     {
       "id": "ep-37:23",
-      "source": "로히니야. 황소자리 쪽에 있는 달의 자리. 저기 머리가 보여.",
-      "sourceHash": "45b5a91307a499ba3c8c7ecf9690690cecc4eeffa2def6194aec7dae89e474fd",
-      "t": "Rohini. A lunar station in Taurus. You can see the head there."
+      "source": "로히니, 황소자리 쪽 달의 자리야. 저기 머리가 보여.",
+      "sourceHash": "bcd87b9d65df8a4be5981602d28a40d8a4bbbd193c698758f6b9530c10eb6879",
+      "t": "Rohini, the Moon's place toward Taurus. You can see the head there."
     },
     {
       "id": "ep-37:24",
@@ -154,9 +154,9 @@
     },
     {
       "id": "ep-37:25",
-      "source": "숙녀분 차트에 그렇게 나와요. 라후, 머리는 로히니. 케투, 꼬리는 반대편 제슈타. 흑월이 숙녀분 하늘에 자리를 깔고 앉은 거예요.",
-      "sourceHash": "48c542bb861e89e425dfcf0d3100cd195743deebb6724f6b1e79a7879bf74516",
-      "t": "That's what your chart says, my lady. Rahu, the head, is in Rohini. Ketu, the tail, is opposite, in Jyeshtha. Black Moon has settled into your sky."
+      "source": "라후, 머리는 로히니에 앉았어요. 꼬리 케투는 반대편 제스타고요.",
+      "sourceHash": "6c98f7f79b2b23aead19c2fbd568c853595c3ce2c4556b579791fdebc660b53c",
+      "t": "Rahu, the head, sits in Rohini. Ketu, the tail, is opposite in Jyeshtha."
     },
     {
       "id": "ep-37:26",
@@ -196,9 +196,9 @@
     },
     {
       "id": "ep-37:32",
-      "source": "버린 적 없어. 발 내놔.",
-      "sourceHash": "d9f651133b471d639a5b9b525f95c6b2866f0ffdfe6283ae30af43626b99c0dc",
-      "t": "Never threw it away. Paw out."
+      "source": "버린 적 없어. 팔 내놔.",
+      "sourceHash": "7bc30962450c7dcb3314ac7bde1315d6e2116a4fb928e772b6caa0ee8306c270",
+      "t": "Never threw it away. Give me your arm."
     },
     {
       "id": "ep-37:33",
@@ -232,9 +232,9 @@
     },
     {
       "id": "ep-37:38",
-      "source": "연이는 투명한 발을 두 손으로 감쌌다. 아무것도 잡히지 않았다. 그래도 손을 풀지 않았다.",
-      "sourceHash": "9a6cd723c20d095bdf7846d5c621087bc4802629c771a5ea8c246f8025cf4643",
-      "t": "Yeoni cupped the transparent paw in both hands. They caught nothing. Still, they didn't let go."
+      "source": "연이는 투명한 팔을 두 손으로 감쌌다. 아무것도 잡히지 않았다. 그래도 손을 풀지 않았다.",
+      "sourceHash": "23708cc71d4942bad4a39bd6d579c209a3bea18ecb44671ce7a5289ff99d6cb2",
+      "t": "Yeoni wrapped both hands around his transparent arm. She caught nothing. Still, she didn't let go."
     },
     {
       "id": "ep-37:39",
@@ -328,21 +328,21 @@
     },
     {
       "id": "ep-37:54",
-      "source": "사원 안쪽에 둥근 방이 있었다. 바닥에 스물일곱 칸이 원을 그렸다. 칸마다 작은 등잔이 놓여 있었다.",
-      "sourceHash": "e60f2adef61d6326cfd2c3a6ffa6415283194654e3bc74c0bbb428f58883f897",
-      "t": "A round room lay inside the temple. Twenty-seven divisions formed a circle on the floor, each holding a small oil lamp."
+      "source": "사원 안쪽 둥근 방 바닥에 스물일곱 칸이 원을 그렸다. 칸마다 꺼진 등잔이 놓여 있었다.",
+      "sourceHash": "2d58bc91074467bf519d2d4afb0f058b5182e269ad8446676a0ea28086661bde",
+      "t": "In a round chamber deep in the temple, twenty-seven spaces circled the floor. An unlit lamp stood in each."
     },
     {
       "id": "ep-37:55",
-      "source": "숙녀분 달 자리를 찾아볼게요. 태어난 밤에 달이 어느 집에 묵었는지.",
-      "sourceHash": "0cf3f79c4278566ffe9a65cb11eb115bfe19dd851e3044f24216f8c3871fc080",
-      "t": "Let's find your lunar station. The house the Moon stayed in on the night you were born."
+      "source": "숙녀분 달 자리는 숙녀분 불로만 켜져요. 태어난 밤에 달이 묵은 집이요.",
+      "sourceHash": "663757f85132f3f90a6fb052ead7417fdf2af9dd7162eb71793d8d5ac89dc04e",
+      "t": "Only your own fire lights your Moon's place. The house where the Moon stayed on your birth night."
     },
     {
       "id": "ep-37:56",
-      "source": "윤달이 바닥을 따라 걸었다. 숫양의 집들을 지나다 두 번째 칸에서 멈췄다. 등잔 하나가 스스로 켜졌다.",
-      "sourceHash": "61d80fe9563a720f80ffd88f704408f9f101b7939922313a470f0d2506577752",
-      "t": "Yundal followed the circle, passing the Ram's houses and stopping at the second division. A lamp lit by itself."
+      "source": "연이는 손끝에 작고 고른 불을 모았다. 첫 칸 등잔은 심지만 그을리고 꺼졌다. 두 번째 칸 등잔은 불을 받아 흔들림 없이 타올랐다.",
+      "sourceHash": "1da2bd43239269e1a64207d6545b8798a00d4a93b1bf6bd2e4361da85f23b9c9",
+      "t": "She gathered a small, steady flame at her fingertips. The first lamp only singed and went out. The second accepted the fire and burned without flickering."
     },
     {
       "id": "ep-37:57",
@@ -358,9 +358,9 @@
     },
     {
       "id": "ep-37:59",
-      "source": "배 속에 무언가를 품었다가 세상에 내보내는 별이요. 이 하늘에선 그런 사람을 그릇이라고 불러요.",
-      "sourceHash": "8b0bb7b2ac5c0319ea95413e2e2e353e17887ec3a42258d55c0e0562090a0eae",
-      "t": "A star that holds something within and brings it into the world. In this sky, such a person is called a vessel."
+      "source": "품었다가 세상에 내보내는 별이요. 이 하늘에선 그런 사람을 그릇이라고 불러요.",
+      "sourceHash": "a2ba28711d17cd02e5e38362ff32c777f1d5154b576192eccdf5af551581d677",
+      "t": "A star that holds life, then brings it into the world. In this sky, such people are called vessels."
     },
     {
       "id": "ep-37:60",
@@ -376,45 +376,45 @@
     },
     {
       "id": "ep-37:62",
-      "source": "흑월은 반만 말한 거예요. 그릇은 비어야 담긴다. 그건 흑월의 뜻이고.",
-      "sourceHash": "e014da4737f33552c8aaa1087011f41213148f7a4e8cd9eaa57ca43ae564607b",
-      "t": "Black Moon only told you half. A vessel must be empty to hold something. That's Black Moon's meaning."
+      "source": "흑월은 반만 말한 거예요. 비어야 담긴다는 건 흑월 쪽 뜻이고요.",
+      "sourceHash": "e1498bbe01858f8c09a6154b9a8378c36155265c003115071d0287ade9ce7c76",
+      "t": "Black Moon told only half of it. Empty to be filled—that's his meaning."
     },
     {
       "id": "ep-37:63",
-      "source": "바라니의 뜻은 달라요. 품었다가 내보낸다. 담아 두는 게 아니라 길러서 돌려준다.",
-      "sourceHash": "0de0554039768cd3112cc8dc6908c4ac216bc73db23af8608a5f98ffbc750cc7",
-      "t": "Bharani means something different. Bear it, then send it out. Not keep it inside, but nurture it and give it back."
+      "source": "바라니는 담아 두지 않아요. 품었다가 길러서 돌려주죠.",
+      "sourceHash": "bf3a5d2cb61a57b8f8a0d1f2b59fcedbf1999d29b664d70b92a6b9dadbaa218d",
+      "t": "Bharani doesn't hoard. It holds, nurtures, and gives back."
     },
     {
       "id": "ep-37:64",
-      "source": "연이는 배에서 손을 떼었다. 그리고 다시 얹었다. 이번에는 조금 덜 무서웠다.",
-      "sourceHash": "ce6b21ad858163374f11d9f21f35a7e069faff14945c0eeee67e1daf748e8200",
-      "t": "Yeoni lifted their hand from their stomach, then laid it there again. This time, they felt a little less afraid."
+      "source": "연이는 배에서 손을 떼었다. 그리고 다시 얹었다. 아까보다 조금 덜 무서웠다.",
+      "sourceHash": "89f224373e7dfa9972f0922d0c048a2ecf36121d58fda20bde69b6e083ebd07e",
+      "t": "Yeoni took her hand from her belly, then laid it there again. A little less afraid than before."
     },
     {
       "id": "ep-37:65",
-      "source": "네 달은 바라니 끝자락에 있어. 바로 다음은 불과 닿아 있는 크리티카고. 그 경계를 잘 봐.",
-      "sourceHash": "3eb0304f29dfc1936ebf75a893b484192fcbc4cd0b1978d2b1ee2cc646e30404",
-      "t": "Your Moon sits at the very end of Bharani. Next comes Krittika, connected with fire. Watch that boundary."
+      "source": "연이가 세 번째 칸에 불을 대자 크리티카의 등잔이 칼날처럼 하얗게 치솟았다. 연이는 손을 데일 뻔하고 물러섰다.",
+      "sourceHash": "00c45bdfd3534e79bf370ba4c39b05d2b093d0ed638087bffa27f8a28b840127",
+      "t": "When she touched fire to the third space, Krittika's lamp surged blade-white. She stepped back, almost burning her hand."
     },
     {
       "id": "ep-37:66",
-      "source": "경계에 있다는 거야?",
-      "sourceHash": "39beef8de95616788b306a13dd17440f3fda83ec80c4413e46fb63fcfe07d1e7",
-      "t": "I'm on the boundary?"
+      "source": "내 달이 저기랑 붙어 있어?",
+      "sourceHash": "5fbc94c9b27e39daf1e806d0cc06ac198033b9462e3533ff95a07fde06ddbae4",
+      "t": "My Moon is right beside that?"
     },
     {
       "id": "ep-37:67",
-      "source": "한 걸음만 넘으면 칼을 든 별이 된다. 품는 사람과 베는 사람 사이. 그래서 고집이 센 거다.",
-      "sourceHash": "84c04f0de729a31b763d296419d8713e9e84a776d2acc3ada21c939a22b14c12",
-      "t": "One step farther and it becomes the star holding a blade. Between the one who bears and the one who cuts. That's why you're so stubborn."
+      "source": "경계 가까이 있을 뿐이다. 어느 쪽으로 기울지는 네가 고른다.",
+      "sourceHash": "65b46a6358da83d76e224ba6e3873a6c8075bc875b7f6d3bc0829fcad7423e5f",
+      "t": "Only near the boundary. You choose which way to lean."
     },
     {
       "id": "ep-37:68",
-      "source": "결국 고집 얘기로 가네!",
-      "sourceHash": "3168057802b0a3ebe5851957933eeee2c0117fbb8b39a9372345346d706b1757",
-      "t": "So we're back to stubborn!"
+      "source": "그럼 품는 쪽. 방금 내가 골랐어.",
+      "sourceHash": "bbd8a5b5aeb22f3ae35029ebe6c2cfe0ae738fcb022b3b722957ca0ecc354f77",
+      "t": "Then the nurturing side. I've just chosen."
     },
     {
       "id": "ep-37:69",
@@ -496,9 +496,9 @@
     },
     {
       "id": "ep-37:82",
-      "source": "원래 그런 게 어디 있어! 발도, 실도, 다 원래 그렇다고 할 거야?",
-      "sourceHash": "076c323bb75975c81bc8e7fe4f565c7b626e868c781e31a8efd1724e8e44a545",
-      "t": "Normal? Your paw, the thread—are you going to say it's all normal?"
+      "source": "원래 그런 게 어디 있어! 팔도, 실도, 다 원래 그렇다고 할 거야?",
+      "sourceHash": "7dc48b0d03dccc8fbaf507ed264cfdef76f1e85e085cffa892f0ca8cfa2b31de",
+      "t": "What do you mean, always like that? Your arm, the thread—are you going to say it about everything?"
     },
     {
       "id": "ep-37:83",
@@ -525,22 +525,70 @@
       "t": "Yeoni tugged gently. From below came the faintest answering pull, as though someone held the other end between their fingers."
     },
     {
+      "id": "ep-37:thread-1",
+      "source": "갈라진 실은 한쪽만 쥘 수 있어요. 둘 다 쥐면 숙녀분 달이 대신 닳아요.",
+      "sourceHash": "43b914fd13bfe1165877302c1f33d1abfa7ba5b2206f3ff6ea452e6ccc9f7643",
+      "t": "You can hold only one branch of a split thread. Hold both, and your Moon wears away instead."
+    },
+    {
+      "id": "ep-37:thread-2",
+      "source": "연이는 대답 대신 다른 손으로 네오 쪽 실까지 움켜쥐었다.",
+      "sourceHash": "3c05436048f2e572c3b62104cda6446902908ba7d61d3bf6a0315b5a6b8a3b91",
+      "t": "Instead of answering, she seized Neo's thread with her other hand too."
+    },
+    {
+      "id": "ep-37:thread-3",
+      "source": "바라니의 등잔이 크게 흔들렸다. 불꽃이 반으로 줄더니 심지 절반이 까맣게 타 버렸다.",
+      "sourceHash": "23365be453e2d2f54a1186155c0baca7dec9483f39da111a655e1be4feb17efd",
+      "t": "Bharani's lamp shuddered. The flame halved, and half its wick burned black."
+    },
+    {
+      "id": "ep-37:thread-4",
+      "source": "내 쪽을 놔라. 그 실은 원래 그렇다.",
+      "sourceHash": "b6f90a22a42ce206611c5e19a90af7e89f159e0b592a14d57cac7cade74a9e6c",
+      "t": "Let go of mine. That thread was always like that."
+    },
+    {
+      "id": "ep-37:thread-5",
+      "source": "싫어. 해진 건 꿰매면 돼.",
+      "sourceHash": "a131090e73a0e39e19bf59930d68b4eb6640d7d025be46280900989876dd87c7",
+      "t": "No. Frayed things can be stitched."
+    },
+    {
+      "id": "ep-37:thread-6",
+      "source": "연이는 두 가닥을 손목에 한 번씩 감았다. 등잔 불은 반쯤 어두운 채로 다시 커지지 않았다.",
+      "sourceHash": "fb5383652b3d5aa0a734ab39047a6f07b5f42e96f64806678d5e32f81d090077",
+      "t": "She wound each thread once around her wrist. The lamp stayed half-dim and never grew again."
+    },
+    {
+      "id": "ep-37:wick-1",
+      "source": "연이는 등잔 쪽으로 손을 뻗다가 멈췄다. 두 실을 쥔 손을 펴면 아래쪽 힘이 사라질 것 같았다. 대신 타다 남은 심지의 길이를 눈에 새겼다.",
+      "sourceHash": "411baf5b5c4344860d95a55fd442f213aedb2f9b09e26c4772dcfeced8b736d2",
+      "t": "Yeoni reached toward the lamp, then stopped. Opening the hands that held both threads might lose the pull from below. Instead, she fixed the remaining wick's length in her mind."
+    },
+    {
+      "id": "ep-37:wick-2",
+      "source": "돌아올 때 저 불부터 볼 거예요. 더 줄었으면, 내려간 동안 무슨 일이 있었는지 알 수 있잖아요.",
+      "sourceHash": "9d465cc3857acc69b360174d9edef686411cb779746f7fc0c03af59f394a0e1c",
+      "t": "I'll check that flame first when we return. If it's smaller, we'll know something happened while we were down there."
+    },
+    {
       "id": "ep-37:87",
-      "source": "이 실은 한 생에서 생긴 게 아니에요. 몇 번을 다시 태어나도 끊기지 않을 만큼 굵어요.",
-      "sourceHash": "198025a693dd9a8664f5e4a2e684f7a8cea0aeb8674c19d31d61586ef48cd68b",
-      "t": "This thread wasn't formed in one life. It's thick enough to survive many rebirths."
+      "source": "아래로 가는 실은 한 생에서 생긴 게 아니에요. 몇 번을 다시 태어나도 안 끊길 만큼 굵어요.",
+      "sourceHash": "970003ca524a50b2d4899a1c336ac4da70a3dceccb4e6033fcb719281d208cff",
+      "t": "The downward thread wasn't made in a single life. It's thick enough to survive many rebirths."
     },
     {
       "id": "ep-37:88",
-      "source": "그럼 아래에 있는 사람이랑 나, 다른 생에서도 만났다는 거예요?",
-      "sourceHash": "d5758a668893894957a836b7e80e1a8c70e3306cb91f53612282b51d8ea24da8",
-      "t": "Then I've met the person below in another life?"
+      "source": "그럼 아래에 있는 사람이랑 나, 다른 생에서도 만났어요?",
+      "sourceHash": "af358e4c8ab29d9041138e9a1ec51675a7f60567aef23c565e24fb05ba3710fb",
+      "t": "Then that person below and I met in another life too?"
     },
     {
       "id": "ep-37:89",
-      "source": "만났고, 무언가를 주고받았겠죠. 좋은 것이든 나쁜 것이든. 업이라는 게 원래 그래요.",
-      "sourceHash": "a23062bb9be6db0eac2a6e5f77786942bfacc153d77e7d68109afd0938f38380",
-      "t": "You met and exchanged something. Good or bad. That's how karma works."
+      "source": "만났고, 뭔가 주고받았겠죠. 좋은 거든 나쁜 거든요.",
+      "sourceHash": "a286046301a50c6707c8210af572793c80ce066df3df09e8f73e6ccf7c77b00c",
+      "t": "And exchanged something, likely. Good or bad."
     },
     {
       "id": "ep-37:90",
@@ -562,9 +610,9 @@
     },
     {
       "id": "ep-37:93",
-      "source": "꼬리는 기억을 먹는다. 머리는 내일을 먹는다. 그릇아, 너는 어느 쪽부터 내어 주겠느냐.",
-      "sourceHash": "e83bbb24a513359b62b91c66fe9e868f9770f89e322de7249cdee2e3367a9876",
-      "t": "The tail eats memory. The head eats tomorrow. Vessel, which will you surrender first?"
+      "source": "꼬리는 어제를, 머리는 내일을 먹는다. 그릇아, 어느 쪽부터 내어 주겠느냐.",
+      "sourceHash": "b5529c9d96762d5aaed648184eabec4c0f761b2ec23453685f95dbbc306588d4",
+      "t": "The tail eats yesterday; the head, tomorrow. Which wilt thou offer first, vessel?"
     },
     {
       "id": "ep-37:94",
@@ -586,9 +634,9 @@
     },
     {
       "id": "ep-37:97",
-      "source": "아직 넓히지 마. 저건 꼬리야. 머리가 오기 전에 힘을 다 쓰면 안 돼.",
-      "sourceHash": "0aaace339379ec3eff66b4eafd22a686d2a12cb06bd567dbe820769c4d17cb33",
-      "t": "Don't widen it yet. That's the tail. Don't spend all your strength before the head arrives."
+      "source": "아직 넓히지 마. 머리가 오기 전에 힘을 다 쓰면 안 된다.",
+      "sourceHash": "88ac5edaf1539940151e4f0e17646211edd8b8a89a4a40902d1a9ea5a9309b64",
+      "t": "Don't widen it yet. We can't spend everything before the head arrives."
     },
     {
       "id": "ep-37:98",
@@ -598,9 +646,9 @@
     },
     {
       "id": "ep-37:99",
-      "source": "꼬리가 바닥을 휩쓸었다. 등잔들이 쓰러졌다. 연이 손목의 붉은 실이 팽팽하게 당겨졌다. 아래쪽 끝에서 누군가 실을 붙잡고 있었다.",
-      "sourceHash": "6652ae13e3dbba7d29f3efb49bd2217b24127bc2c3b93575ce240e0ec8cf697d",
-      "t": "The tail swept the floor. Lamps toppled. The red thread around Yeoni's wrist pulled taut. Someone below was holding on."
+      "source": "꼬리가 바닥을 휩쓸었다. 등잔들이 쓰러지고, 반쯤 탄 바라니의 등잔 하나만 버텼다. 연이 손목의 붉은 실이 팽팽하게 당겨졌다. 아래쪽 끝에서 누군가 실을 붙잡고 있었다.",
+      "sourceHash": "f66af106ded29ce477d7a0a997f59ac95f23b6d1ef3306a68ca1aff4151532b9",
+      "t": "The tail swept the floor. Lamps toppled; only half-burned Bharani held firm. The red thread tightened on her wrist. Someone held its lower end."
     },
     {
       "id": "ep-37:100",

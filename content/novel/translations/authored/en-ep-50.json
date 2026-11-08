@@ -300,6 +300,18 @@
       "t": "Yeoni looked from the names on the paper leaves to Neo’s hand. His was a name that deserved to return too. Instead of choosing someone to leave behind, she wrote words that included everyone."
     },
     {
+      "id": "ep-50:leaf-1",
+      "source": "연이는 가장 가까운 종이 잎을 주웠다. 이름이 있어야 할 자리에 펜촉을 대자 종이가 오그라들었다. 모르는 이름을 대신 써 줄 수는 없었다.",
+      "sourceHash": "81a50f03c24a7bdbe695ff40f7930f6f6e6c410c45f5af657d60696943c8a88f",
+      "t": "Yeoni picked up the nearest paper leaf. It shriveled as her pen touched where a name belonged. She couldn't write an unknown name for its owner."
+    },
+    {
+      "id": "ep-50:leaf-2",
+      "source": "누구 이름인지 내가 몰라도 돌려줄 수 있어야 해요. 내 메모장에 없는 사람도 있으니까.",
+      "sourceHash": "c47ba246e0681e660b86ca974cc889ca637f80b1e395c7614a5ddef83d957926",
+      "t": "They should get them back even if I don't know their names. There are people missing from my notebook too."
+    },
+    {
       "id": "ep-50:48",
       "source": "[ 23 · THE DOOR · 먹힌 이름은 모두 주인에게. 문은 안에서도 열린다. ]",
       "sourceHash": "9e8230aad266033b552737a1b527c00c9483e0d63fa8da2bc7be3a9c5086a4ad",
@@ -326,16 +338,16 @@
     },
     {
       "id": "ep-50:52",
-      "source": "네. 이름에 딸린 기억도 주인에게 돌아갑니다. 수호자도 예외가 아니며, 이 문은 앞으로 양쪽에서 열립니다.",
-      "sourceHash": "f4319bf9ed85aeafd3d8ed79eb1116d3dc5598f54668b7ab4561a52c0fce451c",
-      "t": "Yes. The memories belonging to each name return to their owner too, including the guardian. From now on, this door opens both ways.",
+      "source": "네. 이름에 딸린 기억도 주인에게 돌아갑니다. 수호자도 예외가 아닙니다.",
+      "sourceHash": "7be6427f23e2915148d012b706f91e47f78c35a6c60544ff6350b9aa04ecc748",
+      "t": "Yes. Memories attached to names also return to their owners. Guardians are no exception.",
       "nm": "Universe"
     },
     {
       "id": "ep-50:53",
-      "source": "네오가 고개를 들었다. 우주의 말에 숨은 뜻을 먼저 알아챈 듯 입술을 다물었다.",
-      "sourceHash": "bfa888b87499394e030de24ed2a86ab2c2b190266b6838c53d46eec6a254a8a5",
-      "t": "Neo lifted his head, then pressed his lips together, as though he had caught the hidden meaning first."
+      "source": "네오가 고개를 들었다. 연이를 보는 눈이 오래 머물렀다. 박 뭐시기 소리는 다시 하지 않았다.",
+      "sourceHash": "6ddaa4690a4a0d1df0bcd74fccbc27cb088aeeb60940914ed23a8c0787df9706",
+      "t": "Neo lifted his head and looked at her for a long time. He didn't call himself Park Something again."
     },
     {
       "id": "ep-50:54",
@@ -465,9 +477,9 @@
     },
     {
       "id": "ep-50:75",
-      "source": "랩이 핵심이야! 너 별점 그거 다시 매겨. 이번엔 다섯 개로.",
-      "sourceHash": "4185c5e4481fc13e178684ff12dbbecf6617e17b65cc6f5102004318505694f1",
-      "t": "Rap is the point! Change that rating. Five stars this time."
+      "source": "랩이 핵심이야! 너 별점 그거 다시 매겨. 다섯 개로.",
+      "sourceHash": "b5f0372c146daf313385a1859bb3d3678d1e87b51b6b49d53e75a306684b6917",
+      "t": "The rap is the point! Re-rate me. Five stars."
     },
     {
       "id": "ep-50:76",
@@ -561,9 +573,27 @@
     },
     {
       "id": "ep-50:choice-answer",
-      "source": "네. 방금 쓰신 한 줄이 예전 귀환 규정을 바꿨습니다. 어느 문을 골라도 이름과 기억, 인연을 잃지 않습니다.",
-      "sourceHash": "f4e9831aaba660cb1ab72159b33081e0c545c19cab35b82cec1082f898661d53",
-      "t": "Yes. The line you just wrote has changed the old return rule. Whichever door you choose, you keep your names, memories, and bonds."
+      "source": "기억은 남습니다. 다만 이 문은 건넌 사람을 각자의 원래 자리로 보내고, 다시 건너오게 하지 않습니다.",
+      "sourceHash": "5ffb54938ff2e5f6a0eca34cbfa53924c0de0f3887392143a40c146dc8bbffb9",
+      "t": "Your memories remain. However, this door sends each traveler to their original place and does not permit them to cross again."
+    },
+    {
+      "id": "ep-50:cost-1",
+      "source": "현실로 가면 모카는 여기 두고 가는 거고. 여기 남으면, 엄마는.",
+      "sourceHash": "de3cf064bf2e1c975570c195c40cb90cf488a7f28d31ffb94a7b0221ef488fa9",
+      "t": "Go back to reality, and I leave Moka here. Stay here, and Mom…"
+    },
+    {
+      "id": "ep-50:cost-2",
+      "source": "죄송합니다, 고객님. 규정은 바꾸셨지만 거리는 바꾸지 못하셨습니다.",
+      "sourceHash": "ebb0ebf21620e39caa1c7abe6db76fb7c39b88a889c74f2bae13cd2459466bf6",
+      "t": "I'm sorry, customer. You changed the rules, but not the distance."
+    },
+    {
+      "id": "ep-50:doorstep-1",
+      "source": "문턱 아래로 두 세계의 빛이 흘렀다. 연이는 한쪽 발을 들었다가 다시 나란히 놓았다. 엄마에게 못 한 말도, 모카에게 더 듣고 싶은 잔소리도 아직 많았다.",
+      "sourceHash": "d9700e4a6b42884bfe49319bcd579c19317e2828aabbccce8eba7d6a218b00df",
+      "t": "Light from two worlds flowed beneath the threshold. Yeoni lifted one foot, then set it beside the other again. There was so much left to tell Mom, so much more scolding she wanted to hear from Moka."
     },
     {
       "id": "ep-50:choice-neo",
@@ -579,15 +609,33 @@
     },
     {
       "id": "ep-50:choice-moka",
-      "source": "어디서 살든 내 랩은 보내 줄 거야. 스물세 번째 문은 소식까지 막는 문이 아니래.",
-      "sourceHash": "8f3e075f2d57719fe86086eabff4104fa9b072230b7f5c4389c017e1bc8f9207",
-      "t": "Wherever you live, I'm sending you my rap. They say the twenty-third door doesn't block news."
+      "source": "어디서 살든 내 랩은 보내 볼 거야. 안 닿으면 더 크게 부르지, 뭐.",
+      "sourceHash": "42a5db0d758657638231f5bcfb717e54b645b9bdf256755808e71650bdf4cd5d",
+      "t": "Wherever you live, I'll try sending my rap. If it doesn't reach you, I'll sing louder."
     },
     {
       "id": "ep-50:choice-agency",
-      "source": "연이는 두 문을 천천히 바라봤다. 이번에는 누군가 짜 둔 구조 안에서 살아남는 것이 아니었다. 자신의 다음 봄을 자신이 고르는 일이었다.",
-      "sourceHash": "de8609f11828483e37dcfea5861c9bce0f7a09acc2cc9a2d7dcc9e866b32681b",
-      "t": "Yeoni looked slowly at both doors. This time, it wasn't about surviving a structure someone else had arranged. It was choosing their own next spring."
+      "source": "연이는 두 문을 번갈아 보았다. 벚꽃 강가 쪽에서는 엄마의 아침 드라마 소리가 들릴 것 같았다. 달빛 세계수 쪽에서는 모카의 국자 소리가 났다.",
+      "sourceHash": "876a4ce975dc764fb7dc2f1b6d3a5b5da81cf331daafa8e5a24c608c692550f0",
+      "t": "She looked between the doors. By the cherry-lined river, she could almost hear Mom's morning drama. By the moonlit World Tree, Moka's ladle clattered."
+    },
+    {
+      "id": "ep-50:close-1",
+      "source": "어느 문이든 같이 고른다. 떨어지게 되면 찾으러 와라, 늦지 말고.",
+      "sourceHash": "ffba293f1f3b9b3467d633dd59503aa7d8b1019a86a702ae27fe62e1e49addfc",
+      "t": "Whichever door, we choose together. If we're separated, come find me. Don't be late."
+    },
+    {
+      "id": "ep-50:close-2",
+      "source": "너나 늦지 마.",
+      "sourceHash": "988facd340f2a1556afc97093b3736ffb676fcfb9ba047aac4c7f6b3a4a0347f",
+      "t": "You're the one who'd better not be late."
+    },
+    {
+      "id": "ep-50:close-3",
+      "source": "연이는 카드에 손바닥을 얹었다. 잡아당기지 않았다. 밀었다.",
+      "sourceHash": "d37fcfa0a49530fc769d68af949a2ac99b3368a69b2d83399b202146f0e8d50b",
+      "t": "Yeoni laid her palm on the card. She didn't pull. She pushed."
     },
     {
       "id": "ep-50:final-choice",

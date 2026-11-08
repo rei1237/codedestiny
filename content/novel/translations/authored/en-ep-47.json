@@ -160,51 +160,15 @@
     },
     {
       "id": "ep-47:26",
-      "source": "오행은 서로를 낳아요. 나무가 불을, 불이 흙을, 흙이 쇠를, 쇠가 물을, 물이 다시 나무를.",
-      "sourceHash": "2eafc70d3a304c93bb692be9f22b76ad99e0cf5f33b5eaed749b88df4063ab71",
-      "t": "The five elements generate one another. Wood makes Fire, Fire makes Earth, Earth makes Metal, Metal makes Water, and Water returns to nourish Wood."
-    },
-    {
-      "id": "ep-47:27",
-      "source": "[ 木 → 火 → 土 → 金 → 水 → 木 ]",
-      "sourceHash": "84824f1ace5d4f06dfd4067f210d8bfab7ee4b357900551309440c7dec92d4ee",
-      "t": "[ Wood → Fire → Earth → Metal → Water → Wood ]"
-    },
-    {
-      "id": "ep-47:28",
-      "source": "방금 연이 씨의 金이 서한비 씨한테 들어가서 물이 됐어요. 金生水. 고양이님 기운이 비를 낳은 거예요.",
-      "sourceHash": "e309403682fa62bc70cb79e738117bbbe177b3b204092860256da2bbabf0e14b",
-      "t": "Your Metal just entered Seo Hanbi and became Water. Metal generates Water. Mr. Cat's energy gave birth to rain."
-    },
-    {
-      "id": "ep-47:29",
-      "source": "제 비가 고양이님한테서.",
-      "sourceHash": "621d1c9ba1459be7daca85b42ef1fba1370b5f0ce4ce7d7aa7700a7c954e4111",
-      "t": "My rain came from Mr. Cat."
-    },
-    {
-      "id": "ep-47:30",
-      "source": "원래 그래요. 연이 씨 명식은 여름 나무라 물이 필요하고, 그 물은 金에서 와요. 고양이님은 처음부터 비를 데려오는 쪽이었어요.",
-      "sourceHash": "a9b0c6fb49aea4f3d8d1243f4f162e8886dd78050e17b8408c97f4e259e34ea4",
-      "t": "That's the natural order. You're a summer tree, Yeoni, so your chart needs Water. That Water comes from Metal. Mr. Cat was always the one who brought rain."
-    },
-    {
-      "id": "ep-47:31",
-      "source": "(그래서 그 고양이는 늘 우산을 들고 있었나. 사람일 때.)",
-      "sourceHash": "4987858546d79a8b6a1c5c0e0ea40039d78b64acc6c6317e78a6c2d9ac39ba42",
-      "t": "(Is that why the cat always carried an umbrella? When he was human.)"
-    },
-    {
-      "id": "ep-47:32",
-      "source": "연이는 자기 생각에 놀랐다. 사람일 때 우산이라니. 그런 걸 본 기억이 없었다. 그런데 메모에 적혀 있었다. 우산은 사람일 때.",
-      "sourceHash": "5bfa720a1e39097026f31fa2677a6c166a3e11e817d275424e69856a9e031a31",
-      "t": "Yeoni startled at their own thought. An umbrella when human? They had no memory of seeing that. Yet the note said it: Umbrella when human."
+      "source": "당기면 먹히고, 밀면 낳아요. 오행이 원래 그래요.",
+      "sourceHash": "c66fb6139841ff5b9a22711c83009f4c10919d5844e5be7ce2f4b1e2bfff4317",
+      "t": "Pull, and it devours. Push, and it generates. That's how the Five Elements work."
     },
     {
       "id": "ep-47:33",
-      "source": "그러니까 한 바퀴를 돌려요. 다섯이 손을 잡고, 앞사람이 뒷사람한테 밀어 주는 거예요. 당기지 말고.",
-      "sourceHash": "bedb0556b1d3c8aa425bd721db410f3f59c661a8bed0a50cf7ce0fe54cbc27de",
-      "t": "So make a circuit. Five of us holding hands, each pushing energy to the next. Not pulling."
+      "source": "다섯이 손을 잡고 앞사람이 뒷사람한테 밀어 주는 거예요. 당기지 말고.",
+      "sourceHash": "71359293a58d33ccbc5b246fcd9e6b0d37d01d5566dac4c020b885b7d7d90816",
+      "t": "Five of us hold hands and push into the next person. No pulling."
     },
     {
       "id": "ep-47:34",
@@ -214,9 +178,9 @@
     },
     {
       "id": "ep-47:35",
-      "source": "궁합 보는 거랑 비슷해요. 이번엔 공짜로 봐 드릴게요.",
-      "sourceHash": "937418b02e5137e4a793b7bf1b70bc7a7580706c3b89a70809b2d04a963914b7",
-      "t": "Like a compatibility reading. This one is free."
+      "source": "궁합 보는 거랑 비슷해요. 공짜로 봐 드릴게요.",
+      "sourceHash": "66a2a8658f2c7637e3f72c1314dbc5b56d8d940bee75057a430231d471043cfd",
+      "t": "Like a compatibility reading. I'll do this one for free."
     },
     {
       "id": "ep-47:36",
@@ -226,21 +190,21 @@
     },
     {
       "id": "ep-47:37",
-      "source": "연이 씨는 木. 덩굴이니까 맨 처음. 모카 씨는 火, 연이 씨 오른쪽.",
-      "sourceHash": "29728ae4826edbdfbed4f1556f32154635d4efc95f15b1b1db821057a81738b3",
-      "t": "Yeoni is Wood. A vine, so first. Moka is Fire, on Yeoni's right."
+      "source": "연이 씨는 木이라 맨 처음, 모카 씨는 火라 그 오른쪽.",
+      "sourceHash": "11aadc21327d9f8567d38070371dfe35da9e59d88e9a400d476ec8a1121b7543",
+      "t": "Yeoni is Wood, first. Moka is Fire, to her right."
     },
     {
       "id": "ep-47:38",
-      "source": "나무가 나를 키운다는 거지? 연이야, 나 잘 키워라. 비싸게.",
-      "sourceHash": "0bd44a5101d5674d9e52b716f6f9ba66d9b9d178183efed64d93a5330c8f90c5",
-      "t": "Wood feeds me, right? Yeoni, raise me well. Expensively."
+      "source": "나무가 나를 키운다는 거지? 연이야, 비싸게 키워라.",
+      "sourceHash": "b8d2682622d604db8f1917812b7eb50d861ac478717b303054dad8dfa64e85f7",
+      "t": "Wood feeds me, then? Yeoni, raise me expensive."
     },
     {
       "id": "ep-47:39",
-      "source": "저는 土. 불 다음. 공망이 흙이에요. 비어 있어서 뭐든 담는 땅.",
-      "sourceHash": "39397bb93650a3d110c3cef0681c5a01a349b2c8c6311549f0d5c9c842ff66d1",
-      "t": "I'm Earth. After Fire. The Void is Earth, empty ground that can hold anything."
+      "source": "저는 土, 불 다음이에요. 비어 있어서 뭐든 담는 땅이죠.",
+      "sourceHash": "1614ed05d1cef11581201706bc0c5e856cbdc72c136a0f9e6e37014c8c8d24e7",
+      "t": "I'm Earth, after Fire. Empty earth that can hold anything."
     },
     {
       "id": "ep-47:40",
@@ -250,9 +214,9 @@
     },
     {
       "id": "ep-47:41",
-      "source": "서한비 씨는 金 다음, 연이 씨 왼쪽. 문제는 金 자리예요.",
-      "sourceHash": "4e55772d96e747516e6ff9f7997134d50c6af2ab4068921caafaaf73d06f75df",
-      "t": "Seo Hanbi comes after Metal, to Yeoni's left. The problem is Metal's place."
+      "source": "서한비 씨는 金 다음, 연이 씨 왼쪽이요. 문제는 金 자리예요.",
+      "sourceHash": "51541f31b19517462f79d7562f88d1e3f6b102f8d37549f13cd9e14f5c40b95d",
+      "t": "Hanbi goes after Metal, to Yeoni's left. The problem is Metal's place."
     },
     {
       "id": "ep-47:42",
@@ -310,9 +274,9 @@
     },
     {
       "id": "ep-47:51",
-      "source": "연이의 얼굴이 빨개졌다. 자기가 왜 아직이라고 했는지 알 수 없었다. 서한비가 작게 웃었다. 이번엔 어깨만이 아니라 소리까지 냈다.",
-      "sourceHash": "baf914ca1142aa44f7dc2d5906461cb92e00c6a178932a1f8070604406c6c052",
-      "t": "Yeoni blushed. They had no idea why they'd said yet. Seo Hanbi laughed softly. This time, not just a shoulder shake, but a sound."
+      "source": "연이의 얼굴이 빨개졌다. 자기가 왜 아직이라고 했는지 알 수 없었다. 서한비가 작게 소리 내어 웃었다.",
+      "sourceHash": "7ae4df29ce8e36d468752fb425de38e26281e86b37b684d6167ce40c514b13eb",
+      "t": "Yeoni's face reddened. She didn't know why she'd said yet. Hanbi gave a small laugh aloud."
     },
     {
       "id": "ep-47:52",
@@ -382,9 +346,9 @@
     },
     {
       "id": "ep-47:63",
-      "source": "검은 해가 다시 다가왔다. 이번엔 손이 아니라 해 자체가 내려왔다. 다섯 개의 눈이 모두 연이를 보고 있었다.",
-      "sourceHash": "6894c5cc30671ff47e12346a8f87bcaaada660ac145ee1edbc38326cd532baa4",
-      "t": "The black sun approached again. This time not its hands, but the sun itself descended. All five eyes fixed on Yeoni."
+      "source": "검은 해가 다시 다가왔다. 손 대신 해가 통째로 내려왔다. 다섯 개의 눈이 모두 연이를 보고 있었다.",
+      "sourceHash": "4f3db092be0fa3f77d65e10551f7f97bc9aec2c049a730163043c060bc3446e2",
+      "t": "The black sun approached again. Instead of a hand, the entire sun descended. All five eyes watched Yeoni."
     },
     {
       "id": "ep-47:64",
@@ -417,10 +381,22 @@
       "t": "Whoa, what's this? Feels like I've got firewood!"
     },
     {
+      "id": "ep-47:turn-1",
+      "source": "나무가 불을 낳았어요. 木生火.",
+      "sourceHash": "e54be18aef40b0cee2fdff0a0a786eaba13298d1a022a147bb83acb52e449bfa",
+      "t": "Wood generated Fire. 木生火."
+    },
+    {
       "id": "ep-47:69",
       "source": "모카가 불을 윤달 쪽으로 밀었다. 불이 윤달의 손바닥에 닿자 검은 원의 가장자리가 단단하게 굳었다. 구운 흙처럼.",
       "sourceHash": "9f1f27698946894881bd42d56b6018f93e58c7507b9dfaace897f331ebaff4f1",
       "t": "Moka pushed the fire toward Yundal. As it touched his palm, the rim of the black circle hardened like fired clay."
+    },
+    {
+      "id": "ep-47:turn-2",
+      "source": "불이 흙을 구웠다. 火生土, 맞지?",
+      "sourceHash": "dddb73581b9a5dc97351d5ea04fd189d832b1f6c942729565dfd441f9f47ad19",
+      "t": "Fire baked Earth. 火生土, right?"
     },
     {
       "id": "ep-47:70",
@@ -435,22 +411,64 @@
       "t": "Yundal added Earth's energy to the golden thread. One strand split into many, tracing shoulders and hands in the empty place."
     },
     {
+      "id": "ep-47:turn-3",
+      "source": "흙이 쇠를 낳아요. 土生金.",
+      "sourceHash": "3fc124d6c18a6da4574ae38a88d789e32a5b281f99bdb211fdf94da7720bdfe1",
+      "t": "Earth generates Metal. 土生金."
+    },
+    {
       "id": "ep-47:72",
       "source": "그 자리에 네오의 형상이 잠깐 섰다. 얼굴 없는 금빛 윤곽뿐이었다. 형상은 서한비 쪽으로 고개를 돌려 숨을 내쉬었다.",
       "sourceHash": "31bd76e3097a4206b8aef5a1261a7931aa713f410bbc37f1872ecbb496907f0a",
       "t": "Neo's shape stood there briefly. Only a faceless golden outline. It turned toward Seo Hanbi and breathed out."
     },
     {
+      "id": "ep-47:28",
+      "source": "金生水. 고양이님 기운이 서한비 씨한테 들어가 비가 됐어요.",
+      "sourceHash": "2bb256d76f0a1565c82d2f9c8ca2f2b2a17cca4ac5d295e34eca5304889d0460",
+      "t": "金生水. Mr. Cat's energy entered Hanbi and became rain."
+    },
+    {
+      "id": "ep-47:29",
+      "source": "제 비가 고양이님한테서.",
+      "sourceHash": "621d1c9ba1459be7daca85b42ef1fba1370b5f0ce4ce7d7aa7700a7c954e4111",
+      "t": "My rain came from Mr. Cat."
+    },
+    {
       "id": "ep-47:73",
-      "source": "받았어요. 연이 씨, 이번엔 제가 줄게요.",
-      "sourceHash": "4fcc4dc27fd1855b4170aab34400aec1cf97ec2cd565b28fb768d0526c9db98b",
-      "t": "Received. Yeoni, my turn to give."
+      "source": "받았어요. 연이 씨, 제가 줄 차례예요.",
+      "sourceHash": "bbd15c7ea170fbc3db649b8ff30fbfb922e67bc625260935da36a0ff5cf6e700",
+      "t": "I've received it. Yeoni, my turn to give."
     },
     {
       "id": "ep-47:74",
-      "source": "서한비의 우산에서 비가 쏟아졌다. 차갑지 않은 비였다. 비는 연이의 머리 위로, 어깨 위로, 왼손 바닥으로 떨어졌다. 흐려졌던 금빛이 빗물 아래서 다시 밝아졌다.",
-      "sourceHash": "de66bf4409fe4efa4539da6caa8a71dce67bfb0a6a6c3fbd3a1eb586da782b72",
-      "t": "Rain poured from Seo Hanbi's umbrella. Not cold rain. It fell onto Yeoni's head, shoulders, left palm. Beneath it, the faded gold brightened again."
+      "source": "서한비의 우산에서 비가 쏟아졌다. 차갑지 않은 비였다. 비는 연이의 머리 위로, 어깨 위로, 왼손 바닥으로 떨어졌다. 흐려졌던 금빛이 빗물 아래서 조금 밝아졌다. 처음만큼은 아니었다.",
+      "sourceHash": "1c4d5a2e601224aca24c22961ad8d1c7eef429135ba143b12eb86f96e18ea8fc",
+      "t": "Rain poured from Hanbi's umbrella. Not cold rain. It fell on Yeoni's head, shoulders, and left palm. The faded gold brightened a little beneath it. Not to its former strength."
+    },
+    {
+      "id": "ep-47:30",
+      "source": "연이 씨 명식은 여름 나무라 물이 필요해요. 고양이님은 처음부터 비를 데려오는 쪽이었고요.",
+      "sourceHash": "b21ee24e6226c8a8665d8b77229bedf25e873624dedf0b904dc73760fa0cc79e",
+      "t": "Your chart is summer Wood. It needs water. Mr. Cat was bringing the rain from the beginning."
+    },
+    {
+      "id": "ep-47:31",
+      "source": "(그래서 그 고양이는 늘 우산을 들고 있었나. 사람일 때.)",
+      "sourceHash": "4987858546d79a8b6a1c5c0e0ea40039d78b64acc6c6317e78a6c2d9ac39ba42",
+      "t": "(Is that why the cat always carried an umbrella? When he was human.)"
+    },
+    {
+      "id": "ep-47:32",
+      "source": "연이는 자기 생각에 놀랐다. 본 기억은 없었다. 그런데 메모에 적혀 있었다. 우산은 사람일 때.",
+      "sourceHash": "00af616016f690c55c9bf2befcfcda40e15fec608239c0bc8a0e35a2a2d7b30e",
+      "t": "Her own thought startled her. She had no memory of seeing it. But the note said: umbrellas when human."
+    },
+    {
+      "id": "ep-47:turn-4",
+      "source": "손바닥에 고인 빗물이 스며들자 연이의 덩굴이 다시 뻗었다. 물이 나무를 낳았다.",
+      "sourceHash": "515b56dc3b55ea7653f6cb3d098d5c93de7354ba91633b2386f4b0fd98212b8c",
+      "t": "As rainwater seeped into her palm, the vines stretched again. Water generated Wood."
     },
     {
       "id": "ep-47:75",
@@ -495,6 +513,12 @@
       "t": "The five energies began circling. One turn, two. Faster each time. A bright five-pointed star formed on the black panel."
     },
     {
+      "id": "ep-47:27",
+      "source": "[ 木 → 火 → 土 → 金 → 水 → 木 ]",
+      "sourceHash": "84824f1ace5d4f06dfd4067f210d8bfab7ee4b357900551309440c7dec92d4ee",
+      "t": "[ Wood → Fire → Earth → Metal → Water → Wood ]"
+    },
+    {
       "id": "ep-47:82",
       "source": "그만둬라. 그건 그릇이 할 수 있는 일이 아니다.",
       "sourceHash": "8c1eb1d14c8a1f2ff49323e8570ad49efe1a34316e62c0babf62d8c9ba336d9d",
@@ -532,9 +556,9 @@
     },
     {
       "id": "ep-47:88",
-      "source": "겹침이 풀리고 있어요. 근데 오래는 못 버텨요. 다시 닫혀요.",
-      "sourceHash": "b8087b17c42e9558517c89344c3c8ba981dcf9dd7d66bc921a979c04a71b97b0",
-      "t": "The overlap is coming apart. But it won't hold long. It's closing again."
+      "source": "겹침이 풀리고 있어요. 근데 오래는 못 버티고 다시 닫혀요.",
+      "sourceHash": "cd5da99523e7f4babe1773be5e4bb08bc674022ecd191fe0c6c7046b2b4fb93e",
+      "t": "The overlap is coming undone. But it won't last; it'll close again."
     },
     {
       "id": "ep-47:89",
@@ -562,9 +586,15 @@
     },
     {
       "id": "ep-47:93",
-      "source": "들어가면 제가 공망으로 입구를 붙잡을게요. 오래는 못 해요. 길어야 노래 한 곡.",
-      "sourceHash": "a591d70112a1e0ac1381620436ffa409d58ca41cacfb4d1877eee8e744d38019",
-      "t": "Once you enter, I'll hold the entrance with the Void. Not for long. One song at most."
+      "source": "들어가면 제가 공망으로 입구를 붙잡을게요. 길어야 노래 한 곡이에요.",
+      "sourceHash": "9f9ee8d5bfcda277ab2e35ec413b478b5e2d5533e71c7008688af25517e09bac",
+      "t": "Once you're inside, I'll hold the entrance with the Void. One song, at most."
+    },
+    {
+      "id": "ep-47:song-1",
+      "source": "모카가 국자 손잡이로 검은 판을 두드렸다. 연이는 세 번의 박자를 발끝으로 받아 두었다. 안에서 목소리가 안 들려도 발바닥으로는 돌아갈 쪽을 찾을 수 있기를 바라면서.",
+      "sourceHash": "9b0a9e2694b7edfbdbd22e53468638f6aa08464a9799c6135c4536654c1dde77",
+      "t": "Moka tapped the black slab with the ladle handle. Yeoni learned the three beats with her toes, hoping that even without hearing voices inside, her soles could find the way back."
     },
     {
       "id": "ep-47:94",
