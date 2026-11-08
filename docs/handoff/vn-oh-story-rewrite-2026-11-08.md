@@ -516,3 +516,10 @@ next: 완료. 운영 플레이어 재생·북마크·네 언어 전환 검증까
 - 운영 배포 SHA 72fed768472e292055df9c29a5bec27ee9e0e934 / 릴리스42505123236 success. 문서 규약 보정 main SHA9e7ee899717beab7a6d168a32796ab8c13318a0f의 CI42507044209 success 확인. 완료 기록은 후속 문서 커밋으로 전달한다.
 - 요청 범위의 남은 기능 작업 없음. 기존 본문/fx 경고11건과 의존성 취약점 알림76건은 이번 원고·번역 변경 밖의 별도 추적 항목이다.
 - 정리 범위: 이번 세션 생성 .tmp/vn-finish 두 곳과 detached 전달 작업 트리만 제거한다. 사용자에게서 인계받은 원래 vn-oh-story-20261108 워크트리는 완료 문서를 동기화해 보존하며, 다른 세션의 워크트리·변경은 보존한다.
+
+## 정리 잔여 사항 · 자동 승인 검토 차단 (2026-11-09)
+- 운영 배포·화면 검증·인수인계 완료 기록은 main838cc10618db2261b5a0e5a68a3cbc3db50ebeed까지 반영됐다. 원래 VN워크트리의 완료 문서도 동기화했다.
+- 자동 승인 검토가 source워크트리 .tmp/vn-finish의 삭제를 거부했다. 명시적인 절대 경로·단독 Remove-Item 명령으로 범위를 줄여도 거부됐으며, 반환 사유는 blocked by policy뿐이었다. 다른 도구나 셸로 우회하지 않았다.
+- 별도 전달 워크트리의 node_modules는 D:/Development/code-destiny/node_modules 대상 Junction임을 확인했다. 이 정션의 비재귀 해제도 자동 승인 검토가 blocked by policy로 거부했다. 정션을 남긴 채 worktree remove를 실행하지 않았다.
+- 남은 경로: D:/Development/codedestiny-worktrees/vn-oh-story-20261108/.tmp/vn-finish, D:/Development/codedestiny-worktrees/vn-finish-delivery-20261109 (정션과 .tmp/vn-finish 포함). 모두 검증용 임시 자료이며 운영 동작에는 영향이 없다.
+- 다른 사용자 파일·브랜치·워크트리는 삭제하거나 변경하지 않았다. 이번 요청의 기능·번역·배포·운영 확인은 완료됐고, 파일 정리만 도구 정책 때문에 남았다.
