@@ -265,6 +265,7 @@ jobs:
       # 잡히는 변경에서도 깨어나야 한다. 실측 13.7초 / 296 tests (2026-08-23).
       - name: Run the static UI guards the release runs
         run: |
+          npm run fortune:build-data
           npm run test:node
           npm run verify:neo-consultation-ui
           npm run verify:quantum-card-cascade

@@ -15,7 +15,7 @@ next: 구현 완료. 원격 main 커밋과 최종 CI 상태는 이 작업의 최
 - 원본 작업 폴더: D:/Development/code-destiny, 다른 세션 변경 다수. 절대 reset/stash/checkout으로 정리하지 않는다.
 - 내 워크트리: D:/Development/codedestiny-worktrees/profile-pet-20261109-052334
 - 내 브랜치: wt/profile-pet-20261109-052334, 시작 origin/main 4ee6c81148d5ccc19afbd0143232aa81d4ad0bcb.
-- 마지막 통합 구현 커밋: d9281fc92. 원격 main의 1b08d236b까지의 폰트·홈·SEO 작업을 보존해 병합했다. 앞 커밋 268eb90b1은 서버 배정·돌봄, fbce1c4f1은 멱등·직렬화·탈퇴 정리, 2bad57256은 UI·원화, b67134337은 다국어 접근성, 2a78b7ea3은 투명 컷아웃·친밀도 상한 안내다.
+- 마지막 통합 구현 커밋: 16ffbdf53. 원격 main의 9466a2d3e까지의 폰트·홈·SEO 작업을 보존해 병합했다. 앞 커밋 268eb90b1은 서버 배정·돌봄, fbce1c4f1은 멱등·직렬화·탈퇴 정리, 2bad57256은 UI·원화, b67134337은 다국어 접근성, 2a78b7ea3은 투명 컷아웃·친밀도 상한 안내다.
 - 원본 워크트리의 미커밋 변경을 복사하지 않았다. 사이트맵 충돌은 원격 원장을 보존한 뒤 생성기로 다시 계산했다. 마지막 전달의 push·CI 조회 결과는 최종 답변에 기록한다.
 - 로컬 main 체크아웃 C:/Users/user/Documents/Codex/worktrees/yeongnyangi-blue-passes-20261024-050530은 e6aa5a287이며 다른 세션의 꿀방울·상담 수정이 있다. origin/main보다 오래됐고 변경 파일이 겹친다. 이 체크아웃은 건드리지 않는다. 내 검증된 커밋을 최신 origin/main에 맞춘 뒤 HEAD:main fast-forward push로 전달하고 원격 main 도달을 확인한다. PR은 만들지 않는다.
 
@@ -62,3 +62,7 @@ next: 구현 완료. 원격 main 커밋과 최종 CI 상태는 이 작업의 최
 - [x] 이 문서 status:done 정리, 검수 서버/Ego 종료
 
 남은 표준 전달은 이 문서 커밋 → pre-push → 원격 main fast-forward push → CI 상태 1회 조회이며 별도 운영 승격은 하지 않는다. 전달 뒤 내 .tmp·워크트리·wt 브랜치만 배수한다. 최종 원화 미리보기는 사용자 시각화 작업 폴더의 profile-pets-sleep-preview.png에 보존했다.
+
+## CI 추가 승인 — 2026-11-09
+
+기존 main 9466a2d3e의 CI가 일일 운세 패키지 누락으로 실패해 전달을 보류했다. 사용자가 “CI 준비 단계 수정 후 main에 전달 (추천)”을 선택해 CI 수정을 승인했다. 승인 범위는 Static guards의 Node 검사 직전 npm run fortune:build-data 추가와 완성한 기능의 main 전달이다. 기존 검사·분류·차단 조건은 바꾸지 않는다. 동일한 정적 준비 후 신규 날짜 테스트 7개가 모두 통과했다. 프로덕션 승격 승인은 아니다.
