@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-08
-next: 4단계 운명의 업 구현 — '4단계 진행 메모'의 결정대로 테스트부터(넉넉한 분량·분량 비치명 포함), 이어서 실호출 샘플 1회
+next: 5단계 마스터 인연의 서 (+궁합) — 대상 파일 조사·설계부터, 4단계 하네스(스크래치 karma-live)를 참고해 실호출 샘플 1회
 ---
 
 # 3만원 이상 유료 LLM — 상품별 챕터·분량·PDF·전달 개선 인수인계
@@ -64,7 +64,7 @@ next: 4단계 운명의 업 구현 — '4단계 진행 메모'의 결정대로 �
 - [x] 1. 연애 비책 (연이·서한비) + 공용 글자형 PDF 모듈 + 보관함 PDF
 - [x] 2. 신년운세 (네오)
 - [x] 3. 인생의 책 / 인생 총운 (윤달)
-- [ ] 4. 운명의 업
+- [x] 4. 운명의 업
 - [ ] 5. 마스터 인연의 서 (+궁합)
 - [ ] 6. 초융합 운세
 - [ ] 7. 자미두수 상담 / 심층 PDF (무성)
@@ -95,7 +95,7 @@ next: 4단계 운명의 업 구현 — '4단계 진행 메모'의 결정대로 �
   - `app/records/view/SavedNewYearPdfButton.tsx`
   - `app/records/view/SavedLifeBookPdfButton.tsx`
 - [x] F8. 사용자 2026-11-08: 네오 사자 장군 표현 없애. 33a650891에서 처리했다(`worker/lib/expert-character-persona-text.js` NEO_NEW_YEAR, `neo-operation-room-prompt.js` 7곳 → "장군 네오"). 팩폭 작전실의 "사자 휘장" 배지 문구는 남아 있으니 11단계에서 검토한다.
-- [ ] F9. 인생의 책·인생 총운 실호출 장 분량이 V2 목표보다 훨씬 짧다(인생의 책 장 1,351~2,439자, 목표 3,000~3,400·minChars 2,000 / 인생 총운 장 1,183~1,935자, 목표 3,200~3,500·minChars 2,400). 총량 MIN 20,000은 넘어 acceptUsableDrafts로 전달되었다. 프롬프트 분량 지시·목표·모델(gemini-2.5-flash)을 조정할지 정한다. `worker/routes/life-book-ai.js`
+- [~] F9. (일부 완료 `230b48341`: 인생 총운·인생의 책 V2 분량 이슈 비치명, 가장 짧은 장부터 수리 최대 2회. 실호출 인생 총운 31,145자 배달, d78175aac도 실호출로 확인. 남은 것은 F9b) 인생의 책·인생 총운 실호출 장 분량이 V2 목표보다 훨씬 짧다(인생의 책 장 1,351~2,439자, 목표 3,000~3,400·minChars 2,000 / 인생 총운 장 1,183~1,935자, 목표 3,200~3,500·minChars 2,400). 총량 MIN 20,000은 넘어 acceptUsableDrafts로 전달되었다. 프롬프트 분량 지시·목표·모델(gemini-2.5-flash)을 조정할지 정한다. `worker/routes/life-book-ai.js`
 - [ ] F10. 인생 총운 1장 summary가 "이 장에서는 …짚어보며" 같은 메타 서술이다. 1장 summary를 공감 문장으로 열게 프롬프트를 다듬는다. `worker/routes/life-book-ai.js`
 - [ ] F11. 인생의 책 뒤 장(5·6·8장)이 "~라고 하셨지요"로 질문을 다시 풀어 쓴다. 원문 인용은 1장 한 번뿐이라 게이트는 통과하지만, 재인용 금지 지시를 더 분명히 한다. 문장 단위 기계 삭제는 답 문장까지 지워 되돌렸다. `worker/routes/life-book-ai.js`
 - [ ] F12. 인생의 책 결과 화면 360px 확인을 하지 않았다(dev 서버가 500을 내던 때). `app/life-book-ai/result/LifeBookAiResultClient.tsx`
@@ -103,7 +103,9 @@ next: 4단계 운명의 업 구현 — '4단계 진행 메모'의 결정대로 �
 - [ ] F14. 연애 비책 상황 되풀이: "연락이 뜸" 32회, 20자 구절 3회 이상 반복 7→48. 검증기에서 그룹당 상황 문구 횟수 상한을 두고 수리하거나 후처리한다.
 - [ ] F15. 연애 비책 전문어 밀도: 귀문관살·홍염 각 8회, 묘진해·진진형 각 7회. 풀어 쓰거나 1회만 쓰게 한다.
 - [ ] F16. 부정문 예외의 빈틈: "반드시 …수밖에 없어요" 같은 단정이 부정형으로 보고 통과한다. 예외 범위를 좁힌다.
-- [ ] F17. 신년운세에는 분량 수리 경로가 없고, 재검증 합계는 MIN보다 약 1,900자 많을 뿐이다. 연애처럼 횟수 제한 분량 수리를 넣는다. `worker/routes/new-year-ai.js`
+- [x] F17. (완료 `433430b83`: 신년 V2 섹션 분량 수리 최대 2회, 짧아도 배달. 실호출 27,350자 completed) 신년운세에는 분량 수리 경로가 없고, 재검증 합계는 MIN보다 약 1,900자 많을 뿐이다. 연애처럼 횟수 제한 분량 수리를 넣는다. `worker/routes/new-year-ai.js`
+- [ ] F9b. 인생 총운 장 분량이 아직 2,100~2,700자로 목표 4,400자에 못 미친다. 모델이 일찍 멈춘다(finishReason STOP). 구조 변경이 필요하다(예: 장 하나를 요청 2개로 나눔). `worker/routes/life-book-ai.js`
+- 참고: 연애 비책 V2 분량 상향 `dc6422d33`(그룹 6,000~7,500자, 15,000토큰). 검증 문서 「분량 넉넉·비치명화」 절은 `a7ff45b2c`.
 - [ ] F18. d78175aac(인생 총운 전달 실패 버그, 운영에도 있음)를 운영에 먼저 내보낼지 사용자 결정을 기다린다. **push·배포하지 않는다.**
 
 ## 1단계 진행 메모 (완료, 결과는 아래 단계별 결과)
@@ -231,7 +233,7 @@ next: 4단계 운명의 업 구현 — '4단계 진행 메모'의 결정대로 �
   - 폰트가 실패(PdfFontError)할 때만 기존 캡처 방식으로 대체한다.
   - 보관함 'book' 분기에 `SavedLifeBookPdfButton`을 붙인다.
 
-## 4단계 진행 메모 (진행 중, 코드 변경 전 — 조사·설계만 끝남)
+## 4단계 진행 메모 (완료, 결과는 아래 단계별 결과)
 
 ### 조사로 확인한 사실
 - 상품 파일은 `worker/routes/karma-destiny-ai.js`(약 3,030줄)이다. 결과 화면은 `app/karma-destiny-ai/result/KarmaDestinyAiResultClient.tsx`, 모델은 `app/karma-destiny-ai/result/_lib/report-model.ts`다.
@@ -337,3 +339,25 @@ next: 4단계 운명의 업 구현 — '4단계 진행 메모'의 결정대로 �
   - 인생 총운: 실호출은 **failed**(chapter_9_evidence_refs_missing, chapter_9_content_too_short, expert_reading_4_evidence_refs_missing). 18요청·176초. 원인은 위 배열 첨자 근거 경로 버그. d78175aac 뒤 같은 출력을 오프라인 재조립·게이트에 넣으면 issues [], 총 22,932자, 반복 false, 9장 valid. 승인 범위(1회)라 두 번째 실호출은 하지 않았다. 질문 원문 인용은 1장 1회
   - 두 SKU 모두 장 분량이 목표보다 짧다(F9)
 - 남은 일·후속: F9~F12. 보관함 PDF 라벨 한국어 고정·글꼴 실패 캡처 없음은 F3·F7과 같다. SEO에 보이는 문구는 바꾸지 않았다
+
+### 4단계 운명의 업 — 완료 (2026-11-08)
+- 커밋
+  - `7985b5539`: 워커 V2 구성(`llmMeta.chapterPlanVersion: 2`, 새 세션만. REPORT_SCHEMA_VERSION 2 그대로), 16장(chapter-00 기질 장 맨 앞, 기존 id 유지·order +1), chapter-01만 questionOwner, V2 프롬프트 줄은 `definition.perspective`가 있을 때만 들어가 V1 프롬프트 바이트 동일(스크래치 덤프 SAME_AS_BASELINE true, 17항목). 연성 이슈 `REGISTER_DRIFT`·`QUESTION_REQUOTED`, 마지막 시도 scrub(던지지 않음), 반복 장도 조용히 버리지 않고 중복 제거 후 저장, 분량은 비치명. 합계 < 30,000이면 가장 짧은 장 최대 2회 분량 수리(길어질 때만 채택), 조립 중복 제거. 실패는 본문이 아예 없을 때 3회 뒤에만(REPORT_QUALITY_FAILED)
+  - `1876adb45`: 결과 화면 목차 kicker·장 머리 부 이름·화자 칩(네오/서한비, 12로캘 이름), chapter-00 강조 카드, `app/karma-destiny-ai/result/karma-pdf-chapters.ts`(`buildKarmaPdfChapters`)로 조판 PDF(V2·ko만, PdfFontError일 때만 캡처 대체), 보관함 karma 분기에 `app/records/view/SavedKarmaPdfButton.tsx`
+- 테스트
+  - 새 `__tests__/worker/karma-chapter-plan-v2.test.js` 8개(구성·질문 소유·V1 불변·연성 이슈·scrub 배달·반복 장 유지·짧은 보고서 분량 수리 2회 뒤 24,418자 배달·V1 문서 15장). `karma-paid-delivery.test.js` V2로 갱신(+짧아도 완료 34호출·환불 없음, 텍스트 없음 202·202·503)
+  - karma jest 전체 257/257, UI karma·follow-up·security 92/92, node PDF 장 11/11(새 `__tests__/ui/karma-pdf-chapters.test.mjs` 4개), records-locale 5/5
+  - `scripts/verify-karma-destiny-ai-flow.mjs` ok, `scripts/verify-llm-generation-resilience.mjs` ok(1305 checks), `npx tsc --noEmit` exit 0, eslint 기존 `<img>` 경고만
+  - `npm run build`: exit 0(✓ Compiled successfully in 3.7min, Generating static pages 1894/1894). 다른 에이전트 미커밋 파일을 피해 `1876adb45` 임시 워크트리(`../karma-build-tmp`)에서 빌드하고 `npm run worktree:remove -- ../karma-build-tmp --force`로 지웠다
+- 실호출 샘플(승인 2026-11-08 "llm 샘플 생성 허가한다", 1회, gemini, plan V2). 스크래치 하네스 `scratchpad\karma-live\`(로더 훅으로 db·auth·models·billing·결제 증빙만 메모리 대역, 실제 handleStart → generate-batch 루프, DB·결제·배포 없음)
+  - status **completed**, 요청 20(start 1 + batch 19, 마지막 200), 제공자 호출 38, 261초, 16장, 총 39,547자(MIN 30,000), hasRepeatedReportPassage false, 금지 표현 없음
+  - 장 분량 1,368(14장)~3,387자. chapter-00 2,014자로 V2 목표 3,000~3,300보다 짧다. 합계가 30,000을 넘어 분량 수리는 돌지 않았다
+  - 질문 원문 전체 인용은 0장. chapter-01(화면 2장)만 "'요즘 같은 실수를 반복하는 것 같다'고 느끼시는…"으로 질문을 한 번 받아 바로 답한다. 다른 장은 질문 문구 재사용 0
+  - 말투는 전 장 합니다체(해요 종결 장당 0~2), REGISTER_DRIFT 없음
+  - chapter-11은 3회 시도(빈 응답 1회 포함) 뒤 저장, chapter-10은 2회. 실패·환불 없음
+  - 하네스 한계: 스위스 천문력 파일을 요청 출처(mock.test)로 받으려다 막혀 내장 계산으로 대체되었다. 운영에서는 사이트 출처로 받는다
+- 남은 위험·후속
+  - 조판 PDF에는 캡처 PDF에 있던 차트·레이더·요약 페이지가 없다. 결과 화면 비ko 로캘과 V1 세션은 기존 캡처 PDF 그대로
+  - 장 분량이 V2 목표보다 짧은 경향(F9와 같은 모양). 합계는 넉넉해 배달에는 영향 없음
+  - 360px 화면 확인은 하지 않았다(dev 서버를 띄우지 않음)
+  - d78175aac(배열 첨자 근거 경로)는 karma 근거 경로가 첨자를 쓰지 않아 해당 없음
