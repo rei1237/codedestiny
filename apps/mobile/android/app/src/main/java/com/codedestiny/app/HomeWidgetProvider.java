@@ -61,8 +61,11 @@ public class HomeWidgetProvider extends AppWidgetProvider {
                     if (lines.length() > 0) text = lines.optString(HomeWidgetPolicy.dailyIndex(System.currentTimeMillis(), choice.kind, lines.length()));
                 } catch (org.json.JSONException ignored) { /* Use the bundled default if storage is damaged. */ }
             }
-            views.setImageViewResource(R.id.home_widget_friend, choice.itemId.startsWith("cat-")
-                    ? R.drawable.widget_friend_cat : R.drawable.widget_friend_yeoni);
+            int artwork = choice.itemId.startsWith("cat-") ? R.drawable.widget_friend_cat : R.drawable.widget_friend_yeoni;
+            if ("fortune".equals(choice.kind)) artwork = "cat-daily-tea".equals(choice.itemId)
+                    ? R.drawable.widget_pig_moon_tea_face : R.drawable.widget_cat_star_chart_face;
+            if ("flower".equals(choice.kind)) artwork = R.drawable.widget_pig_moon_tea_face;
+            views.setImageViewResource(R.id.home_widget_friend, artwork);
             views.setTextViewText(R.id.home_widget_text, text.isEmpty() ? context.getString(R.string.home_widget_default_affirmation) : text);
         }
         return views;
@@ -88,6 +91,11 @@ public class HomeWidgetProvider extends AppWidgetProvider {
             case "yeoni-hanbok": return R.drawable.widget_talisman_yeoni_hanbok;
             case "yeoni-moon": return R.drawable.widget_talisman_yeoni_moon;
             case "yeoni-tea": return R.drawable.widget_talisman_yeoni_tea;
+            case "pig-gold-seed": return R.drawable.widget_talisman_pig_gold_seed;
+            case "pig-camellias": return R.drawable.widget_talisman_pig_camellias;
+            case "pig-reunion-knot": return R.drawable.widget_talisman_pig_reunion_knot;
+            case "cat-star-chart": return R.drawable.widget_talisman_cat_star_chart;
+            case "pig-moon-tea": return R.drawable.widget_talisman_pig_moon_tea;
             case "yeoni-pig-moon": return R.drawable.widget_talisman_yeoni_pig_moon;
             default: return R.drawable.widget_talisman_wealth;
         }

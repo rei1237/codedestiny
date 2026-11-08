@@ -17,7 +17,7 @@ public class HomeWidgetPolicyTest {
 
     @Test public void dailyContentFollowsCompanionAndKoreanMidnight() {
         String pool = "[\"one\",\"two\",\"three\"]";
-        for (String[] pair : new String[][]{{"flower", "pig-daily"}, {"fortune", "cat-daily"}, {"affirmation", "pig-daily"}}) {
+        for (String[] pair : new String[][]{{"flower", "pig-daily"}, {"fortune", "cat-daily"}, {"fortune", "cat-daily-tea"}, {"affirmation", "pig-daily"}}) {
             HomeWidgetPolicy.Choice choice = HomeWidgetPolicy.parse(pair[0], pair[1], pool);
             assertNotNull(choice);
             assertEquals(choice, HomeWidgetPolicy.decode(HomeWidgetPolicy.encode(choice)));

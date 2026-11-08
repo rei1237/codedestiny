@@ -38,6 +38,7 @@ export default function HomeWidgetStudio() {
   const [mode, setMode] = useState<Mode>("yeoni");
   const [talisman, setTalisman] = useState("yeoni-hanbok");
   const [day, setDay] = useState(0);
+  const [fortuneArt, setFortuneArt] = useState<"cat-star-chart" | "pig-moon-tea">("cat-star-chart");
   const [rotating, setRotating] = useState(false);
   const [affirmation, setAffirmation] = useState<AffirmationId>("own-pace");
   const [status, setStatus] = useState<WidgetStatus>("idle");
@@ -63,13 +64,13 @@ export default function HomeWidgetStudio() {
   const pool = dailyKind ? pools[dailyKind] : undefined;
   const line = pool ? pool[(day + offset) % pool.length] : copy.affirmations[affirmation];
   const choices = mode === "yeoni"
-    ? [...assets.filter(a => a.scene === "yeoni-wardrobe"), ...assets.filter(a => a.scene === "yeoni-lotus" || a.scene === "yeoni-teahouse")]
+    ? [...assets.filter(a => a.scene === "yeoni-wardrobe"), ...assets.filter(a => a.scene === "yeoni-garden" || a.scene === "yeoni-lotus" || a.scene === "yeoni-teahouse")]
     : assets.filter(a => a.scene === "yeongnyangi");
   const widgetId = (id: string) => id.replace("-yeongnyangi-v2", "");
   const selected = choices.find(a => widgetId(a.id) === talisman);
   function name(id: string) {
     const asset = assets.find(a => widgetId(a.id) === id);
-    if (asset?.scene === "yeoni-wardrobe") return lookName(id, locale);
+    if (asset?.scene === "yeoni-wardrobe" || asset?.scene === "yeoni-garden" || asset?.category === "daily") return lookName(id, locale);
     const category = id.split("-")[0] as WidgetTalisman;
     const scene = asset?.scene === "yeoni-teahouse" ? talismanCopy.sceneTeahouse : asset?.scene === "yeoni-lotus" ? talismanCopy.sceneLotus : "";
     return [scene, talismanNames[category]].filter(Boolean).join(" · ");
@@ -115,6 +116,7 @@ export default function HomeWidgetStudio() {
       const cat = WIDGET_TALISMANS.includes(id as WidgetTalisman);
       const restoredMode = mine.kind === "fortune" || cat || id.startsWith("cat-") ? "yeongnyangi" : "yeoni";
       setMode(restoredMode);
+      if (mine.kind === "fortune") setFortuneArt(id === "cat-daily-tea" ? "pig-moon-tea" : "cat-star-chart");
       setTalisman(restoredMode === "yeoni" ? "yeoni-hanbok" : "wealth");
       if (mine.kind === "talisman" && (cat || approvedAssets().some(a => a.id === id))) { setKind("talisman"); setTalisman(id); }
       if (mine.kind === "flower" || mine.kind === "fortune") setKind(mine.kind);
@@ -142,7 +144,7 @@ export default function HomeWidgetStudio() {
     const plugin = widgetPlugin();
     if (!plugin || busy) return;
     const prefix = mode === "yeoni" ? "pig" : "cat";
-    const itemId = kind === "talisman" ? talisman : prefix + "-" + (dailyKind ? "daily" : affirmation);
+    const itemId = kind === "fortune" && fortuneArt === "pig-moon-tea" ? "cat-daily-tea" : kind === "talisman" ? talisman : prefix + "-" + (dailyKind ? "daily" : affirmation);
     const text = kind === "talisman" ? "" : line;
     setBusy(true);
     try {
@@ -178,7 +180,7 @@ export default function HomeWidgetStudio() {
               {kind === "talisman"
                 // eslint-disable-next-line @next/next/no-img-element
                 ? <img src={`/assets/talismans/widget/${talisman}.webp`} width={304} height={540} alt="" decoding="async" />
-                : <><img className="cd-widget-companion" src={mode === "yeoni" ? "/images/home/illustrated/yeoni-hanbok-240.webp" : "/assets/yeongnyangi/original/hero-480.webp"} alt="" /><small>{WIDGET_CAPTION}</small><strong>{line}</strong></>}
+                : <><img className="cd-widget-companion" src={kind === "fortune" ? `/assets/talismans/widget/${fortuneArt}-face.webp` : kind === "flower" ? "/assets/talismans/widget/pig-moon-tea-face.webp" : mode === "yeoni" ? "/images/home/illustrated/yeoni-hanbok-240.webp" : "/assets/yeongnyangi/original/hero-480.webp"} alt="" /><small>{WIDGET_CAPTION}</small><strong>{line}</strong></>}
             </div>
             {Array.from({ length: 6 }, (_, i) => <i key={i} />)}
           </div>
@@ -197,6 +199,11 @@ export default function HomeWidgetStudio() {
           <fieldset disabled={busy}><legend>{copy.kindLegend}</legend><div className="cd-talisman-options cd-home-widget-kinds">
             {(["affirmation", mode === "yeoni" ? "flower" : "fortune", "talisman"] as const).map(value => <label key={value}><input type="radio" name="home-widget-kind" checked={kind === value} onChange={() => choose(() => setKind(value))} /><span>{value === "talisman" ? copy.talisman : value === "flower" ? (ko ? "오늘의 꽃말" : "Today’s flower") : value === "fortune" ? (ko ? "오늘의 운세" : "Today’s fortune") : copy.affirmation}</span></label>)}
           </div></fieldset>
+          {kind === "fortune" && <fieldset disabled={busy}><legend>{ko ? "운세 그림" : "Fortune illustration"}</legend>
+            <div className="cd-talisman-options">{(["cat-star-chart", "pig-moon-tea"] as const).map(id =>
+              <label key={id}><input type="radio" name="fortune-art" checked={fortuneArt === id} onChange={() => choose(() => setFortuneArt(id))} />
+                <span><img className="cd-widget-swatch" src={`/assets/talismans/widget/${id}-face.webp`} width="34" height="34" alt="" />{lookName(id, locale)}</span>
+              </label>)}</div></fieldset>}
           {kind === "talisman"
             ? <>
               <details open={mode === "yeongnyangi" || selected?.scene !== "yeoni-wardrobe" || selected?.id === "yeoni-pig-moon"}>

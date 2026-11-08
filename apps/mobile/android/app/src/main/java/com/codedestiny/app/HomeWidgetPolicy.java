@@ -29,7 +29,7 @@ final class HomeWidgetPolicy {
             "yeoni-hanbok",
             "yeoni-moon",
             "yeoni-tea",
-            "yeoni-pig-moon");
+            "yeoni-pig-moon", "pig-gold-seed", "pig-camellias", "pig-reunion-knot", "cat-star-chart", "pig-moon-tea");
     static final String DEFAULT_AFFIRMATION_ID = "own-pace";
     /** 작은 위젯에서 네 줄 안에 읽히는 길이. */
     static final int MAX_TEXT = 40;
@@ -73,7 +73,7 @@ final class HomeWidgetPolicy {
 
     static boolean isDaily(String kind, String id) {
         return ("flower".equals(kind) && "pig-daily".equals(id))
-                || ("fortune".equals(kind) && "cat-daily".equals(id))
+                || ("fortune".equals(kind) && ("cat-daily".equals(id) || "cat-daily-tea".equals(id)))
                 || (KIND_AFFIRMATION.equals(kind) && ("cat-daily".equals(id) || "pig-daily".equals(id)));
     }
 

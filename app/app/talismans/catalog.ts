@@ -4,6 +4,7 @@ export const scenes = [
   { id: "yeongnyangi", ko: "영냥이 · 별빛의 길", ja: "ヨンニャンイ・星明かりの道", character: "yeongnyangi" },
   { id: "yeoni-lotus", ko: "연이 · 연꽃의 품", ja: "ヨニ・蓮のぬくもり", character: "yeoni" },
   { id: "yeoni-teahouse", ko: "연이 · 찻집의 평온", ja: "ヨニ・茶屋の安らぎ", character: "yeoni" },
+  { id: "yeoni-garden", ko: "꽃돼지 연이 · 소원의 뜰", ja: "花ぶたヨニ・願いの庭", character: "yeoni" },
   { id: "yeoni-wardrobe", ko: "연이 · 달빛 옷장", ja: "ヨニ・月明かりの衣装", character: "yeoni" },
 ] as const;
 export const categories = [
@@ -12,8 +13,8 @@ export const categories = [
   { id: "love", ko: "연애", ja: "恋愛" },
   { id: "contact", ko: "연락", ja: "連絡" },
   { id: "career", ko: "취업·합격", ja: "就職・合格" },
-
-
+  { id: "reunion", ko: "재회", ja: "再会" },
+  { id: "daily", ko: "오늘의 그림", ja: "今日の絵" },
 ] as const;
 export type Scene = typeof scenes[number]["id"];
 export type Category = typeof categories[number]["id"];

@@ -228,6 +228,66 @@
       "width": 852,
       "height": 1846,
       "sha256": "30781543ba73b11f8c00c7917852f94e66eb2bc6c104b7ba1f5f24c788210fd2"
+    },
+    {
+      "id": "pig-gold-seed",
+      "scene": "yeoni-garden",
+      "category": "wealth",
+      "composition": "shared",
+      "approval": "approved",
+      "language": "ko",
+      "src": "/assets/talismans/originals/pig-gold-seed.png",
+      "width": 852,
+      "height": 1846,
+      "sha256": "0e563d89697017093f9c8050c3b2ab979b0dbeac3ec578e06d97c423c48b1157"
+    },
+    {
+      "id": "pig-camellias",
+      "scene": "yeoni-garden",
+      "category": "love",
+      "composition": "shared",
+      "approval": "approved",
+      "language": "ko",
+      "src": "/assets/talismans/originals/pig-camellias.png",
+      "width": 852,
+      "height": 1847,
+      "sha256": "f85be27df28b82f91a2f11caba084e38a782b787f0a45dc66bd6c9b7ef470f98"
+    },
+    {
+      "id": "pig-reunion-knot",
+      "scene": "yeoni-garden",
+      "category": "reunion",
+      "composition": "shared",
+      "approval": "approved",
+      "language": "ko",
+      "src": "/assets/talismans/originals/pig-reunion-knot.png",
+      "width": 852,
+      "height": 1846,
+      "sha256": "b028b9010993a34dba27dc5f696bc323ff45fa9925c4ef2b2db58b6e01950016"
+    },
+    {
+      "id": "cat-star-chart",
+      "scene": "yeongnyangi",
+      "category": "daily",
+      "composition": "shared",
+      "approval": "approved",
+      "language": "ko",
+      "src": "/assets/talismans/originals/cat-star-chart.png",
+      "width": 852,
+      "height": 1847,
+      "sha256": "5e706a7b5c3ccead059957694f26cf420a92b5705be84bb6d6cf288bfbd1c5b7"
+    },
+    {
+      "id": "pig-moon-tea",
+      "scene": "yeoni-garden",
+      "category": "daily",
+      "composition": "shared",
+      "approval": "approved",
+      "language": "ko",
+      "src": "/assets/talismans/originals/pig-moon-tea.png",
+      "width": 852,
+      "height": 1846,
+      "sha256": "afb6ded3e2ac5382447ed586a88b03eae50cecd927e662c7295ebaa5242dd781"
     }
   ]
 }
