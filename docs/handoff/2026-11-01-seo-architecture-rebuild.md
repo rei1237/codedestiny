@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-11-09
-next: "2d9042d91 관계 문구와 후속 수집 기록 pre-push·main 전달 후 24sign 내일 준비 원고 적용·본문 차별화·SSR 재측정·UI 확인. Space65 agent 제어, 신규 round169부터. 번역 품질·④⑤ 승인 패킷·운영 승격은 남음."
+next: "AI 호출 목록 4곳 갱신·후속 push 승인 회신 확인. 승인 시 준비 JSON을 적용·mock 검증·별도 커밋 후 pre-push→main 전달. 22c7575f9/6e9c8314c 로컬 완료. Space65 원자료 후속은 신규 round188부터. 공식 CI·fresh 산출물·④⑤ 운영 승인과 관찰은 남음."
 ---
 
 # SEO 아키텍처 재구축
@@ -19,6 +19,22 @@ next: "2d9042d91 관계 문구와 후속 수집 기록 pre-push·main 전달 후
 4. 실제 새 수집본은 `D:\Development\seo-data\code-destiny\2026-11-09\`다. `README.md`와 `manifest.csv`를 정본으로 읽는다. 이전 날짜 폴더로 소급 표기하지 않는다.
 
 ## 지금 상태
+
+### 2026-11-09 내일 본문 차별화·번역 후속, CI 추가 범위 회신 대기
+
+- main 전달: 관계 문구2d9042d91·기록81390e622f2e689f3e50e54fc6666d3f71eaee90은 pre-push 후 전달했다. 운영 Pages/Worker는 이번 승격 패킷 준비를 위한 일회성 읽기에서 모두72fed768472e292055df9c29a5bec27ee9e0e934였다. source별 기준을 혼동하지 않는다.
+- **main의 별도 AI Locale Gate 실패**: run42523534632。기존 main의 시빌(f5d5f771e)·숙요(8138cac0b)·자미두수(a0d9b364d) 작업에 추가된 호출4곳이 `config/ai-locale-call-inventory.json`에 없다. SEO가 LLM 호출을 추가한 것은 아니다. 기존4ee CI가 성공했어도 새 gate 실행 결과를 숨기지 않는다. PR CI42523534646은 마지막 확인 때 진행 중이었다. 다음 push/최종 보고 전1회 결과 확인하고 반복 폴링하지 않는다.
+- 비동기 질문을 보냈으며 **아직 승인 회신 없음**: “호출 목록 갱신과 후속 push 승인” 또는 “SEO 커밋은 보존하고 목록 갱신은 보류”. 외부 `bundle-5/ai-locale-call-inventory.prepared.json`과 `ai-locale-inventory-refresh.prepared.patch`는 이미 준비했다. 3개 파일 기록만 갱신하고 나머지 원장은 보존한다. 원장 자체는 아직 적용하지 않았다. 기존 VN 한 줄 승인으로 이 범위를 승인했다고 간주하지 않는다. 저장소의 다른 작업 CI 실패 위 push 금지 규칙 때문에 새 전달은 회신 전 보류한다.
+- **22c7575f9d5073c3e8529d1656501b7e09bf1db7 로컬 완료**: 내일 준비 원고22개 추가+기존pig/snake 보존=24개, 기간 도입24개 정리. 한국어 내일에서 상시 성향/기본FAQ는 기존 오늘 페이지 앵커로 이어 읽고 날짜별 설명·준비에 집중한다. FAQ 본문과 JSON-LD는 같은 `buildPeriodFaqs`를 쓴다. 날짜 원고를 상시 성향으로 부르던 한국어 라벨도 구분했다. 준비 제목 keep-all, 한국어 전용 안내(lang/data-cd-no-trans) 경계를 포함한다. 계산·결제·API·DB·인증·canonical/hreflang/noindex URL 집합 변경 없음.
+- **6e9c8314c2d11898dac1b1f947a3dee0b2bba22b 로컬 완료**: SIGN_KEY에12띠의 기존 번역 키를 연결해 영어 설명의 ‘범띠’ 잔여를 고쳤다. 4개 프로필 번역 JSON은 sourceHash만 갱신. CMS 연결 전 소스의 hash가 번역 파일의 기존 hash와 일치하고, 현재 기본/유효 프로필24개가 이전과 전부 동일함을 증명한 뒤 갱신했다. 번역 원문·LLM 생성·계산을 바꾸지 않았다.
+- SSR48쪽 mock 실측 완료: `bundle-5/local-content-after-20261109.json`, `local-html/`。word5 Jaccard 최대38.1532%, min-set 공유율 최대56.4021%, 내일main 최소3854자. 설명 p의 ‘오늘’0, main 전체에는 다른 기간 링크의 ‘오늘’2개씩 유지. 기존 운영 실측과 날짜·환경을 고정한 대조 실험은 아니며, min-set까지50% 미만이라고 보고하지 않는다.
+- 검증: period-axis96편, 대상18개, 번역 이름 후속7개(24×4기간×4언어 포함), locale31발행JSON, 마커48변수/21템플릿×12언어, 변경ESLint·typecheck 통과. i18n:deployment-check도12사전/마커/runtime/public parity/AI14불변식 통과. `verify:fortune-locales`라는 npm 별칭은 없어 첫 실행은 실패했고 실제 스크립트 `node scripts/verify-fortune-locale-completeness.mjs`로 검증했다.
+- 준비 단계 check:fast는 lint/typecheck 후 Node4774/4775였다. 유일 실패는 weekly lastmod(예상11/23,관측11/26)이며 수정 중 원장 서명이 최신 소스와 달랐다. 최종 수정 뒤 sitemap 공식 생성 후 해당 release 파일6/6 통과. 전체 check:fast 성공으로 소급 기록하지 않고 공식 CI가 최종 트리를 확인해야 한다. 관계 단계의 로컬 Jest 중단 기록도 그대로 보존한다.
+- UI는 명시된 visual-checker 일반 에이전트만 판정했다. 사주390px 정상, 궁합표390px/내부624px/문서넘침0, 준비 제목 단어 끊김 수정·가독성 확인. 네이티브 screenshot 래퍼는 위치/화면폭이 잘못 찍히기도 해 중간 캡처를 증거에서 제외했다. CDP 정확한 section 좌표 캡처(`*-mobile-cdp-*`)는 유효한 증거다. 저장 영어 선호가 한국어 안내 일부를 부분 번역하던 문제는 lang/no-trans 경계 후 영어조각0 DOM 재확인. 추가 폴리싱은 하지 않았다.
+- 번역 가시성 표본: /en,/ja,/zh,/zh-tw 홈에서 한글은 브랜드명으로 관측. 영어범띠 내일 main은 이름 키 수정 후 한글0. stale dist501쪽 전체를 최신 번역 품질 판정으로 쓰지 않는다. 현재 검증된 미완성 noindex 대상 목록은 없고, 저성과만으로 일괄 제외하지 않았다. 미측정 범위까지 번역 완료로 주장하지 않는다.
+- 원자료 manifest393항목. GA4 Search Console 연결 없음·주요 이벤트purchase1개를 전사/PNG로 추가했다. 나머지 기간·채널 교차·일별 전체 nativeCSV는 미완료, 수익은USD·전체트래픽·합계차이 보존. 원자료 원본 내용과 계정 설정/광고/보안/콘솔 제출은 변경하지 않았다.
+- 현재 browser는 Space65 agent 제어, p1=GA4 주요 이벤트 설정(읽기만), p2=local 영어범띠QA 완료. 마지막 round187, 다음 신규188. 복구용 새 공간 금지. mock 개발 서버는 본 실행의 조상 명령/로그 경로를 확인한 뒤 자기 트리만 종료했다(다른11/05 dev 세션 보존). 재시작은 이 워크트리 `npm run dev`(32440/32441, fixture/API 외부 차단).
+- 외부 검토 초안: `bundle-4/search-findings-additional-20261109.md`, `bundle-5/approval-packet-draft-20261109.md`。main 전달·공식 CI·fresh verify-dist·공유 커밋 공개가 남아 **운영 승인 요청 가능한 최종 패킷은 아니다**. ④⑤ 운영 승격은 새 승인 대상이며 아직 dispatch하지 않았다.
 
 ### 2026-11-09 로그인 후 추가 수집·⑤ 관계 문구
 
