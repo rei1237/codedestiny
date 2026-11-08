@@ -1,4 +1,35 @@
 {
+  "seoBundle3Followup20261109": {
+    "observedAt": "2026-11-09",
+    "request": "bundle-3/approval-packet.md를 참조해 남은 SEO 작업 마무리",
+    "approvalPacket": "D:/Development/seo-audit/code-destiny-20261101/bundle-3/approval-packet.md",
+    "followupImplementationSha": "d3ee5d140",
+    "approval": {"date": "2026-11-09", "userText": "main push + 운영 승격 1회 승인", "scope": "묶음 ③ 및 후속 수정 main push·운영 승격 1회"},
+    "productionObservedSha": "9e8cec0a654040cf9115a5a2a2b3a1fe7eb75dea",
+    "productionObservation": "GET /version.json HTTP 200. 이번 세션에서는 운영 승격을 실행하지 않았다.",
+    "changes": [
+      "IndexNow 공개 소개 페이지 3개 오탐 수정: /business/api/, /business/api/docs/, /yeongnyangi/season-1/",
+      "비공개 하위 경로, 쿼리, 해시, 인코딩된 API 경로는 계속 제출 금지",
+      "canonical 검증기의 argv 없는 import 오류 수정"
+    ],
+    "evidence": {
+      "detectorMockTests": "67 passed",
+      "indexNowTests": "7 passed",
+      "canonicalTests": "38 passed",
+      "indexNowDryRun": "1062 sitemap URLs; no external submission",
+      "existingDist": "0 failing rules, 0 warning rules; existing build, not rebuilt this session",
+      "verifyDistReport": "D:/Development/seo-audit/code-destiny-20261101/bundle-3/verify-dist-20261109.json",
+      "latestObservedSeoOperations": "https://github.com/rei1237/codedestiny/actions/runs/42421948698",
+      "latestObservedSeoOperationsConclusion": "success"
+    },
+    "preserved": ["결제·이용권·월정석·단건 결제 정책", "인증·API·DB·운세 계산 로직", "기존 canonical·색인 상태·사이트맵 포함 정책", "홈 hreflang ko·x-default=/ggulggul/"],
+    "remaining": [
+      "묶음 ③ main 전달 후 CI 결과 및 별도 승인에 따른 운영 승격·실측",
+      "묶음 ④ 검색 데이터 수집본 없음: D:/Development/seo-data/code-destiny/2026-11-01/",
+      "묶음 ⑤는 설계대로 ④ 이후 50~100쪽씩 검증·승격",
+      "검색 유입 성과 및 7·28·90일 KPI 미측정"
+    ]
+  },
   "observedAt": "2026-10-12",
   "observationNote": "로그인된 GSC와 Naver UI 직접 관측. 실적 기간과 색인 보고서 갱신일을 분리. Query와 Page는 별도 집계.",
   "period": {
@@ -426,7 +457,7 @@
   "lastMonthlyAudit": "2026-09-08",
   "lastWeeklyCycle": "2026-10-12",
   "outreachRegistry": "docs/seo/outreach/candidates.json",
-  "productionObservedSha": "9ecd0874389dc55695866561b21d65150c3171a6",
+  "productionObservedSha": "9e8cec0a654040cf9115a5a2a2b3a1fe7eb75dea",
   "automation": {
     "heartbeatId": "code-destiny-seo-growth",
     "nextWeeklyKst": "2026-09-28 09:20",

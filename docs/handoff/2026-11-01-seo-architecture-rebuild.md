@@ -1,7 +1,7 @@
 ---
 status: active
-updated: 2026-11-08
-next: "묶음 ③ 승인 대기 — 사용자가 main push·운영 승격 1회를 승인하면 승인 패킷 `bundle-3\approval-packet.md`의 진행 순서대로 진행"
+updated: 2026-11-09
+next: "묶음 ③ check:fast 결과 확인 → check:pre-push → main push → 스테이징 SHA 확인 → 승인된 운영 승격 1회 → 운영 실측·SEO Operations 기록."
 ---
 
 # SEO 아키텍처 재구축
@@ -19,6 +19,20 @@ next: "묶음 ③ 승인 대기 — 사용자가 main push·운영 승격 1회�
 4. `D:\Development\seo-data\code-destiny\2026-11-01\`(Codex 수집본, `manifest.csv`·`README.md`)이 생겼는지 본다. 생겼으면 설계 문서 근거 부록 6(원인 판정)과 묶음 ④ 매핑에 반영한다.
 
 ## 지금 상태
+
+### 2026-11-09 재개
+
+- 사용자 요청: `D:\Development\seo-audit\code-destiny-20261101\bundle-3\approval-packet.md 참조해서 남은 seo 작업 마무리해줘`.
+- origin/main과 운영 `/version.json`은 여전히 `9e8cec0a654040cf9115a5a2a2b3a1fe7eb75dea`. main CI 성공: https://github.com/rei1237/codedestiny/actions/runs/42465450472. 재리베이스 불필요. 루트 체크아웃의 다른 세션 변경은 건드리지 않는다.
+- 이 워크트리의 기존 산출물 재검사: verify-dist 실패 0·경고 0. 새 빌드를 실행한 결과가 아니다. 증거: `D:/Development/seo-audit/code-destiny-20261101/bundle-3/verify-dist-20261109.json`.
+- SEO 검출기 mock 테스트 67개, IndexNow 7개, canonical/verify-dist 38개 통과. 기존 커밋 트리의 check:pre-push 통과(사이트맵 1062개).
+- 패킷 후속 결함 커밋 `d3ee5d140`: IndexNow가 공개 `/business/api/`, `/business/api/docs/`, `/yeongnyangi/season-1/`를 차단하던 오탐을 정확한 경로 예외로 수정. 비공개 하위 경로·쿼리·해시·인코딩 우회 차단 테스트 유지. dry-run 1062 URL 처리 성공, 외부 제출 없음.
+- `verify-sitemap-canonical.mjs`의 argv 없는 import 오류 수정, 별도 Node eval 프로세스 회귀 검사 통과.
+- `check:fast` 실행 중. 로그: `D:/Development/seo-audit/code-destiny-20261101/bundle-3/regression/check-fast-20261109.log`. 자동 critical 승격으로 추가 검사를 실행하며 실제 LLM·실결제·운영 DB 쓰기는 하지 않는다.
+- 현재 검증 진도: 추가 가드 77/77, lint, sitemap drift, typecheck 통과 후 Node 테스트 진행 중. 시스템 여유 메모리 약 700MB에서 일시 정체. 동시 실행 수를 낮추려 했으나 프로세스 소유 관계 안전 단언에서 중단되어 종료 조치는 실행되지 않았다. 이후 기존 테스트가 다시 진행됐다. 다른 세션 프로세스에는 손대지 않았다.
+- SEO Operations 최근 런은 성공: https://github.com/rei1237/codedestiny/actions/runs/42421948698. 패킷의 기존 실패 기록은 현재 상태가 아니다. 워크플로 수정 없음.
+- 승인 상태(2026-11-09): 사용자 원문 `main push + 운영 승격 1회 승인`. 묶음 ③ 및 이번 후속 수정의 main 전달·운영 dispatch 1회 승인 완료. 반복 확인하지 않는다. 다른 묶음 승격·검색엔진 계정 제출·운영 DB 접근 승인은 포함하지 않는다.
+- `D:/Development/seo-data/code-destiny/2026-11-01/`은 없음. 묶음 ④의 키워드 매핑·홈 역할 결정 및 ⑤의 단계별 승격을 완료로 처리하지 않는다. 실제 검색 성과는 미측정.
 
 - 묶음 ③ 로컬 완료, 승인 대기(2026-11-08). origin/main `9e8cec0a6`(= 운영 `/version.json`) 위로 리베이스해 16커밋, HEAD `66e63dee6` 뒤에 이 문서 커밋. 리베이스 전 상태는 태그 `bundle3-pre-rebase`. 아래 SHA는 리베이스 전 값이다(리베이스 뒤: 계획 `6d801c27a`, T1 `018d10f55`, T2 `a08a0b134`, T3 `a6e87e1e3`, T4 `ea47b6b9a`, T5 `846473190`, T6 `4c9ccfe24`, T7 `4e40665a2`, 정책 페이지 `651667e09`, T8 `665f6489b`, T9 `f847607c4`). 리베이스 판단: upstream `0b70e9801`의 `/business/api/dashboard` 사이트맵 제외를 원장에 `meta: null, sitemap: false`로 옮김. 그 커밋의 coreRoutes 2줄(`/business/api`, `/business/api/docs`)은 첫 충돌 해결 때 빠져 `ea47b6b9a`에서 되살림(`a6e87e1e3`만 두 줄이 없다). 생성 파일 충돌은 생성기를 다시 돌려 해결. T10 결과: 최종 build:cf exit 0, verify-dist 실패 0·경고 0(hreflang-sitemap warn 185 → fail 0), index-state 차이는 upstream 새 페이지 3개뿐, 회귀 묶음 전부 exit 0, `check:pre-push` exit 0. 승인 패킷 `D:Developmentseo-auditde-destiny-20261101bundle-3pproval-packet.md`. 이전 기록: 계획 `1c448dd3c`, T1 `abbaa53ad`, T2 `5f05c0104`, T3 `e26a56301`, T4 `f64bb98d2`(googlebot meta 0, 페이지당 robots meta 최대 1, `index-state-t4.json` diff 0줄), T5 `1c2bdba88`, T6 `125794c4c`, T7 `6602003eb`, 정책 페이지 재생성 `4c077642b`, T8 `5a81a33a3`(verify-dist 규칙 robots-meta-count·index-ledger·hreflang-reciprocal 추가, 홈 클러스터 셸 5쪽 hreflang 을 빌드 때 alternatesFor(I18N_ROUTE_MAP.home)로 교체 → hreflang-sitemap 5→0, 네 규칙 모두 실 dist 0건이라 fail 로 올림, `verify-dist-t8.json` 실패 0·경고 0, `index-state-t8.json` diff 0줄), T9 `800556f5d`(submitIndexNowUrls·getAllSitemapUrls 삭제, INDEXNOW_ENDPOINT 는 export 로 유지, 근거 `dead-code-grep.txt`; seo-site-urls 변경으로 사이트맵 서명 120·lastmod 17건 재생성). 남은 것은 T10. T7 뒤 build:cf: verify-dist 실패 0, hreflang-sitemap 185→5(정적 셸 `/ggulggul/`·`/en/`·`/ja/`·`/zh/`·`/zh-tw/`의 index.html 블록 ko-KR·ja-JP·en-US), `index-state-t7.json` diff 0줄. 증거는 `D:\Development\seo-audit\code-destiny-20261101\bundle-3\`(기준 `build-before.log`·`verify-dist-before.json`·`index-state-before.json`, T3 뒤 `index-state-t3.json` diff 0줄).
   - 기준 verify-dist: 실패 0, hreflang-sitemap 경고 185(80·1·100·4).
