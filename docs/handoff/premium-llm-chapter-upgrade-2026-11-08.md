@@ -107,7 +107,7 @@ next: 6단계 초융합 운세 — 대상 라우트·프롬프트·결과 화면
 - [ ] F9b. 인생 총운 장 분량이 아직 2,100~2,700자로 목표 4,400자에 못 미친다. 모델이 일찍 멈춘다(finishReason STOP). 구조 변경이 필요하다(예: 장 하나를 요청 2개로 나눔). `worker/routes/life-book-ai.js`
 - 참고: 연애 비책 V2 분량 상향 `dc6422d33`(그룹 6,000~7,500자, 15,000토큰). 검증 문서 「분량 넉넉·비치명화」 절은 `a7ff45b2c`.
 - [ ] F18. d78175aac(인생 총운 전달 실패 버그, 운영에도 있음)를 운영에 먼저 내보낼지 사용자 결정을 기다린다. **push·배포하지 않는다.**
-- [ ] F19. 마스터 인연의 서 V2 실호출에서 첫 초안이 거의 모든 장에서 minChars 근처(약 2,100~2,900자)로 멈춰 길이 수리가 장마다 한 번씩 돈다(solo 16장·compat 14장). 그래서 생성 호출이 20회가 아니라 약 38회이고, 생성 시간이 9~10분이다. 배달에는 영향이 없다. 수리 기준(repair floor = minChars)을 낮출지, V2 목표 min+800~1,200을 낮출지, 모델·토큰을 바꿀지 사용자가 정한다(F9b와 같은 모양). `worker/lib/master-love-codex-quality.js`·`worker/routes/master-love-codex.js`
+- [x] F19. (해결 `94707deb7`: 책당 수리 최대 4장·가장 짧은 장부터, 아래 "5단계 보정") 마스터 인연의 서 V2 실호출에서 첫 초안이 거의 모든 장에서 minChars 근처(약 2,100~2,900자)로 멈춰 길이 수리가 장마다 한 번씩 돈다(solo 16장·compat 14장). 그래서 생성 호출이 20회가 아니라 약 38회이고, 생성 시간이 9~10분이다. 배달에는 영향이 없다. 수리 기준(repair floor = minChars)을 낮출지, V2 목표 min+800~1,200을 낮출지, 모델·토큰을 바꿀지 사용자가 정한다(F9b와 같은 모양). `worker/lib/master-love-codex-quality.js`·`worker/routes/master-love-codex.js`
 - [ ] F20. `__tests__/ui/paid-result-locale-copy.test.js`의 "로케일 카피 표는 로케일마다 같은 키 집합을 갖는다"는 5단계 전부터 실패한다(`app/love-secret-ai/result/LoveSecretAiResultClient.tsx` LoveSecretResultCopy의 en에 `chaptersHeading`이 남음). 5단계 변경과 무관하다. 1단계 화면 작업의 잔여로 보고 고친다.
 
 ## 1단계 진행 메모 (완료, 결과는 아래 단계별 결과)
@@ -419,3 +419,30 @@ next: 6단계 초융합 운세 — 대상 라우트·프롬프트·결과 화면
   - F19(장마다 길이 수리 → 생성 호출 약 2배·9~10분). F20(5단계와 무관한 기존 실패)
   - 조판 PDF에는 캡처 PDF의 차트·연애 DNA 레이더·요약 페이지가 없다. 비ko 로캘과 V1 세션은 기존 캡처 그대로
   - META minTotalChars 46,000은 이번 샘플 합계(약 4만 자)보다 크지만 분량 비치명이라 배달된다. 상품 안내 문구가 분량을 약속하는지 확인 필요
+
+### 5단계 보정 — F19 해결 + 개인판 2~3만 자·반복 없음·정확한 챕터 (2026-11-08)
+- 사용자 지시 원문(2026-11-08, 조정자 전달): "마스터 인연의 서 개인판은 너무 긴것 같으므로 분량이 2~3만자 정도로 하되 반복없이 정확한 챕터대로 나오도록 수정해". 범위는 개인판(solo) V2만. 궁합판·V1은 바뀌지 않는다.
+- F19 해결 `94707deb7`: 수리 기준은 원래도 minChars(전달 하한) 미만일 때만이었다. 바꾼 것은 횟수다. `CODEX_SESSION_REPAIR_CAP = 4`로 정했다. 모든 장의 첫 초안이 나온 뒤 수리를 시작하고, 가장 짧은 장부터(비율 = 본문/minChars) 책당 최대 4장만 수리한다. 길이 수리와 V2 소프트 이슈 수리가 같은 상한을 쓴다. 분량은 실패 사유가 되지 않는다.
+  - 1~4단계 점검 결과 고칠 것이 없다. 연애 비책은 총량이 MIN 미만일 때 가장 짧은 그룹부터 최대 2회 수리한다. 신년은 minChars 미만 섹션을 최대 2회 수리한다. 인생의 책은 minChars 미만인 가장 짧은 장을 최대 2회 수리한다. 운명의 업은 총량이 30,000 미만일 때 가장 짧은 장을 최대 2회 수리한다.
+  - 예상 호출(저장된 5단계 샘플 기준): 이전에는 solo 38회 생성(초안 20, 수리 16, 그 외 2), compat 39회(20+14+5)였다. 이제 solo는 20+4+재시도 2 ≈ 26회 이하, compat는 20+4+5 ≈ 29회 이하다. 요청마다 문맥 캐시 조회가 1번 더 붙는다. 시간은 대략 solo 551초→약 380초, compat 618초→약 460초로 줄 것으로 본다.
+- 개인판 분량 `bd6392a12`. 고친 곳은 `worker/lib/master-love-codex-prompt.mjs`의 `SOLO_V2_MIN_CHARS`와 `MASTER_LOVE_CODEX_SOLO_V2_LENGTH`다.
+  - 장 minChars는 1,000자다. 1장 gate와 19장 three-years는 1,200자, 20장 letter는 800자다. minChars 합은 20,200자다.
+  - 장 목표는 minChars+150~minChars+450이다. 합계 목표는 23,200~29,200자다.
+  - `compact: true`인 장에는 다음이 적용된다. 계약은 "소제목 2~3개"다. 프롬프트에 "[V2 분량] …자를 넘기지 않는다"는 상한과 "[V2 반복 금지]"(1장의 기질 설명을 다시 하지 않음)가 들어간다. 토큰 하한은 8000에서 5000으로 낮췄다.
+  - V1 META(46,000/50,000)는 옛 세션과 verify 스크립트의 기준이라 그대로 두었다. V1 프롬프트와 궁합 계약 바이트가 같은지 해시로 확인했다(ee57f73e…, 변경 전후 같음).
+- 반복 없음: `codexCrossRepeatSentences`(quality.js)는 다음 두 경우를 거의 같은 반복으로 본다.
+  - 20자 구간이 앞 장 2개 이상에 이미 있다.
+  - 32자 구간이 앞 장 하나에라도 있다.
+  - 한 장에서 이런 문장이 2개 이상이면 `CROSS_REPEAT` 소프트 이슈가 된다. 힌트를 붙여 수리하고, 수리는 F19 상한 안에서만 돈다. 조립할 때는 `scrubCodexCrossRepeats`가 본문의 85% 이상이 남는 동안만 이런 문장을 지운다. 첫 사본은 남긴다.
+  - 저장된 5단계 solo 샘플로 확인했다. 16·18·19장에서 반복 문장 1개씩을 잡았다("비겁이 발달하여 경쟁 속에서 존재감…", "상대방의 입장을 이해하려는 노력이 필요합니다"). 지운 분량은 176자다. 장마다 1개라서 수리 대상은 아니고 지우기만 된다.
+- 정확한 챕터: 조립할 때 id·제목·순서·기호를 계획표 값으로 고정한다(compact 장만). `validateCodexChapterOutline`(개수·중복·순서·제목)을 통과해야 완료된다. 빠진 장은 기존 경로대로 다시 생성하고 버리지 않는다.
+- 보관함: `worker/lib/record-library.js`에서 V2 개인판(`deliveryMeta.chapterPlanVersion` 투영)은 V2 표로 판정한다. 본문이 있으면 완료다. V1은 기존 0.5×minChars 기준 그대로다.
+- **사용자 결정 필요(SEO·사용자 노출 문구, 고치지 않음)**: 개인판에도 "5만 자"라고 약속하는 문구가 남아 있다.
+  - `app/master-love-codex/page.tsx:170` "총 5만 자를 목표로"
+  - `app/master-love-codex/MasterLoveCodexRouteClient.tsx:26` "20개 챕터·총 5만 자 목표"
+  - `src/features/master-love-codex/components/CodexProductIntroduction.tsx:17` "개인판 · 20개 챕터 · 총 5만 자 목표"(:21 궁합편도 같다)
+  - `lib/marketing/result-samples.json:99,131`
+  - `lib/marketing/feature-visual-details.generated.json:1624,1673`
+  - `lib/marketing/feature-marketing-copy.generated.json:8352,8508` "20개 챕터 합계 목표 50,000자"
+  - `docs/purchase-journey/inventory.json:8261,8484` "46,000자"
+  - 개인판만 "2~3만 자"로 바꿀지 사용자가 정한다.
