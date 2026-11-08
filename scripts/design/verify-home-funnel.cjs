@@ -270,7 +270,7 @@ async function assertEssentials(page, label) {
       assert.deepEqual(passOverflow, [], `${width}px light fortune copy stays inside the viewport`);
       assert.ok(layout.unique && layout.moved, `${width}px reuses unique legacy nodes`);
       assert.ok(layout.neoButton, `${width}px Neo control visible in common header`);
-      assert.equal(layout.profileCardOnHome, false, `${width}px keeps the full profile card under My`);
+      assert.equal(layout.profileCardOnHome, true, `${width}px keeps one live profile card on the home entry`);
       if (width >= 1280) assert.ok(layout.width > 1000, `${width}px uses expanded desktop canvas`);
       if (width <= 430) assert.ok(layout.width <= width, `${width}px fits mobile canvas`);
 
@@ -380,9 +380,10 @@ async function assertEssentials(page, label) {
     await member.waitForFunction(() => document.querySelector('#dpMasterCardHost #dpMasterCard') && document.getElementById('dpListSheet')?.classList.contains('dp-sheet--open'));
     assert.equal(mutations, 1, 'profile creation uses original controller once');
     assert.ok(await member.locator('#dpMasterCardHost #dpMasterCard').isVisible(), 'active profile card and level strip are visible under My');
-    assert.ok(await member.locator('#dpMasterCardHost #dpMasterCard .dp-lvl').isVisible(), 'level benefits remain visible under My');
+      await member.locator('#dpMasterCardHost .pc-growth-details > summary').click();
+      assert.ok(await member.locator('#dpMasterCardHost #dpMasterCard .dp-lvl').isVisible(), 'level benefits remain available under My');
     await member.locator('#dpListSheet .dp-sheet-close').click();
-    await member.waitForFunction(() => document.querySelector('#dpDestinyPanel #dpMasterCard'));
+      await member.waitForFunction(() => document.querySelector('#cdhPetGardenHost #dpMasterCard'));
     results.push({ memberControls: true, profileCardUnderMy: true, mutations, mockOnly: true });
     await member.close();
   } finally {

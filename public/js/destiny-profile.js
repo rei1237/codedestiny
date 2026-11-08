@@ -8718,12 +8718,11 @@
     el.className = 'dp-master-card dp-master-card--active pc-game-card';
     el.innerHTML = '<div class="pc-game-inner">'
       + '<header class="pc-game-hero">'
-        + '<div class="pc-portrait"><div class="dp-mc-avatar pc-avatar" aria-label="캐릭터 확인 중"></div><span data-pc-equipment>나의 일주</span></div>'
         + '<div class="pc-game-identity"><h2 class="dp-mc-name">' + _esc(profile.name) + '</h2><p data-pc-title>일주 캐릭터를 확인하고 있어요.</p><div data-pc-element></div><span class="pc-profile-gender">' + _esc(genderLabel) + '</span></div>'
         + '<div class="dp-mc-action-wrap"><button type="button" class="dp-mc-list-btn dp-mc-menu-btn" aria-label="' + _esc(_dpText('openProfileList')) + '" aria-expanded="false" aria-controls="dpListSheet"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M5 7h14M5 12h14M5 17h14"/></svg></button></div>'
       + '</header>'
-      + _dpBuildLevelStrip()
       + '<div class="pc-panel" data-profile-character></div>'
+      + '<details class="pc-growth-details"><summary>레벨 · 성장 미션 · 보상</summary>' + _dpBuildLevelStrip() + '</details>'
       + '<button type="button" class="dp-mc-load-btn pc-fortune-action">이 프로필로 운세 보기<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="m9 5 7 7-7 7"/></svg></button>'
       + '<details class="pc-birth-details"><summary>출생 정보</summary><p>' + _esc(birthLabel + ' · ' + timeLabel) + '</p><p>' + _esc(l.label || l.name || '출생지 미입력') + '</p></details>'
       + '</div>';

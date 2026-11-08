@@ -1,5 +1,6 @@
 import { SPIRITS, SPIRIT_BONUS_PERCENT, spriteUrl, mobileSpriteUrl, findSpirit, spiritExp } from './profile-characters.mjs';
 import { elementBadgeMarkup } from './profile-element-badge.mjs';
+import { mountPetGarden } from './profile-pet-card.mjs';
 export { elementBadgeMarkup };
 
 const mounts = new WeakMap();
@@ -57,6 +58,9 @@ export async function mountCharacterCard(root, profile, options) {
   if (!document.querySelector('link[data-profile-characters]')) {
     const link = document.createElement('link'); link.rel = 'stylesheet'; link.href = '/styles/profile-characters.css'; link.dataset.profileCharacters = ''; document.head.append(link);
   }
+  if (!document.querySelector('link[data-profile-pet]')) {
+    const link = document.createElement('link'); link.rel = 'stylesheet'; link.href = '/styles/profile-pet.css'; link.dataset.profilePet = ''; document.head.append(link);
+  }
   const target = root.querySelector('[data-profile-character]');
   if (!target) return;
   const oldAvatar = root.querySelector('.dp-mc-avatar');
@@ -93,14 +97,13 @@ export async function mountCharacterCard(root, profile, options) {
     const spirit = findSpirit(state?.equippedId);
     options.onQuestExp?.(spiritExp('quest', 15, state?.ownedIds || [], state?.equippedId));
     const avatar = root.querySelector('.dp-mc-avatar');
-    if (avatar) { avatar.classList.add('pc-avatar'); avatar.innerHTML = spriteMarkup(spirit?.id || character.id, spirit?.name || character.name); }
+    if (avatar) { avatar.classList.add('pc-avatar'); avatar.innerHTML = ''; }
     const bonus = target.querySelector('[data-pc-bonus]');
     if (bonus) bonus.textContent = spirit ? `${spirit.name}과 함께 · 출석·생활 미션 EXP +${SPIRIT_BONUS_PERCENT}%` : '작은 실천을 쌓아 함께 성장해요.';
     const equipment = root.querySelector('[data-pc-equipment]');
     if (equipment) equipment.textContent = spirit ? '정령 장착' : '나의 일주';
   }
-  const fortune = preview.fortune;
-  target.innerHTML = `<div class="pc-today"><div class="pc-section-heading"><strong>오늘의 흐름</strong><a href="/today/">자세히 보기</a></div><p class="pc-fortune-headline">${escape(fortune?.headline || '오늘의 흐름을 잠시 확인하지 못했어요.')}</p>${fortune ? `<p>${escape(fortune.advice)}</p>` : ''}</div>
+  target.innerHTML = `<div data-pet-garden></div>
     <p class="pc-bonus" data-pc-bonus></p>
     <details class="pc-details"><summary>캐릭터 소개 · 정령 도감</summary><div class="pc-description"><p>${escape(character.summary)}</p><h4>나의 강점</h4><p>${escape(character.strength)}</p><h4>마음에 둘 점</h4><p>${escape(character.caution)}</p><h4>오늘의 작은 실천</h4><p>${escape(character.advice)}</p></div>
     <section aria-label="정령 도감"><h4>함께할 정령</h4><p>이미 보유한 정령과 함께할 수 있어요. 꿀방울은 꿀꿀운세 지정 상품에서 사용해요. 장착한 정령 한 마리만 성장 보너스를 줘요.</p><p data-pc-wallet role="status"></p><button type="button" data-pc-base>내 일주 캐릭터로 돌아가기</button><div class="pc-collection" data-pc-collection></div><p data-pc-status role="status" aria-live="polite"></p><button type="button" data-pc-reload>보유 정령 다시 확인하기</button></section></details>`;
@@ -140,5 +143,7 @@ export async function mountCharacterCard(root, profile, options) {
     } catch (error) { status(error.message); }
     finally { pending = false; if (current()) drawCollection(); }
   }, { signal: token.controller.signal });
-  await refresh();
+  await Promise.all([refresh(), mountPetGarden(target.querySelector('[data-pet-garden]'), {
+    profileId: profile.profileId || profile.id, preview, owner, api, current, signal: token.controller.signal,
+  })]);
 }

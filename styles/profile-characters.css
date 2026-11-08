@@ -32,12 +32,16 @@
   box-shadow:0 16px 34px #29152726,inset 0 1px 0 #efd4a333;font-family:var(--font-sans,"Gowun Dodum",sans-serif);
 }
 #dpMasterCard.pc-game-card:before,#dpMasterCard.pc-game-card:after{display:none}
+body.neo-mode #dpMasterCard.pc-game-card,html[data-cd-theme="neo"] #dpMasterCard.pc-game-card{
+  --pc-night:var(--cd-bg);--pc-ink:var(--cd-gold-soft);--pc-muted:color-mix(in srgb,var(--cd-gold) 80%,var(--cd-bg));--pc-gold:var(--cd-gold);--pc-line:color-mix(in srgb,var(--cd-gold) 34%,var(--cd-bg));
+  --cd-surface:var(--cd-page-card,var(--cd-bg));--cd-surface-2:color-mix(in srgb,var(--cd-gold) 10%,var(--cd-bg));
+}
 .pc-game-inner{padding:24px;min-width:0}
-.pc-game-hero{display:grid;grid-template-columns:88px minmax(0,1fr) 44px;gap:14px;align-items:center;padding-bottom:20px;border-bottom:1px solid var(--pc-line)}
+.pc-game-hero{display:grid;grid-template-columns:minmax(0,1fr) 44px;gap:14px;align-items:center;padding-bottom:16px;border-bottom:1px solid var(--pc-line)}
 .pc-portrait{display:flex;flex-direction:column;align-items:center;justify-content:center;background:#fff1de;border:1px solid var(--pc-gold);border-radius:24px 24px 16px 16px;padding:4px 0 8px;color:#62422e}
 .pc-portrait>[data-pc-equipment]{font-size:10px;font-weight:700;letter-spacing:.04em}
 .pc-game-identity{min-width:0}
-#dpListSheet #dpMasterCard.pc-game-card .pc-game-identity h2{font:700 22px/1.35 var(--font-serif,"Gowun Batang",serif);margin:0 0 8px;color:var(--pc-ink);overflow-wrap:anywhere;word-break:keep-all;letter-spacing:-.025em}
+#dpMasterCard.pc-game-card .pc-game-identity h2{font:700 22px/1.35 var(--font-playful,var(--font-display));margin:0 0 8px;color:var(--pc-ink);overflow-wrap:anywhere;word-break:keep-all;letter-spacing:-.025em}
 .pc-game-identity p{font-size:12px;line-height:1.65;color:var(--pc-gold);margin:0}
 .pc-profile-gender{display:block;color:var(--pc-muted);font-size:11px;margin-top:7px}
 .pc-element-badge{display:inline-flex;align-items:center;gap:6px;margin-top:10px;color:var(--pc-element);vertical-align:middle}
@@ -75,7 +79,7 @@
 .pc-game-card .pc-details{border-bottom:1px solid var(--pc-line);margin-bottom:18px}
 .pc-game-card .pc-details>summary{color:var(--pc-gold);font-size:13px;padding-block:12px}
 .pc-game-card .pc-description{color:var(--pc-muted)}
-.pc-game-card .pc-panel button{border-radius:10px}
+.pc-game-card .pc-details button{border-radius:var(--cd-r-control)}
 #dpListSheet #dpMasterCard.pc-game-card .pc-fortune-action,#dpMasterCard.pc-game-card .pc-fortune-action{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:48px;padding:12px 16px;width:100%;border:1px solid #f4dcac;border-radius:12px;background:var(--pc-gold);color:#352235;box-shadow:0 4px 10px #150b1720;font-size:14px;font-weight:700;letter-spacing:0}
 .pc-game-card .pc-fortune-action:before{display:none}
 .pc-birth-details{color:var(--pc-muted);font-size:11px;margin-top:10px}
@@ -84,4 +88,4 @@
 .pc-game-card :is(button,a,summary):focus-visible{outline:2px solid var(--pc-gold);outline-offset:3px}
 .pc-game-card ::selection{background:var(--pc-gold);color:var(--pc-night)}
 @media(max-width:480px){.pc-sprite{background-image:var(--pc-sprite-mobile,var(--pc-sprite))}}
-@media(max-width:430px){.pc-game-inner{padding:20px 16px}.pc-game-hero{grid-template-columns:80px minmax(0,1fr) 44px;gap:10px}#dpListSheet #dpMasterCard.pc-game-card .pc-game-identity h2{font-size:19px}.pc-portrait{border-radius:20px 20px 12px 12px}}
+@media(max-width:430px){.pc-game-inner{padding:20px 16px}.pc-game-hero{gap:10px}#dpMasterCard.pc-game-card .pc-game-identity h2{font-size:20px}}

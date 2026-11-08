@@ -181,6 +181,8 @@
 /public/js/core/profile-character-card.mjs
 /public/js/core/profile-characters.mjs
 /public/js/core/profile-element-badge.mjs
+/public/js/core/profile-pet-card.mjs
+/public/js/core/profile-pet.mjs
 /public/js/core/saju/basicFortunePresentation.js
 /public/js/core/saju/bundle-offer.js
 /public/js/core/saju/crafted-product-details.mjs
@@ -362,6 +364,7 @@
 /public/styles/pass-benefits.css
 /public/styles/press-coverage.css
 /public/styles/profile-characters.css
+/public/styles/profile-pet.css
 /public/styles/pwa-lifecycle.css
 /public/styles/recipe-entry.css
 /public/styles/recommendations.css
