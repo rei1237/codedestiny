@@ -182,6 +182,12 @@ export default function HomeWidgetStudio() {
             </div>
             {Array.from({ length: 6 }, (_, i) => <i key={i} />)}
           </div>
+              {kind === "talisman" && mode === "yeoni" && <fieldset className="cd-widget-wardrobe" disabled={busy}><legend>{ko ? "연이의 달빛 옷장" : "Yeoni’s wardrobe"}</legend>
+                <div className="cd-widget-looks">{choices.filter(a => a.scene === "yeoni-wardrobe" && a.id !== "yeoni-pig-moon").map(a =>
+                  <label key={a.id}><input type="radio" name="home-widget-talisman" checked={talisman === a.id} onChange={() => choose(() => setTalisman(a.id))} />
+                    <span><img src={`/assets/talismans/widget/${a.id}.webp`} width="72" height="112" alt="" />{name(a.id)}</span>
+                  </label>)}</div>
+              </fieldset>}
           <p className="cd-talisman-caption">{copy.offline}</p>
         </section>
         <section className="cd-talisman-controls" aria-label={copy.headline}>
@@ -193,16 +199,10 @@ export default function HomeWidgetStudio() {
           </div></fieldset>
           {kind === "talisman"
             ? <>
-              {mode === "yeoni" && <fieldset disabled={busy}><legend>{ko ? "연이의 달빛 옷장" : "Yeoni’s wardrobe"}</legend>
-                <div className="cd-widget-looks">{choices.filter(a => a.scene === "yeoni-wardrobe").map(a =>
-                  <label key={a.id}><input type="radio" name="home-widget-talisman" checked={talisman === a.id} onChange={() => choose(() => setTalisman(a.id))} />
-                    <span><img src={`/assets/talismans/widget/${a.id}.webp`} width="72" height="112" alt="" />{name(a.id)}</span>
-                  </label>)}</div>
-              </fieldset>}
-              <details open={mode === "yeongnyangi" || selected?.scene !== "yeoni-wardrobe"}>
+              <details open={mode === "yeongnyangi" || selected?.scene !== "yeoni-wardrobe" || selected?.id === "yeoni-pig-moon"}>
                 <summary>{copy.talismanLegend}</summary>
                 <fieldset disabled={busy}><legend className="sr-only">{copy.talismanLegend}</legend><div className="cd-talisman-options">
-                  {choices.filter(a => a.scene !== "yeoni-wardrobe").map(a => widgetId(a.id)).map(id =>
+                  {choices.filter(a => a.scene !== "yeoni-wardrobe" || a.id === "yeoni-pig-moon").map(a => widgetId(a.id)).map(id =>
                     <label key={id}><input type="radio" name="home-widget-talisman" checked={talisman === id} onChange={() => choose(() => setTalisman(id))} />
                       <span><img className="cd-widget-swatch" src={`/assets/talismans/widget/${id}.webp`} width="34" height="54" alt="" />{name(id)}</span>
                     </label>)}
@@ -214,14 +214,14 @@ export default function HomeWidgetStudio() {
               {AFFIRMATION_IDS.map(id => <label key={id}><input type="radio" name="home-widget-affirmation" checked={!rotating && affirmation === id} onChange={() => choose(() => { setRotating(false); setAffirmation(id); })} /><span>{copy.affirmations[id]}</span></label>)}
             </div></fieldset> : kind === "fortune" ? <a href="/today/">{ko ? "오늘의 운세 자세히 보기" : "Read today’s fortune"}</a> : null}
           {showManual ? <div className="cd-talisman-instructions"><p><strong>{copy.manualTitle}</strong><br />{copy.manualSteps}</p><p>{copy.manualHint}</p></div> : null}
-          <p className="cd-talisman-caption">{copy.remove}</p>
+          {status !== "web" && <p className="cd-talisman-caption">{copy.remove}</p>}
         </section>
       </div>
       {/* 고르는 동안에도 추가 버튼과 진행 상태가 화면 아래에 늘 보이게 둔다. */}
       <div className="cd-home-widget-dock">
         <div className="cd-talisman-actions" aria-busy={busy}>
           {kind === "talisman" && selected && <a className="cd-widget-wallpaper" href={(IS_APP_BUILD ? "/app/talismans/index.html" : "/app/talismans/") + "?asset=" + encodeURIComponent(selected.id)}>{ko ? "배경화면으로 설정" : "Set wallpaper"}</a>}
-          <button type="button" disabled={busy || status === "web"} onClick={() => void place()}>{editId ? copy.change : copy.add}</button>
+          {status !== "web" && <button type="button" disabled={busy} onClick={() => void place()}>{editId ? copy.change : copy.add}</button>}
         </div>
         <p className="cd-talisman-status" role="status" aria-live="polite">{message}</p>
       </div>

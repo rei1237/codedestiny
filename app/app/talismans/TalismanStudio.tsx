@@ -48,6 +48,7 @@ export default function TalismanStudio() {
   const [message, setMessage] = useState("");
   const [savedFit, setSavedFit] = useState(false);
   const assets = useMemo(() => approvedAssets(), []);
+  const [selectionReady, setSelectionReady] = useState(false);
   const [lookId, setLookId] = useState("yeoni-hanbok");
   const asset = scene === "yeoni-wardrobe" ? assets.find(item => item.id === lookId) : assets.find(item => item.scene === scene && item.category === category);
   const ready = Boolean(asset && loaded?.id === asset.id);
@@ -73,6 +74,7 @@ export default function TalismanStudio() {
       setScene(selected.scene); setCategory(selected.category); setLookId(selected.id);
       setPreview("home"); setTarget("home");
     }
+    setSelectionReady(true);
     sync(); setDevice(platform()); void syncScreen();
     window.addEventListener("cd:locale-ready", sync);
     window.addEventListener("languagechange", sync);
@@ -82,7 +84,7 @@ export default function TalismanStudio() {
 
   useEffect(() => {
     setLoaded(null); setMessage(""); setSavedFit(false);
-    if (!asset) return;
+    if (!selectionReady || !asset) return;
     const controller = new AbortController();
     let url = "";
     void (async () => {
@@ -101,7 +103,7 @@ export default function TalismanStudio() {
       }
     })();
     return () => { controller.abort(); if (url) URL.revokeObjectURL(url); };
-  }, [asset, copy.imageFailed]);
+  }, [asset, copy.imageFailed, selectionReady]);
 
   async function exportImage(action: ExportAction) {
     if (!ready || !loaded || !asset || busy) return;
