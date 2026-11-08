@@ -354,6 +354,9 @@ export function compareConfigs(productionText, stagingText) {
 
     const same = render(production.get(key)) === render(staging.get(key));
 
+    // The staging Worker has no live PG credentials; its sales catalog can stay closed during a production rollout.
+    if (key === "vars.BUSINESS_API_SALES" && staging.get(key) === "") continue;
+
     if (STRUCTURAL_KEYS.has(key)) {
       if (!same) {
         failures.push(`${key}: 구조 키는 반드시 동일해야 한다 (프로덕션 ${render(production.get(key))} / 스테이징 ${render(staging.get(key))}). 허용목록으로 예외를 둘 수 없다.`);
@@ -527,6 +530,12 @@ function runSelfTest() {
       name: "baseline passes",
       production: BASE_PRODUCTION,
       staging: BASE_STAGING,
+      expectFailure: false,
+    },
+    {
+      name: "기업 API 운영 판매 중에도 스테이징 판매를 닫을 수 있다",
+      production: withExtraVar(BASE_PRODUCTION, 'BUSINESS_API_SALES = "saju,ziwei,tarot"'),
+      staging: withExtraVar(BASE_STAGING, 'BUSINESS_API_SALES = ""'),
       expectFailure: false,
     },
     {

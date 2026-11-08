@@ -121,6 +121,7 @@ certificate_id = "54538b62-1dfb-4189-a7af-9b1356c536bb"
 
 [vars]
 NODE_ENV = "production"
+BUSINESS_API_SALES = ""
 # 🔴 NODE_ENV 를 development 로 내리지 말 것. worker/lib/auth.js 의 isExplicitLocalDevEnv 가
 # development/test 에서만 dev 시크릿 폴백을 여는데, 스테이징이 그 문을 열면 "실제와 동일"이 깨진다.
 # 환경 구분은 아래 APP_ENV 가 맡는다.
