@@ -1,5 +1,5 @@
 ---
-status: in-progress
+status: active
 updated: 2026-11-08
 next: "final6 빌드(88c8d17dc 포함) 뒤 /oracle/hwatu-life/·/tarot/love/ 히어로 이미지 재확인, 그다음 사용자 승인 받아 push·내부 테스트 트랙"
 ---
