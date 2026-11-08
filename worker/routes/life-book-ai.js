@@ -111,8 +111,9 @@ const LIFE_BOOK_EXPECTED_CHAPTER_COUNT = 10;
 // 채우는 크기 안쪽이다). 총합 하한 15,000자 = A4 10장.
 const LIFE_BOOK_MIN_CHAPTER_CONTENT_CHARS = 2000;
 const LIFE_BOOK_MIN_TOTAL_CONTENT_CHARS = 20000;
-// 구성 V2(장당 3,000자·1장 3,400자) 총합 ≈ 32,800자라 상한을 38,000자로 둔다. 장 상한 7,000토큰(4,666자)×10 안쪽이다.
-const LIFE_BOOK_MAX_TOTAL_CONTENT_CHARS = 38000;
+// 구성 V2(장당 4,000자·1장 4,400자·판독 4×1,000자) 총합 ≈ 44,400자라 상한을 46,000자로 둔다(2026-11-08 분량 넉넉).
+// V1 장 상한 7,000토큰(4,666자)×10 이 이 상한을 덮는다. 상한 초과는 배달을 막지 않는다(절단 없음).
+const LIFE_BOOK_MAX_TOTAL_CONTENT_CHARS = 46000;
 const LIFE_FORTUNE_MIN_CHAPTER_CONTENT_CHARS = 2400;
 const LIFE_FORTUNE_MIN_EXPERT_READING_CONTENT_CHARS = 1200;
 const LIFE_FORTUNE_MAX_TOTAL_CONTENT_CHARS = 60000;
@@ -1142,10 +1143,20 @@ function buildSystemPrompt(consultationType = "lifeBook") {
 // 구성 버전. V1 은 옛 세션(저장된 llmMeta.plan)이 그대로 쓰므로 객체를 바꾸지 않는다.
 // V2 는 장마다 맡는 관점(perspective)·1장 공감 장면·질문 1회 인용·조립 단계 중복 문장 제거를 더한다.
 const LIFE_BOOK_SECTION_PLAN_VERSION = 2;
+// 2026-11-08 "분량 넉넉": 프롬프트가 요구하는 최소(promptMinChars)와 목표를 올린다. 배달 게이트 하한(minChars)은 그대로라
+// 짧게 와도 실패하지 않는다. 토큰은 tokensRequiredForChars(목표) + 1,500 여유, 단 섹션 상한 10,000토큰(45초 시한, ≈200tok/s)을 넘지 않는다.
+const LIFE_BOOK_V2_TOKEN_HEADROOM = 1500;
+const LIFE_BOOK_V2_SECTION_TOKEN_CAP = 10000;
+function lifeBookV2Tokens(base, targetChars) {
+  return Math.max(base, Math.min(LIFE_BOOK_V2_SECTION_TOKEN_CAP, tokensRequiredForChars(targetChars) + LIFE_BOOK_V2_TOKEN_HEADROOM));
+}
 const SECTION_TARGETS_V2 = Object.freeze({
-  lifeFortune: Object.freeze({ chapterTargetChars: 3200, firstChapterTargetChars: 3500 }),
-  lifeBook: Object.freeze({ chapterTargetChars: 3000, firstChapterTargetChars: 3400 }),
+  lifeFortune: Object.freeze({ chapterTargetChars: 4400, firstChapterTargetChars: 4800, chapterPromptMinChars: 3400, firstChapterPromptMinChars: 3600, expertTargetChars: 2000, expertPromptMinChars: 1600 }),
+  lifeBook: Object.freeze({ chapterTargetChars: 4000, firstChapterTargetChars: 4400, chapterPromptMinChars: 3000, firstChapterPromptMinChars: 3200, expertTargetChars: 1000, expertPromptMinChars: 700 }),
 });
+// 분량 보강(V2): 모든 조각이 받아들여진 뒤에도 게이트 하한보다 짧은 장·판독이 있으면, 세션당 최대 2번·조각당 1번만 다시 쓴다.
+// 보강이 더 짧거나 실패하면 앞 초안을 그대로 둔다 — 분량 때문에 배달이 막히지 않는다.
+const LIFE_BOOK_LENGTH_BOOST_MAX = 2;
 const LIFE_BOOK_FIRST_CHAPTER_GUIDE_V2 = "일간과 월지, 지장간, 오행 분포 근거를 먼저 짚고 그 뜻을 쉬운 말로 풉니다. 이어서 이 사람이 일상에서 '맞아, 내가 이래' 하고 알아볼 생활 장면 2~3개(일을 시작하는 방식, 지칠 때의 반응, 사람을 처음 대하는 태도처럼 구체적인 순간)로 공감해 주고, 마지막에는 이 원형이 이 책의 다음 장들(성격·일·사랑·재물·시기)에서 어떻게 펼쳐지는지 한두 문장으로 이어 줍니다.";
 const LIFE_FORTUNE_FIRST_CHAPTER_GUIDE_V2 = "년주·월주·일주·시주, 일간, 월지, 지장간, 오행 분포, 신강·신약 근거를 먼저 짚고 그 뜻을 쉬운 말로 풉니다. 이어서 이 사람이 일상에서 '맞아, 내가 이래' 하고 알아볼 생활 장면 2~3개(일을 시작하는 방식, 지칠 때의 반응, 사람을 처음 대하는 태도처럼 구체적인 순간)로 공감해 주고, 마지막에는 이 중심축이 다음 장들(성격·일·재물·사랑·시기)에서 어떻게 펼쳐지는지 한두 문장으로 이어 줍니다.";
 const LIFE_BOOK_CHAPTER_PERSPECTIVES_V2 = Object.freeze([
@@ -1250,11 +1261,17 @@ function buildSectionPlanV2(input, lifeFortune, targets, chapterGuides) {
         perspective: chapterPerspectives[section.index] || "",
         questionOwner: first,
         targetChars,
-        maxOutputTokens: Math.max(targets.chapter.maxOutputTokens, tokensRequiredForChars(targetChars)),
+        promptMinChars: first ? v2Targets.firstChapterPromptMinChars : v2Targets.chapterPromptMinChars,
+        maxOutputTokens: lifeBookV2Tokens(targets.chapter.maxOutputTokens, targetChars),
       };
     }
     if (section.kind === "expert") {
-      return { ...section, planVersion: 2, perspective: EXPERT_READING_PERSPECTIVES_V2[section.index] || "", questionOwner: false };
+      return {
+        ...section, planVersion: 2, perspective: EXPERT_READING_PERSPECTIVES_V2[section.index] || "", questionOwner: false,
+        targetChars: v2Targets.expertTargetChars,
+        promptMinChars: v2Targets.expertPromptMinChars,
+        maxOutputTokens: lifeBookV2Tokens(targets.expert.maxOutputTokens, v2Targets.expertTargetChars),
+      };
     }
     return { ...section, planVersion: 2 };
   });
@@ -1315,6 +1332,17 @@ function buildSectionSchema(section, lifeFortune) {
     : { chapterNumber: section.index + 1, title: section.title, summary: "", content: "", advice: [] };
 }
 
+// V2 전용 분량 줄. 소단락마다 최소 분량을 밝혀 "한두 문단 요약"으로 끝나지 않게 한다.
+function lifeBookV2LengthLines(section) {
+  const min = Number(section.promptMinChars) || 0;
+  if (section.kind === "frame" || !min) return [];
+  const perPart = Math.max(300, Math.floor(min / 4 / 100) * 100);
+  return [
+    `이 조각의 content 는 공백 제외 최소 ${min}자 이상, ${section.targetChars}자 안팎으로 넉넉하게 씁니다. 짧게 요약하고 끝내지 마세요.`,
+    `소단락마다 최소 ${perPart}자 이상씩 씁니다. 분량이 모자라면 같은 말을 늘리지 말고 근거 하나를 더 풀어 생활 장면과 선택 기준으로 채웁니다.`,
+  ];
+}
+
 function buildSectionPrompt(input, sajuSlice, section, digest = "") {
   const lifeFortune = isLifeFortuneInput(input);
   const birth = input.birthInfo || {};
@@ -1349,7 +1377,7 @@ function buildSectionPrompt(input, sajuSlice, section, digest = "") {
   } else if (section.kind === "expert") {
     lines.push(
       `깊은 판독 ${section.index + 1}: "${section.title}".`,
-      `content 는 공백 제외 최소 ${section.minChars}자 이상, 목표 ${section.targetChars}자 안팎으로 쓰세요.`,
+      `content 는 공백 제외 최소 ${section.promptMinChars || section.minChars}자 이상, 목표 ${section.targetChars}자 안팎으로 쓰세요.`,
       `guidance 는 현실에서 바로 쓸 수 있는 조언을 ${section.minAdvice}개 이상 담으세요.`,
       "원국·오행·조후·십성·대운·세운 중 이 판독의 관점에서만 깊게 파고들고, 다른 판독과 겹치지 마세요.",
     );
@@ -1357,7 +1385,7 @@ function buildSectionPrompt(input, sajuSlice, section, digest = "") {
     lines.push(
       `${section.index + 1}장: "${section.title}".`,
       section.guide ? `이 장에서 풀 내용: ${section.guide}` : "",
-      `summary 는 이 장의 핵심을 한 문장으로, content 는 공백 제외 최소 ${section.minChars}자 이상(목표 ${section.targetChars}자 안팎), advice 는 ${section.minAdvice}개 이상 담으세요.`,
+      `summary 는 이 장의 핵심을 한 문장으로, content 는 공백 제외 최소 ${section.promptMinChars || section.minChars}자 이상(목표 ${section.targetChars}자 안팎), advice 는 ${section.minAdvice}개 이상 담으세요.`,
       "content 는 명식 근거 → 삶에서 드러나는 의미 → 현실에서 조정할 선택의 순서로 자연스럽게 이어 주세요.",
     );
   }
@@ -1369,6 +1397,7 @@ function buildSectionPrompt(input, sajuSlice, section, digest = "") {
       section.questionOwner
         ? "상담 주제는 이 장에서만 딱 한 번 그대로 인용하고, 이 장의 관점으로 첫 답을 줍니다."
         : "상담 주제를 다시 인용하거나 되묻지 말고, 이 조각의 관점에서 주제에 대한 답을 한 겹 더합니다.",
+      ...lifeBookV2LengthLines(section),
     );
   }
 
@@ -1692,6 +1721,23 @@ function lifeBookSectionValid(section, body, input) {
   if (section.kind === "expert") return Boolean(clean(body.title)) && toStringList(body.guidance).length > 0;
   return Boolean(clean(body.summary)) && toStringList(body.advice).length >= (lifeFortune ? 3 : 1)
     && (!lifeFortune || clean(body.title).includes(LIFE_FORTUNE_CHAPTER_TITLES[section.index]));
+}
+
+// 분량만의 결손은 배달을 막지 않는다(2026-11-08). 비었거나 구조가 깨진 결과만 실패로 둔다.
+function isLifeBookLengthOnlyIssue(issue) {
+  return issue === "total_content_too_long" || /^(chapter|expert_reading)_\d+_content_too_short$/.test(issue);
+}
+
+function lifeBookLengthBoostTarget(plan, sections, preserved = new Set()) {
+  if (Object.values(sections).filter(row => row?.lengthBoost).length >= LIFE_BOOK_LENGTH_BOOST_MAX) return null;
+  const candidates = plan
+    .filter(section => Number(section.planVersion) >= 2 && section.kind !== "frame" && !preserved.has(section.id))
+    .map(section => ({ section, row: sections[section.id] }))
+    .filter(({ section, row }) => row?.ok && !row.needsRepair && !row.lengthBoost
+      && Number(row.attempts || 0) < LIFE_BOOK_MAX_SECTION_ATTEMPTS && sectionBodyChars(section, row.body) < section.minChars)
+    .map(({ section, row }) => ({ id: section.id, ratio: sectionBodyChars(section, row.body) / section.minChars }))
+    .sort((a, b) => a.ratio - b.ratio);
+  return candidates[0]?.id || null;
 }
 
 function lifeBookLengthOptions(plan, sections) {
@@ -2920,7 +2966,7 @@ async function handleStart(request, env, route = "/api/life-book-ai/generate", r
             result.ok = Boolean(valid(result));
             const checkpoint = keepPrior
               ? { ...stored, attempts: attempt, lengthRepair, needsRepair: false }
-              : { id: section.id, kind: section.kind, ok: result.ok, body: result.body, chars: result.chars, attempts: attempt, lengthRepair, provider: result.provider, model: result.model, error: result.error, failure: result.failure || null, needsRepair: false };
+              : { id: section.id, kind: section.kind, ok: result.ok, body: result.body, chars: result.chars, attempts: attempt, lengthRepair, provider: result.provider, model: result.model, error: result.error, failure: result.failure || null, needsRepair: false, ...(stored?.lengthBoost ? { lengthBoost: true } : {}) };
             assertSupportRecoveryPreserved(recovery, Object.entries({ ...sections, [section.id]: checkpoint }).map(([key, row]) => ({ key, body: row.body })));
             await saveLifeBookState({ userId: auth.userId, id: sessionId, lockToken: lock.lockToken, values: { [`llmMeta.sections.${section.id}`]: checkpoint } });
             sections[section.id] = checkpoint;
@@ -2987,6 +3033,12 @@ async function handleStart(request, env, route = "/api/life-book-ai/generate", r
           }, issues.length ? "warn" : "info");
         }
 
+        // V2 분량 보강: 다른 결손이 없을 때만, 게이트 하한보다 짧은 조각 하나를 다음 웨이브에서 다시 쓴다.
+        if (assembled && !repairTargets.length) {
+          const boost = lifeBookLengthBoostTarget(plan, sections, preserved);
+          if (boost) sections[boost] = { ...sections[boost], needsRepair: true, repairKind: "lengthBoost", lengthBoost: true };
+        }
+
         const stillPending = plan.filter((section) => {
           if (preserved.has(section.id)) return false;
           const stored = sections[section.id];
@@ -3036,7 +3088,7 @@ async function handleStart(request, env, route = "/api/life-book-ai/generate", r
           const totalChars = reportTotalContentChars(finalReport);
           const degraded = false;
 
-          if (finalIssues.some(issue => issue !== "total_content_too_long")) {
+          if (finalIssues.some(issue => !isLifeBookLengthOnlyIssue(issue))) {
             const error = new Error(`Life book result quality check failed: ${finalIssues.join(", ") || "empty_result"}`);
             error.code = isLifeFortuneInput(normalized.input) ? "LIFE_FORTUNE_REPORT_INVALID" : "LLM_QUALITY_CHECK_FAILED";
             throw error;
@@ -3230,6 +3282,8 @@ export const __lifeBookAiTestUtils = {
   lifeBookSectionValid,
   sectionBodyChars,
   lifeBookLengthOptions,
+  isLifeBookLengthOnlyIssue,
+  lifeBookLengthBoostTarget,
   normalizeConsultationInput,
   extractTitle,
   extractKeywords,

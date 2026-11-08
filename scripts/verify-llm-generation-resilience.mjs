@@ -575,6 +575,21 @@ for (const [feature, path, timeoutVar] of [
     `${feature}: 챕터 토큰 상한(${chapterTokens})이 챕터 상한 ${chapterMaxChars}자를 못 담는다`
     + ` — ${tokensRequiredForChars(chapterMaxChars)} 이상으로 올려라`,
   );
+  // 구성 V2(2026-11-08 분량 넉넉): 프롬프트 최소는 게이트 하한 이상·목표 미만, 목표 총합은 상한 안, 보강(×1.25)도 45초 안.
+  const headroom = num("LIFE_BOOK_V2_TOKEN_HEADROOM");
+  checks += 1;
+  assert(headroom >= 1500, `${feature}:v2: 토큰 여유를 못 읽었다`);
+  const gates = { lifeFortune: [num("LIFE_FORTUNE_MIN_CHAPTER_CONTENT_CHARS"), num("LIFE_FORTUNE_MIN_EXPERT_READING_CONTENT_CHARS"), num("LIFE_FORTUNE_MAX_TOTAL_CONTENT_CHARS")], lifeBook: [minChapter, 350, maxTotal] };
+  for (const [kind, [chapterGate, expertGate, totalCap]] of Object.entries(gates)) {
+    const row = source.match(new RegExp(`${kind}: Object\\.freeze\\(\\{ chapterTargetChars: (\\d+), firstChapterTargetChars: (\\d+), chapterPromptMinChars: (\\d+), firstChapterPromptMinChars: (\\d+), expertTargetChars: (\\d+), expertPromptMinChars: (\\d+) \\}\\)`));
+    checks += 4;
+    assert(row, `${feature}:v2:${kind}: SECTION_TARGETS_V2 를 못 읽었다`);
+    const [chapter, first, chapterMin, firstMin, expert, expertMin] = row.slice(1).map(Number);
+    assert(chapterGate <= chapterMin && chapterMin < chapter && chapterGate <= firstMin && firstMin < first && expertGate <= expertMin && expertMin < expert,
+      `${feature}:v2:${kind}: 프롬프트 최소가 게이트 하한~목표 사이가 아니다`);
+    assert(first + 9 * chapter + 4 * expert <= totalCap, `${feature}:v2:${kind}: 목표 총합 ${first + 9 * chapter + 4 * expert} > 상한 ${totalCap}`);
+    assert(Math.round(first * 1.25) / 220 <= 45, `${feature}:v2:${kind}: 보강 목표가 45초 섹션 시한을 넘는다`);
+  }
 }
 
 // ── 8. 단일 호출로 남아 있는 유료 라우트 ────────────────────────────────────

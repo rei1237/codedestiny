@@ -7,6 +7,7 @@
  */
 import { __lifeBookAiTestUtils, nativeLifeBookContract } from "../../worker/routes/life-book-ai.js";
 import { calculateLifeBookAiSaju } from "../../worker/lib/life-book-ai-saju.js";
+import { tokensRequiredForChars } from "../../worker/lib/llm-budget.js";
 
 const {
   lifeBookLengthOptions,
@@ -123,11 +124,11 @@ describe("섹션 계획", () => {
     expect(total).toBeLessThanOrEqual(60000);
   });
 
-  test("인생의 책 섹션 목표 합계가 요구 분량(20,000~38,000자) 안에 있다", () => {
+  test("인생의 책 섹션 목표 합계가 요구 분량(20,000~46,000자) 안에 있다", () => {
     const plan = buildSectionPlan(lifeBookInput);
     const total = plan.reduce((sum, s) => sum + s.targetChars, 0);
     expect(total).toBeGreaterThanOrEqual(20000);
-    expect(total).toBeLessThanOrEqual(38000);
+    expect(total).toBeLessThanOrEqual(46000);
   });
 
   test("인생의 책 섹션 토큰 상한도 10,000 이하다", () => {
@@ -178,12 +179,29 @@ describe("구성 V2", () => {
   test("V2 장 목표는 올리되 전달 하한(minChars)은 그대로다", () => {
     const lb = buildSectionPlan(lifeBookInput);
     const lbV1 = buildSectionPlan(lifeBookInput, { version: 1 });
-    expect(lb[0].targetChars).toBe(3400);
-    expect(lb[1].targetChars).toBe(3000);
+    expect(lb[0].targetChars).toBe(4400);
+    expect(lb[1].targetChars).toBe(4000);
     expect(lb.map((s) => s.minChars)).toEqual(lbV1.map((s) => s.minChars));
     const lf = buildSectionPlan(lifeFortuneInput);
-    expect(lf[0].targetChars).toBe(3500);
-    expect(lf[1].targetChars).toBe(3200);
+    expect(lf[0].targetChars).toBe(4800);
+    expect(lf[1].targetChars).toBe(4400);
+  });
+
+  // 2026-11-08 분량 넉넉: V2 프롬프트는 게이트보다 높은 최소와 소단락별 최소를 밝히고, 토큰은 목표+여유를 담는다.
+  test("V2 프롬프트는 넉넉한 최소·소단락 최소를 밝히고 V1 프롬프트 줄은 그대로다", () => {
+    const lf = buildSectionPlan(lifeFortuneInput);
+    const chapter = buildSectionPrompt(lifeFortuneInput, {}, lf[1], "");
+    expect(chapter).toContain("content 는 공백 제외 최소 3400자 이상(목표 4400자 안팎)");
+    expect(chapter).toContain("최소 3400자 이상, 4400자 안팎으로 넉넉하게 씁니다");
+    expect(chapter).toContain("소단락마다 최소 800자 이상씩");
+    const expert = buildSectionPrompt(lifeFortuneInput, {}, lf.find((s) => s.kind === "expert"), "");
+    expect(expert).toContain("최소 1600자 이상, 목표 2000자 안팎");
+    for (const section of lf.filter((s) => s.kind !== "frame")) {
+      expect(section.maxOutputTokens).toBeGreaterThanOrEqual(Math.min(10000, tokensRequiredForChars(section.targetChars) + 1500));
+    }
+    const v1 = buildSectionPrompt(lifeFortuneInput, {}, buildSectionPlan(lifeFortuneInput, { version: 1 })[1], "");
+    expect(v1).toContain("content 는 공백 제외 최소 2400자 이상(목표 3000자 안팎)");
+    expect(v1).not.toContain("넉넉하게 씁니다");
   });
 
   test("V2 조립은 앞 장과 같은 문장을 뒤 장에서 지우고, 하한 밑으로 줄면 원문을 둔다", () => {

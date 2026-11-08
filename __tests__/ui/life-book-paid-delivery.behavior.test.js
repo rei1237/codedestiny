@@ -78,7 +78,7 @@ function fixture(accessType = 'pass', env = {}) {
     loginRequired: () => new Response('', { status: 401 }), invalidInput: (_message, status = 422) => new Response('', { status }),
     paymentVerifyFailed: () => new Response('', { status: 402 }), serverError: () => new Response('server', { status: 500 }),
     MESSAGES: { llmFailed: 'failed' }, startLocks: new Map(), SECTION_LOCK_TTL_MS: 90000,
-    MAX_GENERATION_WAVES: 8, SECTION_BATCH_SIZE: 4, SECTION_CONCURRENCY: 4, LIFE_BOOK_MAX_SECTION_ATTEMPTS: 3,
+    MAX_GENERATION_WAVES: 8, SECTION_BATCH_SIZE: 4, SECTION_CONCURRENCY: 4, LIFE_BOOK_MAX_SECTION_ATTEMPTS: 3, LIFE_BOOK_LENGTH_BOOST_MAX: 2,
     publicSession: row => ({ ok: true, sessionId: row.id, status: row.status, saved: row.status === 'completed', messages: row.messages }),
     restoreAccessBeforeGenerationFailure: async () => { refunds++; return true; },
     applyUsageOnce: async ({ idempotencyKey }) => {
@@ -103,7 +103,7 @@ function fixture(accessType = 'pass', env = {}) {
     reportTotalContentChars: () => 25000, extractTitle: () => 'mock report', extractKeywords: () => [],
   });
   load(ctx, 'worker/lib/result-storage.js', ['resultStorageUnavailable', 'resultStorageFailurePayload']);
-  load(ctx, 'worker/routes/life-book-ai.js', ['handleStart', 'runWithConcurrency', 'reserveProviderCallOnce', 'releaseSectionLock', 'saveLifeBookState', 'finishLifeBookDelivery', 'lifeBookLengthOptions']);
+  load(ctx, 'worker/routes/life-book-ai.js', ['handleStart', 'runWithConcurrency', 'reserveProviderCallOnce', 'releaseSectionLock', 'saveLifeBookState', 'finishLifeBookDelivery', 'lifeBookLengthOptions', 'isLifeBookLengthOnlyIssue', 'lifeBookLengthBoostTarget']);
   const post = (body = {}) => ctx.handleStart(new Request('https://mock.test/api/life-book-ai/generate', {
     method: 'POST', headers: { 'Content-Type': 'application/json', 'idempotency-key': 'original-paid-request' }, body: JSON.stringify(body),
   }), env);
@@ -541,4 +541,56 @@ test('life book section cut at the token cap retries with the doubled-budget fla
   for (let i = 0; i < 8 && f.doc?.status !== 'completed'; i++) await f.post();
   assert.deepEqual(flags, [false, true]);
   assert.equal(f.doc.status, 'completed'); assert.equal(f.refunds, 0);
+});
+
+// 2026-11-08 분량 넉넉·비치명화(F9): 분량만 모자란 결과는 보강을 먼저 시도하고, 그래도 짧으면 그대로 배달한다.
+function v2ShortFixture(shortIds, boostChars) {
+  const f = fixture();
+  f.ctx.buildSectionPlan = () => Array.from({ length: 15 }, (_, i) => ({ id: `section${i}`, kind: 'chapter', planVersion: 2, evidenceRefs: [], minChars: 2000, targetChars: 4000 }));
+  const boosts = [];
+  f.ctx.generateSectionOnce = async (_env, section) => {
+    f.calls.push(section.id);
+    const repeat = f.calls.filter(id => id === section.id).length > 1;
+    if (repeat) boosts.push({ id: section.id, targetChars: section.targetChars });
+    const chars = repeat ? boostChars : shortIds.includes(section.id) ? 600 + shortIds.indexOf(section.id) * 100 : 4000;
+    return { ok: true, body: { content: '가'.repeat(chars) }, chars, provider: 'mock', model: 'mock', error: '' };
+  };
+  return { f, boosts };
+}
+
+test('F9: V2 short chapters get at most two length boosts, shortest first, then the report is delivered', async () => {
+  const { f, boosts } = v2ShortFixture(['section3', 'section7', 'section9'], 4200);
+  for (let i = 0; i < 12 && f.doc?.status !== 'completed'; i++) await f.post();
+  assert.equal(f.doc.status, 'completed');
+  assert.deepEqual(boosts.map(row => row.id), ['section3', 'section7']);
+  assert.ok(boosts.every(row => row.targetChars === 5000));
+  assert.equal(f.doc.llmMeta.sections.section3.body.content.length, 4200);
+  assert.equal(f.doc.llmMeta.sections.section9.body.content.length, 800);
+  assert.equal(f.charges, 1); assert.equal(f.refunds, 0);
+});
+
+test('F9: a boost that comes back shorter keeps the earlier draft and still delivers', async () => {
+  const { f, boosts } = v2ShortFixture(['section3'], 300);
+  for (let i = 0; i < 12 && f.doc?.status !== 'completed'; i++) await f.post();
+  assert.equal(f.doc.status, 'completed');
+  assert.deepEqual(boosts.map(row => row.id), ['section3']);
+  assert.equal(f.doc.llmMeta.sections.section3.body.content.length, 600);
+  assert.equal(f.charges, 1); assert.equal(f.refunds, 0);
+});
+
+test('F9: a V1 plan is never boosted for length', async () => {
+  const f = fixture();
+  for (let i = 0; i < 12 && f.doc?.status !== 'completed'; i++) await f.post();
+  assert.equal(f.doc.status, 'completed'); assert.equal(f.calls.length, 15);
+});
+
+test('F9: length-only final issues deliver, structural issues still fail', async () => {
+  const ok = fixture();
+  ok.ctx.getLifeBookReportQualityIssues = () => ['chapter_3_content_too_short', 'expert_reading_1_content_too_short', 'total_content_too_long'];
+  for (let i = 0; i < 12 && ok.doc?.status !== 'completed'; i++) await ok.post();
+  assert.equal(ok.doc.status, 'completed'); assert.equal(ok.refunds, 0);
+  const bad = fixture();
+  bad.ctx.getLifeBookReportQualityIssues = () => ['chapter_3_content_too_short', 'chapter_3_summary_missing'];
+  for (let i = 0; i < 12 && !['completed', 'generation_failed'].includes(bad.doc?.status); i++) await bad.post();
+  assert.notEqual(bad.doc.status, 'completed');
 });
