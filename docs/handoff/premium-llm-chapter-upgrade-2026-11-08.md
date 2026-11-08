@@ -119,6 +119,26 @@ next: 2단계 신년운세(네오) — 1단계 패턴(구성 버전 분기·장 
   - `app/love-secret-ai/result/love-secret-pdf-chapters.ts`에 `buildLoveSecretPdfChapters(consultation)`를 만든다. 섹션은 pdfSections 또는 sections에서 가져오고, 없으면 첫 assistant 메시지를 알려진 제목으로 나눈다. kicker는 그룹 라벨, speaker는 연이 또는 서한비다. 표지 byline은 "연이 · 서한비"다.
   - 결과 화면 버튼과 보관함(`app/records/view/SavedServiceReading.tsx`의 love 분기에 버튼 추가)이 같은 빌더를 쓴다.
 
+## 2단계 진행 메모 (진행 중)
+
+### 조사로 확인한 사실
+- 운영은 항상 onCheckpoint를 넘겨 `generateNewYearWave`로 요청마다 한 섹션을 만든다. 섹션 상한은 12,000토큰·52초, 전체 MIN 20,000·MAX 33,000자다. fallbackMinChars = minChars×0.3이다.
+- 섹션 사이 중복 문장 제거(`dedupeCodexBody`)는 웨이브 안에 이미 있다.
+- 질문 답변은 opening이 맡는다. `buildSectionPrompt`가 opening 답변을 다른 섹션에 "판단의 연속성"으로 주입하고, `validateFortuneDataConsistency`는 "질문에 대한 답변"이 없으면 QUESTION_ANSWER_SECTION_MISSING을 낸다.
+- 보관함은 `withoutSecrets`가 llmMeta를 지우므로 저장 기록에는 messages(섹션을 빈 줄로 이은 조립본)만 남는다. 그래서 신년 PDF 빌더는 marker로 조립본을 되갈라야 한다.
+- 페르소나 `NEO_NEW_YEAR_PERSONA_KO`에는 "사자 장군 '네오'"라는 문구가 있다. 사용자 메모(네오는 인간)와 어긋나지만 범위 밖이라 후속으로 넘긴다.
+- FORBIDDEN_RESULT_PATTERNS가 "PDF"와 "챕터"를 막는다. 보이는 제목이나 지시에 이 단어를 쓰지 않는다.
+
+### 결정
+- 구성 V1(현 6섹션)은 바이트 그대로 둔다. 새 세션은 `llmMeta.sectionPlanVersion: 2`로 V2 7섹션을 쓴다: nature(성향·공감 전용, 질문 인용 없음), overview(질문 답변 + 총운, 질문은 여기서만 한 번 인용), money, career, romance, monthly, health.
+- V2 섹션마다 perspective(이 장만 맡는 관점) 줄을 넣는다. 상투구는 금지하고, 여는 모양과 닫는 모양을 바꿔 쓰게 한다.
+- `ownsQuestion(section)`은 `section.questionOwner ?? key==="opening"`이다. 이슈를 섹션으로 보낼 때는 결과 섹션의 categories와 questionOwner를 기준으로 한다.
+- 클라이언트 DOMAIN_CARDS는 V1과 V2의 합집합으로 두고, 본문이 있는 카드만 그린다. 차례와 장 머리(번호·네오 칩·kicker)를 두고, 성향 장을 강조하고, monthly도 번호 장으로 둔다.
+- PDF는 `_lib/new-year-pdf-chapters.ts`로 조판한다. 폰트가 실패(PdfFontError)할 때만 캡처로 대체한다. 보관함 'year' 분기에 SavedNewYearPdfButton을 붙인다.
+
+### 진행
+- 아직 코드를 고치지 않았다(14a62411c 기준). 다음은 워커 V2 구성 테스트부터 TDD로 한다.
+
 ## 단계별 결과
 (단계를 마칠 때마다 커밋 SHA, 바꾼 파일, 검증 결과, 남은 일을 여기에 적는다.)
 
