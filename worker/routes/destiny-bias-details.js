@@ -7,7 +7,7 @@ import { readArchiveJson, archiveSignature, upsertPaidResultArchive } from '../l
 import { isStoredPaidResultRevoked } from '../lib/paid-result-revocation.js';
 import { verifyPerUsePayment, logPerUsePaymentProof } from '../lib/nakshatra-paid-access.js';
 import { FEATURE_KEY_PRICE_TABLE } from '../lib/paid-feature-registry.js';
-import { BIAS_DETAILS_FEATURE, readOrSaveBiasDetails } from '../lib/destiny-bias-paid-details.js';
+import { DESTINY_BIAS_DETAILS_FEATURE_KEY, readOrSaveBiasDetails } from "../lib/destiny-bias-paid-details.js";
 
 export async function handleDestinyBiasDetails(request, env, save) {
   if (request.method !== 'POST') return methodNotAllowed();
@@ -24,7 +24,7 @@ export async function handleDestinyBiasDetails(request, env, save) {
     revoked: isStoredPaidResultRevoked,
     signature: archiveSignature,
     prove: async input => {
-      const proof = await verifyPerUsePayment(env, { ...input, featureKey: 'destiny-bias-analyze', coinPrice: FEATURE_KEY_PRICE_TABLE[BIAS_DETAILS_FEATURE].cost });
+      const proof = await verifyPerUsePayment(env, { ...input, featureKey: 'destiny-bias-analyze', coinPrice: FEATURE_KEY_PRICE_TABLE[DESTINY_BIAS_DETAILS_FEATURE_KEY].cost });
       logPerUsePaymentProof('destiny-bias-analyze', proof);
       return proof;
     },
