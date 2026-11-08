@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-08
-next: 6c-6 — ziwei-island-ai 옛 기록: 코드로 `llmMeta.parts` 구제 경로만 넣는다(운영 DB 조회는 사용자 승인 대기). 그다음 6c-7(빌드), 끝나면 6d
+next: 6d — 영냥이 이미지 리포트(등급별 여러 절, 실제 에셋, 귀 2개 확인). 운명의 섬 옛 기록 운영 DB 읽기 전용 조회는 사용자 승인 대기
 ---
 
 # 3만원 이상 유료 LLM — 상품별 챕터·분량·PDF·전달 개선 인수인계
@@ -69,7 +69,7 @@ next: 6c-6 — ziwei-island-ai 옛 기록: 코드로 `llmMeta.parts` 구제 경�
 - [x] 6. 초융합 운세
 - [x] 6a. 인연의 서 개인판 분량 약속 문구를 "5만 자"에서 "2~3만 자"로 바꾼다(사용자 승인). 위치는 5단계 보정 절에 있다. 생성 JSON과 SEO·메타 문구도 포함한다. 궁합판 문구는 개인판 분량을 말하는 곳이 아니면 그대로 둔다.
 - [x] 6b. 운명의 업·인연의 서(개인·궁합) 조판 PDF에 차트·레이더·요약 페이지를 되살린다. 결과 화면과 보관함 양쪽에 넣는다.
-- [ ] 6c. 서비스 공통 배달 안전 수정. 6단계 문제 목록을 같은 문제가 있는 다른 유료 LLM 서비스에 모두 적용한다. 목록은 시도 소진 시 환불·배달 불가, 선택 그룹 삭제, 분량 보충 경로 없음, 말투 이탈 로그만, 모든 그룹에 질문 인용, 보관함 PDF 없음이다. 읽기 전용 감사 결과는 아래 "6c 배달 안전 감사"에 있다(원본: scratchpad `research/llm-delivery-audit-6c.md`).
+- [x] 6c. 서비스 공통 배달 안전 수정. 6단계 문제 목록을 같은 문제가 있는 다른 유료 LLM 서비스에 모두 적용한다. 목록은 시도 소진 시 환불·배달 불가, 선택 그룹 삭제, 분량 보충 경로 없음, 말투 이탈 로그만, 모든 그룹에 질문 인용, 보관함 PDF 없음이다. 읽기 전용 감사 결과는 아래 "6c 배달 안전 감사"에 있다(원본: scratchpad `research/llm-delivery-audit-6c.md`).
   - **나누는 방식**
     - 7~13단계 상품(ziwei, ziwei-deep, sukuyo, astrology, vedic/nakshatra, neo, naming, 영냥이)은 각자의 단계에서 고친다.
     - 6c에서 고치는 것은 셋이다: human-design, destiny-compass, fortune.js 사주 AI의 P6.
@@ -234,8 +234,22 @@ next: 6c-6 — ziwei-island-ai 옛 기록: 코드로 `llmMeta.parts` 구제 경�
     - 테스트: `__tests__/worker/sibyl-report-store-v2.test.js` 10개(프롬프트 sha256, 판 고정·스위치·1판 기록 유지, 실패한 장만 재생성, 짧은 출력 배달·수리 3장 한도, 2400자 초과 무수리, 마지막 시도 scrub과 요청을 넘는 이어 만들기, 빠진 장 끝까지 재생성, 근거 ID 거르기, 느린 첫 호출 뒤 수리 호출 생략, 공급자 실패와 체크포인트 보존). 기존 `sibyl-report-store.test.js`는 env `{}`(2판)로 그대로 통과.
     - 검증: sibyl·record-library jest 7개 스위트 77개 통과, `npx tsc --noEmit` 통과. 실호출·운영 DB 없음.
     - 남은 위험: 부분 진행 202는 클라이언트(`js/sibyl-system.js`, `SavedSibylReading.tsx`)가 자동으로 다시 부르지 않고 "진행 상태 확인하기" 버튼을 보여 준다(문구가 "다른 창에서 시작한 분석"이라 조금 어긋난다). 옛 1판 실패 기록은 계속 1판(한 장 실패 시 전부 재생성)이다. 마지막 시도의 scrub 글은 짧거나 흐름이 끊길 수 있다. sha 테스트의 YEAR는 `max(2030, 올해)`라 2031년부터 해시가 바뀐다.
-  - [ ] 6c-6. ziwei-island-ai 옛 기록: 코드로 `llmMeta.parts` 구제 경로만 넣는다. 운영 DB 조회는 사용자 승인 대기다.
-  - [ ] 6c-7. `ALLOW_DEV_SERVER_DURING_BUILD=1 npm run build`. 빌드가 바꾼 sitemap·shell 파일은 되돌린다. 그다음 6c를 체크하고 `next`를 6d로 둔다.
+    - 후속(2026-11-08): `cc7f3357d` 클라이언트 자동 이어 부르기. `js/sibyl-system.js`(`_sibylContinuePartialReport`)와 보관함 `SavedSibylReading.tsx`의 `resume()`가 202 `{partial:true}`면 1초, 그다음 2초 쉬고 최대 6회 다시 요청한다(요청당 서버 70초라 최악 약 7분). 상한을 넘으면 "남은 장을 아직 다 쓰지 못했어요" 문구와 "남은 장 이어서 쓰기" 버튼(js) / `resumePartialStalled`(보관함)를 보여 준다. 진행 중 문구는 "남은 장을 이어서 쓰는 중이에요". partial 없는 202(다른 창이 잠금)는 기존 문구·버튼 그대로이고 자동 재요청하지 않는다. 화면 연도·프로필이 바뀌면 멈춘다. sibyl-annual은 같은 `/api/sibyl/report`·같은 클라이언트라 따로 없다. 테스트 `__tests__/ui/sibyl-partial-auto-resume.behavior.test.js` 8개(node --test, 소스에서 함수를 뽑아 vm으로 실행).
+  - [x] 6c-6. ziwei-island-ai 옛 기록: 코드로 `llmMeta.parts` 구제 경로만 넣는다. 운영 DB 조회는 사용자 승인 대기다.
+    - 결과(2026-11-08): `10a269bf6`. 읽기 응답에서만 구제하고 DB는 쓰지 않는다(옛 생성 경로가 이미 없어서 `applyUsageOnce`·환불을 코드에서 다시 돌리는 것은 더 위험하다고 봤다).
+      - `generating/partial/delivery_pending` 기록은 assistant 메시지가 비었거나 깨졌을 때만 `llmMeta.parts`로 `palaceResult`를 다시 조립한다(메시지가 있으면 메시지가 정본). 옛 생성 경로는 부분을 저장할 때마다 메시지를 함께 썼으므로 대부분은 메시지가 이미 있다.
+      - 모든 부분이 저장된 기록(대개 `delivery_pending`)은 응답의 status를 `completed`로 보여 준다. DB status는 그대로다.
+      - 응답에 `legacyDelivery {state: saved_text_complete|saved_text_partial|no_saved_text, supportRequired, message}`를 붙인다. 남은 부분이 있거나 글이 없으면 고객지원 안내다. `retryable:false` 유지, 재시도 지시 없음. `IslandConsultClient.tsx`는 `supportRequired`면 그 문구를 대기 상자에 보여 준다.
+      - 테스트: `__tests__/worker/ziwei-island-paid-delivery.test.js`에 6개(parts 재조립, 전 부분 → completed, 메시지 우선, 글 없음 안내, pending=1 동일, 완료 기록엔 표식 없음). 15개 통과.
+      - **사용자 승인 대기: 운영 DB 읽기 전용 조회.** `ZiweiAiConsultation` 모델 컬렉션(기본 이름 `ziweiaiconsultations`, scopedModel 접두 확인 필요)에서 `serviceType:"ziwei-island-palace-consult"`, `status ∈ {generating, partial, delivery_pending}` 건수와 `llmMeta.parts` 개수 분포를 본다. 있으면 `delivery_pending`(결제 됨·사용 기록 미반영)과 글 없는 기록의 환불·완료 처리를 사용자와 정한다.
+  - [x] 6c-7. `ALLOW_DEV_SERVER_DURING_BUILD=1 npm run build`. 빌드가 바꾼 sitemap·shell 파일은 되돌린다. 그다음 6c를 체크하고 `next`를 6d로 둔다.
+    - 결과(2026-11-08, 기준 `72642b3c9`): 실호출·운영 DB 없음.
+      - `npx tsc --noEmit` 통과.
+      - 6c가 건드린 jest(`__tests__/worker/` heukwol·saju·fortune.*·pet-·paid-narrative·sibyl·human-design·destiny-compass·ziwei-island·record-library) 47개 스위트 1,385개 통과.
+      - node --test: `sibyl-partial-auto-resume.behavior` 8, `paid-resume-unlock-wiring.static` 21, `island-consult-pdf-export.static` 9, `records-locale` 5 통과.
+      - `scripts/verify-llm-generation-resilience.mjs`·`scripts/verify-paid-gate-ui-regression.mjs` 통과(exit 0).
+      - 빌드 exit 0. 빌드가 바꾼 sitemap 12개·`config/sitemap-lastmod.json`·셸(index.html 계열, js/app.js·js/core/* 해시와 public 사본)은 되돌렸다. `public/js/sibyl-system.js`는 원본 미러라 `72642b3c9`로 따로 커밋했다.
+      - 기존 실패(6c 전 `ef256173f`에서 같은 수로 실패하는 것을 임시 워크트리로 확인): `fortune-today-hub.route` 8개, `ui/paid-report-partial.behavior` 2개, `ui/paid-result-locale-copy` 1개(F20). 6c와 무관하다.
 - [ ] 6d. 영냥이 이미지 리포트: 지금 있는지 확인하고, 더 고퀄리티로 만들고, 상품 설명에서 잘 알아볼 수 있게 넣는다. 읽기 전용 조사가 진행 중이다.
   - 사용자 원문(2026-11-08): "어느정도 이미지를 넣어서 직관적으로 만들어주면 좋겠다"
   - 이미지 리포트와 상품 설명 절에 실제 이미지(기존 영냥이 스틸·에셋)를 적당히 넣어 한눈에 알게 한다. 이미지와 실제 에셋만 쓰고, 코드로 그린 도형·손글씨는 쓰지 않는다. 영냥이 스틸은 원본 크기로 보고 귀가 정확히 2개인지 센다.
