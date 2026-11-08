@@ -626,6 +626,25 @@ next: 8단계 숙요점 궁합 (6c sukuyo 문제 포함)
     - ziwei-ai 실호출에도 `**` 1건, ziwei-ai PDF 차례 모든 줄 끝에 "· 무성"이 붙는다(겉모양 문제)
     - reading_guide가 짧다(309자), salvaged 표시가 provider에 있다(스키마 strict)
 
+## 8단계 진행 메모 (조사 완료, 구현 중 — 2026-11-08)
+
+### 조사로 확인한 사실
+- `worker/routes/sukuyo-compatibility-ai.js`: 15섹션(`SUKUYO_SECTION_SPECS`, 목표 1500·minChars 1200), 5그룹(essence·attraction·flow·karma·outlook). 요청마다 한 그룹을 만든다(`createCompatibilityAnswer`). 그룹 2회 실패 시 LLM_FAILED(P1). genError catch에서 저장 섹션이 있으면 partial+`recoveryReviewRequired`로 보류(P1, REFUND_REVIEW). 섹션 완료 기준이 40자(P3). 요약은 1회(P2). `buildSukuyoCompatibilityPromptContext`의 `user_input.question`이 모든 그룹·요약 프롬프트에 들어간다(P5). 개인 모드 `createPersonalAnswer`는 1회 호출, 240자 미만 치명(P1). 말투 검사 없음(P4, `hanbiRegisterDrift`).
+- 컨텍스트에 `currentKstSeason()`이 있어 V1 해시 테스트는 날짜를 고정해야 한다.
+- 웹 화면은 항상 compatibility 모드다. 본문은 `ConsultationReading kind="sukuyo"`(AiResultProse)로 그려 `**`를 처리하므로 화면용 본문 정리는 필요 없다. PDF 빌더만 `**`를 걷는다. PDF는 `SukuyoCompatibilityAiClient.tsx` handlePDF의 캡처 방식이다(P7). 보관함은 `SavedServiceReading.tsx` sukuyo 분기, `sukuyo-compat`만 fields에 messages가 있다.
+
+### 설계
+- 새 문서에만 `llmMeta.groupPlanVersion: 2`. 끄는 스위치 `SUKUYO_COMPAT_AI_DELIVERY_V2_ENABLED=false`. 모듈 `worker/lib/sukuyo-compat-delivery-v2.js`.
+- 판 2 첫 그룹 nature = twoStars·overview·evidence_basis. twoStars가 질문을 꺼낸 마음에 공감하며 열고 두 사람의 타고난 본성으로 잇는다. 질문은 이 그룹만 받는다. 다른 그룹·요약은 `user_input.question`을 뺀 컨텍스트와 "질문은 첫 대목에서 이미 답했다" 줄을 받는다.
+- 섹션 minChars 미만이면 짧은 섹션을 짚는 힌트로 길이 수리(전체 최대 2회, 긴 쪽 유지). 말투 이탈은 [보정] 힌트 1회. 시도를 다 쓴 그룹은 구제·건너뛰기, 던지지 않는다. 요약 2회 뒤 결정적 요약. 본문이 하나라도 있으면 배달, 비면 기존 generation_failed 환불. 판 2는 `recoveryReviewRequired` 보류를 쓰지 않는다(판 1 진행 중 보류는 그대로 둔다).
+- 개인 모드 판 2: 시간이 남으면 같은 요청에서 한 번 더, 비지 않은 글이면 받는다. 비면 환불.
+- 화면(판 2만): 차례·"N장 · 부 이름" 키커·서한비 칩. 공용 `lib/sukuyo/sukuyo-compat-chapters.ts`. 조판 PDF(coverTheme sukuyo, byline 서한비), `PdfFontError`일 때만 캡처. 보관함 `app/records/view/SavedSukuyoCompatPdfButton.tsx`.
+
+### 하위 단계
+- [ ] 8a. worker V2 + V1 바이트 sha256 테스트 + 판 2 테스트, 기존 테스트 판 1 고정
+- [ ] 8b. 화면(차례·칩·조판 PDF) + 공용 장 모듈 + 보관함 PDF + 테스트
+- [ ] 8c. tsc·jest·node --test·verify·build, 모의 실행, 실호출 1회, 결과 기록(`docs/verification/premium-llm-samples-2026-11-08.md`), PDF 쪽 이미지 확인
+
 ## 단계별 결과
 (단계를 마칠 때마다 커밋 SHA, 바꾼 파일, 검증 결과, 남은 일을 여기에 적는다.)
 
