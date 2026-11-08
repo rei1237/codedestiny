@@ -15,7 +15,8 @@ import { FEATURE_KEY_PRICE_TABLE } from "../lib/paid-feature-registry.js";
 // 보안 래퍼 없이 bare 마운트된 무인증·무DB 계약이다. 형제 -ai 파일 선례: ziwei-island / pet-saju.
 
 import { resultStorageUnavailable, resultStorageFailurePayload } from "../lib/result-storage.js";
-import { countPaidReportBodyChars, hasRepeatedReportPassage } from "../lib/paid-report-quality.js";
+import { countPaidReportBodyChars, dropRepeatedReportSentences, hasRepeatedReportPassage } from "../lib/paid-report-quality.js";
+import { banmalRegisterDrift } from "../lib/expert-character-persona-text.js";
 import { getAmbientAiLocale, runWithAiLocale, resolveAiLocaleFromRequest } from "../lib/ai-locale-context.js";
 import { isPaidResultRevoked, isStoredPaidResultRevoked } from "../lib/paid-result-revocation.js";
 import { getRoutePath, json, methodNotAllowed, notFound, readJson, cookieValue, HttpError } from "../lib/http.js";
@@ -354,6 +355,8 @@ async function runCompassDeliveryInLocale(env, auth, initial) {
       return json({ ok: false, reason: "CALCULATION_INCOMPLETE", missingSystems, refunded, resultId: reportId }, { status: 422 });
     }
     const context = buildContext(input);
+    // 배달 2판(새 세션만): 마지막 시도 구제·빈 본문만 환불·부드러운 수리 상한·조립 반복 정리.
+    if (isCompassPlan2(current)) return await runCompassPlan2({ env, auth, filter, reportId, input, context, current });
     const attempts = { ...current.llmMeta?.attempts }, failures = { ...current.llmMeta?.failures };
     const validBody = (spec, body) => typeof body === "string" && countPaidReportBodyChars(body) >= 120
       && !validateCompassSection(body, { spec, allowedLabels: context.allowedLabels, lengthRepair: true }).length
@@ -421,6 +424,155 @@ async function runCompassDeliveryInLocale(env, auth, initial) {
   } finally { await DestinyCompassReport.updateOne({ id: reportId, userId: String(auth.userId), "lock.token": claimed.lock.token }, { $set: { lock: null } }).catch(() => {}); }
 }
 
+// ── 배달 2판(2026-11-08) ───────────────────────────────────────
+// 🔴 새 세션(llmMeta.deliveryPlanVersion=2)만 탄다. 진행 중이던 1판 세션은 위 흐름 그대로 끝난다.
+//    1판은 시도를 다 쓴 섹션이 하나라도 있으면 202 QUALITY_REPAIR_REQUIRED(retryable:false)에서 멈춰
+//    결제된 리포트가 끝내 완성되지 않았다. 2판은 마지막 시도의 초안을 정리해 전달하고, 본문이
+//    완전히 빈 경우에만 환불한다. 분량은 치명이 아니다 — 바닥 미만 섹션만 상한 안에서 한 번 보충한다.
+
+const COMPASS_DELIVERY_PLAN_VERSION = 2;
+/** 리포트 한 건에서 쓰는 부드러운 수리(분량 바닥 미만·반말 섞임) 총 상한. */
+const COMPASS_SOFT_REPAIR_CAP = 3;
+/** 본문이 한 글자도 없는 섹션에만 주는 구제 시도까지 포함한 상한. */
+const COMPASS_RESCUE_MAX_ATTEMPTS = 3;
+const COMPASS_LENGTH_FLOOR_RATIO = 0.75;
+
+function compassDeliveryV2Enabled(env) {
+  return String(env?.COMPASS_REPORT_DELIVERY_V2_ENABLED ?? "").trim().toLowerCase() !== "false";
+}
+
+function isCompassPlan2(doc) {
+  return Number(doc?.llmMeta?.deliveryPlanVersion) === COMPASS_DELIVERY_PLAN_VERSION;
+}
+
+function compassLengthFloor(spec) {
+  return Math.round(spec.minChars * COMPASS_LENGTH_FLOOR_RATIO);
+}
+
+function compassRegisterDrift(body) {
+  return (getAmbientAiLocale() || "ko") === "ko" ? banmalRegisterDrift(body) : [];
+}
+
+/** 통과하지 못한 초안에서 규칙(근거 없는 용어·위험 표현·가짜 점수·상투구)을 어긴 문장만 덜어 낸다. 다 지워지면 원문을 둔다. */
+function scrubCompassDraft(body, spec) {
+  const text = String(body || "");
+  const lines = text.split("\n").map(line => line.split(/(?<=[.!?。？！])\s+/u)
+    .filter(sentence => !sentence.trim() || !validateCompassSection(sentence, { spec, allowedLabels: [], lengthRepair: true }).length).join(" "));
+  const scrubbed = lines.join("\n").replace(/\n{3,}/g, "\n\n").trim();
+  return countPaidReportBodyChars(scrubbed) > 0 ? scrubbed : text;
+}
+
+async function runCompassPlan2({ env, auth, filter, reportId, input, context, current }) {
+  context.questionOpeningOnly = true;
+  const attempts = { ...current.llmMeta?.attempts }, failures = { ...current.llmMeta?.failures };
+  let softRepairsUsed = Number(current.llmMeta?.softRepairsUsed || 0);
+  const chars = row => countPaidReportBodyChars(row?.body);
+  const validBody = (spec, body) => typeof body === "string" && chars({ body }) >= 120
+    && !validateCompassSection(body, { spec, allowedLabels: context.allowedLabels, lengthRepair: true }).length
+    && !hasRepeatedReportPassage(body);
+  const rows = new Map((current.sections || []).filter(row => getCompassSection(row.key)).map(row => [row.key, row]));
+  const accepted = spec => rows.get(spec.key)?.status === "ok";
+  const tries = spec => Number(attempts[spec.key] || 0);
+  const retryable = spec => !accepted(spec)
+    && (tries(spec) < 2 || (!chars(rows.get(spec.key)) && tries(spec) < COMPASS_RESCUE_MAX_ATTEMPTS));
+  const softNeeds = spec => {
+    const row = rows.get(spec.key);
+    const needs = [];
+    if (compassRegisterDrift(row.body).length) needs.push("drift");
+    if (chars(row) < compassLengthFloor(spec)) needs.push("short");
+    return needs;
+  };
+  const nextWork = () => {
+    const retries = COMPASS_SECTIONS.filter(retryable).slice(0, PAID_LLM_PARTS_PER_REQUEST);
+    if (retries.length || softRepairsUsed >= COMPASS_SOFT_REPAIR_CAP) return { specs: retries, soft: new Map() };
+    const candidates = COMPASS_SECTIONS.filter(spec => accepted(spec) && !attempts[`${spec.key}:softRepair`])
+      .map(spec => ({ spec, needs: softNeeds(spec) })).filter(row => row.needs.length)
+      .sort((a, b) => Number(b.needs.includes("drift")) - Number(a.needs.includes("drift")) || chars(rows.get(a.spec.key)) - chars(rows.get(b.spec.key)))
+      .slice(0, Math.min(PAID_LLM_PARTS_PER_REQUEST, COMPASS_SOFT_REPAIR_CAP - softRepairsUsed));
+    return { specs: candidates.map(row => row.spec), soft: new Map(candidates.map(row => [row.spec.key, row.needs])) };
+  };
+  const sectionRows = () => sectionsForDb(COMPASS_SECTIONS.map(spec => rows.get(spec.key)).filter(Boolean));
+
+  let work = nextWork();
+  if (work.specs.length) {
+    // 예약을 먼저 저장한다 — 응답을 잃어도 같은 수리를 두 번 부르지 않는다.
+    for (const spec of work.specs) {
+      if (work.soft.has(spec.key)) attempts[`${spec.key}:softRepair`] = 1;
+      else attempts[spec.key] = tries(spec) + 1;
+    }
+    softRepairsUsed += work.soft.size;
+    current = await saveCompassDelivery(env, filter, { llmMeta: { ...current.llmMeta, attempts, softRepairsUsed } }, reportId);
+    context.digests = COMPASS_SECTIONS.filter(accepted).map(spec => ({ title: rows.get(spec.key).title, text: rows.get(spec.key).body.slice(0, 300) }));
+    const systemPrompt = await resolveSystemPrompt(env), cacheStore = createLlmCacheStore(env);
+    let queue = Promise.resolve();
+    const outcomes = await Promise.allSettled(work.specs.map(async spec => {
+      const soft = work.soft.get(spec.key);
+      const repairIssues = soft
+        ? [...(soft.includes("drift") ? ["반말로 끝나는 문장이 섞였다. 모든 문장을 따뜻한 존댓말로 고쳐 쓴다."] : []),
+          ...(soft.includes("short") ? [`분량이 모자라다. 확정값 근거를 더 풀어 ${(spec.targetMinChars || spec.minChars).toLocaleString("ko-KR")}자 이상으로 다시 쓴다.`] : [])]
+        : tries(spec) > 1 ? ["분량과 계산 근거를 보완하세요."] : [];
+      const clippedTokens = attempts[`${spec.key}:truncated`] ? Math.min(32768, COMPASS_SECTION_MAX_OUTPUT_TOKENS * 2) : 0;
+      const result = await generateCompassSection(env, spec, context, { systemPrompt, cacheStore, timeoutMs: COMPASS_SECTION_TIMEOUT_MS, repairIssues, maxOutputTokens: clippedTokens });
+      const write = queue.catch(() => {}).then(async () => {
+        const body = trimPaidReportText(result.text, spec.maxChars);
+        const prior = rows.get(spec.key);
+        const ok = result.ok && !result.truncated && validBody(spec, body);
+        if (soft) {
+          // 이미 정상인 본문은 그대로 두고, 고친 쪽이 분명히 나을 때만 바꾼다.
+          const better = ok && !compassRegisterDrift(body).length
+            && (soft.includes("drift") || chars({ body }) > chars(prior));
+          if (better) rows.set(spec.key, { ...toPublicSection({ ...result, text: body, issues: [] }, context), status: "ok" });
+        } else if (ok) {
+          rows.set(spec.key, { ...toPublicSection({ ...result, text: body, issues: [] }, context), status: "ok" });
+        } else {
+          failures[spec.key] = Number(failures[spec.key] || 0) + 1;
+          // 마지막 시도라도 초안을 버리지 않는다. 더 긴 초안만 남기고, 규칙을 어긴 문장은 덜어 낸다.
+          const draft = result.ok && body ? scrubCompassDraft(body, spec) : "";
+          if (draft && chars({ body: draft }) > chars(prior)) {
+            rows.set(spec.key, { ...toPublicSection({ ...result, text: draft, issues: ["quality_incomplete"] }, context), status: "degraded" });
+          }
+        }
+        if (result.truncated) attempts[`${spec.key}:truncated`] = 1;
+        current = await saveCompassDelivery(env, filter, { sections: sectionRows(), status: "partial", llmMeta: { ...current.llmMeta, attempts, failures, softRepairsUsed } }, reportId);
+      }); queue = write; await write;
+    }));
+    const failed = outcomes.find(row => row.status === "rejected");
+    if (failed) throw failed.reason;
+    work = nextWork();
+  }
+  if (work.specs.length) return json({ ...publicStoredReport(current), retryable: true }, { status: 202 });
+
+  if (!COMPASS_SECTIONS.some(spec => chars(rows.get(spec.key)))) {
+    // 결과를 모르는 시도(예약만 저장되고 응답을 잃음)가 있으면 환불하지 않는다 — 본문이 저장됐을 수 있다.
+    if (COMPASS_SECTIONS.some(spec => tries(spec) > Number(failures[spec.key] || 0))) throw resultStorageUnavailable(reportId);
+    const detail = { reason: "GENERATION_FAILED", detail: "EMPTY_REPORT" };
+    current = await saveCompassDelivery(env, filter, { status: "generation_failed", generationError: detail }, reportId);
+    const refunded = await refundExecution(env, auth, input, reportId, "every section came back empty");
+    if (refunded) await saveCompassDelivery(env, filter, { generationError: { ...detail, refunded: true } }, reportId);
+    return json({ ok: false, reason: "GENERATION_FAILED", refunded, resultId: reportId }, { status: 503 });
+  }
+
+  // 조립: 앞 섹션과 겹치는 문장을 덜어 낸다(반려하지 않는다). 너무 많이 깎이면 원문을 둔다.
+  let prior = "";
+  for (const spec of COMPASS_SECTIONS) {
+    const row = rows.get(spec.key);
+    if (!chars(row)) continue;
+    const body = dropRepeatedReportSentences(String(row.body), prior);
+    if (chars({ body }) > 0 && chars({ body }) >= chars(row) * 0.85) rows.set(spec.key, { ...row, body, chars: body.replace(/\s+/g, "").length });
+    prior = `${prior}\n${rows.get(spec.key).body}`;
+  }
+  const qualityIssues = [
+    ...COMPASS_SECTIONS.filter(spec => !chars(rows.get(spec.key))).map(spec => `section_missing:${spec.key}`),
+    ...COMPASS_SECTIONS.filter(spec => chars(rows.get(spec.key)) && !accepted(spec)).map(spec => `section_degraded:${spec.key}`),
+    ...(hasRepeatedReportPassage(prior) ? ["repeated_passage"] : []),
+  ];
+  current = await saveCompassDelivery(env, filter, { sections: sectionRows(), status: "delivery_pending", llmMeta: { ...current.llmMeta, attempts, failures, softRepairsUsed, qualityIssues } }, reportId);
+  if (!await compassAccessCurrent(current)) return json({ ok: false, reason: "PAYMENT_VERIFY_FAILED" }, { status: 402 });
+  current = await saveCompassDelivery(env, filter, { status: "completed", usageAppliedAt: new Date(), lock: null }, reportId);
+  await completeRefundableExecution(env, auth, input, reportId);
+  return json(publicStoredReport(current));
+}
+
 /** 저장본 → 응답 봉투. 재열람과 멱등 재요청이 같은 모양을 받는다. */
 function publicStoredReport(doc) {
   const sections = (doc.sections || []).slice().sort((a, b) => (a.order || 0) - (b.order || 0));
@@ -435,7 +587,7 @@ function publicStoredReport(doc) {
     basis: doc.basis || null,
     systemConfidence: doc.systemConfidence || [],
     sections,
-    degraded: sections.some((s) => s.status !== "ok"),
+    degraded: sections.some((s) => s.status !== "ok") || (doc.llmMeta?.qualityIssues || []).some((issue) => String(issue).startsWith("section_missing:")),
     restored: true,
   };
 }
@@ -471,7 +623,7 @@ async function generateCompassSection(env, spec, context, options) {
         deterministic: true,
         ttlSeconds: 7 * 24 * 60 * 60,
         // 섹션 키를 넣어야 같은 웨이브의 병렬 호출이 in-flight dedup 에서 서로를 덮지 않는다.
-        keyExtra: `${COMPASS_REPORT_VERSION}:${spec.key}:${context.cacheSalt}`,
+        keyExtra: `${COMPASS_REPORT_VERSION}:${spec.key}:${context.cacheSalt}${context.questionOpeningOnly ? ":p2" : ""}`,
       },
       logContext: { route: "destiny-compass-ai", section: spec.key },
     });
@@ -581,7 +733,7 @@ async function handleReport(request, env) {
   const seed = { id: reportId, userId: String(auth.userId), idempotencyKey: input.idempotencyKey, inputHash: buildInputHash(input), seedHash: buildHashes(input).seedHash,
     question: input.question, emotion: input.emotion, field: { ...input.field, seed: buildHashes(input).seedHash }, evidencePack: input.evidencePack,
     basis: context.basisPayload, systemConfidence: context.systemConfidence, sections: [], status: "generating", accessType: clean(access.accessType, 40), lock: null,
-    llmMeta: { locale: resolveAiLocaleFromRequest(request, body), requestId: clean(body.requestId || input.idempotencyKey, 180), transactionId: clean(access.matchedTransactionId || body.transactionId || body.purchaseId, 180), attempts: {}, failures: {} } };
+    llmMeta: { locale: resolveAiLocaleFromRequest(request, body), requestId: clean(body.requestId || input.idempotencyKey, 180), transactionId: clean(access.matchedTransactionId || body.transactionId || body.purchaseId, 180), attempts: {}, failures: {}, ...(compassDeliveryV2Enabled(env) ? { deliveryPlanVersion: COMPASS_DELIVERY_PLAN_VERSION, softRepairsUsed: 0 } : {}) } };
   let saved;
   // 저장 실패 창에서는 즉시 환불하지 않는다. 문서가 실제로 만들어졌을 수 있어(확인만 실패) 환불하면
   // 결제 없이 읽히는 리포트가 남는다 — 위에서 연 기록을 만료 스윕이 되돌린다.

@@ -1763,6 +1763,9 @@ const humanDesignReportSchema = new mongoose.Schema({
   totalChars: { type: Number, default: 0, max: 200000 },
   qualityIssues: { type: [String], default: [] },
   degraded: { type: Boolean, default: false },
+  // 배달 2판(2026-11-08): 2 = 마지막 시도 구제·분량 수리 상한·빈 본문만 환불. 없으면 1판.
+  deliveryPlanVersion: { type: Number, default: null },
+  lengthRepairsUsed: { type: Number, default: 0, min: 0, max: 18 },
 
   // 웨이브 클레임. { token, at } — at 이 stale 이면 다른 요청이 이어받는다.
   lock: { type: mongoose.Schema.Types.Mixed, default: null },

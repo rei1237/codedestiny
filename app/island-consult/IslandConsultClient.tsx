@@ -340,6 +340,7 @@ const ERROR_TEXT: Record<string, string> = {
 type ApiResult = {
   ok?: boolean; reason?: string; message?: string; accessToken?: string; accessType?: string;
   sessionId?: string; resultId?: string; status?: string; retryable?: boolean; resumeBody?: Record<string, unknown>; paymentPayload?: unknown;
+  legacyDelivery?: { state?: string; supportRequired?: boolean; message?: string } | null;
   consultation?: {
     id: string; status?: string; saved?: boolean; completedParts?: string[]; totalParts?: number; palaceKey: string; palaceTitle: string; sectionKeys: string[];
     result?: { meta?: Record<string, unknown>; sections?: Record<string, { title?: string; body?: string }> } | null;
@@ -753,6 +754,10 @@ export default function IslandConsultClient() {
       if (data.resumeBody) {
         record = { idempotencyKey: String(data.resumeBody.idempotencyKey), payload: data.resumeBody, extra: record?.extra || {} };
         writeIslandDelivery(owner, record, localStorage);
+      }
+      // 생성 종료(410) 뒤 멈춘 옛 기록: 저장된 글은 위에 보여 주고, 남은 부분은 고객지원 안내로 닫는다.
+      if (data.legacyDelivery?.supportRequired) {
+        setPendingConsult(true); setError(""); setNotice(data.legacyDelivery.message || ""); return;
       }
       if (!record) return;
       setPendingConsult(true);

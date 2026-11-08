@@ -5,10 +5,15 @@ import { connectDb, isTransientMongoError } from "../lib/db.js";
 import { ZiweiAiConsultation } from "../lib/models.js";
 import { stripEmptyParens } from "../lib/ziwei-hanja.js";
 import { getPalaceConfig } from "../lib/island/consult/palace-prompts.js";
-import { palaceParts } from "../lib/island/consult/palace-delivery.js";
+import { palaceParts, palaceResult } from "../lib/island/consult/palace-delivery.js";
 import { isPaidResultRevoked } from "../lib/paid-result-revocation.js";
 const FEATURE_KEY = "ziwei-island-palace-consult";
-const MESSAGES = { llmFailed: "기존 상담이 완료되지 않았어요. 저장된 구매 내역을 기준으로 고객지원에 문의해 주세요." };
+const MESSAGES = {
+  llmFailed: "기존 상담이 완료되지 않았어요. 저장된 구매 내역을 기준으로 고객지원에 문의해 주세요.",
+  legacyPartial: "새 AI 생성이 종료되어 남은 부분은 더 만들지 않아요. 저장된 부분은 아래에서 읽을 수 있고, 미완료 구매는 고객지원에 문의해 주세요.",
+};
+// 2026-10-17 생성 종료(410) 뒤에는 이 상태의 기록을 이어 만들 경로가 없다. 읽기 응답에서만 구제한다(DB는 고치지 않는다).
+const STUCK_STATUSES = ["generating", "partial", "delivery_pending"];
 function clean(value, maxLength = 0) { const text = String(value ?? "").trim(); return maxLength ? text.slice(0, maxLength) : text; }
 function loginRequired() { return json({ ok: false, reason: "LOGIN_REQUIRED", message: "기존 상담은 로그인 후 다시 볼 수 있어요." }, { status: 401 }); }
 function parseSections(text) {
@@ -17,22 +22,52 @@ function parseSections(text) {
   if (s < 0 || e <= s) return null;
   try { const parsed = JSON.parse(t.slice(s, e + 1)); return parsed && typeof parsed === "object" ? parsed : null; } catch { return null; }
 }
+function savedPartBodies(doc) {
+  const parts = doc.llmMeta?.parts && typeof doc.llmMeta.parts === "object" ? doc.llmMeta.parts : {};
+  return Object.fromEntries(Object.entries(parts).filter(([, value]) => typeof value?.body === "string" && value.body.trim()));
+}
+function hasSectionBody(result) {
+  return Boolean(result?.sections && Object.values(result.sections).some(section => clean(section?.body)));
+}
+// 옛 생성 경로는 부분을 저장할 때마다 assistant 메시지도 함께 썼다. 메시지가 비었거나 깨졌을 때만
+// llmMeta.parts 로 같은 palaceResult 를 다시 조립한다.
+function rebuildFromParts(doc, parts) {
+  const palaceKey = clean(doc.llmMeta?.input?.palaceKey || doc.palaceKey, 20);
+  if (!Object.keys(parts).length || !getPalaceConfig(palaceKey)) return null;
+  try {
+    const rebuilt = palaceResult({ ...(doc.llmMeta?.input || {}), palaceKey }, doc.llmMeta?.chart || doc.ziweiChart || null, parts);
+    return hasSectionBody(rebuilt) ? parseSections(stripEmptyParens(JSON.stringify(rebuilt))) : null;
+  } catch { return null; }
+}
 function publicConsultation(doc) {
   const assistant = Array.isArray(doc.messages) ? doc.messages.find((m) => m.role === "assistant") : null;
   // 생성 경로는 이미 정화해 저장하지만, 이 변경 이전에 저장된 상담에는 빈 괄호가 남아 있다.
   // 재열람 응답에서도 지워야 과거 상담이 화면에서 깨끗해진다.
-  const parsed = assistant ? parseSections(stripEmptyParens(assistant.content)) : null;
+  let parsed = assistant ? parseSections(stripEmptyParens(assistant.content)) : null;
+  const stuck = STUCK_STATUSES.includes(doc.status);
+  const parts = stuck ? savedPartBodies(doc) : {};
+  if (stuck && !hasSectionBody(parsed)) parsed = rebuildFromParts(doc, parts) || parsed;
+  const specs = palaceParts(doc.palaceKey);
+  // 모든 부분이 저장된 채 멈춘 기록(대개 delivery_pending)은 글이 다 있으므로 완료로 보여 준다. DB 상태는 그대로다.
+  const allPartsSaved = stuck && specs.length > 0 && specs.every(part => parts[part.id]) && hasSectionBody(parsed);
+  const shownStatus = allPartsSaved ? "completed" : clean(doc.status);
+  const legacyDelivery = stuck ? {
+    state: allPartsSaved ? "saved_text_complete" : hasSectionBody(parsed) ? "saved_text_partial" : "no_saved_text",
+    supportRequired: !allPartsSaved,
+    message: allPartsSaved ? "" : hasSectionBody(parsed) ? MESSAGES.legacyPartial : MESSAGES.llmFailed,
+  } : null;
   return {
     ok: true,
     sessionId: clean(doc.id),
     resultId: clean(doc.id),
-    status: clean(doc.status),
+    status: shownStatus,
     retryable: false,
+    ...(legacyDelivery ? { legacyDelivery } : {}),
     consultation: {
       id: clean(doc.id),
       accessType: clean(doc.accessType),
-      status: clean(doc.status),
-      saved: doc.status === "completed",
+      status: shownStatus,
+      saved: shownStatus === "completed",
       completedParts: Object.keys(doc.llmMeta?.parts || {}),
       totalParts: palaceParts(doc.palaceKey).length,
       palaceKey: clean(doc.palaceKey, 20),

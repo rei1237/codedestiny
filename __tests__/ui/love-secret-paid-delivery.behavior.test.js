@@ -49,6 +49,7 @@ function fixture(accessType = 'pass') {
     loginRequired: () => new Response('', { status: 401 }), invalidInput: (_message, status = 422) => new Response('', { status }),
     paymentVerifyFailed: () => new Response('', { status: 402 }), calculationFailed: () => new Response('', { status: 422 }),
     LOVE_SECRET_AI_GENERATING_FRESH_MS: 120000, LOVE_SECRET_AI_LLM_DEADLINE_MS: 86000, LLM_ERROR_MESSAGE: 'mock generation failed',
+    LOVE_SECRET_AI_GROUP_PLAN_VERSION: 2, loveSecretGroupsForPlan: version => (Number(version) >= 2 ? 'v2' : 'v1'),
     publicSession: row => ({ ok: true, sessionId: row.id, status: row.status, saved: row.status === 'completed', messages: row.messages }),
     restoreBillingGateAccessOnFailure: async () => { refunds++; return { restored: true }; },
     applyUsageOnce: async () => {
@@ -212,6 +213,7 @@ for (const failed of [false, true]) {
       LOVE_SECRET_AI_GROUPS: groups, LOVE_SECRET_AI_GROUP_TIMEOUT_MS: 54000, LOVE_SECRET_AI_REPAIR_TIMEOUT_MS: 24000,
       LOVE_SECRET_AI_LLM_DEADLINE_MS: 86000, LOVE_SECRET_AI_REPAIR_MIN_REMAINING_MS: 22000,
       LOVE_SECRET_AI_MIN_USABLE_GROUPS: 6, LOVE_SECRET_AI_MIN_TOTAL_BODY_CHARS: 20000,
+      LOVE_SECRET_AI_GROUP_MIN_CHARS: 5000, LOVE_SECRET_AI_GROUP_MAX_CHARS: 6500, loveSecretGroupCharRange: group => group?.perspective ? [6000, 7500] : [5000, 6500], buildLoveSecretRejectionRepairLines: () => [],
       createLlmCacheStore: () => null, cmsPromptText: async () => '', LOVE_SECRET_AI_SYSTEM_PROMPT: '',
       buildLoveSecretGroundingTerms: () => [], logLoveSecretAi() {}, clean: value => String(value || ''),
       assembleLoveSecretConsultation: rows => ({ answer: '가'.repeat(21000), rows }),
@@ -387,4 +389,15 @@ test('corrupt pinned love-secret facts stop before provider and refund', async (
  const f=fixture('paid');Object.assign(f.ctx,await import('../../worker/lib/representative-consumer-facts.js'));
  await f.post({}, {SAJU_CONSUMER_FACTS_V1:'true'});const calls=f.calls,refunds=f.refunds;f.doc.sajuResult.dayMaster='tampered';
  const result=await f.post({resumeSessionId:f.doc.id});assert.equal(result.status,409);assert.equal(f.calls,calls);assert.equal(f.refunds,refunds);
+});
+
+test('새 상담은 7개 그룹 계획(V2)으로, 버전 없는 예전 상담은 V1 계획으로 이어 쓴다', async () => {
+  const fresh = fixture();
+  await fresh.post();
+  assert.equal(fresh.doc.llmMeta.delivery.groupPlanVersion, 2);
+  const legacy = fixture();
+  await legacy.post();
+  delete legacy.doc.llmMeta.delivery.groupPlanVersion;
+  await legacy.post({ resumeSessionId: legacy.doc.id });
+  assert.equal(legacy.doc.llmMeta.delivery.groupPlanVersion, 1);
 });

@@ -149,6 +149,7 @@ const ctx = vm.createContext({
   styles: new Proxy({}, { get: (_target, key) => `css-${String(key)}` }),
   useMasterLoveCodexCopy: () => copy,
   actsForMode: acts.actsForMode,
+  actForChapter: acts.actForChapter,
   CODEX_ACT_ANCHOR_PREFIX,
   CODEX_CHAPTER_ANCHOR_PREFIX,
   CODEX_LIBRARY_ANCHOR,

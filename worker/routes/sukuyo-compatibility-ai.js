@@ -28,6 +28,7 @@ import { isStagingLlmMockEnabled } from "../lib/staging-llm-mock.js";
 import { cmsPromptText } from "../lib/cms-prompts.js";
 import { appendExpertPersona, expertPersonaText } from "../lib/expert-character-personas.js";
 import { callGeminiJsonWithRetry } from "../lib/structured-consultation.js";
+import { SUKUYO_COMPAT_GROUP_PLAN_VERSION, SUKUYO_V2_GROUP_MAX_ATTEMPTS, SUKUYO_V2_LENGTH_REPAIR_LIMIT, SUKUYO_V2_NO_QUESTION_LINE, SUKUYO_V2_QUESTION_OWNER_LINE, SUKUYO_V2_SECTION_GROUPS, SUKUYO_V2_SECTION_GUIDES, SUKUYO_V2_SUMMARY_MAX_ATTEMPTS, buildSukuyoFallbackSummary, detectSukuyoSoftIssues, isSukuyoCompatPlanV2, orderSukuyoV2Sections, salvageSukuyoGroup, scrubSukuyoSoftIssues, sukuyoCompatDeliveryV2Enabled, sukuyoLengthRepairHint, sukuyoSoftIssueHint, sukuyoV2LengthLine } from "../lib/sukuyo-compat-delivery-v2.js";
 import { hasRenderableLlmText } from "../lib/llm-result-delivery.js";
 import { extractReadableTextFromJsonLike } from "../../lib/llm-text.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
@@ -1320,7 +1321,9 @@ async function resolveStartAccess(request, env, auth, body, normalized, accessHa
  * 그래서 (1) 다른 그룹이 맡은 주제를 알려 주고 건드리지 말라고 못 박고,
  * (2) 시스템 프롬프트에 반복 금지 규칙을 따로 넣었다.
  */
-function buildSectionGroupPrompt(input, calculation, group) {
+function buildSectionGroupPrompt(input, calculation, group, options = {}) {
+  // 판 2(options.planVersion = 2)만 장 요구 사항·분량 줄·질문 줄이 바뀐다. 판 1 바이트는 v1 해시 테스트가 지킨다.
+  const v2 = isSukuyoCompatPlanV2(options.planVersion);
   const specs = group.keys.map((key) => {
     const spec = SUKUYO_SECTION_SPEC_MAP.get(key);
     if (!spec) throw new Error(`알 수 없는 숙요 섹션: ${key}`);
@@ -1336,12 +1339,13 @@ function buildSectionGroupPrompt(input, calculation, group) {
   return [
     `아래 숙요점 계산값만 근거로, 두 사람의 궁합 상담문 가운데 아래 ${specs.length}개 장을 작성하십시오.`,
     "본명숙 산출, 관계 거리, 양방향 관계 유형, 기질 속성, 점수는 이미 확정된 값입니다. 다시 계산하거나 바꾸지 마십시오.",
+    ...(v2 ? [group.questionOwner ? SUKUYO_V2_QUESTION_OWNER_LINE : SUKUYO_V2_NO_QUESTION_LINE] : []),
     "",
     "[이번에 쓸 장]",
     ...specs.map((spec) => [
       `● ${spec.title}  (키: ${spec.key})`,
-      `   요구 사항: ${spec.guide}`,
-      `   분량: 제목·공백·마크다운을 제외한 본문 최소 ${spec.targetMinChars.toLocaleString("ko-KR")}자, 상한 ${spec.targetMaxChars.toLocaleString("ko-KR")}자. 늘리는 것보다 밀도를 높이는 쪽이 낫습니다.`,
+      `   요구 사항: ${(v2 && SUKUYO_V2_SECTION_GUIDES[spec.key]) || spec.guide}`,
+      v2 ? sukuyoV2LengthLine(spec) : `   분량: 제목·공백·마크다운을 제외한 본문 최소 ${spec.targetMinChars.toLocaleString("ko-KR")}자, 상한 ${spec.targetMaxChars.toLocaleString("ko-KR")}자. 늘리는 것보다 밀도를 높이는 쪽이 낫습니다.`,
     ].join("\n")),
     "",
     "각 장 본문은 3~6개 소단락으로 나누고, 마크업은 **굵게**, 번호 목록(1. ), 하이픈 목록(- ), 인용(> ) 네 가지만 사용합니다.",
@@ -1362,21 +1366,29 @@ function buildSectionGroupPrompt(input, calculation, group) {
     "",
     // 들여쓰기 없이 보낸다 — 그룹마다 반복되는 블록이라 공백이 그대로 5배가 된다.
     "[숙요점 계산 context]",
-    JSON.stringify(buildSukuyoCompatibilityPromptContext(input, calculation)),
+    JSON.stringify(v2 ? buildSukuyoV2PromptContext(input, calculation, group.questionOwner === true) : buildSukuyoCompatibilityPromptContext(input, calculation)),
     "",
     // 아래 확정값은 그대로 사용자 화면의 근거 패널로도 나간다. 본문이 그 표를 벗어나지 않게 못 박는다.
     ...buildEvidenceRuleLines(buildSukuyoAnalysisBasis(input, calculation)),
     // 궁합은 두 사람의 관계만 다루므로, 개인 운세용 6분야가 아니라 관계가 실제로 작동하는 무대로 나눈다.
     // 영역별 궁합 장이 든 그룹에만 붙인다(나머지 그룹에 붙이면 프롬프트만 불어난다).
     ...(includesDomains ? ["", ...buildDomainAnalysisRuleLines(RELATIONSHIP_ANALYSIS_DOMAINS)] : []),
+    ...(v2 && options.hint ? ["", "[보정]", options.hint] : []),
   ].join("\n");
+}
+
+/** 판 2 계산 context. 질문 담당 묶음이 아니면 user_input.question 을 뺀다(질문 인용은 첫 장 한 번뿐). */
+function buildSukuyoV2PromptContext(input, calculation, questionOwner = false) {
+  const context = buildSukuyoCompatibilityPromptContext(input, calculation);
+  return questionOwner ? context : { ...context, user_input: omitKeys(context.user_input, ["question"]) };
 }
 
 /**
  * 마지막 웨이브에서 한 번 더 부르는 종합 콜.
  * 별점 8축은 서버가 이미 확정했으므로 LLM 은 "왜 그 점수인지" 한 줄만 쓴다.
  */
-function buildSummaryPrompt(input, calculation) {
+function buildSummaryPrompt(input, calculation, options = {}) {
+  const v2 = isSukuyoCompatPlanV2(options.planVersion);
   const schema = buildSukuyoCompatibilityJsonSchema(input, calculation);
   const axisLines = SUKUYO_AXIS_SPECS
     .map((spec) => `- ${spec.key} (${spec.label}): ${schema.meta.axes[spec.key].score}점${spec.polarity === "inverse" ? " ※ 높을수록 위험이 크다는 뜻" : ""}`)
@@ -1384,6 +1396,7 @@ function buildSummaryPrompt(input, calculation) {
   return [
     "아래 숙요점 계산값과 이미 확정된 점수를 근거로, 궁합 상담의 요약부를 작성하십시오.",
     "점수는 서버가 계산한 확정값입니다. 점수를 바꾸거나 새로 매기지 마십시오.",
+    ...(v2 ? [SUKUYO_V2_NO_QUESTION_LINE] : []),
     "",
     "반환할 JSON 형식:",
     '{"headline": "…", "insight": "…", "scoreNotes": {"emotionBond": "…", "trust": "…", "dialogue": "…", "longevity": "…", "marriage": "…", "conflictRisk": "…", "growth": "…", "karmaBond": "…"}}',
@@ -1399,7 +1412,7 @@ function buildSummaryPrompt(input, calculation) {
     axisLines,
     "",
     "[숙요점 계산 context]",
-    JSON.stringify(buildSukuyoCompatibilityPromptContext(input, calculation)),
+    JSON.stringify(v2 ? buildSukuyoV2PromptContext(input, calculation, false) : buildSukuyoCompatibilityPromptContext(input, calculation)),
     "",
     ...buildEvidenceRuleLines(buildSukuyoAnalysisBasis(input, calculation)),
   ].join("\n");
@@ -1504,12 +1517,14 @@ function sukuyoSectionCache(env, keyExtra) {
 }
 
 /** 그룹 하나(장 3개)를 생성한다. 실패하면 빈 객체를 돌려주고 나머지 그룹을 죽이지 않는다. */
-async function generateSectionGroup(env, input, calculation, group, systemPrompt, attempt = 1, existingSections = {}, truncationRetry = false) {
+async function generateSectionGroup(env, input, calculation, group, systemPrompt, attempt = 1, existingSections = {}, truncationRetry = false, options = {}) {
+  const v2 = isSukuyoCompatPlanV2(options.planVersion);
   const groupMinChars = group.keys.reduce((sum, key) => sum + SUKUYO_SECTION_SPEC_MAP.get(key).targetMinChars, 0);
   // 직전 시도가 MAX_TOKENS 로 잘렸으면 같은 예산 재시도는 또 잘려 환불된다 — 재시도만 2배(≤32768). 기본 예산(원가 예약)은 그대로.
   const tokens = truncationRetry ? Math.max(SUKUYO_SECTION_BASE_TOKENS, Math.min(32768, SUKUYO_SECTION_BASE_TOKENS * 2)) : SUKUYO_SECTION_BASE_TOKENS;
   try {
-    const ai = await callGeminiJsonWithRetry(env, buildSectionGroupPrompt(input, calculation, group) + (attempt > 1 ? "\n직전 초안의 빠진 근거와 행동 조언을 보강하여 목표 분량의 완결된 본문을 작성하세요. 같은 문장을 반복하지 마세요." : ""), {
+    const prompt = v2 ? buildSectionGroupPrompt(input, calculation, group, { planVersion: options.planVersion, hint: options.hint }) : null;
+    const ai = await callGeminiJsonWithRetry(env, prompt || buildSectionGroupPrompt(input, calculation, group) + (attempt > 1 ?"\n직전 초안의 빠진 근거와 행동 조언을 보강하여 목표 분량의 완결된 본문을 작성하세요. 같은 문장을 반복하지 마세요." : ""), {
       systemPrompt,
       taskType: "fortune",
       temperature: 0.74,
@@ -1522,7 +1537,7 @@ async function generateSectionGroup(env, input, calculation, group, systemPrompt
       // 🔴 유료 라우트에서 폴백을 켰으면 fallbackMinChars 는 필수다(관례: 최소 분량 × 0.3).
       // 없으면 Workers AI 폴백이 8% 분량을 정상 결제로 통과시킨다.
       fallbackMinChars: Math.round(groupMinChars * 0.3),
-      cache: attempt === 1 ? sukuyoSectionCache(env, group.id) : undefined,
+      cache: attempt === 1 ? sukuyoSectionCache(env, v2 ? `plan2-${group.id}` : group.id) : undefined,
     });
     const provider = clean(ai?.provider || "");
     const model = clean(ai?.model || "");
@@ -1531,9 +1546,12 @@ async function generateSectionGroup(env, input, calculation, group, systemPrompt
     const parsed = parseJsonObjectFromText(raw) || {};
     const sections = {};
     const sourceBodies = {};
+    // 판 2 구제용: 반복 검사로 거절된 장도 초안으로 남긴다(마지막 시도에서만 겹친 문장을 걷어 내고 쓴다).
+    const drafts = {};
     group.keys.forEach((key) => {
       const spec = SUKUYO_SECTION_SPEC_MAP.get(key);
       const rawBody = typeof parsed[key]?.body === "string" ? parsed[key].body : "";
+      if (countPaidReportBodyChars(rawBody)) drafts[key] = { title: spec.title, body: trimPaidReportText(cleanRichText(rawBody), spec.targetMaxChars) };
       const others = Object.entries({ ...existingSections, ...sourceBodies }).filter(([other]) => other !== key).map(([, row]) => row.body).join("\n");
       if (!countPaidReportBodyChars(rawBody) || hasRepeatedReportPassage(`${others}\n${rawBody}`)) return;
       const body = trimPaidReportText(cleanRichText(rawBody), spec.targetMaxChars);
@@ -1542,7 +1560,7 @@ async function generateSectionGroup(env, input, calculation, group, systemPrompt
         sourceBodies[key] = { body: rawBody };
       }
     });
-    return { sections, provider, model, rawText: ai.rawText || ai.text, truncated: ai.truncated === true };
+    return { sections, drafts, provider, model, rawText: ai.rawText || ai.text, truncated: ai.truncated === true };
   } catch (error) {
     logSukyoAi("[Sukyo AI Section Group Failed]", {
       route: "/api/sukuyo-compatibility-ai/generate",
@@ -1555,9 +1573,10 @@ async function generateSectionGroup(env, input, calculation, group, systemPrompt
 }
 
 /** 요약부(한 줄 요약·핵심 인사이트·축별 근거). 실패해도 상담 자체는 성립하므로 null 을 허용한다. */
-async function generateSummary(env, input, calculation, systemPrompt) {
+async function generateSummary(env, input, calculation, systemPrompt, options = {}) {
+  const v2 = isSukuyoCompatPlanV2(options.planVersion);
   try {
-    const ai = await callGeminiJsonWithRetry(env, buildSummaryPrompt(input, calculation), {
+    const ai = await callGeminiJsonWithRetry(env, v2 ? buildSummaryPrompt(input, calculation, { planVersion: options.planVersion }) : buildSummaryPrompt(input, calculation), {
       systemPrompt,
       taskType: "fortune",
       temperature: 0.7,
@@ -1568,7 +1587,8 @@ async function generateSummary(env, input, calculation, systemPrompt) {
       responseSchema: jsonSchemaFromExample({ headline: "", insight: "", scoreNotes: Object.fromEntries(SUKUYO_AXIS_SPECS.map(spec => [spec.key, ""])) }),
       timeoutMs: SUKUYO_SECTION_TIMEOUT_MS,
       fallbackMinChars: 400,
-      cache: sukuyoSectionCache(env, "summary"),
+      // 판 2 두 번째 시도는 캐시를 건너뛴다(첫 시도가 캐시된 실패 응답이면 그대로 되돌아온다).
+      cache: v2 && options.attempt > 1 ? undefined : sukuyoSectionCache(env, v2 ? "plan2-summary" : "summary"),
     });
     if (!ai?.ok) return null;
     const parsed = parseJsonObjectFromText(sanitizeConsultationText(ai?.text || ""));
@@ -1639,6 +1659,100 @@ async function createCompatibilityAnswer(env, input, calculation, options = {}) 
   return { content: JSON.stringify(result, null, 2), provider, model, complete, sections, attempts, retryable: summaryPending || SUKUYO_SECTION_GROUPS.some(row => Number(attempts[row.id] || 0) < 2 && row.keys.some(key => !isComplete(key))) };
 }
 
+/**
+ * 판 2(llmMeta.groupPlanVersion = 2). 한 요청에 공급자 호출 하나: 정리되지 않은 첫 묶음 하나, 다 정리되면 요약 하나.
+ * - 장이 비면 다시 쓴다. 말투 이탈·질문 재인용은 [보정] 힌트로 한 번, 분량 미달은 상담 전체 2번까지 다시 쓴다.
+ * - 시도를 다 쓰면 거절된 초안까지 구제해 받고(빈 장은 건너뜀) 던지지 않는다. 짧은 것은 배달을 막지 않는다.
+ * - 요약은 두 번, 그래도 없으면 확정 점수로 만든 요약을 쓴다.
+ * - 모든 묶음이 정리됐는데 본문이 하나도 없을 때만 LLM_FAILED(호출부가 환불한다).
+ * attempts 키: <묶음> 시도 수, <묶음>:settled, :softRepair, :lengthRepair, :salvaged, :skipped, :truncated, lengthRepairs, summary, summary:fallback.
+ */
+async function createCompatibilityAnswerV2(env, input, calculation, options = {}) {
+  const planVersion = SUKUYO_COMPAT_GROUP_PLAN_VERSION;
+  const sections = { ...(options.sections || {}) };
+  const attempts = { ...(options.attempts || {}) };
+  const rawResponses = { ...(options.rawResponses || {}) };
+  let summary = options.summary || null;
+  const chars = (key, from = sections) => typeof from[key]?.body === "string" ? countPaidReportBodyChars(from[key].body) : 0;
+  const settled = (group) => attempts[`${group.id}:settled`] === 1;
+  const bodiesExcept = (keys) => Object.entries(sections).filter(([key]) => !keys.includes(key)).map(([, row]) => row.body).join("\n");
+  const systemPrompt = async () => appendExpertPersona(env, "hanbi", await cmsPromptText(env, "sukuyo-compatibility-json", COMPATIBILITY_JSON_SYSTEM_PROMPT));
+  const group = SUKUYO_V2_SECTION_GROUPS.find((row) => !settled(row));
+  let provider = "", model = "";
+  if (group) {
+    const attempt = Number(attempts[group.id] || 0) + 1;
+    const pick = () => Object.fromEntries(group.keys.filter((key) => sections[key]).map((key) => [key, sections[key]]));
+    const softContext = { questionOwner: group.questionOwner === true, question: input.question };
+    const shortRows = group.keys.filter((key) => chars(key) > 0 && chars(key) < SUKUYO_SECTION_SPEC_MAP.get(key).minChars)
+      .map((key) => ({ key, chars: chars(key), target: SUKUYO_SECTION_SPEC_MAP.get(key).targetMinChars }));
+    const priorIssues = attempt > 1 ? detectSukuyoSoftIssues(pick(), softContext) : [];
+    const hint = [attempt > 1 ? sukuyoLengthRepairHint(shortRows) : "", priorIssues.length ? sukuyoSoftIssueHint(priorIssues) : ""].filter(Boolean).join("\n");
+    attempts[group.id] = attempt;
+    await options.onReserve?.(group.id, attempt, shortRows.length > 0);
+    const generated = await generateSectionGroup(env, input, calculation, group, await systemPrompt(), attempt, sections, Boolean(attempts[`${group.id}:truncated`]), { planVersion, hint });
+    if (generated.truncated) attempts[`${group.id}:truncated`] = 1;
+    for (const key of group.keys) {
+      const row = generated.sections?.[key];
+      if (!row) continue;
+      if (hasRepeatedReportPassage(`${bodiesExcept([key])}\n${row.body}`)) continue;
+      const current = chars(key);
+      const next = countPaidReportBodyChars(row.body);
+      const currentDrift = current > 0 && detectSukuyoSoftIssues({ [key]: sections[key] }, softContext).length > 0;
+      const nextDrift = detectSukuyoSoftIssues({ [key]: row }, softContext).length > 0;
+      if (!current || (next >= current && !(nextDrift && !currentDrift)) || (currentDrift && !nextDrift && next >= current * 0.85)) sections[key] = row;
+    }
+    const issues = detectSukuyoSoftIssues(pick(), softContext);
+    const missing = group.keys.filter((key) => !chars(key));
+    const short = group.keys.filter((key) => chars(key) > 0 && chars(key) < SUKUYO_SECTION_SPEC_MAP.get(key).minChars);
+    const last = attempt >= SUKUYO_V2_GROUP_MAX_ATTEMPTS;
+    let retry = false;
+    if (!last && missing.length) retry = true;
+    else if (!last && issues.length && !attempts[`${group.id}:softRepair`]) { attempts[`${group.id}:softRepair`] = 1; retry = true; }
+    else if (!last && short.length && Number(attempts.lengthRepairs || 0) < SUKUYO_V2_LENGTH_REPAIR_LIMIT) {
+      attempts.lengthRepairs = Number(attempts.lengthRepairs || 0) + 1;
+      attempts[`${group.id}:lengthRepair`] = 1;
+      retry = true;
+    }
+    if (!retry) {
+      // 정리: 말투·재인용 문장을 걷어 내고, 빈 장은 이번 초안에서 겹친 문장을 걷어 낸 뒤 구제한다.
+      const scrubbed = scrubSukuyoSoftIssues(pick(), issues);
+      let finalRows = scrubbed;
+      if (missing.length) {
+        const pool = Object.fromEntries(group.keys.map((key) => [key, scrubbed[key] || generated.drafts?.[key]]).filter(([, row]) => row));
+        finalRows = salvageSukuyoGroup(pool, group.keys, bodiesExcept(group.keys));
+        if (missing.some((key) => finalRows[key])) attempts[`${group.id}:salvaged`] = 1;
+      }
+      for (const key of group.keys) delete sections[key];
+      Object.assign(sections, finalRows);
+      const skipped = group.keys.filter((key) => !finalRows[key]).length;
+      if (skipped) attempts[`${group.id}:skipped`] = skipped;
+      attempts[`${group.id}:settled`] = 1;
+    }
+    rawResponses[group.id] = generated.rawText || "";
+    provider = generated.provider; model = generated.model;
+    await options.onCheckpoint?.({ sections: orderSukuyoV2Sections(sections), summary, rawResponses, attempts });
+  }
+  const allSettled = SUKUYO_V2_SECTION_GROUPS.every(settled);
+  const hasBody = Object.keys(sections).some((key) => chars(key) > 0);
+  if (allSettled && !hasBody) throw Object.assign(new Error(MESSAGES.llmFailed), { code: "LLM_FAILED", status: 503 });
+  if (!group && !summary) {
+    const attempt = Number(attempts.summary || 0) + 1;
+    attempts.summary = attempt;
+    await options.onReserve?.("summary", attempt, false);
+    summary = await generateSummary(env, input, calculation, await systemPrompt(), { planVersion, attempt });
+    if (!summary && attempt >= SUKUYO_V2_SUMMARY_MAX_ATTEMPTS) {
+      const { fallback: _fallback, ...rest } = buildSukuyoFallbackSummary(buildSukuyoCompatibilityJsonSchema(input, calculation).meta, SUKUYO_AXIS_SPECS);
+      summary = rest;
+      attempts["summary:fallback"] = 1;
+    }
+    await options.onCheckpoint?.({ sections: orderSukuyoV2Sections(sections), summary, rawResponses, attempts });
+  }
+  const ordered = orderSukuyoV2Sections(sections);
+  const complete = allSettled && Boolean(summary);
+  const result = { planVersion, meta: buildSukuyoCompatibilityJsonSchema(input, calculation).meta, ...(summary || {}), sections: ordered };
+  return { content: JSON.stringify(result, null, 2), provider, model, complete, sections: ordered, attempts, retryable: !complete };
+}
+
 async function saveSukuyoCheckpoint(sessionId, userId, generationLease, values) {
   try {
     const saved = await SukuyoCompatibilityAiConsultation.findOneAndUpdate({ _id: sessionId, userId, status: "generating", generationLease }, { $set: values }, { new: true }).lean();
@@ -1649,7 +1763,8 @@ async function saveSukuyoCheckpoint(sessionId, userId, generationLease, values) 
 }
 
 /** 개인 상담(단일 텍스트)은 예전 그대로 한 번에 만든다 — 분량이 4천 토큰대라 배치가 필요 없다. */
-async function createPersonalAnswer(env, input, calculation) {
+async function createPersonalAnswer(env, input, calculation, options = {}) {
+  if (isSukuyoCompatPlanV2(options.planVersion)) return createPersonalAnswerV2(env, input, calculation);
   const ai = await callGeminiText(env, buildFirstPrompt(input, calculation), {
     systemPrompt: await appendExpertPersona(env, "hanbi", await cmsPromptText(env, "sukuyo-compatibility", SYSTEM_PROMPT)),
     taskType: "fortune",
@@ -1674,6 +1789,47 @@ async function createPersonalAnswer(env, input, calculation) {
     throw llmError;
   }
   return { content, provider, model };
+}
+
+/**
+ * 판 2 개인 상담. 비지 않은 글이면 받는다(240자 하한 없음). 첫 호출이 빈손이고 엣지 컷까지 시간이 남으면
+ * 같은 요청에서 캐시 없이 한 번 더 부른다. 둘 다 비면 LLM_FAILED(호출부가 환불한다).
+ */
+async function createPersonalAnswerV2(env, input, calculation) {
+  const startedAt = Date.now();
+  const systemPrompt = await appendExpertPersona(env, "hanbi", await cmsPromptText(env, "sukuyo-compatibility", SYSTEM_PROMPT));
+  const baseTimeout = clampSyncLlmTimeoutMs(Number(env.SUKUYO_COMPAT_AI_TIMEOUT_MS) || 55000);
+  let last = {};
+  for (let attempt = 1; attempt <= 2; attempt += 1) {
+    const remaining = EDGE_RESPONSE_DEADLINE_MS - 20000 - (Date.now() - startedAt);
+    if (attempt > 1 && remaining < 20000) break;
+    const ai = await callGeminiText(env, buildFirstPrompt(input, calculation), {
+      systemPrompt,
+      taskType: "fortune",
+      temperature: 0.74,
+      timeoutMs: attempt === 1 ? baseTimeout : clampSyncLlmTimeoutMs(Math.min(baseTimeout, remaining)),
+      maxOutputTokens: 4096,
+      // 판 1의 240자 하한이 없으니 짧은 Workers AI 폴백 스텁만 막는다(관례: 240 × 0.3).
+      fallbackMinChars: 72,
+      cache: attempt === 1 ? sukuyoSectionCache(env, "plan2-personal") : undefined,
+    }).catch((error) => ({ ok: false, error: error?.message || String(error) }));
+    const provider = clean(ai?.provider || "");
+    const model = clean(ai?.model || "");
+    const isMock = (/mock/i.test(provider) || /mock/i.test(model) || ai?.isMock === true) && !isStagingLlmMockEnabled(env);
+    const content = sanitizeConsultationText(ai?.text || "");
+    if (ai?.ok && !isMock && countPaidReportBodyChars(content) > 0) return { content, provider, model };
+    last = { provider, model, isMock, error: ai?.error || ai?.message };
+  }
+  const llmError = Object.assign(new Error(MESSAGES.llmFailed), { code: "LLM_FAILED", status: 503 });
+  logSukyoAi("[Sukyo AI LLM Error]", {
+    route: "/api/sukuyo-compatibility-ai/generate",
+    requestId: input.idempotencyKey,
+    consultationType: input.consultationType,
+    groupPlanVersion: SUKUYO_COMPAT_GROUP_PLAN_VERSION,
+    providerReason: last.isMock ? "mock_provider_blocked" : last.provider || last.model || "llm_failed",
+    errorMessage: clean(last.error || "LLM_FAILED"),
+  }, llmError, env);
+  throw llmError;
 }
 
 // 저장된 상담 문서에서 근거를 다시 계산한다. 궁합 상담(두 사람)만 대상이며,
@@ -1732,6 +1888,7 @@ async function serializeConsultation(doc) {
     topic: raw.topic,
     accessType: raw.accessType,
     consultationType: raw.relationshipType === "개인 상담" ? "personal" : "compatibility",
+    groupPlanVersion: isSukuyoCompatPlanV2(raw.llmMeta?.groupPlanVersion) ? SUKUYO_COMPAT_GROUP_PLAN_VERSION : 1,
     messages: Array.isArray(raw.messages) ? raw.messages : [],
     createdAt: raw.createdAt,
     updatedAt: raw.updatedAt,
@@ -2027,7 +2184,8 @@ async function handleStart(request, env, recoveryAuth = null) {
       accessType: access.accessType,
       paymentId: access.paymentId || paymentIdFromBody(body),
       messages: existing?.messages || [],
-      llmMeta: { ...(existing?.llmMeta || {}), ...(failedRetry ? { attempts: {}, manualRetryCount: manualRetryCount + 1 } : {}), calculation, ...(calculationFacts ? { engineFacts: calculationFacts } : {}), resumeBody: existing?.llmMeta?.resumeBody || { ...body, accessToken: undefined, access_token: undefined } },
+      // 판 2는 새 상담에만 고정한다. 이미 있는 상담은 llmMeta 를 그대로 이어받아 처음 판으로 끝난다.
+      llmMeta: { ...(!existing && sukuyoCompatDeliveryV2Enabled(env) ? { groupPlanVersion: SUKUYO_COMPAT_GROUP_PLAN_VERSION } : {}), ...(existing?.llmMeta || {}), ...(failedRetry ? { attempts: {}, manualRetryCount: manualRetryCount + 1 } : {}), calculation, ...(calculationFacts ? { engineFacts: calculationFacts } : {}), resumeBody: existing?.llmMeta?.resumeBody || { ...body, accessToken: undefined, access_token: undefined } },
       provider: "",
       model: "",
       status: "generating",
@@ -2082,16 +2240,18 @@ async function handleStart(request, env, recoveryAuth = null) {
       }
     }
     let firstAnswer;
+    const planV2 = isSukuyoCompatPlanV2(seedFields.llmMeta.groupPlanVersion);
     try {
       firstAnswer = normalized.consultationType === "compatibility"
         // 궁합은 웨이브 1만 만들고 응답한다. 나머지 4웨이브는 /continue 가 이어 받는다 —
         // 20장을 한 요청에 몰면 엣지 100초 컷에 걸려 결제만 되고 결과가 사라진다.
-        ? await runWithAiLocale(storedAiLocale(existing || seedFields), async () => createCompatibilityAnswer(env, { ...normalized, idempotencyKey }, calculation, {
+        ? await runWithAiLocale(storedAiLocale(existing || seedFields), async () => (planV2 ? createCompatibilityAnswerV2 : createCompatibilityAnswer)(env, { ...normalized, idempotencyKey }, calculation, {
           sections: existing?.llmMeta?.sections || {}, attempts: seedFields.llmMeta.attempts || {}, summary: existing?.llmMeta?.summary, rawResponses: existing?.llmMeta?.rawResponses,
           onReserve: (groupId, attempt, lengthRepair) => saveSukuyoCheckpoint(sessionId, auth.userId, seedFields.generationLease, { [`llmMeta.attempts.${groupId}`]: attempt, ...(lengthRepair ? { [`llmMeta.attempts.${groupId}:lengthRepair`]: 1 } : {}) }),
-          onCheckpoint: ({ sections, summary, rawResponses, truncatedGroup }) => saveSukuyoCheckpoint(sessionId, auth.userId, seedFields.generationLease, { 'llmMeta.sections': sections, 'llmMeta.summary': summary, 'llmMeta.rawResponses': rawResponses, ...(truncatedGroup ? { [`llmMeta.attempts.${truncatedGroup}:truncated`]: 1 } : {}) }),
+          // 판 2는 attempts 전체(정리·구제 표시 포함)를 함께 넘긴다. 판 1은 넘기지 않는다.
+          onCheckpoint: ({ sections, summary, rawResponses, truncatedGroup, attempts }) => saveSukuyoCheckpoint(sessionId, auth.userId, seedFields.generationLease, { 'llmMeta.sections': sections, 'llmMeta.summary': summary, 'llmMeta.rawResponses': rawResponses, ...(attempts ? { 'llmMeta.attempts': attempts } : {}), ...(truncatedGroup ? { [`llmMeta.attempts.${truncatedGroup}:truncated`]: 1 } : {}) }),
         }))
-        : await runWithAiLocale(storedAiLocale(existing || seedFields), async () => createPersonalAnswer(env, { ...normalized, idempotencyKey }, calculation));
+        : await runWithAiLocale(storedAiLocale(existing || seedFields), async () => createPersonalAnswer(env, { ...normalized, idempotencyKey }, calculation, { planVersion: seedFields.llmMeta.groupPlanVersion }));
     } catch (genError) {
       if (genError?.code === "RESULT_STORAGE_UNAVAILABLE") throw genError;
       // A later group can exhaust its attempts after earlier groups were saved.
@@ -2102,7 +2262,18 @@ async function handleStart(request, env, recoveryAuth = null) {
       catch { throw resultStorageUnavailable(sessionId); }
       if (!checkpoint) throw resultStorageUnavailable(sessionId);
       const savedSections = checkpoint.llmMeta?.sections || {};
-      if (Object.values(savedSections).some(row => typeof row?.body === "string" && row.body.trim())) {
+      const hasSavedBody = Object.values(savedSections).some(row => typeof row?.body === "string" && row.body.trim());
+      // 판 2는 저장된 본문이 있으면 검토 보류 없이 partial 로 두고 이어서 만든다(다음 요청이 남은 묶음을 잇는다).
+      if (planV2 && hasSavedBody) {
+        const partial = await saveSukuyoCheckpoint(sessionId, auth.userId, seedFields.generationLease, {
+          status: "partial", generationLease: "",
+          generationError: { code: clean(genError?.code || "LLM_GENERATION_FAILED", 80), at: new Date().toISOString() },
+        });
+        if (nativeTossContext(request)) await nativeTossContext(request).assertStored(partial);
+        return json({ ok: true, saved: false, status: "partial", retryable: true,
+          sessionId, resumeSessionId: sessionId, idempotencyKey, consultation: await serializeConsultation(partial) }, { status: 202 });
+      }
+      if (hasSavedBody) {
         const partial = await saveSukuyoCheckpoint(sessionId, auth.userId, seedFields.generationLease, {
           status: "partial", generationLease: "", "llmMeta.recoveryReviewRequired": true,
           generationError: { code: clean(genError?.code || "LLM_GENERATION_FAILED", 80), at: new Date().toISOString() },
@@ -2409,6 +2580,8 @@ export const __sukuyoCompatibilityAiTestUtils = {
   buildFirstPrompt,
   buildSectionGroupPrompt,
   buildSummaryPrompt,
+  SYSTEM_PROMPT,
+  COMPATIBILITY_JSON_SYSTEM_PROMPT,
   buildSukuyoRelationAxes,
   extractSectionBody,
   SUKUYO_SECTION_SPECS,
@@ -2418,6 +2591,8 @@ export const __sukuyoCompatibilityAiTestUtils = {
   SUKUYO_SECTION_CAP_TOKENS,
   generateSectionGroup,
   createCompatibilityAnswer,
+  createCompatibilityAnswerV2,
+  createPersonalAnswer,
   SUKUYO_COMPATIBILITY_TARGET_MIN_CHARS,
   SUKUYO_COMPATIBILITY_TARGET_MAX_CHARS,
   SUKUYO_COMPAT_AI_GENERATING_FRESH_MS,

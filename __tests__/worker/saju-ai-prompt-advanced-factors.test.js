@@ -462,6 +462,18 @@ describe("상담문 완결성 검증 (validateSajuAIResultText)", () => {
     expect(validation.qualityIssues.unsupportedAdvice).toBe(key);
     expect(validation.qualityIssues.severity).toBe("blocking");
   });
+
+  test.each([
+    "주식이나 코인 같은 특정 상품을 추천하지 않습니다.",
+    "명식만으로 부동산이나 연금 가입을 권해 드릴 수는 없습니다.",
+    "예금이나 적금 같은 상품 선택은 이 해석의 범위가 아니므로 직접 비교해 보세요.",
+    "배당주에 바로 관심을 가지기보다 지출 기록부터 확인하세요.",
+  ])("권유를 부정·경고하는 금융 상품 문장은 막지 않는다: %s", (safeSentence) => {
+    const built = buildCareerPrompt();
+    const text = CONCISE_COMPLETE_CAREER_RESULT.replace("12. 마지막 한마디", `${safeSentence}\n\n12. 마지막 한마디`);
+    const validation = fortuneRoute.validateSajuAIResultText(text, built.factSnapshot, { domain: "career", categoryRubric: built.categoryRubric });
+    expect(validation.qualityIssues.unsupportedAdvice || null).not.toBe("specific-financial-product");
+  });
 });
 
 

@@ -1054,3 +1054,9 @@
 .consultationDialogue { padding: 1.25rem 0; border-bottom: 1px solid var(--codex-rule); }
 .consultationDialogue strong { color: var(--codex-gold); font-size: 1rem; }
 .consultationDialogue p { color: var(--codex-ink-text); font-size: 1rem; line-height: 1.9; margin: .625rem 0 0; min-height: 3.8em; }
+
+/* 장 머리: 막 이름 · 화자 칩. 좁은 화면(360px)에서 줄바꿈되며 넘치지 않는다. */
+.chapterKicker { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; margin-top: 0.75rem; font-size: 0.8125rem; line-height: 1.5; letter-spacing: 0.04em; color: var(--codex-ink-text-muted); }
+.speakerChip { display: inline-flex; align-items: center; min-height: 24px; padding: 0 0.625rem; border: 1px solid var(--codex-rule); border-radius: 999px; color: var(--codex-gold); }
+/* 1장(책을 여는 기질·공감 장)은 금빛 헤어라인으로 살짝 강조한다. */
+.section[data-codex-opening="true"] .measure { border-left: 2px solid var(--codex-gold-dim); padding-left: 1rem; }

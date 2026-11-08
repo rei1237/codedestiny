@@ -118,7 +118,7 @@ test('마스터마다 포인트 색 자리를 달고, 원칙과 초상은 산출
   assert.equal(forged.querySelector('.craftedMasters'), null, '영문자 키만 data-master 로 나간다');
 });
 
-test('묶음 목차는 번호를 이어 가고, 28장 목록은 첫 묶음만 펼친 채 전부 글로 남긴다', () => {
+test('묶음 목차는 번호를 이어 가고, 30장 목록은 첫 묶음만 펼친 채 전부 글로 남긴다', () => {
   const detail = craftedOf('love-secret-ai');
   const love = render(detail);
   const groups = [...love.querySelectorAll('.craftedChapterGroup')];

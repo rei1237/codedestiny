@@ -53,7 +53,7 @@ function prose(seed, lead, length) {
   return value;
 }
 const ziweiText = async (_env, _prompt, options) => {
-  const group = utils.SECTION_GROUP_SPECS.find(group => group.id === options.logContext.sectionGroup);
+  const group = [...utils.SECTION_GROUP_SPECS, ...utils.ZIWEI_V2_GROUP_SPECS].find(group => group.id === options.logContext.sectionGroup);
   if (!group) return { ok: true, text: JSON.stringify({ meta: { scores: { overall: 70 } }, sections: {} }) };
   return { ok: true, provider: "gemini", model: "fixture", text: JSON.stringify({ sections: Object.fromEntries(group.sections.map(key => [key, { title: key, body: prose(key, "의 계산 근거를 살펴봅니다. ", Math.floor(group.targetChars / group.sections.length)) }])) }) };
 };

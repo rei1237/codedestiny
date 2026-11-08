@@ -52,6 +52,8 @@ function setup({ old = false, on = false } = {}) {
     resolveStartAccess: async () => { state.billing++; return { ok: true, accessType: 'pass', claimEvidenceIds: ['same-evidence'] }; },
     resolveZiweiRequestAccess: args => state.toss ? Promise.resolve({ ok: true, accessType: 'toss' }) : context.resolveStartAccess(args),
     logZiweiAi() {}, randomUUID: () => `uuid-${++state.uuid}`,
+    // 판 2 고정은 이 하네스의 관심사가 아니다: 끈 채로 두어 기준선 handleStart와 같은 llmMeta를 비교한다.
+    ziweiAiDeliveryV2Enabled: () => false, ZIWEI_AI_GROUP_PLAN_VERSION: 2,
     claimRequestBillingEvidence: async () => { state.claims++; return { ok: true }; }, evidenceClaimErrorBody: () => ({}),
     ZiweiCalculationPreparation: {
       findById: id => query(() => { if (state.fault === 'preparation-read') throw storageError(); return state.preparations.get(id) || null; }),

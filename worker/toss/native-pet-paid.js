@@ -60,7 +60,7 @@ export async function readNativePet(env,auth,id,{generate=false}={}){
   const request=new Request(url,{method:generate?'POST':'GET'});
   return runPaidNarrativeDelivery(request,env,{userId:String(auth.userId)},generate?{...prepared.input,tossIntentId:id}:{},
     {...petNarrativeAdapter(env,reportType(prepared.input.kind)),featureKey:row.featureKey,generationOrigin:'toss',
-      seed:original=>seedPetNarrative(prepared.input.kind,original),
+      seed:original=>seedPetNarrative(prepared.input.kind,original,env),
       verify:(original,stored)=>authorizedIntent(env,auth,id,original,stored)});
 }
 

@@ -7,6 +7,8 @@
  */
 import { __lifeBookAiTestUtils, nativeLifeBookContract } from "../../worker/routes/life-book-ai.js";
 import { calculateLifeBookAiSaju } from "../../worker/lib/life-book-ai-saju.js";
+import { tokensRequiredForChars } from "../../worker/lib/llm-budget.js";
+import { createHash } from "node:crypto";
 
 const {
   lifeBookLengthOptions,
@@ -19,6 +21,11 @@ const {
   getLifeBookReportQualityIssues,
   scrubBirthValues,
   scrubSectionBody,
+  generationWaveCap,
+  buildPriorHalfExcerpt,
+  normalizeEvidenceRefs,
+  lifeBookV3HasChapterBody,
+  dropPriorHalfRepeats,
 } = __lifeBookAiTestUtils;
 
 test('a missing middle chapter cannot shift the identity or short-draft allowance of later chapters', () => {
@@ -123,11 +130,103 @@ describe("섹션 계획", () => {
     expect(total).toBeLessThanOrEqual(60000);
   });
 
-  test("인생의 책 섹션 목표 합계가 요구 분량(20,000~32,000자) 안에 있다", () => {
+  test("인생의 책 섹션 목표 합계가 요구 분량(20,000~46,000자) 안에 있다", () => {
     const plan = buildSectionPlan(lifeBookInput);
     const total = plan.reduce((sum, s) => sum + s.targetChars, 0);
     expect(total).toBeGreaterThanOrEqual(20000);
-    expect(total).toBeLessThanOrEqual(32000);
+    expect(total).toBeLessThanOrEqual(46000);
+  });
+
+  test("인생의 책 섹션 토큰 상한도 10,000 이하다", () => {
+    for (const section of buildSectionPlan(lifeBookInput)) {
+      expect(section.maxOutputTokens).toBeLessThanOrEqual(10000);
+    }
+  });
+});
+
+describe("구성 V2", () => {
+  test("V1 계획은 옛 세션이 쓰던 객체 그대로다(관점·버전 필드 없음, 1장 목표 2,600자)", () => {
+    const v1 = buildSectionPlan(lifeBookInput, { version: 1 });
+    expect(v1.some((s) => "planVersion" in s || "perspective" in s || "questionOwner" in s)).toBe(false);
+    expect(v1[0]).toMatchObject({ targetChars: 2600, maxOutputTokens: 7000 });
+    expect(v1[0].guide).toBe("일간과 월지, 지장간, 오행 분포로 타고난 성정의 원형을 이야기처럼 풉니다.");
+  });
+
+  test("V1 섹션 프롬프트에는 V2 관점·질문 규칙 줄이 없다", () => {
+    for (const input of [lifeBookInput, lifeFortuneInput]) {
+      const prompt = buildSectionPrompt(input, {}, buildSectionPlan(input, { version: 1 })[0], "");
+      expect(prompt).not.toContain("이 조각만 맡는 관점");
+      expect(prompt).not.toContain("상담 주제는 이 장에서만");
+    }
+  });
+
+  test("새 세션 기본은 V2: 장·판독마다 관점이 있고 1장만 질문을 맡는다", () => {
+    for (const input of [lifeBookInput, lifeFortuneInput]) {
+      const plan = buildSectionPlan(input);
+      const parts = plan.filter((s) => s.kind !== "frame");
+      expect(parts.every((s) => s.planVersion === 2 && s.perspective)).toBe(true);
+      expect(parts.filter((s) => s.questionOwner).map((s) => s.id)).toEqual(["chapter-1"]);
+    }
+  });
+
+  test("V2 1장 프롬프트: 근거의 쉬운 뜻 → 생활 장면 공감 2~3개 → 다음 장 연결, 질문은 한 번만 인용", () => {
+    for (const input of [lifeBookInput, lifeFortuneInput]) {
+      const plan = buildSectionPlan(input);
+      const first = buildSectionPrompt(input, {}, plan[0], "");
+      expect(first).toMatch(/쉬운 말로 풉니다[\s\S]*생활 장면 2~3개[\s\S]*다음 장들/);
+      expect(first).toContain("상담 주제는 이 장에서만 딱 한 번 그대로 인용");
+      const later = buildSectionPrompt(input, {}, plan[4], "");
+      expect(later).toContain("상담 주제를 다시 인용하거나 되묻지 말고");
+      expect(later).toContain(`이 조각만 맡는 관점: ${plan[4].perspective}`);
+      expect(later).toContain("'결국 중요한 것은', '다시 말해', '앞서 말했듯'");
+    }
+  });
+
+  test("V2 장 목표는 올리되 전달 하한(minChars)은 그대로다", () => {
+    const lb = buildSectionPlan(lifeBookInput);
+    const lbV1 = buildSectionPlan(lifeBookInput, { version: 1 });
+    expect(lb[0].targetChars).toBe(4400);
+    expect(lb[1].targetChars).toBe(4000);
+    expect(lb.map((s) => s.minChars)).toEqual(lbV1.map((s) => s.minChars));
+    const lf = buildSectionPlan(lifeFortuneInput);
+    expect(lf[0].targetChars).toBe(4800);
+    expect(lf[1].targetChars).toBe(4400);
+  });
+
+  // 2026-11-08 분량 넉넉: V2 프롬프트는 게이트보다 높은 최소와 소단락별 최소를 밝히고, 토큰은 목표+여유를 담는다.
+  test("V2 프롬프트는 넉넉한 최소·소단락 최소를 밝히고 V1 프롬프트 줄은 그대로다", () => {
+    const lf = buildSectionPlan(lifeFortuneInput);
+    const chapter = buildSectionPrompt(lifeFortuneInput, {}, lf[1], "");
+    expect(chapter).toContain("content 는 공백 제외 최소 3400자 이상(목표 4400자 안팎)");
+    expect(chapter).toContain("최소 3400자 이상, 4400자 안팎으로 넉넉하게 씁니다");
+    expect(chapter).toContain("소단락마다 최소 800자 이상씩");
+    const expert = buildSectionPrompt(lifeFortuneInput, {}, lf.find((s) => s.kind === "expert"), "");
+    expect(expert).toContain("최소 1600자 이상, 목표 2000자 안팎");
+    for (const section of lf.filter((s) => s.kind !== "frame")) {
+      expect(section.maxOutputTokens).toBeGreaterThanOrEqual(Math.min(10000, tokensRequiredForChars(section.targetChars) + 1500));
+    }
+    const v1 = buildSectionPrompt(lifeFortuneInput, {}, buildSectionPlan(lifeFortuneInput, { version: 1 })[1], "");
+    expect(v1).toContain("content 는 공백 제외 최소 2400자 이상(목표 3000자 안팎)");
+    expect(v1).not.toContain("넉넉하게 씁니다");
+  });
+
+  test("V2 조립은 앞 장과 같은 문장을 뒤 장에서 지우고, 하한 밑으로 줄면 원문을 둔다", () => {
+    const repeated = "윤달이 펼친 책장 위에서 이 사람은 늘 먼저 손을 내밀고 끝까지 책임을 지는 쪽을 고릅니다.";
+    for (const version of [1, 2]) {
+      const plan = buildSectionPlan(lifeBookInput, { version });
+      const sections = buildSectionsAtTarget(plan);
+      sections["chapter-1"].body.content = `${repeated}\n\n${sections["chapter-1"].body.content}`;
+      sections["chapter-2"].body.content = `${sections["chapter-2"].body.content}\n\n${repeated}`;
+      const report = assembleReport(lifeBookInput, plan, sections);
+      expect(report.chapters[1].content.includes(repeated)).toBe(version === 1);
+      expect(report.chapters[0].content).toContain(repeated);
+      expect(sections["chapter-2"].body.content).toContain(repeated);
+    }
+    const plan = buildSectionPlan(lifeBookInput);
+    const sections = buildSectionsAtTarget(plan);
+    sections["chapter-1"].body.content = `${repeated}\n\n${sections["chapter-1"].body.content}`;
+    sections["chapter-2"].body.content = `${filler("짧은장", plan[1].minChars - 10)}\n\n${repeated}`;
+    expect(assembleReport(lifeBookInput, plan, sections).chapters[1].content).toContain(repeated);
   });
 });
 
@@ -164,14 +263,15 @@ describe("결손은 책임 섹션에만 매핑된다", () => {
     expect(mapIssuesToSections(issues, plan, sections).targets).toContain("chapter-3");
   });
 
-  test("깊은 판독 2의 evidenceRefs 결손은 expert-2 로 매핑된다", () => {
+  test("깊은 판독 2의 빈 evidenceRefs 는 조립 때 기본값으로 채우고, 이슈가 오면 expert-2 로 매핑된다", () => {
     const plan = buildSectionPlan(lifeFortuneInput);
     const sections = buildSectionsAtTarget(plan);
     sections["expert-2"] = { ...sections["expert-2"], body: { ...sections["expert-2"].body, evidenceRefs: [] } };
     const report = assembleReport(lifeFortuneInput, plan, sections);
     const issues = getLifeBookReportQualityIssues(JSON.stringify(report), lifeFortuneInput);
-    expect(issues).toContain("expert_reading_2_evidence_refs_missing");
-    expect(mapIssuesToSections(issues, plan, sections).targets).toEqual(["expert-2"]);
+    expect(issues).not.toContain("expert_reading_2_evidence_refs_missing");
+    expect(report.expertReadings[1].evidenceRefs.length).toBeGreaterThanOrEqual(2);
+    expect(mapIssuesToSections(["expert_reading_2_evidence_refs_missing"], plan, sections).targets).toEqual(["expert-2"]);
   });
 
   test("분량 초과는 재생성 대상이 아니라 절단(trimOnly)으로 해소한다", () => {
@@ -252,6 +352,9 @@ test('short life-book candidates retain structure, evidence and repetition check
   expect(accepts({ ...valid, content: '   ' })).toBe(false);
   expect(accepts({ ...valid, summary: '' })).toBe(false);
   expect(accepts({ ...valid, evidenceRefs: ['invented.path'] })).toBe(false);
+  // 실측 2026-11-08: 세운 장은 배열 첨자 경로로 근거를 단다. 루트가 정본이면 받고, 지어낸 루트는 첨자가 있어도 막는다.
+  expect(accepts({ ...valid, evidenceRefs: ['yearlyLuck[0].pillar', 'yearlyLuck[1].natalInteractions', 'majorLuck.cycles[4].pillar'] })).toBe(true);
+  expect(accepts({ ...valid, evidenceRefs: ['yearlyLuck[0].pillar', 'invented[0].path', 'majorLuck.currentCycle'] })).toBe(false);
   expect(accepts({ ...valid, content: '선택의 의미를 일상에서 관찰하면서 상대의 속도를 돌아보고 작은 행동으로 확인하는 과정이 필요합니다. '.repeat(60) })).toBe(false);
 });
 
@@ -306,6 +409,103 @@ describe("출생값 0건", () => {
   });
 });
 
+
+describe("인생 총운 판 3(장별 두 번 생성)", () => {
+  const planV3 = () => buildSectionPlan(lifeFortuneInput, { version: 3 });
+
+  test("장 10개가 a·b 반쪽 20개로 나뉘어 25섹션이 되고, 웨이브 상한은 판 길이를 따른다", () => {
+    const plan = planV3();
+    const halves = plan.filter((s) => s.kind === "chapter");
+    expect(plan).toHaveLength(25);
+    expect(halves.map((s) => s.id).slice(0, 4)).toEqual(["chapter-1-a", "chapter-1-b", "chapter-2-a", "chapter-2-b"]);
+    expect(halves.every((s) => s.planVersion === 3 && s.chapterId === `chapter-${s.index + 1}` && s.minChars === 1200)).toBe(true);
+    expect(halves.filter((s) => s.questionOwner).map((s) => s.id)).toEqual(["chapter-1-a"]);
+    expect(halves.find((s) => s.id === "chapter-2-b").targetChars).toBe(2200);
+    expect(generationWaveCap(plan)).toBe(52);
+    expect(generationWaveCap(buildSectionPlan(lifeFortuneInput))).toBe(32);
+    expect(buildSectionPlan(lifeBookInput, { version: 3 })).toHaveLength(15);
+  });
+
+  test("조립하면 반쪽이 이어 붙은 장 10개가 되고 게이트를 통과한다", () => {
+    const plan = planV3();
+    const sections = buildSectionsAtTarget(plan);
+    const report = assembleReport(lifeFortuneInput, plan, sections);
+    expect(report.chapters.map((c) => c.chapterNumber)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+    expect(report.chapters[1].content).toBe(`${sections["chapter-2-a"].body.content}
+
+${sections["chapter-2-b"].body.content}`);
+    expect(report.chapters[1].summary).toBe(sections["chapter-2-a"].body.summary);
+    expect(getLifeBookReportQualityIssues(JSON.stringify(report), lifeFortuneInput, lifeBookLengthOptions(plan, sections))).toEqual([]);
+    expect(lifeBookLengthOptions(plan, sections).lengthAcceptedIds.has("chapter-2")).toBe(true);
+  });
+
+  test("장 이슈는 통과 못 한 반쪽, 둘 다 통과면 더 짧은 반쪽으로 간다", () => {
+    const plan = planV3();
+    const sections = buildSectionsAtTarget(plan);
+    sections["chapter-3-a"] = { ...sections["chapter-3-a"], chars: 100 };
+    expect(mapIssuesToSections(["chapter_3_content_too_short"], plan, sections).targets).toEqual(["chapter-3-a"]);
+    sections["chapter-3-b"] = { ...sections["chapter-3-b"], ok: false };
+    expect(mapIssuesToSections(["chapter_3_title_mismatch"], plan, sections).targets).toEqual(["chapter-3-b"]);
+  });
+
+  test("뒤 반 프롬프트에는 반쪽 안내와 앞 반 요지가 들어간다", () => {
+    const plan = planV3();
+    const sections = buildSectionsAtTarget(plan);
+    const saju = calculateLifeBookAiSaju(birthInfo);
+    const a = plan.find((s) => s.id === "chapter-4-a");
+    const b = plan.find((s) => s.id === "chapter-4-b");
+    const priorHalf = buildPriorHalfExcerpt(plan, sections, b);
+    expect(priorHalf).toContain(sections["chapter-4-a"].body.content.slice(-50));
+    expect(buildPriorHalfExcerpt(plan, sections, a)).toBe("");
+    const promptB = buildSectionPrompt(lifeFortuneInput, pickSajuSlice(saju, b.evidenceRefs), b, "", { priorHalf });
+    expect(promptB).toContain("뒤 반입니다");
+    expect(promptB).toContain(priorHalf);
+    expect(buildSectionPrompt(lifeFortuneInput, pickSajuSlice(saju, a.evidenceRefs), a, "")).toContain("앞 반입니다");
+  });
+
+  test("뒤 반이 앞 반 문장을 다시 쓰면 검증 전에 그 문장을 뺀다", () => {
+    const plan = planV3();
+    const first = "당신의 일간은 땅의 기운이라 만물을 품고 길러 내는 성정이 깊습니다.";
+    const sections = { "chapter-2-a": { ok: true, body: { content: `${first} 그 성정은 관계 속에서 먼저 드러납니다, 오래 지켜본 사람일수록 그 깊이를 압니다.` } } };
+    const result = { ok: true, body: { content: `${first} 이제 시기를 보면 서른 중반의 대운이 선택의 문을 엽니다, 그때는 일의 자리를 먼저 다지세요.` }, chars: 0 };
+    dropPriorHalfRepeats(plan, sections, plan.find((s) => s.id === "chapter-2-b"), result);
+    expect(result.body.content).not.toContain(first);
+    expect(result.body.content).toContain("서른 중반");
+    const untouched = { ok: true, body: { content: first } };
+    dropPriorHalfRepeats(plan, sections, plan.find((s) => s.id === "chapter-2-a"), untouched);
+    expect(untouched.body.content).toBe(first);
+  });
+
+  test("본문이 하나라도 있으면 V3는 배달 가능, 비었거나 V2면 아니다", () => {
+    const plan = planV3();
+    const sections = buildSectionsAtTarget(plan);
+    expect(lifeBookV3HasChapterBody(plan, { "chapter-5-b": sections["chapter-5-b"] })).toBe(true);
+    expect(lifeBookV3HasChapterBody(plan, { frame: sections.frame })).toBe(false);
+    const v2 = buildSectionPlan(lifeFortuneInput);
+    expect(lifeBookV3HasChapterBody(v2, buildSectionsAtTarget(v2))).toBe(false);
+  });
+});
+
+describe("근거 경로 정규화(모든 판)", () => {
+  test("접두어를 떼고, 허용 밖 루트는 버리고, 모자라면 기본값으로 채운다", () => {
+    expect(normalizeEvidenceRefs(["$.sajuResult.dayMaster", "saju.monthPillar.branch", "sajuAuthority.dayMaster", "dayMaster"], ["yearPillar", "hourPillar"], 3))
+      .toEqual(["dayMaster", "monthPillar.branch", "yearPillar"]);
+    expect(normalizeEvidenceRefs([], ["yearPillar", "hourPillar", "dayPillar"], 2)).toEqual(["yearPillar", "hourPillar", "dayPillar"]);
+  });
+});
+
+test("판 1·2 프롬프트 바이트는 바뀌지 않는다(sha256 고정)", () => {
+  const saju = calculateLifeBookAiSaju(birthInfo);
+  const hashOf = ({ consultationType }, version) => {
+    const input = { consultationType, topic: "전체", birthInfo };
+    const hash = createHash("sha256");
+    for (const section of buildSectionPlan(input, { version })) hash.update(buildSectionPrompt(input, pickSajuSlice(saju, section.evidenceRefs), section, "- 앞: 문장"));
+    return hash.digest("hex");
+  };
+  expect(hashOf(lifeFortuneInput, 1)).toBe("1b17be70daa352e82c8b79b2ca92f2ec1ba628a8cbbf99863292f020cb80d3f4");
+  expect(hashOf(lifeFortuneInput, 2)).toBe("00c5ef4bf5ab9a59179aea0d9b8b1caaff8f7e08df09028402f896a7dd18be5c");
+  expect(hashOf(lifeBookInput, 1)).toBe("08b293fa86449c64a5d8f902989d08ec851b18e0083e651a9e4af7777472c3f3");
+});
 
 test('native life-book orders keep original validation, mode pricing keys and normalized input identity', () => {
   const body={idempotencyKey:'native-original-request',birthInfo,focusArea:'overall',consultationType:'lifeBook'};

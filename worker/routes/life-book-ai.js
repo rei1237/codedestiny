@@ -3,7 +3,7 @@ import { jsonSchemaFromExample } from "../lib/json-text-repair.js";
 import { createHash } from "node:crypto";
 import { resultStorageUnavailable, resultStorageFailurePayload } from "../lib/result-storage.js";
 import { isStoredPaidResultRevoked } from "../lib/paid-result-revocation.js";
-import { countPaidReportBodyChars, hasRepeatedReportPassage } from "../lib/paid-report-quality.js";
+import { countPaidReportBodyChars, dropRepeatedReportSentences, hasRepeatedReportPassage } from "../lib/paid-report-quality.js";
 import { reserveSupportRecoveryAttempt, supportRecoveryGenerationOptions, assertSupportRecoveryPreserved } from "../lib/support-recovery-budget.js";
 import { safeGeminiFailure } from "../../lib/gemini-provider-errors.mjs";
 import { consultationRefundResponse } from "../lib/consultation-refund-state.js";
@@ -111,7 +111,9 @@ const LIFE_BOOK_EXPECTED_CHAPTER_COUNT = 10;
 // 채우는 크기 안쪽이다). 총합 하한 15,000자 = A4 10장.
 const LIFE_BOOK_MIN_CHAPTER_CONTENT_CHARS = 2000;
 const LIFE_BOOK_MIN_TOTAL_CONTENT_CHARS = 20000;
-const LIFE_BOOK_MAX_TOTAL_CONTENT_CHARS = 32000;
+// 구성 V2(장당 4,000자·1장 4,400자·판독 4×1,000자) 총합 ≈ 44,400자라 상한을 46,000자로 둔다(2026-11-08 분량 넉넉).
+// V1 장 상한 7,000토큰(4,666자)×10 이 이 상한을 덮는다. 상한 초과는 배달을 막지 않는다(절단 없음).
+const LIFE_BOOK_MAX_TOTAL_CONTENT_CHARS = 46000;
 const LIFE_FORTUNE_MIN_CHAPTER_CONTENT_CHARS = 2400;
 const LIFE_FORTUNE_MIN_EXPERT_READING_CONTENT_CHARS = 1200;
 const LIFE_FORTUNE_MAX_TOTAL_CONTENT_CHARS = 60000;
@@ -1138,16 +1140,81 @@ function buildSystemPrompt(consultationType = "lifeBook") {
   ].join("\n");
 }
 
+// 구성 버전. V1 은 옛 세션(저장된 llmMeta.plan)이 그대로 쓰므로 객체를 바꾸지 않는다.
+// V2 는 장마다 맡는 관점(perspective)·1장 공감 장면·질문 1회 인용·조립 단계 중복 문장 제거를 더한다.
+const LIFE_BOOK_SECTION_PLAN_VERSION = 2;
+// 2026-11-08 "분량 넉넉": 프롬프트가 요구하는 최소(promptMinChars)와 목표를 올린다. 배달 게이트 하한(minChars)은 그대로라
+// 짧게 와도 실패하지 않는다. 토큰은 tokensRequiredForChars(목표) + 1,500 여유, 단 섹션 상한 10,000토큰(45초 시한, ≈200tok/s)을 넘지 않는다.
+const LIFE_BOOK_V2_TOKEN_HEADROOM = 1500;
+const LIFE_BOOK_V2_SECTION_TOKEN_CAP = 10000;
+function lifeBookV2Tokens(base, targetChars) {
+  return Math.max(base, Math.min(LIFE_BOOK_V2_SECTION_TOKEN_CAP, tokensRequiredForChars(targetChars) + LIFE_BOOK_V2_TOKEN_HEADROOM));
+}
+const SECTION_TARGETS_V2 = Object.freeze({
+  lifeFortune: Object.freeze({ chapterTargetChars: 4400, firstChapterTargetChars: 4800, chapterPromptMinChars: 3400, firstChapterPromptMinChars: 3600, expertTargetChars: 2000, expertPromptMinChars: 1600 }),
+  lifeBook: Object.freeze({ chapterTargetChars: 4000, firstChapterTargetChars: 4400, chapterPromptMinChars: 3000, firstChapterPromptMinChars: 3200, expertTargetChars: 1000, expertPromptMinChars: 700 }),
+});
+// 분량 보강(V2): 모든 조각이 받아들여진 뒤에도 게이트 하한보다 짧은 장·판독이 있으면, 세션당 최대 2번·조각당 1번만 다시 쓴다.
+// 보강이 더 짧거나 실패하면 앞 초안을 그대로 둔다 — 분량 때문에 배달이 막히지 않는다.
+const LIFE_BOOK_LENGTH_BOOST_MAX = 2;
+// V3(인생 총운만, 6e 2026-11-08): V2 실호출에서 모델이 장 목표 4,400자의 절반(2,100~2,700자)에서 스스로 멈췄다(STOP).
+// 그래서 장 하나를 요청 2개(앞 반 a·뒤 반 b)로 나눠 각 약 2,200자를 받고, 조립 때 한 장으로 붙인다(장 10개 모양 유지).
+// 게이트 하한은 반쪽마다 1,200자이고, 분량은 치명이 아니다. 섹션 수는 장 20 + 판독 4 + 프레임 1 = 25.
+const LIFE_FORTUNE_SECTION_PLAN_VERSION = 3;
+const SECTION_TARGETS_V3 = Object.freeze({ halfTargetChars: 2200, firstHalfTargetChars: 2400, halfPromptMinChars: 1800, firstHalfPromptMinChars: 1900, halfMinChars: 1200 });
+const LIFE_FORTUNE_HALF_FOCUS_V3 = Object.freeze({
+  a: "이 장은 두 번에 나눠 씁니다. 지금은 앞 반입니다. 명식 근거와 그 근거가 삶에서 드러나는 흐름까지만 풉니다. 시기·선택·실천은 뒤 반이 맡으니 여기서 미리 정리하지 마세요.",
+  b: "이 장은 두 번에 나눠 씁니다. 지금은 뒤 반입니다. 앞 반이 풀어 둔 근거와 흐름을 이어받아, 언제 무엇을 고르고 어떻게 실천할지(시기·선택·실천)를 풉니다. 앞 반의 문장·근거 설명·결론을 되풀이하지 말고 그다음 이야기로 이어 쓰세요.",
+});
+const LIFE_BOOK_FIRST_CHAPTER_GUIDE_V2 = "일간과 월지, 지장간, 오행 분포 근거를 먼저 짚고 그 뜻을 쉬운 말로 풉니다. 이어서 이 사람이 일상에서 '맞아, 내가 이래' 하고 알아볼 생활 장면 2~3개(일을 시작하는 방식, 지칠 때의 반응, 사람을 처음 대하는 태도처럼 구체적인 순간)로 공감해 주고, 마지막에는 이 원형이 이 책의 다음 장들(성격·일·사랑·재물·시기)에서 어떻게 펼쳐지는지 한두 문장으로 이어 줍니다.";
+const LIFE_FORTUNE_FIRST_CHAPTER_GUIDE_V2 = "년주·월주·일주·시주, 일간, 월지, 지장간, 오행 분포, 신강·신약 근거를 먼저 짚고 그 뜻을 쉬운 말로 풉니다. 이어서 이 사람이 일상에서 '맞아, 내가 이래' 하고 알아볼 생활 장면 2~3개(일을 시작하는 방식, 지칠 때의 반응, 사람을 처음 대하는 태도처럼 구체적인 순간)로 공감해 주고, 마지막에는 이 중심축이 다음 장들(성격·일·재물·사랑·시기)에서 어떻게 펼쳐지는지 한두 문장으로 이어 줍니다.";
+const LIFE_BOOK_CHAPTER_PERSPECTIVES_V2 = Object.freeze([
+  "타고난 그릇의 기본 결만 봅니다. 성격의 작동, 일, 사랑, 시기의 구체적인 이야기는 뒤 장에 맡깁니다.",
+  "마음이 안에서 움직이는 방식, 곧 감정을 지키고 회복하는 습관만 봅니다.",
+  "밖으로 쓰이는 힘, 곧 재능이 일과 역할로 바뀌는 자리만 봅니다.",
+  "가까운 한 사람과의 거리, 곧 끌림과 거리 조절만 봅니다.",
+  "돈과 생활 기반이 들어오고 나가는 리듬만 봅니다.",
+  "가족 안의 역할과 주변 사람과의 경계만 봅니다.",
+  "몸이 먼저 반응하는 리듬, 곧 조후와 오행의 과부족이 몸에 드러나는 지점만 봅니다.",
+  "10년 단위로 인생의 큰 장면이 바뀌는 흐름만 봅니다.",
+  "가까운 몇 해의 해마다 달라지는 결만 봅니다.",
+  "앞 장의 내용을 되풀이하지 않고, 이 사람에게 남길 선택 기준과 마지막 문장만 씁니다.",
+]);
+const LIFE_FORTUNE_CHAPTER_PERSPECTIVES_V2 = Object.freeze([
+  "명식 전체의 중심축만 봅니다. 성격의 작동, 일, 재물, 사랑, 시기의 구체적인 이야기는 뒤 장에 맡깁니다.",
+  "마음이 안에서 움직이는 방식, 곧 방어·회복·감정 습관만 봅니다.",
+  "밖으로 쓰이는 힘, 곧 재능이 일과 직업 선택으로 바뀌는 자리만 봅니다.",
+  "돈과 생활 기반이 들어오고 나가는 리듬만 봅니다.",
+  "가까운 한 사람과의 거리, 곧 끌림과 거리 조절만 봅니다.",
+  "가족 안의 역할과 인간관계에서 지는 책임과 경계만 봅니다.",
+  "몸과 생활 리듬, 곧 조후와 오행의 과부족이 몸에 드러나는 지점만 봅니다.",
+  "현재 대운의 배경과 다음 전환의 준비만 봅니다.",
+  "가까운 5년의 해마다 달라지는 기회와 주의만 봅니다.",
+  "앞 장의 내용을 되풀이하지 않고, 삶을 조율할 순서와 선택 기준만 씁니다.",
+]);
+const EXPERT_READING_PERSPECTIVES_V2 = Object.freeze([
+  "일간과 월지가 만나는 자리 하나만 깊게 봅니다. 장에서 쓴 생활 장면은 다시 쓰지 않습니다.",
+  "기운의 과부족과 계절의 온도가 청하는 보완만 봅니다.",
+  "십성 배치가 관계와 일에서 만드는 방식만 봅니다.",
+  "대운과 세운이 겹치는 시기의 선택만 봅니다.",
+]);
+const LIFE_BOOK_V2_STYLE_RULES = Object.freeze([
+  "'결국 중요한 것은', '다시 말해', '앞서 말했듯' 같은 되풀이 연결어를 쓰지 않습니다.",
+  "다른 장과 같은 여는 문장이나 같은 맺는 문장을 되풀이하지 말고, 이 장만의 장면으로 열고 닫습니다.",
+]);
+
 function getSectionTargets(lifeFortune) {
   return lifeFortune ? SECTION_TARGETS.lifeFortune : SECTION_TARGETS.lifeBook;
 }
 
 // 15섹션(장 10 + 깊은 판독 4 + 프레임 1). 장 제목·evidenceRefs 는 품질 게이트가 검사하는 정본을 그대로 쓴다.
-function buildSectionPlan(input = {}) {
+function buildSectionPlan(input = {}, { version = LIFE_BOOK_SECTION_PLAN_VERSION } = {}) {
   const lifeFortune = isLifeFortuneInput(input);
   const targets = getSectionTargets(lifeFortune);
   const chapterTitles = lifeFortune ? LIFE_FORTUNE_CHAPTER_TITLES : LIFE_BOOK_CHAPTER_TITLES;
   const chapterGuides = lifeFortune ? LIFE_FORTUNE_CHAPTER_GUIDES : LIFE_BOOK_CHAPTER_GUIDES;
+  if (version >= 3 && lifeFortune) return buildSectionPlanV3(input, lifeFortune, targets, chapterGuides);
+  if (version >= 2) return buildSectionPlanV2(input, lifeFortune, targets, chapterGuides);
   const sections = chapterTitles.map((title, index) => ({
     id: `chapter-${index + 1}`,
     kind: "chapter",
@@ -1187,6 +1254,121 @@ function buildSectionPlan(input = {}) {
     minAdvice: 0,
   });
   return sections;
+}
+
+// V2: V1 객체에 planVersion·perspective·questionOwner 를 더하고, 1장 guide 와 장 목표 분량만 바꾼다.
+function buildSectionPlanV2(input, lifeFortune, targets, chapterGuides) {
+  const v2Targets = lifeFortune ? SECTION_TARGETS_V2.lifeFortune : SECTION_TARGETS_V2.lifeBook;
+  const chapterPerspectives = lifeFortune ? LIFE_FORTUNE_CHAPTER_PERSPECTIVES_V2 : LIFE_BOOK_CHAPTER_PERSPECTIVES_V2;
+  return buildSectionPlan(input, { version: 1 }).map((section) => {
+    if (section.kind === "chapter") {
+      const first = section.index === 0;
+      const targetChars = first ? v2Targets.firstChapterTargetChars : v2Targets.chapterTargetChars;
+      return {
+        ...section,
+        planVersion: 2,
+        guide: first ? (lifeFortune ? LIFE_FORTUNE_FIRST_CHAPTER_GUIDE_V2 : LIFE_BOOK_FIRST_CHAPTER_GUIDE_V2) : chapterGuides[section.index] || "",
+        perspective: chapterPerspectives[section.index] || "",
+        questionOwner: first,
+        targetChars,
+        promptMinChars: first ? v2Targets.firstChapterPromptMinChars : v2Targets.chapterPromptMinChars,
+        maxOutputTokens: lifeBookV2Tokens(targets.chapter.maxOutputTokens, targetChars),
+      };
+    }
+    if (section.kind === "expert") {
+      return {
+        ...section, planVersion: 2, perspective: EXPERT_READING_PERSPECTIVES_V2[section.index] || "", questionOwner: false,
+        targetChars: v2Targets.expertTargetChars,
+        promptMinChars: v2Targets.expertPromptMinChars,
+        maxOutputTokens: lifeBookV2Tokens(targets.expert.maxOutputTokens, v2Targets.expertTargetChars),
+      };
+    }
+    return { ...section, planVersion: 2 };
+  });
+}
+
+// V3: V2 장 하나를 a·b 두 반쪽 섹션으로 나눈다. 판독·프레임은 V2와 같다(planVersion 만 3).
+function buildSectionPlanV3(input, lifeFortune, targets, chapterGuides) {
+  const sections = [];
+  for (const section of buildSectionPlanV2(input, lifeFortune, targets, chapterGuides)) {
+    if (section.kind !== "chapter") {
+      sections.push({ ...section, planVersion: 3 });
+      continue;
+    }
+    const first = section.index === 0;
+    const targetChars = first ? SECTION_TARGETS_V3.firstHalfTargetChars : SECTION_TARGETS_V3.halfTargetChars;
+    for (const half of ["a", "b"]) {
+      sections.push({
+        ...section,
+        id: `${section.id}-${half}`,
+        chapterId: section.id,
+        half,
+        planVersion: 3,
+        halfFocus: LIFE_FORTUNE_HALF_FOCUS_V3[half],
+        questionOwner: first && half === "a",
+        minChars: SECTION_TARGETS_V3.halfMinChars,
+        targetChars,
+        promptMinChars: first ? SECTION_TARGETS_V3.firstHalfPromptMinChars : SECTION_TARGETS_V3.halfPromptMinChars,
+        maxOutputTokens: lifeBookV2Tokens(targets.chapter.maxOutputTokens, targetChars),
+      });
+    }
+  }
+  return sections;
+}
+
+// 세션당 웨이브 상한. V1/V2(15섹션)는 32 그대로, 섹션이 더 많은 판(V3 25섹션)은 섹션마다 2회 + 여유 2.
+function generationWaveCap(plan = []) {
+  const length = Array.isArray(plan) ? plan.length : 0;
+  return length > 15 ? Math.max(MAX_GENERATION_WAVES, length * 2 + 2) : MAX_GENERATION_WAVES;
+}
+
+// V3 뒤 반이 앞 반 문장을 다시 쓰면 검증 전에 그 문장을 뺀다(실패하면 원문 그대로).
+function dropPriorHalfRepeats(plan, sections, section, result) {
+  if (section?.half !== "b" || typeof result?.body?.content !== "string" || !result.body.content) return;
+  const prior = plan.find((row) => row.chapterId === section.chapterId && row.half === "a");
+  const priorContent = prior && sections[prior.id]?.body?.content;
+  if (typeof priorContent !== "string" || !priorContent) return;
+  try {
+    const deduped = dropRepeatedReportSentences(result.body.content, priorContent);
+    if (deduped && deduped !== result.body.content) {
+      result.body = { ...result.body, content: deduped };
+      result.chars = sectionBodyChars(section, result.body);
+    }
+  } catch {
+    // 보조 단계다.
+  }
+}
+
+// V3 배달 판단: 장 본문이 한 글자라도 있으면 배달, 완전히 비었을 때만 실패(환불). V1/V2 는 항상 false.
+function lifeBookV3HasChapterBody(plan = [], sections = {}) {
+  if (!plan.some(section => section.planVersion >= 3)) return false;
+  return plan.some(section => section.kind === "chapter" && countPaidReportBodyChars(clean(sections[section.id]?.body?.content, 20000)) > 0);
+}
+
+// V3 저하 배달용 섹션: 통과 못 한 본문 중 금지어·반복 구절이 든 것은 뺀다.
+function lifeBookV3DeliverableSections(plan = [], sections = {}) {
+  const out = {};
+  for (const [id, row] of Object.entries(sections)) {
+    const content = clean(row?.body?.content, 20000);
+    if (row && !row.ok && row.body && (hasForbiddenResultTerms(JSON.stringify(row.body)) || hasRepeatedReportPassage(content))) {
+      out[id] = { ...row, body: null };
+      continue;
+    }
+    out[id] = row;
+  }
+  return out;
+}
+
+// V3 뒤 반 프롬프트에 넣을 앞 반의 요지(요약 + 끝부분). 앞 반이 아직 없으면 빈 문자열.
+// 앞부분을 넣으면 모델이 그 문장을 그대로 베껴 시작한다(6e 실호출 2026-11-08, 뒤 반 10개 중 9개가 앞 반 첫 문장 8~14개를 복사).
+function buildPriorHalfExcerpt(plan, sections, section) {
+  if (section?.half !== "b") return "";
+  const prior = plan.find((row) => row.chapterId === section.chapterId && row.half === "a");
+  const body = prior && sections[prior.id]?.body;
+  const content = clean(body?.content, 20000);
+  if (!content) return "";
+  const summary = clean(body?.summary, 400);
+  return [summary ? `요약: ${summary}` : "", `앞 반의 마지막 부분: …${content.slice(-400)}`].filter(Boolean).join("\n");
 }
 
 // 섹션이 실제로 참조하는 루트만 추린다. 계산 JSON 전량을 15번 반복 전송하면 입력 토큰이 15배가 되고
@@ -1244,7 +1426,18 @@ function buildSectionSchema(section, lifeFortune) {
     : { chapterNumber: section.index + 1, title: section.title, summary: "", content: "", advice: [] };
 }
 
-function buildSectionPrompt(input, sajuSlice, section, digest = "") {
+// V2 전용 분량 줄. 소단락마다 최소 분량을 밝혀 "한두 문단 요약"으로 끝나지 않게 한다.
+function lifeBookV2LengthLines(section) {
+  const min = Number(section.promptMinChars) || 0;
+  if (section.kind === "frame" || !min) return [];
+  const perPart = Math.max(300, Math.floor(min / 4 / 100) * 100);
+  return [
+    `이 조각의 content 는 공백 제외 최소 ${min}자 이상, ${section.targetChars}자 안팎으로 넉넉하게 씁니다. 짧게 요약하고 끝내지 마세요.`,
+    `소단락마다 최소 ${perPart}자 이상씩 씁니다. 분량이 모자라면 같은 말을 늘리지 말고 근거 하나를 더 풀어 생활 장면과 선택 기준으로 채웁니다.`,
+  ];
+}
+
+function buildSectionPrompt(input, sajuSlice, section, digest = "", { priorHalf = "" } = {}) {
   const lifeFortune = isLifeFortuneInput(input);
   const birth = input.birthInfo || {};
   const reportName = lifeFortune ? "인생 총운 상담문" : "인생의 책 상담문";
@@ -1278,7 +1471,7 @@ function buildSectionPrompt(input, sajuSlice, section, digest = "") {
   } else if (section.kind === "expert") {
     lines.push(
       `깊은 판독 ${section.index + 1}: "${section.title}".`,
-      `content 는 공백 제외 최소 ${section.minChars}자 이상, 목표 ${section.targetChars}자 안팎으로 쓰세요.`,
+      `content 는 공백 제외 최소 ${section.promptMinChars || section.minChars}자 이상, 목표 ${section.targetChars}자 안팎으로 쓰세요.`,
       `guidance 는 현실에서 바로 쓸 수 있는 조언을 ${section.minAdvice}개 이상 담으세요.`,
       "원국·오행·조후·십성·대운·세운 중 이 판독의 관점에서만 깊게 파고들고, 다른 판독과 겹치지 마세요.",
     );
@@ -1286,9 +1479,28 @@ function buildSectionPrompt(input, sajuSlice, section, digest = "") {
     lines.push(
       `${section.index + 1}장: "${section.title}".`,
       section.guide ? `이 장에서 풀 내용: ${section.guide}` : "",
-      `summary 는 이 장의 핵심을 한 문장으로, content 는 공백 제외 최소 ${section.minChars}자 이상(목표 ${section.targetChars}자 안팎), advice 는 ${section.minAdvice}개 이상 담으세요.`,
+      `summary 는 이 장의 핵심을 한 문장으로, content 는 공백 제외 최소 ${section.promptMinChars || section.minChars}자 이상(목표 ${section.targetChars}자 안팎), advice 는 ${section.minAdvice}개 이상 담으세요.`,
       "content 는 명식 근거 → 삶에서 드러나는 의미 → 현실에서 조정할 선택의 순서로 자연스럽게 이어 주세요.",
     );
+  }
+
+  if (section.perspective) {
+    lines.push(
+      `이 조각만 맡는 관점: ${section.perspective} 다른 조각과 같은 이야기를 이 관점으로만 다시 씁니다.`,
+      ...LIFE_BOOK_V2_STYLE_RULES,
+      section.questionOwner
+        ? "상담 주제는 이 장에서만 딱 한 번 그대로 인용하고, 이 장의 관점으로 첫 답을 줍니다."
+        : "상담 주제를 다시 인용하거나 되묻지 말고, 이 조각의 관점에서 주제에 대한 답을 한 겹 더합니다.",
+      ...lifeBookV2LengthLines(section),
+    );
+  }
+
+  // V3 반쪽 전용 줄. V1/V2 섹션에는 halfFocus 가 없어 바이트가 그대로다.
+  if (section.halfFocus) {
+    lines.push(section.halfFocus);
+    if (section.half === "b" && priorHalf) {
+      lines.push("", "[이 장 앞 반은 이미 쓰였습니다 — 아래는 그 요약과 끝부분입니다. 앞 반의 문장을 다시 쓰지 말고, 끝부분 바로 다음 이야기부터 새 문장으로 시작하세요]", priorHalf);
+    }
   }
 
   if (lifeFortune && section.evidenceRefs.length) {
@@ -1359,13 +1571,36 @@ function cleanEvidenceRefs(value) {
 }
 
 function evidenceRefRoot(ref = "") {
-  return clean(ref, 160).split(".")[0] || "";
+  // `yearlyLuck[0].pillar`처럼 배열 첨자로 오는 경로도 루트는 `yearlyLuck`다(실측 2026-11-08, 9장·판독 4 전달 실패).
+  return clean(ref, 160).split(/[.[]/)[0] || "";
 }
 
 function hasValidEvidenceRefs(refs = [], minCount = 1) {
   const cleaned = cleanEvidenceRefs(refs);
   if (cleaned.length < minCount) return false;
   return cleaned.every((ref) => LIFE_FORTUNE_EVIDENCE_REF_ROOTS.includes(evidenceRefRoot(ref)));
+}
+
+// 근거 경로 정규화(모든 판, 6e). 게이트는 모든 ref 를 검사하는데(every) 모델은 `$.`·`sajuResult.` 접두를 붙이거나
+// 슬라이스에 들어 있는 sajuAuthority 를 근거로 달아 장 전체가 반려됐다. 접두를 떼고, 허용 루트가 아닌 ref
+// (sajuAuthority 포함)는 버리고, 모자라면 섹션 기본 refs 로 채운다. 허용 루트 배열은 프롬프트에 들어가므로 그대로 둔다.
+function normalizeEvidenceRefs(value, defaults = [], minCount = 0) {
+  const refs = [];
+  for (const raw of cleanEvidenceRefs(value)) {
+    let ref = raw;
+    for (let previous = ""; previous !== ref;) {
+      previous = ref;
+      ref = ref.replace(/^\$\.?/, "").replace(/^(?:sajuResult|saju)\./, "").trim();
+    }
+    if (ref && LIFE_FORTUNE_EVIDENCE_REF_ROOTS.includes(evidenceRefRoot(ref)) && !refs.includes(ref)) refs.push(ref);
+  }
+  // 모델이 근거를 하나도 못 달았으면 예전처럼 기본 refs 전부를 쓴다.
+  const target = refs.length ? minCount : Math.max(minCount, cleanEvidenceRefs(defaults).length);
+  for (const fallback of cleanEvidenceRefs(defaults)) {
+    if (refs.length >= target) break;
+    if (!refs.includes(fallback)) refs.push(fallback);
+  }
+  return refs;
 }
 
 function getLifeBookReportQualityIssues(content, input = {}, options = {}) {
@@ -1577,9 +1812,7 @@ function normalizeSectionBody(section, parsed) {
       title: clean(parsed.title, 200) || section.title,
       content: clean(parsed.content, 20000),
       guidance: toStringList(parsed.guidance),
-      evidenceRefs: cleanEvidenceRefs(parsed.evidenceRefs).length
-        ? cleanEvidenceRefs(parsed.evidenceRefs)
-        : [...section.evidenceRefs],
+      evidenceRefs: normalizeEvidenceRefs(parsed.evidenceRefs, section.evidenceRefs, 2),
     };
   }
   return {
@@ -1588,9 +1821,7 @@ function normalizeSectionBody(section, parsed) {
     summary: clean(parsed.summary, 1200),
     content: clean(parsed.content, 20000),
     advice: toStringList(parsed.advice),
-    evidenceRefs: cleanEvidenceRefs(parsed.evidenceRefs).length
-      ? cleanEvidenceRefs(parsed.evidenceRefs)
-      : [...section.evidenceRefs],
+    evidenceRefs: normalizeEvidenceRefs(parsed.evidenceRefs, section.evidenceRefs, 3),
   };
 }
 
@@ -1612,8 +1843,87 @@ function lifeBookSectionValid(section, body, input) {
     && (!lifeFortune || clean(body.title).includes(LIFE_FORTUNE_CHAPTER_TITLES[section.index]));
 }
 
+// 분량만의 결손은 배달을 막지 않는다(2026-11-08). 비었거나 구조가 깨진 결과만 실패로 둔다.
+function isLifeBookLengthOnlyIssue(issue) {
+  return issue === "total_content_too_long" || /^(chapter|expert_reading)_\d+_content_too_short$/.test(issue);
+}
+
+function lifeBookLengthBoostTarget(plan, sections, preserved = new Set()) {
+  if (Object.values(sections).filter(row => row?.lengthBoost).length >= LIFE_BOOK_LENGTH_BOOST_MAX) return null;
+  const candidates = plan
+    .filter(section => Number(section.planVersion) >= 2 && section.kind !== "frame" && !preserved.has(section.id))
+    .map(section => ({ section, row: sections[section.id] }))
+    .filter(({ section, row }) => row?.ok && !row.needsRepair && !row.lengthBoost
+      && Number(row.attempts || 0) < LIFE_BOOK_MAX_SECTION_ATTEMPTS && sectionBodyChars(section, row.body) < section.minChars)
+    .map(({ section, row }) => ({ id: section.id, ratio: sectionBodyChars(section, row.body) / section.minChars }))
+    .sort((a, b) => a.ratio - b.ratio);
+  return candidates[0]?.id || null;
+}
+
 function lifeBookLengthOptions(plan, sections) {
-  return { acceptUsableDrafts: true, lengthAcceptedIds: new Set(plan.filter(section => sections[section.id]?.ok).map(section => section.id)) };
+  const ids = new Set(plan.filter(section => sections[section.id]?.ok).map(section => section.id));
+  // V3: 두 반쪽이 다 ok 일 때만 조립된 장 id(chapter-N)도 길이 통과로 본다.
+  for (const section of plan) {
+    if (!section.chapterId || ids.has(section.chapterId)) continue;
+    const halves = plan.filter(row => row.chapterId === section.chapterId);
+    if (halves.every(row => sections[row.id]?.ok)) ids.add(section.chapterId);
+  }
+  return { acceptUsableDrafts: true, lengthAcceptedIds: ids };
+}
+
+// 장 조립. V1/V2는 장 섹션 하나가 장 하나, V3는 같은 chapterId 의 a·b 반쪽을 이어 붙여 장 하나로 만든다.
+// 근거 경로는 저장된 예전 본문도 통과하도록 조립 때 다시 정규화한다.
+function assembleChapterBodies(plan, sections) {
+  const groups = [];
+  const byKey = new Map();
+  for (const section of plan) {
+    if (section.kind !== "chapter") continue;
+    const key = section.chapterId || section.id;
+    if (!byKey.has(key)) {
+      const group = { key, index: section.index, rows: [] };
+      byKey.set(key, group);
+      groups.push(group);
+    }
+    byKey.get(key).rows.push(section);
+  }
+  return groups.map((group) => {
+    const parts = group.rows
+      .map((section) => ({ section, body: sections[section.id]?.body }))
+      .filter((row) => row.body);
+    if (!parts.length) return null;
+    const head = parts[0];
+    if (parts.length === 1) {
+      return {
+        ...head.body,
+        evidenceRefs: normalizeEvidenceRefs(head.body.evidenceRefs, head.section.evidenceRefs, 3),
+        chapterNumber: group.index + 1,
+      };
+    }
+    let content = clean(head.body.content, 20000);
+    for (const part of parts.slice(1)) {
+      let next = clean(part.body.content, 20000);
+      try {
+        const deduped = dropRepeatedReportSentences(next, content);
+        if (deduped) next = deduped;
+      } catch {
+        // 반쪽 사이 중복 제거는 보조 단계다.
+      }
+      if (next) content = content ? `${content}
+
+${next}` : next;
+    }
+    const advice = [...new Set(parts.flatMap((part) => Array.isArray(part.body.advice) ? part.body.advice : []))].slice(0, 12);
+    const refs = parts.flatMap((part) => Array.isArray(part.body.evidenceRefs) ? part.body.evidenceRefs : []);
+    return {
+      ...head.body,
+      title: clean(head.body.title, 120) || clean(parts[1].body.title, 120) || head.section.title,
+      summary: clean(head.body.summary, 600) || clean(parts[1].body.summary, 600),
+      content,
+      advice,
+      evidenceRefs: normalizeEvidenceRefs(refs, head.section.evidenceRefs, 3),
+      chapterNumber: group.index + 1,
+    };
+  }).filter(Boolean);
 }
 
 // 앞 섹션의 첫 문장만 모아 장 간 중복 서사(duplicate_narrative)를 억제한다.
@@ -1634,14 +1944,14 @@ function assembleReport(input, plan, sections) {
   const lifeFortune = isLifeFortuneInput(input);
   const birth = input.birthInfo || {};
   const frame = sections.frame?.body || null;
-  const chapters = plan
-    .filter((section) => section.kind === "chapter")
-    .map((section) => sections[section.id]?.body ? { ...sections[section.id].body, chapterNumber: section.index + 1 } : null)
-    .filter(Boolean);
+  const chapters = assembleChapterBodies(plan, sections);
   const expertReadings = plan
     .filter((section) => section.kind === "expert")
-    .map((section) => sections[section.id]?.body)
+    .map((section) => sections[section.id]?.body
+      ? { ...sections[section.id].body, evidenceRefs: normalizeEvidenceRefs(sections[section.id].body.evidenceRefs, section.evidenceRefs, 2) }
+      : null)
     .filter(Boolean);
+  if (plan.some((section) => section.planVersion >= 2)) dedupeReportBodies(plan, chapters, expertReadings);
   return {
     title: clean(frame?.title, 120) || (lifeFortune ? "인생 총운" : "인생의 책"),
     subtitle: clean(frame?.subtitle, 300) || (lifeFortune
@@ -1662,6 +1972,38 @@ function assembleReport(input, plan, sections) {
   };
 }
 
+// V2 조립: 앞 장·판독과 같은 문장을 뒤쪽에서 지운다. 실패하거나 섹션 하한 밑으로 줄면 원문을 그대로 둔다.
+// 저장된 섹션 본문은 건드리지 않는다(장은 assembleReport 가 이미 복사본을 만들고, 판독은 여기서 복사한다).
+function dedupeReportBodies(plan, chapters, expertReadings) {
+  const minOf = (kind, index) => plan
+    .filter((section) => section.kind === kind && section.index === index)
+    .reduce((sum, section) => sum + Number(section.minChars || 0), 0);
+  let prior = "";
+  const visit = (body, kind, index) => {
+    const original = typeof body?.content === "string" ? body.content : "";
+    if (!original) return;
+    if (prior) {
+      try {
+        const deduped = dropRepeatedReportSentences(original, prior);
+        const minChars = minOf(kind, index);
+        if (deduped && deduped !== original
+          && (countPaidReportBodyChars(deduped) >= minChars || countPaidReportBodyChars(original) < minChars)) {
+          body.content = deduped;
+        }
+      } catch {
+        // 중복 제거는 보조 단계다. 실패해도 원문으로 전달한다.
+      }
+    }
+    prior += `\n\n${body.content}`;
+  };
+  chapters.forEach((chapter) => visit(chapter, "chapter", Number(chapter.chapterNumber) - 1));
+  expertReadings.forEach((reading, index) => {
+    const copy = { ...reading };
+    visit(copy, "expert", index);
+    expertReadings[index] = copy;
+  });
+}
+
 function reportTotalContentChars(report) {
   const chapters = Array.isArray(report?.chapters) ? report.chapters : [];
   const readings = Array.isArray(report?.expertReadings) ? report.expertReadings : [];
@@ -1678,7 +2020,16 @@ function mapIssuesToSections(issues = [], plan = [], sections = {}) {
     const issue = String(raw || "");
     const chapterMatch = issue.match(/^chapter_(\d+)_/);
     if (chapterMatch) {
-      targets.add(`chapter-${Number(chapterMatch[1])}`);
+      // V3는 장 하나가 반쪽 둘이다. 통과 못 한 반쪽, 둘 다 통과면 더 짧은 반쪽을 다시 쓴다.
+      const index = Number(chapterMatch[1]) - 1;
+      const owners = plan.filter((section) => section.kind === "chapter" && section.index === index);
+      if (owners.length > 1) {
+        const pick = owners.find((section) => !sections[section.id]?.ok)
+          || [...owners].sort((a, b) => Number(sections[a.id]?.chars || 0) - Number(sections[b.id]?.chars || 0))[0];
+        targets.add(pick.id);
+      } else {
+        targets.add(owners[0]?.id || `chapter-${Number(chapterMatch[1])}`);
+      }
       continue;
     }
     const expertMatch = issue.match(/^expert_reading_(\d+)_/);
@@ -2213,7 +2564,7 @@ async function restoreAccessBeforeGenerationFailure({ request, env, auth, userId
 // 웨이브 단일비행. 인메모리 startLocks 는 아이솔레이트 단위라 다중 아이솔레이트에서 무효 —
 // 진짜 방어선은 이 DB 락이다(계층이 다르므로 중첩이 아니다).
 // 획득 실패는 PROVIDER_DUPLICATE_BLOCKED 로 남긴다(기존 클라 처리·회귀 가드 핀 보존).
-async function reserveProviderCallOnce({ userId, sessionId, idempotencyKey, route }) {
+async function reserveProviderCallOnce({ userId, sessionId, idempotencyKey, route, maxWaves = MAX_GENERATION_WAVES }) {
   const now = Date.now();
   const lockToken = randomToken(12);
   const staleBefore = new Date(now - SECTION_LOCK_TTL_MS).toISOString();
@@ -2223,7 +2574,7 @@ async function reserveProviderCallOnce({ userId, sessionId, idempotencyKey, rout
       userId: clean(userId),
       idempotencyKey,
       status: { $in: ["generating", "partial"] },
-      $and: [{ $or: [{ "llmMeta.waveCount": { $exists: false } }, { "llmMeta.waveCount": { $lt: MAX_GENERATION_WAVES } }] }],
+      $and: [{ $or: [{ "llmMeta.waveCount": { $exists: false } }, { "llmMeta.waveCount": { $lt: maxWaves } }] }],
       $or: [
         { "llmMeta.lockedAt": { $exists: false } },
         { "llmMeta.lockedAt": null },
@@ -2626,7 +2977,11 @@ async function handleStart(request, env, route = "/api/life-book-ai/generate", r
 
     const sessionId = existing?.id || `lbai_${clean(auth.userId).slice(-8)}_${Date.now().toString(36)}_${randomToken(8)}`;
     const now = new Date();
-    const sectionPlan = buildSectionPlan(normalized.input);
+    const sectionPlan = buildSectionPlan(normalized.input, {
+      version: isLifeFortuneInput(normalized.input) ? LIFE_FORTUNE_SECTION_PLAN_VERSION : LIFE_BOOK_SECTION_PLAN_VERSION,
+    });
+    // 저장된 판(재개 세션)이 있으면 그 길이로 웨이브 상한을 잡는다. V1/V2 는 32 그대로.
+    let waveCap = generationWaveCap(Array.isArray(existing?.llmMeta?.plan) && existing.llmMeta.plan.length ? existing.llmMeta.plan : sectionPlan);
     const seed = {
       id: sessionId,
       userId: clean(auth.userId),
@@ -2721,13 +3076,14 @@ async function handleStart(request, env, route = "/api/life-book-ai/generate", r
       }
       const plan = Array.isArray(doc?.llmMeta?.plan) && doc.llmMeta.plan.length ? doc.llmMeta.plan : sectionPlan;
       const storedSections = doc?.llmMeta?.sections && typeof doc.llmMeta.sections === "object" ? { ...doc.llmMeta.sections } : {};
+      waveCap = generationWaveCap(plan);
       const waveCount = Number(doc?.llmMeta?.waveCount || 0);
-      if (waveCount >= MAX_GENERATION_WAVES) {
+      if (waveCount >= waveCap) {
         const error = Object.assign(new Error("Generation wave budget exhausted."), { code: "GENERATION_STALLED" });
         throw error;
       }
 
-      const lock = await reserveProviderCallOnce({ userId: auth.userId, sessionId, idempotencyKey, route }).catch(error => {
+      const lock = await reserveProviderCallOnce({ userId: auth.userId, sessionId, idempotencyKey, route, maxWaves: waveCap }).catch(error => {
         if (error?.code === "PROVIDER_DUPLICATE_BLOCKED") throw error;
         throw resultStorageUnavailable(sessionId);
       });
@@ -2741,9 +3097,15 @@ async function handleStart(request, env, route = "/api/life-book-ai/generate", r
       try {
         supportRecoveryGenerationOptions(recovery);
         assertSupportRecoveryPreserved(recovery, Object.entries(sections).map(([key, row]) => ({ key, body: row.body })));
-        const blocked = plan.find(section => !preserved.has(section.id) && sections[section.id]?.failure && !sections[section.id]?.ok);
-        if (blocked && (sections[blocked.id].failure.retryable === false || Number(sections[blocked.id].attempts || 0) >= LIFE_BOOK_MAX_SECTION_ATTEMPTS)) {
-          throw Object.assign(new Error(sections[blocked.id].failure.message), sections[blocked.id].failure, { code: "LLM_PROVIDER_UNAVAILABLE", retryable: false });
+        const blockedRows = plan.filter(section => !preserved.has(section.id) && sections[section.id]?.failure && !sections[section.id]?.ok
+          && (sections[section.id].failure.retryable === false || Number(sections[section.id].attempts || 0) >= LIFE_BOOK_MAX_SECTION_ATTEMPTS));
+        if (blockedRows.length) {
+          // V3 는 장 본문이 하나라도 있으면 그 섹션만 포기하고 나머지를 이어 쓴다. 본문이 없으면 예전처럼 실패(환불).
+          if (!lifeBookV3HasChapterBody(plan, sections)) {
+            const blocked = blockedRows[0];
+            throw Object.assign(new Error(sections[blocked.id].failure.message), sections[blocked.id].failure, { code: "LLM_PROVIDER_UNAVAILABLE", retryable: false });
+          }
+          for (const row of blockedRows) sections[row.id] = { ...sections[row.id], attempts: LIFE_BOOK_MAX_SECTION_ATTEMPTS, needsRepair: false };
         }
         const pending = plan.filter((section) => {
           if (preserved.has(section.id)) return false;
@@ -2784,7 +3146,9 @@ async function handleStart(request, env, route = "/api/life-book-ai/generate", r
               ? { ...section, targetChars: Math.round(section.targetChars * 1.25) }
               : section;
             const digest = buildSectionDigest(plan, sections, section.id);
-            const prompt = buildSectionPrompt(normalized.input, pickSajuSlice(sajuResult, section.evidenceRefs), boosted, digest);
+            const prompt = buildSectionPrompt(normalized.input, pickSajuSlice(sajuResult, section.evidenceRefs), boosted, digest, {
+              priorHalf: buildPriorHalfExcerpt(plan, sections, section),
+            });
             const result = await runWithAiLocale(storedAiLocale(lock.doc), async () => generateSectionOnce(env, boosted, prompt, {
               consultationType,
               answerVoice: pinAnswerVoice(lock.doc?.llmMeta, env),
@@ -2800,6 +3164,7 @@ async function handleStart(request, env, route = "/api/life-book-ai/generate", r
               },
               logContext: { ...baseLogContext, sectionId: section.id, attempt },
             }));
+            dropPriorHalfRepeats(plan, sections, section, result);
             const valid = row => row?.ok && lifeBookSectionValid(section, row.body, normalized.input)
               && !hasRepeatedReportPassage([...Object.entries(sections).filter(([id, value]) => id !== section.id && value.ok).map(([, value]) => value.body?.content || ""), row.body?.content || ""].join("\n"));
             const priorValid = stored?.ok && lifeBookSectionValid(section, stored.body, normalized.input);
@@ -2807,11 +3172,19 @@ async function handleStart(request, env, route = "/api/life-book-ai/generate", r
             result.ok = Boolean(valid(result));
             const checkpoint = keepPrior
               ? { ...stored, attempts: attempt, lengthRepair, needsRepair: false }
-              : { id: section.id, kind: section.kind, ok: result.ok, body: result.body, chars: result.chars, attempts: attempt, lengthRepair, provider: result.provider, model: result.model, error: result.error, failure: result.failure || null, needsRepair: false };
+              : { id: section.id, kind: section.kind, ok: result.ok, body: result.body, chars: result.chars, attempts: attempt, lengthRepair, provider: result.provider, model: result.model, error: result.error, failure: result.failure || null, needsRepair: false, ...(stored?.lengthBoost ? { lengthBoost: true } : {}) };
             assertSupportRecoveryPreserved(recovery, Object.entries({ ...sections, [section.id]: checkpoint }).map(([key, row]) => ({ key, body: row.body })));
             await saveLifeBookState({ userId: auth.userId, id: sessionId, lockToken: lock.lockToken, values: { [`llmMeta.sections.${section.id}`]: checkpoint } });
             sections[section.id] = checkpoint;
             if (result.failure && !keepPrior) {
+              const terminal = !result.failure.retryable || attempt >= LIFE_BOOK_MAX_SECTION_ATTEMPTS;
+              if (terminal && lifeBookV3HasChapterBody(plan, sections)) {
+                // V3: 이 섹션만 포기하고(시도 소진) 나머지 섹션과 배달을 이어 간다.
+                const given = { ...checkpoint, attempts: LIFE_BOOK_MAX_SECTION_ATTEMPTS };
+                await saveLifeBookState({ userId: auth.userId, id: sessionId, lockToken: lock.lockToken, values: { [`llmMeta.sections.${section.id}`]: given } });
+                sections[section.id] = given;
+                return given;
+              }
               throw Object.assign(new Error(result.failure.message), result.failure, {
                 code: "LLM_PROVIDER_UNAVAILABLE", retryable: result.failure.retryable && attempt < LIFE_BOOK_MAX_SECTION_ATTEMPTS,
               });
@@ -2874,6 +3247,12 @@ async function handleStart(request, env, route = "/api/life-book-ai/generate", r
           }, issues.length ? "warn" : "info");
         }
 
+        // V2 분량 보강: 다른 결손이 없을 때만, 게이트 하한보다 짧은 조각 하나를 다음 웨이브에서 다시 쓴다.
+        if (assembled && !repairTargets.length) {
+          const boost = lifeBookLengthBoostTarget(plan, sections, preserved);
+          if (boost) sections[boost] = { ...sections[boost], needsRepair: true, repairKind: "lengthBoost", lengthBoost: true };
+        }
+
         const stillPending = plan.filter((section) => {
           if (preserved.has(section.id)) return false;
           const stored = sections[section.id];
@@ -2884,7 +3263,7 @@ async function handleStart(request, env, route = "/api/life-book-ai/generate", r
         const completedCount = plan.filter((section) => sections[section.id]?.ok).length;
         assertSupportRecoveryPreserved(recovery, Object.entries(sections).map(([key, row]) => ({ key, body: row.body })));
 
-        if (stillPending.length && (lock.waveCount < MAX_GENERATION_WAVES)) {
+        if (stillPending.length && (lock.waveCount < waveCap)) {
           const partial = await saveLifeBookState({ userId: auth.userId, id: sessionId, lockToken: lock.lockToken,
               values: {
                 status: "partial",
@@ -2917,13 +3296,29 @@ async function handleStart(request, env, route = "/api/life-book-ai/generate", r
         }
 
         if (finished) {
-          const finalReport = assembled || assembleReport(normalized.input, plan, sections);
-          const finalText = JSON.stringify(finalReport);
-          const finalIssues = issues.length ? issues : getLifeBookReportQualityIssues(finalText, normalized.input, lifeBookLengthOptions(plan, sections));
-          const totalChars = reportTotalContentChars(finalReport);
-          const degraded = false;
+          let finalReport = assembled || assembleReport(normalized.input, plan, sections);
+          let finalText = JSON.stringify(finalReport);
+          let finalIssues = issues.length ? issues : getLifeBookReportQualityIssues(finalText, normalized.input, lifeBookLengthOptions(plan, sections));
+          let degraded = false;
 
-          if (finalIssues.some(issue => issue !== "total_content_too_long")) {
+          // V3: 분량 밖의 결손이 남아도 장 본문이 있으면 배달한다. 금지어가 든 미통과 본문만 빼고 다시 조립한다.
+          if (finalIssues.some(issue => !isLifeBookLengthOnlyIssue(issue)) && lifeBookV3HasChapterBody(plan, sections)) {
+            const deliverable = lifeBookV3DeliverableSections(plan, sections);
+            if (lifeBookV3HasChapterBody(plan, deliverable)) {
+              const report = assembleReport(normalized.input, plan, deliverable);
+              const text = JSON.stringify(report);
+              const reportIssues = getLifeBookReportQualityIssues(text, normalized.input, lifeBookLengthOptions(plan, deliverable));
+              if (!reportIssues.includes("forbidden_terms") && !reportIssues.includes("report_json_missing") && !reportIssues.includes("empty_result")) {
+                finalReport = report;
+                finalText = text;
+                finalIssues = reportIssues;
+                degraded = reportIssues.some(issue => !isLifeBookLengthOnlyIssue(issue));
+              }
+            }
+          }
+          const totalChars = reportTotalContentChars(finalReport);
+
+          if (!degraded && finalIssues.some(issue => !isLifeBookLengthOnlyIssue(issue))) {
             const error = new Error(`Life book result quality check failed: ${finalIssues.join(", ") || "empty_result"}`);
             error.code = isLifeFortuneInput(normalized.input) ? "LIFE_FORTUNE_REPORT_INVALID" : "LLM_QUALITY_CHECK_FAILED";
             throw error;
@@ -3036,7 +3431,7 @@ async function handleStart(request, env, route = "/api/life-book-ai/generate", r
       }
       const failedAt = new Date().toISOString();
       const failedOwner = error.lifeBookFailureClaimed || await LifeBookAiConsultation.findOneAndUpdate(
-        { id: sessionId, userId: clean(auth.userId), status: { $in: ["generating", "partial"] }, "llmMeta.lockedAt": null, "llmMeta.waveCount": { $gte: MAX_GENERATION_WAVES } },
+        { id: sessionId, userId: clean(auth.userId), status: { $in: ["generating", "partial"] }, "llmMeta.lockedAt": null, "llmMeta.waveCount": { $gte: waveCap } },
         { $set: { status: "generation_failed", "llmMeta.refundEligibleAt": failedAt,
           ...(existing?.llmMeta?.supportRecovery ? { "llmMeta.supportRecovery.active": false, "llmMeta.supportRecovery.finishedAt": failedAt } : {}), generationError: {
           code: clean(error?.code || "LLM_GENERATION_FAILED", 80),
@@ -3117,6 +3512,8 @@ export const __lifeBookAiTestUtils = {
   lifeBookSectionValid,
   sectionBodyChars,
   lifeBookLengthOptions,
+  isLifeBookLengthOnlyIssue,
+  lifeBookLengthBoostTarget,
   normalizeConsultationInput,
   extractTitle,
   extractKeywords,
@@ -3130,6 +3527,13 @@ export const __lifeBookAiTestUtils = {
   reportTotalContentChars,
   scrubBirthValues,
   scrubSectionBody,
+  generationWaveCap,
+  buildPriorHalfExcerpt,
+  normalizeEvidenceRefs,
+  normalizeSectionBody,
+  lifeBookV3HasChapterBody,
+  dropPriorHalfRepeats,
+  LIFE_FORTUNE_SECTION_PLAN_VERSION,
 };
 
 // Internal cron continuation: only a stored owner/id is accepted, never client input.

@@ -52,6 +52,7 @@ import { buildZiweiPersonalityContextLines } from "../lib/ziwei-personality-cont
 import { buildZiweiBusinessBasis, formatZiweiBusinessLines } from "../lib/ziwei-derived-signals.js";
 
 import { countPaidReportBodyChars, hasRepeatedReportPassage } from "../lib/paid-report-quality.js";
+import { ZIWEI_AI_GROUP_PLAN_VERSION, ZIWEI_V2_GROUP_SPECS, ZIWEI_V2_NO_QUESTION_LINE, ZIWEI_V2_NO_QUESTION_RULE, ZIWEI_V2_SECTION_RULES, buildZiweiFallbackMeta, detectZiweiSoftIssues, salvageZiweiGroup, scrubZiweiSoftIssues, ziweiAiDeliveryV2Enabled, ziweiSoftIssueHint } from "../lib/ziwei-ai-delivery-v2.js";
 import { resultStorageUnavailable, resultStorageFailurePayload } from "../lib/result-storage.js";
 import { isStoredPaidResultRevoked, neverPaidExpiredOrder } from "../lib/paid-result-revocation.js";
 
@@ -1409,7 +1410,8 @@ function describeZiweiGroundingIssues(issues, chart) {
 
 // 모든 그룹 프롬프트가 공유하는 머리말. 명반 데이터와 계산 확정값, 그리고 주제 특화 블록이 여기 들어간다.
 // 그룹마다 이 헤더가 반복되므로 입력 토큰은 늘지만(명반 JSON 몫), 출력 토큰 총량은 그대로다.
-function buildConsultationHeaderLines(input, chart) {
+// options.omitQuestion(판 2 질문 비담당 묶음·메타)만 질문 줄을 바꾼다. 기본값은 판 1과 같은 바이트다.
+function buildConsultationHeaderLines(input, chart, options = {}) {
   const birth = input.birthInfo || {};
   const domain = resolveZiweiDomainFromFocus(input.focusArea, input.userQuestion);
   const domainTemplate = getZiweiPromptTemplate(domain);
@@ -1423,7 +1425,7 @@ function buildConsultationHeaderLines(input, chart) {
     `달력: ${birth.calendarType === "lunar" ? "음력" : "양력"}`,
     `윤달 여부: ${birth.isLeapMonth ? "윤달" : "아님"}`,
     `상담 주제: ${input.topic}`,
-    `현재 가장 궁금한 질문: ${input.userQuestion || "자미두수 명반의 전체 흐름을 알고 싶습니다."}`,
+    options.omitQuestion ? ZIWEI_V2_NO_QUESTION_LINE : `현재 가장 궁금한 질문: ${input.userQuestion || "자미두수 명반의 전체 흐름을 알고 싶습니다."}`,
     Number.isFinite(Number(chart?.yearlyLuck?.year)) ? `기준 연도: 올해 ${chart.yearlyLuck.year}년 · 내년 ${Number(chart.yearlyLuck.year) + 1}년 ('올해'·'내년'은 이 연도로만 씁니다)` : "",
     "",
     "[계산된 자미두수 명반 데이터]",
@@ -1451,11 +1453,11 @@ function buildBusinessBasisLines(chart, sectionKeys) {
 }
 
 // 전 섹션 공통 규칙. 한자는 서버(worker/lib/ziwei-hanja.js)가 붙이므로 여기서는 쓰지 못하게 막는다.
-function buildSharedSectionRuleLines(chart) {
+function buildSharedSectionRuleLines(chart, options = {}) {
   return [
     "공통 작성 규칙:",
     "- 각 body는 완결된 상담 문단으로 작성하고, '① 한 줄 핵심(은유) → ② 근거(궁·별·강약·사화·삼방사정) → ③ 지금 실행할 행동 조언' 3단으로 자연스럽게 이어 쓰세요. 다만 3단 골격이 기계적으로 드러나지 않게 하고, 섹션마다 도입 은유와 첫 문장 문형을 서로 다르게 바꿔 같은 리듬이 반복되지 않게 하세요. '~은 ~를 보여줍니다/의미합니다'류의 설명 투나 동일한 접속·어미 패턴을 연달아 쓰지 마세요.",
-    "- 사용자의 상담 주제와 자유 질문을 먼저 붙잡고, 그 질문에 직접 닿는 궁과 별을 우선순위로 삼으세요.",
+    options.omitQuestion ? ZIWEI_V2_NO_QUESTION_RULE : "- 사용자의 상담 주제와 자유 질문을 먼저 붙잡고, 그 질문에 직접 닿는 궁과 별을 우선순위로 삼으세요.",
     "- 리딩의 논리 사슬을 문장에 드러내세요: 명궁 주성과 강약 → 신궁이 실어 주는 후천의 힘 → 해당 주제의 궁 → 삼방사정 회조 → 사화의 비입·자화 순으로 근거를 이어 말합니다.",
     "- 별 하나만 보고 길흉을 단정하지 마세요. 6길성(좌보·우필·문창·문곡·천괴·천월)의 부조와 6흉성(경양·타라·화성·영성·지공·지겁)의 충파를 명반에 실제로 있는 것만 근거로 함께 녹이세요.",
     "- 사전식 별 정의를 나열하지 마세요('자미는 제왕의 별입니다' 같은 문장 금지). 그 근거가 이 사람의 삶에서 어떤 성향·사건 패턴·선택 습관으로 나타나는지로 풀어냅니다.",
@@ -1526,17 +1528,20 @@ function buildGroupReasoningRuleLines(sectionKeys, charTargets = {}) {
  * group.sections 가 전체 18개면 예전과 동일한 단일 프롬프트가 되고(= buildFirstPrompt),
  * 그보다 작으면 그 그룹만 쓰게 하는 병렬 생성용 프롬프트가 된다.
  */
-function buildSectionGroupPrompt(input, chart, group) {
+// plan(판 2)을 넘기면 그 판의 묶음 구성·섹션 규칙을 쓰고, 질문 비담당 묶음에서는 질문 줄을 뺀다.
+function buildSectionGroupPrompt(input, chart, group, plan = null) {
   const birth = input.birthInfo || {};
   const sectionKeys = group.sections;
   const charTargets = buildSectionCharTargets(group);
-  const otherSections = SECTION_GROUP_SPECS
+  const promptOptions = plan ? { omitQuestion: !group.questionOwner } : {};
+  const sectionRules = plan ? { ...SECTION_RULES, ...plan.rules } : SECTION_RULES;
+  const otherSections = (plan ? plan.specs : SECTION_GROUP_SPECS)
     .filter((spec) => spec.id !== group.id)
     .flatMap((spec) => spec.sections)
     .filter((key) => !sectionKeys.includes(key));
 
   return [
-    ...buildConsultationHeaderLines(input, chart),
+    ...buildConsultationHeaderLines(input, chart, promptOptions),
     "",
     ...buildBusinessBasisLines(chart, sectionKeys),
     "",
@@ -1557,10 +1562,10 @@ function buildSectionGroupPrompt(input, chart, group) {
     ...sectionKeys.map((key) => `  · ${key}: 최소 ${Number(charTargets[key] || 0).toLocaleString("ko-KR")}자`),
     "- 분량을 채우려고 같은 말을 바꿔 쓰지 마세요. 명반에서 아직 인용하지 않은 별·궁·강약 표기·사화 배치를 새로 끌어와 근거를 더하고, 그 근거가 현실에서 어떤 장면으로 나타나는지 구체적인 예를 들어 늘리세요. 앞 섹션이 이미 설명한 성향은 한 줄로만 연결하고 다시 정의하지 마세요.",
     "",
-    ...buildSharedSectionRuleLines(chart),
+    ...buildSharedSectionRuleLines(chart, promptOptions),
     "",
     "섹션별 작성 규칙:",
-    ...sectionKeys.map((key) => (SECTION_RULES[key] ? `- ${SECTION_RULES[key]}` : "")).filter(Boolean),
+    ...sectionKeys.map((key) => (sectionRules[key] ? `- ${sectionRules[key]}` : "")).filter(Boolean),
     "",
     // 위 [계산 확정값]이 그대로 사용자 화면의 근거 패널로도 나간다. 본문이 그 표를 벗어나지 않게 못 박는다.
     ...buildEvidenceRuleLines(buildZiweiAnalysisBasis(chart, birth), { includeFactTable: false }),
@@ -1610,9 +1615,9 @@ function buildMetaOutputExample(input = {}) {
     };
 }
 
-function buildMetaPrompt(input, chart) {
+function buildMetaPrompt(input, chart, options = {}) {
   return [
-    ...buildConsultationHeaderLines(input, chart),
+    ...buildConsultationHeaderLines(input, chart, options),
     "",
     "반드시 아래 JSON 구조만 반환해 주세요. JSON 앞뒤에 설명, 마크다운 코드블록, 인사말을 붙이지 마세요.",
     JSON.stringify(buildMetaOutputExample(input)),
@@ -1956,6 +1961,138 @@ async function generateCheckpointedZiwei(env, { input, chart, logContext, checkp
   return { text, complete: !metaPending && SECTION_GROUP_SPECS.every(accepted), meta: { groups, attempts, reportMeta: meta, bodyChars: chars } };
 }
 
+// ───────── 판 2 (llmMeta.groupPlanVersion = 2, 새 상담만) ─────────
+// 판 1과 다른 점: 첫 묶음이 본성·공감과 질문의 답을 맡고 질문 원문은 그 묶음만 받는다(P5),
+// 시도를 다 쓴 묶음은 환불 대신 반복을 걷어 내 배달한다(P1, 본문이 하나도 없을 때만 실패),
+// 메타 소개는 2회까지 부르고 그래도 없으면 결정적 소개를 쓴다(P2), 말투 이탈·질문 재인용은 1회 힌트 수리한다(P4).
+const ZIWEI_V2_PLAN = Object.freeze({ specs: ZIWEI_V2_GROUP_SPECS, rules: ZIWEI_V2_SECTION_RULES });
+const ZIWEI_META_MAX_ATTEMPTS = 2;
+
+function ziweiGroupSectionsFromText(group, text) {
+  if (!text) return {};
+  const parsed = salvageTruncatedJsonObject(text)?.sections || parseSectionsFromGroupText(text);
+  const source = Object.fromEntries(group.sections.filter(key => typeof parsed?.[key]?.body === "string").map(key => [key, { ...parsed[key], title: clean(parsed[key].title) || key, body: normalizeNarrativeBody(parsed[key].body) }]));
+  return { source, next: trimPaidReportSections(source, Math.ceil(group.targetChars * SECTION_GROUP_MAX_OVER_TARGET)) };
+}
+
+async function generateCheckpointedZiweiV2(env, { input, chart, logContext, checkpoint, groups = {}, attempts = {}, meta = {}, rawResponses = {}, answerVoice }) {
+  groups = { ...groups }; attempts = { ...attempts }; rawResponses = { ...rawResponses };
+  const specs = ZIWEI_V2_GROUP_SPECS;
+  const question = clean(input.userQuestion);
+  const merge = () => Object.assign({}, ...specs.map(row => groups[row.id] || {}));
+  const priorFor = id => ziweiSectionBody(Object.assign({}, ...specs.filter(row => row.id !== id).map(row => groups[row.id] || {})));
+  const chars = value => countPaidReportBodyChars(ziweiSectionBody(value || {}));
+  const valid = (group, value) => Object.keys(value || {}).some(key => group.sections.includes(key)
+    && typeof value[key]?.body === 'string' && countPaidReportBodyChars(value[key].body) >= 40)
+    && !hasRepeatedReportPassage(ziweiSectionBody(value)) && !collectZiweiCrossSectionDuplicates(value).length;
+  const soft = (group, value) => detectZiweiSoftIssues(value, { questionOwner: group.questionOwner === true, question });
+  const missingSections = group => group.sections.filter(key => typeof groups[group.id]?.[key]?.body !== 'string'
+    || countPaidReportBodyChars(groups[group.id][key].body) < 40);
+  const needsEmptyRescue = group => Number(attempts[group.id] || 0) >= ZIWEI_GROUP_MAX_ATTEMPTS
+    && !attempts[`${group.id}:emptyRescue`] && missingSections(group).length > 0;
+  const settled = group => Boolean(attempts[`${group.id}:salvaged`] || attempts[`${group.id}:skipped`]);
+  const exhausted = group => Number(attempts[group.id] || 0) >= ZIWEI_GROUP_MAX_ATTEMPTS;
+  const accepted = group => !needsEmptyRescue(group) && (settled(group) || (valid(group, groups[group.id])
+    && (exhausted(group) || (chars(groups[group.id]) >= group.minChars && !soft(group, groups[group.id]).length))));
+  // 시도를 다 쓰고도 쓸 수 없는 묶음: 저장본과 마지막 응답 중 반복을 걷어 낸 뒤 더 긴 쪽을 배달한다.
+  const salvage = async group => {
+    const prior = priorFor(group.id);
+    const drafts = [groups[group.id], ziweiGroupSectionsFromText(group, rawResponses[group.id]).next].filter(Boolean)
+      .map(draft => salvageZiweiGroup(draft, group.sections, prior)).sort((a, b) => chars(b) - chars(a));
+    if (drafts[0] && Object.keys(drafts[0]).length) { groups[group.id] = drafts[0]; attempts[`${group.id}:salvaged`] = 1; }
+    else { delete groups[group.id]; attempts[`${group.id}:skipped`] = 1; }
+    logZiweiAi("Group salvaged", { ...logContext, sectionGroup: group.id, skipped: Boolean(attempts[`${group.id}:skipped`]), bodyChars: chars(groups[group.id]) }, "warn");
+    await checkpoint({ groups, attempts, meta, rawResponses });
+  };
+  let group = specs.find(row => !accepted(row));
+  while (group && exhausted(group) && !needsEmptyRescue(group)) { await salvage(group); group = specs.find(row => !accepted(row)); }
+  if (group) {
+    const emptyRescue = needsEmptyRescue(group);
+    const generationGroup = emptyRescue ? { ...group, sections: missingSections(group) } : group;
+    const saved = groups[group.id];
+    const savedValid = valid(group, saved);
+    const lengthShort = savedValid && chars(saved) < group.minChars;
+    const savedSoft = savedValid && !lengthShort ? soft(group, saved) : [];
+    if (lengthShort) attempts[`${group.id}:lengthRepair`] = 1;
+    if (savedSoft.length) attempts[`${group.id}:softRepair`] = 1;
+    if (emptyRescue) attempts[`${group.id}:emptyRescue`] = 1;
+    else attempts[group.id] = Number(attempts[group.id] || 0) + 1;
+    await checkpoint({ groups, attempts, meta, rawResponses }); // Reserve before the provider; a lost response consumes this attempt.
+    const config = await cmsPromptModelConfig(env, "ziwei-ai", { minTokens: tokensRequiredForChars(MIN_INITIAL_CONSULTATION_BODY_CHARS), maxTokens: INITIAL_CONSULTATION_MAX_OUTPUT_TOKENS });
+    const groupTokens = attempts[`${group.id}:truncated`] ? Math.max(SECTION_GROUP_TARGET_TOKENS, Math.min(32768, SECTION_GROUP_TARGET_TOKENS * 2)) : SECTION_GROUP_TARGET_TOKENS;
+    const duplicates = collectZiweiCrossSectionDuplicates({ ...merge(), ...(ziweiGroupSectionsFromText(group, rawResponses[group.id]).next || {}) });
+    let generated;
+    try {
+      generated = await callGeminiJsonWithRetry(env, [
+        buildSectionGroupPrompt(input, chart, generationGroup, ZIWEI_V2_PLAN),
+        `제목과 공백을 제외한 본문 목표 ${group.targetChars}자, 최소 ${group.minChars}자. 각 필수 섹션을 빠짐없이 작성하세요.`,
+        ...(lengthShort ? [`직전 본문은 공백 제외 ${chars(saved)}자입니다. 같은 문장 반복 없이 계산 근거와 행동 조언을 보강해 완결된 JSON으로 다시 작성하세요.`] : []),
+        ...(savedSoft.length ? [ziweiSoftIssueHint(savedSoft)] : []),
+        ...(!savedValid && attempts[group.id] > 1 ? [buildZiweiDuplicateInstruction(duplicates, group)].filter(Boolean) : []),
+      ].join("\n"), {
+        systemPrompt: await resolveSystemPrompt(env, input.locale, answerVoice), taskType: "fortune", responseMimeType: "application/json",
+        responseSchema: jsonSchemaFromExample({ sections: buildSectionSchemaFor(generationGroup.sections) }),
+        temperature: config.temperature ?? 0.72, attempts: 1, timeoutMs: 45000,
+        baseTokens: Math.max(groupTokens, Math.floor(Number(config.maxOutputTokens || INITIAL_CONSULTATION_MAX_OUTPUT_TOKENS) / specs.length)),
+        capTokens: groupTokens, fallbackToWorkersAI: false,
+        cache: { store: createLlmCacheStore(env), deterministic: true, keyExtra: `ziwei-delivery-v2-${group.id}`, skipRead: attempts[group.id] > 1 },
+        logContext: { ...logContext, sectionGroup: group.id, groupPlanVersion: ZIWEI_AI_GROUP_PLAN_VERSION },
+      });
+    } catch (error) {
+      logZiweiAi("Group interrupted", { sectionGroup: group.id, code: error?.code }, "warn");
+    }
+    const mockBlocked = (generated?.isMock === true || /mock/i.test(generated?.provider || "")) && !isStagingLlmMockEnabled(env);
+    rawResponses[group.id] = generated?.ok && !mockBlocked ? (generated?.rawText || generated?.text || '') : '';
+    if (generated?.truncated) attempts[`${group.id}:truncated`] = 1;
+    await checkpoint({ groups, attempts, meta, rawResponses });
+    const parsedGroup = ziweiGroupSectionsFromText(generationGroup, rawResponses[group.id]);
+    const source = emptyRescue ? { ...(saved || {}), ...(parsedGroup.source || {}) } : (parsedGroup.source || {});
+    const next = emptyRescue ? { ...(saved || {}), ...(parsedGroup.next || {}) } : (parsedGroup.next || {});
+    const others = Object.assign({}, ...specs.filter(row => row.id !== group.id).map(row => groups[row.id] || {}));
+    const candidate = { ...others, ...next };
+    const candidateValid = valid(group, source) && valid(group, next)
+      && !hasRepeatedReportPassage(ziweiSectionBody(candidate))
+      && !collectZiweiCrossSectionDuplicates(candidate).length;
+    const priorIssueCodes = new Set(enforceZiweiChartFacts(JSON.stringify({ meta: {}, sections: { ...others, ...(saved || {}) } }), chart).issues.map(issue => issue.split(":")[0]));
+    const noNewGrounding = !enforceZiweiChartFacts(JSON.stringify({ meta: {}, sections: candidate }), chart).issues.some(issue => !priorIssueCodes.has(issue.split(":")[0]));
+    const softCount = value => soft(group, value).reduce((sum, issue) => sum + issue.sentences.length, 0);
+    const better = emptyRescue || !savedValid
+      || (lengthShort && noNewGrounding && chars(next) > chars(saved))
+      || (savedSoft.length > 0 && noNewGrounding && softCount(next) < softCount(saved) && chars(next) >= chars(saved) * 0.85);
+    if (candidateValid && better) {
+      groups[group.id] = next;
+      await checkpoint({ groups, attempts, meta, rawResponses });
+    }
+    if (!valid(group, groups[group.id]) && exhausted(group)) await salvage(group);
+  }
+  const pending = specs.find(row => !accepted(row));
+  // 본문이 한 줄도 없을 때만 실패로 넘긴다(환불·복원 경로). 일부 묶음이 비어도 나머지는 배달한다.
+  if (!pending && !specs.some(row => Object.keys(groups[row.id] || {}).length)) {
+    const error = new Error("필수 분량과 계산 근거를 갖춘 결과를 완성하지 못했습니다."); error.code = "REPORT_QUALITY_FAILED"; throw error;
+  }
+  // 한 요청에는 공급자 호출이 하나뿐이다: 이번 요청에서 묶음을 불렀으면 메타는 다음 요청으로 넘긴다.
+  if (!group && !pending && !Object.keys(meta).length && Number(attempts.meta || 0) < ZIWEI_META_MAX_ATTEMPTS) {
+    attempts.meta = Number(attempts.meta || 0) + 1;
+    await checkpoint({ groups, attempts, meta, rawResponses });
+    const generated = await callGeminiJsonWithRetry(env, buildMetaPrompt(input, chart, { omitQuestion: true }), {
+      systemPrompt: await resolveSystemPrompt(env, input.locale, answerVoice), attempts: 1, timeoutMs: 45000,
+      baseTokens: 2600, capTokens: 2600, fallbackToWorkersAI: false,
+      responseMimeType: "application/json", responseSchema: jsonSchemaFromExample({ meta: buildMetaOutputExample(input).meta }), logContext: { ...logContext, sectionGroup: "meta", groupPlanVersion: ZIWEI_AI_GROUP_PLAN_VERSION },
+    }).catch(() => null);
+    if (generated?.ok) meta = parseMetaFromText(generated.text) || meta;
+    if (!Object.keys(meta).length && attempts.meta >= ZIWEI_META_MAX_ATTEMPTS) meta = buildZiweiFallbackMeta(input, chart);
+    await checkpoint({ groups, attempts, meta, rawResponses });
+  }
+  const metaPending = !Object.keys(meta).length;
+  // 시도를 다 쓴 뒤에도 남은 말투 이탈·질문 재인용 문장은 전달본에서만 걷어 낸다(85% 하한).
+  const delivered = Object.assign({}, ...specs.map(row => groups[row.id] ? scrubZiweiSoftIssues(groups[row.id], soft(row, groups[row.id])) : {}));
+  const checked = enforceZiweiChartFacts(JSON.stringify({ meta, sections: delivered }), chart);
+  const text = applyZiweiHanjaToStructuredText(cleanForbiddenResult(checked.text));
+  const bodyChars = countPaidReportBodyChars(ziweiSectionBody(parseSectionsFromGroupText(text)));
+  const degradedGroups = specs.filter(settled).map(row => row.id);
+  return { text, complete: !metaPending && !pending, meta: { groups, attempts, reportMeta: meta, bodyChars, groupPlanVersion: ZIWEI_AI_GROUP_PLAN_VERSION, ...(degradedGroups.length ? { degradedGroups } : {}) } };
+}
+
 async function saveZiweiDelivery(filter, fields, resultId) {
   try {
     const written = await ZiweiAiConsultation.findOneAndUpdate(filter, { $set: fields }, { new: true }).lean();
@@ -1966,7 +2103,8 @@ async function saveZiweiDelivery(filter, fields, resultId) {
   } catch { throw resultStorageUnavailable(resultId); }
 }
 
-async function generateInitialConsultation(env, { input, chart, logContext = {}, checkpoint, groups, attempts, meta: checkpointMeta, rawResponses, answerVoice }) {
+async function generateInitialConsultation(env, { input, chart, logContext = {}, checkpoint, groups, attempts, meta: checkpointMeta, rawResponses, answerVoice, planVersion }) {
+  if (checkpoint && Number(planVersion) === ZIWEI_AI_GROUP_PLAN_VERSION) return generateCheckpointedZiweiV2(env, { input, chart, logContext, checkpoint, groups, attempts, meta: checkpointMeta, rawResponses, answerVoice });
   if (checkpoint) return generateCheckpointedZiwei(env, { input, chart, logContext, checkpoint, groups, attempts, meta: checkpointMeta, rawResponses, answerVoice });
   const startedAt = Date.now();
   const remainingMs = () => INITIAL_CONSULTATION_DEADLINE_MS - (Date.now() - startedAt);
@@ -2433,6 +2571,8 @@ function publicConsultation(doc) {
       id: clean(doc.id),
       saved: doc.status === "completed",
       completedGroups: Object.keys(doc.llmMeta?.groups || {}),
+      // 판 2 상담은 화면이 성향 섹션부터 보이고 차례를 단다. 판 1(값 없음)은 기존 순서 그대로다.
+      groupPlanVersion: Number(doc.llmMeta?.groupPlanVersion) === ZIWEI_AI_GROUP_PLAN_VERSION ? ZIWEI_AI_GROUP_PLAN_VERSION : 1,
       accessType: clean(doc.accessType),
       status: clean(doc.status),
       birthInfo: doc.birthInfo || {},
@@ -2658,7 +2798,7 @@ async function handleStart(request, env, route = "/api/ziwei-ai/generate", recov
     } else {
       const resumeBody = { ...body, idempotencyKey, accessType: access.accessType };
       delete resumeBody.accessToken;
-      doc = await ZiweiAiConsultation.create({ ...owner, serviceType: SERVICE_KEY, idempotencyKey, inputHash: normalized.inputHash, birthInfo: normalized.input.birthInfo, topic: normalized.input.topic, userQuestion: normalized.input.userQuestion, accessType: access.accessType, ...(nativeTossContext(request) ? { accessSource: 'toss' } : {}), paymentId: clean(access.paymentId, 160), status: "generating", generationLease: lease, messages: [], llmMeta: { resumeBody, groups: {}, attempts: {}, chartSnapshot: initialChart, ...(preparationId ? { calculationPreparationId: preparationId } : {}), ...(selectAnswerVoice(env) ? { answerVoice: selectAnswerVoice(env) } : {}) } });
+      doc = await ZiweiAiConsultation.create({ ...owner, serviceType: SERVICE_KEY, idempotencyKey, inputHash: normalized.inputHash, birthInfo: normalized.input.birthInfo, topic: normalized.input.topic, userQuestion: normalized.input.userQuestion, accessType: access.accessType, ...(nativeTossContext(request) ? { accessSource: 'toss' } : {}), paymentId: clean(access.paymentId, 160), status: "generating", generationLease: lease, messages: [], llmMeta: { resumeBody, groups: {}, attempts: {}, chartSnapshot: initialChart, ...(ziweiAiDeliveryV2Enabled(env) ? { groupPlanVersion: ZIWEI_AI_GROUP_PLAN_VERSION } : {}), ...(preparationId ? { calculationPreparationId: preparationId } : {}), ...(selectAnswerVoice(env) ? { answerVoice: selectAnswerVoice(env) } : {}) } });
       doc = typeof doc.toObject === "function" ? doc.toObject() : doc;
     }
   } catch (error) {
@@ -2682,7 +2822,7 @@ async function handleStart(request, env, route = "/api/ziwei-ai/generate", recov
         : readZiweiExecutionSnapshot(doc) || initialChart;
       const resumeBody = { ...body, idempotencyKey, accessType: access.accessType }; delete resumeBody.accessToken;
       doc = await saveZiweiDelivery(locked, { llmMeta: { ...doc.llmMeta, chartSnapshot: chart, resumeBody: doc.llmMeta?.resumeBody || resumeBody } }, sessionId);
-      const generated = await runWithAiLocale(storedAiLocale(doc), async () => generateInitialConsultation(env, { input: normalized.input, chart, groups: doc.llmMeta.groups, attempts: doc.llmMeta.attempts, meta: doc.llmMeta.reportMeta, rawResponses: doc.llmMeta.rawResponses, answerVoice: pinAnswerVoice(doc.llmMeta || {}, env),
+      const generated = await runWithAiLocale(storedAiLocale(doc), async () => generateInitialConsultation(env, { input: normalized.input, chart, groups: doc.llmMeta.groups, attempts: doc.llmMeta.attempts, meta: doc.llmMeta.reportMeta, rawResponses: doc.llmMeta.rawResponses, answerVoice: pinAnswerVoice(doc.llmMeta || {}, env), planVersion: doc.llmMeta?.groupPlanVersion,
         checkpoint: async ({ groups, attempts, meta, rawResponses }) => {
           const sections = Object.assign({}, ...Object.values(groups));
           const content = enforceZiweiChartFacts(JSON.stringify({ meta, sections }), chart).text;
@@ -2979,6 +3119,8 @@ export const __ziweiAiTestUtils = {
   MAX_INITIAL_CONSULTATION_BODY_CHARS,
   // 섹션 그룹 병렬 생성
   SECTION_GROUP_SPECS,
+  ZIWEI_V2_GROUP_SPECS,
+  ZIWEI_V2_PLAN,
   SECTION_GROUP_TARGET_TOKENS,
   SECTION_GROUP_MAX_OVER_TARGET,
   SECTION_GROUP_TIMEOUT_MS,

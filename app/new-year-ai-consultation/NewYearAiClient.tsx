@@ -7,7 +7,7 @@ import BirthTimeInput from "@/app/components/BirthTimeInput";
 import CraftedProductDisclosure from "@/app/components/CraftedProductDisclosure";
 import ProductMasterStrip from "@/app/components/ProductMasterStrip";
 import MasterProfile from "@/components/fortune/MasterProfile";
-import { masterProfiles, productMasters } from "@/components/fortune/master-profiles";
+import { masterAvatars, masterProfiles, productMasters } from "@/components/fortune/master-profiles";
 import ReviewRewardBanner from "@/app/components/ReviewRewardBanner";
 import { usePaidDeliveryScope } from "@/app/hooks/usePaidDeliveryScope";
 
@@ -34,6 +34,7 @@ import { ExpertStickyCta } from "@/app/components/expert-consulting/ExpertConsul
 import { toDisplayText } from "@/lib/llm-text";
 import {
   DOMAIN_CARDS,
+  MONTHLY_CHAPTER,
   READING_SECTION_TOTAL,
   READING_STEPS,
   buildDomainBodies,
@@ -525,26 +526,68 @@ function RevealBlock({ children }: { index?: number; children: ReactNode }) {
   return <div className="nyai-reveal">{children}</div>;
 }
 
-function DomainConsultationCards({ bodies }: { bodies: Map<string, string> }) {
+// 신년운세의 화자는 네오 한 사람이다. 장 머리마다 같은 칩을 달아 누가 읽어 주는 상담인지 보인다.
+function NeoSpeakerChip() {
+  return (
+    <span className="nyai-speaker-chip">
+      <img src={masterAvatars.neoNewYear} alt="" width={22} height={22} decoding="async" />
+      네오
+    </span>
+  );
+}
+
+type NewYearChapter = { key: string; label: string; glyph: string; hint: string; kicker: string; body: ReactNode };
+
+/**
+ * 분야 카드와 열두 달 흐름을 번호 붙은 장으로 통일한다. 순서는 서버 생성 순서(열두 달은 건강 앞)이고,
+ * 본문이 있는 장만 번호를 받는다. 첫 장(타고난 성향)은 강조 카드로 보인다.
+ */
+function DomainConsultationCards({ bodies, monthly }: { bodies: Map<string, string>; monthly?: ReactNode }) {
   const copy = useNewYearAiCopy();
   const cards = DOMAIN_CARDS.filter((card) => bodies.get(card.key));
   if (!cards.length) return null;
+  const chapters: NewYearChapter[] = [];
+  const monthlyChapter = monthly ? { ...MONTHLY_CHAPTER, body: monthly } : null;
+  for (const card of cards) {
+    if (card.key === "health" && monthlyChapter) chapters.push(monthlyChapter);
+    chapters.push({ ...card, body: <AiResultProse value={bodies.get(card.key) || ""} /> });
+  }
+  if (monthlyChapter && !chapters.includes(monthlyChapter)) chapters.push(monthlyChapter);
   return (
     <div className="nyai-domain-report" aria-label={copy.domainResultsAria}>
-      {cards.map((card, index) => (
-        <RevealBlock key={card.key} index={index}>
-          <section className="nyai-report-card" data-pdf-section={`domain-${card.key}`}>
+      <nav className="nyai-toc" aria-label="상담 차례" data-pdf-skip="true">
+        <span className="nyai-eyebrow">차례</span>
+        <ol>
+          {chapters.map((chapter, index) => (
+            <li key={chapter.key}>
+              <a href={`#nyai-chapter-${index + 1}`}>
+                <span className="nyai-toc-no">{String(index + 1).padStart(2, "0")}</span>
+                <span className="nyai-toc-title">{chapter.label}</span>
+                <small>네오</small>
+              </a>
+            </li>
+          ))}
+        </ol>
+      </nav>
+      {chapters.map((chapter, index) => (
+        <RevealBlock key={chapter.key} index={index}>
+          <section
+            id={`nyai-chapter-${index + 1}`}
+            className={`nyai-report-card${chapter.key === "nature" || chapter.key === "opening" ? " nyai-report-card--lead" : ""}`}
+            data-pdf-section={chapter.key === MONTHLY_CHAPTER.key ? "monthly-chapter" : `domain-${chapter.key}`}
+          >
             <details className="nyai-report-details" open>
               <summary>
-                <span className="nyai-report-glyph" aria-hidden="true">{card.glyph}</span>
+                <span className="nyai-chapter-no" aria-hidden="true">{String(index + 1).padStart(2, "0")}</span>
+                <span className="nyai-report-glyph" aria-hidden="true">{chapter.glyph}</span>
                 <span className="nyai-report-heading">
-                  <strong>{card.label}</strong>
-                  <small>{card.hint}</small>
+                  <span className="nyai-chapter-kicker">{chapter.kicker}</span>
+                  <strong>{chapter.label}</strong>
+                  <small>{chapter.hint}</small>
+                  <NeoSpeakerChip />
                 </span>
               </summary>
-              <div className="nyai-report-body">
-                <AiResultProse value={bodies.get(card.key) || ""} />
-              </div>
+              <div className="nyai-report-body">{chapter.body}</div>
             </details>
           </section>
         </RevealBlock>
@@ -1991,15 +2034,36 @@ export default function NewYearAiConsultationPage({paymentSurface="web",ProfileP
     const messagesNode = resultRef.current;
     messagesNode.classList.add("is-exporting");
     try {
-      const { exportResultPdf } = await import("@/lib/pdf/export-result-pdf");
       const safeName = (form.userName.trim() || "new-year").replace(/[\\/:*?"<>|]/g, "_");
+      const pdfTitle = `${form.userName || "당신"}님의 ${form.targetYear}년 신년운세`;
+      // 받은 상담 전체를 글자로 조판한다. 글꼴을 못 실을 때만 화면 캡처로 되돌아간다.
+      const [{ exportConsultationBookPdf }, { PdfFontError }, { buildNewYearPdfChapters, NEW_YEAR_PDF_SPEAKER }] = await Promise.all([
+        import("@/lib/pdf/export-consultation-book-pdf"),
+        import("@/lib/pdf/typeset-writer"),
+        import("./_lib/new-year-pdf-chapters"),
+      ]);
+      try {
+        await exportConsultationBookPdf({
+          title: pdfTitle,
+          productLabel: "신년운세",
+          byline: NEW_YEAR_PDF_SPEAKER,
+          coverTheme: "newYear",
+          date: new Date().toISOString().slice(0, 10),
+          fileName: `신년운세_전문가상담_${safeName}_${form.targetYear}.pdf`,
+          chapters: buildNewYearPdfChapters({ sections: serverSections, messages }),
+        });
+        return;
+      } catch (error) {
+        if (!(error instanceof PdfFontError)) throw error;
+      }
+      const { exportResultPdf } = await import("@/lib/pdf/export-result-pdf");
       await exportResultPdf({
         captureTargets: [".nyai-messages [data-pdf-section]"],
         fileName: `신년운세_전문가상담_${safeName}_${form.targetYear}.pdf`,
         backgroundColor: "#170b0f",
         cover: {
           theme: "newYear",
-          title: `${form.userName || "당신"}님의 ${form.targetYear}년 신년운세`,
+          title: pdfTitle,
           name: form.userName,
           date: new Date().toISOString().slice(0, 10),
         },
@@ -2010,7 +2074,7 @@ export default function NewYearAiConsultationPage({paymentSurface="web",ProfileP
       messagesNode.classList.remove("is-exporting");
       setIsDownloading(false);
     }
-  }, [assistantMessages.length, form.targetYear, form.userName, isDownloading]);
+  }, [assistantMessages.length, form.targetYear, form.userName, isDownloading, messages, serverSections]);
 
   // 시즌 아이덴티티: 상담 연도의 간지·오행 테마
   const seasonYear = Number(targetYearInfo?.year || form.targetYear);
@@ -2314,6 +2378,16 @@ export default function NewYearAiConsultationPage({paymentSurface="web",ProfileP
               // 서버 구조화 응답이 있으면 그대로, 없으면(구버전 세션) 조립본을 분야로 되돌린다.
               const domainBodies = buildDomainBodies(index === 0 ? serverSections : [], classified.domains);
               const hasDomainCards = DOMAIN_CARDS.some((card) => domainBodies.get(card.key));
+              const monthlyBlock = (
+                <>
+                  <RevealBlock index={4}>
+                    <MonthlyFlowCalendar rows={monthlyFlow} letters={classified.monthLetters} />
+                  </RevealBlock>
+                  <RevealBlock index={5}>
+                    <MonthlyLetterAccordion rows={monthlyFlow} letters={classified.monthLetters} />
+                  </RevealBlock>
+                </>
+              );
               return (
                 <div className="nyai-result-bundle" key={`${message.role}-${index}`}>
                   {showQuestionCard && (
@@ -2325,7 +2399,7 @@ export default function NewYearAiConsultationPage({paymentSurface="web",ProfileP
                       />
                     </RevealBlock>
                   )}
-                  <DomainConsultationCards bodies={domainBodies} />
+                  <DomainConsultationCards bodies={domainBodies} monthly={index === 0 ? monthlyBlock : null} />
                   {index === 0 && (
                     <RevealBlock index={1}>
                       <ResultReference><SajuProfilePanel profile={sajuProfile} /></ResultReference>
@@ -2333,16 +2407,8 @@ export default function NewYearAiConsultationPage({paymentSurface="web",ProfileP
                   )}
 
                   {index === 0 && <ConsultationIllustration kind="newYear" />}
-                  {index === 0 && (
-                    <RevealBlock index={4}>
-                      <MonthlyFlowCalendar rows={monthlyFlow} letters={classified.monthLetters} />
-                    </RevealBlock>
-                  )}
-                  {index === 0 && (
-                    <RevealBlock index={5}>
-                      <MonthlyLetterAccordion rows={monthlyFlow} letters={classified.monthLetters} />
-                    </RevealBlock>
-                  )}
+                  {/* 분야 카드가 없으면(파싱 실패) 열두 달 흐름은 장 밖에 예전처럼 따로 보인다. */}
+                  {index === 0 && !hasDomainCards && monthlyBlock}
                   {/* 분야 카드가 하나도 만들어지지 않은 예외 상황(파싱 실패)에서만 원문 편지를 그대로 보인다 — 결제한 본문을 잃지 않는다. */}
                   {!hasDomainCards && (
                     <article className="nyai-message nyai-message--assistant">
@@ -2616,6 +2682,106 @@ export default function NewYearAiConsultationPage({paymentSurface="web",ProfileP
 
         .nyai-report-details[open] > summary {
           border-bottom: 1px solid var(--nyai-gold-hair);
+        }
+
+        .nyai-toc {
+          display: grid;
+          gap: 8px;
+          padding: 14px 16px;
+          border: 1px solid var(--nyai-gold-hair);
+          border-radius: var(--nyai-radius-md);
+          background: rgba(16, 6, 9, .55);
+        }
+
+        .nyai-toc ol {
+          display: grid;
+          gap: 2px;
+          margin: 0;
+          padding: 0;
+          list-style: none;
+        }
+
+        .nyai-toc a {
+          display: grid;
+          grid-template-columns: auto minmax(0, 1fr) auto;
+          align-items: center;
+          gap: 10px;
+          min-height: 40px;
+          color: var(--nyai-text);
+          text-decoration: none;
+          border-radius: 8px;
+        }
+
+        .nyai-toc a:hover,
+        .nyai-toc a:focus-visible {
+          color: var(--nyai-gold-bright);
+        }
+
+        .nyai-toc-no,
+        .nyai-chapter-no {
+          font-family: var(--nyai-serif);
+          font-variant-numeric: tabular-nums;
+          color: var(--nyai-gold);
+        }
+
+        .nyai-toc-title {
+          font-family: var(--nyai-serif);
+          font-size: 15px;
+          overflow-wrap: anywhere;
+        }
+
+        .nyai-toc small {
+          font-size: 12px;
+          color: var(--nyai-text-dim);
+        }
+
+        .nyai-chapter-no {
+          flex-shrink: 0;
+          font-size: 22px;
+          line-height: 1;
+        }
+
+        .nyai-chapter-kicker {
+          font-size: 11.5px;
+          letter-spacing: .08em;
+          color: var(--nyai-jade-bright);
+        }
+
+        .nyai-speaker-chip {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          justify-self: start;
+          margin-top: 4px;
+          padding: 2px 10px 2px 2px;
+          border: 1px solid var(--nyai-gold-hair);
+          border-radius: var(--nyai-radius-pill);
+          font-size: 12px;
+          color: var(--nyai-text-dim);
+        }
+
+        .nyai-speaker-chip img {
+          width: 22px;
+          height: 22px;
+          border-radius: 50%;
+          object-fit: cover;
+        }
+
+        .nyai-report-card[id] {
+          scroll-margin-top: 16px;
+        }
+
+        .nyai-report-card--lead {
+          border-color: var(--nyai-gold-dim);
+          background:
+            radial-gradient(circle at 12% 0%, rgba(227, 196, 106, .16), transparent 46%),
+            linear-gradient(180deg, rgba(201, 162, 39, .1), rgba(16, 6, 9, .5)),
+            rgba(36, 14, 22, .8);
+          box-shadow: 0 0 0 1px rgba(227, 196, 106, .1), 0 14px 34px rgba(0, 0, 0, .28);
+        }
+
+        .nyai-report-card--lead .nyai-report-heading strong {
+          font-size: 19px;
         }
 
         .nyai-report-body {

@@ -247,6 +247,27 @@ function buildConsultationLines(consultation) {
   return lines;
 }
 
+/**
+ * 판 2 상담 블록. 질문 원문은 1장(overview)에만 넣고 답도 거기서 한 번만 한다(질문 반복 최소화).
+ * 다른 장은 관심분야만 받고 질문을 다시 옮겨 적지 않는다.
+ */
+function buildConsultationLinesV2(consultation, ownsQuestion) {
+  const topic = String(consultation?.topic ?? "").trim();
+  const question = String(consultation?.question ?? "").trim();
+  if (!topic && !question) return [];
+  const lines = ["[내담자의 상담 요청]"];
+  if (topic) lines.push(`- 관심분야: ${topic}`);
+  if (ownsQuestion && question) {
+    lines.push(`- 질문: ${question}`, "- 질문의 답은 이 장에서 한 번만, 분명하게 한다. 뒤의 장들은 이 질문을 다시 다루지 않는다.");
+  } else {
+    lines.push(
+      "- 개인 질문의 답은 1장에서 이미 했다. 질문 문장을 다시 옮겨 적거나 같은 답을 되풀이하지 마라.",
+      ...(topic ? ["- 이 장의 해석 범위를 지키되, 관심분야와 이 장이 닿는 지점이 있으면 한 단락 안에서 짚어라."] : []),
+    );
+  }
+  return lines;
+}
+
 // 사업운 근거(궁간 비화)는 재백·자녀·전택·관록 네 장에만 넣는다. 명반 JSON·다른 장은 그대로.
 const BUSINESS_BASIS_CHAPTERS = Object.freeze(["children", "wealth", "career", "property"]);
 function buildBusinessBasisLines(chart, chapter) {
@@ -264,13 +285,30 @@ function buildBusinessBasisLines(chart, chapter) {
  * @param {object} chapter  ZIWEI_DEEP_CHAPTERS 항목
  * @param {object} [consultation]  { topic, question } — 통합된 전문가 상담 입력(선택)
  * @param {string} [locale]  리포트 생성 언어. 한국어는 무성 페르소나 전체, 그 밖은 영어 스타일 메모를 붙인다.
+ * @param {{ planVersion?: number }} [options]  planVersion 2면 판 2 지시(1장 본성·공감, 질문은 1장만). 없으면 판 1 바이트 그대로.
  */
-export function buildZiweiDeepChapterPrompt(chart, birthInfo, chapter, consultation = null, locale = "ko") {
+export function buildZiweiDeepChapterPrompt(chart, birthInfo, chapter, consultation = null, locale = "ko", options = {}) {
   const chartText = formatZiweiChartForPrompt(chart);
   const birthLine = formatBirthLine(birthInfo);
   const min = chapter.minChars || 2200;
   const companions = (chapter.companionPalaces || []).join(", ");
-  const consultationLines = buildConsultationLines(consultation);
+  const v2 = Number(options?.planVersion) === 2;
+  const opening = chapter.id === "overview";
+  const hasQuestion = Boolean(String(consultation?.question || "").trim());
+  const consultationLines = v2 ? buildConsultationLinesV2(consultation, opening) : buildConsultationLines(consultation);
+  const firstInstruction = !v2
+    ? (opening && hasQuestion ? '- 첫 문단의 첫 두 문장은 개인 질문에 직접 답하라. 일반 성격 소개로 답을 미루지 마라.' : '- 첫 문단은 이 장 제목의 질문에 직접 답하라. 궁의 사전 정의로 시작하지 마라.')
+    : opening
+      ? `- 첫 문단은 명궁 주성으로 본 타고난 본성과, 지금 이 사람이 품고 있을 마음에 공감하는 말로 연다.${hasQuestion ? " 바로 다음 문단에서 개인 질문에 직접, 한 번만 답하라." : ""}`
+      : '- 첫 문단은 이 장 제목의 질문에 직접 답하라. 궁의 사전 정의로 시작하지 마라. 1장의 성격 소개나 질문의 답을 다시 요약하지 마라.';
+  const lengthLine = v2
+    ? `- 분량: 제목·마크다운·공백을 제외한 본문 ${Math.ceil(min / 0.8)}~${Math.ceil(min * 1.5)}자를 목표로 넉넉하게 쓴다. 얕게 끝내지 말고 ${opening ? "타고난 본성→질문의 답" : "이 장의 답"}→구체적 생활 장면→명반 근거→실행 조언 순으로 충분히 전개하라.`
+    : `- 분량: 제목·마크다운·공백을 제외한 본문 ${Math.ceil(min / 0.8)}~${Math.ceil(min * 1.5)}자를 목표로 작성한다. 얕게 끝내지 말고 질문에 대한 답변→구체적 생활 장면→명반 근거→실행 조언 순으로 충분히 전개하라.`;
+  const headingLine = !v2
+    ? "- 다음 소제목 흐름을 참고해 4~6개 단락으로 구성하라: ● 질문에 대한 답 / ● 이런 순간이 있었을 수 있어요 / ● 명반이 보여주는 이유 / ● 강점과 부담 / ● 지금 해볼 일."
+    : opening
+      ? `- 다음 소제목 흐름을 참고해 4~6개 단락으로 구성하라: ● 타고난 본성${hasQuestion ? " / ● 질문에 대한 답" : ""} / ● 이런 순간이 있었을 수 있어요 / ● 명반이 보여주는 이유 / ● 지금 해볼 일.`
+      : "- 다음 소제목 흐름을 참고해 4~6개 단락으로 구성하라: ● 이 장의 답 / ● 이런 순간이 있었을 수 있어요 / ● 명반이 보여주는 이유 / ● 강점과 부담 / ● 지금 해볼 일.";
 
   const palaceFocus = chapter.palaceKey
     ? `이번 장은 [${chapter.palaceKey}]을 중심 궁으로 삼아, 그 궁의 주성·보좌성·흉성·사화 조합을 정밀하게 해석한다.`
@@ -292,14 +330,14 @@ export function buildZiweiDeepChapterPrompt(chart, birthInfo, chapter, consultat
     ...(consultationLines.length ? ["", ...consultationLines] : []),
     "",
     "[작성 지시]",
-    chapter.id === 'overview' && String(consultation?.question || '').trim() ? '- 첫 문단의 첫 두 문장은 개인 질문에 직접 답하라. 일반 성격 소개로 답을 미루지 마라.' : '- 첫 문단은 이 장 제목의 질문에 직접 답하라. 궁의 사전 정의로 시작하지 마라.',
+    firstInstruction,
     '- 당신의 반응과 반복되는 장면, 강점과 부담을 구분하라. 같은 조언을 다른 말로 늘려 분량을 채우지 마라. 행동 제안은 최대 3개이며 무엇을 적거나 조정할지 구체적으로 써라.',
     '- 다음과 같은 관점, 이 항목은 분석, 이를 기반으로, 종합해보면 같은 내부 분석 절차를 결과 문장에 쓰지 마라.',
     '- 무주성은 결핍이나 불행으로 해석하지 마라. 밝기가 약한 별은 환경에 따라 쓰기 까다로운 힘으로 풀고 개선 방향을 제시하라.',
     '- 출생년 간지와 생년사화는 타고난 패턴이다. 실제 연도와 산출 출처가 제공되지 않은 세운·대한의 연도, 나이 구간, 사건은 생성하지 마라.',
     `- 이 장 하나만 작성한다. 다른 장의 내용은 쓰지 않는다.`,
-    `- 분량: 제목·마크다운·공백을 제외한 본문 ${Math.ceil(min / 0.8)}~${Math.ceil(min * 1.5)}자를 목표로 작성한다. 얕게 끝내지 말고 질문에 대한 답변→구체적 생활 장면→명반 근거→실행 조언 순으로 충분히 전개하라.`,
-    "- 다음 소제목 흐름을 참고해 4~6개 단락으로 구성하라: ● 질문에 대한 답 / ● 이런 순간이 있었을 수 있어요 / ● 명반이 보여주는 이유 / ● 강점과 부담 / ● 지금 해볼 일.",
+    lengthLine,
+    headingLine,
     "- 명반 근거를 인용할 때 실제 배치된 성요 이름을 명시하라(예: '명궁의 자미·천부가…').",
     "- 마크다운 표/코드블록 없이, 소제목(●)과 문단만으로 작성하라.",
     "",

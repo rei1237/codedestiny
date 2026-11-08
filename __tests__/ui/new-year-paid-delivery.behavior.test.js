@@ -74,8 +74,9 @@ function fixture(accessType = 'pass', currentSections = null) {
     loginRequired: () => new Response('', { status: 401 }), notFound: () => new Response('', { status: 404 }), invalidInput: (_message, status = 422) => new Response('', { status }),
     paymentVerifyFailed: () => new Response('', { status: 402 }), serverError: () => new Response('server', { status: 500 }),
     NEW_YEAR_AI_GENERATING_FRESH_MS: 120000, NEW_YEAR_AI_LLM_BUDGET_MS: 82000, NEW_YEAR_AI_SECTION_TIMEOUT_MS: 52000,
-    NEW_YEAR_AI_REPAIR_MIN_REMAINING_MS: 18000, NEW_YEAR_AI_SECTION_MAX_ATTEMPTS: 2, NEW_YEAR_AI_SECTION_MIN_LENGTH: 300, NEW_YEAR_AI_MIN_TOTAL_CHARS: 20000, NEW_YEAR_AI_MAX_TOTAL_CHARS: currentSections ? 33000 : 26000,
-    NEW_YEAR_AI_SECTIONS: plan, LLM_ERROR_MESSAGE: 'generation failed', SERVER_ERROR_MESSAGE: 'server error',
+    NEW_YEAR_AI_REPAIR_MIN_REMAINING_MS: 18000, NEW_YEAR_AI_SECTION_MAX_ATTEMPTS: 2, NEW_YEAR_AI_LENGTH_REPAIR_MAX: 2, NEW_YEAR_AI_LENGTH_REPAIR_SECTION_RATIO: 0.6, NEW_YEAR_AI_SECTION_MIN_LENGTH: 300, NEW_YEAR_AI_MIN_TOTAL_CHARS: 20000, NEW_YEAR_AI_MAX_TOTAL_CHARS: currentSections ? 33000 : 26000,
+    NEW_YEAR_AI_SECTIONS: plan, NEW_YEAR_AI_SECTIONS_V1: plan, NEW_YEAR_AI_SECTIONS_V2: plan, NEW_YEAR_AI_SECTION_PLAN_VERSION: 2,
+    NEW_YEAR_AI_V2_MAX_TOTAL_CHARS: currentSections ? 40000 : 26000, LLM_ERROR_MESSAGE: 'generation failed', SERVER_ERROR_MESSAGE: 'server error',
     publicSession: row => ({ ok: true, sessionId: row.id, status: row.status, saved: row.status === 'completed', messages: row.messages }),
     callDeferredUsageRoute: async ({ path, idempotencyKey }) => {
       assert.equal(idempotencyKey, 'original-paid-request');
@@ -98,7 +99,7 @@ function fixture(accessType = 'pass', currentSections = null) {
   load(ctx, 'worker/lib/paid-report-quality.js', ['paidReportBody', 'countPaidReportBodyChars', 'reportSentenceKey', 'hasRepeatedReportPassage']);
   load(ctx, 'worker/lib/master-love-codex-quality.js', ['dedupeCodexBody']);
   load(ctx, 'worker/lib/paid-report-length.js', ['trimPaidReportText', 'lastSentenceBoundary']);
-  load(ctx, 'worker/routes/new-year-ai.js', ['handleNewYearAiRoutes', 'handleStart', 'resolveNewYearRequestAccess', 'generateNewYearWave', 'assembleConsultationSections', 'trimToLastCompleteSentence', 'saveNewYearState', 'finishNewYearDelivery', 'startEvidenceIds']);
+  load(ctx, 'worker/routes/new-year-ai.js', ['handleNewYearAiRoutes', 'handleStart', 'resolveNewYearRequestAccess', 'generateNewYearWave', 'assembleConsultationSections', 'trimToLastCompleteSentence', 'saveNewYearState', 'finishNewYearDelivery', 'startEvidenceIds', 'newYearSectionsForPlan', 'ownsQuestion', 'planMaxTotalChars']);
   ctx.generateConsultationText = ctx.generateNewYearWave;
   const post = (body = {}, env = {}) => ctx.handleNewYearAiRoutes(new Request('https://mock.test/api/new-year-ai/start', {
     method: 'POST', headers: { 'Content-Type': 'application/json', 'idempotency-key': 'original-paid-request' }, body: JSON.stringify(body),
@@ -315,12 +316,13 @@ test('P2 initial and repair calls retain expanded token budget and timeout', asy
     buildSectionPrompt: () => 'mock prompt', buildSystemPrompt: () => 'mock system', appendExpertPersona: async (_env, _key, base) => base,
     callGeminiText: async (_env, _prompt, options) => { calls.push(options); return { ok: true, provider: 'gemini', text: '본문'.repeat(300) }; },
   });
-  for (const name of ['NEW_YEAR_AI_SECTIONS', 'NEW_YEAR_AI_SECTION_MAX_OUTPUT_TOKENS', 'NEW_YEAR_AI_SECTION_MIN_LENGTH', 'NEW_YEAR_AI_SECTION_TIMEOUT_MS']) {
+  for (const name of ['NEW_YEAR_AI_SECTIONS_V1', 'NEW_YEAR_AI_SECTIONS_V2', 'NEW_YEAR_AI_SECTION_MAX_OUTPUT_TOKENS', 'NEW_YEAR_AI_V2_SECTION_MAX_OUTPUT_TOKENS', 'NEW_YEAR_AI_SECTION_MIN_LENGTH', 'NEW_YEAR_AI_SECTION_TIMEOUT_MS']) {
     const declaration = ast.statements.filter(ts.isVariableStatement).flatMap(row => [...row.declarationList.declarations]).find(row => row.name.getText(ast) === name);
     assert.ok(declaration, name);
     vm.runInContext(`var ${declaration.getText(ast)};`, ctx);
   }
-  load(ctx, file, ['generateConsultationSection']);
+  load(ctx, file, ['generateConsultationSection', 'sectionMaxOutputTokens']);
+  ctx.NEW_YEAR_AI_SECTIONS = [...ctx.NEW_YEAR_AI_SECTIONS_V1, ...ctx.NEW_YEAR_AI_SECTIONS_V2];
   for (const section of ctx.NEW_YEAR_AI_SECTIONS) for (const repairLines of [[], ['내용 보강']]) {
     const result = await ctx.generateConsultationSection({}, { section, repairLines, timeoutMs: ctx.NEW_YEAR_AI_SECTION_TIMEOUT_MS });
     assert.equal(result.ok, true);
@@ -366,17 +368,70 @@ test('P3 lost repair checkpoint does not spend another attempt when the preserve
   assert.equal((await f.post()).status, 200); assert.equal(f.calls, calls); assert.equal(f.refunds, 0);
 });
 
+// F17 분량 보강(V2): 짧아도 통과한 장은 배달하고, 보강은 가장 짧은 장부터 세션 2회까지만 한다.
+function v2PlanFromSource() {
+  const ast = ts.createSourceFile('new-year-ai.js', fs.readFileSync('worker/routes/new-year-ai.js', 'utf8'), ts.ScriptTarget.Latest, true, ts.ScriptKind.JS);
+  const declaration = ast.statements.filter(ts.isVariableStatement).flatMap(row => [...row.declarationList.declarations])
+    .find(row => row.name.getText(ast) === 'NEW_YEAR_AI_SECTIONS_V2');
+  return vm.runInNewContext(declaration.initializer.getText(ast));
+}
+async function v2ShortFixture(sizes, generate) {
+  const sections = v2PlanFromSource();
+  const f = fixture('paid', sections); await f.post();
+  f.doc.llmMeta.savedSections = sections.map((section, i) => ({ key: section.key, section, ok: true, text: p3Body(section.key, sizes[i]) }));
+  f.doc.llmMeta.attempts = {};
+  let boosts = 0;
+  f.ctx.generateConsultationSection = async (_env, options) => { boosts++; return generate(options); };
+  return { f, sections, get boosts() { return boosts; } };
+}
+test('F17 V2 short sections get at most two length boosts, shortest first, then deliver', async () => {
+  const sizes = [5000, 5000, 1200, 1500, 1800, 5000, 5000];
+  const run = await v2ShortFixture(sizes, ({ section, repairLines }) => {
+    assert.match(repairLines.join('\n'), /최소 6,000자 이상/);
+    return { key: section.key, section, ok: true, truncated: false, text: p3Body(section.key, 6000) };
+  });
+  assert.equal((await run.f.post()).status, 202);
+  assert.equal(run.f.doc.status, 'partial');
+  const response = await run.f.post(); assert.equal(response.status, 200, await response.text());
+  assert.equal(run.boosts, 2);
+  assert.equal(run.f.doc.status, 'completed');
+  assert.equal(run.f.doc.llmMeta.attempts['money:lengthBoost'], 1);
+  assert.equal(run.f.doc.llmMeta.attempts['career:lengthBoost'], 1);
+  assert.equal(run.f.doc.llmMeta.attempts['romance:lengthBoost'], undefined);
+  const chars = key => run.f.doc.llmMeta.savedSections.find(row => row.key === key).text.length;
+  assert.equal(chars('money'), 6000); assert.equal(chars('career'), 6000); assert.equal(chars('romance'), 1800);
+  assert.equal((await run.f.post()).status, 200); assert.equal(run.boosts, 2);
+  assert.equal(run.f.charges, 1); assert.equal(run.f.refunds, 0);
+});
+for (const outcome of ['shorter', 'provider-failure']) test(`F17 V2 length boost ${outcome} keeps the accepted draft and still delivers`, async () => {
+  const run = await v2ShortFixture([5000, 5000, 1200, 5000, 5000, 5000, 5000], ({ section }) => outcome === 'shorter'
+    ? { key: section.key, section, ok: true, text: p3Body(section.key, 900) }
+    : { key: section.key, section, ok: false, text: '', failure: { code: 'LLM_PROVIDER_UNAVAILABLE', status: 503, retryable: true, message: 'Provider request failed.' } });
+  const response = await run.f.post(); assert.equal(response.status, 200, await response.text());
+  assert.equal(run.boosts, 1);
+  assert.equal(run.f.doc.llmMeta.savedSections.find(row => row.key === 'money').text.length, 1200);
+  assert.equal(run.f.charges, 1); assert.equal(run.f.refunds, 0);
+});
+test('F17 V1 plans never take a length boost and deliver short sections as they are', async () => {
+  const f = fixture(); await f.post();
+  f.doc.llmMeta.savedSections = f.ctx.NEW_YEAR_AI_SECTIONS.map(section => ({ key: section.key, section, ok: true, text: p3Body(section.key, 1500) }));
+  f.doc.llmMeta.attempts = {};
+  f.ctx.generateConsultationSection = async () => assert.fail('no boost on V1');
+  const response = await f.post(); assert.equal(response.status, 200, await response.text());
+  assert.equal(f.charges, 1);
+});
+
 for (const accessType of ['pass', 'subscription', 'paid']) test(accessType + ': 현재 6개 분야를 원래 요청으로 생성·저장하고 재열람은 추가 차감하지 않는다', async () => {
   const source = fs.readFileSync('worker/routes/new-year-ai.js', 'utf8');
   const ast = ts.createSourceFile('new-year-ai.js', source, ts.ScriptTarget.Latest, true, ts.ScriptKind.JS);
   let declaration;
   for (const statement of ast.statements) if (ts.isVariableStatement(statement)) {
-    declaration ||= statement.declarationList.declarations.find(row => row.name.getText(ast) === 'NEW_YEAR_AI_SECTIONS');
+    declaration ||= statement.declarationList.declarations.find(row => row.name.getText(ast) === 'NEW_YEAR_AI_SECTIONS_V2');
   }
   assert.ok(declaration);
   const sections = vm.runInNewContext(declaration.initializer.getText(ast));
-  assert.equal(sections.length, 6);
-  assert.equal(sections[0].key, 'opening');
+  assert.equal(sections.length, 7);
+  assert.equal(sections[0].key, 'nature');
   const f = fixture(accessType, sections);
   for (let i = 0; i < sections.length; i++) {
     const response = await f.post(i ? { resumeSessionId: f.doc.id } : {});
@@ -385,9 +440,10 @@ for (const accessType of ['pass', 'subscription', 'paid']) test(accessType + ': 
     assert.equal(f.charges, i === sections.length - 1 ? 1 : 0);
   }
   assert.deepEqual(Array.from(f.doc.llmMeta.sections, row => row.key), Array.from(sections, row => row.key));
+  assert.equal(f.doc.llmMeta.sectionPlanVersion, 2);
   assert.equal(f.doc.idempotencyKey, 'original-paid-request');
   assert.equal((await f.post()).status, 200);
-  assert.equal(f.calls, 6);
+  assert.equal(f.calls, 7);
   assert.equal(f.charges, 1);
   assert.equal(f.refunds, 0);
 });
@@ -402,10 +458,10 @@ test('대기 화면 진행 단계는 서버 생성 섹션과 같은 순서·같�
     }).join('\n');
   };
   const ctx = vm.createContext({});
-  vm.runInContext(ts.transpileModule(declarations('app/new-year-ai-consultation/_lib/answer-sections.ts', ts.ScriptKind.TS, ['DOMAIN_CARDS', 'READING_STEPS', 'READING_SECTION_TOTAL']), { compilerOptions: { target: ts.ScriptTarget.ES2022 } }).outputText, ctx);
-  vm.runInContext(declarations('worker/routes/new-year-ai.js', ts.ScriptKind.JS, ['NEW_YEAR_AI_SECTIONS']), ctx);
-  assert.deepEqual(ctx.READING_STEPS.map(step => step.key), ctx.NEW_YEAR_AI_SECTIONS.map(section => section.key));
-  assert.equal(ctx.READING_SECTION_TOTAL, ctx.NEW_YEAR_AI_SECTIONS.length);
+  vm.runInContext(ts.transpileModule(declarations('app/new-year-ai-consultation/_lib/answer-sections.ts', ts.ScriptKind.TS, ['DOMAIN_CARDS', 'MONTHLY_CHAPTER', 'READING_STEP_KEYS', 'READING_STEPS', 'READING_SECTION_TOTAL']), { compilerOptions: { target: ts.ScriptTarget.ES2022 } }).outputText, ctx);
+  vm.runInContext(declarations('worker/routes/new-year-ai.js', ts.ScriptKind.JS, ['NEW_YEAR_AI_SECTIONS_V2']), ctx);
+  assert.deepEqual(ctx.READING_STEPS.map(step => step.key), ctx.NEW_YEAR_AI_SECTIONS_V2.map(section => section.key));
+  assert.equal(ctx.READING_SECTION_TOTAL, ctx.NEW_YEAR_AI_SECTIONS_V2.length);
   const source = fs.readFileSync('app/new-year-ai-consultation/NewYearAiClient.tsx', 'utf8');
   assert.doesNotMatch(source, /progress\?\.total \|\| \d/);
   assert.doesNotMatch(source, /DOMAIN_CARDS\.length\}개 분야/);

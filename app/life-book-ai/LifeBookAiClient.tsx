@@ -1224,8 +1224,8 @@ const ROUTE = "/life-book-ai";
    결제 때와 다른 kind 가 되어 재개가 실패한다. 고정값을 쓴다. */
 const RESUME_KIND = "life-book-ai";
 // 클라가 /generate 를 반복 호출해 웨이브를 진행시킨다(master-love-codex runBatches 패턴).
-// 총운 15섹션 ÷ 웨이브당 4 = 4웨이브 + 재시도 여유. 서버 MAX_GENERATION_WAVES(8)보다 넉넉히.
-const MAX_GENERATE_WAVES = 12;
+// 한 요청 = 한 섹션. 총운 판 3은 25섹션 + 보강·재시도 여유, 나머지는 결과 화면 이어 받기·복구 크론이 맡는다.
+const MAX_GENERATE_WAVES = 36;
 const WAVE_LOCK_RETRY_DELAY_MS = 4000;
 
 const FOCUS_AREA_VALUES: FocusAreaType[] = [

@@ -1504,7 +1504,7 @@
   margin-bottom: 18px;
 }
 
-.readingSection > div:first-child > span {
+.readingSection > div:first-of-type > span {
   min-width: 28px;
   color: rgba(251, 191, 36, .74);
   font-family: var(--font-premium), var(--font-display), var(--font-body), system-ui, sans-serif;
@@ -2946,4 +2946,78 @@
   .hanbiKeyArt {
     margin: 0 clamp(8px, 1.6vw, 20px) clamp(20px, 3vw, 36px) clamp(4px, 1vw, 12px);
   }
+}
+
+/* ── 판 2 상담 차례·장 키커·서한비 표시 (판 1 화면에는 붙지 않는다) ── */
+.chapterToc {
+  margin-bottom: 0.9rem;
+  border: 1px solid rgba(200, 168, 255, 0.22);
+  border-radius: 16px;
+  padding: 0.9rem 1rem;
+  background: rgba(10, 7, 26, 0.55);
+  color: rgba(255, 247, 232, 0.9);
+}
+
+.chapterTocHead {
+  margin: 0 0 0.4rem;
+  color: #ffe8b6;
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+}
+
+.chapterToc ol {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.chapterToc button {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 4px;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font-size: 0.92rem;
+  line-height: 1.5;
+  text-align: left;
+  overflow-wrap: anywhere;
+  cursor: pointer;
+}
+
+.chapterToc button[aria-current="true"] {
+  color: #ffe8b6;
+}
+
+.chapterToc button span {
+  flex: 0 0 auto;
+  min-width: 22px;
+  color: #ffe8b6;
+  font-variant-numeric: tabular-nums;
+}
+
+.chapterKicker {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 0 0 10px;
+  color: rgba(222, 208, 245, 0.88);
+  font-size: 0.8rem;
+  letter-spacing: 0.04em;
+}
+
+.speakerChip {
+  border: 1px solid rgba(255, 232, 182, 0.38);
+  border-radius: 999px;
+  padding: 3px 10px;
+  color: #ffe8b6;
+  font-size: 0.74rem;
 }

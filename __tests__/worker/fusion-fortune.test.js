@@ -1087,11 +1087,12 @@ describe("paid premium stage one never stalls on an empty wave (2026-10-30)", ()
     ["bad request", { ok: false, error: "LLM_INPUT_TOKEN_COUNT_UNAVAILABLE", providerCode: "GEMINI_INVALID_REQUEST", status: 400, retryable: false }, false],
     ["unsupported worker location", { ok: false, error: "LLM_INPUT_TOKEN_COUNT_UNAVAILABLE", providerCode: "GEMINI_PRECONDITION_FAILED", status: 400, retryable: false }, true],
     ["retired model", { ok: false, error: "LLM_INPUT_TOKEN_COUNT_UNAVAILABLE", providerCode: "GEMINI_MODEL_UNAVAILABLE", status: 404, retryable: false }, true],
-  ])("%s hands the reservation back only when Gemini never billed it", async (_name, failure, handsBack) => {
+  ])("%s hands the reservation back only when Gemini never billed it", async (name, failure, handsBack) => {
     const reservations = [];
     const providerCall = jest.fn(async () => failure);
     const result = await run(providerCall, { saju: 1 }, async (id, options) => { reservations.push([id, options]); return options.unbilled ? 1 : 2; });
-    expect(providerCall).toHaveBeenCalledTimes(1);
+    // A rejected request body is resent inside the same reservation: simplified schema, then none (2026-11-08).
+    expect(providerCall).toHaveBeenCalledTimes(name === "bad request" ? 3 : 1);
     expect(reservations).toEqual([["saju", {}], ...(handsBack ? [["saju", { unbilled: true }]] : [])]);
     expect(result.automaticRetryAllowed).toBe(handsBack);
   });

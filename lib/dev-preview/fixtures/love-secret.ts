@@ -1,38 +1,9 @@
 import type { DevPreviewState } from "@/lib/dev-preview/core";
+import { LOVE_SECRET_CHAPTER_GROUPS, LOVE_SECRET_SECTION_TITLES } from "@/app/love-secret-ai/result/love-secret-sections";
 
-// worker/lib/love-secret-ai-prompt.js 의 LOVE_SECRET_AI_GROUPS 와 같은 제목·순서.
-// 결과 화면의 그룹핑(app/love-secret-ai/result/love-secret-sections.ts)이 8개 그룹으로
-// 접히는지 확인하려면 이 목록이 실제 계약과 어긋나면 안 된다.
-const SECTION_TITLES = [
-  "현재 관계의 자리와 질문의 핵심",
-  "핵심 연애운 — 명식이 사랑에서 그리는 큰 결",
-  "오행과 조후로 보는 감정의 온도",
-  "나의 명식이 사랑에서 반복하는 방식",
-  "십성으로 보는 애착과 표현 방식",
-  "연애 장점 — 상대가 먼저 알아보는 힘",
-  "연애 약점 — 반복해서 걸려 넘어지는 자리",
-  "애정 표현 스타일과 연애 심리",
-  "상대의 기운과 감정 거리감",
-  "두 사람 사이 끌림이 살아나는 조건",
-  "속궁합과 친밀감 리듬",
-  "이상형 분석 — 내 명식이 끌리는 사람",
-  "상대가 원하는 연애 스타일",
-  "갈등의 뿌리와 회복 방식",
-  "바람기와 마음이 흩어지는 조건",
-  "재회 가능성과 그 조건",
-  "피해야 할 선택과 자기 보호",
-  "연락/고백/재회/관계 진전 타이밍",
-  "올해 연애운 — 좋은 달과 조심할 달",
-  "좋은 날짜 — 계산된 일진으로 고른 날",
-  "결혼운과 인연이 굳어지는 시기",
-  "30일 관계 흐름 처방",
-  "썸에서 확신으로 가는 전략",
-  "관계 단계별 실행 비책",
-  "상대에게 다가가는 대화 문장",
-  "매력적으로 보이는 방법 — 이미지·말투·스타일",
-  "7일 실천 가이드",
-  "마지막 상담사의 한마디",
-];
+// worker/lib/love-secret-ai-prompt.js 의 LOVE_SECRET_AI_GROUPS(V2, 30장) 와 같은 제목·순서.
+// 결과 화면 표(love-secret-sections.ts)를 그대로 써서 실제 계약과 어긋나지 않게 한다.
+const SECTION_TITLES = LOVE_SECRET_SECTION_TITLES;
 
 function buildSections(): Array<{ title: string; body: string }> {
   return SECTION_TITLES.map((title) => ({
@@ -76,9 +47,9 @@ export function buildLoveSecretPreviewPayload(state: DevPreviewState) {
     };
   }
 
-  // truncated = degraded. 6개 그룹 중 2개(self·risk)가 실패한 상태를 재현한다 —
+  // truncated = degraded. 7개 그룹 중 2개(self·risk)가 실패한 상태를 재현한다 —
   // 섹션이 통째로 빠져도 헤더·요약·실천 가이드가 살아 있어야 한다.
-  const droppedTitles = new Set(SECTION_TITLES.slice(3, 8).concat(SECTION_TITLES.slice(13, 17)));
+  const droppedTitles = new Set(LOVE_SECRET_CHAPTER_GROUPS.filter((group) => group.key === "self" || group.key === "risk").flatMap((group) => group.titles));
   const sections = state === "truncated"
     ? buildSections().filter((section) => !droppedTitles.has(section.title))
     : buildSections();

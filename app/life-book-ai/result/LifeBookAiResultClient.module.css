@@ -405,3 +405,43 @@
   color: #d2d9cc;
 }
 .shareAddress { margin-top: 14px; font-size: 20px; color: #e1d4b8; }
+
+/* 장 머리: 부 이름(kicker)·윤달 칩. 첫 장(타고난 원형)은 금빛 테두리로 강조한다. */
+.chapterKicker {
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  color: #8a5a2b;
+}
+
+.speakerChip {
+  display: inline-flex;
+  align-items: center;
+  justify-self: start;
+  gap: 6px;
+  padding: 2px 10px 2px 2px;
+  border: 1px solid rgba(138, 90, 43, 0.35);
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #5b4630;
+}
+
+.speakerChip img {
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  object-fit: cover;
+}
+
+.chapterLead {
+  box-shadow: inset 0 0 0 2px rgba(176, 124, 52, 0.55), 0 18px 40px rgba(20, 12, 6, 0.28);
+}
+
+.tocKicker {
+  display: block;
+  font-size: 0.66rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  color: #8a6a3b;
+}

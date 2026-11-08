@@ -3995,22 +3995,56 @@ function _sibylText(key) {
     return '<article class="sb-annual-reading"><header><p>시빌라 · '+_annualEscape(report.profileLabel || '저장된 개인 리포트')+'</p><h2>'+_annualEscape(a.title)+'</h2><p class="sb-annual-summary">'+_annualEscape(a.summary)+'</p><p>'+_annualEscape(a.period)+'</p><a href="'+_annualEscape(report.recordsHref)+'">보관함에서 다시 보기</a></header><p class="sb-annual-note">'+_annualEscape([a.limitation].concat(a.uncertainty).join(' '))+'</p><nav aria-label="리포트 목차">'+a.domains.map(function(d){return '<a href="#sb-domain-'+d.id+'">'+d.title+'</a>';}).join('')+'</nav><h3>타고난 장점과 그림자</h3>'+a.natal.traits.map(function(t){return '<p><strong>'+_annualEscape(t.strength)+'</strong><br>'+_annualEscape(t.caution)+' '+_annualEscape(t.action)+'</p>';}).join('')+'<h3>주의 시기 타임라인</h3><ol class="sb-annual-timeline">'+a.months.map(function(m){return '<li><strong>'+_annualEscape(m.label)+'</strong><span>'+_annualEscape(m.start)+'부터</span><span>'+_annualEscape(m.tensions.length?m.tensions.map(function(t){return t.label;}).join(' · '):'뚜렷한 충형파해 신호 없음')+'</span></li>';}).join('')+'</ol>'+a.domains.map(function(d){return '<section id="sb-domain-'+d.id+'"><h3>'+d.title+'</h3><p class="sb-annual-summary">'+_annualEscape(d.caution)+'</p><p>'+_annualEscape(d.periods.length===12?'연중 비슷한 주의 수준':d.periods.map(function(p){return p.label;}).join(' · '))+'</p><h4>생활에서 확인할 징후</h4><p>'+_annualEscape(d.sign)+'</p><h4>대비와 개운 행동</h4><p>'+_annualEscape(d.action)+'</p><h4>판단을 바꿀 조건</h4><p>'+_annualEscape(d.change)+'</p><details><summary>계산 근거 확인하기</summary>'+d.reasons.map(function(r){return '<p>'+_annualEscape(r.text)+(r.supports.length?' · 조율 신호 '+_annualEscape(r.supports.join(' · ')):'')+'</p>';}).join('')+'<p>'+_annualEscape(d.balancedNote)+'</p></details></section>';}).join('')+'<h3>당신을 위한 심층 상담</h3>'+report.chapters.map(function(c){return '<section><h3>'+_annualEscape(c.title)+'</h3>'+_annualParagraphs(c.content)+'</section>';}).join('')+'<footer><p>완성된 원본이 보관함에 저장되었습니다. 다시 열 때 추가 결제나 생성이 필요하지 않아요.</p><a href="'+_annualEscape(report.recordsHref)+'">저장한 리포트 열기</a></footer></article>';
   }
 
+  /* 배달 2판(sibyl-report-store)은 장이 남으면 202 {partial:true}를 돌려준다. 같은 요청을 짧게 쉬고
+     다시 보내 남은 장을 이어 쓰게 한다. 횟수 상한을 넘으면 수동 버튼으로 넘긴다.
+     partial 이 없는 202(다른 창이 잠금을 쥔 경우)는 자동으로 다시 보내지 않는다. */
+  var SIBYL_PARTIAL_MAX_WAVES = 6;
+  function _sibylIsPartialPending(response) {
+    return !!(response && response.ok && response.status === 202 && response.payload && response.payload.partial === true);
+  }
+  async function _sibylContinuePartialReport(post, wait, onWave) {
+    var response = await post();
+    for (var wave = 1; wave <= SIBYL_PARTIAL_MAX_WAVES && _sibylIsPartialPending(response); wave++) {
+      if (onWave && onWave(wave) === false) return response;
+      await wait(wave === 1 ? 1000 : 2000);
+      response = await post();
+    }
+    return response;
+  }
+  function _sibylReportPendingMarkup(kind) {
+    if (kind === 'partial-running') return '<div class="sb-annual-reading" role="status"><h2>남은 장을 이어서 쓰는 중이에요</h2><p>먼저 완성된 장은 저장해 두었어요. 남은 장을 마저 쓰고 있으니 이 화면을 그대로 두세요.</p><a href="/records/">보관함에서 확인하기</a></div>';
+    if (kind === 'partial-stalled') return '<div class="sb-annual-reading" role="status"><h2>남은 장을 아직 다 쓰지 못했어요</h2><p>완성된 장은 저장해 두었어요. 아래 버튼을 누르면 남은 장을 이어서 써요. 구매 권한은 그대로 유지돼요.</p><button type="button" class="sb-unlock-btn" onclick="_sibylRetryDominator()">남은 장 이어서 쓰기</button><a href="/records/">보관함에서 확인하기</a></div>';
+    return '<div class="sb-annual-reading" role="status"><h2>리포트를 준비하고 있어요</h2><p>다른 창에서 시작한 분석을 이어서 확인할 수 있어요. 잠시 후 진행 상태를 확인해 주세요.</p><button type="button" class="sb-unlock-btn" onclick="_sibylRetryDominator()">진행 상태 확인하기</button><a href="/records/">보관함에서 확인하기</a></div>';
+  }
+
   async function _generateDominatorReport() {
     var profile = _getCurrentProfile();
     var year = _annualYear();
     var generation = _q('sbGenerating');
     if (generation) generation.classList.remove('sb-hidden');
-    var response = await _fetchApiJson('/api/sibyl/report', {method:'POST',timeoutMs:75000,body:JSON.stringify({profileId:profile && (profile.id || profile.profileId),year:year})});
+    function stale() { return year !== _annualYear() || String((_getCurrentProfile()||{}).id || (_getCurrentProfile()||{}).profileId) !== String(profile.id || profile.profileId); }
+    function showSection() {
+      var lockEl = _q('sbLockOverlay'); if(lockEl) lockEl.classList.add('sb-hidden');
+      var errorEl = _q('sbErrorState'); if(errorEl) errorEl.classList.add('sb-hidden');
+      var target = _q('sbDominatorSection'); target.classList.remove('sb-hidden');
+      return target;
+    }
+    var response = await _sibylContinuePartialReport(
+      function() { return _fetchApiJson('/api/sibyl/report', {method:'POST',timeoutMs:75000,body:JSON.stringify({profileId:profile && (profile.id || profile.profileId),year:year})}); },
+      function(ms) { return new Promise(function(resolve) { setTimeout(resolve, ms); }); },
+      function() {
+        if (stale()) return false;
+        if (generation) generation.classList.add('sb-hidden');
+        showSection().innerHTML = _sibylReportPendingMarkup('partial-running');
+      }
+    );
     if (generation) generation.classList.add('sb-hidden');
     if (!response.ok) throw {message:response.payload.message || '리포트를 준비하지 못했어요. 구매 권한은 유지됩니다. 다시 시도해 주세요.'};
-    if (year !== _annualYear() || String((_getCurrentProfile()||{}).id || (_getCurrentProfile()||{}).profileId) !== String(profile.id || profile.profileId)) return;
+    if (stale()) return;
     var report = response.payload;
-    var lock = _q('sbLockOverlay'); if(lock) lock.classList.add('sb-hidden');
-    var errorBox = _q('sbErrorState'); if(errorBox) errorBox.classList.add('sb-hidden');
-    var section = _q('sbDominatorSection');
-    section.classList.remove('sb-hidden');
+    var section = showSection();
     if (response.status === 202) {
-      section.innerHTML = '<div class="sb-annual-reading" role="status"><h2>리포트를 준비하고 있어요</h2><p>다른 창에서 시작한 분석을 이어서 확인할 수 있어요. 잠시 후 진행 상태를 확인해 주세요.</p><button type="button" class="sb-unlock-btn" onclick="_sibylRetryDominator()">진행 상태 확인하기</button><a href="/records/">보관함에서 확인하기</a></div>';
+      section.innerHTML = _sibylReportPendingMarkup(response.payload && response.payload.partial === true ? 'partial-stalled' : 'other-window');
       return;
     }
     section.innerHTML = _annualReportMarkup(report);

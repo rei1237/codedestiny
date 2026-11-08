@@ -90,6 +90,8 @@ assertMissing(billingClient, ["premium-ziwei-report", "premium_pdf_ziwei"], "bil
 const page = [
   read("app/ziwei-ai/page.tsx"),
   read("app/ziwei-ai/ZiweiAiClient.tsx"),
+  // 섹션 순서·글리프는 결과 화면과 보관함 PDF가 함께 쓰는 모듈에 있다.
+  read("lib/ziwei/ziwei-ai-chapters.ts"),
 ].join("\n");
 assert(page.includes("runBillingCoinGate"), "page must use runBillingCoinGate");
 assert(page.includes("/api/ziwei-ai/prepare") && page.includes("/api/ziwei-ai/generate"), "page API calls missing");

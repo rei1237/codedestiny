@@ -120,7 +120,7 @@ export const HANBI_LOVE_PERSONA_KO = [
 // 신년운세 네오는 작전실과 같은 해라체 반말이다. 말투 검사는 neo-operation-room-prompt.js 의 neoRegisterDrift 를 쓴다.
 export const NEO_NEW_YEAR_PERSONA_KO = [
   "[상담자 페르소나 — 네오 · 신년운세]",
-  "- 당신은 한 해의 판세를 읽고 작전을 짜 주는 사자 장군 '네오'입니다. 올해 세운이 원국의 어디를 밀어 올리고 어디를 누르는지 판세로 정리하고, 달마다 밀어붙일 때와 버틸 때를 나눠 주는 것이 당신의 강점입니다.",
+  "- 당신은 한 해의 판세를 읽고 작전을 짜 주는 장군 '네오'입니다. 올해 세운이 원국의 어디를 밀어 올리고 어디를 누르는지 판세로 정리하고, 달마다 밀어붙일 때와 버틸 때를 나눠 주는 것이 당신의 강점입니다.",
   "- 위의 분석 원칙, 소제목과 섹션 구성, 월별 서술, 분량, 출력 형식은 그대로 따릅니다. 이 페르소나는 말투와 상담 태도만 정합니다. 문체는 위 지시의 문체 설명보다 이 페르소나를 따릅니다.",
   "- 말투: 처음부터 끝까지 해라체 반말 한 가지입니다(~다, ~해라, ~하자, 질문은 ~니?/~해?). 내담자는 '너'라고 부르고 '당신'은 쓰지 않습니다. ~습니다·~세요·~해요 같은 존댓말 어미를 한 문장도 섞지 않습니다.",
   "- 직설적이고 단단하게 진단하되, 내담자를 깎아내리거나 조롱하지 않습니다. 불안을 키우지 않고, 어려운 달은 미리 대비할 작전으로 말합니다.",
@@ -183,7 +183,7 @@ function sentenceBody(sentence) {
 
 // 해라체·반말 종결. '-니다'는 존댓말이라 뺀다. 인용·목록 몇 줄은 허용하려고 비율로 판정한다.
 const BANMAL_ENDING = /(?:[^니]다|[^니]냐|거든|잖아|구나|란다|하자|해라|니\?)$/u;
-function isBanmalSentence(sentence) {
+export function isBanmalSentence(sentence) {
   const body = sentenceBody(sentence);
   if (body.length < 4) return false;
   return BANMAL_ENDING.test(body) || /니$/.test(body) && /\?\s*$/.test(sentence);
@@ -194,6 +194,11 @@ function banmalDrift(text) {
   if (!sentences.length) return false;
   const banmal = sentences.filter(isBanmalSentence).length;
   return banmal >= 3 && banmal / sentences.length > 0.2;
+}
+
+/** 해설자 고유 금지어 없이 반말 비율만 본다(운명의 지도 꽃돼지처럼 존댓말 고정 상담용). 로그·부드러운 수리용, 전달을 막지 않는다. */
+export function banmalRegisterDrift(text) {
+  return banmalDrift(text) ? ["banmal"] : [];
 }
 
 function loreHits(text, words) {
@@ -214,8 +219,20 @@ export function yeoniRegisterDrift(text) {
   return issues;
 }
 
-// 연애 비책 연이는 손금과 금지어가 같다.
-export const yeoniLoveRegisterDrift = (text) => yeoniRegisterDrift(text);
+// 합니다체 종결(-니다/-니까). 연애 비책 V2는 연이·서한비 모두 해요체만 쓴다. 인용 몇 줄은 허용하려고 비율로 본다.
+export function hapnidaDrift(text) {
+  const sentences = splitSentences(text).filter((sentence) => sentenceBody(sentence).length >= 4);
+  if (!sentences.length) return false;
+  const formal = sentences.filter((sentence) => /니(?:다|까)$/u.test(sentenceBody(sentence))).length;
+  return formal >= 3 && formal / sentences.length > 0.25;
+}
+
+// 연애 비책 연이는 손금과 금지어가 같고, 여기에 합니다체 비율을 더 본다(로그·수리용, 전달을 막지 않는다).
+export function yeoniLoveRegisterDrift(text) {
+  const issues = yeoniRegisterDrift(text);
+  if (hapnidaDrift(text)) issues.push("hapnida");
+  return issues;
+}
 
 const HANBI_LOVE_FOREIGN = [...HANBI_FOREIGN, "본명숙", "숙요"];
 // 공망·卯時는 사주 상담에서 정상 용어라 인생의 책 검사에서는 뺀다.
@@ -224,6 +241,7 @@ const YUN_LIFE_BOOK_FOREIGN = ["청토끼", "흑월", "강새벽", "하우스", 
 export function hanbiLoveRegisterDrift(text) {
   const issues = [];
   if (banmalDrift(text)) issues.push("banmal");
+  if (hapnidaDrift(text)) issues.push("hapnida");
   issues.push(...loreHits(text, HANBI_LOVE_FOREIGN));
   return issues;
 }

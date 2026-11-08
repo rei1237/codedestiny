@@ -27,6 +27,31 @@ for (const gap of ['\n', '\n\n']) test('질문 답변의 모든 문단을 보존
   assert.ok(!cards.get('opening').includes(answer));
   assert.ok(!cards.get('opening').includes(continuation));
 });
+// V2 조립본: 성향 장이 먼저 오고 질문 답변은 총운 장 맨 앞에 한 번만 있다. 보관함은 조립본만 저장한다.
+const V2_TEXT = [
+  '**타고난 성향과 올해 너의 자리**\n일간이 단단하다는 건 버티는 힘이 크다는 뜻이다.',
+  '**질문에 대한 답변**\n지금은 옮기지 말고 준비해라.',
+  '**올해의 총운**\n올해는 판을 넓히기보다 다지는 해다.',
+  '**재물과 수입**\n들어오는 길은 고정 수입이다.',
+  '**재물·수입**\n3월에는 큰 지출을 미뤄라.',
+  '**직업과 커리어**\n자리를 지키며 실력을 드러내라.',
+  '**직업·이직**\n9월 전에는 움직이지 마라.',
+].join('\n\n');
+test('V2 조립본은 성향·재물·직업 장으로 나뉘고 질문 답변은 총운 카드에서 빠진다', () => {
+  const parsed = sections.classifySections(sections.splitAssistantSections(V2_TEXT));
+  assert.equal(parsed.questionAnswer.body, '지금은 옮기지 말고 준비해라.');
+  const fromText = sections.buildDomainBodies([], parsed.domains);
+  const fromServer = sections.buildDomainBodies([{ key: 'overview', text: V2_TEXT.split('\n\n').slice(1, 3).join('\n\n') }], parsed.domains);
+  for (const cards of [fromText, fromServer]) {
+    assert.ok(cards.get('overview').includes('다지는 해다'));
+    assert.ok(!cards.get('overview').includes('준비해라'));
+  }
+  assert.ok(fromText.get('nature').includes('버티는 힘'));
+  assert.ok(fromText.get('money').includes('3월에는'));
+  assert.ok(fromText.get('career').includes('9월 전에는'));
+  assert.equal(fromText.has('wealth'), false);
+  assert.equal(fromText.has('opening'), false);
+});
 test('직접 쓴 질문과 선택한 예시 질문을 모두 질문으로 표시한다', () => {
   assert.equal(sections.isGenuineCustomQuestion('이직해도 될까요?'), true);
   assert.equal(sections.isGenuineCustomQuestion('올해 전체적인 흐름이 궁금해요.'), true);

@@ -347,8 +347,8 @@ for (const [name, ratio, lead] of [
   expect(docs[0].deliveryMeta.reviewRequired).not.toBe(true);
   expect(docs[0].status).toBe('completed');
   expect(docs[0].chapters).toHaveLength(20);
-  // Under minChars (ratio 0.76) each chapter spends its one length repair, never more (rule L2).
-  expect(provider).toHaveBeenCalledTimes(ratio < 1 ? 40 : 20);
+  // Under minChars (ratio 0.76) only the four shortest chapters get one length repair each (rule L2 + F19 cap).
+  expect(provider).toHaveBeenCalledTimes(ratio < 1 ? 20 + 4 : 20); // F19: at most 4 repairs per book
   expect(hasRepeatedReportPassage(docs[0].chapters.map(row => row.body).join('\n'))).toBe(false);
   expect(refund).not.toHaveBeenCalled();
 });
@@ -436,14 +436,14 @@ it('accepts a structurally valid short chapter on its last existing attempt', as
   expect(refund).not.toHaveBeenCalled();
 });
 
-it('delivers all usable short chapters after exactly one bounded length repair each', async () => {
+it('delivers all usable short chapters after at most four shortest-first length repairs per book (F19)', async () => {
   provider.mockImplementation(async (_env, { chapter }) => lengthCandidate(chapter, 650));
   for (let wave = 0; wave < 12 && docs[0].status !== 'completed'; wave++) await generate();
   expect(docs[0].status).toBe('completed');
   expect(docs[0].chapters).toHaveLength(20);
-  expect(provider).toHaveBeenCalledTimes(40);
+  expect(provider).toHaveBeenCalledTimes(24);
   expect((await generate()).status).toBe(200);
-  expect(provider).toHaveBeenCalledTimes(40);
+  expect(provider).toHaveBeenCalledTimes(24);
   expect(refund).not.toHaveBeenCalled();
 });
 

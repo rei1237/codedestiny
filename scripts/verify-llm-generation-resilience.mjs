@@ -527,6 +527,28 @@ for (const [feature, path, timeoutVar] of [
     Math.round(widestSectionMin * 0.3) <= 1700,
     `${feature}: 가장 큰 섹션 하한 ${widestSectionMin}자의 폴백 문턱 ${Math.round(widestSectionMin * 0.3)}자가 실측 폴백 분량(~1,700자)을 넘는다`,
   );
+
+  // V2 구성(새 세션)은 장 상한을 7,000자로 넉넉히 잡고 별도 토큰 상수를 쓴다(2026-11-08 분량 넉넉·비치명화).
+  const v2Sections = __newYearAiTestUtils.NEW_YEAR_AI_SECTIONS_V2;
+  const v2Tokens = Number((source.match(/const NEW_YEAR_AI_V2_SECTION_MAX_OUTPUT_TOKENS = (\d+);/) || [])[1]);
+  for (const section of v2Sections) {
+    assertBudget(`${feature}:v2:${section.key}`, {
+      minChars: section.minChars,
+      maxChars: section.maxChars,
+      maxOutputTokens: v2Tokens,
+      tokenConstantName: "NEW_YEAR_AI_V2_SECTION_MAX_OUTPUT_TOKENS",
+      sourcePath: "worker/routes/new-year-ai.js",
+    });
+  }
+  checks += 1;
+  assert(v2Tokens >= tokensRequiredForChars(Math.max(...v2Sections.map(section => section.maxChars))) + 1500, `${feature}:v2: 추가 토큰 여유 부족`);
+  const v2MaxTotal = Number((source.match(/const NEW_YEAR_AI_V2_MAX_TOTAL_CHARS = (\d+);/) || [])[1]);
+  checks += 1;
+  assert(v2Sections.reduce((sum, section) => sum + section.maxChars, 0) <= v2MaxTotal, `${feature}:v2: 장 maxChars 합이 V2 상한 ${v2MaxTotal}을 넘는다`);
+  checks += 1;
+  assert(v2Sections.reduce((sum, section) => sum + section.minChars, 0) >= minTotal, `${feature}:v2: 장 minChars 합이 전체 하한 ${minTotal} 미만`);
+  checks += 1;
+  assert(Math.round(Math.max(...v2Sections.map((section) => section.minChars)) * 0.3) <= 1700, `${feature}:v2: 폴백 문턱이 실측 폴백 분량을 넘는다`);
 }
 {
   const feature = "life-book";
@@ -553,6 +575,21 @@ for (const [feature, path, timeoutVar] of [
     `${feature}: 챕터 토큰 상한(${chapterTokens})이 챕터 상한 ${chapterMaxChars}자를 못 담는다`
     + ` — ${tokensRequiredForChars(chapterMaxChars)} 이상으로 올려라`,
   );
+  // 구성 V2(2026-11-08 분량 넉넉): 프롬프트 최소는 게이트 하한 이상·목표 미만, 목표 총합은 상한 안, 보강(×1.25)도 45초 안.
+  const headroom = num("LIFE_BOOK_V2_TOKEN_HEADROOM");
+  checks += 1;
+  assert(headroom >= 1500, `${feature}:v2: 토큰 여유를 못 읽었다`);
+  const gates = { lifeFortune: [num("LIFE_FORTUNE_MIN_CHAPTER_CONTENT_CHARS"), num("LIFE_FORTUNE_MIN_EXPERT_READING_CONTENT_CHARS"), num("LIFE_FORTUNE_MAX_TOTAL_CONTENT_CHARS")], lifeBook: [minChapter, 350, maxTotal] };
+  for (const [kind, [chapterGate, expertGate, totalCap]] of Object.entries(gates)) {
+    const row = source.match(new RegExp(`${kind}: Object\\.freeze\\(\\{ chapterTargetChars: (\\d+), firstChapterTargetChars: (\\d+), chapterPromptMinChars: (\\d+), firstChapterPromptMinChars: (\\d+), expertTargetChars: (\\d+), expertPromptMinChars: (\\d+) \\}\\)`));
+    checks += 4;
+    assert(row, `${feature}:v2:${kind}: SECTION_TARGETS_V2 를 못 읽었다`);
+    const [chapter, first, chapterMin, firstMin, expert, expertMin] = row.slice(1).map(Number);
+    assert(chapterGate <= chapterMin && chapterMin < chapter && chapterGate <= firstMin && firstMin < first && expertGate <= expertMin && expertMin < expert,
+      `${feature}:v2:${kind}: 프롬프트 최소가 게이트 하한~목표 사이가 아니다`);
+    assert(first + 9 * chapter + 4 * expert <= totalCap, `${feature}:v2:${kind}: 목표 총합 ${first + 9 * chapter + 4 * expert} > 상한 ${totalCap}`);
+    assert(Math.round(first * 1.25) / 220 <= 45, `${feature}:v2:${kind}: 보강 목표가 45초 섹션 시한을 넘는다`);
+  }
 }
 
 // ── 8. 단일 호출로 남아 있는 유료 라우트 ────────────────────────────────────
@@ -704,6 +741,17 @@ const SINGLE_CALL_FLOOR_CEILING = 6000;
     tokenConstantName: "LOVE_SECRET_AI_GROUP_MAX_OUTPUT_TOKENS",
     sourcePath: "worker/routes/love-secret-ai.js",
   });
+
+  // V2 그룹(2026-11-08 분량 넉넉): 6,000~7,500자를 요구하므로 V2 토큰 상한이 그 상한을 여유까지 담고, 54초 안에 끝나야 한다.
+  {
+    const promptModule = await import("../worker/lib/love-secret-ai-prompt.js");
+    const v2Min = promptModule.LOVE_SECRET_AI_V2_GROUP_MIN_CHARS, v2Max = promptModule.LOVE_SECRET_AI_V2_GROUP_MAX_CHARS;
+    const v2Tokens = Number((source.match(/const LOVE_SECRET_AI_V2_GROUP_MAX_OUTPUT_TOKENS = (\d+);/) || [])[1]);
+    checks += 3;
+    assertBudget(`${feature}:v2`, { minChars: v2Min, maxChars: v2Max, maxOutputTokens: v2Tokens, tokenConstantName: "LOVE_SECRET_AI_V2_GROUP_MAX_OUTPUT_TOKENS", sourcePath: "worker/routes/love-secret-ai.js" });
+    assert(v2Tokens >= tokensRequiredForChars(v2Max) + 1500, `${feature}:v2: 토큰 상한 ${v2Tokens} < 필요 ${tokensRequiredForChars(v2Max)} + 1500`);
+    assert(v2Min >= promptModule.LOVE_SECRET_AI_GROUP_MIN_CHARS && v2Max / 220 <= 54, `${feature}:v2: V2 그룹 분량이 V1 하한 아래이거나 54초 시한을 넘는다`);
+  }
 
   // 🔴 clampSyncLlmTimeoutMs는 0/음수를 받으면 상한 85s로 되돌아간다. 예산이 바닥났을 때
   //    호출을 건너뛰는 가드가 그 앞에 있어야 한다.
@@ -1034,9 +1082,10 @@ const EXPECTED_LLM_CALL_SITES = {
   // vedic 1건: 그룹 생성 하나로 웨이브 1(전 그룹 동시)·2(분량 미달)·3(품질 미달)이 모두 지나간다.
   // 구 2건은 단일 호출 상담(callConsultationLlm)의 JSON/프로즈 두 갈래였고, 그룹 전환으로 사라졌다
   // — 이 라우트에는 후속 질문 경로가 없어 프로즈 갈래는 호출자가 0이었다.
-  "worker/lib/paid-narrative-delivery.js": 1, "worker/routes/sukuyo-compatibility-ai.js": 4, "worker/routes/vedic-ai.js": 1,
-  // Ziwei: two checkpointed calls (body/meta), both disable fallback and use one bounded attempt; legacy helpers retain three calls.
-  "worker/routes/yoga-guru.js": 1, "worker/routes/saju-compat-basic.js": 1, "worker/routes/ziwei-ai.js": 5, "worker/routes/ziwei-deep-report.js": 1,
+  // sukuyo 5건: 묶음·요약(판 1·2 공용)·판 1 개인·후속 4건 + 판 2 개인(createPersonalAnswerV2, 짧은 폴백만 fallbackMinChars 72로 막음).
+  "worker/lib/paid-narrative-delivery.js": 1, "worker/routes/sukuyo-compatibility-ai.js": 5, "worker/routes/vedic-ai.js": 1,
+  // Ziwei: two checkpointed calls (body/meta) per plan (판 1·판 2), all disable fallback and use one bounded attempt; legacy helpers retain three calls.
+  "worker/routes/yoga-guru.js": 1, "worker/routes/saju-compat-basic.js": 1, "worker/routes/ziwei-ai.js": 7, "worker/routes/ziwei-deep-report.js": 1,
   "worker/lib/fusion-fortune.js": 1, "worker/lib/palm-vision.js": 2,
 };
 for (const [path, expected] of Object.entries(EXPECTED_LLM_CALL_SITES)) {

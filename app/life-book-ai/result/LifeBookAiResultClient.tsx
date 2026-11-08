@@ -27,6 +27,8 @@ import { splitGanji, tenGodOfStem, FIVE_ELEMENT_TOKENS, type FiveElement } from 
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 import { ANSWER_FIRST_LAYOUT_V1 } from "@/lib/result-layout";
 import styles from "./LifeBookAiResultClient.module.css";
+import { masterAvatars } from "@/components/fortune/master-profiles";
+import { lifeBookChapterKicker } from "./life-book-pdf-chapters";
 
 type LifeBookMessage = {
   role: "user" | "assistant";
@@ -57,6 +59,8 @@ type LifeBookResult = {
   idempotencyKey?: string;
   accessType?: string;
   status?: string;
+  consultationType?: string;
+  featureKey?: string;
   saved?: boolean;
   title?: string;
   topic?: string;
@@ -1230,6 +1234,23 @@ const LIFE_BOOK_RESULT_COPY: Partial<Record<LoadingLocale, LifeBookResultCopy>> 
   },
 };
 
+// 장 머리의 화자 칩 이름. 로케일 문구 객체에 키를 늘리지 않고 이름만 따로 둔다(나머지 로케일은 영문 표기).
+const YUN_SPEAKER_NAMES = new Map<LifeBookResultCopy | undefined, string>([
+  [LIFE_BOOK_RESULT_COPY.ko, "윤달"],
+  [LIFE_BOOK_RESULT_COPY.ja, "ユンダル"],
+  [LIFE_BOOK_RESULT_COPY["zh-CN"], "闰月"],
+  [LIFE_BOOK_RESULT_COPY["zh-TW"], "閏月"],
+]);
+
+function YunSpeakerChip({ copy }: { copy: LifeBookResultCopy }) {
+  return (
+    <span className={styles.speakerChip}>
+      <img src={masterAvatars.yunLifeBook} alt="" width={22} height={22} decoding="async" />
+      {YUN_SPEAKER_NAMES.get(copy) || "Yundal"}
+    </span>
+  );
+}
+
 function getLifeBookResultCopy(locale: LoadingLocale): LifeBookResultCopy {
   return LIFE_BOOK_RESULT_COPY[locale] || LIFE_BOOK_RESULT_EN;
 }
@@ -1433,7 +1454,7 @@ function LifeBookResultContent({ paymentSurface }: { paymentSurface?: "toss" }) 
       }
       if (response.status === 202 && ["partial", "delivery_pending"].includes(payload.status || "")) {
         setResult(payload); setLoading(false);
-        if (document.hidden || resumeCallsRef.current >= 12) return;
+        if (document.hidden || resumeCallsRef.current >= 36) return;
         const flight = Symbol("life-book-resume");
         resumeInFlightRef.current = flight;
         resumeCallsRef.current += 1;
@@ -1643,8 +1664,29 @@ function LifeBookResultContent({ paymentSurface }: { paymentSurface?: "toss" }) 
     await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
     await new Promise((resolve) => setTimeout(resolve, 120));
     try {
-      const { exportResultPdf } = await import("@/lib/pdf/export-result-pdf");
       const date = new Date().toISOString().slice(0, 10);
+      // 받은 책 전체를 글자로 조판한다. 글꼴을 못 실을 때만 화면 캡처로 되돌아간다.
+      const [{ exportConsultationBookPdf }, { PdfFontError }, { buildLifeBookPdfChapters, LIFE_BOOK_PDF_SPEAKER }] = await Promise.all([
+        import("@/lib/pdf/export-consultation-book-pdf"),
+        import("@/lib/pdf/typeset-writer"),
+        import("./life-book-pdf-chapters"),
+      ]);
+      const fortune = result?.consultationType === "lifeFortune" || String(result?.featureKey || "").includes("life-fortune");
+      try {
+        await exportConsultationBookPdf({
+          title: copy.pdfCoverTitle(userName),
+          productLabel: fortune ? "인생 총운" : "인생의 책",
+          byline: LIFE_BOOK_PDF_SPEAKER,
+          coverTheme: "lifeBook",
+          date,
+          fileName: `life-book-reading-${safeFilePart(attemptId)}.pdf`,
+          chapters: buildLifeBookPdfChapters({ reportJson: result?.reportJson, messages: result?.messages }),
+        });
+        return;
+      } catch (error) {
+        if (!(error instanceof PdfFontError)) throw error;
+      }
+      const { exportResultPdf } = await import("@/lib/pdf/export-result-pdf");
       await exportResultPdf({
         captureTargets: ["#life-book-result-document [data-life-book-pdf-page]"],
         fileName: `life-book-reading-${safeFilePart(attemptId)}.pdf`,
@@ -1871,7 +1913,10 @@ function LifeBookResultContent({ paymentSurface }: { paymentSurface?: "toss" }) 
                           className={styles.tocRow}
                         >
                           <span className={styles.tocNum}>{String(index + 1).padStart(2, "0")}</span>
-                          <span className={styles.tocTitle}>{chapter.title}</span>
+                          <span className={styles.tocTitle}>
+                            {lifeBookChapterKicker(chapter.title || "") && <span className={styles.tocKicker}>{lifeBookChapterKicker(chapter.title || "")}</span>}
+                            {chapter.title}
+                          </span>
                           <span className={styles.tocLeader} aria-hidden="true" />
                         </button>
                       );
@@ -1902,10 +1947,14 @@ function LifeBookResultContent({ paymentSurface }: { paymentSurface?: "toss" }) 
                     id: `chapter-page-${index + 1}`,
                     label: copy.chapterPageLabel(chapter.chapterNumber || index + 1),
                     content: (
-                      <section id={`chapter-${index + 1}`} data-life-book-pdf-page className={`scroll-mt-6 rounded-3xl p-5 sm:p-7 ${styles.paperPage} ${styles.paperTexture}`}>
+                      <section id={`chapter-${index + 1}`} data-life-book-pdf-page data-chapter-lead={index === 0 ? "true" : undefined} className={`scroll-mt-6 rounded-3xl p-5 sm:p-7 ${styles.paperPage} ${styles.paperTexture} ${index === 0 ? styles.chapterLead : ""}`}>
                         <div className="mb-5 flex flex-wrap items-baseline gap-x-4 gap-y-1 border-b pb-4" style={{ borderColor: "rgba(43,28,16,0.16)" }}>
                           <span className={styles.chapterNumeral} aria-hidden="true">{toRoman(chapter.chapterNumber || index + 1)}</span>
-                          <h2 className={`text-2xl font-semibold leading-snug ${styles.chapterTitle}`}>{chapter.title}</h2>
+                          <div className="grid min-w-0 gap-1">
+                            {lifeBookChapterKicker(chapter.title || "") && <span className={styles.chapterKicker}>{lifeBookChapterKicker(chapter.title || "")}</span>}
+                            <h2 className={`text-2xl font-semibold leading-snug ${styles.chapterTitle}`}>{chapter.title}</h2>
+                            <YunSpeakerChip copy={copy} />
+                          </div>
                         </div>
                         {chapter.summary && (
                           <p className={`mb-4 rounded-2xl border px-4 py-3 text-sm font-semibold leading-6 ${styles.paperDivider}`} style={{ background: "rgba(43,28,16,0.05)" }}>

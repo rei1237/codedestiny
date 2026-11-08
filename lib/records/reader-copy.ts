@@ -15,6 +15,7 @@ const ko = {
   myQuestion: '나의 질문', guidance: '상담 안내', neo: '네오', yeoni: '연이',
   dailyCare: '하루의 돌봄', palaceLetter: '당신의 궁이 보내온 편지', minutes: '분', seconds: '초',
   resumeError: '생성을 이어 가지 못했어요. 잠시 후 다시 시도해 주세요.',
+  resumePartial: '남은 장을 이어서 쓰는 중이에요. 이 화면을 그대로 두세요.', resumePartialStalled: '남은 장을 아직 다 쓰지 못했어요. 완성된 장은 저장해 두었으니 버튼을 눌러 이어서 써 주세요.',
   resumePending: '같은 리포트를 준비하고 있어요. 잠시 후 진행 상태를 확인해 주세요.',
   connectionError: '연결을 확인하고 다시 시도해 주세요.',
   incomplete: '아직 저장이 완료되지 않았어요. 기존 구매 권한으로 같은 연도의 생성을 이어 갈 수 있습니다.',
@@ -24,6 +25,7 @@ const ko = {
   steadyCaution: '연중 비슷한 주의 수준', signs: '생활에서 확인할 징후', actions: '대비와 개운 행동',
   change: '판단을 바꿀 조건', evidence: '계산 근거 확인하기', support: '조율 신호',
   consultation: '당신을 위한 심층 상담', original: '저장된 원본입니다. 다시 열 때 추가 결제나 생성이 필요하지 않아요.',
+  savePdf: 'PDF로 저장하기', preparingPdf: 'PDF를 정리하고 있어요', pdfError: 'PDF로 저장하지 못했어요. 잠시 후 다시 시도해 주세요.',
 };
 type ReaderCopy = typeof ko;
 const en: ReaderCopy = {
@@ -42,6 +44,7 @@ const en: ReaderCopy = {
   myQuestion: 'My question', guidance: 'Consultation guidance', neo: 'Neo', yeoni: 'Yeoni',
   dailyCare: 'Daily care', palaceLetter: 'A letter from your chart palace', minutes: 'min', seconds: 's',
   resumeError: 'Could not continue the report. Please try again in a moment.',
+  resumePartial: 'Writing the remaining sections. Please keep this page open.', resumePartialStalled: 'Some sections are not finished yet. Finished sections are saved; press the button to continue.',
   resumePending: 'The same report is still being prepared. Check its progress again shortly.',
   connectionError: 'Check your connection and try again.',
   incomplete: 'Saving is not complete yet. Your existing purchase lets you continue the report for the same year.',
@@ -51,6 +54,7 @@ const en: ReaderCopy = {
   steadyCaution: 'Similar caution level throughout the year', signs: 'Signs to notice in daily life', actions: 'Preparation and practical steps',
   change: 'What could change this assessment', evidence: 'View the calculation basis', support: 'Balancing indicators',
   consultation: 'Your in-depth consultation', original: 'This is the saved original. Reopening it requires no additional payment or generation.',
+  savePdf: 'Save as PDF', preparingPdf: 'Preparing the PDF', pdfError: "Couldn't save the PDF. Please try again shortly.",
 };
 const ja: ReaderCopy = {
   pillarNames: ["年柱","月柱","日柱","時柱"],
@@ -68,6 +72,7 @@ const ja: ReaderCopy = {
   myQuestion: '私の質問', guidance: '相談のご案内', neo: 'ネオ', yeoni: 'ヨニ',
   dailyCare: '毎日のお世話', palaceLetter: 'あなたの宮から届いた手紙', minutes: '分', seconds: '秒',
   resumeError: 'レポートの作成を再開できませんでした。しばらくしてから、もう一度お試しください。',
+  resumePartial: '残りの章を続けて書いています。この画面のままお待ちください。', resumePartialStalled: '残りの章はまだ書き終わっていません。完成した章は保存済みです。ボタンを押して続けてください。',
   resumePending: '同じレポートを準備しています。少し時間をおいて進行状況をご確認ください。',
   connectionError: '接続を確認して、もう一度お試しください。',
   incomplete: '保存はまだ完了していません。購入済みの権限で、同じ年のレポート作成を続けられます。',
@@ -77,6 +82,7 @@ const ja: ReaderCopy = {
   steadyCaution: '年間を通じて同程度の注意が必要', signs: '日常で確かめたい兆候', actions: '備えと実践できる行動',
   change: '判断が変わる条件', evidence: '計算の根拠を確認する', support: '調和を助ける兆候',
   consultation: 'あなたのための詳しい相談', original: '保存された元の結果です。再表示に追加の支払いや生成は必要ありません。',
+  savePdf: 'PDFとして保存', preparingPdf: 'PDFを準備しています', pdfError: 'PDFを保存できませんでした。しばらくしてからもう一度お試しください。',
 };
 export function recordReaderCopy(locale: string): ReaderCopy {
   const language = locale.toLowerCase().split(/[-_]/)[0];

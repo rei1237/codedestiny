@@ -18,6 +18,21 @@ export function fusionEvidenceReferences(system, data) {
     .map(([key]) => `${system}.expertEvidence.${key}`);
 }
 
+/**
+ * 근거 경로를 "체계.expertEvidence.키..." 꼴로 맞춘다. 모델이 체계 접두사를 빼고 `yearlyLuck[0].pillar` 나
+ * `expertEvidence.dayMaster` 처럼 쓰면 예전에는 그 신호가 통째로 빠졌다(2026-11-08 6단계 9번).
+ * 그 체계의 expertEvidence(타로는 cards)에 실제로 있는 키일 때만 주인을 붙인다.
+ */
+export function ownFusionEvidencePath(key, system, context) {
+  const path = String(key).trim().replace(/^\$?\.?systems\./, "").replace(/\[(\d+)\]/g, ".$1").replace(/^\.+/, "");
+  const [head] = path.split(".");
+  if (!system || head === system || Object.hasOwn(context?.systems || {}, head)) return path;
+  if (system === "tarot") return head === "cards" ? `tarot.${path}` : path;
+  if (head === "expertEvidence") return `${system}.${path}`;
+  const evidence = context?.systems?.[system]?.expertEvidence;
+  return evidence && typeof evidence === "object" && Object.hasOwn(evidence, head) ? `${system}.expertEvidence.${path}` : path;
+}
+
 export function normalizeFusionSignals(section, system, context) {
   if (!section || !Array.isArray(section.signals)) return section;
   const signals = section.signals.map(signal => ({
@@ -25,8 +40,7 @@ export function normalizeFusionSignals(section, system, context) {
     domain: String(signal?.domain || "").trim().toLowerCase(),
     stance: String(signal?.stance || "").trim().toLowerCase(),
     period: String(signal?.period || "").trim().toLowerCase(),
-    evidenceKeys: Array.isArray(signal?.evidenceKeys) ? signal.evidenceKeys.map(key =>
-      String(key).trim().replace(/^\$?\.?systems\./, "").replace(/\[(\d+)\]/g, ".$1")) : [],
+    evidenceKeys: Array.isArray(signal?.evidenceKeys) ? signal.evidenceKeys.map(key => ownFusionEvidencePath(key, system, context)) : [],
   })).filter(signal => validFusionSignals({ signals: [signal] }, system, context)).slice(0, 8);
   return { ...section, signals };
 }

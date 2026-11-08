@@ -434,6 +434,22 @@ function cleanLogValue(value: unknown, maxLength = 120): string {
   return String(value || "").trim().slice(0, maxLength);
 }
 
+/**
+ * 공급자 오류 본문을 로그용으로 자르고 가린다. 2026-11-08: 초융합 400의 원인이 로그에 남지 않아
+ * 오프라인 재구성으로만 갈랐다. 키·URL·이메일·긴 따옴표 인용(프롬프트 메아리)은 남기지 않는다.
+ */
+export function sanitizeProviderErrorMessage(value: unknown, maxLength = 300): string {
+  return String(value || "")
+    .replace(/([?&]key=)[^&\s"']+/gi, "$1[redacted]")
+    .replace(/AIza[0-9A-Za-z_-]{20,}/g, "[redacted-key]")
+    .replace(/https?:\/\/\S+/gi, "[url]")
+    .replace(/[\w.+-]+@[\w-]+\.[\w.-]+/g, "[email]")
+    .replace(/(["'“”])[^"'“”]{60,}?\1/g, "$1…$1")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, maxLength);
+}
+
 function shouldLogProviderCall(env?: CloudflareEnv): boolean {
   const raw = String((env as Record<string, unknown> | undefined)?.["LLM_PROVIDER_CALL_LOG"] ?? "").trim().toLowerCase();
   return raw !== "0" && raw !== "false" && raw !== "off";
@@ -955,6 +971,19 @@ async function callGeminiPrimary(
       (requestError as { status?: number }).status = response.status;
       const code = classifyGeminiHttpError(response.status, payload.error?.message);
       if (code) (requestError as { code?: string }).code = code;
+      const logContext = (normalized.logContext || {}) as Record<string, unknown>;
+      console.warn("[llm provider_error]", {
+        provider: "gemini",
+        model: cleanLogValue(model, 120),
+        status: response.status,
+        providerStatus: cleanLogValue((payload.error as { status?: unknown } | undefined)?.status, 60),
+        code: code || undefined,
+        requestId: cleanLogValue(logContext.requestId, 180),
+        serviceId: cleanLogValue(logContext.serviceId || logContext.serviceType || logContext.featureKey || logContext.route, 140),
+        sectionGroup: cleanLogValue(logContext.sectionGroup, 60) || undefined,
+        hasResponseSchema: Boolean(normalized.responseSchema),
+        message: sanitizeProviderErrorMessage(payload.error?.message),
+      });
       throw requestError;
     }
 

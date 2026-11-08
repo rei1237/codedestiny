@@ -29,7 +29,9 @@ export { cleanBody as cleanPaidNarrativeBody };
 // No updatedAt: schema timestamps add $set.updatedAt to every update, and MongoDB
 // rejects a path under both $set and $setOnInsert (code 40).
 export function paidNarrativeInsert({ userId, executionKey, featureKey, reportType, original, seeded, locale, lock, now, timeoutAt, metadata = {} }) {
-  const state = { ...seeded, body: cleanBody(original), evidenceHash: hash(seeded), locale, parts: {}, attempts: {} };
+  // A seed may pin its delivery plan; the pin is not evidence, so the hash and prompt stay the same.
+  const { deliveryPlanVersion, ...evidence } = seeded;
+  const state = { ...evidence, body: cleanBody(original), evidenceHash: hash(evidence), locale, parts: {}, attempts: {}, ...(deliveryPlanVersion ? { deliveryPlanVersion } : {}) };
   return {
     userId, executionKey, featureKey, reportType,
     reportId: typeof original.sessionId === "string" && original.sessionId ? original.sessionId : executionKey,
@@ -45,6 +47,14 @@ export function paidNarrativeInsert({ userId, executionKey, featureKey, reportTy
 const ready = state => state.tasks.length > 0 && state.tasks.every(task => state.parts[task.id]);
 const limited = state => state.tasks.some(task => !state.parts[task.id] && state.attempts[task.id] >= 2);
 const reviewRequired = state => limited(state);
+// Delivery v2 (6c-4) runs only for an adapter that passes deliveryV2 and a record its seed pinned
+// to plan 2; every other adapter and record keeps the v1 hold above. Under v2 a failing part never
+// stops the others, the last attempts keep their best scrubbed text, and length is repaired at most
+// V2_LENGTH_REPAIRS times per record, only below the floor. A part that never returns any text is
+// not dropped: it is retried up to V2_PART_ATTEMPTS and only then held, after every other part is saved.
+const V2_PART_ATTEMPTS = 4, V2_LENGTH_REPAIRS = 3, V2_FLOOR_RATIO = 0.75;
+const deliveryV2Active = (state, enabled) => Boolean(enabled) && state?.deliveryPlanVersion === 2;
+const v2Exhausted = state => !ready(state) && state.tasks.every(task => state.parts[task.id] || (state.attempts[task.id] || 0) >= V2_PART_ATTEMPTS);
 
 // Every raw op is its own withMongoRetry unit because the cron resume path reaches
 // this engine (verify:cron-mongo-op-coverage). Reads may retry; writes keep
@@ -65,14 +75,15 @@ async function save(env, filter, fields) {
 async function revoked(env, doc, featureKey, body) {
   return ["refunded", "cancelled"].includes(doc?.status) || await withMongoRetry(env, () => isPaidResultRevoked(doc.userId, featureKey, [doc.executionKey, body.requestId, body.transactionId, body.purchaseId, body.paymentId, body.sessionId, doc.metadata?.paidNarrativeProof?.transactionId]));
 }
-function respond(doc, render, busy = false, measure) {
+function respond(doc, render, busy = false, measure, deliveryV2 = false) {
   const state = doc.metadata.paidNarrative;
+  const review = deliveryV2Active(state, deliveryV2) ? v2Exhausted(state) : reviewRequired(state, measure);
   if (state.failureResult) return json(state.failureResult, { status: 500 });
   if (state.exhaustionClaimed) return json({ ok: false, code: "RESULT_STORAGE_UNAVAILABLE", reason: "DELIVERY_REVIEW_REQUIRED", resultId: doc.executionKey, retryable: false, paymentRetainedForRetry: true }, { status: 503 });
   if (doc.premiumStatus === "completed") return json({ ...doc.metadata.result, ok: true, status: "completed", resultId: doc.executionKey, saved: true });
   return json({ ...render(state), ok: true, status: ready(state, measure) ? "delivery_pending" : Object.keys(state.parts).length ? "partial" : "generating",
-    saved: false, retryable: !reviewRequired(state, measure), reviewRequired: reviewRequired(state, measure),
-    ...(reviewRequired(state, measure) ? { code: "DELIVERY_REVIEW_REQUIRED", nextAction: "support" } : {}),
+    saved: false, retryable: !review, reviewRequired: review,
+    ...(review ? { code: "DELIVERY_REVIEW_REQUIRED", nextAction: "support" } : {}),
     resultId: doc.executionKey, resumeBody: { resumeResultId: doc.executionKey },
     completedParts: Object.keys(state.parts), totalParts: state.tasks.length, busy, retryAfterMs: busy ? 5000 : 1000,
   }, { status: 202 });
@@ -80,7 +91,7 @@ function respond(doc, render, busy = false, measure) {
 
 // Uses the existing execution collection; no provider call survives beyond its own
 // bounded request, and every accepted part is confirmed before the next wave.
-export async function runPaidNarrativeDelivery(request, env, auth, body, { featureKey, reportType, seed, verify, render, produce, onExhausted, measureBody, completeBody, recoverSavedPart, repairShortParts = false, savedOnly = false, timeoutMs = 45000, generationOrigin = "", verifyRecovery }) {
+export async function runPaidNarrativeDelivery(request, env, auth, body, { featureKey, reportType, seed, verify, render, produce, onExhausted, measureBody, completeBody, recoverSavedPart, repairShortParts = false, deliveryV2 = false, savedOnly = false, timeoutMs = 45000, generationOrigin = "", verifyRecovery }) {
   const userId = auth.userId;
   const params = new URL(request.url).searchParams;
   const resumeId = request.method === "GET" ? params.get("resultId") : body.resumeResultId;
@@ -119,7 +130,7 @@ export async function runPaidNarrativeDelivery(request, env, auth, body, { featu
     if (nativeOrigin) await verify(original, doc);
     await verifyNativeRecovery();
     if ((nativeOrigin || nativeRecord(doc)) && await revoked(env, doc, featureKey, original)) return json({ ok: false, retryable: false, reason: "PAYMENT_REVOKED" }, { status: 403 });
-    return respond(doc, render, busy, measureBody);
+    return respond(doc, render, busy, measureBody, deliveryV2);
   };
   if (doc?.premiumStatus === "completed" || doc?.metadata?.paidNarrative?.exhaustionClaimed || request.method === "GET") return deliver();
   const now = new Date(), token = randomUUID();
@@ -149,6 +160,7 @@ export async function runPaidNarrativeDelivery(request, env, auth, body, { featu
   if (doc.lock.token !== token) return deliver(true);
   const filter = { userId, executionKey, status: "pending", "lock.token": token };
   let state = doc.metadata.paidNarrative;
+  const v2 = deliveryV2Active(state, deliveryV2);
   // With repairShortParts a short complete answer is a draft for the part's second (repair)
   // attempt; only the last attempt keeps it, so a paid result is never refunded for length alone.
   // Other adapters keep delivering a short complete answer without buying a repair.
@@ -162,7 +174,13 @@ export async function runPaidNarrativeDelivery(request, env, auth, body, { featu
     if (nativeOrigin) await verify(original, doc);
     for (const task of state.tasks) {
       const draft = state.drafts?.[task.id] || (!state.parts[task.id] && recoverSavedPart?.(task, state));
-      if (!state.parts[task.id] && draft) {
+      if (!state.parts[task.id] && draft && v2) {
+        // A short v2 draft waits for its one repair call; after it, the draft is the part.
+        if ((state.attempts[task.id] || 0) < 2) continue;
+        state.parts[task.id] = selectNarrativeCandidate(null, draft, { ...(completeBody && { complete: completeBody }), ...(measureBody && { measure: measureBody }) }) || draft;
+        state.drafts = { ...state.drafts, [task.id]: null };
+        await persist();
+      } else if (!state.parts[task.id] && draft) {
         const candidate = selectNarrativeCandidate(null, draft, { ...(completeBody && { complete: completeBody }), ...(measureBody && { measure: measureBody }) });
         if (candidate && !hasRepeatedReportPassage(Object.values(state.parts).join("\n") + "\n" + candidate)) {
           if (longEnough(task, candidate) || finalAttempt(task)) state.parts[task.id] = candidate;
@@ -176,7 +194,9 @@ export async function runPaidNarrativeDelivery(request, env, auth, body, { featu
     // delivered parts for review. Stored drafts above can still be repaired
     // without another provider call.
     const partialReview = limited(state) && Object.keys(state.parts).length > 0;
-    const missing = savedOnly || partialReview ? [] : state.tasks.filter(task => !state.parts[task.id] && (state.attempts[task.id] || 0) < 2).slice(0, PAID_LLM_PARTS_PER_REQUEST);
+    const open = limit => state.tasks.filter(task => !state.parts[task.id] && (state.attempts[task.id] || 0) < limit);
+    const missing = savedOnly ? [] : v2 ? (open(2).length ? open(2) : open(V2_PART_ATTEMPTS)).slice(0, PAID_LLM_PARTS_PER_REQUEST)
+      : partialReview ? [] : state.tasks.filter(task => !state.parts[task.id] && (state.attempts[task.id] || 0) < 2).slice(0, PAID_LLM_PARTS_PER_REQUEST);
     for (const task of missing) state.attempts[task.id] = (state.attempts[task.id] || 0) + 1;
     if (missing.length) await persist();
     let queue = Promise.resolve();
@@ -222,6 +242,18 @@ export async function runPaidNarrativeDelivery(request, env, auth, body, { featu
         const kept = dedupe(draft);
         const previous = kept && !hasRepeatedReportPassage(prior + "\n" + kept) ? kept : null;
         const candidate = selectNarrativeCandidate(previous, body, { ...(completeBody && { complete: completeBody }), ...(measureBody && { measure: measureBody }) });
+        if (v2) {
+          const final = (state.attempts[task.id] || 0) >= 2, chars = measureBody || countPaidReportBodyChars;
+          // The last attempts keep the longest prose they have, already scrubbed of repeated sentences.
+          const salvage = [candidate, valid ? edited : null, kept].filter(text => typeof text === "string" && !/^\s*[\[{]/.test(text) && chars(text) > 0)
+            .sort((a, b) => chars(b) - chars(a))[0] || null;
+          const chosen = final ? salvage : candidate;
+          if (!chosen) { await persist(); return; }
+          const repair = !final && chars(chosen) < Math.ceil((task.minChars || 0) * V2_FLOOR_RATIO) && (state.lengthRepairs || 0) < V2_LENGTH_REPAIRS;
+          state = { ...state, drafts: { ...state.drafts, [task.id]: repair ? chosen : null },
+            parts: repair ? state.parts : { ...state.parts, [task.id]: chosen }, ...(repair ? { lengthRepairs: (state.lengthRepairs || 0) + 1 } : {}) };
+          await persist(); return;
+        }
         // Preserve the existing producer acceptance for full structured results.
         // Short narratives/structured adapters use their own completeness check.
         const accepted = longEnough(task, body) ? candidate || body
@@ -237,7 +269,7 @@ export async function runPaidNarrativeDelivery(request, env, auth, body, { featu
     })));
     const rejected = calls.find(call => call.status === "rejected"); if (rejected) throw rejected.reason;
     if (!ready(state, measureBody)) {
-      if (!savedOnly && limited(state) && onExhausted && !nativeRecord(doc) && Object.keys(state.parts).length === 0) {
+      if (!savedOnly && (v2 ? v2Exhausted(state) : limited(state)) && onExhausted && !nativeRecord(doc) && Object.keys(state.parts).length === 0) {
         // Persist a single refund claim before any external side effect. An
         // uncertain refund response is for reconciliation, never another refund.
         state = { ...state, exhaustionClaimed: true };

@@ -1,4 +1,4 @@
-import { buildCodexEditorialContract } from "./master-love-codex-quality.js";
+import { buildCodexEditorialContract, codexBodyTarget, codexV2PromptLines } from "./master-love-codex-quality.js";
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════
@@ -271,6 +271,42 @@ export const MASTER_LOVE_CODEX_COMPAT_CHAPTERS = Object.freeze([
     avoid: ["앞 장들의 요약 나열", "새 근거·새 주제 도입", "지표 수치 재언급 — 18장", "시기 전망 — 19장"],
   },
 ]);
+
+/** V2 구성 — 개인판과 같은 규칙(장 수·id·제목 유지, 관점·넉넉한 목표, 1장 재범위). */
+const COMPAT_V2_PERSPECTIVE = {
+  "facing": "두 사람 기질의 근거를 쉬운 말로 먼저 풀고, 둘이 함께 있을 때 '맞아, 우리 이래' 하고 떠올릴 장면 2~3개를 보여 준 뒤 그 결이 이 관계에서 어떻게 드러나는지로 잇는다.",
+  "self": "관계 속에서 상담자 본인이 서려는 자리 하나만 깊게 본다.",
+  "other": "상대가 어떤 결의 사람인지, 상담자가 오해하기 쉬운 지점과 함께 본다.",
+  "pull": "두 사람이 서로에게 끌린 이유를 계산된 근거로 설명한다.",
+  "daystem": "두 일간이 만나는 방식이 일상의 대화와 결정에서 어떻게 드러나는지 본다.",
+  "tengod": "관계 안에서 서로가 맡게 되는 역할을 십성으로 본다.",
+  "yongshin": "서로가 서로의 부족한 자리를 어떻게 채우는지 본다.",
+  "branch": "생활 리듬이 부딪치는 지점을 지지 관계로 본다.",
+  "overlay": "두 명반이 겹치는 자리에서 서로에게 주는 영향을 본다.",
+  "spouse": "각자가 그리는 배우자상이 서로와 얼마나 맞는지 본다.",
+  "malefic": "서로를 긁는 자리와 그 마찰을 줄이는 방법을 본다.",
+  "sihua": "서로를 키워 주는 자리와 그 힘을 쓰는 방법을 본다.",
+  "temperature": "두 사람의 시간축에서 관계의 온도가 오르내리는 곡선을 본다.",
+  "conflict": "같은 다툼이 반복되는 뿌리를 한 지점으로 좁혀 본다.",
+  "repair": "상대에게 실제로 닿는 화해의 말과 순서를 구체적인 문장으로 준다.",
+  "future": "오래 함께할 수 있는지, 결혼과 생활의 적합성을 현실적으로 본다.",
+  "cross-check": "사주와 자미두수가 이 관계에 대해 같은 말을 하는 곳과 다른 말을 하는 곳을 정직하게 비교한다.",
+  "relation-dna": "앞 장들의 해석을 열 개의 관계 지표로 묶어 한눈에 보이게 정리한다.",
+  "three-years": "앞으로 3년의 관계 흐름을 시기별로 나누어 본다.",
+  "letter": "두 사람에게 책 전체의 핵심을 건네는 편지로 조용히 닫는다."
+};
+export const MASTER_LOVE_CODEX_COMPAT_CHAPTERS_V2 = Object.freeze(MASTER_LOVE_CODEX_COMPAT_CHAPTERS.map((chapter) => Object.freeze({
+  ...chapter,
+  ...(chapter.id === "facing" ? {
+    scope: "두 사람의 기질을 가장 먼저 짚는다. 양쪽 일간의 오행 관계와 명궁 주성이 무슨 뜻인지 쉬운 말로 풀고, "
+      + "둘이 함께 있을 때 드러나는 일상 장면 2~3개(약속을 정할 때·대화가 엇갈릴 때·편안할 때 등)를 보여 준 뒤 "
+      + "그것이 이 관계에서 어떤 모습으로 이어지는지 연결한다. 점수를 나열하지 않고, 상담자의 질문은 여기서 다시 옮겨 적지 않는다.",
+    avoid: [...chapter.avoid, "상담 질문 인용·답변 — 질문이 배정된 장 담당"],
+  } : chapter.id === "self" ? { avoid: [...chapter.avoid, "두 사람 기질의 일상 공감 장면 — 1장 담당"] } : {}),
+  planVersion: 2,
+  perspective: COMPAT_V2_PERSPECTIVE[chapter.id],
+  targetChars: [chapter.minChars + 800, chapter.minChars + 1200],
+})));
 
 /**
  * 관계 DNA(18장) 지표 정의 — JSON 응답 스키마의 근거.
@@ -552,8 +588,10 @@ export function buildMasterLoveCodexCompatChapterPrompt({
     palaces ? `[명반에서 특히 볼 궁] ${palaces}` : "",
     compatFocus ? `[궁합 판정에서 특히 볼 축] ${compatFocus}` : "",
     avoidList ? `[이번 장에서 다루지 않을 것 — 다른 장이 맡는다] ${avoidList}` : "",
+    ...codexV2PromptLines(chapter),
     "",
   ].filter((line) => line !== "");
+  const [bodyLo, bodyHi] = codexBodyTarget(chapter);
 
   if (chapter.structured !== false) {
     return [
@@ -575,7 +613,7 @@ export function buildMasterLoveCodexCompatChapterPrompt({
       '  "actions": ["지금 할 수 있는 구체적 행동 1", "행동 2"],',
       '  "bridge": "다음 장으로 이어지는 한 문장",',
       '  "visualization": {"kind":"balance 또는 loop 또는 timeline","title":"정성적 읽기","items":[{"label":"항목","level":"low 또는 balanced 또는 high 또는 watch 또는 opportunity","note":"근거 설명"}]},',
-      `  "body": "근거 밀도에 따라 소제목 2~6개로 유동적으로 나눈 이 장의 완성 원고(Markdown, 공백 포함 ${min + 500}~${min + 900}자)"`,
+      `  "body": "근거 밀도에 따라 소제목 2~6개로 유동적으로 나눈 이 장의 완성 원고(Markdown, 공백 포함 ${bodyLo}~${bodyHi}자)"`,
       "}",
       `- "body"는 공백 포함 최소 ${min}자 이상.`,
       ...(chapter.jsonMode ? [

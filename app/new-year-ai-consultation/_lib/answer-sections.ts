@@ -41,25 +41,33 @@ const QUESTION_ANSWER_TITLE = "질문에 대한 답변";
 const MONTH_LETTER_HEADING_RE = /^(\d{1,2})월\s*[·∙・-]\s*(\S+)\s*[·∙・-]\s*(.+)$/;
 const CATEGORY_TITLE_PREFIXES = ["연애·재회", "재물·수입", "직업·이직", "건강·멘탈", "가족·관계", "학업·성장"];
 
-// 결과 화면의 네 장짜리 상담 카드. key는 서버 섹션 키(worker/routes/new-year-ai.js의
-// NEW_YEAR_AI_SECTIONS)와 같아야 한다 — 구조화 응답이 오면 이 키로 곧장 매칭한다.
-// marker는 구버전 세션(llmMeta.sections 없음)에서 조립본을 다시 가를 때 쓰는 굵은 소제목이다.
-export const DOMAIN_CARDS: Array<{ key: string; label: string; marker: string; glyph: string; hint: string }> = [
-  { key: "opening", label: "타고난 성향과 지금의 마음", marker: "타고난 성향과 지금의 마음", glyph: "命", hint: "나의 강점과 반복되는 부담, 고민을 이해하는 단서" },
-  { key: "overview", label: "올해의 총운", marker: "올해의 총운", glyph: "運", hint: "세운이 일간에 만드는 조후와 억부의 변화" },
-  { key: "wealth", label: "재물과 직업", marker: "재물과 직업", glyph: "財", hint: "재성·관성의 동태와 움직일 시기" },
-  { key: "romance", label: "애정과 대인관계", marker: "애정과 대인관계", glyph: "緣", hint: "귀인과 인연, 조심해야 할 관계" },
-  { key: "health", label: "건강과 개운법", marker: "건강과 개운법", glyph: "身", hint: "오행의 쏠림과 실생활 개운법" },
+// 결과 화면의 분야 카드. key는 서버 섹션 키(worker/routes/new-year-ai.js의
+// NEW_YEAR_AI_SECTIONS_V1·V2)와 같아야 한다 — 구조화 응답이 오면 이 키로 곧장 매칭한다.
+// marker는 구조화 응답이 없을 때(구버전 세션·보관함 조립본) 조립본을 다시 가를 때 쓰는 굵은 소제목이다.
+// V1(opening·wealth)과 V2(nature·money·career) 카드를 함께 두고, 본문이 있는 카드만 보인다.
+// kicker는 장 머리 위의 짧은 부 이름이다(네오의 판세·작전 말투).
+export type DomainCard = { key: string; label: string; marker: string; glyph: string; hint: string; kicker: string };
+export const DOMAIN_CARDS: DomainCard[] = [
+  { key: "nature", label: "타고난 성향과 올해 너의 자리", marker: "타고난 성향과 올해 너의 자리", glyph: "命", hint: "근거의 쉬운 뜻과 생활 장면, 올해 흐름과 만나는 자리", kicker: "먼저 너를 읽는다" },
+  { key: "opening", label: "타고난 성향과 지금의 마음", marker: "타고난 성향과 지금의 마음", glyph: "命", hint: "나의 강점과 반복되는 부담, 고민을 이해하는 단서", kicker: "먼저 너를 읽는다" },
+  { key: "overview", label: "올해의 총운", marker: "올해의 총운", glyph: "運", hint: "세운이 일간에 만드는 조후와 억부의 변화", kicker: "올해의 판세" },
+  { key: "wealth", label: "재물과 직업", marker: "재물과 직업", glyph: "財", hint: "재성·관성의 동태와 움직일 시기", kicker: "돈과 일의 작전" },
+  { key: "money", label: "재물과 수입", marker: "재물과 수입", glyph: "財", hint: "재성의 동태, 들어오는 길과 새는 자리", kicker: "돈의 작전" },
+  { key: "career", label: "직업과 커리어", marker: "직업과 커리어", glyph: "官", hint: "관성·식상의 동태, 움직일 조건과 다질 자리", kicker: "일의 작전" },
+  { key: "romance", label: "애정과 대인관계", marker: "애정과 대인관계", glyph: "緣", hint: "귀인과 인연, 조심해야 할 관계", kicker: "사람의 지도" },
+  { key: "health", label: "건강과 개운법", marker: "건강과 개운법", glyph: "身", hint: "오행의 쏠림과 실생활 개운법", kicker: "몸과 리듬" },
 ];
-const DEFAULT_DOMAIN_KEY = DOMAIN_CARDS[0].key;
-// 대기 화면의 진행 단계. 서버 NEW_YEAR_AI_SECTIONS와 같은 순서·같은 수다 — 열두 달 흐름(monthly)은
-// 결과에서 분야 카드가 아니라 월별 편지로 보이지만 생성·저장 단위로는 한 섹션이다.
-// 안내 문구의 "N개 분야"와 저장 진행 "x/N"의 폴백이 모두 이 길이를 써서 5와 6이 섞이지 않는다.
-export const READING_STEPS: Array<{ key: string; label: string; glyph: string }> = [
-  ...DOMAIN_CARDS.filter((card) => card.key !== "health"),
-  { key: "monthly", label: "1월~12월 월별 흐름", glyph: "月" },
-  ...DOMAIN_CARDS.filter((card) => card.key === "health"),
-];
+// V2에만 있는 카드. 조립본에 이 마커가 하나라도 있으면 V2 본문이라 예전 카테고리 소제목 흡수를 끈다.
+const V2_ONLY_DOMAIN_KEYS = new Set(["nature", "money", "career"]);
+const DEFAULT_DOMAIN_KEY = "opening";
+export const MONTHLY_CHAPTER = { key: "monthly", label: "1월~12월 월별 흐름", glyph: "月", hint: "열두 달 각각의 기회와 주의", kicker: "열두 달의 작전" };
+// 대기 화면의 진행 단계. 새로 시작하는 상담의 서버 구성(NEW_YEAR_AI_SECTIONS_V2)과 같은 순서·같은 수다 —
+// 열두 달 흐름(monthly)은 결과에서 월별 장으로 보이지만 생성·저장 단위로는 한 섹션이다.
+// 안내 문구의 "N개 분야"와 저장 진행 "x/N"의 폴백이 이 길이를 쓴다. 예전 세션의 진행 수는 서버 progress.total이 알려 준다.
+const READING_STEP_KEYS = ["nature", "overview", "money", "career", "romance", "monthly", "health"];
+export const READING_STEPS: Array<{ key: string; label: string; glyph: string }> = READING_STEP_KEYS.map((key) =>
+  key === MONTHLY_CHAPTER.key ? MONTHLY_CHAPTER : DOMAIN_CARDS.find((card) => card.key === key)!,
+).map(({ key, label, glyph }) => ({ key, label, glyph }));
 export const READING_SECTION_TOTAL = READING_STEPS.length;
 // 구버전 조립본에는 분야 마커가 없고 6개 카테고리 소제목만 있다. 그 소제목을 새 분야로 흡수해
 // 이미 결제된 과거 상담도 같은 네 장 카드로 열린다.
@@ -101,15 +109,19 @@ function groupSectionsByDomain(sections: ParsedSection[]) {
     list.push(section);
     buckets.set(key, list);
   };
-  let current = DEFAULT_DOMAIN_KEY;
-  for (const section of sections) {
-    const explicit = domainKeyFromSection(section);
+  const explicitKeys = sections.map(domainKeyFromSection);
+  const isV2 = explicitKeys.some((key) => V2_ONLY_DOMAIN_KEYS.has(key));
+  // V2 본문의 첫 장은 nature다. 첫 마커 앞 문단은 그 장에 붙인다.
+  let current = isV2 ? "nature" : DEFAULT_DOMAIN_KEY;
+  for (const [index, section] of sections.entries()) {
+    const explicit = explicitKeys[index];
     if (explicit) {
       current = explicit;
       push(current, section);
       continue;
     }
-    const legacy = legacyDomainFromTitle(section.title);
+    // V2 본문의 재물·수입 같은 카테고리 소제목은 이미 자기 장 안에 있으니 옮기지 않는다.
+    const legacy = isV2 ? "" : legacyDomainFromTitle(section.title);
     push(legacy || current, section);
   }
   return buckets;
@@ -153,7 +165,8 @@ export function buildDomainBodies(
   const bodies = new Map<string, string>();
   for (const card of DOMAIN_CARDS) {
     const rawServer = serverSections.find((section) => section.key === card.key)?.text || "";
-    const fromServer = card.key === "opening" && rawServer.includes(QUESTION_ANSWER_TITLE)
+    // 질문 답변은 따로 카드로 보이니 분야 카드 본문에서 걷어 낸다(V1은 opening, V2는 overview가 맡는다).
+    const fromServer = rawServer.includes(QUESTION_ANSWER_TITLE)
       ? classifySections(splitAssistantSections(rawServer)).restSections
         .map(section => /^새해 상담 편지 \d+$/.test(section.title) ? section.body : `**${section.title}**\n${section.body}`).join("\n\n")
       : rawServer;

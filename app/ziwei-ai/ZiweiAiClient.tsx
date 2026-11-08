@@ -48,6 +48,7 @@ import { getCurrentLoadingLocale, INTL_LOCALE_BY_LOADING_LOCALE, type LoadingLoc
 import { getResultReferenceCopy } from "@/lib/i18n/result-reference-copy";
 import { withOpenResultReferences } from "@/lib/pdf/with-open-result-references";
 import { normalizeCaptureColors } from "@/lib/pdf/normalize-capture-colors";
+import { ZIWEI_AI_SPEAKER, buildZiweiAiPdfChapters, isZiweiAiPlanV2, orderZiweiAiSections } from "@/lib/ziwei/ziwei-ai-chapters";
 
 type ZiweiAiCopy = {
   timelineAria: string;
@@ -254,6 +255,7 @@ type Consultation = {
   status?: string;
   saved?: boolean;
   completedGroups?: string[];
+  groupPlanVersion?: number;
   accessType?: AccessType;
   birthInfo?: BirthInfo;
   topic?: string;
@@ -461,51 +463,8 @@ const FOCUS_TOPIC: Record<FocusArea, string> = FOCUS_OPTIONS.reduce((acc, item) 
   return acc;
 }, {} as Record<FocusArea, string>);
 
-// 근거 중심 섹션(structure_core·influence_factors·evidence_basis·domain_matrix·action_plan)은
-// 이 목록에 없으면 렌더되지 않는다. 이 목록 이전에 생성된 상담에는 해당 키가 없으므로,
-// 아래 필터(body 있는 키만 통과)가 그대로 폴백 역할을 한다.
-const SECTION_ORDER = [
-  "core_answer",
-  "personality_profile",
-  "structure_core",
-  "influence_factors",
-  "evidence_basis",
-  "essence",
-  "flow",
-  "triad_axis",
-  "twelve_palaces",
-  "career",
-  "wealth",
-  "relationship",
-  "dayun_now",
-  "timing_strategy",
-  "caution",
-  "domain_matrix",
-  "action_plan",
-  "prescription",
-  "reading_guide",
-];
-const SECTION_GLYPHS: Record<string, string> = {
-  reading_guide: "序",
-  personality_profile: "性",
-  structure_core: "核",
-  influence_factors: "影",
-  evidence_basis: "據",
-  essence: "命",
-  flow: "化",
-  triad_axis: "合",
-  twelve_palaces: "宮",
-  career: "官",
-  wealth: "財",
-  relationship: "緣",
-  dayun_now: "運",
-  timing_strategy: "時",
-  caution: "忌",
-  domain_matrix: "域",
-  core_answer: "問",
-  action_plan: "行",
-  prescription: "策",
-};
+// 섹션 순서·글리프·부 이름은 lib/ziwei/ziwei-ai-chapters.ts(판 1·판 2)에 있다. 본문 있는 키만 통과하는 필터가
+// 예전 상담의 빠진 키 폴백 역할을 그대로 한다.
 const SCORE_LABELS: Record<string, string> = {
   career: "직업·사업",
   wealth: "재물",
@@ -830,23 +789,12 @@ function parseStructuredZiweiResult(content: string): StructuredZiweiResult | nu
   }
 }
 
-function splitAssistantSections(content: string) {
+function splitAssistantSections(content: string, planV2 = false) {
   const normalized = content.replace(/\r\n/g, "\n").trim();
   if (!normalized) return [];
   const structured = parseStructuredZiweiResult(normalized);
   if (structured) {
-    const sections = asRecord(structured.sections);
-    return SECTION_ORDER
-      .filter((key) => asRecord(sections[key]).body)
-      .map((key) => {
-        const section = asRecord(sections[key]);
-        return {
-          title: toText(section.title) || key,
-          body: toText(section.body),
-          glyph: SECTION_GLYPHS[key] || "星",
-          isGuide: key === "reading_guide",
-        };
-      });
+    return orderZiweiAiSections(asRecord(structured.sections), planV2);
   }
   const fallbackTitles = [
     "명반의 핵심 결론",
@@ -871,6 +819,7 @@ function splitAssistantSections(content: string) {
       body: hasHeading ? lines.slice(1).join("\n") : chunk,
       glyph: "星",
       isGuide: false,
+      kicker: "",
     };
   });
 }
@@ -1055,12 +1004,15 @@ export default function ZiweiAiPage({paymentSurface="web",ProfilePicker,TossPric
   }, [assistantMessages]);
   const structuredScores = asRecord(structuredResult?.meta?.scores);
   const currentLoadingStage = phase === "payment" ? 1 : phase === "reading" ? 4 : 0;
+  // 판 2 상담은 본성·공감 장부터 차례·장 번호·부 이름·무성 표시를 단다. 판 1은 예전 화면 그대로다.
+  const planV2 = isZiweiAiPlanV2(consultation);
   const assistantSections = useMemo(() => assistantMessages.flatMap((message, messageIndex) => (
-    splitAssistantSections(message.content).map((section, sectionIndex) => ({
+    splitAssistantSections(message.content, planV2).map((section, sectionIndex) => ({
       ...section,
       key: `${message.createdAt || messageIndex}-${sectionIndex}`,
     }))
-  )), [assistantMessages]);
+  )), [assistantMessages, planV2]);
+  const readingSections = assistantSections.filter(section => !section.isGuide);
   const isLoadingConsultation = !consultation && (phase === "checking" || phase === "payment" || phase === "reading");
   // 무성 — 본문·워커 요청이 한국어 고정이라 대사도 ko. enabled 를 끄면 기존 12궁 헤더·시길만 남는다.
   // 깃털은 시간이 아니라 실제 단계를 따른다: 확인·결제 중 먹색 → 생성 중 잿빛 → 완성 금빛.
@@ -1299,9 +1251,31 @@ export default function ZiweiAiPage({paymentSurface="web",ProfilePicker,TossPric
     setPdfLoading(true);
     setError("");
     try {
-      const { exportResultPdf } = await import("@/lib/pdf/export-result-pdf");
       const userName = safePdfName(consultation?.birthInfo?.name || form.name || "자미두수");
       const date = new Date().toLocaleDateString(INTL_LOCALE_BY_LOADING_LOCALE[getCurrentLoadingLocale()]).replace(/\./g, "").replace(/\s/g, "");
+      // 받은 상담 전체를 글자로 조판한다. 글꼴을 못 실을 때만 화면 캡처로 되돌아간다.
+      const [{ exportConsultationBookPdf }, { PdfFontError }] = await Promise.all([
+        import("@/lib/pdf/export-consultation-book-pdf"),
+        import("@/lib/pdf/typeset-writer"),
+      ]);
+      const chapters = buildZiweiAiPdfChapters({ ...consultation, messages: consultation?.messages || [] });
+      if (chapters.length) {
+        try {
+          await exportConsultationBookPdf({
+            title: `${userName}님의 자미두수 상담`,
+            productLabel: "자미두수 상담",
+            byline: ZIWEI_AI_SPEAKER,
+            coverTheme: "ziwei",
+            date: new Date().toISOString().slice(0, 10),
+            fileName: `자미두수_AI_상담_${userName}_${date}.pdf`,
+            chapters,
+          });
+          return;
+        } catch (cause) {
+          if (!(cause instanceof PdfFontError)) throw cause;
+        }
+      }
+      const { exportResultPdf } = await import("@/lib/pdf/export-result-pdf");
       await withOpenResultReferences(element, () => exportResultPdf({
         captureTargets: [".resultDocument [data-ziwei-pdf-section]"],
         prepareCapture: normalizeCaptureColors,
@@ -1533,9 +1507,25 @@ export default function ZiweiAiPage({paymentSurface="web",ProfilePicker,TossPric
                   />
                 </section>
 
+                {planV2 && readingSections.length > 1 && (
+                  <nav className="zwToc" aria-label="상담 차례">
+                    <p className="zwTocHead">차례 · {ZIWEI_AI_SPEAKER}</p>
+                    <ol>
+                      {readingSections.map((section, sectionIndex) => (
+                        <li key={section.key}><a href={`#zw-ch-${sectionIndex + 1}`}><span>{sectionIndex + 1}</span>{section.title}</a></li>
+                      ))}
+                    </ol>
+                  </nav>
+                )}
                 <div className="chatList" data-ziwei-customer-reading>
-                  {assistantSections.filter(section => !section.isGuide).map((section, sectionIndex) => (
-                    <article className="chatCard" key={section.key} data-ziwei-pdf-section>
+                  {readingSections.map((section, sectionIndex) => (
+                    <article className="chatCard" key={section.key} data-ziwei-pdf-section id={planV2 ? `zw-ch-${sectionIndex + 1}` : undefined}>
+                      {planV2 && (
+                        <p className="zwChapterKicker">
+                          <span>{sectionIndex + 1}장{section.kicker ? ` · ${section.kicker}` : ""}</span>
+                          <span className="zwSpeakerChip">{ZIWEI_AI_SPEAKER}</span>
+                        </p>
+                      )}
                       <div className="chatCardTitle">
                         <b>{section.glyph || "星"}</b>
                         <h3>{section.title}</h3>
@@ -1801,6 +1791,14 @@ export default function ZiweiAiPage({paymentSurface="web",ProfilePicker,TossPric
         .chatCard:nth-child(5){animation-delay:240ms}
         .chatCard:nth-child(n+6){animation-delay:300ms}
         @keyframes zwvSectionRise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+        .zwToc{border:1px solid rgba(224,210,255,.18);border-radius:16px;background:rgba(8,11,30,.62);padding:16px 18px;color:#f3efff}
+        .zwTocHead{margin:0 0 8px;font-size:13px;letter-spacing:.08em;color:#f5d991}
+        .zwToc ol{margin:0;padding:0;list-style:none;display:grid;grid-template-columns:minmax(0,1fr);gap:4px}
+        .zwToc a{display:flex;gap:10px;align-items:baseline;min-height:44px;padding:10px 4px;color:inherit;text-decoration:none;overflow-wrap:anywhere;font-size:15px;line-height:1.5}
+        .zwToc a span{flex:0 0 auto;min-width:22px;color:#f5d991;font-variant-numeric:tabular-nums}
+        .zwChapterKicker{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;margin:0;font-size:13px;letter-spacing:.04em;color:#dacfe9}
+        .zwSpeakerChip{border:1px solid rgba(245,217,145,.38);border-radius:999px;padding:3px 10px;color:#f5d991;font-size:12px}
+        .chatCard[id]{scroll-margin-top:84px}
         .chatCardTitle{display:flex;align-items:center;gap:8px;color:#fff0b8}
         .chatCardTitle b{display:grid;place-items:center;width:32px;aspect-ratio:1;border-radius:999px;background:rgba(245,217,145,.10);color:#fff0b8;font-family:var(--font-premium);font-size:17px;font-weight:800}
         .chatCardTitle h3{margin:0;font-family:var(--zwv-serif);font-size:19px;font-weight:700;line-height:1.4;letter-spacing:.01em;color:#fff0b8}

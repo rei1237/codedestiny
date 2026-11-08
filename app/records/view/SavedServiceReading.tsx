@@ -30,6 +30,14 @@ const SavedSukuyoSummary = dynamic(() => import('@/app/sukuyo-compatibility-ai/S
 const LensRadar = dynamic(() => import('@/app/karma-destiny-ai/result/_components/LensRadar'));
 const EvidenceDisclosure = dynamic(() => import('@/app/karma-destiny-ai/result/_components/EvidenceDisclosure'));
 const LoveSecretChecklist = dynamic(() => import('@/app/love-secret-ai/result/LoveSecretChecklist'));
+const SavedLovePdfButton = dynamic(() => import('./SavedLovePdfButton'));
+const SavedNewYearPdfButton = dynamic(() => import('./SavedNewYearPdfButton'));
+const SavedLifeBookPdfButton = dynamic(() => import('./SavedLifeBookPdfButton'));
+const SavedKarmaPdfButton = dynamic(() => import('./SavedKarmaPdfButton'));
+const SavedHumanDesignPdfButton = dynamic(() => import('./SavedHumanDesignPdfButton'));
+const SavedZiweiAiPdfButton = dynamic(() => import('./SavedZiweiAiPdfButton'));
+const SavedZiweiDeepPdfButton = dynamic(() => import('./SavedZiweiDeepPdfButton'));
+const SavedSukuyoCompatPdfButton = dynamic(() => import('./SavedSukuyoCompatPdfButton'));
 const VedicStructured = dynamic(() => import('@/app/vedic-ai/VedicAiClient').then(m=>m.StructuredReadingResult));
 
 function assistantObject(row:Record<string,unknown>) {
@@ -70,16 +78,16 @@ export default function SavedServiceReading({source,serviceId,value,status}:{sou
  }
  if(family==='karma') {
   const report=normalizeReport(row as KarmaResult);
-  return <div className={styles.notebook}>
+  return <div className={styles.notebook}><SavedKarmaPdfButton row={row} locale={locale}/>
     {!!row.lensContribution&&report&&<LensRadar model={report.radar} forceTable/>}
     {list(row.chapters).map((raw,index)=>{const chapter=object(raw);return <section key={index} className={styles.chapter}><h2>{text(chapter.title)||c.result}</h2><SavedText text={text(chapter.content||chapter.body)}/><SavedChapters value={{summary:chapter.summary,keyTakeaways:chapter.keyTakeaways,highlightQuotes:chapter.highlightQuotes}} showEmpty={false}/>{Array.isArray(chapter.evidence)&&<KarmaEvidence items={chapter.evidence as EvidenceItem[]} />}</section>;})}
     <SavedChapters value={row} omit={['chapters']} showEmpty={!list(row.chapters).length}/>
    </div>;
  }
- if(family==='book') return <div className={bookStyles.readingRoom+' '+styles.book} style={{minHeight:0}}><div className={bookStyles.paperPage}>{answerFirst(saju?<SavedSaju value={saju}/>:null,<SavedChapters value={model} fields={view.fields} omit={['sajuResult','saju','sajuFacts']} chapterClass={bookStyles.chapterProse}/>)}</div></div>;
+ if(family==='book') return <div className={bookStyles.readingRoom+' '+styles.book} style={{minHeight:0}}><SavedLifeBookPdfButton row={row} locale={locale}/><div className={bookStyles.paperPage}>{answerFirst(saju?<SavedSaju value={saju}/>:null,<SavedChapters value={model} fields={view.fields} omit={['sajuResult','saju','sajuFacts']} chapterClass={bookStyles.chapterProse}/>)}</div></div>;
  if(family==='love') {
   const secrets=list(model.actionSecrets).filter(v=>typeof object(v).action==='string') as ActionSecret[];
-  return <div className={loveTheme.reportTheme+' '+styles.letter}><div className={loveStyles.resultDocument}>{answerFirst(saju?<SavedSaju value={saju}/>:null,<><SavedChapters value={model} omit={[...(secrets.length?['actionSecrets','sevenDayGuide']:[])]} fields={view.fields}/>{!!secrets.length&&<LoveSecretChecklist secrets={secrets} sevenDayGuide={list(model.sevenDayGuide).filter((v):v is string=>typeof v==='string')} consultationKey={text(row.id)} forceExpanded/>}</>)}</div></div>;
+  return <div className={loveTheme.reportTheme+' '+styles.letter}><SavedLovePdfButton row={row} locale={locale}/><div className={loveStyles.resultDocument}>{answerFirst(saju?<SavedSaju value={saju}/>:null,<><SavedChapters value={model} omit={[...(secrets.length?['actionSecrets','sevenDayGuide']:[])]} fields={view.fields}/>{!!secrets.length&&<LoveSecretChecklist secrets={secrets} sevenDayGuide={list(model.sevenDayGuide).filter((v):v is string=>typeof v==='string')} consultationKey={text(row.id)} forceExpanded/>}</>)}</div></div>;
  }
  if(family==='vedic'||family==='prashna') {
   const chart=object(model.vedicChart||object(model.prashnaResult).chart||model.chart), reading=object(model.reading||parsed);
@@ -87,17 +95,18 @@ export default function SavedServiceReading({source,serviceId,value,status}:{sou
  }
  if(family==='astrology') return <div className={styles.night}>{answerFirst(<SavedAstrology value={model.astrologyChart||model.chart}/>,body)}</div>;
  if(family==='ziwei'&&(model.serviceType==='ziwei-island-palace-consult'||model.palaceKey)) return <article className={styles.island}><img className={styles.islandArt} src="/images/destiny-island/consult-reading.webp" alt="" width={720} height={720}/><p>{reader.palaceLetter}</p><h2>{text(model.palaceKey)}{model.palaceTitle?' · '+text(model.palaceTitle):''}</h2>{answerFirst(<SavedZiwei value={model.ziweiChart||model.chart}/>,body)}</article>;
- if(family==='ziwei') return <div className={styles.reader}>{answerFirst(<SavedZiwei value={model.ziweiChart||model.chart}/>,body)}</div>;
+ if(family==='ziwei') return <div className={styles.reader}>{view.fields.includes('messages')&&<SavedZiweiAiPdfButton row={row} locale={locale}/>}{view.fields.includes('chapters')&&<SavedZiweiDeepPdfButton row={row} locale={locale}/>}{answerFirst(<SavedZiwei value={model.ziweiChart||model.chart}/>,body)}</div>;
  if(family==='human-design') {
   const chart=row.calculation||object(row.basis).chart||row.chart;
-  return <div className={styles.reader}>{answerFirst(<SavedHumanDesign value={chart}/>,body)}</div>;
+  const reportPdf=serviceId==='human-design'&&!!chart&&list(row.sections).some(s=>!!text(object(s).body));
+  return <div className={styles.reader}>{reportPdf&&<SavedHumanDesignPdfButton row={row} chart={chart} locale={locale}/>}{answerFirst(<SavedHumanDesign value={chart}/>,body)}</div>;
  }
  if(family==='saju'||family==='pet') return <div className={styles.letter}>{answerFirst(<>{saju?<SavedSaju value={saju}/>:<SavedSaju value={model}/>}<SavedFacts value={object(model.facts)}/></>,body)}</div>;
- if(family==='sukuyo') return <div className={sukuyoStyles.screen+' '+styles.nativeSukuyo} style={{minHeight:0}}>{answerFirst(<><SavedSukuyoSummary value={model}/><SavedFacts value={model.sukuyoResult||object(model.meta).relation}/></>,body)}</div>;
+ if(family==='sukuyo') return <div className={sukuyoStyles.screen+' '+styles.nativeSukuyo} style={{minHeight:0}}>{view.fields.includes('messages')&&<SavedSukuyoCompatPdfButton row={row} locale={locale}/>}{answerFirst(<><SavedSukuyoSummary value={model}/><SavedFacts value={model.sukuyoResult||object(model.meta).relation}/></>,body)}</div>;
  if(family.startsWith('tarot')||family==='celestial') return <div className={styles.night}><SavedCards value={model.cards||model.savedCards||object(model.reading).cards} variant={family}/>{body}</div>;
  if(family==='geomancy') return <SavedGeomancy row={model}/>;
  if(family==='yoga') return <SavedYoga row={model}/>;
- if(family==='year') return <div className={styles.timeline}>{answerFirst(saju?<SavedSaju value={saju}/>:null,body)}</div>;
+ if(family==='year') return <div className={styles.timeline}><SavedNewYearPdfButton row={row} locale={locale}/>{answerFirst(saju?<SavedSaju value={saju}/>:null,body)}</div>;
  if(family==='dream') return <div className={styles.notebook}>{list(model.chapters).length?body:<SavedChapters value={object(model.record).markdown||model}/>}</div>;
  if(family==='totem') return <SavedTotem row={model}/>;
  if(family==='palm') return <div className={styles.notebook}>{Object.entries(object(model.lines||model.lineReadings)).map(([key,value])=><section className={styles.chapter} key={key}><h2>{readingLabel(key,locale)}</h2><SavedChapters value={value} showEmpty={false}/></section>)}<SavedChapters value={model} omit={['lines','lineReadings']} fields={['mounts','fingers','palmResult']}/></div>;

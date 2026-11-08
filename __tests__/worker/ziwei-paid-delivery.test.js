@@ -88,7 +88,7 @@ beforeEach(() => {
 });
 afterEach(() => { expect(fetchBlock).not.toHaveBeenCalled(); fetchBlock.mockRestore(); });
 async function start(extra = {}) {
-  return route(new Request("https://mock.test/api/ziwei-ai/start", { method: "POST", headers: { "Content-Type": "application/json", "idempotency-key": "original-paid-request" }, body: JSON.stringify({ ...body, ...extra }) }), {});
+  return route(new Request("https://mock.test/api/ziwei-ai/start", { method: "POST", headers: { "Content-Type": "application/json", "idempotency-key": "original-paid-request" }, body: JSON.stringify({ ...body, ...extra }) }), { ZIWEI_AI_DELIVERY_V2_ENABLED: "false" });
 }
 
 for (const paid of ["pass", "monthly", "paid"]) it(`${paid}: seven waves reuse the stored chart and groups`, async () => {
@@ -261,4 +261,82 @@ for (const [locale, header] of [["ko", "[상담자 페르소나 — 무성]"], [
   const systemPrompt = String(provider.mock.calls[0][2].systemPrompt);
   expect(systemPrompt.indexOf(header)).toBeGreaterThan(0);
   expect(systemPrompt).not.toMatch(/\d+년 경력/u);
+});
+
+// 2026-11-08 판 2(groupPlanVersion 2): 새 상담만 판 2로 고정하고, 판 1 프롬프트 바이트는 그대로 둔다.
+const QUESTION = "올해 이직을 해도 될까요?";
+const startV2 = (extra = {}) => route(new Request("https://mock.test/api/ziwei-ai/start", { method: "POST", headers: { "Content-Type": "application/json", "idempotency-key": "original-paid-request" }, body: JSON.stringify({ ...body, userQuestion: QUESTION, ...extra }) }), {});
+function v2Provider(edit = (_group, parsed) => parsed) {
+  return async (_env, _prompt, options) => {
+    const group = utils.ZIWEI_V2_GROUP_SPECS.find(row => row.id === options.logContext.sectionGroup);
+    if (!group) return { ok: true, text: JSON.stringify({ meta: { scores: { overall: 70 } }, sections: {} }) };
+    const parsed = { sections: Object.fromEntries(group.sections.map(key => [key, { title: key, body: prose(key, Math.floor(group.targetChars / group.sections.length)) }])) };
+    const edited = edit(group, parsed, _prompt);
+    return edited?.ok === false ? edited : { ok: true, provider: "gemini", model: "fixture", text: JSON.stringify(edited) };
+  };
+}
+const groupCalls = id => provider.mock.calls.filter(call => call[2].logContext.sectionGroup === id);
+async function runV2(limit = 24) { let response; for (let i = 0; i < limit && docs[0]?.status !== "completed" && docs[0]?.status !== "generation_failed"; i++) response = await startV2(); return response; }
+
+it("V2: new requests pin plan 2, quote the question only in the nature group and finish in seven waves", async () => {
+  provider.mockImplementation(v2Provider());
+  const response = await runV2(); expect(response.status).toBe(200);
+  expect((await response.json()).consultation.groupPlanVersion).toBe(2);
+  expect(docs[0].llmMeta.groupPlanVersion).toBe(2); expect(provider).toHaveBeenCalledTimes(7);
+  expect(provider.mock.calls.map(call => call[2].logContext.sectionGroup)).toEqual([...utils.ZIWEI_V2_GROUP_SPECS.map(group => group.id), "meta"]);
+  for (const [, prompt, options] of provider.mock.calls) expect(String(prompt).includes(QUESTION)).toBe(options.logContext.sectionGroup === "nature");
+});
+it("kill switch keeps new requests on plan 1", async () => {
+  await start(); expect(docs[0].llmMeta.groupPlanVersion).toBeUndefined();
+  expect(provider.mock.calls[0][2].logContext.sectionGroup).toBe("foundation");
+});
+it("V2: a group that stays repeated is salvaged and delivered instead of refunded", async () => {
+  mode = "paid";
+  provider.mockImplementation(v2Provider((group, parsed) => {
+    if (group.id === "flow") for (const row of Object.values(parsed.sections)) row.body = prose("flow", 1300);
+    return parsed;
+  }));
+  expect((await runV2()).status).toBe(200);
+  expect(docs[0].status).toBe("completed"); expect(refund).not.toHaveBeenCalled();
+  expect(docs[0].llmMeta.attempts["flow:salvaged"]).toBe(1); expect(groupCalls("flow")).toHaveLength(3);
+  expect(Object.keys(docs[0].llmMeta.groups.flow).length).toBeGreaterThan(0);
+});
+it("V2: refunds only when every group comes back empty", async () => {
+  mode = "paid";
+  provider.mockImplementation(async () => ({ ok: true, text: JSON.stringify({ sections: {} }) }));
+  expect((await runV2()).status).toBe(503);
+  expect(docs[0].status).toBe("generation_failed"); expect(refund).toHaveBeenCalledTimes(1); expect(provider).toHaveBeenCalledTimes(18);
+});
+it("V2: fills missing sections with one saved rescue and preserves existing sections", async () => {
+  let natureCalls = 0;
+  provider.mockImplementation(v2Provider((group, parsed) => {
+    if (group.id === "nature" && ++natureCalls <= 2) delete parsed.sections.essence;
+    return parsed;
+  }));
+  expect((await runV2()).status).toBe(200);
+  expect(docs[0].llmMeta.attempts["nature:emptyRescue"]).toBe(1);
+  expect(groupCalls("nature")).toHaveLength(3);
+  expect(docs[0].llmMeta.groups.nature.essence.body.length).toBeGreaterThan(40);
+  expect(docs[0].llmMeta.groups.nature.personality_profile.body.length).toBeGreaterThan(40);
+  const before = provider.mock.calls.length;
+  await startV2();
+  expect(provider).toHaveBeenCalledTimes(before);
+  expect(refund).not.toHaveBeenCalled();
+});
+it("V2: a missing meta intro falls back to a deterministic one after two calls", async () => {
+  provider.mockImplementation(v2Provider());
+  const base = provider.getMockImplementation();
+  provider.mockImplementation(async (...args) => args[2].logContext.sectionGroup === "meta" ? { ok: false } : base(...args));
+  expect((await runV2()).status).toBe(200);
+  expect(groupCalls("meta")).toHaveLength(2); expect(docs[0].status).toBe("completed"); expect(docs[0].llmMeta.reportMeta).toMatchObject({ fallback: true, gender: "female" });
+});
+it("V2: register drift gets one hinted repair and never reaches the delivered text", async () => {
+  provider.mockImplementation(v2Provider((group, parsed) => {
+    if (group.id === "nature") parsed.sections.personality_profile.body = `자기야, 이 흐름은 천천히 받아들이면 괜찮아요. ${parsed.sections.personality_profile.body}`;
+    return parsed;
+  }));
+  expect((await runV2()).status).toBe(200);
+  const [, repair] = groupCalls("nature");
+  expect(String(repair[1])).toContain("무성의 말투에서 벗어났습니다");
+  expect(JSON.stringify(docs[0].messages)).not.toContain("자기야");
 });

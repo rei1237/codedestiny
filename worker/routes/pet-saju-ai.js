@@ -163,12 +163,21 @@ function buildCompatPrompt(compat, blueprintA, blueprintB) {
 }
 
 // The route and the server resume task share render and the provider timeout.
+// deliveryV2 opts pet into the shared engine's delivery v2; it applies only to a
+// record its seed pinned to plan 2, so older records finish under v1.
 export function petNarrativeAdapter(env, reportType) {
-  return { reportType, render: renderPetNarrative, timeoutMs: env.PET_SAJU_PROVIDER_TIMEOUT_MS };
+  return { reportType, render: renderPetNarrative, timeoutMs: env.PET_SAJU_PROVIDER_TIMEOUT_MS, deliveryV2: true };
 }
+// Kill switch: PET_SAJU_DELIVERY_V2_ENABLED=false seeds new records under v1.
+export const PET_DELIVERY_PLAN_VERSION = 2;
+export const petDeliveryV2Enabled = env => env?.PET_SAJU_DELIVERY_V2_ENABLED !== "false";
 
 // Shared with the paid-intent task, which seeds a proven intent the same way.
-export function seedPetNarrative(kind, original) {
+export function seedPetNarrative(kind, original, env) {
+  const seeded = seedPetNarrativePlan(kind, original);
+  return petDeliveryV2Enabled(env) ? { ...seeded, deliveryPlanVersion: PET_DELIVERY_PLAN_VERSION } : seeded;
+}
+function seedPetNarrativePlan(kind, original) {
   const date = normalizeRequestDate(original.date);
   if (kind === "report") {
     const { blueprint } = computePetBlueprint(original.pet, date);
@@ -187,7 +196,7 @@ async function handlePetDelivery(request, env, kind) {
   return runPaidNarrativeDelivery(request, env, auth, body, {
     ...petNarrativeAdapter(env, reportType), featureKey,
     verify: original => resolveAccess(request, env, original, { featureKey, reportType, route: `/api/pet-saju-ai/${kind}` }, auth),
-    seed: original => seedPetNarrative(kind, original),
+    seed: original => seedPetNarrative(kind, original, env),
   });
 }
 const handleReport = (request, env) => handlePetDelivery(request, env, "report");

@@ -19,7 +19,7 @@
  */
 
 import { formatZiweiChartForPrompt } from "./ziwei-deep-report-prompt.mjs";
-import { buildCodexEditorialContract } from "./master-love-codex-quality.js";
+import { buildCodexEditorialContract, codexBodyTarget, codexV2PromptLines } from "./master-love-codex-quality.js";
 import { sajuTemperamentPromptLines } from './saju-temperament.js';
 import { expertSubchapterPromptLines } from './expert-subchapter-prompt.js';
 
@@ -235,6 +235,61 @@ export const MASTER_LOVE_CODEX_CHAPTERS = Object.freeze([
     avoid: ["앞 장들의 요약 나열", "새 근거·새 주제 도입", "지표 수치 재언급 — 18장", "시기 전망 — 19장"],
   },
 ]);
+
+/**
+ * V2 구성(2026-11-08, 새 세션만 `deliveryMeta.chapterPlanVersion: 2`). 장 수·id·제목·막 묶음은 V1과 같고,
+ * 장마다 관점(perspective)과 넉넉한 본문 목표(targetChars)를 더한다. 1장은 기질의 쉬운 뜻과 공감 장면으로
+ * 다시 범위를 잡는다. V1 객체는 바꾸지 않는다 — 옛 세션·옛 캐시의 프롬프트 바이트가 그대로다.
+ */
+const SOLO_V2_PERSPECTIVE = {
+  "gate": "타고난 기질의 근거를 쉬운 말로 먼저 풀고, 독자가 '맞아, 나 이래' 하고 고개를 끄덕일 일상 장면 2~3개를 보여 준 뒤 그 기질이 연애에서 어떻게 드러나는지로 잇는다.",
+  "temperament": "사랑을 시작하는 순간의 첫 태도 하나만 깊게 본다 — 다가가는지 기다리는지, 말로 푸는지 행동으로 푸는지.",
+  "spouse-image": "곁에 오래 남을 사람의 결을 외모가 아니라 관계를 운영하는 방식으로 그린다.",
+  "attraction": "어떤 사람에게, 왜 끌리는지 끌림의 이유를 독자 자신의 오행 균형에서 찾는다.",
+  "attachment": "마음을 확인받고 표현하는 방식, 연락과 애정 표현의 리듬을 본다.",
+  "defense": "상처받을까 봐 마음을 닫는 순간과 그때 나오는 말·행동의 신호를 본다.",
+  "meeting-place": "인연이 실제로 열리는 장소·관계망·생활 동선을 지도처럼 보여 준다.",
+  "spark-to-bond": "썸이 연애로 넘어가려면 어떤 조건이 갖춰져야 하는지 단계별로 본다.",
+  "timing": "다가가고 고백하기 좋은 흐름과 서두르면 안 되는 흐름을 구분한다.",
+  "temperature": "연애가 시작된 뒤 관계의 온도가 오르내리는 곡선을 본다.",
+  "conflict-root": "같은 다툼이 왜 반복되는지 그 뿌리를 한 지점으로 좁혀 본다.",
+  "repair": "다툰 뒤 마음을 되돌리는 말과 회복의 순서를 구체적인 문장으로 준다.",
+  "jealousy": "불안·질투·집착이 커지는 조건과 건강한 거리 조절법을 본다.",
+  "intimacy": "가까워질수록 필요한 친밀감의 리듬과 혼자만의 시간의 균형을 본다.",
+  "parting-reunion": "이별이 찾아오는 패턴과 다시 만남이 가능한 조건을 냉정하게 나눈다.",
+  "marriage": "결혼과 오래 함께 사는 생활의 적합성을 현실적인 장면으로 본다.",
+  "cross-check": "사주와 자미두수가 같은 말을 하는 곳과 다른 말을 하는 곳을 정직하게 비교한다.",
+  "love-dna": "앞 장들의 해석을 열 개의 지표로 묶어 한눈에 보이게 정리한다.",
+  "three-years": "앞으로 3년의 흐름을 시기별로 나누어 언제 무엇을 하면 좋을지 본다.",
+  "letter": "연애 고수가 책 전체의 핵심을 한 사람에게 건네는 편지로 조용히 닫는다."
+};
+/** 1장(기질·공감)과 3년 흐름은 조금 길게, 마지막 편지는 짧게, 나머지는 1,000자(V2 개인판 전용). */
+const SOLO_V2_MIN_CHARS = { "gate": 1200, "three-years": 1200, "letter": 800 };
+export const MASTER_LOVE_CODEX_CHAPTERS_V2 = Object.freeze(MASTER_LOVE_CODEX_CHAPTERS.map((chapter) => Object.freeze({
+  ...chapter,
+  ...(chapter.id === "gate" ? {
+    scope: "타고난 기질을 가장 먼저 짚는다. 일간의 기질과 명궁 주성이 무슨 뜻인지 쉬운 말로 풀고, 그 기질이 드러나는 "
+      + "일상 장면 2~3개(일·친구·혼자 있는 시간 등)를 보여 준 뒤 그것이 연애에서 어떤 모습으로 이어지는지 연결한다. "
+      + "상담자의 질문은 여기서 다시 옮겨 적지 않는다.",
+    avoid: [...chapter.avoid, "상담 질문 인용·답변 — 질문이 배정된 장 담당"],
+  } : chapter.id === "temperament" ? { avoid: [...chapter.avoid, "기질의 일상 공감 장면 — 1장 담당"] } : {}),
+  planVersion: 2,
+  perspective: SOLO_V2_PERSPECTIVE[chapter.id],
+  // 2026-11-08 사용자 "개인판은 너무 길다 — 2~3만 자, 반복 없이, 정확한 챕터대로": 장당 약 1,000~1,500자.
+  minChars: SOLO_V2_MIN_CHARS[chapter.id] || 1000,
+  targetChars: [(SOLO_V2_MIN_CHARS[chapter.id] || 1000) + 150, (SOLO_V2_MIN_CHARS[chapter.id] || 1000) + 450],
+  compact: true,
+})));
+
+/**
+ * V2 개인판 분량(2026-11-08). V1 META(46,000/50,000)는 옛 세션 기준이라 그대로 두고 새 개인판은 이 값을 쓴다.
+ * minTotalChars는 장 minChars 합(약 2만)이다. 분량은 전달을 막지 않는다 — 장은 0.7배 미만일 때만 다시 받고,
+ * minChars 미만은 책당 최대 4장만 보강한다(F19).
+ */
+export const MASTER_LOVE_CODEX_SOLO_V2_LENGTH = Object.freeze({
+  totalCharTarget: [20000, 30000],
+  minTotalChars: MASTER_LOVE_CODEX_CHAPTERS_V2.reduce((sum, chapter) => sum + chapter.minChars, 0),
+});
 
 /** 연애 DNA(18장) 지표 정의 — JSON 응답 스키마의 근거 */
 export const LOVE_DNA_METRICS = Object.freeze([
@@ -471,8 +526,10 @@ export function buildMasterLoveCodexChapterPrompt({ saju, ziweiChart, birthInfo,
     sajuFocus ? `[사주에서 특히 볼 것] ${sajuFocus}` : "",
     palaces ? `[명반에서 특히 볼 궁] ${palaces}` : "",
     avoidList ? `[이번 장에서 다루지 않을 것 — 다른 장이 맡는다] ${avoidList}` : "",
+    ...codexV2PromptLines(chapter),
     "",
   ].filter((line) => line !== "");
+  const [bodyLo, bodyHi] = codexBodyTarget(chapter);
 
   if (chapter.structured !== false) {
     return [
@@ -494,7 +551,7 @@ export function buildMasterLoveCodexChapterPrompt({ saju, ziweiChart, birthInfo,
       '  "actions": ["지금 할 수 있는 구체적 행동 1", "행동 2"],',
       '  "bridge": "다음 장으로 이어지는 한 문장",',
       '  "visualization": {"kind":"balance 또는 loop 또는 timeline","title":"정성적 읽기","items":[{"label":"항목","level":"low 또는 balanced 또는 high 또는 watch 또는 opportunity","note":"근거 설명"}]},',
-      `  "body": "근거 밀도에 따라 소제목 2~6개로 유동적으로 나눈 이 장의 완성 원고(Markdown, 공백 포함 ${min + 500}~${min + 900}자)"`,
+      `  "body": "근거 밀도에 따라 소제목 ${chapter.compact ? "2~3" : "2~6"}개로 유동적으로 나눈 이 장의 완성 원고(Markdown, 공백 포함 ${bodyLo}~${bodyHi}자)"`,
       "}",
       `- "body"는 공백 포함 최소 ${min}자 이상.`,
       ...(chapter.jsonMode ? [

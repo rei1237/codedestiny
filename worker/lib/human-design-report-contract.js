@@ -272,32 +272,7 @@ export function validateHumanDesignReportSection(payload, options) {
   const targetMin = effectiveMinChars(spec, requiredIds.length);
   if (charCount < targetMin) issues.push(`too_short:${charCount}<${targetMin}`);
 
-  // 확정값 모순 — 이 사람 것이 아닌 프로파일·타입을 이 사람 것처럼 쓰면 반려한다.
-  for (const profile of ALL_PROFILES) {
-    if (profile === snapshot.profile) continue;
-    if (text.includes(profile)) { issues.push(`foreign_profile:${profile}`); break; }
-  }
-  for (const type of ALL_TYPE_LABELS) {
-    if (type === snapshot.type) continue;
-    // 비교·설명 목적의 언급은 허용하되, "당신은 X" 형태만 잡는다.
-    const claimed = new RegExp(`(당신은|당신의 타입은|You are|your type is)\\s*[^.\\n]{0,12}${type}`, "i");
-    if (claimed.test(text)) { issues.push(`foreign_type:${type}`); break; }
-  }
-
-  // 열린 센터를 "정의된" 으로 서술하는 것은 차트와 정면으로 어긋난다.
-  for (const openId of allowed.openCenters) {
-    const centerKey = openId.slice("center:".length);
-    const centerLabel = CENTER_LABEL[centerKey] || centerKey;
-    const wrong = new RegExp(`${centerLabel}\\s*(센터)?\\s*(는|은|이|가)?\\s*(정의된|정의돼|defined)`, "i");
-    if (wrong.test(text)) { issues.push(`open_center_called_defined:${centerKey}`); break; }
-  }
-
-  // 차트에 없는 채널 번호를 지어내는 것.
-  const activeChannelIds = new Set(snapshot.channels.map((channel) => channel.channelId));
-  for (const match of text.matchAll(/(?:채널|channel)\s*(\d{1,2}\s*-\s*\d{1,2})/gi)) {
-    const normalized = match[1].replace(/\s+/g, "");
-    if (!activeChannelIds.has(normalized)) { issues.push(`unknown_channel:${normalized}`); break; }
-  }
+  issues.push(...humanDesignFactualIssues(text, snapshot, allowed));
 
   // 로케일 드리프트 — ko 섹션이 영어로, en 섹션이 한국어로 오는 것.
   const ratio = hangulRatio(text);
@@ -314,6 +289,55 @@ export function validateHumanDesignReportSection(payload, options) {
   }
 
   return { ok: issues.length === 0, issues, charCount, keptSubsections, evidence };
+}
+
+/**
+ * 확정값 모순 검사(타 프로파일·타 타입 단정·열린 센터를 정의됨으로·없는 채널). validate 와 마지막 시도 scrub 이 같이 쓴다.
+ * @returns {string[]}
+ */
+export function humanDesignFactualIssues(text, snapshot, allowed) {
+  const out = [];
+  // 확정값 모순 — 이 사람 것이 아닌 프로파일·타입을 이 사람 것처럼 쓰면 반려한다.
+  for (const profile of ALL_PROFILES) {
+    if (profile === snapshot?.profile) continue;
+    if (text.includes(profile)) { out.push(`foreign_profile:${profile}`); break; }
+  }
+  for (const type of ALL_TYPE_LABELS) {
+    if (type === snapshot?.type) continue;
+    // 비교·설명 목적의 언급은 허용하되, "당신은 X" 형태만 잡는다.
+    const claimed = new RegExp(`(당신은|당신의 타입은|You are|your type is)\\s*[^.\\n]{0,12}${type}`, "i");
+    if (claimed.test(text)) { out.push(`foreign_type:${type}`); break; }
+  }
+
+  // 열린 센터를 "정의된" 으로 서술하는 것은 차트와 정면으로 어긋난다.
+  for (const openId of allowed?.openCenters || []) {
+    const centerKey = openId.slice("center:".length);
+    const centerLabel = CENTER_LABEL[centerKey] || centerKey;
+    const wrong = new RegExp(`${centerLabel}\\s*(센터)?\\s*(는|은|이|가)?\\s*(정의된|정의돼|defined)`, "i");
+    if (wrong.test(text)) { out.push(`open_center_called_defined:${centerKey}`); break; }
+  }
+
+  // 차트에 없는 채널 번호를 지어내는 것.
+  const activeChannelIds = new Set((snapshot?.channels || []).map((channel) => channel.channelId));
+  for (const match of text.matchAll(/(?:채널|channel)\s*(\d{1,2}\s*-\s*\d{1,2})/gi)) {
+    const normalized = match[1].replace(/\s+/g, "");
+    if (!activeChannelIds.has(normalized)) { out.push(`unknown_channel:${normalized}`); break; }
+  }
+  return out;
+}
+
+/**
+ * 마지막 시도 구제(배달 2판): 확정값과 어긋나는 문장만 덜어 낸다. 남는 글이 없으면 원문을 그대로 둔다.
+ */
+export function scrubHumanDesignFactualSentences(text, snapshot, allowed) {
+  const source = String(text || "");
+  if (!source.trim() || !humanDesignFactualIssues(source, snapshot, allowed).length) return source;
+  const kept = source.split("\n").map((line) => line
+    .split(/(?<=[.!?。？！])\s+/u)
+    .filter((sentence) => !humanDesignFactualIssues(sentence, snapshot, allowed).length)
+    .join(" ").trimEnd());
+  const result = kept.join("\n").replace(/\n{3,}/g, "\n\n").trim();
+  return result ? result : source;
 }
 
 /** 검증을 통과한 섹션의 문장을 누적한다. 다음 섹션의 반복 검사 기준이 된다. */

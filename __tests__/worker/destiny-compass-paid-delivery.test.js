@@ -5,7 +5,7 @@ import { jest } from '@jest/globals';
 const timeoutPolicy = jest.requireActual('../../worker/lib/sync-llm-timeout.js');
 jest.unstable_mockModule('../../worker/lib/sync-llm-timeout.js', () => ({ ...timeoutPolicy, PAID_LLM_PARTS_PER_REQUEST: 4 }));
 
-let docs,fault,lostConfirmation,route,provider,refund,owner,fetchBlock,revokedSource,specs,access,complete;
+let docs,fault,lostConfirmation,route,provider,refund,owner,fetchBlock,revokedSource,specs,access,complete,realContract;
 const uid='64b7f2a1c3d4e5f601234567';
 const clone = value => value == null ? value : structuredClone(value);
 function query(value) { const result = Promise.resolve(value); result.lean = async () => clone(value); result.select = result.sort = () => result; return result; }
@@ -65,7 +65,7 @@ const model = {
 
 
 beforeAll(async()=>{
- const db=await import('../../worker/lib/db.js'); const auth=await import('../../worker/lib/auth.js'); const models=await import('../../worker/lib/models.js'); const contract=await import('../../worker/lib/destiny-compass-report-contract.js'); specs=contract.COMPASS_SECTIONS;
+ const db=await import('../../worker/lib/db.js'); const auth=await import('../../worker/lib/auth.js'); const models=await import('../../worker/lib/models.js'); const contract=await import('../../worker/lib/destiny-compass-report-contract.js'); specs=contract.COMPASS_SECTIONS;realContract=contract;
  jest.unstable_mockModule('../../worker/lib/db.js',()=>({...db,connectDb:async()=>{}}));
  jest.unstable_mockModule('../../worker/lib/auth.js',()=>({...auth,requireAuth:async()=>({userId:owner})}));
  jest.unstable_mockModule('../../worker/lib/models.js',()=>({...models,DestinyCompassReport:model,
@@ -147,4 +147,51 @@ it('destiny compass delivers a result at the new target',async()=>{
  provider.mockImplementation(async(_env,key)=>{let text='';for(let i=0;text.replace(/\s/g,'').length<1200;i++)text+=`${key}의 ${i}번째 계산 근거와 생활 선택을 살펴보며 반대 조건과 구체적인 행동을 함께 설명합니다.\n`;return{ok:true,text}});
  for(let i=0;i<3;i++)await generate();
  expect(docs[0].status).toBe('completed');expect(provider).toHaveBeenCalledTimes(10);expect(refund).not.toHaveBeenCalled();
+});
+
+describe('delivery plan 2 (new sessions only)',()=>{
+ const long=(key,size)=>{let text='';for(let i=0;text.replace(/\s/g,'').length<size;i++)text+=`${key}의 ${i}번째 계산 근거와 생활 선택을 살펴보며 반대 조건과 구체적인 행동을 함께 설명합니다.\n`;return text;};
+ async function run(max=20){let response;for(let i=0;i<max;i++){response=await generate();if(response.status!==202)break;}return response;}
+ beforeEach(()=>{docs[0].llmMeta.deliveryPlanVersion=2;});
+ it('delivers scrubbed drafts after the last attempt instead of holding the report',async()=>{
+  provider.mockImplementation(async(_env,key)=>({ok:true,text:`${key} 짧은 본문입니다.`}));
+  const response=await run();expect(response.status).toBe(200);
+  expect(docs[0].status).toBe('completed');expect(docs[0].sections).toHaveLength(10);expect(docs[0].sections.every(row=>row.status==='degraded')).toBe(true);
+  expect(provider).toHaveBeenCalledTimes(20);expect(complete).toHaveBeenCalledTimes(1);expect(refund).not.toHaveBeenCalled();
+  expect((await response.json()).degraded).toBe(true);
+ });
+ it('gives an empty section one rescue call, then delivers without dropping the others',async()=>{
+  const base=provider.getMockImplementation();provider.mockImplementation(async(...args)=>args[1]==='opening'?{ok:false,text:''}:base(...args));
+  expect((await run()).status).toBe(200);
+  expect(provider.mock.calls.filter(call=>call[1]==='opening')).toHaveLength(3);
+  expect(docs[0].sections).toHaveLength(9);expect(docs[0].llmMeta.qualityIssues).toContain('section_missing:opening');expect(refund).not.toHaveBeenCalled();
+ });
+ it('refunds only when every section is empty',async()=>{
+  provider.mockImplementation(async()=>({ok:false,text:''}));
+  const response=await run();expect(response.status).toBe(503);expect(docs[0].status).toBe('generation_failed');expect(refund).toHaveBeenCalledTimes(1);expect(complete).not.toHaveBeenCalled();
+ });
+ it('repairs only sections below the length floor, shortest first, at most three',async()=>{
+  const sizes={opening:300,saju_reading:400,ziwei_reading:500,sukuyo_reading:600};
+  provider.mockImplementation(async(_env,key,options)=>({ok:true,text:long(key,(sizes[key]&&!provider.mock.calls.filter(call=>call[1]===key).slice(0,-1).length)?sizes[key]:1100)}));
+  expect((await run()).status).toBe(200);
+  expect(provider).toHaveBeenCalledTimes(13);
+  const repaired=Object.keys(docs[0].llmMeta.attempts).filter(key=>key.endsWith(':softRepair')).map(key=>key.split(':')[0]).sort();
+  expect(repaired).toEqual(['opening','saju_reading','ziwei_reading'].sort());expect(docs[0].llmMeta.softRepairsUsed).toBe(3);
+  expect(docs[0].sections.find(row=>row.key==='sukuyo_reading').status).toBe('ok');expect(refund).not.toHaveBeenCalled();
+ });
+ it('drops a sentence repeated across sections instead of blocking completion',async()=>{
+  const shared='모든 섹션에 똑같이 붙은 이 문장은 리포트 전체에서 한 번만 남아야 하는 반복 문장입니다.';
+  provider.mockImplementation(async(_env,key)=>({ok:true,text:`${long(key,1100)}${shared}`}));
+  expect((await run()).status).toBe(200);
+  expect(docs[0].sections.filter(row=>row.body.includes(shared))).toHaveLength(1);expect(complete).toHaveBeenCalledTimes(1);
+ });
+ it('new sessions are seeded as plan 2 and the raw question stays in the opening prompt only',()=>{
+  const input={field:{seed:'x',primary:{key:'career',score:60,band:'steady'},directions:[],timeline:{}},evidencePack:requestInput().evidencePack,question:'이직해도 될까요',emotion:'calm',questionOpeningOnly:true};
+  input.basisPayload=realContract.buildCompassBasisPayload(input);
+  const prompts=specs.map(spec=>realContract.buildCompassSectionPrompt({...input,spec}));
+  expect(prompts.filter(prompt=>prompt.includes('이직해도 될까요'))).toHaveLength(1);expect(prompts[0]).toContain('이직해도 될까요');
+  expect(prompts.slice(1).every(prompt=>prompt.includes('첫 장에서 이미 다뤘다'))).toBe(true);
+ });
+ it('seeds plan 2 for a new request',async()=>{docs=[];await route(new Request('https://mock.test/api/destiny-compass-ai/report',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(requestInput())}),{});expect(docs[0].llmMeta.deliveryPlanVersion).toBe(2);
+  docs=[];await route(new Request('https://mock.test/api/destiny-compass-ai/report',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(requestInput())}),{COMPASS_REPORT_DELIVERY_V2_ENABLED:'false'});expect(docs[0].llmMeta.deliveryPlanVersion).toBeUndefined();});
 });

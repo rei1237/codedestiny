@@ -12,6 +12,7 @@
  */
 
 export type LoveCardVariant =
+  | "nature"
   | "summary"
   | "insight"
   | "strategy"
@@ -29,7 +30,7 @@ export type LoveSectionGroupSpec = {
   id: LoveCardVariant;
   label: string;
   lead: string;
-  iconKey: "heart" | "book" | "compass" | "check" | "talisman" | "calendar" | "shield" | "letter";
+  iconKey: "flame" | "heart" | "book" | "compass" | "check" | "talisman" | "calendar" | "shield" | "letter";
   variant: LoveCardVariant;
   placement: LovePlacement;
   match: RegExp;
@@ -43,6 +44,16 @@ export type LoveSectionGroup = {
 
 /** 배열 순서 = 화면 표시 순서. 요청한 서사 순서를 그대로 따른다. */
 export const LOVE_SECTION_GROUPS: readonly LoveSectionGroupSpec[] = Object.freeze([
+  {
+    // 질문에 답하기 전에 먼저 보여 주는 공감 카드. 예전(6개 그룹) 상담에는 이 제목이 없어 카드가 생기지 않는다.
+    id: "nature",
+    label: "타고난 연애 기질",
+    lead: "질문에 답하기 전에, 당신이 사랑하는 방식부터 비춰 봅니다.",
+    iconKey: "flame",
+    variant: "nature",
+    placement: "flow",
+    match: /타고난\s*연애\s*기질|이런\s*순간\s*마음/,
+  },
   {
     id: "summary",
     label: "한눈에 보는 연애 비책",
@@ -121,6 +132,7 @@ export const LOVE_SECTION_GROUPS: readonly LoveSectionGroupSpec[] = Object.freez
 
 // 구체 → 일반 순으로 시도한다. 배열 순서(표시 순서)와 매칭 우선순위는 다르다.
 const MATCH_ORDER: readonly LoveCardVariant[] = Object.freeze([
+  "nature",
   "letter",
   "caution",
   "timing",
@@ -166,4 +178,55 @@ const HANBI_TITLE = /상대의\s*기운|끌림이\s*살아나는|속궁합|이�
 /** 그 섹션을 쓴 상담자. 제목만 보므로 화자 정보가 없는 예전 저장 결과에도 그대로 쓴다. */
 export function resolveLoveSpeaker(title: string): LoveSpeaker {
   return HANBI_TITLE.test(String(title || "")) ? "hanbi" : "yeoni";
+}
+
+// ── 장(章) 메타 ─────────────────────────────────────────────────────────────
+// worker/lib/love-secret-ai-prompt.js 의 LOVE_SECRET_AI_GROUPS(V2) 를 그대로 옮긴 표다.
+// 제목·순서·화자가 워커와 같은지 __tests__/ui/love-secret-speaker.test.mjs 가 확인한다.
+export type LoveChapterGroup = { key: string; label: string; speaker: LoveSpeaker; titles: readonly string[] };
+
+export const LOVE_SECRET_CHAPTER_GROUPS: readonly LoveChapterGroup[] = Object.freeze([
+  { key: "nature", label: "타고난 연애 기질", speaker: "yeoni", titles: ["타고난 연애 기질 — 당신이 사랑하는 방식의 원형", "그래서 이런 순간 마음이 먼저 움직여요"] },
+  { key: "core", label: "핵심 연애운과 질문의 답", speaker: "yeoni", titles: ["현재 관계의 자리와 질문의 핵심", "핵심 연애운 — 명식이 사랑에서 그리는 큰 결", "오행과 조후로 보는 감정의 온도"] },
+  { key: "self", label: "나의 연애 성향 — 장점·약점·심리", speaker: "yeoni", titles: ["나의 명식이 사랑에서 반복하는 방식", "십성으로 보는 애착과 표현 방식", "연애 장점 — 상대가 먼저 알아보는 힘", "연애 약점 — 반복해서 걸려 넘어지는 자리", "애정 표현 스타일과 연애 심리"] },
+  { key: "partner", label: "상대·궁합·이상형", speaker: "hanbi", titles: ["상대의 기운과 감정 거리감", "두 사람 사이 끌림이 살아나는 조건", "속궁합과 친밀감 리듬", "이상형 분석 — 내 명식이 끌리는 사람", "상대가 원하는 연애 스타일"] },
+  { key: "risk", label: "갈등·바람기·재회·자기 보호", speaker: "hanbi", titles: ["갈등의 뿌리와 회복 방식", "바람기와 마음이 흩어지는 조건", "재회 가능성과 그 조건", "피해야 할 선택과 자기 보호"] },
+  { key: "timing", label: "대운·올해·좋은 날짜·결혼운", speaker: "hanbi", titles: ["연락/고백/재회/관계 진전 타이밍", "올해 연애운 — 좋은 달과 조심할 달", "좋은 날짜 — 계산된 일진으로 고른 날", "결혼운과 인연이 굳어지는 시기", "30일 관계 흐름 처방"] },
+  { key: "action", label: "썸 전략·대화·매력·실천", speaker: "yeoni", titles: ["썸에서 확신으로 가는 전략", "관계 단계별 실행 비책", "상대에게 다가가는 대화 문장", "매력적으로 보이는 방법 — 이미지·말투·스타일", "7일 실천 가이드", "마지막 상담사의 한마디"] },
+].map((group) => Object.freeze({ ...group, titles: Object.freeze(group.titles) as readonly string[] }) as LoveChapterGroup));
+
+/** 현재(V2) 계획의 섹션 제목 30개, 워커 순서 그대로. */
+export const LOVE_SECRET_SECTION_TITLES: readonly string[] = Object.freeze(LOVE_SECRET_CHAPTER_GROUPS.flatMap((group) => group.titles));
+/** 예전(V1, 6개 그룹) 계획의 제목 28개. 타고난 연애 기질 두 장만 없다. */
+export const LOVE_SECRET_SECTION_TITLES_V1: readonly string[] = Object.freeze(LOVE_SECRET_CHAPTER_GROUPS.filter((group) => group.key !== "nature").flatMap((group) => group.titles));
+
+const CHAPTER_GROUP_BY_TITLE = new Map(LOVE_SECRET_CHAPTER_GROUPS.flatMap((group) => group.titles.map((title) => [title, group] as const)));
+
+/** 섹션이 속한 상담 부의 이름(장 머리의 작은 제목). 모르는 제목이면 빈 문자열. */
+export function loveChapterKicker(title: string): string {
+  return CHAPTER_GROUP_BY_TITLE.get(String(title || "").trim())?.label || "";
+}
+
+/**
+ * 저장된 상담 본문(answer = "제목\n본문" 을 빈 줄로 이은 것)을 알려진 제목으로 다시 나눈다.
+ * 보관함은 llmMeta 를 지우고 messages 만 남기므로 섹션 구조를 여기서 되살린다.
+ * 알려진 제목이 빈 줄 뒤에 한 줄로 서 있는 자리에서만 자르고, 첫 제목 앞의 글은 첫 장에 붙여 버리지 않는다.
+ */
+export function splitLoveSecretAnswerByTitles(text: string): LoveSectionInput[] {
+  const lines = String(text || "").replace(/\r\n/g, "\n").split("\n");
+  const known = new Set(LOVE_SECRET_SECTION_TITLES);
+  const parts: Array<{ title: string; lines: string[] }> = [];
+  const preface: string[] = [];
+  lines.forEach((line, index) => {
+    const title = line.trim();
+    if (known.has(title) && (index === 0 || !lines[index - 1].trim())) {
+      parts.push({ title, lines: [] });
+      return;
+    }
+    (parts.length ? parts[parts.length - 1].lines : preface).push(line);
+  });
+  const sections = parts.map((part) => ({ title: part.title, body: part.lines.join("\n").trim() }));
+  const lead = preface.join("\n").trim();
+  if (lead && sections.length) sections[0] = { ...sections[0], body: `${lead}\n\n${sections[0].body}`.trim() };
+  return sections.filter((section) => section.body);
 }

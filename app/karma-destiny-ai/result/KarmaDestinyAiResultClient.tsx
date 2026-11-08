@@ -29,6 +29,8 @@ import {
   Starfield,
 } from "./_components/ObservatorySvg";
 import ResultStyles from "./_components/ResultStyles";
+import { masterAvatars } from "@/components/fortune/master-profiles";
+import { karmaChapterKicker, karmaChapterSpeaker } from "./karma-pdf-chapters";
 import {
   buildChapterText,
   normalizeReport,
@@ -1113,6 +1115,9 @@ function KarmaDestinyResultInner({paymentSurface}:{paymentSurface:"web"|"toss"})
     return () => observer.disconnect();
   }, [chapters, density, result?.status, sessionId, loading]);
 
+  // 장 머리 부 이름·화자 칩은 다섯 렌즈 판(schemaVersion 2)에만 붙인다. 구 16장 문서는 장 체계가 달라 그대로 둔다.
+  const showChapterMeta = report?.schema === "v2";
+
   const copyText = async (text: string, message: string) => {
     await navigator.clipboard.writeText(text);
     setNotice(message);
@@ -1127,6 +1132,36 @@ function KarmaDestinyResultInner({paymentSurface}:{paymentSurface:"web"|"toss"})
     const element = document.getElementById("karma-premium-report");
     if (!element || downloading || result?.status !== "completed") return;
     setDownloading(true);
+    // 받은 리포트 전체를 글자로 조판한다(한국어 다섯 렌즈 판). 글꼴을 못 실을 때만 아래 화면 캡처로 되돌아간다.
+    if (showChapterMeta && tossLocale === "ko") {
+      try {
+        const [{ exportConsultationBookPdf }, { PdfFontError }, { buildKarmaPdfChapters, buildKarmaPdfSummary, KARMA_PDF_BYLINE }] = await Promise.all([
+          import("@/lib/pdf/export-consultation-book-pdf"),
+          import("@/lib/pdf/typeset-writer"),
+          import("./karma-pdf-chapters"),
+        ]);
+        try {
+          await exportConsultationBookPdf({
+            title: copy.pdfCoverTitle(userName),
+            productLabel: "운명의 업",
+            byline: KARMA_PDF_BYLINE,
+            coverTheme: "karma",
+            date: formatDate(result?.generatedAt, getCurrentLoadingLocale()),
+            fileName: `karma-destiny-report_${userName.replace(/[\\/:*?"<>|]/g, "_")}_${new Date().toISOString().slice(0, 10)}.pdf`,
+            chapters: buildKarmaPdfChapters({ chapters, messages: result?.messages }),
+            summary: buildKarmaPdfSummary(result ? { ...result, chapters } : null),
+          });
+          setDownloading(false);
+          return;
+        } catch (error) {
+          if (!(error instanceof PdfFontError)) throw error;
+        }
+      } catch {
+        setError(copy.pdfSaveError);
+        setDownloading(false);
+        return;
+      }
+    }
     // 접힌 "더 읽기" 본문·미개봉 챕터·요약 모드가 PDF에서 잘리지 않도록 전부 펼친 뒤 캡처한다.
     setOpenChapters(new Set(chapters.map((chapter) => chapter.id)));
     setExpandedBodies(new Set(chapters.map((chapter) => chapter.id)));
@@ -1280,7 +1315,10 @@ function KarmaDestinyResultInner({paymentSurface}:{paymentSurface:"web"|"toss"})
                   >
                     <span className="kdai-toc__bead" aria-hidden="true" />
                     <span className="kdai-toc__order">{String(chapter.order).padStart(2, "0")}</span>
-                    <span className="kdai-toc__title">{chapter.title}</span>
+                    <span className="kdai-toc__title">
+                      {showChapterMeta && karmaChapterKicker(chapter) && <span className="kdai-toc__kicker">{karmaChapterKicker(chapter)}</span>}
+                      {chapter.title}
+                    </span>
                   </a>
                 );
               })}
@@ -1426,12 +1464,16 @@ function KarmaDestinyResultInner({paymentSurface}:{paymentSurface:"web"|"toss"})
                       id={chapter.id}
                       data-kdai-spy="chapter"
                       data-kdo-reveal
-                      className={`kdai-chapter kdo-pane ${open ? "is-open" : ""}`.trim()}
+                      className={`kdai-chapter kdo-pane ${open ? "is-open" : ""} ${chapter.id === "chapter-00" ? "kdai-chapter--lead" : ""}`.trim()}
                       data-kdai-pdf-page
                     >
                       <button type="button" className="kdai-chapter__head" onClick={() => toggleChapter(chapter.id)} aria-expanded={open}>
                         <span className="kdai-chapter__num">{chapter.symbol || String(chapter.order).padStart(2, "0")}</span>
-                        <h2>{chapter.title}</h2>
+                        <span className="kdai-chapter__titles">
+                          {showChapterMeta && karmaChapterKicker(chapter) && <span className="kdai-chapter__kicker">{karmaChapterKicker(chapter)}</span>}
+                          <h2>{chapter.title}</h2>
+                          {showChapterMeta && <KarmaSpeakerChips chapter={chapter} locale={tossLocale} />}
+                        </span>
                         {lensLabel && <span className="kdo-lens-badge">{lensLabel}</span>}
                         {open ? <ChevronUp size={19} /> : <ChevronDown size={19} />}
                       </button>
@@ -1567,6 +1609,30 @@ function KarmaDestinySuspenseFallback() {
       </div>
       <ResultStyles />
     </main>
+  );
+}
+
+// 장 머리의 화자 칩. 문구 객체에 키를 늘리지 않고 이름만 로케일별로 둔다(나머지 로케일은 영문 표기).
+const KARMA_SPEAKER_NAMES: Record<string, { neo: string; hanbi: string }> = {
+  ko: { neo: "네오", hanbi: "서한비" },
+  ja: { neo: "ネオ", hanbi: "ソ・ハンビ" },
+};
+
+function KarmaSpeakerChips({ chapter, locale }: { chapter: { id?: string; title?: string }; locale: string }) {
+  const names = KARMA_SPEAKER_NAMES[locale] || { neo: "Neo", hanbi: "Seo Hanbi" };
+  const speaker = karmaChapterSpeaker(chapter);
+  const people: Array<{ key: string; name: string; avatar: string }> = [];
+  if (speaker.includes("네오")) people.push({ key: "neo", name: names.neo, avatar: masterAvatars.neo });
+  if (speaker.includes("서한비")) people.push({ key: "hanbi", name: names.hanbi, avatar: masterAvatars.hanbi });
+  return (
+    <span className="kdai-speakers">
+      {people.map((person) => (
+        <span key={person.key} className="kdai-speaker">
+          <img src={person.avatar} alt="" width={20} height={20} decoding="async" />
+          {person.name}
+        </span>
+      ))}
+    </span>
   );
 }
 

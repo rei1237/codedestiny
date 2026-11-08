@@ -7,7 +7,7 @@ import { resolveReviewProductByFeatureKey } from './review-product-catalog.js';
 import { isStoredPaidResultRevoked } from './paid-result-revocation.js';
 import { listServerPricedFeatureKeys, normalizePaidFeatureKey, getPaidFeatureBillingType } from './paid-feature-registry.js';
 import { createHttpError } from './http.js';
-import { getMasterLoveCodexPlan } from './master-love-codex-prompt.mjs';
+import { getMasterLoveCodexPlan, MASTER_LOVE_CODEX_CHAPTERS_V2 } from './master-love-codex-prompt.mjs';
 import { getMasterLoveCodexCompatPlan } from './master-love-codex-compat-prompt.mjs';
 import { codexDedupedChapterFloor } from './master-love-codex-quality.js';
 
@@ -38,8 +38,10 @@ export function recordStatus(doc, source) {
   if (doc.stage === 1 || ['partial', 'delivery_pending'].includes(status)) return 'partial';
   if (['completed', 'success', 'delivered'].includes(status)) {
     if (source.id === 'codex' && Array.isArray(doc.chapterManifest)) {
-      const plan = doc.mode === 'compat' ? getMasterLoveCodexCompatPlan() : getMasterLoveCodexPlan();
-      if (!plan.chapters.every(spec => doc.chapterManifest.some(row => row.id === spec.id && row.ok !== false && row.chars >= codexDedupedChapterFloor(spec)))) return 'partial';
+      // V2 개인판(2026-11-08, 장당 약 1,000~1,500자)은 짧은 장도 전달된 장이다 — 생성 경로와 같이 본문만 있으면 된다.
+      const compactSolo = doc.mode !== 'compat' && Number(doc.chapterPlanVersion) === 2;
+      const plan = doc.mode === 'compat' ? getMasterLoveCodexCompatPlan() : compactSolo ? { chapters: MASTER_LOVE_CODEX_CHAPTERS_V2 } : getMasterLoveCodexPlan();
+      if (!plan.chapters.every(spec => doc.chapterManifest.some(row => row.id === spec.id && row.ok !== false && (compactSolo ? row.chars > 0 : row.chars >= codexDedupedChapterFloor(spec))))) return 'partial';
     }
     if (source.id === 'chat-consultation' && doc.manifestCount > doc.completedChapters) return 'partial';
     return 'completed';
@@ -149,7 +151,7 @@ export async function listRecords(userId, params, readPage = async (source, quer
   const projection = { ...RECORD_METADATA_PROJECTION,
     summaryExcerpt: { $substrCP: [{ $convert: { input: { $ifNull: ['$summary', '$result.summary'] }, to: 'string', onError: '', onNull: '' } }, 0, 600] },
     questionExcerpt: { $substrCP: [{ $convert: { input: firstQuestion, to: 'string', onError: '', onNull: '' } }, 0, 600] },
-    ...(source.id === 'codex' ? { chapterManifest: { $map: { input: { $ifNull: ['$chapters', []] }, as: 'chapter', in: { id: '$$chapter.id', ok: '$$chapter.ok', chars: { $strLenCP: { $convert: { input: { $ifNull: ['$$chapter.body', '$$chapter.content'] }, to: 'string', onError: '', onNull: '' } } } } } } } : {}),
+    ...(source.id === 'codex' ? { chapterPlanVersion: '$deliveryMeta.chapterPlanVersion', chapterManifest: { $map: { input: { $ifNull: ['$chapters', []] }, as: 'chapter', in: { id: '$$chapter.id', ok: '$$chapter.ok', chars: { $strLenCP: { $convert: { input: { $ifNull: ['$$chapter.body', '$$chapter.content'] }, to: 'string', onError: '', onNull: '' } } } } } } } : {}),
     ...(source.id === 'chat-consultation' ? { refundStatus:'$generationCheckpoint.deliveryRefund.status',manifestCount: { $size: { $ifNull: ['$snapshot.manifest', []] } } } : {}),
     ...(source.id === 'executions' ? { partCount: { $size: { $objectToArray: { $ifNull: ['$metadata.paidNarrative.parts', {}] } } } } : {}),
     ...(source.id === 'tea' ? { partCount: { $size: { $objectToArray: { $ifNull: ['$generationCheckpoint.parts', {}] } } } } : {}),

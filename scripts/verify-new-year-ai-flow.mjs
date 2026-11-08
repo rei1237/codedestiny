@@ -234,7 +234,8 @@ assertIncludes(pageSourcePath, "serverSections", "client should consume the serv
 assertIncludes(answerSectionsSourcePath, "groupSectionsByDomain", "answer parser should keep the legacy assembled-text fallback parser");
 assertIncludes(pageSourcePath, "DOMAIN_CARDS", "client should render the domain consultation cards");
 assertIncludes(pageSourcePath, "ReadingProgressPanel", "client should show generation progress");
-assertIncludes(pageSourcePath, 'data-pdf-section={`domain-${card.key}`}', "domain cards should stay in the PDF capture set");
+assertIncludes(pageSourcePath, '`domain-${chapter.key}`', "domain chapters should stay in the PDF capture set");
+assertIncludes(pageSourcePath, "buildNewYearPdfChapters", "PDF should typeset every chapter as text before falling back to capture");
 assertIncludes(pageSourcePath, "is-exporting", "client should force-reveal off-screen cards before PDF capture");
 assertIncludes("worker/routes/new-year-ai.js", "publicSections", "result payload should expose per-domain sections");
 assertIncludes("worker/routes/new-year-ai.js", "'llmMeta.sections': generated.sections", "completed session should persist per-domain sections");

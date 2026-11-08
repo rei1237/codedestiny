@@ -239,6 +239,24 @@ const SAJU_AI_ELEMENT_ORGAN = String.raw`(?:폐|대장|피부|뼈|관절|심장|
 const sajuAIElementCausality = (outcome) => new RegExp(
   `${SAJU_AI_ELEMENT}${SAJU_AI_SENTENCE}{0,160}${SAJU_AI_ELEMENT_STATE}${SAJU_AI_SENTENCE}{0,200}${outcome}`
   + `|${outcome}${SAJU_AI_SENTENCE}{0,160}${SAJU_AI_ELEMENT}${SAJU_AI_SENTENCE}{0,40}${SAJU_AI_ELEMENT_STATE}`, "u");
+// Financial-product endorsement: a product word up to 220 chars before an endorsing verb, unless the
+// verb's own clause (next 32 chars, up to a comma or stop) negates or warns — same window as love-secret-ai-prompt.js.
+const SAJU_AI_FINANCIAL_PRODUCT = /(?:부동산|채권|배당주|주식|코인|금융\s*상품|투자\s*상품|예금|적금|연금)/u;
+const SAJU_AI_FINANCIAL_ENDORSE = /(?:관심을\s*가질|관심을\s*가져|권해|추천|적합|유리|현명|가입|이용|선택|활용|큰\s*수익|재산을\s*불)/gu;
+const SAJU_AI_FINANCIAL_NEGATION_WINDOW = 32;
+const SAJU_AI_FINANCIAL_NEGATION = /지\s*(?:마|말|않)|않|안\s*(?:돼|됩|되|좋)|금물|금지|삼가|피하|피해|멈추|멈춰|그만|아니|없[어습고]|보다|대신|위험|해롭|해로/u;
+function sajuAIFinancialProductClaim(text) {
+  const value = String(text || "");
+  const endorse = new RegExp(SAJU_AI_FINANCIAL_ENDORSE.source, SAJU_AI_FINANCIAL_ENDORSE.flags);
+  let match;
+  while ((match = endorse.exec(value))) {
+    const before = value.slice(Math.max(0, match.index - 226), match.index);
+    if (!SAJU_AI_FINANCIAL_PRODUCT.test(before)) continue;
+    const tail = value.slice(match.index + match[0].length, match.index + match[0].length + SAJU_AI_FINANCIAL_NEGATION_WINDOW);
+    if (!SAJU_AI_FINANCIAL_NEGATION.test(tail.split(/[,.!?\n。]/u)[0])) return true;
+  }
+  return false;
+}
 const SAJU_AI_RESULT_UNSUPPORTED_PATTERNS = Object.freeze([
   Object.freeze({
     key: "element-causality",
@@ -250,7 +268,8 @@ const SAJU_AI_RESULT_UNSUPPORTED_PATTERNS = Object.freeze([
   }),
   Object.freeze({
     key: "specific-financial-product",
-    pattern: /(?:부동산|채권|배당주|주식|코인|금융\s*상품|투자\s*상품|예금|적금|연금).{0,220}(?:관심을\s*가질|관심을\s*가져|권해|추천|적합|유리|현명|가입|이용|선택|활용|큰\s*수익|재산을\s*불)/s,
+    // 6c 2026-11-08: "주식은 추천하지 않습니다"처럼 권유를 부정하는 문장은 통과시킨다(.test 계약을 유지하는 객체).
+    pattern: Object.freeze({ test: sajuAIFinancialProductClaim }),
   }),
   Object.freeze({
     key: "fortune-score-label",
@@ -294,6 +313,34 @@ function dropSajuAIUnsupportedSentences(text) {
     const rest = kept.join("").trimEnd();
     return /^[\s\-*>]*$/.test(rest) ? null : rest;
   }).filter((line) => line !== null).join("\n");
+}
+
+// 배달 2판(새 기록만). 되돌리기: SAJU_AI_DELIVERY_V2_ENABLED=false — 진행 중인 기록은 시작한 판으로 끝난다.
+const SAJU_AI_DELIVERY_PLAN_VERSION = 2;
+
+function sajuAIDeliveryV2Enabled(env) {
+  return String(env?.SAJU_AI_DELIVERY_V2_ENABLED ?? "").trim().toLowerCase() !== "false";
+}
+
+function isSajuAIDeliveryV2(result) {
+  return Number(result?.deliveryPlanVersion) === SAJU_AI_DELIVERY_PLAN_VERSION;
+}
+
+// 2판: 시도를 다 쓴 묶음도 글이 있으면 살린다(저장된 글, 없으면 마지막 초안). 근거 밖 문장은 덜어 낸다.
+function readSajuAIBestSectionText(row) {
+  if (row?.valid) return String(row.text || "");
+  return dropSajuAIUnsupportedSentences(String(row?.text || row?.draft || "")).trim();
+}
+
+function assembleSajuAIBestEffortText(sections) {
+  const rows = (sections || []).map((row) => ({ row, text: readSajuAIBestSectionText(row) }))
+    .filter((item) => countSajuAIVisibleChars(item.text) > 0);
+  const assembled = extractSajuAIPersonaSummaries(rows.map((item) => item.text).join("\n\n"));
+  return {
+    rows: rows.map((item) => item.row),
+    resultText: rows.length ? dropSajuAIUnsupportedSentences(assembled.resultText).trim() : "",
+    personaSummaries: assembled.personaSummaries,
+  };
 }
 
 function buildSajuAIUnsupportedRepairLines(key) {
@@ -1239,6 +1286,8 @@ async function beginSajuAIConsultationGeneratingRecord({ auth, body, profileId, 
         resultId: String(resultId || "").trim(),
         result: {
           ...(existingExecution?.result || {}),
+          // 판은 새 기록에만 고정한다. 진행 중인 1판 기록은 1판으로 끝난다.
+          ...(!existingExecution && sajuAIDeliveryV2Enabled(env) ? { deliveryPlanVersion: SAJU_AI_DELIVERY_PLAN_VERSION } : {}),
           ...(sajuAuthority ? { sajuAuthority } : {}),
           leaseToken,
           payloadHash,
@@ -5009,6 +5058,9 @@ async function handleSajuAIPrompt(request, auth, env, ctx = null) {
 
   // 한 요청은 미완료 묶음 하나와 그 보완까지만 담당한다. 서버 체크포인트로 다음 요청에 인계한다.
   const sajuDeadlineAt = startedAt + FEATURE_AI_LLM_BUDGET_MS;
+  // beginSajuAIConsultationGeneratingRecord 와 같은 판정이다(새 기록만 스위치를 따른다).
+  const sajuDeliveryV2 = existingExecution ? isSajuAIDeliveryV2(existingExecution.result) : sajuAIDeliveryV2Enabled(env);
+  let sajuBillingSections = null;
   const runGeneration = async () => {
   try {
     let finalAi = null;
@@ -5021,6 +5073,7 @@ async function handleSajuAIPrompt(request, auth, env, ctx = null) {
         saved.valid = validateSajuAISection(saved.text, group, builtPrompt.factSnapshot, { lengthRepair: true });
       return saved || { key: group.key, text: "", valid: false, attempts: 0 };
     });
+    sajuBillingSections = sections;
     const next = sections.find((row) => !row.valid && row.attempts < 2);
     if (next) {
       next.attempts += 1;
@@ -5066,6 +5119,11 @@ async function handleSajuAIPrompt(request, auth, env, ctx = null) {
           }
           if (usable) delete next.lastFailure;
           else if (row.ok) next.lastFailure = findSajuAIUnsupportedAdvice(row.text)?.key || "rejected";
+          // 2판: 쓰지 못한 초안도 남겨 두어, 시도를 다 쓰면 다듬어 배달한다.
+          if (sajuDeliveryV2) {
+            if (usable) delete next.draft;
+            else if (row.ok && countSajuAIVisibleChars(row.text) > countSajuAIVisibleChars(next.draft || "")) next.draft = row.text;
+          }
           // 응답은 왔는데 MAX_TOKENS 로 잘렸고(문장 끝 복구본이 검증을 못 넘은 경우 포함) 쓸 수 없다 —
           // 같은 예산이면 또 잘리므로 다음 요청이 두 배 예산으로 다시 쓰게 표시한다.
           if (row.ai?.ok && !usable && (!row.ok || row.ai.recoveredLocally)) next.truncated = true; else delete next.truncated;
@@ -5074,18 +5132,26 @@ async function handleSajuAIPrompt(request, auth, env, ctx = null) {
           return row;
         },
       });
-      if (!next.valid && !validateSajuAISection(next.text, group, builtPrompt.factSnapshot, { lengthRepair: true })) {
+      // 2판은 던지지 않는다. 시도나 다른 묶음이 남으면 아래에서 202 체크포인트, 다 썼으면 최선의 글로 배달한다.
+      if (!sajuDeliveryV2 && !next.valid && !validateSajuAISection(next.text, group, builtPrompt.factSnapshot, { lengthRepair: true })) {
         const error = new Error("상담 챕터의 구조 또는 명식 근거를 보완해야 합니다."); error.code = "LLM_GENERATION_RETRYABLE"; throw error;
       }
     }
     const usableGroups = sections.filter((row) => row.valid);
-    if (usableGroups.length < SAJU_AI_SECTION_GROUPS.length) {
+    // 1판은 시도를 다 쓴 무효 묶음이 남으면 202 를 끝없이 돌려준다(멈춤). 2판은 그때 최선의 글로 배달한다.
+    const exhausted = sajuDeliveryV2 && usableGroups.length < SAJU_AI_SECTION_GROUPS.length
+      && !sections.some((row) => !row.valid && row.attempts < 2);
+    if (usableGroups.length < SAJU_AI_SECTION_GROUPS.length && !exhausted) {
       const partial = await saveSajuAISectionCheckpoint({ executionId: sajuExecutionId, leaseToken, sections, status: "partial" });
       return json(buildSajuAIStatusPayload(partial), { status: 202 });
     }
-    const assembled = extractSajuAIPersonaSummaries(usableGroups.map((row) => row.text).join("\n\n"));
+    const assembled = exhausted
+      ? assembleSajuAIBestEffortText(sections)
+      : extractSajuAIPersonaSummaries(usableGroups.map((row) => row.text).join("\n\n"));
+    const deliveredGroups = exhausted ? assembled.rows : usableGroups;
     const assembledText = assembled.resultText;
-    finalAi = { ok: true, model: usableGroups[0]?.model, provider: usableGroups[0]?.provider };
+    let qualityWarning = "";
+    finalAi = { ok: true, model: deliveredGroups[0]?.model, provider: deliveredGroups[0]?.provider };
 
     lastValidation = assembledText
       ? validateSajuAIResultText(assembledText, builtPrompt.factSnapshot, {
@@ -5113,12 +5179,34 @@ async function handleSajuAIPrompt(request, auth, env, ctx = null) {
       });
     }
 
+    if (sajuDeliveryV2 && finalAi?.ok && !finalText && assembledText) {
+      const repair = sections.find((row) => row.key === "life_domains");
+      if (!exhausted && !(Number(repair.qualityRepairs) >= 1)) {
+        // 장 사이 검사 실패: life_domains 를 시도 0 으로 되돌려 한 번만 다시 쓴다(qualityRepairs 로 무한 반복을 막는다).
+        repair.valid = false;
+        repair.qualityRepair = true;
+        repair.attempts = 0;
+        repair.qualityRepairs = (Number(repair.qualityRepairs) || 0) + 1;
+        const partial = await saveSajuAISectionCheckpoint({ executionId: sajuExecutionId, leaseToken, sections, status: "partial" });
+        console.warn("[SajuMyeongsikAI] quality repair scheduled", { requestId, promptVersion, validation: lastValidation?.reason || "" });
+        return json(buildSajuAIStatusPayload(partial), { status: 202 });
+      }
+      // 수리 예산을 다 썼다: 다듬은 조립 글을 품질 경고와 함께 배달한다.
+      finalText = exhausted ? assembledText : dropSajuAIUnsupportedSentences(assembledText).trim();
+      qualityWarning = String(lastValidation?.reason || "quality_validation_failed").slice(0, 200);
+      console.warn("[SajuMyeongsikAI] delivering best-effort text", {
+        requestId, promptVersion, validation: qualityWarning, groups: deliveredGroups.length, visibleChars: countSajuAIVisibleChars(finalText),
+      });
+    }
+
     if (!finalAi?.ok || !finalText) {
       // Cross-chapter checks can fail even when each group passed independently.
-      const repair = sections.find((row) => row.key === "life_domains");
-      repair.valid = false;
-      repair.qualityRepair = true;
-      await saveSajuAISectionCheckpoint({ executionId: sajuExecutionId, leaseToken, sections });
+      if (!sajuDeliveryV2) {
+        const repair = sections.find((row) => row.key === "life_domains");
+        repair.valid = false;
+        repair.qualityRepair = true;
+        await saveSajuAISectionCheckpoint({ executionId: sajuExecutionId, leaseToken, sections });
+      }
       console.error("[fortune][saju-ai-prompt] llm generation failed:", {
         requestId,
         promptDigest,
@@ -5147,6 +5235,7 @@ async function handleSajuAIPrompt(request, auth, env, ctx = null) {
       model: finalAi.model || undefined,
       provider: finalAi.provider || undefined,
     });
+    if (qualityWarning) resultPayload.qualityWarning = qualityWarning;
     const deliveryAccess = await withMongoRetry(env, () => findAIPromptPaidAccessEvidence({ auth, featureKey: SAJU_AI_PROMPT_FEATURE_KEY, body, requestId, cost: SAJU_AI_PROMPT_PRICE, env })).catch(() => { throw sajuStorageError(); });
     if (!deliveryAccess) return buildSajuAIPromptPaymentRequiredError();
     await saveSajuAISectionCheckpoint({ executionId: sajuExecutionId, leaseToken, sections, status: "delivery_pending" });
@@ -5190,7 +5279,10 @@ async function handleSajuAIPrompt(request, auth, env, ctx = null) {
     const ownsFailure = await PaidExecutionRecord.findOne({ executionId: sajuExecutionId, status: "generating", "result.leaseToken": leaseToken }).lean().catch(() => null);
     if (!ownsFailure) return buildSajuAIPromptError("RESULT_STORAGE_UNAVAILABLE", "상담 처리 상태를 확인하고 있어요. 잠시 후 다시 시도해 주세요.", 503, { retryable: true, reason: "RESULT_STORAGE_UNAVAILABLE", resultId, jobId: sajuExecutionId });
     // 2-스트라이크: 1차 실패는 결제를 그대로 두고 무료 재시도를 연다(resolveSajuAIPromptFailureBilling 주석).
-    const monthlyRefund = refundOnFailure
+    // 2판은 글이 있는 묶음이 하나라도 있으면 환불하지 않는다(다음 요청이 그 글로 배달한다).
+    const refundNow = refundOnFailure
+      && !(sajuDeliveryV2 && (sajuBillingSections || []).some((row) => countSajuAIVisibleChars(readSajuAIBestSectionText(row)) > 0));
+    const monthlyRefund = refundNow
       ? await refundSajuAIPromptMonthlyCredit({ auth, consumePayload, body, requestId, error }).catch((refundError) => {
         console.error("[fortune][saju-ai-prompt] monthly credit refund failed:", refundError);
         return { attempted: true, refundOk: false };
@@ -5198,7 +5290,7 @@ async function handleSajuAIPrompt(request, auth, env, ctx = null) {
       : { attempted: false, refundOk: false };
     const pointRefundContext = readSajuAIPromptPointRefundContext(consumePayload, body);
     let pointRefund = { attempted: false, refundOk: false };
-    if (!refundOnFailure) {
+    if (!refundNow) {
       // 결제 보존 — 아래 두 갈래(코인 환불 / 카드 취소)를 건너뛴다.
     } else if (pointRefundContext.isPointSpend && pointRefundContext.chargedCoins > 0 && pointRefundContext.sourceTransactionId) {
       pointRefund = { attempted: true, refundOk: false };
@@ -5243,7 +5335,7 @@ async function handleSajuAIPrompt(request, auth, env, ctx = null) {
     });
     // 🔴 환불을 "시도"한 것과 "성공"한 것을 구분한다. 시도만 하고 실패했다면 결제행은 그대로 유효하므로
     // 환불됐다고 답하면 거짓이고, 증빙을 버리게 만들면 살아 있는 결제가 미아가 된다 — 보존 계약으로 답한다.
-    const refunded = refundOnFailure && Boolean(monthlyRefund.refundOk || pointRefund.refundOk);
+    const refunded = refundNow && Boolean(monthlyRefund.refundOk || pointRefund.refundOk);
     // 백그라운드(waitUntil) 실행에서도 실패가 클라이언트 /status 폴링에 전달되도록 레코드에 기록한다.
     await withMongoRetry(env, () => PaidExecutionRecord.updateOne(
       { executionId: sajuExecutionId, status: "generating", "result.leaseToken": leaseToken },

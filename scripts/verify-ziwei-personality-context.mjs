@@ -160,8 +160,9 @@ ok(ziweiNeoPrompt.includes("[핵심 성향 Context"), "팩폭 전략소 자미�
 ok(!sajuNeoPrompt.includes("[핵심 성향 Context"), "팩폭 전략소 사주 분기에 자미두수 전용 성향 Context가 새어 들어감(다른 술수 오염)");
 
 // ── 7) 결과 화면(app/ziwei-ai/ZiweiAiClient.tsx) 노출 순서 ──────────────
-const clientSource = readFileSync("app/ziwei-ai/ZiweiAiClient.tsx", "utf8");
-const sectionOrderMatch = clientSource.match(/const SECTION_ORDER = \[([\s\S]*?)\];/);
+// 순서·글리프는 결과 화면과 보관함 PDF가 함께 쓰는 lib/ziwei/ziwei-ai-chapters.ts에 있다(판 1 순서 기준).
+const clientSource = readFileSync("app/ziwei-ai/ZiweiAiClient.tsx", "utf8") + "\n" + readFileSync("lib/ziwei/ziwei-ai-chapters.ts", "utf8");
+const sectionOrderMatch = clientSource.match(/(?:const SECTION_ORDER|export const ZIWEI_AI_SECTION_ORDER_V1) = \[([\s\S]*?)\]/);
 ok(Boolean(sectionOrderMatch), "app/ziwei-ai/ZiweiAiClient.tsx에서 SECTION_ORDER를 찾을 수 없음");
 if (sectionOrderMatch) {
   const orderKeys = [...sectionOrderMatch[1].matchAll(/"([a-z_]+)"/g)].map((match) => match[1]);

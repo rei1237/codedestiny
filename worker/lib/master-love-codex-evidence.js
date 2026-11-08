@@ -100,7 +100,7 @@ const PATH_LABELS = {
   yongshinSupport: "용신 보완", axisScores: "궁합 축", approvedSaju: "사주 판정",
 };
 
-function codexRecordLabel(record) {
+export function codexRecordLabel(record) {
   const [head, tail] = String(record.path || "").split(".");
   const term = head === "palaces" && tail ? tail
     : head === "yearlyLuck" && tail ? `${tail} 세운`
@@ -137,14 +137,30 @@ const nonEmpty = value => typeof value === "string" && value.trim().length > 0;
 // Measured 2026-09-17 (gemini-2.5-flash, production prompt): the model cites the right
 // records but spells the reference as `id` or `path`, and omits crossChecks. Facts are
 // therefore copied from the calculation record; the model only chooses and explains them.
-function findCodexRecord(item, contract, byId) {
-  const direct = byId.get(item?.evidenceId) || byId.get(item?.id);
+function findCodexRecordExact(item, path, contract, byId) {
+  const direct = byId.get(path);
   if (direct) return direct;
-  const path = String(item?.path || item?.evidenceId || item?.id || "");
   const system = SYSTEM_ALIASES[String(item?.system || "").trim()];
   const matches = contract.records.filter(record => record.path === path
     && (!item?.subject || record.subject === item.subject) && (!system || record.system === system));
   return matches.length === 1 ? matches[0] : null;
+}
+
+// A sub-path or index citation ("self.saju.yearlyLuck.2026.pillar", "majorLuck[0]") still points at its
+// record: the tail is stripped one segment at a time before giving up (2026-11-08).
+function findCodexRecord(item, contract, byId) {
+  const direct = byId.get(item?.evidenceId) || byId.get(item?.id);
+  if (direct) return direct;
+  let path = String(item?.path || item?.evidenceId || item?.id || "").trim();
+  for (let depth = 0; path && depth < 6; depth += 1) {
+    const found = findCodexRecordExact(item, path, contract, byId);
+    if (found) return found;
+    const stripped = path.replace(/\[[^\]]*\]$/u, "");
+    const next = stripped !== path ? stripped : path.replace(/\.[^.]*$/u, "");
+    if (next === path) break;
+    path = next;
+  }
+  return null;
 }
 
 /** Rewrites parsed.evidence / parsed.crossChecks in place to the calculation contract. */

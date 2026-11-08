@@ -24,22 +24,28 @@ import { isStagingLlmMockEnabled } from "../lib/staging-llm-mock.js";
 import { callGeminiJsonWithRetry } from "../lib/structured-consultation.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
 import { cmsPromptText } from "../lib/cms-prompts.js";
-import { appendExpertPersona, resolveExpertPersona } from "../lib/expert-character-personas.js";
+import { appendExpertPersona, hanbiLoveRegisterDrift, resolveExpertPersona, yeoniLoveRegisterDrift } from "../lib/expert-character-personas.js";
 import { appendAnswerVoice, pinAnswerVoice } from "../lib/consultation-answer-contract.js";
 import { calculateLoveSecretAiSaju, normalizeLoveSecretAiInput } from "../lib/love-secret-ai-calculation.js";
 import { sajuAuthorityOn } from "../lib/saju-authority-consumer.js";
 import {
   LOVE_SECRET_AI_GROUPS,
   LOVE_SECRET_AI_GROUP_MIN_CHARS,
+  loveSecretGroupCharRange,
+  LOVE_SECRET_AI_MIN_TOTAL_BODY_CHARS,
   LOVE_SECRET_AI_SYSTEM_PROMPT,
   LOVE_SPEAKER_BY_GROUP,
+  LOVE_SECRET_AI_GROUP_PLAN_VERSION,
   assembleLoveSecretConsultation,
   buildFollowUpConsultationPrompt,
   buildLoveSecretGroundingTerms,
   buildLoveSecretGroupPrompt,
   buildLoveSecretGroupResponseSchema,
   buildLoveSecretGroupSystemPrompt,
+  buildLoveSecretRejectionRepairLines,
   countLoveSecretConsultationBodyChars,
+  dedupeLoveSecretSections,
+  loveSecretGroupsForPlan,
   mapLoveSecretIssuesToGroups,
   normalizeFollowUpResponse,
   parseLoveSecretGroupResponse,
@@ -53,10 +59,12 @@ const FEATURE_KEY = "love-secret-ai-consultation";
 
 // ── 섹션 병렬 생성 예산 ────────────────────────────────────────────────────
 // 목표 분량 30,000~36,000자를 단일 호출로 뽑으면 gemini-2.5-flash(~200tok/s) 기준
-// 200초 이상이 필요해 엣지 100초 컷을 구조적으로 넘는다. 그래서 6개 그룹을 한 요청 안에서
+// 200초 이상이 필요해 엣지 100초 컷을 구조적으로 넘는다. 그래서 그룹(V2 7개)을 한 요청 안에서
 // 동시에 생성해 벽시계를 "합계 → 최댓값"으로 바꾼다(worker/routes/new-year-ai.js 선례).
 // tokensRequiredForChars(6,500) = (6500 + 1500) × 1.5 = 12,000 → 여유를 둬 12,500.
 const LOVE_SECRET_AI_GROUP_MAX_OUTPUT_TOKENS = 12500;
+// V2 그룹(6,000~7,500자, 2026-11-08 분량 넉넉): tokensRequiredForChars(7,500) = 13,500 + 여유 1,500. 7,500자 ≈ 34초(≈220자/초)로 54초 안이다.
+const LOVE_SECRET_AI_V2_GROUP_MAX_OUTPUT_TOKENS = 15000;
 const LOVE_SECRET_AI_GROUP_TIMEOUT_MS = 54000;
 const LOVE_SECRET_AI_REPAIR_TIMEOUT_MS = 24000;
 const LOVE_SECRET_AI_REPAIR_MIN_REMAINING_MS = 22000;
@@ -777,12 +785,14 @@ async function generateLoveSecretGroup(env, {
   repairLines = [],
   previousResult = null,
   clipped = false,
+  scrubUnsafe = false,
 }) {
   const startedAt = Date.now();
   // 앞 시도가 토큰 상한에서 끊겼으면 이번 시도만 예산 2배(최대 32768)로 산다. 기본 예산은 비용 추정·검증 스크립트가 쓴다.
+  const baseTokens = group?.perspective ? LOVE_SECRET_AI_V2_GROUP_MAX_OUTPUT_TOKENS : LOVE_SECRET_AI_GROUP_MAX_OUTPUT_TOKENS;
   const maxTokens = clipped
-    ? Math.max(LOVE_SECRET_AI_GROUP_MAX_OUTPUT_TOKENS, Math.min(32768, LOVE_SECRET_AI_GROUP_MAX_OUTPUT_TOKENS * 2))
-    : LOVE_SECRET_AI_GROUP_MAX_OUTPUT_TOKENS;
+    ? Math.max(baseTokens, Math.min(32768, baseTokens * 2))
+    : baseTokens;
   const fail = (reason) => ({
     key: group.key,
     ok: false,
@@ -838,8 +848,38 @@ async function generateLoveSecretGroup(env, {
       return { ...fail(clean(ai?.error || ai?.message || "LLM_FAILED", 60)), provider, model, ...(cutOff && { truncated: true }) };
     }
 
-    const parsed = parseLoveSecretGroupResponse(ai.text, group, { lengthRepair: true });
-    if (!parsed.ok) return { ...fail(parsed.reason || "PARSE_FAILED"), provider, model, ...(ai.recoveredLocally === true && { truncated: true }) };
+    const parsed = parseLoveSecretGroupResponse(ai.text, group, { lengthRepair: true, scrubUnsafe });
+    if (!parsed.ok) {
+      // 🔴 사유를 버리지 않는다 — 섹션은 읽혔지만 이슈로 반려된 경우 parsed.reason 은 빈 문자열이다.
+      const reason = clean(parsed.reason || parsed.issues?.[0] || "PARSE_FAILED", 60);
+      logLoveSecretAi("Group Rejected", {
+        ...logContext,
+        groupKey: group.key,
+        reason,
+        issues: (parsed.issues || []).slice(0, 6),
+        chars: Number(parsed.chars || 0),
+        excerpt: clean(parsed.flagged?.[0]?.excerpt, 120),
+      }, "warn");
+      return {
+        ...fail(reason),
+        issues: (parsed.issues || []).slice(0, 6),
+        ...(parsed.flagged?.length && { flagged: parsed.flagged.slice(0, 4) }),
+        provider,
+        model,
+        ...(ai.recoveredLocally === true && { truncated: true }),
+      };
+    }
+    // 말투 점검(V2 그룹만). 전달을 막지 않는다 — 로그를 남기고, 이 그룹이 어차피 다시 쓰일 때 수리 지시에 싣는다.
+    const registerDrift = group.perspective
+      ? (LOVE_SPEAKER_BY_GROUP[group.key] === "hanbi" ? hanbiLoveRegisterDrift : yeoniLoveRegisterDrift)(parsed.sections.map((section) => section.body).join("\n"))
+      : [];
+    if (registerDrift.length) {
+      parsed.registerDrift = registerDrift;
+      logLoveSecretAi("Register Drift", { ...logContext, groupKey: group.key, drift: registerDrift }, "warn");
+    }
+    if (parsed.scrubbed) {
+      logLoveSecretAi("Group Scrubbed", { ...logContext, groupKey: group.key, droppedSentences: parsed.scrubbed, excerpt: clean(parsed.flagged?.[0]?.excerpt, 120) }, "warn");
+    }
     return { ...parsed, key: group.key, provider, model, startedAt, endedAt: Date.now() };
   } catch (error) {
     logLoveSecretAi("Group Generation Error", {
@@ -858,7 +898,7 @@ async function generateFirstConsultation(env, input, sajuResult, logContext = {}
     if (remaining < LOVE_SECRET_AI_REPAIR_MIN_REMAINING_MS) return 0;
     return Math.min(cap, remaining);
   };
-  // 그룹 프롬프트는 서로 다르므로 lib/llm-cache 의 프롬프트 해시가 6개 키로 자동 분리된다.
+  // 그룹 프롬프트는 서로 다르므로 lib/llm-cache 의 프롬프트 해시가 그룹별 키로 자동 분리된다.
   // 🔴 keyExtra 는 v2 여야 한다 — v1 항목은 통짜 상담 JSON 이라 그룹 파서에 먹이면 쓰레기가 된다.
   const cache = {
     store: createLlmCacheStore(env),
@@ -871,31 +911,79 @@ async function generateFirstConsultation(env, input, sajuResult, logContext = {}
     ? Number(env.LOVE_SECRET_AI_TIMEOUT_MS)
     : LOVE_SECRET_AI_GROUP_TIMEOUT_MS;
 
-  // Wave 1 — 6개 그룹 동시 생성. 벽시계 = 합계가 아니라 최댓값.
-  let results = LOVE_SECRET_AI_GROUPS.map(group => options.savedGroups?.find(row => row.key === group.key) || { key: group.key, ok: false, sections: [], extras: {}, chars: 0 });
+  // 저장 세션의 그룹 계획(V1 6개 / V2 7개). 넘기지 않으면 현재 계획.
+  const planGroups = Array.isArray(options.groups) && options.groups.length ? options.groups : LOVE_SECRET_AI_GROUPS;
+  const minUsableGroups = planGroups === LOVE_SECRET_AI_GROUPS ? LOVE_SECRET_AI_MIN_USABLE_GROUPS : planGroups.length;
+  // Wave 1 — 그룹 동시 생성. 벽시계 = 합계가 아니라 최댓값.
+  let results = planGroups.map(group => options.savedGroups?.find(row => row.key === group.key) || { key: group.key, ok: false, sections: [], extras: {}, chars: 0 });
   const checkpointed = typeof options.onCheckpoint === "function";
   const attempts = options.attempts || {};
   results.forEach(row => { if (row.ok) row.lengthRepair = true; });
   const qualityOf = rows => validateLoveSecretConsultation(assembleLoveSecretConsultation(rows, { input, sajuResult }), { sajuResult, groundingTerms: buildLoveSecretGroundingTerms(sajuResult) });
   const contentIssues = value => value.issues.filter(issue => !/^(?:TOTAL_(?:BELOW|ABOVE)_TARGET|SECTION_MIN_CHARS):/.test(issue));
   const choose = (previous, candidate) => {
-    if (!candidate?.ok) return previous;
+    if (!candidate?.ok) {
+      // 반려 사유와 걸린 문맥을 체크포인트에 남긴다 — 다음 시도가 그 표현을 짚어 고치고, 운영에서 원인을 읽을 수 있게.
+      const rejection = {
+        reason: clean(candidate?.reason || "UNKNOWN", 60),
+        issues: Array.isArray(candidate?.issues) ? candidate.issues.slice(0, 6) : [],
+        ...(candidate?.flagged?.length && { flagged: candidate.flagged.slice(0, 4).map(item => ({ issue: item.issue, phrase: clean(item.phrase, 40), excerpt: clean(item.excerpt, 120) })) }),
+        attempt: Number(attempts[candidate?.key || previous?.key] || 0),
+      };
+      if (previous?.ok) return { ...previous, lastRejection: rejection };
+      return { ...(previous || {}), ...(candidate || {}), ok: false, reason: rejection.reason, rejection };
+    }
     const before = contentIssues(qualityOf(results));
     const after = contentIssues(qualityOf(results.map(row => row.key === candidate.key ? candidate : row)));
     if (previous?.ok && (after.some(issue => !before.includes(issue))
       || (after.length >= before.length && candidate.chars <= previous.chars))) return previous;
     return candidate;
   };
-  let selected = LOVE_SECRET_AI_GROUPS;
+  let selected = planGroups;
+  let selectedRepair = null;
+  // 분량 수리 후보: 모든 그룹이 내용상 통과했는데 합계가 전달 하한(MIN) 아래일 때만, 가장 짧은 그룹 하나.
+  // 그룹당 1회·세션당 최대 2회. 후보가 없으면 분량은 전달을 막지 않는다.
+  const lengthRepairUsed = () => Object.keys(attempts).filter(name => name.startsWith("length:")).length;
+  const lengthRepairCandidate = (rows, quality) => {
+    if (rows.length !== minUsableGroups || rows.some(row => !row.ok) || contentIssues(quality).length) return "";
+    if (countLoveSecretConsultationBodyChars(assembleLoveSecretConsultation(rows, { input, sajuResult })) >= LOVE_SECRET_AI_MIN_TOTAL_BODY_CHARS) return "";
+    if (lengthRepairUsed() >= 2) return "";
+    return [...rows]
+      .filter(row => (attempts[row.key] || 0) < 2 && !attempts[`length:${row.key}`] && row.chars < LOVE_SECRET_AI_GROUP_MIN_CHARS)
+      .sort((a, b) => a.chars - b.chars)[0]?.key || "";
+  };
   if (checkpointed) {
     const priorQuality = validateLoveSecretConsultation(assembleLoveSecretConsultation(results, { input, sajuResult }), { sajuResult, groundingTerms: buildLoveSecretGroundingTerms(sajuResult) });
     const repairKeys = mapLoveSecretIssuesToGroups({ ...priorQuality, issues: contentIssues(priorQuality) }, results);
     const available = key => (attempts[key] || 0) < 2;
-    const key = results.find(row => !row.ok && available(row.key))?.key || [...repairKeys.keys()].find(available);
-    selected = LOVE_SECRET_AI_GROUPS.filter(group => group.key === key);
+    let key = results.find(row => !row.ok && available(row.key))?.key || [...repairKeys.keys()].find(available);
+    let lengthRepairKey = "";
+    if (!key && lengthRepairCandidate) {
+      key = lengthRepairCandidate(results, priorQuality);
+      lengthRepairKey = key || "";
+    }
+    selected = planGroups.filter(group => group.key === key);
     if (selected.length) {
       const key = selected[0].key;
       const used = attempts[key] || 0;
+      const prior = results.find(row => row.key === key);
+      // 체크포인트 모드도 수리 지시를 싣는다: 품질 이슈 매핑 + 직전 반려 사유(걸린 표현을 짚어서).
+      selectedRepair = {
+        key,
+        lines: [
+          ...(repairKeys.get(key) || []),
+          ...buildLoveSecretRejectionRepairLines(prior?.rejection || prior?.lastRejection),
+          ...(prior?.registerDrift?.includes("hapnida") ? ["직전 글에 '~합니다/~습니다' 합니다체가 많았습니다. 문장 끝을 모두 해요체(~해요, ~예요, ~세요)로 바꿔 쓰세요."] : []),
+          ...(lengthRepairKey ? [`이 부분이 너무 짧습니다(지금 약 ${Number(prior?.chars || 0).toLocaleString("ko-KR")}자). 이미 쓴 내용은 살리되 새 근거·새 생활 장면·구체적 행동을 더해 섹션마다 문단을 늘려 ${loveSecretGroupCharRange(selected[0])[0].toLocaleString("ko-KR")}~${loveSecretGroupCharRange(selected[0])[1].toLocaleString("ko-KR")}자로 다시 쓰세요.`] : []),
+        ],
+        previousResult: prior?.ok ? prior : null,
+        // 마지막 시도면 걸린 문장만 덜어 내고 받는다(그룹을 통째로 비우지 않게).
+        scrubUnsafe: used + 1 >= 2,
+      };
+      if (lengthRepairKey) {
+        attempts[`length:${key}`] = 1;
+        logLoveSecretAi("Group Length Repair", { ...logContext, groupKey: key, chars: Number(prior?.chars || 0), totalChars: countLoveSecretConsultationBodyChars(assembleLoveSecretConsultation(results, { input, sajuResult })) }, "warn");
+      }
       await options.onReserve(key);
       attempts[key] = used + 1;
     }
@@ -912,6 +1000,11 @@ async function generateFirstConsultation(env, input, sajuResult, logContext = {}
     timeoutMs: budgetedTimeout(groupTimeoutCap),
     logContext,
     clipped: previous?.truncated === true,
+    ...(selectedRepair?.key === group.key && {
+      repairLines: selectedRepair.lines,
+      previousResult: selectedRepair.previousResult,
+      scrubUnsafe: selectedRepair.scrubUnsafe,
+    }),
     });
     const row = choose(previous, generated);
     if (row.ok) row.lengthRepair = true;
@@ -932,7 +1025,7 @@ async function generateFirstConsultation(env, input, sajuResult, logContext = {}
   if (!checkpointed && targets.size && budgetedTimeout(LOVE_SECRET_AI_REPAIR_TIMEOUT_MS) > 0) {
     logLoveSecretAi("Group Repair", { ...logContext, issues: quality.issues, targets: [...targets.keys()] }, "warn");
     const repaired = await Promise.all([...targets.entries()].map(async ([key, repairLines]) => {
-      const group = LOVE_SECRET_AI_GROUPS.find((item) => item.key === key);
+      const group = planGroups.find((item) => item.key === key);
       const previousResult = results.find((item) => item.key === key) || null;
       if (!group) return Promise.resolve(null);
       // Persist the one length-repair reservation before its provider call.
@@ -952,6 +1045,7 @@ async function generateFirstConsultation(env, input, sajuResult, logContext = {}
         repairLines,
         previousResult,
         clipped: previousResult?.truncated === true,
+        scrubUnsafe: true,
       });
       const row = choose(previousResult, generated);
       row.lengthRepair = true;
@@ -975,6 +1069,13 @@ async function generateFirstConsultation(env, input, sajuResult, logContext = {}
     }
   }
 
+  // 그룹 사이 되풀이 문장 정리. 전달을 막지 않는다 — 실패하면 조립본을 그대로 쓴다.
+  try {
+    assembled = dedupeLoveSecretSections(assembled) || assembled;
+  } catch (error) {
+    logLoveSecretAi("Dedupe Skipped", { ...logContext, message: String(error?.message || error).slice(0, 120) }, "warn");
+  }
+
   const usableGroups = results.filter((result) => result.ok).length;
   const totalChars = countLoveSecretConsultationBodyChars(assembled);
   // 하드 하한은 프롬프트 모듈이 소유한다 — 여기서 숫자를 복제하면 조용히 어긋난다.
@@ -991,7 +1092,9 @@ async function generateFirstConsultation(env, input, sajuResult, logContext = {}
   });
 
   const completionIssues = contentIssues(quality);
-  const complete = usableGroups === LOVE_SECRET_AI_MIN_USABLE_GROUPS && renderable && completionIssues.length === 0;
+  // 분량은 치명적이지 않다: 아직 분량 수리 후보가 남아 있을 때만 다음 요청으로 미룬다.
+  const lengthPending = checkpointed && Boolean(lengthRepairCandidate(results, quality));
+  const complete = usableGroups === minUsableGroups && renderable && completionIssues.length === 0 && !lengthPending;
   if (!checkpointed && !complete) {
     const error = new Error(`love secret generation incomplete (groups ${usableGroups}/${results.length}, chars ${totalChars})`);
     error.code = "LLM_GENERATION_FAILED";
@@ -1205,6 +1308,8 @@ function publicSession(doc) {
   const raw = typeof doc?.toObject === "function" ? doc.toObject() : doc;
   const storedMeta = raw?.llmMeta || {};
   const pendingGroups = mapLoveSecretIssuesToGroups({ issues: storedMeta.residualIssues || [] }, storedMeta.delivery?.groups || []);
+  // groupPlanVersion 이 없는 예전 세션은 V1(6개 그룹) 계획이다.
+  const planGroups = loveSecretGroupsForPlan(storedMeta.delivery?.groupPlanVersion);
   const meta = !["generating", "partial", "delivery_pending"].includes(raw?.status) ? storedMeta : {
     ...storedMeta,
     sections: (storedMeta.delivery?.groups || []).filter(row => row.ok).flatMap(row => row.sections || []),
@@ -1219,10 +1324,11 @@ function publicSession(doc) {
     status: clean(raw?.status),
     saved: clean(raw?.status) === "completed",
     retryable: ["partial", "delivery_pending", "generating"].includes(raw?.status)
-      && (raw?.status !== "partial" || LOVE_SECRET_AI_GROUPS.some(group => (!(storedMeta.delivery?.groups || []).some(row => row.key === group.key && row.ok) || pendingGroups.has(group.key))
+      && (raw?.status !== "partial" || planGroups.some(group => (!(storedMeta.delivery?.groups || []).some(row => row.key === group.key && row.ok) || pendingGroups.has(group.key))
         && (storedMeta.delivery?.attempts?.[group.key] || 0) < 2)),
     resumeSessionId: clean(raw?.id),
     completedGroups: (meta.delivery?.groups || []).filter(row => row.ok).map(row => row.key),
+    totalGroups: planGroups.length,
     myInfo: raw?.myInfo || null,
     partnerInfo: raw?.partnerInfo || null,
     relationshipStatus: clean(raw?.relationshipStatus, 80),
@@ -1607,6 +1713,8 @@ async function handleStart(request, env, route = "/api/love-secret-ai/generate",
         resumeBody: existing?.llmMeta?.delivery?.resumeBody || { ...body, accessToken: undefined, paymentId: body.paymentId || access.paymentId },
         groups: existing?.llmMeta?.delivery?.groups || [],
         attempts: existing?.llmMeta?.delivery?.attempts || {},
+        // 그룹 계획 버전. 이어 쓰는 예전 세션(버전 없음)은 V1 6개 그룹으로 끝까지 간다.
+        groupPlanVersion: existing ? (Number(existing?.llmMeta?.delivery?.groupPlanVersion) || 1) : LOVE_SECRET_AI_GROUP_PLAN_VERSION,
         // 생성 도중 플래그가 바뀌어도 부마다 문체가 섞이지 않게 시작 시점 값을 고정한다.
         answerVoice: pinAnswerVoice(existing?.llmMeta?.delivery, env),
       },
@@ -1643,6 +1751,7 @@ async function handleStart(request, env, route = "/api/love-secret-ai/generate",
     const generated = await runWithAiLocale(storedAiLocale(seed), () => generateFirstConsultation(env, normalized.input, sajuResult, logContext, {
       deadlineAt: requestStartedAt + LOVE_SECRET_AI_LLM_DEADLINE_MS,
       savedGroups: seed.llmMeta.delivery.groups,
+      groups: loveSecretGroupsForPlan(seed.llmMeta.delivery.groupPlanVersion),
       attempts: seed.llmMeta.delivery.attempts,
       answerVoice: seed.llmMeta.delivery.answerVoice,
       onReserve: async (key) => {

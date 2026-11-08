@@ -262,16 +262,48 @@ export default function CodexReader({
     if (!sealed) return;
     setPdfLoading(true);
     setError("");
+    const today = new Date().toISOString().slice(0, 10);
+    const fileName = `${copy.pdfFileNamePrefix}_${safeFilePart(name, copy.pdfNameFallback)}_${today.replace(/-/g, "")}.pdf`;
+    // 한국어 책은 받은 장 전체를 글자로 조판한다(결과 화면·보관함 공통 — 둘 다 이 리더를 쓴다).
+    // 글꼴을 못 실을 때만 아래 화면 캡처로 되돌아간다.
+    if (locale === "ko") {
+      try {
+        const [{ exportConsultationBookPdf }, { PdfFontError }, { buildMasterLoveCodexPdfChapters, buildMasterLoveCodexPdfSummary, MASTER_LOVE_CODEX_PDF_BYLINE }] = await Promise.all([
+          import("@/lib/pdf/export-consultation-book-pdf"),
+          import("@/lib/pdf/typeset-writer"),
+          import("../_lib/codex-pdf-chapters"),
+        ]);
+        try {
+          await exportConsultationBookPdf({
+            title: copy.possessiveBookTitle(safeFilePart(name, copy.pdfNameFallback), bookTitle),
+            productLabel: bookTitle,
+            byline: MASTER_LOVE_CODEX_PDF_BYLINE,
+            coverTheme: "codex",
+            date: today,
+            fileName,
+            chapters: buildMasterLoveCodexPdfChapters({ chapters: ordered, mode, consultation }),
+            summary: buildMasterLoveCodexPdfSummary({ loveDna, totalCharCount, chapterCount: ordered.length }),
+          });
+          setPdfLoading(false);
+          return;
+        } catch (error) {
+          if (!(error instanceof PdfFontError)) throw error;
+        }
+      } catch {
+        setError(copy.pdfDownloadError);
+        setPdfLoading(false);
+        return;
+      }
+    }
     // 아직 스크롤로 도달하지 않은 장은 opacity 0 이라 그대로 찍으면 백지가 된다.
     setIsExporting(true);
     try {
       await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
       await new Promise((resolve) => setTimeout(resolve, 140));
       const { exportResultPdf } = await import("@/lib/pdf/export-result-pdf");
-      const today = new Date().toISOString().slice(0, 10);
       await exportResultPdf({
         captureTargets: ["#master-love-codex-document [data-codex-pdf-page]"],
-        fileName: `${copy.pdfFileNamePrefix}_${safeFilePart(name, copy.pdfNameFallback)}_${today.replace(/-/g, "")}.pdf`,
+        fileName,
         backgroundColor: "#0a0818",
         cover: {
           title: copy.possessiveBookTitle(safeFilePart(name, copy.pdfNameFallback), bookTitle),
@@ -286,7 +318,7 @@ export default function CodexReader({
       setIsExporting(false);
       setPdfLoading(false);
     }
-  }, [sealed, birthLine, bookTitle, loveDna?.typeName, name, rows.length, pdfLoading, copy]);
+  }, [sealed, birthLine, bookTitle, loveDna, totalCharCount, name, rows.length, pdfLoading, copy, locale, ordered, mode, consultation]);
 
   if (!decrypted) {
     return (
@@ -388,7 +420,7 @@ export default function CodexReader({
               <CodexActInterstitial act={group.act} forceVisible={isExporting} />
             </div>
             {group.chapters.map((row) => (row.state === "ready" && row.chapter ? (
-              <ChapterSection key={row.id} chapter={row.chapter} consultation={consultation} forceVisible={isExporting} />
+              <ChapterSection key={row.id} chapter={row.chapter} consultation={consultation} forceVisible={isExporting} mode={mode} />
             ) : (
               <ChapterPlaceholder key={row.id} row={row} />
             )))}

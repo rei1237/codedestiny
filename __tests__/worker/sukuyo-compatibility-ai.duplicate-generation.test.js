@@ -15,7 +15,9 @@ import { jest } from "@jest/globals";
 
 const USER_ID = "64b7f2a1c3d4e5f601234567";
 const KEY = "sukuyo-ai-duplicate-window-test";
-const ENV = { GEMINIF_API_KEY: "test-key" };
+// 기존 테스트는 판 1 동작을 지킨다. 판 2 테스트는 파일 끝에서 V2_ENV 로 돈다.
+const ENV = { GEMINIF_API_KEY: "test-key", SUKUYO_COMPAT_AI_DELIVERY_V2_ENABLED: "false" };
+const V2_ENV = { GEMINIF_API_KEY: "test-key" };
 
 const SAMPLE_BODY = {
   consultationType: "compatibility",
@@ -529,4 +531,161 @@ test("본문 묶음 생성은 서한비 페르소나를 시스템 프롬프트 �
   const systemPrompt = String(callGeminiJsonWithRetryMock.mock.calls[0][2].systemPrompt);
   expect(systemPrompt).toMatch(/\[상담자 페르소나 — 서한비\][\s\S]*$/u);
   expect(systemPrompt).not.toMatch(/\d+년 경력/u);
+});
+
+// ── 판 2(llmMeta.groupPlanVersion = 2) 집중 테스트 — V2_ENV 로 돈다 ──
+// 묶음은 mock 에 들어온 responseSchema 키로 알아본다.
+const v2GroupKeys = (call) => Object.keys(call[2]?.responseSchema?.properties || {});
+function v2Payload(keys, lines = 32, extra = "") {
+  return JSON.stringify(Object.fromEntries(keys.map((key) => [key, { body: Array.from({ length: lines }, (_, i) => `${key}의 ${i}번째 조건에서는 계산된 관계의 방향을 따라 두 사람의 선택과 감정 표현을 구체적으로 해석하고 현실에서 실천할 방법을 설명합니다.`).join("\n") + extra }])));
+}
+const ALL_KEYS = () => testUtils.SUKUYO_SECTION_SPECS.map(spec => spec.key);
+const V2_SUMMARY_TEXT = JSON.stringify({ headline: "서로의 속도를 맞춰 가는 인연입니다.", insight: "두 분의 별은 서로 다른 자리에서 관계를 받칩니다.", scoreNotes: { trust: "신뢰는 천천히 쌓입니다." } });
+/** 요약 스키마(headline)면 요약 JSON, 아니면 sectionText(keys) 를 돌려준다. */
+const v2Mock = (sectionText) => async (_env, _prompt, options) => {
+  const keys = Object.keys(options?.responseSchema?.properties || {});
+  return { ok: true, provider: "gemini", text: keys.includes("headline") ? V2_SUMMARY_TEXT : sectionText(keys) };
+};
+async function runV2() { return handleSukuyoCompatibilityAiRoutes(startRequest(KEY), V2_ENV); }
+const V2_GROUP_IDS = ["nature", "attraction", "flow", "karma", "outlook"];
+const V2_FIRST_KEYS = ["twoStars", "overview", "evidence_basis"];
+
+test("판 2: 새 상담은 groupPlanVersion 2로 시작하고 질문은 첫 묶음 프롬프트에만 들어간다", async () => {
+  callGeminiJsonWithRetryMock.mockImplementation(v2Mock(() => v2Payload(ALL_KEYS())));
+  let response;
+  for (let i = 0; i < 6; i++) response = await runV2();
+  expect(response.status).toBe(200);
+  const doc = store.docs[0];
+  expect(doc.llmMeta.groupPlanVersion).toBe(2);
+  expect(doc.status).toBe("completed");
+  const calls = callGeminiJsonWithRetryMock.mock.calls;
+  expect(calls).toHaveLength(6);
+  expect(v2GroupKeys(calls[0])).toEqual(V2_FIRST_KEYS);
+  expect(calls.slice(0, 5).map(call => v2GroupKeys(call)[0])).toEqual(["twoStars", "attraction", "energyFlow", "karma", "domains"]);
+  expect(calls[0][1]).toContain(SAMPLE_BODY.question);
+  for (const call of calls.slice(1)) expect(call[1]).not.toContain(SAMPLE_BODY.question);
+  expect(Object.keys(doc.llmMeta.sections).slice(0, 3)).toEqual(V2_FIRST_KEYS);
+  expect(JSON.parse(doc.messages[1].content).planVersion).toBe(2);
+});
+
+test("판 2: 끄는 스위치가 false면 새 상담도 판 1로 시작한다", async () => {
+  mockSectionsResolvedImmediately();
+  await runWave();
+  expect(store.docs[0].llmMeta.groupPlanVersion).toBeUndefined();
+  expect(v2GroupKeys(callGeminiJsonWithRetryMock.mock.calls[0])).not.toEqual(V2_FIRST_KEYS);
+});
+
+test("판 2: 시도를 다 쓴 묶음은 건너뛰고 배달한다(환불·검토 보류 없음)", async () => {
+  paidMode = "paid";
+  callGeminiJsonWithRetryMock.mockImplementation(v2Mock(keys => keys[0] === "attraction" ? v2Payload([]) : v2Payload(ALL_KEYS())));
+  const statuses = [];
+  for (let i = 0; i < 8; i++) statuses.push((await runV2()).status);
+  expect(statuses).toEqual([202, 202, 202, 202, 202, 202, 202, 200]);
+  const doc = store.docs[0];
+  expect(doc.status).toBe("completed");
+  expect(doc.llmMeta.recoveryReviewRequired).toBeUndefined();
+  expect(doc.llmMeta.attempts.attraction).toBe(3);
+  expect(doc.llmMeta.attempts["attraction:skipped"]).toBe(3);
+  for (const key of ["attraction", "emotionalDirection", "communication"]) expect(doc.llmMeta.sections[key]).toBeUndefined();
+  expect(Object.keys(doc.llmMeta.sections)).toHaveLength(12);
+  expect(legacyRefund).not.toHaveBeenCalled(); expect(monthlyRefund).not.toHaveBeenCalled();
+  expect(callGeminiJsonWithRetryMock).toHaveBeenCalledTimes(8);
+});
+
+test("판 2: 분량 보완은 상담 전체에서 2번까지만 하고 짧아도 배달한다", async () => {
+  callGeminiJsonWithRetryMock.mockImplementation(v2Mock(() => v2Payload(ALL_KEYS(), 8)));
+  const statuses = [];
+  for (let i = 0; i < 8; i++) statuses.push((await runV2()).status);
+  expect(statuses.at(-1)).toBe(200);
+  const doc = store.docs[0];
+  expect(doc.status).toBe("completed");
+  expect(doc.llmMeta.attempts.lengthRepairs).toBe(2);
+  expect(doc.llmMeta.attempts.nature).toBe(3);
+  for (const id of V2_GROUP_IDS.slice(1)) expect(doc.llmMeta.attempts[id]).toBe(1);
+  expect(Object.keys(doc.llmMeta.sections)).toHaveLength(15);
+  const calls = callGeminiJsonWithRetryMock.mock.calls;
+  expect(calls).toHaveLength(8);
+  expect(calls[1][1]).toContain("[보정]");
+  expect(calls[1][1]).toContain("분량이 모자랐습니다");
+});
+
+test("판 2: 말투 이탈 보정은 묶음마다 한 번만 하고 걸린 문장을 걷어 낸다", async () => {
+  const input = testUtils.normalizeInput(SAMPLE_BODY), calculation = await testUtils.calculateSukuyo(input);
+  callGeminiJsonWithRetryMock.mockImplementation(async () => ({ ok: true, provider: "gemini", text: v2Payload(ALL_KEYS(), 32, "\n찻잔을 내려놓고 이야기를 이어 갑니다.") }));
+  let state = {};
+  for (let i = 0; i < 3; i++) {
+    state = await testUtils.createCompatibilityAnswerV2({}, input, calculation, { sections: state.sections, attempts: state.attempts });
+  }
+  const calls = callGeminiJsonWithRetryMock.mock.calls;
+  expect(calls.map(call => v2GroupKeys(call)[0])).toEqual(["twoStars", "twoStars", "attraction"]);
+  expect(calls[0][1]).not.toContain("[보정]");
+  expect(calls[1][1]).toContain("[보정]");
+  expect(calls[1][1]).toContain("말투에서 벗어났습니다");
+  expect(state.attempts["nature:softRepair"]).toBe(1);
+  expect(state.attempts["nature:settled"]).toBe(1);
+  expect(state.attempts.nature).toBe(2);
+  for (const key of V2_FIRST_KEYS) {
+    expect(state.sections[key].body.length).toBeGreaterThan(1000);
+    expect(state.sections[key].body).not.toContain("찻잔");
+  }
+});
+
+test("판 2: 요약이 두 번 실패하면 확정 점수로 만든 요약으로 완료한다", async () => {
+  const input = testUtils.normalizeInput(SAMPLE_BODY), calculation = await testUtils.calculateSukuyo(input);
+  const sections = JSON.parse(v2Payload(ALL_KEYS()));
+  const attempts = Object.fromEntries(V2_GROUP_IDS.flatMap(id => [[id, 1], [`${id}:settled`, 1]]));
+  callGeminiJsonWithRetryMock.mockResolvedValue({ ok: false, error: "provider_unavailable" });
+  const first = await testUtils.createCompatibilityAnswerV2({}, input, calculation, { sections, attempts });
+  expect(first.complete).toBe(false); expect(first.retryable).toBe(true);
+  expect(first.attempts.summary).toBe(1); expect(first.attempts["summary:fallback"]).toBeUndefined();
+  const second = await testUtils.createCompatibilityAnswerV2({}, input, calculation, { sections, attempts: first.attempts });
+  expect(second.complete).toBe(true);
+  expect(second.attempts.summary).toBe(2); expect(second.attempts["summary:fallback"]).toBe(1);
+  const content = JSON.parse(second.content);
+  expect(content.headline).toEqual(expect.any(String)); expect(content.headline.length).toBeGreaterThan(0);
+  expect(content.insight).toEqual(expect.any(String));
+  expect(Object.keys(content.scoreNotes).length).toBeGreaterThan(0);
+  expect(content.fallback).toBeUndefined();
+  expect(callGeminiJsonWithRetryMock).toHaveBeenCalledTimes(2);
+  expect(callGeminiJsonWithRetryMock.mock.calls[1][2].cache).toBeUndefined();
+});
+
+test("판 2: 모든 묶음이 비었을 때만 실패로 확정하고 환불한다", async () => {
+  paidMode = "paid";
+  callGeminiJsonWithRetryMock.mockImplementation(async () => ({ ok: true, provider: "gemini", text: v2Payload([]) }));
+  const statuses = [];
+  for (let i = 0; i < 15; i++) statuses.push((await runV2()).status);
+  expect(statuses.slice(0, 14).every(status => status === 202)).toBe(true);
+  expect(statuses[14]).toBe(503);
+  const doc = store.docs[0];
+  expect(doc.status).toBe("generation_failed");
+  expect(doc.llmMeta.recoveryReviewRequired).toBeUndefined();
+  expect(legacyRefund).toHaveBeenCalledTimes(1);
+  expect(callGeminiJsonWithRetryMock).toHaveBeenCalledTimes(15);
+  expect((await runV2()).status).toBe(409); expect(callGeminiJsonWithRetryMock).toHaveBeenCalledTimes(15);
+});
+
+describe("판 2 개인 상담", () => {
+  const personal = () => { const input = testUtils.normalizeInput({ ...SAMPLE_BODY, consultationType: "personal" }); return testUtils.calculateSukuyo(input).then(calculation => ({ input, calculation })); };
+  test("짧아도 비지 않은 글은 받고, 첫 호출이 빈손이면 캐시 없이 한 번 더 부른다", async () => {
+    const { input, calculation } = await personal();
+    callGeminiTextMock.mockResolvedValueOnce({ ok: true, provider: "gemini", text: "" })
+      .mockResolvedValueOnce({ ok: true, provider: "gemini", model: "gemini-2.5-flash", text: "두 분의 별은 서로 다른 속도로 빛납니다." });
+    const result = await testUtils.createPersonalAnswer({}, input, calculation, { planVersion: 2 });
+    expect(result.content).toContain("서로 다른 속도");
+    expect(callGeminiTextMock).toHaveBeenCalledTimes(2);
+    expect(callGeminiTextMock.mock.calls[1][2].cache).toBeUndefined();
+  });
+  test("두 번 다 비면 LLM_FAILED로 던진다(호출부가 환불)", async () => {
+    const { input, calculation } = await personal();
+    callGeminiTextMock.mockResolvedValue({ ok: true, provider: "gemini", text: "   " });
+    await expect(testUtils.createPersonalAnswer({}, input, calculation, { planVersion: 2 })).rejects.toMatchObject({ code: "LLM_FAILED", status: 503 });
+    expect(callGeminiTextMock).toHaveBeenCalledTimes(2);
+  });
+  test("판 1은 같은 짧은 글을 받지 않는다(240자 하한 그대로)", async () => {
+    const { input, calculation } = await personal();
+    callGeminiTextMock.mockResolvedValue({ ok: true, provider: "gemini", text: "두 분의 별은 서로 다른 속도로 빛납니다." });
+    await expect(testUtils.createPersonalAnswer({}, input, calculation)).rejects.toBeTruthy();
+    expect(callGeminiTextMock).toHaveBeenCalledTimes(1);
+  });
 });
