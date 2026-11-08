@@ -30,7 +30,7 @@ public class LockScreenActivity extends MainActivity {
         ready = true;
 
         // 기본 시작 경로(/index.html) 대신 잠금화면 몰입 라우트를 로드한다(확장자 있는 실제 파일 경로).
-        openContent(getIntent());
+        openContent();
 
         IntentFilter filter = new IntentFilter(ACTION_DISMISS);
         ContextCompat.registerReceiver(this, dismissReceiver, filter, ContextCompat.RECEIVER_NOT_EXPORTED);
@@ -39,12 +39,10 @@ public class LockScreenActivity extends MainActivity {
         });
     }
 
-    private void openContent(Intent intent) {
+    private void openContent() {
         try {
             getBridge().getWebView().post(() -> {
-                try { String kind = intent.getStringExtra("contentKind");
-                    if (!"quote".equals(kind) && !"affirmation".equals(kind) && !"daily".equals(kind)) kind = "daily";
-                    getBridge().getWebView().loadUrl(LOCK_URL + "?content=" + kind); } catch (Exception ignored) {}
+                try { getBridge().getWebView().loadUrl(LOCK_URL); } catch (Exception ignored) {}
             });
         } catch (Exception ignored) {}
 
@@ -54,7 +52,7 @@ public class LockScreenActivity extends MainActivity {
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
         setIntent(intent);
-        if (ready) openContent(intent);
+        if (ready) openContent();
     }
 
     @Override

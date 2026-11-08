@@ -70,20 +70,25 @@ final class LockScreenNotify {
                     LockScreenPolicy.minutes(options.optString("quietEnd", "07:00"), 420))) return false;
             JSONObject snapshot = new JSONObject(prefs.getString(SNAPSHOT, "{}"));
             if (!snapshot.optString("locale").equals(options.optString("locale", "ko"))) return false;
-            String[] kinds = { "quote", "affirmation", "daily" };
-            String kind = null;
-            int start = test ? 0 : Math.floorMod(now.get(Calendar.DAY_OF_YEAR) + id - 2000, kinds.length);
-            for (int n = 0; n < kinds.length; n++) {
-                String candidate = kinds[(start + n) % kinds.length];
-                if ("daily".equals(candidate) && !"cat".equals(snapshot.optString("companionGroup", "cat"))) continue;
-                if (options.optBoolean(candidate + "Enabled", true)) { kind = candidate; break; }
+            String kind = options.optString("displayKind", "");
+            if (kind.isEmpty()) {
+                for (String candidate : new String[]{"quote", "daily", "affirmation"}) {
+                    if (!options.optBoolean(candidate + "Enabled", true)) continue;
+                    if (!kind.isEmpty()) { kind = "talisman"; break; }
+                    kind = candidate;
+                }
             }
-            if (kind == null) return false;
+            if (snapshot.has("displayKind") && (!kind.equals(snapshot.optString("displayKind"))
+                    || !options.optString("talismanId").equals(snapshot.optString("talismanId")))) return false;
+            if ("daily".equals(kind) && !"cat".equals(snapshot.optString("companionGroup", "cat"))) return false;
+            if ("flower".equals(kind) && !"yeoni".equals(snapshot.optString("companionGroup"))) return false;
+            boolean talisman = "talisman".equals(kind);
             JSONObject card = snapshot.optJSONObject(kind);
             if (card == null) return false;
             SimpleDateFormat date = new SimpleDateFormat("yyyy-MM-dd", Locale.ROOT);
+            date.setTimeZone(TimeZone.getTimeZone("Asia/Seoul"));
             String localDate = date.format(now.getTime());
-            String key = localDate + "|" + TimeZone.getDefault().getID() + "|" + snapshot.optString("locale") + "|" + snapshot.optInt("version", 2) + "|" + kind;
+            String key = localDate + "|" + options.optString("talismanId") + "|" + snapshot.optString("locale") + "|" + snapshot.optInt("version", 2) + "|" + kind;
             if (!test && key.equals(prefs.getString("posted_" + id, ""))) return false;
             String title = card.optString("title", "CODE DESTINY");
             String text = card.optString("text");
@@ -91,34 +96,31 @@ final class LockScreenNotify {
             if (!"daily".equals(kind) && pools != null) {
                 org.json.JSONArray pool = pools.optJSONArray(kind);
                 if (pool != null && pool.length() > 0) {
-                    int index = LockScreenPolicy.contentIndex(now.getTimeInMillis(), pool.length(), "quote".equals(kind) ? 5 : 7);
+                    int index = LockScreenPolicy.contentIndex(now.getTimeInMillis(), pool.length(), "quote".equals(kind) ? 5 : "flower".equals(kind) ? 13 : 7);
                     text = pool.optString(index, text);
                 }
             }
-            if (text.isEmpty()) return false;
+            if (text.isEmpty() && !talisman) return false;
             // Daily is always a generic invitation. It must never contain cached personal fortune.
             if ("daily".equals(kind)) text = snapshot.optString("privateSummary", "CODE DESTINY");
             Intent detail = new Intent(ctx, LockScreenActivity.class)
-                    .putExtra("contentKind", kind).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
+                    .addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
             PendingIntent tap = PendingIntent.getActivity(ctx, id, detail, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
             String safe = "daily".equals(kind) ? snapshot.optString("privateSummary", "CODE DESTINY") : text;
             android.graphics.Bitmap character = null;
-            String choice = options.optString("pigPoseKey", "yeongnyangi");
-            String asset = "yeoni".equals(choice) ? "assets/yeongnyangi/companion/yeoni.webp"
-                    : "pig1".equals(choice) ? "images/fortune-tea-house/flower-pig-single-a.webp"
-                    : "pig2".equals(choice) ? "images/fortune-tea-house/flower-pig-single-b.webp"
-                    : "assets/yeongnyangi/original/hero-480.webp";
-            try (java.io.InputStream stream = ctx.getAssets().open("public/" + asset)) {
+            String asset = snapshot.optJSONObject("talisman") == null ? "" : snapshot.getJSONObject("talisman").optString("image");
+            if (talisman && asset.startsWith("/") && !asset.contains("..")) try (java.io.InputStream stream = ctx.getAssets().open("public" + asset)) {
                 android.graphics.BitmapFactory.Options bitmapOptions = new android.graphics.BitmapFactory.Options();
                 bitmapOptions.inSampleSize = 2;
                 character = android.graphics.BitmapFactory.decodeStream(stream, null, bitmapOptions);
             } catch (java.io.IOException ignored) { /* Text remains usable when an asset is unavailable. */ }
+            if (talisman && character == null) return false;
             Notification publicVersion = new NotificationCompat.Builder(ctx, CHANNEL_ALARM)
                     .setSmallIcon(R.drawable.ic_stat_yeongnyangi).setLargeIcon(character).setContentTitle(title).setContentText(safe)
-                    .setStyle(new NotificationCompat.BigTextStyle().bigText(safe)).setContentIntent(tap).build();
+                    .setStyle(talisman ? new NotificationCompat.BigPictureStyle().bigPicture(character) : new NotificationCompat.BigTextStyle().bigText(safe)).setContentIntent(tap).build();
             Notification notification = new NotificationCompat.Builder(ctx, CHANNEL_ALARM)
                     .setSmallIcon(R.drawable.ic_stat_yeongnyangi).setLargeIcon(character).setContentTitle(title).setContentText(text)
-                    .setStyle(new NotificationCompat.BigTextStyle().bigText(text))
+                    .setStyle(talisman ? new NotificationCompat.BigPictureStyle().bigPicture(character) : new NotificationCompat.BigTextStyle().bigText(text))
                     .setVisibility(NotificationCompat.VISIBILITY_PRIVATE).setPublicVersion(publicVersion)
                     .setCategory(NotificationCompat.CATEGORY_REMINDER).setAutoCancel(true)
                     .setOnlyAlertOnce(true).setContentIntent(tap).build();

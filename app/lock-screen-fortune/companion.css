@@ -63,3 +63,9 @@
 .cd-talisman-picker ::selection{background:#e2c887;color:#21172e}
 @media(hover:hover){.cd-talisman-picker button:hover{outline:1px solid #e2c887;outline-offset:2px}}
 @media(max-width:359px){.cd-talisman-characters{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+.cd-lock-settings{margin-inline-start:auto}
+.cd-lock-selected-art{display:block;width:100%;height:calc(100dvh - 8rem);object-fit:contain}
+.cd-lock-selector{display:grid;gap:.75rem;padding:1rem;border:1px solid #63536a;border-radius:16px}
+.cd-lock-selector>div:not(.cd-talisman-backdrop){display:flex;flex-wrap:wrap;gap:.75rem}
+.cd-lock-selector label,.cd-lock-selector button{padding:.6rem}

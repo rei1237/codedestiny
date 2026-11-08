@@ -17,10 +17,10 @@ import {
 import {
   AFFIRMATION_CATEGORIES,
   getDailyLockScreenContent,
-  getDailyLockScreenSequence,
+  getHomeWidgetPools,
   getPublicLockScreenPools,
   getKstDateKey,
-  type LockScreenCard,
+
   type LockScreenContent,
 } from "@/lib/lock-screen-content";
 import {
@@ -161,7 +161,7 @@ const LOCK_SCREEN_COPY: Partial<Record<LoadingLocale, LockScreenCopy>> = {
     dismissedGreetingButton: "잠금화면 다시 보기",
     lockSettingsAriaLabel: "잠금화면 설정",
     nextSentenceAriaLabel: "다음 문장 보기",
-    todaysFlowerPrefix: "오늘의 꽃",
+    todaysFlowerPrefix: "오늘의 꽃말",
     tapNextHint: (current, total) => `화면을 탭하면 다음 이야기 (${current}/${total})`,
     slideToUnlockHint: "→ 오른쪽으로 밀어서 잠금 해제",
     slideToUnlockAriaLabel: "밀어서 잠금 해제",
@@ -706,7 +706,9 @@ function pillStyle(key: string, dark: boolean): CSSProperties {
 
 // ── 설정/상태 타입 ─────────────────────────────────────────────
 interface AlarmSlot { on: boolean; time: string; label: string }
+type DisplayKind = "talisman" | "quote" | "affirmation" | "daily" | "flower";
 interface LockPrefs {
+  displayKind: DisplayKind;
   enabled: boolean;
   fontColorKey: string;
   fontScale: number;
@@ -733,7 +735,7 @@ interface LockState { prefs: LockPrefs; stats: LockStats; read: ReadItem[] }
 function buildDefaultState(copy: LockScreenCopy): LockState {
   return {
     prefs: {
-      enabled: false,
+      enabled: false, displayKind: "talisman",
       quoteEnabled: true, dailyEnabled: true, affirmationEnabled: true,
       quietEnabled: true, quietStart: "22:00", quietEnd: "07:00", locale: getCurrentLoadingLocale(),
       fontColorKey: "white",
@@ -785,6 +787,10 @@ function mergeState(raw: unknown, copy: LockScreenCopy): LockState {
     // Existing night reminders remain active until their owner opts into quiet hours.
     base.prefs = { ...base.prefs, ...obj.prefs, quietEnabled: obj.prefs.quietEnabled ?? false };
     base.prefs.talismanId = migrateTalisman(obj.prefs.talismanId, obj.prefs.pigPoseKey);
+    const legacy = (["quote", "daily", "affirmation"] as const).filter(kind => base.prefs[`${kind}Enabled`]);
+    const kind = obj.prefs.displayKind ?? (legacy.length === 1 ? legacy[0] : "talisman");
+    const group = resolveTalisman(base.prefs.talismanId).character.group;
+    base.prefs.displayKind = kind === "quote" || kind === "affirmation" || (kind === "daily" && group === "cat") || (kind === "flower" && group === "yeoni") ? kind : "talisman";
     if (!Array.isArray(base.prefs.alarms)) base.prefs.alarms = buildDefaultState(copy).prefs.alarms;
     if (!Array.isArray(base.prefs.affirmationCats)) base.prefs.affirmationCats = [];
     if (!DAILY_SYSTEM_KEYS.includes(base.prefs.dailyFortuneSystem)) base.prefs.dailyFortuneSystem = "sukuyo";
@@ -853,8 +859,8 @@ async function pushAlarmsToNative(prefs: LockPrefs) {
 }
 
 // ── 페이저 카드: 오늘의 운세 + 변주 시퀀스(R6) ────────────────
-type PagerCard = { type: "daily" } | { type: "seq"; card: LockScreenCard };
-type Sheet = "talisman" | "none" | "settings" | "theme" | "alarms" | "readlist";
+
+type Sheet = "none" | "settings" | "theme" | "alarms" | "readlist";
 
 export default function LockScreenFortuneClient() {
   const copy = useLockScreenCopy();
@@ -865,11 +871,11 @@ export default function LockScreenFortuneClient() {
   const [runtimeOk, setRuntimeOk] = useState<boolean | null>(null);
   const [state, setState] = useState<LockState | null>(null);
   const [content, setContent] = useState<LockScreenContent | null>(null);
-  const [page, setPage] = useState(0);
+
   const [sheet, setSheet] = useState<Sheet>("none");
   const [announcement, setAnnouncement] = useState("");
   const readMarkedRef = useRef(false);
-  const entrySelected = useRef(false);
+
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -893,6 +899,9 @@ export default function LockScreenFortuneClient() {
         loaded.stats.todayKey = todayKey;
         loaded.stats.todayRead = 0;
       }
+      loaded.prefs.locale = getCurrentLoadingLocale();
+      await persistState(loaded);
+      if (!alive) return;
       setState(loaded);
       setContent(getDailyLockScreenContent(now, loaded.prefs.affirmationCats));
 
@@ -911,41 +920,15 @@ export default function LockScreenFortuneClient() {
   }, [affirmationCatsKey]);
 
   const companionGroup = resolveTalisman(state?.prefs.talismanId).character.group;
-  const showDaily = companionGroup === "cat" && Boolean(state?.prefs.dailyEnabled);
+  const showDaily = companionGroup === "cat" && state?.prefs.displayKind === "daily";
   const dailySystem = state?.prefs.dailyFortuneSystem ?? "sukuyo";
   const daily = useCompanionDaily(locale, content?.dateKey || getKstDateKey(new Date()), runtimeOk === true && showDaily);
   const serverDaily = daily.data?.systems?.[dailySystem];
   const dailyFortune: DailyFortune | null = serverDaily ? { ...serverDaily, system: dailySystem, emoji: "", label: serverDaily.label || extra.daily } : null;
   // These two legacy systems have no today-hub result. Preserve their original reading
   // separately, explicitly labelled; never present it as a shared server result.
-  const legacyReference = locale === "ko" && (dailySystem === "astro" || dailySystem === "ziwei")
+  const legacyReference = showDaily && locale === "ko" && (dailySystem === "astro" || dailySystem === "ziwei")
     ? getDailyFortune(dailySystem, { birthDate: daily.profile?.birthDate, birthTime: daily.profile?.birthTimeUnknown ? null : daily.profile?.birthTime }) : null;
-
-  const pagerCards: PagerCard[] = useMemo(() => {
-    if (!content) return [{ type: "daily" }];
-    const seq = getDailyLockScreenSequence(new Date(), state?.prefs.affirmationCats);
-    const out: PagerCard[] = showDaily ? [{ type: "daily" }] : [];
-    seq.forEach((card) => {
-      if (card.kind === "quote" && !state?.prefs.quoteEnabled) return;
-      if (card.kind !== "quote" && !state?.prefs.affirmationEnabled) return;
-      out.push({ type: "seq", card });
-    });
-    return out;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [content?.dateKey, affirmationCatsKey, state?.prefs.quoteEnabled, showDaily, state?.prefs.affirmationEnabled]);
-
-  useEffect(() => {
-    if (!state || !content || entrySelected.current || !pagerCards.length) return;
-    entrySelected.current = true;
-    const kind = new URLSearchParams(window.location.search).get("content");
-    const target = pagerCards.findIndex(c => kind === "daily" ? c.type === "daily" : c.type === "seq" && c.card.kind === kind);
-    let selected = target >= 0 ? target : 0;
-    try {
-      if (!kind && state.prefs.changeOnLaunch) selected = (Number(localStorage.getItem("cd_lockscreen_last_page") || "-1") + 1) % pagerCards.length;
-      localStorage.setItem("cd_lockscreen_last_page", String(selected));
-    } catch { /* Storage denial must not block the reading. */ }
-    setPage(selected);
-  }, [state, content, pagerCards]);
 
   useEffect(() => {
     if (!state || !content || readMarkedRef.current) return;
@@ -956,7 +939,7 @@ export default function LockScreenFortuneClient() {
       const next: LockState = {
         ...prev,
         stats: { ...prev.stats, todayRead: prev.stats.todayRead + 1, totalRead: prev.stats.totalRead + 1 },
-        read: already ? prev.read : [{ dateKey: content.dateKey, text: locale === "ko" ? content.affirmation : extra.ownAffirmation, at: Date.now() }, ...prev.read].slice(0, 200),
+        read: already || prev.prefs.displayKind !== "affirmation" ? prev.read : [{ dateKey: content.dateKey, text: locale === "ko" ? content.affirmation : extra.ownAffirmation, at: Date.now() }, ...prev.read].slice(0, 200),
       };
       void persistState(next);
       return next;
@@ -981,8 +964,11 @@ export default function LockScreenFortuneClient() {
   useEffect(() => {
     if (!state || !content) return;
     const snapshot = {
-      locale, dateKey: content.dateKey, version: 3, companionGroup,
-      publicPools: locale === "ko" ? getPublicLockScreenPools(state.prefs.affirmationCats) : {
+      locale, dateKey: content.dateKey, version: 4, companionGroup, displayKind: state.prefs.displayKind, talismanId: state.prefs.talismanId,
+      talisman: { title: charmCopy.title, text: "", image: resolveTalisman(state.prefs.talismanId).character.image },
+      flower: { title: copy.todaysFlowerPrefix, text: content.flower.name + " · " + content.flower.meaning },
+      publicPools: locale === "ko" ? { ...getPublicLockScreenPools(state.prefs.affirmationCats), flower: getHomeWidgetPools().flower } : {
+        flower: getHomeWidgetPools().flower,
         quote: [`${extra.ownLine} — ${extra.ownAuthor}`], affirmation: [extra.ownAffirmation],
       },
       quote: { title: extra.quote, text: locale === "ko" ? `${content.quote.text} — ${content.quote.author}` : `${extra.ownLine} — ${extra.ownAuthor}` },
@@ -991,7 +977,6 @@ export default function LockScreenFortuneClient() {
     };
     const plugin = nativeLock();
     void (async () => {
-      await persistState({ ...state, prefs: { ...state.prefs, locale } });
       await plugin?.setPublicContent?.({ value: JSON.stringify(snapshot) });
     })().catch(() => { /* Settings remain available offline. */ });
   }, [state, content, locale, extra, companionGroup]);
@@ -1001,10 +986,18 @@ export default function LockScreenFortuneClient() {
       if (document.visibilityState !== "visible") return;
       setContent(getDailyLockScreenContent(new Date(), state?.prefs.affirmationCats));
     };
-    document.addEventListener("visibilitychange", refresh);
+    let active = true;
+    const onResume = async () => {
+      if (document.visibilityState !== "visible" || !runtimeOk) return;
+      const saved = await loadState(copy);
+      if (!active) return;
+      setState(saved);
+      setContent(getDailyLockScreenContent(new Date(), saved.prefs.affirmationCats));
+    };
+    document.addEventListener("visibilitychange", onResume);
     const timer = window.setInterval(refresh, 60000);
-    return () => { document.removeEventListener("visibilitychange", refresh); window.clearInterval(timer); };
-  }, [affirmationCatsKey]);
+    return () => { active = false; document.removeEventListener("visibilitychange", onResume); window.clearInterval(timer); };
+  }, [affirmationCatsKey, copy, runtimeOk]);
 
   useEffect(() => {
     const win = window as unknown as { __cdLockBack?: () => boolean };
@@ -1042,12 +1035,12 @@ export default function LockScreenFortuneClient() {
   }
 
   const dateLabel = new Date().toLocaleDateString(INTL_LOCALE_BY_LOADING_LOCALE[locale], { month: "long", day: "numeric", weekday: "long", timeZone: "Asia/Seoul" });
-  const total = pagerCards.length;
-  const idx = total ? ((page % total) + total) % total : 0;
-  const current = pagerCards[idx];
-  const isQuote = current?.type === "seq" && current.card.kind === "quote";
-  const kindLabel = current?.type === "daily" ? extra.daily : isQuote ? extra.quote : extra.affirmation;
-  const visibleText = current?.type === "seq" ? (locale !== "ko" ? (isQuote ? extra.ownLine : extra.ownAffirmation) : current.card.quote?.text || current.card.affirmation || current.card.coreEnergy || current.card.greeting || current.card.knowledge?.text || "") : "";
+  const kind = state.prefs.displayKind;
+  const labels = { talisman: charmCopy.title, daily: extra.daily, flower: copy.todaysFlowerPrefix, quote: extra.quote, affirmation: extra.affirmation };
+  const kindLabel = labels[kind];
+  const visibleText = kind === "quote" ? (locale === "ko" ? content.quote.text : extra.ownLine)
+    : kind === "affirmation" ? (locale === "ko" ? content.affirmation : extra.ownAffirmation)
+    : kind === "flower" ? content.flower.name + " · " + content.flower.meaning : "";
   const saveText = () => {
     if (!visibleText) return;
     setAnnouncement(extra.savedDone);
@@ -1060,48 +1053,27 @@ export default function LockScreenFortuneClient() {
   return (
     <main className="cd-companion" style={{ background: bg.css, color: bg.dark ? (state.prefs.fontColorKey === "ink" ? "#fff9ef" : fontColor) : (state.prefs.fontColorKey === "gold" ? "#70551c" : "#241c35") }}>
       <header className="cd-companion-header">
-        <div><p>{dateLabel} · KST</p><h1>{charmCopy.title}</h1></div>
-        <button type="button" onClick={() => setSheet("settings")} aria-label={extra.settings}>☷</button>
+        {kind !== "talisman" && <div><p>{dateLabel} · KST</p><h1>{kindLabel}</h1></div>}
+        <button className="cd-lock-settings" type="button" onClick={() => setSheet("settings")} aria-label={extra.settings}>⚙</button>
       </header>
-      <div className="cd-talisman-change"><button type="button" onClick={() => setSheet("talisman")}>{charmCopy.change}</button></div>
-      <TalismanArt id={state.prefs.talismanId} locale={locale} />
-      {state.prefs.affirmationEnabled && <section className="cd-companion-affirmation" style={{fontSize: scale + "rem"}}><h2>{extra.affirmation}</h2><p>{locale === "ko" ? content.affirmation : extra.ownAffirmation}</p></section>}
-      <section id="companion-daily" className="cd-companion-daily" aria-label={extra.daily} style={{fontSize: scale + "rem"}}>
-        {showDaily && <h2>{extra.daily}</h2>}
-        {showDaily && <>
+      {kind === "talisman" && <img className="cd-lock-selected-art" src={resolveTalisman(state.prefs.talismanId).character.image} alt={kindLabel} />}
+      {showDaily && <section id="companion-daily" className="cd-companion-daily" aria-label={extra.daily} style={{fontSize: scale + "rem"}}>
+        <>
           <select aria-label={copy.dailyFortuneSystemHeading} value={dailySystem} onChange={e => updatePrefs({dailyFortuneSystem:e.target.value as DailyFortuneSystem})} style={{minHeight:48,maxWidth:"100%",padding:12,borderRadius:12,background:bg.dark?"#211a32":"#fff9ee",color:"inherit"}}>{DAILY_FORTUNE_SYSTEMS.map(system=><option key={system.key} value={system.key}>{systemLabel(locale, system.key, system.label)}</option>)}</select>
           {dailyFortune ? <DailyFortuneCard fortune={dailyFortune} scale={scale} subColor={subColor} panelBg={panelBg} dark={bg.dark} copy={copy} /> : !daily.failed && !daily.data ? <p role="status">{copy.dailyFortuneLoading}</p> : <><p>{extra.unavailable}</p><button type="button" onClick={daily.retry}>{extra.retry}</button></>}
           <p className="cd-companion-source">{daily.data?.date || content.dateKey} · KST</p>
           {legacyReference && <details><summary>{extra.source}</summary><DailyFortuneCard fortune={legacyReference} scale={scale} subColor={subColor} panelBg={panelBg} dark={bg.dark} copy={copy} /></details>}
           <a href={locale === "ko" ? "/today/" : `${locale === "zh-CN" ? "/zh" : locale === "zh-TW" ? "/zh-tw" : ["en","ja"].includes(locale) ? "/" + locale : "/en"}/today/`}>{extra.web}</a>
-        </>}
-      </section>
-      <nav className="cd-companion-tabs" aria-label={extra.kind}>
-        {([['daily', extra.daily], ['quote', extra.quote], ['affirmation', extra.affirmation]] as const).map(([kind, label]) => {
-          if (kind === "daily" && companionGroup !== "cat") return null;
-          const target = pagerCards.findIndex(c => kind === 'daily' ? c.type === 'daily' : c.type === 'seq' && c.card.kind === kind);
-          return <button type="button" key={kind} disabled={target < 0} aria-pressed={kindLabel === label} onClick={() => { setPage(target); if (kind === "daily") document.getElementById("companion-daily")?.scrollIntoView({block:"start"}); }}>{label}</button>;
-        })}
-      </nav>
-      <article className="cd-companion-reading" aria-live="polite" style={{ fontSize: `${scale}rem` }}>
-        {current?.type === "seq" ? <>
-
-          <p className="cd-companion-sentence">{visibleText}</p>
-          {isQuote && <p className="cd-companion-source">{locale === "ko" ? current.card.quote?.author : extra.ownAuthor}</p>}
-        </> : !total ? <p>{extra.noContent}</p> : null}
-
-      </article>
-      <div className="cd-companion-actions">
-        <button type="button" disabled={total < 2} onClick={() => setPage(p => p - 1)}>{extra.previous}</button>
-        <span>{total ? idx + 1 : 0} / {total}</span>
-        <button type="button" disabled={total < 2} onClick={() => setPage(p => p + 1)}>{extra.next}</button>
-      </div>
+        </>
+      </section>}
+      {visibleText && <article className="cd-companion-reading" style={{fontSize: scale + "rem"}}>
+        <p className="cd-companion-sentence">{visibleText}</p>
+        {kind === "quote" && <p className="cd-companion-source">{locale === "ko" ? content.quote.author : extra.ownAuthor}</p>}
+      </article>}
       {visibleText && <div className="cd-companion-actions"><button type="button" style={pillStyle(state.prefs.buttonStyleKey, bg.dark)} onClick={saveText}>{extra.saved}</button><button type="button" disabled={typeof navigator !== "undefined" && !navigator.share} onClick={() => { if (navigator.share) void navigator.share({ title: kindLabel, text: visibleText }).catch(() => {}); }}>{extra.shared}</button></div>}
       <p role="status" className="cd-companion-source">{announcement}</p>
-      {companionGroup === "yeoni" && locale === "ko" && <p className="cd-companion-source" style={{textAlign:"center",marginTop:20}}>{copy.todaysFlowerPrefix} · {content.flower.name} — {content.flower.meaning}</p>}
-      <a className="cd-companion-return" href="/yeongnyangi/">{extra.close}</a>
-      {sheet === "talisman" && <TalismanPicker id={state.prefs.talismanId} locale={locale} onClose={() => setSheet("none")} onApply={id => { updatePrefs({talismanId:id}); setSheet("none"); setAnnouncement(charmCopy.saved); }} />}
-      {sheet !== "none" && sheet !== "talisman" && <SettingsSheet sheet={sheet} setSheet={setSheet} state={state} updatePrefs={updatePrefs} updateAlarm={updateAlarm} copy={copy} />}
+      {kind !== "talisman" && <a className="cd-companion-return" href="/yeongnyangi/">{extra.close}</a>}
+      {sheet !== "none" && <SettingsSheet sheet={sheet} setSheet={setSheet} state={state} updatePrefs={updatePrefs} updateAlarm={updateAlarm} copy={copy} />}
     </main>
   );
 }
@@ -1128,6 +1100,35 @@ function DailyFortuneCard({
       )}
     </div>
   );
+}
+
+function ContentSelector({prefs, copy, onApply}: {prefs: LockPrefs; copy: LockScreenCopy; onApply: (patch: Partial<LockPrefs>) => void}) {
+  const locale = getCurrentLoadingLocale();
+  const ko = locale === "ko";
+  const extra = companionCopy(locale);
+  const charm = talismanCopy(locale);
+  const [kind, setKind] = useState(prefs.displayKind);
+  const [id, setId] = useState(prefs.talismanId);
+  const [picking, setPicking] = useState(false);
+  const group = resolveTalisman(id).character.group;
+  const labels = { talisman: charm.title, affirmation: extra.affirmation, daily: extra.daily, flower: copy.todaysFlowerPrefix, quote: extra.quote };
+  const kinds: DisplayKind[] = ["talisman", "affirmation"];
+  if (group === "cat") kinds.push("daily");
+  if (group === "yeoni") kinds.push("flower");
+  kinds.push("quote");
+  const preview = getDailyLockScreenContent(new Date(), prefs.affirmationCats);
+  return <fieldset className="cd-lock-selector"><legend>{ko ? "잠금 화면에 표시할 항목" : "Lock screen content"}</legend>
+    <p>{ko ? "현재 적용 중" : "Currently applied"} · {labels[prefs.displayKind]}</p>
+    <div>{kinds.map(value => <label key={value}><input type="radio" name="lock-display-kind" checked={kind === value} onChange={() => setKind(value)} /> {labels[value]}</label>)}</div>
+    <button type="button" onClick={() => setPicking(true)}>{charm.character} · {ko ? resolveTalisman(id).character.name : resolveTalisman(id).character.en}</button>
+    {picking && <TalismanPicker id={id} locale={locale} onClose={() => setPicking(false)} onApply={next => {
+      const nextGroup = resolveTalisman(next).character.group;
+      if ((kind === "daily" && nextGroup !== "cat") || (kind === "flower" && nextGroup !== "yeoni")) setKind("talisman");
+      setId(next); setPicking(false);
+    }} />}
+    {kind === "talisman" ? <TalismanArt id={id} locale={locale} /> : <p>{kind === "quote" ? (ko ? preview.quote.text : extra.ownLine) : kind === "affirmation" ? (ko ? preview.affirmation : extra.ownAffirmation) : kind === "flower" ? preview.flower.name + " · " + preview.flower.meaning : extra.privateSummary}</p>}
+    <button type="button" className="cd-talisman-apply" onClick={() => onApply({displayKind: kind, talismanId: id})}>{ko ? "잠금 화면에 적용" : "Apply to lock screen"}</button>
+  </fieldset>;
 }
 
 // ── 설정 시트 ─────────────────────────────────────────────────
@@ -1180,7 +1181,7 @@ function SettingsSheet({
             </Row>
             <p className="text-sm leading-relaxed">{extra.privacy}</p>
             {notificationsAllowed === false && <p role="status" className="text-sm">{extra.blocked}</p>}
-            {([['quoteEnabled', extra.quote], ['dailyEnabled', extra.daily], ['affirmationEnabled', extra.affirmation]] as const).map(([key, label]) => <Row key={key} label={label}><Toggle label={label} on={prefs[key]} onChange={v => updatePrefs({ [key]: v })} /></Row>)}
+            <ContentSelector prefs={prefs} copy={copy} onApply={patch => { updatePrefs(patch); setSheet("none"); }} />
             <Row label={extra.quiet}><Toggle label={extra.quiet} on={prefs.quietEnabled} onChange={v => updatePrefs({ quietEnabled: v })} /></Row>
             {prefs.quietEnabled && <div className="grid grid-cols-2 gap-3"><label>{extra.start}<input aria-label={extra.start} type="time" value={prefs.quietStart} onChange={e => updatePrefs({ quietStart: e.target.value })} className="block min-h-12 w-full rounded-lg bg-white/10 p-2" /></label><label>{extra.end}<input aria-label={extra.end} type="time" value={prefs.quietEnd} onChange={e => updatePrefs({ quietEnd: e.target.value })} className="block min-h-12 w-full rounded-lg bg-white/10 p-2" /></label></div>}
             <button type="button" className="min-h-12 rounded-xl bg-white/10 px-3" onClick={() => { void nativeLock()?.testNotification?.().then(r => setNotice(r.posted ? extra.posted : extra.blocked)).catch(() => setNotice(extra.blocked)); }}>{extra.test}</button>
@@ -1193,9 +1194,6 @@ function SettingsSheet({
             <MenuButton label={copy.alarmsMenuLabel} value={copy.alarmsMenuValue(prefs.alarms.filter((a) => a.on).length)} onClick={() => setSheet("alarms")} />
             <MenuButton label={copy.themeMenuLabel} value={copy.themeMenuValue} onClick={() => setSheet("theme")} />
             <MenuButton label={copy.readlistMenuLabel} value={copy.readlistMenuValue(read.length)} onClick={() => setSheet("readlist")} />
-            <Row label={copy.changeOnLaunchLabel} desc={copy.changeOnLaunchDesc}>
-              <Toggle label={copy.changeOnLaunchLabel} on={prefs.changeOnLaunch} onChange={(v) => updatePrefs({ changeOnLaunch: v })} />
-            </Row>
             <p className="mt-1 text-center text-[0.7rem] text-slate-400">{copy.footerBrandLine}</p>
           </div>
         ) : null}
@@ -1261,7 +1259,6 @@ function SettingsSheet({
                 })}
               </div>
             </div>
-            <MenuButton label={talismanCopy(getCurrentLoadingLocale()).change} value={talismanCopy(getCurrentLoadingLocale()).preview} onClick={() => setSheet("talisman")} />
             <div>
               <p className="mb-2 text-sm font-bold text-slate-300">{copy.buttonTextureHeading}</p>
               <div className="grid grid-cols-4 gap-2.5">
