@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-09
-next: 4-④ pre-push 검사 후 main push·CI 확인·승인된 운영 배포·운영 확인
+next: 운영 릴리스42505123236 완료 확인 후 운영 EP.01/42/52·북마크·언어 검증, 완료 기록과 정리
 ---
 
 # VN 스토리 개선 (oh-story 활용) 인수인계
@@ -487,3 +487,11 @@ next: 4-④ pre-push 검사 후 main push·CI 확인·승인된 운영 배포·�
 - novel:build, verify:story-sync, sitemap:generate, verify-novel-locale-completeness, verify:novel-runtime, verify:novel-player-start, locale/UI 단위15개 모두 통과. verify:release도 종료0.
 - 최종 main기준2faaa262b(잠금화면+SEO업데이트)로37개 커밋 rebase 완료. 생성원장1파일 충돌만 승인대로 최신 main값+생성기로 해결. 소스충돌0. 관련 없는 main변경 보존. 다시 전체검사를 반복하지 않고 통합main CI와pre-push로 전달 확인.
 - 생성물 수동편집0. 결제·이용권/월정석/단건 정책, 인증,API,DB,라우팅 로직에 이 작업이 바꾼 파일0. 남은11개 본문/fx경고는 앞4-① 결과대로 보존.
+
+## 4-④ 운영 승격 진행 (2026-11-09)
+- pre-push종료0: 미러 생성 차이0, sitemap1062URL드리프트0, llms/SEOentity/repo-hygiene통과.
+- 배포 커밋72fed768472e292055df9c29a5bec27ee9e0e934를 origin/main에push완료. 다른세션로컬main/dirty checkout은 변경0. push직전원격2faaa262b의CI는진행중이었고red아님.
+- 승인된 gh workflow run "Release Cloudflare Pages and Worker" --ref main -f mode=production 실행. 운영런 https://github.com/rei1237/codedestiny/actions/runs/42505123236 . gh run watch --exit-status --interval30 실행중(session15219), 로그 .tmp/vn-finish/production-run.log. 스테이징은조회/검증하지않음.
+- 릴리스 환경키/시크릿/checkout무결성/사이트맵·로케일 미러통과. Pages·Worker배포단계진행중. 완료 전 성공/운영확인으로 기록하지 말 것. 실패/롤백필요면사용자규칙대로멈추고보고.
+- 운영 확인용 ego스크립트는 원래 VN워크트리 .tmp/vn-finish/browser-04.mjs에 준비됨(아직실행전). 스페이스63/p1을재사용. 현재운영원고해시가1822d08b...인지 먼저 검증한 뒤EP.01을 UI로열어snapshot. 이후EP.42/52·저장/재개·4언어전환, 기존두localStorage키복원, task.finish({keep:[]})필수.
+- GitHubpush의기존의존성취약점알림76건(critical1/high36/moderate31/low8)을사용자에게알림. package/lock변경0, 이번내용수정과무관한별도추적영역.
