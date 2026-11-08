@@ -1,0 +1,7695 @@
+{
+  "date": "2026-11-09",
+  "baseline": "cc1ae9598",
+  "baselineSourceHash": "34490a1621a056bc7c4d9c4f625bd71b787a7711fc83a5790846b911dc731be0",
+  "sourceHash": "1822d08b1cf0edd0475c92c0afa22fe040cec6e8e632f2e40817de52b7dfdd2e",
+  "totalBeats": 7928,
+  "changed": 1302,
+  "added": 209,
+  "removed": 125,
+  "changes": [
+    {
+      "id": "prologue:2",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "prologue:4",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "prologue:5",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "prologue:7",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "prologue:10",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "prologue:11",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "prologue:12",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "prologue:14",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "prologue:15",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "prologue:16",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "prologue:17",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "prologue:18",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "prologue:21",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "prologue:22",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "prologue:23",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "prologue:24",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "prologue:25",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "prologue:26",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "prologue:27",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "prologue:28",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "prologue:29",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "prologue:30",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "prologue:31",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "prologue:32",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "prologue:33",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "prologue:36",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "prologue:38",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "prologue:41",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "prologue:44",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "prologue:45",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "prologue:46",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "prologue:47",
+      "kind": "changed",
+      "speaker": "sys"
+    },
+    {
+      "id": "prologue:52",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "prologue:complaint",
+      "kind": "added",
+      "speaker": "sys"
+    },
+    {
+      "id": "prologue:complaint-2",
+      "kind": "added",
+      "speaker": "yeon"
+    },
+    {
+      "id": "prologue:54",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "prologue:56",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "prologue:62",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "prologue:64",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "prologue:65",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "prologue:67",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "prologue:68",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "prologue:70",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "prologue:72",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "prologue:74",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "prologue:75",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-01:1",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-01:3",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-01:4",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-01:5",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-01:6",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-01:7",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-01:11",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-01:12",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-01:13",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-01:14",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-01:15",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-01:16",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-01:17",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-01:18",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-01:19",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-01:20",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-01:21",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-01:22",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-01:24",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-01:30",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-01:31",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-01:32",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-01:33",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-01:35",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-01:39",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-01:42",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-01:43",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-01:45",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-01:49",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-01:52",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-01:58",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-01:59",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-01:60",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-01:61",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-01:67",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-01:69",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-01:71",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-01:74",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-01:77",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-01:78",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-01:79",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-01:81",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-01:83",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-01:85",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-01:87",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-01:88",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-01:89",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-01:90",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-01:91",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-01:92",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-01:94",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-01:95",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-01:96",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-01:97",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-01:99",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-01:100",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-01:101",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-01:102",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-01:103",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-01:109",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-01:111",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-01:112",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-01:113",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-01:115",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-01:119",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-01:120",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-01:121",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-01:122",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-01:126",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-01:127",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-01:128",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-01:129",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-01:131",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-01:134",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-01:135",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-01:136",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-01:137",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-01:138",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-01:139",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-01:140",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-01:142",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-01:143",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-01:149",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-01:151",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-01:153",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-01:154",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-01:157",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-01:hide-1",
+      "kind": "added",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-01:hide-2",
+      "kind": "added",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-01:hide-3",
+      "kind": "added",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-01:review-1",
+      "kind": "added",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-01:review-2",
+      "kind": "added",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-01:review-3",
+      "kind": "added",
+      "speaker": "sys"
+    },
+    {
+      "id": "ep-01:review-4",
+      "kind": "added",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-01:review-5",
+      "kind": "added",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-01:review-6",
+      "kind": "added",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-01:cost-1",
+      "kind": "added",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-01:cost-2",
+      "kind": "added",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-01:cost-3",
+      "kind": "added",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-01:cost-4",
+      "kind": "added",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-01:cost-5",
+      "kind": "added",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-01:159",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-01:160",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-01:this-time",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-01:slip",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-01:161",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-01:162",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-01:163",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-01:164",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-01:165",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-01:166",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-01:167",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-01:168",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-01:169",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-01:170",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-01:171",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-01:172",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-01a:2",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-01a:4",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-01a:5",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-01a:6",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-01a:6b",
+      "kind": "added",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-01a:7",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-01a:8",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-01a:8b",
+      "kind": "added",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-01a:10",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-01a:10b",
+      "kind": "added",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-01a:11",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-01a:11b",
+      "kind": "added",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-01a:13",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-01a:13b",
+      "kind": "added",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-01a:15",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-01a:15b",
+      "kind": "added",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-01a:16",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-01a:16b",
+      "kind": "added",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-01a:17",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-01a:petal-1",
+      "kind": "added",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-01a:petal-2",
+      "kind": "added",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-01a:18",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-01a:18b",
+      "kind": "added",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-01a:19",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-01a:20",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-01a:20b",
+      "kind": "added",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-01a:21",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-01a:23",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-01a:23b",
+      "kind": "added",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-01a:24",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-01a:24b",
+      "kind": "added",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-01a:25",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-01a:26",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-01a:26b",
+      "kind": "added",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-01a:27",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-01a:28",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-01a:28b",
+      "kind": "added",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-01a:30",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-01a:31",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-01a:32",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-01a:33",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-01a:34",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-01a:35",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-01a:35b",
+      "kind": "added",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-01a:37",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-01a:37b",
+      "kind": "added",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-01a:38",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-02:1",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-02:2",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-02:3",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-02:search-1",
+      "kind": "added",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-02:search-2",
+      "kind": "added",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-02:search-3",
+      "kind": "added",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-02:search-4",
+      "kind": "added",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-02:bigeop-1",
+      "kind": "added",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-02:bigeop-2",
+      "kind": "added",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-02:bigeop-3",
+      "kind": "added",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-02:bigeop-4",
+      "kind": "added",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-02:bigeop-5",
+      "kind": "added",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-02:7",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-02:8",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-02:10",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-02:11",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-02:12",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-02:15",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-02:17",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-02:20",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-02:21",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-02:24",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-02:25",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-02:26",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-02:27",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-02:28",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-02:29",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-02:32",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-02:34",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-02:35",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-02:36",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-02:40",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-02:44",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-02:45",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-02:46",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-02:47",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-02:49",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-02:50",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-02:51",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-02:52",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-02:53",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-02:55",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-02:57",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-02:58",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-02:59",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-02:60",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-02:65",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-02:69",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-02:71",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-02:72",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-02:73",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-02:74",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-02:75",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-02:76",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-02:77",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-02:82",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-02:83",
+      "kind": "changed",
+      "speaker": "geo"
+    },
+    {
+      "id": "ep-02:85",
+      "kind": "changed",
+      "speaker": "geo"
+    },
+    {
+      "id": "ep-02:91",
+      "kind": "changed",
+      "speaker": "geo"
+    },
+    {
+      "id": "ep-02:92",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-02:93",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-02:94",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-02:97",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-02:103",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-02:107",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-02:108",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-02:109",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-02:110",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-02:111",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-02:113",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-02:114",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-02:117",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-02:120",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-02:122",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-02:126",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-02:127",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-02:128",
+      "kind": "changed",
+      "speaker": "geo"
+    },
+    {
+      "id": "ep-02:130",
+      "kind": "changed",
+      "speaker": "geo"
+    },
+    {
+      "id": "ep-02:131",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-02:petal-1",
+      "kind": "added",
+      "speaker": "geo"
+    },
+    {
+      "id": "ep-02:petal-2",
+      "kind": "added",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-02:132",
+      "kind": "changed",
+      "speaker": "geo"
+    },
+    {
+      "id": "ep-02:135",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-02:136",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-02:139",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-02:140",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-02:141",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-02:143",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-02:145",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-02:147",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-02:149",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-02:150",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-02:152",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-02:154",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-02:156",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-02:157",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-02:158",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-02:159",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-02:160",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-02:161",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-02:163",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-02:164",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-02:166",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-02:168",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-02:169",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-02:173",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-02:174",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-02:177",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-02:183",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-02:184",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-02:185",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-02:186",
+      "kind": "changed",
+      "speaker": "geo"
+    },
+    {
+      "id": "ep-02:187",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-02:191",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-02:193",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-02:194",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-02:197",
+      "kind": "changed",
+      "speaker": "geo"
+    },
+    {
+      "id": "ep-02:198",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-02:200",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-02:202",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-02:203",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-02:204",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-02:205",
+      "kind": "changed",
+      "speaker": "sys"
+    },
+    {
+      "id": "ep-03:2",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-03:3",
+      "kind": "changed",
+      "speaker": "geo"
+    },
+    {
+      "id": "ep-03:4",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-03:5",
+      "kind": "changed",
+      "speaker": "geo"
+    },
+    {
+      "id": "ep-03:open-1",
+      "kind": "added",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-03:open-2",
+      "kind": "added",
+      "speaker": "geo"
+    },
+    {
+      "id": "ep-03:7",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-03:10",
+      "kind": "changed",
+      "speaker": "sys"
+    },
+    {
+      "id": "ep-03:12",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-03:19",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-05:1",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-05:sync-1",
+      "kind": "added",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-05:sync-2",
+      "kind": "added",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-05:sync-3",
+      "kind": "added",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-05:sync-4",
+      "kind": "added",
+      "speaker": "geo"
+    },
+    {
+      "id": "ep-05:sync-5",
+      "kind": "added",
+      "speaker": "sys"
+    },
+    {
+      "id": "ep-05:sync-6",
+      "kind": "added",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-05:sync-7",
+      "kind": "added",
+      "speaker": "geo"
+    },
+    {
+      "id": "ep-05:sync-8",
+      "kind": "added",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-05:sync-9",
+      "kind": "added",
+      "speaker": "geo"
+    },
+    {
+      "id": "ep-05:sync-10",
+      "kind": "added",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-05:2",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-05:5",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-05:9",
+      "kind": "changed",
+      "speaker": "sys"
+    },
+    {
+      "id": "ep-05:12",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-05:13",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-05:16",
+      "kind": "changed",
+      "speaker": "geo"
+    },
+    {
+      "id": "ep-05:18",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-05:19",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-05:21",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-05:24",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-05:25",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-05:27",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-05:28",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-05:29",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-05:32",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-05:34",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-05:sync-11",
+      "kind": "added",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-05:36",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-05:38",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-05:40",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-05:42",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-05:45",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-05:47",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-05:48",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-05:50",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-05:52",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-05:55",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-05:57",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-05:60",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-05:63",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-05:69",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-05:73",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-05:75",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-05:76",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-05:78",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-05:83",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-05:85",
+      "kind": "changed",
+      "speaker": "geo"
+    },
+    {
+      "id": "ep-05:86",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-05:88",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-05:sync-12",
+      "kind": "added",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-05:95",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-05:97",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-05:98",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-05:99",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-05:100",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-05:101",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-05:102",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-05:103",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-05:107",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-05:116",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-05:117",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-05:120",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-05:126",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-05:129",
+      "kind": "changed",
+      "speaker": "geo"
+    },
+    {
+      "id": "ep-05:130",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-05:131",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-05:132",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-05:134",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-05:139",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-05:141",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-05:146",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-05:147",
+      "kind": "changed",
+      "speaker": "sys"
+    },
+    {
+      "id": "ep-05:148",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-05:149",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-05:sync-13",
+      "kind": "added",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-05:sync-14",
+      "kind": "added",
+      "speaker": "geo"
+    },
+    {
+      "id": "ep-05:sync-15",
+      "kind": "added",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-05:sync-16",
+      "kind": "added",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-05:sync-17",
+      "kind": "added",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-05:150",
+      "kind": "changed",
+      "speaker": "geo"
+    },
+    {
+      "id": "ep-05:151",
+      "kind": "changed",
+      "speaker": "geo"
+    },
+    {
+      "id": "ep-05:152",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-05:153",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-05:155",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-05:156",
+      "kind": "changed",
+      "speaker": "geo"
+    },
+    {
+      "id": "ep-05:166",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-05:167",
+      "kind": "changed",
+      "speaker": "sys"
+    },
+    {
+      "id": "ep-05:177",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-05:164",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-05:165",
+      "kind": "changed",
+      "speaker": "geo"
+    },
+    {
+      "id": "ep-05:178",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-05:179",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-06:1",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-06:2",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-06:10",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-06:11",
+      "kind": "changed",
+      "speaker": "sys"
+    },
+    {
+      "id": "ep-06:22",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-06:23",
+      "kind": "changed",
+      "speaker": "geo"
+    },
+    {
+      "id": "ep-06:24",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-06:26",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-06:31",
+      "kind": "changed",
+      "speaker": "geo"
+    },
+    {
+      "id": "ep-06:40",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-06:45",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-06:49",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-06:50",
+      "kind": "changed",
+      "speaker": "geo"
+    },
+    {
+      "id": "ep-06:57",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-06:60",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-06:71",
+      "kind": "changed",
+      "speaker": "geo"
+    },
+    {
+      "id": "ep-06:72",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-06:73",
+      "kind": "changed",
+      "speaker": "sys"
+    },
+    {
+      "id": "ep-06:74",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-06:75",
+      "kind": "changed",
+      "speaker": "geo"
+    },
+    {
+      "id": "ep-06:76",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-06:77",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-06:78",
+      "kind": "changed",
+      "speaker": "geo"
+    },
+    {
+      "id": "ep-06:79",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-06:80",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-06:81",
+      "kind": "changed",
+      "speaker": "geo"
+    },
+    {
+      "id": "ep-06:82",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-06:83",
+      "kind": "changed",
+      "speaker": "geo"
+    },
+    {
+      "id": "ep-06:84",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-06:85",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-06:86",
+      "kind": "changed",
+      "speaker": "geo"
+    },
+    {
+      "id": "ep-06:87",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-06:88",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-06:89",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-06:90",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-06:98",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-06:99",
+      "kind": "changed",
+      "speaker": "geo"
+    },
+    {
+      "id": "ep-06:100",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-06:101",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-06:102",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-06:103",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-06:106",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-06:91",
+      "kind": "changed",
+      "speaker": "sys"
+    },
+    {
+      "id": "ep-06:109",
+      "kind": "changed",
+      "speaker": "geo"
+    },
+    {
+      "id": "ep-06:111",
+      "kind": "changed",
+      "speaker": "geo"
+    },
+    {
+      "id": "ep-06:92",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-06:115",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-06:117",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-06:93",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-06:94",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-06:95",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-06:96",
+      "kind": "changed",
+      "speaker": "sys"
+    },
+    {
+      "id": "ep-06:97",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-06:118",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-06:119",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-06:120",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-06:127",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-06:134",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-06:135",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-06:137",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-06:138",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-06:139",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-06:141",
+      "kind": "changed",
+      "speaker": "sys"
+    },
+    {
+      "id": "ep-06:146",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-06:144",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-06:145",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-06:150",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-06:157",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-06:159",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-06:164",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-06:181",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-06:204",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-06a:1",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-06a:2",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-06a:2b",
+      "kind": "added",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-06a:3",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-06a:4",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-06a:5",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-06a:6",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-06a:6b",
+      "kind": "added",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-06a:8",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-06a:9",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-06a:9b",
+      "kind": "added",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-06a:petal-1",
+      "kind": "added",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-06a:petal-2",
+      "kind": "added",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-06a:11",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-06a:11b",
+      "kind": "added",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-06a:13",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-06a:13b",
+      "kind": "added",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-06a:14",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-06a:14b",
+      "kind": "added",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-06a:16",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-06a:16b",
+      "kind": "added",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-06a:17",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-06a:17b",
+      "kind": "added",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-06a:19",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-06a:19b",
+      "kind": "added",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-06a:20",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-06a:21",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-06a:23",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-06a:24",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-06a:25",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-06a:27",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-06a:27b",
+      "kind": "added",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-06a:28",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-06a:28b",
+      "kind": "added",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-06a:30",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-06a:30b",
+      "kind": "added",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-06a:31",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-06a:32",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-06a:34",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-06a:34b",
+      "kind": "added",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-08:59",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-08:83",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-08:86",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-08:88",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-08:90",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-08:93",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-08:94",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-08:99",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-08:103",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-08:105",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-08:106",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-08:108",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-10:75",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-10:97",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-10:99",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-10:101",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-10:103",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-10:105",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-10:108",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-10:110",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-10:115",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-10:117",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-10:120",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-10:121",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-12:clock-1",
+      "kind": "added",
+      "speaker": "sys"
+    },
+    {
+      "id": "ep-12:clock-2",
+      "kind": "added",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-12:2",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-12:6",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-12:8",
+      "kind": "changed",
+      "speaker": "moka"
+    },
+    {
+      "id": "ep-12:20",
+      "kind": "changed",
+      "speaker": "moka"
+    },
+    {
+      "id": "ep-12:21",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-12:26",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-12:30",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-12:41",
+      "kind": "changed",
+      "speaker": "moka"
+    },
+    {
+      "id": "ep-12:49",
+      "kind": "changed",
+      "speaker": "moka"
+    },
+    {
+      "id": "ep-12:52",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-12:56",
+      "kind": "changed",
+      "speaker": "crow"
+    },
+    {
+      "id": "ep-12:57",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-12:58",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-12:knot-1",
+      "kind": "added",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-12:knot-2",
+      "kind": "added",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-12:knot-3",
+      "kind": "added",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-12:knot-4",
+      "kind": "added",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-12:knot-5",
+      "kind": "added",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-12:knot-6",
+      "kind": "added",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-12:59",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-12:knot-7",
+      "kind": "added",
+      "speaker": "sys"
+    },
+    {
+      "id": "ep-12:knot-8",
+      "kind": "added",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-12:60",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-12:61",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-12:62",
+      "kind": "changed",
+      "speaker": "moka"
+    },
+    {
+      "id": "ep-12:63",
+      "kind": "changed",
+      "speaker": "crow"
+    },
+    {
+      "id": "ep-12:64",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-12:65",
+      "kind": "changed",
+      "speaker": "crow"
+    },
+    {
+      "id": "ep-12:knot-9",
+      "kind": "added",
+      "speaker": "crow"
+    },
+    {
+      "id": "ep-12:knot-10",
+      "kind": "added",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-12:66",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-12:67",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-12:68",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-12:69",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-12:77",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-12:79",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-12:83",
+      "kind": "changed",
+      "speaker": "heuk"
+    },
+    {
+      "id": "ep-12:84",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-12:94",
+      "kind": "changed",
+      "speaker": "moka"
+    },
+    {
+      "id": "ep-12:97",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-12:100",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-12:106",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-12:112",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-12:113",
+      "kind": "changed",
+      "speaker": "moka"
+    },
+    {
+      "id": "ep-12:131",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-12:132",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-12:137",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-12:138",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-12:139",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-12:140",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-12a:5",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-12a:7",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-12a:8",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-12a:9",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-12a:12",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-12a:37",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-12a:38",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-12a:44",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-12a:45",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-12a:48",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-12a:49",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-12a:50",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-12a:55",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-12a:57",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-12a:60",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-12a:65",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-12a:69",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-12a:70",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-12a:71",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-12a:75",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-12a:76",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-14a:57",
+      "kind": "changed",
+      "speaker": "yun"
+    },
+    {
+      "id": "ep-14a:58",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-14a:60",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-15:56",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-15:74",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-15:76",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-15:79",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-15:81",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-15:84",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-15:87",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-15:94",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-15:100",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-15:102",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-15:108",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-16:16",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-16:39",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-16:41",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-16:43",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-16:49",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-16:67",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-16:72",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-16:78",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-17:36",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-17:r1-yun",
+      "kind": "added",
+      "speaker": "yun"
+    },
+    {
+      "id": "ep-17:51",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-17:102",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-18:7",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-18:9",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-18:38",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-18:40",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-18:43",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-18:65",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-18:67",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-19:28",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-19:90",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-19:94",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-19:96",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-19:98",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-20:34",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-20:36",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-20:51",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-20:53",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-20:55",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-20:59",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-20:61",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-20:63",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-20:68",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-20:80",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-20:82",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-21:2",
+      "kind": "changed",
+      "speaker": "moka"
+    },
+    {
+      "id": "ep-21:3",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-21:8",
+      "kind": "changed",
+      "speaker": "yun"
+    },
+    {
+      "id": "ep-21:21",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-21:22",
+      "kind": "changed",
+      "speaker": "yun"
+    },
+    {
+      "id": "ep-21:23",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-21:24",
+      "kind": "changed",
+      "speaker": "yun"
+    },
+    {
+      "id": "ep-21:25",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-21:27",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-21:28",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-21:30",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-21:34",
+      "kind": "changed",
+      "speaker": "yun"
+    },
+    {
+      "id": "ep-21:35",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-21:36",
+      "kind": "changed",
+      "speaker": "yun"
+    },
+    {
+      "id": "ep-21:37",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-21:39",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-21:40",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-21:41",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-21:43",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-21:48",
+      "kind": "changed",
+      "speaker": "yun"
+    },
+    {
+      "id": "ep-21:51",
+      "kind": "changed",
+      "speaker": "moka"
+    },
+    {
+      "id": "ep-21:52",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-21:53",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-21:55",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-21:56",
+      "kind": "changed",
+      "speaker": "yun"
+    },
+    {
+      "id": "ep-21:fall-1",
+      "kind": "added",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-21:57",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-21:fall-2",
+      "kind": "added",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-21:fall-3",
+      "kind": "added",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-21:58",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-21:fall-4",
+      "kind": "added",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-21:59",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-21:60",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-21:61",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-21:62",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-21:63",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-21:64",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-21:65",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-21:angry-1",
+      "kind": "added",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-21:angry-2",
+      "kind": "added",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-21:angry-3",
+      "kind": "added",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-21:angry-4",
+      "kind": "added",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-21:angry-5",
+      "kind": "added",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-21:angry-6",
+      "kind": "added",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-21:66",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-21:67",
+      "kind": "changed",
+      "speaker": "moka"
+    },
+    {
+      "id": "ep-21:68",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-21:69",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-21:70",
+      "kind": "changed",
+      "speaker": "yun"
+    },
+    {
+      "id": "ep-21:71",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-21:72",
+      "kind": "changed",
+      "speaker": "yun"
+    },
+    {
+      "id": "ep-21:73",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-21:74",
+      "kind": "changed",
+      "speaker": "moka"
+    },
+    {
+      "id": "ep-21:75",
+      "kind": "changed",
+      "speaker": "yun"
+    },
+    {
+      "id": "ep-21:76",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-21:77",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-21:81",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-21:82",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-21:86",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-21:87",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-21:88",
+      "kind": "changed",
+      "speaker": "moka"
+    },
+    {
+      "id": "ep-21:89",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-21:91",
+      "kind": "changed",
+      "speaker": "moka"
+    },
+    {
+      "id": "ep-21:95",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-21:96",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-21:97",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-21:104",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-21:105",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-21:108",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-21:109",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-21:110",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-21:111",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-21:112",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-21:113",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-21:115",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-21:116",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-21:117",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-21:118",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-21:119",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-21a:13",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-21a:15",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-21a:17",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-21a:18",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-21a:19",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-21a:20",
+      "kind": "changed",
+      "speaker": "sys"
+    },
+    {
+      "id": "ep-21a:21",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-21a:22",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-21a:23",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-21a:24",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-21a:26",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-21a:27",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-21a:30",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-21a:31",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-21a:32",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-21a:34",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-21a:36",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-21a:39",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-21a:41",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-21a:43",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-21a:45",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-21a:47",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-21a:50",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-21a:51",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-21a:52",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-21a:54",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-21a:55",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-21a:56",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-21a:57",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-21a:58",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-21a:59",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-21a:60",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-21a:61",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-21a:62",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-21a:63",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-21a:64",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-21a:65",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-21a:66",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-21a:69",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-21a:71",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-22:1",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-22:6",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-22:8",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-22:79",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-23:96",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-24:2",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-24:6",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-24:9",
+      "kind": "changed",
+      "speaker": "moka"
+    },
+    {
+      "id": "ep-24:10",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-24:12",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-24:13",
+      "kind": "changed",
+      "speaker": "yun"
+    },
+    {
+      "id": "ep-24:14",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-24:15",
+      "kind": "changed",
+      "speaker": "moka"
+    },
+    {
+      "id": "ep-24:16",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-24:17",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-24:18",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-24:19",
+      "kind": "changed",
+      "speaker": "yun"
+    },
+    {
+      "id": "ep-24:20",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-24:21",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-24:22",
+      "kind": "changed",
+      "speaker": "yun"
+    },
+    {
+      "id": "ep-24:24",
+      "kind": "changed",
+      "speaker": "yun"
+    },
+    {
+      "id": "ep-24:25",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-24:26",
+      "kind": "changed",
+      "speaker": "yun"
+    },
+    {
+      "id": "ep-24:27",
+      "kind": "changed",
+      "speaker": "sys"
+    },
+    {
+      "id": "ep-24:28",
+      "kind": "changed",
+      "speaker": "yun"
+    },
+    {
+      "id": "ep-24:29",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-24:30",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-24:31",
+      "kind": "changed",
+      "speaker": "yun"
+    },
+    {
+      "id": "ep-24:32",
+      "kind": "changed",
+      "speaker": "moka"
+    },
+    {
+      "id": "ep-24:33",
+      "kind": "changed",
+      "speaker": "yun"
+    },
+    {
+      "id": "ep-24:34",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-24:35",
+      "kind": "changed",
+      "speaker": "moka"
+    },
+    {
+      "id": "ep-24:36",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-24:37",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-24:38",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-24:39",
+      "kind": "changed",
+      "speaker": "moka"
+    },
+    {
+      "id": "ep-24:40",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-24:41",
+      "kind": "changed",
+      "speaker": "moka"
+    },
+    {
+      "id": "ep-24:42",
+      "kind": "changed",
+      "speaker": "yun"
+    },
+    {
+      "id": "ep-24:43",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-24:47",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-24:48",
+      "kind": "changed",
+      "speaker": "yun"
+    },
+    {
+      "id": "ep-24:50",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-24:choose-1",
+      "kind": "added",
+      "speaker": "yun"
+    },
+    {
+      "id": "ep-24:choose-2",
+      "kind": "added",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-24:55",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-24:57",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-24:58",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-24:59",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-24:60",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-24:stop-1",
+      "kind": "added",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-24:stop-2",
+      "kind": "added",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-24:stop-3",
+      "kind": "added",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-24:61",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-24:62",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-24:63",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-24:64",
+      "kind": "changed",
+      "speaker": "yun"
+    },
+    {
+      "id": "ep-24:67",
+      "kind": "changed",
+      "speaker": "yun"
+    },
+    {
+      "id": "ep-24:68",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-24:69",
+      "kind": "changed",
+      "speaker": "yun"
+    },
+    {
+      "id": "ep-24:72",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-24:73",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-24:74",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-24:75",
+      "kind": "changed",
+      "speaker": "yun"
+    },
+    {
+      "id": "ep-24:76",
+      "kind": "changed",
+      "speaker": "moka"
+    },
+    {
+      "id": "ep-24:78",
+      "kind": "changed",
+      "speaker": "yun"
+    },
+    {
+      "id": "ep-24:79",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-24:83",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-24:84",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-24:85",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-24:86",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-24:89",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-24:92",
+      "kind": "changed",
+      "speaker": "heuk"
+    },
+    {
+      "id": "ep-24:93",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-24:94",
+      "kind": "changed",
+      "speaker": "heuk"
+    },
+    {
+      "id": "ep-24:95",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-24:97",
+      "kind": "changed",
+      "speaker": "heuk"
+    },
+    {
+      "id": "ep-24:98",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-24:104",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-24:105",
+      "kind": "changed",
+      "speaker": "moka"
+    },
+    {
+      "id": "ep-24:109",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-24:110",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-24:113",
+      "kind": "changed",
+      "speaker": "moka"
+    },
+    {
+      "id": "ep-24:116",
+      "kind": "changed",
+      "speaker": "yun"
+    },
+    {
+      "id": "ep-24:118",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-24:123",
+      "kind": "changed",
+      "speaker": "heuk"
+    },
+    {
+      "id": "ep-24:125",
+      "kind": "changed",
+      "speaker": "heuk"
+    },
+    {
+      "id": "ep-26:62",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-26:69",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-27:neo-return-1",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-27:neo-return-3",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-27:neo-return-4",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-27:neo-return-5",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-27:neo-return-6",
+      "kind": "changed",
+      "speaker": "sys"
+    },
+    {
+      "id": "ep-27:neo-return-7",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-27:neo-return-9",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-27:neo-return-10",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-27:neo-return-12",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-27:neo-return-13",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-27:neo-return-15",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-27:neo-return-16",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-27:neo-return-17",
+      "kind": "changed",
+      "speaker": "moka"
+    },
+    {
+      "id": "ep-27:cat-boat-1",
+      "kind": "added",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-27:cat-boat-2",
+      "kind": "added",
+      "speaker": "moka"
+    },
+    {
+      "id": "ep-27:neo-return-18",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-27:1",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-27:2",
+      "kind": "changed",
+      "speaker": "ln"
+    },
+    {
+      "id": "ep-27:4",
+      "kind": "changed",
+      "speaker": "ln"
+    },
+    {
+      "id": "ep-27:6",
+      "kind": "changed",
+      "speaker": "ln"
+    },
+    {
+      "id": "ep-27:7",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-27:cat-1",
+      "kind": "added",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-27:cat-2",
+      "kind": "added",
+      "speaker": "ln"
+    },
+    {
+      "id": "ep-27:cat-3",
+      "kind": "added",
+      "speaker": "moka"
+    },
+    {
+      "id": "ep-27:cat-4",
+      "kind": "added",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-27:cat-5",
+      "kind": "added",
+      "speaker": "ln"
+    },
+    {
+      "id": "ep-27:cat-6",
+      "kind": "added",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-27:cat-7",
+      "kind": "added",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-27:9",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-27:10",
+      "kind": "changed",
+      "speaker": "lns"
+    },
+    {
+      "id": "ep-27:neo-nickname",
+      "kind": "changed",
+      "speaker": "lns"
+    },
+    {
+      "id": "ep-27:12",
+      "kind": "changed",
+      "speaker": "lns"
+    },
+    {
+      "id": "ep-27:13",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-27:14",
+      "kind": "changed",
+      "speaker": "lns"
+    },
+    {
+      "id": "ep-27:15",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-27:16",
+      "kind": "changed",
+      "speaker": "moka"
+    },
+    {
+      "id": "ep-27:luck-1",
+      "kind": "added",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-27:luck-2",
+      "kind": "added",
+      "speaker": "ln"
+    },
+    {
+      "id": "ep-27:luck-3",
+      "kind": "added",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-27:luck-4",
+      "kind": "added",
+      "speaker": "yun"
+    },
+    {
+      "id": "ep-27:18",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-27:20",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-27:21",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-27:22",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-27:24",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-27:25",
+      "kind": "changed",
+      "speaker": "yun"
+    },
+    {
+      "id": "ep-27:28",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-27:29",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-27:35",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-27:36",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-27:37",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-27:39",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-27:40",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-27:petal-1",
+      "kind": "added",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-27:petal-2",
+      "kind": "added",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-27:ember-1",
+      "kind": "added",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-27:ember-2",
+      "kind": "added",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-27:ember-3",
+      "kind": "added",
+      "speaker": "moka"
+    },
+    {
+      "id": "ep-27:ember-4",
+      "kind": "added",
+      "speaker": "lns"
+    },
+    {
+      "id": "ep-27:ember-5",
+      "kind": "added",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-27:42",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-27:43",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-27:46",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-27:48",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-27:50",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-27:53",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-27:54",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-27:58",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-27:61",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-27:62",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-27:63",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-27:65",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-27:67",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-27:68",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-27:69",
+      "kind": "changed",
+      "speaker": "ln"
+    },
+    {
+      "id": "ep-27:71",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-27:72",
+      "kind": "changed",
+      "speaker": "sys"
+    },
+    {
+      "id": "ep-27:door-1",
+      "kind": "added",
+      "speaker": "sys"
+    },
+    {
+      "id": "ep-27:73",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-27:74",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-27:75",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-27:76",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-27:77",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-27:79",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-27:81",
+      "kind": "changed",
+      "speaker": "yun"
+    },
+    {
+      "id": "ep-27:83",
+      "kind": "changed",
+      "speaker": "yun"
+    },
+    {
+      "id": "ep-27:84",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-27:87",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-27:90",
+      "kind": "changed",
+      "speaker": "moka"
+    },
+    {
+      "id": "ep-27:moka-stay-1",
+      "kind": "added",
+      "speaker": "moka"
+    },
+    {
+      "id": "ep-27:92",
+      "kind": "changed",
+      "speaker": "moka"
+    },
+    {
+      "id": "ep-27:94",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-27:97",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-27:98",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-27:100",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-27:101",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-27:choice-1",
+      "kind": "added",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-27:choice-2",
+      "kind": "added",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-27:choice-3",
+      "kind": "added",
+      "speaker": "lns"
+    },
+    {
+      "id": "ep-27:choice-4",
+      "kind": "added",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-27:102",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-27:103",
+      "kind": "changed",
+      "speaker": "ln"
+    },
+    {
+      "id": "ep-27:104",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-27:106",
+      "kind": "changed",
+      "speaker": "yun"
+    },
+    {
+      "id": "ep-27:109",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-27:110",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-27:111",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-27:113",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-27a:1",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-27a:2",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-27a:3",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-27a:4",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-27a:5",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-27a:6",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-27a:7",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-27a:8",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-27a:9",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-27a:11",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-27a:12",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-27a:13",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-27a:14",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-27a:15",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-27a:16",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-27a:18",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-27a:19",
+      "kind": "changed",
+      "speaker": "heuk"
+    },
+    {
+      "id": "ep-27a:21",
+      "kind": "changed",
+      "speaker": "heuk"
+    },
+    {
+      "id": "ep-27a:22",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-27a:23",
+      "kind": "changed",
+      "speaker": "heuk"
+    },
+    {
+      "id": "ep-27a:24",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-27a:25",
+      "kind": "changed",
+      "speaker": "heuk"
+    },
+    {
+      "id": "ep-27a:25b",
+      "kind": "added",
+      "speaker": "heuk"
+    },
+    {
+      "id": "ep-27a:28",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-27a:29",
+      "kind": "changed",
+      "speaker": "heuk"
+    },
+    {
+      "id": "ep-27a:30",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-27a:31",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-27a:32",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-27a:33",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-27a:34",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-27a:37",
+      "kind": "changed",
+      "speaker": "heuk"
+    },
+    {
+      "id": "ep-27a:38",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-27a:39",
+      "kind": "changed",
+      "speaker": "heuk"
+    },
+    {
+      "id": "ep-27a:40",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-27a:43",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-27a:44",
+      "kind": "changed",
+      "speaker": "heuk"
+    },
+    {
+      "id": "ep-27a:45",
+      "kind": "changed",
+      "speaker": "heuk"
+    },
+    {
+      "id": "ep-27a:46",
+      "kind": "changed",
+      "speaker": "heuk"
+    },
+    {
+      "id": "ep-27a:47",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-27a:48",
+      "kind": "changed",
+      "speaker": "heuk"
+    },
+    {
+      "id": "ep-27a:49",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-27a:50",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-27a:51",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-27a:52",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-27a:53",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-27a:55",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-27a:56",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-27a:58",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-27a:59",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-27a:60",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-27a:61",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-27a:62",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-27a:63",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-27a:64",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-27a:65",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-27b:1",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-27b:2",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-27b:4",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-27b:5",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-27b:7",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-27b:8",
+      "kind": "changed",
+      "speaker": "yun"
+    },
+    {
+      "id": "ep-27b:12",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-27b:13",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-27b:14",
+      "kind": "changed",
+      "speaker": "yun"
+    },
+    {
+      "id": "ep-27b:16",
+      "kind": "changed",
+      "speaker": "yun"
+    },
+    {
+      "id": "ep-27b:17",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-27b:19",
+      "kind": "changed",
+      "speaker": "yun"
+    },
+    {
+      "id": "ep-27b:r3-lost",
+      "kind": "added",
+      "speaker": "yun"
+    },
+    {
+      "id": "ep-27b:r5-late",
+      "kind": "added",
+      "speaker": "yun"
+    },
+    {
+      "id": "ep-27b:22",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-27b:23",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-27b:25",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-27b:26",
+      "kind": "changed",
+      "speaker": "yun"
+    },
+    {
+      "id": "ep-27b:29",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-27b:30",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-27b:31",
+      "kind": "changed",
+      "speaker": "yun"
+    },
+    {
+      "id": "ep-27b:32",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-27b:33",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-27b:34",
+      "kind": "changed",
+      "speaker": "moka"
+    },
+    {
+      "id": "ep-27b:36",
+      "kind": "changed",
+      "speaker": "moka"
+    },
+    {
+      "id": "ep-27b:36b",
+      "kind": "added",
+      "speaker": "moka"
+    },
+    {
+      "id": "ep-27b:39",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-27b:40",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-27b:41",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-27b:42",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-27b:44",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-27b:45",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-27b:50",
+      "kind": "changed",
+      "speaker": "ln"
+    },
+    {
+      "id": "ep-27b:50b",
+      "kind": "added",
+      "speaker": "ln"
+    },
+    {
+      "id": "ep-27b:51",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-27b:52",
+      "kind": "changed",
+      "speaker": "yun"
+    },
+    {
+      "id": "ep-27b:53",
+      "kind": "changed",
+      "speaker": "ln"
+    },
+    {
+      "id": "ep-27b:56",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-27b:57",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-27b:58",
+      "kind": "changed",
+      "speaker": "yun"
+    },
+    {
+      "id": "ep-27b:59",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-27b:61",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-27b:62",
+      "kind": "changed",
+      "speaker": "yun"
+    },
+    {
+      "id": "ep-27b:65",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-28:45",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-28:50",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-28:52",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-28:53",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-28b:1",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-28b:2",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-28b:4",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-28b:26",
+      "kind": "changed",
+      "speaker": "pje"
+    },
+    {
+      "id": "ep-28b:28",
+      "kind": "changed",
+      "speaker": "pje"
+    },
+    {
+      "id": "ep-28c:35",
+      "kind": "changed",
+      "speaker": "pje"
+    },
+    {
+      "id": "ep-28c:37",
+      "kind": "changed",
+      "speaker": "pje"
+    },
+    {
+      "id": "ep-28c:38",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-28c:39",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-28c:57",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-28d:54",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-28d:57",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-30:29",
+      "kind": "changed",
+      "speaker": "yun"
+    },
+    {
+      "id": "ep-30:32",
+      "kind": "changed",
+      "speaker": "moka"
+    },
+    {
+      "id": "ep-30:45",
+      "kind": "changed",
+      "speaker": "yun"
+    },
+    {
+      "id": "ep-30:47",
+      "kind": "changed",
+      "speaker": "yun"
+    },
+    {
+      "id": "ep-30:52",
+      "kind": "changed",
+      "speaker": "yun"
+    },
+    {
+      "id": "ep-30:58",
+      "kind": "changed",
+      "speaker": "yun"
+    },
+    {
+      "id": "ep-30:62",
+      "kind": "changed",
+      "speaker": "yun"
+    },
+    {
+      "id": "ep-30:65",
+      "kind": "changed",
+      "speaker": "yun"
+    },
+    {
+      "id": "ep-30:68",
+      "kind": "changed",
+      "speaker": "yun"
+    },
+    {
+      "id": "ep-30:70",
+      "kind": "changed",
+      "speaker": "yun"
+    },
+    {
+      "id": "ep-30:72",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-30:74",
+      "kind": "changed",
+      "speaker": "yun"
+    },
+    {
+      "id": "ep-30:78",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-30:petal-1",
+      "kind": "added",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-30:83",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-30:94",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-30:96",
+      "kind": "changed",
+      "speaker": "yun"
+    },
+    {
+      "id": "ep-30:90",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-30:91",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-30:92",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-30:93",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-30:room-1",
+      "kind": "added",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-30:room-2",
+      "kind": "added",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-30:room-3",
+      "kind": "added",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-30:room-4",
+      "kind": "added",
+      "speaker": "yun"
+    },
+    {
+      "id": "ep-30:room-5",
+      "kind": "added",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-30:room-6",
+      "kind": "added",
+      "speaker": "yun"
+    },
+    {
+      "id": "ep-30:room-7",
+      "kind": "added",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-31:52",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-32:93",
+      "kind": "changed",
+      "speaker": "yun"
+    },
+    {
+      "id": "ep-34:16",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-34:17",
+      "kind": "changed",
+      "speaker": "yun"
+    },
+    {
+      "id": "ep-34:19",
+      "kind": "changed",
+      "speaker": "yun"
+    },
+    {
+      "id": "ep-34:20",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-34:21",
+      "kind": "changed",
+      "speaker": "yun"
+    },
+    {
+      "id": "ep-34:22",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-34:23",
+      "kind": "changed",
+      "speaker": "yun"
+    },
+    {
+      "id": "ep-34:24",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-34:26",
+      "kind": "changed",
+      "speaker": "yun"
+    },
+    {
+      "id": "ep-34:28",
+      "kind": "changed",
+      "speaker": "yun"
+    },
+    {
+      "id": "ep-34:32",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-34:33",
+      "kind": "changed",
+      "speaker": "moka"
+    },
+    {
+      "id": "ep-34:34",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-34:35",
+      "kind": "changed",
+      "speaker": "yun"
+    },
+    {
+      "id": "ep-34:37",
+      "kind": "changed",
+      "speaker": "moka"
+    },
+    {
+      "id": "ep-34:38",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-34:39",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-34:40",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-34:41",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-34:42",
+      "kind": "changed",
+      "speaker": "yun"
+    },
+    {
+      "id": "ep-34:43",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-34:44",
+      "kind": "changed",
+      "speaker": "yun"
+    },
+    {
+      "id": "ep-34:45",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-34:46",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-34:47",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-34:48",
+      "kind": "changed",
+      "speaker": "moka"
+    },
+    {
+      "id": "ep-34:49",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-34:61",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-34:64",
+      "kind": "changed",
+      "speaker": "yun"
+    },
+    {
+      "id": "ep-34:68",
+      "kind": "changed",
+      "speaker": "yun"
+    },
+    {
+      "id": "ep-34:72",
+      "kind": "changed",
+      "speaker": "yun"
+    },
+    {
+      "id": "ep-34:77",
+      "kind": "changed",
+      "speaker": "heuk"
+    },
+    {
+      "id": "ep-34:78",
+      "kind": "changed",
+      "speaker": "heuk"
+    },
+    {
+      "id": "ep-34:83",
+      "kind": "changed",
+      "speaker": "yun"
+    },
+    {
+      "id": "ep-34:87",
+      "kind": "changed",
+      "speaker": "yun"
+    },
+    {
+      "id": "ep-34:89",
+      "kind": "changed",
+      "speaker": "yun"
+    },
+    {
+      "id": "ep-34:93",
+      "kind": "changed",
+      "speaker": "yun"
+    },
+    {
+      "id": "ep-34:108",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-34:r4-dawn",
+      "kind": "added",
+      "speaker": "yun"
+    },
+    {
+      "id": "ep-36:88",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-36a:6",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-36a:10",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-36a:13",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-36a:16",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-36a:19",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-36a:23",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-36a:25",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-36a:27",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-36a:31",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-36a:32",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-36a:33",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-36a:35",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-36a:37",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-36a:48",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-37:3",
+      "kind": "changed",
+      "speaker": "yun"
+    },
+    {
+      "id": "ep-37:8",
+      "kind": "changed",
+      "speaker": "yun"
+    },
+    {
+      "id": "ep-37:9",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-37:14",
+      "kind": "changed",
+      "speaker": "yun"
+    },
+    {
+      "id": "ep-37:15",
+      "kind": "changed",
+      "speaker": "moka"
+    },
+    {
+      "id": "ep-37:16",
+      "kind": "changed",
+      "speaker": "yun"
+    },
+    {
+      "id": "ep-37:17",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-37:18",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-37:19",
+      "kind": "changed",
+      "speaker": "yun"
+    },
+    {
+      "id": "ep-37:20",
+      "kind": "changed",
+      "speaker": "moka"
+    },
+    {
+      "id": "ep-37:21",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-37:23",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-37:25",
+      "kind": "changed",
+      "speaker": "yun"
+    },
+    {
+      "id": "ep-37:32",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-37:38",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-37:54",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-37:55",
+      "kind": "changed",
+      "speaker": "yun"
+    },
+    {
+      "id": "ep-37:56",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-37:59",
+      "kind": "changed",
+      "speaker": "yun"
+    },
+    {
+      "id": "ep-37:62",
+      "kind": "changed",
+      "speaker": "yun"
+    },
+    {
+      "id": "ep-37:63",
+      "kind": "changed",
+      "speaker": "yun"
+    },
+    {
+      "id": "ep-37:64",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-37:65",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-37:66",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-37:67",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-37:68",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-37:82",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-37:thread-1",
+      "kind": "added",
+      "speaker": "yun"
+    },
+    {
+      "id": "ep-37:thread-2",
+      "kind": "added",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-37:thread-3",
+      "kind": "added",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-37:thread-4",
+      "kind": "added",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-37:thread-5",
+      "kind": "added",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-37:thread-6",
+      "kind": "added",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-37:wick-1",
+      "kind": "added",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-37:wick-2",
+      "kind": "added",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-37:87",
+      "kind": "changed",
+      "speaker": "yun"
+    },
+    {
+      "id": "ep-37:88",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-37:89",
+      "kind": "changed",
+      "speaker": "yun"
+    },
+    {
+      "id": "ep-37:93",
+      "kind": "changed",
+      "speaker": "heuk"
+    },
+    {
+      "id": "ep-37:97",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-37:99",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-38:49",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-38:50",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-38:51",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-38:52",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-38:53",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-38:57",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-38:78",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-38a:2",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-38a:6",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-38a:7",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-38a:12",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-38a:16",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-38a:19",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-38a:23",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-38a:27",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-38a:37",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-38a:39",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-38a:45",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-38a:47",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-38a:failed-future",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-38a:regression-price",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-38a:human-name-price",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-38a:hanbi-companion",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-38a:62",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-38a:66",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-38a:69",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-38a:77",
+      "kind": "changed",
+      "speaker": "tiger"
+    },
+    {
+      "id": "ep-39:hanbi-flinch",
+      "kind": "added",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-39:67",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-39:68",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-39:70",
+      "kind": "changed",
+      "speaker": "yun"
+    },
+    {
+      "id": "ep-39:71",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-39:77",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-39:78",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-39:82",
+      "kind": "changed",
+      "speaker": "pje"
+    },
+    {
+      "id": "ep-39:83",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-39:84",
+      "kind": "changed",
+      "speaker": "pje"
+    },
+    {
+      "id": "ep-39:85",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-39:106",
+      "kind": "changed",
+      "speaker": "pje"
+    },
+    {
+      "id": "ep-41:66",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-41:68",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-41:70",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-41:72",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-41:94",
+      "kind": "changed",
+      "speaker": "yun"
+    },
+    {
+      "id": "ep-41:98",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-41:101",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-42:montage-1",
+      "kind": "added",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-42:montage-2",
+      "kind": "added",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-42:montage-3",
+      "kind": "added",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-42:montage-4",
+      "kind": "added",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-42:montage-5",
+      "kind": "added",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-42:montage-6",
+      "kind": "added",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-42:30",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-42:31",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-42:33",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-42:39",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-42:40",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-42:45",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-42:failed-future",
+      "kind": "added",
+      "speaker": "pje"
+    },
+    {
+      "id": "ep-42:identity-reveal",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-42:47",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-42:regression-price",
+      "kind": "added",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-42:48",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-42:human-name-price",
+      "kind": "added",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-42:one-return",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-42:clear-answer",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-42:hanbi-companion",
+      "kind": "added",
+      "speaker": "pje"
+    },
+    {
+      "id": "ep-42:not-hanbi",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-42:49",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-42:53",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-42:late-early-n",
+      "kind": "added",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-42:late-early",
+      "kind": "added",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-42:65",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-42:84",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-42:yun-umbrella-n",
+      "kind": "added",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-42:yun-umbrella",
+      "kind": "added",
+      "speaker": "yun"
+    },
+    {
+      "id": "ep-47:26",
+      "kind": "changed",
+      "speaker": "yun"
+    },
+    {
+      "id": "ep-47:33",
+      "kind": "changed",
+      "speaker": "yun"
+    },
+    {
+      "id": "ep-47:35",
+      "kind": "changed",
+      "speaker": "yun"
+    },
+    {
+      "id": "ep-47:37",
+      "kind": "changed",
+      "speaker": "yun"
+    },
+    {
+      "id": "ep-47:38",
+      "kind": "changed",
+      "speaker": "moka"
+    },
+    {
+      "id": "ep-47:39",
+      "kind": "changed",
+      "speaker": "yun"
+    },
+    {
+      "id": "ep-47:41",
+      "kind": "changed",
+      "speaker": "yun"
+    },
+    {
+      "id": "ep-47:51",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-47:63",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-47:turn-1",
+      "kind": "added",
+      "speaker": "yun"
+    },
+    {
+      "id": "ep-47:turn-2",
+      "kind": "added",
+      "speaker": "moka"
+    },
+    {
+      "id": "ep-47:turn-3",
+      "kind": "added",
+      "speaker": "yun"
+    },
+    {
+      "id": "ep-47:28",
+      "kind": "changed",
+      "speaker": "yun"
+    },
+    {
+      "id": "ep-47:73",
+      "kind": "changed",
+      "speaker": "pje"
+    },
+    {
+      "id": "ep-47:74",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-47:30",
+      "kind": "changed",
+      "speaker": "yun"
+    },
+    {
+      "id": "ep-47:32",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-47:turn-4",
+      "kind": "added",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-47:88",
+      "kind": "changed",
+      "speaker": "yun"
+    },
+    {
+      "id": "ep-47:93",
+      "kind": "changed",
+      "speaker": "yun"
+    },
+    {
+      "id": "ep-47:song-1",
+      "kind": "added",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-49:37",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-49:42",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-49:43",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-49:48",
+      "kind": "changed",
+      "speaker": "yun"
+    },
+    {
+      "id": "ep-49:49",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-49:rule-1",
+      "kind": "added",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-49:rule-2",
+      "kind": "added",
+      "speaker": "yun"
+    },
+    {
+      "id": "ep-49:66",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-49:last-1",
+      "kind": "added",
+      "speaker": "heuk"
+    },
+    {
+      "id": "ep-49:last-2",
+      "kind": "added",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-49:77",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-49:last-3",
+      "kind": "added",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-49:76",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-49:97",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-49:100",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-49:101",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-50:leaf-1",
+      "kind": "added",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-50:leaf-2",
+      "kind": "added",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-50:52",
+      "kind": "changed",
+      "speaker": "god"
+    },
+    {
+      "id": "ep-50:53",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-50:75",
+      "kind": "changed",
+      "speaker": "moka"
+    },
+    {
+      "id": "ep-50:choice-answer",
+      "kind": "changed",
+      "speaker": "god"
+    },
+    {
+      "id": "ep-50:cost-1",
+      "kind": "added",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-50:cost-2",
+      "kind": "added",
+      "speaker": "god"
+    },
+    {
+      "id": "ep-50:doorstep-1",
+      "kind": "added",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-50:choice-moka",
+      "kind": "changed",
+      "speaker": "moka"
+    },
+    {
+      "id": "ep-50:choice-agency",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-50:close-1",
+      "kind": "added",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-50:close-2",
+      "kind": "added",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-50:close-3",
+      "kind": "added",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-51:4",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-51:31",
+      "kind": "changed",
+      "speaker": "pje"
+    },
+    {
+      "id": "ep-51:54",
+      "kind": "changed",
+      "speaker": "yun"
+    },
+    {
+      "id": "ep-51:56",
+      "kind": "changed",
+      "speaker": "yun"
+    },
+    {
+      "id": "ep-51:send-1",
+      "kind": "added",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-51:58",
+      "kind": "changed",
+      "speaker": "yun"
+    },
+    {
+      "id": "ep-51:60",
+      "kind": "changed",
+      "speaker": "yun"
+    },
+    {
+      "id": "ep-51:61",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-51:62",
+      "kind": "changed",
+      "speaker": "yun"
+    },
+    {
+      "id": "ep-51:search-1",
+      "kind": "added",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-51:search-2",
+      "kind": "added",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-51:search-3",
+      "kind": "added",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-51:99",
+      "kind": "changed",
+      "speaker": "pje"
+    },
+    {
+      "id": "ep-51:104",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-51:107",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-51:109",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-51:110",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-51:111",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-52:reply-1",
+      "kind": "added",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-52:reply-2",
+      "kind": "added",
+      "speaker": "sys"
+    },
+    {
+      "id": "ep-52:24",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-52:25",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-52:31",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-52:32",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-52:33",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-52:34",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-52:35",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-52:37",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-52:38",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-52:39",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-52:40",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-52:41",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-52:45",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-52:46",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-52:47",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-52:48",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-52:49",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-52:50",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-52:51",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-52:52",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-52:53",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-52:54",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-52:55",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-52:59",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-52:62",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-52:66",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-52:67",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-52:68",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-52:71",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-52:73",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-52:74",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-52:75",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-52:f029",
+      "kind": "added",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-52:76",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-52:87",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-52:91",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-52:92",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-52:93",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-52:95",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-52:sea-1",
+      "kind": "added",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-52:sea-2",
+      "kind": "added",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-52:105",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-53:2",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-53:51",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-51s:3",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-51s:4",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-51s:8",
+      "kind": "changed",
+      "speaker": "pje"
+    },
+    {
+      "id": "ep-51s:key-1",
+      "kind": "added",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-51s:key-2",
+      "kind": "added",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-51s:key-3",
+      "kind": "added",
+      "speaker": "pje"
+    },
+    {
+      "id": "ep-51s:key-4",
+      "kind": "added",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-51s:key-5",
+      "kind": "added",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-51s:11",
+      "kind": "changed",
+      "speaker": "yun"
+    },
+    {
+      "id": "ep-51s:12",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-51s:letter-1",
+      "kind": "added",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-51s:13",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-51s:14",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-51s:letter-2",
+      "kind": "added",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-51s:15",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-51s:17",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-51s:cost-1",
+      "kind": "added",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-51s:cost-2",
+      "kind": "added",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-51s:20",
+      "kind": "changed",
+      "speaker": "yun"
+    },
+    {
+      "id": "ep-51s:21",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-51s:22",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-51s:extra-25",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-51s:extra-26",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-51s:extra-27",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-51s:extra-28",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-51s:extra-38",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-51s:coda-1",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-51s:coda-2",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-51s:coda-5",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-51s:coda-6",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-51s:coda-7",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-51s:coda-8",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-51s:coda-9",
+      "kind": "added",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-51s:25",
+      "kind": "changed",
+      "speaker": "sys"
+    },
+    {
+      "id": "ep-52s:13",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-52s:14",
+      "kind": "changed",
+      "speaker": "sys"
+    },
+    {
+      "id": "ep-52s:15",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-52s:16",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-52s:mom-1",
+      "kind": "added",
+      "speaker": "sys"
+    },
+    {
+      "id": "ep-52s:mom-2",
+      "kind": "added",
+      "speaker": "sys"
+    },
+    {
+      "id": "ep-52s:mom-3",
+      "kind": "added",
+      "speaker": "sys"
+    },
+    {
+      "id": "ep-52s:17",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-52s:20",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-52s:21",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-52s:24",
+      "kind": "changed",
+      "speaker": "yun"
+    },
+    {
+      "id": "ep-52s:25",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-52s:extra-30",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-52s:extra-31",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-52s:extra-34",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-52s:extra-39",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-52s:extra-41",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-52s:extra-42",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-52s:extra-43",
+      "kind": "changed",
+      "speaker": "neo"
+    },
+    {
+      "id": "ep-52s:extra-49",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-52s:coda-2",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-53s:2",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-53s:extra-34",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-53s:extra-35",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-53s:extra-41",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-53s:extra-42",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-53s:extra-43",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-53s:extra-47",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-53s:extra-49",
+      "kind": "changed",
+      "speaker": "yun"
+    },
+    {
+      "id": "ep-53s:extra-50",
+      "kind": "changed",
+      "speaker": "yeon"
+    },
+    {
+      "id": "ep-53s:extra-52",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-53s:12",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-53s:22",
+      "kind": "changed",
+      "speaker": "moka"
+    },
+    {
+      "id": "ep-53s:26",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-53s:28",
+      "kind": "changed",
+      "speaker": "n"
+    },
+    {
+      "id": "ep-53s:30",
+      "kind": "changed",
+      "speaker": "n"
+    }
+  ],
+  "deleted": [
+    "ep-05:3",
+    "ep-05:4",
+    "ep-05:6",
+    "ep-05:7",
+    "ep-05:8",
+    "ep-05:10",
+    "ep-05:11",
+    "ep-05:14",
+    "ep-05:15",
+    "ep-05:22",
+    "ep-05:30",
+    "ep-05:31",
+    "ep-05:35",
+    "ep-05:37",
+    "ep-05:39",
+    "ep-05:41",
+    "ep-05:43",
+    "ep-05:51",
+    "ep-05:53",
+    "ep-05:54",
+    "ep-05:58",
+    "ep-05:59",
+    "ep-05:61",
+    "ep-05:62",
+    "ep-05:64",
+    "ep-05:65",
+    "ep-05:66",
+    "ep-05:67",
+    "ep-05:70",
+    "ep-05:71",
+    "ep-05:72",
+    "ep-05:74",
+    "ep-05:79",
+    "ep-05:80",
+    "ep-05:81",
+    "ep-05:82",
+    "ep-05:90",
+    "ep-05:91",
+    "ep-05:104",
+    "ep-05:105",
+    "ep-05:106",
+    "ep-05:110",
+    "ep-05:112",
+    "ep-05:113",
+    "ep-05:121",
+    "ep-05:122",
+    "ep-05:124",
+    "ep-05:125",
+    "ep-05:127",
+    "ep-05:133",
+    "ep-05:143",
+    "ep-05:144",
+    "ep-05:160",
+    "ep-05:161",
+    "ep-05:162",
+    "ep-05:163",
+    "ep-05:168",
+    "ep-05:169",
+    "ep-05:170",
+    "ep-05:171",
+    "ep-05:172",
+    "ep-05:173",
+    "ep-06:3",
+    "ep-06:5",
+    "ep-06:7",
+    "ep-06:8",
+    "ep-06:9",
+    "ep-06:12",
+    "ep-06:17",
+    "ep-06:18",
+    "ep-06:19",
+    "ep-06:20",
+    "ep-06:21",
+    "ep-06:25",
+    "ep-06:27",
+    "ep-06:28",
+    "ep-06:29",
+    "ep-06:30",
+    "ep-06:32",
+    "ep-06:34",
+    "ep-06:35",
+    "ep-06:38",
+    "ep-06:39",
+    "ep-06:41",
+    "ep-06:44",
+    "ep-06:46",
+    "ep-06:47",
+    "ep-06:53",
+    "ep-06:56",
+    "ep-06:58",
+    "ep-06:63",
+    "ep-06:64",
+    "ep-06:65",
+    "ep-06:66",
+    "ep-06:67",
+    "ep-06:68",
+    "ep-06:70",
+    "ep-06:107",
+    "ep-06:108",
+    "ep-06:110",
+    "ep-06:112",
+    "ep-06:114",
+    "ep-06:116",
+    "ep-06:124",
+    "ep-06:125",
+    "ep-06:142",
+    "ep-06:147",
+    "ep-06:148",
+    "ep-06:153",
+    "ep-06:154",
+    "ep-06:155",
+    "ep-06:156",
+    "ep-06:161",
+    "ep-06:162",
+    "ep-06:168",
+    "ep-06:173",
+    "ep-06:174",
+    "ep-06:175",
+    "ep-06:180",
+    "ep-06:183",
+    "ep-06:184",
+    "ep-06:186",
+    "ep-06:187",
+    "ep-06:195",
+    "ep-06:208"
+  ],
+  "speakerOnly": []
+}
