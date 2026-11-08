@@ -43,6 +43,12 @@
       "visibleSample": "4 locale home samples retain Korean brand names; English tiger tomorrow main has0 Hangul after reference fix.",
       "noindexCandidates": [],
       "limitation": "No verified incomplete-page list yet;501 old-dist diagnostics do not establish current visible quality for all routes."
+    },
+    "finalLocalPrePush": {
+      "sha": "92e78d8047055cfa0ac62f7342a72f5aed73201f",
+      "conclusion": "passed",
+      "log": "D:/Development/seo-audit/code-destiny-20261101/bundle-5/pre-push-followups-20261109.log",
+      "note": "Rerun on eventual final committed tree before approved push; separate main AI Locale Gate still fails."
     }
   },
   "seoBundle4SearchEvidence20261109": {
@@ -5360,7 +5366,9 @@
       },
       "prCi": {
         "url": "https://github.com/rei1237/codedestiny/actions/runs/42523534646",
-        "status": "in_progress at last observation; check once before final report/push"
+        "status": "completed",
+        "conclusion": "success",
+        "sha": "81390e622f2e689f3e50e54fc6666d3f71eaee90"
       },
       "approval": "Pending asynchronous user reply for inventory-only refresh and follow-up push. Prepared patch is external; not applied."
     }
