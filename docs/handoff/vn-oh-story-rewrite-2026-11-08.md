@@ -1,7 +1,7 @@
 ---
-status: active
+status: done
 updated: 2026-11-09
-next: 새 ego 공간 생성 승인 응답 후 운영 EP.01/42/52·북마크·언어 검증, 완료 기록과 정리
+next: 완료. 운영 플레이어 재생·북마크·네 언어 전환 검증까지 종료.
 ---
 
 # VN 스토리 개선 (oh-story 활용) 인수인계
@@ -427,7 +427,7 @@ next: 새 ego 공간 생성 승인 응답 후 운영 EP.01/42/52·북마크·언
 - [x] 4-① 호랑이 존댓말 전체 확인·EP.37/47/50 분량 경고
 - [x] 4-② en / ja / zh-CN / zh-TW 직접 번역·용어집·누락 감사·게시 복구
 - [x] 4-③ novel:build·story-sync·sitemap·check:fast·번역·플레이어 검사
-- [ ] 4-④ main 반영·CI·운영 배포·운영 재생/북마크/언어 확인
+- [x] 4-④ main 반영·CI·운영 배포·운영 재생/북마크/언어 확인
 
 ## 4-① 결과 (2026-11-09)
 - tiger 전 화 246개 대사를 읽고 134개 존댓말로 수정(대상 14화). 독백도 존댓말이며 pje 관계 말투는 유지. EP.28D:54는 「그 애한테서 손 떼세요. 당장요!」로 긴장 보존. EP.10 별 둘 평가는 연이 전용 장치와 충돌해 「그럭저럭」으로 수정. 비트 id·rev 유지. 바이블 말투 표에 예외 없는 tiger 규칙 추가.
@@ -506,3 +506,13 @@ next: 새 ego 공간 생성 승인 응답 후 운영 EP.01/42/52·북마크·언
 ## CI 문서 규약 보정 (2026-11-09)
 - main CI42505056922의Fast와Build는success, Static guards만handoff frontmatter status값으로failure. 사용자공통인수인계예시의in-progress를썼으나현재저장소 _TEMPLATE.md·verify-handoff-contract는active/blocked/done을요구했다. 같은진행중의미인active로맞춘다. CI코드/검사기/운영콘텐츠변경없음.
 - 문서상태오류는이세션수정책임이며운영런42505123236 success·Pages/Worker/원고서버검증결과는유효. 문서규약self-test와실검사후완료기록을push하고main CI결과확인.
+
+## 4-④ 완료 · 운영 화면 검증 (2026-11-09)
+- 새 공간 생성 승인 원문: 「새 검증 공간을 열고 계속 (추천)」. 사용자 2026-11-09 답변에 따라 ego 공간64/p1을 만들고 다른 사용자 공간은 건드리지 않았다.
+- 운영 URL: https://code-destiny.com/codedestiny-novel.html (언어 전환 뒤 정규화 경로 /codedestiny-novel?novelLang=<locale>).
+- EP.01 재생·SAVE·새로고침·이어 읽기 → ep-01:2 일치. EP.42 → ep-42:2, EP.52 → ep-52:reply-2도 같은 절차로 일치. EP.42/52의 neoForm은 human 유지. EP.52 화면의 배경·대사·도구 모음 레이아웃을 스크린샷으로 확인했다.
+- 언어 선택 UI에서 en → ja → zh-CN → zh-TW를 전환했다. 각각 EP.52 reply-2에서 번역된 본문과 UI 제목을 표시하고 북마크 ID를 유지했다. 렌더링 본문은 해당 번역 원문과 일치, 한국어 잔존 0.
+- 검증 전 cd_novel_bookmark와 cd:novel:language 두 키만 복원하고 task.finish({keep:[]}) 완료. 브라우저 업데이트는 실행하지 않았다.
+- 운영 배포 SHA 72fed768472e292055df9c29a5bec27ee9e0e934 / 릴리스42505123236 success. 문서 규약 보정 main SHA9e7ee899717beab7a6d168a32796ab8c13318a0f의 CI42507044209 success 확인. 완료 기록은 후속 문서 커밋으로 전달한다.
+- 요청 범위의 남은 기능 작업 없음. 기존 본문/fx 경고11건과 의존성 취약점 알림76건은 이번 원고·번역 변경 밖의 별도 추적 항목이다.
+- 정리 범위: 이번 세션 생성 .tmp/vn-finish 두 곳과 detached 전달 작업 트리만 제거한다. 사용자에게서 인계받은 원래 vn-oh-story-20261108 워크트리는 완료 문서를 동기화해 보존하며, 다른 세션의 워크트리·변경은 보존한다.
