@@ -1,7 +1,7 @@
 ---
-status: in-progress
+status: done
 updated: 2026-11-09
-next: 최종 mock 검증과 HTTP 성능 측정 결과 확인 후 전달 검사·main push·정리
+next: 구현·검증 완료. 최종 커밋을 main에 전달하고 자기 워크트리를 정리한다.
 ---
 
 ## 첫 행동
@@ -46,3 +46,11 @@ compact-reading.mjs는 기존 카드 노드를 그대로 details로 이동한다
 - [ ] 공식 후반 검사 완료, 최종 미러/sitemap/관련 검사
 - [ ] 최신 main 합치기·pre-push·main fast-forward push
 - [ ] 산출물 안정 경로 복사·handoff done·자기 워크트리 정리·CI1회 확인
+
+## 최종 검증과 마무리
+
+구현 체크포인트0fea709bd, 상태 보존05dfae716, 최신 main 합치기5ac70da5e, 실제 ESM 로드·뷰포트 보완4d2588e21. 별도 동적 import를 걷어내고 실제 본문 끝 ESM으로 로드했으며 주석 밖 실행 검사를 추가했다. 소유 프로필 mock과 지원하지 않는 RPG API404 fixture로 전체5폭·200%·전체 펼침·딥링크·페이지 오류0건 확인. 모듈에서 임의의 전역 resize를 보내지 않으며 원래 카드 노드·게이트를 보존한다.
+
+성능 도구는 before/after 텍스트 자산을 고정 SHA로 제공해 작업 중 파일 변경이 측정에 섞이지 않게 고쳤다. 최종5회 중앙값:폰트944992→572860bytes(39.4% 감소),LCP19764→19832ms(0.34% 증가),CLS0.0825→0.0807. LCP10% 목표 미달. 운영 수치 아님. 상세 정본은 docs/design/saju-mobile-reading-20261109.md.
+
+Jest467스위트/7920테스트 통과(각1개 제외),관련 회귀60개 통과,main 합친 뒤 typecheck/프로필전환 통과,pre-push 통과. 최종 문서 커밋 후 pre-push를 다시 확인하고 main으로 fast-forward push한다. 운영 승격은 하지 않는다. 최종 전달 SHA·CI 상태·정리 결과는 완료 보고를 따른다.
