@@ -12,48 +12,7 @@
 // 이 테스트는 라우트가 실제로 만드는 UTC 를 확인한다 — 오프셋 함수 단위가 아니라
 // 응답에 실리는 birthUtc 를 본다. 그래야 "함수는 고쳤는데 호출 순서 탓에 안 먹는" 회귀도 잡힌다.
 
-import { jest } from "@jest/globals";
-
-const getSwissWesternChart = jest.fn();
-const getSwissVedicPlanets = jest.fn();
-
-jest.unstable_mockModule("../../worker/lib/swiss-ephemeris.js", () => ({
-  getSwissWesternChart,
-  getSwissVedicPlanets,
-}));
-jest.unstable_mockModule("../../worker/lib/cms-records.js", () => ({ primeCmsRecords: jest.fn() }));
-jest.unstable_mockModule("../../worker/lib/auth.js", () => ({ requireAuth: jest.fn() }));
-jest.unstable_mockModule("../../worker/lib/astro-premium-generator.js", () => ({
-  buildAstroLocalChartJson: jest.fn(),
-  normalizeAstroPremiumBirthInput: jest.fn(),
-}));
-jest.unstable_mockModule("../../worker/lib/vedic-premium-generator.js", () => ({
-  buildVedicLocalChartJson: jest.fn(),
-}));
-
-let handleAstrologyRoutes;
-
-beforeAll(async () => {
-  ({ handleAstrologyRoutes } = await import("../../worker/routes/astro.js"));
-});
-
-beforeEach(() => {
-  getSwissWesternChart.mockReset();
-  // 라우트가 UTC 를 어떻게 세웠는지만 보면 되므로, 차트 본문은 최소 형태로 돌려준다.
-  getSwissWesternChart.mockResolvedValue({
-    planets: {
-      Sun: { longitude: 0, sign: "Aries", degreeInSign: 0 },
-      Moon: { longitude: 0, sign: "Aries", degreeInSign: 0 },
-    },
-    ascendant: { longitude: 0, sign: "Aries", degreeInSign: 0 },
-    midheaven: { longitude: 0, sign: "Aries", degreeInSign: 0 },
-    houseCusps: Array.from({ length: 12 }, () => 0),
-    aspects: [],
-    source: "swiss-wasm-local",
-    engineQuality: "swiss",
-    fallbackUsed: false,
-  });
-});
+import { handleAstrologyRoutes } from "../../worker/routes/astro.js";
 
 async function birthUtcFor(body) {
   const request = new Request("https://code-destiny.com/api/astrology/basic", {
@@ -66,9 +25,8 @@ async function birthUtcFor(body) {
   if (!response.ok) {
     throw new Error(`astro basic 실패 ${response.status}: ${JSON.stringify(payload)}`);
   }
-  // 라우트가 Swiss 로 넘긴 입력이 곧 그 라우트가 판정한 오프셋이다.
-  const [, chartInput] = getSwissWesternChart.mock.calls.at(-1);
-  return chartInput;
+  const civilAsUtc = Date.parse(body.date + "T" + body.time + ":00Z");
+  return {timezone:(civilAsUtc - Date.parse(payload.birth.utcIso)) / 3600000};
 }
 
 const BASE = { latitude: 40.7128, longitude: -74.006 };

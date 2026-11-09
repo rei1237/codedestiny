@@ -1,6 +1,7 @@
 import { primeCmsRecords } from "../lib/cms-records.js";
 import { westernPositions } from "../lib/verified-natal.js";
-import { calcAspects, getSwissVedicPlanets, getSwissWesternChart } from "../lib/swiss-ephemeris.js";
+import { calcAspects } from "../lib/western-aspects.js";
+import { getSwissVedicPlanets, getSwissWesternChart } from "../lib/swiss-ephemeris.js";
 import { getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { requireAuth } from "../lib/auth.js";
 import {
