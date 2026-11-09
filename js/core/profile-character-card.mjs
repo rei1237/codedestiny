@@ -55,6 +55,11 @@ export async function loadProfileCharacterPreview(profile, { request }) {
   previews.set(key, job);
   return job;
 }
+if (typeof window !== 'undefined') window.addEventListener('cd:profile-sheet-close', () => {
+  if (activeMount) mounts.get(activeMount.root)?.controller.abort();
+  activeMount = null;
+});
+
 export async function mountCharacterCard(root, profile, options) {
   root.classList.add('cd-yehwa-scope');
   if (activeMount?.root && activeMount.root !== root) mounts.get(activeMount.root)?.controller.abort();
@@ -82,6 +87,10 @@ export async function mountCharacterCard(root, profile, options) {
   options.onQuestExp?.(15);
   const token = { controller: new AbortController() }; mounts.set(root, token);
   mountProfileDiary(diaryHost, { profileId: profile.profileId || profile.id, signal: token.controller.signal });
+  if (!root.closest('#dpListSheet.dp-sheet--open[data-pet-entry="my"]')) {
+    target.remove(); honeyHost.remove();
+    return;
+  }
   adoptHoneyManager(honeyHost, token.controller.signal);
   const owner = options.owner();
   const current = () => mounts.get(root) === token && target.isConnected && options.owner() === owner;

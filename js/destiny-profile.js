@@ -8272,7 +8272,7 @@
       + '</button>'
       + '<div class="dp-lvl__quests" id="dpLvlQuests"' + (_dpLevelQuestsOpen ? '' : ' hidden') + '>' + questsHtml + '</div>'
       + rewardHtml
-      + (snap.loggedIn && snap.nextReward ? '<p class="dp-lvl__meta">Lv.' + snap.nextReward.level + ' · 누적 결제 ' + snap.nextReward.payments + '회 · ' + snap.nextReward.krw.toLocaleString('ko-KR') + '원 이상</p>' : '')
+      + (snap.loggedIn && snap.nextReward ? '<div class="dp-lvl__criteria"><strong>보상 조건</strong><span>레벨 ' + snap.nextReward.level + ' 달성</span><span>누적 결제 ' + snap.nextReward.payments + '회 · ' + snap.nextReward.krw.toLocaleString('ko-KR') + '원 이상</span></div>' : '')
       + note
     + '</div>';
   }
@@ -8728,6 +8728,7 @@
       + '<details class="pc-birth-details"><summary>출생 정보</summary><p>' + _esc(birthLabel + ' · ' + timeLabel) + '</p><p>' + _esc(l.label || l.name || '출생지 미입력') + '</p></details>'
       + '</div>';
     _dpBindMasterCardMenuEvents(el); _dpBindLevelEvents(el); restoreGrowthView(el);
+    if (!el.closest('#dpListSheet')) return;
     import('/js/core/profile-character-card.mjs').then(function(module) {
       if (!el.isConnected || el.__profileCharacterProfile !== profile || !el.querySelector('[data-profile-character]')) return;
       module.mountCharacterCard(el, profile, {
@@ -9871,6 +9872,7 @@
     var card = document.getElementById('dpMasterCard');
     if (!card || !anchor.parent) return;
     var before = (anchor.next && anchor.next.parentNode === anchor.parent) ? anchor.next : null;
+    window.dispatchEvent(new CustomEvent('cd:profile-sheet-close'));
     anchor.parent.insertBefore(card, before);
   }
 
@@ -10017,6 +10019,7 @@
     }
 
     if (forestCardMode) document.documentElement.classList.add('dp-forest-card');
+    sheet.dataset.petEntry = !forestCardMode && window.CodeDestinyShellSheet?.takePetProfileEntry?.() ? 'my' : '';
     _dpBorrowMasterCardIntoSheet(sheet);
     sheet.classList.add('dp-sheet--open');
     overlay.classList.add('dp-sheet--open');
@@ -10026,6 +10029,7 @@
     function renderOpenList() {
       try {
         renderProfileList();
+        renderMasterCard(DPStorage.current());
         if (forestCardMode === 'create' && !DPStorage.list().length) window.dpStartProfileCreate();
         notifyForestCard('ready');
         if (scroller) scroller.scrollTop = 0;
@@ -10705,6 +10709,7 @@
       + '</div></div>';
     document.body.appendChild(ov);
     window._dpFortuneSelEl = ov;
+    if (!el.closest('#dpListSheet')) return;
     import('/js/core/profile-character-card.mjs').then(function(module) {
       return module.loadProfileCharacterPreview(p, { request: _dpProfileCharacterRequest }).then(function(preview) {
         if (!ov.isConnected || window._dpFortuneSelEl !== ov || !preview || !preview.character) return;

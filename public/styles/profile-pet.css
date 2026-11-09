@@ -27,10 +27,37 @@
 .pg-pet[data-coat="earth"]{--pet-coat:saturate(1.4)}
 .pg-pet[data-coat="metal"]{--pet-coat:saturate(.08) brightness(1.07)}
 .pg-pet[data-coat="water"]{--pet-coat:hue-rotate(170deg) saturate(.7)}
-.pg-body{position:absolute;inset:0;background-image:var(--pet-body);background-size:400% 300%;background-repeat:no-repeat;background-position:0 var(--pet-row);animation:pg-frames var(--pet-idle-duration,4.8s) steps(1,end) infinite;animation-delay:var(--pet-idle-delay,0s);filter:var(--pet-coat)}
-.pg-pet--sleep .pg-body{background-size:400% 100%;background-position-y:0;animation-duration:5s;animation-delay:0s}
-.pg-pet--feed .pg-body,.pg-pet--play .pg-body{animation-duration:1.1s;animation-delay:0s}
-@keyframes pg-frames{0%,100%{background-position-x:0}25%{background-position-x:33.333333%}50%{background-position-x:66.666667%}75%{background-position-x:100%}}
+.pg-body{position:absolute;inset:0;background-image:var(--pet-body);background-size:400% 300%;background-repeat:no-repeat;background-position:0 var(--pet-row);translate:var(--paw-0,0 0);animation:pg-idle-poses var(--pet-idle-duration,4.8s) steps(1,end) infinite;animation-delay:var(--pet-idle-delay,0s);filter:var(--pet-coat)}
+.pg-pet{transform-origin:50% 86%;animation:pg-breathe 3.6s ease-in-out infinite}
+.pg-pet--sleep{animation-duration:4.8s}
+.pg-pet--sleep .pg-body{background-size:400% 100%;background-position-y:0;animation-name:pg-rest-poses;animation-duration:5.5s;animation-delay:0s}
+.pg-pet--wake .pg-body{animation:pg-wake-poses .8s steps(1,end) both}
+@keyframes pg-wake-poses{
+  0%{background-position-x:33.333333%;translate:var(--paw-1)}
+  48%{background-position-x:66.666667%;translate:var(--paw-2)}
+  82%,100%{background-position-x:0;translate:var(--paw-0)}
+}
+.pg-pet--feed,.pg-pet--play{animation:none}
+.pg-pet--feed .pg-body,.pg-pet--play .pg-body{animation-name:pg-action-poses;animation-duration:1.25s;animation-delay:0s}
+@keyframes pg-breathe{0%,100%{transform:scale(1)}50%{transform:scale(1.004,.989)}}
+@keyframes pg-idle-poses{
+  0%,68%,75%,100%{background-position-x:0;translate:var(--paw-0)}
+  71%{background-position-x:33.333333%;translate:var(--paw-1)}
+  87%{background-position-x:66.666667%;translate:var(--paw-2)}
+  96%{background-position-x:100%;translate:var(--paw-3)}
+}
+@keyframes pg-rest-poses{
+  0%,100%{background-position-x:0;translate:var(--paw-0)}
+  40%{background-position-x:33.333333%;translate:var(--paw-1)}
+  60%{background-position-x:66.666667%;translate:var(--paw-2)}
+  83%{background-position-x:100%;translate:var(--paw-3)}
+}
+@keyframes pg-action-poses{
+  0%,100%{background-position-x:0;translate:var(--paw-0)}
+  22%{background-position-x:33.333333%;translate:var(--paw-1)}
+  46%{background-position-x:66.666667%;translate:var(--paw-2)}
+  75%{background-position-x:100%;translate:var(--paw-3)}
+}
 .pg-accessory,.pg-pattern{position:absolute;pointer-events:none;background-repeat:no-repeat}
 .pg-accessory{left:30%;top:3%;width:35%;height:35%;background-image:url('/assets/profile-pets/moon-garden-v1/accessories.webp');background-size:800% 300%;background-position:var(--pet-accessory) var(--pet-egg-row)}
 .pg-pattern{left:40%;top:23%;width:16%;height:16%;background-image:url('/assets/profile-pets/moon-garden-v1/patterns.webp');background-size:400% 100%;background-position:var(--pet-pattern) 0}
@@ -149,4 +176,4 @@
 #dpMasterCard .pg-honey-manager [data-cd-honey-status]:empty{display:none}
 .pc-growth-details>summary{font:600 14px/1.6 var(--font-body);min-height:48px;cursor:pointer;padding-block:12px;color:var(--pc-gold);border-top:1px solid var(--pc-line)}
 @media(min-width:600px){.pg-actions{grid-template-columns:repeat(4,minmax(0,1fr))}.pg-garden .pg-action{flex-direction:column;gap:4px;min-height:82px}.pg-stage{min-height:246px}.pg-pet{width:236px;height:236px}}
-@media(prefers-reduced-motion:reduce){.pg-body{animation:none}.pg-garden button:active:not(:disabled){transform:none}}
+@media(prefers-reduced-motion:reduce){.pg-pet,.pg-pet .pg-body{animation:none!important}.pg-garden button:active:not(:disabled){transform:none}}

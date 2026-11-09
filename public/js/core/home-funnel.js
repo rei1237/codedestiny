@@ -336,8 +336,7 @@
   }
 
   // Keep one authoritative instance of every established home surface.
-  // The same profile node is used on home and temporarily borrowed by its sheet.
-  move('#dpMasterCard', 'cdhPetGardenHost');
+  // The profile sheet borrows the card from its hidden storage.
   // These start hidden, so relocating them preserves initial layout and script order.
   move('#featureBegin', 'cdhCollections');
   move('#inputPage > .feature-card-grid', 'cdhCollections');

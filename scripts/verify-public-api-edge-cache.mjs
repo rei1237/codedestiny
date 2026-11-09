@@ -262,7 +262,7 @@ function runSelfTest() {
     ],
     [
       "reviews: 캐시 키에 userId 를 섞음",
-      () => auditReviews(base.reviews.replace("key: `reviews:summary:v1:", "key: `reviews:summary:v1:${userId}:")),
+      () => auditReviews(base.reviews.replace(/key: `(reviews:summary:v\d+:)/, "key: `$1${userId}:")),
       /캐시 키에 'userId' 이 들어갔다/,
     ],
     [

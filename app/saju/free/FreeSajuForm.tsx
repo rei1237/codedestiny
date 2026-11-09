@@ -2,9 +2,11 @@
 import {useState,type FormEvent} from "react";
 import {computeFreeSaju,preloadFreeSajuEngine} from "@/lib/free-saju/engine";
 import type {FreeSajuReading} from "@/lib/free-saju/compute";
+import {birthDateTextInputProps} from "@/lib/birthDateInputProps";
 import {elementBalanceLine} from "@/lib/free-saju/copy";
 
 export default function FreeSajuForm() {
+  const [birthDate,setBirthDate]=useState("");
   const [reading,setReading]=useState<FreeSajuReading|null>(null);
   const [pending,setPending]=useState(false), [error,setError]=useState("");
   async function submit(e:FormEvent<HTMLFormElement>) {
@@ -20,7 +22,7 @@ export default function FreeSajuForm() {
     <h2 id="quick-chart-title" className="text-xl font-bold">생년월일로 내 명식 보기</h2>
     <p className="my-3">서울 기준으로 계산해요. 출생시각을 모르면 비워 두세요.</p>
     <form onSubmit={submit} onFocus={()=>{void preloadFreeSajuEngine().catch(()=>{});}} className="flex flex-wrap items-end gap-3">
-      <label>생년월일<input className="block rounded-xl border p-2" name="date" type="date" required/></label>
+      <label>생년월일<input className="block rounded-xl border p-2" name="date" {...birthDateTextInputProps(birthDate,setBirthDate)} required/></label>
       <label>달력<select className="block rounded-xl border p-2" name="calendar"><option value="solar">양력</option><option value="lunar">음력</option><option value="leap">음력 윤달</option></select></label>
       <label>출생시각 (선택)<input className="block rounded-xl border p-2" name="time" type="time"/></label>
       <button className="rounded-full bg-[#39304e] px-4 py-2 text-white" disabled={pending}>{pending?"계산 중":"명식 보기"}</button>

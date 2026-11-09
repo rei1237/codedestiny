@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { JSDOM } from 'jsdom';
 import { mountProfileDiary } from '../../js/core/profile-diary.mjs';
 
-test('diary opens from the garden, preserves one live frame on close, restores focus and flushes before another profile', () => {
+test('diary opens from the garden, preserves one live frame on close, restores focus and flushes before another profile', async () => {
   const dom = new JSDOM('<main><div data-pc-diary-host></div></main>',{url:'https://example.test/ggulggul/'});
   const {window}=dom, doc=window.document;
   window.HTMLDialogElement.prototype.showModal=function(){this.open=true;};
@@ -30,7 +30,7 @@ test('diary opens from the garden, preserves one live frame on close, restores f
   window.dispatchEvent(new window.MessageEvent('message',{origin:window.location.origin,source:frame.contentWindow,data:{type:'cd:diary-close'}}));
   assert.equal(book.open,false);
   host.querySelector('button').click();
-  controller.abort(); assert.equal(book.open,false);
+  controller.abort(); await Promise.resolve(); assert.equal(book.open,false);
   let flushed=0; frame.contentWindow.addEventListener('cd:diary-flush',()=>flushed++);
   const second=new window.AbortController();
   mountProfileDiary(host,{profileId:'two',signal:second.signal});

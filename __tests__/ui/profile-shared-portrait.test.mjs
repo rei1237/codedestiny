@@ -22,15 +22,11 @@ async function read(pet,fail=false){
  return{portrait:await reader({id:'mongo-id',profileId:'saved-profile'}),calls};
 }
 function render(portrait){return renderToStaticMarkup(React.createElement(Header,{journey:{status:'ready',profile:{id:'saved-profile',name:'친구'},progress:null,portrait,portraitFailed:false,profileStatus:'ready',retry(){}}}));}
-test('the compact home portrait renders the same stored pet DNA, not a shared species fallback',async()=>{
- const {portrait,calls}=await read(stored);assert.ok(calls.includes('/api/rpg/pet?profileId=saved-profile'));assert.deepEqual(portrait.pet,stored);
- const html=render(portrait);assert.ok(html.includes('pg-outfit-headwear'));assert.ok(html.includes('--pet-pattern:66.66666666666667%'));assert.ok(!html.includes('/existing-species-sprite.webp'));
-});
-test('the unique home portrait keeps the authored mascot and unhatched profiles show an egg',async()=>{
- const {portrait}=await read({...stored,speciesId:'yeongnyangi',name:'영냥이',unique:true,coat:'natural'});
- const html=render(portrait);assert.ok(html.includes('pg-pet--yeongnyangi'));assert.ok(!html.includes('pg-outfit'));
- assert.ok(render((await read(null)).portrait).includes('아직 부화하지 않은 달빛 알'));
-});
-test('a failed companion read reports failure rather than inventing a common duplicate portrait',async()=>{
- await assert.rejects(()=>read(null,true),/companion-unavailable/);
+test('daily surface renders a profile without reading or displaying any companion',async()=>{
+ for(const pet of [stored,{...stored,speciesId:'yeongnyangi',unique:true},null]){
+   const {portrait,calls}=await read(pet,true);
+   assert.ok(!calls.some(path=>path.includes('/rpg/pet')));
+   const html=render(portrait);
+   assert.ok(html.includes('을묘'));assert.ok(!html.includes('pg-pet'));assert.ok(!html.includes('부화'));
+ }
 });

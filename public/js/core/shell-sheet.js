@@ -17,6 +17,8 @@
   if (window.CodeDestinyShellSheet) return;
 
   var openers = {};
+  var bottomMyTrigger = null;
+  var petProfilePending = false;
   var scrollYAtOpen = {};
 
   function lockKey(id) { return 'shell-sheet:' + id; }
@@ -52,6 +54,10 @@
     if (sheet.open) return true;
     hoist(sheet);
     openers[id] = opener || document.activeElement || null;
+    if (id === 'cdAccountSheet') {
+      sheet.dataset.bottomMy = String(Boolean(bottomMyTrigger && window.self === window.top));
+      bottomMyTrigger = null;
+    }
     scrollYAtOpen[id] = window.scrollY || 0;
     if (typeof window.__cdLockBodyScroll === 'function') window.__cdLockBodyScroll(lockKey(id));
     if (typeof sheet.showModal === 'function') {
@@ -126,10 +132,15 @@
   // 닫기만 하고 기본 동작·다른 처리기는 그대로 진행한다.
   window.addEventListener('click', function (event) {
     var target = event.target;
+    bottomMyTrigger = target?.closest?.('#cdMobileBottomNav [data-nav-key="my"]') || null;
+    petProfilePending = false;
     var sheet = target && target.closest && target.closest('dialog[data-cd-sheet][open]');
     if (!sheet) return;
     var go = target.closest('a[href],[data-action],[data-pvw-paid],[data-pvw-free]');
-    if (go && sheet.contains(go) && !go.hasAttribute('data-cd-sheet-keep')) close(sheet.id);
+    if (go && sheet.contains(go) && !go.hasAttribute('data-cd-sheet-keep')) {
+      petProfilePending = sheet.id === 'cdAccountSheet' && sheet.dataset.bottomMy === 'true' && go.dataset.action === 'dpOpenList';
+      close(sheet.id);
+    }
   }, true);
 
   document.addEventListener('click', function (event) {
@@ -148,6 +159,11 @@
   window.cdOpenAccount = function () { return window.CodeDestinyShellSheet.open('cdAccountSheet'); };
 
   window.CodeDestinyShellSheet = {
+    takePetProfileEntry: function () {
+      var enabled = petProfilePending;
+      petProfilePending = false;
+      return enabled;
+    },
     open: function (id, opener) { var s = sheetOf(id); if (s) bind(s); return open(id, opener); },
     close: close,
     isOpen: function (id) { var s = sheetOf(id); return !!(s && s.hasAttribute('open')); },

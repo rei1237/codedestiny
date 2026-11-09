@@ -183,6 +183,7 @@
 /public/js/core/profile-diary.mjs
 /public/js/core/profile-element-badge.mjs
 /public/js/core/profile-honey-manager.mjs
+/public/js/core/profile-pet-anchors.mjs
 /public/js/core/profile-pet-appearance.mjs
 /public/js/core/profile-pet-card.mjs
 /public/js/core/profile-pet.mjs
@@ -367,11 +368,9 @@
 /public/styles/mobile-lite.css
 /public/styles/mobile-totem-flower-fix.css
 /public/styles/moonlit-birth-form.css
-/public/styles/my-garden.css
 /public/styles/pass-benefits.css
 /public/styles/press-coverage.css
 /public/styles/profile-characters.css
-/public/styles/profile-pet.css
 /public/styles/pwa-lifecycle.css
 /public/styles/recipe-entry.css
 /public/styles/recommendations.css

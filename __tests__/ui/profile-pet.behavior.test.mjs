@@ -58,7 +58,7 @@ test('잠자기·깨우기는 전용 시트로 전환하며 보상 API를 호출
   f.target.querySelector('[data-pet-action="sleep"]').click();
   assert.ok(f.target.querySelector('.pg-pet--sleep').getAttribute('style').includes('rabbit-sleep.webp'));
   f.target.querySelector('[data-pet-action="sleep"]').click();
-  assert.ok(f.target.querySelector('.pg-pet--idle')); assert.equal(f.calls.length, before);
+  assert.ok(f.target.querySelector('.pg-pet--wake')); assert.equal(f.calls.length, before);
 });
 test('서버가 알려준 전용 계정에만 영냥이를 자동 연결한다', async () => {
   const f = fixture({ exclusiveSpecies: 'yeongnyangi' }); await f.run;

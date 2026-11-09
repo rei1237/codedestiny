@@ -355,7 +355,8 @@ async function assertEssentials(page, label) {
       assert.ok(await member.locator('#dpMasterCardHost .pc-growth-details').evaluate(details => details.open), 'growth missions are visible when the profile opens');
       assert.ok(await member.locator('#dpMasterCardHost #dpMasterCard .dp-lvl').isVisible(), 'level benefits remain available under My');
     await member.locator('#dpListSheet .dp-sheet-close').click();
-      await member.waitForFunction(() => document.querySelector('#cdhPetGardenHost #dpMasterCard'));
+      await member.waitForFunction(() => document.querySelector('#dpMasterCardStorage[hidden] #dpMasterCard'));
+    assert.equal(await member.locator('#cdhPetGardenHost').count(), 0);
     results.push({ memberControls: true, profileCardUnderMy: true, mutations, mockOnly: true });
     await member.close();
   } finally {

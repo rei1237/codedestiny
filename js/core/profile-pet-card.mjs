@@ -1,3 +1,4 @@
+import { pawOffsets } from './profile-pet-anchors.mjs';
 import { PET_EGGS, PET_CARE_HONEY, petArtUrl, petReaction } from './profile-pet.mjs';
 import { adoptHoneyManager, petBond } from './profile-honey-manager.mjs';
 import { petAppearanceKey, PET_TRIM_HUES, petCharmMarkup } from './profile-pet-appearance.mjs';
@@ -19,7 +20,10 @@ export function petSpriteMarkup(pet, action = 'idle') {
   const look = !unique && petAppearanceKey(pet.appearance) ? pet.appearance : null;
   const tile = index => '--part-x:' + (index % 4 * 100 / 3) + '%;--part-y:' + (Math.floor(index / 4) * 100 / 3) + '%';
   const outfit = look ? '<span class="pg-outfit" style="--pet-trim:' + PET_TRIM_HUES[look.trim] + 'deg"><span class="pg-outfit-headwear" data-part="' + look.headwear + '" style="' + tile(look.headwear) + '"></span><span class="pg-outfit-neckwear" style="' + tile(look.neckwear) + '"></span><span class="pg-outfit-prop" style="' + tile(look.prop) + '"></span><span class="pg-outfit-charm">' + petCharmMarkup(look.charm) + '<span class="pg-outfit-stamp"></span></span></span>' : '';
+  const start = sleeping ? 12 : row * 4;
+  const frames = (pawOffsets[pet.speciesId] || []).slice(start, start + 4);
   const style = [
+    ...frames.map(([x,y], i) => '--paw-' + i + ':' + x + '% ' + y + '%'),
     '--pet-body:url(' + source + ')', '--pet-row:' + (row * 50) + '%',
     '--pet-idle-duration:' + (4.8 + pet.traits.expression * .8) + 's', '--pet-idle-delay:' + (-pet.traits.expression * .4) + 's',
     '--pet-pattern:' + ((look?.pattern ?? pet.traits.pattern) * 100 / 3) + '%', '--pet-accessory:' + (pet.traits.accessory * 100 / 7) + '%',
@@ -107,7 +111,19 @@ export async function mountPetGarden(target, { profileId, preview, owner, api, c
     if (button.hasAttribute('data-pet-retry')) { busy = true; draw(); try { await refresh(); } finally { busy = false; draw(); } return; }
     const action = button.dataset.petAction;
     if (action === 'fortune') { fortuneOpen = !fortuneOpen; draw(); view.querySelector('[data-pet-action="fortune"]')?.focus({ preventScroll: true }); return; }
-    if (action === 'sleep') { clearTimeout(timer); animation = animation === 'sleep' ? 'idle' : 'sleep'; draw(); view.querySelector('[data-pet-action="sleep"]')?.focus({ preventScroll: true }); return; }
+    if (action === 'sleep') {
+      clearTimeout(timer);
+      animation = animation === 'sleep' ? 'wake' : 'sleep';
+      draw();
+      view.querySelector('[data-pet-action="sleep"]')?.focus({ preventScroll: true });
+      if (animation === 'wake') timer = setTimeout(() => {
+        if (!valid()) return;
+        const sprite = view.querySelector('.pg-pet--wake');
+        animation = 'idle';
+        if (sprite) sprite.classList.replace('pg-pet--wake', 'pg-pet--idle');
+      }, 800);
+      return;
+    }
     if (!owner) return;
     loadVersion++; busy = true; failure = ''; note = ''; draw();
     const focusSelector = action ? '[data-pet-action="' + action + '"]' : '[data-pet-action="feed"]';
