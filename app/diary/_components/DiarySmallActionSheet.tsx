@@ -6,6 +6,8 @@ import { useDiaryToday, useDiaryWriter } from "./DiaryStoreProvider";
 import { addTodo } from "../_lib/ext-writes";
 import { pickSmallAction, smallActionsFor, type DiarySmallAction } from "../_lib/small-action-pool";
 import { dayGroupOf } from "@/lib/diary/fortune-adapter";
+import { buildDiaryDayDetail } from "../_lib/day-copy";
+import { dayGroupOf } from "@/lib/diary/fortune-adapter";
 import styles from "../_styles/diary.module.css";
 
 /**
@@ -41,7 +43,8 @@ const DIARY_SMALL_ACTION_TEXT = {
 const copy = DIARY_SMALL_ACTION_TEXT.ko;
 
 export default function DiarySmallActionSheet({ onClose }: { onClose: () => void }) {
-  const { hydrated, ymd, chart } = useDiaryToday();
+  const { hydrated, ymd, chart, fortune } = useDiaryToday();
+  const reading = buildDiaryDayDetail(fortune, dayGroupOf(chart, ymd));
   const { updateExtDay } = useDiaryWriter();
 
   const [picked, setPicked] = useState<{ action: DiarySmallAction; index: number } | null>(null);
@@ -79,6 +82,7 @@ export default function DiarySmallActionSheet({ onClose }: { onClose: () => void
         </button>
       </header>
 
+      {reading && <div className={styles.flowList}><strong>{ymd} · {reading.grade.name}</strong><p>{reading.read}</p></div>}
       <p className={styles.emptySmall}>{copy.lead}</p>
 
       {picked ? (
