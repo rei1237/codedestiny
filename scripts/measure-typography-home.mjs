@@ -14,7 +14,7 @@ await new Promise(r=>server.listen(0,'127.0.0.1',r));base='http://127.0.0.1:'+se
 const browser=await chromium.launch({headless:true});
 try {
   for(const variant of Array.from({length:Number(process.argv[4]||5)},()=>['before','after']).flat()) {
-    servedVariant=variant;const context=await browser.newContext({viewport:{width:390,height:844},serviceWorkers:'block',reducedMotion:'reduce'});
+    servedVariant=variant;console.log('[measure]',variant,rows.length+1);const context=await browser.newContext({viewport:{width:390,height:844},serviceWorkers:'block',reducedMotion:'reduce'});
     await context.addInitScript(()=>{
       localStorage.setItem('cd:first-visit:v1:ggulggul:guest',JSON.stringify({status:'dismissed',step:0}));
       sessionStorage.setItem('cd_signature_consult_session_closed_v1','1');
@@ -31,13 +31,13 @@ try {
     const page=await context.newPage(),cdp=await context.newCDPSession(page);
     await cdp.send('Network.enable');await cdp.send('Network.setCacheDisabled',{cacheDisabled:true});
     await cdp.send('Network.emulateNetworkConditions',{offline:false,latency:150,downloadThroughput:200000,uploadThroughput:95000});
-    await page.goto(base+'/static/index.html',{waitUntil:'load',timeout:120000});
-    await page.evaluate(()=>document.fonts.ready);
+    await page.goto(base+'/static/index.html',{waitUntil:'commit',timeout:30000});
+    await page.waitForTimeout(30000);
     await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
-    rows.push(await page.evaluate(({variant,before})=>({variant,before,viewport:390,latencyMs:150,downloadBytesPerSecond:200000,coldCache:true,externalRequests:'blocked for both variants; CSS/JS/HTML and binaries use the same local HTTP server and network emulation',...window.__typePerformance,fontBytes:performance.getEntriesByType('resource').filter(e=>/\.(woff2?|ttf)(?:\?|$)/.test(e.name)).reduce((sum,e)=>sum+e.transferSize,0)}),{variant,before}));
+    rows.push(await page.evaluate(({variant,before})=>({variant,before,viewport:390,collectionWindowMs:30000,latencyMs:150,downloadBytesPerSecond:200000,coldCache:true,externalRequests:'blocked for both variants; CSS/JS/HTML and binaries use the same local HTTP server and network emulation',...window.__typePerformance,fontBytes:performance.getEntriesByType('resource').filter(e=>/\.(woff2?|ttf)(?:\?|$)/.test(e.name)).reduce((sum,e)=>sum+e.transferSize,0)}),{variant,before}));
     await context.close();
   }
-} finally {await browser.close();await new Promise(r=>server.close(r));}
+} finally {await browser.close();server.closeAllConnections();await new Promise(r=>server.close(r));}
 await mkdir('build-cache/typography-home',{recursive:true});
 await writeFile('build-cache/typography-home/performance.json',JSON.stringify(rows,null,2));
 console.log(JSON.stringify(rows));
