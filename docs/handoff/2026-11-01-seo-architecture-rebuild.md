@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-11-09
-next: "Bing 핵심 원자료8CSV/14전사·JPEG쌍 수집, manifest487항목. 추가269파일해시/중복검증 통과. 사용자 Toss 해소 전 push 보류 유지. 새 수집 근거를④⑤검토에 반영; GA4추가기간·SERP/Trends·공식CI/fresh산출물/운영승격은 남음."
+next: "Bing 권고4유형과서버오류2건후속완료. 현재50HTML description/ALT결함재현없음,원자료506항목. Toss해소전push보류유지. 미노출166URL·타로케일404경고전수·GA4/SERP/Trends·freshCI/운영승격은남음."
 ---
 
 # SEO 아키텍처 재구축
@@ -19,6 +19,15 @@ next: "Bing 핵심 원자료8CSV/14전사·JPEG쌍 수집, manifest487항목. �
 4. 실제 새 수집본은 `D:\Development\seo-data\code-destiny\2026-11-09\`다. `README.md`와 `manifest.csv`를 정본으로 읽는다. 이전 날짜 폴더로 소급 표기하지 않는다.
 
 ## 지금 상태
+
+### 2026-11-09 남은 Bing 권장 사항 후속
+
+- 사용자 요청 “남은 권장 작업도 진행해”. Bing권고대상확보와현재재현검증을진행했고Toss실패해소전push보류를유지했다. 기존Chrome4탭은Debugger unattached라같은브라우저새탭1473085830으로문서화된복구,로그인재요청없음. CUA완료summary1회.
+- 원본5CSV·전사/JPEG7쌍추가:짧은description예시50(전체216의상한),ALT18,insights40416,과거522각1. Bing합계13CSV/21쌍,manifest506.
+- 현재50HTML모두200,description1개씩59~93자·고유50개,alt속성누락0. 빈alt를누락으로잘못세지않음. description누락2URL은www이미지301→200 image/webp. 서비스문구나alt를의미없이덧붙이지않음.
+- 기록된서버오류2개추적: /flower/destiny7/12의522→현재301/200, /en/insights/middle-east-divination-traditions-deep-guide7/26의522→현재404. insights폴더과거40416중용신1개는현재301/200,나머지15개404. 현재404총16경로는 app/lib/content/config/worker/scripts/index.html/public/_redirects의정확한경로검색과읽은50HTML에서내부링크0. 존재하지않는콘텐츠추정복원/무분별redirect안함.
+- 외부링크는개별URL없는일반권고라유해링크증거나disavow근거아님. 외부연락/구매/제출/계정변경없음. 도구미노출166URL·타로케일404경고전수·JS생성이미지는미검증으로남김.
+- 외부정본 bundle-4/bing-recommendations-disposition-20261109.md/json, bing-recommendations-live-20261109.json와HTML50개, bing-crawl-live-20261109.json. 직접HTTP읽기전용,배포SHA조회나운영승격없음. 문서상태만로컬커밋한다.
 
 ### 2026-11-09 크롬 복구 후 Bing 수집
 

@@ -5410,14 +5410,14 @@
       "status": "held; no follow-up push"
     },
     "productionPromotion": "Not dispatched by this session; new approval required",
-    "rawManifestRows": 487,
+    "rawManifestRows": 506,
     "indexedInformationReports": 21,
     "browser": {
       "provider": "Chrome extension",
       "browserId": "4",
-      "tabId": "1473085815",
+      "tabId": "1473085830",
       "site": "https://www.bing.com/webmasters?siteUrl=https://code-destiny.com/",
-      "status": "Core Bing evidence collected; browser task ended after repeated detailed-report timeouts",
+      "status": "Fresh same-browser tab recovered; all four recommendation types and both server-error paths collected; CUA phase completed",
       "egoSpace65": "Existing space retained, not used for Bing collection; p2 closed. Do not replay rounds220/221."
     },
     "lastLocalPrePush": {
@@ -5431,14 +5431,14 @@
       "workingTree": "clean after generator verification restored mirrors"
     },
     "additionalRawValidation": {
-      "records": 233,
-      "unique": 233,
+      "records": 288,
+      "unique": 288,
       "sha256Mismatches": 0
     },
     "bingCollection": {
       "date": "2026-11-09",
-      "nativeCsv": 8,
-      "capturePairs": 14,
+      "nativeCsv": 13,
+      "capturePairs": 21,
       "keywordRows": 436,
       "pageRows": 122,
       "dailyRows": 90,
@@ -5451,8 +5451,19 @@
       "inspectedUrls": 5,
       "settingsChanged": false,
       "push": "held per user",
-      "limitation": "Additional recommendation URL details and recursive crawler errors incomplete after repeated Chrome response timeouts",
-      "evidenceRoot": "D:/Development/seo-data/code-destiny/2026-11-09/bing"
+      "limitation": "Short-description216 exposes only50 examples; other166 not identified. Other locale404 warnings not exhaustively exported; SSR excludes dynamically created images.",
+      "evidenceRoot": "D:/Development/seo-data/code-destiny/2026-11-09/bing",
+      "recommendationFollowup": {
+        "checkedPublicHtml": 50,
+        "all200": true,
+        "missingDescriptions": 0,
+        "missingAltPages": 0,
+        "descriptionMinimum": 59,
+        "descriptionMaximum": 93,
+        "uniqueDescriptions": 50,
+        "remaining404Paths": 16,
+        "linksToThose404WithinCheckedHtml": []
+      }
     }
   }
 }
