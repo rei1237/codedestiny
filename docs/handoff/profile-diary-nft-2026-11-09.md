@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-09
-next: 최종 check:fast(exec45391) 결과 확인 후 committed-tree pre-push, HEAD:main 전달·CI1회 확인·승인된 production dispatch1회·워크트리 배수
+next: 이벤트 명시화 후 check:fast(exec24559) 결과 확인, 해당 수정 커밋·pre-push·HEAD:main 전달·CI1회 확인·승인된 production dispatch1회·워크트리 배수
 ---
 
 # 달빛 정원 다이어리와 일반 캐릭터 외형 조합
@@ -10,6 +10,7 @@ next: 최종 check:fast(exec45391) 결과 확인 후 committed-tree pre-push, HE
 이 문서와 최신 git 상태를 읽고 next부터 계속한다. 승인 범위를 반복 확인하지 않는다.
 
 ## 지금 상태
+- 구현 복구 지점은 8a68f11decfc300068a30fca75b56f6a445ac1d3. 최종 critical 실행45391은 기존 고아 이벤트 정적 검사에서 `cd:diary-open`의 매개변수 발신을 인식하지 못해 중단했다(그 앞 paid/lint/typecheck 통과). notify에서 두 발신 이름을 명시했고 정적 배선+실제 DOM 행동7개 모두 통과. 검사 면제·약화 없음. 미러 동기화 후 기본 변경 기반 check:fast를24559로 다시 실행 중(.tmp/diary-check-fast-delivery.log, 계획 diary-event-plan.log). 이전 critical 전체를 통과했다고 보고하지 않는다.
 - **최신 정본(아래 초기 진행 메모보다 우선):** 소스·실제 UI 구현 완료. Ego73을 finish({keep:[]})로 닫았고 mock 서버18279 종료. 최종 독립 시각 검수 SHIP(작은 공용 프로필·유니크·알·정원·먹기/놀이/잠자기·stamp 모두 회귀 없음).
 - CI 준비 복구는 db66c6f71 + 3604d30057179e224261a556a3ce10077acc28a7. 두 번째는 기존 upstream billing runtime 캐시 핀 변경에 빠진 동결 해시 1개만 공식 도구로 갱신했다. 결제 로직·허용 범위는 바꾸지 않았다. verify:payment-freeze 통과.
 - 최종 sync:public·sitemap:generate·verify:payment-freeze 통과 후 check:fast 자동 critical 실행 중(exec45391). 계획/로그 .tmp/diary-check-{plan,fast}-final.log. 이전 첫 전체 실행은 기존 freeze 해시 오류 하나로 실패했으며 복구 후 재실행이다. 실행하지 않은 검사나 진행 중인 검사를 통과로 보고하지 않는다.
