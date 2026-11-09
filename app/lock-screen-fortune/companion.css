@@ -181,3 +181,119 @@
 .cd-companion[data-tone="night"] .cd-companion-daily select {color-scheme:dark}
 .cd-companion-daily select option {color:CanvasText;background:Canvas}
 .cd-lock-selector input[type="radio"] {accent-color:#d9bc87}
+
+/* 잠금화면 설정은 잠들기 전에도 편하게 읽히는 크림·로즈 테마로 분리한다. */
+.cd-settings-backdrop {
+  z-index:2147483001;
+  width:100%;max-width:none!important;margin:0!important;padding:0 12px;
+}
+.cd-settings-sheet {
+  --settings-ink:var(--cd-text,#3c1830);
+  --settings-muted:var(--cd-text-muted,#70445c);
+  --settings-paper:var(--cd-bg,#fffaf7);
+  --settings-card:var(--cd-surface,#fff);
+  --settings-soft:var(--cd-surface-2,#fff3f8);
+  --settings-line:var(--cd-line,rgba(60,24,48,.12));
+  --settings-accent:var(--cd-primary,#b31955);
+  --settings-accent-soft:var(--cd-accent-soft,#f4bed1);
+  box-sizing:border-box;width:min(100%,560px);max-width:560px!important;margin:0 auto!important;
+  border:1px solid var(--settings-line);border-bottom:0;border-radius:30px 30px 0 0;
+  background:var(--settings-paper);color:var(--settings-ink);
+  font-family:var(--font-body,"CodeDestinyBody",system-ui,sans-serif);
+  box-shadow:0 -14px 42px rgba(60,24,48,.18);
+  scrollbar-color:var(--settings-accent-soft) var(--settings-paper);
+}
+.cd-settings-sheet h2,.cd-settings-sheet .cd-settings-section-title,
+.cd-settings-sheet button:not([role="switch"]) {
+  font-family:"CodeDestinyDisplay",var(--font-body,"CodeDestinyBody",system-ui,sans-serif);
+}
+.cd-settings-sheet h2 {color:var(--settings-ink);font-size:1.28rem;line-height:1.35;letter-spacing:-.02em}
+.cd-settings-sheet .cd-settings-section-title {color:var(--settings-ink)}
+.cd-settings-sheet .cd-settings-description,
+.cd-settings-sheet [class~="text-slate-400"],
+.cd-settings-sheet [class~="text-slate-300"] {color:var(--settings-muted)}
+.cd-settings-sheet [class~="text-slate-100"],
+.cd-settings-sheet [class~="text-white"] {color:var(--settings-ink)}
+.cd-settings-handle {background:color-mix(in srgb,var(--settings-accent) 22%,white)}
+.cd-settings-sheet .cd-settings-close {
+  min-height:48px;width:48px;border:1px solid var(--settings-line);background:var(--settings-soft);
+  color:var(--settings-ink);font-size:1.45rem;line-height:1;
+}
+.cd-settings-sheet .cd-settings-row,
+.cd-settings-sheet [class~="bg-white/5"] {
+  border:1px solid var(--settings-line);background:var(--settings-card);
+}
+.cd-settings-sheet .cd-settings-description {line-height:1.65}
+.cd-settings-sheet .cd-settings-notice {padding:12px 14px;border:1px solid var(--settings-line);border-radius:16px;background:var(--settings-soft);color:var(--settings-ink)}
+.cd-settings-sheet .cd-settings-action,
+.cd-settings-sheet button:not([role="switch"]):not(.cd-settings-choice):not(.cd-settings-texture):not(.cd-settings-swatch):not(.cd-settings-background):not(.cd-talisman-apply) {
+  border:1px solid var(--settings-line);border-radius:16px;background:var(--settings-soft);color:var(--settings-ink);
+}
+.cd-settings-sheet .cd-settings-choice {
+  min-height:48px;padding:10px 14px;border:1px solid var(--settings-line);border-radius:999px;
+  background:var(--settings-card);color:var(--settings-ink);line-height:1.35;
+}
+.cd-settings-sheet button[aria-pressed="true"]:not(.cd-settings-texture):not(.cd-settings-swatch):not(.cd-settings-background) {
+  border-color:var(--settings-accent)!important;background:var(--settings-accent-soft)!important;
+  color:var(--settings-ink)!important;box-shadow:inset 0 0 0 1px var(--settings-accent),0 2px 6px rgba(60,24,48,.08);
+}
+.cd-settings-sheet button[aria-pressed="true"].cd-settings-texture,
+.cd-settings-sheet button[aria-pressed="true"].cd-settings-swatch,
+.cd-settings-sheet button[aria-pressed="true"].cd-settings-background {
+  border-color:var(--settings-accent)!important;box-shadow:0 0 0 3px var(--settings-accent-soft);
+}
+.cd-settings-sheet .cd-settings-texture {
+  color:var(--settings-ink)!important;white-space:nowrap;word-break:keep-all;overflow-wrap:normal;
+  padding-inline:4px;letter-spacing:-.02em;
+}
+.cd-settings-sheet .cd-settings-character {padding:8px;border-radius:20px}
+.cd-settings-sheet .cd-settings-character img {width:48px;height:48px}
+.cd-settings-sheet button[role="switch"] {position:relative;background:color-mix(in srgb,var(--settings-muted) 28%,white)}
+.cd-settings-sheet button[role="switch"]::before {background:color-mix(in srgb,var(--settings-muted) 36%,white);border-color:var(--settings-line)}
+.cd-settings-sheet button[role="switch"][aria-checked="true"]::before {background:var(--settings-accent-soft);border-color:var(--settings-accent)}
+.cd-settings-sheet button[role="switch"] span {background:white;box-shadow:0 1px 3px rgba(60,24,48,.2)}
+.cd-settings-sheet input[type="time"] {
+  min-height:48px;border-color:var(--settings-line);border-radius:14px;
+  background:var(--settings-card)!important;color:var(--settings-ink)!important;color-scheme:light!important;
+}
+.cd-settings-sheet input[type="range"] {accent-color:var(--settings-accent)}
+.cd-settings-sheet .cd-lock-selector {
+  gap:12px;padding:16px;border-color:var(--settings-line);border-radius:20px;background:var(--settings-soft);
+}
+.cd-settings-sheet .cd-lock-selector legend {padding:0 6px;color:var(--settings-ink);font-family:"CodeDestinyDisplay",var(--font-body,sans-serif);font-weight:700}
+.cd-settings-sheet .cd-lock-selector label {color:var(--settings-ink)}
+.cd-settings-sheet .cd-lock-selector label:has(input[type="radio"]) {
+  display:inline-flex;align-items:center;gap:8px;min-height:48px;padding:8px 12px;
+  border:1px solid var(--settings-line);border-radius:999px;background:var(--settings-card);
+}
+.cd-settings-sheet .cd-lock-selector input[type="radio"] {accent-color:var(--settings-accent)}
+.cd-settings-sheet .cd-lock-selector select {
+  min-height:48px;border:1px solid var(--settings-line);border-radius:14px;
+  background:var(--settings-card);color:var(--settings-ink);font:inherit;
+}
+.cd-settings-sheet .cd-talisman-picker {
+  border-color:var(--settings-line);border-radius:26px 26px 0 0;background:var(--settings-paper);color:var(--settings-ink);
+}
+.cd-settings-sheet .cd-talisman-picker header,.cd-settings-sheet .cd-talisman-picker footer {border-color:var(--settings-line)}
+.cd-settings-sheet .cd-talisman-picker-body {scrollbar-color:var(--settings-accent-soft) var(--settings-paper)}
+.cd-settings-sheet .cd-talisman-picker button[aria-pressed="true"],
+.cd-settings-sheet .cd-talisman-picker .cd-talisman-apply {
+  border-color:var(--settings-accent);background:var(--settings-accent-soft);color:var(--settings-ink);
+}
+.cd-settings-sheet .cd-talisman-picker .cd-talisman-apply {min-height:48px;border-radius:16px;box-shadow:none}
+.cd-settings-sheet :focus-visible {outline:3px solid var(--settings-accent);outline-offset:3px}
+.cd-companion .cd-lock-settings {
+  border-color:var(--yh-metal);background:color-mix(in srgb,var(--letter-paper) 76%,transparent);
+  box-shadow:0 4px 12px rgba(34,24,35,.14);
+}
+@media (hover:hover) {
+  .cd-settings-sheet button:not(:disabled):not([role="switch"]):hover {filter:brightness(.98);transform:translateY(-1px)}
+}
+@media (min-width:700px) {
+  .cd-settings-backdrop {align-items:center;padding:20px}
+  .cd-settings-sheet {border-bottom:1px solid var(--settings-line);border-radius:30px}
+  .cd-settings-sheet .cd-talisman-picker {border-radius:26px}
+}
+@media (prefers-reduced-motion:reduce) {
+  .cd-settings-sheet button {transition:none!important;scroll-behavior:auto}
+}

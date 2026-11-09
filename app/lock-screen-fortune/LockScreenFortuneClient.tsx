@@ -1137,10 +1137,10 @@ function ContentSelector({prefs, copy, onApply}: {prefs: LockPrefs; copy: LockSc
   if (group === "yeoni") kinds.push("flower");
   kinds.push("quote");
   const preview = getDailyLockScreenContent(new Date(), prefs.affirmationCats);
-  return <fieldset className="cd-lock-selector"><legend>{ko ? "잠금 화면에 표시할 항목" : "Lock screen content"}</legend>
+  return <fieldset className="cd-lock-selector cd-settings-content-selector"><legend>{ko ? "잠금 화면에 표시할 항목" : "Lock screen content"}</legend>
     <p>{ko ? "현재 적용 중" : "Currently applied"} · {labels[prefs.displayKind]}</p>
     <div>{kinds.map(value => <label key={value}><input type="radio" name="lock-display-kind" checked={kind === value} onChange={() => setKind(value)} /> {labels[value]}</label>)}</div>
-    <button type="button" onClick={() => setPicking(true)}>{charm.character} · {ko ? resolveTalisman(id).character.name : resolveTalisman(id).character.en}</button>
+    <button type="button" className="cd-settings-choice" onClick={() => setPicking(true)}>{charm.character} · {ko ? resolveTalisman(id).character.name : resolveTalisman(id).character.en}</button>
     {picking && <TalismanPicker id={id} locale={locale} onClose={() => setPicking(false)} onApply={next => {
       const nextGroup = resolveTalisman(next).character.group;
       if ((kind === "daily" && nextGroup !== "cat") || (kind === "flower" && nextGroup !== "yeoni")) setKind("talisman");
@@ -1154,7 +1154,7 @@ function ContentSelector({prefs, copy, onApply}: {prefs: LockPrefs; copy: LockSc
       </select>
     </label>}
     {kind === "talisman" ? <TalismanArt id={id} locale={locale} /> : <p>{kind === "quote" ? (ko ? preview.quote.text : extra.ownLine) : kind === "affirmation" ? (ko ? preview.affirmation : extra.ownAffirmation) : kind === "flower" ? preview.flower.name + " · " + preview.flower.meaning : extra.privateSummary}</p>}
-    <button type="button" className="cd-talisman-apply" onClick={() => onApply({displayKind: kind, talismanId: id})}>{ko ? "잠금 화면에 적용" : "Apply to lock screen"}</button>
+    <button type="button" className="cd-settings-action cd-talisman-apply" onClick={() => onApply({displayKind: kind, talismanId: id})}>{ko ? "잠금 화면에 적용" : "Apply to lock screen"}</button>
   </fieldset>;
 }
 
@@ -1188,17 +1188,17 @@ function SettingsSheet({
   }, []);
   const title = sheet === "settings" ? copy.sheetTitleSettings : sheet === "theme" ? copy.sheetTitleTheme : sheet === "alarms" ? copy.sheetTitleAlarms : copy.sheetTitleReadlist;
   return (
-    <div className="fixed inset-0 z-[2147483000] flex items-end justify-center bg-black/45 backdrop-blur-sm" onClick={() => setSheet("none")}>
+    <div className="cd-settings-backdrop fixed inset-0 z-[2147483000] flex items-end justify-center bg-black/45 backdrop-blur-sm" onClick={() => setSheet("none")}>
       <div
-        className="w-full max-w-md rounded-t-3xl bg-[#141024] p-5 text-slate-100 shadow-2xl"
+        className="cd-settings-sheet w-full max-w-md rounded-t-3xl p-5 shadow-2xl"
         style={{ paddingBottom: "calc(1.25rem + env(safe-area-inset-bottom, 0px))", maxHeight: "88dvh", overflowY: "auto" }}
         ref={dialogRef} role="dialog" aria-modal="true" aria-label={title}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="mx-auto mb-4 h-1.5 w-12 rounded-full bg-white/20" />
+        <div className="cd-settings-handle mx-auto mb-4 h-1.5 w-12 rounded-full" />
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-lg font-black">{title}</h2>
-          <button type="button" aria-label={copy.closeAriaLabel} onClick={() => setSheet("none")} className="grid h-12 w-12 place-items-center rounded-full bg-white/10 text-lg">×</button>
+          <button type="button" aria-label={copy.closeAriaLabel} onClick={() => setSheet("none")} className="cd-settings-close grid h-12 w-12 place-items-center rounded-full text-lg">×</button>
         </div>
 
         {sheet === "settings" ? (
@@ -1206,13 +1206,13 @@ function SettingsSheet({
             <Row label={copy.lockScreenOnLabel} desc={extra.enabled}>
               <Toggle label={copy.lockScreenOnLabel} on={prefs.enabled} onChange={(v) => updatePrefs({ enabled: v })} />
             </Row>
-            <p className="text-sm leading-relaxed">{extra.privacy}</p>
-            {notificationsAllowed === false && <p role="status" className="text-sm">{extra.blocked}</p>}
+            <p className="cd-settings-description text-sm leading-relaxed">{extra.privacy}</p>
+            {notificationsAllowed === false && <p role="status" className="cd-settings-notice text-sm">{extra.blocked}</p>}
             <ContentSelector prefs={prefs} copy={copy} onApply={patch => { updatePrefs(patch); setSheet("none"); }} />
             <Row label={extra.quiet}><Toggle label={extra.quiet} on={prefs.quietEnabled} onChange={v => updatePrefs({ quietEnabled: v })} /></Row>
             {prefs.quietEnabled && <div className="grid grid-cols-2 gap-3"><label>{extra.start}<input aria-label={extra.start} type="time" value={prefs.quietStart} onChange={e => updatePrefs({ quietStart: e.target.value })} className="block min-h-12 w-full rounded-lg bg-white/10 p-2" /></label><label>{extra.end}<input aria-label={extra.end} type="time" value={prefs.quietEnd} onChange={e => updatePrefs({ quietEnd: e.target.value })} className="block min-h-12 w-full rounded-lg bg-white/10 p-2" /></label></div>}
-            <button type="button" className="min-h-12 rounded-xl bg-white/10 px-3" onClick={() => { void nativeLock()?.testNotification?.().then(r => setNotice(r.posted ? extra.posted : extra.blocked)).catch(() => setNotice(extra.blocked)); }}>{extra.test}</button>
-            <button type="button" className="min-h-12 rounded-xl bg-white/10 px-3" onClick={() => { void nativeLock()?.openNotificationSettings?.(); }}>{extra.system}</button>
+            <button type="button" className="cd-settings-action min-h-12 rounded-xl px-3" onClick={() => { void nativeLock()?.testNotification?.().then(r => setNotice(r.posted ? extra.posted : extra.blocked)).catch(() => setNotice(extra.blocked)); }}>{extra.test}</button>
+            <button type="button" className="cd-settings-action min-h-12 rounded-xl px-3" onClick={() => { void nativeLock()?.openNotificationSettings?.(); }}>{extra.system}</button>
             {notice && <p role="status" className="text-sm">{notice}</p>}
             <div className="grid grid-cols-2 gap-3">
               <Stat label={copy.todayReadLabel} value={stats.todayRead} />
@@ -1247,13 +1247,13 @@ function SettingsSheet({
         {sheet === "theme" ? (
           <div className="grid gap-4">
             <div>
-              <p className="mb-1 text-sm font-bold text-slate-300">{copy.dailyFortuneSystemHeading}</p>
-              <p className="mb-2 text-[0.72rem] leading-relaxed text-slate-400">{copy.dailyFortuneSystemDesc}</p>
+              <p className="cd-settings-section-title mb-1 text-sm font-bold">{copy.dailyFortuneSystemHeading}</p>
+              <p className="cd-settings-description mb-2 text-[0.72rem] leading-relaxed">{copy.dailyFortuneSystemDesc}</p>
               <div className="flex flex-wrap gap-2">
                 {DAILY_FORTUNE_SYSTEMS.map((s) => {
                   const on = prefs.dailyFortuneSystem === s.key;
                   return (
-                    <button key={s.key} type="button" aria-pressed={on} onClick={() => updatePrefs({ dailyFortuneSystem: s.key })} className={`rounded-full border px-3 py-1.5 text-xs font-bold ${on ? "border-fuchsia-300 bg-fuchsia-500/25 text-white" : "border-white/12 bg-white/5 text-slate-300"}`}>
+                    <button key={s.key} type="button" aria-pressed={on} onClick={() => updatePrefs({ dailyFortuneSystem: s.key })} className={`cd-settings-choice rounded-full border px-3 py-1.5 text-xs font-bold ${on ? "border-fuchsia-300 bg-fuchsia-500/25 text-white" : "border-white/12 bg-white/5 text-slate-300"}`}>
                       {s.emoji} {systemLabel(getCurrentLoadingLocale(), s.key, s.label)}
                     </button>
                   );
@@ -1261,8 +1261,8 @@ function SettingsSheet({
               </div>
             </div>
             <div>
-              <p className="mb-1 text-sm font-bold text-slate-300">{copy.affirmationCatsHeading}</p>
-              <p className="mb-2 text-[0.72rem] leading-relaxed text-slate-400">{copy.affirmationCatsDesc}</p>
+              <p className="cd-settings-section-title mb-1 text-sm font-bold">{copy.affirmationCatsHeading}</p>
+              <p className="cd-settings-description mb-2 text-[0.72rem] leading-relaxed">{copy.affirmationCatsDesc}</p>
               <div className="flex flex-wrap gap-2">
                 {AFFIRMATION_CATEGORIES.map((c, categoryIndex) => {
                   const on = prefs.affirmationCats.includes(c.key);
@@ -1278,7 +1278,7 @@ function SettingsSheet({
                             : [...prefs.affirmationCats, c.key],
                         })
                       }
-                      className={`rounded-full border px-3 py-1.5 text-xs font-bold transition-colors ${on ? "border-fuchsia-300 bg-fuchsia-500/25 text-white" : "border-white/12 bg-white/5 text-slate-300"}`}
+                      className={`cd-settings-choice rounded-full border px-3 py-1.5 text-xs font-bold transition-colors ${on ? "border-fuchsia-300 bg-fuchsia-500/25 text-white" : "border-white/12 bg-white/5 text-slate-300"}`}
                     >
                       {categoryLabel(getCurrentLoadingLocale(), categoryIndex, c.label)}
                     </button>
@@ -1287,30 +1287,30 @@ function SettingsSheet({
               </div>
             </div>
             <div>
-              <p className="mb-2 text-sm font-bold text-slate-300">{copy.buttonTextureHeading}</p>
+              <p className="cd-settings-section-title mb-2 text-sm font-bold">{copy.buttonTextureHeading}</p>
               <div className="grid grid-cols-4 gap-2.5">
                 {BUTTON_STYLES.map((b) => (
-                  <button key={b.key} type="button" aria-pressed={prefs.buttonStyleKey === b.key} onClick={() => updatePrefs({ buttonStyleKey: b.key })} className={`h-12 rounded-xl border-2 text-xs font-bold ${prefs.buttonStyleKey === b.key ? "border-fuchsia-300" : "border-white/10"}`} style={pillStyle(b.key, true)}>{copy.buttonStyleLabel[b.key]}</button>
+                  <button key={b.key} type="button" aria-pressed={prefs.buttonStyleKey === b.key} onClick={() => updatePrefs({ buttonStyleKey: b.key })} className={`cd-settings-texture h-12 rounded-xl border-2 text-xs font-bold ${prefs.buttonStyleKey === b.key ? "border-fuchsia-300" : "border-white/10"}`} style={pillStyle(b.key, true)}>{copy.buttonStyleLabel[b.key]}</button>
                 ))}
               </div>
             </div>
             <div>
-              <p className="mb-2 text-sm font-bold text-slate-300">{copy.fontColorHeading}</p>
+              <p className="cd-settings-section-title mb-2 text-sm font-bold">{copy.fontColorHeading}</p>
               <div className="flex gap-2.5">
                 {FONT_COLORS.map((c) => (
-                  <button key={c.key} type="button" aria-pressed={prefs.fontColorKey === c.key} onClick={() => updatePrefs({ fontColorKey: c.key })} className={`h-11 flex-1 rounded-xl border-2 text-xs font-bold ${prefs.fontColorKey === c.key ? "border-fuchsia-300" : "border-white/10"}`} style={{ background: c.hex, color: c.key === "ink" ? "#fff" : "#20143a" }}>{copy.fontColorLabel[c.key]}</button>
+                  <button key={c.key} type="button" aria-pressed={prefs.fontColorKey === c.key} onClick={() => updatePrefs({ fontColorKey: c.key })} className={`cd-settings-swatch h-11 flex-1 rounded-xl border-2 text-xs font-bold ${prefs.fontColorKey === c.key ? "border-fuchsia-300" : "border-white/10"}`} style={{ background: c.hex, color: c.key === "ink" ? "#fff" : "#20143a" }}>{copy.fontColorLabel[c.key]}</button>
                 ))}
               </div>
             </div>
             <div>
-              <p className="mb-2 text-sm font-bold text-slate-300">{copy.fontSizeHeading(Math.round(prefs.fontScale * 100))}</p>
-              <p className="text-sm">{extra.textSize}</p><input aria-label={copy.fontSizeHeading(Math.round(prefs.fontScale * 100))} type="range" min={0.9} max={1.35} step={0.05} value={prefs.fontScale} onChange={(e) => updatePrefs({ fontScale: Number(e.target.value) })} className="w-full accent-fuchsia-400" />
+              <p className="cd-settings-section-title mb-2 text-sm font-bold">{copy.fontSizeHeading(Math.round(prefs.fontScale * 100))}</p>
+              <p className="cd-settings-description text-sm">{extra.textSize}</p><input aria-label={copy.fontSizeHeading(Math.round(prefs.fontScale * 100))} type="range" min={0.9} max={1.35} step={0.05} value={prefs.fontScale} onChange={(e) => updatePrefs({ fontScale: Number(e.target.value) })} className="w-full accent-fuchsia-400" />
             </div>
             <div>
-              <p className="mb-2 text-sm font-bold text-slate-300">{copy.backgroundHeading}</p>
+              <p className="cd-settings-section-title mb-2 text-sm font-bold">{copy.backgroundHeading}</p>
               <div className="grid grid-cols-2 gap-2.5">
                 {BACKGROUNDS.map((b) => (
-                  <button key={b.key} type="button" aria-pressed={prefs.backgroundKey === b.key} onClick={() => updatePrefs({ backgroundKey: b.key })} className={`h-20 rounded-2xl border-2 p-2 text-left text-xs font-black ${prefs.backgroundKey === b.key ? "border-fuchsia-300" : "border-white/10"}`} style={{ background: b.css, color: b.dark ? "#fff" : "#20143a" }}>{copy.backgroundLabel[b.key]}</button>
+                  <button key={b.key} type="button" aria-pressed={prefs.backgroundKey === b.key} onClick={() => updatePrefs({ backgroundKey: b.key })} className={`cd-settings-background h-20 rounded-2xl border-2 p-2 text-left text-xs font-black ${prefs.backgroundKey === b.key ? "border-fuchsia-300" : "border-white/10"}`} style={{ background: b.css, color: b.dark ? "#fff" : "#20143a" }}>{copy.backgroundLabel[b.key]}</button>
                 ))}
               </div>
             </div>
