@@ -1,23 +1,23 @@
 ---
-status: in-progress
+status: done
 updated: 2026-11-09
-next: 실행 중인 check:fast(session 71351) 결과 확인 후 pre-push·main push·CI 1회 확인, 자체 워크트리 배수. 운영은 화면 승인 대기.
+next: 사용자 화면 승인 후 최신 main CI를 확인하고 기존 운영 승격 절차를 진행한다. 승인은 아직 없다.
 ---
 
 # 프로필 다마고치 달빛 예화·꿀단지 이식
 
 ## 첫 행동
 
-현재 워크트리와 로그를 확인하고 위 next부터 계속한다. 코드와 최종 시각 검수는 완료했다. `js/core/profile-pet-card.mjs`와 `profile-character-card.mjs`의 지갑 소유권 구조는 아래 설계가 정본이다.
+구현·최종 시각 검수·check:fast는 완료했다. 후속 작업은 사용자 화면 승인 이후에만 운영 승격 절차로 이어 간다. `js/core/profile-pet-card.mjs`와 `profile-character-card.mjs`의 지갑 소유권 구조는 아래 설계가 정본이다.
 
 ## 지금 상태
 
 - 원본 `D:/Development/code-destiny`는 다른 세션의 dirty `feat/world-cast-page`다. reset/stash/checkout 하지 않는다.
 - 내 워크트리 `D:/Development/codedestiny-worktrees/profile-pet-honey-garden-20261109-090056`, 브랜치 `wt/profile-pet-honey-garden-20261109-090056`.
-- 시작·마지막 전달 커밋 `fbc3a41df78d54b6570859aca792e98aa39a080f`. 해당 main CI 42535705705 성공을 확인했다. 이번 소스 커밋 `16d2d25b0`은 targeted 검증 후 생성했으며 아직 push하지 않았다.
+- 시작 커밋 `fbc3a41df78d54b6570859aca792e98aa39a080f`. 해당 main CI 42535705705 성공을 확인했다. 이번 UI 소스 커밋은 `16d2d25b042708cd5827844d66e88b57a78f023e`다. 이 완료 기록 커밋 후 pre-push와 main 전달을 수행하며 최종 원격 SHA·CI 결과는 최종 보고가 정본이다.
 - node_modules 정션은 원본과 공유한다. 마지막에 정션을 먼저 해제하고 내 워크트리만 배수한다. 원본에 remove-worktree.mjs가 없으면 내 워크트리의 스크립트를 절대 경로로 불러 원본 cwd에서 실행할 수 있다. main에 포함된 커밋·clean 여부를 검사하는 공식 도구이며 승인 없는 --force는 사용하지 않는다.
-- mock 서버 PID 대신 exec session 43996, localhost 13412. `.tmp/pet-honey-preview-server.mjs`에서 실제 public 미러를 읽고 fake API만 제공한다. 이 세션은 sync:public 후 서버를 띄운 채 유지 중이다.
-- Ego TaskSpace 69, p1, 이름 `달빛 정원 꿀단지와 출석 UX 20261109`. 아직 finish하지 않았다. 모든 후속 스크립트는 이 공간을 재개한다. 원격 API/LLM/결제/운영 DB를 쓰지 않는다.
+- mock 서버 exec session 43996, localhost 13412는 최종 캡처 후 종료했다. `.tmp/pet-honey-preview-server.mjs`에서 실제 public 미러를 읽고 fake API만 제공했다.
+- Ego TaskSpace 69, p1, 이름 `달빛 정원 꿀단지와 출석 UX 20261109`는 최종 캡처 확인 뒤 finish({keep:[]}) 1회로 종료했다. 원격 API/LLM/결제/운영 DB를 쓰지 않았다.
 
 ## 승인 상태
 
@@ -55,9 +55,13 @@ next: 실행 중인 check:fast(session 71351) 결과 확인 후 pre-push·main p
 - [x] Ego 실제 출석5개+돌봄1개로23→29, 친밀도75→85, 사용처18종·해금 상태, 월력, 헤더 Enter→지갑 이동, 사용처 닫기→초점 복귀 확인. 8개 레이아웃(360/390/430/1280 × light/neo) 모두 overflow없음, wallet1/attendance1, 주요 대비 최소4.96. reduce 시 animationName:none. `.tmp/honey-final-visual-report.json`.
 - [x] detector 정확히1회: `.tmp/pet-honey-detector.json`, 11개 모두 font scale advisory, blocker0. 다시 실행하지 않는다.
 - [x] docs/design/profile-pet-garden.md에 새 UX 설계·보상 보존 추가.
-- [ ] check:fast 계획 critical 확인 후 실행 중(session 71351, `.tmp/pet-honey-check-fast.log`). paid/auth 77개 통과, lint·sitemap까지 통과 후 typecheck 진행. 실결제·실 LLM 폴백 없음.
-- [ ] 검증 후 내 파일만 커밋, pre-push, 최신 origin/main 확인·통합, HEAD:main FF push. dirty local main/원본 브랜치는 건드리지 않는다. CI 한 번 확인, 기다리거나 staging 폴링하지 않는다.
-- [ ] Ego finish({keep:[]}), mock 서버 종료, 기록 status:done, 내 워크트리·임시파일 배수. 승인용 이미지/HTML은 사용자 visualizations 폴더에 보존한다.
+- [x] 최종 완료 인사말·월력·네오 잠자기 캡처를 확인했다. 승인용 `profile-pet-honey-v2-review.html`은 실제 mock 캡처 4개를 내장한 오프라인 파일이다. 잔액29·친밀도85는 테스트 예시임을 명시했다. 같은 폴더에 8개 레이아웃 실측 JSON도 보존했다.
+- [x] 공개 URL·title/description/H1·canonical/hreflang·색인 정책 변경 없음. 정적 셸은 자산 핀만 재생성했고 sitemap1062개 중 루트의 실제 변경 서명·날짜만 갱신했다. 결제·인증·API·DB 소스 변경 없음.
+- [x] check:fast 계획 critical 확인 후 전체 실행 exit0. paid/auth77·Node4789 통과, Jest467 suites/7920 tests 통과(기존1 suite/test skipped), lint·typecheck·sitemap·정책 가드·Worker dry-run 빌드·인코딩 통과. 실결제·실 LLM 폴백 없음.
+- [x] 구현 커밋과 완료 기록 분리. 검증 후 새 기능 변경은 없다. origin/main은 마지막 fetch 시 시작 커밋과 동일했다.
+- [x] 기록 status:done, 승인용 이미지/HTML·레이아웃 실측 JSON을 사용자 visualizations 폴더에 보존했다.
+
+최종 전달 절차: 이 완료 기록 커밋에서 `npm run check:pre-push` → `git push origin HEAD:main` → main CI 1회 확인 후 보고한다. dirty 원본은 건드리지 않는다. 자기 워크트리·임시파일만 공식 remove-worktree 도구로 배수한다. CI 대기·staging 폴링·운영 승격은 하지 않는다. 운영 반영 승인 요청은 실제 승인용 화면을 전달한 후에만 한다.
 
 증거 폴더: `C:/Users/user/.codex/visualizations/2026/11/08/01a1bcc9-2c34-71b2-bc5b-69bf1f4bcda8`. 첫 v2 캡처는 `profile-pet-honey-v2-mobile-ready.png`, `profile-pet-honey-v2-desktop-initial.png`, `profile-pet-honey-v2-neo-initial.png`이며 수정 전 대비 자료다. 새 최종 캡처는 별도 final 파일명으로 저장한다. 예전 profile-pet-motion-preview.html은 v1 UI 스틸을 담고 있으므로 최종 v2 자료로 그대로 안내하지 않는다.
 
