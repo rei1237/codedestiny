@@ -39,7 +39,9 @@ const tarotSpread = {
     { id: "P14", direction: "upright" },
   ],
 };
+const sukuyoEvening = { ...businessProducts.find(p => p.slug === "sukuyo").input, birthTime: "15:30" };
 examples.variants = {
+  sukuyo: { label: "같은 날 오후의 본명숙", input: sukuyoEvening, output: await calculate("sukuyo", sukuyoEvening) },
   saju: {
     label: "출생시각 미상",
     input: unknownTime,

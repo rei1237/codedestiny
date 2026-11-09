@@ -21,7 +21,7 @@ const enabled = !!process.env.BUSINESS_TEST_UI;
         phoneNumber: "01012345678",
       };
     const env = {
-      BUSINESS_API_SALES: "saju,ziwei,tarot,astrology",
+      BUSINESS_API_SALES: "saju,ziwei,tarot,astrology,vedic,sukuyo",
       PORTONE_STORE_ID: "store-test",
       PORTONE_CHANNEL_KEY: "channel-test",
       PORTONE_API_SECRET: "test-secret",
@@ -63,7 +63,7 @@ const enabled = !!process.env.BUSINESS_TEST_UI;
         if (path === "/api/test-pg") {
           const { id, amount } = JSON.parse(body);
           const order = db.rows.find((r) => r.merchantUid === id);
-          if (!order || amount !== 149000 || order.paymentAmount !== amount)
+          if (!order || amount !== (order.productId === "business-api-saju" ? 149000 : 79000) || order.paymentAmount !== amount)
             return send(422, {});
           approved.set(id, {
             paymentId: id,

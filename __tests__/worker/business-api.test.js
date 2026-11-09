@@ -26,7 +26,7 @@ const env = {
   PORTONE_STORE_ID: "store-test",
   PORTONE_CHANNEL_KEY: "channel-test",
   PORTONE_API_SECRET: "test-secret",
-  BUSINESS_API_SALES: "saju,ziwei,tarot,astrology",
+  BUSINESS_API_SALES: "saju,ziwei,tarot,astrology,vedic,sukuyo",
 };
 const make = () => {
   const db = makeFakePaymentDb();
@@ -92,7 +92,7 @@ test.each(businessProducts)("$name의 주문과 실제 허용 상태", async (p)
   expect(rows).toHaveLength(1);
   expect(rows[0].entitlementGrantedAt).toBeTruthy();
   expect(expiryForOrders(rows)).toEqual(addKstMonth(pg.paid_at * 1000));
-  if (p.slug === "astrology") {
+  if (["astrology","vedic","sukuyo"].includes(p.slug)) {
     addBusinessCollections(db);
     const deps = { withDb, authenticate: async () => ({ userId: owner }) };
     const keyResponse = await handleBusinessApi(
@@ -106,7 +106,7 @@ test.each(businessProducts)("$name의 주문과 실제 허용 상태", async (p)
     expect(keyResponse.status).toBe(201);
     const { key } = await keyResponse.json();
     const response = await handleBusinessApi(
-      new Request("https://example.test/api/business/v1/astrology", {
+      new Request("https://example.test/api/business/v1/" + p.slug, {
         method: "POST",
         headers: {
           Authorization: "Bearer " + key,
@@ -118,7 +118,7 @@ test.each(businessProducts)("$name의 주문과 실제 허용 상태", async (p)
       deps,
     );
     expect(response.status).toBe(200);
-    expect(await response.json()).toEqual(samples.astrology);
+    expect(await response.json()).toEqual(samples[p.slug]);
   }
 });
 test("지급 저장 장애 후 복구, 서명 웹훅 중복·연장 환불·다른 상품 보존", async () => {
@@ -359,9 +359,11 @@ test("PG 불일치는 권한을 부여하지 않는다", async () => {
     db.rows.find((r) => r.productId === o.featureKey).entitlementGrantedAt,
   ).toBeFalsy();
 });
-test("발급·교체·폐기, 독립 상품 권한과 60회 제한", async () => {
+test.each([["saju","tarot"],["vedic","sukuyo"]])("%s·%s 독립 상품 권한과 60회 제한", async (primary,secondary) => {
+  const firstProduct = businessProducts.find(p => p.slug === primary);
+  const secondProduct = businessProducts.find(p => p.slug === secondary);
   const { db, withDb } = make(),
-    { order: o } = await prepare(withDb, businessProducts[0]);
+    { order: o } = await prepare(withDb, firstProduct);
   await settleOrderFromReconcile(
     env,
     { orderId: o.merchantUid, pgPayment: pgFor(o) },
@@ -388,7 +390,7 @@ test("발급·교체·폐기, 독립 상품 권한과 60회 제한", async () =>
   };
   let key = await issue();
   expect(JSON.stringify([...credentials.values()])).not.toContain(key);
-  const invoke = () => api("v1/saju", "POST", key, businessProducts[0].input);
+  const invoke = () => api("v1/" + primary, "POST", key, firstProduct.input);
   const server = createServer(async (req, res) => {
     const chunks = [];
     for await (const chunk of req) chunks.push(chunk);
@@ -418,11 +420,11 @@ test("발급·교체·폐기, 독립 상품 권한과 60회 제한", async () =>
         env: {
           ...process.env,
           GGUL_FORTUNE_API_KEY: key,
-          PARTNER_INPUT: JSON.stringify(businessProducts[0].input),
+          PARTNER_INPUT: JSON.stringify(firstProduct.input),
           PARTNER_URL:
             "http://127.0.0.1:" +
             server.address().port +
-            "/api/business/v1/saju",
+            "/api/business/v1/" + primary,
         },
         stdio: ["ignore", "pipe", "inherit"],
       },
@@ -433,26 +435,26 @@ test("발급·교체·폐기, 독립 상품 권한과 60회 제한", async () =>
     expect(code).toBe(0);
     expect(JSON.parse(Buffer.concat(chunks).toString())).toEqual({
       status: 200,
-      body: samples.saju,
+      body: samples[primary],
     });
   } finally {
     server.closeAllConnections();
     await new Promise((resolve) => server.close(resolve));
   }
-  expect((await api("v1/tarot", "POST", key, {})).status).toBe(403);
+  expect((await api("v1/" + secondary, "POST", key, {})).status).toBe(403);
   const oldKey = key;
   key = await issue();
-  expect((await api("v1/saju", "POST", oldKey, {})).status).toBe(401);
+  expect((await api("v1/" + primary, "POST", oldKey, {})).status).toBe(401);
   for (let i = 1; i < 60; i++) expect((await invoke()).status).toBe(200);
   expect((await invoke()).status).toBe(429);
-  const { order: tarot } = await prepare(withDb, businessProducts[5]);
+  const { order: tarot } = await prepare(withDb, secondProduct);
   await settleOrderFromReconcile(
     env,
     { orderId: tarot.merchantUid, pgPayment: pgFor(tarot) },
     { withDb },
   );
   expect(
-    (await api("v1/tarot", "POST", key, businessProducts[5].input)).status,
+    (await api("v1/" + secondary, "POST", key, secondProduct.input)).status,
   ).toBe(200);
   // Move only the saju grant into the past. The other product remains active.
   db.rows.find((row) => row.merchantUid === o.merchantUid).paidAt = new Date(
@@ -460,8 +462,10 @@ test("발급·교체·폐기, 독립 상품 권한과 60회 제한", async () =>
   );
   expect((await invoke()).status).toBe(403);
   expect(
-    (await api("v1/tarot", "POST", key, businessProducts[5].input)).status,
+    (await api("v1/" + secondary, "POST", key, secondProduct.input)).status,
   ).toBe(200);
+  for(let i=2;i<60;i++) expect((await api("v1/"+secondary,"POST",key,secondProduct.input)).status).toBe(200);
+  expect((await api("v1/"+secondary,"POST",key,secondProduct.input)).status).toBe(429);
   await api("key", "DELETE");
   expect((await invoke()).status).toBe(401);
 }, 30000);

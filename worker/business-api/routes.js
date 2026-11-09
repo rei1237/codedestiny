@@ -240,7 +240,7 @@ export async function handleBusinessApi(
     )
       return problem(
         400,
-        "INVALID_INPUT",
+        e instanceof InvalidInput ? e.code : "INVALID_INPUT",
         e instanceof InvalidInput ? e.message : "입력 JSON을 확인해 주세요.",
       );
     if (e.status === 401 || e.statusCode === 401)

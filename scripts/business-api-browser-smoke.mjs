@@ -12,6 +12,7 @@ try {
     [1280, 800],
     [390, 844],
   ]) {
+    for (const [product, title] of [["saju","사주 API 1개월 구매 · 149,000원"],["vedic","베다점 API 1개월 구매 · 79,000원"],["sukuyo","숙요점 API 1개월 구매 · 79,000원"]]) {
     await fetch(api + "/reset", { method: "POST" });
     const context = await browser.newContext({
       viewport: { width, height },
@@ -61,7 +62,7 @@ try {
       .getByRole("link", { name: "운세 API · 요금 및 연동" })
       .click();
     const buy = page.getByRole("button", {
-      name: "사주 API 1개월 구매 · 149,000원",
+      name: title,
     });
     await page.waitForFunction(() => !document.querySelector("#pricing button")?.disabled && document.querySelector("#pricing button"));
     await page.getByRole("link", {name:"API 응답 예시 보기",exact:true}).click();
@@ -79,16 +80,17 @@ try {
     await page.waitForURL(
       (u) =>
         u.pathname === "/business/api/" &&
-        u.searchParams.get("product") === "saju",
+        u.searchParams.get("product") === product,
     );
     await page.getByRole("checkbox", { name: /상업 이용 범위/ }).check();
     await buy.click();
     await page.waitForURL("**/business/api/dashboard/**");
     await page.getByRole("button", { name: "키 발급", exact: true }).click();
     const key = await page.locator("output").innerText();
+    await page.locator("#examples select").selectOption(product);
     const example = await page.locator("pre").last().innerText();
     const url = new URL(example.match(/curl --request POST "([^"]+)"/)[1]);
-    assert.equal(url.pathname, "/api/business/v1/saju");
+    assert.equal(url.pathname, "/api/business/v1/"+product);
     assert.ok(example.includes("Authorization: Bearer $GGUL_FORTUNE_API_KEY"));
     const input = example.match(/--data '([^']+)'/)[1];
     // Pass the sandbox key through stdin, never a process argument or captured browser log.
@@ -118,7 +120,7 @@ try {
     });
     const [json, status] = child.trim().split(/\r?\n/);
     assert.equal(status, "200");
-    assert.equal(JSON.parse(json).dayMaster, "甲");
+    assert.deepEqual(JSON.parse(json), JSON.parse(await page.locator("#examples pre").nth(1).innerText()));
     assert.equal(
       await page.evaluate(
         () => document.documentElement.scrollWidth <= innerWidth,
@@ -127,6 +129,7 @@ try {
     );
     console.log(width + "px footer → login → checkout → key → cURL HTTP 200");
     await context.close();
+    }
   }
 } finally {
   await browser.close();

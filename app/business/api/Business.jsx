@@ -85,7 +85,7 @@ function ReadingPreview({ product, sample }) {
         )}
         {sample?.planets?.Moon?.nakshatra && (
           <p>
-            달 · {sample.planets.Moon.rashi} · {sample.planets.Moon.nakshatra}{" "}
+            달의 라시 {sample.planets.Moon.rashi} → 낙샤트라 {sample.planets.Moon.nakshatra} →{" "}
             {sample.planets.Moon.pada}파다
           </p>
         )}
@@ -490,7 +490,7 @@ export default function Business({ mode }) {
           <p><a href="/licenses/astronomy-engine.txt">천문 계산 라이브러리 라이선스</a></p>
           <h2>오류 응답</h2>
           <p>
-            400 INVALID_INPUT · 입력값을 확인하세요. 401 INVALID_KEY · 키를
+            400 INVALID_INPUT · 입력값을 확인하세요. 베다·숙요의 BIRTH_TIME_REQUIRED는 출생시각 누락, DATE_OUT_OF_RANGE는 지원 연대 밖, 숙요의 MANSION_BOUNDARY는 두 숙의 경계 판정 보류입니다. 401 INVALID_KEY · 키를
             확인하세요. 403 NO_ENTITLEMENT · 해당 상품의 이용 기간을 확인하세요.
             403 UNAVAILABLE · 제공 준비 중입니다. 429 RATE_LIMIT · Retry-After
             이후 다시 호출하세요. 503 TEMPORARY_FAILURE · 잠시 후 다시

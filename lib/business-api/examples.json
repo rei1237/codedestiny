@@ -260,6 +260,20 @@
     ]
   },
   "variants": {
+    "sukuyo": {
+      "label": "같은 날 오후의 본명숙",
+      "input": {
+        "birthDate": "2026-05-18",
+        "birthTime": "15:30",
+        "timezoneOffsetHours": 9
+      },
+      "output": {
+        "mansion": "정(井)",
+        "index": 20,
+        "moonSiderealLongitude": 53.628549587175485,
+        "providerVersion": "sukuyo-imd1956-ae2.1.19-v1"
+      }
+    },
     "saju": {
       "label": "출생시각 미상",
       "input": {

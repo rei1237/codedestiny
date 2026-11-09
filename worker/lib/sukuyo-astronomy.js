@@ -153,7 +153,7 @@ export async function calculateSukuyoForMoment(env, rawMoment = {}, options = {}
   const julianDate = julianDateFromUtcTimestamp(normalized.utcTimestamp);
   const birthTimeContext = buildBirthTimeContext(moment, normalized, julianDate, options);
   if (options.useVerifiedNatal && moment.birthTimeKnown && !normalized.second && !normalized.millisecond) {
-    const verified = verifiedSukuyoForCivilTime({...moment,...normalized});
+    const verified = verifiedSukuyoForCivilTime({...moment,...normalized}, { natal: true });
     if (verified) return {...verified,birthTimeContext};
   }
   const [moonLongitude] = await getSwissMoonLongitudes(env, [

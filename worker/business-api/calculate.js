@@ -2,13 +2,17 @@ import { calculateNatalSaju } from "../../lib/korean-calendar/index.js";
 import { TAROT_CARDS } from "../../lib/tarot/tarot-cards.mjs";
 import { getSpreadDefinition } from "../../lib/tarot/spreads.mjs";
 export class InvalidInput extends Error {}
-function invalid(message) {
-  throw new InvalidInput(message);
+function invalid(message, code = "INVALID_INPUT") {
+  const error = new InvalidInput(message);
+  error.code = code;
+  throw error;
 }
 export async function calculate(slug, input) {
   if (!input || typeof input !== "object" || Array.isArray(input))
     invalid("JSON 객체가 필요합니다.");
   if (["astrology", "vedic", "sukuyo"].includes(slug)) {
+    if (slug !== "astrology" && !input.birthTime)
+      invalid("확정된 출생시각을 입력해 주세요.", "BIRTH_TIME_REQUIRED");
     if (
       typeof input.birthDate !== "string" ||
       typeof input.birthTime !== "string" ||
@@ -25,6 +29,8 @@ export async function calculate(slug, input) {
     )
       invalid("양력 날짜를 확인해 주세요.");
     const [hour, minute] = input.birthTime.split(":").map(Number);
+    if (slug !== "astrology" && (year < 1900 || year > 2050))
+      invalid("1900~2050년의 출생일을 입력해 주세요.", "DATE_OUT_OF_RANGE");
     if (slug !== "sukuyo") {
       if (
         year < 1900 ||
@@ -71,9 +77,9 @@ export async function calculate(slug, input) {
       hour,
       minute,
       timezoneOffsetHours: input.timezoneOffsetHours,
-    });
+    }, { natal: true });
     if (!chart)
-      invalid("검증 기간 밖이거나 두 숙의 경계에 있는 출생시각입니다.");
+      invalid("두 숙의 경계에서 2각분 이내라 판정을 보류합니다.", "MANSION_BOUNDARY");
     return {
       mansion: chart.mansion,
       index: chart.index,

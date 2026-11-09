@@ -12,3 +12,9 @@
 **기존 배포에 대한 근거.** Git 이력에서 공개 WASM 경로 추가는 2026-06-10 `0030d4b55`이다. 2026-11-09에 운영 URL `/js/vendor/sweph-wasm/wasm/swisseph.wasm`의 HEAD 응답은 HTTP 200, `application/wasm`이었다. 커밋 날짜는 첫 운영 배포 일자를 입증하지 않는다. 브라우저 정적 WASM·se1 파일, Worker Swiss 초기화·CDN 예비 경로가 남아 있다. 조사한 저장소에서 서명된 계약·당시 라이선스 이행 증빙은 확인하지 못했다. 과거 배포 기간과 적용 조건은 당시 배포 이력·계약 증빙과 함께 판단해야 한다. [공식 계약 제2~4조](https://www.astro.com/swisseph/secont_e_2609.pdf) · [공식 라이선스 안내](https://www.astro.com/swisseph/swisseph.htm)
 
 **재현.** 원본 자료와 검증 명령은 [천체 경계 검증](32-ephemeris-provider-evaluation.md)과 [하우스·달 경계](33-angles-padas-and-new-order.md)에 있다. 이번 기업 경로의 판정은 `__tests__/worker/verified-natal.test.js`와 `__tests__/worker/business-api.test.js`가 고정한다. 가격 전환 전 생성된 대기 주문은 같은 주문번호와 당시 원화 금액으로 재개한다. 승인·환불 대사는 원주문 금액을 사용한다.
+
+## 베다·숙요 일반 출생일 확장 검증
+
+1900년부터 2050년까지 5년마다 네 계절의 시각 124개에 대해 기존 JPL Horizons 지심 황경(일곱 천체 868건)과 별도 구현의 항성 원점을 결합해 대조했다. 기준 원점은 1956-03-21의 23°15′로 고정하고 PyERFA 2.0.1.5의 IAU 2006 세차·장동으로 전파한다. 시점별 오프셋 최대 차이는 0.000061°, 항성 행성 황경은 0.004009°, 서울 지평선의 상승점은 0.000028°이다. 이는 선택한 IMD 체계의 수치 검증이다. 당대 공식 연감이 151년 전체에 존재한다는 뜻이 아니다. 실제 IMD 연감의 2024·2025년 1월과 2026~2027년 자료 검사는 33번 기록에 있다. 파다 경계에서 기록된 불일치를 유지한다.
+
+재현 명령은 `node tools/oracle/ephemeris-candidate/verify-sidereal-range.mjs`이다. 독립 기준 데이터 생성기는 같은 디렉터리의 `collect-sidereal-reference.py`이며 런타임에는 Python 의존성이 없다. 개인 베다 명반은 기존 노드 등 추가 필드를 기존 경로에서 유지하고, 일곱 천체와 라그나는 파트너와 같은 계산 함수의 브라우저 번들을 사용한다. 숙요 기본 명반·기업 API는 확정된 일반 출생일을 지원하며 보관된 유료 명반을 다시 계산하지 않는다.

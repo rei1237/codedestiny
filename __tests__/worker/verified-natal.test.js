@@ -28,7 +28,25 @@ test("베다 달 라시와 108 파다, 숙요 시각 미상과 기간 밖 입력
   const mansion = verifiedSukuyoForCivilTime(moment);
   expect(mansion.moonSiderealLongitude).toBeCloseTo(moon.longitude,8);
   expect(await calculate("sukuyo",{birthDate:"2025-01-12",birthTime:"08:30",timezoneOffsetHours:9})).toMatchObject({index:mansion.index,mansion:mansion.mansion});
-  for(const birth of [{birthDate:"1980-01-12",birthTime:"08:30"},{birthDate:"2025-01-12"}]) {
+  for(const birth of [{birthDate:"1899-01-12",birthTime:"08:30"},{birthDate:"2025-01-12"}]) {
     await expect(calculate("sukuyo",{...birth,timezoneOffsetHours:9})).rejects.toThrow();
   }
+});
+
+test("숙요 일반 명반의 현지 연대와 두 숙의 경계", async () => {
+  const read = (birthDate,birthTime,tz=9) => calculate("sukuyo",{birthDate,birthTime,timezoneOffsetHours:tz});
+  for(const date of ["1900-01-01","1980-04-18","2050-12-31"]) {
+    const chart = await read(date,"08:30");
+    expect(chart.mansion).toBeTruthy();
+  }
+  await expect(read("2051-01-01","00:00")).rejects.toMatchObject({code:"DATE_OUT_OF_RANGE"});
+  await expect(read("1980-01-01",undefined)).rejects.toMatchObject({code:"BIRTH_TIME_REQUIRED"});
+  const day = "2026-05-18";
+  const first = await read(day,"08:30"), last = await read(day,"15:30");
+  expect(last.index).toBe((first.index+1)%27);
+  const nextDay = await read("2026-05-19","01:30",14);
+  expect(nextDay).toEqual(await read(day,"20:30",9));
+  await expect(read(day,"15:02")).rejects.toMatchObject({code:"MANSION_BOUNDARY"});
+  expect((await read(day,"14:58")).index).toBe(first.index);
+  expect((await read(day,"15:07")).index).toBe(last.index);
 });

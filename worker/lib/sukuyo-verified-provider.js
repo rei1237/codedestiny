@@ -13,10 +13,10 @@ const verifiedDates = [
   // Keep only complete interior dates in the 1948 Saka almanac.
   [Date.UTC(2026,2,23), Date.UTC(2027,2,20)],
 ];
-export function verifiedSukuyoForCivilTime(moment) {
+export function verifiedSukuyoForCivilTime(moment, { natal = false } = {}) {
   const { year, month, day, hour, minute, timezoneOffsetHours } = moment;
   const utcTimestamp = Date.UTC(year, month-1, day, hour, minute) - timezoneOffsetHours*3600000;
-  if (!verifiedDates.some(([start,end]) => start <= utcTimestamp && utcTimestamp < end)) return null;
+  if (natal ? (year < 1900 || year > 2050) : !verifiedDates.some(([start,end]) => start <= utcTimestamp && utcTimestamp < end)) return null;
   const date = new Date(utcTimestamp);
   const moon = moonForDate(date);
   const span = 360/27, distance = Math.min(moon%span,span-moon%span);

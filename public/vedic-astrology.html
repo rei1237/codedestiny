@@ -6,6 +6,7 @@
 <link rel="stylesheet" href="/styles/theme-tokens.css?v=build-bf8332e077e7">
 <link rel="stylesheet" href="/styles/moonlit-birth-form.css?v=build-61b1c578c999">
 <script defer src="/js/core/korean-calendar.js"></script>
+<script defer src="/js/vedic-natal.generated.js"></script>
 <script defer src="/js/vedic-birth-inputs.js"></script>
 <meta name="robots" content="noindex, nofollow">
 <link rel="stylesheet" href="/styles/fortune-consultation-entry.css?v=build-0ef0b8407d64">
@@ -18,7 +19,7 @@
 <script src="/js/core/pass-verdict.js?v=build-820339ff38a2"></script>
 <script src="/js/core/checkout-entry.js?v=build-988868d8aee1"></script>
 <script src="/js/core/payment-service.js?v=build-86f76b083b39"></script>
-<script src="/js/destiny-profile.js?v=build-936a8ef09de8"></script>
+<script src="/js/destiny-profile.js?v=build-b5ea553786c6"></script>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.css" onerror="this.remove()">
 <style>
 /* ── 오프라인 폴백 폰트 스택 ─────────────────────────────
@@ -2335,12 +2336,13 @@ function planetHouse(rasi,planet){
 }
 
 // ─── CHART BUILDER (f.timezone = UTC 오프셋 시간, 예: 9 = UTC+9) ─
-function buildChart(f,lonsOverride){
+function buildChart(f,lonsOverride,natal){
   try{window.__vedicSwissFallbackUsed=false;}catch(_){ }
   const utcH=f.hour+(f.minute||0)/60-f.timezone;
   const jd=julianDay(f.year,f.month,f.day,utcH);
-  const lons=lonsOverride||calcPlanets(jd);
-  const asc=calcAscendant(jd,f.lat,f.lon);
+  const lons={...(lonsOverride||calcPlanets(jd))};
+  if(natal) for(const [name,planet] of Object.entries(natal.planets)) lons[name]=planet.longitude;
+  const asc=natal?natal.lagna.longitude:calcAscendant(jd,f.lat,f.lon);
   const ps={};
   const allP=["Sun","Moon","Mercury","Venus","Mars","Jupiter","Saturn","Rahu","Ketu"];
   for(const p of allP){
@@ -5515,6 +5517,7 @@ function profileToForm(profile){
   return{
     name:(p.name||'').trim()||'이름없음',
     gender:p.gender||'M',
+    birthTimeKnown:Number.isInteger(hourRaw)&&hourRaw>=0&&hourRaw<=23&&birth.unknownTime!==true&&birth.birthTimeKnown!==false,
     year:year,
     month:month,
     day:day,
@@ -5542,7 +5545,11 @@ function doCalculateFromProfile(profile){
 
   function runWithLocalSwiss(detail){
     try{
-      var chart=buildChart(f);
+      const natal=f.birthTimeKnown && f.year>=1900 && f.year<=2050 && Math.abs(f.lat)<90
+        ? CodeDestinyVedicNatal.vedicPositions(new Date(Date.UTC(f.year,f.month-1,f.day,f.hour,f.minute)-f.timezone*3600000),f.lat,f.lon)
+        : null;
+      var chart=buildChart(f,undefined,natal);
+      if(natal) chart.natalProviderVersion=natal.providerVersion;
       if(!chart||!chart.f){throw new Error('Chart build failed: invalid chart structure');}
       var report=analyze(chart);
       if(!report){throw new Error('Analysis failed: no report generated');}
