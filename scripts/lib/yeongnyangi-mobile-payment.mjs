@@ -94,6 +94,9 @@ export async function fixtures(browser,base,product,width=390,{monthlyBalance=0}
    items:listReviewProductSummaries().map(product=>({...product,total:0,average:0}))});
   if(path==='/api/recommendations'&&request.method()==='GET')return send({enabled:false,products:[]});
   if(!state.auth&&path!=='/api/yeongnyangi/products')return send({ok:false,code:'UNAUTHORIZED',message:'QA 세션 만료'},401);
+  // No review usage records are seeded for this payment-only account.
+  // Match the authenticated eligibility contract without permitting review writes.
+  if(path==='/api/reviews/eligibility'&&request.method()==='GET')return send({ok:true,items:[]});
   // The shared entry banner reads these two endpoints on signed-in pages.
   // This returning QA account has historical receipts, with no new reward or
   // SNULIFE grant. Preserve the real response shape; writes stay unknown.

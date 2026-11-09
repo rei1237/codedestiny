@@ -49,12 +49,21 @@ test('payment fixture recognises activation reads without granting rights or acc
   const campus=await request('/api/activation-rewards/snu/status');
   assert.equal(campus.status,200);assert.equal(campus.json.verified,false);assert.equal(campus.json.complete,false);
   assert.deepEqual(campus.json.unlockedFeatureKeys,[]);assert.deepEqual(f.state.unknown,[]);
+  const eligibility=await request('/api/reviews/eligibility');
+  assert.equal(eligibility.status,200);assert.deepEqual(eligibility.json,{ok:true,items:[]});
+  assert.deepEqual(f.state.unknown,[]);
   assert.equal(f.state.orders.size,0);assert.equal(f.state.monthlyDeductions,0);
   assert.equal((await request('/api/activation-rewards/status','POST')).status,501);
   assert.equal((await request('/api/activation-rewards/snu/status','POST')).status,501);
   assert.equal((await request('/api/activation-rewards/not-fixtured')).status,501);
   assert.deepEqual(f.state.unknown,['POST /api/activation-rewards/status','POST /api/activation-rewards/snu/status','GET /api/activation-rewards/not-fixtured']);
+  for(const [path,method] of [['/api/reviews/eligibility','POST'],['/api/reviews/not-fixtured','GET']]){
+   const rejected=await request(path,method);
+   assert.equal(rejected.status,501);assert.equal(rejected.json.code,'QA_UNEXPECTED_API');
+  }
+  assert.deepEqual(f.state.unknown,['POST /api/activation-rewards/status','POST /api/activation-rewards/snu/status','GET /api/activation-rewards/not-fixtured','POST /api/reviews/eligibility','GET /api/reviews/not-fixtured']);
   f.state.auth=false;
+  assert.equal((await request('/api/reviews/eligibility')).status,401);
   assert.equal((await request('/api/activation-rewards/status')).status,401);
   assert.equal((await request('/api/activation-rewards/snu/status')).status,401);
  }finally{await context.close();}
