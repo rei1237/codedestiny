@@ -704,24 +704,29 @@ function parseUrls(text) { return [...new Set((String(text).match(/https?:\/\/[^
 function lastUuid(text) { const matches = String(text).match(UUID_RE) || []; return matches[matches.length - 1] || ""; }
 function eslintArgs(sourceFiles) { return ["exec", "--", "eslint", "--quiet", ...sourceFiles]; }
 
-async function checks(value) {
+async function checks(value, execute = run) {
   const env = envForChecks();
   // 🔴 대상 선정은 scripts/lib/lint-targets.mjs 가 정본이다. PR CI 의 `lint:changed` 도
   // 같은 모듈을 쓴다 — 두 곳이 각자 규칙을 들고 있으면 PR 은 초록불인데 여기서 죽는
   // 범위 드리프트가 생긴다(2026-08-22 실측).
   const sourceFiles = lintTargets(value.files, { root });
-  if (sourceFiles.length) run("changed-file lint", npmCommand(), eslintArgs(sourceFiles), { env });
-  run("TypeScript typecheck", npmCommand(), ["run", "typecheck"], { env });
+  if (sourceFiles.length) execute("changed-file lint", npmCommand(), eslintArgs(sourceFiles), { env });
+  execute("TypeScript typecheck", npmCommand(), ["run", "typecheck"], { env });
   // 🔴 로그인·결제는 무엇을 고쳤든 매 프리뷰마다 상시 회귀한다(risk level·deepRequired 와 무관, 사용자
   // 명시 요청 2026-08-10). 계기: React 환경 단건결제 PG창 미노출 사고 — 원인 파일(billing-client.ts·
   // destiny-profile.js)은 결제 경로가 아니어도 자주 함께 바뀌는 공용 런타임이라, "이 변경은 결제와
   // 무관해 보인다"는 판단만으로는 놓칠 수 있다. deploy:critical(15개 스크립트) 전체를 매번 돌리면
   // 무관한 변경도 느려지므로, 여기서는 로그인+결제 핵심만 가볍게 유지한다. deepRequired 경로가
   // 걸리면 아래에서 deploy:critical 전체가 추가로 돈다(중복이 아니라 상위 게이트로 대체).
-  run("login+payment regression (always-on): worker auth/payments", npmCommand(), ["run", "test:worker:auth-payments"], { env });
-  run("login+payment regression (always-on): PortOne single-payment", npmCommand(), ["run", "verify:portone-single-payment"], { env });
-  if (value.risk.level !== "low") run("core mock smoke tests", npmCommand(), ["run", "smoke:core"], { env });
-  if (value.risk.level === "medium") run("Node regression tests", npmCommand(), ["run", "test:node"], { env });
+  execute("login+payment regression (always-on): worker auth/payments", npmCommand(), ["run", "test:worker:auth-payments"], { env });
+  execute("login+payment regression (always-on): PortOne single-payment", npmCommand(), ["run", "verify:portone-single-payment"], { env });
+  // Node tests read generated daily packages before build:cf prepares them. Match PR CI
+  // for both staging and production; generation is deterministic and entirely offline.
+  if (["medium", "high"].includes(value.risk.level) || value.deep.required) {
+    execute("prepare fortune data for Node tests", npmCommand(), ["run", "fortune:build-data"], { env });
+  }
+  if (value.risk.level !== "low") execute("core mock smoke tests", npmCommand(), ["run", "smoke:core"], { env });
+  if (value.risk.level === "medium") execute("Node regression tests", npmCommand(), ["run", "test:node"], { env });
   // deep 은 risk level 과 독립이다. 결제·인증·DB 스키마·배포 인프라는 preview 스모크가
   // 못 잡으므로 level 이 무엇이든 전체 회귀를 돌린다. PR 리뷰를 대체하는 자리다.
   if (value.risk.level === "high" || value.deep.required) {
@@ -729,8 +734,8 @@ async function checks(value) {
       console.log("[deploy-safe] deep verification required:");
       for (const match of value.deep.matches) console.log("  ! " + match.file + " (" + match.reason + ")");
     }
-    run("high-risk mock gates", npmCommand(), ["run", "deploy:critical"], { env });
-    run("Node regression tests", npmCommand(), ["run", "test:node"], { env });
+    execute("high-risk mock gates", npmCommand(), ["run", "deploy:critical"], { env });
+    execute("Node regression tests", npmCommand(), ["run", "test:node"], { env });
   }
 }
 function build(value) {
@@ -1260,6 +1265,33 @@ async function selfTest() {
   if (!targets.includes("scripts/deploy-safe.mjs")) throw new Error("changed-file lint must keep existing source files.");
   if (targets.some((file) => file.includes("Deleted.tsx"))) throw new Error("changed-file lint must skip deleted files; eslint exits 2 on missing paths.");
   if (targets.some((file) => file.endsWith(".md"))) throw new Error("changed-file lint must only take JS/TS sources.");
+  // Exercise the shared release checks without running builds, tests, or deployment.
+  for (const level of ["low", "medium", "high"]) for (const required of [false, true]) {
+    const commands = [];
+    const value = { files: [], risk: { level }, deep: { required, matches: [] } };
+    await checks(value, (_label, _command, args) => commands.push(args[1]));
+    const nodeRuns = commands.filter((command) => command === "test:node").length;
+    const expectedRuns = Number(level === "medium") + Number(level === "high" || required);
+    if (nodeRuns !== expectedRuns) throw new Error("release Node test coverage must stay unchanged.");
+    const preparation = commands.indexOf("fortune:build-data");
+    if (nodeRuns && (preparation < 0 || preparation >= commands.indexOf("test:node"))) {
+      throw new Error("release Node tests must prepare fortune data first.");
+    }
+    if (commands.filter((command) => command === "fortune:build-data").length !== Number(nodeRuns > 0)) {
+      throw new Error("release checks must prepare fortune data exactly once when Node tests run.");
+    }
+    if (nodeRuns) {
+      const failure = new Error("fixture preparation failed");
+      let rejected;
+      try {
+        await checks(value, (_label, _command, args) => {
+          if (args[1] === "fortune:build-data") throw failure;
+          if (args[1] === "test:node") throw new Error("Node tests ran after preparation failed.");
+        });
+      } catch (error) { rejected = error; }
+      if (rejected !== failure) throw new Error("fortune preparation failure must stop release checks.");
+    }
+  }
   const pagesListUrl = pageDeploymentsUrl({ project: "project name" }, "preview");
   if (!pagesListUrl.includes("/project%20name/deployments?env=preview") || /[?&](?:page|per_page)=/.test(pagesListUrl)) throw new Error("Pages deployment lookup must use Cloudflare default pagination.");
   if (parseUrls("https://a.pages.dev https://b.workers.dev").length !== 2) throw new Error("URL parser failed.");
