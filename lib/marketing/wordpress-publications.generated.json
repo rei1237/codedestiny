@@ -1,0 +1,118 @@
+{
+  "schemaVersion": 1,
+  "siteUrl": "https://ggulggulinsights.wordpress.com/",
+  "feedUrl": "https://ggulggulinsights.wordpress.com/feed/",
+  "source": "https://public-api.wordpress.com",
+  "syncedAt": "2026-11-04T09:10:59.373Z",
+  "posts": [
+    {
+      "id": 2200036,
+      "slug": "%eb%82%b4%ec%9d%bc-%ec%9a%b4%ec%84%b8-%ec%a0%90%ec%88%98%ea%b0%80-%eb%82%ae%ec%9c%bc%eb%a9%b4-%ec%95%bd%ec%86%8d%ec%9d%84-%eb%b0%94%ea%be%b8%ea%b8%b0-%ec%a0%84%ec%97%90-%ec%9d%bd%eb%8a%94-%eb%b0%a9",
+      "url": "https://ggulggulinsights.wordpress.com/2026/11/03/%eb%82%b4%ec%9d%bc-%ec%9a%b4%ec%84%b8-%ec%a0%90%ec%88%98%ea%b0%80-%eb%82%ae%ec%9c%bc%eb%a9%b4-%ec%95%bd%ec%86%8d%ec%9d%84-%eb%b0%94%ea%be%b8%ea%b8%b0-%ec%a0%84%ec%97%90-%ec%9d%bd%eb%8a%94-%eb%b0%a9/",
+      "title": "내일 운세 점수가 낮으면? 약속을 바꾸기 전에 읽는 방법",
+      "excerpt": "내일 중요한 약속이 있는데 운세 점수가 낮으면, 준비하던 마음까지 흔들릴 수 있습니다. 하지만 띠별·별자리별 점수만으로 약속의 결과를 정할 수는 없습니다. 먼저 어떤 날짜와 기준으로 나온 글인지 확인하고, 실제 일정에서 준비할 수 있는 행동 하나를 골라보세요. 점수는 무엇을 요약한 숫자일까요? CODE DESTINY의 내일 운세 안내에서는 날짜의 일진과 달의 위치, 띠·별자리의 관계를 계산한 참고 지표로 점수를 설명합니다. […]",
+      "publishedAt": "2026-11-03T05:08:40Z",
+      "modifiedAt": "2026-11-03T05:08:40Z",
+      "contentTextLength": 1515,
+      "serviceLinks": [
+        "https://code-destiny.com/fortune/tomorrow/"
+      ],
+      "categoryIds": [
+        792600009
+      ],
+      "tagIds": [
+        94463798,
+        9821039,
+        785213818,
+        792612268,
+        792612269
+      ]
+    },
+    {
+      "id": 2200025,
+      "slug": "fortune-consultation-question-guide",
+      "url": "https://ggulggulinsights.wordpress.com/2026/10/25/fortune-consultation-question-guide/",
+      "title": "사주·타로 상담 질문 예시 — 무엇을 물어봐야 할지 모르겠다면",
+      "excerpt": "사주·타로 상담에서 무엇을 물어볼지 막막한가요? 고민을 한 문장으로 정리하는 질문 예시와 상담 전 확인할 내용을 안내합니다. 결과 예시와 이용 가이드를 함께 살펴보세요.",
+      "publishedAt": "2026-10-24T22:41:49Z",
+      "modifiedAt": "2026-11-03T18:45:39Z",
+      "contentTextLength": 759,
+      "serviceLinks": [
+        "https://code-destiny.com/yeongnyangi/",
+        "https://code-destiny.com/yeongnyangi/?utm_source=ggulggul_insights&utm_medium=blog&utm_campaign=question_preparation&utm_content=closing_question",
+        "https://code-destiny.com/consultation-samples/?utm_source=ggulggul_insights&utm_medium=blog&utm_campaign=question_preparation&utm_content=sample_compare"
+      ],
+      "categoryIds": [
+        792600009
+      ],
+      "tagIds": []
+    },
+    {
+      "id": 80,
+      "slug": "life-book-saju-consultation-guide",
+      "url": "https://ggulggulinsights.wordpress.com/2026/10/21/life-book-saju-consultation-guide/",
+      "title": "연이와 영냥이의 운세 이야기 첫 번째 — 사주로 읽는 인생의 책",
+      "excerpt": "왜 나는 비슷한 고민을 반복할까요? 마스터 영냥이가 만든 인생의 책을 소개합니다. 사주를 바탕으로 성격과 일, 사랑과 재물, 대운과 세운을 열 개의 장으로 이어 읽습니다.",
+      "publishedAt": "2026-10-20T19:30:44Z",
+      "modifiedAt": "2026-10-29T13:53:32Z",
+      "contentTextLength": 5301,
+      "serviceLinks": [
+        "https://code-destiny.com/life-book-ai/?utm_source=ggulggul_insights&utm_medium=blog&utm_campaign=consultation_life_book"
+      ],
+      "categoryIds": [
+        792600009
+      ],
+      "tagIds": [
+        94463798,
+        9821039,
+        792612269
+      ]
+    },
+    {
+      "id": 71,
+      "slug": "code-destiny-pass-moonstone-honey-guide",
+      "url": "https://ggulggulinsights.wordpress.com/2026/10/20/code-destiny-pass-moonstone-honey-guide/",
+      "title": "코드데스티니 이용 가이드: 이용권·월정석·꿀방울은 어떻게 다를까요?",
+      "excerpt": "코드데스티니를 처음 이용하나요? 꿀단지 이용권과 영냥이 전용 이용권의 차이, 월정석 유효기간, 출석으로 모은 꿀방울 사용법을 순서대로 안내합니다.",
+      "publishedAt": "2026-10-20T11:51:18Z",
+      "modifiedAt": "2026-10-29T13:55:29Z",
+      "contentTextLength": 4723,
+      "serviceLinks": [
+        "https://code-destiny.com/points/?utm_source=ggulggul_insights&utm_medium=blog&utm_campaign=service_guide",
+        "https://code-destiny.com/ggulggul/?utm_source=ggulggul_insights&utm_medium=blog&utm_campaign=service_guide",
+        "https://code-destiny.com/points/history/?utm_source=ggulggul_insights&utm_medium=blog&utm_campaign=service_guide",
+        "https://code-destiny.com/contact/?utm_source=ggulggul_insights&utm_medium=blog&utm_campaign=service_guide"
+      ],
+      "categoryIds": [
+        792600009
+      ],
+      "tagIds": [
+        785213818
+      ]
+    },
+    {
+      "id": 66,
+      "slug": "2027-jeongmi-year-saju",
+      "url": "https://ggulggulinsights.wordpress.com/2026/10/20/2027-jeongmi-year-saju/",
+      "title": "2027년 정미년 운세: 병오년을 지나 드러나는 진실과 실력",
+      "excerpt": "2027년 정미년을 병화·정화의 차이와 미토의 지장간으로 살펴봅니다. 을사년의 단서가 병오년의 과도기를 지나 실체로 확인된다는 세운 해석을 정리합니다.",
+      "publishedAt": "2026-10-20T11:21:17Z",
+      "modifiedAt": "2026-10-29T13:54:31Z",
+      "contentTextLength": 5891,
+      "serviceLinks": [
+        "https://code-destiny.com/saju/?utm_source=ggulggul_insights&utm_medium=blog&utm_campaign=jeongmi_2027&utm_content=closing_guide"
+      ],
+      "categoryIds": [
+        781643130
+      ],
+      "tagIds": [
+        94463798,
+        9821039,
+        29759175,
+        48369966,
+        792612268,
+        792612269
+      ]
+    }
+  ]
+}

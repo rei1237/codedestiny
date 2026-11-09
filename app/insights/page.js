@@ -10,10 +10,12 @@ import { publishedCelebritySajuSeeds } from "../../lib/famous-saju/celebrity-saj
 import { getCelebrityEditorial } from "../../lib/famous-saju/celebrity-editorial";
 import { INSIGHT_DISCOVERY_COPY } from "./discovery-copy.mjs";
 import { SEARCH_READING_PATHS } from "../../lib/i18n/search-reading-paths.mjs";
+import { latestWordPressPublications, WORDPRESS_PUBLICATION_SITE } from "../../lib/marketing/wordpress-publications.mjs";
 
 const discoveryCopy = INSIGHT_DISCOVERY_COPY.ko;
 const pageTitle = discoveryCopy.title;
 const pageDescription = discoveryCopy.description;
+const koreanPublicationDate = new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", year: "numeric", month: "long", day: "numeric" });
 
 /**
  * 허브 검색용 축약 인덱스.
@@ -124,6 +126,7 @@ export default async function InsightsPage() {
   const initialItems = initialAllItems.slice(0, 12);
   const initialRecommended = EDITORIAL_READING_SLUGS.map((slug) => initialInsightItems.find((article) => article.slug === slug)).filter(Boolean).slice(0, 6);
   const { categories, tags } = getInsightFilters(initialAllItems);
+  const latestNewspaperPosts = latestWordPressPublications(3);
   const webPage = buildWebPageJsonLd({
     title: pageTitle,
     description: pageDescription,
@@ -173,6 +176,24 @@ export default async function InsightsPage() {
         <ul className="cd-guide-index__grid">
           {SEARCH_READING_PATHS.ko.links.map((link) => <li key={link.href}><a className="cd-guide-index__link" href={link.href}>{link.label}</a></li>)}
         </ul>
+      </section>
+      <section className="mx-auto w-full max-w-6xl px-4 pb-10 md:px-6" aria-labelledby="insight-newspaper-latest">
+        <div className="cd-guide-index">
+          <h2 id="insight-newspaper-latest" className="cd-guide-index__title">운세 신문 · 새로 나온 글</h2>
+          <p className="cd-guide-index__lede">공식 WordPress 신문에는 지금의 고민을 정리하는 질문법과 운세를 현실에서 읽는 방법을 싣습니다. 서비스 안의 인사이트와 같은 글을 복제하지 않고, 한 가지 질문을 더 깊게 풀어 연결합니다.</p>
+          <ul className="cd-guide-index__grid">
+            {latestNewspaperPosts.map((post) => (
+              <li key={post.id}>
+                <a href={post.url} className="cd-guide-index__link cd-guide-index__publication" rel="noopener noreferrer">
+                  <time dateTime={post.publishedAt}>{koreanPublicationDate.format(new Date(post.publishedAt))}</time>
+                  <strong>{post.title}</strong>
+                  <span>{post.excerpt}</span>
+                </a>
+              </li>
+            ))}
+          </ul>
+          <p className="cd-guide-index__lede cd-guide-index__publication-links"><a href={WORDPRESS_PUBLICATION_SITE.url} rel="noopener noreferrer">운세 신문 전체 보기</a><a href={WORDPRESS_PUBLICATION_SITE.feedUrl} rel="noopener noreferrer">RSS로 구독하기</a></p>
+        </div>
       </section>
       <InsightsCosmicRouteClient
         initialItems={initialItems}
