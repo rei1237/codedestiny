@@ -47,6 +47,8 @@ interface ReviewItem {
   adminNote: string;
   reviewedBy: string;
   socialProof?: { platform: string; url: string; disclosed: boolean };
+  publicConsent: boolean;
+  privacyHold: boolean;
   reviewReward?: { granted: boolean; amount: number; grantedAt?: string | null };
   approvedAt?: string | null;
   displayedAt?: string | null;
@@ -433,6 +435,8 @@ export default function AdminReviewsPage() {
                         {item.reviewReward?.granted ? (
                           <span className="rounded border border-violet-800 bg-violet-950 px-1.5 py-0.5 text-[10px] text-violet-200">월정석 {item.reviewReward.amount} 지급</span>
                         ) : null}
+                        <span className={`rounded border px-1.5 py-0.5 text-[10px] ${item.publicConsent ? "border-cyan-800 bg-cyan-950 text-cyan-200" : "border-slate-700 bg-slate-900 text-slate-400"}`}>{item.publicConsent ? "익명 공개 동의" : "서비스 내 비공개"}</span>
+                        {item.privacyHold ? <span className="rounded border border-rose-800 bg-rose-950 px-1.5 py-0.5 text-[10px] text-rose-200">개인정보 보호 보류</span> : null}
                         {item.autoFlagReasons.map((flag) => (
                           <span key={flag} className="rounded border border-rose-800 bg-rose-950 px-1.5 py-0.5 text-[10px] text-rose-200">
                             🚩 {FLAG_LABELS[flag] || flag}
@@ -621,6 +625,7 @@ export default function AdminReviewsPage() {
                 <p>featureKey: <span className="text-slate-200">{draft.featureKey || "-"}</span> · 주문: <span className="text-slate-200">{draft.orderId || "-"}</span></p>
                 <p>작성일: <span className="text-slate-200">{formatDate(draft.createdAt)}</span> · 승인일: <span className="text-slate-200">{formatDate(draft.approvedAt)}</span></p>
                 <p>구매 인증: <span className="text-slate-200">{draft.isVerifiedPurchase ? "예" : "아니오"}</span> · 관리자 작성: <span className="text-slate-200">{draft.createdByAdmin ? "예" : "아니오"}</span></p>
+                <p>서비스 내 공개: <span className="text-slate-200">{draft.publicConsent ? "익명 공개 동의" : "비공개"}</span> · 개인정보 보호 보류: <span className="text-slate-200">{draft.privacyHold ? "예" : "아니오"}</span></p>
                 {draft.autoFlagReasons.length ? (
                   <p className="mt-1 text-rose-300">
                     🚩 자동 필터: {draft.autoFlagReasons.map((flag) => FLAG_LABELS[flag] || flag).join(", ")}

@@ -59,7 +59,23 @@ const PERSONAL_INFO_PATTERNS = [
   /\b\d{6}[-\s]?[1-4]\d{6}\b/,
   /[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}/i,
   /\b\d{2,3}[-\s]\d{3,4}[-\s]\d{4}\b/,
+  /\b(?:19|20)\d{2}[-./년]\s?(?:0?[1-9]|1[0-2])[-./월]\s?(?:0?[1-9]|[12]\d|3[01])일?\b/,
+  /\b(?:19|20)\d{6}\b/,
+  /(?:주문|결제|상담)\s*(?:번호|ID|아이디)\s*[:：]?\s*[a-z0-9_-]{6,}/i,
 ];
+
+const PUBLIC_REDACTIONS = [
+  /01[016-9][-.\s]?\d{3,4}[-.\s]?\d{4}/g,
+  /\b\d{6}[-\s]?[1-4]\d{6}\b/g,
+  /[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}/gi,
+  /\b(?:19|20)\d{2}[-./년]\s?(?:0?[1-9]|1[0-2])[-./월]\s?(?:0?[1-9]|[12]\d|3[01])일?\b/g,
+  /\b(?:19|20)\d{6}\b/g,
+  /(?:주문|결제|상담)\s*(?:번호|ID|아이디)\s*[:：]?\s*[a-z0-9_-]{6,}/gi,
+];
+
+export function redactReviewPersonalInfo(value) {
+  return PUBLIC_REDACTIONS.reduce((text, pattern) => text.replace(pattern, "[개인정보 보호]"), String(value || "").trim());
+}
 
 const COMPETITOR_PATTERNS = [
   /점신|헬로우봇|포스텔러|천명|运势通/,

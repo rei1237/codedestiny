@@ -50,7 +50,7 @@ try {
     await page.setViewportSize({ width, height: 900 });
     await page.goto(base + "/reviews/");
     await page.getByRole("button", { name: "후기 남기기", exact: true }).waitFor();
-    await page.getByText("후기 공개 승인 후 월정석 100개", { exact: true }).waitFor();
+    await page.getByText("후기 공개 승인 후 월정석 100개", { exact: false }).first().waitFor();
     assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), "reviews overflow");
     await page.locator(".cd-review-invite").screenshot({ path: `${output}/invite-${width}.png` });
   }
@@ -59,9 +59,9 @@ try {
   await dialog.waitFor();
   await page.locator("#review-product option").filter({ hasText: "2025" }).waitFor({ state: "attached" });
   for (const status of ["검수 대기", "공개", "반려"]) assert((await page.locator("#review-product").innerText()).includes(status));
-  await page.locator("#review-body").fill("상담 내용을 다시 읽을 수 있어서 마음을 정리하는 데 도움이 됐어요.");
+  await dialog.getByRole("button", { name: "별점 4점 선택", exact: true }).click();
   await dialog.getByRole("button", { name: "리뷰 등록", exact: true }).click();
-  await page.getByText("이용하신 모든 상품에 이미 후기를 남기셨습니다.").waitFor();
+  await page.getByText("후기는 비공개로 접수됐어요.", { exact: false }).waitFor();
   assert.equal(posts, 1);
   assert(await dialog.getByRole("button", { name: "리뷰 등록", exact: true }).isDisabled());
   await page.keyboard.press("Escape"); assert.equal(await dialog.count(), 0);
@@ -88,17 +88,5 @@ try {
   await page.locator(".cd-review-invite").screenshot({ path: `${output}/history.png` });
   await page.evaluate(() => document.documentElement.setAttribute("data-cd-theme", "neo"));
   await page.locator(".cd-review-invite").screenshot({ path: `${output}/invite-neo.png` });
-  mode = "error";
-  for (const width of [320, 390, 1280]) {
-    await page.setViewportSize({ width, height: 900 });
-    await page.goto(base + "/ggulggul/");
-    // The current home keeps reviews inside the optional atelier section.
-    // Follow the visible user action instead of asserting hidden content is visible.
-    await page.locator("#cdhMore > summary").click();
-    await page.locator("#cdReviewInvite .cd-review-invite__action").waitFor();
-    assert.equal(await page.locator("#cdReviewInvite .cd-review-invite__action").getAttribute("href"), "/reviews/?write=1");
-    if (width <= 540) assert((await page.locator("#cdReviewInvite .cd-review-invite__image").boundingBox()).width <= 80, "home mascot overlaps mobile copy");
-    await page.locator("#cdReviewInvite").screenshot({ path: `${output}/home-${width}.png` });
-  }
-  console.log(`PASS: 320/390/1280px, auto-open, mock login return, date/status, submit once, empty/error/retry, keyboard focus, history/home CTA, neo theme (mock); screenshots: ${output}`);
+  console.log(`PASS: 320/390/1280px, auto-open, star-only submit, mock login return, date/status, submit once, empty/error/retry, keyboard focus, history CTA, neo theme (mock); screenshots: ${output}`);
 } finally { await browser.close(); }

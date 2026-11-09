@@ -69,7 +69,13 @@ test("제출은 pending이며 서버 이용 기록으로 인증한다", async ()
   const response = await handleReviewRoutes(request(), {});
   expect(response.status).toBe(201);
   expect(await response.json()).toMatchObject({ status: "pending" });
-  expect(create).toHaveBeenCalledWith(expect.objectContaining({ status: "pending", userId: "507f1f77bcf86cd799439011", isVerifiedPurchase: true }));
+  expect(create).toHaveBeenCalledWith(expect.objectContaining({ status: "pending", userId: "507f1f77bcf86cd799439011", isVerifiedPurchase: true, publicConsent: false }));
+});
+test("별점만으로 비공개 후기를 접수하고 빠른 후기 태그는 허용 목록만 저장한다", async () => {
+  const response = await handleReviewRoutes(new Request("https://mock.local/api/reviews", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ productId: "tarot", rating: 3, body: "", quickTags: ["조금 아쉬웠어요", "임의 태그"], publicConsent: false }) }), {});
+  expect(response.status).toBe(201);
+  expect(await response.json()).toMatchObject({ publicConsent: false, rewardStatus: "public_consent_required" });
+  expect(create).toHaveBeenCalledWith(expect.objectContaining({ body: "", quickTags: ["조금 아쉬웠어요"], publicConsent: false }));
 });
 test("중복은 409로 반환하고 이용 기록 없는 제출은 403으로 막는다", async () => {
   create.mockRejectedValueOnce(Object.assign(new Error("duplicate"), { code: 11000 }));

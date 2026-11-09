@@ -19,7 +19,6 @@ import {
 import {
   PUBLIC_REVIEW_STATUS,
   REVIEW_BODY_MAX_LENGTH,
-  REVIEW_BODY_MIN_LENGTH,
   REVIEW_TITLE_MAX_LENGTH,
   Review,
 } from "../lib/review-models.js";
@@ -32,8 +31,7 @@ import {
   listReviewableProducts,
   resolveUsageVerification,
 } from "../lib/review-eligibility.js";
-import { screenReviewText } from "../lib/review-moderation.js";
-import { maskDisplayName } from "../lib/mask-display-name.js";
+import { redactReviewPersonalInfo, screenReviewText } from "../lib/review-moderation.js";
 import { REVIEW_REWARD_AMOUNT, REVIEW_REWARD_KRW } from "../lib/review-reward.js";
 
 import { normalizeReviewSocialProof } from "../../js/review-sharing.mjs";
@@ -41,8 +39,17 @@ import { normalizeReviewSocialProof } from "../../js/review-sharing.mjs";
 const DEFAULT_PAGE_SIZE = 20;
 const MAX_PAGE_SIZE = 50;
 const PUBLIC_CACHE_HEADERS = Object.freeze({ "Cache-Control": "public, max-age=60" });
-const PUBLIC_REVIEW_PROJECTION = "authorName authorImage productId productName rating title body locale isVerifiedPurchase usageSource displayedAt";
-const OWN_REVIEW_PROJECTION = `${PUBLIC_REVIEW_PROJECTION} status adminNote createdAt socialProof reviewReward`;
+const PUBLIC_REVIEW_PROJECTION = "productId productName rating title body quickTags locale isVerifiedPurchase usageSource displayedAt";
+const OWN_REVIEW_PROJECTION = `${PUBLIC_REVIEW_PROJECTION} authorName status adminNote createdAt socialProof reviewReward publicConsent publicConsentAt privacyHold`;
+const ANONYMOUS_REVIEW_AUTHOR = "익명의 운세손님";
+const REVIEW_QUICK_TAGS = new Set([
+  "소름 돋게 잘 맞아요",
+  "제 성격을 잘 짚었어요",
+  "과거 이야기가 정확해요",
+  "앞으로의 방향에 도움 됐어요",
+  "풀이가 자세해서 좋아요",
+  "조금 아쉬웠어요",
+]);
 
 // 공개 조회(목록·요약)는 엣지 캐시를 지난다. TTL 은 위 Cache-Control 과 같은 60초라 클라이언트가
 // 보던 신선도 계약은 그대로다. 바뀌는 것은 "그 60초를 누가 지키느냐" 뿐이다 — 지금까지는 아무도
@@ -94,16 +101,15 @@ function buildSort(sortKey) {
 export function toPublicReview(doc) {
   return {
     id: String(doc?._id || ""),
-    // 🔴 authorName 은 이메일 로컬파트에서 파생된 값이다(worker/lib/mask-display-name.js 주석).
-    //    원본은 DB 와 관리자 projection(worker/routes/admin.js 의 toAdminReviewItem)에만 남고
-    //    공개 응답에는 마스킹된 값만 나간다.
-    authorName: maskDisplayName(toText(doc?.authorName)),
-    authorImage: toText(doc?.authorImage),
+    // 공개 후기에는 이름의 일부나 프로필 이미지도 내보내지 않는다. 길이·첫 글자·이미지 URL도
+    // 계정 단서가 될 수 있으므로 모든 작성자를 같은 비식별 표기로 고정한다.
+    authorName: ANONYMOUS_REVIEW_AUTHOR,
     productId: toText(doc?.productId),
     productName: toText(doc?.productName),
     rating: Number(doc?.rating || 0),
-    title: toText(doc?.title),
-    body: toText(doc?.body),
+    title: redactReviewPersonalInfo(doc?.title),
+    body: redactReviewPersonalInfo(doc?.body),
+    quickTags: Array.isArray(doc?.quickTags) ? doc.quickTags.filter((tag) => REVIEW_QUICK_TAGS.has(tag)) : [],
     locale: toText(doc?.locale) || "ko",
     isVerifiedPurchase: Boolean(doc?.isVerifiedPurchase),
     usageSource: toText(doc?.usageSource),
@@ -118,6 +124,9 @@ export function toOwnReview(doc) {
     //    가릴 이유가 없고, 가리면 "내 후기" 목록에서 어느 것이 무엇인지 식별이 어려워진다.
     //    이 한 줄이 spread 뒤에 와야 마스킹을 덮는다.
     authorName: toText(doc?.authorName),
+    publicConsent: doc?.publicConsent === true,
+    publicConsentAt: doc?.publicConsentAt || null,
+    privacyHold: Boolean(doc?.privacyHold),
     socialProof: normalizeReviewSocialProof(doc?.socialProof?.platform, doc?.socialProof?.url),
     reviewReward: { granted: Boolean(doc?.reviewReward?.granted), amount: Number(doc?.reviewReward?.amount || 0), grantedAt: doc?.reviewReward?.grantedAt || null },
     status: toText(doc?.status),
@@ -128,7 +137,7 @@ export function toOwnReview(doc) {
 
 async function aggregateSummary(env, matchStage) {
   const rows = await withMongoRetry(env, () => Review.aggregate([
-    { $match: { status: PUBLIC_REVIEW_STATUS, ...matchStage } },
+    { $match: { status: PUBLIC_REVIEW_STATUS, publicConsent: { $ne: false }, privacyHold: { $ne: true }, ...matchStage } },
     { $group: { _id: "$rating", count: { $sum: 1 } } },
   ]));
 
@@ -164,7 +173,7 @@ async function handleList(request, env) {
     throw createHttpError(400, "존재하지 않는 상품입니다.", { code: "UNKNOWN_PRODUCT" });
   }
 
-  const filter = { status: PUBLIC_REVIEW_STATUS };
+  const filter = { status: PUBLIC_REVIEW_STATUS, publicConsent: { $ne: false }, privacyHold: { $ne: true } };
   if (productId) filter.productId = productId;
   if (verifiedOnly) filter.isVerifiedPurchase = true;
 
@@ -174,7 +183,7 @@ async function handleList(request, env) {
     // stale 창(15분) 동안 그 필드가 빠진 옛 응답이 나간다.
     // 🔴 v3: authorName 을 마스킹했다. 여기를 안 올리면 배포 직후 stale 창 동안
     //    **마스킹 안 된 원본 이름이 그대로 서빙된다** — 캐시가 개인정보 조치를 무효화한다.
-    key: `reviews:list:v3:${productId}:${sortKey}:${verifiedOnly ? "verified" : "all"}:${page}:${limit}`,
+    key: `reviews:list:v4:${productId}:${sortKey}:${verifiedOnly ? "verified" : "all"}:${page}:${limit}`,
     ttlSeconds: PUBLIC_CACHE_TTL_SECONDS,
     staleTtlSeconds: PUBLIC_CACHE_STALE_TTL_SECONDS,
     load: async () => {
@@ -217,7 +226,7 @@ async function handleSummary(request, env) {
 
   let loaded = false;
   const { value, stale } = await readCmsThroughCache({
-    key: `reviews:summary:v1:${productId}`,
+    key: `reviews:summary:v2:${productId}`,
     ttlSeconds: PUBLIC_CACHE_TTL_SECONDS,
     staleTtlSeconds: PUBLIC_CACHE_STALE_TTL_SECONDS,
     load: async () => {
@@ -239,7 +248,7 @@ async function handleProducts(env) {
   let statsByProduct = new Map();
   try {
     const rows = await withMongoRetry(env, () => Review.aggregate([
-      { $match: { status: PUBLIC_REVIEW_STATUS } },
+      { $match: { status: PUBLIC_REVIEW_STATUS, publicConsent: { $ne: false }, privacyHold: { $ne: true } } },
       { $group: { _id: "$productId", total: { $sum: 1 }, sum: { $sum: "$rating" } } },
     ]));
     statsByProduct = new Map((Array.isArray(rows) ? rows : []).map((row) => [
@@ -315,14 +324,14 @@ async function handleCreate(request, env) {
   }
 
   const reviewBody = toText(body?.body);
-  if (reviewBody.length < REVIEW_BODY_MIN_LENGTH) {
-    throw createHttpError(400, `후기는 ${REVIEW_BODY_MIN_LENGTH}자 이상 작성해 주세요.`, { code: "BODY_TOO_SHORT" });
-  }
   if (reviewBody.length > REVIEW_BODY_MAX_LENGTH) {
     throw createHttpError(400, `후기는 ${REVIEW_BODY_MAX_LENGTH}자 이하로 작성해 주세요.`, { code: "BODY_TOO_LONG" });
   }
 
   const title = toText(body?.title).slice(0, REVIEW_TITLE_MAX_LENGTH);
+  const quickTags = [...new Set(Array.isArray(body?.quickTags) ? body.quickTags.map(toText) : [])]
+    .filter((tag) => REVIEW_QUICK_TAGS.has(tag))
+    .slice(0, REVIEW_QUICK_TAGS.size);
   const localeRaw = toText(body?.locale).toLowerCase();
   const locale = SUPPORTED_LOCALES.has(localeRaw) ? localeRaw : "ko";
 
@@ -343,6 +352,9 @@ async function handleCreate(request, env) {
   // 판정 정본은 review-eligibility 에 있다(소스 이름이 거기서만 정의되기 때문).
   const { isVerifiedPurchase, usageSource } = resolveUsageVerification(usage);
   const screening = screenReviewText({ title, body: reviewBody, isVerifiedPurchase });
+  const requestedPublicConsent = body?.publicConsent === true;
+  const privacyHold = screening.flags.includes("personal_info");
+  const publicConsent = requestedPublicConsent && !privacyHold;
 
   try {
     const doc = await Review.create({
@@ -358,6 +370,10 @@ async function handleCreate(request, env) {
       rating,
       title,
       body: reviewBody,
+      quickTags,
+      publicConsent,
+      publicConsentAt: publicConsent ? new Date() : null,
+      privacyHold,
       locale,
       status: "pending",
       isVerifiedPurchase,
@@ -372,12 +388,15 @@ async function handleCreate(request, env) {
       status: "pending",
       id: String(doc?._id || ""),
       message: "리뷰가 등록되었습니다. 검토 후 반영됩니다.",
+      publicConsent,
+      privacyHold,
+      rewardStatus: publicConsent || socialProof.url ? "pending_review" : "public_consent_required",
     }, { status: 201 });
   } catch (error) {
     if (Number(error?.code) === 11000) {
       if (submissionId) {
-        const existing = await Review.findOne({ _id: submissionId, userId: String(auth.userId) }).select("productId rating title body status socialProof").lean();
-        if (existing && existing.productId === productId && existing.rating === rating && existing.title === title && existing.body === reviewBody && (existing.socialProof?.url || "") === socialProof.url && (existing.socialProof?.platform || "") === socialProof.platform) {
+        const existing = await Review.findOne({ _id: submissionId, userId: String(auth.userId) }).select("productId rating title body quickTags publicConsent status socialProof").lean();
+        if (existing && existing.productId === productId && existing.rating === rating && existing.title === title && existing.body === reviewBody && JSON.stringify(existing.quickTags || []) === JSON.stringify(quickTags) && Boolean(existing.publicConsent) === publicConsent && (existing.socialProof?.url || "") === socialProof.url && (existing.socialProof?.platform || "") === socialProof.platform) {
           return json({ ok: true, id: submissionId, status: existing.status, idempotent: true });
         }
       }
@@ -385,6 +404,84 @@ async function handleCreate(request, env) {
     }
     throw error;
   }
+}
+
+function reviewIdFromPath(path) {
+  const matched = String(path || "").match(/^\/([a-f0-9]{24})$/i);
+  return matched ? matched[1] : "";
+}
+
+async function handleOwnUpdate(path, request, env) {
+  const auth = await resolveAuth(request, env);
+  await connectDb(env);
+  const id = reviewIdFromPath(path);
+  if (!id) return notFound();
+  const current = await withMongoRetry(env, () => Review.findOne({ _id: id, userId: String(auth.userId) }).lean());
+  if (!current) return notFound();
+  const body = await readJson(request);
+  const update = {};
+  let contentChanged = false;
+
+  if (body?.rating !== undefined) {
+    const rating = Number.parseInt(String(body.rating), 10);
+    if (!Number.isFinite(rating) || rating < 1 || rating > 5) throw createHttpError(400, "별점을 1~5 사이로 선택해 주세요.", { code: "INVALID_RATING" });
+    update.rating = rating; contentChanged = rating !== current.rating;
+  }
+  if (typeof body?.body === "string") {
+    const nextBody = toText(body.body);
+    if (nextBody.length > REVIEW_BODY_MAX_LENGTH) throw createHttpError(400, `후기는 ${REVIEW_BODY_MAX_LENGTH}자 이하로 작성해 주세요.`, { code: "BODY_TOO_LONG" });
+    update.body = nextBody; contentChanged = contentChanged || nextBody !== toText(current.body);
+  }
+  if (Array.isArray(body?.quickTags)) {
+    const nextTags = [...new Set(body.quickTags.map(toText))].filter((tag) => REVIEW_QUICK_TAGS.has(tag)).slice(0, REVIEW_QUICK_TAGS.size);
+    update.quickTags = nextTags; contentChanged = contentChanged || JSON.stringify(nextTags) !== JSON.stringify(current.quickTags || []);
+  }
+  if (body?.socialProof !== undefined) {
+    const proof = normalizeReviewSocialProof(body.socialProof?.platform, body.socialProof?.url);
+    if (!proof) throw createHttpError(400, "선택한 SNS의 HTTPS 후기 게시글 주소를 입력해 주세요.", { code: "INVALID_SOCIAL_PROOF" });
+    if (proof.url && body.socialProof?.disclosed !== true) throw createHttpError(400, "SNS 후기에 보상 이벤트 참여 사실을 표시해 주세요.", { code: "DISCLOSURE_REQUIRED" });
+    update.socialProof = { ...proof, disclosed: Boolean(proof.url && body.socialProof?.disclosed === true) };
+  }
+
+  if (body?.publicConsent !== undefined) {
+    const consent = body.publicConsent === true;
+    if (consent) {
+      const screening = screenReviewText({ title: current.title, body: update.body ?? current.body, isVerifiedPurchase: Boolean(current.isVerifiedPurchase) });
+      if (screening.flags.includes("personal_info")) {
+        update.publicConsent = false; update.publicConsentAt = null; update.privacyHold = true;
+      } else {
+        update.publicConsent = true; update.publicConsentAt = new Date(); update.privacyHold = false;
+        if (current.publicConsent !== true && current.status === PUBLIC_REVIEW_STATUS) update.status = "pending";
+      }
+    } else {
+      update.publicConsent = false; update.publicConsentAt = null;
+    }
+  }
+
+  if (contentChanged) {
+    const screening = screenReviewText({ title: current.title, body: update.body ?? current.body, isVerifiedPurchase: Boolean(current.isVerifiedPurchase) });
+    update.autoFlagReasons = screening.flags;
+    update.privacyHold = screening.flags.includes("personal_info");
+    if (current.status === PUBLIC_REVIEW_STATUS) update.status = "pending";
+  }
+  if (!Object.keys(update).length) throw createHttpError(400, "수정할 내용이 없습니다.", { code: "NO_CHANGES" });
+  const doc = await withMongoRetry(env, () => Review.findOneAndUpdate({ _id: id, userId: String(auth.userId) }, { $set: update }, { new: true }).lean());
+  return json({ ok: true, item: toOwnReview(doc), privacyHold: Boolean(doc?.privacyHold) });
+}
+
+async function handleOwnDelete(path, request, env) {
+  const auth = await resolveAuth(request, env);
+  await connectDb(env);
+  const id = reviewIdFromPath(path);
+  if (!id) return notFound();
+  // 보상 원장과 중복 검증 이력은 보존하고 공개·본인 목록에서 숨기는 소프트 삭제다.
+  const doc = await withMongoRetry(env, () => Review.findOneAndUpdate(
+    { _id: id, userId: String(auth.userId) },
+    { $set: { status: "hidden", publicConsent: false, publicConsentAt: null } },
+    { new: true },
+  ).lean());
+  if (!doc) return notFound();
+  return json({ ok: true, item: toOwnReview(doc) });
 }
 
 export async function handleReviewRoutes(request, env) {
@@ -415,6 +512,12 @@ export async function handleReviewRoutes(request, env) {
 
     if (path === "/mine") {
       if (method === "GET") return await handleMine(request, env);
+      return methodNotAllowed();
+    }
+
+    if (reviewIdFromPath(path)) {
+      if (method === "PATCH") return await handleOwnUpdate(path, request, env);
+      if (method === "DELETE") return await handleOwnDelete(path, request, env);
       return methodNotAllowed();
     }
 

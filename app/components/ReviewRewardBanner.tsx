@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { getApiBaseUrl } from "../_lib/api-config";
 import { REVIEW_REWARD_IMAGE, REVIEW_WRITE_URL, reviewRewardCopy, reviewRewardLabel, paidReviewCopy, reviewRewardWorthLabel } from "@/js/review-reward-copy.mjs";
 import { KRW_PER_MONTHLY_CREDIT } from "@/lib/payment/coin-pricing";
+import QuickReviewComposer from "./QuickReviewComposer";
 import "@/styles/review-reward.css";
 
 export type ReviewRewardPolicy = { amount: number; valueKRW?: number; currency: string; trigger: string };
@@ -64,10 +65,11 @@ export default function ReviewRewardBanner({ policy, onWrite, brand = 'ggulggul'
         <p className="cd-review-invite__reward" aria-live="polite">{reward}{worth && <span className="cd-review-invite__worth"> · {worth}</span>}</p>
         <p className="cd-review-invite__detail">{copy.detail}</p>
         {!afterResult && <p className="cd-review-invite__detail">지급일부터 30일 · 월정석 사용이 가능한 대상 상품에서 사용 · 이용권 구매 및 현금 교환 제외</p>}
-        {onWrite ? <button type="button" className="cd-review-invite__action" onClick={onWrite}>{copy.action}</button>
+        {afterResult && locale === 'ko' ? null : onWrite ? <button type="button" className="cd-review-invite__action" onClick={onWrite}>{copy.action}</button>
           : <Link href={REVIEW_WRITE_URL} className="cd-review-invite__action">{copy.action}</Link>}
       </div>
-      <Image src={afterResult ? paidReviewCopy(brand, locale).image : REVIEW_REWARD_IMAGE} alt={reviewRewardCopy.imageAlt} width={360} height={240} className="cd-review-invite__image" />
+      <Image src={afterResult ? paidReviewCopy(brand, locale).image : REVIEW_REWARD_IMAGE} alt={brand === 'yeongnyangi' ? '달빛 상담실의 영냥이' : reviewRewardCopy.imageAlt} width={360} height={240} className="cd-review-invite__image" />
+      {afterResult && locale === 'ko' && <QuickReviewComposer brand={brand} rewardLabel={`${reward}${worth ? ` · ${worth}` : ''}`} />}
     </section>
   );
 }

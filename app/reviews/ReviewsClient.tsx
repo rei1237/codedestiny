@@ -25,6 +25,7 @@ interface ReviewCard {
   rating: number;
   title: string;
   body: string;
+  quickTags?: string[];
   isVerifiedPurchase: boolean;
   // 옛 엣지 캐시 응답(v1 키)에는 없다. 없으면 배지를 붙이지 않는 쪽으로 떨어진다.
   usageSource?: string;
@@ -54,11 +55,13 @@ interface Summary {
   average: number;
   distribution: Record<string, number>;
 }
+const REVIEW_STATUS_LABEL: Record<string, string> = { pending: "검수 대기", approved: "공개", rejected: "반려", hidden: "비공개" };
 
 const SORT_KEYS: SortKey[] = ["latest", "rating_desc", "rating_asc"];
 
 const PAGE_SIZE = 12;
 const EMPTY_SUMMARY: Summary = { total: 0, average: 0, distribution: {} };
+const QUICK_REVIEW_TAGS = ["소름 돋게 잘 맞아요", "제 성격을 잘 짚었어요", "과거 이야기가 정확해요", "앞으로의 방향에 도움 됐어요", "풀이가 자세해서 좋아요", "조금 아쉬웠어요"];
 
 type ReviewsCopy = {
   sortLabels: Record<SortKey, string>;
@@ -222,8 +225,8 @@ const REVIEWS_COPY: Partial<Record<LoadingLocale, ReviewsCopy>> = {
     ratingSelectLabel: "별점을 선택해주세요",
     starSelectAriaLabel: (star) => `별점 ${star}점 선택`,
     titleFieldLabel: "제목 (선택)",
-    bodyFieldLabel: "후기 (최소 20자)",
-    bodyPlaceholder: "어떤 점이 도움이 되었는지 구체적으로 적어주시면 다른 분들에게 큰 도움이 됩니다.",
+    bodyFieldLabel: "한 줄 후기 (선택)",
+    bodyPlaceholder: "마음에 남은 점을 짧게 적어주세요.",
     submitButtonLoading: "등록 중...",
     submitButtonIdle: "리뷰 등록",
     moderationNotice: "등록한 후기는 바로 공개되지 않고 운영진 검수를 거쳐 반영됩니다.",    selectProductError: "리뷰를 남길 상품을 선택해 주세요.",
@@ -890,9 +893,9 @@ function ReviewCardView({ review, copy }: { review: ReviewCard; copy: ReviewsCop
         <h3 className="mt-4 break-keep text-sm font-semibold text-[#3c1830] dark:text-[#fff1f7]">{review.title}</h3>
       ) : null}
 
-      <p className="mt-2 flex-1 whitespace-pre-wrap break-keep text-sm leading-7 text-[#5c3a4d] dark:text-[#f0d0de]">
-        {review.body}
-      </p>
+      {(review.body || review.quickTags?.length) ? <p className="mt-2 flex-1 whitespace-pre-wrap break-keep text-sm leading-7 text-[#5c3a4d] dark:text-[#f0d0de]">
+        {review.body || review.quickTags?.join(" · ")}
+      </p> : null}
 
       <footer className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-[#f7e6ec] pt-3 dark:border-[#4a2438]">
         <span className="text-xs text-[#8a6478] dark:text-[#c99cb2]">{copy.productPrefix}{review.productName}</span>
@@ -936,7 +939,8 @@ export default function ReviewsClient() {
   const [eligible, setEligible] = useState<EligibleProduct[]>([]);
   const [eligibleState, setEligibleState] = useState<"idle" | "loading" | "ready" | "guest" | "error">("idle");
   const [formProductId, setFormProductId] = useState("");
-  const [formRating, setFormRating] = useState(5);
+  const [formRating, setFormRating] = useState(0);
+  const [formTags, setFormTags] = useState<string[]>([]);
   const [formTitle, setFormTitle] = useState("");
   const [formBody, setFormBody] = useState("");
   const [socialProof, setSocialProof] = useState<ReviewSocialProof>({ platform: "", url: "", disclosed: false });
@@ -946,6 +950,7 @@ export default function ReviewsClient() {
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState("");
   const [formNotice, setFormNotice] = useState("");
+  const [submittedReviewId, setSubmittedReviewId] = useState("");
 
   const loadProducts = useCallback(async () => {
     try {
@@ -1013,6 +1018,7 @@ export default function ReviewsClient() {
     setWriterOpen(true);
     setFormError("");
     setFormNotice("");
+    setSubmittedReviewId("");
     setEligibleState("loading");
 
     try {
@@ -1061,17 +1067,13 @@ export default function ReviewsClient() {
       setFormError(copy.selectProductError);
       return;
     }
-    if (formBody.trim().length < 20) {
-      setFormError(copy.bodyTooShortError);
-      return;
-    }
-
     if (submitLock.current) return;
     const normalizedProof = normalizeReviewSocialProof(socialProof.platform, socialProof.url);
     if (!normalizedProof || (normalizedProof.url && !socialProof.disclosed)) {
       setFormError("SNS 후기 주소와 보상 참여 표시를 확인해 주세요."); return;
     }
-    const payload = JSON.stringify({ productId: formProductId, rating: formRating, title: formTitle.trim(), body: formBody.trim(), socialProof });
+    if (formRating < 1) { setFormError("별점을 선택해 주세요."); return; }
+    const payload = JSON.stringify({ productId: formProductId, rating: formRating, title: formTitle.trim(), body: formBody.trim(), quickTags: formTags, socialProof });
     if (!submissionRef.current || submissionRef.current.payload !== payload) submissionRef.current = { id: crypto.randomUUID().replaceAll("-", "").slice(0, 24), payload };
     submitLock.current = true;
     setSubmitting(true);
@@ -1087,6 +1089,8 @@ export default function ReviewsClient() {
           rating: formRating,
           title: formTitle.trim(),
           body: formBody.trim(),
+          quickTags: formTags,
+          publicConsent: false,
         }),
       });
       const data = await res.json().catch(() => ({}));
@@ -1095,9 +1099,12 @@ export default function ReviewsClient() {
         return;
       }
 
-      setFormNotice(copy.submitSuccessNotice);
+      setSubmittedReviewId(String(data.id || submissionRef.current.id));
+      setFormNotice("후기는 비공개로 접수됐어요. 아래에서 익명 공개 여부를 선택할 수 있어요.");
       setFormTitle("");
       setFormBody("");
+      setFormTags([]);
+      setFormRating(0);
       submissionRef.current = null;
       setSocialProof({ platform: "", url: "", disclosed: false });
       setHistoryVersion((value) => value + 1);
@@ -1107,7 +1114,19 @@ export default function ReviewsClient() {
       submitLock.current = false;
       setSubmitting(false);
     }
-  }, [formBody, formProductId, formRating, formTitle, socialProof, eligible, copy]);
+  }, [formBody, formProductId, formRating, formTags, formTitle, socialProof, eligible, copy]);
+
+  const agreeToAnonymousPublic = useCallback(async () => {
+    if (!submittedReviewId || submitting) return;
+    setSubmitting(true); setFormError("");
+    try {
+      const response = await authFetch(`/api/reviews/${submittedReviewId}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ publicConsent: true }) });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) { setFormError(String(data.message || "공개 동의를 저장하지 못했어요.")); return; }
+      setFormNotice(data.privacyHold ? "개인정보로 보이는 내용이 있어 공개는 보류하고 비공개로 안전하게 보관했어요." : "익명 공개 동의를 저장했어요. 관리자 검토 후 공개될 수 있어요.");
+    } catch { setFormError("공개 동의를 저장하지 못했어요. 후기는 비공개 상태로 유지돼요."); }
+    finally { setSubmitting(false); }
+  }, [submittedReviewId, submitting]);
 
   const visibleOnMobile = mobileExpanded ? reviews : reviews.slice(0, 3);
   const writableProducts = eligible;
@@ -1363,7 +1382,7 @@ export default function ReviewsClient() {
                     <option value="">{copy.selectProductPlaceholder}</option>
                     {eligible.map((item) => (
                       <option key={item.productId} value={item.productId}>
-                        {item.productName}{item.usedAt ? ` · ${new Date(item.usedAt).toLocaleDateString(numberLocale)}` : ""}
+                        {item.productName}{item.usedAt ? ` · ${new Date(item.usedAt).toLocaleDateString(numberLocale)}` : ""}{item.existingReviewStatus ? ` · 후기 ${REVIEW_STATUS_LABEL[item.existingReviewStatus] || "작성 완료"}` : " · 후기 작성 가능"}
 
                       </option>
                     ))}
@@ -1395,6 +1414,10 @@ export default function ReviewsClient() {
                     ))}
                     <span className="ml-2 text-sm text-[#70445c] dark:text-[#c99cb2]">{formRating}.0</span>
                   </div>
+                </div>
+
+                <div className="flex flex-wrap gap-2" aria-label="빠른 후기 선택">
+                  {QUICK_REVIEW_TAGS.map((tag) => <button key={tag} type="button" aria-pressed={formTags.includes(tag)} onClick={() => setFormTags((current) => current.includes(tag) ? current.filter((item) => item !== tag) : [...current, tag])} className={`min-h-11 rounded-full border px-3 text-sm ${formTags.includes(tag) ? "border-[#b31955] bg-[#fdf0f5] font-semibold text-[#b31955] dark:border-[#f4bed1] dark:bg-[#4a1230] dark:text-[#f4bed1]" : "border-[#f0d4de] text-[#70445c] dark:border-[#5a3348] dark:text-[#c99cb2]"}`}>{tag}</button>)}
                 </div>
 
                 <div className="space-y-1">
@@ -1431,10 +1454,12 @@ export default function ReviewsClient() {
                 {formError ? <p role="alert" className="text-sm text-[#b31955] dark:text-[#f4bed1]">{formError}</p> : null}
                 {formNotice ? <p role="status" className="text-sm text-[#1f7a4d] dark:text-[#8fe0b4]">{formNotice}</p> : null}
 
+                {submittedReviewId ? <div className="grid gap-2 sm:grid-cols-2"><button type="button" className="min-h-11 rounded-full border border-[#b31955] px-4 text-sm font-semibold text-[#b31955] dark:border-[#f4bed1] dark:text-[#f4bed1]" onClick={() => setWriterOpen(false)}>여기서 마치기</button><button type="button" className="min-h-11 rounded-full bg-[#b31955] px-4 text-sm font-semibold text-white dark:bg-[#f4bed1] dark:text-[#3c1830]" disabled={submitting} onClick={() => void agreeToAnonymousPublic()}>익명 후기 공개에 동의하기</button></div> : null}
+
                 <button
                   type="button"
                   onClick={() => { void submitReview(); }}
-                  disabled={submitting || !formProductId || writableProducts.length === 0}
+                  disabled={submitting || !formProductId || writableProducts.length === 0 || Boolean(submittedReviewId)}
                   className="min-h-[48px] w-full rounded-full bg-[#b31955] text-sm font-semibold text-white hover:bg-[#951245] disabled:opacity-50 dark:bg-[#f4bed1] dark:text-[#3c1830] dark:hover:bg-[#e9a7c0]"
                 >
                   {submitting ? copy.submitButtonLoading : copy.submitButtonIdle}

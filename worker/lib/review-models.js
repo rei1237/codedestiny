@@ -39,7 +39,14 @@ const reviewSchema = new mongoose.Schema({
   // 내용
   rating: { type: Number, required: true, min: 1, max: 5 },
   title: { type: String, default: "", trim: true, maxlength: 60 },
-  body: { type: String, required: true, trim: true, maxlength: 1000 },
+  // 별점만으로도 접수할 수 있다. 선택형 태그와 한 줄 의견은 모두 선택 사항이다.
+  body: { type: String, default: "", trim: true, maxlength: 1000 },
+  quickTags: { type: [String], default: [] },
+  // 신규 후기는 명시적으로 동의한 경우에만 공개된다. 기존 문서(undefined)는 기존 공개
+  // 상태를 보존하되 공개 응답에서 완전 익명화한다.
+  publicConsent: { type: Boolean, default: false },
+  publicConsentAt: { type: Date, default: null },
+  privacyHold: { type: Boolean, default: false },
   locale: { type: String, enum: ["ko", "ja", "zh", "en"], default: "ko" },
 
   // SNS evidence is visible only to its author and administrators.
@@ -100,6 +107,6 @@ reviewSchema.index({ userId: 1, createdAt: -1 });
 
 export const Review = scopedModel(mongoose.models.Review || mongoose.model("Review", reviewSchema));
 
-export const REVIEW_BODY_MIN_LENGTH = 20;
+export const REVIEW_BODY_MIN_LENGTH = 0;
 export const REVIEW_BODY_MAX_LENGTH = 1000;
 export const REVIEW_TITLE_MAX_LENGTH = 60;

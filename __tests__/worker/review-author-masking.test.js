@@ -60,8 +60,9 @@ describe("maskDisplayName", () => {
 });
 
 describe("공개 후기 응답(GET /api/reviews)", () => {
-  test("authorName 을 마스킹해 내보낸다", () => {
-    expect(toPublicReview(reviewDoc("seongbae555")).authorName).toBe("s***");
+  test("작성자 단서를 남기지 않고 고정 익명 이름으로 내보낸다", () => {
+    expect(toPublicReview(reviewDoc("seongbae555")).authorName).toBe("익명의 운세손님");
+    expect(toPublicReview(reviewDoc("seongbae555"))).not.toHaveProperty("authorImage");
   });
 
   test("직렬화된 payload 어디에도 원본 표시 이름이 남지 않는다", () => {
@@ -69,9 +70,16 @@ describe("공개 후기 응답(GET /api/reviews)", () => {
     expect(payload).not.toContain("seongbae555");
   });
 
+  test("기존 후기 본문에 남은 연락처·생년월일·주문 식별자도 공개 전에 가린다", () => {
+    const payload = JSON.stringify(toPublicReview({ ...reviewDoc("reader"), body: "1990-01-02 출생, reader@example.com, 주문번호 pay_123456" }));
+    expect(payload).not.toContain("1990-01-02");
+    expect(payload).not.toContain("reader@example.com");
+    expect(payload).not.toContain("pay_123456");
+    expect(payload).toContain("개인정보 보호");
+  });
+
   test("응답 키 집합이 화이트리스트 그대로다 — 이메일성 필드가 끼어들 자리가 없다", () => {
     expect(Object.keys(toPublicReview(reviewDoc("seongbae555"))).sort()).toEqual([
-      "authorImage",
       "authorName",
       "body",
       "displayedAt",
@@ -80,6 +88,7 @@ describe("공개 후기 응답(GET /api/reviews)", () => {
       "locale",
       "productId",
       "productName",
+      "quickTags",
       "rating",
       "title",
       "usageSource",

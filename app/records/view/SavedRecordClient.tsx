@@ -54,7 +54,7 @@ export default function SavedRecordClient() {
         {detail.record.question && <p className={styles.readingQuestion}>{detail.record.question}</p>}
         {!['completed', 'saved', 'conversation'].includes(detail.record.status) && <section role="status" className="mb-6 space-y-3 rounded-[var(--cd-r-card)] border border-[var(--cd-border)] p-4"><p className="font-semibold">{(c as Record<string,string>)[detail.record.status] || c.saved}</p><p>{detail.record.status==='refund_pending'?c.refundLead:c.partialLead}</p><a className={recordButton} href={detail.record.recoveryHref || '/points/history/'}>{c.recover}</a></section>}
         <StoredReading source={source} serviceId={detail.record.serviceId} status={detail.record.status} value={detail.content} />
-        <div className={styles.readingActions}><a className={recordButton} href="/records/">{c.back}</a><a className={recordButton} href={detail.record.startHref}>{c.newConsult}</a></div>
+        <div className={styles.readingActions}><a className={recordButton} href="/records/">{c.back}</a><a className={recordButton} href="/reviews/?write=1">후기 쓰기</a><a className={recordButton} href={detail.record.startHref}>{c.newConsult}</a></div>
         {recommendation && <RecommendationResult key={`${source}:${id}`} {...recommendation} />}
       </>}
     </>}
