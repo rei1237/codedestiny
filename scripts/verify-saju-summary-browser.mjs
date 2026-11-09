@@ -66,7 +66,19 @@ async function settleScroll(page) {
   }));
 }
 
+async function openReading(page, cardId = 'summaryCard', group = 'more') {
+  // The compact reader keeps paid content in the original node inside two disclosures.
+  // A restored grant delivers the report without overriding the user's collapsed state.
+  for (const selector of ['#sajuCompact-' + group, 'details[data-reading-fold="' + cardId + '"]']) {
+    const fold = page.locator(selector);
+    if (await fold.count() && !await fold.evaluate(node => node.open)) {
+      await fold.locator(':scope > summary').click();
+    }
+  }
+}
+
 async function assertSummaryVisible(page, label) {
+  await openReading(page);
   await page.locator('#summaryArea .saju-summary-report').waitFor({state:'visible'});
   // The report can exceed 30,000px; scrollIntoViewIfNeeded can consider a
   // sliver of its body visible while the card's reveal threshold is unmet.
@@ -221,6 +233,7 @@ try {
     });
   }
   }
+  await openReading(page);
   await page.locator('#summaryArea .saju-summary-report').waitFor({state:'visible'});
   await page.evaluate((alreadyUnlocked) => {
     if (alreadyUnlocked) return;
@@ -288,6 +301,7 @@ try {
   }
   // Same local mock boundary: verify the actual paid daeun renderer and recovery button.
   assert.equal(await page.locator('#dwGrid .dw-item').count(), 0, 'locked daeun must not contain paid rows');
+  await openReading(page, 'daewunCard', 'flow');
   if (!alreadyUnlocked && shell.label === 'mobile') {
     // Purchase offers belong to the locked state; confirmed access hides them.
     const initialMode = await page.locator('#sajuReadingHeader [data-saju-mode][aria-pressed="true"]').getAttribute('data-saju-mode');
