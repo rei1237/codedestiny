@@ -5,10 +5,14 @@ import { createHttpError } from './http.js';
 import { HONEY_SCOPE, honeyCollections, kstDay, withHoneyTransaction } from './honey-wallet.js';
 import { profileCharacterPreview } from './profile-character-preview.js';
 import { PET_EGGS, PET_CARE_HONEY, PET_AFFECTION_GAIN, petBirthInput, rollPetTraits, petIdentity } from '../../js/core/profile-pet.mjs';
+import { rollPetAppearance, petAppearanceKey } from '../../js/core/profile-pet-appearance.mjs';
 
 const fail = (status, code, message) => createHttpError(status, message, { code });
 const states = () => (scopeConnection() || mongoose.connection).db.collection('profile_pets');
 const receipts = () => (scopeConnection() || mongoose.connection).db.collection('profile_pet_actions');
+// _id is the actual visible combination; Mongo's built-in unique primary key is
+// the arbiter across every account, profile, tab and device. No separate index migration.
+const appearances = () => (scopeConnection() || mongoose.connection).db.collection('profile_pet_appearances');
 const ledgerId = (uid, day) => `profile-pet-care:${uid}:${day}`;
 const randomUnit = () => crypto.getRandomValues(new Uint32Array(1))[0] / 4294967296;
 // User-requested developer mascot. Identity is resolved from the authenticated
@@ -40,10 +44,33 @@ function publicPet(state, character, day, exclusiveSpecies) {
   if (!state) return null;
   return {
     ...petIdentity(state.traits, character, exclusiveSpecies), eggType: state.eggType, traits: state.traits,
+    ...(!exclusiveSpecies && state.appearance ? { appearance: state.appearance } : {}),
     affection: state.affection, hatchedAt: state.createdAt,
     fed: state.careDay === day && state.fed === true,
     played: state.careDay === day && state.played === true,
   };
+}
+async function reserveAppearance(state, exclusiveSpecies, appearance, now, session) {
+  if (!state || state.appearance || exclusiveSpecies) return;
+  const key = petAppearanceKey(appearance);
+  try {
+    // Anonymous reservation: deleting an account leaves no user/profile identifier here.
+    await appearances().insertOne({ _id: key, createdAt: now }, { session });
+  } catch (error) {
+    if (Number(error.code) !== 11000) throw error;
+    throw Object.assign(fail(409, 'PET_APPEARANCE_COLLISION', '새로운 꾸밈을 준비하고 있어요. 다시 확인해 주세요.'), { appearanceCollision: true });
+  }
+  await states().updateOne({ _id: state._id }, { $set: { appearance, updatedAt: now } }, { session });
+}
+async function withAppearanceAllocation(run) {
+  // A reservation conflict rolls back the whole transaction. Retry only the
+  // cosmetic combination; species, rarity and existing care are never rerolled.
+  for (let attempt = 0; attempt < 16; attempt++) {
+    const appearance = rollPetAppearance(randomUnit);
+    try { return await run(appearance); }
+    catch (error) { if (!error.appearanceCollision) throw error; }
+  }
+  throw fail(409, 'PET_APPEARANCE_BUSY', '새로운 꾸밈을 배정하지 못했어요. 잠시 후 다시 확인해 주세요.');
 }
 async function snapshot(uid, profileId, profile, now, session) {
   const day = kstDay(now), { wallets, ledgers } = honeyCollections();
@@ -64,7 +91,14 @@ async function snapshot(uid, profileId, profile, now, session) {
 }
 export async function getProfilePet(env, userId, rawProfileId, now = new Date()) {
   const uid = String(userId), profileId = validateProfileId(rawProfileId);
-  return withMongoRetry(env, async () => snapshot(uid, profileId, await ownedProfile(uid, profileId), now));
+  const result = await withMongoRetry(env, async () => snapshot(uid, profileId, await ownedProfile(uid, profileId), now));
+  if (!result.pet || result.pet.unique || result.pet.appearance) return result;
+  // Existing ordinary pets gain the new wardrobe once, without a bulk backfill.
+  return withAppearanceAllocation(appearance => withHoneyTransaction(env, async session => {
+    const profile = await ownedProfile(uid, profileId, session);
+    await reserveAppearance(await states().findOne({ _id: `${uid}:${profileId}` }, { session }), await exclusivePet(uid, session), appearance, now, session);
+    return snapshot(uid, profileId, profile, now, session);
+  }));
 }
 export async function hatchProfilePet(env, userId, body, now = new Date()) {
   const uid = String(userId), profileId = validateProfileId(body?.profileId);
@@ -72,15 +106,16 @@ export async function hatchProfilePet(env, userId, body, now = new Date()) {
   // Mint once outside the retried transaction; an internal retry cannot reroll rarity.
   const traits = rollPetTraits(randomUnit);
   try {
-    return await withHoneyTransaction(env, async session => {
+    return await withAppearanceAllocation(appearance => withHoneyTransaction(env, async session => {
       const profile = await ownedProfile(uid, profileId, session);
       previewFor(profile, now);
       await states().updateOne({ _id: `${uid}:${profileId}` }, { $setOnInsert: {
         userId: uid, profileId, eggType: body.eggType, traits, affection: 0,
         careDay: '', fed: false, played: false, createdAt: now, updatedAt: now,
       } }, { upsert: true, session });
+      await reserveAppearance(await states().findOne({ _id: `${uid}:${profileId}` }, { session }), await exclusivePet(uid, session), appearance, now, session);
       return snapshot(uid, profileId, profile, now, session);
-    });
+    }));
   } catch (error) {
     // Another tab may have inserted the same immutable companion first.
     if (Number(error.code) !== 11000) throw error;
@@ -94,7 +129,7 @@ export async function careForProfilePet(env, userId, body, now = new Date()) {
   if (!['feed', 'play'].includes(action)) throw fail(400, 'INVALID_PET_ACTION', '먹이주기 또는 놀아주기를 선택해 주세요.');
   if (!/^[a-zA-Z0-9_-]{8,100}$/.test(String(body?.requestId || ''))) throw fail(400, 'INVALID_REQUEST_ID', '화면을 다시 열고 시도해 주세요.');
   const day = kstDay(now);
-  const run = () => withHoneyTransaction(env, async session => {
+  const run = () => withAppearanceAllocation(appearance => withHoneyTransaction(env, async session => {
     const profile = await ownedProfile(uid, profileId, session);
     const receiptKey = `pet-action:${uid}:${body.requestId}`;
     const receipt = await receipts().findOne({ _id: receiptKey }, { session });
@@ -104,6 +139,7 @@ export async function careForProfilePet(env, userId, body, now = new Date()) {
     }
     const state = await states().findOne({ _id: `${uid}:${profileId}` }, { session });
     if (!state) throw fail(409, 'PET_NOT_HATCHED', '알을 먼저 부화시켜 주세요.');
+    await reserveAppearance(state, await exclusivePet(uid, session), appearance, now, session);
     const today = state.careDay === day;
     const flag = action === 'feed' ? 'fed' : 'played';
     const firstCare = !(today && state[flag]);
@@ -129,7 +165,7 @@ export async function careForProfilePet(env, userId, body, now = new Date()) {
       rewarded = PET_CARE_HONEY;
     }
     return { ...await snapshot(uid, profileId, profile, now, session), firstCare, rewarded };
-  });
+  }));
   try { return await run(); }
   catch (error) {
     // Distinct pets can race for the account/day ledger. The losing transaction

@@ -1,6 +1,7 @@
 import { SPIRITS, SPIRIT_BONUS_PERCENT, spriteUrl, mobileSpriteUrl, findSpirit, spiritExp } from './profile-characters.mjs';
 import { elementBadgeMarkup } from './profile-element-badge.mjs';
 import { mountPetGarden } from './profile-pet-card.mjs';
+import { mountProfileDiary } from './profile-diary.mjs';
 import { adoptHoneyManager } from './profile-honey-manager.mjs';
 export { elementBadgeMarkup };
 
@@ -55,6 +56,7 @@ export async function loadProfileCharacterPreview(profile, { request }) {
   return job;
 }
 export async function mountCharacterCard(root, profile, options) {
+  root.classList.add('cd-yehwa-scope');
   if (activeMount?.root && activeMount.root !== root) mounts.get(activeMount.root)?.controller.abort();
   activeMount = { root, profile, options, date: koreaDate() };
   if (!document.querySelector('link[data-profile-characters]')) {
@@ -71,12 +73,15 @@ export async function mountCharacterCard(root, profile, options) {
   honeyHost.className = 'pg-honey-host pg-garden';
   honeyHost.id = 'petHoneyManager';
   honeyHost.setAttribute('data-pet-honey-host', '');
-  panel.replaceChildren(target, honeyHost);
+  const diaryHost = document.createElement('div');
+  diaryHost.setAttribute('data-pc-diary-host', '');
+  panel.replaceChildren(target, honeyHost, diaryHost);
   const oldAvatar = root.querySelector('.dp-mc-avatar');
   if (oldAvatar) oldAvatar.replaceChildren();
   root.querySelector('[data-pc-element]')?.replaceChildren();
   options.onQuestExp?.(15);
   const token = { controller: new AbortController() }; mounts.set(root, token);
+  mountProfileDiary(diaryHost, { profileId: profile.profileId || profile.id, signal: token.controller.signal });
   adoptHoneyManager(honeyHost, token.controller.signal);
   const owner = options.owner();
   const current = () => mounts.get(root) === token && target.isConnected && options.owner() === owner;
@@ -117,6 +122,7 @@ export async function mountCharacterCard(root, profile, options) {
     <details class="pc-details"><summary>캐릭터 소개 · 정령 도감</summary><div class="pc-description"><p>${escape(character.summary)}</p><h4>나의 강점</h4><p>${escape(character.strength)}</p><h4>마음에 둘 점</h4><p>${escape(character.caution)}</p><h4>오늘의 작은 실천</h4><p>${escape(character.advice)}</p></div>
     <section aria-label="정령 도감"><h4>함께할 정령</h4><p>이미 보유한 정령과 함께할 수 있어요. 꿀방울은 꿀꿀운세 지정 상품에서 사용해요. 장착한 정령 한 마리만 성장 보너스를 줘요.</p><p data-pc-wallet role="status"></p><button type="button" data-pc-base>내 일주 캐릭터로 돌아가기</button><div class="pc-collection" data-pc-collection></div><p data-pc-status role="status" aria-live="polite"></p><button type="button" data-pc-reload>보유 정령 다시 확인하기</button></section></details>`;
   target.querySelector('[data-pet-garden]').after(honeyHost);
+  honeyHost.after(diaryHost);
   drawAvatar();
   const status = message => { if (current()) target.querySelector('[data-pc-status]').textContent = message; };
   function drawCollection() {

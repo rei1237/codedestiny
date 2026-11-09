@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { ArrowLeft, Search, House } from "lucide-react";
 
 import DiarySearchOverlay from "./DiarySearchOverlay";
 import styles from "../_styles/diary.module.css";
@@ -26,13 +27,14 @@ const copy = DIARY_TOP_BAR_TEXT.ko;
 interface DiaryTopBarProps {
   /** 사람이 읽는 날짜 표기. 없으면 제목만 보인다. */
   subtitle?: string;
+  embedded?: boolean;
 }
 
 /**
  * `/diary` 는 `CHROMELESS_ROUTES` 이자 `FEATURE_NAV_SELF_MANAGED_ROUTES` 라
  * 공용 back/home 이 렌더되지 않는다 — 그 의무를 이 바가 대신 진다.
  */
-export default function DiaryTopBar({ subtitle }: DiaryTopBarProps) {
+export default function DiaryTopBar({ subtitle, embedded = false }: DiaryTopBarProps) {
   const router = useRouter();
   const [search, setSearch] = useState(false);
 
@@ -47,9 +49,9 @@ export default function DiaryTopBar({ subtitle }: DiaryTopBarProps) {
   return (
     <>
       <header className={styles.topBar}>
-        <button type="button" className={styles.iconButton} onClick={goBack} aria-label={copy.back}>
-          ←
-        </button>
+        {!embedded && <button type="button" className={styles.iconButton} onClick={goBack} aria-label={copy.back}>
+          <ArrowLeft size={21} strokeWidth={1.6} aria-hidden="true" />
+        </button>}
         <h1 className={styles.topBarTitle}>
           {copy.title}
           {subtitle ? <span className={styles.topBarSub}>{subtitle}</span> : null}
@@ -63,16 +65,16 @@ export default function DiaryTopBar({ subtitle }: DiaryTopBarProps) {
           aria-expanded={search}
           aria-label={copy.search}
         >
-          🔍
+          <Search size={21} strokeWidth={1.6} aria-hidden="true" />
         </button>
-        <button
+        {!embedded && <button
           type="button"
           className={styles.iconButton}
           onClick={() => router.push("/")}
           aria-label={copy.home}
         >
-          ⌂
-        </button>
+          <House size={21} strokeWidth={1.6} aria-hidden="true" />
+        </button>}
       </header>
       {search ? <DiarySearchOverlay onClose={() => setSearch(false)} /> : null}
     </>

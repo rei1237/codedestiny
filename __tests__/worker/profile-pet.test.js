@@ -80,7 +80,7 @@ test('60일주 기본종과 오행을 유지하며 희귀확률 경계를 정확
     expect(traits.rareSpecies).toBe(species);
     expect(catalog.petIdentity(traits, characterForPillar('甲子', 'male')).coat).toBe('natural');
   }
-  expect(catalog.PET_COMBINATIONS_PER_SPECIES).toBe(192);
+  expect(catalog.PET_COMBINATIONS_PER_SPECIES).toBe(1048576);
 });
 test('부화 동시 요청·알 변경·재접속에서도 프로필마다 배정을 하나만 저장한다', async () => {
   const results = await Promise.all(Array.from({ length: 8 }, (_, index) => hatch('one', ['moon','flower','star'][index % 3])));
@@ -88,6 +88,8 @@ test('부화 동시 요청·알 변경·재접속에서도 프로필마다 배�
   for (const result of results) expect(result.pet).toEqual(results[0].pet);
   expect((await pets.getProfilePet({}, uid, 'one', today)).pet).toEqual(results[0].pet);
   await hatch('two'); expect(db.profile_pets).toHaveLength(2);
+  expect(db.profile_pet_appearances).toHaveLength(2);
+  expect(db.profile_pets[0].appearance).not.toEqual(db.profile_pets[1].appearance);
 });
 test('서버 프로필 소유권·알·행동·요청 키를 검증한다', async () => {
   await expect(hatch('not-mine')).rejects.toMatchObject({ status: 404 });
@@ -96,6 +98,51 @@ test('서버 프로필 소유권·알·행동·요청 키를 검증한다', asyn
   await hatch();
   await expect(care('sleep')).rejects.toMatchObject({ status: 400 });
   await expect(care('feed', 'one', 'bad')).rejects.toMatchObject({ status: 400 });
+});
+
+test('기존 일반 캐릭터의 꾸밈은 한 번만 추가하고 종·알·친밀도·기존 특성을 보존한다', async () => {
+  await hatch(); await care('feed');
+  const old = clone(db.profile_pets[0]);
+  delete db.profile_pets[0].appearance;
+  db.profile_pet_appearances = [];
+  const results = await Promise.all(Array.from({length:6}, () => pets.getProfilePet({}, uid, 'one', today)));
+  expect(db.profile_pet_appearances).toHaveLength(1);
+  expect(new Set(results.map(row => JSON.stringify(row.pet.appearance))).size).toBe(1);
+  expect(db.profile_pets[0]).toMatchObject({traits:old.traits,eggType:old.eggType,affection:old.affection,createdAt:old.createdAt});
+  expect(Object.keys(db.profile_pet_appearances[0]).sort()).toEqual(['_id','createdAt']);
+});
+
+test('외형 예약 실패는 부화·외형·친밀도·지갑을 함께 롤백한다', async () => {
+  failOn = 'profile_pet_appearances';
+  await expect(hatch()).rejects.toThrow('injected failure');
+  expect(db.profile_pets || []).toHaveLength(0);
+  expect(db.profile_pet_appearances || []).toHaveLength(0);
+  expect(db.fortune_tea_house_honey_wallets[0].balance).toBe(20);
+});
+
+test('같은 외형의 예약 충돌은 재시도하며 저장된 캐릭터를 덮지 않는다', async () => {
+  const random = jest.spyOn(crypto, 'getRandomValues');
+  try {
+    random.mockImplementation(array => { array[0] = 0; return array; });
+    const first = await hatch();
+    // The second hatch initially selects the already-reserved visible tuple.
+    let calls = 0;
+    random.mockImplementation(array => { array[0] = calls++ < 11 ? 0 : 2147483648; return array; });
+    const second = await hatch('two');
+    expect(second.pet.appearance).not.toEqual(first.pet.appearance);
+    expect((await pets.getProfilePet({},uid,'one',today)).pet.appearance).toEqual(first.pet.appearance);
+    expect(db.profile_pet_appearances).toHaveLength(2);
+  } finally { random.mockRestore(); }
+});
+
+test('외형 충돌이 계속되면 중복을 발급하지 않고 완전히 롤백한다', async () => {
+  const random=jest.spyOn(crypto,'getRandomValues').mockImplementation(array=>{array[0]=0;return array;});
+  try {
+    const first=await hatch();
+    await expect(hatch('two')).rejects.toMatchObject({status:409,payload:{code:'PET_APPEARANCE_BUSY'}});
+    expect(db.profile_pets).toHaveLength(1);expect(db.profile_pet_appearances).toHaveLength(1);
+    expect((await pets.getProfilePet({},uid,'one',today)).pet.appearance).toEqual(first.pet.appearance);
+  }finally{random.mockRestore();}
 });
 test('같은 캐릭터의 먹이·놀이 완료에만 계정 하루 +1개, 최초 돌봄만 친밀도 +5', async () => {
   await hatch(); await hatch('two');
@@ -155,6 +202,7 @@ test('생년 정정에도 특성과 친밀도는 보존하고 일반종만 실�
   db.profiles[0].birth.day = 16;
   const after = await pets.getProfilePet({}, uid, 'one', today);
   expect(after.pet.traits).toEqual(before.pet.traits); expect(after.pet.affection).toBe(5);
+  expect(after.pet.appearance).toEqual(before.pet.appearance);
   expect(after.pet.speciesId).toBe(after.character.id.replace('animal-', ''));
   expect(after.pet.speciesId).not.toBe(before.pet.speciesId);
   const distant = await pets.getProfilePet({}, uid, 'one', new Date('2027-12-01T00:00:00Z'));
@@ -164,6 +212,8 @@ test('서버 계정 이메일로만 개발자 영냥이를 적용하며 몸색�
   db.users[0].email = 'SEONgBAE555@gmail.com'; await hatch();
   const result = await pets.getProfilePet({}, uid, 'one', today);
   expect(result.pet).toMatchObject({ speciesId: 'yeongnyangi', unique: true, rare: false, coat: 'natural' });
+  expect(result.pet.appearance).toBeUndefined();
+  expect(db.profile_pet_appearances || []).toHaveLength(0);
   db.users[0].email = 'ordinary@example.test';
   const spoof = await pets.hatchProfilePet({}, uid, { profileId: 'one', eggType: 'moon', email: 'seongbae555@gmail.com', exclusiveSpecies: 'yeongnyangi' }, today);
   expect(spoof.pet.unique).toBe(false);

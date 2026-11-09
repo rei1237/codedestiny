@@ -1,0 +1,45 @@
+{
+  "style": "moonlight-floral-watercolor",
+  "purpose": "Immutable general pet appearance layers; unique mascot unchanged",
+  "assets": [
+    {
+      "asset": "headwear.webp",
+      "source": "exec-6f3abdd1-82ee-413e-bd21-928c89deb13a.png",
+      "tool": "imagegen",
+      "created": "2026-11-09",
+      "size": 1024,
+      "tile": 256,
+      "columns": 4,
+      "rows": 4,
+      "parts": 16,
+      "bytes": 365118,
+      "normalization": "main alpha-connected bounds + 5px feather margin; contain 224px in 256px tile with 16px transparent gutter"
+    },
+    {
+      "asset": "neckwear.webp",
+      "source": "exec-b9acc80b-cf7d-46b4-9b53-d8f89f359be4.png",
+      "tool": "imagegen",
+      "created": "2026-11-09",
+      "size": 1024,
+      "tile": 256,
+      "columns": 4,
+      "rows": 4,
+      "parts": 16,
+      "bytes": 381884,
+      "normalization": "main alpha-connected bounds + 5px feather margin; contain 224px in 256px tile with 16px transparent gutter"
+    },
+    {
+      "asset": "props.webp",
+      "source": "exec-9513e0cc-8e52-48c1-a454-7a4aadd6f645.png",
+      "tool": "imagegen",
+      "created": "2026-11-09",
+      "size": 1024,
+      "tile": 256,
+      "columns": 4,
+      "rows": 4,
+      "parts": 16,
+      "bytes": 363252,
+      "normalization": "main alpha-connected bounds + 5px feather margin; contain 224px in 256px tile with 16px transparent gutter"
+    }
+  ]
+}

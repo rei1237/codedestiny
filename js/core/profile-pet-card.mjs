@@ -1,5 +1,6 @@
 import { PET_EGGS, PET_CARE_HONEY, petArtUrl, petReaction } from './profile-pet.mjs';
 import { adoptHoneyManager, petBond } from './profile-honey-manager.mjs';
+import { petAppearanceKey, PET_TRIM_HUES, petCharmMarkup } from './profile-pet-appearance.mjs';
 
 const escape = value => String(value ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
 const requestId = () => crypto.randomUUID();
@@ -15,14 +16,17 @@ export function petSpriteMarkup(pet, action = 'idle') {
   const sleeping = action === 'sleep', unique = pet.unique;
   const row = action === 'feed' ? 1 : action === 'play' ? 2 : 0;
   const source = petArtUrl(pet.speciesId, sleeping ? 'sleep' : 'body');
+  const look = !unique && petAppearanceKey(pet.appearance) ? pet.appearance : null;
+  const tile = index => '--part-x:' + (index % 4 * 100 / 3) + '%;--part-y:' + (Math.floor(index / 4) * 100 / 3) + '%';
+  const outfit = look ? '<span class="pg-outfit" style="--pet-trim:' + PET_TRIM_HUES[look.trim] + 'deg"><span class="pg-outfit-headwear" data-part="' + look.headwear + '" style="' + tile(look.headwear) + '"></span><span class="pg-outfit-neckwear" style="' + tile(look.neckwear) + '"></span><span class="pg-outfit-prop" style="' + tile(look.prop) + '"></span><span class="pg-outfit-charm">' + petCharmMarkup(look.charm) + '<span class="pg-outfit-stamp"></span></span></span>' : '';
   const style = [
     '--pet-body:url(' + source + ')', '--pet-row:' + (row * 50) + '%',
     '--pet-idle-duration:' + (4.8 + pet.traits.expression * .8) + 's', '--pet-idle-delay:' + (-pet.traits.expression * .4) + 's',
-    '--pet-pattern:' + (pet.traits.pattern * 100 / 3) + '%', '--pet-accessory:' + (pet.traits.accessory * 100 / 7) + '%',
+    '--pet-pattern:' + ((look?.pattern ?? pet.traits.pattern) * 100 / 3) + '%', '--pet-accessory:' + (pet.traits.accessory * 100 / 7) + '%',
     '--pet-egg-row:' + (PET_EGGS.findIndex(egg => egg.id === pet.eggType) * 50) + '%',
   ].join(';');
   // The unique mascot keeps its authored face, hat and color in every action.
-  return '<span class="pg-pet pg-pet--' + action + ' pg-pet--' + pet.speciesId + '" data-coat="' + pet.coat + '" role="img" aria-label="' + escape(pet.name + (sleeping ? ', 포근하게 잠자는 중' : action === 'feed' ? ', 먹이를 먹는 중' : action === 'play' ? ', 함께 노는 중' : ', 당신을 반기는 중')) + '" style="' + style + '"><span class="pg-body"></span>' + (!unique && !sleeping ? '<span class="pg-pattern" aria-hidden="true"></span><span class="pg-accessory" aria-hidden="true"></span>' : '') + '</span>';
+  return '<span class="pg-pet pg-pet--' + action + ' pg-pet--' + pet.speciesId + '" data-coat="' + pet.coat + '" role="img" aria-label="' + escape(pet.name + (sleeping ? ', 포근하게 잠자는 중' : action === 'feed' ? ', 먹이를 먹는 중' : action === 'play' ? ', 함께 노는 중' : ', 당신을 반기는 중')) + '" style="' + style + '"><span class="pg-body"></span>' + (!unique && !sleeping && !look ? '<span class="pg-pattern" aria-hidden="true"></span><span class="pg-accessory" aria-hidden="true"></span>' : '') + outfit + '</span>';
 }
 
 export async function mountPetGarden(target, { profileId, preview, owner, api, current, signal, honeyHost: parentHoneyHost }) {

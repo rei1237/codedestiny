@@ -1,4 +1,5 @@
 import { BASE_ANIMALS } from './profile-characters.mjs';
+import { PET_APPEARANCE_COMBINATIONS } from './profile-pet-appearance.mjs';
 
 export const PET_ART_VERSION = 'moon-garden-v1';
 export const PET_EGGS = Object.freeze([
@@ -16,7 +17,7 @@ export const PET_AFFECTION_GAIN = 5;
 // Fur color now follows the real natal element, rather than a random trait.
 export const PET_VARIANTS = Object.freeze({ pattern: 4, expression: 6, accessory: 8 });
 export const PET_ELEMENT_COATS = Object.freeze({ 목: 'wood', 화: 'fire', 토: 'earth', 금: 'metal', 수: 'water' });
-export const PET_COMBINATIONS_PER_SPECIES = Object.values(PET_VARIANTS).reduce((total, count) => total * count, 1);
+export const PET_COMBINATIONS_PER_SPECIES = PET_APPEARANCE_COMBINATIONS;
 const pad = value => String(value).padStart(2, '0');
 
 export function petBirthInput(profile) {

@@ -26,24 +26,24 @@
      대비는 전부 **합성색 기준**이다(표면 rgba(255,255,255,.96) over #fffaf7 → #fffefe). ── */
 
   /* 바탕 */
-  --dy-bg: #fffaf7;
-  --dy-surface: rgba(255, 255, 255, 0.96);
-  --dy-surface-2: #faf5f2;
+  --dy-bg: #fff8ee;
+  --dy-surface: #fffdf7;
+  --dy-surface-2: #faecdf;
   /* 카드 hover 바탕. 다크에서 리터럴이던 것을 토큰으로 올렸다(두 벌 모두 필요하다). */
   --dy-surface-hover: #ffffff;
 
   /* 글자 — 🔴 뉴트럴은 회색이 아니라 --cd-text(딥 플럼)의 저알파다(DESIGN.md The Hue-Stays Rule). */
-  --dy-text: #3c1830;
-  --dy-muted: #70445c;
+  --dy-text: #53364a;
+  --dy-muted: #795d6b;
 
   /* 강조 */
-  --dy-accent: #b31955;
-  --dy-accent-hover: #9b1449;
+  --dy-accent: #7b4059;
+  --dy-accent-hover: #63344b;
   --dy-accent-ink: #ffffff;
-  --dy-accent-soft: rgba(179, 25, 85, 0.1);
+  --dy-accent-soft: #f8dfe5;
   /* 🔴 라이브 금색 #ead089 은 크림 위에서 1.6:1 이라 **글자로 못 쓴다**(레포가 금계열 글자를
      금지한다). 라이트에서만 청동으로 내린다 — 5.9:1. */
-  --dy-gold: #8a5a1f;
+  --dy-gold: #8e642f;
   /* 검색어 하이라이트 바탕. 다크에서 글자였던 금색을 라이트에선 바탕으로 쓴다(위 글자 10.2:1). */
   --dy-mark: #ead089;
   /* 태그 칩의 ✕ 자리. */
@@ -51,8 +51,8 @@
 
   /* 선 — `--dy-line` 은 장식용 구분선, `--dy-line-ui` 는 테두리가 유일한 어포던스인 컨트롤용.
      합성 표면 기준 3.67:1 로 WCAG 1.4.11 을 넘긴다. */
-  --dy-line: rgba(60, 24, 48, 0.1);
-  --dy-line-ui: rgba(60, 24, 48, 0.55);
+  --dy-line: #dcc2ad;
+  --dy-line-ui: #9e7789;
 
   /* 포커스 — 🔴 outline 만 쓴다. outline-offset 으로 표면 위(15.4:1)에 앉힌다. */
   --dy-focus: #3c1830;
@@ -98,25 +98,25 @@
 :global(html.neo-mode) .shell,
 :global(body.neo-mode) .shell,
 html[data-cd-theme="neo"] .shell {
-  --dy-bg: #0a0818;
-  --dy-surface: rgba(19, 16, 42, 0.96);
-  --dy-surface-2: #100d24;
-  --dy-surface-hover: #141130;
+  --dy-bg: #251e38;
+  --dy-surface: #372940;
+  --dy-surface-2: #372940;
+  --dy-surface-hover: #49334f;
 
-  --dy-text: #f4eeff;
-  --dy-muted: rgba(200, 170, 255, 0.7);
+  --dy-text: #fff1df;
+  --dy-muted: #d6c3d7;
 
-  --dy-accent: #c4b5fd;
-  --dy-accent-hover: #b3a2fc;
-  --dy-accent-ink: #13102a;
-  --dy-accent-soft: rgba(167, 139, 250, 0.24);
-  --dy-gold: #e8d5a3;
+  --dy-accent: #ffd5e7;
+  --dy-accent-hover: #fff1df;
+  --dy-accent-ink: #4d2d48;
+  --dy-accent-soft: #4d2d48;
+  --dy-gold: #e7c88b;
   --dy-mark: rgba(232, 213, 163, 0.28);
   --dy-chip-x: rgba(10, 8, 24, 0.5);
 
   /* 합성 표면(--dy-surface over --dy-bg) 기준 3.39:1 로 WCAG 1.4.11 을 넘긴다. */
-  --dy-line: rgba(196, 181, 253, 0.16);
-  --dy-line-ui: rgba(196, 181, 253, 0.5);
+  --dy-line: #776176;
+  --dy-line-ui: #b797b7;
 
   /* 링이 강조 버튼 위에 얹히면 1.27:1 이라 보이지 않으므로 offset 으로 표면 위(12.77:1)에 앉힌다. */
   --dy-focus: #e8d5a3;
@@ -319,12 +319,26 @@ html[data-cd-theme="neo"] .shell {
   margin: 0;
   padding: var(--cd-sp-md);
   border: 1px solid var(--dy-line);
-  border-radius: var(--cd-r-card);
+  border-radius: 28px;
   background: var(--dy-surface-2);
   box-shadow: 0 8px 24px color-mix(in srgb, var(--dy-text) 7%, transparent);
 }
 
 .recordAnchor { scroll-margin-top: 5rem; }
+
+.journal{position:relative;isolation:isolate;gap:6px;padding:28px 20px;background:var(--dy-surface);overflow:hidden}
+.journal::before{content:"";position:absolute;right:-12px;top:-10px;width:130px;height:110px;background:var(--dy-gold);opacity:.14;mask:var(--cd-yehwa-mask-branch-corner) center/contain no-repeat;pointer-events:none;z-index:-1}
+.journalCrest{display:grid;place-items:center;width:64px;height:64px;margin:0 auto 8px;border-radius:25px;background:var(--dy-accent-soft);color:var(--dy-accent);border:1px solid var(--dy-line)}
+.journalTitle{font:400 24px/1.5 var(--font-display,inherit);text-align:center;margin:0;color:var(--dy-text)}
+.journalIntro{font-size:14px;line-height:1.8;text-align:center;color:var(--dy-muted);margin:0 0 16px;word-break:keep-all}
+.questButtons{display:flex;gap:8px;flex-wrap:wrap}
+.questButtons button{min-height:48px;padding:10px 16px;border-radius:18px;border:1px solid var(--dy-line-ui);background:var(--dy-accent-soft);color:var(--dy-text);font:600 14px/1.5 var(--font-body);cursor:pointer}
+.questButtons button:focus-visible{outline:2px solid var(--dy-focus);outline-offset:3px}
+.questButtons button:disabled{opacity:.6;cursor:default}
+.shell[data-garden-embedded] .topBar{padding-top:12px}
+.shell :is(input,textarea){caret-color:var(--dy-accent)}
+.shell ::selection{background:var(--dy-accent-soft);color:var(--dy-text)}
+.bottomNav{border-radius:24px 24px 0 0;box-shadow:0 -6px 22px color-mix(in srgb,var(--dy-text) 7%,transparent)}
 
 /* 첫 카드만 강조선을 준다 — 홈에서 가장 먼저 읽어야 하는 것이 오늘의 결이다. */
 .cardLead {
@@ -343,7 +357,7 @@ html[data-cd-theme="neo"] .shell {
   margin: 0;
   font-family: var(--font-display, inherit);
   font-size: var(--cd-t-card);
-  font-weight: 600;
+  font-weight: 400;
   color: var(--dy-text);
 }
 
@@ -568,11 +582,11 @@ html[data-cd-theme="neo"] .shell {
   min-height: var(--cd-btn-h);
   padding: 0 var(--cd-sp-sm);
   border: 1px solid var(--dy-line-ui);
-  border-radius: var(--cd-r-control);
+  border-radius: 18px;
   background: var(--dy-surface);
   color: var(--dy-text);
   font-family: inherit;
-  font-size: var(--cd-t-body);
+  font-size: max(16px, var(--cd-t-body));
 }
 
 .input:focus-visible {

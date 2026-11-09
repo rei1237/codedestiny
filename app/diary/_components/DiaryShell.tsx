@@ -23,15 +23,35 @@ export default function DiaryShell({ children }: { children: ReactNode }) {
   // 오늘을 계산하면 배포일과 열람일이 다를 때 하이드레이션 불일치가 난다.
   // 저장소·운기 스냅샷은 같은 이유로 `DiaryStoreProvider` 가 이펙트에서 한 번만 읽는다.
   const [today, setToday] = useState("");
+  const [embedded, setEmbedded] = useState(false);
   useEffect(() => {
-    setToday(formatKoreanDate(kstTodayYmd()));
+    const refreshDate = () => setToday(formatKoreanDate(kstTodayYmd()));
+    refreshDate();
+    try {
+      const insideGarden = window.frameElement?.getAttribute('data-profile-diary') === 'true';
+      setEmbedded(insideGarden);
+      if (insideGarden) window.parent.postMessage({ type: 'cd:diary-ready' }, window.location.origin);
+    } catch { /* standalone */ }
+    window.addEventListener('cd:diary-open', refreshDate);
+    const closeBook = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape' || event.defaultPrevented) return;
+      const hasSheet = Array.from(document.querySelectorAll('[role="dialog"],dialog[open],aside[aria-label]')).some(node => node.getClientRects().length > 0);
+      if (hasSheet || window.parent === window) return;
+      try {
+        if (window.frameElement?.getAttribute('data-profile-diary') !== 'true') return;
+        event.preventDefault();
+        window.parent.postMessage({ type: 'cd:diary-close' }, window.location.origin);
+      } catch { /* standalone or another embedding origin */ }
+    };
+    window.addEventListener('keydown', closeBook);
+    return () => { window.removeEventListener('cd:diary-open', refreshDate); window.removeEventListener('keydown', closeBook); };
   }, []);
 
   return (
-    <div className={styles.shell}>
-      <DiaryTopBar subtitle={today || undefined} />
+    <div className={`${styles.shell} cd-yehwa-scope`} data-garden-embedded={embedded || undefined}>
       {/* 🔴 하단바도 provider 안이다 — ＋ 퀵캡처가 오늘 스냅샷과 저장 함수를 쓴다(PR-E). */}
       <DiaryStoreProvider>
+        <DiaryTopBar subtitle={today || undefined} embedded={embedded} />
         {/* 🔴 명상 오디오도 셸 레벨이다 — 시트 안에 두면 시트를 닫는 순간 재생이 끊긴다.
             저장(들은 분)을 위해 provider 안쪽이어야 한다. */}
         <DiaryAudioProvider>

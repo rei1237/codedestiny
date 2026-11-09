@@ -57,8 +57,9 @@ test("fortune planner entry cuts over to the /diary app", () => {
      지킬 것은 앵커 표현식이 아니라 **다이어리 진입이 살아 있고 순서가 유지되는 것**이고,
      그건 바로 위 순서 단언과 앞쪽의 존재·구조 단언 3개가 이미 지킨다.
      🔴 되살리지 말 것 — 사라진 레일을 다시 요구하게 된다. */
-  assert.match(dashboard, /label:'갓생 다이어리'/);
-  assert.match(dashboard, /cta:'다이어리 열기'/);
+  assert.doesNotMatch(dashboard, /id:'(?:fortunePlanner|legacyLuckSyncDiary)'/);
+  assert.match(read("js/core/profile-character-card.mjs"), /mountProfileDiary\(diaryHost/);
+  assert.match(read("js/core/profile-diary.mjs"), /frame.src = '\/diary\/\?garden=1'/);
 });
 
 test("legacy diary action opens through a first-click-safe loader and mirrors stay in sync", () => {
@@ -69,7 +70,7 @@ test("legacy diary action opens through a first-click-safe loader and mirrors st
 
   assert.match(runtime, /function __cdOpenLegacyLuckSyncDiaryProxy\(\)[\s\S]*?LuckSyncDiary\.open\(\)/);
   assert.match(runtime, /window\.openLegacyLuckSyncDiary = __cdOpenLegacyLuckSyncDiaryProxy/);
-  assert.match(dashboard, /action:'openLegacyLuckSyncDiary'/);
+  assert.doesNotMatch(dashboard, /action:'openLegacyLuckSyncDiary'/);
   assert.match(dashboard, /actionName === 'openLegacyLuckSyncDiary'/);
   assert.equal(publicRuntime, runtime, "public runtime mirror is stale");
   assert.equal(publicDashboard, dashboard, "public dashboard mirror is stale");

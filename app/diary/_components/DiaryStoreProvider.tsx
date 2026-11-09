@@ -121,6 +121,13 @@ export default function DiaryStoreProvider({ children }: { children: ReactNode }
 
   useEffect(() => {
     refresh();
+    const revisit = () => {
+      // Flush the previous date's draft before replacing the shared snapshot.
+      window.dispatchEvent(new Event('cd:diary-flush'));
+      refresh();
+    };
+    window.addEventListener('cd:diary-open', revisit);
+    return () => window.removeEventListener('cd:diary-open', revisit);
   }, [refresh]);
 
   const updateEntry = useCallback((ymd: string, mutate: DiaryEntryMutate) => {

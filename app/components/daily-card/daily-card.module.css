@@ -59,6 +59,9 @@
 .profileHead { display: flex; align-items: flex-start; gap: 14px; }
 .portrait { position: relative; display: grid; place-items: center; flex: none; width: clamp(88px, 26vw, 112px); aspect-ratio: 1; border: 2px solid var(--dc-gold); border-radius: 22px; background: var(--dc-ink); box-shadow: 0 0 0 4px var(--dc-card), 0 0 0 5px color-mix(in srgb, var(--dc-gold) 50%, transparent); }
 .portrait > span { width: 90%; aspect-ratio: 1; background-size: 400% 100%; background-repeat: no-repeat; background-position: 0 0; }
+.portrait > .profilePet{position:relative;display:block;background:none}
+.profilePet :global(.pg-pet){position:absolute;inset:0;width:100%;height:100%}
+.portrait > .profileEgg{background-image:url('/assets/profile-pets/moon-garden-v1/eggs.webp');background-size:300% 100%;background-position:0 0}
 .level { position: absolute; bottom: -10px; left: 50%; transform: translateX(-50%); padding: 2px 10px; border-radius: 999px; background: var(--dc-honey); color: var(--dc-on-honey); font-size: .8125rem; font-weight: 800; white-space: nowrap; font-variant-numeric: tabular-nums; }
 .identity { min-width: 0; flex: 1; display: grid; gap: 4px; text-align: left; }
 .identity strong { font: 700 1.1875rem/1.35 var(--font-serif); overflow-wrap: anywhere; }

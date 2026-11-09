@@ -11,6 +11,7 @@ import { createExtItemId } from "@/lib/diary/diary-ext-store";
 import { fetchCurrentDestinyProfile, type DestinyProfileCard } from "@/app/_lib/profile-card-storage";
 import { findSpirit, spriteUrl } from "@/js/core/profile-characters.mjs";
 import { loadProfileCharacterPreview } from "@/js/core/profile-character-card.mjs";
+import type { petSpriteMarkup } from "@/js/core/profile-pet-card.mjs";
 import { getApiUrl } from "@/app/_lib/api-config";
 import { authFetch } from "@/app/_lib/auth-client";
 import { hasClientAuthHint } from "@/app/_lib/user-session-cache";
@@ -18,23 +19,25 @@ import { trackEvent } from "@/lib/analytics";
 import { awardRpg } from "@/app/destiny-compass/_lib/rpg-bridge";
 import { QUEST_ID_PREFIX, entryHasRecord, findQuestTodo, journeyStepsDone, msUntilKstMidnight, pickHoneyUses } from "./daily-progress.mjs";
 
-type CardPortrait = { id: string; name: string; animal: string; ganji: string; element: string; equipped: boolean };
+type CardPortrait = { id: string; name: string; animal: string; ganji: string; element: string; equipped: boolean; pet: Parameters<typeof petSpriteMarkup>[0] | null };
 
 async function readPortrait(profile: DestinyProfileCard): Promise<CardPortrait> {
   const request = async (path: string, init: RequestInit = {}) => {
     const response = await authFetch(getApiUrl(path), { ...init, credentials: "include", cache: "no-store" }, { retryOn401: hasClientAuthHint() });
     return { ok: response.ok, data: await response.json() };
   };
-  const [preview, equipment] = await Promise.all([
+  const [preview, equipment, companion] = await Promise.all([
     loadProfileCharacterPreview(profile, { request }),
     request("/api/rpg/characters"),
+    request("/api/rpg/pet?profileId=" + encodeURIComponent(profile.profileId || profile.id || '')),
   ]);
   if (!equipment.ok || !equipment.data?.ok || equipment.data.degraded) throw new Error("equipment-unavailable");
+  if (!companion.ok || !companion.data?.ok || companion.data.degraded) throw new Error("companion-unavailable");
   const animal = preview.character;
   const spirit = findSpirit(equipment.data.equippedId);
   if (!animal || !spriteUrl(animal.id) || (equipment.data.equippedId && !spirit)) throw new Error("character-unavailable");
   return { id: spirit?.id || animal.id, name: spirit?.name || animal.name, animal: animal.name,
-    ganji: animal.ganji, element: animal.element, equipped: Boolean(spirit) };
+    ganji: animal.ganji, element: animal.element, equipped: Boolean(spirit), pet: companion.data.pet || null };
 }
 
 export type JourneyHoney = { balance: number; attended: boolean; streak: number; nextBonusIn: number; streakEvery: number; streakBonus: number; attendanceEvery: number; promptCost: number; day?: string; monthDays?: { day: string; bonus?: boolean }[]; awarded?: boolean; rewarded?: number; bonus?: number };

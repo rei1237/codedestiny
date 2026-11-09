@@ -76,7 +76,16 @@ export function useDiaryDraft(stored: string, commit: (next: string) => void): D
   }, []);
 
   // 화면을 떠날 때 남은 초안을 흘려보낸다(시트를 닫거나 탭을 옮기는 경우).
-  useEffect(() => () => flushRef.current(), []);
+  useEffect(() => {
+    const flushPending = () => flushRef.current();
+    window.addEventListener('pagehide', flushPending);
+    window.addEventListener('cd:diary-flush', flushPending);
+    return () => {
+      window.removeEventListener('pagehide', flushPending);
+      window.removeEventListener('cd:diary-flush', flushPending);
+      flushPending();
+    };
+  }, []);
 
   return { value, onChange, flush };
 }

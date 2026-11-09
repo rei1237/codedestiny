@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
+import { SunMoon, CalendarDays, NotebookPen, Ellipsis, Plus } from "lucide-react";
 
 import DiaryQuickCapture from "./DiaryQuickCapture";
 import styles from "../_styles/diary.module.css";
@@ -81,7 +82,7 @@ export default function DiaryBottomNav() {
           title={`${tab.label} — ${copy.pending}`}
         >
           <span className={styles.navIcon} aria-hidden="true">
-            {tab.icon}
+            {tab.key === 'home' ? <SunMoon size={22} strokeWidth={1.6} /> : tab.key === 'calendar' ? <CalendarDays size={22} strokeWidth={1.6} /> : tab.key === 'records' ? <NotebookPen size={22} strokeWidth={1.6} /> : <Ellipsis size={22} strokeWidth={1.6} />}
           </span>
           {tab.label}
         </span>
@@ -95,7 +96,7 @@ export default function DiaryBottomNav() {
         aria-current={isCurrent ? "page" : undefined}
       >
         <span className={styles.navIcon} aria-hidden="true">
-          {tab.icon}
+          {tab.key === 'home' ? <SunMoon size={22} strokeWidth={1.6} /> : tab.key === 'calendar' ? <CalendarDays size={22} strokeWidth={1.6} /> : tab.key === 'records' ? <NotebookPen size={22} strokeWidth={1.6} /> : <Ellipsis size={22} strokeWidth={1.6} />}
         </span>
         {tab.label}
       </Link>
@@ -116,7 +117,7 @@ export default function DiaryBottomNav() {
           aria-label={copy.capture}
         >
           <span className={styles.navCaptureDot} aria-hidden="true">
-            ＋
+            <Plus size={24} strokeWidth={1.7} />
           </span>
         </button>
         {DIARY_NAV_TABS.slice(2).map(renderTab)}

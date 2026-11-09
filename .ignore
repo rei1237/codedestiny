@@ -180,8 +180,10 @@
 /public/js/core/premium-chapter-orchestrator.js
 /public/js/core/profile-character-card.mjs
 /public/js/core/profile-characters.mjs
+/public/js/core/profile-diary.mjs
 /public/js/core/profile-element-badge.mjs
 /public/js/core/profile-honey-manager.mjs
+/public/js/core/profile-pet-appearance.mjs
 /public/js/core/profile-pet-card.mjs
 /public/js/core/profile-pet.mjs
 /public/js/core/saju/basicFortunePresentation.js
@@ -374,6 +376,7 @@
 /public/styles/recommendations.css
 /public/styles/result-samples.css
 /public/styles/review-reward.css
+/public/styles/saju-compact.css
 /public/styles/saju-entry-flow.css
 /public/styles/saju-reading.css
 /public/styles/saju-tea-entry.css

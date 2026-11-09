@@ -1973,7 +1973,7 @@ var __cdLazyActionLoaders = {
   // 레지스트리 조회) 서로를 대체하지 못하므로 형제들과 똑같이 양쪽에 둔다.
   setGender: function() { return __cdEnsureSajuCoreLoaded(); },
   runCompat: function() { return __cdEnsureSajuCoreLoaded(); },
-  // 사주 결과 화면의 "운기 다이어리 (이전 버전)" 카드(js/core/saju/reportDashboard.js).
+  // 이전 다이어리 링크의 호환 로더. 새 진입은 프로필 달빛 다이어리(/diary/)가 맡는다.
   // 셸 모달은 마크업까지 js/luck-sync-diary.js 안에서 만들어지므로 스크립트만 실으면 열린다.
   // 🔴 이 로더가 그 파일의 유일한 적재 경로다 — index.html 에 <script> 태그가 없다(실측:
   //    git grep 'luck-sync-diary.js' 에 index.html 0건). 그래서 모달 쪽은 자기 델리게이션으로
@@ -2297,7 +2297,7 @@ function __cdEnsureSajuCoreLoaded() {
       '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-224c68bbb168',
     '/js/core/saju/basicFortunePresentation.js?v=build-6891fb41d4aa',
     '/js/core/saju/modalProfileState.js?v=build-70bc2c91ff63',
-    '/js/core/saju/reportDashboard.js?v=build-ab933db2b7fd',
+    '/js/core/saju/reportDashboard.js?v=build-f4abb6d47d42',
     '/js/saju-engine-continuation.js?v=build-f4d87e14c1c7',
     '/js/entertain-engine.js?v=build-335c0488136a',
     /* 체인은 순차 reduce라 앞에 끼우면 이 파일의 실패가 뒤쪽 전체를 죽인다 — 신규 카드 스크립트는 맨 뒤에 둔다. */

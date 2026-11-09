@@ -3,7 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
-import { mobileSpriteUrl } from "@/js/core/profile-characters.mjs";
+import { petSpriteMarkup } from "@/js/core/profile-pet-card.mjs";
+import "@/styles/profile-pet.css";
 import { trackEvent } from "@/lib/analytics";
 import { invalidateProfileCache } from "@/app/_lib/user-session-cache";
 import DiaryMoodPicker from "@/app/diary/_components/DiaryMoodPicker";
@@ -20,6 +21,7 @@ const LOGIN_RETURN_HASH = "#daily-home-title";
 const HONEY_DROP = "/images/fortune-tea-house/honey-drop-jewel-96-v1.webp";
 const HONEY_JAR = "/images/fortune-tea-house/honey-jar-bonus-v1.webp";
 const MAX_GAUGE = 14;
+const EXAMPLE_PET = { speciesId: 'rabbit', name: '예시 토끼', coat: 'wood', unique: false, eggType: 'moon', traits: { pattern: 0, expression: 1, accessory: 0 }, appearance: { version: 2, headwear: 5, neckwear: 3, prop: 0, trim: 0, charm: 2, pattern: 0 } };
 
 function loginHref(surface: JourneySurface) {
   return surface === "home" ? "/login/?next=%2F%23daily-home-title" : "/login/?next=%2Fdiary%2F%23daily-home-title";
@@ -78,19 +80,19 @@ function ProfileHeader({ journey }: { journey: DailyJourney }) {
   }, [editing, loading, saving]);
   const example = status === "guest" || (status === "ready" && !profile && !loading && !unavailable);
   const avatar = example ? "animal-rabbit" : loading || unavailable ? null : portrait?.id;
+  const companion = example ? EXAMPLE_PET : portrait?.pet;
   const name = example ? "프로필 카드 예시" : profile ? `${profile.name || "나의"} 카드` : "내 프로필 카드";
   const ratio = progress ? Math.min(100, Math.round((progress.currentLevelExp / Math.max(1, progress.nextLevelExp)) * 100)) : 0;
   return <div className={styles.profile} data-daily-profile={example ? "example" : profile?.id || profile?.profileId}>
     <div className={styles.profileHead}>
       <span className={styles.portrait}>
-        {avatar && <span role="img" aria-label={example ? "예시 토끼" : portrait?.name}
-          data-character-id={avatar} style={{ backgroundImage: `url("${mobileSpriteUrl(avatar)}")` }} />}
+        {avatar && (companion ? <span className={styles.profilePet} data-character-id={companion.speciesId} dangerouslySetInnerHTML={{ __html: petSpriteMarkup(companion) }} /> : <span className={styles.profileEgg} role="img" aria-label="아직 부화하지 않은 달빛 알" />)}
         {progress && <b className={styles.level}>Lv.{progress.currentLevel}</b>}
       </span>
       <div className={styles.identity}>
         <strong>{name}</strong>
         {example ? <small>일주 동물 · 토끼<br />을묘 · 목</small> : avatar && portrait ?
-          <small>일주 동물 · {portrait.animal}{portrait.equipped && <> · 장착 정령 · {portrait.name}</>}<br />{portrait.ganji} · {portrait.element}</small> :
+          <small>{companion?.unique ? <>나의 친구 · {companion.name}<br /></> : null}일주 동물 · {portrait.animal}{portrait.equipped && <> · 장착 정령 · {portrait.name}</>}<br />{portrait.ganji} · {portrait.element}{!companion && <><br />알을 만나 캐릭터를 부화시켜 주세요.</>}</small> :
           <small role="status">{loading ? "카드를 확인하고 있어요." : "카드를 불러오지 못했어요."}</small>}
         {progress && <div className={styles.xp}>
           <div className={styles.xpTrack} role="progressbar" aria-label="다음 레벨까지의 경험치" aria-valuemin={0} aria-valuemax={Math.max(1, progress.nextLevelExp)} aria-valuenow={progress.currentLevelExp}><span className={styles.xpFill} style={{ width: `${ratio}%` }} /></div>

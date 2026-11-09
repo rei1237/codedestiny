@@ -7,7 +7,7 @@ const root = new URL('../public/assets/profile-pets/' + PET_ART_VERSION + '/', i
 const manifest = JSON.parse(await readFile(new URL('art-manifest.json', root), 'utf8'));
 assert.equal(PET_SPECIES.length, 16);
 assert.equal(Object.keys(PET_ELEMENT_COATS).length, 5);
-assert.equal(PET_COMBINATIONS_PER_SPECIES, 192);
+assert.equal(PET_COMBINATIONS_PER_SPECIES, 1048576);
 assert.equal(manifest.length, 35);
 const hashes = new Set();
 for (const item of manifest) {
@@ -46,4 +46,19 @@ for (const species of PET_SPECIES) {
   assert.ok(manifest.some(item => item.file === species.id + '-body.webp' && item.columns === 4 && item.rows === 3), species.id + ' idle/feed/play');
   assert.ok(manifest.some(item => item.file === species.id + '-sleep.webp' && item.columns === 4 && item.rows === 1), species.id + ' sleep');
 }
-console.log('Profile pets: 16 species × 16 frames, five element colors, 192 trait combinations, 35 transparent optimized atlases verified.');
+for (const name of ['headwear', 'neckwear', 'props']) {
+  const url = new URL('../public/assets/profile-pets/moon-garden-v2/' + name + '.webp', import.meta.url);
+  const buffer = await readFile(url), meta = await sharp(buffer).metadata();
+  assert.equal(meta.width, 1024); assert.equal(meta.height, 1024); assert.equal(meta.hasAlpha, true);
+  assert.ok(buffer.length < 500000, name + ' size budget');
+  const tiles = new Set();
+  for (let top = 0; top < 1024; top += 256) for (let left = 0; left < 1024; left += 256) {
+    const tile = await sharp(buffer).extract({top,left,width:256,height:256}).raw().toBuffer();
+    const stats = await sharp(buffer).extract({top,left,width:256,height:256}).stats();
+    assert.equal(stats.channels[3].min, 0, name + ' transparent tile');
+    assert.ok(stats.channels[3].mean > 12 && stats.channels[3].mean < 240, name + ' visible isolated tile');
+    tiles.add(createHash('sha256').update(tile).digest('hex'));
+  }
+  assert.equal(tiles.size, 16, name + ' contains sixteen distinct authored parts');
+}
+console.log('Profile pets: 16 species × 16 frames, five element colors, 1,048,576 visible outfit combinations, 35 original atlases and 48 new transparent parts verified.');

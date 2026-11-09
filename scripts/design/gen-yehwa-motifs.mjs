@@ -296,6 +296,7 @@ function render() {
  * 불투명도 실측(2026-09-03, 1350px 연이 히어로 일러스트 위): 로즈골드 .22 는 선 대비 1.07:1 로 보이지 않았다.
  * 그래서 연이 히어로만 딥 로즈골드(--cd-yehwa-line-deep) + .5 로 올렸다(네오는 .16 에서 1.39:1 로 충분). */
 .cdh,
+.cd-yehwa-scope,
 .yh-home,
 .moon-hero__ambient,
 .cd-yehwa-divider,

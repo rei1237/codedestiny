@@ -1,4 +1,5 @@
-import DailyCard from "@/app/components/daily-card/DailyCard";
+import DiaryJournalCard from "./_components/DiaryJournalCard";
+import DiaryDailyQuest from "./_components/DiaryDailyQuest";
 import DiaryFlowCard from "./_components/DiaryFlowCard";
 import DiaryPlanCard from "./_components/DiaryPlanCard";
 import DiarySelfCard from "./_components/DiarySelfCard";
@@ -13,9 +14,10 @@ import styles from "./_styles/diary.module.css";
 export default function DiaryHomePage() {
   return (
     <>
-      <DailyCard surface="diary" />
+      <DiaryJournalCard />
       <details className={styles.moreToday}>
         <summary>오늘의 흐름과 계획 자세히 보기</summary>
+        <DiaryDailyQuest />
         <DiaryFlowCard />
         <DiarySelfCard />
         <DiaryPlanCard />

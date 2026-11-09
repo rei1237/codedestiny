@@ -25,7 +25,7 @@
 @media(prefers-reduced-motion:reduce){.pc-sprite{animation:none}}
 
 /* A single game profile surface. Existing account growth controls keep their events. */
-#dpMasterCard.pc-game-card,#dpListSheet #dpMasterCard.pc-game-card{
+#dpMasterCard.pc-game-card,#dpListSheet #dpMasterCard.pc-game-card,.pc-diary-book{
   --pc-ink:#53364a;--pc-muted:#795d6b;--pc-gold:#8e642f;--pc-line:#dcc2ad;--pc-night:#fff8ee;
   --cd-text:var(--pc-ink);--cd-text-muted:var(--pc-muted);--cd-accent:var(--pc-gold);--cd-border:var(--pc-line);--cd-surface:#faecdf;--cd-surface-2:#f4dfd9;
   --pg-feed-bg:#fbe3c9;--pg-feed-ink:#76452d;--pg-play-bg:#f8dfe5;--pg-play-ink:#7b4059;--pg-sleep-bg:#eee6f5;--pg-sleep-ink:#63517c;--pg-fortune-bg:#f6e7bd;--pg-fortune-ink:#71542a;
@@ -35,12 +35,34 @@
 #dpMasterCard.pc-game-card:before,#dpMasterCard.pc-game-card:after{content:"";display:block;position:absolute;inset:auto;pointer-events:none;z-index:0;width:150px;height:125px;background:var(--pc-gold);opacity:.18;mask:var(--cd-yehwa-mask-branch-corner) center/contain no-repeat;-webkit-mask:var(--cd-yehwa-mask-branch-corner) center/contain no-repeat;box-shadow:none;border:0;transform:none}
 #dpMasterCard.pc-game-card:before{top:0;left:0;transform:scaleX(-1)}
 #dpMasterCard.pc-game-card:after{bottom:0;right:0;transform:rotate(180deg)}
-body.neo-mode #dpMasterCard.pc-game-card,html.neo-mode #dpMasterCard.pc-game-card,html[data-cd-theme="neo"] #dpMasterCard.pc-game-card{
+body.neo-mode #dpMasterCard.pc-game-card,html.neo-mode #dpMasterCard.pc-game-card,html[data-cd-theme="neo"] #dpMasterCard.pc-game-card,body.neo-mode .pc-diary-book,html.neo-mode .pc-diary-book,html[data-cd-theme="neo"] .pc-diary-book{
   --pc-night:#251e38;--pc-ink:#fff1df;--pc-muted:#d6c3d7;--pc-gold:#e7c88b;--pc-line:#776176;
   --cd-surface:#372940;--cd-surface-2:#49334f;
   --pg-feed-bg:#503441;--pg-feed-ink:#ffe0bf;--pg-play-bg:#4d2d48;--pg-play-ink:#ffd5e7;--pg-sleep-bg:#37304e;--pg-sleep-ink:#e3d8ff;--pg-fortune-bg:#4b3c35;--pg-fortune-ink:#ffe4aa;
 }
 .pc-game-inner{position:relative;z-index:1;padding:24px;min-width:0}
+.pc-diary-entry{margin:18px 0;padding:16px 0;border-block:1px solid var(--pc-line)}
+.pc-panel .pc-diary-open{display:flex;align-items:center;gap:12px;width:100%;padding:16px;border-radius:24px;background:var(--pg-sleep-bg);color:var(--pg-sleep-ink);border-color:var(--pc-line);text-align:left}
+.pc-diary-open>svg{width:22px;height:22px;flex-shrink:0}
+.pc-diary-open>svg:first-child{width:42px;height:42px}
+.pc-diary-open>span:nth-child(2){flex:1;min-width:0}
+.pc-diary-open strong{display:block;font:400 19px/1.5 var(--font-display)}
+.pc-diary-open small{display:block;font:400 13px/1.6 var(--font-body)}
+.pc-diary-book{position:fixed;inset:0;width:min(calc(100% - 20px),720px);height:min(900px,94dvh);max-width:none;max-height:none;margin:auto;padding:0;overflow:hidden;border-radius:28px}
+.pc-diary-book[open]{display:grid;grid-template-rows:auto minmax(0,1fr) auto}
+.pc-diary-book::backdrop{background:color-mix(in srgb,var(--pc-ink) 65%,transparent)}
+.pc-diary-book>header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 16px;border-bottom:1px solid var(--pc-line)}
+.pc-diary-book h2{font:400 20px/1.5 var(--font-display);margin:0;color:var(--pc-ink)}
+.pc-diary-book>header>div{flex:1;min-width:0}
+.pc-diary-book [data-diary-status]{font:400 13px/1.5 var(--font-body);color:var(--pc-muted);margin:4px 0 0}
+.pc-diary-book [data-diary-status]:empty,.pc-diary-book [hidden]{display:none!important}
+.pc-diary-book [data-diary-retry]{width:auto;border-radius:16px;font:600 13px/1.5 var(--font-body);padding:8px}
+.pc-diary-book button{display:grid;place-items:center;width:44px;height:44px;min-height:44px;flex-shrink:0;border:1px solid var(--pc-line);border-radius:50%;background:var(--pg-sleep-bg);color:var(--pg-sleep-ink);cursor:pointer}
+.pc-diary-book button svg{width:22px;height:22px}
+.pc-diary-book iframe{display:block;width:100%;height:100%;border:0;background:var(--pc-night)}
+.pc-diary-book>a{display:flex;justify-content:center;align-items:center;min-height:44px;font:400 13px/1.6 var(--font-body);color:var(--pc-gold);text-underline-offset:3px;border-top:1px solid var(--pc-line)}
+.pc-diary-book :is(a,button):focus-visible{outline:3px solid var(--pc-gold);outline-offset:-4px}
+html:has(.pc-diary-book[open]){overflow:hidden}
 .pc-game-hero{display:grid;grid-template-columns:minmax(0,1fr) 44px;gap:14px;align-items:center;padding-bottom:14px;border-bottom:1px solid var(--pc-line)}
 .pc-portrait{display:flex;flex-direction:column;align-items:center;justify-content:center;background:#fff1de;border:1px solid var(--pc-gold);border-radius:24px 24px 16px 16px;padding:4px 0 8px;color:#62422e}
 .pc-portrait>[data-pc-equipment]{font-size:10px;font-weight:700;letter-spacing:.04em}

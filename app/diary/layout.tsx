@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import "../../styles/yehwa-motifs.css";
 
 import DiaryShell from "./_components/DiaryShell";
 import { ROBOTS_META } from "../../lib/seo/index-policy.mjs";
