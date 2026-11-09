@@ -124,7 +124,7 @@ test("지급 저장 장애 후 복구, 서명 웹훅 중복·연장 환불·다�
       ),
   });
   expect(first.entitlementGrantedAt).toBeTruthy();
-  const secret = "whsec_dGVzdC1zZWNyZXQtdmFsdWU=";
+  const secret = "whsec_" + Buffer.from(crypto.getRandomValues(new Uint8Array(32))).toString("base64");
   const deliver = async (type, order, eventId) => {
     const rawBody = JSON.stringify({
       type,
