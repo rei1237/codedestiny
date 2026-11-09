@@ -40,7 +40,7 @@ const DASHBOARD_MIRRORS = [
 ];
 
 function read(rel) {
-  return readFileSync(`${ROOT}/${rel}`, 'utf8');
+  return readFileSync(`${ROOT}/${rel}`, 'utf8').replace(/\r\n/g, '\n');
 }
 
 const fails = [];
