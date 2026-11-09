@@ -55,6 +55,9 @@ const UNWIRED_BY_DESIGN = [
   // ── 스테이징·릴리스 확인은 선택 절차다(CLAUDE.md 2026-09-12). 사용자 요청·릴리스 때만 수동 실행한다.
   ["verify:staging", "스테이징 실요청 — 사용자 요청·배포 인프라 변경·릴리스 때만 수동(--sha 필요)"],
   ["verify:release", "deploy:critical 수동 별칭 — 운영 릴리스 전 수동"],
+  // ── WordPress 발행 후 동기화 점검. marketing/wordpress/README.md의 수동 운영 흐름을 따른다.
+  ["verify:wordpress-publications", "발행·동기화 후 저장된 레지스트리의 정적 검증 — marketing/wordpress/README.md 3단계에서 수동 실행. CI 게이트는 아님"],
+  ["verify:wordpress-publications:live", "WordPress 공개 API와 저장된 레지스트리의 차이 확인 — 발행·동기화 점검 때 수동 실요청"],
   // ── MongoDB 자격증명이 필요하다. CI 러너에는 프로덕션 DB 접근이 없고, 있어서도 안 된다.
   ["verify:access-unlock-indexes", "실 DB 인덱스 점검 — MONGO_URI 필요"],
   ["verify:fusion-fortune-indexes", "실 DB 인덱스 점검 — MONGO_URI 필요"],
