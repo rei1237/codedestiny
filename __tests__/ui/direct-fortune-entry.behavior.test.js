@@ -5,7 +5,7 @@ const path = require("node:path");
 const vm = require("node:vm");
 
 const root = path.resolve(__dirname, "../..");
-const read = (file) => fs.readFileSync(path.join(root, file), "utf8");
+const read = (file) => fs.readFileSync(path.join(root, file), "utf8").replace(/\r\n/g,"\n");
 
 test("홈은 자바스크립트 준비 전에도 사주 직행 액션으로 연결된다", () => {
   const home = read("index.html");

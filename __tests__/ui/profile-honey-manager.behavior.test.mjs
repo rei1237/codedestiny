@@ -13,7 +13,7 @@ const tick=async()=>{await new Promise(r=>setTimeout(r,50));};
 let cleanup;
 afterEach(async()=>{await cleanup?.();cleanup=null;});
 async function fixture({mountGame=true}={}){
- const dom=new JSDOM('<div id="parking">'+widget+'</div><main><div id="garden"></div></main>',{url:'https://example.test/ggulggul/',runScripts:'outside-only',pretendToBeVisual:true});
+ const dom=new JSDOM('<div id="parking">'+widget+'</div><main id="dpListSheet" class="dp-sheet--open" data-pet-entry="my"><div id="garden"></div></main>',{url:'https://example.test/ggulggul/',runScripts:'outside-only',pretendToBeVisual:true});
  const win=dom.window;
  globalThis.window=win;globalThis.document=win.document;globalThis.localStorage=win.localStorage;globalThis.CustomEvent=win.CustomEvent;globalThis.AbortController=win.AbortController;
  win.matchMedia=()=>({matches:true});

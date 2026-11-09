@@ -4,10 +4,10 @@ const fs = require("node:fs");
 const path = require("node:path");
 
 const root = path.resolve(__dirname, "../..");
-const sessionSource = fs.readFileSync(path.join(root, "app/_lib/user-session-cache.ts"), "utf8");
-const authSource = fs.readFileSync(path.join(root, "app/_lib/auth-client.ts"), "utf8");
-const authStoreSource = fs.readFileSync(path.join(root, "app/_lib/auth-store.ts"), "utf8");
-const shellSource = fs.readFileSync(path.join(root, "index.html"), "utf8");
+const sessionSource = fs.readFileSync(path.join(root, "app/_lib/user-session-cache.ts"), "utf8").replace(/\r\n/g, "\n");
+const authSource = fs.readFileSync(path.join(root, "app/_lib/auth-client.ts"), "utf8").replace(/\r\n/g, "\n");
+const authStoreSource = fs.readFileSync(path.join(root, "app/_lib/auth-store.ts"), "utf8").replace(/\r\n/g, "\n");
+const shellSource = fs.readFileSync(path.join(root, "index.html"), "utf8").replace(/\r\n/g, "\n");
 
 test("React bootstrap requests access-state before legacy fallback endpoints", () => {
   assert.match(sessionSource, /authFetch\("\/api\/me\/access-state"/);
