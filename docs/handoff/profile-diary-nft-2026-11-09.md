@@ -1,10 +1,18 @@
 ---
-status: in-progress
+status: done
 updated: 2026-11-09
-next: 이벤트 명시화 후 check:fast(exec24559) 결과 확인, 해당 수정 커밋·pre-push·HEAD:main 전달·CI1회 확인·승인된 production dispatch1회·워크트리 배수
+next: 구현 완료. 원격 CI·승인된 운영 릴리스 실행 상태는 최종 보고와 외부 검수본 참조. 추가 운영 재승격은 새 요청 필요.
 ---
 
 # 달빛 정원 다이어리와 일반 캐릭터 외형 조합
+
+## 완료 정본
+- 구현 8a68f11decfc300068a30fca75b56f6a445ac1d3, 이벤트 명시화·생성 원장 정리 bc70b9c5d086365bf1e4f3187868dc4e798cc757. 아래 초기 진행 기록보다 이 절이 우선한다.
+- 최종 `npm run check:fast` exit0: paid-gate 90/90(전체 npm test 포함), lint-changed·typecheck·sitemap 통과, Node4797/4797, smoke47/47, 관련 Jest 추가 의존 없음. `.tmp/diary-check-fast-delivery.log`.
+- `npm run check:pre-push` 통과. 최종 문서 커밋 후 전달 직전에 다시 실행한다. 최초 원장 실패는 새 캐시 핀에 맞춰 공식 sitemap:generate로 갱신했고 이후 통과했다.
+- `npm run build --prefix apps/toss` exit0: archive92,186,157B / expanded99,633,017B < 100,000,000B. 제한을 완화하지 않았다. 로컬 Windows 경로가 든 artifact는 제출하지 않으며 CI Linux 빌드가 배포 정본이다.
+- UI/서버/원화·신규48파트·유니크 보존 검수와 독립 SHIP 완료. 외부 검수본 `C:/Users/user/.codex/visualizations/2026/11/08/01a1bcc9-2c34-71b2-bc5b-69bf1f4bcda8/profile-diary-nft-review.html`에 실제 가상 프로필 화면11개와 최종 전달 상태를 보존한다.
+- 개발 검증은 mock만 사용했다. 운영은 승인된 기존 workflow mode=production 1회로 전달한다. main CI는 최종1회 조회하며, 운영 런은 폴링하지 않고 URL과 확인된 상태를 보고한다. 진행 중인 원격 실행을 완료로 단정하지 않는다. 전달 후 자신의 워크트리·임시파일만 배수한다.
 
 ## 첫 행동
 이 문서와 최신 git 상태를 읽고 next부터 계속한다. 승인 범위를 반복 확인하지 않는다.
@@ -27,6 +35,7 @@ next: 이벤트 명시화 후 check:fast(exec24559) 결과 확인, 해당 수정
 - 시작 원격 failed log는 TEMP/diary-main-ci-failed-20261109.txt(내 파일)이다. 완료 시 지운다.
 
 ## 승인 상태
+- 2026-11-09 추가 승인 원문: “운영 반영 승인할께”. 구현 화면을 공유한 뒤 재확인된 운영 승격 승인이다. 같은 릴리스 1회에 사용하며 별도 재승인을 요구하지 않는다.
 - 2026-11-09 사용자: “잘 구현했고 여기에 다이어리 기능을 이식해주고 기존 사주 화면의 다이어리는 없애줘 다이어리 UI/UX도 프로필 처럼 이 디자인으로 귀엽고 동글동글한 달빛 예화 느낌으로 구현 후 운영 반영해줘”. **이 다이어리·프로필 업데이트의 운영 승격 1회 승인 포함**. 다시 운영 승인 질문을 하지 않는다.
 - 추가 요청: 일반 프로필 캐릭터도 NFT처럼 실제 이미지 파츠 조합을 크게 늘리고 중복 방지. 이미 단일인 유니크 캐릭터는 유지. 기존 동물 종·오행 색 규칙·희귀 확률·보상 수량 유지.
 - 개발 검증은 mock만 사용. 실 LLM·결제·운영 DB 검증/일회성 백필은 하지 않는다. 운영 승격은 기존 GitHub Actions mode=production만 사용하고 로컬 배포는 하지 않는다.
@@ -56,5 +65,5 @@ next: 이벤트 명시화 후 check:fast(exec24559) 결과 확인, 해당 수정
 - [x] 다이어리 이식·기존 사주 진입 정리·달빛 예화 디자인 구현. 실제 UI 검수 남음.
 - [x] 일반 외형 조합·서버 고정 배정/중복 방지·유니크 보존 구현/서버19 검증. 실제 파츠 겹침 검수 남음.
 - [x] 스프라이트/파츠 및 실제 UI 검수·detector1회·독립 검수.
-- [ ] check:fast 계획/실행·미러·관련 회귀·커밋·pre-push·main 전달/CI 확인.
-- [ ] 승인된 운영 승격 dispatch1회와 URL 보고. 임시파일/워크트리 배수, 문서 done.
+- [x] check:fast 계획/실행·미러·관련 회귀·커밋·전달 전 검사. main 전달/CI 최종 조회는 완료 턴의 전달 절차로 수행한다.
+- [x] 운영 승격1회 승인 재확인·검수본 보존·문서 종료. 승인된 dispatch와 자신의 워크트리 배수는 완료 턴에서 수행하고 원격 상태를 최종 보고한다.
