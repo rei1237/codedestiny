@@ -125,6 +125,10 @@ export default function HomePage() {
         <HomeDailyEntry />
         {!IS_APP_BUILD && <HomeInstallEntry />}
         {!IS_APP_BUILD && <nav className={styles.explore} aria-label="더 둘러보기">
+          <Link className={styles.exploreBtn} href="/saju/free/">
+            <span className={styles.exploreCopy}><strong className={styles.exploreName}>무료 만세력 보기</strong><small>생년월일로 내 사주 명식 확인하기</small></span>
+            <span aria-hidden="true">→</span>
+          </Link>
 
           <Link className={`${styles.exploreBtn} ${styles.exploreGame}`} href="/mini-games/">
             <span className={styles.exploreIcon} aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round"><rect x="4.2" y="5.4" width="8.6" height="12.6" rx="1.6" transform="rotate(-14 8.5 11.7)" /><rect x="10.6" y="5" width="8.6" height="12.6" rx="1.6" transform="rotate(9 14.9 11.3)" /><path d="M15.9 9.2a2.3 2.3 0 1 0 1.3 3.6 1.9 1.9 0 1 1-1.3-3.6z" /></svg></span>
