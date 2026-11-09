@@ -2168,3 +2168,9 @@ html[data-cd-theme="neo"] .shell {
 .moreToday[open] > summary::after { content:"−"; }
 .moreToday > summary:focus-visible { outline:2px solid var(--cd-focus-ring); outline-offset:3px; }
 .moreToday > .card { margin-top:12px; }
+
+.drawCard { display:grid; grid-template-columns:clamp(76px,19vw,112px) 1fr; align-items:center; gap:16px; padding:18px; border-radius:24px; background:var(--dy-surface); border:1px solid var(--dy-line); color:var(--dy-text); }
+.drawCard > img,.journalCrest img { width:100%; height:auto; aspect-ratio:1; object-fit:cover; border-radius:22px; }
+.drawCard p { margin:6px 0 12px; color:var(--dy-muted); line-height:1.65; }
+.drawButton { border:0; border-radius:99px; background:#493447; color:#fff; padding:10px 18px; font:inherit; cursor:pointer; }
+.cardHead time { color:var(--dy-muted); font-size:.85rem; }

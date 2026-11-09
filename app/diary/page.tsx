@@ -1,3 +1,4 @@
+import DiaryFortuneDraw from "./_components/DiaryFortuneDraw";
 import DiaryJournalCard from "./_components/DiaryJournalCard";
 import DiaryDailyQuest from "./_components/DiaryDailyQuest";
 import DiaryFlowCard from "./_components/DiaryFlowCard";
@@ -14,11 +15,12 @@ import styles from "./_styles/diary.module.css";
 export default function DiaryHomePage() {
   return (
     <>
+      <DiaryFlowCard />
+      <DiaryFortuneDraw />
       <DiaryJournalCard />
       <details className={styles.moreToday}>
-        <summary>오늘의 흐름과 계획 자세히 보기</summary>
+        <summary>오늘의 실천과 계획 보기</summary>
         <DiaryDailyQuest />
-        <DiaryFlowCard />
         <DiarySelfCard />
         <DiaryPlanCard />
       </details>

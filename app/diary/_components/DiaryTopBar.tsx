@@ -12,7 +12,7 @@ const DIARY_TOP_BAR_TEXT = {
     back: "뒤로",
     home: "홈으로",
     search: "기록 검색",
-    title: "운기 다이어리",
+    title: "달빛 다이어리",
   },
   en: {
     back: "Back",

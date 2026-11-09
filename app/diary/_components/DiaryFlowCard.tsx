@@ -20,9 +20,9 @@ import styles from "../_styles/diary.module.css";
 
 const DIARY_FLOW_CARD_TEXT = {
   ko: {
-    title: "오늘의 흐름",
-    loading: "오늘의 결을 불러오는 중입니다.",
-    noProfile: "생년월일을 등록하면 오늘의 결이 여기에 표시됩니다.",
+    title: "오늘 날짜의 운세",
+    loading: "오늘의 운세를 불러오는 중입니다.",
+    noProfile: "생년월일을 등록하면 오늘의 운세가 여기에 표시됩니다.",
     stability: "안정",
     flow: "흐름",
     care: "주의",
@@ -56,11 +56,11 @@ export default function DiaryFlowCard() {
   return (
     <section className={`${styles.card} ${styles.cardLead}`} aria-label={copy.title}>
       <header className={styles.cardHead}>
-        <h2 className={styles.cardTitle}>{copy.title}</h2>
+        <h2 className={styles.cardTitle}>{copy.title}</h2><time dateTime={ymd}>{ymd}</time>
       </header>
 
       {!hydrated ? <p className={styles.empty}>{copy.loading}</p> : null}
-      {hydrated && !flow ? <p className={styles.empty}>{copy.noProfile}</p> : null}
+      {hydrated && !flow ? <p className={styles.empty}>{copy.noProfile} <a href="/ggulggul/?action=dpOpenList" target="_top">내 프로필 열기</a></p> : null}
 
       {hydrated && flow && detail ? (
         <>
