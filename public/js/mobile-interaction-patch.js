@@ -1234,7 +1234,7 @@
 
   function ensureMobileBackstackRuntime() {
     if (window.__cdMobileNav) return;
-    loadScript('/js/mobile-backstack-navigation.js?v=build-232947455bf8').catch(function(err) {
+    loadScript('/js/mobile-backstack-navigation.js?v=build-a27168872974').catch(function(err) {
       console.error('[mobile-interaction-patch] mobile backstack load failed:', err);
     });
   }
