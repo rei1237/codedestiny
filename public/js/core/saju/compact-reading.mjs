@@ -24,11 +24,11 @@ export function mountCompactReading(document) {
   function refresh(){
     queued=false;const p=win.G_PILLARS;if(!p)return;
     const header=document.getElementById('sajuReadingHeader');if(!overview.isConnected){(header||result.firstElementChild)?.after(overview);overview.after(nav);for(const section of sections.values())result.append(section);}
-    const profile=win.__cdCurrentDestinyProfile||win.__cdActiveBirthProfile||{};
+    const profile=win.__cdGetCurrentDestinyProfile?.()||win.__cdCurrentDestinyProfile||win.__cdActiveBirthProfile||{};
     const chartFacts=['y','m','d','h'].map(id=>[p[id]?.g,p[id]?.j]);
     const next=JSON.stringify([profile.id||profile.profileId,profile.birth,chartFacts,win.__cdBirthTimeUnknown===true]);
     if(next!==key){key=next;processedHash=null;result.querySelectorAll('details[data-reading-fold],details[data-reading-group]').forEach(n=>n.open=false);}
-    const name=profile.name||labels()[5];if(owner.textContent!==name)owner.textContent=name;
+    const name=profile.name||document.getElementById('nameInput')?.value||labels()[5];if(owner.textContent!==name)owner.textContent=name;
     const text=labels()[10]+' · '+(p.d?.g||'—')+' '+(p.d?.j||'—');if(brief.textContent!==text)brief.textContent=text;
     const signature=JSON.stringify([chartFacts,win.__cdBirthTimeUnknown===true,document.documentElement.lang]);if(chart.dataset.chart!==signature){chart.dataset.chart=signature;chart.replaceChildren();for(const [id,label] of [['y',ko?'년주':'Year'],['m',ko?'월주':'Month'],['d',ko?'일주':'Day'],['h',ko?'시주':'Hour']]){const box=document.createElement('div'),dt=document.createElement('dt'),dd=document.createElement('dd');dt.textContent=labels()[6+['y','m','d','h'].indexOf(id)];dd.textContent=id==='h'&&win.__cdBirthTimeUnknown?'—':(p[id]?.g||'—')+' '+(p[id]?.j||'—');box.append(dt,dd);chart.append(box);}}
     for(const [id,,ids] of groups)for(const cardId of ids){const node=document.getElementById(cardId);if(!node||!result.contains(node))continue;let fold=node.parentElement;if(!fold.matches('details[data-reading-fold]')){fold=document.createElement('details');fold.dataset.readingFold=cardId;const summary=document.createElement('summary');summary.textContent=title(node);node.before(fold);fold.append(summary,node);sections.get(id).append(fold);}const hidden=node.hidden||node.style.display==='none';if(fold.hidden!==hidden)fold.hidden=hidden;const label=title(node);if(label&&fold.firstElementChild.textContent!==label)fold.firstElementChild.textContent=label;}
@@ -39,7 +39,6 @@ export function mountCompactReading(document) {
   const observer=new win.MutationObserver(records=>{if(records.some(r=>!r.target.closest?.('#sajuCompactOverview')))schedule();});
   observer.observe(result,{childList:true,subtree:true,attributes:true,attributeFilter:['style','hidden']});
   result.addEventListener('click',event=>{const a=event.target.closest('a[href^="#"]');const target=a&&document.getElementById(a.hash.slice(1));if(!target||!result.contains(target)||event.ctrlKey||event.metaKey||event.shiftKey||event.altKey||event.button)return;event.preventDefault();event.stopPropagation();reveal(target);win.history.replaceState(null,'',a.hash);processedHash=a.hash;target.scrollIntoView?.({block:'start',behavior:'instant'});},true);
-  result.addEventListener('toggle',event=>{if(event.target.tagName==='DETAILS'&&event.target.open)win.dispatchEvent(new win.Event('resize'));},true);
   win.addEventListener('cd:locale-ready',localeReady);localeReady();win.addEventListener('hashchange',fragment);win.addEventListener('cd:saju-summary-ready',schedule);schedule();
   return ()=>{observer.disconnect();win.removeEventListener('cd:locale-ready',localeReady);win.removeEventListener('hashchange',fragment);win.removeEventListener('cd:saju-summary-ready',schedule);};
 }

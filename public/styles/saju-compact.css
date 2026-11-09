@@ -17,3 +17,7 @@
 .cd-concern[data-cd-cross-sell="saju_question"] h2{font:400 24px/1.4 var(--font-display)}
 .cd-concern[data-cd-cross-sell="saju_question"] .cdh-actions{display:flex;flex-wrap:wrap;gap:8px}
 .cd-concern[data-cd-cross-sell="saju_question"] .cdh-actions a{display:inline-flex;align-items:center;min-height:44px;padding:10px 14px;border:1px solid var(--cd-border);border-radius:var(--cd-r-control);background:var(--cd-surface-2);color:var(--cd-accent);font:500 16px/1.5 var(--font-body);text-decoration:none}
+.saju-compact-overview{grid-template-columns:minmax(0,1fr) auto}
+.saju-compact-overview>div{min-width:0;overflow-wrap:anywhere}
+#resultPage[data-compact-reading] #sajuReadingHeader>div{min-width:0;flex:1}
+#resultPage[data-compact-reading] .saju-reading-switch{flex-wrap:wrap}

@@ -10,3 +10,8 @@ test('compact reading retains paid nodes, actions and deep links while closing d
  w.location.hash='#paid';await frame();assert.ok(button.closest('details').open);w.location.hash='';await frame();w.document.getElementById('iljuCard').closest('details').open=true;w.document.getElementById('sajuReadingHeader').textContent='영냥이';await frame();assert.ok(w.document.getElementById('iljuCard').closest('details').open);
  w.__cdCurrentDestinyProfile={id:'b',name:'다른 프로필'};w.document.getElementById('sajuReadingHeader').textContent='변경';await frame();assert.ok([...folds].every(n=>!n.open));assert.match(w.document.getElementById('sajuCompactOverview').textContent,/다른 프로필/);w.__cdBirthTimeUnknown=true;w.document.getElementById('sajuReadingHeader').textContent='시간 미상';await frame();assert.equal(w.document.querySelector('#sajuCompactOverview dl>div:last-child dd').textContent,'—');w.document.documentElement.lang='en';w.dispatchEvent(new w.Event('cd:locale-ready'));await frame();assert.equal(w.document.querySelector('.saju-compact-nav a').textContent,'Overview');assert.equal(w.document.querySelector('#sajuCompactOverview button').textContent,'Change profile');cleanup();w.close();
 });
+test('compact reading module is executable HTML, outside comments',async()=>{
+ const {readFileSync}=await import('node:fs');
+ const html=readFileSync('index.html','utf8').replace(/<!--[\s\S]*?-->/g,'');
+ assert.match(html,/<script type="module" src="\/js\/core\/saju\/compact-reading\.mjs\?v=build-[a-f0-9]+"><\/script>/);
+});
