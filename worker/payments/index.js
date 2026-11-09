@@ -1511,7 +1511,7 @@ const ROUTES = {
         if (businessProduct(product.productId) && body.resumeOrderId) {
           const order=await findOrder(db,{orderId:String(body.resumeOrderId)});
           assertOrderOwner(order,userId);
-          if(order.productId!==product.productId || order.status!=='pending' || order.paymentAmount!==product.priceKRW)
+          if(order.productId!==product.productId || order.status!=='pending' || !Number.isSafeInteger(order.paymentAmount) || order.paymentAmount<=0 || order.pricingSnapshot?.currency!=='KRW')
             throw paymentError('ORDER_NOT_CONFIRMABLE','주문 상태가 변경됐습니다. 내 API 관리에서 새로고침해 주세요.');
           return {order,user:await userPromise};
         }

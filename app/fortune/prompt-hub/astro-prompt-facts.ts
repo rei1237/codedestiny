@@ -223,7 +223,7 @@ export async function buildAstrologyPromptFacts(input: AstroFactsInput, options:
     const aspects = (Array.isArray(chart.aspects) ? chart.aspects : []) as Record<string, unknown>[];
 
     lines.push(`- 출생지 좌표: ${coords!.name} (위도 ${coords!.lat.toFixed(4)}, 경도 ${coords!.lon.toFixed(4)})`);
-    lines.push(`- 계산 기준: Swiss Ephemeris(${text(engine.mode) || "unknown"}) · 시간대 ${resolveBirthTimezone(input)} · 하우스 커스프 ${engine.ephemerisLoaded === true ? "산출됨" : "미산출"}`);
+    lines.push(`- 계산 기준: ${text(engine.name) || "천문력"}(${text(engine.mode) || "unknown"}) · 시간대 ${resolveBirthTimezone(input)} · 하우스 커스프 ${engine.ephemerisLoaded === true ? "산출됨" : "미산출"}`);
 
     const ascendant = angles.ascendant;
     const midheaven = angles.midheaven;
@@ -268,7 +268,7 @@ export async function buildAstrologyPromptFacts(input: AstroFactsInput, options:
 
     lines.push("");
     lines.push(
-      "위 차트는 Swiss Ephemeris 가 이미 산출한 확정값입니다. 행성 위치·별자리·하우스·각을 다시 계산하거나 바꾸지 말고 그대로 근거로 삼아, 입력된 질문에 맞춰 해석만 해 주세요. 표에 없는 행성이나 각을 만들어 넣지 마세요.",
+      "위 차트에는 앞에 표시한 계산 엔진이 산출한 값이 들어 있습니다. 행성 위치·별자리·하우스·각을 다시 계산하거나 바꾸지 말고 그대로 근거로 삼아, 입력된 질문에 맞춰 해석만 해 주세요. 표에 없는 행성이나 각을 만들어 넣지 마세요.",
     );
     return lines.join("\n");
   } catch {

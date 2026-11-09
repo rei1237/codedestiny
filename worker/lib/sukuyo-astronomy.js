@@ -5,6 +5,7 @@ import {
   SUKUYO_ASTRONOMY_VERSION,
   buildSukuyoFromMoonLongitude,
 } from "./sukuyo-coordinate.js";
+import { verifiedSukuyoForCivilTime } from "./sukuyo-verified-provider.js";
 import { getSwissMoonLongitudes } from "./swiss-ephemeris.js";
 const {
   DAY_MS,
@@ -151,6 +152,10 @@ export async function calculateSukuyoForMoment(env, rawMoment = {}, options = {}
   const normalized = localMomentToUtc(moment);
   const julianDate = julianDateFromUtcTimestamp(normalized.utcTimestamp);
   const birthTimeContext = buildBirthTimeContext(moment, normalized, julianDate, options);
+  if (options.useVerifiedNatal && moment.birthTimeKnown && !normalized.second && !normalized.millisecond) {
+    const verified = verifiedSukuyoForCivilTime({...moment,...normalized});
+    if (verified) return {...verified,birthTimeContext};
+  }
   const [moonLongitude] = await getSwissMoonLongitudes(env, [
     {
       year: normalized.year,

@@ -960,7 +960,7 @@ function calcAscMc(swe, jd, iflag, lat, lon, system = "P") {
   return { asc, mc, houseCusps };
 }
 
-function calcAspects(planetsBySignInfo) {
+export function calcAspects(planetsBySignInfo) {
   const aspects = [];
   const names = Object.keys(planetsBySignInfo);
   for (let i = 0; i < names.length; i += 1) {

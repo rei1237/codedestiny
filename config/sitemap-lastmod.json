@@ -3,7 +3,7 @@
   "note": "사이트맵 lastmod 원장. scripts/lib/sitemap-lastmod.mjs 가 라우트별 소스 서명을 계산해 다시 쓴다. 손으로 고치지 말고 npm run sitemap:generate 로 갱신할 것.",
   "routes": {
     "/": {
-      "signature": "5fc3eed1959a07cf",
+      "signature": "102175d2f6c2da7e",
       "lastmod": "2026-11-09"
     },
     "/about/": {
@@ -27,12 +27,12 @@
       "lastmod": "2026-11-08"
     },
     "/business/api/": {
-      "signature": "9c9b1c1a0fd05e54",
-      "lastmod": "2026-11-08"
+      "signature": "921dc4ecbbe65d6b",
+      "lastmod": "2026-11-09"
     },
     "/business/api/docs/": {
-      "signature": "ec9bb09e20103e73",
-      "lastmod": "2026-11-08"
+      "signature": "29f48d0d967a71ed",
+      "lastmod": "2026-11-09"
     },
     "/calendar/guide/": {
       "signature": "ef28d7c030353a34",
@@ -63,8 +63,8 @@
       "lastmod": "2026-11-08"
     },
     "/destiny-compass/": {
-      "signature": "9e88c0a68a84660d",
-      "lastmod": "2026-11-08"
+      "signature": "7e2ec8ccc28a72af",
+      "lastmod": "2026-11-09"
     },
     "/disclaimer/": {
       "signature": "4b446c2b1b531573",
@@ -759,8 +759,8 @@
       "lastmod": "2026-11-09"
     },
     "/fortune/prompt-hub/": {
-      "signature": "82ab504949e6aac2",
-      "lastmod": "2026-11-07"
+      "signature": "5b1a208c2dafec32",
+      "lastmod": "2026-11-09"
     },
     "/fortune/today/": {
       "signature": "6fe7c46c8acdf62a",

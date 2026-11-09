@@ -35,6 +35,69 @@ async function call(path, method = "GET", body) {
     );
   return data;
 }
+const productNotes = {
+  saju: "출생시각이 있으면 네 기둥을 표시해요. 시각을 모르면 시주를 비워 두고 나머지 세 기둥을 읽을 수 있어요.",
+  ziwei:
+    "명궁과 신궁이 어디에 놓였는지 찾고, 열두 궁에 어떤 별이 모였는지 명반으로 보여줄 수 있어요.",
+  astrology:
+    "행성의 별자리는 황도 위의 위치를, 하우스는 출생지에서 본 하늘의 구역을 나타내요.",
+  vedic:
+    "달의 위치를 라시와 낙샤트라로 읽어요. 파다는 낙샤트라를 다시 네 구간으로 나눈 자리예요.",
+  sukuyo:
+    "달의 위치를 스물일곱 숙에 대응해요. 같은 날에도 달이 경계를 지나면 본명숙이 달라질 수 있어요.",
+  tarot:
+    "한 장의 카드로 오늘의 핵심을 보거나, 세 장을 과거·현재·미래 순서로 놓고 방향을 함께 표시해요.",
+};
+function ReadingPreview({ product, sample }) {
+  return (
+    <div className="biz-reading">
+      <img
+        loading="lazy"
+        src={`/assets/yeongnyangi/original/${product.slug}.webp`}
+        alt=""
+      />
+      <div>
+        <h3>{product.name.replace(" API", "")}</h3>
+        <p>{productNotes[product.slug]}</p>
+        {sample?.pillars && (
+          <p>
+            연주 {sample.pillars.year} · 월주 {sample.pillars.month} · 일주{" "}
+            {sample.pillars.day} · 시주 {sample.pillars.hour ?? "미상"}
+          </p>
+        )}
+        {sample?.palaces && (
+          <p>
+            명궁 {sample.mingGong} · 신궁 {sample.shenGong} ·{" "}
+            {sample.palaces[0].name}의 별 {sample.palaces[0].stars.join(" · ")}
+          </p>
+        )}
+        {sample?.cards?.map((card) => (
+          <p key={card.id}>
+            {card.position} · {card.name} ·{" "}
+            {card.direction === "upright" ? "정방향" : "역방향"}
+          </p>
+        ))}
+        {sample?.planets?.Sun?.signIndex != null && (
+          <p>
+            태양 황경 {sample.planets.Sun.longitude.toFixed(2)}° · 상승점{" "}
+            {sample.ascendant.toFixed(2)}°
+          </p>
+        )}
+        {sample?.planets?.Moon?.nakshatra && (
+          <p>
+            달 · {sample.planets.Moon.rashi} · {sample.planets.Moon.nakshatra}{" "}
+            {sample.planets.Moon.pada}파다
+          </p>
+        )}
+        {sample?.mansion && (
+          <p>
+            본명숙 {sample.mansion} · 27숙 중 {sample.index + 1}번째
+          </p>
+        )}
+      </div>
+    </div>
+  );
+}
 function UsageTerms() {
   return (
     <p>
@@ -47,7 +110,7 @@ function UsageTerms() {
 }
 export default function Business({ mode }) {
   const [catalog, setCatalog] = useState(null),
-    [account, setAccount] = useState(null),
+    [account, setAccount] = useState(undefined),
     [slug, select] = useState("saju");
   const [message, setMessage] = useState(""),
     [busy, setBusy] = useState(false),
@@ -55,7 +118,13 @@ export default function Business({ mode }) {
     [consent, setConsent] = useState(false),
     [now, setNow] = useState(null);
   const items = catalog?.products || businessProducts;
-  const p = items.find((it) => it.slug === slug) || items[0];
+  const [variant, setVariant] = useState(false);
+  const product = items.find((it) => it.slug === slug) || items[0];
+  const alternative = samples.variants[product.slug];
+  const p =
+    variant && alternative
+      ? { ...product, input: alternative.input, example: alternative.output }
+      : product;
   const dashboard = mode === "dashboard";
   const limitNotice = catalog
     ? `계정·상품별 분당 ${catalog.perMinute}회까지 호출할 수 있습니다. 한도 초과 시 추가 청구 없이 HTTP 429를 반환합니다.`
@@ -85,7 +154,8 @@ export default function Business({ mode }) {
     settle.then(refresh).catch((e) => {
       if (e.status === 401 && dashboard)
         login(base + "dashboard/" + location.search);
-      else if (e.status !== 401) setMessage(e.message);
+      else if (e.status === 401) setAccount(null);
+      else setMessage(e.message);
     });
   }, [dashboard]);
   async function perform(action) {
@@ -100,6 +170,7 @@ export default function Business({ mode }) {
     }
   }
   function choose(s) {
+    setVariant(false);
     select(s);
     history.replaceState(null, "", "?product=" + s + location.hash);
   }
@@ -124,7 +195,12 @@ export default function Business({ mode }) {
       returnPath: base + "dashboard/",
     });
     const o = result.order;
-    if (o.paymentAmount !== it.priceKRW || o.featureKey !== it.id)
+    if (
+      (resumeOrderId
+        ? o.merchantUid !== resumeOrderId
+        : o.paymentAmount !== it.priceKRW) ||
+      o.featureKey !== it.id
+    )
       throw Error("주문 상품과 금액을 다시 확인해 주세요.");
     const dest =
       base +
@@ -172,8 +248,21 @@ export default function Business({ mode }) {
           ))}
         </select>
       </label>
+      {alternative && (
+        <button
+          type="button"
+          aria-pressed={variant}
+          onClick={() => setVariant(!variant)}
+        >
+          {alternative.label} 예시
+        </button>
+      )}
+      {!dashboard && (
+        <ReadingPreview product={p} sample={p.example || samples[p.slug]} />
+      )}
       {p.input ? (
         <>
+          {p.reason && <p>{p.reason}</p>}
           <p>{p.inputHelp}</p>
           <h3>가상 입력</h3>
           <pre tabIndex={0}>{JSON.stringify(p.input, null, 2)}</pre>
@@ -245,7 +334,7 @@ export default function Business({ mode }) {
                   ) : (
                     <button
                       className="biz-primary"
-                      disabled={busy || !catalog || !!it.reason}
+                      disabled={busy || !catalog || account === undefined || !!it.reason}
                       onClick={() =>
                         perform(async () => {
                           choose(it.slug);
@@ -260,11 +349,9 @@ export default function Business({ mode }) {
                   <p>{it.use}</p>
                   <p>{it.fields ? "반환 항목 · " + it.fields : it.reason}</p>
                   {it.fields && it.reason && <small>{it.reason}</small>}
-                  {it.input && (
-                    <a href="#examples" onClick={() => choose(it.slug)}>
-                      입력·응답 보기
-                    </a>
-                  )}
+                  <a href="#examples" onClick={() => choose(it.slug)}>
+                    {it.input ? "입력·응답 보기" : "상품 설명 보기"}
+                  </a>
                 </article>
               );
             })}
@@ -400,6 +487,7 @@ export default function Business({ mode }) {
       {mode !== "landing" && <p>{limitNotice}</p>}
       {mode === "docs" && (
         <section>
+          <p><a href="/licenses/astronomy-engine.txt">천문 계산 라이브러리 라이선스</a></p>
           <h2>오류 응답</h2>
           <p>
             400 INVALID_INPUT · 입력값을 확인하세요. 401 INVALID_KEY · 키를

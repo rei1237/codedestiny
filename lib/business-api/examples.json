@@ -113,6 +113,141 @@
       }
     ]
   },
+  "astrology": {
+    "providerVersion": "astronomy-engine-2.1.19-placidus-v1",
+    "planets": {
+      "Sun": {
+        "longitude": 292.0037540448106,
+        "signIndex": 9,
+        "house": 12
+      },
+      "Moon": {
+        "longitude": 87.15949601561121,
+        "signIndex": 2,
+        "house": 5
+      },
+      "Mercury": {
+        "longitude": 275.11180957166584,
+        "signIndex": 9,
+        "house": 11
+      },
+      "Venus": {
+        "longitude": 339.15960846139205,
+        "signIndex": 11,
+        "house": 1
+      },
+      "Mars": {
+        "longitude": 117.85953331690727,
+        "signIndex": 3,
+        "house": 6
+      },
+      "Jupiter": {
+        "longitude": 72.20112525936027,
+        "signIndex": 2,
+        "house": 4
+      },
+      "Saturn": {
+        "longitude": 345.4295053179816,
+        "signIndex": 11,
+        "house": 1
+      },
+      "Uranus": {
+        "longitude": 53.41278479653375,
+        "signIndex": 1,
+        "house": 3
+      },
+      "Neptune": {
+        "longitude": 357.4847193097977,
+        "signIndex": 11,
+        "house": 2
+      },
+      "Pluto": {
+        "longitude": 301.4089368862474,
+        "signIndex": 10,
+        "house": 12
+      }
+    },
+    "ascendant": 303.1380746674697,
+    "midheaven": 233.583878464161,
+    "houseSystem": "placidus",
+    "houseCusps": [
+      303.13807466746954,
+      347.71574306805553,
+      25.647493378669026,
+      53.58387846416076,
+      76.1306581299346,
+      97.67563717332769,
+      123.13807466746954,
+      167.71574306805553,
+      205.64749337866903,
+      233.58387846416076,
+      256.1306581299346,
+      277.6756371733277
+    ]
+  },
+  "vedic": {
+    "providerVersion": "imd1956-ae2.1.19-v1",
+    "ayanamsha": {
+      "system": "IMD-1956",
+      "degrees": 24.206701794070113
+    },
+    "lagna": {
+      "longitude": 278.9313728733996,
+      "rashi": "염소자리",
+      "nakshatra": "Uttara Ashadha",
+      "pada": 4
+    },
+    "planets": {
+      "Sun": {
+        "longitude": 267.79705225074053,
+        "rashi": "사수자리",
+        "nakshatra": "Uttara Ashadha",
+        "pada": 1
+      },
+      "Moon": {
+        "longitude": 62.952794221541126,
+        "rashi": "쌍둥이자리",
+        "nakshatra": "Mrigashira",
+        "pada": 3
+      },
+      "Mercury": {
+        "longitude": 250.90510777759573,
+        "rashi": "사수자리",
+        "nakshatra": "Mula",
+        "pada": 4
+      },
+      "Venus": {
+        "longitude": 314.95290666732194,
+        "rashi": "물병자리",
+        "nakshatra": "Shatabhisha",
+        "pada": 3
+      },
+      "Mars": {
+        "longitude": 93.65283152283718,
+        "rashi": "게자리",
+        "nakshatra": "Pushya",
+        "pada": 1
+      },
+      "Jupiter": {
+        "longitude": 47.99442346529014,
+        "rashi": "황소자리",
+        "nakshatra": "Rohini",
+        "pada": 3
+      },
+      "Saturn": {
+        "longitude": 321.22280352391147,
+        "rashi": "물병자리",
+        "nakshatra": "Purva Bhadrapada",
+        "pada": 1
+      }
+    }
+  },
+  "sukuyo": {
+    "mansion": "삼(參)",
+    "index": 19,
+    "moonSiderealLongitude": 49.189746355941,
+    "providerVersion": "sukuyo-imd1956-ae2.1.19-v1"
+  },
   "tarot": {
     "spread": "one_card",
     "cards": [
@@ -123,5 +258,66 @@
         "position": "오늘의 핵심"
       }
     ]
+  },
+  "variants": {
+    "saju": {
+      "label": "출생시각 미상",
+      "input": {
+        "birthDate": "1994-05-18",
+        "calendarType": "solar"
+      },
+      "output": {
+        "pillars": {
+          "year": "甲戌",
+          "month": "己巳",
+          "day": "甲辰",
+          "hour": null
+        },
+        "dayMaster": "甲"
+      }
+    },
+    "tarot": {
+      "label": "과거·현재·미래 3장",
+      "input": {
+        "spread": "three_card_past_present_future",
+        "cards": [
+          {
+            "id": "M00",
+            "direction": "upright"
+          },
+          {
+            "id": "W01",
+            "direction": "reversed"
+          },
+          {
+            "id": "P14",
+            "direction": "upright"
+          }
+        ]
+      },
+      "output": {
+        "spread": "three_card_past_present_future",
+        "cards": [
+          {
+            "id": "M00",
+            "name": "바보",
+            "direction": "upright",
+            "position": "과거"
+          },
+          {
+            "id": "W01",
+            "name": "완드 에이스",
+            "direction": "reversed",
+            "position": "현재"
+          },
+          {
+            "id": "P14",
+            "name": "펜타클 킹",
+            "direction": "upright",
+            "position": "미래"
+          }
+        ]
+      }
+    }
   }
 }

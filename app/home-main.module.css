@@ -49,6 +49,10 @@
 .widgetEntry img { object-fit: contain; }
 .widgetEntry { display: inline-flex; gap: 12px; align-items: center; justify-content: center; align-self: center; min-height: 44px; margin: 4px auto 12px; padding: 0 18px; border: 1px solid var(--hm-gold-line); border-radius: 12px; color: var(--hm-gold-ink); font-size: .85rem; font-weight: 600; text-decoration: none; background: transparent; }
 .businessApiCard { display:flex; align-items:center; justify-content:space-between; gap:1rem; max-width:32rem; margin:1rem auto; padding:1rem 1.25rem; border:1px solid var(--hm-gold-line); border-radius:1rem; color:var(--hm-gold-ink); text-decoration:none; }
+.businessApiCard { background:#1e2238; color:#f8eacd; border-color:#8e7854; justify-content:flex-start; }
+.businessApiCard img { width:5rem; height:4.5rem; object-fit:cover; border-radius:.65rem; }
+.businessApiCard small { display:block; color:#e4ca97; }
+.businessApiCard > span:last-child { margin-inline-start:auto; }
 .businessApiCard:focus-visible { outline:3px solid currentColor; outline-offset:3px; }
 .page .deck { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: clamp(16px, 4vw, 48px); width: 100%; max-width: 720px; padding: 12px 6px 16px; perspective: 1200px; }
 .card {

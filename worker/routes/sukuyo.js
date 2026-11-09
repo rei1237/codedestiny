@@ -334,7 +334,7 @@ async function handleSukuyoAstronomy(request, env) {
       longitude: Number.isFinite(longitude) ? longitude : undefined,
       birthPlace: clean(source.birthPlace || source.place),
       birthTimeKnown: time.hasTime && source.birthTimeUnknown !== true,
-    }, { requestUrl: request.url });
+    }, { requestUrl: request.url, useVerifiedNatal: true });
 
     return json({ ok: true, astronomy });
   } catch (error) {

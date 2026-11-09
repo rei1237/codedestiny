@@ -11,11 +11,15 @@ const bundle = await build({
   `,
   },
   bundle: true,
+  metafile: true,
   write: false,
   platform: "node",
   format: "esm",
   tsconfig: "tsconfig.json",
 });
+const swissInputs = Object.keys(bundle.metafile.inputs).filter(path =>
+  /(?:sweph-wasm|swiss-ephemeris|swisseph-loader|\.se1$)/i.test(path));
+if (swissInputs.length) throw Error("기업 API 번들에 Swiss 의존성이 있습니다: " + swissInputs.join(", "));
 const { calculate, calculateZiweiChart, calculateNatalSaju } = await import(
   "data:text/javascript;base64," +
     Buffer.from(bundle.outputFiles[0].contents).toString("base64")
@@ -23,6 +27,30 @@ const { calculate, calculateZiweiChart, calculateNatalSaju } = await import(
 const examples = {};
 for (const p of businessProducts)
   if (p.input) examples[p.slug] = await calculate(p.slug, p.input);
+const sajuInput = businessProducts.find(
+  (product) => product.slug === "saju",
+).input;
+const { birthTime, ...unknownTime } = sajuInput;
+const tarotSpread = {
+  spread: "three_card_past_present_future",
+  cards: [
+    { id: "M00", direction: "upright" },
+    { id: "W01", direction: "reversed" },
+    { id: "P14", direction: "upright" },
+  ],
+};
+examples.variants = {
+  saju: {
+    label: "출생시각 미상",
+    input: unknownTime,
+    output: await calculate("saju", unknownTime),
+  },
+  tarot: {
+    label: "과거·현재·미래 3장",
+    input: tarotSpread,
+    output: await calculate("tarot", tarotSpread),
+  },
+};
 const path = "lib/business-api/examples.json";
 const expected = JSON.stringify(examples, null, 2) + "\n";
 if (process.argv.includes("--check")) {

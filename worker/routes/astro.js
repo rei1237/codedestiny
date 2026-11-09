@@ -1,5 +1,6 @@
 import { primeCmsRecords } from "../lib/cms-records.js";
-import { getSwissVedicPlanets, getSwissWesternChart } from "../lib/swiss-ephemeris.js";
+import { westernPositions } from "../lib/verified-natal.js";
+import { calcAspects, getSwissVedicPlanets, getSwissWesternChart } from "../lib/swiss-ephemeris.js";
 import { getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { requireAuth } from "../lib/auth.js";
 import {
@@ -285,9 +286,9 @@ function buildBasicAstrologyResponse(chart, normalizedInput) {
   return {
     ok: true,
     engine: {
-      name: "Swiss Ephemeris",
-      mode: inferSwissMode(chart?.source || ""),
-      version: undefined,
+      name: chart.providerVersion ? "Astronomy Engine" : "Swiss Ephemeris",
+      mode: chart.providerVersion ? "placidus" : inferSwissMode(chart?.source || ""),
+      version: chart.providerVersion,
       ephemerisLoaded: Array.isArray(chart?.houseCusps) && chart.houseCusps.length === 12,
     },
     birth: {
@@ -326,7 +327,14 @@ async function handleAstrologyBasic(request, env) {
   }
 
   try {
-    const chart = await calculateBasicAstrologyChart(normalized.value, request, env);
+    const moment = normalized.value;
+    let chart;
+    if (moment.year >= 1900 && moment.year <= 2050 && Math.abs(moment.lat)<90 && Math.abs(moment.lon)<=180) {
+      chart = westernPositions(moment.utcDate, moment.lat, moment.lon);
+      chart.aspects = calcAspects(chart.planets);
+    } else {
+      chart = await calculateBasicAstrologyChart(moment, request, env);
+    }
     return json(buildBasicAstrologyResponse(chart, normalized.value));
   } catch (error) {
     return basicAstrologyCalculationError(error);

@@ -124,7 +124,7 @@ export default function HomePage() {
         {!IS_APP_BUILD && <StoryDiscovery />}
         <HomeDailyEntry />
         {!IS_APP_BUILD && <HomeInstallEntry />}
-        {!IS_APP_BUILD && <a className={styles.businessApiCard} href="/business/api/"><NativeHomeDictionaryText translationKey="footer.businessApiInvite">내 서비스에 운세 기능을 넣고 싶다면?</NativeHomeDictionaryText> <span aria-hidden="true">→</span></a>}
+        {!IS_APP_BUILD && <a className={styles.businessApiCard} href="/business/api/"><img src="/assets/yeongnyangi/original/room-study.webp" alt="" loading="lazy" /><span><NativeHomeDictionaryText translationKey="footer.businessApiInvite">내 서비스에 운세 기능을 넣고 싶다면?</NativeHomeDictionaryText><small><NativeHomeDictionaryText translationKey="footer.businessApiLink">운세 API · 요금 및 연동</NativeHomeDictionaryText></small></span> <span aria-hidden="true">→</span></a>}
       </main>
 
       {!IS_APP_BUILD && <MobileHomeNav/>}

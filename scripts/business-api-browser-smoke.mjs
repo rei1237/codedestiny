@@ -61,8 +61,17 @@ try {
       .getByRole("link", { name: "운세 API · 요금 및 연동" })
       .click();
     const buy = page.getByRole("button", {
-      name: "사주 API 1개월 구매 · 99,000원",
+      name: "사주 API 1개월 구매 · 149,000원",
     });
+    await page.waitForFunction(() => !document.querySelector("#pricing button")?.disabled && document.querySelector("#pricing button"));
+    await page.getByRole("link", {name:"API 응답 예시 보기",exact:true}).click();
+    for (const slug of ["ziwei","astrology","vedic","sukuyo","tarot","saju"]) {
+      await page.locator("#examples select").selectOption(slug);
+      await page.locator(`.biz-reading img[src$="/${slug}.webp"]`).waitFor();
+      assert.ok(await page.locator("#examples pre").nth(1).innerText());
+    }
+    await page.getByRole("button",{name:"출생시각 미상 예시"}).click();
+    assert.equal(JSON.parse(await page.locator("#examples pre").nth(1).innerText()).pillars.hour,null);
     await buy.click();
     await page.locator("#auth-email").fill("api-buyer@example.test");
     await page.locator("#auth-password").fill("Mock-only-password!");

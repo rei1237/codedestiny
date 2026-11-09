@@ -26,7 +26,7 @@ const env = {
   PORTONE_STORE_ID: "store-test",
   PORTONE_CHANNEL_KEY: "channel-test",
   PORTONE_API_SECRET: "test-secret",
-  BUSINESS_API_SALES: "saju,ziwei,tarot",
+  BUSINESS_API_SALES: "saju,ziwei,tarot,astrology",
 };
 const make = () => {
   const db = makeFakePaymentDb();
@@ -38,7 +38,7 @@ const make = () => {
   });
   return { db, withDb: (_env, _ctx, fn) => fn(db) };
 };
-async function prepare(withDb, p) {
+async function prepare(withDb, p, resumeOrderId) {
   const token = await signAuthToken(
     { _id: owner, email: "buyer@example.test", name: "테스터" },
     env,
@@ -51,6 +51,7 @@ async function prepare(withDb, p) {
     },
     body: JSON.stringify({
       productId: p.id,
+      resumeOrderId,
       refundConsent: true,
       idempotencyKey: crypto.randomUUID(),
     }),
@@ -91,6 +92,34 @@ test.each(businessProducts)("$name의 주문과 실제 허용 상태", async (p)
   expect(rows).toHaveLength(1);
   expect(rows[0].entitlementGrantedAt).toBeTruthy();
   expect(expiryForOrders(rows)).toEqual(addKstMonth(pg.paid_at * 1000));
+  if (p.slug === "astrology") {
+    addBusinessCollections(db);
+    const deps = { withDb, authenticate: async () => ({ userId: owner }) };
+    const keyResponse = await handleBusinessApi(
+      new Request("https://example.test/api/business/key", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      }),
+      env,
+      deps,
+    );
+    expect(keyResponse.status).toBe(201);
+    const { key } = await keyResponse.json();
+    const response = await handleBusinessApi(
+      new Request("https://example.test/api/business/v1/astrology", {
+        method: "POST",
+        headers: {
+          Authorization: "Bearer " + key,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(p.input),
+      }),
+      env,
+      deps,
+    );
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual(samples.astrology);
+  }
 });
 test("지급 저장 장애 후 복구, 서명 웹훅 중복·연장 환불·다른 상품 보존", async () => {
   const { db, withDb } = make();
@@ -269,6 +298,52 @@ test("화면 엔진과 동일한 스프레드 자리 및 카드명", async () =>
       position: getSpreadDefinition(spread).positions[i].label,
     })),
   );
+});
+test("구가격의 대기 주문은 처음 확정된 금액으로 결제하고 승인한다", async () => {
+  const { db, withDb } = make();
+  const product = businessProducts[0];
+  const order = (await prepare(withDb, product)).order;
+  const stored = db.rows.find((row) => row.merchantUid === order.merchantUid);
+  stored.paymentAmount = 99000;
+  const resumed = (await prepare(withDb, product, order.merchantUid)).order;
+  expect(resumed.merchantUid).toBe(order.merchantUid);
+  expect(resumed.paymentAmount).toBe(99000);
+  await settleOrderFromReconcile(
+    env,
+    { orderId: order.merchantUid, pgPayment: pgFor(resumed) },
+    { withDb },
+  );
+  expect(stored.entitlementGrantedAt).toBeTruthy();
+});
+test("서양 기본 화면의 행성·상승점·Placidus 궁점과 파트너 응답", async () => {
+  const { handleAstrologyRoutes } = await import(
+    "../../worker/routes/astro.js"
+  );
+  const product = businessProducts.find((p) => p.slug === "astrology");
+  const chart = await calculate(product.slug, product.input);
+  const b = product.input;
+  const req = new Request("https://example.test/api/astrology/basic", {
+    method: "POST",
+    body: JSON.stringify({
+      date: b.birthDate,
+      time: b.birthTime,
+      timezone: b.timezoneOffsetHours,
+      latitude: b.latitude,
+      longitude: b.longitude,
+    }),
+  });
+  const view = await (await handleAstrologyRoutes(req, {})).json();
+  expect(view.engine.version).toBe(chart.providerVersion);
+  expect(view.angles.ascendant.longitude).toBeCloseTo(chart.ascendant, 5);
+  expect(view.houses).toHaveLength(12);
+  for (const house of view.houses)
+    expect(house.longitude).toBeCloseTo(chart.houseCusps[house.house - 1], 5);
+  for (const body of view.planets)
+    expect(body.longitude).toBeCloseTo(chart.planets[body.name].longitude, 5);
+  expect(
+    (await calculate("astrology", { ...b, latitude: 75 })).houseCusps,
+  ).toBeNull();
+  expect(chart).toEqual(samples.astrology);
 });
 test("PG 불일치는 권한을 부여하지 않는다", async () => {
   const { db, withDb } = make(),
