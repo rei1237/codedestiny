@@ -3,12 +3,12 @@
   "note": "사이트맵 lastmod 원장. scripts/lib/sitemap-lastmod.mjs 가 라우트별 소스 서명을 계산해 다시 쓴다. 손으로 고치지 말고 npm run sitemap:generate 로 갱신할 것.",
   "routes": {
     "/": {
-      "signature": "102175d2f6c2da7e",
+      "signature": "f142249c0c6ac023",
       "lastmod": "2026-11-09"
     },
     "/about/": {
-      "signature": "b4a2bbc048b6e146",
-      "lastmod": "2026-11-05"
+      "signature": "7a3848044017f425",
+      "lastmod": "2026-11-09"
     },
     "/advertising-policy/": {
       "signature": "bf77652d54b61e0d",
@@ -587,12 +587,16 @@
       "lastmod": "2026-11-08"
     },
     "/en/yeongnyangi/": {
-      "signature": "6a99a49f9f899dc2",
+      "signature": "199dc41550b47f28",
       "lastmod": "2026-11-09"
     },
     "/en/ziwei/": {
       "signature": "28f651d6f3eb3750",
       "lastmod": "2026-11-08"
+    },
+    "/entry-webtoon/": {
+      "signature": "4992baf2bb27c6f9",
+      "lastmod": "2026-11-09"
     },
     "/faq/": {
       "signature": "987bc74bd935a61a",
@@ -1643,7 +1647,7 @@
       "lastmod": "2026-11-08"
     },
     "/ja/yeongnyangi/": {
-      "signature": "6a99a49f9f899dc2",
+      "signature": "199dc41550b47f28",
       "lastmod": "2026-11-09"
     },
     "/ja/ziwei/": {
@@ -2431,12 +2435,12 @@
       "lastmod": "2026-11-07"
     },
     "/yeongnyangi/": {
-      "signature": "4e24b5cc6b235a1f",
+      "signature": "282b7808e0a343be",
       "lastmod": "2026-11-09"
     },
     "/yeongnyangi/1000-won-fortune/": {
-      "signature": "1c80c8b4420262f2",
-      "lastmod": "2026-11-08"
+      "signature": "5888f565a9d06744",
+      "lastmod": "2026-11-09"
     },
     "/yeongnyangi/season-1/": {
       "signature": "0697a80c8df882a7",
@@ -2911,7 +2915,7 @@
       "lastmod": "2026-11-08"
     },
     "/zh-tw/yeongnyangi/": {
-      "signature": "6a99a49f9f899dc2",
+      "signature": "199dc41550b47f28",
       "lastmod": "2026-11-09"
     },
     "/zh-tw/ziwei/": {
@@ -3419,7 +3423,7 @@
       "lastmod": "2026-11-08"
     },
     "/zh/yeongnyangi/": {
-      "signature": "6a99a49f9f899dc2",
+      "signature": "199dc41550b47f28",
       "lastmod": "2026-11-09"
     },
     "/zh/ziwei/": {

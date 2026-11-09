@@ -226,6 +226,10 @@ const loaders: Record<string, Loader> = {
     ];
   },
 
+  "home-copy": async () => {
+    const { homeCopyDefaults } = await import("@/lib/cms/home-copy.mjs");
+    return [asRecordEntry("entry-webtoon", "진입 웹툰", "/entry-webtoon/", homeCopyDefaults()["entry-webtoon"])];
+  },
   "vedic-reading": async () => {
     const gen = await import("@/worker/lib/vedic-premium-generator.js");
     return [

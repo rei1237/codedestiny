@@ -15,7 +15,7 @@
     <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://code-destiny.com/zh/about/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/about/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/about/" />
-    <lastmod>2026-11-05</lastmod>
+    <lastmod>2026-11-09</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.90</priority>
   </url>
@@ -2060,6 +2060,12 @@
     <lastmod>2026-11-08</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.95</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/entry-webtoon/</loc>
+    <lastmod>2026-11-09</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.65</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/faq/</loc>
@@ -8256,7 +8262,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/yeongnyangi/1000-won-fortune/</loc>
-    <lastmod>2026-11-08</lastmod>
+    <lastmod>2026-11-09</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.80</priority>
   </url>

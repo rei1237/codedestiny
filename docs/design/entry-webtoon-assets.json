@@ -1,0 +1,209 @@
+[
+ {
+  "id": "imagine-night",
+  "prompt": "Wide establishing shot: a starry night over a quiet narrow Korean alley with old stone walls and tiled roofs; at the far end of the alley a small traditional wooden teahouse with warm paper lanterns glowing under its curved eaves, warm light spilling onto the damp stone path; deep navy sky full of soft stars, gentle mist, inviting and calm. No people. Any signboards are completely blank wood. Style: warm night-teahouse semi-realistic Korean webtoon illustration, the same look in every panel of this episode: soft painterly rendering over clean fine line art, semi-realistic proportions, glowing amber paper-lantern light against deep navy night shadows, gentle atmospheric haze and soft bokeh, cohesive palette of amber, honey gold, deep navy and muted rose, cinematic but quiet. no text, no letters, no speech bubbles",
+  "references": [],
+  "model": "gpt-image-2",
+  "generatedAt": "2026-11-07T13:10:15.483Z",
+  "approvedBy": "user",
+  "bytes": {
+   "avif640": 31012,
+   "avif1080": 76285,
+   "webp720": 63454
+  }
+ },
+ {
+  "id": "imagine-phone",
+  "prompt": "Close-up of one hand holding a smartphone in a dim bedroom at night; the phone screen glows with a single soft blank rounded light shape like an unread notification, with no icons, no letters and no numbers on the screen; the thumb hovers hesitantly just above the screen; soft blue screen light on the fingers mixing with a faint amber glow from a distant bedside lamp; blurred bedsheets in the background. Natural hand with five fingers. Style: warm night-teahouse semi-realistic Korean webtoon illustration, the same look in every panel of this episode: soft painterly rendering over clean fine line art, semi-realistic proportions, glowing amber paper-lantern light against deep navy night shadows, gentle atmospheric haze and soft bokeh, cohesive palette of amber, honey gold, deep navy and muted rose, cinematic but quiet. no text, no letters, no speech bubbles",
+  "references": [],
+  "model": "gpt-image-2",
+  "generatedAt": "2026-11-07T13:14:24.096Z",
+  "approvedBy": "user",
+  "bytes": {
+   "avif640": 5843,
+   "avif1080": 10241,
+   "webp720": 13250
+  }
+ },
+ {
+  "id": "imagine-desk",
+  "prompt": "A wooden desk under a warm desk lamp at night: a sealed plain white envelope with nothing written on it and a closed plain navy bank passbook with an unmarked cover lie side by side, a ceramic cup of tea slowly cooling beside them with a faint wisp of steam; a dark window behind showing the navy night; quiet, thoughtful mood. No people. No writing or printing on any object. Style: warm night-teahouse semi-realistic Korean webtoon illustration, the same look in every panel of this episode: soft painterly rendering over clean fine line art, semi-realistic proportions, glowing amber paper-lantern light against deep navy night shadows, gentle atmospheric haze and soft bokeh, cohesive palette of amber, honey gold, deep navy and muted rose, cinematic but quiet. no text, no letters, no speech bubbles",
+  "references": [],
+  "model": "gpt-image-2",
+  "generatedAt": "2026-11-07T13:10:12.790Z",
+  "approvedBy": "user",
+  "bytes": {
+   "avif640": 10630,
+   "avif1080": 20383,
+   "webp720": 23552
+  }
+ },
+ {
+  "id": "imagine-calendar",
+  "prompt": "A paper wall calendar hanging on a cream plaster wall, opened to a fresh first page: the page is clean and empty, a faint empty grid with completely blank cells, no numbers, no month name, no printing at all; a single small pink flower tucked into the calendar binding; soft early dawn light from a nearby window, the sky outside turning from deep navy to warm amber, gentle hopeful mood. No people. Style: warm night-teahouse semi-realistic Korean webtoon illustration, the same look in every panel of this episode: soft painterly rendering over clean fine line art, semi-realistic proportions, glowing amber paper-lantern light against deep navy night shadows, gentle atmospheric haze and soft bokeh, cohesive palette of amber, honey gold, deep navy and muted rose, cinematic but quiet. no text, no letters, no speech bubbles",
+  "references": [],
+  "model": "gpt-image-2",
+  "generatedAt": "2026-11-07T13:10:58.361Z",
+  "approvedBy": "user",
+  "bytes": {
+   "avif640": 18542,
+   "avif1080": 37011,
+   "webp720": 34606
+  }
+ },
+ {
+  "id": "imagine-yeoni",
+  "prompt": "Vertical close-up portrait of human Yeoni (young Korean woman, long wavy pastel-pink hair, a pink lotus-flower hairpin with dangling pearl ornaments on the right side of her head, soft rose-brown eyes, gentle face exactly as in the reference portrait; cream hanbok-style dress with a white collar and a pink lotus floral pattern, a soft rose floral-print scarf draped around her shoulders), standing under the teahouse paper lantern at night, looking toward the viewer with a soft knowing smile, her hands gently clasped in front of her and holding nothing, warm amber rim light on her hair, deep navy night and lantern bokeh behind her. Upper body framing, face clearly matching the reference. Style: warm night-teahouse semi-realistic Korean webtoon illustration, the same look in every panel of this episode: soft painterly rendering over clean fine line art, semi-realistic proportions, glowing amber paper-lantern light against deep navy night shadows, gentle atmospheric haze and soft bokeh, cohesive palette of amber, honey gold, deep navy and muted rose, cinematic but quiet. no text, no letters, no speech bubbles",
+  "references": [
+   "public/images/master-profiles/yeoni-teahouse-portrait.webp",
+   "CodeDestiny-Build/여_연이 프로필 사복버전.webp"
+  ],
+  "model": "gpt-image-2",
+  "generatedAt": "2026-11-07T13:20:12.849Z",
+  "approvedBy": "user",
+  "bytes": {
+   "avif640": 85819,
+   "avif1080": 156611,
+   "webp720": 153210
+  }
+ },
+ {
+  "id": "record-study",
+  "prompt": "Side view of human Neo (young Korean man in his twenties, tousled short silver-white hair with a fringe falling over his eyes, grey-blue eyes, fair skin, calm composed face exactly as in the references; wearing a calm version of his reference outfit: an open off-white long jacket over a black high-neck shirt and a thin silver chain pendant, no harness straps; fully HUMAN with human ears, absolutely NO lion, NO animal ears, NO mane, NO tail), writing a manuscript by hand with a pen at a wooden desk in a book-lined study on a spring night; a desk lamp casts warm amber light, stacked loose paper beside him, a cherry-blossom branch visible through a dark window; calm and focused expression. The paper is seen at a low angle so nothing on it is readable; book spines are plain and unmarked. Natural hands with five fingers. Style: warm night-teahouse semi-realistic Korean webtoon illustration, the same look in every panel of this episode: soft painterly rendering over clean fine line art, semi-realistic proportions, glowing amber paper-lantern light against deep navy night shadows, gentle atmospheric haze and soft bokeh, cohesive palette of amber, honey gold, deep navy and muted rose, cinematic but quiet. no text, no letters, no speech bubbles",
+  "references": [
+   "CodeDestiny-Build/네오 인간 프로필1.png",
+   "public/images/master-profiles/neo-strategy-portrait.webp"
+  ],
+  "model": "gpt-image-2",
+  "generatedAt": "2026-11-07T13:11:21.485Z",
+  "approvedBy": "user",
+  "bytes": {
+   "avif640": 30359,
+   "avif1080": 59993,
+   "webp720": 53438
+  }
+ },
+ {
+  "id": "record-neo-tea",
+  "prompt": "human Neo (young Korean man in his twenties, tousled short silver-white hair with a fringe falling over his eyes, grey-blue eyes, fair skin, calm composed face exactly as in the references; wearing a calm version of his reference outfit: an open off-white long jacket over a black high-neck shirt and a thin silver chain pendant, no harness straps; fully HUMAN with human ears, absolutely NO lion, NO animal ears, NO mane, NO tail) seated at a wooden teahouse table, quietly setting down a celadon teacup with one hand, his composed gaze resting slightly past the viewer, other hand relaxed on the table; paper lantern light from above, a thin curl of steam rising from the cup, deep navy night through the lattice window behind him; calm, grounded mood. Natural hands with five fingers. Style: warm night-teahouse semi-realistic Korean webtoon illustration, the same look in every panel of this episode: soft painterly rendering over clean fine line art, semi-realistic proportions, glowing amber paper-lantern light against deep navy night shadows, gentle atmospheric haze and soft bokeh, cohesive palette of amber, honey gold, deep navy and muted rose, cinematic but quiet. no text, no letters, no speech bubbles",
+  "references": [
+   "CodeDestiny-Build/네오 인간 프로필1.png",
+   "public/images/master-profiles/neo-strategy-portrait.webp"
+  ],
+  "model": "gpt-image-2",
+  "generatedAt": "2026-11-07T13:12:05.988Z",
+  "approvedBy": "user",
+  "bytes": {
+   "avif640": 28233,
+   "avif1080": 55007,
+   "webp720": 49900
+  }
+ },
+ {
+  "id": "decade-table",
+  "prompt": "A small consultation table for two in a traditional teahouse: two celadon teacups facing each other on opposite sides, an open notebook with blank cream pages and a calligraphy brush resting beside it; a large lattice window behind showing the seasons blending from left to right, spring cherry blossoms flowing into summer green, autumn leaves and finally falling snow; warm lantern light inside, quiet passage of time. No people. Style: warm night-teahouse semi-realistic Korean webtoon illustration, the same look in every panel of this episode: soft painterly rendering over clean fine line art, semi-realistic proportions, glowing amber paper-lantern light against deep navy night shadows, gentle atmospheric haze and soft bokeh, cohesive palette of amber, honey gold, deep navy and muted rose, cinematic but quiet. no text, no letters, no speech bubbles",
+  "references": [],
+  "model": "gpt-image-2",
+  "generatedAt": "2026-11-07T13:16:07.612Z",
+  "approvedBy": "user",
+  "bytes": {
+   "avif640": 34780,
+   "avif1080": 76986,
+   "webp720": 62242
+  }
+ },
+ {
+  "id": "decade-handover",
+  "prompt": "Vertical panel: human Neo (young Korean man in his twenties, tousled short silver-white hair with a fringe falling over his eyes, grey-blue eyes, fair skin, calm composed face exactly as in the references; wearing a calm version of his reference outfit: an open off-white long jacket over a black high-neck shirt and a thin silver chain pendant, no harness straps; fully HUMAN with human ears, absolutely NO lion, NO animal ears, NO mane, NO tail) stands facing human Yeoni (young Korean woman, long wavy pastel-pink hair, a pink lotus-flower hairpin with dangling pearl ornaments on the right side of her head, soft rose-brown eyes, gentle face exactly as in the reference portrait; cream hanbok-style dress with a white collar and a pink lotus floral pattern, a soft rose floral-print scarf draped around her shoulders). Neo holds out a bundled manuscript (a thick stack of cream paper tied with a cord, plain blank cover) with both hands toward Yeoni, bowing his head and upper body slightly toward her in a humble respectful bow; Yeoni receives it with both hands, her expression moved and determined. Inside the teahouse at night, a warm lantern glowing between them, the focus on their hands and the manuscript. Neo's attention and devotion are directed at Yeoni. Natural hands with five fingers each. Style: warm night-teahouse semi-realistic Korean webtoon illustration, the same look in every panel of this episode: soft painterly rendering over clean fine line art, semi-realistic proportions, glowing amber paper-lantern light against deep navy night shadows, gentle atmospheric haze and soft bokeh, cohesive palette of amber, honey gold, deep navy and muted rose, cinematic but quiet. no text, no letters, no speech bubbles",
+  "references": [
+   "CodeDestiny-Build/네오 인간 프로필1.png",
+   "public/images/master-profiles/neo-strategy-portrait.webp",
+   "public/images/master-profiles/yeoni-teahouse-portrait.webp",
+   "CodeDestiny-Build/여_연이 프로필 사복버전.webp"
+  ],
+  "model": "gpt-image-2",
+  "generatedAt": "2026-11-07T13:12:33.390Z",
+  "approvedBy": "user",
+  "bytes": {
+   "avif640": 60755,
+   "avif1080": 111521,
+   "webp720": 114522
+  }
+ },
+ {
+  "id": "decade-sign",
+  "prompt": "A night street in an old Korean neighborhood: the front of a small wooden teahouse whose hanging wooden signboard is completely blank wood with no lettering, with only a small carved flower-pig relief (a cute pig with a lotus flower) on its corner; the paper lanterns under the eaves are just lighting up one by one, warm amber glow spreading over the navy night. In the lower foreground, the long dark shadows of two or three people standing just outside the frame (the visitors themselves are not visible) stretch clearly across the lit stone path toward the teahouse door, cast by a street lamp behind the viewer: the first visitors arriving. No writing anywhere. Style: warm night-teahouse semi-realistic Korean webtoon illustration, the same look in every panel of this episode: soft painterly rendering over clean fine line art, semi-realistic proportions, glowing amber paper-lantern light against deep navy night shadows, gentle atmospheric haze and soft bokeh, cohesive palette of amber, honey gold, deep navy and muted rose, cinematic but quiet. no text, no letters, no speech bubbles",
+  "references": [],
+  "model": "gpt-image-2",
+  "generatedAt": "2026-11-07T13:19:51.098Z",
+  "approvedBy": "user",
+  "bytes": {
+   "avif640": 26279,
+   "avif1080": 59220,
+   "webp720": 55872
+  }
+ },
+ {
+  "id": "question-door",
+  "prompt": "Vertical panel: a guest seen from behind (short dark hair, plain grey coat, face not visible), shoulders a little heavy, sliding open the wooden lattice door of the teahouse at night; inside, human Yeoni (young Korean woman, long wavy pastel-pink hair, a pink lotus-flower hairpin with dangling pearl ornaments on the right side of her head, soft rose-brown eyes, gentle face exactly as in the reference portrait; cream hanbok-style dress with a white collar and a pink lotus floral pattern, a soft rose floral-print scarf draped around her shoulders) turns toward the guest with a warm welcoming smile; amber lantern glow spills out of the doorway around the guest's silhouette, deep navy night outside. Style: warm night-teahouse semi-realistic Korean webtoon illustration, the same look in every panel of this episode: soft painterly rendering over clean fine line art, semi-realistic proportions, glowing amber paper-lantern light against deep navy night shadows, gentle atmospheric haze and soft bokeh, cohesive palette of amber, honey gold, deep navy and muted rose, cinematic but quiet. no text, no letters, no speech bubbles",
+  "references": [
+   "public/images/master-profiles/yeoni-teahouse-portrait.webp",
+   "CodeDestiny-Build/여_연이 프로필 사복버전.webp"
+  ],
+  "model": "gpt-image-2",
+  "generatedAt": "2026-11-07T13:17:44.207Z",
+  "approvedBy": "user",
+  "bytes": {
+   "avif640": 44435,
+   "avif1080": 82650,
+   "webp720": 86894
+  }
+ },
+ {
+  "id": "offer-pig",
+  "prompt": "flower-pig Yeoni (the cute chubby pale-pink pig mascot standing upright on two legs exactly as in the sheets: a big pink lotus flower on top of her head over the left ear, a lavender-purple scarf knotted at her neck, big round dark-brown eyes, rosy cheeks, small hoof hands, and a small curly pink tail clearly visible) standing on a polished wooden teahouse counter, waving cheerfully at the viewer with one hoof, happy smile; her curly tail is visible from a three-quarter angle; celadon teacups, a small teapot and a glowing paper lantern behind her, warm amber lantern light and navy night through the window. The pig keeps the exact mascot design from the sheets while sitting naturally in the warm painterly scene. Style: warm night-teahouse semi-realistic Korean webtoon illustration, the same look in every panel of this episode: soft painterly rendering over clean fine line art, semi-realistic proportions, glowing amber paper-lantern light against deep navy night shadows, gentle atmospheric haze and soft bokeh, cohesive palette of amber, honey gold, deep navy and muted rose, cinematic but quiet. no text, no letters, no speech bubbles",
+  "references": [
+   "CodeDestiny-Build/연이 프로필1.png",
+   "CodeDestiny-Build/연이 프로필2.png"
+  ],
+  "model": "gpt-image-2",
+  "generatedAt": "2026-11-07T13:17:34.664Z",
+  "approvedBy": "user",
+  "bytes": {
+   "avif640": 19867,
+   "avif1080": 35764,
+   "webp720": 36266
+  }
+ },
+ {
+  "id": "invite-tea",
+  "prompt": "Vertical panel: human Yeoni (young Korean woman, long wavy pastel-pink hair, a pink lotus-flower hairpin with dangling pearl ornaments on the right side of her head, soft rose-brown eyes, gentle face exactly as in the reference portrait; cream hanbok-style dress with a white collar and a pink lotus floral pattern, a soft rose floral-print scarf draped around her shoulders) holding out a steaming celadon teacup with both hands toward the viewer, gentle inviting smile, eyes meeting the viewer; the teahouse interior softly blurred behind her with warm lantern bokeh and navy night at the window. Natural hands with five fingers each. Style: warm night-teahouse semi-realistic Korean webtoon illustration, the same look in every panel of this episode: soft painterly rendering over clean fine line art, semi-realistic proportions, glowing amber paper-lantern light against deep navy night shadows, gentle atmospheric haze and soft bokeh, cohesive palette of amber, honey gold, deep navy and muted rose, cinematic but quiet. no text, no letters, no speech bubbles",
+  "references": [
+   "public/images/master-profiles/yeoni-teahouse-portrait.webp",
+   "CodeDestiny-Build/여_연이 프로필 사복버전.webp"
+  ],
+  "model": "gpt-image-2",
+  "generatedAt": "2026-11-07T13:13:45.061Z",
+  "approvedBy": "user",
+  "bytes": {
+   "avif640": 75718,
+   "avif1080": 140735,
+   "webp720": 140934
+  }
+ },
+ {
+  "id": "invite-yeongnyangi",
+  "prompt": "Yeongnyangi (fluffy long-haired white cat with exactly TWO upright pink-lined ears, both ears clearly visible, half-lidded golden-violet eyes with an aloof look, a navy-black wizard hat with a gold crescent moon and a gold tassel sitting between and behind the two ears, a navy cape with gold trim and small gold stars, a purple gem collar; no name tag) curled on a round cushion by the teahouse lattice window at night, tail wrapped around its body, looking up toward the viewer with half-lidded eyes; moonlight and stars through the window, warm amber lantern glow on the white fur, a teacup nearby. Style: warm night-teahouse semi-realistic Korean webtoon illustration, the same look in every panel of this episode: soft painterly rendering over clean fine line art, semi-realistic proportions, glowing amber paper-lantern light against deep navy night shadows, gentle atmospheric haze and soft bokeh, cohesive palette of amber, honey gold, deep navy and muted rose, cinematic but quiet. no text, no letters, no speech bubbles",
+  "references": [
+   "CodeDestiny-Build/양냥이 프로필 시트.webp"
+  ],
+  "model": "gpt-image-2",
+  "generatedAt": "2026-11-07T13:13:55.739Z",
+  "approvedBy": "user",
+  "bytes": {
+   "avif640": 27910,
+   "avif1080": 53284,
+   "webp720": 49838
+  }
+ }
+]

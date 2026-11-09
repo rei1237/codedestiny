@@ -215,6 +215,7 @@ const coreRoutes = [
   // 캐릭터·세계관 안내(app/world). 노벨 본편이 아니라 그 인물·장소를 설명하는 보조 문서라
   // /stories 보다 우선순위를 낮춘다.
   { path: "/world", changefreq: "monthly", priority: 0.7 },
+  { path: "/entry-webtoon", changefreq: "monthly", priority: 0.65 },
   { path: "/business/api", changefreq: "monthly", priority: 0.75 },
   { path: "/business/api/docs", changefreq: "monthly", priority: 0.65 },
   { path: "/insights/saju", changefreq: "weekly", priority: 0.84 },
