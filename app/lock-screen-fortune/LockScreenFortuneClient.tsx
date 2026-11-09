@@ -1186,6 +1186,12 @@ function SettingsSheet({
     dialog?.addEventListener("keydown", trap);
     return () => { dialog?.removeEventListener("keydown", trap); previous?.focus(); };
   }, []);
+  useEffect(() => {
+    const dialog = dialogRef.current;
+    if (!dialog) return;
+    dialog.scrollTop = 0;
+    dialog.querySelector<HTMLButtonElement>(".cd-settings-close")?.focus();
+  }, [sheet]);
   const title = sheet === "settings" ? copy.sheetTitleSettings : sheet === "theme" ? copy.sheetTitleTheme : sheet === "alarms" ? copy.sheetTitleAlarms : copy.sheetTitleReadlist;
   return (
     <div className="cd-settings-backdrop fixed inset-0 z-[2147483000] flex items-end justify-center bg-black/45 backdrop-blur-sm" onClick={() => setSheet("none")}>
@@ -1196,39 +1202,48 @@ function SettingsSheet({
         onClick={(e) => e.stopPropagation()}
       >
         <div className="cd-settings-handle mx-auto mb-4 h-1.5 w-12 rounded-full" />
-        <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-lg font-black">{title}</h2>
+        <div className="cd-settings-heading mb-4 flex items-center justify-between">
+          <div>
+            <h2 className="text-lg font-black">{title}</h2>
+            <p>{sheet === "settings" ? extra.privateSummary : copy.sheetTitleSettings}</p>
+          </div>
           <button type="button" aria-label={copy.closeAriaLabel} onClick={() => setSheet("none")} className="cd-settings-close grid h-12 w-12 place-items-center rounded-full text-lg">×</button>
         </div>
 
         {sheet === "settings" ? (
-          <div className="grid gap-3">
+          <div className="cd-settings-stack grid gap-3">
             <Row label={copy.lockScreenOnLabel} desc={extra.enabled}>
               <Toggle label={copy.lockScreenOnLabel} on={prefs.enabled} onChange={(v) => updatePrefs({ enabled: v })} />
             </Row>
-            <p className="cd-settings-description text-sm leading-relaxed">{extra.privacy}</p>
+            <p className="cd-settings-privacy cd-settings-description text-sm leading-relaxed">{extra.privacy}</p>
             {notificationsAllowed === false && <p role="status" className="cd-settings-notice text-sm">{extra.blocked}</p>}
             <ContentSelector prefs={prefs} copy={copy} onApply={patch => { updatePrefs(patch); setSheet("none"); }} />
-            <Row label={extra.quiet}><Toggle label={extra.quiet} on={prefs.quietEnabled} onChange={v => updatePrefs({ quietEnabled: v })} /></Row>
-            {prefs.quietEnabled && <div className="grid grid-cols-2 gap-3"><label>{extra.start}<input aria-label={extra.start} type="time" value={prefs.quietStart} onChange={e => updatePrefs({ quietStart: e.target.value })} className="block min-h-12 w-full rounded-lg bg-white/10 p-2" /></label><label>{extra.end}<input aria-label={extra.end} type="time" value={prefs.quietEnd} onChange={e => updatePrefs({ quietEnd: e.target.value })} className="block min-h-12 w-full rounded-lg bg-white/10 p-2" /></label></div>}
-            <button type="button" className="cd-settings-action min-h-12 rounded-xl px-3" onClick={() => { void nativeLock()?.testNotification?.().then(r => setNotice(r.posted ? extra.posted : extra.blocked)).catch(() => setNotice(extra.blocked)); }}>{extra.test}</button>
-            <button type="button" className="cd-settings-action min-h-12 rounded-xl px-3" onClick={() => { void nativeLock()?.openNotificationSettings?.(); }}>{extra.system}</button>
+            <section className="cd-settings-group" aria-label={extra.quiet}>
+              <Row label={extra.quiet}><Toggle label={extra.quiet} on={prefs.quietEnabled} onChange={v => updatePrefs({ quietEnabled: v })} /></Row>
+              {prefs.quietEnabled && <div className="cd-settings-time-grid grid grid-cols-2 gap-3"><label>{extra.start}<input aria-label={extra.start} type="time" value={prefs.quietStart} onChange={e => updatePrefs({ quietStart: e.target.value })} className="block min-h-12 w-full rounded-lg bg-white/10 p-2" /></label><label>{extra.end}<input aria-label={extra.end} type="time" value={prefs.quietEnd} onChange={e => updatePrefs({ quietEnd: e.target.value })} className="block min-h-12 w-full rounded-lg bg-white/10 p-2" /></label></div>}
+            </section>
+            <div className="cd-settings-action-grid">
+              <button type="button" className="cd-settings-action min-h-12 rounded-xl px-3" onClick={() => { void nativeLock()?.testNotification?.().then(r => setNotice(r.posted ? extra.posted : extra.blocked)).catch(() => setNotice(extra.blocked)); }}>{extra.test}</button>
+              <button type="button" className="cd-settings-action min-h-12 rounded-xl px-3" onClick={() => { void nativeLock()?.openNotificationSettings?.(); }}>{extra.system}</button>
+            </div>
             {notice && <p role="status" className="text-sm">{notice}</p>}
-            <div className="grid grid-cols-2 gap-3">
+            <div className="cd-settings-stats grid grid-cols-2 gap-3">
               <Stat label={copy.todayReadLabel} value={stats.todayRead} />
               <Stat label={copy.totalReadLabel} value={stats.totalRead} />
             </div>
-            <MenuButton label={copy.alarmsMenuLabel} value={copy.alarmsMenuValue(prefs.alarms.filter((a) => a.on).length)} onClick={() => setSheet("alarms")} />
-            <MenuButton label={copy.themeMenuLabel} value={copy.themeMenuValue} onClick={() => setSheet("theme")} />
-            <MenuButton label={copy.readlistMenuLabel} value={copy.readlistMenuValue(read.length)} onClick={() => setSheet("readlist")} />
+            <nav className="cd-settings-menu" aria-label={copy.sheetTitleSettings}>
+              <MenuButton label={copy.alarmsMenuLabel} value={copy.alarmsMenuValue(prefs.alarms.filter((a) => a.on).length)} onClick={() => setSheet("alarms")} />
+              <MenuButton label={copy.themeMenuLabel} value={copy.themeMenuValue} onClick={() => setSheet("theme")} />
+              <MenuButton label={copy.readlistMenuLabel} value={copy.readlistMenuValue(read.length)} onClick={() => setSheet("readlist")} />
+            </nav>
             <p className="mt-1 text-center text-[0.7rem] text-slate-400">{copy.footerBrandLine}</p>
           </div>
         ) : null}
 
         {sheet === "alarms" ? (
-          <div className="grid gap-3">
+          <div className="cd-settings-subview grid gap-3">
             {prefs.alarms.map((a, i) => (
-              <div key={a.label} className="rounded-2xl bg-white/5 p-4">
+              <div key={a.label} className="cd-settings-alarm rounded-2xl bg-white/5 p-4">
                 <div className="mb-2 flex items-center justify-between">
                   <span className="font-bold">{a.label}</span>
                   <Toggle label={a.label} on={a.on} onChange={(v) => updateAlarm(i, { on: v })} />
@@ -1245,8 +1260,8 @@ function SettingsSheet({
         ) : null}
 
         {sheet === "theme" ? (
-          <div className="grid gap-4">
-            <div>
+          <div className="cd-settings-subview cd-settings-theme grid gap-4">
+            <section>
               <p className="cd-settings-section-title mb-1 text-sm font-bold">{copy.dailyFortuneSystemHeading}</p>
               <p className="cd-settings-description mb-2 text-[0.72rem] leading-relaxed">{copy.dailyFortuneSystemDesc}</p>
               <div className="flex flex-wrap gap-2">
@@ -1259,8 +1274,8 @@ function SettingsSheet({
                   );
                 })}
               </div>
-            </div>
-            <div>
+            </section>
+            <section>
               <p className="cd-settings-section-title mb-1 text-sm font-bold">{copy.affirmationCatsHeading}</p>
               <p className="cd-settings-description mb-2 text-[0.72rem] leading-relaxed">{copy.affirmationCatsDesc}</p>
               <div className="flex flex-wrap gap-2">
@@ -1285,45 +1300,45 @@ function SettingsSheet({
                   );
                 })}
               </div>
-            </div>
-            <div>
+            </section>
+            <section>
               <p className="cd-settings-section-title mb-2 text-sm font-bold">{copy.buttonTextureHeading}</p>
               <div className="grid grid-cols-4 gap-2.5">
                 {BUTTON_STYLES.map((b) => (
                   <button key={b.key} type="button" aria-pressed={prefs.buttonStyleKey === b.key} onClick={() => updatePrefs({ buttonStyleKey: b.key })} className={`cd-settings-texture h-12 rounded-xl border-2 text-xs font-bold ${prefs.buttonStyleKey === b.key ? "border-fuchsia-300" : "border-white/10"}`} style={pillStyle(b.key, true)}>{copy.buttonStyleLabel[b.key]}</button>
                 ))}
               </div>
-            </div>
-            <div>
+            </section>
+            <section>
               <p className="cd-settings-section-title mb-2 text-sm font-bold">{copy.fontColorHeading}</p>
               <div className="flex gap-2.5">
                 {FONT_COLORS.map((c) => (
                   <button key={c.key} type="button" aria-pressed={prefs.fontColorKey === c.key} onClick={() => updatePrefs({ fontColorKey: c.key })} className={`cd-settings-swatch h-11 flex-1 rounded-xl border-2 text-xs font-bold ${prefs.fontColorKey === c.key ? "border-fuchsia-300" : "border-white/10"}`} style={{ background: c.hex, color: c.key === "ink" ? "#fff" : "#20143a" }}>{copy.fontColorLabel[c.key]}</button>
                 ))}
               </div>
-            </div>
-            <div>
+            </section>
+            <section>
               <p className="cd-settings-section-title mb-2 text-sm font-bold">{copy.fontSizeHeading(Math.round(prefs.fontScale * 100))}</p>
               <p className="cd-settings-description text-sm">{extra.textSize}</p><input aria-label={copy.fontSizeHeading(Math.round(prefs.fontScale * 100))} type="range" min={0.9} max={1.35} step={0.05} value={prefs.fontScale} onChange={(e) => updatePrefs({ fontScale: Number(e.target.value) })} className="w-full accent-fuchsia-400" />
-            </div>
-            <div>
+            </section>
+            <section>
               <p className="cd-settings-section-title mb-2 text-sm font-bold">{copy.backgroundHeading}</p>
               <div className="grid grid-cols-2 gap-2.5">
                 {BACKGROUNDS.map((b) => (
                   <button key={b.key} type="button" aria-pressed={prefs.backgroundKey === b.key} onClick={() => updatePrefs({ backgroundKey: b.key })} className={`cd-settings-background h-20 rounded-2xl border-2 p-2 text-left text-xs font-black ${prefs.backgroundKey === b.key ? "border-fuchsia-300" : "border-white/10"}`} style={{ background: b.css, color: b.dark ? "#fff" : "#20143a" }}>{copy.backgroundLabel[b.key]}</button>
                 ))}
               </div>
-            </div>
+            </section>
           </div>
         ) : null}
 
         {sheet === "readlist" ? (
-          <div className="grid gap-2">
+          <div className="cd-settings-subview cd-settings-readlist grid gap-2">
             {read.length === 0 ? (
               <p className="py-8 text-center text-sm text-slate-400">{copy.readlistEmpty}</p>
             ) : (
               read.slice(0, 60).map((r) => (
-                <div key={`${r.dateKey}-${r.at}`} className="rounded-xl bg-white/5 px-3.5 py-3">
+                <div key={`${r.dateKey}-${r.at}`} className="cd-settings-read-item rounded-xl bg-white/5 px-3.5 py-3">
                   <p className="text-xs font-bold text-fuchsia-200/80">{r.dateKey}</p>
                   <p className="mt-0.5 text-sm leading-relaxed text-slate-100">{r.text}</p>
                 </div>
@@ -1338,7 +1353,7 @@ function SettingsSheet({
 
 function Row({ label, desc, children }: { label: string; desc?: string; children: ReactNode }) {
   return (
-    <div className="flex items-center justify-between gap-3 rounded-2xl bg-white/5 p-4">
+    <div className="cd-settings-row flex items-center justify-between gap-3 rounded-2xl bg-white/5 p-4">
       <div className="min-w-0">
         <p className="font-bold">{label}</p>
         {desc ? <p className="mt-0.5 text-xs leading-relaxed text-slate-400">{desc}</p> : null}
@@ -1350,7 +1365,7 @@ function Row({ label, desc, children }: { label: string; desc?: string; children
 
 function MenuButton({ label, value, onClick }: { label: string; value: string; onClick: () => void }) {
   return (
-    <button type="button" onClick={onClick} className="flex items-center justify-between rounded-2xl bg-white/5 p-4 text-left">
+    <button type="button" onClick={onClick} className="cd-settings-menu-button flex items-center justify-between rounded-2xl bg-white/5 p-4 text-left">
       <span className="font-bold">{label}</span>
       <span className="text-sm text-slate-400">{value} ›</span>
     </button>
@@ -1359,7 +1374,7 @@ function MenuButton({ label, value, onClick }: { label: string; value: string; o
 
 function Stat({ label, value }: { label: string; value: number }) {
   return (
-    <div className="rounded-2xl bg-white/5 p-4 text-center">
+    <div className="cd-settings-stat rounded-2xl bg-white/5 p-4 text-center">
       <p className="text-xs font-bold text-slate-400">{label}</p>
       <p className="mt-1 text-2xl font-black text-white">{value}</p>
     </div>
