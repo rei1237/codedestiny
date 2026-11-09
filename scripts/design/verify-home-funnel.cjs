@@ -352,7 +352,7 @@ async function assertEssentials(page, label) {
     await member.waitForFunction(() => document.querySelector('#dpMasterCardHost #dpMasterCard') && document.getElementById('dpListSheet')?.classList.contains('dp-sheet--open'));
     assert.equal(mutations, 1, 'profile creation uses original controller once');
     assert.ok(await member.locator('#dpMasterCardHost #dpMasterCard').isVisible(), 'active profile card and level strip are visible under My');
-      await member.locator('#dpMasterCardHost .pc-growth-details > summary').click();
+      assert.ok(await member.locator('#dpMasterCardHost .pc-growth-details').evaluate(details => details.open), 'growth missions are visible when the profile opens');
       assert.ok(await member.locator('#dpMasterCardHost #dpMasterCard .dp-lvl').isVisible(), 'level benefits remain available under My');
     await member.locator('#dpListSheet .dp-sheet-close').click();
       await member.waitForFunction(() => document.querySelector('#cdhPetGardenHost #dpMasterCard'));

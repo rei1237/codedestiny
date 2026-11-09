@@ -8250,7 +8250,7 @@
 
     return '<div class="dp-lvl" data-cd-level-marker="' + DP_LEVEL_MARKER + '">'
       + '<span class="dp-lvl__bloom" aria-hidden="true" style="--garden-bloom:' + (0.10 + Math.min(snap.currentLevel, CD_LEVEL_MAX) / CD_LEVEL_MAX * 0.18).toFixed(2) + '"></span>'
-      + (gameCard ? '<p class="dp-lvl__feedback pc-growth-feedback" role="status" aria-live="polite">작은 실천으로 오늘도 한 단계 가까이.</p>' : '<h3 class="dp-lvl__garden-title">' + _esc(_dpGardenText('growth', '나의 성장')) + '</h3>'
+      + (gameCard ? '<div class="dp-lvl__companion"><img class="dp-lvl__yeoni" src="/images/fortune-tea-house/renewal/pig-cheer.webp" alt="" width="84" height="84" loading="lazy"><p class="dp-lvl__feedback pc-growth-feedback" role="status" aria-live="polite">작은 실천으로 오늘도 한 단계 가까이.</p></div>' : '<h3 class="dp-lvl__garden-title">' + _esc(_dpGardenText('growth', '나의 성장')) + '</h3>'
       + '<div class="dp-lvl__companion">'
         + '<img class="dp-lvl__yeoni" src="/images/first-visit/yeoni-profile-guide-v1.webp" width="320" height="480" alt="' + _esc(_dpGardenText('mascotAlt', '연꽃을 건네며 응원하는 꽃돼지 연이')) + '" decoding="async">'
         + '<p class="dp-lvl__feedback" role="status" aria-live="polite">' + _esc(_dpGardenText('cheer', '오늘도 한 걸음, 제가 곁에서 응원할게요.')) + '</p>'
@@ -8272,6 +8272,7 @@
       + '</button>'
       + '<div class="dp-lvl__quests" id="dpLvlQuests"' + (_dpLevelQuestsOpen ? '' : ' hidden') + '>' + questsHtml + '</div>'
       + rewardHtml
+      + (snap.loggedIn && snap.nextReward ? '<p class="dp-lvl__meta">Lv.' + snap.nextReward.level + ' · 누적 결제 ' + snap.nextReward.payments + '회 · ' + snap.nextReward.krw.toLocaleString('ko-KR') + '원 이상</p>' : '')
       + note
     + '</div>';
   }
@@ -8722,7 +8723,7 @@
         + '<div class="dp-mc-action-wrap"><button type="button" class="dp-mc-list-btn dp-mc-menu-btn" aria-label="' + _esc(_dpText('openProfileList')) + '" aria-expanded="false" aria-controls="dpListSheet"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M5 7h14M5 12h14M5 17h14"/></svg></button></div>'
       + '</header>'
       + '<div class="pc-panel" data-profile-character></div>'
-      + '<details class="pc-growth-details"><summary>레벨 · 성장 미션 · 보상</summary>' + _dpBuildLevelStrip() + '</details>'
+      + '<details class="pc-growth-details" open><summary>레벨 · 성장 미션 · 보상</summary>' + _dpBuildLevelStrip() + '</details>'
       + '<button type="button" class="dp-mc-load-btn pc-fortune-action">이 프로필로 운세 보기<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="m9 5 7 7-7 7"/></svg></button>'
       + '<details class="pc-birth-details"><summary>출생 정보</summary><p>' + _esc(birthLabel + ' · ' + timeLabel) + '</p><p>' + _esc(l.label || l.name || '출생지 미입력') + '</p></details>'
       + '</div>';
