@@ -71,6 +71,7 @@
     text(widget.querySelector('[data-cd-honey-status]'), state?.error ? tr("balanceError", "꿀방울을 불러오지 못했어요. 다시 확인해 주세요.") : '');
     widget.querySelector('[data-cd-honey-retry]').hidden = !state?.error;
     renderCalendar(widget);
+    root.dispatchEvent(new CustomEvent('cd:honey-state'));
   }
   var IMG = '/images/fortune-tea-house/';
   function icon(file, size) { var img = document.createElement('img'); img.src = IMG + file; img.alt = ''; img.width = size; img.height = size; img.loading = 'lazy'; img.decoding = 'async'; return img; }
@@ -94,10 +95,12 @@
     // 도장판: 오늘 출석 전에 막 한 바퀴를 채웠다면 새 판에서 시작한다.
     var filled = streak > 0 && (state.attended || streak % every !== 0) ? ((streak - 1) % every) + 1 : 0;
 
+    var monthOpen = box.querySelector('.cdh-cal__month')?.open === true;
     var head = node('div', '', 'cdh-cal__head');
-    head.append(node('strong', tr('calendar.title', '{month} 찻집 출석 도장', { month: utcFormat({ month: 'long' }, new Date(Date.UTC(year, month - 1, 1))) })), node('span', streak > 0 ? tr('calendar.streak', '연속 {days}일', { days: number(streak) }) : tr('calendar.streakNone', '오늘부터 시작해요'), 'cdh-cal__streak'));
+    head.append(node('strong', tr('calendar.boardLabel', '{count}일 연속 도장판', { count: number(every) })), node('span', streak > 0 ? tr('calendar.streak', '연속 {days}일', { days: number(streak) }) : tr('calendar.streakNone', '오늘부터 시작해요'), 'cdh-cal__streak'));
 
     var board = node('ol', '', 'cdh-cal__board');
+    board.style.setProperty('--honey-cycle', String(every));
     board.setAttribute('aria-label', tr('calendar.boardLabel', '{count}일 연속 도장판', { count: number(every) }));
     for (var s = 1; s <= every; s++) {
       var slot = node('li', '', 'cdh-cal__slot' + (s <= filled ? ' is-filled' : '') + (s === every ? ' is-bonus' : ''));
@@ -131,7 +134,10 @@
       if (hit) cell.append(icon(hit.bonus ? 'honey-jar-bonus-v1.webp' : 'honey-drop-jewel-v1.webp', 28));
       grid.append(cell);
     }
-    box.replaceChildren(head, board, note, week, grid);
+    var monthHistory = node('details', '', 'cdh-cal__month');
+    monthHistory.open = monthOpen;
+    monthHistory.append(node('summary', tr('calendar.title', '{month} 찻집 출석 도장', { month: utcFormat({ month: 'long' }, new Date(Date.UTC(year, month - 1, 1))) })), week, grid);
+    box.replaceChildren(head, board, note, monthHistory);
   }
   var collectionAnimations = [], collectionLayer, collectionTimer;
   function announceCollection(amount) {
@@ -372,5 +378,6 @@
   root.addEventListener('storage', function (event) { if (event.key === 'cd:honey-refresh') void refresh(false); });
   root.addEventListener('focus', function () { void refresh(false); });
   root.CdHoney = { unlockUse: async function (button, featureKey, input, requestId) { await getCatalog(); var item = product(featureKey); if (!item || item.serviceScope !== 'GGULGGUL' || item.billingType !== 'per_use') return false; return unlock(button, item, { input: input, requestId: requestId }); }, getCatalog: getCatalog, refresh: refresh, refreshLabels: refreshLabels, getProduct: product };
+  root.CdHoney.getState = function () { return state ? { balance: state.balance, attended: state.attended, guest: state.guest, error: state.error } : null; };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot, { once: true }); else boot();
 })(window);

@@ -1,15 +1,27 @@
-/* Profile garden: local tokens inherit the existing moonlight character card. */
-.cdh-pet-home{width:min(100% - 32px,540px);margin:16px auto 28px;min-width:0}
+/* The existing profile is the garden. Wallet and attendance keep their controller. */
+.cdh-pet-home{width:min(100% - 32px,600px);margin:18px auto 28px;min-width:0}
 .cdh-pet-home:empty,.cdh-pet-home:has(.dp-master-card--empty){display:none}
 .pg-garden{--pg-ink:var(--pc-ink);--pg-muted:var(--pc-muted);--pg-gold:var(--pc-gold);--pg-line:var(--pc-line);--pg-surface:var(--cd-surface);font:400 15px/1.65 var(--font-body);color:var(--pg-ink);min-width:0}
 .pg-garden *{box-sizing:border-box}
 .pg-garden [hidden]{display:none!important}
-.pg-wallet{display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:14px;color:var(--pg-muted);padding-bottom:8px}
-.pg-wallet strong{font-weight:700;color:var(--pg-gold);font-variant-numeric:tabular-nums}
-.pg-stage{position:relative;isolation:isolate;display:grid;place-items:center;min-height:220px;overflow:hidden;border-radius:var(--cd-r-section);background:radial-gradient(ellipse at 50% 70%,color-mix(in srgb,var(--pg-gold) 17%,transparent),transparent 68%)}
-.pg-stage::before{content:"";position:absolute;width:190px;height:38px;bottom:6px;border:1px solid color-mix(in srgb,var(--pg-gold) 34%,transparent);border-radius:50%;background:color-mix(in srgb,var(--pg-gold) 7%,transparent);z-index:-1}
-.pg-stage::after{content:"";position:absolute;right:12%;top:18px;width:42px;height:42px;border-radius:50%;border:1px solid var(--pg-line);box-shadow:inset -10px 0 0 var(--pg-gold);opacity:.6;z-index:-1}
-.pg-pet{display:block;position:relative;width:208px;height:208px;flex-shrink:0;--pet-coat:none}
+.pg-wallet{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 0 6px}
+.pg-wallet h3{font:400 17px/1.4 var(--font-display);color:var(--pg-ink);margin:0}
+.pg-garden button{font:600 14px/1.45 var(--font-body);min-height:48px;border:1px solid var(--pg-line);border-radius:18px;background:var(--pg-surface);color:var(--pg-ink);padding:10px 12px;cursor:pointer;touch-action:manipulation}
+.pg-garden button:disabled{cursor:default;opacity:.62}
+.pg-garden button:hover:not(:disabled){filter:brightness(1.035)}
+.pg-garden button:active:not(:disabled){transform:translateY(1px)}
+.pg-garden :is(button,a,summary):focus-visible{outline:3px solid var(--pg-gold);outline-offset:3px}
+.pg-honey-host,.pg-garden :is(button,a,summary){scroll-margin-block:110px}
+.pg-garden .pg-wallet button{display:flex;align-items:center;gap:7px;padding:6px 10px;border-radius:20px;background:transparent;border-color:var(--pg-line);text-align:left;box-shadow:0 3px 9px #6b3e4610;flex-shrink:0}
+.pg-wallet button img{width:34px;height:34px;object-fit:contain;flex-shrink:0}
+.pg-wallet button>span{font:400 11px/1.3 var(--font-body);color:var(--pg-muted)}
+.pg-wallet strong{display:block;font:700 14px/1.5 var(--font-body);font-variant-numeric:tabular-nums;color:var(--pg-gold)}
+.pg-wallet-arrow{width:16px;height:16px;color:var(--pg-gold)}
+.pg-stage{position:relative;isolation:isolate;display:grid;place-items:center;min-height:236px;overflow:hidden;border-radius:46% 46% 24px 24px/30% 30% 24px 24px;background:radial-gradient(ellipse at 50% 68%,color-mix(in srgb,var(--pg-play-bg) 65%,transparent),transparent 70%);margin-top:2px}
+.pg-stage::before{content:"";position:absolute;width:188px;height:32px;bottom:8px;border:1px solid color-mix(in srgb,var(--pg-gold) 30%,transparent);border-radius:50%;background:color-mix(in srgb,var(--pg-play-bg) 35%,transparent);z-index:-1}
+.pg-stage::after{content:"";position:absolute;right:12%;top:24px;width:38px;height:38px;border-radius:50%;border:1px solid color-mix(in srgb,var(--pg-gold) 24%,transparent);box-shadow:inset -10px 0 0 color-mix(in srgb,var(--pg-gold) 70%,transparent);z-index:-1}
+.pg-stage-branch{position:absolute;right:0;bottom:3px;width:142px;height:136px;background:url('/images/home/mv/ornament-lotus-branch-640.webp') center/contain no-repeat;opacity:.5;z-index:-1;pointer-events:none}
+.pg-pet{display:block;position:relative;width:224px;height:224px;flex-shrink:0;--pet-coat:none}
 .pg-pet[data-coat="wood"]{--pet-coat:hue-rotate(55deg) saturate(.8)}
 .pg-pet[data-coat="fire"]{--pet-coat:hue-rotate(325deg) saturate(1.3)}
 .pg-pet[data-coat="earth"]{--pet-coat:saturate(1.4)}
@@ -22,48 +34,100 @@
 .pg-accessory,.pg-pattern{position:absolute;pointer-events:none;background-repeat:no-repeat}
 .pg-accessory{left:30%;top:3%;width:35%;height:35%;background-image:url('/assets/profile-pets/moon-garden-v1/accessories.webp');background-size:800% 300%;background-position:var(--pet-accessory) var(--pet-egg-row)}
 .pg-pattern{left:40%;top:23%;width:16%;height:16%;background-image:url('/assets/profile-pets/moon-garden-v1/patterns.webp');background-size:400% 100%;background-position:var(--pet-pattern) 0}
-.pg-companion-name{display:flex;justify-content:center;align-items:center;flex-wrap:wrap;gap:5px 10px;margin-top:8px}
-.pg-companion-name strong{font:700 21px/1.4 var(--font-playful,var(--font-display));color:var(--pg-ink)}
-.pg-companion-name>span{font-size:12px;color:var(--pg-muted)}
-.pg-companion-name .pg-rarity{color:var(--pg-gold);border:1px solid var(--pg-line);border-radius:var(--cd-r-pill);padding:2px 9px}
-.pg-garden .pg-reaction{font:400 16px/1.7 var(--font-playful,var(--font-body));text-align:center;color:var(--pg-ink);max-width:28em;min-height:54px;margin:8px auto 10px;word-break:keep-all}
-.pg-affection{display:flex;align-items:center;gap:14px;margin:0 auto 20px;max-width:300px}
-.pg-affection label{flex-shrink:0;font-size:13px;color:var(--pg-muted)}
-.pg-affection b{font-variant-numeric:tabular-nums;color:var(--pg-gold)}
-.pg-affection progress{display:block;appearance:none;border:0;overflow:hidden;border-radius:var(--cd-r-pill);height:8px;width:100%;background:var(--pg-surface);accent-color:var(--pg-gold)}
+.pg-companion-name{display:flex;justify-content:center;align-items:center;flex-wrap:wrap;gap:5px 8px;margin-top:8px}
+.pg-companion-name strong{font:400 23px/1.4 var(--font-display);color:var(--pg-ink)}
+.pg-companion-name>span{font:400 12px/1.5 var(--font-body);color:var(--pg-muted)}
+.pg-companion-name .pg-rarity{color:var(--pg-gold);border:1px solid var(--pg-line);border-radius:14px;padding:2px 8px}
+.pg-garden .pg-reaction{font:400 15px/1.65 var(--font-body);text-align:center;color:var(--pg-ink);max-width:28em;min-height:25px;margin:8px auto 12px;word-break:keep-all}
+.pg-affection{max-width:360px;margin:0 auto 16px}
+.pg-bond-heading{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.pg-bond-heading label{display:block;min-height:0;height:auto;width:auto;padding:0;margin:0;font:400 13px/1.5 var(--font-body);color:var(--pg-ink)}
+.pg-bond-heading b{font-weight:700;color:var(--pg-gold);font-variant-numeric:tabular-nums}
+.pg-bond-heading>span{font:400 13px/1.5 var(--font-display);color:var(--pg-muted)}
+.pg-bond-track{position:relative;padding:8px 0;margin-right:6px}
+.pg-affection progress{display:block;appearance:none;border:0;overflow:hidden;border-radius:10px;height:7px;width:100%;background:var(--pg-surface);accent-color:var(--pg-gold)}
 .pg-affection progress::-webkit-progress-bar{background:var(--pg-surface)}
-.pg-affection progress::-webkit-progress-value{background:var(--pg-gold);border-radius:var(--cd-r-pill)}
-.pg-affection progress::-moz-progress-bar{background:var(--pg-gold);border-radius:var(--cd-r-pill)}
-.pg-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
-.pg-garden button{font:700 14px/1.45 var(--font-body);min-height:48px;border:1px solid var(--pg-line);border-radius:var(--cd-r-pill);background:var(--pg-surface);color:var(--pg-ink);padding:10px 12px;cursor:pointer;touch-action:manipulation}
-.pg-actions button{display:flex;align-items:center;justify-content:center;gap:7px;min-width:0}
-.pg-actions svg{width:20px;height:20px;flex-shrink:0;color:var(--pg-gold)}
-.pg-garden button:hover:not(:disabled){background:color-mix(in srgb,var(--pg-gold) 13%,var(--pg-surface))}
-.pg-garden button:active:not(:disabled){transform:translateY(1px)}
-.pg-garden button:disabled{cursor:default;color:var(--pg-muted);opacity:.72}
-.pg-garden :is(button,a):focus-visible{outline:2px solid var(--pg-gold);outline-offset:3px}
-.pg-daily{display:flex;align-items:center;flex-wrap:wrap;gap:8px 12px;border-top:1px solid var(--pg-line);margin-top:20px;padding-top:16px}
-.pg-daily button{background:var(--pg-gold);color:var(--pc-night);flex:1}
-.pg-daily button:disabled{opacity:1;color:var(--pg-ink);background:var(--pg-surface)}
-.pg-daily>span{font-size:12px;color:var(--pg-muted)}
-.pg-garden .pg-checklist{display:flex;justify-content:center;flex-wrap:wrap;gap:4px 18px;font-size:12px;color:var(--pg-muted);margin:14px 0 4px}
-.pg-garden .pg-reward{font-size:13px;text-align:center;color:var(--pg-gold);word-break:keep-all;margin:4px 0 12px}
+.pg-affection progress::-webkit-progress-value{background:color-mix(in srgb,var(--pg-play-ink) 75%,var(--pg-play-bg));border-radius:10px}
+.pg-affection progress::-moz-progress-bar{background:var(--pg-play-ink);border-radius:10px}
+.pg-bond-blooms{position:absolute;inset:0;display:flex;justify-content:space-between;align-items:center;pointer-events:none;padding-left:26%}
+.pg-bond-blooms>span{display:block;width:22px;height:22px;color:var(--pg-muted);background:var(--pc-night);border-radius:50%}
+.pg-bond-blooms svg{display:block;width:100%;height:100%}
+.pg-bond-blooms .is-bloomed{color:var(--pg-play-ink);background:var(--pg-play-bg)}
+.pg-affection #petBondHint{font:400 12px/1.6 var(--font-body);color:var(--pg-muted);text-align:center;margin:4px 0 0;word-break:keep-all}
+.pg-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.pg-garden .pg-action{position:relative;display:flex;align-items:center;justify-content:center;gap:8px;min-width:0;min-height:56px;padding:8px 10px;border-color:color-mix(in srgb,var(--action-ink) 30%,transparent);background:var(--action-bg);color:var(--action-ink);box-shadow:0 4px 9px #6b3b4110,inset 0 1px 0 #ffffff70}
+.pg-action--feed{--action-bg:var(--pg-feed-bg);--action-ink:var(--pg-feed-ink)}
+.pg-action--play{--action-bg:var(--pg-play-bg);--action-ink:var(--pg-play-ink)}
+.pg-action--sleep{--action-bg:var(--pg-sleep-bg);--action-ink:var(--pg-sleep-ink)}
+.pg-action--fortune{--action-bg:var(--pg-fortune-bg);--action-ink:var(--pg-fortune-ink)}
+.pg-action-icon{display:grid;place-items:center;width:30px;height:30px;flex-shrink:0;border-radius:12px;background:color-mix(in srgb,var(--pc-night) 45%,transparent)}
+.pg-action-icon svg{width:25px;height:25px}
+.pg-action>span:last-of-type{font:600 14px/1.4 var(--font-body);word-break:keep-all}
+.pg-action-done{position:absolute;width:13px;height:13px;top:5px;right:6px;color:var(--action-ink)}
+.pg-care{margin:12px 0 0}
+.pg-garden .pg-checklist{display:flex;justify-content:center;flex-wrap:wrap;gap:6px 16px;font:400 12px/1.5 var(--font-body);color:var(--pg-muted);margin:0 0 4px}
+.pg-checklist .is-complete{color:var(--pg-play-ink);font-weight:600}
+.pg-garden .pg-reward{font:400 13px/1.65 var(--font-body);text-align:center;color:var(--pg-gold);word-break:keep-all;margin:4px 0 0}
 .pg-fortune{margin-top:16px;padding:16px 0;border-block:1px solid var(--pg-line)}
-.pg-fortune h3,.pg-welcome h3{font:700 18px/1.5 var(--font-playful,var(--font-display));margin:0 0 8px;color:var(--pg-ink)}
-.pg-fortune p{font-size:15px;line-height:1.8;color:var(--pg-muted)}
-.pg-fortune .pg-fortune-headline{font-weight:700;color:var(--pg-gold)}
+.pg-fortune h3,.pg-welcome h3{font:400 19px/1.5 var(--font-display);margin:0 0 8px;color:var(--pg-ink)}
+.pg-fortune p{font:400 15px/1.85 var(--font-body);color:var(--pg-muted)}
+.pg-fortune .pg-fortune-headline{font-weight:600;color:var(--pg-gold)}
 .pg-welcome{text-align:center;margin:20px 0 6px}
-.pg-welcome p{font-size:14px;color:var(--pg-muted)}
+.pg-welcome p{font:400 14px/1.7 var(--font-body);color:var(--pg-muted)}
+.pg-loading{display:grid;justify-items:center;align-content:center;gap:10px;min-height:236px;color:var(--pg-muted);font:400 14px/1.7 var(--font-body);text-align:center}
+.pg-loading>svg{width:40px;height:40px;color:var(--pg-gold)}
 .pg-eggs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:12px 0}
-.pg-garden .pg-eggs button{display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 4px;border-radius:var(--cd-r-section);min-width:0}
+.pg-garden .pg-eggs button{display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 4px;border-radius:36px 36px 20px 20px;min-width:0;background:color-mix(in srgb,var(--pg-play-bg) 45%,var(--pc-night));box-shadow:0 5px 14px #79474b0a}
 .pg-egg{display:block;width:min(100%,96px);aspect-ratio:1;background-image:url('/assets/profile-pets/moon-garden-v1/eggs.webp');background-size:300% 100%;background-repeat:no-repeat}
-.pg-eggs strong{font:700 14px/1.4 var(--font-playful,var(--font-body));white-space:nowrap}
-.pg-eggs button>span:last-child{font-size:12px;color:var(--pg-muted)}
-.pg-garden .pg-egg-note{font-size:12px;text-align:center;color:var(--pg-muted);word-break:keep-all;margin:10px 0 18px}
+.pg-eggs strong{font:400 14px/1.4 var(--font-display);white-space:nowrap}
+.pg-eggs button>span:last-child{font:400 12px/1.5 var(--font-body);color:var(--pg-muted)}
+.pg-garden .pg-egg-note{font:400 12px/1.65 var(--font-body);text-align:center;color:var(--pg-muted);word-break:keep-all;margin:10px 0 18px}
 .pg-login{display:flex;flex-direction:column;align-items:center;gap:6px;margin-top:14px}
-.pg-login a{color:var(--pg-gold);font-size:15px;min-height:44px;display:inline-flex;align-items:center}
-.pg-login>span{font-size:13px;color:var(--pg-muted)}
-.pg-garden .pg-status{min-height:24px;font-size:14px;line-height:1.6;color:var(--pg-gold);margin:8px 0 0}
-.pc-growth-details>summary{font:700 14px/1.6 var(--font-body);min-height:48px;cursor:pointer;padding-block:12px;color:var(--pc-gold);border-top:1px solid var(--pc-line)}
-@media(min-width:600px){.pg-actions{grid-template-columns:repeat(4,minmax(0,1fr))}.pg-actions button{flex-direction:column;gap:5px;min-height:68px}.pg-stage{min-height:240px}.pg-pet{width:232px;height:232px}}
+.pg-login a{color:var(--pg-gold);font:600 15px/1.5 var(--font-body);min-height:44px;display:inline-flex;align-items:center}
+.pg-login>span{font:400 13px/1.6 var(--font-body);color:var(--pg-muted)}
+.pg-garden .pg-status{min-height:0;font:400 14px/1.6 var(--font-body);color:var(--pg-gold);margin:10px 0 0}
+.pg-garden .pg-status:empty{display:none}
+.pg-status.is-error{padding:10px 12px;border:1px solid var(--pg-line);border-radius:14px;background:var(--pg-surface)}
+/* The original attendance board is rehomed, including handlers, prices and sheet entry. */
+#dpMasterCard .pg-honey-manager.cdh-honey{--cdh-ink:var(--pc-ink);--cdh-muted:var(--pc-muted);--cdh-gold:var(--pc-gold);--cdh-line:var(--pc-line);--cdh-card:var(--pc-night);--cdh-surface:var(--cd-surface);--cdh-gold-soft:var(--pg-fortune-bg);--cdh-accent:var(--pg-play-ink);position:relative;display:block;min-width:0;width:100%;margin:20px 0 0;padding:18px 0 0;border:0;border-top:1px solid var(--pc-line);border-radius:0;background:none;box-shadow:none;color:var(--pc-ink)}
+#dpMasterCard .pg-honey-manager .cdh-honey__details>summary{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:48px;list-style:none;cursor:pointer;color:var(--pc-ink);font:400 18px/1.5 var(--font-display);padding:0}
+#dpMasterCard .pg-honey-manager .cdh-honey__details>summary::-webkit-details-marker{display:none}
+#dpMasterCard .pg-honey-manager .cdh-honey__details>summary::after{content:"";display:block;width:8px;height:8px;flex-shrink:0;border-right:1.5px solid var(--pc-gold);border-bottom:1.5px solid var(--pc-gold);transform:rotate(45deg);margin:0 3px 4px}
+#dpMasterCard .pg-honey-manager .cdh-honey__details[open]>summary::after{transform:rotate(225deg);margin-top:8px}
+#dpMasterCard .pg-honey-manager .cdh-honey__chip{display:none}
+#dpMasterCard .pg-honey-manager .cdh-honey__wallet{display:flex;align-items:center;gap:6px;margin-left:auto}
+#dpMasterCard .pg-honey-manager .cdh-honey__wallet>img{width:22px;height:28px}
+#dpMasterCard .pg-honey-manager .cdh-honey__balance{margin:0;display:block;line-height:1.4}
+#dpMasterCard .pg-honey-manager .cdh-honey__balance>span{display:none}
+#dpMasterCard .pg-honey-manager .cdh-honey__balance strong{color:var(--pc-gold);font:700 17px/1.4 var(--font-body);font-variant-numeric:tabular-nums}
+#dpMasterCard .pg-honey-manager .cdh-honey__story{display:flex;align-items:center;gap:10px;margin:6px 0 12px}
+#dpMasterCard .pg-honey-manager .cdh-honey__yeoni{width:42px;height:48px;object-fit:contain;flex-shrink:0}
+#dpMasterCard .pg-honey-manager .cdh-honey__intro{min-width:0}
+#dpMasterCard .pg-honey-manager .cdh-honey__hint{margin:0;color:var(--pc-muted);font:400 12px/1.7 var(--font-body);word-break:keep-all}
+#dpMasterCard .pg-honey-manager .cdh-cal{max-width:none;margin:0 0 10px;padding:0;border:0;border-radius:0;background:none;overflow:visible}
+#dpMasterCard .pg-honey-manager .cdh-cal::before{display:none}
+#dpMasterCard .pg-honey-manager .cdh-cal__head{gap:8px}
+#dpMasterCard .pg-honey-manager .cdh-cal__head strong{font:400 15px/1.5 var(--font-display);color:var(--pc-ink)}
+#dpMasterCard .pg-honey-manager .cdh-cal__streak{color:var(--pc-gold);background:var(--pg-fortune-bg);border-color:var(--pc-line);font:600 12px/1.5 var(--font-body)}
+#dpMasterCard .pg-honey-manager .cdh-cal__board{grid-template-columns:repeat(var(--honey-cycle,5),minmax(0,1fr));gap:6px;margin:10px 0 0}
+#dpMasterCard .pg-honey-manager .cdh-cal__slot{border:1px dashed var(--pc-line);border-radius:22px 22px 14px 14px;background:var(--cd-surface);padding:8px 2px 6px}
+#dpMasterCard .pg-honey-manager .cdh-cal__slot.is-filled{border-style:solid;border-color:var(--pc-gold);background:var(--pg-fortune-bg)}
+#dpMasterCard .pg-honey-manager .cdh-cal__slot img{max-width:38px}
+#dpMasterCard .pg-honey-manager .cdh-cal__slot-label{font:600 12px/1.5 var(--font-body);color:var(--pc-muted)}
+#dpMasterCard .pg-honey-manager .cdh-cal__slot.is-filled .cdh-cal__slot-label,#dpMasterCard .pg-honey-manager .cdh-cal__slot.is-bonus .cdh-cal__slot-label{color:var(--pc-gold)}
+#dpMasterCard .pg-honey-manager .cdh-cal__note{margin:10px 0 8px;padding:8px 0;border-radius:0;background:none;gap:8px}
+#dpMasterCard .pg-honey-manager .cdh-cal__pig{width:34px;height:34px}
+#dpMasterCard .pg-honey-manager .cdh-cal__note p{font:400 13px/1.6 var(--font-body);color:var(--pc-muted)}
+#dpMasterCard .pg-honey-manager .cdh-cal__month{margin:4px 0 8px}
+#dpMasterCard .pg-honey-manager .cdh-cal__month>summary{display:flex;align-items:center;gap:8px;min-height:44px;cursor:pointer;color:var(--pc-gold);font:600 13px/1.6 var(--font-body);text-decoration:underline;text-underline-offset:4px}
+#dpMasterCard .pg-honey-manager .cdh-cal__week{margin-top:8px;color:var(--pc-muted);font:400 12px/1.5 var(--font-body)}
+#dpMasterCard .pg-honey-manager .cdh-cal__day{min-height:44px;color:var(--pc-ink);background:var(--cd-surface)}
+#dpMasterCard .pg-honey-manager .cdh-cal__num{font:600 12px/1.4 var(--font-body);color:var(--pc-ink)}
+#dpMasterCard .pg-honey-manager .cdh-honey__actions{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;padding:0;margin:0}
+#dpMasterCard .pg-honey-manager [data-cd-honey-attend]{width:100%;min-height:48px;border-radius:18px;background:var(--pg-fortune-bg);color:var(--pg-fortune-ink);border:1px solid color-mix(in srgb,var(--pg-fortune-ink) 40%,var(--pc-line));font:600 14px/1.5 var(--font-body);padding:10px 12px}
+#dpMasterCard .pg-honey-manager .cdh-honey__uses{min-height:48px;border-radius:18px;background:var(--cd-surface);color:var(--pc-ink);border:1px solid var(--pc-line);font:600 14px/1.5 var(--font-body);padding:10px 14px}
+#dpMasterCard .pg-honey-manager [data-cd-honey-status]{font:400 13px/1.65 var(--font-body);color:var(--pc-gold);margin:8px 0 0}
+#dpMasterCard .pg-honey-manager [data-cd-honey-status]:empty{display:none}
+.pc-growth-details>summary{font:600 14px/1.6 var(--font-body);min-height:48px;cursor:pointer;padding-block:12px;color:var(--pc-gold);border-top:1px solid var(--pc-line)}
+@media(min-width:600px){.pg-actions{grid-template-columns:repeat(4,minmax(0,1fr))}.pg-garden .pg-action{flex-direction:column;gap:4px;min-height:82px}.pg-stage{min-height:246px}.pg-pet{width:236px;height:236px}}
 @media(prefers-reduced-motion:reduce){.pg-body{animation:none}.pg-garden button:active:not(:disabled){transform:none}}

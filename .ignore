@@ -181,6 +181,7 @@
 /public/js/core/profile-character-card.mjs
 /public/js/core/profile-characters.mjs
 /public/js/core/profile-element-badge.mjs
+/public/js/core/profile-honey-manager.mjs
 /public/js/core/profile-pet-card.mjs
 /public/js/core/profile-pet.mjs
 /public/js/core/saju/basicFortunePresentation.js
