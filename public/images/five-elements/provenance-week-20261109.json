@@ -1,0 +1,43 @@
+{
+  "week": "2026-11-09",
+  "tool": "OpenAI image_gen",
+  "reference": "public/images/home/illustrated/yeoni-character-480.webp",
+  "format": "WebP 1200x800 quality 83",
+  "assets": [
+    {
+      "file": "yuja-radish-noodles-2d.webp",
+      "source": "exec-b9574eae-ab96-4814-973e-c0d58c40f453.png",
+      "bytes": 212296,
+      "sha256": "9c3fc1e9de401a48a8e4bef9cf0df1e4a8643c4b5b2a1b2d825bc712ff2a636b",
+      "prompt": "Create a new horizontal 3:2 illustrated Korean recipe hero. Match the supplied Yeoni mascot: small pink pig round dark eyes pink lotus on head, visible purple neck ribbon, short white chef toque behind lotus, pale apron. Hand drawn flat warm 2D storybook gouache, NOT realistic, no 3D. One unified kitchen scene, finished food large and identifiable in foreground, chef pig actively cooking behind it. No lettering, logos, labels, panels, or text. Dish and action: thin white rice noodles tossed with julienned raw white radish, cucumber and fresh yellow yuzu dressing, lifting noodles with chopsticks"
+    },
+    {
+      "file": "radicchio-polenta-2d.webp",
+      "source": "exec-6b4253f6-d851-49ee-98ff-282126ce98a8.png",
+      "bytes": 209690,
+      "sha256": "ea6017fe9b69b56ee6c208f3bdb5cd4d8598af32322e7e2a918a72f65c49df7b",
+      "prompt": "Create a new horizontal 3:2 illustrated Korean recipe hero. Match the supplied Yeoni mascot: small pink pig round dark eyes pink lotus on head, visible purple neck ribbon, short white chef toque behind lotus, pale apron. Hand drawn flat warm 2D storybook gouache, NOT realistic, no 3D. One unified kitchen scene, finished food large and identifiable in foreground, chef pig actively cooking behind it. No lettering, logos, labels, panels, or text. Dish and action: a golden creamy cornmeal polenta base with pan seared purple radicchio wedges with white veins, setting one wedge on the polenta with tongs"
+    },
+    {
+      "file": "pear-millet-crumble-2d.webp",
+      "source": "exec-669aef73-9f56-43e6-9988-acdcfba9d759.png",
+      "bytes": 177292,
+      "sha256": "d494b3bc10774b402e23d09a4190d05d31d362a2e36059a89562f71b51786336",
+      "prompt": "Create a new horizontal 3:2 illustrated Korean recipe hero. Match the supplied Yeoni mascot: small pink pig round dark eyes pink lotus on head, visible purple neck ribbon, short white chef toque behind lotus, pale apron. Hand drawn flat warm 2D storybook gouache, NOT realistic, no 3D. One unified kitchen scene, finished food large and identifiable in foreground, chef pig actively cooking behind it. No lettering, logos, labels, panels, or text. Dish and action: two small cream ramekins of soft roasted diced pears under a golden toasted millet flour and oat crumble, spoon breaking the crumbly top"
+    },
+    {
+      "file": "mustard-lotus-rice-2d.webp",
+      "source": "exec-03ae3a9e-f972-4744-ac34-1b028f7d274e.png",
+      "bytes": 207270,
+      "sha256": "1302a8656acf856ab71cf4cada537661450fcce4b06f4b4c4a33cc6d1aeca911",
+      "prompt": "Create a new horizontal 3:2 illustrated Korean recipe hero. Match the supplied Yeoni mascot: small pink pig round dark eyes pink lotus on head, visible purple neck ribbon, short white chef toque behind lotus, pale apron. Hand drawn flat warm 2D storybook gouache, NOT realistic, no 3D. One unified kitchen scene, finished food large and identifiable in foreground, chef pig actively cooking behind it. No lettering, logos, labels, panels, or text. Dish and action: a shallow bowl of cooked brown rice with distinct perforated lotus-root slices, scallions and a thin yellow mustard dressing, stirring mustard in a small cup"
+    },
+    {
+      "file": "kelp-zucchini-soup-2d.webp",
+      "source": "exec-20eddd2c-92c7-4a66-99f4-b8534f9b4d39.png",
+      "bytes": 178116,
+      "sha256": "ac9aefa8716dba8e1c5b45262097d088426af9e8110a6116313a8a59544395bd",
+      "prompt": "Create a new horizontal 3:2 illustrated Korean recipe hero. Match the supplied Yeoni mascot: small pink pig round dark eyes pink lotus on head, visible purple neck ribbon, short white chef toque behind lotus, pale apron. Hand drawn flat warm 2D storybook gouache, NOT realistic, no 3D. One unified kitchen scene, finished food large and identifiable in foreground, chef pig actively cooking behind it. No lettering, logos, labels, panels, or text. Dish and action: a bowl of clear kelp broth with pale green Korean zucchini half moons, soft white potato cubes and dark thin kelp strips, ladling broth into bowl"
+    }
+  ]
+}
