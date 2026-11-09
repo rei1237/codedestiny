@@ -13,6 +13,7 @@ export const reviewCatalog=reviewProductIds.map(id=>{
 const sdkProduct=p=>({sku:p.sku,type:'CONSUMABLE',displayName:p.name,displayAmount:p.approvedPriceKRW.toLocaleString('ko-KR')+'원',iconUrl:'',description:'오프라인 테스트 전용 가상 결제'});
 export const reviewSdkProducts=reviewCatalog.map(sdkProduct);
 const sajuCatalog=reviewCatalog.filter(p=>p.id.startsWith('saju_'));
+const letterSku=reviewCatalog.find(p=>p.id==='yeoni:chat_saju').sku;
 const json=(data,status=200)=>Response.json(data,{status});
 const fail=(error,status)=>json({error},status);
 const fixedChapter={id:'test',title:'테스트 상담',summary:'[테스트 전용 예시] 실제 운세 해석이나 AI 상담 결과가 아닙니다.',analysis:['이 문단은 화면과 구매 후 열람을 확인하기 위한 고정 예시입니다.'],questionAnswers:[]};
@@ -51,6 +52,18 @@ function grant(body,state,save){
     if(!save()){state.fortunes.set(body.requestId,row);state.orders.delete(body.orderId);return fail('MOCK_STORAGE_UNAVAILABLE',503);}
   }
   return json({orderId:body.orderId,requestId:body.requestId,entitlement:'granted',durable:true});
+}
+
+function grantLetter({requestId,orderId,sku},state,save){
+  const row=state.letters.get(requestId);
+  if(!row||sku!==letterSku||typeof orderId!=='string'||!orderId.trim())return fail('ORDER_MISMATCH',403);
+  if((state.orders.has(orderId)&&state.orders.get(orderId)!==requestId)||(row.orderId&&row.orderId!==orderId))return fail('ORDER_ALREADY_ASSIGNED',409);
+  if(!row.paid){
+    state.letters.set(requestId,{...row,orderId,paid:true,state:'COMPLETED',chapters:[fixedChapter],recovery:{canRetryNow:false,savedChapters:1,totalChapters:1}});
+    state.orders.set(orderId,requestId);
+    if(!save()){state.letters.set(requestId,row);state.orders.delete(orderId);return fail('MOCK_STORAGE_UNAVAILABLE',503);}
+  }
+  return json({orderId,requestId,entitlement:'granted',durable:true});
 }
 
 const dayKey=date=>new Date(date.getTime()+9*3600000).toISOString().slice(0,10);
@@ -103,9 +116,15 @@ export async function handleReviewFixture(request,url,path,state,save,now){
   if(path==='/orders/grant'&&method==='POST'){
     const body=await request.clone().json();
     if(sajuCatalog.some(p=>p.sku===body.sku)||state.fortunes.has(body.requestId))return grant(body,state,save);
+    if(body.sku===letterSku||state.letters.has(body.requestId))return grantLetter(body,state,save);
   }
   if(path==='/orders/restore'&&method==='POST'){
     const {orderId,sku}=await request.clone().json(),id=state.orders.get(orderId);
+    const letter=state.letters.get(id);
+    if(letter||sku===letterSku){
+      if(!letter?.paid||letter.orderId!==orderId||sku!==letterSku)return fail('ORDER_MISMATCH',403);
+      return json({orderId,requestId:id,entitlement:'granted',durable:true});
+    }
     const row=state.fortunes.get(id);
     if(!row&&!sajuCatalog.some(product=>product.sku===sku))return null;
     if(!row?.fortune.paid||row.orderId!==orderId||row.sku!==sku)return fail('ORDER_MISMATCH',403);

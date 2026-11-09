@@ -5,7 +5,30 @@ test('the local-only fixture requires login and a mock grant before synthetic ou
 
 test('a mock paid result survives reload using only local synthetic storage',async()=>{const memory=new Map(),storage={getItem:key=>memory.get(key),setItem:(key,value)=>memory.set(key,value)};let api=createOfflineFixtureApi(storage);await api.handle(req('/login','POST',{},false));const intent=await (await api.handle(req('/native/maya/prepare','POST',{input:{question:'테스트'}}))).json();await api.handle(req('/orders/grant','POST',{orderId:'mock-order-1',sku:'mock-maya',requestId:intent.id}));await api.handle(req('/native/maya/results/'+intent.id,'POST',{}));api=createOfflineFixtureApi(storage);const result=await (await api.handle(req('/native/maya/results/'+intent.id))).json();assert.match(result.prompt,/테스트 전용/);});
 
-test('the local Yeoni letter fixture provides results only after a synthetic grant',async()=>{const api=createOfflineFixtureApi();await api.handle(req('/login','POST',{},false));const prepared=await (await api.handle(req('/canonical/fortune-chat/consultations','POST',{question:'테스트 질문'}))).json();assert.equal(prepared.consultation.paid,false);assert.equal((await api.handle(req('/canonical/fortune-chat/consultations/'+prepared.consultation.id+'/generate','POST',{}))).status,402);await api.handle(req('/orders/grant','POST',{orderId:'mock-order-2',sku:'mock-yeoni',requestId:prepared.consultation.id}));const read=await (await api.handle(req('/canonical/fortune-chat/consultations/'+prepared.consultation.id))).json();assert.equal(read.consultation.paid,true);assert.match(read.consultation.chapters[0].summary,/테스트 전용/);});
+test('the local Yeoni letter fixture provides results only after a stored synthetic grant',async()=>{
+  const memory=new Map();
+  const api=createOfflineFixtureApi({getItem:key=>memory.get(key),setItem:(key,value)=>memory.set(key,value)});
+  await api.handle(req('/login','POST',{},false));
+  const route='/canonical/fortune-chat/consultations';
+  const {consultation}=await (await api.handle(req(route,'POST',{question:'테스트 질문'}))).json();
+  assert.equal(consultation.paid,false);
+  assert.equal((await api.handle(req(route+'/'+consultation.id+'/generate','POST',{}))).status,402);
+  const grant={orderId:'mock-order-2',sku:'mock-yeoni',requestId:consultation.id};
+  const receipt=await (await api.handle(req('/orders/grant','POST',grant))).json();
+  assert.equal(receipt.durable,true);
+  const read=await (await api.handle(req(route+'/'+consultation.id))).json();
+  assert.equal(read.consultation.paid,true);
+  assert.match(read.consultation.chapters[0].summary,/테스트 전용/);
+});
+test('a failed Yeoni fixture write leaves the letter unpaid and its order unassigned',async()=>{
+  const api=createOfflineFixtureApi({getItem:()=>null,setItem:()=>{throw Error('storage disabled');}});
+  await api.handle(req('/login','POST',{},false));
+  const {consultation}=await (await api.handle(req('/canonical/fortune-chat/consultations','POST',{question:'테스트 질문'}))).json();
+  const grant={orderId:'mock-order-2',sku:'mock-yeoni',requestId:consultation.id};
+  assert.equal((await api.handle(req('/orders/grant','POST',grant))).status,503);
+  assert.equal((await api.handle(req('/orders/restore','POST',grant))).status,403);
+  assert.equal(api.state.letters.get(consultation.id).paid,false);
+});
 
 test('the local Sukuyo fixture requires its own mock grant and restores the synthetic result',async()=>{const memory=new Map(),storage={getItem:key=>memory.get(key),setItem:(key,value)=>memory.set(key,value)};let api=createOfflineFixtureApi(storage);await api.handle(req('/login','POST',{},false));const input={idempotencyKey:'test-attempt-0001',question:'테스트 질문'},intent=await (await api.handle(req('/native/sukuyo/prepare','POST',{input}))).json();assert.equal((await api.handle(req('/canonical/sukuyo-compatibility-ai/generate','POST',input))).status,402);assert.equal((await api.handle(req('/orders/grant','POST',{orderId:'mock-order-3',sku:'mock-maya',requestId:intent.id}))).status,403);assert.equal((await (await api.handle(req('/native/sukuyo/prepare','POST',{input}))).json()).id,intent.id);assert.equal((await api.handle(req('/native/sukuyo/prepare','POST',{input:{...input,question:'다른 질문'}}))).status,409);await api.handle(req('/orders/grant','POST',{orderId:'mock-order-3',sku:'mock-sukuyo',requestId:intent.id}));const generated=await (await api.handle(req('/canonical/sukuyo-compatibility-ai/generate','POST',input))).json();assert.match(generated.consultation.messages[0].content,/테스트 전용/);api=createOfflineFixtureApi(storage);const saved=await (await api.handle(req('/canonical/sukuyo-compatibility-ai/result?id='+generated.consultation.id))).json();assert.equal(saved.consultation.id,generated.consultation.id);});
 test('local unassigned-order recovery requires an explicit matching input and restores a synthetic result',async()=>{const api=createOfflineFixtureApi();await api.handle(req('/login','POST',{},false));const orderId='01900000-1111-7111-8111-000000000042',input={idempotencyKey:'test-attempt-0001',userName:'A',birthDate:'1990-01-02',partnerName:'B',partnerBirthDate:'1991-03-04',question:'테스트 질문',relationshipType:'연인',topic:'전체 궁합'},intent=await (await api.handle(req('/native/sukuyo/prepare','POST',{input}))).json();assert.equal((await api.handle(req('/native/sukuyo/recovery/drafts','POST',{orderId}))).status,404);await api.handle(req('/test/sukuyo/unassigned','POST',{orderId}));const drafts=await (await api.handle(req('/native/sukuyo/recovery/drafts','POST',{orderId}))).json();assert.equal(drafts.drafts[0].id,intent.id);assert.equal(drafts.drafts[0].input.personB.birthDate,'1991-03-04');assert.equal((await api.handle(req('/native/sukuyo/recovery/attach','POST',{orderId,intentId:'b'.repeat(64)}))).status,404);await api.handle(req('/native/sukuyo/recovery/attach','POST',{orderId,intentId:intent.id}));assert.equal((await api.handle(req('/canonical/sukuyo-compatibility-ai/result?id=toss_'+intent.id))).status,202);const result=await (await api.handle(req('/canonical/sukuyo-compatibility-ai/generate','POST',{resumeSessionId:'toss_'+intent.id}))).json();assert.match(result.consultation.messages[0].content,/테스트 전용/);});

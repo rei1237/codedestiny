@@ -8,10 +8,67 @@ const mock=appRequire.resolve('@apps-in-toss/devtools/mock/3x').replaceAll('\\',
  const code=`export * from ${JSON.stringify(repo+'/apps/toss/src/platform.ts')}; export {IAP,aitState} from ${JSON.stringify(mock)};`;
  const bundle=await build({stdin:{contents:code,resolveDir:repo,loader:'ts'},bundle:true,platform:'node',format:'cjs',write:false,plugins:[{name:'offline-boundaries',setup(b){b.onResolve({filter:/^@apps-in-toss\/web-framework$/},()=>({path:mock}));b.onResolve({filter:/^\.\/release$/},()=>({path:'release',namespace:'mock'}));b.onLoad({filter:/.*/,namespace:'mock'},()=>({contents:'export const SERVICE_AVAILABLE=true;'}));}}]});
  const loaded=new Module(path.join(repo,'toss-official-devtools-mock.cjs'));loaded.paths=Module._nodeModulePaths(repo+'/apps/toss');loaded._compile(bundle.outputFiles[0].text,loaded.id);const app=loaded.exports;
- app.aitState.patch('iap',{products:[{sku:'test-consultation',type:'CONSUMABLE',displayName:'테스트 상담',displayAmount:'1원',iconUrl:'',description:'mock only'}],nextResult:'success',pendingOrders:[],completedOrders:[]});
- let grants=0,failGrant=false;globalThis.fetch=async(url,options)=>{const u=new URL(url);if(u.origin!=='https://code-destiny.com'||!u.pathname.startsWith('/api/toss/'))throw Error('unexpected network');if(u.pathname.endsWith('/login'))return Response.json({token:'mock-session'});if(u.pathname.endsWith('/session'))return Response.json({authenticated:true});if(u.pathname.endsWith('/catalog'))return Response.json({products:[{id:'test',name:'테스트 상담',sku:'test-consultation',approvedPriceKRW:1,chapters:1,available:true}]});if(u.pathname.endsWith('/orders/grant')){const body=JSON.parse(options.body);grants++;if(failGrant)return Response.json({error:'TOSS_PARTNER_UNAVAILABLE'},{status:503});return Response.json({orderId:body.orderId,requestId:body.requestId,entitlement:'granted',durable:true});}if(u.pathname.endsWith('/orders/restore')){const body=JSON.parse(options.body);return Response.json({orderId:body.orderId,requestId:null,entitlement:'granted',durable:true});}throw Error('unmocked endpoint: '+u.pathname);};
- await app.login();assert.deepEqual(await app.restorePurchases(),{recovered:0,failed:0,denied:0});const products=await app.saleProducts();assert.equal(products.length,1);
- await new Promise((resolve,reject)=>app.purchase(products[0],'mock-request',resolve,reject));assert.equal(grants,1);assert.equal(app.aitState.state.iap.completedOrders.length,1);assert.match(app.aitState.state.iap.completedOrders[0].orderId,/^mock-order-/);
- app.aitState.patch('iap',{nextResult:'success'});failGrant=true;let off;const pending=new Promise(resolve=>{off=app.aitState.subscribe(()=>{if(app.aitState.state.iap.pendingOrders.length){off();resolve();}})});await new Promise((resolve,reject)=>app.purchase(products[0],'mock-request',()=>reject(Error('unexpected success')),()=>resolve()));await pending;failGrant=false;assert.deepEqual(await app.restorePurchases(),{recovered:1,failed:0,denied:0});assert.equal(app.aitState.state.iap.pendingOrders.length,0);assert.throws(()=>app.purchase(products[0],'mock-request',()=>{},()=>{}),e=>e.code==='PAYMENT_STATUS_UNCERTAIN');
- const cancelModule=new Module(path.join(repo,'toss-official-cancel-mock.cjs'));cancelModule.paths=loaded.paths;cancelModule._compile(bundle.outputFiles[0].text,cancelModule.id);const cancelApp=cancelModule.exports;cancelApp.aitState.patch('iap',{products:[{sku:'test-consultation',type:'CONSUMABLE',displayName:'테스트 상담',displayAmount:'1원',iconUrl:'',description:'mock only'}],nextResult:'USER_CANCELED',pendingOrders:[],completedOrders:[]});await cancelApp.login();await cancelApp.restorePurchases();await new Promise((resolve,reject)=>cancelApp.purchase(products[0],'mock-request',()=>reject(Error('unexpected success')),error=>{try{assert.equal(error.code,'PAYMENT_STATUS_UNCERTAIN');resolve();}catch(e){reject(e)}}));assert.throws(()=>cancelApp.purchase(products[0],'mock-request',()=>{},()=>{}),e=>e.code==='PAYMENT_STATUS_UNCERTAIN');console.log('Official devtools 3.9 mock + fake backend: product list, grant, checkout exit and pending recovery PASS; mock order IDs are not real UUIDs.');
+ const {createOfflineFixtureApi}=await import('./offline/fixture.mjs');
+ const {reviewSdkProducts}=await import('./offline/review-fixture.mjs');
+ const fixture=()=>createOfflineFixtureApi(dom.window.localStorage);
+ let backend=fixture(), dropReceipt=false;
+ globalThis.fetch=async(url,options)=>{
+   const request=new Request(url,options), endpoint=new URL(request.url);
+   assert.equal(endpoint.origin,'https://code-destiny.com');
+   assert.ok(endpoint.pathname.startsWith('/api/toss/'));
+   const response=await backend.handle(request);
+   if(dropReceipt&&response.ok&&endpoint.pathname.endsWith('/orders/grant')){
+     dropReceipt=false;
+     return Response.json({error:'MOCK_RECEIPT_LOST'},{status:503});
+   }
+   return response;
+ };
+ app.aitState.patch('iap',{products:reviewSdkProducts,nextResult:'success',pendingOrders:[],completedOrders:[]});
+ await app.login();
+ assert.deepEqual(await app.restorePurchases(),{recovered:0,failed:0,denied:0});
+ const products=await app.saleProducts();
+ assert.deepEqual(products.map(p=>[p.sku,p.displayAmount]),reviewSdkProducts.map(p=>[p.sku,p.displayAmount]));
+ const createLetter=async()=>{
+   const reply=await app.api('/canonical/fortune-chat/consultations',{question:'오프라인 테스트 질문',persona:'yeoni'});
+   return reply.consultation.id;
+ };
+ const letter=products.find(p=>p.id==='yeoni:chat_saju');
+ const firstId=await createLetter();
+ await new Promise((resolve,reject)=>app.purchase(letter,firstId,resolve,reject));
+ assert.equal(backend.state.orders.size,1);
+ assert.match(app.aitState.state.iap.completedOrders[0].orderId,/^mock-order-/);
+
+ const interruptedId=await createLetter();
+ dropReceipt=true;
+ const pending=new Promise(resolve=>{
+   const off=app.aitState.subscribe(()=>{if(app.aitState.state.iap.pendingOrders.length){off();resolve();}});
+ });
+ await new Promise((resolve,reject)=>app.purchase(letter,interruptedId,()=>reject(Error('unexpected success')),resolve));
+ await pending;
+ backend=fixture();
+ assert.deepEqual(await app.restorePurchases(),{recovered:1,failed:0,denied:0});
+ assert.deepEqual(await app.restorePurchases(),{recovered:0,failed:0,denied:0});
+ const library=await app.api('/library');
+ assert.deepEqual(library.purchases.map(row=>row.requestId),[firstId,interruptedId]);
+ assert.equal(backend.state.orders.size,2);
+ assert.throws(()=>app.purchase(letter,interruptedId,()=>{},()=>{}),e=>e.code==='PAYMENT_STATUS_UNCERTAIN');
+ const unlinkedOrder={orderId:'mock-order-without-local-grant',sku:letter.sku};
+ app.aitState.patch('iap',{pendingOrders:[unlinkedOrder]});
+ assert.deepEqual(await app.restorePurchases(),{recovered:0,failed:0,denied:1});
+ assert.equal(app.aitState.state.iap.pendingOrders[0].orderId,unlinkedOrder.orderId);
+ assert.equal(backend.state.orders.size,2);
+
+ const cancelModule=new Module(path.join(repo,'toss-official-cancel-mock.cjs'));
+ cancelModule.paths=loaded.paths;cancelModule._compile(bundle.outputFiles[0].text,cancelModule.id);
+ const cancelApp=cancelModule.exports;
+ cancelApp.aitState.patch('iap',{products:reviewSdkProducts,nextResult:'USER_CANCELED',pendingOrders:[],completedOrders:[]});
+ await cancelApp.login();await cancelApp.restorePurchases();
+ const canceledId=await createLetter();
+ await new Promise((resolve,reject)=>cancelApp.purchase(letter,canceledId,()=>reject(Error('unexpected success')),error=>{
+   try{assert.equal(error.code,'PAYMENT_STATUS_UNCERTAIN');resolve();}catch(e){reject(e);}
+ }));
+ assert.equal(backend.state.orders.size,2);
+ assert.equal(backend.state.letters.get(canceledId).paid,false);
+ assert.throws(()=>cancelApp.purchase(letter,canceledId,()=>{},()=>{}),e=>e.code==='PAYMENT_STATUS_UNCERTAIN');
+ console.log('Official devtools 3.9 mock: five review prices, letter purchase, canceled checkout, lost receipt and idempotent restoration PASS.');
 })().catch(e=>{console.error(e);process.exitCode=1});

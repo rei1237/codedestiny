@@ -106,9 +106,9 @@ export function createOfflineFixtureApi(storage,{now=()=>new Date()}={}){
    const id=(++state.sequence).toString(16).padStart(64,'0');const intent={id,sku:product.sku,amountKRW:product.approvedPriceKRW,paid:false,orderId:null,input:body.input};state.intents.set(id,intent);save();return respond(intent);
   }
   if(path==='/orders/grant'&&method==='POST'){
-   const body=await request.json(),letter=body.sku===letterProduct.sku?state.letters.get(body.requestId):null,intent=[product.sku,sukuyoProduct.sku,relationshipProduct.sku].includes(body.sku)?state.intents.get(body.requestId):letter;if(!intent||intent.sku&&intent.sku!==body.sku||typeof body.orderId!=='string')return respond({error:'ORDER_MISMATCH'},403);
+   const body=await request.json(),intent=[product.sku,sukuyoProduct.sku,relationshipProduct.sku].includes(body.sku)?state.intents.get(body.requestId):null;if(!intent||intent.sku&&intent.sku!==body.sku||typeof body.orderId!=='string')return respond({error:'ORDER_MISMATCH'},403);
    const prior=state.orders.get(body.orderId);if(prior&&prior!==intent.id||intent.orderId&&intent.orderId!==body.orderId)return respond({error:'ORDER_ALREADY_ASSIGNED'},409);
-   state.orders.set(body.orderId,intent.id);intent.orderId=body.orderId;intent.paid=true;if(letter){letter.state='COMPLETED';letter.chapters=[{id:'test',title:'테스트 상담',summary:'[테스트 전용 예시] 실제 상담 결과가 아닙니다.',analysis:[],questionAnswers:[]}];letter.recovery={canRetryNow:false,savedChapters:1,totalChapters:1};}save();return respond({orderId:body.orderId,requestId:intent.id,entitlement:'granted',durable:true});
+   state.orders.set(body.orderId,intent.id);intent.orderId=body.orderId;intent.paid=true;save();return respond({orderId:body.orderId,requestId:intent.id,entitlement:'granted',durable:true});
   }
   const match=/^\/native\/maya\/(intents|results)\/([a-f0-9]{64})$/.exec(path);
   if(match){const intent=state.intents.get(match[2]);if(!intent)return respond({error:'RESULT_NOT_FOUND'},404);if(match[1]==='intents'&&method==='GET')return respond(intent);if(!intent.paid)return respond({error:'PAYMENT_REQUIRED'},402);if(method==='POST'){intent.result='[테스트 전용 예시] 이 내용은 실제 운세나 상담 결과가 아닙니다.';save();}return respond({id:intent.id,state:intent.result?'COMPLETED':'PENDING',...(intent.result?{prompt:intent.result}:{})});}
