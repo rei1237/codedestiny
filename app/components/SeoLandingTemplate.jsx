@@ -184,7 +184,7 @@ function SectionHead({ id, title, label }) {
   );
 }
 
-export default function SeoLandingTemplate({ page, hero = null, services = null }) {
+export default function SeoLandingTemplate({ page, hero = null, services = null, children = null }) {
   const fortuneLanding = hasFortuneLanding(page.path);
   const EditorialSection = fortuneLanding ? "details" : "section";
   const ReadingGuide = fortuneLanding ? "details" : "div";
@@ -324,6 +324,7 @@ export default function SeoLandingTemplate({ page, hero = null, services = null 
           </div>
           )}
         </header>}
+        {children}
 
         {/* 히어로 바로 아래의 서비스 목록(선택). /saju/ 의 사주 서비스 모아보기가 쓴다. */}
         {services}

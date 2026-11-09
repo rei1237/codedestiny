@@ -5,7 +5,6 @@ import { useCallback, useEffect, useState } from "react";
 import { useDiaryToday, useDiaryWriter } from "./DiaryStoreProvider";
 import { addTodo } from "../_lib/ext-writes";
 import { pickSmallAction, smallActionsFor, type DiarySmallAction } from "../_lib/small-action-pool";
-import { dayGroupOf } from "@/lib/diary/fortune-adapter";
 import { buildDiaryDayDetail } from "../_lib/day-copy";
 import { dayGroupOf } from "@/lib/diary/fortune-adapter";
 import styles from "../_styles/diary.module.css";
