@@ -1,4 +1,4 @@
-status: awaiting-main-integration
+status: integrated-in-release-candidate
 
 # 후기 전환율·익명성 개선 인수인계
 
@@ -40,4 +40,3 @@ status: awaiting-main-integration
 2. `npm run check:pre-push`를 다시 실행한다.
 3. 통과하면 커밋된 HEAD를 `origin/main`에 전달하고 main CI 결과를 한 번 확인한다.
 4. 전달 완료 뒤 이 문서의 `status`를 `done`으로 닫고 안전 워크트리를 배수한다.
-
