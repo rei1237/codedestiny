@@ -8,8 +8,8 @@ const root = path.resolve(__dirname, "../..");
 const read = (file) => fs.readFileSync(path.join(root, file), "utf8").replace(/\r\n/g, "\n");
 
 /**
- * `/diary` 는 사이트 공용 하단바(MobileBottomNav)를 끄고 자체 하단바를 쓴다.
- * 이 가드가 지키는 것은 그 배선의 세 조건이다 — `verify:app-bottom-clearance` 는 `/diary` 를
+ * `/profile/diary` 는 사이트 공용 하단바(MobileBottomNav)를 끄고 자체 하단바를 쓴다.
+ * 이 가드가 지키는 것은 그 배선의 세 조건이다 — `verify:app-bottom-clearance` 는 이 내부 화면을
  * 보지 않으므로(대상이 `/app` 셸이다) 여기가 유일한 방어다.
  */
 
@@ -24,16 +24,16 @@ function arrayEntries(source, name) {
   return match[1];
 }
 
-test("diary route is registered in both AppChrome arrays", () => {
+test("profile diary route is registered in both AppChrome arrays", () => {
   const chrome = read("app/components/AppChrome.tsx");
 
   // 🔴 한쪽만 등록하면 showFeatureNav 의 `hideChrome ||` 가지가 켜져 좌상단에 공용
   //    back/home 이 새로 뜬다(AppChrome.tsx 의 /admin 주석이 실측으로 남긴 사고 사례).
-  assert.match(arrayEntries(chrome, "CHROMELESS_ROUTES"), /"\/diary"/);
-  assert.match(arrayEntries(chrome, "FEATURE_NAV_SELF_MANAGED_ROUTES"), /"\/diary"/);
+  assert.match(arrayEntries(chrome, "CHROMELESS_ROUTES"), /"\/profile\/diary"/);
+  assert.match(arrayEntries(chrome, "FEATURE_NAV_SELF_MANAGED_ROUTES"), /"\/profile\/diary"/);
 
   // trailingSlash:true 라도 배열 비교는 슬래시 없는 형태다.
-  assert.doesNotMatch(chrome, /"\/diary\/"/);
+  assert.doesNotMatch(chrome, /"\/profile\/diary\/"/);
 });
 
 test("diary supplies its own bottom clearance and never borrows the shared one", () => {
@@ -91,16 +91,20 @@ test("diary is noindex on every surface that has to agree", () => {
   assert.match(read("lib/seo/siteSeo.ts"), /export const noindexPathPrefixes = META_NOINDEX_PREFIXES;/);
   const headers = read("_headers");
   assert.ok(
-    /^\/diary\*\n {2}X-Robots-Tag: noindex, nofollow$/m.test(headers),
+    /^\/diary\*\n {2}Cache-Control: private, no-store\n {2}X-Robots-Tag: noindex, nofollow$/m.test(headers),
     "_headers 에 `/diary*` noindex 규칙이 없다",
   );
+  assert.match(headers, /^\/profile\/diary\*\n {2}Cache-Control: private, no-store\n {2}X-Robots-Tag: noindex, nofollow$/m);
   assert.match(read("app/components/adsense-route-policy.js"), /BLOCKED_PREFIXES = \[[\s\S]*?"\/diary"/);
   const adsenseVerifier = read("scripts/verify-adsense-readiness.mjs");
   assert.match(adsenseVerifier, /xRobotsNoindexHeaderPatterns = \[[\s\S]*?"\/diary",\n\s*"\/diary\/\*"/);
 
   // 🔴 noindex 와 self-canonical 은 서로 모순되는 신호다 — 레이아웃에 canonical 을 두지 않는다.
   const layout = stripComments(read("app/diary/layout.tsx"));
+  const profileLayout = stripComments(read("app/profile/diary/layout.tsx"));
   // 묶음 ③ T4: robots 객체는 원장 상수(ROBOTS_META.NOINDEX = noindex, nofollow)로 쓴다.
   assert.match(layout, /robots: ROBOTS_META\.NOINDEX,/);
+  assert.match(profileLayout, /robots: ROBOTS_META\.NOINDEX,/);
   assert.doesNotMatch(layout, /alternates|canonical/);
+  assert.doesNotMatch(profileLayout, /alternates|canonical/);
 });

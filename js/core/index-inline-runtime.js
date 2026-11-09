@@ -1973,13 +1973,6 @@ var __cdLazyActionLoaders = {
   // 레지스트리 조회) 서로를 대체하지 못하므로 형제들과 똑같이 양쪽에 둔다.
   setGender: function() { return __cdEnsureSajuCoreLoaded(); },
   runCompat: function() { return __cdEnsureSajuCoreLoaded(); },
-  // 사주 결과 화면의 "운기 다이어리 (이전 버전)" 카드(js/core/saju/reportDashboard.js).
-  // 셸 모달은 마크업까지 js/luck-sync-diary.js 안에서 만들어지므로 스크립트만 실으면 열린다.
-  // 🔴 이 로더가 그 파일의 유일한 적재 경로다 — index.html 에 <script> 태그가 없다(실측:
-  //    git grep 'luck-sync-diary.js' 에 index.html 0건). 그래서 모달 쪽은 자기 델리게이션으로
-  //    열지 않고 window.openLegacyLuckSyncDiary 만 내놓고, 로드 후 재호출은 아래
-  //    __cdInvokeAction 이 맡는다(둘 다 열면 두 번째 클릭부터 모달을 두 번 만든다).
-  openLegacyLuckSyncDiary: function() { return __cdLoadScriptOnce('/js/luck-sync-diary.js?v=build-fb3af7622cf6'); },
   // 사주 결과 공유 버튼 3종. shareKakao/shareInstagram/shareSajuResultImage 는
   // js/share.js 안에 정의되는데 그 파일이 noncritical-defer-loader(첫 feature-intent
   // 탭/45초 타임아웃/백그라운드 전환 중 하나가 있어야 로드)로만 실려서, 결과 화면
@@ -2181,22 +2174,10 @@ function __cdLoadScriptOnce(src) {
 
 window.__cdLoadScriptOnce = __cdLoadScriptOnce;
 
-// 구형 운기 다이어리는 결과 화면에서만 지연 로드된다. 첫 클릭에 스크립트를
-// 실은 뒤 내부 위임이 사라질 수 있으므로, 준비가 끝나면 공개 API를 직접 호출한다.
+// 보존된 구형 액션도 더는 이전 모달을 열지 않고 프로필 운기 기록으로 모은다.
 function __cdOpenLegacyLuckSyncDiaryProxy() {
-  return __cdLoadScriptOnce('/js/luck-sync-diary.js?v=build-fb3af7622cf6').then(function() {
-    if (window.LuckSyncDiary && typeof window.LuckSyncDiary.open === 'function') {
-      return window.LuckSyncDiary.open();
-    }
-    var open = window.openLegacyLuckSyncDiary;
-    if (typeof open === 'function' && open !== __cdOpenLegacyLuckSyncDiaryProxy) {
-      return open();
-    }
-    return false;
-  }).catch(function(err) {
-    console.warn('[index-inline-runtime] legacy diary open failed:', err);
-    return false;
-  });
+  location.assign('/?action=dpOpenList&view=diary&section=today');
+  return true;
 }
 window.openLegacyLuckSyncDiary = __cdOpenLegacyLuckSyncDiaryProxy;
 
@@ -2645,13 +2626,13 @@ __cdInstallSajuActionStub('runCompat');
 __cdInstallSajuActionStub('setGender');
 __cdInstallSajuActionStub('openAnimalDestinyRoute');
 __cdInstallSajuActionStub('openDestinyMeetingPlaceRoute');
-// 2026-09-07 컷오버(PR-J): 다이어리 진입점을 셸 모달에서 /diary 앱으로 돌린다.
+// 운기 기록은 프로필 시트의 전용 탭이 유일한 사용자 진입점이다.
 // 호출자 5곳(진입 카드·서비스 레지스트리·리포트 대시보드·백스택 서브액션·아래 레거시 쿼리)이
 // 전부 이 액션 이름을 경유하므로 바뀌는 것은 이 본문 하나다. 롤백은 PR revert.
 // 🔴 js/luck-sync-diary.js 는 지우지 않았다 — 진입점만 옮겼고 파일은 그대로 남는다.
 window.openFortunePlanner = function() {
   try {
-    location.assign('/diary/');
+    location.assign('/?action=dpOpenList&view=diary&section=today');
   } catch (err) {
     console.error('[index-inline-runtime] diary open failed:', err);
   }

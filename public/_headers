@@ -59,13 +59,17 @@
   X-Robots-Tag: noindex, nofollow
 /animal/physio*
   X-Robots-Tag: noindex, nofollow
-# 개인 다이어리. `/diary*` 한 줄이 `/diary` 와 `/diary/*` 를 모두 덮는다
-# (scripts/verify-adsense-readiness.mjs 의 headersRuleCovers 규칙).
+# 기존 `/diary*` 는 프로필 운기 기록으로 이동하며, 내부 화면도 검색·공유 캐시 대상이 아니다.
 /records*
   X-Robots-Tag: noindex, nofollow
 /consultations*
   X-Robots-Tag: noindex, nofollow
 /diary*
+  Cache-Control: private, no-store
+  X-Robots-Tag: noindex, nofollow
+
+/profile/diary*
+  Cache-Control: private, no-store
   X-Robots-Tag: noindex, nofollow
 # 🔴 `/maya*` 로 합치지 말 것 — 색인 대상인 `/mayan-calendar/guide` 까지 삼킨다.
 /maya

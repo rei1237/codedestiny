@@ -50,10 +50,10 @@ interface DiaryNavTab {
 
 /** ＋ 는 라우트가 아니라 퀵캡처 시트 액션이다 — 오늘 하루에 바로 쓴다(PR-E). */
 export const DIARY_NAV_TABS: readonly DiaryNavTab[] = [
-  { key: "home", href: "/diary/", icon: "☀", label: copy.home, ready: true },
-  { key: "calendar", href: "/diary/calendar/", icon: "▦", label: copy.calendar, ready: true },
-  { key: "records", href: "/diary/records/", icon: "✎", label: copy.records, ready: true },
-  { key: "more", href: "/diary/more/", icon: "⋯", label: copy.more, ready: true },
+  { key: "home", href: "/profile/diary/", icon: "☀", label: copy.home, ready: true },
+  { key: "calendar", href: "/profile/diary/calendar/", icon: "▦", label: copy.calendar, ready: true },
+  { key: "records", href: "/profile/diary/records/", icon: "✎", label: copy.records, ready: true },
+  { key: "more", href: "/profile/diary/more/", icon: "⋯", label: copy.more, ready: true },
 ];
 
 const stripSlash = (value: string) => (value.length > 1 ? value.replace(/\/+$/, "") : value);
@@ -62,10 +62,10 @@ const stripSlash = (value: string) => (value.length > 1 ? value.replace(/\/+$/, 
  * 탭이 없는 짝 화면. 🔴 통계는 기록의 세그먼트로만 오가므로(`DiaryRecordsTabs`) 그 화면에서도
  * 「기록」이 활성이어야 한다 — 아니면 하단바가 아무 데도 안 켜진 채로 보인다.
  */
-const TAB_ALIAS: Record<string, readonly string[]> = { records: ["/diary/stats"] };
+const TAB_ALIAS: Record<string, readonly string[]> = { records: ["/profile/diary/stats"] };
 
 export default function DiaryBottomNav() {
-  const pathname = usePathname() || "/diary";
+  const pathname = usePathname() || "/profile/diary";
   const current = stripSlash(pathname);
   const [capture, setCapture] = useState(false);
 

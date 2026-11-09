@@ -22,8 +22,6 @@ const CONSOLIDATED_PAGE_REDIRECTS = {
   "/saju/love-bible": "/love-secret-ai/",
   "/pdf/life-book": "/life-book-ai/",
   "/landing": "/ggulggul/",
-  "/fortune-planner": "/diary/",
-  "/luck-sync-diary": "/diary/",
   "/face-reading": "/physiognomy/",
   "/sukyo": "/sukuyo/",
   "/kkul-kkul-unse": "/",
@@ -108,7 +106,7 @@ function visitorLocaleHeaders(headers, context, cacheControl = "private, no-stor
 // freshness directives (max-age, no-cache, no-store...) and only swap the visibility to private.
 // Payment and signed-in pages stay no-store: `_headers` gives them the same no-cache as any other page.
 function privateCacheControl(value, pathname) {
-  if (/^\/(?:checkout|account|admin|login|diary)(?:\/|$)/.test(pathname)) return "private, no-store";
+  if (/^\/(?:checkout|account|admin|login|diary|profile\/diary)(?:\/|$)/.test(pathname)) return "private, no-store";
   const kept = String(value || "").split(",").map(part => part.trim())
     .filter(part => part && !/^(?:public|private|s-maxage(?:=.*)?)$/i.test(part));
   return `private, ${kept.length ? kept.join(", ") : "no-cache"}`;
@@ -760,6 +758,16 @@ export default {
     }
     if (/^\/tadagochi(?:\.html)?\/?$/.test(url.pathname)) {
       return Response.redirect(new URL('/ggulggul/#dpMasterCard', url), 301);
+    }
+    const diaryMatch = /^\/diary(?:\/(calendar|records|stats|more))?\/?$/.exec(url.pathname);
+    if (diaryMatch || /^\/(?:fortune-planner|luck-sync-diary)\/?$/.test(url.pathname)) {
+      const target = new URL('/', url);
+      target.searchParams.set('action', 'dpOpenList');
+      target.searchParams.set('view', 'diary');
+      target.searchParams.set('section', diaryMatch?.[1] || 'today');
+      const day = url.searchParams.get('d');
+      if (day && /^\d{4}-\d{2}-\d{2}$/.test(day)) target.searchParams.set('d', day);
+      return new Response(null, { status: 301, headers: { Location: target.toString(), 'Cache-Control': 'no-store' } });
     }
     // /static/ 아래 두 번째 사본은 지웠다 — 원본 셸 하나로 모은다(질의는 그대로 넘긴다).
     if (/^\/static\/geomancy-oracle-v4(?:\.html)?\/?$/.test(url.pathname)) {

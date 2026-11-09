@@ -43,8 +43,7 @@
     "master-love-codex": ["book"], "fortune-tea-house": ["tea"], "fortune-chat": ["tea", "strategy"],
     "love-secret-ai": ["tea", "moon"], "life-book-ai": ["sky"], "palm-reading": ["tea"],
     "fusion-fortune": ["strategy", "tea", "moon", "sky", "stars"],
-    "human-design": ["archive"], maya: ["archive"], music: ["archive"], novel: ["archive"], points: ["archive"],
-    "luck-sync-diary": ["archive"]
+    "human-design": ["archive"], maya: ["archive"], music: ["archive"], novel: ["archive"], points: ["archive"]
   };
   var MASTER_NAMES = { yeoni: "연이", neo: "네오", musung: "무성", hanbi: "서한비", yun: "윤달", master: "마스터" };
   // 확인된 상품·프로필만 이름표를 표시한다. 체계나 지역만으로 담당자를 추정하지 않는다.

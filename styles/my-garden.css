@@ -43,7 +43,17 @@ html body #cdAccountSheet #authQuickLinks .auth-btn{min-height:44px;margin:0;pad
 #dpListSheet .dp-sheet-head{padding:14px 16px 14px 24px;border-color:var(--mg-line)}
 #dpListSheet .dp-sheet-title{font:700 var(--cd-t-section)/1.4 var(--font-serif);letter-spacing:0;color:var(--mg-ink)}
 #dpListSheet .dp-sheet-close{box-sizing:border-box;width:44px;height:44px;background:transparent;border:0;color:var(--mg-muted)}
+#dpListSheet .dp-profile-tabs{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:0 24px;padding:5px;border:1px solid var(--mg-line);border-radius:var(--cd-r-control);background:var(--mg-surface)}
+#dpListSheet .dp-profile-tab{min-height:44px;padding:9px 14px;border:0;border-radius:calc(var(--cd-r-control) - 4px);background:transparent;color:var(--mg-muted);font:700 var(--cd-t-body)/1.4 var(--font-body);cursor:pointer}
+#dpListSheet .dp-profile-tab.is-active{background:var(--mg-bg);color:var(--mg-accent);box-shadow:0 1px 5px color-mix(in srgb,var(--mg-ink) 10%,transparent)}
 #dpListSheet .dp-list-scroll{min-height:0;padding:24px}
+#dpListSheet .dp-profile-diary{position:relative;display:flex;flex:1 1 auto;min-height:0;margin-top:12px;background:var(--mg-bg);overflow:hidden}
+#dpListSheet .dp-profile-diary[hidden]{display:none}
+#dpListSheet .dp-profile-diary iframe{display:block;flex:1 1 auto;width:100%;height:100%;min-height:0;border:0;background:var(--mg-bg)}
+#dpListSheet .dp-profile-diary iframe[hidden],#dpListSheet .dp-profile-diary__status[hidden],#dpListSheet .dp-profile-diary__retry[hidden]{display:none}
+#dpListSheet .dp-profile-diary__status{position:absolute;inset:0;display:grid;place-items:center;margin:0;padding:24px;color:var(--mg-muted);font-size:var(--cd-t-body);text-align:center}
+#dpListSheet .dp-profile-diary__retry{position:absolute;left:50%;top:55%;z-index:1;min-height:44px;padding:10px 18px;border:0;border-radius:var(--cd-r-control);background:var(--mg-accent);color:var(--mg-bg);font:700 var(--cd-t-body)/1.4 var(--font-body);transform:translateX(-50%);cursor:pointer}
+#dpListSheet.dp-sheet--diary-view .dp-sheet-foot{display:none}
 #dpListSheet #dpMasterCard.dp-master-card{width:100%;max-width:none!important;margin:0 0 24px!important;background:var(--mg-surface);border:1px solid var(--mg-line);box-shadow:none;border-radius:var(--cd-r-card)}
 #dpListSheet #dpMasterCard:before,#dpListSheet #dpMasterCard:after,#dpListSheet .dp-mc-glow,#dpListSheet .dp-mc-stars{display:none}
 #dpListSheet .dp-mc-flower{color:var(--mg-accent);animation:none;opacity:.08}
@@ -65,7 +75,7 @@ html body #cdAccountSheet #authQuickLinks .auth-btn{min-height:44px;margin:0;pad
 #dpListSheet :is(.dp-list-item,.dp-list-add,.dp-list-empty-cta){background:var(--mg-bg);border-color:var(--mg-line);color:var(--mg-accent);box-shadow:none;backdrop-filter:none}
 #dpListSheet :is(.dp-list-add,.dp-list-empty-cta){min-height:48px;margin-block:12px;padding:10px 22px;border:0;border-radius:var(--cd-r-control);background:var(--cd-cta-primary-bg);color:var(--cd-cta-primary-ink);font:inherit;font-weight:700;cursor:pointer}
 .dp-forest-card #dpListSheet{inset:0;width:100%;height:100%;max-width:none;max-height:none;transform:none;border-radius:0}
-.dp-forest-card #dpListSheet :is(.dp-sheet-head,.dp-sheet-foot,.dp-sheet-handle-wrap,#dpMasterCardHost){display:none}
+.dp-forest-card #dpListSheet :is(.dp-sheet-head,.dp-sheet-foot,.dp-sheet-handle-wrap,.dp-profile-tabs,#dpMasterCardHost){display:none}
 .dp-forest-card #dpListOverlay{background:var(--cd-surface)}
 #dpListSheet .dp-list-item--active{background:var(--mg-surface);border-color:var(--mg-accent)}
 #dpListSheet :is(.dp-li-name,.dp-list-empty){color:var(--mg-ink)}
@@ -101,5 +111,5 @@ html body #cdAccountSheet #authQuickLinks .auth-btn{min-height:44px;margin:0;pad
 .dp-lvl__bloom{position:absolute;right:0;top:16px;width:72px;height:72px;background:currentColor;opacity:var(--garden-bloom,.12);pointer-events:none;mask:url(/icons/yehwa-branch.svg) center/contain no-repeat;-webkit-mask:url(/icons/yehwa-branch.svg) center/contain no-repeat}
 #dpListSheet :is(button,a):focus-visible,#cdAccountSheet :is(a,button,summary):focus-visible{outline:2px solid var(--mg-accent);outline-offset:3px}
 @media(min-width:760px){#cdAccountSheet{top:32px;bottom:32px;max-height:880px;margin-block:auto}#cdAccountSheet .cd-sheet__body{display:grid;grid-template-columns:1.15fr 1fr;align-content:start;gap:24px 32px}.my-garden-hero{grid-row:span 2}.my-garden-settings{grid-column:1/-1}#dpListSheet{top:32px;bottom:32px;max-height:900px}#dpListSheet .dp-mc-inner{display:grid;grid-template-columns:1fr 1.15fr;gap:20px 32px}#dpListSheet .dp-mc-header{grid-column:1;align-self:start}#dpListSheet .dp-mc-info{grid-column:1;align-self:start}#dpListSheet .dp-mc-divider{display:none}#dpListSheet .dp-lvl{grid-column:2;grid-row:1/span 3;margin:0;padding:0 0 0 24px;border-top:0;border-left:1px solid var(--mg-line)}#dpListSheet .dp-mc-load-btn{grid-column:1;align-self:end;margin:0}}
-@media(max-width:430px){#cdAccountSheet .cd-sheet__body,#dpListSheet .dp-list-scroll{padding:20px 16px}.my-garden-hero,#dpListSheet .dp-mc-inner{padding:22px 18px}.my-garden-name,#dpListSheet .dp-mc-name{font-size:var(--cd-t-section)}#dpListSheet .dp-mc-avatar{width:44px;height:44px;font-size:1.5rem}}
+@media(max-width:430px){#cdAccountSheet .cd-sheet__body,#dpListSheet .dp-list-scroll{padding:20px 16px}#dpListSheet .dp-profile-tabs{margin-inline:16px}.my-garden-hero,#dpListSheet .dp-mc-inner{padding:22px 18px}.my-garden-name,#dpListSheet .dp-mc-name{font-size:var(--cd-t-section)}#dpListSheet .dp-mc-avatar{width:44px;height:44px;font-size:1.5rem}}
 @media(prefers-reduced-motion:reduce){#dpListSheet,#dpListSheet *,#cdAccountSheet *{animation:none!important;transition:none!important}}

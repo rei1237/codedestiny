@@ -38,9 +38,9 @@ const CHROMELESS_ROUTES = [
   "/gift",
   "/app",
   "/points/history",
-  // 운기 다이어리는 자체 하단바(app/diary/_components/DiaryBottomNav.tsx)를 갖는다.
+  // 프로필 안의 운기 기록은 자체 하단바(app/diary/_components/DiaryBottomNav.tsx)를 갖는다.
   // 🔴 FEATURE_NAV_SELF_MANAGED_ROUTES 에도 함께 있어야 한다(아래 /admin 주석 참고).
-  "/diary",
+  "/profile/diary",
   "/nakshatra",
   "/saju/love-simulation",
   "/saju/destiny-bias",
@@ -144,7 +144,7 @@ const FEATURE_NAV_SELF_MANAGED_ROUTES = [
   //    관리자 화면 좌상단에 공용 back/home 나브가 새로 뜬다. 두 배열에 함께 있어야 한다.
   "/admin",
   // 자체 상단바(뒤로·홈·검색) + 자체 하단바. 위 /admin 주석과 같은 이유로 두 배열에 함께 둔다.
-  "/diary",
+  "/profile/diary",
   "/karma-destiny-ai",
   // 앱 부적·홈 위젯 화면은 자체 머리말(뒤로·꿀꿀운세)이 있다. /app 은 CHROMELESS 라 여기 없으면 공용 나브가 한 겹 더 뜬다.
   "/app/talismans",

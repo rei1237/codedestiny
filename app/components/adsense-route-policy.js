@@ -42,6 +42,7 @@ const BLOCKED_PREFIXES = [
   "/checkout",
   // 개인 다이어리 — 사용자가 자기 기록을 쓰는 화면이라 광고를 싣지 않는다.
   "/diary",
+  "/profile/diary",
   "/fail",
   "/fortune/prompt-hub",
   "/login",

@@ -24,8 +24,8 @@ const DIARY_RECORDS_TABS_TEXT = {
 const copy = DIARY_RECORDS_TABS_TEXT.ko;
 
 const TABS = [
-  { key: "list", href: "/diary/records/", label: copy.list },
-  { key: "stats", href: "/diary/stats/", label: copy.stats },
+  { key: "list", href: "/profile/diary/records/", label: copy.list },
+  { key: "stats", href: "/profile/diary/stats/", label: copy.stats },
 ] as const;
 
 const stripSlash = (value: string) => (value.length > 1 ? value.replace(/\/+$/, "") : value);

@@ -7,34 +7,28 @@ const crypto = require("node:crypto");
 const root = path.resolve(__dirname, "../..");
 const read = (file) => fs.readFileSync(path.join(root, file), "utf8");
 
-test("fortune planner entry cuts over to the /diary app", () => {
+test("fortune diary entry is consolidated into the profile diary tab", () => {
   const html = read("index.html");
   const runtime = read("js/core/index-inline-runtime.js");
   const plannerRoute = read("public/_worker.js");
   const legacyRoute = plannerRoute;
   const dashboard = read("js/core/saju/reportDashboard.js");
 
-  // 2026-09-07 컷오버(PR-J): 진입점이 셸 모달에서 /diary 앱으로 넘어갔다. 지킬 것이 뒤집힌다 —
-  // 예전에는 "이 액션이 luck-sync-diary.js 를 로드해 모달을 연다"를 지켰고, 지금은 "모달을 열지
-  // 않고 /diary 로 보낸다"를 지킨다. 🔴 doesNotMatch 가 이 가드가 무는 지점이다(match 만 두면
-  // 모달 로드를 되살려 붙여도 통과한다).
-  // 🔴 검사 범위를 진입점 함수 본문으로 좁힌다 — 파일 전체를 보면 액션 델리게이션의
-  //    지연로드 폴백(action === 'openLuckSyncDiary' 분기)에 남아 있는 LuckSyncDiary.open 이
-  //    함께 걸린다. 그 분기는 진입점이 아니고, 셸 모달 자체는 이번 컷오버에서 지우지 않았다.
   const plannerFn = runtime.match(/window\.openFortunePlanner = function\(\) \{[\s\S]*?\n\};/);
   assert.ok(plannerFn, "window.openFortunePlanner 정의를 찾지 못했다");
-  assert.match(plannerFn[0], /location\.assign\('\/diary\/'\)/);
+  assert.match(plannerFn[0], /location\.assign\('\/\?action=dpOpenList&view=diary&section=today'\)/);
   assert.doesNotMatch(plannerFn[0], /LuckSyncDiary|luck-sync-diary\.js/);
   assert.match(runtime, /window\.openLuckSyncDiary = window\.openFortunePlanner/);
-  assert.match(plannerRoute, /"\/fortune-planner": "\/diary\/"/);
-  assert.match(legacyRoute, /"\/luck-sync-diary": "\/diary\/"/);
+  assert.match(plannerRoute, /const diaryMatch = \/\^\\\/diary/);
+  assert.match(plannerRoute, /fortune-planner\|luck-sync-diary/);
+  assert.match(plannerRoute, /target\.searchParams\.set\('view', 'diary'\)/);
   assert.doesNotMatch(runtime, /location\.assign\('\/fortune-planner'\)/);
   assert.doesNotMatch(runtime, /mountFortunePlannerHomeCard/);
   assert.doesNotMatch(runtime, /cdFortunePlannerCard/);
   // 2026-10-17 "직관성": 홈의 다이어리 진입 카드(#cdDiaryPlannerEntry)는 걷어냈다.
-  // /diary/ 는 모든 운세 시트(service-registry)가 곧장 연다 — data-action 으로 상세 카드를 한 번 더 거치지 않는다.
+  // 독립 서비스 카드와 결과 카드가 다시 생기면 프로필 기록과 저장 경험이 갈라진다.
   assert.doesNotMatch(html, /id="cdDiaryPlannerEntry"/);
-  assert.match(read("js/core/service-registry.js"), /href: "\/diary\/"/);
+  assert.doesNotMatch(read("js/core/service-registry.js"), /luck-sync-diary/);
   assert.doesNotMatch(html, /id="cdHomeSecondaryPanel"/);
   assert.doesNotMatch(html, /\.cd-home-secondary-panel\{/);
   // 2026-09-08(home-existing-assets-reassembly): 대표 상담은 홈 정보 구조 안으로 승격됐고,
@@ -57,22 +51,40 @@ test("fortune planner entry cuts over to the /diary app", () => {
      지킬 것은 앵커 표현식이 아니라 **다이어리 진입이 살아 있고 순서가 유지되는 것**이고,
      그건 바로 위 순서 단언과 앞쪽의 존재·구조 단언 3개가 이미 지킨다.
      🔴 되살리지 말 것 — 사라진 레일을 다시 요구하게 된다. */
-  assert.match(dashboard, /label:'갓생 다이어리'/);
-  assert.match(dashboard, /cta:'다이어리 열기'/);
+  assert.doesNotMatch(dashboard, /갓생 다이어리|운기 다이어리 \(이전 버전\)/);
 });
 
-test("legacy diary action opens through a first-click-safe loader and mirrors stay in sync", () => {
+test("legacy diary action redirects to profile and public mirrors stay in sync", () => {
   const runtime = read("js/core/index-inline-runtime.js");
   const publicRuntime = read("public/js/core/index-inline-runtime.js");
   const dashboard = read("js/core/saju/reportDashboard.js");
   const publicDashboard = read("public/js/core/saju/reportDashboard.js");
 
-  assert.match(runtime, /function __cdOpenLegacyLuckSyncDiaryProxy\(\)[\s\S]*?LuckSyncDiary\.open\(\)/);
+  assert.match(runtime, /function __cdOpenLegacyLuckSyncDiaryProxy\(\)[\s\S]*?view=diary&section=today/);
   assert.match(runtime, /window\.openLegacyLuckSyncDiary = __cdOpenLegacyLuckSyncDiaryProxy/);
-  assert.match(dashboard, /action:'openLegacyLuckSyncDiary'/);
-  assert.match(dashboard, /actionName === 'openLegacyLuckSyncDiary'/);
+  assert.doesNotMatch(runtime, /openLegacyLuckSyncDiary:\s*function\(\).*luck-sync-diary\.js/);
+  assert.doesNotMatch(dashboard, /openLegacyLuckSyncDiary|legacyLuckSyncDiary/);
   assert.equal(publicRuntime, runtime, "public runtime mirror is stale");
   assert.equal(publicDashboard, dashboard, "public dashboard mirror is stale");
+});
+
+test("profile sheet lazy-loads the diary and accepts messages only from its iframe", () => {
+  const html = read("index.html");
+  const profile = read("js/destiny-profile.js");
+  const bridge = read("app/profile/diary/_components/ProfileDiaryBridge.tsx");
+  const redirect = read("app/diary/_components/DiaryProfileRedirect.tsx");
+
+  assert.match(html, /role="tablist"[\s\S]*data-dp-profile-tab="profile"[\s\S]*data-dp-profile-tab="diary"/);
+  assert.match(html, /id="dpProfileDiaryPanel"[^>]*role="tabpanel"[^>]*hidden/);
+  assert.match(profile, /document\.createElement\('iframe'\)/);
+  assert.match(profile, /event\.origin !== window\.location\.origin/);
+  assert.match(profile, /event\.source !== frame\.contentWindow/);
+  assert.match(profile, /data\.type !== 'cd:profile-diary'/);
+  assert.match(profile, /_dpListReturnFocus/);
+  assert.match(bridge, /post\("close", section\)/);
+  assert.match(bridge, /window\.parent\.postMessage\(\{ type: "cd:profile-diary", state, section \}, window\.location\.origin\)/);
+  assert.match(redirect, /window\.location\.replace\(profileDiaryHref\(section\)\)/);
+  assert.match(redirect, /\^\\d\{4\}-\\d\{2\}-\\d\{2\}\$/);
 });
 
 test("relationship temptation card embeds the self-gated target report", () => {

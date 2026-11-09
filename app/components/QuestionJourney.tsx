@@ -89,5 +89,5 @@ export default function QuestionJourney({source='home'}:{source?:string}){
 }
 export function FreeQuestionNext({category,source}:{category:string;source:string}){
  const q=getQuestionGuide(freeQuestionMap[category]);
- return <aside className={styles.journey} aria-label="무료 결과 다음 질문">{q?<><h2>읽고 나니, 이런 점도 궁금한가요?</h2><p>방금 본 결과의 분야에서 이어 생각해 볼 질문이에요. 아래 질문이 지금의 고민과 맞을 때 선택해 주세요.</p><a href={questionGuideHref(q.id)} onClick={()=>record('free_question_click',source,q)}>{q.question} — 무료 해설 읽기</a><Exposure event="free_question_view" source={source} q={q}/></>:<><h2>오늘 읽은 이야기, 내 하루에 남겨볼까요?</h2><p>기억하고 싶은 문장과 오늘 해볼 행동 하나를 정리해 보세요.</p><a href="/diary/">무료 운세 다이어리 열기</a></>}</aside>;
+ return <aside className={styles.journey} aria-label="무료 결과 다음 질문">{q?<><h2>읽고 나니, 이런 점도 궁금한가요?</h2><p>방금 본 결과의 분야에서 이어 생각해 볼 질문이에요. 아래 질문이 지금의 고민과 맞을 때 선택해 주세요.</p><a href={questionGuideHref(q.id)} onClick={()=>record('free_question_click',source,q)}>{q.question} — 무료 해설 읽기</a><Exposure event="free_question_view" source={source} q={q}/></>:<><h2>오늘 읽은 이야기, 내 하루에 남겨볼까요?</h2><p>기억하고 싶은 문장과 오늘 해볼 행동 하나를 정리해 보세요.</p><a href="/?action=dpOpenList&view=diary&section=today">프로필에서 운기 기록 열기</a></>}</aside>;
 }

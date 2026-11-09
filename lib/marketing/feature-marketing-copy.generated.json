@@ -8175,36 +8175,6 @@
       },
       "dictNs": "love_secret_ai"
     },
-    "luck-sync-diary": {
-      "copy": {
-        "analysisSteps": [],
-        "answersQuestions": [
-          "이번 달 흐름은 어땠나요?",
-          "기록과 운세가 얼마나 맞았나요?",
-          "다음 달은 무엇을 준비할까요?"
-        ],
-        "badge": "무료 기록",
-        "category": "사주",
-        "ctaLabel": "운기 다이어리 열기",
-        "faq": [],
-        "featureId": "luck-sync-diary",
-        "headline": "운세를 보고 끝내지 말고, 실제로 어땠는지 남겨 보세요.",
-        "painPoints": [
-          "운세가 맞았는지 기억나지 않을 때",
-          "기분과 흐름의 연결을 확인하고 싶을 때",
-          "기록을 이어가기 어려울 때"
-        ],
-        "previewText": "예측을 덧붙이지 않고, 기록한 하루와 그날의 흐름을 나란히 놓아 줍니다.",
-        "recommendedFor": [
-          "기록하는 습관을 들이고 싶은 분",
-          "운세와 실제를 대조하고 싶은 분",
-          "월 단위로 흐름을 보고 싶은 분"
-        ],
-        "subheadline": "오늘의 흐름을 기록하고 월간 플래너에서 지난 기록과 나란히 볼 수 있는 다이어리입니다.",
-        "unlockBenefits": []
-      },
-      "dictNs": "openLuckSyncDiary"
-    },
     "master-love-codex": {
       "copy": {
         "analysisSteps": [
@@ -10698,36 +10668,6 @@
         }
       },
       "dictNs": "openLoveSimulation"
-    },
-    "openLuckSyncDiary": {
-      "copy": {
-        "analysisSteps": [],
-        "answersQuestions": [
-          "이번 달 흐름은 어땠나요?",
-          "기록과 운세가 얼마나 맞았나요?",
-          "다음 달은 무엇을 준비할까요?"
-        ],
-        "badge": "무료 기록",
-        "category": "사주",
-        "ctaLabel": "운기 다이어리 열기",
-        "faq": [],
-        "featureId": "luck-sync-diary",
-        "headline": "운세를 보고 끝내지 말고, 실제로 어땠는지 남겨 보세요.",
-        "painPoints": [
-          "운세가 맞았는지 기억나지 않을 때",
-          "기분과 흐름의 연결을 확인하고 싶을 때",
-          "기록을 이어가기 어려울 때"
-        ],
-        "previewText": "예측을 덧붙이지 않고, 기록한 하루와 그날의 흐름을 나란히 놓아 줍니다.",
-        "recommendedFor": [
-          "기록하는 습관을 들이고 싶은 분",
-          "운세와 실제를 대조하고 싶은 분",
-          "월 단위로 흐름을 보고 싶은 분"
-        ],
-        "subheadline": "오늘의 흐름을 기록하고 월간 플래너에서 지난 기록과 나란히 볼 수 있는 다이어리입니다.",
-        "unlockBenefits": []
-      },
-      "dictNs": "openLuckSyncDiary"
     },
     "openMbtiModal": {
       "copy": {

@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { mobileSpriteUrl } from "@/js/core/profile-characters.mjs";
 import { trackEvent } from "@/lib/analytics";
@@ -22,7 +21,7 @@ const HONEY_JAR = "/images/fortune-tea-house/honey-jar-bonus-v1.webp";
 const MAX_GAUGE = 14;
 
 function loginHref(surface: JourneySurface) {
-  return surface === "home" ? "/login/?next=%2F%23daily-home-title" : "/login/?next=%2Fdiary%2F%23daily-home-title";
+  return surface === "home" ? "/login/?next=%2F%23daily-home-title" : "/login/?next=%2Fprofile%2Fdiary%2F%23daily-home-title";
 }
 
 function HoneyIcon({ size = 24, jar = false }: { size?: number; jar?: boolean }) {
@@ -207,7 +206,7 @@ function TodayQuests({ journey }: { journey: DailyJourney }) {
             <DiaryMoodPicker ymd={ymd} mood={entry?.moodEmoji || ""} label="오늘의 기분" />
             <DiaryRecordCard embedded />
             <p>기록은 이 기기의 브라우저에 저장돼요.</p>
-            {journey.surface === "home" && <Link href="/diary/" onClick={() => trackEvent("daily_home_diary_opened", { surface: journey.surface })}>다이어리 더 보기 <span aria-hidden="true">→</span></Link>}
+            {journey.surface === "home" && <a href="/?action=dpOpenList&view=diary&section=today" onClick={() => trackEvent("daily_home_diary_opened", { surface: journey.surface })}>운기 기록 더 보기 <span aria-hidden="true">→</span></a>}
           </div>}
         </div>
       </li>

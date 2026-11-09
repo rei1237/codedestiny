@@ -963,24 +963,6 @@ window.__cdServiceRegistry = [
   },
   /* ── 그 밖의 진입점 ─────────────────────────────────────────── */
   {
-    image: "/images/service-introductions/luck-sync-diary-320.webp",
-    imageAlt: "운기 다이어리와 플래너의 핵심 도구와 이용 장면을 담은 일러스트",
-    id: "luck-sync-diary",
-    name: "운기 다이어리와 플래너",
-    question: "이번 달 흐름, 기록과 얼마나 맞았을까?",
-    desc: "오늘의 흐름 기록 · 월간 플래너",
-    /* 셸 모달이 아니라 /diary 앱으로 간다(2026-09-07 컷오버 — window.openLuckSyncDiary 는
-       이제 location.assign('/diary/') 다). action 을 함께 남기는 이유는 상세 문안
-       FEATURE_MARKETING_COPY 의 키가 'openLuckSyncDiary' 이기 때문이다
-       (scripts/verify-home-service-registry.mjs 의 문안 대조가 이 키로 찾는다). */
-    href: "/diary/",
-    action: "openLuckSyncDiary",
-    price: "기록 도구",
-    purposes: ["today", "etc"],
-    methods: ["saju"],
-    keys: "다이어리 플래너 일기 기록 일정 캘린더 운기",
-  },
-  {
     id: "music",
     name: "달빛 음악 플레이어",
     desc: "운세와 어울리는 음악으로 마음 달래기",

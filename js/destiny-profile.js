@@ -9831,6 +9831,115 @@
   }
 
   var _dpListOpenedAt = 0;
+  var _dpListReturnFocus = null;
+  var _dpProfileDiaryMessageBound = false;
+  var _dpProfileDiarySections = { today: '', calendar: 'calendar/', records: 'records/', stats: 'stats/', more: 'more/' };
+
+  function _dpProfileDiaryRequest() {
+    var query;
+    try { query = new URLSearchParams(window.location.search || ''); } catch (_) { query = null; }
+    var section = query && Object.prototype.hasOwnProperty.call(_dpProfileDiarySections, query.get('section'))
+      ? query.get('section') : 'today';
+    return {
+      diary: !!(query && query.get('view') === 'diary'),
+      section: section,
+      day: query && /^\d{4}-\d{2}-\d{2}$/.test(query.get('d') || '') ? query.get('d') : ''
+    };
+  }
+
+  function _dpProfileDiarySrc(section, day) {
+    var safeSection = Object.prototype.hasOwnProperty.call(_dpProfileDiarySections, section) ? section : 'today';
+    var path = '/profile/diary/' + _dpProfileDiarySections[safeSection];
+    var query = new URLSearchParams({ embed: 'profile' });
+    if (day) query.set('d', day);
+    return path + '?' + query.toString();
+  }
+
+  function _dpSetProfileDiaryStatus(panel, text, retry) {
+    var status = panel && panel.querySelector('.dp-profile-diary__status');
+    var button = panel && panel.querySelector('.dp-profile-diary__retry');
+    if (status) { status.textContent = text || ''; status.hidden = !text; }
+    if (button) button.hidden = !retry;
+  }
+
+  function _dpBindProfileDiaryMessage() {
+    if (_dpProfileDiaryMessageBound) return;
+    _dpProfileDiaryMessageBound = true;
+    window.addEventListener('message', function(event) {
+      if (event.origin !== window.location.origin) return;
+      var sheet = document.getElementById('dpListSheet');
+      var frame = sheet && sheet.querySelector('[data-dp-profile-diary-frame]');
+      if (!frame || event.source !== frame.contentWindow) return;
+      var data = event.data;
+      if (!data || data.type !== 'cd:profile-diary') return;
+      if (data.state === 'close') { window.dpCloseList(); return; }
+      if (data.state === 'error') {
+        frame.hidden = true;
+        _dpSetProfileDiaryStatus(frame.parentElement, '운기 기록을 불러오지 못했어요.', true);
+        return;
+      }
+      if (data.state === 'ready') {
+        frame.hidden = false;
+        _dpSetProfileDiaryStatus(frame.parentElement, '', false);
+      }
+      if (Object.prototype.hasOwnProperty.call(_dpProfileDiarySections, data.section)) {
+        frame.dataset.section = data.section;
+      }
+    });
+  }
+
+  function _dpEnsureProfileDiaryFrame(sheet, section, day, force) {
+    var panel = sheet && sheet.querySelector('#dpProfileDiaryPanel');
+    if (!panel) return null;
+    var frame = panel.querySelector('[data-dp-profile-diary-frame]');
+    var src = _dpProfileDiarySrc(section, day);
+    if (!frame) {
+      frame = document.createElement('iframe');
+      frame.title = '프로필 운기 기록';
+      frame.setAttribute('data-dp-profile-diary-frame', '');
+      frame.setAttribute('loading', 'eager');
+      frame.hidden = true;
+      frame.addEventListener('error', function() {
+        frame.hidden = true;
+        _dpSetProfileDiaryStatus(panel, '운기 기록을 불러오지 못했어요.', true);
+      });
+      panel.appendChild(frame);
+    }
+    if (force || frame.getAttribute('src') !== src) {
+      frame.hidden = true;
+      _dpSetProfileDiaryStatus(panel, '운기 기록을 펼치고 있어요.', false);
+      frame.setAttribute('src', src);
+    }
+    _dpBindProfileDiaryMessage();
+    return frame;
+  }
+
+  function _dpSetProfileSheetView(sheet, view, options) {
+    if (!sheet) return;
+    var diary = view === 'diary';
+    var profilePanel = sheet.querySelector('#dpProfilePanel');
+    var diaryPanel = sheet.querySelector('#dpProfileDiaryPanel');
+    var profileTab = sheet.querySelector('[data-dp-profile-tab="profile"]');
+    var diaryTab = sheet.querySelector('[data-dp-profile-tab="diary"]');
+    sheet.classList.toggle('dp-sheet--diary-view', diary);
+    if (profilePanel) profilePanel.hidden = diary;
+    if (diaryPanel) diaryPanel.hidden = !diary;
+    [profileTab, diaryTab].forEach(function(tab) {
+      if (!tab) return;
+      var selected = tab === (diary ? diaryTab : profileTab);
+      tab.classList.toggle('is-active', selected);
+      tab.setAttribute('aria-selected', selected ? 'true' : 'false');
+      tab.tabIndex = selected ? 0 : -1;
+    });
+    if (diary) {
+      var request = options || _dpProfileDiaryRequest();
+      _dpEnsureProfileDiaryFrame(sheet, request.section || 'today', request.day || '', !!request.force);
+    }
+    if (options && options.focus) {
+      var target = diary ? diaryTab : profileTab;
+      if (target) { try { target.focus({ preventScroll: true }); } catch (_) { target.focus(); } }
+    }
+  }
   /* 홈의 큰 카드는 상시 노출하지 않고 마이 시트 안에서만 보여 준다. DOM 을 복제하면
      레벨 이벤트와 프로필 메뉴 바인딩이 두 벌로 갈라지므로, 폼과 같은 대여 패턴을 쓴다. */
   var _dpMasterCardHomeAnchor = null;
@@ -9883,6 +9992,7 @@
   var _dpFormHomeAnchor = null;
 
   function _dpBorrowFormIntoSheet(sheet) {
+    _dpSetProfileSheetView(sheet, 'profile');
     if (_dpFormHomeAnchor) return true;
     var form = document.getElementById('destinyCardForm');
     var host = sheet ? sheet.querySelector('#dpFormHost') : null;
@@ -9967,6 +10077,24 @@
       });
       var listInner = sheet.querySelector('#dpListInner');
       if (listInner) _dpBindListInnerDelegation(listInner);
+      var tabs = sheet.querySelectorAll('[data-dp-profile-tab]');
+      tabs.forEach(function(tab) {
+        tab.addEventListener('click', function() {
+          var frame = sheet.querySelector('[data-dp-profile-diary-frame]');
+          _dpSetProfileSheetView(sheet, tab.getAttribute('data-dp-profile-tab'), { section: frame && frame.dataset.section || 'today', day: '', focus: true });
+        });
+        tab.addEventListener('keydown', function(event) {
+          if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
+          event.preventDefault();
+          var frame = sheet.querySelector('[data-dp-profile-diary-frame]');
+          _dpSetProfileSheetView(sheet, tab.getAttribute('data-dp-profile-tab') === 'diary' ? 'profile' : 'diary', { section: frame && frame.dataset.section || 'today', day: '', focus: true });
+        });
+      });
+      var retry = sheet.querySelector('.dp-profile-diary__retry');
+      if (retry) retry.addEventListener('click', function() {
+        var frame = sheet.querySelector('[data-dp-profile-diary-frame]');
+        _dpEnsureProfileDiaryFrame(sheet, frame && frame.dataset.section || 'today', '', true);
+      });
     }
     return { sheet: sheet, overlay: overlay };
   }
@@ -10015,12 +10143,19 @@
       return;
     }
 
+    if (!forestCardMode && (!document.activeElement || !document.activeElement.closest || !document.activeElement.closest('#dpListSheet'))) {
+      _dpListReturnFocus = document.activeElement && document.activeElement !== document.body ? document.activeElement : null;
+    }
     if (forestCardMode) document.documentElement.classList.add('dp-forest-card');
     _dpBorrowMasterCardIntoSheet(sheet);
     sheet.classList.add('dp-sheet--open');
     overlay.classList.add('dp-sheet--open');
     sheet.setAttribute('aria-hidden', 'false');
     _dpListOpenedAt = Date.now();
+    var requestedView = _dpProfileDiaryRequest();
+    _dpSetProfileSheetView(sheet, requestedView.diary ? 'diary' : 'profile', requestedView);
+    var firstFocus = sheet.querySelector('.dp-sheet-close');
+    if (firstFocus) { try { firstFocus.focus({ preventScroll: true }); } catch (_) { firstFocus.focus(); } }
 
     function renderOpenList() {
       try {
@@ -10091,6 +10226,11 @@
     document.body.style.position = '';
     document.body.style.top = '';
     document.body.style.width = '';
+    var returnFocus = _dpListReturnFocus;
+    _dpListReturnFocus = null;
+    if (returnFocus && document.contains(returnFocus) && typeof returnFocus.focus === 'function') {
+      try { returnFocus.focus({ preventScroll: true }); } catch (_) { returnFocus.focus(); }
+    }
   };
 
   window.dpEditProfile = function(id) {

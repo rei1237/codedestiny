@@ -199,9 +199,11 @@ const xRobotsNoindexHeaderPatterns = [
   '/neo-operation-room/strategy-books/*',
   "/animal/physio",
   "/animal/physio/*",
-  // 개인 다이어리 — `_headers` 의 `/diary*` 한 줄이 두 패턴을 모두 덮는다.
+  // 이전 주소는 프로필 기록으로 이동하며, 내부 기록과 함께 검색·광고 대상이 아니다.
   "/diary",
   "/diary/*",
+  "/profile/diary",
+  "/profile/diary/*",
   "/maya",
   "/maya/*",
   "/oracle/royal-tea",

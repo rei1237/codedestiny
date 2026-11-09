@@ -872,12 +872,11 @@ function extractFunctionSource(source, name) {
   // 된다"가 아니다 — ⑬ 의 `new Date(` 스캔은 그런 파일도 그대로 본다.
   // 여기 등재는 **캐시버스터 요구**만 면제한다(로드되지 않는 파일에는 캐시 키가 없다).
   // 🔴 양방향이다: 등재했는데 참조가 되살아나면 stale 로 실패한다(면제가 조용히 남는 것을 막는다).
-  // 2026-09-07: js/luck-sync-diary.js 를 지웠다 — PR-J 컷오버로 사라졌던 로드 자리가
-  // 사주 결과 화면의 "운기 다이어리 (이전 버전)" 카드로 되살아났고(지연로더는
-  // js/core/index-inline-runtime.js 의 __cdLazyActionLoaders.openLegacyLuckSyncDiary),
-  // 그 참조에는 `?v=build-…` 가 붙어 있어 이 가드가 요구하는 조건을 그대로 만족한다.
-  // 지금은 비어 있고, 그것이 정상이다.
-  const UNREFERENCED_ALLOWED = Object.freeze([]);
+  // 운기 기록은 프로필의 React 화면으로 통합됐다. 구형 파일은 기존 저장·운기 계산식의 동치
+  // 검증 원본으로만 남고 브라우저에서는 더 이상 로드하지 않는다.
+  const UNREFERENCED_ALLOWED = Object.freeze([
+    { file: "js/luck-sync-diary.js", why: "기록 호환·계산식 parity 원본이며 사용자 진입점은 제거됨" },
+  ]);
 
   const refRows = [];
   for (const target of refTargets) {

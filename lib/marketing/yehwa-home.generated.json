@@ -1264,25 +1264,6 @@
     "keys": "FPTI 성향 테스트 오행 십성"
   },
   {
-    "image": "/images/service-introductions/luck-sync-diary-320.webp",
-    "imageAlt": "운기 다이어리와 플래너의 핵심 도구와 이용 장면을 담은 일러스트",
-    "id": "luck-sync-diary",
-    "name": "운기 다이어리와 플래너",
-    "question": "이번 달 흐름, 기록과 얼마나 맞았을까?",
-    "desc": "오늘의 흐름 기록 · 월간 플래너",
-    "href": "/diary/",
-    "action": "openLuckSyncDiary",
-    "price": "기록 도구",
-    "purposes": [
-      "today",
-      "etc"
-    ],
-    "methods": [
-      "saju"
-    ],
-    "keys": "다이어리 플래너 일기 기록 일정 캘린더 운기"
-  },
-  {
     "id": "music",
     "name": "달빛 음악 플레이어",
     "desc": "운세와 어울리는 음악으로 마음 달래기",

@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 
-import DiaryShell from "./_components/DiaryShell";
 import { ROBOTS_META } from "../../lib/seo/index-policy.mjs";
 
 const DIARY_LAYOUT_TEXT_TRANSLATIONS = {
@@ -35,5 +34,5 @@ export const metadata: Metadata = {
 };
 
 export default function DiaryLayout({ children }: { children: React.ReactNode }) {
-  return <DiaryShell>{children}</DiaryShell>;
+  return children;
 }
