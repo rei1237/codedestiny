@@ -53,6 +53,7 @@ async function assertEssentials(page, label) {
   ];
   for (const [name, selector] of essentials) {
     const node = page.locator(selector).first();
+    await node.waitFor({ state: 'visible', timeout: 15000 });
     assert.ok(await node.isVisible(), `${label}: ${name} is visible`);
     // 닫힌 details 의 summary(접힘 버튼 자체)는 보이는 자리다 — 그 안쪽 내용만 접힌 곳으로 친다.
     assert.equal(await node.evaluate((el) => { const fold = el.closest('details:not([open])'); return Boolean(fold && !fold.querySelector(':scope > summary')?.contains(el)); }), false, `${label}: ${name} is outside any closed fold`);
@@ -242,7 +243,8 @@ async function assertEssentials(page, label) {
       assert.deepEqual(passOverflow, [], `${width}px light fortune copy stays inside the viewport`);
       assert.ok(layout.unique && layout.moved, `${width}px reuses unique legacy nodes`);
       assert.ok(layout.neoButton, `${width}px Neo control visible in common header`);
-      assert.equal(layout.profileCardOnHome, true, `${width}px keeps one live profile card on the home entry`);
+      assert.equal(layout.profileCardOnHome, false, `${width}px does not expose the profile pet on the home entry`);
+      assert.equal(await page.locator('#cdhPetGardenHost').count(), 0, `${width}px has no home pet garden entry`);
       if (width >= 1280) assert.ok(layout.width > 1000, `${width}px uses expanded desktop canvas`);
       if (width <= 430) assert.ok(layout.width <= width, `${width}px fits mobile canvas`);
 
@@ -352,7 +354,7 @@ async function assertEssentials(page, label) {
     await member.waitForFunction(() => document.querySelector('#dpMasterCardHost #dpMasterCard') && document.getElementById('dpListSheet')?.classList.contains('dp-sheet--open'));
     assert.equal(mutations, 1, 'profile creation uses original controller once');
     assert.ok(await member.locator('#dpMasterCardHost #dpMasterCard').isVisible(), 'active profile card and level strip are visible under My');
-      assert.ok(await member.locator('#dpMasterCardHost .pc-growth-details').evaluate(details => details.open), 'growth missions are visible when the profile opens');
+      await member.locator('#dpMasterCardHost .pc-growth-details > summary').click();
       assert.ok(await member.locator('#dpMasterCardHost #dpMasterCard .dp-lvl').isVisible(), 'level benefits remain available under My');
     await member.locator('#dpListSheet .dp-sheet-close').click();
       await member.waitForFunction(() => document.querySelector('#dpMasterCardStorage[hidden] #dpMasterCard'));
