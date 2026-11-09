@@ -9203,49 +9203,17 @@
     })();
   }
 
-  function _runSajuWhenReady(maxAttempts, delayMs) {
-    var attempts = 0;
-    var max = (typeof maxAttempts === 'number' && maxAttempts > 0) ? maxAttempts : 60;
-    var delay = (typeof delayMs === 'number' && delayMs > 0) ? delayMs : 250;
-
-    /* 모바일에서 프로필 경로로 첫 진입 시 사주 엔진(saju-engine.js 등)이 아직 lazy-load 되지
-       않아 window.checkPrivacyAndCalculate 스텁이 조용히 지연/실패할 수 있다. 엔진 로드를
-       능동적으로 트리거하고 실패는 사용자에게 표면화한다(스텁 자체 catch는 무음). */
-    if (typeof window.__cdEnsureSajuCoreLoaded === 'function') {
-      try {
-        window.__cdEnsureSajuCoreLoaded().catch(function(err) {
-          console.error('[DP] 사주 엔진 로드 실패:', err);
-          _toast('⚠️ 사주 계산 엔진을 불러오지 못했습니다. 네트워크 확인 후 다시 시도해 주세요.', 'warn');
-        });
-      } catch (e) {}
-    }
-
-    function tick() {
-      attempts += 1;
-      if (typeof window.checkPrivacyAndCalculate === 'function') {
-        try {
-          var p = window.checkPrivacyAndCalculate();
-          if (p && typeof p.catch === 'function') {
-            p.catch(function(err) {
-              console.error('[DP] 계산 완료 콜백 오류:', err);
-              _toast('⚠️ 계산 완료 후 콘텐츠 활성화 중 오류가 발생했습니다', 'warn');
-            });
-          }
-        } catch (err) {
-          console.error('[DP] 계산 실행 오류:', err);
-          _toast('⚠️ 계산 실행 중 오류가 발생했습니다', 'warn');
-        }
-        return;
-      }
-
-      if (attempts < max) {
-        setTimeout(tick, delay);
-      } else {
-        _toast('⚠️ 계산 모듈 로딩이 지연되고 있습니다. 잠시 후 자동으로 다시 시도됩니다.', 'warn');
-      }
-    }
-
-    tick();
+  function _runSajuWhenReady() {
+    var scope = _dpGetProfileScope();
+    var ready = typeof window.__cdEnsureSajuCoreLoaded === 'function' ? window.__cdEnsureSajuCoreLoaded() : Promise.resolve();
+    return Promise.resolve(ready).then(function() {
+      if (scope !== _dpGetProfileScope()) return;
+      if (typeof window.checkPrivacyAndCalculate !== 'function') throw new Error('SAJU_MODULE_NOT_READY');
+      return window.checkPrivacyAndCalculate();
+    }).catch(function(err) {
+      console.error('[DP] 사주 준비 실패:', err);
+      _toast('사주 풀이를 준비하지 못했어요. 잠시 후 다시 눌러 주세요.', 'warn');
+    }).finally(function() { if(window.__cdDirectSajuEntryState) window.__cdDirectSajuEntryState.inFlight=false; });
   }
 
   function _injectAndRun(profile, fortuneType) {
@@ -9284,13 +9252,6 @@
     /* 시각 피드백 먼저 */
     spawnStardust(document.getElementById('dpMasterCard'));
     _toast(_fortuneStartMessage(profile.name, fortuneType || 'saju'), 'success');
-
-    /* 모바일에서 엔진 로드/계산 완료 전까지 화면이 그대로라 "이동이 안 된" 것처럼 보인다.
-       즉시 입력 영역으로 스크롤해 로딩 스피너·전환이 사용자 시야에 들어오게 한다. */
-    var inputSectionEl = document.querySelector('.input-section');
-    if (inputSectionEl && typeof inputSectionEl.scrollIntoView === 'function') {
-      try { inputSectionEl.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch (e) {}
-    }
 
     /* ① 폼 데이터 주입 */
     var nameEl = document.getElementById('nameInput');
@@ -9357,19 +9318,7 @@
       console.error('[DP] 시간 보정 미리보기 갱신 실패:', err);
     }
 
-    /* ⑤ 비동기 실행 — RAF + 충분한 지연 + 폼 필드 완비 확인 후 계산 */
-    requestAnimationFrame(function() {
-      setTimeout(function() {
-        /* 폼 필드가 완전히 준비되었는지 확인 */
-        try {
-          var bdVal = document.getElementById('birthDate') ? document.getElementById('birthDate').value : '';
-          var hVal = document.getElementById('birthHour') ? document.getElementById('birthHour').value : '';
-          var mVal = document.getElementById('birthMinute') ? document.getElementById('birthMinute').value : '';
-          console.log('[DP] 폼 필드 검증:', { bd: bdVal, hour: hVal, minute: mVal });
-        } catch (e) {}
-        _runSajuWhenReady(60, 250);
-      }, 200); /* 80ms → 200ms로 증가: 폼 완전 업데이트 및 이벤트 처리 대기 */
-    });
+    requestAnimationFrame(function() { _runSajuWhenReady(); });
   }
 
   /* ──────────────────────────────────────────

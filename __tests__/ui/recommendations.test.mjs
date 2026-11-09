@@ -208,36 +208,10 @@ test('legacy saju tags come from the free ilju advice, not from the server-fille
  } finally {for(const k of names){if(saved[k]===undefined)delete globalThis[k];else globalThis[k]=saved[k];}dom.window.close();}
 });
 
-test('locale re-mount in reading-personas passes the same free advice regardless of the server-filled list', async () => {
- const { JSDOM } = await import('jsdom');
- const { iljuAdviceLines, adviceTopics } = await import('../../js/recommendations-legacy.mjs');
- const ADVICE = '집중 시간을 확보하세요. 둘째 문장.';
- const run = async (listHtml) => {
-  const dom = new JSDOM('<html lang="ko"><body><div id="resultPage"><ul id="iljuAdviceList">' + listHtml + '</ul></div><div id="shareSection"></div></body></html>', {url:'http://localhost/',pretendToBeVisual:true,runScripts:'outside-only'});
-  const calls = [];
-  const w = dom.window;
-  w.__legacy = { mountSajuRecommendation:(...args)=>{calls.push(args);}, iljuAdviceLines };
-  w.G_PILLARS = {d:{g:'辛',j:'酉'}};
-  w.cdSajuRecommendationAdvice = () => ADVICE;
-  // 동적 import 만 실제 모듈 대신 고정 약속으로 바꿔 changed() 의 호출 인자를 본다.
-  w.eval(readFileSync('js/core/saju/reading-personas.js','utf8').replace("import('/js/recommendations-legacy.mjs')", 'Promise.resolve(window.__legacy)'));
-  w.dispatchEvent(new w.Event('cd:locale-ready'));
-  await new Promise(r=>setTimeout(r,30));
-  dom.window.close();
-  return calls;
- };
- const locked = await run('<li>잠금 안내 한 덩어리</li>');
- const filled = await run('<li>구매자에게만 보이는 유료 조언 문장입니다. 일기를 기록하세요.</li>');
- const empty = await run('');
- for (const calls of [locked, filled, empty]) {
-  assert.equal(calls.length, 1);
-  assert.equal(calls[0][0].id, 'resultPage');
-  assert.equal(calls[0][1].id, 'shareSection');
-  assert.deepEqual(calls[0][2], iljuAdviceLines(ADVICE));
+test('saju result and persona changes do not mount affiliate recommendations',()=>{
+ for(const path of ['js/core/saju/reading-personas.js','js/saju-engine.js']){
+  const source=readFileSync(path,'utf8');assert.ok(!source.includes('mountSajuRecommendation('),path);assert.ok(!source.includes("import('/js/recommendations-legacy.mjs')"),path);
  }
- assert.deepEqual(adviceTopics(locked[0][2]), adviceTopics(filled[0][2]));
- assert.deepEqual(adviceTopics(filled[0][2]), adviceTopics(empty[0][2]));
- assert.deepEqual(adviceTopics(locked[0][2]), ['focus']);
 });
 
 test('legacy refresh keeps the cards a reader is looking at when nothing changed', async () => {

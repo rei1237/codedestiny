@@ -1,3 +1,4 @@
+@import './saju-compact.css';
 /* Owned by the static saju surface, never by the shared mobile wrapper. */
 .saju-reading-header:has(.saju-reading-toc) { flex-wrap: wrap; }
 .saju-reading-toc { flex-basis: 100%; grid-column: 1 / -1; width: 100%; }
@@ -17,7 +18,7 @@
 #resultPage .career-style-entry:focus-visible { outline:3px solid var(--cd-samples-rose,#a52e54); outline-offset:4px; }
 @media(max-width:540px) { #resultPage .career-style-entry { grid-template-columns:1fr; gap:18px; padding:18px; } #resultPage .career-style-entry img { max-height:210px; object-fit:cover; } #resultPage .career-style-entry__cta { display:flex; } }
 #resultPage #letterBox,#resultPage .saju-reading,#sajuReadingHeader,.saju-input-modes,.saju-static-offer,#modalBody .saju-reading,#tsModal .modal-box,#tsGrid,#iljuCard,#resultPage .saju-nature-report,#resultPage .cd-section-gate {
-  --reading-ink:#30383b;--reading-muted:#596168;--reading-accent:#a52c60;--reading-paper:#f8faf9;--reading-line:#dce3e1;
+  --reading-ink:var(--cd-text);--reading-muted:var(--cd-text-muted);--reading-accent:var(--cd-accent);--reading-paper:var(--cd-surface);--reading-line:var(--cd-border);
   --reading-card:#fff;--reading-gold:#c9a25e;--reading-on-accent:#fff;
   --reading-el-wood:#17766b;--reading-el-fire:#c24732;--reading-el-earth:#a87925;--reading-el-metal:#8196a5;--reading-el-water:#285e94;
 }
@@ -170,7 +171,7 @@ body.neo-mode .saju-cycle-guide {background:#21182f;color:#f4eafa;border-color:#
 #resultPage #letterTitle {color:var(--reading-accent);line-height:1.6;margin:0 0 24px;}
 #resultPage .saju-letter {padding:0;border-radius:0;background:transparent;text-align:left;}
 #resultPage .saju-letter p {max-width:62ch;margin-inline:auto;line-height:2.05;word-break:keep-all;overflow-wrap:anywhere;}
-#resultPage .saju-letter__prose {font-family:"MaruBuri","Noto Serif KR",serif;}
+#resultPage .saju-letter__prose {font-family:var(--font-reading);}
 #resultPage .saju-letter__prose p + p {margin-top:1.5em;}
 #resultPage .saju-letter .saju-letter__greeting {margin-bottom:1.8em;color:var(--reading-accent);font-size:1.15rem;font-weight:700;}
 #resultPage .saju-letter .saju-letter__signature {margin-top:2em;padding-top:1.2em;border-top:1px solid var(--reading-line);text-align:right;color:var(--reading-accent);}
@@ -349,12 +350,12 @@ body.neo-mode #modalBody .saju-reading > h3 {padding-right:44px;}
 .saju-nature {margin:0;min-width:0;overflow:hidden;border-radius:var(--cd-r-md,16px);background:var(--reading-card);border:1px solid color-mix(in srgb,var(--el) 45%,var(--reading-line));}
 .saju-nature img {display:block;width:100%;height:auto;aspect-ratio:3/2;object-fit:cover;}
 .saju-nature figcaption {display:grid;gap:8px;padding:20px 24px;background:color-mix(in srgb,var(--el) 12%,var(--reading-card));color:var(--reading-ink);}
-.saju-nature figcaption strong {font-family:var(--font-serif);font-size:clamp(1.2rem,3vw,1.65rem);font-weight:700;line-height:1.5;word-break:keep-all;}
+.saju-nature figcaption strong {font-family:var(--font-reading);font-size:clamp(1.2rem,3vw,1.65rem);font-weight:700;line-height:1.5;word-break:keep-all;}
 .saju-nature figcaption span {font-size:.875rem;line-height:1.7;color:var(--reading-muted);word-break:keep-all;}
 .saju-element-key {display:flex;flex-wrap:wrap;gap:12px 20px;list-style:none;padding:12px 0;margin:0;color:var(--reading-ink);font-size:.875rem;}
 .saju-element-key li {display:flex;align-items:center;gap:8px;}
 .saju-element-key i {width:12px;height:12px;border-radius:50%;background:var(--el);border:1px solid color-mix(in srgb,var(--el),var(--reading-ink));}
-#sajuMonthReading > h3,#sajuContextReading > h3 {font-family:var(--font-serif);font-size:1.4rem;line-height:1.5;margin:32px 0 16px;}
+#sajuMonthReading > h3,#sajuContextReading > h3 {font-family:var(--font-reading);font-size:1.4rem;line-height:1.5;margin:32px 0 16px;}
 #sajuMonthReading > .saju-rich__block,#sajuContextReading > .saju-rich__block {margin-top:24px;}
 .saju-nature-thumb {display:block;width:100%;height:auto;aspect-ratio:3/2;object-fit:cover;border-radius:var(--cd-r-sm,8px);margin-bottom:12px;}
 #dwGrid .dw-item:has(.saju-nature-thumb) {padding-top:10px;}
@@ -371,9 +372,9 @@ body.neo-mode #modalBody .saju-reading > h3 {padding-right:44px;}
   #resultPage .saju-summary-art .saju-nature figcaption {padding:20px 4px 8px;}
 }
 #resultPage .saju-nature-report .saju-cycle-guide {max-width:72ch;margin-inline:auto;}
-#resultPage .saju-nature-report .saju-cycle-guide > h3 {font-family:var(--font-serif);font-size:clamp(1.35rem,3.5vw,1.8rem);line-height:1.5;margin-bottom:16px;}
+#resultPage .saju-nature-report .saju-cycle-guide > h3 {font-family:var(--font-reading);font-size:clamp(1.35rem,3.5vw,1.8rem);line-height:1.5;margin-bottom:16px;}
 #resultPage .saju-nature-report .saju-cycle-guide > p {line-height:1.85;}
-#resultPage .saju-nature-report .saju-cycle-guide dt {padding-top:28px;margin-top:28px;border-top:1px solid var(--cd-border);font-family:var(--font-serif);font-size:1.1rem;line-height:1.6;}
+#resultPage .saju-nature-report .saju-cycle-guide dt {padding-top:28px;margin-top:28px;border-top:1px solid var(--cd-border);font-family:var(--font-reading);font-size:1.1rem;line-height:1.6;}
 #resultPage .saju-nature-report .saju-cycle-guide dd {margin:12px 0 0;}
 #resultPage .saju-nature-report .saju-cycle-guide dd p {font-size:1rem;line-height:1.9;margin:0 0 16px;word-break:keep-all;overflow-wrap:anywhere;}
 @media (max-width:600px) {
@@ -422,7 +423,7 @@ body.neo-mode #modalBody .saju-reading > h3 {padding-right:44px;}
 @media(max-width:600px){#resultPage .cd-section-gate:not(.cd-section-gate--unlocked)>.cd-section-gate__overlay{padding:22px 18px}#resultPage .cd-section-gate .cd-section-gate__btn{width:100%}}
 
 /* Kept outside the introductory card so it follows the whole reading. */
-#resultPage nav.saju-reading-nav.saju-result-guide__nav{position:sticky;top:var(--saju-nav-top,0px);z-index:80;display:flex;gap:6px;max-width:100%;margin:16px 0 24px;padding:8px;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:thin;scrollbar-color:var(--cd-gold) transparent;border:1px solid var(--cd-border);border-radius:var(--cd-r-control);background:var(--cd-surface);box-shadow:0 8px 20px -14px var(--cd-text)}
-#resultPage nav.saju-reading-nav.saju-result-guide__nav a{flex:1 0 64px;min-height:44px;padding:8px 12px;border:1px solid transparent!important;border-radius:var(--cd-r-sm);background:transparent!important;color:var(--cd-text)!important;font:600 .9rem/1.5 var(--font-body);text-decoration:none;white-space:nowrap;box-shadow:none;scroll-margin-inline:12px}
-#resultPage nav.saju-reading-nav.saju-result-guide__nav a[aria-current="location"]{border-color:var(--cd-primary)!important;background:var(--cd-surface-2)!important;color:var(--cd-primary)!important;box-shadow:inset 0 -2px var(--cd-primary)}
-#resultPage nav.saju-reading-nav.saju-result-guide__nav a:focus-visible{outline:3px solid var(--cd-gold);outline-offset:1px}
+#resultPage:not([data-compact-reading]) nav.saju-reading-nav.saju-result-guide__nav{position:sticky;top:var(--saju-nav-top,0px);z-index:80;display:flex;gap:6px;max-width:100%;margin:16px 0 24px;padding:8px;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:thin;scrollbar-color:var(--cd-gold) transparent;border:1px solid var(--cd-border);border-radius:var(--cd-r-control);background:var(--cd-surface);box-shadow:0 8px 20px -14px var(--cd-text)}
+#resultPage:not([data-compact-reading]) nav.saju-reading-nav.saju-result-guide__nav a{flex:1 0 64px;min-height:44px;padding:8px 12px;border:1px solid transparent!important;border-radius:var(--cd-r-sm);background:transparent!important;color:var(--cd-text)!important;font:600 .9rem/1.5 var(--font-body);text-decoration:none;white-space:nowrap;box-shadow:none;scroll-margin-inline:12px}
+#resultPage:not([data-compact-reading]) nav.saju-reading-nav.saju-result-guide__nav a[aria-current="location"]{border-color:var(--cd-accent)!important;background:var(--cd-surface-2)!important;color:var(--cd-accent)!important;box-shadow:inset 0 -2px var(--cd-accent)}
+#resultPage:not([data-compact-reading]) nav.saju-reading-nav.saju-result-guide__nav a:focus-visible{outline:3px solid var(--cd-gold);outline-offset:1px}

@@ -143,7 +143,7 @@ test("추천 태그는 서버가 채우는 일주 조언 목록을 읽지 않는
     const source = stripComments(read(rel));
     for (const m of source.matchAll(/\.mountSajuRecommendation\(([^;]*)/g)) callers.push({ rel, args: m[1] });
   }
-  assert.ok(callers.length >= 4, `mountSajuRecommendation 호출처를 ${callers.length}곳만 찾았다`);
+  assert.equal(callers.length, 0, "사주 결과는 제휴 추천을 자동으로 붙이지 않는다");
   for (const { rel, args } of callers) {
     assert.match(args, /m\.iljuAdviceLines\(/, `${rel} 이 공개 일주 조언 목록 없이 추천을 붙인다`);
   }

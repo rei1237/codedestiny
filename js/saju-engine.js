@@ -5369,7 +5369,6 @@ async function calculate(run){
     ]);
     var ss=document.getElementById('shareSection');if(ss)ss.style.display='block';
     // 추천 태그는 서버가 채우는 #iljuAdviceList 가 아니라 공개 일주 표(ILJU_DB)의 조언에서 만든다(구매 여부와 무관, 로딩 순서와 무관).
-    import('/js/recommendations-legacy.mjs').then(function(m){return m.mountSajuRecommendation(document.getElementById('resultPage'),ss,m.iljuAdviceLines(window.cdSajuRecommendationAdvice()));}).catch(function(){});
     document.getElementById('dwDetail').innerHTML='';
     document.getElementById('dwDetail').classList.remove('show');
 

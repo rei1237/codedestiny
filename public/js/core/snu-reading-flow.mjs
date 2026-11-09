@@ -26,9 +26,9 @@ export function mountSnuReadingContents(document, state, profile) {
   previous?.remove();
   const section = document.createElement('details');
   section.id = 'snuReadingContents'; section.className = 'saju-gift-contents'; section.open = open; section.dataset.signature = signature;
-  const summary = document.createElement('summary'); summary.textContent = 'SNULIFE로 열린 콘텐츠';
+  const summary = document.createElement('summary'); summary.textContent = '이용 가능한 풀이';
   const owner = document.createElement('p'); owner.textContent = `${profile.name || '내 프로필'} · 열린 콘텐츠 ${available.length}종`;
-  const nav = document.createElement('nav'); nav.setAttribute('aria-label', 'SNULIFE 사주 콘텐츠');
+  const nav = document.createElement('nav'); nav.setAttribute('aria-label', '이용 가능한 사주 풀이');
   available.forEach(item => {
     const link = document.createElement('a'); link.textContent = item.title;
     const target = item.featureKey === 'section_summary' ? 'summaryCard' : item.featureKey === 'section_daewun' ? 'daewunCard' : item.featureKey.replace(/^rpt_/, '');

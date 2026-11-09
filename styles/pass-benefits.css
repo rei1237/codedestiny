@@ -1,11 +1,12 @@
 /* Shared moonlit pass. Prices, limits and destinations come from the sale catalog. */
 .pb--honey {
-  --font-body:'Yeongnyangi Noto',sans-serif; --font-display:'Yeongnyangi Myeongjo',Batang,serif;
+  content-visibility:auto; contain-intrinsic-size:auto 900px;
+
   --pb-bg:#fffcf6; --pb-ink:#392a33; --pb-muted:#6f6062; --pb-accent:#843650;
   --pb-soft:#f8e9e6; --pb-line:#d7c4af; --pb-glow:#f5dcd3; --pb-on:#fff9f5;
   box-sizing:border-box; width:100%; max-width:860px; margin:20px auto; overflow:hidden;
   color:var(--pb-ink); background:var(--pb-bg); border:1px solid var(--pb-line); border-radius:24px;
-  font:15px/1.55 'Yeongnyangi Noto',sans-serif; word-break:keep-all; overflow-wrap:anywhere;
+  font:15px/1.55 var(--font-body); word-break:keep-all; overflow-wrap:anywhere;
   box-shadow:0 14px 34px -28px var(--pb-ink);
 }
 .ynOriginal .pb--honey, .neo-mode .pb--honey {
@@ -14,7 +15,7 @@
 }
 .pb *, .pb *::after {box-sizing:border-box}
 .pb :is(h2,h3,p,ul) {margin:0}
-.pb h2,.pb h3,.pb legend {font-family:'Yeongnyangi Myeongjo',Batang,serif}
+.pb h2,.pb h3,.pb legend {font-family:var(--font-display);font-weight:400}
 .pb .pb__scene {position:relative;isolation:isolate;display:grid;grid-template-columns:minmax(0,1fr) minmax(110px,200px);align-content:center;column-gap:16px;padding:22px 26px 6px;
   background:radial-gradient(ellipse at 85% 83%,var(--pb-glow),transparent 60%);border-bottom:1px solid var(--pb-line)}
 .pb__scene::before {content:"";position:absolute;z-index:-1;right:6%;top:12%;width:155px;aspect-ratio:1;border:1px solid var(--pb-line);border-radius:50%}
