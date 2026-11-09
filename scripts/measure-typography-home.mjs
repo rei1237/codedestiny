@@ -7,9 +7,10 @@ import {resolve,extname} from 'node:path';
 import {chromium} from 'playwright';
 let base=process.argv[2]||'http://127.0.0.1:4180';const before=process.argv[3]||'fbc3a41df78d54b6570859aca792e98aa39a080f';
 assert.equal(new URL(base).hostname,'127.0.0.1');assert.match(before,/^[a-f0-9]{40}$/);
+const after=execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim();
 let servedVariant='after';const cache=new Map(),rows=[];const publicRoot=resolve('public');
 const server=createServer(async(req,res)=>{try{const pathname=decodeURIComponent(new URL(req.url,'http://localhost').pathname);const filename='public'+pathname;const target=resolve(publicRoot,'.'+pathname);if(!target.startsWith(publicRoot+'/')&&!target.startsWith(publicRoot+'\\')){res.writeHead(403);res.end();return;}let content;
-if(servedVariant==='before'&&/\.(?:css|js|mjs|html)$/.test(pathname)){if(!cache.has(filename)){try{cache.set(filename,execFileSync('git',['show',before+':'+filename],{maxBuffer:20*1024*1024,stdio:['ignore','pipe','ignore']}));}catch{cache.set(filename,null);}}content=cache.get(filename);}if(!content)content=await readFile(target);const type={'.html':'text/html','.css':'text/css','.js':'text/javascript','.mjs':'text/javascript','.json':'application/json','.woff2':'font/woff2','.webp':'image/webp','.png':'image/png','.svg':'image/svg+xml'}[extname(target)]||'application/octet-stream';res.writeHead(200,{'Content-Type':type,'Cache-Control':'no-store'});res.end(content);}catch{res.writeHead(404);res.end();}});
+if(/\.(?:css|js|mjs|html)$/.test(pathname)){const ref=servedVariant==='before'?before:after;const key=ref+':'+filename;if(!cache.has(key)){try{cache.set(key,execFileSync('git',['show',key],{maxBuffer:20*1024*1024,stdio:['ignore','pipe','ignore']}));}catch{cache.set(key,null);}}content=cache.get(key);}if(!content)content=await readFile(target);const type={'.html':'text/html','.css':'text/css','.js':'text/javascript','.mjs':'text/javascript','.json':'application/json','.woff2':'font/woff2','.webp':'image/webp','.png':'image/png','.svg':'image/svg+xml'}[extname(target)]||'application/octet-stream';res.writeHead(200,{'Content-Type':type,'Cache-Control':'no-store'});res.end(content);}catch{res.writeHead(404);res.end();}});
 await new Promise(r=>server.listen(0,'127.0.0.1',r));base='http://127.0.0.1:'+server.address().port;
 const browser=await chromium.launch({headless:true});
 try {
@@ -34,7 +35,7 @@ try {
     await page.goto(base+'/static/index.html',{waitUntil:'commit',timeout:30000});
     await page.waitForTimeout(30000);
     await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
-    rows.push(await page.evaluate(({variant,before})=>({variant,before,viewport:390,collectionWindowMs:30000,latencyMs:150,downloadBytesPerSecond:200000,coldCache:true,externalRequests:'blocked for both variants; CSS/JS/HTML and binaries use the same local HTTP server and network emulation',...window.__typePerformance,fontBytes:performance.getEntriesByType('resource').filter(e=>/\.(woff2?|ttf)(?:\?|$)/.test(e.name)).reduce((sum,e)=>sum+e.transferSize,0)}),{variant,before}));
+    rows.push(await page.evaluate(({variant,before,after})=>({variant,before,after,viewport:390,collectionWindowMs:30000,latencyMs:150,downloadBytesPerSecond:200000,coldCache:true,externalRequests:'blocked for both variants; CSS/JS/HTML and binaries use the same local HTTP server and network emulation',...window.__typePerformance,fontBytes:performance.getEntriesByType('resource').filter(e=>/\.(woff2?|ttf)(?:\?|$)/.test(e.name)).reduce((sum,e)=>sum+e.transferSize,0)}),{variant,before,after}));
     await context.close();
   }
 } finally {await browser.close();server.closeAllConnections();await new Promise(r=>server.close(r));}

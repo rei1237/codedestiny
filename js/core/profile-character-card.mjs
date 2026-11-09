@@ -1,6 +1,7 @@
 import { SPIRITS, SPIRIT_BONUS_PERCENT, spriteUrl, mobileSpriteUrl, findSpirit, spiritExp } from './profile-characters.mjs';
 import { elementBadgeMarkup } from './profile-element-badge.mjs';
 import { mountPetGarden } from './profile-pet-card.mjs';
+import { adoptHoneyManager } from './profile-honey-manager.mjs';
 export { elementBadgeMarkup };
 
 const mounts = new WeakMap();
@@ -54,6 +55,7 @@ export async function loadProfileCharacterPreview(profile, { request }) {
   return job;
 }
 export async function mountCharacterCard(root, profile, options) {
+  if (activeMount?.root && activeMount.root !== root) mounts.get(activeMount.root)?.controller.abort();
   activeMount = { root, profile, options, date: koreaDate() };
   if (!document.querySelector('link[data-profile-characters]')) {
     const link = document.createElement('link'); link.rel = 'stylesheet'; link.href = '/styles/profile-characters.css'; link.dataset.profileCharacters = ''; document.head.append(link);
@@ -61,14 +63,21 @@ export async function mountCharacterCard(root, profile, options) {
   if (!document.querySelector('link[data-profile-pet]')) {
     const link = document.createElement('link'); link.rel = 'stylesheet'; link.href = '/styles/profile-pet.css'; link.dataset.profilePet = ''; document.head.append(link);
   }
-  const target = root.querySelector('[data-profile-character]');
-  if (!target) return;
+  const panel = root.querySelector('[data-profile-character]');
+  if (!panel) return;
+  mounts.get(root)?.controller.abort();
+  const target = document.createElement('div');
+  const honeyHost = document.createElement('div');
+  honeyHost.className = 'pg-honey-host pg-garden';
+  honeyHost.id = 'petHoneyManager';
+  honeyHost.setAttribute('data-pet-honey-host', '');
+  panel.replaceChildren(target, honeyHost);
   const oldAvatar = root.querySelector('.dp-mc-avatar');
   if (oldAvatar) oldAvatar.replaceChildren();
   root.querySelector('[data-pc-element]')?.replaceChildren();
   options.onQuestExp?.(15);
-  mounts.get(root)?.controller.abort();
   const token = { controller: new AbortController() }; mounts.set(root, token);
+  adoptHoneyManager(honeyHost, token.controller.signal);
   const owner = options.owner();
   const current = () => mounts.get(root) === token && target.isConnected && options.owner() === owner;
   const api = async (path, body) => {
@@ -107,12 +116,13 @@ export async function mountCharacterCard(root, profile, options) {
     <p class="pc-bonus" data-pc-bonus></p>
     <details class="pc-details"><summary>캐릭터 소개 · 정령 도감</summary><div class="pc-description"><p>${escape(character.summary)}</p><h4>나의 강점</h4><p>${escape(character.strength)}</p><h4>마음에 둘 점</h4><p>${escape(character.caution)}</p><h4>오늘의 작은 실천</h4><p>${escape(character.advice)}</p></div>
     <section aria-label="정령 도감"><h4>함께할 정령</h4><p>이미 보유한 정령과 함께할 수 있어요. 꿀방울은 꿀꿀운세 지정 상품에서 사용해요. 장착한 정령 한 마리만 성장 보너스를 줘요.</p><p data-pc-wallet role="status"></p><button type="button" data-pc-base>내 일주 캐릭터로 돌아가기</button><div class="pc-collection" data-pc-collection></div><p data-pc-status role="status" aria-live="polite"></p><button type="button" data-pc-reload>보유 정령 다시 확인하기</button></section></details>`;
+  target.querySelector('[data-pet-garden]').after(honeyHost);
   drawAvatar();
   const status = message => { if (current()) target.querySelector('[data-pc-status]').textContent = message; };
   function drawCollection() {
     if (!current()) return;
     const balance = target.querySelector('[data-pc-wallet]');
-    balance.textContent = state ? `보유 꿀방울 ${state.balance}개` : owner ? '보유 정령을 확인해 주세요.' : '로그인하면 보유 정령을 확인할 수 있어요.';
+    balance.textContent = honeyHost.querySelector('[data-cd-honey-widget]') ? '잔액과 사용처는 위의 출석·꿀단지에서 확인해 주세요.' : state ? `보유 꿀방울 ${state.balance}개` : owner ? '보유 정령을 확인해 주세요.' : '로그인하면 보유 정령을 확인할 수 있어요.';
     target.querySelector('[data-pc-base]').disabled = !state?.equippedId || pending;
     target.querySelector('[data-pc-collection]').innerHTML = SPIRITS.map(spirit => {
       const owned = state?.ownedIds.includes(spirit.id), equipped = state?.equippedId === spirit.id;
@@ -122,10 +132,10 @@ export async function mountCharacterCard(root, profile, options) {
   }
   async function refresh() {
     if (!owner) { drawCollection(); return; }
-    try { state = await api('/api/rpg/characters'); status(''); drawAvatar(); if (target.querySelector('details').open) drawCollection(); }
+    try { state = await api('/api/rpg/characters'); status(''); drawAvatar(); if (target.querySelector('.pc-details').open) drawCollection(); }
     catch (error) { if (current()) { state = null; drawAvatar(); status(error.message); } }
   }
-  target.querySelector('details').addEventListener('toggle', () => { if (target.querySelector('details').open) drawCollection(); });
+  target.querySelector('.pc-details').addEventListener('toggle', () => { if (target.querySelector('.pc-details').open) drawCollection(); });
   target.querySelector('[data-pc-reload]').onclick = refresh;
   target.addEventListener('click', async event => {
     const button = event.target.closest('[data-pc-spirit],[data-pc-base]');
@@ -144,6 +154,6 @@ export async function mountCharacterCard(root, profile, options) {
     finally { pending = false; if (current()) drawCollection(); }
   }, { signal: token.controller.signal });
   await Promise.all([refresh(), mountPetGarden(target.querySelector('[data-pet-garden]'), {
-    profileId: profile.profileId || profile.id, preview, owner, api, current, signal: token.controller.signal,
+    profileId: profile.profileId || profile.id, preview, owner, api, current, signal: token.controller.signal, honeyHost,
   })]);
 }

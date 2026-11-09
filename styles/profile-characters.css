@@ -26,32 +26,38 @@
 
 /* A single game profile surface. Existing account growth controls keep their events. */
 #dpMasterCard.pc-game-card,#dpListSheet #dpMasterCard.pc-game-card{
-  --pc-ink:#fff5e6;--pc-muted:#d8bfce;--pc-gold:#ebcd91;--pc-line:#725265;--pc-night:#352235;
-  --cd-text:var(--pc-ink);--cd-text-muted:var(--pc-muted);--cd-accent:var(--pc-gold);--cd-border:var(--pc-line);--cd-surface:#493047;--cd-surface-2:#58384f;
-  width:100%;max-width:none;margin:0;background:var(--pc-night);color:var(--pc-ink);border:1px solid #a68561;border-radius:24px;overflow:visible;
-  box-shadow:0 16px 34px #29152726,inset 0 1px 0 #efd4a333;font-family:var(--font-body);
+  --pc-ink:#53364a;--pc-muted:#795d6b;--pc-gold:#8e642f;--pc-line:#dcc2ad;--pc-night:#fff8ee;
+  --cd-text:var(--pc-ink);--cd-text-muted:var(--pc-muted);--cd-accent:var(--pc-gold);--cd-border:var(--pc-line);--cd-surface:#faecdf;--cd-surface-2:#f4dfd9;
+  --pg-feed-bg:#fbe3c9;--pg-feed-ink:#76452d;--pg-play-bg:#f8dfe5;--pg-play-ink:#7b4059;--pg-sleep-bg:#eee6f5;--pg-sleep-ink:#63517c;--pg-fortune-bg:#f6e7bd;--pg-fortune-ink:#71542a;
+  position:relative;isolation:isolate;width:100%;max-width:none;margin:0;background:var(--pc-night);color:var(--pc-ink);border:1px solid #c5a17d;border-radius:32px;overflow:visible;
+  box-shadow:0 16px 34px #64364917,inset 0 1px 0 #fffdf8;font-family:var(--font-body);
 }
-#dpMasterCard.pc-game-card:before,#dpMasterCard.pc-game-card:after{display:none}
-body.neo-mode #dpMasterCard.pc-game-card,html[data-cd-theme="neo"] #dpMasterCard.pc-game-card{
-  --pc-night:var(--cd-bg);--pc-ink:var(--cd-gold-soft);--pc-muted:color-mix(in srgb,var(--cd-gold) 80%,var(--cd-bg));--pc-gold:var(--cd-gold);--pc-line:color-mix(in srgb,var(--cd-gold) 34%,var(--cd-bg));
-  --cd-surface:var(--cd-page-card,var(--cd-bg));--cd-surface-2:color-mix(in srgb,var(--cd-gold) 10%,var(--cd-bg));
+#dpMasterCard.pc-game-card:before,#dpMasterCard.pc-game-card:after{content:"";display:block;position:absolute;inset:auto;pointer-events:none;z-index:0;width:150px;height:125px;background:var(--pc-gold);opacity:.18;mask:var(--cd-yehwa-mask-branch-corner) center/contain no-repeat;-webkit-mask:var(--cd-yehwa-mask-branch-corner) center/contain no-repeat;box-shadow:none;border:0;transform:none}
+#dpMasterCard.pc-game-card:before{top:0;left:0;transform:scaleX(-1)}
+#dpMasterCard.pc-game-card:after{bottom:0;right:0;transform:rotate(180deg)}
+body.neo-mode #dpMasterCard.pc-game-card,html.neo-mode #dpMasterCard.pc-game-card,html[data-cd-theme="neo"] #dpMasterCard.pc-game-card{
+  --pc-night:#251e38;--pc-ink:#fff1df;--pc-muted:#d6c3d7;--pc-gold:#e7c88b;--pc-line:#776176;
+  --cd-surface:#372940;--cd-surface-2:#49334f;
+  --pg-feed-bg:#503441;--pg-feed-ink:#ffe0bf;--pg-play-bg:#4d2d48;--pg-play-ink:#ffd5e7;--pg-sleep-bg:#37304e;--pg-sleep-ink:#e3d8ff;--pg-fortune-bg:#4b3c35;--pg-fortune-ink:#ffe4aa;
 }
-.pc-game-inner{padding:24px;min-width:0}
-.pc-game-hero{display:grid;grid-template-columns:minmax(0,1fr) 44px;gap:14px;align-items:center;padding-bottom:16px;border-bottom:1px solid var(--pc-line)}
+.pc-game-inner{position:relative;z-index:1;padding:24px;min-width:0}
+.pc-game-hero{display:grid;grid-template-columns:minmax(0,1fr) 44px;gap:14px;align-items:center;padding-bottom:14px;border-bottom:1px solid var(--pc-line)}
 .pc-portrait{display:flex;flex-direction:column;align-items:center;justify-content:center;background:#fff1de;border:1px solid var(--pc-gold);border-radius:24px 24px 16px 16px;padding:4px 0 8px;color:#62422e}
 .pc-portrait>[data-pc-equipment]{font-size:10px;font-weight:700;letter-spacing:.04em}
 .pc-game-identity{min-width:0}
 #dpMasterCard.pc-game-card .pc-game-identity h2{font:700 22px/1.35 var(--font-playful,var(--font-display));margin:0 0 8px;color:var(--pc-ink);overflow-wrap:anywhere;word-break:keep-all;letter-spacing:-.025em}
 .pc-game-identity p{font-size:12px;line-height:1.65;color:var(--pc-gold);margin:0}
-.pc-profile-gender{display:block;color:var(--pc-muted);font-size:11px;margin-top:7px}
-.pc-element-badge{display:inline-flex;align-items:center;gap:6px;margin-top:10px;color:var(--pc-element);vertical-align:middle}
-.pc-element-seal{display:block;flex:none;width:36px;height:36px;filter:drop-shadow(0 2px 2px #160e1640)}
-.pc-element-rim{fill:#b78d52;stroke:#f1d6a2;stroke-width:1}
-.pc-element-enamel{fill:var(--pc-element-shade);stroke:var(--pc-element);stroke-width:.7}
-.pc-element-symbol{fill:none;stroke:var(--pc-element);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
-.pc-element-glint{fill:none;stroke:#fff0ca;stroke-width:1.2;stroke-linecap:round}
-.pc-element-caption{display:block;color:var(--pc-muted);font-size:10px;line-height:1.4}
-.pc-element-badge strong{display:block;font-size:12px;line-height:1.5;font-weight:700;white-space:nowrap}
+.pc-game-identity>[data-pc-element]{display:inline-block;vertical-align:middle;margin-right:12px}
+.pc-profile-gender{display:inline-block;color:var(--pc-muted);font:400 12px/1.5 var(--font-body);margin-top:7px}
+.pc-element-badge{display:inline-flex;align-items:center;gap:8px;margin-top:8px;color:var(--pc-ink);vertical-align:middle}
+.pc-element-seal{display:block;flex:none;width:44px;height:44px;filter:drop-shadow(0 3px 3px #6b3b4217)}
+.pc-element-rim{fill:var(--pc-element);stroke:var(--pc-element-shade);stroke-width:.7}
+.pc-element-enamel{fill:#fff9ed;stroke:var(--pc-element-shade);stroke-opacity:.35;stroke-width:.7}
+.pc-element-symbol{fill:none;stroke:var(--pc-element-shade);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.pc-element-glint{fill:none;stroke:#fffdf6;stroke-width:2;stroke-linecap:round}
+.pc-element-cheek{fill:var(--pc-element-shade);opacity:.2}
+.pc-element-caption{display:block;color:var(--pc-muted);font:400 11px/1.4 var(--font-body)}
+.pc-element-badge strong{display:block;font:600 13px/1.5 var(--font-body);color:var(--pc-ink);white-space:nowrap}
 #dpMasterCard.pc-game-card .dp-mc-action-wrap{align-self:start;position:relative}
 #dpMasterCard.pc-game-card .dp-mc-menu-btn{display:grid;place-items:center;width:44px;height:44px;min-height:44px;border:1px solid var(--pc-line);border-radius:12px;background:transparent;color:var(--pc-gold);padding:0;box-shadow:none}
 #dpMasterCard.pc-game-card .dp-mc-action-menu{color:#3c1830}
@@ -80,7 +86,7 @@ body.neo-mode #dpMasterCard.pc-game-card,html[data-cd-theme="neo"] #dpMasterCard
 .pc-game-card .pc-details>summary{color:var(--pc-gold);font-size:13px;padding-block:12px}
 .pc-game-card .pc-description{color:var(--pc-muted)}
 .pc-game-card .pc-details button{border-radius:var(--cd-r-control)}
-#dpListSheet #dpMasterCard.pc-game-card .pc-fortune-action,#dpMasterCard.pc-game-card .pc-fortune-action{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:48px;padding:12px 16px;width:100%;border:1px solid #f4dcac;border-radius:12px;background:var(--pc-gold);color:#352235;box-shadow:0 4px 10px #150b1720;font-size:14px;font-weight:700;letter-spacing:0}
+#dpListSheet #dpMasterCard.pc-game-card .pc-fortune-action,#dpMasterCard.pc-game-card .pc-fortune-action{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:48px;padding:12px 16px;width:100%;border:1px solid var(--pc-line);border-radius:18px;background:var(--pg-fortune-bg);color:var(--pg-fortune-ink);box-shadow:0 4px 10px #6b3b4110;font:600 14px/1.5 var(--font-body);letter-spacing:0}
 .pc-game-card .pc-fortune-action:before{display:none}
 .pc-birth-details{color:var(--pc-muted);font-size:11px;margin-top:10px}
 .pc-birth-details summary{display:flex;align-items:center;justify-content:center;min-height:44px;cursor:pointer;text-decoration:underline;text-underline-offset:4px}
