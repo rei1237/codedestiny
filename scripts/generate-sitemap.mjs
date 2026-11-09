@@ -100,6 +100,7 @@ const coreRoutes = [
   { path: "/heukwol", changefreq: "monthly", priority: 0.8 },
   ...["love-secret","new-year","life-book","neo","tea","codex","ziwei","astrology","vedic","sukuyo-compat","legacy-naming","karma","fusion"].map(slug => ({path:`/consultations/${slug}`,changefreq:"monthly",priority:0.7})),
   { path: "/saju/career-style", changefreq: "monthly", priority: 0.8 },
+  { path: "/saju/free", changefreq: "weekly", priority: 0.85 },
   { path: "/consultation-samples", changefreq: "monthly", priority: 0.7 },
   // "/" 는 꿀꿀 운세 공식 대표 홈이다(2026-10-15 사용자 결정, 200). /ggulggul/ 로케일 클러스터와
   // 섞지 않도록 alternates 없이 둔다. 앱 입구 /ggulggul/ 은 아래에 그대로 남는다.
