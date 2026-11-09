@@ -824,10 +824,10 @@ button, .tog-btn, .btn-main, .btn-sub, .dw-item, .feature-card, .fortune-tab, .m
 .feature-card__launch, .feature-card__cta, .mystic-summon-btn, .btn-subscribe, .membership-recap-cta__btn, .villain-copy-btn, .lotto-draw-btn { font-weight: 800; word-break: keep-all; overflow-wrap: break-word; font-family: var(--font-body) !important; letter-spacing: 0px !important; }
  </style>
  <link rel="preload" as="style" href="/styles/fortune-ui-home.css?v=build-2724a0cf1f1e" onload="this.onload=null;this.rel='stylesheet'">
- <link data-cd-noncritical-style-src="/styles/fortune-ui.css?v=build-6580d908541e" data-cd-mobile-delay="1" media="print">
+ <link data-cd-noncritical-style-src="/styles/fortune-ui.css?v=build-6858590f0416" data-cd-mobile-delay="1" media="print">
  <!-- JS 가 꺼져 있으면 위 두 줄은 모두 적용되지 않는다(preload 의 rel 교체도, 지연 로더도 JS 다).
       그때는 부분집합이 아니라 전체 시트를 그냥 받는다 — 상위집합이라 한 줄로 둘 다 덮는다. -->
- <noscript><link rel="stylesheet" href="/styles/fortune-ui.css?v=build-6580d908541e"></noscript>
+ <noscript><link rel="stylesheet" href="/styles/fortune-ui.css?v=build-6858590f0416"></noscript>
  <!-- fortune-gateway.css 는 렌더 블로킹에서 뺀다 — 이 시트가 칠하는 4개 호스트가 전부 폴드보다
       아래다(2026-09-11 재실측, dist·networkidle — #cdFinder 를 무료 카드 바로 아래로 승격하며
       갱신): .cd-quick__grid 825 / #cdFinder 1322 / #cdDiaryPlannerEntry 5113 /
@@ -18378,7 +18378,13 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
 
     <!-- 1. 사주 명식 -->
     <section class="card" id="sajuCard" aria-labelledby="sajuTitle">
-      <h3 id="sajuTitle" class="sec-title"><span data-cd-trans data-key="result.sections.sajuTitle">🌸 사주 명식 (四柱命式)</span> <span class="sec-tier-badge sec-tier-badge--free">FREE</span></h3>
+      <div class="saju-card-heading">
+        <div>
+          <h3 id="sajuTitle" class="sec-title"><span data-cd-trans data-key="result.sections.sajuTitle">🌸 사주 명식 (四柱命式)</span> <span class="sec-tier-badge sec-tier-badge--free">FREE</span></h3>
+          <p class="saju-card-intro">달빛 아래 펼친 네 기둥에서 나의 중심과 관계의 결을 살펴보세요.</p>
+        </div>
+        <span class="saju-moon-seal" aria-hidden="true"><i></i></span>
+      </div>
       <div class="saju-manse-slot">
         <div id="sajuManseSkeleton" class="saju-manse-skeleton" aria-hidden="true">
           <div class="saju-manse-skeleton__col"><span class="saju-manse-skeleton__pill"></span><span class="saju-manse-skeleton__sq"></span><span class="saju-manse-skeleton__sq"></span></div>
@@ -18388,6 +18394,14 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
         </div>
         <div class="manse-grid" id="manseGrid"></div>
       </div>
+      <section class="manse-shinsal" aria-labelledby="manseShinsalTitle">
+        <div class="manse-shinsal__heading">
+          <h4 id="manseShinsalTitle">명식에 머문 신살</h4>
+          <p>신살은 성격이나 사건을 단정하지 않고, 원국의 기운을 더 섬세하게 읽는 보조 단서예요.</p>
+        </div>
+        <div id="manseShinsalList" class="manse-shinsal__list" aria-live="polite"></div>
+        <p id="manseShinsalBasis" class="manse-shinsal__basis"></p>
+      </section>
       <p class="saju-natal-one-liner" id="sajuNatalOneLiner" hidden style="margin:12px 0 0;font-size:.95rem;line-height:1.6;word-break:keep-all"></p>
       <div id="sajuBundleOffer"></div>
     </section>
@@ -19325,7 +19339,7 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
 <script data-cd-lazy-src="/js/core/saju/basicFortunePresentation.js?v=build-6891fb41d4aa" data-cd-mobile-delay="1"></script>
 <script data-cd-lazy-src="/js/core/saju/modalProfileState.js" data-cd-mobile-delay="1"></script>
 <script data-cd-noncritical-src="/js/core/premium-chapter-orchestrator.js?v=build-ba2380db1771" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
-<script defer src="/js/core/index-inline-runtime.js?v=build-79bad7421613" data-cd-saju-prompt-marker="saju-ai-consultation-flow-v20260706 saju-ai-calibration-v20260706 saju-ai-llm-result-v20260625 sukuyo-guardian-drawing-v20260625 sukuyo-pastlife-v2-20260621" data-cd-kemet-ai-prompt-marker="kemet-ai-prompt-generator-v20260619"></script>
+<script defer src="/js/core/index-inline-runtime.js?v=build-f670416e69d4" data-cd-saju-prompt-marker="saju-ai-consultation-flow-v20260706 saju-ai-calibration-v20260706 saju-ai-llm-result-v20260625 sukuyo-guardian-drawing-v20260625 sukuyo-pastlife-v2-20260621" data-cd-kemet-ai-prompt-marker="kemet-ai-prompt-generator-v20260619"></script>
 <script defer src="/js/pwa-install-prompt.js?v=build-1c2525b7d8f2"></script>
 <script data-cd-lazy-src="/js/admin-flower.js" data-cd-mobile-delay="2"></script>
 <div class="share-toast" id="shareToast" role="status" aria-live="polite"></div>

@@ -9788,8 +9788,11 @@ function render24Terms(ctx, p){
 
 function renderManse(p){
   var cols=[{l:'시주',han:'時柱',g:p.h.g,j:p.h.j},{l:'일주',han:'日柱',g:p.d.g,j:p.d.j},{l:'월주',han:'月柱',g:p.m.g,j:p.m.j},{l:'년주',han:'年柱',g:p.y.g,j:p.y.j}];
+  var shinsalData=window.CdManseShinsal&&typeof window.CdManseShinsal.build==='function'?window.CdManseShinsal.build(p):{twelve:[],extras:[],basis:''};
+  var twelveByKey={};
+  shinsalData.twelve.forEach(function(row){twelveByKey[row.key]=row.name;});
   var h='';
-  cols.forEach(function(c){
+  cols.forEach(function(c,index){
     var gd=GAN[c.g]||{e:'metal',y:'+',n:'?'},jd=JI[c.j]||{e:'water',y:'+',a:'?'};
     var gGod=c.l==='일주'?'일간':getTenGod(p.d.g,c.g);
     var jGod=getTenGod(p.d.g,c.j);
@@ -9807,6 +9810,7 @@ function renderManse(p){
       '<div class="manse-char-role">지지</div>'+
       '<div class="char-box bg-'+jd.e+'" role="button" tabindex="0" data-manse-char="1" data-char="'+escapeManseAttr(c.j)+'" data-char-type="branch" data-gan="'+escapeManseAttr(c.g)+'" data-zhi="'+escapeManseAttr(c.j)+'" data-pos-label="'+escapeManseAttr(c.l)+'" data-is-day-stem="0" aria-label="'+escapeManseAttr(branchAria)+'"><span class="manse-char-glyph">'+c.j+'</span></div>'+
       '<div class="yang-yin">'+(jd.y==='+'?'양':'음')+' '+jd.a+'</div>'+
+      '<div class="manse-twelve-star"><span>12신살</span><strong>'+escapeManseAttr(twelveByKey[['h','d','m','y'][index]]||'—')+'</strong></div>'+
       '</div>';
   });
   var manseGrid=document.getElementById('manseGrid');
@@ -9814,6 +9818,18 @@ function renderManse(p){
     manseGrid.innerHTML=h;
     bindManseCharTap(manseGrid);
   }
+  var shinsalList=document.getElementById('manseShinsalList');
+  if(shinsalList){
+    if(shinsalData.extras.length){
+      shinsalList.innerHTML=shinsalData.extras.map(function(row){
+        return '<span class="manse-shinsal-chip"><strong>'+escapeManseAttr(row.name)+'</strong><small>'+escapeManseAttr(row.positions.join(' · '))+'</small></span>';
+      }).join('');
+    }else{
+      shinsalList.innerHTML='<p class="manse-shinsal__empty">원국에서 직접 확인되는 별신살이 없어요. 없는 것 또한 부족함이나 불운을 뜻하지 않아요.</p>';
+    }
+  }
+  var shinsalBasis=document.getElementById('manseShinsalBasis');
+  if(shinsalBasis) shinsalBasis.textContent=shinsalData.basis||'';
   var manseSlot = document.querySelector('#sajuCard .saju-manse-slot');
   var manseSk = document.getElementById('sajuManseSkeleton');
   if (manseSlot) manseSlot.classList.add('saju-manse-slot--ready');
