@@ -93,11 +93,9 @@ if (raw.includes('id="cdHomeFunnel"')) {
   assert.match(css, /\.cdh-scene-art img\s*\{[^}]*width:\s*100%[^}]*aspect-ratio:\s*1[^}]*object-fit:\s*contain/);
   assert.doesNotMatch(css, /html\.neo-mode #cdHomeFunnel \.cdh-persona--yeoni\s*\{\s*display:\s*none/, 'dark mode keeps Yeoni visible');
   const yehwaCss = readFileSync(resolve(root, 'styles/yehwa-home.css'), 'utf8');
-  const yehwaLink = raw.indexOf('href="/styles/yehwa-home.css');
-  assert(yehwaLink > 0 && yehwaLink < raw.indexOf('class="yh-hero'), 'Yehwa styles must precede hero markup');
+  const { assertYehwaFirstPaint } = await import('./lib/yehwa-firstpaint-contract.mjs');
+  assertYehwaFirstPaint(raw, yehwaCss);
   assert.match(yehwaCss, /\.yh-art img\s*\{[^}]*width:\s*100%[^}]*aspect-ratio:\s*1[^}]*object-fit:\s*contain/, 'hero image reserves square geometry');
-  assert.match(yehwaCss, /\.yh-hero\s*\{[^}]*grid-template-columns:1\.2fr 1fr[^}]*min-height:280px/, 'desktop hero reserves approved geometry');
-  assert.match(yehwaCss, /@media\(max-width:600px\)\{\.yh-hero\{[^}]*grid-template-columns:minmax\(0,1\.45fr\) minmax\(0,1fr\)/, 'mobile hero preserves adjacent copy and art');
   assert.match(css, /\.cdh\s*\{[^}]*width:\s*min\(100%,\s*1280px\)/, 'responsive desktop canvas');
   assert.ok(!css.includes('max-width:430px'), 'legacy fixed mobile canvas is removed');
   // 2026-10-03 운세 정원 개편: 신뢰 칩·말풍선은 첫 화면 중복 장식이라 코드째 지웠다 — 되살아나지 않게 막는다.
