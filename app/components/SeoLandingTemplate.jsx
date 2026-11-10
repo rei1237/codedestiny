@@ -115,7 +115,8 @@ function mergeFaqs(pageFaqs) {
       seen.add(key);
       return true;
     })
-    .slice(0, 5);
+    // Keep authored answers; defaults only fill a short FAQ, never displace its content.
+    .slice(0, Math.max(5, custom.length));
 }
 
 /* 🔴 손으로 쓴 relatedServices 가 토픽 클러스터를 굶기지 않게 순서를 나눠 둔다.
