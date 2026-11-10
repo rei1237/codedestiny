@@ -19,13 +19,13 @@ test('only completed paid results invite a review, once, with server-approved re
     await new Promise(resolve => setImmediate(resolve));
     assert.equal(host.querySelectorAll('[data-paid-review-invite]').length, 1);
     assert.match(host.textContent, /연이/);
-    assert.match(host.textContent, /공개 승인 후 월정석 100개 · 1,000원 상당/);
+    assert.match(host.textContent, /관리자 승인 후 월정석 100개 · 1,000원 상당/);
     assert.equal(host.querySelector('a').getAttribute('href'), '/reviews/?write=1');
     assert.match(host.querySelector('img').src, /yeoni/);
     globalThis.fetch = async () => { throw new Error('offline'); };
     mountPaidReviewInvite({host,paid:true,completed:true});
     await new Promise(resolve => setImmediate(resolve));
-    assert.match(host.querySelector('.cd-review-invite__reward').textContent, /공개 승인 후 월정석 지급/);
+    assert.match(host.querySelector('.cd-review-invite__reward').textContent, /관리자 승인 후 월정석 지급/);
     assert.doesNotMatch(host.querySelector('.cd-review-invite__reward').textContent, /100|즉시/);
     assert.ok(host.querySelector('a'), 'writing a review remains available when policy loading fails');
     mountPaidReviewInvite({host,paid:true,completed:false});

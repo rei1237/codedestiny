@@ -13,6 +13,7 @@ const browser = await chromium.launch({ headless: true });
 const user = { id: "507f1f77bcf86cd799439011", name: "mock-user", profileSubscription: {} };
 const products = { ok: true, rewardPolicy: { amount: 100, currency: "moonstone", trigger: "approved" }, items: [] };
 let mode = "ready", posts = 0;
+let summaryMode = "ready";
 const items = [
   { productId: "tarot", productName: "타로 상담", usedAt: "2025-01-02T00:00:00Z", alreadyReviewed: false },
   { productId: "saju-ai", productName: "AI 사주 분석", usedAt: "2024-01-01T00:00:00Z", alreadyReviewed: true, existingReviewStatus: "pending" },
@@ -40,8 +41,12 @@ try {
       status = mode === "guest" ? 401 : mode === "error" ? 503 : 200;
       data = { ok: status === 200, items: mode === "empty" ? [] : items };
     } else if (url.pathname === "/api/reviews" && route.request().method() === "POST") {
-      posts += 1; status = 201; data = { ok: true, status: "pending" };
-    } else if (url.pathname === "/api/reviews/summary") data = { total: 0, average: 0, distribution: {} };
+      posts += 1; status = 201; data = { ok: true, id: "507f1f77bcf86cd799439012", status: "pending", publicConsent: route.request().postDataJSON().publicConsent === true, privacyHold: false };
+    } else if (url.pathname === "/api/reviews/summary") {
+      if (summaryMode === "invalid-json") return route.fulfill({ status: 200, contentType: "application/json", body: "{invalid" });
+      status = summaryMode === "unavailable" ? 503 : 200;
+      data = summaryMode === "missing-total" ? { average: 0, distribution: {} } : { total: 0, average: 0, distribution: {} };
+    }
     await route.fulfill({ status, contentType: "application/json", body: JSON.stringify(data) });
   });
   const page = await context.newPage();
@@ -50,10 +55,20 @@ try {
     await page.setViewportSize({ width, height: 900 });
     await page.goto(base + "/reviews/");
     await page.getByRole("button", { name: "후기 남기기", exact: true }).waitFor();
-    await page.getByText("후기 공개 승인 후 월정석 100개", { exact: false }).first().waitFor();
+    await page.getByText("후기 관리자 승인 후 월정석 100개", { exact: false }).first().waitFor();
     assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), "reviews overflow");
     await page.locator(".cd-review-invite").screenshot({ path: `${output}/invite-${width}.png` });
   }
+  for (const failure of ["invalid-json", "unavailable", "missing-total"]) {
+    summaryMode = failure;
+    await page.goto(base + "/reviews/");
+    await page.getByText("공개 후기 집계를 확인하지 못했어요. 잠시 후 다시 확인해 주세요.", { exact: true }).waitFor();
+    assert.equal(await page.locator(".cd-review-zero").count(), 0, `${failure} must not claim zero public reviews`);
+  }
+  summaryMode = "ready";
+  await page.goto(base + "/reviews/");
+  await page.locator(".cd-review-zero").waitFor();
+  assert((await page.locator(".cd-review-zero").innerText()).includes("공개된 후기 0건"));
   await page.goto(base + "/reviews/?write=1");
   const dialog = page.getByRole("dialog");
   await dialog.waitFor();
@@ -61,9 +76,10 @@ try {
   for (const status of ["검수 대기", "공개", "반려"]) assert((await page.locator("#review-product").innerText()).includes(status));
   await dialog.getByRole("button", { name: "별점 4점 선택", exact: true }).click();
   await dialog.getByRole("button", { name: "리뷰 등록", exact: true }).click();
-  await page.getByText("후기는 비공개로 접수됐어요.", { exact: false }).waitFor();
+  await page.getByText("비공개로 접수했어요.", { exact: false }).waitFor();
   assert.equal(posts, 1);
-  assert(await dialog.getByRole("button", { name: "리뷰 등록", exact: true }).isDisabled());
+  assert.equal(await dialog.getByRole("button", { name: "리뷰 등록", exact: true }).count(), 0);
+  await dialog.getByRole("button", { name: "마치고 내 후기 확인하기", exact: true }).waitFor();
   await page.keyboard.press("Escape"); assert.equal(await dialog.count(), 0);
   mode = "error"; await page.goto(base + "/reviews/?write=1");
   await page.getByRole("button", { name: "이용 내역 다시 확인하기" }).waitFor();

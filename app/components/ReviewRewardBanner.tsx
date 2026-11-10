@@ -55,7 +55,7 @@ export default function ReviewRewardBanner({ policy, onWrite, brand = 'ggulggul'
   const copy = afterResult ? paidReviewCopy(brand, locale) : reviewRewardCopy;
   const resolvedPolicy = policy === undefined ? loadedPolicy : policy;
   const worth = reviewRewardWorthLabel(resolvedPolicy, KRW_PER_MONTHLY_CREDIT, locale);
-  const reward = afterResult && locale !== 'ko' ? resolvedPolicy?.currency === 'moonstone' && resolvedPolicy.trigger === 'approved' && Number.isSafeInteger(resolvedPolicy.amount) && resolvedPolicy.amount > 0 ? `${resolvedPolicy.amount} moonstones after publication approval` : 'Moonstones after publication approval' : reviewRewardLabel(resolvedPolicy);
+  const reward = afterResult && locale !== 'ko' ? resolvedPolicy?.currency === 'moonstone' && resolvedPolicy.trigger === 'approved' && Number.isSafeInteger(resolvedPolicy.amount) && resolvedPolicy.amount > 0 ? `${resolvedPolicy.amount} moonstones after administrator approval` : 'Moonstones after administrator approval' : reviewRewardLabel(resolvedPolicy);
   if (!owner) return null;
   return (
     <section className={`cd-review-invite${afterResult ? ' cd-review-invite--result' : ''}`} data-review-character={afterResult ? brand : undefined} aria-label={locale === 'ko' ? "후기 작성과 월정석 보상 안내" : 'Review and moonstone reward'}>
@@ -68,7 +68,7 @@ export default function ReviewRewardBanner({ policy, onWrite, brand = 'ggulggul'
         {afterResult && locale === 'ko' ? null : onWrite ? <button type="button" className="cd-review-invite__action" onClick={onWrite}>{copy.action}</button>
           : <Link href={REVIEW_WRITE_URL} className="cd-review-invite__action">{copy.action}</Link>}
       </div>
-      <Image src={afterResult ? paidReviewCopy(brand, locale).image : REVIEW_REWARD_IMAGE} alt={brand === 'yeongnyangi' ? '달빛 상담실의 영냥이' : reviewRewardCopy.imageAlt} width={360} height={240} className="cd-review-invite__image" />
+      <Image src={afterResult ? paidReviewCopy(brand, locale).image : onWrite ? "/images/reviews/yeoni-moonstone-gift-v1.webp" : REVIEW_REWARD_IMAGE} alt={brand === 'yeongnyangi' ? '달빛 상담실의 영냥이' : onWrite ? '편지와 월정석을 든 꽃돼지 연이' : reviewRewardCopy.imageAlt} width={360} height={240} className="cd-review-invite__image" />
       {afterResult && locale === 'ko' && <QuickReviewComposer brand={brand} rewardLabel={`${reward}${worth ? ` · ${worth}` : ''}`} />}
     </section>
   );
