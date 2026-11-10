@@ -21,6 +21,7 @@ export default function FortuneLandingHero({ path }: { path: string }) {
         <a className={styles.start} data-landing-start data-cd-cross-sell={sourcePath} data-cd-cta-placement="primary" data-cd-target-service={service} href={"/ggulggul/?action=" + story.action}>{story.cta}<ArrowRight size={18} aria-hidden="true" /></a>
         {scope && <p className={styles.entryScope}>{scope.free}<br />{scope.paid}</p>}
         <a className={styles.previewLink} href="#landing-preview">결과에서 확인할 내용</a>
+        {'guide' in story && <Link className={styles.previewLink} href={story.guide.href} data-cd-cross-sell={sourcePath} data-cd-cta-placement="related" data-cd-target-service={service}>{story.guide.label}</Link>}
       </div>
       <figure className={styles.art}>
         {/* Reuse the service's own published artwork, not a generic shared hero. */}

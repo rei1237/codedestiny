@@ -4,6 +4,8 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
 import { JSDOM } from 'jsdom';
+import { HOME_QUICK_LINKS } from '../../lib/seo/home-discovery.mjs';
+import { getFortuneLanding } from '../../lib/fortune-landings.mjs';
 
 const analytics = readFileSync('js/core/analytics.js', 'utf8');
 const template = readFileSync('app/components/SeoLandingTemplate.jsx', 'utf8');
@@ -52,4 +54,32 @@ test('all authored landing answers survive the rendered/schema FAQ selection', (
   assert.equal(merge([{ question: 'duplicate', answer: 'first' }, { question: 'duplicate', answer: 'second' }]).filter(row => row.question === 'duplicate').length, 1);
   assert.equal(merge(null).length, defaults.length);
   assert.equal(merge([{ question: '', answer: 'invalid' }]).length, defaults.length);
+});
+
+test('home discovery distinguishes the free calculator from its reading guide', () => {
+  assert.equal(HOME_QUICK_LINKS.find(link => link.title === '무료 만세력')?.href, '/manse/');
+  assert.equal(HOME_QUICK_LINKS.find(link => link.key === 'saju')?.href, '/saju/');
+  assert.equal(new Set(HOME_QUICK_LINKS.map(link => link.href)).size, HOME_QUICK_LINKS.length);
+});
+
+test('sukuyo entry exposes calculation guidance without advertising free pair analysis', () => {
+  const story = getFortuneLanding('/sukuyo/');
+  assert.equal(story.guide.href, '/sukuyo/guide/');
+  assert.match(story.guide.label, /계산 기준/);
+  assert.ok(story.topics.some(([, body]) => body.includes('별도 유료')));
+  const hero = readFileSync('app/components/FortuneLandingHero.tsx', 'utf8');
+  assert.match(hero, /href=\{story\.guide\.href\}/);
+});
+
+test('today hub separates general readings from personal input and links final public routes', () => {
+  const source = readFileSync('app/fortune/[period]/page.tsx', 'utf8');
+  const guide = source.match(/<section aria-labelledby="today-reading-choice"[\s\S]*?<\/section>/)?.[0];
+  assert.ok(guide);
+  assert.match(guide, /href="\/today\/"/);
+  assert.match(guide, /href="\/manse\/"/);
+  assert.match(guide, /個人|개인의 전체 사주/);
+  assert.match(guide, /유료 상담은 별개/);
+  const landings = readFileSync('lib/seo-landing-pages.js', 'utf8');
+  const manse = landings.split('  manse: page({')[1].split('  today: page({')[0];
+  assert.match(manse, /ctaHref: "\/ggulggul\/\?action=checkPrivacyAndCalculate"/);
 });
