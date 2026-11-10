@@ -150,6 +150,14 @@
 
   gtag("consent", "default", { analytics_storage: analyticsStorageState() });
   gtag("js", new Date());
+  // Only observed identity/payment return hosts are excluded, never search or social hosts.
+  // Set before config so the initial page view and later events share the same policy.
+  try {
+    var returnHost = document.referrer ? new URL(document.referrer).hostname.toLowerCase() : "";
+    if (/^(accounts\.google\.com|nid\.naver\.com|kauth\.kakao\.com|accounts\.kakao\.com|ksmobile\.inicis\.com|stgmobile\.inicis\.com|fcmobile\.inicis\.com|online-payment\.kakaopay\.com)$/.test(returnHost)) {
+      gtag("set", "ignore_referrer", true);
+    }
+  } catch (_returnReferrerError) { /* Invalid referrers must not interrupt tracking. */ }
   var initialAiSource = aiSourceLabel();
   gtag("config", measurementId, Object.assign({page_location: pageLocation()}, initialAiSource ? {ai_source: initialAiSource} : {}, paidCampaignParams(growthAttribution())));
 

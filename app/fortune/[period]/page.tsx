@@ -211,7 +211,7 @@ export default function FortunePeriodHubPage({ params }: { params: { period: str
             <div className="min-w-0 flex-1">
               <p className={`text-xs font-bold tracking-wider ${ACCENT}`}>{sample.rangeLabel}</p>
               <h1 className="mt-3 break-keep text-3xl font-black leading-tight sm:text-4xl">
-                {label} 운세
+                {period === "today" ? "오늘의 운세 — 별자리·띠별 무료 운세" : `${label} 운세`}
               </h1>
               <p className={`mt-3 max-w-2xl break-keep text-sm leading-7 ${MUTED}`}>
                 {siteSeo.brandName}에서 보는 {label} 운세입니다. 별자리 12종과 띠 12종을 한자리에 모았습니다.{" "}
@@ -225,6 +225,21 @@ export default function FortunePeriodHubPage({ params }: { params: { period: str
             <YeoniPortrait mood="greet" size={104} priority className="mt-1 hidden sm:block" />
           </header>
 
+          )}
+          {period === "today" && (
+            <section aria-labelledby="today-reading-choice" className={tomorrowStyles.guide}>
+              <h2 id="today-reading-choice">생년월일 없이 볼까요, 내 출생정보로 볼까요?</h2>
+              <p>이 페이지에서는 생년월일 입력이나 로그인 없이 별자리 12종·띠 12종의 오늘 운세를 골라 볼 수 있어요.
+                같은 분류를 고르면 같은 결과를 보므로 개인의 전체 사주를 풀이한 결과와는 달라요.</p>
+              <p>별자리는 생일로, 띠는 태어난 해로 골라요. 별자리 경계일이나 입춘 무렵 출생이라면
+                날짜만으로 분류를 확정하기보다 출생정보와 계산 기준을 먼저 확인해 주세요.
+                각 상세 페이지에서는 총운과 분야별 흐름, 계산 근거를 함께 읽을 수 있어요.</p>
+              <div className={tomorrowStyles.jumpLinks}>
+                <Link href="/today/" data-cd-cross-sell="/fortune/today/" data-cd-cta-placement="related" data-cd-target-service="zodiac">생년월일 기반 오늘의 운세 살펴보기</Link>
+                <Link href="/manse/" data-cd-cross-sell="/fortune/today/" data-cd-cta-placement="related" data-cd-target-service="manse">무료 만세력으로 내 명식 확인하기</Link>
+              </div>
+              <p>일반 운세와 개인 질문을 반영한 유료 상담은 별개예요. 먼저 무료 결과의 제공 범위를 확인하고 선택해 주세요.</p>
+            </section>
           )}
           {(
             <nav aria-labelledby="choose-sign-heading" className={tomorrowStyles.selector}>

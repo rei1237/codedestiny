@@ -176,7 +176,7 @@ export default function RootLayout({ children }) {
             }}
           />
         ) : null}
-        <Script src="/js/core/analytics.js?v=20261103-ai-source-v1" strategy="afterInteractive" />
+        <Script src="/js/core/analytics.js?v=20261110-return-attribution-v1" strategy="afterInteractive" />
         {/* 언어 제안 배너: 클라이언트 전용. 서버 출력에는 배너 DOM 이 없고, 스크립트는 이동시키지 않는다. */}
         <Script src="/js/cd-lang-suggest.js?v=20261102-lang-suggest-v2" strategy="lazyOnload" />
         <link rel="alternate" type="application/rss+xml" title={ROOT_LAYOUT_COPY.ko.insightsRssTitle} href="https://code-destiny.com/rss.xml" />

@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-11-10
-next: Identify the organic-acquisition session owner and coordinate the missing handoff frontmatter fix before integrating UI into a green main.
+next: Finish combined UI and SEO verification, commit the source-preserving merge, and use the approved release workflow after exact main CI passes.
 ---
 
 # Approved banner and review release
@@ -25,10 +25,10 @@ The user approved the shown ggulggul banner typography and Yehwa button design, 
 
 ## Release blocker
 
-Remote main moved to 9d8ffd2d8. CI 42825305023 failed only on missing frontmatter in docs/handoff/organic-acquisition-20261110.md; fast/build/critical lanes passed. Do not push atop red main or alter the other session without coordination. Parent explicitly requested owner coordination, not unilateral SEO edits. Owner is unidentified; organic-acquisition-20261110-211311 worktree is clean at local 39734384d. No external-task message sent.
+Remote main moved to 9d8ffd2d8. CI 42825305023 failed only on missing frontmatter in docs/handoff/organic-acquisition-20261110.md; fast/build/critical lanes passed. The owner remains unidentified; its worktree is still clean at local 39734384d. The user subsequently approved only the missing frontmatter fix, preservation of both source sets, official regeneration, verification and production release. The source-preserving merge is in progress in this worktree. No external-task message sent.
 
 https://github.com/rei1237/codedestiny/actions/runs/42825305023
 
 ## Resume
 
-Preserve both source sets. Overlap is only generated index/cache, mirrors and sitemap signatures. After the owner fixes main: integrate without force, regenerate official mirrors/sitemap, validate combined changes and committed-tree pre-push, push normally, check exact CI once, then use the approved official production workflow. Never poll CI or bypass a release guard. Confirm Pages/Worker SHA and health before reporting production complete. Parent handles the requested computer shutdown.
+Preserve both source sets. Overlap is only generated index/cache, mirrors and sitemap signatures. Complete the approved frontmatter fix and source-preserving merge without force. Regenerate official mirrors/sitemap, validate combined changes and committed-tree pre-push, push normally, check exact CI once, then use the approved official production workflow. Never poll CI or bypass a release guard. Confirm Pages/Worker SHA and health before reporting production complete. Parent handles the requested computer shutdown.
