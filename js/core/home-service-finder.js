@@ -1206,6 +1206,7 @@
 
   window.CodeDestinyAllFortunes = {
     attach: attachAllFortunes,
+    createOpener: openerNode,
     filter: function (state) { return filterServices(state || {}); }
   };
 

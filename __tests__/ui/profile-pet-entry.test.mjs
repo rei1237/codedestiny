@@ -31,3 +31,16 @@ test("all sprite poses use the measured paw baseline, including wake and sleep",
       assert.ok(sprite.includes(`--paw-${frame}:${x}% ${y}%`));
   }
 });
+
+test('linked main entry is consumed once and never enables the embedded editor',()=>{
+ const source=readFileSync('js/destiny-profile.js','utf8');
+ const initialization=source.match(/var linkedPetProfileEntry = [^;]+;/)[0];
+ const consume=source.match(/var fromMyProfile = [\s\S]*?linkedPetProfileEntry = false;/)[0];
+ for(const [query,forest,fromMy,expected] of [['?petEntry=my',false,false,'my'],['?petEntry=my','select',false,''],['',false,true,'my'],['?petEntry=other',false,false,'']]){
+  let my=fromMy;
+  const window={location:{search:query},CodeDestinyShellSheet:{takePetProfileEntry:()=>{const result=my;my=false;return result;}}};
+  const sheet={dataset:{}};
+  const open=new Function('window','sheet','forestCardMode',initialization+';return function(){'+consume+';return sheet.dataset.petEntry;}')(window,sheet,forest);
+  assert.equal(open(),expected);assert.equal(open(),'');
+ }
+});

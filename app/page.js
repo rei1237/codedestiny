@@ -119,43 +119,12 @@ export default function HomePage() {
             </li>;
           })}
         </HomeCardDeck>
-        <a className={styles.widgetEntry} href={IS_APP_BUILD ? "/app/home-widget/index.html" : "/app/home-widget/"} data-cd-home-widget-entry><img src="/images/home/illustrated/yeoni-hanbok-240.webp" alt="" width="48" height="64" loading="lazy" /><span><strong><NativeHomeText>홈 화면 꾸미기</NativeHomeText></strong><small><NativeHomeText>연이의 한마디, 꽃말, 오늘의 운세와 부적을 골라 보세요.</NativeHomeText></small></span></a>
         {!IS_APP_BUILD && <HomeQuestionGuide />}
         {!IS_APP_BUILD && <StoryDiscovery />}
         <HomeDailyEntry />
         {!IS_APP_BUILD && <HomeInstallEntry />}
-        {!IS_APP_BUILD && <nav className={styles.explore} aria-label="더 둘러보기">
-          <Link className={styles.exploreBtn} href="/saju/free/">
-            <span className={styles.exploreCopy}><strong className={styles.exploreName}>무료 만세력 보기</strong><small>생년월일로 내 사주 명식 확인하기</small></span>
-            <span aria-hidden="true">→</span>
-          </Link>
-
-          <Link className={`${styles.exploreBtn} ${styles.exploreGame}`} href="/mini-games/">
-            <span className={styles.exploreIcon} aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round"><rect x="4.2" y="5.4" width="8.6" height="12.6" rx="1.6" transform="rotate(-14 8.5 11.7)" /><rect x="10.6" y="5" width="8.6" height="12.6" rx="1.6" transform="rotate(9 14.9 11.3)" /><path d="M15.9 9.2a2.3 2.3 0 1 0 1.3 3.6 1.9 1.9 0 1 1-1.3-3.6z" /></svg></span>
-            <span className={styles.exploreCopy}><span className={styles.exploreName}>미니 운세 게임</span><small>포커·오미쿠지·FPTI 등 여러 게임</small></span>
-            <span className={styles.explorePlay} aria-hidden="true"><svg viewBox="0 0 10 10"><path d="M2 1l7 4-7 4z" fill="currentColor" /></svg>PLAY</span>
-          </Link>
-          <details className={styles.exploreStory}>
-            <summary className={styles.exploreBtn}>
-              <span className={styles.exploreBacks} aria-hidden="true">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src="/images/fortune-tea-house/moonlight-tarot-card-back.webp" width={120} height={180} alt="" loading="lazy" decoding="async" />
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src="/images/fortune-tea-house/moonlight-tarot-card-back.webp" width={120} height={180} alt="" loading="lazy" decoding="async" />
-              </span>
-              <span className={styles.exploreCopy}><strong className={styles.exploreName}>달빛 이야기</strong><small>노벨과 음악</small></span>
-              <span className={styles.exploreChev} aria-hidden="true" />
-            </summary>
-            <div className={styles.exploreSpread}>
-              {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
-              <a href="/codedestiny-novel.html">영냥이 노벨</a>
-              {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
-              <a href="/music/">달빛 음악</a>
-            </div>
-          </details>
-        </nav>}
-        {!IS_APP_BUILD && <a className={styles.businessApiCard} href="/entry-webtoon/"><img src="/images/entry-webtoon/imagine-desk-720.webp" alt="" loading="lazy"/><span>달빛 예화 진입 웹툰<small>이야기로 만나는 꿀꿀 운세</small></span><span aria-hidden="true">→</span></a>}
         {!IS_APP_BUILD && <a className={styles.businessApiCard} href="/business/api/"><img src="/assets/yeongnyangi/original/room-study.webp" alt="" loading="lazy" /><span><NativeHomeDictionaryText translationKey="footer.businessApiInvite">내 서비스에 운세 기능을 넣고 싶다면?</NativeHomeDictionaryText><small><NativeHomeDictionaryText translationKey="footer.businessApiLink">운세 API · 요금 및 연동</NativeHomeDictionaryText></small></span> <span aria-hidden="true">→</span></a>}
+        <a className={styles.widgetEntry} href={IS_APP_BUILD ? "/app/home-widget/index.html" : "/app/home-widget/"} data-cd-home-widget-entry><img src="/images/home/illustrated/yeoni-hanbok-240.webp" alt="" width="48" height="64" loading="lazy" /><span><strong><NativeHomeText>홈 화면 꾸미기</NativeHomeText></strong><small><NativeHomeText>연이의 한마디, 꽃말, 오늘의 운세와 부적을 골라 보세요.</NativeHomeText></small></span></a>
       </main>
 
       {!IS_APP_BUILD && <MobileHomeNav/>}

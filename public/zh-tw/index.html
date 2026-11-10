@@ -823,7 +823,7 @@ button, .tog-btn, .btn-main, .btn-sub, .dw-item, .feature-card, .fortune-tab, .m
 .moon-section-head p, .feature-card__desc, .feature-card__detail-text, .tarot-tile__desc, .fortune-section, .sub-desc, .sub-daily-note, #tarotModalOverlay .oracle-text-m, #tarotModalOverlay .ritual-text-m, .result-content, .villain-v2-section p, .villain-zone-card p, .villain-one-line, .villain-profile-card .villain-quote { word-break: keep-all; overflow-wrap: break-word; font-family: var(--font-body) !important; letter-spacing: 0px !important; }
 .feature-card__launch, .feature-card__cta, .mystic-summon-btn, .btn-subscribe, .membership-recap-cta__btn, .villain-copy-btn, .lotto-draw-btn { font-weight: 800; word-break: keep-all; overflow-wrap: break-word; font-family: var(--font-body) !important; letter-spacing: 0px !important; }
  </style>
- <link rel="preload" as="style" href="/styles/fortune-ui-home.css?v=build-2724a0cf1f1e" onload="this.onload=null;this.rel='stylesheet'">
+ <link rel="preload" as="style" href="/styles/fortune-ui-home.css?v=build-ba2590734dae" onload="this.onload=null;this.rel='stylesheet'">
  <link data-cd-noncritical-style-src="/styles/fortune-ui.css?v=build-6858590f0416" data-cd-mobile-delay="1" media="print">
  <!-- JS 가 꺼져 있으면 위 두 줄은 모두 적용되지 않는다(preload 의 rel 교체도, 지연 로더도 JS 다).
       그때는 부분집합이 아니라 전체 시트를 그냥 받는다 — 상위집합이라 한 줄로 둘 다 덮는다. -->
@@ -976,7 +976,7 @@ html:not(.cd-mobile-runtime) .cd-home-guide { content-visibility: auto; contain-
 <meta property="og:description" content="從四柱八字、紫微斗數十二宮到宿曜關係與塔羅問題解讀。用繁體中文了解不同體系的輸入與看盤順序，選擇適合自己的命盤或諮詢入口。">
 <meta property="og:url" content="https://code-destiny.com/zh-tw/">
 <meta property="og:locale" content="zh_TW">
-<meta property="og:image" content="https://code-destiny.com/og/code-destiny-og-zh-tw.png?v=build-4d647b1be39f">
+<meta property="og:image" content="https://code-destiny.com/og/code-destiny-og-zh-tw.png?v=build-353fdf48570e">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="꿀꿀운세 HONEY FORTUNE — 印有花豬 Yeoni 客串形象與服務介紹的 CODE DESTINY 名片卡">
@@ -985,7 +985,7 @@ html:not(.cd-mobile-runtime) .cd-home-guide { content-visibility: auto; contain-
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="八字排盤·紫微斗數·塔羅占卜｜꿀꿀 운세">
 <meta name="twitter:description" content="從四柱八字、紫微斗數十二宮到宿曜關係與塔羅問題解讀。用繁體中文了解不同體系的輸入與看盤順序，選擇適合自己的命盤或諮詢入口。">
-<meta name="twitter:image" content="https://code-destiny.com/og/code-destiny-og-zh-tw.png?v=build-4d647b1be39f">
+<meta name="twitter:image" content="https://code-destiny.com/og/code-destiny-og-zh-tw.png?v=build-353fdf48570e">
 <meta name="twitter:image:alt" content="꿀꿀운세 HONEY FORTUNE — 印有花豬 Yeoni 客串形象與服務介紹的 CODE DESTINY 名片卡">
 <script type="application/ld+json">
 {
@@ -1148,7 +1148,7 @@ html:not(.cd-mobile-runtime) .cd-home-guide { content-visibility: auto; contain-
     {
       "@type": "ImageObject",
       "@id": "https://code-destiny.com/#primaryimage",
-      "url": "https://code-destiny.com/og/code-destiny-og-vvip.png?v=build-4d647b1be39f",
+      "url": "https://code-destiny.com/og/code-destiny-og-vvip.png?v=build-353fdf48570e",
       "width": 1200,
       "height": 630
     },
@@ -6626,6 +6626,8 @@ html.neo-mode .cdh,body.neo-mode .cdh{--cdh-glass-line:color-mix(in srgb,var(--c
 /* Transparent fish artwork and an understated silver fish engraving. */
 /* 둘러보기 — 넉넉한 터치 영역과 금박 테두리, 같은 폭의 세 진입점. */
 #cdHomeFunnel .cdh-all-cta{margin:40px 24px 0;text-align:center}
+/* Service-entry cards stay visible independently of the mobile all-fortunes CTA. */
+#cdHomeFunnel .cdh-entry-card{margin:16px 24px 0;text-align:center}
 /* 세 버튼은 기존 크림·밤색 팔레트와 달빛 예화 꽃가지를 공유한다. */
 #cdHomeFunnel :is(.cdh-all-cta__btn,.cdh-links .cdh-links__game,.cdh-story__toggle){box-sizing:border-box;display:flex;align-items:center;justify-content:flex-start;gap:20px;width:min(100%,440px);min-height:88px;margin-inline:auto;padding:16px 26px;position:relative;overflow:hidden;isolation:isolate;border:1px solid transparent;border-radius:24px;background:var(--cdh-grain) padding-box,linear-gradient(180deg,var(--cdh-paper-1),var(--cdh-paper-2)) padding-box,var(--cdh-foil) border-box;background-origin:border-box;box-shadow:inset 0 1px 0 var(--cdh-paper-hi),0 10px 22px -18px color-mix(in srgb,var(--cdh-ink) 45%,transparent);color:var(--cdh-ink);font:600 20px/1.4 var(--cdh-serif);text-align:left;text-decoration:none;transition:border-color .2s ease,box-shadow .2s ease}
 #cdHomeFunnel :is(.cdh-all-cta__btn,.cdh-links .cdh-links__game,.cdh-story__toggle)::before{content:"";position:absolute;z-index:-1;right:-6px;top:-10px;width:132px;height:102px;background:var(--cdh-gold);mask:var(--cd-yehwa-mask-branch-corner) center/contain no-repeat;opacity:.32;pointer-events:none}
@@ -11387,10 +11389,12 @@ html:not(.neo-mode) .moon-story-entry__pig--yeon {
 
 <!-- 모든 운세 보기 — 달빛 예화 이중 틀 버튼. 전체 운세 시트(cdOpenAllFortunes)를 연다. -->
 <p class="cdh-all-cta"><a class="cdh-all-cta__btn" href="/?action=cdOpenAllFortunes" data-action="cdOpenAllFortunes"><span class="cdh-links__icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"><path d="M12 6.5C9.6 5 6.8 4.7 4 5.5v12c2.8-.8 5.6-.5 8 1 2.4-1.5 5.2-1.8 8-1v-12c-2.8-.8-5.6-.5-8 1Zm0 0v12"/></svg></span><span class="cdh-all-cta__copy"><span class="cdh-all-cta__label" data-cd-trans="home.gardenCopy.allFortunes">모든 운세 보기</span></span><svg class="cdh-all-cta__arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></a></p>
-<details class="cdh-links cdh-light" id="cdhLightFortunes">
-  <summary class="cdh-links__game"><span class="cdh-links__icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"><path d="M4 9h13v4a6.5 6.5 0 0 1-13 0V9Zm13 1h1a3 3 0 0 1 0 6h-2M3 21h16M8 3v3m5-3v3"/></svg></span><span class="cdh-links__copy"><span class="cdh-links__name" data-cd-trans="home.guideCopy.smallFortune">작은 운세 한 모금</span><small class="cdh-links__desc" data-cd-trans="home.guideCopy.trialToResult">무료 체험부터 나만의 결과까지</small></span><span class="cdh-light__chev" aria-hidden="true"></span></summary>
+<details class="cdh-links cdh-light" id="cdhLightFortunes" data-cdh-entry-card="mini-games">
+  <summary class="cdh-links__game"><span class="cdh-links__icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"><path d="M4 9h13v4a6.5 6.5 0 0 1-13 0V9Zm13 1h1a3 3 0 0 1 0 6h-2M3 21h16M8 3v3m5-3v3"/></svg></span><span class="cdh-links__copy"><span class="cdh-links__name" data-cd-trans="home.simpleHome.miniGames">미니 운세 게임</span><small class="cdh-links__desc" data-cd-trans="home.guideCopy.smallFortune">작은 운세 한 모금</small></span><span class="cdh-light__chev" aria-hidden="true"></span></summary>
   <div class="cdh-light__content"><p class="cdh-light__intro" data-cd-trans="home.guideCopy.smallLead">혼자 잠깐 쉬어 가도, 친구와 결과를 비교해도 좋아요. 무료 체험부터 골라 보세요.</p><div class="cdh-light__list"><a class="cdh-light__item" href="/fortune-teller-fish.html"><img src="/images/mini-games/fortune-fish-320.webp" width="160" height="100" loading="lazy" decoding="async" alt=""><span class="cdh-light__copy"><strong data-cd-trans="home.guideCopy.fishName">포춘 피쉬</strong><span data-cd-trans="home.guideCopy.fishDesc">작은 금붕어의 몸짓으로 오늘의 기분 읽기</span><small data-cd-price-free="true">무료</small></span></a><a class="cdh-light__item" href="/emoi_omikuji_v2.html"><img src="/images/mini-games/omikuji-320.webp" width="160" height="100" loading="lazy" decoding="async" alt=""><span class="cdh-light__copy"><strong data-cd-trans="home.guideCopy.omikujiName">오미쿠지</strong><span data-cd-trans="home.guideCopy.omikujiDesc">제비통에서 꺼내 보는 오늘의 한 장</span><small data-cd-price-free="true">무료</small></span></a><a class="cdh-light__item" href="/psychotest/"><img src="/images/mini-games/psychotest-320.webp" width="160" height="100" loading="lazy" decoding="async" alt=""><span class="cdh-light__copy"><strong>심리테스트</strong><span data-cd-trans="home.guideCopy.typeDesc">나는 어떤 타입일까? 친구와 성향 비교하기</span><small data-cd-price-free="true">무료</small></span></a><a class="cdh-light__item" href="/oracle/royal-tea/"><img src="/images/service-introductions/royal-tea-oracle-320.webp" width="160" height="100" loading="lazy" decoding="async" alt=""><span class="cdh-light__copy"><strong data-cd-trans="home.guideCopy.teaLeafName">영국 홍차점</strong><span data-cd-trans="home.guideCopy.teaLeafDesc">찻잎이 남긴 모양에서 찾는 오늘의 힌트</span><small data-cd-play-price data-cd-play-feature="royal-tea-oracle" data-cd-play-kind="perUse" data-cd-price-key="royal-tea-oracle" data-price-krw="3000">1회 3,000원</small></span></a><a class="cdh-light__item" href="/flower/"><img src="/images/service-introductions/destiny-flower-320.webp" width="160" height="100" loading="lazy" decoding="async" alt=""><span class="cdh-light__copy"><strong>운명의 꽃</strong><span data-cd-trans="home.guideCopy.flowerDesc">나의 기질을 닮은 꽃과 색을 카드에 담기</span><small data-cd-play-price data-cd-play-feature="flower-fc" data-cd-play-kind="unlock" data-cd-price-key="flower-fc" data-price-krw="5000" data-cd-trans="home.guideCopy.unlockPrice" data-cd-vars="{&quot;amount&quot;:&quot;5,000&quot;}">해금 5,000원</small></span></a><a class="cdh-light__item" href="/saju/destiny-bias/"><img src="/images/service-introductions/bias-destiny-320.webp" width="160" height="100" loading="lazy" decoding="async" alt=""><span class="cdh-light__copy"><strong data-cd-trans="home.guideCopy.idolName">최애운명</strong><span data-cd-trans="home.guideCopy.idolDesc">최애와 나의 케미를 포토카드로 만나기</span><small data-cd-play-price data-cd-play-feature="destiny-bias-analyze" data-cd-play-kind="perUse" data-cd-price-key="destiny-bias-analyze" data-price-krw="5000">1회 5,000원</small></span></a></div><p class="cdh-light__note" data-cd-trans="home.guideCopy.smallPolicy">유료 기능은 결제 전 조건을 확인해 주세요. 이용권·월정석 적용은 상품별 기존 기준을 따라요.</p></div>
 </details>
+<!-- 서비스 선택 화면의 보조 진입은 꿀꿀운세 홈에만 둔다. -->
+<div class="cdh-entry-card" data-cdh-entry-card="free-saju"><a class="cdh-all-cta__btn" href="/saju/free/" aria-label="무료 만세력 보기" data-cd-trans-attr="aria-label:home.input.submit"><span class="cdh-all-cta__copy"><span class="cdh-all-cta__label" data-cd-trans="home.input.submit">무료 만세력 보기</span></span><svg class="cdh-all-cta__arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></a></div>
 <!-- 달빛 이야기 — 라이트 노벨·달빛 음악을 한 묶음으로. 열면 표지와 소개가 담긴 두 장의 서재 카드가 펼쳐진다(JS 없음). -->
 
 <details class="cdh-story">
@@ -11406,6 +11410,7 @@ html:not(.neo-mode) .moon-story-entry__pig--yeon {
   </div>
 
 </details>
+<div class="cdh-entry-card" data-cdh-entry-card="entry-webtoon"><a class="cdh-all-cta__btn" href="/entry-webtoon/" aria-label="달빛 예화 진입 웹툰" data-cd-trans-attr="aria-label:home.entryCards.webtoon"><img src="/images/entry-webtoon/imagine-desk-720.webp" alt="" width="64" height="64" loading="lazy" decoding="async"><span class="cdh-all-cta__copy"><span class="cdh-all-cta__label" data-cd-trans="home.entryCards.webtoon">달빛 예화 진입 웹툰</span></span><svg class="cdh-all-cta__arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></a></div>
 <!-- 색인 대상 허브로 가는 정본 내부 링크. 크롤러가 착지하는 /ggulggul/ 에서 2홉 안에 모든 색인 라우트가
      닿아야 한다(scripts/verify-internal-link-depth.mjs). 2026-10-17 "직관성" 단순화로 홈 안내 섹션은 뺐지만
      이 목록이 /fortune·/insights·/stories 같은 허브로 가는 유일한 길이라 작은 색인으로 남긴다. -->
@@ -21005,7 +21010,7 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
      DCL 이고, 하는 일은 첫 페인트가 아니라 프로필 카드 강화다. high 로 두면 그 다운로드가 LCP
      히어로 이미지 preload 와 같은 우선순위 슬롯을 놓고 경쟁해 LCP 를 늦춘다. low 도 쓰지 않는다 —
      DCL 이 defer 실행을 기다리므로 지나치게 내리면 DCL 자체가 밀린다. 기본값이 맞다. -->
-<script defer src="/js/destiny-profile.js?v=build-a98efeac1a5e" data-marker="profile-card-date-input-v20260624"></script>
+<script defer src="/js/destiny-profile.js?v=build-3d17fa1eb07e" data-marker="profile-card-date-input-v20260624"></script>
 <!-- 오늘의 운세 허브 계산 코어. 히어로 직후 첫 화면이라 지연 로더(data-cd-noncritical-src)에 태우지 않는다.
      defer 라 DOMContentLoaded 전에 실행이 끝나고, destiny-profile.js 뒤에 두어 dpGetDataForVedic() 이 먼저 준비된다. -->
 <script defer src="/js/fortune-gateway.js?v=build-4bc5b80fb7f9" data-marker="fortune-gateway-v1"></script>
@@ -21014,7 +21019,7 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
      8KB 를 넘으면 외부 청크로 빠지며 data-marker 가 사라진다.
      🔴 레지스트리가 엔진보다 먼저 실행돼야 한다(defer 는 문서 순서를 지킨다). -->
 <script defer src="/js/core/service-registry.js?v=build-896394c7b532" data-marker="cd-home-service-registry-v20260819"></script>
-<script defer src="/js/core/home-service-finder.js?v=build-c2ccf569cfb4" data-marker="cd-home-service-finder-v20260819"></script>
+<script defer src="/js/core/home-service-finder.js?v=build-bcb29eefdb56" data-marker="cd-home-service-finder-v20260819"></script>
 <script defer src="/js/core/shell-sheet.js?v=build-da33f4e5c013"></script>
 <script defer src="/js/core/saju/reading-navigation.js"></script>
 <script defer src="/js/core/home-surface-motion.js"></script>
@@ -21030,7 +21035,7 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
 <script data-cd-lazy-src="/js/core/saju/basicFortunePresentation.js?v=build-6891fb41d4aa" data-cd-mobile-delay="1"></script>
 <script data-cd-lazy-src="/js/core/saju/modalProfileState.js" data-cd-mobile-delay="1"></script>
 <script data-cd-noncritical-src="/js/core/premium-chapter-orchestrator.js?v=build-ba2380db1771" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
-<script defer src="/js/core/index-inline-runtime.js?v=build-3039cace40b0" data-cd-saju-prompt-marker="saju-ai-consultation-flow-v20260706 saju-ai-calibration-v20260706 saju-ai-llm-result-v20260625 sukuyo-guardian-drawing-v20260625 sukuyo-pastlife-v2-20260621" data-cd-kemet-ai-prompt-marker="kemet-ai-prompt-generator-v20260619"></script>
+<script defer src="/js/core/index-inline-runtime.js?v=build-d14ac7f9d0ad" data-cd-saju-prompt-marker="saju-ai-consultation-flow-v20260706 saju-ai-calibration-v20260706 saju-ai-llm-result-v20260625 sukuyo-guardian-drawing-v20260625 sukuyo-pastlife-v2-20260621" data-cd-kemet-ai-prompt-marker="kemet-ai-prompt-generator-v20260619"></script>
 <script defer src="/js/pwa-install-prompt.js?v=build-1c2525b7d8f2"></script>
 <script data-cd-lazy-src="/js/admin-flower.js" data-cd-mobile-delay="2"></script>
 <div class="share-toast" id="shareToast" role="status" aria-live="polite"></div>
@@ -21150,7 +21155,7 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
     if (!shareUrl) return Promise.reject(new Error('share_url_missing'));
     // 지금 보고 있는 언어의 셸·미리보기 카드로 공유한다(js/share.js). 아직 안 실렸으면 서버 URL 그대로.
     if (typeof window.cdLocalizeShareUrl === 'function') shareUrl = window.cdLocalizeShareUrl(shareUrl);
-    var shareImageUrl = 'https://code-destiny.com/og/code-destiny-og-vvip.png?v=build-4d647b1be39f';
+    var shareImageUrl = 'https://code-destiny.com/og/code-destiny-og-vvip.png?v=build-353fdf48570e';
     if (typeof window.cdLocalizeShareImage === 'function') shareImageUrl = window.cdLocalizeShareImage(shareImageUrl);
     renderShareUrl(shareUrl, tr('kakaoReferral.rewardReady', '초대 링크가 준비됐어요. 친구 가입 완료 시 추천 보상이 지급됩니다.'));
     return loadKakaoSdk(payload.kakaoJavascriptKey).then(function(ok){
@@ -34708,7 +34713,7 @@ function updateBadge() {
 <!-- jsPDF removed from initial bundle; load on demand only if a feature requires it -->
 <script data-cd-noncritical-src="/js/sibyl-system.js?v=build-b753941981e2" data-cd-mobile-delay="2" data-cd-lowend-skip="1"></script>
 <script src="/js/cd-lazy-feature-loader.js" defer></script>
-<script type="module" src="/js/app.js?v=build-0627af06c65e"></script>
+<script type="module" src="/js/app.js?v=build-ef3548d0f8be"></script>
 <!-- Feature Preview Panel v2 -->
 <template id="tilePvwOverlayTemplate" data-component="MobileFeatureBottomSheetTemplate">
 <div id="tilePvwOverlay" class="tile-pvw-overlay cd-detail-overlay MobileFeatureBottomSheet" data-cd-detail-overlay="" data-component="MobileFeatureBottomSheet" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="tilePvwTitle" data-marker="main-overlay-dedupe-v20260625 mobile-feature-bottom-sheet-v20260701 feature-marketing-detail-v20260702">
@@ -35132,7 +35137,7 @@ function updateBadge() {
 (function(){
   'use strict';
   var D={
-    '#destinyCardForm':{cat:'사주 · 무료 운명 카드',fallbackTitle:'🌙 나의 달빛 운명 카드',tagline:'생년월일과 출생시간을 바탕으로 사주, 오늘의 흐름, 궁합, 별자리 서비스로 이어지는 기본 프로필을 만듭니다.',feats:['이름·생년월일·출생시간 기반 기본 운명 카드 생성','출생시간을 모를 때 낮 12시 기준으로 보수 계산','사주 결과와 주요 운세 서비스 바로가기 자동 연결','저장한 프로필로 무료·프리미엄 리딩을 더 빠르게 시작'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/%EC%82%AC%EC%A3%BC%EB%B3%B4%EB%8A%94%20%EC%97%B0%EC%9D%B4.webp?v=build-4d647b1be39f',fallbackCta:'운명 카드 만들기'},
+    '#destinyCardForm':{cat:'사주 · 무료 운명 카드',fallbackTitle:'🌙 나의 달빛 운명 카드',tagline:'생년월일과 출생시간을 바탕으로 사주, 오늘의 흐름, 궁합, 별자리 서비스로 이어지는 기본 프로필을 만듭니다.',feats:['이름·생년월일·출생시간 기반 기본 운명 카드 생성','출생시간을 모를 때 낮 12시 기준으로 보수 계산','사주 결과와 주요 운세 서비스 바로가기 자동 연결','저장한 프로필로 무료·프리미엄 리딩을 더 빠르게 시작'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/%EC%82%AC%EC%A3%BC%EB%B3%B4%EB%8A%94%20%EC%97%B0%EC%9D%B4.webp?v=build-353fdf48570e',fallbackCta:'운명 카드 만들기'},
     gotoZiweiPremium:{cat:'프리미엄 · 자미두수 전문가 상담',fallbackTitle:'자미두수 전문가 상담',tagline:'명궁·신궁·12궁·사화·대운·세운 흐름을 바탕으로 지금의 질문에 답합니다.',feats:['입력은 무료 — 상담 생성 버튼을 누를 때 30,000원 단건 결제 또는 이용권·월정석 확인','결제 확인이 끝나면 상담문이 바로 생성','명궁·재백·관록·부부·질액궁을 질문에 맞춰 연결 해석','상담 결과를 화면에서 바로 확인하고 추가 질문 이어가기'],cost:'30,000원 · 전문가 상담',ct:'paid',img:"/images/service-introductions/ziwei-ai.webp",fallbackCta:'자미두수 상담 받기'},
     '/neo-operation-room':{cat:'프리미엄 · 운명 작전실',fallbackTitle:'네오의 팩폭 운명 작전실',tagline:'사주·자미두수·베다점·점성술의 지도를 한 장의 전략처럼 펼쳐, 지금 밀리는 전선과 다시 잡아야 할 기준을 또렷하게 짚습니다.',feats:['30,000원 상담 이용권 확인','결제 완료 후 네오의 작전실로 바로 이동','사주와 별자리 흐름을 함께 비추는 종합 상담','현재 고민에 맞춘 선택 기준과 다음 행동 정리'],cost:'30,000원 · 전문가 상담',ct:'paid',img:"/images/service-introductions/neo-operation-room.webp",fallbackCta:'작전실 열기'},
     openNamingPromptModal:{cat:'작명 · 전문가 상담',fallbackTitle:'훈민정음 작명소',tagline:'생년월일시와 원하는 이름 조건을 바탕으로 용신·소리오행·한자 의미·수리 풀이를 종합해 전문가가 직접 이름을 짓고, 그 결과를 만든 프롬프트 원문까지 함께 드립니다.',feats:['입력과 무료 초안 추천은 무료로 열립니다','프리미엄 작명 시작 시 30,000원 단건 결제 또는 이용권·월정석 확인이 진행됩니다','사주 보완, 인명용 한자, 소리오행, 자원오행, 원형이정 수리를 종합한 완성형 결과 제공','결제 검증 후 전문가 작명 결과와 PDF 저장, 생성에 사용된 프롬프트 원문까지 다시 확인할 수 있습니다'],cost:'30,000원 · 이용권/월정석 가능',ct:'paid',img:"/images/service-introductions/naming-ai.webp",fallbackCta:'작명 시작하기'},
@@ -40232,8 +40237,10 @@ function updateBadge() {
     } else {
       _setCtaLoading(false,'');
     }
+    var openingOverlay = _ov;
     requestAnimationFrame(function(){
-      _ov.classList.add('pvw-open');
+      if (_ov !== openingOverlay || !openingOverlay || openingOverlay.getAttribute('data-cd-detail-overlay') !== 'open' || openingOverlay.getAttribute('aria-hidden') !== 'false') return;
+      openingOverlay.classList.add('pvw-open');
       var nodes=_focusables();
       if(nodes.length)nodes[0].focus();
     });

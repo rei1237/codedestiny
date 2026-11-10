@@ -77,3 +77,14 @@ test('프로필·계정 전환 뒤 늦게 도착한 응답은 이전 카드를 �
   f.stop(); f.release(); await f.run;
   assert.equal(f.target.innerHTML, before);
 });
+
+test('successful hatch emits existing refresh signals with persisted companion available',async()=>{
+ const f=fixture();await f.run;let refreshes=0;
+ const previousCustomEvent=globalThis.CustomEvent; globalThis.CustomEvent=window.CustomEvent;
+ window.addEventListener('cd:honey-refresh',()=>{refreshes++;});
+ f.target.querySelector('[data-pet-egg="moon"]').click();await tick();
+ globalThis.CustomEvent=previousCustomEvent;
+ assert.equal(refreshes,1);assert.ok(localStorage.getItem('cd:honey-refresh'));
+ assert.ok(f.target.querySelector('.pg-pet--rabbit'));
+ assert.equal(f.calls.filter(row=>row.path.endsWith('/hatch')).length,1);
+});

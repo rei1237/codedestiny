@@ -9,7 +9,6 @@ import { toggleTodo } from "@/app/diary/_lib/ext-writes";
 import { dayGroupOf } from "@/lib/diary/fortune-adapter";
 import { createExtItemId } from "@/lib/diary/diary-ext-store";
 import { fetchCurrentDestinyProfile, type DestinyProfileCard } from "@/app/_lib/profile-card-storage";
-import { findSpirit, spriteUrl } from "@/js/core/profile-characters.mjs";
 import { loadProfileCharacterPreview } from "@/js/core/profile-character-card.mjs";
 import { getApiUrl } from "@/app/_lib/api-config";
 import { authFetch } from "@/app/_lib/auth-client";
@@ -18,23 +17,31 @@ import { trackEvent } from "@/lib/analytics";
 import { awardRpg } from "@/app/destiny-compass/_lib/rpg-bridge";
 import { QUEST_ID_PREFIX, entryHasRecord, findQuestTodo, journeyStepsDone, msUntilKstMidnight, pickHoneyUses } from "./daily-progress.mjs";
 
-type CardPortrait = { id: string; name: string; animal: string; ganji: string; element: string; equipped: boolean };
+export type ProfilePet = {
+  speciesId: string; name: string; coat: string; rare: boolean; unique: boolean; eggType: string;
+  traits: { pattern: number; expression: number; accessory: number };
+  appearance?: { version: number; headwear: number; neckwear: number; prop: number; trim: number; charm: number; pattern: number };
+  affection: number; fed: boolean; played: boolean;
+};
+type CardPortrait = { animal: string; ganji: string; element: string; pet: ProfilePet | null };
 
 async function readPortrait(profile: DestinyProfileCard): Promise<CardPortrait> {
   const request = async (path: string, init: RequestInit = {}) => {
     const response = await authFetch(getApiUrl(path), { ...init, credentials: "include", cache: "no-store" }, { retryOn401: hasClientAuthHint() });
     return { ok: response.ok, data: await response.json() };
   };
-  const [preview, equipment] = await Promise.all([
+  // My's garden uses this exact saved profile ID and server-owned companion.
+  // A read must never hatch a pet or substitute an old animal/spirit portrait.
+  const profileId = profile.profileId || profile.id;
+  if (!profileId) throw new Error("profile-unavailable");
+  const [preview, saved] = await Promise.all([
     loadProfileCharacterPreview(profile, { request }),
-    request("/api/rpg/characters"),
+    request("/api/rpg/pet?profileId=" + encodeURIComponent(profileId)),
   ]);
-  if (!equipment.ok || !equipment.data?.ok || equipment.data.degraded) throw new Error("equipment-unavailable");
+  if (!saved.ok || !saved.data?.ok || saved.data.degraded || !("pet" in saved.data)) throw new Error("pet-unavailable");
   const animal = preview.character;
-  const spirit = findSpirit(equipment.data.equippedId);
-  if (!animal || !spriteUrl(animal.id) || (equipment.data.equippedId && !spirit)) throw new Error("character-unavailable");
-  return { id: spirit?.id || animal.id, name: spirit?.name || animal.name, animal: animal.name,
-    ganji: animal.ganji, element: animal.element, equipped: Boolean(spirit) };
+  if (!animal) throw new Error("character-unavailable");
+  return { animal: animal.name, ganji: animal.ganji, element: animal.element, pet: saved.data.pet };
 }
 
 export type JourneyHoney = { balance: number; attended: boolean; streak: number; nextBonusIn: number; streakEvery: number; streakBonus: number; attendanceEvery: number; promptCost: number; day?: string; monthDays?: { day: string; bonus?: boolean }[]; awarded?: boolean; rewarded?: number; bonus?: number };
@@ -118,7 +125,7 @@ export function useDailyJourney({ surface, enabled }: { surface: JourneySurface;
     }
   }, [loadProgress, recordGrowth, surface]);
 
-  // 카드·출석·퀘스트는 모두 같은 선택 카드와 장착 상태를 쓴다.
+  // 카드·출석·퀘스트는 같은 선택 카드를, 다마고치는 My와 같은 서버 저장 상태를 쓴다.
   useEffect(() => {
     let active = true;
     setProfile(null); setPortrait(null); setPortraitFailed(false); setProfileStatus("loading");
@@ -158,10 +165,23 @@ export function useDailyJourney({ surface, enabled }: { surface: JourneySurface;
     const onFocus = () => { refresh(); void loadHoney(); };
     window.addEventListener("focus", onFocus);
     function accountChanged() { setStatus("loading"); onFocus(); }
+    const onVisible = () => { if (document.visibilityState !== "hidden") onFocus(); };
+    const onStorage = (event: StorageEvent) => {
+      if (event.oldValue === event.newValue) return;
+      if (event.key === "cd:honey-refresh" || event.key === "code-destiny.activeProfileId" || event.key?.startsWith("code-destiny.activeProfileId::")) onFocus();
+    };
     window.addEventListener("cd:auth-changed", accountChanged);
+    window.addEventListener("cd:honey-refresh", onFocus);
+    window.addEventListener("storage", onStorage);
+    window.addEventListener("pageshow", onVisible);
+    document.addEventListener("visibilitychange", onVisible);
     return () => {
       window.removeEventListener("focus", onFocus);
       window.removeEventListener("cd:auth-changed", accountChanged);
+      window.removeEventListener("cd:honey-refresh", onFocus);
+      window.removeEventListener("storage", onStorage);
+      window.removeEventListener("pageshow", onVisible);
+      document.removeEventListener("visibilitychange", onVisible);
     };
   }, [enabled, refresh, loadHoney]);
   // 화면을 켜 둔 채 자정을 넘기거나 탭·앞뒤 캐시에서 돌아와도 어제 기록을 오늘 것으로 두지 않는다.

@@ -238,10 +238,12 @@
 
 <!-- 모든 운세 보기 — 달빛 예화 이중 틀 버튼. 전체 운세 시트(cdOpenAllFortunes)를 연다. -->
 <p class="cdh-all-cta"><a class="cdh-all-cta__btn" href="/?action=cdOpenAllFortunes" data-action="cdOpenAllFortunes"><span class="cdh-links__icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"><path d="M12 6.5C9.6 5 6.8 4.7 4 5.5v12c2.8-.8 5.6-.5 8 1 2.4-1.5 5.2-1.8 8-1v-12c-2.8-.8-5.6-.5-8 1Zm0 0v12"/></svg></span><span class="cdh-all-cta__copy"><span class="cdh-all-cta__label" data-cd-trans="home.gardenCopy.allFortunes">모든 운세 보기</span></span><svg class="cdh-all-cta__arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></a></p>
-<details class="cdh-links cdh-light" id="cdhLightFortunes" lang="ko">
-  <summary class="cdh-links__game"><span class="cdh-links__icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"><path d="M4 9h13v4a6.5 6.5 0 0 1-13 0V9Zm13 1h1a3 3 0 0 1 0 6h-2M3 21h16M8 3v3m5-3v3"/></svg></span><span class="cdh-links__copy"><span class="cdh-links__name">작은 운세 한 모금</span><small class="cdh-links__desc">무료 체험부터 나만의 결과까지</small></span><span class="cdh-light__chev" aria-hidden="true"></span></summary>
+<details class="cdh-links cdh-light" id="cdhLightFortunes" data-cdh-entry-card="mini-games" lang="ko">
+  <summary class="cdh-links__game"><span class="cdh-links__icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"><path d="M4 9h13v4a6.5 6.5 0 0 1-13 0V9Zm13 1h1a3 3 0 0 1 0 6h-2M3 21h16M8 3v3m5-3v3"/></svg></span><span class="cdh-links__copy"><span class="cdh-links__name" data-cd-trans="home.simpleHome.miniGames">미니 운세 게임</span><small class="cdh-links__desc" data-cd-trans="home.guideCopy.smallFortune">작은 운세 한 모금</small></span><span class="cdh-light__chev" aria-hidden="true"></span></summary>
   <div class="cdh-light__content"><p class="cdh-light__intro">혼자 잠깐 쉬어 가도, 친구와 결과를 비교해도 좋아요. 무료 체험부터 골라 보세요.</p><div class="cdh-light__list">{{lightFortunes}}</div><p class="cdh-light__note">유료 기능은 결제 전 조건을 확인해 주세요. 이용권·월정석 적용은 상품별 기존 기준을 따라요.</p></div>
 </details>
+<!-- 서비스 선택 화면의 보조 진입은 꿀꿀운세 홈에만 둔다. -->
+<div class="cdh-entry-card" data-cdh-entry-card="free-saju"><a class="cdh-all-cta__btn" href="/saju/free/" aria-label="무료 만세력 보기" data-cd-trans-attr="aria-label:home.input.submit"><span class="cdh-all-cta__copy"><span class="cdh-all-cta__label" data-cd-trans="home.input.submit">무료 만세력 보기</span></span><svg class="cdh-all-cta__arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></a></div>
 <!-- 달빛 이야기 — 라이트 노벨·달빛 음악을 한 묶음으로. 열면 표지와 소개가 담긴 두 장의 서재 카드가 펼쳐진다(JS 없음). -->
 
 
@@ -258,6 +260,7 @@
   </div>
 
 </details>
+<div class="cdh-entry-card" data-cdh-entry-card="entry-webtoon"><a class="cdh-all-cta__btn" href="/entry-webtoon/" aria-label="달빛 예화 진입 웹툰" data-cd-trans-attr="aria-label:home.entryCards.webtoon"><img src="/images/entry-webtoon/imagine-desk-720.webp" alt="" width="64" height="64" loading="lazy" decoding="async"><span class="cdh-all-cta__copy"><span class="cdh-all-cta__label" data-cd-trans="home.entryCards.webtoon">달빛 예화 진입 웹툰</span></span><svg class="cdh-all-cta__arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></a></div>
 <!-- 색인 대상 허브로 가는 정본 내부 링크. 크롤러가 착지하는 /ggulggul/ 에서 2홉 안에 모든 색인 라우트가
      닿아야 한다(scripts/verify-internal-link-depth.mjs). 2026-10-17 "직관성" 단순화로 홈 안내 섹션은 뺐지만
      이 목록이 /fortune·/insights·/stories 같은 허브로 가는 유일한 길이라 작은 색인으로 남긴다. -->

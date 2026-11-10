@@ -2388,6 +2388,9 @@
       "compare": "상담 비교하기",
       "more": "관련 상담 더 보기",
       "less": "접기"
+    },
+    "entryCards": {
+      "webtoon": "달빛 예화 진입 웹툰"
     }
   },
   "footer": {

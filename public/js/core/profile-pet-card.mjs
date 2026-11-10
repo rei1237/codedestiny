@@ -131,6 +131,7 @@ export async function mountPetGarden(target, { profileId, preview, owner, api, c
       if (button.dataset.petEgg) {
         data = await api('/api/rpg/pet/hatch', { profileId, eggType: button.dataset.petEgg });
         announce('반가워요. 이제 이 친구와 함께해요.');
+        syncHoney();
       } else if (['feed', 'play'].includes(action)) {
         data = await api('/api/rpg/pet/care', { profileId, action, requestId: requestId() });
         clearTimeout(timer); animation = action;

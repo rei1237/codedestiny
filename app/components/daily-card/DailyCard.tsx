@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import "@/styles/profile-pet.css";
+import { petSpriteMarkup } from "@/js/core/profile-pet-card.mjs";
 import { trackEvent } from "@/lib/analytics";
 import { invalidateProfileCache } from "@/app/_lib/user-session-cache";
 import DiaryMoodPicker from "@/app/diary/_components/DiaryMoodPicker";
@@ -16,6 +17,7 @@ import masks from "../service-intro/yehwaIntroMasks.generated.module.css";
 import styles from "./daily-card.module.css";
 
 export const CARD_MANAGE_HREF = "/ggulggul/?action=dpOpenList";
+export const PET_MANAGE_HREF = CARD_MANAGE_HREF + "&petEntry=my";
 const LOGIN_RETURN_HASH = "#daily-home-title";
 const HONEY_DROP = "/images/fortune-tea-house/honey-drop-jewel-96-v1.webp";
 const HONEY_JAR = "/images/fortune-tea-house/honey-jar-bonus-v1.webp";
@@ -30,7 +32,7 @@ function HoneyIcon({ size = 24, jar = false }: { size?: number; jar?: boolean })
   return <img src={jar ? HONEY_JAR : HONEY_DROP} width={size} height={size} alt="" loading="lazy" decoding="async" />;
 }
 
-/** 내 캐릭터: 선택한 프로필 카드의 일주 동물·장착 정령, 레벨과 경험치. 카드 바꾸기는 기존 카드 편집기를 그대로 띄운다. */
+/** 메인과 My는 같은 선택 카드의 저장된 다마고치·외형·돌봄 상태를 보여 준다. */
 function ProfileHeader({ journey }: { journey: DailyJourney }) {
   const { status, profile, progress, portrait, portraitFailed } = journey;
   const [editing, setEditing] = useState(false);
@@ -77,24 +79,29 @@ function ProfileHeader({ journey }: { journey: DailyJourney }) {
     }
   }, [editing, loading, saving]);
   const example = status === "guest" || (status === "ready" && !profile && !loading && !unavailable);
-  const avatar = example ? "animal-rabbit" : loading || unavailable ? null : portrait?.id;
+  const companion = !example && !loading && !unavailable ? portrait?.pet : null;
   const name = example ? "프로필 카드 예시" : profile ? `${profile.name || "나의"} 카드` : "내 프로필 카드";
   const ratio = progress ? Math.min(100, Math.round((progress.currentLevelExp / Math.max(1, progress.nextLevelExp)) * 100)) : 0;
   return <div className={styles.profile} data-daily-profile={example ? "example" : profile?.id || profile?.profileId}>
     <div className={styles.profileHead}>
       <span className={styles.portrait}>
+        {companion ? <span className={styles.profilePet} dangerouslySetInnerHTML={{ __html: petSpriteMarkup(companion) }} /> :
+          example || (!loading && !unavailable && !portraitFailed && portrait) ? <span className={styles.profileEgg} role="img" aria-label="아직 부화하지 않은 달빛 알" /> :
+          <span className={styles.portraitStatus} role="status">{loading ? "확인 중" : "다시 확인"}</span>}
         {progress && <b className={styles.level}>Lv.{progress.currentLevel}</b>}
       </span>
       <div className={styles.identity}>
         <strong>{name}</strong>
-        {example ? <small>일주 동물 · 토끼<br />을묘 · 목</small> : avatar && portrait ?
-          <small>일주 동물 · {portrait.animal}{portrait.equipped && <> · 장착 정령 · {portrait.name}</>}<br />{portrait.ganji} · {portrait.element}</small> :
-          <small role="status">{loading ? "카드를 확인하고 있어요." : "카드를 불러오지 못했어요."}</small>}
+        {example ? <small>로그인하고 나만의 알을 부화해요.<br />마이 프로필에서 같은 친구를 만나요.</small> : portrait ?
+          <small>{companion ? companion.name : "아직 부화 전인 나의 친구"}<br />{portrait.ganji} · {portrait.element}</small> :
+          <small role="status">{loading ? "카드를 확인하고 있어요." : "캐릭터를 불러오지 못했어요."}</small>}
+        {companion && <small className={styles.petState} data-pet-affection={companion.affection} data-pet-fed={companion.fed} data-pet-played={companion.played}>친밀도 {companion.affection} · {companion.fed ? "먹이 완료" : "먹이 기다리는 중"} · {companion.played ? "놀이 완료" : "놀이 기다리는 중"}</small>}
         {progress && <div className={styles.xp}>
           <div className={styles.xpTrack} role="progressbar" aria-label="다음 레벨까지의 경험치" aria-valuemin={0} aria-valuemax={Math.max(1, progress.nextLevelExp)} aria-valuenow={progress.currentLevelExp}><span className={styles.xpFill} style={{ width: `${ratio}%` }} /></div>
           <small>{progress.currentLevelExp} / {progress.nextLevelExp} XP</small>
         </div>}
         <div className={styles.profileActions}>
+          {status === "ready" && profile && !loading && !unavailable && <a className={styles.solid} href={PET_MANAGE_HREF}>{companion ? "나의 캐릭터 돌보기" : "나의 정원 열기"} <ArrowRight size={15} aria-hidden="true" /></a>}
           {status !== "guest" && <button type="button" ref={trigger} className={styles.ghost} aria-expanded={editing} aria-disabled={loading || saving}
             onClick={() => {
               if (loading || saving) return;
@@ -233,7 +240,7 @@ function GuestInvite({ journey }: { journey: DailyJourney }) {
       <li><HoneyIcon size={34} /><div><strong>{attendLine(rules)}</strong><small>하루 한 번, 이 달력에 내 도장이 남아요.</small></div></li>
       <li><HoneyIcon size={34} jar /><div><strong>{rules ? `${rules.streakEvery}일 이어 오면 보너스 ${rules.streakBonus}방울` : "닷새 이어 오면 보너스 꿀단지"}</strong>
         <small>{rules && streakDay ? `${rules.streakEvery}일째 되는 날은 그날만 꿀방울 ${streakDay}개.` : "연속 출석이 이어질수록 꿀단지가 채워져요."}</small></div></li>
-      <li><span className={styles.perkMark} aria-hidden="true" /><div><strong>내 캐릭터 카드와 레벨</strong><small>고른 정령과 일주 동물이 카드 캐릭터가 되고, 출석과 퀘스트로 경험치가 올라요.</small></div></li>
+      <li><span className={styles.perkMark} aria-hidden="true" /><div><strong>내 캐릭터 카드와 레벨</strong><small>메인과 마이에서 같은 친구를 만나요. 출석과 퀘스트로 경험치를 쌓아요.</small></div></li>
       <li><span className={styles.perkMark} aria-hidden="true" /><div><strong>모은 꿀방울로 운세 열기</strong><small>{products.length ? `${products.map(item => item.title).slice(0, 2).join("·")} 같은 상세 해석을 꿀방울로 열 수 있어요.` : "꿀꿀 운세의 지정된 상세 해석을 꿀방울로 열 수 있어요."}</small></div></li>
     </ul>
     {month !== null && <p className={styles.forecast}><span>30일을 빠짐없이 이으면</span><b>꿀방울 {month}개</b>{cheapest !== null && month >= cheapest && <small>{cheapest}방울 해석 하나를 열고도 남아요</small>}</p>}
@@ -259,6 +266,36 @@ function HoneyUses({ journey }: { journey: DailyJourney }) {
     {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
     <a href="/ggulggul/?action=cdOpenAllFortunes">꿀꿀 운세 전체 보기 <ArrowRight size={15} aria-hidden="true" /></a>
   </section>;
+}
+
+/** 홈은 읽기 전용 진입점. 돌봄은 My의 같은 정원, 출석·기록은 다이어리에서 한다. */
+function CompactGarden({ journey }: { journey: DailyJourney }) {
+  const { status, profileStatus, profile, portrait, portraitFailed, progress, honey } = journey;
+  const guest = status === "guest";
+  const loading = status === "loading" || (status === "ready" && profileStatus === "loading");
+  const failed = status === "error" || (status === "ready" && (profileStatus === "error" || portraitFailed));
+  const pet = status === "ready" && profile && !loading && !failed ? portrait?.pet : null;
+  const href = guest ? loginHref("home") : PET_MANAGE_HREF;
+  const picture = <span className={styles.portrait}>
+    {pet ? <span className={styles.profilePet} dangerouslySetInnerHTML={{ __html: petSpriteMarkup(pet) }} /> :
+      loading || failed ? <span className={styles.portraitStatus} role="status">{loading ? "확인 중" : "다시 확인"}</span> :
+      <span className={styles.profileEgg} role="img" aria-label="아직 부화하지 않은 달빛 알" />}
+    {status === "ready" && profile && !loading && !failed && progress && <b className={styles.level}>Lv.{progress.currentLevel}</b>}
+  </span>;
+  const content = <>{picture}<span className={styles.gardenCopy}>
+    <strong>{pet ? `나의 친구 · ${pet.name}` : "오늘의 기록이 캐릭터의 성장으로"}</strong>
+    <span>{loading ? "나의 정원을 확인하고 있어요." : failed ? "정원을 불러오지 못했어요. 다시 확인해 주세요." : guest ? "로그인하고 나만의 친구를 만나요." : !profile ? "첫 카드를 만들고 나만의 친구를 만나요." : pet ? "메인과 마이에서 같은 친구를 돌봐요." : "나의 정원에서 달빛 알을 부화해요."}</span>
+    {pet && <small className={styles.petState} data-pet-affection={pet.affection} data-pet-fed={pet.fed} data-pet-played={pet.played}>친밀도 {pet.affection} · {pet.fed ? "먹이 완료" : "먹이 기다리는 중"} · {pet.played ? "놀이 완료" : "놀이 기다리는 중"}</small>}
+    {!loading && !failed && <b>{guest ? "로그인 · 가입하고 시작하기" : "나의 정원 열기"}<ArrowRight size={16} aria-hidden="true" /></b>}
+  </span></>;
+  return <div className={styles.compactGarden} data-daily-profile={status === "ready" && !loading && !failed ? profile?.profileId || profile?.id : undefined}>
+    {loading || failed ? <div className={styles.gardenEntry}>{content}</div> :
+      <a className={styles.gardenEntry} href={href} onClick={() => guest && trackEvent("daily_home_card_login", { surface: "home", from: "garden" })}>{content}</a>}
+    {failed && <button type="button" className={styles.ghost} onClick={journey.retry}>정원 다시 불러오기</button>}
+    {status === "ready" && honey && <p className={styles.gardenBalance} data-daily-balance><HoneyIcon size={20} />내 꿀단지 {honey.balance}방울 · {honey.attended ? "오늘 출석 완료" : "오늘 출석을 기다려요"}</p>}
+    <Link className={styles.gardenActivity} href="/diary/#daily-home-title" prefetch={false}>운세 다이어리 · 오운완 퀘스트 <ArrowRight size={16} aria-hidden="true" /></Link>
+    <p className={styles.gardenNote}>{attendLine(journey.rules)} · 퀘스트는 경험치.<br />월정석은 레벨·결제 등 지급 조건을 충족할 때 받아요.</p>
+  </div>;
 }
 
 /**
@@ -298,15 +335,16 @@ export default function DailyCard({ surface }: { surface: JourneySurface }) {
   const { honey, status, busy, message, stepsDone, hydrated, ymd } = journey;
   const cheer = cheerLine(ymd, stepsDone >= 3 ? "done" : journey.attended ? "stamped" : "ready");
   // 달빛 예화(연이 Dark) 카드 표면: 위 초승달·꽃가지 띠와 아래 맺음 가지는 기능 소개 카드의 생성 마스크를 그대로 쓴다.
-  return <section id={surface === "home" ? "homeDailyCard" : undefined} ref={sectionRef} className={`${styles.card} ${masks.masks}`} aria-labelledby="daily-home-title" data-daily-card={surface}>
+  return <section id={surface === "home" ? "homeDailyCard" : undefined} ref={sectionRef} className={`${styles.card} ${surface === "home" ? styles.compact : ""} ${masks.masks}`} aria-labelledby="daily-home-title" data-daily-card={surface}>
     <span className={yehwa.crest} aria-hidden="true"><span className={yehwa.halo}><span className={yehwa.moon} /></span></span>
     <header className={styles.head}>
       <div>
-        <p className={styles.eyebrow}>매일 한 번 · 꿀방울 도장</p>
-        <h2 id="daily-home-title">{DAILY_CARD_TITLE}</h2>
+        <p className={styles.eyebrow}>{surface === "home" ? "꽃과 달 사이 · 나의 친구" : "매일 한 번 · 꿀방울 도장"}</p>
+        <h2 id="daily-home-title">{surface === "home" ? "나만의 작은 정원" : DAILY_CARD_TITLE}</h2>
       </div>
-      <span className={styles.today} aria-label={`오늘 도장 ${hydrated ? stepsDone : 0}개 중 3개`}>오늘 도장 <b>{hydrated ? stepsDone : 0}</b>/3</span>
+      {surface === "diary" && <span className={styles.today} aria-label={`오늘 도장 ${hydrated ? stepsDone : 0}개 중 3개`}>오늘 도장 <b>{hydrated ? stepsDone : 0}</b>/3</span>}
     </header>
+    {surface === "home" ? <CompactGarden journey={journey} /> : <>
     <ProfileHeader journey={journey} />
     <HoneyStatus journey={journey} />
     <AttendanceCalendar honey={honey} ymd={ymd} />
@@ -326,6 +364,7 @@ export default function DailyCard({ surface }: { surface: JourneySurface }) {
     </div>
     <TodayQuests journey={journey} />
     <HoneyUses journey={journey} />
+    </>}
     <span className={yehwa.sprig} aria-hidden="true" />
   </section>;
 }

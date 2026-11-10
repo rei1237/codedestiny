@@ -9995,6 +9995,9 @@
     if (forestCardMode) window.parent.postMessage({ type: 'cd:forest-card', state: state }, window.location.origin);
   }
 
+  // Main's compact companion entry opens the very same garden as My > Profile.
+  // Consume once, and never enable the garden inside the embedded card editor.
+  var linkedPetProfileEntry = new URLSearchParams(window.location.search).get('petEntry') === 'my';
   window.dpOpenList = function() {
     if (forestCardMode) {
       var style = document.querySelector('link[data-cd-noncritical-style-src^="/styles/fortune-ui.css"]');
@@ -10018,7 +10021,9 @@
     }
 
     if (forestCardMode) document.documentElement.classList.add('dp-forest-card');
-    sheet.dataset.petEntry = !forestCardMode && window.CodeDestinyShellSheet?.takePetProfileEntry?.() ? 'my' : '';
+    var fromMyProfile = window.CodeDestinyShellSheet?.takePetProfileEntry?.();
+    sheet.dataset.petEntry = !forestCardMode && (fromMyProfile || linkedPetProfileEntry) ? 'my' : '';
+    linkedPetProfileEntry = false;
     _dpBorrowMasterCardIntoSheet(sheet);
     sheet.classList.add('dp-sheet--open');
     overlay.classList.add('dp-sheet--open');
@@ -10670,6 +10675,10 @@
     var dateStr  = calLabel + ' ' + b.year + '.' + String(b.month).padStart(2,'0') + '.' + String(b.day).padStart(2,'0')
                  + '&nbsp;·&nbsp;' + String(b.hour != null ? b.hour : 12).padStart(2,'0')
                  + ':' + String(b.minute != null ? b.minute : 0).padStart(2,'0');
+    if (window._dpFortuneSelEl && window._dpFortuneSelEl.isConnected) {
+      window._dpFortuneSelEl.focus();
+      return;
+    }
     var ov = document.createElement('div');
     var fortuneSelReturnFocus = document.activeElement && document.activeElement !== document.body
       ? document.activeElement
@@ -10702,13 +10711,38 @@
         + (l.label ? '<span class="dp-fsel-ploc"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s6-5.2 6-11a6 6 0 1 0-12 0c0 5.8 6 11 6 11Z"/><circle cx="12" cy="10" r="2"/></svg>' + _esc(l.label) + '</span>' : '')
       + '</div>'
       + '<div class="dp-fsel-divider" aria-hidden="true"></div>'
-      + '<div class="dp-fsel-ask" id="dpFortuneSelTitle">어떤 운세를 보시겠습니까?</div>'
+      + '<section class="dp-fsel-finder" aria-label="운세 검색과 가격 필터">'
+        + '<div class="dp-fsel-finder-heading"><h2 id="dpFortuneSelTitle">어떤 운세를 볼까요?<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 15.4A8.5 8.5 0 0 1 8.6 4a8.5 8.5 0 1 0 11.4 11.4Z"/></svg></h2><button type="button" data-fsel-reset>초기화</button></div>'
+        + '<p class="dp-fsel-intro">궁금한 것과 원하는 가격으로 찾아요.</p>'
+        + '<label class="dp-fsel-search"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10" cy="10" r="6"/><path d="m15 15 5 5"/></svg><input type="search" data-fsel-query aria-label="서비스명 또는 고민 검색" placeholder="서비스명 · 고민을 검색해요" autocomplete="off"></label>'
+        + '<div class="dp-fsel-chips" role="group" aria-label="가격 선택">'
+          + [['', '전체'], ['0', '무료'], ['5000', '5,000원 이하'], ['10000', '10,000원 이하']].map(function(item) { return '<button type="button" data-fsel-price="' + item[0] + '" aria-pressed="' + (item[0] === '') + '">' + item[1] + '</button>'; }).join('')
+        + '</div>'
+        + '<label class="dp-fsel-budget">최대 가격 직접 입력 <span><input type="number" data-fsel-budget min="0" step="1" inputmode="numeric" placeholder="제한 없음" aria-describedby="dpFortunePriceHint"> 원</span></label>'
+        + '<p class="dp-fsel-price-hint" id="dpFortunePriceHint">가격 범위가 있는 상품은 시작가 기준이에요. 추가 구성·이용권·월정석 적용은 상세에서 확인해요.</p>'
+        + '<div class="dp-fsel-chips dp-fsel-methods" role="group" aria-label="운세 분야">'
+          + [['', '모든 분야'], ['saju', '사주'], ['tarot', '타로'], ['astrology', '별자리'], ['sukuyo', '숙요점'], ['ziwei', '자미두수']].map(function(item) { return '<button type="button" data-fsel-method="' + item[0] + '" aria-pressed="' + (item[0] === '') + '">' + item[1] + '</button>'; }).join('')
+        + '</div>'
+        + '<p class="dp-fsel-summary" data-fsel-summary role="status" aria-live="polite">운세 목록을 불러오고 있어요.</p>'
+        + '<div data-fsel-results></div>'
+        + '<div class="dp-fsel-empty" data-fsel-empty hidden><strong>찾는 운세가 없어요.</strong><p>다른 검색어나 가격으로 찾아보세요.</p><button type="button" data-fsel-reset>조건 초기화</button></div>'
+        + '<button type="button" class="dp-fsel-more" data-fsel-more hidden>운세 더 보기</button>'
+      + '</section>'
+      + '<p class="dp-fsel-shortcuts-title">운세 방식으로 바로 시작하기</p>'
       + '<div class="dp-fsel-btns">'
         + fortuneTypes.map(function(item) { return '<button type="button" class="dp-fsel-btn dp-fsel-btn--' + item[0] + '" data-fortune-type="' + item[0] + '" onclick="window._dpOpenFortuneType(\'' + item[0] + '\')" style="touch-action:manipulation"><span class="dp-fsel-btn-icon">' + _dpFortuneSeal(item[0]) + '</span><span class="dp-fsel-btn-label">' + item[1] + '</span></button>'; }).join('')
       + '</div></div>';
     document.body.appendChild(ov);
     window._dpFortuneSelEl = ov;
-    if (!el.closest('#dpListSheet')) return;
+    import('/js/core/profile-fortune-finder.mjs').then(function(module) {
+      return module.waitForProfileFortuneCatalogue(window).then(function(api) {
+        if (!ov.isConnected || window._dpFortuneSelEl !== ov) return;
+        module.mountProfileFortuneFinder(ov.querySelector('.dp-fsel-finder'), api);
+      });
+    }).catch(function() {
+      var summary = ov.querySelector('[data-fsel-summary]');
+      if (summary) summary.textContent = '검색을 불러오지 못했어요. 아래 운세 방식으로 시작하거나 창을 다시 열어 주세요.';
+    });
     import('/js/core/profile-character-card.mjs').then(function(module) {
       return module.loadProfileCharacterPreview(p, { request: _dpProfileCharacterRequest }).then(function(preview) {
         if (!ov.isConnected || window._dpFortuneSelEl !== ov || !preview || !preview.character) return;
