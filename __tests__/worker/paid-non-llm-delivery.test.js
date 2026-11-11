@@ -37,6 +37,27 @@ test("활성 비LLM 유료 항목은 pricing registry와 실제 CTA/consumer에 
     if (fixture.featureKey === 'fun.quantumLotto.ritualReport') {
       expect(isFreeFortuneFeatureKey(fixture.featureKey)).toBe(true);
       expect(source(fixture.cta)).toContain(fixture.cta.marker.replace('data-coin-cost="10"', 'data-coin-cost="0"'));
+    } else if (fixture.featureKey === 'love-code') {
+      expect(isFreeFortuneFeatureKey(fixture.featureKey)).toBe(true);
+      const cta = source(fixture.cta);
+      const start = cta.indexOf('const startWithCharacter = async');
+      const end = cta.indexOf('const startSimulationScene', start);
+      expect(start).toBeGreaterThan(0); expect(end).toBeGreaterThan(start);
+      const entry = cta.slice(start, end);
+      expect(entry).toContain('const request = beginFreeReading()');
+      expect(entry).toContain('await hasFreeReadingSession()');
+      expect(entry).toContain('if (!request.valid()) return');
+      expect(entry).toContain('if (!signedIn)');
+      expect(entry).toContain('startSimulationScene(id, mode)');
+      expect(entry).not.toMatch(/runPaidAccessGate|markOptimisticallyUnlocked|transactionId|capture.*Evidence/);
+      expect(cta).toContain('usePaidResume(LOVE_CODE_FEATURE_KEY');
+      expect(cta).toContain('if (!ticket.valid()) return false');
+      const auth = source({file:'app/_lib/free-reading-access.ts'});
+      expect(auth).toContain("authFetch('/api/auth/me'");
+      expect(auth).toContain('forceFresh: true');
+      expect(auth).toContain('data?.authenticated === true');
+      expect(isFreeFortuneFeatureKey('master-love-codex')).toBe(false);
+      expect(isFreeFortuneFeatureKey('compat-saju-compatibility')).toBe(false);
     } else expect(source(fixture.cta)).toContain(fixture.cta.marker);
     expect(source(fixture.consumer)).toContain(fixture.consumer.marker);
   }
