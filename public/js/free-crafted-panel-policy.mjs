@@ -2,6 +2,7 @@ import { isFreeFortuneFeatureKey } from './core/free-fortune-policy.mjs';
 export const FREE_CRAFTED_NOTICE = '무료 계산형 콘텐츠입니다. AI 생성 상담은 별도 유료입니다.';
 // Only retired access claims change. Narrative, inputs, examples and disclaimers remain verbatim.
 const replacements = [
+ ['현재 결제 조건과 이용권 안내를\n기존 결제 화면에서 확인합니다.','로그인 후 무료로 분석합니다.'],
  ['계정의 구매 권한을 확인한 뒤','출생 정보를 확인한 뒤'],
  ['일·관계 등 별도 해금 상품은 따로 확인해요.','일·관계 등 다른 상세 풀이도 무료로 확인해요.'],
  ['현재 화면의 가격과 이용 조건을 따릅니다.',''],
@@ -64,6 +65,8 @@ export function currentFreeCraftedPanel(detail, panel) {
 // Notice paragraphs are continuous prose, so replace only the retired clause,
 // not the surrounding sentence (which may contain a safety or example disclaimer).
 const noticeReplacements = [
+ ['현재 이용권·월정석·단건 결제 조건을 기존 화면에서 확인하세요.',FREE_CRAFTED_NOTICE],
+ ['가격과 해금·이용권·월정석·단건 결제는 기존 화면의 현재 조건을 따릅니다.',FREE_CRAFTED_NOTICE],
  ['가격과 이용권·월정석·단건 결제 조건은 기존 결제 진입점에서 확인하며 이 상세에 고정 금액을 새로 명시하지 않습니다.', FREE_CRAFTED_NOTICE],
  ['가격·이용권·월정석·단건 결제 조건은 기존 화면을 따릅니다.', FREE_CRAFTED_NOTICE],
  ['기존 가격과 결제·해금 조건을 유지합니다.', FREE_CRAFTED_NOTICE],

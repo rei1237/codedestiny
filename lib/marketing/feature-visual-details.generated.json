@@ -756,7 +756,7 @@
       "title": "나의 일 스타일",
       "href": "/saju/career-style/",
       "featureKey": "saju-career-style",
-      "accessType": "unknown",
+      "accessType": "free",
       "image": "/images/career-style/yeoni-work-style.webp",
       "aliases": [
         "saju-career-style",
@@ -8061,7 +8061,7 @@
       "href": "/saju/career-style/",
       "featureKey": "saju-career-style",
       "featureKeyTo": "",
-      "accessType": "unknown",
+      "accessType": "free",
       "image": "/images/career-style/yeoni-work-style.webp",
       "aliases": [
         "saju-career-style",

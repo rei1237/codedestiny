@@ -231,10 +231,12 @@
     root.setTimeout(function () { waitForLuck(my, tries + 1); }, 400);
   }
 
-  /* 내 뇌구조는 사주 영구 묶음(saju_lifetime_bundle) 안의 카드다. 묶음이 닫혀 있거나 권한 조회가 실패하면 자산도 계산도 만들지 않는다. */
+  /* 정적 뇌구조는 별도 무료키다. 원국이 있어야 시작하며 HD/베다의 기존 로그인 확인은 유지한다. */
   var started = false;
+  var requireFreshResult = false;
+  function clearIdentityResult() { requireFreshResult = true; lockCard(); }
   function unlocked() {
-    try { return !!(root.CdSajuBundleOffer && root.CdSajuBundleOffer.isOpen()); } catch (e) { return false; }
+    try { return !!(root.cdIsFreeFortuneFeatureKey && root.cdIsFreeFortuneFeatureKey('saju_brain_reading')); } catch (e) { return false; }
   }
   function lockCard() {
     gen += 1;
@@ -251,6 +253,20 @@
   }
 
   function start() {
+    card = card || doc.getElementById('destinyAnatomyCard');
+    if (requireFreshResult || !card || !root.G_PILLARS || !unlocked() || typeof root.fetch !== 'function') { lockCard(); return; }
+    var pending = ++gen;
+    started = true;
+    root.fetch('/api/auth/me', {method: 'GET', credentials: 'include', cache: 'no-store'})
+      .then(function (response) { return response.ok ? response.json() : null; })
+      .then(function (data) {
+        if (pending !== gen) return;
+        if (!data || data.authenticated !== true || !data.user || !data.user.id) { lockCard(); return; }
+        startVerified();
+      }, function () { if (pending === gen) lockCard(); });
+  }
+
+  function startVerified() {
     card = card || doc.getElementById('destinyAnatomyCard');
     if (!card || !root.G_PILLARS) return;
     if (!unlocked()) { lockCard(); return; }
@@ -573,9 +589,11 @@
     card.addEventListener('click', onClick);
     card.addEventListener('toggle', onToggle, true);
     root.addEventListener('scroll', onScroll, {passive: true});
-    root.addEventListener('cd:saju-summary-ready', function () { start(); });
+    root.addEventListener('cd:saju-summary-ready', function () { requireFreshResult = false; start(); });
     root.addEventListener('cd:unlocks-changed', syncUnlock);
     root.addEventListener('cd:tile-locks-updated', syncUnlock);
+    ['cd:auth-changed', 'cd:auth-session-invalidated', 'cd:profile-changed', 'destiny:profile-changed', 'popstate'].forEach(function (event) { root.addEventListener(event, clearIdentityResult); });
+    root.addEventListener('storage', function (event) { if (!event.key || /auth|profile|cdToken/.test(event.key)) clearIdentityResult(); });
     root.addEventListener('cd:locale-ready', function () { if (model) refresh(); });
     if (root.G_PILLARS && root.G_PILLARS.d) start();
   }
