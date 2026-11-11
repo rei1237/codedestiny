@@ -18,7 +18,7 @@ var REPORT_DASHBOARD_TEXT_TRANSLATIONS = {
     "rd.label.003": "명리 헬스 리포트",
     "rd.cta.006": "💚 건강 리포트 확인하기",
     "rd.label.004": "사주 AI 프롬프트",
-    "rd.cta.007": "🤖 라이트 사주 풀이에서 프롬프트 보기",
+    "rd.cta.007": "🤖 사주 이미지 프롬프트 보기",
     "rd.label.005": "인생 스킬 트리",
     "rd.cta.008": "🎮 스킬 트리 펼쳐보기",
     "rd.label.006": "극T 테스트",
@@ -151,20 +151,20 @@ var LOVE_CODE_FEATURE = {
 };
 
 var REPORT_CARDS = [
-  {id:"career-style",target:"careerStyle",thumb:"career-style-yeoni.webp",label:"나의 일 스타일",desc:"성향과 월지로 내게 맞는 업무 조건을 탐색해요.",note:"프로필 카드로 보는 여덟 장의 자기이해 리포트입니다. 사주 묶음에 포함돼요.",cta:"사주 묶음 안내 보기",action:"openCareerStyleRoute",coinCost:0,mainLock:false,badge:"묶음 포함",category:"self"},
+  {id:"career-style",target:"careerStyle",thumb:"career-style-yeoni.webp",label:"나의 일 스타일",desc:"성향과 월지로 내게 맞는 업무 조건을 탐색해요.",note:"프로필 카드로 보는 여덟 장의 자기이해 리포트입니다. 무료로 읽을 수 있어요.",cta:"나의 일 스타일 읽기",action:"openCareerStyleRoute",coinCost:0,mainLock:false,badge:"무료",category:"self"},
   { id:'meryok',     label:_reportDashboardText("rd.label.001"),      desc:'신살 스탯 · 도화 · 역마 지수를 확인해보세요.',          note:'요즘 왜 유독 시선이 꽂히는지, 내 매력 포인트를 한 번에 읽어드립니다.', cta:_reportDashboardText("rd.cta.004"), thumb:'meryok-new.webp', accent:'#f472b6', glow:'rgba(244,114,182,.55)', target:'specialCharmCard',   coinCost:10  },
-  { id:'quantum',    thumb:'퀀텀 명리 엔진.webp', label:_reportDashboardText("rd.label.002"),        desc:'합화 우선 분석으로 나만의 천기 지도가 열립니다.',      note:'사주 영구 묶음을 해금하면 합화·보완 후보 보정·천기 전략 리포트 전체가 계속 머뭅니다.', cta:_reportDashboardText("rd.cta.005"),          accent:'#38bdf8', glow:'rgba(56,189,248,.55)',  target:'quantumCard',        lockKey:'rpt_quantumCard', coinCost:100, badge:'사주 묶음 포함'  },
+  { id:'quantum',    thumb:'퀀텀 명리 엔진.webp', label:_reportDashboardText("rd.label.002"),        desc:'합화 우선 분석으로 나만의 천기 지도가 열립니다.',      note:'합화·보완 후보 보정·천기 전략 리포트를 무료로 살펴보세요.', cta:_reportDashboardText("rd.cta.005"),          accent:'#38bdf8', glow:'rgba(56,189,248,.55)',  target:'quantumCard',        lockKey:'rpt_quantumCard', coinCost:100, badge:'무료'  },
   { id:'sajuhealth', thumb:'명리 헬스 리포트.webp', label:_reportDashboardText("rd.label.003"),      desc:'오행 균형과 건강 약점 신호를 점검해보세요.',             note:'놓치기 쉬운 몸의 신호를 사주 관점으로 풀어, 수호 우선순위를 정리해드립니다.', cta:_reportDashboardText("rd.cta.006"),      accent:'#4ade80', glow:'rgba(74,222,128,.55)',  target:'healthReportCard',   coinCost:50  },
-  { id:'sajuprompt', thumb:'사주 프롬프트.webp', label:_reportDashboardText("rd.label.004"),      desc:'물상·아바타·이상형 얼굴 등 AI 이미지 프롬프트 구성을 확인해보세요.', note:'라이트 사주 풀이 해금 기준을 따릅니다. 종합 운세 프롬프트는 프롬프트 허브에서 단건 결제로 만들 수 있어요.', cta:_reportDashboardText("rd.cta.007"),    accent:'#c084fc', glow:'rgba(192,132,252,.55)', target:'aiPromptCard', lockKey:'section_summary', coinCost:100 },
+  { id:'sajuprompt', thumb:'사주 프롬프트.webp', label:_reportDashboardText("rd.label.004"),      desc:'물상·아바타·이상형 얼굴 등 AI 이미지 프롬프트 구성을 확인해보세요.', note:'사주에서 계산한 이미지용 프롬프트를 확인해요. AI 이미지 생성과 상담은 별도 유료 기능이에요.', cta:_reportDashboardText("rd.cta.007"),    accent:'#c084fc', glow:'rgba(192,132,252,.55)', target:'aiPromptCard', lockKey:'saju_fun_shared', coinCost:0 },
   { id:'sajurpg',    thumb:'RPG 인생 스킬트리.webp', label:_reportDashboardText("rd.label.005"),        desc:'운명 RPG 스타일로 내 능력치 레벨을 확인합니다.',         note:'내 강점 스탯과 취약 스탯을 RPG처럼 시각화해 성장 루트를 제시합니다.', cta:_reportDashboardText("rd.cta.008"),        accent:'#fbbf24', glow:'rgba(251,191,36,.55)',  target:'skillTreeCard',      coinCost:10  },
-  { id:'tbal',       thumb:'극T테스트.webp', label:_reportDashboardText("rd.label.006"),            desc:'The Frozen Logic, 내 논리 온도를 분석합니다.',          note:'감정보다 이성이 먼저 반응하는 순간, 당신의 판단 패턴을 종합 풀이 안에서 짚습니다.', cta:_reportDashboardText("rd.cta.009"),      accent:'#67e8f9', glow:'rgba(103,232,249,.55)', target:'tTestCard', lockKey:'section_summary', coinCost:100   },
-  { id:'tetoegen',   thumb:'테토VS에겐.webp', label:_reportDashboardText("rd.label.007"),          desc:'사주 기반으로 나의 매력 에너지 결을 분석합니다.',       note:'강하게 끌어당기는 타입인지, 부드럽게 스며드는 타입인지 종합 풀이 안에서 보여드립니다.', cta:_reportDashboardText("rd.cta.010"),      accent:'#fb923c', glow:'rgba(251,146,60,.55)',  target:'hormone-vibe-section', lockKey:'section_summary', coinCost:100  },
+  { id:'tbal',       thumb:'극T테스트.webp', label:_reportDashboardText("rd.label.006"),            desc:'The Frozen Logic, 내 논리 온도를 분석합니다.',          note:'감정보다 이성이 먼저 반응하는 순간, 당신의 판단 패턴을 이 카드에서 짚습니다.', cta:_reportDashboardText("rd.cta.009"),      accent:'#67e8f9', glow:'rgba(103,232,249,.55)', target:'tTestCard', lockKey:'saju_fun_shared', coinCost:0   },
+  { id:'tetoegen',   thumb:'테토VS에겐.webp', label:_reportDashboardText("rd.label.007"),          desc:'사주 기반으로 나의 매력 에너지 결을 분석합니다.',       note:'강하게 끌어당기는 타입인지, 부드럽게 스며드는 타입인지 이 카드에서 보여드립니다.', cta:_reportDashboardText("rd.cta.010"),      accent:'#fb923c', glow:'rgba(251,146,60,.55)',  target:'hormone-vibe-section', lockKey:'saju_fun_shared', coinCost:0  },
   { id:'trip',       thumb:'사주로 보는 여행지.webp', label:_reportDashboardText("rd.label.008"),     desc:'사주 오행 균형 기준으로 지금 맞는 여행지를 안내합니다.', note:'국내/해외 추천 좌표와 방향 포인트를 함께 확인해 이동 운을 끌어올려보세요.', cta:_reportDashboardText("rd.cta.011"),         accent:'#2dd4bf', glow:'rgba(45,212,191,.55)',  target:'energyCoordCard',    coinCost:70  },
   { id:'vilun',      label:_reportDashboardText("rd.label.009"),        desc:'내 인생을 흔드는 위험 유형을 분석합니다.',               note:'유난히 소모되는 관계의 패턴을 파악하고, 피해야 할 시그널을 정리해드립니다.', cta:_reportDashboardText("rd.cta.012"),          accent:'#f87171', thumb:'vilun-new.webp', glow:'rgba(248,113,113,.55)', target:'villainCard',         coinCost:50  },
-  { id:'lotto',      thumb:'사주 로또.webp', label:_reportDashboardText("rd.label.010"),       desc:'번호와 번호별 해석, 금전 루틴을 담은 달빛 럭키 리추얼 리포트입니다. 사주 묶음에 포함돼요.', note:'오늘 운의 파동을 상징 번호와 작은 금전 루틴으로 살펴봅니다.', cta:_reportDashboardText("rd.cta.013"), accent:'#fde047', glow:'rgba(253,224,71,.55)', target:'lottoCard', coinCost:10 },
-  { id:'4CUT',       thumb:'사주 네컷.webp', label:_reportDashboardText("rd.label.012"),   desc:'사주 데이터를 인생네컷 감성으로 재해석해 한 장에 담아보세요.', note:'네 컷 해석은 라이트 사주 풀이 안에서 확인할 수 있습니다.', cta:_reportDashboardText("rd.cta.015"),            accent:'#f97316', glow:'rgba(249,115,22,.45)',  target:'sajuFourCutCard', lockKey:'section_summary', coinCost:100   },
+  { id:'lotto',      thumb:'사주 로또.webp', label:_reportDashboardText("rd.label.010"),       desc:'번호와 번호별 해석, 금전 루틴을 담은 달빛 럭키 리추얼 리포트입니다. 무료로 읽을 수 있어요.', note:'오늘 운의 파동을 상징 번호와 작은 금전 루틴으로 살펴봅니다.', cta:_reportDashboardText("rd.cta.013"), accent:'#fde047', glow:'rgba(253,224,71,.55)', target:'lottoCard', coinCost:10 },
+  { id:'4CUT',       thumb:'사주 네컷.webp', label:_reportDashboardText("rd.label.012"),   desc:'사주 데이터를 인생네컷 감성으로 재해석해 한 장에 담아보세요.', note:'네 컷에 담긴 내 기질과 오늘의 작은 실천을 살펴보세요.', cta:_reportDashboardText("rd.cta.015"),            accent:'#f97316', glow:'rgba(249,115,22,.45)',  target:'sajuFourCutCard', lockKey:'saju_fun_shared', coinCost:0   },
   { id:'relationshipTemptation', thumb:'saju-relationship-temptation-768.webp', label:'그 사람의 바람끼는?', shortTitle:'그 사람의 바람끼는?', desc:'상대의 관계 성향을 살펴보고, 본인 정보를 더하면 두 사람의 연애 궁합까지 읽습니다.', note:'도화 하나로 단정하지 않고 계산된 사주 근거와 현실적인 관계 기준을 함께 읽어드려요.', cta:'관계 성향·궁합 확인하기', accent:'#b31955', glow:'rgba(179,25,85,.38)', target:'relationshipBoundaryTestEntry', coinCost:50, selfGated:true, badge:'NEW' },
-  { id:'dopamine',   thumb:'도파민 중독.webp', label:_reportDashboardText("rd.label.018"), shortTitle:'도파민·집중력과 공부법', desc:'자극에 끌리는 성향부터 집중 환경과 공부법까지, 오행과 사주 원국으로 읽어보세요.', note:'자극 지수와 등급, 자극 레이더 8축은 라이트 사주 풀이 안에서 확인합니다.', cta:_reportDashboardText("rd.cta.017"), accent:'#e879f9', glow:'rgba(232,121,249,.5)', target:'dopamineCard', lockKey:'section_summary', coinCost:100 },
+  { id:'dopamine',   thumb:'도파민 중독.webp', label:_reportDashboardText("rd.label.018"), shortTitle:'도파민·집중력과 공부법', desc:'자극에 끌리는 성향부터 집중 환경과 공부법까지, 오행과 사주 원국으로 읽어보세요.', note:'자극 지수와 등급, 자극 레이더 8축을 무료로 확인해요.', cta:_reportDashboardText("rd.cta.017"), accent:'#e879f9', glow:'rgba(232,121,249,.5)', target:'dopamineCard', lockKey:'saju_fun_shared', coinCost:0 },
   { id:'secretHouse', thumb:'시크릿 하우스.webp', label:_reportDashboardText("rd.label.013"), desc:'선택형 사주 연애 리얼리티로 엔딩 루트를 체험해보세요.', note:'일간과 선택이 만나는 다중 엔딩 이야기입니다. 엔딩 문구와 링크를 공유할 수 있어요.', cta:_reportDashboardText("rd.cta.016"), accent:'#f43f5e', glow:'rgba(244,63,94,.45)', target:'secretHouseEntryCard', action:'openSecretHouseRoute', coinCost:50 },
   { id: SAJU_ANIMAL_TEST_FEATURE.id, thumb: SAJU_ANIMAL_TEST_FEATURE.thumb, label: SAJU_ANIMAL_TEST_FEATURE.title, shortTitle: SAJU_ANIMAL_TEST_FEATURE.shortTitle, desc: SAJU_ANIMAL_TEST_FEATURE.description, note:'열두 운성의 기세를 동물 캐릭터로 매핑해 "왜 이 관계에서 힘든지"와 "지금 바로 써먹을 한 줄 행동"까지 재밌고 현실적으로 제시합니다.', cta: SAJU_ANIMAL_TEST_FEATURE.cta, accent:'#f59e0b', glow:'rgba(245,158,11,.45)', target: SAJU_ANIMAL_TEST_FEATURE.target, action: SAJU_ANIMAL_TEST_FEATURE.action, lockKey: SAJU_ANIMAL_TEST_FEATURE.lockKey, coinCost: SAJU_ANIMAL_TEST_FEATURE.coinCost, badge: SAJU_ANIMAL_TEST_FEATURE.badge, tags: SAJU_ANIMAL_TEST_FEATURE.tags, group: SAJU_ANIMAL_TEST_FEATURE.group },
   { id: DESTINY_MEETING_PLACE_FEATURE.id, thumb: DESTINY_MEETING_PLACE_FEATURE.thumb, label: DESTINY_MEETING_PLACE_FEATURE.title, shortTitle: DESTINY_MEETING_PLACE_FEATURE.shortTitle, desc: DESTINY_MEETING_PLACE_FEATURE.description, note:'이 페이지 단독으로 생년월일 입력부터 분석까지 실행하며, 인연 장소 TOP5·국가/도시·만남 타이밍·아이템·실천 플랜을 한 번에 제시합니다.', cta: DESTINY_MEETING_PLACE_FEATURE.cta, accent:'#c084fc', glow:'rgba(192,132,252,.45)', target: DESTINY_MEETING_PLACE_FEATURE.target, action: DESTINY_MEETING_PLACE_FEATURE.action, lockKey: DESTINY_MEETING_PLACE_FEATURE.lockKey, coinCost: DESTINY_MEETING_PLACE_FEATURE.coinCost, mainLock: DESTINY_MEETING_PLACE_FEATURE.mainLock, selfGated: DESTINY_MEETING_PLACE_FEATURE.selfGated, badge: DESTINY_MEETING_PLACE_FEATURE.badge, tags: DESTINY_MEETING_PLACE_FEATURE.tags, group: DESTINY_MEETING_PLACE_FEATURE.group },
@@ -1236,6 +1236,7 @@ function _rptBundleOpen() {
 }
 // 극T·테토/에겐·네컷·도파민은 기존 라이트 풀이(section_summary) 구매자에게도 계속 열린다(자동 업그레이드 없음).
 function _rptSharedTileOpen() {
+  if (window.cdIsFreeFortuneFeatureKey && window.cdIsFreeFortuneFeatureKey('saju_fun_shared')) return true;
   if (_rptBundleOpen()) return true;
   try { return typeof window.isTileKeyUnlocked === 'function' && window.isTileKeyUnlocked('section_summary') === true; } catch (_e) { return false; }
 }
@@ -1469,7 +1470,7 @@ function renderReportDashboard() {
         shortTitle: c.shortTitle || '',
         badge: c.badge || '',
         tags: Array.isArray(c.tags) ? c.tags.slice(0, 5) : [],
-        lockKey: c.lockKey || (c.target ? ('rpt_' + c.target) : ''),
+        lockKey: c.lockKey || (c.target === 'careerStyle' ? 'saju-career-style' : c.target === 'lottoCard' ? 'fun.quantumLotto.ritualReport' : (c.target ? ('rpt_' + c.target) : '')),
         coinCost: Number(c.coinCost || 0),
         mainLock: c.mainLock !== false,
         selfGated: c.selfGated === true,
@@ -1478,6 +1479,10 @@ function renderReportDashboard() {
       blocks.push(seenTargets[c.target]);
     }
     seenTargets[c.target].images.push({ id: c.id, thumb: c.thumb || '', label: c.label, accent: c.accent });
+  });
+
+  blocks.forEach(function(block){
+    if(window.cdIsFreeFortuneFeatureKey && window.cdIsFreeFortuneFeatureKey(block.lockKey)){block.coinCost=0;block.mainLock=false;block.badge=block.badge==='LOCK'?'무료':block.badge;}
   });
 
   /* ── 그리드 HTML 생성 ── */

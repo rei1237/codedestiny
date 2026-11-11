@@ -2875,7 +2875,8 @@
       // 묶음으로 연 열람은 개별 권리가 아니다. 기록하면 기기 전체 플래그가 남아 다른 출생·계정과 환불 뒤에도 열린다.
       var openedByBundle = false;
       try { openedByBundle = !!(w.CdSajuBundleOffer && w.CdSajuBundleOffer.isOpen()); } catch (_) {}
-      if (payload || !openedByBundle) markTetogenDeepReportUnlocked(payload || null);
+      var publicReading = w.cdIsFreeFortuneFeatureKey && w.cdIsFreeFortuneFeatureKey(TETOGEN_DEEP_REPORT_FEATURE_KEY);
+      if (!publicReading && (payload || !openedByBundle)) markTetogenDeepReportUnlocked(payload || null);
       shell.classList.add('is-unlocked');
       var existing = shell.querySelector('[data-tetogen-premium-report]');
       if (!existing) {

@@ -137,7 +137,7 @@
       "title": "동서 통합 궁합",
       "href": "/nakshatra/compat/",
       "featureKey": "nakshatra-compat",
-      "accessType": "unknown",
+      "accessType": "free",
       "image": "/feature-details/assets/nakshatra-compat-960.webp",
       "aliases": [
         "nakshatra-compat",
@@ -385,7 +385,7 @@
       "title": "택일 무후르타",
       "href": "/nakshatra/muhurta/",
       "featureKey": "nakshatra-muhurta",
-      "accessType": "unknown",
+      "accessType": "free",
       "image": "/feature-details/assets/nakshatra-muhurta-960.webp",
       "aliases": [
         "nakshatra-muhurta",
@@ -550,7 +550,7 @@
       "title": "나크샤트라 결정판",
       "href": "/nakshatra/",
       "featureKey": "nakshatra-basic-reading",
-      "accessType": "unknown",
+      "accessType": "free",
       "image": "/feature-details/assets/nakshatra-960.webp",
       "aliases": [
         "nakshatra-basic-reading",
@@ -4069,7 +4069,7 @@
       "href": "/nakshatra/compat/",
       "featureKey": "nakshatra-compat",
       "featureKeyTo": "",
-      "accessType": "unknown",
+      "accessType": "free",
       "image": "/feature-details/assets/nakshatra-compat-960.webp",
       "aliases": [
         "nakshatra-compat",
@@ -6456,7 +6456,7 @@
       "href": "/nakshatra/muhurta/",
       "featureKey": "nakshatra-muhurta",
       "featureKeyTo": "",
-      "accessType": "unknown",
+      "accessType": "free",
       "image": "/feature-details/assets/nakshatra-muhurta-960.webp",
       "aliases": [
         "nakshatra-muhurta",
@@ -7174,7 +7174,7 @@
       "href": "/nakshatra/",
       "featureKey": "nakshatra-basic-reading",
       "featureKeyTo": "",
-      "accessType": "unknown",
+      "accessType": "free",
       "image": "/feature-details/assets/nakshatra-960.webp",
       "aliases": [
         "nakshatra-basic-reading",

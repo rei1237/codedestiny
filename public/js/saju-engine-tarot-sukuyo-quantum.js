@@ -113,7 +113,7 @@ var SAJU_QUANTUM_TEXT_TRANSLATIONS = {
     "sq_1203_prop_label": "정관",
     "sq_1204_prop_label": "편인",
     "sq_1205_prop_label": "정인",
-    "sq_12083_attr_aria_label": "숙요점 1년운 전체 해석 잠금 해제",
+    "sq_12083_attr_aria_label": "숙요점 1년운 전체 해석 무료 보기",
     "sq_12360_prop_title": "숙요점 1년운 전체 해석 잠금 해제",
     "sq_12405_attr_aria_label": "숙요점 1년운 조회 연도",
     "sq_12453_prop_title": "연도별 관계 흐름",
@@ -4273,7 +4273,7 @@ function elColor(e){
 
 async function renderDailyMonthlyFortune(p){
   /* 사주 묶음(saju_lifetime_bundle) 안의 카드다. 묶음이 닫혀 있거나 권한 조회가 실패하면 아무것도 만들지 않는다. */
-  try{if(!(window.CdSajuBundleOffer&&window.CdSajuBundleOffer.isOpen())){try{window.CdSajuBundleOffer&&window.CdSajuBundleOffer.clearCards('bundle');}catch(_clearErr){}return;}}catch(_bundleGuardErr){return;}
+  try{if(!(window.cdIsFreeFortuneFeatureKey&&window.cdIsFreeFortuneFeatureKey('saju_daily_reading'))&&!(window.CdSajuBundleOffer&&window.CdSajuBundleOffer.isOpen())){try{window.CdSajuBundleOffer&&window.CdSajuBundleOffer.clearCards('bundle');}catch(_clearErr){}return;}}catch(_bundleGuardErr){return;}
   var card=document.getElementById('dailyMonthlyCard');
   if(!card)return;
   card.style.display='block';
@@ -4318,7 +4318,7 @@ async function renderDailyMonthlyFortune(p){
 
 function renderLetter(p){
   /* 사주 묶음(saju_lifetime_bundle) 안의 카드다. 닫힘이면 만들지 않는다. */
-  try{if(!(window.CdSajuBundleOffer&&window.CdSajuBundleOffer.isOpen())){try{window.CdSajuBundleOffer&&window.CdSajuBundleOffer.clearCards('bundle');}catch(_clearErr){}return;}}catch(_bundleGuardErr){return;}
+  try{if(!(window.cdIsFreeFortuneFeatureKey&&window.cdIsFreeFortuneFeatureKey('saju_daily_reading'))&&!(window.CdSajuBundleOffer&&window.CdSajuBundleOffer.isOpen())){try{window.CdSajuBundleOffer&&window.CdSajuBundleOffer.clearCards('bundle');}catch(_clearErr){}return;}}catch(_bundleGuardErr){return;}
   if (window.SajuReadingPresentation) return window.SajuReadingPresentation.render('letter');
   var isNeoSaju = isNeoSajuModeActive();
   var pw=G_POWER,jg=G_JONG;
@@ -4939,7 +4939,7 @@ function renderLottoRitualReport(state){
   area.innerHTML=
     '<section class="lr-wrap" aria-label="' + _sajuQuantumText("sq_5265_attr_aria_label") + '">'+
       '<div class="lr-head">'+
-        '<span class="lr-kicker">1,000원 디지털 리포트</span>'+
+        '<span class="lr-kicker">무료 리추얼 리포트</span>'+
         '<h4>'+lottoEsc(report.title)+'</h4>'+
         '<p>더 좋은 번호가 아니라, 번호별 상징 해석과 이번 주 금전 루틴을 여는 달빛 리포트입니다.</p>'+
       '</div>'+
@@ -4989,7 +4989,7 @@ function renderLottoRitualReport(state){
         '<button type="button" class="lr-btn lr-btn--shine" onclick="saveLottoRitualShareCard()">공유 카드 이미지 저장</button>'+
         '<button type="button" class="lr-btn" onclick="shareLottoRitualText()">공유 문구 복사</button>'+
       '</div>'+
-      '<p class="lr-status" id="lottoRitualSaveStatus">'+(saved?'저장된 이번 주 리포트가 있어요.':'구매 후 저장하면 같은 브라우저에서 이번 주 리포트를 다시 볼 수 있어요.')+'</p>'+
+      '<p class="lr-status" id="lottoRitualSaveStatus">'+(saved?'저장된 이번 주 리포트가 있어요.':'저장하면 같은 브라우저에서 이번 주 리포트를 다시 볼 수 있어요.')+'</p>'+
       '<div class="lr-next">다음 회차에는 새 번호를 부추기지 않고, 다음 주의 수리 파동을 다시 보는 흐름으로 안내합니다.</div>'+
       '<p class="lr-safe">본 콘텐츠는 오락 및 자기성찰용 콘텐츠입니다. 복권 당첨을 예측하거나 보장하지 않습니다. 생성된 번호는 통계적·과학적 당첨 예측값이 아닙니다. 복권은 정해둔 한도 안에서 소액으로 즐겨주세요. 과몰입이 걱정된다면 구매를 멈추고 도움을 요청하세요.</p>'+
     '</section>';
@@ -5373,11 +5373,11 @@ function renderLottoNumbers(natal, bazi){
           '<span>더 좋은 번호가 아닌 더 깊은 리포트입니다</span>'+
           '<strong>달빛 럭키 리추얼 리포트</strong>'+
           '<p>번호별 상징 해석과 이번 주 금전 루틴을 확인해보세요.</p>'+
-          '<button type="button" class="lc-ritual-cta-btn" data-action="openLottoRitualReport" data-feature-key="'+LOTTO_RITUAL_FEATURE_KEY+'" data-coin-cost="10">'+
+          '<button type="button" class="lc-ritual-cta-btn" data-action="openLottoRitualReport" data-feature-key="'+LOTTO_RITUAL_FEATURE_KEY+'" data-coin-cost="0">'+
             '<span class="tarot-tile__title">달빛 럭키 리추얼 리포트</span>'+
-            '<small>사주 전체 풀이 평생 소장에 포함된 리포트 열기</small>'+
+            '<small>달빛 럭키 리추얼 리포트 무료로 읽기</small>'+
           '</button>'+
-          '<em>구매 즉시 열람되는 디지털 콘텐츠이며, 복권 결과를 예측하거나 보장하지 않습니다.</em>'+
+          '<em>무료로 즐기는 참고 콘텐츠이며, 복권 결과를 예측하거나 보장하지 않습니다.</em>'+
         '</div>'+
         '<div id="lottoRitualReportArea" class="lc-ritual-report-area" hidden></div>'+
         '<button id="lottoRedrawBtn" class="lotto-redraw-btn">다시 상징 번호 보기</button>'+
@@ -12314,7 +12314,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         + '<div style="display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 10px;">' + keywords.map(function(key) { return '<span class="sy-paid-status">' + syCanonicalEsc(key) + '</span>'; }).join('') + '</div>'
         + '<p style="color:#fef3c7;">' + syCanonicalEsc(summary.name || '프로필') + ' · ' + syCanonicalEsc(summary.birthDate || '') + ' · ' + syCanonicalEsc(summary.gender || '') + ' · ' + syCanonicalEsc(summary.targetYear || '') + '년 · 본명숙 ' + syCanonicalEsc(summary['natal宿'] || '') + '</p>'
         + '<p>' + syCanonicalEsc((preview.totalFortunePreview && preview.totalFortunePreview.text) || '') + '</p>'
-        + '<button type="button" class="sy-month-unlock-btn" data-sy-yearly-unlock aria-label="' + _sajuQuantumText("sq_12083_attr_aria_label") + '">숙요점 1년운 전체 해석 잠금 해제 · 5,000원</button>'
+        + '<button type="button" class="sy-month-unlock-btn" data-sy-yearly-unlock aria-label="' + _sajuQuantumText("sq_12083_attr_aria_label") + '">숙요점 1년운 전체 해석 보기 · 무료</button>'
         + '<p class="sy-lunar-note">해금은 선택한 프로필의 ' + syCanonicalEsc(summary.targetYear || '해당') + '년에만 적용됩니다.</p>'
       + '</div>'
       + '</div>'
@@ -12347,7 +12347,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
       + '<div class="sy-month-lock-body">'
         + '<strong>' + syCanonicalEsc(targetYear) + '년 숙요점 1년운 전체 해석</strong>'
         + '<p>본명숙 기준 12개월 달빛 흐름과 사랑, 일, 금전, 건강운은 잠금 해제 후 열립니다.</p>'
-        + '<button type="button" class="sy-month-unlock-btn" data-sy-yearly-unlock aria-label="' + _sajuQuantumText("sq_12083_attr_aria_label") + '">숙요점 1년운 전체 해석 잠금 해제 · 5,000원</button>'
+        + '<button type="button" class="sy-month-unlock-btn" data-sy-yearly-unlock aria-label="' + _sajuQuantumText("sq_12083_attr_aria_label") + '">숙요점 1년운 전체 해석 보기 · 무료</button>'
         + '<p class="sy-lunar-note">해금은 선택한 프로필의 ' + syCanonicalEsc(targetYear) + '년에만 적용됩니다.</p>'
       + '</div>'
       + '</div>';
@@ -12482,7 +12482,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
       card.classList.toggle('is-locked', !isUnlocked);
     }
     if (status) {
-      status.textContent = label || (isUnlocked ? ('해금 완료 · ' + syCanonicalEsc(targetYear || '') + ' 전체 1년운') : '잠금 콘텐츠 · 5,000원');
+      status.textContent = label || (isUnlocked ? ('해금 완료 · ' + syCanonicalEsc(targetYear || '') + ' 전체 1년운') : '전체 1년운 · 무료');
       status.classList.toggle('is-unlocked', !!isUnlocked);
     }
   }
@@ -12585,7 +12585,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
       card.classList.toggle('is-locked', !isUnlocked);
     }
     if (status) {
-      status.textContent = isUnlocked ? '해금 완료 · 전체 1년운' : '잠금 콘텐츠 · 5,000원';
+      status.textContent = isUnlocked ? '해금 완료 · 전체 1년운' : '전체 1년운 · 무료';
       status.classList.toggle('is-unlocked', !!isUnlocked);
     }
   }
@@ -12743,7 +12743,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
           payload: payload
         });
         sySetSukuyoYearlyUnlockStateV2(!!payload.unlocked, targetYear);
-        if (status) status.textContent = payload.unlocked ? '해금 완료 · 전체 1년운' : '잠금 콘텐츠 · 5,000원';
+        if (status) status.textContent = payload.unlocked ? '해금 완료 · 전체 1년운' : '전체 1년운 · 무료';
         target.innerHTML = payload.unlocked ? syRenderSukuyoYearlyFullV2(payload.result) : syRenderSukuyoYearlyLocked(payload);
         target.setAttribute('data-sy-yearly-rendered', hydrateKey);
         sySetSukuyoYearlyUnlockStateV2(!!payload.unlocked, targetYear);
@@ -12886,7 +12886,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
     // 같은 형식이라 잃는 정보가 없다. state.contentKey 를 우선하면 직전 조회가 남긴 다른 연도의 키가
     // 그대로 실려, 사용자가 연도만 바꾸고 CTA 를 누를 때 엉뚱한 연도가 결제된다.
     var contentKey = syBuildSukuyoYearlyContentKey(targetYear);
-    var idleLabel = '숙요점 1년운 전체 해석 잠금 해제 · 5,000원';
+    var idleLabel = '숙요점 1년운 전체 해석 보기 · 무료';
     window._sySukuyoYearlyUnlockBusy = true;
     sySetSukuyoYearlyUnlockButtonLabel('숙요점 1년운을 열고 있어요.', true);
     // 🔴 featureKey 가 연도와 무관한 상수라, 셸의 단일비행 키(featureKey|title|cost|amount|profileId)가
@@ -12990,7 +12990,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
           + '<h4>숙요점 1년운</h4>'
           + '<p class="sy-lunar-month-copy">원하는 연도를 직접 열어 본명숙의 12개월 달빛 흐름을 비춥니다.</p>'
         + '</div>'
-        + '<div style="display:grid;gap:7px;justify-items:end;"><div style="display:flex;gap:6px;align-items:center;"><input data-sy-yearly-input type="number" inputmode="numeric" min="1900" max="2100" step="1" value="' + syCanonicalEsc(year) + '" aria-label="' + _sajuQuantumText("sq_12405_attr_aria_label") + '" style="width:98px;min-height:34px;border-radius:999px;border:1px solid rgba(248,231,183,.42);background:rgba(2,6,23,.62);color:#fef3c7;padding:4px 10px;font-weight:900;"><button type="button" data-sy-yearly-view aria-expanded="false" aria-controls="syYearlyFortuneContent" style="min-height:34px;border-radius:999px;border:1px solid rgba(248,231,183,.42);background:rgba(248,231,183,.12);color:#fef3c7;padding:4px 11px;font-weight:900;">보기</button></div><span class="sy-paid-status" data-sy-monthly-status>잠금 콘텐츠 · 5,000원</span></div>'
+        + '<div style="display:grid;gap:7px;justify-items:end;"><div style="display:flex;gap:6px;align-items:center;"><input data-sy-yearly-input type="number" inputmode="numeric" min="1900" max="2100" step="1" value="' + syCanonicalEsc(year) + '" aria-label="' + _sajuQuantumText("sq_12405_attr_aria_label") + '" style="width:98px;min-height:34px;border-radius:999px;border:1px solid rgba(248,231,183,.42);background:rgba(2,6,23,.62);color:#fef3c7;padding:4px 10px;font-weight:900;"><button type="button" data-sy-yearly-view aria-expanded="false" aria-controls="syYearlyFortuneContent" style="min-height:34px;border-radius:999px;border:1px solid rgba(248,231,183,.42);background:rgba(248,231,183,.12);color:#fef3c7;padding:4px 11px;font-weight:900;">보기</button></div><span class="sy-paid-status" data-sy-monthly-status>전체 1년운 · 무료</span></div>'
       + '</div>'
       // 접힌 채로 시작한다. 비어 있는 것이 맞다 — 펼치기 전에는 조회도 결제도 하지 않으므로
       // 로딩 문구를 두면 아무 일도 안 하면서 무언가 기다리는 것처럼 보인다.
@@ -14335,11 +14335,11 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
                   <div style="font-size:0.74rem;color:#fde68a;letter-spacing:0.08em;text-transform:uppercase;font-weight:900;margin-bottom:5px;">정밀 궁합 확장</div>
                   <div style="font-size:1rem;color:#fff7ed;font-weight:900;line-height:1.45;">목적별 리딩, 30일 타이밍, 위험·회복 루틴까지 더 깊게 엽니다.</div>
                 </div>
-                <span style="font-size:0.72rem;color:#fef3c7;border:1px solid rgba(251,191,36,0.34);background:rgba(251,191,36,0.1);padding:4px 9px;border-radius:999px;">5,000원</span>
+                <span style="font-size:0.72rem;color:#fef3c7;border:1px solid rgba(251,191,36,0.34);background:rgba(251,191,36,0.1);padding:4px 9px;border-radius:999px;">무료</span>
               </div>
-              <p style="margin:0 0 10px;color:#fde68a;font-size:0.82rem;line-height:1.72;">기본 궁합 5,000원에서 드러난 관계 결 위로, 세부 시나리오와 회복 문장이 더 깊게 열립니다.</p>
+              <p style="margin:0 0 10px;color:#fde68a;font-size:0.82rem;line-height:1.72;">무료 기본 궁합에서 드러난 관계 결 위로, 세부 시나리오와 회복 문장이 더 깊게 열립니다.</p>
               <div data-crafted-static-offer="premium-sukuyo-compat-extra"></div>
-              <button type="button" data-sy-precision-unlock style="width:100%;min-height:44px;border-radius:11px;border:1px solid rgba(251,191,36,0.46);background:rgba(251,191,36,0.16);color:#fef3c7;font-size:0.84rem;font-weight:900;cursor:pointer;">정밀 궁합 확장 열기 · 5,000원</button>
+              <button type="button" data-sy-precision-unlock style="width:100%;min-height:44px;border-radius:11px;border:1px solid rgba(251,191,36,0.46);background:rgba(251,191,36,0.16);color:#fef3c7;font-size:0.84rem;font-weight:900;cursor:pointer;">정밀 궁합 확장 열기 · 무료</button>
               <div data-sy-precision-content style="display:none;margin-top:12px;"></div>
               <div data-sy-precision-status style="margin-top:8px;color:#fde68a;font-size:0.76rem;line-height:1.6;"></div>
             </section>`;

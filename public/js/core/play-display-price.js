@@ -15,6 +15,7 @@
     return params.toString();
   }
   async function read(input, request) {
+    if (root.cdIsFreeFortuneFeatureKey?.(input?.featureKey)) return { freeInApp: true, formattedPrice: '', accessSource: 'public' };
     if (!isApp() || root.Capacitor?.getPlatform?.() === 'ios') return null;
     var key = queryKey(input), bridge = root.CodeDestinyNative, version = generation;
     if (!key || typeof bridge?.queryProducts !== 'function') return null;

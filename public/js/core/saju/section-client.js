@@ -24,8 +24,8 @@
   // 이용권 결제 직후에는 화면이 먼저 열리고 서버 기록은 뒤에서 쓴다(index.html _cdMembershipPassRecordDelays 와 같은 간격).
   // 그 사이 402 가 오면 바로 '구매 기록 없음'을 띄우지 않고 이 간격으로 다시 묻는다(극T·인연 도감).
   var PASS_RECORD_RETRY_MS = [4000, 12000, 30000];
-  // 원국 해석(일주·십성·조후·억부·절기)은 사주 영구 묶음 한 가지로 해금한다. 서버가 칸 이름이 붙은 <template> 덩어리를 준다.
-  var NATAL_KEY = 'saju_lifetime_bundle';
+  // 원국 해석(일주·십성·조후·억부·절기)은 명시적인 무료 키로 요청한다. 서버가 칸 이름이 붙은 <template> 덩어리를 준다.
+  var NATAL_KEY = 'saju_natal_reading';
   // gods 는 십성 카드를 눌렀을 때 모달에 쓸 본문이다(서버가 카드와 함께 보낸 것을 들고 있을 뿐 만들지 않는다).
   var natal = { key: '', state: '', seq: 0, failedAt: 0, gods: {} };
   var NATAL_PARTS = ['terms', 'ilju', 'ten', 'climate', 'strength'];

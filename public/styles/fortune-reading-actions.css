@@ -1,0 +1,91 @@
+/* Deterministic reading actions only. Access and price decisions belong to callers.
+   Reuses the home moon-flower button grammar; does not style tabs, close controls,
+   consultation/LLM actions, payment sheets, banners, or review surfaces. */
+html body :is(
+  [data-cd-reading-action="primary"],
+  #v_run_btn,
+  .vedic-lock-cta[data-honey-cash-key="vedic_basic_reading"],
+  #sukuyoModalOverlay :is(#sy3AnalyzeBtn,[data-sy-nature-deep-dive-unlock],[data-sy-yearly-unlock],[data-sy-precision-unlock],[data-sy-astronomy-retry]),
+  #ziweiModalOverlay :is(.zw-cosmic-btn,.fr-flow-palace-link,button[data-unlock-key="ziwei_decade_luck"],button[data-unlock-key="ziwei_twelve_palaces"],button[data-unlock-key="ziwei_love_deep"],button[data-unlock-key="ziwei_symbolic_layer"],button[data-unlock-key="ziwei_life_yearly_flow"]),
+  #astroModalOverlay :is(.astro-neon-cta,button[data-unlock-key="astro_career_talent_deep"],button[data-unlock-key="astro_talent_attraction_deep"],button[data-unlock-key="astro_relationship_deep"],button[data-unlock-key="astro_growth_shadow_deep"],button[data-unlock-key="astro_basic_deep_pack"],button[data-unlock-key="astro_stellar_career_room"],button[data-unlock-key="astro_stellar_talent_room"],button[data-unlock-key="astro_stellar_relationship_room"],button[data-unlock-key="astro_stellar_growth_room"],button[data-unlock-key="astro_yearly_transit"])
+) {
+  position:relative;
+  isolation:isolate;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:var(--cd-sp-sm);
+  box-sizing:border-box;
+  min-width:44px;
+  min-height:48px!important;
+  max-width:100%;
+  padding:12px 44px 12px 20px!important;
+  border:1px solid var(--cd-cta-hairline)!important;
+  border-radius:var(--cd-r-control)!important;
+  background:var(--cd-cta-primary-bg)!important;
+  color:var(--cd-cta-primary-ink)!important;
+  box-shadow:var(--cd-shade-2)!important;
+  font:600 1rem/1.5 var(--font-body)!important;
+  letter-spacing:normal;
+  text-align:center;
+  text-decoration:none;
+  text-shadow:none;
+  white-space:normal;
+  word-break:keep-all;
+  overflow-wrap:anywhere;
+  cursor:pointer;
+  touch-action:manipulation;
+  transform:none!important;
+  filter:none!important;
+  animation:none!important;
+  transition:none;
+}
+
+html body :is(
+  [data-cd-reading-action="primary"],
+  #v_run_btn,
+  .vedic-lock-cta[data-honey-cash-key="vedic_basic_reading"],
+  #sukuyoModalOverlay :is(#sy3AnalyzeBtn,[data-sy-nature-deep-dive-unlock],[data-sy-yearly-unlock],[data-sy-precision-unlock],[data-sy-astronomy-retry]),
+  #ziweiModalOverlay :is(.zw-cosmic-btn,.fr-flow-palace-link,button[data-unlock-key="ziwei_decade_luck"],button[data-unlock-key="ziwei_twelve_palaces"],button[data-unlock-key="ziwei_love_deep"],button[data-unlock-key="ziwei_symbolic_layer"],button[data-unlock-key="ziwei_life_yearly_flow"]),
+  #astroModalOverlay :is(.astro-neon-cta,button[data-unlock-key="astro_career_talent_deep"],button[data-unlock-key="astro_talent_attraction_deep"],button[data-unlock-key="astro_relationship_deep"],button[data-unlock-key="astro_growth_shadow_deep"],button[data-unlock-key="astro_basic_deep_pack"],button[data-unlock-key="astro_stellar_career_room"],button[data-unlock-key="astro_stellar_talent_room"],button[data-unlock-key="astro_stellar_relationship_room"],button[data-unlock-key="astro_stellar_growth_room"],button[data-unlock-key="astro_yearly_transit"])
+)::before {content:"";position:absolute;inset:3px;border:1px solid color-mix(in srgb,var(--cd-yehwa-line) 38%,transparent);border-radius:calc(var(--cd-r-control) - 4px);background:none;opacity:1;pointer-events:none;}
+html body :is(
+  [data-cd-reading-action="primary"],
+  #v_run_btn,
+  .vedic-lock-cta[data-honey-cash-key="vedic_basic_reading"],
+  #sukuyoModalOverlay :is(#sy3AnalyzeBtn,[data-sy-nature-deep-dive-unlock],[data-sy-yearly-unlock],[data-sy-precision-unlock],[data-sy-astronomy-retry]),
+  #ziweiModalOverlay :is(.zw-cosmic-btn,.fr-flow-palace-link,button[data-unlock-key="ziwei_decade_luck"],button[data-unlock-key="ziwei_twelve_palaces"],button[data-unlock-key="ziwei_love_deep"],button[data-unlock-key="ziwei_symbolic_layer"],button[data-unlock-key="ziwei_life_yearly_flow"]),
+  #astroModalOverlay :is(.astro-neon-cta,button[data-unlock-key="astro_career_talent_deep"],button[data-unlock-key="astro_talent_attraction_deep"],button[data-unlock-key="astro_relationship_deep"],button[data-unlock-key="astro_growth_shadow_deep"],button[data-unlock-key="astro_basic_deep_pack"],button[data-unlock-key="astro_stellar_career_room"],button[data-unlock-key="astro_stellar_talent_room"],button[data-unlock-key="astro_stellar_relationship_room"],button[data-unlock-key="astro_stellar_growth_room"],button[data-unlock-key="astro_yearly_transit"])
+)::after {content:"";position:absolute;inset-inline-end:8px;top:calc(50% - 14px);width:28px;height:28px;background:var(--cd-yehwa-line);mask:var(--cd-button-sprig-mask) center/contain no-repeat;-webkit-mask:var(--cd-button-sprig-mask) center/contain no-repeat;opacity:.7;pointer-events:none;}
+html body :is(
+  [data-cd-reading-action="primary"],
+  #v_run_btn,
+  .vedic-lock-cta[data-honey-cash-key="vedic_basic_reading"],
+  #sukuyoModalOverlay :is(#sy3AnalyzeBtn,[data-sy-nature-deep-dive-unlock],[data-sy-yearly-unlock],[data-sy-precision-unlock],[data-sy-astronomy-retry]),
+  #ziweiModalOverlay :is(.zw-cosmic-btn,.fr-flow-palace-link,button[data-unlock-key="ziwei_decade_luck"],button[data-unlock-key="ziwei_twelve_palaces"],button[data-unlock-key="ziwei_love_deep"],button[data-unlock-key="ziwei_symbolic_layer"],button[data-unlock-key="ziwei_life_yearly_flow"]),
+  #astroModalOverlay :is(.astro-neon-cta,button[data-unlock-key="astro_career_talent_deep"],button[data-unlock-key="astro_talent_attraction_deep"],button[data-unlock-key="astro_relationship_deep"],button[data-unlock-key="astro_growth_shadow_deep"],button[data-unlock-key="astro_basic_deep_pack"],button[data-unlock-key="astro_stellar_career_room"],button[data-unlock-key="astro_stellar_talent_room"],button[data-unlock-key="astro_stellar_relationship_room"],button[data-unlock-key="astro_stellar_growth_room"],button[data-unlock-key="astro_yearly_transit"])
+):focus-visible {outline:3px solid var(--cd-focus-ring)!important;outline-offset:4px;}
+html body :is(
+  [data-cd-reading-action="primary"],
+  #v_run_btn,
+  .vedic-lock-cta[data-honey-cash-key="vedic_basic_reading"],
+  #sukuyoModalOverlay :is(#sy3AnalyzeBtn,[data-sy-nature-deep-dive-unlock],[data-sy-yearly-unlock],[data-sy-precision-unlock],[data-sy-astronomy-retry]),
+  #ziweiModalOverlay :is(.zw-cosmic-btn,.fr-flow-palace-link,button[data-unlock-key="ziwei_decade_luck"],button[data-unlock-key="ziwei_twelve_palaces"],button[data-unlock-key="ziwei_love_deep"],button[data-unlock-key="ziwei_symbolic_layer"],button[data-unlock-key="ziwei_life_yearly_flow"]),
+  #astroModalOverlay :is(.astro-neon-cta,button[data-unlock-key="astro_career_talent_deep"],button[data-unlock-key="astro_talent_attraction_deep"],button[data-unlock-key="astro_relationship_deep"],button[data-unlock-key="astro_growth_shadow_deep"],button[data-unlock-key="astro_basic_deep_pack"],button[data-unlock-key="astro_stellar_career_room"],button[data-unlock-key="astro_stellar_talent_room"],button[data-unlock-key="astro_stellar_relationship_room"],button[data-unlock-key="astro_stellar_growth_room"],button[data-unlock-key="astro_yearly_transit"])
+):disabled {opacity:.65;cursor:default;box-shadow:none!important;}
+@media(hover:hover){html body :is(
+  [data-cd-reading-action="primary"],
+  #v_run_btn,
+  .vedic-lock-cta[data-honey-cash-key="vedic_basic_reading"],
+  #sukuyoModalOverlay :is(#sy3AnalyzeBtn,[data-sy-nature-deep-dive-unlock],[data-sy-yearly-unlock],[data-sy-precision-unlock],[data-sy-astronomy-retry]),
+  #ziweiModalOverlay :is(.zw-cosmic-btn,.fr-flow-palace-link,button[data-unlock-key="ziwei_decade_luck"],button[data-unlock-key="ziwei_twelve_palaces"],button[data-unlock-key="ziwei_love_deep"],button[data-unlock-key="ziwei_symbolic_layer"],button[data-unlock-key="ziwei_life_yearly_flow"]),
+  #astroModalOverlay :is(.astro-neon-cta,button[data-unlock-key="astro_career_talent_deep"],button[data-unlock-key="astro_talent_attraction_deep"],button[data-unlock-key="astro_relationship_deep"],button[data-unlock-key="astro_growth_shadow_deep"],button[data-unlock-key="astro_basic_deep_pack"],button[data-unlock-key="astro_stellar_career_room"],button[data-unlock-key="astro_stellar_talent_room"],button[data-unlock-key="astro_stellar_relationship_room"],button[data-unlock-key="astro_stellar_growth_room"],button[data-unlock-key="astro_yearly_transit"])
+):hover:not(:disabled){border-color:var(--cd-yehwa-line-deep)!important;text-decoration:underline;text-underline-offset:4px;}}
+@media(prefers-reduced-motion:no-preference){html body :is(
+  [data-cd-reading-action="primary"],
+  #v_run_btn,
+  .vedic-lock-cta[data-honey-cash-key="vedic_basic_reading"],
+  #sukuyoModalOverlay :is(#sy3AnalyzeBtn,[data-sy-nature-deep-dive-unlock],[data-sy-yearly-unlock],[data-sy-precision-unlock],[data-sy-astronomy-retry]),
+  #ziweiModalOverlay :is(.zw-cosmic-btn,.fr-flow-palace-link,button[data-unlock-key="ziwei_decade_luck"],button[data-unlock-key="ziwei_twelve_palaces"],button[data-unlock-key="ziwei_love_deep"],button[data-unlock-key="ziwei_symbolic_layer"],button[data-unlock-key="ziwei_life_yearly_flow"]),
+  #astroModalOverlay :is(.astro-neon-cta,button[data-unlock-key="astro_career_talent_deep"],button[data-unlock-key="astro_talent_attraction_deep"],button[data-unlock-key="astro_relationship_deep"],button[data-unlock-key="astro_growth_shadow_deep"],button[data-unlock-key="astro_basic_deep_pack"],button[data-unlock-key="astro_stellar_career_room"],button[data-unlock-key="astro_stellar_talent_room"],button[data-unlock-key="astro_stellar_relationship_room"],button[data-unlock-key="astro_stellar_growth_room"],button[data-unlock-key="astro_yearly_transit"])
+){transition:background-color 180ms ease,border-color 180ms ease,box-shadow 180ms ease;}}

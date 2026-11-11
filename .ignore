@@ -158,6 +158,8 @@
 /public/js/core/first-visit-guide.mjs
 /public/js/core/fortune-consultation-ui.js
 /public/js/core/fortune-report-content.mjs
+/public/js/core/free-fortune-policy.js
+/public/js/core/free-fortune-policy.mjs
 /public/js/core/home-funnel.js
 /public/js/core/home-mv.js
 /public/js/core/home-service-finder.js
@@ -240,6 +242,7 @@
 /public/js/first-visit-state.d.mts
 /public/js/first-visit-state.mjs
 /public/js/fortune-gateway.js
+/public/js/free-crafted-panel-policy.mjs
 /public/js/fsn-navbar.js
 /public/js/iching-engine.js
 /public/js/iching-modal.js
@@ -382,8 +385,8 @@
 /public/styles/review-reward.css
 /public/styles/saju-compact.css
 /public/styles/saju-entry-flow.css
-/public/styles/saju-reading.css
 /public/styles/saju-tea-entry.css
+/public/styles/service-entry-scene.css
 /public/styles/sibyl-system.css
 /public/styles/tarot-healing-dawn.css
 /public/styles/tarot-love-mystic.css
