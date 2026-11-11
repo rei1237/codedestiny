@@ -20,3 +20,9 @@ test('Static Human Design guide is distinct from paid AI report and paid saju se
  expect(isFreeFortuneFeatureKey('saju_brain_reading')).toBe(true);
  for(const key of ['human-design-report','section_summary','section_daewun','saju_lifetime_bundle']) expect(isFreeFortuneFeatureKey(key)).toBe(false);
 });
+
+test('Deterministic voyage and bias are exact free keys without making AI or light saju free',()=>{
+ expect(FREE_FORTUNE_FEATURE_KEYS).toHaveLength(62);
+ for(const key of ['destiny-compass-life-voyage','destiny-bias-analyze']) expect(isFreeFortuneFeatureKey(key)).toBe(true);
+ for(const key of ['destiny-compass-deep-report','saju-guardian-unlock','section_summary','section_daewun','saju_lifetime_bundle']) expect(isFreeFortuneFeatureKey(key)).toBe(false);
+});
