@@ -111,18 +111,6 @@ describe.each(KINDS)("%s", (kind, featureKey) => {
     expect(swiss).not.toHaveBeenCalled();
   });
 
-  test("unowned birth returns 402 with existing pricing fields and no report", async () => {
-    const result = await request(kind, { ...INPUT, unlocked: true });
-    expect(result.status).toBe(402);
-    expect(result.body).toMatchObject({
-      reason: "PAYMENT_REQUIRED", featureKey, title: product().orderName, coinPrice: product().coinPrice, amountKRW: product().amountKRW,
-    });
-    expect(result.body.message).toContain("이 생년월일은 별도 구매가 필요합니다");
-    expect(result.body).not.toHaveProperty("paymentMode");
-    expect(result.body.report).toBeUndefined();
-    expect(swiss).not.toHaveBeenCalled();
-  });
-
   test("a BIRTH grant computes from the profile's stored birth; body birth is ignored, place/timezone kept", async () => {
     grant(featureKey);
     const result = await request(kind);
@@ -148,29 +136,6 @@ describe.each(KINDS)("%s", (kind, featureKey) => {
     expect(swiss.mock.calls[0][1]).toMatchObject({ hour: 12, minute: 0, timeUnknown: true });
   });
 
-  test.each(["unlockedFeatures", "paidFeatures"])("legacy %s account array is not evidence", async (field) => {
-    users.push({ _id: TEST_USER_ID, [field]: [featureKey] });
-    expect((await request(kind)).status).toBe(402);
-    expect(exists).not.toHaveBeenCalled();
-    expect(swiss).not.toHaveBeenCalled();
-  });
-
-  test("another saved profile with the same birth shares the unlock; a different birth needs its own purchase", async () => {
-    grant(featureKey);
-    expect((await request(kind, { ...INPUT, profileId: "p2" })).status).toBe(200);
-    const other = await request(kind, { ...INPUT, profileId: "p3" });
-    expect(other.status).toBe(402);
-    expect(other.body.message).toContain("이 생년월일은 별도 구매가 필요합니다");
-  });
-
-  test("editing the profile birth re-locks the report and reverting re-opens it", async () => {
-    grant(featureKey);
-    cards[0].birth.day = 20;
-    expect((await request(kind)).status).toBe(402);
-    cards[0].birth.day = 17;
-    expect((await request(kind)).status).toBe(200);
-  });
-
   test("missing, foreign or synthetic profile ids are rejected before any calculation", async () => {
     grant(featureKey);
     const { profileId: _omit, ...withoutProfile } = INPUT;
@@ -186,27 +151,12 @@ describe.each(KINDS)("%s", (kind, featureKey) => {
     expect(swiss).not.toHaveBeenCalled();
   });
 
-  test.each([
-    [{ userId: OTHER_USER_ID }], [{ status: "REFUNDED" }], [{ expiresAt: new Date("2020-01-01") }],
-    [{ scope: "PROFILE", profileId: "p2" }],
-    [{ profileId: "birth:" + "0".repeat(64) }],
-  ])("an unrelated, other-card or inactive grant never opens the report: %j", async (override) => {
-    grant(featureKey, override);
-    expect((await request(kind)).status).toBe(402);
-    expect(swiss).not.toHaveBeenCalled();
-  });
-
   // 출생 기반 전환 이전 USER·PROFILE 행(운영 구매자)은 계속 연다 — 재잠금 방지. 다른 카드의 PROFILE 행은 닫힌다.
   test.each([
     [{ scope: "PROFILE", profileId: "p1" }], [{ scope: "USER", profileId: "__user__" }],
   ])("a legacy grant from before the birth-scope switch keeps opening the report: %j", async (override) => {
     grant(featureKey, override);
     expect((await request(kind)).status).toBe(200);
-  });
-
-  test("the other report's grant does not open this one", async () => {
-    grant(KINDS.find(([, key]) => key !== featureKey)[1]);
-    expect((await request(kind)).status).toBe(402);
   });
 
   test("DB and auth infrastructure failures stay retryable 503 instead of 402", async () => {
@@ -236,4 +186,15 @@ test("per-use products keep their existing contract and need no profile", async 
   const result = await request("vvip-codex", { year: 1990, month: 5, day: 17, hour: 9, minute: 30 });
   expect(result.status).toBe(200);
   expect(findOne).not.toHaveBeenCalled();
+});
+
+test.each(KINDS)('%s: own profile renders without any purchase, without modifying historical grants',async(kind,featureKey)=>{
+ const original=JSON.stringify(grants);const result=await request(kind);expect(result.status).toBe(200);expect(result.body.report).toBeTruthy();
+ expect(swiss.mock.calls[0][1]).toMatchObject({year:1990,month:5,day:17});expect(JSON.stringify(grants)).toBe(original);expect(write).not.toHaveBeenCalled();
+ expect((await request(kind,{...INPUT,profileId:'p3'})).status).toBe(200);expect(swiss.mock.calls.at(-1)[1].day).toBe(18);
+});
+test.each(KINDS)('%s: expired or refunded grants neither block new free calculations nor grant another account profile',async(kind,key)=>{
+ grant(key,{status:'REFUNDED'});const original=JSON.stringify(grants);
+ expect((await request(kind)).status).toBe(200);expect((await request(kind,{...INPUT,profileId:'x1'})).status).toBe(403);
+ expect(JSON.stringify(grants)).toBe(original);expect(write).not.toHaveBeenCalled();
 });

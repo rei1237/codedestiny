@@ -1,3 +1,4 @@
+import { isFreeFortuneFeatureKey } from '../../lib/payment/free-fortune-policy.mjs';
 import { buildNakshatraBirthEvidence, validNakshatraBirth } from '../lib/nakshatra-birth-evidence.js';
 // 나크샤트라 결정판 — 무인증 무료 계산 라우트 (I/O 배선)
 //
@@ -159,6 +160,9 @@ export async function handleNakshatraRoutes(request, env) {
       if (request.method === 'GET' && !body.resumeResultId) return json({ ok:false, code:'RESULT_ID_REQUIRED' }, { status:400 });
       if (!body.resumeResultId && (!isValidBirth(normalizeBirthBody(body.a)) || !isValidBirth(normalizeBirthBody(body.b))))
         return json({ ok: false, code: 'INVALID_INPUT', message: '두 사람의 날짜와 출생 정보를 확인해 주세요.' }, { status: 400 });
+      // Existing saved results retain the authenticated owner-scoped delivery path.
+      // A new calculation uses explicit a/b inputs and creates no paid execution or payment claim.
+      if (!body.resumeResultId && isFreeFortuneFeatureKey('nakshatra-compat')) return await resolveCompat(env, body, { requestUrl: request.url });
       return await deliverNakshatraCompat(env, auth, body, () => resolveCompat(env, body, { requestUrl: request.url }));
     }
     return notFound(); // /api/nakshatra/* 하위 미해당 경로.

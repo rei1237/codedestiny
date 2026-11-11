@@ -3728,6 +3728,19 @@ function normalizePrashnaStoredResult(record) {
   };
 }
 
+async function handleVedicPrashnaFree(request, auth, env) {
+  const body = await readJson(request);
+  let snapshot = null;
+  try {
+    snapshot = await createPrashnaSnapshot({ question: body?.question, latitude: body?.latitude, longitude: body?.longitude });
+    const result = await generatePrashnaPromptResult(env, snapshot, { requestUrl: request.url });
+    // No paid order, payment evidence or execution record is created for a deterministic template.
+    return json({ ok: true, accessSource: 'public', featureKey: VEDIC_PRASHNA_PROMPT_FEATURE_KEY, snapshot, result, promptText: result.promptText, chart: result.chart });
+  } catch (error) {
+    return buildVedicPrashnaError(String(error?.code || 'PRASHNA_GENERATION_FAILED'), '프라슈나 풀이를 준비하지 못했어요. 입력을 확인하고 다시 시도해 주세요.', snapshot ? 503 : (Number(error?.status) || (error?.code === 'TIMEZONE_LOOKUP_FAILED' ? 422 : 400)));
+  }
+}
+
 async function handleVedicPrashnaSnapshot(request, auth, env) {
   const body = await readJson(request);
   let snapshot = null;
@@ -7217,6 +7230,13 @@ export async function handleFortuneRoutes(request, env, ctx = null) {
       return await handleVedicAIPrompt(request, auth, env);
     }
 
+    if (method === "POST" && path === "/vedic/prashna/free" && isFreeFortuneFeatureKey(VEDIC_PRASHNA_PROMPT_FEATURE_KEY)) {
+      const auth = await resolvePaidRouteAuth(request, env);
+      if (!auth) return buildVedicPrashnaError('AUTH_REQUIRED', '로그인이 필요합니다.', 401);
+      trace.authVerified = true;
+      return await handleVedicPrashnaFree(request, auth, env);
+    }
+
     if (method === "POST" && path === "/vedic/prashna/snapshot") {
       const auth = await resolvePaidRouteAuth(request, env);
       if (!auth) {
@@ -7296,6 +7316,7 @@ export const __fortuneAccessTestUtils = {
   findAIPromptPaidAccessEvidence,
   buildAIPromptVerifiedConsumePayload,
   handleVedicPrashnaGenerate,
+  handleVedicPrashnaFree,
   isVedicPrashnaStaleGenerating,
   resolvePersistedUnlockFeatures,
 };

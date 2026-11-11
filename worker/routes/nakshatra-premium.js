@@ -1,3 +1,4 @@
+import { isFreeFortuneFeatureKey } from '../../lib/payment/free-fortune-policy.mjs';
 // 나크샤트라 결정판 — 영구 해금 심화 리포트 2종 배달 라우트.
 //
 //   POST /api/nakshatra-premium/lord-report  : 지배성 심화 리포트 (₩5,000)
@@ -203,11 +204,11 @@ async function handleProduct(request, env, product, kind) {
         message: missing ? MESSAGES.missingProfile : MESSAGES.invalidProfile,
       }, { status: missing ? 400 : 403 });
     }
-    unlocked = access.unlocked;
+    unlocked = isFreeFortuneFeatureKey(product.featureKey) || access.unlocked;
     profileBirth = access.birth;
   } else {
     try {
-      unlocked = await isUnlockedForUser(env, auth.userId, product.featureKey);
+      unlocked = isFreeFortuneFeatureKey(product.featureKey) || await isUnlockedForUser(env, auth.userId, product.featureKey);
     } catch (error) {
       if (isTransientMongoError(error) || isAuthDbInfraError(error)) return degraded();
       throw error;
@@ -296,6 +297,8 @@ const PER_USE_ENFORCE = true;
 async function observePerUsePayment(env, auth, kind, body) {
   const product = PER_USE_PRODUCTS[kind];
   if (!product) return null;
+  // Auth and validated explicit input remain required; deterministic readings do not consume payment.
+  if (isFreeFortuneFeatureKey(product.featureKey)) return null;
   try {
     const proof = await verifyPerUsePayment(env, {
       userId: auth?.userId,

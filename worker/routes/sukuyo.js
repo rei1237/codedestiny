@@ -1,3 +1,4 @@
+import { isFreeFortuneFeatureKey } from '../../lib/payment/free-fortune-policy.mjs';
 import { FEATURE_KEY_PRICE_TABLE } from "../lib/paid-feature-registry.js";
 import { primeCmsRecords } from "../lib/cms-records.js";
 // 음력 월·일은 화면 표시 메타데이터에만 사용한다. 숙 판정은 출생 장소·시각을
@@ -1451,6 +1452,11 @@ async function handleSukuyoPastLifeReading(request, env) {
 
   if (!canonical?.validation?.hasRelationType) return pastLifeErrorResponse("RELATION_MATRIX_NOT_FOUND", "숙요 관계를 찾지 못했습니다.", 422);
 
+  // Login, owned profile and owner-scoped archive reads above remain mandatory.
+  if (isFreeFortuneFeatureKey(SUKYO_PAST_LIFE_FEATURE_KEY)) {
+    const result = buildSukuyoPastLifeResult({ body: { ...body, purpose }, self, partner, selfSukuyo, partnerSukuyo, canonical, userProfileId: profile.profileId });
+    return json({ ok: true, data: result, source: 'public', reportId: null });
+  }
   const access = await requirePremiumReportAccess(env, auth.userId, SUKYO_PAST_LIFE_REPORT_TYPE, {
     ...body,
     userProfileId: profile.profileId,
@@ -2151,15 +2157,16 @@ async function handleSukuyoYearlyFortune(request, env) {
   const targetYear = normalizeSukuyoTargetYear(url.searchParams.get("year"));
   const profile = await resolveSukuyoYearlyProfile(env, auth, url.searchParams.get("profileId"));
   const fullResult = await buildSukuyoYearlyFortuneResultV2({ auth, profile, targetYear, env, requestUrl: request.url });
-  const unlock = await findSukuyoYearlyUnlock({ userId: auth.userId, profile, targetYear, env });
-  const unlocked = Boolean(unlock?._id);
+  const publicReading = isFreeFortuneFeatureKey(SUKYO_YEARLY_FORTUNE_PRODUCT_KEY);
+  const unlock = publicReading ? null : await findSukuyoYearlyUnlock({ userId: auth.userId, profile, targetYear, env });
+  const unlocked = publicReading || Boolean(unlock?._id);
   return json({
     ok: true,
     productKey: SUKYO_YEARLY_FORTUNE_PRODUCT_KEY,
     contentKey: sukuyoYearlyContentKey(targetYear),
     pricing: {
-      amountKrw: SUKYO_YEARLY_FORTUNE_PRICE_KRW,
-      coinPrice: SUKYO_YEARLY_FORTUNE_PRICE_COINS,
+      amountKrw: publicReading ? 0 : SUKYO_YEARLY_FORTUNE_PRICE_KRW,
+      coinPrice: publicReading ? 0 : SUKYO_YEARLY_FORTUNE_PRICE_COINS,
       currency: "KRW",
     },
     unlockScope: {
@@ -2181,6 +2188,7 @@ async function handleSukuyoYearlyUnlock(request, env) {
   const body = await readJson(request);
   const targetYear = normalizeSukuyoTargetYear(body?.targetYear || body?.year);
   const profile = await resolveSukuyoYearlyProfile(env, auth, body?.profileId || body?.selectedProfileId);
+  if (isFreeFortuneFeatureKey(SUKYO_YEARLY_FORTUNE_PRODUCT_KEY)) return json({ ok: true, unlocked: true, accessSource: 'public', productKey: SUKYO_YEARLY_FORTUNE_PRODUCT_KEY, contentKey: sukuyoYearlyContentKey(targetYear), profileId: profile.profileId, targetYear });
   const existing = await findSukuyoYearlyUnlock({ userId: auth.userId, profile, targetYear, env });
   const contentKey = sukuyoYearlyContentKey(targetYear);
   if (existing?._id) {

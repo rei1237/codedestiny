@@ -117,28 +117,6 @@ beforeEach(() => {
 });
 afterEach(() => jest.restoreAllMocks());
 
-test("같은 생년월일의 다른 저장 프로필로는 이미 해금된 상태다", async () => {
-  grant();
-  const result = await unlock({ profileId: "p2" });
-  expect(result.status).toBe(200);
-  expect(result.body).toMatchObject({ alreadyUnlocked: true, unlocked: true, profileId: "p2" });
-  // 리더는 라우트가 이미 읽은 카드를 재사용한다(같은 카드 왕복 1회).
-  expect(profileCardFindOne).toHaveBeenCalledTimes(1);
-});
-
-test("다른 생년월일 프로필은 잠긴 채 결제 안내를 받는다", async () => {
-  grant();
-  const result = await unlock({ profileId: "p3" });
-  expect(result.status).toBe(200);
-  expect(result.body).toMatchObject({ alreadyUnlocked: false, unlocked: false, profileId: "p3" });
-  expect(result.body.billing.payload).toMatchObject({ featureKey: YEARLY_KEY, profileId: "p3", contentKey: `${YEARLY_KEY}:2026` });
-});
-
-test("다른 연도 권한으로는 열리지 않는다", async () => {
-  grant({ contentKey: `${YEARLY_KEY}:2027` });
-  expect((await unlock({ profileId: "p1" })).body.unlocked).toBe(false);
-});
-
 // 출생 기반 전환 이전 USER·PROFILE 행(운영 구매자)은 계속 연다 — 재잠금 방지. 다른 카드의 PROFILE 행은 닫힌다.
 test.each([
   ["USER", { scope: "USER", profileId: "__user__" }],
@@ -146,11 +124,6 @@ test.each([
 ])("레거시 %s 행은 출생 기반 1년운을 계속 연다", async (_label, overrides) => {
   grant(overrides);
   expect((await unlock({ profileId: "p1" })).body.unlocked).toBe(true);
-});
-
-test("다른 카드의 레거시 PROFILE 행으로는 열리지 않는다", async () => {
-  grant({ scope: "PROFILE", profileId: "p3" });
-  expect((await unlock({ profileId: "p1" })).body.unlocked).toBe(false);
 });
 
 test.each([
@@ -187,10 +160,9 @@ test("verify-payment 도 같은 생년월일 권한을 이미 해금으로 본�
   expect(result.body).toMatchObject({ alreadyUnlocked: true, unlocked: true, profileId: "p2", unlockId: "grant-1" });
 });
 
-test("해금 조회의 DB 오류는 503 으로 남는다(미구매로 바뀌지 않는다)", async () => {
-  entitlementFindOne.mockImplementation(() => ({
-    lean: async () => { throw Object.assign(new Error("server selection timed out"), { name: "MongoServerSelectionError" }); },
-  }));
-  const result = await unlock({ profileId: "p1" });
-  expect(result.status).toBe(503);
+test.each(['p1','p2','p3'])('yearly free access keeps ownership for %s without entitlement reads or writes',async profileId=>{
+ entitlementFindOne.mockImplementation(()=>{throw Error('free calculation must not read payment grants');});
+ const r=await unlock({profileId});expect(r.status).toBe(200);expect(r.body).toMatchObject({unlocked:true,accessSource:'public',profileId,contentKey:YEARLY_KEY+':2026'});
+ expect(r.body.billing).toBeUndefined();expect(profileCardFindOne).toHaveBeenCalledTimes(1);expect(entitlementFindOne).not.toHaveBeenCalled();expect(write).not.toHaveBeenCalled();
 });
+test('yearly still rejects missing login before profile access',async()=>{resolvePaidRouteAuth.mockResolvedValue(null);expect((await unlock({profileId:'p1'})).status).toBe(401);expect(profileCardFindOne).not.toHaveBeenCalled();expect(write).not.toHaveBeenCalled();});

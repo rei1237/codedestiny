@@ -8,7 +8,8 @@ import {
   PRASHNA_FIXTURE_USER_ID,
 } from "../fixtures/vedic-prashna-paid-delivery-fixture.mjs";
 
-let handleVedicPrashnaGenerate;
+let handleVedicPrashnaGenerate, handleVedicPrashnaFree;
+const snapshotBuilder=jest.fn();
 let docs;
 let provider;
 let finalSaveFault;
@@ -104,11 +105,12 @@ beforeAll(async () => {
     VEDIC_PRASHNA_PROMPT_AMOUNT_KRW: 5000,
     VEDIC_PRASHNA_PROMPT_PRODUCT_CODE: "PRASHNA_PROMPT_1",
     VEDIC_PRASHNA_PROMPT_PRODUCT_NAME: "프라슈나 프롬프트",
-    createPrashnaSnapshot: jest.fn(),
+    createPrashnaSnapshot: snapshotBuilder,
     generatePrashnaPromptResult: (...args) => provider(...args),
   }));
   const fortune = await import("../../worker/routes/fortune.js");
   handleVedicPrashnaGenerate = fortune.__fortuneAccessTestUtils.handleVedicPrashnaGenerate;
+  handleVedicPrashnaFree = fortune.__fortuneAccessTestUtils.handleVedicPrashnaFree;
 });
 
 beforeEach(() => {
@@ -234,4 +236,24 @@ test("최종 저장 응답이 유실돼도 재조회로 완료를 확정하고 �
   });
   expect(provider).toHaveBeenCalledTimes(1);
   expect(docs).toHaveLength(1);
+});
+
+test('free fixed prompt creates no order or database writes and preserves historical results',async()=>{
+ const original=clone(docs);snapshotBuilder.mockResolvedValue({question:'question',latitude:37.5,longitude:127,orderId:'calculation-only'});
+ const read=jest.spyOn(paidExecutionModel,'findOne');const update=jest.spyOn(paidExecutionModel,'findOneAndUpdate');const write=jest.spyOn(paidExecutionModel,'updateOne');
+ try{const response=await handleVedicPrashnaFree(new Request('https://example.test/api/fortune/vedic/prashna/free',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({question:'question',latitude:37.5,longitude:127,orderId:'forged-purchase'})}),{userId:PRASHNA_FIXTURE_USER_ID},{});
+ expect(response.status).toBe(200);const body=await response.json();expect(body).toMatchObject({ok:true,accessSource:'public',featureKey:'vedic_prashna_prompt',result:PRASHNA_FIXTURE_RESULT});expect(body.order).toBeUndefined();
+ expect(snapshotBuilder).toHaveBeenCalledWith({question:'question',latitude:37.5,longitude:127});expect(read).not.toHaveBeenCalled();expect(update).not.toHaveBeenCalled();expect(write).not.toHaveBeenCalled();expect(docs).toEqual(original);expect(externalFetch).not.toHaveBeenCalled();
+ }finally{read.mockRestore();update.mockRestore();write.mockRestore();}
+});
+test('free prompt validation errors do not expose internal details or affect old deliveries',async()=>{
+ snapshotBuilder.mockRejectedValue(Object.assign(new Error('private detail'),{code:'INVALID_QUESTION'}));const original=clone(docs);
+ const r=await handleVedicPrashnaFree(new Request('https://example.test/api/fortune/vedic/prashna/free',{method:'POST',body:'{}'}),{userId:PRASHNA_FIXTURE_USER_ID},{});
+ expect(r.status).toBe(400);expect(JSON.stringify(await r.json())).not.toContain('private detail');expect(docs).toEqual(original);
+});
+
+test('free prompt astronomy failure stays retryable without leaking internals or writing paid state',async()=>{
+ snapshotBuilder.mockResolvedValue({question:'q'});provider.mockRejectedValue(new Error('internal astronomy path'));const original=clone(docs);
+ const r=await handleVedicPrashnaFree(new Request('https://example.test/api/fortune/vedic/prashna/free',{method:'POST',body:'{}'}),{userId:PRASHNA_FIXTURE_USER_ID},{});
+ expect(r.status).toBe(503);expect(JSON.stringify(await r.json())).not.toContain('internal astronomy');expect(docs).toEqual(original);
 });
