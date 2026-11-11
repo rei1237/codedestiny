@@ -63,7 +63,7 @@ Google Play cd_content_tier_19는 “라이트 사주 풀이”, 일회성 29,00
 - 제휴명 중립화 선물 흐름 14테스트 통과.
 - 이전 클래식 UI 검사: 만세력 우선, 재미 카드 원본 이미지/본문 유지. 구매조건 안내 52패널 정정, 고유 이미지 302개 보존.
 - 공식 sync:public, build-destiny-anatomy-hd-copy, extract-saju-section-runtime, sitemap:generate 완료. sitemap:check 1,069 URL 일치.
-- 최종 check:pre-push는 이 문서 커밋 뒤 실행한다. 결과는 .tmp/free-54-pre-push.log에서 확인한다.
+- 최종 check:pre-push 통과. 미러·사이트맵·서비스 레지스트리·SEO·저장소 위생 확인. 로그는 .tmp/free-54-pre-push.log다.
 
 주요 로그: .tmp/free-54-check-fast-final.log, .tmp/free-54-critical-remaining.log, .tmp/free-54-critical-final.log, .tmp/love-public-cta-contract.log/json, .tmp/five-key-legacy-impact.log/json.
 
