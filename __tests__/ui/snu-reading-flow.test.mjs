@@ -14,28 +14,15 @@ test('exact gift coverage, not array length, determines completion', () => {
   assert.equal(hasCompleteSnuGift({ ...state, verified: false }), false);
   assert.equal(hasCompleteSnuGift({ ...state, profileId: '' }), false);
 });
-test('gift navigation contains only active allowlisted shortcuts and clears on account/profile changes', () => {
-  const dom = new JSDOM('<article id="resultPage"><section id="sajuReadingHeader"></section></article>');
-  const document = dom.window.document, profile = { id: 'gift', name: '<img src=x onerror=alert(1)>' };
-  const partial = { ...state, unlockedFeatureKeys: ['section_summary', 'rpt_quantumCard', 'rpt_secretHouseEntryCard', 'animal-destiny-unlock', 'saju-career-style', 'future-ai'] };
-  mountSnuReadingContents(document, partial, profile);
-  assert.deepEqual([...document.querySelectorAll('nav a')].map(link => link.getAttribute('href')), ['#summaryCard', '#quantumCard', '/secret-house_real.html', '/saju/animal-destiny/', '/saju/career-style/']);
-  assert.equal(document.querySelectorAll('img').length, 0);
-  let secretOpened = 0, genericOpened = 0;
-  dom.window.openSecretHouseRoute = () => { secretOpened += 1; };
-  dom.window.openSajuFunFeature = () => { genericOpened += 1; };
-  const secretLink = [...document.querySelectorAll('nav a')].find(link => link.getAttribute('href') === '/secret-house_real.html');
-  secretLink.dispatchEvent(new dom.window.MouseEvent('click', { bubbles: true, cancelable: true }));
-  assert.equal(secretOpened, 1);
-  assert.equal(genericOpened, 0);
-  const contents = document.getElementById('snuReadingContents'); contents.open = false;
-  mountSnuReadingContents(document, partial, profile);
-  assert.equal(document.getElementById('snuReadingContents'), contents);
-  assert.equal(contents.open, false);
-  mountSnuReadingContents(document, partial, { id: 'another-account-profile' });
-  assert.equal(document.getElementById('snuReadingContents'), null);
-  mountSnuReadingContents(document, { ...partial, verified: false }, profile);
-  assert.equal(document.getElementById('snuReadingContents'), null);
+test('common reading never shows a partner-only navigation or changes server entitlements', () => {
+  const dom = new JSDOM('<article id="resultPage"><section id="sajuReadingHeader"></section><details id="snuReadingContents">old campaign label</details></article>');
+  const original = JSON.stringify(state);
+  mountSnuReadingContents(dom.window.document, state, {id:'gift',name:'My profile'});
+  assert.equal(dom.window.document.getElementById('snuReadingContents'), null);
+  assert.equal(dom.window.document.querySelectorAll('nav').length, 0);
+  assert.equal(JSON.stringify(state), original);
+  mountSnuReadingContents(dom.window.document, {...state,verified:false}, null);
+  assert.equal(dom.window.document.getElementById('snuReadingContents'), null);
   dom.window.close();
 });
 test('gift navigation uses the canonical service-card names', () => {

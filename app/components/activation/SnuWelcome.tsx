@@ -47,13 +47,13 @@ export default function SnuWelcome() {
       }
       if(turn !== revision.current)return; setData(result); setGuest(false); setMessage(''); setFailureCode('');
     }
-    catch (error) { if(turn !== revision.current)return; if (error instanceof ActivationApiError && error.status === 401) setGuest(true); else setMessage(error instanceof Error ? error.message : '제휴 선물을 다시 확인해 주세요.'); }
+    catch (error) { if(turn !== revision.current)return; if (error instanceof ActivationApiError && error.status === 401) setGuest(true); else setMessage(error instanceof Error ? error.message : '등록한 콘텐츠을 다시 확인해 주세요.'); }
   }, []);
   useEffect(() => { setData(null); setGuest(false); setBusy(false); setMessage(''); setCode(''); void load(); return invalidate; }, [load, userKey, invalidate]);
   const redeem = async () => {
     if (busy || !code.trim()) return; setBusy(true); setMessage(''); setFailureCode(''); const turn=revision.current;
-    try { const result = await activationApi<CampusState>('snu/code', { code: code.trim() }); if(turn !== revision.current)return; focusNextStep.current = true; setData(result); setCode(''); trackEvent('snulife_code_registered'); setMessage('제휴 코드를 확인했어요. 선물을 담을 본인 프로필을 골라 주세요.'); }
-    catch (error) { if(turn !== revision.current)return; setFailureCode(error instanceof ActivationApiError ? error.code || '' : ''); setMessage(error instanceof Error ? error.message : '게시물의 제휴 코드를 다시 확인해 주세요.'); }
+    try { const result = await activationApi<CampusState>('snu/code', { code: code.trim() }); if(turn !== revision.current)return; focusNextStep.current = true; setData(result); setCode(''); trackEvent('snulife_code_registered'); setMessage('안내 코드를 확인했어요. 선물을 담을 본인 프로필을 골라 주세요.'); }
+    catch (error) { if(turn !== revision.current)return; setFailureCode(error instanceof ActivationApiError ? error.code || '' : ''); setMessage(error instanceof Error ? error.message : '게시물의 안내 코드를 다시 확인해 주세요.'); }
     finally { if(turn === revision.current)setBusy(false); }
   };
   const unlock = async () => {
@@ -78,7 +78,7 @@ export default function SnuWelcome() {
 
       <header className={styles.hero}>
         <h1>연이가 준비한<br/>사주 선물</h1>
-        <p>SNULIFE 회원님을 위한 사주 콘텐츠 {features.length}종. <br/>나의 기질과 앞으로의 흐름을 함께 읽어보세요.</p>
+        <p>내 프로필에 사주 콘텐츠를 등록해 보세요. <br/>나의 기질과 앞으로의 흐름을 함께 읽어보세요.</p>
         <Image className={styles.heroArt} src="/assets/service-intro/yeoni-gift-352.webp" width={176} height={198} priority alt="사주 선물을 준비한 꽃돼지 연이"/>
       </header>
 
@@ -94,15 +94,15 @@ export default function SnuWelcome() {
       <section ref={actionPanel} className={styles.actionPanel} aria-label="내 사주 선물">
         {guest ? <>
           <h2><Gift size={24} aria-hidden="true"/>로그인하고 선물을 받아 주세요</h2>
-          <p>가입·로그인 후 제휴 코드를 등록하면 돼요. 학교 이메일이나 학생증 인증은 필요하지 않아요.</p>
+          <p>가입·로그인 후 안내 코드를 등록하면 돼요. 선택한 본인 출생정보에서 이용할 수 있어요.</p>
           <Link className={styles.primary} href="/login/?next=%2Fsnu%2F"><span>가입·로그인하기</span><ArrowRight size={18} aria-hidden="true"/></Link>
         </> : data ? <>
           {!data.verified ? <>
-            <h2>제휴 코드를 등록해 주세요</h2>
-            <p>SNULIFE 게시물에서 안내받은 코드를 입력하면, 본인 프로필에 사주 선물을 담을 수 있어요.</p>
+            <h2>안내 코드를 등록해 주세요</h2>
+            <p>안내받은 코드를 입력해 주세요. 콘텐츠를 이용할 본인 프로필을 선택할 수 있어요.</p>
             <form onSubmit={event => { event.preventDefault(); void redeem(); }}>
-              <label className={styles.profileLabel}>제휴 코드<input value={code} maxLength={128} autoComplete="off" autoCapitalize="off" spellCheck={false} placeholder="게시물의 제휴 코드 입력" aria-describedby="snu-code-hint" onChange={event => setCode(event.target.value)} required/></label>
-              <button className={styles.primary} disabled={busy || !code.trim()} aria-busy={busy} type="submit">{busy ? <LoaderCircle className={styles.spinner} size={18} aria-hidden="true"/> : <Gift size={18} aria-hidden="true"/>}<span>{busy ? '코드 확인 중' : '제휴 코드 등록하기'}</span></button>
+              <label className={styles.profileLabel}>안내 코드<input value={code} maxLength={128} autoComplete="off" autoCapitalize="off" spellCheck={false} placeholder="게시물의 안내 코드 입력" aria-describedby="snu-code-hint" onChange={event => setCode(event.target.value)} required/></label>
+              <button className={styles.primary} disabled={busy || !code.trim()} aria-busy={busy} type="submit">{busy ? <LoaderCircle className={styles.spinner} size={18} aria-hidden="true"/> : <Gift size={18} aria-hidden="true"/>}<span>{busy ? '코드 확인 중' : '안내 코드 등록하기'}</span></button>
             </form>
             <p className={styles.hint} id="snu-code-hint">별도 구매나 후기 작성 없이 받을 수 있어요.</p>
           </> : complete ? <>
@@ -125,7 +125,7 @@ export default function SnuWelcome() {
             {data.profileId && data.unlockedFeatureKeys.length > 0 && <a className={styles.quietLink} href={SNU_READING_URL}>이미 열린 콘텐츠 보기<ArrowRight size={15} aria-hidden="true"/></a>}
           </>}
           {reviewEnd && data.campaign && <aside className={styles.reviewNote} aria-label="검수용 코드 안내"><strong>검수용 코드로 등록했어요.</strong><p>정식 모집 1,000계정과 별도로 최대 {data.campaign.limit}계정에서 확인할 수 있어요.<br/>코드 등록은 {reviewEnd}까지예요.</p></aside>}
-        </> : !message ? <p role="status" className={styles.loading}><LoaderCircle className={styles.spinner} size={20} aria-hidden="true"/>연이가 제휴 선물을 확인하고 있어요.</p> : null}
+        </> : !message ? <p role="status" className={styles.loading}><LoaderCircle className={styles.spinner} size={20} aria-hidden="true"/>연이가 등록한 콘텐츠을 확인하고 있어요.</p> : null}
         {message && <div role="status" data-error-code={failureCode || undefined} className={`${styles.feedback}${!data && !guest ? ` ${styles.loadFailure}` : ''}`}>{!data && !guest && <h2>선물을 불러오지 못했어요</h2>}<p>{message}</p>{(!data && !guest || ['SNULIFE_CLOSED', 'SNULIFE_UNAVAILABLE'].includes(failureCode)) && <button className={styles.primary} onClick={() => void load()}>기존 사주 선물 확인하기</button>}</div>}
       </section>
 
@@ -133,7 +133,7 @@ export default function SnuWelcome() {
         <h2 id="snu-included-title">선물로 열리는 이야기</h2>
         <p>라이트 사주와 대운부터, 나를 알아가는 콘텐츠까지.</p>
         <ul>{features.map(item => <li key={item.featureKey}><Check size={16} aria-hidden="true"/><span>{item.title}</span></li>)}</ul>
-        <p className={styles.hint}>기본 10종에 AI 생성 없이 계산되는 사주로 찾는 나의 일 스타일을 더해 11종을 열어 드려요. 라이트 사주에는 극T 테스트, 테토 vs 에겐, 사주네컷, 도파민·집중력 리포트도 함께 포함돼요.</p>
+        <p className={styles.hint}>기본·재미 사주 콘텐츠는 무료로 제공해요. 등록한 본인 프로필에서는 라이트 사주와 대운 풀이도 추가 결제 없이 볼 수 있어요.</p>
         <p className={styles.hint}>AI가 답변을 만드는 유료 상담과 목록에 없는 기능은 포함되지 않아요.</p>
       </section>
 
@@ -142,14 +142,11 @@ export default function SnuWelcome() {
           <summary>이용 조건과 유의사항<ChevronDown size={18} aria-hidden="true"/></summary>
           <div className={styles.detailsBody}>
             <dl className={styles.terms}><div><dt>등록 기간</dt><dd>게시일부터 3개월</dd></div><div><dt>제공 수량</dt><dd>선착순 총 1,000계정</dd></div><div><dt>이용 기준</dt><dd>계정당 1회 · 본인 출생정보 하나</dd></div></dl>
-            <p>가입·로그인과 유효한 제휴 코드가 필요해요. 수량이 소진되면 조기 마감돼요. 등록이 끝나도 이미 받은 콘텐츠와 기존 구매·결과 기록은 보존해요.</p>
-            <p>사주 기반 자기이해를 돕는 참고 콘텐츠예요. 진로·취업 결과를 보장하거나 서울대학교의 추천·공인을 의미하지 않아요.</p>
+            <p>가입·로그인과 유효한 안내 코드가 필요해요. 수량이 소진되면 조기 마감돼요. 등록이 끝나도 이미 받은 콘텐츠와 기존 구매·결과 기록은 보존해요.</p>
+            <p>사주 기반 자기이해를 돕는 참고 콘텐츠예요. 진로·취업 결과를 보장하지 않아요.</p>
           </div>
         </details>
-        <details className={styles.details}>
-          <summary>제휴 혜택 이미지 보기<ChevronDown size={18} aria-hidden="true"/></summary>
-          <div className={styles.detailsBody}><Image className={styles.campaignArt} src="/assets/marketing/snulife/yeoni-saju-code-v2.webp" width={1500} height={1200} alt="SNULIFE 회원을 위한 연이의 사주 콘텐츠 10종 선물. 학생 인증 없이 제휴 코드로 받기."/></div>
-        </details>
+
       </div>
 
       <aside className={styles.more}>

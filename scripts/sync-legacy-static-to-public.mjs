@@ -1,3 +1,4 @@
+import './generate-free-fortune-browser.mjs';
 import { brandCopy } from '../lib/seo/brand-copy.mjs';
 import { BRAND_FACTS } from '../lib/brand/brand-facts.mjs';
 import { localizeHubLinks } from '../lib/i18n/localized-hub-links.mjs';

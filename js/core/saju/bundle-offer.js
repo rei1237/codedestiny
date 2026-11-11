@@ -31,16 +31,8 @@
 
   // 포함 항목. 회당 상담·궁합 상담·AI 질문 프롬프트 등 생성 모델을 부르는 카드는 넣지 않는다.
   var INCLUDED = [
-    '원국 해석 (일주·십성·조후·억부·절기)',
-    '라이트 사주 풀이와 대운 분석',
-    '궁합 풀이 (정적 섹션)',
-    '퀀텀 명리 엔진 · 나의 매력 클래스 · 인생 스킬 트리',
-    '명리 건강 리포트 · 에너지 원정 리포트 · 빌런 블랙리스트',
-    '오늘의 일진·월운 · 편지 · 오늘의 운명 · 닮은 유명인',
-    '로또 번호와 달빛 럭키 리추얼 리포트',
-    '극T 기본 · 테토/에겐 (상세 리포트 포함) · 사주 네컷 · 도파민 리포트',
-    '내 뇌구조 (휴먼 디자인 해석 포함)',
-    '나의 일 스타일 · 동물 운명 테스트 · 시크릿 하우스 입장'
+    '라이트 사주 풀이',
+    '대운 분석과 인생 흐름 해석'
   ];
 
   var SAMPLE = '예시 · 겉으로는 차분해 보여도 결정 앞에서는 근거를 오래 모으는 편이에요. 그 신중함이 언제 힘이 되고 언제 발목을 잡는지 장별로 풀어 드려요.';
@@ -63,6 +55,7 @@
     }
   }
   function isLottoOpen() {
+    if(root.cdIsFreeFortuneFeatureKey && root.cdIsFreeFortuneFeatureKey('fun.quantumLotto.ritualReport')) return true;
     return isKeyOpen('rpt_lottoCard') || isKeyOpen('fun.quantumLotto.ritualReport');
   }
 
@@ -127,7 +120,7 @@
       + '<p class="cd-bundle-offer__price"><strong>' + PRICE_LABEL + '</strong> · ' + esc(t('saju.bundle.once', '한 번 결제로 영구 소장')) + '</p>'
       + '<ul class="cd-bundle-offer__list">' + items + '</ul>'
       + '<p class="cd-bundle-offer__sample">' + esc(t('saju.bundle.sample', SAMPLE)) + '</p>'
-      + '<p class="cd-bundle-offer__own">' + esc(t('saju.bundle.own', '구매한 생년월일의 사주에 영구히 붙고, 이용 기간이나 다시 결제할 일이 없어요. 상담·궁합 상담처럼 그때그때 만드는 콘텐츠는 묶음에 포함되지 않아요.')) + '</p>'
+      + '<p class="cd-bundle-offer__own">' + esc(t('saju.bundle.ownFreePolicy', '구매한 생년월일의 라이트 사주와 대운 풀이를 기간 제한 없이 다시 읽어요. 기본·재미 사주는 무료예요. AI 생성 상담은 별도 상품이며 직접 선택할 때만 결제가 진행돼요.')) + '</p>'
       + guidance
       + (profileMissing ? saveButtonHtml() : payButtonHtml())
       + '</div>';
@@ -248,7 +241,7 @@
       host.appendChild(card);
     }
     card.innerHTML = '<h3 class="cd-bundle-inline__title">' + esc(t('saju.bundle.inlineTitle', '내 사주를 끝까지 읽어 보고 싶다면')) + '</h3>'
-      + '<p class="cd-bundle-inline__desc">' + esc(t('saju.bundle.inlineDesc', '원국 해석, 대운, 오늘의 운세와 재미 콘텐츠까지 한 번 결제로 영구히 열려요.')) + ' (' + PRICE_LABEL + ')</p>'
+      + '<p class="cd-bundle-inline__desc">' + esc(t('saju.bundle.inlineDescFreePolicy', '라이트 사주와 대운 풀이를 한 번 결제로 영구히 읽어요. 기본·재미 사주는 무료이고 AI 생성 상담은 별도예요.')) + ' (' + PRICE_LABEL + ')</p>'
       + '<button type="button" class="cd-bundle-offer__more" data-cd-bundle-open>' + esc(t('saju.bundle.inlineCta', '묶음 자세히 보기')) + '</button>';
     var more = card.querySelector('[data-cd-bundle-open]');
     if (more && !more._cdBundleBound) {

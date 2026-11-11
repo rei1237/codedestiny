@@ -4273,7 +4273,7 @@ function elColor(e){
 
 async function renderDailyMonthlyFortune(p){
   /* 사주 묶음(saju_lifetime_bundle) 안의 카드다. 묶음이 닫혀 있거나 권한 조회가 실패하면 아무것도 만들지 않는다. */
-  try{if(!(window.CdSajuBundleOffer&&window.CdSajuBundleOffer.isOpen())){try{window.CdSajuBundleOffer&&window.CdSajuBundleOffer.clearCards('bundle');}catch(_clearErr){}return;}}catch(_bundleGuardErr){return;}
+  try{if(!(window.cdIsFreeFortuneFeatureKey&&window.cdIsFreeFortuneFeatureKey('saju_daily_reading'))&&!(window.CdSajuBundleOffer&&window.CdSajuBundleOffer.isOpen())){try{window.CdSajuBundleOffer&&window.CdSajuBundleOffer.clearCards('bundle');}catch(_clearErr){}return;}}catch(_bundleGuardErr){return;}
   var card=document.getElementById('dailyMonthlyCard');
   if(!card)return;
   card.style.display='block';
@@ -4318,7 +4318,7 @@ async function renderDailyMonthlyFortune(p){
 
 function renderLetter(p){
   /* 사주 묶음(saju_lifetime_bundle) 안의 카드다. 닫힘이면 만들지 않는다. */
-  try{if(!(window.CdSajuBundleOffer&&window.CdSajuBundleOffer.isOpen())){try{window.CdSajuBundleOffer&&window.CdSajuBundleOffer.clearCards('bundle');}catch(_clearErr){}return;}}catch(_bundleGuardErr){return;}
+  try{if(!(window.cdIsFreeFortuneFeatureKey&&window.cdIsFreeFortuneFeatureKey('saju_daily_reading'))&&!(window.CdSajuBundleOffer&&window.CdSajuBundleOffer.isOpen())){try{window.CdSajuBundleOffer&&window.CdSajuBundleOffer.clearCards('bundle');}catch(_clearErr){}return;}}catch(_bundleGuardErr){return;}
   if (window.SajuReadingPresentation) return window.SajuReadingPresentation.render('letter');
   var isNeoSaju = isNeoSajuModeActive();
   var pw=G_POWER,jg=G_JONG;
@@ -5373,9 +5373,9 @@ function renderLottoNumbers(natal, bazi){
           '<span>더 좋은 번호가 아닌 더 깊은 리포트입니다</span>'+
           '<strong>달빛 럭키 리추얼 리포트</strong>'+
           '<p>번호별 상징 해석과 이번 주 금전 루틴을 확인해보세요.</p>'+
-          '<button type="button" class="lc-ritual-cta-btn" data-action="openLottoRitualReport" data-feature-key="'+LOTTO_RITUAL_FEATURE_KEY+'" data-coin-cost="10">'+
+          '<button type="button" class="lc-ritual-cta-btn" data-action="openLottoRitualReport" data-feature-key="'+LOTTO_RITUAL_FEATURE_KEY+'" data-coin-cost="0">'+
             '<span class="tarot-tile__title">달빛 럭키 리추얼 리포트</span>'+
-            '<small>사주 전체 풀이 평생 소장에 포함된 리포트 열기</small>'+
+            '<small>달빛 럭키 리추얼 리포트 무료로 읽기</small>'+
           '</button>'+
           '<em>구매 즉시 열람되는 디지털 콘텐츠이며, 복권 결과를 예측하거나 보장하지 않습니다.</em>'+
         '</div>'+

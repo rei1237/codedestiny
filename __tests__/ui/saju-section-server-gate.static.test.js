@@ -169,7 +169,7 @@ test("극T 해금 패널 문장의 번역은 공개 사전(public/i18n)에 없�
 test("브라우저는 본문을 서버에만 묻는다", () => {
   const client = stripComments(read("js/core/saju/section-client.js"));
   assert.match(client, /'\/api\/saju\/section'/, "서버 본문 요청 경로가 없다");
-  assert.match(client, /var NATAL_KEY = 'saju_lifetime_bundle';[\s\S]*requestBody\(NATAL_KEY\)/, "원국 해석이 서버 본문을 요청하지 않는다");
+  assert.match(client, /var NATAL_KEY = 'saju_natal_reading';[\s\S]*requestBody\(NATAL_KEY\)/, "원국 해석이 서버 본문을 요청하지 않는다");
   assert.match(client, /function loadNatalReading\(/, "원국 해석 서버 로더가 없다");
   const engine = stripComments(read("js/saju-engine.js"));
   assert.match(engine, /function renderSummary\(\)\{[^}]*CdSajuSectionClient\.loadSummary\(\)/, "renderSummary 가 서버 로더를 거치지 않는다");

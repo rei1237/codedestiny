@@ -152,7 +152,8 @@ test('묶음 안내는 포함 목록, 샘플, 29,000원, 영구 소장 설명, �
   const text = panel.textContent;
   assert.match(text, /29,000원/);
   assert.match(text, /영구/);
-  assert.ok(panel.querySelectorAll('li').length >= 8, '포함 항목 목록');
+  assert.equal(panel.querySelectorAll('li').length, 2, '무료 콘텐츠를 유료 독점 항목으로 광고하지 않는다');
+  assert.match(text,/라이트 사주 풀이/);assert.match(text,/대운 분석/);
   assert.ok(panel.querySelector('.cd-bundle-offer__sample'), '샘플');
   const pay = panel.querySelector('[data-action="unlockPremiumFeature"]');
   assert.equal(pay.getAttribute('data-unlock-key'), BUNDLE);
@@ -181,11 +182,11 @@ test('판매 종료 응답과 해금 상태를 묶음 안내가 읽는다', () =
   assert.equal(open.CdSajuBundleOffer.isOpen(), true);
 });
 
-test('기존 section_summary 구매자의 공유 타일은 잠금 키를 유지한다', () => {
+test('공유 타일은 무료 키로 분리하고 기존 summary 구매 권리를 보존한다', () => {
   for (const id of ['tbal', 'tetoegen', '4CUT', 'dopamine']) {
     const line = dashboard.split('\n').find((l) => new RegExp(`id:\\s*['"]${id}['"]`).test(l));
     assert.ok(line, id);
-    assert.match(line, /lockKey:\s*'section_summary'/, `${id} 잠금 키`);
+    assert.match(line, /lockKey:\s*'saju_fun_shared'/, `${id} 무료 키`);
   }
   assert.match(functionBody(engine, '_cdSajuSharedTileOpen'), /section_summary/);
   // 옛 가격 배지와 개별 해금 안내가 남지 않는다.

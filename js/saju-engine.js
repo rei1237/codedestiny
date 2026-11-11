@@ -9259,7 +9259,7 @@ function iljuSetBar(barId, valId, value) {
 // 서버 본문: worker/lib/saju-section/paid-natal-reading.src.js, 받아 채우는 쪽: CdSajuSectionClient.loadNatalReading().
 // 여기서는 칸을 비우고 안내 한 덩어리만 둔다. 반드시 실질 내용을 담는다 — reportDashboard 의 _sajuFunHasRenderableContent 가
 // 빈 섹션을 "콘텐츠 준비 중" 으로 바꾸기 때문이다.
-var _CD_NATAL_BUNDLE_KEY = 'saju_lifetime_bundle';
+var _CD_NATAL_BUNDLE_KEY = 'saju_natal_reading';
 // 추천 태그의 입력: 공개 일주 표(ILJU_DB)의 조언 문장. 서버가 채우는 #iljuAdviceList 는 읽지 않는다(구매 여부·로딩 순서와 무관).
 // 결과 화면을 처음 그릴 때와 reading-personas.js 의 로케일 재마운트가 같은 입력을 쓴다.
 window.cdSajuRecommendationAdvice = function(){
@@ -9291,7 +9291,7 @@ function _cdNatalReadingStub(kind, locked){
   });
   var text = open
     ? def.title + '을 불러오는 중이에요.'
-    : def.title + '는 사주 전체 풀이 평생 소장에서 읽을 수 있어요. ' + def.text;
+    : def.title + '를 불러오지 못했어요. 잠시 후 다시 시도해 주세요. ' + def.text;
   host.innerHTML = def.item
     ? '<li data-natal-lock="' + kind + '">' + text + '</li>'
     : '<div class="cd-natal-lock" data-natal-lock="' + kind + '" style="padding:14px 16px;line-height:1.7;border-radius:14px;background:rgba(179,25,85,.06);color:inherit"><strong>' + def.title + '</strong><p style="margin:6px 0 0">' + text + '</p></div>';
@@ -22079,7 +22079,7 @@ function _cdSajuBundleOpen(){
 }
 // 극T 기본·테토/에겐·사주 네컷·도파민은 기존 section_summary 구매자도 계속 본다(자동 승급 없음). 묶음 해금은 section_summary 로도 펼쳐진다.
 function _cdSajuSharedTileOpen(){
-  return _cdSajuBundleOpen()||_cdSajuGateUnlocked('section_summary');
+  return _cdSajuGateUnlocked('saju_fun_shared')||_cdSajuBundleOpen()||_cdSajuGateUnlocked('section_summary');
 }
 // 테토/에겐 카드는 심화 리포트(tetogen_deep_report)만 산 사람에게도 열린다. 묶음·section_summary 와 별개로 개별 키를 본다.
 function _cdSajuHormoneOpen(){
@@ -22114,6 +22114,7 @@ function _cdRenderBundleSurfaces(){
   var args=window.__cdLastBundleArgs;
   var offerHost=document.getElementById('sajuBundleOffer');
   var open=_cdSajuBundleOpen();
+  var dailyOpen=_cdSajuGateUnlocked('saju_daily_reading');
   if(offerHost&&window.CdSajuBundleOffer){
     try{ if(open)window.CdSajuBundleOffer.removeInline(offerHost); else window.CdSajuBundleOffer.renderInline(offerHost); }catch(_){}
   }
@@ -22123,14 +22124,14 @@ function _cdRenderBundleSurfaces(){
   var shared=_cdSajuSharedTileOpen();
   var lotto=open||_cdSajuLottoOpen();
   var hormone=shared||_cdSajuHormoneOpen();
-  _cdClearClosedBundleCards(open,lotto,shared,hormone);
+  _cdClearClosedBundleCards(open||dailyOpen,lotto,shared,hormone);
   var key=(open?'b':'-')+(shared?'s':'-')+(lotto?'l':'-')+(hormone?'h':'-')+'|'+String(p.d&&p.d.g)+String(p.d&&p.d.j)+'|'+String(p.y&&p.y.g)+String(p.m&&p.m.j);
   if(key===_cdBundleSurfaceRenderKey)return;
   var tasks=[];
   if(lotto){
     tasks.push(function(){ invokeOptionalGlobalRenderer('renderLottoNumbers',[natal,bazi]); });
   }
-  if(open){
+  if(open||dailyOpen){
     tasks.push(function(){
       var pr=renderDailyMonthlyFortune(p);
       if(pr&&typeof pr.catch==='function')pr.catch(function(e){ console.error('DailyMonthlyFortune 에러:',e); });
@@ -22162,6 +22163,7 @@ window.addEventListener('cd:tile-locks-updated',function(){ try{ _cdRenderBundle
 function _cdSajuGateUnlocked(featureKey){
   var key=String(featureKey||'').trim();
   if(!key)return false;
+  if(window.cdIsFreeFortuneFeatureKey&&window.cdIsFreeFortuneFeatureKey(key))return true;
   /* 출생 기반 해금(section_summary·section_daewun 등)은 지금 보는 저장 카드의 출생 정보 단위다.
      직접 입력(저장 카드와 출생 정보가 다름)이면 다른 카드에서 산 해금으로 열지 않는다.
      계정 단위 unlockedFeatureMap 직접 조회도 하지 않는다 — 셸 isTileKeyUnlocked 가 카드 범위를 판정한다. */
