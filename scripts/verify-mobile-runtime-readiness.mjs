@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
+import { spawnSync } from "node:child_process";
 
 const root = process.cwd();
 
@@ -55,18 +56,15 @@ check("hero primary CTA present", index.includes('id="cdHomeFunnel"') ? index.in
 check("free saju form entry present", !index.includes('id="cdHomeFunnel"') || index.includes('data-cdh-free'));
 check("sticky CTA sits above bottom nav", includesAll(index, ["id=\"cdStickyCta\"", "cd-sticky-cta", "cd-sticky-cta-v20260723"]));
 check("bottom navigation exists with safe area", includesAll(index, ["id=\"cdMobileBottomNav\"", "cd-mobile-bottom-navigation-v20260701", "env(safe-area-inset-bottom"]));
-// 메인 5탭은 실제 링크다 — data-nav-key 만 보면 숨은 퀵칩 레일에도 같은 key 가 있어 통과해버린다.
-check("bottom navigation covers main slots", includesAll(index, [
-  "data-nav-key=\"home\" data-nav-icon=\"⌂\" href=\"/\"",
-  "data-nav-key=\"saju\" data-nav-icon=\"☼\" href=\"/?action=cdOneStepFreeSajuEntry\"",
-  // 모든 운세 탭은 전체 개요 오버레이를 연다(2026-09-08 56932bb53, 정본 app/_lib/mobile-tabs.ts).
-  "data-nav-key=\"fortunes\" data-nav-icon=\"✦\" href=\"/?action=cdOpenAllFortunes\"",
-  "data-nav-key=\"pass\" data-nav-icon=\"◈\" href=\"/points/\"",
-  // 마이 탭은 라우트가 아니라 셸 프로필 시트를 연다(정본: app/_lib/mobile-tabs.ts 의
-  // PROFILE_SHEET_ACTION). React /me 는 중복 구현이라 제거됐고 되살리는 것은
-  // verify-profile-card-action-policy.mjs 가 막는다 — 여기서 /me 를 요구하면 두 가드가 충돌한다.
-  "data-nav-key=\"my\" data-nav-icon=\"☰\" href=\"/?action=dpOpenList\"",
-]));
+// 탭·링크·순서는 정본 검사와 공유한다. 옛 5탭을 여기서 다시 정의하면 현재 4탭과 충돌한다.
+const bottomNavVerification = spawnSync(process.execPath, ["scripts/verify-mobile-bottom-nav-sync.mjs"], {
+  cwd: root,
+  encoding: "utf8",
+});
+check("bottom navigation matches its canonical slots", bottomNavVerification.status === 0);
+if (bottomNavVerification.status !== 0) {
+  console.error(bottomNavVerification.error?.message || bottomNavVerification.stderr || bottomNavVerification.stdout);
+}
 // 셸에서 모든 운세·마이 탭이 이동 대신 실행하는 인페이지 동작 (오버레이 / 프로필 시트)
 check("bottom navigation keeps shell in-page actions", includesAll(index, [
   "data-action=\"cdOneStepFreeSajuEntry\"",
