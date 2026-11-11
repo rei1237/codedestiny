@@ -14,3 +14,9 @@ test.each(FREE_FORTUNE_FEATURE_KEYS)('%s cannot initiate a new purchase or honey
  await expect(perUseHoney({userId:'user',product:{featureKey}},forbiddenStore)).rejects.toMatchObject({status:409,payload:{code:'FEATURE_NOW_FREE'}});
 });
 test.each(['section_summary','section_daewun','saju_lifetime_bundle','allPaidSaju','saju-guardian-unlock','premiumDivinationPack','yeongnyangi-prashna-v1','astrology-ai-consultation','human-design-report'])('%s never becomes free by category or bundle',key=>expect(isFreeFortuneFeatureKey(key)).toBe(false));
+
+test('Static Human Design guide is distinct from paid AI report and paid saju sections',()=>{
+ expect(isFreeFortuneFeatureKey('human_design_reading')).toBe(true);
+ expect(isFreeFortuneFeatureKey('saju_brain_reading')).toBe(true);
+ for(const key of ['human-design-report','section_summary','section_daewun','saju_lifetime_bundle']) expect(isFreeFortuneFeatureKey(key)).toBe(false);
+});
