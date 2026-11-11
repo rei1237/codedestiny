@@ -53,16 +53,27 @@ check("AccessStore promotes local legacy cache and authoritative server snapshot
   assert.equal(store.getSnapshot().persistentUnlocks["love-code"], true);
 });
 
-check("React entry holds payment CTA until server revalidation and mobile resume carries the canonical key", () => {
+check("React free entry requires a fresh session and preserves guarded historical payment resume", () => {
   const engine = read("app/saju/love-simulation/_components/LoveSimulationEngine.tsx");
-  assert.match(engine, /useCanUseFeature\(LOVE_CODE_FEATURE_KEY\)/);
-  assert.match(engine, /featureKey: LOVE_CODE_FEATURE_KEY/);
-  assert.match(engine, /refreshPaidFeatureEntitlements\("app:love-code-payment-success"\)/);
+  const access = read("app/_lib/free-reading-access.ts");
+  const guard = read("app/_lib/use-free-reading-guard.ts");
+  const entry = engine.slice(engine.indexOf("const startWithCharacter ="), engine.indexOf("const startSimulationScene ="));
+  assert.match(entry, /const request = beginFreeReading\(\)/);
+  assert.match(entry, /await hasFreeReadingSession\(\)/);
+  assert.match(entry, /if \(!request.valid\(\)\) return/);
+  assert.match(entry, /if \(!signedIn\) \{ setMatchError\(copy.loginRequiredError\); return; \}/);
+  assert.match(entry, /startSimulationScene\(id, mode\)/);
+  assert.doesNotMatch(engine, /runPaidAccessGate\(|useCanUseFeature\(/);
+  assert.match(access, /authFetch\('\/api\/auth\/me', \{ method: 'GET', cache: 'no-store' \}, \{ retryOn401: false, forceFresh: true \}\)/);
+  assert.match(access, /data\?\.authenticated === true && Boolean\(data\?\.user\?\.id\)/);
+  for (const event of ['cd:auth-changed', 'cd:profile-changed', 'popstate', 'storage']) assert.ok(guard.includes(event));
+  assert.match(guard, /AUTH_SESSION_INVALIDATED_EVENT/);
+  assert.match(guard, /state.current.mounted && state.current.revision === revision/);
+  assert.match(engine, /usePaidResume\(LOVE_CODE_FEATURE_KEY/);
+  assert.match(engine, /normalizeLoveCodeFeatureKey\(args.featureKey\) !== LOVE_CODE_FEATURE_KEY/);
   assert.match(engine, /refreshPaidFeatureEntitlements\("app:love-code-mobile-resume"\)/);
+  assert.match(engine, /await refreshPaidFeatureEntitlements\("app:love-code-mobile-resume"\);\s*if \(!ticket.valid\(\)\) return false;/);
   assert.match(engine, /legacyKinds: LEGACY_LOVE_CODE_RESUME_KINDS/);
-  assert.match(engine, /러브 코드 이용권을 확인하고 있어요/);
-  assert.match(engine, /러브 코드 잠금 해제됨/);
-  assert.match(engine, /LOVE_SIMULATION_PRICING\?\.amountKRW\.toLocaleString/);
 });
 
 for (const { name, fn } of checks) {
