@@ -14,9 +14,9 @@ const DESTINY_BIAS_PAGE_TEXT_TRANSLATIONS = {
   },
   en: {
     title: "My Destiny Bias - Saju-Based Fandom Destiny Analysis | 꿀꿀 운세",
-    description: "Pick a K-pop group and member, enter your birthday, and get a chemistry photocard with a total score, grade, and one of nine chemistry types. Free, no login.",
+    description: "Pick a K-pop group and member, enter your birthday, and get a chemistry photocard with a total score, grade, and one of nine chemistry types. Free after you sign in.",
     ogTitle: "My Destiny Bias - Saju-Based Fandom Destiny Analysis",
-    ogDescription: "Enter your birthday and get a chemistry photocard with your bias. Free, no login.",
+    ogDescription: "Enter your birthday and get a chemistry photocard with your bias. Free after you sign in.",
     ogAlt: "My Destiny Bias OG card",
   },
   ja: {
