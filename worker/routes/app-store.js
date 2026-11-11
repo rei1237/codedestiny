@@ -1,3 +1,4 @@
+import { normalizeFreeFortuneFeatureKey } from '../../lib/payment/free-fortune-policy.mjs';
 import { currentPassPlan, passPolicyVersion } from "../../lib/payment/pass-policy.js";
 import { PaymentError, contractFor } from "../payments/errors.js";
 import { connectDb, mongoose } from "../lib/db.js";
@@ -155,6 +156,19 @@ function appStoreSaleClosedFailure(featureKey) {
   }, { status: 409 });
 }
 export const __appStoreTestUtils = { appStoreSaleClosedFailure };
+
+// New acquisition only. Never use this response as receipt evidence or a permanent grant.
+function publicFortuneProduct(featureKey) {
+  const key = normalizeFreeFortuneFeatureKey(featureKey);
+  if (!key) return null;
+  return json({ ok: true, data: { provider: 'GOOGLE_PLAY', accessSource: 'public', freeInApp: true,
+    product: { provider: 'GOOGLE_PLAY', featureKey: key, kind: 'free', productId: '', productType: 'inapp', freeInApp: true, coinPrice: 0, amountKRW: 0 },
+    pricing: { featureKey: key, coinPrice: 0, cost: 0, amountKRW: 0 }, chargedCoins: 0 } });
+}
+function publicFortuneIntentFailure(featureKey) {
+  const key = normalizeFreeFortuneFeatureKey(featureKey);
+  return key ? json({ ok: false, code: 'FEATURE_NOW_FREE', featureKey: key, accessSource: 'public', message: '무료 풀이 화면에서 바로 확인해 주세요.' }, { status: 409 }) : null;
+}
 
 function productKey(value) {
   return cleanText(value).toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "").slice(0, 80);
@@ -714,12 +728,16 @@ async function handleProducts(request, env) {
     });
   }
 
+  const publicProduct = publicFortuneProduct(url.searchParams.get('featureKey'));
+  if (publicProduct) return publicProduct;
   const pricing = resolvePricing({
     categoryKey: url.searchParams.get("categoryKey"),
     subFeatureKey: url.searchParams.get("subFeatureKey"),
     featureKey: url.searchParams.get("featureKey"),
     reason: url.searchParams.get("reason"),
   });
+  const publicPricing = publicFortuneProduct(pricing?.featureKey);
+  if (publicPricing) return publicPricing;
   const saleEnded = appStoreSaleClosedFailure(pricing?.featureKey);
   if (saleEnded) return saleEnded;
   const product = resolveProduct(pricing, env, {
@@ -745,7 +763,11 @@ async function handleProducts(request, env) {
 async function handleFreeGrant(request, env) {
   const auth = await requireAuth(request, env);
   const body = await readJson(request);
+  const publicProduct = publicFortuneProduct(body?.featureKey);
+  if (publicProduct) return publicProduct;
   const pricing = resolvePricing(body);
+  const publicPricing = publicFortuneProduct(pricing?.featureKey);
+  if (publicPricing) return publicPricing;
   const saleEnded = appStoreSaleClosedFailure(pricing?.featureKey);
   if (saleEnded) return saleEnded;
   const product = resolveProduct(pricing, env, body);
@@ -803,6 +825,8 @@ async function handleGoogleIntent(request, env) {
   const body = await readJson(request);
   const knownPass = findAppStoreProductById(cleanText(body.productId));
   const isPassPurchase = Boolean(cleanText(body.passTier)) || knownPass?.kind === "pass";
+  const publicIntent = !isPassPurchase && publicFortuneIntentFailure(body?.featureKey);
+  if (publicIntent) return publicIntent;
   const product = isPassPurchase
     ? resolveAppPassPurchaseProduct({ ...body, passTier: body.passTier || knownPass?.passTier })
     : resolveProduct(resolvePricing(body), env, body);
@@ -812,6 +836,8 @@ async function handleGoogleIntent(request, env) {
     assertPassSaleAllowed({ ...currentPassPlan(product.passTier), passPolicyVersion: product.passPolicyVersion }, "googlePlay");
   }
 
+  const publicResolvedIntent = !isPassPurchase && publicFortuneIntentFailure(product.featureKey);
+  if (publicResolvedIntent) return publicResolvedIntent;
   if (product.freeInApp) {
     return json({ ok: false, code: "APP_STORE_PRODUCT_FREE_IN_APP", message: "This content is free in the app." }, { status: 400 });
   }

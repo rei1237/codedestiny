@@ -128,6 +128,7 @@ function sha256Hex(value) {
 
 let ENV;
 let appStore;
+let freeFortunePolicy;
 let registry;
 let billingRegistry;
 let appPricing;
@@ -143,6 +144,7 @@ let acknowledgeCalls;
 
 function pickFeatureKey(billingType, { excludeTierId } = {}) {
   for (const key of Object.keys(registry.FEATURE_KEY_PRICE_TABLE)) {
+    if (freeFortunePolicy.isFreeFortuneFeatureKey(key)) continue;
     if (registry.getPaidFeatureBillingType(key) !== billingType) continue;
     const result = billingRegistry.getBillingFeaturePricing({ featureKey: key });
     if (!result?.ok || !result.pricing) continue;
@@ -192,6 +194,7 @@ beforeAll(async () => {
     GOOGLE_PLAY_RTDN_TOKEN: "rtdn-secret",
   };
 
+  freeFortunePolicy = await import("../../lib/payment/free-fortune-policy.mjs");
   registry = await import("../../worker/lib/paid-feature-registry.js");
   billingRegistry = await import("../../worker/lib/billing-feature-registry.js");
   appPricing = await import("../../worker/lib/app-store-pricing.js");
@@ -914,6 +917,8 @@ describe("intent — 결제 의도 기록", () => {
   const RETIRED_SALE_KEYS = ["ziwei-island-deep-report", "ziwei-island-palace-consult", "tarot-myeongri-three-card"];
   const APP_REGISTERED_KEYS = [...STATIC_READING_PRICE_KEYS, ...APP_LOW_PRICE_KEYS].filter(key => !RETIRED_SALE_KEYS.includes(key));
   test.each(RETIRED_SALE_KEYS)("판매 종료된 %s 는 앱 구매 의도와 무료 해금을 생성하지 않는다", async (featureKey) => {
+    if(freeFortunePolicy.isFreeFortuneFeatureKey(featureKey)){await assertPublicNewAcquisition(featureKey);return;}
+
     expect(registry.FEATURE_KEY_PRICE_TABLE[featureKey].saleEnabled).toBe(false);
     for (const path of ["/free-grant", "/google/intent"]) {
       const { status, payload } = await callRoute(postJson(path, { featureKey, profileId: "me", requestId: "retired-island" }));
@@ -932,6 +937,8 @@ describe("intent — 결제 의도 기록", () => {
     }
   });
   test.each(APP_REGISTERED_KEYS)("유료 콘텐츠 %s 는 앱 무료 통과 없이 등록된 가격 티어를 사용한다", async (featureKey) => {
+    if(freeFortunePolicy.isFreeFortuneFeatureKey(featureKey)){await assertPublicNewAcquisition(featureKey);return;}
+
     const expected = registry.FEATURE_KEY_PRICE_TABLE[featureKey] || registry.UNLOCK_PRODUCT_BY_FEATURE_KEY[featureKey];
     expect(expected).toBeTruthy();
     expect(appPricing.isAppFreeFeature(featureKey, expected.cost)).toBe(false);
@@ -1003,8 +1010,8 @@ describe("출생 기반 영구 해금 — userId + birthKey + contentKey", () =>
 
   test("intent: 궁합은 상대 프로필도 저장 프로필이어야 한다", async () => {
     const { status, payload } = await callRoute(postJson("/google/intent", { featureKey: "section_compat", profileId: "me" }));
-    expect(status).toBe(400);
-    expect(payload).toMatchObject({ code: "MISSING_PROFILE_ID", requiresProfile: true });
+    expect(status).toBe(409);
+    expect(payload).toMatchObject({ code: "FEATURE_NOW_FREE", accessSource: "public" });
     expect(mockIntentCreate).not.toHaveBeenCalled();
   });
 
@@ -1105,4 +1112,33 @@ describe("출생 기반 영구 해금 — userId + birthKey + contentKey", () =>
       birthIdentity: expect.objectContaining({ birthKey: expected.birthKey }),
     });
   });
+});
+
+test('all approved free fortune keys offer no SKU, create no purchase intent and mint no payment evidence',async()=>{
+ for(const featureKey of freeFortunePolicy.FREE_FORTUNE_FEATURE_KEYS){
+  const product=await callRoute(new Request('https://code-destiny.com/api/app-store/products?featureKey='+encodeURIComponent(featureKey)));
+  expect(product.status).toBe(200);expect(product.payload.data.product).toMatchObject({featureKey,kind:'free',productId:'',freeInApp:true,coinPrice:0,amountKRW:0});
+  const access=await callRoute(postJson('/free-grant',{featureKey,profileId:'not-mine'}));expect(access.status).toBe(200);expect(access.payload.data.accessSource).toBe('public');
+  expect(access.payload.data.consume).toBeUndefined();expect(access.payload.data.accessGrant).toBeUndefined();
+  const intent=await callRoute(postJson('/google/intent',{featureKey,profileId:'me'}));expect(intent.status).toBe(409);expect(intent.payload.code).toBe('FEATURE_NOW_FREE');
+ }
+ expect(mockIntentCreate).not.toHaveBeenCalled();expect(mockPaymentCreate).not.toHaveBeenCalled();expect(mockUserFindByIdAndUpdate).not.toHaveBeenCalled();expect(mockConnectDb).not.toHaveBeenCalled();expect(global.fetch).not.toHaveBeenCalled();
+});
+
+async function assertPublicNewAcquisition(featureKey){
+ const access=await callRoute(postJson('/free-grant',{featureKey}));expect(access.status).toBe(200);expect(access.payload.data.accessSource).toBe('public');expect(access.payload.data.consume).toBeUndefined();expect(access.payload.data.accessGrant).toBeUndefined();
+ const intent=await callRoute(postJson('/google/intent',{featureKey}));expect(intent.status).toBe(409);expect(intent.payload.code).toBe('FEATURE_NOW_FREE');expect(mockIntentCreate).not.toHaveBeenCalled();expect(mockPaymentCreate).not.toHaveBeenCalled();expect(mockConnectDb).not.toHaveBeenCalled();
+}
+
+test('historical receipt for a newly free key still verifies using its original SKU',async()=>{
+ const featureKey='nakshatra-muhurta';const pricing=billingRegistry.getBillingFeaturePricing({featureKey}).pricing;const tier=appPricing.resolveAppContentTier(pricing.coinPrice??pricing.cost);
+ const r=await callRoute(postJson('/google/verify',{featureKey,productId:tier.productId,purchaseToken:'historical-free-key-token',requestId:'historical-request'}));
+ expect(r.status).toBe(200);expect(r.payload.ok).toBe(true);expect(mockPaymentCreate).toHaveBeenCalledTimes(1);expect(mockPaymentCreate.mock.calls[0][0]).toMatchObject({featureKey,paymentAmount:tier.amountKRW});expect(acknowledgeCalls).toHaveLength(1);
+});
+test('historical restore for a newly free key retains receipt-bound feature and request',async()=>{
+ const featureKey='nakshatra-muhurta',id='64b000000000000000000101';const pricing=billingRegistry.getBillingFeaturePricing({featureKey}).pricing;const tier=appPricing.resolveAppContentTier(pricing.coinPrice??pricing.cost);
+ googlePurchasePayload.obfuscatedExternalProfileId='cd-intent:'+id;
+ mockIntentFindOne.mockImplementation(()=>({sort:()=>({lean:async()=>({_id:id,status:'OPEN',featureKey,requestId:'historical-restored-request'})})}));
+ const r=await callRoute(postJson('/google/restore',{purchases:[{productId:tier.productId,purchaseToken:'historical-free-key-restore'}]}));
+ expect(r.status).toBe(200);expect(r.payload.data.failedPurchases).toEqual([]);expect(mockPaymentCreate.mock.calls[0][0]).toMatchObject({featureKey,requestId:'historical-restored-request'});
 });
