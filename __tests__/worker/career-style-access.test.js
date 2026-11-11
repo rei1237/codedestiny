@@ -32,35 +32,44 @@ function fixture() {
   return { store, results, own: value => { owned = value; }, run: (input = {}) => readCareerStyle({ userId: 'owner', profileId: 'one', ...input }, store) };
 }
 
-test('이전 무료 열람·클라이언트 해금·가격·출생정보 조작은 권한이 아니다', async () => {
-  const f = fixture(); f.own(false);
-  await expect(f.run({ unlocked: true, priceKRW: 0, birth: card.birth, freeViewed: true })).rejects.toMatchObject({ status: 402, payload: { code: 'PAYMENT_REQUIRED', priceKRW: 5000 } });
-  expect(f.store.saveResult).not.toHaveBeenCalled();
-  expect(await f.run({ statusOnly: true })).toMatchObject({ unlocked: false, priceKRW: 5000 });
-  // 꿀방울 판매는 닫혔다(묶음 전용). 상태에 꿀방울 가격을 싣지 않는다.
-  expect((await f.run({ statusOnly: true })).honeyCost).toBeUndefined();
-  expect((await f.run({ statusOnly: true })).report).toBeUndefined();
+test('Public career uses owned birth and does not create paid archives or entitlement evidence', async () => {
+ const f=fixture();f.own(false);
+ const result=await f.run({unlocked:true,priceKRW:1,birth:{year:1900},freeViewed:true});
+ expect(result).toMatchObject({unlocked:true,priceKRW:0,accessSource:'public',saved:false});
+ expect(result.report.sections).toHaveLength(8);
+ expect(f.store.saveResult).not.toHaveBeenCalled();expect(f.results.size).toBe(0);
+ const status=await f.run({statusOnly:true});expect(status).toMatchObject({unlocked:true,priceKRW:0,accessSource:'public'});
+ expect(status.honeyCost).toBeUndefined();expect(status.report).toBeUndefined();
+ expect(result.transactionId).toBeUndefined();expect(result.accessGrant).toBeUndefined();
 });
+
 test.each([{ userId: 'other' }, { profileId: 'foreign' }, { profileId: 'birth:forged' }, { profileId: '' }])('소유하지 않은 프로필과 합성 신원을 거부한다: %j', async change => {
   const f = fixture(); await expect(f.run(change)).rejects.toMatchObject({ status: expect.any(Number) });
   expect(f.store.findUnlock).not.toHaveBeenCalled(); expect(f.results.size).toBe(0);
 });
-test('구매 후 재로그인·동일 출생 카드·가격/원고 변경에도 저장 원문을 무차감 반환한다', async () => {
-  const f = fixture(), first = await f.run();
-  expect(first.report.sections).toHaveLength(8);
-  f.store.buildReport = () => { throw Error('must not regenerate'); };
-  const relogged = await readCareerStyle({ userId: 'owner', profileId: 'same-birth' }, f.store);
-  expect(relogged.report).toEqual(first.report);
-  expect(f.store.saveResult).toHaveBeenCalledTimes(1);
-  f.own(false); // Refund/revocation cannot be bypassed by the saved report.
-  await expect(f.run()).rejects.toMatchObject({ status: 402 });
+test('Existing paid originals keep owner and active entitlement protection after public launch', async () => {
+ const f=fixture(),first=await f.run();
+ expect(first.report.sections).toHaveLength(8);
+ const lookup=jest.spyOn(f.store,'findResult');await f.run();
+ const args=lookup.mock.calls[0][0];
+ f.results.set(`owner:${args.executionKey}`,{metadata:{careerReport:first.report}});
+ f.store.buildReport=()=>{throw Error('must not regenerate archived original');};
+ const relogged=await readCareerStyle({userId:'owner',profileId:'same-birth'},f.store);
+ expect(relogged.report).toEqual(first.report);expect(relogged.saved).toBe(true);
+ expect(f.store.saveResult).not.toHaveBeenCalled();
+ f.own(false);lookup.mockClear();
+ await expect(f.run()).rejects.toMatchObject({status:400,payload:{code:'INVALID_BIRTH_INPUT'}});
+ expect(lookup).not.toHaveBeenCalled();
+ delete f.store.buildReport;expect((await f.run()).saved).toBe(false);expect(f.results.size).toBe(1);
 });
-test('동시 읽기에는 최초 저장본 하나를 반환하고 저장 실패 재시도도 해금을 다시 요구하지 않는다', async () => {
-  const f = fixture(); f.store.saveResult.mockRejectedValueOnce(Error('storage unavailable'));
-  await expect(f.run()).rejects.toThrow('storage unavailable');
-  const rows = await Promise.all([f.run(), f.run()]);
-  expect(f.results.size).toBe(1); expect(rows[0].report).toEqual(rows[1].report);
+
+test('Concurrent public reads remain deterministic and never require paid archive storage', async () => {
+ const f=fixture();f.store.saveResult.mockRejectedValue(Error('must not write'));
+ const rows=await Promise.all([f.run(),f.run()]);
+ expect(f.results.size).toBe(0);expect(rows[0].report).toEqual(rows[1].report);
+ expect(f.store.saveResult).not.toHaveBeenCalled();
 });
+
 test('서버 카드의 음력 윤달·자정·출생지·시간 미상은 계산 입력에 보존된다', () => {
   const input = careerCardInput({ ...card, birth: { ...card.birth, calType: 'lunar_leap', hour: 0, minute: 0 }, location: { tz: 'America/New_York', lng: -74.006, lat: 40.7128 } });
   expect(input).toMatchObject({ calendarType: 'lunar_leap', birthTime: '00:00', birthPlace: { timezone: 'America/New_York', longitude: -74.006 } });
@@ -75,7 +84,9 @@ test('HTTP 직접 호출은 인증·저장 프로필·서버 권리가 필요하
   expect(anonymous.status).toBe(401);
   f.own(false);
   const locked = await handleCareerStyle(req({ profileId: 'one', userId: 'victim', unlocked: true, freeViewed: true }), {});
-  expect(locked.status).toBe(402); expect((await locked.json()).report).toBeUndefined();
+  expect(locked.status).toBe(200); expect(await locked.json()).toMatchObject({accessSource:'public',saved:false,priceKRW:0});
+  expect(findProfile).toHaveBeenCalledWith({userId:'owner',profileId:'one'});
+  const foreign=await handleCareerStyle(req({profileId:'foreign'}),{});expect(foreign.status).toBeGreaterThanOrEqual(400);
   f.own(true);
   findUnlock.mockRejectedValueOnce(Object.assign(new Error('network error'),{name:'MongoNetworkError'}));
   const unavailable=await handleCareerStyle(req({profileId:'one'}),{});
@@ -83,5 +94,5 @@ test('HTTP 직접 호출은 인증·저장 프로필·서버 권리가 필요하
   const response = await handleCareerStyle(req({ profileId: 'one', birth: { year: 1900 }, priceKRW: 0 }), {});
   expect(response.status).toBe(200); expect(response.headers.get('Cache-Control')).toContain('no-store');
   const data = await response.json(); expect(data.report.analysis.natal).toEqual((await f.run()).report.analysis.natal);
-  expect(saveArchive.mock.calls.at(-1)[1]).toMatchObject({ userId: 'owner', preserveOriginal: true, metadata: { accessEntitlementId: 'entitlement' } });
+  expect(saveArchive).not.toHaveBeenCalled(); expect(f.store.saveResult).not.toHaveBeenCalled();
 });

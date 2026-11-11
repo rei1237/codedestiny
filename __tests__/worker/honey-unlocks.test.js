@@ -179,5 +179,5 @@ test('Every production honey catalog item is now public and cannot touch a walle
     expect(isFreeFortuneFeatureKey(product.featureKey)).toBe(true);
     await expect(unlockHoneyContent({...base,productId:product.productId},store)).rejects.toMatchObject({status:409,payload:{code:'FEATURE_NOW_FREE'}});
   }
-  for(const key of ['saju-guardian-unlock','section_summary','section_daewun','saju_lifetime_bundle','saju-career-style','compat-saju-compatibility']) expect(isFreeFortuneFeatureKey(key)).toBe(false);
+  for(const key of ['saju-guardian-unlock','section_summary','section_daewun','saju_lifetime_bundle','human-design-report','compat-saju-compatibility']) expect(isFreeFortuneFeatureKey(key)).toBe(false);
 });
