@@ -8,6 +8,15 @@
  */
 
 :root {
+  /* Approved service entry garden. Fixed brand palette, independent of Neo mode. */
+  --cd-entry-paper: #fbf4eb;
+  --cd-entry-petal: #fbe5e9;
+  --cd-entry-ink: #663c51;
+  --cd-entry-muted: #80616d;
+  --cd-entry-gold: #886536;
+  --cd-entry-line: #c4a974;
+  --cd-entry-button: #7a3e5c;
+  --cd-entry-on-button: #fff6eb;
   /* App pass shop: approved pink Yehwa surface, independent of device theme. */
   --cd-pass-paper: #fff3f7;
   --cd-pass-card: #fffafb;
