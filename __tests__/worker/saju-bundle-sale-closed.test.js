@@ -1,3 +1,4 @@
+import { isFreeFortuneFeatureKey } from '../../lib/payment/free-fortune-policy.mjs';
 /**
  * @jest-environment node
  *
@@ -208,7 +209,7 @@ test("판매 종료 키의 신규 코인 결제는 409이고 차감이 없다", 
 test("판매 종료 키 18개 전부 코인 게이트에서 닫힌다", async () => {
   for (const key of SAJU_BUNDLE_SALE_CLOSED_KEYS) {
     const { status, payload } = await coinGate(key, { paymentMode: "DIRECT_KRW" });
-    expect({ key, status, code: payload.code }).toEqual({ key, status: 409, code: "PRODUCT_SALE_ENDED" });
+    expect({ key, status, code: payload.code }).toEqual({ key, status: 409, code: isFreeFortuneFeatureKey(key) ? "FEATURE_NOW_FREE" : "PRODUCT_SALE_ENDED" });
   }
   noSideEffects();
 });
@@ -230,11 +231,14 @@ test("묶음을 가진 프로필의 포함 키 요청은 already_unlocked다", a
 
   for (const key of SAJU_BUNDLE_ALIAS_MEMBER_KEYS) {
     const { status, payload } = await coinGate(key, { paymentMode: "DIRECT_KRW" });
-    expect({ key, status, alreadyUnlocked: payload.data?.alreadyUnlocked }).toEqual({ key, status: 200, alreadyUnlocked: true });
+    if (isFreeFortuneFeatureKey(key)) {
+      expect(status).toBe(409); expect(payload.code).toBe("FEATURE_NOW_FREE");
+      expect(payload.data?.alreadyUnlocked).not.toBe(true);
+    } else expect({ key, status, alreadyUnlocked: payload.data?.alreadyUnlocked }).toEqual({ key, status: 200, alreadyUnlocked: true });
   }
   // 묶음에 들지 않은 판매 종료 키는 보유로 열리지 않으니 닫힌 채로 있다.
   const outside = await coinGate("tetogen_deep_report", { paymentMode: "DIRECT_KRW" });
-  expect(outside).toMatchObject({ status: 409, payload: { code: "PRODUCT_SALE_ENDED" } });
+  expect(outside).toMatchObject({ status: 409, payload: { code: "FEATURE_NOW_FREE" } });
   // 다른 출생 정보의 프로필은 묶음으로 열리지 않고 새로 사는 시도는 닫힌다.
   const other = await coinGate("section_daewun", { paymentMode: "DIRECT_KRW", profileId: "profile-2" });
   expect(other).toMatchObject({ status: 409, payload: { code: "PRODUCT_SALE_ENDED" } });
@@ -256,7 +260,7 @@ test("단건 시작도 닫힌 키는 409이고 보유·묶음 보유는 already_
   expect(await singleStart("section_daewun")).toMatchObject({ status: 200, payload: { alreadyUnlocked: true } });
 
   await grant(SAJU_BUNDLE_FEATURE_KEY, "order-bundle");
-  expect(await singleStart("rpt_quantumCard")).toMatchObject({ status: 200, payload: { alreadyUnlocked: true } });
+  expect(await singleStart("rpt_quantumCard")).toMatchObject({ status: 409, payload: { code: "FEATURE_NOW_FREE" } });
   expect(paymentCreate).not.toHaveBeenCalled();
 });
 

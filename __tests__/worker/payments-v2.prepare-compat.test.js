@@ -84,6 +84,13 @@ test.each([
     reason: "풀이 확인하기",
     idempotencyKey: `order-name-${featureKey}`,
   });
+  if (featureKey === "ziwei_decade_luck") {
+    expect(response.status).toBe(409);
+    expect(JSON.stringify(payload)).toContain("FEATURE_NOW_FREE");
+    expect(db.rows.filter(row => row.merchantUid)).toHaveLength(0);
+    expect(payload.order).toBeUndefined();
+    return;
+  }
   expect(response.status).toBe(201);
   expect(payload.order.featureKey).toBe(featureKey);
   expect(payload.order.orderName).toBe(expectedName);
@@ -95,7 +102,7 @@ test("🔴 출생 기반 상품은 profileId 없이 결제를 시작하지 않�
   const db = makeFakePaymentDb({ profileCards: [testCard("profile-current-1", { userId: USER })] });
   seedUser(db);
   const { response, payload } = await postPrepare(db, {
-    paymentType: "digital_content", featureKey: "ziwei_decade_luck", idempotencyKey: "no-profile-ziwei",
+    paymentType: "digital_content", featureKey: "saju-guardian-unlock", idempotencyKey: "no-profile-guardian",
   });
   expect(response.status).toBe(400);
   expect(JSON.stringify(payload)).toContain("MISSING_PROFILE_ID");

@@ -1,3 +1,4 @@
+import { isFreeFortuneFeatureKey } from '../../lib/payment/free-fortune-policy.mjs';
 /**
  * @jest-environment node
  *
@@ -83,13 +84,14 @@ describe("KRW 주문 생성은 판매 종료 키를 닫는다", () => {
     for (const featureKey of SAJU_BUNDLE_SALE_CLOSED_KEYS) {
       const orders = await post(db, "/orders", { featureKey, profileId: "p1", idempotencyKey: `closed-orders-${featureKey}` });
       expect({ featureKey, status: orders.response.status, code: orders.payload.code })
-        .toEqual({ featureKey, status: 409, code: "PRODUCT_SALE_ENDED" });
-      expect(orders.payload.bundleFeatureKey).toBe(SAJU_BUNDLE_FEATURE_KEY);
+        .toEqual({ featureKey, status: 409, code: isFreeFortuneFeatureKey(featureKey) ? "FEATURE_NOW_FREE" : "PRODUCT_SALE_ENDED" });
+      if (!isFreeFortuneFeatureKey(featureKey)) expect(orders.payload.bundleFeatureKey).toBe(SAJU_BUNDLE_FEATURE_KEY);
+      else expect(orders.payload.bundleFeatureKey).toBeUndefined();
       const prepare = await post(db, "/prepare", {
         paymentType: "digital_content", featureKey, profileId: "p1", idempotencyKey: `closed-prepare-${featureKey}`,
       }, { legacyEnvelope: "prepare" });
       expect({ featureKey, status: prepare.response.status }).toEqual({ featureKey, status: 409 });
-      expect(JSON.stringify(prepare.payload)).toContain("PRODUCT_SALE_ENDED");
+      expect(JSON.stringify(prepare.payload)).toContain(isFreeFortuneFeatureKey(featureKey) ? "FEATURE_NOW_FREE" : "PRODUCT_SALE_ENDED");
     }
     expect(orderRows(db)).toHaveLength(0);
   });
@@ -111,7 +113,8 @@ describe("KRW 주문 생성은 판매 종료 키를 닫는다", () => {
     seedUser(db);
     for (const featureKey of ["fortune-chat-consultation", "tarot-year-fortune", "sukuyo-nature-deep-dive", "vedic_basic_reading", "astro_basic_deep_pack"]) {
       const { response, payload } = await post(db, "/orders", { featureKey, profileId: "p1", idempotencyKey: `open-${featureKey}` });
-      expect({ featureKey, status: response.status, code: payload.code }).toEqual({ featureKey, status: 200, code: undefined });
+      expect({ featureKey, status: response.status, code: payload.code }).toEqual({ featureKey, status: isFreeFortuneFeatureKey(featureKey) ? 409 : 200, code: isFreeFortuneFeatureKey(featureKey) ? "FEATURE_NOW_FREE" : undefined });
+      if (isFreeFortuneFeatureKey(featureKey)) expect(orderRows(db).some(row => row.featureKey === featureKey)).toBe(false);
     }
   });
 });
@@ -331,7 +334,7 @@ describe("보유자는 /orders·/prepare·/moonstone/spend 에서도 구매 유�
     const db = makeDb();
     seedUser(db);
     await grantBundle(db, "p1");
-    const open = await post(db, "/orders", { featureKey: "ziwei_decade_luck", profileId: "p2", idempotencyKey: "open-after-owner-1" });
+    const open = await post(db, "/orders", { featureKey: "saju-guardian-unlock", profileId: "p2", idempotencyKey: "open-after-owner-1" });
     expect(open.response.status).toBe(200);
     expect(open.payload.alreadyUnlocked).toBeUndefined();
     expect(orderRows(db)).toHaveLength(1);

@@ -1,3 +1,4 @@
+import { isFreeFortuneFeatureKey } from '../../lib/payment/free-fortune-policy.mjs';
 /** @jest-environment node */
 import { readFileSync } from "node:fs";
 import {
@@ -33,7 +34,10 @@ test("활성 비LLM 유료 항목은 pricing registry와 실제 CTA/consumer에 
     expect(getPaidFeatureBillingType(fixture.featureKey)).toBe(fixture.billingType);
     expect(billing).toMatchObject({ ok: true, pricing: { featureKey: fixture.featureKey } });
     expect(billing.pricing.cost).toBe(expectedPrice.cost);
-    expect(source(fixture.cta)).toContain(fixture.cta.marker);
+    if (fixture.featureKey === 'fun.quantumLotto.ritualReport') {
+      expect(isFreeFortuneFeatureKey(fixture.featureKey)).toBe(true);
+      expect(source(fixture.cta)).toContain(fixture.cta.marker.replace('data-coin-cost="10"', 'data-coin-cost="0"'));
+    } else expect(source(fixture.cta)).toContain(fixture.cta.marker);
     expect(source(fixture.consumer)).toContain(fixture.consumer.marker);
   }
 });

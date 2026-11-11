@@ -1,3 +1,4 @@
+import { findActivePaidContentUnlock } from '../../worker/lib/content-unlocks.js';
 /** @jest-environment node */
 import { jest } from '@jest/globals';
 import { testCard, TEST_USER_ID } from '../fixtures/profile-card-model.mjs';
@@ -25,8 +26,9 @@ test.each(['rpt_specialCharmCard','paid_content'])("single checkout recognizes h
  row.serviceKey=serviceKey;
  const request=new Request('https://example.test/api/payments/single/start',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({profileId:'p1',featureKey:'rpt_specialCharmCard'})});
  const response=await __paymentsTestUtils.handleSinglePaymentStart(request,{}, {userId:TEST_USER_ID});
- expect(response.status).toBe(200);
- expect(await response.json()).toMatchObject({ok:true,alreadyUnlocked:true,unlockSource:'content_entitlement'});
+ expect(response.status).toBe(409);
+ expect(await response.json()).toMatchObject({code:'FEATURE_NOW_FREE'});
+ expect(await findActivePaidContentUnlock({userId:TEST_USER_ID,profileId:'p1',featureKey:'rpt_specialCharmCard'})).toBeTruthy();
  expect(paymentRead).not.toHaveBeenCalled();
  expect(Payment.create).not.toHaveBeenCalled();
 });
@@ -44,8 +46,9 @@ test.each([
  const response=await __paymentsTestUtils.handleSinglePaymentStart(request,{}, {userId:TEST_USER_ID});
  // 다른 행으로는 열리지 않는다. rpt_specialCharmCard 는 묶음 전용(신규 개별 판매 종료)이라 결제 설정(503)까지 가지 않고 409로 닫힌다.
  expect(response.status).toBe(409);
- expect(await response.json()).toMatchObject({code:'PRODUCT_SALE_ENDED',bundleFeatureKey:'saju_lifetime_bundle'});
+ expect(await response.json()).toMatchObject({code:'FEATURE_NOW_FREE'});
  expect(Payment.create).not.toHaveBeenCalled();
+ expect(await findActivePaidContentUnlock({userId:TEST_USER_ID,profileId:'p1',featureKey:'rpt_specialCharmCard'})).toBeNull();
 });
 
 
@@ -53,7 +56,9 @@ test.each([['2026',200],['2027',503]])('yearly unlock only matches its purchased
  Object.assign(row,{featureKey:'sukyo_yearly_fortune_unlock',contentKey:'sukyo_yearly_fortune_unlock:2026',serviceKey:'sukuyo'});
  const request=new Request('https://example.test/api/payments/single/start',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({profileId:'p1',featureKey:'sukyo_yearly_fortune_unlock',contentKey:`sukyo_yearly_fortune_unlock:${year}`,targetYear:Number(year)})});
  const response=await __paymentsTestUtils.handleSinglePaymentStart(request,{}, {userId:TEST_USER_ID});
- expect(response.status).toBe(status);
- if(status===200) expect(await response.json()).toMatchObject({ok:true,alreadyUnlocked:true});
+ expect(response.status).toBe(409);
+ expect(await response.json()).toMatchObject({code:'FEATURE_NOW_FREE'});
+ const owned=await findActivePaidContentUnlock({userId:TEST_USER_ID,profileId:'p1',featureKey:'sukyo_yearly_fortune_unlock',contentKey:`sukyo_yearly_fortune_unlock:${year}`});
+ expect(Boolean(owned)).toBe(status===200);
  expect(Payment.create).not.toHaveBeenCalled();
 });
