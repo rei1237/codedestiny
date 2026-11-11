@@ -28,10 +28,13 @@ test("paid UI badges do not provide a numeric PriceBadge fallback", () => {
   assert.match(fs.readFileSync(path.join(root, "app/components/FeatureLandingPage.tsx"), "utf8"), /featureKey:\s*paidMeta\?\.featureKey/);
 });
 
-test("targeted mobile cards carry canonical feature keys and matching registry prices", () => {
+test("targeted mobile cards keep paid registry prices and exact free display metadata", async () => {
+  const { isFreeFortuneFeatureKey } = await import("../../lib/payment/free-fortune-policy.mjs");
+  assert.equal(isFreeFortuneFeatureKey("animal-destiny-unlock"), true);
+  for (const key of ["tarot-ijik", "section_summary", "section_daewun", "ziwei-ai-consultation"]) assert.equal(isFreeFortuneFeatureKey(key), false, key);
   assert.match(shell, /data-action="startIjikTarot"[\s\S]{0,240}data-feature-key="tarot-ijik"[\s\S]{0,240}data-price-krw="5000"/);
   assert.doesNotMatch(shell, /<a[^>]*data-action="openLoveSimulation"/);
-  assert.match(shell, /data-action="openAnimalDestinyRoute"[\s\S]{0,260}data-feature-key="animal-destiny-unlock"[\s\S]{0,260}data-price-krw="7000"/);
+  assert.match(shell, /data-action="openAnimalDestinyRoute"[\s\S]{0,260}data-feature-key="animal-destiny-unlock"[\s\S]{0,260}data-price-krw="0"/);
 });
 
 test("React marketing sheets are lazy-mounted and use canonical pricing", () => {
