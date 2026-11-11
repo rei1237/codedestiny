@@ -6,6 +6,8 @@
 .cut figcaption{display:grid;gap:10px;padding:14px 18px 0}
 .bubble{position:relative;justify-self:start;max-width:min(92%,34em);margin:0;padding:12px 16px;border:1px solid var(--cut-line);border-radius:18px 18px 18px 4px;background:var(--cut-bubble);color:var(--cut-ink);font-size:16px;line-height:1.7;word-break:keep-all;overflow-wrap:anywhere}
 .bubble b{display:block;margin-bottom:2px;color:var(--cut-accent);font-size:13px;letter-spacing:.02em}
+.note{display:block;margin-top:4px;color:var(--cut-muted);font-size:13px;line-height:1.5}
+.cut[data-art='pending'] figcaption{padding-top:0}
 .bubble+.bubble{justify-self:end;border-radius:18px 18px 4px 18px}
 .narration{margin:0;padding:0 4px;color:var(--cut-muted);font-family:'Yeongnyangi Myeongjo',serif;font-size:15px;line-height:1.8;word-break:keep-all;text-align:center}
 .cut[data-kind='silent'] figure{padding-block:6px}
