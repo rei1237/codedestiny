@@ -1,7 +1,7 @@
 ---
-status: in-progress
-updated: 2026-11-11
-next: 5단계 — 빌드·HTML grep·브라우저 390/1280 캡처·check:fast (main merge·워크트리 정리는 상위 세션이 사용자와 처리)
+status: done
+updated: 2026-11-12
+next: 통합 — 상위 세션이 사용자와 main 로컬 merge·push·배포·워크트리 정리(npm run worktree:remove)를 처리
 ---
 
 # 사주 원석 추천 — 연이의 원석 큐레이션 인수인계
@@ -48,7 +48,7 @@ next: 5단계 — 빌드·HTML grep·브라우저 390/1280 캡처·check:fast (m
 - [x] 2. 랜딩·질문/결과 흐름·저장·분석 이벤트, 커밋
 - [x] 3. 진입 카드·링크·푸터·사이트맵/SEO 등록, 커밋
 - [x] 4. (사용자 이미지 수령 후) 웹툰·원석 이미지 QC·내보내기·연결 — 진입 이미지는 3단계에서 연결, 커밋
-- [ ] 5. 검증(테스트·빌드 HTML grep·브라우저 390/1280 캡처 → `D:\CodeDestiny-Build\saju-crystals-20261111\qa\`)·check:fast·main 로컬 merge·워크트리 정리
+- [x] 5. 검증(테스트·빌드 HTML grep·브라우저 390/1280 캡처 → `D:\CodeDestiny-Build\saju-crystals-20261111\qa\`)·check:fast·main 로컬 merge·워크트리 정리 — 검증 완료(2026-11-12). merge·정리는 상위 세션이 사용자와 처리
 
 ## 결과 기록
 (각 단계 에이전트가 수정 파일·검증 명령 출력 요약·남은 문제를 여기에 적는다)
@@ -199,6 +199,9 @@ next: 5단계 — 빌드·HTML grep·브라우저 390/1280 캡처·check:fast (m
 - QC 메모 확인
   - 1:1 컷(3·7·9)은 위쪽 빈 여백이 넓고(1280에서 약 150px), 아치·선반이 위 가장자리에서 잘린다. 사용자 그림이라 코드로 고치지 않았다.
   - OG는 연꽃 윗부분이 가장자리에 닿는 정도다.
+- 검사
+  - check:fast(`--base=bae74a4c1`): exit 0. jest 474 suites 통과(1 skipped), 7897 tests 통과. 로그는 `qacheck-fast.log`. (`timeout 590`을 걸면 jest 도중 끊겨 가짜 FAIL이 난다. 6분쯤 걸린다.)
+  - check:pre-push: verify:public-mirror-fresh만 FAIL이다. `free-fortune-policy.{js,mjs}` 4개 파일을 sync가 바꾼다고 하지만 git diff는 비어 있고 줄끝(CRLF/LF)만 다르다. 이 브랜치는 그 파일을 건드리지 않았다(기존 Windows 줄끝 문제). 나머지 home-service-registry·sitemap-drift·llms --check·seo-entity-registry·repo-hygiene는 모두 OK다.
 - 1280 요소 캡처가 뷰포트(900)보다 크면 그림이 빈 색으로 찍힌다. 캡처 쪽 문제이므로 뷰포트를 1400으로 키워 다시 찍었다.
 
 ## 원 요청 요약 (요구사항 체크리스트)
