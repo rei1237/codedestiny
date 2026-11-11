@@ -427,3 +427,28 @@ body.neo-mode #modalBody .saju-reading > h3 {padding-right:44px;}
 #resultPage:not([data-compact-reading]) nav.saju-reading-nav.saju-result-guide__nav a{flex:1 0 64px;min-height:44px;padding:8px 12px;border:1px solid transparent!important;border-radius:var(--cd-r-sm);background:transparent!important;color:var(--cd-text)!important;font:600 .9rem/1.5 var(--font-body);text-decoration:none;white-space:nowrap;box-shadow:none;scroll-margin-inline:12px}
 #resultPage:not([data-compact-reading]) nav.saju-reading-nav.saju-result-guide__nav a[aria-current="location"]{border-color:var(--cd-accent)!important;background:var(--cd-surface-2)!important;color:var(--cd-accent)!important;box-shadow:inset 0 -2px var(--cd-accent)}
 #resultPage:not([data-compact-reading]) nav.saju-reading-nav.saju-result-guide__nav a:focus-visible{outline:3px solid var(--cd-gold);outline-offset:1px}
+
+/* Classic saju starts with the open natal chart. Introductions follow it. */
+html body #resultPage > .top-hero {padding:12px 16px;margin:0 0 12px;min-height:0;display:grid;grid-template-columns:auto minmax(0,1fr);column-gap:12px;text-align:left;align-items:center;}
+html body #resultPage > .top-hero .hero-animal {grid-row:1 / span 2;font-size:32px;margin:0;line-height:1.2;}
+html body #resultPage > .top-hero .hero-animal img {width:48px;height:48px;object-fit:contain;}
+html body #resultPage > .top-hero h2 {font-size:1.25rem;line-height:1.4;margin:0;}
+html body #resultPage > .top-hero .hero-sub {font-size:.875rem;line-height:1.6;margin:0;overflow-wrap:anywhere;}
+html body #resultPage #sajuReadingHeader {gap:16px;padding:20px;margin:20px 0;}
+html body #resultPage #sajuReadingHeader > div {min-width:0;flex:1;}
+html body #resultPage #sajuReadingHeader > img {width:56px;height:56px;}
+html body #resultPage #sajuReadingHeader h2 {font-size:1.2rem;}
+#resultPage .saju-section-icon {display:inline-block;flex:none;width:24px;height:24px;color:var(--cd-accent);vertical-align:middle;}
+#resultPage .saju-section-heading {display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+#resultPage .saju-section-heading > span:not(.sec-tier-badge):not(.saju-section-icon-pair) {flex:1;min-width:0;overflow-wrap:anywhere;}
+#resultPage .saju-section-icon-pair {display:inline-flex;gap:4px;flex:none;}
+#resultPage #manseShinsalTitle {display:flex;align-items:center;gap:10px;}
+#resultPage :is(#johuCard,#ukbuCard,#terms24Card) {scroll-margin-top:100px;}
+@media(max-width:600px) {
+  html body #resultPage #sajuReadingHeader {padding:16px;gap:12px;}
+  #resultPage .saju-section-icon-pair {gap:2px;}
+  #resultPage .saju-section-icon-pair .saju-section-icon {width:22px;height:22px;}
+}
+#resultPage .saju-reading-profile-change {font:inherit;min-height:44px;padding:10px 16px;cursor:pointer;border:1px solid var(--cd-border);border-radius:var(--cd-r-control);background:var(--cd-surface);color:var(--cd-text);}
+#resultPage .saju-reading-profile-change:focus-visible {outline:3px solid var(--cd-accent);outline-offset:3px;}
+html body #resultPage #sajuReadingHeader {flex-wrap:wrap;}

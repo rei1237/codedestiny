@@ -411,7 +411,7 @@
   }
   function ensureHeader() {
     var result=document.getElementById('resultPage');if(!result)return;
-    if(!document.getElementById('sajuReadingHeader')) {var header=document.createElement('section');header.id='sajuReadingHeader';header.className='saju-reading-header';result.prepend(header);}
+    if(!document.getElementById('sajuReadingHeader')) {var header=document.createElement('section');header.id='sajuReadingHeader';header.className='saju-reading-header';var natal=document.getElementById('sajuCard');if(natal)natal.insertAdjacentElement('afterend',header);else result.prepend(header);}
   }
   // 연이/영냥이 풀이 전환. 라이트·다크는 상단 토글이 따로 맡는다.
   function controls() {
@@ -424,7 +424,7 @@
     var header=document.getElementById('sajuReadingHeader');
     if(header&&locale()==='ko'&&!header.querySelector('.saju-reading-toc')){
       var toc=document.createElement('details');toc.className='saju-reading-toc';
-      toc.innerHTML='<summary>풀이 목차</summary><nav aria-label="사주 풀이 목차"><a href="#summaryCard">한눈에 보는 풀이</a><a href="#sajuCard">명식과 상세 풀이</a><a href="#daewunCard">대운의 흐름</a><a href="#reportDashboardCard">관련 콘텐츠</a></nav>';
+      toc.innerHTML='<summary>풀이 목차</summary><nav aria-label="사주 풀이 목차"><a href="#sajuCard">명식과 상세 풀이</a><a href="#summaryCard">라이트 사주 풀이</a><a href="#daewunCard">대운의 흐름</a><a href="#reportDashboardCard">관련 콘텐츠</a></nav>';
       header.appendChild(toc);
     }
     var form=document.getElementById('destinyCardForm');
