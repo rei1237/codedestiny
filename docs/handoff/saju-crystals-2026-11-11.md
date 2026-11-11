@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-11
-next: 4단계 — 사용자 웹툰·원석 이미지 수령 대기(받으면 QC·내보내기·연결)
+next: 5단계 — 빌드·HTML grep·브라우저 390/1280 캡처·check:fast (main merge·워크트리 정리는 상위 세션이 사용자와 처리)
 ---
 
 # 사주 원석 추천 — 연이의 원석 큐레이션 인수인계
@@ -47,7 +47,7 @@ next: 4단계 — 사용자 웹툰·원석 이미지 수령 대기(받으면 QC�
 - [x] 1. 엔진·카탈로그·테스트 (TDD), 커밋
 - [x] 2. 랜딩·질문/결과 흐름·저장·분석 이벤트, 커밋
 - [x] 3. 진입 카드·링크·푸터·사이트맵/SEO 등록, 커밋
-- [ ] 4. (사용자 이미지 수령 후) 웹툰·원석 이미지 QC·내보내기·연결 — 진입 이미지는 3단계에서 연결, 커밋
+- [x] 4. (사용자 이미지 수령 후) 웹툰·원석 이미지 QC·내보내기·연결 — 진입 이미지는 3단계에서 연결, 커밋
 - [ ] 5. 검증(테스트·빌드 HTML grep·브라우저 390/1280 캡처 → `D:\CodeDestiny-Build\saju-crystals-20261111\qa\`)·check:fast·main 로컬 merge·워크트리 정리
 
 ## 결과 기록
@@ -163,6 +163,18 @@ next: 4단계 — 사용자 웹툰·원석 이미지 수령 대기(받으면 QC�
 - 남은 일
   - 브라우저 실화면 확인(5단계)
   - 워커 프로필 `sajuCrystal` 동기화(사용자 결정)
+
+### 4단계 (2026-11-11)
+- 사용자 그림은 QC를 통과했고 `D:\CodeDestiny-Build\saju-crystals-20261111\export\`로 내보냈다(`manifest.json`).
+- `export\public\images\saju-crystals\{webtoon,stones}`를 워크트리 `public/images/saju-crystals/`에 그대로 복사했다.
+  - 웹툰: 10컷 × 3파일 = 30개. 3·7·9컷은 1:1(원본 1254), 나머지는 3:2. `SQUARE`(1280×1280)는 비율만 쓰므로 그대로 두었다.
+  - 원석: 12종 × 3파일 = 36개(amazonite, amethyst, aquamarine, citrine, clear-quartz, gold-rutilated-quartz, green-phantom-quartz, obsidian, rose-quartz, tiger-eye-blue, tiger-eye-gold, tiger-eye-red).
+  - `crystal-assets.js`가 빌드 때 파일을 찾아 연결하므로 별도 매니페스트는 필요 없다.
+- 웹툰 alt 10개를 `manifest.json`의 `codeChanges.altSuggestions`(실제 그림 묘사)로 바꿨다(`lib/brand/saju-crystal-webtoon.mjs`).
+- **사용자 결정(2026-11-11 원문)**: "그린 어벤추린, 스모키쿼츠, 화이트 칼세도니, 라브라도라이트는 일단 생략하거나 svg로 만들어" → **생략**을 택했다. 이 4종(green-aventurine, smoky-quartz, white-chalcedony, labradorite)은 그림 없이 오행 색 칩으로 대체한다. SVG는 만들지 않는다. 추천 제외 3종(moon-stone-blue, moon-stone-peach, money-stone)도 그림이 없다.
+- 5단계 캡처에서 볼 QC 메모
+  - 위쪽 말풍선 여백이 밋밋하다. 여러 컷에서 아치·선반이 그 가장자리에서 가로로 잘린다.
+  - OG 이미지에서 연꽃 윗부분이 살짝 잘린다.
 
 ## 원 요청 요약 (요구사항 체크리스트)
 - 진입 카드 문구: 기능명 "사주 원석 추천", 보조 "연이의 원석 큐레이션", 제목 "내게 좋은 기운, 어떤 원석에 담겨 있을까?", 설명 "좋았던 해와 힘들었던 해를 돌아보고, 나에게 어울리는 원석을 찾아보세요", 버튼 "나에게 맞는 원석 찾기".
