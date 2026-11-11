@@ -3,6 +3,8 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { JSDOM } from 'jsdom';
 import { renderFeatureDetailPanels } from '../../js/feature-detail-panels.mjs';
+import { currentFreeCraftedPanel, FREE_CRAFTED_NOTICE } from '../../js/free-crafted-panel-policy.mjs';
+import { isFreeFortuneFeatureKey } from '../../js/core/free-fortune-policy.mjs';
 import { getBillingFeaturePricing } from '../../worker/lib/billing-feature-registry.js';
 
 const catalog = JSON.parse(fs.readFileSync('public/feature-details/catalog.json', 'utf8'));
@@ -273,7 +275,18 @@ test('published visual introductions have proven sources, real assets, and disti
     const rendered = renderFeatureDetailPanels(detail);
     if (detail.crafted?.length) {
       for (const essay of detail.crafted) for (const [index,panel] of essay.panels.entries()) {
-        if(essay.layout!=='editorial'||index===0||panel.showImage)assert.ok(rendered.includes('src="' + panel.src + '"'), entry.slug + ': authored artwork missing');
+        const currentPanel = currentFreeCraftedPanel(essay, panel);
+        if (currentPanel.currentFreeAccess) {
+          assert.ok(isFreeFortuneFeatureKey(essay.featureKey), entry.slug + ': only explicit free keys may replace retired condition art');
+          assert.ok(!rendered.includes('src="' + panel.src + '"'), entry.slug + ': retired purchase claim must not remain in pixels');
+          const cards = [...JSDOM.fragment(rendered).querySelectorAll('[data-current-free-access]')];
+          const card = cards.find(node => node.querySelector('h3')?.textContent === panel.title);
+          assert.ok(card, entry.slug + ': replacement access card missing');
+          assert.ok(card.textContent.includes(FREE_CRAFTED_NOTICE));
+          for (const line of currentPanel.text.split('\n').filter(Boolean)) assert.ok(card.textContent.includes(line), entry.slug + ': corrected transcript missing: ' + line);
+        } else if(essay.layout!=='editorial'||index===0||panel.showImage) {
+          assert.ok(rendered.includes('src="' + panel.src + '"'), entry.slug + ': authored artwork missing');
+        }
         assert.ok(fs.statSync('public' + panel.src).size > 0, panel.src);
         assert.ok(rendered.includes(panel.title), panel.title);
       }

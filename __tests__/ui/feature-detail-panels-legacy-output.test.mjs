@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+import { isFreeFortuneFeatureKey } from '../../js/core/free-fortune-policy.mjs';
 import { createHash } from 'node:crypto';
 import { renderCraftedDetail, renderFeatureDetailPanels } from '../../js/feature-detail-panels.mjs';
 
@@ -32,6 +33,18 @@ test('새 필드가 없는 상품의 상세 렌더 출력은 기록과 같다', 
   const current = rows();
   if (process.env.UPDATE_FEATURE_DETAIL_SNAPSHOT === '1') fs.writeFileSync(fixture, `${JSON.stringify(current, null, 1)}\n`);
   const recorded = JSON.parse(fs.readFileSync(fixture, 'utf8'));
+  // Approved deterministic-free policy changes only. Paid rows keep their old hashes.
+  if (process.env.UPDATE_FREE_FEATURE_DETAIL_SNAPSHOT === '1') {
+    for (const [key, row] of Object.entries(current)) {
+      if (recorded[key]?.input !== row.input || recorded[key].output === row.output) continue;
+      const path = key.startsWith('crafted/') ? 'public/feature-details/' + key + '/manifest.json' : 'public/feature-details/' + key.slice('detail/'.length);
+      const detail = JSON.parse(fs.readFileSync(path, 'utf8'));
+      const eligible = isFreeFortuneFeatureKey(detail.featureKey) || (detail.crafted || []).some(item => isFreeFortuneFeatureKey(item.featureKey));
+      assert.ok(eligible, key + ': paid or unknown output must not be refreshed by free-policy update');
+      recorded[key] = row;
+    }
+    fs.writeFileSync(fixture, JSON.stringify(recorded, null, 1) + '\n');
+  }
   const fresh = Object.entries(current).filter(([key, row]) => recorded[key]?.input === row.input);
   for (const [key, row] of fresh) assert.equal(row.output, recorded[key].output, `${key}: 입력이 같은데 렌더 출력이 바뀌었다`);
   assert.ok(fresh.length >= Object.keys(current).length / 2, `기록된 입력과 맞는 행이 ${fresh.length}/${Object.keys(current).length}개뿐이다 — 렌더러가 그대로인지 확인한 뒤 다시 기록한다`);

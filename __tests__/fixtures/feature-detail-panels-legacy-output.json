@@ -221,11 +221,11 @@
  },
  "detail/sukuyo.json": {
   "input": "3711b1836e831eb5",
-  "output": "e13edcd3d27980ae"
+  "output": "6a5f3a0e1d6aa26f"
  },
  "detail/sukyo.json": {
   "input": "7b9888839aa36ef3",
-  "output": "85beb99e72a1dc0d"
+  "output": "f83c89dc3e8c5051"
  },
  "detail/tarot-celestial-harmony.json": {
   "input": "01b02c5f01095fc6",
@@ -309,23 +309,23 @@
  },
  "crafted/astro-basic-deep": {
   "input": "ab5b3e64f2ec1fc1",
-  "output": "a16587b95e4a13ae"
+  "output": "e0d57304352db398"
  },
  "crafted/astro-career-talent": {
   "input": "06457d228c3b8f7d",
-  "output": "395e356dbb799166"
+  "output": "b7fd35ea4429a684"
  },
  "crafted/astro-celebrity-synastry": {
   "input": "7316cc789627ad64",
-  "output": "9cbae8d1c1e96603"
+  "output": "902683d492fae80f"
  },
  "crafted/astro-direct-synastry": {
   "input": "e46a4b8da887b78e",
-  "output": "69f57908e84abe21"
+  "output": "23b78204efda722f"
  },
  "crafted/astro-growth-shadow": {
   "input": "255ff17a6d985b1e",
-  "output": "497a632e938d0894"
+  "output": "d63d7cdefc64d6a6"
  },
  "crafted/astro-question-consultation": {
   "input": "188d1e97332507da",
@@ -333,31 +333,31 @@
  },
  "crafted/astro-relationship": {
   "input": "7b2eb05f9a00771c",
-  "output": "14edb18b44d33a20"
+  "output": "4b66ec9c19417b4b"
  },
  "crafted/astro-stellar-career": {
   "input": "5d4f18f854d571cd",
-  "output": "5db95557d96edbe0"
+  "output": "68b5efb865039bfd"
  },
  "crafted/astro-stellar-growth": {
   "input": "99abbb4a98c5c9f1",
-  "output": "1b55901d5eea9eb3"
+  "output": "c2261a57f519850f"
  },
  "crafted/astro-stellar-relationship": {
   "input": "79ccdf511974fe20",
-  "output": "d711c051e3e62111"
+  "output": "a92a89a1f78231fb"
  },
  "crafted/astro-stellar-talent": {
   "input": "806a2afc78b9931f",
-  "output": "f98a73198b2fc7f2"
+  "output": "fbc49e980274a2ef"
  },
  "crafted/astro-talent-attraction": {
   "input": "351d6015c1d7408e",
-  "output": "de91daed3c7ab92c"
+  "output": "bcbe54cff0a4c890"
  },
  "crafted/astro-yearly-transit": {
   "input": "9f8d81bd5863f0ed",
-  "output": "d7d161bf90e7c5a7"
+  "output": "71cf5cb9f14db0b5"
  },
  "crafted/astrology-expert": {
   "input": "af461af9742a3c1d",
@@ -425,11 +425,11 @@
  },
  "crafted/energy-travel": {
   "input": "123238bb839aca75",
-  "output": "1e1ed38f9de22e08"
+  "output": "0d3652a34305b54e"
  },
  "crafted/extreme-t-relationship": {
   "input": "bc4cff42f510746a",
-  "output": "fff0e5ee8f1812e6"
+  "output": "82972178707ba71e"
  },
  "crafted/fpti-deep-report": {
   "input": "d8d9019f9c84bc13",
@@ -445,7 +445,7 @@
  },
  "crafted/health-rhythm": {
   "input": "393b9ca81fc36721",
-  "output": "5bf5ae5064bb44c6"
+  "output": "f53fee6866eb1421"
  },
  "crafted/human-design-report": {
   "input": "d564cf743294c6f7",
@@ -461,7 +461,7 @@
  },
  "crafted/island-report": {
   "input": "2d7ea64327f81247",
-  "output": "b5dfa81d5ada98bc"
+  "output": "e6c81a99e19475cb"
  },
  "crafted/karma-destiny": {
   "input": "6f75844d02909c7e",
@@ -481,7 +481,7 @@
  },
  "crafted/life-skill-tree": {
   "input": "b50c2eaa446d5176",
-  "output": "f105412ae64f6629"
+  "output": "0a893ee2259fb1e5"
  },
  "crafted/love-code": {
   "input": "eaa92d093067fa4a",
@@ -513,7 +513,7 @@
  },
  "crafted/moon-lucky-ritual": {
   "input": "ad74efe6c8a4539e",
-  "output": "1aa8173f9fec23c1"
+  "output": "6e4b0f640543959d"
  },
  "crafted/myeongri-tarot-three": {
   "input": "c3972e99407de714",
@@ -525,23 +525,23 @@
  },
  "crafted/nakshatra-compat": {
   "input": "e6636b3fffe8484c",
-  "output": "39164e2a9aaf4307"
+  "output": "bd9ba84760d33ec0"
  },
  "crafted/nakshatra-dasha": {
   "input": "67f7387cb193e3b7",
-  "output": "3da9ba61c90ae70a"
+  "output": "19a9dbfb8ffb6f26"
  },
  "crafted/nakshatra-lord": {
   "input": "2dee14989cf6d2d5",
-  "output": "66ab4fdbf9ccc5d6"
+  "output": "ef497c786510a59d"
  },
  "crafted/nakshatra-muhurta": {
   "input": "70731da795644b31",
-  "output": "35af7cde58d8fb0e"
+  "output": "4c6e3bddbfdcc329"
  },
  "crafted/nakshatra-vvip": {
   "input": "4397c90c969156ce",
-  "output": "9d0ca90264ca5441"
+  "output": "3fb454f78d1ad993"
  },
  "crafted/naming-ai": {
   "input": "d0373c543615a757",
@@ -573,7 +573,7 @@
  },
  "crafted/personal-charm": {
   "input": "d90f7de3b096d083",
-  "output": "b350401c8ee0f231"
+  "output": "417b4d76e4d9b609"
  },
  "crafted/pet-compatibility": {
   "input": "c317335b99ad1785",
@@ -597,11 +597,11 @@
  },
  "crafted/quantum-saju": {
   "input": "92b33dc391791d18",
-  "output": "13a4c8736bf4101d"
+  "output": "44afc978ad1ba733"
  },
  "crafted/relationship-boundaries": {
   "input": "254bdbc4e431b17f",
-  "output": "6670e0cc4647644d"
+  "output": "d5287d4e80dfec8c"
  },
  "crafted/relationship-boundary-test": {
   "input": "638f5b1241146a13",
@@ -653,7 +653,7 @@
  },
  "crafted/secret-house": {
   "input": "284e5ddb826fd4c7",
-  "output": "1c166afd1773f38d"
+  "output": "e1dde795ed9c9259"
  },
  "crafted/sibyl-dominator": {
   "input": "ddd8e0e66fcd21b6",
@@ -661,11 +661,11 @@
  },
  "crafted/sukuyo-bond-radar": {
   "input": "481167a1348b6415",
-  "output": "587ff273b5e8260c"
+  "output": "3efe4adc616b3f7c"
  },
  "crafted/sukuyo-compatibility": {
   "input": "1be71c6819891c99",
-  "output": "db17a3ee901fed19"
+  "output": "2076dfd49f616c71"
  },
  "crafted/sukuyo-compatibility-expert": {
   "input": "39460aa1cb2f0ca6",
@@ -673,15 +673,15 @@
  },
  "crafted/sukuyo-compatibility-precision": {
   "input": "7e92f1b1e6bc4808",
-  "output": "0cad5f573cfaef76"
+  "output": "efee4116176497ed"
  },
  "crafted/sukuyo-encyclopedia": {
   "input": "dd5db3d9e62fa8bc",
-  "output": "07af4c3b1d5f06b1"
+  "output": "a37b9a89b1aebaaf"
  },
  "crafted/sukuyo-nature": {
   "input": "576b6b99fa5bede7",
-  "output": "51383d02c8a98d7a"
+  "output": "be7f46dcfac71325"
  },
  "crafted/sukuyo-question-ai": {
   "input": "c101d78b2410b9f2",
@@ -689,7 +689,7 @@
  },
  "crafted/sukuyo-yearly": {
   "input": "e9e18cf1f1138921",
-  "output": "c99049c386b371a8"
+  "output": "bcc25aa3232374b9"
  },
  "crafted/tarot-oracle-context": {
   "input": "9d3b41f4b545efa2",
@@ -729,15 +729,15 @@
  },
  "crafted/teto-egen-deep": {
   "input": "2f39ca853a142729",
-  "output": "0b24a162db1da642"
+  "output": "5cb926f6ba246c81"
  },
  "crafted/vedic-basic-reading": {
   "input": "93b62b8f9365bcbd",
-  "output": "1fb9173386c1ce27"
+  "output": "4d8e52f3ec1472c2"
  },
  "crafted/vedic-compatibility": {
   "input": "79c51dfd8cfe0df6",
-  "output": "9087f43e967df23a"
+  "output": "dab8dfd961512a48"
  },
  "crafted/vedic-expert": {
   "input": "2f03ef3cd031f865",
@@ -745,7 +745,7 @@
  },
  "crafted/vedic-prashna-prompt": {
   "input": "3ba26022e392c1da",
-  "output": "52d6c46e2cc1c4b9"
+  "output": "cc57fabe3bf98afc"
  },
  "crafted/vedic-question-ai": {
   "input": "29853b3fbe770823",
@@ -877,11 +877,11 @@
  },
  "crafted/ziwei-compatibility": {
   "input": "c6e66356a83495b4",
-  "output": "5c4871c72420f850"
+  "output": "ee74923404d2902f"
  },
  "crafted/ziwei-decade": {
   "input": "a1a59aa2c67e5af0",
-  "output": "a715332116456df4"
+  "output": "db66cf55391f3b84"
  },
  "crafted/ziwei-deep-pdf": {
   "input": "73fc98161b7bdca9",
@@ -893,7 +893,7 @@
  },
  "crafted/ziwei-life-yearly": {
   "input": "d93602ba71dc2fef",
-  "output": "12d95ca4c7c29ca1"
+  "output": "63754794d90a60f8"
  },
  "crafted/ziwei-question-ai": {
   "input": "26931cbd5f0d64fb",
@@ -901,14 +901,14 @@
  },
  "crafted/ziwei-spouse": {
   "input": "d0c3bc33a5e8c2db",
-  "output": "136bd41447039681"
+  "output": "ce3e4dfd25f7caad"
  },
  "crafted/ziwei-symbolic": {
   "input": "45bd5f2d5ce58323",
-  "output": "95748c3bc3c208ed"
+  "output": "0ec8069cce4811e4"
  },
  "crafted/ziwei-twelve-palaces": {
   "input": "b1fdb50abc5a7919",
-  "output": "59be2bd2c997f7d3"
+  "output": "b81713347d6f193c"
  }
 }
