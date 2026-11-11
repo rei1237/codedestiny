@@ -362,6 +362,7 @@
 /public/styles/fortune-consultation-entry.css
 /public/styles/fortune-consultation.css
 /public/styles/fortune-gateway.css
+/public/styles/fortune-reading-actions.css
 /public/styles/fortune-ui-home.css
 /public/styles/fortune-ui.css
 /public/styles/guide-primitives.css
@@ -385,6 +386,7 @@
 /public/styles/review-reward.css
 /public/styles/saju-compact.css
 /public/styles/saju-entry-flow.css
+/public/styles/saju-reading.css
 /public/styles/saju-tea-entry.css
 /public/styles/service-entry-scene.css
 /public/styles/sibyl-system.css
