@@ -1,17 +1,17 @@
 # Payment and Access
 
-## 2026-11-11 public deterministic fortune migration (WIP, not deployable)
+## 2026-11-11 approved deterministic fortune access
 
-- The explicit allowlist is `lib/payment/free-fortune-policy.mjs`; unknown keys, `section_summary`, `section_daewun`, lifetime bundles and model-generated products remain protected. Prices, historical orders and grants are not rewritten.
-- Public saju-section and astrology calculations accept explicit birth inputs only. A submitted profile ID is ignored, never used to read another account. Private stored reports remain protected. New sales/coin/honey consumption reject public keys with `FEATURE_NOW_FREE`; existing settlement/refund paths remain intact.
-- `saju_natal_reading` reuses the original natal-parts builder without exposing the paid light/daewun reading. Local-only `saju_fun_shared` and `saju_daily_reading` are not new server endpoints.
-- Code-registration validation, dates, limits and one-birth benefits are unchanged. Only visible campaign-name error copy is neutralized.
-- The later explicit approval adds nakshatra basic/muhurta/vvip/compat and vedic compatibility/fixed Prashna to the allowlist (49 keys after deferring career-style pending explicit scope confirmation). Nakshatra lord/dasha keep login and owned-profile birth; muhurta/vvip and new compat keep login. Saved compat results still use the original owner-scoped path. Sukuyo past-life keeps owned-profile and owner archive checks without new paid archive writes; yearly keeps login/profile ownership and delivers the complete calculation.
-- Play new acquisition (`/products`, `/free-grant`, `/google/intent`) uses the same explicit public allowlist: no SKU or paid evidence is minted. Historical receipt verification, restore and RTDN keep the original resolver and price snapshots.
-- Authenticated `POST /api/fortune/vedic/prashna/free` accepts question/latitude/longitude and returns the existing snapshot/result/promptText/chart with public feature metadata, without an order, paid evidence or database writes. Old snapshot/generate/result paths and historical paid retries remain unchanged.
-- Career-style is excluded from the public allowlist while its scope is pending; LOVE CODE, destiny-meeting-place and brain/human-design candidates are also unchanged. Complete frontend/backend integration and release checks before deployment. No production DB, real model, checkout or deployment was used in validation.
-- Existing free-product purchase-gate route tests are replaced by explicit-input/no-private-read/no-charge contracts; pure builder/browser parity and protected summary/daewun/bundle ownership/refund tests are retained. The scoped secondary routes also have explicit login/ownership/no-charge tests; these do not replace full release validation.
-
+- The exact allowlist is `lib/payment/free-fortune-policy.mjs` (54 keys). Saju, Ziwei, Vedic/Nakshatra, astrology, Sukuyo and fun fixed/calculated readings use this policy; unknown keys and actual model-generated products stay protected.
+- The user explicitly confirmed that Light Saju (`section_summary`) and Saju daewun (`section_daewun`) remain paid. `saju_lifetime_bundle` / `unlock.saju_lifetime_bundle` / Play `cd_content_tier_19` remains KRW 29,000 for permanent access to both. Its display name is **라이트 사주 풀이**. Existing orders, receipts, ownership, restore and refund rules are preserved. No existing data is repriced or rewritten.
+- Public saju-section and astrology calculations accept explicit birth inputs only. A submitted profile ID is ignored, never used to read another account. Private stored reports remain protected. New sales/coin/honey consumption reject exact public keys with `FEATURE_NOW_FREE`; existing settlement/refund paths remain intact.
+- `saju_natal_reading` reuses the original natal-parts builder without exposing the paid Light/daewun reading. Local-only `saju_fun_shared` and `saju_daily_reading` are not new server endpoints.
+- Nakshatra lord/dasha and Sukuyo past-life/yearly keep login and owned-profile birth checks. Nakshatra basic/muhurta/vvip/compat, Vedic compatibility and fixed Prashna are also free. Saved reports retain their existing owner-scoped paths.
+- The final approval adds `saju-career-style`, `love-code`, `destiny_meeting_place`, `saju_brain_reading` and `human_design_reading`. Career preserves owned-profile/birth identity and existing saved reports; fresh calculated reports create no paid archive or grant. LOVE CODE/place require fresh authentication and clear stale results on identity changes. Brain/HD static interpretations keep their ownership and logout guards. `human-design-report` and `compat-saju-compatibility` remain paid because they generate with LLMs.
+- Play new acquisition (`/products`, `/free-grant`, `/google/intent`) uses the same exact allowlist: no SKU or paid evidence is minted. Historical receipt verification, restore and RTDN keep the original resolver and price snapshots.
+- Authenticated `POST /api/fortune/vedic/prashna/free` returns the existing snapshot/result/prompt/chart without orders, paid evidence or database writes. Old snapshot/generate/result paths and historical paid retries remain unchanged.
+- Code-registration validation, dates, limits and one-birth benefits are unchanged; eligible code recipients still receive Light/daewun access. User-facing campaign-name copy is neutralized, without changing eligibility or falsely advertising universal paid access.
+- Development validation uses mocks only: no production database writes, real LLM calls, checkout, refund or grant operations. Deployment status and exact checks are recorded in the task handoff.
 
 ## 원칙
 
