@@ -17,6 +17,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import vm from "node:vm";
+import { isFreeFortuneFeatureKey } from "../lib/payment/free-fortune-policy.mjs";
 
 const ROOT = process.cwd();
 const REGISTRY_FILE = resolve(ROOT, "js/core/service-registry.js");
@@ -228,7 +229,9 @@ while ((match = TILE_OPEN.exec(shell))) {
   const featureKey = attrOf(head, "data-feature-key");
   const coin = attrOf(head, "data-coin-cost") || attrOf(head, "data-tile-lock-cost");
   const label = attrOf(head, "aria-label") || featureKey;
-  const chunk = shell.slice(match.index, match.index + 3000);
+  const tag = /^<(a|button)\b/.exec(match[0])[1];
+  const close = shell.indexOf("</" + tag + ">", match.index);
+  const chunk = shell.slice(match.index, close < 0 ? match.index + match[0].length : close);
   const badge = (chunk.match(/class="[^"]*(?:tarot-tile__coin-badge|cd-sig-card__price)[^"]*"[^>]*>([^<]{1,40})/) || [])[1] || "";
 
   const shown = badge.replace(/,/g, "").match(/(\d{3,7})\s*원/);
@@ -241,6 +244,17 @@ while ((match = TILE_OPEN.exec(shell))) {
     } else {
       freeMarkerKeys.add(featureKey);
     }
+    continue;
+  }
+
+  if (isFreeFortuneFeatureKey(featureKey)) {
+    if (coin !== "0") fail("Free tile " + featureKey + ": expected explicit zero display cost");
+    if (badge.trim() !== "무료") fail("Free tile " + featureKey + ": expected free badge");
+    if (!/data-price-krw="0"/.test(chunk)) fail("Free tile " + featureKey + ": missing zero price metadata");
+    for (const price of chunk.matchAll(/data-(?:price-krw|coin-cost|tile-lock-cost)="([^"]*)"/g)) {
+      if (price[1] !== "0") fail("Free tile " + featureKey + ": nonzero price metadata");
+    }
+    if (/\bdata-cd-play-(?:price|feature|kind)\b/.test(chunk)) fail("Free tile " + featureKey + ": new Play price binding is forbidden");
     continue;
   }
 
