@@ -7,14 +7,15 @@ updated: 2026-11-11
 
 ## 현재 상태
 
-승인된 비LLM 62개 기능키의 무료화, 클래식 사주 결과, 개별 재미 콘텐츠 이미지, 달빛 예화 버튼, 연이·영냥이 진입 로딩을 구현했다. 모든 소스와 공식 생성물은 저장됐으며 전체 Node/Jest를 포함한 최종 검증을 통과했다. 원격 main push와 운영 승격은 아직 하지 않았다. 가디언 변경·앱 최종 빌드·절전은 별도 후속이다.
+승인된 비LLM 62개 기능키의 무료화, 클래식 사주 결과, 개별 재미 콘텐츠 이미지, 달빛 예화 버튼, 연이·영냥이 진입 로딩을 구현했다. 모든 소스와 공식 생성물은 저장됐으며 전체 Node/Jest를 포함한 최종 검증을 통과했다. 원격 main에10e710251fc8d3cd9db75c7ba2454d7d5fa57799 반영을 확인했다. 공식 CI와 자동 스테이징이 진행 중이며 운영 승격은 아직 하지 않았다. 가디언 변경·앱 최종 빌드·절전은 별도 후속이다.
 
 - 작업 경로: D:\Development\codedestiny-worktrees\saju-free-classic-ui-20261111-20261111-094658
 - 브랜치: wt/saju-free-classic-ui-20261111-20261111-094658
 - 마지막 소스/검사 커밋: 5b5d80df1f51a88fa4baebfb22a925ee799d4111
 - 공식 생성물 커밋: 958859c1f
-- 마지막 확인 origin/main: 2a53c1dfb93ae2f5f1be50657d7f9b553f45164f, 현재 HEAD의 조상
-- 기존 main CI: https://github.com/rei1237/codedestiny/actions/runs/42934290625 성공
+- 원격 main 및 운영 후보:10e710251fc8d3cd9db75c7ba2454d7d5fa57799. 이 문서의 후속 로컬 커밋은 코드 변경이 아니다.
+- 후보 CI: https://github.com/rei1237/codedestiny/actions/runs/43005994457 진행 중
+- 후보 자동 스테이징: https://github.com/rei1237/codedestiny/actions/runs/43006098791 진행 중
 - 마지막 확인 운영 코드: 162081df1bf788ef536b6e00027579324f3f3270
 - 공유 main 체크아웃과 다른 작업트리의 미커밋 변경은 보존한다. 해당 체크아웃으로 전환하거나 reset/stash하지 않는다.
 
@@ -64,8 +65,10 @@ updated: 2026-11-11
 
 ## 다음 순서
 
-1. 문서커밋 후 check:pre-push를 실행한다. 최종 전체 검증은 통과했다. 다음은 원격 전달 및 공식 운영 승격이다.
-2. 최신 origin/main을 다시 확인한다. 다른 세션 변경을 보존하고 현재 작업트리에서 안전한 fast-forward git push origin HEAD:main을 사용한다. 강제push나 더러운 공유main 변경은 하지 않는다.
+1. 최종 전체 검증과 check:pre-push는 통과했다. main push는 새 명시 승인으로 재검토 후 성공했고 원격SHA를 확인했다. 다음은 정확한 후보SHA의 CI/스테이징 성공 확인과 공식 운영 승격이다.
+2. CI/스테이징 수동 반복 조회는 하지 않는다. 완료 알림이나 독립 작업 후의 후속 확인에서 위 실행 결과를 확인한다. 다른 세션이 main을 바꿨다면 승인 후보와 차이를 확인하고 가디언을 섞어 배포하지 않는다.
 3. 정확한 새 SHA의 main CI와 스테이징을 검증한 뒤 승인된 공식 GitHub workflow “Release Cloudflare Pages and Worker”를 mode=production으로 실행한다. configure_snulife_review/bootstrap_cms/pages_only는 기본false, 로컬wrangler배포금지. 양쪽 운영SHA와 읽기전용 핵심화면을 확인한다. CI/스테이징을 수동poll하지 말고 진행중이면 정확한 상태/URL을 부모에게 보고한다.
 4. 검증된 운영SHA를 앱 출시 담당에 전달한다. Android 추가소스는 없으며 담당자는 -PCODE_DESTINY_ANDROID_VERSION_CODE=60 -PCODE_DESTINY_ANDROID_VERSION_NAME=1.0.60으로 빌드하고 실제manifest를 검증한다.
 5. 운영 완료 후 문서를done으로 닫고 자기 임시파일·워크트리만 공식절차로 정리한다. 가디언·앱 후속 및 모든 작업의 완료를 부모가 조율하기 전 절전/종료하지 않는다.
+
+최종 pre-push 로그: .tmp/free62-final-pre-push.log. 홈 가격 검증기는10e710251에서 정확한 무료4키의0원·무료·Play바인딩없음과 비무료가격검증을 유지하도록 보정했고 직접6회귀를 통과했다. 이후 프로덕션 소스는 변경하지 않았다. 사용자 재승인 원문은 “오케이 그렇게 진행하고 사주 가디언은 클로드로 할테니까 인수인계할 수 있는 명령어 작성해”다. 가디언 작업은 Claude에 인계되므로 절대 수정하지 않는다.
