@@ -39,3 +39,19 @@ test('price options use exact option keys and keep mixed AI prices intact',async
  const free=renderFeatureDetailPanels({...d,priceOptions:[]},{startPriceLabel:'3,000원'});
  assert.ok(!free.includes('3,000원'));assert.ok(free.includes('무료 계산형 콘텐츠 · AI 생성 상담 별도'));
 });
+
+test('notice keeps disclaimers and personal-result limitations verbatim',async()=>{
+ const {currentFreeCraftedNotice}=await import('../../js/free-crafted-panel-policy.mjs');
+ for(const id of fs.readdirSync(root)){let d;try{d=manifest(id)}catch{continue}const n=currentFreeCraftedNotice(d);
+ if(!isFreeFortuneFeatureKey(d.featureKey)){assert.equal(n,d.notice||'');continue;}
+ for(const clause of (d.notice||'').split(/(?<=[.!?。])\s+/).filter(s=>/진단|보장|확률|후기|시간.*모르|시각.*미입력|포함하지 않|포함되지 않/.test(s)&&!/가격|조건|해금/.test(s)))assert.ok(n.includes(clause),id+': '+clause);
+ assert.ok(!/기존 가격|결제 조건|해금 조건|현재해금조건|결제창/.test(n),id);
+ }
+ const d=manifest('astro-direct-synastry');assert.ok(currentFreeCraftedNotice(d).includes('외부 AI의 답변이나 별도 질문 상담 구매를 포함하지 않습니다.'));
+ const html=renderCraftedDetail(manifest('sukuyo-yearly'));assert.ok(!html.includes('구매 전 선택한 프로필·연도와 현재 결제 조건'));
+});
+test('basic renderer free CTA does not alter paid light or daewun bundle',async()=>{
+ const {renderBasicFortuneDetail}=await import('../../js/basic-fortune-detail.mjs');
+ for(const id of ['astro-basic-deep','ziwei-decade','sukuyo-nature','vedic-basic-reading']){const html=renderBasicFortuneDetail(manifest(id));assert.ok(html.includes('무료 상세 풀이 보기'));assert.ok(!html.includes('한 번 결제'));}
+ for(const id of ['saju-summary','saju-daewun']){const html=renderBasicFortuneDetail({id,title:'제목'});assert.ok(html.includes('한 번 결제로 같은 생년월일의 사주에 영구히 열려요.'));assert.ok(html.includes('사주 전체 풀이 평생 소장 열기'));assert.ok(!html.includes('무료 상세 풀이 보기'));}
+});
