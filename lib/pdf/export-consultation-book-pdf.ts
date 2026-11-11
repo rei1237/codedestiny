@@ -42,7 +42,13 @@ export type ConsultationBookOptions = {
   summary?: ConsultationBookSummary | null;
 };
 
-const clean = (value: unknown) => String(value ?? '').trim();
+/**
+ * 본문 글꼴(Paperlogy)은 CJK 한자를 일부만 담아 榮·兩·剋 같은 글자가 빈칸으로 빠지고 "영()"만 남는다.
+ * 그래서 한글 뒤에 괄호로 붙인 한자 풀이("영(榮)", "장숙(張宿)")만 걷어 한글 읽기를 남긴다. 화면 본문은 그대로다.
+ */
+const HANJA_GLOSS = /[ \t]?[(（][\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff·・,，\s]*[\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff][\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff·・,，\s]*[)）]/g;
+export const stripPdfHanjaGloss = (value: unknown) => String(value ?? '').replace(HANJA_GLOSS, '');
+const clean = (value: unknown) => stripPdfHanjaGloss(value).trim();
 
 /** 그릴 내용이 남는 도표만 고른다. 빈 도표 때문에 빈 쪽이 생기지 않게 한다. */
 export function consultationSummaryFigures(summary?: ConsultationBookSummary | null): ConsultationBookFigure[] {
@@ -156,7 +162,7 @@ export function typesetConsultationBook(pdf: JsPDFInstance, fonts: PdfFonts, opt
   for (const [index, chapter] of chapters.entries()) {
     writer.chapter(consultationChapterKicker(chapter), `${String(index + 1).padStart(2, '0')}  ${chapter.title}`);
     toc.entries[index + offset].destination = writer.page;
-    for (const block of ziweiReportBlocks(chapter.body)) {
+    for (const block of ziweiReportBlocks(stripPdfHanjaGloss(chapter.body))) {
       if (block.kind === 'heading') writer.heading(block.text);
       else for (const paragraph of bookParagraphs(block.text)) writer.body(paragraph);
     }
