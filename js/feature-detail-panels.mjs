@@ -1,3 +1,4 @@
+import { currentFreeCraftedPanel, FREE_CRAFTED_NOTICE } from './free-crafted-panel-policy.mjs';
 import { renderConsultationSampleGuide } from './consultation-sample-guide.mjs';
 import { renderBasicFortuneDetail } from './basic-fortune-detail.mjs';
 /** The static popup and React pages render the same escaped, display-only panels. */
@@ -22,7 +23,8 @@ function transcriptBody(panel) {
   return text;
 }
 
-const craftedPanels = detail => (detail?.panels || []).filter(panel => safeImage(panel.src) && panel.text);
+const craftedPanels = detail => (detail?.panels || []).filter(panel => safeImage(panel.src) && panel.text).map(panel => currentFreeCraftedPanel(detail, panel));
+const currentAccessCard = panel => `<section class="craftedCoverCopy featureDetailPanel" data-current-free-access><h3>${escape(panel.title)}</h3><p><strong>${escape(FREE_CRAFTED_NOTICE)}</strong></p><p style="white-space:pre-line">${escape(transcriptBody(panel))}</p></section>`;
 const won = value => Number(value) > 0 ? `${Number(value).toLocaleString('ko-KR')}원` : '';
 const chevron = '<svg class="craftedCardChevron" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><path d="m9 5 7 7-7 7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
@@ -103,7 +105,7 @@ export function renderCraftedDetail(detail, { eager = true } = {}) {
   const panels = craftedPanels(detail);
   if (!panels.length) return '';
   const masters = craftedMasters(detail);
-  return `<div class="craftedDetail">${renderMasters(masters)}${renderChapters(detail, masters)}${renderOutcomes(detail)}${renderPrinciples(masters)}<div${panels.some(panel => panel.textBelowImage) ? '' : ' aria-hidden="true"'}>${panels.map((panel, index) => `<img src="${escape(safeImage(panel.src))}"${panelSources(panel)} alt="${panel.textBelowImage ? escape(panel.alt || panel.title) : ''}" width="${Number(panel.width) || 1080}" height="${Number(panel.height) || 1440}" loading="${index || !eager ? 'lazy' : 'eager'}" decoding="async"${index || !eager ? '' : ' fetchpriority="high" data-lcp-candidate="1"'}>${panel.textBelowImage ? `<section class="craftedCoverCopy"><h3>${escape(panel.title)}</h3><p>${escape(transcriptBody(panel))}</p></section>` : ''}`).join('')}</div><p class="craftedDetailNotice">${escape(detail.notice)}</p><details class="craftedDetailTranscript"><summary>상세 안내를 글로 읽기</summary>${panels.map(panel => `<section><h3>${escape(panel.title)}</h3><p>${escape(transcriptBody(panel))}</p></section>`).join('')}</details></div>`;
+  return `<div class="craftedDetail">${renderMasters(masters)}${renderChapters(detail, masters)}${renderOutcomes(detail)}${renderPrinciples(masters)}<div${panels.some(panel => panel.textBelowImage || panel.currentFreeAccess) ? '' : ' aria-hidden="true"'}>${panels.map((panel, index) => panel.currentFreeAccess ? currentAccessCard(panel) : `<img src="${escape(safeImage(panel.src))}"${panelSources(panel)} alt="${panel.textBelowImage ? escape(panel.alt || panel.title) : ''}" width="${Number(panel.width) || 1080}" height="${Number(panel.height) || 1440}" loading="${index || !eager ? 'lazy' : 'eager'}" decoding="async"${index || !eager ? '' : ' fetchpriority="high" data-lcp-candidate="1"'}>${panel.textBelowImage ? `<section class="craftedCoverCopy"><h3>${escape(panel.title)}</h3><p>${escape(transcriptBody(panel))}</p></section>` : ''}`).join('')}</div><p class="craftedDetailNotice">${escape(detail.notice)}</p><details class="craftedDetailTranscript"><summary>상세 안내를 글로 읽기</summary>${panels.map(panel => `<section><h3>${escape(panel.title)}</h3><p>${escape(transcriptBody(panel))}</p></section>`).join('')}</details></div>`;
 }
 
 /** Text stays readable when artwork fails; only opted-in products use this layout. */
@@ -111,11 +113,11 @@ function renderEditorialDetail(detail, { eager }) {
   const panels = craftedPanels(detail);
   if (!panels.length) return '';
   const masters = craftedMasters(detail);
-  const art = (panel, first = false) => `<img src="${escape(safeImage(panel.src))}"${panelSources(panel)} alt="${escape(panel.alt || '')}" width="${Number(panel.width) || 1536}" height="${Number(panel.height) || 1024}" loading="${first && eager ? 'eager' : 'lazy'}" decoding="async"${first && eager ? ' fetchpriority="high" data-lcp-candidate="1"' : ''}>`;
+  const art = (panel, first = false) => panel.currentFreeAccess ? '' : `<img src="${escape(safeImage(panel.src))}"${panelSources(panel)} alt="${escape(panel.alt || '')}" width="${Number(panel.width) || 1536}" height="${Number(panel.height) || 1024}" loading="${first && eager ? 'eager' : 'lazy'}" decoding="async"${first && eager ? ' fetchpriority="high" data-lcp-candidate="1"' : ''}>`;
   const [hero, ...sections] = panels;
   const introduction = masters.length ? `<section class="craftedEditorialMasters"><h3>이 상담을 읽어 주는 마스터</h3><ul>${masters.map(master => `<li class="craftedMaster"${masterAttr(master)}><div class="craftedEditorialMasterHead">${masterAvatar(master, 64, false)}<div><strong>${escape(master.name)}</strong><p>${escape(master.role || master.part)}</p></div></div><p class="craftedEditorialMasterVoice">${escape(master.signature)}</p>${master.basis || master.part ? `<details class="craftedEditorialMasterNotes"><summary>${escape(master.name)}의 풀이 방식</summary><dl class="craftedMasterDossier"><div><dt>읽는 근거</dt><dd>${escape(master.basis)}</dd></div><div class="craftedMasterPart"><dt>맡는 부분</dt><dd>${escape(master.part)}</dd></div></dl></details>` : ''}</li>`).join('')}</ul></section>` : '';
-  const section = panel => `<section class="craftedEditorialSection"${panel.sampleKind ? ' data-example-kind="' + escape(panel.sampleKind) + '"' : ''}>${panel.showImage ? art(panel) : ''}<h3>${escape(panel.title)}</h3><p>${escape(panel.text)}</p></section>`;
-  return `<article class="craftedDetail craftedEditorial"${sections.some(panel => panel.sampleKind) ? ` data-consultation-item="${escape(detail.featureKey || detail.id)}"` : ''}><header>${art(hero, true)}<div class="craftedEditorialCopy"><h3>${escape(hero.title)}</h3><p>${escape(hero.text)}</p></div></header>${sections.filter(panel => panel.sampleKind).map(section).join('')}${introduction}${sections.filter(panel => !panel.sampleKind).map(section).join('')}${renderChapters(detail, masters)}${renderOutcomes(detail)}${renderPrinciples(masters)}<p class="craftedDetailNotice">${escape(detail.notice)}</p></article>`;
+  const section = panel => panel.currentFreeAccess ? currentAccessCard(panel) : `<section class="craftedEditorialSection"${panel.sampleKind ? ' data-example-kind="' + escape(panel.sampleKind) + '"' : ''}>${panel.showImage ? art(panel) : ''}<h3>${escape(panel.title)}</h3><p>${escape(panel.text)}</p></section>`;
+  return `<article class="craftedDetail craftedEditorial"${sections.some(panel => panel.sampleKind) ? ` data-consultation-item="${escape(detail.featureKey || detail.id)}"` : ''}><header>${hero.currentFreeAccess ? currentAccessCard(hero) : art(hero, true)}<div class="craftedEditorialCopy"${hero.currentFreeAccess ? ' hidden' : ''}><h3>${escape(hero.title)}</h3><p>${escape(hero.text)}</p></div></header>${sections.filter(panel => panel.sampleKind).map(section).join('')}${introduction}${sections.filter(panel => !panel.sampleKind).map(section).join('')}${renderChapters(detail, masters)}${renderOutcomes(detail)}${renderPrinciples(masters)}<p class="craftedDetailNotice">${escape(detail.notice)}</p></article>`;
 }
 
 export function revealCraftedTranscript(event) {
@@ -169,7 +171,7 @@ function renderCraftedEditions(items, heading, sharedBadge) {
     // 72px 표지에 1080×1440 원본 대신 생성기의 144px 썸네일(2x)을 쓴다. 없으면 첫 그림 그대로.
     const thumb = safeImage(item.cover?.src) && Number(item.cover.width) > 0 ? item.cover : cover;
     const badge = item.badge && item.badge !== sharedBadge ? `<span class="craftedCardBadge">${escape(item.badge)}</span>` : '';
-    return `<details class="craftedEdition" data-crafted-card><summary><img class="craftedCardCover" src="${escape(safeImage(thumb.src))}" alt="" width="${Number(thumb.width) || 1080}" height="${Number(thumb.height) || 1440}" loading="lazy" decoding="async"><span class="craftedCardText"><strong>${escape(item.cardTitle || (shared ? item.title.slice(prefix.length) : item.title))}</strong><span class="craftedCardHook">${escape(item.hook || cover.title)}</span><span class="craftedCardMeta">${escape(craftedMeta(item))}</span>${badge}</span>${chevron}</summary><div class="craftedEditionBody">${renderCraftedDetail(item, { eager: false })}</div></details>`;
+    return `<details class="craftedEdition" data-crafted-card><summary>${cover.currentFreeAccess ? '' : `<img class="craftedCardCover" src="${escape(safeImage(thumb.src))}" alt="" width="${Number(thumb.width) || 1080}" height="${Number(thumb.height) || 1440}" loading="lazy" decoding="async">`}<span class="craftedCardText"><strong>${escape(item.cardTitle || (shared ? item.title.slice(prefix.length) : item.title))}</strong><span class="craftedCardHook">${escape(item.hook || cover.title)}</span><span class="craftedCardMeta">${escape(craftedMeta(item))}</span>${badge}</span>${chevron}</summary><div class="craftedEditionBody">${renderCraftedDetail(item, { eager: false })}</div></details>`;
   }).join('');
   return `<section class="featureDetailPanel craftedEditions" data-purchase-stage="interest"><${heading}>${items.length}가지 상담 중에서 골라 보세요</${heading}><p class="craftedEditionsLead">상담을 펼치면 실제 목차와 그림 안내를 차례로 볼 수 있어요.</p>${cards}</section>`;
 }

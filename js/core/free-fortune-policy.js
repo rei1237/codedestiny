@@ -15,7 +15,6 @@ const FREE_FORTUNE_FEATURE_KEYS = Object.freeze([
   "rpt_skillTreeCard",
   "rpt_secretHouseEntryCard",
   "animal-destiny-unlock",
-  "saju-career-style",
   "tetogen_deep_report",
   "fun.quantumLotto.ritualReport",
   "ziwei_decade_luck",
@@ -45,6 +44,12 @@ const FREE_FORTUNE_FEATURE_KEYS = Object.freeze([
   "sukyo_yearly_fortune_unlock",
   "compat-sukuyo-compatibility",
   "premium-sukuyo-compat-extra",
+  "nakshatra-basic-reading",
+  "nakshatra-muhurta",
+  "nakshatra-vvip-codex",
+  "nakshatra-compat",
+  "vedic-compatibility-per-use",
+  "vedic_prashna_prompt",
   "nakshatra-lord-report",
   "nakshatra-dasha-map"
 ]);
