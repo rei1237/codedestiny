@@ -73,7 +73,7 @@ export function UnlockGate({
           <li key={text}>{text}</li>
         ))}
       </ul>
-      <button type="button" className={styles.cta} onClick={onUnlock} disabled={disabled}>
+      <button type="button" data-cd-reading-action="primary" className={styles.cta} onClick={onUnlock} disabled={disabled}>
         {buttonLabel}
       </button>
     </div>

@@ -224,7 +224,7 @@ export default function NakshatraCompatClient() {
           {loading ? copy.retryingButton : copy.retryWithoutPaymentButton}
         </button>
       )}
-      <button onClick={submit} disabled={loading || isPaying}
+      <button data-cd-reading-action="primary" onClick={submit} disabled={loading || isPaying}
         className="mt-5 inline-flex min-h-12 w-full items-center justify-center rounded-xl bg-amber-200 px-5 text-sm font-bold text-slate-950 transition hover:bg-amber-100 disabled:opacity-60">
         {loading ? copy.compatComparingButton : isPaying ? copy.compatCheckingButton : copy.compatSubmitButton(copy.compatPriceLabel)}
       </button>

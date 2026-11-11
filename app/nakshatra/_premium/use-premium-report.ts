@@ -10,6 +10,7 @@
 //    여기서 paymentMode 를 지정하거나 pass 를 재판정하지 않는다.
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { isFreeFortuneFeatureKey } from "@/lib/payment/free-fortune-policy.mjs";
 import { postPaidBody } from "../nakshatra-fetch";
 import { useCoinGate } from "@/app/hooks/useCoinGate";
 import { usePaidResume, packPaidResumeArg, unpackPaidResumeArg } from "@/app/hooks/usePaidResume";
@@ -34,7 +35,7 @@ function errorText(copy: NakshatraCopy) {
 }
 
 // 출생 기반 해금(userId + 생년월일)은 저장된 프로필이 있어야 판정·계산된다.
-const PROFILE_REQUIRED_MESSAGE = "프로필을 저장한 뒤 구매해 주세요.";
+const PROFILE_REQUIRED_MESSAGE = "프로필을 저장한 뒤 풀이를 확인해 주세요.";
 
 function toText(value: unknown): string {
   return value == null ? "" : String(value).trim();
@@ -109,7 +110,8 @@ export function usePremiumReport<T>(product: PremiumProduct): UsePremiumReportRe
     setReport(null);
   }, [profilePicker]);
 
-  const isUnlocked = ledgerUnlocked || unlocked[product.featureKey] === true;
+  const publicReading = isFreeFortuneFeatureKey(product.featureKey);
+  const isUnlocked = publicReading || ledgerUnlocked || unlocked[product.featureKey] === true;
   const confirmedLocked = unlockStatus === "ready" && !isUnlocked;
 
   const fetchingRef = useRef(false);
@@ -163,8 +165,7 @@ export function usePremiumReport<T>(product: PremiumProduct): UsePremiumReportRe
     const restored = unpackPaidResumeArg<NakshatraBirthInput>(args.birth) || birth;
     const restoredProfileId = String(args.profileId || "") || profileId;
     if (!restored) return false;
-    markOptimisticallyUnlocked(product.featureKey);
-    setLedgerUnlocked(true);
+    if (!publicReading) { markOptimisticallyUnlocked(product.featureKey); setLedgerUnlocked(true); }
     fetchedRef.current = false;
     void refetchUnlocks({ force: true });
     return load(restored, restoredProfileId);
@@ -189,12 +190,11 @@ export function usePremiumReport<T>(product: PremiumProduct): UsePremiumReportRe
       return;
     }
     // 서버 스냅샷 반영 전까지 낙관적으로 열어 둔다(원장에도 기록돼 새로고침·다른 탭에서 유지).
-    markOptimisticallyUnlocked(product.featureKey);
-    setLedgerUnlocked(true);
+    if (!publicReading) { markOptimisticallyUnlocked(product.featureKey); setLedgerUnlocked(true); }
     fetchedRef.current = false;
     await load();
     void refetchUnlocks({ force: true });
-  }, [buildResume, ensurePaidAccess, isPaying, load, loading, markOptimisticallyUnlocked, product, profileId, refetchUnlocks, ERROR_TEXT]);
+  }, [buildResume, ensurePaidAccess, isPaying, load, loading, markOptimisticallyUnlocked, product, profileId, publicReading, refetchUnlocks, ERROR_TEXT]);
 
   const reload = useCallback(async () => {
     fetchedRef.current = false;
@@ -209,7 +209,7 @@ export function usePremiumReport<T>(product: PremiumProduct): UsePremiumReportRe
     profilePicker,
     confirmedLocked,
     unlocked: isUnlocked,
-    checking: unlockStatus === "loading",
+    checking: !publicReading && unlockStatus === "loading",
     loading,
     paying: isPaying,
     error,

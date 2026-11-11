@@ -246,7 +246,7 @@ export default function MuhurtaClient() {
                 min={todayKst()}
                 onChange={(event) => setStartDate(event.target.value)}
               />
-              <button type="button" className={styles.cta} onClick={() => void run()} disabled={isPaying || loading}>
+              <button type="button" data-cd-reading-action="primary" className={styles.cta} onClick={() => void run()} disabled={isPaying || loading}>
                 {isPaying ? copy.payingButton : loading ? copy.muhurtaSearchingButton : copy.muhurtaFindButton(copy.muhurtaPriceLabel)}
               </button>
             </div>
@@ -256,7 +256,7 @@ export default function MuhurtaClient() {
         {error && <p className={styles.error} role="alert">{error}</p>}
 
         {canRetry && paidRef.current && !report && (
-          <button type="button" className={styles.cta} onClick={() => void retry()} disabled={loading}>
+          <button type="button" data-cd-reading-action="primary" className={styles.cta} onClick={() => void retry()} disabled={loading}>
             {loading ? copy.retryingButton : copy.retryWithoutPaymentButton}
           </button>
         )}

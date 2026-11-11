@@ -34,7 +34,7 @@
    */
   function withCurrentLocaleLabel(entry) {
     if (!entry) return entry;
-    if (window.cdIsFreeFortuneFeatureKey && window.cdIsFreeFortuneFeatureKey(entry.featureKey)) return Object.assign({}, entry, {amountKRW:0, coinPrice:0, cost:0, displayPrice:'무료', paymentMode:'free'});
+    if (window.cdIsFreeFortuneFeatureKey && window.cdIsFreeFortuneFeatureKey(entry.featureKey)) return Object.assign({}, entry, {amountKRW:0, coinPrice:0, cost:0, displayPrice:window.cdTranslate?.('home.concernPick.price.free', {}, '무료') || '무료', paymentMode:'free'});
     var play = window.__cdPlayDisplayPrice;
     if (play?.isApp()) {
       var version = playVersion;

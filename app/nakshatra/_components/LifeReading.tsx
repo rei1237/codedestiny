@@ -33,10 +33,10 @@ export default function LifeReading({ topics }: { topics: LifeTopic[] }) {
       <h2>두 사람 사이에 흐르는 것</h2>
       <p>나의 성향을 이해했다면, 상대의 별과 나란히 놓아 보세요. 관계의 역할과 친밀감, 생활 리듬을 살펴보고 함께 조율할 질문을 전합니다.</p>
       <div className={styles.actions}>
-        <Link className={styles.button} href="/nakshatra/compat/">궁합 보기 · {NAKSHATRA_COMPAT_PRICE_LABEL}</Link>
+        <Link data-cd-reading-action="primary" className={styles.button} href="/nakshatra/compat/">궁합 보기 · {NAKSHATRA_COMPAT_PRICE_LABEL}</Link>
         <Link className={styles.secondary} href="/nakshatra/ai/">개인 심화 상담 보기</Link>
       </div>
-      <p className={styles.price}>궁합은 선택 상품이며 개인 유료 상담을 먼저 구매하지 않아도 됩니다. 이용권·월정석 적용 여부는 결제창에서 확인합니다.</p>
+      <p className={styles.price}>계산형 궁합은 무료예요. AI 개인 상담은 별도 유료이며 직접 선택할 때만 결제가 진행돼요.</p>
     </section>
   </section>;
 }

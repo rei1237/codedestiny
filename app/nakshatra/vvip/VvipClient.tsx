@@ -253,7 +253,7 @@ export default function VvipClient() {
             <ul className={styles.bullets}>
               {copy.vvipGateBullets.map((text) => <li key={text}>{text}</li>)}
             </ul>
-            <button type="button" className={styles.cta} onClick={() => void run()} disabled={isPaying || loading}>
+            <button type="button" data-cd-reading-action="primary" className={styles.cta} onClick={() => void run()} disabled={isPaying || loading}>
               {isPaying ? copy.payingButton : loading ? copy.vvipBuildingButton : copy.vvipReceiveButton}
             </button>
           </div>
@@ -262,7 +262,7 @@ export default function VvipClient() {
         {error && <p className={styles.error} role="alert">{error}</p>}
 
         {canRetry && paidRef.current && !report && (
-          <button type="button" className={styles.cta} onClick={() => void retry()} disabled={loading}>
+          <button type="button" data-cd-reading-action="primary" className={styles.cta} onClick={() => void retry()} disabled={loading}>
             {loading ? copy.retryingButton : copy.retryWithoutPaymentButton}
           </button>
         )}

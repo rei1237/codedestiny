@@ -274,9 +274,9 @@ export default function NakshatraFormClient() {
 
       {error && <p role="alert" className={styles.errorBox}>{error}</p>}
 
-      <button type="submit" disabled={loading || isPaying || !BASIC_READING_PRICING} className={styles.submit}>
+      <button data-cd-reading-action="primary" type="submit" disabled={loading || isPaying || !BASIC_READING_PRICING} className={styles.submit}>
         <Spark className={styles.spark} />
-        {loading || isPaying ? "이용권 확인 중" : `${copy.formSubmitButton} · 3,000원`}
+        {loading || isPaying ? copy.formSubmittingButton : `${copy.formSubmitButton} · 무료`}
       </button>
       <p className={styles.disclaimer}>{copy.formDisclaimer}</p>
     </form>

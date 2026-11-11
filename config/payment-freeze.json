@@ -37,7 +37,7 @@
     {
       "file": "app/hooks/useCoinGate.ts",
       "why": "React 유료 게이트 공개 훅.",
-      "sha256": "4e7201845c01e4a8"
+      "sha256": "e5dc42bf4d1980bb"
     },
     {
       "file": "lib/payment/portone.ts",

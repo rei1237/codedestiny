@@ -34,6 +34,7 @@
 //
 // 실행: npm run verify:nakshatra-price-copy
 import assert from "node:assert/strict";
+import { isFreeFortuneFeatureKey } from "../lib/payment/free-fortune-policy.mjs";
 import { readFileSync, readdirSync } from "node:fs";
 import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
@@ -93,14 +94,16 @@ const pricingBundle = buildSync({ entryPoints: [resolve(root, 'app/nakshatra/_li
 const pricingModule = { exports: {} };
 new Function('module', 'exports', 'require', pricingBundle.outputFiles[0].text)(pricingModule, pricingModule.exports, require);
 const canonicalPricing = pricingModule.exports;
-assert.equal(canonicalPricing.NAKSHATRA_COMPAT_PRICING.amountKRW, 5000);
-assert.equal(canonicalPricing.NAKSHATRA_COMPAT_PRICE_LABEL, '5,000원');
+assert.equal(canonicalPricing.NAKSHATRA_COMPAT_PRICING.amountKRW, 0);
+assert.equal(isFreeFortuneFeatureKey("nakshatra-compat"), true);
+assert.equal(canonicalPricing.NAKSHATRA_COMPAT_PRICE_LABEL, '무료');
 const amountBySlug = new Map();
 for (const { slug, rel } of clientFiles) {
   const source = read(rel);
   const amount = source.includes('amountKRW: NAKSHATRA_COMPAT_PRICING.amountKRW')
     ? canonicalPricing.NAKSHATRA_COMPAT_PRICING.amountKRW : resolveAmountKrw(source);
-  if (amount !== null) amountBySlug.set(slug, amount);
+  const feature = /(?:featureKey:\s*|const\s+FEATURE_KEY\s*=\s*)["']([^"']+)["']/.exec(source)?.[1];
+  if (amount !== null) amountBySlug.set(slug, feature && isFreeFortuneFeatureKey(feature) ? 0 : amount);
 }
 assert.ok(
   amountBySlug.size >= 5,
@@ -182,6 +185,14 @@ copyLines.forEach((line, i) => {
     assert.equal(canonicalPricing.NAKSHATRA_COMPAT_PRICE_LABEL, new Intl.NumberFormat('ko-KR').format(expectedKrwByKey.get('compatPriceLabel')) + '원');
     assertions += 2;
     seenPerKey.set('compatPriceLabel', (seenPerKey.get('compatPriceLabel') || 0) + 1);
+    return;
+  }
+  const freeEntry = /^\s*([A-Za-z0-9_]+): "([^\"]+)",$/.exec(line);
+  if (freeEntry && expectedKrwByKey.get(freeEntry[1]) === 0) {
+    assert.ok(['Free','무료','無料','免费','免費','Miễn phí','निःशुल्क','Gratis','Gratuit','Kostenlos','Percuma'].includes(freeEntry[2]), `${COPY}:${i+1}: Public reading must say free`);
+    assert.ok(!/\d|[₩$€¥]/.test(freeEntry[2]), 'Public reading cannot advertise a charge');
+    assertions += 2;
+    seenPerKey.set(freeEntry[1], (seenPerKey.get(freeEntry[1]) || 0) + 1);
     return;
   }
   const hasKrw = KRW_MENTION.test(line);

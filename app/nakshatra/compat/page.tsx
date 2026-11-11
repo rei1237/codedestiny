@@ -22,7 +22,7 @@ export default function NakshatraCompatPage() {
             {copy.compatPageSub}
           </p>
         </header>
-        <p className={styles.notice}>궁합 단건 {NAKSHATRA_COMPAT_PRICE_LABEL} · 개인 유료 상담 선구매 없이 이용할 수 있어요. 이용권·월정석 적용은 결제창에서 확인합니다.</p>
+        <p className={styles.notice}>궁합 {NAKSHATRA_COMPAT_PRICE_LABEL} · 개인 AI 상담을 구매하지 않아도 이용할 수 있어요.</p>
         <NakshatraCompatClient />
       </div>
     </main>

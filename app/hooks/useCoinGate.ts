@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { isFreeFortuneFeatureKey } from "@/lib/payment/free-fortune-policy.mjs";
 import { getAuthState, handleSessionInvalidated, refreshAuth } from "../_lib/auth-store";
 import { refreshUserAccessAfterPayment } from "../_lib/user-session-cache";
 import {
@@ -27,7 +28,7 @@ type CoinGateContext = {
   amountKRW?: number;
   balanceAfter: number;
   featureKey: string;
-  accessSource: "subscription" | "moonlight_stone" | "coin" | "payment";
+  accessSource: "subscription" | "moonlight_stone" | "coin" | "payment" | "free";
   accessType: string;
   paymentMode: string;
   subscriptionTier: string;
@@ -408,6 +409,22 @@ export function useCoinGate() {
             refunded: false,
           };
         }
+      }
+
+      // The server still checks login, profile ownership and saved results. This only avoids a new charge.
+      const publicFeatureKey = toText(input.featureKey || input.subFeatureKey || input.categoryKey);
+      if (isFreeFortuneFeatureKey(publicFeatureKey)) {
+        setPaymentMessage("");
+        if (input.onPaid) {
+          try {
+            await input.onPaid({transactionId:"", chargedCoins:0, requiredCoins:0, amountKRW:0,
+              balanceAfter:0, featureKey:publicFeatureKey, accessSource:"free", accessType:"public",
+              paymentMode:"FREE", subscriptionTier:"", monthlyCreditsSpent:0, monthlyBalanceAfter:null});
+          } catch (error) {
+            return {ok:false,code:"FEATURE_EXECUTION_FAILED",message:error instanceof Error ? error.message : coinGateText("featureExecutionFailed"),requiredCoins:0,chargedCoins:0,balanceAfter:0,transactionId:"",refunded:false};
+          }
+        }
+        return {ok:true,code:"PUBLIC_READING",message:"",requiredCoins:0,chargedCoins:0,balanceAfter:0,transactionId:"",refunded:false};
       }
 
       /* 🔴 리다이렉트 복귀로 이미 결제가 끝난 기능이면 결제창을 열지 않는다(정적 셸 _cdOpenPaidServiceGate ·
