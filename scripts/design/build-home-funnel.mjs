@@ -15,12 +15,13 @@ import { brandCopy } from '../../lib/seo/brand-copy.mjs';
 import { renderYehwaHome } from '../../lib/marketing/yehwa-home.mjs';
 import { renderHomeConsultationPicker } from '../../lib/marketing/home-consultation-picker.mjs';
 import { chatQuestionFeatureKey } from '../../lib/fortune/chat-products.js';
+import { isFreeFortuneFeatureKey } from '../../lib/payment/free-fortune-policy.mjs';
 
 const original = readFileSync('index.html', 'utf8');
 const vars = {mvSrc720:moonlightVideo.src720,mvSrc1080:moonlightVideo.src1080,mvCaptions:moonlightVideo.captions};
 vars.consultationMethods = renderConsultationMethodGuide('ggul-consultation-methods');
 
-// 가벼운 체험만 선별한다. 유료 표시는 서버 상품 정본에서 생성한다.
+// 가벼운 체험만 선별한다. 승인된 무료 키는 무료 정책을, 나머지 유료 표시는 서버 상품 정본을 따른다.
 const LIGHT_FORTUNES = [
   { name: '포춘 피쉬', href: '/fortune-teller-fish.html', image: '/images/mini-games/fortune-fish-320.webp', desc: '작은 금붕어의 몸짓으로 오늘의 기분 읽기' },
   { name: '오미쿠지', href: '/emoi_omikuji_v2.html', image: '/images/mini-games/omikuji-320.webp', desc: '제비통에서 꺼내 보는 오늘의 한 장' },
@@ -30,10 +31,11 @@ const LIGHT_FORTUNES = [
   { name: '최애운명', href: '/saju/destiny-bias/', image: '/images/service-introductions/bias-destiny-320.webp', desc: '최애와 나의 케미를 포토카드로 만나기', key: 'destiny-bias-analyze' },
 ];
 vars.lightFortunes = LIGHT_FORTUNES.map(item => {
-  const product = item.key && (FEATURE_KEY_PRICE_TABLE[item.key] || UNLOCK_PRODUCT_BY_FEATURE_KEY[item.key]);
-  if (item.key && (!Number.isSafeInteger(product?.amountKRW) || product.amountKRW <= 0)) throw new Error('Missing light fortune price: ' + item.key);
+  const free = !item.key || isFreeFortuneFeatureKey(item.key);
+  const product = !free && (FEATURE_KEY_PRICE_TABLE[item.key] || UNLOCK_PRODUCT_BY_FEATURE_KEY[item.key]);
+  if (!free && (!Number.isSafeInteger(product?.amountKRW) || product.amountKRW <= 0)) throw new Error('Missing light fortune price: ' + item.key);
   const price = product ? (product.accessModel === 'unlock' ? '해금 ' : '1회 ') + product.amountKRW.toLocaleString('ko-KR') + '원' : '무료';
-  return '<a class="cdh-light__item" href="' + item.href + '"><img src="' + item.image + '" width="160" height="100" loading="lazy" decoding="async" alt=""><span class="cdh-light__copy"><strong>' + item.name + '</strong><span>' + item.desc + '</span><small' + (item.key ? ' data-cd-play-price data-cd-play-feature="' + item.key + '" data-cd-play-kind="' + (product.accessModel === 'unlock' ? 'unlock' : 'perUse') + '" data-cd-price-key="' + item.key + '" data-price-krw="' + product.amountKRW + '"' : ' data-cd-price-free="true"') + '>' + price + '</small></span></a>';
+  return '<a class="cdh-light__item" href="' + item.href + '"><img src="' + item.image + '" width="160" height="100" loading="lazy" decoding="async" alt=""><span class="cdh-light__copy"><strong>' + item.name + '</strong><span>' + item.desc + '</span><small' + (!free ? ' data-cd-play-price data-cd-play-feature="' + item.key + '" data-cd-play-kind="' + (product.accessModel === 'unlock' ? 'unlock' : 'perUse') + '" data-cd-price-key="' + item.key + '" data-price-krw="' + product.amountKRW + '"' : ' data-cd-price-free="true"') + '>' + price + '</small></span></a>';
 }).join('');
 
 const introductionArt = JSON.parse(readFileSync('lib/marketing/service-introduction-art.json', 'utf8'));
