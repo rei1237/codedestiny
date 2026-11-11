@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-11
-next: 3단계 — 진입 카드·링크·푸터·사이트맵/SEO 등록(noindex 5곳 동기화 포함)
+next: 4단계 — 사용자 웹툰·원석 이미지 수령 대기(받으면 QC·내보내기·연결)
 ---
 
 # 사주 원석 추천 — 연이의 원석 큐레이션 인수인계
@@ -46,7 +46,7 @@ next: 3단계 — 진입 카드·링크·푸터·사이트맵/SEO 등록(noindex
 - [x] 0. 메모 범위 수정(완료)·워크트리·이 문서 커밋
 - [x] 1. 엔진·카탈로그·테스트 (TDD), 커밋
 - [x] 2. 랜딩·질문/결과 흐름·저장·분석 이벤트, 커밋
-- [ ] 3. 진입 카드·링크·푸터·사이트맵/SEO 등록, 커밋
+- [x] 3. 진입 카드·링크·푸터·사이트맵/SEO 등록, 커밋
 - [ ] 4. (사용자 이미지 수령 후) 웹툰·원석 이미지 QC·내보내기·연결 — 진입 이미지는 3단계에서 연결, 커밋
 - [ ] 5. 검증(테스트·빌드 HTML grep·브라우저 390/1280 캡처 → `D:\CodeDestiny-Build\saju-crystals-20261111\qa\`)·check:fast·main 로컬 merge·워크트리 정리
 
@@ -115,6 +115,54 @@ next: 3단계 — 진입 카드·링크·푸터·사이트맵/SEO 등록(noindex
     - 파일이 있으면 빌드 때 자동으로 연결된다.
   - 음력 프로필은 프로필의 birthYear가 엔진의 양력 연도와 다를 수 있다. 그러면 가장 이른 연도를 고를 때 답변 오류 문구가 뜰 수 있다. 3단계나 5단계의 브라우저 확인 때 본다.
   - 브라우저 실화면 확인은 아직 하지 않았다(5단계).
+
+### 3단계 (2026-11-11)
+- 커밋 `d501a62d4`
+- 진입 카드
+  - `index.html`의 `#ukbuCard` 바로 뒤에 `#sajuCrystalEntry`를 넣었다.
+  - 사용자 그림을 `<a>`로 감싸고, alt에 그림 속 문구를 옮겼다.
+  - 그림 아래에 실제 버튼 "나에게 맞는 원석 찾기"를 두었다. 링크는 `/saju/crystals/start/?from=saju_result`이다.
+  - PC에서 최대 420px. 스타일은 `styles/saju-tea-entry.css`에 있다.
+  - `sync:public`을 돌렸다. 이때 생긴 free-fortune-policy 줄끝 변경은 되돌렸다.
+- 이미지(사용자 원본 `entry-yeoni-crystal-portrait.webp`에서 만들었고, 새로 생성한 그림은 없다)
+  - `public/images/saju-crystals/entry-portrait-{496,992}.{avif,webp}`
+  - `public/images/saju-crystals/og-1200x630.jpg`
+    - 원본에서 (41,279) 위치의 910x478을 잘라 늘렸다.
+    - 글자는 빠지고 연이가 가운데 온다. 연꽃 윗부분이 살짝 잘린다.
+  - `/saju/crystals/` 히어로에도 같은 그림을 쓴다(`CrystalCta variant="portrait"`).
+  - 내보내기 스크립트: `D:\CodeDestiny-Build\saju-crystals-20261111\src\export-entry.mjs`
+- 계측
+  - `js/core/analytics.js`의 위임 클릭이 `data-cd-crystal-entry`를 읽어 `crystal_entry_click {from}`을 보낸다.
+  - `from`은 `[a-z_]`만 받는다.
+  - `verify-analytics-events`에 세 가지 검사를 더했다: 한 번만 발화하는지, 잘못된 값을 무시하는지, 셸 표식이 있는지.
+- 링크
+  - `/saju/` 카탈로그(saju-service-catalog의 무료 묶음)
+  - `/saju/guide/`와 `/saju/five-elements/`의 카드·칩(`from=guide`, `from=five_elements`)
+  - 푸터 core 그룹
+  - 푸터 라벨 파일 `siteFooterHubCopy.ts`의 로케일은 ko·ja·zh·zh-TW·en 5개다. 계획의 12개는 잘못 적힌 것이다.
+- SEO
+  - 사이트맵: `/saju/crystals`, priority 0.78.
+  - entity-registry 항목을 추가했다. five-elements의 relatedPaths에도 `/saju/crystals`를 넣었다.
+  - `publicSeoPages.sajuCrystals`를 추가했다. 제목 키는 `siteSeo.028`이다(025는 이미 쓰고 있었다).
+  - sitemap, lastmod 원장, llms-full.txt를 다시 생성했다.
+- noindex(`/saju/crystals/start`)
+  - 색인 원장 `hidden()`: 메타 noindex와 사이트맵 제외.
+  - `_headers` X-Robots-Tag: 규칙 89개로, 예산 100 안이다.
+  - `verify-adsense-readiness` 패턴과 `index-policy.test` 고정 목록에도 넣었다.
+  - `static-canonical-route-map`은 앱 라우트라 손대지 않았다.
+- 음력 수정
+  - `crystal-flow.mjs`에 `crystalYearWindow()`를 추가했다.
+  - `CrystalFlowClient`의 init이 엔진 입력을 먼저 만든다. 연도 범위와 셸 경험 필터는 `periods.window`로 정한다. 경합은 토큰으로 막는다.
+  - 테스트: 음력 1990-12-20 → 양력 1991.
+- 덤으로 고친 것: 2단계 문구 "무료 사주에서"가 `saju-bundle-copy` 가드에 걸려 "무료 만세력에서"로 바꿨다.
+- 검증
+  - crystal-flow·bundle-copy·index-policy 테스트: 41 pass.
+  - analytics-events, sitemap-drift, seo-entity-registry, home-service-registry, llms 검사, tsc: 모두 OK.
+  - check:fast: exit 0. jest 474 suites 통과(1 skipped), 7897 tests 통과, BLOCKED 없음.
+  - `verify-adsense-readiness`는 `dist/index.html`이 있어야 돌아가서, 5단계 빌드 때 확인한다.
+- 남은 일
+  - 브라우저 실화면 확인(5단계)
+  - 워커 프로필 `sajuCrystal` 동기화(사용자 결정)
 
 ## 원 요청 요약 (요구사항 체크리스트)
 - 진입 카드 문구: 기능명 "사주 원석 추천", 보조 "연이의 원석 큐레이션", 제목 "내게 좋은 기운, 어떤 원석에 담겨 있을까?", 설명 "좋았던 해와 힘들었던 해를 돌아보고, 나에게 어울리는 원석을 찾아보세요", 버튼 "나에게 맞는 원석 찾기".
