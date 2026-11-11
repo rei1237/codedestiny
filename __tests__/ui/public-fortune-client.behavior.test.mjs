@@ -26,7 +26,7 @@ test('standalone Vedic loads canonical policy before pricing and offers free bas
  assert.match(basic,/cdIsFreeFortuneFeatureKey\(VEDIC_BASIC_FEATURE_KEY\)/);
  const compat=html.slice(html.indexOf('async function _vedicCompatCoinGate'),html.indexOf('async function doCompatCalc'));
  assert.ok(compat.indexOf("cdIsFreeFortuneFeatureKey('vedic-compatibility-per-use')")<compat.indexOf('_cdCoinGatePerUse'));
- assert.match(compat,/vedicPrashnaReadAuthHeaders\(\).Authorization/);
+ assert.match(compat,/fetch\('\/api\/auth\/me'/);assert.match(compat,/credentials:'include'/);
 });
 const hook=fs.readFileSync('app/hooks/useCoinGate.ts','utf8');
 const start=hook.indexOf('      const publicFeatureKey');const end=hook.indexOf('      /*',start);const branch=hook.slice(start,end);
@@ -49,4 +49,10 @@ test('home descriptions and current catalog do not sell approved free calculatio
  assert.doesNotMatch(shell,/기본 출생차트 무료 · 시너스트리 궁합 5,000원|명반 무료 · 해석 5,000원 · 궁합 5,000원/);
  const context={window:{}};vm.runInNewContext(fs.readFileSync('js/core/service-registry.js','utf8'),context);
  for(const item of context.window.__cdServiceRegistry)if(isFreeFortuneFeatureKey(item.featureKey))assert.equal(item.price,'무료',item.featureKey);
+});
+
+test('free Vedic compatibility admits cookie sessions and keeps guests out without billing',async()=>{
+ const start=html.indexOf('async function _vedicCompatCoinGate(');const end=html.indexOf('\nasync function doCompatCalc(',start);let status=200,logins=0,calls=0;
+ const ctx={window:{cdIsFreeFortuneFeatureKey:isFreeFortuneFeatureKey,alert:()=>{}},vedicPrashnaReadAuthHeaders:()=>({}),vedicPrashnaLoginPrompt:()=>{logins++;},fetch:async(url,init)=>{calls++;assert.equal(url,'/api/auth/me');assert.equal(init.credentials,'include');return{ok:status===200,status};}};
+ vm.createContext(ctx);vm.runInContext(html.slice(start,end),ctx);assert.equal(await ctx._vedicCompatCoinGate(50,'test',null),true);status=401;assert.equal(await ctx._vedicCompatCoinGate(50,'test',null),false);assert.equal(logins,1);assert.equal(calls,2);
 });

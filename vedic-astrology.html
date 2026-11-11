@@ -7378,9 +7378,14 @@ function _vedicSetPaymentPending(show, message){
 
 async function _vedicCompatCoinGate(cost, reason, resume){
   if(window.cdIsFreeFortuneFeatureKey&&window.cdIsFreeFortuneFeatureKey('vedic-compatibility-per-use')){
-    // Local deterministic calculation; keep the existing sign-in entry without billing.
-    if(!vedicPrashnaReadAuthHeaders().Authorization){vedicPrashnaLoginPrompt();return false;}
-    return true;
+    // Authenticate both cookie and token sessions without entering a billing flow.
+    try{
+      var auth=await fetch('/api/auth/me',{method:'GET',credentials:'include',headers:vedicPrashnaReadAuthHeaders()});
+      if(auth.ok) return true;
+      if(auth.status===401||auth.status===403) vedicPrashnaLoginPrompt();
+      else window.alert('로그인 상태를 확인하지 못했습니다. 잠시 후 다시 시도해 주세요.');
+    }catch(_){window.alert('연결을 확인한 뒤 다시 시도해 주세요.');}
+    return false;
   }
   cost=VEDIC_COMPAT_COST;
   reason=String(reason||'베다점 궁합 계산');
