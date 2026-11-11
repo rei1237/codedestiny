@@ -5,6 +5,7 @@ import "../styles/moonlit-birth-form.css";
 import "../styles/feature-marketing-detail.css";
 import "../styles/mobile-bottom-nav.css";
 import "../styles/yehwa-motifs-nav.css";
+import "../styles/fortune-reading-actions.css";
 import { ToastProvider } from "./components/Toast";
 import { PaymentProcessingProvider } from "./components/PaymentProcessingContext";
 import Script from "next/script";
