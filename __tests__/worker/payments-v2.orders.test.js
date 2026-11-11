@@ -406,18 +406,18 @@ describe("읽기 매핑과 소유권", () => {
 });
 
 
-test('출생 기반 5,000원 단건(판매 중인 자미 키) 주문·확정 재시도는 기존 멱등 상태기계를 재사용한다', async () => {
+test('출생 기반 3,000원 단건(판매 중인 가디언 키) 주문·확정 재시도는 기존 멱등 상태기계를 재사용한다', async () => {
  const {resolveProduct}=await import('../../worker/payments/catalog.js');
  const {verifyPgPayment}=await import('../../worker/payments/pg.js');
  // 묶음 포함 키(진로 리포트)는 신규 판매가 닫혀 판매 중인 출생 기반 키로 같은 상태기계를 확인한다.
  const product=resolveProduct({featureKey:'saju-guardian-unlock'});
- expect(product).toMatchObject({priceKRW:5000,priceCoins:50,billingType:'unlock'});
+ expect(product).toMatchObject({priceKRW:3000,priceCoins:30,billingType:'unlock'});
  const db=makeFakeDb({profileCards:[{userId:USER,profileId:'career-card',gender:'F',birth:{year:2000,month:3,day:15,hour:12,minute:30}}]});
  const first=await createOrder(db,{userId:USER,profileId:'career-card',product,idempotencyKey:'career-cash-001'});
  const retry=await createOrder(db,{userId:USER,profileId:'career-card',product,idempotencyKey:'career-cash-001'});
  expect(retry.merchantUid).toBe(first.merchantUid);expect(db.rows).toHaveLength(1);
  const query={orderId:first.merchantUid,expectedAmountKRW:product.priceKRW};
- const reply={paymentId:first.merchantUid,status:'paid',amount:5000,currency:'KRW',pay_method:'card'};
+ const reply={paymentId:first.merchantUid,status:'paid',amount:3000,currency:'KRW',pay_method:'card'};
  const env={PORTONE_API_SECRET:'mock',PORTONE_STORE_ID:'mock-store'};
  await expect(verifyPgPayment(env,query,{fetchPayment:async()=>({...reply,amount:100})})).rejects.toMatchObject({code:'AMOUNT_MISMATCH'});
  const pg=await verifyPgPayment(env,query,{fetchPayment:async()=>reply});

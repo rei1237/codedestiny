@@ -27,7 +27,7 @@ test.each(staticKeys)('%s uses its approved price and cannot become free in the 
  expect(getBillingFeaturePricing({featureKey}).pricing).toMatchObject({amountKRW:amount,cost:amount/100});
  expect(isAppFreeFeature(featureKey,product.priceCoins)).toBe(false);
 });
-test.each([['geomancy',5000],['animal-totem-basic',5000],['animal-totem-deep',5000],['saju-guardian-unlock',5000],['yeongnyangi-saju-mackerel',10000]])('%s uses its premium repricing amount', (featureKey,priceKRW)=>{
+test.each([['geomancy',5000],['animal-totem-basic',5000],['animal-totem-deep',5000],['saju-guardian-unlock',3000],['yeongnyangi-saju-mackerel',10000]])('%s uses its premium repricing amount', (featureKey,priceKRW)=>{
  expect(resolveProduct({featureKey}).priceKRW).toBe(priceKRW);
 });
 test('music stays free in the app while paid 1,000 won features use tier 15',()=>{

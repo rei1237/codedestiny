@@ -84,10 +84,15 @@ describe('균일가', () => {
   });
 
   test('lowered LLM products cost 5000', () => {
-    for (const featureKey of [...LOWERED_LLM_KEYS, 'saju-guardian-unlock']) {
+    for (const featureKey of LOWERED_LLM_KEYS) {
       const product = resolveProduct({ featureKey });
       expect([featureKey, product.priceKRW, product.priceCoins]).toEqual([featureKey, 5000, 50]);
     }
+  });
+
+  test('saju guardian costs 3000 per birth date (2026-11-11)', () => {
+    const product = resolveProduct({ featureKey: 'saju-guardian-unlock' });
+    expect([product.priceKRW, product.priceCoins]).toEqual([3000, 30]);
   });
 
   test('excluded products keep their price', () => {

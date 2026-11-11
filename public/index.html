@@ -16921,7 +16921,7 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
                         data-action="openSajuGuardianPage"
                         data-feature-key="saju-guardian-unlock"
                         data-tile-lock-key="saju-guardian-unlock"
-                        data-tile-lock-cost="50"
+                        data-tile-lock-cost="30"
                         data-fallback-href="/saju-guardian/"
                         aria-label="사주 가디언 소환진 시작" data-cd-trans-attr="aria-label:home.tiles.sajuGuardianAria">
                   <div class="tarot-tile__img-wrap" data-img-src="/images/service-introductions/saju-guardian-320.webp" data-img-alt="사주 가디언 소환진 — 일주·월지·시지로 여는 60갑자 수호 인장" data-cd-trans-attr="data-img-alt:home.tiles.sajuGuardianAlt">
@@ -16932,7 +16932,7 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
                   <div class="tarot-tile__body">
                     <span class="tarot-tile__title" data-cd-trans data-key="home.tiles.sajuGuardianTitle">🔮 사주 가디언 소환진</span>
                     <span class="tarot-tile__desc" data-cd-trans data-key="home.tiles.sajuGuardianDesc">일주·월지·시지 수호 리딩</span>
-                  <div class="cd-card-pricing"><span data-cd-price-key="saju-guardian-unlock" class="tarot-tile__coin-badge" data-cd-trans data-key="home.tiles.sajuGuardianPricePrice5000" data-price-krw="5000">영구 해금 5,000원</span></div>
+                  <div class="cd-card-pricing"><span data-cd-price-key="saju-guardian-unlock" class="tarot-tile__coin-badge" data-cd-trans data-key="home.tiles.sajuGuardianPricePrice3000" data-price-krw="3000">생년월일별 3,000원</span></div>
                   </div>
                 </button>
 
@@ -29674,7 +29674,7 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
             badge.classList.add('tarot-tile__coin-badge--lock');
             badge.textContent = key === 'love-code'
               ? '🔒 잠금 해제 ' + formatCoinValueWon(lockCost)
-              : (key === 'saju-guardian-unlock' ? '🔒 영구 해금 ' + formatCoinValueWon(lockCost) : '🔒 해금 ' + formatCoinValueWon(lockCost));
+              : (key === 'saju-guardian-unlock' ? '🔒 생년월일별 ' + formatCoinValueWon(lockCost) : '🔒 해금 ' + formatCoinValueWon(lockCost));
             badge.setAttribute('aria-label', key === 'love-code' ? '잠금 해제 필요' : '해금 필요');
           }
         }
@@ -35123,8 +35123,8 @@ function updateBadge() {
     openAnimalTotemModal:{cat:'토템 · 수호 동물',fallbackTitle:'🧸 애니멀 토템',tagline:'지금 이 순간 나에게 가장 필요한 메시지를 수호 동물이 보내고 있습니다 — 당신은 아직 못 들었을 뿐',feats:['샤머닉 전통 수호 동물 카드 정밀 리딩','오늘 반드시 들어야 할 경고 & 행운 메시지','지금 내가 해야 할 것과 피해야 할 것 분석','고화질 수호 동물 카드 비주얼'],cost:'3,000원~5,000원',ct:'paid',img:"/images/service-introductions/animal-totem.webp"},
 
     openFortuneTellerFishPage:{cat:'포춘텔러 · 물고기 점술',fallbackTitle:'🐟 포춘텔러 물고기',tagline:'작은 금붕어의 움직임을 바라보며 오늘의 흐름과 마음을 돌아보세요.',feats:['한 마리 금붕어의 네 가지 움직임','몸짓에 담긴 짧은 운세 해석','오늘 해볼 작은 행동 한 가지','차분하게 바라보는 스프라이트 애니메이션'],cost:'✨ 무료',ct:'free',img:'/assets/fortune-fish/fortune-fish-cover-v1.webp'},
-    openSajuGuardianPage:{cat:'명리 · 수호 인장',fallbackTitle:'🔮 사주 가디언 소환진',tagline:'일주를 중심으로 월지의 배경 기운과 시지의 보조 리듬을 맞춰, 지금 필요한 수호 인장과 7일 실행 의식을 엽니다.',feats:['일주 천간·지지·음양으로 타고난 중심 기운 판독','월지와 시지 흐름으로 현실 배경과 보조 수호 리듬 해석','오늘의 색·소환 주문·작은 실행을 담은 부적 주머니 제공','관계·일·재물 운용 문장과 7일 수호 미션 연결'],cost:'🔒 영구 해금 5,000원',ct:'paid',fallbackCta:'5,000원으로 영구 해금',img:"/images/service-introductions/saju-guardian.webp"},
-    openSajuAnimalPage:{cat:'명리 · 수호 인장',fallbackTitle:'🔮 사주 가디언 소환진',tagline:'일주를 중심으로 월지의 배경 기운과 시지의 보조 리듬을 맞춰, 지금 필요한 수호 인장과 7일 실행 의식을 엽니다.',feats:['일주 천간·지지·음양으로 타고난 중심 기운 판독','월지와 시지 흐름으로 현실 배경과 보조 수호 리듬 해석','오늘의 색·소환 주문·작은 실행을 담은 부적 주머니 제공','관계·일·재물 운용 문장과 7일 수호 미션 연결'],cost:'🔒 영구 해금 5,000원',ct:'paid',fallbackCta:'5,000원으로 영구 해금',img:"/images/service-introductions/saju-guardian.webp"},
+    openSajuGuardianPage:{cat:'명리 · 수호 인장',fallbackTitle:'🔮 사주 가디언 소환진',tagline:'일주를 중심으로 월지의 배경 기운과 시지의 보조 리듬을 맞춰, 지금 필요한 수호 인장과 7일 실행 의식을 엽니다.',feats:['일주 천간·지지·음양으로 타고난 중심 기운 판독','월지와 시지 흐름으로 현실 배경과 보조 수호 리듬 해석','오늘의 색·소환 주문·작은 실행을 담은 부적 주머니 제공','관계·일·재물 운용 문장과 7일 수호 미션 연결'],cost:'🔒 생년월일별 3,000원',ct:'paid',fallbackCta:'3,000원으로 해금하기',img:"/images/service-introductions/saju-guardian.webp"},
+    openSajuAnimalPage:{cat:'명리 · 수호 인장',fallbackTitle:'🔮 사주 가디언 소환진',tagline:'일주를 중심으로 월지의 배경 기운과 시지의 보조 리듬을 맞춰, 지금 필요한 수호 인장과 7일 실행 의식을 엽니다.',feats:['일주 천간·지지·음양으로 타고난 중심 기운 판독','월지와 시지 흐름으로 현실 배경과 보조 수호 리듬 해석','오늘의 색·소환 주문·작은 실행을 담은 부적 주머니 제공','관계·일·재물 운용 문장과 7일 수호 미션 연결'],cost:'🔒 생년월일별 3,000원',ct:'paid',fallbackCta:'3,000원으로 해금하기',img:"/images/service-introductions/saju-guardian.webp"},
     openCosmicSoulMeditation:{cat:'R=VD · 코스믹 소울 명상',fallbackTitle:'🌌 코스믹 소울 명상',tagline:'세타파 동기화로 무의식 DB에 성공 코드를 배포 — R=VD 공식 기반 30·60분 현실 렌더링 프로토콜',feats:['세타파(4-7Hz) 동기화 → 무의식 커널 직접 편집','5단계 Vibe Coding 로직: Reset→Patch→Render→Anchor→Deploy','30분 효율 동기화 & 60분 심층 자아 해체 버전 선택','부의·명료화·사랑·건강 4가지 맞춤 의도 설정','연속 일수·세션 횟수·코스믹 저널 저장 기능 포함'],cost:'1회 5,000원',ct:'paid',img:"/images/service-introductions/cosmic-soul-meditation.webp"},
     openNevilleMeditationPage:{cat:'네빌 명상 · 현실창조',fallbackTitle:'🧘 네빌 명상 실습',tagline:'이 명상을 3일 연속으로 하면 원하는 현실이 바뀌기 시작합니다 — 네빌 고다드의 검증된 기법',feats:['네빌 고다드가 실제 사용한 의식 명상 기법','원하는 것을 이미 가진 것처럼 느끼는 감각 훈련','부정적 신념 패턴을 즉시 해체하는 기법 적용','30분 완전 가이드 세션으로 처음도 쉽게'],cost:'3,000원',ct:'paid',img:"/images/service-introductions/neville-meditation.webp"},
     openYogaGuru:{cat:'인도 요가 · 에너지 정화',fallbackTitle:'🪷 Divya Yoga',tagline:'인도 요기들이 4000년간 비밀로 간직한 에너지 정화 루틴 — 막힌 운을 뚫는 차크라 활성화',feats:['사주·별자리 기반 나만의 에너지 타입 정확히 파악','맞춤 아사나로 지금 막혀 있는 기운 즉시 해소','차크라 활성화로 운의 흐름을 바꾸는 명상','인도 전통 요기 감성 완전 가이드 세션'],cost:'3,000원',ct:'paid',img:"/images/service-introductions/yoga-guru.webp"},
