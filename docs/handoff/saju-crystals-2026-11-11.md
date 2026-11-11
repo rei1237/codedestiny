@@ -176,6 +176,31 @@ next: 5단계 — 빌드·HTML grep·브라우저 390/1280 캡처·check:fast (m
   - 위쪽 말풍선 여백이 밋밋하다. 여러 컷에서 아치·선반이 그 가장자리에서 가로로 잘린다.
   - OG 이미지에서 연꽃 윗부분이 살짝 잘린다.
 
+### 5단계 (2026-11-12)
+- 빌드
+  - 다른 체크아웃의 `next dev -p 3217`이 떠 있어 빌드 가드가 막는다. 이 워크트리는 `.next`를 공유하지 않으므로 `ALLOW_DEV_SERVER_DURING_BUILD=1 npm run build`로 돌렸다. EXIT 0, `[adsense-readiness] OK`.
+  - 첫 빌드는 기존 문제로 실패했다. `out/saju/free` 제목 폭이 63으로 60을 넘었다. origin/main이 이미 `542fb9b42`로 고쳤으므로 `-x`로 cherry-pick했다(`70deca29d`, lastmod 충돌은 ours 뒤 `sitemap:generate`로 다시 만듦). main에 합칠 때 같은 변경이라 충돌이 나지 않는다.
+  - 빌드는 `js/core/free-fortune-policy.{js,mjs}`와 `public/` 사본의 줄끝을 바꾼다. 내용은 같으니 빌드 뒤 `git checkout --`로 되돌린다.
+- HTML grep (`dist/saju/crystals/index.html`)
+  - H1 "나에게 좋은 기운을 살펴보고, 어울리는 원석을 찾아보세요", canonical `https://code-destiny.com/saju/crystals/`, robots index, og 1200×630.
+  - 웹툰 첫·끝 대사와 6컷 주석이 있다. 웹툰 webp 참조 20개, 새 alt, 원석 그림 12종.
+  - FAQ 7문항이 모두 있다. JSON-LD는 WebPage·BreadcrumbList와 사이트 공통 Organization뿐이다. FAQPage·Product·퍼센트는 없다.
+  - sitemap에 `/saju/crystals/`가 있고 `/start`는 없다. start는 `noindex, nofollow` 메타와 `_headers` `X-Robots-Tag: noindex, follow`가 있다.
+  - `verify-adsense-readiness` OK, `sitemap:check` OK(1070 URL).
+- 브라우저 390/1280 (dist 정적 서버, Playwright, 캡처는 `D:\CodeDestiny-Build\saju-crystals-20261111\qa\`)
+  - 랜딩: 웹툰 10장, 원석 그림 14개(카드·결과 예시 합산), 색 칩 4개(생략한 4종)가 보인다. 깨진 이미지와 가로 넘침은 없다. `landing-*`, `landing-*-cutNN-clean.png`.
+  - 시작 흐름: 프로필 없음 → 좋았던 해·힘들었던 해 → 후속 질문 → 결과(백수정·황수정, 면책 문구, 퍼센트 없음) → 저장(`codeDestiny:sajuCrystal:guest:qa-profile-a`, 결과 본문은 저장하지 않음) → 새로고침하면 이어보기 → 수정하면 값이 미리 채워짐 → 결과. `start-*`.
+  - 프로필 전환: B는 A의 기록을 보지 않고 출생시간 모름 안내가 나온다. A로 돌아오면 이어보기가 다시 뜬다.
+  - `/ggulggul/` 사주 결과: `#sajuCrystalEntry`가 `#ukbuCard` 바로 뒤에 보인다. 그림 로드, 넘침 없음. CTA는 `/saju/crystals/start/?from=saju_result`로 간다. `ggulggul-*-entry-card.png`.
+    - 저장된 프로필이 있으면 start에 그 프로필 이름이 나온다(`ggulggul-*-entry-to-start-profile.png`).
+    - 프로필을 저장하지 않고 입력만으로 계산한 결과에서 들어오면 "먼저 출생 정보가 필요해요" 안내가 나온다(`ggulggul-*-entry-to-start.png`). 결과를 프로필별로 보관하는 설계대로다. 셸 입력값을 그대로 넘길지는 사용자 결정 거리다.
+    - 셸 계산에는 `/api/auth/me` 로그인 응답과 honey catalog 스텁이 필요하다(`scripts/verify-saju-summary-browser.mjs`와 같은 방식).
+  - 원석 기능의 버그는 찾지 못했다.
+- QC 메모 확인
+  - 1:1 컷(3·7·9)은 위쪽 빈 여백이 넓고(1280에서 약 150px), 아치·선반이 위 가장자리에서 잘린다. 사용자 그림이라 코드로 고치지 않았다.
+  - OG는 연꽃 윗부분이 가장자리에 닿는 정도다.
+- 1280 요소 캡처가 뷰포트(900)보다 크면 그림이 빈 색으로 찍힌다. 캡처 쪽 문제이므로 뷰포트를 1400으로 키워 다시 찍었다.
+
 ## 원 요청 요약 (요구사항 체크리스트)
 - 진입 카드 문구: 기능명 "사주 원석 추천", 보조 "연이의 원석 큐레이션", 제목 "내게 좋은 기운, 어떤 원석에 담겨 있을까?", 설명 "좋았던 해와 힘들었던 해를 돌아보고, 나에게 어울리는 원석을 찾아보세요", 버튼 "나에게 맞는 원석 찾기".
 - 핵심 설명: "사주에 없는 오행이 반드시 필요한 오행은 아니에요 / 꿀꿀운세는 사주 전체의 흐름과 실제로 좋았던 시기, 힘들었던 시기를 함께 살펴 나에게 도움이 되는 기운과 어울리는 원석을 제안해요"
