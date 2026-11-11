@@ -20,7 +20,7 @@ function renderNote(text, href, action) {
   if (!document.documentElement.lang.startsWith('ko')) return;
   document.getElementById('cdActivationGuide')?.remove();
   const note = document.createElement('aside'); note.id = 'cdActivationGuide'; note.className = 'cd-activation-guide';
-  note.setAttribute('aria-label', '연이의 월정석과 학교 선물 안내');
+  note.setAttribute('aria-label', '연이의 월정석과 등록 선물 안내');
   const image = document.createElement('img'); image.src = '/assets/service-intro/yeoni-gift.webp'; image.width = 54; image.height = 61; image.alt = '';
   const copy = document.createElement('div'), label = document.createElement('p'); label.textContent = text;
   const link = document.createElement('a'); link.href = href; link.textContent = action;
@@ -33,7 +33,7 @@ function showAccountNote() {
   document.getElementById('cdActivationGuide')?.remove();
   if (!account || isActivationGuideHidden(account.accountId)) return;
   if (campus?.verified && !hasCompleteSnuGift(campus))
-    renderNote('등록한 SNULIFE 사주 선물을 이어서 열어보세요.', '/snu/', '등록한 사주 선물 확인하기');
+    renderNote('등록한 사주 선물을 이어서 열어보세요.', '/snu/', '등록한 사주 선물 확인하기');
   else if (!sajuViewed && shouldShowTutorialGuide(account))
     renderNote(`연이랑 무료 만세력을 보고 월정석 ${TUTORIAL_REWARD.amount}개를 받아볼까요?`, '/first-steps/', '첫걸음 안내 보기');
 }
