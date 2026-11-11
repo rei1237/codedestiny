@@ -125,7 +125,7 @@ export default function SnuWelcome() {
             {data.profileId && data.unlockedFeatureKeys.length > 0 && <a className={styles.quietLink} href={SNU_READING_URL}>이미 열린 콘텐츠 보기<ArrowRight size={15} aria-hidden="true"/></a>}
           </>}
           {reviewEnd && data.campaign && <aside className={styles.reviewNote} aria-label="검수용 코드 안내"><strong>검수용 코드로 등록했어요.</strong><p>정식 모집 1,000계정과 별도로 최대 {data.campaign.limit}계정에서 확인할 수 있어요.<br/>코드 등록은 {reviewEnd}까지예요.</p></aside>}
-        </> : !message ? <p role="status" className={styles.loading}><LoaderCircle className={styles.spinner} size={20} aria-hidden="true"/>연이가 등록한 콘텐츠을 확인하고 있어요.</p> : null}
+        </> : !message ? <p role="status" className={styles.loading}><LoaderCircle className={styles.spinner} size={20} aria-hidden="true"/>연이가 등록한 콘텐츠를 확인하고 있어요.</p> : null}
         {message && <div role="status" data-error-code={failureCode || undefined} className={`${styles.feedback}${!data && !guest ? ` ${styles.loadFailure}` : ''}`}>{!data && !guest && <h2>선물을 불러오지 못했어요</h2>}<p>{message}</p>{(!data && !guest || ['SNULIFE_CLOSED', 'SNULIFE_UNAVAILABLE'].includes(failureCode)) && <button className={styles.primary} onClick={() => void load()}>기존 사주 선물 확인하기</button>}</div>}
       </section>
 
