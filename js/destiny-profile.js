@@ -2282,9 +2282,7 @@
   /* lockBody 호출 여부 추적 — mobile 에서 unlockBody 불필요 호출 방지 */
   var _bodyLocked = false;
 
-  /* ── 프로필 카드 운세 선택 모달: 유료 잠금 설정 ──
-     기본 차트(자미두수·숙요점·베다점·점성술)는 무료 개방.
-     운명의 꽃 아틀리에는 1회 10,000원 영구 해금. ── */
+  /* 기존 구매 복원용 키는 보존한다. 현재 무료 여부는 정본 정책으로만 판정한다. */
   var _DP_FEATURE_LOCKS = {
     olympus: { key: 'olympus-fc', cost: 10, name: '올림푸스 신탁' },
     flower:  { key: 'flower-fc',  cost: 100, name: '운명의 꽃 아틀리에 전체', extraUnlockKeys: ['flower-destiny', 'flower-astro', 'flower-ziwei', 'flower-sukuyo'] }
@@ -2446,6 +2444,7 @@
 
   function _dpIsFeatureLocked(lockKey) {
     if (!_dpHasAuthToken()) return true;
+    if (typeof window.cdIsFreeFortuneFeatureKey === 'function' && window.cdIsFreeFortuneFeatureKey(lockKey)) return false;
 
     var map = _dpReadTileLockMap();
     var aliases = _dpResolveUnlockAliasKeys(lockKey);
@@ -6283,6 +6282,24 @@
   function _dpGateLockFeature(type, cb) {
     var info = _DP_FEATURE_LOCKS[type];
     if (!info) { cb(); return; }
+    if (typeof window.cdIsFreeFortuneFeatureKey === 'function' && window.cdIsFreeFortuneFeatureKey(info.key)) {
+      if (!_dpHasAuthToken()) {
+        if (typeof window.__cdOpenLoginRequiredModal === 'function') {
+          window.__cdOpenLoginRequiredModal({ reason: '로그인 후 이용할 수 있는 기능입니다.', redirectTo: window.location.pathname + window.location.search + window.location.hash });
+        } else {
+          window.location.href = '/login?redirect=' + encodeURIComponent(window.location.pathname + window.location.search + window.location.hash);
+        }
+        return;
+      }
+      var profile = DPStorage.current();
+      if (!profile || !profile.birth) {
+        _toast('생년월일이 있는 프로필을 먼저 선택해 주세요.', 'warn');
+        if (typeof window.dpScrollToForm === 'function') window.dpScrollToForm();
+        return;
+      }
+      cb();
+      return;
+    }
     if (!_dpIsFeatureLocked(info.key)) { cb(); return; }
 
     if (_cdIsAdminLikeUser()) { cb(); return; }
@@ -10828,7 +10845,24 @@
     });
   };
 
+  var _dpProfileFortuneEntryVersion = 0;
+  function _dpProfileFortuneIdentity() {
+    var profile = DPStorage.current();
+    return JSON.stringify([_dpGetProfileScope(), _dpHasAuthToken(), profile && profile.id, profile && profile.name, profile && profile.birth, profile && profile.gender, profile && profile.location]);
+  }
+  function _dpInvalidateProfileFortuneEntry(event) {
+    var detail = event && event.detail;
+    if (detail && (detail.source === 'subscription-sync' || detail.source === 'membership-cache') && (detail.event || detail.type) === 'subscription') return;
+    _dpProfileFortuneEntryVersion += 1;
+  }
+  ['cd:auth-changed', 'cd:auth-session-invalidated', 'cd:profile-changed', 'destiny:profile-changed', 'popstate', 'pagehide'].forEach(function(name) {
+    window.addEventListener(name, _dpInvalidateProfileFortuneEntry);
+  });
+  document.addEventListener('destinyProfileChanged', _dpInvalidateProfileFortuneEntry);
+  window.addEventListener('storage', _dpInvalidateProfileFortuneEntry);
+
   window._dpCloseFortuneSel = function() {
+    _dpProfileFortuneEntryVersion += 1;
     var ov = window._dpFortuneSelEl || document.querySelector('.dp-fsel-overlay');
     if (!ov) return;
     var returnFocus = ov.__dpReturnFocus;
@@ -10847,6 +10881,11 @@
   };
 
   window._dpOpenFortuneType = function(type) {
+    var entryVersion = ++_dpProfileFortuneEntryVersion;
+    var entryIdentity = _DP_FEATURE_LOCKS[type] ? _dpProfileFortuneIdentity() : '';
+    function entryIsCurrent() {
+      return !entryIdentity || (entryVersion === _dpProfileFortuneEntryVersion && entryIdentity === _dpProfileFortuneIdentity());
+    }
     /* fsel 오버레이를 페이드아웃 후 DOM에서 완전 제거한 뒤 모달 열기
        (backdrop-filter stacking context → iOS WebKit 화이트스크린 방지) */
     var ov = window._dpFortuneSelEl || document.querySelector('.dp-fsel-overlay');
@@ -10856,9 +10895,10 @@
     window._dpFortuneSelEl = null;
 
     function _openTarget() {
+      if (!entryIsCurrent()) return;
       /* 유료 잠금 대상 기능은 게이트를 통과해야 실행 */
       if (_DP_FEATURE_LOCKS[type]) {
-        _dpGateLockFeature(type, function() { _runFortuneType(type); });
+        _dpGateLockFeature(type, function() { if (entryIsCurrent()) _runFortuneType(type); });
         return;
       }
       _runFortuneType(type);
@@ -10930,6 +10970,7 @@
         }
 
         function _runOlympusBridge() {
+          if (!entryIsCurrent()) return true;
           if (typeof window.openOlympusOracleModal === 'function') {
             window.openOlympusOracleModal();
             return true;
@@ -11024,6 +11065,7 @@
           var flowerCard = document.querySelector('.feature-card.feature-card--destiny-flower');
           if (flowerCard && typeof flowerCard.scrollIntoView === 'function') {
             setTimeout(function() {
+              if (!entryIsCurrent()) return;
               flowerCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }, 80);
           }
