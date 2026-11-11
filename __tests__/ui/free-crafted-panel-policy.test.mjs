@@ -28,3 +28,14 @@ test('all manifest changes are exact free keys and preserve unchanged panels',()
  for(const id of fs.readdirSync(root)){let d;try{d=manifest(id)}catch{continue}for(const p of d.panels||[]){const n=currentFreeCraftedPanel(d,p);if(n!==p){changed++;assert.ok(isFreeFortuneFeatureKey(d.featureKey));assert.equal(n.src,p.src);assert.equal(n.title,p.title);}else assert.strictEqual(n,p);}}
  assert.ok(changed>40&&changed<60, String(changed));
 });
+
+test('price options use exact option keys and keep mixed AI prices intact',async()=>{
+ const {renderFeatureDetailPanels}=await import('../../js/feature-detail-panels.mjs');
+ const d={verification:'verified',featureKey:'nakshatra-basic-reading',title:'안내',href:'/nakshatra/',ctaLabel:'보기',priceOptions:[{featureKey:'nakshatra-basic-reading',label:'기본',amountKRW:3000},{featureKey:'nakshatra-ai-consultation',label:'AI',amountKRW:30000}]};
+ const html=renderFeatureDetailPanels(d,{startPriceLabel:'기본과 AI 별도'});
+ assert.ok(html.includes('<dt>기본</dt><dd>무료</dd>'));
+ assert.ok(html.includes('<dt>AI</dt><dd>30,000원</dd>'));
+ assert.ok(html.includes('기본과 AI 별도'));
+ const free=renderFeatureDetailPanels({...d,priceOptions:[]},{startPriceLabel:'3,000원'});
+ assert.ok(!free.includes('3,000원'));assert.ok(free.includes('무료 계산형 콘텐츠 · AI 생성 상담 별도'));
+});
