@@ -75,13 +75,17 @@ test('free result uses exact saved birth input, deduplicates clicks, and never c
   const pending = deferred();
   const app = await mount({ free: () => pending.promise });
   try {
+    assert.match(document.querySelector('[aria-live="polite"]').textContent, /첫 장 미리보기를 보고 있어요/);
     await act(async () => { app.freeButton().click(); app.freeButton().click(); });
+    assert.match(document.querySelector('[aria-live="polite"]').textContent, /리포트를 확인하고 있어요/);
     const requests = app.calls.filter(([url]) => url === '/api/fpti/deep-report/free');
     assert.equal(requests.length, 1);
     assert.deepEqual(JSON.parse(requests[0][1].body), { profileId: 'profile-a', birthInput: { birthDate: '1990-01-01', birthTime: '', birthTimeUnknown: true, calendarType: 'solar' } });
     assert.deepEqual(requests[0][2], { retryOn401: false });
     assert.ok(app.calls.filter(([url]) => url === '/api/auth/me').every(([, , options]) => options.forceFresh === true));
     await act(async () => pending.resolve(response(freePayload())));
+    assert.match(document.querySelector('[aria-live="polite"]').textContent, /무료 리포트를 불러왔어요/);
+    assert.doesNotMatch(document.querySelector('[aria-live="polite"]').textContent, /미리보기|열어 주세요/);
     assert.match(document.body.textContent, /검증된 전체 해석 본문/);
     assert.match(document.body.textContent, /보관함에 자동 저장되지/);
     assert.equal(document.querySelector('a[href*="records/view"]'), null);
@@ -189,6 +193,8 @@ test('historical archive read, refund denial and explicit old purchase resume ke
   const archived = await mount({ archive: () => response({ ok: true, data: { report } }) });
   try {
     assert.match(document.body.textContent, /검증된 전체 해석 본문/);
+    assert.match(document.querySelector('[aria-live="polite"]').textContent, /전체 리포트를 읽을 수 있어요/);
+    assert.doesNotMatch(document.querySelector('[aria-live="polite"]').textContent, /무료 리포트를 불러왔어요/);
     assert.ok(document.querySelector('a[href*="records/view"]'));
     assert.ok(archived.calls.every(([, init]) => init.method === 'GET'));
     assert.doesNotMatch(document.body.textContent, /보관함에 자동 저장되지/);
