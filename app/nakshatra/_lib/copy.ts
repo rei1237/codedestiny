@@ -37,7 +37,7 @@ export interface NakshatraCopy {
   needBirthLine1: string;
   needBirthLine2: string;
   needBirthLinkText: string;
-  unlockGateNote: "No extra payment is required for this calculated reading. AI consultations are separate.",
+  unlockGateNote: string;
   genderPromptTitle: string;
   genderPromptDefaultNote: string;
   genderMaleLabel: string;
@@ -49,7 +49,7 @@ export interface NakshatraCopy {
   vvipEyebrow: string;
   vvipTitle: string;
   vvipLede: string;
-  vvipGatePrice: "Free",
+  vvipGatePrice: string;
   vvipGateNote: string;
   vvipReceiveButton: string;
   vvipBuildingButton: string;
@@ -71,7 +71,7 @@ export interface NakshatraCopy {
   dashaEyebrow: string;
   dashaTitle: string;
   dashaLede: string;
-  dashaPriceLabel: "Free",
+  dashaPriceLabel: string;
   dashaUnlockButton: string;
   dashaLoadingText: string;
   dashaPreparingText: string;
@@ -95,7 +95,7 @@ export interface NakshatraCopy {
   lordEyebrow: string;
   lordTitle: string;
   lordLede: string;
-  lordPriceLabel: "Free",
+  lordPriceLabel: string;
   lordUnlockButton: string;
   lordLoadingText: string;
   lordPreparingText: string;
@@ -113,7 +113,7 @@ export interface NakshatraCopy {
   muhurtaLede: string;
   muhurtaPurposeQuestionLabel: string;
   muhurtaStartDateLabel: string;
-  muhurtaPriceLabel: "Free",
+  muhurtaPriceLabel: string;
   muhurtaFindButton: (amountKrwLabel: string) => string;
   muhurtaSearchingButton: string;
   muhurtaBestTitle: string;
@@ -183,7 +183,7 @@ export interface NakshatraCopy {
   compatGateFailedError: string;
   compatCopiedText: string;
   compatSendInviteText: string;
-  compatPriceLabel: "Free",
+  compatPriceLabel: string;
   compatSubmitButton: (amountKrwLabel: string) => string;
   compatCheckingButton: string;
   compatComparingButton: string;
