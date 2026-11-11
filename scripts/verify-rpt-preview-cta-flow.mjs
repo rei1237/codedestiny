@@ -10,10 +10,11 @@
  * 결함은 실행 시점에만 드러난다 — 그래서 진짜 클릭을 쏴서 호출 횟수를 센다.
  *
  * 재현 시나리오 (각각 새 페이지에서):
- *  1) 잠금 타일   : 클릭 → 상세 팝업만 뜬다(결제 게이트·토글 없음) → CTA → 결제 경로 진입
- *  2) 해금 타일   : 클릭 → 상세 팝업만 뜬다(카드 안 펼쳐짐)       → CTA → 카드 1회만 열림
- *                 → 펼쳐진 카드 재클릭 → 팝업 없이 접힘 → 다시 클릭하면 팝업 복귀
- *  3) 회당결제 타일: 클릭 → 상세 팝업만 뜬다                       → CTA → 결제 경로 진입
+ *  1) 실제 무료 quantum 타일: 기본 paid-only 미리보기 정책에서 바로 1회 토글
+ *  2) 같은 무료 타일: 전체 미리보기 모드에서 팝업 → CTA 1회 → 닫기 → 팝업 복귀
+ *  3) 실제 self-gated 인연 버튼: shell 결제 없이 경로 핸들러 1회
+ *  4) 실제 유료 요가 타일: 상세 팝업 → CTA → 결제 게이트 또는 로그인 요구
+ *     로그인 요구는 결제 성공이 아니다. 외부 서비스/결제는 호출하지 않는다.
  *
  * 2)의 "1회만"이 핵심이다. 예전엔 첫 클릭에서 카드가 팝업 뒤로 열리고(1회), CTA 재클릭이
  * 토글로 도로 닫아(2회) 사용자에게는 "눌러도 안 열림"으로 보였다.
@@ -30,6 +31,17 @@ import os from "node:os";
 import path from "node:path";
 import { spawn } from "node:child_process";
 import WebSocket from "ws";
+import { isFreeFortuneFeatureKey } from "../lib/payment/free-fortune-policy.mjs";
+
+const FREE_KEY = "rpt_quantumCard";
+const ROUTE_KEY = "destiny_meeting_place";
+const PAID_KEY = "yoga-guru-per-use";
+// Fail before browser startup if a fixture drifts from the canonical policy.
+if (!isFreeFortuneFeatureKey(FREE_KEY) || !isFreeFortuneFeatureKey(ROUTE_KEY)
+    || isFreeFortuneFeatureKey(PAID_KEY)
+    || ["section_summary", "section_daewun", "saju_lifetime_bundle", "human-design-report"].some(isFreeFortuneFeatureKey)) {
+  throw new Error("RPT fixture 무료/유료 예외 정책 불일치");
+}
 
 const root = process.cwd();
 const staticRoot = root;
@@ -44,8 +56,6 @@ let chrome;
 let cdp;
 let userDataDir;
 
-const LOCK_KEY = "rpt_quantumCard";
-const PER_USE_KEY = "rpt_destinyMeetingPlace";
 
 try {
   const launched = await launchReadyChrome();
@@ -61,25 +71,21 @@ try {
     mobile: false,
   });
 
-  // ── 1) 잠금 타일 ────────────────────────────────────────────────────────────
+  // ── 1) 기본 무료 타일: reportDashboard의 실제 inline onclick 계약 ──────────
   await resetPage();
-  await installFixture({ lockKey: LOCK_KEY, lockCost: 100, unlocked: false });
-  const lockedFirst = await clickTileAndRead();
-  assert(lockedFirst.editorialImage.includes('quantum-saju-480.webp'), '잠금 타일 → 해당 상품의 결과 구성 이미지가 표시된다', lockedFirst);
-  assert(lockedFirst.previewOpen, "잠금 타일 클릭 → 기능 상세 팝업이 뜬다", lockedFirst);
-  assert(!lockedFirst.blockOpen, "잠금 타일 클릭 → 카드가 펼쳐지지 않는다", lockedFirst);
-  assert(!lockedFirst.paidGateOpen, "잠금 타일 클릭 → 결제 게이트로 직행하지 않는다", lockedFirst);
-  assert(lockedFirst.toggleCalls === 0, "잠금 타일 클릭 → 토글 0회", lockedFirst);
-
-  const lockedCta = await clickCtaAndRead();
-  assert(!lockedCta.previewOpen, "잠금 CTA → 팝업이 닫힌다", lockedCta);
-  // rpt_quantumCard 는 묶음 전용으로 판매가 닫혔다. 개별 결제가 아니라 묶음 안내로 가야 한다.
-  assert(lockedCta.bundleOfferOpen, "잠금 CTA → 묶음 안내가 열린다", lockedCta);
-  assert(!lockedCta.paidGateOpen, "잠금 CTA → 판매 종료 상품의 개별 결제 게이트를 열지 않는다", lockedCta);
+  await installFixture();
+  const freeFirst = await clickTileAndRead();
+  assert(!freeFirst.previewOpen && freeFirst.blockOpen && freeFirst.toggleCalls === 1,
+    "기본 무료 타일 → 팝업 없이 정확히 1회 열림", freeFirst);
+  assert(!freeFirst.paidGateOpen && !freeFirst.bundleOfferOpen && !freeFirst.loginRequired,
+    "무료 타일 → 결제/묶음/로그인 경로로 오인하지 않음", freeFirst);
+  const freeSecond = await clickTileAndRead();
+  assert(!freeSecond.blockOpen && freeSecond.toggleCalls === 2 && !freeSecond.previewOpen,
+    "기본 무료 타일 재클릭 → 정확히 1회 닫힘", freeSecond);
 
   // ── 2) 해금 타일 ────────────────────────────────────────────────────────────
   await resetPage();
-  await installFixture({ lockKey: LOCK_KEY, lockCost: 100, unlocked: true });
+  await installFixture({ allPreviews: true });
   const unlockedFirst = await clickTileAndRead();
   assert(unlockedFirst.previewOpen, "해금 타일 클릭 → 기능 상세 팝업이 뜬다", unlockedFirst);
   assert(
@@ -87,12 +93,14 @@ try {
     "해금 타일 클릭 → 카드가 팝업 뒤에서 펼쳐지지 않는다 (이중 처리 없음)",
     unlockedFirst,
   );
-  assert(unlockedFirst.previewCtaLabel.indexOf("결과 보러가기") >= 0, "해금 팝업 CTA 문구가 '결과 보러가기'", unlockedFirst);
+  assert(unlockedFirst.editorialImage.includes('quantum-saju-480.webp'), "무료 상세에 고유 quantum 이미지 유지", unlockedFirst);
+  assert(unlockedFirst.previewCtaLabel.length > 0 && !/구매|결제|충전|해금/.test(unlockedFirst.previewCtaLabel), "무료 CTA에 유료 동작을 안내하지 않음", unlockedFirst);
 
   const unlockedCta = await clickCtaAndRead();
   assert(!unlockedCta.previewOpen, "해금 CTA → 팝업이 닫힌다", unlockedCta);
   assert(unlockedCta.toggleCalls === 1, "해금 CTA → 토글이 정확히 1회 (열렸다 닫힘 회귀 없음)", unlockedCta);
   assert(unlockedCta.blockOpen, "해금 CTA → 카드가 열린 채 유지된다", unlockedCta);
+  assert(!unlockedCta.paidGateOpen && !unlockedCta.bundleOfferOpen && !unlockedCta.loginRequired, "무료 CTA → 결제/묶음 진입 없음", unlockedCta);
 
   // 펼쳐진 카드의 재클릭('닫기') — 팝업이 또 뜨면 사용자는 카드를 영영 닫을 수 없다.
   // CTA 가 다는 data-pvw-cta-bypass 는 100ms 뒤 사라지므로, 여기서는 진짜 맨클릭 상태다.
@@ -108,15 +116,29 @@ try {
   assert(unlockedThird.previewOpen, "다시 접힌 카드 클릭 → 상세 팝업이 정상 복귀한다", unlockedThird);
   assert(unlockedThird.toggleCalls === 2, "다시 접힌 카드 클릭 → 토글은 늘지 않는다(팝업 우선 유지)", unlockedThird);
 
-  // ── 3) 회당결제 타일 ────────────────────────────────────────────────────────
+  // ── 3) 현재 인연 버튼은 toggle이 아니라 self-gated route action이다 ─────────
   await resetPage();
-  await installFixture({ coinCost: 100, featureKey: PER_USE_KEY });
-  const perUseFirst = await clickTileAndRead();
-  assert(perUseFirst.previewOpen, "회당결제 타일 클릭 → 기능 상세 팝업이 뜬다", perUseFirst);
-  assert(!perUseFirst.paidGateOpen, "회당결제 타일 클릭 → 결제 게이트로 직행하지 않는다", perUseFirst);
+  await installFixture({ kind: "route" });
+  const route = await clickTileAndRead();
+  assert(route.routeCalls === 1,
+    "인연 버튼 → openDestinyMeetingPlaceRoute action handler가 정확히 1회 호출됨", route);
+  assert(!route.previewOpen && !route.paidGateOpen && !route.bundleOfferOpen && route.toggleCalls === 0,
+    "인연 버튼 → shell 결제/묶음/카드 토글 없이 self-gated 페이지로 위임", route);
 
-  const perUseCta = await clickCtaAndRead();
-  assert(perUseCta.paymentEntered, "회당결제 CTA → 결제 경로로 진입한다", perUseCta);
+  // ── 4) 현재 유료 타일을 DOM에서 복제: 가상 상품키로 유료 검사를 통과시키지 않는다 ──
+  await resetPage();
+  await installFixture({ kind: "paid" });
+  const paidFirst = await clickTileAndRead();
+  assert(paidFirst.previewOpen && !paidFirst.paidGateOpen && paidFirst.toggleCalls === 0,
+    "유료 타일 → 결제 전 상세 팝업만 표시", paidFirst);
+  const paidCta = await clickCtaAndRead();
+  assert(paidCta.paidGateOpen || paidCta.loginRequired,
+    "유료 CTA → 결제 게이트 또는 선행 로그인 요구 (무료 실행 아님)", paidCta);
+  assert(paidCta.toggleCalls === 0 && !paidCta.blockOpen,
+    "유료 CTA → 미구매 결과를 토글하지 않음", paidCta);
+  if (paidCta.loginRequired) {
+    assert(!paidCta.paidGateOpen, "로그인 이동은 결제 게이트 성공과 별도로 기록", paidCta);
+  }
 
   if (failures.length) {
     console.error("\n❌ 재미있는 사주 콘텐츠 팝업/결제 흐름 재현 실패\n");
@@ -152,94 +174,71 @@ async function resetPage() {
  * reportDashboard.js 가 생성하는 것과 같은 속성의 타일을 주입한다.
  * (실 대시보드는 사주 분석 완주 후에만 렌더되므로 홈 셸에는 존재하지 않는다.)
  */
-async function installFixture({ lockKey = "", lockCost = 0, coinCost = 0, featureKey = "", unlocked = false }) {
+async function installFixture({ kind = "free", allPreviews = false } = {}) {
   const expression = `(() => {
     document.querySelectorAll('#cdRptFixture').forEach(n => n.remove());
+    window.__cdFeatureMarketingPreviewPaidOnly = ${!allPreviews};
     const wrap = document.createElement('div');
     wrap.id = 'cdRptFixture';
     wrap.style.cssText = 'position:relative;z-index:1;padding:24px';
-    const lockAttrs = ${JSON.stringify(lockKey)}
-      ? ' data-tile-lock-key="' + ${JSON.stringify(lockKey)} + '" data-tile-lock-cost="' + ${lockCost} + '"'
-      : '';
-    const coinAttrs = ${coinCost} > 0
-      ? ' data-coin-cost="' + ${coinCost} + '" data-feature-key="' + ${JSON.stringify(featureKey)} + '"'
-      : '';
-    wrap.innerHTML = ''
-      + '<section class="rpt-v2-block" id="cdRptFixtureBlock">'
-      + '  <div class="rpt-v2-head">'
-      + '    <button class="rpt-v2-toggle-btn" id="cdRptFixtureBtn" type="button" data-action="toggleRptCard"'
-      +        lockAttrs + coinAttrs + ' aria-expanded="false" data-label="열기">'
-      + '      <span class="rpt-v2-toggle-label">열기</span>'
-      + '      <span class="rpt-v2-toggle-arrow" aria-hidden="true">▼</span>'
-      + '    </button>'
-      + '  </div>'
-      + '  <div class="rpt-v2-detail" aria-hidden="true"><div class="rpt-v2-detail-inner">본문</div></div>'
-      + '</section>';
+    let button;
+    if (${JSON.stringify(kind)} === 'paid') {
+      // Exact production tile, including action, href and price metadata.
+      const original = document.querySelector('a[data-feature-key="${PAID_KEY}"]');
+      if (!original) throw new Error('실제 유료 대조 타일 없음');
+      button = original.cloneNode(true);
+      // The static server has no billing API. Seed only the existing paid product's
+      // display price from its real tile, never an entitlement or payment response.
+      const cost = Number(original.getAttribute('data-coin-cost'));
+      if (!(cost > 0) || !window.CodeDestinyFeaturePricingStore) throw new Error('유료 대조 가격/저장소 없음');
+      window.CodeDestinyFeaturePricingStore.cache['${PAID_KEY}'] = {
+        featureKey: '${PAID_KEY}', amountKRW: cost * 100, coinPrice: cost, cost,
+        displayPrice: (cost * 100).toLocaleString('ko-KR') + '원',
+        paymentMode: 'per_use', billingType: 'per_use', source: 'production-tile-test-fixture'
+      };
+    } else {
+      button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'rpt-v2-toggle-btn';
+      button.textContent = '열기';
+      if (${JSON.stringify(kind)} === 'route') {
+        button.setAttribute('data-action', 'openDestinyMeetingPlaceRoute');
+      } else {
+        button.setAttribute('onclick', 'toggleReportFeatureCard(this)');
+        button.setAttribute('data-feature-key', '${FREE_KEY}');
+        button.setAttribute('data-pvw-free', '1');
+        button.setAttribute('aria-expanded', 'false');
+        button.setAttribute('data-label', '열기');
+      }
+    }
+    button.id = 'cdRptFixtureBtn';
+    wrap.innerHTML = '<section class="rpt-v2-block" id="cdRptFixtureBlock"><div class="rpt-v2-head"></div><div class="rpt-v2-detail" aria-hidden="true"><div class="rpt-v2-detail-inner">본문</div></div></section>';
+    wrap.querySelector('.rpt-v2-head').appendChild(button);
     document.body.insertBefore(wrap, document.body.firstChild);
     window.scrollTo(0, 0);
-
-    // 이 하네스의 정적 서버에는 /api/billing/features가 없다. 실제 화면은 Worker 가격
-    // 카탈로그에서 영구 해금 상품 가격을 받으므로, 같은 정규화 결과를 캐시에 시드한다.
-    // (data-tile-lock-* 속성만 쓰는 reportDashboard 타일 계약은 그대로 유지한다.)
-    if (${JSON.stringify(lockKey)} && window.CodeDestinyFeaturePricingStore) {
-      window.CodeDestinyFeaturePricingStore.cache[${JSON.stringify(lockKey)}] = {
-        featureKey: ${JSON.stringify(lockKey)},
-        displayPrice: (${lockCost} * 100).toLocaleString('ko-KR') + '원',
-        amountKRW: ${lockCost} * 100,
-        coinPrice: ${lockCost},
-        cost: ${lockCost},
-        paymentMode: 'single_purchase',
-        billingType: 'unlock',
-        pricingPolicy: null,
-        categoryKey: '',
-        source: 'worker-registry-test-fixture'
-      };
-    }
-
-    // rpt_* 잠금 키는 출생 기반이다 — 저장 카드(profileId + 출생) 없이는 결제 CTA 가 alert 로 막히고
-    // (CDP 평가가 그 대화상자에 걸려 멈춘다) legacy map 플래그도 무시된다. 저장 카드를 두고,
-    // 해금은 그 카드에 묶인 검증 grant 로 시드한다.
     window.__cdCurrentDestinyProfile = {
       profileId: 'rpt-preview-profile',
       birth: { year: 1990, month: 5, day: 15, hour: 12, minute: 0 }
     };
-    try {
-      if (${unlocked ? "true" : "false"}) {
-        window._cdFinalizeUnlockState(${JSON.stringify(lockKey)}, {
-          data: {
-            featureKey: ${JSON.stringify(lockKey)},
-            profileId: 'rpt-preview-profile',
-            requestId: 'rpt-preview-unlocked',
-            accessGranted: true,
-            accessGrant: { featureKey: ${JSON.stringify(lockKey)}, profileId: 'rpt-preview-profile', evidenceId: 'rpt-preview-unlocked' }
-          }
-        });
-      } else if (window.unlockedFeatureMap) {
-        delete window.unlockedFeatureMap[${JSON.stringify(lockKey)}];
-      }
-    } catch (_) {}
-
-    // 토글 호출 횟수만 센다 — 회귀는 '몇 번 불리는가'다.
+    // No purchase, entitlement, fake grant or price-cache seed for free results.
     window.__cdRptToggleCalls = 0;
+    window.__cdRptRouteCalls = 0;
+    window.openDestinyMeetingPlaceRoute = function () {
+      window.__cdRptRouteCalls += 1;
+    };
     window.toggleReportFeatureCard = function (btn) {
       window.__cdRptToggleCalls += 1;
       const block = btn && btn.closest ? btn.closest('.rpt-v2-block') : null;
       if (block) block.classList.toggle('open');
-      // 실제 구현(reportDashboard.js)과 동일하게 열림 상태를 버튼에도 반영한다.
       if (btn && block) btn.setAttribute('aria-expanded', block.classList.contains('open') ? 'true' : 'false');
     };
     return {
       injected: !!document.getElementById('cdRptFixtureBtn'),
-      unlockedSeen: typeof window.isTileKeyUnlocked === 'function'
-        ? !!window.isTileKeyUnlocked(${JSON.stringify(lockKey)})
-        : null
+      freeSeen: typeof window.isTileKeyUnlocked === 'function' && window.isTileKeyUnlocked('${FREE_KEY}') === true
     };
   })()`;
   const state = await evaluate(cdp, expression, "install fixture");
-  if (!state.injected) throw new Error("픽스처 타일 주입 실패");
-  if (lockKey && state.unlockedSeen !== unlocked) {
-    throw new Error(`해금 상태 시드 실패: 기대 ${unlocked}, 실제 ${state.unlockedSeen}`);
-  }
+  if (!state.injected || !state.freeSeen) throw new Error("현재 무료 정책/타일 주입 실패");
 }
 
 async function clickTileAndRead() {
@@ -277,7 +276,8 @@ function readState() {
       blockOpen: !!(block && block.classList.contains('open')),
       toggleCalls: Number(window.__cdRptToggleCalls || 0),
       pathname: location.pathname,
-      paymentEntered: !!(gate && gate.classList.contains('is-open')) || location.pathname.indexOf('/login') === 0
+      routeCalls: Number(window.__cdRptRouteCalls || 0),
+      loginRequired: location.pathname.indexOf('/login') === 0
     };
   })()`, "read state");
 }

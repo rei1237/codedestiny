@@ -1,20 +1,23 @@
 ---
-status: in_progress
+status: active
 updated: 2026-11-11
+next: "문서·검사 기대 수정본의 정확한 CI와 실제 스테이징 배포 성공을 확인한 뒤 승인된 운영 승격을 진행한다."
 ---
 
 # 사주 무료화·클래식 UI 최종 릴리스
 
 ## 현재 상태
 
-승인된 비LLM 62개 기능키의 무료화, 클래식 사주 결과, 개별 재미 콘텐츠 이미지, 달빛 예화 버튼, 연이·영냥이 진입 로딩을 구현했다. 모든 소스와 공식 생성물은 저장됐으며 전체 Node/Jest를 포함한 최종 검증을 통과했다. 원격 main push와 운영 승격은 아직 하지 않았다. 가디언 변경·앱 최종 빌드·절전은 별도 후속이다.
+승인된 비LLM 62개 기능키의 무료화, 클래식 사주 결과, 개별 재미 콘텐츠 이미지, 달빛 예화 버튼, 연이·영냥이 진입 로딩을 구현했다. 모든 소스와 공식 생성물은 저장됐으며 전체 Node/Jest를 포함한 최종 검증을 통과했다. 원격 main은 9e70831b58790f4a29801a1e43a7bf1b4beeb720까지 반영했다. 운영 승격은 아직 하지 않았다. CI43010992265는 미러 검사를 통과한 뒤 이 문서의 프론트매터 규약에서 실패했다. 규약을 수정하고 뒤에 생략된 가드도 검사해, 새 무료 정책과 어긋난 모바일 가격·재미 사주 CTA 검사 기대를 보정했다. 새 후보의 CI 성공은 아직 확인하지 않았다. 가디언 변경·앱 최종 빌드·절전은 별도 후속이다.
 
 - 작업 경로: D:\Development\codedestiny-worktrees\saju-free-classic-ui-20261111-20261111-094658
 - 브랜치: wt/saju-free-classic-ui-20261111-20261111-094658
-- 마지막 소스/검사 커밋: 5b5d80df1f51a88fa4baebfb22a925ee799d4111
+- 마지막 제품 소스/검사 후보: 10e710251fc8d3cd9db75c7ba2454d7d5fa57799
 - 공식 생성물 커밋: 958859c1f
-- 마지막 확인 origin/main: 2a53c1dfb93ae2f5f1be50657d7f9b553f45164f, 현재 HEAD의 조상
-- 기존 main CI: https://github.com/rei1237/codedestiny/actions/runs/42934290625 성공
+- 마지막 확인 origin/main: 9e70831b58790f4a29801a1e43a7bf1b4beeb720
+- 최신 CI: https://github.com/rei1237/codedestiny/actions/runs/43010992265 — 빌드·타입/lint·미러 성공, 인수인계 문서 규약 실패
+- 9e70831b는 공식 Linux 생성기로 .ignore의 CSS 미러 두 줄만 보정했다. 제품·권한·가디언 소스는 바꾸지 않았다. mirror self-test와 check:pre-push 통과.
+- Windows 연결 중단으로 CI 수선은 격리 Linux 복제본에서 수행했다. 기존 Windows 로컬 문서 커밋30bd38cd0은 현재 원격보다 낡았으므로 그대로 push하지 않는다.
 - 마지막 확인 운영 코드: 162081df1bf788ef536b6e00027579324f3f3270
 - 공유 main 체크아웃과 다른 작업트리의 미커밋 변경은 보존한다. 해당 체크아웃으로 전환하거나 reset/stash하지 않는다.
 
@@ -53,19 +56,21 @@ updated: 2026-11-11
 - 실제 mock 화면:360/390/430/1280px. 만세력 우선, 개별 이미지/본문, 무료 결과·기존 유료 예외, CTA48~50px·넘침0·브라우저 오류0 확인. Olympus14개 실제 흐름과47회귀, React31, renderer25, FPTI22 통과.
 - 검수 서버 session51549,30180/30181 종료. 다른 세션 서버는 건드리지 않았다.
 
+추가 CI 수선 검증: 인수인계 규약217문서 및 self-test11건, 관련 check:fast 통과. 생략된 후속49명령 중 모바일 가격 가드를 정확한 무료 정책으로 보정한 뒤48명령이 통과했다. 모바일 가격·정확한 무료키·유료 예외·CTA fixture·실제 인연 경로 handler 관련 Node35개 회귀 통과. 브라우저 CTA 가드는 클라우드 Chromium socket 권한 제한으로 시작하지 못했으므로 실제 통과로 간주하지 않는다. 수정된 브라우저 가드의 실제 실행은 적합한 CI 환경에서 확인해야 한다. 제품 코드·가격 정본·기존 권리·가디언은 추가로 바꾸지 않았다.
+
 주요 로그: .tmp/free62-final-check-fast.log, .tmp/free62-final-jest.log, .tmp/free62-flower-contract.log/json, .tmp/free62-final-copy-contracts.log.
 화면 증거: .tmp/free-eight-react-final-qa.json, .tmp/free-eight-flower/olympus-auth-final-qa.json, .tmp/saju-classic-390.png 등. 최종 검사 중단 원인과 해결은 위 커밋 및 로그로 구분한다.
 
 ## 독립 후속: 가디언
 
-사용자 최신 지시는 NVIDIA 이미지 생성 제거·프롬프트만 제공이다. 회당 가격/권리는 아직 결정되지 않아 부모 지시로 이번 릴리스와 완전히 분리한다. 가디언 파일·가격·키·권리·기존 결과는 이번 작업에서 변경하지 않았다.
+사용자 최신 지시는 가디언 후속 작업을 Claude에 맡기는 것이다. NVIDIA 이미지 생성 제거·프롬프트 전환과 가격/권리는 이 릴리스에서 완전히 분리한다. 가디언 파일·가격·키·권리·기존 결과는 이번 작업에서 변경하지 않았다.
 
 읽기 전용 확인에서 기존 이용권 기록이 확인되어, 후속 변경은 기존 구매권·결과를 먼저 보존하는 전제로 진행한다. NVIDIA trial을 상용 무료 또는 무제한 API로 단정하지 않는다. 세부 계정 집계와 설정 확인 결과는 이번 코드 변경에 포함하지 않는다.
 
 ## 다음 순서
 
-1. 문서커밋 후 check:pre-push를 실행한다. 최종 전체 검증은 통과했다. 다음은 원격 전달 및 공식 운영 승격이다.
-2. 최신 origin/main을 다시 확인한다. 다른 세션 변경을 보존하고 현재 작업트리에서 안전한 fast-forward git push origin HEAD:main을 사용한다. 강제push나 더러운 공유main 변경은 하지 않는다.
-3. 정확한 새 SHA의 main CI와 스테이징을 검증한 뒤 승인된 공식 GitHub workflow “Release Cloudflare Pages and Worker”를 mode=production으로 실행한다. configure_snulife_review/bootstrap_cms/pages_only는 기본false, 로컬wrangler배포금지. 양쪽 운영SHA와 읽기전용 핵심화면을 확인한다. CI/스테이징을 수동poll하지 말고 진행중이면 정확한 상태/URL을 부모에게 보고한다.
+1. 문서 규약과 새 무료 정책에 맞춘 두 검사 기대를 검증한다. 관련 targeted 검사와 check:pre-push 후 문서·검사 변경만 최신 main에 반영한다. 전체 제품 검사는 앞선 결과와 이번 실행을 구분해 보고한다.
+2. 새 후보의 정확한 CI 결과를 확인한다. 문서 단독 push는 일부 lane을 생략하므로 릴리스 전 필요하면 공식 PR CI의 full_ci=true를 사용한다. 스테이징 예약 run의 성공을 실제 배포 성공으로 간주하지 않는다. 다른 세션 변경을 보존하며 강제push나 더러운 공유main 변경은 하지 않는다.
+3. 배포 담당이 정확한 새 SHA의 main CI와 실제 스테이징 Pages/Worker 배포를 검증한 뒤 승인된 공식 GitHub workflow “Release Cloudflare Pages and Worker”를 mode=production으로 실행한다. configure_snulife_review/bootstrap_cms/pages_only는 기본false, 로컬wrangler배포금지. 양쪽 운영SHA와 읽기전용 핵심화면을 확인한다. CI/스테이징을 수동poll하지 말고 진행중이면 정확한 상태/URL을 부모에게 보고한다.
 4. 검증된 운영SHA를 앱 출시 담당에 전달한다. Android 추가소스는 없으며 담당자는 -PCODE_DESTINY_ANDROID_VERSION_CODE=60 -PCODE_DESTINY_ANDROID_VERSION_NAME=1.0.60으로 빌드하고 실제manifest를 검증한다.
 5. 운영 완료 후 문서를done으로 닫고 자기 임시파일·워크트리만 공식절차로 정리한다. 가디언·앱 후속 및 모든 작업의 완료를 부모가 조율하기 전 절전/종료하지 않는다.
