@@ -23,6 +23,7 @@ function usePortalArrival(pathname:string|null){
    destination:window.location.pathname,
    metric_version:1,
   });
+  if(pathname.replace(/\/$/,'')==='/yeongnyangi')return;
   if(window.matchMedia?.('(prefers-reduced-motion: reduce)').matches)return;
   const overlay=document.createElement('div');
   overlay.className=styles.portalArrival;

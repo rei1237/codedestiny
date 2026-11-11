@@ -9,6 +9,7 @@ import {buildKrwOffer} from '@/lib/seo/paid-offer';
 import {EXPANDED_CHAPTERS} from '@/worker/yeongnyangi/fortune/consultation-expansion';
 import {FOLLOWUP_LIMITS} from '@/worker/yeongnyangi/fortune/ask/question-policy';
 import Home from './_components/Home';
+import ServiceEntryScene from './_components/ServiceEntryScene';
 import KoreanOnly from './_components/KoreanOnly';
 import YeongnyangiGuide,{YEONGNYANGI_FAQS} from './_components/YeongnyangiGuide';
 import {getAlternatesByRouteKey} from '@/lib/i18n/routes';
@@ -35,6 +36,7 @@ const jsonLd=[
  buildFaqPageJsonLd(YEONGNYANGI_FAQS),
 ];
 export default function Page(){return <>
+ <ServiceEntryScene/>
  <Home guide={<KoreanOnly><YeongnyangiGuide/></KoreanOnly>}/>
  {jsonLd.map((item,index)=><script key={index} type="application/ld+json" dangerouslySetInnerHTML={{__html:serializeJsonLd(item)}}/>)}
 </>;}
