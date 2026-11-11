@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-08
-next: 8단계 8c — 숙요 build·모의 실행·실호출 1회·PDF 확인
+next: 9단계 점성술 (6c astrology 문제 포함)
 ---
 
 # 3만원 이상 유료 LLM — 상품별 챕터·분량·PDF·전달 개선 인수인계
@@ -324,7 +324,7 @@ next: 8단계 8c — 숙요 build·모의 실행·실호출 1회·PDF 확인
     - 실호출에서 찾은 문제: 10장 중 9장의 b가 a의 첫 8~14문장을 그대로 다시 썼다(프롬프트에 a의 앞 900자를 넣었기 때문이다). 그래서 b가 반복 문단 검증에 걸려 재시도했고, 9회 호출이 더 들었다. 조립 dedupe가 베낀 문장을 빼서 최종본은 깨끗하지만, b가 보탠 새 글은 장마다 약 1,100~1,500자뿐이었다. `2f30a43e4`에서 프롬프트에는 a 요약과 끝 400자만 넘기고, b 결과는 검증 전에 a와 겹치는 문장을 빼도록 고쳤다. 저장된 b 본문 10개를 오프라인 재생하면 dedupe 뒤에도 모두 1,539~3,278자로 하한 1,200을 넘는다. 그래서 재시도 9회는 없어졌을 것으로 본다. **수정 뒤 실호출은 하지 않았다.** 다시 돌리려면 사용자 승인이 필요하다.
     - 남은 위험: 장 평균이 아직 목표 4,400자보다 약 1,000자 짧다. degraded 배달은 섹션이 빠진 채 나갈 수 있다. 인생의 책 장에도 조립할 때 `evidenceRefs`(빈 배열일 수 있음) 필드가 붙는다. 클라이언트 상한 36+36은 V3 최대 52웨이브보다 작아 나머지를 cron에 기댄다.
 - [x] 7. 자미두수 상담 / 심층 PDF (무성)
-- [ ] 8. 숙요점 궁합 (서한비)
+- [x] 8. 숙요점 궁합 (서한비)
 - [ ] 9. 점성술 (윤달)
 - [ ] 10. 베다점 / 나크샤트라 2종 (윤달)
 - [ ] 11. 팩폭 작전실 (네오)
@@ -372,6 +372,8 @@ next: 8단계 8c — 숙요 build·모의 실행·실호출 1회·PDF 확인
 - [x] F18. (결정 2026-11-08: 수정은 브랜치에 둔다. 운영 반영은 명시적인 배포 요청이 있을 때만 한다) d78175aac(인생 총운 전달 실패 버그, 운영에도 있음). **push·배포하지 않는다.**
 - [x] F19. (해결 `94707deb7`: 책당 수리 최대 4장·가장 짧은 장부터, 아래 "5단계 보정") 마스터 인연의 서 V2 실호출에서 첫 초안이 거의 모든 장에서 minChars 근처(약 2,100~2,900자)로 멈춰 길이 수리가 장마다 한 번씩 돈다(solo 16장·compat 14장). 그래서 생성 호출이 20회가 아니라 약 38회이고, 생성 시간이 9~10분이다. 배달에는 영향이 없다. 수리 기준(repair floor = minChars)을 낮출지, V2 목표 min+800~1,200을 낮출지, 모델·토큰을 바꿀지 사용자가 정한다(F9b와 같은 모양). `worker/lib/master-love-codex-quality.js`·`worker/routes/master-love-codex.js`
 - [ ] F20. `__tests__/ui/paid-result-locale-copy.test.js`의 "로케일 카피 표는 로케일마다 같은 키 집합을 갖는다"는 5단계 전부터 실패한다(`app/love-secret-ai/result/LoveSecretAiResultClient.tsx` LoveSecretResultCopy의 en에 `chaptersHeading`이 남음). 5단계 변경과 무관하다. 1단계 화면 작업의 잔여로 보고 고친다.
+- [ ] F21. (8c에서 발견, 여기서는 고치지 않음) 자미두수 상담(ziwei-ai) 보관함에서 판 2 상담이 판 1 순서로 보일 수 있다. 보관함 상세는 `withoutSecrets`가 llmMeta를 걷어 내므로 `isZiweiAiPlanV2`가 판을 알 수 없다. 숙요(`isSukuyoCompatChapterPlanV2`: 첫 본문 키가 twoStars면 판 2)처럼 섹션 키 순서로 판 2를 알아보는 대체 판정을 넣는다. `lib/ziwei/ziwei-ai-chapters.ts`·`app/records/view/SavedServiceReading.tsx`
+- [ ] F22. (8c에서 발견, 고치지 않음, origin/main에도 있음) 숙요 궁합 화면 장 제목에 아이콘이 두 번 보인다("☽ ☽ 兩星 — 두 별의 본질"). `SECTION_ICONS[key]` 칸과 저장된 제목 자체의 기호가 겹친다. 제목 앞 기호를 떼거나 아이콘 칸을 뺀다. `app/sukuyo-compatibility-ai/SukuyoCompatibilityAiClient.tsx`(장 머리 931행 부근)
 
 ## 1단계 진행 메모 (완료, 결과는 아래 단계별 결과)
 첫 에이전트가 조사 중 컨텍스트가 압축되어 결정만 적고 돌아왔다. 코드 파일은 아직 하나도 바꾸지 않았다. 아래 결정대로 바로 구현한다.
@@ -655,7 +657,11 @@ next: 8단계 8c — 숙요 build·모의 실행·실호출 1회·PDF 확인
   - 보관함: `app/records/view/SavedSukuyoCompatPdfButton.tsx`, `SavedServiceReading.tsx` sukuyo 분기에서 `view.fields.includes('messages')`일 때만(sukuyo-compat만 해당). 구조화되지 않은 예전/개인 답은 "숙요점 상담" 한 장
   - 테스트 `__tests__/ui/sukuyo-compat-chapters.test.mjs` 3개. 확인: tsc 통과, node --test ui sukuyo·records·hydration·ziwei-ai-chapters 등 78/78, apps/toss sukuyo 관련 253/253, verify paid-gate-ui-regression·analysis-basis-contract·sukuyo-role-direction exit 0. verify-mobile-runtime-readiness("bottom navigation covers main slots")는 stash한 기준에서도 실패하는 기존 문제
   - 8c에서 볼 것: 판 2 화면 실제 렌더(차례·키커)는 행동 테스트가 없다 — 모의 결과로 화면을 한 번 띄워 본다. 조판 PDF 쪽 이미지에서 Paperlogy가 장 본문의 이모지·한자를 그리는지 확인한다(제목은 한글만 쓰게 했다)
-- [ ] 8c. tsc·jest·node --test·verify·build, 모의 실행, 실호출 1회, 결과 기록(`docs/verification/premium-llm-samples-2026-11-08.md`), PDF 쪽 이미지 확인
+- [x] 8c. tsc·jest·node --test·verify·build, 모의 실행, 실호출 1회, 결과 기록(`docs/verification/premium-llm-samples-2026-11-08.md`), PDF 쪽 이미지 확인
+  - 결과(2026-11-08): 모의 6요청·15장 20,258자. 실호출 1회 완료(판 2, 150초, 생성 6회, 15장 31,400자, 모두 minChars 이상, 환불·길이 수리 없음). 질문 인용은 twoStars가 아니라 overview에 1회(경미), 역할 문장 반복, 합니다/해요 혼용은 기록만 했다.
+  - PDF 43쪽: 표지·차례·요약(레이더·8축)·장 키커 정상. Paperlogy에 없는 한자(榮 등 8자)가 빠져 "영()"이 찍히던 결함을 공용 빌더 `stripPdfHanjaGloss`로 고쳤다(괄호 한자 풀이만 걷음, 모든 상담 PDF 공통, 테스트 1개). 생성 문장과 무관해 실호출 재확인은 필요 없다.
+  - 화면 360·1280px: 차례·"N장 · N부 · 부 이름" 키커·서한비 칩 정상, 가로 넘침 없음. 장 제목 아이콘 중복은 F22(기존 동작).
+  - build: BUILD_RESULT
 
 ## 단계별 결과
 (단계를 마칠 때마다 커밋 SHA, 바꾼 파일, 검증 결과, 남은 일을 여기에 적는다.)

@@ -57,3 +57,19 @@ test('요약 쪽은 저장된 점수만 옮기고, 구조화되지 않은 답은
   assert.deepEqual(buildSukuyoCompatPdfChapters({messages: []}), []);
   assert.equal(buildSukuyoCompatPdfSummary({messages: []}), null);
 });
+
+test('조판 PDF는 글꼴에 없는 한자 풀이 괄호를 걷고 한글 읽기만 남긴다(본문·요약 모두)', async () => {
+  const {typesetConsultationBook, stripPdfHanjaGloss} = await load('lib/pdf/export-consultation-book-pdf.ts');
+  assert.equal(stripPdfHanjaGloss("'영(榮)'의 자리, 장숙 (張宿)과 상극(相剋)·영친(榮·親)"), "'영'의 자리, 장숙과 상극·영친");
+  assert.equal(stripPdfHanjaGloss('(괄호 안 한글)은 그대로'), '(괄호 안 한글)은 그대로');
+  const {jsPDF} = await import('jspdf');
+  const pdf = new jsPDF('p', 'mm', 'a4');
+  const drawn = [];
+  const text = pdf.text.bind(pdf);
+  pdf.text = (value, ...rest) => { drawn.push([].concat(value).join('')); return text(value, ...rest); };
+  const chapters = [{kicker: '1부', title: '두 별의 본질', body: "지우님은 '영(榮)'의 자리에 있습니다.", speaker: '서한비'}];
+  typesetConsultationBook(pdf, {title: 'helvetica', body: 'helvetica'}, {title: 'T', productLabel: 'P', fileName: 'x.pdf', chapters, summary: buildSukuyoCompatPdfSummary(row(v2Sections))});
+  const all = drawn.join('\n');
+  assert.ok(!/[\u3400-\u9fff\uf900-\ufaff]/.test(all), all);
+  assert.ok(!all.includes('()'));
+});
