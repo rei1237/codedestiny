@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-11
-next: 1단계 — 추천 엔진(lib/saju/crystal-recommendation.mjs)·카탈로그(lib/saju/crystal-catalog.mjs)와 테스트
+next: 3단계 — 진입 카드·링크·푸터·사이트맵/SEO 등록(noindex 5곳 동기화 포함)
 ---
 
 # 사주 원석 추천 — 연이의 원석 큐레이션 인수인계
@@ -44,14 +44,77 @@ next: 1단계 — 추천 엔진(lib/saju/crystal-recommendation.mjs)·카탈로�
 
 ## 단계
 - [x] 0. 메모 범위 수정(완료)·워크트리·이 문서 커밋
-- [ ] 1. 엔진·카탈로그·테스트 (TDD), 커밋
-- [ ] 2. 랜딩·질문/결과 흐름·저장·분석 이벤트, 커밋
+- [x] 1. 엔진·카탈로그·테스트 (TDD), 커밋
+- [x] 2. 랜딩·질문/결과 흐름·저장·분석 이벤트, 커밋
 - [ ] 3. 진입 카드·링크·푸터·사이트맵/SEO 등록, 커밋
 - [ ] 4. (사용자 이미지 수령 후) 웹툰·원석 이미지 QC·내보내기·연결 — 진입 이미지는 3단계에서 연결, 커밋
 - [ ] 5. 검증(테스트·빌드 HTML grep·브라우저 390/1280 캡처 → `D:\CodeDestiny-Build\saju-crystals-20261111\qa\`)·check:fast·main 로컬 merge·워크트리 정리
 
 ## 결과 기록
 (각 단계 에이전트가 수정 파일·검증 명령 출력 요약·남은 문제를 여기에 적는다)
+
+### 1단계 (2026-11-11)
+- 커밋은 모두 1단계 에이전트가 했다.
+  - `f333d47bc`: 엔진·카탈로그
+  - `a1c67bf69`: 출처 문서 공백
+  - `04284f90f`: sitemap lastmod 원장
+- 추천 가능한 원석은 16종이다.
+  - 목: amazonite, green-phantom-quartz, green-aventurine
+  - 화: amethyst, rose-quartz, tiger-eye-red
+  - 토: citrine, tiger-eye-gold, smoky-quartz
+  - 금: clear-quartz, gold-rutilated-quartz, white-chalcedony
+  - 수: obsidian, aquamarine, tiger-eye-blue, labradorite
+- 추천하지 않는 원석: moon-stone-blue, moon-stone-peach, money-stone.
+- 프롬프트 파일에 16종 프롬프트가 모두 있다.
+- 지금은 기본값을 유지한다.
+  - 구조 우선순위에서 독해 가설은 마지막이다.
+  - 영역을 고르지 않은 해는 '생활 전반' 신호 하나로 센다(areaAssumed).
+- 검증
+  - 원석·카탈로그·경험 대조·골든마스터 테스트 통과.
+  - check:fast(`--base=f50e72623`) exit 0.
+
+### 2단계 (2026-11-11)
+- 새 파일
+  - `lib/saju/crystal-flow.mjs`: 프로필→출생 입력, 저장 키·기록, 셸 경험 입력 변환, from 허용 목록.
+  - `lib/brand/saju-crystal-webtoon.mjs`: 웹툰 10컷 대사·비율.
+  - `app/saju/crystals/` 아래
+    - `page.js`: 공개 랜딩. JSON-LD는 WebPage와 Breadcrumb뿐이고 FAQ 7개는 `<details>`.
+    - `start/page.js`: noindex 메타데이터.
+    - `start/CrystalFlowClient.jsx`: 질문, 후속 질문, 결과, 저장.
+    - `crystal-assets.js`: 이미지 파일이 있을 때만 경로를 넘긴다.
+    - `StoneCard.jsx`: 이미지가 없으면 오행 색 칩을 보여 준다.
+    - `CrystalCta.jsx`
+    - `crystals.module.css`
+  - `__tests__/ui/saju-crystal-flow.test.mjs`
+- 수정 파일
+  - `app/components/webtoon/CutReader.tsx`와 `cut-reader.module.css`: `src`가 비면 그림 없이 대사만 보여 주고, 대사에 `note` 보조설명을 붙일 수 있다.
+  - `config/sitemap-lastmod.json`: CutReader를 import하는 /fortune/**·/heukwol의 서명이 바뀌어 재생성했다. 정당한 변경이다.
+- 저장
+  - localStorage 키는 `codeDestiny:sajuCrystal:<계정id|guest>:<profileId>`이고 값은 `{v, answers, answersKey, resultKey, versions, updatedAt}`이다.
+  - 로그인 상태면 `DestinyProfileManager.storage.update(profileId, {sajuCrystal})`도 부른다.
+- 분석 이벤트
+  - `crystal_entry_click{from}`
+  - `crystal_questionnaire_start{from}`
+  - `crystal_questionnaire_complete{steps, followups}`
+  - `crystal_result_view{status}`
+  - `crystal_result_save`
+  - 연도·오행·원석 값은 싣지 않는다.
+- 검증
+  - 원석·경험 대조·골든마스터 테스트 5파일: tests 37, pass 37, fail 0.
+  - esbuild 번들 OK.
+  - `verify:analytics-events`, `verify:sitemap-drift`, eslint 모두 OK.
+  - 2단계 커밋은 `7df7980c7`이다.
+  - check:fast exit 0: jest 474 suites 통과(1 skipped), 7897 tests 통과, BLOCKED 없음.
+- 남은 문제
+  - 워커 프로필 라우트가 모르는 필드를 버려서 `sajuCrystal`은 서버에 동기화되지 않는다. 지금은 기기별 localStorage에만 남는다. `sajuCalibration`도 같은 상태다. 워커 허용 목록을 바꿀지는 사용자 결정이 필요하다.
+  - `/saju/crystals/start/`는 메타데이터 noindex만 있다. noindex 5곳 동기화와 사이트맵 등록은 3단계 일이다. 지금 원장에는 `/saju/crystals/`가 없다.
+  - 이미지 규격
+    - 웹툰: `public/images/saju-crystals/webtoon/NN-{640,1080}.avif`와 `NN-720.webp`
+    - 원석: `public/images/saju-crystals/stones/<image>-{240,480}.avif`와 `-360.webp`
+    - OG: `og-1200x630.jpg`
+    - 파일이 있으면 빌드 때 자동으로 연결된다.
+  - 음력 프로필은 프로필의 birthYear가 엔진의 양력 연도와 다를 수 있다. 그러면 가장 이른 연도를 고를 때 답변 오류 문구가 뜰 수 있다. 3단계나 5단계의 브라우저 확인 때 본다.
+  - 브라우저 실화면 확인은 아직 하지 않았다(5단계).
 
 ## 원 요청 요약 (요구사항 체크리스트)
 - 진입 카드 문구: 기능명 "사주 원석 추천", 보조 "연이의 원석 큐레이션", 제목 "내게 좋은 기운, 어떤 원석에 담겨 있을까?", 설명 "좋았던 해와 힘들었던 해를 돌아보고, 나에게 어울리는 원석을 찾아보세요", 버튼 "나에게 맞는 원석 찾기".
