@@ -15,7 +15,8 @@ export async function readFreeFpti({ userId, profileId, birthInput }, store) {
  await resolveBirthUnlockIdentity({ userId, profileId, featureKey: FEATURE_KEY }, { findProfileCard: async () => card });
  const expected = fptiCardBirthInput(card);
  if (!birthInput || Object.keys(expected).some(key => birthInput[key] !== expected[key])) throw createHttpError(409, '\uD604\uC7AC \uD504\uB85C\uD544\uC758 \uCD9C\uC0DD \uC815\uBCF4\uB85C \uB2E4\uC2DC \uACC4\uC0B0\uD574 \uC8FC\uC138\uC694.', { code: 'PROFILE_INPUT_MISMATCH' });
- const result = await store.analyze({ ...expected, name: card.name || '', gender: card.gender || 'OTHER', birthRegion: card.location?.label || '' });
+ const { birthTimeUnknown, ...birthFields } = expected;
+ const result = await store.analyze({ ...birthFields, timeUnknown: birthTimeUnknown, name: card.name || '', gender: card.gender || 'OTHER', birthRegion: card.location?.label || '' });
  const report = await store.buildReport(result);
  return { source: 'public', accessSource: 'public', featureKey: FEATURE_KEY, profileId, saved: false, report };
 }
