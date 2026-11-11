@@ -1,3 +1,4 @@
+import { isFreeFortuneFeatureKey } from '../lib/payment/free-fortune-policy.mjs';
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
@@ -330,7 +331,6 @@ assertContains(destinyProfileSource, "CodeDestinyPaymentService", "standalone pa
 
 // openPaidFeatureGate + runBillingCoinGate 패턴 기능도 공통 게이트를 거쳐야 한다(직접 PortOne/points 직행 금지).
 const gateRunBillingFeatureSources = [
-  { label: "destiny-meeting-place", source: readFileSync(resolve(root, "app/saju/destiny-meeting-place/components/DestinyMeetingPlacePage.tsx"), "utf8") },
   { label: "palm-reading", source: readFileSync(resolve(root, "app/palm-reading/PalmDestinyMain.tsx"), "utf8") },
 ];
 // destiny-bias(최애운명)는 2026-08-21부로 전면 무료 전환되어 공용 코인 게이트를 거치지 않는다.
@@ -343,6 +343,36 @@ for (const feature of gateRunBillingFeatureSources) {
   assertNotContains(feature.source, "window.PortOne.requestPayment", `${feature.label} must not run custom PortOne checkout`);
   assertNotContains(feature.source, 'fetch("/api/billing/coin-gate"', `${feature.label} must not bypass common coin-gate`);
   assertNotContains(feature.source, "/points?source=", `${feature.label} must not jump straight to charge page`);
+}
+
+// Exact deterministic services keep authentication and historical resume, without new checkout.
+const freeReadingGuardSource = readFileSync(resolve(root, "app/_lib/use-free-reading-guard.ts"), "utf8");
+const freeReadingSessionSource = readFileSync(resolve(root, "app/_lib/free-reading-access.ts"), "utf8");
+assertContains(freeReadingSessionSource, "'/api/auth/me'", "free reading verifies server session");
+assertContains(freeReadingSessionSource, "data?.authenticated === true && Boolean(data?.user?.id)", "free reading fails closed without authenticated user");
+for (const event of ['cd:auth-changed', 'AUTH_SESSION_INVALIDATED_EVENT', 'cd:profile-changed', 'popstate', 'storage']) {
+  assertContains(freeReadingGuardSource, event, 'free reading invalidates late work: ' + event);
+}
+assertContains(freeReadingGuardSource, 'state.current.mounted && state.current.revision === revision', 'free reading rejects unmounted or stale tickets');
+for (const [key, file, entryStart, entryEnd, resumeMarker, resetMarker] of [
+  ['destiny_meeting_place', 'app/saju/destiny-meeting-place/components/DestinyMeetingPlacePage.tsx', 'const handleAnalyze =', 'const handleReset =', 'usePaidResume(FEATURE_KEY', 'setResult(null)'],
+  ['love-code', 'app/saju/love-simulation/_components/LoveSimulationEngine.tsx', 'const startWithCharacter =', 'const startSimulationScene =', 'usePaidResume(LOVE_CODE_FEATURE_KEY', 'setCoupleCompatibility(null)'],
+]) {
+  assert.equal(isFreeFortuneFeatureKey(key), true, key + ' exact free policy');
+  const source = readFileSync(resolve(root, file), 'utf8');
+  const entry = section(source, entryStart, entryEnd, key + ' free entry');
+  assertContains(entry, 'await hasFreeReadingSession()', key + ' checks login');
+  assertBefore(entry, 'await hasFreeReadingSession()', 'if (!request.valid()) return;', key + ' rejects late session');
+  assertContains(entry, 'if (!signedIn)', key + ' denies guest');
+  assertNotContains(source, 'runPaidAccessGate(', key + ' has no new paid gate');
+  assertNotContains(source, 'openPaidFeatureGate(', key + ' has no paid overlay');
+  assertNotContains(source, 'window.PortOne.requestPayment', key + ' has no custom checkout');
+  assertNotContains(source, '/api/billing/coin-gate', key + ' has no direct charge');
+  assertContains(source, resumeMarker, key + ' keeps historical resume');
+  assertContains(source, 'const ticket = beginResumeReading()', key + ' guards historical resume');
+  assertContains(source, 'if (!ticket.valid()) return false;', key + ' rejects late historical result');
+  assertContains(source, 'cd:auth-changed', key + ' clears identity state');
+  assertContains(source, resetMarker, key + ' clears personal result');
 }
 
 const reactWaitKindSource = section(billingClientSource, "function resolvePaymentWaitKind(", "function formatLoadingMessage", "React payment wait kind");
