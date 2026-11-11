@@ -152,7 +152,7 @@ test('유료 사주 상품은 무료로 표시하지 않고 승인된 계산형 
   for (const id of BUNDLE_POPUP_IDS) {
     const line = popupLine(html, id);
     assert.doesNotMatch(line, /기존 결제 정책을 따릅니다/, `${id} popup이 묶음 기준이 아니다`);
-    assert.match(line, /평생 소장에 포함/, `${id} popup에 묶음 포함 안내가 없다`);
+    assert.match(line, /무료 계산형/, `${id} popup에 무료 계산형 안내가 없다`);
   }
 });
 
@@ -436,7 +436,7 @@ test('Public card groups and remaining paid bundle claims match policy', async (
     assert.equal(isFreeFortuneFeatureKey(key), true, id);
     assert.ok(!BUNDLE_ONLY_DICT_NS.includes(`rpt_${id}`.replace(/-/g, '_')), id + ': no exclusive bundle claim');
   }
-  for (const key of ['section_summary', 'section_daewun', BUNDLE, 'saju-career-style', 'compat-saju-compatibility']) {
+  for (const key of ['section_summary', 'section_daewun', BUNDLE, 'human-design-report', 'compat-saju-compatibility']) {
     assert.equal(isFreeFortuneFeatureKey(key), false, key + ': paid or pending, never public');
   }
   const expected = closedKeys.filter(key => key !== 'rpt_lottoCard' && !isFreeFortuneFeatureKey(key)).map((key) => key.replace(/-/g, '_'));

@@ -304,7 +304,7 @@ export default function HumanDesignClient({ locale: localeOverride }: { locale?:
 
       <button
         type="button"
-        className={styles.cta}
+        data-cd-reading-action="primary" className={styles.cta}
         onClick={() => void run()}
         disabled={!canSubmit || loading}
       >

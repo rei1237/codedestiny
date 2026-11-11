@@ -24,7 +24,7 @@ const stubs = {
     }));
     b.onLoad({ filter: /^auth$/, namespace: 'hd-stub' }, () => ({
       loader: 'js',
-      contents: 'export async function authFetch(...a){return globalThis.__hdAuthFetch(...a);}',
+      contents: 'export const AUTH_SESSION_INVALIDATED_EVENT="cd:auth-session-invalidated"; export async function authFetch(...a){return globalThis.__hdAuthFetch(...a);}',
     }));
   },
 };
@@ -36,7 +36,7 @@ const bundled = await build({
       export { default as DetailSheet } from './app/human-design/_components/DetailSheet.tsx';
       export { default as LivingGuide } from './app/human-design/_components/LivingGuide.tsx';
       export { default as GuideLockedNotice } from './app/human-design/_components/GuideLockedNotice.tsx';
-      export { useHumanDesignGuide, birthMatchesSeed, fetchBundleUnlocked } from './app/human-design/_lib/guide-access.ts';
+      export { useHumanDesignGuide, birthMatchesSeed, fetchGuideProfileOwned } from './app/human-design/_lib/guide-access.ts';
       export * as livingGuide from './app/human-design/_copy/living-guide.ts';
     `,
   },
@@ -48,7 +48,7 @@ const bundled = await build({
 const code = bundled.outputFiles.find((f) => f.path.endsWith('.js')).text;
 const mod = { exports: {} };
 new Function('require', 'module', 'exports', code)(require, mod, mod.exports);
-const { DetailSheet, LivingGuide, GuideLockedNotice, useHumanDesignGuide, birthMatchesSeed, fetchBundleUnlocked, livingGuide } = mod.exports;
+const { DetailSheet, LivingGuide, GuideLockedNotice, useHumanDesignGuide, birthMatchesSeed, fetchGuideProfileOwned, livingGuide } = mod.exports;
 
 const React = require('react');
 const { renderToStaticMarkup } = require('react-dom/server');
@@ -65,7 +65,7 @@ test('풀이가 잠겨 있으면 센터 상세에 풀이 문장이 없고 묶음
   assert.ok(!html.includes(sacral.action), '센터 행동 풀이가 잠금에도 새어 나왔다');
   assert.ok(!html.includes(sacral.summary), '센터 풀이 요약이 잠금에도 새어 나왔다');
   assert.ok(!html.includes(sacral.question));
-  assert.match(html, /href="\/saju\/"/);
+  assert.match(html, /href="\/human-design\/"/);
   // 센터의 게이트 수·활성 채널 같은 사실 블록은 그대로 보인다.
   assert.match(html, /\d+\/\d+/);
 });
@@ -74,7 +74,7 @@ test('풀이가 열리면 같은 자리에 풀이 문장이 보이고 안내는 
   const html = sheet({ guideApi: livingGuide, guideLocked: false });
   assert.ok(html.includes(sacral.action));
   assert.ok(html.includes(sacral.question));
-  assert.ok(!html.includes('href="/saju/"'));
+  assert.ok(!html.includes('href="/human-design/"'));
 });
 
 test('채널·게이트 상세의 연결 풀이도 잠금 중에는 나오지 않는다', () => {
@@ -85,7 +85,7 @@ test('채널·게이트 상세의 연결 풀이도 잠금 중에는 나오지 �
   const locked = renderToStaticMarkup(h(DetailSheet, { chart, locale: 'ko', selection, onClose() {}, guideApi: null, guideLocked: true }));
   const open = renderToStaticMarkup(h(DetailSheet, { chart, locale: 'ko', selection, onClose() {}, guideApi: livingGuide, guideLocked: false }));
   assert.ok(!locked.includes(conn.action));
-  assert.match(locked, /href="\/saju\/"/);
+  assert.match(locked, /href="\/human-design\/"/);
   assert.ok(open.includes(conn.action));
 });
 
@@ -100,7 +100,7 @@ test('LivingGuide 는 풀이가 없으면 아무것도 그리지 않고, 열리�
 test('잠금 안내는 사주 전체 풀이 평생 소장으로 이어지고 가격을 적지 않는다', () => {
   for (const locale of ['ko', 'en', 'ja', 'zh-CN', 'zh-TW']) {
     const html = renderToStaticMarkup(h(GuideLockedNotice, { locale }));
-    assert.match(html, /href="\/saju\/"/);
+    assert.match(html, /href="\/human-design\/"/);
     assert.doesNotMatch(html, /\d{1,3},\d{3}|₩|원\b/);
   }
 });
@@ -119,25 +119,25 @@ test('출생 정보 일치 판정 — 저장 프로필과 같을 때만 true', (
   assert.equal(birthMatchesSeed(same, null), false);
 });
 
-test('묶음 조회 — 묶음 행이 있을 때만 true, 실패·이상 응답은 모두 잠금', async () => {
+test('묶음 조회 — 본인 프로필 행이 있을 때만 true, 실패·이상 응답은 모두 잠금', async () => {
   const calls = [];
   const reply = (impl) => { globalThis.__hdAuthFetch = async (url, ...rest) => { calls.push(url); return impl(url, ...rest); }; };
-  reply(async () => ({ ok: true, json: async () => ({ ok: true, unlocks: { saju_lifetime_bundle: { unlocked: true } } }) }));
-  assert.equal(await fetchBundleUnlocked('p 1'), true);
-  assert.match(calls[0], /^\/api\/access\/unlocks\?profileId=p%201&serviceKey=saju$/);
-  reply(async () => ({ ok: true, json: async () => ({ ok: true, unlocks: { saju_lifetime_bundle: { unlocked: false } } }) }));
-  assert.equal(await fetchBundleUnlocked('p1'), false);
-  reply(async () => ({ ok: true, json: async () => ({ ok: true, unlockedContentKeys: ['saju_lifetime_bundle'] }) }));
-  assert.equal(await fetchBundleUnlocked('p1'), true);
+  reply(async () => ({ ok: true, json: async () => ({ ok: true, profiles: [{id:'p 1'}] }) }));
+  assert.equal(await fetchGuideProfileOwned('p 1'), true);
+  assert.match(calls[0], /^\/api\/yeongnyangi\/profiles$/);
+  reply(async () => ({ ok: true, json: async () => ({ ok: true, profiles: [{id:'someone-else'}] }) }));
+  assert.equal(await fetchGuideProfileOwned('p1'), false);
+  reply(async () => ({ ok: true, json: async () => ({ ok: true, profiles: [{profileId:'p1'}] }) }));
+  assert.equal(await fetchGuideProfileOwned('p1'), true);
   reply(async () => ({ ok: false, json: async () => ({ ok: false }) }));
-  assert.equal(await fetchBundleUnlocked('p1'), false);
+  assert.equal(await fetchGuideProfileOwned('p1'), false);
   reply(async () => { throw new Error('network'); });
-  assert.equal(await fetchBundleUnlocked('p1'), false);
+  assert.equal(await fetchGuideProfileOwned('p1'), false);
   reply(async () => ({ ok: true, json: async () => { throw new Error('bad json'); } }));
-  assert.equal(await fetchBundleUnlocked('p1'), false);
+  assert.equal(await fetchGuideProfileOwned('p1'), false);
 });
 
-// 훅 전체 흐름 — 저장 프로필 + 같은 출생 정보 + 묶음 보유일 때만 풀이 모듈이 읽히고 상태가 open 이 된다.
+// 훅 전체 흐름 — 저장 프로필 + 같은 출생 정보 + 프로필 소유일 때만 풀이 모듈이 읽히고 상태가 open 이 된다.
 const dom = new JSDOM('<!doctype html><div id="root"></div>');
 globalThis.window = dom.window;
 globalThis.document = dom.window.document;
@@ -157,16 +157,16 @@ async function mountHook(seed, birth) {
 }
 const seed = { profileId: 'p1', birthDate: '1990-05-17', birthTime: '08:30', timezone: 'Asia/Seoul', calendarType: 'solar' };
 const birth = { birthDate: '1990-05-17', birthTime: '08:30', timezone: 'Asia/Seoul', calendar: 'solar' };
-const bundleReply = (unlocked) => async () => ({ ok: true, json: async () => ({ ok: true, unlocks: { saju_lifetime_bundle: { unlocked } } }) });
+const bundleReply = (unlocked) => async () => ({ ok: true, json: async () => ({ ok: true, profiles: unlocked ? [{id:'p1'}] : [] }) });
 
-test('훅 — 저장 프로필 묶음 보유 + 같은 출생 정보면 열리고 풀이 모듈이 들어온다', async () => {
+test('훅 — 저장 프로필 프로필 소유 + 같은 출생 정보면 열리고 풀이 모듈이 들어온다', async () => {
   const urls = [];
   globalThis.__hdAuthFetch = async (url) => { urls.push(url); return bundleReply(true)(); };
   const r = await mountHook(seed, birth);
   assert.equal(r.state, 'open');
   assert.equal(typeof r.guideApi.buildGuide, 'function');
   assert.equal(urls.length, 1);
-  assert.match(urls[0], /profileId=p1/);
+  assert.match(urls[0], /\/api\/yeongnyangi\/profiles/);
 });
 
 test('훅 — 직접 입력(저장 프로필과 다른 출생 정보)은 조회조차 하지 않고 잠긴다', async () => {
@@ -187,7 +187,7 @@ test('훅 — 저장 프로필이 없거나 차트가 없으면 잠긴다', asyn
   assert.equal(urls.length, 0);
 });
 
-test('훅 — 묶음이 없거나 조회가 실패하면 잠긴 채로 둔다', async () => {
+test('훅 — 소유 프로필이 없거나 조회가 실패하면 잠긴 채로 둔다', async () => {
   globalThis.__hdAuthFetch = bundleReply(false);
   let r = await mountHook(seed, birth);
   assert.equal(r.state, 'locked');
@@ -211,8 +211,16 @@ test('정적 — 풀이 모듈은 값 import 가 아니라 열림 확인 뒤 동
   }
   const access = read('app/human-design/_lib/guide-access.ts');
   assert.match(access, /import\("\.\.\/_copy\/living-guide"\)/);
-  assert.match(access, /\/api\/access\/unlocks\?profileId=/);
+  assert.match(access, /\/api\/yeongnyangi\/profiles/);
   const client = read('app/human-design/HumanDesignClient.tsx');
   assert.match(client, /useHumanDesignGuide\(seed, chart \? chartBirth : null\)/);
   assert.match(client, /guide \? <LivingGuide guide=\{guide\} \/>/, '공유 이미지(LivingGuide)는 풀이가 열린 뒤에만 그려야 한다');
+});
+
+test('계정 무효화는 같은 seed의 열린 해석도 지우고 늦은 옛 소유응답을 버린다',async()=>{
+ const root=createRoot(document.getElementById('root'));let latest;function Probe(){latest=useHumanDesignGuide(seed,birth);return null}
+ globalThis.__hdAuthFetch=bundleReply(true);await act(async()=>root.render(h(Probe)));for(let i=0;i<4;i++)await act(async()=>{await new Promise(r=>setTimeout(r,5))});assert.equal(latest.state,'open');
+ let resolve;globalThis.__hdAuthFetch=()=>new Promise(r=>{resolve=r});await act(async()=>window.dispatchEvent(new window.Event('cd:auth-session-invalidated')));assert.equal(latest.guideApi,null);
+ globalThis.__hdAuthFetch=bundleReply(false);await act(async()=>window.dispatchEvent(new window.Event('cd:auth-changed')));
+ await act(async()=>resolve({ok:true,json:async()=>({ok:true,profiles:[{id:'p1'}]})}));assert.equal(latest.guideApi,null);assert.equal(latest.state,'locked');await act(async()=>root.unmount());
 });

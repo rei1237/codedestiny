@@ -1,11 +1,10 @@
 "use client";
+import {usePaidResume} from '@/app/hooks/usePaidResume';
 import {useEffect,useRef,useState} from 'react';
 import ProfilePicker from '@/app/yeongnyangi/_components/ProfilePicker';
 import {useProfiles,profileKey,isProfileBillingSyncEvent} from '@/app/yeongnyangi/_lib/use-profiles';
 import {authFetch,AUTH_SESSION_INVALIDATED_EVENT} from '@/app/_lib/auth-client';
 import {careerShare,CAREER_URL} from '@/lib/saju/career-style/share.mjs';
-import {runPaidAccessGate} from '@/app/_lib/billing-client';
-import {usePaidResume} from '@/app/hooks/usePaidResume';
 import {YEONI_GUIDE_ART} from '@/lib/brand/yeoni-guide-art';
 import styles from './career.module.css';
 
@@ -27,7 +26,7 @@ function InsightReading({item}:{item:Insight}){return <div className={styles.ins
  <p>{item.scene}</p><p><strong className={styles.conditionLabel}>도움 되는 조건</strong>{item.condition}</p>
  <div className={styles.practice}><strong>이렇게 확인해 보세요</strong><p>{item.action}</p></div>
 </div>;}
-export default function CareerStyleClient({bundlePriceKRW}:{bundlePriceKRW:number}){
+export default function CareerStyleClient(){
  const state=useProfiles({forceFreshOnMount:true,skipBillingSync:true});
  const [shareStatus,setShareStatus]=useState(''),[manual,setManual]=useState(false);
  const [loaded,setLoaded]=useState<{context:number;report:CareerReport}|null>(null);
@@ -45,13 +44,14 @@ export default function CareerStyleClient({bundlePriceKRW}:{bundlePriceKRW:numbe
  const context=revision.current;
  const result=loaded?.context===context?{report:loaded.report}:null;
  const owns=access?.context===context&&access.unlocked;
- const buildResume=usePaidResume('saju_lifetime_bundle',async args=>{
+ usePaidResume('saju_lifetime_bundle',async args=>{
   if(!ready||args.profileId!==state.profileId)return false;
   const version=revision.current;
   const data=await api('/api/saju/career-style',{profileId:state.profileId});
   if(version!==revision.current)return false;
   setLoaded({context:version,report:data.report});setAccess({context:version,unlocked:true});return true;
  },{legacyKinds:['saju-career-style']});
+
  useEffect(()=>{setShareStatus('');setManual(false);setError('');},[currentProfile]);
  useEffect(()=>{if(result?.report)reportHeading.current?.focus();},[result?.report]);
  useEffect(()=>{
@@ -76,15 +76,7 @@ export default function CareerStyleClient({bundlePriceKRW}:{bundlePriceKRW:numbe
   const read=()=>api('/api/saju/career-style',{profileId:pid});
   const show=(data:{report:CareerReport})=>{if(valid()){setLoaded({context:version,report:data.report});setAccess({context:version,unlocked:true});}};
   try{
-   try{show(await read());return;}catch(e){if((e as {status?:number}).status!==402)throw e;}
-   if(!valid())return;
-   const requestKey=currentProfile+':bundle';
-   if(!requests.current.has(requestKey))requests.current.set(requestKey,crypto.randomUUID());
-   const requestId=requests.current.get(requestKey)!;
-   // 개별 판매는 끝났다. 열람 권리가 없으면 사주 전체 풀이 평생 소장 결제로 이어진다(묶음 보유자는 서버가 이 리포트도 열어 준다).
-   const payment=await runPaidAccessGate({featureKey:'saju_lifetime_bundle',profileId:pid,requestId,reason:'사주 전체 풀이 평생 소장 구매',resume:buildResume({profileId:pid})});
-   if(!payment.ok){if(valid())setError(payment.message||'결제를 완료하지 않았어요. 기존 결제가 있다면 결과를 다시 확인해 주세요.');return;}
-   if(valid())show(await read());
+   show(await read());
   }catch(e){if(valid())setError(e instanceof Error?e.message:'확인하지 못했어요. 잠시 후 다시 시도해 주세요.');}
   finally{lock.current=false;setBusy(false);}
  }
@@ -111,12 +103,12 @@ export default function CareerStyleClient({bundlePriceKRW}:{bundlePriceKRW:numbe
  }
  return <section id="start" className={styles.start} aria-labelledby="start-title">
   <h2 id="start-title">내 프로필에서 시작하기</h2>
-  <p>소개와 위의 예시는 무료예요. 개인 리포트 여덟 장은 사주 전체 풀이 평생 소장({bundlePriceKRW.toLocaleString('ko-KR')}원, 한 번 결제로 영구 소장)에 포함되어 있어요. 이전에 이 리포트를 구매하신 분은 그대로 다시 읽으실 수 있어요.</p>
-  <p>같은 계정·같은 출생정보로 해금한 결과는 저장된 원문을 추가 결제 없이 다시 읽을 수 있어요. 묶음은 저장한 프로필의 출생정보 기준으로 적용돼요.</p>
+  <p>개인 리포트 여덟 장과 계산 근거를 무료로 읽을 수 있어요. 로그인 후 저장한 프로필을 선택해 주세요.</p>
+  <p>내 계정의 프로필만 사용할 수 있어요. 예전에 저장한 결과가 있으면 원문을 그대로 다시 읽습니다.</p>
   <div className={styles.picker}><ProfilePicker state={state} locale="ko" showPolicyNote={false} onLogin={login}/></div>
   <div className={styles.paymentActions} aria-busy={busy}>
-   <button className={styles.primary} type="button" disabled={busy||state.loading||(!state.guest&&!ready)} onClick={()=>void open()}>
-    {busy?'해금·결과 확인 중':state.loading?'프로필 확인 중':state.guest?'로그인하고 리포트 확인하기':owns?'결과 확인하기':'사주 전체 풀이 평생 소장으로 열기'}
+   <button data-cd-reading-action="primary" className={styles.primary} type="button" disabled={busy||state.loading||(!state.guest&&!ready)} onClick={()=>void open()}>
+    {busy?'결과 확인 중':state.loading?'프로필 확인 중':state.guest?'로그인하고 리포트 확인하기':owns?'결과 확인하기':'일 스타일 무료로 읽기'}
    </button>
   </div>
   {error&&<p role="alert">{error}</p>}

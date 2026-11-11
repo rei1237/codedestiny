@@ -8,7 +8,7 @@ const root='public/feature-details/crafted';
 const manifest=id=>JSON.parse(fs.readFileSync(`${root}/${id}/manifest.json`,'utf8'));
 test('generated ESM is the unchanged canonical exact-key policy',()=>{
  assert.equal(fs.readFileSync('js/core/free-fortune-policy.mjs','utf8').split('\n').slice(1).join('\n'),fs.readFileSync('lib/payment/free-fortune-policy.mjs','utf8'));
- assert.equal(isFreeFortuneFeatureKey('saju-career-style'),false);
+ assert.equal(isFreeFortuneFeatureKey('human-design-report'),false);
 });
 test('free condition panels retain prose and disclaimers but not retired artwork',()=>{
  const detail=manifest('sukuyo-yearly'); const p=detail.panels.find(p=>p.id==='02-the-year-you-choose'); const next=currentFreeCraftedPanel(detail,p);

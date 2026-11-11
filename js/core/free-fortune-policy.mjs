@@ -2,6 +2,7 @@
 // 2026-11-11 approved public deterministic readings. Historical prices/orders stay intact.
 // Explicit allowlist only: neither price, billing type, nor a prefix can make an LLM product free.
 export const FREE_FORTUNE_FEATURE_KEYS = Object.freeze([
+  'saju-career-style', 'love-code', 'destiny_meeting_place', 'saju_brain_reading', 'human_design_reading',
   "saju_natal_reading",
   "saju_fun_shared",
   "saju_daily_reading",

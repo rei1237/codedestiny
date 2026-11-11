@@ -306,11 +306,13 @@ test('진입 카드와 연결 링크는 5개 언어에서 같은 기능 경로�
 });
 
 // 부트 전체를 실제로 돌린다. 자산 주입은 DOM에 남는 script·link 태그로 확인한다.
-async function bootInDom(isOpen) {
+async function bootInDom(isOpen, authFetch) {
   const dom = new JSDOM(`<!doctype html><head></head><body><section id="destinyAnatomyCard" hidden data-da-css="/da.css" data-da-engine="/da-engine.js" data-da-render="/da-render.js"></section></body>`, {runScripts: 'outside-only', url: 'https://code-destiny.com/'});
   const win = dom.window;
   win.G_PILLARS = P;
-  win.CdSajuBundleOffer = {isOpen};
+  win.fetch = authFetch || (async () => ({ok:true,json:async()=>({authenticated:true,user:{id:'owner'}})}));
+  win.CdSajuBundleOffer = {isOpen: () => false};
+  win.cdIsFreeFortuneFeatureKey = key => key === 'saju_brain_reading' && isOpen();
   win.eval(readFileSync('js/core/saju/destiny-anatomy/boot.js', 'utf8'));
   // wire()는 DOMContentLoaded 뒤에 묶인다. 기다리지 않으면 잠금 단정이 부트 전에 헛돈다.
   while (win.document.readyState === 'loading') await new Promise((done) => setImmediate(done));
@@ -324,27 +326,35 @@ function assertLocked({card, assets}) {
   assert.equal(assets(), 0, '잠금 상태에서 엔진 자산을 불러왔다');
 }
 
-test('뇌구조 부트: 묶음이 닫혀 있으면 자산을 불러오지 않고 카드에 아무것도 없다', async () => {
+test('뇌구조 부트: 무료 정책키가 없으면 자산을 불러오지 않고 카드에 아무것도 없다', async () => {
   const booted = await bootInDom(() => false);
   assertLocked(booted);
   booted.win.dispatchEvent(new booted.win.Event('cd:saju-summary-ready'));
   assertLocked(booted);
 });
 
-test('뇌구조 부트: 권한 조회가 실패하면 닫힘으로 떨어진다', async () => {
+test('뇌구조 부트: 무료 정책 확인이 실패하면 닫힘으로 떨어진다', async () => {
   assertLocked(await bootInDom(() => { throw new Error('access-store failed'); }));
 });
 
-test('뇌구조 부트: 구매로 열리면 그때 자산을 불러오고, 다시 닫히면 카드를 걷는다', async () => {
+test('뇌구조 부트: 무료키로 묶음구매 없이 열리고 정책이 제거되면 카드를 걷는다', async () => {
   let open = false;
   const booted = await bootInDom(() => open);
   assertLocked(booted);
   open = true;
   booted.win.dispatchEvent(new booted.win.Event('cd:unlocks-changed'));
+  await new Promise(done => setImmediate(done));
   assert.equal(booted.card.hidden, false);
   assert.ok(booted.assets() > 0, '해금 뒤 자산을 불러오지 않았다');
   open = false;
   booted.win.dispatchEvent(new booted.win.Event('cd:unlocks-changed'));
   assert.equal(booted.card.hidden, true);
   assert.equal(booted.card.innerHTML, '');
+});
+
+test('뇌구조 무료키도 미로그인과 로그아웃 뒤 늦은 인증응답은 열지 않는다', async () => {
+ const guest=await bootInDom(()=>true,async()=>({ok:false}));await new Promise(done=>setImmediate(done));assertLocked(guest);
+ let resolve;const pending=new Promise(done=>{resolve=done});const late=await bootInDom(()=>true,()=>pending);
+ late.win.dispatchEvent(new late.win.Event('cd:auth-session-invalidated'));
+ resolve({ok:true,json:async()=>({authenticated:true,user:{id:'old-owner'}})});await new Promise(done=>setImmediate(done));assertLocked(late);
 });

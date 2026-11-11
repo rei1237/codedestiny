@@ -8,7 +8,8 @@ import { getCurrentLoadingLocale } from "@/constants/loadingMessages";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Toaster, toast } from "sonner";
-import { holdPaidFeatureGateOpen, openPaidFeatureGate, releasePaidFeatureGate, runPaidAccessGate, updatePaidFeatureGate } from "@/app/_lib/billing-client";
+import { useFreeReadingGuard } from "@/app/_lib/use-free-reading-guard";
+import { hasFreeReadingSession } from "@/app/_lib/free-reading-access";
 import { resolveServerFeaturePricing } from "@/lib/payment/server-feature-pricing";
 import { getAuthState } from "@/app/_lib/auth-store";
 import type { AnimalDestinyInput, AnimalTwelveResolvedResult } from "@/app/saju/animal-destiny/lib/types";
@@ -75,7 +76,7 @@ export default function DestinyMeetingPlacePage() {
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isCharging, setIsCharging] = useState(false);
-  const [chargedCoins, setChargedCoins] = useState(FEATURE_COST);
+  const [chargedCoins, setChargedCoins] = useState(0);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [showPremiumDemo, setShowPremiumDemo] = useState(false);
 
@@ -135,7 +136,18 @@ export default function DestinyMeetingPlacePage() {
 
   // 모바일 PortOne 리다이렉트로 handleAnalyze 의 await 가 죽은 뒤, 복귀한 새 문서에서 리포트를 이어받는다.
   // 🔴 게이트를 다시 타지 않는다 — 결제는 이미 끝났고 생성은 클라이언트 계산이라 증빙 재전송이 필요 없다.
+  useEffect(() => {
+    const clear = () => { setInput(INITIAL_INPUT); setResult(null); setMeta(null); setError(""); setIsCharging(false); setIsLoading(false); };
+    const events = ['cd:auth-changed','cd:auth-session-invalidated','cd:profile-changed','destiny:profile-changed','cd:current-profile-changed'];
+    const storage = (event: StorageEvent) => { if (!event.key || /auth|profile|cdToken/.test(event.key)) clear(); };
+    events.forEach(name => window.addEventListener(name, clear)); window.addEventListener('storage', storage);
+    return () => { events.forEach(name => window.removeEventListener(name, clear)); window.removeEventListener('storage', storage); };
+  }, []);
+
+  const beginResumeReading = useFreeReadingGuard("historical-resume");
   const buildResume = usePaidResume(FEATURE_KEY, async (args, grant) => {
+    const ticket = beginResumeReading(); if (!ticket) return false;
+    try {
     const restored = unpackPaidResumeArg<AnimalDestinyInput>(args.input);
     if (!restored?.birthDate) return false;
     const payload = (grant?.payload || {}) as Record<string, unknown>;
@@ -151,6 +163,7 @@ export default function DestinyMeetingPlacePage() {
     try {
       const { resolveAnimalTwelveResult } = await import("@/app/saju/animal-destiny/lib/sajuAdapter");
       const resolved = await resolveAnimalTwelveResult(restored);
+      if (!ticket.valid()) return false;
       if (!applyMeetingPlaceResult(resolved)) {
         const message = resolved.error || copy.sajuCalcFailed;
         setError(message);
@@ -166,8 +179,10 @@ export default function DestinyMeetingPlacePage() {
     } finally {
       setIsLoading(false);
     }
+    } finally { ticket.finish(); }
   });
 
+  const beginFreeReading = useFreeReadingGuard(JSON.stringify(input));
   const handleAnalyze = useCallback(async () => {
     if (isLoading || isCharging) return;
     if (!input.birthDate) {
@@ -179,80 +194,41 @@ export default function DestinyMeetingPlacePage() {
     setResult(null);
     setMeta(null);
 
-    const requestId = `destiny-meeting-place:${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+    const request = beginFreeReading();
+    if (!request) return;
 
     setIsCharging(true);
     try {
+      const signedIn = await hasFreeReadingSession();
+      if (!request.valid()) return;
+      if (!signedIn) { toast.error(copy.toastLoginRequired); return; }
       const { resolveAnimalTwelveResult } = await import("@/app/saju/animal-destiny/lib/sajuAdapter");
       const resolved = await resolveAnimalTwelveResult(input);
+      if (!request.valid()) return;
       if (!resolved.ok || !resolved.sajuResult) {
         const message = resolved.error || copy.sajuCalcFailed;
-        updatePaidFeatureGate({ featureKey: FEATURE_KEY, requestId, status: "error", message });
         setError(message);
         toast.error(message);
         return;
       }
 
-      openPaidFeatureGate({
-        featureKey: FEATURE_KEY,
-        requestId,
-        cost: FEATURE_COST,
-        paymentMode: "pass",
-        message: copy.gateCheckingPass,
-      });
-      // 확인 완료 후 다음 화면(생성 로딩/결과)이 실제로 뜰 때까지 게이트 오버레이를 유지해 "확인 중 → 공백"을 막는다.
-      // release는 아래 setIsLoading(true) 및 finally에서 호출한다(안전장치 상한 8초).
-      holdPaidFeatureGateOpen({ requestId, maxMs: 8000 });
-
-      // 🔴 가격을 반드시 함께 넘긴다. 예전 주석은 "클라이언트 cost 를 넘기면 서버 이용권 프로브를
-      // 건너뛴다"며 이 세 줄을 지웠는데, 그 서술은 틀렸다 — cost 는 프로브를 끄는 것이 아니라
-      // 스냅샷 판정(js/core/pass-verdict.js resolveVerdict)을 **켜는** 입력이고, 빼면
-      // resolveVerdict 가 cost<=0 에서 즉시 반환해 판정 자체가 사라진다. 실제 결과는
-      // 결제창 금액 **0원** + 월정석 카드 영구 비활성이었다(월정석 비용이 coinPrice*10=0).
-      const gate = await runPaidAccessGate({
-        featureKey: FEATURE_KEY,
-        reason: copy.gateReason,
-        requestId,
-        cost: FEATURE_COST,
-        coinPrice: FEATURE_COST,
-        amountKRW: FEATURE_AMOUNT_KRW,
-        resume: buildResume({ input: packPaidResumeArg(input) }),
-      });
-
-      if (!gate.ok) {
-        const code = String(gate.error?.code || "").toUpperCase();
-        if (code === "INSUFFICIENT_COINS") {
-          toast.error(copy.toastPaymentRequired);
-          return;
-        }
-        if (code === "AUTH_REQUIRED") {
-          toast.error(copy.toastLoginRequired);
-          return;
-        }
-        toast.error(gate.error?.message || copy.paymentConfirmFailed);
-        return;
-      }
-
-      const consume = gate.data?.consume as Record<string, unknown> | undefined;
-      const pricingCost = Number(gate.data?.pricing?.coinPrice ?? gate.data?.pricing?.cost ?? FEATURE_COST);
-      const charged = Number(consume?.chargedCoins ?? consume?.cost ?? consume?.coinPrice ?? pricingCost);
-      setChargedCoins(Number.isFinite(charged) && charged > 0 ? charged : pricingCost);
+      setChargedCoins(0);
 
       setIsLoading(true);
       // 다음 화면(생성 로딩)이 마운트되는 시점 — 게이트 오버레이 hold를 해제한다.
-      releasePaidFeatureGate(requestId);
       await new Promise((resolve) => setTimeout(resolve, 900));
 
+      if (!request.valid()) return;
       applyMeetingPlaceResult(resolved);
 
       toast.success(copy.toastReportReady);
-    } finally {
+    } catch { if (request.valid()) { setError(copy.sajuCalcFailed); toast.error(copy.sajuCalcFailed); } } finally {
       // 실패로 조기 반환한 경로 등 모든 종료 경로에서 hold를 확실히 해제(안전장치).
-      releasePaidFeatureGate(requestId);
+      request.finish();
       setIsCharging(false);
       setIsLoading(false);
     }
-  }, [applyMeetingPlaceResult, buildResume, copy, input, isCharging, isLoading]);
+  }, [applyMeetingPlaceResult, beginFreeReading, copy, input, isCharging, isLoading]);
 
   const handleReset = useCallback(() => {
     setInput(INITIAL_INPUT);
@@ -380,10 +356,10 @@ export default function DestinyMeetingPlacePage() {
             />
             <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(7,7,24,0.08)_20%,rgba(6,7,24,0.82)_100%)]" />
             <div className="absolute left-4 top-4 rounded-full border border-[#ffd88a]/70 bg-[#160b2f]/82 px-4 py-2 text-xs font-black text-[#fff4d6] shadow-[0_12px_28px_rgba(0,0,0,0.34),0_0_24px_rgba(255,216,138,0.2)] backdrop-blur-md">
-              {copy.onceBadge(copy.currency(sanitizeAmountKRW(FEATURE_AMOUNT_KRW)))}
+              {copy.onceBadge("")}
             </div>
             <div className="absolute right-4 top-4 hidden rounded-full border border-[#bce6ff]/45 bg-[#0b122f]/65 px-3 py-1 text-[11px] font-black uppercase tracking-[0.18em] text-[#cff0ff] [text-shadow:0_0_10px_rgba(161,230,255,0.8)] sm:block">
-              Pass · Single · Moonlight
+              Free · Deterministic Reading
             </div>
             <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-6">
               <div className="max-w-3xl rounded-2xl border border-white/20 bg-[linear-gradient(140deg,rgba(6,10,32,0.9),rgba(17,19,48,0.7))] p-4 shadow-[0_18px_40px_rgba(4,6,20,0.62)] backdrop-blur-[2px] sm:p-5">
@@ -409,7 +385,7 @@ export default function DestinyMeetingPlacePage() {
 
         <section data-moonlit-form="" className="rounded-[2rem] border border-[#ffd4a5]/45 bg-[linear-gradient(160deg,rgba(20,15,56,0.92),rgba(26,16,64,0.9))] p-5 shadow-[0_20px_48px_rgba(8,9,32,0.5)] sm:p-8">
           <div className="mb-5 flex flex-wrap items-center gap-2 text-xs font-bold">
-            <span className="rounded-full border border-[#ffd88a]/45 bg-[#ffd88a]/15 px-3 py-1 text-[#ffe9bb]">{copy.onceBadge(copy.currency(sanitizeAmountKRW(FEATURE_AMOUNT_KRW)))}</span>
+            <span className="rounded-full border border-[#ffd88a]/45 bg-[#ffd88a]/15 px-3 py-1 text-[#ffe9bb]">{copy.onceBadge("")}</span>
             <span className="rounded-full border border-[#c8f7dc]/45 bg-[#6ee7a7]/14 px-3 py-1 text-[#ddffe9]">{copy.badgePassCheck}</span>
             <span className="rounded-full border border-[#ffb4e6]/45 bg-[#ff9dd9]/15 px-3 py-1 text-[#ffd6ef]">{copy.badgeMood}</span>
             <span className="rounded-full border border-[#9fd0ff]/45 bg-[#81bbff]/14 px-3 py-1 text-[#d6ebff]">{copy.badgeCombo}</span>
@@ -512,7 +488,7 @@ export default function DestinyMeetingPlacePage() {
 
           <button
             type="button"
-            onClick={handleAnalyze}
+            data-cd-reading-action="primary" onClick={handleAnalyze}
             disabled={!canSubmit || isLoading || isCharging}
             className="mt-6 w-full rounded-2xl bg-[linear-gradient(92deg,#ff9dd9,#8a6bff,#66b4ff)] px-5 py-4 text-base font-black text-white shadow-[0_0_18px_rgba(151,211,255,0.6),0_18px_30px_rgba(8,7,28,0.45)] transition-transform hover:scale-[1.01] active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-55"
           >

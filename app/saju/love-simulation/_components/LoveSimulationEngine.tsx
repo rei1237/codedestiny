@@ -21,9 +21,11 @@ import type { CompatibilityProfile } from "../_engine/compatibilityTypes";
 import type { AnimalDestinyInput } from "../../animal-destiny/lib/types";
 import { formatBirthDateDigits, normalizeBirthDateFromDigits } from "@/lib/birthDateInput";
 import { readCurrentDestinyProfile } from "@/app/_lib/profile-card-storage";
-import { holdPaidFeatureGateOpen, openPaidFeatureGate, refreshPaidFeatureEntitlements, releasePaidFeatureGate, runPaidAccessGate, updatePaidFeatureGate } from "@/app/_lib/billing-client";
+import { refreshPaidFeatureEntitlements } from "@/app/_lib/billing-client";
 import { LOVE_CODE_FEATURE_KEY, normalizeLoveCodeFeatureKey } from "@/app/_lib/love-code-entitlement";
-import { useCanUseFeature } from "@/app/_lib/use-content-unlock";
+import { useFreeReadingGuard } from "@/app/_lib/use-free-reading-guard";
+import { freeReadingCopy } from "@/app/_lib/free-reading-copy";
+import { hasFreeReadingSession } from "@/app/_lib/free-reading-access";
 import { packPaidResumeArg, unpackPaidResumeArg, usePaidResume } from "@/app/hooks/usePaidResume";
 import { resolveServerFeaturePricing } from "@/lib/payment/server-feature-pricing";
 
@@ -1452,6 +1454,7 @@ export const LoveSimulationEngine: React.FC = () => {
   const ambient = useAmbientMotionEnabled();
   const [screen, setScreen] = useState<"intro" | "select" | "play" | "result">("intro");
   const [locale, setLocale] = useState<LoveSimulationLocale>("ko");
+  const freeCopy = freeReadingCopy(locale);
   const [selectedId, setSelectedId] = useState<CharacterId | null>(null);
   const [entryMode, setEntryMode] = useState<"preset" | "sajuMatch">("preset");
   const [sceneIndex, setSceneIndex] = useState(0);
@@ -1477,7 +1480,7 @@ export const LoveSimulationEngine: React.FC = () => {
   // Layer 1 — 두 사람의 사주만으로 결정되는 궁합 프로필. 선택지/stats와 무관하게 진입 시 1회 계산해 고정.
   const [profile, setProfile] = useState<CompatibilityProfile | null>(null);
   const [profileStatus, setProfileStatus] = useState<"idle" | "loading" | "ready" | "error">("idle");
-  const loveCodeAccess = useCanUseFeature(LOVE_CODE_FEATURE_KEY);
+
 
   useEffect(() => {
     const syncLocale = (event?: Event) => {
@@ -1535,7 +1538,18 @@ export const LoveSimulationEngine: React.FC = () => {
   //    옛 주석은 틀렸다 — cost 는 스냅샷 판정을 켜는 입력이고, 빼면 결제창이 0원으로 뜬다.
   // 모바일 PortOne 리다이렉트로 startWithCharacter 의 await 가 죽은 뒤, 복귀한 새 문서에서 시뮬레이션을
   // 이어받는다. 🔴 게이트를 다시 타지 않고 게이트 없는 코어(startSimulationScene)를 결제 직전 상태로 부른다.
+  useEffect(() => {
+    const clear = () => { setScreen("intro"); setSelectedId(null); setProfile(null); setCoupleCompatibility(null); setMatchResults([]); setChoiceLog([]); setPartnerName(""); setPartnerBirthDate(""); setMatchError(""); setIsStartingSimulation(false); };
+    const events = ['cd:auth-changed','cd:auth-session-invalidated','cd:profile-changed','destiny:profile-changed','cd:current-profile-changed'];
+    const storage = (event: StorageEvent) => { if (!event.key || /auth|profile|cdToken/.test(event.key)) clear(); };
+    events.forEach(name => window.addEventListener(name, clear)); window.addEventListener('storage', storage);
+    return () => { events.forEach(name => window.removeEventListener(name, clear)); window.removeEventListener('storage', storage); };
+  }, []);
+
+  const beginResumeReading = useFreeReadingGuard("historical-resume");
   const buildResume = usePaidResume(LOVE_CODE_FEATURE_KEY, async (args) => {
+    const ticket = beginResumeReading(); if (!ticket) return false;
+    try {
     if (args.featureKey && normalizeLoveCodeFeatureKey(args.featureKey) !== LOVE_CODE_FEATURE_KEY) return false;
     const characterId = typeof args.characterId === "string" ? args.characterId : "";
     const matched = LOVE_CHARACTERS.find((item) => item.id === characterId);
@@ -1566,85 +1580,27 @@ export const LoveSimulationEngine: React.FC = () => {
     }
     if (compatibility) setCoupleCompatibility(compatibility);
     await refreshPaidFeatureEntitlements("app:love-code-mobile-resume");
+    if (!ticket.valid()) return false;
     setMatchError("");
     startSimulationScene(matched.id, mode, compatibility);
     return true;
+    } finally { ticket.finish(); }
   }, { legacyKinds: LEGACY_LOVE_CODE_RESUME_KINDS });
 
+  const beginFreeReading = useFreeReadingGuard(JSON.stringify([screen, partnerName, partnerBirthDate, partnerCalType, partnerHour, partnerMinute, partnerCountry, partnerGender, partnerHasTime]));
+
   const startWithCharacter = async (id: CharacterId, mode: "preset" | "sajuMatch" = "preset") => {
-    if (isStartingSimulation || loveCodeAccess.isChecking) return;
-    if (loveCodeAccess.state === "error") {
-      await loveCodeAccess.refetch({ force: true });
-      return;
-    }
-    if (loveCodeAccess.canUse) {
-      setMatchError("");
-      startSimulationScene(id, mode);
-      return;
-    }
-    const requestId = `love-simulation:${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+    const request = beginFreeReading();
+    if (!request) return;
     setIsStartingSimulation(true);
     try {
-      openPaidFeatureGate({
-        featureKey: LOVE_CODE_FEATURE_KEY,
-        requestId,
-        cost: LOVE_SIMULATION_FEATURE_COST,
-        paymentMode: "pass",
-        message: copy.checkingPassMessage,
-      });
-      holdPaidFeatureGateOpen({ requestId, maxMs: 8000 });
-
-      const gate = await runPaidAccessGate({
-        featureKey: LOVE_CODE_FEATURE_KEY,
-        reason: LOVE_SIMULATION_FEATURE_REASON,
-        requestId,
-        cost: LOVE_SIMULATION_FEATURE_COST,
-        coinPrice: LOVE_SIMULATION_FEATURE_COST,
-        amountKRW: LOVE_SIMULATION_FEATURE_AMOUNT_KRW,
-        resume: buildResume({
-          featureKey: LOVE_CODE_FEATURE_KEY,
-          characterId: id,
-          mode,
-          partner: packPaidResumeArg({
-            name: partnerName,
-            birthDate: partnerBirthDate,
-            calType: partnerCalType,
-            hour: partnerHour,
-            minute: partnerMinute,
-            country: partnerCountry,
-            gender: partnerGender,
-            hasTime: partnerHasTime,
-          }),
-          compatibility: mode === "sajuMatch" ? packPaidResumeArg(coupleCompatibility) : "",
-        }),
-      });
-
-      if (!gate.ok) {
-        const code = String(gate.error?.code || "").toUpperCase();
-        const message =
-          code === "AUTH_REQUIRED"
-            ? copy.loginRequiredError
-            : code === "INSUFFICIENT_COINS"
-              ? copy.paymentRequiredError
-              : gate.error?.message || copy.paymentVerifyFailedError;
-        updatePaidFeatureGate({ featureKey: LOVE_CODE_FEATURE_KEY, requestId, status: "error", message });
-        setMatchError(message);
-        return;
-      }
-
-      updatePaidFeatureGate({
-        featureKey: LOVE_CODE_FEATURE_KEY,
-        requestId,
-        status: "paymentProcessing",
-        message: "결제를 확인하고 러브 코드를 열고 있어요...",
-      });
-      await refreshPaidFeatureEntitlements("app:love-code-payment-success");
+      const signedIn = await hasFreeReadingSession();
+      if (!request.valid()) return;
+      if (!signedIn) { setMatchError(copy.loginRequiredError); return; }
       setMatchError("");
       startSimulationScene(id, mode);
-    } finally {
-      releasePaidFeatureGate(requestId);
-      setIsStartingSimulation(false);
-    }
+    } catch { if (request.valid()) setMatchError(copy.loginRequiredError); }
+    finally { request.finish(); setIsStartingSimulation(false); }
   };
 
   // 🔴 compatibilityOverride: 결제 복귀 재개는 새 문서라 coupleCompatibility 가 아직 null 이다
@@ -2215,14 +2171,7 @@ export const LoveSimulationEngine: React.FC = () => {
           </header>
 
           <div className="mb-5 border border-white/10 bg-black/20 px-4 py-3 text-sm leading-6 text-white/78" role="status">
-            {loveCodeAccess.state === "loading" ? "러브 코드 이용권을 확인하고 있어요..." : null}
-            {loveCodeAccess.state === "unlocked" ? (
-              <><strong className="block text-white">러브 코드 잠금 해제됨</strong>이미 구매한 기능이에요. 계속 이용할 수 있어요.</>
-            ) : null}
-            {loveCodeAccess.state === "locked" ? (
-              <><strong className="block text-white">러브 코드 잠금 해제</strong>1회 {LOVE_SIMULATION_PRICING?.amountKRW.toLocaleString("ko-KR")}원 결제로 계속 이용할 수 있어요.</>
-            ) : null}
-            {loveCodeAccess.state === "error" ? "러브 코드 이용권을 다시 확인하고 있어요..." : null}
+            <strong className="block text-white">LOVE CODE · {freeCopy.badge}</strong>{freeCopy.description}
           </div>
 
           <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
@@ -2328,16 +2277,10 @@ export const LoveSimulationEngine: React.FC = () => {
                                 event.stopPropagation();
                                 void startWithCharacter(item.id, "preset");
                               }}
-                              disabled={isStartingSimulation || loveCodeAccess.isChecking}
+                              data-cd-reading-action="primary" disabled={isStartingSimulation}
                               className={`inline-flex min-h-12 items-center justify-center gap-2 rounded-lg bg-gradient-to-r px-5 py-3 text-sm font-bold text-zinc-950 shadow-[0_18px_36px_rgba(0,0,0,0.22)] transition hover:brightness-110 ${item.palette.button}`}
                             >
-                              {loveCodeAccess.state === "unlocked"
-                                ? "러브 코드 이용하기"
-                                : loveCodeAccess.state === "locked"
-                                  ? `러브 코드 잠금 해제 (${LOVE_SIMULATION_PRICING?.amountKRW.toLocaleString("ko-KR")}원)`
-                                  : loveCodeAccess.state === "error"
-                                    ? "러브 코드 이용권 다시 확인"
-                                    : "러브 코드 이용권 확인 중"}
+                              {isStartingSimulation ? freeCopy.checking : freeCopy.start}
                               <ChevronRight className="h-4 w-4" />
                             </button>
                           </div>
