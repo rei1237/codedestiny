@@ -58,6 +58,41 @@ test("활성 비LLM 유료 항목은 pricing registry와 실제 CTA/consumer에 
       expect(auth).toContain('data?.authenticated === true');
       expect(isFreeFortuneFeatureKey('master-love-codex')).toBe(false);
       expect(isFreeFortuneFeatureKey('compat-saju-compatibility')).toBe(false);
+    } else if (['destiny-compass-crossroads','destiny-compass-future-sim','destiny-compass-life-voyage','destiny-bias-analyze','daily-fortune-reading'].includes(fixture.featureKey)) {
+      expect(isFreeFortuneFeatureKey(fixture.featureKey)).toBe(true);
+      const cta = source(fixture.cta);
+      expect(cta).toContain('useFreeReadingGuard(');
+      expect(cta).toContain('useReadingIdentityReset(');
+      expect(cta).toContain('await hasFreeReadingSession()');
+      expect(cta).toContain('if (!request.valid()) return');
+      expect(cta).not.toMatch(/ensurePaidAccess\(|runPaidAccessGate\(|capture.*Evidence\(/);
+      if (fixture.featureKey.startsWith('destiny-compass-')) {
+        expect(cta).toContain('saveCompassArchive(');
+        expect(cta).toContain('const paid = paidRef.current');
+        expect(cta).not.toContain('paidRef.current = { requestId');
+        expect(source({file:'app/destiny-compass/_components/CompassApp.tsx'})).toContain('usePaidResume("' + fixture.featureKey + '"');
+      } else {
+        expect(cta).toContain('usePaidResume(');
+        expect(cta).toContain(fixture.featureKey === 'daily-fortune-reading' ? 'requestSeq.current++' : 'computingTokenRef.current++');
+      }
+      expect(isFreeFortuneFeatureKey('destiny-compass-deep-report')).toBe(false);
+    } else if (fixture.featureKey === 'premium-fpti-report') {
+      expect(isFreeFortuneFeatureKey(fixture.featureKey)).toBe(true);
+      const cta = source(fixture.cta);
+      const start = cta.indexOf('const handleUnlockDeepReport = async');
+      const end = cta.indexOf('// PDF', start);
+      expect(start).toBeGreaterThan(0); expect(end).toBeGreaterThan(start);
+      const entry = cta.slice(start, end);
+      expect(entry).toContain('await hasFreeReadingSession()');
+      expect(entry).toContain('authFetch("/api/fpti/deep-report/free"');
+      expect(entry).toContain('if (!attempt.valid()) return');
+      expect(entry).toContain('profileId: savedProfileId');
+      expect(entry).toContain('data?.saved !== false');
+      expect(entry).toContain('source: "public"');
+      expect(entry).not.toMatch(/ensurePaidAccess|runPaidAccessGate|fetchServerDeepReport|transactionId/);
+      expect(cta).toContain('restorePurchasedReport');
+      expect(cta).toContain('source: "archive"');
+      expect(source({file:'worker/routes/fpti.js'})).toContain('async function handleReadDeepReport(');
     } else expect(source(fixture.cta)).toContain(fixture.cta.marker);
     expect(source(fixture.consumer)).toContain(fixture.consumer.marker);
   }
