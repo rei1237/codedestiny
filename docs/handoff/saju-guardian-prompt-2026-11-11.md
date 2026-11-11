@@ -1,5 +1,5 @@
 ---
-status: in-progress
+status: active
 updated: 2026-11-12
 next: "2단계 — 무료화 운영 승격 완료 통보를 받은 뒤 origin/main 최신으로 rebase(또는 cherry-pick)하고 재검증·push한다(통보 전 push 금지)."
 ---
