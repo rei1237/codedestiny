@@ -1,3 +1,4 @@
+import { isFreeFortuneFeatureKey } from '../../lib/payment/free-fortune-policy.mjs';
 import { lunarToSolar } from '../../lib/korean-calendar/index.js';
 import { createHash } from 'node:crypto';
 import { getHoneyUnlockProduct } from './honey-unlock-catalog.js';
@@ -26,6 +27,7 @@ export function honeyUseInputHash(featureKey, input = {}) {
   return createHash('sha256').update(JSON.stringify(value)).digest('hex');
 }
 export async function unlockHoneyUse({ userId, product, profileId, requestId, input }, store) {
+  if (isFreeFortuneFeatureKey(product?.featureKey)) throw fail(409, "FEATURE_NOW_FREE");
   if (product.serviceScope !== 'GGULGGUL' || product.billingType !== 'per_use') throw fail(400, 'INVALID_HONEY_PRODUCT');
   const prefix = product.featureKey === 'compat-sukuyo-compatibility' ? `sukuyo-paid:${product.featureKey}|${profileId}|` : `${product.featureKey}:`;
   if (!String(requestId || '').startsWith(prefix) || !/^hny[a-z0-9]{6,32}$/.test(String(requestId).slice(prefix.length))) throw fail(400, 'INVALID_REQUEST_ID');

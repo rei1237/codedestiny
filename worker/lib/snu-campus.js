@@ -107,7 +107,7 @@ export async function verifySnuEmail(userId, token) {
 
 export async function unlockSnuSaju(userId, profileId) {
   const status = await readSnuCampus(userId);
-  if (!status.verified) throw failure(403, 'SNU_VERIFICATION_REQUIRED', 'SNULIFE 제휴 코드를 등록하면 사주 선물을 열 수 있어요.');
+  if (!status.verified) throw failure(403, 'SNU_VERIFICATION_REQUIRED', '안내받은 코드를 등록하면 사주 선물을 열 수 있어요.');
   const identity = await resolveBirthUnlockIdentity({ userId: String(userId), profileId, featureKey: 'section_summary' });
   const codeMember = await SnuCampusMember.findById(await codeMemberId(userId)).lean();
   const id = codeMember ? codeMember._id : await memberId(status.email);

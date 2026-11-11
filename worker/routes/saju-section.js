@@ -1,3 +1,4 @@
+import { isFreeFortuneFeatureKey } from '../../lib/payment/free-fortune-policy.mjs';
 import { honeyUseInputHash } from '../lib/honey-per-use.js';
 import { createHash } from "node:crypto";
 import { getOptionalUserFromRequest, isAuthDbInfraError } from "../lib/auth.js";
@@ -62,6 +63,7 @@ function compatPartnerBirth(body) {
 // 회당 결제 궁합의 결제 확인과 증빙 claim. 문제가 없으면 null, 아니면 그대로 돌려줄 응답(402·409·503)이다.
 // pair 는 이번 결제로 여는 두 사람의 입력 — 같은 결제로 pair 만 바꾸면 claim 이 409 를 낸다.
 async function provePerUseCompat(env, { userId, featureKey, requestId, profileId, accessMethod, kind, pair, honeyInput }) {
+  if (isFreeFortuneFeatureKey(featureKey)) return null; // Reviewed deterministic products do not consume payment evidence.
   const method = String(accessMethod || "").trim().toLowerCase();
   const proofInput = { userId, featureKey, coinPrice: Number(FEATURE_KEY_PRICE_TABLE[featureKey]?.cost) || 0, requestId, profileId };
   let proof;
@@ -168,7 +170,7 @@ async function handleZiweiCompat(env, auth, body, featureKey) {
   const profileId = String(body?.profileId || "").trim().slice(0, 80);
   const rawRequestId = typeof body?.requestId === "string" ? body.requestId.trim() : "";
   const tail = rawRequestId.startsWith(ZIWEI_COMPAT_REQUEST_PREFIX) ? rawRequestId.slice(ZIWEI_COMPAT_REQUEST_PREFIX.length) : "";
-  if (!COMPAT_TAIL_PATTERN.test(tail)) return json({
+  if (!isFreeFortuneFeatureKey(featureKey) && !COMPAT_TAIL_PATTERN.test(tail)) return json({
     ok: false, code: "REQUEST_ID_INVALID", message: "결제 요청 번호가 이 카드의 결제가 아닙니다.",
   }, { status: 400 });
   const requestId = rawRequestId;
@@ -204,6 +206,20 @@ async function handleZiweiCompat(env, auth, body, featureKey) {
 export async function handleSajuSection(request, env = {}) {
   if (request.method !== "POST") return methodNotAllowed();
   try {
+    const publicBody = await readJson(request.clone());
+    const publicKey = String(publicBody?.featureKey || '');
+    if (SAJU_SECTION_FEATURE_KEYS.includes(publicKey) && isFreeFortuneFeatureKey(publicKey)) {
+      // Ignore saved-profile identifiers: public input calculation must not disclose another account's card.
+      const input = { ...publicBody, profileId: '', requestId: '' };
+      if (SUKUYO_COMPAT_FEATURE_KEYS.includes(publicKey)) return await handleSukuyoCompat(env, { userId: '' }, input, publicKey);
+      if (ZIWEI_COMPAT_FEATURE_KEYS.includes(publicKey)) return await handleZiweiCompat(env, { userId: '' }, input, publicKey);
+      const birth = bodyBirth(input);
+      const sukuyo = publicKey === 'sukuyo-nature-deep-dive'
+        ? await calculateSukuyoForMoment(env, sukuyoNatureMoment(birth, input.place)) : null;
+      const result = buildSajuSectionHtml({ ...input, featureKey: publicKey, birth, sukuyo, gender: input.gender === "M" ? "M" : "F", mode: input.mode === "neo" ? "neo" : "pig", lang: typeof input.lang === "string" ? input.lang.slice(0, 8) : "ko", authorityEnabled: sajuAuthorityOn(env) });
+      return json({ ok: true, unlocked: true, accessSource: 'public', featureKey: publicKey, ...result });
+    }
+
     let auth;
     try {
       auth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true });

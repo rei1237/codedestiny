@@ -1,3 +1,4 @@
+import { isFreeFortuneFeatureKey } from '../../lib/payment/free-fortune-policy.mjs';
 /**
  * 결제 컨텍스트의 **유일한 진입점이자 합성 루트**.
  *
@@ -399,6 +400,7 @@ async function buildLegacyPrepareCustomer(env, user, userId) {
  * 어느 쪽에서도 주문·차감·원장·권리 쓰기는 없다(읽기 한 번). 닫히지 않은 키는 false 이고 DB 를 열지 않는다.
  */
 async function guardSaleClosedEntry({ env, ctx, userId, product, body, withDb }) {
+  if (isFreeFortuneFeatureKey(product.featureKey)) assertProductSaleOpen(product);
   if (!isSajuBundleSaleClosed(product.featureKey)) return false;
   const owned = await withDb(env, ctx, (db) => findOwnedForSaleGate(db, {
     userId, product,

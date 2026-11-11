@@ -1,3 +1,4 @@
+import { isFreeFortuneFeatureKey } from '../../lib/payment/free-fortune-policy.mjs';
 import { getOptionalUserFromRequest, isAuthDbInfraError } from "../lib/auth.js";
 import { isDbUnavailableError, HttpError, json, methodNotAllowed, readJson } from "../lib/http.js";
 import { readAccountLegacyUnlock, readProfileBirthUnlock } from "../lib/paid-content-read-access.js";
@@ -18,6 +19,22 @@ const degraded = () => json({
 export async function handleAstroSection(request, env = {}) {
   if (request.method !== "POST") return methodNotAllowed();
   try {
+    const publicBody = await readJson(request.clone());
+    const publicKey = String(publicBody?.featureKey || '');
+    if ((ASTRO_SECTION_FEATURE_KEYS.includes(publicKey) || publicKey === ASTRO_YEARLY_TRANSIT_KEY) && isFreeFortuneFeatureKey(publicKey)) {
+      // Public calculations use submitted birth data only, never an account/profile lookup.
+      const input = validateBasicDeepInput(publicBody && typeof publicBody === 'object' ? publicBody : {});
+      const normalized = normalizeBasicAstrologyInput(input);
+      if (!normalized.ok) throw new HttpError(400, '출생 정보와 시간대를 확인해 주세요.', { code: 'ASTRO_INVALID_BIRTH_INPUT' });
+      const chart = await calculateBasicAstrologyChart(normalized.value, request, env);
+      const lang = typeof publicBody.lang === 'string' ? publicBody.lang.slice(0, 8) : 'ko';
+      const transitTz = Number(publicBody.transitTz);
+      const result = publicKey === ASTRO_YEARLY_TRANSIT_KEY
+        ? await buildAstroYearlyHtml({ env, request, chart, input, tz: Number.isFinite(transitTz) && transitTz >= -14 && transitTz <= 14 ? transitTz : 9 })
+        : buildAstroSectionHtml({ featureKey: publicKey, chart, lang });
+      return json({ ok: true, unlocked: true, accessSource: 'public', featureKey: publicKey, ...result });
+    }
+
     let auth;
     try {
       auth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true });

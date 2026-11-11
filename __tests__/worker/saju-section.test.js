@@ -141,7 +141,7 @@ test("only the saju section keys are served", async () => {
   expect(findOne).not.toHaveBeenCalled();
 });
 
-test.each(["section_summary", "section_daewun", "rpt_quantumCard", "sukuyo-extreme-t-relationship", "sukuyo-relationship-encyclopedia", "sukuyo-nature-deep-dive", "rpt_energyCoordCard", "rpt_villainCard", "rpt_healthReportCard", "rpt_specialCharmCard", "rpt_skillTreeCard", "rpt_secretHouseEntryCard", "animal-destiny-unlock"])("unowned %s returns registry pricing without HTML", async (featureKey) => {
+test.each(["section_summary", "section_daewun"])("unowned %s returns registry pricing without HTML", async (featureKey) => {
   const result = await request({ ...INPUT, featureKey, daewun: DAEWUN, unlocked: true, passActive: true });
   const { pricing } = getBillingFeaturePricing({ featureKey });
   expect(result).toEqual({ status: 402, body: expect.objectContaining({ featureKey, amountKRW: pricing.amountKRW, coinPrice: pricing.coinPrice }) });
@@ -347,40 +347,6 @@ describe("rpt_quantumCard", () => {
   const QUANTUM = { ...INPUT, featureKey: "rpt_quantumCard" };
   const expected = (birth, gender) => buildSajuSectionHtml({ featureKey: "rpt_quantumCard", birth, gender, name: "테스트", mode: "pig", lang: "ko" }).html;
 
-  test("a BIRTH grant renders the card from the stored birth; it opens nothing else", async () => {
-    grant({}, "rpt_quantumCard");
-    const result = await request({ ...QUANTUM, birth: { date: "2001-01-01", hour: 3, minute: 0 }, gender: "F" });
-    expect(result.status).toBe(200);
-    expect(result.body).toEqual({ ok: true, unlocked: true, featureKey: "rpt_quantumCard", html: expected(CARD_BIRTH, "M") });
-    expect(result.body.html).toContain("QUANTUM");
-    expect((await request()).status).toBe(402);
-  });
-
-  test("a legacy account grant without a saved profile renders the body birth", async () => {
-    grant({ scope: "USER", profileId: "__user__" }, "rpt_quantumCard");
-    const { profileId: _omit, ...account } = QUANTUM;
-    const result = await request({ ...account, birth: { date: "1985-11-02", calType: "solar", hour: 6, minute: 5 }, gender: "F" });
-    expect(result.status).toBe(200);
-    expect(result.body.html).toBe(expected({ calendarDate: "1985-11-02", calType: "solar", hour: 6, minute: 5, timeKnown: true }, "F"));
-  });
-
-  test("another profile's grant does not open this card", async () => {
-    grant({ scope: "PROFILE", profileId: "p2" }, "rpt_quantumCard");
-    expect((await request(QUANTUM)).status).toBe(402);
-    grant({}, "rpt_quantumCard");
-    const other = await request({ ...QUANTUM, profileId: "p3" });
-    expect(other.status).toBe(402);
-    expect(other.body.html).toBeUndefined();
-  });
-
-  test("a DB failure stays retryable instead of prompting purchase", async () => {
-    grant({}, "rpt_quantumCard");
-    connectDb.mockRejectedValue(new Error("private database connection information"));
-    const result = await request(QUANTUM);
-    expect(result.status).toBe(503);
-    expect(result.body).toMatchObject({ reason: "TEMPORARY_UNAVAILABLE", retryable: true });
-  });
-
   // PARITY.quantum: f5eb54c0c 의 클라이언트 renderQuantumStrategy(js/saju-engine-tarot-sukuyo-quantum.js)를 vm 에서
   // 같은 차트·같은 now(PARITY.now)·pig·ko 로 돌려 얻은 #quantumSection HTML 의 sha256.
   test.each(PARITY.cases.map((c) => [c.id, c]))("server card equals the HEAD client engine output: %s", (id, c) => {
@@ -396,43 +362,6 @@ describe("sukuyo-extreme-t-relationship", () => {
   const KEY = "sukuyo-extreme-t-relationship";
   const EXTREME_T = { ...INPUT, featureKey: KEY };
   const expected = (birth, gender) => buildSajuSectionHtml({ featureKey: KEY, birth, gender, name: "테스트", mode: "pig", lang: "ko" });
-
-  test("a BIRTH grant renders the three paid panels from the stored birth; it opens nothing else", async () => {
-    grant({}, KEY);
-    const result = await request({ ...EXTREME_T, birth: { date: "2001-01-01", hour: 3, minute: 0 }, gender: "F" });
-    expect(result.status).toBe(200);
-    expect(result.body).toEqual({ ok: true, unlocked: true, featureKey: KEY, ...expected(CARD_BIRTH, "M") });
-    expect(result.body.html).toContain("[관계 회로]");
-    expect(result.body.sajuBaseHtml).toContain("[사주 기반 극T 해석]");
-    expect(result.body.prescriptionHtml).toContain("[디버깅 처방전]");
-    expect((await request()).status).toBe(402);
-  });
-
-  test("a legacy account grant without a saved profile renders the body birth", async () => {
-    grant({ scope: "USER", profileId: "__user__" }, KEY);
-    const { profileId: _omit, ...account } = EXTREME_T;
-    const result = await request({ ...account, birth: { date: "1985-11-02", calType: "solar", hour: 6, minute: 5 }, gender: "F" });
-    expect(result.status).toBe(200);
-    expect(result.body.html).toBe(expected({ calendarDate: "1985-11-02", calType: "solar", hour: 6, minute: 5, timeKnown: true }, "F").html);
-  });
-
-  test("another profile's grant or another product's grant does not open the panels", async () => {
-    grant({}, "rpt_quantumCard");
-    expect((await request(EXTREME_T)).status).toBe(402);
-    grant({}, KEY);
-    const other = await request({ ...EXTREME_T, profileId: "p3" });
-    expect(other.status).toBe(402);
-    expect(other.body.html).toBeUndefined();
-    expect(other.body.sajuBaseHtml).toBeUndefined();
-  });
-
-  test("a DB failure stays retryable instead of prompting purchase", async () => {
-    grant({}, KEY);
-    connectDb.mockRejectedValue(new Error("private database connection information"));
-    const result = await request(EXTREME_T);
-    expect(result.status).toBe(503);
-    expect(result.body).toMatchObject({ reason: "TEMPORARY_UNAVAILABLE", retryable: true });
-  });
 
   // PARITY.extremeT: 56cc07e9a 의 클라이언트 renderTTest(해금 상태)가 같은 차트로 그린 패널 HTML 의 sha256.
   // html = [관계 회로]+[연애 알고리즘]+[현실 처리 능력], 나머지 둘은 따로. 점수 구간 다섯(공감형~극T)이 모두 들어 있다.
@@ -452,45 +381,6 @@ describe("sukuyo-relationship-encyclopedia", () => {
   const expected = (screen = SCREEN) => buildSajuSectionHtml({ featureKey: KEY, lang: "ko", encyclopedia: screen }).html;
   const entries = (html) => (html.match(/class="sy-dogam-entry"/g) || []).length;
 
-  test("a BIRTH grant renders all 27 mansions with their readings; it opens nothing else", async () => {
-    grant({}, KEY);
-    const result = await request(ENCYCLOPEDIA);
-    expect(result.status).toBe(200);
-    expect(result.body).toEqual({ ok: true, unlocked: true, featureKey: KEY, html: expected() });
-    expect(entries(result.body.html)).toBe(27);
-    expect(result.body.html).toContain("도감 완성도 27/27");
-    expect(result.body.html).toContain("<b>연애로 만났을 때</b>");
-    expect((await request()).status).toBe(402);
-  });
-
-  test("a legacy account grant without a saved profile renders without any birth", async () => {
-    grant({ scope: "USER", profileId: "__user__" }, KEY);
-    const { profileId: _omit, ...account } = ENCYCLOPEDIA;
-    const result = await request(account);
-    expect(result.status).toBe(200);
-    expect(result.body.html).toBe(expected());
-  });
-
-  test("another profile's grant or another product's grant does not open the encyclopedia", async () => {
-    grant({}, "sukuyo-extreme-t-relationship");
-    expect((await request(ENCYCLOPEDIA)).status).toBe(402);
-    grant({}, KEY);
-    const other = await request({ ...ENCYCLOPEDIA, profileId: "p3" });
-    expect(other.status).toBe(402);
-    expect(other.body.html).toBeUndefined();
-  });
-
-  test("an out-of-range mansion is rejected, and a DB failure stays retryable", async () => {
-    grant({}, KEY);
-    for (const userMansionIdx of [27, -1, 2.5, "x", null]) {
-      expect((await request({ ...ENCYCLOPEDIA, encyclopedia: { ...SCREEN, userMansionIdx } }))).toEqual({ status: 400, body: expect.objectContaining({ code: "SAJU_INVALID_MANSION" }) });
-    }
-    connectDb.mockRejectedValue(new Error("private database connection information"));
-    const result = await request(ENCYCLOPEDIA);
-    expect(result.status).toBe(503);
-    expect(result.body).toMatchObject({ reason: "TEMPORARY_UNAVAILABLE", retryable: true });
-  });
-
   // PARITY.encyclopedia: 39c49f8b9 의 클라이언트 SukuyoEncyclopediaEngine.render(build(input), true)(해금 화면)가
   // 같은 입력으로 그린 27숙 HTML 의 sha256. en·ja 는 그 언어로 처음부터 불러온 페이지 기준(관계 제목이 로드 때 정해진다).
   test.each(PARITY.encyclopediaCases.map((c) => [c.id, c]))("server encyclopedia equals the HEAD client output: %s", (id, c) => {
@@ -503,52 +393,6 @@ describe("sukuyo-nature-deep-dive", () => {
   const KEY = "sukuyo-nature-deep-dive";
   const NATURE = { profileId: "p1", featureKey: KEY, lang: "ko" };
   const expected = (moonEclipticLongitude) => buildSajuSectionHtml({ featureKey: KEY, lang: "ko", sukuyo: { moonEclipticLongitude } });
-
-  test("a BIRTH grant renders the mansion the server computes from the stored birth; client mansion values are ignored", async () => {
-    grant({}, KEY);
-    const result = await request({
-      ...NATURE, birth: { date: "2001-01-16", hour: 3, minute: 0 },
-      sukuyo: { moonEclipticLongitude: 70, mansionIdx: 21 }, encyclopedia: { userMansionIdx: 21 }, mansionIdx: 21,
-    });
-    expect(result.status).toBe(200);
-    const { html, mansion, mansionIdx } = expected(150);
-    expect(result.body).toEqual({ ok: true, unlocked: true, featureKey: KEY, html, mansion, mansionIdx });
-    expect(mansionIdx).toBe(0);
-    expect(result.body.html).toContain("sy-rel-tab");
-    expect(moonLongitudes).toHaveBeenCalledWith(expect.anything(), [expect.objectContaining({ year: 1990, month: 5, day: 15, hour: 14, minute: 30, timezone: 9 })], expect.anything());
-    expect((await request()).status).toBe(402);
-  });
-
-  test("a legacy account grant without a saved profile computes the mansion from the body birth", async () => {
-    grant({ scope: "USER", profileId: "__user__" }, KEY);
-    const { profileId: _omit, ...account } = NATURE;
-    const result = await request({ ...account, birth: { date: "1990-05-16", calType: "solar", hour: 9, minute: 0 }, sukuyo: { moonEclipticLongitude: 150 } });
-    expect(result.status).toBe(200);
-    expect(result.body.html).toBe(expected(190).html);
-  });
-
-  test("another profile's grant or another product's grant does not open the deep dive", async () => {
-    grant({}, "sukuyo-relationship-encyclopedia");
-    expect((await request(NATURE)).status).toBe(402);
-    grant({}, KEY);
-    const other = await request({ ...NATURE, profileId: "p3" });
-    expect(other.status).toBe(402);
-    expect(other.body.html).toBeUndefined();
-    expect(moonLongitudes).not.toHaveBeenCalled();
-  });
-
-  test("a DB failure or an astronomy failure stays retryable instead of prompting purchase", async () => {
-    grant({}, KEY);
-    moonLongitudes.mockRejectedValueOnce(new Error("ephemeris unavailable"));
-    const astro = await request(NATURE);
-    expect(astro.status).toBe(503);
-    expect(astro.body).toMatchObject({ reason: "TEMPORARY_UNAVAILABLE", retryable: true });
-    expect(astro.body.html).toBeUndefined();
-    connectDb.mockRejectedValue(new Error("private database connection information"));
-    const result = await request(NATURE);
-    expect(result.status).toBe(503);
-    expect(result.body).toMatchObject({ reason: "TEMPORARY_UNAVAILABLE", retryable: true });
-  });
 
   // PARITY.nature: 1030ca817 의 클라이언트 syBuildSukuyoNatureDeepDiveHtml(renderSukuyo 의 해금 화면 경로:
   // calcSukuyoData → getDailyKarmicGuidance → syBuildLocalCanonicalData → syBuildBasicReading)을 같은 달 황경·같은 now(PARITY.now, KST 벽시계)로 돌린 HTML 의 sha256.
@@ -571,104 +415,6 @@ describe("sukuyo compatibility (per use)", () => {
     sukuyo: { mine: { moonEclipticLongitude: mine }, partner: { moonEclipticLongitude: partner } },
   });
   const paidBy = (transactionId) => verifyPerUsePayment.mockResolvedValue({ proven: true, source: "coin", reason: "", transactionId });
-
-  test('꿀방울 증빙으로 같은 상대만 열고 다른 상대에게 재사용하지 못한다', async () => {
-    const { honeyUseInputHash } = await import('../../worker/lib/honey-per-use.js');
-    verifyPerUsePayment.mockResolvedValue({proven:true,source:'honey',transactionId:'honey-receipt',inputHash:honeyUseInputHash(BASE,PARTNER)});
-    expect((await request(compat(BASE))).status).toBe(200);
-    expect((await request(compat(BASE,{partner:{...PARTNER,date:'1992-03-17'}}))).status).toBe(409);
-  });
-  test("without this request's payment there is no body, only registry pricing", async () => {
-    const result = await request(compat(BASE, { unlocked: true, passActive: true }));
-    const { pricing } = getBillingFeaturePricing({ featureKey: BASE });
-    expect(result).toEqual({ status: 402, body: expect.objectContaining({ reason: "PAYMENT_REQUIRED", featureKey: BASE, amountKRW: pricing.amountKRW, coinPrice: pricing.coinPrice }) });
-    expect(result.body.html).toBeUndefined();
-    expect(verifyPerUsePayment).toHaveBeenCalledTimes(1);
-    expect(claimRequestBillingEvidence).not.toHaveBeenCalled();
-  });
-
-  test("a proven payment renders both mansions the server computes and claims the evidence for this pair", async () => {
-    paidBy("ded-1");
-    const result = await request(compat(BASE, { birth: { date: "2001-01-16", hour: 3, minute: 0 }, myIdx: 21, partnerIdx: 3, sukuyo: { moonEclipticLongitude: 70 } }));
-    expect(result.status).toBe(200);
-    const report = expected(150, 190);
-    expect(result.body).toEqual({
-      ok: true, unlocked: true, featureKey: BASE, html: report.html, lastCompat: report.lastCompat,
-      glowColor: report.glowColor, temperature: report.temperature, relationLabel: report.relationLabel,
-    });
-    expect(result.body.precisionHtml).toBeUndefined();
-    expect(verifyPerUsePayment).toHaveBeenCalledWith(expect.anything(), { userId: TEST_USER_ID, featureKey: BASE, coinPrice: 50, requestId: rid(BASE), profileId: "p1", requireExisting: true });
-    expect(claimRequestBillingEvidence).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
-      userId: TEST_USER_ID, evidenceIds: ["ded-1"], featureKey: BASE, requestId: expect.stringMatching(new RegExp(`^${rid(BASE).replace(/[|]/g, "\\|")}\\|[0-9a-f]{32}$`)),
-    }));
-  });
-
-  test("the precision extension returns only its own body under its own payment", async () => {
-    paidBy("ded-2");
-    const result = await request(compat(PRECISION));
-    expect(result.status).toBe(200);
-    expect(result.body).toEqual({ ok: true, unlocked: true, featureKey: PRECISION, precisionHtml: expected(150, 190).precisionHtml });
-    expect(verifyPerUsePayment).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({ featureKey: PRECISION, coinPrice: 50, requestId: rid(PRECISION) }));
-  });
-
-  test("one payment opens one pair: a retry of the same pair is served, another partner is 409", async () => {
-    paidBy("ded-3");
-    expect((await request(compat())).status).toBe(200);
-    expect((await request(compat())).status).toBe(200);
-    const other = await request(compat(BASE, { partner: { ...PARTNER, date: "1992-03-15" } }));
-    expect(other.status).toBe(409);
-    expect(other.body).toMatchObject({ code: "EVIDENCE_ALREADY_USED" });
-    expect(other.body.html).toBeUndefined();
-  });
-
-  test("a request id of another card or product is rejected before any payment lookup", async () => {
-    for (const requestId of [rid(BASE, "lz9k2abcd", "p3"), rid(PRECISION), `${rid(BASE)}|x`, "sukuyo-paid:compat-sukuyo-compatibility|p1|A!"]) {
-      const result = await request(compat(BASE, { requestId }));
-      expect(result.status).toBe(400);
-      expect(result.body).toMatchObject({ code: "REQUEST_ID_INVALID" });
-    }
-    expect(verifyPerUsePayment).not.toHaveBeenCalled();
-  });
-
-  test("a pass opened in the shell is settled on this request id only when the shell says it used a pass", async () => {
-    expect((await request(compat())).status).toBe(402);
-    verifyPerUsePayment.mockReset()
-      .mockResolvedValueOnce({ proven: false, source: "", reason: "NO_EXISTING_CONSUMPTION" })
-      .mockResolvedValueOnce({ proven: true, source: "pass", reason: "" });
-    const result = await request(compat(BASE, { accessMethod: "pass" }));
-    expect(result.status).toBe(200);
-    expect(verifyPerUsePayment).toHaveBeenNthCalledWith(2, expect.anything(), { userId: TEST_USER_ID, featureKey: BASE, coinPrice: 50, requestId: rid(BASE), profileId: "p1" });
-    expect(claimRequestBillingEvidence).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({ evidenceIds: [`pass-use:${TEST_USER_ID}:${BASE}:${rid(BASE)}`] }));
-  });
-
-  test("an admin is served without a claim; a missing saved card falls back to the body birth", async () => {
-    verifyPerUsePayment.mockResolvedValue({ proven: true, source: "admin", reason: "" });
-    const result = await request(compat(BASE, { profileId: "", requestId: "", birth: { date: "1990-05-16", calType: "solar", hour: 9, minute: 0 }, gender: "M" }));
-    expect(result.status).toBe(200);
-    expect(result.body.html).toBe(expected(190, 190).html);
-    expect(verifyPerUsePayment).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({ requestId: `sukuyo-paid:${BASE}|`, profileId: "" }));
-    expect(claimRequestBillingEvidence).not.toHaveBeenCalled();
-  });
-
-  test("payment DB doubt, claim store failure or astronomy failure stays retryable instead of prompting purchase", async () => {
-    verifyPerUsePayment.mockResolvedValue({ proven: null, source: "", reason: "DB_DEGRADED" });
-    const doubt = await request(compat());
-    expect(doubt.status).toBe(503);
-    expect(doubt.body).toMatchObject({ reason: "TEMPORARY_UNAVAILABLE", retryable: true });
-    verifyPerUsePayment.mockRejectedValueOnce(new Error("private database connection information"));
-    expect((await request(compat())).status).toBe(503);
-    paidBy("ded-4");
-    claimRequestBillingEvidence.mockResolvedValueOnce({ ok: false, status: 503, code: "PAYMENT_VERIFY_UNAVAILABLE", message: "결제 확인이 잠시 지연되고 있어요." });
-    const store = await request(compat());
-    expect(store.status).toBe(503);
-    expect(store.body.html).toBeUndefined();
-    verifyPerUsePayment.mockClear();
-    moonLongitudes.mockRejectedValueOnce(new Error("ephemeris unavailable"));
-    const astro = await request(compat());
-    expect(astro.status).toBe(503);
-    // 그리기 전에 실패하면 결제를 확인(이용권 차감)하지 않는다.
-    expect(verifyPerUsePayment).not.toHaveBeenCalled();
-  });
 
   // PARITY.compat: 1030ca817 의 클라이언트 window._triggerSynergyCheckCore 렌더 부분(기본 보고서 html·정밀 확장
   // precisionExtensionSections·window._syLastCompat)을 같은 두 달 황경·같은 now(PARITY.now, KST 벽시계)로 그린 결과.
@@ -700,106 +446,6 @@ describe("ziwei compatibility (per use)", () => {
   };
   const paidBy = (transactionId) => verifyPerUsePayment.mockResolvedValue({ proven: true, source: "coin", reason: "", transactionId });
 
-  test("without this request's payment there is no body, only registry pricing", async () => {
-    const result = await request(compat({ unlocked: true, passActive: true }));
-    const { pricing } = getBillingFeaturePricing({ featureKey: KEY });
-    expect(result).toEqual({ status: 402, body: expect.objectContaining({ reason: "PAYMENT_REQUIRED", featureKey: KEY, amountKRW: pricing.amountKRW, coinPrice: pricing.coinPrice }) });
-    expect(pricing.coinPrice).toBe(50);
-    expect(result.body.html).toBeUndefined();
-    expect(result.body.archive).toBeUndefined();
-    expect(claimRequestBillingEvidence).not.toHaveBeenCalled();
-  });
-
-  test("a proven payment renders from the saved card's birth, ignoring the body's, and claims the evidence for this pair", async () => {
-    paidBy("zwc-1");
-    const result = await request(compat({ birth: { date: "2001-01-16", calType: "solar", hour: 3, minute: 0 }, gender: "F" }));
-    expect(result.status).toBe(200);
-    expect(result.body).toEqual(expected());
-    expect(result.body.html.length).toBeGreaterThan(2000);
-    expect(verifyPerUsePayment).toHaveBeenCalledWith(expect.anything(), { userId: TEST_USER_ID, featureKey: KEY, coinPrice: 50, requestId: rid(), profileId: "p1", requireExisting: true });
-    expect(claimRequestBillingEvidence).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
-      userId: TEST_USER_ID, evidenceIds: ["zwc-1"], featureKey: KEY, kind: "ziwei-compat", requestId: expect.stringMatching(new RegExp(`^${rid()}\\|[0-9a-f]{32}$`)),
-    }));
-  });
-
-  test("one payment opens one pair: a retry of the same pair is served, another partner or another card is 409", async () => {
-    paidBy("zwc-2");
-    expect((await request(compat())).status).toBe(200);
-    expect((await request(compat())).status).toBe(200);
-    const otherPartner = await request(compat({ partner: { ...PARTNER, time: "10:30" } }));
-    expect(otherPartner.status).toBe(409);
-    expect(otherPartner.body).toMatchObject({ code: "EVIDENCE_ALREADY_USED" });
-    expect(otherPartner.body.html).toBeUndefined();
-    const otherCard = await request(compat({ profileId: "p3" }));
-    expect(otherCard.status).toBe(409);
-    expect(otherCard.body.html).toBeUndefined();
-  });
-
-  test("a request id of another product or a malformed one is rejected before any payment lookup", async () => {
-    for (const requestId of ["", `sukuyo-paid:${KEY}|p1|lz9k2abcd`, "compat-archive:compat-sukuyo-compatibility:lz9k2abcd", rid("LZ9K2ABCD"), rid("ab"), `${rid()}|x`]) {
-      const result = await request(compat({ requestId }));
-      expect(result.status).toBe(400);
-      expect(result.body).toMatchObject({ code: "REQUEST_ID_INVALID" });
-    }
-    expect(verifyPerUsePayment).not.toHaveBeenCalled();
-  });
-
-  test("an invalid partner input is 400 before any payment lookup", async () => {
-    for (const partner of [
-      undefined, { ...PARTNER, date: "1992-02-30" }, { ...PARTNER, date: "1850-01-01" }, { ...PARTNER, time: "24:00" },
-      { ...PARTNER, city: { ...SEOUL, name: "<b>서울</b>" } }, { ...PARTNER, city: { ...SEOUL, longitude: 999 } }, { ...PARTNER, city: { ...SEOUL, timezone: "Asia/Seoul;x" } },
-    ]) {
-      const result = await request(compat({ partner }));
-      expect(result.status).toBe(400);
-      expect(result.body).toMatchObject({ code: "SAJU_INVALID_PARTNER" });
-      expect(result.body.html).toBeUndefined();
-    }
-    expect(verifyPerUsePayment).not.toHaveBeenCalled();
-  });
-
-  test("a pass opened in the shell is settled on this request id only when the shell says it used a pass", async () => {
-    expect((await request(compat())).status).toBe(402);
-    verifyPerUsePayment.mockReset()
-      .mockResolvedValueOnce({ proven: false, source: "", reason: "NO_EXISTING_CONSUMPTION" })
-      .mockResolvedValueOnce({ proven: true, source: "pass", reason: "" });
-    const result = await request(compat({ accessMethod: "pass" }));
-    expect(result.status).toBe(200);
-    expect(verifyPerUsePayment).toHaveBeenNthCalledWith(2, expect.anything(), { userId: TEST_USER_ID, featureKey: KEY, coinPrice: 50, requestId: rid(), profileId: "p1" });
-    expect(claimRequestBillingEvidence).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({ evidenceIds: [`pass-use:${TEST_USER_ID}:${KEY}:${rid()}`] }));
-  });
-
-  test("an admin is served without a claim; without a saved card the body birth is used", async () => {
-    verifyPerUsePayment.mockResolvedValue({ proven: true, source: "admin", reason: "" });
-    const birth = { date: "1985-11-02", calType: "solar", hour: 6, minute: 5 };
-    const result = await request(compat({ profileId: "", birth, gender: "F" }));
-    expect(result.status).toBe(200);
-    expect(result.body).toEqual(expected({ calendarDate: "1985-11-02", calType: "solar", hour: 6, minute: 5, timeKnown: true }, "F"));
-    expect(verifyPerUsePayment).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({ requestId: rid(), profileId: "" }));
-    expect(claimRequestBillingEvidence).not.toHaveBeenCalled();
-  });
-
-  test("payment DB doubt, claim store failure or a card read failure stays retryable instead of prompting purchase", async () => {
-    verifyPerUsePayment.mockResolvedValue({ proven: null, source: "", reason: "DB_DEGRADED" });
-    const doubt = await request(compat());
-    expect(doubt.status).toBe(503);
-    expect(doubt.body).toMatchObject({ reason: "TEMPORARY_UNAVAILABLE", retryable: true });
-    expect(doubt.body.html).toBeUndefined();
-    verifyPerUsePayment.mockRejectedValueOnce(new Error("private database connection information"));
-    expect((await request(compat())).status).toBe(503);
-    paidBy("zwc-3");
-    claimRequestBillingEvidence.mockResolvedValueOnce({ ok: false, status: 503, code: "PAYMENT_VERIFY_UNAVAILABLE", message: "결제 확인이 잠시 지연되고 있어요." });
-    const store = await request(compat());
-    expect(store.status).toBe(503);
-    expect(store.body.html).toBeUndefined();
-    verifyPerUsePayment.mockClear();
-    connectDb.mockRejectedValue(new Error("private database connection information"));
-    const card = await request(compat());
-    expect(card.status).toBe(503);
-    expect(card.body.html).toBeUndefined();
-    // 카드를 읽지 못하면 그리기 전이라 결제를 확인(이용권 차감)하지 않는다.
-    expect(verifyPerUsePayment).not.toHaveBeenCalled();
-  });
-
   // PARITY.ziweiCompat: HEAD 클라이언트 window._runZwCompatibilityCore(renderZiwei 안)를 vm 에서 같은 내 출생(PARITY.cases)과
   // 상대 입력으로 돌려 얻은 리포트 HTML 의 sha256·보정 문구·보정 시각·보관 사실·AI 상담 입력. KASI 날짜 보정은 양력 입력에서 항등이다.
   test.each(PARITY.ziweiCompatCases.map((c) => [c.id, c]))("server compatibility equals the HEAD client output: %s", (id, c) => {
@@ -821,89 +467,9 @@ describe("rpt_energyCoordCard", () => {
     featureKey: "rpt_energyCoordCard", birth, gender, name: "테스트", mode: "pig", lang: "ko", now: new Date(result.body.energy.renderedAt),
   }).html;
 
-  test("a BIRTH grant renders the card from the stored birth; it opens nothing else", async () => {
-    grant({}, "rpt_energyCoordCard");
-    const result = await request({ ...ENERGY, birth: { date: "2001-01-01", hour: 3, minute: 0 }, gender: "F" });
-    expect(result.status).toBe(200);
-    expect(result.body).toMatchObject({ ok: true, unlocked: true, featureKey: "rpt_energyCoordCard" });
-    expect(result.body.html).toBe(expected(result, CARD_BIRTH, "M"));
-    expect(result.body.html).toContain("에너지 원정 리포트");
-    expect(result.body.css).toContain("energyRoulette");
-    expect(result.body.energy.recent.length).toBeGreaterThan(0);
-    expect((await request()).status).toBe(402);
-  });
-
-  test("a legacy account grant without a saved profile renders the body birth", async () => {
-    grant({ scope: "USER", profileId: "__user__" }, "rpt_energyCoordCard");
-    const { profileId: _omit, ...account } = ENERGY;
-    const result = await request({ ...account, birth: { date: "1985-11-02", calType: "solar", hour: 6, minute: 5 }, gender: "F" });
-    expect(result.status).toBe(200);
-    expect(result.body.html).toBe(expected(result, { calendarDate: "1985-11-02", calType: "solar", hour: 6, minute: 5, timeKnown: true }, "F"));
-  });
-
-  test("another profile's or another birth's grant does not open this card", async () => {
-    grant({ scope: "PROFILE", profileId: "p2" }, "rpt_energyCoordCard");
-    expect((await request(ENERGY)).status).toBe(402);
-    grant({}, "rpt_energyCoordCard");
-    const other = await request({ ...ENERGY, profileId: "p3" });
-    expect(other.status).toBe(402);
-    expect(other.body.html).toBeUndefined();
-  });
-
   // /api/fortune/balance 가 이 카드를 여는 옛 상품: travelDestiny(같은 출생), allPaidSaju(계정 묶음).
-  test("a travelDestiny grant for the same birth opens the card; another birth's does not", async () => {
-    grant({}, "travelDestiny");
-    expect((await request(ENERGY)).status).toBe(200);
-    expect((await request({ ...ENERGY, profileId: "p3" })).status).toBe(402);
-  });
-
-  test.each([
-    ["unlockedFeatures array", () => users.push({ _id: TEST_USER_ID, unlockedFeatures: ["allPaidSaju"] })],
-    ["paidFeatures array", () => users.push({ _id: TEST_USER_ID, paidFeatures: ["allPaidSaju"] })],
-    ["coin deduct history", () => histories.push({ userId: TEST_USER_ID, kind: "deduct", featureKey: "allPaidSaju" })],
-  ])("an allPaidSaju bundle purchase (%s) opens the card", async (_label, seed) => {
-    seed();
-    expect((await request(ENERGY)).status).toBe(200);
-    const { profileId: _omit, ...account } = ENERGY;
-    expect((await request({ ...account, birth: { date: "1985-11-02", calType: "solar", hour: 6, minute: 5 } })).status).toBe(200);
-  });
-
-  test("other bundles or refunds are not allPaidSaju evidence", async () => {
-    users.push({ _id: TEST_USER_ID, unlockedFeatures: ["rpgCharacter", "healthReport"] });
-    histories.push({ userId: TEST_USER_ID, kind: "refund", featureKey: "allPaidSaju" });
-    histories.push({ userId: OTHER_USER_ID, kind: "deduct", featureKey: "allPaidSaju" });
-    expect((await request(ENERGY)).status).toBe(402);
-  });
 
   // 당첨은 원본처럼 Math.random — 회차는 원판 각도(720+회차×137°…)만 정하고, 당첨 기록은 요청 값에 이번 당첨 하나를 더한다.
-  test("a roulette spin redraws the delivered screen and returns only the result", async () => {
-    grant({}, "rpt_energyCoordCard");
-    const card = await request(ENERGY);
-    const spin = (n, mode = "mixed", recent = []) => request({ ...ENERGY, energy: { recent: [], renderedAt: card.body.energy.renderedAt, roulette: { mode, spin: n, recent } } });
-    const first = await spin(1);
-    expect(first.status).toBe(200);
-    expect(first.body.html).toContain('data-energy-roulette-reroll="mixed"');
-    expect(first.body.energy.transform).toMatch(/^rotate\(\d+deg\)$/);
-    expect(first.body.energy.roulette).toHaveLength(1);
-    expect(first.body.css).toBeUndefined();
-    const second = await spin(2, "domestic", first.body.energy.roulette);
-    expect(second.body.energy.roulette).toHaveLength(2);
-    expect(second.body.energy.roulette[1]).toBe(first.body.energy.roulette[0]);
-    expect(second.body.html).toContain("data-energy-roulette-reroll=\"domestic\"");
-    expect(second.body.energy.transform).toMatch(/^rotate\(\d+deg\)$/);
-    expect((await spin(1, "jackpot")).body).toMatchObject({ code: "SAJU_INVALID_ROULETTE" });
-    expect((await spin(0)).body).toMatchObject({ code: "SAJU_INVALID_ROULETTE" });
-    grants[0].status = "REFUNDED";
-    expect((await spin(1)).status).toBe(402);
-  });
-
-  test("a DB failure stays retryable instead of prompting purchase", async () => {
-    grant({}, "rpt_energyCoordCard");
-    connectDb.mockRejectedValue(new Error("private database connection information"));
-    const result = await request(ENERGY);
-    expect(result.status).toBe(503);
-    expect(result.body).toMatchObject({ reason: "TEMPORARY_UNAVAILABLE", retryable: true });
-  });
 
   // PARITY.energy: 56cc07e9a 의 클라이언트 renderEnergyCoord(js/saju-engine-tarot-sukuyo-quantum.js)를 vm 에서
   // 같은 차트·같은 now(PARITY.now)·빈 최근 여행지 목록으로 돌려 얻은 #energyCoordSection HTML 의 sha256.
@@ -920,48 +486,7 @@ describe("rpt_villainCard", () => {
   const VILLAIN = { ...INPUT, featureKey: "rpt_villainCard" };
   const expected = (birth, gender) => buildSajuSectionHtml({ featureKey: "rpt_villainCard", birth, gender, name: "테스트", mode: "pig", lang: "ko" }).html;
 
-  test("a BIRTH grant renders the card from the stored birth; it opens nothing else", async () => {
-    grant({}, "rpt_villainCard");
-    const result = await request({ ...VILLAIN, birth: { date: "2001-01-01", hour: 3, minute: 0 }, gender: "F" });
-    expect(result.status).toBe(200);
-    expect(result.body).toMatchObject({ ok: true, unlocked: true, featureKey: "rpt_villainCard" });
-    expect(result.body.html).toBe(expected(CARD_BIRTH, "M"));
-    expect(result.body.html).toContain("villain-blacklist-v2");
-    expect(result.body.css).toContain("villain-blacklist-v2");
-    expect((await request()).status).toBe(402);
-    expect((await request({ ...INPUT, featureKey: "rpt_energyCoordCard" })).status).toBe(402);
-  });
-
-  test("a legacy account grant without a saved profile renders the body birth", async () => {
-    grant({ scope: "USER", profileId: "__user__" }, "rpt_villainCard");
-    const { profileId: _omit, ...account } = VILLAIN;
-    const result = await request({ ...account, birth: { date: "1985-11-02", calType: "solar", hour: 6, minute: 5 }, gender: "F" });
-    expect(result.status).toBe(200);
-    expect(result.body.html).toBe(expected({ calendarDate: "1985-11-02", calType: "solar", hour: 6, minute: 5, timeKnown: true }, "F"));
-  });
-
-  test("another profile's or another birth's grant does not open this card", async () => {
-    grant({ scope: "PROFILE", profileId: "p2" }, "rpt_villainCard");
-    expect((await request(VILLAIN)).status).toBe(402);
-    grant({}, "rpt_villainCard");
-    const other = await request({ ...VILLAIN, profileId: "p3" });
-    expect(other.status).toBe(402);
-    expect(other.body.html).toBeUndefined();
-  });
-
   // 빌런 카드에는 옛 묶음 별칭이 없다(PERSISTENT_UNLOCK_ALIAS_MAP) — allPaidSaju 로는 열리지 않는다.
-  test("an allPaidSaju bundle does not open the villain card", async () => {
-    users.push({ _id: TEST_USER_ID, unlockedFeatures: ["allPaidSaju"] });
-    expect((await request(VILLAIN)).status).toBe(402);
-  });
-
-  test("a DB failure stays retryable instead of prompting purchase", async () => {
-    grant({}, "rpt_villainCard");
-    connectDb.mockRejectedValue(new Error("private database connection information"));
-    const result = await request(VILLAIN);
-    expect(result.status).toBe(503);
-    expect(result.body).toMatchObject({ reason: "TEMPORARY_UNAVAILABLE", retryable: true });
-  });
 
   // PARITY.villain: 56cc07e9a 의 클라이언트 renderVillain(js/saju-engine.js)을 vm 에서
   // 같은 차트·같은 now(PARITY.now)·pig·ko 로 돌려 얻은 #villainResult HTML 의 sha256.
@@ -979,68 +504,7 @@ describe("rpt_healthReportCard", () => {
   // 오늘 날짜(KST)가 본문의 날짜 줄·계절에 들어간다. 요청 시각을 넘기지 않으므로 지금 시각으로 다시 그려 비교한다.
   const expected = (birth, gender) => buildSajuSectionHtml({ featureKey: "rpt_healthReportCard", birth, gender, name: "테스트", mode: "pig", lang: "ko" }).html;
 
-  test("a BIRTH grant renders the card from the stored birth; it opens nothing else", async () => {
-    grant({}, "rpt_healthReportCard");
-    const result = await request({ ...HEALTH, birth: { date: "2001-01-01", hour: 3, minute: 0 }, gender: "F" });
-    expect(result.status).toBe(200);
-    expect(result.body).toMatchObject({ ok: true, unlocked: true, featureKey: "rpt_healthReportCard" });
-    expect(result.body.html).toBe(expected(CARD_BIRTH, "M"));
-    expect(result.body.html).toContain("명리 헬스 리포트");
-    expect(result.body.html).toContain("달빛 웰니스 클리닉");
-    expect(result.body.css).toContain("@font-face");
-    expect((await request()).status).toBe(402);
-    expect((await request({ ...INPUT, featureKey: "rpt_villainCard" })).status).toBe(402);
-  });
-
-  test("a legacy account grant without a saved profile renders the body birth", async () => {
-    grant({ scope: "USER", profileId: "__user__" }, "rpt_healthReportCard");
-    const { profileId: _omit, ...account } = HEALTH;
-    const result = await request({ ...account, birth: { date: "1985-11-02", calType: "solar", hour: 6, minute: 5 }, gender: "F" });
-    expect(result.status).toBe(200);
-    expect(result.body.html).toBe(expected({ calendarDate: "1985-11-02", calType: "solar", hour: 6, minute: 5, timeKnown: true }, "F"));
-  });
-
-  test("another profile's or another birth's grant does not open this card", async () => {
-    grant({ scope: "PROFILE", profileId: "p2" }, "rpt_healthReportCard");
-    expect((await request(HEALTH)).status).toBe(402);
-    grant({}, "rpt_healthReportCard");
-    const other = await request({ ...HEALTH, profileId: "p3" });
-    expect(other.status).toBe(402);
-    expect(other.body.html).toBeUndefined();
-  });
-
   // /api/fortune/balance 가 이 카드를 여는 옛 상품: healthReport(같은 출생), allPaidSaju(계정 묶음).
-  test("a healthReport grant for the same birth opens the card; another birth's does not", async () => {
-    grant({}, "healthReport");
-    expect((await request(HEALTH)).status).toBe(200);
-    expect((await request({ ...HEALTH, profileId: "p3" })).status).toBe(402);
-  });
-
-  test.each([
-    ["unlockedFeatures array", () => users.push({ _id: TEST_USER_ID, unlockedFeatures: ["allPaidSaju"] })],
-    ["paidFeatures array", () => users.push({ _id: TEST_USER_ID, paidFeatures: ["allPaidSaju"] })],
-    ["coin deduct history", () => histories.push({ userId: TEST_USER_ID, kind: "deduct", featureKey: "allPaidSaju" })],
-  ])("an allPaidSaju bundle purchase (%s) opens the card", async (_label, seed) => {
-    seed();
-    expect((await request(HEALTH)).status).toBe(200);
-    const { profileId: _omit, ...account } = HEALTH;
-    expect((await request({ ...account, birth: { date: "1985-11-02", calType: "solar", hour: 6, minute: 5 } })).status).toBe(200);
-  });
-
-  test("other bundles or refunds are not allPaidSaju evidence", async () => {
-    users.push({ _id: TEST_USER_ID, unlockedFeatures: ["rpgCharacter", "travelDestiny"] });
-    histories.push({ userId: TEST_USER_ID, kind: "refund", featureKey: "allPaidSaju" });
-    histories.push({ userId: OTHER_USER_ID, kind: "deduct", featureKey: "allPaidSaju" });
-    expect((await request(HEALTH)).status).toBe(402);
-  });
-
-  test("a DB failure stays retryable instead of prompting purchase", async () => {
-    grant({}, "rpt_healthReportCard");
-    connectDb.mockRejectedValue(new Error("private database connection information"));
-    const result = await request(HEALTH);
-    expect(result.status).toBe(503);
-    expect(result.body).toMatchObject({ reason: "TEMPORARY_UNAVAILABLE", retryable: true });
-  });
 
   // PARITY.health: 56cc07e9a 의 클라이언트 renderHealthReport(js/entertain-engine.js 덮어쓰기)를 vm 에서
   // 같은 차트·같은 now(PARITY.now)·pig·ko 로 돌려 얻은 #healthReportSection HTML 의 sha256.
@@ -1057,76 +521,7 @@ describe("rpt_specialCharmCard", () => {
   const CHARM = { ...INPUT, featureKey: "rpt_specialCharmCard" };
   const expected = (birth, gender) => buildSajuSectionHtml({ featureKey: "rpt_specialCharmCard", birth, gender, name: "테스트", mode: "pig", lang: "ko" }).html;
 
-  test("a BIRTH grant renders the card body from the stored birth; it opens nothing else", async () => {
-    grant({}, "rpt_specialCharmCard");
-    const result = await request({ ...CHARM, birth: { date: "2001-01-01", hour: 3, minute: 0 }, gender: "F" });
-    expect(result.status).toBe(200);
-    expect(result.body).toMatchObject({ ok: true, unlocked: true, featureKey: "rpt_specialCharmCard" });
-    expect(result.body.html).toBe(expected(CARD_BIRTH, "M"));
-    // 카드 틀(#specialCharmCard)은 브라우저 스텁이 갖고 있어 본문만 온다.
-    expect(result.body.html.startsWith('<div class="cscard">')).toBe(true);
-    expect(result.body.html).not.toContain('id="specialCharmCard"');
-    expect((await request()).status).toBe(402);
-    expect((await request({ ...INPUT, featureKey: "rpt_healthReportCard" })).status).toBe(402);
-  });
-
-  test.each(["rpt_specialCharmCard", "paid_content"])("existing %s service key preserves the purchased birth and owner boundary", async (serviceKey) => {
-    grant({ serviceKey }, "rpt_specialCharmCard");
-    expect((await request(CHARM)).status).toBe(200);
-    expect((await request({ ...CHARM, profileId: "p2" })).status).toBe(200);
-    expect((await request({ ...CHARM, profileId: "p3" })).status).toBe(402);
-    expect((await request({ ...CHARM, featureKey: "rpt_skillTreeCard" })).status).toBe(402);
-    auth.mockResolvedValue({ userId: OTHER_USER_ID });
-    expect((await request({ ...CHARM, profileId: "x1" })).status).toBe(402);
-  });
-
-  test.each([
-    { status: "REFUNDED" },
-    { expiresAt: new Date("2000-01-01") },
-  ])("inactive historical service key never opens a card: %j", async (overrides) => {
-    grant({ serviceKey: "rpt_specialCharmCard", ...overrides }, "rpt_specialCharmCard");
-    expect((await request(CHARM)).status).toBe(402);
-  });
-
-  test.each([
-    { scope: "USER", profileId: "__user__" },
-    { scope: "PROFILE", profileId: "p1" },
-  ])("legacy scope with historical service key opens only its entitled profile: %j", async (overrides) => {
-    grant({ serviceKey: "rpt_specialCharmCard", ...overrides }, "rpt_specialCharmCard");
-    expect((await request(CHARM)).status).toBe(200);
-    if (overrides.scope === "PROFILE") expect((await request({ ...CHARM, profileId: "p2" })).status).toBe(402);
-  });
-
-  test("a legacy account grant without a saved profile renders the body birth", async () => {
-    grant({ scope: "USER", profileId: "__user__" }, "rpt_specialCharmCard");
-    const { profileId: _omit, ...account } = CHARM;
-    const result = await request({ ...account, birth: { date: "1985-11-02", calType: "solar", hour: 6, minute: 5 }, gender: "F" });
-    expect(result.status).toBe(200);
-    expect(result.body.html).toBe(expected({ calendarDate: "1985-11-02", calType: "solar", hour: 6, minute: 5, timeKnown: true }, "F"));
-  });
-
-  test("another profile's or another birth's grant does not open this card", async () => {
-    grant({ scope: "PROFILE", profileId: "p2" }, "rpt_specialCharmCard");
-    expect((await request(CHARM)).status).toBe(402);
-    grant({}, "rpt_specialCharmCard");
-    const other = await request({ ...CHARM, profileId: "p3" });
-    expect(other.status).toBe(402);
-    expect(other.body.html).toBeUndefined();
-  });
-
   // 매력 카드에는 옛 묶음 별칭이 없다(PERSISTENT_UNLOCK_ALIAS_MAP) — allPaidSaju 로는 열리지 않는다.
-  test("an allPaidSaju bundle does not open the charm card", async () => {
-    users.push({ _id: TEST_USER_ID, unlockedFeatures: ["allPaidSaju"] });
-    expect((await request(CHARM)).status).toBe(402);
-  });
-
-  test("a DB failure stays retryable instead of prompting purchase", async () => {
-    grant({}, "rpt_specialCharmCard");
-    connectDb.mockRejectedValue(new Error("private database connection information"));
-    const result = await request(CHARM);
-    expect(result.status).toBe(503);
-    expect(result.body).toMatchObject({ reason: "TEMPORARY_UNAVAILABLE", retryable: true });
-  });
 
   // PARITY.charm: 56cc07e9a 의 클라이언트 renderSpecialCharm(js/saju-engine.js)을 vm 에서 같은 차트·같은 now(PARITY.now)로
   // 돌려 #dailyMonthlyCard 뒤에 끼우려던 카드 HTML 에서 틀(#specialCharmCard)을 벗긴 본문의 sha256.
@@ -1144,68 +539,7 @@ describe("rpt_skillTreeCard", () => {
   // 올해 세운·현재 나이(KST)가 시트에 들어간다. 요청 시각을 넘기지 않으므로 지금 시각으로 다시 그려 비교한다.
   const expected = (birth, gender) => buildSajuSectionHtml({ featureKey: "rpt_skillTreeCard", birth, gender, name: "테스트", mode: "pig", lang: "ko" }).html;
 
-  test("a BIRTH grant renders the class sheet from the stored birth; it opens nothing else", async () => {
-    grant({}, "rpt_skillTreeCard");
-    const result = await request({ ...SKILL, birth: { date: "2001-01-01", hour: 3, minute: 0 }, gender: "F" });
-    expect(result.status).toBe(200);
-    expect(result.body).toMatchObject({ ok: true, unlocked: true, featureKey: "rpt_skillTreeCard" });
-    expect(result.body.html).toBe(expected(CARD_BIRTH, "M"));
-    // 클래스 시트만 온다. 그 아래 퀘스트 칸은 브라우저가 붙인다.
-    expect(result.body.html.startsWith('<div class="skill-wrap" data-skilltree-ui-marker="skilltree-rpg-v20260613">')).toBe(true);
-    expect(result.body.html).not.toContain("entRpgSection");
-    expect(result.body.css).toContain("skilltree-rpg-v20260613");
-    expect((await request()).status).toBe(402);
-    expect((await request({ ...INPUT, featureKey: "rpt_specialCharmCard" })).status).toBe(402);
-  });
-
-  test("a legacy account grant without a saved profile renders the body birth", async () => {
-    grant({ scope: "USER", profileId: "__user__" }, "rpt_skillTreeCard");
-    const { profileId: _omit, ...account } = SKILL;
-    const result = await request({ ...account, birth: { date: "1985-11-02", calType: "solar", hour: 6, minute: 5 }, gender: "F" });
-    expect(result.status).toBe(200);
-    expect(result.body.html).toBe(expected({ calendarDate: "1985-11-02", calType: "solar", hour: 6, minute: 5, timeKnown: true }, "F"));
-  });
-
-  test("another profile's or another birth's grant does not open this card", async () => {
-    grant({ scope: "PROFILE", profileId: "p2" }, "rpt_skillTreeCard");
-    expect((await request(SKILL)).status).toBe(402);
-    grant({}, "rpt_skillTreeCard");
-    const other = await request({ ...SKILL, profileId: "p3" });
-    expect(other.status).toBe(402);
-    expect(other.body.html).toBeUndefined();
-  });
-
   // /api/fortune/balance 가 이 카드를 여는 옛 상품: allPaidSaju(계정 묶음), rpgCharacter(계정 단위 키 — 출생과 무관하게 연다).
-  test.each([
-    ["unlockedFeatures array", () => users.push({ _id: TEST_USER_ID, unlockedFeatures: ["allPaidSaju"] })],
-    ["paidFeatures array", () => users.push({ _id: TEST_USER_ID, paidFeatures: ["allPaidSaju"] })],
-    ["coin deduct history", () => histories.push({ userId: TEST_USER_ID, kind: "deduct", featureKey: "allPaidSaju" })],
-    ["rpgCharacter unlockedFeatures", () => users.push({ _id: TEST_USER_ID, unlockedFeatures: ["rpgCharacter"] })],
-    ["rpgCharacter deduct history", () => histories.push({ userId: TEST_USER_ID, kind: "deduct", featureKey: "rpgCharacter" })],
-    ["rpgCharacter account entitlement", () => grant({ scope: "USER", profileId: "__user__" }, "rpgCharacter")],
-  ])("a legacy bundle or account purchase (%s) opens the card", async (_label, seed) => {
-    seed();
-    expect((await request(SKILL)).status).toBe(200);
-    const { profileId: _omit, ...account } = SKILL;
-    expect((await request({ ...account, birth: { date: "1985-11-02", calType: "solar", hour: 6, minute: 5 } })).status).toBe(200);
-  });
-
-  test("other bundles or refunds are not allPaidSaju evidence", async () => {
-    users.push({ _id: TEST_USER_ID, unlockedFeatures: ["healthReport", "travelDestiny"] });
-    histories.push({ userId: TEST_USER_ID, kind: "refund", featureKey: "allPaidSaju" });
-    histories.push({ userId: TEST_USER_ID, kind: "refund", featureKey: "rpgCharacter" });
-    histories.push({ userId: OTHER_USER_ID, kind: "deduct", featureKey: "allPaidSaju" });
-    histories.push({ userId: OTHER_USER_ID, kind: "deduct", featureKey: "rpgCharacter" });
-    expect((await request(SKILL)).status).toBe(402);
-  });
-
-  test("a DB failure stays retryable instead of prompting purchase", async () => {
-    grant({}, "rpt_skillTreeCard");
-    connectDb.mockRejectedValue(new Error("private database connection information"));
-    const result = await request(SKILL);
-    expect(result.status).toBe(503);
-    expect(result.body).toMatchObject({ reason: "TEMPORARY_UNAVAILABLE", retryable: true });
-  });
 
   // PARITY.skill: 56cc07e9a 의 클라이언트 renderSkillTree(js/saju-engine.js 원본, 퀘스트 칸을 붙이는 entertain 덮어쓰기 전)를
   // vm 에서 같은 차트·같은 now(PARITY.now)로 돌려 얻은 #skillTreeSection HTML 의 sha256.
@@ -1227,86 +561,7 @@ describe("rpt_secretHouseEntryCard", () => {
   beforeEach(() => { jest.spyOn(Math, "random").mockReturnValue(0); });
   afterEach(() => { Math.random.mockRestore(); });
 
-  test("a BIRTH grant replays the choices with the stored birth's day branch; it opens nothing else", async () => {
-    grant({}, "rpt_secretHouseEntryCard");
-    const result = await request({ ...HOUSE, birth: { date: "2001-01-01", hour: 3, minute: 0 } });
-    expect(result.status).toBe(200);
-    expect(result.body).toMatchObject({ ok: true, unlocked: true, featureKey: "rpt_secretHouseEntryCard" });
-    expect(result.body.house).toEqual(expected(CARD_BIRTH, { stem: PLAY.stem, history: HOUSE.house.history }));
-    expect(result.body.house).toMatchObject({ userStem: PLAY.stem, ended: false });
-    expect(result.body.house.scene.choices.length).toBeGreaterThan(0);
-    expect(result.body.house.reaction.html).toContain("sh-img:");
-    expect((await request({ ...HOUSE, featureKey: "rpt_skillTreeCard" })).status).toBe(402);
-  });
-
-  test("the result card comes only after the final scene, for a real cast member", async () => {
-    grant({}, "rpt_secretHouseEntryCard");
-    const done = await request({ ...HOUSE, house: { stem: PLAY.stem, history: PLAY.history, finalCharId: PLAY.finalCharId } });
-    expect(done.status).toBe(200);
-    expect(done.body.house.ended).toBe(true);
-    const finalStem = Object.fromEntries(CHAR_STEMS)[PLAY.finalCharId];
-    expect(done.body.house.result).toMatchObject({ finalCharId: PLAY.finalCharId, total: done.body.house.totals[finalStem] });
-    expect(done.body.house.result.html.length).toBeGreaterThan(1000);
-    for (const house of [
-      { stem: PLAY.stem, history: PLAY.history.slice(0, 3), finalCharId: PLAY.finalCharId },
-      { stem: PLAY.stem, history: PLAY.history, finalCharId: "constructor" },
-      { stem: PLAY.stem, history: ["Z"] },
-      { stem: PLAY.stem, history: "AAAA" },
-      { stem: "子", history: [] },
-    ]) {
-      const bad = await request({ ...HOUSE, house });
-      expect(bad.status).toBe(400);
-      expect(bad.body.house).toBeUndefined();
-    }
-  });
-
-  test("a legacy account grant without a saved profile uses the page's day branch", async () => {
-    grant({ scope: "USER", profileId: "__user__" }, "rpt_secretHouseEntryCard");
-    const { profileId: _omit, ...account } = HOUSE;
-    const result = await request(account);
-    expect(result.status).toBe(200);
-    expect(result.body.house).toEqual(expected({}, HOUSE.house));
-  });
-
-  test("another profile's or another birth's grant does not open the episodes", async () => {
-    expect((await request(HOUSE)).status).toBe(402);
-    grant({ scope: "PROFILE", profileId: "p2" }, "rpt_secretHouseEntryCard");
-    expect((await request(HOUSE)).status).toBe(402);
-    grant({}, "rpt_secretHouseEntryCard");
-    const other = await request({ ...HOUSE, profileId: "p3" });
-    expect(other.status).toBe(402);
-    expect(other.body).toMatchObject({ reason: "PAYMENT_REQUIRED", coinPrice: getBillingFeaturePricing({ featureKey: "rpt_secretHouseEntryCard" }).pricing.coinPrice });
-    expect(other.body.house).toBeUndefined();
-  });
-
   // /api/fortune/balance 가 입장권을 여는 옛 상품: allPaidSaju(계정 묶음), secretHouseEpisodes(계정 단위 에피소드 키).
-  test.each([
-    ["unlockedFeatures array", () => users.push({ _id: TEST_USER_ID, unlockedFeatures: ["allPaidSaju"] })],
-    ["coin deduct history", () => histories.push({ userId: TEST_USER_ID, kind: "deduct", featureKey: "allPaidSaju" })],
-    ["secretHouseEpisodes paidFeatures", () => users.push({ _id: TEST_USER_ID, paidFeatures: ["secretHouseEpisodes"] })],
-    ["secretHouseEpisodes deduct history", () => histories.push({ userId: TEST_USER_ID, kind: "deduct", featureKey: "secretHouseEpisodes" })],
-    ["secretHouseEpisodes account entitlement", () => grant({ scope: "USER", profileId: "__user__" }, "secretHouseEpisodes")],
-  ])("a legacy bundle or episode purchase (%s) opens the episodes", async (_label, seed) => {
-    seed();
-    expect((await request(HOUSE)).status).toBe(200);
-    const { profileId: _omit, ...account } = HOUSE;
-    expect((await request(account)).status).toBe(200);
-  });
-
-  test("other bundles or refunds are not evidence", async () => {
-    users.push({ _id: TEST_USER_ID, unlockedFeatures: ["healthReport", "rpgCharacter"] });
-    histories.push({ userId: TEST_USER_ID, kind: "refund", featureKey: "secretHouseEpisodes" });
-    histories.push({ userId: OTHER_USER_ID, kind: "deduct", featureKey: "secretHouseEpisodes" });
-    expect((await request(HOUSE)).status).toBe(402);
-  });
-
-  test("a DB failure stays retryable instead of prompting purchase", async () => {
-    grant({}, "rpt_secretHouseEntryCard");
-    connectDb.mockRejectedValue(new Error("private database connection information"));
-    const result = await request(HOUSE);
-    expect(result.status).toBe(503);
-    expect(result.body).toMatchObject({ reason: "TEMPORARY_UNAVAILABLE", retryable: true });
-  });
 
   // PARITY.secretHouse: HEAD secret-house_real.html 메인 스크립트를 vm 에서 같은 선택 글자로 끝까지 밟아
   // 장면(대사·선택지·1위)·반응 카드·캐릭터별 점수·엔딩 카드를 모은 기록의 sha256(Math.random 0 고정).
@@ -1332,50 +587,6 @@ describe("animal-destiny-unlock", () => {
   const ANIMAL = { profileId: "p1", featureKey: "animal-destiny-unlock", birth: { date: "2001-01-01", calType: "solar", timeKnown: true, hour: 3, minute: 0 } };
   const expected = (birth) => buildSajuSectionHtml({ featureKey: "animal-destiny-unlock", birth }).animal;
 
-  test("a BIRTH grant reads the stored profile birth, not the body's; it opens nothing else", async () => {
-    grant({}, "animal-destiny-unlock");
-    const result = await request(ANIMAL);
-    expect(result.status).toBe(200);
-    expect(result.body).toMatchObject({ ok: true, unlocked: true, featureKey: "animal-destiny-unlock" });
-    expect(result.body.animal).toEqual(expected(CARD_BIRTH));
-    expect(result.body.animal.animalId).toBe(PARITY.animal["solar-m-1990"].animalId);
-    expect(result.body.animal.sections.length).toBeGreaterThanOrEqual(8);
-    expect(result.body.animal.dex).toHaveLength(12);
-    expect(result.body.html).toBeUndefined();
-    expect((await request({ ...ANIMAL, featureKey: "rpt_skillTreeCard" })).status).toBe(402);
-  });
-
-  test("a legacy account grant without a saved profile reads the page's birth", async () => {
-    grant({ scope: "USER", profileId: "__user__" }, "animal-destiny-unlock");
-    const { profileId: _omit, ...account } = ANIMAL;
-    const result = await request(account);
-    expect(result.status).toBe(200);
-    expect(result.body.animal).toEqual(expected({ calendarDate: "2001-01-01", calType: "solar", timeKnown: true, hour: 3, minute: 0 }));
-    const bad = await request({ ...account, birth: { date: "2001-13-45", calType: "solar", timeKnown: false } });
-    expect(bad.status).toBe(400);
-    expect(bad.body.animal).toBeUndefined();
-  });
-
-  test("another profile's or another birth's grant does not open the reading", async () => {
-    expect((await request(ANIMAL)).status).toBe(402);
-    grant({ scope: "PROFILE", profileId: "p2" }, "animal-destiny-unlock");
-    expect((await request(ANIMAL)).status).toBe(402);
-    grant({}, "animal-destiny-unlock");
-    const other = await request({ ...ANIMAL, profileId: "p3" });
-    expect(other.status).toBe(402);
-    expect(other.body).toMatchObject({ reason: "PAYMENT_REQUIRED", coinPrice: getBillingFeaturePricing({ featureKey: "animal-destiny-unlock" }).pricing.coinPrice });
-    expect(other.body.animal).toBeUndefined();
-  });
-
-  test("a DB failure stays retryable instead of prompting purchase", async () => {
-    grant({}, "animal-destiny-unlock");
-    connectDb.mockRejectedValue(new Error("private database connection information"));
-    const result = await request(ANIMAL);
-    expect(result.status).toBe(503);
-    expect(result.body).toMatchObject({ reason: "TEMPORARY_UNAVAILABLE", retryable: true });
-    expect(result.body.animal).toBeUndefined();
-  });
-
   // PARITY.animal: HEAD 클라이언트(store.calculate → AnimalResultScreen 의 resolveTwelveGrowthAnimalResult·buildTwelveAnimalSections·
   // buildDetailedInterpretation·도감)를 같은 출생으로 돌린 { animalId, stageKey, result, sections, detailed, dex } 의 sha256.
   test.each(PARITY.cases.map((c) => [c.id, c]))("server reading equals the HEAD client output: %s", (id, c) => {
@@ -1400,51 +611,6 @@ describe.each(ZIWEI_KEYS)("%s", (featureKey) => {
   const ZW = { ...INPUT, featureKey };
   // 올해(KST) 유년이 본문에 들어간다. 요청 시각을 넘기지 않으므로 지금 시각으로 다시 그려 비교한다.
   const expected = (birth, gender) => ziweiBody(buildSajuSectionHtml({ featureKey, birth, gender, name: "테스트", mode: "pig", lang: "ko" }));
-
-  test("unowned returns registry pricing without a body", async () => {
-    const result = await request(ZW);
-    const { pricing } = getBillingFeaturePricing({ featureKey });
-    expect(result).toEqual({ status: 402, body: expect.objectContaining({ featureKey, coinPrice: pricing.coinPrice }) });
-    expect(result.body.html).toBeUndefined();
-    expect(result.body.decadeHtml).toBeUndefined();
-  });
-
-  test("a BIRTH grant renders from the stored birth, ignoring the body's; it opens nothing else", async () => {
-    grant({}, featureKey);
-    const result = await request({ ...ZW, birth: { date: "2001-01-01", hour: 3, minute: 0 }, gender: "F" });
-    expect(result.status).toBe(200);
-    expect(result.body).toMatchObject({ ok: true, unlocked: true, featureKey });
-    expect(ziweiBody(result.body)).toEqual(expected(CARD_BIRTH, "M"));
-    expect(result.body.html.length).toBeGreaterThan(200);
-    expect((await request(INPUT)).status).toBe(402);
-    expect((await request({ ...INPUT, featureKey: "rpt_skillTreeCard" })).status).toBe(402);
-  });
-
-  test("a legacy account grant without a saved profile renders the body birth", async () => {
-    grant({ scope: "USER", profileId: "__user__" }, featureKey);
-    const { profileId: _omit, ...account } = ZW;
-    const result = await request({ ...account, birth: { date: "1985-11-02", calType: "solar", hour: 6, minute: 5 }, gender: "F" });
-    expect(result.status).toBe(200);
-    expect(ziweiBody(result.body)).toEqual(expected({ calendarDate: "1985-11-02", calType: "solar", hour: 6, minute: 5, timeKnown: true }, "F"));
-  });
-
-  test("another profile's or another birth's grant does not open it", async () => {
-    grant({ scope: "PROFILE", profileId: "p2" }, featureKey);
-    expect((await request(ZW)).status).toBe(402);
-    grant({}, featureKey);
-    const other = await request({ ...ZW, profileId: "p3" });
-    expect(other.status).toBe(402);
-    expect(other.body.html).toBeUndefined();
-  });
-
-  test("a DB failure stays retryable instead of prompting purchase", async () => {
-    grant({}, featureKey);
-    connectDb.mockRejectedValue(new Error("private database connection information"));
-    const result = await request(ZW);
-    expect(result.status).toBe(503);
-    expect(result.body).toMatchObject({ reason: "TEMPORARY_UNAVAILABLE", retryable: true });
-    expect(result.body.html).toBeUndefined();
-  });
 
   // PARITY[id].ziwei: HEAD 클라이언트 computeProfileForModal → renderZiwei(명궁 기본 패널)를 vm 에서 같은 출생·같은 now(PARITY.now)로
   // 돌려 얻은 유료 본문 HTML 의 sha256. 대한 운세는 타임라인(ziwei_decade_luck)과 안쪽 대한 표(ziwei_decade_luck_inner)를 따로 잰다.
@@ -1653,3 +819,22 @@ describe("saju_lifetime_bundle natal reading", () => {
     expect(en.ukbuSection).not.toMatch(/[가-힣]/);
   });
 });
+
+afterEach(() => jest.useRealTimers());
+const PUBLIC_BIRTH={date:'1990-05-15',calType:'solar',hour:14,minute:30,timeKnown:true};
+const PUBLIC_KEYS=['saju_natal_reading','rpt_quantumCard','rpt_energyCoordCard','rpt_villainCard','rpt_healthReportCard','rpt_specialCharmCard','rpt_skillTreeCard','animal-destiny-unlock',...ZIWEI_KEYS,'sukuyo-extreme-t-relationship'];
+test.each(PUBLIC_KEYS)('public %s matches the original builder using explicit birth, not another account profile',async featureKey=>{
+ auth.mockRejectedValue(new Error('must not authenticate'));connectDb.mockRejectedValue(new Error('must not read DB'));
+ jest.useFakeTimers({now:new Date('2026-11-11T00:00:00Z')});
+ const input={...INPUT,featureKey,profileId:'x1',birth:PUBLIC_BIRTH,gender:'F'};
+ const result=await request(input);expect(result.status).toBe(200);
+ const expected=buildSajuSectionHtml({...input,profileId:'',requestId:'',birth:CARD_BIRTH});
+ for(const key of Object.keys(expected))expect(result.body[key]).toEqual(expected[key]);
+ expect(auth).not.toHaveBeenCalled();expect(connectDb).not.toHaveBeenCalled();expect(findOne).not.toHaveBeenCalled();expect(write).not.toHaveBeenCalled();expect(verifyPerUsePayment).not.toHaveBeenCalled();expect(claimRequestBillingEvidence).not.toHaveBeenCalled();
+});
+test('public natal parts equal the old bundle builder but do not include light or daewun',async()=>{
+ const result=await request({...INPUT,featureKey:'saju_natal_reading',birth:PUBLIC_BIRTH,gender:'M'});
+ const old=buildSajuSectionHtml({...INPUT,featureKey:'saju_lifetime_bundle',birth:CARD_BIRTH,gender:'M'});
+ expect(result.body.parts).toEqual(old.parts);expect(result.body.html).toBeUndefined();expect(auth).not.toHaveBeenCalled();expect(connectDb).not.toHaveBeenCalled();expect(findOne).not.toHaveBeenCalled();expect(write).not.toHaveBeenCalled();
+});
+test.each(['saju_natal_reading','rpt_quantumCard'])('public %s requires explicit valid birth even with a saved profile',async featureKey=>{expect((await request({...INPUT,featureKey})).status).toBe(400);expect(auth).not.toHaveBeenCalled();expect(connectDb).not.toHaveBeenCalled();expect(findOne).not.toHaveBeenCalled();expect(write).not.toHaveBeenCalled();});

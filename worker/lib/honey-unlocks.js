@@ -1,3 +1,4 @@
+import { isFreeFortuneFeatureKey } from '../../lib/payment/free-fortune-policy.mjs';
 import { unlockHoneyUse } from './honey-per-use.js';
 import { createHash } from 'node:crypto';
 import { ProfileCard } from './models.js';
@@ -13,6 +14,7 @@ const hash = value => createHash('sha256').update(value).digest('hex');
 
 // Injected storage keeps concurrency/rollback tests entirely offline.
 export async function unlockHoneyContent({ userId, productId, profileId, requestId, input }, store) {
+  if (isFreeFortuneFeatureKey(productId)) throw fail(409, "FEATURE_NOW_FREE", "무료로 볼 수 있는 콘텐츠예요. 꿀방울을 사용하지 않아도 돼요.");
   // 판매 종료 키는 카탈로그에서 빠졌지만, 이미 꿀방울로 산 사람의 재요청은 보유 확인으로 열어야 한다.
   // 그래서 보유 확인 뒤·차감 전에 409로 닫는 최소 상품 정보를 따로 둔다.
   const saleClosed = isSajuBundleSaleClosed(productId);

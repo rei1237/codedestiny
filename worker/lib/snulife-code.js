@@ -31,7 +31,7 @@ export async function reserveSnulifeCode(userId, input, env = {}, now = new Date
   if (code.length < 10 || !Number.isFinite(startsAt.getTime()) || !Number.isFinite(endsAt.getTime()) || endsAt <= startsAt || endsAt > maximumEnd)
     throw failure(503, 'SNULIFE_NOT_READY', '제휴 혜택을 준비 중이에요. 게시 안내를 확인해 주세요.');
   if (now < startsAt || now >= endsAt) throw failure(410, 'SNULIFE_CLOSED', '제휴 코드 등록 기간이 아니에요. 이미 받은 선물은 다시 볼 수 있어요.');
-  if (typeof input !== 'string' || input.trim() !== code) throw failure(400, 'SNULIFE_CODE_INVALID', 'SNULIFE 게시물의 제휴 코드를 다시 확인해 주세요.');
+  if (typeof input !== 'string' || input.trim() !== code) throw failure(400, 'SNULIFE_CODE_INVALID', '안내받은 코드를 다시 확인해 주세요.');
   const codeHash = await digest(code), accountKey = await snulifeAccountKey(userId, campaignId);
   // Unique _id serializes initialization; duplicate initializers can use the winning document.
   try {

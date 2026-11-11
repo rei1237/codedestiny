@@ -1,3 +1,4 @@
+import { isFreeFortuneFeatureKey } from '../../lib/payment/free-fortune-policy.mjs';
 import { HttpError, getRequestMeta, getRoutePath, handleRouteError, isDbUnavailableError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { handleFortuneRoutes } from "./fortune.js";
 import { handlePaymentRoutes } from "./payments.js";
@@ -3332,6 +3333,7 @@ function resolvePricingFromBody(body = {}) {
 }
 
 async function processCoinGateFromPricing(request, env, body, pricingResult) {
+  if (pricingResult?.ok && isFreeFortuneFeatureKey(pricingResult.pricing?.featureKey)) return failure(409, "FEATURE_NOW_FREE", "무료로 볼 수 있는 콘텐츠예요. 풀이 화면에서 바로 확인해 주세요.", undefined, { featureKey: pricingResult.pricing.featureKey, charged: 0 });
   const authCheck = await requireBillingAuth(request, env, pricingResult?.pricing || {});
   if (!authCheck.ok) return authCheck.response;
 

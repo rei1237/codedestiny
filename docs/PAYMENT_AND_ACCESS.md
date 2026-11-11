@@ -1,5 +1,15 @@
 # Payment and Access
 
+## 2026-11-11 public deterministic fortune migration (WIP, not deployable)
+
+- The explicit allowlist is `lib/payment/free-fortune-policy.mjs`; unknown keys, `section_summary`, `section_daewun`, lifetime bundles and model-generated products remain protected. Prices, historical orders and grants are not rewritten.
+- Public saju-section and astrology calculations accept explicit birth inputs only. A submitted profile ID is ignored, never used to read another account. Private stored reports remain protected. New sales/coin/honey consumption reject public keys with `FEATURE_NOW_FREE`; existing settlement/refund paths remain intact.
+- `saju_natal_reading` reuses the original natal-parts builder without exposing the paid light/daewun reading. Local-only `saju_fun_shared` and `saju_daily_reading` are not new server endpoints.
+- Code-registration validation, dates, limits and one-birth benefits are unchanged. Only visible campaign-name error copy is neutralized.
+- Do not deploy this partial migration: career-style, sukuyo past-life/yearly and nakshatra lord/dasha delivery changes are incomplete although their keys are in the proposed allowlist. Seven further audited candidate keys have not been added. Complete authorized delivery and charge-path tests before production release.
+- Existing free-product purchase-gate route tests are replaced by explicit-input/no-private-read/no-charge contracts; pure builder/browser parity and protected summary/daewun/bundle ownership/refund tests are retained. New coverage does not certify the still-incomplete secondary routes.
+
+
 ## 원칙
 
 - 사용자 문구와 정책 기준은 `이용권`, `월정석`, `단건 결제`다.

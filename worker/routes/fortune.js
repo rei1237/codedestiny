@@ -1,3 +1,4 @@
+import { isFreeFortuneFeatureKey } from '../../lib/payment/free-fortune-policy.mjs';
 import { appendBasicFortunePersona } from '../lib/expert-character-personas.js';
 import { getAmbientAiLocale } from '../lib/ai-locale-context.js';
 import { toAiLocale } from '../../lib/i18n/ai-locale.js';
@@ -3003,6 +3004,7 @@ async function handlePigCoinConsume(request, auth, options = {}) {
   if (!featureKey || featureKey === "pig-coin-unlock") {
     featureKey = inferFeatureKeyFromReason(requestReason, featureKey).slice(0, 60);
   }
+  if (isFreeFortuneFeatureKey(featureKey)) return json({ code: "FEATURE_NOW_FREE", message: "무료로 볼 수 있는 콘텐츠예요. 풀이 화면에서 바로 확인해 주세요.", featureKey }, { status: 409 });
   const requestedCost = Number(productSpec ? productSpec.cost : body?.cost);
   const pricing = resolveServerCoinPricingFromGuard({
     env,

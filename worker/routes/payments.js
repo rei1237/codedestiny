@@ -1,3 +1,4 @@
+import { isFreeFortuneFeatureKey } from '../../lib/payment/free-fortune-policy.mjs';
 import { connectDb, mongoose, withMongoRetry, mongoTransactionOptions } from "../lib/db.js"; import { scopeConnection } from "../lib/db-scope-connection.js";
 import {
   CONTENT_ENTITLEMENT_SCOPES,
@@ -1973,6 +1974,7 @@ async function handleSinglePaymentStart(request, env, auth) {
   if (!resolved.ok) {
     return json({ message: resolved.message, code: resolved.code || "PRICE_NOT_FOUND" }, { status: resolved.status || 400 });
   }
+  if (isFreeFortuneFeatureKey(resolved.featureKey)) return json({ code: "FEATURE_NOW_FREE", message: "무료로 볼 수 있는 콘텐츠예요. 풀이 화면에서 바로 확인해 주세요.", featureKey: resolved.featureKey }, { status: 409 });
   const enabled = assertFeatureEnabled(resolved);
   if (!enabled.ok) return json({ message: enabled.message, code: enabled.code }, { status: 409 });
 

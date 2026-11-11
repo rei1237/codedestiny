@@ -1,3 +1,4 @@
+import { isFreeFortuneFeatureKey } from '../../lib/payment/free-fortune-policy.mjs';
 import { getOptionalUserFromRequest, isAuthDbInfraError } from "../lib/auth.js";
 import { isDbUnavailableError, HttpError, json, methodNotAllowed, readJson } from "../lib/http.js";
 import { readProfileBirthUnlock } from "../lib/paid-content-read-access.js";
@@ -15,6 +16,24 @@ const degraded = () => json({
 export async function handleAstroBasicDeep(request, env = {}) {
   if (request.method !== "POST") return methodNotAllowed();
   try {
+    const publicBody = await readJson(request.clone());
+    const publicKey = FEATURE_KEY;
+    if (publicKey === FEATURE_KEY && isFreeFortuneFeatureKey(publicKey)) {
+      // Public calculations use submitted birth data only, never an account/profile lookup.
+      const input = validateBasicDeepInput(publicBody && typeof publicBody === 'object' ? publicBody : {});
+      const normalized = normalizeBasicAstrologyInput(input);
+      if (!normalized.ok) throw new HttpError(400, '출생 정보와 시간대를 확인해 주세요.', { code: 'ASTRO_INVALID_BIRTH_INPUT' });
+      const chart = await calculateBasicAstrologyChart(normalized.value, request, env);
+      let moonDay = null;
+      if (!input.timeKnown) moonDay = await Promise.all(['00:00', '23:59'].map(async time => {
+        const moment = normalizeBasicAstrologyInput({ ...input, time }).value;
+        return toNatalReadingChart(await calculateBasicAstrologyChart(moment, request, env), false).moon.idx;
+      }));
+      const asOf = new Date(Date.now() + 9 * 3600000).toISOString().slice(0, 10);
+      const result = { asOf, ...buildBasicDeepReport(chart, input, { today: asOf, moonDay }) };
+      return json({ ok: true, unlocked: true, accessSource: 'public', featureKey: publicKey, ...result });
+    }
+
     let auth;
     try {
       auth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true });

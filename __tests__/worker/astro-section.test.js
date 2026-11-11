@@ -139,101 +139,7 @@ test("the server body matches the browser generator it replaced for every fixtur
   }
 });
 
-test("anonymous requests and forged unlock hints get no body and trigger no calculation", async () => {
-  auth.mockResolvedValue(null);
-  expect((await request({ ...INPUT, unlocked: true, userId: TEST_USER_ID })).status).toBe(401);
-  expect(findOne).not.toHaveBeenCalled();
-  expect(swiss).not.toHaveBeenCalled();
-});
-
-test.each(ASTRO_SECTION_FEATURE_KEYS)("%s without a purchase returns registry pricing and no body", async (featureKey) => {
-  const result = await request({ ...INPUT, featureKey, unlocked: true, passActive: true });
-  const { pricing } = getBillingFeaturePricing({ featureKey });
-  expect(result).toEqual({ status: 402, body: expect.objectContaining({ reason: "PAYMENT_REQUIRED", featureKey, amountKRW: pricing.amountKRW, coinPrice: pricing.coinPrice }) });
-  expect(result.body.html).toBeUndefined();
-  expect(swiss).not.toHaveBeenCalled();
-});
-
-test.each(ASTRO_SECTION_FEATURE_KEYS)("a BIRTH grant for %s delivers the profile birth's body and ignores body birth and chart values", async (featureKey) => {
-  grant({}, featureKey);
-  const result = await request({ ...INPUT, featureKey, date: "2001-01-01", time: "03:00", chart: { forged: true }, planets: { Venus: { sign: { idx: 0 } } } });
-  expect(result.status).toBe(200);
-  expect(result.body).toMatchObject({ ok: true, unlocked: true, featureKey });
-  expect(sha(result.body.html)).toBe(PARITY[`ko|b1|chart|${featureKey}`]);
-  expect(swiss.mock.calls[0][0]).toMatchObject({ ASTRO_SWISS_STRICT_ONLY: "1", SWISS_API_FORCE_EXTERNAL: "0" });
-  expect(swiss.mock.calls[0][1]).toMatchObject({ year: 1990, month: 10, day: 14, hour: 14, minute: 30 });
-  const english = await request({ ...INPUT, featureKey, lang: "en" });
-  expect(sha(english.body.html)).toBe(PARITY[`en|b1|chart|${featureKey}`]);
-});
-
-test("one key's purchase does not open another counsel key", async () => {
-  grant();
-  for (const featureKey of ASTRO_SECTION_FEATURE_KEYS.filter((key) => key !== KEY)) {
-    expect((await request({ ...INPUT, featureKey })).status).toBe(402);
-  }
-});
-
-test("another saved profile with the same birth shares the unlock; a different birth needs its own purchase", async () => {
-  grant();
-  expect((await request({ ...INPUT, profileId: "p2" })).status).toBe(200);
-  const other = await request({ ...INPUT, profileId: "p3" });
-  expect(other.status).toBe(402);
-  expect(other.body.html).toBeUndefined();
-});
-
-test("foreign or synthetic profile ids are rejected before any calculation", async () => {
-  grant();
-  expect((await request({ ...INPUT, profileId: birthProfileId("p1") })).status).toBe(400);
-  expect((await request({ ...INPUT, profileId: "x1" })).status).toBe(403);
-  expect((await request({ ...INPUT, profileId: "__user__" })).status).toBe(403);
-  expect(swiss).not.toHaveBeenCalled();
-});
-
-test.each([
-  { userId: OTHER_USER_ID }, { status: "REFUNDED" }, { expiresAt: new Date("2020-01-01") },
-  { scope: "PROFILE", profileId: "p2" }, { contentKey: "astro_basic_deep_pack" },
-])("an unrelated, other-card or inactive grant never opens the body: %j", async (override) => {
-  grant(override);
-  expect((await request()).status).toBe(402);
-  expect(swiss).not.toHaveBeenCalled();
-});
-
 // 출생 기반 전환 이전 USER·PROFILE 행(운영 구매자)은 계속 연다 — 재잠금 방지.
-test.each([
-  { scope: "PROFILE", profileId: "p1" }, { scope: "USER", profileId: "__user__" },
-])("a legacy grant from before the birth-scope switch keeps opening the body: %j", async (override) => {
-  grant(override);
-  expect((await request()).status).toBe(200);
-});
-
-test("without a saved profile only a legacy account-wide grant opens the body", async () => {
-  const { profileId: _omit, ...withoutProfile } = INPUT;
-  const locked = await request(withoutProfile);
-  expect(locked.status).toBe(402);
-  expect(locked.body).toMatchObject({ requiresProfile: true });
-  expect(swiss).not.toHaveBeenCalled();
-  grant({ scope: "USER", profileId: "__user__" });
-  const opened = await request(withoutProfile);
-  expect(opened.status).toBe(200);
-  expect(sha(opened.body.html)).toBe(PARITY[`ko|b1|chart|${KEY}`]);
-});
-
-test("revocation is checked on each read", async () => {
-  grant();
-  expect((await request()).status).toBe(200);
-  grants[0].status = "REFUNDED";
-  expect((await request()).status).toBe(402);
-});
-
-test("DB and auth infrastructure failures stay retryable instead of prompting purchase", async () => {
-  connectDb.mockRejectedValue(new Error("private database connection information"));
-  expect((await request()).body).toMatchObject({ reason: "TEMPORARY_UNAVAILABLE", retryable: true });
-  auth.mockRejectedValue({ code: "AUTH_DB_UNAVAILABLE" });
-  const result = await request();
-  expect(result.status).toBe(503);
-  expect(JSON.stringify(result.body)).not.toContain("private database");
-  expect(swiss).not.toHaveBeenCalled();
-});
 
 test("calculation failure is a retryable 503 without a body or leaked internals", async () => {
   grant();
@@ -276,31 +182,6 @@ describe("astro_yearly_transit (앞으로 12개월)", () => {
     }
   });
 
-  test("without a purchase returns registry pricing and no body", async () => {
-    grant();
-    const result = await request({ ...INPUT, featureKey: YEARLY, unlocked: true, transitTz: 9 });
-    const { pricing } = getBillingFeaturePricing({ featureKey: YEARLY });
-    expect(result).toEqual({ status: 402, body: expect.objectContaining({ reason: "PAYMENT_REQUIRED", featureKey: YEARLY, amountKRW: pricing.amountKRW, coinPrice: pricing.coinPrice }) });
-    expect(swiss).not.toHaveBeenCalled();
-    expect(transitLons).not.toHaveBeenCalled();
-  });
-
-  test("a BIRTH grant delivers the profile birth's 12 months from the server's today in the device time zone", async () => {
-    grant({}, YEARLY);
-    jest.spyOn(Date, "now").mockReturnValue(Date.parse("2026-10-04T03:00:00Z"));
-    const seoul = await request({ ...INPUT, featureKey: YEARLY, transitTz: 9, date: "2001-01-01", time: "03:00", today: "2030-01-01" });
-    expect(seoul.status).toBe(200);
-    expect(seoul.body).toMatchObject({ ok: true, unlocked: true, featureKey: YEARLY });
-    expect(seoul.body.html).toBe(yearlyHtml("b1", "chart", "2026-10-04", 9).html);
-    expect(swiss.mock.calls[0][1]).toMatchObject({ year: 1990, month: 10, day: 14, hour: 14, minute: 30 });
-    expect(transitLons.mock.calls[0][1]).toMatchObject({ requestUrl: "https://example.test/api/astro/section" });
-    Date.now.mockReturnValue(Date.parse("2026-12-28T20:00:00Z"));
-    const newYork = await request({ ...INPUT, featureKey: YEARLY, transitTz: -5 });
-    expect(newYork.body.html).toBe(yearlyHtml("b1", "chart", "2026-12-28", -5).html);
-    const outOfRange = await request({ ...INPUT, featureKey: YEARLY, transitTz: 99 });
-    expect(outOfRange.body.html).toBe(yearlyHtml("b1", "chart", "2026-12-29", 9).html);
-  });
-
   test("a transit calculation failure is a retryable 503 without a body", async () => {
     grant({}, YEARLY);
     transitLons.mockRejectedValue(new Error("internal wasm path"));
@@ -310,3 +191,17 @@ describe("astro_yearly_transit (앞으로 12개월)", () => {
     expect(JSON.stringify(result)).not.toContain("internal wasm");
   });
 });
+
+test.each(ASTRO_SECTION_FEATURE_KEYS)('public %s calculates explicit birth without any database access',async featureKey=>{
+ auth.mockRejectedValue(new Error('must not authenticate'));connectDb.mockRejectedValue(new Error('must not read DB'));
+ const result=await request({...INPUT,featureKey,profileId:'x1',date:'2001-01-01',time:'03:00',chart:{forged:true}});
+ expect(result.status).toBe(200);expect(result.body.accessSource).toBe('public');expect(sha(result.body.html)).toBe(PARITY['ko|b1|chart|'+featureKey]);
+ expect(swiss.mock.calls[0][1]).toMatchObject({year:2001,month:1,day:1,hour:3,minute:0});expect(auth).not.toHaveBeenCalled();expect(connectDb).not.toHaveBeenCalled();expect(findOne).not.toHaveBeenCalled();expect(write).not.toHaveBeenCalled();
+});
+test('public yearly reading uses explicit birth and server date, without payment or profile lookup',async()=>{
+ jest.spyOn(Date,'now').mockReturnValue(Date.parse('2026-10-04T03:00:00Z'));
+ try{const result=await request({...INPUT,featureKey:YEARLY,profileId:'x1',transitTz:9,today:'2030-01-01'});
+ expect(result.status).toBe(200);const expected=buildAstroYearlyReading({chart:swissChart(FIXTURES.b1.chart),timeKnown:true,birth:FIXTURES.b1.birth,today:'2026-10-04',tz:9,lonsAt});
+ expect(result.body.html).toBe(expected.html);expect(auth).not.toHaveBeenCalled();expect(connectDb).not.toHaveBeenCalled();expect(findOne).not.toHaveBeenCalled();expect(write).not.toHaveBeenCalled();}finally{jest.restoreAllMocks();}
+});
+test('profile-only public input is invalid rather than reading the private card',async()=>{expect((await request({featureKey:KEY,profileId:'p1'})).status).toBe(400);expect(swiss).not.toHaveBeenCalled();expect(auth).not.toHaveBeenCalled();expect(connectDb).not.toHaveBeenCalled();expect(findOne).not.toHaveBeenCalled();expect(write).not.toHaveBeenCalled();});

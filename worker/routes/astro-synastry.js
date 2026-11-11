@@ -1,3 +1,4 @@
+import { isFreeFortuneFeatureKey } from '../../lib/payment/free-fortune-policy.mjs';
 import { createHash } from "node:crypto";
 import { getOptionalUserFromRequest, isAuthDbInfraError } from "../lib/auth.js";
 import { isDbUnavailableError, HttpError, json, methodNotAllowed, readJson } from "../lib/http.js";
@@ -105,6 +106,25 @@ function directPartner(body) {
 export async function handleAstroSynastry(request, env = {}) {
   if (request.method !== "POST") return methodNotAllowed();
   try {
+    const publicBody = await readJson(request.clone());
+    const publicKey = String(publicBody?.featureKey || '');
+    if ([ASTRO_CELEB_SYNASTRY_FEATURE_KEY, ASTRO_DIRECT_SYNASTRY_FEATURE_KEY].includes(publicKey) && isFreeFortuneFeatureKey(publicKey)) {
+      const mine = await resolveMyMoment(env, '', publicKey, { ...publicBody, profileId: '' });
+      if (mine.error) return mine.error;
+      const lang = typeof publicBody.lang === 'string' ? publicBody.lang.slice(0, 8) : 'ko';
+      const isCeleb = publicKey === ASTRO_CELEB_SYNASTRY_FEATURE_KEY;
+      const celeb = isCeleb ? findAstroSynastryCeleb({ ...publicBody.celeb, lang }) : null;
+      const partner = isCeleb ? null : directPartner(publicBody);
+      if (isCeleb ? !celeb : !partner) return badInput('ASTRO_INVALID_PARTNER_INPUT', '상대의 출생 정보를 확인해 주세요.');
+      const [chart, partnerChart] = await Promise.all([
+        calculateBasicAstrologyChart(mine.moment, request, env),
+        calculateBasicAstrologyChart(isCeleb ? { ...celeb.moment, timezone: celeb.moment.tz } : partner.moment, request, env),
+      ]);
+      const report = isCeleb ? buildAstroCelebSynastry({ chart, celebChart: partnerChart, celeb, lang })
+        : buildAstroDirectSynastry({ chart, partnerChart, partner, lang });
+      return json({ ok: true, unlocked: true, accessSource: 'public', featureKey: publicKey, html: report.html, result: report.result, ...(isCeleb ? {} : { llmPayload: report.llmPayload }) });
+    }
+
     let auth;
     try {
       auth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true });
