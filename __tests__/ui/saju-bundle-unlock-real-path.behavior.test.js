@@ -259,7 +259,12 @@ test("C1: 시간 미상 프로필은 구매 안내가 결제로 이어지고, �
   assert.equal(offer.isOpen(), true);
   sandbox.CdSajuSectionClient.loadNatalReading({});
   assert.equal(requests.length, 1, "본문 요청이 나가지 않았습니다");
-  assert.equal(requests[0].body.featureKey, BUNDLE);
+  assert.equal(requests[0].body.featureKey, "saju_natal_reading");
+  assert.deepEqual(requests[0].body.birth, { year: 1990, month: 3, day: 14 });
+  // Server access snapshots carry the bundle and its owned section grants separately.
+  applyServerUnlocks(sandbox, "profile-1", [BUNDLE, "section_summary", "section_daewun"]);
+  assert.equal(shell.isTileKeyUnlocked("section_summary"), true, "Verified owned light reading remains accessible");
+  assert.equal(shell.isTileKeyUnlocked("section_daewun"), true, "Verified owned daewun remains accessible");
   assert.equal(requests[0].body.profileId, "profile-1");
 });
 

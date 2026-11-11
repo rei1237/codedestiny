@@ -130,7 +130,8 @@ test('묶음 이름이 하나로 통일되어 있다', async () => {
   assert.ok(read('app/yeongnyangi/1000-won-fortune/page.tsx').includes('SAJU_BUNDLE_LABEL'));
 });
 
-test('무료 사주 표기가 사라졌다', () => {
+test('유료 사주 상품은 무료로 표시하지 않고 승인된 계산형 재미 카드는 무료로 안내한다', async () => {
+  const { isFreeFortuneFeatureKey } = await import('../../lib/payment/free-fortune-policy.mjs');
   for (const rel of SALES_SURFACES) {
     assert.doesNotMatch(read(rel), /무료 사주/, `${rel}: "무료 사주"가 남아 있다`);
   }
@@ -143,7 +144,10 @@ test('무료 사주 표기가 사라졌다', () => {
   const html = read('index.html');
   for (const id of GATED_POPUP_IDS) {
     const line = popupLine(html, id);
-    assert.doesNotMatch(line, /무료|추가 결제 없이/, `${id} popup에 무료 안내가 남아 있다`);
+    const key = id === 'rpt_lottoCard' ? 'fun.quantumLotto.ritualReport' : 'saju_fun_shared';
+    assert.equal(isFreeFortuneFeatureKey(key), true, id + ': approved public policy');
+    assert.match(line, /badge:'무료'/, id + ': public card must disclose free access');
+    assert.match(line, /ct:'free'/, id + ': no checkout CTA');
   }
   for (const id of BUNDLE_POPUP_IDS) {
     const line = popupLine(html, id);
@@ -418,7 +422,8 @@ const BUNDLE_ONLY_DICT_NS = Object.values(MARKETING_ITEMS)
   .sort();
 const CLAIMS_FREE_RE = /(?<![\p{L}\p{N}-])free(?:ly)?(?![\p{L}\p{N}-])|(?<!\p{L})gratis|gratuit|kostenlos|percuma|miễn phí|無料|免费|免費|मुफ़?्त|निःशुल्क|무료|no extra (?:payment|charge)|追加決済|追加料金|无需额外|無需額外/iu;
 
-test('묶음 전용 카드 목록은 잠금 코드와 일치한다', () => {
+test('Public card groups and remaining paid bundle claims match policy', async () => {
+  const { isFreeFortuneFeatureKey } = await import('../../lib/payment/free-fortune-policy.mjs');
   const offer = read('js/core/saju/bundle-offer.js');
   const groups = offer.match(/var CARD_GROUPS = \{[\s\S]*?\n  \};/)[0];
   const gatedCards = ['lotto', 'shared', 'hormone'].flatMap((group) =>
@@ -426,7 +431,15 @@ test('묶음 전용 카드 목록은 잠금 코드와 일치한다', () => {
   assert.equal(gatedCards.length, 5, '잠금 코드에서 카드 목록을 읽지 못했다');
   const closedKeys = [...offer.match(/var SALE_CLOSED_KEYS = \{[\s\S]*?\n  \};/)[0].matchAll(/'?((?:rpt_|animal-destiny-)[\w-]+)'?: 1/g)].map((m) => m[1]);
   assert.ok(closedKeys.length >= 9, '판매 종료 키를 읽지 못했다');
-  const expected = [...gatedCards.map((id) => `rpt_${id}`), ...closedKeys].map((key) => key.replace(/-/g, '_'));
+  for (const id of gatedCards) {
+    const key = id === 'lottoCard' ? 'fun.quantumLotto.ritualReport' : 'saju_fun_shared';
+    assert.equal(isFreeFortuneFeatureKey(key), true, id);
+    assert.ok(!BUNDLE_ONLY_DICT_NS.includes(`rpt_${id}`.replace(/-/g, '_')), id + ': no exclusive bundle claim');
+  }
+  for (const key of ['section_summary', 'section_daewun', BUNDLE, 'saju-career-style', 'compat-saju-compatibility']) {
+    assert.equal(isFreeFortuneFeatureKey(key), false, key + ': paid or pending, never public');
+  }
+  const expected = closedKeys.filter(key => key !== 'rpt_lottoCard' && !isFreeFortuneFeatureKey(key)).map((key) => key.replace(/-/g, '_'));
   assert.deepEqual([...new Set(expected)].filter((ns) => !BUNDLE_ONLY_DICT_NS.includes(ns)), [], '잠금 코드의 카드가 묶음 전용 목록에서 빠졌다');
   // 진짜 무료 도구와, 묶음을 안내만 하는 만세력 카드는 대상이 아니다.
   for (const ns of ['rpt_aiPromptCard', 'saju']) assert.ok(!BUNDLE_ONLY_DICT_NS.includes(ns), `${ns}는 묶음 전용 카드가 아니다`);
