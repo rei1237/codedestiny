@@ -2,9 +2,11 @@ import { readFileSync, writeFileSync, readdirSync } from "node:fs";
 import { parse } from "parse5";
 import { getBillingFeaturePricing } from "../worker/lib/billing-feature-registry.js";
 import { FEATURE_KEY_PRICE_TABLE, UNLOCK_PRODUCT_BY_FEATURE_KEY, PAID_FEATURE_KEY_ALIASES } from "../worker/lib/paid-feature-registry.js";
+import { isFreeFortuneFeatureKey } from "../lib/payment/free-fortune-policy.mjs";
 const pricing = key => FEATURE_KEY_PRICE_TABLE[key] || UNLOCK_PRODUCT_BY_FEATURE_KEY[key]
   || FEATURE_KEY_PRICE_TABLE[PAID_FEATURE_KEY_ALIASES[key]] || UNLOCK_PRODUCT_BY_FEATURE_KEY[PAID_FEATURE_KEY_ALIASES[key]];
 const price = key => {
+  if (isFreeFortuneFeatureKey(key)) return 0;
   const row = pricing(key);
   return row ? Number(row.amountKRW ?? row.cost * 100) : null;
 };
@@ -27,12 +29,12 @@ const edits = [], dictionaryCopies = [];
 const doc = parse(html, { sourceCodeLocationInfo: true });
 function visit(node, amount = null) {
   const attrs = Object.fromEntries((node.attrs || []).map(a => [a.name, a.value]));
-  if (attrs["data-cd-price-key"]) amount = getBillingFeaturePricing({featureKey:attrs["data-cd-price-key"], reason:attrs["data-cd-price-reason"]}).pricing?.amountKRW;
+  if (attrs["data-cd-price-key"]) amount = isFreeFortuneFeatureKey(attrs["data-cd-price-key"]) ? 0 : getBillingFeaturePricing({featureKey:attrs["data-cd-price-key"], reason:attrs["data-cd-price-reason"]}).pricing?.amountKRW;
   else if (attrs["data-feature-key"]) amount = price(attrs["data-feature-key"]);
   else if (attrs["data-cd-service-id"]) amount = price(featureById.get(attrs["data-cd-service-id"]));
   const row = pricing(attrs["data-feature-key"]);
   if (attrs["data-cd-price-key"] && /tarot-tile__coin-badge/.test(attrs.class || "")) {
-    if (!(amount > 0)) throw new Error(`Unknown discovery price: ${attrs["data-cd-price-key"]}`);
+    if (!Number.isFinite(amount) || amount < 0) throw new Error(`Unknown discovery price: ${attrs["data-cd-price-key"]}`);
     const loc = node.sourceCodeLocation;
     const seed = loc.attrs["data-price-krw"];
     if (seed) {
@@ -48,10 +50,18 @@ function visit(node, amount = null) {
     }
   }
   if (row && node.sourceCodeLocation?.attrs) {
-    for (const [name,value] of [["data-coin-cost",row.cost],["data-tile-lock-cost",row.cost],["data-price-krw",amount]]) {
+    for (const [name,value] of [["data-coin-cost",isFreeFortuneFeatureKey(attrs["data-feature-key"]) ? 0 : row.cost],["data-tile-lock-cost",isFreeFortuneFeatureKey(attrs["data-feature-key"]) ? 0 : row.cost],["data-price-krw",amount]]) {
       const loc = node.sourceCodeLocation.attrs[name];
       if (loc && Number(attrs[name]) !== Number(value)) edits.push({start:loc.startOffset,end:loc.endOffset,text:`${name}="${value}"`});
     }
+  }
+  // Display-only: keep historical billing amounts intact, but never regenerate a paid badge for an exact free key.
+  if (amount === 0 && /tarot-tile__coin-badge|cd-sig-card__price|cd-quick-card__price|cd-concern__q-price/.test(attrs.class || "") && node.sourceCodeLocation?.endTag) {
+    const loc = node.sourceCodeLocation;
+    const content = html.slice(loc.startTag.endOffset, loc.endTag.startOffset);
+    if (/\d[\d,]*\s*원|기본 무료/.test(content)) edits.push({start:loc.startTag.endOffset,end:loc.endTag.startOffset,text:"무료"});
+    const trans = loc.attrs?.["data-cd-trans"] || loc.attrs?.["data-key"];
+    if (trans && html.slice(trans.startOffset,trans.endOffset) !== (attrs["data-key"] ? 'data-key="home.concernPick.price.free"' : 'data-cd-trans="home.concernPick.price.free"')) edits.push({start:trans.startOffset,end:trans.endOffset,text:attrs["data-key"] ? 'data-key="home.concernPick.price.free"' : 'data-cd-trans="home.concernPick.price.free"'});
   }
   if (amount > 0 && /tarot-tile__coin-badge|cd-sig-card__price|cd-quick-card__price|cd-concern__q-price/.test(attrs.class || "") && node.sourceCodeLocation?.startTag) {
     const loc = node.sourceCodeLocation;
