@@ -1,7 +1,7 @@
 ---
 status: in-progress
-updated: 2026-11-11
-next: "1단계 — 가디언 가격을 50코인(5,000원) 영구 해금에서 30코인(3,000원) 생년월일 1건 구매로 바꾸고 검증·커밋한다."
+updated: 2026-11-12
+next: "2단계 — 무료화 운영 승격 완료 통보를 받은 뒤 origin/main 최신으로 rebase(또는 cherry-pick)하고 재검증·push한다(통보 전 push 금지)."
 ---
 
 # 사주 가디언: 이미지 생성 → 이미지 프롬프트, 가격 3,000원
@@ -13,7 +13,7 @@ next: "1단계 — 가디언 가격을 50코인(5,000원) 영구 해금에서 30
 ## 지금 상태
 - 워크트리: `D:\Development\codedestiny-worktrees\saju-guardian-prompt-20261111-215425`
 - 브랜치: `wt/saju-guardian-prompt-20261111-215425` (base `bae74a4c1`, 확인 시점 origin/main은 `542fb9b42`로 1커밋 앞)
-- 끝난 커밋: `8d4f0a548` feat(guardian) 프롬프트 제공, `893eff4da` copy(guardian) 판매 문구·패널 08/09 숨김, `1d991cace` sitemap 원장
+- 끝난 커밋: `8d4f0a548` feat(guardian) 프롬프트 제공, `893eff4da` copy(guardian) 판매 문구·패널 08/09 숨김, `1d991cace` sitemap 원장, `8b757f577` feat(guardian) 가격 30코인(3,000원) 생년월일별 해금 (아직 push 안 함)
 - 검증 결과(가격 변경 전): 가디언·보안 jest 76/76, 결제 관문 77/77, 전체 test:node 4969/0, check:fast·check:worker·verify:app-store-billing-policy·verify:birth-scope-client-mirror·sitemap·seo-entity·repo-hygiene·llms 통과. 390px Playwright 20/20(스크립트: `D:\Development\Temp\claude\ec29f026d20d029c\c8cfa28f-a18d-4e53-8b31-2acc5aa8c80c\scratchpad\guardian-e2e.mjs <worktree> http://localhost:3217 <shotsDir>`; dev 서버는 `PORT=3217 npm run -s dev:next -- -p 3217`, 끝나면 반드시 종료).
 
 ## 승인 상태 (원문·날짜)
@@ -42,7 +42,16 @@ next: "1단계 — 가디언 가격을 50코인(5,000원) 영구 해금에서 30
 
 ## 단계
 - [x] 0. 이미지 생성 → 프롬프트 전환, 판매 문구, 패널 숨김, 검증 (커밋 3개)
-- [ ] 1. 가격 30코인(3,000원)으로 변경 + 생성물 재생성 + 테스트(가디언 jest, 결제 관문, check:fast, check:worker, verify:app-store-billing-policy, verify:birth-scope-client-mirror, sitemap, test:node) + 390px 화면에서 가격 문구 확인 → 커밋
-- [ ] 2. origin/main 최신으로 rebase(또는 cherry-pick), 충돌 해결, 재검증, origin/main push, CI 결과 확인
+- [x] 1. 가격 30코인(3,000원)으로 변경 + 생성물 재생성 + 테스트(가디언 jest, 결제 관문, check:fast, check:worker, verify:app-store-billing-policy, verify:birth-scope-client-mirror, sitemap, test:node) + 390px 화면에서 가격 문구 확인 → 커밋
+  - 결과(2026-11-12): 커밋 `8b757f577`(33파일). 가디언 관련 jest 32스위트 655/655, 이용권·결제 관문 jest 14스위트 399/399, pass-light-status 13/13, check:fast 통과(jest 474스위트 7900 통과·1 skip), check:worker 통과(7900 통과), test:node 4969/0, verify:app-store-billing-policy·verify:birth-scope-client-mirror(41키)·sitemap:check·verify:pass-tier-policy 통과. 390px Playwright: 가격 점검 ALL PASS(`scratchpad\guardian-price-check.mjs <worktree> <base> <shotsDir> unlocked`), guardian-e2e 20/20.
+  - 바뀐 곳: 정본 `worker/lib/paid-feature-registry.js` 두 키 50→30, `js/core/service-registry.js`(→ yehwa-home.generated.json), `index.html` 홈 타일 배지·잠금 배지 `'🔒 생년월일별 '`·상세 시트 cost/fallbackCta 2곳(→ public/*/index.html), `SajuGuardianClient.tsx` 문구(ko/en), `public/i18n/*.json` 12개에 새 키 `sajuGuardianPricePrice3000` 추가(옛 Price5000 키는 남김, 지금은 미사용).
+  - 연쇄 변경: `worker/lib/profile-limits.js` `MIN_PASS_COVERABLE_COIN`·`FAMILY_MIN_PASS_COVERABLE_COIN` 50→30. `verify:pass-tier-policy`가 "이용권 대상 최저 판매가 = 소진 기준"을 강제하므로, 가디언이 최저가(30)가 되면서 함께 내려야 했다. 효과: 이용권 잔여 예산이 30코인 이상이면 아직 소진 아님(전엔 50). 경계 테스트(pass-exhaustion-repurchase·pass-policy-v2·pass-light-status) 갱신.
+  - Play: 30코인은 기존 `cd_content_tier_01`(3,000원) 티어로 해석되어 새 SKU 불필요. 상세 패널 webp에 가격 그림 없음(08·09는 이미 숨김).
+  - 확인 한계: 해금 전 /saju-guardian은 /login으로 넘어가서 잠금 화면 문구는 코드로만 확인. Next dev `/`에는 옛 홈 타일이 안 그려져 `/saju` 목록(3,000원)과 정적 index.html 마크업으로 확인.
+  - 가디언 아닌 "5,000원 영구 해금" 문구는 그대로 둠: 자미두수(paid-ziwei.src.js), sibyl.lockedCost, payment.permanentUnlock5000.
+  - 포트 3217의 next dev(PID 9120)는 이 세션이 띄운 것이 아니라 그대로 둠. 이 세션은 3218을 썼고 종료함.
+  - free-fortune-policy 4파일 줄바꿈 거짓 변경은 되돌리고 커밋하지 않음.
+- 🔴 순서 조율(2026-11-11, 무료화 릴리스 세션 요청: 사용자 결정 "무료화 먼저, 가디언은 바로 뒤"): 무료화 운영 승격(CI 커밋 70e2b413d)이 끝났다는 통보 전에는 가디언 커밋을 origin/main에 push하지 않는다. 승격 뒤 가디언은 별도 운영 배포로 바로 이어 간다.
+- [ ] 2. (무료화 승격 완료 통보 후) origin/main 최신으로 rebase(또는 cherry-pick), 충돌 해결, 재검증, origin/main push, CI 결과 확인
 - [ ] 3. 무료화 릴리스 운영 승격 상태 확인: 아직이면 담당 문서에 가디언 포함 사실을 적어 함께 승격되게 하고, 승격 워크플로가 이미 끝났으면 가디언 포함 커밋으로 운영 배포 워크플로 실행(승인됨). 배포 후 운영 `/api/guardian/generate-image` 410·`/image-prompt` 401(비로그인) 확인, 운영 DB 쓰기 없이.
 - [ ] 4. 최종 보고(한국어): 가격 해석, 기존 이용자 영향, 후속 과제(order-view-model.ts:99 표기 오류, light-fortune-catalog.js:18 사유, /api/guardian-avatar 죽은 코드, NVIDIA_DRAW_API_KEY 비밀값 정리, 패널 08·09 새 그림, docs 인벤토리, "나의 수호 캐릭터" 사전 누락, public/i18n/en.json:6002 "10,000 KRW", transform-origin 경고)
