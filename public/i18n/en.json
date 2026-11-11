@@ -5,10 +5,10 @@
       "lottoSavedTitle": "Saved Moonlight Lucky Ritual reports",
       "lottoSavedDesc": "Reopen reports you purchased and saved on this device.",
       "lottoSavedOpen": "Open report",
-      "title": "Full Four Pillars reading bundle",
+      "title": "Light Saju reading",
       "once": "One payment for permanent access",
-      "inlineCta": "View the bundle",
-      "inlineDesc": "Explore your birth chart, ten-year cycles, daily reading and more in one bundle.",
+      "inlineCta": "Light Saju reading",
+      "inlineDesc": "One payment gives permanent access to the Light Saju reading and ten-year cycles. Public free basic and fun readings need no purchase; AI consultations are separate.",
       "close": "Close",
       "pay": "Open with a one-time payment",
       "saveProfile": "Save this birth profile",
@@ -22,7 +22,7 @@
         "Ten-year luck cycles and life trends"
       ],
       "ownFreePolicy": "Revisit the Light Saju reading and ten-year cycles for the purchased birth profile without a time limit. Public free basic and fun readings need no purchase. AI consultations are separate products and are charged only when you choose them.",
-      "inlineDescFreePolicy": "One payment gives permanent access to the Light Saju reading and ten-year cycles. Public free basic and fun readings need no purchase; AI consultations are separate."
+      "inlineDescFreePolicy": "One payment gives permanent access to the Light Saju reading and ten-year cycle readings. The basic chart and entertainment readings are available at no charge; AI consultations are billed separately."
     }
   },
   "_comment": "Code Destiny — English premium localization (en.json)",
@@ -39,7 +39,7 @@
       "title": "How to Read Saju, Tarot & Fortune",
       "lead": "Code Destiny is a Korean fortune platform where you can explore Saju (Four Pillars), tarot, Zi Wei Dou Shu, Western and Vedic astrology, Sukuyo, and compatibility in one place — all from your birth date and time. We summarize what each reading looks at and how to read it, so even newcomers can follow along. Every interpretation is offered as a reference for self-reflection and calmer choices, never as a fixed prophecy.",
       "sajuTitle": "Saju & Manseryeok",
-      "sajuBody": "We build four pillars from the year, month, day, and hour of birth, then read the balance of the five elements, the ten gods, and the flow of major luck within the heavenly stems and earthly branches — looking at both your innate temperament and the rhythm of the current period.",
+      "sajuBody": "One payment gives permanent access to the Light Saju reading and ten-year cycles. Public free basic and fun readings need no purchase; AI consultations are separate.",
       "tarotTitle": "Tarot Reading",
       "tarotBody": "Seventy-eight cards and their symbols reflect your question and state of mind. It suits love, reunion, relationships, and career — worries that don't resolve into a single answer — helping you sort them from several angles.",
       "ziweiTitle": "Zi Wei Dou Shu",
@@ -5618,18 +5618,18 @@
     "premiumShowcase": {
       "aria": "Paid saju readings",
       "title": "Read your chart in more depth",
-      "subtitle": "One lifetime unlock of the full saju reading opens everything beyond your natal chart. Compatibility is paid per reading.",
+      "subtitle": "One payment gives permanent access to the Light Saju reading and ten-year cycle readings. The basic chart and entertainment readings are available at no charge; AI consultations are billed separately.",
       "expand": "Open the readings",
       "permanent": "Permanent unlock",
       "perUse": "Per-use payment",
       "compatCta": "See compatibility →",
       "daewun": {
         "title": "Daewun analysis",
-        "cta": "Own the full saju reading for life →"
+        "cta": "Open Light Saju reading →"
       },
       "summary": {
-        "title": "Full saju reading",
-        "cta": "Own the full saju reading for life →"
+        "title": "Light Saju reading",
+        "cta": "Open Light Saju reading →"
       },
       "compat": {
         "title": "Compatibility analysis",
@@ -9029,8 +9029,8 @@
   },
   "seoLanding": {
     "description": {
-      "001": "Enter your birth date and time in the free Manseryeok to see your Four Pillars natal chart and a one-line tendency. Ten Gods, luck cycles and the flow of wealth, love and career continue in the full paid Saju reading.",
-      "002": "Check your Four Pillars natal chart and Five Elements balance in the free Manseryeok using your birth date. We explain why results change with birth time and solar-term boundaries; Ten Gods and luck cycle table readings continue in the Saju full reading, lifetime access.",
+      "001": "Light Saju reading · One payment gives permanent access to the Light Saju reading and ten-year cycles. Public free basic and fun readings need no purchase; AI consultations are separate.",
+      "002": "Light Saju reading · One payment gives permanent access to the Light Saju reading and ten-year cycles. Public free basic and fun readings need no purchase; AI consultations are separate.",
       "003": "Today's reading helps you lightly check your daily condition, relationships, and work priorities, and organize choices to act upon.",
       "004": "The Today's Reading page helps you quickly check your condition, relationship flow, and schedule priorities when starting or ending your day.",
       "005": "Examine two people's relationship rhythm, communication style, and conflict recovery points from a Four Pillars and reading perspective, and organize them into practical conversation standards.",
@@ -16459,7 +16459,7 @@
       "badge": "Free compatibility reading"
     },
     "saju": {
-      "tagline": "Calculates the eight characters of your Saju and shows your natal chart, Five Elements balance and a one-line tendency for free. Ten Gods and luck-cycle readings continue in the full paid Saju reading.",
+      "tagline": "One payment gives permanent access to the Light Saju reading and ten-year cycles. Public free basic and fun readings need no purchase; AI consultations are separate.",
       "feats": [
         "When you can't put your own disposition into words",
         "When you want to see the broad arc of your life once",
@@ -22067,7 +22067,7 @@
     "letterVerdictJong": "a structure that follows momentum gathering in one direction",
     "letterVerdictStrong": "a structure with relatively ample strength to make your own path",
     "letterVerdictWeak": "a structure that shines more comfortably with support nearby and time to prepare",
-    "paidBundle": "Saju full reading, lifetime access · One payment opens every Saju reading, including this one, permanently. You are not charged per reading."
+    "paidBundle": "One payment gives permanent access to the Light Saju reading and ten-year cycles. Public free basic and fun readings need no purchase; AI consultations are separate."
   },
   "sajuCompat": {
     "selfFallback": "Me",

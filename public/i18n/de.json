@@ -5,10 +5,10 @@
       "lottoSavedTitle": "Gespeicherte Mondlicht-Glücksrituale",
       "lottoSavedDesc": "Hier kannst du gekaufte und auf diesem Gerät gespeicherte Berichte erneut lesen.",
       "lottoSavedOpen": "Bericht öffnen",
-      "title": "Vollständige Vier-Säulen-Deutung",
+      "title": "Kompakte Saju-Deutung",
       "once": "Einmal kaufen und dauerhaft lesen",
-      "inlineCta": "Inhalte ansehen",
-      "inlineDesc": "Entdecke dein Geburtsbild, deine Zehnjahreszyklen, Tagesdeutungen und weitere Inhalte.",
+      "inlineCta": "Kompakte Saju-Deutung",
+      "inlineDesc": "Eine Zahlung gewährt dauerhaften Zugriff auf die kompakte Saju-Deutung und Zehnjahreszyklen. Öffentlich kostenlose Basis- und Unterhaltungsdeutungen erfordern keinen Kauf; KI-Beratungen sind separat.",
       "close": "Schließen",
       "pay": "Per Einmalkauf öffnen",
       "saveProfile": "Geburtsprofil speichern",
@@ -22,7 +22,7 @@
         "Zehnjahreszyklen und Lebensverlauf"
       ],
       "ownFreePolicy": "Lesen Sie die kompakte Saju-Deutung und Zehnjahreszyklen des gekauften Geburtsprofils zeitlich unbegrenzt erneut. Öffentlich kostenlose Basis- und Unterhaltungsdeutungen erfordern keinen Kauf. KI-Beratungen sind separate Produkte und werden nur bei Auswahl berechnet.",
-      "inlineDescFreePolicy": "Eine Zahlung gewährt dauerhaften Zugriff auf die kompakte Saju-Deutung und Zehnjahreszyklen. Öffentlich kostenlose Basis- und Unterhaltungsdeutungen erfordern keinen Kauf; KI-Beratungen sind separat."
+      "inlineDescFreePolicy": "Eine einmalige Zahlung gewährt dauerhaften Zugriff auf die kompakte Saju-Deutung und die Deutung der Zehnjahreszyklen. Grundlegende und unterhaltsame Saju-Deutungen sind kostenlos; KI-Beratungen werden separat berechnet."
     }
   },
   "_comment": "Code Destiny — German premium localization (de.json)",
@@ -39,7 +39,7 @@
       "title": "How to Read Saju, Tarot & Fortune",
       "lead": "Code Destiny is a Korean fortune platform where you can explore Saju (Four Pillars), tarot, Zi Wei Dou Shu, Western and Vedic astrology, Sukuyo, and compatibility in one place — all from your birth date and time. We summarize what each reading looks at and how to read it, so even newcomers can follow along. Every interpretation is offered as a reference for self-reflection and calmer choices, never as a fixed prophecy.",
       "sajuTitle": "Saju & Manseryeok",
-      "sajuBody": "We build four pillars from the year, month, day, and hour of birth, then read the balance of the five elements, the ten gods, and the flow of major luck within the heavenly stems and earthly branches — looking at both your innate temperament and the rhythm of the current period.",
+      "sajuBody": "Eine Zahlung gewährt dauerhaften Zugriff auf die kompakte Saju-Deutung und Zehnjahreszyklen. Öffentlich kostenlose Basis- und Unterhaltungsdeutungen erfordern keinen Kauf; KI-Beratungen sind separat.",
       "tarotTitle": "Tarot Reading",
       "tarotBody": "Seventy-eight cards and their symbols reflect your question and state of mind. It suits love, reunion, relationships, and career — worries that don't resolve into a single answer — helping you sort them from several angles.",
       "ziweiTitle": "Zi Wei Dou Shu",
@@ -5618,18 +5618,18 @@
     "premiumShowcase": {
       "aria": "Kostenpflichtige Saju-Lesungen",
       "title": "Ihr Horoskop tiefer lesen",
-      "subtitle": "Eine dauerhafte Freischaltung der vollständigen Saju-Lesung öffnet alles über Ihr Geburtsdiagramm hinaus. Kompatibilität wird pro Abfrage bezahlt.",
+      "subtitle": "Eine einmalige Zahlung gewährt dauerhaften Zugriff auf die kompakte Saju-Deutung und die Deutung der Zehnjahreszyklen. Grundlegende und unterhaltsame Saju-Deutungen sind kostenlos; KI-Beratungen werden separat berechnet.",
       "expand": "Deutungen öffnen",
       "permanent": "Dauerhafte Entsperrung",
       "perUse": "Zahlung pro Nutzung",
       "compatCta": "Kompatibilität ansehen →",
       "daewun": {
         "title": "Daewun-Analyse",
-        "cta": "Vollständige Saju-Lesung dauerhaft freischalten →"
+        "cta": "Kompakte Saju-Deutung öffnen →"
       },
       "summary": {
-        "title": "Vollständige Saju-Lesung",
-        "cta": "Vollständige Saju-Lesung dauerhaft freischalten →"
+        "title": "Kompakte Saju-Deutung",
+        "cta": "Kompakte Saju-Deutung öffnen →"
       },
       "compat": {
         "title": "Kompatibilitätsanalyse",
@@ -9029,8 +9029,8 @@
   },
   "seoLanding": {
     "description": {
-      "001": "Gib Geburtsdatum und -zeit im kostenlosen Manseryeok ein, um dein Vier-Säulen-Chart und eine Ein-Satz-Tendenz zu sehen. Zehn Götter, Glückszyklen und der Verlauf von Geld, Liebe und Beruf folgen in der kostenpflichtigen vollständigen Saju-Deutung.",
-      "002": "Geben Sie Ihr Geburtsdatum ein und sehen Sie im kostenlosen Manseryeok Ihr Vier-Säulen-Chart und die Balance der Fünf Elemente. Wir erklären, warum sich das Ergebnis je nach Geburtszeit und Solarterm-Grenze ändert; die Deutung der Zehn Götter und der Glückszyklus-Tabelle folgt in der vollständigen Saju-Deutung mit lebenslangem Zugang.",
+      "001": "Kompakte Saju-Deutung · Eine Zahlung gewährt dauerhaften Zugriff auf die kompakte Saju-Deutung und Zehnjahreszyklen. Öffentlich kostenlose Basis- und Unterhaltungsdeutungen erfordern keinen Kauf; KI-Beratungen sind separat.",
+      "002": "Kompakte Saju-Deutung · Eine Zahlung gewährt dauerhaften Zugriff auf die kompakte Saju-Deutung und Zehnjahreszyklen. Öffentlich kostenlose Basis- und Unterhaltungsdeutungen erfordern keinen Kauf; KI-Beratungen sind separat.",
       "003": "Das Tageshoroskop hilft Ihnen, Ihren Zustand, Ihre Beziehungen und die Prioritäten Ihrer Arbeit für den Tag leicht zu überprüfen und Entscheidungen zu treffen.",
       "004": "Die Tageshoroskop-Seite hilft Ihnen, Ihren Zustand, Beziehungsabläufe und Terminprioritäten kurz zu überprüfen, wenn Sie den Tag beginnen oder abschließen.",
       "005": "Wir untersuchen den Beziehungsrhythmus, die Kommunikationsweise und die Punkte zur Konfliktbewältigung zweier Personen aus der Perspektive der Vier Säulen (BaZi) und der Deutung und fassen diese als realistische Gesprächsgrundlage zusammen.",
@@ -16459,7 +16459,7 @@
       "badge": "Free compatibility reading"
     },
     "saju": {
-      "tagline": "Calculates the eight characters of your Saju and shows your natal chart, Five Elements balance and a one-line tendency for free. Ten Gods and luck-cycle readings continue in the full paid Saju reading.",
+      "tagline": "One payment gives permanent access to the Light Saju reading and ten-year cycles. Public free basic and fun readings need no purchase; AI consultations are separate.",
       "feats": [
         "When you can't put your own disposition into words",
         "When you want to see the broad arc of your life once",
@@ -22067,7 +22067,7 @@
     "letterVerdictJong": "a structure that follows momentum gathering in one direction",
     "letterVerdictStrong": "a structure with relatively ample strength to make your own path",
     "letterVerdictWeak": "a structure that shines more comfortably with support nearby and time to prepare",
-    "paidBundle": "Saju full reading, lifetime access · One payment opens every Saju reading, including this one, permanently. You are not charged per reading."
+    "paidBundle": "Eine Zahlung gewährt dauerhaften Zugriff auf die kompakte Saju-Deutung und Zehnjahreszyklen. Öffentlich kostenlose Basis- und Unterhaltungsdeutungen erfordern keinen Kauf; KI-Beratungen sind separat."
   },
   "sajuCompat": {
     "selfFallback": "Ich",

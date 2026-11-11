@@ -1,5 +1,61 @@
 (function() {
   var STORAGE_KEY = 'OLYMPUS_ORACLE_PROFILE';
+  var readingVersion = 0;
+  var movingToReading = false;
+
+  function accountScope() {
+    try {
+      var user = JSON.parse(localStorage.getItem('fortune_auth_user') || 'null');
+      return String(user && (user.id || user.userId || user._id || user.uid) || '').trim().toLowerCase();
+    } catch (_) { return ''; }
+  }
+
+  function profileReadingFields(profile) {
+    if (!profile) return null;
+    var birth = profile.birth || {}, location = profile.location || {};
+    function number(value, fallback) { var n = Number(value); return Number.isFinite(n) ? n : fallback; }
+    var timezone = number(location.baseTzOffset, number(location.tzOffset, null));
+    if (timezone !== null && Math.abs(timezone) > 24) timezone /= 60;
+    return [String(profile.name || ''), String(profile.gender || ''), number(birth.year, null), number(birth.month, null), number(birth.day, null),
+      number(birth.hour, 12), number(birth.minute, 0), birth.timeUnknown === true || profile.timeUnknown === true || profile.birthTimeUnknown === true,
+      birth.calType || profile.calType || 'solar', birth.isLeapMonth === true || birth.isLeap === true,
+      number(location.lat, 37.5665), number(location.lng, number(location.lon, 126.978)), timezone];
+  }
+
+  function storedReadingIdentity(scope) {
+    try {
+      var current = localStorage.getItem('FORTUNE_APP_USER_PROFILES.current::' + scope) || '';
+      var list = JSON.parse(localStorage.getItem('FORTUNE_APP_USER_PROFILES.list::' + scope) || '[]');
+      var profile = list.find(function(item) { return String(item.id || item.profileId) === current; });
+      return JSON.stringify([accountScope(), current, profileReadingFields(profile)]);
+    } catch (_) { return ''; }
+  }
+
+  function readingIdentity() {
+    try {
+      var user = JSON.parse(localStorage.getItem('fortune_auth_user') || 'null') || {};
+      var profile = getCurrentProfile() || getMainFormProfileFallback();
+      return JSON.stringify([user.id || user.userId || user.email || '', typeof window.hasAuthToken === 'function' ? window.hasAuthToken() : null, profile && profile.id, profile && profile.name, profile && profile.birth, profile && profile.gender, profile && profile.location]);
+    } catch (_) { return ''; }
+  }
+
+  function invalidateReading(event) {
+    var detail = event && event.detail;
+    if (detail && (detail.source === 'subscription-sync' || detail.source === 'membership-cache') && (detail.event || detail.type) === 'subscription') return;
+    readingVersion += 1;
+    // The validated handoff is consumed by /olympus after this page unloads.
+    if (event && event.type === 'pagehide' && movingToReading) return;
+    movingToReading = false;
+    try { sessionStorage.removeItem(STORAGE_KEY); } catch (_) {}
+  }
+  ['cd:auth-changed', 'cd:auth-session-invalidated', 'cd:profile-changed', 'destiny:profile-changed', 'cd:current-profile-changed', 'popstate', 'pagehide'].forEach(function(name) {
+    window.addEventListener(name, invalidateReading);
+  });
+  document.addEventListener('destinyProfileChanged', invalidateReading);
+  window.addEventListener('storage', function(event) {
+    var key = event && event.key;
+    if (!key || /^(fortune_auth_|FORTUNE_APP_USER_PROFILES|code-destiny\.activeProfile)/.test(key)) invalidateReading(event);
+  });
 
   function getLocalTimezoneHours() {
     var offset = -new Date().getTimezoneOffset() / 60;
@@ -213,10 +269,26 @@
     try {
       sessionStorage.setItem(STORAGE_KEY, JSON.stringify(profilePayload));
     } catch (e) {}
+    movingToReading = true;
     window.location.href = '/olympus';
   }
 
   function openOlympusOracleModal() {
+    movingToReading = false;
+    // This is the signed-in main-shell bridge. The public /olympus route is separate.
+    if (!accountScope() || typeof window.__dpVerifyOlympusSession !== 'function') {
+      if (typeof window.__cdOpenLoginRequiredModal === 'function') {
+        window.__cdOpenLoginRequiredModal({ reason: '로그인 후 이용할 수 있는 기능입니다.', redirectTo: window.location.pathname + window.location.search + window.location.hash });
+      } else {
+        window.location.href = '/login?redirect=' + encodeURIComponent(window.location.pathname + window.location.search + window.location.hash);
+      }
+      return false;
+    }
+    var version = ++readingVersion;
+    var identity = readingIdentity();
+    var scope = accountScope();
+    var storageIdentity = storedReadingIdentity(scope);
+    function isCurrent() { return version === readingVersion && identity === readingIdentity() && storageIdentity === storedReadingIdentity(scope); }
     var currentProfile = getCurrentProfile() || getMainFormProfileFallback();
     var parsed = formatDateTimeFromBirth(currentProfile && currentProfile.birth);
     if (!parsed) {
@@ -247,29 +319,45 @@
       name: currentProfile && currentProfile.name ? currentProfile.name : '',
       date: parsed.date,
       time: parsed.time,
-      timeKnown: parsed.timeKnown !== false
+      timeKnown: parsed.timeKnown !== false,
+      readingOwner: { accountId: scope, storageIdentity: storageIdentity }
     };
 
-    computePlacementsWithSwissBridge(payload).then(function(placements) {
-      commitAndMove(Object.assign({}, baseProfile, {
-        sunKey: placements.sun.key,
-        placements: placements,
-        calc: 'swiss'
-      }));
-    }).catch(function(err) {
-      console.error('[olympus] Swiss calculation failed', {
-        errorMessage: String((err && err.message) || err || 'unknown')
-      });
-      if (typeof window._toast === 'function') {
-        window._toast('⚠️ 정밀 천문 계산에 실패해 간이 계산으로 진행합니다.', 'warn');
+    // DP and tile entry share this check. Never turn an auth failure into approximation.
+    window.__dpVerifyOlympusSession(scope).then(function(verified) {
+      if (!isCurrent()) return;
+      if (!verified) {
+        invalidateReading();
+        if (typeof window._toast === 'function') window._toast('로그인 상태를 확인하지 못했어요. 다시 로그인한 뒤 시도해 주세요.', 'warn');
+        return;
       }
-      commitAndMove(Object.assign({}, baseProfile, { calc: 'approx' }));
+      return computePlacementsWithSwissBridge(payload).then(function(placements) {
+        if (!isCurrent()) return;
+        commitAndMove(Object.assign({}, baseProfile, {
+          sunKey: placements.sun.key,
+          placements: placements,
+          calc: 'swiss'
+        }));
+      }).catch(function(err) {
+        if (!isCurrent()) return;
+        console.error('[olympus] Swiss calculation failed', {
+          errorMessage: String((err && err.message) || err || 'unknown')
+        });
+        if (typeof window._toast === 'function') {
+          window._toast('⚠️ 정밀 천문 계산에 실패해 간이 계산으로 진행합니다.', 'warn');
+        }
+        commitAndMove(Object.assign({}, baseProfile, { calc: 'approx' }));
+      });
+    }).catch(function() {
+      if (!isCurrent()) return;
+      invalidateReading();
+      if (typeof window._toast === 'function') window._toast('로그인 상태를 확인하지 못했어요. 잠시 후 다시 시도해 주세요.', 'warn');
     });
     return true;
   }
 
   function closeOlympusOracleModal() {
-    return;
+    invalidateReading();
   }
 
   window.openOlympusOracleModal = openOlympusOracleModal;

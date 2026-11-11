@@ -4,6 +4,14 @@
 // Explicit allowlist only: neither price, billing type, nor a prefix can make an LLM product free.
 const FREE_FORTUNE_FEATURE_KEYS = Object.freeze([
   'saju-career-style', 'love-code', 'destiny_meeting_place', 'saju_brain_reading', 'human_design_reading',
+  "destiny-compass-life-voyage",
+  "destiny-bias-analyze",
+  "destiny-compass-crossroads",
+  "destiny-compass-future-sim",
+  "premium-fpti-report",
+  "daily-fortune-reading",
+  "flower-fc",
+  "olympus-fc",
   "saju_natal_reading",
   "saju_fun_shared",
   "saju_daily_reading",

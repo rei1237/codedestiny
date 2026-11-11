@@ -5,10 +5,10 @@
       "lottoSavedTitle": "Opgeslagen rapporten van het maanlichtritueel",
       "lottoSavedDesc": "Lees rapporten die je hebt gekocht en op dit apparaat hebt opgeslagen opnieuw.",
       "lottoSavedOpen": "Rapport openen",
-      "title": "Volledige lezing van de Vier Pilaren",
+      "title": "Beknopte Saju-lezing",
       "once": "Eenmalige aankoop voor blijvende toegang",
-      "inlineCta": "Bekijk de inhoud",
-      "inlineDesc": "Ontdek je geboortehoroscoop, tienjarige cycli, daglezingen en andere duidingen.",
+      "inlineCta": "Beknopte Saju-lezing",
+      "inlineDesc": "Eén betaling geeft blijvende toegang tot de beknopte Saju-lezing en tienjaarscycli. Openbaar gratis basis- en speelse lezingen vereisen geen aankoop; AI-consulten staan apart.",
       "close": "Sluiten",
       "pay": "Openen met een eenmalige betaling",
       "saveProfile": "Dit geboorteprofiel opslaan",
@@ -22,7 +22,7 @@
         "Tienjaarscycli en levensloop"
       ],
       "ownFreePolicy": "Lees de beknopte Saju-lezing en tienjaarscycli voor het gekochte geboorteprofiel onbeperkt opnieuw. Openbaar gratis basis- en speelse lezingen vereisen geen aankoop. AI-consulten zijn aparte producten en worden alleen in rekening gebracht als je ze kiest.",
-      "inlineDescFreePolicy": "Eén betaling geeft blijvende toegang tot de beknopte Saju-lezing en tienjaarscycli. Openbaar gratis basis- en speelse lezingen vereisen geen aankoop; AI-consulten staan apart."
+      "inlineDescFreePolicy": "Eén betaling geeft blijvende toegang tot de beknopte Saju-lezing en de duiding van tienjaarscycli. Basis- en speelse Saju-lezingen zijn gratis; AI-consulten worden apart in rekening gebracht."
     }
   },
   "_comment": "Code Destiny — Dutch premium localization (nl.json)",
@@ -39,7 +39,7 @@
       "title": "How to Read Saju, Tarot & Fortune",
       "lead": "Code Destiny is a Korean fortune platform where you can explore Saju (Four Pillars), tarot, Zi Wei Dou Shu, Western and Vedic astrology, Sukuyo, and compatibility in one place — all from your birth date and time. We summarize what each reading looks at and how to read it, so even newcomers can follow along. Every interpretation is offered as a reference for self-reflection and calmer choices, never as a fixed prophecy.",
       "sajuTitle": "Saju & Manseryeok",
-      "sajuBody": "We build four pillars from the year, month, day, and hour of birth, then read the balance of the five elements, the ten gods, and the flow of major luck within the heavenly stems and earthly branches — looking at both your innate temperament and the rhythm of the current period.",
+      "sajuBody": "Eén betaling geeft blijvende toegang tot de beknopte Saju-lezing en tienjaarscycli. Openbaar gratis basis- en speelse lezingen vereisen geen aankoop; AI-consulten staan apart.",
       "tarotTitle": "Tarot Reading",
       "tarotBody": "Seventy-eight cards and their symbols reflect your question and state of mind. It suits love, reunion, relationships, and career — worries that don't resolve into a single answer — helping you sort them from several angles.",
       "ziweiTitle": "Zi Wei Dou Shu",
@@ -5618,18 +5618,18 @@
     "premiumShowcase": {
       "aria": "Betaalde saju-lezingen",
       "title": "Je kaart dieper lezen",
-      "subtitle": "Eén permanente ontgrendeling van de volledige saju-lezing opent alles voorbij je geboortekaart. Compatibiliteit betaal je per lezing.",
+      "subtitle": "Eén betaling geeft blijvende toegang tot de beknopte Saju-lezing en de duiding van tienjaarscycli. Basis- en speelse Saju-lezingen zijn gratis; AI-consulten worden apart in rekening gebracht.",
       "expand": "De duidingen openen",
       "permanent": "Permanente ontgrendeling",
       "perUse": "Betaling per gebruik",
       "compatCta": "Compatibiliteit bekijken →",
       "daewun": {
         "title": "Daewun-analyse",
-        "cta": "Volledige saju-lezing permanent openen →"
+        "cta": "Beknopte Saju-lezing openen →"
       },
       "summary": {
-        "title": "Volledige saju-lezing",
-        "cta": "Volledige saju-lezing permanent openen →"
+        "title": "Beknopte Saju-lezing",
+        "cta": "Beknopte Saju-lezing openen →"
       },
       "compat": {
         "title": "Compatibiliteitsanalyse",
@@ -9029,8 +9029,8 @@
   },
   "seoLanding": {
     "description": {
-      "001": "Voer je geboortedatum en -tijd in het gratis Manseryeok in om je Vier Pijlers-kaart en een tendens in één zin te zien. Tien Goden, geluks-cycli en de stroom van geld, liefde en werk vervolg je in de volledige, betaalde Saju-lezing.",
-      "002": "Voer je geboortedatum in en bekijk in het gratis Manseryeok de kaart van je Vier Pijlers en de balans van de Vijf Elementen. We leggen uit waarom het resultaat verandert met je geboortetijd en de grenzen van de zonneperioden; de duiding van de Tien Goden en de geluks-cyclustabel loopt door in de volledige Saju-lezing met levenslange toegang.",
+      "001": "Beknopte Saju-lezing · Eén betaling geeft blijvende toegang tot de beknopte Saju-lezing en tienjaarscycli. Openbaar gratis basis- en speelse lezingen vereisen geen aankoop; AI-consulten staan apart.",
+      "002": "Beknopte Saju-lezing · Eén betaling geeft blijvende toegang tot de beknopte Saju-lezing en tienjaarscycli. Openbaar gratis basis- en speelse lezingen vereisen geen aankoop; AI-consulten staan apart.",
       "003": "De dagelijkse reading helpt je om de conditie van de dag, relaties en werkprioriteiten licht te controleren en keuzes te organiseren om in de praktijk te brengen.",
       "004": "De dagelijkse reading pagina helpt je om snel je conditie, relatiestromen en agendaprioriteiten te controleren wanneer je de dag begint of afsluit.",
       "005": "We onderzoeken het relatie-ritme, de communicatiestijl en herstelpunten bij conflicten van twee personen vanuit het perspectief van Vier Pijlers (BaZi) en readings, en organiseren dit als realistische gespreksstandaarden.",
@@ -16459,7 +16459,7 @@
       "badge": "Free compatibility reading"
     },
     "saju": {
-      "tagline": "Calculates the eight characters of your Saju and shows your natal chart, Five Elements balance and a one-line tendency for free. Ten Gods and luck-cycle readings continue in the full paid Saju reading.",
+      "tagline": "One payment gives permanent access to the Light Saju reading and ten-year cycles. Public free basic and fun readings need no purchase; AI consultations are separate.",
       "feats": [
         "When you can't put your own disposition into words",
         "When you want to see the broad arc of your life once",
@@ -22067,7 +22067,7 @@
     "letterVerdictJong": "a structure that follows momentum gathering in one direction",
     "letterVerdictStrong": "a structure with relatively ample strength to make your own path",
     "letterVerdictWeak": "a structure that shines more comfortably with support nearby and time to prepare",
-    "paidBundle": "Saju full reading, lifetime access · One payment opens every Saju reading, including this one, permanently. You are not charged per reading."
+    "paidBundle": "Eén betaling geeft blijvende toegang tot de beknopte Saju-lezing en tienjaarscycli. Openbaar gratis basis- en speelse lezingen vereisen geen aankoop; AI-consulten staan apart."
   },
   "sajuCompat": {
     "selfFallback": "Ik",

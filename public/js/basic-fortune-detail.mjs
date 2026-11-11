@@ -65,7 +65,7 @@ export function renderBasicFortuneDetail(detail) {
   const [group, key] = pair, copy = { ...groups[group], ...focused[key] };
   const title = key === 'section_summary' ? '라이트 사주 풀이' : detail.title;
   const inBundle = key === 'section_summary' || key === 'section_daewun';
-  const bundleLine = inBundle ? '<p class="basic-fortune-detail__bundle">사주 전체 풀이 평생 소장에 포함된 풀이예요. 한 번 결제로 같은 생년월일의 사주에 영구히 열려요.</p>' : '';
-  const goLabel = inBundle ? '사주 전체 풀이 평생 소장 열기' : isFreeFortuneFeatureKey(key) ? '무료 상세 풀이 보기' : '해금 방법 확인하기';
+  const bundleLine = inBundle ? '<p class="basic-fortune-detail__bundle">라이트 사주 풀이에 포함된 풀이예요. 한 번 결제로 같은 생년월일의 사주에 영구히 열려요.</p>' : '';
+  const goLabel = inBundle ? '라이트 사주 풀이 열기' : isFreeFortuneFeatureKey(key) ? '무료 상세 풀이 보기' : '해금 방법 확인하기';
   return `<section class="craftedDetail basic-fortune-detail"><p class="basic-fortune-detail__eyebrow">${escape(title)}</p><h3>${copy.hook}</h3><p>${copy.note}</p>${bundleLine}<h4>이 해석에서 얻는 답</h4><ol>${copy.answers.map(text => `<li>${text}</li>`).join('')}</ol><figure><figcaption>계산 근거 미리보기</figcaption><p>${copy.basis}</p><small>해석의 구성 예시입니다. 실제 내용은 입력한 출생정보와 선택한 콘텐츠에 따라 달라져요.</small></figure><button type="button" class="cd-section-gate__btn" data-cd-basic-detail-go="${escape(key)}">${goLabel}</button></section>`;
 }

@@ -5,10 +5,10 @@
       "lottoSavedTitle": "सहेजी गई चाँदनी शुभ अनुष्ठान रिपोर्ट",
       "lottoSavedDesc": "इस डिवाइस पर सहेजी गई अपनी खरीदी हुई रिपोर्ट फिर पढ़ें।",
       "lottoSavedOpen": "रिपोर्ट खोलें",
-      "title": "चार स्तंभों का पूरा पठन",
+      "title": "लाइट साजू व्याख्या",
       "once": "एक बार भुगतान करके कभी भी पढ़ें",
-      "inlineCta": "पैकेज देखें",
-      "inlineDesc": "अपनी जन्म कुंडली, दस वर्षीय चक्र, दैनिक पठन और रुचिकर व्याख्याएँ एक साथ देखें।",
+      "inlineCta": "लाइट साजू व्याख्या",
+      "inlineDesc": "एक बार भुगतान से लाइट साजू व्याख्या और दस-वर्षीय चक्र स्थायी रूप से पढ़ें। सार्वजनिक निःशुल्क मूल और मनोरंजक व्याख्याओं के लिए खरीद आवश्यक नहीं; AI परामर्श अलग है।",
       "close": "बंद करें",
       "pay": "एक बार भुगतान करके खोलें",
       "saveProfile": "यह जन्म प्रोफ़ाइल सहेजें",
@@ -22,7 +22,7 @@
         "दस-वर्षीय भाग्य चक्र और जीवन का प्रवाह"
       ],
       "ownFreePolicy": "खरीदे गए जन्म-प्रोफ़ाइल की लाइट साजू व्याख्या और दस-वर्षीय चक्र बिना समय सीमा दोबारा पढ़ें। सार्वजनिक निःशुल्क मूल और मनोरंजक व्याख्याओं के लिए खरीद आवश्यक नहीं है। AI परामर्श अलग उत्पाद हैं और केवल चुनने पर शुल्क लगता है।",
-      "inlineDescFreePolicy": "एक बार भुगतान से लाइट साजू व्याख्या और दस-वर्षीय चक्र स्थायी रूप से पढ़ें। सार्वजनिक निःशुल्क मूल और मनोरंजक व्याख्याओं के लिए खरीद आवश्यक नहीं; AI परामर्श अलग है।"
+      "inlineDescFreePolicy": "एक बार भुगतान करके लाइट साजू व्याख्या और दस-वर्षीय भाग्य चक्रों की व्याख्या हमेशा पढ़ें। मूल और मनोरंजक साजू व्याख्याएँ निःशुल्क हैं; AI परामर्श का शुल्क अलग से लिया जाता है।"
     }
   },
   "_comment": "Code Destiny — Hindi premium localization (hi.json)",
@@ -39,7 +39,7 @@
       "title": "How to Read Saju, Tarot & Fortune",
       "lead": "Code Destiny is a Korean fortune platform where you can explore Saju (Four Pillars), tarot, Zi Wei Dou Shu, Western and Vedic astrology, Sukuyo, and compatibility in one place — all from your birth date and time. We summarize what each reading looks at and how to read it, so even newcomers can follow along. Every interpretation is offered as a reference for self-reflection and calmer choices, never as a fixed prophecy.",
       "sajuTitle": "Saju & Manseryeok",
-      "sajuBody": "We build four pillars from the year, month, day, and hour of birth, then read the balance of the five elements, the ten gods, and the flow of major luck within the heavenly stems and earthly branches — looking at both your innate temperament and the rhythm of the current period.",
+      "sajuBody": "एक बार भुगतान से लाइट साजू व्याख्या और दस-वर्षीय चक्र स्थायी रूप से पढ़ें। सार्वजनिक निःशुल्क मूल और मनोरंजक व्याख्याओं के लिए खरीद आवश्यक नहीं; AI परामर्श अलग है।",
       "tarotTitle": "Tarot Reading",
       "tarotBody": "Seventy-eight cards and their symbols reflect your question and state of mind. It suits love, reunion, relationships, and career — worries that don't resolve into a single answer — helping you sort them from several angles.",
       "ziweiTitle": "Zi Wei Dou Shu",
@@ -5618,18 +5618,18 @@
     "premiumShowcase": {
       "aria": "सशुल्क साजू रीडिंग की जानकारी",
       "title": "अपना साजू चार्ट और गहराई से पढ़ें",
-      "subtitle": "पूर्ण साजू रीडिंग को एक बार स्थायी रूप से खोलने पर जन्म कुंडली के आगे की सभी रीडिंग खुल जाती हैं। अनुकूलता हर बार देखने पर अलग से भुगतान होती है।",
+      "subtitle": "एक बार भुगतान करके लाइट साजू व्याख्या और दस-वर्षीय भाग्य चक्रों की व्याख्या हमेशा पढ़ें। मूल और मनोरंजक साजू व्याख्याएँ निःशुल्क हैं; AI परामर्श का शुल्क अलग से लिया जाता है।",
       "expand": "व्याख्या कार्ड खोलें",
       "permanent": "स्थायी अनलॉक",
       "perUse": "प्रति उपयोग भुगतान",
       "compatCta": "अनुकूलता देखें →",
       "daewun": {
         "title": "डेवुन विश्लेषण",
-        "cta": "पूर्ण साजू रीडिंग स्थायी रूप से खोलें →"
+        "cta": "लाइट साजू व्याख्या खोलें →"
       },
       "summary": {
-        "title": "पूर्ण साजू रीडिंग",
-        "cta": "पूर्ण साजू रीडिंग स्थायी रूप से खोलें →"
+        "title": "लाइट साजू व्याख्या",
+        "cta": "लाइट साजू व्याख्या खोलें →"
       },
       "compat": {
         "title": "अनुकूलता विश्लेषण",
@@ -9029,8 +9029,8 @@
   },
   "seoLanding": {
     "description": {
-      "001": "मुफ़्त मान्सेर्योक में जन्म तिथि और समय डालकर अपना फोर पिलर्स जन्म चार्ट और एक पंक्ति का स्वभाव देखें। दस देव, दशा चक्र और धन, प्रेम व करियर का प्रवाह सशुल्क पूर्ण साजू रीडिंग में आगे देखा जा सकता है।",
-      "002": "अपनी जन्मतिथि से मुफ़्त मान्सेर्योक खोलकर उसमें जन्म चार्ट और पंच तत्व संतुलन देखें। जन्म समय और सौर ऋतु की सीमा से परिणाम क्यों बदलते हैं, यह भी समझाया गया है। दस देव और दशा चक्र तालिका की व्याख्या पूरी साजू रीडिंग, आजीवन एक्सेस में जारी रहती है।",
+      "001": "लाइट साजू व्याख्या · एक बार भुगतान से लाइट साजू व्याख्या और दस-वर्षीय चक्र स्थायी रूप से पढ़ें। सार्वजनिक निःशुल्क मूल और मनोरंजक व्याख्याओं के लिए खरीद आवश्यक नहीं; AI परामर्श अलग है।",
+      "002": "लाइट साजू व्याख्या · एक बार भुगतान से लाइट साजू व्याख्या और दस-वर्षीय चक्र स्थायी रूप से पढ़ें। सार्वजनिक निःशुल्क मूल और मनोरंजक व्याख्याओं के लिए खरीद आवश्यक नहीं; AI परामर्श अलग है।",
       "003": "आज का भविष्यफल आपको दिन की स्थिति, रिश्तों और काम की प्राथमिकताओं की हल्की समीक्षा करने और अभ्यास के लिए विकल्पों को व्यवस्थित करने में मदद करता है।",
       "004": "आज का भविष्यफल पेज आपको दिन की शुरुआत या अंत करते समय अपनी स्थिति, रिश्ते के प्रवाह और कार्यक्रम की प्राथमिकताओं की संक्षिप्त समीक्षा करने में मदद करता है।",
       "005": "यह दो लोगों के रिश्ते की लय, संचार शैली और संघर्ष समाधान बिंदुओं को फोर पिलर्स और भविष्यफल के दृष्टिकोण से देखता है और उन्हें यथार्थवादी बातचीत के मानदंडों के रूप में व्यवस्थित करता है।",
@@ -16459,7 +16459,7 @@
       "badge": "Free compatibility reading"
     },
     "saju": {
-      "tagline": "Calculates the eight characters of your Saju and shows your natal chart, Five Elements balance and a one-line tendency for free. Ten Gods and luck-cycle readings continue in the full paid Saju reading.",
+      "tagline": "One payment gives permanent access to the Light Saju reading and ten-year cycles. Public free basic and fun readings need no purchase; AI consultations are separate.",
       "feats": [
         "When you can't put your own disposition into words",
         "When you want to see the broad arc of your life once",
@@ -22067,7 +22067,7 @@
     "letterVerdictJong": "a structure that follows momentum gathering in one direction",
     "letterVerdictStrong": "a structure with relatively ample strength to make your own path",
     "letterVerdictWeak": "a structure that shines more comfortably with support nearby and time to prepare",
-    "paidBundle": "Saju full reading, lifetime access · One payment opens every Saju reading, including this one, permanently. You are not charged per reading."
+    "paidBundle": "एक बार भुगतान से लाइट साजू व्याख्या और दस-वर्षीय चक्र स्थायी रूप से पढ़ें। सार्वजनिक निःशुल्क मूल और मनोरंजक व्याख्याओं के लिए खरीद आवश्यक नहीं; AI परामर्श अलग है।"
   },
   "sajuCompat": {
     "selfFallback": "मैं",

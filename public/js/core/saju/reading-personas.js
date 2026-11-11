@@ -46,7 +46,7 @@
       paidDifference: '입력한 생년 정보로 계산한 명식에 맞춰 준비된 해설을 엮습니다. 무료 만세력에서 확인한 원국을 바탕으로, 시기별 흐름과 주제별 해설을 이어 읽어보세요.',
       paidDaeun: '10년마다 달라지는 삶의 흐름과 해마다의 변화를 함께 읽어요. 일·관계·재물 해설에서 지금 준비할 선택을 살펴보세요.',
       paidSummary: '타고난 기질과 오행·십성, 성격과 관계, 삶의 전략, 올해와 내년의 처방까지 내 명식으로 한 번에 정리해 드려요.',
-      paidBundle: '사주 전체 풀이 평생 소장 · 라이트 사주와 대운 풀이를 한 번 결제로 영구히 읽어요. 기본·재미 사주는 무료이고 AI 생성 상담은 별도예요.',
+      paidBundle: '라이트 사주 풀이 · 라이트 사주와 대운 풀이를 한 번 결제로 영구히 읽어요. 기본·재미 사주는 무료이고 AI 생성 상담은 별도예요.',
       recovery: '기존 계정과 프로필로 사주 결과를 다시 열고 해당 풀이의 해금 상태를 확인하세요. 결제 후 열리지 않으면 새로 결제하지 말고 결제 내역과 함께 고객센터에 문의하세요.',
       inputs: '현재 사주에 입력한 생년 정보와 계산값을 사용합니다. 출생시간을 모르면 시간에 의존하는 해석은 참고 범위가 제한됩니다.',
       pricePending: '가격 확인 중', priceUnavailable: '가격은 결제 안내에서 확인해 주세요', summaryTitle: '라이트 사주 풀이', daeunTitle: '대운 분석 · 지금부터 다음 시기까지', graphTitle: '대운 흐름 비교', yeonIntro: '달빛 아래 한 장씩, 타고난 마음과 지금의 계절을 함께 읽어볼게요.', neoIntro: '흐름의 근거부터 짚어 줄게. 그다음 지금 해 볼 작은 걸음 하나를 같이 고르자.', paidRead: '풀이 확인하기',
@@ -438,7 +438,7 @@
     var c=langCopy(locale());
     // 한국어는 그래프·표가 있는 풍부한 판(reading-rich.js). 그 밖의 로케일과 자료 부족 시에는 기존 짧은 블록.
     var rich=richFor(locale()), facts=Object.assign({},state,{warning:pick(c,'unknown',model.mode==='neo')});
-    // 일주·십성·조후·억부 본문은 사주 전체 풀이 평생 소장 서버 전달이다(CdSajuSectionClient.loadNatalReading). 여기서는 그리지 않는다.
+    // 일주·십성·조후·억부 본문은 라이트 사주 풀이 서버 전달이다(CdSajuSectionClient.loadNatalReading). 여기서는 그리지 않는다.
     if(section==='flow'||section==='all') write('currentSeasonSummary',(rich&&rich.flow(facts,model.mode))||model.flow.map(function(r){return markup(r,model,true);}).join(''));
     if(section==='daily'||section==='all') daily.forEach(function(row,i){
       var gi=gods.indexOf(row.gGod), good=row.batteryPercent>=60;
@@ -460,13 +460,13 @@
       if(el.dataset.readingLocale===locale()+':'+mode())return;
       el.dataset.readingLocale=locale()+':'+mode();
       var sample=build({p:{d:{g:'辛',j:'酉',gE:'metal'}},natal:{dominant:'metal',ratios:{wood:100/3,fire:100/9,earth:100/9,metal:400/9,water:0}},ten:{'비견':2},flow:[{kind:'period',g:'甲',j:'午',score:60}]},mode(),locale());
-      // 개별 가격 표기는 판매 종료로 없어졌다. 가격이 있으면 그 값을, 없으면 사주 전체 풀이 평생 소장 가격을 보여 준다.
+      // 개별 가격 표기는 판매 종료로 없어졌다. 가격이 있으면 그 값을, 없으면 라이트 사주 풀이 가격을 보여 준다.
       var price=document.querySelector('[data-saju-price-key="'+key+'"]');
       var bundlePrice=root.CdSajuBundleOffer&&root.CdSajuBundleOffer.PRICE_LABEL;
       el.innerHTML='<img class="saju-static-offer__guide" src="/images/saju/'+(mode()==='neo'?'yeongnyangi-320.webp':'yeoni-moonlight-reading.webp')+'" width="384" height="256" alt="" loading="lazy" decoding="async"><strong class="saju-static-offer__price">'+esc(price?price.textContent:(bundlePrice||c.pricePending))+'</strong><p class="saju-static-offer__bundle">'+esc(c.paidBundle)+'</p><p>'+esc(key==='section_daewun'?c.paidDaeun:c.paidSummary)+'</p><details data-saju-sample="'+key+'"><summary>'+esc(c.sample)+'</summary>'+markup(key==='section_daewun'?sample.flow[0]:sample.elements,sample,false)+'<p>'+esc(c.sampleNote)+'</p></details><p>'+esc(c.inputs)+'</p>';
     });
   }
-  // 십성 상세 본문은 사주 전체 풀이 평생 소장 서버가 카드와 함께 보낸 것을 CdSajuSectionClient 가 들고 있다. 없으면 열지 않는다.
+  // 십성 상세 본문은 라이트 사주 풀이 서버가 카드와 함께 보낸 것을 CdSajuSectionClient 가 들고 있다. 없으면 열지 않는다.
   function showGod(key, open) {
     var html=root.CdSajuSectionClient&&typeof root.CdSajuSectionClient.godDetail==='function'?root.CdSajuSectionClient.godDetail(key):'';
     if(!html)return false;

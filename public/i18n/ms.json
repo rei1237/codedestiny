@@ -5,10 +5,10 @@
       "lottoSavedTitle": "Laporan Ritual Tuah Cahaya Bulan yang disimpan",
       "lottoSavedDesc": "Baca semula laporan yang dibeli dan disimpan pada peranti ini.",
       "lottoSavedOpen": "Buka laporan",
-      "title": "Bacaan lengkap Empat Tiang",
+      "title": "Bacaan Saju ringkas",
       "once": "Bayar sekali untuk akses berterusan",
-      "inlineCta": "Lihat kandungan pakej",
-      "inlineDesc": "Terokai carta kelahiran, kitaran sepuluh tahun, bacaan harian dan bacaan santai dalam satu pakej.",
+      "inlineCta": "Bacaan Saju ringkas",
+      "inlineDesc": "Satu bayaran memberi akses kekal kepada bacaan Saju ringkas dan kitaran sepuluh tahun. Bacaan asas dan santai yang diterbitkan percuma tidak memerlukan pembelian; konsultasi AI adalah berasingan.",
       "close": "Tutup",
       "pay": "Buka dengan bayaran sekali",
       "saveProfile": "Simpan profil kelahiran ini",
@@ -22,7 +22,7 @@
         "Kitaran sepuluh tahun dan aliran kehidupan"
       ],
       "ownFreePolicy": "Baca semula bacaan Saju ringkas dan kitaran sepuluh tahun bagi profil kelahiran yang dibeli tanpa had masa. Bacaan asas dan santai yang diterbitkan percuma tidak memerlukan pembelian. Konsultasi AI ialah produk berasingan dan hanya dicaj apabila dipilih.",
-      "inlineDescFreePolicy": "Satu bayaran memberi akses kekal kepada bacaan Saju ringkas dan kitaran sepuluh tahun. Bacaan asas dan santai yang diterbitkan percuma tidak memerlukan pembelian; konsultasi AI adalah berasingan."
+      "inlineDescFreePolicy": "Satu bayaran memberi akses kekal kepada bacaan Saju ringkas dan bacaan kitaran sepuluh tahun. Bacaan Saju asas dan santai adalah percuma; konsultasi AI dikenakan bayaran berasingan."
     }
   },
   "_comment": "Code Destiny — Malay premium localization (ms.json)",
@@ -39,7 +39,7 @@
       "title": "How to Read Saju, Tarot & Fortune",
       "lead": "Code Destiny is a Korean fortune platform where you can explore Saju (Four Pillars), tarot, Zi Wei Dou Shu, Western and Vedic astrology, Sukuyo, and compatibility in one place — all from your birth date and time. We summarize what each reading looks at and how to read it, so even newcomers can follow along. Every interpretation is offered as a reference for self-reflection and calmer choices, never as a fixed prophecy.",
       "sajuTitle": "Saju & Manseryeok",
-      "sajuBody": "We build four pillars from the year, month, day, and hour of birth, then read the balance of the five elements, the ten gods, and the flow of major luck within the heavenly stems and earthly branches — looking at both your innate temperament and the rhythm of the current period.",
+      "sajuBody": "Satu bayaran memberi akses kekal kepada bacaan Saju ringkas dan kitaran sepuluh tahun. Bacaan asas dan santai yang diterbitkan percuma tidak memerlukan pembelian; konsultasi AI adalah berasingan.",
       "tarotTitle": "Tarot Reading",
       "tarotBody": "Seventy-eight cards and their symbols reflect your question and state of mind. It suits love, reunion, relationships, and career — worries that don't resolve into a single answer — helping you sort them from several angles.",
       "ziweiTitle": "Zi Wei Dou Shu",
@@ -5618,18 +5618,18 @@
     "premiumShowcase": {
       "aria": "Bacaan saju berbayar",
       "title": "Baca carta anda dengan lebih mendalam",
-      "subtitle": "Satu pembukaan kekal bacaan saju penuh membuka semua bacaan selepas carta kelahiran anda. Keserasian dibayar setiap kali dilihat.",
+      "subtitle": "Satu bayaran memberi akses kekal kepada bacaan Saju ringkas dan bacaan kitaran sepuluh tahun. Bacaan Saju asas dan santai adalah percuma; konsultasi AI dikenakan bayaran berasingan.",
       "expand": "Buka kad tafsiran",
       "permanent": "Buka kunci kekal",
       "perUse": "Bayaran setiap guna",
       "compatCta": "Lihat keserasian →",
       "daewun": {
         "title": "Analisis Daewun",
-        "cta": "Buka bacaan saju penuh selama-lamanya →"
+        "cta": "Buka Bacaan Saju ringkas →"
       },
       "summary": {
-        "title": "Bacaan saju penuh",
-        "cta": "Buka bacaan saju penuh selama-lamanya →"
+        "title": "Bacaan Saju ringkas",
+        "cta": "Buka Bacaan Saju ringkas →"
       },
       "compat": {
         "title": "Analisis keserasian",
@@ -9029,8 +9029,8 @@
   },
   "seoLanding": {
     "description": {
-      "001": "Masukkan tarikh dan masa lahir dalam Manseryeok percuma untuk melihat carta Empat Tiang dan satu baris kecenderungan. Sepuluh Dewa, kitaran nasib serta aliran wang, cinta dan kerjaya disambung dalam bacaan penuh Saju berbayar.",
-      "002": "Masukkan tarikh lahir anda untuk melihat carta Empat Tiang dan keseimbangan Lima Unsur dalam Manseryeok percuma. Kami terangkan sebab keputusan berubah mengikut masa lahir dan sempadan penggal suria; bacaan Sepuluh Dewa dan jadual kitaran nasib diteruskan dalam bacaan penuh Saju dengan akses seumur hidup.",
+      "001": "Bacaan Saju ringkas · Satu bayaran memberi akses kekal kepada bacaan Saju ringkas dan kitaran sepuluh tahun. Bacaan asas dan santai yang diterbitkan percuma tidak memerlukan pembelian; konsultasi AI adalah berasingan.",
+      "002": "Bacaan Saju ringkas · Satu bayaran memberi akses kekal kepada bacaan Saju ringkas dan kitaran sepuluh tahun. Bacaan asas dan santai yang diterbitkan percuma tidak memerlukan pembelian; konsultasi AI adalah berasingan.",
       "003": "Bacaan harian membantu anda menyemak keadaan, hubungan, dan keutamaan kerja anda secara ringkas dan menyusun pilihan untuk tindakan.",
       "004": "Halaman bacaan harian membantu anda menyemak keadaan, aliran hubungan, dan keutamaan jadual anda secara ringkas apabila anda memulakan atau menyusun hari anda.",
       "005": "Kami mengkaji ritma hubungan, cara komunikasi, dan titik pemulihan konflik dua orang dari perspektif Empat Tiang (BaZi) dan bacaan, dan menyusunnya sebagai piawaian perbualan yang realistik.",
@@ -16459,7 +16459,7 @@
       "badge": "Free compatibility reading"
     },
     "saju": {
-      "tagline": "Calculates the eight characters of your Saju and shows your natal chart, Five Elements balance and a one-line tendency for free. Ten Gods and luck-cycle readings continue in the full paid Saju reading.",
+      "tagline": "One payment gives permanent access to the Light Saju reading and ten-year cycles. Public free basic and fun readings need no purchase; AI consultations are separate.",
       "feats": [
         "When you can't put your own disposition into words",
         "When you want to see the broad arc of your life once",
@@ -22067,7 +22067,7 @@
     "letterVerdictJong": "a structure that follows momentum gathering in one direction",
     "letterVerdictStrong": "a structure with relatively ample strength to make your own path",
     "letterVerdictWeak": "a structure that shines more comfortably with support nearby and time to prepare",
-    "paidBundle": "Saju full reading, lifetime access · One payment opens every Saju reading, including this one, permanently. You are not charged per reading."
+    "paidBundle": "Satu bayaran memberi akses kekal kepada bacaan Saju ringkas dan kitaran sepuluh tahun. Bacaan asas dan santai yang diterbitkan percuma tidak memerlukan pembelian; konsultasi AI adalah berasingan."
   },
   "sajuCompat": {
     "selfFallback": "Saya",

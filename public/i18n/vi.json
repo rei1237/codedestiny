@@ -5,10 +5,10 @@
       "lottoSavedTitle": "Báo cáo Nghi thức may mắn ánh trăng đã lưu",
       "lottoSavedDesc": "Đọc lại báo cáo bạn đã mua và lưu trên thiết bị này.",
       "lottoSavedOpen": "Mở báo cáo",
-      "title": "Trọn bộ luận giải Tứ trụ",
+      "title": "Luận giải Tứ Trụ cơ bản",
       "once": "Thanh toán một lần để đọc lâu dài",
-      "inlineCta": "Xem nội dung trọn bộ",
-      "inlineDesc": "Khám phá lá số, đại vận mười năm, vận trình hôm nay và các bài đọc thú vị.",
+      "inlineCta": "Luận giải Tứ Trụ cơ bản",
+      "inlineDesc": "Thanh toán một lần để đọc vĩnh viễn luận giải Tứ Trụ cơ bản và đại vận. Nội dung cơ bản và giải trí công khai miễn phí không cần mua; tư vấn AI là riêng biệt.",
       "close": "Đóng",
       "pay": "Mở bằng thanh toán một lần",
       "saveProfile": "Lưu hồ sơ ngày sinh",
@@ -22,7 +22,7 @@
         "Đại vận và xu hướng cuộc đời"
       ],
       "ownFreePolicy": "Đọc lại luận giải Tứ Trụ cơ bản và đại vận cho hồ sơ ngày sinh đã mua mà không giới hạn thời gian. Các bài cơ bản và giải trí công khai miễn phí không cần mua. Tư vấn AI là sản phẩm riêng, chỉ tính phí khi bạn chọn.",
-      "inlineDescFreePolicy": "Thanh toán một lần để đọc vĩnh viễn luận giải Tứ Trụ cơ bản và đại vận. Nội dung cơ bản và giải trí công khai miễn phí không cần mua; tư vấn AI là riêng biệt."
+      "inlineDescFreePolicy": "Thanh toán một lần để đọc vĩnh viễn Luận giải Tứ Trụ cơ bản và đại vận. Các nội dung Tứ Trụ cơ bản và giải trí được cung cấp miễn phí; tư vấn AI được tính phí riêng."
     }
   },
   "_comment": "Code Destiny - Vietnamese premium localization (vi.json)",
@@ -39,7 +39,7 @@
       "title": "How to Read Saju, Tarot & Fortune",
       "lead": "Code Destiny is a Korean fortune platform where you can explore Saju (Four Pillars), tarot, Zi Wei Dou Shu, Western and Vedic astrology, Sukuyo, and compatibility in one place — all from your birth date and time. We summarize what each reading looks at and how to read it, so even newcomers can follow along. Every interpretation is offered as a reference for self-reflection and calmer choices, never as a fixed prophecy.",
       "sajuTitle": "Saju & Manseryeok",
-      "sajuBody": "We build four pillars from the year, month, day, and hour of birth, then read the balance of the five elements, the ten gods, and the flow of major luck within the heavenly stems and earthly branches — looking at both your innate temperament and the rhythm of the current period.",
+      "sajuBody": "Thanh toán một lần để đọc vĩnh viễn luận giải Tứ Trụ cơ bản và đại vận. Nội dung cơ bản và giải trí công khai miễn phí không cần mua; tư vấn AI là riêng biệt.",
       "tarotTitle": "Tarot Reading",
       "tarotBody": "Seventy-eight cards and their symbols reflect your question and state of mind. It suits love, reunion, relationships, and career — worries that don't resolve into a single answer — helping you sort them from several angles.",
       "ziweiTitle": "Zi Wei Dou Shu",
@@ -5618,18 +5618,18 @@
     "premiumShowcase": {
       "aria": "Giới thiệu các bản luận giải saju trả phí",
       "title": "Đọc lá số của bạn sâu hơn",
-      "subtitle": "Chỉ một lần mở vĩnh viễn luận giải saju đầy đủ là mở được mọi phần sau lá số gốc. Phần hợp tuổi được tính phí theo mỗi lần xem.",
+      "subtitle": "Thanh toán một lần để đọc vĩnh viễn Luận giải Tứ Trụ cơ bản và đại vận. Các nội dung Tứ Trụ cơ bản và giải trí được cung cấp miễn phí; tư vấn AI được tính phí riêng.",
       "expand": "Mở thẻ luận giải",
       "permanent": "Mở khóa vĩnh viễn",
       "perUse": "Thanh toán theo lần",
       "compatCta": "Xem khả năng tương thích →",
       "daewun": {
         "title": "Phân tích Daewun",
-        "cta": "Mở vĩnh viễn luận giải saju đầy đủ →"
+        "cta": "Mở Luận giải Tứ Trụ cơ bản →"
       },
       "summary": {
-        "title": "Luận giải saju đầy đủ",
-        "cta": "Mở vĩnh viễn luận giải saju đầy đủ →"
+        "title": "Luận giải Tứ Trụ cơ bản",
+        "cta": "Mở Luận giải Tứ Trụ cơ bản →"
       },
       "compat": {
         "title": "Phân tích khả năng tương thích",
@@ -9029,8 +9029,8 @@
   },
   "seoLanding": {
     "description": {
-      "001": "Nhập ngày giờ sinh vào Lịch vạn niên miễn phí để xem mệnh bàn Tứ Trụ và một dòng xu hướng tính cách. Thập Thần, đại vận và dòng chảy tài vận, tình duyên, sự nghiệp được xem tiếp trong bản giải đầy đủ Saju có phí.",
-      "002": "Nhập ngày sinh để xem mệnh bàn Tứ Trụ và cân bằng Ngũ Hành trên Lịch vạn niên miễn phí. Bài viết giải thích vì sao kết quả thay đổi theo giờ sinh và ranh giới tiết khí; phần luận giải Thập Thần và bảng Đại vận tiếp tục trong bản giải Saju đầy đủ, sở hữu trọn đời.",
+      "001": "Luận giải Tứ Trụ cơ bản · Thanh toán một lần để đọc vĩnh viễn luận giải Tứ Trụ cơ bản và đại vận. Nội dung cơ bản và giải trí công khai miễn phí không cần mua; tư vấn AI là riêng biệt.",
+      "002": "Luận giải Tứ Trụ cơ bản · Thanh toán một lần để đọc vĩnh viễn luận giải Tứ Trụ cơ bản và đại vận. Nội dung cơ bản và giải trí công khai miễn phí không cần mua; tư vấn AI là riêng biệt.",
       "003": "Vận mệnh hôm nay giúp bạn nhẹ nhàng kiểm tra tình trạng, các mối quan hệ, ưu tiên công việc trong ngày và sắp xếp các lựa chọn để thực hiện.",
       "004": "Trang Vận mệnh hôm nay giúp bạn nhanh chóng kiểm tra tình trạng, dòng chảy mối quan hệ, ưu tiên lịch trình khi bắt đầu hoặc kết thúc một ngày.",
       "005": "Xem xét nhịp điệu mối quan hệ, cách giao tiếp, điểm phục hồi xung đột của hai người từ góc độ Tứ Trụ và vận mệnh, sau đó sắp xếp thành tiêu chuẩn đối thoại thực tế.",
@@ -16459,7 +16459,7 @@
       "badge": "Free compatibility reading"
     },
     "saju": {
-      "tagline": "Calculates the eight characters of your Saju and shows your natal chart, Five Elements balance and a one-line tendency for free. Ten Gods and luck-cycle readings continue in the full paid Saju reading.",
+      "tagline": "One payment gives permanent access to the Light Saju reading and ten-year cycles. Public free basic and fun readings need no purchase; AI consultations are separate.",
       "feats": [
         "When you can't put your own disposition into words",
         "When you want to see the broad arc of your life once",
@@ -22067,7 +22067,7 @@
     "letterVerdictJong": "a structure that follows momentum gathering in one direction",
     "letterVerdictStrong": "a structure with relatively ample strength to make your own path",
     "letterVerdictWeak": "a structure that shines more comfortably with support nearby and time to prepare",
-    "paidBundle": "Saju full reading, lifetime access · One payment opens every Saju reading, including this one, permanently. You are not charged per reading."
+    "paidBundle": "Thanh toán một lần để đọc vĩnh viễn luận giải Tứ Trụ cơ bản và đại vận. Nội dung cơ bản và giải trí công khai miễn phí không cần mua; tư vấn AI là riêng biệt."
   },
   "sajuCompat": {
     "selfFallback": "Tôi",

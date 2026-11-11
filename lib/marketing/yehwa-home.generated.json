@@ -221,7 +221,7 @@
     "desc": "삶의 방향과 선택을 가늠하는 리딩",
     "href": "/destiny-compass/",
     "featureKey": "destiny-compass-life-voyage",
-    "price": "5,000원",
+    "price": "무료",
     "purposes": [
       "money",
       "career",
@@ -707,7 +707,7 @@
     "href": "/today/",
     "visualHref": "/daily-fortune/",
     "featureKey": "daily-fortune-reading",
-    "price": "3,000원",
+    "price": "무료",
     "purposes": [
       "today"
     ],
@@ -726,7 +726,7 @@
     "desc": "사주·숙요점·베다점으로 보는 오늘",
     "href": "/today/",
     "featureKey": "daily-fortune-reading",
-    "price": "3,000원",
+    "price": "무료",
     "purposes": [
       "today"
     ],

@@ -2325,7 +2325,7 @@ function __cdEnsureDestinyProfileLoaded() {
   if (window.DestinyProfileManager) return Promise.resolve(true);
   if (__cdDestinyProfileLoadPromise) return __cdDestinyProfileLoadPromise;
 
-  __cdDestinyProfileLoadPromise = __cdLoadScriptOnce('/js/destiny-profile.js?v=build-3d17fa1eb07e')
+  __cdDestinyProfileLoadPromise = __cdLoadScriptOnce('/js/destiny-profile.js?v=build-b4f2a05efba1')
     .then(function() { return true; })
     .catch(function(err) {
       __cdDestinyProfileLoadPromise = null;
@@ -4497,6 +4497,8 @@ function _dfSukuyoBirthKey(birthCtx) {
 
 function _dfEnsureSukuyoAstronomy(birthCtx, key, lunarObj) {
   var cache = _dfSukuyoAstronomyCache;
+  var readingEpoch = _dfReadingEpoch;
+  var readingIdentity = _dfReadingIdentity();
   if (cache.key === key && (cache.value || cache.failed || cache.pending)) return;
   if (typeof window.__cdCalculateSukuyoAstronomy !== 'function') return;
   cache.key = key;
@@ -4505,6 +4507,7 @@ function _dfEnsureSukuyoAstronomy(birthCtx, key, lunarObj) {
   cache.pending = true;
   var num = function (v, fallback) { return v != null && v !== '' && Number.isFinite(Number(v)) ? Number(v) : fallback; };
   Promise.resolve().then(function () {
+    if (!_dfReadingIsCurrent(readingEpoch, readingIdentity)) return null;
     return window.__cdCalculateSukuyoAstronomy({
       year: Number(birthCtx.year),
       month: Number(birthCtx.month),
@@ -4516,7 +4519,7 @@ function _dfEnsureSukuyoAstronomy(birthCtx, key, lunarObj) {
       longitude: num(birthCtx.lon, 126.978)
     });
   }).then(function (astronomy) {
-    if (cache.key !== key) return;
+    if (cache.key !== key || !_dfReadingIsCurrent(readingEpoch, readingIdentity)) return;
     var enriched = Object.assign({}, lunarObj, astronomy);
     var sData = window.calcSukuyoData(enriched);
     if (!sData) throw new Error('SUKUYO_MANSION_UNRESOLVED');
@@ -4531,7 +4534,7 @@ function _dfEnsureSukuyoAstronomy(birthCtx, key, lunarObj) {
       console.warn('[DestinyFlower] 숙요 결과 반영 실패:', refreshError);
     }
   }).catch(function (error) {
-    if (cache.key !== key) return;
+    if (cache.key !== key || !_dfReadingIsCurrent(readingEpoch, readingIdentity)) return;
     cache.failed = true;
     cache.pending = false;
     console.warn('[DestinyFlower] 숙요 천문 계산 실패:', error);
@@ -4905,6 +4908,7 @@ function _dfServerMatchPayloadKey() {
     var snap = window.__destinyFlowerSajuSnapshot;
     var sk = _dfSukuyoAstronomyCache;
     return JSON.stringify([
+      _dfReadingIdentity(),
       profile.birth || (profile.identity && profile.identity.birth) || null,
       profile.name || '',
       profile.gender || '',
@@ -4950,6 +4954,51 @@ var _dfServerMatch = {
   status: 'idle'
 };
 
+// Reading results belong to the current account and profile, never to a price entitlement.
+var _dfReadingEpoch = 0;
+function _dfReadingIdentity() {
+  try {
+    var user = JSON.parse(localStorage.getItem('fortune_auth_user') || 'null') || {};
+    var manager = window.DestinyProfileManager;
+    var profile = manager && manager.storage && manager.storage.current ? manager.storage.current() : null;
+    return JSON.stringify([user.id || user.userId || user.email || '', __cdHasAuthToken(), profile && profile.id, profile && profile.name, profile && profile.birth, profile && profile.gender, profile && profile.location]);
+  } catch (_) { return ''; }
+}
+function _dfReadingIsCurrent(epoch, identity) {
+  return epoch === _dfReadingEpoch && identity === _dfReadingIdentity();
+}
+function _dfInvalidateReading(event) {
+  var detail = event && event.detail;
+  if (detail && (detail.source === 'subscription-sync' || detail.source === 'membership-cache') && (detail.event || detail.type) === 'subscription') return;
+  _dfReadingEpoch += 1;
+  _dfServerMatch = { fingerprint: '', sources: null, theme: null, inflight: null, status: 'idle' };
+  _dfServerMatchPayloadMemo = { key: '', payload: null };
+  _dfSukuyoAstronomyCache = { key: '', value: null, failed: false, pending: false };
+  _dfShareState = null;
+  if (_dfStudioState) {
+    _dfStudioState.selection = null;
+    _dfStudioState.flowerData = null;
+    _dfStudioState.history = [];
+    _dfStudioState.profileSignature = '';
+    _dfStudioState.loadingSource = '';
+    _dfStudioState.loadingTasks = {};
+    _dfStudioState.userRequestedLoad = {};
+    _dfStudioState.linkedSources = {};
+    _dfStudioState.sourceUnlockCache = null;
+  }
+  closeDestinyFlowerStudio();
+  var overlay = document.getElementById('destinyFlowerStudioOverlay');
+  if (overlay) overlay.style.display = 'none';
+}
+['cd:auth-changed', 'cd:auth-session-invalidated', 'cd:profile-changed', 'destiny:profile-changed', 'popstate', 'pagehide'].forEach(function(name) {
+  window.addEventListener(name, _dfInvalidateReading);
+});
+document.addEventListener('destinyProfileChanged', _dfInvalidateReading);
+window.addEventListener('storage', function(event) {
+  var key = event && event.key;
+  if (!key || /^(fortune_auth_|FORTUNE_APP_USER_PROFILES|code-destiny\.activeProfile)/.test(key)) _dfInvalidateReading(event);
+});
+
 /** 서버가 꽃 이름·꽃말·근거 문장을 번역할 로케일. */
 function _dfServerMatchLang() {
   try { return typeof window.cdGetCurrentLanguage === 'function' ? String(window.cdGetCurrentLanguage() || 'ko') : 'ko'; } catch (_) { return 'ko'; }
@@ -4975,8 +5024,11 @@ function _dfServerMatchFingerprint(payload) {
  * (단일비행 — 4-up 이 네 소스를 동시에 물어도 왕복은 1회다).
  */
 function _dfRequestServerMatch(payload, onSettled) {
-  var fingerprint = _dfServerMatchFingerprint(payload);
-  if (!fingerprint) return null;
+  var payloadFingerprint = _dfServerMatchFingerprint(payload);
+  if (!payloadFingerprint) return null;
+  var readingEpoch = _dfReadingEpoch;
+  var readingIdentity = _dfReadingIdentity();
+  var fingerprint = readingIdentity + '|' + payloadFingerprint;
   if (_dfServerMatch.fingerprint === fingerprint && _dfServerMatch.sources) return null;
   if (_dfServerMatch.fingerprint === fingerprint && _dfServerMatch.inflight) return _dfServerMatch.inflight;
 
@@ -4998,7 +5050,7 @@ function _dfRequestServerMatch(payload, onSettled) {
   }).then(function(res) {
     return res.json().then(function(data) { return { status: res.status, data: data }; });
   }).then(function(result) {
-    if (_dfServerMatch.fingerprint !== fingerprint) return;
+    if (_dfServerMatch.fingerprint !== fingerprint || !_dfReadingIsCurrent(readingEpoch, readingIdentity)) return;
     if (result.status === 200 && result.data && result.data.ok) {
       _dfServerMatch.sources = result.data.sources || {};
       _dfServerMatch.theme = result.data.theme || null;
@@ -5011,11 +5063,12 @@ function _dfRequestServerMatch(payload, onSettled) {
       _dfServerMatch.status = 'error';
     }
   }).catch(function(error) {
-    if (_dfServerMatch.fingerprint !== fingerprint) return;
+    if (_dfServerMatch.fingerprint !== fingerprint || !_dfReadingIsCurrent(readingEpoch, readingIdentity)) return;
     console.warn('[DestinyFlower] 서버 매칭 실패:', error);
     _dfServerMatch.status = 'error';
   }).then(function() {
-    if (_dfServerMatch.fingerprint === fingerprint) _dfServerMatch.inflight = null;
+    if (_dfServerMatch.fingerprint !== fingerprint || !_dfReadingIsCurrent(readingEpoch, readingIdentity)) return;
+    _dfServerMatch.inflight = null;
     if (typeof onSettled === 'function') {
       try { onSettled(_dfServerMatch.status); } catch (_) {}
     }
@@ -5037,6 +5090,7 @@ function _dfRequestUnifiedServerMatch() {
 /** 캐시에 들어온 그 체계의 매칭 결과. 아직 안 왔으면 null. */
 function _dfGetServerMatched(source) {
   if (!_dfServerMatch.sources) return null;
+  if (_dfServerMatch.fingerprint.indexOf(_dfReadingIdentity() + '|') !== 0) return null;
   return _dfServerMatch.sources[_dfNormalizeSource(source)] || null;
 }
 
@@ -5641,6 +5695,7 @@ var _DF_ATELIER_LOCK_KEY = 'flower-fc';
  * 있으면 타일을 정본으로 쓰고, 없으면(홈이 아닌 화면에서 스튜디오를 연 경우) 해금 키만 본다.
  */
 function _dfIsFlowerAtelierUnlocked() {
+  if (typeof window.cdIsFreeFortuneFeatureKey === 'function' && window.cdIsFreeFortuneFeatureKey(_DF_ATELIER_LOCK_KEY)) return true;
   var tile = document.querySelector('[data-tile-lock-key="' + _DF_ATELIER_LOCK_KEY + '"]');
   if (tile) {
     var lockCost = Number(tile.getAttribute('data-tile-lock-cost') || 0);
@@ -5874,6 +5929,12 @@ function _dfBuildUnifiedFlowerData(forceRefresh, source) {
 }
 
 function _dfGetUnifiedSelection(source, forceRefresh) {
+  var identity = _dfReadingIdentity();
+  if (_dfStudioState.readingIdentity !== identity) {
+    _dfStudioState.readingIdentity = identity;
+    _dfStudioState.flowerData = null;
+    _dfStudioState.selection = null;
+  }
   var normalized = _dfNormalizeSource(source);
   if (!_dfCanResolveSourceSelection(normalized, !!forceRefresh)) {
     return null;
@@ -6127,6 +6188,8 @@ function _dfGetUnifiedStageContent(selection) {
 }
 
 function _dfAnimateUnifiedCardSwitch(card, selection) {
+  var readingEpoch = _dfReadingEpoch;
+  var readingIdentity = _dfReadingIdentity();
   if (!card || !selection) return;
   var syncCardHeight = function() {
     if (typeof syncFeatureCardHeight === 'function') {
@@ -6144,6 +6207,7 @@ function _dfAnimateUnifiedCardSwitch(card, selection) {
   stage.classList.remove('is-switching-in', 'is-switching-out', 'is-switching');
   stage.classList.add('is-switching', 'is-switching-out');
   card.__dfSwitchTimer = setTimeout(function() {
+    if (!_dfReadingIsCurrent(readingEpoch, readingIdentity)) return;
     _dfApplyCardVisual(card, selection);
     syncCardHeight();
     stage.classList.remove('is-switching-out');
@@ -6957,6 +7021,8 @@ function _dfRefreshStudioForSource(source, forceRefresh) {
 }
 
 function _dfReloadSourceData(source, options) {
+  var readingEpoch = _dfReadingEpoch;
+  var readingIdentity = _dfReadingIdentity();
   var opts = options && typeof options === 'object' ? options : {};
   var normalized = _dfNormalizeSource(source || _dfStudioState.activeSource || 'saju');
   if (!opts.silentStatus) {
@@ -6998,6 +7064,7 @@ function _dfReloadSourceData(source, options) {
   }
 
   return loader.then(function() {
+    if (!_dfReadingIsCurrent(readingEpoch, readingIdentity)) return null;
     if (normalized === 'saju') {
       try {
         if (window.DestinyProfileManager && window.DestinyProfileManager.storage && typeof window.DestinyProfileManager.storage.current === 'function') {
@@ -7019,6 +7086,8 @@ function _dfReloadSourceData(source, options) {
 }
 
 function _dfFetchSourceOnDemand(source, options) {
+  var readingEpoch = _dfReadingEpoch;
+  var readingIdentity = _dfReadingIdentity();
   var opts = options && typeof options === 'object' ? options : {};
   var normalized = _dfNormalizeSource(source || _dfStudioState.activeSource || 'saju');
   if (_dfStudioState.userRequestedLoad && (opts.force || opts.userInitiated)) {
@@ -7052,6 +7121,7 @@ function _dfFetchSourceOnDemand(source, options) {
     silentStatus: true,
     skipUiRefresh: true
   }).then(function(selection) {
+    if (!_dfReadingIsCurrent(readingEpoch, readingIdentity)) return null;
     if (selection) {
       _dfSetActiveSource(normalized);
       if (_dfStudioState.linkedSources) _dfStudioState.linkedSources[normalized] = true;
@@ -7079,6 +7149,7 @@ function _dfFetchSourceOnDemand(source, options) {
     });
     return null;
   }).finally(function() {
+    if (!_dfReadingIsCurrent(readingEpoch, readingIdentity)) return;
     if (_dfStudioState.loadingTasks) delete _dfStudioState.loadingTasks[normalized];
     if (_dfStudioState.loadingSource === normalized) _dfStudioState.loadingSource = '';
     if (_dfStudioState.userRequestedLoad) _dfStudioState.userRequestedLoad[normalized] = false;
@@ -7703,6 +7774,15 @@ function _dfIsSourceUnlocked(source) {
 }
 
 function _dfRequirePaidSourceUnlock(source) {
+  if (typeof window.cdIsFreeFortuneFeatureKey === 'function' && window.cdIsFreeFortuneFeatureKey(_DF_ATELIER_LOCK_KEY)) {
+    if (__cdHasAuthToken()) return true;
+    if (typeof window.__cdOpenLoginRequiredModal === 'function') {
+      window.__cdOpenLoginRequiredModal({ reason: '로그인 후 운명의 꽃을 볼 수 있습니다.', redirectTo: window.location.pathname + window.location.search + window.location.hash });
+    } else if (window.confirm(_indexRuntimeText('indexRuntime.confirm.003'))) {
+      window.location.href = '/login?next=%2Fggulggul%2F';
+    }
+    return false;
+  }
   var normalized = _dfNormalizeSource(source);
   var lockTile = _dfResolveLockTileBySource(normalized);
   if (!lockTile) return false;
@@ -7802,6 +7882,8 @@ function _dfEnsureStudioStyles() {
 }
 
 function openDestinyFlowerStudio(source, gatePassed) {
+  var readingEpoch = _dfReadingEpoch;
+  var readingIdentity = _dfReadingIdentity();
   _dfCaptureOriginalTitle();
   _dfBindTitleRestoreGuards();
   var requestedSource = _dfNormalizeSource(source || (_dfStudioState && _dfStudioState.activeSource) || 'saju');
@@ -7940,6 +8022,7 @@ function openDestinyFlowerStudio(source, gatePassed) {
   _dfSetBodyLock(true);
   _dfApplyStudioTitle();
   requestAnimationFrame(function() {
+    if (!_dfReadingIsCurrent(readingEpoch, readingIdentity)) return;
     overlay.classList.add('is-show');
   });
   } catch (err) {
@@ -8012,6 +8095,21 @@ function setDestinyFlowerSourceTab(source, gatePassed) {
 }
 
 function closeDestinyFlowerStudio() {
+  _dfReadingEpoch += 1;
+  // A dismissed loading request must not fill or reopen a later reading.
+  if (_dfServerMatch && _dfServerMatch.inflight) {
+    _dfServerMatch = { fingerprint: '', sources: null, theme: null, inflight: null, status: 'idle' };
+  }
+  if (_dfSukuyoAstronomyCache && _dfSukuyoAstronomyCache.pending) {
+    _dfSukuyoAstronomyCache = { key: '', value: null, failed: false, pending: false };
+    _dfServerMatchPayloadMemo = { key: '', payload: null };
+  }
+  if (_dfStudioState) {
+    _dfStudioState.flowerData = null;
+    _dfStudioState.loadingTasks = {};
+    _dfStudioState.loadingSource = '';
+    _dfStudioState.userRequestedLoad = {};
+  }
   var overlay = document.getElementById('destinyFlowerStudioOverlay');
   if (!overlay) return;
   closeDestinyFlowerShareSheet();

@@ -174,7 +174,7 @@
       "title": "운명의 나침반",
       "href": "/destiny-compass/",
       "featureKey": "destiny-compass-life-voyage",
-      "accessType": "unknown",
+      "accessType": "free",
       "image": "/feature-details/assets/destiny-compass-960.webp",
       "aliases": [
         "destiny-compass-life-voyage",
@@ -587,7 +587,7 @@
       "title": "오늘의 운세",
       "href": "/today/",
       "featureKey": "daily-fortune-reading",
-      "accessType": "unknown",
+      "accessType": "free",
       "image": "/feature-details/assets/daily-fortune-960.webp",
       "aliases": [
         "daily-fortune-reading",
@@ -606,7 +606,7 @@
       "title": "오늘의 운세 허브",
       "href": "/today/",
       "featureKey": "daily-fortune-reading",
-      "accessType": "unknown",
+      "accessType": "free",
       "image": "/feature-details/assets/today-hub-960.webp",
       "aliases": [
         "daily-fortune-reading",
@@ -4455,7 +4455,7 @@
       "href": "/destiny-compass/",
       "featureKey": "destiny-compass-life-voyage",
       "featureKeyTo": "",
-      "accessType": "unknown",
+      "accessType": "free",
       "image": "/feature-details/assets/destiny-compass-960.webp",
       "aliases": [
         "destiny-compass-life-voyage",
@@ -7299,7 +7299,7 @@
       "href": "/today/",
       "featureKey": "daily-fortune-reading",
       "featureKeyTo": "",
-      "accessType": "unknown",
+      "accessType": "free",
       "image": "/feature-details/assets/daily-fortune-960.webp",
       "aliases": [
         "daily-fortune-reading",
@@ -7365,7 +7365,7 @@
       "href": "/today/",
       "featureKey": "daily-fortune-reading",
       "featureKeyTo": "",
-      "accessType": "unknown",
+      "accessType": "free",
       "image": "/feature-details/assets/today-hub-960.webp",
       "aliases": [
         "daily-fortune-reading",
