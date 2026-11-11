@@ -33,7 +33,7 @@
      defer 를 새로 붙이거나 떼기 전에 그 전역을 읽는 곳이 함수 안인지 최상위인지 반드시 확인할 것. -->
 <!-- 이용권 판정 정본(js/core/pass-verdict.js). 셸 인라인 블록이 파싱 시점에 window.__cdPassVerdict 를
      필요로 하므로 defer 를 붙이지 않는다. 순수 로직 파일이라 렌더 블로킹 비용은 무시 가능하다. -->
-      <script src="/js/core/free-fortune-policy.js"></script>
+      <script src="/js/core/free-fortune-policy.js?v=free-reading-20261111"></script>
       <script src="/js/core/pass-verdict.js?v=build-820339ff38a2"></script>
 <!-- 출생 정보 단위 해금 키 사본(js/core/birth-scope-unlocks.js, 정본은 서버 paid-feature-registry).
      셸 인라인 블록이 파싱 시점부터 window.cdIsBirthScopedUnlockKey 를 읽으므로 defer 를 붙이지 않는다. -->
@@ -51,7 +51,7 @@
      그 자리에서 else 가지로 떨어져 경계 없는 렌더러로 조용히 강등된다. 실패가 눈에 안 보이는 종류다. -->
       <script src="/js/core/payment-service.js?v=build-86f76b083b39"></script>
       <script src="/js/mobile-fortune-entry-trace.js?v=build-5eda90ea694b" defer></script>
-      <script src="/js/core/feature-pricing-store.js?v=build-c40b6222a222" defer></script>
+      <script src="/js/core/feature-pricing-store.js?v=build-744950e6b388" defer></script>
 <!-- 앱(Capacitor) 판별 정본. checkout-entry 와 셸 인라인이 진입 분기에서 읽으므로 그보다 먼저 둔다.
      🔴 defer 금지 — 아래 부팅 게이트(cd-early-runtime-class-hoist)가 파싱 시점에 isApp() 을 부른다. -->
       <script src="/js/core/app-context.js?v=build-bcd47d1d364b"></script>
@@ -625,8 +625,8 @@ html.cd-boot-gate-out .cd-boot-gate__veil{opacity:0;pointer-events:none;transiti
 <link rel="stylesheet" href="/styles/trust-stories.css?v=build-7f025e5a4fa3">
 <script type="module" src="/js/review-reward-invite.mjs"></script>
 <link rel="stylesheet" href="/styles/moonlit-birth-form.css?v=build-61b1c578c999">
-<link rel="stylesheet" href="/styles/theme-tokens.css?v=build-bf8332e077e7">
-<link rel="stylesheet" href="/styles/fortune-reading-actions.css">
+<link rel="stylesheet" href="/styles/theme-tokens.css?v=build-774966bf49df">
+<link rel="stylesheet" href="/styles/fortune-reading-actions.css?v=free-reading-20261111">
   <link rel="stylesheet" href="/styles/service-entry-scene.css?v=build-38421fc48a00">
 <link rel="stylesheet" href="/styles/guide-primitives.css?v=build-6382e49e996a">
 <link rel="stylesheet" href="/styles/core-ui.css?v=build-87b468f3dc64">
@@ -977,7 +977,7 @@ html:not(.cd-mobile-runtime) .cd-home-guide { content-visibility: auto; contain-
 <meta property="og:description" content="꿀꿀 운세는 대통령 운세를 미리 짚은 명리학자 박병하(네오)가 만든 운세 서비스예요. 사주·자미두수·베다점·숙요점·타로·휴먼 디자인·MBTI를 만나보세요.">
 <meta property="og:url" content="https://code-destiny.com/">
 <meta property="og:locale" content="ko_KR">
-<meta property="og:image" content="https://code-destiny.com/og/code-destiny-og-vvip.png?v=build-e52deabca12e">
+<meta property="og:image" content="https://code-destiny.com/og/code-destiny-og-vvip.png?v=build-22a5f9e94316">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="꿀꿀운세 HONEY FORTUNE — 꽃돼지 연이 카메오와 서비스 소개가 담긴 CODE DESTINY 명함 카드">
@@ -986,7 +986,7 @@ html:not(.cd-mobile-runtime) .cd-home-guide { content-visibility: auto; contain-
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="대통령 운세를 미리 짚은 명리학자가 만든 운세 | 꿀꿀 운세">
 <meta name="twitter:description" content="꿀꿀 운세는 대통령 운세를 미리 짚은 명리학자 박병하(네오)가 만든 운세 서비스예요. 사주·자미두수·베다점·숙요점·타로·휴먼 디자인·MBTI를 만나보세요.">
-<meta name="twitter:image" content="https://code-destiny.com/og/code-destiny-og-vvip.png?v=build-e52deabca12e">
+<meta name="twitter:image" content="https://code-destiny.com/og/code-destiny-og-vvip.png?v=build-22a5f9e94316">
 <meta name="twitter:image:alt" content="꿀꿀운세 HONEY FORTUNE — 꽃돼지 연이 카메오와 서비스 소개가 담긴 CODE DESTINY 명함 카드">
 <script type="application/ld+json">
 {
@@ -1108,7 +1108,7 @@ html:not(.cd-mobile-runtime) .cd-home-guide { content-visibility: auto; contain-
     {
       "@type": "ImageObject",
       "@id": "https://code-destiny.com/#primaryimage",
-      "url": "https://code-destiny.com/og/code-destiny-og-vvip.png?v=build-e52deabca12e",
+      "url": "https://code-destiny.com/og/code-destiny-og-vvip.png?v=build-22a5f9e94316",
       "width": 1200,
       "height": 630
     },
@@ -5396,7 +5396,7 @@ html.cd-mobile-runtime body.neo-mode #destinyCardForm .dp-kakao-referral-url{bac
 <link rel="stylesheet" href="/styles/my-garden.css?v=build-58a9e74edfc7">
 <link rel="stylesheet" href="/styles/profile-characters.css?v=build-ddf9d57445fd" data-profile-characters>
 <link rel="stylesheet" href="/styles/press-coverage.css?v=build-1bfb6c238ada">
-<link rel="stylesheet" href="/styles/saju-reading.css?v=build-29bde825826b">
+<link rel="stylesheet" href="/styles/saju-reading.css?v=build-da1af5b3d081">
 <link rel="stylesheet" href="/styles/saju-tea-entry.css?v=build-1aaf48dd5c7d">
 <link rel="stylesheet" href="/styles/fortune-consultation-entry.css?v=build-0ef0b8407d64">
 <script src="/js/core/fortune-consultation-ui.js?v=build-ddb3fe27ed29" defer></script>
@@ -5404,10 +5404,10 @@ html.cd-mobile-runtime body.neo-mode #destinyCardForm .dp-kakao-referral-url{bac
 <script defer src="/js/core/saju/reading-depth.generated.js?v=build-b0b7baf2944e"></script>
 <script defer src="/js/core/saju/reading-rich.js?v=build-4c1abb74ec86"></script>
 <script defer src="/js/core/saju/reading-rich-intl.js?v=build-a286db621403"></script>
-<script defer src="/js/core/saju/reading-personas.js?v=build-bdb92d1f0452"></script>
+<script defer src="/js/core/saju/reading-personas.js?v=build-042f0c387df8"></script>
 <script defer src="/js/core/saju/natal-one-liner.generated.js?v=build-4ec32b7845d7"></script>
-<script defer src="/js/core/saju/bundle-offer.js?v=build-173ac7c5d15c"></script>
-<script defer src="/js/core/saju/section-client.js?v=build-f53ab7823cd3"></script>
+<script defer src="/js/core/saju/bundle-offer.js?v=build-c3d10d0fef33"></script>
+<script defer src="/js/core/saju/section-client.js?v=build-d4106ccac4ed"></script>
 <script type="module" src="/js/core/saju/crafted-product-details.mjs"></script>
 <script defer src="/js/core/saju/destiny-anatomy/boot.js?v=build-f42618076b7f"></script>
 <script defer src="/js/core/astro/natal-reading.js?v=build-5f256f3ca135"></script>
@@ -9339,7 +9339,7 @@ html:not(.neo-mode) .moon-story-entry__pig--yeon {
     </article><article class="cd-picker-card" data-picker-card data-picker-groups="love" data-picker-topics="marriage" hidden>
       <a class="cd-picker-main" href="/nakshatra/muhurta/" data-picker-service-id="nakshatra-muhurta" data-cd-price-key="nakshatra-muhurta">
         <img src="/images/service-introductions/nakshatra-muhurta-320.webp" width="640" height="360" alt="" loading="lazy" decoding="async">
-        <div class="cd-picker-copy"><h3>인도 점성술 · 택일 무후르타</h3><p>결혼·개업·계약에 좋은 날을 60일 치에서 고르기</p><div class="cd-picker-foot"><span class="cd-sig-card__price" data-cd-play-price data-cd-play-feature="nakshatra-muhurta" data-cd-trans="home.concernPick.price.free">무료</span><span class="cd-picker-action">상담 살펴보기 <span aria-hidden="true">→</span></span></div></div>
+        <div class="cd-picker-copy"><h3>인도 점성술 · 택일 무후르타</h3><p>결혼·개업·계약에 좋은 날을 60일 치에서 고르기</p><div class="cd-picker-foot"><span class="cd-sig-card__price" data-cd-play-price data-cd-play-feature="nakshatra-muhurta" data-cd-trans="home.overseasCopy.krwAmount" data-cd-vars="{&quot;amount&quot;:&quot;5,000&quot;}">5,000원</span><span class="cd-picker-action">상담 살펴보기 <span aria-hidden="true">→</span></span></div></div>
       </a><ul class="cd-picker-questions"><li><a href="/nakshatra/muhurta/" data-cd-question="marriageDate" data-cd-price-key="nakshatra-muhurta"><span data-cd-trans="home.concernPick.q.marriageDate.t">이 일, 언제 하면 좋을까?</span><span aria-hidden="true">→</span></a></li></ul>
     </article><article class="cd-picker-card" data-picker-card data-picker-groups="work" data-picker-topics="money" hidden>
       <a class="cd-picker-main" href="/yeongnyangi/?question=money#questions" data-picker-service-id="moneyWhen" data-cd-price-key="yeongnyangi-saju-salmon">
@@ -9394,7 +9394,7 @@ html:not(.neo-mode) .moon-story-entry__pig--yeon {
     </article><article class="cd-picker-card" data-picker-card data-picker-groups="love" data-picker-topics="people" hidden>
       <a class="cd-picker-main" href="/nakshatra/compat/" data-picker-service-id="nakshatra-compat" data-cd-price-key="nakshatra-compat">
         <img src="/images/service-introductions/nakshatra-compat-320.webp" width="640" height="360" alt="" loading="lazy" decoding="async">
-        <div class="cd-picker-copy"><h3>인도 점성술·숙요 · 동서 통합 궁합</h3><p>인도 아쉬타쿠타 36점과 동양 숙요를 겹쳐 보는 궁합</p><div class="cd-picker-foot"><span class="cd-sig-card__price" data-cd-play-price data-cd-play-feature="nakshatra-compat" data-cd-trans="home.concernPick.price.free">무료</span><span class="cd-picker-action">상담 살펴보기 <span aria-hidden="true">→</span></span></div></div>
+        <div class="cd-picker-copy"><h3>인도 점성술·숙요 · 동서 통합 궁합</h3><p>인도 아쉬타쿠타 36점과 동양 숙요를 겹쳐 보는 궁합</p><div class="cd-picker-foot"><span class="cd-sig-card__price" data-cd-play-price data-cd-play-feature="nakshatra-compat" data-cd-trans="home.overseasCopy.krwAmount" data-cd-vars="{&quot;amount&quot;:&quot;5,000&quot;}">5,000원</span><span class="cd-picker-action">상담 살펴보기 <span aria-hidden="true">→</span></span></div></div>
       </a><ul class="cd-picker-questions"><li><a href="/nakshatra/compat/" data-cd-question="peopleMatch" data-cd-price-key="nakshatra-compat"><span data-cd-trans="home.concernPick.q.peopleMatch.t">그 사람과 나, 어떤 궁합일까?</span><span aria-hidden="true">→</span></a></li></ul>
     </article><article class="cd-picker-card" data-picker-card data-picker-groups="work flow" data-picker-topics="" hidden>
       <a class="cd-picker-main" href="/saju/sibyl/" data-picker-service-id="saju-sibyl" data-cd-price-key="premium-sibyl-dominator" data-feature-key="premium-sibyl-dominator" data-pvw-paid="true">
@@ -15979,7 +15979,7 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
                   <div class="tarot-tile__body">
                     <span class="tarot-tile__title" data-cd-trans data-key="home.tiles.westernAstrologyTitle">✨ 서양 점성술 기본 차트</span>
                     <span class="tarot-tile__desc" data-cd-trans data-key="home.tiles.westernAstrologyDesc">출생차트 · 상세 해석 · 궁합 무료</span>
-                  <div class="cd-card-pricing"><span class="tarot-tile__coin-badge tarot-tile__coin-badge--free" data-cd-trans data-key="home.tiles.basicFreeBadge">기본 무료</span><span data-cd-price-key="compat-astro-synastry" class="tarot-tile__coin-badge tarot-tile__coin-badge--compat" data-price-krw="0" data-cd-trans="home.concernPick.price.free">무료</span></div>
+                  <div class="cd-card-pricing"><span class="tarot-tile__coin-badge tarot-tile__coin-badge--free" data-cd-trans data-key="home.tiles.basicFreeBadge">기본 무료</span><span data-cd-price-key="compat-astro-synastry" class="tarot-tile__coin-badge tarot-tile__coin-badge--compat" data-price-krw="5000" data-cd-trans="home.concernPick.price.free">무료</span></div>
                   </div>
                 </a>
 
@@ -15997,7 +15997,7 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
                   <div class="tarot-tile__body">
                     <span class="tarot-tile__title" data-cd-trans data-key="home.tiles.ziweiBasicTitle">🌌 자미두수(紫微斗數)</span>
                     <span class="tarot-tile__desc" data-cd-trans data-key="home.tiles.ziweiBasicDesc">명반 · 상세 해석 · 궁합 무료</span>
-                  <div class="cd-card-pricing"><span class="tarot-tile__coin-badge tarot-tile__coin-badge--free" data-cd-trans data-key="home.tiles.basicFreeBadge">기본 무료</span><span data-cd-price-key="compat-ziwei-compatibility" class="tarot-tile__coin-badge tarot-tile__coin-badge--compat" data-price-krw="0" data-cd-trans="home.concernPick.price.free">무료</span></div>
+                  <div class="cd-card-pricing"><span class="tarot-tile__coin-badge tarot-tile__coin-badge--free" data-cd-trans data-key="home.tiles.basicFreeBadge">기본 무료</span><span data-cd-price-key="compat-ziwei-compatibility" class="tarot-tile__coin-badge tarot-tile__coin-badge--compat" data-price-krw="5000" data-cd-trans="home.concernPick.price.free">무료</span></div>
                   </div>
                 </a>
 
@@ -16029,7 +16029,7 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
                   <div class="tarot-tile__body">
                     <span class="tarot-tile__title" data-cd-trans data-key="home.tiles.vedicAstrologyTitle">🪐 베다 점성술</span>
                     <span class="tarot-tile__desc" data-cd-trans data-key="home.tiles.vedicAstrologyDesc">명반 · 상세 해석 · 궁합 무료</span>
-                  <div class="cd-card-pricing"><span class="tarot-tile__coin-badge tarot-tile__coin-badge--free" data-cd-trans data-key="home.tiles.basicFreeBadge">기본 무료</span><span data-cd-price-key="vedic-compatibility-per-use" class="tarot-tile__coin-badge tarot-tile__coin-badge--compat" data-price-krw="0" data-cd-trans="home.concernPick.price.free">무료</span></div>
+                  <div class="cd-card-pricing"><span class="tarot-tile__coin-badge tarot-tile__coin-badge--free" data-cd-trans data-key="home.tiles.basicFreeBadge">기본 무료</span><span data-cd-price-key="vedic-compatibility-per-use" class="tarot-tile__coin-badge tarot-tile__coin-badge--compat" data-price-krw="5000" data-cd-trans="home.concernPick.price.free">무료</span></div>
                   </div>
                 </a>
 
@@ -16152,7 +16152,7 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
                       <span class="pvc-meta-badge" data-cd-trans="shell.tarotTileBody.pvcPremMeta.k10vo8">파다</span>
                       <span class="pvc-meta-badge pvc-meta-badge--cta" data-cd-trans="shell.tarotTileBody.pvcPremMeta.k1vfalgf">무료로 확인</span>
                     </div>
-                  <div class="cd-card-pricing"><span class="tarot-tile__coin-badge" data-cd-price-key="nakshatra-basic-reading" data-price-krw="0" data-cd-trans="home.concernPick.price.free">무료</span></div>
+                  <div class="cd-card-pricing"><span class="tarot-tile__coin-badge" data-cd-price-key="nakshatra-basic-reading" data-price-krw="3000" data-cd-trans="home.concernPick.price.free">무료</span></div>
                   </div>
                 </a>
 </div><!-- /feat-collection__grid -->
@@ -19345,7 +19345,7 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
      운명의 문 디스커버와 전체 서비스 인덱스가 이 한 벌을 함께 쓴다. 인라인으로 되돌리지 말 것 —
      8KB 를 넘으면 외부 청크로 빠지며 data-marker 가 사라진다.
      🔴 레지스트리가 엔진보다 먼저 실행돼야 한다(defer 는 문서 순서를 지킨다). -->
-<script defer src="/js/core/service-registry.js?v=build-896394c7b532" data-marker="cd-home-service-registry-v20260819"></script>
+<script defer src="/js/core/service-registry.js?v=build-a8b29c5359d7" data-marker="cd-home-service-registry-v20260819"></script>
 <script defer src="/js/core/home-service-finder.js?v=build-bcb29eefdb56" data-marker="cd-home-service-finder-v20260819"></script>
 <script defer src="/js/core/shell-sheet.js?v=build-da33f4e5c013"></script>
 <script defer src="/js/core/saju/reading-navigation.js"></script>
@@ -19359,10 +19359,10 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
 <script type="module" src="/js/activation-entry.mjs?v=build-75157f7bedf1"></script>
 <script defer src="/js/mobile-interaction-patch.js?v=build-3cfaf6eefee2" data-marker="mobile-touch-route-modal-guard-v20260701 mobile-perf-media-guard-v20260701"></script>
 <script data-cd-lazy-src="/js/services/sajuService.js" data-cd-mobile-delay="1"></script>
-<script data-cd-lazy-src="/js/core/saju/basicFortunePresentation.js?v=build-6891fb41d4aa" data-cd-mobile-delay="1"></script>
+<script data-cd-lazy-src="/js/core/saju/basicFortunePresentation.js?v=build-900c866ed926" data-cd-mobile-delay="1"></script>
 <script data-cd-lazy-src="/js/core/saju/modalProfileState.js" data-cd-mobile-delay="1"></script>
 <script data-cd-noncritical-src="/js/core/premium-chapter-orchestrator.js?v=build-ba2380db1771" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
-<script defer src="/js/core/index-inline-runtime.js?v=build-d14ac7f9d0ad" data-cd-saju-prompt-marker="saju-ai-consultation-flow-v20260706 saju-ai-calibration-v20260706 saju-ai-llm-result-v20260625 sukuyo-guardian-drawing-v20260625 sukuyo-pastlife-v2-20260621" data-cd-kemet-ai-prompt-marker="kemet-ai-prompt-generator-v20260619"></script>
+<script defer src="/js/core/index-inline-runtime.js?v=build-197d20d1df00" data-cd-saju-prompt-marker="saju-ai-consultation-flow-v20260706 saju-ai-calibration-v20260706 saju-ai-llm-result-v20260625 sukuyo-guardian-drawing-v20260625 sukuyo-pastlife-v2-20260621" data-cd-kemet-ai-prompt-marker="kemet-ai-prompt-generator-v20260619"></script>
 <script defer src="/js/pwa-install-prompt.js?v=build-1c2525b7d8f2"></script>
 <script data-cd-lazy-src="/js/admin-flower.js" data-cd-mobile-delay="2"></script>
 <div class="share-toast" id="shareToast" role="status" aria-live="polite"></div>
@@ -19482,7 +19482,7 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
     if (!shareUrl) return Promise.reject(new Error('share_url_missing'));
     // 지금 보고 있는 언어의 셸·미리보기 카드로 공유한다(js/share.js). 아직 안 실렸으면 서버 URL 그대로.
     if (typeof window.cdLocalizeShareUrl === 'function') shareUrl = window.cdLocalizeShareUrl(shareUrl);
-    var shareImageUrl = 'https://code-destiny.com/og/code-destiny-og-vvip.png?v=build-e52deabca12e';
+    var shareImageUrl = 'https://code-destiny.com/og/code-destiny-og-vvip.png?v=build-22a5f9e94316';
     if (typeof window.cdLocalizeShareImage === 'function') shareImageUrl = window.cdLocalizeShareImage(shareImageUrl);
     renderShareUrl(shareUrl, tr('kakaoReferral.rewardReady', '초대 링크가 준비됐어요. 친구 가입 완료 시 추천 보상이 지급됩니다.'));
     return loadKakaoSdk(payload.kakaoJavascriptKey).then(function(ok){
@@ -33052,7 +33052,7 @@ function updateBadge() {
 <!-- jsPDF removed from initial bundle; load on demand only if a feature requires it -->
 <script data-cd-noncritical-src="/js/sibyl-system.js?v=build-b753941981e2" data-cd-mobile-delay="2" data-cd-lowend-skip="1"></script>
 <script src="/js/cd-lazy-feature-loader.js" defer></script>
-<script type="module" src="/js/app.js?v=build-ef3548d0f8be"></script>
+<script type="module" src="/js/app.js?v=build-62bfb58f1fb1"></script>
 <!-- Feature Preview Panel v2 -->
 <template id="tilePvwOverlayTemplate" data-component="MobileFeatureBottomSheetTemplate">
 <div id="tilePvwOverlay" class="tile-pvw-overlay cd-detail-overlay MobileFeatureBottomSheet" data-cd-detail-overlay="" data-component="MobileFeatureBottomSheet" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="tilePvwTitle" data-marker="main-overlay-dedupe-v20260625 mobile-feature-bottom-sheet-v20260701 feature-marketing-detail-v20260702">
@@ -33476,7 +33476,7 @@ function updateBadge() {
 (function(){
   'use strict';
   var D={
-    '#destinyCardForm':{cat:'사주 · 무료 운명 카드',fallbackTitle:'🌙 나의 달빛 운명 카드',tagline:'생년월일과 출생시간을 바탕으로 사주, 오늘의 흐름, 궁합, 별자리 서비스로 이어지는 기본 프로필을 만듭니다.',feats:['이름·생년월일·출생시간 기반 기본 운명 카드 생성','출생시간을 모를 때 낮 12시 기준으로 보수 계산','사주 결과와 주요 운세 서비스 바로가기 자동 연결','저장한 프로필로 무료·프리미엄 리딩을 더 빠르게 시작'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/%EC%82%AC%EC%A3%BC%EB%B3%B4%EB%8A%94%20%EC%97%B0%EC%9D%B4.webp?v=build-e52deabca12e',fallbackCta:'운명 카드 만들기'},
+    '#destinyCardForm':{cat:'사주 · 무료 운명 카드',fallbackTitle:'🌙 나의 달빛 운명 카드',tagline:'생년월일과 출생시간을 바탕으로 사주, 오늘의 흐름, 궁합, 별자리 서비스로 이어지는 기본 프로필을 만듭니다.',feats:['이름·생년월일·출생시간 기반 기본 운명 카드 생성','출생시간을 모를 때 낮 12시 기준으로 보수 계산','사주 결과와 주요 운세 서비스 바로가기 자동 연결','저장한 프로필로 무료·프리미엄 리딩을 더 빠르게 시작'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/%EC%82%AC%EC%A3%BC%EB%B3%B4%EB%8A%94%20%EC%97%B0%EC%9D%B4.webp?v=build-22a5f9e94316',fallbackCta:'운명 카드 만들기'},
     gotoZiweiPremium:{cat:'프리미엄 · 자미두수 전문가 상담',fallbackTitle:'자미두수 전문가 상담',tagline:'명궁·신궁·12궁·사화·대운·세운 흐름을 바탕으로 지금의 질문에 답합니다.',feats:['입력은 무료 — 상담 생성 버튼을 누를 때 30,000원 단건 결제 또는 이용권·월정석 확인','결제 확인이 끝나면 상담문이 바로 생성','명궁·재백·관록·부부·질액궁을 질문에 맞춰 연결 해석','상담 결과를 화면에서 바로 확인하고 추가 질문 이어가기'],cost:'30,000원 · 전문가 상담',ct:'paid',img:"/images/service-introductions/ziwei-ai.webp",fallbackCta:'자미두수 상담 받기'},
     '/neo-operation-room':{cat:'프리미엄 · 운명 작전실',fallbackTitle:'네오의 팩폭 운명 작전실',tagline:'사주·자미두수·베다점·점성술의 지도를 한 장의 전략처럼 펼쳐, 지금 밀리는 전선과 다시 잡아야 할 기준을 또렷하게 짚습니다.',feats:['30,000원 상담 이용권 확인','결제 완료 후 네오의 작전실로 바로 이동','사주와 별자리 흐름을 함께 비추는 종합 상담','현재 고민에 맞춘 선택 기준과 다음 행동 정리'],cost:'30,000원 · 전문가 상담',ct:'paid',img:"/images/service-introductions/neo-operation-room.webp",fallbackCta:'작전실 열기'},
     openNamingPromptModal:{cat:'작명 · 전문가 상담',fallbackTitle:'훈민정음 작명소',tagline:'생년월일시와 원하는 이름 조건을 바탕으로 용신·소리오행·한자 의미·수리 풀이를 종합해 전문가가 직접 이름을 짓고, 그 결과를 만든 프롬프트 원문까지 함께 드립니다.',feats:['입력과 무료 초안 추천은 무료로 열립니다','프리미엄 작명 시작 시 30,000원 단건 결제 또는 이용권·월정석 확인이 진행됩니다','사주 보완, 인명용 한자, 소리오행, 자원오행, 원형이정 수리를 종합한 완성형 결과 제공','결제 검증 후 전문가 작명 결과와 PDF 저장, 생성에 사용된 프롬프트 원문까지 다시 확인할 수 있습니다'],cost:'30,000원 · 이용권/월정석 가능',ct:'paid',img:"/images/service-introductions/naming-ai.webp",fallbackCta:'작명 시작하기'},
@@ -41954,7 +41954,7 @@ body.cd-mnav-collapsed #cdMobileBottomNav .cd-mobile-bottom-nav__chevron{
 #cdMobileBottomNav [data-nav-key="consult"]{--cd-nav-symbol:url("/images/navigation/consult.svg")}
 #cdMobileBottomNav [data-nav-key="library"]{--cd-nav-symbol:url("/images/navigation/library.svg")}
 #cdMobileBottomNav [data-nav-key="my"]{--cd-nav-symbol:url("/images/navigation/my.svg")}</style>
-<script type="module" src="/js/core/saju/compact-reading.mjs?v=build-c22348906f47"></script>
+<script type="module" src="/js/core/saju/compact-reading.mjs?v=build-9c1a1ad09418"></script>
 </body>
 
 </html>

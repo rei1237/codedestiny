@@ -18,17 +18,11 @@
       "own": "Die Deutungen zu denselben Geburtsdaten kannst du ohne weitere Zahlung erneut lesen. Individuell erstellte Beratungen und Partnerschaftsberatungen sind separat erhältlich.",
       "sample": "Beispiel · Du wirkst ruhig, sammelst aber vielleicht lange Informationen, bevor du dich entscheidest. Die Kapitel zeigen, wann dir diese Sorgfalt hilft und wann sie dich bremst.",
       "item": [
-        "Geburtsbild, Tagessäule, zehn Götter und jahreszeitliches Gleichgewicht",
-        "Basisdeutung und Zehnjahreszyklen",
-        "Überblick zur Partnerschaft aus dem Geburtsbild",
-        "Quantendeutung, persönliche Ausstrahlung und Talentbaum",
-        "Wohlbefinden, Energie und schwierige Beziehungen",
-        "Tages- und Monatsdeutung, Briefe und ähnliche Prominente",
-        "Glückszahlen und Bericht zum Mondlichtritual",
-        "Denkstil, Teto/Egen-Details, Deutung in vier Bildern und Dopaminbericht",
-        "Gedankenkarte mit Human-Design-Deutung",
-        "Arbeitsstil, Tiertyp und Zugang zum Secret House"
-      ]
+        "Kompakte Saju-Deutung",
+        "Zehnjahreszyklen und Lebensverlauf"
+      ],
+      "ownFreePolicy": "Lesen Sie die kompakte Saju-Deutung und Zehnjahreszyklen des gekauften Geburtsprofils zeitlich unbegrenzt erneut. Öffentlich kostenlose Basis- und Unterhaltungsdeutungen erfordern keinen Kauf. KI-Beratungen sind separate Produkte und werden nur bei Auswahl berechnet.",
+      "inlineDescFreePolicy": "Eine Zahlung gewährt dauerhaften Zugriff auf die kompakte Saju-Deutung und Zehnjahreszyklen. Öffentlich kostenlose Basis- und Unterhaltungsdeutungen erfordern keinen Kauf; KI-Beratungen sind separat."
     }
   },
   "_comment": "Code Destiny — German premium localization (de.json)",

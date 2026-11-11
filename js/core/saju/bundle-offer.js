@@ -120,7 +120,7 @@
       + '<p class="cd-bundle-offer__price"><strong>' + PRICE_LABEL + '</strong> · ' + esc(t('saju.bundle.once', '한 번 결제로 영구 소장')) + '</p>'
       + '<ul class="cd-bundle-offer__list">' + items + '</ul>'
       + '<p class="cd-bundle-offer__sample">' + esc(t('saju.bundle.sample', SAMPLE)) + '</p>'
-      + '<p class="cd-bundle-offer__own">' + esc(t('saju.bundle.ownFreePolicy', '구매한 생년월일의 라이트 사주와 대운 풀이를 기간 제한 없이 다시 읽어요. 기본·재미 사주는 무료예요. AI 생성 상담은 별도 상품이며 직접 선택할 때만 결제가 진행돼요.')) + '</p>'
+      + '<p class="cd-bundle-offer__own">' + esc(t('saju.bundle.ownFreePolicy', '구매한 생년월일의 라이트 사주와 대운 풀이를 기간 제한 없이 다시 읽어요. 무료 공개된 기본·재미 사주는 별도 구매 없이 제공돼요. AI 생성 상담은 별도 상품이며 직접 선택할 때만 결제가 진행돼요.')) + '</p>'
       + guidance
       + (profileMissing ? saveButtonHtml() : payButtonHtml())
       + '</div>';
@@ -241,7 +241,7 @@
       host.appendChild(card);
     }
     card.innerHTML = '<h3 class="cd-bundle-inline__title">' + esc(t('saju.bundle.inlineTitle', '내 사주를 끝까지 읽어 보고 싶다면')) + '</h3>'
-      + '<p class="cd-bundle-inline__desc">' + esc(t('saju.bundle.inlineDescFreePolicy', '라이트 사주와 대운 풀이를 한 번 결제로 영구히 읽어요. 기본·재미 사주는 무료이고 AI 생성 상담은 별도예요.')) + ' (' + PRICE_LABEL + ')</p>'
+      + '<p class="cd-bundle-inline__desc">' + esc(t('saju.bundle.inlineDescFreePolicy', '라이트 사주와 대운 풀이를 한 번 결제로 영구히 읽어요. 무료 공개된 기본·재미 사주는 구매가 필요 없고, AI 생성 상담은 별도예요.')) + ' (' + PRICE_LABEL + ')</p>'
       + '<button type="button" class="cd-bundle-offer__more" data-cd-bundle-open>' + esc(t('saju.bundle.inlineCta', '묶음 자세히 보기')) + '</button>';
     var more = card.querySelector('[data-cd-bundle-open]');
     if (more && !more._cdBundleBound) {

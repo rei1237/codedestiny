@@ -455,11 +455,13 @@ test("추천 카드는 결제 게이트를 무장하지 않고 결제 여부 표
     "시트 제목으로 읽힐 노드가 없거나 배지 문구가 섞였다",
   );
 
-  assert.equal(
-    cards.filter((c) => c.getAttribute("data-pvw-free")).length,
-    0,
-    "궁합 추천에 무상 운세 카드가 남았다",
-  );
+  const freeCompatibility = cards.filter((c) => c.getAttribute("data-pvw-free"));
+  assert.equal(freeCompatibility.length, 1, "승인된 나크샤트라 계산형 궁합은 무료 추천이다");
+  assert.ok(freeCompatibility[0].textContent.includes("동서 통합 궁합"));
+  assert.equal(freeCompatibility[0].getAttribute("data-pvw-paid"), null);
+  for (const banned of ["data-coin-cost", "data-tile-lock-cost", "data-tile-lock-key"]) {
+    assert.equal(freeCompatibility[0].getAttribute(banned), null);
+  }
 
   // 경계 항목 둘. 여기가 갈리면 /points 프로그래매틱 이동(결제 금지 패턴 ⑦)이 열린다.
   // 🔴 가격 칩으로 고른다 — 검색 입력은 120ms 디바운스라 이 동기 단언이 이전 목록을 읽는다.

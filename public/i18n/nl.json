@@ -18,17 +18,11 @@
       "own": "Je kunt lezingen voor dezelfde geboortegegevens opnieuw lezen zonder extra betaling. Persoonlijke consulten en relatieconsulten worden apart verkocht.",
       "sample": "Voorbeeld · Je komt rustig over, maar verzamelt misschien eerst veel informatie voordat je beslist. Elk hoofdstuk verkent wanneer die zorgvuldigheid helpt en wanneer ze je afremt.",
       "item": [
-        "Geboortehoroscoop, dagpilaar, tien goden en seizoensbalans",
-        "Basisduiding en tienjarige cycli",
-        "Compatibiliteit volgens de geboortehoroscoop",
-        "Kwantumduiding, persoonlijke uitstraling en talentenboom",
-        "Welzijn, energie en lastige relaties",
-        "Dag- en maandduidingen, brieven en bekende personen die op je lijken",
-        "Geluksgetallen en het rapport van het maanlichtritueel",
-        "Denkstijl, Teto/Egen-profiel, lezing in vier beelden en dopaminerapport",
-        "Denkkaart met Human Design-duiding",
-        "Werkstijl, diertype en toegang tot het Geheime Huis"
-      ]
+        "Beknopte Saju-lezing",
+        "Tienjaarscycli en levensloop"
+      ],
+      "ownFreePolicy": "Lees de beknopte Saju-lezing en tienjaarscycli voor het gekochte geboorteprofiel onbeperkt opnieuw. Openbaar gratis basis- en speelse lezingen vereisen geen aankoop. AI-consulten zijn aparte producten en worden alleen in rekening gebracht als je ze kiest.",
+      "inlineDescFreePolicy": "Eén betaling geeft blijvende toegang tot de beknopte Saju-lezing en tienjaarscycli. Openbaar gratis basis- en speelse lezingen vereisen geen aankoop; AI-consulten staan apart."
     }
   },
   "_comment": "Code Destiny — Dutch premium localization (nl.json)",

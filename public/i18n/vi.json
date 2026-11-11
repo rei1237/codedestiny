@@ -18,17 +18,11 @@
       "own": "Bạn có thể đọc lại các luận giải cho cùng thông tin sinh mà không trả thêm phí. Các buổi tư vấn riêng và tư vấn hợp đôi được tính phí riêng.",
       "sample": "Ví dụ · Bạn có vẻ điềm tĩnh nhưng có thể dành nhiều thời gian thu thập căn cứ trước khi quyết định. Mỗi chương gợi ý khi nào sự thận trọng giúp ích và khi nào nó khiến bạn chần chừ.",
       "item": [
-        "Lá số gốc, trụ ngày, thập thần và cân bằng theo mùa",
-        "Luận giải cơ bản và đại vận mười năm",
-        "Tổng quan về độ hòa hợp theo lá số",
-        "Mệnh lý lượng tử, sức hút và cây kỹ năng",
-        "Sức khỏe, năng lượng và các mối quan hệ khó xử",
-        "Vận ngày, vận tháng, thư và người nổi tiếng có nét tương đồng",
-        "Con số may mắn và báo cáo Nghi thức may mắn ánh trăng",
-        "Phong cách tư duy, hồ sơ Teto/Egen, bốn khung hình và báo cáo dopamine",
-        "Sơ đồ tư duy với giải thích Human Design",
-        "Phong cách làm việc, hình tượng con vật và lối vào Nhà Bí Mật"
-      ]
+        "Luận giải Tứ Trụ cơ bản",
+        "Đại vận và xu hướng cuộc đời"
+      ],
+      "ownFreePolicy": "Đọc lại luận giải Tứ Trụ cơ bản và đại vận cho hồ sơ ngày sinh đã mua mà không giới hạn thời gian. Các bài cơ bản và giải trí công khai miễn phí không cần mua. Tư vấn AI là sản phẩm riêng, chỉ tính phí khi bạn chọn.",
+      "inlineDescFreePolicy": "Thanh toán một lần để đọc vĩnh viễn luận giải Tứ Trụ cơ bản và đại vận. Nội dung cơ bản và giải trí công khai miễn phí không cần mua; tư vấn AI là riêng biệt."
     }
   },
   "_comment": "Code Destiny - Vietnamese premium localization (vi.json)",

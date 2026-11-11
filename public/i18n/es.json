@@ -18,17 +18,11 @@
       "own": "Puedes releer las lecturas de los mismos datos natales sin volver a pagar. Las consultas personalizadas y de compatibilidad se venden por separado.",
       "sample": "Ejemplo · Puedes parecer una persona tranquila y aun así dedicar tiempo a reunir información antes de decidir. Los capítulos exploran cuándo te ayuda esa cautela y cuándo te frena.",
       "item": [
-        "Carta natal, pilar del día, diez dioses y equilibrio estacional",
-        "Lectura básica y ciclos de diez años",
-        "Compatibilidad según la carta",
-        "Lectura cuántica, encanto personal y árbol de habilidades",
-        "Bienestar, energía y relaciones difíciles",
-        "Lecturas diarias y mensuales, cartas y celebridades afines",
-        "Números de la suerte e informe del ritual lunar",
-        "Estilo de pensamiento, perfil Teto/Egen, lectura en cuatro viñetas e informe de dopamina",
-        "Mapa mental con interpretación de Diseño Humano",
-        "Estilo de trabajo, arquetipo animal y acceso a la Casa Secreta"
-      ]
+        "Lectura ligera de Saju",
+        "Ciclos de diez años y tendencias de vida"
+      ],
+      "ownFreePolicy": "Vuelve a leer la lectura ligera de Saju y los ciclos de diez años del perfil adquirido sin límite de tiempo. Las lecturas básicas y divertidas publicadas gratis no requieren compra. Las consultas con IA son productos aparte y solo se cobran si las eliges.",
+      "inlineDescFreePolicy": "Un pago da acceso permanente a la lectura ligera de Saju y los ciclos de diez años. Las lecturas básicas y divertidas publicadas gratis no requieren compra; las consultas con IA son aparte."
     }
   },
   "_comment": "Code Destiny — Spanish premium localization (es.json)",

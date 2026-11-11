@@ -18,17 +18,11 @@
       "own": "Reopen readings for the same birth details without paying again. Separately generated consultations and compatibility sessions are sold individually.",
       "sample": "Example · You may seem calm, yet take time to gather evidence before a decision. The chapters explore when that care helps and when it holds you back.",
       "item": [
-        "Birth chart: day pillar, Ten Gods, seasonal balance and strength",
-        "Basic reading and ten-year cycles",
-        "Chart-based compatibility overview",
-        "Quantum reading, personal charm and skill tree",
-        "Wellbeing, energy and difficult relationship patterns",
-        "Daily and monthly readings, letters and celebrity matches",
-        "Lucky numbers and the Moonlight Lucky Ritual report",
-        "Thinking style, Teto/Egen details, four-panel reading and dopamine report",
-        "Mind map with Human Design interpretation",
-        "Work style, animal archetype and Secret House entry"
-      ]
+        "Light Saju reading",
+        "Ten-year luck cycles and life trends"
+      ],
+      "ownFreePolicy": "Revisit the Light Saju reading and ten-year cycles for the purchased birth profile without a time limit. Public free basic and fun readings need no purchase. AI consultations are separate products and are charged only when you choose them.",
+      "inlineDescFreePolicy": "One payment gives permanent access to the Light Saju reading and ten-year cycles. Public free basic and fun readings need no purchase; AI consultations are separate."
     }
   },
   "_comment": "Code Destiny — English premium localization (en.json)",
