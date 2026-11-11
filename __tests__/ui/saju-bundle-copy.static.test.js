@@ -457,15 +457,18 @@ test('무료 표현 가드는 12개 언어 표현을 잡고 정상 문구는 통
   for (const sample of mustPass) assert.ok(!CLAIMS_FREE_RE.test(sample), `가드가 잘못 걸리면 안 된다: ${sample}`);
 });
 
-test('묶음 전용 카드의 사전·원본 문구는 12개 언어 어디서도 무료를 말하지 않는다', () => {
+test('무료 정책 이후 사전 전체를 읽고 남은 묶음 전용 문구만 무료 오표시를 막는다', async () => {
+  const { isFreeFortuneFeatureKey } = await import('../../lib/payment/free-fortune-policy.mjs');
+  for (const key of ['saju-career-style', 'love-code', 'destiny_meeting_place', 'saju_brain_reading', 'human_design_reading']) assert.equal(isFreeFortuneFeatureKey(key), true, key);
+  assert.deepEqual(BUNDLE_ONLY_DICT_NS, [], '계산형 카드에 유료 묶음 독점 주장을 다시 넣지 않는다');
   const offenders = [];
   let scanned = 0;
   for (const lang of I18N_LANGS) {
     const marketing = JSON.parse(read(`public/i18n/${lang}.json`)).featureMarketing || {};
-    for (const ns of BUNDLE_ONLY_DICT_NS) {
-      for (const [key, value] of Object.entries(flattenStrings(marketing[ns] || {}))) {
+    for (const [ns, copy] of Object.entries(marketing)) {
+      for (const [key, value] of Object.entries(flattenStrings(copy))) {
         scanned += 1;
-        if (CLAIMS_FREE_RE.test(value)) offenders.push(`${lang}:featureMarketing.${ns}.${key}`);
+        if (BUNDLE_ONLY_DICT_NS.includes(ns) && CLAIMS_FREE_RE.test(value)) offenders.push(`${lang}:featureMarketing.${ns}.${key}`);
       }
     }
     const shell = flattenStrings(JSON.parse(read(`public/i18n/${lang}/shellRuntime.json`)));
@@ -474,7 +477,7 @@ test('묶음 전용 카드의 사전·원본 문구는 12개 언어 어디서도
       if (CLAIMS_FREE_RE.test(shell[key] || '')) offenders.push(`${lang}:${key}`);
     }
   }
-  assert.ok(scanned > 500, `사전에서 묶음 전용 카드 문구를 읽지 못했다: ${scanned}개`);
+  assert.ok(scanned > 500, `사전에서 마케팅 문구를 읽지 못했다: ${scanned}개`);
   for (const { copy, dictNs } of Object.values(MARKETING_ITEMS)) {
     if (!BUNDLE_ONLY_DICT_NS.includes(dictNs)) continue;
     for (const [key, value] of Object.entries(flattenStrings(copy))) {

@@ -214,33 +214,52 @@ test('가격 동기화 스크립트는 판매 종료 상품의 개별 가격을 
 });
 
 // ── 뇌구조 부트 ──
-function bootWindow({ open }) {
+function bootWindow({ session }) {
   const dom = new JSDOM('<!doctype html><body><section id="destinyAnatomyCard" hidden data-da-engine="/e.js" data-da-hdcopy="/h.js" data-da-copy="/c.js" data-da-render="/r.js"></section></body>',
     { runScripts: 'outside-only', url: 'https://code-destiny.com/', pretendToBeVisual: true });
   const w = dom.window;
   w.G_PILLARS = { d: { g: '甲', j: '子' } };
-  w.CdSajuBundleOffer = { isOpen: () => open.value };
+  w.CdSajuBundleOffer = { isOpen: () => false };
+  w.cdIsFreeFortuneFeatureKey = key => key === 'saju_brain_reading';
   const appended = [];
   const origAppend = w.document.head.appendChild.bind(w.document.head);
   w.document.head.appendChild = (node) => { appended.push(node); return origAppend(node); };
-  w.fetch = () => { throw new Error('fetch 금지'); };
+  w.fetch = async (url, options) => {
+    assert.equal(url, '/api/auth/me');
+    assert.equal(options.method, 'GET');
+    assert.equal(options.credentials, 'include');
+    return { ok: true, json: async () => ({ authenticated: session.value, user: session.value ? { id: 'owner' } : null }) };
+  };
   w.eval(read('js/core/saju/destiny-anatomy/boot.js'));
   return { w, appended };
 }
 
-test('뇌구조 부트: 미해제면 자산을 불러오지 않고 카드에 계산 결과가 없으며 해제 뒤에 시작한다', async () => {
-  const open = { value: false };
-  const { w, appended } = bootWindow({ open });
-  await new Promise((resolve) => setTimeout(resolve, 30));
+test('무료 뇌구조는 로그인 확인 뒤 자산을 읽고 로그아웃 후 기존 결과를 재사용하지 않는다', async () => {
+  const session = { value: false };
+  const { w, appended } = bootWindow({ session });
+  const settle = () => new Promise(resolve => setTimeout(resolve, 30));
+  await settle();
   w.dispatchEvent(new w.CustomEvent('cd:saju-summary-ready', { detail: {} }));
+  await settle();
   const card = w.document.getElementById('destinyAnatomyCard');
-  assert.equal(appended.filter((n) => n.tagName === 'SCRIPT' || n.tagName === 'LINK').length, 0, '자산 로드 금지');
+  assert.equal(appended.filter(n => n.tagName === 'SCRIPT' || n.tagName === 'LINK').length, 0, '비로그인 자산 로드 금지');
   assert.equal(card.innerHTML.trim(), '');
   assert.equal(card.hidden, true);
-  open.value = true;
-  w.dispatchEvent(new w.CustomEvent('cd:unlocks-changed'));
-  assert.ok(appended.some((n) => n.tagName === 'SCRIPT'), '해제 뒤에는 자산을 불러온다');
+  session.value = true;
+  w.dispatchEvent(new w.CustomEvent('cd:saju-summary-ready'));
+  await settle();
+  assert.ok(appended.some(n => n.tagName === 'SCRIPT'), '묶음 구매 없이 로그인 후 자산을 불러온다');
   assert.equal(card.hidden, false);
+  session.value = false;
+  w.dispatchEvent(new w.CustomEvent('cd:auth-session-invalidated'));
+  assert.equal(card.hidden, true);
+  assert.equal(card.innerHTML, '');
+  const count = appended.length;
+  w.dispatchEvent(new w.CustomEvent('cd:unlocks-changed'));
+  await settle();
+  assert.equal(card.hidden, true, '과거 해금 이벤트로 개인정보 결과를 복원하지 않는다');
+  assert.equal(appended.length, count);
+  w.close();
 });
 
 test('영냥이 모자 표면은 묶음 판정에 닿지 않는다', () => {
