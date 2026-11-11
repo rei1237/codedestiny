@@ -23,8 +23,8 @@ import LocalizedGuideScreen from '../_components/LocalizedGuideScreen';
 import { ROBOTS_META } from "../../../lib/seo/index-policy.mjs";
 
 // 천원 운세·천원사주 허브(docs/seo/YEONGNYANGI_SEARCH_STRATEGY.md). 주소는 그대로 두고 내용만 바꿨다.
-// 2026-11-04 부터 옛 1,000원 사주 리포트 3종(FUN)은 개별 판매를 마치고 사주 전체 풀이 평생 소장(saju_lifetime_bundle)에 들어 있다.
-// 이 페이지는 묶음 안내이고, 영냥이 고등어 상담은 정식가(10,000원)로 안내한다.
+// 2026-11-11 승인: 옛 천원 사주 리포트 3종(FUN)은 계산형 무료 콘텐츠다. 기존 구매 결과는 보존한다.
+// 이 페이지는 계산형 리포트와 별도 AI 상담을 구분한다. 유료 라이트·대운과 상담 가격은 정본을 따른다.
 // 🔴 가격·챕터·분량·입력 조건을 여기 숫자로 적지 말 것 — 결제 가격표와 상담 매니페스트에서 빌드 때 읽는다.
 //    묶음 가격은 정본 가격표(PIG_COIN_UNLOCK_PRODUCTS)에서 읽고, 없거나 0원이면 빌드를 멈춘다. 옛 개별 가격 1,000원은 어디에도 적지 않는다.
 // Service 에 Offer 를 붙이지 않는다 — buildKrwOffer 는 verify:paid-service-offer 가 결제 CI 트리거·결제 상수 대조 등록을 요구한다. 가격은 본문 표가 정본 가격표에서 읽는다.
@@ -38,7 +38,7 @@ const single=(domain:DomainId,fish:string)=>{const p=products.find(item=>item.re
 const mackerels=DOMAINS.map(domain=>single(domain,'mackerel'));
 if(new Set(mackerels.map(p=>p.priceKRW)).size!==1)throw new Error('천원사주 허브: 고등어 가격이 체계마다 다르다.');
 const PRICE=won(mackerels[0].priceKRW);
-// 묶음에 들어 있는 옛 천원 사주 콘텐츠. 무료 만세력 결과 화면에서 묶음 안내로 이어진다(js/core/saju/reportDashboard.js).
+// 옛 천원 사주 콘텐츠. 무료 만세력 결과 화면에서 개별 리포트로 이어진다(js/core/saju/reportDashboard.js).
 const FUN_ENTRY_HREF='/?action=cdOneStepFreeSajuEntry';
 const BUNDLE_SPEC=(PIG_COIN_UNLOCK_PRODUCTS as Record<string,{amountKRW?:number;featureKey?:string}>)[SAJU_BUNDLE_PRODUCT_ID];
 if(!BUNDLE_SPEC||BUNDLE_SPEC.featureKey!==SAJU_BUNDLE_FEATURE_KEY||!BUNDLE_SPEC.amountKRW)throw new Error('천원 운세 허브: 사주 전체 풀이 평생 소장 가격표를 찾지 못했다.');
@@ -66,8 +66,8 @@ const TOPICS=Object.values(topicCatalog).map(topic=>topic.label).join(', ');
 const sukuyoPair=readingManifest(single('sukuyo','mackerel'),'general','compatibility');
 
 const FAQS=[
- {question:'천원 운세로 찾던 사주 리포트는 어디서 볼 수 있나요?',answer:`${FUN.map(item=>item.name).join(', ')} ${FUN.length}가지는 따로 팔지 않고 ${SAJU_BUNDLE_LABEL}(${BUNDLE_PRICE}) 안에 들어 있어요. 무료 만세력 결과 화면에서 묶음 안내를 열 수 있고, 이미 구매하신 리포트는 계속 열어 보실 수 있어요. 달빛 럭키 리추얼은 로또 번호와 번호별 해석, 금전 루틴을 한 리포트에 담아요. 내 질문을 AI가 챕터로 길게 풀어 주는 영냥이 상담은 고등어 ${PRICE}부터예요.`},
- {question:`${SAJU_BUNDLE_LABEL}에는 무엇이 들어 있나요?`,answer:`원국 해석과 라이트 사주 풀이·대운 분석, 정적 궁합 풀이, 퀀텀 명리, 나의 매력 클래스, 인생 스킬 트리, 건강 리포트, 달빛 럭키 리추얼 같은 사주 리포트가 한 번 결제(${BUNDLE_PRICE})로 영구히 열려요. 구매한 생년월일의 사주에 붙고 이용 기간이 없어요. 상담과 궁합 상담처럼 그때그때 만드는 콘텐츠는 묶음에 포함되지 않아요. 앱(Google Play) 결제는 아직 준비 중이라 웹에서 이용해 주세요.`},
+ {question:'천원 운세로 찾던 사주 리포트는 어디서 볼 수 있나요?',answer:`${FUN.map(item=>item.name).join(', ')} ${FUN.length}가지는 계산형 콘텐츠로 무료 제공해요. 만세력 결과 화면에서 각 리포트를 열 수 있고, 이미 구매하신 결과도 계속 열어 보실 수 있어요. 달빛 럭키 리추얼은 로또 번호와 번호별 해석, 금전 루틴을 한 리포트에 담아요. 내 질문을 AI가 챕터로 길게 풀어 주는 영냥이 상담은 고등어 ${PRICE}부터예요.`},
+ {question:`${SAJU_BUNDLE_LABEL}에는 무엇이 들어 있나요?`,answer:`라이트 사주 풀이와 사주 대운 분석을 한 번 결제(${BUNDLE_PRICE})로 영구히 읽는 상품이에요. 구매한 생년월일의 사주에 붙고 이용 기간이 없어요. 무료 기본풀이와 재미 사주 리포트는 구매하지 않아도 볼 수 있어요. AI 상담과 AI 궁합은 별도 상품이며, 기존 구매 권리는 그대로 유지해요. 이용 가능한 결제 수단과 총액은 결제창에서 확인해 주세요.`},
  {question:'영냥이 상담도 천원인가요?',answer:`아니요. 영냥이 고등어 상담은 사주, 자미두수, 숙요점, 베다점, 점성술, 타로 여섯 가지 모두 ${PRICE}이에요. 더 깊은 상담은 ${TIERS.slice(1).map(fish=>`${packages[fish].name} ${won(single('saju',fish).priceKRW)}`).join(', ')}으로 구성되며, 초융합 상담도 별도 가격이에요. 선택한 상품의 가격과 이용권 적용 여부는 결제창에서 확인해 주세요.`},
  {question:'영냥이 상담은 이용권이나 월정석으로도 볼 수 있나요?',answer:'꿀단지 이용권은 건당 상한 이하의 상담에 적용됩니다. 작은 꿀단지는 건당 상한이 낮아 영냥이 상담에 쓸 수 없어요. 월정석도 쓸 수 있고, 꿀단지가 없다면 카드·카카오페이 등의 단건 결제로 이용할 수 있어요.'},
  {question:'출생시간을 모르면 상담할 수 없나요?',answer:'고등어 사주 상담은 출생시간 없이도 상담할 수 있어요. 자미두수, 숙요점, 베다점, 점성술은 출생시간으로 계산이 달라지므로 시간이 필요하고, 타로는 출생정보 없이 질문만으로 상담해요.'},
@@ -78,15 +78,15 @@ const FAQS=[
  {question:'입력한 생년월일과 질문은 어떻게 쓰이나요?',answer:'입력한 출생정보와 질문은 상담을 계산하고 결과를 기록해 다시 보여 주는 데 쓰여요. 보관과 처리 방식은 개인정보 처리방침에서 확인할 수 있어요.'},
 ];
 
-const TITLE=`옛 천원 운세 | ${SAJU_BUNDLE_LABEL} ${BUNDLE_PRICE}`;
-const DESCRIPTION=`매력 클래스·인생 스킬 트리 등 천원 운세 사주 리포트 ${FUN.length}종은 ${SAJU_BUNDLE_LABEL}(${BUNDLE_PRICE})에 들어 있어요. 영냥이 고등어 상담(${PRICE}) 가격도 확인하세요.`;
+const TITLE='옛 천원 운세 | 사주 리포트와 AI 상담';
+const DESCRIPTION=`매력 클래스·인생 스킬 트리 등 옛 천원 운세 사주 리포트 ${FUN.length}종을 알아보세요. 계산형 리포트와 별도 영냥이 AI 상담(${PRICE}부터)의 차이를 안내해요.`;
 const OG_TITLE=TITLE;
 
 export const metadata:Metadata={
  metadataBase:new URL('https://code-destiny.com'),
  title:{absolute:TITLE},
  description:DESCRIPTION,
- keywords:['천원 운세','천원운세','천원사주','천원 사주풀이','사주 리포트','사주 전체 풀이 평생 소장'],
+ keywords:['천원 운세','천원운세','천원사주','천원 사주풀이','사주 리포트','영냥이 상담'],
  alternates:{canonical:PAGE_URL},
  robots:ROBOTS_META.INDEX,
  openGraph:{type:'website',locale:'ko_KR',url:PAGE_URL,siteName:siteSeo.brandName,title:OG_TITLE,description:DESCRIPTION,images:[yeongnyangiOgImage]},
@@ -96,7 +96,7 @@ export const metadata:Metadata={
 const jsonLd=[
  buildWebPageJsonLd({title:TITLE,description:DESCRIPTION,path:PATH}),
  buildBreadcrumbJsonLd([{name:'꿀꿀 운세',path:'/'},{name:'천원 운세·천원사주',path:PATH}]),
- buildServiceJsonLd({name:SAJU_BUNDLE_LABEL,description:`무료 만세력 결과 화면에서 ${FUN.map(item=>item.name).join('·')} ${FUN.length}종을 한 번에 여는 묶음 안내. 영냥이 상담은 별도 가격(고등어 ${PRICE}부터)이에요.`,path:PATH}),
+ buildServiceJsonLd({name:'계산형 재미 사주 리포트',description:`무료 만세력 결과 화면에서 ${FUN.map(item=>item.name).join('·')} ${FUN.length}종을 추가 결제 없이 읽는 방법을 안내해요. 영냥이 상담은 별도 가격(고등어 ${PRICE}부터)이에요.`,path:PATH}),
  buildFaqPageJsonLd(FAQS),
 ];
 const serialize=(value:unknown)=>JSON.stringify(value).replace(/</g,'\\u003c');
@@ -108,25 +108,25 @@ export default function Page(){
   <section className={styles.intro}>
    <div>
     <p className={styles.kicker}>꿀꿀 운세 · 사주 리포트</p>
-    <h1><span className={styles.h1Line}>옛 천원 운세 리포트,</span> <span className={styles.h1Line}>{SAJU_BUNDLE_LABEL}</span></h1>
-    <p>천원 운세로 알려졌던 나의 매력 클래스, 인생 스킬 트리, 달빛 럭키 리추얼은 이제 따로 팔지 않고 {SAJU_BUNDLE_LABEL}({BUNDLE_PRICE}) 한 번으로 열어요. 무료 만세력으로 원국을 먼저 보고, 마음에 들면 이어서 열어 보세요. 이미 구매하신 리포트는 그대로 계속 열려요.</p>
+    <h1><span className={styles.h1Line}>옛 천원 운세 리포트,</span> <span className={styles.h1Line}>지금은 어떻게 볼까요?</span></h1>
+    <p>천원 운세로 알려졌던 나의 매력 클래스, 인생 스킬 트리, 달빛 럭키 리추얼은 이제 무료예요. 만세력과 기본풀이를 본 뒤 각 리포트를 이미지와 함께 펼쳐 보세요. 이미 구매하신 결과도 그대로 계속 열려요.</p>
     <p>한 가지 고민을 근거와 함께 길게 읽고 싶다면 영냥이 고등어 상담({PRICE})이 맞아요. 새 질문으로 시작하는 사주 고등어 상담은 {EXPANDED_CHAPTERS.mackerel}개 챕터에서 내 기질과 고민의 흐름을 읽고, 왜 그렇게 해석했는지와 생활 속에서 해볼 행동을 함께 살펴요.</p>
-    <p className={styles.actions} data-cd-cross-sell="thousand_won_intro"><a className={styles.primary} href="#fun">{SAJU_BUNDLE_LABEL} 보기</a><a href={QUESTION_HREF}>{PRICE} 사주에 내 질문 남기기</a></p>
-    <p className={styles.policy}>로그인 후 결제창에서 총액과 적용 수단을 확인해요. 자동 결제는 없어요.</p>
+    <p className={styles.actions} data-cd-cross-sell="thousand_won_intro"><a className={styles.primary} href="#fun">재미 사주 리포트 보기</a><a href={QUESTION_HREF}>{PRICE} 사주에 내 질문 남기기</a></p>
+    <p className={styles.policy}>계산형 재미 리포트는 결제 없이 이용해요. 별도 AI 상담은 결제창에서 총액과 적용 수단을 확인하며, 자동 결제는 없어요.</p>
    </div>
    <img src="/assets/yeongnyangi/hero.webp" width={480} height={480} alt="생선을 기다리며 사주를 봐 주는 고양이 영냥이" fetchPriority="high"/>
   </section>
 
   <section id="fun" aria-labelledby="fun-title">
-   <h2 id="fun-title">{SAJU_BUNDLE_LABEL}에 들어 있는 사주 리포트</h2>
-   <p>무료 만세력을 보면 결과 화면에서 묶음 안내를 열 수 있어요. 아래 리포트는 AI 상담이 아니라 내 사주 계산 결과로 바로 만드는 리포트예요.</p>
+   <h2 id="fun-title">무료로 읽는 재미 사주 리포트</h2>
+   <p>만세력 결과 화면에서 아래 리포트를 각각 열 수 있어요. 내 사주 계산 결과와 고정 해석으로 만드는 콘텐츠이며, 새 AI 상담 생성이나 결제가 필요하지 않아요.</p>
    <div className={styles.systems}>
     {FUN.map(item=><section key={item.key} className={styles.system} aria-labelledby={`fun-${item.key.replace(/\W/g,'-')}`}>
-     <h3 id={`fun-${item.key.replace(/\W/g,'-')}`}>{item.name} <small>묶음 포함</small></h3>
+     <h3 id={`fun-${item.key.replace(/\W/g,'-')}`}>{item.name} <small>무료</small></h3>
      <p>{item.desc}</p>
     </section>)}
    </div>
-   <p className={styles.actions} data-cd-cross-sell="thousand_won_fun"><a className={styles.primary} href={FUN_ENTRY_HREF}>무료 만세력 보고 {SAJU_BUNDLE_LABEL} 열기</a><a href="#example">영냥이 상담 예시 보기</a></p>
+   <p className={styles.actions} data-cd-cross-sell="thousand_won_fun"><a className={styles.primary} href={FUN_ENTRY_HREF}>만세력 보고 재미 사주 무료로 읽기</a><a href="#example">영냥이 상담 예시 보기</a></p>
   </section>
 
   <section id="example" className={styles.sample} aria-labelledby="example-title">
@@ -147,7 +147,7 @@ export default function Page(){
   <LaunchOfferBanner/>
   <section aria-labelledby="what">
    <h2 id="what">천원사주·천원운세와 영냥이 상담</h2>
-   <p>천원 운세, 천원운세로 찾으시던 사주 리포트 {FUN.length}가지는 이제 {SAJU_BUNDLE_LABEL}({BUNDLE_PRICE})에 들어 있어요. 영냥이 상담은 고등어 {PRICE}부터 시작하며, 꿀단지 이용권 한도·월정석 또는 단건 결제로 한 번의 상담 결과를 받아요. 자동 결제는 아니에요.</p>
+   <p>천원 운세, 천원운세로 찾으시던 사주 리포트 {FUN.length}가지는 이제 추가 결제 없이 볼 수 있어요. 영냥이 상담은 고등어 {PRICE}부터 시작하며, 꿀단지 이용권 한도·월정석 또는 단건 결제로 한 번의 상담 결과를 받아요. 자동 결제는 아니에요.</p>
    <p>고등어 상담은 사주가 {mackerels[0].chapterCount}개, 다른 체계가 {chapterRange(mackerels.slice(1))} 챕터로 구성돼요. 상담 종류를 골라 시작할 때의 챕터 수예요. 이 페이지의 질문 버튼이나 영냥이 첫 화면의 질문 상담에서 새 한국어 질문으로 시작하면 같은 {PRICE}에 {EXPANDED_CHAPTERS.mackerel}개 챕터로 구성돼요. 상담 전체 분량은 {a4Label(consultationBudget('mackerel').initial)}({A4_PAGE_NOTE})이고, 챕터마다 {mackerelPolicy.depth.join(' → ')} 순서로 내용을 담아요. 짧은 운세 문장 한 줄이 아니라, 왜 그렇게 읽었는지와 오늘 해볼 수 있는 첫 행동까지 함께 받는 구성이에요.</p>
    <p>운세마다 해석·궁합 등 제공하는 상담 종류를 먼저 골라요. 무엇이든 물어보기에서는 {TOPICS} 등의 주제를 고르고 궁금한 질문을 1,000자까지 남겨요. 타로는 카드에 물어볼 질문을 따로 적어요.</p>
   </section>
@@ -169,14 +169,14 @@ export default function Page(){
 
   <section aria-labelledby="difference">
    <h2 id="difference">무료 운세와 영냥이 상담의 차이</h2>
-   <p>꿀꿀운세의 무료 기능을 먼저 살펴보세요. <a href="/today/">오늘의 운세</a>, <a href="/saju/">무료 만세력</a>, <a href="/ziwei/">자미두수 명반</a>, <a href="/sukuyo/">숙요점 본명숙</a>, <a href="/vedic/">베다 점성술</a>, <a href="/astrology/">점성술 차트</a>, <a href="/tarot/">타로</a>에서 각 기능을 알아볼 수 있어요. 무료 만세력은 출생 정보를 입력하고 회원가입 또는 로그인 후 결과를 확인해요. 만세력 아래의 사주 풀이는 {SAJU_BUNDLE_LABEL}으로 이어서 열 수 있어요.</p>
+   <p>꿀꿀운세의 무료 기능을 먼저 살펴보세요. <a href="/today/">오늘의 운세</a>, <a href="/saju/">무료 만세력</a>, <a href="/ziwei/">자미두수 명반</a>, <a href="/sukuyo/">숙요점 본명숙</a>, <a href="/vedic/">베다 점성술</a>, <a href="/astrology/">점성술 차트</a>, <a href="/tarot/">타로</a>에서 각 기능을 알아볼 수 있어요. 무료 만세력은 출생 정보를 입력하고 회원가입 또는 로그인 후 결과를 확인해요. 만세력 아래의 기본풀이와 계산형 재미 리포트도 무료예요. 라이트 사주 풀이·사주 대운 분석은 {SAJU_BUNDLE_LABEL}({BUNDLE_PRICE})로 별도 제공해요.</p>
    <p>영냥이 상담은 같은 계산을 출발점으로 삼되, 내가 고른 주제와 질문을 반영해 챕터별로 이어지는 글을 새로 써요. 결과는 내 계정의 상담 기록에 남아 나중에 다시 열 수 있어요. 기본 성향만 알고 싶다면 무료 페이지로 충분하고, 한 가지 고민을 근거와 함께 길게 읽고 싶을 때 영냥이 상담이 맞아요.</p>
    <div className={styles.tableWrap}><table>
     <caption>무료 운세 페이지와 영냥이 고등어 상담 비교</caption>
     <thead><tr><th scope="col">구분</th><th scope="col">꿀꿀운세 무료 페이지</th><th scope="col">영냥이 고등어 상담</th></tr></thead>
     <tbody>
      <tr><th scope="row">비용</th><td>무료</td><td>{PRICE} · 꿀단지 이용권·월정석 또는 단건 결제</td></tr>
-     <tr><th scope="row">결과 형태</th><td>만세력 원국과 한 줄 성향</td><td>{chapterRange(mackerels)} 챕터로 나눈 상담 글</td></tr>
+     <tr><th scope="row">결과 형태</th><td>만세력·기본풀이·계산형 재미 리포트</td><td>{chapterRange(mackerels)} 챕터로 나눈 상담 글</td></tr>
      <tr><th scope="row">주제·질문 반영</th><td>페이지마다 정해진 항목</td><td>운세별 전용 상담 또는 무엇이든 물어보기</td></tr>
      <tr><th scope="row">로그인</th><td>기능별로 다름 · 무료 만세력은 로그인 후 결과 확인</td><td>CODE DESTINY 계정 필요</td></tr>
      <tr><th scope="row">다시 보기</th><td>입력 정보로 다시 계산</td><td>영냥이 보관함에서 다시 열기</td></tr>
