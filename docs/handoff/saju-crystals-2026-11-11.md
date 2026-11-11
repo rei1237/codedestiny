@@ -200,7 +200,7 @@ next: 통합 — 상위 세션이 사용자와 main 로컬 merge·push·배포·
   - 1:1 컷(3·7·9)은 위쪽 빈 여백이 넓고(1280에서 약 150px), 아치·선반이 위 가장자리에서 잘린다. 사용자 그림이라 코드로 고치지 않았다.
   - OG는 연꽃 윗부분이 가장자리에 닿는 정도다.
 - 검사
-  - check:fast(`--base=bae74a4c1`): exit 0. jest 474 suites 통과(1 skipped), 7897 tests 통과. 로그는 `qacheck-fast.log`. (`timeout 590`을 걸면 jest 도중 끊겨 가짜 FAIL이 난다. 6분쯤 걸린다.)
+  - check:fast(`--base=bae74a4c1`): exit 0. jest 474 suites 통과(1 skipped), 7897 tests 통과. 로그는 `D:\CodeDestiny-Build\saju-crystals-20261111\qa\check-fast.log`. (`timeout 590`을 걸면 jest 도중 끊겨 가짜 FAIL이 난다. 6분쯤 걸린다.)
   - check:pre-push: verify:public-mirror-fresh만 FAIL이다. `free-fortune-policy.{js,mjs}` 4개 파일을 sync가 바꾼다고 하지만 git diff는 비어 있고 줄끝(CRLF/LF)만 다르다. 이 브랜치는 그 파일을 건드리지 않았다(기존 Windows 줄끝 문제). 나머지 home-service-registry·sitemap-drift·llms --check·seo-entity-registry·repo-hygiene는 모두 OK다.
 - 1280 요소 캡처가 뷰포트(900)보다 크면 그림이 빈 색으로 찍힌다. 캡처 쪽 문제이므로 뷰포트를 1400으로 키워 다시 찍었다.
 
