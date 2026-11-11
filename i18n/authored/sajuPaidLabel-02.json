@@ -1,0 +1,45 @@
+{
+  "_comment": "Align the three paid Saju showcase shell markers with the approved Light Saju bundle name and the free basic/fun versus paid Light/ten-year-cycle and AI policy. Both CTAs open the same bundle. Display copy only; no access, product, price, or history changes.",
+  "result.premiumShowcase.subtitle": {
+    "ko": "라이트 사주와 대운 풀이는 한 번 결제로 영구 소장해요. 기본·재미 사주는 무료이며 AI 상담은 별도 유료예요.",
+    "en": "One payment gives permanent access to the Light Saju reading and ten-year cycle readings. Basic and fun Saju readings are free; AI consultations are charged separately.",
+    "ja": "一度の支払いでライト四柱推命鑑定と大運鑑定を期限なく読めます。基本・お楽しみ鑑定は無料で、AI相談は別途有料です。",
+    "zh-CN": "一次付费即可永久阅读轻量四柱命理解读与大运解析。基础与趣味命理解读免费，AI咨询另行收费。",
+    "zh-TW": "一次付費即可永久閱讀輕量四柱命理解讀與大運解析。基礎與趣味命理解讀免費，AI諮詢另行收費。",
+    "vi": "Thanh toán một lần để đọc vĩnh viễn Luận giải Tứ Trụ cơ bản và đại vận. Các nội dung Tứ Trụ cơ bản và giải trí được cung cấp miễn phí; tư vấn AI được tính phí riêng.",
+    "hi": "एक बार भुगतान करके लाइट साजू व्याख्या और दस-वर्षीय भाग्य चक्रों की व्याख्या हमेशा पढ़ें। मूल और मनोरंजक साजू व्याख्याएँ निःशुल्क हैं; AI परामर्श का शुल्क अलग से लिया जाता है।",
+    "es": "Un solo pago da acceso permanente a la lectura ligera de Saju y a los ciclos de diez años. Las lecturas básicas y divertidas de Saju son gratis; las consultas con IA se cobran aparte.",
+    "fr": "Un seul paiement donne un accès permanent à la lecture Saju légère et aux cycles de dix ans. Les lectures Saju de base et ludiques sont gratuites ; les consultations IA sont facturées séparément.",
+    "de": "Eine einmalige Zahlung gewährt dauerhaften Zugriff auf die kompakte Saju-Deutung und die Deutung der Zehnjahreszyklen. Grundlegende und unterhaltsame Saju-Deutungen sind kostenlos; KI-Beratungen werden separat berechnet.",
+    "nl": "Eén betaling geeft blijvende toegang tot de beknopte Saju-lezing en de duiding van tienjaarscycli. Basis- en speelse Saju-lezingen zijn gratis; AI-consulten worden apart in rekening gebracht.",
+    "ms": "Satu bayaran memberi akses kekal kepada bacaan Saju ringkas dan bacaan kitaran sepuluh tahun. Bacaan Saju asas dan santai adalah percuma; konsultasi AI dikenakan bayaran berasingan."
+  },
+  "result.premiumShowcase.summary.cta": {
+    "ko": "라이트 사주 풀이 열기 →",
+    "en": "Open Light Saju reading →",
+    "ja": "ライト四柱推命鑑定を開く →",
+    "zh-CN": "打开轻量四柱命理解读 →",
+    "zh-TW": "開啟輕量四柱命理解讀 →",
+    "vi": "Mở Luận giải Tứ Trụ cơ bản →",
+    "hi": "लाइट साजू व्याख्या खोलें →",
+    "es": "Abrir lectura ligera de Saju →",
+    "fr": "Ouvrir la lecture Saju légère →",
+    "de": "Kompakte Saju-Deutung öffnen →",
+    "nl": "Beknopte Saju-lezing openen →",
+    "ms": "Buka bacaan Saju ringkas →"
+  },
+  "result.premiumShowcase.daewun.cta": {
+    "ko": "라이트 사주 풀이 열기 →",
+    "en": "Open Light Saju reading →",
+    "ja": "ライト四柱推命鑑定を開く →",
+    "zh-CN": "打开轻量四柱命理解读 →",
+    "zh-TW": "開啟輕量四柱命理解讀 →",
+    "vi": "Mở Luận giải Tứ Trụ cơ bản →",
+    "hi": "लाइट साजू व्याख्या खोलें →",
+    "es": "Abrir lectura ligera de Saju →",
+    "fr": "Ouvrir la lecture Saju légère →",
+    "de": "Kompakte Saju-Deutung öffnen →",
+    "nl": "Beknopte Saju-lezing openen →",
+    "ms": "Buka bacaan Saju ringkas →"
+  }
+}
