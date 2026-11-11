@@ -1,11 +1,12 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import CraftedProductDisclosure from "@/app/components/CraftedProductDisclosure";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import FptiHero from "./FptiHero";
 import FptiInputForm from "./FptiInputForm";
 import styles from "./FptiCosmic.module.css";
+import { useFreeReadingGuard } from "@/app/_lib/use-free-reading-guard";
+import { useReadingIdentityReset } from "@/app/_lib/use-reading-identity-reset";
 import type { FptiAnalysisResult, FptiFormInput, FptiSourceData } from "@/lib/fpti/fpti-types";
 import {
   fetchCurrentDestinyProfile,
@@ -13,9 +14,9 @@ import {
   type DestinyProfileCard,
 } from "@/app/_lib/profile-card-storage";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
-import { usePaidResume, packPaidResumeArg, unpackPaidResumeArg, type PaidResumeDescriptor } from "@/app/hooks/usePaidResume";
+import { usePaidResume, unpackPaidResumeArg } from "@/app/hooks/usePaidResume";
 
-// 결제 후 자동 재개 종류 — 심층 리포트의 featureKey 와 같은 값이다(FptiResultCard 의 purchaseFeature).
+// 이미 진행된 과거 결제의 복귀만 보존한다. 신규 결제 진입은 제공하지 않는다.
 const FPTI_DEEP_REPORT_RESUME_KIND = "premium-fpti-report";
 
 const FptiLoading = dynamic(() => import("./FptiLoading"), {
@@ -420,10 +421,17 @@ export default function FptiExperience() {
   const [linkedProfileName, setLinkedProfileName] = useState("");
   const [autoRunning, setAutoRunning] = useState(false);
   const autoSignatureRef = useRef("");
-  // 🔴 심층 리포트는 "계정 + 생년월일" 단위 해금이다. 결과가 저장 프로필의 출생 정보로 계산됐을 때만
-  // 그 profileId 로 조회·구매한다(직접 입력한 생년월일은 프로필을 저장해야 살 수 있다).
+  // 저장 프로필과 실제 계산한 입력이 일치할 때만 해당 프로필로 심층 리포트를 조회한다.
   const [linkedProfile, setLinkedProfile] = useState<{ profileId: string; signature: string } | null>(null);
   const [resultSignature, setResultSignature] = useState("");
+  const [resultInput, setResultInput] = useState<FptiFormInput | null>(null);
+  const [restorePurchasedReport, setRestorePurchasedReport] = useState(false);
+  const analysisRevision = useRef(0);
+  const profileRevision = useRef(0);
+  const mounted = useRef(true);
+  const beginAnalysis = useFreeReadingGuard(`fpti-analysis:${analysisRevision.current}`);
+  const beginAnalysisRef = useRef(beginAnalysis);
+  beginAnalysisRef.current = beginAnalysis;
   const copy = getFptiExperienceCopy(locale);
 
   const loadingStep = useMemo(() => copy.loadingSteps[stepIndex] || copy.loadingSteps[0], [copy, stepIndex]);
@@ -472,7 +480,9 @@ export default function FptiExperience() {
   }, [copy.currentProfile, copy.profileUser]);
 
   const syncFormFromCurrentProfileAsync = useCallback(async (eventProfile?: unknown) => {
+    const revision = ++profileRevision.current;
     const currentProfile = await fetchCurrentDestinyProfile(hasFptiProfileInput);
+    if (!mounted.current || revision !== profileRevision.current) return null;
     if (!currentProfile) return eventProfile ? syncFormFromCurrentProfile(eventProfile) : null;
     const profileForm = toFormInput(currentProfile);
     if (!profileForm) return null;
@@ -492,92 +502,106 @@ export default function FptiExperience() {
     };
   }, [copy.currentProfile, copy.profileUser, syncFormFromCurrentProfile]);
 
+  const clearResult = useCallback(() => {
+    analysisRevision.current++;
+    profileRevision.current++;
+    autoSignatureRef.current = "";
+    setResult(null);
+    setResultInput(null);
+    setResultSignature("");
+    setSajuSource(null);
+    setError("");
+    setAutoRunning(false);
+    setRestorePurchasedReport(false);
+    setPhase("landing");
+  }, []);
+
+  useReadingIdentityReset(() => {
+    clearResult();
+    setLinkedProfile(null);
+    setLinkedProfileName("");
+    setForm(DEFAULT_FORM);
+  });
+
   useEffect(() => {
+    mounted.current = true;
     void syncFormFromCurrentProfileAsync();
-    const onProfileChanged = (event: Event) => {
-      const detail = (event as CustomEvent).detail;
-      void syncFormFromCurrentProfileAsync(detail?.profile || detail);
+    const onProfileChanged = () => {
+      clearResult();
+      setLinkedProfile(null);
+      setLinkedProfileName("");
+      void syncFormFromCurrentProfileAsync();
     };
     const onStorage = (event: StorageEvent) => {
-      if (!event.key) return;
-      if (isDestinyProfileStorageKey(event.key)) {
-        void syncFormFromCurrentProfileAsync();
-      }
+      if (!event.key || isDestinyProfileStorageKey(event.key)) onProfileChanged();
     };
-    // 🔴 document 한 곳에만 건다(window 중복 등록 시 bubbles:true 발행이 핸들러를 2번 돌린다).
     document.addEventListener("destinyProfileChanged", onProfileChanged);
     window.addEventListener("storage", onStorage);
     return () => {
+      mounted.current = false;
+      analysisRevision.current++;
+      profileRevision.current++;
       document.removeEventListener("destinyProfileChanged", onProfileChanged);
       window.removeEventListener("storage", onStorage);
     };
-  }, [syncFormFromCurrentProfile, syncFormFromCurrentProfileAsync]);
+  }, [clearResult, syncFormFromCurrentProfileAsync]);
 
   const analyzeWith = useCallback(async (input: FptiFormInput, trigger: "manual" | "auto" | "profile" = "manual") => {
     const analysisInput = toAnalysisInput(input);
     if (!hasRequiredFptiSajuFields(analysisInput)) {
-      if (trigger === "manual") {
-        setError(copy.inputRequired);
+      if (trigger === "manual") setError(copy.inputRequired);
+      return false;
+    }
+    const attempt = beginAnalysisRef.current();
+    if (!attempt) return false;
+    const revision = analysisRevision.current;
+    const valid = () => mounted.current && revision === analysisRevision.current && attempt.valid();
+    let timer: number | undefined;
+    try {
+      const fptiAdapter = await import("@/lib/fpti/fpti-adapter");
+      if (!valid()) return false;
+      let computed: FptiSourceData;
+      try {
+        computed = fptiAdapter.calculateSajuSourceFromBirth(analysisInput);
+      } catch {
+        setError(copy.invalidBirthInput);
+        setPhase("input");
+        return false;
       }
-      return false;
-    }
-
-    let fptiAdapter: typeof import("@/lib/fpti/fpti-adapter");
-    try {
-      fptiAdapter = await import("@/lib/fpti/fpti-adapter");
-    } catch {
-      setError(copy.analysisFailed);
-      setPhase("input");
-      return false;
-    }
-
-    let computed: FptiSourceData;
-    try {
-      // 입력값을 사주 원천 데이터로 먼저 계산해 FPTI 상태와 동기화합니다.
-      computed = fptiAdapter.calculateSajuSourceFromBirth(analysisInput);
       setSajuSource(computed);
-    } catch {
-      setError(copy.invalidBirthInput);
-      setPhase("input");
-      return false;
-    }
-
-    setError("");
-    setStepIndex(0);
-    setPhase("loading");
-    setAutoRunning(trigger === "auto");
-
-    const timer = window.setInterval(() => {
-      setStepIndex((prev) => (prev + 1) % copy.loadingSteps.length);
-    }, 620);
-
-    try {
+      setError("");
+      setStepIndex(0);
+      setPhase("loading");
+      setAutoRunning(trigger === "auto");
+      timer = window.setInterval(() => {
+        if (valid()) setStepIndex((prev) => (prev + 1) % copy.loadingSteps.length);
+      }, 620);
       const [analysis] = await Promise.all([
         Promise.resolve(fptiAdapter.analyzeFptiFromSajuSource(computed)),
         sleep(trigger === "auto" ? 1300 : trigger === "profile" ? 700 : 2200),
       ]);
+      if (!valid()) return false;
       setResult(analysis);
+      setResultInput({ ...analysisInput });
       setResultSignature(buildAutoSignature(analysisInput));
       setPhase("result");
       autoSignatureRef.current = buildAutoSignature(analysisInput);
-      if (typeof window !== "undefined") {
-        window.requestAnimationFrame(() => {
-          const target = document.getElementById("fpti-result");
-          target?.scrollIntoView({ behavior: "smooth", block: "start" });
-        });
-      }
+      window.requestAnimationFrame(() => {
+        if (valid()) document.getElementById("fpti-result")?.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
       return true;
     } catch {
-      setError(copy.analysisFailed);
-      setPhase("input");
+      if (valid()) { setError(copy.analysisFailed); setPhase("input"); }
       return false;
     } finally {
-      setAutoRunning(false);
-      window.clearInterval(timer);
+      if (valid()) setAutoRunning(false);
+      if (timer !== undefined) window.clearInterval(timer);
+      attempt.finish();
     }
   }, [copy.analysisFailed, copy.inputRequired, copy.invalidBirthInput, copy.loadingSteps.length, toAnalysisInput]);
 
   const start = () => {
+    clearResult();
     setPhase("input");
     setError("");
     syncFormFromCurrentProfile();
@@ -591,16 +615,20 @@ export default function FptiExperience() {
   };
 
   const analyzeCurrentProfile = async () => {
+    const revision = profileRevision.current + 1;
     const profileForm = syncFormFromCurrentProfile() || await syncFormFromCurrentProfileAsync();
+    if (!mounted.current || revision !== profileRevision.current) return;
     if (!profileForm) {
       setError(copy.profileMissing);
       setPhase("input");
       return;
     }
+    setRestorePurchasedReport(false);
     await analyzeWith(profileForm, "profile");
   };
 
   const onAnalyze = async () => {
+    setRestorePurchasedReport(false);
     await analyzeWith(form, "manual");
   };
 
@@ -620,26 +648,14 @@ export default function FptiExperience() {
     };
   }, [analyzeWith, autoReady, form, phase]);
 
-  /**
-   * 결제 후 자동 재개 — 심층 리포트 결제는 FptiResultCard 에서 일어나지만, 핸들러는 여기에 둔다.
-   * 🔴 복귀한 문서는 phase="landing" 에서 시작해 결과 카드가 아예 마운트되지 않는다 —
-   *    잎 컴포넌트에 등록하면 핸들러가 영영 등록되지 않아 '지금 열기' 카드로만 떨어진다.
-   * 열기 방법: 결제 전 입력을 되살려 같은 결과 화면을 다시 연다. 해금 복원은 결과 카드가
-   *    마운트될 때 이미 도는 서버 조회(/api/fpti/deep-report)가 그대로 한다 — 이 기능은
-   *    시그니처 스코프 영구 해금이라 결제분이 서버에 남아 있고, 여기서 해금 로직을 다시
-   *    구현하면 같은 판정이 둘로 갈린다(원칙 6).
-   */
-  const buildDeepReportResume = usePaidResume(FPTI_DEEP_REPORT_RESUME_KIND, async (args) => {
+  // 과거 결제 복귀는 같은 입력으로 다시 열고, 결과 카드가 기존 구매 API로 복원한다.
+  usePaidResume(FPTI_DEEP_REPORT_RESUME_KIND, async (args) => {
     const restored = unpackPaidResumeArg<FptiFormInput>(args.form);
     if (!restored) return false;
     setForm(restored);
+    setRestorePurchasedReport(true);
     return analyzeWith(restored, "profile");
   });
-
-  const buildDeepReportResumeDescriptor = useCallback(
-    (): PaidResumeDescriptor => buildDeepReportResume({ form: packPaidResumeArg(form) }),
-    [buildDeepReportResume, form],
-  );
 
   const sourcePillars = useMemo(() => {
     if (!sajuSource) return null;
@@ -690,6 +706,7 @@ export default function FptiExperience() {
             <button
               type="button"
               onClick={analyzeCurrentProfile}
+              data-cd-reading-action="primary"
               className={`${styles.softButton} rounded-full px-4 py-2 text-xs font-semibold`}
             >
               {copy.analyzeProfile}
@@ -710,7 +727,7 @@ export default function FptiExperience() {
           <section id="fpti-input">
             <FptiInputForm
               value={form}
-              onChange={setForm}
+              onChange={(next) => { analysisRevision.current++; profileRevision.current++; setForm(next); }}
               onSubmit={onAnalyze}
               busy={false}
               autoReady={autoReady}
@@ -721,13 +738,13 @@ export default function FptiExperience() {
 
         {phase === "loading" && <FptiLoading step={loadingStep} stepIndex={stepIndex} />}
 
-        {phase === "result" && result && (
+        {phase === "result" && result && resultInput && (
           <section id="fpti-result">
-            {locale === "ko" && <div style={{ width: "100%", maxWidth: 540, margin: "0 auto 24px" }}><CraftedProductDisclosure featureKey="premium-fpti-report" /></div>}
             <FptiResultCard
               result={result}
               savedProfileId={linkedProfile && linkedProfile.signature === resultSignature ? linkedProfile.profileId : ""}
-              buildResumeDescriptor={buildDeepReportResumeDescriptor}
+              birthInput={resultInput}
+              restorePurchasedReport={restorePurchasedReport}
             />
           </section>
         )}

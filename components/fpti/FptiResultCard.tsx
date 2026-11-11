@@ -2,15 +2,15 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { m } from "framer-motion";
-import { purchaseFeature } from "@/app/_lib/billing-client";
 import { authFetch } from "@/app/_lib/auth-client";
-import { useAccessStoreSnapshot } from "@/app/providers/UnlockProvider";
-import type { PaidResumeDescriptor } from "@/app/hooks/usePaidResume";
-import type { FptiAnalysisResult } from "@/lib/fpti/fpti-types";
+import { hasFreeReadingSession } from "@/app/_lib/free-reading-access";
+import { useFreeReadingGuard } from "@/app/_lib/use-free-reading-guard";
+import { useReadingIdentityReset } from "@/app/_lib/use-reading-identity-reset";
+import { getCurrentLoadingLocale } from "@/constants/loadingMessages";
+import type { FptiAnalysisResult, FptiFormInput } from "@/lib/fpti/fpti-types";
 import {
   buildFptiDeepReport,
   type FptiDeepReport,
-  type FptiReportAccessState,
   validateFptiDeepReport,
 } from "@/lib/fpti/premium-report";
 import FptiElementChart from "./FptiElementChart";
@@ -23,28 +23,13 @@ import { useFptiSharedCopy } from "./_lib/copy";
 
 type Props = {
   result: FptiAnalysisResult;
-  /**
-   * 이 결과를 계산한 저장 프로필 id. 직접 입력(저장 안 된) 생년월일이면 "" — 해금 조회·구매 모두
-   * "계정 + 생년월일" 단위라 저장 프로필 없이는 잠금이고 살 수도 없다.
-   */
+  /** 이 결과를 계산한 저장 프로필 id. 서버가 소유권과 출생 정보 일치를 확인한다. */
   savedProfileId?: string;
-  /**
-   * 결제 후 자동 재개 서술자 생성기. 🔴 부모(FptiExperience)가 만든다 — 복귀한 문서에서는
-   * 이 카드가 마운트되지 않아 여기에 핸들러를 등록하면 재개가 영영 안 걸린다.
-   */
-  buildResumeDescriptor: () => PaidResumeDescriptor;
+  birthInput: Pick<FptiFormInput, "birthDate" | "birthTime" | "timeUnknown" | "calendarType">;
+  /** 이전 구매의 복귀만 원래 보관 경로를 재개한다. 무료 결과에는 적용하지 않는다. */
+  restorePurchasedReport?: boolean;
 };
 
-type StoredDeepReport = {
-  version: number;
-  scope: string;
-  signature: string;
-  access: FptiReportAccessState;
-  report: FptiDeepReport;
-};
-
-const STORAGE_KEY = "fpti_deep_report_state_v2";
-const FPTI_PREMIUM_UNLOCK_KEYS = ["premium-fpti-report", "premium_fpti_report", "generatefptideepreport", "openfptideepreport"];
 const DISALLOWED_RENDER_TEXT = [
   "섹션 로딩 중입니다.",
   "내용 준비 중입니다.",
@@ -176,15 +161,6 @@ function resolveTriadLabels(chapterIdx: number, section?: Record<string, unknown
   return { strength: "성향 강점", risk: "주의", action: "실행" };
 }
 
-function buildUnlockRequestId(scope: string, signature: string): string {
-  const base = `${scope}|${signature}`.toLowerCase();
-  let hash = 0;
-  for (let i = 0; i < base.length; i += 1) {
-    hash = (hash * 31 + base.charCodeAt(i)) >>> 0;
-  }
-  return `fpti-deep-${hash.toString(16).padStart(8, "0")}`;
-}
-
 function normalizeDeepReport(report: FptiDeepReport, unlocked: boolean): FptiDeepReport {
   const safeChapters = Array.isArray(report?.chapters) ? report.chapters.slice(0, 7).map((chapter, idx) => {
     const sectionArray = Array.isArray(chapter?.sections) ? chapter.sections : [];
@@ -310,23 +286,25 @@ async function fetchServerDeepReport(
   result: FptiAnalysisResult,
   signature: string,
   savedProfileId: string,
+  restorePurchasedReport = false,
 ): Promise<FptiDeepReport | null> {
-  // 저장 프로필이 없으면 서버도 잠금으로 답한다 — 부를 이유가 없다.
+  // 기존 구매 원본만 읽는다. 이전 결제 복귀에서만 원래 생성·보관 경로를 재개한다.
   if (!savedProfileId) return null;
   try {
-    const response = await authFetch("/api/fpti/deep-report", {
-      method: "POST",
+    const query = new URLSearchParams({ reportSignature: signature, profileId: savedProfileId });
+    const response = await authFetch(restorePurchasedReport ? "/api/fpti/deep-report" : `/api/fpti/deep-report?${query}`, {
+      method: restorePurchasedReport ? "POST" : "GET",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
+      ...(restorePurchasedReport ? { body: JSON.stringify({
         reportSignature: signature,
         reportId: signature,
         sessionId: signature,
         profileId: savedProfileId,
         selectedProfileId: savedProfileId,
         result,
-      }),
+      }) } : {}),
       cache: "no-store",
-    });
+    }, { retryOn401: false });
 
     if (!response.ok) return null;
     const payload = await response.json().catch(() => ({}));
@@ -398,18 +376,6 @@ function CosmicRadar() {
   );
 }
 
-function readAuthScope(): string {
-  if (typeof window === "undefined") return "anonymous";
-  try {
-    const raw = localStorage.getItem("fortune_auth_user");
-    if (!raw) return "anonymous";
-    const parsed = JSON.parse(raw) as Record<string, unknown>;
-    return String(parsed.userId || parsed.id || parsed.email || "anonymous");
-  } catch {
-    return "anonymous";
-  }
-}
-
 function buildSignature(result: FptiAnalysisResult): string {
   const axis = result.axisScores;
   return [
@@ -426,86 +392,6 @@ function buildSignature(result: FptiAnalysisResult): string {
     result.source?.dayMaster || "",
     result.source?.monthBranch || "",
   ].join("|");
-}
-
-function safeReadStored(scope: string, signature: string): StoredDeepReport | null {
-  if (typeof window === "undefined") return null;
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return null;
-    const parsed = JSON.parse(raw) as StoredDeepReport;
-    if (!parsed || parsed.version !== 1) return null;
-    if (parsed.scope !== scope) return null;
-    if (parsed.signature !== signature) return null;
-    if (!parsed.access?.isUnlocked) return null;
-    return {
-      ...parsed,
-      report: normalizeDeepReport(parsed.report, true),
-    };
-  } catch {
-    return null;
-  }
-}
-
-function safeWriteStored(payload: StoredDeepReport) {
-  if (typeof window === "undefined") return;
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
-  } catch {
-    // ignore storage failure on private mode/quota
-  }
-}
-
-function inferUnlockMethod(raw: Record<string, unknown>): FptiReportAccessState["unlockMethod"] {
-  const joined = JSON.stringify(raw).toLowerCase();
-  if (joined.includes("subscription")) return "subscription";
-  if (joined.includes("admin")) return "admin";
-  return "coin";
-}
-
-function normalizeUnlockKey(value: unknown): string {
-  return String(value || "").trim().toLowerCase();
-}
-
-function hasFptiPremiumUnlock(payload: Record<string, unknown>): boolean {
-  const keySet = new Set(FPTI_PREMIUM_UNLOCK_KEYS.map((key) => normalizeUnlockKey(key)));
-
-  const unlockMapRaw = payload.unlockMap;
-  if (unlockMapRaw && typeof unlockMapRaw === "object") {
-    for (const key of Object.keys(unlockMapRaw as Record<string, unknown>)) {
-      const normalized = normalizeUnlockKey(key);
-      if (keySet.has(normalized)) return true;
-    }
-  }
-
-  const merged: unknown[] = [];
-  const unlockedTop = payload.unlockedFeatures;
-  if (Array.isArray(unlockedTop)) merged.push(...unlockedTop);
-  const unlockedIds = payload.unlockedFeatureIds;
-  if (Array.isArray(unlockedIds)) merged.push(...unlockedIds);
-
-  const persistentUnlocks = payload.persistentUnlocks;
-  if (persistentUnlocks && typeof persistentUnlocks === "object") {
-    for (const key of Object.keys(persistentUnlocks as Record<string, unknown>)) {
-      if ((persistentUnlocks as Record<string, unknown>)[key] && keySet.has(normalizeUnlockKey(key))) return true;
-    }
-  }
-
-  const entitlementSnapshot = payload.entitlementSnapshot && typeof payload.entitlementSnapshot === "object"
-    ? payload.entitlementSnapshot as Record<string, unknown>
-    : null;
-  const entitlementUnlocks = entitlementSnapshot?.unlockedFeatureIds;
-  if (Array.isArray(entitlementUnlocks)) merged.push(...entitlementUnlocks);
-
-  const user = payload.user && typeof payload.user === "object" ? (payload.user as Record<string, unknown>) : null;
-  const unlockedUser = user?.unlockedFeatures;
-  if (Array.isArray(unlockedUser)) merged.push(...unlockedUser);
-
-  for (const item of merged) {
-    if (keySet.has(normalizeUnlockKey(item))) return true;
-  }
-
-  return false;
 }
 
 function resolveUnlockReport(result: FptiAnalysisResult): FptiDeepReport {
@@ -547,25 +433,50 @@ function createInitialDeepReport(result: FptiAnalysisResult): FptiDeepReport {
   }
 }
 
-export default function FptiResultCard({ result, savedProfileId = "", buildResumeDescriptor }: Props) {
+const FREE_REPORT_COPY = {
+  ko: { profileRequired: "먼저 이 생년월일을 프로필로 저장하고 다시 분석해 주세요.", title: "FPTI 심층 리포트", description: "저장한 프로필로 성향·관계·성장 해석을 무료로 읽어요.", open: "심층 리포트 무료로 보기", loading: "리포트를 확인하고 있어요", ready: "전체 리포트를 읽을 수 있어요", preview: "무료 전체 리포트를 열어 주세요", unopened: "열기 전", previewNotice: "전체 해석은 위의 무료 보기 버튼에서 열 수 있어요.", unsaved: "이번 무료 결과는 보관함에 자동 저장되지 않아요. PDF로 저장할 수 있어요.", archive: "보관함에서 기존 리포트 다시 보기", failed: "리포트를 불러오지 못했어요. 잠시 후 다시 시도해 주세요." },
+  en: { profileRequired: "Save these birth details as a profile, then analyze that profile again.", title: "FPTI Deep Report", description: "Read your saved profile's personality, relationship, and growth report for free.", open: "Read the full report for free", loading: "Checking your report", ready: "Your full report is ready", preview: "Open the full report for free", unopened: "Not opened", previewNotice: "Use the free report button above to read all chapters.", unsaved: "This free result is not saved to your archive automatically. You can save a PDF.", archive: "Read your existing archived report", failed: "We could not load the report. Please try again shortly." },
+  ja: { profileRequired: "この出生情報をプロフィールに保存して、もう一度分析してください。", title: "FPTI 詳細レポート", description: "保存したプロフィールの性格・関係・成長の解説を無料で読めます。", open: "詳細レポートを無料で読む", loading: "レポートを確認しています", ready: "全章を読めます", preview: "無料の全章レポートを開いてください", unopened: "未表示", previewNotice: "上の無料ボタンから全章を開けます。", unsaved: "今回の無料結果は保管庫に自動保存されません。PDFで保存できます。", archive: "保存済みのレポートを読む", failed: "レポートを読み込めませんでした。しばらくしてからお試しください。" },
+  "zh-CN": { profileRequired: "请先将出生信息保存为档案，再重新分析。", title: "FPTI 深度报告", description: "使用已保存的档案，免费阅读性格、关系与成长解读。", open: "免费阅读深度报告", loading: "正在确认报告", ready: "可以阅读完整报告", preview: "请打开免费的完整报告", unopened: "尚未打开", previewNotice: "点击上方免费阅读按钮即可打开所有章节。", unsaved: "本次免费结果不会自动存入档案。您可以保存为 PDF。", archive: "阅读原有的存档报告", failed: "无法加载报告，请稍后重试。" },
+  "zh-TW": { profileRequired: "請先將出生資訊儲存為檔案，再重新分析。", title: "FPTI 深度報告", description: "使用已儲存的檔案，免費閱讀性格、關係與成長解讀。", open: "免費閱讀深度報告", loading: "正在確認報告", ready: "可以閱讀完整報告", preview: "請開啟免費的完整報告", unopened: "尚未開啟", previewNotice: "點擊上方免費閱讀按鈕即可開啟所有章節。", unsaved: "本次免費結果不會自動存入檔案。您可以儲存為 PDF。", archive: "閱讀原有的存檔報告", failed: "無法載入報告，請稍後重試。" },
+};
+
+export default function FptiResultCard({ result, savedProfileId = "", birthInput, restorePurchasedReport = false }: Props) {
   const copy = useFptiSharedCopy();
+  const freeCopy = FREE_REPORT_COPY[getCurrentLoadingLocale()] || FREE_REPORT_COPY.en;
   const codeParts = (result?.code || "").split("").filter(Boolean);
-  const [archiveKey, setArchiveKey] = useState('');
+  const [archiveKey, setArchiveKey] = useState("");
   const [deepLoading, setDeepLoading] = useState(false);
   const [deepError, setDeepError] = useState("");
   const [deepNotice, setDeepNotice] = useState("");
   const [activeChapter, setActiveChapter] = useState(0);
-  const [accessChecking, setAccessChecking] = useState(true);
-  const [accessState, setAccessState] = useState<FptiReportAccessState>({ isUnlocked: false });
+  const [accessChecking, setAccessChecking] = useState(Boolean(savedProfileId));
+  // Presentation state only. A free reading is never a payment receipt or entitlement.
+  const [accessState, setAccessState] = useState<{ isUnlocked: boolean; source?: "public" | "archive" }>({ isUnlocked: false });
   const [deepReport, setDeepReport] = useState<FptiDeepReport>(() => normalizeDeepReport(createInitialDeepReport(result), false));
   const [pdfBusy, setPdfBusy] = useState(false);
   const [pdfExporting, setPdfExporting] = useState(false);
-  const unlockingRef = useRef(false);
-  const accessSnapshot = useAccessStoreSnapshot();
-  const fptiSnapshotUnlocked = useMemo(
-    () => hasFptiPremiumUnlock(accessSnapshot as unknown as Record<string, unknown>),
-    [accessSnapshot],
-  );
+  const signature = useMemo(() => buildSignature(result), [result]);
+  const archiveIdentity = savedProfileId + ":" + signature;
+  const archiveReady = archiveKey === archiveIdentity;
+  const requestIdentity = JSON.stringify([archiveIdentity, birthInput]);
+  const beginReading = useFreeReadingGuard(requestIdentity);
+  const beginReadingRef = useRef(beginReading);
+  beginReadingRef.current = beginReading;
+
+  const resetReading = () => {
+    setArchiveKey("");
+    setAccessState({ isUnlocked: false });
+    setDeepReport(normalizeDeepReport(createInitialDeepReport(result), false));
+    setDeepLoading(false);
+    setAccessChecking(false);
+    setDeepError("");
+    setDeepNotice("");
+    setActiveChapter(0);
+    setPdfBusy(false);
+    setPdfExporting(false);
+  };
+  useReadingIdentityReset(resetReading);
 
   const freeSummaryItems = useMemo(
     () => [
@@ -579,173 +490,111 @@ export default function FptiResultCard({ result, savedProfileId = "", buildResum
     [copy.freeSummaryLabels, result],
   );
 
-  const signature = useMemo(() => buildSignature(result), [result]);
-  const archiveIdentity = savedProfileId + ':' + signature;
-  const archiveReady = archiveKey === archiveIdentity;
-
   useEffect(() => {
     let cancelled = false;
-    const scope = readAuthScope();
-    // 🔴 브라우저 저장본은 해금 근거가 아니다 — 서버가 이 저장 프로필(생년월일)에 대해 답한 것만 믿는다.
-    // 저장본은 해금 수단·거래 id 같은 표시용 메타데이터로만 쓴다.
-    const stored = savedProfileId ? safeReadStored(scope, signature) : null;
-    setArchiveKey('');
-    setAccessChecking(Boolean(savedProfileId));
+    setArchiveKey("");
     setAccessState({ isUnlocked: false });
     setDeepReport(normalizeDeepReport(createInitialDeepReport(result), false));
-    if (!savedProfileId) return () => { cancelled = true; };
-
-    const syncFromDb = async () => {
+    setDeepNotice("");
+    setDeepError("");
+    setDeepLoading(false);
+    setPdfBusy(false);
+    setPdfExporting(false);
+    setActiveChapter(0);
+    setAccessChecking(Boolean(savedProfileId));
+    if (!savedProfileId) return;
+    const attempt = beginReadingRef.current();
+    if (!attempt) { setAccessChecking(false); return; }
+    const valid = () => !cancelled && attempt.valid();
+    void (async () => {
       try {
-        // 접근 스냅샷은 셸의 현재 프로필 기준이다 — 결과가 그 저장 프로필로 계산됐을 때만 근거가 된다.
-        const dbUnlocked = fptiSnapshotUnlocked;
-        // FPTI 프리미엄은 생년월일 시그니처 스코프 잠금이라 계정 전역 unlockMap엔 잡히지 않는다.
-        // 서버 심층 리포트 조회가 성공하면(이미 해금 상태) 그 자체가 이 시그니처 보유 증거이므로,
-        // 계정 전역 미보유여도 시그니처 스코프 해금을 복원한다(크로스 디바이스·캐시 삭제 대비).
-        let unlockedReport: FptiDeepReport | null = null;
-        try {
-          unlockedReport = await fetchServerDeepReport(result, signature, savedProfileId);
-        } catch {
-          unlockedReport = null;
-        }
-        if (cancelled) return;
-        if (!dbUnlocked && !unlockedReport) {
-          setAccessState({ isUnlocked: false });
-          setDeepReport(normalizeDeepReport(createInitialDeepReport(result), false));
-          return;
-        }
-
-        const nextAccess: FptiReportAccessState = {
-          isUnlocked: true,
-          unlockMethod: stored?.access?.unlockMethod || "coin",
-          transactionId: stored?.access?.transactionId,
-          unlockedAt: stored?.access?.unlockedAt || new Date().toISOString(),
-        };
-        setArchiveKey(unlockedReport ? archiveIdentity : '');
-        const finalReport = unlockedReport || buildFptiDeepReport({ result }, { unlocked: true });
-        setAccessState(nextAccess);
-        setDeepReport(normalizeDeepReport(finalReport, true));
-        setActiveChapter(0);
-        setDeepNotice(copy.deepNoticeAlreadyUnlocked);
-        safeWriteStored({
-          version: 1,
-          scope,
-          signature,
-          access: nextAccess,
-          report: normalizeDeepReport(finalReport, true),
-        });
-      } catch {
-        // Keep current state when balance sync fails.
+        const authenticated = await hasFreeReadingSession();
+        if (!valid() || !authenticated) return;
+        const report = await fetchServerDeepReport(result, signature, savedProfileId, restorePurchasedReport);
+        if (!valid() || !report) return;
+        setArchiveKey(archiveIdentity);
+        setAccessState({ isUnlocked: true, source: "archive" });
+        setDeepReport(normalizeDeepReport(report, true));
       } finally {
-        if (!cancelled) setAccessChecking(false);
+        if (valid()) setAccessChecking(false);
+        attempt.finish();
       }
-    };
-
-    void syncFromDb();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [archiveIdentity, copy.deepNoticeAlreadyUnlocked, fptiSnapshotUnlocked, result, savedProfileId, signature]);
+    })().catch(() => { /* Leave the free action available after an archive lookup failure. */ });
+    return () => { cancelled = true; attempt.finish(); };
+  }, [archiveIdentity, requestIdentity, restorePurchasedReport, result, savedProfileId, signature]);
 
   const handleUnlockDeepReport = async () => {
-    if (deepLoading || accessChecking || unlockingRef.current) return;
-    if (accessState.isUnlocked) return;
-    if (!savedProfileId) {
-      setDeepError(copy.errorProfileRequired);
-      return;
-    }
-
-    unlockingRef.current = true;
+    if (deepLoading || accessChecking || accessState.isUnlocked) return;
+    if (!savedProfileId) { setDeepError(freeCopy.profileRequired); return; }
+    const attempt = beginReading();
+    if (!attempt) return;
+    setDeepLoading(true);
     setDeepError("");
     setDeepNotice("");
-    setDeepLoading(true);
-
     try {
-      const scope = readAuthScope();
-      const requestIdStable = buildUnlockRequestId(scope, signature);
-      const purchase = await purchaseFeature({
-        featureKey: "premium-fpti-report",
-        reason: copy.purchaseReason,
-        requestId: requestIdStable,
-        reportId: signature,
-        sessionId: signature,
-        // 🔴 해금은 "계정 + 생년월일" 단위 — 서버가 이 저장 프로필의 출생 정보로 birthKey 를 만든다.
-        profileId: savedProfileId,
-        selectedProfileId: savedProfileId,
-        // 모바일 PortOne 은 상위 프레임을 리다이렉트해 이 await 가 문서와 함께 죽는다.
-        // 복귀 문서가 결과 화면을 스스로 다시 열도록 재개 서술자를 함께 싣는다.
-        resume: buildResumeDescriptor(),
-      });
-
-      if (!purchase.ok) {
-        if (purchase.status === 401) {
-          setDeepError(copy.errorLoginRequired);
-          return;
-        }
-        if (purchase.status === 402) {
-          setDeepError(copy.errorInsufficientBalance);
-          return;
-        }
-        setDeepError(purchase.message || copy.errorPaymentFailedDefault);
+      const authenticated = await hasFreeReadingSession();
+      if (!attempt.valid()) return;
+      if (!authenticated) { setDeepError(copy.errorLoginRequired); return; }
+      const response = await authFetch("/api/fpti/deep-report/free", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        cache: "no-store",
+        body: JSON.stringify({ profileId: savedProfileId, birthInput: {
+          birthDate: birthInput.birthDate,
+          birthTime: birthInput.timeUnknown ? "" : birthInput.birthTime,
+          birthTimeUnknown: birthInput.timeUnknown,
+          calendarType: birthInput.calendarType,
+        } }),
+      }, { retryOn401: false });
+      if (!attempt.valid()) return;
+      const payload = await response.json();
+      if (!attempt.valid()) return;
+      if (!response.ok || payload?.ok !== true) {
+        setDeepError(response.status === 401 ? copy.errorLoginRequired : freeCopy.failed);
         return;
       }
-
-      const rawData = (purchase.data || {}) as Record<string, unknown>;
-      const consume = rawData.consume as Record<string, unknown> | undefined;
-      const responseCode = String((purchase.raw as Record<string, unknown>)?.code || "").toUpperCase();
-      const chargedCoins = Number((purchase.raw as Record<string, unknown>)?.chargedCoins || (consume?.chargedCoins as number) || 0);
-      const nextAccess: FptiReportAccessState = {
-        isUnlocked: true,
-        unlockMethod: inferUnlockMethod(rawData),
-        transactionId: String(consume?.transactionId || consume?.receiptId || requestIdStable),
-        unlockedAt: String(consume?.createdAt || new Date().toISOString()),
-      };
-
-      const serverReport = await fetchServerDeepReport(result, signature, savedProfileId);
-      setArchiveKey(serverReport ? archiveIdentity : '');
-      const unlockedReport = serverReport || resolveUnlockReport(result);
-
-      setAccessState(nextAccess);
-      setDeepReport(normalizeDeepReport(unlockedReport, true));
-      setActiveChapter(0);
-      if (responseCode === "IDEMPOTENT_REPLAY" || chargedCoins === 0) {
-        setDeepNotice(copy.deepNoticeAlreadyUnlocked);
-      } else {
-        setDeepNotice(copy.deepNoticeJustUnlocked);
+      const data = payload.data;
+      if (data?.source !== "public" || data?.accessSource !== "public" || data?.saved !== false
+        || data?.featureKey !== "premium-fpti-report" || data?.profileId !== savedProfileId) {
+        setDeepError(freeCopy.failed);
+        return;
       }
-
-      safeWriteStored({
-        version: 1,
-        scope,
-        signature,
-        access: nextAccess,
-        report: normalizeDeepReport(unlockedReport, true),
-      });
-    } catch (e) {
-      setDeepError(copy.errorUnlockException);
+      const report = mapServerDeepReport(result, data.report);
+      if (!report) { setDeepError(freeCopy.failed); return; }
+      setArchiveKey("");
+      setAccessState({ isUnlocked: true, source: "public" });
+      setDeepReport(normalizeDeepReport(report, true));
+      setActiveChapter(0);
+    } catch {
+      if (attempt.valid()) setDeepError(freeCopy.failed);
     } finally {
-      setDeepLoading(false);
-      unlockingRef.current = false;
+      if (attempt.valid()) setDeepLoading(false);
+      attempt.finish();
     }
   };
 
-  // 🔴 PDF 저장은 ₩20,000 심층 리포트를 이미 해금한 이용자에게만 열린다(추가 과금 없음).
+  // PDF는 서버에서 확인한 무료 전체 결과 또는 기존 구매 원본만 내보낸다.
   //    잠금 상태에서 캡처가 도는 것을 막는 방어는 3중이다: ①이 핸들러와 버튼의 isUnlocked 게이트
   //    ②마커를 조건부 스프레드로만 붙여 잠금 챕터가 선택자에 안 걸리게 한다
   //    ③normalizeDeepReport 가 잠금 챕터의 sections 를 애초에 DOM 에 안 넣는다(무수정).
   const handleSaveDeepReportPdf = async () => {
     if (pdfBusy) return;
     if (!accessState.isUnlocked) return;
+    const attempt = beginReading();
+    if (!attempt) return;
     setPdfBusy(true);
     setDeepError("");
     setDeepNotice("");
-    setPdfExporting(true);
     try {
+      const authenticated = await hasFreeReadingSession();
+      if (!attempt.valid()) return;
+      if (!authenticated) { resetReading(); setDeepError(copy.errorLoginRequired); return; }
+      setPdfExporting(true);
       // 접힌 챕터를 전부 펼친 뒤 두 프레임 + 120ms 기다려 레이아웃을 확정한다(캡처 전 필수).
       await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
       await new Promise<void>((resolve) => setTimeout(resolve, 120));
       const { exportResultPdf } = await import("@/lib/pdf/export-result-pdf");
+      if (!attempt.valid()) return;
       const today = new Date().toISOString().slice(0, 10);
       await exportResultPdf({
         captureTargets: ["[data-fpti-pdf-section]"],
@@ -757,12 +606,15 @@ export default function FptiResultCard({ result, savedProfileId = "", buildResum
           date: today,
         },
       });
-      setDeepNotice(copy.pdfSavedNotice);
+      if (attempt.valid()) setDeepNotice(copy.pdfSavedNotice);
     } catch {
-      setDeepError(copy.pdfFailedNotice);
+      if (attempt.valid()) setDeepError(copy.pdfFailedNotice);
     } finally {
-      setPdfExporting(false);
-      setPdfBusy(false);
+      if (attempt.valid()) {
+        setPdfExporting(false);
+        setPdfBusy(false);
+      }
+      attempt.finish();
     }
   };
 
@@ -904,24 +756,25 @@ export default function FptiResultCard({ result, savedProfileId = "", buildResum
       <div className={`${styles.cosmicNeonCard} rounded-3xl border border-[#E9C46A]/35 bg-[radial-gradient(circle_at_15%_20%,rgba(245,158,11,0.25),transparent_38%),radial-gradient(circle_at_85%_30%,rgba(56,189,248,0.22),transparent_42%),linear-gradient(145deg,rgba(15,23,42,0.95),rgba(30,41,59,0.88))] p-6`}>
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <p className="text-xs tracking-[0.18em] text-[#F6D365]">PREMIUM DEEP REPORT</p>
-            <h4 className="text-lg font-semibold text-amber-100">{copy.premiumHeading}</h4>
-            <p className="text-sm text-amber-50">{copy.premiumDescription}</p>
+            <p className="text-xs tracking-[0.18em] text-[#F6D365]">FPTI DEEP REPORT</p>
+            <h4 className="text-lg font-semibold text-amber-100">{freeCopy.title}</h4>
+            <p className="text-sm text-amber-50">{freeCopy.description}</p>
           </div>
           {!accessState.isUnlocked && (
             <button
               type="button"
               onClick={handleUnlockDeepReport}
+              data-cd-reading-action="primary"
               disabled={deepLoading || accessChecking}
-              className="rounded-full bg-[linear-gradient(120deg,#0ea5e9,#2563eb,#f59e0b)] px-5 py-2.5 text-sm font-semibold text-white shadow-[0_8px_24px_rgba(14,165,233,0.35)] disabled:cursor-not-allowed disabled:opacity-70"
+              className="min-h-12 rounded-full px-5 py-3 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-70"
             >
-              {deepLoading || accessChecking ? copy.accessCheckingMessage : copy.premiumHeading}
+              {deepLoading || accessChecking ? freeCopy.loading : freeCopy.open}
             </button>
           )}
           {accessState.isUnlocked && (
             <div className="flex flex-wrap items-center gap-2">
               <button type="button" disabled className="rounded-full border border-emerald-200/30 bg-emerald-500/20 px-5 py-2.5 text-sm font-semibold text-emerald-50 opacity-90">
-                {copy.alreadyUnlockedButton}
+                {freeCopy.ready}
               </button>
               <button
                 type="button"
@@ -934,14 +787,14 @@ export default function FptiResultCard({ result, savedProfileId = "", buildResum
             </div>
           )}
         </div>
-        <div className="mt-3 rounded-xl border border-white/15 bg-black/20 p-3 text-sm text-slate-100">
-          {copy.statusLabel} <span className={accessState.isUnlocked ? styles.neonTextCyan : styles.neonTextGold}>{accessState.isUnlocked ? copy.statusUnlockedValue : accessChecking ? copy.accessCheckingMessage : copy.statusPreviewValue}</span>
+        <div aria-live="polite" className="mt-3 rounded-xl border border-white/15 bg-black/20 p-3 text-sm text-slate-100">
+          {copy.statusLabel} <span className={accessState.isUnlocked ? styles.neonTextCyan : styles.neonTextGold}>{accessState.isUnlocked ? freeCopy.ready : accessChecking ? freeCopy.loading : freeCopy.preview}</span>
         </div>
-        {accessChecking && !accessState.isUnlocked && <p className="mt-3 rounded-xl border border-amber-300/35 bg-amber-500/15 p-3 text-sm text-amber-100">{copy.accessCheckingMessage}</p>}
-        {accessState.isUnlocked && archiveReady && <a className="mt-3 inline-flex min-h-11 items-center text-cyan-100 underline underline-offset-4" href={'/records/view/?source=executions&id='+encodeURIComponent('fpti-deep:'+signature)}>보관함에서 리포트 다시 보기</a>}
-        {accessState.isUnlocked && !archiveReady && <div className="mt-3 text-sm text-slate-100"><p>보관함 저장을 아직 확인하지 못했어요. 추가 결제 없이 다시 연결할 수 있어요.</p><button type="button" disabled={deepLoading} className="mt-2 min-h-11 rounded-xl border border-cyan-200 px-4" onClick={async () => {setDeepLoading(true);setDeepError('');try {const saved=await fetchServerDeepReport(result,signature,savedProfileId);if(!saved){setDeepError('저장 연결을 확인하지 못했어요. 잠시 후 다시 시도해 주세요.');return;}setArchiveKey(archiveIdentity);setDeepReport(normalizeDeepReport(saved,true));}finally{setDeepLoading(false);}}}>보관함 연결 다시 시도하기</button></div>}
-        {deepNotice && <p className="mt-3 rounded-xl border border-emerald-300/35 bg-emerald-500/15 p-3 text-sm text-emerald-100">{deepNotice}</p>}
-        {deepError && <p className="mt-3 rounded-xl border border-rose-300/35 bg-rose-500/15 p-3 text-sm text-rose-100">{deepError}</p>}
+        {accessChecking && !accessState.isUnlocked && <p className="mt-3 rounded-xl border border-amber-300/35 bg-amber-500/15 p-3 text-sm text-amber-100">{freeCopy.loading}</p>}
+        {accessState.source === "archive" && archiveReady && <a className="mt-3 inline-flex min-h-11 items-center text-cyan-100 underline underline-offset-4" href={'/records/view/?source=executions&id='+encodeURIComponent('fpti-deep:'+signature)}>{freeCopy.archive}</a>}
+        {accessState.source === "public" && <p className="mt-3 text-sm leading-7 text-slate-100">{freeCopy.unsaved}</p>}
+        {deepNotice && <p role="status" className="mt-3 rounded-xl border border-emerald-300/35 bg-emerald-500/15 p-3 text-sm text-emerald-100">{deepNotice}</p>}
+        {deepError && <p role="alert" className="mt-3 rounded-xl border border-rose-300/35 bg-rose-500/15 p-3 text-sm text-rose-100">{deepError}</p>}
       </div>
 
       <section className={`${styles.cosmicNeonCard} rounded-3xl p-5 pb-[calc(5.5rem+env(safe-area-inset-bottom))]`}>
@@ -978,7 +831,7 @@ export default function FptiResultCard({ result, savedProfileId = "", buildResum
                 onClick={() => setActiveChapter(idx)}
                 className={`shrink-0 rounded-full border px-3 py-1.5 text-xs transition ${chapterActive ? "border-cyan-200/55 bg-cyan-500/20 text-cyan-50" : chapterLocked ? "border-amber-300/35 bg-amber-500/10 text-amber-100" : "border-white/15 bg-white/5 text-slate-200 hover:bg-white/10"}`}
               >
-                {toRoman(Number(chapter?.order || idx + 1))} {chapterLocked ? copy.chapterLockedBadge : stripRomanPrefix(chapter?.title).split(" ")[0]}
+                {toRoman(Number(chapter?.order || idx + 1))} {chapterLocked ? freeCopy.unopened : stripRomanPrefix(chapter?.title).split(" ")[0]}
               </button>
             );
           })}
@@ -1010,18 +863,18 @@ export default function FptiResultCard({ result, savedProfileId = "", buildResum
                     <h5 className="mt-1 text-sm font-semibold leading-6 text-sky-100">{stripRomanPrefix(chapter?.title)}</h5>
                   </div>
                   {/* 캡처 중에는 접기/펼치기 배지를 렌더하지 않는다 — PDF 에 화면 상태 UI 가 남으면 안 된다. */}
-                  {!pdfExporting && <span className="shrink-0 rounded-full border border-white/15 bg-white/10 px-2.5 py-1 text-xs text-slate-200">{lockedChapter ? copy.chapterLockedBadge : open ? copy.chapterCollapseLabel : copy.chapterOpenLabel}</span>}
+                  {!pdfExporting && <span className="shrink-0 rounded-full border border-white/15 bg-white/10 px-2.5 py-1 text-xs text-slate-200">{lockedChapter ? freeCopy.unopened : open ? copy.chapterCollapseLabel : copy.chapterOpenLabel}</span>}
                 </button>
                 {open && (
                   <div className="border-t border-white/10 px-4 pb-4 pt-3">
                     {lockedChapter && (
                       <p className="mb-3 rounded-xl border border-amber-300/30 bg-amber-400/10 p-3 text-xs text-amber-100">
-                        {copy.chapterLockedNotice}
+                        {freeCopy.previewNotice}
                       </p>
                     )}
                     {!accessState.isUnlocked && idx === 0 && (
                       <p className="mb-3 rounded-xl border border-amber-300/30 bg-amber-400/10 p-3 text-xs text-amber-100">
-                        {copy.firstChapterPreviewNotice}
+                        {freeCopy.previewNotice}
                       </p>
                     )}
 
