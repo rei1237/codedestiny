@@ -4939,7 +4939,7 @@ function renderLottoRitualReport(state){
   area.innerHTML=
     '<section class="lr-wrap" aria-label="' + _sajuQuantumText("sq_5265_attr_aria_label") + '">'+
       '<div class="lr-head">'+
-        '<span class="lr-kicker">1,000원 디지털 리포트</span>'+
+        '<span class="lr-kicker">무료 리추얼 리포트</span>'+
         '<h4>'+lottoEsc(report.title)+'</h4>'+
         '<p>더 좋은 번호가 아니라, 번호별 상징 해석과 이번 주 금전 루틴을 여는 달빛 리포트입니다.</p>'+
       '</div>'+
@@ -4989,7 +4989,7 @@ function renderLottoRitualReport(state){
         '<button type="button" class="lr-btn lr-btn--shine" onclick="saveLottoRitualShareCard()">공유 카드 이미지 저장</button>'+
         '<button type="button" class="lr-btn" onclick="shareLottoRitualText()">공유 문구 복사</button>'+
       '</div>'+
-      '<p class="lr-status" id="lottoRitualSaveStatus">'+(saved?'저장된 이번 주 리포트가 있어요.':'구매 후 저장하면 같은 브라우저에서 이번 주 리포트를 다시 볼 수 있어요.')+'</p>'+
+      '<p class="lr-status" id="lottoRitualSaveStatus">'+(saved?'저장된 이번 주 리포트가 있어요.':'저장하면 같은 브라우저에서 이번 주 리포트를 다시 볼 수 있어요.')+'</p>'+
       '<div class="lr-next">다음 회차에는 새 번호를 부추기지 않고, 다음 주의 수리 파동을 다시 보는 흐름으로 안내합니다.</div>'+
       '<p class="lr-safe">본 콘텐츠는 오락 및 자기성찰용 콘텐츠입니다. 복권 당첨을 예측하거나 보장하지 않습니다. 생성된 번호는 통계적·과학적 당첨 예측값이 아닙니다. 복권은 정해둔 한도 안에서 소액으로 즐겨주세요. 과몰입이 걱정된다면 구매를 멈추고 도움을 요청하세요.</p>'+
     '</section>';
@@ -5377,7 +5377,7 @@ function renderLottoNumbers(natal, bazi){
             '<span class="tarot-tile__title">달빛 럭키 리추얼 리포트</span>'+
             '<small>달빛 럭키 리추얼 리포트 무료로 읽기</small>'+
           '</button>'+
-          '<em>구매 즉시 열람되는 디지털 콘텐츠이며, 복권 결과를 예측하거나 보장하지 않습니다.</em>'+
+          '<em>무료로 즐기는 참고 콘텐츠이며, 복권 결과를 예측하거나 보장하지 않습니다.</em>'+
         '</div>'+
         '<div id="lottoRitualReportArea" class="lc-ritual-report-area" hidden></div>'+
         '<button id="lottoRedrawBtn" class="lotto-redraw-btn">다시 상징 번호 보기</button>'+

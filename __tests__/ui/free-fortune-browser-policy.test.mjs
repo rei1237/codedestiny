@@ -34,3 +34,27 @@ test('user-facing registration copy has no partner branding, original route reta
  assert.match(read('js/core/snu-reading-flow.mjs'),/entry=snulife/);
  assert.match(page,/snu\/code/);assert.match(page,/snu\/unlock/);
 });
+
+test('public presentation does not write an entitlement, and paid sections remain profile-scoped',()=>{
+ const html=read('index.html');
+ const start=html.indexOf('  function isTileKeyUnlocked(rawKey) {');
+ const end=html.indexOf('  function isSajuAccessFeatureKey',start);
+ assert.ok(start>0&&end>start);
+ let storeReads=0;
+ const context={window:{cdIsFreeFortuneFeatureKey:isFreeFortuneFeatureKey},
+   mergeAccessStoreUnlocksIntoLegacyMap(){storeReads++;},_cdEnsureBirthUnlockScope(){return '';},
+   resolveTileLockReadKeys:key=>[key],_cdIsBirthScopedTileKey:()=>true,
+   _cdIsLegacyAccountTileKey:()=>false,unlockedFeatureMap:Object.freeze({}),
+   isSajuAccessFeatureKey:()=>false};
+ vm.createContext(context);vm.runInContext(html.slice(start,end),context);
+ for(const key of ['saju_natal_reading','saju_fun_shared','rpt_quantumCard','ziwei_decade_luck'])assert.equal(context.isTileKeyUnlocked(key),true);
+ assert.equal(storeReads,0,'Public viewing must not consult or mutate purchase entitlements');
+ for(const key of ['section_summary','section_daewun','saju_lifetime_bundle','relationship-boundary-test'])assert.equal(context.isTileKeyUnlocked(key),false);
+ assert.equal(storeReads,4);assert.deepEqual(Object.keys(context.unlockedFeatureMap),[]);
+});
+
+test('lotto ritual copy does not claim a payment is required',()=>{
+ const source=read('js/saju-engine-tarot-sukuyo-quantum.js');
+ assert.doesNotMatch(source,/1,000원 디지털 리포트|구매 후 저장하면|구매 즉시 열람되는 디지털 콘텐츠/);
+ assert.match(source,/무료로 즐기는 참고 콘텐츠이며, 복권 결과를 예측하거나 보장하지 않습니다/);
+});
