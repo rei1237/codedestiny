@@ -1,6 +1,9 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import CraftedProductDisclosure from "./app/components/CraftedProductDisclosure";
 import { detectLocale } from "./lib/i18n/dictionary";
+import { getApiBaseUrl } from "./app/_lib/api-config";
+import { isMobileAppRuntime } from "./app/_lib/auth-client";
+import { fetchWithTimeout, toAbsoluteApiUrl } from "./app/_lib/http-client";
 
 /* ════════════════════════════════════════════════════════
    SIGN TABLE
@@ -2869,16 +2872,80 @@ function OracleTab({result}){
 /* ════════════════════════════════════════════════════════
    MAIN APP
 ════════════════════════════════════════════════════════ */
+// A main-shell handoff belongs to one account and selected profile. Manual input is public.
+function olympusAccountScope() {
+  try {
+    const user=JSON.parse(localStorage.getItem('fortune_auth_user')||'null');
+    return String(user&&(user.id||user.userId||user._id||user.uid)||'').trim().toLowerCase();
+  } catch (_) { return ''; }
+}
+  function olympusProfileReadingFields(profile) {
+    if (!profile) return null;
+    var birth = profile.birth || {}, location = profile.location || {};
+    function number(value, fallback) { var n = Number(value); return Number.isFinite(n) ? n : fallback; }
+    var timezone = number(location.baseTzOffset, number(location.tzOffset, null));
+    if (timezone !== null && Math.abs(timezone) > 24) timezone /= 60;
+    return [String(profile.name || ''), String(profile.gender || ''), number(birth.year, null), number(birth.month, null), number(birth.day, null),
+      number(birth.hour, 12), number(birth.minute, 0), birth.timeUnknown === true || profile.timeUnknown === true || profile.birthTimeUnknown === true,
+      birth.calType || profile.calType || 'solar', birth.isLeapMonth === true || birth.isLeap === true,
+      number(location.lat, 37.5665), number(location.lng, number(location.lon, 126.978)), timezone];
+  }
+
+function olympusStoredIdentity(scope) {
+  try {
+    const current=localStorage.getItem('FORTUNE_APP_USER_PROFILES.current::'+scope)||'';
+    const list=JSON.parse(localStorage.getItem('FORTUNE_APP_USER_PROFILES.list::'+scope)||'[]');
+    const profile=list.find(item=>String(item.id||item.profileId)===current);
+    return JSON.stringify([olympusAccountScope(),current,olympusProfileReadingFields(profile)]);
+  } catch (_) { return ''; }
+}
+async function verifyOlympusHandoff(owner) {
+  if (!owner||!owner.accountId||!owner.storageIdentity||owner.accountId!==olympusAccountScope()
+    ||owner.storageIdentity!==olympusStoredIdentity(owner.accountId)) return false;
+  try {
+    const headers={'x-code-destiny-cache-refresh':'1'};
+    if (isMobileAppRuntime()) {
+      const token=localStorage.getItem('fortune_auth_token');
+      headers['X-Code-Destiny-Runtime']='mobile-app';
+      if (token) headers.Authorization='Bearer '+token;
+    }
+    const response=await fetchWithTimeout(toAbsoluteApiUrl('/api/auth/me',getApiBaseUrl()),{
+      method:'GET',credentials:'include',cache:'no-store',headers
+    },20000);
+    if (!response.ok) return false;
+    const data=await response.json();
+    const user=data&&data.user;
+    const account=String(user&&(user.id||user.userId||user._id||user.uid)||'').trim().toLowerCase();
+    return !!(data&&data.ok!==false&&!data.degraded&&data.code!=='AUTH_ME_DEGRADED'&&data.authenticated===true
+      &&account===owner.accountId&&account===olympusAccountScope()&&owner.storageIdentity===olympusStoredIdentity(account));
+  } catch (_) { return false; }
+}
+
 export default function OlympusVIPLounge(){
   const [screen,setScreen]=useState('intro');
   const [result,setResult]=useState(null);
   const [dailyData,setDailyData]=useState(null);
-  const handleInput=({name,date,time,sunKey,placements,timeKnown})=>{
-    setScreen('loading');
+  const [accessError,setAccessError]=useState('');
+  const reading=useRef({epoch:0,mounted:true,owner:null});
+  const handoff=useRef(null);
+  const resetReading=()=>{
+    reading.current.epoch++;
+    reading.current.owner=null;
+    handoff.current=null;
+    setResult(null);setDailyData(null);setAccessError('');setScreen('intro');
+    try { sessionStorage.removeItem('OLYMPUS_ORACLE_PROFILE'); } catch (_) {}
+  };
+  const handleInput=({name,date,time,sunKey,placements,timeKnown},owner=null)=>{
+    const epoch=++reading.current.epoch;
+    reading.current.owner=owner;
+    const current=()=>reading.current.mounted&&epoch===reading.current.epoch
+      &&(!owner||(owner.accountId===olympusAccountScope()&&owner.storageIdentity===olympusStoredIdentity(owner.accountId)));
+    setResult(null);setDailyData(null);setAccessError('');setScreen('loading');
     const real=placements&&typeof placements==='object'?{...placements}:null;
     // 출생 시간을 모르는 프로필(정오 기본값 계산)의 상승궁은 근사치이므로 제외
     if (real&&timeKnown===false) delete real.asc;
     const minWait=new Promise((res)=>setTimeout(res,3200));
+    const verified=owner?verifyOlympusHandoff(owner):Promise.resolve(true);
     const computed=real
       ? Promise.resolve(real)
       : (()=>{ // 직접 입력 경로: 로딩 연출 동안 Swiss 실계산 시도, 실패 시 간이 계산 폴백
@@ -2888,39 +2955,72 @@ export default function OlympusVIPLounge(){
           const calc=ensureOracleCompute()
             .then((fn)=>fn(payload))
             .then((r)=>{
-              if (r&&!time) { const rest={...r}; delete rest.asc; return rest; } // 시간 미입력 → 상승궁 실계산 불가
+              if (r&&!time) { const rest={...r}; delete rest.asc; return rest; }
               return r;
             })
             .catch(()=>null);
           return Promise.race([calc,timeout]);
         })();
-    Promise.all([computed,minWait]).then(([realPlacements])=>{
+    Promise.all([computed,minWait,verified]).then(([realPlacements,,allowed])=>{
+      if (!current()) {
+        if (reading.current.mounted&&epoch===reading.current.epoch) resetReading();
+        return;
+      }
+      if (!allowed) {
+        resetReading();
+        setAccessError('저장된 프로필의 로그인 상태를 확인하지 못했어요. 메인에서 다시 열어 주세요. 직접 입력은 계속 이용할 수 있어요.');
+        return;
+      }
       setResult(calcPlacements(date,time,name||'당신',sunKey,realPlacements));
       setScreen('result');
     });
   };
   useEffect(()=>{
-    if (typeof window === 'undefined') return;
+    reading.current.mounted=true;
+    const clear=event=>{
+      const detail=event&&event.detail;
+      if (detail&&(detail.source==='subscription-sync'||detail.source==='membership-cache')&&(detail.event||detail.type)==='subscription') return;
+      const owner=reading.current.owner;
+      const announced=detail&&(detail.user||detail);
+      const announcedId=String(announced&&(announced.id||announced.userId||announced._id||announced.uid)||'').trim().toLowerCase();
+      if (event&&event.type==='cd:auth-changed'&&detail&&(detail.event==='login'||detail.authenticated===true)
+        &&owner&&(!announcedId||announcedId===owner.accountId)&&owner.accountId===olympusAccountScope()
+        &&owner.storageIdentity===olympusStoredIdentity(owner.accountId)) return;
+      resetReading();
+    };
+    const events=['cd:auth-changed','cd:auth-session-invalidated','cd:profile-changed','destiny:profile-changed','cd:current-profile-changed','popstate','pagehide'];
+    events.forEach(event=>window.addEventListener(event,clear));
+    document.addEventListener('destinyProfileChanged',clear);
+    const onStorage=event=>{if(!event.key||/^(fortune_auth_|FORTUNE_APP_USER_PROFILES|code-destiny\.activeProfile)/.test(event.key))clear(event);};
+    window.addEventListener('storage',onStorage);
     try {
       const raw=sessionStorage.getItem('OLYMPUS_ORACLE_PROFILE');
-      if(!raw) return;
-      const payload=JSON.parse(raw);
-      if(!payload||!payload.date) return;
       sessionStorage.removeItem('OLYMPUS_ORACLE_PROFILE');
-      handleInput(payload);
-    } catch (e) {}
+      // Keep a ref across React StrictMode's setup/cleanup replay, not across identities.
+      const payload=handoff.current||(raw?JSON.parse(raw):null);
+      if(payload&&payload.date&&payload.readingOwner){handoff.current=payload;handleInput(payload,payload.readingOwner);}
+    } catch (_) {}
+    return()=>{
+      reading.current.epoch++;reading.current.mounted=false;
+      events.forEach(event=>window.removeEventListener(event,clear));
+      document.removeEventListener('destinyProfileChanged',clear);
+      window.removeEventListener('storage',onStorage);
+    };
+  // The lifetime listeners read refs; rerendering must not consume a handoff twice.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   },[]);
   return(
     <div className="ov">
       <style>{CSS}</style>
-      <a className="ov-home" href="/" aria-label="홈으로 이동">← 홈으로</a>
+      <a className="ov-home" href="/" aria-label="홈으로 이동" onClick={resetReading}>← 홈으로</a>
       <Cosmos/>
+      {accessError&&<p role="status" className="ov-body">{accessError}</p>}
       {screen==='intro'        && <Intro onStart={()=>setScreen('input')} onOracle={()=>setScreen('oracle-input')}/>}
-      {screen==='input'        && <Input onSubmit={handleInput} onBack={()=>setScreen('intro')}/>}
-      {screen==='oracle-input' && <OracleInput onSubmit={d=>{setDailyData(d);setScreen('daily');}} onBack={()=>setScreen('intro')}/>}
+      {screen==='input'        && <Input onSubmit={handleInput} onBack={resetReading}/>}
+      {screen==='oracle-input' && <OracleInput onSubmit={d=>{resetReading();setDailyData(d);setScreen('daily');}} onBack={resetReading}/>}
       {screen==='loading'      && <Loading/>}
-      {screen==='result'       && result && <TabResult result={result} onReset={()=>setScreen('intro')}/>}
-      {screen==='daily'        && dailyData && <DailyOracleResult data={dailyData} onBack={()=>setScreen('oracle-input')}/>}
+      {screen==='result'       && result && <TabResult result={result} onReset={resetReading}/>}
+      {screen==='daily'        && dailyData && <DailyOracleResult data={dailyData} onBack={()=>{resetReading();setScreen('oracle-input');}}/>}
     </div>
   );
 }

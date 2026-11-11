@@ -1936,6 +1936,27 @@
     return 'authenticated';
   };
 
+  // Exact-scope Olympus handoff: fresh read only, no cached verdict or refresh fallback.
+  window.__dpVerifyOlympusSession = async function(expectedScope) {
+    if (!expectedScope || expectedScope !== _dpGetProfileScope()) return false;
+    var version = _dpProfileFortuneEntryVersion;
+    var identity = _dpProfileFortuneIdentity();
+    try {
+      var candidates = _dpBuildApiCandidates('/api/auth/me', { allowWorkerFallback: false });
+      if (!candidates.length) return false;
+      var response = await _dpFetchWithTimeout(candidates[0].url, {
+        method: 'GET', credentials: 'include', cache: 'no-store',
+        headers: _dpBuildAuthHeaders({ 'x-code-destiny-cache-refresh': '1' })
+      }, _DP_FETCH_TIMEOUT_MS);
+      if (!response.ok) return false;
+      var payload = await response.json();
+      return !!(payload && payload.ok !== false
+        && !payload.degraded && payload.code !== 'AUTH_ME_DEGRADED' && payload.authenticated === true
+        && _dpResolveIdScope(payload.user) === expectedScope
+        && version === _dpProfileFortuneEntryVersion && identity === _dpProfileFortuneIdentity());
+    } catch (_) { return false; }
+  };
+
   var _dpSetCurrentTimer = null;
   var _dpPendingSwitchBaseId = null;
   var _dpLoadFromServerPending = null;

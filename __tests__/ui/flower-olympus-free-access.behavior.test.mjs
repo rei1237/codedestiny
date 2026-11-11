@@ -77,6 +77,7 @@ function fixture() {
       href: ''
     },
     cdIsFreeFortuneFeatureKey: isFreeFortuneFeatureKey,
+    __dpVerifyOlympusSession: async () => true,
     hasAuthToken: () => true
   };
   const document = {
@@ -291,6 +292,7 @@ test('Olympus latest click wins without purchase and close/auth/profile/back can
   for (const event of ['cd:auth-changed', 'cd:auth-session-invalidated', 'cd:profile-changed', 'destiny:profile-changed', 'popstate', 'pagehide', 'close', 'document-profile']) {
     const h = olympusFixture();
     h.w.openOlympusOracleModal();
+  await settle();
     assert.equal(h.pending.length, 1);
     if (event === 'close') h.w.closeOlympusOracleModal();else if (event === 'document-profile') h.document.dispatch('destinyProfileChanged');else h.w.dispatch(event);
     h.pending[0].resolve(placements);
@@ -300,7 +302,9 @@ test('Olympus latest click wins without purchase and close/auth/profile/back can
   }
   const h = olympusFixture();
   h.w.openOlympusOracleModal();
+  await settle();
   h.w.openOlympusOracleModal();
+  await settle();
   h.pending[0].resolve(placements);
   await settle();
   assert.equal(h.w.location.href, '');
@@ -312,11 +316,13 @@ test('Olympus latest click wins without purchase and close/auth/profile/back can
 test('Olympus calculation failure preserves approximation only for the still-current request', async () => {
   const h = olympusFixture();
   h.w.openOlympusOracleModal();
+  await settle();
   h.w.dispatch('cd:auth-changed');
   h.pending[0].reject(new Error('mock'));
   await settle();
   assert.equal(h.w.location.href, '');
   h.w.openOlympusOracleModal();
+  await settle();
   h.pending[1].reject(new Error('mock'));
   await settle();
   assert.equal(h.w.location.href, '/olympus');
@@ -401,10 +407,66 @@ test('DP delayed opening rejects changed identity, dismissal and an older repeat
 test('Olympus intentional page handoff keeps the validated profile but later auth change clears it', async () => {
   const h = olympusFixture();
   h.w.openOlympusOracleModal();
+  await settle();
   h.pending[0].resolve(placements);
   await settle();
   h.w.dispatch('pagehide');
   assert.ok(h.sessionStorage.getItem('OLYMPUS_ORACLE_PROFILE'));
   h.w.dispatch('cd:auth-session-invalidated');
   assert.equal(h.sessionStorage.getItem('OLYMPUS_ORACLE_PROFILE'), null);
+});
+
+function installFreshVerifier(h, response) {
+  const calls=[];
+  Object.assign(h.c,{
+    _dpGetProfileScope:()=>JSON.parse(h.localStorage.getItem('fortune_auth_user')||'{}').id,
+    _dpProfileFortuneEntryVersion:0,
+    _dpProfileFortuneIdentity:()=>h.localStorage.getItem('fortune_auth_user'),
+    _dpBuildAuthHeaders:x=>x,
+    _dpResolveIdScope:u=>String(u&&(u.id||u.userId||u._id||u.uid)||'').trim().toLowerCase(),
+    _DP_FETCH_TIMEOUT_MS:20000,
+    _dpBuildApiCandidates:(path,options)=>{assert.equal(options.allowWorkerFallback,false);return [{url:path}]},
+    _dpFetchWithTimeout:async (...args)=>{calls.push(args);const r=await(typeof response==='function'?response():response);return {ok:r.ok,json:async()=>r.data};},
+  });
+  const start=dp.indexOf('  window.__dpVerifyOlympusSession = async function(expectedScope) {');
+  vm.runInContext(dp.slice(start,dp.indexOf('  var _dpSetCurrentTimer',start)),h.c);
+  return calls;
+}
+const authOK={ok:true,data:{ok:true,authenticated:true,user:{id:'user-one'}}};
+test('Olympus main denies stale-token, degraded, malformed, mismatch and unavailable fresh auth without calculation or handoff',async()=>{
+  for(const response of [{ok:true,data:{user:{id:'user-one'}}},{ok:false,status:401},{ok:false,status:503},{ok:true,data:{}},{ok:true,data:{...authOK.data,degraded:true}},{ok:true,data:{...authOK.data,ok:false}},{ok:true,data:{...authOK.data,authenticated:false}},{ok:true,data:{user:{id:'another-user'}}}]){
+    const h=olympusFixture();const calls=installFreshVerifier(h,response);
+    h.w.openOlympusOracleModal();await settle();await settle();
+    assert.equal(h.pending.length,0);assert.equal(h.w.location.href,'');assert.equal(h.sessionStorage.getItem('OLYMPUS_ORACLE_PROFILE'),null);
+    assert.equal(calls.length,1);assert.equal(calls[0][0],'/api/auth/me');assert.equal(calls[0][1].method,'GET');assert.equal(calls[0][1].cache,'no-store');assert.equal(calls[0][1].headers['x-code-destiny-cache-refresh'],'1');assert.equal(calls[0][2],20000);
+  }
+  const missing=olympusFixture();delete missing.w.__dpVerifyOlympusSession;missing.w.openOlympusOracleModal();await settle();assert.equal(missing.pending.length,0);
+});
+test('Olympus fresh auth cannot commit after account, profile, back or newer intent changes',async()=>{
+  for(const change of ['auth','profile','back','epoch']){
+    const h=olympusFixture();let resolve;installFreshVerifier(h,()=>new Promise(r=>resolve=r));
+    h.w.openOlympusOracleModal();await settle();
+    if(change==='auth')h.localStorage.setItem('fortune_auth_user',JSON.stringify({id:'two'}));
+    if(change==='profile')h.w.DestinyProfileManager.storage.current=()=>({...h.profile,id:'two'});
+    if(change==='back')h.w.dispatch('popstate');
+    if(change==='epoch')h.c._dpProfileFortuneEntryVersion++;
+    resolve(authOK);await settle();await settle();assert.equal(h.pending.length,0,change);assert.equal(h.w.location.href,'',change);
+  }
+  const h=olympusFixture();const calls=installFreshVerifier(h,authOK);h.w.openOlympusOracleModal();await settle();await settle();assert.equal(h.pending.length,1);h.pending[0].resolve(placements);await settle();assert.equal(h.w.location.href,'/olympus');assert.equal(JSON.parse(h.sessionStorage.getItem('OLYMPUS_ORACLE_PROFILE')).readingOwner.accountId,'user-one');
+  h.w.location.href='';h.w.openOlympusOracleModal();await settle();await settle();assert.equal(calls.length,2,'Every entry performs a fresh auth read');
+});
+test('five-system free cards show one free badge and retain the paid Ziwei expert offer',()=>{
+  const html=read('index.html');
+  for(const key of ['compat-astro-synastry','compat-ziwei-compatibility','vedic-compatibility-per-use']){
+    const line=html.split('\n').find(s=>s.includes('data-cd-price-key="'+key+'"'));
+    assert.ok(line);assert.equal((line.match(/<span/g)||[]).length,1);assert.ok(!line.includes('기본 무료'));assert.match(line,/data-price-krw="0"/);
+  }
+  assert.match(html,/data-cd-price-key="ziwei-ai-consultation"[^>]*data-price-krw="30000">명반 무료 · 전문가 상담 30,000원/);
+});
+test('main and React handoff signatures use the same semantic birth/location contract',()=>{
+  const jsx=read('OlympusVIPLounge.jsx');const start=jsx.indexOf('  function olympusProfileReadingFields('),end=jsx.indexOf('function olympusStoredIdentity(',start);const c=vm.createContext({});vm.runInContext(fn(olympus,'profileReadingFields')+jsx.slice(start,end),c);
+  const a={name:'A',gender:'F',birth:{year:1990,month:5,day:15,hour:12,minute:0},location:{lat:37.5,lng:127,baseTzOffset:9}};
+  const b={name:'A',gender:'F',birth:{timeUnknown:false,minute:0,hour:'12',day:15,month:5,year:1990,calType:'solar',decorative:'ignored'},location:{label:'Seoul',baseTzOffset:540,lng:'127',lat:37.5},birthTimeUnknown:false};
+  assert.equal(JSON.stringify(c.profileReadingFields(a)),JSON.stringify(c.olympusProfileReadingFields(b)));
+  for(const changed of [{...b,birth:{...b.birth,day:16}},{...b,gender:'M'},{...b,location:{...b.location,lng:128}},{...b,birth:{...b.birth,timeUnknown:true}}])assert.notEqual(JSON.stringify(c.profileReadingFields(a)),JSON.stringify(c.olympusProfileReadingFields(changed)));
 });
