@@ -28,6 +28,7 @@ const SITE_SEO_TEXT_TRANSLATIONS = {
     "siteSeo.025": "연이와 네오 — 꿀꿀 운세 캐릭터·세계관 소개",
     "siteSeo.026": "2026년 9월 일간별 운세 | 정유월 사주 흐름",
     "siteSeo.027": "최근 30일 띠별 날짜 운세",
+    "siteSeo.028": "사주 원석 추천 | 나에게 좋은 오행 찾기 - 꿀꿀운세",
   },
 } as const;
 
@@ -211,6 +212,19 @@ export const publicSeoPages: Record<string, PublicSeoPage> = {
     changeFrequency: "weekly",
     priority: 0.94,
     structuredData: ["WebPage", "BreadcrumbList", "FAQPage"],
+  },
+  // 사주 원석 추천 랜딩(2026-11-11). 질문·결과 화면 /saju/crystals/start 는 noindex(색인 원장 hidden).
+  sajuCrystals: {
+    path: "/saju/crystals",
+    title: siteSeoText("siteSeo.028"),
+    description:
+      "좋았던 해와 힘들었던 해를 사주 흐름과 함께 살펴보세요. 꿀꿀운세가 도움이 되는 오행 후보와 그에 어울리는 원석, 추천 이유를 안내합니다",
+    h1: "나에게 좋은 기운을 살펴보고, 어울리는 원석을 찾아보세요",
+    ogImage: "/images/saju-crystals/og-1200x630.jpg",
+    keywords: ["사주 원석 추천", "오행 원석", "나에게 맞는 원석", "용신 원석", "사주 오행"],
+    changeFrequency: "monthly",
+    priority: 0.8,
+    structuredData: ["WebPage", "BreadcrumbList"],
   },
   tarot: {
     path: "/tarot",

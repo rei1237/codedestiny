@@ -3705,6 +3705,12 @@
     <priority>0.96</priority>
   </url>
   <url>
+    <loc>https://code-destiny.com/saju/crystals/</loc>
+    <lastmod>2026-11-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.78</priority>
+  </url>
+  <url>
     <loc>https://code-destiny.com/saju/destiny-anatomy/</loc>
     <lastmod>2026-11-11</lastmod>
     <changefreq>monthly</changefreq>
@@ -4451,7 +4457,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/world/</loc>
-    <lastmod>2026-10-31</lastmod>
+    <lastmod>2026-11-11</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.70</priority>
   </url>

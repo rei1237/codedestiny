@@ -63,6 +63,8 @@ export const SEO_LINK_GROUPS = [
       { href: "/saju/destiny-meeting-place/", text: "사주로 보는 인연의 장소" },
       // 2026-08-24 에 색인으로 되돌렸는데(#1092) 링크를 안 걸어 고아로 남아 있었다.
       { href: "/saju-guardian/", text: "사주 가디언 수호 인장" },
+      // 2026-11-11 사주 원석 추천 랜딩(공개·사이트맵). 질문 화면 /saju/crystals/start/ 는 noindex라 걸지 않는다.
+      { href: "/saju/crystals/", text: "사주 원석 추천" },
     ],
   },
   {

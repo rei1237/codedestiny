@@ -9,7 +9,7 @@ export const CRYSTAL_START_PATH = "/saju/crystals/start/";
 export default function CrystalCta({ from, children = "나에게 맞는 원석 찾기", variant = "primary" }) {
   return (
     <a
-      className={variant === "primary" ? styles.cta : styles.ghost}
+      className={variant === "primary" ? styles.cta : variant === "portrait" ? styles.portraitLink : styles.ghost}
       href={`${CRYSTAL_START_PATH}?from=${encodeURIComponent(from)}`}
       onClick={() => trackEvent("crystal_entry_click", { from })}
     >

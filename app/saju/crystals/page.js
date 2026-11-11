@@ -17,8 +17,11 @@ const DESCRIPTION =
   "좋았던 해와 힘들었던 해를 사주 흐름과 함께 살펴보세요. 꿀꿀운세가 도움이 되는 오행 후보와 그에 어울리는 원석, 추천 이유를 안내합니다";
 const OG_IMAGE = "/images/saju-crystals/og-1200x630.jpg";
 const DISCLAIMER = "원석의 오행과 의미는 전통적 해석과 문화적 상징을 바탕으로 하며, 건강이나 운세의 변화를 보장하지 않습니다.";
+// 사용자가 준 진입 그림. 제목·버튼 문구가 그림 안에 박혀 있어 alt에 그대로 옮긴다(index.html #sajuCrystalEntry와 같은 문구).
+const ENTRY_PORTRAIT_ALT =
+  "꿀꿀운세 · 연이가 골라주는 나만의 천연석. 좋았던 해와 힘들었던 해를 살펴 나에게 맞는 오행과 원석을 찾아요. 자수정, 장미수정, 시트린, 아쿠아마린, 백수정, 흑요석. 1 사주 입력, 2 지난 흐름 확인, 3 맞춤 원석 추천. 나의 원석 찾기";
 
-// OG 이미지는 4단계에서 들어온다. 그 전에는 사이트 기본 OG를 쓴다.
+// OG 이미지는 사용자가 준 진입 그림에서 연이 부분을 잘라 만들었다. 파일이 없으면 사이트 기본 OG를 쓴다.
 const hasOgImage = (() => {
   try {
     return fs.statSync(path.join(process.cwd(), "public", ...OG_IMAGE.split("/").filter(Boolean))).isFile();
@@ -122,6 +125,24 @@ export default function SajuCrystalsLandingPage() {
           <CrystalCta from="landing_hero" />
           <span className={styles.hint}>무료 · 저장한 프로필로 바로 시작</span>
         </div>
+        <CrystalCta from="landing_hero" variant="portrait">
+          <picture>
+            <source
+              type="image/avif"
+              srcSet="/images/saju-crystals/entry-portrait-496.avif 496w, /images/saju-crystals/entry-portrait-992.avif 992w"
+              sizes="(max-width: 452px) calc(100vw - 32px), 420px"
+            />
+            <img
+              src="/images/saju-crystals/entry-portrait-496.webp"
+              srcSet="/images/saju-crystals/entry-portrait-496.webp 496w, /images/saju-crystals/entry-portrait-992.webp 992w"
+              sizes="(max-width: 452px) calc(100vw - 32px), 420px"
+              width="992"
+              height="1586"
+              alt={ENTRY_PORTRAIT_ALT}
+              decoding="async"
+            />
+          </picture>
+        </CrystalCta>
       </header>
 
       <section className={styles.section} aria-labelledby="crystal-steps">

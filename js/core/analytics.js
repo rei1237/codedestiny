@@ -721,6 +721,13 @@
     } catch (_portalClickError) {
       /* 계측 실패는 무시한다 */
     }
+    /* 사주 원석 추천 진입(정적 셸 #sajuCrystalEntry). 진입 위치 코드만 싣는다 — 연도·오행·원석 값은 싣지 않는다. */
+    try {
+      var crystalFrom = anchor.getAttribute("data-cd-crystal-entry");
+      if (crystalFrom && /^[a-z_]{1,32}$/.test(crystalFrom)) global.cdTrack("crystal_entry_click", { from: crystalFrom });
+    } catch (_crystalEntryError) {
+      /* 계측 실패는 무시한다 */
+    }
     var businessEntry = anchor.getAttribute('data-cd-business-entry');
     // question = 영냥이 첫 화면의 고민 질문 진입(NightHero). 버려지던 축을 퍼널의 concern 단계로 받는다(2026-10-02).
     if (businessEntry === 'paid' || businessEntry === 'daily' || businessEntry === 'question') {

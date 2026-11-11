@@ -1,4 +1,5 @@
 import Link from "next/link";
+import CrystalCta from "../crystals/CrystalCta";
 import GuideCta from "../../components/GuideCta";
 import { GUIDE_CTA_TARGETS } from "../../components/guide-cta-targets";
 import { generatePageMetadata } from "../../../lib/generate-page-metadata";
@@ -200,12 +201,24 @@ export default function SajuFiveElementsPage() {
         ))}
       </section>
 
+      <section className="cd-card" aria-labelledby="five_elements-crystal-title">
+        <h2 id="five_elements-crystal-title">좋았던 해로 찾는 나의 원석</h2>
+        <p>
+          사주에 없는 오행이 반드시 필요한 오행은 아닙니다. 사주 원석 추천은 오행의 개수가 아니라 계절과 일간의 힘, 실제로 좋았던 해와 힘들었던 해의 흐름을 함께 보고 도움이 되는 오행과 어울리는 원석을 제안합니다.
+        </p>
+        <p>
+          <Link href="/saju/crystals/">사주 원석 추천 알아보기</Link>
+        </p>
+        <CrystalCta from="five_elements" />
+      </section>
+
       <GuideCta target={GUIDE_CTA_TARGETS["/saju/five-elements"]} />
 
       <nav className="cd-chip-wrap" aria-label="오행 가이드 관련 링크">
         <Link href="/saju/guide" className="cd-chip">사주 기본 가이드</Link>
         <Link href="/saju/ten-gods" className="cd-chip">십성 가이드</Link>
         <Link href="/saju/destiny-anatomy" className="cd-chip">사주 뇌구조와 운명 구조도</Link>
+        <Link href="/saju/crystals/" className="cd-chip">사주 원석 추천</Link>
         <Link href="/manse" className="cd-chip">만세력 보기</Link>
         <Link href="/insights/yongshin-finding-method-practical-guide" className="cd-chip">용신 찾기: 억부·조후·격국</Link>
         <Link href="/insights/five-elements-ohang-complete-guide" className="cd-chip">오행 상생·상극·음양 가이드</Link>

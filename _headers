@@ -452,3 +452,7 @@
 
 /mini-games*
   X-Robots-Tag: noindex, follow
+
+# 사주 원석 추천 질문·결과 화면(개인 프로필 기반). 공개 랜딩 /saju/crystals/ 는 색인 대상이다.
+/saju/crystals/start*
+  X-Robots-Tag: noindex, follow

@@ -234,6 +234,8 @@ const coreRoutes = [
   { path: "/saju/guide", changefreq: "monthly", priority: 0.8 },
   { path: "/saju/ten-gods", changefreq: "monthly", priority: 0.78 },
   { path: "/saju/five-elements", changefreq: "monthly", priority: 0.78 },
+  // 사주 원석 추천 랜딩(2026-11-11). /saju/crystals/start 는 색인 원장 hidden 으로 빠진다.
+  { path: "/saju/crystals", changefreq: "monthly", priority: 0.78 },
   { path: "/ziwei/guide", changefreq: "monthly", priority: 0.8 },
   { path: "/sukuyo/guide", changefreq: "monthly", priority: 0.8 },
   { path: "/astrology/guide", changefreq: "monthly", priority: 0.8 },

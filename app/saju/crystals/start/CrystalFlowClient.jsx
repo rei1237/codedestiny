@@ -7,7 +7,7 @@ import { trackEvent } from "@/lib/analytics";
 import { readCurrentDestinyProfile, readDestinyProfileAccountId } from "@/app/_lib/profile-card-storage";
 import { CRYSTAL_CATALOG, CRYSTAL_ELEMENT_KO } from "../../../../lib/saju/crystal-catalog.mjs";
 import {
-  SHELL_CALIBRATION_PREFIX, answersFromShellCalibration, buildCrystalRecord, crystalStorageKey, isCrystalRecordReusable,
+  SHELL_CALIBRATION_PREFIX, answersFromShellCalibration, buildCrystalRecord, crystalStorageKey, crystalYearWindow, isCrystalRecordReusable,
   parseCrystalRecord, profileToCrystalBirth, readStoredJson, sanitizeCrystalFrom, writeStoredJson,
 } from "../../../../lib/saju/crystal-flow.mjs";
 import StoneCard, { ElementChip } from "../StoneCard";
@@ -101,10 +101,12 @@ export default function CrystalFlowClient({ stoneImageIds = [] }) {
   const [result, setResult] = useState(null);
   const [message, setMessage] = useState("");
   const [savedNotice, setSavedNotice] = useState("");
-  const ctx = useRef({ from: "direct", inputs: null, versions: VERSIONS_FALLBACK, started: false, steps: 0, scope: "guest", key: "" });
+  const [yearWindow, setYearWindow] = useState(null);
+  const ctx = useRef({ from: "direct", inputs: null, versions: VERSIONS_FALLBACK, started: false, steps: 0, scope: "guest", key: "", token: 0 });
 
-  const init = useCallback(() => {
+  const init = useCallback(async () => {
     const c = ctx.current;
+    const token = (c.token += 1);
     c.inputs = null;
     c.started = false;
     c.steps = 0;
@@ -116,9 +118,22 @@ export default function CrystalFlowClient({ stoneImageIds = [] }) {
     setPerson(info);
     if (!info) {
       setSaved(null);
+      setYearWindow(null);
       setPhase("no-profile");
       return;
     }
+    // 연도 범위는 엔진의 민용(양력) 출생연도를 따른다. 음력 프로필의 birthYear는 1년 다를 수 있다.
+    let inputs = null;
+    try {
+      const engine = await loadEngine();
+      inputs = engine.buildCrystalInputs({ birth: info.birth, gender: info.gender });
+    } catch {
+      inputs = null; // 계산 실패는 질문 뒤 run()에서 오류 화면으로 안내한다.
+    }
+    if (token !== c.token) return; // 그사이 프로필이 바뀌었다.
+    c.inputs = inputs;
+    const years = crystalYearWindow(inputs, { birthYear: info.birthYear, currentYear: kstYear() });
+    setYearWindow(years);
     c.scope = readDestinyProfileAccountId() || "guest";
     c.key = crystalStorageKey(c.scope, info.profileId);
     let previous = parseCrystalRecord(readStoredJson(window.localStorage, c.key));
@@ -126,7 +141,7 @@ export default function CrystalFlowClient({ stoneImageIds = [] }) {
     let prevAnswers = previous?.answers || null;
     if (!prevAnswers) {
       const shell = readStoredJson(window.localStorage, `${SHELL_CALIBRATION_PREFIX}${info.profileId}`);
-      prevAnswers = answersFromShellCalibration(shell, { birthYear: info.birthYear, currentYear: kstYear() });
+      prevAnswers = answersFromShellCalibration(shell, { birthYear: years?.fromYear, currentYear: years?.toYear });
     }
     setSaved(prevAnswers ? { answers: prevAnswers, fromShell: !previous } : null);
     setPhase(prevAnswers ? "resume" : "good");
@@ -233,7 +248,7 @@ export default function CrystalFlowClient({ stoneImageIds = [] }) {
     return (
       <section className={styles.panel}>
         <h2>먼저 출생 정보가 필요해요</h2>
-        <p>저장된 프로필을 찾지 못했어요. 무료 사주에서 출생 정보를 입력하고 프로필을 저장한 뒤 다시 와 주세요.</p>
+        <p>저장된 프로필을 찾지 못했어요. 무료 만세력에서 출생 정보를 입력하고 프로필을 저장한 뒤 다시 와 주세요.</p>
         <div className={styles.ctaRow}>
           <a className={styles.cta} href="/ggulggul/">출생 정보 입력하러 가기</a>
           <a className={styles.ghost} href="/saju/crystals/">사주 원석 추천 알아보기</a>
@@ -308,10 +323,9 @@ export default function CrystalFlowClient({ stoneImageIds = [] }) {
       ["unsure", "잘 기억나지 않아요"],
       ...(kind === "hard" ? [["skip", "건너뛰기"]] : []),
     ];
-    const birthYear = person.birthYear;
-    const currentYear = kstYear();
+    const { fromYear, toYear } = yearWindow || { fromYear: person.birthYear, toYear: kstYear() };
     const years = [];
-    for (let y = currentYear; y >= birthYear; y -= 1) years.push(y);
+    for (let y = toYear; y >= fromYear; y -= 1) years.push(y);
     const err = rowError(draft, kind);
     const next = () => {
       if (!draft[kind] || err) return;
@@ -356,7 +370,7 @@ export default function CrystalFlowClient({ stoneImageIds = [] }) {
                       <option value="">연도 선택</option>
                       {years.map((y) => (
                         <option key={y} value={y}>
-                          {y === currentYear ? `${y}년 (지금까지)` : `${y}년`}
+                          {y === toYear ? `${y}년 (지금까지)` : `${y}년`}
                         </option>
                       ))}
                     </select>

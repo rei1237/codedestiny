@@ -562,6 +562,18 @@ const eventNames = (calls) => events(calls).map((c) => c[1]);
   assert.equal(arrived.window.sessionStorage.getItem("cd:yeongnyangi:portal-entry"), null, "도착 후 포털 세션 표식이 지워지지 않았다");
 }
 
+/* 사주 원석 추천 진입: 셸 결과 카드(#sajuCrystalEntry)의 앵커가 위치 코드만 실어 crystal_entry_click 을 쏜다 */
+{
+  const { window } = boot({ body: '<a id="crystal" href="/saju/crystals/start/?from=saju_result" data-cd-crystal-entry="saju_result"><img alt=""></a><a id="bad" href="/x/" data-cd-crystal-entry="1990 water">x</a>' });
+  window.document.querySelector("#crystal img").click();
+  window.document.getElementById("bad").click();
+  const clicks = (window.dataLayer || []).map((entry) => Array.from(entry)).filter((c) => c[0] === "event" && c[1] === "crystal_entry_click");
+  assert.equal(clicks.length, 1, "원석 진입 클릭은 허용된 위치 코드일 때 한 번만 나가야 한다");
+  assert.deepEqual(Object.keys(clicks[0][2]).filter((k) => k !== "send_to"), ["from"]);
+  assert.equal(clicks[0][2].from, "saju_result");
+  assert.match(SHELL_SOURCE, /id="sajuCrystalEntry"[\s\S]{0,400}data-cd-crystal-entry="saju_result"/, "셸 결과 화면의 원석 진입 카드에 계측 표식이 없다");
+}
+
 /* ⑪ 홈 셸에 표식이 실제로 붙어 있고, 결과 페이지에는 없는가 */
 {
   const homeStart = SHELL_SOURCE.indexOf('<main id="inputPage"');

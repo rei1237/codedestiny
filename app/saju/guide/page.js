@@ -1,4 +1,5 @@
 import Link from "next/link";
+import CrystalCta from "../crystals/CrystalCta";
 import GuideCta from "../../components/GuideCta";
 import { GUIDE_CTA_TARGETS } from "../../components/guide-cta-targets";
 import { generatePageMetadata } from "../../../lib/generate-page-metadata";
@@ -214,6 +215,17 @@ export default function SajuGuidePage() {
         ))}
       </section>
 
+      <section className="cd-card" aria-labelledby="guide-crystal-title">
+        <h2 id="guide-crystal-title">좋았던 해로 찾는 나의 원석</h2>
+        <p>
+          사주를 읽는 법을 알았다면 실제 내 삶에 대어 볼 차례입니다. 사주 원석 추천은 원국에서 도움이 되는 기운 후보를 찾고, 기억나는 좋았던 해와 힘들었던 해의 운 흐름을 함께 살펴 어울리는 원석을 무료로 제안합니다.
+        </p>
+        <p>
+          <Link href="/saju/crystals/">사주 원석 추천 알아보기</Link>
+        </p>
+        <CrystalCta from="guide" />
+      </section>
+
       <GuideCta target={GUIDE_CTA_TARGETS["/saju/guide"]} />
 
       <nav className="cd-chip-wrap" aria-label="사주 가이드 관련 링크">
@@ -221,6 +233,7 @@ export default function SajuGuidePage() {
         <Link href="/manse" className="cd-chip">무료 만세력으로 명식 세우기</Link>
         <Link href="/saju" className="cd-chip">기본 사주 보기</Link>
         <Link href="/compatibility" className="cd-chip">궁합 보기</Link>
+        <Link href="/saju/crystals/" className="cd-chip">사주 원석 추천</Link>
         <Link href="/disclaimer" className="cd-chip">면책 고지</Link>
         <Link href="/editorial-policy" className="cd-chip">콘텐츠 제작 원칙</Link>
       </nav>

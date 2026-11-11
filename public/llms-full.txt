@@ -161,6 +161,7 @@ Code Destiny 是一個韓語占卜平台，只需生日與出生時間，即可�
 - [운세 앱 비교](https://code-destiny.com/compare/fortune-apps/): 운세 서비스마다 결과가 갈리는 이유를 계산 기준의 차이로 설명합니다.
 - [사주 보는 법](https://code-destiny.com/saju/guide/): 명식을 세우고 오행·십성·대운을 읽어 나가는 순서를 처음부터 설명합니다.
 - [사주 오행](https://code-destiny.com/saju/five-elements/): 목화토금수의 균형과 치우침을 읽어 보완 방향을 잡는 기준을 설명합니다.
+- [사주 원석 추천](https://code-destiny.com/saju/crystals/): 좋았던 해·힘들었던 해를 대운·세운과 비교해 도움이 되는 오행 후보를 좁히고, 그 오행과 이어지는 원석을 전통적 상징과 함께 안내합니다.
 - [사주 십성](https://code-destiny.com/saju/ten-gods/): 열 가지 십성이 관계·일·책임·표현에서 무엇을 가리키는지 하나씩 설명합니다.
 - [자미두수 보는 법](https://code-destiny.com/ziwei/guide/): 명반을 세운 뒤 명궁·주성·대운을 어떤 순서로 읽어야 하는지 설명합니다.
 - [27숙](https://code-destiny.com/sukuyo/guide/): 27숙의 구조와 본명숙을 구하는 방법, 관계 유형이 갈리는 기준을 설명합니다.

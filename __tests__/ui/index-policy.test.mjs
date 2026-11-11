@@ -20,6 +20,7 @@ import * as robotsPolicy from "../../lib/seo/robots-policy.mjs";
 // 원장으로 옮기기 직전(2026-11-08) lib/seo/siteSeo.ts noindexPathPrefixes 리터럴. 순서까지 고정한다.
 const SITE_SEO_NOINDEX_PREFIXES_BEFORE = [
   "/saju/love-simulation", "/secret-house_real", "/destiny-poker", "/mini-games", "/fortune/date",
+  "/saju/crystals/start", // 2026-11-11 사주 원석 추천 질문·결과 화면
   "/neo-operation-room/strategy-books", "/records", "/consultations", "/api", "/api-hello-test", "/admin", "/auth",
   "/login", "/signup", "/profile", "/payment", "/payments", "/checkout", "/success", "/fail", "/debug", "/test",
   "/dev-status", "/me", "/my", "/points", "/account/delete", "/premium-unlock", "/result", "/results",
@@ -37,6 +38,7 @@ const SITEMAP_EXCLUDED_EXACT_BEFORE = [
 ];
 const SITEMAP_NOINDEX_PREFIXES_BEFORE = [
   "/saju/love-simulation", "/secret-house_real", "/destiny-poker", "/mini-games", "/fortune/date",
+  "/saju/crystals/start", // 2026-11-11
   "/neo-operation-room/strategy-books", "/records", "/business/api/dashboard", "/consultations", "/animal/physio", "/diary", "/maya",
   "/oracle/royal-tea", "/oracle/sikojen-povailu", "/palm-reading", "/pdf", "/premium", "/premium-reports",
   "/oracle/juyuk", "/oracle/hwatu", "/blog", "/fortune/sikojen-povailu", "/guides/category", "/flower",

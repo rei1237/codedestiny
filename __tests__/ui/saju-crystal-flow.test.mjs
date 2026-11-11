@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {
   profileToCrystalBirth, crystalStorageKey, buildCrystalRecord, parseCrystalRecord, isCrystalRecordReusable, isCrystalRecordCurrent,
-  answersFromShellCalibration, sanitizeCrystalFrom,
+  answersFromShellCalibration, sanitizeCrystalFrom, crystalYearWindow,
 } from '../../lib/saju/crystal-flow.mjs';
 import { SAJU_CRYSTAL_WEBTOON_CUTS } from '../../lib/brand/saju-crystal-webtoon.mjs';
 import {
@@ -78,6 +78,20 @@ test('프로필 → 엔진 연결: 시간 미상·성별 없음도 결과를 낸
   const result = recommendCrystals({ natal: inputs.natal, periods: inputs.periods, answers: { good: 'none', hard: 'skip' } });
   assert.ok(['base', 'multiple', 'refined', 'insufficient'].includes(result.status));
   assert.ok(result.limitations.some((l) => l.includes('세운')));
+});
+
+test('음력 프로필: 연도 범위는 프로필 birthYear가 아니라 엔진의 민용 출생연도(periods.window)를 따른다', () => {
+  const info = profileToCrystalBirth({ id: 'p-lunar', birthDate: '1990-12-20', calendarType: 'lunar', timeUnknown: true });
+  assert.equal(info.birthYear, 1990, '프로필은 음력 연도를 그대로 담는다');
+  const inputs = buildCrystalInputs({ birth: info.birth, gender: info.gender, currentYear: 2026 });
+  assert.equal(inputs.periods.window.fromYear, 1991, '음력 1990-12-20은 양력 1991년 2월');
+  assert.deepEqual(crystalYearWindow(inputs, { birthYear: info.birthYear, currentYear: 2026 }), { fromYear: 1991, toYear: 2026 });
+  assert.deepEqual(crystalYearWindow(null, { birthYear: 1990, currentYear: 2026 }), { fromYear: 1990, toYear: 2026 }, '엔진 입력이 없을 때만 프로필 값');
+  assert.equal(crystalYearWindow(null, {}), null);
+  const shell = { periods: [{ year: 1990, outcome: 'good', certainty: 'sure' }, { year: 2001, outcome: 'good', certainty: 'sure' }] };
+  const w = crystalYearWindow(inputs);
+  assert.deepEqual(answersFromShellCalibration(shell, { birthYear: w.fromYear, currentYear: w.toYear }).entries.map((e) => e.year), [2001], '출생 전 해는 옮기지 않는다');
+  assert.match(read('app/saju/crystals/start/CrystalFlowClient.jsx'), /crystalYearWindow\(inputs/);
 });
 
 test('웹툰 10컷: 대사·비율·보조설명·예시 표시', () => {
