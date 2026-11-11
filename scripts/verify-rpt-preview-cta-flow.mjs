@@ -131,13 +131,18 @@ try {
   const paidFirst = await clickTileAndRead();
   assert(paidFirst.previewOpen && !paidFirst.paidGateOpen && paidFirst.toggleCalls === 0,
     "유료 타일 → 결제 전 상세 팝업만 표시", paidFirst);
-  const paidCta = await clickCtaAndRead();
+  // 요가는 진입형 관문이다. CTA는 /yoga-guru.html로 이동하고, 그 페이지가 비로그인이면 로그인으로 보낸다.
+  // 페이지 이동이 두 번 일어나므로 고정 대기 대신 결과가 나올 때까지 기다린다(기대 자체는 그대로).
+  await clickCtaAndRead();
+  const paidCta = await waitForPaidCtaOutcome();
   assert(paidCta.paidGateOpen || paidCta.loginRequired,
     "유료 CTA → 결제 게이트 또는 선행 로그인 요구 (무료 실행 아님)", paidCta);
   assert(paidCta.toggleCalls === 0 && !paidCta.blockOpen,
     "유료 CTA → 미구매 결과를 토글하지 않음", paidCta);
   if (paidCta.loginRequired) {
     assert(!paidCta.paidGateOpen, "로그인 이동은 결제 게이트 성공과 별도로 기록", paidCta);
+    assert(new URLSearchParams(paidCta.search).get("next") === "/yoga-guru.html",
+      "로그인 뒤 요가 목적지로 돌아온다", paidCta);
   }
 
   if (failures.length) {
@@ -261,6 +266,21 @@ async function clickCtaAndRead() {
   return readState();
 }
 
+async function waitForPaidCtaOutcome(timeoutMs = 8000) {
+  const deadline = Date.now() + timeoutMs;
+  let last = null;
+  while (Date.now() < deadline) {
+    try {
+      last = await readState();
+      if (last.paidGateOpen || last.loginRequired) return last;
+    } catch {
+      // 이동 중에는 실행 컨텍스트가 바뀌어 평가가 실패할 수 있다.
+    }
+    await delay(200);
+  }
+  return last || readState();
+}
+
 function readState() {
   return evaluate(cdp, `(() => {
     const overlay = document.getElementById('tilePvwOverlay');
@@ -276,6 +296,7 @@ function readState() {
       blockOpen: !!(block && block.classList.contains('open')),
       toggleCalls: Number(window.__cdRptToggleCalls || 0),
       pathname: location.pathname,
+      search: location.search,
       routeCalls: Number(window.__cdRptRouteCalls || 0),
       loginRequired: location.pathname.indexOf('/login') === 0
     };
