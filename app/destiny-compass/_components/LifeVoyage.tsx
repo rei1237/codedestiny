@@ -1,20 +1,20 @@
 "use client";
+import { hasFreeReadingSession } from '@/app/_lib/free-reading-access';
+import { useFreeReadingGuard } from '@/app/_lib/use-free-reading-guard';
+import { useReadingIdentityReset } from '@/app/_lib/use-reading-identity-reset';
+import { freeReadingCopy } from '@/app/_lib/free-reading-copy';
 import CraftedProductDisclosure from "@/app/components/CraftedProductDisclosure";
-import { lookupServerCoinPrice } from "@/app/_lib/serviceCoinPrice";
 
 /**
  * STEP 8·11 삶의 항로 — DirectionField.timeline(30일/90일/1년/3년 · weather/momentum)을
  * 항해 메타포로 연출(연이 내레이션). 읽기 전용 소비, 추가 계산 없음.
  */
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useCoinGate } from "@/app/hooks/useCoinGate";
 import type { PaidResumeArgs, PaidResumeDescriptor } from "@/app/hooks/usePaidResume";
 import { Starfield } from "./Starfield";
 import { PigFace } from "./PigFace";
-import { redirectToLoginOnAuthRequired, makeGateRequestId } from "./paidGate";
 import { useDestinyCompassCopy } from "../_lib/copy";
 import { saveCompassArchive } from "../_lib/archive";
-import { formatKrwFromCoins } from "@/lib/payment/coin-pricing";
 import { detectLocale } from "@/lib/i18n/dictionary";
 import styles from "./map.module.css";
 import type { DirectionField, TimelineKey, Weather } from "../_engine/types";
@@ -41,8 +41,8 @@ export function LifeVoyage({
   resumeRequestId?: string;
 }) {
   const copy = useDestinyCompassCopy();
-  const priceLabel = formatKrwFromCoins(lookupServerCoinPrice("destiny-compass-life-voyage")!, detectLocale());
-  const { ensurePaidAccess, isPaying } = useCoinGate();
+  const freeCopy = freeReadingCopy(detectLocale());
+  const [isPaying, setIsPaying] = useState(false);
   const [revealed, setRevealed] = useState(autoRevealed);
   const [error, setError] = useState<string | null>(null);
   // 결제가 끝나 아직 보관함에 보내지 않은 결제. 공개되면 한 번 보내고 비운다.
@@ -50,32 +50,21 @@ export function LifeVoyage({
     autoRevealed && resumeRequestId ? { requestId: resumeRequestId } : null,
   );
 
-  // 결제 게이트: 이용권 선검사 → 미커버 시 결제창(단건/월정석 동등) → 통과 후에만 항로 노출.
+  // New deterministic readings require login only; paidRef is reserved for historical resume.
+  const beginFreeReading = useFreeReadingGuard(JSON.stringify(field));
+  useReadingIdentityReset(() => { setRevealed(false); paidRef.current = null; setError(null); setIsPaying(false); });
   const reveal = useCallback(async () => {
-    if (isPaying) return;
-    setError(null);
-    const requestId = makeGateRequestId("destiny-compass-life-voyage");
-    const r = await ensurePaidAccess({
-      featureKey: "destiny-compass-life-voyage",
-      coinPrice: lookupServerCoinPrice("destiny-compass-life-voyage")!,
-      amountKRW: lookupServerCoinPrice("destiny-compass-life-voyage")! * 100,
-      reason: copy.lifeVoyageGateReason,
-      requestId,
-      resume: buildResume?.(),
-    });
-    if (!r.ok) {
-      if (redirectToLoginOnAuthRequired(r.code)) {
-        setError(copy.loginRequiredError);
-        return;
-      }
-      if (r.code !== "PAYMENT_CANCELLED") {
-        setError(r.message || copy.paymentFailedError);
-      }
-      return;
-    }
-    paidRef.current = { requestId, ...(r.code === "PASS_FREE" ? { accessMethod: "pass" } : {}) };
-    setRevealed(true);
-  }, [isPaying, ensurePaidAccess, copy, buildResume]);
+
+    const request = beginFreeReading(); if (!request) return;
+    setIsPaying(true); setError(null);
+    try {
+      const signedIn = await hasFreeReadingSession();
+      if (!request.valid()) return;
+      if (!signedIn) { setError(copy.loginRequiredError); return; }
+      setRevealed(true);
+    } catch { if (request.valid()) setError(copy.loginRequiredError); }
+    finally { request.finish(); setIsPaying(false); }
+  }, [beginFreeReading, copy]);
 
   useEffect(() => {
     const paid = paidRef.current;
@@ -144,8 +133,8 @@ export function LifeVoyage({
 
         <div className={styles.resultCtas}>
           {!revealed && (
-            <button type="button" className={styles.resultCta} disabled={isPaying} onClick={reveal}>
-              {isPaying ? copy.revealButtonBusy : `${copy.lifeVoyageRevealButton} · ${priceLabel}`}
+            <button type="button" data-cd-reading-action="primary" className={styles.resultCta} disabled={isPaying} onClick={reveal}>
+              {isPaying ? freeCopy.checking : `${copy.lifeVoyageRevealButton} · ${freeCopy.badge}`}
             </button>
           )}
           <button type="button" className={styles.resultCtaGhost} onClick={onBack}>

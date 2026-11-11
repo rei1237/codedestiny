@@ -55,3 +55,12 @@ test('basic renderer free CTA does not alter paid light or daewun bundle',async(
  for(const id of ['astro-basic-deep','ziwei-decade','sukuyo-nature','vedic-basic-reading']){const html=renderBasicFortuneDetail(manifest(id));assert.ok(html.includes('무료 상세 풀이 보기'));assert.ok(!html.includes('한 번 결제'));}
  for(const id of ['saju-summary','saju-daewun']){const html=renderBasicFortuneDetail({id,title:'제목'});assert.ok(html.includes('한 번 결제로 같은 생년월일의 사주에 영구히 열려요.'));assert.ok(html.includes('라이트 사주 풀이 열기'));assert.ok(!html.includes('무료 상세 풀이 보기'));}
 });
+
+test('crafted gallery summary prices follow exact free keys and preserve paid editions', async()=>{
+ const {renderFeatureDetailPanels}=await import('../../js/feature-detail-panels.mjs');
+ for(const [featureKey,price] of [['olympus-fc','무료'],['flower-fc','무료'],['section_summary','5,000원'],['human-design-report','5,000원']]){
+  const item={featureKey,title:'안내',priceKRW:5000,panels:[{src:'/test.webp',text:'실질 설명',title:'안내'}]};
+  const html=renderFeatureDetailPanels({verification:'verified',crafted:[item]});
+  assert.ok(html.includes('그림 안내 1장 · '+price),featureKey);
+ }
+});

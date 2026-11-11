@@ -10,9 +10,12 @@ export function useFreeReadingGuard(inputKey: string) {
   useEffect(() => {
     state.current.mounted = true;
     const cancel = () => { state.current.revision++; state.current.busy = false; };
-    const events = ['cd:auth-changed', AUTH_SESSION_INVALIDATED_EVENT, 'cd:profile-changed', 'destiny:profile-changed', 'cd:current-profile-changed', 'popstate', 'storage'];
+    const events = ['cd:auth-changed', AUTH_SESSION_INVALIDATED_EVENT, 'cd:profile-changed', 'destiny:profile-changed', 'cd:current-profile-changed', 'popstate'];
     events.forEach(name => window.addEventListener(name, cancel));
-    return () => { cancel(); state.current.mounted = false; events.forEach(name => window.removeEventListener(name, cancel)); };
+    document.addEventListener('destinyProfileChanged', cancel);
+    const storage = (event: StorageEvent) => { if (!event.key || /auth|profile|cdToken/.test(event.key)) cancel(); };
+    window.addEventListener('storage', storage);
+    return () => { window.removeEventListener('storage', storage); document.removeEventListener('destinyProfileChanged', cancel); cancel(); state.current.mounted = false; events.forEach(name => window.removeEventListener(name, cancel)); };
   }, []);
   return () => {
     if (state.current.busy || !state.current.mounted) return null;

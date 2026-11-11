@@ -3,7 +3,7 @@
  * 고민 제출 시 computeDirectionField(결정론)를 실행하고, 최소 연출 시간(안개/사고)을 함께 대기.
  * dateSeed는 UI에서 KST 민용일 주입(엔진은 순수 — Date는 여기서만).
  */
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useEffect, useCallback, useMemo, useRef, useState } from "react";
 import type { AnimalDestinyInput } from "@/app/saju/animal-destiny/lib/types";
 import type { CompassInput, DirectionField, EmotionKey } from "../_engine/types";
 import { computeDirectionField } from "../_engine/directionScore";
@@ -110,6 +110,8 @@ export function useCompassSession(initialStep: CompassStep = "birth") {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const phaseTimers = useRef<number[]>([]);
+  const revision = useRef(0);
+  const currentStep = useRef(step); currentStep.current = step;
 
   const clearPhaseTimers = useCallback(() => {
     for (const id of phaseTimers.current) window.clearTimeout(id);
@@ -119,6 +121,7 @@ export function useCompassSession(initialStep: CompassStep = "birth") {
   const submitConcern = useCallback(
     async (concern: string) => {
       if (!birth) return;
+      const ticket = ++revision.current;
       setSituation(concern);
       setError(null);
       setLoading(true);
@@ -132,24 +135,27 @@ export function useCompassSession(initialStep: CompassStep = "birth") {
       const dateSeed = kstDateSeed();
       const nextInput: CompassInput = { birth, emotion: DEFAULT_EMOTION, situation: concern, answers: [], dateSeed };
       const cacheKey = "cd-compass:" + (await sha256Hex(JSON.stringify({ b: birth, s: concern, d: dateSeed })));
+      if (ticket !== revision.current) return;
       try {
         const cached = readCache(cacheKey);
         const [result] = await Promise.all([
           cached ? Promise.resolve(cached) : computeDirectionField(nextInput),
           sleep(PROCESS_MIN_MS),
         ]);
+        if (ticket !== revision.current) return;
         if (!cached) writeCache(cacheKey, result);
         setInput(nextInput);
         setField(result);
         writeSnapshot({ birth, situation: concern, input: nextInput, field: result });
         setStep("reveal"); // 길 발견(맵에 빛나는 경로) → 사용자가 결과로 진입
       } catch {
+        if (ticket !== revision.current) return;
         clearPhaseTimers();
         setStagePhase("day");
         setError(copy.fogErrorMessage);
         setStep("map");
       } finally {
-        setLoading(false);
+        if (ticket === revision.current) setLoading(false);
       }
     },
     [birth, clearPhaseTimers, copy],
@@ -172,6 +178,8 @@ export function useCompassSession(initialStep: CompassStep = "birth") {
   }, []);
 
   const reset = useCallback(() => {
+    revision.current++;
+    setLoading(false);
     clearPhaseTimers();
     clearSnapshot();
     setField(null);
@@ -181,6 +189,19 @@ export function useCompassSession(initialStep: CompassStep = "birth") {
     setStagePhase("day");
     setStep("map");
   }, [clearPhaseTimers]);
+
+  useEffect(() => {
+    const clear = () => {
+      reset(); setBirth(null); setStep('hub');
+      try { Object.keys(sessionStorage).filter(key => key.startsWith('cd-compass:')).forEach(key => sessionStorage.removeItem(key)); } catch {}
+    };
+    const events = ['cd:auth-changed', 'cd:auth-session-invalidated', 'cd:profile-changed', 'destiny:profile-changed', 'cd:current-profile-changed'];
+    const back = () => { revision.current++; clearPhaseTimers(); setLoading(false); if (currentStep.current === 'processing') setStep('map'); };
+    const storage = (event: StorageEvent) => { if (!event.key || /auth|profile|cdToken/.test(event.key)) clear(); };
+    document.addEventListener('destinyProfileChanged', clear);
+    events.forEach(event => window.addEventListener(event, clear)); window.addEventListener('popstate', back); window.addEventListener('storage', storage);
+    return () => { document.removeEventListener('destinyProfileChanged', clear); revision.current++; clearPhaseTimers(); events.forEach(event => window.removeEventListener(event, clear)); window.removeEventListener('popstate', back); window.removeEventListener('storage', storage); };
+  }, [reset, clearPhaseTimers]);
 
   return useMemo(
     () => ({ step, setStep, birth, setBirth, situation, field, input, stagePhase, loading, error, submitConcern, reset, restoreSnapshot }),

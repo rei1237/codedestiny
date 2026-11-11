@@ -1,21 +1,21 @@
 "use client";
+import { hasFreeReadingSession } from '@/app/_lib/free-reading-access';
+import { useFreeReadingGuard } from '@/app/_lib/use-free-reading-guard';
+import { useReadingIdentityReset } from '@/app/_lib/use-reading-identity-reset';
+import { freeReadingCopy } from '@/app/_lib/free-reading-copy';
 import CraftedProductDisclosure from "@/app/components/CraftedProductDisclosure";
-import { lookupServerCoinPrice } from "@/app/_lib/serviceCoinPrice";
 
 /**
  * STEP 7 운명의 갈림길 — 두 선택지(A/B)의 기운을 결정론 비교(computeCrossroad).
  * 정답 단정이 아니라 '두 길의 기운' 비교 연출 + 꽃돼지 해설.
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useCoinGate } from "@/app/hooks/useCoinGate";
 import type { PaidResumeArgs, PaidResumeDescriptor } from "@/app/hooks/usePaidResume";
 import { Starfield } from "./Starfield";
 import { PigFace } from "./PigFace";
 import { computeCrossroad } from "../_engine/crossroad";
-import { redirectToLoginOnAuthRequired, makeGateRequestId } from "./paidGate";
 import { useDestinyCompassCopy } from "../_lib/copy";
 import { saveCompassArchive } from "../_lib/archive";
-import { formatKrwFromCoins } from "@/lib/payment/coin-pricing";
 import { detectLocale } from "@/lib/i18n/dictionary";
 import styles from "./map.module.css";
 import type { DirectionField, SystemKey } from "../_engine/types";
@@ -34,8 +34,8 @@ export function Crossroads({
   resumed?: { a: string; b: string; requestId?: string } | null;
 }) {
   const copy = useDestinyCompassCopy();
-  const priceLabel = formatKrwFromCoins(lookupServerCoinPrice("destiny-compass-crossroads")!, detectLocale());
-  const { ensurePaidAccess, isPaying } = useCoinGate();
+  const freeCopy = freeReadingCopy(detectLocale());
+  const [isPaying, setIsPaying] = useState(false);
   const [a, setA] = useState(resumed?.a || "");
   const [b, setB] = useState(resumed?.b || "");
   const [compared, setCompared] = useState(Boolean(resumed?.a && resumed?.b));
@@ -73,34 +73,21 @@ export function Crossroads({
     });
   }, [result, copy, systems]);
 
-  // 결제 게이트: 이용권 선검사 → 미커버 시 결제창(단건/월정석 동등) → 통과 후에만 비교 노출.
+  // New deterministic readings require login only; paidRef is reserved for historical resume.
+  const beginFreeReading = useFreeReadingGuard(JSON.stringify([field, a, b]));
+  useReadingIdentityReset(() => { setCompared(false); setA(""); setB(""); paidRef.current = null; setError(null); setIsPaying(false); });
   const compare = useCallback(async () => {
-    if (!a.trim() || !b.trim() || isPaying) return;
-    setError(null);
-    const requestId = makeGateRequestId("destiny-compass-crossroads");
-    const r = await ensurePaidAccess({
-      featureKey: "destiny-compass-crossroads",
-      coinPrice: lookupServerCoinPrice("destiny-compass-crossroads")!,
-      amountKRW: lookupServerCoinPrice("destiny-compass-crossroads")! * 100,
-      reason: copy.crossroadsGateReason,
-      requestId,
-      // 🔴 비교 대상 두 줄을 서술자에 실어야 한다 — 복귀 문서의 입력칸은 비어 있어
-      //    여기서 다시 읽으면 결제만 되고 아무것도 비교되지 않는다.
-      resume: buildResume?.({ a, b }),
-    });
-    if (!r.ok) {
-      if (redirectToLoginOnAuthRequired(r.code)) {
-        setError(copy.loginRequiredError);
-        return;
-      }
-      if (r.code !== "PAYMENT_CANCELLED") {
-        setError(r.message || copy.paymentFailedError);
-      }
-      return;
-    }
-    paidRef.current = { requestId, ...(r.code === "PASS_FREE" ? { accessMethod: "pass" } : {}) };
-    setCompared(true);
-  }, [a, b, isPaying, ensurePaidAccess, copy, buildResume]);
+    if (!a.trim() || !b.trim()) return;
+    const request = beginFreeReading(); if (!request) return;
+    setIsPaying(true); setError(null);
+    try {
+      const signedIn = await hasFreeReadingSession();
+      if (!request.valid()) return;
+      if (!signedIn) { setError(copy.loginRequiredError); return; }
+      setCompared(true);
+    } catch { if (request.valid()) setError(copy.loginRequiredError); }
+    finally { request.finish(); setIsPaying(false); }
+  }, [beginFreeReading, copy, a, b]);
 
   return (
     <div className={`${styles.resultStage} ${styles.nightStage}`}>
@@ -167,11 +154,11 @@ export function Crossroads({
             <div className={styles.resultCtas}>
               <button
                 type="button"
-                className={styles.resultCta}
+                data-cd-reading-action="primary" className={styles.resultCta}
                 disabled={!a.trim() || !b.trim() || isPaying}
                 onClick={compare}
               >
-                {isPaying ? copy.compareButtonBusy : `${copy.compareButton} · ${priceLabel} →`}
+                {isPaying ? freeCopy.checking : `${copy.compareButton} · ${freeCopy.badge} →`}
               </button>
               <button type="button" className={styles.resultCtaGhost} onClick={onBack}>
                 {copy.backButton}

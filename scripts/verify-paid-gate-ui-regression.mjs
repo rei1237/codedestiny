@@ -375,6 +375,25 @@ for (const [key, file, entryStart, entryEnd, resumeMarker, resetMarker] of [
   assertContains(source, resetMarker, key + ' clears personal result');
 }
 
+// Newly public deterministic calculations keep fresh login and stale-response protection.
+for (const [key, file] of [
+  ['destiny-compass-crossroads', 'app/destiny-compass/_components/Crossroads.tsx'],
+  ['destiny-compass-life-voyage', 'app/destiny-compass/_components/LifeVoyage.tsx'],
+  ['destiny-compass-future-sim', 'app/destiny-compass/_components/FutureSim.tsx'],
+  ['destiny-bias-analyze', 'app/saju/destiny-bias/DestinyBiasClient.tsx'],
+  ['daily-fortune-reading', 'app/today/TodayHubClient.tsx'],
+]) {
+  assert.equal(isFreeFortuneFeatureKey(key), true, key + ' exact free policy');
+  const source = readFileSync(resolve(root, file), 'utf8');
+  assertNotContains(source, 'ensurePaidAccess(', key + ' must not create a new purchase');
+  assertContains(source, 'await hasFreeReadingSession()', key + ' requires fresh login');
+  assertContains(source, 'if (!request.valid()) return;', key + ' rejects stale session');
+  assertContains(source, 'useReadingIdentityReset(', key + ' clears private results');
+}
+const compassResumeSource = readFileSync(resolve(root, 'app/destiny-compass/_components/CompassApp.tsx'), 'utf8');
+for (const key of ['crossroads', 'life-voyage', 'future-sim', 'deep-report']) assertContains(compassResumeSource, 'usePaidResume("destiny-compass-' + key + '"', key + ' historical resume remains');
+assert.equal(isFreeFortuneFeatureKey('destiny-compass-deep-report'), false, 'actual AI remains paid');
+
 const reactWaitKindSource = section(billingClientSource, "function resolvePaymentWaitKind(", "function formatLoadingMessage", "React payment wait kind");
 assertBefore(reactWaitKindSource, 'if (mode === "MOONLIGHT_STONE"', 'if (mode === "MEMBERSHIP_PASS"', "React wait kind checks monthly before pass");
 assertContains(reactWaitKindSource, "membership_credit", "React wait kind treats membership_credit as monthly");

@@ -3,6 +3,7 @@
  * 운명의 나침반 오케스트레이터 — 히어로 → 생년 → 선택 무대(고민 입력) → 처리 → 결과 → 오늘.
  * 결정론 엔진은 세션(useCompassSession)이 처리 단계에서 실행. 결과/오늘 화면은 기존 재사용(P2에서 격상).
  */
+import { useReadingIdentityReset } from "@/app/_lib/use-reading-identity-reset";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { usePaidResume, type PaidResumeGrant } from "@/app/hooks/usePaidResume";
 import { useBackNavigation } from "@/app/hooks/useBackNavigation";
@@ -110,6 +111,8 @@ export function CompassApp({ start = "hub" }: { start?: CompassStep } = {}) {
     setResumedRequestId("");
     setResumedReportGrant(null);
   }, []);
+
+  useReadingIdentityReset(() => { clearResumeMarks(); setSavedReportId(''); reportDelivery.current?.(false); reportDelivery.current = null; });
 
   const goStep = useCallback(
     (next: CompassStep) => {

@@ -1,4 +1,5 @@
 "use client";
+import { freeReadingCopy } from "@/app/_lib/free-reading-copy";
 import CraftedProductDisclosure from "@/app/components/CraftedProductDisclosure";
 import { lookupServerCoinPrice } from "@/app/_lib/serviceCoinPrice";
 
@@ -385,24 +386,24 @@ export function CompassReport({
 
         {/* 심화 3종(별도 상품) — 기존 자리 그대로 */}
         <div className={styles.flowSection}>
-          <span className={styles.flowLabel}>{copy.deeperLabel}</span>
+          <span className={styles.flowLabel}>{freeReadingCopy(detectLocale()).badge} · {copy.previewGoText}</span>
           <div className={styles.previewGrid}>
             <button type="button" className={styles.previewCard} onClick={onFutureSim}>
-              <span className={styles.previewPrice}>{priceLabel}</span>
+              <span className={styles.previewPrice}>{freeReadingCopy(detectLocale()).badge}</span>
               <span className={styles.previewIcon} aria-hidden="true">🧭</span>
               <span className={styles.previewName}>{copy.previewCards.futureSim.name}</span>
               <span className={styles.previewDesc}>{copy.previewCards.futureSim.desc}</span>
               <span className={styles.previewGo}>{copy.previewGoText}</span>
             </button>
             <button type="button" className={styles.previewCard} onClick={onCrossroad}>
-              <span className={styles.previewPrice}>{priceLabel}</span>
+              <span className={styles.previewPrice}>{freeReadingCopy(detectLocale()).badge}</span>
               <span className={styles.previewIcon} aria-hidden="true">⚖️</span>
               <span className={styles.previewName}>{copy.previewCards.crossroad.name}</span>
               <span className={styles.previewDesc}>{copy.previewCards.crossroad.desc}</span>
               <span className={styles.previewGo}>{copy.previewGoText}</span>
             </button>
             <button type="button" className={styles.previewCard} onClick={onVoyage}>
-              <span className={styles.previewPrice}>{priceLabel}</span>
+              <span className={styles.previewPrice}>{freeReadingCopy(detectLocale()).badge}</span>
               <span className={styles.previewIcon} aria-hidden="true">⛵</span>
               <span className={styles.previewName}>{copy.previewCards.voyage.name}</span>
               <span className={styles.previewDesc}>{copy.previewCards.voyage.desc}</span>

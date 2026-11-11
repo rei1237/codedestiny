@@ -6,6 +6,8 @@ import ts from 'typescript';
 import React, { act } from 'react';
 import { createRoot } from 'react-dom/client';
 import { JSDOM } from 'jsdom';
+import * as policy from '../../lib/payment/free-fortune-policy.mjs';
+import { renderToString } from 'react-dom/server';
 import * as registry from '../../worker/lib/paid-feature-registry.js';
 const source=fs.readFileSync(new URL('../../app/hooks/useServerPrice.ts',import.meta.url),'utf8');
 const compiled=ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020,esModuleInterop:true}}).outputText;
@@ -18,9 +20,9 @@ test('React badge loads Play labels, keeps registry KRW, and refreshes without s
  assert.ok(featureKey);
  const pick=(key,fallback)=>fallback;
  const play={isApp:()=>native,read:async input=>{assert.equal(input.featureKey,featureKey);requests++;return new Promise(resolve=>{finish=resolve;});}};
- const mocks={react:React,'@/worker/lib/paid-feature-registry.js':registry,'@/constants/loadingMessages':{getCurrentLoadingLocale:()=>locale},'@/lib/payment/coin-pricing':{formatKrwFromCoins:()=>{throw Error('No native fallback');}},'@/app/_lib/legacy-core-runtime':{checkoutEntryRuntime:{formatReferenceAmount:()=>{throw Error('No estimated FX in Play');}}},'@/lib/i18n/useT':{useLocale:()=>locale,useTPick:()=>pick},'@/js/core/play-display-price.js':play,'@/app/_lib/auth-client':{authFetch:()=>{throw Error('Injected display resolver owns reads');}}};
+ const mocks={react:React,'@/lib/payment/free-fortune-policy.mjs':policy,'@/app/_lib/free-reading-copy':{freeReadingCopy:()=>({badge:locale==='ja'?'無料':'Free'})},'@/worker/lib/paid-feature-registry.js':registry,'@/constants/loadingMessages':{getCurrentLoadingLocale:()=>locale},'@/lib/payment/coin-pricing':{formatKrwFromCoins:()=>{throw Error('No native fallback');}},'@/app/_lib/legacy-core-runtime':{checkoutEntryRuntime:{formatReferenceAmount:()=>{throw Error('No estimated FX in Play');}}},'@/lib/i18n/useT':{useLocale:()=>locale,useTPick:()=>pick},'@/js/core/play-display-price.js':play,'@/app/_lib/auth-client':{authFetch:()=>{throw Error('Injected display resolver owns reads');}}};
  const exports={};vm.runInNewContext(compiled,{exports,require:name=>{assert.ok(name in mocks,name);return mocks[name];},window:dom.window});
- function Display(){const state=exports.useServerPrice({featureKey});return React.createElement('output',null,JSON.stringify(state));}
+ function Display({selectedKey=featureKey}={}){const state=exports.useServerPrice({featureKey:selectedKey});return React.createElement('output',null,JSON.stringify(state));}
  const root=createRoot(document.getElementById('root'));const state=()=>JSON.parse(document.querySelector('output').textContent);
  try{
   await act(async()=>root.render(React.createElement(Display)));
@@ -34,5 +36,18 @@ test('React badge loads Play labels, keeps registry KRW, and refreshes without s
   await act(async()=>dom.window.dispatchEvent(new dom.window.Event('cd:play-prices-changed')));
   assert.equal(state().label,'');await act(async()=>finish(null));assert.equal(state().label,'');assert.equal(state().loading,false);
   assert.equal(requests,3);
+  const freeKey='destiny-compass-life-voyage';
+  assert.equal(policy.isFreeFortuneFeatureKey(freeKey),true);
+  const ssr=renderToString(React.createElement(Display,{selectedKey:freeKey}));
+  assert.ok(ssr.includes('Free'));assert.ok(ssr.includes('amountKRW'));assert.ok(!ssr.includes('30000'));
+  await act(async()=>dom.window.dispatchEvent(new dom.window.Event('cd:play-prices-changed')));
+  const oldFinish=finish, priorRequests=requests;
+  await act(async()=>root.render(React.createElement(Display,{selectedKey:freeKey})));
+  assert.equal(state().label,'Free');assert.equal(state().amountKRW,0);assert.equal(state().loading,false);assert.equal(requests,priorRequests);
+  await act(async()=>oldFinish({formattedPrice:'STALE PAID'}));assert.equal(state().label,'Free');
+  await act(async()=>root.render(React.createElement(Display)));
+  assert.equal(state().label,'');assert.equal(state().loading,true);
+  await act(async()=>finish({formattedPrice:'¥3,900'}));assert.equal(state().label,'¥3,900');
+  await act(async()=>oldFinish({formattedPrice:'STALE PAID'}));assert.equal(state().label,'¥3,900');
  }finally{await act(async()=>root.unmount());dom.window.close();globalThis.window=prior.window;globalThis.document=prior.document;globalThis.IS_REACT_ACT_ENVIRONMENT=prior.act;}
 });

@@ -1,5 +1,7 @@
 "use client";
 
+import { isFreeFortuneFeatureKey } from "@/lib/payment/free-fortune-policy.mjs";
+import { freeReadingCopy } from "@/app/_lib/free-reading-copy";
 import { useEffect, useState } from "react";
 import {
   FEATURE_KEY_PRICE_TABLE,
@@ -201,16 +203,23 @@ export function useServerPrice(input: ServerPriceInput): ServerPriceState {
   const pick = useTPick();
   const approxRaw = pick("payment.overseas.approx", APPROX_TEMPLATE_PENDING);
   const approxTemplate = approxRaw === APPROX_TEMPLATE_PENDING ? "" : String(approxRaw || "");
-  const cached = hasQuery ? resolveCachedRegistryPrice(input) : null;
+  const publicFree = isFreeFortuneFeatureKey(input.subFeatureKey || input.featureKey);
+  const freeLabel = pick("home.concernPick.price.free", freeReadingCopy(locale).badge) || freeReadingCopy(locale).badge;
+  const cached = hasQuery && !publicFree ? resolveCachedRegistryPrice(input) : null;
   const fallback = hasQuery ? "" : resolveFallbackLabel(input);
 
-  const [state, setState] = useState<ServerPriceState>(() => playDisplayPrice.isApp()
+  const immediate: ServerPriceState = publicFree
+    ? { label: freeLabel, amountKRW: 0, loading: false, source: "registry" }
+    : playDisplayPrice.isApp()
     ? { label: "", amountKRW: cached?.amountKRW || 0, loading: true, source: "google-play" }
     : cached
     ? { label: formatResolvedPrice(cached, locale), amountKRW: cached.amountKRW, loading: false, source: "registry" }
-    : { label: fallback, amountKRW: 0, loading: false, source: "fallback" });
+    : { label: fallback, amountKRW: 0, loading: false, source: "fallback" };
+  const [state, setStoredState] = useState<ServerPriceState & { queryKey: string }>(() => ({ ...immediate, queryKey: key }));
+  const setState = (next: ServerPriceState) => setStoredState({ ...next, queryKey: key });
 
   useEffect(() => {
+    if (publicFree) { setState({ label: freeLabel, amountKRW: 0, loading: false, source: "registry" }); return; }
     if (playDisplayPrice.isApp()) {
       let active = true;
       let revision = 0;
@@ -248,7 +257,8 @@ export function useServerPrice(input: ServerPriceInput): ServerPriceState {
     setState({ label: display, amountKRW: resolved?.amountKRW || 0, loading: false, source: "registry" });
     // 레지스트리 키·로케일·개산가 문구가 이 표시 조회의 완전한 의존이다.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [key, fallback, locale, approxTemplate, pick, nativeRevision]);
+  }, [key, fallback, locale, approxTemplate, pick, nativeRevision, publicFree, freeLabel]);
 
-  return state;
+  // Rendering a new key never leaks an old paid label, even before effect cleanup.
+  return publicFree || state.queryKey !== key ? immediate : state;
 }

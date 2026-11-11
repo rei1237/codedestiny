@@ -12,7 +12,7 @@ import SavedBirthProfilePicker from "@/app/components/SavedBirthProfilePicker";
 // 몰입형이다 — AppChrome 의 CHROMELESS_ROUTES·FEATURE_NAV_SELF_MANAGED_ROUTES 에 /today 가
 // 있어 전역 헤더·푸터·공용 나브가 붙지 않는다. 상단바는 이 화면이 직접 그린다.
 //
-// 티저 설명은 공개하지만, 실제 네 체계 계산은 결제 확인 뒤에만 요청한다.
+// 티저 설명은 공개하고, 네 체계 계산은 로그인 확인 뒤 무료로 요청한다.
 //
 // output:"export" 정적 빌드라 날짜가 굳지 않도록 계산은 반드시 마운트 후에 한다.
 // 배포 게이트(광고 불가·색인 가능 라우트 최소 1800자)를 지탱하는 것은 children 으로 들어오는
@@ -26,15 +26,17 @@ import styles from "./today-hub.module.css";
 import DailyTarot, {type DailyTarotCard} from "./DailyTarot";
 import { FusionCrossSell } from "../components/FusionCrossSell";
 import { ArrowLeft, Home } from "lucide-react";
+import { hasFreeReadingSession } from '@/app/_lib/free-reading-access';
+import { useFreeReadingGuard } from '@/app/_lib/use-free-reading-guard';
+import { useReadingIdentityReset } from '@/app/_lib/use-reading-identity-reset';
+import { freeReadingCopy } from '@/app/_lib/free-reading-copy';
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { getApiUrl } from "@/app/_lib/api-config";
 import { useAiProfileSeed } from "@/app/hooks/useAiProfileSeed";
 import { hardNavigateToShellHome } from "@/lib/navigation/shellHome";
 import { maskBirthDateInput } from "@/lib/birthDateInput";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
-import { useCoinGate } from "@/app/hooks/useCoinGate";
 import { usePaidResume } from "@/app/hooks/usePaidResume";
-import { resolveServerFeaturePricing } from "@/lib/payment/server-feature-pricing";
 
 interface DetailItem {
   label: string;
@@ -83,7 +85,6 @@ const SYSTEM_ART: Record<TodaySystem, {src:string;alt:string;invitation:string}>
 
 const TODAY_LOADING_IMAGE = "/images/fortune-tea-house/mobile/flower-pig-result-still-mobile.webp";
 const TODAY_FEATURE_KEY = "daily-fortune-reading";
-const TODAY_PRICING = resolveServerFeaturePricing({ featureKey: TODAY_FEATURE_KEY });
 
 const TAB_KEYS: readonly { key: TodaySystem; emoji: string }[] = [
   { key: "saju", emoji: "🎴" },
@@ -137,7 +138,7 @@ const TODAY_HUB_COPY_EN: TodayHubCopy = {
   scoreSuffix: (score) => `${score} pts`,
   cardDelayedFallback: (label) => `The ${label} calculation is briefly delayed. The other readings are still available, and refreshing will retry.`,
   heroTitle: "Today's Fortune",
-  heroLead: "Saju day pillar, the 27 Sukuyo mansions, Vedic panchanga, and your numerology Personal Day — four systems read today in their own way. One reading costs KRW 3,000.",
+  heroLead: "Saju day pillar, the 27 Sukuyo mansions, Vedic panchanga, and your numerology Personal Day — four systems read today in their own way. Free after sign-in.",
   tabsAriaLabel: "Switch today's fortune system",
   failedMessage: "Couldn't calculate today's fortune. Please try again in a moment.",
   retryButton: "Try again",
@@ -176,7 +177,7 @@ const TODAY_HUB_COPY: Partial<Record<LoadingLocale, TodayHubCopy>> = {
     scoreSuffix: (score) => `${score}점`,
     cardDelayedFallback: (label) => `${label} 계산이 잠시 지연되고 있습니다. 다른 점술은 그대로 보실 수 있고, 새로고침하면 다시 시도합니다.`,
     heroTitle: "오늘의 운세",
-    heroLead: "사주 일진, 숙요 27수, 베다 판창가, 수비학 개인일수 — 네 체계가 각자의 방식으로 오늘 하루를 읽습니다. 1회 3,000원입니다.",
+    heroLead: "사주 일진, 숙요 27수, 베다 판창가, 수비학 개인일수 — 네 체계가 각자의 방식으로 오늘 하루를 읽습니다. 로그인 후 무료로 볼 수 있어요.",
     tabsAriaLabel: "오늘의 운세 점술 전환",
     failedMessage: "오늘의 운세를 계산하지 못했습니다. 잠시 후 다시 시도해 주세요.",
     retryButton: "다시 시도",
@@ -214,7 +215,7 @@ const TODAY_HUB_COPY: Partial<Record<LoadingLocale, TodayHubCopy>> = {
     scoreSuffix: (score) => `${score}点`,
     cardDelayedFallback: (label) => `${label}の計算が少し遅れています。他の占いはそのままご覧いただけます。更新すると再度お試しします。`,
     heroTitle: "今日の運勢",
-    heroLead: "四柱推命の日柱、宿曜27宿、ヴェーダのパンチャーンガ、数秘術のパーソナルデイ — 4つの体系がそれぞれの方法で今日を読みます。1回 KRW 3,000です。",
+    heroLead: "四柱推命の日柱、宿曜27宿、ヴェーダのパンチャーンガ、数秘術のパーソナルデイ — 4つの体系がそれぞれの方法で今日を読みます。ログイン後、無料でご覧いただけます。",
     tabsAriaLabel: "今日の運勢の占術を切り替え",
     failedMessage: "今日の運勢を計算できませんでした。しばらくしてから再度お試しください。",
     retryButton: "再試行",
@@ -251,7 +252,7 @@ const TODAY_HUB_COPY: Partial<Record<LoadingLocale, TodayHubCopy>> = {
     scoreSuffix: (score) => `${score}分`,
     cardDelayedFallback: (label) => `${label}的计算暂时延迟。其他占卜仍可正常查看，刷新后将重新尝试。`,
     heroTitle: "今日运势",
-    heroLead: "四柱日柱、宿曜27宿、吠陀五要素、数字命理个人日——四种体系以各自的方式解读今天。每次 KRW 3,000。",
+    heroLead: "四柱日柱、宿曜27宿、吠陀五要素、数字命理个人日——四种体系以各自的方式解读今天。登录后免费查看。",
     tabsAriaLabel: "切换今日运势占卜方式",
     failedMessage: "今日运势计算失败，请稍后重试。",
     retryButton: "重试",
@@ -288,7 +289,7 @@ const TODAY_HUB_COPY: Partial<Record<LoadingLocale, TodayHubCopy>> = {
     scoreSuffix: (score) => `${score}分`,
     cardDelayedFallback: (label) => `${label}的計算暫時延遲。其他占卜仍可正常查看，重新整理後將再次嘗試。`,
     heroTitle: "今日運勢",
-    heroLead: "四柱日柱、宿曜27宿、吠陀五要素、數字命理個人日——四種體系以各自的方式解讀今天。每次 KRW 3,000。",
+    heroLead: "四柱日柱、宿曜27宿、吠陀五要素、數字命理個人日——四種體系以各自的方式解讀今天。登入後免費查看。",
     tabsAriaLabel: "切換今日運勢占卜方式",
     failedMessage: "今日運勢計算失敗，請稍後再試。",
     retryButton: "重試",
@@ -325,7 +326,7 @@ const TODAY_HUB_COPY: Partial<Record<LoadingLocale, TodayHubCopy>> = {
     scoreSuffix: (score) => `${score} điểm`,
     cardDelayedFallback: (label) => `Việc tính toán ${label} đang tạm thời bị chậm. Các phương pháp khác vẫn xem được bình thường, hãy tải lại để thử lại.`,
     heroTitle: "Vận Mệnh Hôm Nay",
-    heroLead: "Nhật trụ Tứ Trụ, 27 cung Sukuyo, panchanga Vệ Đà, Ngày cá nhân thần số học — bốn hệ thống đọc hôm nay theo cách riêng của mình. Mỗi lần đọc là KRW 3.000.",
+    heroLead: "Nhật trụ Tứ Trụ, 27 cung Sukuyo, panchanga Vệ Đà, Ngày cá nhân thần số học — bốn hệ thống đọc hôm nay theo cách riêng của mình. Đọc miễn phí sau khi đăng nhập.",
     tabsAriaLabel: "Chuyển đổi phương pháp xem vận mệnh hôm nay",
     failedMessage: "Không thể tính toán vận mệnh hôm nay. Vui lòng thử lại sau một chút.",
     retryButton: "Thử lại",
@@ -362,7 +363,7 @@ const TODAY_HUB_COPY: Partial<Record<LoadingLocale, TodayHubCopy>> = {
     scoreSuffix: (score) => `${score} अंक`,
     cardDelayedFallback: (label) => `${label} की गणना में थोड़ी देरी हो रही है। अन्य ज्योतिष विधियाँ सामान्य रूप से देखी जा सकती हैं, रीफ्रेश करने पर फिर से प्रयास होगा।`,
     heroTitle: "आज का भाग्य",
-    heroLead: "साजू दिन-स्तंभ, सुक्योउ के 27 भवन, वैदिक पंचांग, अंकशास्त्र का पर्सनल डे — चारों प्रणालियाँ अपने-अपने तरीके से आज को पढ़ती हैं। एक रीडिंग KRW 3,000 है।",
+    heroLead: "साजू दिन-स्तंभ, सुक्योउ के 27 भवन, वैदिक पंचांग, अंकशास्त्र का पर्सनल डे — चारों प्रणालियाँ अपने-अपने तरीके से आज को पढ़ती हैं। लॉगिन के बाद निःशुल्क देखें।",
     tabsAriaLabel: "आज के भाग्य की ज्योतिष विधि बदलें",
     failedMessage: "आज का भाग्य गणना नहीं हो सका। कृपया कुछ देर बाद फिर कोशिश करें।",
     retryButton: "फिर कोशिश करें",
@@ -399,7 +400,7 @@ const TODAY_HUB_COPY: Partial<Record<LoadingLocale, TodayHubCopy>> = {
     scoreSuffix: (score) => `${score} pts`,
     cardDelayedFallback: (label) => `El cálculo de ${label} está momentáneamente retrasado. Las demás lecturas siguen disponibles; al actualizar se reintentará.`,
     heroTitle: "La Fortuna de Hoy",
-    heroLead: "El pilar del día Saju, las 27 mansiones Sukuyo, el panchanga védico y tu Día Personal numerológico: cuatro sistemas leen hoy a su manera. Una lectura cuesta KRW 3.000.",
+    heroLead: "El pilar del día Saju, las 27 mansiones Sukuyo, el panchanga védico y tu Día Personal numerológico: cuatro sistemas leen hoy a su manera. Gratis después de iniciar sesión.",
     tabsAriaLabel: "Cambiar el sistema de la fortuna de hoy",
     failedMessage: "No se pudo calcular la fortuna de hoy. Inténtalo de nuevo en un momento.",
     retryButton: "Reintentar",
@@ -436,7 +437,7 @@ const TODAY_HUB_COPY: Partial<Record<LoadingLocale, TodayHubCopy>> = {
     scoreSuffix: (score) => `${score} pts`,
     cardDelayedFallback: (label) => `Le calcul de ${label} est momentanément retardé. Les autres lectures restent disponibles ; actualisez pour réessayer.`,
     heroTitle: "La Fortune du Jour",
-    heroLead: "Le pilier du jour Saju, les 27 demeures Sukuyo, le panchanga védique et votre Jour Personnel en numérologie — quatre systèmes lisent aujourd'hui à leur manière. Une lecture coûte KRW 3 000.",
+    heroLead: "Le pilier du jour Saju, les 27 demeures Sukuyo, le panchanga védique et votre Jour Personnel en numérologie — quatre systèmes lisent aujourd'hui à leur manière. Lecture gratuite après connexion.",
     tabsAriaLabel: "Changer le système de la fortune du jour",
     failedMessage: "Impossible de calculer la fortune du jour. Réessayez dans un instant.",
     retryButton: "Réessayer",
@@ -473,7 +474,7 @@ const TODAY_HUB_COPY: Partial<Record<LoadingLocale, TodayHubCopy>> = {
     scoreSuffix: (score) => `${score} Pkt.`,
     cardDelayedFallback: (label) => `Die Berechnung für ${label} verzögert sich kurz. Die anderen Lesungen sind weiterhin verfügbar; ein Neuladen versucht es erneut.`,
     heroTitle: "Das Horoskop von Heute",
-    heroLead: "Saju-Tagespfeiler, die 27 Sukuyo-Mondhäuser, das vedische Panchanga und Ihr numerologischer persönlicher Tag — vier Systeme lesen den heutigen Tag auf ihre eigene Weise. Eine Deutung kostet KRW 3.000.",
+    heroLead: "Saju-Tagespfeiler, die 27 Sukuyo-Mondhäuser, das vedische Panchanga und Ihr numerologischer persönlicher Tag — vier Systeme lesen den heutigen Tag auf ihre eigene Weise. Nach der Anmeldung kostenlos lesen.",
     tabsAriaLabel: "Heutiges Horoskopsystem wechseln",
     failedMessage: "Das heutige Horoskop konnte nicht berechnet werden. Bitte versuchen Sie es gleich noch einmal.",
     retryButton: "Erneut versuchen",
@@ -510,7 +511,7 @@ const TODAY_HUB_COPY: Partial<Record<LoadingLocale, TodayHubCopy>> = {
     scoreSuffix: (score) => `${score} pt`,
     cardDelayedFallback: (label) => `De berekening voor ${label} loopt even vertraging op. De andere lezingen blijven gewoon beschikbaar; verversen probeert het opnieuw.`,
     heroTitle: "De Fortuin van Vandaag",
-    heroLead: "Saju-dagpilaar, de 27 Sukuyo-maanhuizen, de Vedische panchanga en je numerologische persoonlijke dag — vier systemen lezen vandaag elk op hun eigen manier. Eén reading kost KRW 3.000.",
+    heroLead: "Saju-dagpilaar, de 27 Sukuyo-maanhuizen, de Vedische panchanga en je numerologische persoonlijke dag — vier systemen lezen vandaag elk op hun eigen manier. Gratis lezen na het inloggen.",
     tabsAriaLabel: "Wissel van systeem voor de fortuin van vandaag",
     failedMessage: "Kon de fortuin van vandaag niet berekenen. Probeer het over een moment opnieuw.",
     retryButton: "Opnieuw proberen",
@@ -547,7 +548,7 @@ const TODAY_HUB_COPY: Partial<Record<LoadingLocale, TodayHubCopy>> = {
     scoreSuffix: (score) => `${score} mata`,
     cardDelayedFallback: (label) => `Pengiraan ${label} tertangguh sebentar. Tilikan lain masih boleh dilihat seperti biasa, muat semula untuk cuba lagi.`,
     heroTitle: "Tuah Hari Ini",
-    heroLead: "Tiang hari Saju, 27 rumah Sukuyo, panchanga Veda, Hari Peribadi numerologi — empat sistem membaca hari ini dengan cara masing-masing. Satu bacaan berharga KRW 3,000.",
+    heroLead: "Tiang hari Saju, 27 rumah Sukuyo, panchanga Veda, Hari Peribadi numerologi — empat sistem membaca hari ini dengan cara masing-masing. Baca percuma selepas log masuk.",
     tabsAriaLabel: "Tukar sistem tuah hari ini",
     failedMessage: "Tidak dapat mengira tuah hari ini. Sila cuba lagi sebentar lagi.",
     retryButton: "Cuba lagi",
@@ -933,25 +934,13 @@ function CardPanel({
 }
 
 export default function TodayHubClient({ children, dailyTarotCards, weeklyContent }: { children?: ReactNode; dailyTarotCards?: DailyTarotCard[]; weeklyContent?: ReactNode }) {
-  const { ensurePaidAccess, isPaying } = useCoinGate();
+  const [isPaying, setIsPaying] = useState(false);
+  const [accessError, setAccessError] = useState('');
   const [accessGranted, setAccessGranted] = useState(false);
   const buildTodayResume = usePaidResume(TODAY_FEATURE_KEY, () => {
     setAccessGranted(true);
     return true;
   });
-  const unlockToday = useCallback(async () => {
-    if (isPaying || !TODAY_PRICING) return;
-    const gate = await ensurePaidAccess({
-      resume: buildTodayResume(),
-      featureKey: TODAY_FEATURE_KEY,
-      coinPrice: TODAY_PRICING.cost,
-      cost: TODAY_PRICING.cost,
-      amountKRW: TODAY_PRICING.amountKRW,
-      reason: "오늘의 운세 티저 해석",
-      requestId: `${TODAY_FEATURE_KEY}:${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
-    });
-    if (gate.ok) setAccessGranted(true);
-  }, [buildTodayResume, ensurePaidAccess, isPaying]);
   const [period, setPeriod] = useState<"today" | "tomorrow" | "weekly">("today");
   const { copy: baseCopy, locale } = useTodayHubCopy();
   const copy = useMemo(() => {
@@ -968,6 +957,18 @@ export default function TodayHubClient({ children, dailyTarotCards, weeklyConten
     };
   }, [baseCopy, locale, period]);
   const { seed, seedVersion, choose } = useAiProfileSeed();
+  const freeCopy = freeReadingCopy(locale);
+  const beginFreeReading = useFreeReadingGuard(JSON.stringify([seedVersion, period]));
+  const unlockToday = useCallback(async () => {
+    const request = beginFreeReading(); if (!request) return;
+    setIsPaying(true); setAccessError('');
+    try {
+      const signedIn = await hasFreeReadingSession();
+      if (!request.valid()) return;
+      if (signedIn) setAccessGranted(true); else setAccessError(freeCopy.description);
+    } catch { if (request.valid()) setAccessError(freeCopy.description); }
+    finally { request.finish(); setIsPaying(false); }
+  }, [beginFreeReading, freeCopy.description]);
   // 마운트 후에만 계산한다(정적 빌드에 날짜가 굳는 것을 막고, 자정을 넘겨도 새로고침이면 갱신된다).
   const [now, setNow] = useState<Date | null>(null);
   useEffect(() => {
@@ -1054,6 +1055,10 @@ export default function TodayHubClient({ children, dailyTarotCards, weeklyConten
   const [guestBirth, setGuestBirth] = useState("");
   const [guestCard, setGuestCard] = useState<SystemCard | null>(null);
   const [guestState, setGuestState] = useState<"idle" | "busy" | "failed">("idle");
+  useReadingIdentityReset(() => {
+    requestSeq.current++; setAccessGranted(false); setIsPaying(false); setAccessError(''); setData(null); setGuestCard(null); setGuestBirth(''); setGuestState('idle'); setDetailState({});
+    Object.values(detailControllers.current).forEach(controller => controller?.abort()); detailControllers.current = {};
+  });
   const submitGuestBirth = useCallback((event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!/^\d{4}-\d{2}-\d{2}$/.test(guestBirth) || guestState === "busy") return;
@@ -1326,11 +1331,12 @@ export default function TodayHubClient({ children, dailyTarotCards, weeklyConten
         </section>}
         {children}
         {/* 결제 안내는 가치 다음에 온다(DESIGN.md §5 Button Tiers) — 무료 설명을 먼저 보여 준다. */}
+        {accessError && <p role="alert">{accessError}</p>}
         {!accessGranted && <section className="mt-8 rounded-3xl border border-rose-200/30 bg-rose-200/10 p-6 text-center">
           <h2 className="text-xl font-black text-rose-50">오늘의 네 가지 흐름</h2>
           <p className="mt-3 break-keep text-sm leading-7 text-slate-200">사주 일진·숙요 27수·베다 판창가·수비학에서 오늘의 핵심 신호를 한 번에 확인합니다.</p>
-          <button type="button" onClick={() => void unlockToday()} disabled={isPaying || !TODAY_PRICING} className="mt-5 min-h-12 rounded-full bg-rose-200 px-6 font-black text-rose-950 hover:bg-rose-100 disabled:opacity-60">
-            {isPaying ? "이용권 확인 중" : "3,000원으로 오늘의 운세 보기"}
+          <button type="button" onClick={() => void unlockToday()} data-cd-reading-action="primary" disabled={isPaying} className="mt-5 min-h-12 rounded-full bg-rose-200 px-6 font-black text-rose-950 hover:bg-rose-100 disabled:opacity-60">
+            {isPaying ? freeCopy.checking : freeCopy.start}
           </button>
         </section>}
 

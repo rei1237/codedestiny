@@ -158,8 +158,9 @@ function renderSample(detail, heading) {
 }
 
 function craftedMeta(item) {
-  if (item.layout === 'editorial') return [item.chapters?.length ? `목차 ${item.chapters.length}개` : '', '마스터 소개 · 풀이 안내', won(item.priceKRW)].filter(Boolean).join(' · ');
-  return [item.chapters?.length ? `목차 ${item.chapters.length}개` : '', `그림 안내 ${craftedPanels(item).length}장`, won(item.priceKRW)].filter(Boolean).join(' · ');
+  const priceLabel = isFreeFortuneFeatureKey(item.featureKey) ? '무료' : won(item.priceKRW);
+  if (item.layout === 'editorial') return [item.chapters?.length ? `목차 ${item.chapters.length}개` : '', '마스터 소개 · 풀이 안내', priceLabel].filter(Boolean).join(' · ');
+  return [item.chapters?.length ? `목차 ${item.chapters.length}개` : '', `그림 안내 ${craftedPanels(item).length}장`, priceLabel].filter(Boolean).join(' · ');
 }
 
 /** One product card per edition; a single edition stays open because it is the whole page. */

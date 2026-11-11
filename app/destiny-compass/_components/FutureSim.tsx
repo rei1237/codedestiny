@@ -1,21 +1,21 @@
 "use client";
+import { hasFreeReadingSession } from '@/app/_lib/free-reading-access';
+import { useFreeReadingGuard } from '@/app/_lib/use-free-reading-guard';
+import { useReadingIdentityReset } from '@/app/_lib/use-reading-identity-reset';
+import { freeReadingCopy } from '@/app/_lib/free-reading-copy';
 import CraftedProductDisclosure from "@/app/components/CraftedProductDisclosure";
-import { lookupServerCoinPrice } from "@/app/_lib/serviceCoinPrice";
 
 /**
  * STEP 8 미래 시뮬레이션 — 지도 경로 위 시점 마커(현재/30일/90일/1년)를 눌러 구간 이야기를 본다.
- * DirectionField.timeline(이미 계산된 결정론 데이터) 읽기 전용. 회당 결제(심화 3프리뷰 중 1). 추가 계산 없음.
- * 결제 게이트: 이용권 선검사 → 미커버 시 결제창(단건/월정석 동등) → 통과 후에만 시점 지도 노출.
+ * DirectionField.timeline(이미 계산된 결정론 데이터) 읽기 전용. 무료 계산형 3프리뷰 중 하나. 추가 계산 없음.
+ * 로그인 확인 뒤 계산형 시점을 무료로 펼치며, 과거 구매 복원은 유지한다.
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useCoinGate } from "@/app/hooks/useCoinGate";
 import type { PaidResumeArgs, PaidResumeDescriptor } from "@/app/hooks/usePaidResume";
 import { Starfield } from "./Starfield";
 import { PigFace } from "./PigFace";
-import { redirectToLoginOnAuthRequired, makeGateRequestId } from "./paidGate";
 import { useDestinyCompassCopy } from "../_lib/copy";
 import { saveCompassArchive } from "../_lib/archive";
-import { formatKrwFromCoins } from "@/lib/payment/coin-pricing";
 import { detectLocale } from "@/lib/i18n/dictionary";
 import styles from "./map.module.css";
 import type { DirectionField, TimelineKey, Weather } from "../_engine/types";
@@ -50,8 +50,8 @@ export function FutureSim({
   resumeRequestId?: string;
 }) {
   const copy = useDestinyCompassCopy();
-  const priceLabel = formatKrwFromCoins(lookupServerCoinPrice("destiny-compass-future-sim")!, detectLocale());
-  const { ensurePaidAccess, isPaying } = useCoinGate();
+  const freeCopy = freeReadingCopy(detectLocale());
+  const [isPaying, setIsPaying] = useState(false);
   const [revealed, setRevealed] = useState(autoRevealed);
   const [error, setError] = useState<string | null>(null);
   // 결제가 끝나 아직 보관함에 보내지 않은 결제. 공개되면 한 번 보내고 비운다.
@@ -59,32 +59,21 @@ export function FutureSim({
     autoRevealed && resumeRequestId ? { requestId: resumeRequestId } : null,
   );
 
-  // 결제 게이트: 이용권 선검사 → 미커버 시 결제창(단건/월정석 동등) → 통과 후에만 콘텐츠 노출.
+  // New deterministic readings require login only; paidRef is reserved for historical resume.
+  const beginFreeReading = useFreeReadingGuard(JSON.stringify(field));
+  useReadingIdentityReset(() => { setRevealed(false); paidRef.current = null; setError(null); setIsPaying(false); });
   const reveal = useCallback(async () => {
-    if (isPaying) return;
-    setError(null);
-    const requestId = makeGateRequestId("destiny-compass-future-sim");
-    const r = await ensurePaidAccess({
-      featureKey: "destiny-compass-future-sim",
-      coinPrice: lookupServerCoinPrice("destiny-compass-future-sim")!,
-      amountKRW: lookupServerCoinPrice("destiny-compass-future-sim")! * 100,
-      reason: copy.futureSimGateReason,
-      requestId,
-      resume: buildResume?.(),
-    });
-    if (!r.ok) {
-      if (redirectToLoginOnAuthRequired(r.code)) {
-        setError(copy.loginRequiredError);
-        return;
-      }
-      if (r.code !== "PAYMENT_CANCELLED") {
-        setError(r.message || copy.paymentFailedError);
-      }
-      return;
-    }
-    paidRef.current = { requestId, ...(r.code === "PASS_FREE" ? { accessMethod: "pass" } : {}) };
-    setRevealed(true);
-  }, [isPaying, ensurePaidAccess, copy, buildResume]);
+
+    const request = beginFreeReading(); if (!request) return;
+    setIsPaying(true); setError(null);
+    try {
+      const signedIn = await hasFreeReadingSession();
+      if (!request.valid()) return;
+      if (!signedIn) { setError(copy.loginRequiredError); return; }
+      setRevealed(true);
+    } catch { if (request.valid()) setError(copy.loginRequiredError); }
+    finally { request.finish(); setIsPaying(false); }
+  }, [beginFreeReading, copy]);
 
   // 현재(=대표 방향 기운) + 30/90/1년(timeline). 지도 경로 위 좌표(%)로 배치.
   const stops = useMemo<Stop[]>(() => {
@@ -184,8 +173,8 @@ export function FutureSim({
 
         <div className={styles.resultCtas}>
           {!revealed && (
-            <button type="button" className={styles.resultCta} disabled={isPaying} onClick={reveal}>
-              {isPaying ? copy.revealButtonBusy : `${copy.futureSimRevealButton} · ${priceLabel}`}
+            <button type="button" data-cd-reading-action="primary" className={styles.resultCta} disabled={isPaying} onClick={reveal}>
+              {isPaying ? freeCopy.checking : `${copy.futureSimRevealButton} · ${freeCopy.badge}`}
             </button>
           )}
           <button type="button" className={styles.resultCtaGhost} onClick={onBack}>

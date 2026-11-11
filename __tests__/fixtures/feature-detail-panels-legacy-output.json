@@ -1,7 +1,7 @@
 {
  "detail/animal-destiny.json": {
   "input": "b1ba73d5b42210cb",
-  "output": "1a5ed1776f0614c3"
+  "output": "8b0f9acc8ff734ba"
  },
  "detail/animal-totem.json": {
   "input": "6d872cdba06d16b2",
@@ -13,7 +13,7 @@
  },
  "detail/astrology-flower.json": {
   "input": "2c16c5f3cb4d6cd4",
-  "output": "b4c9a3b55a64c800"
+  "output": "ae26df5083f2a60e"
  },
  "detail/astrology.json": {
   "input": "7a1213e1c186868a",
@@ -37,7 +37,7 @@
  },
  "detail/destiny-flower.json": {
   "input": "47044e8c95f41087",
-  "output": "538a1cb20584016c"
+  "output": "daf59038a0f36756"
  },
  "detail/destiny-meeting-place.json": {
   "input": "61a50e42395dc52c",
@@ -173,7 +173,7 @@
  },
  "detail/olympus-oracle.json": {
   "input": "25b7be84e3165762",
-  "output": "be3cebc27c18bab5"
+  "output": "735cec8e4dbec0f7"
  },
  "detail/omikuji.json": {
   "input": "581be2ea66da5b90",
@@ -217,7 +217,7 @@
  },
  "detail/sukuyo-flower.json": {
   "input": "9a1edf33aef3dcb1",
-  "output": "1ec2d83fbfd429f1"
+  "output": "69093b0b7157bd01"
  },
  "detail/sukuyo.json": {
   "input": "3711b1836e831eb5",
@@ -289,7 +289,7 @@
  },
  "detail/ziwei-flower.json": {
   "input": "423406b994716ea5",
-  "output": "df810b506b84c0cc"
+  "output": "b213c91847297ea3"
  },
  "detail/ziwei.json": {
   "input": "9fae158646916ea8",
@@ -389,7 +389,7 @@
  },
  "crafted/compass-crossroads": {
   "input": "171b6fd6cdd0811a",
-  "output": "c26df134ac1cab9c"
+  "output": "5d2e9555bd701722"
  },
  "crafted/compass-deep-report": {
   "input": "a5808933c23e718d",
@@ -397,11 +397,11 @@
  },
  "crafted/compass-future-sim": {
   "input": "f6744dc26afe336b",
-  "output": "83847fa1094af360"
+  "output": "346fc62ed7ea2f3a"
  },
  "crafted/compass-life-voyage": {
   "input": "574c796c929dc24f",
-  "output": "0d91a9edaaba1cd2"
+  "output": "d12bb477745393e2"
  },
  "crafted/cosmic-soul-meditation": {
   "input": "bc8569a898088f9b",
@@ -433,7 +433,7 @@
  },
  "crafted/fpti-deep-report": {
   "input": "d8d9019f9c84bc13",
-  "output": "0361a6122e1d20fe"
+  "output": "b27a167107d4132c"
  },
  "crafted/fusion-fortune": {
   "input": "a5629783df18840b",
@@ -565,7 +565,7 @@
  },
  "crafted/olympus-oracle": {
   "input": "d03d4a8bee76bb77",
-  "output": "26cafb47f370746a"
+  "output": "407dda366dd9ee9b"
  },
  "crafted/palm-reading": {
   "input": "57bcc059e646dd2f",
@@ -637,7 +637,7 @@
  },
  "crafted/saju-daewun": {
   "input": "b85e38113bdc329a",
-  "output": "8ef4e66df9ae8f7e"
+  "output": "e22b2c2f46b851d8"
  },
  "crafted/saju-guardian": {
   "input": "0da07ee32e4aa7c5",
@@ -649,7 +649,7 @@
  },
  "crafted/saju-summary": {
   "input": "02da956b43db5950",
-  "output": "e63bbce414c9653a"
+  "output": "c553eb6ff2e9a2fe"
  },
  "crafted/secret-house": {
   "input": "284e5ddb826fd4c7",
