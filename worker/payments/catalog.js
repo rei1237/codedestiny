@@ -155,7 +155,7 @@ export function assertProductSaleOpen(productOrKey) {
   );
   if (isFreeFortuneFeatureKey(featureKey)) throw paymentError("FEATURE_NOW_FREE", "무료로 볼 수 있는 콘텐츠예요. 풀이 화면에서 바로 확인해 주세요.", { featureKey });
   if (!isSajuBundleSaleClosed(featureKey)) return;
-  throw paymentError("PRODUCT_SALE_ENDED", "이 항목은 개별 판매가 끝났어요. 사주 전체 풀이 평생 소장으로 열 수 있어요.", {
+  throw paymentError("PRODUCT_SALE_ENDED", "이 항목은 개별 판매가 끝났어요. 라이트 사주 풀이로 열 수 있어요.", {
     featureKey,
     bundleFeatureKey: SAJU_BUNDLE_FEATURE_KEY,
   });

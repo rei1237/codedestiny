@@ -2036,7 +2036,7 @@ async function handleSinglePaymentStart(request, env, auth) {
     return json({
       ok: false,
       code: "PRODUCT_SALE_ENDED",
-      message: "이 항목은 개별 판매가 끝났어요. 사주 전체 풀이 평생 소장으로 열 수 있어요.",
+      message: "이 항목은 개별 판매가 끝났어요. 라이트 사주 풀이로 열 수 있어요.",
       featureKey: resolved.featureKey,
       bundleFeatureKey: SAJU_BUNDLE_FEATURE_KEY,
     }, { status: 409 });

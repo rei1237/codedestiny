@@ -3398,7 +3398,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
      보유 확인보다 먼저 끊어 버리므로 이 키들에는 적용하지 않는다 — 가진 것은 결제수단 필드와 무관하게 already_unlocked 로
      열려야 한다. 새로 사는 시도는 보유 확인 뒤 차감·주문 전에 아래 saleEndedForPricing 에서 409 로 닫힌다. */
   const saleEndedForPricing = isSajuBundleSaleClosed(pricing?.featureKey);
-  const saleEndedFailure = () => failure(409, "PRODUCT_SALE_ENDED", "이 항목은 개별 판매가 끝났어요. 사주 전체 풀이 평생 소장으로 열 수 있어요.", undefined, {
+  const saleEndedFailure = () => failure(409, "PRODUCT_SALE_ENDED", "이 항목은 개별 판매가 끝났어요. 라이트 사주 풀이로 열 수 있어요.", undefined, {
     pricing,
     featureKey: String(pricing?.featureKey || ""),
     bundleFeatureKey: SAJU_BUNDLE_FEATURE_KEY,

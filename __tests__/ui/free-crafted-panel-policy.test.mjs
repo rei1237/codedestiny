@@ -53,5 +53,5 @@ test('notice keeps disclaimers and personal-result limitations verbatim',async()
 test('basic renderer free CTA does not alter paid light or daewun bundle',async()=>{
  const {renderBasicFortuneDetail}=await import('../../js/basic-fortune-detail.mjs');
  for(const id of ['astro-basic-deep','ziwei-decade','sukuyo-nature','vedic-basic-reading']){const html=renderBasicFortuneDetail(manifest(id));assert.ok(html.includes('무료 상세 풀이 보기'));assert.ok(!html.includes('한 번 결제'));}
- for(const id of ['saju-summary','saju-daewun']){const html=renderBasicFortuneDetail({id,title:'제목'});assert.ok(html.includes('한 번 결제로 같은 생년월일의 사주에 영구히 열려요.'));assert.ok(html.includes('사주 전체 풀이 평생 소장 열기'));assert.ok(!html.includes('무료 상세 풀이 보기'));}
+ for(const id of ['saju-summary','saju-daewun']){const html=renderBasicFortuneDetail({id,title:'제목'});assert.ok(html.includes('한 번 결제로 같은 생년월일의 사주에 영구히 열려요.'));assert.ok(html.includes('라이트 사주 풀이 열기'));assert.ok(!html.includes('무료 상세 풀이 보기'));}
 });

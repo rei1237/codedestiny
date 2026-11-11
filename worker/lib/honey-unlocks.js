@@ -35,7 +35,7 @@ export async function unlockHoneyContent({ userId, productId, profileId, request
       unlockMap: { [product.featureKey]: true } });
     const existing = await store.findUnlock(target);
     if (existing) return response(0, Boolean(request), String(existing.evidenceId || existing._id || receiptKey));
-    if (saleClosed) throw createHttpError(409, '이 항목은 개별 판매가 끝났어요. 사주 전체 풀이 평생 소장으로 열 수 있어요.', { code: 'PRODUCT_SALE_ENDED', featureKey: product.featureKey, bundleFeatureKey: SAJU_BUNDLE_FEATURE_KEY });
+    if (saleClosed) throw createHttpError(409, '이 항목은 개별 판매가 끝났어요. 라이트 사주 풀이로 열 수 있어요.', { code: 'PRODUCT_SALE_ENDED', featureKey: product.featureKey, bundleFeatureKey: SAJU_BUNDLE_FEATURE_KEY });
     const receipt = await store.ledgers.findOne({ _id: receiptKey }, { session });
     if (receipt || request) throw fail(409, 'HONEY_UNLOCK_REVIEW_REQUIRED', '이전 해금 내역을 확인해야 해요. 고객센터에 문의해 주세요.');
     await store.ledgers.insertOne({ _id: requestKey, userId, type: 'unlock_request', amount: 0, receiptKey, serviceScope: HONEY_SCOPE, createdAt: new Date() }, { session });

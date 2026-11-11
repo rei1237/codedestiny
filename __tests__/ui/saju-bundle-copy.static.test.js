@@ -93,6 +93,9 @@ test('판매 표면에 판매 종료 키의 개별 가격이 없다', async () =
 test('묶음 가격 표기는 29,000원 하나다', async () => {
   const { policy, registry } = await importPolicy();
   assert.equal(policy.SAJU_BUNDLE_FEATURE_KEY, BUNDLE);
+  assert.equal(policy.SAJU_BUNDLE_LABEL, '라이트 사주 풀이');
+  assert.equal(policy.SAJU_BUNDLE_PRODUCT_ID, 'unlock.saju_lifetime_bundle');
+  assert.equal(registry.PIG_COIN_UNLOCK_PRODUCTS['unlock.' + BUNDLE].reason, policy.SAJU_BUNDLE_LABEL);
   assert.equal(registry.PIG_COIN_UNLOCK_PRODUCTS[`unlock.${BUNDLE}`].amountKRW, 29000);
   const names = [policy.SAJU_BUNDLE_LABEL, '사주 영구 묶음', '평생 소장'];
   for (const rel of NAME_SURFACES) {
@@ -161,19 +164,19 @@ test('결과 화면 묶음 버튼 이름이 묶음 상품과 맞다', () => {
   assert.doesNotMatch(index, /라이트 풀이 열기 →|대운 분석 열기 →/);
   const bundleButtons = [...index.matchAll(/data-unlock-key="saju_lifetime_bundle"[^>]*>\s*<span[^>]*>([^<]*)<\/span>/g)].map((m) => m[1]);
   assert.ok(bundleButtons.length >= 2);
-  for (const label of bundleButtons) assert.match(label, /사주 전체 풀이 평생 소장/);
+  for (const label of bundleButtons) assert.match(label, /라이트 사주 풀이/);
   assert.doesNotMatch(index, /라이트 풀이로 타고난 결을 먼저/);
 });
 
-test('결과 화면 묶음 버튼은 모든 언어에서 옛 상품 이름을 말하지 않는다', () => {
-  const locales = ['ko', 'en', 'de', 'es', 'fr', 'hi', 'ja', 'ms', 'nl', 'vi', 'zh-cn', 'zh-tw'];
-  const stale = /Light|Daewun analysis|라이트|ライト|轻量|輕量|लाइट/i;
-  for (const lang of locales) {
-    const showcase = JSON.parse(read(`public/i18n/${lang}.json`)).result.premiumShowcase;
-    assert.equal(showcase.daewun.cta, showcase.summary.cta, `${lang}: 두 버튼은 같은 묶음을 판다`);
-    for (const value of [showcase.summary.title, showcase.summary.cta, showcase.subtitle]) {
-      assert.doesNotMatch(value, stale, `${lang}: 옛 상품 문구 "${value}"`);
-    }
+test('결과 화면은 모든 언어에서 라이트 상품명과 동일한 영구권 CTA를 표시한다', () => {
+  for (const lang of ['ko', 'en', 'de', 'es', 'fr', 'hi', 'ja', 'ms', 'nl', 'vi', 'zh-cn', 'zh-tw']) {
+    const dict = JSON.parse(read(`public/i18n/${lang}.json`));
+    const showcase = dict.result.premiumShowcase;
+    assert.equal(showcase.daewun.cta, showcase.summary.cta, lang + ': unchanged shared entitlement');
+    assert.equal(showcase.summary.title, dict.saju.bundle.item[0], lang + ': reviewed Light name');
+    assert.equal(dict.saju.bundle.title, showcase.summary.title, lang + ': product label parity');
+    assert.ok(showcase.summary.cta.includes(dict.saju.bundle.title));
+    assert.equal(showcase.subtitle, dict.saju.bundle.inlineDescFreePolicy, lang + ': paid Light/cycles, basic free, AI separate');
   }
 });
 
@@ -210,7 +213,7 @@ test('색인 소개 페이지의 공개 소개와 예시는 그대로 열려 있
   assert.match(landing, /resultItems:/);
   assert.match(landing, /sections:/);
   // 무료 범위를 만세력·원국으로 밝히고, 나머지는 평생 소장 묶음이라고 숨기지 않고 말한다.
-  assert.match(landing, /사주 전체 풀이 평생 소장/);
+  assert.match(landing, /라이트 사주 풀이/);
 });
 
 test('개별 판매 서비스 목록의 가격 노출 키가 판매 종료 키와 겹치지 않는다', async () => {
@@ -490,12 +493,13 @@ test('무료 정책 이후 사전 전체를 읽고 남은 묶음 전용 문구�
 
 // 대운표·십성 풀이는 묶음에서 열린다(section_daewun). "무료 만세력"을 내건 검색 문구가 이들을 무료처럼 읽히게 하면 안 된다.
 const GATED_READING_RE = /대운|십성|Ten Gods|Luck Cycle|十神|大運|大运|Thập Thần|Đại vận|दस देव|दशा चक्र|Diez Dioses|ciclos? de fortuna|Dix Dieux|cycles? de chance|Zehn Götter|Glückszykl|Tien Goden|geluks-?cycl|Sepuluh Dewa|kitaran nasib/iu;
-const LIFETIME_BUNDLE_RE = /평생 소장|lifetime|生涯|终身|終身|trọn đời|आजीवन|de por vida|à vie|lebenslang|levenslang|seumur hidup/iu;
+const LIFETIME_BUNDLE_RE = /라이트 사주 풀이|Light Saju|라이트 사주 풀이|Light Saju|평생 소장|lifetime|生涯|终身|終身|trọn đời|आजीवन|de por vida|à vie|lebenslang|levenslang|seumur hidup/iu;
 
 test('만세력·사주 검색 문구는 대운표나 십성을 무료처럼 내걸지 않는다', () => {
   const offenders = [];
   const checkTitle = (id, title) => { if (GATED_READING_RE.test(title)) offenders.push(id); };
-  const checkDescription = (id, text) => { if (GATED_READING_RE.test(text) && !LIFETIME_BUNDLE_RE.test(text)) offenders.push(id); };
+  const paidNames = I18N_LANGS.map(lang => JSON.parse(read(`public/i18n/${lang}.json`)).saju.bundle.title);
+  const checkDescription = (id, text) => { if (GATED_READING_RE.test(text) && !LIFETIME_BUNDLE_RE.test(text) && !paidNames.some(name => text.includes(name))) offenders.push(id); };
   for (const lang of I18N_LANGS) {
     const flat = flattenStrings(JSON.parse(read(`public/i18n/${lang}.json`)));
     assert.ok(flat['seoLanding.title.002'], `${lang} 사전에서 검색 문구를 읽지 못했다`);

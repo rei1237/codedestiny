@@ -1,4 +1,4 @@
-/* 사주 전체 풀이 평생 소장(saju_lifetime_bundle) 안내.
+/* 라이트 사주 풀이(saju_lifetime_bundle) 안내.
    포함 항목 목록·예시·29,000원·영구 소장 설명·결제 버튼을 한 곳에서 보여 준다.
    - open({source}): 안내를 연다. 저장 프로필이 없으면 프로필 저장 안내를 먼저 보여 준다.
    - isOpen(): 묶음이 해금됐는지(= isTileKeyUnlocked('saju_lifetime_bundle')).
@@ -116,7 +116,7 @@
       : '';
     return '<div class="cd-bundle-offer__panel" role="dialog" aria-modal="true" aria-labelledby="cdBundleOfferTitle">'
       + '<button type="button" class="cd-bundle-offer__close" data-cd-bundle-close aria-label="' + esc(t('saju.bundle.close', '닫기')) + '">×</button>'
-      + '<h3 id="cdBundleOfferTitle" class="cd-bundle-offer__title">' + esc(t('saju.bundle.title', '사주 전체 풀이 평생 소장')) + '</h3>'
+      + '<h3 id="cdBundleOfferTitle" class="cd-bundle-offer__title">' + esc(t('saju.bundle.title', '라이트 사주 풀이')) + '</h3>'
       + '<p class="cd-bundle-offer__price"><strong>' + PRICE_LABEL + '</strong> · ' + esc(t('saju.bundle.once', '한 번 결제로 영구 소장')) + '</p>'
       + '<ul class="cd-bundle-offer__list">' + items + '</ul>'
       + '<p class="cd-bundle-offer__sample">' + esc(t('saju.bundle.sample', SAMPLE)) + '</p>'

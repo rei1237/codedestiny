@@ -57,7 +57,7 @@ function Deeper({ prices }: { prices: OfferPrices }) {
     </article>
     <article className={`${styles.tier} ${styles.tierFeatured}`}>
       <h3 className={styles.tierTitle}>사주 평생 소장 묶음</h3>
-      <p className={styles.tierText}>사주 전체 풀이 평생 소장</p>
+      <p className={styles.tierText}>라이트 사주 풀이</p>
       <PriceLine amount={prices.bundle} />
     </article>
     <article className={styles.tier}>

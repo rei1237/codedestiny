@@ -8,7 +8,7 @@ import { normalizePaidFeatureKey } from "./paid-feature-registry.js";
  */
 export const SAJU_BUNDLE_FEATURE_KEY = "saju_lifetime_bundle";
 export const SAJU_BUNDLE_PRODUCT_ID = "unlock.saju_lifetime_bundle";
-export const SAJU_BUNDLE_LABEL = "사주 전체 풀이 평생 소장";
+export const SAJU_BUNDLE_LABEL = "라이트 사주 풀이";
 
 /** 묶음 행으로도 열리는 출생 기반 키. 전부 isBirthScopedUnlockFeatureKey 이다. */
 export const SAJU_BUNDLE_ALIAS_MEMBER_KEYS = Object.freeze([

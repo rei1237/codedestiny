@@ -91,7 +91,7 @@ function readPrice(raw) {
     const won = Number(freeWithPaidOption[1]);
     return { bucket: "free", extraBucket: bucketOfWon(won), krw: null, krwTo: null, optionalKRW: won };
   }
-  /* 2026-11-05 사주 전체 풀이 평생 소장에 들어간 항목은 개별 가격 없이 "묶음 포함"으로 보인다(가격은 묶음 한 곳). */
+  /* 2026-11-05 라이트 사주 풀이에 들어간 항목은 개별 가격 없이 "묶음 포함"으로 보인다(가격은 묶음 한 곳). */
   if (text === "묶음 포함") return { bucket: "free", krw: null, krwTo: null };
   if (text === "이용권") return { bucket: "vvip", krw: null, krwTo: null };
   const flat = text.replace(/,/g, "");

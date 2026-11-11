@@ -161,7 +161,7 @@ export const publicSeoPages: Record<string, PublicSeoPage> = {
     path: "/manse",
     title: siteSeoText("siteSeo.005"),
     description:
-      "생년월일과 시간을 바탕으로 만세력의 사주팔자와 오행 균형을 확인하는 방법을 안내합니다. 십성·대운 풀이는 사주 전체 풀이 평생 소장에서 이어집니다.",
+      "생년월일과 시간을 바탕으로 만세력의 사주팔자와 오행 균형을 확인하는 방법을 안내합니다. 십성·대운 풀이는 라이트 사주 풀이에서 이어집니다.",
     h1: "무료 만세력 보는 법",
     keywords: ["무료 만세력", "사주 만세력", "오행", "십성", "대운", "일간별 운세"],
     changeFrequency: "daily",

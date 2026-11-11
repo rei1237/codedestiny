@@ -26,11 +26,11 @@ test('former thousand-won hub distinguishes free calculated reports from paid AI
 test('basic reading and health guide copy no longer claims a bundle purchase is required', () => {
   const guide=read('app/components/guide-cta-targets.js');
   assert.match(guide, /계산형 헬스 리포트는 추가 결제 없이 읽을 수/);
-  assert.doesNotMatch(guide, /헬스 리포트는 사주 전체 풀이 평생 소장에 포함/);
+  assert.doesNotMatch(guide, /헬스 리포트는 라이트 사주 풀이에 포함/);
   const basic=read('app/insights/articles.js');
   assert.match(basic, /신강신약 판단부터 균형 전략까지의 풀이는 무료 기본풀이/);
-  assert.doesNotMatch(basic, /오행 균형의 문장 풀이는 사주 전체 풀이 평생 소장|기질의 자세한 해석은 사주 전체 풀이 평생 소장|십성으로 읽는 일머리 풀이는 사주 전체 풀이 평생 소장/);
+  assert.doesNotMatch(basic, /오행 균형의 문장 풀이는 라이트 사주 풀이|기질의 자세한 해석은 라이트 사주 풀이|십성으로 읽는 일머리 풀이는 라이트 사주 풀이/);
   const growth=read('app/insights/seo-growth-articles.js');
   assert.match(growth, /십성을 문장으로 풀어 읽는 기본풀이도 같은 결과 화면에서 무료/);
-  assert.match(growth, /대운수와 현재 대운 간지는 사주 전체 풀이 평생 소장에서/);
+  assert.match(growth, /대운수와 현재 대운 간지는 라이트 사주 풀이에서/);
 });
