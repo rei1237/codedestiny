@@ -452,3 +452,9 @@ html body #resultPage #sajuReadingHeader h2 {font-size:1.2rem;}
 #resultPage .saju-reading-profile-change {font:inherit;min-height:44px;padding:10px 16px;cursor:pointer;border:1px solid var(--cd-border);border-radius:var(--cd-r-control);background:var(--cd-surface);color:var(--cd-text);}
 #resultPage .saju-reading-profile-change:focus-visible {outline:3px solid var(--cd-accent);outline-offset:3px;}
 html body #resultPage #sajuReadingHeader {flex-wrap:wrap;}
+
+/* Natal-chart labels use opaque theme pairs, never white text on pale pink. */
+html body #resultPage #sajuCard #sajuTitle,
+html body #resultPage #sajuCard #sajuTitle > [data-key="result.sections.sajuTitle"] {color:var(--cd-text)!important;-webkit-text-fill-color:currentColor;background:var(--cd-bg);text-shadow:none;}
+html body #resultPage #sajuCard .ten-god-badge {color:var(--cd-text);background:var(--cd-bg);border:1px solid var(--cd-border);box-sizing:border-box;text-shadow:none;}
+html body #resultPage #sajuCard .ten-god-badge.day {color:var(--cd-accent);background:var(--cd-bg);border-color:var(--cd-accent);}

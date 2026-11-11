@@ -19,3 +19,11 @@ test('compact reading module remains executable HTML, outside comments',async()=
  const {readFileSync}=await import('node:fs');const html=readFileSync('index.html','utf8').replace(/<!--[\s\S]*?-->/g,'');
  assert.match(html,/<script type="module" src="\/js\/core\/saju\/compact-reading\.mjs\?v=build-[a-f0-9]+"><\/script>/);
 });
+
+test('newly free optional cards stay behind the open natal chart',async()=>{
+ const dom=new JSDOM('<html lang="ko"><div id="resultPage"><section id="destinySection"></section><section id="dailyFortuneCard"></section><section id="sajuCard"></section><section id="iljuCard"></section><section id="reportDashboardCard"></section><section id="letterBox"></section></div></html>',{url:'https://example.invalid/'});
+ const d=dom.window.document,cosmic=d.getElementById('destinySection'),letter=d.getElementById('letterBox');const cleanup=mountCompactReading(d);
+ assert.equal(d.getElementById('destinySection'),cosmic);
+ assert.deepEqual([...d.getElementById('resultPage').children].map(n=>n.id),['sajuCard','iljuCard','destinySection','dailyFortuneCard','reportDashboardCard','letterBox']);
+ assert.equal(d.getElementById('letterBox'),letter);cleanup();dom.window.close();
+});

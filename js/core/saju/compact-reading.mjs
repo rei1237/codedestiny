@@ -6,6 +6,15 @@ export function mountCompactReading(document) {
   result.dataset.classicReading='true';
   const natal=document.getElementById('sajuCard'), profile=result.querySelector(':scope > .top-hero');
   if(natal&&profile)natal.insertAdjacentElement('afterend',profile);
+  // Free activation must not place optional fortune cards ahead of the natal chart.
+  const reports=document.getElementById('reportDashboardCard');
+  for(const id of ['destinySection','dailyFortuneCard','similarCelebCard','letterBox']){
+    const node=document.getElementById(id);
+    if(!node||!natal||!result.contains(node))continue;
+    if(id==='destinySection'||(node.compareDocumentPosition(natal)&win.Node.DOCUMENT_POSITION_FOLLOWING)){
+      if(reports&&result.contains(reports))reports.before(node);else natal.insertAdjacentElement('afterend',node);
+    }
+  }
   const aliases={sajuCompactOverview:'sajuCard','sajuCompact-nature':'sajuCard','sajuCompact-flow':'daewunCard','sajuCompact-more':'reportDashboardCard'};
   const profileLabels={ko:'프로필 변경',en:'Change profile',ja:'プロフィール変更','zh-cn':'更换档案','zh-tw':'切換檔案',vi:'Đổi hồ sơ',hi:'प्रोफ़ाइल बदलें',es:'Cambiar perfil',fr:'Changer de profil',de:'Profil wechseln',nl:'Profiel wijzigen',ms:'Tukar profil'};
   const profileLabel=()=>{const lang=document.documentElement.lang.toLowerCase();return profileLabels[lang==='zh'?'zh-cn':lang]||profileLabels.en;};
