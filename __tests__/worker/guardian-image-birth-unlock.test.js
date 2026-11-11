@@ -4,7 +4,8 @@ import { TEST_USER_ID, OTHER_USER_ID, testCard, profileCardModel } from "../fixt
 import { computeBirthKey, toBirthEntitlementProfileId } from "../../worker/lib/birth-key.js";
 import { HttpError } from "../../worker/lib/http.js";
 
-// 사주 가디언 이미지(/api/guardian/generate-image): 출생 기반(BIRTH) 해금만 근거, 이미지 입력은 저장된 프로필 출생 정보로만.
+// 사주 가디언 이미지 프롬프트(/api/guardian/image-prompt): 출생 기반(BIRTH) 해금만 근거, 프롬프트 입력은 저장된 프로필 출생 정보로만.
+// 외부 이미지 모델은 부르지 않는다(fetch 0회). 예전 /generate-image 는 410 으로 종료를 알린다.
 const auth = jest.fn();
 const exists = jest.fn();
 const findOne = jest.fn();
@@ -39,11 +40,11 @@ beforeAll(async () => {
 });
 
 const FEATURE_KEY = "saju-guardian-unlock";
-const ENV = { NVIDIA_DRAW_API_KEY: "test-key" };
+const ENV = {};
 // 본문 sajuData 는 다른 사람(2001-01-01, 화·쥐) 것 — 계산에 쓰이면 안 된다.
 const INPUT = { profileId: "p1", sajuData: { year: 2001, month: 1, day: 1, hour: 3, elements: "화", mainAnimal: "쥐", polarity: "음" } };
 const birthProfileId = (profileId) => toBirthEntitlementProfileId(computeBirthKey(cards.find((card) => card.profileId === profileId)));
-let grants, users, nvidia;
+let grants, users, outbound;
 
 function matches(doc, query) {
   return Object.entries(query).every(([key, value]) => {
@@ -67,14 +68,13 @@ function grant(overrides = {}) {
   });
 }
 
-async function request(body = INPUT) {
-  const response = await handleSajuGuardianImageRoutes(new Request("https://example.test/api/guardian/generate-image", {
+async function request(body = INPUT, path = "/api/guardian/image-prompt") {
+  const response = await handleSajuGuardianImageRoutes(new Request(`https://example.test${path}`, {
     method: "POST", body: JSON.stringify(body), headers: { "content-type": "application/json" },
   }), ENV);
   expect(write).not.toHaveBeenCalled();
   return { status: response.status, body: await response.json() };
 }
-const sentImageRequest = () => JSON.parse(nvidia.mock.calls[0][1].body);
 
 beforeEach(() => {
   jest.clearAllMocks();
@@ -84,43 +84,56 @@ beforeEach(() => {
   connectDb.mockReset().mockResolvedValue(undefined);
   exists.mockImplementation(async (query) => users.find((user) => matches(user, query)) || null);
   findOne.mockImplementation((query) => ({ lean: async () => grants.find((row) => matches(row, query)) || null }));
-  nvidia = jest.spyOn(globalThis, "fetch").mockResolvedValue(new Response(JSON.stringify({ artifacts: [{ base64: "aW1n" }] }), { status: 200 }));
+  outbound = jest.spyOn(globalThis, "fetch").mockRejectedValue(new Error("guardian must not call any external API"));
 });
-afterEach(() => nvidia.mockRestore());
+afterEach(() => {
+  expect(outbound).not.toHaveBeenCalled();
+  outbound.mockRestore();
+});
 
-test("anonymous requests are rejected before any rights read or image call", async () => {
+test("anonymous requests are rejected before any rights read", async () => {
   auth.mockRejectedValue(new HttpError(401, "로그인이 필요합니다."));
   expect((await request()).status).toBe(401);
   expect(findOne).not.toHaveBeenCalled();
-  expect(nvidia).not.toHaveBeenCalled();
 });
 
-test("without a BIRTH grant the image is locked with the per-birth purchase message and pricing", async () => {
+test("without a BIRTH grant the prompt is locked with the per-birth purchase message and pricing", async () => {
   const result = await request();
   const { pricing } = getBillingFeaturePricing({ featureKey: FEATURE_KEY });
   expect(result.status).toBe(402);
   expect(result.body).toMatchObject({ featureKey: FEATURE_KEY, amountKRW: pricing.amountKRW, coinPrice: pricing.coinPrice });
   expect(result.body.message).toContain("이 생년월일은 별도 구매가 필요합니다");
-  expect(nvidia).not.toHaveBeenCalled();
 });
 
-test("a BIRTH grant generates the image from the stored profile birth, ignoring body sajuData", async () => {
+test("a BIRTH grant returns copyable prompts from the stored profile birth, ignoring body sajuData", async () => {
   grant();
   const result = await request();
-  expect(result).toEqual({ status: 200, body: expect.objectContaining({ ok: true, imageBase64: "aW1n" }) });
-  const sent = sentImageRequest();
+  expect(result.status).toBe(200);
+  const body = result.body;
+  expect(body.ok).toBe(true);
+  expect(body).not.toHaveProperty("imageBase64");
   // 프로필 1990-05-17 09:30 → seed 1990*100000 + 5*1000 + 17*10 + 9, 일주 임오(수·말·양).
-  expect(sent.seed).toBe(199005179);
-  expect(sent.prompt).toContain("horse");
-  expect(sent.prompt).toContain("abyssal tide");
-  expect(sent.prompt).toContain("radiant");
-  expect(sent.prompt).not.toMatch(/\brat\b|crimson flame/);
+  expect(body.seed).toBe(199005179);
+  expect(body.attributes).toEqual({ element: "수", yinYang: "양", animal: "말", dayPillar: "임오" });
+  expect(body.prompt).toContain("horse");
+  expect(body.prompt).toContain("abyssal tide");
+  expect(body.prompt).toContain("radiant");
+  expect(body.prompt).not.toMatch(/\brat\b|crimson flame/);
+  expect(body.negativePrompt).toContain("watermark");
+});
+
+test("the retired image endpoint answers 410 without auth, rights reads or external calls", async () => {
+  grant();
+  const result = await request(INPUT, "/api/guardian/generate-image");
+  expect(result).toEqual({ status: 410, body: expect.objectContaining({ ok: false, reason: "IMAGE_GENERATION_RETIRED" }) });
+  expect(result.body).not.toHaveProperty("imageBase64");
+  expect(auth).not.toHaveBeenCalled();
+  expect(findOne).not.toHaveBeenCalled();
 });
 
 test.each(["unlockedFeatures", "paidFeatures"])("legacy %s account array is not evidence", async (field) => {
   users.push({ _id: TEST_USER_ID, [field]: [FEATURE_KEY] });
   expect((await request()).status).toBe(402);
-  expect(nvidia).not.toHaveBeenCalled();
 });
 
 test("another saved profile with the same birth shares the unlock; a different birth needs its own purchase", async () => {
@@ -131,7 +144,7 @@ test("another saved profile with the same birth shares the unlock; a different b
   expect(other.body.message).toContain("이 생년월일은 별도 구매가 필요합니다");
 });
 
-test("editing the profile birth re-locks the image and reverting re-opens it", async () => {
+test("editing the profile birth re-locks the prompt and reverting re-opens it", async () => {
   grant();
   cards[0].birth.day = 20;
   expect((await request()).status).toBe(402);
@@ -139,7 +152,7 @@ test("editing the profile birth re-locks the image and reverting re-opens it", a
   expect((await request()).status).toBe(200);
 });
 
-test("missing, foreign or synthetic profile ids are rejected without generation", async () => {
+test("missing, foreign or synthetic profile ids are rejected without a prompt", async () => {
   grant();
   const { profileId: _omit, ...withoutProfile } = INPUT;
   const missing = await request(withoutProfile);
@@ -149,23 +162,21 @@ test("missing, foreign or synthetic profile ids are rejected without generation"
     const result = await request({ ...INPUT, profileId });
     expect(result).toEqual({ status: 403, body: expect.objectContaining({ reason: "INVALID_PROFILE", requiresProfile: true }) });
   }
-  expect(nvidia).not.toHaveBeenCalled();
 });
 
 test.each([
   { userId: OTHER_USER_ID }, { status: "REFUNDED" }, { expiresAt: new Date("2020-01-01") },
   { scope: "PROFILE", profileId: "p2" },
   { profileId: "birth:" + "0".repeat(64) }, { contentKey: "premium-sibyl-dominator" },
-])("an unrelated, other-card or inactive grant never opens the image: %j", async (override) => {
+])("an unrelated, other-card or inactive grant never opens the prompt: %j", async (override) => {
   grant(override);
   expect((await request()).status).toBe(402);
-  expect(nvidia).not.toHaveBeenCalled();
 });
 
 // 출생 기반 전환 이전 USER·PROFILE 행(운영 구매자)은 계속 연다 — 재잠금 방지. 다른 카드의 PROFILE 행은 닫힌다.
 test.each([
   { scope: "PROFILE", profileId: "p1" }, { scope: "USER", profileId: "__user__" },
-])("a legacy grant from before the birth-scope switch keeps opening the image: %j", async (override) => {
+])("a legacy grant from before the birth-scope switch keeps opening the prompt: %j", async (override) => {
   grant(override);
   expect((await request()).status).toBe(200);
 });
@@ -177,5 +188,4 @@ test("DB failures stay retryable instead of prompting purchase", async () => {
   expect(result.status).toBe(503);
   expect(result.body).toMatchObject({ reason: "TEMPORARY_UNAVAILABLE", retryable: true });
   expect(JSON.stringify(result.body)).not.toContain("private database");
-  expect(nvidia).not.toHaveBeenCalled();
 });

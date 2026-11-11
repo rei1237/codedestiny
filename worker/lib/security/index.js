@@ -577,8 +577,9 @@ export function aiActionFromPath(path = "", serviceKey = "", method = "GET") {
   }
   // 이어짓기 폴링. `/generate` 웨이브와 달리 락 대기 중 초당 1회 가까이 친다.
   if (/\/(generate-batch|continue)$/.test(normalized)) return "batch";
-  // 생성 진입점. `/report`·`/compat`·`/generate-image` 는 `/start` 와 같은 급이다(1건 = 1리포트).
-  if (/\/(start|create|consult|report|compat|generate-image)$/.test(normalized)) return "start";
+  // 생성 진입점. `/report`·`/compat`·`/generate-image`·`/image-prompt` 는 `/start` 와 같은 급이다(1건 = 1리포트).
+  // `/image-prompt`(사주 가디언)는 버튼 1회에 1번 부르는 결정론 프롬프트라 예전 `/generate-image` 와 같은 상한을 쓴다.
+  if (/\/(start|create|consult|report|compat|generate-image|image-prompt)$/.test(normalized)) return "start";
   if (/\/(prepare|ensure-access|access|checkout|verify-payment)$/.test(normalized)) return "ensure";
   if (/\/(message|refine|chat)$/.test(normalized)) return "message";
   if (/\/basis$/.test(normalized)) return "basis";

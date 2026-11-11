@@ -285,11 +285,6 @@ const SAJU_GUARDIAN_TEXT_KEYS_COPY = [
   "시간 열쇠",
   "생시를 추가하면 시간대별 수호 리듬이 더 선명해집니다.",
   "수호상 화첩",
-  "나의 사주 가디언 그리기",
-  "명식의 색과 동물 상징을 한 장의 수호상으로 피워 올립니다.",
-  "그림 주문문",
-  "그림 주문 복사",
-  "그림 주문이 복사됐어요",
   "수호 동물",
   "중심 색감",
   "수호 문양",
@@ -312,6 +307,27 @@ const SAJU_GUARDIAN_TEXT_KEYS_COPY = [
   "사주 가디언 소환진은 일주·월지·시지와 60갑자 상징을 함께 읽는 프리미엄 명리 리딩입니다.",
   "일주 계산에 실패했어요. 입력값을 다시 확인해 주세요.",
   "로컬 계산에 실패했어요. 입력값을 다시 확인해 주세요.",
+  "이전에 받은 가디언 이미지",
+  "이미지 프롬프트 받기",
+  "나의 사주 가디언 이미지 프롬프트",
+  "명식의 색과 동물 상징을 이미지 생성 도구에 그대로 쓸 수 있는 프롬프트로 정리했어요.",
+  "이 화면에서 이미지를 만들어 드리지는 않아요. 프롬프트를 복사해 원하는 외부 이미지 생성 도구에 붙여 넣어 사용해 주세요. 외부 도구의 이용 조건과 비용은 각 서비스 기준을 따릅니다.",
+  "한글 프롬프트",
+  "한글 프롬프트 복사",
+  "영문 프롬프트 (대부분의 이미지 도구 권장)",
+  "영문 프롬프트 복사",
+  "제외할 요소 (negative prompt를 지원하는 도구용)",
+  "제외 요소 복사",
+  "시드 값을 지정할 수 있는 도구에서는 {seed}을 넣으면 같은 명식에 늘 비슷한 구도를 얻기 쉬워요.",
+  "저장된 내 프로필의 출생 정보로 영문 이미지 프롬프트를 만들어 드려요.",
+  "영문 이미지 프롬프트 만들기",
+  "프롬프트를 만드는 중...",
+  "다시 시도",
+  "복사됐어요",
+  "복사하지 못했어요. 프롬프트를 길게 눌러 직접 복사해 주세요.",
+  "이미지 프롬프트를 만들지 못했어요. 잠시 후 다시 시도해 주세요.",
+  "로그인한 뒤 다시 시도해 주세요.",
+  "프로필을 저장하면 영문 이미지 프롬프트를 만들 수 있어요.",
 ] as const;
 
 const SAJU_GUARDIAN_TEXT_COPY: Partial<Record<LoadingLocale, Record<string, string>>> = {
@@ -459,11 +475,6 @@ const SAJU_GUARDIAN_TEXT_COPY: Partial<Record<LoadingLocale, Record<string, stri
     "시간 열쇠": "Time Key",
     "생시를 추가하면 시간대별 수호 리듬이 더 선명해집니다.": "Add birth time to reveal a clearer guardian rhythm by time of day.",
     "수호상 화첩": "Guardian Sketchbook",
-    "나의 사주 가디언 그리기": "Draw My Saju Guardian",
-    "명식의 색과 동물 상징을 한 장의 수호상으로 피워 올립니다.": "Let the color and animal symbol of your chart bloom into one guardian portrait.",
-    "그림 주문문": "Art Invocation",
-    "그림 주문 복사": "Copy Art Invocation",
-    "그림 주문이 복사됐어요": "Art invocation copied",
     "수호 동물": "Guardian Animal",
     "중심 색감": "Core Color",
     "수호 문양": "Guardian Emblem",
@@ -486,6 +497,27 @@ const SAJU_GUARDIAN_TEXT_COPY: Partial<Record<LoadingLocale, Record<string, stri
     "사주 가디언 소환진은 일주·월지·시지와 60갑자 상징을 함께 읽는 프리미엄 명리 리딩입니다.": "Saju Guardian Circle is a premium Myeongli reading that reads your day pillar, month branch, hour branch, and sixty-cycle symbols together.",
     "일주 계산에 실패했어요. 입력값을 다시 확인해 주세요.": "Day-pillar calculation failed. Please check your input.",
     "로컬 계산에 실패했어요. 입력값을 다시 확인해 주세요.": "Local calculation failed. Please check your input.",
+    "이전에 받은 가디언 이미지": "Your previously received guardian image",
+    "이미지 프롬프트 받기": "Get image prompt",
+    "나의 사주 가디언 이미지 프롬프트": "My Saju Guardian Image Prompt",
+    "명식의 색과 동물 상징을 이미지 생성 도구에 그대로 쓸 수 있는 프롬프트로 정리했어요.": "We turned your chart's colors and animal symbol into a prompt you can paste straight into an image tool.",
+    "이 화면에서 이미지를 만들어 드리지는 않아요. 프롬프트를 복사해 원하는 외부 이미지 생성 도구에 붙여 넣어 사용해 주세요. 외부 도구의 이용 조건과 비용은 각 서비스 기준을 따릅니다.": "This page does not create images. Copy the prompt and paste it into the external image tool of your choice. That tool's own terms and costs apply.",
+    "한글 프롬프트": "Korean prompt",
+    "한글 프롬프트 복사": "Copy Korean prompt",
+    "영문 프롬프트 (대부분의 이미지 도구 권장)": "English prompt (recommended for most image tools)",
+    "영문 프롬프트 복사": "Copy English prompt",
+    "제외할 요소 (negative prompt를 지원하는 도구용)": "Things to exclude (for tools that support negative prompts)",
+    "제외 요소 복사": "Copy exclusions",
+    "시드 값을 지정할 수 있는 도구에서는 {seed}을 넣으면 같은 명식에 늘 비슷한 구도를 얻기 쉬워요.": "In tools that accept a seed, enter {seed} to get a similar composition for the same chart.",
+    "저장된 내 프로필의 출생 정보로 영문 이미지 프롬프트를 만들어 드려요.": "We create the English image prompt from the birth details in your saved profile.",
+    "영문 이미지 프롬프트 만들기": "Create English image prompt",
+    "프롬프트를 만드는 중...": "Creating prompt...",
+    "다시 시도": "Try again",
+    "복사됐어요": "Copied",
+    "복사하지 못했어요. 프롬프트를 길게 눌러 직접 복사해 주세요.": "Could not copy. Press and hold the prompt to copy it manually.",
+    "이미지 프롬프트를 만들지 못했어요. 잠시 후 다시 시도해 주세요.": "We could not create the image prompt. Please try again shortly.",
+    "로그인한 뒤 다시 시도해 주세요.": "Please log in and try again.",
+    "프로필을 저장하면 영문 이미지 프롬프트를 만들 수 있어요.": "Save your profile to create the English image prompt.",
   },
 };
 
@@ -1424,18 +1456,22 @@ function ResultCard({
   profileId?: string;
 }) {
   const [activePanel, setActivePanel] = useState("seal");
-  const [promptCopied, setPromptCopied] = useState(false);
-  const [guardianImage, setGuardianImage] = useState<{
+  const [copiedPrompt, setCopiedPrompt] = useState<"" | "ko" | "en" | "negative">("");
+  const [imagePrompt, setImagePrompt] = useState<{
     status: "idle" | "loading" | "ready" | "error";
-    base64?: string;
+    prompt?: string;
+    negativePrompt?: string;
+    seed?: number;
+    message?: string;
+    retryable?: boolean;
   }>({ status: "idle" });
+  const [savedGuardianImage, setSavedGuardianImage] = useState("");
 
-  // 생성한 수호신 이미지를 기기에 소유(캐시)해, 재열람 시 NVIDIA 재호출 없이 즉시 다시 보여준다.
+  // 이미지 직접 생성은 종료됐다. 예전에 이 기기에서 받은 이미지는 지우지 않고 그대로 다시 보여 준다(읽기 전용).
   const guardianImageCacheKey = `cd_guardian_img_${birthYear}_${birthMonth}_${birthDay}_${birthHour !== "" ? birthHour : "x"}`;
   useEffect(() => {
     try {
-      const cached = window.localStorage.getItem(guardianImageCacheKey);
-      if (cached) setGuardianImage({ status: "ready", base64: cached });
+      setSavedGuardianImage(window.localStorage.getItem(guardianImageCacheKey) || "");
     } catch { /* localStorage 불가 환경은 무시 */ }
   }, [guardianImageCacheKey]);
 
@@ -1474,46 +1510,45 @@ function ResultCard({
   const hourBranch = result.fourPillars?.hour?.branch || "";
   const hasBirthTime = result.hasBirthTime === true;
 
-  const handleGenerateGuardianImage = async () => {
-    // 이미지 해금은 저장된 프로필의 생년월일 단위 — 서버는 profileId 의 저장된 출생 정보로만 생성한다.
+  const handleCreateImagePrompt = async () => {
+    // 프롬프트 해금은 저장된 프로필의 생년월일 단위 — 서버는 profileId 의 저장된 출생 정보로만 만든다.
     if (!profileId) {
-      showToast(tx("프로필을 저장한 뒤 구매해 주세요."), "error");
+      setImagePrompt({ status: "error", message: tx("프로필을 저장하면 영문 이미지 프롬프트를 만들 수 있어요."), retryable: false });
       return;
     }
-    setGuardianImage({ status: "loading" });
+    setImagePrompt({ status: "loading" });
     try {
-      const response = await fetch("/api/guardian/generate-image", {
+      const response = await fetch("/api/guardian/image-prompt", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({
-          profileId,
-          sajuData: {
-            year: Number(birthYear) || 0,
-            month: Number(birthMonth) || 0,
-            day: Number(birthDay) || 0,
-            hour: birthHour !== "" ? Number(birthHour) : undefined,
-            stem: dayStem,
-            branch: dayBranch,
-            elements: result.dominantElement,
-            mainAnimal: result.mainAnimal,
-            zodiac: result.zodiac,
-            polarity: STEM_POLARITY[dayStem] || "양",
-          },
-        }),
+        body: JSON.stringify({ profileId }),
       });
       const payload = await response.json().catch(() => ({}));
-      if (!response.ok || !payload?.ok || !payload?.imageBase64) {
-        setGuardianImage({ status: "error" });
-        const accessMessage = [400, 402, 403].includes(response.status) && typeof payload?.message === "string" ? payload.message : "";
-        showToast(accessMessage || tx("수호신 이미지를 생성하지 못했어요. 잠시 후 다시 시도해 주세요."), "error");
+      if (!response.ok || !payload?.ok || typeof payload?.prompt !== "string" || !payload.prompt) {
+        const accessError = [400, 402, 403].includes(response.status);
+        const serverMessage = accessError && typeof payload?.message === "string" ? payload.message : "";
+        setImagePrompt({
+          status: "error",
+          message: serverMessage || (response.status === 401
+            ? tx("로그인한 뒤 다시 시도해 주세요.")
+            : tx("이미지 프롬프트를 만들지 못했어요. 잠시 후 다시 시도해 주세요.")),
+          retryable: !accessError,
+        });
         return;
       }
-      setGuardianImage({ status: "ready", base64: payload.imageBase64 });
-      try { window.localStorage.setItem(guardianImageCacheKey, payload.imageBase64); } catch { /* 용량 초과 등은 무시 */ }
+      setImagePrompt({
+        status: "ready",
+        prompt: payload.prompt,
+        negativePrompt: typeof payload.negativePrompt === "string" ? payload.negativePrompt : "",
+        seed: Number.isFinite(payload.seed) ? payload.seed : undefined,
+      });
     } catch {
-      setGuardianImage({ status: "error" });
-      showToast(tx("수호신 이미지를 생성하지 못했어요. 잠시 후 다시 시도해 주세요."), "error");
+      setImagePrompt({
+        status: "error",
+        message: tx("이미지 프롬프트를 만들지 못했어요. 잠시 후 다시 시도해 주세요."),
+        retryable: true,
+      });
     }
   };
   const stemPolarity = STEM_POLARITY[dayStem] || "양";
@@ -1708,24 +1743,32 @@ function ResultCard({
     { label: tx("중심 색감"), value: guardianPromptColor },
     { label: tx("수호 문양"), value: guardianEmblem },
   ];
-  const handlePromptCopy = async () => {
+  const handlePromptCopy = async (kind: "ko" | "en" | "negative", text: string) => {
+    let copied = false;
     try {
       if (!navigator.clipboard?.writeText) throw new Error("clipboard unavailable");
-      await navigator.clipboard.writeText(guardianArtPrompt);
+      await navigator.clipboard.writeText(text);
+      copied = true;
     } catch {
       const textarea = document.createElement("textarea");
-      textarea.value = guardianArtPrompt;
+      textarea.value = text;
       textarea.setAttribute("readonly", "");
       textarea.style.position = "fixed";
       textarea.style.opacity = "0";
       document.body.appendChild(textarea);
       textarea.select();
-      document.execCommand("copy");
+      try { copied = document.execCommand("copy"); } catch { copied = false; }
       document.body.removeChild(textarea);
     }
-    setPromptCopied(true);
-    window.setTimeout(() => setPromptCopied(false), 1800);
+    if (!copied) {
+      // 복사를 못 하면 프롬프트 본문을 길게 눌러 직접 고를 수 있다(select-all).
+      showToast(tx("복사하지 못했어요. 프롬프트를 길게 눌러 직접 복사해 주세요."), "error");
+      return;
+    }
+    setCopiedPrompt(kind);
+    window.setTimeout(() => setCopiedPrompt((current) => (current === kind ? "" : current)), 1800);
   };
+  const copyLabel = (kind: "ko" | "en" | "negative", idle: string) => (copiedPrompt === kind ? tx("복사됐어요") : tx(idle));
 
   return (
     <main className="min-h-screen overflow-hidden bg-[#080b14] text-slate-100" style={{ fontFamily: "var(--font-body)" }}>
@@ -1733,20 +1776,22 @@ function ResultCard({
       <div className="relative mx-auto flex min-h-screen w-full max-w-7xl flex-col gap-5 px-4 py-5 sm:px-6 lg:px-8">
         <section className="grid gap-5 lg:grid-cols-[0.9fr_1.1fr] lg:items-stretch">
           <div className="relative min-h-[520px] overflow-hidden rounded-lg border border-amber-200/20 bg-slate-950 shadow-2xl shadow-black/40">
-            {guardianImage.status === "ready" && guardianImage.base64 ? (
+            {savedGuardianImage ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
-                src={`data:image/png;base64,${guardianImage.base64}`}
-                alt={tx("사주 가디언 소환진")}
+                src={`data:image/png;base64,${savedGuardianImage}`}
+                alt={tx("이전에 받은 가디언 이미지")}
                 className="absolute inset-0 h-full w-full object-cover opacity-[0.88]"
               />
             ) : (
-              <GuardianSummoningCircle
-                spinning={guardianImage.status === "loading"}
-                message={guardianImage.status === "loading" ? tx("수호신을 소환하는 중...") : undefined}
-              />
+              <GuardianSummoningCircle />
             )}
             <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/42 to-transparent" />
+            {savedGuardianImage ? (
+              <p className="absolute left-4 top-4 rounded-lg border border-white/15 bg-slate-950/70 px-3 py-1.5 text-[11px] font-black text-amber-100">
+                {tx("이전에 받은 가디언 이미지")}
+              </p>
+            ) : null}
             <div className="absolute inset-x-0 bottom-0 p-5 sm:p-7">
               <p className="text-xs font-black tracking-[0.18em] text-amber-200">{tx("수호 인장")}</p>
               <h1 className="mt-3 text-4xl font-black leading-tight text-white sm:text-5xl" style={{ fontFamily: "var(--font-decorative)" }}>
@@ -1756,14 +1801,12 @@ function ResultCard({
                 {guardianSeal}이 명식의 중심에 섭니다. 일주가 뿌리를 세우고, 월지와 시지가 현실의 방향과 하루의 리듬을 조용히 밝혀 줍니다.
               </p>
               <div className="mt-5 flex flex-wrap gap-2">
-                <button
-                  type="button"
-                  onClick={handleGenerateGuardianImage}
-                  disabled={guardianImage.status === "loading"}
-                  className="rounded-lg border border-amber-200/30 bg-amber-200/12 px-4 py-2.5 text-xs font-black text-amber-100 transition hover:bg-amber-200/18 disabled:opacity-50"
+                <a
+                  href="#guardianPromptStudio"
+                  className="rounded-lg border border-amber-200/30 bg-amber-200/12 px-4 py-2.5 text-xs font-black text-amber-100 transition hover:bg-amber-200/18"
                 >
-                  {guardianImage.status === "loading" ? tx("소환 중...") : tx("소환진 깨우기")}
-                </button>
+                  {tx("이미지 프롬프트 받기")}
+                </a>
                 <button
                   type="button"
                   onClick={onReset}
@@ -1833,27 +1876,20 @@ function ResultCard({
               tx={tx}
             />
 
-            <section className="overflow-hidden rounded-lg border border-pink-200/20 bg-gradient-to-br from-pink-950/50 via-slate-950/72 to-violet-950/48 p-5 shadow-2xl shadow-pink-950/20">
-              <div className="flex flex-wrap items-start justify-between gap-3">
-                <div>
-                  <p className="text-xs font-black tracking-[0.16em] text-pink-200">{tx("수호상 화첩")}</p>
-                  <h2 className="mt-2 text-2xl font-black text-white" style={{ fontFamily: "var(--font-playful)" }}>
-                    {tx("나의 사주 가디언 그리기")}
-                  </h2>
-                  <p className="mt-2 text-xs font-semibold leading-relaxed text-pink-50/80">
-                    {tx("명식의 색과 동물 상징을 한 장의 수호상으로 피워 올립니다.")}
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={handlePromptCopy}
-                  aria-describedby="guardianPromptCopyStatus"
-                  className="rounded-lg border border-pink-100/30 bg-pink-100/14 px-4 py-2.5 text-xs font-black text-pink-50 transition hover:bg-pink-100/22"
-                >
-                  {promptCopied ? tx("그림 주문이 복사됐어요") : tx("그림 주문 복사")}
-                </button>
+            <section id="guardianPromptStudio" className="scroll-mt-4 overflow-hidden rounded-lg border border-pink-200/20 bg-gradient-to-br from-pink-950/50 via-slate-950/72 to-violet-950/48 p-5 shadow-2xl shadow-pink-950/20">
+              <div>
+                <p className="text-xs font-black tracking-[0.16em] text-pink-200">{tx("수호상 화첩")}</p>
+                <h2 className="mt-2 text-2xl font-black text-white" style={{ fontFamily: "var(--font-playful)" }}>
+                  {tx("나의 사주 가디언 이미지 프롬프트")}
+                </h2>
+                <p className="mt-2 text-xs font-semibold leading-relaxed text-pink-50/80">
+                  {tx("명식의 색과 동물 상징을 이미지 생성 도구에 그대로 쓸 수 있는 프롬프트로 정리했어요.")}
+                </p>
+                <p className="mt-3 rounded-lg border border-amber-200/25 bg-amber-200/10 px-3 py-2 text-xs font-bold leading-relaxed text-amber-50">
+                  {tx("이 화면에서 이미지를 만들어 드리지는 않아요. 프롬프트를 복사해 원하는 외부 이미지 생성 도구에 붙여 넣어 사용해 주세요. 외부 도구의 이용 조건과 비용은 각 서비스 기준을 따릅니다.")}
+                </p>
                 <span id="guardianPromptCopyStatus" role="status" aria-live="polite" aria-atomic="true" className="sr-only">
-                  {promptCopied ? tx("그림 주문이 복사됐어요") : ""}
+                  {copiedPrompt ? tx("복사됐어요") : ""}
                 </span>
               </div>
 
@@ -1867,10 +1903,91 @@ function ResultCard({
               </div>
 
               <div className="mt-4 rounded-lg border border-white/10 bg-slate-950/62 p-4">
-                <p className="text-[11px] font-black tracking-[0.14em] text-violet-200">{tx("그림 주문문")}</p>
-                <pre className="mt-3 whitespace-pre-wrap break-keep text-xs font-semibold leading-relaxed text-slate-100" style={{ fontFamily: "var(--font-body)" }}>
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <p className="text-[11px] font-black tracking-[0.14em] text-violet-200">{tx("한글 프롬프트")}</p>
+                  <button
+                    type="button"
+                    onClick={() => handlePromptCopy("ko", guardianArtPrompt)}
+                    aria-describedby="guardianPromptCopyStatus"
+                    className="min-h-[44px] rounded-lg border border-pink-100/30 bg-pink-100/14 px-4 py-2.5 text-xs font-black text-pink-50 transition hover:bg-pink-100/22"
+                  >
+                    {copyLabel("ko", "한글 프롬프트 복사")}
+                  </button>
+                </div>
+                <pre className="mt-3 select-all whitespace-pre-wrap break-keep text-xs font-semibold leading-relaxed text-slate-100" style={{ fontFamily: "var(--font-body)" }}>
                   {guardianArtPrompt}
                 </pre>
+              </div>
+
+              <div className="mt-4 rounded-lg border border-white/10 bg-slate-950/62 p-4" aria-busy={imagePrompt.status === "loading"}>
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <p className="text-[11px] font-black tracking-[0.14em] text-violet-200">{tx("영문 프롬프트 (대부분의 이미지 도구 권장)")}</p>
+                  {imagePrompt.status === "ready" && imagePrompt.prompt ? (
+                    <button
+                      type="button"
+                      onClick={() => handlePromptCopy("en", imagePrompt.prompt || "")}
+                      aria-describedby="guardianPromptCopyStatus"
+                      className="min-h-[44px] rounded-lg border border-pink-100/30 bg-pink-100/14 px-4 py-2.5 text-xs font-black text-pink-50 transition hover:bg-pink-100/22"
+                    >
+                      {copyLabel("en", "영문 프롬프트 복사")}
+                    </button>
+                  ) : null}
+                </div>
+                {imagePrompt.status === "ready" && imagePrompt.prompt ? (
+                  <>
+                    <pre className="mt-3 select-all whitespace-pre-wrap break-words text-xs font-semibold leading-relaxed text-slate-100" style={{ fontFamily: "var(--font-body)" }}>
+                      {imagePrompt.prompt}
+                    </pre>
+                    {imagePrompt.negativePrompt ? (
+                      <div className="mt-3 border-t border-white/10 pt-3">
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                          <p className="text-[11px] font-black tracking-[0.12em] text-slate-400">{tx("제외할 요소 (negative prompt를 지원하는 도구용)")}</p>
+                          <button
+                            type="button"
+                            onClick={() => handlePromptCopy("negative", imagePrompt.negativePrompt || "")}
+                            aria-describedby="guardianPromptCopyStatus"
+                            className="min-h-[44px] rounded-lg border border-white/15 bg-white/8 px-4 py-2.5 text-xs font-black text-slate-100 transition hover:bg-white/12"
+                          >
+                            {copyLabel("negative", "제외 요소 복사")}
+                          </button>
+                        </div>
+                        <pre className="mt-2 select-all whitespace-pre-wrap break-words text-[11px] font-semibold leading-relaxed text-slate-300" style={{ fontFamily: "var(--font-body)" }}>
+                          {imagePrompt.negativePrompt}
+                        </pre>
+                      </div>
+                    ) : null}
+                    {typeof imagePrompt.seed === "number" ? (
+                      <p className="mt-3 text-[11px] font-semibold leading-relaxed text-slate-400">
+                        {txp("시드 값을 지정할 수 있는 도구에서는 {seed}을 넣으면 같은 명식에 늘 비슷한 구도를 얻기 쉬워요.", { seed: imagePrompt.seed })}
+                      </p>
+                    ) : null}
+                  </>
+                ) : (
+                  <div className="mt-3 grid gap-2">
+                    <p className="text-xs font-semibold leading-relaxed text-slate-300">
+                      {tx("저장된 내 프로필의 출생 정보로 영문 이미지 프롬프트를 만들어 드려요.")}
+                    </p>
+                    {imagePrompt.status === "error" && imagePrompt.message ? (
+                      <p role="alert" className="rounded-lg border border-rose-200/30 bg-rose-200/10 px-3 py-2 text-xs font-bold leading-relaxed text-rose-100">
+                        {imagePrompt.message}
+                      </p>
+                    ) : null}
+                    {imagePrompt.status === "error" && imagePrompt.retryable === false ? null : (
+                      <button
+                        type="button"
+                        onClick={handleCreateImagePrompt}
+                        disabled={imagePrompt.status === "loading"}
+                        className="min-h-[44px] rounded-lg border border-amber-200/30 bg-amber-200/12 px-4 py-2.5 text-xs font-black text-amber-100 transition hover:bg-amber-200/18 disabled:opacity-50"
+                      >
+                        {imagePrompt.status === "loading"
+                          ? tx("프롬프트를 만드는 중...")
+                          : imagePrompt.status === "error"
+                            ? tx("다시 시도")
+                            : tx("영문 이미지 프롬프트 만들기")}
+                      </button>
+                    )}
+                  </div>
+                )}
               </div>
             </section>
 
