@@ -231,7 +231,10 @@ function FeatureBackHomeNav() {
 }
 
 export default function AppChrome({ children }: { children: ReactNode }) {
-  const pathname = usePathname() ?? "/";
+  const documentPath = usePathname() ?? ROOT_LANDING_PATH;
+  // Capacitor opens the exported home document. Keep its first render identical
+  // to `/` instead of mounting a header, footer and tabs after hydration.
+  const pathname = documentPath === "/index.html" ? ROOT_LANDING_PATH : documentPath;
   const isImmersiveFortuneRoute = IMMERSIVE_FORTUNE_ROUTES.some((r) => pathname === r || pathname.startsWith(r + "/"));
   const isAuthRoute = AUTH_ROUTES.some((r) => pathname === r || pathname.startsWith(r + "/"));
   const isRecordsSurface = pathname === '/consultations' || pathname.startsWith('/consultations/') || pathname === '/records' || pathname.startsWith('/records/');
