@@ -170,3 +170,33 @@ test("refundPassCoverage skips a light source", async () => {
   expect(result).toEqual({ refunded: false, skipped: true, reason: "PASS_BUDGET_EXEMPT" });
   expect(db.rows.find((row) => String(row._id) === USER).profileSubscription.monthlySpendCoin).toBe(100);
 });
+
+// 2026-11-12: 사주 가디언 그림 설명문은 라이트 운세다. 이용권 보유자는 한도를 쓰지 않고 열고, 비보유자는 3,000원 단건이다.
+describe("saju guardian is a light fortune", () => {
+  const GUARDIAN = "saju-guardian-unlock";
+
+  test("non-pass price stays 3,000 KRW and the product is flagged light", () => {
+    expect(resolveProduct({ featureKey: GUARDIAN })).toMatchObject({ priceKRW: 3000, priceCoins: 30, lightFortune: true });
+    expect(resolveProduct({ featureKey: "openSajuGuardianPage" })).toMatchObject({ featureKey: GUARDIAN, priceKRW: 3000, lightFortune: true });
+  });
+
+  test("an exhausted pass opens the guardian without spending the budget", async () => {
+    const { db } = seed("standard", MONTHLY_PASS_LIMITS.standard, { profileCards: [testCard("p1", { userId: USER })] });
+    const { response, payload } = await postPassCheck(db, {
+      featureKey: GUARDIAN, paymentMode: "MEMBERSHIP_PASS", requestId: "guardian-pass", profileId: "p1",
+    });
+    expect(response.status).toBe(200);
+    expect(payload.data.consume.accessType).toBe("membership_pass");
+    expect(db.rows.find((row) => String(row._id) === USER).profileSubscription.monthlySpendCoin).toBe(MONTHLY_PASS_LIMITS.standard);
+    const evidence = evidenceRows(db).find((row) => row.metadata.requestId === "guardian-pass");
+    expect(evidence.metadata.passBudgetExempt).toBe(true);
+    // 그림 설명문 라우트가 읽는 근거는 생년월일(BIRTH) 해금 행이다.
+    expect(db.rows.some((row) => row.featureKey === GUARDIAN && row.scope === "BIRTH" && row.status === "ACTIVE")).toBe(true);
+  });
+
+  test("without an active pass the guardian is not covered", () => {
+    const { user } = seed("standard", 0);
+    expect(evaluatePassCoverage({ user, entitlement: { isActive: false }, coinCost: 30, lightFortune: true }))
+      .toMatchObject({ covered: false, reason: "no_active_pass" });
+  });
+});

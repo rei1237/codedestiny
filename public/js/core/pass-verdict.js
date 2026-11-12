@@ -129,6 +129,7 @@
     "ziwei_life_yearly_flow",
     "premium-fpti-report",
     "premium-sukuyo-compat-extra",
+    "saju-guardian-unlock",
     "flower-fc",
     "olympus-fc",
     "nakshatra-lord-report",
@@ -159,6 +160,8 @@
     "generateFptiDeepReport",
     "openFptiDeepReport",
     "extreme-t-relationship-circuit",
+    "openSajuGuardianPage",
+    "openSajuAnimalPage",
   ];
   var LIGHT_FORTUNE_LOOKUP = {};
   LIGHT_FORTUNE_FEATURE_KEYS.concat(LIGHT_FORTUNE_FEATURE_ALIASES).forEach(function (key) {
