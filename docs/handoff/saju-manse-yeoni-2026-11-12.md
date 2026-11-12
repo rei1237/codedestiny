@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-12
-next: "S4 절기 리듬"
+next: "마무리"
 ---
 
 # 사주 명식 속도·디자인, 3개월 무료 목록 + 연이 배너, 절기 리듬(月令) 개선
@@ -78,5 +78,12 @@ next: "S4 절기 리듬"
   - 클릭 확인(mock API, 390px): 연이·네컷·궁합·자미두수·베다(React) → 무료 사주/각 입력 화면, 타로 → 타로 라이브러리, 만세력·최애운명·오늘의 운세 → 각 페이지. 결제 시트 0건.
   - check:fast: test:node 5014/5015(기존 CRLF 실패 free-crafted-panel-policy 1건만), sitemap 드리프트는 sitemap:generate로 해소, 나머지 25단계 개별 실행 모두 통과, test:jest 7974 통과.
   - 위험·후속: 타로 라이브러리에는 유료 카드(1회 5,000원)도 섞여 있다(기존 레지스트리 '무료 시작'). feature-visual-details의 최애운명 'paid' 표기는 오래된 생성물(정책은 무료). 결과 카드 칩은 사주 입력으로 갈 뿐 해당 카드로 바로 스크롤하지 않는다.
-- [ ] S4 절기 리듬 이미지·문구 → 커밋
+- [x] S4 절기 리듬 이미지·문구 → 커밋 `77be6e179`
+  - 본문은 서버 전달이라 `worker/lib/saju-section/paid-natal-reading.src.js`(T24_MONTH_COPY 12개 월지·T24_AXIS·_t24PhaseNote)를 고치고 `node scripts/extract-saju-section-runtime.mjs --write`로 runtime.generated.mjs를 다시 만든다. 브라우저는 CSS만(`_ensureTerms24Style`, id `cd-terms24-style-v20261112`), 미러는 sync:public.
+  - 그림: `/images/saju/nature/{spring|summer|autumn|winter}-{480,960}.webp`(辰未戌丑은 각 계절). 높이 clamp(190px,52vw,300px) — aspect-ratio+max-height 조합은 데스크톱 폭이 450px로 줄어 버려 바꿨다.
+  - 카드: 타고난 성향·사람을 받아들이는 방식·연애할 때·일과 돈·컨디션(조후 덧붙임) + 연이 한마디. 옛 행동 지침(t24-action)·옛 요약 제거. 시각 미상이면 구간 보정 줄 없음(기존 미상 테스트 통과).
+  - 테스트: `__tests__/ui/saju-terms24-season.test.mjs`(12개 월지). 서버 게이트 FORBIDDEN 문구를 새 유료 문구로 교체. saju-section parity는 절기 칸(terms24Grid) 해시를 항상 건너뛴다(의도된 변경, 비한국어=한국어 비교는 유지).
+  - 스크린샷: D:/Development/Temp/claude/ec29f026d20d029c/74938b41-f812-494f-8006-98dce5349e62/scratchpad/s4/{in,o,yu,ja,jin}-{390,1280,390-dark}.png (寅·午·酉·子·辰). 가로 넘침 0. 하네스 shots.mjs는 public/static 페이지에 서버 HTML과 실제 CSS 함수를 주입.
+  - check:fast: test:node 5015/5016(기존 CRLF free-crafted-panel-policy 1건만), 남은 25단계 개별 실행 모두 통과, test:jest 7974 통과.
+  - 위험: 문구는 사용자 검토 전. 절기 칸 parity 픽스처 해시는 옛 값 그대로(건너뜀).
 - [ ] 마무리: `git fetch` 후 origin/main 위로 rebase(미러·사이트맵 재생성 필요 시), check:fast, 이 문서 결과 정리. push·배포는 하지 않음(사용자 요청 대기).
