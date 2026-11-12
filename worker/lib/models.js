@@ -290,6 +290,9 @@ const profileCardSchema = new mongoose.Schema({
   },
   birth: { type: profileCardBirthSchema, default: () => ({}) },
   location: { type: profileCardLocationSchema, default: () => ({}) },
+  // 사주 원석 추천 답변 기록 {v, answers, answersKey, resultKey, versions, updatedAt}. 결과 본문은 두지 않는다.
+  // 쓰기는 PATCH /api/profile/:id 의 sajuCrystal 전용 분기만 하고, 그 분기가 lib/saju/crystal-flow.mjs sanitizeCrystalRecord로 검사한다.
+  sajuCrystal: { type: mongoose.Schema.Types.Mixed, default: undefined },
 }, { timestamps: true });
 
 profileCardSchema.index({ userId: 1, profileId: 1 }, { unique: true });

@@ -1,14 +1,19 @@
 "use client";
 
-// 사주 원석 추천 질문·결과 흐름. 출생정보와 답변은 이 브라우저 안에서만 계산·보관하고 서버로 보내지 않는다.
-// 저장: codeDestiny:sajuCrystal:<계정 범위>:<프로필 id> (lib/saju/crystal-flow.mjs). 프로필이 바뀌면 상태를 처음부터 다시 연다.
+// 사주 원석 추천 질문·결과 흐름. 계산은 이 브라우저 안에서 하고, 출생정보는 서버로 보내지 않는다.
+// 저장: codeDestiny:sajuCrystal:<계정 범위>:<프로필 id> (lib/saju/crystal-flow.mjs). 비로그인 보관소이자 오프라인 캐시다.
+// 로그인 사용자는 답변 기록(결과 본문 없음)을 프로필 카드 sajuCrystal에도 둬서 다른 기기에서 이어 본다.
+// 서버가 이 필드를 아는지(상세 조회 응답에 키가 있는지) 확인된 뒤에만 올리고, 충돌하면 updatedAt이 늦은 쪽이 이긴다.
+// 프로필이 바뀌면 상태를 처음부터 다시 연다.
 import { useCallback, useEffect, useRef, useState } from "react";
 import { trackEvent } from "@/lib/analytics";
+import { authFetch } from "@/app/_lib/auth-client";
 import { readCurrentDestinyProfile, readDestinyProfileAccountId } from "@/app/_lib/profile-card-storage";
 import { CRYSTAL_CATALOG, CRYSTAL_ELEMENT_KO } from "../../../../lib/saju/crystal-catalog.mjs";
 import {
   SHELL_CALIBRATION_PREFIX, answersFromShellCalibration, buildCrystalRecord, crystalStorageKey, crystalYearWindow, isCrystalRecordReusable,
-  parseCrystalRecord, profileToCrystalBirth, readStoredJson, sanitizeCrystalFrom, writeStoredJson,
+  loadServerCrystalRecord, parseCrystalRecord, profileToCrystalBirth, readStoredJson, resolveCrystalRecords, sanitizeCrystalFrom,
+  saveServerCrystalRecord, writeStoredJson,
 } from "../../../../lib/saju/crystal-flow.mjs";
 import StoneCard, { ElementChip } from "../StoneCard";
 import styles from "../crystals.module.css";
@@ -102,7 +107,7 @@ export default function CrystalFlowClient({ stoneImageIds = [] }) {
   const [message, setMessage] = useState("");
   const [savedNotice, setSavedNotice] = useState("");
   const [yearWindow, setYearWindow] = useState(null);
-  const ctx = useRef({ from: "direct", inputs: null, versions: VERSIONS_FALLBACK, started: false, steps: 0, scope: "guest", key: "", token: 0 });
+  const ctx = useRef({ from: "direct", inputs: null, versions: VERSIONS_FALLBACK, started: false, steps: 0, scope: "guest", key: "", token: 0, remoteSupported: false });
 
   const init = useCallback(async () => {
     const c = ctx.current;
@@ -136,7 +141,19 @@ export default function CrystalFlowClient({ stoneImageIds = [] }) {
     setYearWindow(years);
     c.scope = readDestinyProfileAccountId() || "guest";
     c.key = crystalStorageKey(c.scope, info.profileId);
-    let previous = parseCrystalRecord(readStoredJson(window.localStorage, c.key));
+    c.remoteSupported = false;
+    const local = parseCrystalRecord(readStoredJson(window.localStorage, c.key));
+    let previous = local;
+    if (c.scope !== "guest") {
+      // 로그인 사용자: 서버 프로필의 기록과 맞춘다. 서버를 못 읽으면 이 브라우저 기록(오프라인 캐시)으로 계속한다.
+      const remote = await loadServerCrystalRecord(authFetch, info.profileId);
+      if (token !== c.token) return;
+      c.remoteSupported = remote.ok && remote.supported;
+      const merged = resolveCrystalRecords({ local, remote: remote.record, remoteSupported: c.remoteSupported });
+      previous = merged.record;
+      if (merged.cacheLocal) writeStoredJson(window.localStorage, c.key, merged.record);
+      if (merged.pushRemote) saveServerCrystalRecord(authFetch, info.profileId, merged.record).catch(() => {});
+    }
     if (previous && !isCrystalRecordReusable(previous, c.versions)) previous = null;
     let prevAnswers = previous?.answers || null;
     if (!prevAnswers) {
@@ -208,19 +225,24 @@ export default function CrystalFlowClient({ stoneImageIds = [] }) {
     }
   };
 
-  const save = () => {
+  const save = async () => {
     if (!result || !person) return;
-    const record = buildCrystalRecord({ answers: result.answers, result: result.out, versions: ctx.current.versions });
-    const ok = writeStoredJson(window.localStorage, ctx.current.key, record);
-    if (ctx.current.scope !== "guest") {
-      try {
-        window.DestinyProfileManager?.storage?.update?.(person.profileId, { sajuCrystal: record });
-      } catch {
-        // 셸 프로필 관리자가 없는 화면이면 이 브라우저 저장만 쓴다.
-      }
+    const c = ctx.current;
+    const token = c.token;
+    const record = buildCrystalRecord({ answers: result.answers, result: result.out, versions: c.versions });
+    const ok = writeStoredJson(window.localStorage, c.key, record);
+    let synced = false;
+    if (c.scope !== "guest" && c.remoteSupported) {
+      setSavedNotice("보관하는 중이에요…");
+      synced = (await saveServerCrystalRecord(authFetch, person.profileId, record)).ok;
+      if (token !== c.token) return; // 그사이 프로필이 바뀌었다.
     }
-    setSavedNotice(ok ? "이 프로필에 답변을 보관했어요. 다음에 오면 이어서 볼 수 있어요." : "이 브라우저에서는 보관할 수 없어요(사생활 보호 모드 등).");
-    if (ok) {
+    setSavedNotice(synced
+      ? "이 프로필에 답변을 보관했어요. 같은 계정으로 로그인하면 다른 기기에서도 이어서 볼 수 있어요."
+      : ok
+        ? "이 브라우저에 답변을 보관했어요. 다음에 오면 이어서 볼 수 있어요."
+        : "이 브라우저에서는 보관할 수 없어요(사생활 보호 모드 등).");
+    if (ok || synced) {
       setSaved({ answers: result.answers, fromShell: false });
       trackEvent("crystal_result_save");
     }

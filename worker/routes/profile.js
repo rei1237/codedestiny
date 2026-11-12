@@ -22,6 +22,7 @@ import {
 import { enforceSensitiveEndpointSecurity } from "../lib/security/index.js";
 import { invalidateAccessStateCacheForUser } from "../lib/access-state.js";
 import { computeBirthKey } from "../lib/birth-key.js";
+import { CRYSTAL_RECORD_MAX_BYTES, isNewerCrystalRecord, sanitizeCrystalRecord } from "../../lib/saju/crystal-flow.mjs";
 
 const MAX_PROFILE_ID_LEN = 80;
 const MAX_NAME_LEN = 80;
@@ -961,6 +962,8 @@ async function handleGetProfileDetail(auth, profileIdRaw, env) {
     ok: true,
     profile: {
       ...clientProfile,
+      // 상세 조회에만 싣는다(목록·toClientProfile은 그대로). 키가 있으면 클라이언트는 서버가 이 필드를 안다고 본다.
+      sajuCrystal: sanitizeCrystalRecord(profile.sajuCrystal) || null,
       isActive: selected,
       isDefault: selected,
       selected,
@@ -1240,11 +1243,42 @@ async function auditLegacyProfileUnlockBirthEdit(request, env, userId, profileId
   }
 }
 
+/* 사주 원석 추천 답변 기록 동기화. 본문이 정확히 { profile: { sajuCrystal } } 일 때만 이 분기로 온다.
+   출생정보·이름은 건드리지 않으므로 프로필 수정 권한·내역(PointHistory) 기록 없이 소유 확인만 한다.
+   기록은 엄격 검사(허용 키만, 결과 본문 없음, 크기 상한)하고, updatedAt이 더 늦을 때만 덮어쓴다(늦은 쪽 우선).
+   미래 시각은 서버 지금 시각으로 당겨, 시계가 앞선 기기가 다른 기기의 새 답을 영영 막지 못하게 한다. */
+function isSajuCrystalOnlyUpdate(body) {
+  const profile = body?.profile;
+  return Boolean(profile && typeof profile === "object" && !Array.isArray(profile)
+    && Object.keys(profile).length === 1 && Object.prototype.hasOwnProperty.call(profile, "sajuCrystal"));
+}
+
+async function handleUpdateSajuCrystal(auth, profileId, rawRecord, env) {
+  let size = Infinity;
+  try { size = JSON.stringify(rawRecord ?? null).length; } catch { size = Infinity; }
+  if (size > CRYSTAL_RECORD_MAX_BYTES) {
+    return json({ ok: false, success: false, code: "SAJU_CRYSTAL_TOO_LARGE", message: "원석 추천 기록이 너무 큽니다." }, { status: 413 });
+  }
+  const record = sanitizeCrystalRecord(rawRecord, { notAfter: Date.now() });
+  if (!record) {
+    return json({ ok: false, success: false, code: "INVALID_SAJU_CRYSTAL", message: "원석 추천 기록 형식이 올바르지 않습니다." }, { status: 400 });
+  }
+  const existing = await withMongoRetry(env, () => ProfileCard.findOne({ userId: auth.userId, profileId }).select("profileId sajuCrystal").lean());
+  if (!existing) return json({ ok: false, code: "PROFILE_NOT_FOUND", message: "프로필 카드를 찾을 수 없습니다." }, { status: 404 });
+  const stored = sanitizeCrystalRecord(existing.sajuCrystal);
+  if (stored && !isNewerCrystalRecord(record, stored)) {
+    return json({ ok: true, success: true, applied: false, sajuCrystal: stored });
+  }
+  await withMongoRetry(env, () => ProfileCard.updateOne({ userId: auth.userId, profileId }, { $set: { sajuCrystal: record } }));
+  return json({ ok: true, success: true, applied: true, sajuCrystal: record });
+}
+
 async function handleUpdateProfile(request, auth, profileIdRaw, env) {
   const profileId = sanitizeProfileId(profileIdRaw);
   if (!profileId) return json({ ok: false, code: "PROFILE_ID_REQUIRED", message: "수정할 프로필 카드 ID가 필요합니다." }, { status: 400 });
 
   const body = await readJson(request);
+  if (isSajuCrystalOnlyUpdate(body)) return handleUpdateSajuCrystal(auth, profileId, body.profile.sajuCrystal, env);
   const requestId = readProfileMutationRequestId(body, "update", profileId);
   const replay = await findCompletedProfileMutationReplay(auth, { action: "update", profileId, requestId, body });
   if (replay) {

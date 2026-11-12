@@ -3,7 +3,8 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {
   profileToCrystalBirth, crystalStorageKey, buildCrystalRecord, parseCrystalRecord, isCrystalRecordReusable, isCrystalRecordCurrent,
-  answersFromShellCalibration, sanitizeCrystalFrom, crystalYearWindow,
+  answersFromShellCalibration, sanitizeCrystalFrom, crystalYearWindow, sanitizeCrystalRecord, resolveCrystalRecords,
+  loadServerCrystalRecord, saveServerCrystalRecord, CRYSTAL_RECORD_MAX_BYTES,
 } from '../../lib/saju/crystal-flow.mjs';
 import { SAJU_CRYSTAL_WEBTOON_CUTS } from '../../lib/brand/saju-crystal-webtoon.mjs';
 import {
@@ -41,15 +42,86 @@ test('저장 키는 계정 범위와 프로필마다 다르다', () => {
 test('저장 기록은 답·키·버전만 담고, 버전이 다르면 결과를 다시 계산한다', () => {
   const now = new Date('2026-11-11T00:00:00Z');
   const answers = { good: 'none', hard: 'unsure', entries: [], asked: [] };
-  const record = buildCrystalRecord({ answers, result: { answersKey: 'ca1-x', resultKey: 'cr1-y', crystals: [{ id: 'amethyst' }] }, versions: VERSIONS, now });
+  const record = buildCrystalRecord({ answers, result: { answersKey: 'ca1-0123456789abcdef', resultKey: 'cr1-fedcba9876543210', crystals: [{ id: 'amethyst' }] }, versions: VERSIONS, now });
   assert.deepEqual(Object.keys(record).sort(), ['answers', 'answersKey', 'resultKey', 'updatedAt', 'v', 'versions']);
   const parsed = parseCrystalRecord(JSON.stringify(record));
   assert.ok(isCrystalRecordReusable(parsed, VERSIONS));
-  assert.ok(isCrystalRecordCurrent(parsed, VERSIONS, 'cr1-y'));
-  assert.equal(isCrystalRecordCurrent(parsed, { ...VERSIONS, catalog: 'crystal-catalog-v2' }, 'cr1-y'), false);
+  assert.ok(isCrystalRecordCurrent(parsed, VERSIONS, 'cr1-fedcba9876543210'));
+  assert.equal(isCrystalRecordCurrent(parsed, { ...VERSIONS, catalog: 'crystal-catalog-v2' }, 'cr1-fedcba9876543210'), false);
   assert.equal(isCrystalRecordReusable(parsed, { ...VERSIONS, answers: 'crystal-answers-v2' }), false);
   assert.equal(parseCrystalRecord('{broken'), null);
   assert.equal(parseCrystalRecord({ v: 99, answers: {} }), null);
+});
+
+const REC = (overrides = {}) => ({
+  v: 1,
+  answers: { good: 'listed', hard: 'skip', entries: [{ year: 2015, month: null, kind: 'good', areas: { work: 'good' }, source: 'volunteered' }], asked: [] },
+  answersKey: 'ca1-0123456789abcdef',
+  resultKey: 'cr1-fedcba9876543210',
+  versions: VERSIONS,
+  updatedAt: '2026-11-10T00:00:00.000Z',
+  ...overrides,
+});
+
+test('기록 검사: 허용 키만, 결과 본문 없음, 크기 상한, 미래 시각 당김', () => {
+  assert.deepEqual(sanitizeCrystalRecord(REC()), REC());
+  assert.equal(sanitizeCrystalRecord(REC({ crystals: [] })), null, '결과 본문 금지');
+  assert.equal(sanitizeCrystalRecord(REC({ answers: { ...REC().answers, birthDate: '1990-05-17' } })), null, '답변에 출생정보 금지');
+  assert.equal(sanitizeCrystalRecord(REC({ answers: { ...REC().answers, entries: [{ year: 2015, kind: 'good', areas: { health: 'good' } }] } })), null);
+  assert.equal(sanitizeCrystalRecord(REC({ versions: { ...VERSIONS, engine: '' } })), null);
+  assert.equal(sanitizeCrystalRecord(REC({ updatedAt: 'x'.repeat(CRYSTAL_RECORD_MAX_BYTES) })), null);
+  assert.equal(sanitizeCrystalRecord([REC()]), null);
+  const clamped = sanitizeCrystalRecord(REC({ updatedAt: '2099-01-01T00:00:00Z' }), { notAfter: Date.parse('2026-11-12T00:00:00Z') });
+  assert.equal(clamped.updatedAt, '2026-11-12T00:00:00.000Z');
+});
+
+test('충돌: updatedAt이 늦은 쪽이 이기고, 서버가 지원할 때만 올린다', () => {
+  const older = REC({ updatedAt: '2026-11-01T00:00:00.000Z' });
+  const newer = REC({ updatedAt: '2026-11-11T00:00:00.000Z' });
+  assert.deepEqual(resolveCrystalRecords({ local: older, remote: newer, remoteSupported: true }), { record: newer, cacheLocal: true, pushRemote: false });
+  assert.deepEqual(resolveCrystalRecords({ local: newer, remote: older, remoteSupported: true }), { record: newer, cacheLocal: false, pushRemote: true });
+  assert.deepEqual(resolveCrystalRecords({ local: newer, remote: null, remoteSupported: false }), { record: newer, cacheLocal: false, pushRemote: false }, '배포 전 서버에는 올리지 않는다');
+  assert.deepEqual(resolveCrystalRecords({ local: newer, remote: newer, remoteSupported: true }), { record: newer, cacheLocal: false, pushRemote: false });
+  assert.deepEqual(resolveCrystalRecords({}), { record: null, cacheLocal: false, pushRemote: false });
+});
+
+test('서버 읽기·쓰기: 기존 프로필 경로를 쓰고, 지원 여부는 응답 키로 본다(가짜 fetch)', async () => {
+  const calls = [];
+  const fake = (responses) => async (url, init) => {
+    calls.push({ url, init });
+    const next = responses.shift();
+    if (next instanceof Error) throw next;
+    return { ok: next.status === undefined || next.status < 400, json: async () => next.body };
+  };
+  let out = await loadServerCrystalRecord(fake([{ body: { ok: true, profile: { id: 'dp 1', sajuCrystal: REC() } } }]), 'dp 1');
+  assert.deepEqual(out, { ok: true, supported: true, record: REC() });
+  assert.equal(calls[0].url, '/api/profile/dp%201');
+  assert.equal(calls[0].init.method, 'GET');
+  out = await loadServerCrystalRecord(fake([{ body: { ok: true, profile: { id: 'dp_1' } } }]), 'dp_1');
+  assert.deepEqual(out, { ok: true, supported: false, record: null }, '워커 배포 전 응답');
+  out = await loadServerCrystalRecord(fake([{ body: { ok: true, profile: { sajuCrystal: { v: 1, result: 'x' } } } }]), 'dp_1');
+  assert.deepEqual(out, { ok: true, supported: true, record: null });
+  out = await loadServerCrystalRecord(fake([new Error('offline')]), 'dp_1');
+  assert.deepEqual(out, { ok: false, supported: false, record: null });
+  assert.deepEqual(await loadServerCrystalRecord(fake([]), ''), { ok: false, supported: false, record: null });
+
+  calls.length = 0;
+  const saved = await saveServerCrystalRecord(fake([{ body: { ok: true, applied: true, sajuCrystal: REC() } }]), 'dp_1', REC());
+  assert.deepEqual(saved, { ok: true, applied: true, record: REC() });
+  assert.equal(calls[0].url, '/api/profile/dp_1');
+  assert.equal(calls[0].init.method, 'PATCH');
+  assert.deepEqual(JSON.parse(calls[0].init.body), { profile: { sajuCrystal: REC() } }, 'sajuCrystal만 보낸다');
+  assert.equal(calls[0].init.headers['Content-Type'], 'application/json');
+  assert.deepEqual(await saveServerCrystalRecord(fake([]), 'dp_1', REC({ crystals: [] })), { ok: false, applied: false, record: null }, '틀린 기록은 보내지 않는다');
+  assert.deepEqual(await saveServerCrystalRecord(fake([{ status: 503, body: {} }]), 'dp_1', REC()), { ok: false, applied: false, record: null });
+});
+
+test('화면: 로그인 동기화는 authFetch·지원 확인 뒤에만, 셸 DestinyProfileManager는 쓰지 않는다', () => {
+  const flow = read('app/saju/crystals/start/CrystalFlowClient.jsx');
+  assert.ok(flow.includes('loadServerCrystalRecord(authFetch, info.profileId)'));
+  assert.ok(flow.includes('c.scope !== "guest" && c.remoteSupported'));
+  assert.ok(flow.includes('resolveCrystalRecords({'));
+  assert.equal(/DestinyProfileManager/.test(flow), false);
 });
 
 test('셸 경험 입력(sajuCalibration v2)은 확실한 좋았던/나빴던 해만 옮긴다', () => {
