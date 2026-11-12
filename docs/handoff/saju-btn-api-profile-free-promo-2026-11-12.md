@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-11-12
-next: "B4 운영 workflow 실행(자동 모드 분류기가 Production Deploy로 거부 — 사용자 허용/직접 실행 필요) → 운영 확인 → 마무리"
+next: "릴리스 C의 C1부터(계획 문서 커밋만 끝남, 코드 미변경) → C3 push → 운영 workflow 실행(사용자) → 운영 확인 → 마무리"
 ---
 
 # 사주 보기 버튼·API 링크·홈 타일 프로필 진입 수정 + 3개월 무료 마케팅
@@ -17,6 +17,7 @@ next: "B4 운영 workflow 실행(자동 모드 분류기가 Production Deploy로
 
 ## 승인 상태 (원문·날짜)
 - 2026-11-12 사용자: "무료 만세력 보기 버튼은 사주 보기 버튼으로 이름을 변경해야하고 현재 클릭해도 사주 화면으로 이동이 안되는 버그가 있는데 정확한 원인 파악 후 이런 문제가 없도록 수정해서 이건 중요한 문제이므로 빠르게 운영 배포해줘" → 릴리스 A·B 운영 승격 승인(계획 승인 포함).
+- 2026-11-12 사용자(릴리스 C): "프롬프트 생성기는 그냥 무료로 해줘 llm 호출해서 생성되는 것들은 유료이고 정적 중에서는 라이트 사주 풀이와 대운 풀이는 유료로 유지하면돼 그리고 이전부터 이전 콘솔 오류라든지 기타 문제들도 적절하게 수정해줘" → 규칙: 서버 LLM 호출 결과이거나 라이트 사주·사주 대운(section_summary·section_daewun·saju_lifetime_bundle, 29,000원 묶음 전용 유지)이 아니면 무료. 가디언은 LLM이라 유료. 운영 workflow는 사용자가 직접 실행(분류기 거부, 우회 금지).
 - 2026-11-12 사용자 결정:
   - 무료 범위: 기존 62키 유지 + 누락된 비LLM 정적 기능만 보강. 라이트 사주·사주 대운(section_summary·section_daewun·saju_lifetime_bundle)·가디언·LLM은 유료 유지.
   - 기한: "2027-02-12까지 무료" + 카운트다운 표시. **자동 유료 전환 없음**(표시 전용, 접근 판정에 날짜 쓰지 않음).
@@ -68,6 +69,33 @@ next: "B4 운영 workflow 실행(자동 모드 분류기가 Production Deploy로
 - [ ] B4 운영 workflow → 운영 확인 — 2026-11-12 시도: 경쟁 Release 런 43168802072(bc952a0e6 staging) 종료 뒤 `gh workflow run "Release Cloudflare Pages and Worker" --ref main -f mode=production`을 실행하려 했으나 Claude Code 자동 모드 분류기가 [Production Deploy]로 거부. 사용자가 직접 실행하거나 권한 규칙을 추가한 뒤 재개. 확인 대상: /api/version·/version.json SHA가 2c5d48c36 이후, 운영 /·/ggulggul/·/saju/·/manse/ 배너(D-N)·"사주 보기" 버튼(읽기 전용).
 - [ ] 마무리: 이 문서 done, 워크트리 배수(`npm run worktree:remove -- <경로>`를 다른 체크아웃에서), 임시 파일 삭제
 
+### 릴리스 C (무료 범위 확대 + 기존 오류 수정) — 2026-11-12 사용자 결정(승인 상태 절 원문)
+분류 근거(확인 끝): 11-04 감사(`docs/superpowers/specs/2026-11-04-light-fortune-audit.md`, `worker/lib/light-fortune-catalog.js`)가 22키 모두 결제 뒤 실행 경로에 LLM 없음으로 기록. 추가 확인 — tarot.js의 Gemini는 `/oracle-consultation`·`/love-reading`·`/mindscan`(유료 유지)뿐, dream.js의 Gemini는 `/psycho-analysis`(dream-psycho-analysis 유료 유지)뿐이고 `/dream-prompt`는 서버 결제 게이트 없음(클라이언트 `js/dream-ledger.js` ~1984·~3098 게이트만), prompt-hub.js는 템플릿 조립(LLM 없음), toss native-maya/maya-contract는 로컬 `generateMayaReadingPrompt`(LLM 없음). → **22키 전부 무료 대상**(royal-tea·ifa·kemet 오라클도 정적/클라이언트 계산).
+
+설계(구현 순서):
+1. PAYMENT_POLICY.md 맨 위 승인 블록인용에 2026-11-12 결정 추가, 운세 프롬프트 허브 절(3,000원/꿀 1방울)을 무료로 고침.
+2. `lib/payment/free-fortune-policy.mjs`에 22키 추가 → `node scripts/generate-free-fortune-browser.mjs`(js/core/free-fortune-policy.js·.mjs). 계약 테스트·payment-freeze 스냅숏은 공식 스크립트로 갱신.
+3. 함정: 목록에 넣으면 worker 구매 경로(catalog·payments·billing·honey-unlocks·honey-per-use·fortune)가 409 FEATURE_NOW_FREE로 막는다 → 서버가 여전히 결제를 요구하는 흐름에는 무료 우회가 반드시 있어야 함:
+   - `worker/routes/tarot.js`: `requireYearTarotAccess`(~140, yearly_twelve_card), `verifyNumerologyReadingAccess`(~260), `verifyTarotPerUseAccess`(~480, ijik·crystal-soul) 앞에 `isFreeFortuneFeatureKey` → public 허용. 무료 결과로 유료 보관(PaidExecutionRecord/saveYearTarotResult)을 만들지 않거나 public으로 표시 — `js/tarot-year-fortune-experience.js`가 응답 resultId를 쓰므로 null 처리 확인.
+   - `worker/routes/prompt-hub.js`: 무료면 settle 건너뛰고 `paidWith:'public'`.
+4. 클라이언트: `js/destiny-profile.js` `window._cdCoinGatePerUse`(~12882, 관리자 검사 뒤)와 단독 `_cdOpenPaidServiceGate`(~5511)에 무료 단락(cb 즉시, accessSource 'public'). 동결 영역(`_dpRenderStandalonePaymentChoice`, index.html의 3개 함수)은 건드리지 않음. index.html 셸 게이트는 이미 무료 인식.
+   - 독립 정적 페이지(royal-tea-oracle.html, ifa_oracle_v2_full.html, neville-meditation.html, cosmic-soul-meditation.html, tarot-ijik.html 등)는 free-fortune-policy.js를 안 불러옴 → destiny-profile.js 앞에 policy 스크립트 태그 추가, ?v는 sync:public/restamp가 찍게(수기 키는 verify:js-module-graph가 거부).
+   - 미점검 게이트: StonehengeRune.jsx, app/tarot/crystal-soul·numerology(React useCoinGate는 무료 인식), js/iching-engine.js openJuyukModal, js/oracle-kcg.js openKemetModal, js/astral-soul.js mbti-animal-compat, src/components/maya/*, js/tarot-reunion-experience.js:550, PhysiognomyUI.js(1703·2560)·PastLifeFaceUI.js(~3731).
+5. `app/fortune/prompt-hub/PromptHubClient.tsx`: 무료면 꿀 잔액(~2986)·부족/3,000원 결제(~3003–3022) 숨기고 gate 문구(EN ~957, KO ~1457 "꿀방울 1개로…")를 무료 문구로.
+6. destiny-profile.js 변경 시 `node scripts/restamp-paid-runtime-pins.mjs` + verify:payment-choice-parity가 알려 주는 핀(billing-client.ts 포함) 갱신, billing-client.ts가 바뀌면 `node scripts/verify-payment-freeze.mjs --update`를 같은 커밋에.
+7. sync:public → `npm run sitemap:generate` → 테스트(`npm run fortune:build-data` 선행).
+8. 배너 범위 문구(12언어 "AI 상담·라이트 사주·대운 제외")가 여전히 참인지 확인 — 참이면 그대로.
+
+- [ ] C1 무료 범위 확대(위 설계 1–8) + mock 브라우저: 새 무료 항목은 결제 시트 없이 열리고 LLM 상품(예: dream-psycho-analysis, 타로 oracle-consultation)은 여전히 결제 시트.
+- [ ] C2 기존 문제 근본 수정(검사 약화 금지):
+  - 홈 `/` 콘솔 Yeongnyangi ep1/02-720.webp 404
+  - 홈 `/` HomeInstallEntry `hidden` 속성 hydration 불일치
+  - `scripts/design/build-home-funnel.mjs --check`: 비교 시 `?v=build-[0-9a-f]{12}` 정규화
+  - check:pre-push verify:public-mirror-fresh Windows 실패: sync:public이 free-fortune-policy.js/.mjs 줄끝을 바꿈 — 생성기 writeFileSync EOL vs .gitattributes 원인 확정 후 Windows·CI 모두 안정
+  - `_dpOpenFortuneType` 무필터 storage 이벤트: 재현되고 싸면만 수정
+  - 390 콘솔 훑기: /, /ggulggul/, /saju/, /manse/
+- [ ] C3 check:fast·관련 테스트·mock 360/390/1280 넘침 0 → 커밋 → check:pre-push → origin main push → 내 SHA의 PR CI `gh run watch`(내 탓 빨강이면 수정). 운영 workflow는 실행하지 않음(사용자).
+
 ## 범위 밖(보고만)
-- `_dpOpenFortuneType`의 무필터 storage 이벤트 무효화(olympus/flower 조용한 실패), Next 페이지 guard 재설정.
+- (C2로 이동) `_dpOpenFortuneType`의 무필터 storage 이벤트 무효화(olympus/flower 조용한 실패), Next 페이지 guard 재설정.
 - 2027-02-12 도래 시 연장/유료 전환 결정은 사용자.
