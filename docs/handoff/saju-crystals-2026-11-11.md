@@ -280,3 +280,9 @@ next: 사용자 요청 시 origin/main push·워커 배포·worktree:remove
 - 브랜치는 origin/main보다 뒤처진 커밋이 0개다. 그래서 main으로 fast-forward push가 가능하다.
 - 남은 일(사용자 요청 시에만): origin/main push(Pages 배포), 워커 배포(`sajuCrystal` 동기화 켜기), `npm run worktree:remove`로 워크트리 정리.
 - 로컬 main은 다른 워크트리(`C:/Users/user/Documents/Codex/worktrees/yeongnyangi-blue-passes-20261024-050530`)에 체크아웃되어 있어 건드리지 않았다.
+
+## 2026-11-12 운영 반영 승인 (1회)
+- 사용자 원문: "오케이 그 세션 승격 결과 추적해서 되는대로 이 변경도 운영에 반영시켜"
+- 범위: 이 브랜치의 변경을 origin/main에 push하고, `gh workflow run "Release Cloudflare Pages and Worker" --ref main -f mode=production`으로 1회 승격한다(Pages와 워커가 함께 배포되므로 `sajuCrystal` 동기화도 켜진다).
+- 순서: 다른 세션(user-9d)이 가디언 두 번째 승격을 하고 있다(146e2e24b 수정, 릴리스 A 포함). 그 승격이 끝나 운영 SHA가 확정될 때까지 push하지 않는다. 승격은 main HEAD 기준이므로, 먼저 push하면 그 승격에 이 변경이 섞인다.
+- 그다음: origin/main 재병합 → check:fast → push → main CI·스테이징 통과 확인 → production 승격 → `verify:deployed-sha`와 `/saju/crystals/` 실화면 확인 → `npm run worktree:remove`.
