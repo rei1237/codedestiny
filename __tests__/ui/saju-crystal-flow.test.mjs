@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+import { createRequire } from 'node:module';
 import {
   profileToCrystalBirth, crystalStorageKey, buildCrystalRecord, parseCrystalRecord, isCrystalRecordReusable, isCrystalRecordCurrent,
   answersFromShellCalibration, sanitizeCrystalFrom, crystalYearWindow, sanitizeCrystalRecord, resolveCrystalRecords,
@@ -208,8 +209,9 @@ test('음력 프로필: 연도 범위는 프로필 birthYear가 아니라 엔진
 
 test('웹툰 10컷: 대사·비율·보조설명·예시 표시', () => {
   assert.equal(SAJU_CRYSTAL_WEBTOON_CUTS.length, 10);
-  const square = SAJU_CRYSTAL_WEBTOON_CUTS.filter((c) => c.w === c.h).map((c) => c.n);
-  assert.deepEqual(square, [3, 7, 9]);
+  // 위쪽 빈 띠를 잘라 낸 크기(2026-11-12): 가로 컷 1536x870, 3·7·9컷은 1254 폭에 높이만 다르다.
+  assert.deepEqual(SAJU_CRYSTAL_WEBTOON_CUTS.filter((c) => c.w === 1536 && c.h === 870).map((c) => c.n), [1, 2, 4, 5, 6, 8, 10]);
+  assert.deepEqual(SAJU_CRYSTAL_WEBTOON_CUTS.filter((c) => c.w === 1254).map((c) => [c.n, c.h]), [[3, 1021], [7, 1000], [9, 973]]);
   assert.equal(SAJU_CRYSTAL_WEBTOON_CUTS[0].src, '/images/saju-crystals/webtoon/01');
   assert.equal(SAJU_CRYSTAL_WEBTOON_CUTS[5].lines.find((l) => l.note)?.note, '대운·세운: 그 시기의 운 흐름');
   assert.ok(SAJU_CRYSTAL_WEBTOON_CUTS[1].lines.some((l) => l.text.includes('설명용 예시')));
@@ -217,6 +219,18 @@ test('웹툰 10컷: 대사·비율·보조설명·예시 표시', () => {
   const all = SAJU_CRYSTAL_WEBTOON_CUTS.flatMap((c) => c.lines.map((l) => l.text)).join('\n');
   for (const line of ['없는 오행이 꼭 필요한 오행은 아니야', '나는 좋았던 해부터 이야기해볼래!', '너의 흐름에 어울리는 원석도 함께 찾아보자']) assert.ok(all.includes(line), line);
   assert.equal(/네오|적중|정답/.test(all), false);
+});
+
+test('웹툰 그림 파일 비율이 컷 크기 선언과 맞다(레이아웃 밀림 없음)', async () => {
+  const sharp = createRequire(import.meta.url)('sharp');
+  for (const cut of SAJU_CRYSTAL_WEBTOON_CUTS) {
+    for (const w of [...cut.widths, cut.fallback]) {
+      const file = `public${cut.src}-${w}.${w === cut.fallback ? 'webp' : 'avif'}`;
+      const meta = await sharp(file).metadata();
+      assert.equal(meta.width, w, file);
+      assert.ok(Math.abs(meta.height / meta.width - cut.h / cut.w) < 0.003, `${file} ${meta.width}x${meta.height}`);
+    }
+  }
 });
 
 test('랜딩·시작 페이지 계약: 문구·스키마·noindex·이미지 대체·분석 이벤트', () => {

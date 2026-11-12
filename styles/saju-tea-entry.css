@@ -18,7 +18,8 @@
 .saju-crystal-entry__title{margin:0;font-size:var(--cd-t-card,18px);line-height:1.5;color:var(--cd-text);word-break:keep-all}.saju-crystal-entry__title span{font-weight:500;color:var(--cd-text-muted)}
 .saju-crystal-entry__art{display:block;width:100%;max-width:420px;border-radius:20px;overflow:hidden;box-shadow:0 10px 28px color-mix(in srgb,var(--cd-text) 12%,transparent)}
 .saju-crystal-entry__art img{display:block;width:100%;height:auto}
-.saju-crystal-entry__cta{display:flex;justify-content:center;align-items:center;gap:10px;width:100%;max-width:420px;box-sizing:border-box;min-height:52px;padding:14px 18px;background:var(--cd-accent);color:var(--cd-on-accent,var(--cd-bg));border-radius:var(--cd-r-control,999px);font:700 var(--cd-t-body,16px)/1.5 var(--font-body);text-decoration:none;word-break:keep-all}
-.saju-crystal-entry__cta:hover{filter:brightness(.94)}
+/* 그림 안에 "나의 원석 찾기" 버튼이 그려져 있어 HTML 링크는 조용한 보조 링크로 둔다(채운 버튼 중복 방지). 터치 영역 44px 이상. */
+.saju-crystal-entry__cta{display:inline-flex;justify-content:center;align-items:center;gap:8px;max-width:420px;box-sizing:border-box;min-height:44px;padding:10px 20px;background:transparent;color:var(--cd-accent);border:1px solid color-mix(in srgb,var(--cd-accent) 45%,transparent);border-radius:var(--cd-r-control,999px);font:600 var(--cd-t-body-sm,15px)/1.5 var(--font-body);text-decoration:none;word-break:keep-all}
+.saju-crystal-entry__cta:hover{background:color-mix(in srgb,var(--cd-accent) 8%,transparent)}
 .saju-crystal-entry__art:focus-visible,.saju-crystal-entry__cta:focus-visible{outline:3px solid var(--cd-accent);outline-offset:4px}
 .saju-crystal-entry__note{margin:0;font-size:var(--cd-t-caption,13px);line-height:1.7;color:var(--cd-text-muted);word-break:keep-all}.saju-crystal-entry__note a{color:inherit;text-underline-offset:3px}
