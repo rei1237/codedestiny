@@ -8,11 +8,13 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { trackEvent } from "@/lib/analytics";
 import { authFetch } from "@/app/_lib/auth-client";
-import { readCurrentDestinyProfile, readDestinyProfileAccountId } from "@/app/_lib/profile-card-storage";
+import {
+  fetchCurrentDestinyProfile, normalizeDestinyProfileCard, readCurrentDestinyProfile, readDestinyProfileAccountId,
+} from "@/app/_lib/profile-card-storage";
 import { CRYSTAL_CATALOG, CRYSTAL_ELEMENT_KO } from "../../../../lib/saju/crystal-catalog.mjs";
 import {
   SHELL_CALIBRATION_PREFIX, answersFromShellCalibration, buildCrystalRecord, crystalStorageKey, crystalYearWindow, isCrystalRecordReusable,
-  loadServerCrystalRecord, parseCrystalRecord, profileToCrystalBirth, readStoredJson, resolveCrystalRecords, sanitizeCrystalFrom,
+  loadServerCrystalRecord, parseCrystalRecord, profileToCrystalBirth, readSavedCrystalProfile, readStoredJson, resolveCrystalRecords, sanitizeCrystalFrom,
   saveServerCrystalRecord, writeStoredJson,
 } from "../../../../lib/saju/crystal-flow.mjs";
 import StoneCard, { ElementChip } from "../StoneCard";
@@ -94,6 +96,17 @@ function rowError(draft, kind) {
   return "";
 }
 
+/**
+ * 저장된 프로필 카드만 쓴다(사용자 결정 2026-11-12: 프로필 없이는 불가). 셸 입력 폼이 남기는 브리지 키·쿼리·화면 입력으로는 계산하지 않는다.
+ * 화면이 고른 카드(readCurrentDestinyProfile)는 저장 목록에 같은 id가 있을 때만 따른다.
+ */
+function readSavedProfile(scope) {
+  const shown = readCurrentDestinyProfile();
+  const preferId = String(shown?.id || shown?.profileId || "").trim();
+  const opts = { normalize: normalizeDestinyProfileCard, preferId };
+  return readSavedCrystalProfile(window.localStorage, scope, opts) || readSavedCrystalProfile(window.sessionStorage, scope, opts);
+}
+
 let enginePromise = null;
 const loadEngine = () => (enginePromise ||= import("../../../../lib/saju/crystal-recommendation.mjs"));
 
@@ -119,7 +132,15 @@ export default function CrystalFlowClient({ stoneImageIds = [] }) {
     setMessage("");
     setSavedNotice("");
     setDraft(emptyDraft());
-    const info = profileToCrystalBirth(readCurrentDestinyProfile());
+    const scope = readDestinyProfileAccountId() || "guest";
+    let card = readSavedProfile(scope);
+    if (!card && scope !== "guest") {
+      // 로그인 직후 등 목록이 아직 없으면 서버 목록을 한 번 받아 저장소에 채운 뒤 다시 읽는다.
+      await fetchCurrentDestinyProfile().catch(() => null);
+      if (token !== c.token) return;
+      card = readSavedProfile(scope);
+    }
+    const info = profileToCrystalBirth(card);
     setPerson(info);
     if (!info) {
       setSaved(null);
@@ -139,7 +160,7 @@ export default function CrystalFlowClient({ stoneImageIds = [] }) {
     c.inputs = inputs;
     const years = crystalYearWindow(inputs, { birthYear: info.birthYear, currentYear: kstYear() });
     setYearWindow(years);
-    c.scope = readDestinyProfileAccountId() || "guest";
+    c.scope = scope;
     c.key = crystalStorageKey(c.scope, info.profileId);
     c.remoteSupported = false;
     const local = parseCrystalRecord(readStoredJson(window.localStorage, c.key));
@@ -269,11 +290,10 @@ export default function CrystalFlowClient({ stoneImageIds = [] }) {
   if (phase === "no-profile") {
     return (
       <section className={styles.panel}>
-        <h2>먼저 출생 정보가 필요해요</h2>
-        <p>저장된 프로필을 찾지 못했어요. 무료 만세력에서 출생 정보를 입력하고 프로필을 저장한 뒤 다시 와 주세요.</p>
+        <h2>저장된 프로필이 필요해요</h2>
+        <p>원석 추천은 저장된 프로필 카드의 출생 정보로만 계산해요. 프로필을 만들거나 고른 뒤 다시 와 주세요.</p>
         <div className={styles.ctaRow}>
-          <a className={styles.cta} href="/ggulggul/">출생 정보 입력하러 가기</a>
-          <a className={styles.ghost} href="/saju/crystals/">사주 원석 추천 알아보기</a>
+          <a className={styles.cta} href="/#dpMasterCard">프로필 만들기·고르기</a>
         </div>
       </section>
     );

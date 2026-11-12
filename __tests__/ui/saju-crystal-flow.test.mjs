@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import {
   profileToCrystalBirth, crystalStorageKey, buildCrystalRecord, parseCrystalRecord, isCrystalRecordReusable, isCrystalRecordCurrent,
   answersFromShellCalibration, sanitizeCrystalFrom, crystalYearWindow, sanitizeCrystalRecord, resolveCrystalRecords,
-  loadServerCrystalRecord, saveServerCrystalRecord, CRYSTAL_RECORD_MAX_BYTES,
+  loadServerCrystalRecord, saveServerCrystalRecord, CRYSTAL_RECORD_MAX_BYTES, readSavedCrystalProfile,
 } from '../../lib/saju/crystal-flow.mjs';
 import { SAJU_CRYSTAL_WEBTOON_CUTS } from '../../lib/brand/saju-crystal-webtoon.mjs';
 import {
@@ -122,6 +122,46 @@ test('화면: 로그인 동기화는 authFetch·지원 확인 뒤에만, 셸 Des
   assert.ok(flow.includes('c.scope !== "guest" && c.remoteSupported'));
   assert.ok(flow.includes('resolveCrystalRecords({'));
   assert.equal(/DestinyProfileManager/.test(flow), false);
+});
+
+function memoryStorage(entries = {}) {
+  const map = new Map(Object.entries(entries));
+  return { getItem: (k) => (map.has(k) ? map.get(k) : null), setItem: (k, v) => map.set(k, String(v)) };
+}
+
+test('프로필 필수: 저장된 카드만 읽고, 브리지 키·id 없는 카드·생년월일 없는 카드는 받지 않는다', () => {
+  const card = (id, birthDate) => ({ id, name: id, birthDate, birthTime: '07:30' });
+  const raw = JSON.stringify({ name: '폼 입력', birthDate: '1990-05-17' });
+  const bridgeOnly = memoryStorage({ FORTUNE_APP_USER_PROFILE: raw, FORTUNE_APP_VEDIC_PAYLOAD: raw, OLYMPUS_ORACLE_PROFILE: raw, 'codeDestiny:guestProfile': raw });
+  assert.equal(readSavedCrystalProfile(bridgeOnly, 'guest'), null, '셸 입력 폼 브리지 키로는 계산하지 않는다');
+  assert.equal(readSavedCrystalProfile(memoryStorage({ 'FORTUNE_APP_USER_PROFILES.list::guest': JSON.stringify([{ name: 'id 없음', birthDate: '1990-05-17' }]) }), 'guest'), null);
+  assert.equal(readSavedCrystalProfile(memoryStorage({ 'FORTUNE_APP_USER_PROFILES.list::guest': JSON.stringify([card('p1', '')]) }), 'guest'), null);
+  assert.equal(readSavedCrystalProfile(memoryStorage({ 'FORTUNE_APP_USER_PROFILES.list::guest': '{broken' }), 'guest'), null);
+
+  const store = memoryStorage({
+    'FORTUNE_APP_USER_PROFILES.list::user-9': JSON.stringify([card('p1', '1990-05-17'), card('p2', '1988-02-03')]),
+    'FORTUNE_APP_USER_PROFILES.current::user-9': 'p2',
+  });
+  assert.equal(readSavedCrystalProfile(store, 'user-9').id, 'p2', '현재 카드');
+  assert.equal(readSavedCrystalProfile(store, 'user-9', { preferId: 'p1' }).id, 'p1', '화면이 고른 저장 카드');
+  assert.equal(readSavedCrystalProfile(store, 'user-9', { preferId: 'raw-form' }).id, 'p2', '저장 목록에 없는 id는 따르지 않는다');
+  assert.equal(readSavedCrystalProfile(store, 'guest'), null, '다른 계정 범위의 카드는 읽지 않는다');
+});
+
+test('화면: 프로필 없음은 프로필 만들기·고르기 안내만, 쿼리·화면 입력 계산 없음', () => {
+  const flow = read('app/saju/crystals/start/CrystalFlowClient.jsx');
+  assert.equal(flow.includes('profileToCrystalBirth(readCurrentDestinyProfile())'), false, '브리지·캐시 프로필로 바로 계산하지 않는다');
+  assert.ok(flow.includes('profileToCrystalBirth(card)'));
+  assert.ok(flow.includes('readSavedCrystalProfile(window.localStorage, scope, opts)'));
+  const queryReads = flow.match(/URLSearchParams\([^)]*\)\)?\.get\("[^"]*"\)/g) || [];
+  assert.deepEqual(queryReads, ['URLSearchParams(window.location.search).get("from")'], '쿼리는 유입 출처(from)만 읽는다');
+  assert.equal(flow.split('URLSearchParams').length - 1, 1);
+  const noProfile = flow.slice(flow.indexOf('phase === "no-profile"'), flow.indexOf('const who ='));
+  assert.equal((noProfile.match(/<a /g) || []).length, 1, 'CTA는 하나');
+  assert.ok(noProfile.includes('href="/#dpMasterCard"'));
+  assert.ok(noProfile.includes('프로필 만들기·고르기'));
+  assert.equal(/<input|<select|<form/.test(noProfile), false);
+  assert.equal(/searchParams|birth/i.test(read('app/saju/crystals/start/page.js')), false, '페이지가 쿼리로 출생정보를 넘기지 않는다');
 });
 
 test('셸 경험 입력(sajuCalibration v2)은 확실한 좋았던/나빴던 해만 옮긴다', () => {
