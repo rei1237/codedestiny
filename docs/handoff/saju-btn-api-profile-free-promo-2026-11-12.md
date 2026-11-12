@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-11-12
-next: "릴리스 A 1단계: /manse 사주 보기 버튼 수정부터"
+next: "릴리스 B 1단계(B1): 62키 밖 비LLM 정적 기능 누락 감사부터"
 ---
 
 # 사주 보기 버튼·API 링크·홈 타일 프로필 진입 수정 + 3개월 무료 마케팅
@@ -44,7 +44,7 @@ next: "릴리스 A 1단계: /manse 사주 보기 버튼 수정부터"
   - 함정: destiny-profile.js가 바뀌면 독립 정적 페이지·billing-client.ts·verify-paid-gate-ui-regression.mjs의 `destiny-profile.js?v=build-…` 핀을 verify:payment-choice-parity가 알려 주는 값으로 직접 바꾸고, billing-client.ts 변경은 `node scripts/verify-payment-freeze.mjs --update`로 config/payment-freeze.json을 같은 커밋에(선례 17682ff33). sync:public은 free-fortune-policy.js/.mjs 줄끝만 건드리므로 `git checkout --`로 되돌린다.
 - [x] A4 check:fast, mock 화면 360/390/1280 확인, 커밋, check:pre-push, main push — check:fast 통과(rebase 전). 커밋 1657f067c(A1)·a028d6cfa(A2·A3)·838bf60f2(문서)·f25a99a69(rebase 뒤 미러·사이트맵 재생성), main push f7baafd1f..f25a99a69. check:pre-push는 verify:public-mirror-fresh만 실패하고 나머지 단계는 통과. 이 실패는 origin/main에서도 똑같이 재현된다. sync:public이 free-fortune-policy.js/.mjs 줄끝만 바꿔 git status가 더러워지는 Windows 환경 문제로, 이 변경 탓이 아니다.
   - 함정: 공용 컴포넌트(guide-cta-targets·SeoLandingBirthForm)를 고치면 sitemap 서명이 대량(439 라우트)으로 바뀐다. `npm run sitemap:generate` 결과를 같은 커밋에 담는다. direct-fortune-entry.behavior.test.js의 vm 컨텍스트에는 `_dpHasSessionHint` 목이 필요하다(추가함). fortune 테스트는 `npm run fortune:build-data`(gitignore 산출물)가 먼저 있어야 한다.
-- [ ] A5 main CI 확인 → 운영 workflow 실행 → 운영 SHA·핵심 화면 읽기 전용 확인
+- [x] A5 main CI 확인 → 운영 workflow 실행 → 운영 SHA·핵심 화면 읽기 전용 확인 — 146e2e24b·16dfa794f PR CI success(f25a99a69의 PR CI 실패는 146e2e24b로 해소, Yeongnyangi Browser Shadow 실패는 WebKit internal error로 이전부터 반복되는 shadow 실패). 운영 승격은 가디언 세션의 run 43153119183(staging) → 43159125113(release success) at 16dfa794f. 운영 확인(읽기 전용): /api/version·/version.json gitSha 16dfa794fc49(Worker·Pages 일치, environment production), /manse/ 버튼 "사주 보기" + submitHref `/ggulggul/?action=cdOneStepFreeSajuEntry`, H1 "무료 만세력으로 내 명식 확인하기" 유지, checkPrivacyAndCalculate 0건, /ggulggul/ "내 API 관리" 0건, 운영 destiny-profile.js(build-4094553c6542)에 홈 타일 서버 로드 폴백·랜딩 인계 우선 포함, 홈 / 200.
   - 2026-11-12 조정(가디언 릴리스 세션 user-9d 통보): f25a99a69의 CI 실패 verify-guide-feature-cta는 1657f067c의 가이드 CTA href(`/ggulggul/?action=`) 때문이다. 검증기가 `/?action=`만 허용했다. 그쪽이 146e2e24b로 고쳐 push한다(같은 수정 금지). **운영 승격은 그쪽이 가디언 2차 승격(승인됨)으로 그 SHA에서 실행하며 Release A(1657f067c·a028d6cfa)를 포함한다. 별도 운영 workflow를 돌리지 않는다.** 이쪽은 그 push 뒤 main CI 녹색 확인 → 그쪽 보고 뒤 운영 SHA·/manse/·홈을 읽기 전용으로 확인. 미push 수정이 있으면 그 커밋 위로 rebase한 뒤 push.
 
 ### 릴리스 B (마케팅)
