@@ -96,8 +96,10 @@ const verifiedFeatureSlugs = new Set(featureCatalog.index
   .map((item) => item.slug));
 
 function destinationExists(href) {
-  if (href.startsWith("/?action=")) {
-    const action = href.slice("/?action=".length);
+  // /ggulggul/ 은 같은 셸(index.html)의 정적 진입점이다 — 같은 타일 규칙으로 판정한다.
+  const shellActionPrefix = ["/?action=", "/ggulggul/?action="].find((prefix) => href.startsWith(prefix));
+  if (shellActionPrefix) {
+    const action = href.slice(shellActionPrefix.length);
     if (!/^[A-Za-z0-9_-]+$/.test(action)) return `action 이름이 이상하다: ${action}`;
     const tiles = shell.split(`data-action="${action}"`).length - 1;
     return tiles > 0 ? null : `셸에 [data-action="${action}"] 타일이 없다 — 클릭해도 아무 일도 일어나지 않는다.`;
