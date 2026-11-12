@@ -312,7 +312,7 @@ export default function NewYearSignPageView({ params }: { params: PageParams }) 
           </p>
           <div className="mt-5 flex flex-wrap gap-2">
             <Link href="/manse" className="cd-chip">무료 만세력에서 내 년주 확인</Link>
-            <Link href="/saju" className="cd-chip">무료 만세력 보기</Link>
+            <Link href="/saju" className="cd-chip">사주 보기</Link>
             <Link href="/new-year-ai-consultation" className="cd-chip">2027 신년운세 개인 상담</Link>
           </div>
         </section>
