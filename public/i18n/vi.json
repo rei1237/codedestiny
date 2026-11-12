@@ -204,7 +204,7 @@
       "genderLabel": "Giới tính",
       "female": "Nữ giới",
       "male": "Nam giới",
-      "submit": "Xem Lịch vạn niên miễn phí",
+      "submit": "Xem Tứ Trụ",
       "saveProfile": "Lưu thẻ hồ sơ",
       "saveOptional": "Không bắt buộc",
       "kakaoEvent": "Sự kiện chia sẻ Kakao",
@@ -22509,5 +22509,17 @@
       "dayBonus": "{date}, đã điểm danh, đã tặng thưởng liên tiếp",
       "dayToday": "{date}, hôm nay"
     }
+  },
+  "freePromo": {
+    "badge": "Chỉ trong 3 tháng",
+    "title": "Hiện tất cả đều miễn phí",
+    "until": "Dự kiến chuyển sang tính phí sau ngày 12/2/2027",
+    "note": "Áp dụng cho các luận giải cơ bản như Lịch vạn niên, Tử Vi Đẩu Số và chiêm tinh. Không bao gồm tư vấn AI, Saju Light và luận giải đại vận.",
+    "cta": "Xem các luận giải miễn phí",
+    "share": "Báo cho bạn bè khi còn miễn phí",
+    "shareText": "Hiện có thể xem miễn phí luận giải Lịch vạn niên, Tử Vi Đẩu Số và chiêm tinh. Dự kiến chuyển sang tính phí sau ngày 12/2/2027.",
+    "copied": "Đã sao chép liên kết. Hãy dán và gửi cho bạn bè.",
+    "copyFailed": "Không thể sao chép liên kết. Hãy sao chép từ thanh địa chỉ.",
+    "tileBadge": "Miễn phí 3 tháng"
   }
 }

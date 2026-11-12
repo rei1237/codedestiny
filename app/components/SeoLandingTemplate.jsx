@@ -9,6 +9,10 @@ import { Fragment } from "react";
 import Link from "next/link";
 import { ArrowRight, BookOpenText, Compass } from "lucide-react";
 import DeferredShareWidget from "./DeferredShareWidget";
+import FreePromoBanner from "./FreePromoBanner";
+
+// 2026-11-12 무료 3개월 홍보 배너를 붙이는 무료 체계 랜딩(표시 전용).
+const FREE_PROMO_LANDING_PATHS = new Set(["/saju", "/saju/free", "/manse", "/ziwei", "/astrology", "/vedic", "/sukuyo"]);
 import ContentIntegrityNote from "./ContentIntegrityNote";
 import {
   buildBreadcrumbJsonLd,
@@ -266,6 +270,8 @@ export default function SeoLandingTemplate({ page, hero = null, services = null,
             </Fragment>
           ))}
         </nav>
+
+        {FREE_PROMO_LANDING_PATHS.has(String(page.path || "").replace(/\/$/, "")) ? <FreePromoBanner /> : null}
 
         {landingHero || <header className="mt-[clamp(2.5rem,6vw,4rem)] border-b border-[var(--cd-border)] pb-[clamp(2.5rem,6vw,4rem)]">
           <p className="flex items-center gap-2.5 text-[0.85rem] font-semibold text-[var(--cd-text-muted)]">

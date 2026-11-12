@@ -204,7 +204,7 @@
       "genderLabel": "Genre",
       "female": "Femme",
       "male": "Homme",
-      "submit": "Voir le Manseryeok gratuit",
+      "submit": "Voir mes Quatre Piliers",
       "saveProfile": "Enregistrer la carte de profil",
       "saveOptional": "Facultatif",
       "kakaoEvent": "Événement de partage Kakao",
@@ -22509,5 +22509,17 @@
       "dayBonus": "{date}, présence enregistrée, bonus de série accordé",
       "dayToday": "{date}, aujourd'hui"
     }
+  },
+  "freePromo": {
+    "badge": "3 mois seulement",
+    "title": "Tout est gratuit, pour l'instant",
+    "until": "Passage au payant prévu après le 12 février 2027",
+    "note": "Concerne les lectures de base comme le Manseryeok, le Zi Wei Dou Shu et l'astrologie. Hors consultations IA, lecture Saju légère et cycles de dix ans.",
+    "cta": "Voir les lectures gratuites",
+    "share": "Prévenir un ami tant que c'est gratuit",
+    "shareText": "Les lectures Manseryeok, Zi Wei Dou Shu et astrologie sont gratuites en ce moment. Leur passage au payant est prévu après le 12 février 2027.",
+    "copied": "Lien copié. Collez-le pour l'envoyer à un ami.",
+    "copyFailed": "Impossible de copier le lien. Copiez-le depuis la barre d'adresse.",
+    "tileBadge": "Gratuit 3 mois"
   }
 }

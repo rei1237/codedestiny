@@ -16,6 +16,7 @@ import { renderYehwaHome } from '../../lib/marketing/yehwa-home.mjs';
 import { renderHomeConsultationPicker } from '../../lib/marketing/home-consultation-picker.mjs';
 import { chatQuestionFeatureKey } from '../../lib/fortune/chat-products.js';
 import { isFreeFortuneFeatureKey } from '../../lib/payment/free-fortune-policy.mjs';
+import { renderFreePromoShellBanner } from '../../lib/marketing/free-promo-shell.mjs';
 
 const original = readFileSync('index.html', 'utf8');
 const vars = {mvSrc720:moonlightVideo.src720,mvSrc1080:moonlightVideo.src1080,mvCaptions:moonlightVideo.captions};
@@ -58,7 +59,7 @@ const FREE_CARDS = [
   if (service?.price !== '무료 시작' || !service.action) throw new Error('Free home card must retain its catalog free entry: ' + card.id);
   return { attrs: '', ...card, action: service.action };
 });
-vars.quick = `<section id="cdQuickServices" class="cdh-free__grid" aria-labelledby="cdhFreeTitle" data-cd-funnel-section="quick_services" data-marker="cd-quick-services-free-v20261017b">${FREE_CARDS.map(card => `<a class="cdh-free-card" ${card.attrs}href="/?action=${card.action}" data-action="${card.action}" data-cd-service-id="${card.id}"><span class="cdh-free-card__medal" aria-hidden="true"><img src="/images/service-introductions/${card.id}-320.webp" width="160" height="160" alt="" loading="lazy" decoding="async"></span><span class="cdh-free-card__copy"><strong data-cd-trans="home.simpleHome.${card.key}">${card.title}</strong><small data-cd-trans="home.simpleHome.${card.key}Note">${card.noteKo}</small></span><span class="cdh-free-card__seal" data-cd-trans="home.simpleHome.freeBadge">무료</span></a>`).join('')}</section>`;
+vars.quick = `<section id="cdQuickServices" class="cdh-free__grid" aria-labelledby="cdhFreeTitle" data-cd-funnel-section="quick_services" data-marker="cd-quick-services-free-v20261017b">${FREE_CARDS.map(card => `<a class="cdh-free-card" ${card.attrs}href="/?action=${card.action}" data-action="${card.action}" data-cd-service-id="${card.id}"><span class="cdh-free-card__medal" aria-hidden="true"><img src="/images/service-introductions/${card.id}-320.webp" width="160" height="160" alt="" loading="lazy" decoding="async"></span><span class="cdh-free-card__copy"><strong data-cd-trans="home.simpleHome.${card.key}">${card.title}</strong><small data-cd-trans="home.simpleHome.${card.key}Note">${card.noteKo}</small></span><span class="cdh-free-card__seal" data-cd-trans="freePromo.tileBadge">3개월 한정 무료</span></a>`).join('')}</section>`;
 
 // 1:1 상담 — 연이 대화 상담(1회 5,000원)과 네오 이메일 상담. e76391603 에서 홈에서 빠졌던 두 입구를 다시 둔다.
 const chatPrice = Number(FEATURE_KEY_PRICE_TABLE['fortune-chat-consultation']?.amountKRW);
@@ -341,7 +342,8 @@ const template = readFileSync('templates/home-funnel.html', 'utf8');
 // Keep the existing pass renderer between concern results and records/navigation.
 vars.yehwaHome = renderYehwaHome(registryWindow.__cdServiceRegistry, {
   consultationHtml: '<div class="cdh-slot" id="cdhFeatured"><div id="cdhSignatureSlot"><span id="homeSignature"></span>' + vars.signature + '</div></div>',
-  quickHtml: '<section class="cdh-free" aria-labelledby="cdhFreeTitle"><h2 class="cdh-free__title" id="cdhFreeTitle" data-cd-trans="home.simpleHome.freeTitle">무료로 먼저</h2><div class="cdh-slot" id="cdhQuickSlot">' + vars.quick + '</div></section>',
+  // 2026-11-12 무료 3개월 홍보 배너(표시 전용) — 무료 타일 바로 위.
+  quickHtml: renderFreePromoShellBanner() + '<section class="cdh-free" aria-labelledby="cdhFreeTitle"><h2 class="cdh-free__title" id="cdhFreeTitle" data-cd-trans="home.simpleHome.freeTitle">무료로 먼저</h2><div class="cdh-slot" id="cdhQuickSlot">' + vars.quick + '</div></section>',
   installHtml: "<aside class=\"cd-home-install-entry\" data-pwa-install-entry hidden aria-label=\"홈 화면에 추가\" lang=\"ko\" data-cd-no-trans><img src=\"/icons/moonlight-garden-v1-192.png\" width=\"48\" height=\"48\" alt=\"\" loading=\"lazy\"><div><strong>다음에도 바로 찾아오세요</strong><p>홈 화면의 아이콘으로 꿀꿀 운세를 열어요.</p></div><button type=\"button\" data-pwa-install>홈 화면에 추가하기</button></aside>",
   passHtml: '<div class="cdh-slot cdh-slot--pass" id="cdhPass"><div id="cdhPassSlot">' + vars.pass + '</div></div>',
 });

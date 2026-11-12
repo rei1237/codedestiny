@@ -13,6 +13,7 @@ import LegacyHomeEntry from "./components/LegacyHomeEntry";
 import { HOME_QUICK_LINKS } from "../lib/seo/home-discovery.mjs";
 import MobileHomeNav from './components/MobileHomeNav';
 import HomeCardDeck from "./components/HomeCardDeck";
+import FreePromoBanner from "./components/FreePromoBanner";
 import HomeDailyEntry from "./components/HomeDailyEntry";
 import { NativeHomeRoot, NativeHomeNav, NativeHomeText, NativeHomeCardLink, NativeHomeDictionaryText } from "./components/NativeHomeCopy";
 import "./yeongnyangi/night-tokens.css";
@@ -119,6 +120,7 @@ export default function HomePage() {
             </li>;
           })}
         </HomeCardDeck>
+        {!IS_APP_BUILD && <FreePromoBanner />}
         {!IS_APP_BUILD && <HomeQuestionGuide />}
         {!IS_APP_BUILD && <StoryDiscovery />}
         <HomeDailyEntry />

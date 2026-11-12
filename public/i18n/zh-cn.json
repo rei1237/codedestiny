@@ -204,7 +204,7 @@
       "genderLabel": "性别",
       "female": "女性",
       "male": "男性",
-      "submit": "免费查看万年历",
+      "submit": "查看四柱八字",
       "saveProfile": "保存个人命运卡",
       "saveOptional": "可选",
       "kakaoEvent": "Kakao分享活动",
@@ -22509,5 +22509,17 @@
       "dayBonus": "{date} 已签到，已发放连续奖励",
       "dayToday": "{date} 今天"
     }
+  },
+  "freePromo": {
+    "badge": "限时3个月",
+    "title": "限时全部免费",
+    "until": "预计于2027年2月12日之后改为付费",
+    "note": "适用于万年历、紫微斗数、星座等基础解读。AI咨询以及轻量四柱命理解读与大运解析除外。",
+    "cta": "去看免费运势",
+    "share": "趁免费告诉朋友",
+    "shareText": "现在可以免费查看万年历、紫微斗数和星座解读。预计于2027年2月12日之后改为付费。",
+    "copied": "链接已复制，粘贴发给朋友吧。",
+    "copyFailed": "无法复制链接，请从地址栏复制。",
+    "tileBadge": "限时3个月免费"
   }
 }
