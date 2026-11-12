@@ -4,6 +4,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
 import { FEATURE_KEY_PRICE_TABLE } from "../../worker/lib/paid-feature-registry.js";
+import { isFreeFortuneFeatureKey } from "../../lib/payment/free-fortune-policy.mjs";
 
 const QUANTUM = "js/saju-engine-tarot-sukuyo-quantum.js";
 const sy = (key) => new RegExp(`key: '${key}', cost: (\\d+)`, "g");
@@ -83,6 +84,8 @@ test("per-use screen prices match the server registry", () => {
     assert.ok(entry, `${featureKey} missing from registry`);
     if (!cache.has(file)) cache.set(file, readFileSync(file, "utf8"));
     const found = [...cache.get(file).matchAll(pattern)].map((m) => Number(m[1].replace(/,/g, "")));
+    // 무료 전환 키는 화면이 "무료"로 바뀔 수 있다. 남아 있는 가격 표기만 과거 가격과 대조한다.
+    if (!found.length && isFreeFortuneFeatureKey(featureKey)) continue;
     assert.ok(found.length > 0, `${featureKey}: pattern ${pattern} not found in ${file}`);
     const expected = unit === "krw" ? entry.amountKRW : entry.cost;
     for (const value of found) assert.equal(value, expected, `${featureKey} (${unit}) in ${file}`);

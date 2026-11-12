@@ -60,7 +60,30 @@ const FREE_FORTUNE_FEATURE_KEYS = Object.freeze([
   "vedic-compatibility-per-use",
   "vedic_prashna_prompt",
   "nakshatra-lord-report",
-  "nakshatra-dasha-map"
+  "nakshatra-dasha-map",
+  // 2026-11-12 user decision: remaining non-LLM catalogue (no model call after payment).
+  "physiognomy-compatibility",
+  "physiognomy-pastlife-compatibility",
+  "physiognomy-ogwan-mole-deep",
+  "tarot-year-fortune",
+  "tarot-reunion-reading",
+  "tarot-crystal-soul-reading",
+  "tarot-numerology-reading",
+  "maya-prompt-generator",
+  "tarot-ijik",
+  "royal-tea-oracle",
+  "ifa-oracle",
+  "neville-meditation",
+  "cosmic-soul-meditation",
+  "openJuyukModal",
+  "openKemetModal",
+  "stonehenge-runes-single",
+  "stonehenge-runes-triad",
+  "stonehenge-runes-deep",
+  "stonehenge-runes-yearly",
+  "fortune-prompt-hub-generate",
+  "dream-prompt-generator",
+  "mbti-animal-compat"
 ]);
 const canonical = new Map(FREE_FORTUNE_FEATURE_KEYS.map(key => [key.toLowerCase().replace(/_/g, '-'), key]));
 const aliases = Object.freeze({ traveldestiny: 'rpt_energyCoordCard', healthreport: 'rpt_healthReportCard', rpgcharacter: 'rpt_skillTreeCard', secrethouseepisodes: 'rpt_secretHouseEntryCard' });

@@ -6,6 +6,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Copy, LockKeyhole, RefreshCw, WandSparkles } from "lucide-react";
 import { openPaidFeatureGate, runBillingCoinGate } from "@/app/_lib/billing-client";
 import { usePaidResume } from "@/app/hooks/usePaidResume";
+import { isFreeFortuneFeatureKey } from "@/lib/payment/free-fortune-policy.mjs";
 import { calculateMayaCalendar, type MayaCalendarResult } from "@/src/lib/maya-calendar";
 import { generateMayaReadingPrompt, MAYA_PROMPT_TOPICS } from "@/src/lib/maya-prompt-generator";
 import { useMayaCopy } from "./_lib/copy";
@@ -17,6 +18,8 @@ type Props = {
 const FEATURE_KEY = "maya-prompt-generator";
 const FEATURE_COST = 30;
 const FEATURE_PRICE_KRW = 3000;
+// 2026-11-12 무료 전환: 프롬프트는 순수 클라이언트 조립이라 무료면 결제 게이트 없이 바로 만든다.
+const MAYA_PROMPT_IS_FREE = isFreeFortuneFeatureKey(FEATURE_KEY);
 const DISPLAY_FONT_CLASS = "[font-family:'Noto_Serif_KR','Noto_Serif',Georgia,serif]";
 const CODE_FONT_CLASS = "[font-family:Georgia,'Times_New_Roman',serif]";
 
@@ -28,7 +31,7 @@ export default function MayaPromptGeneratorCard({ result }: Props) {
   const [topic, setTopic] = useState<string>(MAYA_PROMPT_TOPICS[0]);
   const [question, setQuestion] = useState("");
   const [prompt, setPrompt] = useState("");
-  const [unlocked, setUnlocked] = useState(false);
+  const [unlocked, setUnlocked] = useState(MAYA_PROMPT_IS_FREE);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
@@ -202,10 +205,10 @@ export default function MayaPromptGeneratorCard({ result }: Props) {
             {copy.promptDesc}
           </p>
         </div>
-        <span className="relative inline-flex items-center gap-2 rounded-lg border border-[#d8b56d]/34 bg-[#020706]/72 px-4 py-2 text-xs font-black text-[#f5d48f] shadow-[0_0_24px_rgba(216,181,109,0.14)]">
+        {MAYA_PROMPT_IS_FREE ? null : <span className="relative inline-flex items-center gap-2 rounded-lg border border-[#d8b56d]/34 bg-[#020706]/72 px-4 py-2 text-xs font-black text-[#f5d48f] shadow-[0_0_24px_rgba(216,181,109,0.14)]">
           <LockKeyhole className="h-4 w-4" />
           {copy.promptPriceLabel}
-        </span>
+        </span>}
       </div>
 
       <div data-moonlit-form="" data-birth-fields="" className="relative mt-5 grid min-w-0 gap-4 md:grid-cols-2">

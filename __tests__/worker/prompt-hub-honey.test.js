@@ -1,3 +1,4 @@
+import { mockFreePolicyAsPaid } from "../fixtures/paid-path-free-policy-mock.mjs";
 import { withSettle } from "../fixtures/per-use-settle-mock.mjs";
 import { jest } from "@jest/globals";
 import { readFileSync } from "node:fs";
@@ -69,6 +70,7 @@ jest.unstable_mockModule("../../worker/lib/nakshatra-paid-access.js", () => with
 
 let attendHoney, honeyAttendanceStatus, handlePromptHubRoutes, PROMPT_HUB_TOOLS;
 beforeAll(async () => {
+  await mockFreePolicyAsPaid(jest, ["fortune-prompt-hub-generate"]);
   ({ attendHoney, honeyAttendanceStatus } = await import("../../worker/lib/honey-wallet.js"));
   ({ handlePromptHubRoutes } = await import("../../worker/routes/prompt-hub.js"));
   ({ PROMPT_HUB_TOOLS } = await import("../../lib/fortune/prompt-hub-template.js"));

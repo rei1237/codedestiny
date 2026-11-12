@@ -42,7 +42,7 @@ for (const key of ['flower-fc', 'olympus-fc', 'animal-destiny-unlock', 'destiny-
 }
 
 test('paid Light/Daewun, bundle, LLM, Guardian and tarot still require historical prices', () => {
-  for (const key of ['section_summary', 'section_daewun', 'saju_lifetime_bundle', 'ziwei-ai-consultation', 'saju-guardian-unlock', 'tarot-ijik']) {
+  for (const key of ['section_summary', 'section_daewun', 'saju_lifetime_bundle', 'ziwei-ai-consultation', 'saju-guardian-unlock', 'tarot-mindscan']) {
     assert.equal(isFreeFortuneFeatureKey(key), false, key);
     const historical = entries.get(key);
     passes(tile(key, historical.coinPrice, historical.amountKRW));

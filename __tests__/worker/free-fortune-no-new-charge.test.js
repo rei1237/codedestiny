@@ -22,7 +22,11 @@ test('Static Human Design guide is distinct from paid AI report and paid saju se
 });
 
 test('Deterministic voyage and bias are exact free keys without making AI or light saju free',()=>{
- expect(FREE_FORTUNE_FEATURE_KEYS).toHaveLength(62);
+ expect(FREE_FORTUNE_FEATURE_KEYS).toHaveLength(84);
  for(const key of ['destiny-compass-life-voyage','destiny-bias-analyze']) expect(isFreeFortuneFeatureKey(key)).toBe(true);
  for(const key of ['destiny-compass-deep-report','saju-guardian-unlock','section_summary','section_daewun','saju_lifetime_bundle']) expect(isFreeFortuneFeatureKey(key)).toBe(false);
 });
+
+// 2026-11-12 C1: 남은 비LLM 상품 22종은 무료, LLM 상담·라이트 사주·대운·묶음·수호신은 계속 유료.
+test.each(["physiognomy-compatibility","physiognomy-pastlife-compatibility","physiognomy-ogwan-mole-deep","tarot-year-fortune","tarot-reunion-reading","tarot-crystal-soul-reading","tarot-numerology-reading","tarot-ijik","maya-prompt-generator","fortune-prompt-hub-generate","dream-prompt-generator","royal-tea-oracle","ifa-oracle","openJuyukModal","openKemetModal","neville-meditation","cosmic-soul-meditation","stonehenge-runes-single","stonehenge-runes-triad","stonehenge-runes-deep","stonehenge-runes-yearly","mbti-animal-compat"])("C1 non-LLM %s is free",key=>expect(isFreeFortuneFeatureKey(key)).toBe(true));
+test.each(["section_summary","section_daewun","saju_lifetime_bundle","saju-guardian-unlock","tarot-mindscan","tarot-love-relationship","fortune-tea-house-tarot-consultation","dream-psycho-analysis"])("C1 keeps %s paid",key=>expect(isFreeFortuneFeatureKey(key)).toBe(false));

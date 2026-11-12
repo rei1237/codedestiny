@@ -10,6 +10,7 @@
  * 🔴 게이트를 mock 으로 건너뛰지 말 것 — 여기서 mock 하는 것은 증빙 조회와 인증뿐이고,
  *    분기 판정은 실제 라우트가 돌린다.
  */
+import { mockFreePolicyAsPaid } from "../fixtures/paid-path-free-policy-mock.mjs";
 import { withSettle } from "../fixtures/per-use-settle-mock.mjs";
 import { jest } from "@jest/globals";
 // 🔴 실제 requireAuth 는 HttpError 를 던진다. 평범한 Error 는 handleRouteError 가 상태를 못 읽어
@@ -33,6 +34,7 @@ let verifyCalls = [];
 let handleTarotRoutes;
 
 beforeAll(async () => {
+  await mockFreePolicyAsPaid(jest, ["tarot-ijik"]);
   await Promise.all([
     jest.unstable_mockModule("../../worker/lib/auth.js", () => ({
       requireAuth: async () => {

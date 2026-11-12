@@ -937,7 +937,9 @@ describe("intent — 결제 의도 기록", () => {
     }
   });
   test.each(APP_REGISTERED_KEYS)("유료 콘텐츠 %s 는 앱 무료 통과 없이 등록된 가격 티어를 사용한다", async (featureKey) => {
-    if(freeFortunePolicy.isFreeFortuneFeatureKey(featureKey)){await assertPublicNewAcquisition(featureKey);return;}
+    // 2026-11-12 C1: 별칭 키(예: stonehengeRunes)는 가격표가 무료 전환 키(stonehenge-runes-triad)로 풀리므로 무료 신규 취득으로 본다.
+    const resolvedPricingKey = billingRegistry.getBillingFeaturePricing({ featureKey })?.pricing?.featureKey;
+    if(freeFortunePolicy.isFreeFortuneFeatureKey(featureKey)||freeFortunePolicy.isFreeFortuneFeatureKey(resolvedPricingKey)){await assertPublicNewAcquisition(featureKey);return;}
 
     const expected = registry.FEATURE_KEY_PRICE_TABLE[featureKey] || registry.UNLOCK_PRODUCT_BY_FEATURE_KEY[featureKey];
     expect(expected).toBeTruthy();

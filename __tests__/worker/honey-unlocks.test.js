@@ -110,9 +110,11 @@ test('기존 구매 권리가 있으면 잔액이 없어도 추가 차감하지 
 
 test('꿀꿀 기본 상품만 허용하며 영냥이와 별도 상담은 제외한다', async () => {
   const f = fixture(999);
-  for (const productId of ['yeongnyangi-mackerel', 'fortune-tea-house-tarot-consultation', 'neo-operation-room', 'tarot-reunion-reading', 'tarot-myeongri-three-card']) {
+  for (const productId of ['yeongnyangi-mackerel', 'fortune-tea-house-tarot-consultation', 'neo-operation-room', 'tarot-myeongri-three-card']) {
     await expect(f.run({ productId })).rejects.toMatchObject({ status: 400 });
   }
+  // 2026-11-12 무료 전환: 재회 타로는 판매 대상 판정 전에 신규 구매를 409 로 닫는다.
+  await expect(f.run({ productId: 'tarot-reunion-reading' })).rejects.toMatchObject({ status: 409 });
   expect(HONEY_UNLOCK_PRODUCTS.filter(p=>p.billingType==='per_use').map(p=>p.productId)).toEqual(['compat-sukuyo-compatibility']);
 });
 test('명리 타로 세 장은 신규 판매만 닫고 과거 주문 대조용 가격을 유지한다', async () => {

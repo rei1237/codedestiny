@@ -13,6 +13,7 @@
  * 그중 3개가 순수 중복이었다. LLM 을 전혀 쓰지 않는 결정적 경로라 왕복 사이에 지연이 끼지도 않는다.
  */
 
+import { mockFreePolicyAsPaid } from "../fixtures/paid-path-free-policy-mock.mjs";
 import { withSettle } from "../fixtures/per-use-settle-mock.mjs";
 import { jest } from "@jest/globals";
 
@@ -42,6 +43,7 @@ function chain(value) {
 let handleTarotRoutes;
 
 beforeAll(async () => {
+  await mockFreePolicyAsPaid(jest, ["tarot-year-fortune"]);
   await Promise.all([
     jest.unstable_mockModule("../../worker/lib/db.js", () => ({ connectDb, withMongoRetry })),
     jest.unstable_mockModule("../../worker/lib/auth.js", () => ({

@@ -99,7 +99,7 @@
       "title": "재회운 타로",
       "href": "/index.html?action=openTarotReunionModal",
       "featureKey": "tarot-reunion-reading",
-      "accessType": "unknown",
+      "accessType": "free",
       "image": "/feature-details/assets/tarot-reunion-960.webp",
       "aliases": [
         "tarot-reunion-reading",
@@ -231,7 +231,7 @@
       "title": "이직 운명의 카드",
       "href": "/tarot-ijik.html",
       "featureKey": "tarot-ijik",
-      "accessType": "unknown",
+      "accessType": "free",
       "image": "/feature-details/assets/tarot-ijik-960.webp",
       "aliases": [
         "tarot-ijik",
@@ -347,7 +347,7 @@
       "title": "십이지신 천운 타로",
       "href": "/index.html?action=openTarotYearFortuneModal",
       "featureKey": "tarot-year-fortune",
-      "accessType": "unknown",
+      "accessType": "free",
       "image": "/feature-details/assets/tarot-year-fortune-960.webp",
       "aliases": [
         "tarot-year-fortune",
@@ -662,7 +662,7 @@
       "title": "꿈해몽",
       "href": "/dream/",
       "featureKey": "dream-prompt-generator",
-      "accessType": "unknown",
+      "accessType": "free",
       "image": "/feature-details/assets/dream-960.webp",
       "aliases": [
         "dream-prompt-generator",
@@ -774,7 +774,7 @@
       "title": "이집트 신탁",
       "href": "/index.html?action=openKemetModal",
       "featureKey": "openKemetModal",
-      "accessType": "unknown",
+      "accessType": "free",
       "image": "/feature-details/assets/kemet-oracle-960.webp",
       "aliases": [
         "openKemetModal",
@@ -793,7 +793,7 @@
       "title": "IFÀ 오라클",
       "href": "/ifa-oracle.html",
       "featureKey": "ifa-oracle",
-      "accessType": "unknown",
+      "accessType": "free",
       "image": "/feature-details/assets/ifa-oracle-960.webp",
       "aliases": [
         "ifa-oracle",
@@ -812,7 +812,7 @@
       "title": "주역 거북점",
       "href": "/oracle/juyuk/",
       "featureKey": "openJuyukModal",
-      "accessType": "unknown",
+      "accessType": "free",
       "image": "/feature-details/assets/juyuk-turtle-960.webp",
       "aliases": [
         "openJuyukModal",
@@ -831,7 +831,7 @@
       "title": "네빌 명상 실습",
       "href": "/neville-meditation.html",
       "featureKey": "neville-meditation",
-      "accessType": "unknown",
+      "accessType": "free",
       "image": "/feature-details/assets/neville-meditation-960.webp",
       "aliases": [
         "neville-meditation",
@@ -870,7 +870,7 @@
       "title": "수비학 타로",
       "href": "/tarot/numerology/",
       "featureKey": "tarot-numerology-reading",
-      "accessType": "unknown",
+      "accessType": "free",
       "image": "/feature-details/assets/tarot-numerology-960.webp",
       "aliases": [
         "tarot-numerology-reading",
@@ -928,7 +928,7 @@
       "title": "MBTI 동물 궁합",
       "href": "/index.html?action=openMbtiModal",
       "featureKey": "mbti-animal-compat",
-      "accessType": "unknown",
+      "accessType": "free",
       "image": "/feature-details/assets/mbti-animal-compat-960.webp",
       "aliases": [
         "mbti-animal-compat",
@@ -947,7 +947,7 @@
       "title": "원석 소울 타로",
       "href": "/tarot/crystal-soul/",
       "featureKey": "tarot-crystal-soul-reading",
-      "accessType": "unknown",
+      "accessType": "free",
       "image": "/feature-details/assets/tarot-crystal-soul-960.webp",
       "aliases": [
         "tarot-crystal-soul-reading",
@@ -966,7 +966,7 @@
       "title": "영국 홍차점",
       "href": "/index.html?action=openRoyalTeaOracle",
       "featureKey": "royal-tea-oracle",
-      "accessType": "unknown",
+      "accessType": "free",
       "image": "/feature-details/assets/royal-tea-oracle-960.webp",
       "aliases": [
         "royal-tea-oracle",
@@ -1004,7 +1004,7 @@
       "title": "스톤헨지 룬",
       "href": "/index.html?action=openRuneOracle",
       "featureKey": "stonehenge-runes-single",
-      "accessType": "unknown",
+      "accessType": "free",
       "image": "/feature-details/assets/stonehenge-runes-960.webp",
       "aliases": [
         "stonehenge-runes-single",
@@ -3887,7 +3887,7 @@
       "href": "/index.html?action=openTarotReunionModal",
       "featureKey": "tarot-reunion-reading",
       "featureKeyTo": "",
-      "accessType": "unknown",
+      "accessType": "free",
       "image": "/feature-details/assets/tarot-reunion-960.webp",
       "aliases": [
         "tarot-reunion-reading",
@@ -5048,7 +5048,7 @@
       "href": "/tarot-ijik.html",
       "featureKey": "tarot-ijik",
       "featureKeyTo": "",
-      "accessType": "unknown",
+      "accessType": "free",
       "image": "/feature-details/assets/tarot-ijik-960.webp",
       "aliases": [
         "tarot-ijik",
@@ -6274,7 +6274,7 @@
       "href": "/index.html?action=openTarotYearFortuneModal",
       "featureKey": "tarot-year-fortune",
       "featureKeyTo": "",
-      "accessType": "unknown",
+      "accessType": "free",
       "image": "/feature-details/assets/tarot-year-fortune-960.webp",
       "aliases": [
         "tarot-year-fortune",
@@ -7585,7 +7585,7 @@
       "href": "/dream/",
       "featureKey": "dream-prompt-generator",
       "featureKeyTo": "",
-      "accessType": "unknown",
+      "accessType": "free",
       "image": "/feature-details/assets/dream-960.webp",
       "aliases": [
         "dream-prompt-generator",
@@ -8105,7 +8105,7 @@
       "href": "/index.html?action=openKemetModal",
       "featureKey": "openKemetModal",
       "featureKeyTo": "",
-      "accessType": "unknown",
+      "accessType": "free",
       "image": "/feature-details/assets/kemet-oracle-960.webp",
       "aliases": [
         "openKemetModal",
@@ -8196,7 +8196,7 @@
       "href": "/ifa-oracle.html",
       "featureKey": "ifa-oracle",
       "featureKeyTo": "",
-      "accessType": "unknown",
+      "accessType": "free",
       "image": "/feature-details/assets/ifa-oracle-960.webp",
       "aliases": [
         "ifa-oracle",
@@ -8287,7 +8287,7 @@
       "href": "/oracle/juyuk/",
       "featureKey": "openJuyukModal",
       "featureKeyTo": "",
-      "accessType": "unknown",
+      "accessType": "free",
       "image": "/feature-details/assets/juyuk-turtle-960.webp",
       "aliases": [
         "openJuyukModal",
@@ -8378,7 +8378,7 @@
       "href": "/neville-meditation.html",
       "featureKey": "neville-meditation",
       "featureKeyTo": "",
-      "accessType": "unknown",
+      "accessType": "free",
       "image": "/feature-details/assets/neville-meditation-960.webp",
       "aliases": [
         "neville-meditation",
@@ -8569,7 +8569,7 @@
       "href": "/tarot/numerology/",
       "featureKey": "tarot-numerology-reading",
       "featureKeyTo": "",
-      "accessType": "unknown",
+      "accessType": "free",
       "image": "/feature-details/assets/tarot-numerology-960.webp",
       "aliases": [
         "tarot-numerology-reading",
@@ -9104,7 +9104,7 @@
       "href": "/index.html?action=openMbtiModal",
       "featureKey": "mbti-animal-compat",
       "featureKeyTo": "",
-      "accessType": "unknown",
+      "accessType": "free",
       "image": "/feature-details/assets/mbti-animal-compat-960.webp",
       "aliases": [
         "mbti-animal-compat",
@@ -9170,7 +9170,7 @@
       "href": "/tarot/crystal-soul/",
       "featureKey": "tarot-crystal-soul-reading",
       "featureKeyTo": "",
-      "accessType": "unknown",
+      "accessType": "free",
       "image": "/feature-details/assets/tarot-crystal-soul-960.webp",
       "aliases": [
         "tarot-crystal-soul-reading",
@@ -9261,7 +9261,7 @@
       "href": "/index.html?action=openRoyalTeaOracle",
       "featureKey": "royal-tea-oracle",
       "featureKeyTo": "",
-      "accessType": "unknown",
+      "accessType": "free",
       "image": "/feature-details/assets/royal-tea-oracle-960.webp",
       "aliases": [
         "royal-tea-oracle",
@@ -9443,7 +9443,7 @@
       "href": "/index.html?action=openRuneOracle",
       "featureKey": "stonehenge-runes-single",
       "featureKeyTo": "",
-      "accessType": "unknown",
+      "accessType": "free",
       "image": "/feature-details/assets/stonehenge-runes-960.webp",
       "aliases": [
         "stonehenge-runes-single",

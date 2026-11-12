@@ -41,14 +41,12 @@ test('home flower and destiny-bias cards are free without changing their histori
   for (const card of items.filter(item => !item.key)) assertFree(document.querySelector(`a[href="${card.href}"] small`));
 });
 
-test('royal tea keeps the paid registry price and Play binding', () => {
+// 2026-11-12 무료 전환: 영국 홍차점도 무료 표기, 과거 주문 대조용 가격 기록은 그대로.
+test('royal tea is free without changing its historical price record', () => {
   const node = render().querySelector('a[href="/oracle/royal-tea/"] small');
-  const product = productFor('royal-tea-oracle');
-  assert.equal(node.textContent, `1회 ${product.amountKRW.toLocaleString('ko-KR')}원`);
-  assert.equal(node.getAttribute('data-cd-price-key'), 'royal-tea-oracle');
-  assert.equal(node.getAttribute('data-cd-play-kind'), 'perUse');
-  assert.equal(node.getAttribute('data-price-krw'), String(product.amountKRW));
-  assert.equal(node.hasAttribute('data-cd-price-free'), false);
+  assert.equal(isFreeFortuneFeatureKey('royal-tea-oracle'), true);
+  assert.equal(productFor('royal-tea-oracle').amountKRW, 3000);
+  assertFree(node);
 });
 
 test('free display comes from the canonical predicate without requiring a historical price', () => {

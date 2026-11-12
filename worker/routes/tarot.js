@@ -6,6 +6,7 @@ import { PaidExecutionRecord } from "../lib/models.js";
 import { canAccessPaidFeature, PAID_FEATURE_ACCESS_USER_PROJECTION } from "../lib/paid-feature-access.js";
 import { logPerUsePaymentProof, settlePerUseAccessDecision, verifyPerUsePayment } from "../lib/nakshatra-paid-access.js";
 import { FEATURE_KEY_PRICE_TABLE } from "../lib/paid-feature-registry.js";
+import { isFreeFortuneFeatureKey } from "../../lib/payment/free-fortune-policy.mjs";
 import { buildImageCandidates, getTarotCardByAnyId, TAROT_CARDS } from "../../lib/tarot/tarot-cards.mjs";
 import {
   getWarningCardGuard,
@@ -249,6 +250,8 @@ async function saveYearTarotResult({ env, auth, decision, payload, year, request
 }
 
 async function verifyNumerologyReadingAccess(request, env, body = {}) {
+  // 2026-11-12 무료 전환: 결정적 리딩이라 결제·이용권 증빙 없이 연다(신규 구매는 409 FEATURE_NOW_FREE).
+  if (isFreeFortuneFeatureKey(NUMEROLOGY_TAROT_READING_FEATURE_KEY)) return { ok: true, auth: null, evidence: { source: "public" } };
   let auth = null;
   let authError = null;
   try {
@@ -475,6 +478,8 @@ async function verifyOracleConsultationAccess(request, env, body = {}, verifiedA
  *          authMessage:string, retryHint:string}} spec
  */
 async function verifyTarotPerUseAccess(request, env, body, spec, verifiedAuth = null) {
+  // 2026-11-12 무료 전환(이직·크리스탈 소울): 결제 증빙 없이 연다. LLM 상품(love·mindscan)은 무료 목록에 없다.
+  if (!spec.drawFeatureKey && isFreeFortuneFeatureKey(spec.featureKey)) return { ok: true, auth: verifiedAuth, evidence: { source: "public" } };
   const authRequired = `${spec.codePrefix}_AUTH_REQUIRED`;
   const verifyUnavailable = `${spec.codePrefix}_VERIFY_UNAVAILABLE`;
   const notVerified = `${spec.codePrefix}_PAYMENT_NOT_VERIFIED`;
@@ -1926,7 +1931,11 @@ export async function handleTarotRoutes(request, env = {}) {
       let requestId = "";
       let existingYearRecord = null;
 
-      if (isYearReading) {
+      // 2026-11-12 무료 전환: 무료 연간 리딩은 결제 증빙을 묻지 않고 유료 실행 기록(PaidExecutionRecord)도 만들지 않는다.
+      const isPublicYearReading = isYearReading && isFreeFortuneFeatureKey(YEAR_TAROT_FEATURE_KEY);
+      if (isPublicYearReading) year = resolveYearValue(body?.year);
+
+      if (isYearReading && !isPublicYearReading) {
         // 🔴 결제 증빙 조회의 열쇠라 게이트보다 **먼저** 확정한다. 예전에는 게이트 뒤에서 만들어
         //    게이트가 그 값을 쓸 수 없었고, 그래서 "산 적 있는가"로만 물었다.
         year = resolveYearValue(body?.year);
@@ -1960,6 +1969,22 @@ export async function handleTarotRoutes(request, env = {}) {
         userContext: body?.userContext,
         year: isYearReading ? year : body?.year,
       }), env, { spreadType, category, cards, year: isYearReading ? year : body?.year || null });
+
+      if (isPublicYearReading) {
+        return json({
+          ok: true,
+          stored: false,
+          persisted: false,
+          resultId: "",
+          year: resolveYearValue(year),
+          cards: Array.isArray(payload.cards) ? payload.cards : [],
+          reading: payload.reading || null,
+          consultingHighlights: Array.isArray(payload.consultingHighlights) ? payload.consultingHighlights : [],
+          engineMeta: payload.engineMeta || null,
+          savedAt: null,
+          accessSource: "public",
+        });
+      }
 
       if (isYearReading) {
         // saveYearTarotResult 는 저장이 실패해도 던지지 않는다(degrade-not-throw) — 결제한 사용자는

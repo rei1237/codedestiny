@@ -15,6 +15,7 @@ import { getApiUrl } from "@/app/_lib/api-config";
 import { useCoinGate } from "@/app/hooks/useCoinGate";
 import { packPaidResumeArg, unpackPaidResumeArg, usePaidResume } from "@/app/hooks/usePaidResume";
 import { lookupServerCoinPrice } from "@/app/_lib/serviceCoinPrice";
+import { isFreeFortuneFeatureKey } from "@/lib/payment/free-fortune-policy.mjs";
 import { hasClientAuthHint } from "@/app/_lib/user-session-cache";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 import { PromptHubLoginGateModal, type PromptHubGateCopy } from "./PromptHubLoginGateModal";
@@ -954,9 +955,9 @@ const PROMPT_HUB_COPY_EN: PromptHubCopy = {
   heroMascotAlt: "Yeon flower-piglet mascot — Fortune Prompt Hub",
   gate: {
     title: "Log in to build prompts",
-    lead: "Log in to build a prompt with 1 honey drop.",
+    lead: "Log in to build prompts for free.",
     benefits: [
-      "1 honey drop per daily check-in",
+      "Prompt generation is free — no honey drops needed",
       "Save what you build to your library",
       "Full access to every tool",
       "Free to join — no payment",
@@ -1454,9 +1455,9 @@ const PROMPT_HUB_COPY_KO: PromptHubCopy = {
   heroMascotAlt: "연이 꽃돼지 마스코트 — 운세 프롬프트 허브",
   gate: {
     title: "로그인하고 프롬프트를 만들어 보세요",
-    lead: "로그인하면 꿀방울 1개로 프롬프트 1회를 만들 수 있어요.",
+    lead: "로그인하면 프롬프트를 무료로 만들 수 있어요.",
     benefits: [
-      "하루 한 번 출석하면 꿀방울 1개, 5일 연속이면 +4개",
+      "꿀방울 없이 프롬프트 생성 무료",
       "만든 프롬프트를 보관함에 저장",
       "모든 운세 도구 이용",
       "결제 없이 무료 가입",
@@ -1752,6 +1753,8 @@ async function copyTextToClipboard(text: string) {
 
 // 꿀방울이 없을 때의 대체 결제 키. 가격 정본은 worker/lib/paid-feature-registry.js.
 const PROMPT_HUB_GENERATE_FEATURE_KEY = "fortune-prompt-hub-generate";
+// 2026-11-12 무료 전환: 서버가 paidWith "public" 으로 꿀방울 차감 없이 만든다.
+const PROMPT_HUB_GENERATE_IS_FREE = isFreeFortuneFeatureKey(PROMPT_HUB_GENERATE_FEATURE_KEY);
 
 type HoneyState = {
   balance: number;
@@ -2983,7 +2986,7 @@ export default function ComprehensivePromptHubPage() {
                   </p>
                 ) : null}
 
-                {auth.isAuthenticated && honey ? (
+                {!PROMPT_HUB_GENERATE_IS_FREE && auth.isAuthenticated && honey ? (
                   <div className="mt-4 flex flex-wrap items-center gap-2 rounded-xl border border-[color:var(--hairline)] bg-[color:var(--surface-1)] px-3 py-2 text-sm text-[color:var(--ink-2)]" aria-live="polite">
                     <span className="font-black">🍯 {copy.honeyBalance.replace("{count}", String(honey.balance))}</span>
                     <span>{honey.attended ? copy.honeyNextReward.replace("{count}", String(honey.nextRewardIn)) : copy.honeyRule}</span>
@@ -2998,7 +3001,7 @@ export default function ComprehensivePromptHubPage() {
                   </div>
                 ) : null}
 
-                {honeyShortfall ? (
+                {!PROMPT_HUB_GENERATE_IS_FREE && honeyShortfall ? (
                   <div role="alert" className="mt-3 rounded-xl border border-[color:var(--danger-line)] bg-[color:var(--danger-glow)] px-3 py-3 text-sm text-[color:var(--danger-ink)]">
                     <p className="font-black">{copy.honeyShortTitle}</p>
                     <p className="mt-1">{copy.honeyShortBody.replace("{price}", formatPromptHubPrice(locale))}</p>

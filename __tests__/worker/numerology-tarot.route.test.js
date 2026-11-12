@@ -9,6 +9,7 @@
 //   2) 인증이 DB 장애로 실패하면 401 이 아니라 503 이다 (로그아웃으로 세탁 금지)
 //   3) 예상 못 한 예외의 500 응답에는 requestId 가 실린다 (진단 가능)
 
+import { mockFreePolicyAsPaid } from "../fixtures/paid-path-free-policy-mock.mjs";
 import { withSettle } from "../fixtures/per-use-settle-mock.mjs";
 import { jest } from "@jest/globals";
 
@@ -18,6 +19,7 @@ let canAccessPaidFeatureMock;
 let requireAuthMock;
 
 beforeAll(async () => {
+  await mockFreePolicyAsPaid(jest, ["tarot-numerology-reading"]);
   // isAuthDbInfraError 는 진짜를 쓴다 — 판별 규칙 자체가 이 테스트의 검증 대상이기 때문이다.
   const realAuth = await import("../../worker/lib/auth.js");
 

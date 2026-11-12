@@ -25,7 +25,7 @@
  },
  "detail/cosmic-soul-meditation.json": {
   "input": "edc43491cbdb1255",
-  "output": "2b5200120ec8601f"
+  "output": "6c7c8f1f538b9229"
  },
  "detail/daily-fortune.json": {
   "input": "c8de7f2782feab7c",
@@ -365,7 +365,7 @@
  },
  "crafted/career-transition-tarot": {
   "input": "ea2c43a9a74785d9",
-  "output": "772b8ff1f16fecd7"
+  "output": "4f37fa7aad9d7f1b"
  },
  "crafted/celestial-harmony": {
   "input": "4a90bdf1640a0f21",
@@ -409,7 +409,7 @@
  },
  "crafted/crystal-soul-tarot": {
   "input": "a48443f1a1bdfcf3",
-  "output": "79db0c16e94b7580"
+  "output": "be55d850c0c30550"
  },
  "crafted/destiny-meeting-place": {
   "input": "c7a8bb973aa50ae9",
@@ -453,7 +453,7 @@
  },
  "crafted/ifa-oracle": {
   "input": "a430be323a4427db",
-  "output": "4beb437371ae6109"
+  "output": "62cd7355e6460051"
  },
  "crafted/island-palace-consult": {
   "input": "bdc94749e371a1ba",
@@ -469,7 +469,7 @@
  },
  "crafted/kemet-oracle": {
   "input": "9d70a1f3c8f85974",
-  "output": "b9aa0f95b52b4abf"
+  "output": "2b228e3c9e27438f"
  },
  "crafted/life-book": {
   "input": "1c880c9faeed8740",
@@ -505,7 +505,7 @@
  },
  "crafted/maya-prompt": {
   "input": "724ada3f12e1ed8b",
-  "output": "fcd44949179d2093"
+  "output": "86acc68eef43283c"
  },
  "crafted/mindscan-tarot": {
   "input": "6f7bd224a3a93ff9",
@@ -561,7 +561,7 @@
  },
  "crafted/numerology-tarot": {
   "input": "519a4835456380bb",
-  "output": "7d3aa3c509be125f"
+  "output": "79cda72d024fac1d"
  },
  "crafted/olympus-oracle": {
   "input": "d03d4a8bee76bb77",
@@ -589,11 +589,11 @@
  },
  "crafted/physiognomy-ogwan": {
   "input": "1e4a9fee34c63e63",
-  "output": "b0680d00d4071149"
+  "output": "e411966419073f02"
  },
  "crafted/physiognomy-pastlife": {
   "input": "0ccf93753b175e56",
-  "output": "c9db9e8b9c981e83"
+  "output": "fe4963b48c286fc8"
  },
  "crafted/quantum-saju": {
   "input": "92b33dc391791d18",
@@ -609,27 +609,27 @@
  },
  "crafted/reunion-tarot": {
   "input": "f43c7348608e9003",
-  "output": "a4f1aae069fa00b1"
+  "output": "6759c0e22667cb29"
  },
  "crafted/royal-tea-oracle": {
   "input": "60652e3b9f931c8f",
-  "output": "fa4fdcc7bc8210f9"
+  "output": "e0d6291bb0a8c917"
  },
  "crafted/rune-deep": {
   "input": "962a9e4b0b60ccf9",
-  "output": "efd66dac5e416362"
+  "output": "d2d3abcf9df35d25"
  },
  "crafted/rune-single": {
   "input": "26fce6701761ccb0",
-  "output": "79583af848c15700"
+  "output": "b08ba0792783f856"
  },
  "crafted/rune-triad": {
   "input": "24c62f7286f3447f",
-  "output": "0d4b3ed1051c50d4"
+  "output": "11613c31e26a9e46"
  },
  "crafted/rune-yearly": {
   "input": "954f5c6acafbcf6d",
-  "output": "0e97b85a1efb00e1"
+  "output": "51162352e776b2f9"
  },
  "crafted/saju-compatibility": {
   "input": "d8a41ce235c8edc9",

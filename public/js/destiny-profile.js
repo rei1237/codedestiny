@@ -6160,6 +6160,16 @@
          처리된다(= "이용권 있는데 결제창", "결제했는데 다른 카드에 해제", "2만원 내고 다른 사람 명식").
          포인터가 최신일 때 이 값은 서버 폴백과 동일하므로 정책 변화가 없고, 어긋났을 때만 교정한다.
          명시로 넘어온 값은 절대 덮어쓰지 않는다. */
+      // 2026-11-12 무료 목록은 결제창·이용권 확인 없이 바로 허용한다(셸·독립 게이트 공통 경계).
+      var publicFeatureKey = _dpResolvePaidGateFeatureKey(opts, String(opts.title || opts.reason || ''));
+      if (publicFeatureKey && typeof window.cdIsFreeFortuneFeatureKey === 'function' && window.cdIsFreeFortuneFeatureKey(publicFeatureKey)) {
+        var publicRequestId = String(opts.requestId || '').trim() || ('public-' + Date.now().toString(36));
+        return Promise.resolve(_dpBuildPaidGateGrantedResult({
+          status: 'public',
+          accessType: 'public',
+          payload: { requestId: publicRequestId, transactionId: publicRequestId, featureKey: publicFeatureKey, accessSource: 'public', chargedCoins: 0 },
+        }, publicRequestId, opts.onGranted));
+      }
       var gateProfileId = String(opts.profileId || opts.selectedProfileId || '').trim() || _dpResolvePaidGateProfileId();
       if (gateProfileId && (opts.profileId !== gateProfileId || opts.selectedProfileId !== gateProfileId)) {
         opts = Object.assign({}, opts, { profileId: gateProfileId, selectedProfileId: gateProfileId });
@@ -12896,6 +12906,13 @@
 
     if (_cdIsAdminLikeUser()) {
       if (typeof cb === 'function') cb();
+      return;
+    }
+
+    // 2026-11-12 무료 목록(정본 lib/payment/free-fortune-policy.mjs)은 결제창·이용권 확인 없이 바로 연다.
+    // 무료 키의 신규 결제는 서버가 409 FEATURE_NOW_FREE 로 막으므로 결제 경로로 보내면 막다른 길이 된다.
+    if (typeof window.cdIsFreeFortuneFeatureKey === 'function' && window.cdIsFreeFortuneFeatureKey(normalizedFeatureKey)) {
+      if (typeof cb === 'function') cb(requestId, { requestId: requestId, featureKey: normalizedFeatureKey, accessSource: 'public', accessType: 'public', chargedCoins: 0 });
       return;
     }
 

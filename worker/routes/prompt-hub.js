@@ -7,6 +7,7 @@ import { verifyPerUsePayment } from "../lib/nakshatra-paid-access.js";
 import { FEATURE_KEY_PRICE_TABLE } from "../lib/paid-feature-registry.js";
 import { attendHoney, bindPromptHubPayment, honeyAttendanceStatus, spendPromptHubHoney } from "../lib/honey-wallet.js";
 import { PROMPT_HUB_TOOLS, buildStructuredFortunePrompt } from "../../lib/fortune/prompt-hub-template.js";
+import { isFreeFortuneFeatureKey } from "../../lib/payment/free-fortune-policy.mjs";
 
 // 꿀방울이 없을 때의 대체 결제(₩3,000). 정본 가격은 paid-feature-registry.js.
 const PROMPT_HUB_GENERATE_FEATURE_KEY = "fortune-prompt-hub-generate";
@@ -97,6 +98,12 @@ export async function handlePromptHubRoutes(request, env) {
 
     const input = parseGenerateBody(await readJson(request));
     const prompt = await assemblePrompt(env, input);
+    // 2026-11-12 사용자 결정: 프롬프트 생성은 무료다. 꿀방울 차감·단건 증빙(settle)을 건너뛴다 —
+    // 무료 키의 신규 결제는 409 FEATURE_NOW_FREE 라 settle 경로로는 더 이상 열 수 없다.
+    if (isFreeFortuneFeatureKey(PROMPT_HUB_GENERATE_FEATURE_KEY)) {
+      return json({ ok: true, toolId: input.toolId, prompt, paidWith: "public", replayed: false,
+        honey: await honeyAttendanceStatus(env, auth.userId) }, noStore);
+    }
     let settled;
     try {
       settled = await settle(env, auth.userId, input);

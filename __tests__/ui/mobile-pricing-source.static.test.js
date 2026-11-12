@@ -31,8 +31,9 @@ test("paid UI badges do not provide a numeric PriceBadge fallback", () => {
 test("targeted mobile cards keep paid registry prices and exact free display metadata", async () => {
   const { isFreeFortuneFeatureKey } = await import("../../lib/payment/free-fortune-policy.mjs");
   assert.equal(isFreeFortuneFeatureKey("animal-destiny-unlock"), true);
-  for (const key of ["tarot-ijik", "section_summary", "section_daewun", "ziwei-ai-consultation"]) assert.equal(isFreeFortuneFeatureKey(key), false, key);
-  assert.match(shell, /data-action="startIjikTarot"[\s\S]{0,240}data-feature-key="tarot-ijik"[\s\S]{0,240}data-price-krw="5000"/);
+  assert.equal(isFreeFortuneFeatureKey("tarot-ijik"), true); // 2026-11-12 무료 전환
+  for (const key of ["section_summary", "section_daewun", "ziwei-ai-consultation"]) assert.equal(isFreeFortuneFeatureKey(key), false, key);
+  assert.match(shell, /data-action="startIjikTarot"[\s\S]{0,240}data-feature-key="tarot-ijik"[\s\S]{0,240}data-price-krw="0"/);
   assert.doesNotMatch(shell, /<a[^>]*data-action="openLoveSimulation"/);
   assert.match(shell, /data-action="openAnimalDestinyRoute"[\s\S]{0,260}data-feature-key="animal-destiny-unlock"[\s\S]{0,260}data-price-krw="0"/);
 });

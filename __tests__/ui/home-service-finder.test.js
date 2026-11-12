@@ -129,7 +129,8 @@ test("가격만으로도 찾을 수 있다", async () => {
 });
 
 // 2026-10-12 프리미엄 개편: 단발 오라클은 3,000원, 타로 리딩은 5,000원으로 분리한다.
-test("3천원 오라클과 5천원 타로를 가격대로 구분해 찾을 수 있다", async () => {
+// 2026-11-12 무료 전환: 이집트 신탁·재회운 타로는 무료 칩으로 옮겼다. 유료 가격대 구분은 남은 유료 항목으로 본다.
+test("3천원 가디언과 5천원 타로를 가격대로 구분하고, 무료 전환 항목은 무료 칩에 둔다", async () => {
   const { doc } = await boot();
   const panel = doc.getElementById("fortuneGatewayRecs");
 
@@ -137,13 +138,19 @@ test("3천원 오라클과 5천원 타로를 가격대로 구분해 찾을 수 �
 
   const hits = names(panel);
   assert.ok(hits.length > 0, "3천원대만 골랐을 때 결과가 없다");
-  assert.ok(hits.includes("이집트 신탁"), `3천원대 결과에 이집트 신탁이 없다: ${hits.join(", ")}`);
-  assert.ok(!hits.includes("재회운 타로"), "5,000원 재회운 타로가 3천원대에 섞였다");
+  assert.ok(hits.includes("사주 가디언 소환진"), `3천원대 결과에 사주 가디언 소환진이 없다: ${hits.join(", ")}`);
+  assert.ok(!hits.includes("말과 행동 사이 타로"), "5,000원 마인드스캔 타로가 3천원대에 섞였다");
+  assert.ok(!hits.includes("이집트 신탁"), "무료 전환된 이집트 신탁이 3천원대에 남았다");
   doc.querySelector('#fortuneGatewayDiscover [data-price="mid"]').click();
   doc.querySelector('#fortuneGatewayDiscover [data-price="high"]').click();
   const highHits = names(panel);
-  assert.ok(highHits.includes("재회운 타로"), "5천원대에 재회운 타로가 없다");
-  assert.ok(!highHits.includes("이집트 신탁"), "3,000원 이집트 신탁이 5천원대에 섞였다");
+  assert.ok(highHits.includes("말과 행동 사이 타로"), "5천원대에 마인드스캔 타로가 없다");
+  assert.ok(!highHits.includes("사주 가디언 소환진"), "3,000원 가디언이 5천원대에 섞였다");
+  assert.ok(!highHits.includes("재회운 타로"), "무료 전환된 재회운 타로가 5천원대에 남았다");
+  doc.querySelector('#fortuneGatewayDiscover [data-price="high"]').click();
+  doc.querySelector('#fortuneGatewayDiscover [data-price="free"]').click();
+  const freeHits = names(panel);
+  assert.ok(freeHits.includes("이집트 신탁") && freeHits.includes("재회운 타로"), `무료 칩에 무료 전환 항목이 없다: ${freeHits.join(", ")}`);
 });
 
 test("방식은 이름 정규식이 아니라 선언된 값으로 판정한다", async () => {
@@ -205,9 +212,10 @@ test("범위 가격 항목은 걸치는 가격대 칩에 모두 나온다", asyn
     return hit;
   };
 
-  // 룬은 3,000원 단일가이므로 3천원대에만 남는다.
+  // 룬은 2026-11-12부터 무료라 무료 칩에만 남는다.
+  assert.ok(inChip("free", "스톤헨지 룬"));
   assert.ok(!inChip("low", "스톤헨지 룬"));
-  assert.ok(inChip("mid", "스톤헨지 룬"));
+  assert.ok(!inChip("mid", "스톤헨지 룬"));
   assert.ok(!inChip("high", "스톤헨지 룬"));
   // 범위 가격 상품은 걸치는 가격대에만 나타난다 — 30,000원~50,000원은 시작가부터 프리미엄이다.
   assert.ok(inChip("vvip", "마스터 인연의 서"), "30,000원~50,000원 항목이 프리미엄에서 빠졌다");
@@ -456,11 +464,17 @@ test("추천 카드는 결제 게이트를 무장하지 않고 결제 여부 표
   );
 
   const freeCompatibility = cards.filter((c) => c.getAttribute("data-pvw-free"));
-  assert.equal(freeCompatibility.length, 1, "승인된 나크샤트라 계산형 궁합은 무료 추천이다");
-  assert.ok(freeCompatibility[0].textContent.includes("동서 통합 궁합"));
-  assert.equal(freeCompatibility[0].getAttribute("data-pvw-paid"), null);
-  for (const banned of ["data-coin-cost", "data-tile-lock-cost", "data-tile-lock-key"]) {
-    assert.equal(freeCompatibility[0].getAttribute(banned), null);
+  // 나크샤트라 계산형 궁합과 2026-11-12 무료 전환된 MBTI 동물 궁합만 무료 추천이다.
+  assert.deepEqual(
+    freeCompatibility.map((c) => (c.textContent.includes("동서 통합 궁합") ? "동서 통합 궁합" : c.textContent.includes("MBTI 동물 궁합") ? "MBTI 동물 궁합" : c.textContent)).sort(),
+    ["MBTI 동물 궁합", "동서 통합 궁합"],
+    "무료 궁합 추천은 승인된 두 항목뿐이다",
+  );
+  for (const card of freeCompatibility) {
+    assert.equal(card.getAttribute("data-pvw-paid"), null);
+    for (const banned of ["data-coin-cost", "data-tile-lock-cost", "data-tile-lock-key"]) {
+      assert.equal(card.getAttribute(banned), null);
+    }
   }
 
   // 경계 항목 둘. 여기가 갈리면 /points 프로그래매틱 이동(결제 금지 패턴 ⑦)이 열린다.

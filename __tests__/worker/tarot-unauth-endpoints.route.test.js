@@ -14,6 +14,7 @@
  *
  * 🔴 게이트를 mock 으로 건너뛰지 말 것. 여기서 가는 것은 인증·증빙 조회뿐이고 분기는 실제 라우트가 돈다.
  */
+import { mockFreePolicyAsPaid } from "../fixtures/paid-path-free-policy-mock.mjs";
 import { withSettle } from "../fixtures/per-use-settle-mock.mjs";
 import { jest } from "@jest/globals";
 // 🔴 실제 requireAuth 는 HttpError 를 던진다. 평범한 Error 는 handleRouteError 가 상태를 못 읽어
@@ -41,6 +42,7 @@ const drawStore = {
 let paidTarotDrawKey;
 
 beforeAll(async () => {
+  await mockFreePolicyAsPaid(jest, ["tarot-crystal-soul-reading", "tarot-ijik"]);
   const db = await import("../../worker/lib/db.js");
   await Promise.all([
     jest.unstable_mockModule("../../worker/lib/db.js", () => ({ ...db, connectDb: async () => {}, withMongoRetry: async (_env, fn) => fn() })),
