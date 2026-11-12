@@ -1,7 +1,7 @@
 ---
 status: done
 updated: 2026-11-12
-next: "없음 — 운영 16dfa794f에 반영 완료. 후속 과제는 4단계 목록 참고."
+next: "없음 — 운영 16dfa794f에 반영 완료. 후속 과제는 docs/handoff/saju-guardian-followups-2026-11-12.md"
 ---
 
 # 사주 가디언: 이미지 생성 → 이미지 프롬프트, 가격 3,000원
@@ -63,3 +63,7 @@ next: "없음 — 운영 16dfa794f에 반영 완료. 후속 과제는 4단계 �
   - 운영 비로그인 POST: `/api/guardian/generate-image` 410(IMAGE_GENERATION_RETIRED), `/api/guardian/image-prompt` 401. 운영 셸 청크 `s-c6bce2f71df8f170.js`에 "외부 이미지 도구용 가디언 그림 설명문", `/ggulggul/`에 `sajuGuardianPricePrice3000` 확인. DB 쓰기·결제 없음.
   - 그 사이 CI 실패 2건과 수정: ① 7c6e7380c PR CI — `verify:feature-marketing-schema` 금지어 "프롬프트" → f7baafd1f. ② f25a99a69 PR CI — 다른 세션 1657f067c의 `/ggulggul/?action=` CTA를 `verify-guide-feature-cta`가 셸 딥링크로 보지 않음 → 146e2e24b(같은 타일 존재 규칙으로 판정, 약화 없음).
 - [x] 4. 최종 보고(한국어): 가격 해석, 기존 이용자 영향, 후속 과제(order-view-model.ts:99 표기 오류, light-fortune-catalog.js:18 사유, /api/guardian-avatar 죽은 코드, NVIDIA_DRAW_API_KEY 비밀값 정리, 패널 08·09 새 그림, docs 인벤토리, "나의 수호 캐릭터" 사전 누락, public/i18n/en.json:6002 "10,000 KRW", transform-origin 경고)
+
+## 이후 결정 (2026-11-12)
+- 이용권 소진 기준 30코인 연쇄 변경 유지: 사용자 "이용권 소진 기준은 30코인이든 10 코인이든 소진이 되는게 맞고".
+- 남은 후속 과제는 `docs/handoff/saju-guardian-followups-2026-11-12.md`로 넘김.
