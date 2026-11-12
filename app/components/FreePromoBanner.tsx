@@ -2,7 +2,7 @@
 
 import {useEffect, useState} from 'react';
 import {useTPick} from '@/lib/i18n/useT';
-import {FREE_PROMO, FREE_PROMO_COPY_KO, freePromoDayLabel, freePromoDaysLeft} from '@/lib/marketing/free-promo.mjs';
+import {FREE_PROMO, FREE_PROMO_COPY_KO, FREE_PROMO_GROUPS, FREE_PROMO_YEONI, freePromoDayLabel, freePromoDaysLeft, freePromoItemHref} from '@/lib/marketing/free-promo.mjs';
 import styles from './free-promo-banner.module.css';
 
 type CopyKey = keyof typeof FREE_PROMO_COPY_KO;
@@ -40,9 +40,30 @@ export default function FreePromoBanner({className = ''}: {className?: string}) 
   }
 
   return <aside className={`${styles.banner} ${className}`} aria-labelledby="freePromoTitle" data-cd-free-promo={FREE_PROMO.id}>
-    <p className={styles.badge}>{t('badge')}</p>
-    <p className={styles.title} id="freePromoTitle"><strong>{t('title')}</strong></p>
-    <p className={styles.until}>{t('until')}{days != null && <> <span className={styles.dday}>{freePromoDayLabel(days)}</span></>}</p>
+    <div className={styles.head}>
+      <div className={styles.lead}>
+        <p className={styles.badge}>{t('badge')}</p>
+        <p className={styles.title} id="freePromoTitle"><strong>{t('title')}</strong></p>
+        <p className={styles.until}>{t('until')}{days != null && <> <span className={styles.dday}>{freePromoDayLabel(days)}</span></>}</p>
+      </div>
+      {/* eslint-disable-next-line @next/next/no-html-link-for-pages -- /ggulggul/ 은 Next 라우트가 아닌 정적 셸이다. */}
+      <a className={styles.yeoni} href={FREE_PROMO_YEONI.href} data-cd-cta-placement="free-promo-yeoni">
+        <span className={styles.bubble}>{t('bubble')}</span>
+        {/* eslint-disable-next-line @next/next/no-img-element -- 정적 내보내기라 next/image 최적화를 쓰지 않는다. */}
+        <img className={styles.yeoniImg} src={FREE_PROMO_YEONI.image} width={264} height={372} alt="" loading="lazy" decoding="async" />
+      </a>
+    </div>
+    <div className={styles.groups}>
+      {FREE_PROMO_GROUPS.map(group => <div key={group.id} className={styles.group} data-group={group.id}>
+        <p className={styles.groupTitle}>{t(group.labelKey as CopyKey)}</p>
+        <ul className={styles.chips}>
+          {group.items.map(item => <li key={item.id}>
+            {/* eslint-disable-next-line @next/next/no-html-link-for-pages -- 셸 액션·정적 페이지 주소가 섞여 있다. */}
+            <a className={styles.chip} href={freePromoItemHref(item)} data-cd-free-promo-item={item.id}>{pick(`freePromo.item.${item.id}`, item.ko) || item.ko}</a>
+          </li>)}
+        </ul>
+      </div>)}
+    </div>
     <p className={styles.note}>{t('note')}</p>
     <div className={styles.actions}>
       {/* eslint-disable-next-line @next/next/no-html-link-for-pages -- /ggulggul/ 은 Next 라우트가 아닌 정적 셸이다. */}

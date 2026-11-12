@@ -36,3 +36,41 @@ test('free promo end date never gates access', () => {
     assert.ok(!read(path).includes('free-promo'), path + ' must not read the display-only promo');
   }
 });
+
+test('free promo list shows only features that are already free and reachable', async () => {
+  const { FREE_PROMO_GROUPS, FREE_PROMO_SAJU_ACTION, FREE_PROMO_YEONI, freePromoItemHref } = await import('../../lib/marketing/free-promo.mjs');
+  const { isFreeFortuneFeatureKey } = await import('../../lib/payment/free-fortune-policy.mjs');
+  const { existsSync } = await import('node:fs');
+  const vm = await import('node:vm');
+  const win = {};
+  vm.runInNewContext(read('js/core/service-registry.js'), { window: win });
+  const registry = win.__cdServiceRegistry;
+  const authored = JSON.parse(read('i18n/authored/freePromo-01.json'));
+  const shell = read('index.html');
+  const actionOk = (action) => action === FREE_PROMO_SAJU_ACTION || registry.some(entry => entry.action === action);
+  const seen = new Set();
+  for (const group of FREE_PROMO_GROUPS) {
+    assert.ok(FREE_PROMO_COPY_KO[group.labelKey], 'group label ' + group.labelKey);
+    for (const item of group.items) {
+      assert.ok(!seen.has(item.id), 'duplicate item ' + item.id);
+      seen.add(item.id);
+      if (item.policyKey) {
+        assert.ok(isFreeFortuneFeatureKey(item.policyKey), item.id + ': ' + item.policyKey + ' is not free in policy');
+      } else {
+        const entry = registry.find(e => e.id === item.freeStart);
+        assert.ok(entry && ['무료 시작', '무료', '차트 공개'].includes(entry.price), item.id + ' must be a free-start service');
+        if (item.action) assert.equal(entry.action, item.action, item.id + ' action drift');
+      }
+      const href = freePromoItemHref(item);
+      if (item.action) assert.ok(actionOk(item.action), item.id + ' unknown action');
+      else assert.ok(['js', 'jsx', 'tsx'].some(ext => existsSync(new URL('../../app' + href + 'page.' + ext, import.meta.url))), item.id + ' route missing: ' + href);
+      const entry = authored['freePromo.item.' + item.id];
+      assert.ok(entry && entry.ko === item.ko && Object.keys(entry).length === 12, 'authored drift: freePromo.item.' + item.id);
+      assert.ok(shell.includes(`href="${href}" data-cd-free-promo-item="${item.id}"`), 'index.html chip missing: ' + item.id);
+    }
+  }
+  for (const paid of ['section_summary', 'section_daewun', 'saju_lifetime_bundle', 'saju_light']) {
+    assert.ok(!FREE_PROMO_GROUPS.some(g => g.items.some(i => i.policyKey === paid)), paid + ' must not be advertised');
+  }
+  assert.ok(shell.includes(`href="${FREE_PROMO_YEONI.href}" data-cd-free-promo-yeoni`), 'index.html Yeoni entry missing');
+});
