@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-12
-next: "마무리"
+next: "사용자 요청 시 main push → 운영 배포(Release workflow), 그 뒤 워크트리 배수"
 ---
 
 # 사주 명식 속도·디자인, 3개월 무료 목록 + 연이 배너, 절기 리듬(月令) 개선
@@ -86,4 +86,4 @@ next: "마무리"
   - 스크린샷: D:/Development/Temp/claude/ec29f026d20d029c/74938b41-f812-494f-8006-98dce5349e62/scratchpad/s4/{in,o,yu,ja,jin}-{390,1280,390-dark}.png (寅·午·酉·子·辰). 가로 넘침 0. 하네스 shots.mjs는 public/static 페이지에 서버 HTML과 실제 CSS 함수를 주입.
   - check:fast: test:node 5015/5016(기존 CRLF free-crafted-panel-policy 1건만), 남은 25단계 개별 실행 모두 통과, test:jest 7974 통과.
   - 위험: 문구는 사용자 검토 전. 절기 칸 parity 픽스처 해시는 옛 값 그대로(건너뜀).
-- [ ] 마무리: `git fetch` 후 origin/main 위로 rebase(미러·사이트맵 재생성 필요 시), check:fast, 이 문서 결과 정리. push·배포는 하지 않음(사용자 요청 대기).
+- [x] 마무리(2026-11-12): origin/main 대비 behind 0·ahead 11, 작업 트리 깨끗. 각 단계 check:fast는 기존 CRLF 실패(free-crafted-panel-policy, merge-base에서도 실패) 1건 외 통과. 후속 보고: 결과 안 카드(네컷 등) 단독 주소 없음, 타로 라이브러리 유료 카드 혼재, 기능 설명 생성 파일의 최애운명 유료 표기 불일치, 명식 먼저 보이기(섹션 지연)는 미적용. 원래 항목: `git fetch` 후 origin/main 위로 rebase(미러·사이트맵 재생성 필요 시), check:fast, 이 문서 결과 정리. push·배포는 하지 않음(사용자 요청 대기).
