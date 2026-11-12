@@ -1,0 +1,42 @@
+{
+  "sources": [
+    {
+      "family": "CodeDestinyManseHan",
+      "name": "NotoSerifKR",
+      "weight": 600,
+      "text": "甲乙丙丁戊己庚辛壬癸子丑寅卯辰巳午未申酉戌亥時日月年柱",
+      "license": "https://raw.githubusercontent.com/google/fonts/main/ofl/notoserifkr/OFL.txt"
+    },
+    {
+      "family": "CodeDestinyManseLabel",
+      "name": "GowunDodum",
+      "weight": 400,
+      "text": "사주명식시일월년천간지음양12신살에머문·—비견겁재상관편정인갑목을병화무토기경금임수계쥐소호랑이끼용뱀말원숭닭개돼망장성반안역마육해도홍염귀창태극덕괴강백공진",
+      "license": "https://raw.githubusercontent.com/google/fonts/main/ofl/gowundodum/OFL.txt"
+    }
+  ],
+  "assets": [
+    {
+      "file": "GowunDodum-manse-8a491beb95dfbd42.woff2",
+      "family": "CodeDestinyManseLabel",
+      "sha256": "8a491beb95dfbd423fd2e7334ec9e287b57fedc4fdf9e1a74a189bab4c44e6b4",
+      "bytes": 11740
+    },
+    {
+      "file": "GowunDodum-OFL.txt",
+      "url": "https://raw.githubusercontent.com/google/fonts/main/ofl/gowundodum/OFL.txt",
+      "sha256": "a7c73f9521cd646bbdfb6684c99a62311bbd7bce11898dc11ef0b3c69eda1aca"
+    },
+    {
+      "file": "NotoSerifKR-manse-e5101c7e23762235.woff2",
+      "family": "CodeDestinyManseHan",
+      "sha256": "e5101c7e23762235a28fcc6145592822eefacde7d677de6ec2609d03b1c0017b",
+      "bytes": 4812
+    },
+    {
+      "file": "NotoSerifKR-OFL.txt",
+      "url": "https://raw.githubusercontent.com/google/fonts/main/ofl/notoserifkr/OFL.txt",
+      "sha256": "5e0da210fb04058a8c0087985d2d456b931c2579811a49655721d3cf0c36b6d6"
+    }
+  ]
+}

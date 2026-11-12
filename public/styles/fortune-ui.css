@@ -17012,8 +17012,42 @@ body.neo-mode #resultPage #summaryArea .saju-summary-toggle {
   color: var(--cd-text-muted, rgba(200,170,255,.7));
 }
 
-/* ═══ 만세력: 큰 한자와 역할 정보의 4열 읽기 구조 ═══ */
+/* ═══ 만세력: 한지 위 네 기둥 — 명조 한자 타일 + 둥근 라벨 (2026-11-12 S2) ═══
+   글꼴 두 개는 이 카드에서만 참조하므로 명식을 그릴 때만 받는다(합 약 20KB, 같은 출처).
+   url 의 해시는 node scripts/build-manse-fonts.mjs 가 갱신한다 — 손으로 고치지 말 것. */
+@font-face {
+  font-family: "CodeDestinyManseHan";
+  src: url('/assets/fonts/manse/NotoSerifKR-manse-e5101c7e23762235.woff2') format("woff2");
+  font-weight: 400 900;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+4E00-9FFF;
+}
+@font-face {
+  font-family: "CodeDestinyManseLabel";
+  src: url('/assets/fonts/manse/GowunDodum-manse-8a491beb95dfbd42.woff2') format("woff2");
+  font-weight: 400 900;
+  font-style: normal;
+  font-display: swap;
+}
 #resultPage #sajuCard {
+  --mx-ink: #3a1a2c;
+  --mx-muted: #7b5a6a;
+  --mx-rose: #b0305c;
+  --mx-gold: #c39a5a;
+  --mx-gold-line: rgba(195,154,90,.38);
+  --mx-gold-glow: rgba(234,208,137,.30);
+  --mx-paper: #fffcf7;
+  --mx-paper-2: #fff5f7;
+  --mx-hanji: linear-gradient(180deg, #fdf8ee, #f6ecd8);
+  --mx-shadow: rgba(110,40,70,.30);
+  --mx-label: "CodeDestinyManseLabel", var(--font-display, var(--font-body));
+  --mx-han: "CodeDestinyManseHan", "CodeDestinySerifKR", "Noto Serif KR", "Nanum Myeongjo", "AppleMyungjo", serif;
+  --mx-wood-a: #f5fbf1; --mx-wood-b: #d8edd2; --mx-wood-ink: #2e6a3b;
+  --mx-fire-a: #fff5f3; --mx-fire-b: #fad6d6; --mx-fire-ink: #ac3241;
+  --mx-earth-a: #fffaf0; --mx-earth-b: #f3e0b9; --mx-earth-ink: #8f561d;
+  --mx-metal-a: #fdfdfe; --mx-metal-b: #e3e6ee; --mx-metal-ink: #4a5568;
+  --mx-water-a: #f3f7ff; --mx-water-b: #d5e3f6; --mx-water-ink: #2a5590;
   position: relative;
   isolation: isolate;
   overflow: hidden;
@@ -17044,10 +17078,24 @@ body.neo-mode #resultPage #summaryArea .saju-summary-toggle {
   margin-bottom: 20px;
 }
 #resultPage #sajuCard .saju-card-heading .sec-title { margin: 0; }
+html body #resultPage #sajuCard .saju-card-heading #sajuTitle {
+  background: transparent;
+  color: var(--mx-ink) !important;
+  font-family: var(--mx-label);
+  font-size: 1.14rem;
+  font-weight: 400;
+  letter-spacing: -.005em;
+}
+html body #resultPage #sajuCard .saju-card-heading #sajuTitle > [data-key="result.sections.sajuTitle"] { background: transparent; }
+#resultPage #sajuCard .saju-card-heading #sajuTitle::before {
+  width: 3px;
+  height: 17px;
+  background: linear-gradient(180deg, var(--mx-gold), color-mix(in srgb, var(--mx-rose) 70%, var(--mx-gold)));
+}
 #resultPage #sajuCard .saju-card-intro {
   max-width: 36rem;
   margin: 8px 0 0;
-  color: var(--cd-text-muted, #70445c);
+  color: var(--mx-muted);
   font-size: .9rem;
   line-height: 1.65;
   word-break: keep-all;
@@ -17091,49 +17139,114 @@ body.neo-mode #resultPage #summaryArea .saju-summary-toggle {
 #resultPage #sajuCard .saju-moon-seal i::after { left: -2px; top: -7px; transform: rotate(34deg); }
 #resultPage #sajuCard .manse-grid {
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: clamp(7px, 1.8vw, 12px);
+  gap: clamp(6px, 1.8vw, 14px);
+  overflow: visible;
+  padding-top: 6px;
 }
 #resultPage #sajuCard .pillar {
+  position: relative;
   min-width: 0;
-  padding: 10px 6px 12px;
-  border: 1px solid var(--cd-border, rgba(216,63,120,.16));
-  border-radius: 20px;
-  background: color-mix(in srgb, var(--cd-surface-2, rgba(255,247,250,.84)) 90%, transparent);
-  box-shadow: 0 9px 22px color-mix(in srgb, var(--cd-accent, #b31955) 7%, transparent);
+  gap: 5px;
+  padding: 12px 7px 12px;
+  border: 1px solid var(--mx-gold-line);
+  border-radius: 22px;
+  background: linear-gradient(180deg, var(--mx-paper), var(--mx-paper-2));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.9), 0 12px 24px -16px var(--mx-shadow);
+}
+/* 일주 = 나. 금빛 테두리와 은은한 후광, 머리 위 작은 별 하나로만 강조한다. */
+#resultPage #sajuCard .pillar[data-pillar="일주"] {
+  border-color: color-mix(in srgb, var(--mx-gold) 78%, transparent);
+  background: linear-gradient(180deg, #fffaf0, #ffeef3);
+  box-shadow: 0 0 0 3px var(--mx-gold-glow), inset 0 1px 0 rgba(255,255,255,.9), 0 14px 28px -14px var(--mx-shadow);
+}
+#resultPage #sajuCard .pillar[data-pillar="일주"]::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: -6px;
+  width: 11px;
+  height: 11px;
+  transform: translateX(-50%);
+  background: var(--mx-gold);
+  clip-path: polygon(50% 0, 62% 38%, 100% 50%, 62% 62%, 50% 100%, 38% 62%, 0 50%, 38% 38%);
 }
 #resultPage #sajuCard .pillar-head {
   display: flex;
   align-items: baseline;
   justify-content: center;
-  gap: 4px;
-  color: var(--cd-text, #3c1830);
-  font-family: var(--font-display, var(--font-body));
-  font-size: .86rem;
+  flex-wrap: wrap;
+  gap: 3px;
+  color: var(--mx-ink);
+  font-family: var(--mx-label);
+  font-size: .9rem;
+  font-weight: 400;
   line-height: 1.35;
 }
 #resultPage #sajuCard .pillar-head small {
-  color: var(--cd-text-muted, #70445c);
-  font-family: var(--font-premium, 'CodeDestinySerifKR', serif);
-  font-size: .72rem;
-  font-weight: 700;
+  color: var(--mx-gold);
+  font-family: var(--mx-han);
+  font-size: .7rem;
+  font-weight: 600;
+  letter-spacing: .04em;
+}
+html body #resultPage #sajuCard .pillar .ten-god-badge {
+  width: 100%;
+  padding: 3px 2px;
+  border: 1px solid color-mix(in srgb, var(--mx-rose) 16%, transparent);
+  border-radius: 999px;
+  background: rgba(255,255,255,.72);
+  color: var(--mx-ink);
+  font-family: var(--mx-label);
+  font-size: .74rem;
+  font-weight: 400;
+  line-height: 1.35;
+}
+html body #resultPage #sajuCard .pillar .ten-god-badge.day {
+  border-color: color-mix(in srgb, var(--mx-gold) 60%, transparent);
+  background: linear-gradient(135deg, #fde6ee, #fff3da);
+  color: var(--mx-rose);
 }
 #resultPage #sajuCard .manse-char-role {
-  margin: 2px 0 1px;
-  color: var(--cd-text-muted, #70445c);
-  font-size: .68rem;
-  line-height: 1.25;
-  font-weight: 800;
+  margin: 3px 0 0;
+  color: var(--mx-muted);
+  font-family: var(--mx-label);
+  font-size: .64rem;
+  font-weight: 400;
+  line-height: 1.2;
+  letter-spacing: .12em;
 }
 #resultPage #sajuCard .char-box {
-  min-width: 44px;
-  min-height: 54px;
+  --mx-a: var(--mx-metal-a); --mx-b: var(--mx-metal-b); --mx-g: var(--mx-metal-ink);
+  width: 100%;
+  max-width: 96px;
+  min-width: 0;
+  min-height: 0;
+  margin-inline: auto;
   aspect-ratio: 1 / 1;
-  border: 1px solid color-mix(in srgb, var(--cd-accent, #b31955) 22%, transparent);
-  font-family: var(--font-premium, 'CodeDestinySerifKR', 'Noto Serif KR', serif);
-  font-size: clamp(1.55rem, 5vw, 2.1rem);
+  border: 1px solid var(--mx-gold-line);
+  border-radius: 18px;
+  background: linear-gradient(155deg, var(--mx-a) 8%, var(--mx-b) 100%);
+  color: var(--mx-g);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.85), inset 0 -10px 18px -14px rgba(60,20,40,.22), 0 8px 18px -12px var(--mx-shadow);
+  font-family: var(--mx-han);
+  font-size: clamp(1.7rem, 6.6vw, 2.3rem);
+  font-weight: 600;
   line-height: 1;
   text-rendering: optimizeLegibility;
+  transition: transform .18s ease-out, box-shadow .18s ease-out;
 }
+#resultPage #sajuCard .char-box.bg-wood  { --mx-a: var(--mx-wood-a);  --mx-b: var(--mx-wood-b);  --mx-g: var(--mx-wood-ink); }
+#resultPage #sajuCard .char-box.bg-fire  { --mx-a: var(--mx-fire-a);  --mx-b: var(--mx-fire-b);  --mx-g: var(--mx-fire-ink); }
+#resultPage #sajuCard .char-box.bg-earth { --mx-a: var(--mx-earth-a); --mx-b: var(--mx-earth-b); --mx-g: var(--mx-earth-ink); }
+#resultPage #sajuCard .char-box.bg-water { --mx-a: var(--mx-water-a); --mx-b: var(--mx-water-b); --mx-g: var(--mx-water-ink); }
+#resultPage #sajuCard .char-box[data-is-day-stem="1"] {
+  border: 1.5px solid var(--mx-gold);
+  box-shadow: 0 0 0 3px var(--mx-gold-glow), inset 0 1px 0 rgba(255,255,255,.85), 0 10px 20px -12px var(--mx-shadow);
+}
+@media (hover: hover) {
+  #resultPage #sajuCard .char-box:hover { transform: translateY(-2px); }
+}
+#resultPage #sajuCard .char-box:active { transform: scale(1.06); }
 #resultPage #sajuCard .manse-char-glyph {
   font-variant-east-asian: traditional;
 }
@@ -17142,49 +17255,59 @@ body.neo-mode #resultPage #summaryArea .saju-summary-toggle {
   outline-offset: 3px;
 }
 #resultPage #sajuCard .yang-yin {
-  color: var(--cd-text-muted, #70445c);
-  font-size: .72rem;
+  color: var(--mx-muted);
+  font-family: var(--mx-label);
+  font-size: .74rem;
+  font-weight: 400;
   line-height: 1.35;
+  margin-bottom: 2px;
 }
 #resultPage #sajuCard .manse-twelve-star {
   width: 100%;
   margin-top: 4px;
-  padding: 6px 4px;
-  border: 1px solid color-mix(in srgb, var(--cd-gold, #ead089) 44%, transparent);
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--cd-gold-soft, #fff8dc) 58%, transparent);
+  padding: 6px 3px 7px;
+  border: 1px solid color-mix(in srgb, var(--mx-gold) 42%, transparent);
+  border-radius: 14px;
+  background: var(--mx-hanji);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.7);
   text-align: center;
 }
 #resultPage #sajuCard .manse-twelve-star span,
 #resultPage #sajuCard .manse-twelve-star strong { display: block; }
 #resultPage #sajuCard .manse-twelve-star span {
-  color: var(--cd-text-muted, #70445c);
+  color: var(--mx-gold);
+  font-family: var(--mx-label);
   font-size: .58rem;
   line-height: 1.25;
+  letter-spacing: .06em;
 }
 #resultPage #sajuCard .manse-twelve-star strong {
-  margin-top: 1px;
-  color: var(--cd-text, #3c1830);
-  font-size: .7rem;
+  margin-top: 2px;
+  color: var(--mx-ink);
+  font-family: var(--mx-label);
+  font-size: .78rem;
+  font-weight: 400;
   line-height: 1.3;
 }
 #resultPage #sajuCard .manse-shinsal {
-  margin-top: 18px;
+  margin-top: 20px;
   padding: 18px;
-  border: 1px solid color-mix(in srgb, var(--cd-accent, #b31955) 16%, transparent);
+  border: 1px solid var(--mx-gold-line);
   border-radius: 22px;
-  background: color-mix(in srgb, var(--cd-surface-2, #fff7fa) 88%, transparent);
+  background: linear-gradient(180deg, #fffcf6, #fff6f4);
 }
 #resultPage #sajuCard .manse-shinsal__heading h4 {
   margin: 0;
-  color: var(--cd-text, #3c1830);
-  font-family: var(--font-display, var(--font-body));
-  font-size: 1.02rem;
+  color: var(--mx-ink);
+  font-family: var(--mx-label);
+  font-size: 1.04rem;
+  font-weight: 400;
   line-height: 1.45;
 }
+#resultPage #sajuCard .manse-shinsal__heading h4 .saju-section-icon { color: var(--mx-gold); }
 #resultPage #sajuCard .manse-shinsal__heading p {
   margin: 6px 0 0;
-  color: var(--cd-text-muted, #70445c);
+  color: var(--mx-muted);
   font-size: .82rem;
   line-height: 1.65;
   word-break: keep-all;
@@ -17197,36 +17320,51 @@ body.neo-mode #resultPage #summaryArea .saju-summary-toggle {
 }
 #resultPage #sajuCard .manse-shinsal-chip {
   display: inline-flex;
-  align-items: center;
-  gap: 7px;
+  align-items: baseline;
+  gap: 6px;
   min-height: 36px;
-  padding: 7px 11px;
-  border: 1px solid color-mix(in srgb, var(--cd-accent, #b31955) 20%, transparent);
+  padding: 8px 13px;
+  border: 1px solid var(--mx-gold-line);
   border-radius: 999px;
-  background: var(--cd-surface, #fff);
-  color: var(--cd-text, #3c1830);
+  background: rgba(255,255,255,.82);
+  color: var(--mx-ink);
+  box-shadow: 0 6px 14px -12px var(--mx-shadow);
 }
-#resultPage #sajuCard .manse-shinsal-chip strong { font-size: .78rem; }
+#resultPage #sajuCard .manse-shinsal-chip strong {
+  font-family: var(--mx-label);
+  font-size: .84rem;
+  font-weight: 400;
+}
 #resultPage #sajuCard .manse-shinsal-chip small {
-  color: var(--cd-text-muted, #70445c);
+  color: var(--mx-gold);
+  font-family: var(--mx-label);
   font-size: .68rem;
 }
 #resultPage #sajuCard .manse-shinsal__basis,
 #resultPage #sajuCard .manse-shinsal__empty {
   margin: 12px 0 0;
-  color: var(--cd-text-muted, #70445c);
+  color: var(--mx-muted);
   font-size: .7rem;
   line-height: 1.55;
 }
 #resultPage #sajuCard .manse-shinsal__empty { margin: 0; }
-body.neo-mode #resultPage #sajuCard .saju-moon-seal,
-body.neo-mode #resultPage #sajuCard .manse-twelve-star,
-body.neo-mode #resultPage #sajuCard .manse-shinsal,
-body.neo-mode #resultPage #sajuCard .manse-shinsal-chip {
-  border-color: var(--cd-border, rgba(196,181,253,.32));
-  background: color-mix(in srgb, var(--cd-surface-2, #13102a) 92%, transparent);
-}
+/* 네오(다크): 같은 구조를 달밤 톤으로. 타일은 짙은 오행 틴트 + 파스텔 글자, 테두리는 옅은 금빛. */
 body.neo-mode #resultPage #sajuCard {
+  --mx-ink: #f4eeff;
+  --mx-muted: rgba(222,212,245,.74);
+  --mx-rose: #f6b6cf;
+  --mx-gold: #e3c98f;
+  --mx-gold-line: rgba(227,201,143,.30);
+  --mx-gold-glow: rgba(227,201,143,.16);
+  --mx-paper: rgba(255,255,255,.045);
+  --mx-paper-2: rgba(255,255,255,.02);
+  --mx-hanji: linear-gradient(180deg, rgba(227,201,143,.12), rgba(227,201,143,.05));
+  --mx-shadow: rgba(0,0,0,.6);
+  --mx-wood-a: #1f3029; --mx-wood-b: #15211c; --mx-wood-ink: #a9dcb5;
+  --mx-fire-a: #33202a; --mx-fire-b: #23141c; --mx-fire-ink: #ffb4bd;
+  --mx-earth-a: #2f281b; --mx-earth-b: #211b12; --mx-earth-ink: #efcf95;
+  --mx-metal-a: #262838; --mx-metal-b: #1a1b27; --mx-metal-ink: #dadfee;
+  --mx-water-a: #1a2640; --mx-water-b: #111a2d; --mx-water-ink: #a9c9f7;
   border-color: var(--cd-border, rgba(196,181,253,.32));
   background:
     radial-gradient(circle at 88% 4%, rgba(232,213,163,.16), transparent 26%),
@@ -17234,7 +17372,35 @@ body.neo-mode #resultPage #sajuCard {
     #13102a !important;
   color: var(--cd-text, #f4eeff);
 }
-
+body.neo-mode #resultPage #sajuCard .saju-moon-seal {
+  border-color: var(--cd-border, rgba(196,181,253,.32));
+  background: color-mix(in srgb, var(--cd-surface-2, #13102a) 92%, transparent);
+}
+body.neo-mode #resultPage #sajuCard .pillar[data-pillar="일주"] {
+  background: linear-gradient(180deg, rgba(227,201,143,.10), rgba(246,182,207,.05));
+}
+html body.neo-mode #resultPage #sajuCard .pillar .ten-god-badge {
+  border-color: rgba(222,212,245,.18);
+  background: rgba(255,255,255,.05);
+}
+html body.neo-mode #resultPage #sajuCard .pillar .ten-god-badge.day {
+  border-color: var(--mx-gold-line);
+  background: linear-gradient(135deg, rgba(246,182,207,.16), rgba(227,201,143,.14));
+}
+body.neo-mode #resultPage #sajuCard .char-box {
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.08), 0 10px 20px -12px var(--mx-shadow);
+}
+body.neo-mode #resultPage #sajuCard .char-box[data-is-day-stem="1"] {
+  box-shadow: 0 0 0 3px var(--mx-gold-glow), inset 0 1px 0 rgba(255,255,255,.08), 0 10px 20px -12px var(--mx-shadow);
+}
+body.neo-mode #resultPage #sajuCard .manse-twelve-star { box-shadow: none; }
+body.neo-mode #resultPage #sajuCard .manse-shinsal {
+  background: rgba(255,255,255,.03);
+}
+body.neo-mode #resultPage #sajuCard .manse-shinsal-chip {
+  background: rgba(255,255,255,.05);
+  box-shadow: none;
+}
 /* ═══ 궁합 장문 리포트 ═══ */
 #resultPage #compatResult .compat-wrap,
 .cd-compat-archive .compat-wrap {
@@ -17388,14 +17554,15 @@ body.neo-mode .cd-compat-archive .compat-check-detail {
   .cd-compat-archive .compat-fact-box,
   #resultPage #compatResult .compat-advice-box,
   .cd-compat-archive .compat-advice-box { padding: 15px 14px; }
-  #resultPage #sajuCard .pillar { padding: 8px 3px 10px; }
-  #resultPage #sajuCard .pillar-head { font-size: .78rem; }
-  #resultPage #sajuCard .pillar-head small { font-size: .64rem; }
-  #resultPage #sajuCard .char-box { font-size: 1.55rem; }
+  #resultPage #sajuCard .pillar { padding: 9px 3px 9px; gap: 4px; border-radius: 16px; }
+  #resultPage #sajuCard .pillar-head { font-size: .8rem; }
+  #resultPage #sajuCard .pillar-head small { font-size: .62rem; }
+  #resultPage #sajuCard .char-box { font-size: 1.62rem; border-radius: 14px; }
   #resultPage #sajuCard .saju-card-heading { gap: 12px; margin-bottom: 16px; }
   #resultPage #sajuCard .saju-moon-seal { flex-basis: 44px; width: 44px; height: 44px; }
-  #resultPage #sajuCard .manse-twelve-star { padding-inline: 1px; }
-  #resultPage #sajuCard .manse-twelve-star strong { font-size: .64rem; }
+  #resultPage #sajuCard .manse-twelve-star { padding: 5px 1px 6px; border-radius: 11px; }
+  #resultPage #sajuCard .manse-twelve-star strong { font-size: .66rem; }
+  html body #resultPage #sajuCard .pillar .ten-god-badge { font-size: .68rem; }
   #resultPage #sajuCard .manse-shinsal { padding: 15px 13px; border-radius: 18px; }
 }
 @media (prefers-reduced-motion: reduce) {
