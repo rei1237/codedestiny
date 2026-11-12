@@ -1,7 +1,7 @@
 ---
-status: active
+status: done
 updated: 2026-11-12
-next: "운영 workflow 실행 → 운영 확인 → 마무리"
+next: "없음(완료). 2027-02-12 연장/유료 전환·토스 미니앱 무료화는 사용자 결정"
 ---
 
 # 사주 보기 버튼·API 링크·홈 타일 프로필 진입 수정 + 3개월 무료 마케팅
@@ -66,8 +66,9 @@ next: "운영 workflow 실행 → 운영 확인 → 마무리"
   - 순서: sync:public → free-fortune-policy.js/.mjs(루트·public) 줄끝 변경은 `git checkout --`로 되돌림 → `npm run sitemap:generate`(빠뜨리면 verify:sitemap-drift 실패).
   - 테스트: freePromoDaysLeft 단위 1개(D-92·D-DAY·null) + ko 문구 패리티(authored ko == FREE_PROMO_COPY_KO, index.html data-ends == FREE_PROMO.endsAt).
 - [x] B3 검증·커밋·push — `__tests__/ui/free-promo.test.mjs` 3개(카운트다운 KST·ko 패리티/12언어/index.html·정책 파일 비참조). check:fast 통과. main push 0193aa999..2c5d48c36, PR CI 43168424991 success. check:pre-push의 verify:public-mirror-fresh는 free-fortune-policy 줄끝 문제로 실패(origin/main도 동일, 기존 문제) → 남은 단계(sitemap-drift·llms-txt·seo-entity-registry·repo-hygiene) 수동 통과. mock 화면 /·/ggulggul/·/saju/·/saju/free/ × 360/390/1280: 가로 넘침 0, 배너 D-92, 씰 6개 겹침 0, 390 공유 → 클립보드에 shareText+URL. 콘솔 오류는 기존(/ 영냥이 webp 404·HomeInstallEntry hydration hidden)·로컬 환경(폰트 CORS·beacon CSP·mock 501)뿐.
-- [ ] B4 운영 workflow → 운영 확인 — 2026-11-12 시도: 경쟁 Release 런 43168802072(bc952a0e6 staging) 종료 뒤 `gh workflow run "Release Cloudflare Pages and Worker" --ref main -f mode=production`을 실행하려 했으나 Claude Code 자동 모드 분류기가 [Production Deploy]로 거부. 사용자가 직접 실행하거나 권한 규칙을 추가한 뒤 재개. 확인 대상: /api/version·/version.json SHA가 2c5d48c36 이후, 운영 /·/ggulggul/·/saju/·/manse/ 배너(D-N)·"사주 보기" 버튼(읽기 전용).
-- [ ] 마무리: 이 문서 done, 워크트리 배수(`npm run worktree:remove -- <경로>`를 다른 체크아웃에서), 임시 파일 삭제
+- [x] B4 운영 workflow → 운영 확인 — 사용자 권한 부여(2026-11-12 "권한 줄테니 진행해줘") 뒤 run 43173932532 success at 0d1cbf300. 운영 /api/version 0d1cbf300a7a, /·/ggulggul/·/saju/·/manse/에 "지금만 전부 무료"·"2027년 2월 12일" 있음, 옛 라벨·내 API 관리 0건. 이전 기록 — 2026-11-12 시도: 경쟁 Release 런 43168802072(bc952a0e6 staging) 종료 뒤 `gh workflow run "Release Cloudflare Pages and Worker" --ref main -f mode=production`을 실행하려 했으나 Claude Code 자동 모드 분류기가 [Production Deploy]로 거부. 사용자가 직접 실행하거나 권한 규칙을 추가한 뒤 재개. 확인 대상: /api/version·/version.json SHA가 2c5d48c36 이후, 운영 /·/ggulggul/·/saju/·/manse/ 배너(D-N)·"사주 보기" 버튼(읽기 전용).
+- [x] 릴리스 C 운영: run 43201516235 success at 1070be3b3. 운영 /api/version·/version.json 1070be3b3202, /oracle/rune "3개월 한정 무료"·"유료 전환 예정", 운영 js/core/free-fortune-policy.js(build-3cdd86400e71)에 tarot-ijik·maya-prompt-generator·fortune-prompt-hub-generate 포함, section_daewun 미포함.
+- [x] 마무리: 이 문서 done, 워크트리 배수(`npm run worktree:remove -- <경로>`를 다른 체크아웃에서), 임시 파일 삭제
 
 ### 릴리스 C (무료 범위 확대 + 기존 오류 수정) — 2026-11-12 사용자 결정(승인 상태 절 원문)
 분류 근거(확인 끝): 11-04 감사(`docs/superpowers/specs/2026-11-04-light-fortune-audit.md`, `worker/lib/light-fortune-catalog.js`)가 22키 모두 결제 뒤 실행 경로에 LLM 없음으로 기록. 추가 확인 — tarot.js의 Gemini는 `/oracle-consultation`·`/love-reading`·`/mindscan`(유료 유지)뿐, dream.js의 Gemini는 `/psycho-analysis`(dream-psycho-analysis 유료 유지)뿐이고 `/dream-prompt`는 서버 결제 게이트 없음(클라이언트 `js/dream-ledger.js` ~1984·~3098 게이트만), prompt-hub.js는 템플릿 조립(LLM 없음), toss native-maya/maya-contract는 로컬 `generateMayaReadingPrompt`(LLM 없음). → **22키 전부 무료 대상**(royal-tea·ifa·kemet 오라클도 정적/클라이언트 계산).
