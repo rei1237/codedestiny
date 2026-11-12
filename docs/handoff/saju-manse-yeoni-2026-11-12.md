@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-12
-next: "S2 명식 디자인"
+next: "S3 무료 목록·연이 배너"
 ---
 
 # 사주 명식 속도·디자인, 3개월 무료 목록 + 연이 배너, 절기 리듬(月令) 개선
@@ -62,7 +62,13 @@ next: "S2 명식 디자인"
   - 변경: `js/core/kasi-calendar-service.js` — 양력 입력의 getLunCalInfo·get24DivisionsInfo 병렬화, `warmNetwork(input)` 추가(메서드 캐시만 데움, 컨텍스트 캐시·현재 컨텍스트 미기록 → 실패해도 재시도·폴백 동일). `js/saju-engine.js` — #birthDate·calType input/change(200ms 디바운스)와 코어 로드 직후 warmNetwork 호출. 미러는 sync:public.
   - 회귀: before/after 서버 A/B로 4개 입력(양력·음력·입춘 경계·시간 모름) #manseGrid·12신살 텍스트 동일.
   - 남은 병목(후속 후보, 이번엔 안 함): 결과 페이지 첫 레이아웃이 1회성으로 ≈1.9s(4x)(saju-engine.js의 resultPage.scrollIntoView 강제 레이아웃, 두 번째 계산은 0.1s) + 다음 프레임 레이아웃 ≈2s. (c) 섹션 지연은 구조 변경이 커서 S2 디자인 작업과 함께 검토. 프로필 경로(_injectAndRun)는 콜드 코어 로드라 계측 안 함.
-- [ ] S2 명식 디자인 → 커밋 (스크린샷 경로 기록)
+- [x] S2 명식 디자인 → 커밋 `2de50fb90`
+  - 글꼴: 한자 타일 = Noto Serif KR 600 서브셋 27자(4.8KB), 라벨·십성·신살 = Gowun Dodum 텍스트 서브셋(11.7KB). 같은 출처 `public/assets/fonts/manse/`(OFL·manifest 포함), `fortune-ui.css`의 #sajuCard 규칙에서만 참조해 명식을 그릴 때만 받는다. 재생성 `node scripts/build-manse-fonts.mjs`(검사 `--check`). 라벨에 새 글자를 넣으면 LABEL_TEXT에 추가 후 재생성(없으면 폴백 글꼴로 그려짐).
+  - CSS: `styles/fortune-ui.css` 만세력 블록 교체 + 모바일(≤640px) 규칙 조정. 파스텔 오행 그라데이션·얇은 금빛 테두리·부드러운 그림자, 타일 최대 96px(데스크톱 과대 해소), 일주 기둥·일간 타일 금빛 강조(+작은 별), 12신살 한지 톤, 제목 배경 띠 제거, 네오(다크) 달밤 톤. id·class·JS 변경 없음.
+  - 스크린샷: 전 D:DevelopmentTempclaudeec29f026d20d029c<938b41-f812-494f-8006-98dce5349e62scratchpads2eforeefore-{360,390,1280,390-dark}.png / 후 D:DevelopmentTempclaudeec29f026d20d029c<938b41-f812-494f-8006-98dce5349e62scratchpads2afterafter-{360,390,1280,390-dark}.png
+  - check:fast: test:node 5013/5014 통과(기존 실패 free-crafted-panel-policy CRLF 1건만), 그 실패로 막힌 나머지 25단계(test:jest·build:worker·verify:* 등)는 개별 실행해 모두 통과.
+  - 선택 성능 작업(명식 먼저·무거운 섹션 다음 프레임)은 건너뜀: 렌더 순서·타이밍이 바뀌어 동작 변화 위험. 후속 후보로 남김.
+  - 후속 관찰(이번엔 안 함): 모바일은 fortune-ui.css(583KB)가 입력 의도(pointerdown) 때 받기 시작해, 아주 빠른 제출이면 결과가 잠깐 미스타일일 수 있음.
 - [ ] S3 무료 목록·연이 배너 → 커밋
 - [ ] S4 절기 리듬 이미지·문구 → 커밋
 - [ ] 마무리: `git fetch` 후 origin/main 위로 rebase(미러·사이트맵 재생성 필요 시), check:fast, 이 문서 결과 정리. push·배포는 하지 않음(사용자 요청 대기).
