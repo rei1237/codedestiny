@@ -762,7 +762,8 @@ describe("saju_lifetime_bundle natal reading", () => {
     const got = { ...slotsOf(parts.ilju), ...slotsOf(parts.ten), ...slotsOf(parts.climate), ...slotsOf(parts.strength), ...slotsOf(parts.terms) };
     const slotHashes = Object.fromEntries(Object.entries(got).map(([key, html]) => [key, sha256(html)]));
     const { gods: wantGods, ...wantSlots } = want;
-    if (c.timeKnown === false) delete wantSlots.terms24Grid;
+    // 절기 칸은 2026-11-12 S4(계절 그림·연이의 계절 이야기)로 일부러 바꿨다. 본문은 __tests__/ui/saju-terms24-season.test.mjs 가 본다.
+    delete wantSlots.terms24Grid;
     for (const [key, hash] of Object.entries(wantSlots)) expect([key, slotHashes[key]]).toEqual([key, hash]);
     expect(Object.fromEntries(Object.entries(godsOf(parts.ten)).map(([key, html]) => [key, sha256(html)]))).toEqual(wantGods);
   });

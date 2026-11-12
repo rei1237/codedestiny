@@ -99,7 +99,7 @@ test("종합·대운 유료 렌더러와 문장이 브라우저 경로에 없다
     "_UKBU_DAY_STEM_NOTE", "_ukbuMonthRelation", "_ukbuJongKind", "태어난 달이 일간을 낳아 기르는 인성(印星)의 달이라 힘을 크게 받아요",
     "하늘로 곧게 뻗는 큰 나무처럼 방향을 세우고 앞장서는 힘이 크고 자존심이 단단한 편",
     "buildSeasonalFortuneContext", "_t24SeasonProfile", "_t24DomainCards", "_t24RenderDomainCards",
-    "가능성을 먼저 보고 움직이는 편이라, 방향이 선명할수록 시작과 확장이 빨라지는 편입니다", "벌인 일을 세 가지 안으로 줄여 끝맺음 기준을 정해보세요",
+    "T24_MONTH_COPY", "언 땅을 먼저 뚫고 나오는 새싹 같은 사람이에요", "천천히 열리지만, 깊고 오래가는 편",
   ];
   const offenders = [];
   for (const rel of browserServedFiles()) {
