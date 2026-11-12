@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-12
-next: "S1 명식 로딩 계측·개선"
+next: "S2 명식 디자인"
 ---
 
 # 사주 명식 속도·디자인, 3개월 무료 목록 + 연이 배너, 절기 리듬(月令) 개선
@@ -55,7 +55,13 @@ next: "S1 명식 로딩 계측·개선"
 - 테스트 1개(`__tests__/ui/`): 12개 월지 모두 이미지·헤드라인·카드 채워짐, 계절 축 문구.
 
 ## 단계
-- [ ] S1 명식 로딩 계측·개선 → 커밋 (계측 before/after 수치를 결과에 기록)
+- [x] S1 명식 로딩 계측·개선 → 커밋 (계측 before/after 수치를 결과에 기록)
+  - 계측(로컬 mock 서버, 4x CPU·Fast 3G, 390px, 각 3회 중앙값, 제출 클릭 기준 ms): 입력→제출(typing) manseFilled 10608→4200, 결과 페인트 18203→7254 / 자동입력 즉시 제출(prefilled) manseFilled 5968→3422, 페인트 9971→8267. KASI 2회 순차 호출(≈1.3–2.3s)이 임계 경로에서 0으로.
+  - 구간: 코어 로드는 /ggulggul 진입(입력 노출·포커스 intent 예열)에서 이미 제출 4~60s 전 완료 → (a) idle 예열 불필요, 안 함. 세션 확인 /api/auth/me ≈0.6s(변경 없음). 렌더 함수 자체는 수 ms.
+  - 커밋 d1bb31c0b(rebase 전). check:fast: paid-gate npm test 1건 실패 — fortune/data/daily-<오늘>.json 미생성(merge-base에서도 실패, 환경 문제). `npm run fortune:build-data` 후 해당 테스트(__tests__/fortune/sky-and-range.test.mjs) 단독 7/7 통과.
+  - 변경: `js/core/kasi-calendar-service.js` — 양력 입력의 getLunCalInfo·get24DivisionsInfo 병렬화, `warmNetwork(input)` 추가(메서드 캐시만 데움, 컨텍스트 캐시·현재 컨텍스트 미기록 → 실패해도 재시도·폴백 동일). `js/saju-engine.js` — #birthDate·calType input/change(200ms 디바운스)와 코어 로드 직후 warmNetwork 호출. 미러는 sync:public.
+  - 회귀: before/after 서버 A/B로 4개 입력(양력·음력·입춘 경계·시간 모름) #manseGrid·12신살 텍스트 동일.
+  - 남은 병목(후속 후보, 이번엔 안 함): 결과 페이지 첫 레이아웃이 1회성으로 ≈1.9s(4x)(saju-engine.js의 resultPage.scrollIntoView 강제 레이아웃, 두 번째 계산은 0.1s) + 다음 프레임 레이아웃 ≈2s. (c) 섹션 지연은 구조 변경이 커서 S2 디자인 작업과 함께 검토. 프로필 경로(_injectAndRun)는 콜드 코어 로드라 계측 안 함.
 - [ ] S2 명식 디자인 → 커밋 (스크린샷 경로 기록)
 - [ ] S3 무료 목록·연이 배너 → 커밋
 - [ ] S4 절기 리듬 이미지·문구 → 커밋
