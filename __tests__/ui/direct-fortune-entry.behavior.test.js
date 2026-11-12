@@ -40,6 +40,7 @@ test("사주 직행 액션은 저장 프로필·입력폼 순서와 중복 실�
     _injectAndRun: (value, type) => calls.push({ value, type }),
     document: { addEventListener() {} },
     _toast() {},
+    _dpHasSessionHint: () => false,
   };
   vm.runInNewContext(profile.slice(start, end), context);
 

@@ -11181,11 +11181,23 @@
   function _dpHomeIntent(type) {
     try { if(type) sessionStorage.setItem(_dpHomeEntryKey,type); else sessionStorage.removeItem(_dpHomeEntryKey); } catch (_) {}
   }
+  // 낙관적 저장(syncStatus 'pending') 카드도 생년월일이 유효하면 바로 쓴다 — 서버 확인을 기다리면
+  // 저장된 프로필이 있는데도 '프로필을 설정해 주세요'가 뜬다(2026-11-12 홈 무료 타일 회귀).
+  function _dpHomeEntryProfileReady(profile) {
+    return !!(profile && profile.birth && _dpHasValidProfileDate(profile.birth.year,profile.birth.month,profile.birth.day));
+  }
+  function _dpPromptHomeEntryProfile(type) {
+    _dpHomeIntent(type);
+    var entryName=_dpHomeEntryNames[type];
+    var entryParticle=(type==='saju'||type==='ziwei')?'를':'을';
+    _toast(entryName+entryParticle+' 보려면 프로필을 설정해 주세요.','profile-guide','프로필을 저장하면 지금 고른 운세를 이어서 열어드릴게요.');
+    if(typeof window.dpStartProfileCreate==='function') window.dpStartProfileCreate();
+  }
   function _dpResumeHomeEntry() {
     var type='';
     try { type=sessionStorage.getItem(_dpHomeEntryKey)||''; } catch (_) {}
     var profile=_dpResolveCurrentProfileForSaju('');
-    if(!_dpHomeEntryNames[type] || !profile || profile.syncStatus==='pending' || !profile.birth) return;
+    if(!_dpHomeEntryNames[type] || !_dpHomeEntryProfileReady(profile)) return;
     _dpHomeIntent('');
     _dpSyncProfileFormToCurrent(profile);
     window._dpOpenFortuneType(type);
@@ -11195,16 +11207,26 @@
     _dpHomeIntent('');
     if(type==='tarot') { window._dpOpenFortuneType(type); return; }
     var profile=_dpResolveCurrentProfileForSaju('');
-    if(profile && profile.syncStatus!=='pending' && profile.birth && _dpHasValidProfileDate(profile.birth.year,profile.birth.month,profile.birth.day)) {
+    if(_dpHomeEntryProfileReady(profile)) {
       _dpSyncProfileFormToCurrent(profile);
       window._dpOpenFortuneType(type);
       return;
     }
-    _dpHomeIntent(type);
-    var entryName=_dpHomeEntryNames[type];
-    var entryParticle=(type==='saju'||type==='ziwei')?'를':'을';
-    _toast(entryName+entryParticle+' 보려면 프로필을 설정해 주세요.','profile-guide','프로필을 저장하면 지금 고른 운세를 이어서 열어드릴게요.');
-    if(typeof window.dpStartProfileCreate==='function') window.dpStartProfileCreate();
+    // 로그인 사용자의 로컬 캐시가 비었으면(콜드 탭, 첫 /api/profile 실패) cdSajuTabEntry처럼 서버에서
+    // 먼저 받아 본다. 서버에도 없을 때만 프로필 생성으로 보낸다.
+    if(_dpHasSessionHint()) {
+      _dpHomeIntent(type);
+      _dpLoadFromServer(function() {
+        var pending='';
+        try { pending=sessionStorage.getItem(_dpHomeEntryKey)||''; } catch (_) {}
+        if(pending!==type) return; // server-ready 이벤트가 이미 이어서 열었다
+        var loaded=_dpResolveCurrentProfileForSaju('');
+        if(_dpHomeEntryProfileReady(loaded)) { _dpResumeHomeEntry(); return; }
+        _dpPromptHomeEntryProfile(type);
+      });
+      return;
+    }
+    _dpPromptHomeEntryProfile(type);
   };
   window.cdHomeZiweiEntry=function(){window.cdHomeFortuneEntry('ziwei');};
   window.cdHomeSukuyoEntry=function(){window.cdHomeFortuneEntry('sukuyo');};
@@ -11261,6 +11283,20 @@
         if (entryScope === _dpGetProfileScope()) window.location.href = '/snu/';
       });
       return;
+    }
+    // SEO 랜딩 폼에서 넘어온 진입은 방금 입력한 생년 정보를 저장 프로필보다 우선한다.
+    var landingHandoff = window.__cdSeoLandingEntryHandoffApplied;
+    window.__cdSeoLandingEntryHandoffApplied = null;
+    if (landingHandoff && landingHandoff.action === 'cdOneStepFreeSajuEntry' && Date.now() - Number(landingHandoff.at || 0) < 60 * 1000) {
+      var landingProfile = null;
+      try { landingProfile = readFormData({ allowAnonymous: true }); } catch (_) {}
+      if (landingProfile) {
+        _dpHomeIntent('');
+        if (__cdDirectSajuEntryState.inFlight) return;
+        __cdDirectSajuEntryState.inFlight = true;
+        _injectAndRun(landingProfile, 'saju');
+        return;
+      }
     }
     var cached = _dpResolveCurrentProfileForSaju('');
     if (cached && cached.birth && _dpHasValidProfileDate(cached.birth.year, cached.birth.month, cached.birth.day)) {
