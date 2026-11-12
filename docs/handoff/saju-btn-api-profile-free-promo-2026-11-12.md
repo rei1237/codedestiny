@@ -38,9 +38,10 @@ next: "릴리스 A 1단계: /manse 사주 보기 버튼 수정부터"
 
 ## 단계
 ### 릴리스 A (긴급)
-- [ ] A1 사주 보기 버튼 수정 + 테스트
-- [ ] A2 내 API 관리 제거 + 미러 재생성
-- [ ] A3 홈 타일 프로필 진입 재현·수정 + 회귀 테스트 3개
+- [x] A1 사주 보기 버튼 수정 + 테스트 — manse·love ctaHref → cdOneStepFreeSajuEntry, 라벨 "사주 보기"(H1 유지), 가이드 CTA 6곳·칩 3곳·calendar 보조 CTA, 랜딩 성별 필수, 핸드오프 적용 표시(`__cdSeoLandingEntryHandoffApplied`) → cdOneStepFreeSajuEntry가 캐시보다 폼 입력 우선, home-funnel 안전망에 checkPrivacyAndCalculate. mock 브라우저(360/390/1280): 회원은 랜딩 입력(1990-01-15)으로 결과 화면, 게스트는 동의 모달 → 기존 로그인 필요 시트(입력 1시간 보관).
+- [x] A2 내 API 관리 제거 + 미러 재생성 — 회원 프로필 시트 푸터 링크는 "달빛 이용권 상점으로"·"이용권 · 결제 내역 보기"만(mock 확인). i18n 키 footer.businessApiManage는 남김.
+- [x] A3 홈 타일 프로필 진입 재현·수정 + 회귀 테스트 3개 — 재현(mock 브라우저, 로그인 쿠키): ① 첫 /api/profile 실패 시 저장 프로필이 있어도 "자미두수를 보려면 프로필을 설정해 주세요" + 영구 미진입 ② pending 카드는 토스트 후 서버 응답 뒤에야 열림, 서버 다운이면 미진입 ③ 콜드 탭(응답 지연)은 토스트·생성 흐름 후 자동 진입. 수정: `_dpHomeEntryProfileReady`(유효 생년월일이면 pending 허용, resume에도 적용) + 세션 힌트가 있으면 `_dpLoadFromServer` 먼저, 서버에도 없을 때만 토스트·생성. 재검: 6개 시나리오 모두 의도대로(무프로필만 생성 안내). 하네스는 세션 스크래치(repro-home-tile.mjs) — 저장소에 두지 않음.
+  - 함정: destiny-profile.js가 바뀌면 독립 정적 페이지·billing-client.ts·verify-paid-gate-ui-regression.mjs의 `destiny-profile.js?v=build-…` 핀을 verify:payment-choice-parity가 알려 주는 값으로 직접 바꾸고, billing-client.ts 변경은 `node scripts/verify-payment-freeze.mjs --update`로 config/payment-freeze.json을 같은 커밋에(선례 17682ff33). sync:public은 free-fortune-policy.js/.mjs 줄끝만 건드리므로 `git checkout --`로 되돌린다.
 - [ ] A4 check:fast, mock 화면 360/390/1280 확인, 커밋, check:pre-push, main push
 - [ ] A5 main CI 확인 → 운영 workflow 실행 → 운영 SHA·핵심 화면 읽기 전용 확인
 
