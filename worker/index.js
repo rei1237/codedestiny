@@ -531,6 +531,7 @@ const handleSajuCompatBasicRoutes = createLazyRouteHandler("./routes/saju-compat
 const handleDestinyFlowerRoutes = createLazyRouteHandler("./routes/destiny-flower.js", () => import("./routes/destiny-flower.js"), "handleDestinyFlowerRoutes");
 const handleSibylRoutes = createLazyRouteHandler("./routes/sibyl.js", () => import("./routes/sibyl.js"), "handleSibylRoutes");
 const handleOracleRoutes = createLazyRouteHandler("./routes/oracle.js", () => import("./routes/oracle.js"), "handleOracleRoutes");
+const handleMayaConsultationRoutes = createLazyRouteHandler("./routes/maya-consultation.js", () => import("./routes/maya-consultation.js"), "handleMayaConsultationRoutes");
 const handlePaidNarrativeIntentRoutes = createLazyRouteHandler("./routes/paid-narrative-intent.js", () => import("./routes/paid-narrative-intent.js"), "handlePaidNarrativeIntentRoutes");
 const handleAnimalTotemRoutes = createLazyRouteHandler("./routes/animal-totem.js", () => import("./routes/animal-totem.js"), "handleAnimalTotemRoutes", "api/animal-totem");
 const handleKasiRoutes = createLazyRouteHandler("./routes/kasi.js", () => import("./routes/kasi.js"), "handleKasiRoutes");
@@ -1781,6 +1782,10 @@ const app = {
 
       if (url.pathname === "/api/oracle" || url.pathname.startsWith("/api/oracle/")) {
         return withCorsHeaders(request, env, await handleOracleRoutes(request, env));
+      }
+
+      if (url.pathname === "/api/maya-consultation" || url.pathname.startsWith("/api/maya-consultation/")) {
+        return withCorsHeaders(request, env, await handleMayaConsultationRoutes(request, env));
       }
 
       if (url.pathname === "/api/paid-narrative" || url.pathname.startsWith("/api/paid-narrative/")) {

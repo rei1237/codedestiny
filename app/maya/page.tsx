@@ -4,32 +4,32 @@ import RouteMetadataLocaleSync from "../components/RouteMetadataLocaleSync";
 
 const MAYA_PAGE_METADATA_COPY = {
   ko: {
-    title: "마야 달력 - 마야점 프롬프트 생성기",
+    title: "마야 달력 - 질문 상담과 저장 리포트",
     description:
-      "선택한 날짜의 Long Count, Tzolk'in, Haab 값을 월간 달력으로 확인하고 마야점 상담 프롬프트를 생성합니다.",
+      "선택한 날짜의 Long Count, Tzolk'in, Haab 계산값을 확인하고 질문 한 건의 마야 상담을 저장해 다시 읽습니다.",
     keywords: ["마야 달력", "마야점", "Long Count", "Tzolk'in", "Haab", "마야점 프롬프트"],
-    featureList: ["월간 마야 달력", "선택 날짜 상세 코드", "마야점 상담 프롬프트 생성"],
+    featureList: ["월간 마야 달력", "선택 날짜 상세 코드", "질문 한 건 상담", "상담 저장과 재열람"],
   },
   en: {
-    title: "Maya Calendar - Maya Oracle Prompt Generator",
+    title: "Maya Calendar - Saved Question Consultation",
     description:
-      "View Long Count, Tzolk'in, and Haab values for selected dates in a monthly calendar and generate a Maya oracle consultation prompt.",
+      "Explore calculated Long Count, Tzolk'in and Haab values, ask one question, and save your Maya calendar consultation for rereading.",
     keywords: ["Maya calendar", "Maya oracle", "Long Count", "Tzolk'in", "Haab", "Maya oracle prompt"],
-    featureList: ["Monthly Maya calendar", "Selected-date detail codes", "Maya oracle consultation prompt"],
+    featureList: ["Monthly Maya calendar", "Selected-date detail codes", "One-question consultation", "Saved consultations"],
   },
   ja: {
-    title: "マヤ暦 - マヤ占いプロンプト生成",
+    title: "マヤ暦 - 質問相談と保存レポート",
     description:
-      "選択した日付のLong Count、Tzolk'in、Haabを月間カレンダーで確認し、マヤ占い相談プロンプトを生成します。",
+      "長期暦・ツォルキン・ハアブの計算を確認し、質問1件のマヤ暦相談を保存して読み返せます。",
     keywords: ["マヤ暦", "マヤ占い", "Long Count", "Tzolk'in", "Haab", "マヤ占いプロンプト"],
-    featureList: ["月間マヤ暦", "選択日付の詳細コード", "マヤ占い相談プロンプト生成"],
+    featureList: ["月間マヤ暦", "選択日付の詳細コード", "質問1件の相談", "相談の保存と再閲覧"],
   },
   zh: {
-    title: "玛雅历 - 玛雅占卜提示生成器",
+    title: "玛雅历 - 问题咨询与保存报告",
     description:
-      "在月历中查看所选日期的 Long Count、Tzolk'in 与 Haab 值，并生成玛雅占卜咨询提示。",
+      "查看长纪历、卓尔金历和哈布历的计算依据，解答一个问题，保存并重读玛雅历咨询。",
     keywords: ["玛雅历", "玛雅占卜", "Long Count", "Tzolk'in", "Haab", "玛雅占卜提示"],
-    featureList: ["月度玛雅历", "所选日期详细代码", "玛雅占卜咨询提示生成"],
+    featureList: ["月度玛雅历", "所选日期详细代码", "一个问题的咨询", "咨询保存与重读"],
   },
 } as const;
 
@@ -73,9 +73,9 @@ export default function MayaPage() {
             보세요. 문양은 확정된 예언이 아니라 지금의 감각을 더 세심하게 듣게 하는 작은 표식입니다.
           </p>
           <p className="mt-3 text-sm leading-7 text-[#f3dfad]">
-            프롬프트 생성은 선택한 날짜의 코드와 상징을 바탕으로 상담 문장을 정리하는 흐름입니다. 이용 권한이 필요한
-            영역은 기존 정책에 따라 확인되며, 권한이 열린 뒤에만 더 깊은 문장을 받을 수 있습니다. 이 순서는 사용자의
-            선택과 결제를 보호하기 위해 유지됩니다.
+            마야 달력 상담은 선택한 날짜의 계산 근거를 바탕으로 질문 한 건의 선택지와 행동 방향을 살펴봅니다.
+            이용권 또는 단건 결제를 확인한 뒤 상담을 진행하며, 완성된 답변은 계정에 저장해 다시 읽을 수 있습니다.
+            새로운 질문은 별도의 상담으로 준비합니다.
           </p>
           <p className="mt-3 text-sm leading-7 text-[#f3dfad]">
             결과를 읽을 때는 좋은 날과 나쁜 날을 가르는 방식보다, 오늘의 에너지가 어디로 모이고 어디에서 쉬어야 하는지

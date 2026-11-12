@@ -649,6 +649,7 @@ export default function FortuneTeaHousePage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
   const [submitRetryAction, setSubmitRetryAction] = useState<"payment" | "consult" | "pending">("payment");
+  const lastSubmittedInputRef = useRef<FortuneTeaHouseQuestionInput | null>(null);
   const [loadingBgmIndex, setLoadingBgmIndex] = useState(0);
   const [generationProgress, setGenerationProgress] = useState<FortuneTeaGenerationProgress>({
     percent: 5,
@@ -1179,6 +1180,7 @@ export default function FortuneTeaHousePage() {
     submitSucceededRef.current = false;
     setQuestionInput(nextQuestionInput);
     setConsultResult(null);
+    lastSubmittedInputRef.current = nextQuestionInput;
     startGenerationProgress(nextQuestionInput.consultationMode);
     const consultRunId = consultRunRef.current + 1;
     consultRunRef.current = consultRunId;
@@ -1640,7 +1642,7 @@ export default function FortuneTeaHousePage() {
           paymentPending={submitRetryAction === "pending"}
           submitError={submitError}
           retryLabel={submitRetryAction === "consult" ? "상담 다시 시도하기" : "다시 결제하기"}
-          onRetry={submitRetryAction === "pending" ? undefined : () => { void submitQuestion(questionInput); }}
+          onRetry={submitRetryAction === "pending" ? undefined : () => { if (lastSubmittedInputRef.current) void submitQuestion(lastSubmittedInputRef.current); }}
         /></>
       );
     }

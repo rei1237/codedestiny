@@ -33,6 +33,7 @@ const LOADERS = {
   "guardian-fortune": () => import("./guardian-fortune-prompt.js"),
   "human-design": () => import("./human-design-ai-prompt.js"),
   "human-design-report": () => import("./human-design-report-prompt.js"),
+  "maya-consultation": () => import("../routes/maya-consultation.js"),
   dream: () => import("../routes/dream.js"),
   "pet-saju": () => import("../routes/pet-saju-ai.js"),
 };

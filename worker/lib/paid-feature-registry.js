@@ -249,7 +249,7 @@ const RAW_FEATURE_KEY_PRICE_TABLE = Object.freeze({
   "tarot-prompt-maker-standard": { cost: 50, amountKRW: 5000, reason: "타로 오라클 상담 (5~7카드)" },
   "tarot-prompt-maker-deep": { cost: 100, amountKRW: 10000, reason: "타로 오라클 상담 (8~10카드)" },
   "tarot-prompt-maker-master": { cost: 100, amountKRW: 10000, reason: "타로 오라클 상담 (11~14카드)" },
-  "maya-prompt-generator": { cost: 50, reason: "마야점 상담 프롬프트 생성" },
+  "maya-prompt-generator": { cost: 50, reason: "마야 달력 질문 상담" },
   "tarot-ijik": { cost: 50, reason: "이직 타로 리딩" },
   "royal-tea-oracle": { cost: 30, reason: "영국 홍차점 리딩" },
   "ifa-oracle": { cost: 30, reason: "IFÀ 오라클 리딩" },

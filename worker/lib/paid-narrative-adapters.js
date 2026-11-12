@@ -11,6 +11,7 @@ const SERVER_RESUME_PRODUCTS = Object.freeze({
   mindscan: ["tarot-mindscan"],
   tarotOracleConsultation: ["tarot-prompt-maker", "tarot-prompt-maker-standard", "tarot-prompt-maker-deep", "tarot-prompt-maker-master"],
   geomancyOracle: ["geomancy"],
+  mayaConsultation: ["maya-prompt-generator"],
   yogaGuruCourse: ["yoga-guru-per-use"],
   sajuCompatBasic: ["compat-saju-compatibility"],
   dreamPsychoAnalysis: ["dream-psycho-analysis"],
@@ -31,6 +32,10 @@ export const PAID_NARRATIVE_SERVER_RESUME_REPORT_TYPES = Object.freeze(Object.ke
 export async function loadPaidNarrativeAdapter(env, featureKey, reportType, userId) {
   if (!PAID_NARRATIVE_SERVER_RESUME_KEYS.includes(`${featureKey}|${reportType}`)) return null;
   switch (reportType) {
+    case "mayaConsultation": {
+      const { mayaNarrativeAdapter } = await import("../routes/maya-consultation.js");
+      return mayaNarrativeAdapter(env);
+    }
     case "expertFollowUp": {
       const route = featureKey === "karma-destiny-ai-consultation"
         ? await import('../routes/karma-destiny-ai.js') : await import('../routes/love-secret-ai.js');

@@ -51,6 +51,7 @@ const {
 const {
   ContentEntitlement,
   Payment,
+  PaymentFailureLog,
   PaymentWebhookEvent,
   ProfileCard,
   User,
@@ -86,6 +87,7 @@ const originals = {
   contentFindOneAndUpdate: ContentEntitlement.findOneAndUpdate,
   contentUpdateMany: ContentEntitlement.updateMany,
   paymentCreate: Payment.create,
+  paymentFailureLogCreate: PaymentFailureLog.create,
   paymentFindOne: Payment.findOne,
   paymentFindOneAndUpdate: Payment.findOneAndUpdate,
   paymentFindById: Payment.findById,
@@ -598,7 +600,9 @@ function runInstantPgWindowTests() {
       /customerPhone = [^;]*?orderCustomer\.phoneNumber/s.test(firstCandidate),
       `${label} must read order.customer.phoneNumber before any other phone source`,
     );
-    const ensureIndex = source.search(ensureCall);
+    // 구매자 선검증은 주문 전에도 실행한다. 여기서는 주문 응답 이후의 보완 조회를 검사한다.
+    const fallbackOffset = source.slice(resolverIndex).search(ensureCall);
+    const ensureIndex = fallbackOffset < 0 ? -1 : resolverIndex + fallbackOffset;
     assert.ok(ensureIndex > 0, `${label} must keep its payment-phone fallback: ${ensureCall}`);
     // 폴백 호출 앞 400자 안에 "번호가 없을 때만" 가드가 있어야 한다(설명 주석이 사이에 들어간다).
     assert.ok(
@@ -1082,6 +1086,7 @@ function resetState() {
     }
     return { acknowledged: true, matchedCount, modifiedCount };
   };
+  PaymentFailureLog.create = async (doc) => ({ ...doc });
   Payment.create = async (doc) => {
     const created = { _id: `pay_created_${state.createdPayments.length + 1}`, ...doc };
     state.createdPayments.push(created);
@@ -1185,6 +1190,7 @@ function restoreMocks() {
   ContentEntitlement.findOneAndUpdate = originals.contentFindOneAndUpdate;
   ContentEntitlement.updateMany = originals.contentUpdateMany;
   Payment.create = originals.paymentCreate;
+  PaymentFailureLog.create = originals.paymentFailureLogCreate;
   Payment.findOne = originals.paymentFindOne;
   Payment.findOneAndUpdate = originals.paymentFindOneAndUpdate;
   Payment.findById = originals.paymentFindById;

@@ -1,4 +1,5 @@
 export const PAID_COMPLETED_RESULT_ACCESS_FIXTURES = Object.freeze([
+  { products: ["maya-prompt-generator"], file: "worker/routes/maya-consultation.js", marker: "runPaidNarrativeDelivery" },
   { products: ["fortune-chat-consultation"], file: "worker/lib/guardian-paid-delivery.js", marker: "runPaidNarrativeDelivery" },
   { products: ["fusion-fortune-consultation"], file: "worker/routes/fusion-fortune.js", marker: "isPaidResultRevoked" },
   { products: ["master-love-codex", "master-love-codex-compat"], file: "worker/lib/master-love-codex-session-access.js", marker: "PURCHASE_REFUNDED" },

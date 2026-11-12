@@ -24,6 +24,7 @@ const MAX_ERRORS = 3, MAX_PER_TICK = 20, MAX_ACTIVE_PER_USER = 20;
 // featureKey and requestId as the route body, and its route seed depends on
 // that body alone.
 const INTENT_PRODUCTS = Object.freeze({
+  "maya-prompt-generator": "mayaConsultation",
   "tarot-love-relationship": "loveTarot",
   "tarot-mindscan": "mindscan",
   "tarot-prompt-maker": "tarotOracleConsultation",
@@ -63,6 +64,10 @@ const invalid = reason => Object.assign(new Error("Paid intent input rejected"),
 // that would land under another key is rejected here.
 async function seedIntent(env, featureKey, body, userId) {
   switch (INTENT_PRODUCTS[featureKey]) {
+    case "mayaConsultation": {
+      const { seedMayaConsultation } = await import("../routes/maya-consultation.js");
+      return seedMayaConsultation(body);
+    }
     case "loveTarot": {
       const { seedLoveTarot } = await import("./love-tarot-delivery.js");
       const { buildLoveTarotBase } = await import("../routes/tarot.js");

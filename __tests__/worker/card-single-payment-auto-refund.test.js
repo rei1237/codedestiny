@@ -31,6 +31,7 @@ function chainLean(value) {
 }
 
 beforeAll(async () => {
+  const { parseTime } = await import("../../worker/lib/ziwei-ai-chart.js");
   jest.unstable_mockModule("../../worker/lib/payment-refund.js", () => ({
     autoRefundSinglePaymentDeliveryFailure: jest.fn(async () => ({ refunded: true, cancelled: true })),
   }));
@@ -62,6 +63,7 @@ beforeAll(async () => {
   }));
   jest.unstable_mockModule("../../worker/lib/ziwei-ai-chart.js", () => ({
     calculateZiweiAiChart: jest.fn(async () => ({})),
+    parseTime,
     describeBrightness: jest.fn(() => ""),
     formatStarWithBrightness: jest.fn((starName) => String(starName || "")),
   }));
