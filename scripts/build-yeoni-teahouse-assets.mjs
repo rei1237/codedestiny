@@ -74,9 +74,11 @@ for (const [source, columns, rows, names, usage] of packs) {
     const width = Math.floor((i % columns + 1) * meta.width / columns) - left;
     const height = Math.floor((Math.floor(i / columns) + 1) * meta.height / rows) - top;
     const destination = path.join(output, `${names[i]}.webp`);
-    await sharp(sourcePath).extract({left,top,width,height}).resize({width: columns === 1 ? 1440 : 640, withoutEnlargement:true}).webp({quality:85,alphaQuality:100}).toFile(destination);
+    const isolated = names[i] === 'state-brewing' ? path.join(root, 'assets/yeoni-teahouse/reading/pig-brewing-clean.webp') : null;
+    const image = isolated ? sharp(isolated) : sharp(sourcePath).extract({left,top,width,height});
+    await image.resize({width: columns === 1 ? 1440 : 640, withoutEnlargement:true}).webp({quality:85,alphaQuality:100}).toFile(destination);
     const result = await sharp(destination).metadata();
-    entries.push({file:`/images/fortune-tea-house/renewal/${names[i]}.webp`,source:`assets/yeoni-teahouse/originals/${source}`,usage,screens:screens[names[i]]||[],status:screens[names[i]]?'applied-or-reference':'available-not-mounted',alt:alternatives[names[i]],decorativeAlt:'',width:result.width,height:result.height,alpha:result.hasAlpha,bytes:(await stat(destination)).size,crop:{left,top,width,height},display:columns===1?'hero: right center; preserve face and cup':'contain for transparent cutouts; center for scenes'});
+    entries.push({file:`/images/fortune-tea-house/renewal/${names[i]}.webp`,source:isolated ? 'assets/yeoni-teahouse/reading/pig-brewing-clean.webp' : `assets/yeoni-teahouse/originals/${source}`,usage,screens:screens[names[i]]||[],status:screens[names[i]]?'applied-or-reference':'available-not-mounted',alt:alternatives[names[i]],decorativeAlt:'',width:result.width,height:result.height,alpha:result.hasAlpha,bytes:(await stat(destination)).size,crop:isolated ? null : {left,top,width,height},display:columns===1?'hero: right center; preserve face and cup':'contain for transparent cutouts; center for scenes'});
   }
 }
 await writeFile(path.join(output,'manifest.json'), JSON.stringify({version:'yeoni-art-20261004',generator:'OpenAI image generation tool',references:['canonical Yeoni profile 1','existing yeoni-sprite7-tarot-photoroom.webp'],entries},null,2)+'\n');

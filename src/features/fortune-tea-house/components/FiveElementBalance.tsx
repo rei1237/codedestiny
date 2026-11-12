@@ -4,6 +4,7 @@ import type { CSSProperties } from "react";
 import type { FortuneTeaFiveElementBalance } from "../data/consult";
 import styles from "../styles/tea-report.module.css";
 import { useTeaHouseCopy } from "../lib/teaHouseCopy";
+import YeoniReadingNote from "./YeoniReadingNote";
 
 type FiveElementBalanceProps = {
   elements?: FortuneTeaFiveElementBalance[];
@@ -38,7 +39,7 @@ export default function FiveElementBalance({ elements, method }: FiveElementBala
         <span>{copy.eyebrow}</span>
         <h4 id="fiveElementBalanceTitle">{copy.title}</h4>
       </div>
-      <p className={styles.sajuMutedText}>{copy.method}</p>
+      <YeoniReadingNote><p className={styles.sajuMutedText}>{copy.method}</p></YeoniReadingNote>
       <div className={styles.fiveElementBalance}>
         {elements.map((element) => (
           <article className={styles.fiveElementItem} data-tone={element.tone} key={element.key}>

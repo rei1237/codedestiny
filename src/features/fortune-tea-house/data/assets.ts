@@ -14,8 +14,9 @@ const tenGodSheetAsset = "/images/fortune-tea-house/ten-gods-photoroom.webp";
 
 export const fortuneTeaHouseAssets = {
   teaAnimation: {
-    brewing: "/images/fortune-tea-house/yeoni-tea-brewing-v2.webp",
-    handoff: "/images/fortune-tea-house/yeoni-tea-handoff-v2.webp",
+    brewing: "/images/fortune-tea-house/reading/tea-brewing-sheet.webp",
+    still: "/images/fortune-tea-house/reading/tea-base.webp",
+    handoff: "/images/fortune-tea-house/reading/yeoni-serving.webp",
   },
   landingPig: {
     welcome: "/images/fortune-tea-house/flower-pig-welcome.webp",

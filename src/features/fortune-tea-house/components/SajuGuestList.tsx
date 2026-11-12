@@ -8,9 +8,9 @@ import styles from "./SajuGuestList.module.css";
 
 const SKIP = ["id", "colorTone"];
 const KO = {
-  title: "이번 상담의 십성 손님", more: "자리와 근거 펼치기",
-  scopes: { natal: "단골 손님", daewoon: "한동안 머무는 손님", sewoon: "해마다 찾아오는 손님" },
-  grades: { yong: "귀한 손님", hee: "반가운 손님", gi: "주의가 필요한 손님", gu: "함께 살필 손님", han: "지나가는 손님", unavailable: "등급 정보 없음" },
+  title: "기질이 드러나는 자리와 시기", more: "자리와 근거 펼치기",
+  scopes: { natal: "타고난 기질", daewoon: "대운에서 살피는 흐름", sewoon: "해마다 달라지는 흐름" },
+  grades: { yong: "균형의 중심 · 용신", hee: "균형을 돕는 힘 · 희신", gi: "조절이 필요한 힘 · 기신", gu: "함께 살필 힘 · 구신", han: "상황에 따라 살필 힘 · 한신", unavailable: "균형 판정 정보 없음" },
   positions: { year: "연주", month: "월주", day: "일주", hour: "시주" },
   stem: "천간", hidden: "지장간", current: "현재 대운",
   nature: { auspicious: "전통 성정: 길신", challenging: "전통 성정: 흉신", neutral: "전통 성정: 중립" },

@@ -1,6 +1,9 @@
 "use client";
 
 import JointSajuDialogue from "./JointSajuDialogue";
+import DayMasterReading from "./DayMasterReading";
+import YeoniReadingNote from "./YeoniReadingNote";
+import { dayMasterProfiles, resolveDayMaster } from "../data/readingPresentation";
 import type { CSSProperties } from "react";
 import type { FortuneTeaHouseConsultResponse } from "../data/consult";
 import { fortuneTeaHouseAssets } from "../data/assets";
@@ -31,7 +34,7 @@ const KO = {
   title: "사주가 비춘 오늘의 기본 흐름",
   emptyLead: "출생정보가 충분하지 않아 오늘은 사주의 세부 흐름을 펼치지 않았어요. 연이는 보이는 정보와 지금 적어주신 고민의 결만 차분히 읽어드릴게요.",
   lead: "연이가 찻집의 조용한 빛 아래에서 손님의 사주 한 잔을 펼쳐 보았어요.",
-  yeoniAlt: "사주 결과 시트를 펼치는 인간 상담사 연이",
+  yeoniAlt: "사주의 흐름을 설명하는 꽃돼지 연이",
   lockedEyebrow: "잠시 접힌 달빛 명식",
   lockedTitle: "출생정보 없음",
   tarotContinue: "타로 중심으로 계속 보기",
@@ -47,16 +50,16 @@ const KO = {
   folded: "조용히 접힘",
   elementsLabel: "대표 기운",
   elementsEmpty: "천천히 확인",
-  tenGodFieldLabel: "오늘 들어온 십성",
+  tenGodFieldLabel: "명식에서 살피는 십성",
   birthPlaceLabel: "출생지",
   birthPlaceEmpty: "선택 안 함",
   timezoneLabel: "시간대",
   gaugeEyebrow: "{cup}의 사주 흐름",
   gaugeTitle: "찻잔별 상태 게이지",
-  tenGodEyebrow: "사주가 초대한 오늘의 손님",
-  tenGodTitle: "오늘 찻집에 들어온 십성",
-  tenGodEmpty: "오늘은 십성 손님의 모습이 또렷하게 떠오르지 않았어요. 연이는 보이지 않는 흐름을 억지로 꾸미지 않고, 지금 드러난 결만 조용히 읽어드릴게요.",
-  readingEyebrow: "인간 상담사 연이의 해석",
+  tenGodEyebrow: "기질과 선택의 패턴",
+  tenGodTitle: "나의 기질을 읽는 십성",
+  tenGodEmpty: "십성의 계산 근거가 충분하지 않아요. 연이는 보이지 않는 흐름을 억지로 꾸미지 않고, 지금 드러난 결만 조용히 읽어드릴게요.",
+  readingEyebrow: "꽃돼지 연이의 해설",
   readingTitle: "연이가 읽은 사주의 기본 흐름",
   deepEyebrow: "상담 결과가 완성되었습니다",
   deepTitle: "오늘의 사주 상담지",
@@ -83,7 +86,9 @@ function timeLabel(hasBirthTime: boolean | undefined, birthTime: string | undefi
 
 export default function TeaHouseSajuResultPanel({ result, onShowTarot, onEditBirthInfo, showTarotAction = true }: TeaHouseSajuResultPanelProps) {
   const copy = useTeaHouseCopy("sajuResult", KO);
+  const profiles = useTeaHouseCopy("dayMasterProfiles", dayMasterProfiles);
   const saju = result.saju;
+  const dayMasterId = resolveDayMaster(saju.dayMaster);
   const birth = saju.birthSummary;
   const primaryTenGod = saju.primaryTenGod;
   const deepSections = saju.deepSections || [];
@@ -99,8 +104,7 @@ export default function TeaHouseSajuResultPanel({ result, onShowTarot, onEditBir
           </div>
           <AssetImage
             className={styles.sajuResultYeoni}
-            src={fortuneTeaHouseAssets.yeoni.transparent.bust}
-            fallbackSrc={fortuneTeaHouseAssets.yeoni.bust}
+            src="/images/fortune-tea-house/renewal/pig-listening.webp"
             alt={copy.yeoniAlt}
           />
         </header>
@@ -135,7 +139,7 @@ export default function TeaHouseSajuResultPanel({ result, onShowTarot, onEditBir
         </div>
         <AssetImage
           className={styles.sajuResultYeoni}
-          src="/images/fortune-tea-house/renewal/yeoni-saju.webp"
+          src="/images/fortune-tea-house/renewal/pig-listening.webp"
           alt={copy.yeoniAlt}
         />
       </header>
@@ -161,7 +165,7 @@ export default function TeaHouseSajuResultPanel({ result, onShowTarot, onEditBir
           </div>
           <div>
             <dt>{copy.dayMasterLabel}</dt>
-            <dd>{saju.dayMaster || copy.folded}</dd>
+            <dd>{dayMasterId ? profiles[dayMasterId].label : saju.dayMaster || copy.folded}</dd>
           </div>
           <div>
             <dt>{copy.elementsLabel}</dt>
@@ -182,6 +186,7 @@ export default function TeaHouseSajuResultPanel({ result, onShowTarot, onEditBir
         </dl>
       </section>
 
+      <DayMasterReading value={saju.dayMaster} />
       <SajuPillarBoard pillars={saju.pillars} />
       <FiveElementBalance elements={saju.fiveElements} method={saju.elementMethod} />
 
@@ -218,9 +223,7 @@ export default function TeaHouseSajuResultPanel({ result, onShowTarot, onEditBir
           <div className={styles.sajuTenGodLayout}>
             <TenGodSymbolCard tenGodId={primaryTenGod.id} size="lg" selected />
             <div className={styles.sajuTenGodReading}>
-              <span>{primaryTenGod.roleInTeaHouse}</span>
-              <strong>{primaryTenGod.nameKo}</strong>
-              <LlmParagraphs text={primaryTenGod.reading} />
+              <YeoniReadingNote><LlmParagraphs text={primaryTenGod.reading} /></YeoniReadingNote>
               {saju.secondaryTenGods?.length ? (
                 <div className={styles.sajuTenGodChips}>
                   {saju.secondaryTenGods.map((tenGod) => (
@@ -241,7 +244,6 @@ export default function TeaHouseSajuResultPanel({ result, onShowTarot, onEditBir
           <h4 id="sajuYeoniReadingTitle">{copy.readingTitle}</h4>
         </div>
         <div className={styles.sajuReadingText}>
-          <LlmParagraphs text={saju.summary} />
           {saju.keyPoints.map((point) => (
             <span key={point}>{point}</span>
           ))}
@@ -259,7 +261,7 @@ export default function TeaHouseSajuResultPanel({ result, onShowTarot, onEditBir
               <article id={`tea-saju-chapter-${index}`} className={styles.sajuDeepResultCard} data-tone={section.tone || "summary"} key={section.id || section.title}>
                 {result.sajuReportVersion === 'saju-specialist-v2'
                   ? <JointSajuDialogue title={section.title} body={section.body} />
-                  : <><h4>{section.title}</h4><LlmParagraphs text={section.body} /></>}
+                  : <><h4>{section.title}</h4><YeoniReadingNote mood={section.tone === "advice" ? "advice" : "listening"}><LlmParagraphs text={section.body} /></YeoniReadingNote></>}
               </article>
             ))}
           </div>

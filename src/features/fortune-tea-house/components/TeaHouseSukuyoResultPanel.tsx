@@ -5,6 +5,7 @@ import { fortuneTeaHouseAssets } from "../data/assets";
 import LlmParagraphs from "@/components/fortune/LlmParagraphs";
 import AssetImage from "./AssetImage";
 import styles from "../styles/tea-report.module.css";
+import YeoniReadingNote from "./YeoniReadingNote";
 import { useTeaHouseCopy } from "../lib/teaHouseCopy";
 
 type TeaHouseSukuyoResultPanelProps = {
@@ -131,7 +132,7 @@ export default function TeaHouseSukuyoResultPanel({ result }: TeaHouseSukuyoResu
         <div>
           <span>{copy.eyebrow}</span>
           <h3 id="sukuyoResultPanelTitle">{compatibility.title}</h3>
-          <LlmParagraphs text={compatibility.summary} />
+          <YeoniReadingNote><LlmParagraphs text={compatibility.summary} /></YeoniReadingNote>
         </div>
         <AssetImage className={styles.sukuyoResultImage} src="/images/fortune-tea-house/renewal/yeoni-sukuyo.webp" alt={copy.headerAlt} />
       </header>

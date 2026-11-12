@@ -17335,13 +17335,14 @@
       },
       "sceneAria": "Yeoni is preparing your reading",
       "loadingAlt": "A loading scene with a moonlit cup rising",
-      "yeoniAria": "Yeoni versant du thé",
+      "yeoniAria": "Tea gently brewing in a floral teapot",
       "progressAria": "Reading generation progress",
       "delayNotice": "Your reading is still being written. You can check its progress again in My readings.",
       "retryNotice": "If the flow breaks, you can try the same question again from the input screen.",
       "libraryLink": "Continue in My readings",
       "introduction": "Comme un thé qui infuse doucement, nous choisissons les mots pour accompagner votre histoire.",
-      "waitingTitle": "Nous préparons avec soin\nvotre consultation"
+      "waitingTitle": "Nous préparons avec soin\nvotre consultation",
+      "completedAlt": "Yeoni offering a warm cup of tea"
     },
     "sajuPillarBoard": {
       "eyebrow": "The birth chart under moonlight",
@@ -17351,7 +17352,7 @@
       "earthlyBranch": "Earthly Branch",
       "element": "Five Elements",
       "tenGod": "Ten Gods",
-      "tenGodEmpty": "Read together with the main guest"
+      "tenGodEmpty": "Read together with the main tendency"
     },
     "tarotReveal": {
       "upright": "Upright",
@@ -17484,7 +17485,7 @@
       "title": "Today's underlying flow, lit by the Four Pillars",
       "emptyLead": "There isn't enough birth information, so the detailed Four Pillars flow stays folded today. Yeoni will calmly read only what is visible and the grain of the worry you just wrote.",
       "lead": "Under the tea house's quiet light, Yeoni poured out a cup of your Four Pillars.",
-      "yeoniAlt": "Yeoni in human form, unfolding the Four Pillars result sheet",
+      "yeoniAlt": "Flower-pig Yeoni explaining the natal chart",
       "lockedEyebrow": "The moonlit chart, folded for now",
       "lockedTitle": "No birth information",
       "tarotContinue": "Continue with tarot instead",
@@ -17500,16 +17501,16 @@
       "folded": "Quietly folded",
       "elementsLabel": "Leading element",
       "elementsEmpty": "Checking slowly",
-      "tenGodFieldLabel": "Today's Ten God",
+      "tenGodFieldLabel": "Ten-god tendencies in the chart",
       "birthPlaceLabel": "Place of birth",
       "birthPlaceEmpty": "Not selected",
       "timezoneLabel": "Time zone",
       "gaugeEyebrow": "The Four Pillars flow of {cup}",
       "gaugeTitle": "Gauges by cup",
-      "tenGodEyebrow": "Today's guest, invited by the Four Pillars",
-      "tenGodTitle": "The Ten God that walked into the tea house today",
-      "tenGodEmpty": "No Ten God guest came into focus today. Yeoni will not dress up a flow she cannot see — only the grain that is showing gets read.",
-      "readingEyebrow": "Yeoni's reading, in human form",
+      "tenGodEyebrow": "Temperament and choices",
+      "tenGodTitle": "Reading my temperament through the ten gods",
+      "tenGodEmpty": "There is not enough calculated evidence for the ten gods. Yeoni will explain only the information available.",
+      "readingEyebrow": "Flower-pig Yeoni explains",
       "readingTitle": "The underlying Four Pillars flow as Yeoni read it",
       "deepEyebrow": "Your reading is complete",
       "deepTitle": "Today's Four Pillars reading sheet",
@@ -18164,7 +18165,7 @@
     "tenGodDebugPage": {
       "k4cd8sdg": "The Destiny Tea House Ten Gods check",
       "kz5lymhe": "Symbol card per Ten God",
-      "atlasMeta": "{file} atlas crop · 5 cols x 2 rows of symbol images"
+      "atlasMeta": "{file} standalone ten-god illustrations · temperament and choices"
     },
     "yeoniDialogueActor": {
       "kfqwcn17": "The moonlit tea house reader"
@@ -18844,16 +18845,16 @@
       "notice": "The cup is still warming. Yeoni will pick the story back up shortly."
     },
     "tenGodAlts": {
-      "bigeon": "Peer ten-god icon",
-      "geopjae": "Rival ten-god icon",
-      "siksin": "Gourmet ten-god icon",
-      "sanggwan": "Free Spirit ten-god icon",
-      "pyeonjae": "Windfall Wealth ten-god icon",
-      "jeongjae": "Steady Wealth ten-god icon",
-      "pyeongwan": "Challenger ten-god icon",
-      "jeonggwan": "Officer ten-god icon",
-      "pyeonin": "Seeker ten-god icon",
-      "jeongin": "Nurturer ten-god icon"
+      "bigeon": "Mirror and flower: self-respect",
+      "geopjae": "Two teacups: competition and cooperation",
+      "siksin": "Tea leaves and sweets: steady creativity",
+      "sanggwan": "Brush and petals: expression",
+      "pyeonjae": "Open window and paths: opportunities",
+      "jeongjae": "Ledger and tea jar: everyday foundations",
+      "pyeongwan": "Bamboo: resilience under pressure",
+      "jeonggwan": "Stepping stones: trust and promises",
+      "pyeonin": "Magnifying glass and book: perspective",
+      "jeongin": "Book and warm tea: learning and recovery"
     },
     "pigFrames": {
       "welcome": {
@@ -20454,20 +20455,20 @@
       "annual": "Le cours de cette année"
     },
     "guests": {
-      "title": "Les invités des Dix Dieux de cette lecture",
+      "title": "Where and when tendencies appear",
       "more": "Voir les positions et les repères",
       "scopes": {
-        "natal": "Habitués",
-        "daewoon": "Invités de passage prolongé",
-        "sewoon": "Invités de chaque année"
+        "natal": "Natal tendencies",
+        "daewoon": "Major-cycle tendencies",
+        "sewoon": "Yearly tendencies"
       },
       "grades": {
-        "yong": "Invité d'honneur",
-        "hee": "Invité bienvenu",
-        "gi": "Invité à accueillir avec soin",
-        "gu": "Invité à considérer ensemble",
-        "han": "Invité de passage",
-        "unavailable": "Classement indisponible"
+        "yong": "Central balancing element · Yongshin",
+        "hee": "Supporting balance · Heeshin",
+        "gi": "Needs moderation · Gishin",
+        "gu": "Consider together · Gushin",
+        "han": "Context dependent · Hanshin",
+        "unavailable": "Balance assessment unavailable"
       },
       "positions": {
         "year": "Pilier de l'année",
@@ -20535,7 +20536,7 @@
       },
       "historyTitle": "Past thoughts, continuing conversations",
       "historyBody": "Revisit saved readings and continue readings still being generated or needing recovery.",
-      "welcomeHuman": "For deeper conversations, the same Yeoni sits beside you in her human form.",
+      "welcomeHuman": "Explore the visual evidence, then follow flower-pig Yeoni’s explanation of your patterns and choices.",
       "optional": "Explore the tea house at your own pace",
       "prologue": "Yeoni's story",
       "cups": "Choose a teacup",
@@ -20739,6 +20740,113 @@
       "message": "Prenez le temps de lire les mots que Yeoni a préparés pour vous.",
       "action": "Lire la consultation",
       "portrait": "Yeoni offrant le thé à deux mains"
+    },
+    "tenGodPresentation": {
+      "bigeon": {
+        "title": "Protecting your own direction",
+        "advice": "Separate one decision to make yourself from one task where you can ask for help."
+      },
+      "geopjae": {
+        "title": "Responding to competition",
+        "advice": "Define your own standards and the boundaries of cooperation before comparing your pace."
+      },
+      "siksin": {
+        "title": "Creating through steady practice",
+        "advice": "Make a small, tangible result from something you enjoy and keep practicing."
+      },
+      "sanggwan": {
+        "title": "Expressing your own voice",
+        "advice": "Write down your main point, then choose words the other person can receive."
+      },
+      "pyeonjae": {
+        "title": "Recognizing new opportunities",
+        "advice": "Check the time and cost of a new proposal, then try it on a small scale."
+      },
+      "jeongjae": {
+        "title": "Building everyday foundations",
+        "advice": "Review regular spending and routines, choosing a method you can sustain."
+      },
+      "pyeongwan": {
+        "title": "Moving through pressure",
+        "advice": "Separate one problem to address now from one burden you can set down."
+      },
+      "jeonggwan": {
+        "title": "Building trust through promises",
+        "advice": "Make promises you can keep and state your limits when a request is too much."
+      },
+      "pyeonin": {
+        "title": "Reading from another perspective",
+        "advice": "Separate facts from assumptions and write one question you can check."
+      },
+      "jeongin": {
+        "title": "Learning and restoring energy",
+        "advice": "Put one thing you learned into practice and schedule time to rest."
+      }
+    },
+    "dayMasterProfiles": {
+      "gap": {
+        "label": "Jia Wood (甲木)",
+        "description": "Like a tall tree, this temperament seeks direction and steady growth. Initiative and responsibility can become rigidity when one method is treated as the only way.",
+        "advice": "Choose one goal while trying one useful suggestion from someone else."
+      },
+      "eul": {
+        "label": "Yi Wood (乙木)",
+        "description": "Like grass and vines, this temperament finds a flexible path through its surroundings. Sensitivity to relationships is helpful, though constant accommodation can obscure personal wishes.",
+        "advice": "Write down what you want before adjusting to someone else’s expectations."
+      },
+      "byeong": {
+        "label": "Bing Fire (丙火)",
+        "description": "Like sunlight, this temperament readily shares ideas and feelings. Openness and momentum are strengths, while haste can leave details unchecked.",
+        "advice": "Check the schedule and what finishing means before starting something new."
+      },
+      "jeong": {
+        "label": "Ding Fire (丁火)",
+        "description": "Like a nearby lamp, this temperament offers focused warmth and attention. Care and concentration are strengths, but sustained emotional effort can be tiring.",
+        "advice": "Plan both where to give your attention and when to rest."
+      },
+      "mu": {
+        "label": "Wu Earth (戊土)",
+        "description": "Like a broad mountain, this temperament values stability and a dependable center. Persistence helps, though familiar methods can slow necessary change.",
+        "advice": "Keep your essential principle and try changing one small habit."
+      },
+      "gi": {
+        "label": "Ji Earth (己土)",
+        "description": "Like cultivated soil, this temperament tends everyday life with practical care. Attentiveness is a strength, but taking on every small worry can become a burden.",
+        "advice": "Separate your responsibilities from others’ and record what you have completed."
+      },
+      "gyeong": {
+        "label": "Geng Metal (庚金)",
+        "description": "Like sturdy metal, this temperament sets standards and makes decisions. Clear judgment supports action, though quick verdicts can leave little room for another perspective.",
+        "advice": "Ask why the other person sees it that way before stating your conclusion."
+      },
+      "sin": {
+        "label": "Xin Metal (辛金)",
+        "description": "Like a carefully polished gem, this temperament notices fine differences and quality. Precision and observation are strengths, though high standards can become harsh self-criticism.",
+        "advice": "Decide what level of finish is needed today and acknowledge something already done well."
+      },
+      "im": {
+        "label": "Ren Water (壬水)",
+        "description": "Like a wide river, this temperament connects possibilities and sees the larger picture. Adaptability is a strength, while too many options can scatter direction.",
+        "advice": "Explore possibilities, then choose one action for this week."
+      },
+      "gye": {
+        "label": "Gui Water (癸水)",
+        "description": "Like rain and dew, this temperament notices subtle changes and understands quietly. Sensitivity helps, though thoughts held inside can prolong hesitation.",
+        "advice": "Put your thoughts into words and take one small action you can verify."
+      }
+    },
+    "dayMasterReading": {
+      "title": "Understanding your day master",
+      "explanation": "The day master is the heavenly stem of your birth day, a reference point for reading the chart. These are general tendencies; the balance of the complete chart can change how they appear.",
+      "action": "A small step to try"
+    },
+    "readingNote": {
+      "speaker": "Yeoni explains"
+    },
+    "tenGodReading": {
+      "strength": "When this strength is useful",
+      "caution": "When balance needs attention",
+      "action": "A small step to try"
     }
   },
   "fortuneVar": {

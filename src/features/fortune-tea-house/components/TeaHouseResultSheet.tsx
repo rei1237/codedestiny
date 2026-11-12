@@ -3,6 +3,8 @@ import { getFortuneTeaHouseConsultFeatureKey } from "../data/consultPricing";
 import { teaAdviceTopics } from '@/js/recommendations-context.mjs';
 import { RecommendationResult } from "@/app/components/recommendations/RecommendationResult";
 import TeaResultCompanion from "./TeaResultCompanion";
+import YeoniReadingNote from "./YeoniReadingNote";
+import { dayMasterProfiles, resolveDayMaster, tenGodPresentation } from "../data/readingPresentation";
 
 import type { CSSProperties } from "react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -32,7 +34,7 @@ import TeaHouseSajuCompatResultPanel from "./TeaHouseSajuCompatResultPanel";
 import TeaHouseSukuyoResultPanel from "./TeaHouseSukuyoResultPanel";
 import TenGodSymbolCard from "./TenGodSymbolCard";
 import styles from "../styles/tea-report.module.css";
-
+
 import { useTeaHouseCopy } from "../lib/teaHouseCopy";
 import { useLocale } from "@/lib/i18n/useT";
 type TeaHouseResultSheetProps = {
@@ -491,6 +493,9 @@ export default function TeaHouseResultSheet({
         ? copy.katfuayw
       : copy.ko7hwtgc,
   };
+  const profiles = useTeaHouseCopy("dayMasterProfiles", dayMasterProfiles);
+  const temperaments = useTeaHouseCopy("tenGodPresentation", tenGodPresentation);
+  const dayMasterId = resolveDayMaster(saju.dayMaster);
   const tenGodSnapshot = saju.tenGodSnapshot;
   const primaryTenGodId = saju.primaryTenGod?.id || (tenGodSnapshot?.available ? tenGodSnapshot.primaryTenGod : undefined);
   const primaryTenGodMeta = primaryTenGodId ? tenGodMeta[primaryTenGodId] : null;
@@ -507,8 +512,8 @@ export default function TeaHouseResultSheet({
     ? [
         {
           label: copy.kcsdr29w,
-          title: saju.dayMaster || primaryTenGodMeta?.nameKo || copy.kno9czau,
-          body: primaryTenGodMeta?.roleInTeaHouse || saju.summary || copy.kuc2fthf,
+          title: dayMasterId ? profiles[dayMasterId].label : saju.dayMaster || primaryTenGodMeta?.nameKo || copy.kno9czau,
+          body: dayMasterId ? profiles[dayMasterId].description : saju.summary || copy.kuc2fthf,
         },
         {
           label: copy.k2xzjg8o,
@@ -675,7 +680,7 @@ export default function TeaHouseResultSheet({
       await exportResultPdf({
         captureTargets: ["[data-tea-pdf-section]"],
         fileName: copy.pdfFileName.replace("{title}", safeFilePart(result.sessionTitle)).replace("{date}", date),
-        backgroundColor: "#1a102c",
+        backgroundColor: getComputedStyle(sheet).getPropertyValue("--reading-paper").trim(),
         cover: {
           title: result.sessionTitle,
           subtitle: result.questionSummary,
@@ -762,7 +767,7 @@ export default function TeaHouseResultSheet({
             <div className={` `}>
               <span>{copy.kfo31gf6}</span>
               <strong>{primaryTenGodMeta ? primaryTenGodMeta.nameKo : copy.k258gcap}</strong>
-              <p>{primaryTenGodMeta ? primaryTenGodMeta.roleInTeaHouse : copy.kzr8vqho}</p>
+              <p>{primaryTenGodId ? temperaments[primaryTenGodId].title : copy.kzr8vqho}</p>
             </div>
           )}
           {previewKeywords.length > 0 ? <div className={` `}>
@@ -885,7 +890,7 @@ export default function TeaHouseResultSheet({
         <section className={`${styles.resultBlock} `} aria-labelledby="tarotInteractionTitle">
           <h3 id="tarotInteractionTitle">{copy.k6eloopo}</h3>
           <p className={styles.resultInteractionLead}>
-            
+
             {copy.kcvmzreq}
           </p>
           <div className={styles.resultInteractionList}>
@@ -983,17 +988,17 @@ export default function TeaHouseResultSheet({
           <div className={styles.yeoniReadingGrid}>
             {result.yeoniReading.main ? (
               <div className={styles.yeoniReadingItem}>
-                <LlmParagraphs text={result.yeoniReading.main} />
+                <YeoniReadingNote><LlmParagraphs text={result.yeoniReading.main} /></YeoniReadingNote>
               </div>
             ) : null}
             {result.yeoniReading.advice ? (
               <div className={styles.yeoniReadingItem}>
-                <LlmParagraphs text={result.yeoniReading.advice} />
+                <YeoniReadingNote mood="advice"><LlmParagraphs text={result.yeoniReading.advice} /></YeoniReadingNote>
               </div>
             ) : null}
             {result.yeoniReading.caution ? (
               <div className={styles.yeoniReadingItem}>
-                <LlmParagraphs text={result.yeoniReading.caution} />
+                <YeoniReadingNote mood="empathy"><LlmParagraphs text={result.yeoniReading.caution} /></YeoniReadingNote>
               </div>
             ) : null}
           </div>
@@ -1061,7 +1066,7 @@ export default function TeaHouseResultSheet({
               ) : !result.honeyLetterPending ? <p>꿀방울은 꿀꿀운세 지정 상품에서 사용할 수 있어요. 이미 받은 꿀편지는 이곳에서 다시 읽을 수 있어요.</p> : readOnly ? null : (
                 <div className={styles.honeyLetterCta}>
                   <p>
-                    
+
                     {copy.kdo9dh9f}
                   </p>
                   <TeaHouseButton onClick={requestHoneyLetter} disabled={!canRequestHoneyLetter}>
@@ -1096,7 +1101,7 @@ export default function TeaHouseResultSheet({
         <div className={`${styles.resultActions} `}>
           <TeaHouseButton onClick={onRestart}>{copy.kp3udmzq}</TeaHouseButton>
           <TeaHouseButton variant="secondary" onClick={saveResultAsTextFile}>
-            
+
             {copy.khvyisuj}
           </TeaHouseButton>
           {/* 타로는 앨범(DestinyCafeTarotAlbum)이 자체 PDF 를 갖고 있어 여기서 버튼을 세우지 않는다. */}

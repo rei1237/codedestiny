@@ -20,3 +20,6 @@
 .section .chatSpeech{position:relative;margin:20px 0 0;padding:20px 24px;border-radius:var(--cd-r-card);background:var(--home-panel);color:var(--tea-ink);font-size:clamp(1.1rem,2vw,1.4rem);font-weight:600;word-break:keep-all;overflow-wrap:anywhere}
 .chatSpeech::before{content:"";position:absolute;left:-12px;top:24px;border-top:12px solid transparent;border-bottom:12px solid transparent;border-right:12px solid var(--home-panel)}
 @media(max-width:700px){.chatInvitation{flex-direction:column;align-items:flex-start;gap:20px}.chatCharacter{width:160px;align-self:center}.chatContent{width:100%}.chatSpeech::before{left:calc(50% - 12px);top:-12px;border-left:12px solid transparent;border-right:12px solid transparent;border-top:0;border-bottom:12px solid var(--home-panel)}}
+
+.letter{composes:palette from "./tea-reading-theme.module.css";background:var(--reading-paper);border-color:var(--reading-border)}.letter p,.letter li{font-size:1rem;line-height:1.85;color:var(--reading-ink)}.letter .answer{color:var(--reading-accent)}.letter>span{color:var(--reading-muted)}
+.preview[id="tea-example"]{gap:32px;align-items:start}.preview[id="tea-example"]>div>img{object-fit:contain;aspect-ratio:1;width:220px;max-width:100%;margin:12px auto;display:block}.preview[id="tea-example"]>div>img:first-of-type{width:144px}.preview[id="tea-example"]>div>p{color:var(--home-muted)}

@@ -1158,7 +1158,6 @@ export default function FortuneTeaHousePage() {
     let deliveryStarted = false;
 
     try {
-      const startedAt = Date.now();
       const localDraft = buildFortuneTeaHouseConsultResult({
         consultationMode: nextQuestionInput.consultationMode,
         selectedTeaCupId: activeCup.id,
@@ -1441,7 +1440,7 @@ export default function FortuneTeaHousePage() {
       markGenerationComplete();
       setPartialSections([]);
 
-      const remainingDelay = Math.max(0, 1300 - (Date.now() - startedAt));
+      const remainingDelay = window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 600;
       if (remainingDelay > 0) {
         await new Promise((resolve) => window.setTimeout(resolve, remainingDelay));
       }
@@ -1545,12 +1544,12 @@ export default function FortuneTeaHousePage() {
 
   function renderSavedSections() {
     if (!partialSections.length) return null;
-    return <section className={`${styles.consultErrorCard} ${styles.checkpointReading}`} aria-label="저장된 상담 본문">
+    return <section className={roomStyles.checkpointReading} aria-label="저장된 상담 본문">
       <h2>먼저 준비된 상담</h2>
       <p>아직 완성 전인 상담입니다. 저장된 부분부터 읽을 수 있어요.</p>
       {partialSections.map(section => <details key={section.key}>
-        <summary style={{ padding: '12px 0', cursor: 'pointer' }}>{section.title}</summary>
-        <p style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', lineHeight: 1.85 }}>{section.body}</p>
+        <summary>{section.title}</summary>
+        <p>{section.body}</p>
       </details>)}
     </section>;
   }

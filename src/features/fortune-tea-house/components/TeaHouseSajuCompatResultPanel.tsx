@@ -4,7 +4,9 @@ import type { FortuneTeaHouseCalendarType, FortuneTeaHouseConsultResponse, Fortu
 import { fortuneTeaHouseAssets } from "../data/assets";
 import LlmParagraphs from "@/components/fortune/LlmParagraphs";
 import AssetImage from "./AssetImage";
-import styles from "../styles/fortune-tea-house.module.css";
+import styles from "../styles/tea-report.module.css";
+import YeoniReadingNote from "./YeoniReadingNote";
+import { dayMasterProfiles, resolveDayMaster } from "../data/readingPresentation";
 import { useTeaHouseCopy } from "../lib/teaHouseCopy";
 
 type TeaHouseSajuCompatResultPanelProps = {
@@ -66,12 +68,14 @@ function pillarLine(person: FortuneTeaSajuCompatPersonSnapshot) {
 
 function PersonSajuCard({ person, label }: { person: FortuneTeaSajuCompatPersonSnapshot; label: string }) {
   const copy = useTeaHouseCopy("sajuCompat", KO);
+  const profiles = useTeaHouseCopy("dayMasterProfiles", dayMasterProfiles);
+  const dayMasterId = resolveDayMaster(person.dayMaster);
   const pillars = pillarLine(person);
   return (
     <article className={styles.sukuyoMoonCard}>
       <span>{label}</span>
       <h4>{person.name}</h4>
-      <strong>{person.dayMaster || copy.card.dayMasterEmpty} {person.primaryTenGod ? `· ${person.primaryTenGod}` : ""}</strong>
+      <strong>{dayMasterId ? profiles[dayMasterId].label : person.dayMaster || copy.card.dayMasterEmpty} {person.primaryTenGod ? `· ${person.primaryTenGod}` : ""}</strong>
       <dl>
         <div>
           <dt>{copy.card.birthDateLabel}</dt>
@@ -120,7 +124,7 @@ export default function TeaHouseSajuCompatResultPanel({ result }: TeaHouseSajuCo
         <div>
           <span>{copy.eyebrow}</span>
           <h3 id="sajuCompatResultPanelTitle">{compat.title}</h3>
-          <LlmParagraphs text={compat.summary} />
+          <YeoniReadingNote><LlmParagraphs text={compat.summary} /></YeoniReadingNote>
         </div>
         <AssetImage className={styles.sukuyoResultImage} src={fortuneTeaHouseAssets.consultModes.saju} alt={copy.headerAlt} />
       </header>
@@ -153,8 +157,7 @@ export default function TeaHouseSajuCompatResultPanel({ result }: TeaHouseSajuCo
           </div>
           <AssetImage
             className={styles.resultSectionMascot}
-            src={fortuneTeaHouseAssets.yeoni.transparent.bust}
-            fallbackSrc={fortuneTeaHouseAssets.yeoni.bust}
+            src="/images/fortune-tea-house/renewal/pig-advice.webp"
             alt=""
           />
           <div className={styles.sukuyoTextList}>

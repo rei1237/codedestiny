@@ -1,0 +1,77 @@
+{
+  "generator": "OpenAI image generation tool",
+  "date": "2026-10-26",
+  "referencePolicy": "Human Yeoni uses the attached portrait. Pig brewing is a cleanup of the supplied image. Existing pig narrator artwork is preserved.",
+  "assets": [
+    {
+      "id": "bigeon",
+      "prompt": "Use case: stylized-concept. Asset type: premium Korean fortune tea-house UI illustration, one standalone symbol on real transparent background. Subject: a delicate rose-gold oval hand mirror standing beside a single upright blooming pink camellia branch, representing self-respect and independent strength (Bigeon). Style: polished hand-painted storybook watercolor and fine gouache, gentle anime background-art precision, elegant botanical ceramic detail, warm ivory ceramic, dusty rose, muted mauve, tiny antique-gold accents. Composition: square canvas, one cohesive centered still life, whole objects visible, consistent generous 12% transparent safety margin on every edge, occupying central 72%, no frame or scenery. Soft warm light, crisp clean contours and no loose particles. No character, no face, no pig, no labels, no text, no glyphs, no letters, no numbers, no logos, no border, no white rectangular background, no checkerboard painted in. Output exactly one isolated image with true alpha transparency.",
+      "kind": "ten-god"
+    },
+    {
+      "id": "geopjae",
+      "prompt": "Use case: stylized-concept. Asset type: premium Korean fortune tea-house UI illustration, one standalone symbol with true alpha transparency. Subject: two matching ivory porcelain teacups with dusty-pink floral glaze standing side by side on separate saucers, equal size and neither dominant; an elegant small branch unites them, representing comparison, healthy competition and cooperation. Style: polished hand-painted storybook watercolor and fine gouache with elegant botanical ceramic detail, soft warm light, warm ivory ceramic, dusty rose, muted mauve, tiny antique-gold accents, restrained green leaves. Same coherent collectible illustration series, delicate realistic materials, not cartoon icons. Composition: square, one centered still life, all objects completely visible, generous 12% transparent safety margin, central 72% occupancy. Crisp clean contours with no speckles, no colored fringe, no scattered background marks. No characters, faces, pigs, labels, text, glyphs, letters, numbers, logos, border, rectangular background or painted checkerboard. Output exactly one isolated illustration, transparent outside objects.",
+      "kind": "ten-god"
+    },
+    {
+      "id": "siksin",
+      "prompt": "Use case: stylized-concept. Asset type: premium Korean fortune tea-house UI illustration, one standalone symbol with true alpha transparency. Subject: a small ivory plate of carefully arranged Korean flower-shaped tea sweets beside loose tea leaves and a tiny ceramic tea scoop, representing steady creativity and nourishing work. Style: polished hand-painted storybook watercolor and fine gouache with elegant botanical ceramic detail, soft warm light, warm ivory ceramic, dusty rose, muted mauve, tiny antique-gold accents, restrained green leaves. Same coherent collectible illustration series, delicate realistic materials, not cartoon icons. Composition: square, one centered still life, all objects completely visible, generous 12% transparent safety margin, central 72% occupancy. Crisp clean contours with no speckles, no colored fringe, no scattered background marks. No characters, faces, pigs, labels, text, glyphs, letters, numbers, logos, border, rectangular background or painted checkerboard. Output exactly one isolated illustration, transparent outside objects.",
+      "kind": "ten-god"
+    },
+    {
+      "id": "sanggwan",
+      "prompt": "Use case: stylized-concept. Asset type: premium Korean fortune tea-house UI illustration, one standalone symbol with true alpha transparency. Subject: a fine rose-gold calligraphy brush resting across a clean ivory ceramic brush rest, a graceful arc of five pink petals gently unfolding beside it, representing self-expression; absolutely no writing or painted marks. Style: polished hand-painted storybook watercolor and fine gouache with elegant botanical ceramic detail, soft warm light, warm ivory ceramic, dusty rose, muted mauve, tiny antique-gold accents, restrained green leaves. Same coherent collectible illustration series, delicate realistic materials, not cartoon icons. Composition: square, one centered still life, all objects completely visible, generous 12% transparent safety margin, central 72% occupancy. Crisp clean contours with no speckles, no colored fringe, no scattered background marks. No characters, faces, pigs, labels, text, glyphs, letters, numbers, logos, border, rectangular background or painted checkerboard. Output exactly one isolated illustration, transparent outside objects.",
+      "kind": "ten-god"
+    },
+    {
+      "id": "pyeonjae",
+      "prompt": "Use case: stylized-concept. Asset type: premium Korean fortune tea-house UI illustration, one standalone symbol with true alpha transparency. Subject: an open miniature arched rose-gold window looking onto two gently diverging garden paths surrounded by pink camellias, the whole miniature scene is an isolated ornamental object, representing discovering opportunities. Style: polished hand-painted storybook watercolor and fine gouache with elegant botanical ceramic detail, soft warm light, warm ivory ceramic, dusty rose, muted mauve, tiny antique-gold accents, restrained green leaves. Same coherent collectible illustration series, delicate realistic materials, not cartoon icons. Composition: square, one centered still life, all objects completely visible, generous 12% transparent safety margin, central 72% occupancy. Crisp clean contours with no speckles, no colored fringe, no scattered background marks. No characters, faces, pigs, labels, text, glyphs, letters, numbers, logos, border, rectangular background or painted checkerboard. Output exactly one isolated illustration, transparent outside objects.",
+      "kind": "ten-god"
+    },
+    {
+      "id": "jeongjae",
+      "prompt": "Use case: stylized-concept. Asset type: premium Korean fortune tea-house UI illustration, one standalone symbol with true alpha transparency. Subject: a closed neatly bound dusty-rose account book with entirely blank cover and a small ivory tea-leaf storage jar beside it, with a tidy ceramic scoop, representing steady management and daily foundations; no text anywhere. Style: polished hand-painted storybook watercolor and fine gouache with elegant botanical ceramic detail, soft warm light, warm ivory ceramic, dusty rose, muted mauve, tiny antique-gold accents, restrained green leaves. Same coherent collectible illustration series, delicate realistic materials, not cartoon icons. Composition: square, one centered still life, all objects completely visible, generous 12% transparent safety margin, central 72% occupancy. Crisp clean contours with no speckles, no colored fringe, no scattered background marks. No characters, faces, pigs, labels, text, glyphs, letters, numbers, logos, border, rectangular background or painted checkerboard. Output exactly one isolated illustration, transparent outside objects.",
+      "kind": "ten-god"
+    },
+    {
+      "id": "pyeongwan",
+      "prompt": "Use case: stylized-concept. Asset type: premium Korean fortune tea-house UI illustration, one standalone symbol with true alpha transparency. Subject: three graceful green bamboo stalks bending gently in a breeze rooted in a small ivory ceramic planter with subtle rose-gold floral detail, representing resilience under pressure. Style: polished hand-painted storybook watercolor and fine gouache with elegant botanical ceramic detail, soft warm light, warm ivory ceramic, dusty rose, muted mauve, tiny antique-gold accents, restrained green leaves. Same coherent collectible illustration series, delicate realistic materials, not cartoon icons. Composition: square, one centered still life, all objects completely visible, generous 12% transparent safety margin, central 72% occupancy. Crisp clean contours with no speckles, no colored fringe, no scattered background marks. No characters, faces, pigs, labels, text, glyphs, letters, numbers, logos, border, rectangular background or painted checkerboard. Output exactly one isolated illustration, transparent outside objects.",
+      "kind": "ten-god"
+    },
+    {
+      "id": "jeonggwan",
+      "prompt": "Use case: stylized-concept. Asset type: premium Korean fortune tea-house UI illustration, one standalone symbol with true alpha transparency. Subject: five orderly ivory garden stepping stones leading gently forward between two restrained pink flowering branches, isolated miniature garden vignette without a ground rectangle, representing dependable promises and trust. Style: polished hand-painted storybook watercolor and fine gouache with elegant botanical ceramic detail, soft warm light, warm ivory ceramic, dusty rose, muted mauve, tiny antique-gold accents, restrained green leaves. Same coherent collectible illustration series, delicate realistic materials, not cartoon icons. Composition: square, one centered still life, all objects completely visible, generous 12% transparent safety margin, central 72% occupancy. Crisp clean contours with no speckles, no colored fringe, no scattered background marks. No characters, faces, pigs, labels, text, glyphs, letters, numbers, logos, border, rectangular background or painted checkerboard. Output exactly one isolated illustration, transparent outside objects.",
+      "kind": "ten-god"
+    },
+    {
+      "id": "pyeonin",
+      "prompt": "Use case: stylized-concept. Asset type: premium Korean fortune tea-house UI illustration, one standalone symbol with true alpha transparency. Subject: an elegant rose-gold magnifying glass resting over an open ivory book with completely blank pages, a small pink camellia at the corner, representing insight and a different perspective; no letters or marks. Style: polished hand-painted storybook watercolor and fine gouache with elegant botanical ceramic detail, soft warm light, warm ivory ceramic, dusty rose, muted mauve, tiny antique-gold accents, restrained green leaves. Same coherent collectible illustration series, delicate realistic materials, not cartoon icons. Composition: square, one centered still life, all objects completely visible, generous 12% transparent safety margin, central 72% occupancy. Crisp clean contours with no speckles, no colored fringe, no scattered background marks. No characters, faces, pigs, labels, text, glyphs, letters, numbers, logos, border, rectangular background or painted checkerboard. Output exactly one isolated illustration, transparent outside objects.",
+      "kind": "ten-god"
+    },
+    {
+      "id": "jeongin",
+      "prompt": "Use case: stylized-concept. Asset type: premium Korean fortune tea-house UI illustration, one standalone symbol with true alpha transparency. Subject: an open ivory book with blank pages beside a warm floral porcelain teacup and folded dusty-rose cloth, representing learning, support and recovery; no writing. Style: polished hand-painted storybook watercolor and fine gouache with elegant botanical ceramic detail, soft warm light, warm ivory ceramic, dusty rose, muted mauve, tiny antique-gold accents, restrained green leaves. Same coherent collectible illustration series, delicate realistic materials, not cartoon icons. Composition: square, one centered still life, all objects completely visible, generous 12% transparent safety margin, central 72% occupancy. Crisp clean contours with no speckles, no colored fringe, no scattered background marks. No characters, faces, pigs, labels, text, glyphs, letters, numbers, logos, border, rectangular background or painted checkerboard. Output exactly one isolated illustration, transparent outside objects.",
+      "kind": "ten-god"
+    },
+    {
+      "id": "tea-base",
+      "prompt": "Use case: stylized-concept. Standalone transparent UI illustration for a Korean moonlight tea house. One elegant dusty pink and warm ivory porcelain teapot with subtle lotus blossoms and antique-gold trim, on a low wooden tea tray alongside one matching teacup filled with amber tea. Hand-painted anime storybook watercolor/gouache, premium delicate finish, soft warm light. Square composition, still life occupies the lower central 65% of canvas; upper 28% empty transparent space reserved for a separately animated steam layer. Teapot, lid, handle, spout, cup and tray completely visible with 12% margin. Absolutely NO steam, NO smoke, no characters, text, labels, numbers, scenery or cast background. True alpha transparent outside objects, clean edges and no loose speckles.",
+      "kind": "scene"
+    },
+    {
+      "id": "tea-steam",
+      "prompt": "A production animation sprite sheet containing exactly SIXTEEN translucent pale warm rose-gray wisps of STEAM ONLY, arranged in an exact uniform 4 columns by 4 rows grid on a square transparent canvas. All 16 cells are equal size and have generous empty alpha margin. One gentle S-shaped steam ribbon in each cell, rooted at exactly the same bottom-center coordinate with constant total bounding size, evolving subtly and continuously left to right then next row, smoothly curling upward, last frame nearly matches first for looping. No objects, teapot, cups, backgrounds, lines, grids, separators, text, digits or labels. This is a transparent steam overlay atlas for a stationary teapot, not sixteen different compositions. Subtle visible soft rose-gray opacity, no white background. Square image with true alpha transparency.",
+      "kind": "scene"
+    },
+    {
+      "id": "yeoni-serving",
+      "prompt": "Use case: identity-preserve. Reference is the supplied human Yeoni tea-pouring portrait. Preserve exactly her face identity, long wavy pink hair, pink eyes, lotus hair flower, lavender bow and delicate pale pink floral robe, same sophisticated anime illustration style. Create a new gentle serving pose: she smiles warmly toward the viewer and offers ONE pink floral tea cup on a saucer forward with BOTH hands supporting it. Do not pour, do not include a teapot. Waist-up portrait, fully include head, lotus flower, both hands, cup and saucer with safe margin. Transparent background, no dark rectangle, no frame, no text, no lettering, no watermark. Clean silhouette and anatomically natural hands. Keep the original character, outfit and palette unchanged.",
+      "kind": "scene"
+    },
+    {
+      "id": "pig-brewing-clean",
+      "prompt": "Use case: background-extraction, precise-object-edit. Clean THIS EXACT supplied flower-pig Yeoni illustration without redesigning anything: preserve her pink lotus head ornament, closed happy eyes, snout, purple scarf, paws pouring from the floral teapot into the tea cup, curly tail, and entire wooden tea tray. Remove ALL unrelated fragments from neighboring characters at the left edge and ALL colored red/magenta/white speckles and edge debris outside the intended illustration. Reconstruct only tiny cut-off outlines if necessary. Keep the original pose, proportions, identity, colors, teapot, cup and tray. Isolate as a complete clean cutout with true alpha transparency and uniform small safety margin, no background, no cast rectangle, no new decorations, no text.",
+      "kind": "scene"
+    }
+  ]
+}

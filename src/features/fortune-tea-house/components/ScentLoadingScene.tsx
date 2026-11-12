@@ -48,7 +48,8 @@ const KO = {
   progress: { label: "요청 접수", message: "찻잔 위에 질문을 올리고 있어요." },
   sceneAria: "연이가 상담문을 준비하는 중",
   loadingAlt: "달빛 찻잔이 떠오르는 로딩 장면",
-  yeoniAria: "찻주전자로 차를 따르는 연이",
+  yeoniAria: "꽃무늬 찻주전자에서 차가 우러나는 장면",
+  completedAlt: "따뜻한 차를 건네는 연이",
   progressAria: "상담문 생성 진행",
   introduction: "차가 천천히 우러나듯, 당신의 이야기에 어울리는 말을 고르고 있어요.",
   waitingTitle: "당신을 위한 이야기를\n정성껏 준비하고 있어요",
@@ -62,7 +63,7 @@ export default function ScentLoadingScene({ selectedCup, consultationMode = "tar
   const activeProgress = progress || { percent: 5, label: copy.progress.label, message: copy.progress.message, status: "running" };
   const complete = activeProgress.status === "complete";
   return <section className={styles.scene} aria-label={copy.sceneAria} aria-busy={!complete}>
-    <div className={styles.visual}><YeoniWaitingPortrait label={copy.yeoniAria} complete={complete} /></div>
+    <div className={styles.visual}><YeoniWaitingPortrait label={complete ? copy.completedAlt : copy.yeoniAria} complete={complete} paused={activeProgress.status === "error"} /></div>
     <div className={styles.content}>
       <h2 className={styles.title}>{copy.waitingTitle}</h2>
       <p className={styles.intro}>{copy.introduction}</p>

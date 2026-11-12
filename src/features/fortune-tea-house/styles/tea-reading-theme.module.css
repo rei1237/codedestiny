@@ -1,0 +1,18 @@
+.palette {
+  --reading-paper: #fffaf7;
+  --reading-white: #fffdf9;
+  --reading-surface: #f8edf2;
+  --reading-ink: #3c1830;
+  --reading-muted: #70445c;
+  --reading-accent: #9b2855;
+  --reading-border: #d7b7c5;
+  --reading-track: #ecdae3;
+  color: var(--reading-ink);
+  font-size: 16px;
+  line-height: 1.85;
+  letter-spacing: -0.005em;
+  overflow-wrap: anywhere;
+  text-align: left;
+}
+.palette ::selection { background: var(--reading-track); color: var(--reading-ink); }
+.palette :focus-visible { outline: 3px solid var(--reading-accent); outline-offset: 4px; }

@@ -30,7 +30,7 @@ const KO = {
   earthlyBranch: "지지",
   element: "오행",
   tenGod: "십성",
-  tenGodEmpty: "대표 손님과 함께 봐요",
+  tenGodEmpty: "대표 기질과 함께 살펴요",
 };
 
 export default function SajuPillarBoard({ pillars }: SajuPillarBoardProps) {

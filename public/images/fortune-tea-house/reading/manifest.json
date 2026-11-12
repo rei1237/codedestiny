@@ -1,0 +1,106 @@
+{
+  "version": "tea-reading-20261026",
+  "entries": [
+    {
+      "id": "bigeon",
+      "file": "/images/fortune-tea-house/reading/ten-gods/bigeon.webp",
+      "width": 512,
+      "height": 512,
+      "bytes": 51712
+    },
+    {
+      "id": "geopjae",
+      "file": "/images/fortune-tea-house/reading/ten-gods/geopjae.webp",
+      "width": 512,
+      "height": 512,
+      "bytes": 65032
+    },
+    {
+      "id": "siksin",
+      "file": "/images/fortune-tea-house/reading/ten-gods/siksin.webp",
+      "width": 512,
+      "height": 512,
+      "bytes": 58826
+    },
+    {
+      "id": "sanggwan",
+      "file": "/images/fortune-tea-house/reading/ten-gods/sanggwan.webp",
+      "width": 512,
+      "height": 512,
+      "bytes": 51610
+    },
+    {
+      "id": "pyeonjae",
+      "file": "/images/fortune-tea-house/reading/ten-gods/pyeonjae.webp",
+      "width": 512,
+      "height": 512,
+      "bytes": 69714
+    },
+    {
+      "id": "jeongjae",
+      "file": "/images/fortune-tea-house/reading/ten-gods/jeongjae.webp",
+      "width": 512,
+      "height": 512,
+      "bytes": 48614
+    },
+    {
+      "id": "pyeongwan",
+      "file": "/images/fortune-tea-house/reading/ten-gods/pyeongwan.webp",
+      "width": 512,
+      "height": 512,
+      "bytes": 68048
+    },
+    {
+      "id": "jeonggwan",
+      "file": "/images/fortune-tea-house/reading/ten-gods/jeonggwan.webp",
+      "width": 512,
+      "height": 512,
+      "bytes": 92430
+    },
+    {
+      "id": "pyeonin",
+      "file": "/images/fortune-tea-house/reading/ten-gods/pyeonin.webp",
+      "width": 512,
+      "height": 512,
+      "bytes": 44352
+    },
+    {
+      "id": "jeongin",
+      "file": "/images/fortune-tea-house/reading/ten-gods/jeongin.webp",
+      "width": 512,
+      "height": 512,
+      "bytes": 51468
+    },
+    {
+      "id": "tea-base",
+      "file": "/images/fortune-tea-house/reading/tea-base.webp",
+      "width": 512,
+      "height": 512,
+      "bytes": 50378
+    },
+    {
+      "id": "yeoni-serving",
+      "file": "/images/fortune-tea-house/reading/yeoni-serving.webp",
+      "width": 640,
+      "height": 640,
+      "bytes": 110870
+    },
+    {
+      "id": "pig-brewing-clean",
+      "file": "/images/fortune-tea-house/reading/pig-brewing-clean.webp",
+      "width": 640,
+      "height": 640,
+      "bytes": 70624
+    },
+    {
+      "id": "tea-brewing-sheet",
+      "file": "/images/fortune-tea-house/reading/tea-brewing-sheet.webp",
+      "columns": 4,
+      "rows": 4,
+      "frames": 16,
+      "frameWidth": 320,
+      "frameHeight": 320,
+      "durationMs": 2400
+    }
+  ]
+}

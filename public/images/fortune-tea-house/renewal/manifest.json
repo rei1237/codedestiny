@@ -416,7 +416,7 @@
     },
     {
       "file": "/images/fortune-tea-house/renewal/state-brewing.webp",
-      "source": "assets/yeoni-teahouse/originals/human-states.png",
+      "source": "assets/yeoni-teahouse/reading/pig-brewing-clean.webp",
       "usage": "인간형 상담·결과 편지·상담함·복구",
       "screens": [
         "generation",
@@ -425,17 +425,12 @@
       "status": "applied-or-reference",
       "alt": "상담을 준비하며 차를 우리는 꽃돼지 연이",
       "decorativeAlt": "",
-      "width": 416,
-      "height": 421,
+      "width": 640,
+      "height": 640,
       "alpha": true,
-      "bytes": 56522,
-      "crop": {
-        "left": 830,
-        "top": 420,
-        "width": 416,
-        "height": 421
-      },
-      "display": "contain for transparent cutouts; center for scenes"
+      "bytes": 70624,
+      "crop": null,
+      "display": "contain; preserve complete flower, ears, tail, teapot and tray"
     },
     {
       "file": "/images/fortune-tea-house/renewal/state-completed.webp",

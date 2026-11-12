@@ -21,3 +21,11 @@
 .moonlit .header button,.moonlit .soundToggle{background:var(--novel-bg);color:var(--novel-text);border-color:var(--novel-border)}
 .moonlit .notice{background:var(--novel-surface);color:var(--novel-text)}
 @media(max-width:700px){.moonlit::before{background-image:linear-gradient(180deg,color-mix(in srgb,var(--novel-bg) 55%,transparent),color-mix(in srgb,var(--novel-bg) 92%,transparent)),var(--tea-bg-mobile)}}
+
+.checkpointReading { composes:palette from "./tea-reading-theme.module.css";box-sizing:border-box;width:calc(100% - 32px);max-width:760px;margin:24px auto 40px;padding:clamp(20px,4vw,32px);background:var(--reading-paper);border:1px solid var(--reading-border);border-radius:var(--cd-r-card); }
+.checkpointReading h2,.checkpointReading>p { text-align:center; }
+.checkpointReading h2 { margin:0 0 12px;font:600 1.4rem/1.5 var(--tea-font-premium),serif; }
+.checkpointReading>p { color:var(--reading-muted);margin:0 0 24px; }
+.checkpointReading details { border-top:1px solid var(--reading-border); }
+.checkpointReading summary { min-height:48px;cursor:pointer;padding:12px 0;font-weight:600; }
+.checkpointReading details p { white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.85;margin:8px 0 24px; }
