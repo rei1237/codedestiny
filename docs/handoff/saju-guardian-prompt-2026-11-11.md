@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-11-12
-next: "2단계 — 무료화 운영 승격 완료 통보를 받은 뒤 origin/main 최신으로 rebase(또는 cherry-pick)하고 재검증·push한다(통보 전 push 금지)."
+next: "3단계 — push한 SHA의 PR CI·Paid Flow Gates·스테이징 릴리스 성공 확인 뒤 운영 승격(mode=production) 실행·확인."
 ---
 
 # 사주 가디언: 이미지 생성 → 이미지 프롬프트, 가격 3,000원
@@ -52,6 +52,11 @@ next: "2단계 — 무료화 운영 승격 완료 통보를 받은 뒤 origin/ma
   - 포트 3217의 next dev(PID 9120)는 이 세션이 띄운 것이 아니라 그대로 둠. 이 세션은 3218을 썼고 종료함.
   - free-fortune-policy 4파일 줄바꿈 거짓 변경은 되돌리고 커밋하지 않음.
 - 🔴 순서 조율(2026-11-11, 무료화 릴리스 세션 요청: 사용자 결정 "무료화 먼저, 가디언은 바로 뒤"): 무료화 운영 승격(CI 커밋 70e2b413d)이 끝났다는 통보 전에는 가디언 커밋을 origin/main에 push하지 않는다. 승격 뒤 가디언은 별도 운영 배포로 바로 이어 간다.
-- [ ] 2. (무료화 승격 완료 통보 후) origin/main 최신으로 rebase(또는 cherry-pick), 충돌 해결, 재검증, origin/main push, CI 결과 확인
+- [x] 2. (무료화 승격 완료 통보 후) origin/main 최신으로 rebase(또는 cherry-pick), 충돌 해결, 재검증, origin/main push, CI 결과 확인
+  - 통보(2026-11-12 10:50 KST): 무료화 운영 승격 완료, 운영 Pages·Worker 모두 `37258e3e9`. user-65 세션 종료로 새 에이전트가 이어받음.
+  - rebase: origin/main `ba28330a5` 위로. 충돌은 `config/sitemap-lastmod.json`뿐(생성물) → upstream 쪽을 받고 원래 원장 커밋 `1d991cace`는 빈 커밋으로 빠짐. 이어서 `sync:public`·`sitemap:generate`로 다시 만들어 `build:` 커밋 1개(공개 미러 캐시 버스트 해시·사이트맵 원장·sitemap*.xml lastmod)로 담음.
+  - 재검증(rebase 뒤): check:fast `--base=origin/main` 474스위트 7900 통과·1 skip, check:worker 동일 통과, test:node 4969/0, verify:app-store-billing-policy·verify:birth-scope-client-mirror(41키)·verify:pass-tier-policy·sitemap:check(1069 URL) 통과. 390px Playwright는 코드 변경이 없어 다시 돌리지 않음(1단계 결과 유효).
+  - 함정: 로컬 `npm run check:fast`는 기본 베이스가 HEAD라 커밋 뒤 실행하면 "검사할 변경 없음"으로 끝난다. `node scripts/check-changed.mjs --profile=fast --skip-build --base=origin/main`으로 돌린다.
+  - 함정: free-fortune-policy 4파일 CRLF 거짓 변경이 rebase를 막으면 지우지 말고 `git update-index --assume-unchanged <4파일>` → rebase → `--no-assume-unchanged`로 넘긴다.
 - [ ] 3. 무료화 릴리스 운영 승격 상태 확인: 아직이면 담당 문서에 가디언 포함 사실을 적어 함께 승격되게 하고, 승격 워크플로가 이미 끝났으면 가디언 포함 커밋으로 운영 배포 워크플로 실행(승인됨). 배포 후 운영 `/api/guardian/generate-image` 410·`/image-prompt` 401(비로그인) 확인, 운영 DB 쓰기 없이.
 - [ ] 4. 최종 보고(한국어): 가격 해석, 기존 이용자 영향, 후속 과제(order-view-model.ts:99 표기 오류, light-fortune-catalog.js:18 사유, /api/guardian-avatar 죽은 코드, NVIDIA_DRAW_API_KEY 비밀값 정리, 패널 08·09 새 그림, docs 인벤토리, "나의 수호 캐릭터" 사전 누락, public/i18n/en.json:6002 "10,000 KRW", transform-origin 경고)
