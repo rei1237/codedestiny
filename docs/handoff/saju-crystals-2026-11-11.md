@@ -1,7 +1,7 @@
 ---
 status: done
 updated: 2026-11-12
-next: 통합 — 상위 세션이 사용자와 main 로컬 merge·push·배포·워크트리 정리(npm run worktree:remove). 다른 기기 동기화는 워커 배포가 필요(사용자 미요청) — "2026-11-12 후속" 절
+next: 사용자 요청 시 origin/main push·워커 배포·worktree:remove
 ---
 
 # 사주 원석 추천 — 연이의 원석 큐레이션 인수인계
@@ -273,3 +273,10 @@ next: 통합 — 상위 세션이 사용자와 main 로컬 merge·push·배포·
 - `__tests__/ui/saju-crystal-flow.test.mjs` 16/16 통과, 워커 프로필 jest 14개 묶음 148개 통과.
 - `npm run check:fast -- --base=bae74a4c1` 통과(77단계 ok, jest 475 suites/7913 tests 통과·1 skip). 첫 실행은 `verify:sitemap-drift`에서 막혔다 — `/saju/crystals/` 서명 변경(컷 크기)과 날짜 롤링 페이지(fortune/monthly·today·tomorrow, /today/) lastmod. `npm run sitemap:generate` 결과를 별도 커밋 adbadf7eb로 담았다. main에서 merge 충돌이 나면 사이트맵 파일은 손으로 고치지 말고 merge 뒤 `npm run sitemap:generate`를 다시 돌려 담는다.
 - 전후 캡처 확인: 컷 03·05·07·09(390/1280) 얼굴·모자·연꽃·회상 원 온전, 그림 비율과 상자 비율 일치(1px 반올림), OG 연꽃 위 여백 자연스러움, 진입 카드 보조 링크 확인.
+
+## 2026-11-12 병합
+- `f9abb37c7`에서 origin/main(37258e3e9 이후 14커밋)을 원석 브랜치에 병합했다. 충돌은 `config/sitemap-lastmod.json` 하나였고, origin/main 쪽을 받은 뒤 `npm run sitemap:generate`로 다시 만들었다.
+- 병합 결과로 `npm run check:fast -- --base=bae74a4c1`를 돌려 exit 0이었다(475 suites, 7916 tests 통과, 1 skip).
+- 브랜치는 origin/main보다 뒤처진 커밋이 0개다. 그래서 main으로 fast-forward push가 가능하다.
+- 남은 일(사용자 요청 시에만): origin/main push(Pages 배포), 워커 배포(`sajuCrystal` 동기화 켜기), `npm run worktree:remove`로 워크트리 정리.
+- 로컬 main은 다른 워크트리(`C:/Users/user/Documents/Codex/worktrees/yeongnyangi-blue-passes-20261024-050530`)에 체크아웃되어 있어 건드리지 않았다.
