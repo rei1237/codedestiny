@@ -529,6 +529,13 @@ jobs:
         if: needs.scope.outputs.runs_critical != 'true'
         run: npx playwright install --with-deps chromium
 
+      # 🔴 `npm test` 의 __tests__/fortune/* 는 KST 오늘자 fortune/data/daily-*.json 을 읽는다.
+      #    이 데이터는 .gitignore 대상이라 체크아웃에 없다 — pr-ci 처럼 먼저 만든다.
+      #    (2026-11-12 실측: 70e2b413d 의 전체 스위트가 daily-2026-11-12.json ENOENT 로 실패)
+      - name: Build daily fortune data for npm test
+        if: needs.scope.outputs.runs_critical != 'true'
+        run: npm run fortune:build-data
+
       # 🔴 스위트 목록의 정본은 scripts/run-paid-gate-suite.mjs 한 벌이다. 여기에 스텝을 다시
       #    늘어놓지 않는다 — 예전에는 48개 스텝이 순차라 (a) 첫 실패에서 멈춰 깨진 가드가 2개면
       #    왕복이 2번이었고 (b) 실패가 이 커밋 탓인지 앞선 main 탓인지 구분할 방법이 없었다.

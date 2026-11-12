@@ -298,11 +298,11 @@ window.__cdServiceRegistry = [
     desc: "일주·월지·시지로 여는 60갑자 수호 인장",
     action: "openSajuGuardianPage",
     featureKey: "saju-guardian-unlock",
-    price: "5,000원",
+    price: "3,000원",
     purposes: ["self", "life"],
     methods: ["saju"],
     keys: "가디언 수호 인장 소환진 60갑자",
-    badge: "영구 해금",
+    badge: "생년월일별 해금",
   },
   {
     image: "/images/service-introductions/naming-ai-320.webp",

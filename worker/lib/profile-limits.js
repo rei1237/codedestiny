@@ -398,8 +398,8 @@ export function resolveMonthlySpendQuota(profileSubscription, entitlement, coinC
 // (js/core/pass-verdict.js)가 숫자를 미러링하는 정본이고, 이 레포의 크로스파일
 // 숫자 합의 방식은 "미러 상수 + 가드 단언"이다. verify:pass-tier-policy 가
 // registry 를 전수로 읽어 이 값과 대조하므로, 더 싼 상품이 생기면 즉시 실패한다.
-export const MIN_PASS_COVERABLE_COIN = 50; // 2026-11-04 라이트 운세를 뺀 판매 상품의 최저가(5,000원)
-export const FAMILY_MIN_PASS_COVERABLE_COIN = 50; // Family 도 같은 기준
+export const MIN_PASS_COVERABLE_COIN = 30; // 2026-11-11 라이트 운세를 뺀 판매 상품의 최저가(사주 가디언 3,000원)
+export const FAMILY_MIN_PASS_COVERABLE_COIN = 30; // Family 도 같은 기준
 
 export function minPassCoverableCoinForTier(tier) {
   return normalizePassTier(tier) === PASS_TIERS.FAMILY

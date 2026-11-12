@@ -621,6 +621,7 @@
       "promptMakerPrice": "KRW 5,000-10,000 mengikut bilangan kad",
       "unlock5000": "Buka kunci KRW 5,000",
       "sajuGuardianPricePrice5000": "Buka kunci kekal KRW 5,000",
+      "sajuGuardianPricePrice3000": "KRW 3,000 setiap tarikh lahir",
       "price5000Price3000": "Sekali KRW 3,000",
       "price10000Price5000": "Sekali KRW 5,000",
       "unlock1000": "Buka kunci KRW 1,000",
@@ -14641,7 +14642,7 @@
       "tagline": "Your birth-day pillar selects your guardian from the sixty stem-branch combinations. The same chart always summons the same appearance, alongside five reading panels and a talisman pouch.",
       "feats": {
         "0": "Sixty guardian characters, one for each stem-branch combination",
-        "1": "The same chart, the same appearance—your guardian image created with AI",
+        "1": "Same chart, same composition—your guardian prompt for external image tools",
         "2": "Five panels: core guardian seal, relationships/work/money, today’s luck ritual, seven-day guardian missions and a practical guardian guide",
         "3": "A talisman pouch containing today’s color, a summoning phrase, a small action and a timing key"
       },
@@ -14652,14 +14653,14 @@
         "2": "For those wanting a short luck-themed routine"
       },
       "premiumChapters": {
-        "0": "Your day-pillar guardian and an AI-created image",
+        "0": "Your day-pillar guardian and an image prompt",
         "1": "Core guardian seal and guidance for relationships, work and money",
         "2": "Today’s luck ritual and seven-day guardian missions",
         "3": "Talisman pouch—today’s color, a summoning phrase, a small action and a timing key"
       },
       "premiumOutcomes": {
         "0": "The reading is for reference.",
-        "1": "Character images are AI-generated.",
+        "1": "No image is provided; you receive a prompt for external image tools.",
         "2": "The existing payment policy applies."
       },
       "answersQuestions": {

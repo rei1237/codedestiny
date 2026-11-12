@@ -897,18 +897,18 @@
     "ms": "Sixty guardian characters, one for each stem-branch combination"
   },
   "featureMarketing.openSajuGuardianPage.feats.1": {
-    "ko": "같은 명식이면 같은 모습 — AI가 그려내는 내 가디언 이미지",
-    "en": "The same chart, the same appearance—your guardian image created with AI",
-    "ja": "同じ命式なら同じ姿。AIが描く自分のガーディアン画像",
-    "zh-CN": "相同命式，相同形象——由AI绘制的专属守护者图片",
-    "zh-TW": "相同命式，相同形象——由AI繪製的專屬守護者圖片",
-    "vi": "The same chart, the same appearance—your guardian image created with AI",
-    "hi": "The same chart, the same appearance—your guardian image created with AI",
-    "es": "The same chart, the same appearance—your guardian image created with AI",
-    "fr": "The same chart, the same appearance—your guardian image created with AI",
-    "de": "The same chart, the same appearance—your guardian image created with AI",
-    "nl": "The same chart, the same appearance—your guardian image created with AI",
-    "ms": "The same chart, the same appearance—your guardian image created with AI"
+    "ko": "같은 명식이면 같은 구성 — 외부 이미지 도구에 쓰는 나의 가디언 프롬프트",
+    "en": "Same chart, same composition—your guardian prompt for external image tools",
+    "ja": "同じ命式なら同じ構成。外部画像ツール用の自分のガーディアンプロンプト",
+    "zh-CN": "相同命式，相同构图——用于外部图像工具的专属守护者提示词",
+    "zh-TW": "相同命式，相同構圖——用於外部圖像工具的專屬守護者提示詞",
+    "vi": "Same chart, same composition—your guardian prompt for external image tools",
+    "hi": "Same chart, same composition—your guardian prompt for external image tools",
+    "es": "Same chart, same composition—your guardian prompt for external image tools",
+    "fr": "Same chart, same composition—your guardian prompt for external image tools",
+    "de": "Same chart, same composition—your guardian prompt for external image tools",
+    "nl": "Same chart, same composition—your guardian prompt for external image tools",
+    "ms": "Same chart, same composition—your guardian prompt for external image tools"
   },
   "featureMarketing.openSajuGuardianPage.feats.2": {
     "ko": "핵심 수호 인장 · 관계/일/재물 운용 · 오늘의 개운 의식 · 7일 가디언 미션 · 실전 가디언 가이드 다섯 패널",
@@ -967,18 +967,18 @@
     "ms": "For those wanting a short luck-themed routine"
   },
   "featureMarketing.openSajuGuardianPage.premiumChapters.0": {
-    "ko": "내 일주의 수호 가디언과 AI 이미지",
-    "en": "Your day-pillar guardian and an AI-created image",
-    "ja": "自分の日柱の守護ガーディアンとAI画像",
-    "zh-CN": "日柱守护者与AI图片",
-    "zh-TW": "日柱守護者與AI圖片",
-    "vi": "Your day-pillar guardian and an AI-created image",
-    "hi": "Your day-pillar guardian and an AI-created image",
-    "es": "Your day-pillar guardian and an AI-created image",
-    "fr": "Your day-pillar guardian and an AI-created image",
-    "de": "Your day-pillar guardian and an AI-created image",
-    "nl": "Your day-pillar guardian and an AI-created image",
-    "ms": "Your day-pillar guardian and an AI-created image"
+    "ko": "내 일주의 수호 가디언과 이미지 프롬프트",
+    "en": "Your day-pillar guardian and an image prompt",
+    "ja": "自分の日柱の守護ガーディアンと画像プロンプト",
+    "zh-CN": "日柱守护者与图像提示词",
+    "zh-TW": "日柱守護者與圖像提示詞",
+    "vi": "Your day-pillar guardian and an image prompt",
+    "hi": "Your day-pillar guardian and an image prompt",
+    "es": "Your day-pillar guardian and an image prompt",
+    "fr": "Your day-pillar guardian and an image prompt",
+    "de": "Your day-pillar guardian and an image prompt",
+    "nl": "Your day-pillar guardian and an image prompt",
+    "ms": "Your day-pillar guardian and an image prompt"
   },
   "featureMarketing.openSajuGuardianPage.premiumChapters.1": {
     "ko": "핵심 수호 인장과 관계 · 일 · 재물 운용",
@@ -1023,18 +1023,18 @@
     "ms": "Talisman pouch—today’s color, a summoning phrase, a small action and a timing key"
   },
   "featureMarketing.openSajuGuardianPage.premiumOutcomes.1": {
-    "ko": "캐릭터 이미지는 AI가 생성합니다.",
-    "en": "Character images are AI-generated.",
-    "ja": "キャラクター画像はAIが生成します。",
-    "zh-CN": "角色图片由AI生成。",
-    "zh-TW": "角色圖片由AI生成。",
-    "vi": "Character images are AI-generated.",
-    "hi": "Character images are AI-generated.",
-    "es": "Character images are AI-generated.",
-    "fr": "Character images are AI-generated.",
-    "de": "Character images are AI-generated.",
-    "nl": "Character images are AI-generated.",
-    "ms": "Character images are AI-generated."
+    "ko": "이미지는 제공하지 않으며, 외부 이미지 도구용 프롬프트를 드립니다.",
+    "en": "No image is provided; you receive a prompt for external image tools.",
+    "ja": "画像は提供せず、外部画像ツール用のプロンプトをお渡しします。",
+    "zh-CN": "不提供图片，提供用于外部图像工具的提示词。",
+    "zh-TW": "不提供圖片，提供用於外部圖像工具的提示詞。",
+    "vi": "No image is provided; you receive a prompt for external image tools.",
+    "hi": "No image is provided; you receive a prompt for external image tools.",
+    "es": "No image is provided; you receive a prompt for external image tools.",
+    "fr": "No image is provided; you receive a prompt for external image tools.",
+    "de": "No image is provided; you receive a prompt for external image tools.",
+    "nl": "No image is provided; you receive a prompt for external image tools.",
+    "ms": "No image is provided; you receive a prompt for external image tools."
   },
   "featureMarketing.openSajuGuardianPage.answersQuestions.0": {
     "ko": "내 일주의 가디언은 어떤 모습인가요?",

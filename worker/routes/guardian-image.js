@@ -5,9 +5,8 @@ import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { buildSajuSnapshotFromBirth } from "../lib/saju-snapshot-from-birth.js";
 
 const FEATURE_KEY = "saju-guardian-unlock";
-// NVIDIA NIM Visual GenAI — flux.1-schnell. 엔드포인트에 모델이 포함되므로 body에 model을 넣지 않는다.
-const NVIDIA_ENDPOINT = "https://ai.api.nvidia.com/v1/genai/black-forest-labs/flux.1-schnell";
-const GUARDIAN_IMAGE_TIMEOUT_MS = 60_000;
+// 사주 가디언은 이미지를 직접 만들지 않는다. 사주로 만든 이미지 프롬프트만 주고, 사용자가 외부 이미지 도구에 붙여 넣는다.
+const IMAGE_GENERATION_RETIRED_MESSAGE = "이미지 직접 생성은 종료되었어요. 이미지 프롬프트를 복사해 외부 이미지 도구에서 사용해 주세요.";
 
 const ELEMENT_VISUAL_KEYWORDS = Object.freeze({
   목: "ancient mystical forest guardian spirit, jade green energy aura, flowing vine armor",
@@ -86,64 +85,20 @@ function resolveDeterministicSeed(sajuData = {}) {
   return (year * 100000 + month * 1000 + day * 10 + (hourPart % 10)) % 2147483647;
 }
 
-function createTimeoutSignal(timeoutMs = GUARDIAN_IMAGE_TIMEOUT_MS) {
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
-  return { signal: controller.signal, clear: () => clearTimeout(timeoutId) };
-}
+const GUARDIAN_NEGATIVE_PROMPT = "text, letters, watermark, signature, logo, realistic human face, extra limbs, deformed anatomy, blurry, low quality";
 
-function extractImageBase64(payload = {}) {
-  const artifact = Array.isArray(payload?.artifacts) ? payload.artifacts[0] : null;
-  const dataItem = Array.isArray(payload?.data) ? payload.data[0] : null;
-  return cleanText(
-    artifact?.base64
-    || artifact?.b64_json
-    || dataItem?.b64_json
-    || payload?.image
-    || (Array.isArray(payload?.images) ? payload.images[0] : ""),
-  );
-}
-
-async function requestGuardianImage(env, sajuData) {
-  const apiKey = cleanText(env?.NVIDIA_DRAW_API_KEY);
-  if (!apiKey) throw new Error("NVIDIA_DRAW_API_KEY is not configured.");
-
-  const seed = resolveDeterministicSeed(sajuData);
-  const prompt = buildGuardianImagePrompt(sajuData);
-  const timeout = createTimeoutSignal();
-
-  try {
-    const response = await fetch(NVIDIA_ENDPOINT, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-        Accept: "application/json",
-      },
-      body: JSON.stringify({
-        prompt,
-        mode: "base",
-        cfg_scale: 0,
-        width: 1024,
-        height: 1024,
-        seed,
-        steps: 4,
-        samples: 1,
-      }),
-      signal: timeout.signal,
-    });
-
-    const payload = await response.json().catch(() => ({}));
-    const base64 = extractImageBase64(payload);
-    if (!response.ok || !base64) {
-      const detail = cleanText(JSON.stringify(payload)).slice(0, 300);
-      throw new Error(`NVIDIA image generation failed (status=${response.status}) ${detail}`);
-    }
-
-    return { imageBase64: base64, seed };
-  } finally {
-    timeout.clear();
-  }
+function buildGuardianPromptPayload(sajuData) {
+  return {
+    prompt: buildGuardianImagePrompt(sajuData),
+    negativePrompt: GUARDIAN_NEGATIVE_PROMPT,
+    seed: resolveDeterministicSeed(sajuData),
+    attributes: {
+      element: resolveElement(sajuData),
+      yinYang: cleanText(sajuData.polarity) === "음" ? "음" : "양",
+      animal: cleanText(sajuData.mainAnimal),
+      dayPillar: `${cleanText(sajuData.stem)}${cleanText(sajuData.branch)}`,
+    },
+  };
 }
 
 /** 🔴 이미지 입력은 저장된 프로필 카드의 출생 정보로만 만든다(본문 sajuData 무시). 계산 불가면 null. */
@@ -172,7 +127,7 @@ function buildGuardianSajuDataFromBirth(birth) {
   };
 }
 
-async function handleGenerateImage(request, env, auth) {
+async function handleImagePrompt(request, env, auth) {
   const body = await readJson(request);
   let access;
   try {
@@ -207,17 +162,7 @@ async function handleGenerateImage(request, env, auth) {
     }, { status: 400 });
   }
 
-  try {
-    const result = await requestGuardianImage(env, sajuData);
-    return json({ ok: true, ...result });
-  } catch (error) {
-    console.error("[guardian-image-generation-failed]", String(error?.message || error));
-    return json({
-      ok: false,
-      reason: "IMAGE_GENERATION_FAILED",
-      message: "수호신 이미지를 생성하지 못했어요. 잠시 후 다시 시도해 주세요.",
-    }, { status: 503 });
-  }
+  return json({ ok: true, ...buildGuardianPromptPayload(sajuData) });
 }
 
 export async function handleSajuGuardianImageRoutes(request, env) {
@@ -225,9 +170,16 @@ export async function handleSajuGuardianImageRoutes(request, env) {
   const path = getRoutePath(request, "/api/guardian");
 
   try {
-    if (method === "POST" && path === "/generate-image") {
+    if (method === "POST" && path === "/image-prompt") {
       const auth = await requireUserFromRequest(request, env);
-      return await handleGenerateImage(request, env, auth);
+      return await handleImagePrompt(request, env, auth);
+    }
+    // 예전 앱·캐시된 화면이 부르는 이미지 생성 경로. 외부 이미지 모델을 부르지 않고 종료만 알린다.
+    if (method === "POST" && path === "/generate-image") {
+      return json({
+        ok: false, reason: "IMAGE_GENERATION_RETIRED", code: "IMAGE_GENERATION_RETIRED",
+        message: IMAGE_GENERATION_RETIRED_MESSAGE,
+      }, { status: 410 });
     }
     if (["GET", "POST"].includes(method)) return notFound();
     return methodNotAllowed();

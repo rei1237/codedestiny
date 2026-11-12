@@ -316,7 +316,7 @@ const RAW_FEATURE_KEY_PRICE_TABLE = Object.freeze({
   "animal-totem-basic": { cost: 50, reason: "애니멀 토템 리딩" },
   "animal-totem-deep": { cost: 50, reason: "애니멀 토템 심화 리딩" },
   "animal-destiny-unlock": { cost: 70, amountKRW: 7000, reason: "십이운성 동물점 해금" },
-  "saju-guardian-unlock": { cost: 50, reason: "사주 가디언 소환진 해금" },
+  "saju-guardian-unlock": { cost: 30, amountKRW: 3000, reason: "사주 가디언 소환진 해금" },
   "daily-fortune-reading": { cost: 30, amountKRW: 3000, reason: "오늘의 운세 티저 해석" },
   // 꿀방울(매일 출석 1개, 5일 연속 보너스 +4)이 없을 때의 대체 결제. 1회 생성 = 1건.
   "fortune-prompt-hub-generate": { cost: 30, amountKRW: 3000, reason: "운세 프롬프트 1회 생성" },
@@ -533,7 +533,7 @@ const RAW_PIG_COIN_UNLOCK_PRODUCTS = Object.freeze({
   "unlock.health_report": { featureKey: "healthReport", cost: 50, reason: "Health report unlock" },
   // Legacy compatibility only. The standalone Fortune Planner never reads or charges this entry.
   "unlock.saju_diary": { featureKey: "sajuDiary", cost: 100, reason: "Saju diary unlock" },
-  "unlock.saju_guardian": { featureKey: "saju-guardian-unlock", cost: 50, reason: "사주 가디언 소환진 해금" },
+  "unlock.saju_guardian": { featureKey: "saju-guardian-unlock", cost: 30, amountKRW: 3000, reason: "사주 가디언 소환진 해금" },
   "unlock.tetogen_deep_report": { featureKey: "tetogen_deep_report", cost: 50, reason: "테토 에겐 상세 리포트 해금" },
   "unlock.secret_house_episodes": { featureKey: "secretHouseEpisodes", cost: 50, reason: "Secret house episodes unlock" },
   "unlock.premium_divination_pack": { featureKey: "premiumDivinationPack", cost: 300, reason: "Premium divination pack unlock" },
