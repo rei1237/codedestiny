@@ -9639,9 +9639,9 @@ function computeSolarTermsForYear(year){
 
 // 24절기 카드 전용 스타일 주입 (번들 CSS 로드 여부와 무관하게 적용 보장 — 스킬트리 카드와 동일 패턴)
 function _ensureTerms24Style(){
-  if(document.getElementById('cd-terms24-style-v20260908'))return;
+  if(document.getElementById('cd-terms24-style-v20261112'))return;
   var style=document.createElement('style');
-  style.id='cd-terms24-style-v20260908';
+  style.id='cd-terms24-style-v20261112';
   style.textContent=[
     '#terms24Card .terms24-intro{font-size:.86rem;line-height:1.72;color:#70445c;opacity:.94;margin:-2px 0 16px;word-break:keep-all;overflow-wrap:break-word}',
     '#terms24Card .terms24-intro b{color:#b31955;font-weight:800;opacity:1}',
@@ -9650,6 +9650,22 @@ function _ensureTerms24Style(){
     '#terms24Card .t24-rhythm::before{content:"";position:absolute;inset:0 0 auto;height:3px;background:linear-gradient(90deg,#b31955,#e9a3bc 52%,#e4c67a);opacity:.9}',
     '#terms24Card .t24-rhythm-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px}',
     '#terms24Card .t24-kicker{font-size:.74rem;font-weight:800;color:#8b3c60;margin:0 0 5px;line-height:1.35}',
+    '#terms24Card .t24-art{position:relative;margin:-17px -17px 15px;height:clamp(190px,52vw,300px);overflow:hidden;background:#f3e6ec}',
+    '#terms24Card .t24-art img{display:block;width:100%;height:100%;object-fit:cover}',
+    '#terms24Card .t24-art::after{content:"";position:absolute;inset:auto 0 0;height:46%;background:linear-gradient(180deg,transparent,rgba(30,12,24,.5));pointer-events:none}',
+    '#terms24Card .t24-art figcaption{position:absolute;left:14px;bottom:12px;z-index:1;padding:5px 11px;border-radius:999px;background:rgba(255,255,255,.88);color:#5f2c48;font-size:.72rem;font-weight:800;line-height:1.3;box-shadow:0 4px 12px rgba(30,12,24,.18)}',
+    '#terms24Card .t24-yeoni{display:inline-flex;align-items:center;gap:7px;margin:0 0 8px;padding:3px 11px 3px 3px;border-radius:999px;background:#fff0f5;border:1px solid rgba(179,25,85,.14);color:#a3285a;font-size:.76rem}',
+    '#terms24Card .t24-yeoni img{width:28px;height:28px;border-radius:50%;object-fit:cover;object-position:50% 12%;background:#ffe3ee;border:1px solid rgba(179,25,85,.16)}',
+    '#terms24Card .t24-axis{margin:4px 0 10px;padding:11px 13px;border-radius:14px;background:rgba(255,255,255,.7);border:1px solid rgba(179,25,85,.12);border-left:3px solid #d98aa6}',
+    '#terms24Card .t24-axis--fast{border-left-color:#e08a5a}',
+    '#terms24Card .t24-axis--slow{border-left-color:#5f7fc4}',
+    '#terms24Card .t24-axis--tune{border-left-color:#b59a4a}',
+    '#terms24Card .t24-axis strong{display:block;margin-bottom:3px;color:#3c1830;font-size:.84rem;font-weight:900;line-height:1.4}',
+    '#terms24Card .t24-axis span{display:block;color:#5f2c48;font-size:.8rem;line-height:1.65;word-break:keep-all;overflow-wrap:break-word}',
+    '#terms24Card .t24-phase-note{margin:0 0 4px;color:#70445c;font-size:.78rem;line-height:1.62;word-break:keep-all;overflow-wrap:break-word}',
+    '#terms24Card .t24-unknown-note{margin:8px 0 12px;color:#70445c;font-size:.76rem;line-height:1.6;word-break:keep-all}',
+    '#terms24Card .t24-tip{margin:10px 0 14px;padding:12px 14px;border-radius:14px;background:#fff6fa;border:1px dashed rgba(179,25,85,.24);color:#5f2c48;font-size:.82rem;line-height:1.65;word-break:keep-all;overflow-wrap:break-word}',
+    '#terms24Card .t24-tip strong{display:block;margin-bottom:3px;color:#a3285a;font-size:.74rem;font-weight:900}',
     '#terms24Card .t24-headline{margin:0;color:#3c1830;font-size:1.05rem;line-height:1.45;font-weight:900;letter-spacing:0}',
     '#terms24Card .t24-summary{margin:8px 0 0;color:#5f2c48;font-size:.88rem;line-height:1.7;word-break:keep-all;overflow-wrap:break-word}',
     '#terms24Card .t24-pill{flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;min-height:34px;padding:6px 11px;border-radius:999px;background:rgba(179,25,85,.08);border:1px solid rgba(179,25,85,.17);color:#7f244b;font-size:.76rem;font-weight:900;white-space:nowrap}',
@@ -9675,9 +9691,10 @@ function _ensureTerms24Style(){
     '#terms24Card .t24-domain:nth-child(2)::before{background:#c98947}',
     '#terms24Card .t24-domain:nth-child(3)::before{background:#8f78b4}',
     '#terms24Card .t24-domain:nth-child(4)::before{background:#5d9a9b}',
+    '#terms24Card .t24-domain--condition{grid-column:1/-1}',
+    '#terms24Card .t24-domain--condition::before{background:#9aa86a}',
     '#terms24Card .t24-domain h4{margin:0 0 6px;color:#3c1830;font-size:.87rem;line-height:1.35;font-weight:900;letter-spacing:0}',
     '#terms24Card .t24-domain p{margin:0;color:#5f2c48;font-size:.78rem;line-height:1.62;word-break:keep-all;overflow-wrap:break-word}',
-    '#terms24Card .t24-domain .t24-action{display:block;margin-top:7px;color:#8b3c60;font-weight:900}',
     '#terms24Card .t24-table{border-radius:16px;border:1px solid rgba(179,25,85,.12);background:rgba(255,255,255,.52);overflow:hidden}',
     '#terms24Card .t24-table summary{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:48px;padding:12px 14px;cursor:pointer;color:#3c1830;font-size:.85rem;font-weight:900;list-style:none}',
     '#terms24Card .t24-table summary .t24-summary-note{margin-left:auto;color:#9a7182;font-size:.68rem;font-weight:700;text-align:right}',
@@ -9702,7 +9719,7 @@ function _ensureTerms24Style(){
     '#terms24Card .t24-season--summer{--sea:#bd3e38;--sea-soft:rgba(224,86,78,.1);--sea-line:rgba(224,86,78,.24)}',
     '#terms24Card .t24-season--autumn{--sea:#956c1f;--sea-soft:rgba(201,154,58,.12);--sea-line:rgba(201,154,58,.26)}',
     '#terms24Card .t24-season--winter{--sea:#365fba;--sea-soft:rgba(79,120,201,.1);--sea-line:rgba(79,120,201,.24)}',
-    '@media (max-width:640px){#terms24Card .t24-rhythm{padding:15px}#terms24Card .t24-rhythm-head{flex-direction:column;gap:9px}#terms24Card .t24-pill{white-space:normal}#terms24Card .t24-domain-grid,#terms24Card .t24-seasons{grid-template-columns:1fr}#terms24Card .t24-grid{grid-template-columns:repeat(2,1fr)}#terms24Card .t24-meter-meta{flex-direction:column;gap:3px}#terms24Card .t24-section-label{align-items:flex-start;flex-direction:column;gap:3px}#terms24Card .t24-section-label span:last-child{white-space:normal}}',
+    '@media (max-width:640px){#terms24Card .t24-rhythm{padding:15px}#terms24Card .t24-art{margin:-15px -15px 14px}#terms24Card .t24-rhythm-head{flex-direction:column;gap:9px}#terms24Card .t24-pill{white-space:normal}#terms24Card .t24-domain-grid,#terms24Card .t24-seasons{grid-template-columns:1fr}#terms24Card .t24-grid{grid-template-columns:repeat(2,1fr)}#terms24Card .t24-meter-meta{flex-direction:column;gap:3px}#terms24Card .t24-section-label{align-items:flex-start;flex-direction:column;gap:3px}#terms24Card .t24-section-label span:last-child{white-space:normal}}',
     '@media (prefers-reduced-motion:reduce){#terms24Card .t24-item,#terms24Card .t24-table summary::after{transition:none}}',
     /* ── 네오(달빛 다크) 대비 오버라이드 — 배경·글자색 함께 전환 ── */
     'body.neo-mode #terms24Card .terms24-intro{color:#c9bce0;opacity:.92}',
@@ -9726,7 +9743,15 @@ function _ensureTerms24Style(){
     'body.neo-mode #terms24Card .t24-domain{background:rgba(38,32,66,.62);border-color:rgba(196,181,253,.16)}',
     'body.neo-mode #terms24Card .t24-domain h4{color:#f4eeff}',
     'body.neo-mode #terms24Card .t24-domain p{color:#d9cff1}',
-    'body.neo-mode #terms24Card .t24-domain .t24-action{color:#f5dea0}',
+    'body.neo-mode #terms24Card .t24-yeoni{background:rgba(232,213,163,.1);border-color:rgba(232,213,163,.24);color:#f5dea0}',
+    'body.neo-mode #terms24Card .t24-yeoni img{background:#3a2f5c;border-color:rgba(232,213,163,.3)}',
+    'body.neo-mode #terms24Card .t24-art{background:#1d1838}',
+    'body.neo-mode #terms24Card .t24-art figcaption{background:rgba(26,22,52,.86);color:#f5dea0}',
+    'body.neo-mode #terms24Card .t24-axis{background:rgba(38,32,66,.56);border-top-color:rgba(196,181,253,.16);border-right-color:rgba(196,181,253,.16);border-bottom-color:rgba(196,181,253,.16)}',
+    'body.neo-mode #terms24Card .t24-axis strong{color:#f4eeff}',
+    'body.neo-mode #terms24Card .t24-axis span,body.neo-mode #terms24Card .t24-phase-note,body.neo-mode #terms24Card .t24-unknown-note{color:#d9cff1}',
+    'body.neo-mode #terms24Card .t24-tip{background:rgba(38,32,66,.56);border-color:rgba(232,213,163,.3);color:#e6dcff}',
+    'body.neo-mode #terms24Card .t24-tip strong{color:#f5dea0}',
     'body.neo-mode #terms24Card .t24-section-label{color:#f4eeff}',
     'body.neo-mode #terms24Card .t24-section-label span:last-child{color:#b9acd4}',
     'body.neo-mode #terms24Card .t24-table{background:rgba(38,32,66,.44);border-color:rgba(196,181,253,.18)}',
