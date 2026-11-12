@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-11-12
-next: "릴리스 C의 C1부터(계획 문서 커밋만 끝남, 코드 미변경) → C3 push → 운영 workflow 실행(사용자) → 운영 확인 → 마무리"
+next: "C2부터"
 ---
 
 # 사주 보기 버튼·API 링크·홈 타일 프로필 진입 수정 + 3개월 무료 마케팅
@@ -86,7 +86,10 @@ next: "릴리스 C의 C1부터(계획 문서 커밋만 끝남, 코드 미변경)
 7. sync:public → `npm run sitemap:generate` → 테스트(`npm run fortune:build-data` 선행).
 8. 배너 범위 문구(12언어 "AI 상담·라이트 사주·대운 제외")가 여전히 참인지 확인 — 참이면 그대로.
 
-- [ ] C1 무료 범위 확대(위 설계 1–8) + mock 브라우저: 새 무료 항목은 결제 시트 없이 열리고 LLM 상품(예: dream-psycho-analysis, 타로 oracle-consultation)은 여전히 결제 시트.
+- [x] C1 무료 범위 확대(위 설계 1–8) + mock 브라우저: 새 무료 항목은 결제 시트 없이 열리고 LLM 상품(예: dream-psycho-analysis, 타로 oracle-consultation)은 여전히 결제 시트.
+  - 결과(2026-11-12, 커밋 dfc573203, origin/main push 완료): 22키 무료 허용 목록 추가(lib/payment/free-fortune-policy.mjs → 브라우저 사본 생성기), worker/routes/tarot.js(직관·크리스탈 소울·수비학·올해 타로 public)·prompt-hub.js(paidWith public) 무료 우회, 클라이언트 게이트(destiny-profile.js 단락, 정책 스크립트 누락 페이지 public/ifa-oracle.html 포함), PromptHub·Maya·StonehengeRune 무료 표시, 레지스트리 13개 "무료".
+  - 검증: test:jest 476 스위트 통과(app-store.google-billing 의 stonehengeRunes 별칭은 가격표가 무료 키로 풀려 무료 신규 취득으로 기대 수정), 새 테스트 __tests__/worker/free-promo-c1-route-bypass.test.js 6건, tsc·js-module-graph OK, check:pre-push 전부 통과(이번엔 public-mirror-fresh 도 통과). mock 브라우저(390px): ijik·royal-tea·ifa 시트 없이 public, LLM dream-psycho·tea-house 상담은 결제 시트 유지, /oracle/rune 무료 표시·1룬 뽑기 시트 없음.
+  - 후속(미수정): app/oracle/rune/page.tsx SEO 설명·FAQ의 "유료" 문구, crafted 패널 본문 결제 언급(공지 문장만 무료로 치환), 토스 네이티브 maya(worker/toss/native-maya.js) 유료 유지, 무료 올해 타로 결과 미저장(GET /year/result 404), 수비학·크리스탈 소울 서버 경로 로그인 없이 동작.
 - [ ] C2 기존 문제 근본 수정(검사 약화 금지):
   - 홈 `/` 콘솔 Yeongnyangi ep1/02-720.webp 404
   - 홈 `/` HomeInstallEntry `hidden` 속성 hydration 불일치
