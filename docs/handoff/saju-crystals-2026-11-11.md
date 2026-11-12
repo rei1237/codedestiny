@@ -1,7 +1,7 @@
 ---
 status: done
 updated: 2026-11-12
-next: 사용자 요청 시 origin/main push·워커 배포·worktree:remove
+next: 없음 — 2026-11-12 운영 반영(0193aa999) 완료. 남은 것은 웹툰 컷 사용자 최종 승인뿐
 ---
 
 # 사주 원석 추천 — 연이의 원석 큐레이션 인수인계
@@ -286,3 +286,14 @@ next: 사용자 요청 시 origin/main push·워커 배포·worktree:remove
 - 범위: 이 브랜치의 변경을 origin/main에 push하고, `gh workflow run "Release Cloudflare Pages and Worker" --ref main -f mode=production`으로 1회 승격한다(Pages와 워커가 함께 배포되므로 `sajuCrystal` 동기화도 켜진다).
 - 순서: 다른 세션(user-9d)이 가디언 두 번째 승격을 하고 있다(146e2e24b 수정, 릴리스 A 포함). 그 승격이 끝나 운영 SHA가 확정될 때까지 push하지 않는다. 승격은 main HEAD 기준이므로, 먼저 push하면 그 승격에 이 변경이 섞인다.
 - 그다음: origin/main 재병합 → check:fast → push → main CI·스테이징 통과 확인 → production 승격 → `verify:deployed-sha`와 `/saju/crystals/` 실화면 확인 → `npm run worktree:remove`.
+
+## 2026-11-12 운영 반영 결과
+- 가디언 세션 운영 승격(16dfa794f, run 43159125113) 성공을 확인한 뒤 진행.
+- origin/main 재병합: `app/saju/five-elements/page.js` 칩 충돌(main의 "사주 보기" 딥링크 + 원석 링크 둘 다 유지), `config/sitemap-lastmod.json`은 theirs + `sitemap:generate`.
+- 함정 1: 병합 뒤 `index.html`의 `?v=` 캐시 키가 우리 쪽 옛 값으로 남아 `verify:payment-choice-parity --self-test`가 vedic-astrology.html 핀을 낡았다고 판정. `sync:public` 재실행으로 해결(f19b53160). 병합 뒤엔 항상 sync:public.
+- 함정 2: gitleaks가 테스트 픽스처 `answersKey`/`resultKey` 예시값을 generic-api-key로 잡음 → `.gitleaksignore`에 지문 5개 등록(6a1bd9528).
+- 함정 3: `docs/handoff/*.plan.md`도 프론트매터 계약 대상 → 추가(0193aa999).
+- push: b7c378dfe → 6a1bd9528 → 0193aa999(중간에 다른 세션 문서 커밋 ddfeb10b1 포함). PR CI·Secret Scan·Paid Flow Gates·스테이징 모두 성공.
+- 운영 승격 run 43166453416 성공. 드리프트 in-sync, Pages·Worker 모두 0193aa9990b6.
+- 운영 확인: `/saju/crystals/` 200·H1·canonical, `/start/` noindex·프로필 없으면 "저장된 프로필이 필요해요" 게이트, 사이트맵에 `/saju/crystals/`만, `/ggulggul/` 진입 카드 있음, 390px 가로 넘침 0·페이지 오류 0. 캡처 `D:\CodeDestiny-Build\saju-crystals-20261111\qa\prod-*-390.png`.
+- 워커 배포로 `sajuCrystal` 프로필 동기화가 활성화됨.
