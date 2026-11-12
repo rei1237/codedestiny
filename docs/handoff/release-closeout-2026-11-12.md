@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-11-12
-next: "f7baafd1f의 PR CI·Paid Gates·스테이징이 성공하면 두 번째 운영 승격(가디언)을 실행·확인하고, 가디언 문서를 done으로 닫은 뒤 최종 보고한다."
+next: "남은 것은 절전뿐. 다른 세션(릴리스 B 등)의 push·승격·빌드가 모두 끝난 것을 확인한 뒤 절전한다(종료 아님)."
 ---
 
 # 무료화 릴리스 마무리와 앱 출시 점검 (2026-11-11~12)
@@ -89,7 +89,11 @@ next: "f7baafd1f의 PR CI·Paid Gates·스테이징이 성공하면 두 번째 �
   - 후속 확인
     - 앱 안에 수동 "구매 복원" 진입점이 없다(`/app/` 루트에만 있음).
     - 무료 만세력이 로그인을 요구하는 것은 정책상 의도된 동작이다(무료화 문서: "로그인 … 보존").
-- [ ] 최종 보고와 절전(다른 세션이 끝난 뒤에만)
+- [x] f25a99a69 PR CI 실패(다른 세션 1657f067c의 `/ggulggul/?action=` CTA를 `verify-guide-feature-cta`가 셸 딥링크로 인정하지 않음) → 146e2e24b. 로컬 Static guards 68단계 전부 통과 뒤 push.
+- [x] 두 번째 운영 승격(가디언 + 릴리스 A): run 43159125113 success, 운영 gitSha `16dfa794f`(2026-11-12 14:22 KST). PR CI 43153026696·스테이징 43153119183 success, Paid Flow Gates는 f25a99a69 43148127252 success(이후 변경은 검사 스크립트·문서뿐이라 경로 필터로 미실행). 운영 generate-image 410, image-prompt 401, `/`·`/saju/`·`/saju/free/`·`/yoga-guru`·`/fortune/today/`·`/login/`·`/ggulggul/` 200. user-ea(가디언)·user-2f(릴리스 A/B)에 운영 SHA 통보, 릴리스 B는 그 세션이 별도로 승격.
+- [x] 가디언 문서 done으로 닫음.
+- [x] 최종 보고
+- [ ] 절전(다른 세션이 끝난 뒤에만, 종료 아님)
 
 ## 보고할 사실
 - 앱인토스(2026-11-11 점검)

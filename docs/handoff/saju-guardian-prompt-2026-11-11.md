@@ -1,7 +1,7 @@
 ---
-status: active
+status: done
 updated: 2026-11-12
-next: "3단계 — push한 SHA의 PR CI·Paid Flow Gates·스테이징 릴리스 성공 확인 뒤 운영 승격(mode=production) 실행·확인."
+next: "없음 — 운영 16dfa794f에 반영 완료. 후속 과제는 4단계 목록 참고."
 ---
 
 # 사주 가디언: 이미지 생성 → 이미지 프롬프트, 가격 3,000원
@@ -58,5 +58,8 @@ next: "3단계 — push한 SHA의 PR CI·Paid Flow Gates·스테이징 릴리스
   - 재검증(rebase 뒤): check:fast `--base=origin/main` 474스위트 7900 통과·1 skip, check:worker 동일 통과, test:node 4969/0, verify:app-store-billing-policy·verify:birth-scope-client-mirror(41키)·verify:pass-tier-policy·sitemap:check(1069 URL) 통과. 390px Playwright는 코드 변경이 없어 다시 돌리지 않음(1단계 결과 유효).
   - 함정: 로컬 `npm run check:fast`는 기본 베이스가 HEAD라 커밋 뒤 실행하면 "검사할 변경 없음"으로 끝난다. `node scripts/check-changed.mjs --profile=fast --skip-build --base=origin/main`으로 돌린다.
   - 함정: free-fortune-policy 4파일 CRLF 거짓 변경이 rebase를 막으면 지우지 말고 `git update-index --assume-unchanged <4파일>` → rebase → `--no-assume-unchanged`로 넘긴다.
-- [ ] 3. 무료화 릴리스 운영 승격 상태 확인: 아직이면 담당 문서에 가디언 포함 사실을 적어 함께 승격되게 하고, 승격 워크플로가 이미 끝났으면 가디언 포함 커밋으로 운영 배포 워크플로 실행(승인됨). 배포 후 운영 `/api/guardian/generate-image` 410·`/image-prompt` 401(비로그인) 확인, 운영 DB 쓰기 없이.
-- [ ] 4. 최종 보고(한국어): 가격 해석, 기존 이용자 영향, 후속 과제(order-view-model.ts:99 표기 오류, light-fortune-catalog.js:18 사유, /api/guardian-avatar 죽은 코드, NVIDIA_DRAW_API_KEY 비밀값 정리, 패널 08·09 새 그림, docs 인벤토리, "나의 수호 캐릭터" 사전 누락, public/i18n/en.json:6002 "10,000 KRW", transform-origin 경고)
+- [x] 3. 무료화 릴리스 운영 승격 상태 확인: 아직이면 담당 문서에 가디언 포함 사실을 적어 함께 승격되게 하고, 승격 워크플로가 이미 끝났으면 가디언 포함 커밋으로 운영 배포 워크플로 실행(승인됨). 배포 후 운영 `/api/guardian/generate-image` 410·`/image-prompt` 401(비로그인) 확인, 운영 DB 쓰기 없이.
+  - 결과(2026-11-12 14:22 KST): 운영 승격 run 43159125113 success. 운영 `/version.json`·`/api/version` gitSha `16dfa794f`(가디언 + 금지어 수정 f7baafd1f + 가이드 CTA 검사 수정 146e2e24b + 다른 세션 릴리스 A 포함).
+  - 운영 비로그인 POST: `/api/guardian/generate-image` 410(IMAGE_GENERATION_RETIRED), `/api/guardian/image-prompt` 401. 운영 셸 청크 `s-c6bce2f71df8f170.js`에 "외부 이미지 도구용 가디언 그림 설명문", `/ggulggul/`에 `sajuGuardianPricePrice3000` 확인. DB 쓰기·결제 없음.
+  - 그 사이 CI 실패 2건과 수정: ① 7c6e7380c PR CI — `verify:feature-marketing-schema` 금지어 "프롬프트" → f7baafd1f. ② f25a99a69 PR CI — 다른 세션 1657f067c의 `/ggulggul/?action=` CTA를 `verify-guide-feature-cta`가 셸 딥링크로 보지 않음 → 146e2e24b(같은 타일 존재 규칙으로 판정, 약화 없음).
+- [x] 4. 최종 보고(한국어): 가격 해석, 기존 이용자 영향, 후속 과제(order-view-model.ts:99 표기 오류, light-fortune-catalog.js:18 사유, /api/guardian-avatar 죽은 코드, NVIDIA_DRAW_API_KEY 비밀값 정리, 패널 08·09 새 그림, docs 인벤토리, "나의 수호 캐릭터" 사전 누락, public/i18n/en.json:6002 "10,000 KRW", transform-origin 경고)
