@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-11-12
-next: "1단계(구매 내역 표기 오류)부터 진행한다. 5·6·7단계는 워크트리 saju-guardian-prompt-20261111-215425 브랜치에 커밋됨(미push·미배포)."
+next: "1단계(구매 내역 표기 오류)부터 진행한다. 5·6·7단계는 main 73f4710a1에 cherry-pick돼 스테이징에 반영됨(운영 미배포, 운영 승격은 사용자 승인 필요). 이어 갈 워크트리는 origin/main 위로 rebase한다."
 ---
 
 # 사주 가디언 후속 과제
@@ -15,7 +15,7 @@ next: "1단계(구매 내역 표기 오류)부터 진행한다. 5·6·7단계는
 
 ## 지금 상태
 - 기준: origin/main `6a1bd9528`(문서 작성 시점). 운영 `16dfa794f`.
-- 2026-11-12 진행: 워크트리 `D:\Development\codedestiny-worktrees\saju-guardian-prompt-20261111-215425`(브랜치 `wt/saju-guardian-prompt-20261111-215425`)에 7·5단계 커밋(`57c2ee906`·`407fe4a23`·`c46ae45c3`·`d0d84d755`)과 이 문서 갱신. main push·배포는 하지 않았다(사용자 요청 시). 이후 단계도 이 워크트리에서 이어 갈 수 있다.
+- 2026-11-12 진행: 워크트리 `D:\Development\codedestiny-worktrees\saju-guardian-prompt-20261111-215425`(브랜치 `wt/saju-guardian-prompt-20261111-215425`)에 7·5단계 커밋(`57c2ee906`·`407fe4a23`·`c46ae45c3`·`d0d84d755`)과 이 문서 갱신. 2026-11-12 사용자 "모든 변경 커밋 후 푸시, 스테이징 반영" 요청으로 user-9d 세션이 main 위로 cherry-pick해 push했다(main `73f4710a1`, 스테이징 gitSha 일치). 사이트맵 커밋 `c46ae45c3`은 새 main 기준으로 다시 만들었고, destiny-profile 결제 런타임 핀은 main 기준 내용 해시 `build-8725683be9f0`으로 다시 찍혔다(`7308cdc8c330` 대신), payment-freeze는 `--update`로 재기록. 운영 배포는 하지 않았다(승인 없음). 이 워크트리에서 이어 가려면 먼저 origin/main 위로 rebase한다.
 - 가디언 현재 동작:
   - 서버 `worker/routes/guardian-image.js`: `POST /api/guardian/image-prompt`(로그인·생년월일 해금 필요, 영문 프롬프트·제외 요소·seed 반환), `POST /api/guardian/generate-image`는 410 `IMAGE_GENERATION_RETIRED`.
   - 클라이언트 `app/saju-guardian/SajuGuardianClient.tsx`: 결과 화면 `#guardianPromptStudio`.
