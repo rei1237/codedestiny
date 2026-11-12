@@ -1,7 +1,7 @@
 ---
 status: done
 updated: 2026-11-12
-next: 통합 — 상위 세션이 사용자와 main 로컬 merge·push·배포·워크트리 정리(npm run worktree:remove)를 처리
+next: 통합 — 상위 세션이 사용자와 main 로컬 merge·push·배포·워크트리 정리(npm run worktree:remove). 다른 기기 동기화는 워커 배포가 필요(사용자 미요청) — "2026-11-12 후속" 절
 ---
 
 # 사주 원석 추천 — 연이의 원석 큐레이션 인수인계
@@ -49,6 +49,7 @@ next: 통합 — 상위 세션이 사용자와 main 로컬 merge·push·배포·
 - [x] 3. 진입 카드·링크·푸터·사이트맵/SEO 등록, 커밋
 - [x] 4. (사용자 이미지 수령 후) 웹툰·원석 이미지 QC·내보내기·연결 — 진입 이미지는 3단계에서 연결, 커밋
 - [x] 5. 검증(테스트·빌드 HTML grep·브라우저 390/1280 캡처 → `D:\CodeDestiny-Build\saju-crystals-20261111\qa\`)·check:fast·main 로컬 merge·워크트리 정리 — 검증 완료(2026-11-12). merge·정리는 상위 세션이 사용자와 처리
+- [x] 6. (2026-11-12 사용자 결정) 다른 기기 동기화·프로필 필수·그림 다듬기 — 아래 "2026-11-12 후속" 절. merge는 상위 세션
 
 ## 결과 기록
 (각 단계 에이전트가 수정 파일·검증 명령 출력 요약·남은 문제를 여기에 적는다)
@@ -226,3 +227,49 @@ next: 통합 — 상위 세션이 사용자와 main 로컬 merge·push·배포·
 - 웹툰 10컷과 원석 일러스트: 사용자가 프롬프트(`D:\CodeDestiny-Build\saju-crystals-20261111\PROMPTS-webtoon-stones.md`)로 직접 만들어 `user-supplied\`에 `webtoon-01..10.png`, `stone-<id>.png`로 넘겨준다.
   - 받기 전까지 2·3단계는 웹툰 데이터(대사·alt)와 이미지 경로만 연결한다. 이미지가 없으면 웹툰 섹션은 대사 텍스트로 대체하거나 숨기고, 원석 카드는 오행 색 칩으로 대체해 빌드가 깨지지 않게 한다.
   - 4단계는 사용자 이미지를 받은 뒤 `src/export.mjs`로 내보내고 QC(영냥이 귀 2개, 연이 연꽃·스카프·코·귀)를 하는 일로 바뀐다.
+
+## 2026-11-12 후속 — 다른 기기 동기화·프로필 필수·그림 다듬기
+
+### 사용자 결정 원문 (2026-11-12)
+> 다른 기기에서도 보이게 하는게 좋겠고 프로필 없이는 불가능하도록해줘 그림 다듬기도 진행해주고 일단 안전하게 병합해주면 좋겠다
+
+- 병합은 상위 세션이 처리한다(이 워크트리 에이전트는 merge·push·배포하지 않음).
+
+### 승인 범위와 남은 승인
+- **워커 배포가 필요하다. 사용자는 아직 워커 배포를 요청하지 않았다.** 워커 배포 전에는 클라이언트가 서버 지원 여부(상세 GET 응답의 `sajuCrystal` 키 유무)를 보고 브라우저 저장만 쓴다. 배포 뒤 자동으로 동기화가 켜진다.
+- Next 페이지 배포·워커 배포·push는 모두 사용자 요청 시에만.
+
+### 1) 다른 기기 동기화 (커밋 de32d6db0)
+- 워커 허용 목록: `worker/lib/models.js` `profileCardSchema.sajuCrystal`(Mixed, 기본 undefined — 엄격 스키마라 선언 없으면 조용히 버려진다).
+- `worker/routes/profile.js`
+  - `PATCH /api/profile/:id`에 body가 `{ profile: { sajuCrystal } }` **하나뿐**일 때만 전용 분기(`handleUpdateSajuCrystal`). 출생정보·이름·현재 카드는 건드리지 않고, 프로필 수정 내역(PointHistory)도 남기지 않는다.
+  - 검사: `lib/saju/crystal-flow.mjs` `sanitizeCrystalRecord` — 모양 `{v, answers, answersKey, resultKey, versions, updatedAt}`만, 결과 본문 없음, 답변·항목 키 허용 목록, 키 형식 `ca1-/cr1-<16hex>`, 버전 토큰, 항목 ≤8·추가질문 ≤2, 크기 상한 `CRYSTAL_RECORD_MAX_BYTES`=2048(넘으면 413), 미래 `updatedAt`은 서버 시각으로 당김.
+  - `updatedAt`이 더 늦을 때만 덮어쓴다(같거나 이르면 `applied:false`와 서버 기록 반환). 소유자 조건(userId+profileId)으로만 찾고 없으면 404.
+  - `GET /api/profile/:id` 상세 응답에만 `sajuCrystal`(없으면 null)을 싣는다. 목록 응답·`toClientProfile`은 그대로.
+  - 다른 필드와 섞여 오면 기존 일반 수정 경로이고, 일반 수정은 `sajuCrystal`을 쓰지 않는다.
+- 클라이언트 `app/saju/crystals/start/CrystalFlowClient.jsx`: 로그인 사용자는 서버 기록을 읽어 로컬과 비교(`resolveCrystalRecords`, 늦은 `updatedAt` 우선), 서버가 더 늦으면 로컬 캐시 갱신, 로컬이 더 늦고 서버가 지원하면 서버에 올린다. 저장은 로컬 먼저 → 서버. 비로그인은 localStorage만(게스트 저장소·오프라인 캐시 그대로).
+- **`DestinyProfileManager.storage.update`는 워커에 닿지 않는다**(로컬 전용이고 Next 페이지에는 로드되지 않음). 그래서 이전 코드의 그 호출을 지우고 `authFetch`로 직접 PATCH한다.
+- `sajuCalibration`(셸 경험 입력)은 워커 허용 목록에 없고 이번에 바꾸지 않았다.
+- 테스트: `__tests__/worker/profile.saju-crystal.test.js`(DB·인증 모두 목), `__tests__/ui/saju-crystal-flow.test.mjs`(가짜 fetch). 운영 DB·실제 네트워크 없음.
+
+### 2) 프로필 필수 (커밋 19e0976c3)
+- 저장된 프로필 카드(`FORTUNE_APP_USER_PROFILES.list::<scope>`, `.current::<scope>`)에서 id가 있고 생년월일이 맞는 카드만 쓴다(`readSavedCrystalProfile`). 셸 입력 폼이 남기는 브리지 키(`FORTUNE_APP_USER_PROFILE`, `FORTUNE_APP_VEDIC_PAYLOAD`, `OLYMPUS_ORACLE_PROFILE`)·쿼리·화면 입력으로는 계산하지 않는다. 화면이 고른 카드는 저장 목록에 같은 id가 있을 때만 따른다.
+- 로그인 직후 로컬 목록이 비어 있으면 `fetchCurrentDestinyProfile()`로 서버 목록을 한 번 받아 다시 읽는다.
+- 프로필 없음 화면: "저장된 프로필이 필요해요" + CTA 하나 `프로필 만들기·고르기` → `/#dpMasterCard`(셸의 프로필 카드 만들기·고르기). 쿼리는 유입 출처 `from`만 읽는다.
+- 셸 진입 카드(`#sajuCrystalEntry`)는 그대로 `/saju/crystals/start/?from=saju_result`로 간다(출생정보를 넘기지 않음).
+
+### 3) 그림 다듬기 (커밋 f1c8a1197) — 사용자 그림만, 새로 생성 없음
+- 웹툰 10컷: 위쪽의 평평한 빈 띠(17~24%, 대사는 HTML로 그림 아래에 나오므로 겹침 없음)를 잘랐다. 띠 아래끝 = 줄별 밝기 표준편차가 처음 6을 넘는 줄(01:175, 02·04·05·06·08:174, 10:176, 03:253, 07:274, 09:301). 그보다 20px 위에서 자른다(5컷 회상 원 등 장면이 가장자리에 닿지 않게). 가로 컷은 모두 top=154 → 1536x870, 03=1254x1021, 07=1254x1000, 09=1254x973. 같은 형식·품질(avif q55 e6 640/1080, webp q80 e6 720), 확대 없음. 스크립트 `D:\CodeDestiny-Build\saju-crystals-20261111\src\export-webtoon-crop.mjs`, 기록 `export\manifest.json`의 `webtoonTopBandCrop`. `lib/brand/saju-crystal-webtoon.mjs` 컷별 w/h 갱신, 테스트가 실제 파일 비율과 선언을 대조한다.
+- OG `public/images/saju-crystals/og-1200x630.jpg`: 연꽃 끝(원본 y≈256)이 그림 속 제목 아래끝(y≈254~264)과 거의 붙어 있어 위로 옮겨 자를 수 없다. 원본 전체 폭으로 y=256~735를 1200x579로 줄여 아래에 두고, 위 51px은 같은 줄 색(연꽃·제목 픽셀 제외 열 평균, 가로 흐림)으로 채우고 경계는 연꽃만 남기고 부드럽게 섞었다. 제목 획 끝 몇 픽셀은 투명 처리. 스크립트 `src\og-pad.cjs`(export-entry.mjs에서 호출). 진입 세로 그림 파일은 바이트 동일.
+- 셸 진입 카드: 그림 안에 "나의 원석 찾기" 버튼이 그려져 있어 HTML 링크 "나에게 맞는 원석 찾기 →"를 채운 큰 버튼에서 테두리만 있는 조용한 보조 링크로 바꿨다(`styles/saju-tea-entry.css`, 최소 높이 44px, 포커스 윤곽 유지). `npm run sync:public`.
+- 전후 캡처: `D:\CodeDestiny-Build\saju-crystals-20261111\qa\polish\` (`before-*`, `after-*`; 컷 03·05·07·09, 진입 카드, OG, 390/1280). 진입 카드는 `probe.mjs` SRC 모드(저장소 index.html·public을 직접 서빙)로 찍었다. 기존 dist는 셸 무료 사주 진입 함수가 뜨지 않아 진입 카드까지 가지 못했다.
+
+### 함정
+- `node -e "..."` 안의 백틱은 bash가 해석한다. 스크립트 파일(`cat > f <<'EOF'`)로 쓰고, 정규식 줄은 Edit 도구로 고친다(템플릿 리터럴 안 백슬래시 유실).
+- `node scripts/run-mock-tests.mjs node <file>`은 모든 node 테스트 패턴을 돌려 수 분 걸린다. 단일 파일은 `NODE_OPTIONS="--require=./scripts/lib/mock-network-guard.cjs" node --test __tests__/ui/<file>.test.mjs`.
+- `npm run sync:public`·빌드 뒤 `js/core/free-fortune-policy.*`·`public/js/core/free-fortune-policy.*`의 줄끝(CRLF)만 바뀐 변경은 `git checkout --`으로 되돌린다.
+
+### 검증 (2026-11-12)
+- `__tests__/ui/saju-crystal-flow.test.mjs` 16/16 통과, 워커 프로필 jest 14개 묶음 148개 통과.
+- `npm run check:fast -- --base=bae74a4c1` 통과(77단계 ok, jest 475 suites/7913 tests 통과·1 skip). 첫 실행은 `verify:sitemap-drift`에서 막혔다 — `/saju/crystals/` 서명 변경(컷 크기)과 날짜 롤링 페이지(fortune/monthly·today·tomorrow, /today/) lastmod. `npm run sitemap:generate` 결과를 별도 커밋 adbadf7eb로 담았다. main에서 merge 충돌이 나면 사이트맵 파일은 손으로 고치지 말고 merge 뒤 `npm run sitemap:generate`를 다시 돌려 담는다.
+- 전후 캡처 확인: 컷 03·05·07·09(390/1280) 얼굴·모자·연꽃·회상 원 온전, 그림 비율과 상자 비율 일치(1px 반올림), OG 연꽃 위 여백 자연스러움, 진입 카드 보조 링크 확인.
