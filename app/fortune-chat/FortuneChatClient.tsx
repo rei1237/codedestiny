@@ -750,7 +750,7 @@ export default function FortuneChatClient() {
     <section className={styles.composer} aria-label={copy.composerAria}>
       <div className={styles.policyRow}>
         <p className={styles.policy}>{usageLabel}</p>
-        {usage && <PriceBadge featureKey={PAID_FEATURE_KEY} prefix="단건 " className={styles.priceBadge} />}
+        <PriceBadge featureKey={PAID_FEATURE_KEY} prefix="1회 " className={styles.priceBadge} />
       </div>
 
       <details className={styles.birthPanel} open={birthOpen} onToggle={(event) => setBirthOpen((event.currentTarget as HTMLDetailsElement).open)}>
@@ -769,11 +769,17 @@ export default function FortuneChatClient() {
         {suggestions.items.map((item) => <button key={item} type="button" onClick={() => { setQuestion(item); window.setTimeout(() => inputRef.current?.focus(), 0); }}>{item}</button>)}
       </div>}
 
-      <div className={styles.chips} aria-label={copy.topicChipsAria}>{TOPICS.map((item) => <button key={item} type="button" aria-pressed={topic === item} onClick={() => selectTopic(item)}>{item}</button>)}</div>
-      <div className={styles.chips} aria-label={copy.categoryChipsAria}>{(Object.keys(CATEGORY_LABEL) as Category[]).map((item) => <button key={item} type="button" aria-pressed={activeCategory === item} onClick={() => setCategory(item)}>{CATEGORY_LABEL[item]}</button>)}</div>
+      <div className={styles.choiceGroup}>
+        <span className={styles.choiceLabel}>어떤 고민인가요?</span>
+        <div className={styles.chips} aria-label={copy.topicChipsAria}>{TOPICS.map((item) => <button key={item} type="button" aria-pressed={topic === item} onClick={() => selectTopic(item)}>{item}</button>)}</div>
+      </div>
+      <div className={styles.choiceGroup}>
+        <span className={styles.choiceLabel}>어떤 방식으로 볼까요?</span>
+        <div className={styles.chips} aria-label={copy.categoryChipsAria}>{(Object.keys(CATEGORY_LABEL) as Category[]).map((item) => <button key={item} type="button" aria-pressed={activeCategory === item} onClick={() => setCategory(item)}>{CATEGORY_LABEL[item]}</button>)}</div>
+      </div>
       <div className={styles.input}>
-        <input ref={inputRef} value={question} maxLength={CONCERN_MAX_LENGTH} onChange={(event) => setQuestion(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter" && !event.nativeEvent.isComposing) void send(); }} placeholder="마음에 남은 질문을 적어 주세요" aria-label={copy.questionInputAria} disabled={busy || isPaying} />
-        <button type="button" onClick={() => void send()} disabled={busy || isPaying}>{busy || isPaying ? "정리 중" : "보내기"}</button>
+        <input ref={inputRef} value={question} maxLength={CONCERN_MAX_LENGTH} onChange={(event) => setQuestion(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter" && !event.nativeEvent.isComposing) void send(); }} placeholder="예: 지금 이직을 결정해도 괜찮을까요?" aria-label={copy.questionInputAria} disabled={busy || isPaying} />
+        <button type="button" onClick={() => void send()} disabled={busy || isPaying}>{busy || isPaying ? "상담 준비 중…" : "상담 시작"}</button>
       </div>
       {error && <p className={styles.error} role="alert">{error}</p>}
     </section>

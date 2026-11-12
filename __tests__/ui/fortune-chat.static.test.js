@@ -44,6 +44,23 @@ test("suggested questions are offered, never typed into the box for the user", (
   assert.match(client, /suggestions\.items\.map/);
 });
 
+test("the Yeoni chat composer labels its steps and surfaces the single-use price before sending", () => {
+  const client = read("app/fortune-chat/FortuneChatClient.tsx");
+  const welcome = read("app/fortune-chat/YeoniWelcome.tsx");
+  const styles = read("app/fortune-chat/fortune-chat.module.css");
+
+  assert.match(client, /어떤 고민인가요\?/);
+  assert.match(client, /어떤 방식으로 볼까요\?/);
+  assert.match(client, /prefix="1회 "/);
+  assert.match(client, /placeholder="예: 지금 이직을 결정해도 괜찮을까요\?"/);
+  assert.match(client, /: "상담 시작"/);
+  assert.match(client, /const gate = await openPaymentGate\(requestId/);
+  assert.match(welcome, /fortune-chat-yeoni\.webp/);
+  assert.match(welcome, /연이에게 들려주세요/);
+  assert.match(styles, /\.choiceGroup/);
+  assert.match(styles, /\.input button/);
+});
+
 test("a failed send rolls its own bubble back and keeps the question typed", () => {
   // 실패해도 말풍선이 남고 입력창도 안 비워져, 재시도할 때마다 같은 질문이 하나씩 쌓였다.
   const client = read("app/fortune-chat/FortuneChatClient.tsx");

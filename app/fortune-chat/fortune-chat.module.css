@@ -285,6 +285,33 @@
 .policy::before { width: 7px; height: 7px; border-radius: 50%; background: var(--rose); content: ""; box-shadow: 0 0 0 3px var(--halo); }
 .chips button { flex-shrink: 0; border-color: var(--line); background: var(--bubble); color: var(--ink); transition: border-color 150ms cubic-bezier(.22, 1, .36, 1), background-color 150ms cubic-bezier(.22, 1, .36, 1), color 150ms cubic-bezier(.22, 1, .36, 1); }
 .chips button:hover { border-color: color-mix(in srgb, var(--rose) 48%, transparent); background: color-mix(in srgb, var(--rose-soft) 20%, var(--bubble)); }
+
+/* 상담 입력은 질문 → 고민 분야 → 해석 방식 순서로 읽히게 묶는다. */
+.choiceGroup { display: grid; gap: 2px; margin-top: 5px; }
+.choiceLabel { display: block; margin: 0 0 5px 2px; color: var(--muted); font-size: .76rem; font-weight: 750; }
+.choiceGroup .chips { padding-bottom: 5px; }
+.composer { padding-top: 14px; }
+.input input { border-radius: 16px; }
+.input button {
+  min-width: 104px;
+  min-height: 48px;
+  border: 0;
+  border-radius: 16px;
+  background: var(--rose);
+  padding: 0 16px;
+  color: var(--bubble-mine-ink);
+  font: inherit;
+  font-size: .88rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+.input button:hover:not(:disabled) { filter: brightness(.95); }
+.input button:focus-visible { outline: 3px solid var(--focus-ring); outline-offset: 3px; }
+@media (max-width: 560px) {
+  .composer { padding-inline: 12px; }
+  .input { align-items: stretch; }
+  .input button { min-width: 92px; padding-inline: 12px; }
+}
 .chips button[aria-pressed=true] { border-color: var(--rose); background: color-mix(in srgb, var(--rose-soft) 30%, var(--bubble)); color: var(--rose); }
 .input input { border-color: color-mix(in srgb, var(--rose) 30%, transparent); background: var(--bubble); color: var(--ink); }
 .input input::placeholder { color: var(--muted); }

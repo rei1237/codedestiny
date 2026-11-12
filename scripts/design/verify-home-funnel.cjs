@@ -1,5 +1,5 @@
 // Local-only visual and interaction verification for the simplified home (2026-10-17 "직관성").
-// 홈 흐름: 짧은 히어로(골드 Brand CTA) → 대표 상담 덱 Ⅰ–Ⅵ(2열/3열 격자) → 초융합 띠 → 무료로 먼저(6장) → 꿀방울 출석 → 1:1 상담(연이·네오) → 이용권 → 뮤직비디오 → "모든 운세 보기" 버튼 → 달빛 이야기(노벨·음악 카드) → 푸터.
+// 홈 흐름: 짧은 히어로(골드 Brand CTA) → 대표 상담 덱 Ⅰ–Ⅵ(2열/3열 격자) → 초융합 띠 → 무료로 먼저(6장) → 꿀방울 출석 → 영냥이·네오 상담 비교 → 연이 대화 상담 → 이용권 → 뮤직비디오 → "모든 운세 보기" 버튼 → 달빛 이야기(노벨·음악 카드) → 푸터.
 const { chromium } = require('playwright');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
@@ -36,7 +36,8 @@ async function assertEssentials(page, label) {
     ['light fortunes fold', '#cdhLightFortunes > summary'],
     ['yeoni consultation door', '#fortuneGatewayEntry'],
     ['neo letter consultation', '#cdhNeoLetterSlot .cdh-neo-letter'],
-    ['yeongnyangi main banner', '#cdhYeongnyangiSlot .cd-soulcat-entry .cd-soulcat-entry__cta'],
+    ['consultation comparison: Yeongnyangi CTA', '#cdhYeongnyangiSlot .cdh-choice-card--yeongnyangi .cdh-choice-card__cta'],
+    ['consultation comparison: Neo reviewed email CTA', '#cdhNeoLetterSlot .cdh-choice-card__cta[href="/neo-consultation/"]'],
     ['music video', '#cdhMoonlightMv'],
     ['moonlight story toggle', '.cdh-story__toggle'],
   ];
@@ -79,16 +80,19 @@ async function assertEssentials(page, label) {
       await page.waitForTimeout(250);
       await assertEssentials(page, `${width}px first visit`);
 
-      // 강약: 대표 상담 → 초융합 시그니처 → 무료로 먼저 → 꿀방울 → 1:1 상담 → 영냥이 배너 → 질문 카테고리 → 이용권 → 뮤직비디오 → 모든 운세 버튼 → 링크 → 달빛 이야기. DOM 순서와 화면 순서가 같다.
+      // 강약: 대표 상담 → 초융합 시그니처 → 무료로 먼저 → 꿀방울 → 영냥이·네오 비교 → 연이 대화 상담 → 질문 카테고리 → 이용권 → 뮤직비디오 → 모든 운세 버튼 → 링크 → 달빛 이야기. DOM 순서와 화면 순서가 같다.
       const order = await page.evaluate(() => {
-        const nodes = [document.getElementById('cdSignatureConsult'), document.getElementById('cdhFusionSignature'), document.getElementById('cdQuickServices'), document.querySelector('.cdh-honey'), document.querySelector('.cdh-consult'), document.getElementById('cdhYeongnyangiSlot'), document.getElementById('cdConcernPick'), document.getElementById('cdhPass'), document.querySelector('.cdh-all-cta'), document.querySelector('.cdh-links'), document.getElementById('cdhMoonlightMv'), document.querySelector('.cdh-story')];
+        const nodes = [document.getElementById('cdSignatureConsult'), document.getElementById('cdhFusionSignature'), document.getElementById('cdQuickServices'), document.querySelector('.cdh-honey'), document.getElementById('cdhYeongnyangiSlot'), document.querySelector('.cdh-consult'), document.getElementById('cdConcernPick'), document.getElementById('cdhPass'), document.querySelector('.cdh-all-cta'), document.querySelector('.cdh-links'), document.getElementById('cdhMoonlightMv'), document.querySelector('.cdh-story')];
         return {
           dom: nodes.every((node, index) => index === 0 || Boolean(nodes[index - 1].compareDocumentPosition(node) & Node.DOCUMENT_POSITION_FOLLOWING)),
           visual: nodes.map((node) => node.getBoundingClientRect().top + scrollY),
         };
       });
-      assert.ok(order.dom, `${width}px home flow keeps signature → fusion → free → honey → consult → questions → pass → MV → all fortunes → links → story in DOM`);
+      assert.ok(order.dom, `${width}px home flow keeps signature → fusion → free → honey → consultation comparison → Yeoni chat → questions → pass → MV → all fortunes → links → story in DOM`);
       assert.ok(order.visual.every((top, index) => index === 0 || top > order.visual[index - 1]), `${width}px home flow keeps the same visual order (${order.visual.map(Math.round).join(' < ')})`);
+      assert.equal(await page.locator('#cdhYeongnyangiSlot .cdh-choice-card').count(), 2, `${width}px two consultation choices share one visual group`);
+      assert.equal(await page.locator('#cdhNeoLetterSlot').evaluate((node) => Boolean(node.closest('.cdh-consult'))), false, `${width}px Neo email choice is not repeated in the separate chat consultation group`);
+      assert.match(await page.locator('#cdhNeoLetterSlot').innerText(), /AI 작성 · 사람 검수 · 이메일 전달/, `${width}px Neo disclosure is visible`);
 
       // 걷어낸 블록은 홈 마크업에 다시 생기지 않는다. 기능 페이지와 URL은 그대로다.
       for (const selector of ['#cdhMore', '#cdhServices', '#cdTodayHub', '#cdhFlowerTitle', '[data-cdh-chemi]', '#cdhFeedbackSlot', '#cdhSignupBenefit', '.cdh-moonstone-guide', '#cdhSamples', '.cdh-portals']) {
