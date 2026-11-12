@@ -1,5 +1,5 @@
 ---
-status: in-progress
+status: active
 updated: 2026-11-12
 next: "가디언 에이전트(/handoff saju-guardian-prompt-2026-11-11.md 2단계)의 결과를 받아 두 번째 운영 승격을 확인한다. 그 뒤 무료화 문서를 닫고 최종 보고한다."
 ---
