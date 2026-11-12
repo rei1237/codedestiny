@@ -12,7 +12,7 @@ import YehwaCard from "../../components/service-intro/YehwaCard";
 const PAGE_PATH = "/oracle/rune/";
 const PAGE_TITLE = "룬 점 보기 | 엘더 푸타르크 24룬 오라클 | 꿀꿀 운세";
 const PAGE_DESCRIPTION =
-  "엘더 푸타르크 24개 룬의 상징으로 사랑·일·선택의 질문을 살펴보는 유료 룬 리딩. 1·3·5·12룬 배열을 고르고, 정방향·역방향과 배열별 해석을 확인하세요.";
+  "엘더 푸타르크 24개 룬의 상징으로 사랑·일·선택의 질문을 살펴보는 룬 리딩. 지금은 3개월 한정 무료로 1·3·5·12룬 배열을 고르고, 정방향·역방향과 배열별 해석을 확인하세요.";
 
 export const metadata: Metadata = {
   title: PAGE_TITLE,
@@ -47,7 +47,7 @@ const runeFaqItems = [
   {
     question: "룬 리딩은 어떻게 이용하나요?",
     answer:
-      "룬 뽑기와 해석은 유료 기능입니다. 원하는 배열을 선택한 뒤 로그인하고, 결제 전 화면에서 금액과 적용 가능한 이용 수단을 확인해 주세요. 이용 조건을 확인한 뒤 리딩을 시작합니다.",
+      "룬 뽑기와 해석은 2027년 2월 12일까지 3개월 한정 무료입니다. 원하는 배열을 선택한 뒤 로그인하면 결제 없이 바로 리딩을 시작합니다. 이후 유료 전환 예정이며, 바뀐 이용 조건은 리딩 시작 전 화면에서 안내합니다.",
   },
   {
     question: "질문은 어떻게 정하는 것이 좋나요?",
@@ -100,7 +100,7 @@ export default function RunePage() {
       <section className="relative z-10 mx-auto w-full max-w-3xl px-4 py-6" aria-label="룬 오라클 안내">
         <YehwaCard ornament={false}>
         <h1>룬 점 — 엘더 푸타르크 24룬 오라클</h1>
-        <p>24개 상징의 정방향·역방향 해석으로 관계와 선택의 흐름을 살펴봅니다. 유료 리딩으로, 원하는 배열과 이용 조건을 확인한 뒤 시작해 주세요.</p>
+        <p>24개 상징의 정방향·역방향 해석으로 관계와 선택의 흐름을 살펴봅니다. 지금은 3개월 한정 무료라, 원하는 배열을 고르고 로그인하면 바로 시작할 수 있어요.</p>
         <details className="mt-4">
           <summary className="min-h-11 cursor-pointer py-3 font-semibold text-[var(--si-heading)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-current">룬 점 이용 방법과 자주 묻는 질문</summary>
         <p>

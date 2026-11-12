@@ -10890,7 +10890,12 @@
     window.addEventListener(name, _dpInvalidateProfileFortuneEntry);
   });
   document.addEventListener('destinyProfileChanged', _dpInvalidateProfileFortuneEntry);
-  window.addEventListener('storage', _dpInvalidateProfileFortuneEntry);
+  /* 다른 탭의 무관한 쓰기(예: 새 탭이 로드 때 쓰는 cd_lang)까지 진입을 무효화하면 오버레이 페이드(350ms) 사이에
+     올림푸스·꽃 진입이 아무 안내 없이 사라진다(2026-11-12 mock 재현). 계정·프로필 키와 전체 비우기만 본다. */
+  window.addEventListener('storage', function(event) {
+    var key = event && event.key;
+    if (key == null || /^fortune_auth_/.test(key) || String(key).indexOf(NS) === 0) _dpInvalidateProfileFortuneEntry(event);
+  });
 
   window._dpCloseFortuneSel = function() {
     _dpProfileFortuneEntryVersion += 1;

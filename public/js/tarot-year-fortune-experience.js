@@ -400,6 +400,34 @@
     }
   }
 
+  /* 무료(public) 연간 리딩은 서버가 유료 실행 기록에 저장하지 않는다(stored:false). 새로고침·재진입 때
+     결과가 사라지고 다른 카드로 다시 뽑히지 않도록, 이 기기에 계정·연도별로 보관했다가 서버 결과가 없을 때 복원한다. */
+  function getPublicYearResultKey(year) {
+    var owner = "guest";
+    try {
+      var user = JSON.parse(localStorage.getItem("fortune_auth_user") || "null");
+      var id = user && (user.id || user._id || user.userId);
+      if (id) owner = String(id);
+    } catch (e) {}
+    return "cd:tarot-year:public-result:" + owner + ":" + String(year || new Date().getFullYear());
+  }
+
+  function savePublicYearResult(data) {
+    if (!data || data.stored !== false || data.accessSource !== "public") return;
+    try {
+      localStorage.setItem(getPublicYearResultKey(data.year || state.year), JSON.stringify(data));
+    } catch (e) {}
+  }
+
+  function readPublicYearResult(year) {
+    try {
+      var data = JSON.parse(localStorage.getItem(getPublicYearResultKey(year)) || "null");
+      return data && data.accessSource === "public" ? data : null;
+    } catch (e) {
+      return null;
+    }
+  }
+
   function clearYearRequestId(year) {
     try { sessionStorage.removeItem(getYearStorageKey(year)); } catch (e) {}
   }
@@ -785,14 +813,18 @@
   function restoreStoredYearResult() {
     var year = new Date().getFullYear();
     state.year = year;
+    function restorePublic() {
+      var local = readPublicYearResult(year);
+      return local ? applyYearResultData(local) : false;
+    }
     return callTarotYearResult(year, "").then(function (data) {
-      if (!data) return false;
+      if (!data) return restorePublic();
       return applyYearResultData(data);
     }).catch(function (error) {
       if (Number(error && error.status) !== 401 && Number(error && error.status) !== 403) {
         console.info("[Tarot Year Fortune] stored result unavailable", error);
       }
-      return false;
+      return restorePublic();
     });
   }
 
@@ -1418,6 +1450,7 @@ function renderMonthDetailNarrative(monthNum, cat, spreadCards, triadReading) {
         var normalized = normalizeYearlyReadingPayload(data);
         if (!normalized) throw new Error("No reading data");
         applyYearResultData(data);
+        savePublicYearResult(data);
         return data;
       })
       .catch(function (err) {

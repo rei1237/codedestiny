@@ -470,3 +470,20 @@ test('main and React handoff signatures use the same semantic birth/location con
   assert.equal(JSON.stringify(c.profileReadingFields(a)),JSON.stringify(c.olympusProfileReadingFields(b)));
   for(const changed of [{...b,birth:{...b.birth,day:16}},{...b,gender:'M'},{...b,location:{...b.location,lng:128}},{...b,birth:{...b.birth,timeUnknown:true}}])assert.notEqual(JSON.stringify(c.profileReadingFields(a)),JSON.stringify(c.olympusProfileReadingFields(changed)));
 });
+test('fortune entry ignores unrelated cross-tab storage writes but not auth/profile ones', () => {
+  // 2026-11-12: a new tab writing cd_lang during the 350ms overlay fade silently cancelled Olympus/flower entry.
+  const marker = "  window.addEventListener('storage', function(event) {";
+  const start = dp.indexOf(marker);
+  assert.ok(start > 0, 'filtered storage listener present');
+  const block = dp.slice(start, dp.indexOf('\n  });', start) + 6);
+  let handler = null, invalidated = 0;
+  vm.runInNewContext(block, {
+    NS: 'FORTUNE_APP_USER_PROFILES',
+    _dpInvalidateProfileFortuneEntry: () => invalidated++,
+    window: { addEventListener: (name, fn) => { if (name === 'storage') handler = fn; } },
+  });
+  for (const key of ['cd_lang', 'cd:first-visit:v1:ggulggul:guest', 'cdSajuPersonaV1']) handler({ key });
+  assert.equal(invalidated, 0);
+  for (const key of [null, 'fortune_auth_user', 'fortune_auth_token', 'FORTUNE_APP_USER_PROFILES.current::u1']) handler({ key });
+  assert.equal(invalidated, 4);
+});
