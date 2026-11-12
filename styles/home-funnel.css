@@ -1689,3 +1689,26 @@ html.neo-mode #cdHomeFunnel .cdh-scene-art #honeypigLogo{box-shadow:none!importa
 .cdh-widget-entry { display:flex; align-items:center; gap:12px; margin:16px auto; padding:10px 16px; width:fit-content; max-width:100%; color:inherit; text-decoration:none; }
 .cdh-widget-entry img { object-fit:contain; }
 .cdh-widget-entry small { display:block; margin-top:4px; }
+
+/* 2026-11-12 무료 3개월 홍보 배너(lib/marketing/free-promo-shell.mjs). 표시 전용 — 마감 뒤에는 스크립트가 숨긴다. */
+#cdHomeFunnel .cdh-promo{display:grid;gap:8px;margin:clamp(32px,4vw,48px) 40px 0;padding:clamp(18px,2.4vw,26px) clamp(18px,2.6vw,30px);border:1px solid color-mix(in srgb,var(--cdh-accent) 38%,transparent);border-radius:var(--cd-r-card,20px);background:linear-gradient(135deg,color-mix(in srgb,var(--cdh-accent) 10%,var(--cdh-card)),var(--cdh-card) 62%,color-mix(in srgb,var(--cdh-gold-soft) 70%,var(--cdh-card)));box-shadow:0 14px 32px -24px color-mix(in srgb,var(--cdh-accent) 60%,transparent)}
+#cdHomeFunnel .cdh-promo__badge{justify-self:start;padding:3px 12px;border-radius:999px;background:var(--cdh-accent);color:var(--cdh-card);font-size:.78rem;font-weight:800;letter-spacing:.04em}
+#cdHomeFunnel .cdh-promo__title{color:var(--cdh-ink);font-family:var(--font-display);font-size:clamp(1.5rem,3vw,2.2rem);line-height:1.25;letter-spacing:-.03em}
+#cdHomeFunnel .cdh-promo__until{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;color:var(--cdh-ink);font-weight:700}
+#cdHomeFunnel .cdh-promo__dday{display:inline-flex;align-items:center;min-height:28px;padding:0 10px;border:1px solid var(--cdh-accent);border-radius:8px;color:var(--cdh-accent);font-size:1rem;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:.02em}
+#cdHomeFunnel .cdh-promo__note{color:var(--cdh-muted);font-size:.86rem}
+#cdHomeFunnel .cdh-promo__actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:6px}
+#cdHomeFunnel .cdh-promo__cta,#cdHomeFunnel .cdh-promo__share{display:inline-flex;align-items:center;justify-content:center;min-height:var(--cd-btn-h,48px);padding:10px 20px;border-radius:999px;font-size:.95rem;font-weight:800;text-align:center;cursor:pointer}
+#cdHomeFunnel .cdh-promo__cta{border:1px solid var(--cdh-accent);background:var(--cdh-accent);color:var(--cdh-card)}
+#cdHomeFunnel .cdh-promo__share{border:1px solid color-mix(in srgb,var(--cdh-accent) 55%,transparent);background:var(--cdh-card);color:var(--cdh-accent)}
+#cdHomeFunnel .cdh-promo__status:empty{display:none}
+#cdHomeFunnel .cdh-promo__status{color:var(--cdh-muted);font-size:.84rem}
+#cdHomeFunnel .cdh-promo + .cdh-free{margin-top:24px}
+@media (max-width:760px){
+  #cdHomeFunnel .cdh-promo{margin:28px 16px 0}
+  #cdHomeFunnel .cdh-promo__actions>*{flex:1 1 100%}
+}
+/* "3개월 한정 무료" 씰이 모바일에서 메달과 겹치지 않게 카드 위 여백을 늘린다. */
+@media (max-width:640px){
+  #cdHomeFunnel .cdh-free-card{padding-top:34px}
+}

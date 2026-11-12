@@ -22509,5 +22509,17 @@
       "dayBonus": "{date}, sudah daftar kehadiran, bonus berturut-turut diberikan",
       "dayToday": "{date}, hari ini"
     }
+  },
+  "freePromo": {
+    "badge": "3 bulan sahaja",
+    "title": "Kini semuanya percuma",
+    "until": "Dirancang menjadi berbayar selepas 12 Februari 2027",
+    "note": "Meliputi bacaan asas seperti Manseryeok, Zi Wei Dou Shu dan astrologi. Tidak termasuk konsultasi AI serta bacaan Saju Ringan dan kitaran sepuluh tahun.",
+    "cta": "Lihat bacaan percuma",
+    "share": "Beritahu rakan selagi percuma",
+    "shareText": "Bacaan Manseryeok, Zi Wei Dou Shu dan astrologi kini boleh dilihat secara percuma. Ia dirancang menjadi berbayar selepas 12 Februari 2027.",
+    "copied": "Pautan disalin. Tampal untuk dihantar kepada rakan.",
+    "copyFailed": "Pautan tidak dapat disalin. Sila salin dari bar alamat.",
+    "tileBadge": "Percuma 3 bulan"
   }
 }

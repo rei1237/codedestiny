@@ -6,7 +6,7 @@ import postcss from 'postcss';
 import { renderYehwaHome } from '../../lib/marketing/yehwa-home.mjs';
 
 const html = readFileSync('index.html', 'utf8');
-const hero = html.match(/<div class="yh-hero yh-entry-scene"[\s\S]*?(?=    <section class="cdh-free")/)[0];
+const hero = html.match(/<div class="yh-hero yh-entry-scene"[\s\S]*?(?=    <section class="cdh-(?:promo|free)")/)[0];
 const document = new JSDOM(hero).window.document;
 const css = postcss.parse(readFileSync('styles/yehwa-home.css', 'utf8'));
 const declarations = selector => {

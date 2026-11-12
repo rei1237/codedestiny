@@ -1,0 +1,78 @@
+/* 무료 3개월 홍보 배너(FreePromoBanner.tsx). 정적 셸 .cdh-promo(styles/home-funnel.css)와 같은 구성. */
+.banner {
+  display: grid;
+  gap: 8px;
+  width: 100%;
+  margin: 24px 0 0;
+  padding: clamp(18px, 2.4vw, 26px) clamp(18px, 2.6vw, 30px);
+  border: 1px solid color-mix(in srgb, var(--cd-accent, #b53660) 38%, transparent);
+  border-radius: var(--cd-r-card, 20px);
+  background: linear-gradient(135deg, color-mix(in srgb, var(--cd-accent, #b53660) 10%, var(--cd-surface, #fff)), var(--cd-surface, #fff) 62%, color-mix(in srgb, var(--cd-gold-soft, #fff3d6) 70%, var(--cd-surface, #fff)));
+  color: var(--cd-text, #402a38);
+  text-align: left;
+  box-sizing: border-box;
+}
+.banner * { box-sizing: border-box; }
+.banner p { margin: 0; word-break: keep-all; }
+.badge {
+  justify-self: start;
+  padding: 3px 12px;
+  border-radius: 999px;
+  background: var(--cd-accent, #b53660);
+  color: var(--cd-surface, #fff);
+  font-size: .78rem;
+  font-weight: 800;
+  letter-spacing: .04em;
+}
+.title {
+  font-family: var(--font-display, var(--font-serif, inherit));
+  font-size: clamp(1.5rem, 3vw, 2.2rem);
+  line-height: 1.25;
+  letter-spacing: -.03em;
+}
+.until {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+  font-weight: 700;
+}
+.dday {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 0 10px;
+  border: 1px solid var(--cd-accent, #b53660);
+  border-radius: 8px;
+  color: var(--cd-accent, #b53660);
+  font-size: 1rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+.note { color: var(--cd-text-muted, #6b4d5e); font-size: .86rem; }
+.actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 6px; }
+.cta,
+.share {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  padding: 10px 20px;
+  border-radius: 999px;
+  font: inherit;
+  font-size: .95rem;
+  font-weight: 800;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.cta { border: 1px solid var(--cd-accent, #b53660); background: var(--cd-accent, #b53660); color: var(--cd-surface, #fff); }
+.share { border: 1px solid color-mix(in srgb, var(--cd-accent, #b53660) 55%, transparent); background: var(--cd-surface, #fff); color: var(--cd-accent, #b53660); }
+.cta:focus-visible,
+.share:focus-visible { outline: 3px solid var(--cd-accent, #b53660); outline-offset: 3px; }
+.status { color: var(--cd-text-muted, #6b4d5e); font-size: .84rem; }
+.status:empty { display: none; }
+@media (max-width: 640px) {
+  .actions > * { flex: 1 1 100%; }
+}

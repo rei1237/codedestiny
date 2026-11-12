@@ -22509,5 +22509,17 @@
       "dayBonus": "{date}, asistencia registrada, bono de racha otorgado",
       "dayToday": "{date}, hoy"
     }
+  },
+  "freePromo": {
+    "badge": "Solo 3 meses",
+    "title": "Ahora todo es gratis",
+    "until": "Está previsto que pasen a ser de pago después del 12 de febrero de 2027",
+    "note": "Incluye lecturas básicas como Manseryeok, Zi Wei Dou Shu y astrología. No incluye las consultas con IA ni las lecturas ligeras de Saju y de ciclos de diez años.",
+    "cta": "Ver lecturas gratis",
+    "share": "Avisa a un amigo mientras es gratis",
+    "shareText": "Ahora puedes ver gratis lecturas de Manseryeok, Zi Wei Dou Shu y astrología. Está previsto que pasen a ser de pago después del 12 de febrero de 2027.",
+    "copied": "Enlace copiado. Pégalo para enviárselo a un amigo.",
+    "copyFailed": "No se pudo copiar el enlace. Cópialo desde la barra de direcciones.",
+    "tileBadge": "Gratis 3 meses"
   }
 }

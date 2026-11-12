@@ -22509,5 +22509,17 @@
       "dayBonus": "{date}, eingecheckt, Serienbonus gutgeschrieben",
       "dayToday": "{date}, heute"
     }
+  },
+  "freePromo": {
+    "badge": "Nur 3 Monate",
+    "title": "Jetzt alles kostenlos",
+    "until": "Ab dem 12. Februar 2027 ist eine Umstellung auf kostenpflichtig geplant",
+    "note": "Gilt für Grunddeutungen wie Manseryeok, Zi Wei Dou Shu und Astrologie. Ausgenommen sind KI-Beratungen sowie die Light-Saju- und Zehnjahreszyklus-Deutungen.",
+    "cta": "Kostenlose Deutungen ansehen",
+    "share": "Freunden Bescheid sagen, solange es kostenlos ist",
+    "shareText": "Manseryeok, Zi Wei Dou Shu und Astrologie sind gerade kostenlos. Ab dem 12. Februar 2027 ist eine Umstellung auf kostenpflichtig geplant.",
+    "copied": "Link kopiert. Füge ihn ein, um ihn an Freunde zu schicken.",
+    "copyFailed": "Der Link konnte nicht kopiert werden. Bitte kopiere ihn aus der Adressleiste.",
+    "tileBadge": "3 Monate gratis"
   }
 }

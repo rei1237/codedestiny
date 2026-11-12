@@ -22509,5 +22509,17 @@
       "dayBonus": "{date}, ingecheckt, reeksbonus toegekend",
       "dayToday": "{date}, vandaag"
     }
+  },
+  "freePromo": {
+    "badge": "Slechts 3 maanden",
+    "title": "Nu alles gratis",
+    "until": "Na 12 februari 2027 is betaald gebruik gepland",
+    "note": "Geldt voor basislezingen zoals Manseryeok, Zi Wei Dou Shu en astrologie. AI-consulten en de Light Saju- en tienjarige-cyclus-lezingen vallen erbuiten.",
+    "cta": "Gratis lezingen bekijken",
+    "share": "Vertel het een vriend zolang het gratis is",
+    "shareText": "Manseryeok, Zi Wei Dou Shu en astrologie zijn nu gratis te bekijken. Na 12 februari 2027 is betaald gebruik gepland.",
+    "copied": "Link gekopieerd. Plak hem om naar een vriend te sturen.",
+    "copyFailed": "De link kon niet worden gekopieerd. Kopieer hem uit de adresbalk.",
+    "tileBadge": "3 maanden gratis"
   }
 }
