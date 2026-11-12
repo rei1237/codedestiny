@@ -1,7 +1,7 @@
 /* 무료 3개월 홍보 배너(FreePromoBanner.tsx). 정적 셸 .cdh-promo(styles/home-funnel.css)와 같은 구성. */
 .banner {
   display: grid;
-  gap: 8px;
+  gap: 14px;
   width: 100%;
   margin: 24px 0 0;
   padding: clamp(18px, 2.4vw, 26px) clamp(18px, 2.6vw, 30px);
@@ -49,6 +49,94 @@
   font-weight: 800;
   font-variant-numeric: tabular-nums;
 }
+.head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px 24px; }
+.lead { display: grid; gap: 8px; flex: 1 1 260px; min-width: 0; }
+/* 꽃돼지 연이 진입점: 누르면 사주 입력(/ggulggul/ 셸)으로 간다. */
+.yeoni { display: flex; align-items: flex-end; gap: 2px; flex: 0 1 380px; margin-left: auto; color: var(--cd-text, #402a38); text-decoration: none; -webkit-tap-highlight-color: transparent; }
+.bubble {
+  position: relative;
+  flex: 1 1 auto;
+  margin-bottom: 30px;
+  padding: 10px 14px;
+  border: 1px solid color-mix(in srgb, var(--cd-accent, #b53660) 30%, transparent);
+  border-radius: 18px 18px 6px 18px;
+  background: var(--cd-surface, #fff);
+  box-shadow: 0 8px 18px -12px color-mix(in srgb, var(--cd-accent, #b53660) 70%, transparent);
+  font-family: var(--font-playful, "CodeDestinyPlayful"), var(--font-body, sans-serif);
+  font-size: .9rem;
+  font-weight: 700;
+  line-height: 1.5;
+  word-break: keep-all;
+}
+.bubble::after {
+  content: "";
+  position: absolute;
+  right: -7px;
+  bottom: 12px;
+  width: 12px;
+  height: 12px;
+  border-top: 1px solid color-mix(in srgb, var(--cd-accent, #b53660) 30%, transparent);
+  border-right: 1px solid color-mix(in srgb, var(--cd-accent, #b53660) 30%, transparent);
+  background: var(--cd-surface, #fff);
+  transform: rotate(45deg);
+}
+.yeoniImg {
+  flex: 0 0 auto;
+  width: 96px;
+  height: 112px;
+  object-fit: cover;
+  object-position: 50% 0;
+  transform-origin: 50% 100%;
+  transition: transform .25s ease;
+  filter: drop-shadow(0 8px 10px color-mix(in srgb, var(--cd-accent, #b53660) 22%, transparent));
+}
+.yeoni:hover .yeoniImg,
+.yeoni:focus-visible .yeoniImg { transform: translateY(-4px) rotate(-4deg); }
+.yeoni:hover .bubble { border-color: var(--cd-accent, #b53660); }
+.yeoni:focus-visible { outline: 3px solid var(--cd-accent, #b53660); outline-offset: 3px; border-radius: 18px; }
+@media (prefers-reduced-motion: no-preference) {
+  .yeoniImg { animation: yeoniBob 3.2s ease-in-out infinite; }
+  .yeoni:hover .yeoniImg { animation: none; }
+}
+@keyframes yeoniBob { 0%, 100% { translate: 0 0; } 50% { translate: 0 -3px; } }
+/* 무료로 푼 목록: 묶음별 칩. */
+.groups { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 10px; }
+@media (min-width: 900px) { .groups { grid-template-columns: 1.35fr 1fr 1fr; } }
+.group {
+  --chip: var(--cd-accent, #b53660);
+  display: grid;
+  align-content: start;
+  gap: 8px;
+  padding: 12px 14px 14px;
+  border: 1px solid color-mix(in srgb, var(--chip) 22%, transparent);
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--cd-surface, #fff) 82%, transparent);
+}
+.group[data-group="classic"] { --chip: #8a6424; }
+.group[data-group="more"] { --chip: #6e5a8e; }
+:global(html.neo-mode) .group[data-group="classic"], :global(body.neo-mode) .group[data-group="classic"] { --chip: var(--cd-gold, #e8d5a3); }
+:global(html.neo-mode) .group[data-group="more"], :global(body.neo-mode) .group[data-group="more"] { --chip: #d8c8ea; }
+.groupTitle { display: flex; align-items: center; gap: 6px; color: var(--chip); font-size: .8rem; font-weight: 800; letter-spacing: .02em; }
+.groupTitle::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; opacity: .75; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
+  padding: 6px 12px;
+  border: 1px solid color-mix(in srgb, var(--chip) 30%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--chip) 8%, var(--cd-surface, #fff));
+  color: var(--cd-text, #402a38);
+  font-size: .84rem;
+  font-weight: 700;
+  line-height: 1.2;
+  white-space: nowrap;
+  text-decoration: none;
+  transition: background-color .15s ease, border-color .15s ease;
+}
+.chip:hover { border-color: var(--chip); background: color-mix(in srgb, var(--chip) 16%, var(--cd-surface, #fff)); }
+.chip:focus-visible { outline: 3px solid var(--chip); outline-offset: 2px; }
 .note { color: var(--cd-text-muted, #6b4d5e); font-size: .86rem; }
 .actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 6px; }
 .cta,
@@ -75,4 +163,7 @@
 .status:empty { display: none; }
 @media (max-width: 640px) {
   .actions > * { flex: 1 1 100%; }
+  .yeoni { flex: 1 1 100%; }
+  .yeoniImg { width: 84px; height: 98px; }
+  .bubble { font-size: .86rem; margin-bottom: 26px; }
 }
