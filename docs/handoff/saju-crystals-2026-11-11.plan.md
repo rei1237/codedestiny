@@ -1,3 +1,9 @@
+---
+status: done
+updated: 2026-11-12
+next: 없음 — 구현 계획 원본(보관용). 진행 상태는 saju-crystals-2026-11-11.md를 본다
+---
+
 # 사주 원석 추천 — 연이의 원석 큐레이션 구현 계획
 
 ## Context
