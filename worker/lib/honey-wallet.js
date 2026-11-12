@@ -9,8 +9,8 @@ export const HONEY_SCOPE = "FORTUNE_TEA_HOUSE";
 // 출석 N번마다 1방울. 출석 횟수는 누적이라 연속이 끊겨도 다음 지급까지 남은 수는 유지된다.
 export const HONEY_ATTENDANCE_EVERY = 1;
 export const PROMPT_HUB_HONEY_COST = 1;
-// 연이 운명 상담 1회 = 꿀방울 30개. 기본 사주 리포트와 같은 승인 비율(5,000원 : 30방울)이며 현금 가치가 아니다.
-export const FORTUNE_CHAT_HONEY_COST = 30;
+// 2026-10-28 승인: 연이 운명 상담의 신규 사용량을 절반으로 낮춘다. 기존 영수증의 복원량은 유지한다.
+export const FORTUNE_CHAT_HONEY_COST = 15;
 export const fortuneChatHoneyLedgerId = (userId, requestId) => `fortune-chat:${userId}:fc-${requestId}`;
 
 export const kstDay = (now = new Date()) => new Date(now.getTime() + 9 * 3600000).toISOString().slice(0, 10);
@@ -161,7 +161,7 @@ export async function spendPromptHubHoney(env, userId, { requestId, inputHash, t
 }
 
 /**
- * 연이 상담 한 건에 꿀방울 30개를 쓴다. 호출자의 트랜잭션 안에서만 부르며, 상담 연결과 함께 커밋되거나 함께 되돌아간다.
+ * 연이 상담 한 건에 정본 수량의 꿀방울을 쓴다. 호출자의 트랜잭션 안에서만 부르며, 상담 연결과 함께 커밋되거나 함께 되돌아간다.
  * 상담마다 영수증은 하나라 같은 상담의 재시도는 다시 차감하지 않는다.
  */
 export async function debitFortuneChatHoney(userId, { requestId, featureKey }, session, now = new Date()) {

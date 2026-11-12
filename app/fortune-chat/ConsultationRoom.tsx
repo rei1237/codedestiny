@@ -480,7 +480,7 @@ export default function ConsultationRoom({ initialId = "", initialPersona = "yeo
               />
             )}
             {row.state === "REFUNDED" && row.errorCode === "HONEY_RESTORED" && (
-              <p className={styles.restored} role="status">상담을 완료하지 못해 사용한 꿀방울 {HONEY_COST}개를 돌려드렸어요.</p>
+              <p className={styles.restored} role="status">상담을 완료하지 못해 사용한 꿀방울을 돌려드렸어요.</p>
             )}
 
             {!row.paid && !offerCheckout && row.state !== "REFUNDED" && (

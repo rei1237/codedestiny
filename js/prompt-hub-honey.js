@@ -149,9 +149,8 @@
   function buttonLabel(button, title, value) {
     if (button.dataset.honeyBusy) return;
     if (button.querySelector('[data-honey-label]')?.textContent === title && button.querySelector('[data-honey-value]')?.textContent === value) return;
-    var heading = node('span', title), amount = node('strong', value);
+    var heading = node('span', title, button.classList.contains('rpt-v2-toggle-btn') ? 'rpt-v2-toggle-label' : ''), amount = node('strong', value);
     heading.dataset.honeyLabel = ''; amount.dataset.honeyValue = ''; button.replaceChildren(heading, amount);
-    if (button.hasAttribute('data-honey-open')) button.prepend(node('span', tr("eligible", "꿀방울 사용 가능처"), 'cd-honey-eligible'));
   }
   function refreshLabels() {
     if (!catalog) return;
@@ -173,7 +172,7 @@
       }
       var card = button.closest('.rpt-v2-block');
       if (card) card.querySelectorAll('.rpt-v2-price-badge').forEach(function (badge) { text(badge, owns ? tr("unlocked", "해금 완료") : tr("cashOrHoney", "{price} 또는 꿀방울 {cost}개", { price: priceLabel(item), cost: number(item.honeyCost) })); });
-      if ((button.dataset.action === 'unlockPremiumFeature' || button.hasAttribute('data-honey-cash-key')) && !button.disabled && !owns) {
+      if ((button.dataset.action === 'unlockPremiumFeature' || button.hasAttribute('data-honey-cash-key') || button.hasAttribute('data-tile-lock-key')) && !button.disabled && !owns) {
         buttonLabel(button, tr("openNow", "바로 열기"), priceLabel(item));
         button.setAttribute('aria-label', tr("cashLabel", "{title} · {price}으로 바로 열기", { title: itemText(item, "title"), price: priceLabel(item) }));
       }
@@ -185,6 +184,10 @@
         honey.__honeyTarget = button; options.append(honey);
       }
       var honeyButton = options.querySelector('[data-honey-open]');
+      if (owns && button.classList.contains('rpt-v2-toggle-btn')) {
+        buttonLabel(button, button.getAttribute('aria-expanded') === 'true' ? '닫기' : (button.dataset.label || '결과 보기'), '');
+        button.removeAttribute('aria-label');
+      }
       honeyButton.hidden = Boolean(owns || button.hidden);
       if (!honeyButton.dataset.honeyBusy) honeyButton.disabled = Boolean(button.disabled && !owns);
       honeyButton.setAttribute('aria-label', tr("honeyLabel", "{title} · 꿀방울 {cost}개로 열기", { title: itemText(item, "title"), cost: number(item.honeyCost) }));

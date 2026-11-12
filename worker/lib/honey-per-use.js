@@ -53,5 +53,5 @@ export async function readHoneyUseReceipt(env, { userId, featureKey, profileId, 
   const { honeyCollections } = await import('./honey-wallet.js');
   await connectDb(env);
   return withMongoRetry(env, () => honeyCollections().ledgers.findOne({ _id: `honey-use:${userId}:${requestId}`, userId: String(userId),
-    featureKey, profileId, reason: 'HONEY_PER_USE', type: 'spend', amount: product.honeyCost, serviceScope: HONEY_SCOPE }));
+    featureKey, profileId, reason: 'HONEY_PER_USE', type: 'spend', amount: { $gt: 0 }, serviceScope: HONEY_SCOPE }));
 }

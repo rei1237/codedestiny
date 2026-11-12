@@ -6,7 +6,7 @@ import base from "./fortune-chat.module.css";
 import styles from "./consultation.module.css";
 
 /**
- * 준비된 상담을 여는 방법 고르기 — 꿀방울 30개 또는 이용권·1회 결제.
+ * 준비된 상담을 여는 방법 고르기 — 정본 수량의 꿀방울 또는 이용권·1회 결제.
  * 꿀방울 카드는 연이 기본 상담에만 보인다(서버도 네오·질문 상품은 HONEY_NOT_AVAILABLE 로 거절한다).
  * 잔액은 표시용이다. 실제 차감은 서버가 잔액 조건부로 한 번만 한다.
  */
@@ -52,7 +52,7 @@ export default function ConsultationAccessPanel({
             ) : honey?.attended ? (
               <p className={styles.muted}>오늘 출석을 마쳤어요. 내일 또 1개를 받을 수 있어요.</p>
             ) : null}
-            <p className={styles.muted}>매일 출석하면 꿀방울이 1개씩 쌓여요. 답을 받기 전에 상담이 멈추면 30개를 그대로 돌려드려요.</p>
+            <p className={styles.muted}>매일 출석하면 꿀방울이 1개씩 쌓여요. 답을 받기 전에 상담이 멈추면 사용한 꿀방울을 그대로 돌려드려요.</p>
           </section>
         )}
         <section className={`${styles.accessCard} ${styles.payCard}`} aria-labelledby="consultation-access-pay">

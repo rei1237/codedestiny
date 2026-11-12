@@ -31,11 +31,11 @@ const perUseEntries = [
 ];
 export const HONEY_UNLOCK_PRODUCTS = Object.freeze(entries.concat(perUseEntries).map(([featureKey, title, group, honeyCost, description, action]) => {
   const { pricing } = getBillingFeaturePricing({ featureKey });
-  // The two Saju reports follow the approved 5,000 KRW / 30-drop pricing proportion.
-  // This is a product pricing rule, never a redeemable cash value of the reward.
+  // 2026-10-28: active honey products cost half as many drops, rounded up (minimum one).
+  // Cash prices, ownership and the set of eligible products remain unchanged.
   return Object.freeze({ productId: featureKey, featureKey, title, group,
     serviceScope: 'GGULGGUL', billingType: perUseEntries.some(row => row[0] === featureKey) ? 'per_use' : 'birth_unlock',
-    honeyCost: honeyCost ?? Math.ceil(pricing.amountKRW / 1000) * 6, description, action,
+    honeyCost: Math.max(1, Math.ceil((honeyCost ?? Math.ceil(pricing.amountKRW / 1000) * 6) / 2)), description, action,
     cashPriceKRW: pricing.amountKRW, cashCost: pricing.cost });
 }));
 
