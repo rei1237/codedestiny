@@ -1177,6 +1177,12 @@
       var solarParts = _buildSolarParts(norm, solarFromLunar);
       if (!solarParts) throw new Error('Failed to resolve solar date');
 
+      // 절기 조회는 solarParts.year 만 필요하므로 음력 변환과 병렬로 시작한다(같은 데이터, 왕복 1회 절약).
+      var termsTask = localOnly ? null : _fetchSolarTerms(solarParts.year, solarParts.month, solarParts.day).then(
+        function (rows) { return { rows: rows }; },
+        function (e) { return { error: e }; }
+      );
+
       var lunarObj = null;
       if (norm.calendarType === 'solar') {
         if (localOnly) {
@@ -1204,11 +1210,12 @@
 
       var apiTerms = [];
       if (!localOnly) {
-        try {
-          apiTerms = await _fetchSolarTerms(solarParts.year, solarParts.month, solarParts.day);
-        } catch (e) {
+        var termsResult = await termsTask;
+        if (termsResult.error) {
           diagnostics.push('solar terms API failed');
           hadProxyFailure = true;
+        } else {
+          apiTerms = termsResult.rows;
         }
       }
       var fallbackTerms = _fallbackSolarTerms(solarParts.year);
@@ -1354,6 +1361,29 @@
 
     prefetch: function (input) {
       return this.resolveDateContext(input, { setCurrent: false });
+    },
+
+    /**
+     * 네트워크 응답(메서드 캐시)만 미리 데운다. 컨텍스트 캐시·현재 컨텍스트는 쓰지 않으므로
+     * 실패해도 이후 resolveDateContext 의 재시도·폴백 동작은 그대로다. 성공 응답은
+     * _fetchKasi 메서드 캐시/in-flight 를 통해 calculate 가 그대로 재사용한다.
+     */
+    warmNetwork: function (input) {
+      try {
+        if (_isMaintenanceCircuitOpen()) return Promise.resolve(false);
+        var norm = _normalizeInput(input);
+        var solarTask = norm.calendarType === 'solar' ? Promise.resolve(null) : _fetchSolarFromLunar(norm);
+        return solarTask.then(function (solarFromLunar) {
+          var solarParts = _buildSolarParts(norm, solarFromLunar);
+          if (!solarParts) return false;
+          return Promise.all([
+            norm.calendarType === 'solar' ? _fetchLunarFromSolar(solarParts) : null,
+            _fetchSolarTerms(solarParts.year, solarParts.month, solarParts.day)
+          ]).then(function () { return true; });
+        }).catch(function () { return false; });
+      } catch (e) {
+        return Promise.resolve(false);
+      }
     },
 
     /**
