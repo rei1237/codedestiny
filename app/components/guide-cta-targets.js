@@ -14,9 +14,9 @@
  *     실측 2026-08-24(dist 정적 서버, 412x823): `checkPrivacyAndCalculate` 타일
  *     (index.html 의 #run-btn "무료 사주 분석 시작")은 입력 화면이 아직 안 열린 상태에서
  *     getBoundingClientRect 가 0x0 이라, 딥링크로 들어가면 본문이 한 글자도 안 바뀐다.
- *     그 액션은 /saju 의 생년월일 폼이 프로필을 심은 **뒤에** 넘겨받도록 설계된 것이다
- *     (lib/seo-landing-pages.js 의 saju.ctaHref). 그래서 사주 계산 계열 CTA 는 셸 액션이
- *     아니라 /saju·/manse 랜딩으로 보낸다 — 거기 폼이 실제 진입로다.
+ *     그래서 사주 계산 계열 CTA 는 `cdOneStepFreeSajuEntry` 로 보낸다(2026-11-12). 이 액션은
+ *     입력 화면을 직접 열고(js/core/home-funnel.js revealInput), 저장 프로필이 있으면 바로
+ *     사주를 계산한다. checkPrivacyAndCalculate 를 링크 목적지로 쓰지 않는다.
  *     반면 openTarotModal·openSukuyoModal·openAstroModal 은 딥링크만으로 모달이 열리는 것을
  *     같은 실측에서 확인했으므로 그대로 쓴다.
  *   - next/link 로 걸어도 된다. ShellHomeHardNavGuard 가 "/" 앵커를 캡처 단계에서 가로채
@@ -50,7 +50,7 @@ export const GUIDE_CTA_TARGETS = {
     kicker: "바로 해보기",
     heading: "내 사주에서 십신이 어떻게 놓였는지 보세요",
     body: "만세력으로 여덟 글자를 세우면 어떤 십신이 어느 자리에 앉았는지 확인할 수 있습니다.",
-    primary: { href: "/manse", label: "무료로 만세력 보기", note: "무료 · 로그인 후 확인" },
+    primary: { href: "/ggulggul/?action=cdOneStepFreeSajuEntry", label: "사주 보기", note: "무료 · 로그인 후 확인" },
     secondary: [{ href: "/saju/guide", label: "사주 기본 가이드" }],
   },
   "/saju/monthly/2026-09": {
@@ -58,7 +58,7 @@ export const GUIDE_CTA_TARGETS = {
     kicker: "다음 단계",
     heading: "내 일간으로 이번 달 흐름을 확인해 보세요",
     body: "만세력에서 태어난 날의 천간을 확인하면 10천간 중 내 월간 운세를 골라 읽을 수 있습니다.",
-    primary: { href: "/manse", label: "무료로 만세력 보기", note: "무료 · 로그인 후 확인" },
+    primary: { href: "/ggulggul/?action=cdOneStepFreeSajuEntry", label: "사주 보기", note: "무료 · 로그인 후 확인" },
     secondary: [
       { href: "/saju/ten-gods", label: "십성 해석 가이드" },
       { href: "/saju", label: "사주 전체 분석" },
@@ -69,7 +69,7 @@ export const GUIDE_CTA_TARGETS = {
     kicker: "내 명식으로 넓혀 보기",
     heading: "일간 운세를 내 사주 전체 흐름과 함께 읽어 보세요",
     body: "일간별 월간 운세는 한 달의 환경을 보는 기준입니다. 오행과 십성의 배치를 함께 확인하면 해석의 맥락이 더 선명해집니다.",
-    primary: { href: "/manse", label: "무료로 만세력 보기", note: "무료 · 로그인 후 확인" },
+    primary: { href: "/ggulggul/?action=cdOneStepFreeSajuEntry", label: "사주 보기", note: "무료 · 로그인 후 확인" },
     secondary: [
       { href: "/saju/ten-gods", label: "십성 뜻 살펴보기" },
       { href: "/saju", label: "사주 전체 분석" },
@@ -80,7 +80,7 @@ export const GUIDE_CTA_TARGETS = {
     kicker: "내 생년월일로 이어서",
     heading: "띠 운세 다음은 내 사주에서 2027년을 확인해 보세요",
     body: "띠별 운세는 태어난 해 하나로 보는 공통 흐름입니다. 만세력으로 내 년주와 일주를 확인하면 정미년이 내 명식 어디에 닿는지 볼 수 있습니다.",
-    primary: { href: "/manse", label: "무료로 만세력 보기", note: "무료 · 로그인 후 확인" },
+    primary: { href: "/ggulggul/?action=cdOneStepFreeSajuEntry", label: "사주 보기", note: "무료 · 로그인 후 확인" },
     secondary: [
       { href: "/saju", label: "무료 만세력 보기" },
       { href: "/new-year-ai-consultation", label: "2027 신년운세 개인 상담" },
@@ -91,7 +91,7 @@ export const GUIDE_CTA_TARGETS = {
     kicker: "내 명식으로 넓혀 보기",
     heading: "같은 띠라도 생년월일시에 따라 2027년이 달라집니다",
     body: "띠 운세는 년주 하나만 본 풀이입니다. 월주·일주와 대운까지 넣어 보면 정미년의 합·충이 실제로 어느 영역에서 드러나는지 더 분명해집니다.",
-    primary: { href: "/manse", label: "무료로 만세력 보기", note: "무료 · 로그인 후 확인" },
+    primary: { href: "/ggulggul/?action=cdOneStepFreeSajuEntry", label: "사주 보기", note: "무료 · 로그인 후 확인" },
     secondary: [
       { href: "/saju", label: "무료 만세력 보기" },
       { href: "/new-year-ai-consultation", label: "2027 신년운세 개인 상담" },
@@ -113,7 +113,7 @@ export const GUIDE_CTA_TARGETS = {
     kicker: "바로 해보기",
     heading: "내 오행은 어느 쪽으로 기울어 있을까요",
     body: "만세력으로 여덟 글자를 세우면 목화토금수의 분포와 계절감을 함께 볼 수 있습니다.",
-    primary: { href: "/manse", label: "무료로 만세력 보기", note: "무료 · 로그인 후 확인" },
+    primary: { href: "/ggulggul/?action=cdOneStepFreeSajuEntry", label: "사주 보기", note: "무료 · 로그인 후 확인" },
     secondary: [{ href: "/saju/guide", label: "사주 기본 가이드" }],
   },
   "/ziwei/guide": {
@@ -177,7 +177,7 @@ export const GUIDE_CTA_TARGETS = {
     heading: "오늘의 일진부터 보고 오세요",
     body: "달력 읽는 법은 오늘 날짜에 대입해 볼 때 가장 빨리 손에 붙습니다.",
     primary: { href: "/today", label: "무료로 오늘의 운세 보기", note: "무료 · 가입 없이" },
-    secondary: [{ href: "/manse", label: "만세력 보기" }],
+    secondary: [{ href: "/ggulggul/?action=cdOneStepFreeSajuEntry", label: "사주 보기" }],
   },
   "/health-report/guide": {
     from: "health-report-guide",

@@ -672,7 +672,10 @@
 
   window.addEventListener('hashchange', route);
   window.addEventListener('pageshow', clearPortalOverlay);
-  if (new URLSearchParams(location.search).get('action') === 'cdOneStepFreeSajuEntry') revealInput();
+  // 사주 계산 딥링크는 입력 화면을 먼저 연다. 숨은 폼 안의 #run-btn 은 성별·동의 오류를
+  // 보여줄 자리가 없어 아무 변화 없이 멈춘다(옛 링크·로케일 소개의 checkPrivacyAndCalculate 포함).
+  var routeAction = new URLSearchParams(location.search).get('action');
+  if (routeAction === 'cdOneStepFreeSajuEntry' || routeAction === 'checkPrivacyAndCalculate') revealInput();
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', route, { once: true });
   else route();
 })();

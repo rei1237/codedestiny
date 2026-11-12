@@ -219,7 +219,7 @@ export default function SajuFiveElementsPage() {
         <Link href="/saju/ten-gods" className="cd-chip">십성 가이드</Link>
         <Link href="/saju/destiny-anatomy" className="cd-chip">사주 뇌구조와 운명 구조도</Link>
         <Link href="/saju/crystals/" className="cd-chip">사주 원석 추천</Link>
-        <Link href="/manse" className="cd-chip">만세력 보기</Link>
+        <Link href="/ggulggul/?action=cdOneStepFreeSajuEntry" className="cd-chip">사주 보기</Link>
         <Link href="/insights/yongshin-finding-method-practical-guide" className="cd-chip">용신 찾기: 억부·조후·격국</Link>
         <Link href="/insights/five-elements-ohang-complete-guide" className="cd-chip">오행 상생·상극·음양 가이드</Link>
         <Link href="/disclaimer" className="cd-chip">면책 고지</Link>

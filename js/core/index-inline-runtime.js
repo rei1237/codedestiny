@@ -2325,7 +2325,7 @@ function __cdEnsureDestinyProfileLoaded() {
   if (window.DestinyProfileManager) return Promise.resolve(true);
   if (__cdDestinyProfileLoadPromise) return __cdDestinyProfileLoadPromise;
 
-  __cdDestinyProfileLoadPromise = __cdLoadScriptOnce('/js/destiny-profile.js?v=build-b4f2a05efba1')
+  __cdDestinyProfileLoadPromise = __cdLoadScriptOnce('/js/destiny-profile.js?v=build-4094553c6542')
     .then(function() { return true; })
     .catch(function(err) {
       __cdDestinyProfileLoadPromise = null;
@@ -3499,6 +3499,10 @@ function __cdApplySeoLandingEntryHandoff(action) {
     if (maleBtn) maleBtn.classList.toggle('on', gender === 'M');
     __cdApplySeoLandingPendingGender();
   }
+
+  // 이번 진입은 랜딩 폼에 방금 넣은 값으로 계산한다. 저장 프로필 캐시가 이 입력을 덮지 않도록
+  // cdOneStepFreeSajuEntry 가 한 번 소비하는 표식을 남긴다.
+  if (birthDate) window.__cdSeoLandingEntryHandoffApplied = { action: String(action), at: Date.now() };
 
   try { window.sessionStorage.removeItem(key); } catch (_) {}
 }

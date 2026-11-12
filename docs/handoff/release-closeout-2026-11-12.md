@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-11-12
-next: "가디언 에이전트(/handoff saju-guardian-prompt-2026-11-11.md 2단계)의 결과를 받아 두 번째 운영 승격을 확인한다. 그 뒤 무료화 문서를 닫고 최종 보고한다."
+next: "f7baafd1f의 PR CI·Paid Gates·스테이징이 성공하면 두 번째 운영 승격(가디언)을 실행·확인하고, 가디언 문서를 done으로 닫은 뒤 최종 보고한다."
 ---
 
 # 무료화 릴리스 마무리와 앱 출시 점검 (2026-11-11~12)
@@ -62,14 +62,21 @@ next: "가디언 에이전트(/handoff saju-guardian-prompt-2026-11-11.md 2단�
   - 운영 `/version.json`과 `/api/version`의 gitSha가 모두 37258e3e9다(2026-11-12 10:48 KST).
   - `/`, `/saju/`, `/saju/free/`, `/yoga-guru`, `/fortune/today/`, `/login/`이 200이다.
   - `/fortune/today/`에 "11월 12일"이 나온다. 승격 빌드로 오늘 운세가 갱신됐다.
-- [ ] 화면 360·390·1280 읽기 전용 확인
+- [x] 화면 360·390·1280 읽기 전용 확인
+  - 대상: 홈, /saju/, /saju/free/, /yoga-guru, /fortune/today/
+  - 모두 200이고 가로 넘침과 페이지 오류가 없다. 요가는 비로그인 상태에서 로그인 화면으로 간다.
+- [x] 가디언 push 7c6e7380c의 PR CI 43143626442 실패를 수정했다(f7baafd1f).
+  - 원인: Static guards `verify:feature-marketing-schema`. receives 형식 상세창 카피에 금지어 "프롬프트"가 들어 있었다(d71cc8044).
+  - 수정: ko 문구 5곳을 "그림 설명문"으로 풀어 썼다. 다른 언어 번역, 가격, 권리, 키는 바꾸지 않았다.
+  - 확인: 로컬 Static guards 51개 명령이 모두 통과했다.
 - [x] 가디언 진행 방식 변경
   - user-65 세션은 종료됐다(2026-11-12 10:50 ListAgents). 가디언 워크트리는 00:14 커밋 뒤로 활동이 없다.
   - 계획 2단계대로 새 general-purpose 에이전트가 `/handoff`로 가디언 문서 2단계부터 진행한다(rebase → 재검증 → push → 두 번째 운영 승격).
 - 후속 보고: Fortune daily publish가 11-09, 11-10, 11-11 사흘 연속 실패했다(마지막 단계: release).
   - 11-11 실패는 apt DNS 장애 때문이다. 앞의 두 번은 릴리스 런의 conclusion이 빈 값이었다.
   - 원인은 아직 조사하지 않았다(범위 밖).
-- [ ] 무료화 인계 문서(`saju-free-classic-ui-20261111` 워크트리)를 done으로 닫는다.
+- [x] 무료화 인계 문서를 done으로 닫았다. main판 `docs/handoff/saju-free-classic-ui-20261111.md`, 커밋 ba28330a5.
+  - `saju-free-classic-ui-20261111` 워크트리의 로컬 커밋 dc229661c와 30bd38cd0은 push하지 않은 중복 커밋이다.
 - [x] Android 1.0.60 빌드와 기기 검증. 70e2b413d 기준이며 업로드는 하지 않았다. 승격 SHA는 37258e3e9이지만 70e2b413d와 다른 것은 `.github/workflows/paid-flow-gates.yml` 하나뿐이다. 그래서 다시 빌드하지 않는다.
   - 워크트리: `D:\Development\codedestiny-worktrees\android-1060-20261112-005825`
     - 빌드 과정에서 추적 파일 19개가 바뀌었다(생성물·CRLF). 커밋하지 않는다.
