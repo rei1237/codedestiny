@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-11-12
-next: "C2부터"
+next: "운영 workflow 실행 → 운영 확인 → 마무리"
 ---
 
 # 사주 보기 버튼·API 링크·홈 타일 프로필 진입 수정 + 3개월 무료 마케팅
@@ -11,7 +11,7 @@ next: "C2부터"
 2. 아래 단계에서 체크되지 않은 첫 항목부터 진행한다.
 
 ## 지금 상태
-- 기준: origin/main `ba28330a5` (운영은 37258e3e9, 비LLM 62키 무료화가 이미 운영 중).
+- 기준: origin/main `fb9fab012`(C2·C3 push 완료, 운영 미승격) (운영은 37258e3e9, 비LLM 62키 무료화가 이미 운영 중).
 - 공유 체크아웃 `D:\Development\code-destiny`는 다른 세션의 `feat/world-cast-page` + 미커밋 30여 파일. **절대 건드리지 않는다**(전환·stash·reset 금지).
 - 다른 세션의 `docs/handoff/release-closeout-2026-11-12.md`(가디언 두 번째 승격)가 active. 배포 락은 공유되므로 운영 승격이 겹치지 않게 `gh run list`로 진행 중 Release run을 먼저 본다.
 
@@ -90,15 +90,24 @@ next: "C2부터"
   - 결과(2026-11-12, 커밋 dfc573203, origin/main push 완료): 22키 무료 허용 목록 추가(lib/payment/free-fortune-policy.mjs → 브라우저 사본 생성기), worker/routes/tarot.js(직관·크리스탈 소울·수비학·올해 타로 public)·prompt-hub.js(paidWith public) 무료 우회, 클라이언트 게이트(destiny-profile.js 단락, 정책 스크립트 누락 페이지 public/ifa-oracle.html 포함), PromptHub·Maya·StonehengeRune 무료 표시, 레지스트리 13개 "무료".
   - 검증: test:jest 476 스위트 통과(app-store.google-billing 의 stonehengeRunes 별칭은 가격표가 무료 키로 풀려 무료 신규 취득으로 기대 수정), 새 테스트 __tests__/worker/free-promo-c1-route-bypass.test.js 6건, tsc·js-module-graph OK, check:pre-push 전부 통과(이번엔 public-mirror-fresh 도 통과). GitHub: PR CI 43182155083·Paid Flow Gates 등 dfc573203 push 워크플로 전부 success. mock 브라우저(390px): ijik·royal-tea·ifa 시트 없이 public, LLM dream-psycho·tea-house 상담은 결제 시트 유지, /oracle/rune 무료 표시·1룬 뽑기 시트 없음.
   - 후속(미수정): app/oracle/rune/page.tsx SEO 설명·FAQ의 "유료" 문구, crafted 패널 본문 결제 언급(공지 문장만 무료로 치환), 토스 네이티브 maya(worker/toss/native-maya.js) 유료 유지, 무료 올해 타로 결과 미저장(GET /year/result 404), 수비학·크리스탈 소울 서버 경로 로그인 없이 동작.
-- [ ] C2 기존 문제 근본 수정(검사 약화 금지):
-  - 홈 `/` 콘솔 Yeongnyangi ep1/02-720.webp 404
-  - 홈 `/` HomeInstallEntry `hidden` 속성 hydration 불일치
-  - `scripts/design/build-home-funnel.mjs --check`: 비교 시 `?v=build-[0-9a-f]{12}` 정규화
-  - check:pre-push verify:public-mirror-fresh Windows 실패: sync:public이 free-fortune-policy.js/.mjs 줄끝을 바꿈 — 생성기 writeFileSync EOL vs .gitattributes 원인 확정 후 Windows·CI 모두 안정
-  - `_dpOpenFortuneType` 무필터 storage 이벤트: 재현되고 싸면만 수정
-  - 390 콘솔 훑기: /, /ggulggul/, /saju/, /manse/
-- [ ] C3 check:fast·관련 테스트·mock 360/390/1280 넘침 0 → 커밋 → check:pre-push → origin main push → 내 SHA의 PR CI `gh run watch`(내 탓 빨강이면 수정). 운영 workflow는 실행하지 않음(사용자).
+- [x] C2 기존 문제 근본 수정(검사 약화 없음) — 결과(2026-11-12, 커밋은 C3 참조):
+  - 홈 영냥이 ep1/02-720.webp 404: 연재 이미지는 prebuild:cf의 scripts/publish-yeongnyangi-serial.mjs가 content/ → gitignore된 public/assets/yeongnyangi/season-1/로 복사한다. 운영은 200이고 로컬 `npm run dev`만 복사를 건너뛰어 404가 났다. → scripts/dev-with-local-auth.mjs가 포트 확인 뒤 같은 스크립트를 실행(실패 시 경고만).
+  - HomeInstallEntry hydration 불일치: 지연 로드된 js/pwa-lifecycle.js가 hydration 전에 [data-pwa-install-entry]·[data-pwa-install]의 hidden을 바꾼다. → 서버 마크업은 중립 표식(data-home-install-entry/button)만 두고, useEffect에서 lifecycle 속성을 붙인 뒤 refresh. 테스트 home-install-entry-lifecycle 보강.
+  - build-home-funnel --check: 비교 전 양쪽의 ?v=build-xxxxxxxxxxxx를 정규화(차이는 pass-duet.js 스탬프뿐이었음) → [home-funnel] current.
+  - public-mirror-fresh Windows 플레이크: 진짜 문제였다. lib/payment/free-fortune-policy.mjs가 Windows에서 CRLF로 체크아웃되고(.mjs는 text=auto), 생성기가 헤더만 LF로 붙여 생성 사본이 CRLF/LF 혼합이 됐다. 그래서 git이 stat-dirty로 보거나 내용이 흔들렸다. → 생성기는 소스를 LF로 정규화, .gitattributes에 정책 정본·생성 사본 3개 eol=lf(기존 faq-search·master-reading-data와 같은 방식). 바이트 비교 테스트 free-crafted-panel-policy도 Windows에서 통과.
+  - _dpOpenFortuneType storage 무효화: 재현됨. mock 브라우저에서 다른 탭이 로드 시 cd_lang을 쓰는 storage 이벤트가 실제로 3건 났고, olympus/flower 진입 100ms 뒤 cd_lang 이벤트를 주면 350ms 페이드 동안 버전이 올라가 아무 반응이 없었다. → key가 null(clear)·fortune_auth_*·프로필 NS(FORTUNE_APP_USER_PROFILES*)일 때만 무효화. 재검 결과 이벤트 유무와 관계없이 같은 반응. 테스트 flower-olympus-free-access에 1건 추가.
+  - 콘솔 훑기 360/390/1280(/, /ggulggul/, /saju/, /manse/, /oracle/rune, /maya): 가로 넘침 0. /·/saju/·/oracle/rune·/maya 콘솔 0. 남은 것은 로컬 환경 탓뿐이다(mock 501: /api/honey/catalog·attendance·activation-rewards·version·/api/profile, assets.code-destiny.com 폰트 CORS, beacon CSP, [perf] long task). 보고만: /ggulggul/ 390에서 [perf] CLS 경고 0.103·0.377. 레이아웃 이동 원인 조사는 별도 작업.
+  - C1 후속: /oracle/rune 설명·FAQ·소개의 '유료' → '2027년 2월 12일까지 3개월 한정 무료, 이후 유료 전환 예정'(로그인 필요는 유지). 무료 올해 타로 결과는 서버가 저장하지 않는다(stored:false, PaidExecutionRecord accessMethod enum에 public이 없어 서버 저장은 원장 스키마 변경=RED). 그래서 새로고침·재방문 때 다시 뽑기로 돌아갔다. → js/tarot-year-fortune-experience.js가 public 결과를 계정·연도별 localStorage(cd:tarot-year:public-result:<id|guest>:<year>)에 두고, 서버 결과가 없거나(404) 401/403이면 복원한다. 서버 결과가 있으면 서버가 우선. 테스트 tarot-year-public-result 3건(브라우저 실측은 하지 않음).
+  - 보고만(미수정): 토스 네이티브 maya(worker/toss/native-maya.js)는 유료 유지. 토스 미니앱은 무료 정책을 아예 쓰지 않는다(웹 62키도 토스에선 유료). 무료로 바꾸려면 토스 라우트·클라이언트·콘솔 상품·번들 릴리스가 필요하고, 이는 사용자 결정 사항이다. crafted 패널 본문 결제 언급은 지시대로 그대로 뒀다. 수비학·크리스탈 소울 서버 경로가 로그인 없이 동작하는 점(C1 메모)은 그대로다.
+- [x] C3 검증·커밋·push·CI — 결과(2026-11-12):
+  - 커밋: aa49465e0(EOL·home-funnel·dev 연재 복사·HomeInstallEntry), defc3dde9(storage 필터·무료 올해 타로 로컬 보관·룬 무료 문구, 공식 스크립트로 핀·payment-freeze·미러·사이트맵 재생성), fb9fab012(룬 meta description 표시 폭 165→157). origin/main push cd3d662d9..fb9fab012.
+  - check:fast 통과(jest 476 스위트·7974 테스트). check:pre-push 전부 통과. Windows에서 verify:public-mirror-fresh도 통과.
+  - mock 360/390/1280 × 6경로 가로 넘침 0.
+  - PR CI: defc3dde9의 43192193764는 내 탓 실패였다. 빌드 adsense-readiness가 /oracle/rune 설명 폭 165 > 160으로 막았다. fb9fab012에서 고쳤고 43196126016 success. 같은 SHA의 나머지 워크플로(AI Locale·Landing·Secret Scan·Main drift·Edition·push 자동 Release staging)도 success.
+  - 함정: SEO 설명 폭은 check:fast·check:pre-push가 아니라 PR CI의 Pages 빌드(scripts/verify-adsense-readiness.mjs, 한중일 글자 폭 2)에서만 걸린다. 페이지 문구를 바꾸면 sitemap:generate도 다시 돌린다(verify:sitemap-drift).
+  - 운영 workflow는 실행하지 않았다(오케스트레이터 세션 몫).
 
 ## 범위 밖(보고만)
-- (C2로 이동) `_dpOpenFortuneType`의 무필터 storage 이벤트 무효화(olympus/flower 조용한 실패), Next 페이지 guard 재설정.
+- /ggulggul/ 390 [perf] CLS 경고(0.103·0.377): 원인 조사는 별도 작업.
+- 토스 네이티브 maya 무료화(토스 채널 전체가 무료 정책 밖): 사용자 결정.
 - 2027-02-12 도래 시 연장/유료 전환 결정은 사용자.
