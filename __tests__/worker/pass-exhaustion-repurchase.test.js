@@ -55,9 +55,9 @@ function subscription(tier, usedCoin, overrides = {}) {
 
 const exhausted = (tier, overrides) => subscription(tier, baseOf(tier, overrides?.passPolicyVersion), overrides);
 
-test("threshold is the cheapest coverable price, 30 coins, for every tier", () => {
-  expect(MIN_PASS_COVERABLE_COIN).toBe(30);
-  expect(FAMILY_MIN_PASS_COVERABLE_COIN).toBe(30);
+test("threshold is the cheapest coverable price, 50 coins, for every tier (saju guardian moved to light 2026-11-12)", () => {
+  expect(MIN_PASS_COVERABLE_COIN).toBe(50);
+  expect(FAMILY_MIN_PASS_COVERABLE_COIN).toBe(50);
 });
 
 describe("exhaustion does not close the pass", () => {
@@ -135,19 +135,19 @@ describe.each(TIERS)("exhausted %s buys any tier as new", (priorTier) => {
   });
 });
 
-describe("exhaustion boundary is 30 coins", () => {
+describe("exhaustion boundary is 50 coins", () => {
   const base = baseOf("premium");
 
-  test("30 left is not exhausted and keeps the existing ladder", () => {
-    const prior = subscription("premium", base - 30);
+  test("50 left is not exhausted and keeps the existing ladder", () => {
+    const prior = subscription("premium", base - 50);
     expect(isActivePassBudgetExhausted(prior, NOW)).toBe(false);
     expect(evaluatePassTierTransition(prior, "standard", NOW).code).toBe("DOWNGRADE_BLOCKED");
     expect(evaluatePassTierTransition(prior, "premium", NOW).code).toBe("EXTENSION_ALLOWED");
     expect(evaluatePassTierTransition(prior, "vvip", NOW).code).toBe("UPGRADE_ALLOWED");
   });
 
-  test("29 left is exhausted", () => {
-    const prior = subscription("premium", base - 29);
+  test("49 left is exhausted", () => {
+    const prior = subscription("premium", base - 49);
     expect(isActivePassBudgetExhausted(prior, NOW)).toBe(true);
     expect(evaluatePassTierTransition(prior, "standard", NOW).code).toBe("NEW");
   });

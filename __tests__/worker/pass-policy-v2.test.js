@@ -51,8 +51,8 @@ describe("versioned flower passes", () => {
     expect(family).toMatchObject({ planId: "family_1m_v5", wonPrice: 154000, monthlyLimitCoin: 3500, profileLimit: 0 });
     expect(family.monthlyLimitCoin * 100).toBe(350000);
     expect(canUseByPass({ ...family, isActive: true }, 500)).toBe(true);
-    expect(isPassBudgetExhausted("family", 4970, 5000, family)).toBe(false);
-    expect(isPassBudgetExhausted("family", 4971, 5000, family)).toBe(true);
+    expect(isPassBudgetExhausted("family", 4950, 5000, family)).toBe(false);
+    expect(isPassBudgetExhausted("family", 4951, 5000, family)).toBe(true);
     expect(isPassBudgetExhausted("family", 5000, 5000, family)).toBe(true);
   });
   test("every pass version and tier leaves profiles uncapped", () => {

@@ -15,7 +15,6 @@ const SAJU_BUNDLE_ONLY = '2026-11-04 사용자 결정: 사주 항목은 29,000�
 /** 후보였지만 라이트에서 뺀 키와 사유. */
 export const LIGHT_FORTUNE_AUDIT_EXCLUDED_KEYS = Object.freeze({
   'premium-sibyl-dominator': '결제 뒤 generateSibylCounsel이 Gemini를 호출한다',
-  'saju-guardian-unlock': '해금 뒤 호출마다 외부 이미지 모델(NVIDIA flux)을 부른다',
   premiumDivinationPack: '천체의 선율 등 언어 모델 상품 권한을 함께 연다',
   sajuDiary: '결제 뒤 실행 경로를 찾지 못했다',
   'sukuyo-symbolic-comparison': '판매 종료',
@@ -117,6 +116,8 @@ export const LIGHT_FORTUNE_FEATURE_KEYS = Object.freeze([
   'ziwei_life_yearly_flow',
   'premium-fpti-report',
   'premium-sukuyo-compat-extra',
+  // 2026-11-12 사용자 결정: 이미지 생성을 끝내고 그림 설명문만 주므로 라이트에 넣는다. 비이용권 판매가 3,000원은 그대로.
+  'saju-guardian-unlock',
   ...LIGHT_FORTUNE_UNLOCK_ONLY_KEYS,
 ]);
 

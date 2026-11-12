@@ -1,6 +1,6 @@
 {
-  "count": 65,
-  "valueKRW": 299000,
+  "count": 66,
+  "valueKRW": 302000,
   "keys": [
     "physiognomy-compatibility",
     "sukuyo-extreme-t-relationship",
@@ -18,6 +18,7 @@
     "vedic_basic_reading",
     "vedic-compatibility-per-use",
     "sukuyo-nature-deep-dive",
+    "saju-guardian-unlock",
     "destiny_meeting_place",
     "destiny-compass-life-voyage",
     "tarot-numerology-reading",
@@ -85,6 +86,7 @@
     "vedic_basic_reading": "베다 점성술 기본 해석",
     "vedic-compatibility-per-use": "베다점 궁합 분석",
     "sukuyo-nature-deep-dive": "본성 심화 해석",
+    "saju-guardian-unlock": "사주 가디언 소환진",
     "destiny_meeting_place": "사주로 보는 인연의 장소",
     "destiny-compass-life-voyage": "삶의 항로 안내",
     "tarot-numerology-reading": "수비학 타로 리딩",

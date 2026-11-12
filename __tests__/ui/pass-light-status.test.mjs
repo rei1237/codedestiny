@@ -45,7 +45,7 @@ const card = (passUsage) => renderToStaticMarkup(React.createElement(StatusCard,
 const usage = (usedKRW) => ({ tier: 'standard', limitKRW: 20000, usedKRW, remainingKRW: 20000 - usedKRW, perItemLimitKRW: 5000 });
 
 test('exhausted status card shows repurchase and light stays on', () => {
-  const html = card(usage(18000));
+  const html = card(usage(16000));
   assert.ok(html.includes('상담 한도 소진 · 라이트 운세 이용 중'));
   assert.ok(html.includes('href="/points/#moonlight-plans"'));
   assert.ok(html.includes('이용권 다시 구매하기'));
@@ -68,11 +68,11 @@ test('status card shows the limit the holder actually has', () => {
 
 test('exhaustion matches the server threshold', () => {
   const { isConsultationAllowanceExhausted: done } = eligibility;
-  assert.equal(done(usage(17000)), false, '3,000 left is still coverable');
-  assert.equal(done(usage(17100)), true, '2,900 left is not');
+  assert.equal(done(usage(15000)), false, '5,000 left is still coverable');
+  assert.equal(done(usage(15100)), true, '4,900 left is not');
   assert.equal(done(null), false);
   assert.equal(done({ tier: 'free', limitKRW: 0, remainingKRW: 0 }), false);
-  assert.equal(limits.MIN_PASS_COVERABLE_COIN * 100, 3000);
+  assert.equal(limits.MIN_PASS_COVERABLE_COIN * 100, 5000);
 });
 
 test('product notice treats a light fortune as included after exhaustion', () => {

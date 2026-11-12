@@ -142,10 +142,18 @@ describe('라이트 운세 정본', () => {
   });
 
   test('audited model-calling products stay out of the light list', () => {
-    for (const key of ['premium-sibyl-dominator', 'saju-guardian-unlock', 'premiumDivinationPack']) {
+    for (const key of ['premium-sibyl-dominator', 'premiumDivinationPack']) {
       expect(isLightFortuneFeatureKey(key)).toBe(false);
       expect(LIGHT_FORTUNE_AUDIT_EXCLUDED_KEYS[key]).toEqual(expect.any(String));
     }
+  });
+
+  test('saju guardian joins the light list after image generation ended (2026-11-12)', () => {
+    expect(LIGHT_FORTUNE_AUDIT_EXCLUDED_KEYS).not.toHaveProperty('saju-guardian-unlock');
+    for (const key of ['saju-guardian-unlock', 'openSajuGuardianPage', 'openSajuAnimalPage']) {
+      expect([key, isLightFortuneFeatureKey(key)]).toEqual([key, true]);
+    }
+    expect(resolveProduct({ featureKey: 'saju-guardian-unlock' }).lightFortune).toBe(true);
   });
 
   test('resolveProduct flags only light products', () => {
