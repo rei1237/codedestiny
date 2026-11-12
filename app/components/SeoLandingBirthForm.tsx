@@ -26,6 +26,7 @@ interface SeoLandingBirthFormCopy {
   savedDetails: string;
   editDetails: string;
   invalidBirthDate: string;
+  genderRequired: string;
   loadFromProfileCardAria: string;
   loadFromProfileCardLabel: string;
 }
@@ -46,6 +47,7 @@ const SEO_LANDING_BIRTH_FORM_COPY_KO: SeoLandingBirthFormCopy = {
   savedDetails: "저장된 정보로 시작합니다. 필요한 항목만 보완해 주세요.",
   editDetails: "이번 입력 수정하기",
   invalidBirthDate: "올바른 생년월일을 입력해주세요.",
+  genderRequired: "성별을 선택해 주세요. 사주의 대운 방향이 성별에 따라 달라집니다.",
   loadFromProfileCardAria: "저장된 프로필 카드에서 생년 정보 불러오기",
   loadFromProfileCardLabel: "프로필 카드에서 불러오기",
 };
@@ -66,6 +68,7 @@ const SEO_LANDING_BIRTH_FORM_COPY_EN: SeoLandingBirthFormCopy = {
   savedDetails: "Using your saved details. Complete only the missing fields.",
   editDetails: "Edit this reading's details",
   invalidBirthDate: "Please enter a valid date of birth.",
+  genderRequired: "Please select your gender. It sets the direction of your Saju luck cycles.",
   loadFromProfileCardAria: "Load birth details from your saved profile card",
   loadFromProfileCardLabel: "Load from profile card",
 };
@@ -188,6 +191,12 @@ export default function SeoLandingBirthForm({ heading, submitLabel, submitHref, 
       setError(check.error || copy.invalidBirthDate);
       return;
     }
+    // 성별을 비워 두면 셸 계산기가 기본값(여성)으로 계산하거나 숨은 폼에서 멈춘다.
+    if (showGender && !form.gender) {
+      setEditAll(true);
+      setError(copy.genderRequired);
+      return;
+    }
 
     // 이번 이동의 입력만 만든다. 저장 프로필 및 영구 활성 캐시는 수정하지 않는다.
     const existing = selectedCard.current?.owner === readDestinyProfileAccountId() ? selectedCard.current.profile : readCurrentDestinyProfile() || {};
@@ -277,6 +286,8 @@ export default function SeoLandingBirthForm({ heading, submitLabel, submitHref, 
               id="cd-landing-gender"
               name="gender"
               value={form.gender}
+              required
+              aria-required="true"
               onChange={(event) => update({ gender: event.target.value })}
               className={`mt-1.5 ${INPUT_CLASS}`}
             >

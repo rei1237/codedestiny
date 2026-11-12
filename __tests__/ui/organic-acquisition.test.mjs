@@ -81,5 +81,7 @@ test('today hub separates general readings from personal input and links final p
   assert.match(guide, /유료 상담은 별개/);
   const landings = readFileSync('lib/seo-landing-pages.js', 'utf8');
   const manse = landings.split('  manse: page({')[1].split('  today: page({')[0];
-  assert.match(manse, /ctaHref: "\/ggulggul\/\?action=checkPrivacyAndCalculate"/);
+  assert.match(manse, /ctaHref: "\/ggulggul\/\?action=cdOneStepFreeSajuEntry"/);
+  assert.match(manse, /ctaLabel: "사주 보기"/);
+  assert.match(manse, /h1: "무료 만세력/);
 });
