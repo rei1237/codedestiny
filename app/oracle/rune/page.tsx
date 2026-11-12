@@ -12,7 +12,7 @@ import YehwaCard from "../../components/service-intro/YehwaCard";
 const PAGE_PATH = "/oracle/rune/";
 const PAGE_TITLE = "룬 점 보기 | 엘더 푸타르크 24룬 오라클 | 꿀꿀 운세";
 const PAGE_DESCRIPTION =
-  "엘더 푸타르크 24개 룬의 상징으로 사랑·일·선택의 질문을 살펴보는 룬 리딩. 지금은 3개월 한정 무료로 1·3·5·12룬 배열을 고르고, 정방향·역방향과 배열별 해석을 확인하세요.";
+  "엘더 푸타르크 24개 룬의 상징으로 사랑·일·선택의 질문을 살펴보는 룬 리딩. 3개월 한정 무료로 1·3·5·12룬 배열을 고르고 정방향·역방향과 배열별 해석을 확인하세요.";
 
 export const metadata: Metadata = {
   title: PAGE_TITLE,
