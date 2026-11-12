@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-11-12
-next: "릴리스 B B1부터"
+next: "릴리스 B B2부터 (초안 D:/Development/Temp/free-promo-drafts-20261112)"
 ---
 
 # 사주 보기 버튼·API 링크·홈 타일 프로필 진입 수정 + 3개월 무료 마케팅
@@ -24,6 +24,7 @@ next: "릴리스 B B1부터"
   - 프로필 진입 실패 경로: **홈의 무료 운세 타일**.
 
 ## 작업 규칙과 함정
+- `scripts/design/build-home-funnel.mjs --check`는 sync:public 뒤에도 "needs regeneration"을 낸다(미조사, check:fast는 통과). 브랜치는 origin/main보다 28커밋 뒤(2026-11-12 기준) — push 전 rebase onto origin/main 후 미러·사이트맵 재생성.
 - 저장소 CLAUDE.md: 브랜치·PR 없이 main에 직접 머지(워크트리 → `git push origin HEAD:main` 형태, fast-forward 아니면 rebase onto origin/main), 결제 변경 RED, 실LLM·실결제 금지, 가격 변경은 PAYMENT_POLICY.md 먼저, 미러(public/*)는 공식 생성기(`npm run sync:public` 등)로만, `check:fast` → commit → `check:pre-push` → push.
 - 운영 승격은 `gh workflow run "Release Cloudflare Pages and Worker" --ref main -f mode=production`만. 로컬 wrangler·deploy:production 금지.
 - `/manse` 랜딩 폼 핸드오프(`cd:seo-landing-entry:v1`)는 저장 시 ctaHref의 action과 셸에서 실행되는 action이 같아야 적용된다.
@@ -48,8 +49,19 @@ next: "릴리스 B B1부터"
   - 2026-11-12 조정(가디언 릴리스 세션 user-9d 통보): f25a99a69의 CI 실패 verify-guide-feature-cta는 1657f067c의 가이드 CTA href(`/ggulggul/?action=`) 때문이다. 검증기가 `/?action=`만 허용했다. 그쪽이 146e2e24b로 고쳐 push한다(같은 수정 금지). **운영 승격은 그쪽이 가디언 2차 승격(승인됨)으로 그 SHA에서 실행하며 Release A(1657f067c·a028d6cfa)를 포함한다. 별도 운영 workflow를 돌리지 않는다.** 이쪽은 그 push 뒤 main CI 녹색 확인 → 그쪽 보고 뒤 운영 SHA·/manse/·홈을 읽기 전용으로 확인. 미push 수정이 있으면 그 커밋 위로 rebase한 뒤 push.
 
 ### 릴리스 B (마케팅)
-- [ ] B1 62키 밖 비LLM 정적 기능 누락 감사(`docs/context/2026-11-11-free-fortune-catalog-audit.md` 대조). 확실한 것만 PAYMENT_POLICY.md → free-fortune-policy.mjs → 공식 생성기. 애매하면 보고만.
+- [x] B0 "무료 만세력 보기" → "사주 보기" (78cbf6835, check:fast 통과, **아직 push 안 함** — B3에서 같이 push). 가이드 CTA 3곳(/saju/guide·/fortune/date·/compare/saju-vs-ziwei) href → `/ggulggul/?action=cdOneStepFreeSajuEntry`, /fortune/2027·[sign] 칩 "사주 보기"·보조 링크 "사주 원국 살펴보기"(href /saju 유지), seo-landing saju ctaLabel, first-visit-copy ko openWithProfile, 홈 #run-btn + home.input.submit 12언어, 홈 엔트리 카드 라벨(href `/saju/free/`는 home-entry-card-ownership 테스트 계약이라 유지). SEO 제목·H1·메타 유지.
+  - 남김(보고): 푸터 링크(SiteFooterHub), SeoLandingTemplate DEFAULT_RELATED_LABELS "/saju" 앵커, yeongnyangi domain-registry freeEntry, 마케팅 ctaLabel(featureMarketing.saju.fallbackCta, shellRuntime.f6/f2632, feature-marketing-copy.generated.json).
+- [x] B1 감사 — **추가 없음**. worker/lib/light-fortune-catalog.js의 62키 밖 22키(physiognomy-compatibility, physiognomy-pastlife-compatibility, physiognomy-ogwan-mole-deep, tarot-year-fortune, tarot-reunion-reading, tarot-crystal-soul-reading, tarot-numerology-reading, maya-prompt-generator, tarot-ijik, royal-tea-oracle, ifa-oracle, neville-meditation, cosmic-soul-meditation, openJuyukModal, openKemetModal, stonehenge-runes-single/triad/deep/yearly, fortune-prompt-hub-generate, dream-prompt-generator, mbti-animal-compat)는 service-registry에서 methods:["ai"] 3,000원이거나 프롬프트 생성기이고, 11-11 감사가 타로·룬·주역·명상·관상·꿈·MBTI를 의도적으로 제외했다. 사용자 결정 후보로 보고만(특히 royal-tea·ifa·kemet 오라클, maya·fortune-prompt-hub 생성기).
 - [ ] B2 프로모션 상수 + 홈 배너·뱃지·공유 CTA·React 랜딩 배너, 12언어 i18n 키(ko 우선)
+  - 초안(검토 끝, 그대로 옮기면 됨) `D:/Development/Temp/free-promo-drafts-20261112/`:
+    - `free-promo.mjs` → lib/marketing/free-promo.mjs: FREE_PROMO(endsAt 표시 전용)·FREE_PROMO_COPY_KO·freePromoDaysLeft(KST 달력: 2026-11-12 → 92, 마감일 0=D-DAY, 이후 null)·freePromoDayLabel. 함수 본문은 ES5(셸이 toString으로 인라인).
+    - `free-promo-shell.mjs` → lib/marketing/free-promo-shell.mjs: renderFreePromoShellBanner() — #cdhFreePromo, data-ends·data-share-path, h2 없음, 인라인 스크립트로 D-N·만료 시 숨김·CTA는 #cdQuickServices/#cdhFreeTitle로 스크롤·Web Share → 클립보드 + showToast.
+    - `freePromo-01.json` → i18n/authored/freePromo-01.json, 이어서 `node scripts/i18n-merge-authored.mjs --core --file freePromo-01.json`.
+    - `FreePromoBanner.tsx` → app/components/FreePromoBanner.tsx. 짝 CSS `free-promo-banner.module.css`는 새로 작성(banner/badge/title/until/dday/note/actions/cta/share/status, --cd-* 토큰).
+  - 배선: scripts/design/build-home-funnel.mjs에서 quickHtml 앞에 renderFreePromoShellBanner(); FREE_CARDS 씰 `data-cd-trans="home.simpleHome.freeBadge">무료` → `data-cd-trans="freePromo.tileBadge">3개월 한정 무료`(넘침 확인). `.cdh-promo` CSS는 styles/home-funnel.css `#cdHomeFunnel` 아래 --cdh-* 토큰. app/page.js는 HomeCardDeck 뒤, `!IS_APP_BUILD`일 때만. SeoLandingTemplate은 breadcrumb 바로 뒤, 경로 /saju·/saju/free·/manse·/ziwei·/astrology·/vedic·/sukuyo만.
+  - 결과 화면 공유 CTA: 공통 결과 푸터 훅이 없어(grep result-footer 0건) **추가하지 않고 보고**.
+  - 순서: sync:public → free-fortune-policy.js/.mjs(루트·public) 줄끝 변경은 `git checkout --`로 되돌림 → `npm run sitemap:generate`(빠뜨리면 verify:sitemap-drift 실패).
+  - 테스트: freePromoDaysLeft 단위 1개(D-92·D-DAY·null) + ko 문구 패리티(authored ko == FREE_PROMO_COPY_KO, index.html data-ends == FREE_PROMO.endsAt).
 - [ ] B3 검증(문구 계약·i18n·카운트다운 단위 테스트 1개·mock 화면), 커밋, push
 - [ ] B4 운영 workflow → 운영 확인
 - [ ] 마무리: 이 문서 done, 워크트리 배수(`npm run worktree:remove -- <경로>`를 다른 체크아웃에서), 임시 파일 삭제
