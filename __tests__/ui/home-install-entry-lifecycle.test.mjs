@@ -15,7 +15,11 @@ test('Next home and static shell load the same content-versioned PWA runtime', (
 });
 
 test('home survives an older runtime, refreshes on readiness and remount, and cleans up', () => {
-  const dom = new JSDOM('');
+  // Server markup must not carry the lifecycle hooks (a deferred runtime toggling `hidden`
+  // before hydration caused a React attribute mismatch); they are attached after mount.
+  const componentSource = readFileSync('app/components/HomeInstallEntry.tsx', 'utf8');
+  assert.doesNotMatch(componentSource, /<span[^>]*data-pwa-install-entry|<button[^>]*data-pwa-install/);
+  const dom = new JSDOM('<span data-home-install-entry hidden><button data-home-install-button></button></span>');
   const effects = [];
   const componentModule = {exports: {}};
   const source = ts.transpileModule(readFileSync('app/components/HomeInstallEntry.tsx', 'utf8'), {
@@ -30,6 +34,7 @@ test('home survives an older runtime, refreshes on readiness and remount, and cl
   componentModule.exports.default();
   dom.window.__cdPwaLifecycle = {install() {}};
   const cleanup = effects[0]();
+  assert.ok(dom.window.document.querySelector('[data-pwa-install-entry][hidden] > [data-pwa-install]'));
   let calls = 0;
   dom.window.__cdPwaLifecycle.refreshInstallControls = () => {calls += 1;};
   dom.window.dispatchEvent(new dom.window.Event('cd:pwa-ready'));

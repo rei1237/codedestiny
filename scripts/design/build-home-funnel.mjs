@@ -443,7 +443,10 @@ updated = updated.replace(/<title>[^<]*<\/title>/, '<title>' + homeSearchTitle +
 if (!updated.includes('<meta name="keywords"')) updated = updated.replace('<meta name="description"', '<meta name="keywords" content="꿀꿀 운세, 사주, 자미두수, 베다점, 숙요점, 타로, 휴먼 디자인, MBTI">\n<meta name="description"');
 
 if (process.argv.includes('--check')) {
-  if (original !== updated) throw new Error('Home funnel needs regeneration');
+  // The generator emits ?v=build-000000000000 placeholders; sync:public/restamp later
+  // replaces them with the real asset hash, so compare with stamps normalized.
+  const unstamp = html => html.replace(/\?v=build-[0-9a-f]{12}/g, '?v=build-000000000000');
+  if (unstamp(original) !== unstamp(updated)) throw new Error('Home funnel needs regeneration');
   console.log('[home-funnel] current');
 } else {
   writeFileSync('index.html', updated);

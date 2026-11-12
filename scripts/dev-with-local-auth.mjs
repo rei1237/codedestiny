@@ -51,6 +51,11 @@ try {
   await Promise.all(reservations.map(server => new Promise(resolve => server.close(resolve))));
 }
 if (process.exitCode) process.exit(process.exitCode);
+// Published serial cuts are copied into the gitignored public/assets/yeongnyangi/season-1/
+// only by prebuild:cf. Copy them here too so pages that show the latest episode (home
+// StoryDiscovery) do not 404 in local dev.
+const serial = spawnSync(process.execPath, ['scripts/publish-yeongnyangi-serial.mjs'], { stdio: 'inherit', env: settings.env, windowsHide: true });
+if (serial.status !== 0) console.warn('[dev:mock] yeongnyangi serial copy failed; episode images may 404 locally');
 start(['--watch', 'scripts/mock-dev-api.mjs']);
 start(['--require=./scripts/next-manifest-read-guard.cjs', require.resolve('next/dist/bin/next'),
   'dev', '--hostname', '127.0.0.1', '--port', String(settings.port)]);
