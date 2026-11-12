@@ -4670,6 +4670,43 @@ function _sajuWaitForPaint() {
     }
   });
 }
+/* 명식 로딩 단축: 생년월일이 유효해지면 KASI 음양력·절기 응답을 미리 받아 둔다.
+ * warmNetwork 는 메서드 캐시만 채우고 컨텍스트 캐시는 건드리지 않으므로,
+ * calculate 의 결과·폴백 경로는 그대로이고 네트워크 왕복만 사라진다. */
+function _cdSajuKasiWarmFromForm() {
+  try {
+    var svc = window.KasiCalendarService;
+    if (!svc || typeof svc.warmNetwork !== 'function') return;
+    var bd = _cdReadBirthDateInput('birthDate');
+    if (!bd) return;
+    var parts = bd.split('-').map(function(v) { return parseInt(v, 10); });
+    if (parts.length < 3 || parts.some(function(v) { return !isFinite(v); })) return;
+    var calType = 'solar';
+    var calTypeBtns = document.getElementsByName('calType');
+    for (var i = 0; i < calTypeBtns.length; i++) { if (calTypeBtns[i].checked) { calType = calTypeBtns[i].value; break; } }
+    calType = normalizeCalendarTypeInput(calType);
+    var key = bd + '|' + calType;
+    if (_cdSajuKasiWarmFromForm.lastKey === key) return;
+    _cdSajuKasiWarmFromForm.lastKey = key;
+    svc.warmNetwork({ calendarType: calType, year: parts[0], month: parts[1], day: parts[2], hour: 12, minute: 0, second: 0 });
+  } catch (e) {}
+}
+
+(function _cdBindSajuKasiWarm() {
+  if (typeof document === 'undefined' || window.__cdSajuKasiWarmBound) return;
+  window.__cdSajuKasiWarmBound = true;
+  var timer = 0;
+  var schedule = function(e) {
+    var t = e && e.target;
+    if (!t || (t.id !== 'birthDate' && t.name !== 'calType')) return;
+    clearTimeout(timer);
+    timer = setTimeout(_cdSajuKasiWarmFromForm, 200);
+  };
+  document.addEventListener('input', schedule, true);
+  document.addEventListener('change', schedule, true);
+  setTimeout(_cdSajuKasiWarmFromForm, 0);
+})();
+
 function _sajuCalculationWait(task, run, timeoutMs) {
   return new Promise(function(resolve, reject) {
     var settled = false;
