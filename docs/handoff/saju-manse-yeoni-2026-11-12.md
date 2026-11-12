@@ -1,7 +1,7 @@
 ---
-status: in-progress
+status: active
 updated: 2026-11-12
-next: "사용자 요청 시 main push → 운영 배포(Release workflow), 그 뒤 워크트리 배수"
+next: "운영 배포 요청 대기 — main push(스테이징 자동 배포)는 user-9d가 2026-11-12에 진행. 운영 반영 뒤 워크트리 배수."
 ---
 
 # 사주 명식 속도·디자인, 3개월 무료 목록 + 연이 배너, 절기 리듬(月令) 개선
