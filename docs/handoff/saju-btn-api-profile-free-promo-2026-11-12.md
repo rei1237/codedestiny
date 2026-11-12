@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-11-12
-next: "릴리스 B B2부터 (초안 D:/Development/Temp/free-promo-drafts-20261112)"
+next: "B4 운영 workflow 실행(자동 모드 분류기가 Production Deploy로 거부 — 사용자 허용/직접 실행 필요) → 운영 확인 → 마무리"
 ---
 
 # 사주 보기 버튼·API 링크·홈 타일 프로필 진입 수정 + 3개월 무료 마케팅
@@ -52,7 +52,9 @@ next: "릴리스 B B2부터 (초안 D:/Development/Temp/free-promo-drafts-202611
 - [x] B0 "무료 만세력 보기" → "사주 보기" (78cbf6835, check:fast 통과, **아직 push 안 함** — B3에서 같이 push). 가이드 CTA 3곳(/saju/guide·/fortune/date·/compare/saju-vs-ziwei) href → `/ggulggul/?action=cdOneStepFreeSajuEntry`, /fortune/2027·[sign] 칩 "사주 보기"·보조 링크 "사주 원국 살펴보기"(href /saju 유지), seo-landing saju ctaLabel, first-visit-copy ko openWithProfile, 홈 #run-btn + home.input.submit 12언어, 홈 엔트리 카드 라벨(href `/saju/free/`는 home-entry-card-ownership 테스트 계약이라 유지). SEO 제목·H1·메타 유지.
   - 남김(보고): 푸터 링크(SiteFooterHub), SeoLandingTemplate DEFAULT_RELATED_LABELS "/saju" 앵커, yeongnyangi domain-registry freeEntry, 마케팅 ctaLabel(featureMarketing.saju.fallbackCta, shellRuntime.f6/f2632, feature-marketing-copy.generated.json).
 - [x] B1 감사 — **추가 없음**. worker/lib/light-fortune-catalog.js의 62키 밖 22키(physiognomy-compatibility, physiognomy-pastlife-compatibility, physiognomy-ogwan-mole-deep, tarot-year-fortune, tarot-reunion-reading, tarot-crystal-soul-reading, tarot-numerology-reading, maya-prompt-generator, tarot-ijik, royal-tea-oracle, ifa-oracle, neville-meditation, cosmic-soul-meditation, openJuyukModal, openKemetModal, stonehenge-runes-single/triad/deep/yearly, fortune-prompt-hub-generate, dream-prompt-generator, mbti-animal-compat)는 service-registry에서 methods:["ai"] 3,000원이거나 프롬프트 생성기이고, 11-11 감사가 타로·룬·주역·명상·관상·꿈·MBTI를 의도적으로 제외했다. 사용자 결정 후보로 보고만(특히 royal-tea·ifa·kemet 오라클, maya·fortune-prompt-hub 생성기).
-- [ ] B2 프로모션 상수 + 홈 배너·뱃지·공유 CTA·React 랜딩 배너, 12언어 i18n 키(ko 우선)
+- [x] B2 프로모션 상수 + 홈 배너·뱃지·공유 CTA·React 랜딩 배너, 12언어 i18n 키(ko 우선) — 2c5d48c36(rebase onto origin/main 0193aa999 뒤, B0=e6e9bc740·문서=08adcc79d). 문구(호출자 지시로 강화): 뱃지 "3개월 한정" / 제목 "지금만 전부 무료" / "2027년 2월 12일 이후 유료 전환 예정" + D-N / 범위 "만세력·자미두수·별자리 등 기본 풀이가 대상이에요. AI 상담과 라이트 사주·대운 풀이는 제외돼요." / CTA "무료 운세 보러 가기"(→ `/ggulggul/#cdQuickServices`, 셸에서는 스크롤) / 공유 "친구에게도 무료일 때 알려주기". 타일 씰 6개 "3개월 한정 무료"(모바일 카드 padding-top 34px로 메달 겹침 0).
+  - 함정: `__tests__/ui/saju-bundle-copy.static.test.js`가 비한국어 사전의 "free saju/Four Pillars" 류를 막는다 → 초안의 "사주·자미두수·별자리"를 "만세력(Manseryeok/万年暦/万年历…)·자미두수·별자리"로 바꿈. `home-banner-typography.test.mjs`의 hero 정규식 lookahead를 `cdh-(?:promo|free)`로 확장(배너가 무료 섹션 앞에 끼므로).
+  - build-home-funnel `--check` 상시 실패 원인: 생성기는 `?v=build-000000000000` 자리표시자(pass-duet.js·consultation-method-guide.css)를 내고 sync:public 뒤 단계가 실제 해시로 찍는다 → 찍힌 index.html과 늘 다름. CI·package 스크립트 어디에서도 `--check`를 부르지 않아 CI 실패는 없음(origin/main도 동일). 고치려면 비교 시 `?v=build-[0-9a-f]{12}`를 정규화 — 범위 밖으로 보고만.
   - 초안(검토 끝, 그대로 옮기면 됨) `D:/Development/Temp/free-promo-drafts-20261112/`:
     - `free-promo.mjs` → lib/marketing/free-promo.mjs: FREE_PROMO(endsAt 표시 전용)·FREE_PROMO_COPY_KO·freePromoDaysLeft(KST 달력: 2026-11-12 → 92, 마감일 0=D-DAY, 이후 null)·freePromoDayLabel. 함수 본문은 ES5(셸이 toString으로 인라인).
     - `free-promo-shell.mjs` → lib/marketing/free-promo-shell.mjs: renderFreePromoShellBanner() — #cdhFreePromo, data-ends·data-share-path, h2 없음, 인라인 스크립트로 D-N·만료 시 숨김·CTA는 #cdQuickServices/#cdhFreeTitle로 스크롤·Web Share → 클립보드 + showToast.
@@ -62,8 +64,8 @@ next: "릴리스 B B2부터 (초안 D:/Development/Temp/free-promo-drafts-202611
   - 결과 화면 공유 CTA: 공통 결과 푸터 훅이 없어(grep result-footer 0건) **추가하지 않고 보고**.
   - 순서: sync:public → free-fortune-policy.js/.mjs(루트·public) 줄끝 변경은 `git checkout --`로 되돌림 → `npm run sitemap:generate`(빠뜨리면 verify:sitemap-drift 실패).
   - 테스트: freePromoDaysLeft 단위 1개(D-92·D-DAY·null) + ko 문구 패리티(authored ko == FREE_PROMO_COPY_KO, index.html data-ends == FREE_PROMO.endsAt).
-- [ ] B3 검증(문구 계약·i18n·카운트다운 단위 테스트 1개·mock 화면), 커밋, push
-- [ ] B4 운영 workflow → 운영 확인
+- [x] B3 검증·커밋·push — `__tests__/ui/free-promo.test.mjs` 3개(카운트다운 KST·ko 패리티/12언어/index.html·정책 파일 비참조). check:fast 통과. main push 0193aa999..2c5d48c36, PR CI 43168424991 success. check:pre-push의 verify:public-mirror-fresh는 free-fortune-policy 줄끝 문제로 실패(origin/main도 동일, 기존 문제) → 남은 단계(sitemap-drift·llms-txt·seo-entity-registry·repo-hygiene) 수동 통과. mock 화면 /·/ggulggul/·/saju/·/saju/free/ × 360/390/1280: 가로 넘침 0, 배너 D-92, 씰 6개 겹침 0, 390 공유 → 클립보드에 shareText+URL. 콘솔 오류는 기존(/ 영냥이 webp 404·HomeInstallEntry hydration hidden)·로컬 환경(폰트 CORS·beacon CSP·mock 501)뿐.
+- [ ] B4 운영 workflow → 운영 확인 — 2026-11-12 시도: 경쟁 Release 런 43168802072(bc952a0e6 staging) 종료 뒤 `gh workflow run "Release Cloudflare Pages and Worker" --ref main -f mode=production`을 실행하려 했으나 Claude Code 자동 모드 분류기가 [Production Deploy]로 거부. 사용자가 직접 실행하거나 권한 규칙을 추가한 뒤 재개. 확인 대상: /api/version·/version.json SHA가 2c5d48c36 이후, 운영 /·/ggulggul/·/saju/·/manse/ 배너(D-N)·"사주 보기" 버튼(읽기 전용).
 - [ ] 마무리: 이 문서 done, 워크트리 배수(`npm run worktree:remove -- <경로>`를 다른 체크아웃에서), 임시 파일 삭제
 
 ## 범위 밖(보고만)
