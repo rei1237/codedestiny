@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-12
-next: "S3 무료 목록·연이 배너"
+next: "S4 절기 리듬"
 ---
 
 # 사주 명식 속도·디자인, 3개월 무료 목록 + 연이 배너, 절기 리듬(月令) 개선
@@ -69,6 +69,14 @@ next: "S3 무료 목록·연이 배너"
   - check:fast: test:node 5013/5014 통과(기존 실패 free-crafted-panel-policy CRLF 1건만), 그 실패로 막힌 나머지 25단계(test:jest·build:worker·verify:* 등)는 개별 실행해 모두 통과.
   - 선택 성능 작업(명식 먼저·무거운 섹션 다음 프레임)은 건너뜀: 렌더 순서·타이밍이 바뀌어 동작 변화 위험. 후속 후보로 남김.
   - 후속 관찰(이번엔 안 함): 모바일은 fortune-ui.css(583KB)가 입력 의도(pointerdown) 때 받기 시작해, 아주 빠른 제출이면 결과가 잠깐 미스타일일 수 있음.
-- [ ] S3 무료 목록·연이 배너 → 커밋
+- [x] S3 무료 목록·연이 배너 → 커밋 `7edf5d22a`
+  - 목록(표시 전용 `FREE_PROMO_GROUPS`, lib/marketing/free-promo.mjs): 재밌는 사주 콘텐츠 = 사주 네컷·도파민·집중력·테토·에겐 바이브·극T 테스트·사주 로또 리추얼·AI 프롬프트 카드·인생 스킬 트리·최애운명·십이운성 동물점 / 정통 사주 = 명식·12신살·절기 리듬·사주 궁합·만세력·오늘의 운세·나의 일 스타일 / 다른 운세 = 타로·자미두수·숙요점·베다점·점성술·휴먼 디자인·프롬프트 생성기 (22개).
+  - 결과 카드(네컷·도파민·테토·극T·로또·AI 프롬프트·스킬 트리·명식·절기·궁합)는 단독 주소가 없어 `/ggulggul/?action=cdOneStepFreeSajuEntry`로 보낸다. 칩·연이는 data-action 없는 일반 링크(셸 디스패처 무변경). 연이(yeoni-cheer.webp)+말풍선 → 무료 사주 입력.
+  - 정적 셸(free-promo-shell.mjs·home-funnel.css)과 React(FreePromoBanner.tsx·module.css)가 같은 데이터. 데스크톱(≥900px) 칸 1.35fr/1fr/1fr. 제외 문구 "AI 상담과 라이트 사주·대운 풀이는 무료에서 제외돼요."
+  - i18n: freePromo-01.json에 bubble·group*·item.* 12개 언어 추가 후 merge-authored. 테스트 `__tests__/ui/free-promo.test.mjs`에 정책 무료 키/레지스트리 무료 시작·라우트 존재·12개 언어·index.html 칩/연이 확인 추가.
+  - 스크린샷: D:/Development/Temp/claude/ec29f026d20d029c/74938b41-f812-494f-8006-98dce5349e62/scratchpad/s3/{shell,react,saju}-{360,390,1280,390-dark,1280-dark}.png, 클릭 확인 click-*.png. 가로 넘침 0.
+  - 클릭 확인(mock API, 390px): 연이·네컷·궁합·자미두수·베다(React) → 무료 사주/각 입력 화면, 타로 → 타로 라이브러리, 만세력·최애운명·오늘의 운세 → 각 페이지. 결제 시트 0건.
+  - check:fast: test:node 5014/5015(기존 CRLF 실패 free-crafted-panel-policy 1건만), sitemap 드리프트는 sitemap:generate로 해소, 나머지 25단계 개별 실행 모두 통과, test:jest 7974 통과.
+  - 위험·후속: 타로 라이브러리에는 유료 카드(1회 5,000원)도 섞여 있다(기존 레지스트리 '무료 시작'). feature-visual-details의 최애운명 'paid' 표기는 오래된 생성물(정책은 무료). 결과 카드 칩은 사주 입력으로 갈 뿐 해당 카드로 바로 스크롤하지 않는다.
 - [ ] S4 절기 리듬 이미지·문구 → 커밋
 - [ ] 마무리: `git fetch` 후 origin/main 위로 rebase(미러·사이트맵 재생성 필요 시), check:fast, 이 문서 결과 정리. push·배포는 하지 않음(사용자 요청 대기).
