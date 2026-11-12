@@ -897,7 +897,7 @@
     "ms": "Sixty guardian characters, one for each stem-branch combination"
   },
   "featureMarketing.openSajuGuardianPage.feats.1": {
-    "ko": "같은 명식이면 같은 구성 — 외부 이미지 도구에 쓰는 나의 가디언 프롬프트",
+    "ko": "같은 명식이면 같은 구성 — 외부 이미지 도구에 붙여 넣는 나의 가디언 그림 설명문",
     "en": "Same chart, same composition—your guardian prompt for external image tools",
     "ja": "同じ命式なら同じ構成。外部画像ツール用の自分のガーディアンプロンプト",
     "zh-CN": "相同命式，相同构图——用于外部图像工具的专属守护者提示词",
@@ -967,7 +967,7 @@
     "ms": "For those wanting a short luck-themed routine"
   },
   "featureMarketing.openSajuGuardianPage.premiumChapters.0": {
-    "ko": "내 일주의 수호 가디언과 이미지 프롬프트",
+    "ko": "내 일주의 수호 가디언과 그림 설명문",
     "en": "Your day-pillar guardian and an image prompt",
     "ja": "自分の日柱の守護ガーディアンと画像プロンプト",
     "zh-CN": "日柱守护者与图像提示词",
@@ -1023,7 +1023,7 @@
     "ms": "Talisman pouch—today’s color, a summoning phrase, a small action and a timing key"
   },
   "featureMarketing.openSajuGuardianPage.premiumOutcomes.1": {
-    "ko": "이미지는 제공하지 않으며, 외부 이미지 도구용 프롬프트를 드립니다.",
+    "ko": "이미지는 제공하지 않으며, 외부 이미지 도구에 붙여 넣을 그림 설명문을 드립니다.",
     "en": "No image is provided; you receive a prompt for external image tools.",
     "ja": "画像は提供せず、外部画像ツール用のプロンプトをお渡しします。",
     "zh-CN": "不提供图片，提供用于外部图像工具的提示词。",
