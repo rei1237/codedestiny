@@ -38,6 +38,23 @@ try{
     console.log('PASS public tarot',title,count);
     await page.getByRole('button',{name:'다른 질문으로 다시 보기'}).click();
   }
+  await open('드림 타로');
+  await page.getByRole('button',{name:'꿈의 카드 펼치기'}).click();
+  await page.getByRole('status').filter({hasText:'꿈의 장면을 입력해 주세요.'}).waitFor();
+  const dream = '비 내리는 바다를 걷다가 오래된 친구를 만났어요.';
+  for(const count of [1,2,3,4,5]){
+    await page.getByLabel('꿈의 장면',{exact:true}).fill(dream);
+    await page.getByText(count+'장',{exact:true}).click();
+    await page.getByRole('button',{name:'꿈의 카드 펼치기'}).click();
+    assert.equal(await page.locator('.dream-body li').count(),count);
+    const prompt = await page.getByLabel('해몽 프롬프트').inputValue();
+    assert.ok(prompt.includes(dream));
+    assert.ok(prompt.includes(await page.locator('.dream-body h2').first().innerText().then(text=>text.split(' · ')[0])));
+    assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
+    await page.getByRole('button',{name:'꿈의 장면 다시 적기'}).click();
+    assert.equal(await page.getByLabel('꿈의 장면',{exact:true}).inputValue(),dream);
+  }
+  console.log('PASS guest dream text, 1–5 original cards, meanings and copyable original prompt');
   await open('이파 오라클');
   for(const label of ['총운','연애/관계','재물/사업','건강/내면']){
     await page.getByRole('button',{name:label,exact:true}).click();

@@ -1,0 +1,13 @@
+.dream-prompt{overflow:hidden;max-width:38rem;margin:auto;border-radius:22px;background:#fffaf2;color:#302735}
+.dream-prompt header{padding:28px 22px;background:radial-gradient(ellipse at 96% 4%,#67546b,transparent 66%),#26243e;color:#fff5e4}
+.dream-prompt header h1{font:600 1.75rem/1.3 var(--font-display,serif);margin:0 0 .55rem}
+.dream-prompt header p,.dream-prompt li p{margin:0;line-height:1.7}
+.dream-body{display:grid;gap:16px;padding:20px 16px}
+.dream-body textarea{box-sizing:border-box;width:100%;margin-top:8px;padding:12px;border:1px solid #bdaeb5;border-radius:10px;background:#fffcf7;color:inherit;font:inherit;line-height:1.6;resize:vertical}
+.dream-body fieldset{border:0;margin:0;padding:0}.dream-body legend{padding:0 0 8px}
+.dream-body fieldset div{display:flex;gap:4px}.dream-body fieldset label{position:relative;flex:1}
+.dream-body fieldset input{position:absolute;opacity:0}.dream-body fieldset span{display:grid;place-items:center;min-height:44px;border:1px solid #c7b9c1;border-radius:9px}
+.dream-body input:checked+span,.dream-submit{background:#48344e;color:#fff9f2}
+.dream-body input:focus-visible+span{outline:3px solid #876a4a;outline-offset:2px}.dream-submit{min-height:48px;border:0;border-radius:12px;font:inherit;font-weight:600}
+.dream-body ol{list-style:none;margin:0;padding:0}.dream-body li{display:flex;gap:12px;padding:15px 0;border-top:1px solid #e1d5ce}.dream-body li img{width:58px;height:90px;object-fit:contain}.dream-body h2{font:600 1.1rem/1.5 var(--font-display,serif);margin:0 0 5px}
+.dream-notice{margin:0;padding:0 16px 16px}
