@@ -173,6 +173,8 @@ export default function serviceCompat(){
    async function sourceBytes(path){
     const ref=path.slice(publicRoot.length+1).split(sep).join('/');
     if(ref==='assets/yeongnyangi/tarot/v1/back-600.webp')return sharp(path).webp({quality:88,effort:6}).toBuffer();
+    // Keep the three animation frames aligned on mobile, including transparent edges.
+    if(/^assets\/yeongnyangi\/readings\/[^/]+-loading-sprite-v1\.webp$/.test(ref))return sharp(path).resize({width:1536,withoutEnlargement:true}).webp({quality:87,alphaQuality:100}).toBuffer();
     // The web waiting scene is displayed at most 416 CSS pixels wide.
     if(ref==='images/consultation-webtoons/heukwol/portraits/moon-library.webp')return sharp(path).resize({width:640,withoutEnlargement:true}).webp({quality:84}).toBuffer();
     // These portraits and scene covers fill at most the miniapp content width.
@@ -197,6 +199,7 @@ export default function serviceCompat(){
    for(const ref of references){
     const path=resolve(publicRoot,'.'+ref);
     if(!path.startsWith(publicRoot+sep))continue;
+    if(ref.startsWith('/assets/talismans/originals/')||ref.startsWith('/assets/talismans/widget/'))continue;
     let info;try{info=await stat(path);}catch{/* Dynamic filename prefix. */}
     if(info?.isFile()){if(!Object.hasOwn(TOSS_WEBP_ART,ref)&&!emitted.has(path)){emitted.add(path);this.emitFile({type:'asset',fileName:ref.slice(1),source:await sourceBytes(path)});}continue;}
     const folder=info?.isDirectory()?path:dirname(path);

@@ -32,7 +32,7 @@ function widgetPlugin(): HomeWidgetPlugin | undefined {
   return capacitor?.getPlatform?.() === "android" ? capacitor.Plugins?.CodeDestinyHomeWidget : undefined;
 }
 
-export default function HomeWidgetStudio() {
+export default function HomeWidgetStudio({previewOnly=false,assetOrigin=""}:{previewOnly?:boolean;assetOrigin?:string}={}) {
   const [locale, setLocale] = useState<LoadingLocale>("ko");
   const [kind, setKind] = useState<Kind>("talisman");
   const [mode, setMode] = useState<Mode>("yeoni");
@@ -98,7 +98,7 @@ export default function HomeWidgetStudio() {
   }, []);
 
   useEffect(() => {
-    const plugin = widgetPlugin();
+    const plugin = previewOnly ? undefined : widgetPlugin();
     if (!plugin) { setStatus("web"); return; }
     let active = true;
     let handle: Handle | undefined;
@@ -140,7 +140,7 @@ export default function HomeWidgetStudio() {
     };
     document.addEventListener("visibilitychange", onVisible);
     return () => { active = false; void handle?.remove(); document.removeEventListener("visibilitychange", onVisible); };
-  }, []);
+  }, [previewOnly]);
 
   function choose(next: () => void) {
     next();
@@ -148,7 +148,7 @@ export default function HomeWidgetStudio() {
   }
 
   async function place() {
-    const plugin = widgetPlugin();
+    const plugin = previewOnly ? undefined : widgetPlugin();
     if (!plugin || busy) return;
     const prefix = mode === "yeoni" ? "pig" : "cat";
     const itemId = kind === "fortune" && fortuneArt === "pig-moon-tea" ? "cat-daily-tea" : kind === "talisman" ? talisman : prefix + "-" + (dailyKind ? "daily" : affirmation);
@@ -187,19 +187,19 @@ export default function HomeWidgetStudio() {
             <div className="cd-home-widget-tile" data-kind={kind}>
               {kind === "talisman"
                 // eslint-disable-next-line @next/next/no-img-element
-                ? <img src={`/assets/talismans/widget/${talisman}.webp`} width={304} height={540} alt="" decoding="async" />
-                : kind === "fortune" ? <><img className="cd-widget-fortune-art" src={`/assets/talismans/widget/${fortuneArt}-fortune.webp`} alt={ko ? "오늘의 운세" : "Today’s fortune"} /><strong>{line}</strong></>
-                : <><img className="cd-widget-companion" src={kind === "flower" ? "/assets/talismans/widget/pig-moon-tea-face.webp" : mode === "yeoni" ? "/images/home/illustrated/yeoni-hanbok-240.webp" : "/assets/yeongnyangi/original/hero-480.webp"} alt="" /><small>{WIDGET_CAPTION}</small><strong>{line}</strong></>}
+                ? <img src={`${assetOrigin}/assets/talismans/widget/${talisman}.webp`} width={304} height={540} alt="" decoding="async" />
+                : kind === "fortune" ? <><img className="cd-widget-fortune-art" src={`${assetOrigin}/assets/talismans/widget/${fortuneArt}-fortune.webp`} alt={ko ? "오늘의 운세" : "Today’s fortune"} /><strong>{line}</strong></>
+                : <><img className="cd-widget-companion" src={assetOrigin+(kind === "flower" ? "/assets/talismans/widget/pig-moon-tea-face.webp" : mode === "yeoni" ? "/images/home/illustrated/yeoni-hanbok-240.webp" : "/assets/yeongnyangi/original/hero-480.webp")} alt="" /><small>{WIDGET_CAPTION}</small><strong>{line}</strong></>}
             </div>
             {Array.from({ length: 6 }, (_, i) => <i key={i} />)}
           </div>
               {kind === "talisman" && mode === "yeoni" && <fieldset className="cd-widget-wardrobe" disabled={busy}><legend>{ko ? "연이의 달빛 옷장" : "Yeoni’s wardrobe"}</legend>
                 <div className="cd-widget-looks">{choices.filter(a => a.scene === "yeoni-wardrobe" && a.id !== "yeoni-pig-moon").map(a =>
                   <label key={a.id}><input type="radio" name="home-widget-talisman" checked={talisman === a.id} onChange={() => choose(() => setTalisman(a.id))} />
-                    <span><img src={`/assets/talismans/widget/${a.id}.webp`} width="72" height="112" alt="" />{name(a.id)}</span>
+                    <span><img src={`${assetOrigin}/assets/talismans/widget/${a.id}.webp`} width="72" height="112" alt="" />{name(a.id)}</span>
                   </label>)}</div>
               </fieldset>}
-          <p className="cd-talisman-caption">{copy.offline}</p>
+          {!previewOnly && <p className="cd-talisman-caption">{copy.offline}</p>}
         </section>
         <section className="cd-talisman-controls" aria-label={copy.headline}>
           <fieldset disabled={busy}><legend>{ko ? "함께할 친구" : "Companion"}</legend><div className="cd-talisman-options">
@@ -211,7 +211,7 @@ export default function HomeWidgetStudio() {
           {kind === "fortune" && <fieldset disabled={busy}><legend>{ko ? "오늘의 운세에 담을 친구 한 명" : "Choose one fortune companion"}</legend>
             <div className="cd-talisman-options">{(["cat-star-chart", "pig-moon-tea"] as const).map(id =>
               <label key={id}><input type="radio" name="fortune-art" checked={fortuneArt === id} onChange={() => choose(() => setFortuneArt(id))} />
-                <span><img className="cd-widget-swatch" src={`/assets/talismans/widget/${id}-face.webp`} width="34" height="34" alt="" />{id === "cat-star-chart" ? (ko ? "영냥이" : "Yeongnyangi") : (ko ? "꽃돼지 연이" : "Yeoni")}</span>
+                <span><img className="cd-widget-swatch" src={`${assetOrigin}/assets/talismans/widget/${id}-face.webp`} width="34" height="34" alt="" />{id === "cat-star-chart" ? (ko ? "영냥이" : "Yeongnyangi") : (ko ? "꽃돼지 연이" : "Yeoni")}</span>
               </label>)}</div>
             <p>{ko ? "한 명을 골라 적용하세요. 다음에 친구를 바꾸면 같은 위젯의 그림이 바뀝니다." : "Choose one companion. Changing it replaces the picture in the same widget."}</p>
             {fortuneCount > 1 && <p>{ko ? "이전 버전에서 두 개를 놓았다면 홈에서 하나를 길게 눌러 삭제하세요." : "If two older widgets are on your home screen, long-press one to remove it."}</p>}
@@ -223,7 +223,7 @@ export default function HomeWidgetStudio() {
                 <fieldset disabled={busy}><legend className="sr-only">{copy.talismanLegend}</legend><div className="cd-talisman-options">
                   {choices.filter(a => a.scene !== "yeoni-wardrobe" || a.id === "yeoni-pig-moon").map(a => widgetId(a.id)).map(id =>
                     <label key={id}><input type="radio" name="home-widget-talisman" checked={talisman === id} onChange={() => choose(() => setTalisman(id))} />
-                      <span><img className="cd-widget-swatch" src={`/assets/talismans/widget/${id}.webp`} width="34" height="54" alt="" />{name(id)}</span>
+                      <span><img className="cd-widget-swatch" src={`${assetOrigin}/assets/talismans/widget/${id}.webp`} width="34" height="54" alt="" />{name(id)}</span>
                     </label>)}
                 </div></fieldset>
               </details>
@@ -239,7 +239,7 @@ export default function HomeWidgetStudio() {
       {/* 고르는 동안에도 추가 버튼과 진행 상태가 화면 아래에 늘 보이게 둔다. */}
       <div className="cd-home-widget-dock">
         <div className="cd-talisman-actions" aria-busy={busy}>
-          {kind === "talisman" && selected && <a className="cd-widget-wallpaper" href={(IS_APP_BUILD ? "/app/talismans/index.html" : "/app/talismans/") + "?asset=" + encodeURIComponent(selected.id)}>{ko ? "배경화면으로 설정" : "Set wallpaper"}</a>}
+          {!previewOnly && kind === "talisman" && selected && <a className="cd-widget-wallpaper" href={(IS_APP_BUILD ? "/app/talismans/index.html" : "/app/talismans/") + "?asset=" + encodeURIComponent(selected.id)}>{ko ? "배경화면으로 설정" : "Set wallpaper"}</a>}
           {status !== "web" && <button type="button" disabled={busy} onClick={() => void place()}>{kind === "fortune" && fortuneCount > 0 ? (ko ? "선택한 친구로 변경" : "Change companion") : editId ? copy.change : copy.add}</button>}
         </div>
         <p className="cd-talisman-status" role="status" aria-live="polite">{message}</p>
