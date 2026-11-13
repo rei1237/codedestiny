@@ -6,7 +6,7 @@ const dom=new JSDOM('',{url:'http://localhost/'});globalThis.window=dom.window;g
 const mock=appRequire.resolve('@apps-in-toss/devtools/mock/3x').replaceAll('\\','/');
 (async()=>{
  const code=`export * from ${JSON.stringify(repo+'/apps/toss/src/platform.ts')}; export {IAP,aitState} from ${JSON.stringify(mock)};`;
- const bundle=await build({stdin:{contents:code,resolveDir:repo,loader:'ts'},bundle:true,platform:'node',format:'cjs',write:false,plugins:[{name:'offline-boundaries',setup(b){b.onResolve({filter:/^@apps-in-toss\/web-framework$/},()=>({path:mock}));b.onResolve({filter:/^\.\/release$/},()=>({path:'release',namespace:'mock'}));b.onLoad({filter:/.*/,namespace:'mock'},()=>({contents:'export const SERVICE_AVAILABLE=true;'}));}}]});
+ const bundle=await build({stdin:{contents:code,resolveDir:repo,loader:'ts'},bundle:true,platform:'node',format:'cjs',write:false,plugins:[{name:'offline-boundaries',setup(b){b.onResolve({filter:/^@apps-in-toss\/web-framework$/},()=>({path:mock}));b.onResolve({filter:/^\.\/release$/},()=>({path:'release',namespace:'mock'}));b.onLoad({filter:/.*/,namespace:'mock'},()=>({contents:'export const SERVICE_AVAILABLE=true;export const NEW_PURCHASES_AVAILABLE=true;'}));}}]});
  const loaded=new Module(path.join(repo,'toss-official-devtools-mock.cjs'));loaded.paths=Module._nodeModulePaths(repo+'/apps/toss');loaded._compile(bundle.outputFiles[0].text,loaded.id);const app=loaded.exports;
  const {createOfflineFixtureApi}=await import('./offline/fixture.mjs');
  const {reviewSdkProducts}=await import('./offline/review-fixture.mjs');

@@ -8,7 +8,7 @@ import path from 'node:path';
 const require=createRequire(import.meta.url),Module=require('node:module'),root=path.resolve(import.meta.dirname,'../../..');
 const bundle=await build({entryPoints:[path.join(root,'apps/toss/src/platform.ts')],bundle:true,write:false,platform:'node',format:'cjs',plugins:[{name:'offline-platform',setup(b){
  b.onResolve({filter:/^(\.\/release|@apps-in-toss\/web-framework)$/},args=>({path:args.path,namespace:'fixture'}));
- b.onLoad({filter:/.*/,namespace:'fixture'},({path:p})=>({loader:'js',contents:p==='./release'?'export const SERVICE_AVAILABLE=true;':`export const Environment={environment:'sandbox'},IAP={},TossAuth={},Storage={},Share={},isMinVersionSupported=()=>true;`}));
+ b.onLoad({filter:/.*/,namespace:'fixture'},({path:p})=>({loader:'js',contents:p==='./release'?'export const SERVICE_AVAILABLE=true;export const NEW_PURCHASES_AVAILABLE=true;':`export const Environment={environment:'sandbox'},IAP={},TossAuth={},Storage={},Share={},isMinVersionSupported=()=>true;`}));
 }}]});
 const loaded=new Module(path.join(root,'pet-platform-fixture.cjs'));loaded.paths=Module._nodeModulePaths(root);loaded._compile(bundle.outputFiles[0].text,loaded.id);const {api}=loaded.exports;
 const id='a'.repeat(64),pathFor='/native/pet/intents/'+id+'/generate';

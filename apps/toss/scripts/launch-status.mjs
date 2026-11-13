@@ -33,6 +33,7 @@ const reviewProducts=reviewProductIds.map(productId=>{
   const approved=Boolean(item&&skuCounts.get(item.sku)===1&&approvedProduct(item.sku).approvedPriceKRW===amount);
   return {productId,serviceId,featureKey,registryPriceKRW:amount,approved,sku:approved?item.sku:null};
 });
+const releaseSource=fs.readFileSync(path.join(root,'apps/toss/src/release.ts'),'utf8');
 const report={
  scope:'꿀꿀운세 첫 심사 · 오늘의 운세, 사주 콘텐츠, 대표 상담',
  inventorySourceCommit:inventory.sourceCommit,
@@ -54,7 +55,8 @@ const report={
  approvedUniqueSkus:skuCounts.size,
  approvedEntriesMissingValidSku:approvedEntries.filter(item=>typeof item.sku!=='string'||!item.sku.length||item.sku.trim()!==item.sku).length,
  duplicateApprovedSkus:[...skuCounts].filter(([,count])=>count>1).map(([sku,count])=>({sku,count})),
- releaseConfiguration:fs.readFileSync(path.join(root,'apps/toss/src/release.ts'),'utf8').match(/SERVICE_AVAILABLE\s*=\s*(true|false)/)?.[1]||'unknown',
+ releaseConfiguration:releaseSource.match(/SERVICE_AVAILABLE\s*=\s*(true|false)/)?.[1]||'unknown',
+ newPurchasesConfiguration:releaseSource.match(/NEW_PURCHASES_AVAILABLE\s*=\s*(true|false)/)?.[1]||'unknown',
  nextSteps:'docs/toss/2026-11-08-representative-review.md',
  limitation:'로컬 코드 목록입니다. 콘솔 승인, 실기기, CI, 업로드 및 출시 상태를 증명하지 않습니다.',
 };

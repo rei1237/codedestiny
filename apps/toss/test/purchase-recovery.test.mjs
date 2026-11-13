@@ -7,12 +7,12 @@ import path from 'node:path';
 const tick=()=>new Promise(resolve=>setImmediate(resolve));
 const require=createRequire(import.meta.url),Module=require('node:module');const {build}=require('esbuild');
 
-async function adapter(available=true,authenticated=false){
+async function adapter(available=true,authenticated=false,newPurchases=true){
  const state={orders:[],ack:[],requests:[],reply:()=>({}),failAck:false};
  globalThis.tossRecoveryTest=state;
  const bundle=await build({entryPoints:[path.resolve(import.meta.dirname,'../src/platform.ts')],bundle:true,write:false,format:'cjs',platform:'node',plugins:[{name:'offline-sdk',setup(b){
   b.onResolve({filter:/^(@apps-in-toss\/web-framework|\.\/release)$/},args=>({path:args.path,namespace:'mock'}));
-  b.onLoad({filter:/.*/,namespace:'mock'},args=>({contents:args.path==='./release'?'export const SERVICE_AVAILABLE='+available+';':`
+  b.onLoad({filter:/.*/,namespace:'mock'},args=>({contents:args.path==='./release'?'export const SERVICE_AVAILABLE='+available+';export const NEW_PURCHASES_AVAILABLE='+newPurchases+';':`
    export const Environment={environment:'sandbox'},isMinVersionSupported=versions=>{const s=globalThis.tossRecoveryTest;s.minimumVersions=versions;if(s.versionProbeFailure)throw s.versionProbeFailure;return s.versionSupported!==false;},TossAuth={login:async()=>({authorizationCode:'mock',referrer:'SANDBOX'})},Storage={getItem:async()=>{const s=globalThis.tossRecoveryTest,value=s.stored||null;if(s.getStarted)s.getStarted();if(s.getWait)await s.getWait;return value;},removeItem:async()=>{const s=globalThis.tossRecoveryTest;if(s.removeFailure)throw s.removeFailure;if(s.removeError)throw Error('storage remove failed');if(s.removeStarted)s.removeStarted();if(s.removeWait)await s.removeWait;s.stored=null;},setItem:async(_key,value)=>{const s=globalThis.tossRecoveryTest;if(s.setStarted)s.setStarted();if(s.setWait)await s.setWait;if(s.storageFailure)throw s.storageFailure;if(s.setError||s.failSetFor===value)throw Error('storage unavailable');s.stored=value;}},Share={};
    const productList=()=>{const s=globalThis.tossRecoveryTest;if(s.productSyncFailure)throw s.productSyncFailure;return (async()=>{s.productListCalls=(s.productListCalls||0)+1;if(s.productStarted)s.productStarted();if(s.productWait)await s.productWait;if(s.productListError)throw s.productListError;return {products:s.productListRows||[]};})();};productList.isSupported=()=>{const e=globalThis.tossRecoveryTest.productSupportThrows;if(e)throw e===true?Error('bridge unavailable'):e;return globalThis.tossRecoveryTest.supportProductList!==false;};const buy=options=>{const s=globalThis.tossRecoveryTest;s.purchaseOptions=options;if(s.synchronousThrow)throw Object.assign(Error('NETWORK_ERROR'),{code:'NETWORK_ERROR'});if(s.synchronousCancel)options.onError({code:'USER_CANCELED'});return ()=>{s.cleanupCount=(s.cleanupCount||0)+1;};};buy.isSupported=()=>true;
    const pending=async()=>{const s=globalThis.tossRecoveryTest;s.pendingCalls=(s.pendingCalls||0)+1;if(s.pendingStarted)s.pendingStarted();if(s.pendingWait)await s.pendingWait;return s.malformed?undefined:{orders:s.orders};};pending.isSupported=()=>{const s=globalThis.tossRecoveryTest;if(s.pendingSupportFailure)throw s.pendingSupportFailure;return s.supportPending!==false;};const complete=async({params})=>{const s=globalThis.tossRecoveryTest;s.ack.push(params.orderId);if(s.ackStarted)s.ackStarted();if(s.ackWait)await s.ackWait;if(s.ackFailure)throw s.ackFailure;return !s.failAck;};complete.isSupported=()=>{const s=globalThis.tossRecoveryTest;if(s.completeSupportFailure)throw s.completeSupportFailure;return s.supportComplete!==false;};export const IAP={createOneTimePurchaseOrder:buy,getPendingOrders:pending,completeProductGrant:complete,getProductItemList:productList};
@@ -24,6 +24,21 @@ async function adapter(available=true,authenticated=false){
  const withSession=buy=>(...args)=>{const before=globalThis.fetch;globalThis.fetch=(url,...rest)=>new URL(url).pathname.endsWith('/session')?Promise.resolve(Response.json({authenticated:true})):before(url,...rest);try{return buy(...args);}finally{globalThis.fetch=before;}};
  return {state,paymentRequiresReview:loaded.exports.paymentRequiresReview,saleProducts:loaded.exports.saleProducts,nativeSaleProducts:loaded.exports.nativeSaleProducts,tarotLibraryProducts:loaded.exports.tarotLibraryProducts,restore:loaded.exports.restorePurchases,auto:loaded.exports.recoverAfterAuthentication,purchase:withSession(loaded.exports.purchase),purchaseTarot:withSession(loaded.exports.purchaseTarotLibrary),rawPurchase:loaded.exports.purchase,rawTarot:loaded.exports.purchaseTarotLibrary,login:loaded.exports.login,logout:loaded.exports.logout,unlinkCurrentSession:loaded.exports.unlinkCurrentSession,clearSession:loaded.exports.clearSession,api:loaded.exports.api,canonical:loaded.exports.canonicalResponse,onInvalidated:loaded.exports.onSessionInvalidated,restoreSession:loaded.exports.restoreSession};
 }
+
+test('new sales can stay closed while existing purchase recovery remains available',async()=>{
+ const fixture=await adapter(true,true,false),previous=globalThis.fetch;
+ globalThis.fetch=async()=>{throw Error('unexpected catalog or grant request');};
+ try{
+  assert.deepEqual(await fixture.saleProducts(),[]);
+  assert.deepEqual(await fixture.nativeSaleProducts(),[]);
+  assert.deepEqual(await fixture.tarotLibraryProducts(),[]);
+  assert.equal(fixture.state.productListCalls,undefined);
+  for(const buy of [fixture.rawPurchase,fixture.rawTarot])
+   assert.throws(()=>buy({sku:'mock'},'request',()=>{},()=>{}),error=>error.code==='TOSS_PURCHASES_DISABLED');
+  assert.deepEqual(await fixture.restore(),{recovered:0,failed:0,denied:0});
+  assert.equal(fixture.state.pendingCalls,1);
+ }finally{globalThis.fetch=previous;delete globalThis.tossRecoveryTest;}
+});
 
 for(const kind of ['consultation','tarot'])test(`${kind} success requires the same order in the SDK success event`,async()=>{
  const {state,restore,purchase,purchaseTarot}=await adapter(true,true),previous=globalThis.fetch;let done=0,reported;

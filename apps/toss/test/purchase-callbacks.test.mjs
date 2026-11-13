@@ -11,7 +11,7 @@ const sdk=`const create=options=>{const s=globalThis.__purchaseCallbacks;if(s.th
 const bundle=await build({entryPoints:[path.join(root,'apps/toss/src/platform.ts')],bundle:true,platform:'node',format:'cjs',write:false,plugins:[{name:'mock-sdk',setup(b){
  b.onResolve({filter:/^@apps-in-toss\/web-framework$/},()=>({path:'sdk',namespace:'fixture'}));
  b.onLoad({filter:/.*/,namespace:'fixture'},()=>({contents:sdk,loader:'js'}));
- b.onLoad({filter:/[\\/]release\.ts$/},()=>({contents:'export const SERVICE_AVAILABLE=true;',loader:'ts'}));
+ b.onLoad({filter:/[\\/]release\.ts$/},()=>({contents:'export const SERVICE_AVAILABLE=true;export const NEW_PURCHASES_AVAILABLE=true;',loader:'ts'}));
 }}]});
 let loaded,purchase,purchaseTarot;const tick=()=>new Promise(resolve=>setImmediate(resolve));
 beforeEach(async()=>{

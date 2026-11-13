@@ -1,4 +1,4 @@
-import {SERVICE_AVAILABLE} from './release';
+import {NEW_PURCHASES_AVAILABLE,SERVICE_AVAILABLE} from './release';
 import {Environment,IAP,TossAuth,Storage,Share,isMinVersionSupported} from '@apps-in-toss/web-framework';
 export const APP_NAME='ai-saju-studio';
 const API='https://code-destiny.com/api/toss';
@@ -198,7 +198,7 @@ function approvedDisplayPrice(catalog:SdkCatalog|undefined, product:{sku:string;
 }
 
 export async function saleProducts():Promise<SaleProduct[]>{
-  if(!SERVICE_AVAILABLE||!isToss())return [];
+  if(!SERVICE_AVAILABLE||!NEW_PURCHASES_AVAILABLE||!isToss())return [];
   requireProductListSupport();
   const [catalog,items]=await scopedProductCatalog<{products:CatalogProduct[]}>('/catalog');
   return catalog.products.flatMap(p=>{
@@ -207,7 +207,7 @@ export async function saleProducts():Promise<SaleProduct[]>{
   });
 }
 export async function nativeSaleProducts():Promise<NativeSaleProduct[]>{
-  if(!SERVICE_AVAILABLE||!isToss())return [];
+  if(!SERVICE_AVAILABLE||!NEW_PURCHASES_AVAILABLE||!isToss())return [];
   requireProductListSupport();
   const [catalog,items]=await scopedProductCatalog<{products:Omit<NativeSaleProduct,'displayAmount'>[]}>('/native/catalog');
   return catalog.products.flatMap(product=>{
@@ -217,7 +217,7 @@ export async function nativeSaleProducts():Promise<NativeSaleProduct[]>{
 }
 export type TarotLibraryProduct={id:string;name:string;sku:string;featureKey:string;approvedPriceKRW:number;displayAmount:string};
 export async function tarotLibraryProducts():Promise<TarotLibraryProduct[]>{
-  if(!SERVICE_AVAILABLE||!isToss())return [];
+  if(!SERVICE_AVAILABLE||!NEW_PURCHASES_AVAILABLE||!isToss())return [];
   requireProductListSupport();
   const [catalog,items]=await scopedProductCatalog<{flows:Omit<TarotLibraryProduct,'displayAmount'>[]}>('/tarot-library/catalog');
   return catalog.flows.flatMap(flow=>{
@@ -257,6 +257,7 @@ let paymentUncertain=false;
 export function paymentRequiresReview(){return paymentUncertain;}
 export function purchase(product:Pick<SaleProduct,'sku'>,requestId:string,onDone:()=>void,onError:(error:unknown)=>void){
   if(!SERVICE_AVAILABLE)throw new ApiError('TOSS_RELEASE_PENDING');
+  if(!NEW_PURCHASES_AVAILABLE)throw new ApiError('TOSS_PURCHASES_DISABLED');
   if(!isToss())throw new ApiError('TOSS_APP_REQUIRED');
   requireRecoveryReady();
   requirePurchaseSupport();
@@ -279,6 +280,7 @@ export function purchase(product:Pick<SaleProduct,'sku'>,requestId:string,onDone
 }
 export function purchaseTarotLibrary(product:TarotLibraryProduct,input:unknown,onDone:(orderId:string)=>void,onError:(error:unknown)=>void){
   if(!SERVICE_AVAILABLE)throw new ApiError('TOSS_RELEASE_PENDING');
+  if(!NEW_PURCHASES_AVAILABLE)throw new ApiError('TOSS_PURCHASES_DISABLED');
   if(!isToss())throw new ApiError('TOSS_APP_REQUIRED');
   requireRecoveryReady();
   requirePurchaseSupport();
