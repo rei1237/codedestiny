@@ -209,6 +209,11 @@ const SECRET_KEYS = [
   "CSRF_SECRET",
   // 개인정보 필드 암호화 키(worker/lib/pii-crypto.js). 미설정이면 신규 가입이 fail-closed 로 막힌다.
   "PII_ENC_KEY",
+  // 앱인토스 로그인 식별자 암호화와 연결 해제 콜백 검증. 값은 저장소에 두지 않고
+  // 프로덕션/스테이징 타깃을 명시해 각각 주입한다.
+  "TOSS_DATA_KEY",
+  "TOSS_IDENTITY_KEY",
+  "TOSS_CALLBACK_AUTHORIZATION",
   "MONGO_URI",
   "MONGODB_URI",
   "MONGO_URL",
