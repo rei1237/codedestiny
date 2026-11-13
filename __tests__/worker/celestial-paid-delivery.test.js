@@ -192,7 +192,7 @@ test('a usable complete report below the target is delivered without extra calls
 
 test('Toss uses the full web provider contract, checkpoints and original saved chapters',async()=>{
   const {generateTarotLibraryResult}=await import('../../worker/toss/tarot-library-generator.js');
-  const input={question:'행성의 흐름을 읽고 싶어요',cards:body.cards};
+  const input={question:'',cards:body.cards,goldenCardId:'M00'};
   const featureId='tarot-celestial-harmony',execution={orderId:'01900000-1111-7111-8111-000000000042',requestId:'toss-tarot:01900000-1111-7111-8111-000000000042',featureId};
   const options={env:{TAROT_CONSUMER_FACTS_V1:'true'},execution,owner:userId,verify:async()=>{},checkpoint:async state=>{execution.tossTarotCheckpoint=structuredClone(state);}};
   let result;
@@ -202,6 +202,8 @@ test('Toss uses the full web provider contract, checkpoints and original saved c
     expect(result.retryable).toBe(true);
   }
   expect(result.flowId).toBe(featureId);
+  expect(result.reading.goldenCard.code).toBe('M00');
+  expect(execution.tossTarotCheckpoint.prompt).toContain('The Fool');
   expect(result.cards).toHaveLength(11);
   expect(result.presentation.sections.length).toBeGreaterThanOrEqual(11);
   expect(result.presentation.sections.map(section=>section.body).join('').length).toBeGreaterThan(5000);

@@ -41,7 +41,7 @@ function text(value){return typeof value==='string'?value.trim():'';}
 function tarotInput(flow,input,featureKey){
   if(!input||typeof input!=='object'||Array.isArray(input))throw new TossError('TAROT_LIBRARY_INPUT_INVALID');
   const question=text(input.question);
-  if(question.length<2||question.length>600)throw new TossError('TAROT_LIBRARY_INPUT_INVALID');
+  if((flow.resultKind!=='celestial'&&question.length<2)||question.length>600)throw new TossError('TAROT_LIBRARY_INPUT_INVALID');
   if(['tarot-mindscan','tarot-love-relationship'].includes(flow.id)){
     try{return {question,picks:selectDeckSlots({picks:input.picks},flow.cardCount).picks};}
     catch{throw new TossError('TAROT_LIBRARY_INPUT_INVALID');}
@@ -64,6 +64,11 @@ function tarotInput(flow,input,featureKey){
     if(!source||!['upright','reversed'].includes(card?.orientation)||text(card?.position)!==flow.positions[index][0])throw new TossError('TAROT_LIBRARY_INPUT_INVALID');
     return {cardId:source.code,orientation:card.orientation,position:flow.positions[index][0],positionLabel:flow.positions[index][1]};
   });
+  if(flow.resultKind==='celestial'){
+    const golden=getTarotCardByAnyId(input.goldenCardId);
+    if(!golden||!/^M\d{2}$/.test(golden.code)||normalized.some(card=>!/^M\d{2}$/.test(card.cardId))||new Set([...normalized.map(card=>card.cardId),golden.code]).size!==12)throw new TossError('TAROT_LIBRARY_INPUT_INVALID');
+    return {question,cards:normalized,goldenCardId:golden.code};
+  }
   const birthDate=text(input.birthDate);
   if(flow.id==='tarot-numerology'&&!/^\d{4}-\d{2}-\d{2}$/.test(birthDate))throw new TossError('TAROT_LIBRARY_INPUT_INVALID');
   const topic=text(input.topic)||'general',name=text(input.name);
@@ -223,6 +228,7 @@ export async function failTarotLibraryDelivery({store,auth,orderId,flowId,error,
 function needsCorrectedInput(execution,flow){
   if(!execution.input||!['paid_pending_generation','generation_failed','generating'].includes(execution.status))return false;
   if(['tarot-mindscan','tarot-love-relationship'].includes(flow.id))return !execution.input.picks;
+  if(flow.resultKind==='celestial')return !execution.input.goldenCardId;
   return flow.id==='tarot-prompt-maker'&&!execution.input.spreadTitle;
 }
 export function tarotLibraryResult(execution,flow){

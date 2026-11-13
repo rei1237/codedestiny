@@ -2,6 +2,7 @@ import {buildPublicTarotReading,cardRows,presentation} from '../../lib/tarot/tos
 import {tossTarotLibraryFlow} from '../../lib/tarot/toss-library-flows.mjs';
 import {isFreeFortuneFeatureKey} from '../../lib/payment/free-fortune-policy.mjs';
 import {resolveOracleConsultationTier} from '../../lib/tarot/oracle-consultation-pricing.mjs';
+import {getTarotCardByAnyId} from '../../lib/tarot/tarot-cards.mjs';
 import {buildCelestialMelodyReading} from '../../lib/tarot/celestial-melody-reading.mjs';
 
 function result(flow,input,reading,cards,chapters,summary=''){
@@ -16,7 +17,9 @@ const prose=value=>typeof value==='string'?value:Object.values(value||{}).map(pr
 async function celestial(flow,input,{env,execution,checkpoint,celestialEngine}){
   const {advance,complete,render,prompt}=celestialEngine||await defaultCelestial();
   const reading=buildCelestialMelodyReading({cards:cardRows(input),payment:{requestId:execution.requestId,transactionId:execution.orderId,accessType:'toss'}}).reading;
-  const snapshot=execution.tossTarotCheckpoint||{reading,locale:'ko',prompt:prompt(reading,null),delivery:{version:1,parts:{},attempts:{},invalidAttempts:{}}};
+  const golden=getTarotCardByAnyId(input.goldenCardId);
+  if(!golden)throw Error('TAROT_GOLDEN_CARD_REQUIRED');
+  const snapshot=execution.tossTarotCheckpoint||{reading,locale:'ko',prompt:prompt(reading,golden),delivery:{version:1,parts:{},attempts:{},invalidAttempts:{}}};
   if(!complete(snapshot.delivery)){
     const wave=await advance(env,snapshot,async delivery=>checkpoint({...snapshot,delivery}));
     snapshot.delivery=wave.delivery;
@@ -24,7 +27,9 @@ async function celestial(flow,input,{env,execution,checkpoint,celestialEngine}){
   }
   const full=render(snapshot);
   full.meta.deliveryStatus='completed';
+  full.goldenCard={code:golden.code,nameKo:golden.nameKo,nameEn:golden.nameEn};
   const chapters=full.cards.map(card=>({title:card.planetKo+' · '+card.cardNameKo,body:chartFields.map(key=>card[key]).filter(Boolean).join('\n\n')}));
+  chapters.push({title:'황금 통합 카드',body:golden.nameKo+' · '+golden.nameEn});
   for(const [key,title] of Object.entries(chartSummary))chapters.push({title,body:prose(full.summary[key])});
   return result(flow,input,full,cardRows(input),chapters,full.summary.overallTheme);
 }
