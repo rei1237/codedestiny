@@ -9,9 +9,9 @@ import ReviewRewardBanner, { type ReviewRewardPolicy } from "../components/Revie
 import ReviewSocialFields, { type ReviewSocialProof } from "./ReviewSocialFields";
 import ReviewRewardHistory from "./ReviewRewardHistory";
 import { normalizeReviewSocialProof } from "@/js/review-sharing.mjs";
-import { reviewRewardLabel } from "@/js/review-reward-copy.mjs";
+import { reviewCardRewardLabel, reviewRewardLabel } from "@/js/review-reward-copy.mjs";
 import { authFetch } from "../_lib/auth-client";
-import { REVIEW_QUICK_TAGS } from "../components/review/review-ui";
+import { REVIEW_QUICK_TAGS, reviewWriteHref, safeReviewProductId } from "../components/review/review-ui";
 import { getCurrentLoadingLocale, INTL_LOCALE_BY_LOADING_LOCALE, type LoadingLocale } from "@/constants/loadingMessages";
 
 type SortKey = "latest" | "rating_desc" | "rating_asc";
@@ -29,6 +29,8 @@ interface ReviewCard {
   isVerifiedPurchase: boolean;
   // 옛 엣지 캐시 응답(v1 키)에는 없다. 없으면 배지를 붙이지 않는 쪽으로 떨어진다.
   usageSource?: string;
+  // 작성 보상(월정석)이 지급된 후기. 옛 엣지 캐시 응답(v4 이하 키)에는 없다.
+  rewarded?: boolean;
   displayedAt: string;
 }
 
@@ -874,7 +876,7 @@ function Avatar({ name, image, copy }: { name: string; image: string; copy: Revi
   );
 }
 
-function ReviewCardView({ review, copy }: { review: ReviewCard; copy: ReviewsCopy }) {
+function ReviewCardView({ review, copy, rewardedLabel }: { review: ReviewCard; copy: ReviewsCopy; rewardedLabel: string }) {
   return (
     <article className="flex h-full flex-col rounded-2xl border border-[#f0d4de] bg-white p-5 shadow-[0_8px_24px_-18px_rgba(179,25,85,0.45)] dark:border-[#5a3348] dark:bg-[#2b0c1f]">
       <header className="flex items-start gap-3">
@@ -898,6 +900,7 @@ function ReviewCardView({ review, copy }: { review: ReviewCard; copy: ReviewsCop
 
       <footer className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-[#f7e6ec] pt-3 dark:border-[#4a2438]">
         <span className="text-xs text-[#8a6478] dark:text-[#c99cb2]">{copy.productPrefix}{review.productName}</span>
+        <span className="flex flex-wrap items-center justify-end gap-1.5">
         {review.isVerifiedPurchase ? (
           <span className="inline-flex items-center gap-1 rounded-full bg-[#fdf0f5] px-2 py-0.5 text-xs font-medium text-[#b31955] dark:bg-[#4a1230] dark:text-[#f4bed1]">
             <BadgeCheck className="h-3.5 w-3.5" aria-hidden="true" />
@@ -909,6 +912,12 @@ function ReviewCardView({ review, copy }: { review: ReviewCard; copy: ReviewsCop
             {copy.experienceBadge}
           </span>
         ) : null}
+        {review.rewarded ? (
+          <span className="inline-flex items-center rounded-full border border-cd-border bg-cd-surface-2 px-2 py-0.5 text-xs font-medium text-cd-muted">
+            {rewardedLabel}
+          </span>
+        ) : null}
+        </span>
       </footer>
     </article>
   );
@@ -917,6 +926,7 @@ function ReviewCardView({ review, copy }: { review: ReviewCard; copy: ReviewsCop
 export default function ReviewsClient() {
   const copy = useReviewsCopy();
   const numberLocale = INTL_LOCALE_BY_LOADING_LOCALE[getCurrentLoadingLocale()];
+  const rewardedLabel = reviewCardRewardLabel(getCurrentLoadingLocale());
   const apiBase = useMemo(() => getApiBaseUrl(), []);
 
   const [productFilter, setProductFilter] = useState("");
@@ -942,6 +952,9 @@ export default function ReviewsClient() {
   const [eligible, setEligible] = useState<EligibleProduct[]>([]);
   const [eligibleState, setEligibleState] = useState<"idle" | "loading" | "ready" | "guest" | "error">("idle");
   const [formProductId, setFormProductId] = useState("");
+  // /reviews/?write=1&product=<카탈로그 slug>: 작성 가능한 상품일 때만 미리 고른다.
+  const requestedProductRef = useRef("");
+  const [requestedProduct, setRequestedProduct] = useState("");
   const [formRating, setFormRating] = useState(0);
   const [formTags, setFormTags] = useState<string[]>([]);
   const [formTitle, setFormTitle] = useState("");
@@ -1045,7 +1058,8 @@ export default function ReviewsClient() {
       if (requestId !== eligibilityRequest.current) return;
       const items: EligibleProduct[] = Array.isArray(data?.items) ? data.items : [];
       setEligible(items);
-      setFormProductId((current) => items.some((item) => item.productId === current) ? current : items[0]?.productId || "");
+      setFormProductId((current) => items.some((item) => item.productId === current) ? current
+        : items.find((item) => item.productId === requestedProductRef.current)?.productId || items[0]?.productId || "");
       setEligibleState("ready");
     } catch {
       if (requestId !== eligibilityRequest.current) return;
@@ -1054,7 +1068,12 @@ export default function ReviewsClient() {
   }, []);
 
   useEffect(() => {
-    if (new URLSearchParams(window.location.search).get("write") === "1") void openWriter();
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("write") !== "1") return;
+    const product = safeReviewProductId(params.get("product"));
+    requestedProductRef.current = product;
+    setRequestedProduct(product);
+    void openWriter();
   }, [openWriter]);
 
   useEffect(() => {
@@ -1271,7 +1290,7 @@ export default function ReviewsClient() {
           <p className="mb-3 text-xs text-[#8a6478] dark:text-[#c99cb2]">{copy.maskedNameNotice}</p>
           <div className="grid gap-4 sm:hidden">
             {visibleOnMobile.map((review) => (
-              <ReviewCardView key={review.id} review={review} copy={copy} />
+              <ReviewCardView key={review.id} review={review} copy={copy} rewardedLabel={rewardedLabel} />
             ))}
           </div>
           {!mobileExpanded && reviews.length > 3 ? (
@@ -1286,7 +1305,7 @@ export default function ReviewsClient() {
 
           <div className="hidden gap-4 sm:grid sm:grid-cols-2 lg:grid-cols-3">
             {reviews.map((review) => (
-              <ReviewCardView key={review.id} review={review} copy={copy} />
+              <ReviewCardView key={review.id} review={review} copy={copy} rewardedLabel={rewardedLabel} />
             ))}
           </div>
         </section>
@@ -1341,7 +1360,7 @@ export default function ReviewsClient() {
                   {copy.guestMessage}
                 </p>
                 <Link
-                  href="/login?next=%2Freviews%2F%3Fwrite%3D1"
+                  href={`/login?next=${encodeURIComponent(reviewWriteHref(requestedProduct))}`}
                   className="inline-flex min-h-[44px] items-center justify-center rounded-full bg-[#b31955] px-5 text-sm font-semibold text-white hover:bg-[#951245] dark:bg-[#f4bed1] dark:text-[#3c1830]"
                 >
                   {copy.loginButton}

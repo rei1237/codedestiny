@@ -8,14 +8,14 @@ import fs from 'node:fs';
 const require=createRequire(import.meta.url), Module=require('node:module');
 const React=require('react');
 async function mount(entry, responder, props={}, opts={}) {
- const dom=new JSDOM('<div id="root"></div>',{url:'http://localhost/reviews/'});
+ const dom=new JSDOM('<div id="root"></div>',{url:opts.url||'http://localhost/reviews/'});
  for(const [key,value] of Object.entries(opts.storage||{})) dom.window.localStorage.setItem(key,value);
  globalThis.__reviewEvents=[];
  for(const key of ['window','document','HTMLElement','Event','MouseEvent']) globalThis[key]=dom.window[key];
  globalThis.IS_REACT_ACT_ENVIRONMENT=true;
  globalThis.IntersectionObserver=opts.visible?class{constructor(cb){this.cb=cb} observe(node){this.cb([{isIntersecting:true,target:node}])} disconnect(){}}:class{observe(){} disconnect(){}};
  globalThis.__reviewFetch=responder;
- const bundle=await build({entryPoints:[entry],bundle:true,platform:'node',format:'cjs',write:false,jsx:'automatic',external:['react','react/jsx-runtime'],plugins:[{name:'mock-only',setup(b){b.onResolve({filter:/auth-client|analytics|next\/image|ReviewSocialFields/},a=>({path:a.path,namespace:'mock'}));b.onLoad({filter:/.*/,namespace:'mock'},a=>({contents:a.path.includes('auth-client')?'export const authFetch=(...args)=>globalThis.__reviewFetch(...args)':a.path.includes('analytics')?'export const trackEvent=(name,params)=>globalThis.__reviewEvents.push({name,params})':a.path.includes('next/image')?'import React from "react"; export default props=>React.createElement("img",props)':'export default ()=>null',loader:'js'}));}}]});
+ const bundle=await build({entryPoints:[entry],bundle:true,platform:'node',format:'cjs',write:false,jsx:'automatic',loader:{'.css':'empty'},external:['react','react/jsx-runtime'],plugins:[{name:'mock-only',setup(b){b.onResolve({filter:/auth-client|analytics|next\/image|next\/link|ReviewSocialFields/},a=>({path:a.path,namespace:'mock'}));b.onLoad({filter:/.*/,namespace:'mock'},a=>({contents:a.path.includes('auth-client')?'export const authFetch=(...args)=>globalThis.__reviewFetch(...args)':a.path.includes('analytics')?'export const trackEvent=(name,params)=>globalThis.__reviewEvents.push({name,params})':a.path.includes('next/link')?'import React from "react"; export default ({href,children,...props})=>React.createElement("a",{href,...props},children)':a.path.includes('next/image')?'import React from "react"; export default props=>React.createElement("img",props)':'export default ()=>null',loader:'js'}));}}]});
  const mod=new Module(entry);mod.paths=Module._nodeModulePaths(process.cwd());mod._compile(bundle.outputFiles[0].text,entry);
  const {createRoot}=require('react-dom/client');const root=createRoot(document.getElementById('root'));
  await React.act(async()=>{root.render(React.createElement(mod.exports.default,props));});
@@ -128,6 +128,32 @@ test('quick tags stay balanced, shared and inside the server whitelist',async()=
  assert.deepEqual(Object.values(ui.REVIEW_RATING_LABELS),['별로예요','아쉬워요','보통이에요','좋아요','최고예요']);
  assert.equal(ui.reviewWriteHref('tarot'),'/reviews/?write=1&product=tarot');assert.equal(ui.reviewWriteHref('../x'),'/reviews/?write=1');
  const composer=fs.readFileSync('app/components/QuickReviewComposer.tsx','utf8'),client=fs.readFileSync('app/reviews/ReviewsClient.tsx','utf8');
- assert.match(composer,/from "\.\/review\/review-ui"/);assert.match(client,/import \{ REVIEW_QUICK_TAGS \} from "\.\.\/components\/review\/review-ui"/);
+ assert.match(composer,/from "\.\/review\/review-ui"/);assert.match(client,/import \{[^}]*\bREVIEW_QUICK_TAGS\b[^}]*\} from "\.\.\/components\/review\/review-ui"/);
  for(const source of [composer,client])assert.doesNotMatch(source,/QUICK_(REVIEW_)?TAGS\s*=\s*\[/);
+});
+test('/reviews pre-selects an eligible requested product, keeps it on the guest return path and discloses rewarded cards',async()=>{
+ const realFetch=globalThis.fetch;
+ const card={authorName:'익명',authorImage:'',productId:'tarot',productName:'타로',rating:5,title:'',isVerifiedPurchase:true,displayedAt:'2026-11-01T00:00:00.000Z'};
+ globalThis.fetch=async url=>String(url).includes('/api/reviews/products')?response({items:[{productId:'saju-ai',name:'사주'},{productId:'tarot',name:'타로'}]})
+  :String(url).includes('/api/reviews/summary')?response({total:2,average:5,distribution:{5:2}})
+  :response({items:[{...card,id:'r1',body:'보상 받은 후기 본문',rewarded:true},{...card,id:'r2',body:'보상 없는 후기 본문',rewarded:false}],pagination:{totalPages:1}});
+ const eligibility=async()=>response({items:[{productId:'saju-ai',productName:'사주'},{productId:'tarot',productName:'타로'}]});
+ const guest=async()=>({status:401,ok:false,json:async()=>({})});
+ const at=query=>({url:`http://localhost/reviews/?${query}`});
+ try{
+  const ui=await mount('app/reviews/ReviewsClient.tsx',eligibility,{},at('write=1&product=tarot'));
+  try{
+   assert.equal(document.querySelector('[aria-modal="true"] select').value,'tarot');
+   const articles=body=>[...document.querySelectorAll('article')].filter(a=>a.textContent.includes(body));
+   assert.ok(articles('보상 받은 후기 본문').length>0);
+   for(const a of articles('보상 받은 후기 본문'))assert.match(a.textContent,/작성 보상\(월정석\) 지급 후기/);
+   for(const a of articles('보상 없는 후기 본문'))assert.doesNotMatch(a.textContent,/작성 보상/);
+  }finally{await ui.close();}
+  const other=await mount('app/reviews/ReviewsClient.tsx',eligibility,{},at('write=1&product=naming'));
+  try{assert.equal(document.querySelector('[aria-modal="true"] select').value,'saju-ai');}finally{await other.close();}
+  const login=await mount('app/reviews/ReviewsClient.tsx',guest,{},at('write=1&product=tarot'));
+  try{assert.ok(document.querySelector('a[href="/login?next=%2Freviews%2F%3Fwrite%3D1%26product%3Dtarot"]'));}finally{await login.close();}
+  const unsafe=await mount('app/reviews/ReviewsClient.tsx',guest,{},at('write=1&product=..%2Fconsultation%2Fabc'));
+  try{assert.ok(document.querySelector('a[href="/login?next=%2Freviews%2F%3Fwrite%3D1"]'));}finally{await unsafe.close();}
+ }finally{globalThis.fetch=realFetch;}
 });

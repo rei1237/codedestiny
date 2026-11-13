@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { reviewRewardLabel, paidReviewCopy, reviewRewardWorthLabel, shouldInvitePaidReview } from "../../js/review-reward-copy.mjs";
+import { reviewRewardLabel, reviewCardRewardLabel, paidReviewCopy, reviewRewardWorthLabel, shouldInvitePaidReview } from "../../js/review-reward-copy.mjs";
 
 test("보상 안내는 승인 조건과 서버 금액을 따른다", () => {
   assert.equal(reviewRewardLabel({ amount: 100, currency: "moonstone", trigger: "approved" }), "후기 관리자 승인 후 월정석 100개");
@@ -55,4 +55,17 @@ test("결과 화면 후기 배너는 모두 후기 카탈로그 상품 id를 넘
     if (/components[\/]fortune[\/](PremiumResultShare|ConsultationShare|PaidResultImageGuide)\.tsx$/.test(file)) assert.match(source, PASS_THROUGH, `${file}: 받은 reviewProductId 를 배너로 넘겨야 해요`);
   }
   assert.ok(literals >= 20, `리터럴이 너무 적어요: ${literals}`);
+});
+
+test("후기 카드 보상 표시 문구는 한 곳에서 오고, 기록함·보관함 후기 링크는 상품 slug를 넘긴다", async () => {
+  const { readFile } = await import("node:fs/promises");
+  assert.equal(reviewCardRewardLabel(), "작성 보상(월정석) 지급 후기");
+  assert.equal(reviewCardRewardLabel("ko"), "작성 보상(월정석) 지급 후기");
+  assert.equal(reviewCardRewardLabel("ja"), "The reviewer received moonstones for this review");
+  const [client, records, library] = await Promise.all(["app/reviews/ReviewsClient.tsx", "app/records/RecordsClient.tsx", "app/yeongnyangi/_components/Library.tsx"].map((file) => readFile(file, "utf8")));
+  assert.match(client, /reviewCardRewardLabel\(/);
+  assert.doesNotMatch(client, /작성 보상\(월정석\) 지급 후기/);
+  assert.match(records, /href=\{reviewWriteHref\(item\.reviewProductId\)\}/);
+  assert.doesNotMatch(records, /href="\/reviews\/\?write=1"/);
+  assert.match(library, /href="\/reviews\/\?write=1&product=yeongnyangi"/);
 });

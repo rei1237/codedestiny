@@ -8,8 +8,9 @@ import { recordsCopy } from '@/lib/records/copy';
 import RecordFrame, { recordButton } from './RecordFrame';
 import { recordService } from '@/lib/records/service-registry';
 import styles from './records.module.css';
+import { reviewWriteHref } from '@/app/components/review/review-ui';
 
-export type SavedRecord = { id: string; source: string; key: string; serviceId: string; serviceName: string; title: string; question: string; createdAt: string | null; status: string; character: string; group: string; href: string; startHref: string; nativeHref: string; recoveryHref?: string };
+export type SavedRecord = { id: string; source: string; key: string; serviceId: string; serviceName: string; title: string; question: string; createdAt: string | null; status: string; character: string; group: string; href: string; startHref: string; nativeHref: string; recoveryHref?: string; reviewProductId?: string };
 type Page = { ok: boolean; items: SavedRecord[]; failures: { source: string; name: string }[]; nextCursor?: string | null; retryCursor?: string };
 export default function RecordsClient({ showWebReception = true, refreshKey = 0, paymentSurface = 'web' }: { showWebReception?: boolean; refreshKey?: number; paymentSurface?: 'web' | 'toss' } = {}) {
   const auth = useAuthStore(), locale = useLocale(), c = recordsCopy(locale);
@@ -98,7 +99,7 @@ export default function RecordsClient({ showWebReception = true, refreshKey = 0,
           <div className={styles.recordBody}>
             <div className={styles.recordMeta}><strong>{item.serviceName}</strong><span>{statusLabel(item.status)}</span>{item.character && <span>{item.character === 'neo' ? '네오' : '연이'}</span>}</div>
             <h2 className="line-clamp-2">{item.title}</h2>{item.question && <p className={`${styles.recordQuestion} line-clamp-2`}>{item.question}</p>}
-            <div className={styles.recordFooter}><time dateTime={item.createdAt || undefined}>{item.createdAt ? new Intl.DateTimeFormat(locale, { year: 'numeric', month: 'short', day: 'numeric', timeZone: 'Asia/Seoul' }).format(new Date(item.createdAt)) : ''}</time>{['completed','conversation','saved'].includes(item.status) && locale === 'ko' && <a className={recordButton} href="/reviews/?write=1">후기 쓰기</a>}<a className={recordButton} href={item.href}>{['completed','conversation','saved'].includes(item.status) ? c.open : c.result}<ArrowUpRight size={16} aria-hidden /></a></div>
+            <div className={styles.recordFooter}><time dateTime={item.createdAt || undefined}>{item.createdAt ? new Intl.DateTimeFormat(locale, { year: 'numeric', month: 'short', day: 'numeric', timeZone: 'Asia/Seoul' }).format(new Date(item.createdAt)) : ''}</time>{['completed','conversation','saved'].includes(item.status) && locale === 'ko' && <a className={recordButton} href={reviewWriteHref(item.reviewProductId)}>후기 쓰기</a>}<a className={recordButton} href={item.href}>{['completed','conversation','saved'].includes(item.status) ? c.open : c.result}<ArrowUpRight size={16} aria-hidden /></a></div>
           </div>
         </article>;
       })}</div>
