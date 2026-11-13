@@ -1,5 +1,5 @@
 {
-  "sourceCommit": "938f68502f0d0756fa4a8aa306e4f4ee220be01d",
+  "sourceCommit": "e67de25ea02f4fa9a7892980583a6a06b28f6ba2",
   "sourceCounts": {
     "home": 63,
     "react": 18,
@@ -3191,7 +3191,7 @@
       "inputContract": "worker/toss/native-astrology.js + nativeAstrologyContract",
       "resultRenderer": "app/astrology-ai/AstrologyAiClient.tsx + app/astrology-ai/result/AstrologyAiResultClient.tsx",
       "storageContract": "owned-TossPurchase and Toss-origin AstrologyAiConsultation; approved SKU, durable checkout, policy and device verification pending",
-      "verification": "mock-contracts-only; complete flow and official sandbox not verified",
+      "verification": "expert-purchase-browser.mjs 7종 및 sukuyo-expert-browser.mjs 1종. 360px 일반 홈 → 상품별 입력·모의 결제와 생성 → 구매 기록·원문 재열람 → 다른 계정 URL 거절. expert-offers-browser.mjs 일반 판매 비활성",
       "webEntries": [
         "/astrology-ai"
       ],
@@ -4151,7 +4151,7 @@
       "tossLogin": "구매·기록에 토스 계정 필요",
       "tossResult": "apps/toss/service/Fusion.jsx",
       "reread": "owned-TossPurchase; device-and-console-approval-pending",
-      "verification": "apps/toss/test/ fusion-billing.test.mjs · native-fusion-boundary.test.mjs · 개별 검사 범위. 실제 기기 미검증",
+      "verification": "expert-purchase-browser.mjs 7종 및 sukuyo-expert-browser.mjs 1종. 360px 일반 홈 → 상품별 입력·모의 결제와 생성 → 구매 기록·원문 재열람 → 다른 계정 URL 거절. expert-offers-browser.mjs 일반 판매 비활성",
       "saleStatus": "유료 상품 콘솔·운영 설정 필요"
     },
     {
@@ -4609,7 +4609,7 @@
       "inputContract": "worker/toss/native-karma.js + nativeKarmaContract",
       "resultRenderer": "apps/toss/service/TossKarma.tsx + app/karma-destiny-ai/result/KarmaDestinyAiResultClient.tsx",
       "storageContract": "owner-scoped Toss intent and original KarmaDestinyAiConsultation; approved SKU, purchaser binding, durable checkout and device verification pending",
-      "verification": "mock purchase, follow-up authorization and recovery, lunar leap validation and local mobile layout only; other locales, AI policy, official device and complete flow not verified",
+      "verification": "expert-purchase-browser.mjs 7종 및 sukuyo-expert-browser.mjs 1종. 360px 일반 홈 → 상품별 입력·모의 결제와 생성 → 구매 기록·원문 재열람 → 다른 계정 URL 거절. expert-offers-browser.mjs 일반 판매 비활성",
       "webEntries": [
         "/karma-destiny-ai/"
       ],
@@ -4996,7 +4996,7 @@
       "inputContract": "worker/toss/native-love-secret.js",
       "resultRenderer": "apps/toss/service/LoveSecret.jsx + app/love-secret-ai/result/LoveSecretAiResultClient.tsx",
       "storageContract": "owned Toss purchase, Toss-origin consultation and verified follow-up recovery; approved SKU, purchaser binding, durable checkout and device verification pending",
-      "verification": "mock result and follow-up access, refund and account-switch tests; legacy unmarked web records, AI policy and official device remain unverified",
+      "verification": "expert-purchase-browser.mjs 7종 및 sukuyo-expert-browser.mjs 1종. 360px 일반 홈 → 상품별 입력·모의 결제와 생성 → 구매 기록·원문 재열람 → 다른 계정 URL 거절. expert-offers-browser.mjs 일반 판매 비활성",
       "webEntries": [
         "/love-secret-ai/"
       ],
@@ -5122,10 +5122,10 @@
       "reducedBundle": "홈 진입 있음",
       "currentEntry": "일반 홈의 진입 코드 확인",
       "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
-      "tossLogin": "계산 또는 기록 조회에 토스 계정 필요",
+      "tossLogin": "비회원 수동 출생정보 계산 가능",
       "tossResult": "apps/toss/src/ManseReading.tsx",
       "reread": "screen-only; web-profile-history-parity-pending",
-      "verification": "apps/toss/test/ manse-ui.test.mjs · 개별 검사 범위. 실제 기기 미검증",
+      "verification": "guest-calculators-browser.mjs 360px 홈, 비회원 계산. 기본 베다 local Swiss 원본, 만세력 원본 대운·명식, 반려동물 원본 오행·유료 로그인 경계",
       "saleStatus": "현재 기능에 신규 구매 버튼 없음"
     },
     {
@@ -5978,7 +5978,7 @@
       "inputContract": "worker/toss/native-new-year.js + nativeNewYearContract",
       "resultRenderer": "app/new-year-ai-consultation/NewYearAiClient.tsx",
       "storageContract": "owned Toss purchase and Toss-origin NewYearAiConsultation; approved SKU, durable checkout, policy and device verification pending",
-      "verification": "mock contracts, local mobile layout and build only; Japanese input states results are Korean; other locale quality, official device and full flow not verified",
+      "verification": "expert-purchase-browser.mjs 7종 및 sukuyo-expert-browser.mjs 1종. 360px 일반 홈 → 상품별 입력·모의 결제와 생성 → 구매 기록·원문 재열람 → 다른 계정 URL 거절. expert-offers-browser.mjs 일반 판매 비활성",
       "webEntries": [
         "/new-year-ai-consultation/"
       ],
@@ -6084,7 +6084,7 @@
         "olympus-fc"
       ],
       "freeCalculation": true,
-      "portStatus": "이미 동작",
+      "portStatus": "일부만 이식",
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "일반 홈의 진입 코드 확인",
       "bundleVerification": "Linux AIT c3a960736 · 43460223398 · 360px 일반 홈에서 게스트 입력과 원본 결과 확인. private-bundle-public-readings.mjs tarot olympus; 네이티브 공유는 기기 미검증",
@@ -6335,7 +6335,7 @@
       "inputContract": "worker/toss/pet-saju.js deterministic blueprint + worker/toss/pet-paid-contract.js paid inputs",
       "resultRenderer": "apps/toss/service/TossPetSaju.tsx with original sprite artwork and paid report reader",
       "storageContract": "up to five free pet inputs in current screen memory; no app-restart or cross-device recovery of that list. Paid results use an owned order and intent in worker/toss/native-pet-paid.js",
-      "verification": "local mock covers all 10 free species, paid report and compatibility checkout, intent resume, library ownership and recovery. Original screen displays 3000 KRW per paid feature while server registry specifies 5000 KRW; approved SKUs, saved pets, device verification and official purchase recovery remain pending",
+      "verification": "guest-calculators-browser.mjs 360px 홈, 비회원 계산. 기본 베다 local Swiss 원본, 만세력 원본 대운·명식, 반려동물 원본 오행·유료 로그인 경계",
       "webEntries": [
         "/pet-saju.html"
       ],
@@ -6349,7 +6349,7 @@
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "일반 홈의 진입 코드 확인",
       "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
-      "tossLogin": "기능별 단계 검증 필요",
+      "tossLogin": "기본 입력·오행 게스트, 심층 구매·보관함은 계정별",
       "tossResult": "apps/toss/service/TossPetSaju.tsx with original sprite artwork and paid report reader",
       "reread": "up to five free pet inputs in current screen memory; no app-restart or cross-device recovery of that list. Paid results use an owned order and intent in worker/toss/native-pet-paid.js",
       "saleStatus": "유료 상품 콘솔·운영 설정 필요"
@@ -7191,7 +7191,7 @@
       "sku": null,
       "inputContract": "StonehengeRune의 네 가지 무료 펼침",
       "resultRenderer": "apps/toss/src/RuneReading.tsx + StonehengeRune.jsx",
-      "storageContract": "현재 화면의 원본 룬 결과와 토스 공유. 유료 AI 프롬프트 별도 계약",
+      "storageContract": "현재 화면의 원본 룬 결과·질문 프롬프트와 토스 공유. 네 배열 모두 무료",
       "verification": "350768ae1, 73b5f45f4. 실기기 미검증",
       "webEntries": [
         "/index.html?action=openRuneOracle",
@@ -7213,7 +7213,7 @@
       "bundleVerification": "Linux AIT c3a960736 · 43460223398 · 360px 일반 홈에서 게스트 입력과 원본 결과 확인. private-bundle-public-readings.mjs tarot olympus; 네이티브 공유는 기기 미검증",
       "tossLogin": "공개 입력 · 구매 없음",
       "tossResult": "apps/toss/src/RuneReading.tsx + StonehengeRune.jsx",
-      "reread": "현재 화면의 원본 룬 결과와 토스 공유. 유료 AI 프롬프트 별도 계약",
+      "reread": "현재 화면의 원본 룬 결과·질문 프롬프트와 토스 공유. 네 배열 모두 무료",
       "saleStatus": "기본 계산은 구매 없음 · 부가 상품은 별도 행 참조"
     },
     {
@@ -7311,7 +7311,7 @@
       "inputContract": "worker/toss/native-sukuyo.js + nativeSukuyoContract",
       "resultRenderer": "apps/toss/service/TossSukuyoGate.tsx + app/sukuyo-compatibility-ai/SukuyoCompatibilityAiClient.tsx",
       "storageContract": "owner-scoped Toss intent and Toss-origin SukuyoCompatibilityAiConsultation; verified saved-input selection or explicit new input for unassigned orders; bounded explicit retry after authorized generation failure",
-      "verification": "local SDK mock purchase, result reload, selected-input recovery, account isolation and back-event checks only; production recovery index, approved SKU, purchaser binding, durable checkout, safety policy and official device pending",
+      "verification": "expert-purchase-browser.mjs 7종 및 sukuyo-expert-browser.mjs 1종. 360px 일반 홈 → 상품별 입력·모의 결제와 생성 → 구매 기록·원문 재열람 → 다른 계정 URL 거절. expert-offers-browser.mjs 일반 판매 비활성",
       "webEntries": [
         "/sukuyo-compatibility-ai/"
       ],
@@ -8093,10 +8093,10 @@
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "일반 홈의 진입 코드 확인",
       "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
-      "tossLogin": "계산 또는 기록 조회에 토스 계정 필요",
+      "tossLogin": "비회원 수동 출생정보 계산 가능",
       "tossResult": "apps/toss/src/BasicSkyChart.tsx",
       "reread": "result in memory only; guest/web profiles, full chart and device parity pending",
-      "verification": "apps/toss/test/ basic-sky-chart.test.mjs · basic-sky-ui.test.mjs · 개별 검사 범위. 실제 기기 미검증",
+      "verification": "guest-calculators-browser.mjs 360px 홈, 비회원 계산. 기본 베다 local Swiss 원본, 만세력 원본 대운·명식, 반려동물 원본 오행·유료 로그인 경계",
       "saleStatus": "현재 기능에 신규 구매 버튼 없음"
     },
     {
@@ -8121,7 +8121,7 @@
       "inputContract": "worker/toss/native-vedic.js + nativeVedicContract",
       "resultRenderer": "app/vedic-ai/VedicAiClient.tsx",
       "storageContract": "owned Toss purchase and Toss-origin VedicAiConsultation; approved SKU, durable checkout, policy and device verification pending",
-      "verification": "mock contracts, local mobile layout and build only; official Toss device and full flow not verified",
+      "verification": "expert-purchase-browser.mjs 7종 및 sukuyo-expert-browser.mjs 1종. 360px 일반 홈 → 상품별 입력·모의 결제와 생성 → 구매 기록·원문 재열람 → 다른 계정 URL 거절. expert-offers-browser.mjs 일반 판매 비활성",
       "webEntries": [
         "/vedic-ai"
       ],
@@ -8524,7 +8524,7 @@
       "inputContract": "worker/toss/native-ziwei.js + nativeZiweiContract",
       "resultRenderer": "app/ziwei-ai/ZiweiAiClient.tsx",
       "storageContract": "owned Toss purchase and Toss-origin ZiweiAiConsultation; approved SKU, durable checkout, policy and device verification pending",
-      "verification": "mock contracts, local mobile layout and build only; Japanese input states results are Korean; other locale quality, official device and full flow not verified",
+      "verification": "expert-purchase-browser.mjs 7종 및 sukuyo-expert-browser.mjs 1종. 360px 일반 홈 → 상품별 입력·모의 결제와 생성 → 구매 기록·원문 재열람 → 다른 계정 URL 거절. expert-offers-browser.mjs 일반 판매 비활성",
       "webEntries": [
         "/ziwei-ai"
       ],
@@ -8711,6 +8711,7 @@
         "evidence": "https://apps-in-toss.toss.im/workspace/21957/mini-app/ai-saju-studio/in-app-purchase/list?tab=products&inAppProductId=ait.0000019957.ef882195.47d318f6ac.4555567979"
       },
       "newPurchases": false,
+      "mockContract": "private-simulation.test.mjs 모든 28개 모의 상품 고유 SKU, 같은 주문 중복 전달과 앱 재시작·보관함, 다른 계정 주문·결과 거절 확인",
       "deliveryVerification": "apps/toss/test/studio-browser.mjs 사주 질문 대표 흐름 mock 검증"
     },
     {
@@ -8797,6 +8798,7 @@
         "evidence": "https://apps-in-toss.toss.im/workspace/21957/mini-app/ai-saju-studio/in-app-purchase/list?tab=products&inAppProductId=ait.0000019957.9e9a8bb0.487e974dcb.4555574032"
       },
       "newPurchases": false,
+      "mockContract": "private-simulation.test.mjs 모든 28개 모의 상품 고유 SKU, 같은 주문 중복 전달과 앱 재시작·보관함, 다른 계정 주문·결과 거절 확인",
       "deliveryVerification": "상품별 전체 흐름 미검증"
     },
     {
@@ -8883,6 +8885,7 @@
         "evidence": "https://apps-in-toss.toss.im/workspace/21957/mini-app/ai-saju-studio/in-app-purchase/list?tab=products&inAppProductId=ait.0000019957.abc17820.f2d10d8abc.4555580625"
       },
       "newPurchases": false,
+      "mockContract": "private-simulation.test.mjs 모든 28개 모의 상품 고유 SKU, 같은 주문 중복 전달과 앱 재시작·보관함, 다른 계정 주문·결과 거절 확인",
       "deliveryVerification": "상품별 전체 흐름 미검증"
     },
     {
@@ -8976,6 +8979,7 @@
         "evidence": "https://apps-in-toss.toss.im/workspace/21957/mini-app/ai-saju-studio/in-app-purchase/list?tab=products&inAppProductId=ait.0000019957.dbefe89f.1ddf9cc158.4555586416"
       },
       "newPurchases": false,
+      "mockContract": "private-simulation.test.mjs 모든 28개 모의 상품 고유 SKU, 같은 주문 중복 전달과 앱 재시작·보관함, 다른 계정 주문·결과 거절 확인",
       "deliveryVerification": "상품별 전체 흐름 미검증"
     },
     {
@@ -9051,6 +9055,7 @@
       "library": "/yeongnyangi/library/",
       "sale": null,
       "newPurchases": false,
+      "mockContract": "private-simulation.test.mjs 모든 28개 모의 상품 고유 SKU, 같은 주문 중복 전달과 앱 재시작·보관함, 다른 계정 주문·결과 거절 확인",
       "deliveryVerification": "apps/toss/test/studio-unsold-browser.mjs: 상품별 입력→분리된 mock SKU 구매→fixture 생성→보관함. 상품별 실제 출력·실기기 미검증"
     },
     {
@@ -9126,6 +9131,7 @@
       "library": "/yeongnyangi/library/",
       "sale": null,
       "newPurchases": false,
+      "mockContract": "private-simulation.test.mjs 모든 28개 모의 상품 고유 SKU, 같은 주문 중복 전달과 앱 재시작·보관함, 다른 계정 주문·결과 거절 확인",
       "deliveryVerification": "상품별 전체 흐름 미검증"
     },
     {
@@ -9201,6 +9207,7 @@
       "library": "/yeongnyangi/library/",
       "sale": null,
       "newPurchases": false,
+      "mockContract": "private-simulation.test.mjs 모든 28개 모의 상품 고유 SKU, 같은 주문 중복 전달과 앱 재시작·보관함, 다른 계정 주문·결과 거절 확인",
       "deliveryVerification": "상품별 전체 흐름 미검증"
     },
     {
@@ -9276,6 +9283,7 @@
       "library": "/yeongnyangi/library/",
       "sale": null,
       "newPurchases": false,
+      "mockContract": "private-simulation.test.mjs 모든 28개 모의 상품 고유 SKU, 같은 주문 중복 전달과 앱 재시작·보관함, 다른 계정 주문·결과 거절 확인",
       "deliveryVerification": "상품별 전체 흐름 미검증"
     },
     {
@@ -9323,6 +9331,7 @@
       "library": "/yeongnyangi/library/",
       "sale": null,
       "newPurchases": false,
+      "mockContract": "private-simulation.test.mjs 모든 28개 모의 상품 고유 SKU, 같은 주문 중복 전달과 앱 재시작·보관함, 다른 계정 주문·결과 거절 확인",
       "deliveryVerification": "apps/toss/test/studio-unsold-browser.mjs: 상품별 입력→분리된 mock SKU 구매→fixture 생성→보관함. 상품별 실제 출력·실기기 미검증"
     },
     {
@@ -9370,6 +9379,7 @@
       "library": "/yeongnyangi/library/",
       "sale": null,
       "newPurchases": false,
+      "mockContract": "private-simulation.test.mjs 모든 28개 모의 상품 고유 SKU, 같은 주문 중복 전달과 앱 재시작·보관함, 다른 계정 주문·결과 거절 확인",
       "deliveryVerification": "상품별 전체 흐름 미검증"
     },
     {
@@ -9417,6 +9427,7 @@
       "library": "/yeongnyangi/library/",
       "sale": null,
       "newPurchases": false,
+      "mockContract": "private-simulation.test.mjs 모든 28개 모의 상품 고유 SKU, 같은 주문 중복 전달과 앱 재시작·보관함, 다른 계정 주문·결과 거절 확인",
       "deliveryVerification": "상품별 전체 흐름 미검증"
     },
     {
@@ -9464,6 +9475,7 @@
       "library": "/yeongnyangi/library/",
       "sale": null,
       "newPurchases": false,
+      "mockContract": "private-simulation.test.mjs 모든 28개 모의 상품 고유 SKU, 같은 주문 중복 전달과 앱 재시작·보관함, 다른 계정 주문·결과 거절 확인",
       "deliveryVerification": "상품별 전체 흐름 미검증"
     },
     {
@@ -9511,6 +9523,7 @@
       "library": "/yeongnyangi/library/",
       "sale": null,
       "newPurchases": false,
+      "mockContract": "private-simulation.test.mjs 모든 28개 모의 상품 고유 SKU, 같은 주문 중복 전달과 앱 재시작·보관함, 다른 계정 주문·결과 거절 확인",
       "deliveryVerification": "apps/toss/test/studio-unsold-browser.mjs: 상품별 입력→분리된 mock SKU 구매→fixture 생성→보관함. 상품별 실제 출력·실기기 미검증"
     },
     {
@@ -9558,6 +9571,7 @@
       "library": "/yeongnyangi/library/",
       "sale": null,
       "newPurchases": false,
+      "mockContract": "private-simulation.test.mjs 모든 28개 모의 상품 고유 SKU, 같은 주문 중복 전달과 앱 재시작·보관함, 다른 계정 주문·결과 거절 확인",
       "deliveryVerification": "상품별 전체 흐름 미검증"
     },
     {
@@ -9605,6 +9619,7 @@
       "library": "/yeongnyangi/library/",
       "sale": null,
       "newPurchases": false,
+      "mockContract": "private-simulation.test.mjs 모든 28개 모의 상품 고유 SKU, 같은 주문 중복 전달과 앱 재시작·보관함, 다른 계정 주문·결과 거절 확인",
       "deliveryVerification": "상품별 전체 흐름 미검증"
     },
     {
@@ -9659,6 +9674,7 @@
       "library": "/yeongnyangi/library/",
       "sale": null,
       "newPurchases": false,
+      "mockContract": "private-simulation.test.mjs 모든 28개 모의 상품 고유 SKU, 같은 주문 중복 전달과 앱 재시작·보관함, 다른 계정 주문·결과 거절 확인",
       "deliveryVerification": "상품별 전체 흐름 미검증"
     },
     {
@@ -9713,6 +9729,7 @@
       "library": "/yeongnyangi/library/",
       "sale": null,
       "newPurchases": false,
+      "mockContract": "private-simulation.test.mjs 모든 28개 모의 상품 고유 SKU, 같은 주문 중복 전달과 앱 재시작·보관함, 다른 계정 주문·결과 거절 확인",
       "deliveryVerification": "apps/toss/test/studio-unsold-browser.mjs: 상품별 입력→분리된 mock SKU 구매→fixture 생성→보관함. 상품별 실제 출력·실기기 미검증"
     },
     {
@@ -9767,6 +9784,7 @@
       "library": "/yeongnyangi/library/",
       "sale": null,
       "newPurchases": false,
+      "mockContract": "private-simulation.test.mjs 모든 28개 모의 상품 고유 SKU, 같은 주문 중복 전달과 앱 재시작·보관함, 다른 계정 주문·결과 거절 확인",
       "deliveryVerification": "상품별 전체 흐름 미검증"
     },
     {
@@ -9821,6 +9839,7 @@
       "library": "/yeongnyangi/library/",
       "sale": null,
       "newPurchases": false,
+      "mockContract": "private-simulation.test.mjs 모든 28개 모의 상품 고유 SKU, 같은 주문 중복 전달과 앱 재시작·보관함, 다른 계정 주문·결과 거절 확인",
       "deliveryVerification": "상품별 전체 흐름 미검증"
     },
     {
@@ -9875,6 +9894,7 @@
       "library": "/yeongnyangi/library/",
       "sale": null,
       "newPurchases": false,
+      "mockContract": "private-simulation.test.mjs 모든 28개 모의 상품 고유 SKU, 같은 주문 중복 전달과 앱 재시작·보관함, 다른 계정 주문·결과 거절 확인",
       "deliveryVerification": "상품별 전체 흐름 미검증"
     },
     {
@@ -9964,6 +9984,7 @@
       "library": "/yeongnyangi/library/",
       "sale": null,
       "newPurchases": false,
+      "mockContract": "private-simulation.test.mjs 모든 28개 모의 상품 고유 SKU, 같은 주문 중복 전달과 앱 재시작·보관함, 다른 계정 주문·결과 거절 확인",
       "deliveryVerification": "상품별 전체 흐름 미검증"
     },
     {
@@ -10053,6 +10074,7 @@
       "library": "/yeongnyangi/library/",
       "sale": null,
       "newPurchases": false,
+      "mockContract": "private-simulation.test.mjs 모든 28개 모의 상품 고유 SKU, 같은 주문 중복 전달과 앱 재시작·보관함, 다른 계정 주문·결과 거절 확인",
       "deliveryVerification": "상품별 전체 흐름 미검증"
     },
     {
@@ -10142,6 +10164,7 @@
       "library": "/yeongnyangi/library/",
       "sale": null,
       "newPurchases": false,
+      "mockContract": "private-simulation.test.mjs 모든 28개 모의 상품 고유 SKU, 같은 주문 중복 전달과 앱 재시작·보관함, 다른 계정 주문·결과 거절 확인",
       "deliveryVerification": "상품별 전체 흐름 미검증"
     },
     {
@@ -10231,6 +10254,7 @@
       "library": "/yeongnyangi/library/",
       "sale": null,
       "newPurchases": false,
+      "mockContract": "private-simulation.test.mjs 모든 28개 모의 상품 고유 SKU, 같은 주문 중복 전달과 앱 재시작·보관함, 다른 계정 주문·결과 거절 확인",
       "deliveryVerification": "상품별 전체 흐름 미검증"
     },
     {
@@ -10265,6 +10289,7 @@
       "library": "/yeongnyangi/library/",
       "sale": null,
       "newPurchases": false,
+      "mockContract": "private-simulation.test.mjs 모든 28개 모의 상품 고유 SKU, 같은 주문 중복 전달과 앱 재시작·보관함, 다른 계정 주문·결과 거절 확인",
       "deliveryVerification": "상품별 전체 흐름 미검증"
     },
     {
@@ -10299,6 +10324,7 @@
       "library": "/yeongnyangi/library/",
       "sale": null,
       "newPurchases": false,
+      "mockContract": "private-simulation.test.mjs 모든 28개 모의 상품 고유 SKU, 같은 주문 중복 전달과 앱 재시작·보관함, 다른 계정 주문·결과 거절 확인",
       "deliveryVerification": "상품별 전체 흐름 미검증"
     },
     {
@@ -10333,6 +10359,7 @@
       "library": "/yeongnyangi/library/",
       "sale": null,
       "newPurchases": false,
+      "mockContract": "private-simulation.test.mjs 모든 28개 모의 상품 고유 SKU, 같은 주문 중복 전달과 앱 재시작·보관함, 다른 계정 주문·결과 거절 확인",
       "deliveryVerification": "상품별 전체 흐름 미검증"
     },
     {
@@ -10371,6 +10398,7 @@
       "library": "/yeongnyangi/library/",
       "sale": null,
       "newPurchases": false,
+      "mockContract": "private-simulation.test.mjs 모든 28개 모의 상품 고유 SKU, 같은 주문 중복 전달과 앱 재시작·보관함, 다른 계정 주문·결과 거절 확인",
       "deliveryVerification": "상품별 전체 흐름 미검증"
     }
   ],

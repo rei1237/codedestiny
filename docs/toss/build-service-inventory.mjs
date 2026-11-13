@@ -178,7 +178,7 @@ const localEvidence={
  'cosmic-soul-meditation':{tossRoute:'/meditation/cosmic',status:'local-partial',inputContract:'cosmic-soul-meditation.html 의도 4개, 30·60분 PHASES, 웹의 _composePhaseLines·_scheduleLines·_buildSchedule 원본 함수와 행동·저널',resultRenderer:'apps/toss/src/CosmicMeditation.tsx + apps/toss/canonical/cosmic-sessions.mjs',storageContract:'토스 소유 계정별 기기 저널 최근 50개와 통계. 무료 키 cosmic-soul-meditation',verification:'studio-cosmic-browser.mjs: 360px 홈→로그인→30·60분→원문·일시정지·완주→저널 저장→재실행→같은 단말 다른 계정에서 기록 없음. R2 실제 재생 미검증'},
  'neville-meditation':{tossRoute:'/meditation/neville',status:'local-partial',inputContract:'neville-meditation.html COURSES 30·60분, 시간별 단계·안내와 THETA_PRESETS 세 음악 세트, 웹 로그인 및 무료 기능 키 neville-meditation',resultRenderer:'apps/toss/src/NevilleMeditation.tsx + apps/toss/canonical/neville-courses.mjs',storageContract:'토스 로그인 후 회차별 현재 화면 진행. 주문·LLM 없음',verification:'studio-neville-browser.mjs 360px 홈→mock 로그인→두 코스 일시정지·재개/곡 선택/단계 전환→완주. R2 스트림의 실기기 재생 미검증'},
  'olympus-oracle':{tossRoute:'/olympus',status:'local-partial',inputContract:'웹 /olympus/ → 오늘의 신탁만 보기 → 수동 생년월일. 원본의 12별자리, 수호신, 날짜별 신탁·지령·행운 값',resultRenderer:'apps/toss/src/OlympusDaily.tsx + lib/fortune/olympus-daily.mjs (OlympusVIPLounge.jsx 공유)',storageContract:'게스트 수동 입력, 현재 화면 결과. 꽃돼지 프로필에서 여는 여덟 행성 라운지와 커플 궁합은 별도',verification:'studio-olympus-browser.mjs 360px 홈에서 게스트/별자리 경계 두 날짜/원본 지령과 행운 값 확인. 프로필 인계·여덟 배치와 궁합은 미이식'},
- 'stonehenge-runes':{tossRoute:'/oracle/rune',status:'local-partial',inputContract:'StonehengeRune의 네 가지 무료 펼침',resultRenderer:'apps/toss/src/RuneReading.tsx + StonehengeRune.jsx',storageContract:'현재 화면의 원본 룬 결과와 토스 공유. 유료 AI 프롬프트 별도 계약',verification:'350768ae1, 73b5f45f4. 실기기 미검증'},
+ 'stonehenge-runes':{tossRoute:'/oracle/rune',status:'local-partial',inputContract:'StonehengeRune의 네 가지 무료 펼침',resultRenderer:'apps/toss/src/RuneReading.tsx + StonehengeRune.jsx',storageContract:'현재 화면의 원본 룬 결과·질문 프롬프트와 토스 공유. 네 배열 모두 무료',verification:'350768ae1, 73b5f45f4. 실기기 미검증'},
  'yeongnyangi-daily':{tossRoute:'/daily',status:'local-partial',inputContract:'worker/toss/daily.js',resultRenderer:'apps/toss/src/DailyReadings.tsx',storageContract:'계정별 출석·당일 결과 15종. 호라리는 별도 무료 화면'},
  'fortune-tea-house':{tossRoute:'/fortune-tea-house/',status:'local-partial',inputContract:'worker/toss/native-tea.js',resultRenderer:'apps/toss/service/Screens.jsx',storageContract:'owned-TossPurchase; device-and-console-approval-pending'},
  'saju-fpti':{tossRoute:'/saju-fpti/',status:'local-partial',inputContract:'lib/fpti/fpti-adapter.ts',resultRenderer:'apps/toss/service/TossFpti.tsx',storageContract:'same-tab owner-scoped free result only; profile entitlement and permanent premium report not ported',verification:'mock UI and original calculation only; free-screen parity, approved permanent rights and official device pending'},
@@ -297,6 +297,7 @@ const consultationProducts = products.map(product=>{
   result:'app/yeongnyangi/_components/Result.tsx',library:'/yeongnyangi/library/',
   sale:sale?{sku:sale.sku,amountKRW:sale.approvedPriceKRW,evidence:sale.priceEvidence}:null,
   newPurchases:!!sale&&NEW_PURCHASES_AVAILABLE,
+  mockContract:'private-simulation.test.mjs 모든 28개 모의 상품 고유 SKU, 같은 주문 중복 전달과 앱 재시작·보관함, 다른 계정 주문·결과 거절 확인',
   deliveryVerification:product.id==='saju_mackerel'?'apps/toss/test/studio-browser.mjs 사주 질문 대표 흐름 mock 검증':['astrology_mackerel','vedic_mackerel','ziwei_mackerel','sukuyo_mackerel'].includes(product.id)?'apps/toss/test/studio-unsold-browser.mjs: 상품별 입력→분리된 mock SKU 구매→fixture 생성→보관함. 상품별 실제 출력·실기기 미검증':'상품별 전체 흐름 미검증',
  };
 });
@@ -364,6 +365,7 @@ for(const group of canonicalCandidates){
  group.bundleVerification=group.id==='yeongnyangi'?'20261114-8 실제 Linux AIT 일반 홈 → 달빛 점술방 → 질문 검색 → 입력. mock 로그인과 소유 원문 조회 통과. 휴대폰 미검증':'휴대폰 및 상품별 전체 흐름 미검증';
  if(!group.tossRoute)group.tossLogin='토스 기능 미연결';
  else if(nativeSource[group.id]||['heukwol-consult','neo-letter','fortune-chat','yeongnyangi','yeongnyangi-prashna'].includes(group.id))group.tossLogin='구매·기록에 토스 계정 필요';
+ else if(['manse','vedic','pet-saju'].includes(group.id))group.tossLogin=group.id==='pet-saju'?'기본 입력·오행 게스트, 심층 구매·보관함은 계정별':'비회원 수동 출생정보 계산 가능';
  else if(['nakshatra-lord-report','nakshatra-dasha-map','nakshatra-muhurta','nakshatra-vvip-codex','destiny-meeting-place','manse','astrology','vedic','human-design','flower','yeongnyangi-daily','career-style','cosmic-soul-meditation','neville-meditation'].includes(group.id))group.tossLogin='계산 또는 기록 조회에 토스 계정 필요';
  else if(group.id==='destiny-compass')group.tossLogin='기본 차트·퀘스트 공개';
  else if(['destiny-compass-crossroads','destiny-compass-life-voyage','destiny-compass-future-sim'].includes(group.id))group.tossLogin='토스 로그인 후 무료 판독';
@@ -434,9 +436,11 @@ for(const group of canonicalCandidates){
   ziwei:'기본 명반과 12궁은 게스트 계산. 별도 심층 결과는 로그인·소유 확인',
  };
  if(accessByService[group.id])group.tossLogin=accessByService[group.id];
- if(['juyuk-turtle','kemet-oracle','royal-tea-oracle','stonehenge-runes','ifa-oracle','olympus-oracle'].includes(group.id))group.portStatus='이미 동작';
+ if(['juyuk-turtle','kemet-oracle','royal-tea-oracle','stonehenge-runes','ifa-oracle'].includes(group.id))group.portStatus='이미 동작';
  if(['fortune-chat','neo-letter'].includes(group.id)){group.verification=letterProducts[0].verification;group.saleStatus='기본·질문 편지별 콘솔 원장 확인 필요';}
  if(group.id==='yeongnyangi')group.saleStatus='상품별 승인된 독립 SKU만 원장에 기록. 신규 판매 보류';
+ if(['manse','vedic','pet-saju'].includes(group.id))group.verification='guest-calculators-browser.mjs 360px 홈, 비회원 계산. 기본 베다 local Swiss 원본, 만세력 원본 대운·명식, 반려동물 원본 오행·유료 로그인 경계';
+ if(['vedic-ai','ziwei-ai','astrology-ai','new-year-ai','karma-destiny-ai','sukuyo-compatibility-ai','fusion-fortune','love-secret-ai'].includes(group.id))group.verification='expert-purchase-browser.mjs 7종 및 sukuyo-expert-browser.mjs 1종. 360px 일반 홈 → 상품별 입력·모의 결제와 생성 → 구매 기록·원문 재열람 → 다른 계정 URL 거절. expert-offers-browser.mjs 일반 판매 비활성';
  if(group.id==='life-book-ai'||group.id==='life-fortune-report')group.verification='life-reading-browser.mjs 360px 홈, 두 상품 각각의 모의 주문 → 원문 → 구매 기록 재열람·다른 계정 차단';
  if(!group.verification){
   const checks={'animal-destiny':'animal-destiny.test.mjs',astrology:'basic-sky-chart.test.mjs · basic-sky-ui.test.mjs',vedic:'basic-sky-chart.test.mjs · basic-sky-ui.test.mjs','bias-destiny':'bias-report.test.mjs',flower:'flower.test.mjs · flower-ui.test.mjs','famous-saju':'famous-archive.test.mjs',novel:'novel-reader.test.mjs',music:'music-shelf.test.mjs',manse:'manse-ui.test.mjs',saju:'basic-saju-flow.test.mjs','fortune-tea-house':'room-browser.mjs','neo-operation-room':'room-browser.mjs','yeongnyangi-daily':'daily-ui.test.mjs · daily.test.mjs','fusion-fortune':'fusion-billing.test.mjs · native-fusion-boundary.test.mjs',yeongnyangi:'studio-browser.mjs · private-bundle-owner-browser.mjs'};

@@ -1,11 +1,45 @@
 import assert from 'node:assert/strict';
 import {chromium} from 'playwright';
+import {build} from 'esbuild';
+import {Module} from 'node:module';
+import {resolve} from 'node:path';
+
+async function connectLocalCalculators(context,origin){
+ const repo=resolve(import.meta.dirname,'../../..');
+ const compiled=await build({stdin:{contents:[
+  "export * from './worker/toss/manse.js';",
+  "export * from './worker/toss/pet-saju.js';",
+  "export * from './worker/toss/basic-sky-chart.js';",
+  "export {saju} from './worker/yeongnyangi/fortune/saju/index.ts';",
+ ].join('\n'),resolveDir:repo},bundle:true,write:false,platform:'node',format:'cjs',loader:{'.wasm':'binary'}});
+ const mod=new Module(resolve(repo,'guest-calculators.cjs'));mod.paths=Module._nodeModulePaths(repo);mod._compile(compiled.outputFiles[0].text,mod.id);
+ const {calculateTossManse,tossPetCatalog,calculateTossPet,basicSkyChart,saju}=mod.exports;
+ const unexpected=[];
+ await context.route('**/*',async route=>{
+  const request=route.request(),url=new URL(request.url());
+  if(url.origin===origin)return route.continue();
+  if(url.origin!=='https://code-destiny.com'||!url.pathname.startsWith('/api/toss/'))return route.abort();
+  const headers={'access-control-allow-origin':origin,'access-control-allow-headers':'authorization,content-type','access-control-allow-methods':'GET,POST,OPTIONS'};
+  if(request.method()==='OPTIONS')return route.fulfill({status:204,headers,body:''});
+  const path=url.pathname.slice('/api/toss'.length),body=request.postDataJSON();
+  let data,status=200;
+  if(path==='/pet-saju/catalog')data=tossPetCatalog();
+  else if(path==='/pet-saju/blueprint')data=calculateTossPet(body);
+  else if(path==='/manse/calculate')data=await calculateTossManse(body,saju);
+  else if(path==='/charts/vedic')data=await basicSkyChart('vedic',body,{});
+  else if(path==='/session'||path==='/canonical/auth/me')data={authenticated:false,user:null};
+  else if(path==='/events')data={ok:true};
+  else{if(request.method()==='POST')unexpected.push(path);status=404;data={error:'NOT_FOUND'};}
+  return route.fulfill({status,headers:{...headers,'content-type':'application/json'},body:JSON.stringify(data)});
+ });
+ return unexpected;
+}
 
 const origin='http://127.0.0.1:'+Number(process.env.TOSS_TEST_PORT||4329);
 const browser=await chromium.launch({channel:'chrome'});
 try{
  const ctx=await browser.newContext({viewport:{width:360,height:740},isMobile:true,serviceWorkers:'block'});
- await ctx.route('**/*',route=>new URL(route.request().url()).origin===origin?route.continue():route.abort());
+ const unexpected=await connectLocalCalculators(ctx,origin);
  const page=await ctx.newPage();
  async function open(label){
   await page.goto(origin);
@@ -39,6 +73,7 @@ try{
  for(const label of ['서양 점성술 출생차트','기본 숙요점','휴먼 디자인 차트','운명의 꽃']){
   await open(label);await page.getByRole('button',{name:/로그인/}).waitFor();
  }
- console.log('PASS guest Vedic mock chart and four authenticated chart entry controls');
+ assert.deepEqual(unexpected,[]);
+ console.log('PASS guest Vedic local Swiss chart and four authenticated chart entry controls');
  console.log('PASS 360px guest home → pet original chart → paid account gate; home → manse original pillars without purchase');
 }finally{await browser.close();}
