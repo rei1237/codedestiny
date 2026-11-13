@@ -117,7 +117,7 @@ for (const mode of ["solo", "compat"]) {
       codexChapterFloor, codexChapterRepairFloor, codexDedupedChapterFloor, countPaidReportBodyChars: quality.countPaidReportBodyChars,
       MasterLoveCodexSession: model, CHAPTER_BATCH_SIZE: 3, CHAPTER_CONCURRENCY: 3,
       buildMemory: () => "", runWithConcurrency: (items, _count, fn) => Promise.all(items.map(fn)),
-      recoverCodexSession: async () => ({ session: stored }),
+      recoverCodexDeliverySession: async (_env, {userId, sessionId, nativeOnly}) => userId === stored.userId && sessionId === stored.id && !nativeOnly ? {session:stored} : {denied:true},
       refundSessionPassIfNeeded: async () => {}, refundSessionBillingIfNeeded: async () => {},
       console: { error() {}, warn() {} },
     });

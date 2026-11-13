@@ -255,6 +255,7 @@ test('compass preserves original paid request and stops stale locale delivery', 
     useDestinyCompassCopy: () => ({}), makeGateRequestId: () => 'unchanged-key', collectDeepEvidence: () => ({}),
     authFetch: (_path, init) => { if (init.method === 'GET') return Promise.resolve({ json: async () => ({ reports: [] }) }); requests.push(init); return response.promise; },
   });
+  load(f.ctx, 'app/destiny-compass/_lib/report-payload.ts', ['compassReportPayload']);
   load(f.ctx, compassFile, ['FEATURE_KEY', 'COIN_PRICE', 'AMOUNT_KRW', 'WAVE_A_TIMEOUT_MS', 'WAVE_B_TIMEOUT_MS', 'INITIAL',
     'sessionKeyFor', 'readCache', 'writeCache', 'postJson', 'mergeSections', 'useCompassReport']);
   const field = { seed: 1, sources: [], directions: [], primary: {}, strongArea: {}, blockedArea: {} };

@@ -4,7 +4,10 @@ import { jest } from '@jest/globals';
 let save, read, route, deep, vision, docs, fault, proof, revoked, userId, ai, visionReply, textCall, visionPrompt, sides, clientSide, textPrompt, visionParts, runWithAiLocale;
 const owner = '64b7f2a1c3d4e5f601234567';
 const query = value => ({ sort() { return this; }, lean: async () => structuredClone(value) });
-const match = (row, filter) => Object.entries(filter).every(([key, value]) => row[key] === value);
+const match = (row, filter) => Object.entries(filter).every(([key, value]) => {
+  const field = key.split('.').reduce((parent, name) => parent?.[name], row);
+  return value && typeof value === 'object' && '$exists' in value ? (field !== undefined) === value.$exists : field === value;
+});
 const payment = jest.fn(async () => ({ proven: proof, source: 'payment' }));
 beforeAll(async () => {
   const db = await import('../../worker/lib/db.js'), models = await import('../../worker/lib/models.js'), auth = await import('../../worker/lib/auth.js'), gemini = await import('../../worker/lib/gemini.js');
@@ -42,6 +45,10 @@ test.each(['throw', 'null', 'confirm'])('storage %s blocks payment readiness', a
   fault = failure; await expect(save({}, owner, 'palm-original', result)).rejects.toMatchObject({ status: 503 });
   expect(payment).not.toHaveBeenCalled();
   fault = ''; expect(await save({}, owner, 'palm-original', result)).toMatchObject({ analysisSaved: true });
+});
+test('a Toss-owned snapshot cannot be read through the web payment path', async () => {
+  await save({}, owner, 'palm-native-order', result, '', 'toss-intent');
+  await expect(read({}, owner, 'palm-native-order')).rejects.toMatchObject({status:404});
 });
 test('unpaid, revoked and foreign accounts cannot reopen', async () => {
   await save({}, owner, 'palm-original', result);
