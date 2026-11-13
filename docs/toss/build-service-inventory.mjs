@@ -118,7 +118,8 @@ const localEvidence={
  'bias-destiny':{tossRoute:'/bias',status:'local-partial',inputContract:'app/saju/destiny-bias/engine/chemiReportBridge.ts',resultRenderer:'apps/toss/src/BiasReading.tsx + BiasReport.tsx',storageContract:'native-card-save-summary-share-mocked; device-and-web-history-parity-pending'},
  yeongnyangi:{tossRoute:'/yeongnyangi/fortune/',status:'local-partial',inputContract:'worker/toss/routes.js',resultRenderer:'app/yeongnyangi/_components/Result.tsx',storageContract:'owner-bound TossPurchase and YeongnyangiRequest; /yeongnyangi/library/'},
  'fortune-chat':{tossRoute:'/fortune-tea-house/?counsel=letter',status:'local-partial',inputContract:'worker/toss/letter.js + worker/toss/services.js',resultRenderer:'apps/toss/service/TossLetterRoom.tsx + app/fortune-chat/ConsultationIntake.tsx',storageContract:'persona-bound-TossPurchase-to-YeongnyangiRequest; official device and approved SKU pending',verification:'original Yeoni letter intake and owner-bound recovery are mocked; full web parity and device tests pending'},
- 'today-hub':{verification:'웹 /today/의 별자리·주간·시스템별 운세 허브. 토스 /daily의 영냥이 출석 운세와 별도.'},
+ 'today-hub':{tossRoute:'/today',status:'local-partial',inputContract:'24개 별자리·띠와 오늘·내일·이번 주 선택. 원본 loadWeekRange·computeSignScore·getPeriodReading',resultRenderer:'apps/toss/src/TodayPublic.tsx + app/today/DailyTarot.tsx',storageContract:'별자리·띠 공개. 원본 오늘의 세 장은 로그인 후 계정별 기기 저장·재열람',verification:'apps/toss/test/studio-today-browser.mjs: 360px 홈→공개 일주일→mock 로그인→세 장→재시작. 4체계 개인화·월간·전체 상세는 미검증'},
+ 'stonehenge-runes':{tossRoute:'/oracle/rune',status:'local-partial',inputContract:'StonehengeRune의 네 가지 무료 펼침',resultRenderer:'apps/toss/src/RuneReading.tsx + StonehengeRune.jsx',storageContract:'현재 화면의 원본 룬 결과와 토스 공유. 유료 AI 프롬프트 별도 계약',verification:'350768ae1, 73b5f45f4. 실기기 미검증'},
  'yeongnyangi-daily':{tossRoute:'/daily',status:'local-partial',inputContract:'worker/toss/daily.js',resultRenderer:'apps/toss/src/DailyReadings.tsx',storageContract:'계정별 출석·당일 결과 15종. 호라리는 별도 무료 화면'},
  'fortune-tea-house':{tossRoute:'/fortune-tea-house/',status:'local-partial',inputContract:'worker/toss/native-tea.js',resultRenderer:'apps/toss/service/Screens.jsx',storageContract:'owned-TossPurchase; device-and-console-approval-pending'},
  'saju-fpti':{tossRoute:'/saju-fpti/',status:'local-partial',inputContract:'lib/fpti/fpti-adapter.ts',resultRenderer:'apps/toss/service/TossFpti.tsx',storageContract:'same-tab owner-scoped free result only; profile entitlement and permanent premium report not ported',verification:'mock UI and original calculation only; free-screen parity, approved permanent rights and official device pending'},
@@ -196,7 +197,7 @@ const consultationProducts = products.map(product=>{
   result:'app/yeongnyangi/_components/Result.tsx',library:'/yeongnyangi/library/',
   sale:sale?{sku:sale.sku,amountKRW:sale.approvedPriceKRW,evidence:sale.priceEvidence}:null,
   newPurchases:!!sale&&NEW_PURCHASES_AVAILABLE,
-  deliveryVerification:product.id==='saju_mackerel'?'사주 질문 대표 흐름만 로컬 mock 검증. 이 상품의 모든 상담 모드·기기는 미검증':'상품별 전체 흐름 미검증',
+  deliveryVerification:product.id==='saju_mackerel'?'apps/toss/test/studio-browser.mjs 사주 질문 대표 흐름 mock 검증':['astrology_mackerel','vedic_mackerel','ziwei_mackerel','sukuyo_mackerel'].includes(product.id)?'apps/toss/test/studio-unsold-browser.mjs: 상품별 입력→분리된 mock SKU 구매→fixture 생성→보관함. 상품별 실제 출력·실기기 미검증':'상품별 전체 흐름 미검증',
  };
 });
 const daily = readJson('worker/yeongnyangi/fortune/free/categories.json').map(({id,label,fields})=>({
@@ -249,13 +250,14 @@ for(const group of canonicalCandidates){
  group.webProductIds=matched.map(p=>p.productId);
  group.freeCalculation=keys.concat(group.webProductIds).some(isFreeFortuneFeatureKey);
  group.portStatus=group.tossRoute||group.publicSubflows?.length?'일부만 이식':'미이식';
- group.reducedBundle=releaseLink(group.id)?'홈 진입 있음':group.tossRoute?'구현은 있으나 진입 차단':'홈 진입 없음';
+ group.reducedBundle=releaseLink(group.id)?'홈 진입 있음':['today-hub','stonehenge-runes','yeongnyangi-prashna','yeongnyangi-horary'].includes(group.id)?'홈 진입 없음':group.tossRoute?'구현은 있으나 진입 차단':'홈 진입 없음';
  group.currentEntry=group.tossRoute?'일반 홈의 진입 코드 확인':group.publicSubflows?.length?'일부 하위 경로만 홈에 연결':'연결 경로 없음';
  group.bundleVerification='실기기 및 상품별 전체 흐름 미검증';
  if(!group.tossRoute)group.tossLogin='토스 기능 미연결';
  else if(nativeSource[group.id]||['fortune-chat','yeongnyangi','yeongnyangi-prashna'].includes(group.id))group.tossLogin='구매·기록에 토스 계정 필요';
  else if(['manse','astrology','vedic','human-design','flower','yeongnyangi-daily','career-style'].includes(group.id))group.tossLogin='계산 또는 기록 조회에 토스 계정 필요';
- else if(['saju','animal-destiny','music','novel','famous-saju','bias-destiny','yeongnyangi-horary'].includes(group.id))group.tossLogin='공개 진입';
+ else if(group.id==='today-hub')group.tossLogin='별자리·띠 공개. 오늘의 세 장은 토스 로그인 필요';
+ else if(['saju','animal-destiny','music','novel','famous-saju','bias-destiny','yeongnyangi-horary','stonehenge-runes'].includes(group.id))group.tossLogin='공개 진입';
  else group.tossLogin='기능별 단계 검증 필요';
  group.tossResult=group.resultRenderer||'결과 화면 연결 미확인';
  group.reread=group.storageContract||'재열람 경로 미확인';

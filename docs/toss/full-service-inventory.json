@@ -1,5 +1,5 @@
 {
-  "sourceCommit": "9a0adda27f91dfd796b570f102d285c1920cff97",
+  "sourceCommit": "1142c54b96ce4cd0cb861467fae31c8684fe0fc4",
   "sourceCounts": {
     "home": 63,
     "react": 18,
@@ -309,8 +309,8 @@
         "library": "not-verified",
         "device": "not-tested",
         "canonicalId": "today-hub",
-        "candidateStatus": "requires-full-flow-port-and-verification",
-        "canonicalRoute": null
+        "candidateStatus": "local-partial",
+        "canonicalRoute": "/today"
       }
     },
     {
@@ -2207,8 +2207,8 @@
         "library": "not-verified",
         "device": "not-tested",
         "canonicalId": "stonehenge-runes",
-        "candidateStatus": "requires-full-flow-port-and-verification",
-        "canonicalRoute": null
+        "candidateStatus": "local-partial",
+        "canonicalRoute": "/oracle/rune"
       }
     },
     {
@@ -2240,8 +2240,8 @@
         "library": "not-verified",
         "device": "not-tested",
         "canonicalId": "stonehenge-runes",
-        "candidateStatus": "requires-full-flow-port-and-verification",
-        "canonicalRoute": null
+        "candidateStatus": "local-partial",
+        "canonicalRoute": "/oracle/rune"
       }
     },
     {
@@ -2727,8 +2727,8 @@
         "library": "not-verified",
         "device": "not-tested",
         "canonicalId": "today-hub",
-        "candidateStatus": "requires-full-flow-port-and-verification",
-        "canonicalRoute": null
+        "candidateStatus": "local-partial",
+        "canonicalRoute": "/today"
       }
     },
     {
@@ -6535,12 +6535,13 @@
       "aliasEvidence": [
         "js/core/index-inline-runtime.js:openRuneOracle"
       ],
-      "status": "requires-full-flow-port-and-verification",
-      "tossRoute": null,
+      "status": "local-partial",
+      "tossRoute": "/oracle/rune",
       "sku": null,
-      "inputContract": null,
-      "resultRenderer": null,
-      "storageContract": null,
+      "inputContract": "StonehengeRune의 네 가지 무료 펼침",
+      "resultRenderer": "apps/toss/src/RuneReading.tsx + StonehengeRune.jsx",
+      "storageContract": "현재 화면의 원본 룬 결과와 토스 공유. 유료 AI 프롬프트 별도 계약",
+      "verification": "350768ae1, 73b5f45f4. 실기기 미검증",
       "webEntries": [
         "/index.html?action=openRuneOracle",
         "openRuneOracle"
@@ -6555,13 +6556,13 @@
         "stonehenge-runes-single"
       ],
       "freeCalculation": true,
-      "portStatus": "미이식",
+      "portStatus": "일부만 이식",
       "reducedBundle": "홈 진입 없음",
-      "currentEntry": "연결 경로 없음",
+      "currentEntry": "일반 홈의 진입 코드 확인",
       "bundleVerification": "실기기 및 상품별 전체 흐름 미검증",
-      "tossLogin": "토스 기능 미연결",
-      "tossResult": "결과 화면 연결 미확인",
-      "reread": "재열람 경로 미확인"
+      "tossLogin": "공개 진입",
+      "tossResult": "apps/toss/src/RuneReading.tsx + StonehengeRune.jsx",
+      "reread": "현재 화면의 원본 룬 결과와 토스 공유. 유료 AI 프롬프트 별도 계약"
     },
     {
       "id": "sukuyo",
@@ -7312,13 +7313,13 @@
       "aliasEvidence": [
         "js/core/service-registry.js"
       ],
-      "status": "requires-full-flow-port-and-verification",
-      "tossRoute": null,
+      "status": "local-partial",
+      "tossRoute": "/today",
       "sku": null,
-      "inputContract": null,
-      "resultRenderer": null,
-      "storageContract": null,
-      "verification": "웹 /today/의 별자리·주간·시스템별 운세 허브. 토스 /daily의 영냥이 출석 운세와 별도.",
+      "inputContract": "24개 별자리·띠와 오늘·내일·이번 주 선택. 원본 loadWeekRange·computeSignScore·getPeriodReading",
+      "resultRenderer": "apps/toss/src/TodayPublic.tsx + app/today/DailyTarot.tsx",
+      "storageContract": "별자리·띠 공개. 원본 오늘의 세 장은 로그인 후 계정별 기기 저장·재열람",
+      "verification": "apps/toss/test/studio-today-browser.mjs: 360px 홈→공개 일주일→mock 로그인→세 장→재시작. 4체계 개인화·월간·전체 상세는 미검증",
       "webEntries": [
         "/today/"
       ],
@@ -7327,13 +7328,13 @@
       ],
       "webProductIds": [],
       "freeCalculation": true,
-      "portStatus": "미이식",
+      "portStatus": "일부만 이식",
       "reducedBundle": "홈 진입 없음",
-      "currentEntry": "연결 경로 없음",
+      "currentEntry": "일반 홈의 진입 코드 확인",
       "bundleVerification": "실기기 및 상품별 전체 흐름 미검증",
-      "tossLogin": "토스 기능 미연결",
-      "tossResult": "결과 화면 연결 미확인",
-      "reread": "재열람 경로 미확인"
+      "tossLogin": "별자리·띠 공개. 오늘의 세 장은 토스 로그인 필요",
+      "tossResult": "apps/toss/src/TodayPublic.tsx + app/today/DailyTarot.tsx",
+      "reread": "별자리·띠 공개. 원본 오늘의 세 장은 로그인 후 계정별 기기 저장·재열람"
     },
     {
       "id": "vedic",
@@ -7531,7 +7532,7 @@
       "webProductIds": [],
       "freeCalculation": false,
       "portStatus": "일부만 이식",
-      "reducedBundle": "구현은 있으나 진입 차단",
+      "reducedBundle": "홈 진입 없음",
       "currentEntry": "일반 홈의 진입 코드 확인",
       "bundleVerification": "실기기 및 상품별 전체 흐름 미검증",
       "tossLogin": "공개 진입",
@@ -7570,7 +7571,7 @@
       ],
       "freeCalculation": false,
       "portStatus": "일부만 이식",
-      "reducedBundle": "구현은 있으나 진입 차단",
+      "reducedBundle": "홈 진입 없음",
       "currentEntry": "일반 홈의 진입 코드 확인",
       "bundleVerification": "실기기 및 상품별 전체 흐름 미검증",
       "tossLogin": "구매·기록에 토스 계정 필요",
@@ -7930,7 +7931,7 @@
         "evidence": "https://apps-in-toss.toss.im/workspace/21957/mini-app/ai-saju-studio/in-app-purchase/list?tab=products&inAppProductId=ait.0000019957.ef882195.47d318f6ac.4555567979"
       },
       "newPurchases": false,
-      "deliveryVerification": "사주 질문 대표 흐름만 로컬 mock 검증. 이 상품의 모든 상담 모드·기기는 미검증"
+      "deliveryVerification": "apps/toss/test/studio-browser.mjs 사주 질문 대표 흐름 mock 검증"
     },
     {
       "productId": "saju_salmon",
@@ -8270,7 +8271,7 @@
       "library": "/yeongnyangi/library/",
       "sale": null,
       "newPurchases": false,
-      "deliveryVerification": "상품별 전체 흐름 미검증"
+      "deliveryVerification": "apps/toss/test/studio-unsold-browser.mjs: 상품별 입력→분리된 mock SKU 구매→fixture 생성→보관함. 상품별 실제 출력·실기기 미검증"
     },
     {
       "productId": "ziwei_salmon",
@@ -8542,7 +8543,7 @@
       "library": "/yeongnyangi/library/",
       "sale": null,
       "newPurchases": false,
-      "deliveryVerification": "상품별 전체 흐름 미검증"
+      "deliveryVerification": "apps/toss/test/studio-unsold-browser.mjs: 상품별 입력→분리된 mock SKU 구매→fixture 생성→보관함. 상품별 실제 출력·실기기 미검증"
     },
     {
       "productId": "sukuyo_salmon",
@@ -8730,7 +8731,7 @@
       "library": "/yeongnyangi/library/",
       "sale": null,
       "newPurchases": false,
-      "deliveryVerification": "상품별 전체 흐름 미검증"
+      "deliveryVerification": "apps/toss/test/studio-unsold-browser.mjs: 상품별 입력→분리된 mock SKU 구매→fixture 생성→보관함. 상품별 실제 출력·실기기 미검증"
     },
     {
       "productId": "vedic_salmon",
@@ -8932,7 +8933,7 @@
       "library": "/yeongnyangi/library/",
       "sale": null,
       "newPurchases": false,
-      "deliveryVerification": "상품별 전체 흐름 미검증"
+      "deliveryVerification": "apps/toss/test/studio-unsold-browser.mjs: 상품별 입력→분리된 mock SKU 구매→fixture 생성→보관함. 상품별 실제 출력·실기기 미검증"
     },
     {
       "productId": "astrology_salmon",
