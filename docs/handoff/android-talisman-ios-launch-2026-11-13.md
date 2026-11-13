@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-13
-next: Android 버전·서명·스토어 상태를 확인하고 AAB 검증 및 Play Console 제출을 진행한다.
+next: 타로 부적을 포함해 Android 1.0.59를 다시 동기화·서명 빌드하고 Play Console에 제출한다.
 ---
 
 # Android 부적 앱 및 iOS 출시 인수인계
@@ -17,7 +17,7 @@ next: Android 버전·서명·스토어 상태를 확인하고 AAB 검증 및 Pl
 - 작업 브랜치: `wt/android-talisman-launch-20261113-140159`
 - 작업 디렉터리: `D:\Development\codedestiny-worktrees\android-talisman-launch-20261113-140159`
 - 기준 커밋: `1acf1327841ea7a954d2c9e0dddcf3d58655a48c` (`origin/main`)
-- 마지막 작업 커밋: `c974215c0` (`feat: add calm talisman collection to mobile studios`)
+- 마지막 작업 커밋: `cb8571c4d` (`feat: turn tarot cards into personal talismans`)
 - 원래 체크아웃 `D:\Development\code-destiny`는 다른 기능 브랜치와 미추적 파일이 있어 건드리지 않는다.
 - 다른 Android 워크트리 두 곳은 다른 세션 소유이므로 읽기 외 변경·정리를 하지 않는다.
 
@@ -45,6 +45,8 @@ next: Android 버전·서명·스토어 상태를 확인하고 AAB 검증 및 Pl
 - 장면·소원 선택에 축소 그림을 보여주되 기존 라디오 입력과 접근성 구조를 유지했다.
 - Android 홈 위젯과 잠금화면에서 새 그림 3장을 로컬 자산으로 해석하도록 연결했다.
 - 12개 로케일 문구와 360/390/430px 모바일 overflow 검증을 포함했다.
+- 부적 스튜디오에 영냥이 달빛 덱과 연이의 운명 찻집 덱 78장을 연결하고 정·역방향, 계열 필터, 기존 상담 정본 기반 카드 해설을 추가했다.
+- 영냥이 타로 결과와 운명의 찻집 카드 상세에서 선택 카드·방향을 보존한 채 부적 스튜디오로 이동한다.
 
 ## 단계
 
@@ -54,8 +56,10 @@ next: Android 버전·서명·스토어 상태를 확인하고 AAB 검증 및 Pl
 - [x] Android 홈 위젯·잠금화면 연동
 - [x] 12개 로케일·오류 상태·모바일 폭·로컬 자산 검증
 - [x] 첫 구현 커밋
-- [ ] Android 버전과 서명 준비 확인
-- [ ] Capacitor Android 동기화·단위 테스트·AAB 빌드
+- [x] 영냥이·운명의 찻집 타로 카드 부적과 고급 해설 UI 구현
+- [x] Android 버전과 서명 준비 확인
+- [x] 타로 추가 전 Capacitor Android 동기화·단위 테스트·AAB 빌드
+- [ ] 타로 포함 최종 Capacitor Android 동기화·단위 테스트·AAB 빌드
 - [ ] Google Play Console 업로드·제출·상태 확인
 - [ ] iOS 동기화·App Store Connect 제출 가능 상태 확인
 - [ ] 최종 targeted 검사와 `check:pre-push`
