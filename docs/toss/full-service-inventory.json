@@ -1,5 +1,5 @@
 {
-  "sourceCommit": "33bb51554b4d7d001ac045f4d855bbdb66ead243",
+  "sourceCommit": "d7cd0ead5aaad69de7aea2955c8a9238fb9a9c63",
   "sourceCounts": {
     "home": 63,
     "react": 18,
@@ -276,8 +276,8 @@
         "library": "not-verified",
         "device": "not-tested",
         "canonicalId": "cosmic-soul-meditation",
-        "candidateStatus": "requires-full-flow-port-and-verification",
-        "canonicalRoute": null
+        "candidateStatus": "local-partial",
+        "canonicalRoute": "/meditation/cosmic"
       }
     },
     {
@@ -3348,12 +3348,13 @@
         }
       ],
       "aliasEvidence": [],
-      "status": "requires-full-flow-port-and-verification",
-      "tossRoute": null,
+      "status": "local-partial",
+      "tossRoute": "/meditation/cosmic",
       "sku": null,
-      "inputContract": null,
-      "resultRenderer": null,
-      "storageContract": null,
+      "inputContract": "cosmic-soul-meditation.html 의도 4개, 30·60분 PHASES, 웹의 _composePhaseLines·_scheduleLines·_buildSchedule 원본 함수와 행동·저널",
+      "resultRenderer": "apps/toss/src/CosmicMeditation.tsx + apps/toss/canonical/cosmic-sessions.mjs",
+      "storageContract": "토스 소유 계정별 기기 저널 최근 50개와 통계. 무료 키 cosmic-soul-meditation",
+      "verification": "studio-cosmic-browser.mjs: 360px 홈→로그인→30·60분→원문·일시정지·완주→저널 저장→재실행→같은 단말 다른 계정에서 기록 없음. R2 실제 재생 미검증",
       "webEntries": [
         "/cosmic-soul-meditation.html"
       ],
@@ -3365,13 +3366,13 @@
         "cosmic-soul-meditation"
       ],
       "freeCalculation": true,
-      "portStatus": "미이식",
-      "reducedBundle": "홈 진입 없음",
-      "currentEntry": "연결 경로 없음",
+      "portStatus": "일부만 이식",
+      "reducedBundle": "구현은 있으나 진입 차단",
+      "currentEntry": "일반 홈의 진입 코드 확인",
       "bundleVerification": "실기기 및 상품별 전체 흐름 미검증",
-      "tossLogin": "토스 기능 미연결",
-      "tossResult": "결과 화면 연결 미확인",
-      "reread": "재열람 경로 미확인"
+      "tossLogin": "계산 또는 기록 조회에 토스 계정 필요",
+      "tossResult": "apps/toss/src/CosmicMeditation.tsx + apps/toss/canonical/cosmic-sessions.mjs",
+      "reread": "토스 소유 계정별 기기 저널 최근 50개와 통계. 무료 키 cosmic-soul-meditation"
     },
     {
       "id": "destiny-compass",
