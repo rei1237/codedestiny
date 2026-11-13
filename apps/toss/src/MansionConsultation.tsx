@@ -1,6 +1,7 @@
 import {useEffect,useRef,useState,type FormEvent} from 'react';
 import styles from './MansionConsultation.module.css';
 import AiConsultDecks,{type Decks,type NatalIdentity} from '../../../app/nakshatra/ai/AiConsultDecks';
+import MansionProfile from './MansionProfile';
 import {PersonFields,birth,emptyPerson,type Person} from './MansionBirth';
 import {api,nativeSaleProducts,purchase,paymentRequiresReview,type NativeSaleProduct} from './platform';
 import {Button} from './Button';
@@ -70,6 +71,7 @@ function Intake({owner}:{owner:string}){
     finally{if(isCurrent()){flight.current=false;setBusy(false);}}
   }
   return <form className="form" onSubmit={start}><p>달의 별자리와 일본 숙요를 함께 읽고, 질문에 대한 서로 다른 근거와 실천 방향을 살펴봐요.</p>
+    <MansionProfile disabled={busy} onSelect={person=>save({...draft,person,requestId:''})}/>
     <PersonFields title="나의 출생 정보" disabled={busy} value={draft.person} onChange={person=>save({...draft,person,requestId:''})}/>
     <label>상담에서 묻고 싶은 질문 (선택)<textarea rows={4} maxLength={1200} value={draft.question} disabled={busy} onChange={e=>save({...draft,question:e.target.value,requestId:''})}/></label>
     {!orderId&&(catalog==='loading'?<p role="status">토스 상품을 확인하고 있어요.</p>:catalog==='error'?<Button type="button" onClick={()=>setRefresh(n=>n+1)}>상품 다시 확인하기</Button>:!sale?<p>토스 상품 등록을 기다리고 있어요.</p>:<p>토스 단건 결제 · {sale.displayAmount}</p>)}

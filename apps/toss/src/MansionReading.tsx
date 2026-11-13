@@ -2,6 +2,7 @@ import {useEffect,useRef,useState,type FormEvent} from 'react';
 import TodayMoonCard,{type TodayMoon} from '../../../app/nakshatra/result/TodayMoonCard';
 import LifeReading,{type LifeTopic} from '../../../app/nakshatra/_components/LifeReading';
 import CompatResultView,{type CompatResult} from '../../../app/nakshatra/compat/CompatResultView';
+import MansionProfile from './MansionProfile';
 import {PersonFields,birth,emptyPerson} from './MansionBirth';
 import {api} from './platform';
 import {Button} from './Button';
@@ -29,7 +30,7 @@ function NatalView({result}:{result:Natal}){
     <TodayMoonCard sukuyoIndex={east.index} load={loadTodayMoon}/>
     <LifeReading topics={result.lifeReading} showServices={false}/></section>;
 }
-function Reading({compat}:{compat:boolean}){
+function Reading({compat,loggedIn}:{compat:boolean;loggedIn:boolean}){
   const [a,setA]=useState(emptyPerson),[b,setB]=useState(emptyPerson);
   const [natal,setNatal]=useState<Natal|null>(null),[pair,setPair]=useState<CompatResult|null>(null);
   const [busy,setBusy]=useState(false),[error,setError]=useState('');
@@ -52,10 +53,10 @@ function Reading({compat}:{compat:boolean}){
   }
   return <section><h1>{compat?'나크샤트라 동서 궁합':'나의 나크샤트라'}</h1>
     {pair?<CompatResultView result={pair} linkSources={false} onReset={()=>setPair(null)}/>:natal?<><NatalView result={natal}/><Button onClick={()=>setNatal(null)}>다시 계산하기</Button></>:
-    <form className="form" onSubmit={submit}><PersonFields title="나의 출생 정보" value={a} onChange={setA}/>{compat&&<PersonFields title="상대의 출생 정보" value={b} onChange={setB}/>}
+    <form className="form" onSubmit={submit}>{loggedIn&&<MansionProfile disabled={busy} onSelect={setA}/>}<PersonFields title="나의 출생 정보" value={a} onChange={setA}/>{compat&&<><MansionProfile disabled={busy} onSelect={setB}/><PersonFields title="상대의 출생 정보" value={b} onChange={setB}/></>}
       <Button type="submit" disabled={busy}>{busy?'계산 중이에요':compat?'두 사람의 별 읽기':'내 별 읽기'}</Button>{error&&<p role="alert">{error}</p>}</form>}</section>;
 }
 export default function MansionReading({compat,loggedIn,onLogin}:{compat:boolean;loggedIn:boolean;onLogin:()=>void}){
   if(compat&&!loggedIn)return <section><h1>나크샤트라 동서 궁합</h1><p>두 사람의 출생 정보로 숙요의 관계와 베다의 여덟 항목을 살펴봐요.</p><Button onClick={onLogin}>토스 로그인하고 궁합 보기</Button></section>;
-  return <TossSessionScope><Reading key={String(compat)} compat={compat}/></TossSessionScope>;
+  return <TossSessionScope><Reading key={String(compat)} compat={compat} loggedIn={loggedIn}/></TossSessionScope>;
 }

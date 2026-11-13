@@ -12,6 +12,8 @@ try{
   const login=async()=>{await page.getByRole('button',{name:'토스 로그인하고 상담 입력하기'}).click();await page.getByRole('button',{name:'토스로 로그인하기'}).click();};
   await open();await login();
   const form=page.getByRole('group',{name:'나의 출생 정보'});
+  await page.getByLabel('저장한 출생 프로필').selectOption('mock-profile');
+  await page.waitForFunction(()=>document.querySelector('input[type=date]')?.value==='1990-01-01');
   await form.getByLabel('양력 생년월일').fill('1990-05-12');
   await form.getByLabel('태어난 시각을 몰라요').check();
   await form.getByLabel('태어난 도시와 국가').selectOption('서울, 한국');
