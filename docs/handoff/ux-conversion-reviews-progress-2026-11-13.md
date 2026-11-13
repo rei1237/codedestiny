@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-14
-next: 묶음 ③ 단계 8(결제 인접 화면) 시작
+next: 묶음 ④ 단계 9(공용 GenerationProgress + 연애 비책 이전) 시작
 ---
 
 # 꿀꿀 운세·영냥이 UX: 구매 흐름 · 후기 신뢰 · 후기 작성 · 생성 진행 · 무료 배너
@@ -20,7 +20,7 @@ next: 묶음 ③ 단계 8(결제 인접 화면) 시작
 - 기준: origin/main `02476159e0b545b887fe04a12815b7123b4b614d`
 - node_modules는 정션, `.env.local`·`.env.cloudflare.local`은 링크(건드리지 않는다).
 - 워크트리 제거: 다른 체크아웃에서 `npm run worktree:remove -- 'D:\Development\codedestiny-worktrees\ux-conversion-20261113-215142'` (git worktree remove 금지 — 긴 경로 고아 폴더).
-- 마지막 커밋: 단계마다 아래 표에 적는다. 묶음 ① 끝 코드 커밋 `3af1f976b`(미push). 묶음 ② 6b 끝 코드 커밋 `dd10f6156`(미push). 묶음 ② 6c-1 코드 커밋 `4dd33836e`·`9b9a8e706`·`3c8d5ac2f`(미push). 묶음 ② 6c-2 코드 커밋 `273aa5ce6`·`d1eba2bae`(미push). 묶음 ② 11a 코드 커밋 `81b1be43d`(미push). 묶음 ② 배너 모바일 다듬기 `c7edcc6c3`·사이트맵 원장 `a10578ada`(미push). 묶음 ③ 단계 5 ReviewProof `f554b8920`(미push). 단계 5 남은 일 `c674869d9`(보존 기준 해시)·`f6768d579`(`/reviews/?product=` 필터), 묶음 ③ 단계 7 `008432add`(미push).
+- 마지막 커밋: 단계마다 아래 표에 적는다. 묶음 ① 끝 코드 커밋 `3af1f976b`(미push). 묶음 ② 6b 끝 코드 커밋 `dd10f6156`(미push). 묶음 ② 6c-1 코드 커밋 `4dd33836e`·`9b9a8e706`·`3c8d5ac2f`(미push). 묶음 ② 6c-2 코드 커밋 `273aa5ce6`·`d1eba2bae`(미push). 묶음 ② 11a 코드 커밋 `81b1be43d`(미push). 묶음 ② 배너 모바일 다듬기 `c7edcc6c3`·사이트맵 원장 `a10578ada`(미push). 묶음 ③ 단계 5 ReviewProof `f554b8920`(미push). 단계 5 남은 일 `c674869d9`(보존 기준 해시)·`f6768d579`(`/reviews/?product=` 필터), 묶음 ③ 단계 7 `008432add`(미push). 묶음 ③ 단계 8 `efafe2738`(미push) — 묶음 ③ 완료.
 
 ## 승인 상태 (사용자 원문, 2026-11-13)
 
@@ -149,10 +149,10 @@ next: 묶음 ③ 단계 8(결제 인접 화면) 시작
 - [x] 11a. 명식·절기 그림·상세 9개 OG — SHA: 81b1be43d (결과는 문서 끝 "11a 결과")
 - [x] 배너 모바일 다듬기(390 주 버튼 위치·말풍선 조판·반짝이 대비) — SHA: c7edcc6c3, 사이트맵 원장 a10578ada (결과는 문서 끝 "배너 모바일 다듬기 결과")
 
-### 묶음 ③ 신뢰·구매 흐름 (단계 5, 7, 8)
+### 묶음 ③ 신뢰·구매 흐름 (단계 5, 7, 8) — 완료(2026-11-14)
 - [x] 5. ReviewProof — SHA: f554b8920 (결과는 문서 끝 "묶음 ③ 단계 5 ReviewProof 결과")
 - [x] 7. 영냥이·홈 — SHA: 008432add · 단계 5 남은 일 c674869d9, f6768d579 (결과는 문서 끝 "묶음 ③ 단계 7 결과")
-- [ ] 8. 결제 인접 — SHA:
+- [x] 8. 결제 인접 — SHA: efafe2738 (결과는 문서 끝 "묶음 ③ 단계 8 결과")
 
 ### 묶음 ④ 생성 진행 (단계 9, 10)
 - [ ] 9. GenerationProgress + love-secret — SHA:
@@ -738,3 +738,88 @@ API 판단
 2. `ReviewsClient`의 `loadReviews`에 늦게 온 응답을 버리는 가드가 없다(필터·페이지를 빨리 바꾸면 이전 응답이 덮을 수 있음).
 3. `NightPriceDetails` 줄이 "기준"을 "기/준"으로 끊는다(`.shortcuts .terms>p`에 `word-break: keep-all` 없음, 기존).
 4. `home-service-separation.test.cjs`의 `.yh-concerns` 실패(기존, 위 검증).
+
+### 묶음 ③ 단계 8 결과 (2026-11-14 완료, 미push)
+
+커밋
+- `efafe2738` feat(checkout): 결제 인접 — 단계별 가격 한 줄·안내 위치·영냥이 checkout_opened
+
+변경 (커밋 기준 줄)
+- a. `app/love-secret-ai/LoveSecretAiClient.tsx` L2361-2369: 입력 단계 카드 맨 위에 오른쪽 정렬 `PriceBadge` 한 줄을 넣었다. 위치는 생성 중이 아닌 분기이고, 헤더(L2370) 바로 앞이다.
+  - 인트로(L2560)와 같은 `featureKey="love-secret-ai-consultation"`과 `prefix={copy.priceLabelPrefix}`를 쓴다. 새 문자열은 없다.
+  - 클래스는 `text-xs font-semibold text-[var(--ls-text-muted)]`이다.
+  - 게이트는 `paymentSurface !== "toss" && !resultUrl`로, ReviewProof(L2339) 기준을 따랐다. 생성 중(`busy`)에는 분기가 달라 보이지 않는다.
+  - PriceBadge는 toss나 앱에서 스스로 숨지 않는다. `app/components/PriceBadge.tsx`에 화면 종류 분기가 없다.
+    - 앱(Play)은 `useServerPrice`가 Play 가격을 보여 주므로 그대로 둔다.
+    - toss만 명시적으로 뺐다. 인트로와 마지막 단계 가격은 toss에서도 이미 보이지만(기존), 새 배지는 ReviewProof 기준을 따랐다.
+  - 처음에는 "STEP n / N" 줄 오른쪽에 넣었다. 390 "내 정보" 단계에서 헤더 제목 열이 0px로 무너져 가격이 41x64로 쪼개졌다. 그래서 헤더 밖 별도 한 줄로 옮겼다(후속 1).
+- b. `app/checkout/YeongnyangiCheckout.tsx` L145-146: 안심 문구 `<p className={styles.legal}>`와 약관·환불·문의 링크 `<p className={styles.legal}>`를 `.action`(L144, 결제 버튼) 바로 다음으로 옮겼다.
+  - 피드백 `<p role="status">`(L147)와 "보유 혜택 다시 확인하기" 버튼은 그 뒤로 밀렸다.
+  - 문구, 링크 대상, 버튼, `pay()`는 바이트 단위로 그대로다.
+  - CSS는 바꾸지 않았다. 기존 `.legal` margin 14px로 충분해 `--yn-*` 조정이 필요 없다.
+  - 760px 이하에서는 `.action`이 고정 하단 바다. 두 줄은 요약 카드 끝의 흐름 안에 남겼다. 바 안에 넣으면 바가 3줄 커지고 `.checkout` 하단 패딩 155px를 바꿔야 해서 하지 않았다.
+  - DOM, 읽기, 탭 순서는 모두 버튼 → 안심 문구 → 링크다.
+- c. `YeongnyangiCheckout.tsx` L9에 `trackEvent`를 import했다. L34-35는 `opened` ref 가드와 `useEffect`로, 상품(`draft.product.cdFeatureKey`)마다 한 번 `trackEvent('checkout_opened',{item_id,service:'yeongnyangi'})`를 보낸다.
+  - 영냥이 기존 관례(`Consultation.tsx`의 `view_item`·`consultation_start`, `item_id`+`service`)와 같다. 금액과 PII는 없다.
+  - GA4 전용(`cdTrack`)이다. 1st-party 퍼널(`/api/billing/funnel-event`)은 건드리지 않았다.
+  - **`checkout_pg_opened`는 일부러 추가하지 않았다(지시와 다름).** 영냥이 결제는 `runPaidAccessGate`를 거쳐 공용 런타임 `window._cdOpenPaidServiceGate`(`js/destiny-profile.js`)로 간다.
+    - 그 런타임이 L6002에서 `window.PortOne.requestPayment` 직전에 이미 `_dpTrackCheckoutEvent('checkout_pg_opened', …)`를 보낸다.
+    - `js/core/analytics.js` L352-356은 `checkout_pg_opened`를 GA4 `begin_checkout`으로 바꾸고, 중복을 걸러 내지 않는다. 페이지에서 또 보내면 begin_checkout이 두 번 잡힌다.
+    - 83622ef19가 같은 이유로 CheckoutClient의 이른 begin_checkout을 없앴다(`docs/marketing/naver-keyword-evidence-20261029.md` L110·L118).
+    - 페이지에서 꼭 보내려면 `pay()` 앞에 래퍼 한 줄이면 된다. 다만 PG가 열리지 않는 경로(이용권, 꿀단지, 로그인 전, 취소)에서도 찍혀 "PG가 열렸다"는 뜻이 깨진다.
+  - GA4 `checkout_opened`에는 런타임 결제 선택 모달의 이벤트도 섞인다(destiny-profile L12631, React 모달 billing-client L1671). 새 페이지 이벤트는 `service:'yeongnyangi'`로 구분된다.
+- d. 테스트
+  - `__tests__/ui/checkout-method-order.test.mjs` L45: 결제 버튼 < 안심 문구 < 약관 링크 < 피드백 순서인지 본다.
+  - `__tests__/ui/purchase-analytics.test.mjs` L419: 다음을 본다.
+    - ref 가드와 `checkout_opened`(service 'yeongnyangi')가 있다.
+    - 페이지에 `checkout_pg_opened`·`begin_checkout`이 없다.
+    - `runPaidAccessGate(`가 그대로 있다.
+    - destiny-profile의 `checkout_pg_opened`가 `window.PortOne.requestPayment(requestData)`보다 앞에 있다.
+  - `__tests__/ui/mobile-pricing-source.static.test.js` L31: 다음을 본다. love-secret 소스를 읽는 가격 테스트가 이 파일이라 여기에 넣었다.
+    - love-secret 단계 가격이 생성 카드 뒤(생성 중이 아닌 분기)이자 헤더 바로 앞에 있다.
+    - toss·결과 게이트가 있다.
+    - 인트로와 같은 featureKey·prefix를 쓴다.
+
+RED 확인 (금액·핸들러 무변경)
+- HEAD와 작업 사본을 node로 CRLF 정규화해 비교했다.
+  - `pay()` 함수 본문이 같다(2617자).
+  - `.action`과 결제 버튼 줄이 같다.
+  - `pricing|amount|won(|runPaidAccessGate|allowedPaymentModes`가 들어간 줄이 모두 같다.
+  - `git diff -U0`에서 이 패턴이 들어간 +/- 줄은 0개다.
+- 새 PriceBadge는 표시 전용(`useServerPrice`)이라 결제 경로와 상관없다.
+
+검증
+- `node --test` checkout-method-order·purchase-analytics·mobile-pricing-source: 52/52 통과. 새 테스트 3개는 변경 전 소스라면 실패하는 단언이다.
+- love-secret-* 테스트 5개 파일(wake-recovery, paid-delivery, pdf-chapters, rejection-repair, speaker): 56/56 통과.
+- `apps/toss/test/checkout-denied.test.mjs`(영냥이 checkout CSS 모듈을 쓰는 토스 결제): 30/30 통과.
+- 이름이 "yeongnyangi-checkout*"인 테스트 파일은 없다. 옮긴 마크업을 단언하는 다른 테스트도 없다(`styles.legal`·`policyHrefs`·안심 문구로 Grep).
+- `npm run typecheck`: EXIT 0. 배지 위치를 바꾼 뒤 다시 돌렸다.
+- `npm run verify:analytics-events`: 통과.
+- `measure:touch-targets`: `/love-secret-ai/`에서 networkidle 대기 60초를 넘겼다(dev 서버, 기존 함정).
+  - 이번 변경으로 새로 생긴 탭 대상은 없다. 배지는 span이고, 영냥이 링크는 위치만 옮겼다(크기 그대로, 높이 15px 인라인 링크, 기존).
+  - 영냥이 결제 화면은 질문을 제출해야 열려서 측정기가 닿지 않는다.
+- 390 측정(`D:\Development\Temp\claude\ec29f026d20d029c\5016f536-7db3-4def-b6e1-84b5f5a786cd\scratchpad\s8-shots.mjs`, `D:\Development\Temp\claude\ec29f026d20d029c\5016f536-7db3-4def-b6e1-84b5f5a786cd\scratchpad\s8-desk.mjs`)
+  - love-secret status·focus·me 세 단계 모두 가격이 한 줄 "상담 이용 가격 30,000원"(122x16, x227, 오른쪽 정렬)이고 가로 넘침은 0이다.
+  - 영냥이는 `/yeongnyangi/fortune/`에서 비로그인 mock으로 "상담과 결제 확인하기"까지만 눌렀다. 결제 버튼은 누르지 않았다.
+    - DOM 순서는 버튼 → 안심 문구 → 링크 → 피드백이다.
+    - 390에서는 버튼이 고정 바(top 735)에 있고, 두 줄은 카드 끝 흐름(y 705/762)에 있다.
+    - 데스크톱 1280에서는 버튼 아래 14px에 안심 문구, 그 아래에 링크가 온다.
+- visual-checker(하위 에이전트) 판정
+  - Q1 love-secret 가격 줄 3단계: PASS(대비 6.55:1).
+  - Q2 390 영냥이 두 줄이 고정 바에 가리지 않음: PASS(바까지 24px).
+  - Q3 데스크톱 버튼 → 문구 → 링크 사이에 다른 컨트롤 없음: PASS.
+- dev 서버 12828/12829는 이번에 띄운 `npm run dev` → `dev-with-local-auth.mjs` 트리였다(PID 22560, 02:16 시작). 트리째 끄고 두 포트가 빈 것을 확인했다.
+- sitemap 원장, `index.html`, 셸, 무료 배너는 바꾸지 않았다. 그래서 `sync:public`·`verify:sitemap-drift`는 필요 없다. `check:fast`는 돌리지 않았다(지시).
+
+함정
+- `/yeongnyangi/fortune/`은 첫 방문 때 프롤로그 `<dialog>`가 질문 입력을 덮는다. 스크립트에서 `localStorage['cd:yeongnyangi:neo-prologue:v1']='read'`를 init script로 넣으면 건너뛴다.
+- dev 화면 왼쪽 아래 "개발 결제 테스터" 버튼(`fixed bottom-4 left-4`)이 390 영냥이 고정 바의 금액 라벨을 가린다. dev 전용이라 운영과 상관없다. 스크린샷을 판정할 때 헷갈리지 말 것.
+- 12828의 조부모 PID가 22560으로, 이전에 "다른 세션 PID"로 적힌 번호와 같았다. PID는 재사용되므로 시작 시각과 명령줄로 내 트리인지 확인한 뒤 끈다.
+
+후속(보고만)
+1. love-secret 390 "내 정보" 단계에서 헤더의 `SavedBirthProfilePicker` 카드가 헤더 폭 308px를 다 차지한다.
+   - 그래서 제목 열(`min-w-0 flex-1`)이 0px로 무너지고, 제목과 도움말이 한 글자씩 꺾여 높이가 922px가 된다.
+   - HEAD에서도 같다(배지를 넣기 전에 측정).
+   - 헤더에 `flex-wrap`을 주거나 피커를 헤더 아래로 내려야 한다.
+2. love-secret 마지막 단계에서는 같은 가격이 두 곳에 보인다. 위는 새 배지, 아래는 L2494 근처 제출 옆의 기존 가격이다. 줄이려면 아래 것을 빼야 하지만 범위 밖이라 두었다.
+3. 인트로, 마지막 단계, ExpertStickyCta의 love-secret PriceBadge는 toss에서도 보인다(기존). 토스 단건 가격과 같은지는 따로 확인해야 한다.
