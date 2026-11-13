@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-13
-next: 묶음 ② 단계 6c(상세 페이지 9개) 시작
+next: 묶음 ② 단계 6c(상세 페이지 9개) 구현 시작 — 문서 끝 "6c 착수 메모"부터 읽는다(탐색은 끝남, 코드 변경 없음)
 ---
 
 # 꿀꿀 운세·영냥이 UX: 구매 흐름 · 후기 신뢰 · 후기 작성 · 생성 진행 · 무료 배너
@@ -138,7 +138,7 @@ next: 묶음 ② 단계 6c(상세 페이지 9개) 시작
 ### 묶음 ② 무료 배너·상세 (단계 6, 11 일부)
 - [x] 6a. 배너 카드화(React·셸) — SHA: a631c8f7b (미러 정리 chore 4049d813b 별도)
 - [x] 6b. 칩 연결·랜딩 액션 확인 — SHA: dd10f6156
-- [ ] 6c. 상세 페이지 9개·SEO·사이트맵 — SHA:
+- [ ] 6c. 상세 페이지 9개·SEO·사이트맵 — SHA: (탐색만 끝남 → 문서 끝 "6c 착수 메모")
 - [ ] 11a. 명식·절기 그림 — SHA:
 
 ### 묶음 ③ 신뢰·구매 흐름 (단계 5, 7, 8)
@@ -280,3 +280,33 @@ next: 묶음 ② 단계 6c(상세 페이지 9개) 시작
 - 셸은 자체의 큰 옅은 가지 장식을 써서 React(작은 잔가지)와 톤이 조금 다르다. 연이 귀와 4-5px, 겹치지는 않는다.
 - 홈 `.page :where(a){color:inherit}`는 넓은 규칙이라 홈 안 다른 링크 버튼도 같은 덮어쓰기를 겪을 수 있다.
 - hover·focus 상태 색과 네오 테마 영냥이 화면은 정지 스크린샷으로 확인하지 못했다.
+
+### 6c 착수 메모 (2026-11-13, 탐색만 끝남 · 코드 변경 없음)
+
+6c·11a·배너 다듬기를 맡은 에이전트가 탐색 도중 컨텍스트 압축을 맞아, 전역 규칙대로 찾은 사실만 적고 돌아왔다. 다음 에이전트는 아래를 다시 찾지 않아도 된다. 기준 HEAD `2d9615887`, 작업 트리 깨끗, push 없음.
+
+이번 범위(승인 범위 안, 2026-11-13 묶음 ② 지시 원문 요약)
+- 6c: 무료 상세 페이지 9개 + SEO + 사이트맵 + 칩 href.
+- 11a: 명식·절기 그림은 `public/`에 맞는 그림이 없을 때만 `codex-image`로 만든다(원본 D:, webp를 public/, 한국어 alt, 스타일은 `public/fuctionassets/*.webp`와 나란히 비교, visual-checker 절차).
+- 배너 다듬기: 좁은 폭에서 주 버튼이 22개 타일 아래로 밀리지 않게(React `app/components/FreePromoBanner.tsx`·`free-promo-banner.module.css`, 셸 `lib/marketing/free-promo-shell.mjs`·`styles/home-funnel.css` 같은 방식), 영냥이 390 말풍선 "열어 / 뒀어요!" 갈라짐(keep-all/balance). 이후 sync:public, visual-checker 390·1440(배너 + 상세 2~3개).
+- 끝나면 6c·11a 체크(배너 다듬기 메모), 결과 기록, `next:` → "묶음 ③ 단계 5(ReviewProof) 시작".
+- 커밋 단위: 레지스트리+컴포넌트 / 페이지+SEO / 사이트맵·llms / 칩 href+미러 / 그림 / 배너. `npm run check:fast` 금지, 대상 테스트만.
+
+확인한 사실
+- 경로 9개: `/saju/four-cut/` `/saju/dopamine/` `/saju/teto-egen/` `/saju/t-test/` `/saju/lotto-ritual/` `/saju/ai-prompt-card/` `/saju/skill-tree/` `/saju/natal-chart/` `/saju/season-rhythm/`. app/·worker 라우팅 충돌 여부는 아직 확인하지 않았다(첫 확인 대상).
+- CTA 액션 `cdOneStepFreeSajuEntry`는 실제 셸 함수다(`js/destiny-profile.js:11057`, 테스트 `direct-fortune-entry.behavior.test.js`·`first-visit-guide.test.js`). CTA 주소 `/ggulggul/?action=cdOneStepFreeSajuEntry`.
+- 칩 9개는 `lib/marketing/free-promo.mjs`에서 `...SAJU`(href 없음)로 펼쳐진다. fun 7개(fourCut·dopamine·hormone·tTest·lotto·aiPrompt·skillTree) + classic 2개(natal '명식·12신살', seasonRhythm '절기 리듬', 둘 다 policyKey `saju_natal_reading`). `href`만 더하고 policyKey·freeStart는 둔다. `freePromoItemHref`는 `item.href || '/ggulggul/?action=' + item.action`. "사주 카드 칩은 독립 주소가 없어 사주 입력으로 보낸다"는 주석을 고친다. `FREE_PROMO.endsAt` = `2027-02-12T23:59:59+09:00`(배지 "2027년 2월 12일까지 무료"는 여기서 계산).
+- AppChrome 등록 방식: `/saju/destiny-bias`·`/saju/career-style`는 `CHROMELESS_ROUTES`(L34~)에 있다. CHROMELESS에만 넣으면 전역 헤더·푸터·하단 탭바가 빠지고 `FeatureBackHomeNav`(뒤로·홈)가 뜬다(`/saju/career-style`는 자체 내비라 `FEATURE_NAV_SELF_MANAGED_ROUTES`에도 있음). 9개는 `/saju/destiny-bias`처럼 CHROMELESS에만 넣는 안이 맞다. 단 푸터가 빠지므로 본문 글자 수 측정은 푸터 없이 해야 한다.
+- 문구 원천(복붙 금지, import): `lib/marketing/feature-marketing-copy.generated.json`의 `items[키].copy` — 키 `rpt_sajuFourCutCard` `rpt_dopamineCard` `rpt_hormone-vibe-section` `rpt_tTestCard` `rpt_lottoCard` `rpt_aiPromptCard` `rpt_skillTreeCard`. 필드 analysisSteps[{label,detail}]·answersQuestions·badge·ctaLabel·faq[{q,a}]·feats·headline·painPoints·previewText·recommendedFor·subheadline·trustNotes·unlockBenefits(skillTree는 outline·outlineImage·receives·valueCompare 추가). 최상위 `trustNotes.free` = "운세 결과는 참고용이며…".
+  - 로또: 문구가 이미 "당첨을 예측하지 않으며", "당첨을 보장하지 않습니다"라 그대로 써도 된다. 페이지 자체 문구는 의식·재미로만.
+  - T 테스트: FAQ·trustNotes에 "별도 잠금 해제 후 열립니다"가 있다. 잠금 키 `sukuyo-extreme-t-relationship`이 지금 무료 목록에 있으니, 홍보 기간 문구와 어긋나지 않는지 보고 필요하면 그 항목만 걸러 낸다(원천 JSON은 고치지 않음).
+- 무료 판정 원천: `lib/payment/free-fortune-policy.mjs` `FREE_FORTUNE_FEATURE_KEYS`(saju_natal_reading·saju_fun_shared·rpt_skillTreeCard·fun.quantumLotto.ritualReport·tetogen_deep_report·sukuyo-extreme-t-relationship 포함). 가격·결제 로직은 건드리지 않고 가격도 적지 않는다.
+- 명식 페이지 사실(엔진): `js/saju-engine.js` renderManse(약 L9880~9925) — 시주·일주·월주·년주 네 기둥, 각 천간·지지에 십성 배지(일간은 "일간"), 음양·오행, 기둥마다 12신살 한 줄, 글자를 누르면 설명. 별신살 칩과 자리 표시, 없으면 "원국에서 직접 확인되는 별신살이 없어요. 없는 것 또한 부족함이나 불운을 뜻하지 않아요." `js/core/saju/manse-shinsal.js`는 "해석문이나 길흉 판정은 만들지 않고 이름과 자리만": 12신살(겁살·재살·천살·지살·년살·월살·망신살·장성살·반안살·역마살·육해살·화개살, 연지 기준), 별신살(도화살·홍염살·천을귀인·문창귀인·태극귀인·월덕귀인·천덕귀인·괴강살·백호살·양인살·공망·귀문관살·원진살). 원국 해석 묶음(`_CD_NATAL_STUBS` 약 L9332~9343, 서버 `worker/lib/saju-section/report.js` L451~457 → `paid-natal-reading.src.js`): 일주 풀이(일간·일지 성향, 일·재물·관계, 조언), 십성 풀이(많은·모자란 기운, 십성 장면), 조후 풀이(한난조습, 맞는 계절·환경, 컨디션), 억부 풀이(센·약한 편, 살리는·조심할 기운), 절기 풀이.
+- 절기 페이지 사실: `index.html` L18579~18584 terms24Card "내 절기 리듬 (月令)". `paid-natal-reading.src.js` L487~720 — 월지별 계절(寅卯 봄 목왕절, 辰 봄의 토왕 환절기, 巳午 여름 화왕절, 未 여름 토왕 환절기, 申酉 가을 금왕절, 戌 가을 토왕 환절기, 亥子 겨울 수왕절, 丑 겨울 토왕 환절기), "마음을 여는 속도"(봄·여름 빠름 / 가을·겨울 느림 / 환절기 조율), 절입 구간 안 위치 초입(28% 미만)·중반·마무리(72% 초과)와 진행 막대, 절입 경계 하루 안 출생은 주의 문구, 출생 시각 모르면 막대·위치 없이 월령·계절 해석 + 24절기표만. 영역 카드: 타고난 성향·사람을 받아들이는 방식·연애할 때·일과 돈·컨디션(조후 메모). 근거 칩: 월주·월령·절입·조후·보완 기운·주의 리듬. 24절기표(`<details>`)에 내 생월 절입 강조. 계절 그림 `/images/saju/nature/{spring,summer,autumn,winter}-{480,960}.webp`, 연이 `yeoni-greet.webp`.
+- 그림 후보: fun 7개는 `public/fuctionassets/{사주 네컷,도파민 중독,테토VS에겐,극T테스트,사주 로또,사주 프롬프트,RPG 인생 스킬트리}.webp`(+ `public/images/feature-details/life-skill-tree-*.webp`, `public/images/psychotest/bmovie-v1/dopamine-*.webp`). 명식·절기용 fuctionassets 톤 그림은 없다. 후보 `public/feature-details/assets/manse-*.webp`, `public/images/feature-details/manse-hero-v2.webp`, `/images/saju/nature/*`는 톤이 달라 11a 생성이 필요할 가능성이 높다(나란히 비교 후 결정).
+- 재사용할 부품: `app/components/SeoLandingTemplate.jsx` — `FOCUS_RING`, `SectionHead`, 빵부스러기 nav(min-h-11), h1 `font-[family-name:var(--font-serif)] text-[clamp(2.15rem,6vw,4rem)]`, 주 버튼 `bg-[var(--cd-primary)] text-[var(--cd-primary-ink)] min-h-12`, 단계 ol·결과 ul·FAQ `<details>`, `ContentIntegrityNote tone="light"`, main `bg-[var(--cd-bg)] px-4 pb-16 pt-6`, 컨테이너 `max-w-5xl`, JSON-LD는 `serializeJsonLd`(lib/seo/json-ld.mjs) + `buildBreadcrumbJsonLd`·`buildWebPageJsonLd`·`buildFaqPageJsonLd`(lib/structured-data.ts L137·L150·L255). 부품이 파일 안 지역 함수라 export하거나 공용 파일로 빼야 재사용된다(평행 시스템 금지). 페이지 패턴은 `app/saju/compatibility/page.js`(`buildSeoMetadata({ path, hreflang, title, description, keywords })`, lib/seo.ts L71).
+
+아직 읽지 않은 것(다음 에이전트 첫 확인)
+- `lib/seo/entity-registry.mjs` SEO_ROUTE_PROFILES 형식, `scripts/generate-sitemap.mjs` coreRoutes(약 L99), 애드센스 준비 검사 스크립트의 글자 수 계산(1,300자 기준과 푸터 포함 여부), `scripts/verify-saju-fun-content-gate*`, worker `/saju/*` 라우팅·`_routes`·redirects.
+- `__tests__/ui/free-promo.test.mjs`(href마다 `app${href}page.*`, index.html `href="${href}" data-cd-free-promo-item="${id}"`, `i18n/authored/freePromo-01.json` 12개 로케일 `freePromo.item.<id>`를 요구).
+- 배너 파일 4개와 `.claude/agents/visual-checker.md`, `codex-image` 스킬.
