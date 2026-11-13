@@ -5,7 +5,8 @@ const tea={service:'tea',name:'가상 찻집 사주',featureKey:'fortune-tea-hou
 const neo={service:'neo',name:'가상 네오 전략 상담',featureKey:'neo-operation-room-consultation',path:'/neo-operation-room/result/'};
 const heukwol={service:'heukwol',name:'가상 흑월 상담',featureKey:'heukwol-warning-consultation',path:'/heukwol/'};
 const dream={service:'dream',name:'가상 정신분석 해몽',featureKey:'dream-psycho-analysis',path:'/dream/psycho/'};
-const rooms=[tea,neo,heukwol,dream];
+const naming={service:'naming',name:'가상 사주 작명첩',featureKey:'premium-naming-prompt',path:'/naming-ai/result/'};
+const rooms=[tea,neo,heukwol,dream,naming];
 export const roomProducts=rooms.map(room=>({
   id:'native:'+room.service+':'+room.featureKey,name:room.name,featureKey:room.featureKey,
   sku:'mock-unregistered-room-'+room.service,available:true,approvedPriceKRW:1,
@@ -28,9 +29,9 @@ export function roomPurchases(state){
     const room=rooms.find(item=>item.service===row.service);
     return {requestId:row.id,orderId:row.orderId,sku:row.sku,serviceId:room.service,nativeService:room.service,
       productId:room.featureKey,status:'PURCHASED',state:row.result?'COMPLETED':'PENDING',createdAt:row.createdAt,
-      href:room===dream?room.path+'?intentId='+row.id:room.service==='heukwol'?room.path+'?result='+row.id:room.service==='neo'?room.path+'?attemptId='+encodeURIComponent(row.result?row.resultId:'toss_'+row.id):
+      href:room===dream||room===naming?room.path+'?intentId='+row.id:room.service==='heukwol'?room.path+'?result='+row.id:room.service==='neo'?room.path+'?attemptId='+encodeURIComponent(row.result?row.resultId:'toss_'+row.id):
         room.path+'?'+(row.result?'resultId=':'recoverResultId=')+encodeURIComponent(row.resultId),
-      question:row.input.question||row.input.dreamText,resultId:row.resultId};
+      question:room===naming?row.input.input.familyName+' 작명첩':row.input.question||row.input.dreamText,resultId:row.resultId};
   });
 }
 export async function roomRequest(request,url,path,state,save,now){
@@ -44,7 +45,7 @@ export async function roomRequest(request,url,path,state,save,now){
     }
     if(post&&match[2]==='prepare'){
       const {input,orderId}=await request.json(),key=requestKey(input);
-      const valid=room===dream?typeof input?.dreamText==='string'&&input.dreamText.trim().length>=8&&input.dreamText.length<=6000:input?.question;
+      const valid=room===naming?input?.input?.familyName&&input.input.birthDate:room===dream?typeof input?.dreamText==='string'&&input.dreamText.trim().length>=8&&input.dreamText.length<=6000:input?.question;
       if(!key||!valid||input.featureKey&&input.featureKey!==room.featureKey)return fail('REQUEST_INPUT_MISMATCH',400);
       if(room===heukwol){const card=state.profiles.find(p=>p.profileId===input.profileId);if(!card)return fail('PROFILE_REQUIRED',400);if(card.birth?.timeUnknown!==false)return fail('BIRTH_TIME_REQUIRED',400);}
       let row=[...state.intents.values()].find(item=>item.service===room.service&&requestKey(item.input)===key);
@@ -85,6 +86,22 @@ export async function roomRequest(request,url,path,state,save,now){
     }));
     const letters=[...state.letters.values()].filter(r=>r.paid&&(!group||group==='all'||group==='chat')&&!source&&(!q||r.consultation.question.includes(q))).map(r=>({id:r.id,key:r.persona+':'+r.orderId,group:'chat',source:r.persona,serviceId:r.persona,serviceName:(r.persona==='neo'?'네오':'연이')+' 상담 편지',character:r.persona,title:r.consultation.question,question:r.consultation.question,createdAt:r.createdAt,status:'completed',href:'/fortune-tea-house/?counsel=letter'+(r.persona==='neo'?'&persona=neo':'')+'&consultation='+r.id}));
     return reply({ok:true,items:[...items,...letters],failures:[],nextCursor:null});
+  }
+  const nameMatch=/^\/native\/naming\/results\/([a-f0-9]{64})$/.exec(path);
+  if(nameMatch){
+    const row=state.intents.get(nameMatch[1]);
+    if(row?.service!=='naming'||!row.paid)return fail('RESULT_NOT_FOUND',404);
+    if(post&&!row.result){
+      row.progress=(row.progress||0)+1;
+      if(row.progress===2){
+        const body='[테스트 전용] 저장된 작명 상담 원문입니다.';
+        row.result={id:row.id,status:'completed',saved:true,generatedResult:body,generatedPrompt:'[테스트 전용] 작명 프롬프트',inputSnapshot:row.input.input,
+          nameCards:[],chapters:{1:{id:1,title:'모의 작명 해석',body}},totalChapters:1,completedChapters:['1']};
+        row.generationCount=1;
+      }
+      save();
+    }
+    return row.result?reply({ok:true,result:row.result}):reply({ok:true,retryable:true,status:'generating',resumeBody:{resumeExecutionId:row.id}},202);
   }
   const dreamMatch=/^\/native\/dream\/results\/([a-f0-9]{64})$/.exec(path);
   if(dreamMatch){

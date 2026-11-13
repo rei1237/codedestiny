@@ -34,6 +34,8 @@ const stubMap={
  'worker/toss/native-life-book.js':"export const prepareNativeLifeBook=()=>{};export const handleNativeLifeBook=()=>{};export const nativeLifeBookLibraryItem=()=>{};",
  'worker/toss/native-heukwol.js':"export const prepareHeukwol=async()=>({paid:false}),heukwolWave=async()=>({status:'generating'}),heukwolLibraryItem=async()=>({state:'PENDING'});",
  'worker/toss/native-dream.js':"export const prepareDream=async()=>({paid:false}),readDream=async()=>Response.json({status:'generating'}),dreamLibraryItem=async()=>({state:'PENDING'});",
+ 'worker/toss/native-naming.js':"export const prepareNativeNaming=async()=>({paid:false}),readNativeNaming=async()=>Response.json({status:'generating'}),namingLibraryItem=async()=>({state:'PENDING'});",
+ 'worker/routes/naming-prompt.js':"export const handleNamingPromptRoutes=async()=>Response.json({ok:true,candidates:[]});",
  'worker/toss/native-maya.js':"import {TossError} from './policy.js';const state=globalThis.__tossRouteMocks;export const prepareNativeMaya=(...args)=>{state.nativeMaya.push(['prepare',...args]);return {id:'offline-intent'};};export const readNativeMaya=(...args)=>{state.nativeMaya.push(['read',...args]);if(state.nativeFailure)throw new TossError(state.nativeFailure.code,state.nativeFailure.status);return {state:'PENDING'};};export const nativeMayaLibraryItem=()=>{};",
  'worker/toss/native-karma.js':"import {TossError} from './policy.js';const state=globalThis.__tossRouteMocks;export const prepareNativeKarma=(...args)=>{state.nativeKarma.push(args);return {id:'offline-intent'};};export const handleNativeKarma=(...args)=>{state.nativeKarma.push(args);if(state.nativeFailure)throw new TossError(state.nativeFailure.code,state.nativeFailure.status);return Response.json({ok:true,source:'original-karma'});};export const nativeKarmaLibraryItem=()=>{};",
  'worker/toss/native-new-year.js':"import {TossError} from './policy.js';const state=globalThis.__tossRouteMocks;export const prepareNativeNewYear=(...args)=>{state.nativeNewYear.push(args);return {id:'offline-intent'};};export const handleNativeNewYear=(...args)=>{state.nativeNewYear.push(args);if(state.nativeFailure)throw new TossError(state.nativeFailure.code,state.nativeFailure.status);return Response.json({ok:true,source:'original-new-year'});};export const nativeNewYearLibraryItem=()=>{};",
@@ -590,5 +592,15 @@ test('personal mansion is public while pair calculation requires an account',asy
  try{
   assert.equal((await request({},'/nakshatra/resolve',{})).status,200);
   assert.notEqual((await request({a:{},b:{}},'/nakshatra/compat',{})).status,200);
+ }finally{mocks.denyAuth=false;}
+});
+
+test('naming basis is public while the paid naming path requires the released Worker and its account',async()=>{
+ mocks.denyAuth=true;
+ try{
+  const free=await request({input:{familyName:'김'}},'/canonical/naming-prompt/basis',{});
+  assert.equal(free.status,200);assert.deepEqual((await free.json()).candidates,[]);
+  assert.equal((await request({},'/native/naming/prepare',{})).status,503);
+  assert.equal((await request({},'/native/naming/prepare')).status,401);
  }finally{mocks.denyAuth=false;}
 });

@@ -167,7 +167,8 @@ function buildResultEndpoint(executionId: string) {
   return `/api/naming-prompt/result/${encodeURIComponent(executionId)}`;
 }
 
-export default function NamingAiResultClient() {
+export type NamingNativeRead=(intentId:string,advance:boolean)=>Promise<{status:number;data:ResultEnvelope}>;
+export default function NamingAiResultClient({nativeRead}:{nativeRead?:NamingNativeRead}={}) {
   const [executionId, setExecutionId] = useState("");
   const [queryReady, setQueryReady] = useState(false);
   const [result, setResult] = useState<NamingResult | null>(null);
@@ -186,9 +187,9 @@ export default function NamingAiResultClient() {
   const [readingChapter, setReadingChapter] = useState(1);
 
   useEffect(() => {
-    setExecutionId(toText(new URLSearchParams(window.location.search).get("executionId")));
+    setExecutionId(toText(new URLSearchParams(window.location.search).get(nativeRead?"intentId":"executionId")));
     setQueryReady(true);
-  }, []);
+  }, [nativeRead]);
 
   // 생성 대기 중에만 작명 단계 문구를 회전시킨다.
   useEffect(() => {
@@ -234,8 +235,8 @@ export default function NamingAiResultClient() {
       return { status: response.status, data: await response.json() as ResultEnvelope };
     };
     void runNamingReader(executionId, {
-      get: (id: string) => read(buildResultEndpoint(id)),
-      post: (body: Record<string, unknown>) => read("/api/naming-prompt/generate", body),
+      get: (id: string) => nativeRead?nativeRead(id,false):read(buildResultEndpoint(id)),
+      post: (body: Record<string, unknown>) => nativeRead?nativeRead(executionId,true):read("/api/naming-prompt/generate", body),
       show: (value: NamingResult) => { if (active()) { setResult(value); setLoading(false); } },
       active, visible: () => document.visibilityState !== "hidden" && navigator.onLine !== false,
       wait: (ms: number) => new Promise(resolve => window.setTimeout(resolve, ms)),
@@ -248,7 +249,7 @@ export default function NamingAiResultClient() {
       setFailed(true); setError(friendlyErrorMessage(caught, COPY.errGenerateFailed)); setLoading(false);
     });
     return () => { alive = false; };
-  }, [queryReady, executionId, retryKey, deliveryOwner, captureDelivery]);
+  }, [queryReady, executionId, retryKey, deliveryOwner, captureDelivery, nativeRead]);
 
   const sections = useMemo(
     () =>

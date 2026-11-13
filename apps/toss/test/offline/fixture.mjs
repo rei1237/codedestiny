@@ -52,6 +52,14 @@ function createAccountFixture(storage,owner,token,now){
    const {freeTarotReading}=await import('../../../../worker/toss/tarot-library.js');const {flowId,input}=await request.json();return respond(await freeTarotReading(flowId,input));
   }
   if(path==='/tarot-library/catalog'&&method==='GET')return respond({flows:[]});
+  if(path==='/canonical/naming-prompt/basis'&&method==='POST'){
+   const {input}=await request.json();
+   try{
+    const {namingBasisV2}=await import('../../../../worker/naming-engine/service.ts');
+    const [year,month,day]=String(input.birthDate||'').split('-').map(Number);
+    const {view}=namingBasisV2({...input,year,month,day});return respond({ok:true,...view});
+   }catch{return respond({error:'INVALID_NAMING_INPUT'},422);}
+  }
   if(path==='/canonical/yeongnyangi/products'&&method==='GET')return handleReviewFixture(request,url,path,state,save,now);
   if(!state.loggedIn||request.headers.get('Authorization')!=='Bearer '+token)return denied();
   if(path==='/logout'&&method==='POST'){state.loggedIn=false;save();return respond({ok:true});}

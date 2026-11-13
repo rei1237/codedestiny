@@ -1605,9 +1605,7 @@ async function upsertExecutionRecord(env, auth, access, inputHash, input, sajuSn
   return saveNamingDelivery(filter, { status: "completed", consumedAt: generatedAt, completedAt: generatedAt, error: null, result });
 }
 
-async function handleCheckout(request, env) {
-  const auth = await requireAuth(request, env, { userProjection: PAID_FEATURE_ACCESS_USER_PROJECTION });
-  const body = await readJson(request);
+export async function prepareNamingInput(body) {
   const input = normalizeInput(body.input || body);
   validateInput(input);
   const sajuEvidence = await resolveSajuEvidence(input, body.sajuEvidence, body.sajuEvidenceHash);
@@ -1621,6 +1619,12 @@ async function handleCheckout(request, env) {
     }
     engineVersion = view.engineVersion;
   }
+  return { input, inputHash, sajuEvidence, engineVersion };
+}
+
+async function handleCheckout(request, env) {
+  const auth = await requireAuth(request, env, { userProjection: PAID_FEATURE_ACCESS_USER_PROJECTION });
+  const { inputHash, sajuEvidence, engineVersion } = await prepareNamingInput(await readJson(request));
   return json({
     ok: true,
     ...(engineVersion ? { engineVersion } : {}),
@@ -1684,13 +1688,15 @@ async function handleVerifyPayment(request, env) {
   });
 }
 
-async function handleGenerate(request, env, _routeContext = null, recoveryAuth = null) {
+async function handleGenerate(request, env, _routeContext = null, recoveryAuth = null, nativeAccess = null) {
   const auth = recoveryAuth || await requireAuth(request, env, { userProjection: PAID_FEATURE_ACCESS_USER_PROJECTION });
   const body = await readJson(request);
   const resumeId = clean(body.resumeExecutionId, 160);
   const stored = resumeId ? await findExecutionRecordForUser(env, auth, resumeId) : null;
   if (resumeId && !stored) throw createHttpError(404, "작명 결과를 찾을 수 없습니다.", { code: "RESULT_NOT_FOUND" });
   const original = stored?.result?.namingPrompt;
+  if(stored && Boolean(original?.tossIntentId)!==Boolean(nativeAccess))throw createHttpError(404,"작명 결과를 찾을 수 없습니다.",{code:"RESULT_NOT_FOUND"});
+  if(nativeAccess)await nativeAccess.verify(stored);
   if (stored && await isPaidResultRevoked(auth.userId, FEATURE_KEY, [stored.requestId, stored.idempotencyKey, stored.paymentId, stored.orderId])) throw createHttpError(403, "취소·환불된 작명 결과입니다.", { code: "PAYMENT_REVOKED" });
   if (stored?.status === "completed") return json({ ok: true, result: serializeExecutionResult(stored) });
   const input = normalizeInput(body.input || original?.inputSnapshot || {});
@@ -1699,7 +1705,7 @@ async function handleGenerate(request, env, _routeContext = null, recoveryAuth =
   const expectedInputHash = await buildNamingOrderHash(input, sajuEvidence.evidenceHash);
   const inputHash = clean(body.inputHash, 160) || original?.inputHash || expectedInputHash;
   if (inputHash !== expectedInputHash) throw createHttpError(409, "입력값과 사주 계산 기준이 결제 전 스냅샷과 일치하지 않습니다.", { code: "INPUT_HASH_MISMATCH" });
-  const access = original?.access || await verifyNamingAccess(env, auth, body, inputHash);
+  const access = nativeAccess ? nativeAccess.access : original?.access || await verifyNamingAccess(env, auth, body, inputHash);
   if (await isPaidResultRevoked(auth.userId, FEATURE_KEY, [access.requestId, access.evidenceId, access.paymentId])) throw createHttpError(403, "취소·환불된 작명 결과입니다.", { code: "PAYMENT_REVOKED" });
   const payment = access.payment || null;
   const existing = payment ? serializeResult(payment) : null;
@@ -1742,7 +1748,7 @@ async function handleGenerate(request, env, _routeContext = null, recoveryAuth =
     throw createHttpError(422, "사주 계산 근거 확인이 필요합니다.", { code: "CALCULATION_UNAVAILABLE" });
   }
   const v1Delivery = { version: 1, attempts: {}, chapters: {}, candidates: null };
-  const commonDetails = { locale, evidenceHash: await buildSajuEvidenceHash(sajuSnapshot), originalEvidence: sajuEvidence.evidence,
+  const commonDetails = { ...(nativeAccess ? { tossIntentId:nativeAccess.id } : {}), locale, evidenceHash: await buildSajuEvidenceHash(sajuSnapshot), originalEvidence: sajuEvidence.evidence,
     access: Object.fromEntries(["accessMethod", "accessType", "evidenceId", "paymentId", "requestId", "profileId", "evidence"].map(key => [key, access[key]]).filter(([, value]) => value !== undefined)) };
   const details = engine
     ? { ...commonDetails, engineVersion: engine.engineVersion, engine, delivery: v2.initialDelivery(engine) }
@@ -1821,9 +1827,10 @@ async function handleResult(request, env, id) {
   const auth = await requireAuth(request, env, { userProjection: PAID_FEATURE_ACCESS_USER_PROJECTION });
   await connectDb(env);
   const record = id === "pending" ? await PaidExecutionRecord.findOne({ userId: String(auth.userId), featureId: FEATURE_KEY,
-    status: { $in: ["generating", "partial", "delivery_pending"] } }).sort({ createdAt: -1 }).lean() : await findExecutionRecordForUser(env, auth, id);
+    "result.namingPrompt.tossIntentId": { $exists: false }, status: { $in: ["generating", "partial", "delivery_pending"] } }).sort({ createdAt: -1 }).lean() : await findExecutionRecordForUser(env, auth, id);
   if (id === "pending" && !record) return json({ ok: true, result: null });
   if (record) {
+    if(record.result?.namingPrompt?.tossIntentId)throw createHttpError(404,"작명 결과를 찾을 수 없습니다.",{code:"RESULT_NOT_FOUND"});
     if (await isPaidResultRevoked(auth.userId, FEATURE_KEY, [record.requestId, record.idempotencyKey, record.paymentId, record.orderId])) {
       throw createHttpError(403, "취소·환불된 작명 결과입니다.", { code: "PAYMENT_REVOKED" });
     }
@@ -1871,8 +1878,24 @@ export async function handleNamingPromptRoutes(request, env, ctx = null) {
 
 export const __namingPromptExecutionTestUtils = { beginNamingGeneration, upsertExecutionRecord, withApprovedSajuFacts, withApprovedNamingView };
 
-export function resumeConsultationOnServer(env, doc) {
+export async function generateNamingForToss(env,auth,body,nativeAccess) {
+  const req=new Request('https://internal.invalid/api/naming-prompt/generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+  const response=await handleGenerate(req,env,null,auth,nativeAccess);
+  await nativeAccess.verify();
+  return response;
+}
+export function storedNamingResponse(record){
+  if(record.status==='completed')return json({ok:true,result:serializeExecutionResult(record)});
+  if(['generating','partial','delivery_pending'].includes(record.status))return namingPendingResponse(record);
+  return json({ok:false,retryable:false,reason:'RESULT_NOT_AVAILABLE'},{status:409});
+}
+
+export async function resumeConsultationOnServer(env, doc) {
   if (!doc?.userId || !doc.executionId) throw new Error("RECOVERY_doc.executionId_REQUIRED");
+  if(doc.result?.namingPrompt?.tossIntentId){
+    const {resumeNativeNaming}=await import('../toss/native-naming.js');
+    return resumeNativeNaming(env,doc);
+  }
   const request = new Request("https://internal.invalid/api/naming-prompt/resume", { method: "POST", headers: { "content-type": "application/json" },
     body: JSON.stringify({ resumeExecutionId: String(doc.executionId) }) });
   return handleGenerate(request, env, undefined, { userId: String(doc.userId) });

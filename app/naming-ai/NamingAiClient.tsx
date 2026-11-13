@@ -15,6 +15,7 @@ import {
   runBillingCoinGate,
 } from "@/app/_lib/billing-client";
 import { useAiProfileSeed } from "@/app/hooks/useAiProfileSeed";
+import type {AiPrefillSeed} from "@/app/_lib/ai-prefill-seed";
 import { usePaidDeliveryScope } from "@/app/hooks/usePaidDeliveryScope";
 import { packPaidResumeArg, unpackPaidResumeArg, usePaidResume } from "@/app/hooks/usePaidResume";
 import { PriceBadge } from "@/app/components/PriceBadge";
@@ -2025,19 +2026,32 @@ const PHASE_PROGRESS: Record<Phase, number> = {
   error: 0,
 };
 
-export default function NamingAiClient() {
+export type NamingDraft = {form:FormState;step:number};
+type NamingPlatform = {
+  initialDraft?:NamingDraft;
+  saveDraft?:(draft:NamingDraft)=>void;
+  start:(input:Record<string,unknown>)=>Promise<void>;
+  ready:boolean;
+  label:string;
+  price:React.ReactNode;
+  ProfilePicker:React.ComponentType<{calendarMode:'lunar';onSelect:(value:AiPrefillSeed)=>void}>;
+};
+export default function NamingAiClient({native}:{native?:NamingPlatform}={}) {
+  const ProfilePicker=native?.ProfilePicker||SavedBirthProfilePicker;
   const [clientReady, setClientReady] = useState(false);
   useEffect(() => { setClientReady(true); }, []);
   const locale = useNamingLocale();
   const copy = getNamingCopy(locale);
-  const { seed } = useAiProfileSeed();
-  const [form, setForm] = useState<FormState>(() => ({ ...INITIAL_FORM, birthPlace: getNamingCopy(getCurrentLoadingLocale()).defaultBirthPlace }));
+  const { seed } = useAiProfileSeed({enabled:!native});
+  const [form, setForm] = useState<FormState>(() => ({ ...INITIAL_FORM, birthPlace: getNamingCopy(getCurrentLoadingLocale()).defaultBirthPlace, ...native?.initialDraft?.form }));
   const [engineOptIn] = useState(readNamingEngineOptIn);
   const defaultBirthPlaceRef = useRef(form.birthPlace);
   const [phase, setPhase] = useState<Phase>("idle");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
-  const [step, setStep] = useState(0);
+  const [step, setStep] = useState(native?.initialDraft?.step || 0);
+  const saveDraft=native?.saveDraft;
+  useEffect(()=>{saveDraft?.({form,step});},[form,step,saveDraft]);
   const [recommendation, setRecommendation] = useState<{ candidates: DraftNameCandidate[]; moods: string[]; status: string } | null>(null);
   const [sajuHints, setSajuHints] = useState<NamingSajuHints | null>(null);
 
@@ -2184,9 +2198,10 @@ export default function NamingAiClient() {
 
   const { user: recoveryUser } = useAuthStore();
   const recoveryOwner = String(recoveryUser?.id || recoveryUser?.userId || recoveryUser?._id || recoveryUser?.uid || "");
-  useEffect(() => { void refreshAuth({ silent: true }).catch(() => {}); }, []);
+  const platformOwnsAuth=Boolean(native);
+  useEffect(() => { if (!platformOwnsAuth) void refreshAuth({ silent: true }).catch(() => {}); }, [platformOwnsAuth]);
   useEffect(() => {
-    if (!recoveryOwner) return;
+    if (native || !recoveryOwner) return;
     let alive = true;
     void authFetch("/api/naming-prompt/result/pending").then(async response => {
       const data = await response.json();
@@ -2195,7 +2210,7 @@ export default function NamingAiClient() {
       }
     }).catch(() => {});
     return () => { alive = false; };
-  }, [recoveryOwner]);
+  }, [recoveryOwner, Boolean(native)]);
 
   function applyCandidate(candidate: DraftNameCandidate) {
     setForm((prev) => ({
@@ -2314,6 +2329,7 @@ export default function NamingAiClient() {
   // 🔴 게이트를 다시 타지 않고 게이트 없는 코어(runVerifyAndGenerate)를 결제 직전에 굳힌 입력·inputHash 로
   //    부른다 — 복귀 문서의 form 은 기본값이라 여기서 다시 toRawInput(form) 을 하면 다른 이름이 생성된다.
   const buildResume = usePaidResume(FEATURE_KEY, async (args, grant) => {
+    if(native)return false;
     const active = captureDelivery();
     const inputHash = typeof args.inputHash === "string" ? args.inputHash : "";
     const input = unpackPaidResumeArg<Record<string, unknown>>(args.input);
@@ -2351,6 +2367,7 @@ export default function NamingAiClient() {
     try {
       setPhase("checking");
       const input = toRawInput(form);
+      if(native){await native.start(input);return;}
 
       // sajuEvidence는 보내지 않는다 — 서버(handleCheckout/handleGenerate)가
       // 자체 계산 폴백(buildFallbackSajuContext)으로 사주를 직접 산출한다.
@@ -2462,16 +2479,16 @@ export default function NamingAiClient() {
             {copy.heroDescription}
           </p>
           <ul className="mt-5 flex flex-wrap gap-2 text-xs font-semibold text-[color:var(--nm-t-e6ddfa)]">
-            {copy.heroPills.map((pill) => (
+            {(native?[]:copy.heroPills).map((pill) => (
               <li key={pill} className="rounded-full border border-[color:var(--nm-l-c4b5fd-20)] bg-[color:var(--nm-b-0a0818-50)] px-3 py-1.5">{pill}</li>
             ))}
           </ul>
           <div className="mt-4">
-            <PriceBadge featureKey={FEATURE_KEY} className={(!clientReady || engineOptIn) ? "inline-flex items-center rounded-full border border-[color:var(--nm-badge-line)] bg-[color:var(--nm-badge-fill)] px-3 py-1 text-xs font-bold text-[color:var(--nm-badge-ink)]" : undefined} />
+            {native?native.price:<PriceBadge featureKey={FEATURE_KEY} className={(!clientReady || engineOptIn) ? "inline-flex items-center rounded-full border border-[color:var(--nm-badge-line)] bg-[color:var(--nm-badge-fill)] px-3 py-1 text-xs font-bold text-[color:var(--nm-badge-ink)]" : undefined} />}
           </div>
         </header>
 
-        {locale === "ko" && !showGeneratingCard && (
+        {!native && locale === "ko" && !showGeneratingCard && (
           <div style={{ width: "100%", maxWidth: 540, margin: "0 auto" }}>
             <CraftedProductDisclosure featureKey={FEATURE_KEY} />
           </div>
@@ -2525,7 +2542,7 @@ export default function NamingAiClient() {
                 <section className={`${PANEL} p-6 sm:p-7`}>
                   <div className="mb-4 flex flex-wrap items-center justify-between gap-2.5">
                     <h2 className="text-lg font-black text-[color:var(--nm-t-f4eeff)] [font-family:var(--font-display)]">{copy.step0Heading}</h2>
-                    <SavedBirthProfilePicker calendarMode="lunar" onSelect={next => setForm(prev => ({...prev, gender:next.gender === "male" ? "M" : next.gender === "female" ? "F" : "", birthDate:next.birthDate || "", birthTime:next.birthTime || "", birthTimeUnknown:Boolean(next.birthTimeUnknown), calendarType:next.calendarType || "solar", birthPlace:next.region || "", timezone:next.timezone || ""}))} />
+                    <ProfilePicker calendarMode="lunar" onSelect={next => setForm(prev => ({...prev, gender:next.gender === "male" ? "M" : next.gender === "female" ? "F" : "", birthDate:next.birthDate || "", birthTime:next.birthTime || "", birthTimeUnknown:Boolean(next.birthTimeUnknown), calendarType:next.calendarType || "solar", birthPlace:next.region || "", timezone:next.timezone || ""}))} />
                   </div>
                   <div className="grid gap-3.5 sm:grid-cols-2">
                     <label className={LABEL}>
@@ -2933,7 +2950,7 @@ export default function NamingAiClient() {
               <div>
                 <h2 className="text-lg font-black text-[color:var(--nm-t-f4eeff)] [font-family:var(--font-display)]">{copy.sidebarHeading}</h2>
                 <p className="mt-1.5 text-sm leading-relaxed text-[color:var(--nm-t-c8aaff-85)]">
-                  {copy.sidebarDescription}
+                  {native?'입력한 출생정보와 선호를 바탕으로 개인 작명첩을 준비합니다.':copy.sidebarDescription}
                 </p>
               </div>
 
@@ -2957,17 +2974,17 @@ export default function NamingAiClient() {
 
               <button
                 type="submit"
-                disabled={busy || missing.length > 0}
+                disabled={busy || missing.length > 0 || Boolean(native&&!native.ready)}
                 className={`min-h-12 rounded-full [background-image:var(--nm-seal-fill)] px-5 text-sm font-black text-[color:var(--nm-t-0a0818)] transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-50 ${VIOLET_GLOW}`}
               >
                 {busy
                   ? copy.submitBusy
                   : missing.length
                     ? copy.submitMissing(missing[0])
-                    : copy.submitDefault}
+                    : native?.label||copy.submitDefault}
               </button>
 
-              {phase === "error" && !busy && (
+              {!native && phase === "error" && !busy && (
                 <button
                   type="button"
                   onClick={() => void handleRetry()}
@@ -2978,7 +2995,7 @@ export default function NamingAiClient() {
               )}
 
               <p className="text-xs leading-relaxed text-[color:var(--nm-t-c8aaff-65)]">
-                {copy.footerNote}
+                {native?<a href="/records/">꿀꿀운세 구매 기록</a>:copy.footerNote}
               </p>
             </aside>
           </form>))
