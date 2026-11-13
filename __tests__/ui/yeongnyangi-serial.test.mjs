@@ -7,12 +7,15 @@ import { completeness, formatKst, latestEpisode, nextRelease, publishedEpisodes,
 const allFiles = { fileExists: () => true };
 const at = (iso, minutes = 0) => new Date(Date.parse(iso) + minutes * 60000);
 const slugs = (now, options = allFiles) => publishedEpisodes(now, options).map(episode => episode.slug);
-const EP2 = SEASON_ONE.episodes[1].publishAt;
+const EP2 = SEASON_ONE.episodes[0].publishAt;
 
-test('season 1 runs six weekly episodes on Saturday 21:00 KST, ep1 to ep3 ready and the rest draft', () => {
-  assert.equal(SEASON_ONE.episodes.length, 6);
-  assert.deepEqual(SEASON_ONE.episodes.map(episode => episode.status), ['ready', 'ready', 'ready', 'draft', 'draft', 'draft']);
-  for (const episode of SEASON_ONE.episodes.slice(1)) {
+test('season 1 opens with the prologue, then ep2 to ep6 weekly on Saturday 21:00 KST, ep2 and ep3 ready and the rest draft', () => {
+  assert.equal(SEASON_ONE.prologue.href, '/yeongnyangi/season-1/prologue/');
+  assert.equal(SEASON_ONE.episodes.length, 5);
+  assert.deepEqual(SEASON_ONE.episodes.map(episode => episode.slug), ['ep2', 'ep3', 'ep4', 'ep5', 'ep6']);
+  assert.deepEqual(SEASON_ONE.episodes.map(episode => episode.no), [2, 3, 4, 5, 6]);
+  assert.deepEqual(SEASON_ONE.episodes.map(episode => episode.status), ['ready', 'ready', 'draft', 'draft', 'draft']);
+  for (const episode of SEASON_ONE.episodes) {
     const kst = new Date(Date.parse(episode.publishAt) + 9 * 3600000);
     assert.equal(kst.getUTCDay(), 6, episode.slug);
     assert.equal(kst.getUTCHours(), 21, episode.slug);
@@ -20,25 +23,25 @@ test('season 1 runs six weekly episodes on Saturday 21:00 KST, ep1 to ep3 ready 
 });
 
 test('an episode opens exactly at its publish time, not one minute before', () => {
-  assert.deepEqual(slugs(at(EP2, -1)), ['ep1']);
-  assert.deepEqual(slugs(at(EP2, 0)), ['ep1', 'ep2']);
-  assert.deepEqual(slugs(at(EP2, 1)), ['ep1', 'ep2']);
-  assert.equal(latestEpisode(at(EP2, -1), allFiles).slug, 'ep1');
+  assert.deepEqual(slugs(at(EP2, -1)), []);
+  assert.deepEqual(slugs(at(EP2, 0)), ['ep2']);
+  assert.deepEqual(slugs(at(EP2, 1)), ['ep2']);
+  assert.equal(latestEpisode(at(EP2, -1), allFiles), null);
   assert.equal(latestEpisode(at(EP2, 1), allFiles).slug, 'ep2');
 });
 
 test('draft episodes stay hidden after their date and the next release reveals no title', () => {
   const late = new Date('2027-01-01T00:00:00+09:00');
-  assert.deepEqual(slugs(late), ['ep1', 'ep2', 'ep3']);
+  assert.deepEqual(slugs(late), ['ep2', 'ep3']);
   assert.deepEqual(nextRelease(late, allFiles), { no: 4, publishAt: null });
-  assert.deepEqual(Object.keys(nextRelease(at(EP2, -1), allFiles)).sort(), ['no', 'publishAt']);
+  assert.deepEqual(nextRelease(at(EP2, -1), allFiles), { no: 2, publishAt: EP2 });
 });
 
 test('an incomplete ready episode is held instead of published on schedule', () => {
   const missing = { fileExists: file => !file.includes('ep2') };
-  assert.deepEqual(slugs(at(EP2, 1), missing), ['ep1']);
-  assert.ok(completeness(SEASON_ONE.episodes[1], missing).some(problem => problem.startsWith('missing')));
-  const oneCut = { ...allFiles, cuts: { ep1: { cuts: [] } } };
+  assert.deepEqual(slugs(at(EP2, 1), missing), []);
+  assert.ok(completeness(SEASON_ONE.episodes[0], missing).some(problem => problem.startsWith('missing')));
+  const oneCut = { ...allFiles, cuts: { ep2: { cuts: [] } } };
   assert.deepEqual(slugs(at(EP2, 1), oneCut), []);
 });
 

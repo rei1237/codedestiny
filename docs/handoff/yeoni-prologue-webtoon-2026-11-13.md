@@ -1,7 +1,7 @@
 ---
-status: in-progress
+status: done
 updated: 2026-11-13
-next: 2단계 — __tests__/ui/yeongnyangi-serial.test.mjs 수정 + yeongnyangi-prologue.test.mjs 추가 후 테스트 실행
+next: 없음 — 푸시·배포는 사용자 요청 시에만(2화 공개 2026-11-14 21:00 전 배포 여부 결정 필요)
 ---
 
 # 서가 대표 웹툰 → 프롤로그 「운명을 알고 싶다」 교체
@@ -37,12 +37,24 @@ next: 2단계 — __tests__/ui/yeongnyangi-serial.test.mjs 수정 + yeongnyangi-
 
 ## 단계
 - [x] 1. 구현·에셋·출처 기록 (b83141a34)
-- [ ] 2. 테스트: `__tests__/ui/yeongnyangi-serial.test.mjs`를 회차 5개·상태 [ready,ready,draft,draft,draft]·ep1 없는 slug·oneCut 키 ep2·프롤로그 href로 수정. 신규 `__tests__/ui/yeongnyangi-prologue.test.mjs`(24쪽·alt 비어있지 않음·avif/webp 파일 존재·StoryDiscovery가 PROLOGUE.href 사용). `node --test` 세 파일(+consultation-webtoon-entry) 후 `npm test`, 가능하면 typecheck/lint.
-- [ ] 3. `SERIAL_NOW=2026-11-13T12:00:00+09:00 node scripts/publish-yeongnyangi-serial.mjs --check` — ep1 없고 ep2 예정인지.
-- [ ] 4. 브라우저 검증(390×844, 1280): 홈 서가, /yeongnyangi/season-1/, /yeongnyangi/season-1/prologue/(쪽 순서, CLS, 바 숨김/표시, 진행, 이어 보기, 끝 카드, 가로 스크롤 없음), 이용 안내 모달. 스크린샷은 scratchpad 또는 D:.
-- [ ] 5. 수정분 커밋, 이 문서 status: done.
+- [x] 2. 테스트: `__tests__/ui/yeongnyangi-serial.test.mjs`를 회차 5개·상태 [ready,ready,draft,draft,draft]·ep1 없는 slug·oneCut 키 ep2·프롤로그 href로 수정. 신규 `__tests__/ui/yeongnyangi-prologue.test.mjs`(24쪽·alt 비어있지 않음·avif/webp 파일 존재·StoryDiscovery가 PROLOGUE.href 사용). `node --test` 세 파일(+consultation-webtoon-entry) 후 `npm test`, 가능하면 typecheck/lint.
+- [x] 3. `SERIAL_NOW=2026-11-13T12:00:00+09:00 node scripts/publish-yeongnyangi-serial.mjs --check` — ep1 없고 ep2 예정인지.
+- [x] 4. 브라우저 검증(390×844, 1280): 홈 서가, /yeongnyangi/season-1/, /yeongnyangi/season-1/prologue/(쪽 순서, CLS, 바 숨김/표시, 진행, 이어 보기, 끝 카드, 가로 스크롤 없음), 이용 안내 모달. 스크린샷은 scratchpad 또는 D:.
+- [x] 5. 수정분 커밋, 이 문서 status: done.
+
+## 결과 (2026-11-13)
+- 2단계: serial·prologue·consultation-webtoon-entry 세 파일 `node --test` 15/15 통과. `npm test` — jest 476 스위트·7978 통과(1 skip), node 5020 중 5019 통과·1 실패. 실패는 `__tests__/fortune/sky-and-range.test.mjs`(워크트리에 생성 데이터 `fortune/data/daily-2026-11-13.json` 없음, `npm run fortune:build-data` 필요). origin/main(a6158fde0)에서도 같은 실패라 이번 변경과 무관. `tsc --noEmit` 오류 0, 변경 경로 `eslint --quiet` 오류 0. 구현 수정 없음.
+- 3단계 `--check`: ep2 scheduled 2026-11-14T21:00, ep3 scheduled 2026-11-21T21:00, ep4~6 held(draft, 0 cuts). ep1 없음.
+- 4단계(`npm run dev` 목업 + Playwright, 390×844·1280×900):
+  - 홈 서가 대표 카드 href = 프롤로그. 최신화 보조 링크는 공개 회차가 아직 없어 미표시(정상).
+  - `/yeongnyangi/season-1/`: ep1 링크 0, 프롤로그 카드와 2화 공개 예정 안내.
+  - 리더: 24쪽 순서·1122×1402·alt 정상, 쪽 사이 틈 0, CLS 0.0000/0.0001, 가로 스크롤 0. 아래로 스크롤하면 바 숨김, 위로 올리면 표시, 끝에서 표시. 진행 0→1, 끝까지 읽으면 저장값 삭제. 끝 카드 「다음 화 11월 14일(토) 21:00 공개」.
+  - 이어 보기: 8쪽 저장 뒤 다른 페이지를 거쳐 재진입하면 안내 표시, 누르면 8쪽으로 이동. 새로고침은 브라우저가 스크롤을 복원해 안내가 곧바로 닫힌다(의도대로).
+  - 이용 안내 모달: cushion-07(720×1080)·cushion-05(720×480) 로드 확인.
+  - 콘솔 오류는 목업 API 501뿐. 새 영냥이 이미지 없음(귀 검수 생략).
+  - 스크린샷: `D:\Development\Temp\claude\ec29f026d20d029c\ac1fd0fa-6f06-46d3-877c-2e763561c6d9\scratchpad\shots\`(m-*·d-*).
 
 ## 보고할 위험
 - 2화 「젖은 봉투」는 1화의 방석에 눌린 봉투에서 이어져, 1화를 빼면 도입 맥락이 약해진다(대사 미수정).
 - 2화 공개 2026-11-14 21:00. 배포 전까지 운영에는 반영 안 됨.
-- 사이트맵 미변경(프롤로그 경로 미포함 여부 확인 필요).
+- 사이트맵 미변경: sitemap.xml·public/sitemap.xml 모두 프롤로그 경로 미포함(시즌 목차만 있음). 넣을지는 결정 필요.
