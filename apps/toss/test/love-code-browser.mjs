@@ -8,7 +8,7 @@ try{
  const foreign=[];
  await ctx.route('**/*',route=>{const u=new URL(route.request().url());if(u.origin===origin)return route.continue();if(route.request().method()==='POST')foreign.push(u.pathname);return route.abort();});
  const p=await ctx.newPage();p.setDefaultTimeout(25000);
- await p.goto(origin);await p.locator('.world-entry-ggulggul').click();await p.getByRole('button',{name:/사주 리포트/}).click();
+ await p.goto(origin);await p.locator('.world-entry-ggulggul').click();await p.getByRole('button',{name:/^사주 리포트/}).click();
  await p.getByRole('button',{name:/러브 코드/}).click();
  await p.getByRole('button',{name:'캐릭터 선택하기'}).click();
  assert.equal(await p.locator('article[aria-expanded]').count(),16);

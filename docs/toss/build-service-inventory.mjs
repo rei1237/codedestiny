@@ -276,6 +276,12 @@ for(const row of rows){
  row.toss.canonicalRoute=group.tossRoute;
 }
 const readJson = file => JSON.parse(fs.readFileSync(path.join(root,file),'utf8'));
+const archiveEvidence = readJson('docs/toss/ait-verification-20261114.json');
+function routeKey(route){
+ const url=new URL(route,'https://example.invalid');
+ url.searchParams.sort();
+ return url.pathname.replace(/\/$/,'')+url.search+url.hash;
+}
 const ledger = readJson('docs/product-details/product-ledger.json');
 const {products,chatDomains,chatQuestionProducts} = loadTsModule('worker/yeongnyangi/payments/catalog.ts');
 const {consultationDomain,consultationKinds,supportsKind,consultationManifest} = loadTsModule('worker/yeongnyangi/fortune/consultation-kinds.ts');
@@ -452,6 +458,7 @@ for(const group of canonicalCandidates){
  }
  if(['manse','vedic','pet-saju'].includes(group.id))group.verification=(group.verification?group.verification+' · ':'')+'guest-calculators-browser.mjs 360px 홈, 비회원 계산. 기본 베다 local Swiss 원본, 만세력 원본 대운·명식, 반려동물 원본 오행·유료 로그인 경계';
  if(['vedic-ai','ziwei-ai','astrology-ai','new-year-ai','karma-destiny-ai','sukuyo-compatibility-ai','fusion-fortune','love-secret-ai'].includes(group.id))group.verification='expert-purchase-browser.mjs 7종 및 sukuyo-expert-browser.mjs 1종. 360px 일반 홈 → 상품별 입력·모의 결제와 생성 → 구매 기록·원문 재열람 → 다른 계정 URL 거절. expert-offers-browser.mjs 일반 판매 비활성';
+ if(group.id==='career-style')group.verification='studio-career-browser.mjs 360px 일반 홈 → 모의 로그인 → 소유 프로필 → 원본 여덟 장과 계산 근거 확인, 주문 0건';
  if(group.id==='life-book-ai'||group.id==='life-fortune-report')group.verification='life-reading-browser.mjs 360px 홈, 두 상품 각각의 모의 주문 → 원문 → 구매 기록 재열람·다른 계정 차단';
  if(!group.verification){
   const checks={'animal-destiny':'animal-destiny.test.mjs',astrology:'basic-sky-chart.test.mjs · basic-sky-ui.test.mjs',vedic:'basic-sky-chart.test.mjs · basic-sky-ui.test.mjs','bias-destiny':'bias-report.test.mjs',flower:'flower.test.mjs · flower-ui.test.mjs','famous-saju':'famous-archive.test.mjs',novel:'novel-reader.test.mjs',music:'music-shelf.test.mjs',manse:'manse-ui.test.mjs',saju:'basic-saju-flow.test.mjs','fortune-tea-house':'room-browser.mjs','neo-operation-room':'room-browser.mjs','yeongnyangi-daily':'daily-ui.test.mjs · daily.test.mjs','fusion-fortune':'fusion-billing.test.mjs · native-fusion-boundary.test.mjs',yeongnyangi:'studio-browser.mjs · private-bundle-owner-browser.mjs'};
@@ -460,11 +467,29 @@ for(const group of canonicalCandidates){
  if(nativeSource[group.id]||['heukwol-consult','palm-reading','neo-consultation','saju-guardian','saju-sibyl','maya','pet-saju','yeongnyangi-prashna'].includes(group.id))group.saleStatus='유료 상품 콘솔·운영 설정 필요';
  if(!group.saleStatus)group.saleStatus=group.freeCalculation?'기본 계산은 구매 없음 · 부가 상품은 별도 행 참조':'현재 기능에 신규 구매 버튼 없음';
 }
+for(const group of canonicalCandidates){
+ const destinations=archiveEvidence.directory.filter(row=>group.tossRoute&&routeKey(row.path)===routeKey(group.tossRoute));
+ const checks=archiveEvidence.checks.filter(check=>check.features.includes(group.id));
+ group.archiveTests=checks.map(({id})=>id);
+ group.archiveHomeButtons=destinations.map(row=>row.title);
+ if(destinations.length)group.currentEntry='Linux AIT 일반 홈 → 꿀꿀운세 → '+group.archiveHomeButtons.join(' / ')+' · 상위 화면 진입 확인';
+ if(checks.length)group.bundleVerification=checks.map(check=>check.scope).join(' · ')+' · 360px 배포 AIT 브라우저, 토스 휴대폰 미검증';
+ else if(destinations.length)group.bundleVerification='일반 AIT에서 상위 화면 진입 확인. 하위 입력·결과·재열람의 검증 근거는 verification 참조. 휴대폰 미검증';
+}
+for(const row of rows){
+ const group=groups.get(row.toss.canonicalId);
+ row.toss.login=group.tossLogin;
+ row.toss.result=group.tossResult;
+ row.toss.library=group.reread;
+ row.toss.saleStatus=group.saleStatus;
+ row.toss.bundleVerification=group.bundleVerification;
+}
 const registeredProducts=APPROVED_TOSS_PRODUCTS.map(({serviceId,productId,sku,priceEvidence,approvedPriceKRW})=>({serviceId,productId,sku,priceEvidence,approvedPriceKRW}));
 const report={
  sourceCommit:execFileSync('git',['rev-parse','HEAD'],{cwd:root,encoding:'utf8'}).trim(),
  sourceCounts:{home:context.window.__cdServiceRegistry.length,react:react.length,visual:Object.keys(visual).length},
  scope:'홈 별칭, 상담 상품·모드, 무료 카테고리, 과거 상품 원장은 서로 다른 단위다. 코드상 진입과 실기기 검증을 분리한다.',
+ archiveEvidence:'docs/toss/ait-verification-20261114.json',
  entries:rows,canonicalCandidates,consultationProducts,daily,letterProducts,productContracts,
  registeredProducts,newPurchasesAvailable:NEW_PURCHASES_AVAILABLE,
 };

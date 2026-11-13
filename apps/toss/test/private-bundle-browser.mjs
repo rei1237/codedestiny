@@ -62,7 +62,22 @@ try{
   assert.ok((await page.locator('textarea').evaluateAll(items=>items.map(el=>el.value))).includes(question),'selected web question reaches input');
   assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
   await capture('question');
+  const field=page.locator('#yn-question');
+  const draft='이직을 고민할 때 제가 먼저 확인할 조건은 무엇일까요?';
+  await field.fill(draft);
+  await page.setViewportSize({width:360,height:420});
+  await field.focus();
+  const next=page.getByRole('button',{name:'상담과 결제 확인하기'});
+  await next.scrollIntoViewIfNeeded();
+  const bounds=await next.boundingBox();
+  assert.ok(bounds&&bounds.y>=0&&bounds.y+bounds.height<=421);
+  await capture('compact-input');
+  await page.setViewportSize({width:360,height:740});
+  await page.reload();
+  await field.waitFor();
+  assert.equal(await field.inputValue(),draft);
   console.log('PASS Linux AIT, normal home → original character art → question search → prefilled original consultation at 360px',bundle.deploymentId);
+  console.log('PASS edited question restored after reload and next button in the focused 360 × 420 viewport');
 }finally{
   await browser?.close();
   await new Promise(resolve=>server.close(resolve));

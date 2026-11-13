@@ -13,7 +13,7 @@ try{
   return route.fulfill({status:resp.status,contentType:'application/json',body:JSON.stringify(data)});
  });
  const p=await ctx.newPage();p.setDefaultTimeout(60000);
- await p.goto(origin);await p.locator('.world-entry-ggulggul').click();await p.getByRole('button',{name:/사주 리포트/}).click();
+ await p.goto(origin);await p.locator('.world-entry-ggulggul').click();await p.getByRole('button',{name:/^사주 리포트/}).click();
  await p.getByRole('button',{name:'시빌라 연간 대비 리포트'}).click();await p.getByLabel('태어난 날짜').fill('1990-05-15');await p.getByRole('checkbox').check();await p.getByLabel('계산에 사용하는 성별').selectOption('F');await p.getByLabel('출생 도시').selectOption('서울');
  await p.getByRole('button',{name:'연간 흐름 읽기'}).click();await p.locator('.toss-compat article').waitFor();
  await p.locator('.toss-compat img').evaluate(i=>i.decode());

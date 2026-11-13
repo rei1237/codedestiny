@@ -9,7 +9,7 @@ await ctx.route('**/*',r=>new URL(r.request().url()).origin===origin?r.continue(
 const home=async p=>{await p.goto(origin);await p.locator('.world-entry-ggulggul').click();};
 const order=page=>page.evaluate(()=>JSON.parse(localStorage.getItem('toss-offline-fixture')).intents.find(([,v])=>v.service==='saju-compat')?.[1]);
 try{
- const p=await ctx.newPage();p.on('pageerror',e=>console.error(e.message));await home(p);await p.getByRole('button',{name:/사주 리포트/}).click();await p.getByRole('button',{name:'두 사람의 사주 궁합'}).click();
+ const p=await ctx.newPage();p.on('pageerror',e=>console.error(e.message));await home(p);await p.getByRole('button',{name:/^사주 리포트/}).click();await p.getByRole('button',{name:'두 사람의 사주 궁합'}).click();
  await p.locator('.toss-compat img').first().evaluate(i=>i.decode());
  for(const [group,date,gender] of [['나의 출생정보','1990-08-20','F'],['상대의 출생정보','1989-05-06','M']]){
   const area=p.getByRole('group',{name:group});await area.getByLabel('태어난 날짜').fill(date);await area.getByLabel('출생 도시').selectOption('서울');

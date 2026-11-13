@@ -1,0 +1,583 @@
+{
+  "run": "43494599476",
+  "commit": "949fcb17be9fb196ab2ee4595604a67107e219ae",
+  "runner": "GitHub Actions ubuntu-latest",
+  "viewport": {
+    "width": 360,
+    "height": 740
+  },
+  "regular": {
+    "deploymentId": "01a1d686-3ca3-71d2-880f-6c9be4006410",
+    "archiveBytes": 87647764,
+    "expandedBytes": 99373062,
+    "sha256": "ae89321d60a6105eb243f187705272e82482e07f75735c28652d17b1dd18e585",
+    "consoleVersion": "20261114-10"
+  },
+  "simulation": {
+    "deploymentId": "01a1d687-2c1f-726e-b397-598cdb957d27",
+    "archiveBytes": 87666476,
+    "expandedBytes": 99419082,
+    "sha256": "6ca72d9ad66a54e376bf2b54786ef47afd1ae8d37a05f13af158583b5f154575",
+    "consoleVersion": "20261114-11"
+  },
+  "directory": [
+    {
+      "title": "연이 · 운명의 찻집",
+      "path": "/fortune-tea-house/",
+      "visible": "내 상담함 / BGM음악 켜기 / 달빛이 머무는 밤,\n당신을 위한 한 잔 / 연이의 이야기 읽기"
+    },
+    {
+      "title": "네오 · 팩폭 전략실",
+      "path": "/neo-operation-room/",
+      "visible": "네오의 팩폭 전략실"
+    },
+    {
+      "title": "연이의 상담 편지",
+      "path": "/fortune-tea-house/?counsel=letter",
+      "visible": "마음에 남은 이야기,여기서 시작해요. / 1질문 작성 / 2해석 방식 / 3내용 확인"
+    },
+    {
+      "title": "네오의 상담 편지",
+      "path": "/fortune-tea-house/?counsel=letter&persona=neo",
+      "visible": "1질문 작성 / 2해석 방식 / 3내용 확인 / 지금 결정해야 할 일은 무엇인가요?"
+    },
+    {
+      "title": "네오 작전 결정서 · 이메일 상담",
+      "path": "/neo-consultation/",
+      "visible": "그 사람은 왜그렇게 행동할까? / 네오가 직접 하는 일 / 그 사람과 나, 결정서에서 이렇게 살펴봅니다 / 대통령 두 사람의 2025년을 짚은 네오의 공개 기록"
+    },
+    {
+      "title": "운명의 인연 장소",
+      "path": "/saju/destiny-meeting-place/",
+      "visible": "운명의 인연 장소 / 토스로 로그인하기"
+    },
+    {
+      "title": "운기 다이어리",
+      "path": "/diary",
+      "visible": "홈에서 다시 살펴보기"
+    },
+    {
+      "title": "코스믹 소울 명상",
+      "path": "/meditation/cosmic",
+      "visible": "코스믹 소울 명상 / 토스 로그인하고 명상하기 / 홈에서 다시 살펴보기"
+    },
+    {
+      "title": "사주 리포트",
+      "path": "/saju/sections",
+      "visible": "사주 리포트 / 러브 코드 · 사주 연애 시뮬레이션 / 두 사람의 사주 궁합 / 사주 가디언"
+    },
+    {
+      "title": "자미두수 상세 풀이",
+      "path": "/ziwei/sections",
+      "visible": "자미두수 상세 풀이 / 운명의 섬 탐험하기 / 풀이 선택대한 운세열두 궁 해석부부궁 관계 흐름보조 상징 인장 / 달력양력음력 평달음력 윤달"
+    },
+    {
+      "title": "네빌 명상 실습",
+      "path": "/meditation/neville",
+      "visible": "네빌 명상 실습 / 토스 로그인하고 명상하기 / 홈에서 다시 살펴보기"
+    },
+    {
+      "title": "오늘의 운세",
+      "path": "/today",
+      "visible": "홈에서 다시 살펴보기"
+    },
+    {
+      "title": "기본 사주",
+      "path": "/saju/basic/play",
+      "visible": "기본 사주 / 달력양력음력 평달음력 윤달 / 태어난 시각을 몰라요 / 출생 도시도시를 선택해 주세요서울부산대구인천광주대전제주"
+    },
+    {
+      "title": "나의 일 스타일",
+      "path": "/saju/career-style/",
+      "visible": "나의 일 스타일 / 내 프로필에서 시작하기 / 상담에 연결하지 못했어요. 잠시 후 다시 시도해 주세요.프로필 다시 확인하기 / 프로필 다시 확인하기"
+    },
+    {
+      "title": "십이운성 동물점",
+      "path": "/saju/animal-destiny",
+      "visible": "십이운성 동물점 / 달력양력음력 평달음력 윤달 / 태어난 시각을 몰라요 / 출생 도시도시를 선택해 주세요서울부산대구인천광주대전제주"
+    },
+    {
+      "title": "만세력",
+      "path": "/manse",
+      "visible": "만세력으로 살펴보는 나의 명식 / 달력양력음력 평달음력 윤달 / 태어난 시각을 몰라요 / 계산에 사용하는 성별선택해 주세요남성여성"
+    },
+    {
+      "title": "유명인 사주",
+      "path": "/insights/famous-saju",
+      "visible": "유명인 사주 / 박위유튜버·크리에이터 / 침착맨유튜버·크리에이터 / 기안84유튜버·크리에이터 · 감독·작가"
+    },
+    {
+      "title": "자미두수 명반",
+      "path": "/ziwei/chart",
+      "visible": "자미두수 명반 / 달력양력음력 평달음력 윤달 / 태어난 시각을 몰라요 / 계산에 사용하는 성별선택해 주세요남성여성"
+    },
+    {
+      "title": "서양 점성술 출생차트",
+      "path": "/astrology",
+      "visible": "서양 점성술 출생차트 / 토스 로그인하고 차트 보기 / 홈에서 다시 살펴보기"
+    },
+    {
+      "title": "베다점 출생차트",
+      "path": "/vedic",
+      "visible": "베다점 출생차트 / 달력양력음력 평달음력 윤달 / 태어난 시각을 몰라요 / 출생 도시도시를 선택해 주세요서울부산대구인천광주대전제주"
+    },
+    {
+      "title": "27수 별자리 도감",
+      "path": "/nakshatra/codex",
+      "visible": "27수 별자리 도감 / 각수 · 우타라 팔구니개척의 뿔 / 항수 · 하스타원칙의 목 / 저수 · 치트라뿌리의 발"
+    },
+    {
+      "title": "기본 숙요점",
+      "path": "/sukuyo",
+      "visible": "달이 머문 자리, 나의 숙요점 / 토스 로그인하고 살펴보기 / 홈에서 다시 살펴보기"
+    },
+    {
+      "title": "휴먼 디자인 차트",
+      "path": "/human-design",
+      "visible": "홈에서 다시 살펴보기"
+    },
+    {
+      "title": "반려동물 사주",
+      "path": "/pet-saju/",
+      "visible": "반려동물 사주 / 정보를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.다시 불러오기 / 다시 불러오기"
+    },
+    {
+      "title": "올림푸스 오늘의 신탁",
+      "path": "/olympus",
+      "visible": "올림푸스 오늘의 신탁 / 생년월일 / 신탁 듣기 / 내 신탁과 커플 궁합 보기"
+    },
+    {
+      "title": "주역 거북점",
+      "path": "/oracle/turtle",
+      "visible": "주역 거북점 / 거북에게 묻고 싶은 질문 / 거북 등껍질 길게 누르기 / 홈에서 다시 살펴보기"
+    },
+    {
+      "title": "영국 홍차점",
+      "path": "/oracle/royal-tea",
+      "visible": "영국 홍차점 / 질문 영역연애·인연일·커리어금전·재물관계·가족전환·선택 / 찻잔 읽기 / 홈에서 다시 살펴보기"
+    },
+    {
+      "title": "이집트 신탁",
+      "path": "/oracle/kemet",
+      "visible": "이집트 신탁 / 제단에 올릴 질문 / 신탁 카드 섞기 / 홈에서 다시 살펴보기"
+    },
+    {
+      "title": "나크샤트라 택일",
+      "path": "/nakshatra/muhurta",
+      "visible": "나크샤트라 택일 / 토스 로그인하고 리포트 보기 / 홈에서 다시 살펴보기"
+    },
+    {
+      "title": "나크샤트라 VVIP 코덱스",
+      "path": "/nakshatra/vvip-codex",
+      "visible": "나크샤트라 VVIP 코덱스 / 토스 로그인하고 리포트 보기 / 홈에서 다시 살펴보기"
+    },
+    {
+      "title": "나의 나크샤트라",
+      "path": "/nakshatra/resolve",
+      "visible": "나의 나크샤트라 / 양력 생년월일 / 태어난 시각을 몰라요 / 태어난 시각"
+    },
+    {
+      "title": "나크샤트라 동서 궁합",
+      "path": "/nakshatra/compat",
+      "visible": "홈에서 다시 살펴보기"
+    },
+    {
+      "title": "나크샤트라 지배성 리포트",
+      "path": "/nakshatra/lord-report",
+      "visible": "나크샤트라 지배성 리포트 / 토스 로그인하고 리포트 보기 / 홈에서 다시 살펴보기"
+    },
+    {
+      "title": "나크샤트라 다샤 인생지도",
+      "path": "/nakshatra/dasha-map",
+      "visible": "나크샤트라 다샤 인생지도 / 토스 로그인하고 리포트 보기 / 홈에서 다시 살펴보기"
+    },
+    {
+      "title": "나크샤트라 개인 심화 상담",
+      "path": "/nakshatra/ai",
+      "visible": "홈에서 다시 살펴보기"
+    },
+    {
+      "title": "디비야 요가",
+      "path": "/yoga-guru",
+      "visible": "디비야 요가 / 토스 로그인하고 수련 입력하기 / 홈에서 다시 살펴보기"
+    },
+    {
+      "title": "운명의 나침반",
+      "path": "/destiny-compass",
+      "visible": "홈에서 다시 살펴보기"
+    },
+    {
+      "title": "드림 타로",
+      "path": "/dream/tarot",
+      "visible": "드림 타로 / 꿈의 장면 / 1장 / 2장"
+    },
+    {
+      "title": "연이의 핀란드 주석점",
+      "path": "/oracle/sikojen-povailu",
+      "visible": "연이의 핀란드 주석점 / 주석점 시작하기 / 홈에서 다시 살펴보기"
+    },
+    {
+      "title": "이파 오라클",
+      "path": "/oracle/ifa",
+      "visible": "이파 오라클 / 총운 / 연애/관계 / 재물/사업"
+    },
+    {
+      "title": "스톤헨지 룬",
+      "path": "/oracle/rune",
+      "visible": "Whispers ofStonehenge / ᚢ1-룬오늘의 조언무료 / ᚦ3-룬 · 노른의 예언과거 · 현재 · 미래무료 / ᛃ5-룬 · 심층 해석성향 + 주의 포인트 포함무료"
+    },
+    {
+      "title": "타로 리딩",
+      "path": "/tarot-library",
+      "visible": "카드에 담긴, 나의 이야기 / 오늘의 타로1장 펼침 · 바로 펼치는 리딩› / 천체의 선율11장 펼침 · 단건 리딩› / 원석 소울 타로5장 펼침 · 바로 펼치는 리딩›"
+    },
+    {
+      "title": "운명의 꽃",
+      "path": "/flower",
+      "visible": "당신의 결을 닮은꽃 한 송이 / 토스 로그인하고 살펴보기 / 홈에서 다시 살펴보기"
+    },
+    {
+      "title": "최애운명",
+      "path": "/bias",
+      "visible": "내 최애와 나,어떤 케미일까요? / 그룹방탄소년단트와이스블랙핑크뉴진스아이브에스파르세라핌아이들세븐틴스트레이 키즈투모로우바이투게더엔하이픈라이즈아일릿베이비몬스터엔믹스 / 최애알엠진슈가제이홉지민뷔정국 / 달력양력음력 평달음력 윤달"
+    },
+    {
+      "title": "마야 달력",
+      "path": "/maya/",
+      "visible": "마야점 / 날짜 선택 / 연도1906년1907년1908년1909년1910년1911년1912년1913년1914년1915년1916년1917년1918년1919년1920년1921년1922년1923년1924년1925년1926년1927년1928년1929년1930년1931년1932년1933년1934년1935년1936년1937년1938년1939년1940년1941년1942년1943년1944년1945년1946년1947년1948년1949년1950년1951년1952년1953년1954년1955년1956년1957년1958년1959년1960년1961년1962년1963년1964년1965년1966년1967년1968년1969년1970년1971년1972년1973년1974년1975년1976년1977년1978년1979년1980년1981년1982년1983년1984년1985년1986년1987년1988년1989년1990년1991년1992년1993년1994년1995년1996년1997년1998년1999년2000년2001년2002년2003년2004년2005년2006년2007년2008년2009년2010년2011년2012년2013년2014년2015년2016년2017년2018년2019년2020년2021년2022년2023년2024년2025년2026년2027년2028년2029년2030년2031년2032년2033년2034년2035년2036년2037년2038년2039년2040년2041년2042년2043년2044년2045년2046년2047년2048년2049년2050년2051년2052년2053년2054년2055년2056년 / 월1월2월3월4월5월6월7월8월9월10월11월12월"
+    },
+    {
+      "title": "이모이 오미쿠지",
+      "path": "/omikuji/",
+      "visible": "이모이 오미쿠지 / 마음을 고르고 제비를 뽑아 보세요 / 마음 고르고 제비 뽑기"
+    },
+    {
+      "title": "MBTI 동물 궁합",
+      "path": "/mbti/animals",
+      "visible": "MBTI 동물 궁합 / 본캐 MBTI동물 고르기🦉 INTJ · 지혜로운 부엉이🐈 INTP · 호기심 많은 고양이🦁 ENTJ · 카리스마 사자🦊 ENTP · 영리한 여우🦌 INFJ · 신비로운 사슴🐇 INFP · 꿈꾸는 토끼🐬 ENFJ · 다정한 돌고래🦦 ENFP · 활기찬 수달🐢 ISTJ · 성실한 거북이🐘 ISFJ · 온화한 코끼리🐺 ESTJ · 엄격한 늑대🐧 ESFJ · 사교적인 펭귄🦅 ISTP · 날카로운 매🦋 ISFP · 예술적인 나비🐯 ESTP · 용맹한 호랑이🦚 ESFP · 화려한 공작 / 궁합 보기 / 홈에서 다시 살펴보기"
+    },
+    {
+      "title": "심리테스트",
+      "path": "/psychotest/",
+      "visible": "나는 어떤장면을 닮았을까. / 전체 / 성격 / 연애"
+    },
+    {
+      "title": "사주 FPTI",
+      "path": "/saju-fpti/",
+      "visible": "나의 운명 성향 / 이름 또는 닉네임 (선택) / 생년월일 / 달력양력음력 평달음력 윤달"
+    },
+    {
+      "title": "연이의 달빛 홈 화면",
+      "path": "/app/home-widget",
+      "visible": "연이의 달빛 홈 화면 / 연꽃 한복 / 달의 예복 / 찻집 비단옷"
+    },
+    {
+      "title": "달빛 상담 웹툰 서가",
+      "path": "/consultations/stories",
+      "visible": "달빛 상담 웹툰 서가 / 연애 비책같은 메시지를 두 가지로 읽는 밤. 연이와 서한비가 다가갈 때와 기다릴 때를 나눠요. / 신년운세네오의 열두 달 지도에서 움직일 때와 쉬어 갈 때를 살펴요. / 인생의 책윤달과 흰 고양이가 기질과 재능을 삶의 장면으로 펼쳐요."
+    },
+    {
+      "title": "꿀꿀운세 음악실",
+      "path": "/music",
+      "visible": "꿀꿀운세 음악실 / Gisin Out Yongsin InYeoni / Moonlight DaydreamYeoni / Mystery of Life newYeoni"
+    },
+    {
+      "title": "연이의 운명 노벨",
+      "path": "/novel",
+      "visible": "연이의 운명 노벨 / 차례 / 프롤로그 · 이상한 앱이 깔렸다 / 제1화 · 꽃돼지가 되었다"
+    },
+    {
+      "title": "내 손금 리포트",
+      "path": "/palm-reading/",
+      "visible": "기본 화면 / 손금 지도 / 손바닥 촬영/업로드 / 왼손 입력"
+    },
+    {
+      "title": "전문가 동물 관상",
+      "path": "/animal/physio/",
+      "visible": "× / 사진 업로드 / 여성 / 남성"
+    },
+    {
+      "title": "전생 관상",
+      "path": "/past-life-face/",
+      "visible": "× / 얼굴은 전생이 남긴마지막 문장입니다. / 사진으로 전생의 문 열기"
+    },
+    {
+      "title": "마스터 인연의 서",
+      "path": "/master-love-codex/",
+      "visible": "마스터 인연의 서"
+    },
+    {
+      "title": "애니멀 토템",
+      "path": "/animal-totem/",
+      "visible": "애니멀 토템"
+    },
+    {
+      "title": "지오맨시 흙점",
+      "path": "/geomancy/",
+      "visible": "지오맨시 흙점"
+    },
+    {
+      "title": "사주 작명첩",
+      "path": "/naming-ai/",
+      "visible": "훈민정음 작명소 / 1출생 정보 / 2성씨와 이름 조건 / 3세부 취향 (선택)"
+    },
+    {
+      "title": "정신분석 해몽",
+      "path": "/dream/psycho/",
+      "visible": "정신분석 해몽"
+    },
+    {
+      "title": "흑월의 경고 상담",
+      "path": "/heukwol/?consult=1",
+      "visible": "흑월의 경고"
+    },
+    {
+      "title": "초융합 운세",
+      "path": "/fusion-fortune/",
+      "visible": "이전 / 여섯 개의 해석을하나의 상담으로 / Fusion Core 진행 방식 보기 / 정확한 생시로 여섯 체계를 연결해요"
+    },
+    {
+      "title": "인생의 책",
+      "path": "/life-book-ai/",
+      "visible": "인생의 책 전문가 상담 / 책을 열기 전 확인할 것 / 인생의 책을 열기 위한 정보 / 저장된 프로필"
+    },
+    {
+      "title": "인생 총운",
+      "path": "/life-book-ai/?mode=lifeFortune",
+      "visible": "인생의 책 전문가 상담 / 책을 열기 전 확인할 것 / 인생의 책을 열기 위한 정보 / 저장된 프로필"
+    },
+    {
+      "title": "연애 비책",
+      "path": "/love-secret-ai/",
+      "visible": "연애 비책 AI / 연애 비책 시작하기 / 지금의 연애 상태 / 솔로"
+    },
+    {
+      "title": "관계 경계 리포트",
+      "path": "/relationship-boundary-test/",
+      "visible": "관계 경계 리포트"
+    },
+    {
+      "title": "점성술 전문가 상담",
+      "path": "/astrology-ai/",
+      "visible": "점성술 전문가 상담 / 출생 정보 / 이름 또는 닉네임 / 성별선택여성남성기타/미입력"
+    },
+    {
+      "title": "베다 전문가 상담",
+      "path": "/vedic-ai/",
+      "visible": "윤달의 베다점 상담실 / 이름 또는 닉네임 / 성별선택여성남성비공개 / 생년월일"
+    },
+    {
+      "title": "자미두수 전문가 상담",
+      "path": "/ziwei-ai/",
+      "visible": "자미두수 전문가 상담"
+    },
+    {
+      "title": "신년운세 전문가 상담",
+      "path": "/new-year-ai-consultation/",
+      "visible": "신년운세 전문가 상담 / 새해 상담에 필요한 정보를 알려주세요 / 이름 또는 닉네임 / 성별선택여성남성비공개"
+    },
+    {
+      "title": "운명의 업 전문가 상담",
+      "path": "/karma-destiny-ai/",
+      "visible": "운명의 업 상담"
+    },
+    {
+      "title": "숙요점 궁합 전문가 상담",
+      "path": "/sukuyo-compatibility-ai/",
+      "visible": "숙요점 궁합 전문가 상담"
+    }
+  ],
+  "checks": [
+    {
+      "id": "guests",
+      "features": [
+        "manse",
+        "vedic",
+        "pet-saju"
+      ],
+      "scope": "게스트 수동 출생정보로 만세력·베다 원본 계산과 반려동물 오행 결과, 반려동물 심층 로그인 경계"
+    },
+    {
+      "id": "coreTarot",
+      "features": [
+        "tarot",
+        "tarot-healing",
+        "tarot-self-esteem"
+      ],
+      "scope": "타로 원본 1·4·5장 입력과 결과, 프롬프트·다시 뽑기, 결제 0건"
+    },
+    {
+      "id": "experts",
+      "features": [
+        "vedic-ai",
+        "ziwei-ai",
+        "astrology-ai",
+        "new-year-ai",
+        "karma-destiny-ai",
+        "sukuyo-compatibility-ai",
+        "fusion-fortune",
+        "love-secret-ai"
+      ],
+      "scope": "8개 상품별 입력 폼과 신규 판매 닫힘 확인. 모의 구매·저장 원문 검사는 별도 verification 참조"
+    },
+    {
+      "id": "tarot",
+      "features": [
+        "tarot-reunion",
+        "tarot-crystal-soul",
+        "tarot-year-fortune",
+        "tarot-numerology",
+        "tarot-ijik",
+        "dream",
+        "ifa-oracle",
+        "tin-oracle",
+        "stonehenge-runes"
+      ],
+      "scope": "게스트로 원본 질문·뽑기·해석과 다시 뽑기 확인"
+    },
+    {
+      "id": "olympus",
+      "features": [
+        "olympus-oracle"
+      ],
+      "scope": "게스트 생일 입력으로 별자리 경계 2건과 오늘의 신탁·행동·행운 항목 확인"
+    },
+    {
+      "id": "turtle",
+      "features": [
+        "juyuk-turtle"
+      ],
+      "scope": "게스트 질문과 주역 거북점 원본 결과 열람"
+    },
+    {
+      "id": "tea",
+      "features": [
+        "royal-tea-oracle"
+      ],
+      "scope": "게스트 찻잎점 질문과 원본 결과 열람"
+    },
+    {
+      "id": "kemet",
+      "features": [
+        "kemet-oracle"
+      ],
+      "scope": "게스트 케메트 상담 입력과 원본 결과 열람"
+    },
+    {
+      "id": "island",
+      "features": [
+        "ziwei-island"
+      ],
+      "scope": "게스트 명반, 섬 12궁 원문·초상·연도 전환과 재진입"
+    },
+    {
+      "id": "widget",
+      "features": [
+        "home-widget"
+      ],
+      "scope": "여섯 원본 위젯 실시간 미리보기"
+    },
+    {
+      "id": "diary",
+      "features": [
+        "luck-sync-diary"
+      ],
+      "scope": "게스트 플래너, 날짜에 따른 기록 구분, 앱 재진입"
+    },
+    {
+      "id": "face",
+      "features": [
+        "physiognomy",
+        "face-reading",
+        "past-life-face"
+      ],
+      "scope": "합성 이미지 및 고정 랜드마크로 동물 관상과 전생 궁합 원본 결과 확인. 카메라 미검증"
+    },
+    {
+      "id": "sibyl",
+      "features": [
+        "saju-sibyl"
+      ],
+      "scope": "게스트 출생정보의 연간 대비·행동을 계산하고 두 연도 전환"
+    },
+    {
+      "id": "sections",
+      "features": [
+        "energy-travel",
+        "health-rhythm",
+        "life-skill-tree",
+        "personal-charm",
+        "quantum-saju",
+        "relationship-boundaries",
+        "saju",
+        "ziwei",
+        "saju-image-prompts"
+      ],
+      "scope": "공개 사주·자미 11절 원본 계산, 사주 그림 13가지와 여행 기록 복원. 시크릿 하우스는 독립 검사"
+    },
+    {
+      "id": "stories",
+      "features": [
+        "consultation-webtoons",
+        "heukwol-story"
+      ],
+      "scope": "일반 홈에서 14편 원본의 컷·대사 및 첫 그림 디코딩. 원격 아트는 로컬 원본 파일로 대체"
+    },
+    {
+      "id": "secretHouse",
+      "features": [
+        "secret-house"
+      ],
+      "scope": "원본 다섯 인물·선택·반응·결말·재도전 16회 계산 요청"
+    },
+    {
+      "id": "mobile-owner",
+      "features": [
+        "yeongnyangi"
+      ],
+      "scope": "일반판 원화·질문에서 입력, 모의 토스 로그인, 원문 재열람. 단절 후 저장 원문·타 계정 URL 차단, 새 결제·생성 0건 · 키보드에 해당하는 360 × 420 입력 높이에서 다음 버튼 노출과 재진입 초안 복원"
+    },
+    {
+      "id": "mock-catalog",
+      "features": [
+        "yeongnyangi"
+      ],
+      "scope": "별도 모의 AIT에서 28개 원본 상품 입력·1회 주문·1회 모의 생성·앱 재진입 후 영냥이 보관함 원문 일치"
+    }
+  ],
+  "simulatedProducts": [
+    "astrology_mackerel",
+    "astrology_salmon",
+    "astrology_flounder",
+    "astrology_tuna",
+    "vedic_mackerel",
+    "vedic_salmon",
+    "vedic_flounder",
+    "vedic_tuna",
+    "sukuyo_mackerel",
+    "sukuyo_salmon",
+    "sukuyo_flounder",
+    "sukuyo_tuna",
+    "saju_mackerel",
+    "saju_salmon",
+    "saju_flounder",
+    "saju_tuna",
+    "ziwei_mackerel",
+    "ziwei_salmon",
+    "ziwei_flounder",
+    "ziwei_tuna",
+    "tarot_mackerel",
+    "tarot_salmon",
+    "tarot_flounder",
+    "tarot_tuna",
+    "fusion_saju_ziwei",
+    "fusion_sukuyo_vedic",
+    "fusion_astrology_tarot",
+    "fusion_all"
+  ],
+  "ownership": {
+    "accountBRejected": true,
+    "interruptedReads": 1,
+    "newCharges": 0
+  }
+}

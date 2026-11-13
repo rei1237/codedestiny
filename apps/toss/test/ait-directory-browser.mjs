@@ -19,9 +19,13 @@ try{
    await openHome();await page.getByRole('searchbox').fill(title);
    const button=page.locator('.directory-list button').filter({has:page.getByText(title,{exact:true})});
    await button.click();
-   await page.waitForFunction(()=>!document.querySelector('.fortune-directory')&&document.body.innerText.trim().length>16);
-   await page.locator('h1,h2,[role=alert],button,label').filter({visible:true}).first().waitFor();
-   const url=new URL(page.url()),heading=await page.locator('h1,h2,[role=alert],label,button').filter({visible:true}).allTextContents();
+   await page.locator('.fortune-directory').waitFor({state:'detached'});
+   const url=new URL(page.url());
+   const faceRoom=['/animal/physio/','/past-life-face/'].includes(url.pathname);
+   const screen=faceRoom?page.frameLocator('iframe[title="'+title+'"]'):page;
+   const controls=screen.locator('h1,h2,[role=alert],label,button').filter({visible:true});
+   await controls.first().waitFor();
+   const heading=await controls.allTextContents();
    const content=heading.map(x=>x.trim()).filter(Boolean).slice(0,4).join(' / ');
    assert.ok(content,title);
    evidence.push({title,path:url.pathname+url.search,visible:content});
