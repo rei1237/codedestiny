@@ -431,7 +431,11 @@ export default function IslandConsultClient() {
   const [pendingConsult, setPendingConsult] = useState(false);
   const { user: deliveryUser } = useAuthStore();
   const deliveryOwner = String(deliveryUser?.id || deliveryUser?.userId || deliveryUser?._id || deliveryUser?.uid || "");
-  const captureDelivery = usePaidDeliveryScope(() => { setResult(null); setError(""); setNotice(""); setPendingConsult(false); setPhase("hub"); busyRef.current = false; });
+  const captureDelivery = usePaidDeliveryScope(() => {
+    setResult(null); setError(""); setNotice(""); setPendingConsult(false); setPhase("hub"); busyRef.current = false;
+    setReport(null); setReportError(""); setReportLoading(false); setLedgerUnlocked(false);
+    reportFetchedRef.current = false; reportEpoch.current++;
+  });
   const recoverRef = useRef<() => Promise<void>>(async () => {});
   const restoredReadingKey = useRef("");
   useEffect(() => {
@@ -476,6 +480,9 @@ export default function IslandConsultClient() {
   const [reportLoading, setReportLoading] = useState(false);
   const [reportViewAll, setReportViewAll] = usePagedViewerMode("islandReportViewerModeV1");
   const reportFetchedRef = useRef(false);
+  const reportEpoch = useRef(0);
+  const selectedReportProfile = useRef(reportProfileId);
+  selectedReportProfile.current = reportProfileId;
   const reportRef = useRef<HTMLElement | null>(null);
   const wantsReportViewRef = useRef(false);
   // PDF 저장 상태 — 이미 결제로 열린 두 결과의 무료 부가 기능이다(가격·결제 문구 금지).
@@ -486,7 +493,8 @@ export default function IslandConsultClient() {
 
   useEffect(() => { if (hasLedgerUnlock(REPORT_FEATURE_KEY)) setLedgerUnlocked(true); }, []);
 
-  const reportUnlocked = ledgerUnlocked || unlocked[REPORT_FEATURE_KEY] === true;
+  // The archive endpoint itself verifies the original account, profile birth and entitlement.
+  const reportUnlocked = Boolean(report) || ledgerUnlocked || unlocked[REPORT_FEATURE_KEY] === true;
   // 🔴 "확인 실패"를 "미구매"로 취급하지 않는다 — 서버 판정이 끝났을 때만 잠금으로 본다.
   const reportConfirmedLocked = unlockStatus === "ready" && !reportUnlocked;
 
@@ -542,8 +550,11 @@ export default function IslandConsultClient() {
   }, [seedVersion, profileSeed]);
 
   // 해금된 사용자의 리포트 본문을 가져온다. 미해금이면 서버가 402를 주므로 잠금 상태를 그대로 둔다.
-  async function loadReport() {
-    if (reportLoading) return;
+  async function loadReport(mode: "check" | "archive" = "check") {
+    if (reportLoading || !deliveryOwner) return;
+    const active = captureDelivery();
+    const epoch = ++reportEpoch.current;
+    const current = () => active() && epoch === reportEpoch.current && selectedReportProfile.current === reportProfileId;
     if (!reportProfileId) { setReportError(REPORT_PROFILE_REQUIRED); return; }
     setReportLoading(true);
     setReportError("");
@@ -557,16 +568,20 @@ export default function IslandConsultClient() {
         calendarType: form.calendarType,
         isLeapMonth: form.calendarType === "lunar" ? form.isLeapMonth : false,
       }, `${REPORT_FEATURE_KEY}:${Date.now()}`);
+      if (!current()) return;
       if (data.ok && data.report) { setReport(data.report); reportFetchedRef.current = true; return; }
-      if (status === 402 || data.reason === "PAYMENT_REQUIRED") return;           // 잠금 유지
+      if (status === 402 || data.reason === "PAYMENT_REQUIRED") {
+        if (mode === "archive") setReportError("이 프로필의 출생정보로 구매한 리포트가 없어요. 구매할 때 사용한 프로필을 선택해 주세요.");
+        return;
+      }
       if (status === 401 || data.reason === "LOGIN_REQUIRED") { setReportError(ERROR_TEXT.LOGIN_REQUIRED); return; }
       if (data.requiresProfile) { setReportError(String(data.message || "") || REPORT_PROFILE_REQUIRED); return; }
       if (status === 503 || data.reason === "DB_DEGRADED") { setReportError("연결이 잠시 불안정해요. 잠시 후 다시 시도해 주세요."); return; }
       setReportError("리포트를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.");
     } catch {
-      setReportError("리포트를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.");
+      if (current()) setReportError("리포트를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.");
     } finally {
-      setReportLoading(false);
+      if (current()) setReportLoading(false);
     }
   }
 
@@ -980,7 +995,15 @@ export default function IslandConsultClient() {
       <a className="ic-back-btn" href="/destiny-island.html">무료로 섬 탐험하기</a>
       <a className="ic-back-btn" href="/records/">기존 구매 기록 보기</a>
       {error && <p role="alert">{error}</p>}
-      {reportUnlocked && report && renderReportSection(palace || PALACES[0])}
+      {deliveryOwner ? <section aria-label="구매한 12궁 리포트">
+        <SavedBirthProfilePicker label="구매 당시의 프로필" disabled={reportLoading || reportExporting} onSelect={seed => {
+          reportEpoch.current++; setReport(null); setReportError(""); setReportLoading(false); reportFetchedRef.current=false;
+          chooseProfile(seed); applySeedToForm(seed, true);
+        }}/>
+        {report ? renderReportSection(palace || PALACES[0]) : <button type="button" className="ic-back-btn" disabled={!reportProfileId || reportLoading} onClick={()=>void loadReport("archive")}>
+          {reportLoading ? "구매 권한 확인 중" : "구매한 12궁 리포트 다시 열기"}</button>}
+        {reportError && <p role="alert">{reportError}</p>}
+      </section> : <a className="ic-back-btn" href="/login/?next=%2Fisland-consult%2F%3Fview%3Dreport">구매한 웹 계정으로 로그인</a>}
     </section></main>
   );
 

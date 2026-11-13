@@ -30,5 +30,5 @@ test('each public Saju and Ziwei chapter keeps its real entry and independent RP
 test('public Ziwei exploration is independent of closed owner-only AI rereads',()=>{
  const island=inventory.canonicalCandidates.find(x=>x.id==='ziwei-island'),history=inventory.canonicalCandidates.find(x=>x.id==='island-consult');
  assert.equal(island.freeCalculation,true);assert.equal(island.tossRoute,'/ziwei/sections?reading=island');assert.equal(island.sku,null);
- assert.equal(history.tossRoute,null);assert.match(history.verification,/410 ISLAND_NOW_FREE/);assert.ok(history.webProductIds.includes('ziwei-island-palace-consult'));
+ assert.equal(history.tossRoute,'/ziwei/sections#island-history');assert.equal(history.sku,null);assert.ok(history.webProductIds.includes('ziwei-island-deep-report'));assert.match(history.verification,/410 ISLAND_NOW_FREE/);assert.ok(history.webProductIds.includes('ziwei-island-palace-consult'));
 });

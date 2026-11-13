@@ -118,6 +118,8 @@ const localEvidence={
  'ziwei-island':{tossRoute:'/ziwei/sections?reading=island',status:'local-partial',inputContract:'원본 양력·음력·윤달, 생일·성별·시각 미상, 연도 선택',resultRenderer:'public/destiny-island.html → worker/routes/ziwei-island.js → 12궁·대한·유년·수호자·섬 일지·퀘스트',storageContract:'기기 내 게스트·토스 계정별 명반, 당일 청사진, 방문 도장과 퀘스트 EXP 복원',verification:'island-browser.mjs 360px 홈, 열두 궁 원문과 초상, 유년 변경, 재진입. 구매 종료 궁별 AI 웹 원문 복구는 별도. 토스 실기기·운영 Worker 미검증'},
  'love-code':{tossRoute:'/saju/love-simulation/',status:'local-partial',inputContract:'원본 16인 프리셋 또는 상대 출생정보 사주 매칭. 내 명식·상대 선택·데이트 장면 선택으로 결말',resultRenderer:'app/saju/love-simulation/_components/LoveSimulationEngine.tsx + 원본 명식·호감 점수·스토리',storageContract:'현재 세션의 원본 결말. 다음 진입 때 다시 플레이. 타 계정 프로필·웹 결제 복구와 독립',verification:'love-code-browser.mjs 360px 일반 홈, 게스트 탐색, mock 토스 로그인, 두 출생정보·네오 원화·선택과 결말. 실기기 미검증'},
  'saju-compatibility':{tossRoute:'/saju/compatibility/',status:'local-partial',inputContract:'두 출생정보·시간 미상·달력·상대 호칭·연인/친구/사업. 웹 정본 명식과 analyzeCompat·analyzePastLifeCompat facts',resultRenderer:'js/saju-compat-render.mjs + worker/routes/saju-compat-basic.js',storageContract:'토스 계정·주문별 paidNarrative 불변 원문. 꿀꿀운세 구매 기록에서 생성 재개와 원문 재열람',verification:'saju-compat-browser.mjs 360px 홈, mock 로그인·입력 복원·1주문·생성 도중 이탈·원문·타 계정 거절. native-saju-compat.test.mjs, 웹 정본 전달 34건'},
+ points:{tossRoute:'/settings#web-history',status:'local-partial',inputContract:'토스 내 정보 → 웹 이용 내역 → 기존 웹 계정 인증',resultRenderer:'app/points/history/PointHistoryClient.tsx · GET /api/payments/me?view=history · 소유 주문 상세',storageContract:'원래 웹 계정의 이용권·월정석·단건 주문 및 이용권 사용 이력. 토스 IAP와 별도',verification:'web-history-browser.mjs: 360px 일반 홈에서 순수 웹 구매 내역 주소만 이동, 토스 토큰·주문·결제 전달 없음'},
+ 'island-consult':{tossRoute:'/ziwei/sections#island-history',status:'local-partial',resultRenderer:'웹 /records/ 원본 궁별 기록, /island-consult/?view=report 원래 저장 프로필의 고정 12궁 리포트'},
  'saju-guardian':{tossRoute:'/saju-guardian/',status:'local-partial',inputContract:'계정에 저장한 프로필의 birthKey, calendar·시각 미상. 원본 calculateNatalSaju 네 기둥',resultRenderer:'웹 guardianReading + ResultCard 원본 인장·십성·영문 프롬프트, 단말 레거시 그림은 웹 귀속',storageContract:'계정·환경·출생정보·상품별 주문 및 저장 원본, 환불 재검사. 콘솔 SKU 미확인',verification:'birth-readings.test.mjs 검증. birth-readings-browser.mjs 360px 일반 홈, mock 주문 후 프롬프트, 타 계정 거절'},
  'saju-sibyl':{tossRoute:'/saju/sibyl/',status:'local-partial',inputContract:'양력·음력·윤달 출생 정보와 한국 시간 기준 현재부터 10개 연도',resultRenderer:'worker/routes/sibyl.js /preview → buildSibylAnnual → 원본 기질·대비 행동·불확실성',storageContract:'무료 연간 대비는 다시 계산. 심층은 출생정보·계정별 1회 해금 후 연도별 원본 10장·월별 흐름 저장. 콘솔 SKU 미확인',verification:'sibyl-public-browser 및 birth-readings-browser 360px, 원본 HTTP 일치. mock 2개 연도, 중간 종료·재개·타 계정 거절. sibyl-report-store-v2 원본 LLM mock 검증'},
  'ifa-oracle':{tossRoute:'/oracle/ifa',status:'local-partial',inputContract:'public/ifa-oracle.html 여덟 표식, 오두 256개, 네 주제',resultRenderer:'apps/toss/src/IfaReading.tsx',storageContract:'현재 화면. 토스 저장·공유는 실기기 확인 필요',verification:'ifa-reading.test.mjs, 360px public-readings-browser.mjs 네 가지 주제'},
@@ -351,12 +353,14 @@ for(const group of canonicalCandidates){
  }
  if(group.id==='saju-sibyl'){group.freeCalculation=true;group.tossLogin='연도별 무료 분석은 공개';group.reducedBundle='홈 진입 없음';}
  if(group.id==='naming-ai')group.tossLogin='후보·입력은 게스트. 유료 상담과 기록은 토스 로그인 필요';
+ if(group.id==='points'){group.tossLogin='안내는 공개, 이용권과 단건 거래 내역은 기존 웹 계정으로 인증';group.saleStatus='토스 판매 없음 · 웹 보유권 조회';group.webSources.push('app/points/history/PointHistoryClient.tsx','worker/routes/payments.js');}
  if(group.id==='island-consult'){
-  group.webSources=[...new Set([...group.webSources,'app/island-consult/page.tsx','worker/routes/ziwei-island-ai.js'])];
-  group.webProductIds=[...new Set([...group.webProductIds,'ziwei-island-palace-consult'])];
-  group.inputContract='기존 웹 계정 + 그 계정의 저장 세션 id 또는 pending=1';
-  group.storageContract='웹에서 구매한 저장 원문·미완료 부분을 기존 계정으로 재열람. 토스와 웹 구매 계정 연동 미구현';
-  group.reread=group.storageContract;group.verification='원본 Worker는 신규 준비·접근·생성·시작에 410 ISLAND_NOW_FREE. GET /result만 소유자·해금 회수 확인 후 기존 부분 반환';
+  group.webSources=[...new Set([...group.webSources,'app/island-consult/page.tsx','worker/routes/ziwei-island-ai.js','worker/routes/ziwei-island-report.js','app/records/view/SavedServiceReading.tsx'])];
+  group.webProductIds=[...new Set([...group.webProductIds,'ziwei-island-palace-consult','ziwei-island-deep-report'])];
+  group.tossLogin='안내는 공개. 기록·출생 프로필 열람은 기존 웹 계정으로 인증';
+  group.inputContract='궁별 상담은 원래 웹 계정의 저장 세션 id 또는 pending=1, 고정 리포트는 동일 웹 계정에서 구매한 출생정보의 profileId';
+  group.storageContract='웹 궁별 AI는 완료·부분 저장 원문, 별도 고정 12궁 리포트는 원래 웹 계정과 출생정보 권리로 원본을 계산';
+  group.reread=group.storageContract;group.verification='web-history-browser.mjs 360px. 원본 Worker 신규 AI 준비·생성에 410 ISLAND_NOW_FREE. GET /result 소유자·환불·부분 원문 및 별도 고정 리포트의 birthKey 권한 mock 테스트';
  }
  if(group.id==='ziwei-island'){group.freeCalculation=true;group.tossLogin='게스트 공개 계산';group.reducedBundle='홈 진입 없음';}
  const testedGuestTarot=['tarot-reunion','tarot-crystal-soul','tarot-celestial-harmony','tarot-numerology','tarot-ijik'];

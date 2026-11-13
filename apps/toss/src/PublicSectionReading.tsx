@@ -6,6 +6,7 @@ import {BirthFields,birthPayload,emptyBirth,type BirthInput} from './BirthFields
 import {renderNatalReport,natalImage,type NatalParts} from './natal-report';
 import {Button} from './Button';
 import {api} from './platform';
+import WebPurchaseHistory from './WebPurchaseHistory';
 import TossSessionScope from './TossSessionScope';
 
 import {loadTravelHistory,saveTravelHistory,type TravelHistory} from './travel-history';
@@ -139,7 +140,7 @@ function Reading({kind,onLogin}:{kind:'saju'|'ziwei';onLogin:()=>void}){
     {kind==='saju'&&<Button display="block" onClick={()=>location.assign('/saju/compatibility/')}>두 사람의 사주 궁합</Button>}
     {kind==='saju'&&<Button display="block" onClick={()=>location.assign('/saju-guardian/')}>사주 가디언</Button>}
     {kind==='saju'&&<Button display="block" onClick={()=>location.assign('/saju/sibyl/')}>시빌라 연간 대비 리포트</Button>}
-    {kind==='ziwei'&&<Button display="block" onClick={()=>setIsland(true)}>운명의 섬 탐험하기</Button>}
+    {kind==='ziwei'&&<><Button display="block" onClick={()=>setIsland(true)}>운명의 섬 탐험하기</Button><WebPurchaseHistory kind="island"/></>}
     <form className="form" onSubmit={submit}><label>풀이 선택<select value={key} onChange={e=>setKey(e.target.value as SectionKey)} disabled={busy}>
     {keys.map(k=><option key={k} value={k}>{TOSS_PUBLIC_SECTIONS[k]}</option>)}</select></label>
     {key!=='rpt_secretHouseEntryCard'&&<BirthFields title="풀이할 출생정보" value={birth} onChange={setBirth} disabled={busy}/>}

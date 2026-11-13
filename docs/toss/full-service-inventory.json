@@ -1,5 +1,5 @@
 {
-  "sourceCommit": "f2b8542e98234a345b11c3e696873cbd5ef607fb",
+  "sourceCommit": "e056ad089a146d0786e0c3e24c81ab0502579a13",
   "sourceCounts": {
     "home": 63,
     "react": 18,
@@ -1834,8 +1834,8 @@
         "library": "not-verified",
         "device": "not-tested",
         "canonicalId": "points",
-        "candidateStatus": "requires-full-flow-port-and-verification",
-        "canonicalRoute": null
+        "candidateStatus": "local-partial",
+        "canonicalRoute": "/settings#web-history"
       }
     },
     {
@@ -4314,32 +4314,35 @@
         }
       ],
       "aliasEvidence": [],
-      "status": "not-ported",
-      "tossRoute": null,
+      "status": "local-partial",
+      "tossRoute": "/ziwei/sections#island-history",
       "sku": null,
-      "inputContract": "기존 웹 계정 + 그 계정의 저장 세션 id 또는 pending=1",
-      "resultRenderer": null,
-      "storageContract": "웹에서 구매한 저장 원문·미완료 부분을 기존 계정으로 재열람. 토스와 웹 구매 계정 연동 미구현",
+      "inputContract": "궁별 상담은 원래 웹 계정의 저장 세션 id 또는 pending=1, 고정 리포트는 동일 웹 계정에서 구매한 출생정보의 profileId",
+      "resultRenderer": "웹 /records/ 원본 궁별 기록, /island-consult/?view=report 원래 저장 프로필의 고정 12궁 리포트",
+      "storageContract": "웹 궁별 AI는 완료·부분 저장 원문, 별도 고정 12궁 리포트는 원래 웹 계정과 출생정보 권리로 원본을 계산",
       "webEntries": [
         "/island-consult/"
       ],
       "webSources": [
         "app/island-consult/IslandConsultClient.tsx",
         "app/island-consult/page.tsx",
-        "worker/routes/ziwei-island-ai.js"
+        "worker/routes/ziwei-island-ai.js",
+        "worker/routes/ziwei-island-report.js",
+        "app/records/view/SavedServiceReading.tsx"
       ],
       "webProductIds": [
-        "ziwei-island-palace-consult"
+        "ziwei-island-palace-consult",
+        "ziwei-island-deep-report"
       ],
       "freeCalculation": false,
-      "portStatus": "미이식",
-      "reducedBundle": "홈 진입 없음",
-      "currentEntry": "연결 경로 없음",
+      "portStatus": "일부만 이식",
+      "reducedBundle": "구현은 있으나 진입 차단",
+      "currentEntry": "일반 홈의 진입 코드 확인",
       "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
-      "tossLogin": "토스 기능 미연결",
-      "tossResult": "결과 화면 연결 미확인",
-      "reread": "웹에서 구매한 저장 원문·미완료 부분을 기존 계정으로 재열람. 토스와 웹 구매 계정 연동 미구현",
-      "verification": "원본 Worker는 신규 준비·접근·생성·시작에 410 ISLAND_NOW_FREE. GET /result만 소유자·해금 회수 확인 후 기존 부분 반환"
+      "tossLogin": "안내는 공개. 기록·출생 프로필 열람은 기존 웹 계정으로 인증",
+      "tossResult": "웹 /records/ 원본 궁별 기록, /island-consult/?view=report 원래 저장 프로필의 고정 12궁 리포트",
+      "reread": "웹 궁별 AI는 완료·부분 저장 원문, 별도 고정 12궁 리포트는 원래 웹 계정과 출생정보 권리로 원본을 계산",
+      "verification": "web-history-browser.mjs 360px. 원본 Worker 신규 AI 준비·생성에 410 ISLAND_NOW_FREE. GET /result 소유자·환불·부분 원문 및 별도 고정 리포트의 birthKey 권한 mock 테스트"
     },
     {
       "id": "juyuk-turtle",
@@ -6161,27 +6164,31 @@
         }
       ],
       "aliasEvidence": [],
-      "status": "requires-full-flow-port-and-verification",
-      "tossRoute": null,
+      "status": "local-partial",
+      "tossRoute": "/settings#web-history",
       "sku": null,
-      "inputContract": null,
-      "resultRenderer": null,
-      "storageContract": null,
+      "inputContract": "토스 내 정보 → 웹 이용 내역 → 기존 웹 계정 인증",
+      "resultRenderer": "app/points/history/PointHistoryClient.tsx · GET /api/payments/me?view=history · 소유 주문 상세",
+      "storageContract": "원래 웹 계정의 이용권·월정석·단건 주문 및 이용권 사용 이력. 토스 IAP와 별도",
+      "verification": "web-history-browser.mjs: 360px 일반 홈에서 순수 웹 구매 내역 주소만 이동, 토스 토큰·주문·결제 전달 없음",
       "webEntries": [
         "/points/"
       ],
       "webSources": [
-        "app/points/page.tsx"
+        "app/points/page.tsx",
+        "app/points/history/PointHistoryClient.tsx",
+        "worker/routes/payments.js"
       ],
       "webProductIds": [],
       "freeCalculation": false,
-      "portStatus": "미이식",
-      "reducedBundle": "홈 진입 없음",
-      "currentEntry": "연결 경로 없음",
+      "portStatus": "일부만 이식",
+      "reducedBundle": "구현은 있으나 진입 차단",
+      "currentEntry": "일반 홈의 진입 코드 확인",
       "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
-      "tossLogin": "토스 기능 미연결",
-      "tossResult": "결과 화면 연결 미확인",
-      "reread": "재열람 경로 미확인"
+      "tossLogin": "안내는 공개, 이용권과 단건 거래 내역은 기존 웹 계정으로 인증",
+      "tossResult": "app/points/history/PointHistoryClient.tsx · GET /api/payments/me?view=history · 소유 주문 상세",
+      "reread": "원래 웹 계정의 이용권·월정석·단건 주문 및 이용권 사용 이력. 토스 IAP와 별도",
+      "saleStatus": "토스 판매 없음 · 웹 보유권 조회"
     },
     {
       "id": "psychotest",
