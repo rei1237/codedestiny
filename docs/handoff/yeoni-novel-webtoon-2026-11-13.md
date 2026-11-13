@@ -1,5 +1,5 @@
 ---
-status: in-progress
+status: active
 updated: 2026-11-13
 next: 1단계 1차 배포(rebase → episodes [] → 사이트맵 → 검사 → push → production 수동 실행)
 ---
