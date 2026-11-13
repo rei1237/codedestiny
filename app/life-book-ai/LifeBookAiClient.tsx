@@ -18,6 +18,7 @@ import {
   WalletCards,
 } from "lucide-react";
 import intro from "@/app/components/expert-consulting/PremiumConsultationIntro.module.css";
+import { rememberTossTeaPrice, type TossTeaPriceComponent, type TossTeaPriceSelection } from "@/src/features/fortune-tea-house/lib/tossPriceSelection";
 import { PriceBadge } from "@/app/components/PriceBadge";
 import ProductJourneyLinks, { useProductView } from "@/app/components/ProductJourneyLinks";
 import CraftedProductDisclosure from "@/app/components/CraftedProductDisclosure";
@@ -1393,9 +1394,11 @@ function buildBillingGateInput(paymentPayload: Record<string, unknown>, idempote
   };
 }
 
-export default function LifeBookAiClient({ paymentNotice, paymentSurface = "web" }: { paymentNotice?: string; paymentSurface?: "web" | "toss" } = {}) {
+export default function LifeBookAiClient({ paymentNotice, paymentSurface = "web", Price, initialMode = "lifeBook", recoveringOrder = false }: { paymentNotice?: string; paymentSurface?: "web" | "toss"; Price?: TossTeaPriceComponent; initialMode?: LifeBookMode; recoveringOrder?: boolean } = {}) {
   const copy = useLifeBookClientCopy();
-  const [form, setForm] = useState<ConsultationForm>(() => buildInitialForm());
+  const [form, setForm] = useState<ConsultationForm>(() => ({ ...buildInitialForm(), mode: initialMode }));
+  const [tossPrice, setTossPrice] = useState<TossTeaPriceSelection | null>(null);
+  const canStart = paymentSurface !== "toss" || recoveringOrder || tossPrice?.featureKey === MODE_FEATURE_KEY[form.mode];
   useProductView(MODE_FEATURE_KEY[form.mode], 'consultation');
   const [status, setStatus] = useState<FlowStatus>("idle");
   const [notice, setNotice] = useState("");
@@ -1588,7 +1591,7 @@ export default function LifeBookAiClient({ paymentNotice, paymentSurface = "web"
 
   const submit = useCallback(async (event?: FormEvent<HTMLFormElement>) => {
     event?.preventDefault();
-    if (startLockRef.current || isBusy) return;
+    if (!canStart || startLockRef.current || isBusy) return;
     const isCurrent = captureDeliveryScope();
 
     const requestId = idempotencyKeyRef.current;
@@ -1687,6 +1690,7 @@ export default function LifeBookAiClient({ paymentNotice, paymentSurface = "web"
           ...buildBillingGateInput(asRecord(gatePayloadSource), requestId, mode, copy),
           resume: buildResume({ requestId, payload: packPaidResumeArg(payload) }),
         };
+        if (paymentSurface === "toss") rememberTossTeaPrice(tossPrice);
         const gate = await runBillingCoinGate(billingInput);
         if (!gate.ok || !gate.data) {
           const code = String(gate.error?.code || "").toUpperCase();
@@ -1729,7 +1733,7 @@ export default function LifeBookAiClient({ paymentNotice, paymentSurface = "web"
     } finally {
       if (isCurrent()) startLockRef.current = false;
     }
-  }, [form, runGeneration, isBusy, copy, buildResume, captureDeliveryScope, paymentNotice]);
+  }, [form, runGeneration, isBusy, copy, buildResume, captureDeliveryScope, paymentNotice, paymentSurface, canStart, tossPrice]);
 
   // 확정 실패 후 사용자가 직접 누르는 재시도. 이미 환불이 끝난 세션은 새 키(=새 결제)로 다시 연다.
   const handleRetry = useCallback(async () => {
@@ -1906,9 +1910,10 @@ export default function LifeBookAiClient({ paymentNotice, paymentSurface = "web"
               </div>
 
               <div className="mt-4 flex items-center justify-end">
+                {Price && !recoveringOrder && <Price featureKey={MODE_FEATURE_KEY[form.mode]} onPrice={setTossPrice} />}
                 {paymentNotice ? <p>{paymentNotice}</p> : <PriceBadge featureKey={MODE_FEATURE_KEY[form.mode || "lifeBook"]} prefix={copy.priceLabelPrefix} />}
               </div>
-              <button type="submit" disabled={isBusy} className="mt-2 flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-[#f2d07a] px-5 font-semibold text-[#171007] shadow-lg shadow-[#f0c66a22] transition hover:-translate-y-0.5 hover:bg-[#f6dc95] hover:shadow-[#f0c66a40] disabled:cursor-not-allowed disabled:opacity-60">
+              <button type="submit" disabled={isBusy || !canStart} className="mt-2 flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-[#f2d07a] px-5 font-semibold text-[#171007] shadow-lg shadow-[#f0c66a22] transition hover:-translate-y-0.5 hover:bg-[#f6dc95] hover:shadow-[#f0c66a40] disabled:cursor-not-allowed disabled:opacity-60">
                 {isBusy ? <Loader2 className="h-5 w-5 animate-spin" aria-hidden="true" /> : <WalletCards className="h-5 w-5" aria-hidden="true" />}
                 {isBusy ? copy.openingCta : copy.openCta(form.mode || "lifeBook")}
               </button>

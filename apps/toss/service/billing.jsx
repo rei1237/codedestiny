@@ -25,7 +25,7 @@ export async function runBillingCoinGate(options){
   for(const eventName of ['pagehide','popstate','code-destiny:toss-back'])window.addEventListener(eventName,leaveSurface);
   const checkSurface=()=>{if(!surfaceActive||location.pathname+'?'+location.search!==startLocation)throw Object.assign(new Error('상담 화면을 떠나 결제를 시작하지 않았어요. 다시 확인해 주세요.'),{code:'SURFACE_CHANGED'});if(accountChanged||userId()!==startOwner)throw Object.assign(new Error('로그인 상태가 바뀌었어요. 다시 확인해 주세요.'),{code:'SESSION_CHANGED'});};
   const service=options.featureKey==='sukuyo-compatibility-ai'?'sukuyo':options.featureKey==='karma-destiny-ai-consultation'?'karma':options.featureKey==='new-year-ai-consultation'?'new-year':options.featureKey==='ziwei-ai-consultation'?'ziwei':options.featureKey==='vedic-ai-consultation'?'vedic':options.featureKey==='astrology-ai-consultation'?'astrology':options.featureKey==='love-secret-ai-consultation'?'love-secret':['life-book-ai-consultation','life-fortune-ai-consultation'].includes(options.featureKey)?'life-book':options.featureKey==='fusion-fortune-consultation'?'fusion':options.featureKey==='neo-operation-room-consultation'?'neo':String(options.featureKey).startsWith('fortune-tea-house-')?'tea':null;
-  priceEvidenceRequest=service==='tea'||service==='sukuyo'||service==='neo';
+  priceEvidenceRequest=['tea','sukuyo','neo','life-book'].includes(service);
   const input=unpackPaidResumeArg(service==='fusion'?options.resume?.args?.body:(service==='neo'||service==='life-book'||service==='love-secret'||service==='astrology'||service==='vedic'||service==='ziwei'||service==='new-year'||service==='karma'||service==='sukuyo')?options.resume?.args?.payload:options.resume?.args?.requestPayload);
   if(!input||!service)throw new Error('상담 입력을 다시 확인해 주세요.');
   if(service==='fusion'||service==='life-book')input.requestId=options.requestId||options.resume?.args?.requestId;
@@ -38,7 +38,7 @@ export async function runBillingCoinGate(options){
    const sale=(await nativeSaleProducts()).find(row=>row.sku===intent.sku);
    checkSurface();
    if(!sale||sale.featureKey!==options.featureKey||sale.approvedPriceKRW!==intent.amountKRW)throw new Error('등록된 상담 상품을 확인하지 못했어요. 잠시 후 다시 시도해 주세요.');
-   if(service==='tea'||service==='sukuyo'||service==='neo'){const user=getAuthState().user,owner=String(user?.id||user?.userId||user?._id||user?.uid||'');if(!owner||!consumeTossTeaPrice({owner,featureKey:options.featureKey,sku:sale.sku,displayAmount:sale.displayAmount}))throw Object.assign(new Error('상담 확인 화면에서 가격을 다시 확인해 주세요.'),{code:'TOSS_PRICE_CHANGED'});}
+   if(priceEvidenceRequest){const user=getAuthState().user,owner=String(user?.id||user?.userId||user?._id||user?.uid||'');if(!owner||!consumeTossTeaPrice({owner,featureKey:options.featureKey,sku:sale.sku,displayAmount:sale.displayAmount}))throw Object.assign(new Error('상담 확인 화면에서 가격을 다시 확인해 주세요.'),{code:'TOSS_PRICE_CHANGED'});}
    await new Promise((resolve,reject)=>{
     let cleanup=()=>{};
     const leave=()=>{cleanup();reject(Object.assign(new Error('새 결제 전에 구매 내역 복구에서 이전 주문을 확인해 주세요.'),{code:'RECOVERY_REQUIRED'}));};

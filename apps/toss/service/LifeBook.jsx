@@ -1,9 +1,11 @@
 import React from 'react';
-import {SERVICE_AVAILABLE} from '../src/release';
+import TossTeaPrice from './TossTeaPrice';
 import LifeBookAiClient from '@/app/life-book-ai/LifeBookAiClient';
 import ServiceIntroSection from '@/app/components/ServiceIntroSection';
 import ResultSamples from '@/app/components/ResultSamples';
-export default function LifeBook(){return <><LifeBookAiClient paymentSurface="toss" paymentNotice={SERVICE_AVAILABLE?"토스 단건 결제로 상담을 시작해요. 기존 웹 이용권과 월정석은 이 결제에 적용되지 않아요.":"상품 등록과 검수가 완료되면 토스 단건 결제로 상담을 시작할 수 있어요."}/><ResultSamples ids={['life-book']}/>
+export default function LifeBook(){
+ const query=new URLSearchParams(location.search);
+ return <><LifeBookAiClient paymentSurface="toss" Price={TossTeaPrice} initialMode={query.get("mode")==="lifeFortune"?"lifeFortune":"lifeBook"} recoveringOrder={Boolean(query.get("orderId"))} paymentNotice="상품 가격을 확인한 뒤 토스 단건 결제로 상담을 시작해요."/><ResultSamples ids={['life-book']}/>
       <ServiceIntroSection label="인생의 책 전문가 상담 안내">
         <h1><span>인생 총운 — 사주로 보는 평생 운세 리포트</span>내 인생의 황금기는 언제일까?</h1>
         <p>

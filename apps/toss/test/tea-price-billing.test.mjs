@@ -31,3 +31,18 @@ test('leaving an active SDK checkout requires recovery without assuming payment 
 test('Neo requires the exact displayed approved SKU and same owner before payment',async()=>{reset();const neo={...selection,featureKey:'neo-operation-room-consultation'},request={featureKey:neo.featureKey,requestId:'test',resume:{args:{payload:JSON.stringify({question:'테스트 질문'})}}};state.sale={...neo,approvedPriceKRW:5000};let result=await runBillingCoinGate(request);assert.equal(result.error.code,'TOSS_PRICE_CHANGED');assert.equal(state.purchases,0);rememberTossTeaPrice(neo);state.owner='other';result=await runBillingCoinGate(request);assert.equal(result.error.code,'TOSS_PRICE_CHANGED');assert.equal(state.purchases,0);state.owner='owner';rememberTossTeaPrice(neo);result=await runBillingCoinGate(request);assert.equal(result.ok,true);assert.equal(state.purchases,1);rememberTossTeaPrice(neo);state.sale.displayAmount='변경된 금액';result=await runBillingCoinGate(request);assert.equal(result.error.code,'TOSS_PRICE_CHANGED');assert.equal(state.purchases,1);});
 test('Neo recovery must match an already paid order and never starts a new purchase',async()=>{reset();const neo={...selection,featureKey:'neo-operation-room-consultation'},orderId='01900000-1111-7111-8111-000000000042',request={featureKey:neo.featureKey,requestId:'test',resume:{args:{payload:JSON.stringify({question:'테스트 질문'})}}};state.sale={...neo,approvedPriceKRW:5000};globalThis.location.search='?orderId='+orderId;let result=await runBillingCoinGate(request);assert.equal(result.ok,false);assert.equal(state.purchases,0);state.intent.paid=true;state.intent.orderId='other';result=await runBillingCoinGate(request);assert.equal(result.ok,false);assert.equal(state.purchases,0);state.intent.orderId=orderId;result=await runBillingCoinGate(request);assert.equal(result.ok,true);assert.equal(state.purchases,0);});
 test('Neo cannot start payment for a registry amount mismatch',async()=>{reset();const neo={...selection,featureKey:'neo-operation-room-consultation'},request={featureKey:neo.featureKey,requestId:'test',resume:{args:{payload:JSON.stringify({question:'테스트 질문'})}}};state.sale={...neo,approvedPriceKRW:4994};rememberTossTeaPrice(neo);const result=await runBillingCoinGate(request);assert.equal(result.ok,false);assert.equal(state.purchases,0);});
+
+for(const featureKey of ['life-book-ai-consultation','life-fortune-ai-consultation']){
+ test(featureKey+' requires its own displayed price before starting a new order',async()=>{
+  reset();
+  const price={...selection,featureKey};
+  const request={featureKey,requestId:'life-test',resume:{args:{payload:JSON.stringify({topic:'가상 질문'})}}};
+  state.sale={...price,approvedPriceKRW:5000};
+  rememberTossTeaPrice(selection);
+  assert.equal((await runBillingCoinGate(request)).error.code,'TOSS_PRICE_CHANGED');
+  assert.equal(state.purchases,0);
+  rememberTossTeaPrice(price);
+  assert.equal((await runBillingCoinGate(request)).ok,true);
+  assert.equal(state.purchases,1);
+ });
+}

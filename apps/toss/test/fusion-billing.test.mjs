@@ -6,7 +6,9 @@ import {createRequire} from 'node:module';
 import serviceCompat from '../service/vite-service.mjs';
 const require=createRequire(import.meta.url),Module=require('node:module'),root=path.resolve(import.meta.dirname,'../../..');
 const state={calls:[],paid:true,unavailable:false};globalThis.__fusionBilling=state;
-const bundle=await build({entryPoints:[path.join(root,'apps/toss/service/billing.jsx')],bundle:true,write:false,format:'cjs',platform:'node',plugins:[{name:'offline',setup(b){
+const bundle=await build({stdin:{contents:"export * from './apps/toss/service/billing.jsx';export {rememberTossTeaPrice} from './src/features/fortune-tea-house/lib/tossPriceSelection.ts';",resolveDir:root,loader:'jsx'},bundle:true,write:false,format:'cjs',platform:'node',plugins:[{name:'offline',setup(b){
+ b.onResolve({filter:/^@\/app\/_lib\/auth-store$/},()=>({path:'test-auth',namespace:'identity'}));
+ b.onLoad({filter:/.*/,namespace:'identity'},()=>({contents:"export const getAuthState=()=>({user:{id:'owner'},isAuthenticated:true}),subscribeAuth=()=>()=>{};"}));
  b.onResolve({filter:/^@\/app\/hooks\/usePaidResume$/},()=>({path:'resume',namespace:'mock'}));
  b.onLoad({filter:/.*/,namespace:'mock'},()=>({contents:'export const unpackPaidResumeArg=JSON.parse;',loader:'js'}));
  b.onLoad({filter:/app[\\/]_lib[\\/]billing-client\.ts$/},()=>({contents:'export const runPaidAccessGate=()=>{throw Error("WEB_GATE_FORBIDDEN")};',loader:'js'}));
@@ -14,7 +16,7 @@ const bundle=await build({entryPoints:[path.join(root,'apps/toss/service/billing
 }}]});
 const loaded=new Module(path.join(root,'fusion-billing-test.cjs'));loaded.paths=Module._nodeModulePaths(root);loaded._compile(bundle.outputFiles[0].text,loaded.id);
 
-test.beforeEach(()=>{globalThis.window={addEventListener:()=>{},removeEventListener:()=>{}};});
+test.beforeEach(()=>{loaded.exports.rememberTossTeaPrice({owner:'owner',featureKey:'life-book-ai-consultation',sku:'mock-sku',displayAmount:'테스트 금액'});globalThis.window={addEventListener:()=>{},removeEventListener:()=>{}};});
 
 test('original useCoinGate imports resolve to Toss progress and paid-access adapters',()=>{
  const plugin=serviceCompat(),importer=path.join(root,'app/hooks/useCoinGate.ts');

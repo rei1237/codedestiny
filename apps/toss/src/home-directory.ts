@@ -73,6 +73,7 @@ const reports:DirectoryItem[]=[
   {title:"흑월의 경고 상담", href:"/heukwol/?consult=1"},
   {title:"초융합 운세 둘러보기", room:"fusion"},
   {title:"인생의 책 둘러보기", room:"life-book"},
+  {title:"인생 총운", href:"/life-book-ai/?mode=lifeFortune",body:"탄생부터 노년까지 긴 흐름을 읽는 사주 리포트"},
   {title:"연애 비책 둘러보기", room:"love-secret"},
   {title:"관계 경계 리포트 둘러보기", room:"relationship"},
   {title:"점성술 전문가 상담 둘러보기", room:"astrology"},
