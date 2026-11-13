@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-14
-next: 묶음 ④ 단계 9 — 신년운세 이전 (공용 GenerationProgress·연애 비책은 끝, 결과는 문서 끝 "묶음 ④ 단계 9 결과")
+next: 묶음 ④ 단계 9 — 베다 이전 (신년운세·인생의 책은 끝, 결과는 문서 끝 "묶음 ④ 단계 9 결과 — 신년운세·인생의 책")
 ---
 
 # 꿀꿀 운세·영냥이 UX: 구매 흐름 · 후기 신뢰 · 후기 작성 · 생성 진행 · 무료 배너
@@ -20,7 +20,7 @@ next: 묶음 ④ 단계 9 — 신년운세 이전 (공용 GenerationProgress·�
 - 기준: origin/main `02476159e0b545b887fe04a12815b7123b4b614d`
 - node_modules는 정션, `.env.local`·`.env.cloudflare.local`은 링크(건드리지 않는다).
 - 워크트리 제거: 다른 체크아웃에서 `npm run worktree:remove -- 'D:\Development\codedestiny-worktrees\ux-conversion-20261113-215142'` (git worktree remove 금지 — 긴 경로 고아 폴더).
-- 마지막 커밋: 단계마다 아래 표에 적는다. 묶음 ① 끝 코드 커밋 `3af1f976b`(미push). 묶음 ② 6b 끝 코드 커밋 `dd10f6156`(미push). 묶음 ② 6c-1 코드 커밋 `4dd33836e`·`9b9a8e706`·`3c8d5ac2f`(미push). 묶음 ② 6c-2 코드 커밋 `273aa5ce6`·`d1eba2bae`(미push). 묶음 ② 11a 코드 커밋 `81b1be43d`(미push). 묶음 ② 배너 모바일 다듬기 `c7edcc6c3`·사이트맵 원장 `a10578ada`(미push). 묶음 ③ 단계 5 ReviewProof `f554b8920`(미push). 단계 5 남은 일 `c674869d9`(보존 기준 해시)·`f6768d579`(`/reviews/?product=` 필터), 묶음 ③ 단계 7 `008432add`(미push). 묶음 ③ 단계 8 `efafe2738`(미push) — 묶음 ③ 완료. 묶음 ④ 단계 9 공용 GenerationProgress `1c0e07c2b`·연애 비책 이전 `98ca36812`(미push).
+- 마지막 커밋: 단계마다 아래 표에 적는다. 묶음 ① 끝 코드 커밋 `3af1f976b`(미push). 묶음 ② 6b 끝 코드 커밋 `dd10f6156`(미push). 묶음 ② 6c-1 코드 커밋 `4dd33836e`·`9b9a8e706`·`3c8d5ac2f`(미push). 묶음 ② 6c-2 코드 커밋 `273aa5ce6`·`d1eba2bae`(미push). 묶음 ② 11a 코드 커밋 `81b1be43d`(미push). 묶음 ② 배너 모바일 다듬기 `c7edcc6c3`·사이트맵 원장 `a10578ada`(미push). 묶음 ③ 단계 5 ReviewProof `f554b8920`(미push). 단계 5 남은 일 `c674869d9`(보존 기준 해시)·`f6768d579`(`/reviews/?product=` 필터), 묶음 ③ 단계 7 `008432add`(미push). 묶음 ③ 단계 8 `efafe2738`(미push) — 묶음 ③ 완료. 묶음 ④ 단계 9 공용 GenerationProgress `1c0e07c2b`·연애 비책 이전 `98ca36812`·신년운세 `6c48059f9`·인생의 책 `27e2c5eb2`(미push).
 
 ## 승인 상태 (사용자 원문, 2026-11-13)
 
@@ -156,8 +156,8 @@ next: 묶음 ④ 단계 9 — 신년운세 이전 (공용 GenerationProgress·�
 
 ### 묶음 ④ 생성 진행 (단계 9, 10)
 - [x] 9. GenerationProgress + love-secret — SHA: 1c0e07c2b, 98ca36812 (결과는 문서 끝 "묶음 ④ 단계 9 결과")
-- [ ] 9. new-year — SHA:
-- [ ] 9. life-book — SHA:
+- [x] 9. new-year — SHA: 6c48059f9
+- [x] 9. life-book — SHA: 27e2c5eb2
 - [ ] 9. vedic — SHA:
 - [ ] 10. 영냥이 ReadingLoading — SHA:
 
@@ -921,3 +921,68 @@ UI 전용 확인
 - 초상은 `masterProfiles.neoNewYear.portrait/portraitSrcSet`, `persona="neo"`.
 - 크론 레지스트리 L17에 `new-year-ai`가 있다(`llmMeta.resumeBody`). 떠남 안내 원문을 쓰기 전에 클라이언트 이어쓰기(다시 열면 저장된 분야부터)를 코드로 확인한다.
 - `READING_EXPECTED_MS` 주석의 "4섹션 시절 실측 40~55초"는 지금 섹션 수와 다를 수 있다. "보통 N~M분" 근거로 쓰기 전에 현재 섹션 수와 맞는지 확인하고, 아니면 뺀다.
+
+### 묶음 ④ 단계 9 결과 — 신년운세·인생의 책 (2026-11-14 완료, 미push)
+
+커밋
+- `6c48059f9` feat(new-year): 생성 대기 화면을 GenerationProgress 로 이전
+- `27e2c5eb2` feat(life-book): 집필 대기 화면을 GenerationProgress 로 이전
+
+신년운세 (`app/new-year-ai-consultation/NewYearAiClient.tsx`, CRLF 유지)
+- `NewYearGenerationPanel`이 `<GenerationProgress persona="neo">`를 그린다. 초상은 `masterProfiles.neoNewYear`, 단위는 "분야 완성", `timing`.
+- 상태 `readingCount`(`{completed,total}|null`)가 `readingProgress`(퍼센트)를 대신한다. applyResult는 미완료일 때 `result.progress ?? null`만 넣는다.
+- 지운 것: `READING_STAGES`·`READING_PROGRESS_CAP`·`READING_EXPECTED_MS`·`readingProgressFromElapsed`·`readingStageLabel`·`ReadingProgressPanel`, 250ms 가짜 진행 effect, 인라인 `.nyai-progress*` CSS.
+- 떠남 안내
+  - 웹: 공용 원문을 그대로 쓴다. 근거는 sid·pendingSessionId → loadSession → startConsultation({resumeSessionId}), 서버의 savedSections 재사용, 크론 `new-year-ai`.
+  - 토스: 다시 열어도 자동 재개가 아니라 '구매한 상담 이어보기' 버튼으로 이어 간다. 그래서 `NEW_YEAR_TOSS_LEAVE_NOTICE`를 쓴다.
+- "보통": 뺐다. 40~55초 실측은 4섹션(V1) 값이고, 지금은 7섹션·여러 웨이브다.
+- 단계 목록: 뺐다. 서버 progress로는 어느 분야가 끝났는지 알 수 없다.
+- UI 전용: `ui-only-check` 13개 함수 SAME(setter `setReading(Progress|Count)` 제외).
+- 픽스처: preservation 픽스처에서 지운 함수 3줄을 뺐다.
+- 검사 스크립트: `scripts/verify-new-year-ai-flow.mjs` 표지를 `<GenerationProgress`로 바꿨다.
+
+인생의 책 (`app/life-book-ai/LifeBookAiClient.tsx`, CRLF 유지)
+- `{isBusy && <GenerationProgress persona="neo" …>}`를 그린다.
+  - 초상은 `masterProfiles.yunLifeBook`(윤달, 인간형 + 흰 고양이)이다.
+  - persona는 색 묶음이라, 윤달 테마에 맞는 어두운 달빛 묶음을 골랐다.
+- 막대
+  - `status === "generating"`일 때만 `waveProgress`(저장 섹션 수 / plan 길이 15·25)로 채운다.
+  - 단위는 "부분 완성"이다. 섹션 수가 장 수와 다르기 때문이다.
+  - 첫 웨이브 응답 전, opening·payment·navigating에서는 불확정 막대다.
+  - 경과 시간과 떠남 안내는 generating일 때만 나온다.
+- 지운 것: 점근선 `progress`, 가짜 `activeStep`, `startedAt`·`elapsedMs`와 1초 타이머, `GENERATION_STEPS`, 펄스 자리표시, `chapterCountUnit`. lifeBookCopy.ts의 `WRITING_STAGES` export는 그대로 두었다.
+- 단계 목록: 뺐다. 섹션이 `Promise.allSettled`로 병렬로 쓰여 어느 장이 끝났는지 알 수 없다.
+- 문구
+  - 12개 언어에 `writingStatus`·`writingCountUnit`·`writingElapsedLabel`·`leaveSafeNotice`를 넣었다.
+  - ko 떠남 안내는 `LEAVE_SAFE_NOTICE`이고, 다른 언어는 연애 비책 번역을 썼다.
+  - ko 제목·설명은 해요체로 바꾸고, 병렬이라 "차례로"를 뺐다.
+- 떠남 안내
+  - 웹: 공용 원문을 그대로 쓴다.
+    - 화면을 숨기면 다음 웨이브 전에 결과 화면으로 옮긴다(`goToResult`).
+    - 결과 화면(`LifeBookAiResultClient.tsx` L1455-1480)은 202 partial을 받으면 resumeSessionId로 이어 쓴다.
+    - 기록함 링크도 `/life-book-ai/result/?attemptId=`라 같은 결과 화면으로 간다.
+    - 크론 `life-book-ai`가 덮는다.
+  - 토스: 기록함·크론 경로를 확인하지 못했다. 그래서 `LIFE_BOOK_TOSS_LEAVE_NOTICE`로 확인한 사실만 말한다.
+- "보통": 실측 근거가 없어 뺐다.
+- UI 전용: `ui-only-check` 12개 함수 SAME(setter `set(StartedAt|ElapsedMs)` 제외). 지운 setInterval은 가짜 경과 타이머뿐이다.
+- 테스트: `life-book-ux.static`의 progressbar 단언을 "GenerationProgress가 waveProgress로만 채운다·자체 progressbar 없음"으로 바꿨다.
+
+검증
+- node 테스트 통과: 신년운세 122/122, 인생의 책 113/113.
+- worker jest(`npm run test:jest -- --runInBand`) 통과: new-year 34/34, life-book sections 41/41.
+- 그 밖
+  - `npm run typecheck` 깨끗하다.
+  - `verify-new-year-ai-flow`·`verify-life-book-ai-flow`·`verify-paid-gate-ui-regression`·`verify:hero-contrast` 통과.
+  - eslint 오류 0, 경고는 기존 것만.
+- 화면 확인
+  - 방법: `dev:next` + 스크래치 `gp-shot.mjs`. API를 모두 가로채 과금 호출은 없었다.
+  - visual-checker 판정
+    - 신년운세: 390 결정형·불확정형·1440 통과(채움 28.7%, 대비 10.2~15.5:1).
+    - 인생의 책: 390 결정형·불확정형 통과(채움 40.0%, 대비 10.23~15.50:1, 초상 인간형).
+
+후속(보고만)
+1. 첫 방문 모바일에서는 고정 쿠키 배너가 대기 카드 아래쪽 떠남 안내를 가릴 수 있다(신년운세 390 불확정형). 페이지 쪽 문제다.
+2. 인생의 책 카드가 남색이라 호박색·초록 페이지에서 떨어져 보인다. 호박색 persona를 만들려면 공용 CSS 토큰이 필요하다.
+3. 신년운세 대기 화면 문구는 한국어 리터럴이다(예전 패널도 같았다).
+4. 인생의 책 `PHASE_COPY`(opening·payment·navigating)는 한국어 전용 합니다체 그대로다.
+5. 네오 신년 초상은 모바일 원(98px) 안에서 얼굴이 약 15px로 작다.
