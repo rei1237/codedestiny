@@ -13,7 +13,10 @@ async function main() {
   const bundle = await build({
     stdin: { contents: 'import React from "react"; import {createRoot} from "react-dom/client"; import Studio from "./app/app/talismans/TalismanStudio"; createRoot(document.getElementById("root")).render(<Studio/>);', resolveDir: root, loader: 'tsx' },
     bundle: true, write: false, platform: 'browser', jsx: 'automatic',
-    define: { 'process.env.NODE_ENV': '"production"' },
+    define: {
+      'process.env.NODE_ENV': '"production"',
+      'process.env.NEXT_PUBLIC_RUNTIME_TARGET': '"web"',
+    },
     alias: { '@': root },
   });
   const css = ['app/yeongnyangi/night-tokens.css', 'app/app/talismans/talismans.css'].map(file => fs.readFileSync(path.join(root, file), 'utf8')).join('\n');
@@ -25,6 +28,10 @@ async function main() {
     if (url.pathname.startsWith('/assets/talismans/originals/') && /^[a-z0-9-]+\.png$/.test(path.basename(url.pathname))) {
       const file = path.join(root, 'public', url.pathname);
       if (fs.existsSync(file)) { res.setHeader('Content-Type', 'image/png'); res.end(fs.readFileSync(file)); return; }
+    }
+    if (url.pathname.startsWith('/assets/talismans/widget/') && /^[a-z0-9-]+\.webp$/.test(path.basename(url.pathname))) {
+      const file = path.join(root, 'public', url.pathname);
+      if (fs.existsSync(file)) { res.setHeader('Content-Type', 'image/webp'); res.end(fs.readFileSync(file)); return; }
     }
     res.writeHead(404); res.end();
   });
@@ -58,12 +65,25 @@ async function main() {
       page.on('pageerror', error => errors.push(error.message));
       await page.goto(`http://127.0.0.1:${server.address().port}/?lang=${locale}`);
       const apply = page.locator('.cd-talisman-actions button').first();
-      await page.waitForFunction(() => document.querySelector('.cd-talisman main') || document.querySelector('.cd-talisman img')?.complete);
+      await page.waitForTimeout(250);
+      if (await page.locator('main.cd-talisman').count() === 0) throw new Error(`Talisman component did not render: ${errors.join(' | ')}`);
+      await page.locator('main.cd-talisman').waitFor({ state: 'visible' });
       await apply.waitFor({ state: 'visible' });
       await page.waitForFunction(() => !document.querySelector('.cd-talisman-actions button')?.disabled);
       assert.equal(await page.locator('main').getAttribute('lang'), locale);
       assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
       await page.screenshot({ path: path.join(output, `component-${locale}.png`), fullPage: true });
+      if (locale === 'ko') {
+        await page.locator('.cd-talisman-visual-options label').filter({ hasText: '마음 쉼' }).locator('input').check({ force: true });
+        await page.waitForFunction(() => document.querySelector('.cd-talisman-preview img')?.alt.includes('마음 쉼'));
+        await page.screenshot({ path: path.join(output, 'peace-ko.png'), fullPage: true });
+        for (const width of [360, 390, 430]) {
+          await page.setViewportSize({ width, height: 844 });
+          assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true, `${width}px overflow`);
+          await page.screenshot({ path: path.join(output, `peace-ko-${width}.png`), fullPage: true });
+        }
+        await page.setViewportSize({ width: 412, height: 915 });
+      }
       await page.locator('.cd-talisman-controls fieldset').nth(3).evaluate(element => element.scrollIntoView({ block: 'start' }));
       const fitBox = await page.locator('.cd-talisman-controls fieldset').nth(3).boundingBox();
       const statusBox = await page.locator('[role="status"]').boundingBox();

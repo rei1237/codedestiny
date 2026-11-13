@@ -1,7 +1,7 @@
 import type { LoadingLocale } from "@/constants/loadingMessages";
 
 /** 위젯 그림은 승인된 영냥이 부적 원본에서 만든 작은 사본이다(scripts/build-widget-assets.mjs). */
-export const WIDGET_TALISMANS = ["study", "wealth", "love", "contact", "success"] as const;
+export const WIDGET_TALISMANS = ["study", "wealth", "love", "contact", "success", "peace"] as const;
 export type WidgetTalisman = typeof WIDGET_TALISMANS[number];
 export const AFFIRMATION_IDS = ["own-pace", "enough", "breathe", "good-news", "kind-self", "small-step"] as const;
 export type AffirmationId = typeof AFFIRMATION_IDS[number];

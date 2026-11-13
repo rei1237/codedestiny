@@ -37,9 +37,9 @@ export function resolveTalisman(id: unknown) {
  const art = typeof id === "string" && id.startsWith("art:") ? LOCK_ARTWORK.find(asset => "art:" + asset.id === id) : undefined;
  if (art) {
   const companion = TALISMAN_CHARACTERS.find(c => c.id === (art.scene === "yeongnyangi" ? "yeongnyangi" : "yeoni"))!;
-  const categoryId = art.category === "wealth" || art.category === "career" ? "work" : art.category === "study" ? "study" : "love";
+  const categoryId = art.category === "wealth" || art.category === "career" ? "work" : art.category === "study" ? "study" : art.category === "peace" ? "peace" : "love";
   const category = TALISMAN_CATEGORIES.find(c => c.id === categoryId)!;
-  const image = "/assets/talismans/widget/" + art.id.replace("-yeongnyangi-v2", "") + ".webp";
+  const image = "/assets/talismans/widget/" + art.id.replace(/-yeongnyangi-v\d+$/, "") + ".webp";
   return {id: "art:" + art.id, category, character: {...companion, image, alt: artworkName(art,"ko"), en: artworkName(art,"en")}};
  }
  const [categoryId,characterId,extra] = typeof id === 'string' ? id.split(':') : [];

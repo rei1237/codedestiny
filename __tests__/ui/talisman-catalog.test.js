@@ -23,7 +23,7 @@ const asset = {
   src: "/assets/talismans/originals/test-only.png", width: 1440, height: 3120, sha256: "a".repeat(64),
 };
 test("공개 카탈로그는 승인 원본만 허용한다", () => {
-  assert.equal(approvedAssets().length, 24);
+  assert.equal(approvedAssets().length, 27);
   assert.equal(approvedAssets({ version: 1, assets: [{ ...asset, approval: "draft" }] }).length, 0);
   assert.equal(approvedAssets({ version: 1, assets: [asset] }).length, 1);
 });

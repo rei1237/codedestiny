@@ -20,7 +20,7 @@ await mkdir(webDir, { recursive: true });
 
 for (const entry of catalog.assets.filter(asset => asset.approval === "approved")) {
   const src = entry.src;
-  const id = entry.id.replace("-yeongnyangi-v2", "");
+  const id = entry.id.replace(/-yeongnyangi-v\d+$/, "");
   const original = await readFile(path.join(root, "public", src));
   const sha = createHash("sha256").update(original).digest("hex");
   if (sha !== entry.sha256) throw new Error(`원본 해시 불일치: ${src}`);

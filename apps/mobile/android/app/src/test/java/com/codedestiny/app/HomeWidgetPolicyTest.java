@@ -36,6 +36,9 @@ public class HomeWidgetPolicyTest {
         assertNull(HomeWidgetPolicy.parse("affirmation", "own-pace", "   "));
         assertNull(HomeWidgetPolicy.parse("affirmation", "own-pace", new String(new char[41]).replace('\0', '가')));
         assertNull(HomeWidgetPolicy.parse("photo", "own-pace", "괜찮아"));
+        assertNotNull(HomeWidgetPolicy.parse("talisman", "peace", ""));
+        assertNotNull(HomeWidgetPolicy.parse("talisman", "peace-flower-pig-v3", ""));
+        assertNotNull(HomeWidgetPolicy.parse("talisman", "peace-yeoni-v3", ""));
         assertNull(HomeWidgetPolicy.decode("talisman\nwealth"));
         assertNull(HomeWidgetPolicy.decode(null));
     }

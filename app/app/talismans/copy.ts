@@ -67,6 +67,8 @@ export type TalismanCopy = {
   wishLove: string;
   wishContact: string;
   wishCareer: string;
+  wishPeace: string;
+  dailyPick: string;
 };
 
 // UI text only. Approved artwork and the words inside it remain unchanged.
@@ -137,7 +139,9 @@ const COPY: Record<LoadingLocale, TalismanCopy> = {
     "wishWealth": "재물",
     "wishLove": "연애",
     "wishContact": "연락",
-    "wishCareer": "취업·합격"
+    "wishCareer": "취업·합격",
+    "wishPeace": "마음 쉼",
+    "dailyPick": "오늘의 부적 추천"
   },
   "ja": {
     "targetBoth": "ホーム・ロック画面",
@@ -205,7 +209,9 @@ const COPY: Record<LoadingLocale, TalismanCopy> = {
     "wishWealth": "金運",
     "wishLove": "恋愛",
     "wishContact": "連絡",
-    "wishCareer": "就職・合格"
+    "wishCareer": "就職・合格",
+    "wishPeace": "心の休息",
+    "dailyPick": "今日のお守りを選ぶ"
   },
   "en": {
     "targetBoth": "Home and lock screens",
@@ -273,7 +279,9 @@ const COPY: Record<LoadingLocale, TalismanCopy> = {
     "wishWealth": "Wealth",
     "wishLove": "Love",
     "wishContact": "Contact",
-    "wishCareer": "Career and exams"
+    "wishCareer": "Career and exams",
+    "wishPeace": "Calm",
+    "dailyPick": "Choose today’s talisman"
   },
   "zh-CN": {
     "targetBoth": "主屏幕和锁屏",
@@ -341,7 +349,9 @@ const COPY: Record<LoadingLocale, TalismanCopy> = {
     "wishWealth": "财运",
     "wishLove": "爱情",
     "wishContact": "联系",
-    "wishCareer": "求职与考试"
+    "wishCareer": "求职与考试",
+    "wishPeace": "安心休息",
+    "dailyPick": "选择今日护符"
   },
   "zh-TW": {
     "targetBoth": "主畫面與鎖定畫面",
@@ -409,7 +419,9 @@ const COPY: Record<LoadingLocale, TalismanCopy> = {
     "wishWealth": "財運",
     "wishLove": "愛情",
     "wishContact": "聯繫",
-    "wishCareer": "求職與考試"
+    "wishCareer": "求職與考試",
+    "wishPeace": "安心休息",
+    "dailyPick": "選擇今日護符"
   },
   "vi": {
     "targetBoth": "Màn hình chính và màn hình khóa",
@@ -477,7 +489,9 @@ const COPY: Record<LoadingLocale, TalismanCopy> = {
     "wishWealth": "Tài lộc",
     "wishLove": "Tình yêu",
     "wishContact": "Liên lạc",
-    "wishCareer": "Việc làm và thi cử"
+    "wishCareer": "Việc làm và thi cử",
+    "wishPeace": "Bình tâm",
+    "dailyPick": "Chọn bùa hộ mệnh hôm nay"
   },
   "hi": {
     "targetBoth": "होम और लॉक स्क्रीन",
@@ -545,7 +559,9 @@ const COPY: Record<LoadingLocale, TalismanCopy> = {
     "wishWealth": "धन",
     "wishLove": "प्रेम",
     "wishContact": "संपर्क",
-    "wishCareer": "नौकरी और परीक्षा"
+    "wishCareer": "नौकरी और परीक्षा",
+    "wishPeace": "मन की शांति",
+    "dailyPick": "आज का तावीज़ चुनें"
   },
   "es": {
     "targetBoth": "Inicio y bloqueo",
@@ -613,7 +629,9 @@ const COPY: Record<LoadingLocale, TalismanCopy> = {
     "wishWealth": "Prosperidad",
     "wishLove": "Amor",
     "wishContact": "Contacto",
-    "wishCareer": "Empleo y exámenes"
+    "wishCareer": "Empleo y exámenes",
+    "wishPeace": "Calma",
+    "dailyPick": "Elegir el talismán de hoy"
   },
   "fr": {
     "targetBoth": "Accueil et verrouillage",
@@ -681,7 +699,9 @@ const COPY: Record<LoadingLocale, TalismanCopy> = {
     "wishWealth": "Prospérité",
     "wishLove": "Amour",
     "wishContact": "Contact",
-    "wishCareer": "Emploi et examens"
+    "wishCareer": "Emploi et examens",
+    "wishPeace": "Calme",
+    "dailyPick": "Choisir le talisman du jour"
   },
   "de": {
     "targetBoth": "Start- und Sperrbildschirm",
@@ -749,7 +769,9 @@ const COPY: Record<LoadingLocale, TalismanCopy> = {
     "wishWealth": "Wohlstand",
     "wishLove": "Liebe",
     "wishContact": "Kontakt",
-    "wishCareer": "Beruf und Prüfungen"
+    "wishCareer": "Beruf und Prüfungen",
+    "wishPeace": "Ruhe",
+    "dailyPick": "Talisman des Tages wählen"
   },
   "nl": {
     "targetBoth": "Start- en vergrendelscherm",
@@ -817,7 +839,9 @@ const COPY: Record<LoadingLocale, TalismanCopy> = {
     "wishWealth": "Welvaart",
     "wishLove": "Liefde",
     "wishContact": "Contact",
-    "wishCareer": "Werk en examens"
+    "wishCareer": "Werk en examens",
+    "wishPeace": "Rust",
+    "dailyPick": "Kies de talisman van vandaag"
   },
   "ms": {
     "targetBoth": "Skrin utama dan kunci",
@@ -885,7 +909,9 @@ const COPY: Record<LoadingLocale, TalismanCopy> = {
     "wishWealth": "Rezeki",
     "wishLove": "Cinta",
     "wishContact": "Hubungan",
-    "wishCareer": "Kerjaya dan peperiksaan"
+    "wishCareer": "Kerjaya dan peperiksaan",
+    "wishPeace": "Ketenangan",
+    "dailyPick": "Pilih tangkal hari ini"
   }
 };
 

@@ -13,6 +13,7 @@ export const categories = [
   { id: "love", ko: "연애", ja: "恋愛" },
   { id: "contact", ko: "연락", ja: "連絡" },
   { id: "career", ko: "취업·합격", ja: "就職・合格" },
+  { id: "peace", ko: "마음 쉼", ja: "心の休息" },
   { id: "reunion", ko: "재회", ja: "再会" },
   { id: "daily", ko: "오늘의 그림", ja: "今日の絵" },
 ] as const;

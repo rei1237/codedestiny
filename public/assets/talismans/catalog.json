@@ -182,6 +182,42 @@
       "sha256": "b8ce8446d5a97cb8d078949f09f3b0ca6f94cdf589aed02b2ad618769d8f4a05"
     },
     {
+      "id": "peace-yeongnyangi-v3",
+      "scene": "yeongnyangi",
+      "category": "peace",
+      "composition": "shared",
+      "approval": "approved",
+      "language": "none",
+      "src": "/assets/talismans/originals/peace-yeongnyangi-v3.png",
+      "width": 941,
+      "height": 1672,
+      "sha256": "7ea2ed4693b31e5a9a218e41553dd8ea869509775c86ed4b950694f81f5f198b"
+    },
+    {
+      "id": "peace-flower-pig-v3",
+      "scene": "yeoni-lotus",
+      "category": "peace",
+      "composition": "shared",
+      "approval": "approved",
+      "language": "none",
+      "src": "/assets/talismans/originals/peace-flower-pig-v3.png",
+      "width": 941,
+      "height": 1672,
+      "sha256": "3b8623a48662964c3b0be4ccd695e4c3bcdbba8f0983c138783a307c1b6f1851"
+    },
+    {
+      "id": "peace-yeoni-v3",
+      "scene": "yeoni-teahouse",
+      "category": "peace",
+      "composition": "shared",
+      "approval": "approved",
+      "language": "none",
+      "src": "/assets/talismans/originals/peace-yeoni-v3.png",
+      "width": 941,
+      "height": 1672,
+      "sha256": "82dc300337f8c8e620ab8fe907ff8147b33bb5413116f38562ef7321f347af49"
+    },
+    {
       "id": "yeoni-hanbok",
       "scene": "yeoni-wardrobe",
       "category": "love",

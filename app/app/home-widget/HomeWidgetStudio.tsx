@@ -49,7 +49,7 @@ export default function HomeWidgetStudio() {
   const pendingToken = useRef("");
   const copy = getHomeWidgetCopy(locale);
   const talismanCopy = getTalismanCopy(locale);
-  const talismanNames: Record<WidgetTalisman, string> = { study: talismanCopy.wishStudy, wealth: talismanCopy.wishWealth, love: talismanCopy.wishLove, contact: talismanCopy.wishContact, success: talismanCopy.wishCareer };
+  const talismanNames: Record<WidgetTalisman, string> = { study: talismanCopy.wishStudy, wealth: talismanCopy.wishWealth, love: talismanCopy.wishLove, contact: talismanCopy.wishContact, success: talismanCopy.wishCareer, peace: talismanCopy.wishPeace };
   const ko = locale === "ko";
   const assets = useMemo(() => approvedAssets(), []);
   const pools = useMemo(() => {
@@ -67,7 +67,7 @@ export default function HomeWidgetStudio() {
   const choices = mode === "yeoni"
     ? [...assets.filter(a => a.scene === "yeoni-wardrobe"), ...assets.filter(a => a.scene === "yeoni-garden" || a.scene === "yeoni-lotus" || a.scene === "yeoni-teahouse")]
     : assets.filter(a => a.scene === "yeongnyangi");
-  const widgetId = (id: string) => id.replace("-yeongnyangi-v2", "");
+  const widgetId = (id: string) => id.replace(/-yeongnyangi-v\d+$/, "");
   const selected = choices.find(a => widgetId(a.id) === talisman);
   function name(id: string) {
     const asset = assets.find(a => widgetId(a.id) === id);

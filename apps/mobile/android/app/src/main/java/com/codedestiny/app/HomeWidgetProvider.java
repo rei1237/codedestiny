@@ -89,6 +89,9 @@ public class HomeWidgetProvider extends AppWidgetProvider {
             case "success": return R.drawable.widget_talisman_success;
             case "success-flower-pig-v2": return R.drawable.widget_talisman_success_flower_pig_v2;
             case "success-yeoni-v2": return R.drawable.widget_talisman_success_yeoni_v2;
+            case "peace": return R.drawable.widget_talisman_peace;
+            case "peace-flower-pig-v3": return R.drawable.widget_talisman_peace_flower_pig_v3;
+            case "peace-yeoni-v3": return R.drawable.widget_talisman_peace_yeoni_v3;
             case "yeoni-hanbok": return R.drawable.widget_talisman_yeoni_hanbok;
             case "yeoni-moon": return R.drawable.widget_talisman_yeoni_moon;
             case "yeoni-tea": return R.drawable.widget_talisman_yeoni_tea;
