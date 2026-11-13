@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-13
-next: 묶음 ② 단계 6c(상세 페이지 9개) 구현 시작 — 문서 끝 "6c 착수 메모"부터 읽는다(탐색은 끝남, 코드 변경 없음)
+next: 묶음 ② 6c-2(SEO 등록·사이트맵·칩 연결) 시작 — 문서 끝 "6c-2 착수 메모"부터 읽는다
 ---
 
 # 꿀꿀 운세·영냥이 UX: 구매 흐름 · 후기 신뢰 · 후기 작성 · 생성 진행 · 무료 배너
@@ -20,7 +20,7 @@ next: 묶음 ② 단계 6c(상세 페이지 9개) 구현 시작 — 문서 끝 "
 - 기준: origin/main `02476159e0b545b887fe04a12815b7123b4b614d`
 - node_modules는 정션, `.env.local`·`.env.cloudflare.local`은 링크(건드리지 않는다).
 - 워크트리 제거: 다른 체크아웃에서 `npm run worktree:remove -- 'D:\Development\codedestiny-worktrees\ux-conversion-20261113-215142'` (git worktree remove 금지 — 긴 경로 고아 폴더).
-- 마지막 커밋: 단계마다 아래 표에 적는다. 묶음 ① 끝 코드 커밋 `3af1f976b`(미push). 묶음 ② 6b 끝 코드 커밋 `dd10f6156`(미push).
+- 마지막 커밋: 단계마다 아래 표에 적는다. 묶음 ① 끝 코드 커밋 `3af1f976b`(미push). 묶음 ② 6b 끝 코드 커밋 `dd10f6156`(미push). 묶음 ② 6c-1 코드 커밋 `4dd33836e`·`9b9a8e706`·`3c8d5ac2f`(미push).
 
 ## 승인 상태 (사용자 원문, 2026-11-13)
 
@@ -138,7 +138,9 @@ next: 묶음 ② 단계 6c(상세 페이지 9개) 구현 시작 — 문서 끝 "
 ### 묶음 ② 무료 배너·상세 (단계 6, 11 일부)
 - [x] 6a. 배너 카드화(React·셸) — SHA: a631c8f7b (미러 정리 chore 4049d813b 별도)
 - [x] 6b. 칩 연결·랜딩 액션 확인 — SHA: dd10f6156
-- [ ] 6c. 상세 페이지 9개·SEO·사이트맵 — SHA: (탐색만 끝남 → 문서 끝 "6c 착수 메모")
+- [ ] 6c. 상세 페이지 9개·SEO·사이트맵 — 6c-1 끝, 6c-2 남음(문서 끝 "6c-2 착수 메모")
+  - [x] 6c-1 레지스트리·컴포넌트·페이지 — SHA: 4dd33836e, 9b9a8e706 · indexable 기본값 수정 3c8d5ac2f
+  - [ ] 6c-2 SEO 등록·사이트맵·llms·칩 href·미러·테스트 — SHA:
 - [ ] 11a. 명식·절기 그림 — SHA:
 
 ### 묶음 ③ 신뢰·구매 흐름 (단계 5, 7, 8)
@@ -310,3 +312,98 @@ next: 묶음 ② 단계 6c(상세 페이지 9개) 구현 시작 — 문서 끝 "
 - `lib/seo/entity-registry.mjs` SEO_ROUTE_PROFILES 형식, `scripts/generate-sitemap.mjs` coreRoutes(약 L99), 애드센스 준비 검사 스크립트의 글자 수 계산(1,300자 기준과 푸터 포함 여부), `scripts/verify-saju-fun-content-gate*`, worker `/saju/*` 라우팅·`_routes`·redirects.
 - `__tests__/ui/free-promo.test.mjs`(href마다 `app${href}page.*`, index.html `href="${href}" data-cd-free-promo-item="${id}"`, `i18n/authored/freePromo-01.json` 12개 로케일 `freePromo.item.<id>`를 요구).
 - 배너 파일 4개와 `.claude/agents/visual-checker.md`, `codex-image` 스킬.
+
+### 6c-2 착수 메모 (2026-11-13, 6c-1 끝)
+
+6c-1 결과. 커밋 `4dd33836e`(레지스트리·공용 화면), `9b9a8e706`(페이지 9개·AppChrome), `3c8d5ac2f`(indexable 기본값 수정). push 없음.
+
+경로 충돌 확인(끝남): 9개 경로 모두 문제없다. 기존 `app/` 폴더가 없고, 다음 어디에도 가로채는 규칙이 없다.
+- `public/_redirects`, `public/_routes.json`
+- `public/_worker.js`의 리다이렉트 맵, `public/_headers`
+- `lib/seo/index-policy.mjs`, `next.config.mjs`의 rewrites
+- `worker/index.js`(`/api/*`만 처리)
+
+`worker/routes/fortune.js`의 `/saju/ai-prompt`는 API 경로라 페이지와 상관없다.
+
+파일
+- `lib/marketing/free-feature-details.mjs`: 레지스트리.
+- `app/components/free-feature/FreeFeatureDetail.tsx`: 서버 컴포넌트. 화면은 히어로(무료 배지, h1, 시작 버튼, "사주 결과 화면의 'OO' 카드에서 열려요."), 미리 보기, 열면 볼 수 있는 것, 읽는 순서, 이런 분께 맞아요, 자주 묻는 질문(`<details>`), 시작 카드, 함께 열려 있는 무료 기능 8개 링크, ContentIntegrityNote 순서다. JSON-LD는 WebPage·BreadcrumbList·FAQPage이고, Offer와 isAccessibleForFree는 없다.
+- `app/components/seo-landing-parts.jsx`: FOCUS_RING·MoonMark·SectionHead. SeoLandingTemplate에서 그대로 옮겼고 동작은 같다.
+- `app/saju/<slug>/page.tsx` 9개: `buildSeoMetadata({ path, title, description, keywords, noindex: !detail.indexable })`.
+- `app/components/AppChrome.tsx`: CHROMELESS_ROUTES에 9개를 `/saju/career-style` 다음에 넣었다. destiny-bias처럼 FeatureBackHomeNav만 뜬다.
+
+레지스트리 필드
+- `id`: free-promo 칩 id.
+- `slug`
+- `path`: `/saju/<slug>`. 끝 슬래시 없음. metadata와 JSON-LD에 쓴다.
+- `href`: `/saju/<slug>/`. 링크와 칩에 쓴다.
+- `name`
+- `cardName`: 결과 화면 카드 이름.
+- `copyKey`: generated.json `items` 키. 명식·절기는 `copyKey` 대신 `copy`(직접 쓴 문구)를 쓴다.
+- `excludePhrases`: 극T만 `['잠금 해제','라이트 사주 풀이']`.
+- `h1`, `title`, `description`, `keywords`
+- `image`: `{src,alt,width:1672,height:941}` 또는 명식·절기는 `null`.
+- `heroGlyphs`: 명식·절기의 글자 히어로.
+- `indexable`: 기본 true. 항목에 `indexable: false`만 적으면 그 페이지가 noindex가 된다.
+
+export: `FREE_FEATURE_DETAILS`, `FREE_FEATURE_DETAIL_CTA_HREF`(`/ggulggul/?action=cdOneStepFreeSajuEntry`), `getFreeFeatureDetail(slug)`(모르는 slug면 throw), `freeFeatureFreeUntilLabel(endsAt = FREE_PROMO.endsAt)`("2027년 2월 12일까지 무료"), `resolveFreeFeatureCopy(detail)`.
+
+`resolveFreeFeatureCopy`가 하는 일
+- 원천이 없으면 throw.
+- `excludePhrases`가 든 항목을 거른다.
+- FAQ "어디에서 열 수 있나요?"를 덧붙인다.
+- trustNotes에 `trustNotes.free`를 합치고 중복을 뺀다.
+
+id와 slug 대응: fourCut→four-cut, dopamine→dopamine, hormone→teto-egen, tTest→t-test, lotto→lotto-ritual, aiPrompt→ai-prompt-card, skillTree→skill-tree, natal→natal-chart, seasonRhythm→season-rhythm.
+
+검증
+- `npm run typecheck`: 통과.
+- 서버: `next dev`를 직접 띄웠다(127.0.0.1:12931).
+  - 12828은 다른 프로세스가 쓰고 있어 건드리지 않았다.
+  - `npm run dev`는 영냥이 연재 복사 선단계가 `public/`에 파일을 써서 쓰지 않았다.
+- 결과: 9개 모두 200이고 h1이 정상이다.
+  - JSON-LD는 WebPage·BreadcrumbList·FAQPage에 레이아웃 전역 `@graph` 1개가 더해진다.
+  - robots `index, follow`. canonical `https://code-destiny.com/saju/<slug>/`.
+  - Offer와 isAccessibleForFree 없음.
+  - 서버 HTML에 `<footer>` 없음. 히어로 그림 200.
+- 서버는 중지했고 포트가 풀린 것까지 확인했다.
+
+본문 글자 수
+- 범위: `<main data-free-feature-detail>` 안. script를 빼고, 태그를 지우고, 공백을 정리했다.
+- 빵부스러기, 버튼, 다른 무료 기능 링크가 들어 있다. 푸터는 없다.
+
+| slug | 공백 포함 | 공백 제외 |
+|---|---:|---:|
+| four-cut | 1,731 | 1,280 |
+| dopamine | 1,829 | 1,377 |
+| teto-egen | 1,611 | 1,201 |
+| t-test | 1,600 | 1,194 |
+| lotto-ritual | 1,661 | 1,234 |
+| ai-prompt-card | 1,739 | 1,293 |
+| skill-tree | 1,766 | 1,325 |
+| natal-chart | 1,931 | 1,463 |
+| season-rhythm | 1,958 | 1,455 |
+
+공백을 포함하면 9개 모두 1,300자 이상이다. 공백을 빼면 5개(four-cut·teto-egen·t-test·lotto-ritual·ai-prompt-card)가 1,300자 미만이다. 애드센스 준비 검사 스크립트가 어떻게 세는지(공백 포함 여부, 범위) 먼저 읽고 indexable을 정한다.
+
+6c-2에서 할 것(승인 범위 안, 이 순서 권장)
+1. `lib/seo/entity-registry.mjs` SEO_ROUTE_PROFILES에 9개를 넣는다. 형식을 먼저 읽는다.
+2. `scripts/generate-sitemap.mjs` coreRoutes(약 L99)에 넣는다. 가능하면 레지스트리를 읽어 `indexable`인 것만 넣는다.
+3. llms 등록.
+4. `lib/marketing/free-promo.mjs` 칩 9개에 `href`를 더하고(레지스트리 `href`와 같은 값) "단독 주소가 없어 사주 입력으로 보낸다" 주석을 고친다. policyKey·freeStart는 그대로 둔다.
+5. sync:public을 한 뒤 `__tests__/ui/free-promo.test.mjs`를 통과시킨다. 요구 사항은 세 가지다.
+   - `app${href}page.*`: page.tsx라 통과할 것으로 본다.
+   - index.html의 `href="${href}" data-cd-free-promo-item="${id}"`
+   - `i18n/authored/freePromo-01.json`에 12개 로케일 `freePromo.item.<id>`
+6. "app 페이지는 모두 사이트맵에 있어야 한다" 같은 테스트가 있으면 함께 맞춘다.
+7. 글자 수 기준에 따라 항목별 `indexable`을 정한다. 사이트맵도 같은 값을 읽게 한다.
+8. OG 그림은 지금 넘기지 않는다(기본 OG).
+   - fuctionassets는 1672×941인데 buildSeoMetadata는 1200×630을 고정으로 적는다. 그대로 넘기면 크기 정보가 틀린다.
+   - 11a와 함께 정한다.
+
+함정·후속
+- skillTree 원천 trustNotes에 "고정값"과 "노력으로 변할 수 있습니다"가 함께 있어 서로 어긋나 보인다. 원천 JSON 문구 문제이고, 상세 페이지에는 그대로 나온다.
+- alt는 그림을 열어 보지 않고 "사주 결과 화면의 'OO' 카드 대표 그림"으로 적었다. 11a에서 그림을 볼 때 구체적으로 고친다.
+- fuctionassets webp는 1672×941, 약 200KB다. 히어로에서 `fetchPriority="high"`로 불러온다.
+- FreePromoBanner는 상세 페이지에 붙이지 않았다(배너 다듬기 때 판단).
+- 레지스트리 JSON은 `with { type: 'json' }`로 import한다(wordpress-publications.mjs 선례). typecheck와 next dev 모두 통과했다.
