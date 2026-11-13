@@ -55,4 +55,3 @@ try{
   }
   assert.deepEqual(paid,[]);assert.deepEqual(unexpected.filter(path=>/orders|prepare|generate|start/.test(path)),[]);
 }catch(error){console.warn(await page?.locator('form[data-moonlit-form]').first().innerText({timeout:1800}).catch(()=>''));console.warn(page?.url(),(await page?.locator('body').innerText().catch(()=>''))?.slice(-1100));throw error;}finally{await browser.close();}
-

@@ -33,4 +33,3 @@ try{
   await page.goto(resultUrl);await page.getByRole('heading',{name:'구매 기록 확인'}).waitFor();assert.equal(await page.getByText(/테스트 전용 예시/).count(),0);
   console.log('PASS Sukuyo expert: home, two birth inputs, mock login and purchase, stored original, purchase history after restart, foreign receipt denied');
 }catch(error){console.error(page?.url(),(await page?.locator('body').innerText().catch(()=>''))?.slice(-2200));throw error;}finally{await browser.close();}
-
