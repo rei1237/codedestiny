@@ -1,3 +1,4 @@
+import faceReading from './canonical/face-reading.mjs';
 import compatBasis from './service/compat-basis-loader.mjs';
 import {defineConfig} from 'vite';
 import {fileURLToPath} from 'node:url';
