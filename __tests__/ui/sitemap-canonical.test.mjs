@@ -470,7 +470,9 @@ test('robots-policy fails when dist/robots.txt decides any sample differently fr
   assert.equal(RULES['robots-policy'], 'fail');
 
   // 정본 그대로, 스테이징 호스트, 2026-11-01 운영본(그룹 18개·Host 줄)은 판정이 같다.
-  for (const same of [policy, renderRobotsTxt('https://staging.example'), readFileSync(new URL('../fixtures/seo/robots-2026-11-01.txt', import.meta.url), 'utf8')]) {
+  // 2026-11-14 에 정본에서 /points/ 차단을 뺐다(noindex 를 읽게 하려고). 그 한 줄만 운영본에서 걷어 내고 비교한다.
+  const production = readFileSync(new URL('../fixtures/seo/robots-2026-11-01.txt', import.meta.url), 'utf8').replace(/^Disallow: \/points\/\r?\n/gm, '');
+  for (const same of [policy, renderRobotsTxt('https://staging.example'), production]) {
     const result = await check(same);
     assert.deepEqual(result.failures, [], JSON.stringify(result.details['robots-policy']));
   }
