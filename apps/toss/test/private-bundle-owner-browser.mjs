@@ -27,6 +27,7 @@ const mime={'.js':'text/javascript','.css':'text/css','.html':'text/html','.webp
 let lastPage;try{
  const context=await browser.newContext({viewport:{width:360,height:740},serviceWorkers:'block'});
  const requests=[];
+ let disconnectResults=false,failedReads=0;
  await context.route('**/*',async route=>{
   const req=route.request(),url=new URL(req.url());
   if(url.origin===origin){
@@ -40,6 +41,7 @@ let lastPage;try{
   const cors={'access-control-allow-origin':origin,'access-control-allow-headers':'authorization,content-type','access-control-allow-methods':'GET,POST,OPTIONS'};
   if(req.method()==='OPTIONS')return route.fulfill({status:204,headers:cors,body:''});
   requests.push(req.method()+' '+url.pathname);
+  if(disconnectResults&&req.method()==='GET'&&url.pathname.includes(fortune.id)){failedReads++;return route.abort('internetdisconnected');}
   const response=await api.handle(new Request(url,{method:req.method(),headers:req.headers(),body:req.postData()||undefined}));
   return route.fulfill({status:response.status,headers:{...cors,'content-type':'application/json'},body:await response.text()});
  });
@@ -95,7 +97,14 @@ let lastPage;try{
  if(version==='new'){
   await reopened.locator('.world-entry-yeongnyangi').click();
   await reopened.getByRole('link',{name:'영냥이 보관함'}).click();
-  await reopened.locator('a[href*="'+fortune.id+'"]').first().click();
+  disconnectResults=true;
+  const resultLink=reopened.locator('a[href*="'+fortune.id+'"]').first();
+  const disconnected=reopened.waitForEvent('requestfailed',{predicate:r=>r.url().startsWith(base)&&r.url().includes(fortune.id)});
+  await resultLink.click();await disconnected;
+  assert.equal(await reopened.getByText(original,{exact:true}).count(),0);
+  disconnectResults=false;
+  await reopened.reload();
+  assert.ok(failedReads>0);
   assert.equal(await reopened.getByText(original,{exact:true}).first().textContent(),original);
   await reopened.goto(origin);
   await reopened.getByRole('button',{name:'내 정보',exact:true}).click();
@@ -111,10 +120,12 @@ let lastPage;try{
   await reopened.getByRole('button',{name:'토스로 로그인하기'}).click();
   await reopened.waitForURL(/yeongnyangi\/fortune/);
   assert.equal(JSON.parse(memory.get('toss-offline-fixture-2')).loggedIn,true);
+  const durable=JSON.parse(memory.get('toss-offline-fixture'));
+  assert.equal(durable.orders.length,1);assert.equal(durable.fortunes[0][1].generationCount,1);
   await reopened.goto(resultUrl);
   await reopened.locator('[role=alert]').first().waitFor();
   assert.equal(await reopened.getByText(original,{exact:true}).count(),0);
  }
  assert.equal(requests.filter(p=>p.includes('/orders/grant')||p.endsWith('/generate')).length,0);
- console.log(JSON.stringify({file,version,deploymentId:reader.deploymentId,paidButtonDisabled:true,ownedStoredResult:true,secondPersonDenied:version==='new',apiCalls:requests.length,newCharges:0}));
+ console.log(JSON.stringify({file,version,deploymentId:reader.deploymentId,paidButtonDisabled:true,ownedStoredResult:true,secondPersonDenied:version==='new',interruptedResultReads:failedReads,apiCalls:requests.length,newCharges:0}));
 }catch(error){console.warn(lastPage?.url(),(await lastPage?.locator('body').innerText())?.slice(-1600));throw error;}finally{await browser.close();}

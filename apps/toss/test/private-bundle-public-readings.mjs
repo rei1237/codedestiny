@@ -25,7 +25,7 @@ const origin='http://127.0.0.1:'+server.address().port;
 const probes={
   tarot:'public-readings-browser.mjs', olympus:'studio-olympus-browser.mjs',
   turtle:'studio-turtle-browser.mjs', tea:'studio-royal-tea-browser.mjs', kemet:'studio-kemet-browser.mjs',
-  island:'island-browser.mjs', widget:'widget-preview-browser.mjs', diary:'diary-browser.mjs', face:'face-browser.mjs', sibyl:'sibyl-public-browser.mjs', sections:'public-sections-browser.mjs', stories:'story-library-browser.mjs', directory:'home-directory-browser.mjs', all:'ait-directory-browser.mjs',
+  island:'island-browser.mjs', widget:'widget-preview-browser.mjs', diary:'diary-browser.mjs', face:'face-browser.mjs', sibyl:'sibyl-public-browser.mjs', sections:'public-sections-browser.mjs', stories:'story-library-browser.mjs', directory:'home-directory-browser.mjs', all:'ait-directory-browser.mjs', experts:'expert-offers-browser.mjs',
 };
 try{
   for(const key of process.argv.slice(3)){
