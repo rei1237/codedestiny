@@ -1,14 +1,14 @@
 ---
-status: blocked
+status: active
 updated: 2026-11-13
-next: 별도 웹툰 세션의 메타 설명 폭 수정이 main에 전달되어 PR CI가 복구되면 최신 origin/main을 병합하고 pre-push 후 HEAD:main으로 전달한다.
+next: 커밋된 트리에서 pre-push를 통과시키고 HEAD:main을 push한 뒤 최신 main CI를 한 번 확인한다.
 ---
 
 # 앱인토스 유료 상담 결제 활성화·출시
 
 ## 첫 행동
 
-`git fetch origin` 후 웹툰 메타 설명 폭 수정이 main에 들어왔는지 확인한다. 들어왔다면 병합하고 targeted 검사와 `npm run check:pre-push`를 실행한 뒤 `HEAD:main`으로 전달한다.
+`npm run check:pre-push`를 실행한다. 성공하면 원격 main 이동 여부와 최신 CI 상태를 확인하고 `git push origin HEAD:main`으로 전달한다.
 
 ## 지금 상태
 
@@ -27,6 +27,9 @@ next: 별도 웹툰 세션의 메타 설명 폭 수정이 main에 전달되어 P
 - Secret Scan 수정 커밋 `66b62789e`, 원인 기록 커밋 `4ddab8e08`; 이후 `npm run check:pre-push` 통과.
 - 현재 전달 차단은 이번 변경이 아니다. origin/main `c3d692272`의 PR CI run `43397659983`이 `out/yeongnyangi/season-1` meta description 폭 197 > 160으로 실패했다. 별도 활성 워크트리 `yeoni-prologue-webtoon-20261113`의 커밋 `79615c45b`가 정확히 이 문제를 수정했지만 아직 origin/main에 전달되지 않아 중복 수정·체리픽하지 않았다.
 - 같은 main의 Yeongnyangi Browser Shadow run `43397659964`는 WebKit `chromium-read-503` 단계에서 로컬 `/api/reviews/eligibility` CORS page error 1건으로 실패했다. 그 전 결제 매트릭스는 통과했으며 새 main push 때 다시 실행될 비결정적 CI 실패로 분류했다.
+- 웹툰 메타 폭 수정 `79615c45b`가 origin/main에 전달되었고 현재 작업에도 병합했다.
+- Browser Shadow 원인은 결과 재로드 중 정상 완료된 `/api/reviews/eligibility` fixture 읽기를 WebKit이 취소 CORS pageerror로 중복 보고한 것이었다. HTTP 200 증거·결제 완료·전체 챕터 완료가 모두 있을 때만 기존 `/api/reviews/products`와 같은 취소 읽기로 분류하도록 `f54590fa7`에서 수정했다.
+- 수정 후 `npm run check:fast` critical 통과: Node 5,024개, Jest 7,978개 통과(1개 스킵), Worker dry-run 통과.
 
 ## 승인 상태
 
@@ -67,8 +70,10 @@ next: 별도 웹툰 세션의 메타 설명 폭 수정이 main에 전달되어 P
 - [x] 기존 main Secret Scan 실패 원인 확인 및 main 도달 이력 검출 0건 확인
 - [x] Secret Scan을 `HEAD` 도달 이력으로 제한하고 회귀 테스트 추가
 - [x] Secret Scan 수정 커밋과 pre-push
-- [ ] 별도 웹툰 수정이 origin/main에 전달되어 기존 PR CI red가 해소되는지 확인
-- [ ] 최신 origin/main 병합·pre-push 후 main 전달
+- [x] 별도 웹툰 수정이 origin/main에 전달되어 기존 PR CI red 원인을 제거
+- [x] Yeongnyangi Browser Shadow의 WebKit 후기 eligibility 취소 오탐 수정
+- [x] 최신 origin/main 병합
+- [ ] pre-push 후 main 전달
 - [ ] main CI 1회 확인
 - [ ] 프로덕션 승격 승인 후 비밀값/콜백/로그인 등록
 - [ ] 비공개 QR 실결제 승인 후 4,950원 1회 검증
