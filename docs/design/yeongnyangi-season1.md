@@ -40,17 +40,19 @@
 
 ## 구현과 발행 절차
 
-- 연재표: `lib/yeongnyangi/season-1.mjs`(제목·상태·공개 시각·로그라인·다음 회 질문).
-- 컷 데이터: `lib/yeongnyangi/season-1-cuts.mjs`(생성물). 원본 이미지는 `content/yeongnyangi/season-1/epN/` 에 있다.
-- 공개 게이트 `lib/yeongnyangi/serial.mjs`: `status === 'ready'` + 컷 8~12장 + 표지 컷 + 모든 컷의 대체 텍스트·이미지 파일 + `publishAt <= 빌드 시각`.
+- 1화: `lib/yeongnyangi/prologue.mjs`, 경로 `/yeongnyangi/season-1/prologue/`(항상 공개, 사이트맵 등재). 이미지 `public/images/webtoons/yeoni-prologue/NN-{720,1122}.{avif,webp}`.
+- 2~7화 연재표: `lib/yeongnyangi/season-1.mjs`(번호·상태·공개 시각, `format: 'pages'`, 1122×1402). 제목·로그라인·쪽 alt는 생성물 `lib/yeongnyangi/season-1-pages.mjs`.
+  쪽 alt에는 그 쪽의 구도와 그림 속 글자(대사·내레이션·화면 글자)를 그대로 담는다. 원본 이미지는 `content/yeongnyangi/season-1/epN/NN-{720,1122}.{avif,webp}`.
+- 들이기: `node scripts/import-yeoni-webtoon-episode.mjs --pages`(원고 `script/pages.json` → alt 생성물), `--ep N`(빌드 폴더 `epN/out` → 리포 이미지, 쪽 수·크기 검사, `docs/design/consultation-webtoon-assets.json`에 `yn-s1-epN` 출처 기록). `--check`는 검사만 한다.
+- 공개 게이트 `lib/yeongnyangi/serial.mjs`: `status === 'ready'` + `format === 'pages'` + 12~24쪽(1부터 차례대로) + 모든 쪽의 alt + 쪽마다 이미지 4개 + `publishAt <= 빌드 시각`.
   미완성 회차는 일정이 지나도 보류된다. 다음 회 안내에는 회차 번호와 시각만 나오고 제목·이미지는 나오지 않는다.
-- 빌드: `prebuild:cf` 마지막 단계 `scripts/publish-yeongnyangi-serial.mjs` 가 공개 회차의 이미지만 `public/assets/yeongnyangi/season-1/`(gitignore)로 복사한다.
-  `app/yeongnyangi/season-1/[episode]` 는 공개 회차만 정적 경로로 만든다(`dynamicParams = false`). 예약 회차는 목록·직접 URL·프리로드·사이트맵 어디에도 없다. 사이트맵에는 시즌 목차만 있다.
+- 화면: 1화와 `app/yeongnyangi/season-1/[episode]` 모두 `PageReader` + `PageReaderChrome`(이어 보기 키 `cd:webtoon:yeoni-s1-epN:page`)과 공용 끝 카드 `app/components/webtoon/SerialEndCard.tsx`(영냥이 CTA, 다음 화 링크 또는 공개 시각, 시즌 목차). 회차는 noindex. 시즌 목차는 각 회차의 1쪽을 표지로 쓴다.
+- 빌드: `prebuild:cf` 마지막 단계 `scripts/publish-yeongnyangi-serial.mjs` 가 공개 회차의 쪽 이미지만 `public/assets/yeongnyangi/season-1/epN/`(gitignore)로 복사한다.
+  `[episode]` 는 공개 회차만 정적 경로로 만든다(`dynamicParams = false`). 예약 회차는 목록·직접 URL·프리로드·사이트맵 어디에도 없다. 사이트맵에는 시즌 목차와 1화만 있다.
 - 발행: `.github/workflows/yeongnyangi-weekly-publish.yml` 이 토요일 21:05 KST 에 **지금 라이브인 커밋**을 Pages 만 다시 빌드·배포하고 기대 회차 URL 이 200 인지 되읽는다.
   이미 열려 있으면 재배포하지 않는다(재실행 멱등). 매일 00:10 KST 운세 발행도 같은 커밋을 다시 빌드하므로, 주간 발행이 실패해도 그 밤 안에 회차가 열린다.
   새 코드를 싣지 않는 콘텐츠 재빌드라 `scripts/verify-worker-single-deploy-guard.mjs` 의 운영 자동화 예외 목록에 명시했다.
-- 점검: `node scripts/publish-yeongnyangi-serial.mjs --check`, 경계 검증은 `SERIAL_NOW=2026-11-14T20:59:00+09:00` 처럼 기준 시각을 주입한다.
-  테스트: `__tests__/ui/yeongnyangi-serial.test.mjs`.
-- 4~6화를 공개하려면 원고·원화를 완성해 컷 데이터를 채우고 `status` 를 `'ready'` 로 바꿔 운영에 반영한다. 그 뒤 일정은 이 워크플로가 지킨다.
-
-> 위 구현 절은 옛 컷형 기준이다. 페이지형 연재로 바꾸는 4단계에서 고친다.
+  그래서 공개 전 회차도 이미지와 `status: 'ready'`가 **운영 커밋에 미리** 들어 있어야 제때 열린다.
+- 점검: `node scripts/publish-yeongnyangi-serial.mjs --check`, 경계 검증은 `SERIAL_NOW=2026-11-21T20:59:00+09:00` 처럼 기준 시각을 주입한다.
+  테스트: `__tests__/ui/yeongnyangi-serial.test.mjs`, `__tests__/ui/yeongnyangi-prologue.test.mjs`.
+- 새 회차 공개: 작화·검수가 끝나면 `--ep N`으로 들이고 연재표의 `status` 를 `'ready'` 로 바꿔 공개일 전에 운영에 반영한다. 그 뒤 일정은 이 워크플로가 지킨다.
