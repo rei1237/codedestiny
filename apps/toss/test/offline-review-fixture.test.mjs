@@ -73,6 +73,45 @@ test('loss of local persistence does not grant a Saju result',async()=>{
   assert.equal(grant.status,503);assert.equal(api.state.orders.size,0);assert.equal(api.state.fortunes.get(prepared.id).fortune.paid,false);
 });
 
+test('a lost grant response, restart and second person preserve exactly one owned order and generation',async()=>{
+ const f=fixture(),path='/canonical/yeongnyangi/requests',body=makeBody('saju_mackerel');
+ f.memory.set('toss-offline-generation-delay-ms','60000');
+ await f.login();
+ const id=(await (await f.request(path,body)).json()).fortune.id;
+ const order={requestId:id,orderId:'lost-response',sku:'mock-saju_mackerel'};
+ // The grant is durably accepted. The client loses its reply before it can acknowledge.
+ await f.request('/orders/grant',order);
+ f.reload();
+ assert.equal((await (await f.request(path+'/'+id)).json()).fortune.state,'GENERATING');
+ assert.equal((await f.request('/orders/grant',order)).status,200);
+ assert.equal((await f.request('/orders/restore',order)).status,200);
+ assert.equal((await f.request('/orders/grant',{...order,orderId:'second-order'})).status,409);
+ assert.equal((await f.request('/logout',{})).status,200);
+ assert.equal((await f.request(path+'/'+id)).status,401);
+ f.memory.set('toss-offline-login-person','second');
+ const token=(await (await f.login()).json()).token;
+ const storage={getItem:key=>f.memory.get(key),setItem:(key,value)=>f.memory.set(key,value)};
+ const api=createOfflineFixtureApi(storage);
+ const second=(route,input)=>api.handle(new Request('https://code-destiny.com/api/toss'+route,{
+   method:input?'POST':'GET',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},body:input?JSON.stringify(input):undefined
+ }));
+ assert.equal((await (await second('/canonical/auth/me')).json()).user.id,'offline-test-user-2');
+ assert.deepEqual((await (await second('/library')).json()).purchases,[]);
+ assert.equal((await second(path+'/'+id)).status,404);
+ assert.equal((await second('/orders/restore',order)).status,403);
+ const otherId=(await (await second(path,body)).json()).fortune.id;
+ assert.notEqual(otherId,id);
+ assert.equal((await second('/orders/grant',{...order,requestId:otherId})).status,403);
+ f.memory.delete('toss-offline-login-person');
+ f.reload();await f.login();f.nextDay();
+ const result=(await (await f.request(path+'/'+id)).json()).fortune;
+ assert.equal(result.state,'COMPLETED');
+ assert.deepEqual((await (await f.request(path+'/'+id+'/generate',{})).json()).fortune,result);
+ const saved=JSON.parse(f.memory.get('toss-offline-fixture'));
+ assert.equal(saved.orders.length,1);assert.equal(saved.fortunes.length,1);
+ assert.equal(saved.fortunes[0][1].generationCount,1);
+});
+
 test('local sample attendance and unlock are idempotent and the stored day result does not cross KST midnight',async()=>{
   const f=fixture();await f.login();
   assert.equal((await f.request('/daily/reading?category=psych')).status,403);

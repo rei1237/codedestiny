@@ -4,11 +4,30 @@ import {assembleChart} from '../../../../lib/human-design/chart.js';
 import {DIRECT_PLANETS} from '../../../../lib/human-design/planets.js';
 const chartFixture=()=>{const longitudes=shift=>Object.fromEntries(DIRECT_PLANETS.map((planet,index)=>[planet,(index*29+shift)%360]));return {stored:false,chart:assembleChart({personalityLongitudes:longitudes(12),designLongitudes:longitudes(284)})};};
 export function createOfflineFixtureApi(storage,{now=()=>new Date()}={}){
- let saved;try{saved=JSON.parse(storage?.getItem('toss-offline-fixture')||'null');}catch{saved=null;}
- const state={loggedIn:saved?.loggedIn===true,intents:new Map(saved?.intents||[]),letters:new Map(saved?.letters||[]),fortunes:new Map(saved?.fortunes||[]),
-  // This single mock account starts with two synthetic anchovies, allowing today’s third one to unlock the sample.
-  daily:saved?.daily||{day:null,balance:2,attended:false,unlocked:false,readings:{}},orders:new Map(saved?.orders||[]),testOrderSkus:new Map(saved?.testOrderSkus||[]),sequence:Number.isSafeInteger(saved?.sequence)?saved.sequence:0};
- const save=()=>{try{storage?.setItem('toss-offline-fixture',JSON.stringify({loggedIn:state.loggedIn,intents:[...state.intents],letters:[...state.letters],fortunes:[...state.fortunes],daily:state.daily,orders:[...state.orders],testOrderSkus:[...state.testOrderSkus],sequence:state.sequence}));return Boolean(storage);}catch{return false;}};
+ // Both synthetic people use the same device storage and API. Authenticate the
+ // request before selecting a person's records, including on a fresh app launch.
+ const primary=createAccountFixture(storage,'offline-test-user','local-mock-token',now);
+ const secondary=createAccountFixture(storage,'offline-test-user-2','local-mock-token-2',now);
+ return {...primary,async handle(request){
+   const path=new URL(request.url).pathname;
+   const second=path==='/api/toss/login'
+     ?storage?.getItem('toss-offline-login-person')==='second'
+     :request.headers.get('Authorization')==='Bearer local-mock-token-2';
+   const current=second?secondary:primary,other=second?primary:secondary;
+   if(path==='/api/toss/orders/grant'&&request.method==='POST'){
+     const {orderId}=await request.clone().json();
+     if(other.state.orders.has(orderId))return Response.json({error:'ORDER_MISMATCH'},{status:403});
+   }
+   return current.handle(request);
+ }};
+}
+function createAccountFixture(storage,owner,token,now){
+ const secondary=owner==='offline-test-user-2';
+ const key=secondary?'toss-offline-fixture-2':'toss-offline-fixture';
+ let saved;try{saved=JSON.parse(storage?.getItem(key)||'null');}catch{saved=null;}
+ const state={profiles:saved?.profiles||[{id:'mock-profile',profileId:'mock-profile',name:'테스트 프로필',gender:'F',birthDate:'1990-01-01',timeUnknown:true,calendarType:'solar',birth:{year:1990,month:1,day:1,timeUnknown:true,calType:'solar'}}],loggedIn:saved?.loggedIn===true,intents:new Map(saved?.intents||[]),letters:new Map(saved?.letters||[]),fortunes:new Map(saved?.fortunes||[]),
+  daily:saved?.daily||{day:null,balance:2,attended:false,unlocked:false,readings:{}},orders:new Map(saved?.orders||[]),testOrderSkus:new Map(saved?.testOrderSkus||[]),sequence:Number.isSafeInteger(saved?.sequence)?saved.sequence:(secondary?2**40:0)};
+ const save=()=>{try{storage?.setItem(key,JSON.stringify({profiles:state.profiles,loggedIn:state.loggedIn,intents:[...state.intents],letters:[...state.letters],fortunes:[...state.fortunes],daily:state.daily,orders:[...state.orders],testOrderSkus:[...state.testOrderSkus],sequence:state.sequence}));return Boolean(storage);}catch{return false;}};
  const letterProduct=reviewCatalog.find(p=>p.id==='yeoni:chat_saju');
  const product={id:'native:maya:maya-prompt-generator',name:'테스트 상품',sku:'mock-maya',featureKey:'maya-prompt-generator',approvedPriceKRW:1,available:true};
  const sukuyoProduct={id:'native:sukuyo:sukuyo-compatibility-ai',name:'테스트 숙요 상담',sku:'mock-sukuyo',featureKey:'sukuyo-compatibility-ai',approvedPriceKRW:1,available:true};
@@ -17,13 +36,19 @@ export function createOfflineFixtureApi(storage,{now=()=>new Date()}={}){
  const denied=()=>respond({error:'LOGIN_REQUIRED'},401);
  async function handle(request){
   const url=new URL(request.url),path=url.pathname.slice('/api/toss'.length),method=request.method;
-  if(path==='/login'&&method==='POST'){state.loggedIn=true;save();return respond({token:'local-mock-token'});}
+  if(path==='/login'&&method==='POST'){state.loggedIn=true;save();return respond({token});}
   // Public product lists mirror worker/toss/routes.js; private requests below still require the mock session.
   if(path==='/catalog'&&method==='GET')return respond({products:reviewCatalog});
+  if(path==='/tarot-library/free'&&method==='POST'){
+   const {freeTarotReading}=await import('../../../../worker/toss/tarot-library.js');const {flowId,input}=await request.json();return respond(await freeTarotReading(flowId,input));
+  }
   if(path==='/tarot-library/catalog'&&method==='GET')return respond({flows:[]});
-  if(!state.loggedIn||request.headers.get('Authorization')!=='Bearer local-mock-token')return denied();
+  if(path==='/canonical/yeongnyangi/products'&&method==='GET')return handleReviewFixture(request,url,path,state,save,now);
+  if(!state.loggedIn||request.headers.get('Authorization')!=='Bearer '+token)return denied();
+  if(path==='/logout'&&method==='POST'){state.loggedIn=false;save();return respond({ok:true});}
   if(path==='/session'&&method==='GET')return respond({authenticated:true,environment:'SANDBOX'});
-  const reviewResponse=await handleReviewFixture(request,url,path,state,save,now);if(reviewResponse)return reviewResponse;
+  const delay=Number(storage?.getItem('toss-offline-generation-delay-ms'));
+  const reviewResponse=await handleReviewFixture(request,url,path,state,save,now,Number.isFinite(delay)?Math.max(0,delay):0);if(reviewResponse)return reviewResponse;
   // This fixed chart is synthetic and never uses the submitted birth data.
   // The offline shell labels all of its output as test-only.
   if((path==='/charts/astrology'||path==='/charts/vedic')&&method==='POST'){
@@ -34,9 +59,15 @@ export function createOfflineFixtureApi(storage,{now=()=>new Date()}={}){
    return respond({system,ascendant:'양자리',positions:names.map((name,i)=>({name,sign:'양자리',house:i+1})),...(system==='vedic'?{mansion:{name:'아슈위니',pada:1}}:{})});
   }
   if(path==='/human-design/chart'&&method==='POST')return respond(chartFixture());
-  if(path==='/canonical/auth/me'&&method==='GET')return respond({ok:true,authenticated:true,user:{id:'offline-test-user',name:'테스트 사용자',role:'user'}});
+  if(path==='/canonical/auth/me'&&method==='GET')return respond({ok:true,authenticated:true,user:{id:owner,name:'테스트 사용자',role:'user'}});
   if(path==='/native/catalog'&&method==='GET')return respond({products:[product,sukuyoProduct,relationshipProduct]});
-  if(path==='/canonical/yeongnyangi/profiles'&&method==='GET')return respond({ok:true,profiles:[{id:'mock-profile',profileId:'mock-profile',name:'테스트 프로필',gender:'F',birthDate:'1990-01-01',timeUnknown:true,calendarType:'solar',birth:{year:1990,month:1,day:1,timeUnknown:true,calType:'solar'}}],currentId:'mock-profile'});
+  if(path==='/canonical/yeongnyangi/profiles'&&method==='GET')return respond({ok:true,profiles:state.profiles,currentId:state.profiles.at(-1)?.profileId});
+  if(path==='/canonical/yeongnyangi/profiles'&&method==='POST'){
+   const {profile}=await request.json();if(!profile?.profileId||!profile.birth?.year)return respond({error:'BIRTH_INVALID'},400);
+   // Persist only a synthetic profile associated with the generated ID.
+   const row={...state.profiles[0],id:profile.profileId,profileId:profile.profileId};
+   if(!state.profiles.some(p=>p.id===row.id))state.profiles.push(row);save();return respond({ok:true,profile:row});
+  }
   if(path==='/canonical/profile'&&method==='GET')return respond({ok:true,profiles:[]});
   if(path==='/native/relationship/prepare'&&method==='POST'){
    const body=await request.json();if(!body.input?.idempotencyKey||!body.input?.targetInfo||body.orderId)return respond({error:'MOCK_UNSUPPORTED'},400);

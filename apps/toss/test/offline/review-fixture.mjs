@@ -41,17 +41,25 @@ async function prepare(body,state,save,day){
   return json({fortune});
 }
 
-function grant(body,state,save){
+function grant(body,state,save,date,delay){
   const row=state.fortunes.get(body.requestId);
   if(!row||row.sku!==body.sku||typeof body.orderId!=='string'||!body.orderId.trim())return fail('ORDER_MISMATCH',403);
   const prior=state.orders.get(body.orderId);
   if((state.orders.has(body.orderId)&&prior!==body.requestId)||(row.orderId&&row.orderId!==body.orderId))return fail('ORDER_ALREADY_ASSIGNED',409);
   if(!row.orderId){
-    const completed={...row.fortune,paid:true,state:'COMPLETED',chapters:[fixedChapter],recovery:{canRetryNow:false,savedChapters:1,totalChapters:1}};
-    state.fortunes.set(body.requestId,{...row,orderId:body.orderId,fortune:completed});state.orders.set(body.orderId,body.requestId);
+    const paid={...row.fortune,paid:true,state:'GENERATING'};
+    state.fortunes.set(body.requestId,{...row,orderId:body.orderId,generationCount:1,readyAt:date.getTime()+delay,fortune:paid});state.orders.set(body.orderId,body.requestId);
     if(!save()){state.fortunes.set(body.requestId,row);state.orders.delete(body.orderId);return fail('MOCK_STORAGE_UNAVAILABLE',503);}
   }
   return json({orderId:body.orderId,requestId:body.requestId,entitlement:'granted',durable:true});
+}
+
+function finishReadyJobs(state,save,date){
+  for(const item of state.fortunes.values()){
+    if(item.fortune.state!=='GENERATING'||date.getTime()<item.readyAt)continue;
+    item.fortune={...item.fortune,state:'COMPLETED',chapters:[fixedChapter],recovery:{canRetryNow:false,savedChapters:1,totalChapters:1}};
+    save();
+  }
 }
 
 function grantLetter({requestId,orderId,sku},state,save){
@@ -91,8 +99,9 @@ function daily(path,method,body,url,state,save,now){
   daily.readings[category]=result;save();return json(result);
 }
 
-export async function handleReviewFixture(request,url,path,state,save,now){
+export async function handleReviewFixture(request,url,path,state,save,now,delay=0){
   const method=request.method;
+  finishReadyJobs(state,save,now());
   if(method==='POST'&&(path==='/prepare'||path==='/canonical/fortune-chat/consultations/recover')){
     const body=await request.clone().json();
     return safetyResponse(path==='/prepare'?body:body.consultation);
@@ -102,7 +111,7 @@ export async function handleReviewFixture(request,url,path,state,save,now){
   if(path==='/canonical/yeongnyangi/saju/experience-check'&&method==='POST')return json({check:null});
   if(path==='/canonical/yeongnyangi/requests'&&method==='POST')return prepare(await request.json(),state,save,now());
   const owned=[...state.fortunes.values()].filter(row=>row.fortune.paid);
-  if(path==='/canonical/yeongnyangi/requests'&&method==='GET')return json({fortunes:owned.map(({fortune})=>({...fortune,recovering:false,completedChapters:1,totalChapters:1})),nextCursor:null});
+  if(path==='/canonical/yeongnyangi/requests'&&method==='GET')return json({fortunes:owned.map(({fortune})=>({...fortune,recovering:fortune.state!=='COMPLETED',completedChapters:fortune.chapters.length,totalChapters:1})),nextCursor:null});
   const match=/^\/canonical\/yeongnyangi\/requests\/([a-f0-9]{64})(?:\/(generate|activate|conversation|follow-up))?$/.exec(path);
   if(match){
     const row=state.fortunes.get(match[1]);
@@ -115,7 +124,7 @@ export async function handleReviewFixture(request,url,path,state,save,now){
   }
   if(path==='/orders/grant'&&method==='POST'){
     const body=await request.clone().json();
-    if(sajuCatalog.some(p=>p.sku===body.sku)||state.fortunes.has(body.requestId))return grant(body,state,save);
+    if(sajuCatalog.some(p=>p.sku===body.sku)||state.fortunes.has(body.requestId))return grant(body,state,save,now(),delay);
     if(body.sku===letterSku||state.letters.has(body.requestId))return grantLetter(body,state,save);
   }
   if(path==='/orders/restore'&&method==='POST'){
@@ -131,7 +140,7 @@ export async function handleReviewFixture(request,url,path,state,save,now){
     return json({orderId,requestId:id,entitlement:'granted',durable:true});
   }
   if(path==='/library'&&method==='GET')return json({purchases:[
-    ...owned.map(({fortune,orderId,sku})=>({requestId:fortune.id,orderId,sku,serviceId:'yeongnyangi',selectionId:fortune.productId,productId:fortune.productId,status:'PURCHASED',state:'COMPLETED',createdAt:fortune.createdAt,completedSections:1,totalSections:1})),
+    ...owned.map(({fortune,orderId,sku})=>({requestId:fortune.id,orderId,sku,serviceId:'yeongnyangi',selectionId:fortune.productId,productId:fortune.productId,status:'PURCHASED',state:fortune.state,createdAt:fortune.createdAt,completedSections:fortune.chapters.length,totalSections:1})),
     ...[...state.letters.values()].filter(row=>row.paid).map(row=>({requestId:row.id,orderId:row.orderId,sku:'mock-yeoni',serviceId:'yeoni',selectionId:'yeoni:chat_saju',productId:'chat_saju',status:'PURCHASED',state:row.state,createdAt:row.createdAt,completedSections:1,totalSections:1})),
   ],nextCursor:null});
   if(/^\/results\/[a-f0-9]{64}$/.test(path)&&method==='GET'){
