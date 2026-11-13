@@ -1,7 +1,7 @@
 ---
 status: in-progress
-updated: 2026-11-13
-next: 묶음 ② 11a(명식·절기 그림)·배너 모바일 다듬기 시작
+updated: 2026-11-14
+next: 묶음 ② 배너 모바일 다듬기(390px CTA·영냥이 말풍선 줄바꿈) 시작
 ---
 
 # 꿀꿀 운세·영냥이 UX: 구매 흐름 · 후기 신뢰 · 후기 작성 · 생성 진행 · 무료 배너
@@ -20,7 +20,7 @@ next: 묶음 ② 11a(명식·절기 그림)·배너 모바일 다듬기 시작
 - 기준: origin/main `02476159e0b545b887fe04a12815b7123b4b614d`
 - node_modules는 정션, `.env.local`·`.env.cloudflare.local`은 링크(건드리지 않는다).
 - 워크트리 제거: 다른 체크아웃에서 `npm run worktree:remove -- 'D:\Development\codedestiny-worktrees\ux-conversion-20261113-215142'` (git worktree remove 금지 — 긴 경로 고아 폴더).
-- 마지막 커밋: 단계마다 아래 표에 적는다. 묶음 ① 끝 코드 커밋 `3af1f976b`(미push). 묶음 ② 6b 끝 코드 커밋 `dd10f6156`(미push). 묶음 ② 6c-1 코드 커밋 `4dd33836e`·`9b9a8e706`·`3c8d5ac2f`(미push). 묶음 ② 6c-2 코드 커밋 `273aa5ce6`·`d1eba2bae`(미push).
+- 마지막 커밋: 단계마다 아래 표에 적는다. 묶음 ① 끝 코드 커밋 `3af1f976b`(미push). 묶음 ② 6b 끝 코드 커밋 `dd10f6156`(미push). 묶음 ② 6c-1 코드 커밋 `4dd33836e`·`9b9a8e706`·`3c8d5ac2f`(미push). 묶음 ② 6c-2 코드 커밋 `273aa5ce6`·`d1eba2bae`(미push). 묶음 ② 11a 코드 커밋 `81b1be43d`(미push).
 
 ## 승인 상태 (사용자 원문, 2026-11-13)
 
@@ -146,7 +146,7 @@ next: 묶음 ② 11a(명식·절기 그림)·배너 모바일 다듬기 시작
 - [x] 6c. 상세 페이지 9개·SEO·사이트맵 — SHA: 4dd33836e, 9b9a8e706, 3c8d5ac2f, 273aa5ce6, d1eba2bae (결과는 문서 끝 "6c-2 결과")
   - [x] 6c-1 레지스트리·컴포넌트·페이지 — SHA: 4dd33836e, 9b9a8e706 · indexable 기본값 수정 3c8d5ac2f
   - [x] 6c-2 SEO 등록·사이트맵·llms·칩 href·미러·테스트 — SHA: 273aa5ce6(색인 등록·사이트맵·llms·스킬 트리 문구 필터), d1eba2bae(칩 href·미러·테스트)
-- [ ] 11a. 명식·절기 그림 — SHA:
+- [x] 11a. 명식·절기 그림·상세 9개 OG — SHA: 81b1be43d (결과는 문서 끝 "11a 결과")
 
 ### 묶음 ③ 신뢰·구매 흐름 (단계 5, 7, 8)
 - [ ] 5. ReviewProof — SHA:
@@ -484,12 +484,79 @@ SEO 등록
 
 함정
 - 이 워크트리의 .mjs는 CRLF다(autocrlf). node로 문자열을 바꿀 때 `\n`만 찾으면 실패한다. Edit 도구를 쓰거나 `\r\n`을 쓴다.
+  - 11a 주의: Edit 도구는 CRLF 파일 전체를 LF로 바꿨다. 고친 뒤 줄 끝을 확인한다("11a 결과" 함정).
 - free-promo.mjs·free-feature-details.mjs를 고치면 그 모듈을 import하는 라우트(/, 각 랜딩, 상세 9개 등 36~43개)의 lastmod 원장 서명이 바뀐다.
   - 고친 뒤 `npm run sitemap:generate`를 다시 돌려 원장을 같이 커밋해야 `verify:sitemap-drift`가 통과한다.
   - 날짜는 같은 날이면 그대로다.
 - free-promo.mjs는 public 미러가 아니다. 칩 주소가 들어가는 곳은 `index.html`(build-home-funnel → sync:public)과 React `FreePromoBanner`다.
 
 후속
-- OG 이미지: 상세 9개는 기본 OG다. fuctionassets(1672×941)는 buildSeoMetadata의 1200×630 고정 표기와 맞지 않는다. 11a에서 함께 정한다.
+- ~~OG 이미지: 상세 9개는 기본 OG다. fuctionassets(1672×941)는 buildSeoMetadata의 1200×630 고정 표기와 맞지 않는다. 11a에서 함께 정한다.~~ → 11a에서 해결(`81b1be43d`, 아래 "11a 결과").
 - 셸 사주 결과 카드(스킬 트리)에는 원천 trustNotes의 어긋난 문장이 그대로 있다. 원천(셸 정본) 문구를 고치는 일은 별도 판단이 필요하다.
 - origin/main이 이 브랜치 기준보다 2커밋 앞서 있다. 승격 때 리베이스 뒤 `sitemap:generate`·`sync:public`을 다시 돌린다.
+
+### 11a 결과 (2026-11-13 완료, 미push)
+
+코드 커밋 `81b1be43d`: 명식·절기 히어로 그림, 상세 9개 OG 1200×630, alt 구체화.
+
+그림
+- 생성: codex-image(gpt-image-2, Codex OAuth라 유료 API 호출이 아니다).
+  - 배치 스크립트: `D:\CodeDestiny-Build\free-feature-art-20261113\gen.mjs`, 작업 파일 `jobs/round1.json`.
+  - 페이지마다 2장씩 만들었다. a는 스타일 참조를 넣었고, b는 연이 참조만 넣었다.
+- 참조:
+  - `refs/yeoni-sheet.png`: 꽃돼지 정본 시트(forest-walk/refs에서 복사).
+  - `refs/yeoni-profile.png`: mascot/yeoni-profile-v1.
+  - `refs/style-saju-prompt.png`: 사주 프롬프트 썸네일. 팔레트만 참조했다.
+- 4장 모두 글자가 없고, 연이도 참조와 맞는다(머리 위 연꽃, 라벤더 목수건, 귀 2개, 꼬인 꼬리, 발굽). 고른 그림:
+  - 명식: `natal-chart-a`. 네 기둥에 두 칸씩 오행 그림이 있고, 기둥마다 별 장식(신살)이 달렸다. 뒤의 12띠 고리가 빠짐없이 다 있다.
+  - 절기: `season-rhythm-a`. 24칸 바퀴가 봄→여름→가을→겨울 시계 방향으로 돈다. 한 칸이 빛나고 진행 호가 있다.
+- 원본: `D:\CodeDestiny-Build\free-feature-art-20261113\final\{natal-chart,season-rhythm}.png`(1672×941). 나머지 후보는 `out/`에 있다.
+- 웹: 레지스트리 `functionAsset()`으로 연결하고 heroGlyphs는 지웠다.
+  - `public/fuctionassets/saju-natal-chart.webp`: 1672×941, q78, 197KB.
+  - `public/fuctionassets/saju-season-rhythm.webp`: q74, 185KB.
+- alt: 9개 모두 그림 내용을 적었다. 기존 7개는 그림을 열어 보고 고쳤다.
+- 크기: 도파민 그림은 실측 1659×948이라 크기 값을 고쳤다.
+
+OG 결정
+- 상세 9개 모두 `/images/free-feature-og/<slug>.jpg`를 쓴다.
+  - 1200×630, 히어로 원본을 가운데 기준 cover로 잘랐다. mozjpeg q82, 135~210KB.
+  - 레지스트리 map이 `ogImage`를 만들고, 각 page.tsx가 `buildSeoMetadata({ ..., ogImage: detail.ogImage })`로 넘긴다.
+- 이유:
+  - buildSeoMetadata는 og:image width·height를 1200×630으로 고정해 적는다. 1672×941 webp를 그대로 넘기면 크기 표기가 틀린다.
+  - 카카오·네이버 미리보기는 webp 지원이 약하다.
+  - `/images/saju-crystals/og-1200x630.jpg` 선례와 같은 방식이다.
+  - 축소 접점 시트로 보니 제목과 연이가 잘리지 않았다.
+- 다시 만들기:
+  - `node D:\CodeDestiny-Build\free-feature-art-20261113\export.mjs og`. final/ 원본이 있으면 원본에서, 없으면 public webp에서 만든다.
+  - 새 히어로는 `node export.mjs hero <slug> <png>`. 히어로를 바꾸면 OG도 다시 만든다.
+
+컴포넌트
+- 모든 항목에 그림이 생기자 `detail.heroGlyphs`의 타입 추론이 사라져 typecheck가 깨졌다.
+- `FreeFeatureDetail.tsx` HeroVisual이 `(detail as { heroGlyphs?: unknown }).heroGlyphs`로 읽게 고쳤다. 글자 히어로 폴백은 남겼다(지금은 쓰이지 않음).
+
+검증(실측)
+- `sitemap:generate`: 1,081 URL, 원장 9건 갱신 / `verify:sitemap-drift` OK
+- `generate-llms-txt --check`: 변경 없음
+- `node --test __tests__/ui/free-promo.test.mjs`: 6/6
+- `typecheck`: exit 0
+- `verify:og-route-contract` 통과, `verify:static-asset-cache-keys` PASS
+- `verify:public-mirror-fresh`: OK(커밋 뒤. 커밋 전에는 작업 트리가 깨끗하지 않아 판정 불가로 실패한다)
+- next dev(포트 3217):
+  - /saju/natal-chart/, /saju/season-rhythm/, /saju/four-cut/, /saju/dopamine/ 모두 200.
+  - og:image는 `https://code-destiny.com/images/free-feature-og/<slug>.jpg`이고, og:image:width 1200, height 630이다. twitter:image도 같다.
+  - 히어로 img의 src·alt가 맞고, 크기는 1672×941(도파민 1659×948)이다.
+  - OG JPG 9개와 webp 2개가 모두 200이다.
+  - 끝난 뒤 서버를 끄고 포트 3217이 비었음을 확인했다.
+
+함정
+- Edit 도구로 CRLF 작업 파일(.mjs)을 고치면 파일 전체가 LF가 된다.
+  - node로 `t.replace(/\r?\n/g, '\r\n')` 정규화를 한 뒤 저장했다.
+  - app/*.tsx와 이 문서는 index·작업 트리 모두 LF라 그대로 둔다.
+  - 고치기 전에 `git ls-files --eol <file>`로 줄 끝을 먼저 본다.
+- node 문자열·heredoc에 Windows 경로 `D:\...`를 넣으면 `\f`·`\n`이 이스케이프로 바뀐다(셸을 거치면 `\\`도 하나로 줄 수 있다). 코드 주석의 경로는 `/`로 적고, 백슬래시가 든 글은 Write 도구로 쓴 스크립트에서 고친다.
+- codex image_gen은 그림을 1672×941(16:9)로 내놓는다. 형제 그림과 크기가 같아 그대로 썼다.
+- `npm run dev:next`를 백그라운드로 띄우면 셸을 끝내도 next dev와 start-server node 프로세스가 포트를 계속 잡는다. 포트로 PID를 찾아 함께 끝낸다.
+
+후속(보고만)
+- 상세 페이지는 next dev로만 확인했다. 빌드 산출물로 하는 검사(`verify:sitemap-canonical` 등)는 dist/·out/ 빌드가 필요해 돌리지 않았다.
+- origin/main을 리베이스한 뒤에는 `sitemap:generate`를 다시 돌린다(위 메모와 같음).
