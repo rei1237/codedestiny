@@ -1,34 +1,31 @@
-# 토스 출시 기능 범위와 기존 엔진 대응
+# 웹 기능과 앱인토스 이식 현황
 
-2026-10-07 조사. 아래는 출시 **후보**이며 실서비스 통과 표가 아니다. 공개 운영 API `/api/yeongnyangi/products`를 직접 GET하여 28개 상품을 확인했다. 고등어/연어/광어/참치 가격 3,000/9,000/15,000/30,000원, 모둠 50,000원, 오마카세 80,000원. 실제 토스 SKU/최종 표시 가격은 IAP 등록 후 확정한다. 과거 1,000원 행사·9,900원 예정가는 사용하지 않는다.
+2026-11-13 기준. 비공개판 `20261113-7`의 Linux 번들은 `493ae8467`에서 만들었다. 비교 기준인 `origin/main@f2db2995d`까지 746개 파일이 바뀌었다. 그 사이 `apps/toss/`, `worker/toss/`, `docs/toss/` 변경은 없었다. 웹에는 영냥이 시즌 연재 페이지가 추가됐다.
 
-| 기능 / 현재 진입 | API·계산/해석 | 로그인·과금 | 기존 상품 / 토스 SKU | 제공·보관·재열람 | 재사용 / 교체 | 토스 첫 제출 범위 |
-|---|---|---|---|---|---|---|
-| 영냥이 사주 `/yeongnyangi/fortune/?domain=saju` | `/api/yeongnyangi/requests`, `fortune/saju`, `prepareFortune`, chapter provider | 구매·기록 로그인, 단건 유료 | `saju_mackerel/salmon/flounder/tuna` / 미등록 | 기본 v6 5/8/11/15항목; 선택 모드별 manifest가 정본. 서버 request·chapter 원본, 큐·크론 재개 | 계산·manifest·품질·결과 보존 재사용; 로그인·IAP·CSR 교체 | 우선 구현: 개인정보·단건 구매·15항목 복구까지 검증 후 소개 |
-| 영냥이 타로 `/yeongnyangi/fortune/?domain=tarot` | 동일 API, `fortune/tarot`, 카드 선택·draw | 유료 로그인 | `tarot_*` / 미등록 | 카드와 배열을 결제 전 고정, 저장 원본 재열람 | 엔진 재사용 가능, 카드 선택과 IAP 연동 UI 필요 | 보류: 선택 의식·배열별 결과 UI 검증 전 광고 제외 |
-| 자미두수 `/yeongnyangi/fortune/?domain=ziwei` | 동일 API, `fortune/ziwei` | 유료 로그인 | `ziwei_*` / 미등록 | 명반과 시기 근거·챕터 저장 | 엔진 재사용, 명반 렌더러 모바일 점검 필요 | 보류 |
-| 숙요점 `/yeongnyangi/fortune/?domain=sukuyo` | 동일 API, `fortune/sukuyo` | 유료 로그인 | `sukuyo_*` / 미등록 | 27숙·관계 해석·챕터 저장 | 엔진 재사용, 관계 전용 UI 필요 | 보류 |
-| 베다점 `/yeongnyangi/fortune/?domain=vedic` | `fortune/vedic`, 기존 Swiss/베다 계산 | 유료 로그인 | `vedic_*` / 미등록 | 라그나·라시·시기 해석 원본 저장 | 엔진 재사용, 출생지/시간 필수조건 검증 | 보류 |
-| 서양 점성술 `/yeongnyangi/fortune/?domain=astrology` | `fortune/astrology` | 유료 로그인 | `astrology_*` / 미등록 | 행성·하우스·시기 근거 | 별도 체계 유지, 차트 UI 필요 | 보류 |
-| 궁합 `/yeongnyangi/fortune/` compatibility | `relationship-contract`, `relationship-calculation` | 유료 로그인 | 선택 체계·등급 상품 / 미등록 | 두 프로필 소유 검증·최소 상대 정보 | 상대 저장 제어·전용 결과 렌더러 필요 | 보류: 검증 전 부제/주요 기능에 넣지 않음 |
-| 융합 `/yeongnyangi/fortune/` | 6체계 기존 분석·교차 근거 | 유료 로그인 | `fusion_saju_ziwei`, `fusion_sukuyo_vedic`, `fusion_astrology_tarot`, `fusion_all` / 미등록 | 18/28항목 기본 manifest | 단일 생성/복구 엔진 재사용 | 보류: 복수 차트·장문 UX·가격 상품 검수 필요 |
-| 일반 사주 `/saju/`, 꿀꿀 `/ggulggul/` | `js/saju-engine`, 기존 정적 셸 | 무료 계산/유료 해금 혼재 | `paid-feature-registry` / 미등록 | 상품별 저장 정책 | 셸 자체는 외부 로그인/PortOne 포함, 번들에 넣지 않음 | 첫 제출 제외, 기존 웹 보존 |
-| 연이 운명의 찻집 `/fortune-tea-house/` | 별도 상담 API·tarot/saju | 상품별 유료 | `fortune-tea-house-*` / 미등록 | 전용 결과·기록 | 연이 원본 UI·말투 유지 필요 | 첫 제출 제외 |
-| 네오 `/neo-operation-room/`, `/fortune-chat/` | 전략실·chat 서비스 | 유료 | `neo-operation-room-consultation`, chat 상품 / 미등록 | 별도 캐릭터·상담 계약 | 운영 기능 보존 | 첫 제출 제외 |
-| 영냥이 무료 운세 | free-service, 16종 | 출석/무료 운영 규칙 존재 | IAP 없음 | 토스 무료 상품 정책 미확정 | 임의 무료 LLM 제공하지 않음 | 첫 제출 제외; 개인정보 없는 고정 예시만 제공 |
+전체 행은 [기능별 원장](./full-service-inventory.json)에 있다. `canonicalCandidates`는 홈 별칭을 합친 기능별 목록이다. 각 행에 웹 진입·원본·상품 키, 축소판 진입, 새 홈 연결, 토스 로그인·결과·저장 계약과 검증 한계를 기록한다. `consultationProducts`는 같은 상품 안에서도 질문·궁합·대운처럼 입력과 챕터가 달라지는 모드를 나눈다. `productContracts`의 179개 행에는 판매 종료·옛 별칭도 포함된다. 현재 웹에서 179개 상품을 판매한다는 뜻으로 사용할 수 없다.
 
-토스 첫 제출은 사주 상담에 집중한다. 보류 기능을 외부 웹으로 보내거나 ‘준비 중’ 카드로 판매하지 않는다. 출시 후보도 사업자·IAP·mTLS·실기기 검증 전에는 출시 완료로 취급하지 않는다. 생선 등급은 기존 상담 범위와 항목 계약을 그대로 사용하고 추가 결제를 결과 열람 조건으로 삼지 않는다.
+| 기능 | 웹 원본과 입력·생성 | 일반 토스 홈에서의 경로 | 로그인·상품·재열람 | 판정과 증거 |
+|---|---|---|---|---|
+| 캐릭터 홈 | `app/page.js`의 연이·영냥이 카드, 꽃돼지 홈은 `js/core/service-registry.js`와 `index.html` | 연이 → 꿀꿀운세, 영냥이 → 달빛 점술방. 꿀꿀운세에서 네오 선택 | 탐색은 공개. 구매 결과는 별도 권한 확인 | 축소판은 7개 링크. 새 일반 진입은 `main.tsx → AppEntry → App → UnifiedHome`. 360px 대표 경로 mock 실행 |
+| 영냥이 사주 질문 | `Consultation.tsx`에서 질문·기간·프로필·생선 등급을 선택. `prepareFortune`이 입력·계산을 고정하고 챕터 큐가 생성 | 영냥이 → 사주 상담 → 질문 입력 → 상담과 결제 확인하기 | 모의 토스 로그인·주문 → 저장 원문 → 영냥이 보관함. 신규 실구매 닫힘 | **일부만 이식**. `apps/toss/test/studio-browser.mjs`로 입력 복원·생성 중 이탈·같은 계정 재열람·다른 계정 차단 검증. 나머지 사주 모드·기기 미검증 |
+| 영냥이 자미두수·숙요·베다·서양 점성술·타로 | `worker/yeongnyangi/fortune/consultation-kinds.ts`로 모드와 등급 조합 결정. 관계는 두 사람 입력, 타로는 배열별 카드·자리, 대운·다샤는 지원 등급 확인 | 영냥이 → 6체계 상담 방식에서 선택 | 24개 단일 상품 중 사주 4개만 토스 SKU 확인. 각 결과는 영냥이 보관함 | **일부만 이식**. 원본 입력·화면 구현 및 Worker 계약 확인. 다섯 체계의 상품별 mock 생성부터 재열람까지 미검증 |
+| 영냥이 융합·질문점성술 | 쌍별 융합 3종과 6체계 종합 1종. 주제별 모드와 복수 차트 사용. `QuestionSkyConsultation`은 질문·시각·장소를 받아 프라쉬나 또는 호라리 생성. `mode=spirit`은 프라쉬나 별칭 | 영냥이 → 융합 상담·영냥 신점·영냥 호라리. 꿀꿀운세의 초융합 리포트는 별도 상품 | 미등록. 호라리 무료 흐름은 `free/horary` | **일부만 이식**. 원본 입력과 호라리 무료 계산 경로를 연결. 융합·프라쉬나 상품별 생성·재열람 미검증 |
+| 연이 상담 편지·네오 상담 편지 | `app/fortune-chat/ConsultationRoom.tsx` → `worker/routes/fortune-chat-consultations.js`. 표준 상품과 질문 등급 상품, 연이·네오 페르소나가 다름 | 연이 → 연이의 상담 편지. 네오 편지의 독립 진입 미확인 | 연이 `chat_saju`만 SKU 확인. 편지 원문은 꿀꿀운세 구매 기록 | 연이 **일부만 이식**, 네오 편지 **미이식**. `TossLetterRoom.tsx`, `worker/toss/letter.js`. `letterProducts`에 캐릭터별 기본 6종·질문 등급 21개 서버 계약 수록 |
+| 운명의 찻집·팩폭 전략실·네오 작전 결정서 | 찻집의 사주·사주 궁합·숙요 궁합·타로 배열별 계약, 전략실의 고민·작전 결과. 결정서는 이메일 해석용 별도 서비스 | 연이 → 운명의 찻집 또는 네오 팩폭 전략실 | 원본 입력·결과와 토스 주문 어댑터. 꿀꿀운세 구매 기록 | 찻집·전략실 **일부만 이식**, 신규 SKU **콘솔·운영 설정 필요**. 이메일 결정서는 **미이식**. 결정서의 웹 판매 상태는 `neo-consultations.js`의 독립 게이트를 따름 |
+| 연애 비책·관계 경계·인생의 책·인생 총운·초융합·신년·업·체계별 전문가 상담 | 각 원본 페이지와 `worker/routes/`의 전용 계산·생성. 인생 총운은 인생의 책 안의 별도 `lifeFortune` 모드. 숙요 궁합은 두 사람의 프로필 필요 | 연이 → 깊이 읽는 리포트 → 원하는 상담·모드 | `worker/toss/native-*`의 상품별 intent·주문·소유자 검증. 신규 승인 원장 비어 있음 | **일부만 이식**, 신규 판매 **콘솔·운영 설정 필요**. 각 기능의 `inputContract`, `storageContract`, `verification`에 로컬 검증 범위를 기록 |
+| 기본 운세·도감·콘텐츠 | 사주·만세력·동물점·자미두수·베다·숙요·서양 점성술·휴먼 디자인·운명의 꽃·심리검사·음악·소설 등을 각각 계산·표시 | 연이 → 나를 알아가는 운세 또는 연이의 서재 | 메모리 결과, 로그인 기반 무료 계산, 공개 열람을 기능별로 구분. 영구 보관을 일괄 제공하지 않음 | **일부만 이식**. 나의 일 스타일은 웹 개인별 8장 리포트와 계정별 프로필을 연결. 27수 별자리 도감은 낙샤트라 전체 중 한 하위 기능 |
+| 재회·연애·이직·수비학 등 타로 | `lib/tarot/toss-library-flows.mjs`에 배열·자리·질문 분리. 현재 무료 정본은 `lib/payment/free-fortune-policy.mjs` | 연이 → 타로 리딩 → 리딩 선택 | 재회·이직·원석·수비학·십이지신 5종은 웹 무료 계산 대상. 옛 구매 원문은 소유 주문으로 별도 재열람 | **일부만 이식**. 무료/유료 원장을 구분. 결과 카드 수·웹 근거·과거 기록은 기능별 검증 필요 |
+| 공개 오늘 운세와 영냥이 출석 | 웹 `app/today/page.js`는 별자리·주간 운세 허브. 영냥이 출석 운세는 별도 `worker/yeongnyangi/free-service.ts` | 영냥이 → 오늘의 운세와 출석 | 영냥이 계정과 당일 열람권, 카테고리별 결과. IAP 없음 | 15종은 출석 어댑터, 호라리는 로그인·구매 없는 별도 질문 시각 차트로 연결. 공개 `/today/`와 출석을 합산하지 않음 |
+| 웹 전용 콘텐츠 | 영냥이 시즌·서장·회차, 상담 웹툰, 흑월 이야기, 홈 화면 꾸미기, 자미두수 섬의 심층·궁별 상담 | 대응 토스 화면 미확인 | `productContracts`의 개별 원장 및 `canonicalCandidates` 참고 | **미이식**. 소설 리더나 캐릭터 카드가 있어도 이 기능의 완료로 세지 않음 |
 
-## 확인된 핵심 재사용 경로
+한국어 말투는 웹 `Consultation.tsx`가 존댓말로 초기화한다. 반말·존댓말 라벨은 `voice-style-copy.ts`에 남아 있지만 현행 원본에서 두 말투를 전환하는 입력은 확인되지 않았다. 상담 챕터 수는 상품·상담 종류별 `consultationManifest`로 산출한다. 실제 카드 배열을 고르는 타로의 최종 챕터는 선택한 배열을 적용한 저장 원본을 따른다.
 
-- `worker/yeongnyangi/payments/catalog.ts` → `worker/lib/paid-feature-registry.js`: 가격 정본.
-- `worker/yeongnyangi/service.ts`: 입력 검증, 동일 엔진 계산, immutable snapshot, 결과 표현.
-- `worker/yeongnyangi/repository.js`: 항목별 lease/attempt/완료 저장, 소유권 필터, 트랜잭션.
-- `worker/yeongnyangi/queue.js`: 화면 독립 항목별 소비. 지급 callback 안에서 장문 생성하지 않음.
-- `worker/yeongnyangi/recovery.js`: 중단 재개·최대 시도·지원 전환.
-- 기존 웹 User의 이메일 필수 스키마와 분리된 TossIdentity 필요. 이름/생일/이메일 자동 병합 금지.
-- 토스 주문 API에 금액 필드 없음. 콘솔 검수 SKU 가격과 SDK 표시 금액을 대조하고 서버의 사용자 범위 주문 조회로 소유자·SKU·상태를 검증해야 함.
+## 판매와 과거 구매
 
-## 데이터·운영 확인 남음
+`worker/toss/catalog.js`에 가격·콘솔 증거가 있는 SKU는 연이 사주 4,950원과 영냥이 사주 고등어 9,900원, 연어 14,850원, 광어 19,800원, 참치 29,700원이다. 상품 ID·SKU·증거 링크는 JSON의 `registeredProducts`에 있다. `apps/toss/src/release.ts`가 신규 실구매를 닫고 있다. 웹의 이용권·월정석·단건 결제와 기존 결과 소유권은 각 서비스 원장을 따른다. `worker/toss/unified-records.js`와 `canonical-yeongnyangi.js`가 꿀꿀운세·영냥이 기록을 구분한다.
 
-Cloudflare Workers/Pages/R2와 MongoDB 및 Gemini/Workers AI 코드가 확인됐다. 실제 처리 지역·수탁 계약·LLM 실원가·결과 생성 시간·정산 수수료·Toss SKU는 운영 증거 확보 전 미확정이다. 별도 단건 가격 변경이나 새 재화는 없음.
+## 검증 기준
+
+- `node docs/toss/build-service-inventory.mjs`로 원장에서 JSON을 재생성하고 `node --test apps/toss/test/inventory-contract.test.mjs`로 별칭·누락·상태 회귀를 확인한다.
+- `reducedBundle`은 기존 비공개판 홈, `currentEntry`는 새 배포 진입 소스, `bundleVerification`은 기기 검증 상태다. 로컬 mock은 실제 토스 휴대폰 결과와 구분한다. 기기에서 확인하지 않은 기능은 ‘이미 동작’으로 승격하지 않는다.
+- 별도 운영 게이트는 Worker 승격, 인증 정보 등록, 상품 노출, 심사 요청, 최종 출시다. 홈·보관함과 무료 콘텐츠는 각 기능의 접근 정책에 따라 검증한다.

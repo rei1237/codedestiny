@@ -7,6 +7,9 @@ import {execFileSync} from 'node:child_process';
 import {SAJU_BUNDLE_ALIAS_MEMBER_KEYS,SAJU_BUNDLE_SALE_CLOSED_KEYS,SAJU_BUNDLE_FEATURE_KEY} from '../../worker/lib/saju-bundle-policy.js';
 import {loadTsModule} from '../../scripts/lib/load-ts-module.mjs';
 import {extractObjectLiteral} from '../../scripts/lib/feature-marketing-extract.mjs';
+import {APPROVED_TOSS_PRODUCTS} from '../../worker/toss/catalog.js';
+import {reviewServices} from '../../apps/toss/src/review-scope.mjs';
+import {isFreeFortuneFeatureKey} from '../../lib/payment/free-fortune-policy.mjs';
 import {TOSS_TAROT_LIBRARY_FLOWS} from '../../lib/tarot/toss-library-flows.mjs';
 const root=fileURLToPath(new URL('../../',import.meta.url));
 const context={window:{}};
@@ -44,6 +47,22 @@ const aliasEvidence={
  'saju-guardian':['index.html:openSajuGuardianPage -> /saju-guardian','app/_lib/serviceFeatureRegistry.ts:saju-animal.launchRoute','app/saju-guardian/SajuGuardianClient.tsx:verifyGuardianUnlockAccess; registry free/paid descriptions conflict'],
 };
 const groups=new Map();
+// These entries are reached from the current root or from an existing report.
+// A shared product or URL does not imply the same input or result.
+for(const [id,name,entry,implementation] of [
+ ['home-widget','홈 화면 꾸미기','/app/home-widget/','app/app/home-widget/page.tsx'],
+ ['consultation-webtoons','상담 세계관 웹툰','/consultations/','app/consultations/StoryDiscovery.tsx'],
+ ['yeongnyangi-season','영냥이 시즌 연재','/yeongnyangi/season-1/','app/yeongnyangi/season-1/page.tsx'],
+ ['heukwol-story','흑월 이야기','/heukwol/#heukwol-story','app/heukwol/page.tsx'],
+ ['island-consult','자미두수 섬 해설·궁별 상담','/island-consult/','app/island-consult/IslandConsultClient.tsx'],
+ ['yeongnyangi-prashna','프라쉬나 질문 상담','/yeongnyangi/fortune/?mode=prashna','app/yeongnyangi/_components/QuestionSkyConsultation.tsx'],
+ ['yeongnyangi-horary','호라리 질문 차트','/yeongnyangi/fortune/?mode=horary','app/yeongnyangi/_components/QuestionSkyConsultation.tsx'],
+ ['yeongnyangi-daily','영냥이 출석과 오늘의 운세','/yeongnyangi/free-fortune/','app/yeongnyangi/_components/FreeFortune.tsx'],
+ ['neo-letter','네오 상담 편지','/fortune-chat/?character=neo','app/fortune-chat/ConsultationRoom.tsx'],
+]){
+ if(!fs.existsSync(path.join(root,implementation)))throw new Error('Missing web entry: '+implementation);
+ groups.set(id,{id,discoveryIds:[],evidence:[{name,entry,implementation}],aliasEvidence:id==='yeongnyangi-prashna'?['app/yeongnyangi/_components/Experience.tsx: mode=spirit → prashna-v1']:[],status:'not-ported',tossRoute:null,sku:null,inputContract:null,resultRenderer:null,storageContract:null});
+}
 for(const row of rows){
  const canonicalId=aliases[row.id]||row.id;
  if(!groups.has(canonicalId))groups.set(canonicalId,{id:canonicalId,discoveryIds:[],evidence:[],aliasEvidence:aliasEvidence[canonicalId]||[],
@@ -72,9 +91,13 @@ const sajuCards=[['sajuprompt','aiPromptCard'],['tbal','tTestCard'],['tetoegen',
 for(const [id,target] of sajuCards)if(!dashboard.includes(`id:'${id}'`)||!dashboard.includes(`target:'${target}'`))throw new Error(`Missing Saju result card: ${id}`);
 if(!groups.has('saju')||!groups.has('luck-sync-diary'))throw new Error('Missing parent candidate for Saju or diary');
 groups.get('saju').subfeatures=sajuCards.map(([id,target])=>({id,target,source:'js/core/saju/reportDashboard.js',status:'requires-full-flow-port-and-verification',accessEvidence:id==='lotto'?'dashboard says Saju bundle; separate entitlement mapping unverified':'dashboard points to section_summary; historic rights unverified'}));
-if(!dashboard.includes("id:'fortunePlanner'")||!dashboard.includes("id:'legacyLuckSyncDiary'")||!fs.readFileSync(path.join(root,'js/core/index-inline-runtime.js'),'utf8').includes("location.assign('/diary/')"))throw new Error('Missing new or legacy diary entry');
+if(!context.window.__cdServiceRegistry.some(row=>row.href==='/diary/')||!fs.readFileSync(path.join(root,'js/core/index-inline-runtime.js'),'utf8').includes('window.openLegacyLuckSyncDiary =')||!fs.readFileSync(path.join(root,'js/core/index-inline-runtime.js'),'utf8').includes("location.assign('/diary/')"))throw new Error('Missing new or legacy diary entry');
 groups.get('luck-sync-diary').subfeatures=[{id:'fortunePlanner',entry:'/diary/',status:'requires-full-flow-port-and-verification'},{id:'legacyLuckSyncDiary',entry:'js/luck-sync-diary.js:openLegacyLuckSyncDiary',status:'requires-full-flow-port-and-verification',verification:'legacy stored records and migration not verified'}];
 const localEvidence={
+ 'animal-destiny':{tossRoute:'/saju/animal-destiny',status:'local-partial',inputContract:'lib/korean-calendar/natal.js:calculateNatalSaju',resultRenderer:'apps/toss/src/AnimalDestiny.tsx',storageContract:'화면 메모리. 계정 변경 시 TossSessionScope 재설정'},
+ 'career-style':{tossRoute:'/saju/career-style/',status:'local-partial',inputContract:'worker/routes/career-style.js:readOwnedCareerStyle',resultRenderer:'apps/toss/service/TossCareerStyle.jsx + app/saju/career-style/CareerStyleClient.tsx',storageContract:'계정별 프로필을 사용한 무료 개인 명식 8장. 실기기 미검증'},
+ 'yeongnyangi-horary':{tossRoute:'/yeongnyangi/fortune/?mode=horary',status:'local-partial',inputContract:'worker/yeongnyangi/fortune/free/horary.ts',resultRenderer:'app/yeongnyangi/_components/QuestionSkyConsultation.tsx',storageContract:'무료 질문 시각·도시 차트. 유료 결과 보관 계약 없음'},
+ 'yeongnyangi-prashna':{tossRoute:'/yeongnyangi/fortune/?mode=spirit',status:'local-partial',inputContract:'worker/yeongnyangi/fortune/question-sky.ts',resultRenderer:'app/yeongnyangi/_components/QuestionSkyConsultation.tsx',storageContract:'영냥이 질문점성술 별도 권한. 일반 사주 승인 SKU로 구매 가능하다고 보지 않는다'},
  ziwei:{tossRoute:'/ziwei/chart',status:'local-partial',inputContract:'BirthFields + normalizeZiweiInput + calculateZiweiChart; domestic locations only',resultRenderer:'apps/toss/src/ZiweiChart.tsx + canonical ZiweiPalaceGrid',storageContract:'current screen only; clear input and chart on session replacement or exit',verification:'basic twelve-palace chart only; original detailed readings, profile recovery, device navigation and accessibility pending'},
  'pet-saju':{tossRoute:'/pet-saju/',status:'local-partial',inputContract:'worker/toss/pet-saju.js deterministic blueprint + worker/toss/pet-paid-contract.js paid inputs',resultRenderer:'apps/toss/service/TossPetSaju.tsx with original sprite artwork and paid report reader',storageContract:'up to five free pet inputs in current screen memory; no app-restart or cross-device recovery of that list. Paid results use an owned order and intent in worker/toss/native-pet-paid.js',verification:'local mock covers all 10 free species, paid report and compatibility checkout, intent resume, library ownership and recovery. Original screen displays 3000 KRW per paid feature while server registry specifies 5000 KRW; approved SKUs, saved pets, device verification and official purchase recovery remain pending'},
  'relationship-boundary-test':{tossRoute:'/relationship-boundary-test/',status:'local-partial',inputContract:'worker/routes/relationship-boundary-test.js:nativeRelationshipContract + worker/toss/native-relationship.js',resultRenderer:'apps/toss/service/TossRelationship.tsx + app/relationship-boundary-test/RelationshipReportParts.tsx',storageContract:'owner-scoped Toss intent and relationship report, paid-order check before results and resume; production index and approved SKU pending',verification:'local mock checkout, price changes, account and refund boundaries, partial result, recovery and native back; order buyer binding, order-ID-less checkout uncertainty, generation failure handling, policy and official device remain unverified'},
@@ -93,9 +116,10 @@ const localEvidence={
  sukuyo:{tossRoute:'/sukuyo',status:'local-partial',inputContract:'worker/toss/sukuyo-basic.js + canonical Sukuyo domain and free dashboard',resultRenderer:'apps/toss/src/SukuyoBasic.tsx',storageContract:'screen-only; no result storage or cross-device recovery',verification:'local offline canonical calculation plus 27 synthetic lunar sectors, home/direct route, native-back and session-isolation checks; original annual flow, relationship tools, paid nature/compatibility rights, editorial review and official device remain incomplete'},
  flower:{tossRoute:'/flower',status:'local-partial',inputContract:'worker/toss/flower.js',resultRenderer:'apps/toss/src/FlowerReading.tsx',storageContract:'not-stored-by-current-policy'},
  'bias-destiny':{tossRoute:'/bias',status:'local-partial',inputContract:'app/saju/destiny-bias/engine/chemiReportBridge.ts',resultRenderer:'apps/toss/src/BiasReading.tsx + BiasReport.tsx',storageContract:'native-card-save-summary-share-mocked; device-and-web-history-parity-pending'},
- yeongnyangi:{tossRoute:'/catalog',status:'local-partial',inputContract:'worker/toss/routes.js',resultRenderer:'apps/toss/src/App.tsx',storageContract:'owned-TossPurchase-to-YeongnyangiRequest'},
+ yeongnyangi:{tossRoute:'/yeongnyangi/fortune/',status:'local-partial',inputContract:'worker/toss/routes.js',resultRenderer:'app/yeongnyangi/_components/Result.tsx',storageContract:'owner-bound TossPurchase and YeongnyangiRequest; /yeongnyangi/library/'},
  'fortune-chat':{tossRoute:'/fortune-tea-house/?counsel=letter',status:'local-partial',inputContract:'worker/toss/letter.js + worker/toss/services.js',resultRenderer:'apps/toss/service/TossLetterRoom.tsx + app/fortune-chat/ConsultationIntake.tsx',storageContract:'persona-bound-TossPurchase-to-YeongnyangiRequest; official device and approved SKU pending',verification:'original Yeoni letter intake and owner-bound recovery are mocked; full web parity and device tests pending'},
- 'today-hub':{tossRoute:'/daily',status:'local-partial',inputContract:'worker/toss/daily.js',resultRenderer:'apps/toss/src/DailyReadings.tsx',storageContract:'server-owned-daily-result; horary-and-full-web-parity-pending'},
+ 'today-hub':{verification:'웹 /today/의 별자리·주간·시스템별 운세 허브. 토스 /daily의 영냥이 출석 운세와 별도.'},
+ 'yeongnyangi-daily':{tossRoute:'/daily',status:'local-partial',inputContract:'worker/toss/daily.js',resultRenderer:'apps/toss/src/DailyReadings.tsx',storageContract:'계정별 출석·당일 결과 15종. 호라리는 별도 무료 화면'},
  'fortune-tea-house':{tossRoute:'/fortune-tea-house/',status:'local-partial',inputContract:'worker/toss/native-tea.js',resultRenderer:'apps/toss/service/Screens.jsx',storageContract:'owned-TossPurchase; device-and-console-approval-pending'},
  'saju-fpti':{tossRoute:'/saju-fpti/',status:'local-partial',inputContract:'lib/fpti/fpti-adapter.ts',resultRenderer:'apps/toss/service/TossFpti.tsx',storageContract:'same-tab owner-scoped free result only; profile entitlement and permanent premium report not ported',verification:'mock UI and original calculation only; free-screen parity, approved permanent rights and official device pending'},
  'neo-operation-room':{tossRoute:'/neo-operation-room/',status:'local-partial',inputContract:'worker/toss/native-neo.js',resultRenderer:'apps/toss/service/Screens.jsx',storageContract:'owned-TossPurchase; device-and-console-approval-pending'},
@@ -139,7 +163,7 @@ for(const flow of TOSS_TAROT_LIBRARY_FLOWS){
  const group=groups.get(flow.id);
  if(!group)throw new Error('Missing discovered tarot flow: '+flow.id);
  Object.assign(group,{status:'local-partial',tossRoute:'/tarot-library',inputContract:'lib/tarot/toss-library-flows.mjs',
-  resultRenderer:'apps/toss/src/TarotLibrary.tsx',storageContract:flow.access==='free-local'?'local-reading-not-server-stored':'owned-TossPurchase-to-PaidExecutionRecord',
+  resultRenderer:'apps/toss/src/TarotLibrary.tsx',storageContract:flow.access==='free-local'?'local-reading-not-server-stored':flow.featureKeys.some(isFreeFortuneFeatureKey)?'canonical-free-calculation; previously paid orders retain stored result':'owned-TossPurchase-to-PaidExecutionRecord',
   verification:'mock-contracts-only; device-and-web-parity-pending'});
 }
 for(const row of rows){
@@ -150,6 +174,102 @@ for(const row of rows){
  row.toss.candidateStatus=group.status;
  row.toss.canonicalRoute=group.tossRoute;
 }
-const report={sourceCommit:execFileSync('git',['rev-parse','HEAD'],{cwd:root,encoding:'utf8'}).trim(),scope:'Source discovery plus explicitly verified aliases; not a count of implemented services. Unmapped contracts are blocking work, not exclusions.',sourceCounts:{home:context.window.__cdServiceRegistry.length,react:react.length,visual:Object.keys(visual).length},entries:rows,canonicalCandidates:[...groups.values()].sort((a,b)=>a.id.localeCompare(b.id))};
+const readJson = file => JSON.parse(fs.readFileSync(path.join(root,file),'utf8'));
+const ledger = readJson('docs/product-details/product-ledger.json');
+const {products,chatDomains,chatQuestionProducts} = loadTsModule('worker/yeongnyangi/payments/catalog.ts');
+const {consultationDomain,consultationKinds,supportsKind,consultationManifest} = loadTsModule('worker/yeongnyangi/fortune/consultation-kinds.ts');
+const {birthCategories} = loadTsModule('worker/yeongnyangi/fortune/free/categories.ts');
+const {NEW_PURCHASES_AVAILABLE} = loadTsModule('apps/toss/src/release.ts');
+const consultationProducts = products.map(product=>{
+ const domain=consultationDomain(product);
+ const sale=APPROVED_TOSS_PRODUCTS.find(row=>row.serviceId==='yeongnyangi'&&row.productId===product.id);
+ return {
+  productId:product.id,domain,systems:product.systems,depth:product.fishId,
+  kinds:consultationKinds[domain].filter(kind=>supportsKind(product,kind)).map(kind=>({
+   id:kind.id,label:kind.label,partner:!!kind.partner,question:!!kind.question,
+   chapters:consultationManifest(product,kind).length,
+  })),
+  webEntry:'/yeongnyangi/fortune/?product='+product.id,
+  tossEntry:domain==='fusion'?'/yeongnyangi/fortune/?flow=legacy&domain=fusion':'/yeongnyangi/fortune/?domain='+domain+'&flow=question',
+  webInput:'app/yeongnyangi/_components/Consultation.tsx',
+  worker:'worker/yeongnyangi/service.ts:prepareFortune',
+  result:'app/yeongnyangi/_components/Result.tsx',library:'/yeongnyangi/library/',
+  sale:sale?{sku:sale.sku,amountKRW:sale.approvedPriceKRW,evidence:sale.priceEvidence}:null,
+  newPurchases:!!sale&&NEW_PURCHASES_AVAILABLE,
+  deliveryVerification:product.id==='saju_mackerel'?'사주 질문 대표 흐름만 로컬 mock 검증. 이 상품의 모든 상담 모드·기기는 미검증':'상품별 전체 흐름 미검증',
+ };
+});
+const daily = readJson('worker/yeongnyangi/fortune/free/categories.json').map(({id,label,fields})=>({
+ id,label,fields:fields.map(({id,required,type})=>({id,type,required:!!required})),usesProfile:birthCategories.has(id),
+ webEntry:id==='horary'?'/yeongnyangi/fortune/?mode=horary':'/yeongnyangi/free-fortune/?category='+id,
+ tossRoute:id==='horary'?'/yeongnyangi/fortune/?mode=horary':'/daily',account:id==='horary'?'공개 질문 시각 차트':'영냥이 출석·당일 열람권',iap:false,
+ worker:id==='horary'?'worker/yeongnyangi/fortune/free/horary.ts':'worker/yeongnyangi/free-service.ts',
+}));
+const letterProducts = ['yeoni','neo'].map(persona=>({
+ persona,webEntry:'/fortune-chat/?character='+persona,webInput:'app/fortune-chat/ConsultationRoom.tsx',
+ worker:'worker/routes/fortune-chat-consultations.js',result:'app/fortune-chat/ConsultationResult.tsx',
+ base:chatDomains.map(domain=>'chat_'+domain),questionProducts:chatQuestionProducts().map(product=>product.id),
+ tossEntry:persona==='yeoni'?'/fortune-tea-house/?counsel=letter':null,library:'/records/',
+ registered:APPROVED_TOSS_PRODUCTS.filter(row=>row.serviceId===persona).map(row=>row.productId),
+}));
+const productContracts = ledger.products.map(product=>({
+ productId:product.productId,displayName:product.displayName,entry:product.entry,
+ inputRequirements:product.inputRequirements,resultRenderer:product.resultRenderer,
+ detailAliases:product.detailAliases,sourceEvidence:product.verification,
+ historicalLedgerStatus:product.saleStatus,freeCalculation:isFreeFortuneFeatureKey(product.productId),
+}));
+const nativeSource = {
+ 'fortune-tea-house':'fortune-tea-house','neo-operation-room':'neo-operation-room','life-book-ai':'life-book-ai',
+ 'life-fortune-report':'life-book-ai','astrology-ai':'astrology-ai','vedic-ai':'vedic-ai','ziwei-ai':'ziwei-ai',
+ 'new-year-ai':'new-year-ai','sukuyo-compatibility-ai':'sukuyo-compatibility-ai','karma-destiny-ai':'karma-destiny-ai',
+ 'love-secret-ai':'love-secret-ai','relationship-boundary-test':'relationship-boundary-test','fusion-fortune':'fusion-fortune',
+};
+const releaseLink = id=>id==='yeongnyangi-daily'||id!=='today-hub'&&reviewServices.some(item=>item.id===id);
+const filesAtRoute = href=>{
+ if(typeof href!=='string'||!href.startsWith('/'))return [];
+ const pathname=href.split(/[?#]/)[0].replace(/^\/|\/$/g,'');
+ if(!pathname||pathname==='index.html')return ['index.html','js/core/service-registry.js'];
+ const candidates=pathname.endsWith('.html')?[pathname,'public/'+pathname]:['tsx','jsx','js'].map(ext=>'app/'+pathname+'/page.'+ext);
+ return candidates.filter(file=>fs.existsSync(path.join(root,file)));
+};
+const canonicalCandidates=[...groups.values()].sort((a,b)=>a.id.localeCompare(b.id));
+for(const group of canonicalCandidates){
+ const webEntries=group.evidence.flatMap(item=>item.entry?[item.entry]:[]);
+ const keys=group.evidence.map(item=>item.featureKey).filter(Boolean);
+ for(const key of visual[group.id]?.inlineAliases||[])keys.push(key);
+ if(group.id==='life-fortune-report')keys.push('life-fortune-ai-consultation');
+ const matched=productContracts.filter(p=>p.productId===group.id||keys.includes(p.productId)||p.detailAliases?.includes(group.id));
+ group.webEntries=[...new Set(webEntries.length?webEntries:[...matched.flatMap(p=>p.entry),...group.aliasEvidence])];
+ group.webSources=[...new Set([
+  ...group.evidence.flatMap(item=>item.implementation?[item.implementation]:[]),
+  ...webEntries.flatMap(filesAtRoute),...matched.flatMap(p=>p.resultRenderer),
+  ...(nativeSource[group.id]?['worker/routes/'+nativeSource[group.id]+'.js']:[]),
+ ])];
+ if(!group.webSources.length)group.webSources.push(...group.aliasEvidence.length?group.aliasEvidence:['index.html:FEATURE_VISUAL_DETAILS','js/core/service-registry.js']);
+ group.webProductIds=matched.map(p=>p.productId);
+ group.freeCalculation=keys.concat(group.webProductIds).some(isFreeFortuneFeatureKey);
+ group.portStatus=group.tossRoute||group.publicSubflows?.length?'일부만 이식':'미이식';
+ group.reducedBundle=releaseLink(group.id)?'홈 진입 있음':group.tossRoute?'구현은 있으나 진입 차단':'홈 진입 없음';
+ group.currentEntry=group.tossRoute?'일반 홈의 진입 코드 확인':group.publicSubflows?.length?'일부 하위 경로만 홈에 연결':'연결 경로 없음';
+ group.bundleVerification='실기기 및 상품별 전체 흐름 미검증';
+ if(!group.tossRoute)group.tossLogin='토스 기능 미연결';
+ else if(nativeSource[group.id]||['fortune-chat','yeongnyangi','yeongnyangi-prashna'].includes(group.id))group.tossLogin='구매·기록에 토스 계정 필요';
+ else if(['manse','astrology','vedic','human-design','flower','yeongnyangi-daily','career-style'].includes(group.id))group.tossLogin='계산 또는 기록 조회에 토스 계정 필요';
+ else if(['saju','animal-destiny','music','novel','famous-saju','bias-destiny','yeongnyangi-horary'].includes(group.id))group.tossLogin='공개 진입';
+ else group.tossLogin='기능별 단계 검증 필요';
+ group.tossResult=group.resultRenderer||'결과 화면 연결 미확인';
+ group.reread=group.storageContract||'재열람 경로 미확인';
+ if(nativeSource[group.id])group.saleStatus='콘솔·운영 설정 필요';
+}
+const registeredProducts=APPROVED_TOSS_PRODUCTS.map(({serviceId,productId,sku,priceEvidence,approvedPriceKRW})=>({serviceId,productId,sku,priceEvidence,approvedPriceKRW}));
+const report={
+ sourceCommit:execFileSync('git',['rev-parse','HEAD'],{cwd:root,encoding:'utf8'}).trim(),
+ sourceCounts:{home:context.window.__cdServiceRegistry.length,react:react.length,visual:Object.keys(visual).length},
+ scope:'홈 별칭, 상담 상품·모드, 무료 카테고리, 과거 상품 원장은 서로 다른 단위다. 코드상 진입과 실기기 검증을 분리한다.',
+ entries:rows,canonicalCandidates,consultationProducts,daily,letterProducts,productContracts,
+ registeredProducts,newPurchasesAvailable:NEW_PURCHASES_AVAILABLE,
+};
 fs.writeFileSync(path.join(root,'docs/toss/full-service-inventory.json'),JSON.stringify(report,null,2)+'\n');
-console.log(JSON.stringify({sourceCounts:report.sourceCounts,discoveryIds:rows.length,canonicalCandidates:groups.size,readyForLaunch:0}));
+console.log(JSON.stringify({sourceCounts:report.sourceCounts,discoveryIds:rows.length,canonicalCandidates:groups.size,
+ consultationProducts:consultationProducts.length,productKindPairs:consultationProducts.reduce((sum,p)=>sum+p.kinds.length,0),
+ daily:daily.length,ledger:productContracts.length,registeredProducts:registeredProducts.length}));
