@@ -26,7 +26,7 @@ type Props = {
   question: string; onQuestion: (value: string) => void;
   domain: ChatDomain; onDomain: (value: ChatDomain) => void;
   tarotKind: ChatTarotKind; onTarotKind: (value: ChatTarotKind) => void;
-  profile: ReactNode; profileName: string; ready: boolean;
+  scope?:ReactNode; scopeLabel?:string; tieredTarot?:boolean; profile: ReactNode; profileName: string; ready: boolean;
   busy: boolean; guest: boolean; enabled: boolean | null; onCreate: () => void;
   paymentSurface?: "toss"; tossPrice?: string; recoveredOrder?: boolean; lockedDomain?: ChatDomain; tossUnavailable?: boolean;
   showOnlyLockedDomain?: boolean; questionNotice?: string;
@@ -86,15 +86,16 @@ export default function ConsultationIntake(props: Props) {
           <span><strong>{item.label}</strong><small>{item.description}</small></span><span className={styles.selectionDot} aria-hidden="true">{item.id === props.domain && <Check size={13} />}</span>
         </button>)}
       </fieldset>
-      {props.domain === "tarot" ? <fieldset className={styles.topics}><legend>타로로 살펴볼 고민</legend>
+      {props.scope}
+      {props.domain === "tarot" ? !props.tieredTarot&&<fieldset className={styles.topics}><legend>타로로 살펴볼 고민</legend>
         {TAROT_KINDS.map((kind) => <button type="button" key={kind.id} aria-pressed={props.tarotKind === kind.id} onClick={() => props.onTarotKind(kind.id)}>{kind.label}</button>)}
       </fieldset> : <section className={styles.profile} aria-label="상담할 프로필"><h3>누구의 흐름을 볼까요?</h3>{props.profile}</section>}
     </div>}
     {step === 2 && <div className={styles.answer}>
       <blockquote className={styles.reviewQuestion}>{props.question}</blockquote>
       <button type="button" className={styles.edit} onClick={() => move(0)}><PencilLine size={14} aria-hidden="true" />질문 수정</button>
-      <dl className={styles.review}><div><dt>해석 방식</dt><dd>{method.label}{props.domain === "tarot" ? ` · ${TAROT_KINDS.find((kind) => kind.id === props.tarotKind)?.label}` : ""}</dd></div>
-        <div><dt>상담 대상</dt><dd>{props.domain === "tarot" ? "출생정보 없이 진행" : props.profileName || "로그인 후 프로필 선택"}</dd></div></dl>
+      <dl className={styles.review}><div><dt>해석 방식</dt><dd>{method.label}{props.domain === "tarot" && !props.tieredTarot ? ` · ${TAROT_KINDS.find((kind) => kind.id === props.tarotKind)?.label}` : ""}</dd></div>
+        {props.scopeLabel&&<div><dt>상담 범위</dt><dd>{props.scopeLabel}</dd></div>}<div><dt>상담 대상</dt><dd>{props.domain === "tarot" ? "출생정보 없이 진행" : props.profileName || "로그인 후 프로필 선택"}</dd></div></dl>
       {props.paymentSurface === "toss" ? <div className={styles.priceNote}><p>{props.recoveredOrder ? "결제한 상담을 이어서 준비해요." : props.tossPrice ? `단건 결제 · ${props.tossPrice}` : props.tossUnavailable ? "이용할 수 있는 상품을 확인하지 못했어요." : "상품 정보를 확인하고 있어요."}</p></div> : (
       <div className={styles.priceNote}><PriceBadge featureKey="fortune-chat-consultation" prefix="단건 결제 · " className={styles.price} /><p>이용권 또는 꿀방울 {HONEY_COST}개로도 열 수 있어요.<br />사용 가능한 이용 방법은 다음 화면에서 확인해요.</p></div>
       )}

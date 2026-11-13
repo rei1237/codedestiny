@@ -2,7 +2,7 @@ import '../../../scripts/lib/mock-network-guard.cjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createOfflineFixtureApi} from './offline/fixture.mjs';
-import {reviewSdkProducts,reviewCatalog,unsoldFixtureProducts,unsoldLetters} from './offline/review-fixture.mjs';
+import {reviewSdkProducts,reviewCatalog,unsoldFixtureProducts,unsoldLetters,tieredLetters} from './offline/review-fixture.mjs';
 import {APPROVED_TOSS_PRODUCTS} from '../../../worker/toss/catalog.js';
 
 function fixture(){
@@ -18,7 +18,7 @@ const makeBody=id=>({productId:id,profileId:'mock-profile',question:'합성 진�
 test('the mock SDK and fixture verify the original five product prices',async()=>{
   const f=fixture(),catalog=(await (await f.request('/catalog',null,false)).json()).products;
   assert.equal(reviewCatalog.length,5);
-  assert.equal(catalog.length,reviewCatalog.length+unsoldFixtureProducts.length+unsoldLetters.length);
+  assert.equal(catalog.length,reviewCatalog.length+unsoldFixtureProducts.length+unsoldLetters.length+tieredLetters.length);
   for(const item of reviewCatalog){
     const linked=catalog.find(p=>p.sku===item.sku),sdk=reviewSdkProducts.find(p=>p.sku===item.sku);
     const price=APPROVED_TOSS_PRODUCTS.find(p=>p.productId===item.id.replace(/^yeoni:/,'')).approvedPriceKRW;
@@ -46,6 +46,30 @@ test('both letter rooms bind all six base methods to their own owner, order and 
    assert.ok(consultations.every(r=>r.persona===persona));
    const {consultation:stored}=await (await f.request(path+'/'+consultation.id)).json();
    assert.match(stored.chapters[0].summary,new RegExp(persona==='yeoni'?'연이':'네오'));
+ }
+});
+
+test('42 tiered letters retain adviser, exact SKU, snapshot and included replies across a restart',async()=>{
+ const f=fixture(),path='/canonical/fortune-chat/consultations';await f.login();
+ assert.equal(tieredLetters.length,42);assert.equal(new Set(tieredLetters.map(p=>p.sku)).size,42);
+ for(const product of tieredLetters){
+  const [persona,productId]=product.id.split(':'),[,domain,fishId]=productId.split('_');
+  assert.ok(!APPROVED_TOSS_PRODUCTS.some(row=>row.sku===product.sku||row.productId===productId));
+  const questionDecision={version:'question-consultation-20261007',category:'self',target:'self',horizon:'current',situation:'일상에 도움이 필요해요',confirmed:true};
+  const input={persona,domain,fishId,questionDecision,profileId:'mock-profile',question:'어떻게 쉬면 좋을까요?',consultationAttemptId:product.id,...(domain==='tarot'?{tarotSpreadId:'yn_knot_three'}:{})};
+  const reply=await f.request(path,input);assert.equal(reply.status,200,JSON.stringify(await reply.clone().json()));
+  const row=(await reply.json()).consultation,route=path+'/'+row.id;
+  const order={orderId:'mock-'+product.sku,requestId:row.id,sku:product.sku};
+  assert.equal((await f.request('/orders/grant',{...order,sku:'mock-yeoni'})).status,403);
+  const other=tieredLetters.find(p=>p.id===(persona==='neo'?'yeoni':'neo')+':'+productId);
+  assert.equal((await f.request('/orders/grant',{...order,sku:other.sku})).status,403);
+  if(domain==='tarot'){assert.equal((await f.request('/orders/grant',order)).status,409);assert.equal((await f.request(route+'/draw',{auto:true})).status,200);}
+  assert.equal((await f.request('/orders/grant',order)).status,200);
+  const limit={mackerel:0,salmon:1,flounder:2,tuna:6}[fishId];
+  if(limit){const input={id:'follow-1',question:'오늘 무엇을 바꾸면 좋을까요?'};for(let i=0;i<2;i++)assert.equal((await f.request(route+'/conversation',input)).status,200);}
+  const result=(await (await f.request(route)).json()).consultation;
+  assert.equal(result.conversation.limit,limit);assert.equal(result.conversation.used,Number(limit>0));
+  f.reload();assert.deepEqual((await (await f.request(route)).json()).consultation,result);
  }
 });
 

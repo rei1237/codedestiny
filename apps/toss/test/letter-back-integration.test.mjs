@@ -2,6 +2,10 @@ import '../../../scripts/lib/mock-network-guard.cjs';
 import test from 'node:test';import assert from 'node:assert/strict';import {JSDOM} from 'jsdom';import {build} from 'esbuild';import {createRequire} from 'node:module';import path from 'node:path';import fs from 'node:fs';
 const root=path.resolve(import.meta.dirname,'../../..'),require=createRequire(new URL('../package.json',import.meta.url)),Module=require('node:module'),React=require('react'),{createRoot}=require('react-dom/client');
 const mocks={
+ './LetterQuestionScope':"export const initialLetterScope={fish:'',decision:{},tarotPlan:{},partnerId:''};export const restoreLetterScope=()=>initialLetterScope;export const letterScopeLabel=id=>id;export default ()=>null;",
+ '../../../lib/fortune/chat-products':"export const chatProductId=(domain,fish)=>'chat_'+domain+(fish?'_'+fish:'');export const chatFishForDomain=()=>[];",
+ '../../../worker/yeongnyangi/fortune/ask/question-policy':"export const recommendQuestion=()=>({missing:[]});",
+ '../../../app/yeongnyangi/_components/tarot/TarotSpreadPlanner':"export const plannedInputs=()=>({});export const plannedSpread=()=>({});",
  'next/image':"import React from 'react';export default ()=>React.createElement('i');",
  'next/link':"import React from 'react';export default ({children})=>React.createElement('span',null,children);",
  'lucide-react':"export const ArrowLeft=()=>null,ArrowRight=()=>null,Check=()=>null,PencilLine=()=>null;",

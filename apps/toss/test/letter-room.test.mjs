@@ -2,6 +2,10 @@ import '../../../scripts/lib/mock-network-guard.cjs';
 import test from 'node:test';import assert from 'node:assert/strict';import {JSDOM} from 'jsdom';import {build} from 'esbuild';import {createRequire} from 'node:module';import path from 'node:path';import fs from 'node:fs';
 const require=createRequire(new URL('../package.json',import.meta.url)),Module=require('node:module'),React=require('react'),{createRoot}=require('react-dom/client'),root=path.resolve(import.meta.dirname,'../../..');
 const mocks={
+ './LetterQuestionScope':"export const initialLetterScope={fish:'',decision:{},tarotPlan:{},partnerId:''};export const restoreLetterScope=()=>initialLetterScope;export const letterScopeLabel=id=>id;export default ()=>null;",
+ '../../../lib/fortune/chat-products':"export const chatProductId=(domain,fish)=>'chat_'+domain+(fish?'_'+fish:'');export const chatFishForDomain=()=>[];",
+ '../../../worker/yeongnyangi/fortune/ask/question-policy':"export const recommendQuestion=()=>({missing:[]});",
+ '../../../app/yeongnyangi/_components/tarot/TarotSpreadPlanner':"export const plannedInputs=()=>({});export const plannedSpread=()=>({});",
  '@/app/_lib/auth-store':"export const useAuthStore=()=>globalThis.__letterRoom.auth;export const getAuthState=()=>globalThis.__letterRoom.auth;export const subscribeAuth=fn=>{globalThis.__letterRoom.authListener=fn;return()=>{if(globalThis.__letterRoom)delete globalThis.__letterRoom.authListener;};};",
  '@/app/yeongnyangi/_lib/use-profiles':"export const profileKey=p=>p.profileId;export const useProfiles=()=>globalThis.__letterRoom.profiles||({profiles:[{profileId:'p',name:'본인'}],profileId:'p',select:()=>{},saved:()=>{},guest:false,loading:false,refresh:async()=>{}});",
  '@/app/yeongnyangi/_components/ProfileForm':"export default ()=>null;",

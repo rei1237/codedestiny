@@ -4,6 +4,7 @@ import {mockCompassLibrary} from './compass.mjs';
 import {mockYogaLibrary} from './yoga.mjs';
 import {mockNakshatraLibrary} from './nakshatra-ai.mjs';
 import dailyRegistry from '../../../../worker/yeongnyangi/fortune/free/categories.json' with {type:'json'};
+import {chatProductId,chatFishForDomain,chatQuestionFeatureKey} from '../../../../lib/fortune/chat-products.js';
 import {systems,fishNames,unsoldFixtureProducts,productView,prepareSpread,drawFixture} from './yeongnyangi-contracts.mjs';
 export {unsoldFixtureProducts};
 import {reviewProductIds} from '../../../../worker/toss/review-products.js';
@@ -25,8 +26,12 @@ export const unsoldLetters=['yeoni','neo'].flatMap(persona=>Object.keys(systems)
   id:persona+':chat_'+domain,sku:'mock-unregistered-letter-'+persona+'-'+domain,name:'가상 '+(persona==='neo'?'네오':'연이')+' 편지 · '+(systems[domain]||'타로'),
   featureKey:'fortune-chat-consultation',approvedPriceKRW:1,available:true,chapters:1,
 })));
-const letterProducts=[reviewCatalog.find(p=>p.id==='yeoni:chat_saju'),...unsoldLetters];
-export const offlineCatalog=[...reviewCatalog,...unsoldFixtureProducts,...unsoldLetters];
+export const tieredLetters=['yeoni','neo'].flatMap(persona=>Object.keys(systems).flatMap(domain=>chatFishForDomain(domain).map(fish=>({
+ id:persona+':'+chatProductId(domain,fish),sku:'mock-question-'+persona+'-'+domain+'-'+fish,
+ name:'가상 질문 편지 · '+systems[domain]+' · '+fishNames[fish],featureKey:chatQuestionFeatureKey(fish),approvedPriceKRW:1,available:true,chapters:1,
+}))));
+const letterProducts=[reviewCatalog.find(p=>p.id==='yeoni:chat_saju'),...unsoldLetters,...tieredLetters];
+export const offlineCatalog=[...reviewCatalog,...unsoldFixtureProducts,...unsoldLetters,...tieredLetters];
 export const offlineLetterProduct=(persona,productId)=>letterProducts.find(p=>p.id===persona+':'+productId);
 export const reviewSdkProducts=[...offlineCatalog.map(sdkProduct),...roomSdkProducts];
 const consultationCatalog=offlineCatalog.filter(p=>!p.id.includes(':'));
@@ -89,9 +94,12 @@ function finishReadyJobs(state,save,date){
 function grantLetter({requestId,orderId,sku},state,save){
   const row=state.letters.get(requestId);
   if(!row||sku!==offlineLetterProduct(row.persona,row.productId)?.sku||typeof orderId!=='string'||!orderId.trim())return fail('ORDER_MISMATCH',403);
+  if(row.state==='AWAITING_DRAW')return fail('TAROT_DRAW_REQUIRED',409);
   if((state.orders.has(orderId)&&state.orders.get(orderId)!==requestId)||(row.orderId&&row.orderId!==orderId))return fail('ORDER_ALREADY_ASSIGNED',409);
   if(!row.paid){
-    state.letters.set(requestId,{...row,orderId,paid:true,state:'COMPLETED',chapters:[{...fixedChapter,summary:'[테스트 전용] '+(row.persona==='neo'?'네오':'연이')+'의 상담 편지 원문입니다.'}],recovery:{canRetryNow:false,savedChapters:1,totalChapters:1}});
+    const fish=row.productId.split('_')[2],limit={mackerel:0,salmon:1,flounder:2,tuna:6}[fish];
+    const conversation=limit===undefined?{}:{conversation:{ready:true,limit,used:0,remaining:limit,closed:limit===0,exchanges:[],archivedThreads:[],thread:{id:'thread-0',index:0}}};
+    state.letters.set(requestId,{...row,...conversation,orderId,paid:true,state:'COMPLETED',chapters:[{...fixedChapter,summary:'[테스트 전용] '+(row.persona==='neo'?'네오':'연이')+'의 상담 편지 원문입니다.'}],recovery:{canRetryNow:false,savedChapters:1,totalChapters:1}});
     state.orders.set(orderId,requestId);
     if(!save()){state.letters.set(requestId,row);state.orders.delete(orderId);return fail('MOCK_STORAGE_UNAVAILABLE',503);}
   }

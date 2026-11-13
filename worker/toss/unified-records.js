@@ -1,3 +1,4 @@
+import {CHAT_PRODUCT_IDS} from '../../lib/fortune/chat-products.js';
 import {libraryPage} from './library.js';
 import {TossError} from './policy.js';
 import {tarotResultPath} from '../../lib/tarot/toss-library-links.mjs';
@@ -23,7 +24,7 @@ export async function unifiedRecordsPage(rows,read,readTarot,readNative,verify,{
   const original=snapshots.get(row.requestId),name=row.nativeService?nativeName(row):LABELS[row.serviceId]||'상담';
   const question=text(row.question||original?.snapshot?.analysis?.consultation?.question),title=question||name;
   if(needle&&!`${name} ${title} ${question}`.toLocaleLowerCase('ko').includes(needle))return [];
-  const letter=['neo','yeoni'].includes(row.serviceId)&&/^chat_(saju|ziwei|sukuyo|vedic|astrology|tarot)$/.test(row.productId);
+  const letter=['neo','yeoni'].includes(row.serviceId)&&CHAT_PRODUCT_IDS.includes(row.productId);
   const href=letter&&!row.nativeService?'/fortune-tea-house/?counsel=letter'+(row.serviceId==='neo'?'&persona=neo':'')+'&consultation='+encodeURIComponent(row.requestId):row.nativeService?row.href:row.serviceId==='tarot-library'?tarotResultPath(row.orderId):row.serviceId==='yeongnyangi'?'/yeongnyangi/result/?id='+encodeURIComponent(row.requestId):'/result?id='+encodeURIComponent(row.requestId);
   if(typeof href!=='string'||!/^\/(?!\/)[^\\\u0000-\u001f]*$/.test(href))throw new TossError('RECORDS_UNAVAILABLE',503);
   return [{id:row.resultId||row.requestId,key:`${row.serviceId}:${row.orderId}`,source:row.nativeService||row.serviceId,serviceId:row.nativeService||row.serviceId,serviceName:name,title,question,createdAt:row.createdAt,status:status(row.state),character:row.nativeService?(row.nativeService==='tea'?'yeoni':row.nativeService==='neo'?'neo':''):(row.serviceId==='yeoni'?'yeoni':row.serviceId==='neo'?'neo':''),group:groupName,href,nativeHref:href,startHref:'/'}];

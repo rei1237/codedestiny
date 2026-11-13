@@ -1,4 +1,4 @@
-import { CHAT_QUESTION_FISH, chatQuestionFeatureKey } from '../../../lib/fortune/chat-products.js';
+import { chatFishForDomain,CHAT_QUESTION_FISH, chatQuestionFeatureKey } from '../../../lib/fortune/chat-products.js';
 import { getBillingFeaturePricing } from '../../lib/billing-feature-registry.js';
 import {FUSION_READING_VERSION,READING_V6_VERSION,readingChapterCount} from '../fortune/reading-policy';
 import {DomainId,FishId,PackageId,FortuneError} from '../fortune/shared/contracts';
@@ -36,4 +36,4 @@ export function resolveStoredProduct(id:unknown):Product{
  return getProduct(id);
 }
 
-export const chatQuestionProducts=()=>chatDomains.flatMap(domain=>CHAT_QUESTION_FISH.filter(fish=>fish!=='tuna'||['saju','ziwei','vedic'].includes(domain)).map(fish=>getChatProduct(domain,fish)));
+export const chatQuestionProducts=()=>chatDomains.flatMap(domain=>chatFishForDomain(domain).map(fish=>getChatProduct(domain,fish)));

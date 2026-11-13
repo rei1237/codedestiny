@@ -20,7 +20,7 @@ function remember(id:string,picks:number[]){try{sessionStorage.setItem(key(id),J
 function forget(id:string){try{sessionStorage.removeItem(key(id));}catch{/* nothing stored */}}
 
 /** The buyer picks face-down cards from the committed deck before checkout. Faces stay hidden until payment. */
-export default function TarotCardPick({row,spread:source,siteLocale,onRow}:{row:FortuneRecord;spread:PublicTarotSpread;siteLocale?:ReadingLocale;onRow:(row:FortuneRecord)=>void}){
+export default function TarotCardPick({row,spread:source,siteLocale,onRow,submitDraw,advisor}:{advisor?:string;submitDraw?:(body:{picks:number[]}|{auto:true})=>Promise<void>;row:FortuneRecord;spread:PublicTarotSpread;siteLocale?:ReadingLocale;onRow:(row:FortuneRecord)=>void}){
  const locale=row.locale||'ko',copy=tarotSpreadCopyFor(locale),spread=localizedTarotSpread(source,locale);
  const [picks,setPicks]=useState<number[]>([]),[busy,setBusy]=useState(false),[error,setError]=useState(''),[ready,setReady]=useState(false);
  const lock=useRef(false);
@@ -46,6 +46,7 @@ export default function TarotCardPick({row,spread:source,siteLocale,onRow}:{row:
  async function commit(body:{picks:number[]}|{auto:true}){
   if(lock.current)return;lock.current=true;setBusy(true);setError('');
   try{
+   if(submitDraw){await submitDraw(body);forget(row.id);return;}
    const {fortune}=await fortuneApi<{fortune:FortuneRecord}>(`requests/${row.id}/tarot-draw`,body);
    if(fortune.id!==row.id)throw new FortuneApiError('RECOVERY_ID_MISMATCH',copy.failed,409);
    forget(row.id);onRow(fortune);
@@ -62,7 +63,7 @@ export default function TarotCardPick({row,spread:source,siteLocale,onRow}:{row:
    <p>{drawn?copy.sealed:ritual.intro}</p>
    <p className={styles.progress} role="status" aria-live="polite">{copy.pickProgress(drawn?count:picks.length,count)}{current?` · ${copy.pickNow(current.label)}`:picks.length===count||drawn?` · ${copy.pickDone}`:''}</p>
   </header>
-  {!drawn&&<div className={styles.ritualGuide}><img src="/assets/yeongnyangi/profiles/welcome.webp" width={56} height={56} alt=""/><p>{ritual.guide}</p></div>}
+  {!drawn&&!advisor&&<div className={styles.ritualGuide}><img src="/assets/yeongnyangi/profiles/welcome.webp" width={56} height={56} alt=""/><p>{ritual.guide}</p></div>}
   <div className={styles.readingTable}>
   <TarotSpreadLayout locale={locale} spread={spread} cards={cards} active={current?.id} list={false} numbering="draw"/>
   </div>
@@ -78,9 +79,9 @@ export default function TarotCardPick({row,spread:source,siteLocale,onRow}:{row:
    <div className={styles.actions}>
     <button type="button" className={styles.primary} disabled={busy||picks.length!==count} onClick={()=>void commit({picks})}>{busy?copy.saving:copy.confirm}</button>
     <button type="button" disabled={busy||picks.length===0} onClick={()=>setPicks(list=>list.slice(0,-1))}>{copy.undo}</button>
-    <button type="button" disabled={busy||shuffling||!ready||picks.length>0} onClick={()=>void commit({auto:true})}>{copy.auto}</button>
+    <button type="button" disabled={busy||shuffling||!ready||picks.length>0} onClick={()=>void commit({auto:true})}>{advisor?advisor+'에게 맡기기':copy.auto}</button>
    </div>
-   <p className={styles.hint}>{copy.autoHint}</p>
+   <p className={styles.hint}>{advisor?'같은 덱에서 대신 고른 카드를 저장해요.':copy.autoHint}</p>
   </>}
   {drawn&&<div className={styles.actions}><a className={styles.primary} href={checkoutPath(row,siteLocale)}>{copy.toCheckout}</a></div>}
   <ol className={styles.positions}>{order.map((position,i)=><li key={position.id} data-active={current?.id===position.id||undefined}><b>{i+1}</b><div><strong>{position.label}</strong>{position.question&&<span>{position.question}</span>}</div></li>)}</ol>

@@ -1,3 +1,4 @@
+import {CHAT_PRODUCT_IDS} from '../../lib/fortune/chat-products.js';
 import {checkedConsultationInput,consultationSafetyMessages} from './consultation-safety.js';
 import {questionConversation} from '../yeongnyangi/question-followup.ts';
 import {isFreeFortuneFeatureKey} from '../../lib/payment/free-fortune-policy.mjs';
@@ -51,7 +52,10 @@ async function readNativeLibraryItem(env,auth,row){
 
 async function letterEnabled(persona='yeoni'){
   const {approvedLetterSale}=await import('./letter.js');
-  return ['saju','ziwei','sukuyo','vedic','astrology','tarot'].some(domain=>{try{approvedLetterSale(domain,APPROVED_TOSS_PRODUCTS,persona);return true;}catch{return false;}});
+  return CHAT_PRODUCT_IDS.some(id=>{
+    const [,domain,fish]=id.split('_');
+    try{approvedLetterSale(domain,APPROVED_TOSS_PRODUCTS,persona,fish);return true;}catch{return false;}
+  });
 }
 
 function currentTarotSale(sku){
@@ -92,7 +96,7 @@ export async function handleTossRoutes(request,env) {
     if(request.method==='OPTIONS')return new Response(null,{status:204,headers:{...headers,
       'Access-Control-Allow-Methods':'GET, POST, OPTIONS','Access-Control-Allow-Headers':'Authorization, Content-Type'}});
     if((path==='/catalog'||path==='/tarot-library/catalog')&&request.method==='GET')assertUniqueApprovedSaleSkus();
-    if(path==='/catalog'&&request.method==='GET')return reply({products:APPROVED_TOSS_PRODUCTS.filter(item=>isReviewSale(item.productId,item.serviceId)||(['yeoni','neo'].includes(item.serviceId)&&/^chat_(saju|ziwei|sukuyo|vedic|astrology|tarot)$/.test(item.productId))).map(item=>{
+    if(path==='/catalog'&&request.method==='GET')return reply({products:APPROVED_TOSS_PRODUCTS.filter(item=>isReviewSale(item.productId,item.serviceId)||(['yeoni','neo'].includes(item.serviceId)&&CHAT_PRODUCT_IDS.includes(item.productId))).map(item=>{
       const approved=approvedProduct(item.sku),product=resolveStoredProduct(approved.productId),service=consultationService(approved);
       return {id:consultationSelection(approved),productId:product.id,serviceId:service.id,name:`${service.name} ${product.name} ${product.fishName} 상담`,sku:item.sku,approvedPriceKRW:item.approvedPriceKRW,
         chapters:product.chapterCount,available:item.approved===true};
@@ -181,7 +185,7 @@ export async function handleTossRoutes(request,env) {
     if(path==='/canonical/fortune-chat/consultations'&&request.method==='GET'){
       const persona=url.searchParams.get('persona');
       if(!['yeoni','neo'].includes(persona))throw new TossError('INVALID_PERSONA',400);
-      const productIds=['chat_saju','chat_ziwei','chat_sukuyo','chat_vedic','chat_astrology','chat_tarot'];
+      const productIds=CHAT_PRODUCT_IDS;
       const rows=await TossPurchase.find({...libraryFilter(auth,url.searchParams.get('cursor')),serviceId:persona,nativeService:{$in:['',null]},productId:{$in:productIds}}).sort({grantedAt:-1,_id:-1}).limit(LIBRARY_PAGE_SIZE+1).lean();
       const {letterLibraryPage}=await import('./letter-library.js');
       return reply({...await letterLibraryPage(rows,id=>readRequest(env,auth.userId,id),row=>verifyLibraryOrder(env,auth,row)),enabled:await letterEnabled(persona)});
@@ -201,15 +205,22 @@ export async function handleTossRoutes(request,env) {
       const letter=await import('./letter.js');
       return reply(letterRecovery[2]?await letter.readRecoveringTossLetter(env,auth,letterRecovery[1],letterRecovery[2]):await letter.recoverableLetterOrder(env,auth,letterRecovery[1]));
     }
-    const letterMatch=path.match(/^\/canonical\/fortune-chat\/consultations\/([a-f0-9]{64})(\/(?:generate|draw))?$/);
+    const letterMatch=path.match(/^\/canonical\/fortune-chat\/consultations\/([a-f0-9]{64})(\/(?:generate|draw|conversation(?:\/continue)?))?$/);
     if(letterMatch&&request.method===(letterMatch[2]?'POST':'GET')){
       const {readTossLetter}=await import('./letter.js');
       if(!letterMatch[2])return reply(await readTossLetter(env,auth,letterMatch[1]));
       await limit(env,auth._id,'letter-'+letterMatch[2].slice(1),6);
+      if(letterMatch[2].startsWith('/conversation')){
+        const before=await readTossLetter(env,auth,letterMatch[1],{requirePaid:true});
+        if(!before.consultation.conversation?.ready)throw new TossError('QUESTION_CONVERSATION_UNAVAILABLE',409);
+        const input=checkedConsultationInput(await bodyOf(request));
+        await questionConversation(env,auth.userId,letterMatch[1],letterMatch[2].endsWith('/continue')?{...input,action:'continue'}:input);
+        return reply(await readTossLetter(env,auth,letterMatch[1],{requirePaid:true}));
+      }
       if(letterMatch[2]==='/draw'){
         const before=await readTossLetter(env,auth,letterMatch[1]);
-        if(before.consultation.productId!=='chat_tarot'||before.consultation.paid)throw new TossError('REQUEST_NOT_FOUND',404);
-        const input=await bodyOf(request);await drawTarotSpread(env,auth.userId,letterMatch[1],{method:input.method,picks:input.picks});
+        if((!CHAT_PRODUCT_IDS.includes(before.consultation.productId)||before.consultation.productId.split('_')[1]!=='tarot')||before.consultation.paid)throw new TossError('REQUEST_NOT_FOUND',404);
+        const input=await bodyOf(request);await drawTarotSpread(env,auth.userId,letterMatch[1],input.auto===true?{auto:true}:{method:input.method,picks:input.picks});
         return reply(await readTossLetter(env,auth,letterMatch[1]));
       }
       await bodyOf(request);await readTossLetter(env,auth,letterMatch[1],{requirePaid:true});

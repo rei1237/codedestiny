@@ -1,3 +1,4 @@
+import {CHAT_PRODUCT_IDS} from '../../lib/fortune/chat-products.js';
 import {libraryPage} from './library.js';
 import {TossError} from './policy.js';
 import {requestMatchesPurchase} from './services.js';
@@ -15,7 +16,7 @@ export async function letterLibraryPage(rows,read,verify){
  return {ok:true,consultations:page.purchases.flatMap(purchase=>{
   if(purchase.status==='REFUNDED'||purchase.state==='REFUNDED'||!purchase.requestId)return [];
   const row=snapshots.get(purchase.requestId);
-  if(!row||!['yeoni','neo'].includes(row.persona)||!/^chat_(saju|ziwei|sukuyo|vedic|astrology|tarot)$/.test(row.productId))return [];
+  if(!row||!['yeoni','neo'].includes(row.persona)||!CHAT_PRODUCT_IDS.includes(row.productId))return [];
   return [{id:purchase.requestId,persona:row.persona,state:purchase.state,paid:true,perUseSource:'',
    domain:row.snapshot?.product?.systems?.[0]||row.productId.slice(5),completedChapters:purchase.completedSections,
    totalChapters:purchase.totalSections||0,question:String(row.snapshot?.analysis?.consultation?.question||'').slice(0,300),createdAt:purchase.createdAt}];

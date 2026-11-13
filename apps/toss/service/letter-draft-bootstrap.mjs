@@ -17,7 +17,8 @@ export function captureLetterDraft(storage,location,now=Date.now()){
   const saved=JSON.parse(storage.getItem(key)||'null'),age=now-Number(saved?.at);
   if(!saved||typeof saved.owner!=='string'||!saved.owner.trim()||typeof saved.question!=='string'||!saved.question.trim()||saved.question.length>300||!Number.isFinite(age)||age<0||age>=maxAge)return null;
   if(saved.owner==='guest'&&!guestReturn(location,saved.persona))return null;
-  return {...(saved.persona==='neo'?{persona:'neo'}:{}),owner:saved.owner,question:saved.question,at:Number(saved.at)};
+  const settings=saved.settings&&typeof saved.settings==='object'&&JSON.stringify(saved.settings).length<10000?saved.settings:undefined;
+  return {...(settings?{settings}:{}),...(saved.persona==='neo'?{persona:'neo'}:{}),owner:saved.owner,question:saved.question,at:Number(saved.at)};
  }catch{return null;}
 }
 export function restoreLetterDraft(storage,draft,{location,user,now=Date.now()}={}){
