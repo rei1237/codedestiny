@@ -255,6 +255,12 @@ for(const flow of TOSS_TAROT_LIBRARY_FLOWS){
   resultRenderer:'apps/toss/src/TarotLibrary.tsx',storageContract:flow.access==='free-local'?'local-reading-not-server-stored':flow.featureKeys.some(isFreeFortuneFeatureKey)?'canonical-free-calculation; previously paid orders retain stored result':'owned-TossPurchase-to-PaidExecutionRecord',
   verification:'mock-contracts-only; device-and-web-parity-pending'});
 }
+for(const [id,route,entry,source,contract,render] of [
+ ['tin-oracle','/oracle/sikojen-povailu','/oracle/sikojen-povailu/','app/oracle/sikojen-povailu/data/shapes.ts','원본 20형상·세 주머니·핀란드어·행운수','apps/toss/src/TinOracle.tsx'],
+ ['saju-image-prompts','/saju/sections','index.html:사주 리포트','js/saju-engine.js','일간 오행에 따른 그림 13종 및 10개 하위 분류','apps/toss/src/PublicSectionReading.tsx'],
+]){
+ groups.set(id,{id,discoveryIds:[],evidence:[{source,entry,implementation:source}],status:'local-partial',tossRoute:route,sku:null,inputContract:contract,resultRenderer:render,storageContract:'무료 원본을 현재 화면에 표시',verification:'일반 홈 360px public-readings-browser.mjs / public-sections-browser.mjs. 네이티브 공유·클립보드 실기기 확인 필요'});
+}
 groups.set('lenormand-six',{id:'lenormand-six',discoveryIds:[],evidence:[{source:'app/tarot/prompt-maker/TarotPromptMakerClient.tsx',entry:'/tarot/prompt-maker/',implementation:'app/tarot/prompt-maker/data/lenormand.ts'}],status:'local-partial',tossRoute:'/tarot-library',sku:null,inputContract:'원본 36장에서 6장을 고른 뒤 로컬 프롬프트 작성',resultRenderer:'apps/toss/src/Lenormand.tsx',storageContract:'현재 화면의 무료 프롬프트',verification:'paid-tarot-browser.mjs · 360px 게스트 실제 카드 6장·프롬프트'});
 for(const id of ['tarot-mindscan','tarot-love-relationship','tarot-celestial-harmony','tarot-prompt-maker']){
  const group=groups.get(id);
@@ -396,7 +402,7 @@ for(const group of canonicalCandidates){
  }
  if(['juyuk-turtle','kemet-oracle','royal-tea-oracle'].includes(group.id))group.bundleVerification='20261114-9 Linux AIT 43463538068, 공개 홈에서 질문/점술 선택부터 원본 결과, 게스트, 360px 통과';
  if(group.id==='ziwei-island'||group.id==='home-widget')group.bundleVerification='f2e46d05a · Linux AIT 43468160819 일반 홈, 무구매 360px. 자미 12궁·초상 및 위젯 6개 구성을 확인';
- if(group.id==='lenormand-six'){group.freeCalculation=true;group.tossLogin='게스트 공개';group.saleStatus='웹 무료 계산';}
+ if(['lenormand-six','saju-image-prompts','tin-oracle'].includes(group.id)){group.freeCalculation=true;group.tossLogin='게스트 공개';group.saleStatus='웹 무료 계산';}
  if(group.id==='saju-sibyl')group.tossLogin='연간 기본 분석 공개. 각 출생 프로필의 심층 연도별 보고서는 로그인·구매 필요';
  if(group.id==='palm-reading')group.tossLogin='분석 준비·주문·원문은 토스 계정 필요';
  if(group.id==='neo-consultation')group.tossLogin='질문과 견적 열람 가능, 모의 접수와 기록은 계정별';
