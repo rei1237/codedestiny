@@ -78,14 +78,16 @@ test("타이프라이터는 잘린 텍스트를 aria-live 에 넣지 않는다",
   assert.ok(prose.includes('className="sr-only"'), "스크린리더에는 전문을 한 번만 줘야 한다");
 });
 
-test("진행률 숫자는 aria-live 로 읽히지 않는다", () => {
-  const barStart = client.indexOf('role="progressbar"');
-  assert.ok(barStart >= 0, "progressbar 를 찾지 못했다");
-  const bar = client.slice(barStart, barStart + 900);
-  assert.ok(bar.includes("aria-valuenow"), "aria-valuenow 가 있어야 한다");
-  assert.ok(bar.includes("aria-valuetext"), "aria-valuetext 로 단계 문구를 줘야 한다");
-  assert.ok(/\{progress\}%[\s\S]{0,40}<\/span>/.test(bar) === false || bar.includes('aria-hidden="true"'),
-    "퍼센트 숫자는 aria-hidden 이어야 한다");
+test("집필 대기 화면은 공용 GenerationProgress 로 실제 웨이브 진행만 보여 준다", () => {
+  // 막대·aria-live·경과 시간 규칙은 공용 컴포넌트가 지킨다(generation-progress.behavior 테스트).
+  const start = client.indexOf("<GenerationProgress");
+  assert.ok(start >= 0, "GenerationProgress 를 찾지 못했다");
+  const block = client.slice(start, client.indexOf("/>", start));
+  assert.match(block, /completed=\{status === "generating" \? waveProgress\?\.completed : null\}/, "완성 수는 서버 progress 로만");
+  assert.match(block, /total=\{status === "generating" \? waveProgress\?\.total : null\}/, "전체 수는 서버 progress 로만");
+  assert.match(block, /timing=\{status === "generating"\}/, "경과 시간은 집필 중에만 센다");
+  assert.ok(!client.includes('role="progressbar"'), "자체 진행 막대를 다시 그리면 안 된다");
+  assert.doesNotMatch(stripComments(client), /elapsedMs|Math\.exp\(|\{progress\}%/, "경과 시간으로 만든 가짜 진행률이 없어야 한다");
 });
 
 test("아이콘 전용 버튼에는 aria-label 이 있다", () => {
