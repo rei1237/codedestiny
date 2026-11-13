@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-13
-next: 단계 1 GA4 정확도 수정
+next: 단계 2 오늘/내일 차별화
 ---
 # 오가닉 회복: GA4 정확도 · 오늘/내일 운세 차별화 · 노출 감소 원인 정리
 
@@ -33,9 +33,45 @@ next: 단계 1 GA4 정확도 수정
 - 사용자 안내는 한국어.
 
 ## 단계
-- [ ] 1. GA4 정확도: `js/core/analytics.js`(및 React 라우트 쪽 계측·쿠키 정책 `CodeDestinyCookiePolicy`) — 지역별 consent default(`gtag('consent','default',{analytics_storage:'denied', region:[EEA+UK+CH]})` + 기본 granted, 명시 '필수만'은 denied), 태그 로드를 앞당기되 LCP 영향 측정(예: DOMContentLoaded 직후 또는 짧은 타이머, pagehide 전 손실 최소화), SPA 라우트 page_view 중복·누락 확인, 네이버 유입이 Unassigned/Direct로 빠지는 원인(리퍼러 정책·인앱 브라우저·302) 조사, 개인정보처리방침 GA 고지 확인·보강. 실제 브라우저로 쿠키 배너 미클릭 상태에서 collect 요청 발생 확인.
+- [x] 1. GA4 정확도: `js/core/analytics.js`(및 React 라우트 쪽 계측·쿠키 정책 `CodeDestinyCookiePolicy`) — 지역별 consent default(`gtag('consent','default',{analytics_storage:'denied', region:[EEA+UK+CH]})` + 기본 granted, 명시 '필수만'은 denied), 태그 로드를 앞당기되 LCP 영향 측정(예: DOMContentLoaded 직후 또는 짧은 타이머, pagehide 전 손실 최소화), SPA 라우트 page_view 중복·누락 확인, 네이버 유입이 Unassigned/Direct로 빠지는 원인(리퍼러 정책·인앱 브라우저·302) 조사, 개인정보처리방침 GA 고지 확인·보강. 실제 브라우저로 쿠키 배너 미클릭 상태에서 collect 요청 발생 확인.
 - [ ] 2. 오늘/내일 차별화: 묶음 ⑤ 남은 것 구현 — 내일 페이지에서 '오늘' 표현·오늘 문장 제거, 대상일 기준 원고 풀 분리, 관계 마커·준비 문구. 목표: today/tomorrow 24쌍 5단어 Jaccard 최대 < 30%(측정 스크립트로 전후 기록). 번역 noindex는 범위 판단 후 별도 커밋.
 - [ ] 3. 노출 감소 원인 정리: 해외 리다이렉트 부재를 워커 테스트와 실제 요청으로 재확인(남은 국가·언어 기반 리다이렉트 전수 grep, `/?lang=en` 302의 필요성 판단), 10/08 변경 3가지의 영향 근거 문서화, `/fortune/date/*` noindex 재검토 권고(실행 X, 근거·선택지만), 결과를 `docs/seo/organic-drop-analysis-20261113.md`로.
 - [ ] 4. 반영: 관련 검사·check:fast·pre-push, Toss 상태 확인, main push, CI 확인, 운영 릴리스(기존 Release Cloudflare Pages and Worker 워크플로 방식), 운영 실측(GA4 collect, 내일 페이지 문구, 해외 리다이렉트 없음), 바뀐 URL IndexNow 제출, 결과 기록.
 
 ## 결과 기록
+
+### 단계 1 GA4 정확도 (2026-11-13 완료, 코드 커밋 `163b9e85e`, push·배포 안 함)
+**바꾼 것**
+- `js/core/analytics.js`: consent default 두 줄 — `{analytics_storage:'denied', region:[EEA 30 + GB + CH = 32]}` 다음 `{analytics_storage:'granted'}`. 명시 선택이 있으면 지역 없이 단일 default(동의=granted, 필수만=denied). `cdSyncConsent`는 명시 선택이 있을 때만 `consent update`. 1st-party 저장(캠페인 귀속·서버 동의·네이버 구매)은 여전히 명시 동의에서만. `ad_*`는 선언하지 않음(AdSense 동작 유지, 바꿀 구체적 근거 없음).
+- 태그 주입: load 후 idle(기존) + `TAG_FALLBACK_MS = 3000` 타이머 + 탭 숨김(visibilitychange hidden) 시 즉시 주입, 가드로 1회만. 근거: 운영 실측에서 load가 55초, gtag 요청은 그 뒤 → 이탈 방문의 page_view 유실.
+- 홈 퍼널 버그(기존): `#cdhCookieSlot:has([aria-hidden=true]){display:none}`가 배너 안 장식 달(`aria-hidden="true"`)에도 맞아 **홈에서는 쿠키 배너가 늘 숨겨져 '필수만'을 누를 수 없었다**. `:has(>#cdCookieConsent[aria-hidden=true])`로 좁힘(`styles/home-funnel.css`, public 셸 인라인 반영).
+- 고지: 정적 셸 배너·설정 문구(i18n 12개 언어 키 교체), Next `AnalyticsConsent.tsx`, 개인정보처리방침 ko(`PrivacyPolicyContent.jsx`)·en/ja/zh/zh-TW(`lib/legal/legalContent.ts`)에 GA4 단락(수집 항목, Google 국외 이전, IP 미저장, 지역별 기본값, 거부 방법·gaoptout, 보관 최대 14개월).
+- 테스트: `scripts/verify-analytics-events.mjs`(지역 default·필수만·무선택 update 없음·폴백 타이머·숨김 주입·중복 주입 없음), `__tests__/ui/analytics-consent.test.mjs`(지역 default, 홈 슬롯 선택자).
+
+**LCP 전후** (Lighthouse 모바일, 로컬 서빙 gzip, 외부 출처 차단, 운영 gtag 사본, 변형 교차 실행; 스크립트 scratchpad `lcp/harness.mjs`)
+- simulate 5회 중앙값: baseline 12,158ms / new 18,786ms / immediate 21,354ms — 그러나 모든 변형이 FCP 8초대·15초대로 갈리는 이봉 분포라 중앙값이 모드 표본 수에 좌우된다. 같은 모드끼리: 빠른 모드 baseline 11.1–12.2s, new 11.0–12.8s, immediate 11.0s / 느린 모드 baseline 20.3–20.7s, new 18.8–20.2s, immediate 21.1–21.8s → new ≈ baseline, 즉시 주입은 약 +1s.
+- devtools 스로틀 4회 중앙값: LCP baseline 12,763 / new 12,145 / immediate 12,326ms; gtag 시작 baseline 21,021(load 20,083 뒤) / new 19,017(load 전, LCP 뒤). → 3초 폴백 유지, 회귀 없음. Next 라우트는 빌드가 없어 미측정.
+
+**실브라우저 확인** (Playwright Chromium, 412px, 로컬 서버, 테스트 속성 G-TESTONLY00, collect는 로컬 204로 가로챔)
+- 새 방문자(쿠키 없음, 배너 미클릭): gtag 2.1s 요청, dataLayer = 지역 denied(32) → granted, `page_view` collect `gcs=G1-1`, `_ga`·`_ga_TESTONLY00` 생성.
+- 홈 배너 '필수만' 실제 클릭(수정 전엔 0×0이라 클릭 불가): `cd_cookie_consent=essential`, `consent update denied`, 이후 hit `gcs=G1-0`.
+- `_ga` 지우고 재방문: 단일 default denied, hit 모두 G1-0, `_ga` 미생성.
+
+**SPA page_view**: 운영 실측에서 SPA 이동 1회에 page_view 2건(수동 NavigationProvider + 향상된 측정 history 이벤트, dr=이전 페이지). 코드 쪽 수동 발화는 단일(검증 스크립트 통과). 중복 제거는 GA4 관리 설정 필요 → 사용자 결정.
+
+**네이버 Direct/Unassigned 원인**
+- 주원인: 기존 기본 denied → 쿠키 없는 핑이라 세션·소스 귀속이 무너짐(이번 수정으로 KR 기본 granted).
+- 이미 수정됨: 옛 utm "cover"/"paid"(11/10 `64388836e`), nid.naver.com 로그인 복귀 `ignore_referrer`(11/10).
+- 코드로 못 고침: 네이버 앱 인앱 브라우저의 리퍼러 제거. `m.search.naver.com/referral`은 Organic Search로 묶이는 게 정상. Referrer-Policy `strict-origin-when-cross-origin`은 나가는 요청에만 영향. `/?lang=en` 302는 리퍼러 유지.
+
+**검사 결과(정직하게)**
+- 통과: `verify:analytics-events`, `node --test` analytics-consent·static-css-cache-keys·account-sheet(15/15), `i18n:check`, verify-business-identity, verify-payment-legal-copy, Jest payments-v2.policy-versions(2), first-visit-guide(18).
+- `check:fast`: 77개 ok 뒤 `verify:sitemap-drift`에서 BLOCKED — 원인은 날짜 기반 lastmod(주간 운세 11-12→11-13)로 이번 변경과 무관. `sitemap:generate` 결과는 되돌렸다(반영 단계에서 다시 생성해 함께 커밋). drift 이후 검사는 미실행.
+- 미실행: `verify-adsense-readiness`(dist 필요), Next 라우트 LCP, EEA 동작은 단위 검증만(실제 지역 판정은 Google 쪽).
+
+**사용자 결정 필요 / 남은 것**
+- GA4 관리 > 데이터 스트림 > 향상된 측정 > 페이지 조회 > "브라우저 기록 이벤트 기반 페이지 변경" 끄기 권장(SPA page_view 중복 제거, 자동 이벤트가 원시 쿼리도 보냄).
+- 개인정보처리방침 시행일(2026-10-10, `worker/routes/auth.js`·`worker/payments/policy-versions.js`와 연동)은 올리지 않았다. 고지 변경으로 개정일을 올릴지 결정 필요(올리면 재동의 흐름 영향 확인).
+- 정적 셸에는 배너를 닫은 뒤 다시 여는 '쿠키 설정' 링크가 없다(Next 푸터에만 있음).
+- '필수만'은 이미 생긴 `_ga` 쿠키를 지우지 않고, denied 상태에서도 쿠키 없는 핑(consent mode advanced)은 나간다.
+- 홈 배너가 이제 퍼널 중간(412px 기준 y≈6600)에 인라인으로 보인다 — 위치 조정은 디자인 판단.
