@@ -98,7 +98,10 @@ export async function loadPaidNarrativeAdapter(env, featureKey, reportType, user
     }
     case "animal-totem": {
       const { animalTotemNarrativeAdapter } = await import("../routes/animal-totem.js");
-      return animalTotemNarrativeAdapter(env);
+      return {...animalTotemNarrativeAdapter(env),verifyRecovery:async doc=>{
+        const {totemFor}=await import("../toss/native-totem.js");
+        return totemFor(featureKey).verifyRecovery(env,doc);
+      }};
     }
     default:
       return null;

@@ -65,6 +65,8 @@ const MODE_SPEC = Object.freeze({
   }),
 });
 
+export { MODE_SPEC as animalTotemModeSpec };
+
 const SLOT_MEANING = Object.freeze({
   today_guide: "오늘 한 장의 안내",
   past_wound: "지나온 상처",

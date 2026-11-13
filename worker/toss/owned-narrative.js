@@ -36,7 +36,7 @@ export function ownedNarrative({service,featureKey,reportType,route,contractFor,
       url.searchParams.set('resultId',key);
     }
     return runPaidNarrativeDelivery(new Request(url,{method:advance?'POST':'GET'}),env,{userId:String(auth.userId)},advance?{...input,tossIntentId:id}:{},{
-      ...adapter(env),seed,featureKey,generationOrigin:'toss',
+      ...adapter(env),seed:original=>seed(original,env),featureKey,generationOrigin:'toss',
       verify:(original,doc)=>owned(env,auth,id,original,doc),
     });
   }

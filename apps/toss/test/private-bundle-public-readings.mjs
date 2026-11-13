@@ -25,13 +25,13 @@ const origin='http://127.0.0.1:'+server.address().port;
 const probes={
   tarot:'public-readings-browser.mjs', olympus:'studio-olympus-browser.mjs',
   turtle:'studio-turtle-browser.mjs', tea:'studio-royal-tea-browser.mjs', kemet:'studio-kemet-browser.mjs',
-  island:'island-browser.mjs', widget:'widget-preview-browser.mjs',
+  island:'island-browser.mjs', widget:'widget-preview-browser.mjs', diary:'diary-browser.mjs', face:'face-browser.mjs', sibyl:'sibyl-public-browser.mjs',
 };
 try{
   for(const key of process.argv.slice(3)){
     assert.ok(Object.hasOwn(probes,key),'Unknown release probe '+key);
     const path=fileURLToPath(new URL(probes[key],import.meta.url));
-    const child=spawn(process.execPath,[path],{stdio:'inherit',env:{...process.env,TOSS_PUBLIC_TEST_ORIGIN:origin,TOSS_OFFLINE_ORIGIN:origin}});
+    const child=spawn(process.execPath,[path],{stdio:'inherit',env:{...process.env,TOSS_PUBLIC_TEST_ORIGIN:origin,TOSS_OFFLINE_ORIGIN:origin,TOSS_TEST_PORT:String(server.address().port)}});
     const code=await new Promise((resolve,reject)=>{child.once('error',reject);child.once('exit',resolve);});
     assert.equal(code,0,key+' failed in '+reader.deploymentId);
   }

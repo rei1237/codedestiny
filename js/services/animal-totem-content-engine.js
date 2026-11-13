@@ -405,4 +405,5 @@
     composeConsultation: composeConsultation,
     buildReadingCards: buildReadingCards
   };
-})(window);
+  if (typeof module !== "undefined" && module.exports) module.exports = global.AnimalTotemContentEngine;
+})(typeof window !== "undefined" ? window : {});

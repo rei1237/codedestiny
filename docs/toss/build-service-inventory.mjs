@@ -99,6 +99,7 @@ groups.get('saju').subfeatures=sajuCards.map(([id,target])=>({id,target,source:'
 if(!context.window.__cdServiceRegistry.some(row=>row.href==='/diary/')||!fs.readFileSync(path.join(root,'js/core/index-inline-runtime.js'),'utf8').includes('window.openLegacyLuckSyncDiary =')||!fs.readFileSync(path.join(root,'js/core/index-inline-runtime.js'),'utf8').includes("location.assign('/diary/')"))throw new Error('Missing new or legacy diary entry');
 groups.get('luck-sync-diary').subfeatures=[{id:'fortunePlanner',entry:'/diary/',status:'local-partial'},{id:'legacyLuckSyncDiary',entry:'js/luck-sync-diary.js:openLegacyLuckSyncDiary',status:'requires-full-flow-port-and-verification',verification:'legacy stored records and migration not verified'}];
 const localEvidence={
+ 'animal-totem':{tossRoute:'/animal-totem/',status:'local-partial',inputContract:'한 장·세 장·다섯 장, 원본 동물 17종 추첨, 질문·선택 출생 정보',resultRenderer:'웹 AnimalTotemContentEngine 및 worker/routes/animal-totem.js 원본 프롬프트, 카드별 메시지·행동·그림자',storageContract:'기본·심화 상품별 주문 원문, 생성 재개 및 소유 보관함',verification:'360px totem-browser.mjs 모의 구매 1회·생성 중 이탈·재진입·타 계정 차단. 웹 Worker 61건. 실판매 SKU 미확인'},
  'destiny-meeting-place':{tossRoute:'/saju/destiny-meeting-place/',status:'local-partial',inputContract:'app/saju/animal-destiny/lib/sajuAdapter.ts → generateDestinyMeetingPlaceResult',resultRenderer:'apps/toss/service/TossMeetingPlace.tsx + DestinyMeetingPlaceResult.tsx',storageContract:'웹처럼 계정 확인 후 현재 화면. 직접 출생 입력 또는 소유 프로필 선택',verification:'일반 홈→mock 로그인→출생정보→7131자 장소·프롬프트→같은 입력으로 돌아가기. 실제 KASI 연동은 운영 Worker 승격 후 확인'},
  'face-reading':{tossRoute:'/animal/physio/',status:'local-partial',inputContract:'한 사람 또는 두 사람의 얼굴 사진. 원본 FaceMesh 특징점과 27동물 분류',resultRenderer:'apps/toss/service/TossFace.jsx에서 웹 AnalysisEngine.js와 PhysiognomyUI.js 실행',storageContract:'게스트 기기 내 판독. 수집한 이미지·점과 원본 결제 주문 분리',verification:'face-browser.mjs의 합성 PNG, 고정 좌표, 게스트 360px. 기기별 모델 다운로드·촬영 미검증'},
  'physiognomy':{tossRoute:'/animal/physio/',status:'local-partial',inputContract:'웹 SEO /physiognomy/의 openPhysiognomyApp. 오관·점 위치 입력과 해설',resultRenderer:'apps/toss/service/TossFace.jsx 원본 상세 화면',storageContract:'현재 단말 게스트 판독',verification:'face-browser.mjs 합성 이미지·오관·점·관상 궁합. 실사진 성능 미검증'},
@@ -292,7 +293,7 @@ const productContracts = ledger.products.map(product=>({
  historicalLedgerStatus:product.saleStatus,freeCalculation:isFreeFortuneFeatureKey(product.productId),
 }));
 const nativeSource = {
- 'geomancy-oracle':'oracle','naming-ai':'naming-prompt','master-love-codex':'master-love-codex','master-love-codex-compat':'master-love-codex','yoga-guru':'yoga-guru',
+ 'animal-totem':'animal-totem','geomancy-oracle':'oracle','naming-ai':'naming-prompt','master-love-codex':'master-love-codex','master-love-codex-compat':'master-love-codex','yoga-guru':'yoga-guru',
  'nakshatra-ai':'nakshatra-ai',
  'dream-psycho-analysis':'dream','fortune-tea-house':'fortune-tea-house','neo-operation-room':'neo-operation-room','life-book-ai':'life-book-ai',
  'life-fortune-report':'life-book-ai','astrology-ai':'astrology-ai','vedic-ai':'vedic-ai','ziwei-ai':'ziwei-ai',

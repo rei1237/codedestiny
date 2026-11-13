@@ -1,5 +1,5 @@
 {
-  "sourceCommit": "c35de760137b93be5590de9a33f80f2795f50af4",
+  "sourceCommit": "70f8ca0cbc413785f8345760993807e8d1ca9755",
   "sourceCounts": {
     "home": 63,
     "react": 18,
@@ -102,8 +102,8 @@
         "library": "not-verified",
         "device": "not-tested",
         "canonicalId": "animal-totem",
-        "candidateStatus": "requires-full-flow-port-and-verification",
-        "canonicalRoute": null
+        "candidateStatus": "local-partial",
+        "canonicalRoute": "/animal-totem/"
       }
     },
     {
@@ -3079,12 +3079,13 @@
         }
       ],
       "aliasEvidence": [],
-      "status": "requires-full-flow-port-and-verification",
-      "tossRoute": null,
+      "status": "local-partial",
+      "tossRoute": "/animal-totem/",
       "sku": null,
-      "inputContract": null,
-      "resultRenderer": null,
-      "storageContract": null,
+      "inputContract": "한 장·세 장·다섯 장, 원본 동물 17종 추첨, 질문·선택 출생 정보",
+      "resultRenderer": "웹 AnimalTotemContentEngine 및 worker/routes/animal-totem.js 원본 프롬프트, 카드별 메시지·행동·그림자",
+      "storageContract": "기본·심화 상품별 주문 원문, 생성 재개 및 소유 보관함",
+      "verification": "360px totem-browser.mjs 모의 구매 1회·생성 중 이탈·재진입·타 계정 차단. 웹 Worker 61건. 실판매 SKU 미확인",
       "webEntries": [
         "openAnimalTotemModal",
         "/index.html?action=openAnimalTotemModal"
@@ -3092,19 +3093,21 @@
       "webSources": [
         "index.html",
         "js/core/service-registry.js",
-        "js/animal-totem-experience.js renderConsultation/renderCardPanel/renderNarrativePanel"
+        "js/animal-totem-experience.js renderConsultation/renderCardPanel/renderNarrativePanel",
+        "worker/routes/animal-totem.js"
       ],
       "webProductIds": [
         "animal-totem-basic"
       ],
       "freeCalculation": false,
-      "portStatus": "미이식",
-      "reducedBundle": "홈 진입 없음",
-      "currentEntry": "연결 경로 없음",
+      "portStatus": "일부만 이식",
+      "reducedBundle": "구현은 있으나 진입 차단",
+      "currentEntry": "일반 홈의 진입 코드 확인",
       "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
-      "tossLogin": "토스 기능 미연결",
-      "tossResult": "결과 화면 연결 미확인",
-      "reread": "재열람 경로 미확인"
+      "tossLogin": "구매·기록에 토스 계정 필요",
+      "tossResult": "웹 AnimalTotemContentEngine 및 worker/routes/animal-totem.js 원본 프롬프트, 카드별 메시지·행동·그림자",
+      "reread": "기본·심화 상품별 주문 원문, 생성 재개 및 소유 보관함",
+      "saleStatus": "콘솔·운영 설정 필요"
     },
     {
       "id": "astrology",
