@@ -2,7 +2,7 @@ import '../../../scripts/lib/mock-network-guard.cjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createOfflineFixtureApi} from './offline/fixture.mjs';
-import {reviewSdkProducts,reviewCatalog,unsoldFixtureProducts} from './offline/review-fixture.mjs';
+import {reviewSdkProducts,reviewCatalog,unsoldFixtureProducts,unsoldLetters} from './offline/review-fixture.mjs';
 import {APPROVED_TOSS_PRODUCTS} from '../../../worker/toss/catalog.js';
 
 function fixture(){
@@ -17,12 +17,35 @@ const makeBody=id=>({productId:id,profileId:'mock-profile',question:'합성 진�
 test('the mock SDK and fixture verify the original five product prices',async()=>{
   const f=fixture(),catalog=(await (await f.request('/catalog',null,false)).json()).products;
   assert.equal(reviewCatalog.length,5);
-  assert.equal(catalog.length,reviewCatalog.length+unsoldFixtureProducts.length);
+  assert.equal(catalog.length,reviewCatalog.length+unsoldFixtureProducts.length+unsoldLetters.length);
   for(const item of reviewCatalog){
     const linked=catalog.find(p=>p.sku===item.sku),sdk=reviewSdkProducts.find(p=>p.sku===item.sku);
     const price=APPROVED_TOSS_PRODUCTS.find(p=>p.productId===item.id.replace(/^yeoni:/,'')).approvedPriceKRW;
     assert.equal(linked.approvedPriceKRW,price);assert.equal(sdk.displayAmount,price.toLocaleString('ko-KR')+'원');
   }
+});
+
+test('both letter rooms bind all six base methods to their own owner, order and result',async()=>{
+ const f=fixture(),path='/canonical/fortune-chat/consultations';
+ await f.login();
+ const letters=[...unsoldLetters,reviewCatalog.find(p=>p.id==='yeoni:chat_saju')];
+ assert.equal(new Set(letters.map(p=>p.sku)).size,12);
+ for(const product of letters){
+   const [persona,productId]=product.id.split(':'),domain=productId.slice(5);
+   const input={persona,domain,question:'합성 질문입니다.',consultationAttemptId:'local-'+domain};
+   const {consultation}=await (await f.request(path,input)).json();
+   assert.equal(consultation.persona,persona);
+   const other=letters.find(p=>p.id===(persona==='yeoni'?'neo':'yeoni')+':'+productId);
+   const grant={requestId:consultation.id,orderId:'mock-'+product.sku,sku:product.sku};
+   assert.equal((await f.request('/orders/grant',{...grant,sku:other.sku})).status,403);
+   assert.equal((await f.request('/orders/grant',grant)).status,200);
+   assert.equal((await f.request('/orders/restore',{...grant,sku:other.sku})).status,403);
+   assert.equal((await (await f.request(path,input)).json()).consultation.id,consultation.id);
+   const {consultations}=await (await f.request(path+'?persona='+persona)).json();
+   assert.ok(consultations.every(r=>r.persona===persona));
+   const {consultation:stored}=await (await f.request(path+'/'+consultation.id)).json();
+   assert.match(stored.chapters[0].summary,new RegExp(persona==='yeoni'?'연이':'네오'));
+ }
 });
 
 test('unregistered single-system mock grants use isolated test SKUs and survive a restart',async()=>{

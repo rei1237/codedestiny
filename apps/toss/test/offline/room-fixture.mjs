@@ -79,7 +79,8 @@ export async function roomRequest(request,url,path,state,save,now){
       serviceName:rooms.find(room=>room.service===r.serviceId).name,title:r.question,question:r.question,
       createdAt:r.createdAt,status:r.state==='COMPLETED'?'completed':'generating',href:r.href,nativeHref:r.href,
     }));
-    return reply({ok:true,items,failures:[],nextCursor:null});
+    const letters=[...state.letters.values()].filter(r=>r.paid&&(!group||group==='all'||group==='chat')&&!source&&(!q||r.consultation.question.includes(q))).map(r=>({id:r.id,key:r.persona+':'+r.orderId,group:'chat',source:r.persona,serviceId:r.persona,serviceName:(r.persona==='neo'?'네오':'연이')+' 상담 편지',character:r.persona,title:r.consultation.question,question:r.consultation.question,createdAt:r.createdAt,status:'completed',href:'/fortune-tea-house/?counsel=letter'+(r.persona==='neo'?'&persona=neo':'')+'&consultation='+r.id}));
+    return reply({ok:true,items:[...items,...letters],failures:[],nextCursor:null});
   }
   if(path==='/canonical/fortune-tea-house/consult'&&post){
     const body=await request.json(),key=requestKey(body);

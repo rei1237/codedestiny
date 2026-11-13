@@ -27,7 +27,7 @@ export function assertUniqueApprovedSaleSkus(registries=[APPROVED_TOSS_PRODUCTS,
 export function approvedProduct(sku, products=APPROVED_TOSS_PRODUCTS) {
   const matches=products.filter(p=>p.sku===sku&&p.approved===true);
   const item=matches.length===1&&typeof sku==='string'&&sku.length>0&&sku.trim()===sku?matches[0]:null;
-  if(!item || !(/^(chat_)?(saju|astrology|ziwei|vedic|sukuyo|tarot)_(mackerel|salmon|flounder|tuna)$/.test(item.productId)||(/^chat_(saju|astrology|ziwei|vedic|sukuyo|tarot)$/.test(item.productId)&&item.serviceId==='yeoni'))
+  if(!item || !(/^(chat_)?(saju|astrology|ziwei|vedic|sukuyo|tarot)_(mackerel|salmon|flounder|tuna)$/.test(item.productId)||(/^chat_(saju|astrology|ziwei|vedic|sukuyo|tarot)$/.test(item.productId)&&['yeoni','neo'].includes(item.serviceId)))
     || /^(chat_)?(astrology|sukuyo|tarot)_tuna$/.test(item.productId)
     || !Number.isSafeInteger(item.supplyPriceKRW) || item.supplyPriceKRW<400 || item.supplyPriceKRW>1400000 || item.supplyPriceKRW%10!==0
     || !Number.isSafeInteger(item.approvedPriceKRW) || item.approvedPriceKRW!==item.supplyPriceKRW*11/10 || !item.priceEvidence) {

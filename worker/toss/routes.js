@@ -36,9 +36,9 @@ async function readNativeLibraryItem(env,auth,row){
   return row.nativeService==='pet'?(await import('./native-pet-paid.js')).nativePetLibraryItem(env,auth,row):row.nativeService==='relationship'?(await import('./native-relationship.js')).nativeRelationshipLibraryItem(env,auth,row):row.nativeService==='sukuyo'?(await import('./native-sukuyo.js')).nativeSukuyoLibraryItem(env,auth,row):row.nativeService==='maya'?(await import('./native-maya.js')).nativeMayaLibraryItem(env,auth,row):row.nativeService==='karma'?(await import('./native-karma.js')).nativeKarmaLibraryItem(env,auth,row):row.nativeService==='new-year'?(await import('./native-new-year.js')).nativeNewYearLibraryItem(env,auth,row):row.nativeService==='ziwei'?(await import('./native-ziwei.js')).nativeZiweiLibraryItem(env,auth,row):row.nativeService==='vedic'?(await import('./native-vedic.js')).nativeVedicLibraryItem(env,auth,row):row.nativeService==='astrology'?(await import('./native-astrology.js')).nativeAstrologyLibraryItem(env,auth,row):row.nativeService==='love-secret'?(await import('./native-love-secret.js')).nativeLoveSecretLibraryItem(env,auth,row):row.nativeService==='life-book'?(await import('./native-life-book.js')).nativeLifeBookLibraryItem(env,auth,row):row.nativeService==='fusion'?(await import('./native-fusion.js')).nativeFusionLibraryItem(env,auth,row):row.nativeService==='neo'?(await import('./native-neo.js')).nativeNeoLibraryItem(env,auth,row):(await import('./native-tea.js')).nativeTeaLibraryItem(env,auth,row);
 }
 
-async function letterEnabled(){
+async function letterEnabled(persona='yeoni'){
   const {approvedLetterSale}=await import('./letter.js');
-  return ['saju','ziwei','sukuyo','vedic','astrology','tarot'].some(domain=>{try{approvedLetterSale(domain);return true;}catch{return false;}});
+  return ['saju','ziwei','sukuyo','vedic','astrology','tarot'].some(domain=>{try{approvedLetterSale(domain,APPROVED_TOSS_PRODUCTS,persona);return true;}catch{return false;}});
 }
 
 function currentTarotSale(sku){
@@ -79,7 +79,7 @@ export async function handleTossRoutes(request,env) {
     if(request.method==='OPTIONS')return new Response(null,{status:204,headers:{...headers,
       'Access-Control-Allow-Methods':'GET, POST, OPTIONS','Access-Control-Allow-Headers':'Authorization, Content-Type'}});
     if((path==='/catalog'||path==='/tarot-library/catalog')&&request.method==='GET')assertUniqueApprovedSaleSkus();
-    if(path==='/catalog'&&request.method==='GET')return reply({products:APPROVED_TOSS_PRODUCTS.filter(item=>isReviewSale(item.productId,item.serviceId)).map(item=>{
+    if(path==='/catalog'&&request.method==='GET')return reply({products:APPROVED_TOSS_PRODUCTS.filter(item=>isReviewSale(item.productId,item.serviceId)||(['yeoni','neo'].includes(item.serviceId)&&/^chat_(saju|ziwei|sukuyo|vedic|astrology|tarot)$/.test(item.productId))).map(item=>{
       const approved=approvedProduct(item.sku),product=resolveStoredProduct(approved.productId),service=consultationService(approved);
       return {id:consultationSelection(approved),productId:product.id,serviceId:service.id,name:`${service.name} ${product.name} ${product.fishName} 상담`,sku:item.sku,approvedPriceKRW:item.approvedPriceKRW,
         chapters:product.chapterCount,available:item.approved===true};
@@ -117,11 +117,12 @@ export async function handleTossRoutes(request,env) {
     await limit(env,auth._id,'authenticated',120);
     if(path==='/canonical/fortune-chat/consultations/status'&&request.method==='GET')return reply({ok:true,enabled:await letterEnabled()});
     if(path==='/canonical/fortune-chat/consultations'&&request.method==='GET'){
-      if(url.searchParams.get('persona')!=='yeoni')throw new TossError('INVALID_PERSONA',400);
+      const persona=url.searchParams.get('persona');
+      if(!['yeoni','neo'].includes(persona))throw new TossError('INVALID_PERSONA',400);
       const productIds=['chat_saju','chat_ziwei','chat_sukuyo','chat_vedic','chat_astrology','chat_tarot'];
-      const rows=await TossPurchase.find({...libraryFilter(auth,url.searchParams.get('cursor')),serviceId:'yeoni',nativeService:{$in:['',null]},productId:{$in:productIds}}).sort({grantedAt:-1,_id:-1}).limit(LIBRARY_PAGE_SIZE+1).lean();
+      const rows=await TossPurchase.find({...libraryFilter(auth,url.searchParams.get('cursor')),serviceId:persona,nativeService:{$in:['',null]},productId:{$in:productIds}}).sort({grantedAt:-1,_id:-1}).limit(LIBRARY_PAGE_SIZE+1).lean();
       const {letterLibraryPage}=await import('./letter-library.js');
-      return reply({...await letterLibraryPage(rows,id=>readRequest(env,auth.userId,id),row=>verifyLibraryOrder(env,auth,row)),enabled:await letterEnabled()});
+      return reply({...await letterLibraryPage(rows,id=>readRequest(env,auth.userId,id),row=>verifyLibraryOrder(env,auth,row)),enabled:await letterEnabled(persona)});
     }
     if(path==='/canonical/fortune-chat/consultations'&&request.method==='POST'){
       assertUniqueApprovedSaleSkus();

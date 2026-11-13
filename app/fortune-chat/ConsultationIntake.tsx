@@ -22,6 +22,7 @@ const EXAMPLES = ["올해 이직해도 괜찮을까요?", "지금 관계를 이�
 const TITLES = ["어떤 이야기를 나누고 싶나요?", "어떤 관점으로 살펴볼까요?", "이 질문으로 상담을 준비할까요?"];
 
 type Props = {
+  persona?: 'yeoni' | 'neo';
   question: string; onQuestion: (value: string) => void;
   domain: ChatDomain; onDomain: (value: ChatDomain) => void;
   tarotKind: ChatTarotKind; onTarotKind: (value: ChatTarotKind) => void;
@@ -32,6 +33,7 @@ type Props = {
 };
 
 export default function ConsultationIntake(props: Props) {
+  const neo=props.persona==='neo';
   const [step, setStep] = useState(0);
   const heading = useRef<HTMLHeadingElement>(null);
   const changedStep = useRef(false);
@@ -53,7 +55,7 @@ export default function ConsultationIntake(props: Props) {
     return () => window.removeEventListener("code-destiny:toss-overlay-back", onBack);
   }, [props.paymentSurface, props.busy, step]);
 
-  return <section className={styles.intake} aria-label="연이와 상담 준비">
+  return <section className={styles.intake} aria-label={neo?"네오와 상담 준비":"연이와 상담 준비"}>
     <nav className={styles.steps} aria-label="상담 준비 단계">
       {["질문 작성", "해석 방식", "내용 확인"].map((label, index) =>
         <button key={label} type="button" disabled={index > step} aria-current={index === step ? "step" : undefined} onClick={() => move(index)}>
@@ -61,9 +63,9 @@ export default function ConsultationIntake(props: Props) {
         </button>)}
     </nav>
     <div className={styles.prompt}>
-      <Image src="/images/fortune-chat/yeoni/salon-companion-v1.webp" alt="" width={320} height={451} className={styles.companion} />
-      <div><span className={styles.speaker}>꽃돼지 연이</span>
-        <h2 ref={heading} tabIndex={-1}>{TITLES[step]}</h2>
+      <Image src={neo?"/images/fortune-chat/neo/saju-640.webp":"/images/fortune-chat/yeoni/salon-companion-v1.webp"} alt="" width={320} height={451} className={styles.companion} />
+      <div><span className={styles.speaker}>{neo?"네오":"꽃돼지 연이"}</span>
+        <h2 ref={heading} tabIndex={-1}>{neo && step===0?"지금 결정해야 할 일은 무엇인가요?":TITLES[step]}</h2>
         <p>{step === 0 ? "잘 정리된 말이 아니어도 괜찮아요. 가장 궁금한 한 가지부터 들려주세요." : step === 1 ? "같은 고민도 바라보는 관점이 달라요. 하나를 골라 주세요." : "질문과 해석 방식을 확인해 주세요. 이용 방법은 상담 준비 후 선택해요."}</p>
       </div>
     </div>
@@ -73,12 +75,12 @@ export default function ConsultationIntake(props: Props) {
         placeholder="예: 지금 회사에 남을지, 새로운 일을 시작할지 고민돼요." aria-describedby="yeoni-question-help" />
       <div className={styles.inputMeta}><p id="yeoni-question-help">현재 상황과 고민하는 선택을 함께 적으면 좋아요.</p><span>{props.question.length}/300</span></div>
       <details className={styles.examples}><summary>질문이 떠오르지 않나요?</summary>
-        <YeoniIllustratedGuide kind="question"/>
+        {!neo&&<YeoniIllustratedGuide kind="question"/>}
         <div>{EXAMPLES.map((text) => <button type="button" key={text} onClick={() => props.onQuestion(text)}>{text}<ArrowRight size={15} aria-hidden="true" /></button>)}</div>
       </details>
     </div>}
     {step === 1 && <div className={styles.answer}>
-      <details className={styles.examples}><summary>처음 상담한다면, 진행 방법 살펴보기</summary><YeoniIllustratedGuide kind="steps"/></details>
+      {!neo&&<details className={styles.examples}><summary>처음 상담한다면, 진행 방법 살펴보기</summary><YeoniIllustratedGuide kind="steps"/></details>}
       <fieldset className={styles.methods}><legend>해석 방식</legend>
         {visibleMethods.map((item) => <button key={item.id} type="button" disabled={!!props.lockedDomain && props.lockedDomain !== item.id} aria-pressed={item.id === props.domain} onClick={() => props.onDomain(item.id)}>
           <span><strong>{item.label}</strong><small>{item.description}</small></span><span className={styles.selectionDot} aria-hidden="true">{item.id === props.domain && <Check size={13} />}</span>

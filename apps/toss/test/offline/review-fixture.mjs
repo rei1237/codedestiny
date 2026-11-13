@@ -18,10 +18,16 @@ export const unsoldFixtureProducts=Object.entries(systems).filter(([id])=>id!=='
  id:domain+'_mackerel',sku:'mock-unregistered-'+domain,name:'테스트 '+label+' · 고등어',featureKey:'yeongnyangi-'+domain+'-mackerel',
  approvedPriceKRW:1,available:true,chapters:1,
 }));
-export const offlineCatalog=[...reviewCatalog,...unsoldFixtureProducts];
+export const unsoldLetters=['yeoni','neo'].flatMap(persona=>[...Object.keys(systems),'tarot'].filter(domain=>persona!=='yeoni'||domain!=='saju').map(domain=>({
+  id:persona+':chat_'+domain,sku:'mock-unregistered-letter-'+persona+'-'+domain,name:'가상 '+(persona==='neo'?'네오':'연이')+' 편지 · '+(systems[domain]||'타로'),
+  featureKey:'fortune-chat-consultation',approvedPriceKRW:1,available:true,chapters:1,
+})));
+const letterProducts=[reviewCatalog.find(p=>p.id==='yeoni:chat_saju'),...unsoldLetters];
+export const offlineCatalog=[...reviewCatalog,...unsoldFixtureProducts,...unsoldLetters];
+export const offlineLetterProduct=(persona,productId)=>letterProducts.find(p=>p.id===persona+':'+productId);
 export const reviewSdkProducts=[...offlineCatalog.map(sdkProduct),...roomSdkProducts];
-const consultationCatalog=offlineCatalog.filter(p=>!p.id.startsWith('yeoni:'));
-const letterSku=reviewCatalog.find(p=>p.id==='yeoni:chat_saju').sku;
+const consultationCatalog=offlineCatalog.filter(p=>!p.id.includes(':'));
+const letterSku=sku=>letterProducts.some(p=>p.sku===sku);
 const json=(data,status=200)=>Response.json(data,{status});
 const fail=(error,status)=>json({error},status);
 const fixedChapter={id:'test',title:'테스트 상담',summary:'[테스트 전용 예시] 실제 운세 해석이나 AI 상담 결과가 아닙니다.',analysis:['이 문단은 화면과 구매 후 열람을 확인하기 위한 고정 예시입니다.'],questionAnswers:[]};
@@ -72,10 +78,10 @@ function finishReadyJobs(state,save,date){
 
 function grantLetter({requestId,orderId,sku},state,save){
   const row=state.letters.get(requestId);
-  if(!row||sku!==letterSku||typeof orderId!=='string'||!orderId.trim())return fail('ORDER_MISMATCH',403);
+  if(!row||sku!==offlineLetterProduct(row.persona,row.productId)?.sku||typeof orderId!=='string'||!orderId.trim())return fail('ORDER_MISMATCH',403);
   if((state.orders.has(orderId)&&state.orders.get(orderId)!==requestId)||(row.orderId&&row.orderId!==orderId))return fail('ORDER_ALREADY_ASSIGNED',409);
   if(!row.paid){
-    state.letters.set(requestId,{...row,orderId,paid:true,state:'COMPLETED',chapters:[fixedChapter],recovery:{canRetryNow:false,savedChapters:1,totalChapters:1}});
+    state.letters.set(requestId,{...row,orderId,paid:true,state:'COMPLETED',chapters:[{...fixedChapter,summary:'[테스트 전용] '+(row.persona==='neo'?'네오':'연이')+'의 상담 편지 원문입니다.'}],recovery:{canRetryNow:false,savedChapters:1,totalChapters:1}});
     state.orders.set(orderId,requestId);
     if(!save()){state.letters.set(requestId,row);state.orders.delete(orderId);return fail('MOCK_STORAGE_UNAVAILABLE',503);}
   }
@@ -133,13 +139,13 @@ export async function handleReviewFixture(request,url,path,state,save,now,delay=
   if(path==='/orders/grant'&&method==='POST'){
     const body=await request.clone().json();
     if(consultationCatalog.some(p=>p.sku===body.sku)||state.fortunes.has(body.requestId))return grant(body,state,save,now(),delay);
-    if(body.sku===letterSku||state.letters.has(body.requestId))return grantLetter(body,state,save);
+    if(letterSku(body.sku)||state.letters.has(body.requestId))return grantLetter(body,state,save);
   }
   if(path==='/orders/restore'&&method==='POST'){
     const {orderId,sku}=await request.clone().json(),id=state.orders.get(orderId);
     const letter=state.letters.get(id);
-    if(letter||sku===letterSku){
-      if(!letter?.paid||letter.orderId!==orderId||sku!==letterSku)return fail('ORDER_MISMATCH',403);
+    if(letter||letterSku(sku)){
+      if(!letter?.paid||letter.orderId!==orderId||sku!==offlineLetterProduct(letter.persona,letter.productId)?.sku)return fail('ORDER_MISMATCH',403);
       return json({orderId,requestId:id,entitlement:'granted',durable:true});
     }
     const row=state.fortunes.get(id);
@@ -150,11 +156,11 @@ export async function handleReviewFixture(request,url,path,state,save,now,delay=
   if(path==='/library'&&method==='GET')return json({purchases:[
     ...roomPurchases(state),
     ...owned.map(({fortune,orderId,sku})=>({requestId:fortune.id,orderId,sku,serviceId:'yeongnyangi',selectionId:fortune.productId,productId:fortune.productId,status:'PURCHASED',state:fortune.state,createdAt:fortune.createdAt,completedSections:fortune.chapters.length,totalSections:1})),
-    ...[...state.letters.values()].filter(row=>row.paid).map(row=>({requestId:row.id,orderId:row.orderId,sku:'mock-yeoni',serviceId:'yeoni',selectionId:'yeoni:chat_saju',productId:'chat_saju',status:'PURCHASED',state:row.state,createdAt:row.createdAt,completedSections:1,totalSections:1})),
+    ...[...state.letters.values()].filter(row=>row.paid).map(row=>({requestId:row.id,orderId:row.orderId,sku:offlineLetterProduct(row.persona,row.productId)?.sku,serviceId:row.persona,selectionId:row.persona+':'+row.productId,productId:row.productId,status:'PURCHASED',state:row.state,createdAt:row.createdAt,completedSections:1,totalSections:1})),
   ],nextCursor:null});
   if(/^\/results\/[a-f0-9]{64}$/.test(path)&&method==='GET'){
     const id=path.split('/').at(-1),row=state.fortunes.get(id)?.fortune||state.letters.get(id);
-    return row?.paid?json({...row,serviceId:row.persona==='yeoni'?'yeoni':'yeongnyangi'}):fail('RESULT_NOT_FOUND',404);
+    return row?.paid?json({...row,serviceId:row.persona||'yeongnyangi'}):fail('RESULT_NOT_FOUND',404);
   }
   if(/^\/results\/[a-f0-9]{64}\/conversation$/.test(path)&&method==='POST'){
     const id=path.split('/')[2];
