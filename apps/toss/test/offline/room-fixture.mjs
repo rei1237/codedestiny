@@ -1,4 +1,6 @@
 // Local devtools only. No production price, receipt, calculation or generated text.
+import {normalizeTeaFollowUpQuestion,teaFollowUpAllowance} from '../../../../worker/lib/fortune-tea-follow-up-contract.js';
+import {neoRefinementAllowance} from '../../../../worker/lib/neo-refinement-contract.js';
 const tea={service:'tea',name:'가상 찻집 사주',featureKey:'fortune-tea-house-saju-consultation',path:'/fortune-tea-house/'};
 const neo={service:'neo',name:'가상 네오 전략 상담',featureKey:'neo-operation-room-consultation',path:'/neo-operation-room/result/'};
 const rooms=[tea,neo];
@@ -92,6 +94,22 @@ export async function roomRequest(request,url,path,state,save,now){
     const row=[...state.intents.values()].find(r=>r.service==='tea'&&r.resultId===id);
     return row?.paid&&row.result?reply({ok:true,result:row.result}):fail('RESULT_NOT_FOUND',404);
   }
+  const follow=/^\/canonical\/fortune-tea-house\/results\/([^/]+)\/follow-up$/.exec(path);
+  if(follow&&post){
+    const row=[...state.intents.values()].find(r=>r.service==='tea'&&r.resultId===follow[1]);
+    if(!row?.paid||!row.result)return fail('RESULT_NOT_FOUND',404);
+    const {question,clientQuestionId}=await request.json();
+    const checked=normalizeTeaFollowUpQuestion(question);
+    if(!checked.ok||!clientQuestionId)return reply({ok:false,errorCode:checked.reason||'INVALID_REQUEST'},400);
+    const result=row.result,followUps=result.followUps||[];
+    const prior=followUps.find(q=>q.clientQuestionId===clientQuestionId);
+    if(prior&&prior.question!==checked.question)return fail('REQUEST_INPUT_MISMATCH',409);
+    if(!prior&&teaFollowUpAllowance(result).remaining===0)return reply({ok:false,errorCode:'FOLLOW_UP_LIMIT_REACHED',followUps,followUpAllowance:teaFollowUpAllowance(result)},409);
+    const text='[테스트 전용] 연이의 추가 답변 원문입니다.';
+    const followUp=prior||{id:'offline-follow-'+row.id,clientQuestionId,question:checked.question,createdAt:now().toISOString(),answer:{answerTitle:text,directAnswer:text,evidence:[text],guidance:text,caution:text,closing:text}};
+    if(!prior){result.followUps=[...followUps,followUp];result.followUpAllowance=teaFollowUpAllowance(result);save();}
+    return reply({ok:true,followUp,followUps:result.followUps,followUpAllowance:result.followUpAllowance,alreadyApplied:!!prior});
+  }
   if(path==='/canonical/fortune-tea-house/pending'&&!post){
     const id=url.searchParams.get('resultId');
     const row=[...state.intents.values()].reverse().find(r=>r.service==='tea'&&r.paid&&!r.result&&(!id||r.resultId===id));
@@ -120,6 +138,22 @@ export async function roomRequest(request,url,path,state,save,now){
     const row=[...state.intents.values()].find(r=>r.service==='neo'&&[r.resultId,'toss_'+r.id,requestKey(r.input)].includes(id));
     if(!row?.paid)return fail('RESULT_NOT_FOUND',404);
     return row.result?reply(row.result):reply({ok:true,status:'generating',sessionId:'toss_'+row.id},202);
+  }
+  if(path==='/canonical/neo-operation-room/refine'&&post){
+    const {sessionId,selectedChecks=[],freeform=''}=await request.json();
+    const row=[...state.intents.values()].find(r=>r.service==='neo'&&r.resultId===sessionId);
+    if(!row?.paid||!row.result)return fail('RESULT_NOT_FOUND',404);
+    const result=row.result;
+    if(!Array.isArray(selectedChecks)||typeof freeform!=='string'||!selectedChecks.length&&freeform.trim().length<4)return fail('INVALID_INPUT',400);
+    const realityCheck={selectedChecks,freeform:freeform.trim()},history=result.refinements||[];
+    if(history.some(v=>JSON.stringify(v.realityCheck)===JSON.stringify(realityCheck)))return reply(result);
+    const allowance=entries=>neoRefinementAllowance({llmMeta:{refinementHistory:entries}});
+    if(!allowance(history).remaining)return fail('REFINEMENT_LIMIT_REACHED',409);
+    const text='[테스트 전용] 네오의 수정 작전 원문 '+(history.length+1)+'입니다.';
+    const refinedOrder={selectedMethod:row.input.selectedMethod,operationTitle:text,neoReview:text,verdict:{status:'가상 판단',statement:text},actionAlternatives:[],peopleToMeet:[],thirtyDayStrategy:[text],tsundereClosing:text};
+    const refinements=[...history,{order:refinedOrder,realityCheck,createdAt:now().toISOString()}];
+    Object.assign(result,{refinementStatus:'completed',refinedOrder,refinements,realityCheck,refinementAllowance:allowance(refinements)});
+    save();return reply(result);
   }
   return null;
 }

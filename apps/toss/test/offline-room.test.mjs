@@ -37,9 +37,18 @@ for(const product of roomProducts)test(product.name+' resumes only the original 
   assert.deepEqual(await (await request(resultPath)).json(),first);
   assert.equal(api.state.intents.get(saved.id).generationCount,1);
   assert.equal(api.state.orders.size,1);
+  const send=tea?resultPath+'/follow-up':'/canonical/neo-operation-room/refine';
+  const responseInput=n=>tea?{question:'가상 추가 질문 '+n,clientQuestionId:'test-'+n}:{sessionId:saved.resultId,selectedChecks:[],freeform:'현실 점검 '+n};
+  const follow=await (await request(send,responseInput(1))).json();
+  const replay=await (await request(send,responseInput(1))).json();
+  assert.deepEqual(tea?follow.followUp:follow.refinedOrder,tea?replay.followUp:replay.refinedOrder);
+  if(!tea)assert.equal((await request(send,responseInput(2))).status,200);
+  assert.equal((await request(send,responseInput(3))).status,409);
+  assert.equal(api.state.orders.size,1);
   memory.set('toss-offline-login-person','second');account='-2';
   await request('/login',{});
   assert.equal((await request(resultPath)).status,404);
+  assert.equal((await request(send,responseInput(1))).status,404);
   assert.equal((await request('/orders/restore',grant)).status,403);
   assert.equal((await request('/orders/grant',grant)).status,403);
   assert.deepEqual((await (await request('/canonical/records')).json()).items,[]);

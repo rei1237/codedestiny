@@ -65,6 +65,15 @@ try{
   const question=isTea?teaQuestion:neoQuestion;
   await (isTea?tea:neo)(page);
   await page.getByText(text,{exact:true}).first().waitFor();
+  const followText=isTea?'[테스트 전용] 연이의 추가 답변 원문입니다.':'[테스트 전용] 네오의 수정 작전 원문 1입니다.';
+  if(isTea){
+    await page.locator('#teaFollowUpQuestion').fill('이번 주에 첫 행동으로 무엇을 하면 좋을까요?');
+    await button(page,'연이에게 묻기').click();
+  }else{
+    await page.locator('#neo-reality-freeform').fill('직무 선택을 계속 미루는 상황입니다.');
+    await button(page,'수정 작전 명령서 받기').click();
+  }
+  await page.getByText(followText,{exact:true}).first().waitFor();
   const saved=await stored(page,service);
   assert.deepEqual(saved.slice(0,3),[1,1,1]);
   await page.close();
@@ -74,7 +83,7 @@ try{
   await reopened.locator('article').filter({hasText:question}).getByRole('link',{name:'다시 보기'}).click();
   await reopened.getByText(text,{exact:true}).first().waitFor();
   await reopened.reload();
-  await reopened.getByText(text,{exact:true}).first().waitFor();
+  await reopened.getByText(followText,{exact:true}).first().waitFor();
   assert.deepEqual(await stored(reopened,service),saved);
   console.log('PASS',service,'원본 사주 입력 → 가상 단건 → 원문 → 앱 재진입 → 꿀꿀운세 구매 기록 → 같은 원문. 주문 1, 생성 1.');
 }finally{await browser.close();}
