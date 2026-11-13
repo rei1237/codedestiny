@@ -28,7 +28,7 @@ const stubs={
 };
 const entry=fileURLToPath(new URL('../../../worker/toss/native-dream.js',import.meta.url));
 const out=await build({entryPoints:[entry],bundle:true,write:false,format:'esm',platform:'node',plugins:[{name:'offline-dream',setup(b){
-  b.onResolve({filter:/.*/},args=>args.importer.endsWith('native-dream.js')&&Object.hasOwn(stubs,args.path)?{namespace:'fixture',path:args.path}:null);
+  b.onResolve({filter:/.*/},args=>/(?:native-dream|owned-narrative)\.js$/.test(args.importer)&&Object.hasOwn(stubs,args.path)?{namespace:'fixture',path:args.path}:null);
   b.onLoad({namespace:'fixture',filter:/.*/},args=>({contents:stubs[args.path]}));
   b.onResolve({namespace:'fixture',filter:/^node:/},args=>({path:args.path,external:true}));
 }}]});
