@@ -1,5 +1,5 @@
 {
-  "sourceCommit": "e67de25ea02f4fa9a7892980583a6a06b28f6ba2",
+  "sourceCommit": "ea2ee3c8b0deca6f848d895a8055f9551b223f18",
   "sourceCounts": {
     "home": 63,
     "react": 18,
@@ -6335,7 +6335,7 @@
       "inputContract": "worker/toss/pet-saju.js deterministic blueprint + worker/toss/pet-paid-contract.js paid inputs",
       "resultRenderer": "apps/toss/service/TossPetSaju.tsx with original sprite artwork and paid report reader",
       "storageContract": "up to five free pet inputs in current screen memory; no app-restart or cross-device recovery of that list. Paid results use an owned order and intent in worker/toss/native-pet-paid.js",
-      "verification": "guest-calculators-browser.mjs 360px 홈, 비회원 계산. 기본 베다 local Swiss 원본, 만세력 원본 대운·명식, 반려동물 원본 오행·유료 로그인 경계",
+      "verification": "local mock covers all 10 free species, paid report and compatibility checkout, intent resume, library ownership and recovery. Original screen displays 3000 KRW per paid feature while server registry specifies 5000 KRW; approved SKUs, saved pets, device verification and official purchase recovery remain pending · guest-calculators-browser.mjs 360px 홈, 비회원 계산. 기본 베다 local Swiss 원본, 만세력 원본 대운·명식, 반려동물 원본 오행·유료 로그인 경계",
       "webEntries": [
         "/pet-saju.html"
       ],
