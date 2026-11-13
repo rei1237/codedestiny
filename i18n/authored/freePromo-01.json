@@ -15,18 +15,18 @@
     "ms": "3 bulan sahaja"
   },
   "freePromo.title": {
-    "ko": "지금만 전부 무료",
-    "en": "Everything is free, for now",
-    "ja": "今だけ、すべて無料",
-    "zh-CN": "限时全部免费",
-    "zh-TW": "限時全部免費",
-    "vi": "Hiện tất cả đều miễn phí",
-    "hi": "अभी सब कुछ मुफ़्त",
-    "es": "Ahora todo es gratis",
-    "fr": "Tout est gratuit, pour l'instant",
-    "de": "Jetzt alles kostenlos",
-    "nl": "Nu alles gratis",
-    "ms": "Kini semuanya percuma"
+    "ko": "지금은 기본 운세 풀이 무료",
+    "en": "Core readings are free, for now",
+    "ja": "今だけ、基本の鑑定が無料",
+    "zh-CN": "基础运势解读限时免费",
+    "zh-TW": "基礎運勢解讀限時免費",
+    "vi": "Hiện các luận giải cơ bản đang miễn phí",
+    "hi": "अभी मूल व्याख्याएँ मुफ़्त",
+    "es": "Ahora las lecturas básicas son gratis",
+    "fr": "Les lectures de base sont gratuites, pour l'instant",
+    "de": "Jetzt sind die Basis-Deutungen kostenlos",
+    "nl": "Nu zijn de basislezingen gratis",
+    "ms": "Kini bacaan asas percuma"
   },
   "freePromo.until": {
     "ko": "2027년 2월 12일 이후 유료 전환 예정",
@@ -43,18 +43,18 @@
     "ms": "Dirancang menjadi berbayar selepas 12 Februari 2027"
   },
   "freePromo.note": {
-    "ko": "AI 상담과 라이트 사주·대운 풀이는 무료에서 제외돼요.",
-    "en": "AI consultations and the Light Saju and ten-year cycle readings are not included.",
-    "ja": "AI相談とライト四柱推命・大運鑑定は対象外です。",
-    "zh-CN": "AI咨询以及轻量四柱命理解读与大运解析不在此列。",
-    "zh-TW": "AI諮詢以及輕量四柱命理解讀與大運解析不在此列。",
-    "vi": "Không bao gồm tư vấn AI, Saju Light và luận giải đại vận.",
-    "hi": "AI परामर्श और लाइट साजू व दस-वर्षीय भाग्य चक्र व्याख्याएँ शामिल नहीं हैं।",
-    "es": "No incluye las consultas con IA ni las lecturas ligeras de Saju y de ciclos de diez años.",
-    "fr": "Hors consultations IA, lecture Saju légère et cycles de dix ans.",
-    "de": "Ausgenommen sind KI-Beratungen sowie die Light-Saju- und Zehnjahreszyklus-Deutungen.",
-    "nl": "AI-consulten en de Light Saju- en tienjarige-cyclus-lezingen vallen erbuiten.",
-    "ms": "Tidak termasuk konsultasi AI serta bacaan Saju Ringan dan kitaran sepuluh tahun."
+    "ko": "AI 상담·AI 풀이, 라이트 사주·대운 풀이, 사주 수호신, AI 사주 궁합 분석 등 가격이 표시된 항목은 무료에서 제외돼요.",
+    "en": "Items shown with a price are not included, such as AI consultations and AI readings, the Light Saju and ten-year cycle readings, the Saju guardian, and the AI Saju compatibility analysis.",
+    "ja": "AI相談・AI鑑定、ライト四柱推命・大運鑑定、四柱推命の守護神、AI四柱推命相性分析など、価格が表示されている項目は対象外です。",
+    "zh-CN": "AI咨询与AI解读、轻量四柱命理解读与大运解析、四柱守护神、AI四柱合盘分析等标有价格的项目不在此列。",
+    "zh-TW": "AI諮詢與AI解讀、輕量四柱命理解讀與大運解析、四柱守護神、AI四柱合盤分析等標有價格的項目不在此列。",
+    "vi": "Không bao gồm các mục có hiển thị giá như tư vấn AI và luận giải AI, Saju Light và luận giải đại vận, thần hộ mệnh Saju, phân tích hợp tuổi Saju bằng AI.",
+    "hi": "जिन पर कीमत दिखती है वे शामिल नहीं हैं, जैसे AI परामर्श और AI व्याख्याएँ, लाइट साजू व दस-वर्षीय भाग्य चक्र व्याख्याएँ, साजू रक्षक और AI साजू अनुकूलता विश्लेषण।",
+    "es": "No incluye los servicios con precio indicado, como las consultas y lecturas con IA, las lecturas ligeras de Saju y de ciclos de diez años, el guardián de Saju y el análisis de compatibilidad Saju con IA.",
+    "fr": "Hors services affichés avec un prix : consultations et lectures IA, lecture Saju légère et cycles de dix ans, gardien Saju, analyse de compatibilité Saju par IA.",
+    "de": "Ausgenommen sind Angebote mit Preisangabe, etwa KI-Beratungen und KI-Deutungen, die Light-Saju- und Zehnjahreszyklus-Deutungen, der Saju-Schutzgeist und die KI-Saju-Partneranalyse.",
+    "nl": "Onderdelen met een prijs vallen erbuiten, zoals AI-consulten en AI-lezingen, de Light Saju- en tienjarige-cyclus-lezingen, de Saju-beschermgeest en de AI Saju-compatibiliteitsanalyse.",
+    "ms": "Tidak termasuk item yang memaparkan harga, seperti konsultasi AI dan bacaan AI, bacaan Saju Ringan dan kitaran sepuluh tahun, penjaga Saju serta analisis keserasian Saju AI."
   },
   "freePromo.cta": {
     "ko": "무료 운세 보러 가기",
