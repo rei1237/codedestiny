@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-13
-next: 묶음 ② 6c-2(SEO 등록·사이트맵·칩 연결) 시작 — 문서 끝 "6c-2 착수 메모"부터 읽는다
+next: 묶음 ② 11a(명식·절기 그림)·배너 모바일 다듬기 시작
 ---
 
 # 꿀꿀 운세·영냥이 UX: 구매 흐름 · 후기 신뢰 · 후기 작성 · 생성 진행 · 무료 배너
@@ -20,7 +20,7 @@ next: 묶음 ② 6c-2(SEO 등록·사이트맵·칩 연결) 시작 — 문서 �
 - 기준: origin/main `02476159e0b545b887fe04a12815b7123b4b614d`
 - node_modules는 정션, `.env.local`·`.env.cloudflare.local`은 링크(건드리지 않는다).
 - 워크트리 제거: 다른 체크아웃에서 `npm run worktree:remove -- 'D:\Development\codedestiny-worktrees\ux-conversion-20261113-215142'` (git worktree remove 금지 — 긴 경로 고아 폴더).
-- 마지막 커밋: 단계마다 아래 표에 적는다. 묶음 ① 끝 코드 커밋 `3af1f976b`(미push). 묶음 ② 6b 끝 코드 커밋 `dd10f6156`(미push). 묶음 ② 6c-1 코드 커밋 `4dd33836e`·`9b9a8e706`·`3c8d5ac2f`(미push).
+- 마지막 커밋: 단계마다 아래 표에 적는다. 묶음 ① 끝 코드 커밋 `3af1f976b`(미push). 묶음 ② 6b 끝 코드 커밋 `dd10f6156`(미push). 묶음 ② 6c-1 코드 커밋 `4dd33836e`·`9b9a8e706`·`3c8d5ac2f`(미push). 묶음 ② 6c-2 코드 커밋 `273aa5ce6`·`d1eba2bae`(미push).
 
 ## 승인 상태 (사용자 원문, 2026-11-13)
 
@@ -138,9 +138,9 @@ next: 묶음 ② 6c-2(SEO 등록·사이트맵·칩 연결) 시작 — 문서 �
 ### 묶음 ② 무료 배너·상세 (단계 6, 11 일부)
 - [x] 6a. 배너 카드화(React·셸) — SHA: a631c8f7b (미러 정리 chore 4049d813b 별도)
 - [x] 6b. 칩 연결·랜딩 액션 확인 — SHA: dd10f6156
-- [ ] 6c. 상세 페이지 9개·SEO·사이트맵 — 6c-1 끝, 6c-2 남음(문서 끝 "6c-2 착수 메모")
+- [x] 6c. 상세 페이지 9개·SEO·사이트맵 — SHA: 4dd33836e, 9b9a8e706, 3c8d5ac2f, 273aa5ce6, d1eba2bae (결과는 문서 끝 "6c-2 결과")
   - [x] 6c-1 레지스트리·컴포넌트·페이지 — SHA: 4dd33836e, 9b9a8e706 · indexable 기본값 수정 3c8d5ac2f
-  - [ ] 6c-2 SEO 등록·사이트맵·llms·칩 href·미러·테스트 — SHA:
+  - [x] 6c-2 SEO 등록·사이트맵·llms·칩 href·미러·테스트 — SHA: 273aa5ce6(색인 등록·사이트맵·llms·스킬 트리 문구 필터), d1eba2bae(칩 href·미러·테스트)
 - [ ] 11a. 명식·절기 그림 — SHA:
 
 ### 묶음 ③ 신뢰·구매 흐름 (단계 5, 7, 8)
@@ -340,7 +340,7 @@ next: 묶음 ② 6c-2(SEO 등록·사이트맵·칩 연결) 시작 — 문서 �
 - `name`
 - `cardName`: 결과 화면 카드 이름.
 - `copyKey`: generated.json `items` 키. 명식·절기는 `copyKey` 대신 `copy`(직접 쓴 문구)를 쓴다.
-- `excludePhrases`: 극T만 `['잠금 해제','라이트 사주 풀이']`.
+- `excludePhrases`: 극T `['잠금 해제','라이트 사주 풀이']`, 인생 스킬 트리 `['노력으로 변할']`(6c-2에서 추가).
 - `h1`, `title`, `description`, `keywords`
 - `image`: `{src,alt,width:1672,height:941}` 또는 명식·절기는 `null`.
 - `heroGlyphs`: 명식·절기의 글자 히어로.
@@ -402,8 +402,89 @@ id와 slug 대응: fourCut→four-cut, dopamine→dopamine, hormone→teto-egen,
    - 11a와 함께 정한다.
 
 함정·후속
-- skillTree 원천 trustNotes에 "고정값"과 "노력으로 변할 수 있습니다"가 함께 있어 서로 어긋나 보인다. 원천 JSON 문구 문제이고, 상세 페이지에는 그대로 나온다.
+- skillTree 원천 trustNotes에 "고정값"과 "노력으로 변할 수 있습니다"가 함께 있어 서로 어긋나 보인다. 원천 JSON 문구 문제이고, 상세 페이지에는 그대로 나온다. → 6c-2에서 상세 페이지만 걸렀다(아래 "6c-2 결과").
 - alt는 그림을 열어 보지 않고 "사주 결과 화면의 'OO' 카드 대표 그림"으로 적었다. 11a에서 그림을 볼 때 구체적으로 고친다.
 - fuctionassets webp는 1672×941, 약 200KB다. 히어로에서 `fetchPriority="high"`로 불러온다.
 - FreePromoBanner는 상세 페이지에 붙이지 않았다(배너 다듬기 때 판단).
 - 레지스트리 JSON은 `with { type: 'json' }`로 import한다(wordpress-publications.mjs 선례). typecheck와 next dev 모두 통과했다.
+
+### 6c-2 결과 (2026-11-13 완료, 미push)
+
+커밋
+- `273aa5ce6` 색인 등록·사이트맵·llms + 인생 스킬 트리 문구 필터
+- `d1eba2bae` 칩 9개 href·index.html/public 미러(sync:public)·테스트
+
+색인 판단 규칙
+- `scripts/verify-adsense-readiness.mjs` `getVisibleText`(L617-660)를 그대로 썼다.
+  - 범위는 페이지 전체다. script·style·svg 블록을 지우고, 태그는 공백으로 바꾸고, `&nbsp; &amp; &lt; &gt;`를 풀고, 공백을 1칸으로 줄인 뒤 trim한다. 공백도 센다.
+- 이 스크립트의 `verifySitemap`에서 글자 수 기준은 주석 처리돼 있다(`// TODO: enforce visibleText >= 900`, L32 "Length is diagnostic").
+  - 실제로 막는 조건은 noindex 없음, title 10자 이상이면서 사이트 이름만 아닐 것, description 50자 이상, 사이트맵 안 title·description 중복 없음이다.
+- `scripts/generate-adsense-route-audit.mjs`는 같은 방식으로 센다. 900 미만은 "부족", 1,200 미만은 "보강 권장", 1,200 이상은 "충분"이다.
+- 판단: 9개 모두 1,668~2,029자라 "충분"이다. 모두 색인(`indexable` 기본 true)하고, noindex는 없다. 채우기용 문장은 넣지 않았다.
+
+실측값 (개발 서버 렌더, 모두 200·`index, follow`·footer 없음, 스킬 트리는 필터 뒤)
+
+| slug | 전체 공백 포함(스크립트 방식) | 전체 공백 제외 | main 공백 포함 | 판단 |
+|---|---:|---:|---:|---|
+| four-cut | 1,799 | 1,336 | 1,761 | 색인 |
+| dopamine | 1,898 | 1,433 | 1,859 | 색인 |
+| teto-egen | 1,683 | 1,260 | 1,641 | 색인 |
+| t-test | 1,668 | 1,249 | 1,630 | 색인 |
+| lotto-ritual | 1,734 | 1,293 | 1,691 | 색인 |
+| ai-prompt-card | 1,813 | 1,353 | 1,769 | 색인 |
+| skill-tree | 1,813 (필터 전 1,838) | 1,364 | 1,771 | 색인 |
+| natal-chart | 2,010 | 1,529 | 1,971 | 색인 |
+| season-rhythm | 2,029 | 1,512 | 1,988 | 색인 |
+
+- 공백을 빼면 teto-egen·t-test·lotto-ritual이 1,300자 미만이다. 스크립트는 공백을 빼고 세지 않으므로 판단에는 쓰지 않았다.
+- `lib/seo/index-policy.mjs`의 "문장급 본문 1,300자"는 과거 메모다.
+- 문구를 줄이면 다시 재고, 기준에 못 미치면 레지스트리에서 `indexable: false`로 둔다. 그러면 noindex가 되고 사이트맵에서도 자동으로 빠지므로 레지스트리 프로필도 함께 뺀다.
+
+SEO 등록
+- `lib/seo/entity-registry.mjs`의 `/saju/ten-gods` 뒤에 9개를 리터럴로 넣었다. free-feature-details는 import하지 않았다(lastmod 서명 범위가 넓어진다).
+- primary 9개: 사주 네컷 / 사주 도파민 / 테토 에겐 사주 / 극T 테스트 / 사주 로또 / 사주 AI 프롬프트 / 인생 스킬 트리 / 사주 12신살 / 사주 절기.
+  - 기존 primary와 겹치지 않는다.
+  - 명식은 /saju "사주 원국 보기"와 /saju/guide를 잡아먹지 않도록 secondary로 내렸다.
+- `verify-seo-entity-registry` PASS profiles=72(63에서 늘었다).
+- 렌더된 meta keywords 첫머리가 레지스트리 primary로 바뀌었다(mergeKeywords 중복 제거).
+- 사이트맵: `scripts/generate-sitemap.mjs` coreRoutes에 `FREE_FEATURE_DETAILS.filter(indexable)`를 넣었다(monthly, 0.75).
+  - 1,081 URL이다. sitemap.xml·sitemap-ko.xml·public 사본과 lastmod 원장에 9개(2026-11-13)가 추가됐다.
+  - 기존 경로는 서명만 바뀌었고 날짜는 그대로다.
+- llms: llms-full에 9줄이 자동으로 실렸고, llms.txt는 그대로다.
+
+칩
+- `lib/marketing/free-promo.mjs` 9개를 `href: '/saju/<slug>/'`로 바꿨다. `SAJU` 상수는 지웠고, `FREE_PROMO_SAJU_ACTION`은 연이·상세 CTA가 쓰므로 남겼다.
+- policyKey는 그대로다.
+- free-feature-details가 free-promo를 import하므로 free-promo는 주소를 리터럴로 두고, 테스트가 두 href가 같은지 확인한다.
+
+인생 스킬 트리 문구
+- 원천 FAQ "수치가 노력으로 바뀌나요?"의 답은 "원국에서 나오는 고정값"이다.
+- 원천 trustNotes "능력치는 개인의 노력으로 변할 수 있습니다"는 같은 화면에서 이와 어긋난다.
+- 계산 사실인 FAQ를 두고, trustNotes는 `excludePhrases: ['노력으로 변할']`로 상세 페이지에서만 걸렀다. 원천 JSON은 고치지 않았다.
+
+검증 (실측)
+- `verify-seo-entity-registry` PASS 72
+- `sitemap:generate` 1,081 URL / `verify:sitemap-drift` OK
+- `verify:sitemap` OK 1,081
+- `verify:adsense-route-policy` OK
+- `generate-llms-txt --check` OK
+- `node --test` free-promo + home-funnel-free-prices: 11/11
+- 홈 정적 테스트 5개 파일(home-banner-typography·home-entry-card-ownership·home-profile-fortune-entry·international-hub-links·organic-acquisition): 27/27
+- `typecheck` exit 0
+- `verify:saju-fun-content-gate` 통과(6미러)
+- `verify:public-mirror-fresh` OK(커밋 뒤)
+- 돌리지 않음:
+  - `verify:sitemap-canonical`·`verify:seo-heading-integrity`·`verify:adsense-readiness`: dist/·out/ 빌드가 필요하다.
+  - `check:fast`: 금지.
+
+함정
+- 이 워크트리의 .mjs는 CRLF다(autocrlf). node로 문자열을 바꿀 때 `\n`만 찾으면 실패한다. Edit 도구를 쓰거나 `\r\n`을 쓴다.
+- free-promo.mjs·free-feature-details.mjs를 고치면 그 모듈을 import하는 라우트(/, 각 랜딩, 상세 9개 등 36~43개)의 lastmod 원장 서명이 바뀐다.
+  - 고친 뒤 `npm run sitemap:generate`를 다시 돌려 원장을 같이 커밋해야 `verify:sitemap-drift`가 통과한다.
+  - 날짜는 같은 날이면 그대로다.
+- free-promo.mjs는 public 미러가 아니다. 칩 주소가 들어가는 곳은 `index.html`(build-home-funnel → sync:public)과 React `FreePromoBanner`다.
+
+후속
+- OG 이미지: 상세 9개는 기본 OG다. fuctionassets(1672×941)는 buildSeoMetadata의 1200×630 고정 표기와 맞지 않는다. 11a에서 함께 정한다.
+- 셸 사주 결과 카드(스킬 트리)에는 원천 trustNotes의 어긋난 문장이 그대로 있다. 원천(셸 정본) 문구를 고치는 일은 별도 판단이 필요하다.
+- origin/main이 이 브랜치 기준보다 2커밋 앞서 있다. 승격 때 리베이스 뒤 `sitemap:generate`·`sync:public`을 다시 돌린다.
