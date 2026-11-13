@@ -88,6 +88,10 @@ export async function handleTossRoutes(request,env) {
       const product=tarotLibraryProduct(item);
       return {id:product.flow.id,name:product.flow.name,sku:product.sku,featureKey:product.featureKey,approvedPriceKRW:product.approvedPriceKRW};
     })});
+    if(path==='/canonical/saju/section'&&request.method==='POST'){
+      const {readTossPublicSection}=await import('./public-section.js');
+      return forwardServiceResponse(await readTossPublicSection(await bodyOf(request),env),headers);
+    }
     if(path==='/canonical/yeongnyangi/products'&&request.method==='GET')return reply({products:canonicalProducts()});
     if(request.method==='POST'&&['/canonical/yeongnyangi/free/horary','/canonical/yeongnyangi/location'].includes(path)){
       await limit(env,request.headers.get('CF-Connecting-IP')||'unknown',path,15);

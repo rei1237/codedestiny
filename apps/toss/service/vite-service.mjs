@@ -1,3 +1,4 @@
+import {extractVillainBindings} from './section-bindings-loader.mjs';
 import {extractIfaEngine} from './ifa-engine-loader.mjs';
 import {readFile,readdir,stat} from 'node:fs/promises';
 import {fileURLToPath} from 'node:url';
@@ -76,6 +77,7 @@ export default function serviceCompat(){
    return code;
   },
   resolveId(id,importer){
+   if(id==='virtual:section-villain-bindings')return '\0toss-villain-bindings';
    if(id==='virtual:ifa-engine')return '\0toss-ifa-engine';
    if(id==='virtual:omikuji-engine')return '\0toss-omikuji-engine';
    if(id.endsWith('/service-introduction-art.json')&&importer){
@@ -97,6 +99,10 @@ export default function serviceCompat(){
    if(id==='next/navigation'||defaults[id])return '\0toss-service:'+id;
   },
   async load(id){
+   if(id==='\0toss-villain-bindings'){
+    const source=resolve(publicRoot,'../js/core/saju/section-client.js');this.addWatchFile(source);
+    return extractVillainBindings(await readFile(source,'utf8'));
+   }
    if(id==='\0toss-ifa-engine'){
     const source=resolve(publicRoot,'ifa-oracle.html');this.addWatchFile(source);
     return extractIfaEngine(await readFile(source,'utf8'));

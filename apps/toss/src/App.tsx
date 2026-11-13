@@ -25,6 +25,7 @@ const FlowerReading=lazy(()=>import('./FlowerReading'));
 const AstralAnimals=lazy(()=>import('./AstralAnimals'));
 const TodayPublic=lazy(()=>import('./TodayPublic'));
 const DreamPrompt = lazy(() => import('./DreamPrompt'));
+const PublicSectionReading=lazy(()=>import('./PublicSectionReading'));
 const IfaReading=lazy(()=>import('./IfaReading'));
 const NevilleMeditation=lazy(()=>import('./NevilleMeditation'));
 const OlympusDaily=lazy(()=>import('./OlympusDaily'));
@@ -48,7 +49,7 @@ const yeongnyangiSpreads=canonicalTarotSpreads as {id:string;title:string;summar
 const tarotLibraryTitle=new Map((TOSS_TAROT_LIBRARY_FLOWS as readonly {id:string;name:string}[]).map(flow=>[flow.id,flow.name]));
 
 type AtlasPage='nakshatra/codex'|`nakshatra/codex/${number}`;
-type Page=AtlasPage|'olympus','meditation/neville','dream/tarot'|'oracle/ifa'|'mbti/animals'|'today'|'oracle/rune'|'saju/career-style'|'saju/animal-destiny'|'music'|'astrology'|'vedic'|'novel'|'insights/famous-saju'|'saju/basic/play'|'ziwei/chart'|'manse'|'sukuyo'|'human-design'|'daily'|'draw'|'flower'|'bias'|'tarot-library'|'home'|'catalog'|'product'|'birth'|'login'|'purchase'|'result'|'library'|'recovery'|'settings'|'terms'|'support'|'withdraw'|'example';
+type Page=AtlasPage|'olympus','meditation/neville','saju/sections','ziwei/sections','dream/tarot'|'oracle/ifa'|'mbti/animals'|'today'|'oracle/rune'|'saju/career-style'|'saju/animal-destiny'|'music'|'astrology'|'vedic'|'novel'|'insights/famous-saju'|'saju/basic/play'|'ziwei/chart'|'manse'|'sukuyo'|'human-design'|'daily'|'draw'|'flower'|'bias'|'tarot-library'|'home'|'catalog'|'product'|'birth'|'login'|'purchase'|'result'|'library'|'recovery'|'settings'|'terms'|'support'|'withdraw'|'example';
 type Chapter={title:string;summary:string;analysis:string[];advice?:string;example?:string;persona?:string;blocks?:{id:string;title:string;paragraphs:string[]}[];questionAnswers?:{answer:string;reason?:string;basis?:string;timing:string;action:string;review:string}[]};
 type Result={charts?:ReadingChart[];serviceId?:string;conversation?:Conversation;id:string;state:string;chapters:Chapter[];manifest:{id:string;title:string}[];recovery:{savedChapters:number;totalChapters:number;canRetryNow:boolean;reviewRequired:boolean};errorCode?:string};
 type Purchase={featureKey?:string;nativeService?:string;href?:string;serviceId:string;selectionId:string;orderId:string;sku:string;productId:string;requestId:string|null;status:string;state:string;completedSections:number;totalSections:number|null;createdAt:string};
@@ -214,6 +215,7 @@ export default function App({reviewHome,reviewRoute,consultationHref,verifiedRec
     {page==='mbti/animals'&&<Suspense fallback={<p role="status">궁합표를 열고 있어요.</p>}><AstralAnimals/></Suspense>}
     {page==='today'&&<Suspense fallback={<p role="status">오늘의 운세를 열고 있어요.</p>}><TodayPublic loggedIn={loggedIn} onLogin={()=>requireLogin('today')}/></Suspense>}
     {page==='dream/tarot'&&<Suspense fallback={<p role="status">꿈의 장부를 열고 있어요.</p>}><DreamPrompt/></Suspense>}
+    {(page==='saju/sections'||page==='ziwei/sections')&&<Suspense fallback={<p role="status">풀이할 항목을 펼치고 있어요.</p>}><PublicSectionReading key={page} kind={page==='saju/sections'?'saju':'ziwei'}/></Suspense>}
     {page==='oracle/ifa'&&<Suspense fallback={<p role="status">이파 점판을 펼치고 있어요.</p>}><IfaReading/></Suspense>}
     {page==='meditation/neville'&&<Suspense fallback={<p role="status">명상을 준비하고 있어요.</p>}><NevilleMeditation loggedIn={loggedIn} onLogin={()=>requireLogin('meditation/neville')}/></Suspense>}
     {page==='olympus'&&<Suspense fallback={<p role="status">오늘의 신탁을 열고 있어요.</p>}><OlympusDaily/></Suspense>}

@@ -17,6 +17,7 @@ const mocks={
 };
 globalThis.__tossRouteMocks=mocks;
 const stubMap={
+ 'worker/toss/public-section.js':"export const readTossPublicSection=async input=>Response.json({featureKey:input.featureKey});",
  'worker/routes/career-style.js':"export async function readOwnedCareerStyle(_env,{userId,profileId,statusOnly}){if(profileId!=='mine')throw Object.assign(new Error(),{status:403,payload:{code:'INVALID_PROFILE'}});return {userId,profileId,statusOnly,priceKRW:0};}",
  'worker/toss/native-pet-paid.js':"import {TossError} from './policy.js';const state=globalThis.__tossRouteMocks;export const prepareNativePet=(...args)=>{state.nativePet.push(['prepare',...args]);return {id:'offline-intent'};};export const readNativePet=(...args)=>{state.nativePet.push(['read',...args]);if(state.nativeFailure)throw new TossError(state.nativeFailure.code,state.nativeFailure.status);return Response.json({ok:true,status:'generating'},{status:202});};",
  'worker/toss/native-sukuyo-recovery.js':"import {TossError} from './policy.js';const s=globalThis.__tossRouteMocks;export const listNativeSukuyoRecovery=(...args)=>{s.nativeSukuyoRecovery.push(['list',...args]);if(s.nativeFailure)throw new TossError(s.nativeFailure.code,s.nativeFailure.status);return {state:'UNASSIGNED',drafts:[]};};export const attachNativeSukuyoRecovery=(...args)=>{s.nativeSukuyoRecovery.push(['attach',...args]);if(s.nativeFailure)throw new TossError(s.nativeFailure.code,s.nativeFailure.status);return {state:'ASSIGNED',intentId:args[3]};};",
@@ -81,6 +82,15 @@ async function request(body,path='/prepare',env={TOSS_RELEASE_READY:'true'}){
  calls.profiles=[];calls.prepared=[];calls.followups=0;
  return handleTossRoutes(new Request('https://code-destiny.com/api/toss'+path,{method:'POST',headers:{Origin:'https://ai-saju-studio.private-apps.tossmini.com','Content-Type':'application/json'},body:JSON.stringify(body)}),env);
 }
+test('public birth sections pass through without session or release activation',async()=>{
+ mocks.denyAuth=true;
+ try {
+   const r=await request({featureKey:'ziwei_decade_luck'},'/canonical/saju/section',{});
+   assert.equal(r.status,200);
+   assert.equal((await r.json()).featureKey,'ziwei_decade_luck');
+   assert.equal(calls.profiles.length,0);
+ }finally{mocks.denyAuth=false;}
+});
 test('release gate prevents any profile or prepared row write',async()=>{const r=await request(input(),'/prepare',{});assert.equal(r.status,503);assert.equal(calls.profiles.length,0);assert.equal(calls.prepared.length,0);});
 test('both consultation entry routes stop dangerous new input before a prepare, restored order, or profile write',async()=>{
  for(const [path,body] of [
