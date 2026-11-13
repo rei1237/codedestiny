@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-14
-next: 사용자 결정 대기(push 승인, 홈 title·H1 선택, C5 이름 통일, 이용권 혜택 문구). 승인되면 origin/main에 rebase하고 생성물을 다시 만든 뒤 push. 묶음 1 구현은 끝
+next: 묶음 2 중 승인 불필요 항목 진행 중(rebase 끝, 결과 기록 "묶음 2 진행" 참고). 남은 순서 = 2-2 keyword-page-map → 2-3 K4 문서 → naver-console-checklist → bundle2-decisions → 2-1 lib/seo.ts 절단 → 재검증. push는 사용자 승인 대기
 ---
 # 네이버 SEO·AEO·GEO + 구매 동선 (Phase 1~5)
 
@@ -17,6 +17,7 @@ Phase 0 보고서와 승인된 계획의 정본은 `docs/seo/phase0-report.md`�
 - 브랜치 `wt/naver-seo-geo-20261113-234756`, 기준 `f2db2995d`. 운영 배포본은 `91e4261d8`(그 위에 문서 커밋 1개).
 - 2026-11-14: 묶음 1 구현·검증 끝(1-4의 C5만 보류). 코드 마지막 커밋 `23c689fd2`. push 없음. push 승인을 기다린다.
 - 2026-11-14 확인: origin/main이 `f2db2995d` → `c3a960736`으로 44커밋 앞서 갔다(대부분 toss 작업, `app/yeongnyangi/_components` 4개 파일 포함). 이 브랜치의 기준은 아직 `f2db2995d`다. **push 전에 rebase가 필요하다.** UX 브랜치는 아직 미머지.
+- **2026-11-14 rebase 끝**: rebase 전 HEAD `fc9be92f6`(기준 `f2db2995d`) → origin/main `f2e46d05a`(75커밋 앞, 대부분 toss 작업) 위로 19커밋을 옮겼다. 손으로 푼 충돌은 없다. 겹친 것은 생성물 5개(`config/sitemap-lastmod.json`, `sitemap.xml`, `sitemap-ko.xml`, `public/` 미러 2개)뿐이라 upstream 쪽으로 두고 `build-home-funnel` → `sync:public` → `sitemap:generate`로 다시 만들었다(`ad405fbb8`, 원장 서명 7개만 바뀌고 sitemap.xml은 그대로, 1,072 URL). UX 브랜치(`wt/ux-conversion-20261113-215142`)는 **아직 main에 없다**(로컬에서 origin/main보다 32커밋 앞). push 없음. 위 두 줄의 SHA(`23c689fd2` 등)는 rebase 전 값이다.
 - 루트 체크아웃 `D:\Development\code-destiny`는 다른 브랜치이고 origin/main보다 2,252커밋 뒤라 기준으로 쓰지 않는다.
 
 ## 승인 상태
@@ -169,6 +170,14 @@ Phase 0 보고서와 승인된 계획의 정본은 `docs/seo/phase0-report.md`�
 - 돌리지 못한 것: `scripts/verify-home-entry-locale.cjs`(로컬 서버 필요). `verify.sh`의 `check:fast` 첫 실행은 커밋되지 않은 변경만 보아 의미가 없어 `--base`로 다시 돌렸다.
 - 기존 실패(기준 커밋에서도 실패): `__tests__/ui/home-service-separation.test.cjs`의 "service home owns discovery…" 1건. `npm test`에는 들어 있지 않다.
 - push 전에: origin/main이 앞서 있어 rebase가 필요하다. 생성물(`index.html`, `public/` 미러, `config/sitemap-lastmod.json`, `rss.xml`)은 원본을 합친 뒤 다시 만든다.
+
+### 1-12 보완 확인 — 지금 유료인 라이트 운세 1종 (2026-11-14, 읽기만)
+- 키는 **`saju-guardian-unlock`**("사주 가디언 소환진 해금", 3,000원/30코인, 한 번 사면 열리는 unlock). `worker/lib/paid-feature-registry.js` L319, `worker/lib/light-fortune-catalog.js` L120. `lib/payment/free-fortune-policy.mjs`에는 이 키가 없다(무료 대상 아님). 66종 합계 302,000원도 다시 계산해 맞았다.
+
+### 묶음 2 진행 (2026-11-14)
+- 재료를 모을 때 쓴 스크립트는 저장소 밖 스크래치에 있어 다음 세션에는 없다. 수치는 묶음 1 빌드(`dist/`)의 HTML에서 title·description·robots를 뽑아 센 것이다.
+- **2-1 기준선**: 색인 대상 1,094쪽 중 description이 "…"로 끝나는 쪽 229개(/en 101, /insights 40, /ja 37, /stories 33, /fortune 10, /saju 3, 그 밖 각 1). 절단은 `lib/seo.ts`의 `truncateToDisplayWidth`(폭 160). 계획: 한계를 넘으면 한계 안에 온전히 들어오는 마지막 문장(`/[.!?]+(?=\s|$)|[。！？]+/g`)에서 끊고, 남는 폭이 40 미만이면 기존 "…" 폴백. 사용처: `lib/seo.ts`(buildSeoMetadata), `lib/seo/createI18nMetadata.ts`, `lib/generate-page-metadata.ts`, `app/insights/famous-saju/[slug]/page.tsx`, `app/nakshatra/codex/[index]/page.tsx`. 마지막 파일 L50 주석은 "공용 truncateToDisplayWidth를 고치지 않는다(라우트 43개 공유)"라고 경고하고 자체 `toLastCompleteSentence`를 쓴다. 이번 지시가 공용 함수 변경을 명시했으므로 고치되, 그 주석이 사실과 어긋나게 되면 같이 손본다.
+- **2-2**: `docs/seo/meta-table.md` §4(핵심 허브 표) 작성. 적용 안 함.
 
 ### 조사 메모(1-5 이후, 읽기만)
 - 1-2: `app/components/guide-cta-targets.js`에 `/ggulggul/?action=cdOneStepFreeSajuEntry` + `note: "무료 · 로그인 후 확인"`이 8곳. `lib/fortune-landings.mjs`는 `action` 필드만 있고 `app/components/FortuneLandingHero.tsx`가 `"/ggulggul/?action=" + story.action`으로 href를 만든다. 안: `/saju`·`/ziwei` 항목에 선택 필드 `href`(`/saju/free/`, `/ziwei/chart/`)를 두고 hero는 `story.href || …`. `getFortuneLanding('/ziwei/chart')`는 `/ziwei` 항목을 돌려주므로 자기 자신으로 링크되지 않게 확인한다. 같이 봐야 할 것: `scripts/verify-analytics-events.mjs` L354(hero href 기대값), `js/core/analytics.js` L720-726 `SEARCH_CTA_ROUTES`(`/saju/free/` 없음, public 미러 있음), `__tests__/ui/organic-acquisition.test.mjs:84`(manse ctaHref 고정). `/saju/free/`(`app/saju/free/FreeSajuForm.tsx`)가 로그인 없이 명식·오행을 계산하는 것은 확인했다.
