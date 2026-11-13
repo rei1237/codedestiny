@@ -81,14 +81,45 @@
     return readConsent() === "accepted" ? "granted" : "denied";
   }
 
+  // EEA 30개국 + 영국 + 스위스. 배너를 누르지 않은 방문의 GA 기본값이 denied 인 지역이다.
+  var CONSENT_REQUIRED_REGIONS = [
+    "AT", "BE", "BG", "HR", "CY", "CZ", "DK", "EE", "FI", "FR", "DE", "GR", "HU", "IE", "IT",
+    "LV", "LT", "LU", "MT", "NL", "PL", "PT", "RO", "SK", "SI", "ES", "SE", "IS", "LI", "NO",
+    "GB", "CH"
+  ];
+  // GA 태그의 analytics_storage. 명시 선택이 있으면 그것, 없으면 "" (지역별 기본값에 맡긴다).
+  function explicitGaConsent() {
+    var consent = readConsent();
+    if (consent === "accepted") return "granted";
+    if (consent === "essential") return "denied";
+    return "";
+  }
+  function gtagConsentDefault() {
+    var explicit = explicitGaConsent();
+    if (explicit) {
+      gtag("consent", "default", { analytics_storage: explicit });
+      return;
+    }
+    gtag("consent", "default", { analytics_storage: "denied", region: CONSENT_REQUIRED_REGIONS.slice() });
+    gtag("consent", "default", { analytics_storage: "granted" });
+  }
+
   /*
-   * 🔴 gtag.js 는 window load 뒤 idle 에 주입한다. 바로 주입하면 첫 페인트 전에 171KB 가 끝나
+   * 🔴 gtag.js 는 첫 페인트 뒤로 미룬다. 바로 주입하면 첫 페인트 전에 171KB 가 끝나
    * Lighthouse 시뮬 LCP 의 선행 조건이 된다(/saju/ 차단 실측 −2.0초,
    * docs/handoff/global-css-render-blocking-2026-09-17.md 2-4). 아래 consent·config·이벤트는
    * dataLayer 에 먼저 쌓였다가 태그가 뜨면 그대로 전송된다.
-   * 대가: load 전에 떠나는 방문은 page_view 가 남지 않는다 — 사용자 승인(2026-09-17).
+   *
+   * 2026-09-17 에는 window load 뒤 idle 만 기다렸다. 느린 모바일에서는 load 가 수십 초 뒤라
+   * (운영 실측 load 55초) 그 전에 떠나는 방문의 page_view 가 통째로 빠졌다. 그래서 2026-11-13 부터
+   * 셋 중 가장 이른 시점에 한 번만 주입한다: load+idle, 스크립트 실행 후 TAG_FALLBACK_MS,
+   * 탭이 숨겨질 때. 수치 근거는 docs/handoff/organic-recovery-2026-11-13.md 결과 기록.
    */
+  var TAG_FALLBACK_MS = 3000;
+  var tagInjected = false;
   function injectTag() {
+    if (tagInjected) return;
+    tagInjected = true;
     var script = document.createElement("script");
     script.async = true;
     script.src = "https://www.googletagmanager.com/gtag/js?id=" + encodeURIComponent(measurementId);
@@ -105,11 +136,21 @@
     injectWhenIdle();
   } else {
     global.addEventListener("load", injectWhenIdle, { once: true });
+    global.setTimeout(injectTag, TAG_FALLBACK_MS);
+    document.addEventListener("visibilitychange", function () {
+      if (document.visibilityState === "hidden") injectTag();
+    });
   }
 
   // 🔴 동의 기본값은 config 보다 먼저 dataLayer 에 들어가야 한다. 순서가 뒤집히면 거부 상태에서도
-  // 첫 요청에 쿠키가 써진다. denied 여도 계측이 꺼지는 것은 아니고, 쿠키 없는 익명 집계로 내려간다
-  // — 배너를 누르지 않은 사용자를 통째로 잃지 않으면서 동의 없이 식별자를 심지도 않는 절충이다.
+  // 첫 요청에 쿠키가 써진다.
+  //
+  // 지역별 기본값(사용자 결정 2026-11-13): 배너를 누르지 않은 방문은 EEA·영국·스위스만 denied,
+  // 그 밖(한국 등)은 granted 다. region 이 붙은 default 가 해당 국가에서 우선한다. 예전처럼 모두
+  // denied 면 쿠키 없는 핑만 남아 보고서에서 대부분 사라졌다(네이버 클릭 3,308 대비 GA 815 세션).
+  // '필수만'을 고르면 지역과 무관하게 denied, '동의'는 granted 다.
+  // 이 기본값은 GA 태그에만 적용한다. 자체 저장(캠페인 귀속·서버 동의·네이버 구매)은 여전히
+  // 명시 동의(analyticsStorageState)에서만 켠다.
   //
   // ad_* 는 일부러 선언하지 않는다. 같은 Google 태그를 쓰는 AdSense 의 현재 동작까지 바뀌는데
   // 그건 이 변경의 범위가 아니다(선언하지 않으면 종전과 같다).
@@ -148,7 +189,7 @@
     return global.location.origin + global.location.pathname + (campaign ? '?' + campaign : '');
   }
 
-  gtag("consent", "default", { analytics_storage: analyticsStorageState() });
+  gtagConsentDefault();
   gtag("js", new Date());
   // Only observed identity/payment return hosts are excluded, never search or social hosts.
   // Set before config so the initial page view and later events share the same policy.
@@ -664,7 +705,9 @@
     persistObservedPurchases();
     growthAttribution();
     try {
-      global.gtag("consent", "update", { analytics_storage: analyticsStorageState() });
+      // 선택이 없으면(쿠키 삭제 등) 지역별 기본값을 덮어쓰지 않는다.
+      var explicit = explicitGaConsent();
+      if (explicit) global.gtag("consent", "update", { analytics_storage: explicit });
     } catch (_consentError) {
       /* 계측 실패는 무시한다 */
     }

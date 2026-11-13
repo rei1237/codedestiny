@@ -7471,20 +7471,20 @@
     },
     "cdCookieConsentMain": {
       "cdCookieConsentCopy": {
-        "k12mjipg": "Utilizamos cookies esenciales para el inicio de sesión y para bloquear solicitudes excesivas. Si acepta, sus preferencias de visita también permanecerán en este navegador.",
+        "GoogleAnaly": "Usamos cookies esenciales para el inicio de sesión y para evitar solicitudes excesivas, además de cookies de Google Analytics para ver el recorrido de las visitas como estadísticas. Si no quieres análisis, elige «Solo esenciales». En el EEE, el Reino Unido y Suiza solo analizamos las visitas si das tu consentimiento.",
         "k1nqxhwe": "Aviso de cookies tan silencioso como la luz de la luna"
       }
     },
     "cdCookieSettingsPanel": {
       "cdCookieConsentRow": {
-        "k2yf8r8": "Mantiene el idioma y el estado de confirmación de avisos de forma más tranquila en su próxima visita.",
+        "GoogleAnalytics": "Mantiene tu idioma y el estado de los avisos para tu próxima visita, y permite a Google Analytics ver el recorrido de las visitas como estadísticas. Desactívalo para detener el análisis.",
         "k602xow": "Cookies esenciales",
         "kao88ih": {
           "ariaLabel": "Usar siempre cookies esenciales"
         },
         "kfpcszr": "Se utilizan para mantener la sesión iniciada, proteger los pagos y bloquear solicitudes repetidas en la misma sesión.",
-        "km6l38": "Cookies de conveniencia",
-        "krpclxc": "Siempre activas"
+        "krpclxc": "Siempre activas",
+        "kssyxkk": "Cookies de conveniencia y análisis"
       },
       "k58noo": "Guardar selección"
     },

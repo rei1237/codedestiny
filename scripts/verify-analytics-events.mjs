@@ -10,7 +10,7 @@
  *
  * 고정하는 성질:
  *   ① 동의 기본값이 config 보다 먼저 들어간다(순서가 뒤집히면 거부 상태에서도 쿠키가 써진다).
- *   ② cd_cookie_consent 가 accepted 일 때만 analytics_storage 가 granted 다.
+ *   ② 선택이 없으면 EEA·영국·스위스만 denied, 그 밖은 granted(지역별 기본값). 'essential' 은 denied, 'accepted' 는 granted.
  *   ③ cdSyncConsent() 가 consent update 를 쏜다(배너 클릭이 새로고침 없이 반영되어야 한다).
  *   ④ share_receive 는 ref 파라미터가 있을 때만, retention_visit 은 첫 방문에 쏘지 않는다.
  *   ⑤ cross_sell_click 은 data-cd-cross-sell 목록 안의 앵커에서만 발화한다.
@@ -207,12 +207,23 @@ const eventNames = (calls) => events(calls).map((c) => c[1]);
 
 /* ② 동의 상태에 따른 analytics_storage */
 {
-  const denied = boot().calls.find((c) => c[0] === "consent" && c[1] === "default");
-  assert.equal(denied[2].analytics_storage, "denied", "동의 전 기본값은 denied 여야 한다");
-  assert.ok(!("ad_storage" in denied[2]), "ad_* 는 선언하지 않는다 — AdSense 현재 동작을 바꾸지 않기 위해서다");
+  const defaults = boot().calls.filter((c) => c[0] === "consent" && c[1] === "default");
+  assert.equal(defaults.length, 2, "선택이 없으면 지역 default 와 전역 default 두 개여야 한다");
+  const [regional, rest] = defaults;
+  assert.equal(regional[2].analytics_storage, "denied", "EEA·영국·스위스 기본값은 denied 여야 한다");
+  const regions = Array.from(regional[2].region || []);
+  for (const code of ["DE", "FR", "IE", "NO", "IS", "LI", "GB", "CH"]) assert.ok(regions.includes(code), `동의 필요 지역에 ${code} 가 없다`);
+  assert.equal(regions.length, 32, "EEA 30 + 영국 + 스위스");
+  assert.ok(!regions.includes("KR"), "한국은 기본 집계 지역이다");
+  assert.equal(rest[2].analytics_storage, "granted", "그 밖의 지역 기본값은 granted 여야 한다");
+  assert.ok(!("region" in rest[2]), "전역 default 에는 region 이 없어야 한다");
+  for (const entry of defaults) assert.ok(!Object.keys(entry[2]).some((k) => k.startsWith("ad_")), "ad_* 는 선언하지 않는다 — AdSense 현재 동작을 바꾸지 않기 위해서다");
 
-  const essential = boot({ consent: "essential" }).calls.find((c) => c[0] === "consent" && c[1] === "default");
+  const essentials = boot({ consent: "essential" }).calls.filter((c) => c[0] === "consent" && c[1] === "default");
+  assert.equal(essentials.length, 1, "'필수만'은 지역 기본값 없이 하나의 denied 여야 한다");
+  const essential = essentials[0];
   assert.equal(essential[2].analytics_storage, "denied", "essential 은 granted 가 아니다");
+  assert.ok(!("region" in essential[2]), "'필수만'은 지역과 무관하게 denied 다");
 
   const accepted = boot({ consent: "accepted" }).calls.find((c) => c[0] === "consent" && c[1] === "default");
   assert.equal(accepted[2].analytics_storage, "granted", "accepted 는 granted 여야 한다");
@@ -229,6 +240,18 @@ const eventNames = (calls) => events(calls).map((c) => c[1]);
   assert.equal(update[0], "consent", "consent update 가 쏘이지 않았다");
   assert.equal(update[1], "update", "consent update 가 쏘이지 않았다");
   assert.equal(update[2].analytics_storage, "granted", "동의 후에도 granted 로 갱신되지 않았다");
+  window.document.cookie = "cd_cookie_consent=essential; path=/";
+  window.cdSyncConsent();
+  const revoked = Array.from(window.dataLayer[window.dataLayer.length - 1]);
+  assert.equal(revoked[1], "update", "'필수만' 선택이 consent update 로 반영되지 않았다");
+  assert.equal(revoked[2].analytics_storage, "denied", "'필수만' 선택 뒤에도 granted 다");
+}
+{
+  // 선택이 없는 상태의 동기화는 지역별 기본값을 덮어쓰지 않는다(EEA 방문을 granted 로 올리면 안 된다).
+  const { window } = boot();
+  const before = window.dataLayer.length;
+  window.cdSyncConsent();
+  assert.ok(!window.dataLayer.slice(before).some((c) => c[0] === "consent" && c[1] === "update"), "선택이 없는데 consent update 를 쐈다");
 }
 
 /* ④ share_receive / retention_visit */
@@ -297,7 +320,7 @@ const eventNames = (calls) => events(calls).map((c) => c[1]);
     const recorded = events(window.dataLayer.map(entry => Array.from(entry))).filter(entry => entry[1] === "cross_sell_click");
     assert.equal(recorded.length, 1, "검색 CTA 클릭은 기존 이벤트로 한 번만 기록");
     assert.deepEqual(JSON.parse(JSON.stringify(recorded[0][2])), { from_service: "/saju/", to_service: "/ggulggul/", placement: "primary", target_service: "saju" });
-    assert.equal(calls.find(entry => entry[0] === "consent")[2].analytics_storage, consent === "accepted" ? "granted" : "denied");
+    assert.equal(calls.filter(entry => entry[0] === "consent").at(-1)[2].analytics_storage, consent === "essential" ? "denied" : "granted");
     assert.equal(calls.find(entry => entry[0] === "config")[2].page_location, "https://code-destiny.com/saju/");
     window.close();
   }
@@ -371,7 +394,8 @@ const eventNames = (calls) => events(calls).map((c) => c[1]);
   window.cdSyncConsent();
 }
 
-/* ⑥-b gtag.js 는 load 뒤에 주입한다 — 첫 페인트 전 선행 요청이 되면 시뮬 LCP 가 약 2초 늘어난다 */
+/* ⑥-b gtag.js 는 첫 페인트 전에 주입하지 않는다 — 선행 요청이 되면 시뮬 LCP 가 약 2초 늘어난다.
+   load+idle 이 아니면 대체 타이머나 탭 숨김에서 한 번만 주입한다. */
 {
   const { window, calls } = boot();
   const tags = () => window.document.querySelectorAll('script[src*="googletagmanager"]').length;
@@ -380,6 +404,28 @@ const eventNames = (calls) => events(calls).map((c) => c[1]);
   assert.ok(calls.some((c) => c[0] === "config"), "주입을 미뤄도 config 는 즉시 dataLayer 에 쌓여야 한다");
   await new Promise((resolve) => window.addEventListener("load", () => setTimeout(resolve, 20), { once: true }));
   assert.equal(tags(), 1, "load 뒤에 gtag.js 가 정확히 1회 주입되지 않았다");
+  window.document.dispatchEvent(new window.Event("visibilitychange"));
+  assert.equal(tags(), 1, "탭 숨김 대체 경로가 두 번째 태그를 붙였다");
+}
+{
+  // load 가 늦는 느린 모바일: 대체 타이머가 load 를 기다리지 않고 한 번만 주입한다.
+  const { window } = boot({ beforeEval(win) { win.addEventListener = ((orig) => function (type, fn, opts) { if (type === "load") return; return orig.call(this, type, fn, opts); })(win.addEventListener); } });
+  const tags = () => window.document.querySelectorAll('script[src*="googletagmanager"]').length;
+  assert.equal(tags(), 0, "대체 타이머 전에 주입했다");
+  const source = ANALYTICS_SOURCE.match(/TAG_FALLBACK_MS = (\d+)/);
+  assert.ok(source && Number(source[1]) >= 1000, "대체 타이머는 첫 페인트 뒤여야 한다(1초 이상)");
+  await new Promise((resolve) => setTimeout(resolve, Number(source[1]) + 100));
+  assert.equal(tags(), 1, "load 가 늦을 때 대체 타이머가 gtag.js 를 주입하지 않았다");
+  Object.defineProperty(window.document, "visibilityState", { configurable: true, get: () => "hidden" });
+  window.document.dispatchEvent(new window.Event("visibilitychange"));
+  assert.equal(tags(), 1, "대체 타이머와 탭 숨김이 태그를 두 번 붙였다");
+}
+{
+  // 탭 숨김: load·타이머 전에 떠나는 방문도 page_view 를 잃지 않게 그 자리에서 주입한다.
+  const { window } = boot();
+  Object.defineProperty(window.document, "visibilityState", { configurable: true, get: () => "hidden" });
+  window.document.dispatchEvent(new window.Event("visibilitychange"));
+  assert.equal(window.document.querySelectorAll('script[src*="googletagmanager"]').length, 1, "탭 숨김에서 gtag.js 를 주입하지 않았다");
 }
 
 /* ⑦ React 라우트 전환분: page_view 가 "경로가 바뀐 경우"로 좁혀져 있는가 */

@@ -88,6 +88,13 @@ export const PRIVACY_POLICY_SECTIONS = [
           Code Destiny는 로그인 유지, 보안, 이용 통계, 광고 제공을 위해 쿠키와 유사 기술을 사용할 수 있습니다. 웹 서비스에는 Google AdSense가 게재되며, Google AdSense를 포함한 제3자 광고 파트너는 광고 제공의 결과로 이용자의 브라우저에 쿠키를 저장하거나 읽을 수 있으며, 웹 비콘, IP 주소, 광고 식별자와 같은 정보를 사용할 수 있습니다.
         </p>
         <p>
+          Code Destiny는 방문 통계를 위해 Google LLC의 Google Analytics 4를 사용합니다. Google Analytics는 _ga로 시작하는 쿠키에 무작위 식별자를 저장하고, 조회한 페이지 주소(검색어·결과 값처럼 직접 입력한 내용이 담긴 주소 값은 제외), 화면 이동과 버튼 사용 같은 이벤트, 유입 경로(이전 페이지 주소와 공개 캠페인 코드), 기기·브라우저 종류, IP 주소로 추정한 대략적 지역을 Google 서버(미국 등 국외)로 전송합니다. Google Analytics 4는 IP 주소 자체를 저장하지 않습니다. 한국 등 대부분 지역에서는 기본으로 사용하고, 유럽경제지역·영국·스위스에서는 쿠키 배너에서 동의한 경우에만 사용합니다. 쿠키 배너의 &lsquo;필수만&rsquo; 또는 사이트 하단의 &lsquo;쿠키 설정&rsquo;에서 언제든 중단할 수 있고,{" "}
+          <a href="https://tools.google.com/dlpage/gaoptout" target="_blank" rel="noopener noreferrer">
+            Google 애널리틱스 차단 브라우저 부가기능
+          </a>
+          으로도 거부할 수 있습니다. 수집된 통계는 Google Analytics 데이터 보존 설정 기간(최대 14개월)이 지나면 삭제됩니다.
+        </p>
+        <p>
           Google과 그 파트너는 이용자의 이전 방문 기록을 바탕으로 맞춤 광고를 제공할 수 있습니다. 이용자는 브라우저 설정, 기기 광고 설정,{" "}
           <a href="https://adssettings.google.com/" target="_blank" rel="noopener noreferrer">
             Google 광고 설정

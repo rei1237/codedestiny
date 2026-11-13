@@ -76,7 +76,7 @@ test('a distinct explicit test property works; production config remains singula
   }
 });
 
-test('actual Next consent UI: default denied, reject/accept/revoke, persistence and late tag initialization', async () => {
+test('actual Next consent UI: regional default, reject/accept/revoke, persistence and late tag initialization', async () => {
   for (const path of ['/', '/yeongnyangi/', '/points/', '/snu/']) {
     // Reopening is a footer button outside the banner (SiteFooterHub, LocaleFooterHub, app/page.js).
     const dom = new JSDOM('<div id="root"></div><div id="snu-consent-slot"></div><button type="button" data-cd-cookie-settings>쿠키 설정</button>', { url: `https://code-destiny.com${path}`, runScripts: 'outside-only' });
@@ -93,7 +93,12 @@ test('actual Next consent UI: default denied, reject/accept/revoke, persistence 
       await act(async () => root.render(React.createElement(Consent)));
       assert.ok(w.document.querySelector('section'));
       w.eval(source);
+      // No choice yet: EEA/UK/CH denied by region, everywhere else (KR) granted.
       assert.equal(calls(w)[0][2].analytics_storage, 'denied');
+      assert.ok(Array.from(calls(w)[0][2].region).includes('DE'));
+      assert.equal(calls(w)[1][1], 'default');
+      assert.equal(calls(w)[1][2].analytics_storage, 'granted');
+      assert.equal('region' in calls(w)[1][2], false);
       await click('필수만 사용');
       assert.equal(calls(w).at(-1)[2].analytics_storage, 'denied');
       assert.match(w.document.cookie, /cd_cookie_consent=essential/);
@@ -149,4 +154,13 @@ test('cookie write failure cannot grant consent or hide the choice; excluded sur
       delete globalThis.IS_REACT_ACT_ENVIRONMENT;
     }
   }
+});
+
+// 🔴 2026-11-13: home-funnel.js moves the banner into #cdhCookieSlot. The old `:has([aria-hidden=true])`
+//    also matched the banner's decorative moon (aria-hidden="true"), so the slot was always display:none
+//    and nobody on the home page could press "필수만". Only the banner's own hidden state may hide the slot.
+test('home cookie slot hides only when the banner itself is hidden', () => {
+  const css = readFileSync('styles/home-funnel.css', 'utf8');
+  assert.match(css, /#cdhCookieSlot:has\(>#cdCookieConsent\[aria-hidden=true\]\)\{display:none\}/);
+  assert.doesNotMatch(css, /#cdhCookieSlot:has\(\[aria-hidden=true\]\)/);
 });

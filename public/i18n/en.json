@@ -7471,20 +7471,20 @@
     },
     "cdCookieConsentMain": {
       "cdCookieConsentCopy": {
-        "k12mjipg": "We use essential cookies for login and to prevent excessive requests. If you agree, convenience settings will also remain smoothly in this browser.",
+        "GoogleAnaly": "We use essential cookies for login and to prevent excessive requests, plus Google Analytics cookies to see visit flows as statistics. If you do not want analytics, choose “Essentials Only”. In the EEA, the UK and Switzerland we only analyse visits after you agree.",
         "k1nqxhwe": "Quiet Cookie Notice Like Moonlight"
       }
     },
     "cdCookieSettingsPanel": {
       "cdCookieConsentRow": {
-        "k2yf8r8": "Your language and notice status will be calmly maintained for your next visit.",
+        "GoogleAnalytics": "Keeps your language and notice status for your next visit, and lets Google Analytics show visit flows as statistics. Turn it off to stop analytics.",
         "k602xow": "Essential Cookies",
         "kao88ih": {
           "ariaLabel": "Always use essential cookies"
         },
         "kfpcszr": "Used to maintain login, protect payments, and prevent repeated requests in the same session.",
-        "km6l38": "Convenience Cookies",
-        "krpclxc": "Always On"
+        "krpclxc": "Always On",
+        "kssyxkk": "Convenience & Analytics Cookies"
       },
       "k58noo": "Save Selection"
     },

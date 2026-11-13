@@ -71,9 +71,9 @@ export default function AnalyticsConsent() {
     <section ref={panel} tabIndex={-1} className={`${styles.banner}${inPage ? ` ${styles.inPage}` : ""}`} aria-labelledby="analytics-consent-title">
       <div className={styles.heading}>
         <span className={styles.ornament} aria-hidden="true" />
-        <h2 id="analytics-consent-title">방문 분석 쿠키를 선택해 주세요</h2>
+        <h2 id="analytics-consent-title">방문 분석 쿠키 안내</h2>
       </div>
-      <p>로그인·결제에 필요한 필수 쿠키를 사용해요. 동의하면 방문과 구매 흐름을 분석하는 쿠키도 사용해요. 필수만 선택해도 서비스를 이용할 수 있어요.</p>
+      <p>로그인·결제에 필요한 필수 쿠키와, 방문 흐름을 익명 통계로 보는 Google Analytics 쿠키를 사용해요. 방문 분석을 원하지 않으면 &lsquo;필수만 사용&rsquo;을 눌러 주세요. 유럽경제지역·영국·스위스에서는 동의한 경우에만 분석해요. 필수만 선택해도 서비스를 이용할 수 있어요.</p>
       <div className={styles.actions}>
         <button type="button" onClick={() => choose("essential")}>필수만 사용</button>
         <button type="button" onClick={() => choose("accepted")}>분석 쿠키 동의</button>

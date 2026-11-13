@@ -7471,20 +7471,20 @@
     },
     "cdCookieConsentMain": {
       "cdCookieConsentCopy": {
-        "k12mjipg": "Nous utilisons des cookies essentiels pour la connexion et la prévention des requêtes excessives. En acceptant, vos préférences de visite seront également conservées dans ce navigateur.",
+        "GoogleAnaly": "Nous utilisons des cookies essentiels pour la connexion et pour bloquer les requêtes excessives, ainsi que des cookies Google Analytics pour mesurer les parcours de visite sous forme de statistiques. Si vous ne souhaitez pas de mesure d’audience, choisissez « Essentiels seulement ». Dans l’EEE, au Royaume-Uni et en Suisse, nous ne mesurons les visites qu’après votre accord.",
         "k1nqxhwe": "Avis sur les cookies, silencieux comme la lune"
       }
     },
     "cdCookieSettingsPanel": {
       "cdCookieConsentRow": {
-        "k2yf8r8": "Vos préférences linguistiques et le statut de confirmation des avis seront conservés plus sereinement lors de votre prochaine visite.",
+        "GoogleAnalytics": "Conserve votre langue et l’état des avis pour votre prochaine visite, et permet à Google Analytics de mesurer les parcours de visite sous forme de statistiques. Désactivez-le pour arrêter la mesure.",
         "k602xow": "Cookies essentiels",
         "kao88ih": {
           "ariaLabel": "Toujours utiliser les cookies essentiels"
         },
         "kfpcszr": "Utilisés pour maintenir la connexion, protéger les paiements et bloquer les requêtes répétées dans la même session.",
-        "km6l38": "Cookies de préférence",
-        "krpclxc": "Toujours activé"
+        "krpclxc": "Toujours activé",
+        "kssyxkk": "Cookies de préférence et de mesure"
       },
       "k58noo": "Enregistrer la sélection"
     },

@@ -7471,20 +7471,20 @@
     },
     "cdCookieConsentMain": {
       "cdCookieConsentCopy": {
-        "k12mjipg": "Wir verwenden essentielle Cookies für den Login-Prozess und zur Abwehr übermäßiger Anfragen. Wenn Sie zustimmen, bleiben auch Ihre Komforteinstellungen in diesem Browser reibungslos erhalten.",
+        "GoogleAnaly": "Wir verwenden notwendige Cookies für die Anmeldung und zum Schutz vor übermäßigen Anfragen sowie Google-Analytics-Cookies, um Besuchsabläufe statistisch auszuwerten. Wenn Sie keine Analyse möchten, wählen Sie „Nur Notwendige“. Im EWR, im Vereinigten Königreich und in der Schweiz analysieren wir Besuche nur mit Ihrer Einwilligung.",
         "k1nqxhwe": "Datenschutzhinweis so still wie das Mondlicht"
       }
     },
     "cdCookieSettingsPanel": {
       "cdCookieConsentRow": {
-        "k2yf8r8": "Sprache und Bestätigungsstatus werden bei Ihrem nächsten Besuch ruhiger fortgesetzt.",
+        "GoogleAnalytics": "Behält Sprache und Hinweisstatus für Ihren nächsten Besuch bei und wertet Besuchsabläufe mit Google Analytics statistisch aus. Ausschalten beendet die Analyse.",
         "k602xow": "Essentielle Cookies",
         "kao88ih": {
           "ariaLabel": "Essentielle Cookies immer verwenden"
         },
         "kfpcszr": "Wird verwendet, um den Login aufrechtzuerhalten, Zahlungen zu schützen und wiederholte Anfragen in derselben Sitzung zu blockieren.",
-        "km6l38": "Komfort-Cookies",
-        "krpclxc": "Immer aktiv"
+        "krpclxc": "Immer aktiv",
+        "kssyxkk": "Komfort- und Analyse-Cookies"
       },
       "k58noo": "Auswahl speichern"
     },

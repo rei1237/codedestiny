@@ -7471,20 +7471,20 @@
     },
     "cdCookieConsentMain": {
       "cdCookieConsentCopy": {
-        "k12mjipg": "Chúng tôi sử dụng cookie cần thiết cho quy trình đăng nhập và chặn các yêu cầu quá mức. Nếu bạn đồng ý, cài đặt tiện ích truy cập cũng sẽ được lưu trữ mượt mà trên trình duyệt này.",
+        "GoogleAnaly": "Chúng tôi dùng cookie cần thiết cho đăng nhập và chặn yêu cầu quá mức, cùng cookie Google Analytics để xem luồng truy cập dưới dạng thống kê. Nếu bạn không muốn bị phân tích, hãy chọn “Chỉ cần thiết”. Tại EEA, Vương quốc Anh và Thụy Sĩ, chúng tôi chỉ phân tích sau khi bạn đồng ý.",
         "k1nqxhwe": "Thông báo Cookie yên tĩnh như ánh trăng"
       }
     },
     "cdCookieSettingsPanel": {
       "cdCookieConsentRow": {
-        "k2yf8r8": "Tiếp tục ngôn ngữ và trạng thái xác nhận thông báo một cách bình tĩnh hơn trong lần truy cập tiếp theo.",
+        "GoogleAnalytics": "Giữ ngôn ngữ và trạng thái thông báo cho lần truy cập sau, đồng thời cho phép Google Analytics xem luồng truy cập dưới dạng thống kê. Tắt đi để dừng phân tích.",
         "k602xow": "Cookie cần thiết",
         "kao88ih": {
           "ariaLabel": "Luôn sử dụng cookie cần thiết"
         },
         "kfpcszr": "Được sử dụng để duy trì đăng nhập, bảo vệ thanh toán và chặn các yêu cầu lặp lại trong cùng một phiên.",
-        "km6l38": "Cookie tiện ích",
-        "krpclxc": "Luôn bật"
+        "krpclxc": "Luôn bật",
+        "kssyxkk": "Cookie tiện ích và phân tích"
       },
       "k58noo": "Lưu lựa chọn"
     },

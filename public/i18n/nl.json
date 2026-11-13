@@ -7471,20 +7471,20 @@
     },
     "cdCookieConsentMain": {
       "cdCookieConsentCopy": {
-        "k12mjipg": "We gebruiken essentiële cookies voor de loginflow en om overmatige verzoeken te blokkeren. Als u akkoord gaat, blijven uw voorkeuren voor bezoekersgemak ook soepel in deze browser.",
+        "GoogleAnaly": "We gebruiken essentiële cookies voor het inloggen en om overmatige verzoeken te blokkeren, plus Google Analytics-cookies om bezoekstromen als statistiek te bekijken. Wil je geen analyse, kies dan „Alleen essentieel”. In de EER, het VK en Zwitserland analyseren we bezoeken alleen na je toestemming.",
         "k1nqxhwe": "Stille cookie-informatie als maanlicht"
       }
     },
     "cdCookieSettingsPanel": {
       "cdCookieConsentRow": {
-        "k2yf8r8": "Bij uw volgende bezoek worden taal- en bevestigingsstatus rustiger voortgezet.",
+        "GoogleAnalytics": "Bewaart je taal en meldingsstatus voor je volgende bezoek en laat Google Analytics bezoekstromen als statistiek tonen. Zet het uit om de analyse te stoppen.",
         "k602xow": "Essentiële cookies",
         "kao88ih": {
           "ariaLabel": "Essentiële cookies altijd gebruiken"
         },
         "kfpcszr": "Worden gebruikt om ingelogd te blijven, betalingen te beveiligen en herhaalde verzoeken binnen dezelfde sessie te blokkeren.",
-        "km6l38": "Comfortcookies",
-        "krpclxc": "Altijd aan"
+        "krpclxc": "Altijd aan",
+        "kssyxkk": "Comfort- en analysecookies"
       },
       "k58noo": "Selectie opslaan"
     },

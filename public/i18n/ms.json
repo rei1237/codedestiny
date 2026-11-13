@@ -7471,20 +7471,20 @@
     },
     "cdCookieConsentMain": {
       "cdCookieConsentCopy": {
-        "k12mjipg": "Kami menggunakan kuki penting untuk aliran log masuk dan menyekat permintaan berlebihan. Jika anda bersetuju, tetapan kemudahan lawatan juga akan kekal lancar dalam pelayar ini.",
+        "GoogleAnaly": "Kami menggunakan kuki perlu untuk log masuk dan menyekat permintaan berlebihan, serta kuki Google Analytics untuk melihat aliran lawatan sebagai statistik. Jika anda tidak mahu analisis, pilih “Perlu Sahaja”. Di EEA, UK dan Switzerland, kami hanya menganalisis lawatan selepas anda bersetuju.",
         "k1nqxhwe": "Notis Kuki Senyap seperti Cahaya Bulan"
       }
     },
     "cdCookieSettingsPanel": {
       "cdCookieConsentRow": {
-        "k2yf8r8": "Pada lawatan seterusnya, bahasa dan status pengesahan notis akan diteruskan dengan lebih tenang.",
+        "GoogleAnalytics": "Mengekalkan bahasa dan status notis anda untuk lawatan seterusnya, serta membolehkan Google Analytics melihat aliran lawatan sebagai statistik. Matikan untuk menghentikan analisis.",
         "k602xow": "Kuki Penting",
         "kao88ih": {
           "ariaLabel": "Sentiasa gunakan kuki penting"
         },
         "kfpcszr": "Digunakan untuk mengekalkan log masuk, melindungi pembayaran, dan menyekat permintaan berulang dalam sesi yang sama.",
-        "km6l38": "Kuki Kemudahan",
-        "krpclxc": "Sentiasa Hidup"
+        "krpclxc": "Sentiasa Hidup",
+        "kssyxkk": "Kuki Kemudahan & Analitik"
       },
       "k58noo": "Simpan Pilihan"
     },

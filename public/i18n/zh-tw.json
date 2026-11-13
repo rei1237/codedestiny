@@ -7471,20 +7471,20 @@
     },
     "cdCookieConsentMain": {
       "cdCookieConsentCopy": {
-        "k12mjipg": "我們使用必要的 Cookie 來處理登入流程並防止過度請求。如果您同意，您的瀏覽偏好也將順暢地保留在此瀏覽器中。",
+        "GoogleAnaly": "我們使用登入流程與阻擋過量請求所需的必要 Cookie，以及以統計方式了解造訪流程的 Google Analytics Cookie。若不希望被分析，請選擇「僅限必要」。在歐洲經濟區、英國與瑞士，僅在您同意後才會分析。",
         "k1nqxhwe": "如月光般寧靜的 Cookie 提示"
       }
     },
     "cdCookieSettingsPanel": {
       "cdCookieConsentRow": {
-        "k2yf8r8": "下次造訪時，將更平靜地延續語言和提示確認狀態。",
+        "GoogleAnalytics": "在下次造訪時保留語言與提示確認狀態，並透過 Google Analytics 以統計方式了解造訪流程。關閉後將停止分析。",
         "k602xow": "必要 Cookie",
         "kao88ih": {
           "ariaLabel": "始終使用必要 Cookie"
         },
         "kfpcszr": "用於保持登入、保護支付、防止同一會話的重複請求。",
-        "km6l38": "便利 Cookie",
-        "krpclxc": "始終開啟"
+        "krpclxc": "始終開啟",
+        "kssyxkk": "便利與分析 Cookie"
       },
       "k58noo": "儲存選擇"
     },

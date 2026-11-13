@@ -8968,7 +8968,7 @@ html:not(.neo-mode) .moon-story-entry__pig--yeon {
       <div class="cd-cookie-consent__copy">
         <p class="cd-cookie-consent__kicker">MOONLIGHT COOKIE</p>
         <h2 id="cdCookieConsentTitle" class="cd-cookie-consent__title" data-cd-trans="shell.cdCookieConsentMain.cdCookieConsentCopy.k1nqxhwe">달빛처럼 조용한 쿠키 안내</h2>
-        <p class="cd-cookie-consent__text" data-cd-trans="shell.cdCookieConsentMain.cdCookieConsentCopy.k12mjipg">로그인 흐름과 과도한 요청 차단에 필요한 필수 쿠키를 사용합니다. 동의하면 방문 편의 설정도 이 브라우저에 부드럽게 머무릅니다.</p>
+        <p class="cd-cookie-consent__text" data-cd-trans="shell.cdCookieConsentMain.cdCookieConsentCopy.GoogleAnaly">로그인 흐름과 과도한 요청 차단에 필요한 필수 쿠키, 그리고 방문 흐름을 통계로 보는 Google Analytics 쿠키를 사용합니다. 분석을 원하지 않으면 ‘필수만’을 눌러 주세요. 유럽경제지역·영국·스위스에서는 동의한 경우에만 분석합니다.</p>
         <div class="cd-cookie-consent__actions">
           <button type="button" class="cd-cookie-consent__btn cd-cookie-consent__btn--primary" id="cdCookieAcceptBtn" data-cd-trans="shell.cdCookieConsentCopy.cdCookieConsentActions.kniuoqf">동의하기</button>
           <button type="button" class="cd-cookie-consent__btn cd-cookie-consent__btn--ghost" id="cdCookieEssentialBtn" data-cd-trans="shell.cdCookieConsentCopy.cdCookieConsentActions.kw6ku0">필수만</button>
@@ -8982,7 +8982,7 @@ html:not(.neo-mode) .moon-story-entry__pig--yeon {
         <span class="cd-cookie-consent__switch" aria-label="필수 쿠키 항상 사용" data-cd-trans-attr="aria-label:shell.cdCookieSettingsPanel.cdCookieConsentRow.kao88ih.ariaLabel" data-cd-trans="shell.cdCookieSettingsPanel.cdCookieConsentRow.krpclxc">항상 켬</span>
       </div>
       <label class="cd-cookie-consent__row" for="cdCookieComfortCheck">
-        <span><strong data-cd-trans="shell.cdCookieSettingsPanel.cdCookieConsentRow.km6l38">편의 쿠키</strong><span data-cd-trans="shell.cdCookieSettingsPanel.cdCookieConsentRow.k2yf8r8">다음 방문 때 언어와 안내 확인 상태를 더 차분하게 이어갑니다.</span></span>
+        <span><strong data-cd-trans="shell.cdCookieSettingsPanel.cdCookieConsentRow.kssyxkk">편의·분석 쿠키</strong><span data-cd-trans="shell.cdCookieSettingsPanel.cdCookieConsentRow.GoogleAnalytics">다음 방문 때 언어와 안내 확인 상태를 이어 가고, Google Analytics로 방문 흐름을 통계로 봅니다. 끄면 분석을 멈춥니다.</span></span>
         <input id="cdCookieComfortCheck" class="cd-cookie-consent__check" type="checkbox" checked>
       </label>
       <button type="button" class="cd-cookie-consent__btn cd-cookie-consent__btn--primary" id="cdCookieSaveBtn" data-cd-trans="shell.cdCookieSettingsPanel.k58noo">선택 저장</button>
@@ -9023,8 +9023,9 @@ html:not(.neo-mode) .moon-story-entry__pig--yeon {
     setConsent(value);
     hide();
     try { document.documentElement.setAttribute('data-cd-cookie-consent', value); } catch (_) {}
-    /* GA4 는 로드 시점에 analytics_storage 기본값을 denied 로 잡아 둔다. 여기서 알려주지 않으면
-       "동의함"을 누른 세션도 페이지를 새로 고칠 때까지 익명 집계로 남는다. */
+    /* GA4 는 선택 전 지역별 기본값(EEA·영국·스위스 denied, 그 밖 granted)으로 시작한다.
+       여기서 알려주지 않으면 '필수만'을 고른 세션도 새로 고칠 때까지 계속 집계되고,
+       EEA 에서 '동의하기'를 누른 세션은 쿠키 없는 핑으로 남는다. */
     try { if (typeof window.cdSyncConsent === 'function') window.cdSyncConsent(); } catch (_) {}
   }
   if (readConsent()) {
@@ -9033,8 +9034,8 @@ html:not(.neo-mode) .moon-story-entry__pig--yeon {
   }
   /* 앱에서는 배너를 아예 띄우지 않는다 — 런처가 곧 첫 화면이라 이 오버레이가 첫 인상을 통째로 가린다
      (2026-09-02 실효 히트 스캔에서 첫 화면을 덮는 유일한 전면 요소였다).
-     동의는 미설정으로 남긴다: js/core/analytics.js 가 cd_cookie_consent 부재를
-     analytics_storage:denied 로 읽으므로 추적은 꺼진 상태가 되고, 사용자를 대신해 고르지 않는다.
+     동의는 미설정으로 남겨 사용자를 대신해 고르지 않는다. 앱은 https://localhost 출처라
+     js/core/analytics.js 가 운영 속성 전송을 막으므로 GA 지역별 기본값(미설정=granted)도 앱에는 닿지 않는다.
      🔴 CSS 로 가리는 계층을 덧대지 말 것(원칙 6) — 요소가 살아 있으면 포커스·히트테스트에 계속 잡힌다.
      🔴 window.Capacitor 유무로 재구현하지 말 것 — 같은 파일의 _cdIsAppRuntime 이 그 과탐지 사례다.
      판정은 정본(js/core/app-context.js, 문서 상단에서 동기 로드)만 쓴다. */
