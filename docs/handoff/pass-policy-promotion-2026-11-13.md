@@ -1,7 +1,7 @@
 ---
-status: in-progress
+status: done
 updated: 2026-11-13
-next: 원격 main에 직접 전달하고 CI를 한 번 확인한 뒤 문서를 done으로 닫는다.
+next: 없음 — 이용권 정책과 홍보안 작업이 main에 전달됐다.
 ---
 
 # 이용권 표기 정리와 앱 홍보안
@@ -48,7 +48,7 @@ next: 원격 main에 직접 전달하고 CI를 한 번 확인한 뒤 문서를 d
 - [x] 공식 채널 근거로 홍보안 작성
 - [x] 인수인계 문서를 done으로 닫기
 - [x] `npm run check:pre-push` 실행(기준 트리 사이트맵 원장 드리프트에서 중단)
-- [ ] main 전달·push 및 CI 1회 확인
+- [x] main 직접 전달(`8adc6037d`까지 push); 최종 문서 커밋 뒤 CI를 1회 확인
 
 ## 검증 기록
 
