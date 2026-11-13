@@ -653,7 +653,7 @@ async function resolveGenerateAccess(request, env, auth, body, normalized, idemp
   ]);
   if (blocked.some(Boolean)) return { ok: false };
   if (isAdmin(auth)) return { ok: true, accessType: "admin", locale: normalized.locale };
-  const monthlyEvidence = await findMoonstoneSpendEvidence(env, { userId: auth.userId, featureKeys: [FEATURE_KEY], tokens: ids });
+  const monthlyEvidence = await withMongoRetry(env, () => findMoonstoneSpendEvidence(env, { userId: auth.userId, featureKeys: [FEATURE_KEY], tokens: ids }));
   if (monthlyEvidence) return { ok: true, accessType: "subscription", locale: normalized.locale };
   const decision = await canAccessPaidFeature(auth.userId, FEATURE_KEY, { env, reason: TITLE, userDoc: auth.authUserDoc, requestId: idempotencyKey });
   // 🔴 이용권·라이선스·월구독 허용은 읽기 전용이다(2026-10-16). 이번 주문의 결제를 찾거나 이용권을 실제로 차감해야 연다.

@@ -1093,13 +1093,13 @@ export async function startServiceExecution(env, userId, payload = {}) {
   if (!featureKey) return { ok: false, status: 400, message: "featureKey is required." };
 
   if (paymentSessionId) {
-    const completedByPaymentSession = await ServiceExecutionTransaction.findOne({
+    const completedByPaymentSession = await withMongoRetry(env, () => ServiceExecutionTransaction.findOne({
       userId: userObjectId,
       paymentSessionId,
       ...(reportType ? { reportType } : {}),
       status: "success",
       premiumStatus: "completed",
-    }).sort({ completedAt: -1, createdAt: -1 }).lean();
+    }).sort({ completedAt: -1, createdAt: -1 }).lean());
 
     if (completedByPaymentSession) {
       return {
@@ -1158,11 +1158,11 @@ export async function startServiceExecution(env, userId, payload = {}) {
     },
   };
 
-  const doc = await ServiceExecutionTransaction.findOneAndUpdate(
+  const doc = await withMongoRetry(env, () => ServiceExecutionTransaction.findOneAndUpdate(
     { userId: userObjectId, executionKey },
     update,
     { upsert: true, returnDocument: "after" },
-  ).lean();
+  ).lean(), { retries: 0 });
 
   logPaidServiceEvent("[PaidService Delivery Start]", doc, {
     deliveryStatus: resolveDeliveryStatus(doc),
@@ -1230,7 +1230,7 @@ export async function completeServiceExecution(env, userId, payload = {}) {
   const sessionId = normalizeSessionId(payload.sessionId || payload.reportSessionId);
   const completionMetadata = payload.metadata && typeof payload.metadata === "object" ? payload.metadata : null;
   const hasResultPayload = Object.prototype.hasOwnProperty.call(payload, "result");
-  const existingForValidation = await ServiceExecutionTransaction.findOne({ userId: userObjectId, executionKey }).lean();
+  const existingForValidation = await withMongoRetry(env, () => ServiceExecutionTransaction.findOne({ userId: userObjectId, executionKey }).lean());
   if (!existingForValidation) return { ok: false, status: 404, message: "Execution not found." };
   if (existingForValidation.status !== "pending") {
     return { ok: true, status: 200, idempotent: true, execution: toSummary(existingForValidation) };
@@ -1267,7 +1267,7 @@ export async function completeServiceExecution(env, userId, payload = {}) {
     });
   }
 
-  const doc = await ServiceExecutionTransaction.findOneAndUpdate(
+  const doc = await withMongoRetry(env, () => ServiceExecutionTransaction.findOneAndUpdate(
     { userId: userObjectId, executionKey, status: "pending" },
     {
       $set: {
@@ -1291,10 +1291,10 @@ export async function completeServiceExecution(env, userId, payload = {}) {
       },
     },
     { returnDocument: "after" },
-  ).lean();
+  ).lean(), { retries: 0 });
 
   if (!doc) {
-    const existing = await ServiceExecutionTransaction.findOne({ userId: userObjectId, executionKey }).lean();
+    const existing = await withMongoRetry(env, () => ServiceExecutionTransaction.findOne({ userId: userObjectId, executionKey }).lean());
     if (!existing) return { ok: false, status: 404, message: "Execution not found." };
     return { ok: true, status: 200, idempotent: true, execution: toSummary(existing) };
   }
@@ -1331,9 +1331,9 @@ export async function failServiceExecution(env, userId, payload = {}) {
   else if (sessionId) query.sessionId = sessionId;
   else query.reportId = reportId;
 
-  const doc = await ServiceExecutionTransaction.findOne(query)
+  const doc = await withMongoRetry(env, () => ServiceExecutionTransaction.findOne(query)
     .sort({ createdAt: -1, updatedAt: -1 })
-    .lean();
+    .lean());
   if (!doc) return { ok: false, status: 404, message: "Execution not found." };
   if (doc.status !== "pending") return { ok: true, status: 200, idempotent: true, execution: toSummary(doc) };
 
@@ -1341,7 +1341,7 @@ export async function failServiceExecution(env, userId, payload = {}) {
     const now = nowDate();
     const graceSeconds = clampInt(payload.graceSeconds, DEFAULT_SOFT_ABANDON_GRACE_SECONDS, 300, 3600);
     const graceTimeoutAt = toTimeoutAt(now, graceSeconds);
-    const updated = await ServiceExecutionTransaction.findOneAndUpdate(
+    const updated = await withMongoRetry(env, () => ServiceExecutionTransaction.findOneAndUpdate(
       { _id: doc._id, status: "pending" },
       {
         $set: {
@@ -1360,7 +1360,7 @@ export async function failServiceExecution(env, userId, payload = {}) {
         },
       },
       { returnDocument: "after" },
-    ).lean();
+    ).lean(), { retries: 0 });
 
     return {
       ok: true,
@@ -1382,7 +1382,7 @@ export async function failServiceExecution(env, userId, payload = {}) {
     failureReason,
   });
 
-  await ServiceExecutionTransaction.updateOne(
+  await withMongoRetry(env, () => ServiceExecutionTransaction.updateOne(
     { _id: doc._id, status: "pending" },
     {
       $set: {
@@ -1395,10 +1395,10 @@ export async function failServiceExecution(env, userId, payload = {}) {
         refundStatus: "pending",
       },
     },
-  );
+  ), { retries: 0 });
 
   const settled = await settleExecutionById(env, doc._id, reason.code, reason.message);
-  const latest = await ServiceExecutionTransaction.findById(doc._id).lean();
+  const latest = await withMongoRetry(env, () => ServiceExecutionTransaction.findById(doc._id).lean());
 
   return {
     ok: true,

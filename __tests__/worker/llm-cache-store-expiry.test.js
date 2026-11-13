@@ -1,7 +1,7 @@
 /** @jest-environment node */
 import { jest } from '@jest/globals';
 let entry, createLlmCacheStore;
-jest.unstable_mockModule('../../worker/lib/db.js',()=>({connectDb:async()=>{}}));
+jest.unstable_mockModule('../../worker/lib/db.js',()=>({withMongoRetry:async(_env,read)=>read()}));
 jest.unstable_mockModule('../../worker/lib/models.js',()=>({LlmResponseCache:{findOne:()=>({lean:async()=>entry}),updateOne:async()=>{}}}));
 beforeAll(async()=>{({createLlmCacheStore}=await import('../../worker/lib/llm-cache-store.js'));});
 test('TTL cleanup lag and missing expiry never return an expired response',async()=>{

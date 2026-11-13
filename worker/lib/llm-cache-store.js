@@ -1,4 +1,4 @@
-import { connectDb } from "./db.js";
+import { withMongoRetry } from "./db.js";
 import { LlmResponseCache } from "./models.js";
 
 const DEFAULT_TTL_SECONDS = 30 * 24 * 60 * 60;
@@ -9,8 +9,7 @@ export function createLlmCacheStore(env) {
   return {
     async get(cacheKey) {
       try {
-        await connectDb(env);
-        const doc = await LlmResponseCache.findOne({ cacheKey }).lean();
+        const doc = await withMongoRetry(env, () => LlmResponseCache.findOne({ cacheKey }).lean());
         // Mongo TTL cleanup is asynchronous; expired entries are cache misses immediately.
         if (!doc || !doc.text || !(new Date(doc.expiresAt).getTime() > Date.now())) return null;
         return {
@@ -25,11 +24,10 @@ export function createLlmCacheStore(env) {
     },
     async set(cacheKey, value, ttlSeconds) {
       try {
-        await connectDb(env);
         const now = new Date();
         const ttl = Number(ttlSeconds) > 0 ? Number(ttlSeconds) : DEFAULT_TTL_SECONDS;
         const expiresAt = new Date(now.getTime() + ttl * 1000);
-        await LlmResponseCache.updateOne(
+        await withMongoRetry(env, () => LlmResponseCache.updateOne(
           { cacheKey },
           {
             $set: {
@@ -42,7 +40,7 @@ export function createLlmCacheStore(env) {
             $setOnInsert: { cacheKey, createdAt: now },
           },
           { upsert: true },
-        );
+        ));
       } catch (error) {
         console.warn("[llm-cache-store] set failed:", error?.message || error);
       }
