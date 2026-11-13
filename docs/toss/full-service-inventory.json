@@ -1,5 +1,5 @@
 {
-  "sourceCommit": "00e176cc9be3a4033aebda9da7ded59b11bd0f45",
+  "sourceCommit": "434856ad83bc2b126aa118d5b1c21d13b21cc781",
   "sourceCounts": {
     "home": 63,
     "react": 18,
@@ -2182,8 +2182,8 @@
         "library": "not-verified",
         "device": "not-tested",
         "canonicalId": "secret-house",
-        "candidateStatus": "requires-full-flow-port-and-verification",
-        "canonicalRoute": null
+        "candidateStatus": "local-partial",
+        "canonicalRoute": "/saju/sections"
       }
     },
     {
@@ -6601,12 +6601,12 @@
       "aliasEvidence": [
         "js/core/saju/reportDashboard.js -> /secret-house_real.html -> POST /api/saju/section (rpt_secretHouseEntryCard)"
       ],
-      "status": "requires-full-flow-port-and-verification",
-      "tossRoute": null,
+      "status": "local-partial",
+      "tossRoute": "/saju/sections",
       "sku": null,
-      "inputContract": null,
-      "resultRenderer": null,
-      "storageContract": null,
+      "inputContract": "일간 선택 → 5인 합숙 선택 이력 → 최종 상대",
+      "resultRenderer": "apps/toss/src/SecretHouseReading.tsx + public/secret-house_real.html",
+      "storageContract": "웹 원본과 같이 현재 게임 상태만 유지. 엔딩 공유는 토스 SDK",
       "webEntitlement": {
         "featureKey": "rpt_secretHouseEntryCard",
         "bundleKey": "saju_lifetime_bundle",
@@ -6615,25 +6615,42 @@
         "source": "worker/lib/saju-bundle-policy.js",
         "contentSource": "content/product-details/secret-house/manifest.json"
       },
+      "publicSections": [
+        {
+          "featureKey": "rpt_secretHouseEntryCard",
+          "title": "시크릿 하우스",
+          "webEntry": "/secret-house_real.html",
+          "source": "worker/routes/saju-section.js → worker/lib/saju-section/report.js:buildSajuSectionHtml",
+          "input": "일간 선택 → 5인 합숙 선택 이력 → 최종 상대",
+          "tossRoute": "/saju/sections",
+          "login": "공개",
+          "iap": false,
+          "storage": "현재 화면 메모리",
+          "status": "일부만 이식",
+          "verification": "secret-house-browser.mjs 일반 홈에서 5인 원본 초상·선택·반응·엔딩·다시 도전. Worker 승격·실기기 공유 미검증"
+        }
+      ],
+      "verification": "secret-house-browser.mjs 일반 홈에서 5인 원본 초상·선택·반응·엔딩·다시 도전. Worker 승격·실기기 공유 미검증",
       "webEntries": [
         "js/core/saju/reportDashboard.js secretHouseEntryCard → openSecretHouseRoute",
         "/secret-house_real.html",
         "js/core/saju/reportDashboard.js -> /secret-house_real.html -> POST /api/saju/section (rpt_secretHouseEntryCard)"
       ],
       "webSources": [
-        "secret-house_real.html SCENE_DATA/CHARS/calculateEnding/buildResult/shareResult"
+        "secret-house_real.html SCENE_DATA/CHARS/calculateEnding/buildResult/shareResult",
+        "worker/routes/saju-section.js → worker/lib/saju-section/report.js:buildSajuSectionHtml"
       ],
       "webProductIds": [
         "rpt_secretHouseEntryCard"
       ],
       "freeCalculation": true,
-      "portStatus": "미이식",
+      "portStatus": "일부만 이식",
       "reducedBundle": "홈 진입 없음",
-      "currentEntry": "연결 경로 없음",
+      "currentEntry": "일반 홈의 진입 코드 확인",
       "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
-      "tossLogin": "토스 기능 미연결",
-      "tossResult": "결과 화면 연결 미확인",
-      "reread": "재열람 경로 미확인"
+      "tossLogin": "공개 입력 · 구매 없음",
+      "tossResult": "apps/toss/src/SecretHouseReading.tsx + public/secret-house_real.html",
+      "reread": "웹 원본과 같이 현재 게임 상태만 유지. 엔딩 공유는 토스 SDK"
     },
     {
       "id": "stonehenge-runes",

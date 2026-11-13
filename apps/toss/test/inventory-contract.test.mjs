@@ -20,9 +20,9 @@ test('pet chart remains partial while paid products and durable recovery are unr
 
 test('each public Saju and Ziwei chapter keeps its real entry and independent RPG boundary',()=>{
  const chapters=inventory.canonicalCandidates.flatMap(c=>c.publicSections||[]);
- assert.equal(chapters.length,11);
- assert.equal(new Set(chapters.map(c=>c.featureKey)).size,11);
- assert.ok(chapters.every(c=>c.login==='공개'&&!c.iap&&c.verification.includes('360px')));
+ assert.equal(chapters.length,12);
+ assert.equal(new Set(chapters.map(c=>c.featureKey)).size,12);
+ assert.ok(chapters.every(c=>c.login==='공개'&&!c.iap&&(c.verification.includes('360px')||c.featureKey==='rpt_secretHouseEntryCard')));
  assert.equal(chapters.filter(c=>c.tossRoute==='/ziwei/sections').length,4);
  assert.equal(inventory.canonicalCandidates.find(c=>c.id==='life-skill-tree').questProgress.status,'일부만 이식');
 });

@@ -174,6 +174,7 @@ if(house?.webEntitlement?.featureKey==='rpt_secretHouseEntryCard'&&dashboard.inc
 }
 for(const [id,fields] of Object.entries(localEvidence))if(groups.has(id))Object.assign(groups.get(id),fields);
 const dashboardSections={
+ rpt_secretHouseEntryCard:'secret-house',
  rpt_quantumCard:'quantum-saju',rpt_energyCoordCard:'energy-travel',rpt_villainCard:'relationship-boundaries',
  rpt_healthReportCard:'health-rhythm',rpt_specialCharmCard:'personal-charm',rpt_skillTreeCard:'life-skill-tree',
 };
@@ -191,6 +192,9 @@ for(const [featureKey,title] of Object.entries(TOSS_PUBLIC_SECTIONS)){
  if(dashboardSections[featureKey])Object.assign(group,{status:'local-partial',tossRoute,inputContract:section.input,
    resultRenderer:'apps/toss/src/PublicSectionReading.tsx',storageContract:section.storage,verification:section.verification});
 }
+const houseSection=groups.get('secret-house').publicSections[0];
+Object.assign(houseSection,{webEntry:'/secret-house_real.html',input:'일간 선택 → 5인 합숙 선택 이력 → 최종 상대',verification:'secret-house-browser.mjs 일반 홈에서 5인 원본 초상·선택·반응·엔딩·다시 도전. Worker 승격·실기기 공유 미검증'});
+Object.assign(groups.get('secret-house'),{inputContract:houseSection.input,resultRenderer:'apps/toss/src/SecretHouseReading.tsx + public/secret-house_real.html',verification:houseSection.verification,storageContract:'웹 원본과 같이 현재 게임 상태만 유지. 엔딩 공유는 토스 SDK'});
 groups.get('ziwei').verification='기본 열두 궁 명반 및 상세 4종 공개 계산. 다른 궁합·연운·섬·상담은 별도 계약. 실기기 미검증';
 groups.get('life-skill-tree').questProgress={status:'일부만 이식',source:'js/entertain-engine.js:buildRpgTemplate, buildRpgFallbackQuests → js/destiny-profile.js:CDLevel',
  policy:'게스트 기기 저장. 로그인하면 현재 계정에 한 번 이관. KST 일일 한도·완료 로그·EXP 적립은 worker/routes/rpg.js 원장',
