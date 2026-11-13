@@ -9,6 +9,7 @@ import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { LIGHT_FORTUNE_FEATURE_KEYS } from '../../worker/lib/light-fortune-catalog.js';
 import { resolveProduct } from '../../worker/payments/catalog.js';
+import { isFreeFortuneFeatureKey } from '../../lib/payment/free-fortune-policy.mjs';
 
 const OUTPUT = fileURLToPath(new URL('../../lib/payment/light-fortunes.generated.json', import.meta.url));
 
@@ -37,7 +38,7 @@ function onSaleProduct(featureKey) {
   }
 }
 
-/** @returns {{count:number, valueKRW:number, keys:string[], labels:Record<string,string>}} */
+/** @returns {{count:number, valueKRW:number, freeCount:number, paidValueKRW:number, keys:string[], labels:Record<string,string>}} */
 export function buildLightFortunes() {
   const collator = new Intl.Collator('ko');
   const rows = LIGHT_FORTUNE_FEATURE_KEYS
@@ -45,9 +46,13 @@ export function buildLightFortunes() {
     .filter(([, product]) => product)
     .map(([key, product]) => ({ key, name: customerName(key, product.label), price: product.priceKRW }))
     .sort((a, b) => collator.compare(a.name, b.name) || collator.compare(a.key, b.key));
+  const paid = rows.filter((row) => !isFreeFortuneFeatureKey(row.key));
   return {
     count: rows.length,
     valueKRW: rows.reduce((sum, row) => sum + row.price, 0),
+    // 화면의 "상당" 금액은 paidValueKRW 만 쓴다. 지금 무료로 열린 운세(free-fortune-policy)는 유료 가치로 세지 않는다.
+    freeCount: rows.length - paid.length,
+    paidValueKRW: paid.reduce((sum, row) => sum + row.price, 0),
     keys: rows.map((row) => row.key),
     labels: Object.fromEntries(rows.map((row) => [row.key, row.name])),
   };

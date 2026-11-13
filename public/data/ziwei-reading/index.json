@@ -105,6 +105,20 @@
     "body": "asia-divination-traditions-deep-guide-430fbe49ae5a.json"
   },
   {
+    "slug": "ziwei-chart-guide",
+    "title": "자미두수 명반 보는 법 — 5단계 해석법",
+    "description": "자미두수는 명궁부터 신궁, 핵심 궁의 연결, 별의 조합과 사화, 대운·세운까지 5단계로 명반을 읽습니다. 초보자부터 전문가까지 쓸 수 있는 해석 순서를 정리했습니다.",
+    "href": "/insights/ziwei-chart-guide/",
+    "body": "ziwei-chart-guide-126f7632c476.json"
+  },
+  {
+    "slug": "ziwei-minggong",
+    "title": "자미두수 명궁(命宮) 해석 통합 — 명반의 중심을 읽는 최고의 방법",
+    "description": "명궁은 주성 하나로 단정할 수 없는 하나의 시스템입니다. 궁위·보조성·신궁·삼방사정·사화·대운까지 7단계로 명궁을 통합 해석하는 법을 정리했습니다.",
+    "href": "/insights/ziwei-minggong/",
+    "body": "ziwei-minggong-933b5005d018.json"
+  },
+  {
     "slug": "ziwei-tiandong-meaning-and-palaces",
     "title": "천동성(天同星) 완전 해설 — 자미두수의 복(福)과 행복, 온화함을 상징하는 별",
     "description": "천동성은 자미두수에서 복덕·행복·온화함·공감을 대표하는 길성입니다. 기본 의미부터 성격·장단점·재물운·직업운·궁위별 해석·다른 주성과의 조합·개운법까지 정리했습니다.",
@@ -166,19 +180,5 @@
     "description": "명반은 타고난 가능성을, 대한(大限)은 10년 단위 큰 흐름을, 유년(流年)은 한 해의 구체적 변화를 보여줍니다. 12궁별 확인 포인트와 대한·유년 해석 순서, 흔한 오해까지 정리했습니다.",
     "href": "/insights/ziwei-decade-and-annual-flow-reading-guide/",
     "body": "ziwei-decade-and-annual-flow-reading-guide-d6e1c9f5d550.json"
-  },
-  {
-    "slug": "ziwei-chart-guide",
-    "title": "자미두수 명반 보는 법 — 5단계 해석법",
-    "description": "자미두수는 명궁부터 신궁, 핵심 궁의 연결, 별의 조합과 사화, 대운·세운까지 5단계로 명반을 읽습니다. 초보자부터 전문가까지 쓸 수 있는 해석 순서를 정리했습니다.",
-    "href": "/insights/ziwei-chart-guide/",
-    "body": "ziwei-chart-guide-126f7632c476.json"
-  },
-  {
-    "slug": "ziwei-minggong",
-    "title": "자미두수 명궁(命宮) 해석 통합 — 명반의 중심을 읽는 최고의 방법",
-    "description": "명궁은 주성 하나로 단정할 수 없는 하나의 시스템입니다. 궁위·보조성·신궁·삼방사정·사화·대운까지 7단계로 명궁을 통합 해석하는 법을 정리했습니다.",
-    "href": "/insights/ziwei-minggong/",
-    "body": "ziwei-minggong-933b5005d018.json"
   }
 ]

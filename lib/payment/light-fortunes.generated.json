@@ -1,6 +1,8 @@
 {
   "count": 66,
   "valueKRW": 302000,
+  "freeCount": 65,
+  "paidValueKRW": 3000,
   "keys": [
     "physiognomy-compatibility",
     "sukuyo-extreme-t-relationship",

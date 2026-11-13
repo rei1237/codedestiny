@@ -224,18 +224,18 @@
     "ms": "Jimat sehingga {amount} KRW"
   },
   "home.benefitsCopy.compare": {
-    "ko": "라이트 운세 각 1회와 상담 한도를 모두 이용했을 때의 단건 가격 비교예요.",
-    "en": "Compared with single-purchase prices, using each Light Reading once and the full consultation allowance.",
-    "ja": "ライト占いを各1回と相談の利用枠をすべて使った場合の単品価格との比較です。",
-    "zh-CN": "按每种轻量运势各使用一次并用完咨询额度，与单次价格比较。",
-    "zh-TW": "按每種輕量運勢各使用一次並用完諮詢額度，與單次價格比較。",
-    "vi": "So với giá mua lẻ khi dùng mỗi bài xem nhẹ một lần và dùng hết hạn mức tư vấn.",
-    "hi": "प्रत्येक लाइट रीडिंग एक बार और पूरी परामर्श सीमा उपयोग करने पर एकल मूल्य से तुलना।",
-    "es": "Comparado con precios individuales, usando cada Lectura Ligera una vez y todo el saldo de consultas.",
-    "fr": "Comparaison aux prix unitaires, avec chaque Lecture Légère utilisée une fois et tout le solde de consultations.",
-    "de": "Vergleich zum Einzelpreis bei einmaliger Nutzung jeder leichten Deutung und vollem Beratungsbudget.",
-    "nl": "Vergeleken met losse prijzen, bij elke lichte duiding één keer en het volledige consulttegoed.",
-    "ms": "Berbanding harga tunggal, jika setiap Bacaan Ringan digunakan sekali dan semua had konsultasi digunakan."
+    "ko": "지금 유료인 라이트 운세 각 1회와 상담 한도를 모두 이용했을 때의 단건 가격 비교예요. 지금 무료인 운세는 더하지 않았어요.",
+    "en": "Compared with single-purchase prices, using each Light Reading that is paid today once and the full consultation allowance. Readings that are free today are not counted.",
+    "ja": "現在有料のライト占いを各1回と相談の利用枠をすべて使った場合の単品価格との比較です。現在無料の占いは含めていません。",
+    "zh-CN": "按目前收费的轻量运势各使用一次并用完咨询额度，与单次价格比较。目前免费的运势未计入。",
+    "zh-TW": "按目前收費的輕量運勢各使用一次並用完諮詢額度，與單次價格比較。目前免費的運勢未計入。",
+    "vi": "So với giá mua lẻ khi dùng mỗi bài xem nhẹ hiện đang thu phí một lần và dùng hết hạn mức tư vấn. Các bài hiện đang miễn phí không được tính.",
+    "hi": "अभी सशुल्क प्रत्येक लाइट रीडिंग को एक बार और पूरी परामर्श सीमा का उपयोग करने पर एकल खरीद मूल्यों से तुलना। अभी मुफ़्त रीडिंग नहीं गिनी गई हैं।",
+    "es": "Comparado con los precios individuales, usando una vez cada Lectura Ligera que hoy es de pago y todo el límite de consultas. Las lecturas que hoy son gratuitas no se cuentan.",
+    "fr": "Comparaison avec les prix unitaires, en utilisant une fois chaque Lecture Légère payante aujourd’hui et tout le plafond de consultation. Les lectures gratuites aujourd’hui ne sont pas comptées.",
+    "de": "Vergleich mit Einzelpreisen bei je einer Nutzung jeder heute kostenpflichtigen leichten Deutung und vollem Beratungskontingent. Heute kostenlose Deutungen sind nicht mitgezählt.",
+    "nl": "Vergeleken met losse prijzen, bij één keer gebruik van elke lichte duiding die nu betaald is en het volledige consulttegoed. Duidingen die nu gratis zijn, tellen niet mee.",
+    "ms": "Berbanding harga pembelian tunggal, dengan menggunakan setiap Bacaan Ringan yang kini berbayar sekali dan had konsultasi sepenuhnya. Bacaan yang kini percuma tidak dikira."
   },
   "home.benefitsCopy.terms": {
     "ko": "상품별 적용·제외 조건과 잔여 한도 안에서 이용할 수 있어요.",
@@ -434,18 +434,18 @@
     "ms": "{count} Bacaan Ringan, tanpa had kekerapan"
   },
   "home.benefitsCopy.lightWorth": {
-    "ko": "{amount}원 상당",
-    "en": "Worth KRW {amount}",
-    "ja": "{amount}ウォン相当",
-    "zh-CN": "价值{amount}韩元",
-    "zh-TW": "價值{amount}韓元",
-    "vi": "Trị giá {amount} KRW",
-    "hi": "{amount} KRW मूल्य",
-    "es": "Valor de {amount} KRW",
-    "fr": "D'une valeur de {amount} KRW",
-    "de": "Im Wert von {amount} KRW",
-    "nl": "Ter waarde van {amount} KRW",
-    "ms": "Bernilai {amount} KRW"
+    "ko": "지금 유료인 운세 기준 {amount}원 상당",
+    "en": "Worth KRW {amount}, counting only readings that are paid today",
+    "ja": "現在有料の占いだけで{amount}ウォン相当",
+    "zh-CN": "仅计目前收费的运势，价值{amount}韩元",
+    "zh-TW": "僅計目前收費的運勢，價值{amount}韓元",
+    "vi": "Trị giá {amount} KRW, chỉ tính các bài hiện đang thu phí",
+    "hi": "{amount} KRW मूल्य, केवल अभी सशुल्क रीडिंग गिनकर",
+    "es": "Valor de {amount} KRW, contando solo las lecturas que hoy son de pago",
+    "fr": "D'une valeur de {amount} KRW, en comptant seulement les lectures payantes aujourd'hui",
+    "de": "Im Wert von {amount} KRW, nur heute kostenpflichtige Deutungen gezählt",
+    "nl": "Ter waarde van {amount} KRW, alleen duidingen die nu betaald zijn meegeteld",
+    "ms": "Bernilai {amount} KRW, hanya mengira bacaan yang kini berbayar"
   },
   "home.benefitsCopy.consultLine": {
     "ko": "전문가 상담 이용 한도",

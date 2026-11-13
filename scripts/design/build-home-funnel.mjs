@@ -280,7 +280,7 @@ function localizedPassBenefits() {
   add('home.benefitsCopy.lightBanner', { count: lightCount });
   add('home.benefitsCopy.lightLine', { count: lightCount });
   add('home.benefitsCopy.lightListTitle', { count: lightCount });
-  add('home.benefitsCopy.lightWorth', { amount: lightFortunes.valueKRW.toLocaleString('ko-KR') });
+  add('home.benefitsCopy.lightWorth', { amount: lightFortunes.paidValueKRW.toLocaleString('ko-KR') });
   for (const offer of passBenefitOffers('honey')) {
     add('home.benefitsCopy.consultAmount', { amount: offer.consultLimit.toLocaleString('ko-KR') });
     if (!offer.family) add('home.benefitsCopy.consultCap', { amount: offer.cap.toLocaleString('ko-KR') });
@@ -334,7 +334,7 @@ vars.pass = '<script type="module" src="/js/core/pass-duet.js?v=build-0000000000
       <span class="cdh-pass__tier-line" data-cd-trans="home.overseasCopy.passTotal" data-cd-vars='{"amount":"${Number(plan.monthlyLimitCoin * 100).toLocaleString('en-US')}"}'>누적 ${won(plan.monthlyLimitCoin * 100)}까지</span>
     </a></li>`).join('')}
   </ul>
-  <p class="cdh-pass__light" data-cd-trans="home.gardenCopy.passLight" data-cd-vars='{"count":"${lightFortunes.count}","amount":"${lightFortunes.valueKRW.toLocaleString('en-US')}"}'>모든 꿀단지에 라이트 운세 ${lightFortunes.count}종이 횟수 제한 없이 포함돼요. 각 1회 기준 ${won(lightFortunes.valueKRW)} 상당이며, 대표 상담은 제외예요.</p>
+  <p class="cdh-pass__light" data-cd-trans="home.gardenCopy.passLight" data-cd-vars='{"count":"${lightFortunes.count}","amount":"${lightFortunes.paidValueKRW.toLocaleString('en-US')}"}'>모든 꿀단지에 라이트 운세 ${lightFortunes.count}종이 횟수 제한 없이 포함돼요. 지금 무료로 열려 있는 운세를 빼면 각 1회 기준 ${won(lightFortunes.paidValueKRW)} 상당이며, 대표 상담은 제외예요.</p>
   <p class="cdh-pass__note" data-cd-trans="home.gardenCopy.passNote">모든 꿀단지는 꿀꿀 운세와 영냥이에서 함께 쓸 수 있어요. 건당 상한 이하 상담에 적용됩니다. 이미 구매한 이용권의 상담 한도는 그대로이고, 라이트 운세 혜택은 사용 중인 이용권에도 적용됩니다.</p>
   <a class="cdh-pass__btn" href="/points/?source=flower-membership" data-cd-trans="home.gardenCopy.passCta">나에게 맞는 이용권 확인하기</a>
 </section>`;

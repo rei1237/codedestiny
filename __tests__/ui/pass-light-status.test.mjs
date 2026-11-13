@@ -118,7 +118,7 @@ test('shop lets an exhausted holder buy again', () => {
 test('shop plan card states the light fortune value from the generated file', () => {
   const client = read('app/points/PointsClient.tsx');
   assert.match(client, /light-fortunes\.generated\.json/);
-  assert.match(client, /lightFortunes\.valueKRW \+ /);
+  assert.match(client, /lightFortunes\.paidValueKRW \+ /);
   assert.match(client, /단건 결제 기준 이용 가치/);
   assert.doesNotMatch(client, /단건 기준 최대 이용 가치/);
 });

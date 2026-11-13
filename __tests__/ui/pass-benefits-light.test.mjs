@@ -7,6 +7,7 @@ import { JSDOM } from 'jsdom';
 import { LIGHT_FORTUNE_FEATURE_KEYS } from '../../worker/lib/light-fortune-catalog.js';
 import { listProducts, resolveProduct } from '../../worker/payments/catalog.js';
 import { CURRENT_PASS_PLANS } from '../../lib/payment/pass-policy.js';
+import { isFreeFortuneFeatureKey } from '../../lib/payment/free-fortune-policy.mjs';
 import { buildLightFortunes } from '../../scripts/lib/build-light-fortunes.mjs';
 import { passBenefitOffers, renderPassBenefits } from '../../lib/marketing/pass-benefits.mjs';
 
@@ -25,6 +26,10 @@ test('generated value equals registry sum', () => {
   assert.deepEqual([...data.keys].sort(), [...onSale].sort());
   assert.equal(data.count, onSale.length);
   assert.equal(data.valueKRW, onSale.reduce((sum, key) => sum + resolveProduct({ featureKey: key }).priceKRW, 0));
+  // 비교 금액은 지금 유료인 운세만 더한다. 무료 정책에 든 운세는 세지 않는다.
+  const paid = onSale.filter((key) => !isFreeFortuneFeatureKey(key));
+  assert.equal(data.freeCount, onSale.length - paid.length);
+  assert.equal(data.paidValueKRW, paid.reduce((sum, key) => sum + resolveProduct({ featureKey: key }).priceKRW, 0));
   const listed = listProducts().filter((product) => product.lightFortune).map((product) => product.featureKey);
   for (const key of listed) assert.ok(data.keys.includes(key), key + ' is sold as light but missing from the list');
 });
@@ -50,9 +55,9 @@ test('offer math', () => {
   const doc = body(renderPassBenefits('honey', 't'));
   for (const [index, offer] of offers.entries()) {
     const plan = Object.values(CURRENT_PASS_PLANS)[index];
-    const value = data.valueKRW + plan.monthlyLimitCoin * 100;
+    const value = data.paidValueKRW + plan.monthlyLimitCoin * 100;
     assert.equal(offer.value, value);
-    assert.equal(offer.lightValue, data.valueKRW);
+    assert.equal(offer.lightValue, data.paidValueKRW);
     assert.equal(offer.consultLimit, plan.monthlyLimitCoin * 100);
     const panel = text(doc.querySelector('#t-panel-' + index));
     assert.ok(panel.includes(`최대 ${Math.floor((1 - plan.wonPrice / value) * 100)}% 절약`), panel);
@@ -76,16 +81,17 @@ test('banner and panel copy', () => {
     const panel = doc.querySelector('#t-panel-' + index);
     const includes = text(panel.querySelector('.pb__includes'));
     assert.ok(includes.includes(`라이트 운세 ${data.count}종 횟수 제한 없이`), includes);
-    assert.ok(text(panel.querySelector('.pb__comparison')).includes(`${won(data.valueKRW)} 상당`));
+    assert.ok(text(panel.querySelector('.pb__comparison')).includes(`지금 유료인 운세 기준 ${won(data.paidValueKRW)} 상당`));
     assert.ok(includes.includes('전문가 상담 이용 한도'), includes);
     assert.ok(includes.includes(won(offer.consultLimit)), includes);
     assert.ok(text(panel.querySelector('.pb__conditions')).includes(offer.family ? '건당 금액 상한 없음' : `건당 ${won(offer.cap)} 이하`), includes);
     // 비교액과 그 근거는 같은 영역에서 함께 보인다.
     const basis = [...panel.querySelectorAll('.pb__terms')].find((node) => node.textContent.includes('각 1회'));
-    assert.equal(text(basis), '라이트 운세 각 1회와 상담 한도를 모두 이용했을 때의 단건 가격 비교예요.');
+    assert.equal(text(basis), '지금 유료인 라이트 운세 각 1회와 상담 한도를 모두 이용했을 때의 단건 가격 비교예요. 지금 무료인 운세는 더하지 않았어요.');
     assert.equal(basis.parentElement, panel.querySelector('.pb__comparison s').parentElement, 'the explanation travels with the comparison price');
     assert.equal(text(panel.querySelector('.pb__comparison span')), '단건 결제 기준 이용 가치');
-    const conditions = text(panel.querySelector('.pb__conditions'));
+    // 건당 상한을 넘는 상담에 쓸 수 없다는 안내는 접힌 영역이 아니라 바로 보이는 목록에 있다.
+    const conditions = includes;
     if (offer.family) assert.doesNotMatch(conditions, /대표 상담은 이 꿀단지로/);
     else assert.ok(conditions.includes(`건당 ${won(offer.cap)}을 넘는 대표 상담은 이 꿀단지로 이용할 수 없어요.`), conditions);
   }

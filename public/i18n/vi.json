@@ -1763,7 +1763,7 @@
       "brandOtherEntry": "꿀꿀 운세: Saju và Tarot với Yeongnyangi →",
       "publicRecordsTitle": "Hồ sơ phân tích công khai của Park Byung-ha (Neo), chuyên gia Saju với 10 năm kinh nghiệm",
       "publicRecordsLink": "Đối chiếu ngày, bài gốc và kết quả",
-      "passLight": "Mọi Hũ Mật Ong đều có {count} bài xem nhẹ không giới hạn lượt, trị giá {amount} KRW nếu tính mỗi bài một lần. Không gồm tư vấn tiêu biểu."
+      "passLight": "Mọi Hũ Mật Ong đều có {count} bài xem nhẹ không giới hạn lượt. Không tính các bài hiện đang miễn phí, chúng trị giá {amount} KRW nếu tính mỗi bài một lần. Không gồm tư vấn tiêu biểu."
     },
     "chatEntry": {
       "title": "Hỏi Yeoni và Neo điều bạn đang băn khoăn nhất",
@@ -2297,7 +2297,7 @@
       "unlimitedCap": "Không giới hạn giá mỗi dịch vụ",
       "percent": "Tiết kiệm tới {amount}%",
       "saving": "Tiết kiệm tới {amount} KRW",
-      "compare": "So với giá mua lẻ khi dùng mỗi bài xem nhẹ một lần và dùng hết hạn mức tư vấn.",
+      "compare": "So với giá mua lẻ khi dùng mỗi bài xem nhẹ hiện đang thu phí một lần và dùng hết hạn mức tư vấn. Các bài hiện đang miễn phí không được tính.",
       "terms": "Theo điều kiện áp dụng, loại trừ và hạn mức còn lại.",
       "cta": "Xem vé {name}",
       "validity": "Không có hạn dùng cố định · Không tự gia hạn",
@@ -2311,7 +2311,7 @@
       "lightBanner": "Chỉ một Hũ Mật Ong Nhỏ là mở được toàn bộ {count} bài xem nhẹ.",
       "lightBannerSub": "Dùng các bài xem nhẹ không giới hạn số lần, trừ tư vấn tiêu biểu. Hũ Vừa, Lớn và Gia Đình cũng đều có.",
       "lightLine": "{count} bài xem nhẹ, không giới hạn lượt",
-      "lightWorth": "Trị giá {amount} KRW",
+      "lightWorth": "Trị giá {amount} KRW, chỉ tính các bài hiện đang thu phí",
       "consultLine": "Hạn mức tư vấn chuyên gia",
       "consultAmount": "{amount} KRW",
       "consultCap": "(tối đa {amount} KRW mỗi lần)",

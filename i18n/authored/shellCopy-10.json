@@ -406,17 +406,17 @@
     "ms": "₩20,000"
   },
   "home.gardenCopy.passLight": {
-    "ko": "모든 꿀단지에 라이트 운세 {count}종이 횟수 제한 없이 포함돼요. 각 1회 기준 {amount}원 상당이며, 대표 상담은 제외예요.",
-    "en": "Every Honey Jar includes {count} Light Readings with unlimited uses, worth KRW {amount} at one use each. Signature consultations are not included.",
-    "ja": "すべてのはちみつ壺にライト占い{count}種が回数制限なく含まれます。各1回で{amount}ウォン相当です。代表相談は含まれません。",
-    "zh-CN": "所有蜜罐都包含{count}种轻量运势，不限次数。按各使用一次计算，价值{amount}韩元。招牌咨询不包含在内。",
-    "zh-TW": "所有蜜罐都包含{count}種輕量運勢，不限次數。按各使用一次計算，價值{amount}韓元。招牌諮詢不包含在內。",
-    "vi": "Mọi Hũ Mật Ong đều có {count} bài xem nhẹ không giới hạn lượt, trị giá {amount} KRW nếu tính mỗi bài một lần. Không gồm tư vấn tiêu biểu.",
-    "hi": "हर हनी जार में {count} लाइट रीडिंग असीमित उपयोग के साथ शामिल हैं, प्रत्येक एक बार के हिसाब से {amount} KRW मूल्य की। सिग्नेचर परामर्श शामिल नहीं हैं।",
-    "es": "Todos los Tarros de Miel incluyen {count} Lecturas Ligeras sin límite de usos, por valor de {amount} KRW con un uso de cada una. No incluyen las consultas destacadas.",
-    "fr": "Chaque Pot de Miel inclut {count} Lectures Légères en illimité, d’une valeur de {amount} KRW à raison d’une utilisation chacune. Les consultations phares ne sont pas incluses.",
-    "de": "Jeder Honigtopf enthält {count} leichte Deutungen ohne Nutzungslimit, im Wert von {amount} KRW bei je einer Nutzung. Signature-Beratungen sind nicht enthalten.",
-    "nl": "Elke honingpot bevat {count} lichte duidingen zonder gebruikslimiet, ter waarde van {amount} KRW bij één keer per duiding. Signature-consulten zijn niet inbegrepen.",
-    "ms": "Setiap Balang Madu menyertakan {count} Bacaan Ringan tanpa had kekerapan, bernilai {amount} KRW jika setiap satu digunakan sekali. Konsultasi utama tidak disertakan."
+    "ko": "모든 꿀단지에 라이트 운세 {count}종이 횟수 제한 없이 포함돼요. 지금 무료로 열려 있는 운세를 빼면 각 1회 기준 {amount}원 상당이며, 대표 상담은 제외예요.",
+    "en": "Every Honey Jar includes {count} Light Readings with unlimited uses. Leaving out the readings that are free today, they are worth KRW {amount} at one use each. Signature consultations are not included.",
+    "ja": "すべてのはちみつ壺にライト占い{count}種が回数制限なく含まれます。現在無料の占いを除くと、各1回で{amount}ウォン相当です。代表相談は含まれません。",
+    "zh-CN": "所有蜜罐都包含{count}种轻量运势，不限次数。扣除目前免费的运势后，按各使用一次计算，价值{amount}韩元。招牌咨询不包含在内。",
+    "zh-TW": "所有蜜罐都包含{count}種輕量運勢，不限次數。扣除目前免費的運勢後，按各使用一次計算，價值{amount}韓元。招牌諮詢不包含在內。",
+    "vi": "Mọi Hũ Mật Ong đều có {count} bài xem nhẹ không giới hạn lượt. Không tính các bài hiện đang miễn phí, chúng trị giá {amount} KRW nếu tính mỗi bài một lần. Không gồm tư vấn tiêu biểu.",
+    "hi": "हर हनी जार में {count} लाइट रीडिंग असीमित उपयोग के साथ शामिल हैं। अभी मुफ़्त रीडिंग को छोड़कर, प्रत्येक एक बार के हिसाब से इनका मूल्य {amount} KRW है। सिग्नेचर परामर्श शामिल नहीं हैं।",
+    "es": "Todos los Tarros de Miel incluyen {count} Lecturas Ligeras sin límite de usos. Sin contar las lecturas que hoy son gratuitas, valen {amount} KRW con un uso de cada una. No incluyen las consultas destacadas.",
+    "fr": "Chaque Pot de Miel inclut {count} Lectures Légères en illimité. Sans compter les lectures gratuites aujourd’hui, elles valent {amount} KRW à raison d’une utilisation chacune. Les consultations phares ne sont pas incluses.",
+    "de": "Jeder Honigtopf enthält {count} leichte Deutungen ohne Nutzungslimit. Ohne die heute kostenlosen Deutungen haben sie bei je einer Nutzung einen Wert von {amount} KRW. Signature-Beratungen sind nicht enthalten.",
+    "nl": "Elke honingpot bevat {count} lichte duidingen zonder gebruikslimiet. Zonder de duidingen die nu gratis zijn, zijn ze {amount} KRW waard bij één keer per duiding. Signature-consulten zijn niet inbegrepen.",
+    "ms": "Setiap Balang Madu menyertakan {count} Bacaan Ringan tanpa had kekerapan. Tanpa mengira bacaan yang kini percuma, nilainya {amount} KRW jika setiap satu digunakan sekali. Konsultasi utama tidak disertakan."
   }
 }

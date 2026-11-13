@@ -1763,7 +1763,7 @@
       "brandOtherEntry": "꿀꿀 운세 : Saju et tarot avec Yeongnyangi →",
       "publicRecordsTitle": "Analyses publiques de Park Byung-ha (Neo), spécialiste du Saju avec 10 ans d’expérience",
       "publicRecordsLink": "Comparer les dates, textes originaux et résultats",
-      "passLight": "Chaque Pot de Miel inclut {count} Lectures Légères en illimité, d’une valeur de {amount} KRW à raison d’une utilisation chacune. Les consultations phares ne sont pas incluses."
+      "passLight": "Chaque Pot de Miel inclut {count} Lectures Légères en illimité. Sans compter les lectures gratuites aujourd’hui, elles valent {amount} KRW à raison d’une utilisation chacune. Les consultations phares ne sont pas incluses."
     },
     "chatEntry": {
       "title": "Posez à Yeoni et Neo la question qui vous préoccupe le plus",
@@ -2297,7 +2297,7 @@
       "unlimitedCap": "Sans plafond de prix par service",
       "percent": "Économisez jusqu’à {amount}%",
       "saving": "Économisez jusqu’à {amount} KRW",
-      "compare": "Comparaison aux prix unitaires, avec chaque Lecture Légère utilisée une fois et tout le solde de consultations.",
+      "compare": "Comparaison avec les prix unitaires, en utilisant une fois chaque Lecture Légère payante aujourd’hui et tout le plafond de consultation. Les lectures gratuites aujourd’hui ne sont pas comptées.",
       "terms": "Selon les conditions, exclusions et le solde restant.",
       "cta": "Voir le pass {name}",
       "validity": "Sans durée fixe · Sans renouvellement automatique",
@@ -2311,7 +2311,7 @@
       "lightBanner": "Un seul Petit Pot de Miel ouvre les {count} Lectures Légères.",
       "lightBannerSub": "Profitez des Lectures Légères sans limite, hors consultations phares. Les pots Moyen, Grand et Famille les incluent aussi.",
       "lightLine": "{count} Lectures Légères, utilisations illimitées",
-      "lightWorth": "D'une valeur de {amount} KRW",
+      "lightWorth": "D'une valeur de {amount} KRW, en comptant seulement les lectures payantes aujourd'hui",
       "consultLine": "Solde de consultations expertes",
       "consultAmount": "{amount} KRW",
       "consultCap": "(jusqu’à {amount} KRW chacune)",

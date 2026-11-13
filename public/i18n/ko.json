@@ -1612,7 +1612,7 @@
       "brandOtherEntry": "꿀꿀 운세 영냥이 사주·타로 →",
       "publicRecordsTitle": "10년 경력 명리학자 박병하(네오)의 공개 분석 기록",
       "publicRecordsLink": "날짜·원문·일치 범위 확인하기",
-      "passLight": "모든 꿀단지에 라이트 운세 {count}종이 횟수 제한 없이 포함돼요. 각 1회 기준 {amount}원 상당이며, 대표 상담은 제외예요."
+      "passLight": "모든 꿀단지에 라이트 운세 {count}종이 횟수 제한 없이 포함돼요. 지금 무료로 열려 있는 운세를 빼면 각 1회 기준 {amount}원 상당이며, 대표 상담은 제외예요."
     },
     "chatEntry": {
       "title": "연이와 네오에게, 지금 가장 궁금한 한 가지",
@@ -2146,7 +2146,7 @@
       "unlimitedCap": "건당 금액 상한 없음",
       "percent": "최대 {amount}% 절약",
       "saving": "최대 {amount}원 절약",
-      "compare": "라이트 운세 각 1회와 상담 한도를 모두 이용했을 때의 단건 가격 비교예요.",
+      "compare": "지금 유료인 라이트 운세 각 1회와 상담 한도를 모두 이용했을 때의 단건 가격 비교예요. 지금 무료인 운세는 더하지 않았어요.",
       "terms": "상품별 적용·제외 조건과 잔여 한도 안에서 이용할 수 있어요.",
       "cta": "{name} 이용권 확인하기",
       "validity": "별도 이용 기간 없음 · 자동 갱신 없음",
@@ -2160,7 +2160,7 @@
       "lightBanner": "작은 꿀단지 하나면, 라이트 운세 {count}종이 전부 열려요.",
       "lightBannerSub": "대표 상담을 제외한 라이트 운세를 횟수 제한 없이 이용하세요. 중간·큰·패밀리 꿀단지에도 똑같이 포함돼요.",
       "lightLine": "라이트 운세 {count}종 횟수 제한 없이",
-      "lightWorth": "{amount}원 상당",
+      "lightWorth": "지금 유료인 운세 기준 {amount}원 상당",
       "consultLine": "전문가 상담 이용 한도",
       "consultAmount": "{amount}원",
       "consultCap": "(건당 {amount}원 이하)",
