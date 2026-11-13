@@ -185,7 +185,7 @@ const localEvidence={
  'neo-operation-room':{tossRoute:'/neo-operation-room/',status:'local-partial',inputContract:'worker/toss/native-neo.js',resultRenderer:'apps/toss/service/Screens.jsx',storageContract:'owned-TossPurchase; device-and-console-approval-pending'},
  'fusion-fortune':{tossRoute:'/fusion-fortune/',status:'local-partial',inputContract:'worker/toss/native-fusion.js',resultRenderer:'apps/toss/service/Fusion.jsx',storageContract:'owned-TossPurchase; device-and-console-approval-pending'},
  'life-book-ai':{tossRoute:'/life-book-ai/',status:'local-partial',inputContract:'worker/toss/native-life-book.js',resultRenderer:'apps/toss/service/LifeBook.jsx',storageContract:'owned-TossPurchase; device-and-console-approval-pending'},
- 'life-fortune-report':{tossRoute:'/life-book-ai/',status:'local-partial',inputContract:'worker/routes/life-book-ai.js:nativeLifeBookContract (lifeFortune mode)',resultRenderer:'apps/toss/service/LifeBook.jsx + app/life-book-ai/LifeBookAiClient.tsx',storageContract:'owned-TossPurchase with life-fortune-ai-consultation feature; device-and-console-approval-pending',verification:'apps/toss/test/fusion-billing.test.mjs covers payload and request id only; full parity pending'},
+ 'life-fortune-report':{tossRoute:'/life-book-ai/?mode=lifeFortune',status:'local-partial',inputContract:'worker/routes/life-book-ai.js:nativeLifeBookContract (lifeFortune mode)',resultRenderer:'apps/toss/service/LifeBook.jsx + app/life-book-ai/LifeBookAiClient.tsx',storageContract:'owned-TossPurchase with life-fortune-ai-consultation feature; device-and-console-approval-pending',verification:'life-reading-browser.mjs · 360px 원본 입력 → 독립 모의 가격·주문 2건 → 같은 계정 보관함 원문 → 다른 계정 URL 차단'},
  'love-secret-ai':{tossRoute:'/love-secret-ai/',status:'local-partial',inputContract:'worker/toss/native-love-secret.js',resultRenderer:'apps/toss/service/LoveSecret.jsx + app/love-secret-ai/result/LoveSecretAiResultClient.tsx',storageContract:'owned Toss purchase, Toss-origin consultation and verified follow-up recovery; approved SKU, purchaser binding, durable checkout and device verification pending',verification:'mock result and follow-up access, refund and account-switch tests; legacy unmarked web records, AI policy and official device remain unverified'},
  'astrology-ai':{tossRoute:'/astrology-ai/',status:'local-partial',inputContract:'worker/toss/native-astrology.js + nativeAstrologyContract',resultRenderer:'app/astrology-ai/AstrologyAiClient.tsx + app/astrology-ai/result/AstrologyAiResultClient.tsx',storageContract:'owned-TossPurchase and Toss-origin AstrologyAiConsultation; approved SKU, durable checkout, policy and device verification pending',verification:'mock-contracts-only; complete flow and official sandbox not verified'},
  'vedic-ai':{tossRoute:'/vedic-ai/',status:'local-partial',inputContract:'worker/toss/native-vedic.js + nativeVedicContract',resultRenderer:'app/vedic-ai/VedicAiClient.tsx',storageContract:'owned Toss purchase and Toss-origin VedicAiConsultation; approved SKU, durable checkout, policy and device verification pending',verification:'mock contracts, local mobile layout and build only; official Toss device and full flow not verified'},
@@ -255,6 +255,12 @@ for(const flow of TOSS_TAROT_LIBRARY_FLOWS){
   resultRenderer:'apps/toss/src/TarotLibrary.tsx',storageContract:flow.access==='free-local'?'local-reading-not-server-stored':flow.featureKeys.some(isFreeFortuneFeatureKey)?'canonical-free-calculation; previously paid orders retain stored result':'owned-TossPurchase-to-PaidExecutionRecord',
   verification:'mock-contracts-only; device-and-web-parity-pending'});
 }
+groups.set('lenormand-six',{id:'lenormand-six',discoveryIds:[],evidence:[{source:'app/tarot/prompt-maker/TarotPromptMakerClient.tsx',entry:'/tarot/prompt-maker/',implementation:'app/tarot/prompt-maker/data/lenormand.ts'}],status:'local-partial',tossRoute:'/tarot-library',sku:null,inputContract:'원본 36장에서 6장을 고른 뒤 로컬 프롬프트 작성',resultRenderer:'apps/toss/src/Lenormand.tsx',storageContract:'현재 화면의 무료 프롬프트',verification:'paid-tarot-browser.mjs · 360px 게스트 실제 카드 6장·프롬프트'});
+for(const id of ['tarot-mindscan','tarot-love-relationship','tarot-celestial-harmony','tarot-prompt-maker']){
+ const group=groups.get(id);
+ group.webGenerator='worker/toss/tarot-library-generator.js → 원본 웹 유료 전달 Worker';
+ group.verification='원본 공급자 mock 단위 194개. 오라클은 360px 77개 배열 중 12장 → 고유 등급 SKU → 이탈·원문 재열람 → 타 계정 차단. 천체 메이저 11장과 황금 통합 카드 별도 검사';
+}
 for(const row of rows){
  const group=groups.get(aliases[row.id]||row.id);
  if(!group)throw new Error('Missing canonical candidate for '+row.id);
@@ -297,6 +303,8 @@ const daily = readJson('worker/yeongnyangi/fortune/free/categories.json').map(({
 const letterProducts = ['yeoni','neo'].map(persona=>({
  persona,webEntry:'/fortune-chat/?character='+persona,webInput:'app/fortune-chat/ConsultationRoom.tsx',
  worker:'worker/routes/fortune-chat-consultations.js',result:'app/fortune-chat/ConsultationResult.tsx',
+ webVisibleModes:'기본 편지 폼에 6분야. 상담자별 등급형 21개는 웹 Worker catalog/prepare 계약',
+ verification:'letter-methods-browser.mjs 12개 기본 편지, letter-question-browser.mjs 두 상담자의 등급·프로필·추가 질문·재열람. 42개 등급형은 모의 소유·SKU 계약.',
  base:chatDomains.map(domain=>'chat_'+domain),questionProducts:chatQuestionProducts().map(product=>product.id),
  tossEntry:'/fortune-tea-house/?counsel=letter'+(persona==='neo'?'&persona=neo':''),library:'/records/',
  registered:APPROVED_TOSS_PRODUCTS.filter(row=>row.serviceId===persona).map(row=>row.productId),
@@ -341,6 +349,7 @@ for(const group of canonicalCandidates){
  ])];
  if(!group.webSources.length)group.webSources.push(...group.aliasEvidence.length?group.aliasEvidence:['index.html:FEATURE_VISUAL_DETAILS','js/core/service-registry.js']);
  group.webProductIds=matched.map(p=>p.productId);
+ if(group.id==='lenormand-six'){group.webEntries=['/tarot/prompt-maker/'];group.webSources.push('app/tarot/prompt-maker/data/lenormand.ts');}
  if(group.id==='home-widget')group.platformDependency='웹은 미리보기, 홈 위젯 설치는 HomeWidgetStudio.tsx의 Android Code Destiny 전용 네이티브 플러그인 필요';
  group.freeCalculation=keys.concat(group.webProductIds).some(isFreeFortuneFeatureKey);
  group.portStatus=group.tossRoute||group.publicSubflows?.length?'일부만 이식':'미이식';
@@ -387,6 +396,7 @@ for(const group of canonicalCandidates){
  }
  if(['juyuk-turtle','kemet-oracle','royal-tea-oracle'].includes(group.id))group.bundleVerification='20261114-9 Linux AIT 43463538068, 공개 홈에서 질문/점술 선택부터 원본 결과, 게스트, 360px 통과';
  if(group.id==='ziwei-island'||group.id==='home-widget')group.bundleVerification='f2e46d05a · Linux AIT 43468160819 일반 홈, 무구매 360px. 자미 12궁·초상 및 위젯 6개 구성을 확인';
+ if(group.id==='lenormand-six'){group.freeCalculation=true;group.tossLogin='게스트 공개';group.saleStatus='웹 무료 계산';}
  if(group.id==='saju-sibyl')group.tossLogin='연간 기본 분석 공개. 각 출생 프로필의 심층 연도별 보고서는 로그인·구매 필요';
  if(group.id==='palm-reading')group.tossLogin='분석 준비·주문·원문은 토스 계정 필요';
  if(group.id==='neo-consultation')group.tossLogin='질문과 견적 열람 가능, 모의 접수와 기록은 계정별';

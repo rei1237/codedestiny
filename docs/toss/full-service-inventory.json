@@ -1,5 +1,5 @@
 {
-  "sourceCommit": "a2f0898e522967e769a51cd048de1fefd12f284e",
+  "sourceCommit": "4ce9da961a19cd0601dc79ae56333a901bc72b6d",
   "sourceCounts": {
     "home": 63,
     "react": 18,
@@ -959,7 +959,7 @@
         "device": "not-tested",
         "canonicalId": "life-fortune-report",
         "candidateStatus": "local-partial",
-        "canonicalRoute": "/life-book-ai/"
+        "canonicalRoute": "/life-book-ai/?mode=lifeFortune"
       }
     },
     {
@@ -4659,6 +4659,42 @@
       "reread": "게스트 무료 키 openKemetModal. 현재 화면 결과"
     },
     {
+      "id": "lenormand-six",
+      "discoveryIds": [],
+      "evidence": [
+        {
+          "source": "app/tarot/prompt-maker/TarotPromptMakerClient.tsx",
+          "entry": "/tarot/prompt-maker/",
+          "implementation": "app/tarot/prompt-maker/data/lenormand.ts"
+        }
+      ],
+      "status": "local-partial",
+      "tossRoute": "/tarot-library",
+      "sku": null,
+      "inputContract": "원본 36장에서 6장을 고른 뒤 로컬 프롬프트 작성",
+      "resultRenderer": "apps/toss/src/Lenormand.tsx",
+      "storageContract": "현재 화면의 무료 프롬프트",
+      "verification": "paid-tarot-browser.mjs · 360px 게스트 실제 카드 6장·프롬프트",
+      "webEntries": [
+        "/tarot/prompt-maker/"
+      ],
+      "webSources": [
+        "app/tarot/prompt-maker/data/lenormand.ts",
+        "app/tarot/prompt-maker/page.tsx",
+        "app/tarot/prompt-maker/data/lenormand.ts"
+      ],
+      "webProductIds": [],
+      "freeCalculation": true,
+      "portStatus": "일부만 이식",
+      "reducedBundle": "구현은 있으나 진입 차단",
+      "currentEntry": "일반 홈의 진입 코드 확인",
+      "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
+      "tossLogin": "게스트 공개",
+      "tossResult": "apps/toss/src/Lenormand.tsx",
+      "reread": "현재 화면의 무료 프롬프트",
+      "saleStatus": "웹 무료 계산"
+    },
+    {
       "id": "life-book-ai",
       "discoveryIds": [
         "life-book-ai",
@@ -4740,12 +4776,12 @@
       ],
       "aliasEvidence": [],
       "status": "local-partial",
-      "tossRoute": "/life-book-ai/",
+      "tossRoute": "/life-book-ai/?mode=lifeFortune",
       "sku": null,
       "inputContract": "worker/routes/life-book-ai.js:nativeLifeBookContract (lifeFortune mode)",
       "resultRenderer": "apps/toss/service/LifeBook.jsx + app/life-book-ai/LifeBookAiClient.tsx",
       "storageContract": "owned-TossPurchase with life-fortune-ai-consultation feature; device-and-console-approval-pending",
-      "verification": "apps/toss/test/fusion-billing.test.mjs covers payload and request id only; full parity pending",
+      "verification": "life-reading-browser.mjs · 360px 원본 입력 → 독립 모의 가격·주문 2건 → 같은 계정 보관함 원문 → 다른 계정 URL 차단",
       "webEntries": [
         "/premium-unlock/",
         "/life-book-ai/ 내 인생 총운 선택"
@@ -7294,7 +7330,8 @@
       "inputContract": "lib/tarot/toss-library-flows.mjs",
       "resultRenderer": "apps/toss/src/TarotLibrary.tsx",
       "storageContract": "owned-TossPurchase-to-PaidExecutionRecord",
-      "verification": "mock-contracts-only; device-and-web-parity-pending",
+      "verification": "원본 공급자 mock 단위 194개. 오라클은 360px 77개 배열 중 12장 → 고유 등급 SKU → 이탈·원문 재열람 → 타 계정 차단. 천체 메이저 11장과 황금 통합 카드 별도 검사",
+      "webGenerator": "worker/toss/tarot-library-generator.js → 원본 웹 유료 전달 Worker",
       "webEntries": [
         "/celestial-harmony.html"
       ],
@@ -7484,7 +7521,8 @@
       "inputContract": "lib/tarot/toss-library-flows.mjs",
       "resultRenderer": "apps/toss/src/TarotLibrary.tsx",
       "storageContract": "owned-TossPurchase-to-PaidExecutionRecord",
-      "verification": "mock-contracts-only; device-and-web-parity-pending",
+      "verification": "원본 공급자 mock 단위 194개. 오라클은 360px 77개 배열 중 12장 → 고유 등급 SKU → 이탈·원문 재열람 → 타 계정 차단. 천체 메이저 11장과 황금 통합 카드 별도 검사",
+      "webGenerator": "worker/toss/tarot-library-generator.js → 원본 웹 유료 전달 Worker",
       "webEntries": [
         "openTarotLoveModal",
         "/index.html?action=openTarotLoveModal"
@@ -7537,7 +7575,8 @@
       "inputContract": "lib/tarot/toss-library-flows.mjs",
       "resultRenderer": "apps/toss/src/TarotLibrary.tsx",
       "storageContract": "owned-TossPurchase-to-PaidExecutionRecord",
-      "verification": "mock-contracts-only; device-and-web-parity-pending",
+      "verification": "원본 공급자 mock 단위 194개. 오라클은 360px 77개 배열 중 12장 → 고유 등급 SKU → 이탈·원문 재열람 → 타 계정 차단. 천체 메이저 11장과 황금 통합 카드 별도 검사",
+      "webGenerator": "worker/toss/tarot-library-generator.js → 원본 웹 유료 전달 Worker",
       "webEntries": [
         "/tarot/mindscan/"
       ],
@@ -7639,7 +7678,8 @@
       "inputContract": "lib/tarot/toss-library-flows.mjs",
       "resultRenderer": "apps/toss/src/TarotLibrary.tsx",
       "storageContract": "owned-TossPurchase-to-PaidExecutionRecord",
-      "verification": "mock-contracts-only; device-and-web-parity-pending",
+      "verification": "원본 공급자 mock 단위 194개. 오라클은 360px 77개 배열 중 12장 → 고유 등급 SKU → 이탈·원문 재열람 → 타 계정 차단. 천체 메이저 11장과 황금 통합 카드 별도 검사",
+      "webGenerator": "worker/toss/tarot-library-generator.js → 원본 웹 유료 전달 Worker",
       "webEntries": [
         "/tarot/prompt-maker"
       ],
@@ -11348,6 +11388,8 @@
       "webInput": "app/fortune-chat/ConsultationRoom.tsx",
       "worker": "worker/routes/fortune-chat-consultations.js",
       "result": "app/fortune-chat/ConsultationResult.tsx",
+      "webVisibleModes": "기본 편지 폼에 6분야. 상담자별 등급형 21개는 웹 Worker catalog/prepare 계약",
+      "verification": "letter-methods-browser.mjs 12개 기본 편지, letter-question-browser.mjs 두 상담자의 등급·프로필·추가 질문·재열람. 42개 등급형은 모의 소유·SKU 계약.",
       "base": [
         "chat_saju",
         "chat_ziwei",
@@ -11391,6 +11433,8 @@
       "webInput": "app/fortune-chat/ConsultationRoom.tsx",
       "worker": "worker/routes/fortune-chat-consultations.js",
       "result": "app/fortune-chat/ConsultationResult.tsx",
+      "webVisibleModes": "기본 편지 폼에 6분야. 상담자별 등급형 21개는 웹 Worker catalog/prepare 계약",
+      "verification": "letter-methods-browser.mjs 12개 기본 편지, letter-question-browser.mjs 두 상담자의 등급·프로필·추가 질문·재열람. 42개 등급형은 모의 소유·SKU 계약.",
       "base": [
         "chat_saju",
         "chat_ziwei",
