@@ -17,10 +17,13 @@ test('merged robots policy keeps every allow/disallow decision of the 2026-11-01
   const after = renderRobotsTxt();
   const { agents, paths } = samples(after);
   assert.ok(agents.includes('GPTBot') && agents.includes('Claude-SearchBot') && agents.includes('CCBot'), agents.join(' '));
-  for (const ua of agents) for (const path of paths) {
+  // /points/ 는 2026-11-13 결정으로 크롤 차단을 풀었다(noindex 를 읽게 하려고). 아래에서 따로 확인한다.
+  for (const ua of agents) for (const path of paths.filter((path) => !path.startsWith('/points/'))) {
     assert.equal(robotsAllows(after, path, ua), robotsAllows(before, path, ua), `${ua} ${path}`);
   }
   // 표본이 실제로 양쪽 판정을 다 밟는지(전부 허용·전부 차단이면 비교가 무의미하다).
+  assert.equal(robotsAllows(before, '/points/', 'googlebot'), false);
+  assert.equal(robotsAllows(after, '/points/', 'googlebot'), true);
   assert.equal(robotsAllows(after, '/?auth=1', 'googlebot'), false);
   assert.equal(robotsAllows(after, '/api/og', 'googlebot'), true);
   assert.equal(robotsAllows(after, '/saju/', 'CCBot'), false);
