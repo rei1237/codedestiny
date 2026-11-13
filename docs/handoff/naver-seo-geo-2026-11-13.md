@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-14
-next: 묶음 1의 1-2(로그인 안내)부터 1-12까지 순서대로. 아래 "1-2 이후 조사 메모"를 먼저 읽는다
+next: 묶음 1의 1-5(브랜드 + sameAs 카카오 채널)부터 1-10, 1-12, 1-11 순서로. "결과 기록"의 1-4 보류 사유와 조사 메모를 먼저 읽는다
 ---
 # 네이버 SEO·AEO·GEO + 구매 동선 (Phase 1~5)
 
@@ -63,9 +63,9 @@ Phase 0 보고서와 승인된 계획의 정본은 `docs/seo/phase0-report.md`�
 
 ### 묶음 1 — 급한 문제
 - [x] 1-1 무료 문구(C1): `i18n/authored/freePromo-01.json` 12개 언어. `lib/marketing/free-promo.mjs`는 UX 세션 push 뒤.
-- [ ] 1-2 로그인 안내(C2): `lib/fortune-landings.mjs`, `app/components/guide-cta-targets.js` CTA를 `/saju/free/`, `/ziwei/chart/`로. "로그인 후 확인" 문구 통일.
-- [ ] 1-3 천원 운세·챕터(C3·C4): `app/yeongnyangi/1000-won-fortune/page.tsx`. URL 유지.
-- [ ] 1-4 이용권 이름·구 가격(C5·C6): "꿀단지 이용권" 통일, `app/components/CommerceDisclosure.jsx`가 v5 가격을 읽게.
+- [x] 1-2 로그인 안내(C2): `lib/fortune-landings.mjs`, `app/components/guide-cta-targets.js` CTA를 `/saju/free/`, `/ziwei/chart/`로. "로그인 후 확인" 문구 통일.
+- [x] 1-3 천원 운세·챕터(C3·C4): `app/yeongnyangi/1000-won-fortune/page.tsx`. URL 유지.
+- [ ] 1-4 이용권 이름·구 가격(C5·C6): C6(`app/components/CommerceDisclosure.jsx`가 v5 가격을 읽게)은 끝. **C5("꿀단지 이용권" 통일)는 보류 — 사용자 결정 필요**(결과 기록 참고).
 - [ ] 1-5 브랜드(B1): `lib/brand/brand-facts.mjs`, `app/page.js`, 404 title, title 접미사, `lib/structured-data.ts`, `scripts/verify-home-identity.mjs`.
 - [ ] 1-6 홈 title·H1(B2): `docs/seo/meta-table.md` 표 작성 → **사용자 승인** → 적용.
 - [ ] 1-7 `/points/`(K1): `lib/seo/robots-policy.mjs` Disallow 제거, noindex 유지.
@@ -103,7 +103,22 @@ Phase 0 보고서와 승인된 계획의 정본은 `docs/seo/phase0-report.md`�
 - 검증: `node --test __tests__/ui/free-promo.test.mjs` 5/5. `npm run check:fast` — whitespace·lint·typecheck·verify:sitemap-drift·test:node(5,034/0)·verify 묶음·build:worker 통과. test:jest는 7,980개 중 22개 실패(`__tests__/worker/oracle-consultation.route.test.js` 503, `__tests__/worker/yeongnyangi-recovery.test.js` 모듈 찾기 실패)였으나 두 파일만 다시 돌리면 76/76 통과한다. 다른 세션이 PC를 같이 쓰는 부하에서 나는 흔들림으로 보이고(추정), 이번 변경과 무관한 worker 테스트다.
 - 환경 함정: 새 워크트리에는 gitignore된 `fortune/data/`가 없어 `test:node`가 "일일 패키지를 읽지 못했습니다"로 실패한다. `npm run fortune:build-data`를 먼저 돌린다(날짜가 바뀌면 다시). check:fast는 이 PC에서 30분 넘게 걸리니 백그라운드로 돌린다.
 
-### 1-2 이후 조사 메모(코드는 아직 안 고침, 2026-11-14 읽기만)
+### 1-2 로그인 안내(C2) — `0c319eaa3` (2026-11-14)
+- 바꾼 것: `app/components/guide-cta-targets.js` 8곳을 `{ href: "/saju/free/", label: "사주 보기", note: "무료 · 가입 없이" }`로. `lib/fortune-landings.mjs`의 `/saju`에 `href: '/saju/free/'`, `/ziwei`에 `href: '/ziwei/chart/'`. `app/components/FortuneLandingHero.tsx`는 `story.href`가 있고 지금 페이지가 아니면 그것을, 아니면 기존 `/ggulggul/?action=`을 쓴다(`/ziwei/chart`가 자기 자신으로 링크되지 않게). `scripts/verify-analytics-events.mjs` L354 기대값, `js/core/analytics.js` `SEARCH_CTA_ROUTES`에 두 경로 추가(+ public·index.html 미러).
+- 생성물: `npm run sitemap:generate` 결과 공용 컴포넌트 서명이 바뀌어 **URL 416개의 lastmod가 2026-11-14로 바뀌었다**(생성기 동작 그대로). 묶음 1을 한 번에 push하면 한 번의 변경으로 보인다.
+- 남긴 것: `lib/seo-landing-pages.js`의 ctaHref(계획 범위 밖, `__tests__/ui/organic-acquisition.test.mjs`가 고정), `app/compare/fortune-apps/page.tsx` L122·243과 천원 운세 페이지 표의 "무료 만세력은 로그인 후 결과 확인"(`/manse` 셸 흐름에는 사실이라 유지). 가이드 CTA note는 기존 패턴대로 데이터 파일의 한국어 리터럴이다(이 파일은 원래 i18n 키를 쓰지 않는다).
+- 검증: `node scripts/verify-analytics-events.mjs`, 관련 node 테스트, typecheck 통과(커밋 시점).
+
+### 1-3 천원 운세·챕터(C3·C4) — `58d404068` (2026-11-14)
+- 바꾼 것: `app/yeongnyangi/1000-won-fortune/page.tsx` — TITLE "영냥이 사주 상담 가격과 구성 | 옛 천원 운세 안내", DESCRIPTION·H1을 실제 상품(영냥이 사주 상담) 기준으로, 첫 문단에 "천원 운세는 지금은 끝난 예전 이벤트 이름이에요.", 예시와 체계 카드에 챕터 수의 기준(새 질문으로 시작하는 상담의 전체 N개 중 / 상담 종류를 골라 시작할 때 기준)을 밝혔다. 가격·챕터 숫자는 계속 정본에서 읽는다. URL·breadcrumb 유지.
+- 남긴 것: `FUN_ENTRY_HREF='/?action=cdOneStepFreeSajuEntry'`(L42)는 1-9에서 처리. `lib/seo/entity-registry.mjs` L40 title "천원 운세·천원사주 안내 — 라이트 사주 풀이"(llms.txt에 반영)는 그대로 — 1-5에서 llms를 다시 만들 때 같이 볼지 판단.
+- 검증: 이 페이지를 고정하는 node 테스트와 typecheck 통과(커밋 시점).
+
+### 1-4 구 가격(C6) — `410125d23` (2026-11-14), C5는 보류
+- 바꾼 것: `app/components/CommerceDisclosure.jsx`가 `lib/payment/pass-policy.js`의 `CURRENT_PASS_PLANS`(14,900 / 34,900 / 64,900 / 154,000원)를 읽는다. 정책 파일은 읽기만 했다.
+- **C5 보류 사유(사용자 결정 필요)**: "문라이트 패스(꿀단지 이용권)"는 `lib/brand/moonlight-guide.mjs`의 `MOONLIGHT_PASS_NAME`이고 `__tests__/ui/pass-consolidation-shop.test.mjs:35`가 고정한 기존 결정이다. "달빛 이용권"은 `app/_lib/billing-client.ts`(결제 동결 파일), `worker/payments/passes.js`, `index.html`, `app/points/PointsClient.tsx`(18회), 결제 검증 스크립트 등 30여 파일에 걸쳐 있고, 꿀단지 통합 작업(Play 등록·승인 대기)과 겹친다. 결제 파일을 건드리지 않고는 통일할 수 없어 고치지 않았다. 사용자가 (a) 대표 이름 하나를 정하고 (b) 결제 화면 문자열까지 바꿀지 정해야 한다.
+
+### 조사 메모(1-5 이후, 읽기만)
 - 1-2: `app/components/guide-cta-targets.js`에 `/ggulggul/?action=cdOneStepFreeSajuEntry` + `note: "무료 · 로그인 후 확인"`이 8곳. `lib/fortune-landings.mjs`는 `action` 필드만 있고 `app/components/FortuneLandingHero.tsx`가 `"/ggulggul/?action=" + story.action`으로 href를 만든다. 안: `/saju`·`/ziwei` 항목에 선택 필드 `href`(`/saju/free/`, `/ziwei/chart/`)를 두고 hero는 `story.href || …`. `getFortuneLanding('/ziwei/chart')`는 `/ziwei` 항목을 돌려주므로 자기 자신으로 링크되지 않게 확인한다. 같이 봐야 할 것: `scripts/verify-analytics-events.mjs` L354(hero href 기대값), `js/core/analytics.js` L720-726 `SEARCH_CTA_ROUTES`(`/saju/free/` 없음, public 미러 있음), `__tests__/ui/organic-acquisition.test.mjs:84`(manse ctaHref 고정). `/saju/free/`(`app/saju/free/FreeSajuForm.tsx`)가 로그인 없이 명식·오행을 계산하는 것은 확인했다.
 - 1-3: `app/yeongnyangi/1000-won-fortune/page.tsx` — TITLE L81, H1 L111, 8개=`EXPANDED_CHAPTERS.mackerel`, 5개=`mackerels[0].chapterCount`. 가격·챕터 숫자 하드코딩 금지 주석(L28-31), 제목·H1·설명에 "무료" 금지 테스트가 있다. `FUN_ENTRY_HREF='/?action=…'`(L42)는 1-9 대상.
 - 1-4: `app/components/CommerceDisclosure.jsx` L34가 `PASS_MONTHLY_WON`(구 가격 9,900/29,900/59,000/149,000)을 표시한다. `lib/payment/pass-policy.js`의 `CURRENT_PASS_PLANS`(14,900/34,900/64,900/154,000)를 읽게 바꾼다. 정책 파일은 읽기만.
