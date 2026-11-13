@@ -1,5 +1,5 @@
 {
-  "sourceCommit": "4fed481722c8f042c454a3d0c5cc3ab2045fbf03",
+  "sourceCommit": "2239d63a2cb9cde91beec759ff9d8dad5b29d6bf",
   "sourceCounts": {
     "home": 63,
     "react": 18,
@@ -2847,8 +2847,8 @@
         "library": "not-verified",
         "device": "not-tested",
         "canonicalId": "yoga-guru",
-        "candidateStatus": "requires-full-flow-port-and-verification",
-        "canonicalRoute": null
+        "candidateStatus": "local-partial",
+        "canonicalRoute": "/yoga-guru"
       }
     },
     {
@@ -7927,12 +7927,13 @@
         }
       ],
       "aliasEvidence": [],
-      "status": "requires-full-flow-port-and-verification",
-      "tossRoute": null,
+      "status": "local-partial",
+      "tossRoute": "/yoga-guru",
       "sku": null,
-      "inputContract": null,
-      "resultRenderer": null,
-      "storageContract": null,
+      "inputContract": "yoga-guru.html에서 현재 몸·마음 자유서술 및 30분 가네샤 또는 60분 시바 코스 선택. 웹의 두 openYogaGuru 사유와 같은 상품 yoga-guru-per-use, 각 5,000원. 출생정보를 요구하지 않는다",
+      "resultRenderer": "apps/toss/src/YogaGuru.tsx + apps/toss/canonical/yoga-course.mjs가 원본 renderCourse, buildTypingLines, 생성 음악 6종과 카드 리더 사용. worker/routes/yoga-guru.js의 yogaNarrativeAdapter와 웹 공통 js/core/yoga-guru-prompts.js",
+      "storageContract": "TossNativeConsultation의 소유자·환경·주문·입력 해시에 결합한 ServiceExecutionTransaction 원문. 웹 주문과 별개. 꿀꿀운세 구매 기록에서 생성 재개·완료 원문 읽기. 토스 계정과 주문별 마지막 단계는 기기에 저장",
+      "verification": "studio-yoga-browser.mjs 360px, 홈→mock 로그인→입력 복원→30/60분 전용 가상 IAP→생성 중 이탈→구매 기록→저장 원문·음악 전환·단계 복원, 타 계정 결과 차단. 원본 Worker와 토스 경계 32개, 웹 UI 3개. 토스 SKU 미등록·실기기 미검증",
       "webEntries": [
         "/yoga-guru.html"
       ],
@@ -7945,13 +7946,14 @@
         "yoga-guru-per-use"
       ],
       "freeCalculation": false,
-      "portStatus": "미이식",
-      "reducedBundle": "홈 진입 없음",
-      "currentEntry": "연결 경로 없음",
+      "portStatus": "일부만 이식",
+      "reducedBundle": "구현은 있으나 진입 차단",
+      "currentEntry": "일반 홈의 진입 코드 확인",
       "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
-      "tossLogin": "토스 기능 미연결",
-      "tossResult": "결과 화면 연결 미확인",
-      "reread": "재열람 경로 미확인"
+      "tossLogin": "구매·기록에 토스 계정 필요",
+      "tossResult": "apps/toss/src/YogaGuru.tsx + apps/toss/canonical/yoga-course.mjs가 원본 renderCourse, buildTypingLines, 생성 음악 6종과 카드 리더 사용. worker/routes/yoga-guru.js의 yogaNarrativeAdapter와 웹 공통 js/core/yoga-guru-prompts.js",
+      "reread": "TossNativeConsultation의 소유자·환경·주문·입력 해시에 결합한 ServiceExecutionTransaction 원문. 웹 주문과 별개. 꿀꿀운세 구매 기록에서 생성 재개·완료 원문 읽기. 토스 계정과 주문별 마지막 단계는 기기에 저장",
+      "saleStatus": "콘솔·운영 설정 필요"
     },
     {
       "id": "ziwei",
