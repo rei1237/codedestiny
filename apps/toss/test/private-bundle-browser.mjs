@@ -1,7 +1,8 @@
 // Exercise the HTML and hashed assets inside the distributable itself.
 // No development server, network credentials, live Worker or native IAP.
 import assert from 'node:assert/strict';
-import {readFile} from 'node:fs/promises';
+import {mkdir,readFile} from 'node:fs/promises';
+import {join} from 'node:path';
 import {createServer} from 'node:http';
 import {createRequire} from 'node:module';
 import {extname} from 'node:path';
@@ -29,10 +30,20 @@ try{
   browser=await chromium.launch({channel:'chrome'});
   const page=await browser.newPage({viewport:{width:360,height:740},serviceWorkers:'block'});
   await page.route('**/*',route=>new URL(route.request().url()).origin===origin?route.continue():route.abort());
+  const evidence=process.env.TOSS_ARTIFACT_QA_DIR;
+  async function capture(name){
+    if(!evidence)return;
+    await mkdir(evidence,{recursive:true});
+    await page.evaluate(async()=>{await document.fonts.ready;await Promise.all([...document.images].map(img=>img.decode().catch(()=>{})));});
+    await page.screenshot({path:join(evidence,name+'-360.png')});
+  }
   await page.goto(origin);
+  await page.locator('.world-entry-yeongnyangi').waitFor();
+  await capture('home');
   await page.locator('.world-entry-yeongnyangi').click();
   await page.getByRole('heading',{name:/달빛 점술방/}).waitFor();
   assert.ok(await page.locator('.world-cat').evaluate(img=>img.complete&&img.naturalWidth>0));
+  await capture('moonlight-room');
   await page.getByRole('searchbox').fill('이직');
   const guide=page.locator('.moonlight-questions li a').first();
   const question=await guide.locator('strong').innerText();
@@ -40,6 +51,7 @@ try{
   await page.locator('textarea').filter({visible:true}).first().waitFor();
   assert.ok((await page.locator('textarea').evaluateAll(items=>items.map(el=>el.value))).includes(question),'selected web question reaches input');
   assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
+  await capture('question');
   console.log('PASS Linux AIT, normal home → original character art → question search → prefilled original consultation at 360px',bundle.deploymentId);
 }finally{
   await browser?.close();

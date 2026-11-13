@@ -414,11 +414,36 @@ for(const group of canonicalCandidates){
    group.reducedBundle='홈 진입 없음';
   }
  }
+ const coreTarot=['tarot','tarot-healing','tarot-self-esteem'];
+ if(coreTarot.includes(group.id)){
+  group.resultRenderer='apps/toss/src/CoreTarot.tsx + apps/toss/service/core-tarot-loader.mjs';
+  group.tossResult=group.resultRenderer;
+  group.tossLogin='게스트 입력과 원본 결과 공개';
+  group.verification='core-tarot-browser.mjs 360px 일반 홈에서 오늘 1장, 태양 회복 4장, 자기 기준 5장. local-tarot-parity.test.mjs 원문 352조합 및 156개 카드 대조';
+  group.portStatus='이미 동작';group.freeCalculation=true;group.saleStatus='공개 리딩 · 토스 구매 없음';
+ }
+ const paidTarot=['tarot-celestial-harmony','tarot-love-relationship','tarot-mindscan','tarot-prompt-maker'];
+ if(paidTarot.includes(group.id)){group.tossLogin='배열·질문·카드 입력은 공개. 유료 생성과 저장 원문은 주문 소유 계정으로 인증';group.saleStatus='콘솔·운영 설정 필요';}
+ const accessByService={
+  maya:'기본 달력 공개. 유료 프롬프트는 소유 계정 필요',
+  omikuji:'비회원 뽑기 가능. 같은 탭의 임시 복구는 로그인 계정별',
+  psychotest:'게스트 검사 가능. 현재 화면에서만 결과 열람',
+  'saju-fpti':'게스트 계산 가능. 현재 탭의 저장 결과는 같은 로그인 계정으로 재열람',
+  'saju-guardian':'보관한 출생정보와 구매 원문은 토스 계정 필요',
+  sukuyo:'기본 본명숙 입력 정책은 SukuyoBasic.tsx, 전문가 궁합은 별도 로그인·주문',
+  ziwei:'기본 명반과 12궁은 게스트 계산. 별도 심층 결과는 로그인·소유 확인',
+ };
+ if(accessByService[group.id])group.tossLogin=accessByService[group.id];
+ if(['juyuk-turtle','kemet-oracle','royal-tea-oracle','stonehenge-runes','ifa-oracle','olympus-oracle'].includes(group.id))group.portStatus='이미 동작';
+ if(['fortune-chat','neo-letter'].includes(group.id)){group.verification=letterProducts[0].verification;group.saleStatus='기본·질문 편지별 콘솔 원장 확인 필요';}
+ if(group.id==='yeongnyangi')group.saleStatus='상품별 승인된 독립 SKU만 원장에 기록. 신규 판매 보류';
+ if(group.id==='life-book-ai'||group.id==='life-fortune-report')group.verification='life-reading-browser.mjs 360px 홈, 두 상품 각각의 모의 주문 → 원문 → 구매 기록 재열람·다른 계정 차단';
  if(!group.verification){
   const checks={'animal-destiny':'animal-destiny.test.mjs',astrology:'basic-sky-chart.test.mjs · basic-sky-ui.test.mjs',vedic:'basic-sky-chart.test.mjs · basic-sky-ui.test.mjs','bias-destiny':'bias-report.test.mjs',flower:'flower.test.mjs · flower-ui.test.mjs','famous-saju':'famous-archive.test.mjs',novel:'novel-reader.test.mjs',music:'music-shelf.test.mjs',manse:'manse-ui.test.mjs',saju:'basic-saju-flow.test.mjs','fortune-tea-house':'room-browser.mjs','neo-operation-room':'room-browser.mjs','yeongnyangi-daily':'daily-ui.test.mjs · daily.test.mjs','fusion-fortune':'fusion-billing.test.mjs · native-fusion-boundary.test.mjs',yeongnyangi:'studio-browser.mjs · private-bundle-owner-browser.mjs'};
   group.verification=checks[group.id]?'apps/toss/test/ '+checks[group.id]+' · 개별 검사 범위. 실제 기기 미검증':group.tossRoute?'입구와 결과 소스 대조. 독립적인 전체 사용자 경로 검증 근거 미기록':'독립적인 일반 홈 경로 미확인';
  }
- if(nativeSource[group.id]||['heukwol-consult','palm-reading','neo-consultation'].includes(group.id))group.saleStatus='콘솔·운영 설정 필요';
+ if(nativeSource[group.id]||['heukwol-consult','palm-reading','neo-consultation','saju-guardian','saju-sibyl','maya','pet-saju','yeongnyangi-prashna'].includes(group.id))group.saleStatus='유료 상품 콘솔·운영 설정 필요';
+ if(!group.saleStatus)group.saleStatus=group.freeCalculation?'기본 계산은 구매 없음 · 부가 상품은 별도 행 참조':'현재 기능에 신규 구매 버튼 없음';
 }
 const registeredProducts=APPROVED_TOSS_PRODUCTS.map(({serviceId,productId,sku,priceEvidence,approvedPriceKRW})=>({serviceId,productId,sku,priceEvidence,approvedPriceKRW}));
 const report={

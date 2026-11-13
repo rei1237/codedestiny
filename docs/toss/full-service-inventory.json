@@ -1,5 +1,5 @@
 {
-  "sourceCommit": "264499c991749ba3b58c309e3ea12ce629732583",
+  "sourceCommit": "938f68502f0d0756fa4a8aa306e4f4ee220be01d",
   "sourceCounts": {
     "home": 63,
     "react": 18,
@@ -3046,7 +3046,8 @@
       "tossLogin": "공개 진입",
       "tossResult": "apps/toss/src/AnimalDestiny.tsx",
       "reread": "화면 메모리. 계정 변경 시 TossSessionScope 재설정",
-      "verification": "apps/toss/test/ animal-destiny.test.mjs · 개별 검사 범위. 실제 기기 미검증"
+      "verification": "apps/toss/test/ animal-destiny.test.mjs · 개별 검사 범위. 실제 기기 미검증",
+      "saleStatus": "기본 계산은 구매 없음 · 부가 상품은 별도 행 참조"
     },
     {
       "id": "animal-totem",
@@ -3108,7 +3109,7 @@
       "tossLogin": "구매·기록에 토스 계정 필요",
       "tossResult": "웹 AnimalTotemContentEngine 및 worker/routes/animal-totem.js 원본 프롬프트, 카드별 메시지·행동·그림자",
       "reread": "기본·심화 상품별 주문 원문, 생성 재개 및 소유 보관함",
-      "saleStatus": "콘솔·운영 설정 필요"
+      "saleStatus": "유료 상품 콘솔·운영 설정 필요"
     },
     {
       "id": "astrology",
@@ -3165,7 +3166,8 @@
       "tossLogin": "계산 또는 기록 조회에 토스 계정 필요",
       "tossResult": "apps/toss/src/BasicSkyChart.tsx",
       "reread": "result in memory only; guest/web profiles, wheel, original unlocks and device parity pending",
-      "verification": "apps/toss/test/ basic-sky-chart.test.mjs · basic-sky-ui.test.mjs · 개별 검사 범위. 실제 기기 미검증"
+      "verification": "apps/toss/test/ basic-sky-chart.test.mjs · basic-sky-ui.test.mjs · 개별 검사 범위. 실제 기기 미검증",
+      "saleStatus": "현재 기능에 신규 구매 버튼 없음"
     },
     {
       "id": "astrology-ai",
@@ -3210,7 +3212,7 @@
       "tossLogin": "구매·기록에 토스 계정 필요",
       "tossResult": "app/astrology-ai/AstrologyAiClient.tsx + app/astrology-ai/result/AstrologyAiResultClient.tsx",
       "reread": "owned-TossPurchase and Toss-origin AstrologyAiConsultation; approved SKU, durable checkout, policy and device verification pending",
-      "saleStatus": "콘솔·운영 설정 필요"
+      "saleStatus": "유료 상품 콘솔·운영 설정 필요"
     },
     {
       "id": "bias-destiny",
@@ -3257,7 +3259,8 @@
       "tossLogin": "공개 진입",
       "tossResult": "apps/toss/src/BiasReading.tsx + BiasReport.tsx",
       "reread": "native-card-save-summary-share-mocked; device-and-web-history-parity-pending",
-      "verification": "apps/toss/test/ bias-report.test.mjs · 개별 검사 범위. 실제 기기 미검증"
+      "verification": "apps/toss/test/ bias-report.test.mjs · 개별 검사 범위. 실제 기기 미검증",
+      "saleStatus": "기본 계산은 구매 없음 · 부가 상품은 별도 행 참조"
     },
     {
       "id": "career-style",
@@ -3303,7 +3306,8 @@
       "tossLogin": "계산 또는 기록 조회에 토스 계정 필요",
       "tossResult": "apps/toss/service/TossCareerStyle.jsx + app/saju/career-style/CareerStyleClient.tsx",
       "reread": "계정별 프로필을 사용한 무료 개인 명식 8장. 실기기 미검증",
-      "verification": "입구와 결과 소스 대조. 독립적인 전체 사용자 경로 검증 근거 미기록"
+      "verification": "입구와 결과 소스 대조. 독립적인 전체 사용자 경로 검증 근거 미기록",
+      "saleStatus": "기본 계산은 구매 없음 · 부가 상품은 별도 행 참조"
     },
     {
       "id": "consultation-webtoons",
@@ -3338,7 +3342,8 @@
       "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
       "tossLogin": "공개 진입",
       "tossResult": "apps/toss/src/StoryLibrary.tsx + app/components/webtoon/CutReader.tsx",
-      "reread": "게스트 공개 14편. 읽던 이야기는 URL의 story로 유지"
+      "reread": "게스트 공개 14편. 읽던 이야기는 URL의 story로 유지",
+      "saleStatus": "현재 기능에 신규 구매 버튼 없음"
     },
     {
       "id": "cosmic-soul-meditation",
@@ -3380,7 +3385,8 @@
       "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
       "tossLogin": "계산 또는 기록 조회에 토스 계정 필요",
       "tossResult": "apps/toss/src/CosmicMeditation.tsx + apps/toss/canonical/cosmic-sessions.mjs",
-      "reread": "토스 소유 계정별 기기 저널 최근 50개와 통계. 무료 키 cosmic-soul-meditation"
+      "reread": "토스 소유 계정별 기기 저널 최근 50개와 통계. 무료 키 cosmic-soul-meditation",
+      "saleStatus": "기본 계산은 구매 없음 · 부가 상품은 별도 행 참조"
     },
     {
       "id": "destiny-compass",
@@ -3430,7 +3436,8 @@
       "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
       "tossLogin": "기본 차트·퀘스트 공개",
       "tossResult": "JourneyHub, DestinyMap, CompassReport, TodayQuest, Arrival; worker/routes/destiny-compass.js:narrate",
-      "reread": "기기별 마지막 무료 차트, 소유자·게스트 구분"
+      "reread": "기기별 마지막 무료 차트, 소유자·게스트 구분",
+      "saleStatus": "기본 계산은 구매 없음 · 부가 상품은 별도 행 참조"
     },
     {
       "id": "destiny-compass-crossroads",
@@ -3467,7 +3474,8 @@
       "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
       "tossLogin": "토스 로그인 후 무료 판독",
       "tossResult": "app/destiny-compass/_components/Crossroads.tsx",
-      "reread": "기기 마지막 차트에서 무료 재계산. 웹 과거 주문은 웹 보관 계정 소유"
+      "reread": "기기 마지막 차트에서 무료 재계산. 웹 과거 주문은 웹 보관 계정 소유",
+      "saleStatus": "기본 계산은 구매 없음 · 부가 상품은 별도 행 참조"
     },
     {
       "id": "destiny-compass-deep-report",
@@ -3509,7 +3517,7 @@
       "tossLogin": "구매·기록에 토스 계정 필요",
       "tossResult": "app/destiny-compass/_components/SavedCompassReport.tsx",
       "reread": "토스 소유 주문과 묶은 DestinyCompassReport의 미완료 상태 및 구매 기록 원문",
-      "saleStatus": "콘솔·운영 설정 필요"
+      "saleStatus": "유료 상품 콘솔·운영 설정 필요"
     },
     {
       "id": "destiny-compass-future-sim",
@@ -3546,7 +3554,8 @@
       "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
       "tossLogin": "토스 로그인 후 무료 판독",
       "tossResult": "app/destiny-compass/_components/FutureSim.tsx",
-      "reread": "기기 마지막 차트에서 무료 재계산. 웹 과거 주문은 웹 보관 계정 소유"
+      "reread": "기기 마지막 차트에서 무료 재계산. 웹 과거 주문은 웹 보관 계정 소유",
+      "saleStatus": "기본 계산은 구매 없음 · 부가 상품은 별도 행 참조"
     },
     {
       "id": "destiny-compass-life-voyage",
@@ -3583,7 +3592,8 @@
       "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
       "tossLogin": "토스 로그인 후 무료 판독",
       "tossResult": "app/destiny-compass/_components/LifeVoyage.tsx",
-      "reread": "기기 마지막 차트에서 무료 재계산. 웹 과거 주문은 웹 보관 계정 소유"
+      "reread": "기기 마지막 차트에서 무료 재계산. 웹 과거 주문은 웹 보관 계정 소유",
+      "saleStatus": "기본 계산은 구매 없음 · 부가 상품은 별도 행 참조"
     },
     {
       "id": "destiny-meeting-place",
@@ -3635,7 +3645,8 @@
       "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
       "tossLogin": "계산 또는 기록 조회에 토스 계정 필요",
       "tossResult": "apps/toss/service/TossMeetingPlace.tsx + DestinyMeetingPlaceResult.tsx",
-      "reread": "웹처럼 계정 확인 후 현재 화면. 직접 출생 입력 또는 소유 프로필 선택"
+      "reread": "웹처럼 계정 확인 후 현재 화면. 직접 출생 입력 또는 소유 프로필 선택",
+      "saleStatus": "기본 계산은 구매 없음 · 부가 상품은 별도 행 참조"
     },
     {
       "id": "dream",
@@ -3735,7 +3746,7 @@
       "tossLogin": "구매·기록에 토스 계정 필요",
       "tossResult": "apps/toss/service/TossDream.tsx 및 worker/routes/dream.js의 원본 5장·10부분 생성",
       "reread": "동일 토스 계정의 주문·저장된 원문. 기존 작업 재개와 환불·타 계정 접근 거절",
-      "saleStatus": "콘솔·운영 설정 필요"
+      "saleStatus": "유료 상품 콘솔·운영 설정 필요"
     },
     {
       "id": "energy-travel",
@@ -3805,7 +3816,8 @@
       "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
       "tossLogin": "공개 입력 · 구매 없음",
       "tossResult": "apps/toss/src/PublicSectionReading.tsx",
-      "reread": "리포트는 화면 메모리. 최근 여행지·룰렛 당첨 ID는 기기에서 게스트·토스 계정과 출생 입력별로 분리해 앱 재실행 후 복원"
+      "reread": "리포트는 화면 메모리. 최근 여행지·룰렛 당첨 ID는 기기에서 게스트·토스 계정과 출생 입력별로 분리해 앱 재실행 후 복원",
+      "saleStatus": "기본 계산은 구매 없음 · 부가 상품은 별도 행 참조"
     },
     {
       "id": "face-reading",
@@ -3852,7 +3864,8 @@
       "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
       "tossLogin": "공개 진입",
       "tossResult": "apps/toss/service/TossFace.jsx에서 웹 AnalysisEngine.js와 PhysiognomyUI.js 실행",
-      "reread": "게스트 기기 내 판독. 수집한 이미지·점과 원본 결제 주문 분리"
+      "reread": "게스트 기기 내 판독. 수집한 이미지·점과 원본 결제 주문 분리",
+      "saleStatus": "현재 기능에 신규 구매 버튼 없음"
     },
     {
       "id": "famous-saju",
@@ -3899,7 +3912,8 @@
       "tossLogin": "공개 진입",
       "tossResult": "apps/toss/src/FamousSaju.tsx",
       "reread": "public articles only; historical archive, detail deep links and device parity pending",
-      "verification": "apps/toss/test/ famous-archive.test.mjs · 개별 검사 범위. 실제 기기 미검증"
+      "verification": "apps/toss/test/ famous-archive.test.mjs · 개별 검사 범위. 실제 기기 미검증",
+      "saleStatus": "현재 기능에 신규 구매 버튼 없음"
     },
     {
       "id": "flower",
@@ -3981,7 +3995,8 @@
       "tossLogin": "계산 또는 기록 조회에 토스 계정 필요",
       "tossResult": "apps/toss/src/FlowerReading.tsx",
       "reread": "not-stored-by-current-policy",
-      "verification": "apps/toss/test/ flower.test.mjs · flower-ui.test.mjs · 개별 검사 범위. 실제 기기 미검증"
+      "verification": "apps/toss/test/ flower.test.mjs · flower-ui.test.mjs · 개별 검사 범위. 실제 기기 미검증",
+      "saleStatus": "현재 기능에 신규 구매 버튼 없음"
     },
     {
       "id": "fortune-chat",
@@ -4013,7 +4028,7 @@
       "inputContract": "worker/toss/letter.js + worker/toss/services.js",
       "resultRenderer": "apps/toss/service/TossLetterRoom.tsx + app/fortune-chat/ConsultationIntake.tsx",
       "storageContract": "persona-bound-TossPurchase-to-YeongnyangiRequest; official device and approved SKU pending",
-      "verification": "original Yeoni letter intake and owner-bound recovery are mocked; full web parity and device tests pending",
+      "verification": "letter-methods-browser.mjs 12개 기본 편지, letter-question-browser.mjs 두 상담자의 등급·프로필·추가 질문·재열람. 42개 등급형은 모의 소유·SKU 계약.",
       "webEntries": [
         "/fortune-chat/"
       ],
@@ -4031,7 +4046,8 @@
       "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
       "tossLogin": "구매·기록에 토스 계정 필요",
       "tossResult": "apps/toss/service/TossLetterRoom.tsx + app/fortune-chat/ConsultationIntake.tsx",
-      "reread": "persona-bound-TossPurchase-to-YeongnyangiRequest; official device and approved SKU pending"
+      "reread": "persona-bound-TossPurchase-to-YeongnyangiRequest; official device and approved SKU pending",
+      "saleStatus": "기본·질문 편지별 콘솔 원장 확인 필요"
     },
     {
       "id": "fortune-tea-house",
@@ -4083,7 +4099,7 @@
       "tossResult": "apps/toss/service/Screens.jsx",
       "reread": "owned-TossPurchase; device-and-console-approval-pending",
       "verification": "apps/toss/test/ room-browser.mjs · 개별 검사 범위. 실제 기기 미검증",
-      "saleStatus": "콘솔·운영 설정 필요"
+      "saleStatus": "유료 상품 콘솔·운영 설정 필요"
     },
     {
       "id": "fusion-fortune",
@@ -4136,7 +4152,7 @@
       "tossResult": "apps/toss/service/Fusion.jsx",
       "reread": "owned-TossPurchase; device-and-console-approval-pending",
       "verification": "apps/toss/test/ fusion-billing.test.mjs · native-fusion-boundary.test.mjs · 개별 검사 범위. 실제 기기 미검증",
-      "saleStatus": "콘솔·운영 설정 필요"
+      "saleStatus": "유료 상품 콘솔·운영 설정 필요"
     },
     {
       "id": "geomancy-oracle",
@@ -4188,7 +4204,7 @@
       "tossLogin": "구매·기록에 토스 계정 필요",
       "tossResult": "worker/routes/oracle.js 7부분 원본 프롬프트·생성, apps/toss/service/TossGeomancy.tsx",
       "reread": "동일 주문의 흙점과 결과 원문. 꿀꿀운세 기록에 토스 소유권 적용",
-      "saleStatus": "콘솔·운영 설정 필요"
+      "saleStatus": "유료 상품 콘솔·운영 설정 필요"
     },
     {
       "id": "health-rhythm",
@@ -4259,7 +4275,8 @@
       "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
       "tossLogin": "공개 입력 · 구매 없음",
       "tossResult": "apps/toss/src/PublicSectionReading.tsx",
-      "reread": "현재 화면 메모리"
+      "reread": "현재 화면 메모리",
+      "saleStatus": "기본 계산은 구매 없음 · 부가 상품은 별도 행 참조"
     },
     {
       "id": "heukwol-consult",
@@ -4295,7 +4312,7 @@
       "tossLogin": "구매·기록에 토스 계정 필요",
       "tossResult": "apps/toss/service/TossHeukwol.tsx + app/heukwol/HeukwolResult.tsx",
       "reread": "TossNativeConsultation과 소유 구매. 원 주문과 마지막 성공 장에서 복구. 신규 SKU 미등록",
-      "saleStatus": "콘솔·운영 설정 필요"
+      "saleStatus": "유료 상품 콘솔·운영 설정 필요"
     },
     {
       "id": "heukwol-story",
@@ -4329,7 +4346,8 @@
       "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
       "tossLogin": "공개 진입",
       "tossResult": "apps/toss/src/StoryLibrary.tsx + app/components/webtoon/CutReader.tsx",
-      "reread": "공개 서장. 유료 흑월 상담과 별도"
+      "reread": "공개 서장. 유료 흑월 상담과 별도",
+      "saleStatus": "현재 기능에 신규 구매 버튼 없음"
     },
     {
       "id": "home-widget",
@@ -4364,7 +4382,8 @@
       "bundleVerification": "f2e46d05a · Linux AIT 43468160819 일반 홈, 무구매 360px. 자미 12궁·초상 및 위젯 6개 구성을 확인",
       "tossLogin": "공개 진입",
       "tossResult": "app/app/home-widget/HomeWidgetStudio.tsx의 미리보기",
-      "reread": "게스트 미리보기. OS 홈 고정은 기존 Android 앱 플러그인 전용"
+      "reread": "게스트 미리보기. OS 홈 고정은 기존 Android 앱 플러그인 전용",
+      "saleStatus": "현재 기능에 신규 구매 버튼 없음"
     },
     {
       "id": "human-design",
@@ -4413,7 +4432,8 @@
       "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
       "tossLogin": "계산 또는 기록 조회에 토스 계정 필요",
       "tossResult": "apps/toss/src/HumanDesignChart.tsx + original interactive BodyGraph and DetailSheet",
-      "reread": "screen-only free chart; no saved result or cross-device recovery"
+      "reread": "screen-only free chart; no saved result or cross-device recovery",
+      "saleStatus": "현재 기능에 신규 구매 버튼 없음"
     },
     {
       "id": "ifa-oracle",
@@ -4458,13 +4478,14 @@
         "ifa-oracle"
       ],
       "freeCalculation": true,
-      "portStatus": "일부만 이식",
+      "portStatus": "이미 동작",
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "일반 홈의 진입 코드 확인",
       "bundleVerification": "Linux AIT c3a960736 · 43460223398 · 360px 일반 홈에서 게스트 입력과 원본 결과 확인. private-bundle-public-readings.mjs tarot olympus; 네이티브 공유는 기기 미검증",
       "tossLogin": "공개 입력 · 구매 없음",
       "tossResult": "apps/toss/src/IfaReading.tsx",
-      "reread": "현재 화면. 토스 저장·공유는 실기기 확인 필요"
+      "reread": "현재 화면. 토스 저장·공유는 실기기 확인 필요",
+      "saleStatus": "기본 계산은 구매 없음 · 부가 상품은 별도 행 참조"
     },
     {
       "id": "island-consult",
@@ -4505,7 +4526,8 @@
       "tossLogin": "안내는 공개. 기록·출생 프로필 열람은 기존 웹 계정으로 인증",
       "tossResult": "웹 /records/ 원본 궁별 기록, /island-consult/?view=report 원래 저장 프로필의 고정 12궁 리포트",
       "reread": "웹 궁별 AI는 완료·부분 저장 원문, 별도 고정 12궁 리포트는 원래 웹 계정과 출생정보 권리로 원본을 계산",
-      "verification": "web-history-browser.mjs 360px. 원본 Worker 신규 AI 준비·생성에 410 ISLAND_NOW_FREE. GET /result 소유자·환불·부분 원문 및 별도 고정 리포트의 birthKey 권한 mock 테스트"
+      "verification": "web-history-browser.mjs 360px. 원본 Worker 신규 AI 준비·생성에 410 ISLAND_NOW_FREE. GET /result 소유자·환불·부분 원문 및 별도 고정 리포트의 birthKey 권한 mock 테스트",
+      "saleStatus": "현재 기능에 신규 구매 버튼 없음"
     },
     {
       "id": "juyuk-turtle",
@@ -4548,13 +4570,14 @@
         "openJuyukModal"
       ],
       "freeCalculation": true,
-      "portStatus": "일부만 이식",
+      "portStatus": "이미 동작",
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "일반 홈의 진입 코드 확인",
       "bundleVerification": "20261114-9 Linux AIT 43463538068, 공개 홈에서 질문/점술 선택부터 원본 결과, 게스트, 360px 통과",
       "tossLogin": "공개 진입",
       "tossResult": "apps/toss/src/TurtleOracle.tsx + apps/toss/canonical/turtle-oracle.mjs",
-      "reread": "게스트 공개, 화면 결과. 기존 웹 주문 정책과 별개"
+      "reread": "게스트 공개, 화면 결과. 기존 웹 주문 정책과 별개",
+      "saleStatus": "기본 계산은 구매 없음 · 부가 상품은 별도 행 참조"
     },
     {
       "id": "karma-destiny-ai",
@@ -4607,7 +4630,7 @@
       "tossLogin": "구매·기록에 토스 계정 필요",
       "tossResult": "apps/toss/service/TossKarma.tsx + app/karma-destiny-ai/result/KarmaDestinyAiResultClient.tsx",
       "reread": "owner-scoped Toss intent and original KarmaDestinyAiConsultation; approved SKU, purchaser binding, durable checkout and device verification pending",
-      "saleStatus": "콘솔·운영 설정 필요"
+      "saleStatus": "유료 상품 콘솔·운영 설정 필요"
     },
     {
       "id": "kemet-oracle",
@@ -4650,13 +4673,14 @@
         "openKemetModal"
       ],
       "freeCalculation": true,
-      "portStatus": "일부만 이식",
+      "portStatus": "이미 동작",
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "일반 홈의 진입 코드 확인",
       "bundleVerification": "20261114-9 Linux AIT 43463538068, 공개 홈에서 질문/점술 선택부터 원본 결과, 게스트, 360px 통과",
       "tossLogin": "공개 진입",
       "tossResult": "apps/toss/src/KemetOracle.tsx + apps/toss/canonical/kemet-oracle.mjs",
-      "reread": "게스트 무료 키 openKemetModal. 현재 화면 결과"
+      "reread": "게스트 무료 키 openKemetModal. 현재 화면 결과",
+      "saleStatus": "기본 계산은 구매 없음 · 부가 상품은 별도 행 참조"
     },
     {
       "id": "lenormand-six",
@@ -4756,8 +4780,8 @@
       "tossLogin": "구매·기록에 토스 계정 필요",
       "tossResult": "apps/toss/service/LifeBook.jsx",
       "reread": "owned-TossPurchase; device-and-console-approval-pending",
-      "verification": "입구와 결과 소스 대조. 독립적인 전체 사용자 경로 검증 근거 미기록",
-      "saleStatus": "콘솔·운영 설정 필요"
+      "verification": "life-reading-browser.mjs 360px 홈, 두 상품 각각의 모의 주문 → 원문 → 구매 기록 재열람·다른 계정 차단",
+      "saleStatus": "유료 상품 콘솔·운영 설정 필요"
     },
     {
       "id": "life-fortune-report",
@@ -4781,7 +4805,7 @@
       "inputContract": "worker/routes/life-book-ai.js:nativeLifeBookContract (lifeFortune mode)",
       "resultRenderer": "apps/toss/service/LifeBook.jsx + app/life-book-ai/LifeBookAiClient.tsx",
       "storageContract": "owned-TossPurchase with life-fortune-ai-consultation feature; device-and-console-approval-pending",
-      "verification": "life-reading-browser.mjs · 360px 원본 입력 → 독립 모의 가격·주문 2건 → 같은 계정 보관함 원문 → 다른 계정 URL 차단",
+      "verification": "life-reading-browser.mjs 360px 홈, 두 상품 각각의 모의 주문 → 원문 → 구매 기록 재열람·다른 계정 차단",
       "webEntries": [
         "/premium-unlock/",
         "/life-book-ai/ 내 인생 총운 선택"
@@ -4801,7 +4825,7 @@
       "tossLogin": "구매·기록에 토스 계정 필요",
       "tossResult": "apps/toss/service/LifeBook.jsx + app/life-book-ai/LifeBookAiClient.tsx",
       "reread": "owned-TossPurchase with life-fortune-ai-consultation feature; device-and-console-approval-pending",
-      "saleStatus": "콘솔·운영 설정 필요"
+      "saleStatus": "유료 상품 콘솔·운영 설정 필요"
     },
     {
       "id": "life-skill-tree",
@@ -4879,7 +4903,8 @@
       "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
       "tossLogin": "공개 입력 · 구매 없음",
       "tossResult": "apps/toss/src/PublicSectionReading.tsx",
-      "reread": "클래스 시트는 화면 메모리. 게스트의 퀘스트·EXP는 기기 저장, 로그인 후 계정별 진행 조회·완료·이관"
+      "reread": "클래스 시트는 화면 메모리. 게스트의 퀘스트·EXP는 기기 저장, 로그인 후 계정별 진행 조회·완료·이관",
+      "saleStatus": "기본 계산은 구매 없음 · 부가 상품은 별도 행 참조"
     },
     {
       "id": "love-code",
@@ -4938,7 +4963,8 @@
       "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
       "tossLogin": "탐색과 상대 매칭은 공개. 시뮬레이션 시작 시 토스 로그인 확인",
       "tossResult": "app/saju/love-simulation/_components/LoveSimulationEngine.tsx + 원본 명식·호감 점수·스토리",
-      "reread": "현재 세션의 원본 결말. 다음 진입 때 다시 플레이. 타 계정 프로필·웹 결제 복구와 독립"
+      "reread": "현재 세션의 원본 결말. 다음 진입 때 다시 플레이. 타 계정 프로필·웹 결제 복구와 독립",
+      "saleStatus": "기본 계산은 구매 없음 · 부가 상품은 별도 행 참조"
     },
     {
       "id": "love-secret-ai",
@@ -4991,7 +5017,7 @@
       "tossLogin": "구매·기록에 토스 계정 필요",
       "tossResult": "apps/toss/service/LoveSecret.jsx + app/love-secret-ai/result/LoveSecretAiResultClient.tsx",
       "reread": "owned Toss purchase, Toss-origin consultation and verified follow-up recovery; approved SKU, purchaser binding, durable checkout and device verification pending",
-      "saleStatus": "콘솔·운영 설정 필요"
+      "saleStatus": "유료 상품 콘솔·운영 설정 필요"
     },
     {
       "id": "luck-sync-diary",
@@ -5051,7 +5077,8 @@
       "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
       "tossLogin": "공개 진입",
       "tossResult": "apps/toss/src/FortuneDiary.tsx + app/diary/_components 원본",
-      "reread": "게스트/토스 계정별 기기 저장. 원본 일/월 샤드로 재실행 후 읽기"
+      "reread": "게스트/토스 계정별 기기 저장. 원본 일/월 샤드로 재실행 후 읽기",
+      "saleStatus": "현재 기능에 신규 구매 버튼 없음"
     },
     {
       "id": "manse",
@@ -5098,7 +5125,8 @@
       "tossLogin": "계산 또는 기록 조회에 토스 계정 필요",
       "tossResult": "apps/toss/src/ManseReading.tsx",
       "reread": "screen-only; web-profile-history-parity-pending",
-      "verification": "apps/toss/test/ manse-ui.test.mjs · 개별 검사 범위. 실제 기기 미검증"
+      "verification": "apps/toss/test/ manse-ui.test.mjs · 개별 검사 범위. 실제 기기 미검증",
+      "saleStatus": "현재 기능에 신규 구매 버튼 없음"
     },
     {
       "id": "master-love-codex",
@@ -5151,7 +5179,7 @@
       "tossLogin": "구매·기록에 토스 계정 필요",
       "tossResult": "원본 인연의 서 20장 세션과 결과 리더",
       "reread": "개인판 토스 주문과 소유 계정의 저장 원문",
-      "saleStatus": "콘솔·운영 설정 필요"
+      "saleStatus": "유료 상품 콘솔·운영 설정 필요"
     },
     {
       "id": "master-love-codex-compat",
@@ -5195,7 +5223,7 @@
       "tossLogin": "구매·기록에 토스 계정 필요",
       "tossResult": "원본 궁합판 20장 세션과 결과 리더",
       "reread": "궁합판 토스 주문과 소유 계정의 저장 원문",
-      "saleStatus": "콘솔·운영 설정 필요"
+      "saleStatus": "유료 상품 콘솔·운영 설정 필요"
     },
     {
       "id": "maya",
@@ -5240,9 +5268,10 @@
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "일반 홈의 진입 코드 확인",
       "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
-      "tossLogin": "기능별 단계 검증 필요",
+      "tossLogin": "기본 달력 공개. 유료 프롬프트는 소유 계정 필요",
       "tossResult": "apps/toss/service/TossMayaPrompt.tsx + src/components/maya/MayaCalendarView.tsx",
-      "reread": "owner-scoped prepared input, paid prompt and explicit unassigned-order recovery; production index and approved SKU pending"
+      "reread": "owner-scoped prepared input, paid prompt and explicit unassigned-order recovery; production index and approved SKU pending",
+      "saleStatus": "유료 상품 콘솔·운영 설정 필요"
     },
     {
       "id": "mbti-animal-compat",
@@ -5290,7 +5319,8 @@
       "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
       "tossLogin": "공개 진입",
       "tossResult": "apps/toss/src/AstralAnimals.tsx",
-      "reread": "게스트 화면 계산. 두 동물 256쌍 원본 점수·조언"
+      "reread": "게스트 화면 계산. 두 동물 256쌍 원본 점수·조언",
+      "saleStatus": "기본 계산은 구매 없음 · 부가 상품은 별도 행 참조"
     },
     {
       "id": "music",
@@ -5337,7 +5367,8 @@
       "tossLogin": "공개 진입",
       "tossResult": "apps/toss/src/MusicShelf.tsx",
       "reread": "stream only; paid downloads, library and device audio parity pending",
-      "verification": "apps/toss/test/ music-shelf.test.mjs · 개별 검사 범위. 실제 기기 미검증"
+      "verification": "apps/toss/test/ music-shelf.test.mjs · 개별 검사 범위. 실제 기기 미검증",
+      "saleStatus": "현재 기능에 신규 구매 버튼 없음"
     },
     {
       "id": "nakshatra",
@@ -5388,7 +5419,8 @@
       "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
       "tossLogin": "출생 개인 계산·도감 게스트 공개",
       "tossResult": "apps/toss/src/MansionReading.tsx + app/nakshatra/_components/LifeReading.tsx",
-      "reread": "게스트 현재 화면 무료 리딩 5개 주제. 기존 웹 주문·개인 AI 리포트 별도"
+      "reread": "게스트 현재 화면 무료 리딩 5개 주제. 기존 웹 주문·개인 AI 리포트 별도",
+      "saleStatus": "기본 계산은 구매 없음 · 부가 상품은 별도 행 참조"
     },
     {
       "id": "nakshatra-ai",
@@ -5442,7 +5474,7 @@
       "tossLogin": "구매·기록에 토스 계정 필요",
       "tossResult": "apps/toss/src/MansionConsultation.tsx + app/nakshatra/ai/AiConsultDecks.tsx + worker/routes/nakshatra-ai.js + worker/lib/nakshatra-ai-prompt.js",
       "reread": "토스 주문을 원래 NakshatraAiConsultation(소유자·idempotencyKey·inputHash)에 결합. 꿀꿀운세 구매 기록으로 9장 원문을 다시 연다. 웹의 기구매·환불 경로와 분리",
-      "saleStatus": "콘솔·운영 설정 필요"
+      "saleStatus": "유료 상품 콘솔·운영 설정 필요"
     },
     {
       "id": "nakshatra-compat",
@@ -5495,7 +5527,8 @@
       "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
       "tossLogin": "두 사람 계산은 토스 로그인 필요",
       "tossResult": "apps/toss/src/MansionReading.tsx + app/nakshatra/compat/CompatResultView.tsx",
-      "reread": "토스 로그인·무료 현재 화면 계산. 기존 웹 구매 GET은 웹 원장과 소유 인증으로 유지"
+      "reread": "토스 로그인·무료 현재 화면 계산. 기존 웹 구매 GET은 웹 원장과 소유 인증으로 유지",
+      "saleStatus": "기본 계산은 구매 없음 · 부가 상품은 별도 행 참조"
     },
     {
       "id": "nakshatra-dasha-map",
@@ -5533,7 +5566,8 @@
       "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
       "tossLogin": "계산 또는 기록 조회에 토스 계정 필요",
       "tossResult": "apps/toss/src/MansionReports.tsx + app/nakshatra/dasha-map/PeriodRow.tsx 원본 타임라인",
-      "reread": "무료 키와 계정을 확인하고 재계산. 웹의 과거 영구 해금은 웹 원장에 유지"
+      "reread": "무료 키와 계정을 확인하고 재계산. 웹의 과거 영구 해금은 웹 원장에 유지",
+      "saleStatus": "기본 계산은 구매 없음 · 부가 상품은 별도 행 참조"
     },
     {
       "id": "nakshatra-lord-report",
@@ -5571,7 +5605,8 @@
       "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
       "tossLogin": "계산 또는 기록 조회에 토스 계정 필요",
       "tossResult": "apps/toss/src/MansionReports.tsx. 원본 지배성과 파다·기질·근거 11개 절",
-      "reread": "무료 기능 키를 확인하고 같은 계정의 저장된 출생으로 재계산. 웹의 예전 영구 해금은 웹 원장에 유지"
+      "reread": "무료 기능 키를 확인하고 같은 계정의 저장된 출생으로 재계산. 웹의 예전 영구 해금은 웹 원장에 유지",
+      "saleStatus": "기본 계산은 구매 없음 · 부가 상품은 별도 행 참조"
     },
     {
       "id": "nakshatra-muhurta",
@@ -5622,7 +5657,8 @@
       "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
       "tossLogin": "계산 또는 기록 조회에 토스 계정 필요",
       "tossResult": "apps/toss/src/MansionReports.tsx + worker/toss/mansion-reports.js + worker/routes/nakshatra-premium.js",
-      "reread": "웹과 같은 인증 필요. 무료 키를 재확인하고 현재 화면에 추천·유의일·60일과 원문 해설, 주문 없음"
+      "reread": "웹과 같은 인증 필요. 무료 키를 재확인하고 현재 화면에 추천·유의일·60일과 원문 해설, 주문 없음",
+      "saleStatus": "기본 계산은 구매 없음 · 부가 상품은 별도 행 참조"
     },
     {
       "id": "nakshatra-vvip-codex",
@@ -5674,7 +5710,8 @@
       "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
       "tossLogin": "계산 또는 기록 조회에 토스 계정 필요",
       "tossResult": "apps/toss/src/MansionReports.tsx + worker/toss/mansion-reports.js + worker/routes/nakshatra-premium.js",
-      "reread": "무료 키를 확인하고 토스 로그인 후 5장 전체·27수 지형·지배성 세부 장과 다샤 타임라인 해설. 현재 화면에 표시"
+      "reread": "무료 키를 확인하고 토스 로그인 후 5장 전체·27수 지형·지배성 세부 장과 다샤 타임라인 해설. 현재 화면에 표시",
+      "saleStatus": "기본 계산은 구매 없음 · 부가 상품은 별도 행 참조"
     },
     {
       "id": "naming-ai",
@@ -5725,7 +5762,7 @@
       "tossLogin": "후보·입력은 게스트. 유료 상담과 기록은 토스 로그인 필요",
       "tossResult": "apps/toss/service/TossNaming.tsx, worker/routes/naming-prompt.js의 8장",
       "reread": "꿀꿀 기록에서 토스 소유 주문의 저장 원문",
-      "saleStatus": "콘솔·운영 설정 필요"
+      "saleStatus": "유료 상품 콘솔·운영 설정 필요"
     },
     {
       "id": "neo-consultation",
@@ -5765,7 +5802,7 @@
       "tossLogin": "질문과 견적 열람 가능, 모의 접수와 기록은 계정별",
       "tossResult": "worker/neo-consultation/service.js 수동 검토·답변 이메일. 토스 개발 fixture에서 접수 원문과 상태 재열람",
       "reread": "새 manual_email 주문은 서버에 답변 본문 없음. 기존 웹 주문 계약 별도. 토스 실판매 비활성",
-      "saleStatus": "콘솔·운영 설정 필요"
+      "saleStatus": "유료 상품 콘솔·운영 설정 필요"
     },
     {
       "id": "neo-letter",
@@ -5784,7 +5821,7 @@
       "inputContract": "app/fortune-chat/ConsultationIntake.tsx + worker/toss/letter.js",
       "resultRenderer": "apps/toss/service/TossLetterRoom.tsx + app/fortune-chat/ConsultationResult.tsx",
       "storageContract": "꿀꿀운세 구매 기록. 상담자·계정·주문 소유권 검사",
-      "verification": "letter-browser.mjs 360px 두 상담자의 사주 결과 및 계정 교체. 각 6개 분야 mock 상품 매핑",
+      "verification": "letter-methods-browser.mjs 12개 기본 편지, letter-question-browser.mjs 두 상담자의 등급·프로필·추가 질문·재열람. 42개 등급형은 모의 소유·SKU 계약.",
       "webEntries": [
         "/fortune-chat/?character=neo"
       ],
@@ -5800,7 +5837,8 @@
       "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
       "tossLogin": "구매·기록에 토스 계정 필요",
       "tossResult": "apps/toss/service/TossLetterRoom.tsx + app/fortune-chat/ConsultationResult.tsx",
-      "reread": "꿀꿀운세 구매 기록. 상담자·계정·주문 소유권 검사"
+      "reread": "꿀꿀운세 구매 기록. 상담자·계정·주문 소유권 검사",
+      "saleStatus": "기본·질문 편지별 콘솔 원장 확인 필요"
     },
     {
       "id": "neo-operation-room",
@@ -5857,7 +5895,7 @@
       "tossResult": "apps/toss/service/Screens.jsx",
       "reread": "owned-TossPurchase; device-and-console-approval-pending",
       "verification": "apps/toss/test/ room-browser.mjs · 개별 검사 범위. 실제 기기 미검증",
-      "saleStatus": "콘솔·운영 설정 필요"
+      "saleStatus": "유료 상품 콘솔·운영 설정 필요"
     },
     {
       "id": "neville-meditation",
@@ -5907,7 +5945,8 @@
       "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
       "tossLogin": "계산 또는 기록 조회에 토스 계정 필요",
       "tossResult": "apps/toss/src/NevilleMeditation.tsx + apps/toss/canonical/neville-courses.mjs",
-      "reread": "토스 로그인 후 회차별 현재 화면 진행. 주문·LLM 없음"
+      "reread": "토스 로그인 후 회차별 현재 화면 진행. 주문·LLM 없음",
+      "saleStatus": "기본 계산은 구매 없음 · 부가 상품은 별도 행 참조"
     },
     {
       "id": "new-year-ai",
@@ -5960,7 +5999,7 @@
       "tossLogin": "구매·기록에 토스 계정 필요",
       "tossResult": "app/new-year-ai-consultation/NewYearAiClient.tsx",
       "reread": "owned Toss purchase and Toss-origin NewYearAiConsultation; approved SKU, durable checkout, policy and device verification pending",
-      "saleStatus": "콘솔·운영 설정 필요"
+      "saleStatus": "유료 상품 콘솔·운영 설정 필요"
     },
     {
       "id": "novel",
@@ -6007,7 +6046,8 @@
       "tossLogin": "공개 진입",
       "tossResult": "apps/toss/src/NovelReader.tsx",
       "reread": "in-screen reading position only; persistent bookmark, visual/audio and device parity pending",
-      "verification": "apps/toss/test/ novel-reader.test.mjs · 개별 검사 범위. 실제 기기 미검증"
+      "verification": "apps/toss/test/ novel-reader.test.mjs · 개별 검사 범위. 실제 기기 미검증",
+      "saleStatus": "현재 기능에 신규 구매 버튼 없음"
     },
     {
       "id": "olympus-oracle",
@@ -6044,13 +6084,14 @@
         "olympus-fc"
       ],
       "freeCalculation": true,
-      "portStatus": "일부만 이식",
+      "portStatus": "이미 동작",
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "일반 홈의 진입 코드 확인",
       "bundleVerification": "Linux AIT c3a960736 · 43460223398 · 360px 일반 홈에서 게스트 입력과 원본 결과 확인. private-bundle-public-readings.mjs tarot olympus; 네이티브 공유는 기기 미검증",
       "tossLogin": "공개 입력 · 구매 없음",
       "tossResult": "apps/toss/src/OlympusDaily.tsx + lib/fortune/olympus-daily.mjs (OlympusVIPLounge.jsx 공유)",
-      "reread": "게스트 수동 입력, 현재 화면 결과. 꽃돼지 프로필에서 여는 여덟 행성 라운지와 커플 궁합은 별도"
+      "reread": "게스트 수동 입력, 현재 화면 결과. 꽃돼지 프로필에서 여는 여덟 행성 라운지와 커플 궁합은 별도",
+      "saleStatus": "기본 계산은 구매 없음 · 부가 상품은 별도 행 참조"
     },
     {
       "id": "omikuji",
@@ -6104,9 +6145,10 @@
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "일반 홈의 진입 코드 확인",
       "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
-      "tossLogin": "기능별 단계 검증 필요",
+      "tossLogin": "비회원 뽑기 가능. 같은 탭의 임시 복구는 로그인 계정별",
       "tossResult": "apps/toss/service/TossOmikuji.jsx",
-      "reread": "signed-in owner-scoped session-only input and result recovery; guest result remains in memory; no cross-device record"
+      "reread": "signed-in owner-scoped session-only input and result recovery; guest result remains in memory; no cross-device record",
+      "saleStatus": "현재 기능에 신규 구매 버튼 없음"
     },
     {
       "id": "palm-reading",
@@ -6167,7 +6209,7 @@
       "tossLogin": "분석 준비·주문·원문은 토스 계정 필요",
       "tossResult": "app/palm-reading/PalmDestinyMain.tsx · worker/routes/palm.js Vision 근거 및 심층 해석",
       "reread": "사진 없이 입력 해시와 준비한 판독을 보관. 결제한 토스 계정만 원문 열기",
-      "saleStatus": "콘솔·운영 설정 필요"
+      "saleStatus": "유료 상품 콘솔·운영 설정 필요"
     },
     {
       "id": "past-life-face",
@@ -6203,7 +6245,8 @@
       "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
       "tossLogin": "공개 진입",
       "tossResult": "apps/toss/service/TossFace.jsx와 웹 PastLifeFaceUI.js",
-      "reread": "게스트 현재 결과"
+      "reread": "게스트 현재 결과",
+      "saleStatus": "현재 기능에 신규 구매 버튼 없음"
     },
     {
       "id": "personal-charm",
@@ -6273,7 +6316,8 @@
       "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
       "tossLogin": "공개 입력 · 구매 없음",
       "tossResult": "apps/toss/src/PublicSectionReading.tsx",
-      "reread": "현재 화면 메모리"
+      "reread": "현재 화면 메모리",
+      "saleStatus": "기본 계산은 구매 없음 · 부가 상품은 별도 행 참조"
     },
     {
       "id": "pet-saju",
@@ -6307,7 +6351,8 @@
       "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
       "tossLogin": "기능별 단계 검증 필요",
       "tossResult": "apps/toss/service/TossPetSaju.tsx with original sprite artwork and paid report reader",
-      "reread": "up to five free pet inputs in current screen memory; no app-restart or cross-device recovery of that list. Paid results use an owned order and intent in worker/toss/native-pet-paid.js"
+      "reread": "up to five free pet inputs in current screen memory; no app-restart or cross-device recovery of that list. Paid results use an owned order and intent in worker/toss/native-pet-paid.js",
+      "saleStatus": "유료 상품 콘솔·운영 설정 필요"
     },
     {
       "id": "physiognomy",
@@ -6354,7 +6399,8 @@
       "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
       "tossLogin": "공개 진입",
       "tossResult": "apps/toss/service/TossFace.jsx 원본 상세 화면",
-      "reread": "현재 단말 게스트 판독"
+      "reread": "현재 단말 게스트 판독",
+      "saleStatus": "현재 기능에 신규 구매 버튼 없음"
     },
     {
       "id": "points",
@@ -6441,9 +6487,10 @@
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "일반 홈의 진입 코드 확인",
       "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
-      "tossLogin": "기능별 단계 검증 필요",
+      "tossLogin": "게스트 검사 가능. 현재 화면에서만 결과 열람",
       "tossResult": "apps/toss/service/TossPsychotest.tsx + src/features/psychotest/TestPlayer.tsx",
-      "reread": "owner-scoped in-memory results for the current screen session only; app restart and cross-device recovery absent"
+      "reread": "owner-scoped in-memory results for the current screen session only; app restart and cross-device recovery absent",
+      "saleStatus": "현재 기능에 신규 구매 버튼 없음"
     },
     {
       "id": "quantum-saju",
@@ -6513,7 +6560,8 @@
       "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
       "tossLogin": "공개 입력 · 구매 없음",
       "tossResult": "apps/toss/src/PublicSectionReading.tsx",
-      "reread": "현재 화면 메모리"
+      "reread": "현재 화면 메모리",
+      "saleStatus": "기본 계산은 구매 없음 · 부가 상품은 별도 행 참조"
     },
     {
       "id": "relationship-boundaries",
@@ -6583,7 +6631,8 @@
       "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
       "tossLogin": "공개 입력 · 구매 없음",
       "tossResult": "apps/toss/src/PublicSectionReading.tsx",
-      "reread": "현재 화면 메모리"
+      "reread": "현재 화면 메모리",
+      "saleStatus": "기본 계산은 구매 없음 · 부가 상품은 별도 행 참조"
     },
     {
       "id": "relationship-boundary-test",
@@ -6622,7 +6671,7 @@
       "tossLogin": "구매·기록에 토스 계정 필요",
       "tossResult": "apps/toss/service/TossRelationship.tsx + app/relationship-boundary-test/RelationshipReportParts.tsx",
       "reread": "owner-scoped Toss intent and relationship report, paid-order check before results and resume; production index and approved SKU pending",
-      "saleStatus": "콘솔·운영 설정 필요"
+      "saleStatus": "유료 상품 콘솔·운영 설정 필요"
     },
     {
       "id": "royal-tea-oracle",
@@ -6665,13 +6714,14 @@
         "royal-tea-oracle"
       ],
       "freeCalculation": true,
-      "portStatus": "일부만 이식",
+      "portStatus": "이미 동작",
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "일반 홈의 진입 코드 확인",
       "bundleVerification": "20261114-9 Linux AIT 43463538068, 공개 홈에서 질문/점술 선택부터 원본 결과, 게스트, 360px 통과",
       "tossLogin": "공개 진입",
       "tossResult": "apps/toss/src/RoyalTea.tsx + apps/toss/canonical/royal-tea.mjs",
-      "reread": "게스트 공개, 같은 소유자·날짜·질문의 동일한 찻잔 감정서를 재계산. 현재 화면의 최근 기록 8개"
+      "reread": "게스트 공개, 같은 소유자·날짜·질문의 동일한 찻잔 감정서를 재계산. 현재 화면의 최근 기록 8개",
+      "saleStatus": "기본 계산은 구매 없음 · 부가 상품은 별도 행 참조"
     },
     {
       "id": "saju",
@@ -6789,7 +6839,8 @@
       "tossLogin": "공개 진입",
       "tossResult": "apps/toss/src/BasicSajuReading.tsx",
       "reread": "memory-only free basic chart; web result and device parity pending",
-      "verification": "apps/toss/test/ basic-saju-flow.test.mjs · 개별 검사 범위. 실제 기기 미검증"
+      "verification": "apps/toss/test/ basic-saju-flow.test.mjs · 개별 검사 범위. 실제 기기 미검증",
+      "saleStatus": "기본 계산은 구매 없음 · 부가 상품은 별도 행 참조"
     },
     {
       "id": "saju-compatibility",
@@ -6874,9 +6925,10 @@
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "일반 홈의 진입 코드 확인",
       "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
-      "tossLogin": "기능별 단계 검증 필요",
+      "tossLogin": "게스트 계산 가능. 현재 탭의 저장 결과는 같은 로그인 계정으로 재열람",
       "tossResult": "apps/toss/service/TossFpti.tsx",
-      "reread": "same-tab owner-scoped free result only; profile entitlement and permanent premium report not ported"
+      "reread": "same-tab owner-scoped free result only; profile entitlement and permanent premium report not ported",
+      "saleStatus": "현재 기능에 신규 구매 버튼 없음"
     },
     {
       "id": "saju-guardian",
@@ -6940,9 +6992,10 @@
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "일반 홈의 진입 코드 확인",
       "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
-      "tossLogin": "기능별 단계 검증 필요",
+      "tossLogin": "보관한 출생정보와 구매 원문은 토스 계정 필요",
       "tossResult": "웹 guardianReading + ResultCard 원본 인장·십성·영문 프롬프트, 단말 레거시 그림은 웹 귀속",
-      "reread": "계정·환경·출생정보·상품별 주문 및 저장 원본, 환불 재검사. 콘솔 SKU 미확인"
+      "reread": "계정·환경·출생정보·상품별 주문 및 저장 원본, 환불 재검사. 콘솔 SKU 미확인",
+      "saleStatus": "유료 상품 콘솔·운영 설정 필요"
     },
     {
       "id": "saju-image-prompts",
@@ -7025,7 +7078,8 @@
       "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
       "tossLogin": "연간 기본 분석 공개. 각 출생 프로필의 심층 연도별 보고서는 로그인·구매 필요",
       "tossResult": "worker/routes/sibyl.js /preview → buildSibylAnnual → 원본 기질·대비 행동·불확실성",
-      "reread": "무료 연간 대비는 다시 계산. 심층은 출생정보·계정별 1회 해금 후 연도별 원본 10장·월별 흐름 저장. 콘솔 SKU 미확인"
+      "reread": "무료 연간 대비는 다시 계산. 심층은 출생정보·계정별 1회 해금 후 연도별 원본 10장·월별 흐름 저장. 콘솔 SKU 미확인",
+      "saleStatus": "유료 상품 콘솔·운영 설정 필요"
     },
     {
       "id": "secret-house",
@@ -7094,7 +7148,8 @@
       "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
       "tossLogin": "공개 입력 · 구매 없음",
       "tossResult": "apps/toss/src/SecretHouseReading.tsx + public/secret-house_real.html",
-      "reread": "웹 원본과 같이 현재 게임 상태만 유지. 엔딩 공유는 토스 SDK"
+      "reread": "웹 원본과 같이 현재 게임 상태만 유지. 엔딩 공유는 토스 SDK",
+      "saleStatus": "기본 계산은 구매 없음 · 부가 상품은 별도 행 참조"
     },
     {
       "id": "stonehenge-runes",
@@ -7152,13 +7207,14 @@
         "stonehenge-runes-single"
       ],
       "freeCalculation": true,
-      "portStatus": "일부만 이식",
+      "portStatus": "이미 동작",
       "reducedBundle": "홈 진입 없음",
       "currentEntry": "일반 홈의 진입 코드 확인",
       "bundleVerification": "Linux AIT c3a960736 · 43460223398 · 360px 일반 홈에서 게스트 입력과 원본 결과 확인. private-bundle-public-readings.mjs tarot olympus; 네이티브 공유는 기기 미검증",
       "tossLogin": "공개 입력 · 구매 없음",
       "tossResult": "apps/toss/src/RuneReading.tsx + StonehengeRune.jsx",
-      "reread": "현재 화면의 원본 룬 결과와 토스 공유. 유료 AI 프롬프트 별도 계약"
+      "reread": "현재 화면의 원본 룬 결과와 토스 공유. 유료 AI 프롬프트 별도 계약",
+      "saleStatus": "기본 계산은 구매 없음 · 부가 상품은 별도 행 참조"
     },
     {
       "id": "sukuyo",
@@ -7228,9 +7284,10 @@
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "일반 홈의 진입 코드 확인",
       "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
-      "tossLogin": "기능별 단계 검증 필요",
+      "tossLogin": "기본 본명숙 입력 정책은 SukuyoBasic.tsx, 전문가 궁합은 별도 로그인·주문",
       "tossResult": "apps/toss/src/SukuyoBasic.tsx",
-      "reread": "screen-only; no result storage or cross-device recovery"
+      "reread": "screen-only; no result storage or cross-device recovery",
+      "saleStatus": "기본 계산은 구매 없음 · 부가 상품은 별도 행 참조"
     },
     {
       "id": "sukuyo-compatibility-ai",
@@ -7275,7 +7332,7 @@
       "tossLogin": "구매·기록에 토스 계정 필요",
       "tossResult": "apps/toss/service/TossSukuyoGate.tsx + app/sukuyo-compatibility-ai/SukuyoCompatibilityAiClient.tsx",
       "reread": "owner-scoped Toss intent and Toss-origin SukuyoCompatibilityAiConsultation; verified saved-input selection or explicit new input for unassigned orders; bounded explicit retry after authorized generation failure",
-      "saleStatus": "콘솔·운영 설정 필요"
+      "saleStatus": "유료 상품 콘솔·운영 설정 필요"
     },
     {
       "id": "tarot",
@@ -7313,9 +7370,9 @@
       "tossRoute": "/tarot-library",
       "sku": null,
       "inputContract": "lib/tarot/toss-library-flows.mjs",
-      "resultRenderer": "apps/toss/src/TarotLibrary.tsx",
+      "resultRenderer": "apps/toss/src/CoreTarot.tsx + apps/toss/service/core-tarot-loader.mjs",
       "storageContract": "local-reading-not-server-stored",
-      "verification": "mock-contracts-only; device-and-web-parity-pending",
+      "verification": "core-tarot-browser.mjs 360px 일반 홈에서 오늘 1장, 태양 회복 4장, 자기 기준 5장. local-tarot-parity.test.mjs 원문 352조합 및 156개 카드 대조",
       "webEntries": [
         "/?action=cdHomeTarotEntry",
         "/index.html?action=openTarotModal"
@@ -7325,14 +7382,15 @@
         "js/core/service-registry.js"
       ],
       "webProductIds": [],
-      "freeCalculation": false,
-      "portStatus": "일부만 이식",
+      "freeCalculation": true,
+      "portStatus": "이미 동작",
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "일반 홈의 진입 코드 확인",
       "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
-      "tossLogin": "기능별 단계 검증 필요",
-      "tossResult": "apps/toss/src/TarotLibrary.tsx",
-      "reread": "local-reading-not-server-stored"
+      "tossLogin": "게스트 입력과 원본 결과 공개",
+      "tossResult": "apps/toss/src/CoreTarot.tsx + apps/toss/service/core-tarot-loader.mjs",
+      "reread": "local-reading-not-server-stored",
+      "saleStatus": "공개 리딩 · 토스 구매 없음"
     },
     {
       "id": "tarot-celestial-harmony",
@@ -7383,9 +7441,10 @@
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "일반 홈의 진입 코드 확인",
       "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
-      "tossLogin": "기능별 단계 검증 필요",
+      "tossLogin": "배열·질문·카드 입력은 공개. 유료 생성과 저장 원문은 주문 소유 계정으로 인증",
       "tossResult": "apps/toss/src/TarotLibrary.tsx",
-      "reread": "owned-TossPurchase-to-PaidExecutionRecord"
+      "reread": "owned-TossPurchase-to-PaidExecutionRecord",
+      "saleStatus": "콘솔·운영 설정 필요"
     },
     {
       "id": "tarot-crystal-soul",
@@ -7453,9 +7512,9 @@
       "tossRoute": "/tarot-library",
       "sku": null,
       "inputContract": "lib/tarot/toss-library-flows.mjs",
-      "resultRenderer": "apps/toss/src/TarotLibrary.tsx",
+      "resultRenderer": "apps/toss/src/CoreTarot.tsx + apps/toss/service/core-tarot-loader.mjs",
       "storageContract": "local-reading-not-server-stored",
-      "verification": "mock-contracts-only; device-and-web-parity-pending",
+      "verification": "core-tarot-browser.mjs 360px 일반 홈에서 오늘 1장, 태양 회복 4장, 자기 기준 5장. local-tarot-parity.test.mjs 원문 352조합 및 156개 카드 대조",
       "webEntries": [
         "/tarot/healing/"
       ],
@@ -7464,14 +7523,15 @@
         "app/tarot/healing/page.tsx"
       ],
       "webProductIds": [],
-      "freeCalculation": false,
-      "portStatus": "일부만 이식",
+      "freeCalculation": true,
+      "portStatus": "이미 동작",
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "일반 홈의 진입 코드 확인",
       "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
-      "tossLogin": "기능별 단계 검증 필요",
-      "tossResult": "apps/toss/src/TarotLibrary.tsx",
-      "reread": "local-reading-not-server-stored"
+      "tossLogin": "게스트 입력과 원본 결과 공개",
+      "tossResult": "apps/toss/src/CoreTarot.tsx + apps/toss/service/core-tarot-loader.mjs",
+      "reread": "local-reading-not-server-stored",
+      "saleStatus": "공개 리딩 · 토스 구매 없음"
     },
     {
       "id": "tarot-ijik",
@@ -7575,9 +7635,10 @@
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "일반 홈의 진입 코드 확인",
       "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
-      "tossLogin": "기능별 단계 검증 필요",
+      "tossLogin": "배열·질문·카드 입력은 공개. 유료 생성과 저장 원문은 주문 소유 계정으로 인증",
       "tossResult": "apps/toss/src/TarotLibrary.tsx",
-      "reread": "owned-TossPurchase-to-PaidExecutionRecord"
+      "reread": "owned-TossPurchase-to-PaidExecutionRecord",
+      "saleStatus": "콘솔·운영 설정 필요"
     },
     {
       "id": "tarot-mindscan",
@@ -7628,9 +7689,10 @@
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "일반 홈의 진입 코드 확인",
       "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
-      "tossLogin": "기능별 단계 검증 필요",
+      "tossLogin": "배열·질문·카드 입력은 공개. 유료 생성과 저장 원문은 주문 소유 계정으로 인증",
       "tossResult": "apps/toss/src/TarotLibrary.tsx",
-      "reread": "owned-TossPurchase-to-PaidExecutionRecord"
+      "reread": "owned-TossPurchase-to-PaidExecutionRecord",
+      "saleStatus": "콘솔·운영 설정 필요"
     },
     {
       "id": "tarot-numerology",
@@ -7730,9 +7792,10 @@
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "일반 홈의 진입 코드 확인",
       "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
-      "tossLogin": "기능별 단계 검증 필요",
+      "tossLogin": "배열·질문·카드 입력은 공개. 유료 생성과 저장 원문은 주문 소유 계정으로 인증",
       "tossResult": "apps/toss/src/TarotLibrary.tsx",
-      "reread": "owned-TossPurchase-to-PaidExecutionRecord"
+      "reread": "owned-TossPurchase-to-PaidExecutionRecord",
+      "saleStatus": "콘솔·운영 설정 필요"
     },
     {
       "id": "tarot-reunion",
@@ -7803,9 +7866,9 @@
       "tossRoute": "/tarot-library",
       "sku": null,
       "inputContract": "lib/tarot/toss-library-flows.mjs",
-      "resultRenderer": "apps/toss/src/TarotLibrary.tsx",
+      "resultRenderer": "apps/toss/src/CoreTarot.tsx + apps/toss/service/core-tarot-loader.mjs",
       "storageContract": "local-reading-not-server-stored",
-      "verification": "mock-contracts-only; device-and-web-parity-pending",
+      "verification": "core-tarot-browser.mjs 360px 일반 홈에서 오늘 1장, 태양 회복 4장, 자기 기준 5장. local-tarot-parity.test.mjs 원문 352조합 및 156개 카드 대조",
       "webEntries": [
         "/tarot/self-esteem/"
       ],
@@ -7814,14 +7877,15 @@
         "app/tarot/self-esteem/page.tsx"
       ],
       "webProductIds": [],
-      "freeCalculation": false,
-      "portStatus": "일부만 이식",
+      "freeCalculation": true,
+      "portStatus": "이미 동작",
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "일반 홈의 진입 코드 확인",
       "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
-      "tossLogin": "기능별 단계 검증 필요",
-      "tossResult": "apps/toss/src/TarotLibrary.tsx",
-      "reread": "local-reading-not-server-stored"
+      "tossLogin": "게스트 입력과 원본 결과 공개",
+      "tossResult": "apps/toss/src/CoreTarot.tsx + apps/toss/service/core-tarot-loader.mjs",
+      "reread": "local-reading-not-server-stored",
+      "saleStatus": "공개 리딩 · 토스 구매 없음"
     },
     {
       "id": "tarot-year-fortune",
@@ -7974,7 +8038,8 @@
       "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
       "tossLogin": "별자리·띠는 공개. 네 체계와 오늘의 세 장은 토스 로그인 필요. 개인화는 소유 프로필만 선택",
       "tossResult": "apps/toss/src/TodayPublic.tsx + TodayPersonal.tsx + app/today/DailyTarot.tsx",
-      "reread": "별자리·띠 공개. 원본 오늘의 세 장은 로그인 후 계정별 기기 저장·재열람"
+      "reread": "별자리·띠 공개. 원본 오늘의 세 장은 로그인 후 계정별 기기 저장·재열람",
+      "saleStatus": "기본 계산은 구매 없음 · 부가 상품은 별도 행 참조"
     },
     {
       "id": "vedic",
@@ -8031,7 +8096,8 @@
       "tossLogin": "계산 또는 기록 조회에 토스 계정 필요",
       "tossResult": "apps/toss/src/BasicSkyChart.tsx",
       "reread": "result in memory only; guest/web profiles, full chart and device parity pending",
-      "verification": "apps/toss/test/ basic-sky-chart.test.mjs · basic-sky-ui.test.mjs · 개별 검사 범위. 실제 기기 미검증"
+      "verification": "apps/toss/test/ basic-sky-chart.test.mjs · basic-sky-ui.test.mjs · 개별 검사 범위. 실제 기기 미검증",
+      "saleStatus": "현재 기능에 신규 구매 버튼 없음"
     },
     {
       "id": "vedic-ai",
@@ -8077,7 +8143,7 @@
       "tossLogin": "구매·기록에 토스 계정 필요",
       "tossResult": "app/vedic-ai/VedicAiClient.tsx",
       "reread": "owned Toss purchase and Toss-origin VedicAiConsultation; approved SKU, durable checkout, policy and device verification pending",
-      "saleStatus": "콘솔·운영 설정 필요"
+      "saleStatus": "유료 상품 콘솔·운영 설정 필요"
     },
     {
       "id": "yeongnyangi",
@@ -8112,6 +8178,7 @@
       "tossLogin": "구매·기록에 토스 계정 필요",
       "tossResult": "app/yeongnyangi/_components/Result.tsx",
       "reread": "owner-bound TossPurchase and YeongnyangiRequest; /yeongnyangi/library/",
+      "saleStatus": "상품별 승인된 독립 SKU만 원장에 기록. 신규 판매 보류",
       "verification": "apps/toss/test/ studio-browser.mjs · private-bundle-owner-browser.mjs · 개별 검사 범위. 실제 기기 미검증"
     },
     {
@@ -8146,7 +8213,8 @@
       "tossLogin": "계산 또는 기록 조회에 토스 계정 필요",
       "tossResult": "apps/toss/src/DailyReadings.tsx",
       "reread": "계정별 출석·당일 결과 15종. 호라리는 별도 무료 화면",
-      "verification": "apps/toss/test/ daily-ui.test.mjs · daily.test.mjs · 개별 검사 범위. 실제 기기 미검증"
+      "verification": "apps/toss/test/ daily-ui.test.mjs · daily.test.mjs · 개별 검사 범위. 실제 기기 미검증",
+      "saleStatus": "현재 기능에 신규 구매 버튼 없음"
     },
     {
       "id": "yeongnyangi-horary",
@@ -8181,7 +8249,8 @@
       "tossLogin": "공개 진입",
       "tossResult": "app/yeongnyangi/_components/QuestionSkyConsultation.tsx",
       "reread": "무료 질문 시각·도시 차트. 유료 결과 보관 계약 없음",
-      "verification": "입구와 결과 소스 대조. 독립적인 전체 사용자 경로 검증 근거 미기록"
+      "verification": "입구와 결과 소스 대조. 독립적인 전체 사용자 경로 검증 근거 미기록",
+      "saleStatus": "현재 기능에 신규 구매 버튼 없음"
     },
     {
       "id": "yeongnyangi-prashna",
@@ -8221,7 +8290,8 @@
       "tossLogin": "구매·기록에 토스 계정 필요",
       "tossResult": "app/yeongnyangi/_components/QuestionSkyConsultation.tsx",
       "reread": "영냥이 질문점성술 별도 권한. 일반 사주 승인 SKU로 구매 가능하다고 보지 않는다",
-      "verification": "입구와 결과 소스 대조. 독립적인 전체 사용자 경로 검증 근거 미기록"
+      "verification": "입구와 결과 소스 대조. 독립적인 전체 사용자 경로 검증 근거 미기록",
+      "saleStatus": "유료 상품 콘솔·운영 설정 필요"
     },
     {
       "id": "yeongnyangi-season",
@@ -8255,7 +8325,8 @@
       "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
       "tossLogin": "공개 진입",
       "tossResult": "apps/toss/src/MoonlightSeason.tsx + apps/toss/canonical/moonlight-season.mjs",
-      "reread": "게스트 공개. 원본 크롬과 같은 회차별 기기 이어보기. 다음 회차 번호와 시각만 사전 안내"
+      "reread": "게스트 공개. 원본 크롬과 같은 회차별 기기 이어보기. 다음 회차 번호와 시각만 사전 안내",
+      "saleStatus": "현재 기능에 신규 구매 버튼 없음"
     },
     {
       "id": "yoga-guru",
@@ -8307,7 +8378,7 @@
       "tossLogin": "구매·기록에 토스 계정 필요",
       "tossResult": "apps/toss/src/YogaGuru.tsx + apps/toss/canonical/yoga-course.mjs가 원본 renderCourse, buildTypingLines, 생성 음악 6종과 카드 리더 사용. worker/routes/yoga-guru.js의 yogaNarrativeAdapter와 웹 공통 js/core/yoga-guru-prompts.js",
       "reread": "TossNativeConsultation의 소유자·환경·주문·입력 해시에 결합한 ServiceExecutionTransaction 원문. 웹 주문과 별개. 꿀꿀운세 구매 기록에서 생성 재개·완료 원문 읽기. 토스 계정과 주문별 마지막 단계는 기기에 저장",
-      "saleStatus": "콘솔·운영 설정 필요"
+      "saleStatus": "유료 상품 콘솔·운영 설정 필요"
     },
     {
       "id": "ziwei",
@@ -8418,9 +8489,10 @@
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "일반 홈의 진입 코드 확인",
       "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
-      "tossLogin": "기능별 단계 검증 필요",
+      "tossLogin": "기본 명반과 12궁은 게스트 계산. 별도 심층 결과는 로그인·소유 확인",
       "tossResult": "apps/toss/src/ZiweiChart.tsx + canonical ZiweiPalaceGrid",
-      "reread": "기본 명반은 현재 화면에서 재계산, 출생 초안은 기기·토스 계정별. 15장 구매 기록은 별도 ziwei-deep-report 행"
+      "reread": "기본 명반은 현재 화면에서 재계산, 출생 초안은 기기·토스 계정별. 15장 구매 기록은 별도 ziwei-deep-report 행",
+      "saleStatus": "기본 계산은 구매 없음 · 부가 상품은 별도 행 참조"
     },
     {
       "id": "ziwei-ai",
@@ -8472,7 +8544,7 @@
       "tossLogin": "구매·기록에 토스 계정 필요",
       "tossResult": "app/ziwei-ai/ZiweiAiClient.tsx",
       "reread": "owned Toss purchase and Toss-origin ZiweiAiConsultation; approved SKU, durable checkout, policy and device verification pending",
-      "saleStatus": "콘솔·운영 설정 필요"
+      "saleStatus": "유료 상품 콘솔·운영 설정 필요"
     },
     {
       "id": "ziwei-deep-report",
@@ -8516,7 +8588,7 @@
       "tossLogin": "구매·기록에 토스 계정 필요",
       "tossResult": "app/components/ziwei/ZiweiDeepChapters.tsx + lib/pdf/export-ziwei-report-pdf.ts",
       "reread": "구매 기록에서 본인 토스 주문의 15장 원문 재열람·저장 지점 재개. 웹 과거 구매는 웹 계정",
-      "saleStatus": "콘솔·운영 설정 필요"
+      "saleStatus": "유료 상품 콘솔·운영 설정 필요"
     },
     {
       "id": "ziwei-island",
@@ -8550,7 +8622,8 @@
       "bundleVerification": "f2e46d05a · Linux AIT 43468160819 일반 홈, 무구매 360px. 자미 12궁·초상 및 위젯 6개 구성을 확인",
       "tossLogin": "게스트 공개 계산",
       "tossResult": "public/destiny-island.html → worker/routes/ziwei-island.js → 12궁·대한·유년·수호자·섬 일지·퀘스트",
-      "reread": "기기 내 게스트·토스 계정별 명반, 당일 청사진, 방문 도장과 퀘스트 EXP 복원"
+      "reread": "기기 내 게스트·토스 계정별 명반, 당일 청사진, 방문 도장과 퀘스트 EXP 복원",
+      "saleStatus": "기본 계산은 구매 없음 · 부가 상품은 별도 행 참조"
     }
   ],
   "consultationProducts": [
