@@ -95,6 +95,31 @@ m.paths=Module._nodeModulePaths(root);
 m._compile(built.outputFiles[0].text,m.id);
 const {prepareFortune,activateFortune,generateNextChapter,presentFortune,calculateFree,snapshotAnalysis}=m.exports;
 
+test('Toss adviser identities use their original scoped question products and immutable natal evidence',async()=>{
+ const env={GEMINIF_API_KEY:'mock',LLM_DRY_RUN:'false',SUKUYO_IMD_NEW_ORDERS_V1:'true'};
+ const questionDecision={version:'question-consultation-20261007',category:'self',target:'self',horizon:'current',situation:'쉬는 시간에 부탁을 받아요.',confirmed:true};
+ try{
+  for(const persona of ['yeoni','neo'])for(const [index,fishId] of ['mackerel','salmon','flounder'].entries()){
+   const body={domain:'sukuyo',fishId,profileId:'self',locale:'ko',timezone:'Asia/Seoul',question:'일상에서 어떻게 거절할까요?',questionDecision,consultationAttemptId:crypto.randomUUID()};
+   const row=await prepareFortune(env,owner,body,{persona,checkoutAmountKRW:1});
+   assert.equal(row.persona,persona);assert.equal(row.snapshot.persona,persona);assert.equal(row.productId,'chat_sukuyo_'+fishId);
+   assert.equal(row.featureKey,'fortune-chat-question-'+fishId);assert.equal(row.amountKRW,1);
+   assert.ok(row.snapshot.manifest.length);assert.equal(row.snapshot.questionContract.followups,index);
+   assert.equal(row.snapshot.analysis.contexts.sukuyo.engineVersion,'sukuyo-imd1956-ae2.1.19-v1');
+   assert.deepEqual(await prepareFortune(env,owner,body,{persona,checkoutAmountKRW:1}),row);
+   if(fishId==='mackerel'){
+    Object.assign(rows.get(row._id),{state:'PAID',accessMethod:'TOSS_IAP',paymentClaimOrderId:'synthetic-'+persona,paymentId:'mock-granted'});
+    const count=llm.length;let saved;
+    for(let i=0;i<row.snapshot.manifest.length;i++)saved=await generateNextChapter(env,owner,row._id);
+    assert.equal(saved.state,'COMPLETED');assert.equal(saved.persona,persona);assert.ok(llm.length>count);
+    assert.ok(llm.slice(count).every(c=>c.chartDigest===row.snapshot.analysis.contexts.sukuyo.engineFacts.digest));
+    assert.deepEqual(read(env,owner,row._id).chapters,saved.chapters);
+   }
+  }
+  assert.equal(rows.size,6);
+ }finally{rows.clear();llm.length=0;}
+});
+
 test('신규 숙요 기본 운세·상담·결제 복귀·OFF 재열람은 준비한 명반을 사용한다',async()=>{
   const env={GEMINIF_API_KEY:'mock',LLM_DRY_RUN:'false',SUKUYO_IMD_NEW_ORDERS_V1:'true'};
   const off={GEMINIF_API_KEY:'mock',LLM_DRY_RUN:'false'};
