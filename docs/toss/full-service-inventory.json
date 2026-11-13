@@ -1,5 +1,5 @@
 {
-  "sourceCommit": "832b0d8652f1a5d5be84563de9fffa11fe95e289",
+  "sourceCommit": "202ef4cbf546bdba56b95a08d858bb219e9e16b4",
   "sourceCounts": {
     "home": 63,
     "react": 18,
@@ -1421,8 +1421,8 @@
         "library": "not-verified",
         "device": "not-tested",
         "canonicalId": "nakshatra-muhurta",
-        "candidateStatus": "requires-full-flow-port-and-verification",
-        "canonicalRoute": null
+        "candidateStatus": "local-partial",
+        "canonicalRoute": "/nakshatra/muhurta"
       }
     },
     {
@@ -1454,8 +1454,8 @@
         "library": "not-verified",
         "device": "not-tested",
         "canonicalId": "nakshatra-vvip-codex",
-        "candidateStatus": "requires-full-flow-port-and-verification",
-        "canonicalRoute": null
+        "candidateStatus": "local-partial",
+        "canonicalRoute": "/nakshatra/vvip-codex"
       }
     },
     {
@@ -5287,12 +5287,13 @@
         }
       ],
       "aliasEvidence": [],
-      "status": "requires-full-flow-port-and-verification",
-      "tossRoute": null,
+      "status": "local-partial",
+      "tossRoute": "/nakshatra/muhurta",
       "sku": null,
-      "inputContract": null,
-      "resultRenderer": null,
-      "storageContract": null,
+      "inputContract": "app/nakshatra/muhurta/MuhurtaClient.tsx. 소유 출생 프로필·목적 6가지·시작일. 원본 handleMuhurta가 Swiss 달 황경으로 60일 계산",
+      "resultRenderer": "apps/toss/src/MansionReports.tsx + worker/toss/mansion-reports.js + worker/routes/nakshatra-premium.js",
+      "storageContract": "웹과 같은 인증 필요. 무료 키를 재확인하고 현재 화면에 추천·유의일·60일과 원문 해설, 주문 없음",
+      "verification": "studio-mansion-reports-browser.mjs의 360px 홈 입장·로그인·60일 확인. toss-mansion-reports.test.js의 음력·시간 미상·계정분리. 운영 Swiss와 실기기 미검증",
       "webEntries": [
         "/nakshatra/muhurta/"
       ],
@@ -5305,13 +5306,13 @@
         "nakshatra-muhurta"
       ],
       "freeCalculation": true,
-      "portStatus": "미이식",
-      "reducedBundle": "홈 진입 없음",
-      "currentEntry": "연결 경로 없음",
+      "portStatus": "일부만 이식",
+      "reducedBundle": "구현은 있으나 진입 차단",
+      "currentEntry": "일반 홈의 진입 코드 확인",
       "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
-      "tossLogin": "토스 기능 미연결",
-      "tossResult": "결과 화면 연결 미확인",
-      "reread": "재열람 경로 미확인"
+      "tossLogin": "계산 또는 기록 조회에 토스 계정 필요",
+      "tossResult": "apps/toss/src/MansionReports.tsx + worker/toss/mansion-reports.js + worker/routes/nakshatra-premium.js",
+      "reread": "웹과 같은 인증 필요. 무료 키를 재확인하고 현재 화면에 추천·유의일·60일과 원문 해설, 주문 없음"
     },
     {
       "id": "nakshatra-vvip-codex",
@@ -5337,12 +5338,13 @@
         }
       ],
       "aliasEvidence": [],
-      "status": "requires-full-flow-port-and-verification",
-      "tossRoute": null,
+      "status": "local-partial",
+      "tossRoute": "/nakshatra/vvip-codex",
       "sku": null,
-      "inputContract": null,
-      "resultRenderer": null,
-      "storageContract": null,
+      "inputContract": "app/nakshatra/vvip/VvipClient.tsx. 소유 출생 프로필·장소·시각; 원본 handleVvipCodex 기준 달, 지배성·다샤·동양 대운",
+      "resultRenderer": "apps/toss/src/MansionReports.tsx + worker/toss/mansion-reports.js + worker/routes/nakshatra-premium.js",
+      "storageContract": "무료 키를 확인하고 토스 로그인 후 5장 전체·27수 지형·지배성 세부 장과 다샤 타임라인 해설. 현재 화면에 표시",
+      "verification": "360px 로그인→5장·27수·다샤 해설, 0주문. 연산 전 타계정 프로필 거부. 웹 PDF 저장·운영 Swiss·기기 미검증",
       "webEntries": [
         "/nakshatra/vvip/",
         "/nakshatra/vvip"
@@ -5356,13 +5358,13 @@
         "nakshatra-vvip-codex"
       ],
       "freeCalculation": true,
-      "portStatus": "미이식",
-      "reducedBundle": "홈 진입 없음",
-      "currentEntry": "연결 경로 없음",
+      "portStatus": "일부만 이식",
+      "reducedBundle": "구현은 있으나 진입 차단",
+      "currentEntry": "일반 홈의 진입 코드 확인",
       "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
-      "tossLogin": "토스 기능 미연결",
-      "tossResult": "결과 화면 연결 미확인",
-      "reread": "재열람 경로 미확인"
+      "tossLogin": "계산 또는 기록 조회에 토스 계정 필요",
+      "tossResult": "apps/toss/src/MansionReports.tsx + worker/toss/mansion-reports.js + worker/routes/nakshatra-premium.js",
+      "reread": "무료 키를 확인하고 토스 로그인 후 5장 전체·27수 지형·지배성 세부 장과 다샤 타임라인 해설. 현재 화면에 표시"
     },
     {
       "id": "naming-ai",
