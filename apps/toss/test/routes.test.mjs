@@ -17,6 +17,7 @@ const mocks={
 };
 globalThis.__tossRouteMocks=mocks;
 const stubMap={
+ 'worker/routes/career-style.js':"export async function readOwnedCareerStyle(_env,{userId,profileId,statusOnly}){if(profileId!=='mine')throw Object.assign(new Error(),{status:403,payload:{code:'INVALID_PROFILE'}});return {userId,profileId,statusOnly,priceKRW:0};}",
  'worker/toss/native-pet-paid.js':"import {TossError} from './policy.js';const state=globalThis.__tossRouteMocks;export const prepareNativePet=(...args)=>{state.nativePet.push(['prepare',...args]);return {id:'offline-intent'};};export const readNativePet=(...args)=>{state.nativePet.push(['read',...args]);if(state.nativeFailure)throw new TossError(state.nativeFailure.code,state.nativeFailure.status);return Response.json({ok:true,status:'generating'},{status:202});};",
  'worker/toss/native-sukuyo-recovery.js':"import {TossError} from './policy.js';const s=globalThis.__tossRouteMocks;export const listNativeSukuyoRecovery=(...args)=>{s.nativeSukuyoRecovery.push(['list',...args]);if(s.nativeFailure)throw new TossError(s.nativeFailure.code,s.nativeFailure.status);return {state:'UNASSIGNED',drafts:[]};};export const attachNativeSukuyoRecovery=(...args)=>{s.nativeSukuyoRecovery.push(['attach',...args]);if(s.nativeFailure)throw new TossError(s.nativeFailure.code,s.nativeFailure.status);return {state:'ASSIGNED',intentId:args[3]};};",
  'worker/toss/native-sukuyo.js':"import {TossError} from './policy.js';const state=globalThis.__tossRouteMocks;export const prepareNativeSukuyo=(...args)=>{state.nativeSukuyo.push(args);return {id:'offline-intent'};};export const handleNativeSukuyo=(...args)=>{state.nativeSukuyo.push(args);if(state.nativeFailure)throw new TossError(state.nativeFailure.code,state.nativeFailure.status);return Response.json({ok:true,source:'original-sukuyo'});};export const nativeSukuyoLibraryItem=()=>{};",
@@ -38,6 +39,7 @@ const stubMap={
  'worker/routes/profile.js':"export const normalizeIncomingProfile=x=>x;export const validateRequiredBirth=x=>({ok:!!x?.birth,birth:x?.birth});export const toClientProfile=x=>x;",
  'worker/toss/basic-sky-chart.js':"export const basicSkyChart=async system=>{globalThis.__tossRouteMocks.chartSystems.push(system);return {system};};",
  'worker/toss/manse.js':"export const calculateTossManse=async()=>({stored:false});",
+ 'worker/yeongnyangi/fortune/free/horary.ts':"export const prepareHoraryPrompt=async(_env,input)=>({category:'horary',question:input.question});",
  'worker/yeongnyangi/fortune/question-sky.ts':"export const resolveCurrentLocation=x=>({latitude:x.latitude,longitude:x.longitude,timezone:'Asia/Seoul'});",
  'worker/yeongnyangi/retry.js':"export const retryFortune=(...args)=>globalThis.__tossRouteMocks.retry(...args);",
  'worker/toss/session.js':"import {TossError} from './policy.js';export const requireTossSession=async()=>{if(globalThis.__tossRouteMocks.denyAuth)throw new TossError('LOGIN_REQUIRED',401);return globalThis.__tossRouteMocks.auth();};export const createTossSession=()=>{};export const invalidateIdentity=()=>{};export const disconnectIdentity=()=>{};",
@@ -67,6 +69,14 @@ const {handleTossRoutes}=loaded.exports;
 const birth={gender:'F',date:{year:1990,month:1,day:1,calType:'solar',timeUnknown:true},location:{label:'서울',lat:37.5665,lng:126.978,tz:'Asia/Seoul'}};
 const decision={version:'question-consultation-20261007',category:'self',target:'self',horizon:'current',situation:'대화할 때 내 경계를 말하고 싶어요',options:'',period:'',constraints:'',confirmed:true};
 const input=()=>({attemptId:crypto.randomUUID(),sku:'saju_mackerel',question:'어떻게 내 경계를 표현할까?',birth:structuredClone(birth),questionDecision:{...decision}});
+test('career report accepts only a profile owned by the signed-in Toss identity',async()=>{
+ const path='/canonical/saju/career-style';
+ mocks.denyAuth=true;
+ try{assert.equal((await request({profileId:'mine'},path)).status,401);}finally{mocks.denyAuth=false;}
+ assert.equal((await request({profileId:'foreign'},path)).status,403);
+ const reply=await request({profileId:'mine',userId:'foreign'},path);
+ assert.deepEqual(await reply.json(),{ok:true,userId:auth.userId,profileId:'mine',statusOnly:false,priceKRW:0});
+});
 async function request(body,path='/prepare',env={TOSS_RELEASE_READY:'true'}){
  calls.profiles=[];calls.prepared=[];calls.followups=0;
  return handleTossRoutes(new Request('https://code-destiny.com/api/toss'+path,{method:'POST',headers:{Origin:'https://ai-saju-studio.private-apps.tossmini.com','Content-Type':'application/json'},body:JSON.stringify(body)}),env);
@@ -522,3 +532,8 @@ test('Vedic routes require release and account and preserve denied result access
 });
 
 test('Maya recovery routes enforce release and account boundaries and retain permission errors',async()=>{mocks.nativeRecovery=[];const orderId='01900000-1111-7111-8111-000000000042',intentId='a'.repeat(64),drafts='/native/maya/recovery/drafts',attach='/native/maya/recovery/attach';assert.equal((await request({orderId},drafts,{})).status,503);assert.equal(mocks.nativeRecovery.length,0);mocks.denyAuth=true;try{assert.equal((await request({orderId},drafts)).status,401);}finally{mocks.denyAuth=false;}assert.equal((await request({orderId,cursor:'cursor'},drafts)).status,200);assert.equal(mocks.nativeRecovery.at(-1)[2],auth);assert.equal(mocks.nativeRecovery.at(-1)[3],orderId);assert.equal(mocks.nativeRecovery.at(-1)[4],'cursor');assert.equal(typeof mocks.nativeRecovery.at(-1)[5],'function');assert.equal((await request({orderId,intentId},attach)).status,200);assert.equal(mocks.nativeRecovery.at(-1)[4],intentId);mocks.nativeFailure={code:'ACCESS_DENIED',status:403};try{const denied=await request({orderId,intentId},attach);assert.equal(denied.status,403);assert.equal((await denied.json()).error,'ACCESS_DENIED');}finally{mocks.nativeFailure=null;}});
+
+test('horary uses the public calculation without login or the release sale gate',async()=>{
+ mocks.denyAuth=true;
+ try{const res=await request({question:'테스트 질문'},'/canonical/yeongnyangi/free/horary',{});assert.equal(res.status,200);assert.equal((await res.json()).result.question,'테스트 질문');assert.equal(calls.prepared.length,0);}finally{mocks.denyAuth=false;}
+});

@@ -133,8 +133,18 @@ export default function serviceCompat(){
     for(const match of source.matchAll(asset))references.add(match[1]);
    }
    const emitted=new Set();
-   const sourceBytes=async path=>path===resolve(publicRoot,'assets/yeongnyangi/tarot/v1/back-600.webp')
-    ? sharp(path).webp({quality:88,effort:6}).toBuffer():readFile(path);
+   async function sourceBytes(path){
+    const ref=path.slice(publicRoot.length+1).split(sep).join('/');
+    if(ref==='assets/yeongnyangi/tarot/v1/back-600.webp')return sharp(path).webp({quality:88,effort:6}).toBuffer();
+    // These portraits and scene covers fill at most the miniapp content width.
+    if(/^images\/(master-profiles|consultation-editorial|fusion-fortune)\/[^/]+\.webp$/.test(ref)){
+     const source=await readFile(path);
+     const {width}=await sharp(source).metadata();
+     if(width>800)return sharp(source).resize({width:800}).webp({quality:88,alphaQuality:100}).toBuffer();
+     return source;
+    }
+    return readFile(path);
+   }
    const collect=async(folder,prefix)=>{
     for(const entry of await readdir(folder,{withFileTypes:true})){
      const path=resolve(folder,entry.name);

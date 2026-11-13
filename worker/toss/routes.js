@@ -89,6 +89,16 @@ export async function handleTossRoutes(request,env) {
       return {id:product.flow.id,name:product.flow.name,sku:product.sku,featureKey:product.featureKey,approvedPriceKRW:product.approvedPriceKRW};
     })});
     if(path==='/canonical/yeongnyangi/products'&&request.method==='GET')return reply({products:canonicalProducts()});
+    if(request.method==='POST'&&['/canonical/yeongnyangi/free/horary','/canonical/yeongnyangi/location'].includes(path)){
+      await limit(env,request.headers.get('CF-Connecting-IP')||'unknown',path,15);
+      const input=await bodyOf(request);
+      if(path.endsWith('/location')){
+        const {resolveCurrentLocation}=await import('../yeongnyangi/fortune/question-sky.ts');
+        return reply({ok:true,location:resolveCurrentLocation(input)});
+      }
+      const {prepareHoraryPrompt}=await import('../yeongnyangi/fortune/free/horary.ts');
+      return reply({ok:true,result:await prepareHoraryPrompt(env,input)});
+    }
     if(path==='/tarot-library/free'&&request.method==='POST'){
       const {flowId,input}=await bodyOf(request);
       return reply(await freeTarotReading(flowId,input));
@@ -346,16 +356,20 @@ export async function handleTossRoutes(request,env) {
     }
     if(path==='/canonical/auth/me'&&request.method==='GET')return reply({ok:true,authenticated:true,user:{id:auth.userId,_id:auth.userId,name:'토스 사용자',role:'user'}});
     if(path==='/canonical/profile'&&request.method==='GET')return reply(await canonicalProfiles(auth));
+    if(path==='/canonical/saju/career-style'&&['GET','POST'].includes(request.method)){
+      const statusOnly=request.method==='GET';
+      if(!statusOnly)await limit(env,auth._id,'career-style',20);
+      const profileId=statusOnly?url.searchParams.get('profileId'):(await bodyOf(request)).profileId;
+      if(typeof profileId!=='string'||!profileId.trim()||profileId.length>80)throw new TossError('MISSING_PROFILE_ID',400);
+      const {readOwnedCareerStyle}=await import('../routes/career-style.js');
+      try{return reply({ok:true,...await readOwnedCareerStyle(env,{userId:auth.userId,profileId:profileId.trim(),statusOnly})});}
+      catch(error){if(error.status>=400&&error.status<500)throw new TossError(error.payload?.code||'INVALID_PROFILE',error.status);throw error;}
+    }
     if(path==='/canonical/geocode'&&request.method==='GET'){
       await limit(env,auth._id,'geocode',10);
       const {geocodePlace}=await import('../lib/geocode.js');
       const result=await geocodePlace(url.searchParams.get('place'));
       return reply(result.data,result.status);
-    }
-    if(path==='/canonical/yeongnyangi/location'&&request.method==='POST'){
-      await limit(env,auth._id,'location',10);
-      const {resolveCurrentLocation}=await import('../yeongnyangi/fortune/question-sky.ts');
-      return reply({ok:true,location:resolveCurrentLocation(await bodyOf(request))});
     }
     if(path==='/canonical/yeongnyangi/saju/experience-check'&&request.method==='POST'){
       await limit(env,auth._id,'experience-check',6);
@@ -594,7 +608,7 @@ export async function handleTossRoutes(request,env) {
     if(known&&Object.hasOwn(consultationSafetyMessages,error.code))return reply({error:error.code,message:consultationSafetyMessages[error.code],retryable:false},422);
     const dailyErrors={DAILY_PASS_REQUIRED:403,ANCHOVY_REQUIRED:409,FREE_READING_INPUT_FROZEN:409,FREE_READING_PENDING:409,INVALID_CATEGORY:400,INVALID_INPUT:400,FREE_PROFILE_REQUIRED:400,HORARY_FREE_PROMPT_REQUIRED:400};
     if(path.startsWith('/daily/')&&Object.hasOwn(dailyErrors,error?.code))return reply({error:error.code,errorId:crypto.randomUUID()},dailyErrors[error.code]);
-    const inputErrors=['QUESTION_SCOPE_REQUIRED','QUESTION_SCOPE_UNSUPPORTED','QUESTION_PRODUCT_MISMATCH','PARTNER_REQUIRED','PARTNER_NOT_SUPPORTED','BIRTH_TIME_REQUIRED','PROFILE_REQUIRED','INVALID_BIRTH','QUESTION_FOLLOWUP_BUSY','QUESTION_FOLLOWUP_SUPPORT','FOLLOWUP_NOT_AVAILABLE','FOLLOWUP_INPUT_INVALID','QUESTION_CONVERSATION_CLOSED'];
+    const inputErrors=['QUESTION_SKY_INPUT','QUESTION_TIME_INVALID','QUESTION_LOCATION_INVALID','QUESTION_SCOPE_REQUIRED','QUESTION_SCOPE_UNSUPPORTED','QUESTION_PRODUCT_MISMATCH','PARTNER_REQUIRED','PARTNER_NOT_SUPPORTED','BIRTH_TIME_REQUIRED','PROFILE_REQUIRED','INVALID_BIRTH','QUESTION_FOLLOWUP_BUSY','QUESTION_FOLLOWUP_SUPPORT','FOLLOWUP_NOT_AVAILABLE','FOLLOWUP_INPUT_INVALID','QUESTION_CONVERSATION_CLOSED'];
     if(inputErrors.includes(error?.code))return reply({error:error.code,errorId:crypto.randomUUID()},400);
     // Engine messages are not echoed; request IDs are random and contain no personal data.
     return reply({error:known?error.code:'REQUEST_FAILED',errorId:crypto.randomUUID(),

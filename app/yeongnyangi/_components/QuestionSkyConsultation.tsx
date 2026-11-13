@@ -14,7 +14,7 @@ import {symbolicCityName} from '../_lib/symbolic-locales';
 import {readingLocationCopy} from '../_lib/current-location-copy';
 import CraftedProductDisclosure from '@/app/components/CraftedProductDisclosure';
 import ReadingLanguageSelect from './ReadingLanguageSelect';
-export default function QuestionSkyConsultation({mode}:{mode:SkyMode}){
+export default function QuestionSkyConsultation({mode,paymentSurface="web"}:{mode:SkyMode;paymentSurface?:"toss"|"web"}){
   const {locale,setLocale,siteLocale,fallback}=useReadingLanguage();
   const copy=questionSkyCopyFor(siteLocale).input,extra=spiritExtraCopy(siteLocale);
   const locationCopy=readingLocationCopy(siteLocale);
@@ -29,10 +29,10 @@ export default function QuestionSkyConsultation({mode}:{mode:SkyMode}){
   const consultationAttemptId=useRef('');
   useEffect(()=>{
     let active=true;
-    if(free){setAvailable(true);setReady(true);}else fortuneApi<{products:(Product&{available:boolean})[]}>('products').then(r=>{if(active)setAvailable(r.products.some(p=>p.id===product.id&&p.available));}).catch(()=>{if(active)setError(copy.availabilityError);}).finally(()=>{if(active)setReady(true);});
+    if(free||paymentSurface==="toss"){setAvailable(free);setReady(true);}else fortuneApi<{products:(Product&{available:boolean})[]}>('products').then(r=>{if(active)setAvailable(r.products.some(p=>p.id===product.id&&p.available));}).catch(()=>{if(active)setError(copy.availabilityError);}).finally(()=>{if(active)setReady(true);});
     try{const d=JSON.parse(sessionStorage.getItem(draftKey)||'null');if(d&&Date.now()-d.at<3600000){setQuestion(String(d.question||'').slice(0,1000));setRelationship(String(d.relationship||''));setSituation(String(d.situation||'').slice(0,600));if(Object.hasOwn(skyTopics,d.topic))setTopic(d.topic);setBoundary(d.boundary===true);setCityId(String(d.cityId||''));setLocalTime(String(d.localTime||''));if(readingLocales.includes(d.locale))setLocale(readingLocale(d.locale));}}catch{/* Optional login draft. */}
     return()=>{active=false;};
-  },[product.id,draftKey,free,copy.availabilityError]);
+  },[product.id,draftKey,free,paymentSurface,copy.availabilityError]);
   async function prepare(event:React.FormEvent){
     event.preventDefault();if(lock.current)return;
     if(question.trim().length<5||question.split(/\n+|(?<=[?？])\s*/u).filter(value=>value.trim()).length!==1||(!cityId&&!location)||!localTime){setError(copy.validation);return;}
@@ -68,7 +68,7 @@ export default function QuestionSkyConsultation({mode}:{mode:SkyMode}){
       <p>{copy.timeHelp}</p>
       <label htmlFor="sky-situation">{copy.situationLabel}</label><textarea id="sky-situation" rows={3} maxLength={600} value={situation} onChange={e=>setSituation(e.target.value)} placeholder={copy.situationPlaceholder}/>
       <label><input type="checkbox" checked={boundary} onChange={e=>setBoundary(e.target.checked)}/> {copy.boundaryLabel}</label>
-      <ReadingLanguageSelect locale={locale} siteLocale={siteLocale} onChange={setLocale} fallback={fallback} disabled={busy}/><div className={styles.checkoutSection}><h2>{copy.checkoutTitle}</h2><p>{free?copy.freeSummary:copy.paidSummary}</p><strong>{free?copy.freePrice:`${readingPrice(product.priceKRW,siteLocale)} · ${copy.paidPrice}`}</strong><p>{copy.notice}</p>
+      <ReadingLanguageSelect locale={locale} siteLocale={siteLocale} onChange={setLocale} fallback={fallback} disabled={busy}/><div className={styles.checkoutSection}><h2>{copy.checkoutTitle}</h2><p>{free?copy.freeSummary:copy.paidSummary}</p><strong>{free?copy.freePrice:paymentSurface==='toss'?'토스 상품 등록 확인 중':`${readingPrice(product.priceKRW,siteLocale)} · ${copy.paidPrice}`}</strong><p>{copy.notice}</p>
         <button type="submit" disabled={busy||!ready||!available}>{busy?copy.busy:free?copy.freeSubmit:copy.submit}</button>
         {!ready&&<p role="status">{copy.preparing}</p>}{ready&&!available&&<p>{copy.unavailable}</p>}
         {error&&<p role="alert">{error}</p>}
