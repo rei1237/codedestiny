@@ -38,6 +38,18 @@ try{
     console.log('PASS public tarot',title,count);
     await page.getByRole('button',{name:'다른 질문으로 다시 보기'}).click();
   }
+  await open('이파 오라클');
+  for(const label of ['총운','연애/관계','재물/사업','건강/내면']){
+    await page.getByRole('button',{name:label,exact:true}).click();
+    await page.getByRole('button',{name:'여덟 표식 펼치기'}).click();
+    const reading=page.locator('.ifa-reading');
+    assert.match(await reading.locator('.ifa-header p').innerText(),new RegExp('ODU [0-9]+ / 256 · '+label));
+    assert.equal(await reading.locator('.ifa-column span').count(),8);
+    assert.ok((await reading.locator('.ifa-text').innerText()).includes('요루바 속담'));
+    assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
+    await page.getByRole('button',{name:'다시 점치기'}).click();
+    console.log('PASS public Ifa',label);
+  }
   await open('스톤헨지 룬');
   const art=page.locator('.sr-collection-img');
   await art.scrollIntoViewIfNeeded();

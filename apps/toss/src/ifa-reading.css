@@ -1,0 +1,12 @@
+.ifa-reading{color:#382a30;background:#fffaf1;max-width:38rem;margin:0 auto;padding:0 0 20px;border-radius:22px;overflow:hidden}
+.ifa-header{display:flex;align-items:center;justify-content:space-between;gap:15px;padding:24px 16px;background:linear-gradient(130deg,#302332,#241c29 65%,#48323b);color:#fff7de}
+.ifa-header h1{font:600 clamp(1.35rem,6vw,2rem)/1.25 var(--font-display,serif);color:inherit;overflow-wrap:anywhere;margin:0 0 8px}
+.ifa-header p{color:#e9d7b8;font-size:.87rem;line-height:1.55;margin:0}
+.ifa-opon{box-sizing:border-box;display:flex;justify-content:center;align-items:center;gap:9px;flex:0 0 88px;height:88px;border-radius:50%;border:3px double #bf9b5d;outline:1px solid #7e624d;outline-offset:-7px;color:#f5d8a0;background:radial-gradient(circle,#483348,#302334)}
+.ifa-column{display:grid;text-align:center;line-height:13px;font-family:serif}.ifa-column+.ifa-column{border-left:1px solid #9c8256;padding-left:8px}
+.ifa-reading fieldset{border:0;margin:24px 16px 18px;padding:0}.ifa-reading legend{font-weight:650;margin-bottom:12px}
+.ifa-reading fieldset div{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.ifa-reading fieldset button{min-height:48px;border:1px solid #ccbbaf;background:#fffcf7;border-radius:12px;color:#422d3c;padding:9px}
+.ifa-reading fieldset button[aria-pressed=true]{border-color:#613e54;background:#59374c;color:#fff9f5}
+.ifa-text{padding:4px 18px}.ifa-text section{margin:22px 0}.ifa-text h2{font-family:var(--font-display,serif);font-size:1.13rem;color:#5b3a4b;margin:0 0 8px}
+.ifa-text p{white-space:pre-line;line-height:1.8;word-break:keep-all;overflow-wrap:anywhere;margin:0}.ifa-actions{display:grid;gap:8px;padding:0 14px}
+.ifa-reading>button{width:calc(100% - 32px);margin:0 16px}

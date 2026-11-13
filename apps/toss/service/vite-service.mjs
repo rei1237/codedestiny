@@ -1,3 +1,4 @@
+import {extractIfaEngine} from './ifa-engine-loader.mjs';
 import {readFile,readdir,stat} from 'node:fs/promises';
 import {fileURLToPath} from 'node:url';
 import {resolve,dirname,sep,extname} from 'node:path';
@@ -75,6 +76,7 @@ export default function serviceCompat(){
    return code;
   },
   resolveId(id,importer){
+   if(id==='virtual:ifa-engine')return '\0toss-ifa-engine';
    if(id==='virtual:omikuji-engine')return '\0toss-omikuji-engine';
    if(id.endsWith('/service-introduction-art.json')&&importer){
     const from=importer.split('?')[0].replaceAll('\\','/');
@@ -94,7 +96,12 @@ export default function serviceCompat(){
    if(id.replaceAll('\\','/').endsWith('/app/checkout/CheckoutClient'))return fileURLToPath(new URL('./Checkout.jsx',import.meta.url));
    if(id==='next/navigation'||defaults[id])return '\0toss-service:'+id;
   },
-  async load(id){if(id==='\0toss-omikuji-engine'){const source=resolve(publicRoot,'emoi_omikuji_v2.html');this.addWatchFile(source);return extractOmikujiEngine(await readFile(source,'utf8'));}if(id==='\0toss-sample-intro-art'||id==='\0toss-ziwei-intro-art'){const registry=JSON.parse(await readFile(resolve(publicRoot,'../lib/marketing/service-introduction-art.json'),'utf8'));if(id==='\0toss-ziwei-intro-art'){if(!registry['ziwei-ai'])throw new Error('Ziwei artwork missing');return `export default ${JSON.stringify({'ziwei-ai':registry['ziwei-ai']})};`;}const samples=JSON.parse(await readFile(resolve(publicRoot,'../lib/marketing/result-samples.json'),'utf8'));return `export default ${JSON.stringify(sampleIntroductionArt(registry,samples))};`;}if(!id.startsWith('\0toss-service:'))return;const name=id.slice('\0toss-service:'.length);return defaults[name]?`export {${defaults[name]} as default} from ${JSON.stringify(shim)};`:`export {useRouter,usePathname,useSearchParams} from ${JSON.stringify(shim)};`;},
+  async load(id){
+   if(id==='\0toss-ifa-engine'){
+    const source=resolve(publicRoot,'ifa-oracle.html');this.addWatchFile(source);
+    return extractIfaEngine(await readFile(source,'utf8'));
+   }
+   if(id==='\0toss-omikuji-engine'){const source=resolve(publicRoot,'emoi_omikuji_v2.html');this.addWatchFile(source);return extractOmikujiEngine(await readFile(source,'utf8'));}if(id==='\0toss-sample-intro-art'||id==='\0toss-ziwei-intro-art'){const registry=JSON.parse(await readFile(resolve(publicRoot,'../lib/marketing/service-introduction-art.json'),'utf8'));if(id==='\0toss-ziwei-intro-art'){if(!registry['ziwei-ai'])throw new Error('Ziwei artwork missing');return `export default ${JSON.stringify({'ziwei-ai':registry['ziwei-ai']})};`;}const samples=JSON.parse(await readFile(resolve(publicRoot,'../lib/marketing/result-samples.json'),'utf8'));return `export default ${JSON.stringify(sampleIntroductionArt(registry,samples))};`;}if(!id.startsWith('\0toss-service:'))return;const name=id.slice('\0toss-service:'.length);return defaults[name]?`export {${defaults[name]} as default} from ${JSON.stringify(shim)};`:`export {useRouter,usePathname,useSearchParams} from ${JSON.stringify(shim)};`;},
   configureServer(server){server.middlewares.use(async(req,res,next)=>{
    let path;try{path=resolve(publicRoot,'.'+decodeURIComponent(new URL(req.url,'http://localhost').pathname));}catch{return next();}
    if(!path.startsWith(publicRoot+sep)||!mime[extname(path)])return next();
