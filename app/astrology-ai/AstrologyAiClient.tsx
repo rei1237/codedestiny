@@ -1,4 +1,5 @@
 "use client";
+import {tossExpertResultHref} from "@/lib/fortune/toss-expert-result.mjs";
 import SavedBirthProfilePicker from "@/app/components/SavedBirthProfilePicker";
 import BirthPlaceInput from "@/app/components/BirthPlaceInput";
 import BirthTimeInput from "@/app/components/BirthTimeInput";
@@ -1749,6 +1750,7 @@ export default function AstrologyAiClient({paymentSurface = "web", ProfilePicker
   }
 
   function resultPath(sessionId: string) {
+    if (paymentSurface === "toss") return tossExpertResultHref('astrology',sessionId);
     return `/astrology-ai/result?id=${encodeURIComponent(sessionId)}`;
   }
 

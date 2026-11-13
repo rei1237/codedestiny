@@ -1,4 +1,5 @@
 "use client";
+import {tossExpertResultHref} from "@/lib/fortune/toss-expert-result.mjs";
 import SavedBirthProfilePicker from "@/app/components/SavedBirthProfilePicker";
 import { trackConsultationCompleted } from '@/lib/analytics';
 import BirthTimeInput from "@/app/components/BirthTimeInput";
@@ -2194,15 +2195,19 @@ export function FusionFortuneClient({ seoContent, valuePreview, paymentNotice, p
     }));
   }, []);
 
+  // A purchase-library link must resolve its own order, even if another consultation is pending.
+  const linkedTossResult = paymentSurface === "toss" && typeof window !== "undefined"
+    ? new URLSearchParams(window.location.search).get("cid") : "";
   // 새로고침으로 돌아온 사용자의 결제 증빙을 되살린다 — 이게 없으면 다음 제출이 재결제다.
   useEffect(() => {
+    if (linkedTossResult) return;
     const stored = readFusionPaidRequest({ ownerId: currentFusionOwner() });
     if (!stored) return;
     paidRequestIdRef.current = stored.requestId;
     paidRequestBodyRef.current = stored.body;
     setPendingPaidRequest(true);
     if (stored.body) restoreFormFromBody(stored.body);
-  }, [restoreFormFromBody, ownerEpoch, deliveryOwnerId]);
+  }, [restoreFormFromBody, ownerEpoch, deliveryOwnerId, linkedTossResult]);
 
   /* 모바일 PortOne 은 상단 프레임을 리다이렉트해 ensurePaidAccess 의 await 가 페이지와 함께 죽는다.
      그러면 아래 rememberPaidRequest 가 실행되지 않아 저장소에도 아무것도 남지 않고, 복귀한 사용자는
@@ -2265,8 +2270,8 @@ export function FusionFortuneClient({ seoContent, valuePreview, paymentNotice, p
     // 1단계만 저장된 보관본(partial)은 완성본이 아니다 — 재열람 링크(?cid=)를 남기지 않는다.
     if (consultation.status === "partial") return;
     setOpenedConsultationId(consultation.id);
-    rememberConsultationUrl(consultation.id);
-  }, [setResult, toggleSection]);
+    rememberConsultationUrl(consultation.id,paymentSurface);
+  }, [setResult, toggleSection, paymentSurface]);
 
   /**
    * 결제 키로 보관본을 되찾는다. 찾았으면 화면에 올리고 true.
@@ -2320,7 +2325,7 @@ export function FusionFortuneClient({ seoContent, valuePreview, paymentNotice, p
 
   // 소유자 서버 기록에서도 복구한다. 브라우저 저장소가 지워져도 새 결제를 열지 않는다.
   useEffect(() => {
-    if (!currentFusionOwner() || readFusionPaidRequest({ ownerId: currentFusionOwner() })) return;
+    if (linkedTossResult || !currentFusionOwner() || readFusionPaidRequest({ ownerId: currentFusionOwner() })) return;
     const sameOwner = captureOwner(); let active = true;
     void (async () => {
       try {
@@ -2334,14 +2339,14 @@ export function FusionFortuneClient({ seoContent, valuePreview, paymentNotice, p
       } catch { /* 재연결 시 같은 소유 기록을 다시 조회한다. */ }
     })();
     return () => { active = false; };
-  }, [apiBase, copy, ownerEpoch, deliveryOwnerId, resumeEpoch, captureOwner, rememberPaidRequest, restoreFormFromBody]);
+  }, [apiBase, copy, ownerEpoch, deliveryOwnerId, resumeEpoch, captureOwner, rememberPaidRequest, restoreFormFromBody, linkedTossResult]);
 
   // 새로고침으로 돌아온 결제 요청은 서버에 남은 것부터 본다 — 완성본이면 열고 영수증을 소진,
   // 1단계만 있으면 2단계를 자동으로 이어 간다. 없으면(404) 기존 "이어서 받기" 흐름 그대로다.
   useEffect(() => {
     if (!pendingPaidRequest || loading || autoResumeRef.current || document.visibilityState === "hidden" || navigator.onLine === false) return;
-    const stored = readFusionPaidRequest({ ownerId: currentFusionOwner() })
-      || (paidRequestIdRef.current ? { requestId: paidRequestIdRef.current, body: paidRequestBodyRef.current } : null);
+    const selected = paidRequestIdRef.current ? { requestId: paidRequestIdRef.current, body: paidRequestBodyRef.current } : null;
+    const stored = linkedTossResult ? selected : readFusionPaidRequest({ ownerId: currentFusionOwner() }) || selected;
     if (!stored?.requestId) return;
     autoResumeRef.current = true;
     const body = stored.body;
@@ -2356,7 +2361,7 @@ export function FusionFortuneClient({ seoContent, valuePreview, paymentNotice, p
         await runGenerationRef.current?.(stored.requestId, paidRequestBodyRef.current || body || {}, recoveredStageRef.current, "");
       }
     })();
-  }, [pendingPaidRequest, loading, recoverPaidResult, loadRecentList, rememberPaidRequest, copy.resultCompletedNotice, resumeEpoch]);
+  }, [pendingPaidRequest, loading, recoverPaidResult, loadRecentList, rememberPaidRequest, copy.resultCompletedNotice, resumeEpoch, linkedTossResult]);
 
   useEffect(() => {
     const resume = () => {
@@ -2383,13 +2388,23 @@ export function FusionFortuneClient({ seoContent, valuePreview, paymentNotice, p
       const response = await authFetch(`${apiBase}/api/fusion-fortune/result?id=${encodeURIComponent(id)}`, { credentials: "include" }, { retryOn401: true, apiBase });
       const payload = await parseJson<{ ok?: boolean; consultation?: OpenedConsultation; message?: string }>(response, copy);
       if (!scope.isCurrent()) return;
-      if (!response.ok || !payload.ok || !payload.consultation?.result) throw new Error(payload.message || copy.storedResultLoadFailedMessage);
-      applyOpenedConsultation(payload.consultation);
-      if (payload.consultation.status === "partial" && payload.consultation.requestId && payload.consultation.resumeBody) {
-        recoveredStageRef.current = payload.consultation.nextStage === 1 ? 1 : 2;
+      const record = payload.consultation;
+      if (!response.ok || !payload.ok || !record) throw new Error(payload.message || copy.storedResultLoadFailedMessage);
+      if (!record.result && paymentSurface === "toss" && record.status === "partial" && record.resumeBody && record.requestId) {
+        recoveredStageRef.current = 1;
         autoResumeRef.current = false;
-        rememberPaidRequest(payload.consultation.requestId, payload.consultation.resumeBody);
-        restoreFormFromBody(payload.consultation.resumeBody);
+        rememberPaidRequest(record.requestId,record.resumeBody);
+        restoreFormFromBody(record.resumeBody);
+        setStageTwoFailed(true);
+        return;
+      }
+      if (!record.result) throw new Error(payload.message || copy.storedResultLoadFailedMessage);
+      applyOpenedConsultation(record);
+      if (record.status === "partial" && record.requestId && record.resumeBody) {
+        recoveredStageRef.current = record.nextStage === 1 ? 1 : 2;
+        autoResumeRef.current = false;
+        rememberPaidRequest(record.requestId, record.resumeBody);
+        restoreFormFromBody(record.resumeBody);
         setStageTwoFailed(true);
       }
       threadRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -2399,7 +2414,7 @@ export function FusionFortuneClient({ seoContent, valuePreview, paymentNotice, p
     } finally {
       if (scope.isCurrent()) setReopeningId("");
     }
-  }, [apiBase, copy, applyOpenedConsultation, captureLocaleScope, captureOwner, rememberPaidRequest, restoreFormFromBody]);
+  }, [apiBase, copy, applyOpenedConsultation, captureLocaleScope, captureOwner, rememberPaidRequest, restoreFormFromBody, paymentSurface]);
 
   // 첫 진입: ?cid= 가 있으면 그 보관본을 열고, 이어서 목록을 채운다.
   // useSearchParams 를 쓰면 정적 내보내기에서 이 페이지가 통째로 CSR 로 떨어지므로 URL 을 직접 읽는다.
@@ -2629,10 +2644,10 @@ export function FusionFortuneClient({ seoContent, valuePreview, paymentNotice, p
       if (payload.status === 'completed' && savedId) trackConsultationCompleted({id:savedId,status:'completed',featureKey:'fusion-fortune-consultation'});
       if (savedId) {
         setOpenedConsultationId(savedId);
-        rememberConsultationUrl(savedId);
+        rememberConsultationUrl(savedId,paymentSurface);
         void loadRecentList();
       }
-      if (fortuneChatSessionId) {
+      if (fortuneChatSessionId && paymentSurface !== "toss") {
         void authFetch(`${apiBase}/api/fortune-chat/sessions/${encodeURIComponent(fortuneChatSessionId)}`, {
           method: "POST", credentials: "include", headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ append: true, mode: "fusion_deep_reading", paymentStatus: "completed", generationStatus: "completed", messages: [{ id: `fusion-${payload.requestId || Date.now()}`, speaker: "assistant", kind: "fusion_result", text: streamResult.openingMessage, detail: streamResult.executiveSummary, result: streamResult }] }),
@@ -2738,7 +2753,7 @@ export function FusionFortuneClient({ seoContent, valuePreview, paymentNotice, p
             [stage.key]: stage.key === completed ? "completed" : current[stage.key],
           }), {} as Record<FusionStageKey, FusionStageState>);
         });
-        if (fortuneChatSessionId) {
+        if (fortuneChatSessionId && paymentSurface !== "toss") {
           void authFetch(`${apiBase}/api/fortune-chat/sessions/${encodeURIComponent(fortuneChatSessionId)}`, {
             method: "POST", credentials: "include", headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ append: true, mode: "fusion_deep_reading", paymentStatus: "completed", generationStatus: "running", messages: [{ id: `fusion-stage-${completed}`, speaker: "assistant", kind: "progress", text: fusionStages.find((stage) => stage.key === completed)?.message || copy.stageDefaultProgressMessage }] }),
@@ -3185,9 +3200,13 @@ export function FusionFortuneClient({ seoContent, valuePreview, paymentNotice, p
 }
 
 /** 같은 링크로 다시 열 수 있게 주소만 갱신한다(히스토리를 쌓지 않는다). */
-function rememberConsultationUrl(id: string) {
+function rememberConsultationUrl(id: string, paymentSurface?: 'toss') {
   if (typeof window === "undefined" || !id) return;
   try {
+    if (paymentSurface === "toss") {
+      window.history.replaceState(null, "", tossExpertResultHref("fusion", id));
+      return;
+    }
     const url = new URL(window.location.href);
     url.searchParams.set("cid", id);
     window.history.replaceState(null, "", url.toString());

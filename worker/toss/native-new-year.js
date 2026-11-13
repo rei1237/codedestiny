@@ -1,3 +1,4 @@
+import {tossExpertResultHref} from '../../lib/fortune/toss-expert-result.mjs';
 import {withMongoRetry} from '../lib/db.js';
 import {TossNativeConsultation,TossIdentity} from './models.js';
 import {TossError} from './policy.js';
@@ -78,7 +79,7 @@ export async function nativeNewYearLibraryItem(env,auth,purchase){
   if(doc)await newYearContext(env,auth).assertStored(doc);
   const resultId=doc?.id||'toss_'+row._id;
   return {state:doc?.status==='completed'?'COMPLETED':doc?.status==='generation_failed'?'GENERATION_FAILED':'PENDING',resultId,
-    href:'/new-year-ai-consultation/?sid='+encodeURIComponent(resultId),question:String(row.input.question||row.input.topic||'').slice(0,200)};
+    href:tossExpertResultHref('new-year',resultId),question:String(row.input.question||row.input.topic||'').slice(0,200)};
 }
 
 export async function bindNativeNewYearRecovery(request,env,doc){

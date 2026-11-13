@@ -1,4 +1,5 @@
 "use client";
+import {tossExpertResultHref} from "@/lib/fortune/toss-expert-result.mjs";
 import SavedBirthProfilePicker from "@/app/components/SavedBirthProfilePicker";
 import BirthTimeInput from "@/app/components/BirthTimeInput";
 
@@ -1723,7 +1724,8 @@ function activeAttemptId() {
   return active.attemptId;
 }
 
-function buildResultUrl(params: { sessionId?: string; requestId?: string; attemptId?: string; pending?: boolean }) {
+function buildResultUrl(params: { sessionId?: string; requestId?: string; attemptId?: string; pending?: boolean }, paymentSurface?: "web" | "toss") {
+  if (paymentSurface === "toss" && params.sessionId) return tossExpertResultHref("love-secret",params.sessionId);
   const query = new URLSearchParams();
   if (params.pending) query.set("pending", "1");
   if (params.sessionId) query.set("sessionId", params.sessionId);
@@ -1927,7 +1929,7 @@ export default function LoveSecretAiPage({ paymentNotice, paymentSurface = "web"
         if (paymentSurface === "toss") { setResultUrl(""); setResultOpenMessage(""); }
         return;
       }
-      setResultUrl(buildResultUrl({ sessionId: payload.sessionId }));
+      setResultUrl(buildResultUrl({ sessionId: payload.sessionId }, paymentSurface));
       if (["partial", "generating", "delivery_pending"].includes(payload.status || "")) {
         pendingGenerationRef.current = { payload: { resumeSessionId: payload.sessionId }, key: payload.requestId || payload.sessionId, access: {} };
       }
@@ -2137,7 +2139,7 @@ export default function LoveSecretAiPage({ paymentNotice, paymentSurface = "web"
       if (!isCurrent()) return false;
       if (result.status !== "partial" || !result.sessionId) break;
       setProgress(Math.min(90, Math.round((result.completedGroups?.length || 0) / (result.totalGroups || 6) * 90)));
-      const partialUrl = buildResultUrl({ sessionId: result.sessionId, requestId: idempotencyKey, pending: true });
+      const partialUrl = buildResultUrl({ sessionId: result.sessionId, requestId: idempotencyKey, pending: true }, paymentSurface);
       setResultUrl(partialUrl);
       if (document.hidden) break;
       ({ response: generationResponse, payload: result } = await postJson<ConsultationResult>("/api/love-secret-ai/generate", { resumeSessionId: result.sessionId }, idempotencyKey));
@@ -2147,7 +2149,7 @@ export default function LoveSecretAiPage({ paymentNotice, paymentSurface = "web"
     const completed = result.status === "completed" && result.saved === true ? result : null;
 
     if (completed?.ok && completed.sessionId) {
-      const url = buildResultUrl({ sessionId: completed.sessionId, attemptId: attemptId || undefined });
+      const url = buildResultUrl({ sessionId: completed.sessionId, attemptId: attemptId || undefined }, paymentSurface);
       setProgress(100);
       setNotice("");
       setError("");

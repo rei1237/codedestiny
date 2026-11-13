@@ -1,4 +1,5 @@
 "use client";
+import {tossExpertResultHref} from "@/lib/fortune/toss-expert-result.mjs";
 import SavedBirthProfilePicker from "@/app/components/SavedBirthProfilePicker";
 import BirthTimeInput from "@/app/components/BirthTimeInput";
 
@@ -2513,7 +2514,7 @@ export default function KarmaDestinyAiPage({paymentSurface="web",ProfilePicker,T
       const result = await response.json().catch(()=>({}));
       if (!isCurrent()) return;
       if (!response.ok || !result?.ok || !result.sessionId) throw Object.assign(new Error(result?.message || tossCopy.uncertain), {code:result?.code || result?.reason,status:response.status});
-      window.location.replace(`/karma-destiny-ai/result?sessionId=${encodeURIComponent(result.sessionId)}`);
+      window.location.replace(tossExpertResultHref('karma',result.sessionId));
     } catch (caught) {
       if (!isCurrent()) return;
       const failure = caught && typeof caught === "object" ? caught as {code?:string;status?:number;message?:string} : {};

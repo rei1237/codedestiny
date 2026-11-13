@@ -1,3 +1,4 @@
+import {tossExpertResultHref} from '../../lib/fortune/toss-expert-result.mjs';
 import {withMongoRetry} from '../lib/db.js';
 import {TossNativeConsultation,TossIdentity} from './models.js';
 import {TossError} from './policy.js';
@@ -71,7 +72,7 @@ export async function nativeKarmaLibraryItem(env,auth,purchase){
   if(doc)await karmaContext(env,auth).assertStored(doc);
   const resultId=doc?.id||'toss_'+row._id;
   return {state:doc?.status==='completed'?'COMPLETED':doc?.status==='generation_failed'?'GENERATION_FAILED':'PENDING',resultId,
-    href:'/karma-destiny-ai/result/?sessionId='+encodeURIComponent(resultId),question:String(row.input.question||row.input.topic||'').slice(0,200)};
+    href:tossExpertResultHref('karma',resultId),question:String(row.input.question||row.input.topic||'').slice(0,200)};
 }
 
 export async function bindNativeKarmaRecovery(request,env,doc){

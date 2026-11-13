@@ -1,3 +1,4 @@
+import {tossExpertResultHref} from '../../lib/fortune/toss-expert-result.mjs';
 import {withMongoRetry} from '../lib/db.js';
 import {TossNativeConsultation,TossIdentity} from './models.js';
 import {TossError} from './policy.js';
@@ -67,7 +68,7 @@ export async function nativeSukuyoLibraryItem(env,auth,purchase){
   if(doc)await sukuyoContext(env,auth).assertStored(doc);
   const resultId=doc?String(doc._id):'toss_'+row._id;
   return {state:doc?.status==='completed'?'COMPLETED':doc?.status==='generation_failed'?'GENERATION_FAILED':'PENDING',resultId,
-    href:'/sukuyo-compatibility-ai/?cid='+encodeURIComponent(resultId),question:String(row.input.question||'').slice(0,200)};
+    href:tossExpertResultHref('sukuyo',resultId),question:String(row.input.question||'').slice(0,200)};
 }
 export async function bindNativeSukuyoRecovery(request,env,doc){
   const row=await TossNativeConsultation.findOne({nativeService:'sukuyo',ownerId:doc.userId,requestId:doc.idempotencyKey}).lean();

@@ -1,4 +1,5 @@
 "use client";
+import {tossExpertResultHref} from "@/lib/fortune/toss-expert-result.mjs";
 import ResultReference from '@/components/fortune/ResultReference';
 import { normalizeCaptureColors } from '@/lib/pdf/normalize-capture-colors';
 import dynamic from 'next/dynamic';
@@ -3181,6 +3182,10 @@ export default function VedicAiClient({paymentSurface="web", ProfilePicker, Toss
   function rememberConsultationUrl(id: string) {
     if (!id || typeof window === "undefined") return;
     try {
+      if (paymentSurface === "toss") {
+        window.history.replaceState(null, "", tossExpertResultHref('vedic',id));
+        return;
+      }
       const url = new URL(window.location.href);
       url.searchParams.set("cid", id);
       window.history.replaceState(null, "", url.toString());

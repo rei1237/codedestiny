@@ -1,3 +1,4 @@
+import {tossExpertResultHref} from '../../lib/fortune/toss-expert-result.mjs';
 import {withMongoRetry} from '../lib/db.js';
 import {TossNativeConsultation,TossIdentity} from './models.js';
 import {TossError} from './policy.js';
@@ -87,7 +88,7 @@ export async function nativeZiweiLibraryItem(env,auth,purchase){
   if(doc)await ziweiContext(env,auth).assertStored(doc);
   const resultId=doc?.id||'toss_'+row._id;
   return {state:doc?.status==='completed'?'COMPLETED':doc?.status==='generation_failed'?'GENERATION_FAILED':'PENDING',resultId,
-    href:'/ziwei-ai/?cid='+encodeURIComponent(resultId),question:String(row.input.topic||row.input.consultationTopic||'').slice(0,200)};
+    href:tossExpertResultHref('ziwei',resultId),question:String(row.input.topic||row.input.consultationTopic||'').slice(0,200)};
 }
 
 export async function bindNativeZiweiRecovery(request,env,doc){

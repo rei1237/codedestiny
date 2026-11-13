@@ -85,6 +85,11 @@ test('original Fusion handler: immutable purchase, first checkpoint recovery, tw
  const args={store:{transaction:state.transaction},auth,order,product,requestId:prepared.id};
  await api.grantNativeOrder(args);await api.grantNativeOrder(args);assert.equal(state.purchases.length,1);
  state.catalog.length=0;
+ const libraryRow=await api.nativeFusionLibraryItem({},auth,state.purchases[0]);
+ assert.equal(libraryRow.href,'/fusion-fortune/?cid=toss_'+prepared.id);
+ const linked='/result?id='+encodeURIComponent(libraryRow.resultId);
+ const reopening=await call(linked);assert.equal(reopening.status,202);assert.deepEqual((await reopening.json()).consultation.resumeBody,input);
+ await assert.rejects(call(linked,null,{...auth,ownerId:'other',userId:'other'}),e=>e.status===404);
  const pending=await call('/result?pending=1');assert.equal(pending.status,202);assert.deepEqual((await pending.json()).consultation.resumeBody,input);
  for(const stage of [1,2]){const response=await call('/generate/stream',{...input,stage});assert.match(response.headers.get('Content-Type'),/event-stream/);const stream=await response.text();assert.match(stream,/event: checkpoint/);assert.match(stream,/event: result/);assert.match(stream,/event: complete/);assert.equal(state.doc.status,stage===1?'partial':'completed')}
  const reread=await call('/result?id=original-saved');assert.deepEqual((await reread.json()).consultation.result,state.doc.result);

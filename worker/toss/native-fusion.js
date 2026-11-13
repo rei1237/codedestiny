@@ -1,3 +1,4 @@
+import {tossExpertResultHref} from '../../lib/fortune/toss-expert-result.mjs';
 import {withMongoRetry} from "../lib/db.js";
 import {TossNativeConsultation,TossIdentity} from './models.js';
 import {TossError} from './policy.js';
@@ -49,6 +50,15 @@ function fusionContext(env,auth){
 
 export async function handleNativeFusion(request,env,auth,path){
   const url=new URL(request.url);url.pathname='/api/fusion-fortune'+path;
+  if(path==='/result'&&request.method==='GET'){
+    const id=url.searchParams.get('id');
+    if(/^toss_[a-f0-9]{64}$/.test(id||'')){
+      const row=await TossNativeConsultation.findOne({_id:id.slice(5),...ownerFilter(auth)}).lean();
+      await verifiedIntent(env,auth,row);
+      url.searchParams.delete('id');
+      url.searchParams.set('requestId',row.requestId);
+    }
+  }
   const body=request.method==='POST'?await request.json():null;
   const context=fusionContext(env,auth);
   // Validate even a completed fast return; caller input never changes the paid intent.
@@ -81,8 +91,9 @@ export async function nativeFusionLibraryItem(env,auth,purchase){
   const row=await TossNativeConsultation.findOne({_id:purchase.requestId,...ownerFilter(auth),orderId:purchase._id}).lean();
   assertNativeIntent(row,auth);await fusionContext(env,auth).assertDelivery(row.requestId);
   const doc=await stored(env,auth.userId,row.requestId);
-  return {state:doc?.status==='completed'?'COMPLETED':'PENDING',resultId:doc?.id||'toss_'+row._id,
-    href:'/fusion-fortune/'+(doc?.status==='completed'?'?cid='+encodeURIComponent(doc.id):''),question:String(row.input.concern||row.input.topic||'').slice(0,200)};
+  const resultId=doc?.id||'toss_'+row._id;
+  return {state:doc?.status==='completed'?'COMPLETED':'PENDING',resultId,
+    href:tossExpertResultHref('fusion',resultId),question:String(row.input.concern||row.input.topic||'').slice(0,200)};
 }
 
 export async function nativeFusionRecoveryContext(env,userId,requestId){

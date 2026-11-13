@@ -1,4 +1,5 @@
 "use client";
+import {tossExpertResultHref} from "@/lib/fortune/toss-expert-result.mjs";
 import ResultReference from '@/components/fortune/ResultReference';
 import SavedBirthProfilePicker from "@/app/components/SavedBirthProfilePicker";
 import { trackConsultationCompleted } from '@/lib/analytics';
@@ -1612,7 +1613,7 @@ export default function NewYearAiConsultationPage({paymentSurface="web",ProfileP
     setNotice("");
     setError("");
     setStatus(result.status && result.status !== "completed" ? "reading" : "ready");
-    if (result.sessionId && typeof window !== "undefined") {
+    if (paymentSurface !== "toss" && result.sessionId && typeof window !== "undefined") {
       try {
         const url = new URL(window.location.href);
         url.searchParams.set("sid", result.sessionId);
@@ -1844,7 +1845,7 @@ export default function NewYearAiConsultationPage({paymentSurface="web",ProfileP
   }
   function applyTossResult(result:ConsultationResult,id:string){
     const nextId=result.sessionId||id;
-    if(nextId){tossViewedId.current=nextId;const url=new URL(window.location.href);url.searchParams.set('sid',nextId);window.history.replaceState(null,'',url.toString());}
+    if(nextId){tossViewedId.current=nextId;window.history.replaceState(null,'',tossExpertResultHref('new-year',nextId));}
     applyResult(result);setTossFailureCode('');setTossRecovery('allowed');
     if(result.status!=='completed')setStatus('idle');
   }
