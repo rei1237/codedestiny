@@ -9,7 +9,7 @@ const mock=appRequire.resolve('@apps-in-toss/devtools/mock/3x').replaceAll('\\',
  const bundle=await build({stdin:{contents:code,resolveDir:repo,loader:'ts'},bundle:true,platform:'node',format:'cjs',write:false,plugins:[{name:'offline-boundaries',setup(b){b.onResolve({filter:/^@apps-in-toss\/web-framework$/},()=>({path:mock}));b.onResolve({filter:/^\.\/release$/},()=>({path:'release',namespace:'mock'}));b.onLoad({filter:/.*/,namespace:'mock'},()=>({contents:'export const SERVICE_AVAILABLE=true;export const NEW_PURCHASES_AVAILABLE=true;'}));}}]});
  const loaded=new Module(path.join(repo,'toss-official-devtools-mock.cjs'));loaded.paths=Module._nodeModulePaths(repo+'/apps/toss');loaded._compile(bundle.outputFiles[0].text,loaded.id);const app=loaded.exports;
  const {createOfflineFixtureApi}=await import('./offline/fixture.mjs');
- const {reviewSdkProducts}=await import('./offline/review-fixture.mjs');
+ const {reviewSdkProducts,offlineCatalog}=await import('./offline/review-fixture.mjs');
  const fixture=()=>createOfflineFixtureApi(dom.window.localStorage);
  let backend=fixture(), dropReceipt=false;
  globalThis.fetch=async(url,options)=>{
@@ -27,7 +27,10 @@ const mock=appRequire.resolve('@apps-in-toss/devtools/mock/3x').replaceAll('\\',
  await app.login();
  assert.deepEqual(await app.restorePurchases(),{recovered:0,failed:0,denied:0});
  const products=await app.saleProducts();
- assert.deepEqual(products.map(p=>[p.sku,p.displayAmount]),reviewSdkProducts.map(p=>[p.sku,p.displayAmount]));
+ const studioSkus=new Set(offlineCatalog.map(product=>product.sku));
+ assert.deepEqual(products.map(p=>[p.sku,p.displayAmount]),reviewSdkProducts.filter(p=>studioSkus.has(p.sku)).map(p=>[p.sku,p.displayAmount]));
+ const rooms=await app.nativeSaleProducts();
+ assert.ok(rooms.some(p=>p.sku==='mock-unregistered-room-tea'&&p.displayAmount==='1원'));
  const createLetter=async()=>{
    const reply=await app.api('/canonical/fortune-chat/consultations',{question:'오프라인 테스트 질문',persona:'yeoni'});
    return reply.consultation.id;

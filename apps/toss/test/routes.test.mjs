@@ -17,6 +17,7 @@ const mocks={
 };
 globalThis.__tossRouteMocks=mocks;
 const stubMap={
+ 'worker/toss/today-hub.js':"export const readTodayHub=async(_env,auth,input)=>Response.json({profileId:input.profileId,owner:String(auth._id)});",
  'worker/toss/public-section.js':"export const readTossPublicSection=async input=>Response.json({featureKey:input.featureKey});",
  'worker/routes/career-style.js':"export async function readOwnedCareerStyle(_env,{userId,profileId,statusOnly}){if(profileId!=='mine')throw Object.assign(new Error(),{status:403,payload:{code:'INVALID_PROFILE'}});return {userId,profileId,statusOnly,priceKRW:0};}",
  'worker/toss/native-pet-paid.js':"import {TossError} from './policy.js';const state=globalThis.__tossRouteMocks;export const prepareNativePet=(...args)=>{state.nativePet.push(['prepare',...args]);return {id:'offline-intent'};};export const readNativePet=(...args)=>{state.nativePet.push(['read',...args]);if(state.nativeFailure)throw new TossError(state.nativeFailure.code,state.nativeFailure.status);return Response.json({ok:true,status:'generating'},{status:202});};",
