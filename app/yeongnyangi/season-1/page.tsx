@@ -7,7 +7,8 @@ import styles from './season.module.css';
 import { pageOpenGraph } from '@/lib/seo/page-open-graph';
 
 const TITLE = '영냥이의 점술방 시즌 1 | 꿀꿀 운세';
-const DESCRIPTION = '달빛 점술방의 츤데레 고양이 영냥이와 연이의 겨울 이야기. 합격이 취소된 밤 낯선 문으로 끌려온 연이의 프롤로그 「운명을 알고 싶다」에서 시작해 매주 토요일 밤 9시에 한 화씩 공개되는 시즌 1 웹툰입니다.';
+// 표시 폭 160 이하(verify-adsense-readiness, 한글 2칸).
+const DESCRIPTION = '츤데레 고양이 영냥이와 연이의 겨울 이야기. 합격이 취소된 밤의 프롤로그부터 매주 토요일 밤 9시에 한 화씩 공개되는 웹툰입니다.';
 const PAGE_URL = 'https://code-destiny.com/yeongnyangi/season-1/';
 // 페이지가 openGraph를 선언하면 루트 layout의 og:image·og:url이 통째로 사라진다. pageOpenGraph가 공통 값을 함께 채운다.
 export const metadata: Metadata = { title: TITLE, description: DESCRIPTION, alternates: { canonical: PAGE_URL }, openGraph: { ...pageOpenGraph(PAGE_URL), title: TITLE, description: DESCRIPTION } };
