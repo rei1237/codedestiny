@@ -1,4 +1,6 @@
 "use client";
+import {useTossExpertPrice} from "@/app/_lib/use-toss-expert-price";
+import type {TossTeaPriceComponent} from "@/src/features/fortune-tea-house/lib/tossPriceSelection";
 import {tossExpertResultHref} from "@/lib/fortune/toss-expert-result.mjs";
 import dynamic from 'next/dynamic';
 import SavedBirthProfilePicker from "@/app/components/SavedBirthProfilePicker";
@@ -833,7 +835,8 @@ function formatTransformation(value: string | undefined) {
   return toText(value) || "-";
 }
 
-export default function ZiweiAiPage({paymentSurface="web",ProfilePicker,TossPrice}:{paymentSurface?:"web"|"toss";ProfilePicker?:ComponentType<{onSelect:(seed:AiPrefillSeed)=>void}>;TossPrice?:ComponentType}) {
+export default function ZiweiAiPage({paymentSurface="web",ProfilePicker,TossPrice}:{paymentSurface?:"web"|"toss";ProfilePicker?:ComponentType<{onSelect:(seed:AiPrefillSeed)=>void}>;TossPrice?:TossTeaPriceComponent}) {
+  const price = useTossExpertPrice("ziwei-ai-consultation", paymentSurface === "toss");
   const [clientReady, setClientReady] = useState(false);
   useEffect(() => { setClientReady(true); }, []);
   const copy = useZiweiAiCopy();
@@ -1336,7 +1339,7 @@ export default function ZiweiAiPage({paymentSurface="web",ProfilePicker,TossPric
         <ExpertValueCards theme={musungOn ? "musung" : "ziwei"} ariaLabel={tossJapanese ? tossCopy.sectionLabel : undefined} points={tossJapanese ? tossJapanese.cards.map(card=>({...card})) : [musungOn ? { title: "막힌 별부터 판결", description: "명반에서 화기(化忌)가 걸린 궁을 먼저 짚고, 그 자리를 화록(化祿)으로 돌릴 구체적인 행동을 처방합니다." } : { title: "명궁의 기질", description: "명궁과 주요 별이 보여주는 기본 반응과 선택 습관을 살핍니다." }, { title: "12궁의 무대", description: "일·돈·관계처럼 지금 질문이 놓인 삶의 영역을 나눠 읽습니다." }, { title: "별의 전환점", description: "현재 흐름에서 서두를 때와 정리할 때를 현실적인 언어로 짚습니다." }]} />
         {paymentSurface === "toss" && <p>{tossCopy.ai}</p>}
         {tossJapanese && <p>{tossJapanese.resultLanguage}</p>}
-        {clientReady && (<form data-moonlit-form="" id="ziwei-consultation-form" className="consultForm" onSubmit={paymentSurface === "toss" ? handleTossSubmit : handleSubmit}>
+        {clientReady && (<form data-moonlit-form="" id="ziwei-consultation-form" className="consultForm" onSubmit={event=>{if(price.confirm(event))void (paymentSurface === "toss" ? handleTossSubmit(event) : handleSubmit(event));}}>
           <div className="formHeader flex-wrap">
             <div className="flex min-w-0 flex-1 items-center gap-2">
               <Sparkles size={20} />
@@ -1413,9 +1416,9 @@ export default function ZiweiAiPage({paymentSurface="web",ProfilePicker,TossPric
           </label>
 
           <div className="flex items-center justify-end">
-            {paymentSurface === "toss" ? (TossPrice && <TossPrice/>) : <PriceBadge featureKey="ziwei-ai-consultation" prefix="상담 이용 가격 " />}
+            {paymentSurface === "toss" ? (TossPrice && <TossPrice featureKey="ziwei-ai-consultation" onPrice={price.onPrice}/>) : <PriceBadge featureKey="ziwei-ai-consultation" prefix="상담 이용 가격 " />}
           </div>
-          <button className="primaryBtn" type="submit" disabled={busy || (paymentSurface === "toss" && tossRecovery !== "none")}>
+          <button className="primaryBtn" type="submit" disabled={busy || !price.canStart || (paymentSurface === "toss" && tossRecovery !== "none")}>
             {busy ? <Loader2 className="spin" size={18} /> : <WalletCards size={18} />}
             {busy ? (tossJapanese?.busy || '명반의 별을 읽는 중...') : (tossJapanese?.submit || '별궁 전문가 상담 받기')}
           </button>

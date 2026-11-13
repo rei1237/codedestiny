@@ -1,4 +1,6 @@
 "use client";
+import {useTossExpertPrice} from "@/app/_lib/use-toss-expert-price";
+import type {TossTeaPriceComponent} from "@/src/features/fortune-tea-house/lib/tossPriceSelection";
 import {tossExpertResultHref} from "@/lib/fortune/toss-expert-result.mjs";
 import SavedBirthProfilePicker from "@/app/components/SavedBirthProfilePicker";
 import BirthPlaceInput from "@/app/components/BirthPlaceInput";
@@ -1586,7 +1588,8 @@ function pointLabel(point: ChartPoint | null | undefined, copy: AstrologyClientC
   return `${point.signKo || point.sign} ${degree}`.trim();
 }
 
-export default function AstrologyAiClient({paymentSurface = "web", ProfilePicker, TossPrice}: {paymentSurface?: "web" | "toss"; ProfilePicker?:ComponentType<{onSelect:(seed:AiPrefillSeed)=>void}>; TossPrice?:ComponentType}) {
+export default function AstrologyAiClient({paymentSurface = "web", ProfilePicker, TossPrice}: {paymentSurface?: "web" | "toss"; ProfilePicker?:ComponentType<{onSelect:(seed:AiPrefillSeed)=>void}>; TossPrice?:TossTeaPriceComponent}) {
+  const price = useTossExpertPrice("astrology-ai-consultation", paymentSurface === "toss");
   const locale = useAstrologyClientLocale();
   // The public introduction can paint from HTML. Private profile-backed fields
   // keep their existing browser initialization and only mount after hydration.
@@ -2067,7 +2070,7 @@ export default function AstrologyAiClient({paymentSurface = "web", ProfilePicker
             {clientReady && <>
             {paymentSurface !== "toss" && getCurrentLoadingLocale() === "ko" && <CraftedProductDisclosure featureKey="astrology-ai-consultation" />}
             <ExpertValueCards theme={yunOn ? "yun" : "astrology"} points={[yunOn ? { title: "생시부터 묻는 이유", description: "태어난 분까지 알면 상승궁과 열두 하우스가 또렷해지고, 태양·달과 함께 기질의 중심을 정확히 잡습니다." } : { title: "차트의 중심", description: "태양·달·상승궁이 보여주는 기질과 감정의 리듬을 정리합니다." }, { title: "지금의 하늘", description: "행성과 하우스의 흐름을 현재의 질문과 맞물려 읽습니다." }, { title: "선택의 타이밍", description: "변화를 밀어붙일 때와 숨을 고를 때를 구체적으로 나눠 봅니다." }]} />
-            <form data-moonlit-form="" id="astrology-ai-form" onSubmit={handleSubmit} className="space-y-5">
+            <form data-moonlit-form="" id="astrology-ai-form" onSubmit={event=>{if(price.confirm(event))void handleSubmit(event);}} className="space-y-5">
               <section className={PANEL_CLASS}>
                 <div className="mb-5 flex items-start gap-3">
                   <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg border border-[#f5d487]/30 bg-[#f5d487]/10">
@@ -2196,10 +2199,10 @@ export default function AstrologyAiClient({paymentSurface = "web", ProfilePicker
               </section>
 
               <div className="flex items-center justify-end">
-                {paymentSurface === "toss" ? TossPrice && <TossPrice/> : <PriceBadge featureKey="astrology-ai-consultation" prefix={copy.priceLabelPrefix} />}
+                {paymentSurface === "toss" ? TossPrice && <TossPrice featureKey="astrology-ai-consultation" onPrice={price.onPrice}/> : <PriceBadge featureKey="astrology-ai-consultation" prefix={copy.priceLabelPrefix} />}
               </div>
               <div className="grid gap-3 sm:grid-cols-[1fr_auto]">
-                <button type="submit" disabled={busy} className="group relative inline-flex min-h-14 items-center justify-center gap-2 overflow-hidden rounded-lg bg-[#f5d487] px-6 text-base font-black text-[#161019] shadow-xl shadow-[#f5d487]/20 transition hover:bg-[#ffe6a8] focus:outline-none focus:ring-2 focus:ring-[#f5d487]/40 disabled:cursor-not-allowed disabled:opacity-60">
+                <button type="submit" disabled={busy || !price.canStart} className="group relative inline-flex min-h-14 items-center justify-center gap-2 overflow-hidden rounded-lg bg-[#f5d487] px-6 text-base font-black text-[#161019] shadow-xl shadow-[#f5d487]/20 transition hover:bg-[#ffe6a8] focus:outline-none focus:ring-2 focus:ring-[#f5d487]/40 disabled:cursor-not-allowed disabled:opacity-60">
                   <span className="relative inline-flex items-center gap-2">
                     {busy ? <Loader2 className="h-5 w-5 animate-spin motion-reduce:animate-none" aria-hidden="true" /> : <Sparkles className="h-5 w-5" aria-hidden="true" />}
                     {copy.submitCta}
@@ -2307,7 +2310,7 @@ export default function AstrologyAiClient({paymentSurface = "web", ProfilePicker
                   </div>
                   <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-1">
                     {paymentSurface === "toss" && error === errorText("LOGIN_REQUIRED") && <a href="/login/?next=%2Fastrology-ai%2F" className="min-h-11 rounded-lg border border-white/15 px-3 py-3 font-bold text-white">토스로 로그인하기</a>}
-                    <button type="submit" form="astrology-ai-form" className="min-h-11 rounded-lg bg-rose-100 px-3 font-bold text-rose-950">
+                    <button type="submit" disabled={busy || !price.canStart} form="astrology-ai-form" className="min-h-11 rounded-lg bg-rose-100 px-3 font-bold text-rose-950">
                       {copy.retryCta}
                     </button>
                     <button type="button" onClick={reset} className="min-h-11 rounded-lg border border-white/15 px-3 font-bold text-white">

@@ -15,7 +15,7 @@ const stubs={
  '@/app/karma-destiny-ai/KarmaDestinyAiClient':"export default function Input(){return 'INPUT_SCREEN';}",
  '@/app/karma-destiny-ai/result/KarmaDestinyAiResultClient':"export default function Result(){return 'RESULT_SCREEN';}",
  './TossAstrologyProfilePicker':"export default function Profile(){return null;}",
- './TossAstrologyPrice':"export default function Price(){return null;}",
+ './TossTeaPrice':"export default function Price(){return null;}",
 };
 const bundle=await build({entryPoints:[path.join(root,'apps/toss/service/TossKarma.tsx')],bundle:true,write:false,platform:'node',format:'cjs',packages:'external',jsx:'automatic',plugins:[{name:'mock-boundaries',setup(b){b.onResolve({filter:/.*/},args=>stubs[args.path]?{path:args.path,namespace:'mock'}:null);b.onLoad({filter:/.*/,namespace:'mock'},args=>({contents:stubs[args.path],loader:'jsx'}));}}]});
 const mod=new Module(path.join(root,'karma-shell-fixture.cjs'));mod.paths=Module._nodeModulePaths(root);mod._compile(bundle.outputFiles[0].text,mod.id);const Shell=mod.exports.default;

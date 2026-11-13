@@ -1,4 +1,6 @@
 "use client";
+import {useTossExpertPrice} from "@/app/_lib/use-toss-expert-price";
+import type {TossTeaPriceComponent} from "@/src/features/fortune-tea-house/lib/tossPriceSelection";
 import {tossExpertResultHref} from "@/lib/fortune/toss-expert-result.mjs";
 import SavedBirthProfilePicker from "@/app/components/SavedBirthProfilePicker";
 import BirthTimeInput from "@/app/components/BirthTimeInput";
@@ -2282,7 +2284,8 @@ function KarmaResultModal({
   );
 }
 
-export default function KarmaDestinyAiPage({paymentSurface="web",ProfilePicker,TossPrice}:{paymentSurface?:"web"|"toss";ProfilePicker?:ComponentType<{onSelect:(seed:AiPrefillSeed)=>void}>;TossPrice?:ComponentType} = {}) {
+export default function KarmaDestinyAiPage({paymentSurface="web",ProfilePicker,TossPrice}:{paymentSurface?:"web"|"toss";ProfilePicker?:ComponentType<{onSelect:(seed:AiPrefillSeed)=>void}>;TossPrice?:TossTeaPriceComponent} = {}) {
+  const price = useTossExpertPrice("karma-destiny-ai-consultation", paymentSurface === "toss");
   const copy = useKarmaDestinyCopy();
   const {copy:tossCopy} = useTossConsultationCopy(paymentSurface === "toss");
   const [clientReady, setClientReady] = useState(false);
@@ -2691,7 +2694,7 @@ export default function KarmaDestinyAiPage({paymentSurface="web",ProfilePicker,T
       {clientReady && <>
       {paymentSurface !== "toss" && getCurrentLoadingLocale() === "ko" && <div style={{width:"100%",maxWidth:540,margin:"24px auto",position:"relative",zIndex:1,textAlign:"left",color:"#463a31",background:"#eee7dc",borderRadius:12}}><CraftedProductDisclosure featureKey="karma-destiny-ai-consultation" summaryLabel="붉은 실 · 운명의 업 상담 상세 안내" /></div>}
       <section className="kdai-workspace">
-        <form data-moonlit-form="" id="karma-destiny-consultation" className="kdai-form kdai-panel" onSubmit={handleSubmit}>
+        <form data-moonlit-form="" id="karma-destiny-consultation" className="kdai-form kdai-panel" onSubmit={event=>{if(price.confirm(event))void handleSubmit(event);}}>
           <div className="kdai-panel-title kdai-panel-title--split">
             <div>
               <CalendarDays size={18} />
@@ -2809,9 +2812,9 @@ export default function KarmaDestinyAiPage({paymentSurface="web",ProfilePicker,T
             noteClassName="kdai-deliverable__note"
           />}
           <div className="flex items-center justify-end">
-            {paymentSurface === "toss" ? TossPrice && <TossPrice /> : <PriceBadge featureKey="karma-destiny-ai-consultation" prefix={copy.priceLabelPrefix} />}
+            {paymentSurface === "toss" ? TossPrice && <TossPrice featureKey="karma-destiny-ai-consultation" onPrice={price.onPrice}/> : <PriceBadge featureKey="karma-destiny-ai-consultation" prefix={copy.priceLabelPrefix} />}
           </div>
-          <button className="kdai-primary" type="submit" disabled={isBusy}>
+          <button className="kdai-primary" type="submit" disabled={isBusy || !price.canStart}>
             {isBusy ? <Loader2 size={18} className="kdai-spin" /> : <WalletCards size={18} />}
             <span>{isBusy ? copy.submitBusyLabel : copy.submitCta}</span>
           </button>

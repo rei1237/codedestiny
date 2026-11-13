@@ -1,5 +1,5 @@
 import React from 'react';
-import {SERVICE_AVAILABLE} from '../src/release';
+import TossPrice from './TossTeaPrice';
 import LoveSecretAiClient from '@/app/love-secret-ai/LoveSecretAiClient';
 import ServiceIntroSection from '@/app/components/ServiceIntroSection';
 import ResultSamples from '@/app/components/ResultSamples';
@@ -39,7 +39,7 @@ const loveSecretFaqItems = [
 
 
 export default function LoveSecret(){return <>
-  <LoveSecretAiClient paymentSurface="toss" paymentNotice={SERVICE_AVAILABLE?'토스 단건 결제로 상담을 시작해요. 기존 웹 이용권과 월정석은 이 결제에 적용되지 않아요.':'상품 등록과 검수가 완료되면 토스 단건 결제로 상담을 시작할 수 있어요.'}/>
+  <LoveSecretAiClient paymentSurface="toss" TossPrice={TossPrice} paymentNotice={'상품 가격을 확인한 뒤 토스 단건 결제로 상담을 시작해요.'}/>
   <ResultSamples ids={['love-secret']}/>
 
 <ServiceIntroSection label="연애 비책 전문가 상담 안내">

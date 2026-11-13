@@ -1,4 +1,6 @@
 "use client";
+import {useTossExpertPrice} from "@/app/_lib/use-toss-expert-price";
+import type {TossTeaPriceComponent} from "@/src/features/fortune-tea-house/lib/tossPriceSelection";
 import {tossExpertResultHref} from "@/lib/fortune/toss-expert-result.mjs";
 import SavedBirthProfilePicker from "@/app/components/SavedBirthProfilePicker";
 import BirthTimeInput from "@/app/components/BirthTimeInput";
@@ -1889,7 +1891,8 @@ async function runLoveSecretPaymentGate(paymentPayload: BillingPaymentPayload, i
   return extractPayment(gateResult, idempotencyKey);
 }
 
-export default function LoveSecretAiPage({ paymentNotice, paymentSurface = "web" }: { paymentNotice?: string; paymentSurface?: "web" | "toss" } = {}) {
+export default function LoveSecretAiPage({ paymentNotice, TossPrice, paymentSurface = "web" }: { paymentNotice?: string; TossPrice?:TossTeaPriceComponent; paymentSurface?: "web" | "toss" } = {}) {
+  const price = useTossExpertPrice("love-secret-ai-consultation", paymentSurface === "toss");
   useProductView('love-secret-ai-consultation', 'love');
   const copy = useLoveSecretClientCopy();
   const permissionFailure = "구매 내역에 접근할 권한을 확인할 수 없어요. 구매한 계정과 주문 내역을 확인해 주세요.";
@@ -2336,7 +2339,7 @@ export default function LoveSecretAiPage({ paymentNotice, paymentSurface = "web"
       <div className={`pointer-events-none fixed inset-0 ${theme.pageBg}`} aria-hidden="true" />
 
       <section className={`${intro.shell} flex flex-col gap-6`}>
-        <LoveSecretHero onStart={focusFirstStepField} busy={busy} mastersHref={!busy && !resultUrl ? `#${LOVE_MASTERS_ANCHOR_ID}` : undefined} />
+        <LoveSecretHero showWebPrice={paymentSurface !== "toss"} onStart={focusFirstStepField} busy={busy} mastersHref={!busy && !resultUrl ? `#${LOVE_MASTERS_ANCHOR_ID}` : undefined} />
         {copy === LOVE_SECRET_CLIENT_COPY.ko && <CraftedProductDisclosure featureKey="love-secret-ai-consultation" />}
 
         <LoveSecretProgressRail
@@ -2349,7 +2352,7 @@ export default function LoveSecretAiPage({ paymentNotice, paymentSurface = "web"
           <ExpertValueCards theme="love" points={[{ title: "내 마음의 속도", description: "지금 관계에서 내가 먼저 반응하는 지점과 원하는 거리를 살핍니다." }, { title: "상대와의 결", description: "상대의 마음을 단정하지 않고 관계의 패턴과 흐름으로 읽습니다." }, { title: "다음 대화", description: "불안을 키우기보다 지금 선택할 수 있는 대화와 간격을 정리합니다." }]} />
         </div>
         <div className={styles.formLayout}>
-          <form data-moonlit-form="" onSubmit={handleSubmit} id={FORM_ANCHOR_ID} className={styles.entryForm}>
+          <form data-moonlit-form="" onSubmit={event=>{if(price.confirm(event,Boolean(pendingGenerationRef.current)))void handleSubmit(event);}} id={FORM_ANCHOR_ID} className={styles.entryForm}>
             <div
               key={busy ? "busy" : activeStep.id}
               className={`${styles.stepEnter} rounded-lg border border-[var(--ls-line)] bg-[var(--ls-surface)] p-5 sm:p-7`}
@@ -2473,7 +2476,7 @@ export default function LoveSecretAiPage({ paymentNotice, paymentSurface = "web"
                   <button
                     type="submit"
                     className={`${theme.focusRing} inline-flex min-h-12 flex-1 items-center justify-center gap-2 rounded-2xl bg-[image:var(--ls-cta)] px-5 text-sm font-semibold text-[var(--ls-cta-ink)] transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-55`}
-                    disabled={busy}
+                    disabled={busy || (!price.canStart && !pendingGenerationRef.current)}
                   >
                     {busy
                       ? <Loader2 className="h-4 w-4 animate-spin motion-reduce:animate-none" aria-hidden="true" />
@@ -2484,11 +2487,11 @@ export default function LoveSecretAiPage({ paymentNotice, paymentSurface = "web"
               </div>
               {step === LAST_STEP && !busy && (
                 <div className="mt-3 flex items-center justify-end border-t border-[var(--ls-line)] pt-3">
-                  <PriceBadge
+                  {paymentSurface === "toss" ? TossPrice && <TossPrice featureKey="love-secret-ai-consultation" onPrice={price.onPrice}/> : <PriceBadge
                     featureKey="love-secret-ai-consultation"
                     prefix={copy.priceLabelPrefix}
                     className="text-sm font-bold text-[var(--ls-text-muted)]"
-                  />
+                  />}
                 </div>
               )}
             </div>
@@ -2514,7 +2517,7 @@ export default function LoveSecretAiPage({ paymentNotice, paymentSurface = "web"
             )}
           </aside>
         </div>
-          <ExpertStickyCta theme="love" targetId={FORM_ANCHOR_ID} watchId={HERO_START_ID} label={copy.heroStartCta} price={<PriceBadge featureKey="love-secret-ai-consultation" prefix="상담 이용 가격 " />} />
+          <ExpertStickyCta theme="love" targetId={FORM_ANCHOR_ID} watchId={HERO_START_ID} label={copy.heroStartCta} price={paymentSurface === "toss" ? undefined : <PriceBadge featureKey="love-secret-ai-consultation" prefix="상담 이용 가격 " />} />
       </section>
       {/* 소개용 공동 마스터 프로필 — 상담 진행·결과 안내 중에는 내리고, 사전이 없는 다른 로케일에는 띄우지 않는다. */}
       {copy === LOVE_SECRET_CLIENT_COPY.ko && !busy && !resultUrl && <MasterProfileGroup id={LOVE_MASTERS_ANCHOR_ID}
@@ -2528,7 +2531,7 @@ export default function LoveSecretAiPage({ paymentNotice, paymentSurface = "web"
 const LOVE_MASTERS_ANCHOR_ID = "love-secret-masters";
 const LOVE_MASTERS = [masterProfiles.yeoniLove, masterProfiles.hanbiLove];
 
-function LoveSecretHero({ onStart, busy, mastersHref }: { onStart: () => void; busy: boolean; mastersHref?: string }) {
+function LoveSecretHero({ onStart, busy, mastersHref, showWebPrice }: { showWebPrice:boolean; onStart: () => void; busy: boolean; mastersHref?: string }) {
   const copy = useLoveSecretClientCopy();
   return (
     <header className={intro.hero}>
@@ -2548,7 +2551,7 @@ function LoveSecretHero({ onStart, busy, mastersHref }: { onStart: () => void; b
             <MessageCircleHeart className="h-5 w-5" aria-hidden="true" />
             {copy.heroStartCta}
           </button>
-          <PriceBadge featureKey="love-secret-ai-consultation" prefix={copy.priceLabelPrefix} className={intro.price} />
+          {showWebPrice && <PriceBadge featureKey="love-secret-ai-consultation" prefix={copy.priceLabelPrefix} className={intro.price} />}
         </div>
         {copy === LOVE_SECRET_CLIENT_COPY.ko && !busy && <ProductJourneyLinks sampleId="love-secret" />}
       </div>

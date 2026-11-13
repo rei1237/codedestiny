@@ -59,7 +59,6 @@ const Karma=lazy(()=>import('./TossKarma'));
 const Astrology=lazy(()=>import('@/app/astrology-ai/AstrologyAiClient'));
 const AstrologyResult=lazy(()=>import('@/app/astrology-ai/result/AstrologyAiResultClient'));
 const AstrologyProfile=lazy(()=>import('./TossAstrologyProfilePicker'));
-const AstrologyPrice=lazy(()=>import('./TossAstrologyPrice'));
 const Sukuyo=lazy(()=>import('./TossSukuyoGate'));
 const Records=lazy(()=>import('@/app/records/RecordsClient'));
 const TossMeetingPlace=lazy(()=>import('./TossMeetingPlace'));
@@ -70,11 +69,8 @@ const MayaPrompt=lazy(()=>import('@/src/components/maya/MayaPromptGeneratorCard'
 const Omikuji=lazy(()=>import('./TossOmikujiGate'));
 const Psychotest=lazy(()=>import('./TossPsychotest'));
 function VedicProfile(props){return <AstrologyProfile {...props} calendarMode="lunar"/>;}
-function VedicPrice(){return <AstrologyPrice featureKey="vedic-ai-consultation"/>;}
 function ZiweiProfile(props){return <AstrologyProfile {...props} calendarMode="native-lunar"/>;}
-function ZiweiPrice(){return <AstrologyPrice featureKey="ziwei-ai-consultation"/>;}
 function NewYearProfile(props){return <AstrologyProfile {...props} calendarMode="lunar"/>;}
-function NewYearPrice(){return <AstrologyPrice featureKey="new-year-ai-consultation"/>;}
 const LoveSimulation=lazy(()=>import('./LoveSimulation.jsx'));
 const Sibyl=lazy(()=>import('./TossSibyl.jsx'));
 const SajuCompat=lazy(()=>import('./TossSajuCompat.jsx'));
@@ -174,11 +170,11 @@ export default function ServiceScreens({reviewOnly=false,verifiedReceipt=false,i
  if(/^\/dream\/psycho\/?$/.test(location.pathname))return <LazyMotion features={domAnimation}>{recoveryBanner}{ready&&<Suspense fallback={<p role="status">꿈 상담실을 열고 있어요.</p>}><Dream/></Suspense>}</LazyMotion>;
  if(location.pathname.startsWith('/heukwol'))return <LazyMotion features={domAnimation}>{recoveryBanner}{ready?<Suspense fallback={<p role="status">흑월의 상담실을 열고 있어요.</p>}><Heukwol/></Suspense>:<p role="status">계정을 확인하고 있어요.</p>}</LazyMotion>;
  if(location.pathname.startsWith('/karma-destiny-ai'))return <LazyMotion features={domAnimation}><ToastProvider/>{recoveryBanner}{ready?<Suspense fallback={<p role="status">운명의 업 상담을 열고 있어요.</p>}><Karma result={location.pathname.includes('/result')}/></Suspense>:<p role="status">로그인 상태를 확인하고 있어요.</p>}</LazyMotion>;
- if(location.pathname.startsWith('/new-year-ai-consultation'))return <LazyMotion features={domAnimation}><ToastProvider/>{recoveryBanner}{ready?<Suspense fallback={<p role="status">신년운세 상담을 열고 있어요.</p>}><NewYear paymentSurface="toss" ProfilePicker={NewYearProfile} TossPrice={NewYearPrice}/></Suspense>:<p role="status">로그인 상태를 확인하고 있어요.</p>}</LazyMotion>;
- if(location.pathname.startsWith('/ziwei-ai'))return <LazyMotion features={domAnimation}><ToastProvider/>{recoveryBanner}{ready?<Suspense fallback={<p role="status">자미두수 상담을 열고 있어요.</p>}><Ziwei paymentSurface="toss" ProfilePicker={ZiweiProfile} TossPrice={ZiweiPrice}/></Suspense>:<p role="status">로그인 상태를 확인하고 있어요.</p>}</LazyMotion>;
- if(location.pathname.startsWith('/vedic-ai'))return <LazyMotion features={domAnimation}><ToastProvider/>{recoveryBanner}{ready?<Suspense fallback={<p role="status">베다 상담을 열고 있어요.</p>}><Vedic paymentSurface="toss" ProfilePicker={VedicProfile} TossPrice={VedicPrice}/></Suspense>:<p role="status">로그인 상태를 확인하고 있어요.</p>}</LazyMotion>;
+ if(location.pathname.startsWith('/new-year-ai-consultation'))return <LazyMotion features={domAnimation}><ToastProvider/>{recoveryBanner}{ready?<Suspense fallback={<p role="status">신년운세 상담을 열고 있어요.</p>}><NewYear paymentSurface="toss" ProfilePicker={NewYearProfile} TossPrice={TeaPrice}/></Suspense>:<p role="status">로그인 상태를 확인하고 있어요.</p>}</LazyMotion>;
+ if(location.pathname.startsWith('/ziwei-ai'))return <LazyMotion features={domAnimation}><ToastProvider/>{recoveryBanner}{ready?<Suspense fallback={<p role="status">자미두수 상담을 열고 있어요.</p>}><Ziwei paymentSurface="toss" ProfilePicker={ZiweiProfile} TossPrice={TeaPrice}/></Suspense>:<p role="status">로그인 상태를 확인하고 있어요.</p>}</LazyMotion>;
+ if(location.pathname.startsWith('/vedic-ai'))return <LazyMotion features={domAnimation}><ToastProvider/>{recoveryBanner}{ready?<Suspense fallback={<p role="status">베다 상담을 열고 있어요.</p>}><Vedic paymentSurface="toss" ProfilePicker={VedicProfile} TossPrice={TeaPrice}/></Suspense>:<p role="status">로그인 상태를 확인하고 있어요.</p>}</LazyMotion>;
  if(location.pathname.startsWith('/sukuyo-compatibility-ai'))return <LazyMotion features={domAnimation}><ToastProvider/>{recoveryBanner}{ready?<Suspense fallback={<p role="status">숙요점 상담을 열고 있어요.</p>}><Sukuyo/></Suspense>:<p role="status">로그인 상태를 확인하고 있어요.</p>}</LazyMotion>;
- if(location.pathname.startsWith('/astrology-ai')){const Screen=location.pathname.includes('/result')?AstrologyResult:Astrology;return <LazyMotion features={domAnimation}><ToastProvider/>{recoveryBanner}{ready?<Suspense fallback={<p role="status">점성술 상담을 열고 있어요.</p>}><Screen paymentSurface="toss" {...(Screen===Astrology?{ProfilePicker:AstrologyProfile,TossPrice:AstrologyPrice}:{})}/></Suspense>:<p role="status">로그인 상태를 확인하고 있어요.</p>}</LazyMotion>;}
+ if(location.pathname.startsWith('/astrology-ai')){const Screen=location.pathname.includes('/result')?AstrologyResult:Astrology;return <LazyMotion features={domAnimation}><ToastProvider/>{recoveryBanner}{ready?<Suspense fallback={<p role="status">점성술 상담을 열고 있어요.</p>}><Screen paymentSurface="toss" {...(Screen===Astrology?{ProfilePicker:AstrologyProfile,TossPrice:TeaPrice}:{})}/></Suspense>:<p role="status">로그인 상태를 확인하고 있어요.</p>}</LazyMotion>;}
  if(location.pathname.startsWith('/life-book-ai')){const Screen=location.pathname.includes('/result')?LifeBookResult:LifeBook;return <LazyMotion features={domAnimation}><ToastProvider/>{recoveryBanner}{ready?<Suspense fallback={<p role="status">인생의 책을 열고 있어요.</p>}><Screen {...(Screen===LifeBookResult?{paymentSurface:'toss'}:{})}/></Suspense>:<p role="status">로그인 상태를 확인하고 있어요.</p>}</LazyMotion>;}
  if(location.pathname.startsWith('/love-secret-ai')){const Screen=location.pathname.includes('/result')?LoveSecretResult:LoveSecret;return <LazyMotion features={domAnimation}><ToastProvider/>{recoveryBanner}{ready?<Suspense fallback={<p role="status">연애 비책을 열고 있어요.</p>}><Screen {...(Screen===LoveSecretResult?{paymentSurface:'toss'}:{})}/></Suspense>:<p role="status">로그인 상태를 확인하고 있어요.</p>}</LazyMotion>;}
  if(/^\/relationship-boundary-test\/?$/.test(location.pathname))return <LazyMotion features={domAnimation}><ToastProvider/>{recoveryBanner}{ready?<Suspense fallback={<p role="status">관계 리포트를 열고 있어요.</p>}><Relationship key={location.pathname+location.search}/></Suspense>:<p role="status">로그인 상태를 확인하고 있어요.</p>}</LazyMotion>;

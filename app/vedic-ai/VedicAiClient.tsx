@@ -1,4 +1,6 @@
 "use client";
+import {useTossExpertPrice} from "@/app/_lib/use-toss-expert-price";
+import type {TossTeaPriceComponent} from "@/src/features/fortune-tea-house/lib/tossPriceSelection";
 import {tossExpertResultHref} from "@/lib/fortune/toss-expert-result.mjs";
 import ResultReference from '@/components/fortune/ResultReference';
 import { normalizeCaptureColors } from '@/lib/pdf/normalize-capture-colors';
@@ -3019,7 +3021,8 @@ export function StructuredReadingResult({
   );
 }
 
-export default function VedicAiClient({paymentSurface="web", ProfilePicker, TossPrice}:{paymentSurface?:"web"|"toss"; ProfilePicker?:ComponentType<{onSelect:(seed:AiPrefillSeed)=>void}>; TossPrice?:ComponentType}) {
+export default function VedicAiClient({paymentSurface="web", ProfilePicker, TossPrice}:{paymentSurface?:"web"|"toss"; ProfilePicker?:ComponentType<{onSelect:(seed:AiPrefillSeed)=>void}>; TossPrice?:TossTeaPriceComponent}) {
+  const price = useTossExpertPrice("vedic-ai-consultation", paymentSurface === "toss");
   const copy = useVedicAiCopy();
   const {locale:tossLocale,copy:tossCopy}=useTossConsultationCopy(paymentSurface === "toss");
   // Render the public introduction in HTML, then mount browser/profile controls.
@@ -3679,7 +3682,7 @@ export default function VedicAiClient({paymentSurface="web", ProfilePicker, Toss
   return (
     <main className={styles.shell} data-vedic-ai-page="direct-route-v20260627" lang={paymentSurface === "toss" ? tossLocale : undefined} style={paymentSurface === "toss" ? {paddingBottom:"var(--toss-service-bottom, 0px)"} : undefined}>
       <ConsultationMasterIntro kind="vedic" label={copy.heroTitle} lead={copy.heroLead} actionHref={clientReady ? "#vedic-consultation-form" : undefined} actionId="vedic-hero-start">
-        {clientReady && (paymentSurface === "toss" ? TossPrice && <TossPrice /> : <PriceBadge featureKey="vedic-ai-consultation" prefix={copy.pricePrefix} />)}
+        {clientReady && (paymentSurface === "toss" ? null : <PriceBadge featureKey="vedic-ai-consultation" prefix={copy.pricePrefix} />)}
       </ConsultationMasterIntro>
 
       <ExpertValueCards
@@ -3693,7 +3696,7 @@ export default function VedicAiClient({paymentSurface="web", ProfilePicker, Toss
       />
 
       {clientReady && <section className={styles.workspace}>
-        <form data-moonlit-form="" id="vedic-consultation-form" className={styles.formPanel} onSubmit={(event) => { event.preventDefault(); void (paymentSurface === "toss" ? handleTossSubmit() : handleSubmit()); }}>
+        <form data-moonlit-form="" id="vedic-consultation-form" className={styles.formPanel} onSubmit={(event) => { event.preventDefault(); if(price.confirm(event))void (paymentSurface === "toss" ? handleTossSubmit() : handleSubmit()); }}>
           {paymentSurface !== "toss" && !consultation && detectLocale() === "ko" && <CraftedProductDisclosure featureKey="vedic-ai-consultation" />}
           {paymentSurface === "toss" && <p>{tossCopy.ai}</p>}
           <div className={`${styles.panelHeader} flex-wrap`}>
@@ -3791,11 +3794,11 @@ export default function VedicAiClient({paymentSurface="web", ProfilePicker, Toss
           )}
 
           <div className="flex items-center justify-end">
-            {paymentSurface === "toss" ? TossPrice && <TossPrice /> : <PriceBadge featureKey="vedic-ai-consultation" prefix={copy.pricePrefix} />}
+            {paymentSurface === "toss" ? TossPrice && <TossPrice featureKey="vedic-ai-consultation" onPrice={price.onPrice}/> : <PriceBadge featureKey="vedic-ai-consultation" prefix={copy.pricePrefix} />}
           </div>
           {paymentSurface === "toss" && !consultation && tossRecovery === "allowed" && <button type="button" style={{minHeight:44}} disabled={busy} onClick={()=>void retryTossVedic()}>{tossCopy.resume}</button>}
           {paymentSurface === "toss" && !consultation && (tossRecovery === "denied" || tossRecovery === "error") && <button type="button" style={{minHeight:44}} disabled={busy} onClick={()=>setResumeEpoch(value=>value+1)}>{tossCopy.retryAuthority}</button>}
-          <button type="submit" className={styles.primaryButton} disabled={busy || (paymentSurface === "toss" && tossRecovery !== "none")} aria-busy={busy}>
+          <button type="submit" className={styles.primaryButton} disabled={busy || !price.canStart || (paymentSurface === "toss" && tossRecovery !== "none")} aria-busy={busy}>
             {busy ? <Loader2 className={styles.spin} size={18} /> : <Moon size={18} />}
             {busy ? phaseText : copy.submitButtonIdle}
           </button>

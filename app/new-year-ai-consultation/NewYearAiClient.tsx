@@ -1,4 +1,6 @@
 "use client";
+import {useTossExpertPrice} from "@/app/_lib/use-toss-expert-price";
+import type {TossTeaPriceComponent} from "@/src/features/fortune-tea-house/lib/tossPriceSelection";
 import {tossExpertResultHref} from "@/lib/fortune/toss-expert-result.mjs";
 import ResultReference from '@/components/fortune/ResultReference';
 import SavedBirthProfilePicker from "@/app/components/SavedBirthProfilePicker";
@@ -1544,7 +1546,8 @@ const NYAI_READING_ROOM_CSS = `
 }
 `;
 
-export default function NewYearAiConsultationPage({paymentSurface="web",ProfilePicker,TossPrice}:{paymentSurface?:"web"|"toss";ProfilePicker?:ComponentType<{onSelect:(seed:AiPrefillSeed)=>void}>;TossPrice?:ComponentType}) {
+export default function NewYearAiConsultationPage({paymentSurface="web",ProfilePicker,TossPrice}:{paymentSurface?:"web"|"toss";ProfilePicker?:ComponentType<{onSelect:(seed:AiPrefillSeed)=>void}>;TossPrice?:TossTeaPriceComponent}) {
+  const price = useTossExpertPrice("new-year-ai-consultation", paymentSurface === "toss");
   useProductView(paymentSurface === 'toss' ? '' : FEATURE_KEY, 'yearly');
   const [clientReady, setClientReady] = useState(false);
   useEffect(() => { setClientReady(true); }, []);
@@ -2178,7 +2181,7 @@ export default function NewYearAiConsultationPage({paymentSurface="web",ProfileP
       {/* 위 소개 판·아래 작업 영역과 같은 폭(최대 1180). 540으로 묶여 768에서 본문 744보다 좁았다(2026-10-30 QA). */}
       {paymentSurface!=='toss' && copy === NEW_YEAR_AI_COPY.ko && <div style={{ width: "100%", maxWidth: 1180, margin: "24px auto" }}><CraftedProductDisclosure featureKey={FEATURE_KEY} /></div>}
       <section className="nyai-workspace">
-        {clientReady && (<form data-moonlit-form="" id="new-year-form" className="nyai-form nyai-panel" onSubmit={handleSubmit}>
+        {clientReady && (<form data-moonlit-form="" id="new-year-form" className="nyai-form nyai-panel" onSubmit={event=>{if(price.confirm(event))void handleSubmit(event);}}>
           <fieldset disabled={paymentSurface==='toss'&&(isBusy||tossRecovery!=='none')} style={{border:0,margin:0,padding:0,minWidth:0}}>
           <div className="nyai-form-title">
             <CalendarDays size={18} />
@@ -2316,9 +2319,9 @@ export default function NewYearAiConsultationPage({paymentSurface="web",ProfileP
           {paymentSurface==='toss'&&error&&<a href="/records/">{tossJapanese?.records||'기록 보관함 확인하기'}</a>}
           {paymentSurface==='toss'&&tossRecovery==='allowed'&&status==='ready'&&<button type="button" style={{minHeight:44}} disabled={isBusy} onClick={()=>{const url=new URL(window.location.href);url.searchParams.delete('sid');url.searchParams.delete('orderId');window.history.replaceState(null,'',url.toString());tossViewedId.current='';tossRevision.current++;tossBusy.current=false;idempotencyKeyRef.current=createIdempotencyKey();clearTossResult();setError('');setNotice('');setStatus('idle');setTossRecovery('none');}}>{tossJapanese?.newConsultation||'새 상담 시작하기'}</button>}
           <div className="flex items-center justify-end">
-            {paymentSurface==='toss'?(TossPrice&&<TossPrice/>):<PriceBadge featureKey="new-year-ai-consultation" prefix="상담 이용 가격 " />}
+            {paymentSurface==='toss'?(TossPrice&&<TossPrice featureKey="new-year-ai-consultation" onPrice={price.onPrice}/>):<PriceBadge featureKey="new-year-ai-consultation" prefix="상담 이용 가격 " />}
           </div>
-          <button className="nyai-primary" type="submit" disabled={isBusy||(paymentSurface==='toss'&&tossRecovery!=='none')}>
+          <button className="nyai-primary" type="submit" disabled={isBusy||!price.canStart||(paymentSurface==='toss'&&tossRecovery!=='none')}>
             {isBusy ? <Loader2 size={18} className="nyai-spin" /> : <WalletCards size={18} />}
             <span>{isBusy ? statusText : (tossJapanese?.start||"신년운세 전문가 상담 받기")}</span>
           </button>

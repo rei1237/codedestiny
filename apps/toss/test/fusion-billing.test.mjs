@@ -12,7 +12,7 @@ const bundle=await build({stdin:{contents:"export * from './apps/toss/service/bi
  b.onResolve({filter:/^@\/app\/hooks\/usePaidResume$/},()=>({path:'resume',namespace:'mock'}));
  b.onLoad({filter:/.*/,namespace:'mock'},()=>({contents:'export const unpackPaidResumeArg=JSON.parse;',loader:'js'}));
  b.onLoad({filter:/app[\\/]_lib[\\/]billing-client\.ts$/},()=>({contents:'export const runPaidAccessGate=()=>{throw Error("WEB_GATE_FORBIDDEN")};',loader:'js'}));
- b.onLoad({filter:/apps[\\/]toss[\\/]src[\\/]platform\.ts$/},()=>({contents:`const s=globalThis.__fusionBilling;export const api=async(path,body)=>{s.calls.push({path,body});if(s.unavailable)throw Object.assign(Error('unavailable'),{code:'TOSS_RELEASE_PENDING',status:503});if(s.denied)throw Object.assign(Error('ORDER_OWNERSHIP_MISMATCH'),{code:'ORDER_OWNERSHIP_MISMATCH',status:403});return {id:'intent',sku:'mock-sku',paid:s.paid,amountKRW:50000,orderId:'original-order'};};export const nativeSaleProducts=async()=>(s.recoveryBusy||s.cancelled||s.paymentError)?[{sku:'mock-sku',featureKey:s.cancelled?'love-secret-ai-consultation':'life-book-ai-consultation',displayAmount:'테스트 금액',approvedPriceKRW:50000}]:[];export const purchase=()=>{if(s.paymentError==='NULL_ERROR')throw null;if(s.paymentError)throw Object.assign(Error(s.paymentMessage||s.paymentError),{code:s.paymentError});if(s.cancelled)throw Object.assign(Error('USER_CANCELED'),{code:'USER_CANCELED'});if(s.recoveryBusy)throw Object.assign(Error('RECOVERY_IN_PROGRESS'),{code:'RECOVERY_IN_PROGRESS'});throw Error('LIVE_PURCHASE_FORBIDDEN')};`,loader:'js'}));
+ b.onLoad({filter:/apps[\\/]toss[\\/]src[\\/]platform\.ts$/},()=>({contents:`const s=globalThis.__fusionBilling;export const api=async(path,body)=>{s.calls.push({path,body});if(s.expert){return {id:'test-intent',sku:s.expert.sku,amountKRW:s.expert.amount,paid:s.expert.paid,orderId:s.expert.paid?'mock-order':''};}if(s.unavailable)throw Object.assign(Error('unavailable'),{code:'TOSS_RELEASE_PENDING',status:503});if(s.denied)throw Object.assign(Error('ORDER_OWNERSHIP_MISMATCH'),{code:'ORDER_OWNERSHIP_MISMATCH',status:403});return {id:'intent',sku:'mock-sku',paid:s.paid,amountKRW:50000,orderId:'original-order'};};export const nativeSaleProducts=async()=>s.expert?(s.expert.registered?[{sku:s.expert.sku,approvedPriceKRW:s.expert.amount,featureKey:s.expert.key,displayAmount:'1원'}]:[]):(s.recoveryBusy||s.cancelled||s.paymentError)?[{sku:'mock-sku',featureKey:s.cancelled?'love-secret-ai-consultation':'life-book-ai-consultation',displayAmount:'테스트 금액',approvedPriceKRW:50000}]:[];export const purchase=(_sale,_intent,done)=>{if(s.expert){s.expert.paid=true;s.expert.charges++;done();return ()=>{};}if(s.paymentError==='NULL_ERROR')throw null;if(s.paymentError)throw Object.assign(Error(s.paymentMessage||s.paymentError),{code:s.paymentError});if(s.cancelled)throw Object.assign(Error('USER_CANCELED'),{code:'USER_CANCELED'});if(s.recoveryBusy)throw Object.assign(Error('RECOVERY_IN_PROGRESS'),{code:'RECOVERY_IN_PROGRESS'});throw Error('LIVE_PURCHASE_FORBIDDEN')};`,loader:'js'}));
 }}]});
 const loaded=new Module(path.join(root,'fusion-billing-test.cjs'));loaded.paths=Module._nodeModulePaths(root);loaded._compile(bundle.outputFiles[0].text,loaded.id);
 
@@ -84,7 +84,7 @@ test('native billing preserves permission denial and provides account guidance',
 });
 
 test('native billing retains the SDK cancellation code and gives cancellation guidance',async()=>{
- globalThis.location={search:''};globalThis.window={addEventListener:()=>{},removeEventListener:()=>{}};state.unavailable=false;state.paid=false;state.cancelled=true;
+ globalThis.location={search:''};globalThis.window={addEventListener:()=>{},removeEventListener:()=>{}};state.unavailable=false;state.paid=false;state.cancelled=true;loaded.exports.rememberTossTeaPrice({owner:'owner',featureKey:'love-secret-ai-consultation',sku:'mock-sku',displayAmount:'테스트 금액'});
  try{const result=await loaded.exports.runBillingCoinGate({featureKey:'love-secret-ai-consultation',requestId:'same-request',resume:{args:{payload:JSON.stringify({birthDate:'1990-01-01'})}}});assert.equal(result.error.code,'USER_CANCELED');assert.match(result.error.message,/결제를 취소/);}
  finally{state.cancelled=false;state.paid=true;delete globalThis.location;delete globalThis.window;}
 });
@@ -120,3 +120,24 @@ test('an empty SDK error becomes a retryable failure instead of throwing',async(
  try{const result=await loaded.exports.runBillingCoinGate({featureKey:'life-book-ai-consultation',requestId:'same-request',resume:{args:{payload:JSON.stringify({birthDate:'1990-01-01'})}}});assert.equal(result.ok,false);assert.equal(result.error.code,'PURCHASE_FAILED');assert.match(result.error.message,/확인/);}
  finally{state.paymentError=null;state.paid=true;delete globalThis.location;delete globalThis.window;}
 });
+
+for(const [service,key] of Object.entries({fusion:'fusion-fortune-consultation','love-secret':'love-secret-ai-consultation',astrology:'astrology-ai-consultation',vedic:'vedic-ai-consultation',ziwei:'ziwei-ai-consultation','new-year':'new-year-ai-consultation',karma:'karma-destiny-ai-consultation',sukuyo:'sukuyo-compatibility-ai'})){
+ test(service+' holds purchase until the exact visible SKU and price match; a funded retry reuses the order',async()=>{
+   const sku='mock-expert-'+service,requestId='original-input-'+service;
+   const input={question:'테스트 상담 질문',birthDate:'1990-01-01'};
+   const args={featureKey:key,requestId,resume:{args:{[service==='fusion'?'body':'payload']:JSON.stringify(input)}}};
+   globalThis.location={pathname:'/consult',search:''};
+   state.expert={sku,key,amount:1,paid:false,registered:false,charges:0};
+   try{
+     const buy=()=>loaded.exports.runBillingCoinGate(args);
+     assert.equal((await buy()).ok,false);assert.equal(state.expert.charges,0);
+     state.expert.registered=true;
+     loaded.exports.rememberTossTeaPrice({owner:'owner',featureKey:key,sku:'other-sku',displayAmount:'1원'});
+     assert.equal((await buy()).error.code,'TOSS_PRICE_CHANGED');
+     loaded.exports.rememberTossTeaPrice({owner:'owner',featureKey:key,sku,displayAmount:'1원'});
+     assert.equal((await buy()).ok,true);assert.equal(state.expert.charges,1);
+     state.expert.registered=false;
+     assert.equal((await buy()).ok,true);assert.equal(state.expert.charges,1);
+   }finally{delete state.expert;delete globalThis.location;}
+ });
+}

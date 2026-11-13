@@ -1,4 +1,6 @@
 "use client";
+import {useTossExpertPrice} from "@/app/_lib/use-toss-expert-price";
+import type {TossTeaPriceComponent} from "@/src/features/fortune-tea-house/lib/tossPriceSelection";
 import {tossExpertResultHref} from "@/lib/fortune/toss-expert-result.mjs";
 import SavedBirthProfilePicker from "@/app/components/SavedBirthProfilePicker";
 import { trackConsultationCompleted } from '@/lib/analytics';
@@ -2043,7 +2045,8 @@ function useFusionFortuneCopy(): FusionFortuneCopy {
   return getFusionFortuneCopy(locale);
 }
 
-export function FusionFortuneClient({ seoContent, valuePreview, paymentNotice, paymentSurface }: { seoContent?: ReactNode; valuePreview?: ReactNode; paymentNotice?: string; paymentSurface?: 'toss' }) {
+export function FusionFortuneClient({ seoContent, valuePreview, paymentNotice, TossPrice, paymentSurface }: { seoContent?: ReactNode; valuePreview?: ReactNode; paymentNotice?: string; TossPrice?:TossTeaPriceComponent; paymentSurface?: 'toss' }) {
+  const price = useTossExpertPrice("fusion-fortune-consultation", paymentSurface === "toss");
   const { user: deliveryUser } = useAuthStore();
   const deliveryOwnerId = String(deliveryUser?.id || deliveryUser?.userId || deliveryUser?._id || deliveryUser?.uid || "");
   useEffect(() => { void refreshAuth({ silent: true }).catch(() => {}); }, []);
@@ -2928,7 +2931,7 @@ export function FusionFortuneClient({ seoContent, valuePreview, paymentNotice, p
         <p>{copy.heroDesc}</p>
         <div className={styles.heroMeta}>
           <span className={styles.firstCome}>{copy.heroFirstCome}</span>
-          <PriceBadge featureKey={PAID_FEATURE_KEY} fallbackLabel={copy.heroPriceFallback} prefix={copy.heroPricePrefix} className={styles.heroPrice} />
+          {paymentSurface !== "toss" && <PriceBadge featureKey={PAID_FEATURE_KEY} fallbackLabel={copy.heroPriceFallback} prefix={copy.heroPricePrefix} className={styles.heroPrice} />}
           <span>{copy.heroWordCount}</span>
           <span>{copy.heroSaveNote}</span>
         </div>
@@ -2948,7 +2951,7 @@ export function FusionFortuneClient({ seoContent, valuePreview, paymentNotice, p
         <div><span>{copy.statusMethodLabel}</span><strong>{copy.statusMethodValue}</strong><small>{paymentNotice ?? copy.statusMethodNote}</small></div>
         <button className={styles.coreButton} type="button" onClick={() => coreDialogRef.current?.showModal()} aria-haspopup="dialog">{copy.coreButtonLabel}</button>
       </div>
-      {<form data-moonlit-form="" id="fusion-form" ref={formRef} className={styles.form} onSubmit={submit} onInputCapture={() => { profileTouchedRef.current = true; }}>
+      {<form data-moonlit-form="" id="fusion-form" ref={formRef} className={styles.form} onSubmit={event=>{if(price.confirm(event,pendingPaidRequest || status.nextAction === "login"))void submit(event);}} onInputCapture={() => { profileTouchedRef.current = true; }}>
         <div className={styles.formIntro}>
           <h2>{copy.formIntroHeading}</h2>
           <p>{copy.formIntroDesc}</p>
@@ -3001,9 +3004,10 @@ export function FusionFortuneClient({ seoContent, valuePreview, paymentNotice, p
           <p className={styles.error} role="alert">{error}</p>
           {statusUnavailable && <button type="button" className={styles.profileReload} onClick={() => { setError(""); void refresh(); }}>{copy.statusRetryCta}</button>}
         </div>}
-        {failure?.retryable !== false && <button disabled={loading || isPaying || status.nextAction === "disabled"} type="submit">
+        {paymentSurface === "toss" && !pendingPaidRequest && TossPrice && <TossPrice featureKey="fusion-fortune-consultation" onPrice={price.onPrice}/>}
+        {failure?.retryable !== false && <button disabled={loading || isPaying || status.nextAction === "disabled" || (!price.canStart && !pendingPaidRequest && status.nextAction !== "login")} type="submit">
           <span>{buttonLabel}</span>
-          {showSubmitPrice && <PriceBadge featureKey={PAID_FEATURE_KEY} fallbackLabel={copy.heroPriceFallback} prefix={copy.heroPricePrefix} className={styles.submitPrice} />}
+          {showSubmitPrice && paymentSurface !== "toss" && <PriceBadge featureKey={PAID_FEATURE_KEY} fallbackLabel={copy.heroPriceFallback} prefix={copy.heroPricePrefix} className={styles.submitPrice} />}
         </button>}
       </form>}
       {/* 예전에는 여기 ExpertStickyCta 와 아래 .orderBar 두 개가 동시에 떠서 화면 하단에
@@ -3185,7 +3189,7 @@ export function FusionFortuneClient({ seoContent, valuePreview, paymentNotice, p
 
     {/* 생성 중이거나 결과가 떠 있으면 띄우지 않는다 — 그때 화면 아래는 결과 도킹 바의 자리다. */}
     {!loading && !result && !failure && <div className={styles.orderBar} data-visible={orderBarVisible ? "true" : "false"}>
-      <PriceBadge featureKey={PAID_FEATURE_KEY} fallbackLabel={copy.heroPriceFallback} prefix={copy.heroPricePrefix} className={styles.orderBarPrice} />
+      {paymentSurface !== "toss" && <PriceBadge featureKey={PAID_FEATURE_KEY} fallbackLabel={copy.heroPriceFallback} prefix={copy.heroPricePrefix} className={styles.orderBarPrice} />}
       <a className={styles.orderBarCta} href="#fusion-form">{copy.heroFormCta}</a>
     </div>}
     <dialog ref={coreDialogRef} className={styles.coreDialog} aria-labelledby="fusion-core-dialog-title">
