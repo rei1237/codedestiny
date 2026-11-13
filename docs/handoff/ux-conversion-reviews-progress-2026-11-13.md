@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-14
-next: 묶음 ③ 단계 5(ReviewProof) 시작
+next: 묶음 ③ 단계 7(영냥이·홈 구매 흐름) 시작
 ---
 
 # 꿀꿀 운세·영냥이 UX: 구매 흐름 · 후기 신뢰 · 후기 작성 · 생성 진행 · 무료 배너
@@ -20,7 +20,7 @@ next: 묶음 ③ 단계 5(ReviewProof) 시작
 - 기준: origin/main `02476159e0b545b887fe04a12815b7123b4b614d`
 - node_modules는 정션, `.env.local`·`.env.cloudflare.local`은 링크(건드리지 않는다).
 - 워크트리 제거: 다른 체크아웃에서 `npm run worktree:remove -- 'D:\Development\codedestiny-worktrees\ux-conversion-20261113-215142'` (git worktree remove 금지 — 긴 경로 고아 폴더).
-- 마지막 커밋: 단계마다 아래 표에 적는다. 묶음 ① 끝 코드 커밋 `3af1f976b`(미push). 묶음 ② 6b 끝 코드 커밋 `dd10f6156`(미push). 묶음 ② 6c-1 코드 커밋 `4dd33836e`·`9b9a8e706`·`3c8d5ac2f`(미push). 묶음 ② 6c-2 코드 커밋 `273aa5ce6`·`d1eba2bae`(미push). 묶음 ② 11a 코드 커밋 `81b1be43d`(미push). 묶음 ② 배너 모바일 다듬기 `c7edcc6c3`·사이트맵 원장 `a10578ada`(미push).
+- 마지막 커밋: 단계마다 아래 표에 적는다. 묶음 ① 끝 코드 커밋 `3af1f976b`(미push). 묶음 ② 6b 끝 코드 커밋 `dd10f6156`(미push). 묶음 ② 6c-1 코드 커밋 `4dd33836e`·`9b9a8e706`·`3c8d5ac2f`(미push). 묶음 ② 6c-2 코드 커밋 `273aa5ce6`·`d1eba2bae`(미push). 묶음 ② 11a 코드 커밋 `81b1be43d`(미push). 묶음 ② 배너 모바일 다듬기 `c7edcc6c3`·사이트맵 원장 `a10578ada`(미push). 묶음 ③ 단계 5 ReviewProof `f554b8920`(미push).
 
 ## 승인 상태 (사용자 원문, 2026-11-13)
 
@@ -150,7 +150,7 @@ next: 묶음 ③ 단계 5(ReviewProof) 시작
 - [x] 배너 모바일 다듬기(390 주 버튼 위치·말풍선 조판·반짝이 대비) — SHA: c7edcc6c3, 사이트맵 원장 a10578ada (결과는 문서 끝 "배너 모바일 다듬기 결과")
 
 ### 묶음 ③ 신뢰·구매 흐름 (단계 5, 7, 8)
-- [ ] 5. ReviewProof — SHA:
+- [x] 5. ReviewProof — SHA: f554b8920 (결과는 문서 끝 "묶음 ③ 단계 5 ReviewProof 결과")
 - [ ] 7. 영냥이·홈 — SHA:
 - [ ] 8. 결제 인접 — SHA:
 
@@ -615,3 +615,78 @@ visual-checker
   - 그래서 두었다.
 - 영냥이 390 말풍선은 글자 폭 약 150px에 5줄이라 좁다. 잘림은 없다. 마스코트 크기·겹침을 바꾸면 넓어지지만 영냥이 그림 검수가 필요해 두었다.
 - 영냥이 공유 버튼은 경계 대비가 1.08:1로 거의 보이지 않는다(어두운 카드 위 `--yn-deep` 버튼, 글자는 읽힘). 이번 변경 전부터 있던 스타일이다(`.yeongnyangi .share`).
+
+### 묶음 ③ 단계 5 ReviewProof 결과 (2026-11-14 완료, 미push)
+
+커밋
+- `f554b8920` feat(review-proof): 결정 지점 신뢰 블록 — 구매 인증 후기 또는 확인된 사실
+  - 새 파일: `app/components/ReviewProof.tsx`, `app/components/ReviewProof.module.css`, `__tests__/ui/review-proof.test.mjs`
+  - 배치 4곳은 마크업만(10줄 추가·1줄 변경). 가격·결제 핸들러·제출 로직은 그대로다.
+
+동작
+- 클라이언트에서 `/api/reviews/summary?productId=<id>&verifiedOnly=1`과 `/api/reviews?productId=<id>&verifiedOnly=1&sort=latest&page=1&limit=3`을 함께 받는다.
+  - 목록에서 `isVerifiedPurchase === true`만 다시 거른다(최대 3개).
+  - 같은 상품 요청은 한 번만 보낸다(pending·resolved 맵).
+- 표시
+  - 구매 인증 후기 0건, 또는 응답 실패 → 사실 안내(TrustFacts). 면책 문구·"후기 더 보기"는 없다(보여 줄 후기가 없으므로).
+  - 1~2건 → 카드만. 평균은 없다.
+  - 3건 이상 → "평균 별점 N.N점 · 구매 인증 후기 N개" + 카드 3개.
+  - 카드: 별점(시각 별은 aria-hidden, 읽기용 "별점 5점 만점에 N점"), YYYY.MM, 제목, 본문(없으면 빠른 태그를 " · "로), "구매 인증" 배지, `rewarded`면 `reviewCardRewardLabel("ko")`.
+  - 후기 모드에만 "개인 경험에 따른 후기이며 결과를 보장하지 않습니다." + "후기 더 보기" → `/reviews/?product=<id>`.
+- 로딩 중에는 빈 자리만 예약한다(aria-hidden). 390에서 예약 432px, 최종 428/430px라 밀림이 없다.
+- 브랜드 변형: 꿀꿀은 `--cd-*`, 영냥이는 `--yn-*`. 비공개 `--rp-*` 네임스페이스. 새 hex·`dark:`·`prefers-color-scheme`은 없다.
+- 제목은 `useId` 기반 id로 `aria-labelledby`. 꿀꿀은 h2, 영냥이는 `#yn-prices`(h2) 안이라 h3.
+- AggregateRating·JSON-LD·분석 이벤트 없음(테스트가 소스에서 확인).
+
+배치 (커밋 기준 줄)
+- `app/love-secret-ai/LoveSecretAiClient.tsx` import L46, 블록 L2339 — `LoveSecretHero`와 `CraftedProductDisclosure` 사이. productId `love-coach`, 예시 `#service-samples-love-secret`
+- `app/new-year-ai-consultation/NewYearAiClient.tsx` import L8, 블록 L2179 — `CraftedProductDisclosure` 묶음 앞, 폭 1180 래퍼. productId `new-year`, 예시 `#service-samples-new-year`
+- `app/life-book-ai/LifeBookAiClient.tsx` import L24, 블록 L1792 — 히어로 `</header>` 바로 뒤. productId `life-book`, 예시 `#service-samples-life-book`
+- `app/yeongnyangi/_components/YeongnyangiGuide.tsx` import L13, 블록 L61 — `#yn-prices`의 `.note` 문단 뒤. productId `yeongnyangi`, 예시 `#yn-example`. 머리 주석도 갱신.
+- 꿀꿀 3곳 조건: 한국어 웹(`copy === *_COPY.ko`), 토스 화면 제외(`paymentSurface !== "toss"`), 생성 중·결과 화면 아님. 토스 `apps/toss/service/*.jsx`가 같은 클라이언트를 `paymentSurface="toss"`로 그리므로 토스 화면은 바뀌지 않는다.
+
+TrustFacts 문장과 근거
+- 꿀꿀
+  1. 가격은 시작 버튼 옆, 결제창에서 결제 금액 재확인 — `PriceBadge`가 CTA 옆(love-secret L2549, new-year ≈L2318, life-book ≈L1786), `app/_lib/billing-client.ts` L1322 `결제 금액 {amount}`
+  2. 완성된 상담은 결제한 계정 보관함에 저장 — `lib/records/service-registry.js` L11·L15·L16
+  3. 화면을 닫아도 이어서, 오래 비우면 서버가 마저 완성 — 세 클라이언트의 `usePaidResume`, `worker/lib/consultation-recovery-task.js`(cron), 이 문서 L46 확인 문구
+  4. 결과를 못 받으면 확인 뒤 재생성 또는 환불 기준 — 이용약관 12조(TermsContent L177 "재생성 … 부분 환불 또는 전액 환불"), 링크 `/refund-policy/`
+  - 링크: "환불 안내 보기" `/refund-policy/`(`app/refund-policy/page.js`), "실제 결과 예시 보기" → 각 page.tsx의 `ResultSamples ids=[...]`가 만드는 `service-samples-<id>`
+- 영냥이
+  1. 결제창에서 총액과 적용 수단 재확인 — `YeongnyangiCheckout` L141("추가 결제 금액")·L144, 가격 FAQ
+  2. 결제 확인 뒤 생성 시작, 닫아도 같은 계정 내 상담에서 확인 — `YEONGNYANGI_FAQS` "결제하고 나면 결과는 언제, 어디서 보나요?"(서버 큐)
+  3. 안 만들어지면 내 상담에서 상태 확인·문의, 환불은 환불 정책 — `YEONGNYANGI_FAQS` "상담이 만들어지지 않으면…", `checkout-copy.ts` L267 `resolveCheckoutPolicyHrefs`
+  - 링크: "환불 정책 보기" `/refund-policy/`, "문의하기" `/contact/#payment-help`(ContactUsPage `<li id="payment-help">`), "실제 상담 예시 보기" `#yn-example`
+  - "내 상담"은 NBSP로 묶었다(소스에는 `\u00a0` 이스케이프).
+- 문구 테스트: `보장|100%|반드시|무조건|지금 바로|놓치|마감|한정|최고|유일` 없음(면책 문구 상수는 제외).
+
+API 판단
+- 목록·요약 모두 `verifiedOnly`를 이미 지원한다(캐시 키 `reviews:list:v5:…:verified|all`, `reviews:summary:v3:<id>:<0|1>`). 서버·worker 변경 없음 → `verify:public-api-edge-cache` 불필요.
+- 분석 이벤트를 추가하지 않았으므로 `verify:analytics-events`도 불필요.
+
+검증
+- `node --test __tests__/ui/review-proof.test.mjs`: 6/6
+  - 기준값(0/1/2/3/12/-1/NaN), 0건·실패 → 사실 안내와 링크 대상 존재, 2건 → 평균 없음·보상 라벨 1회, 7건 평균 4.57 → "평균 별점 4.6점 · 구매 인증 후기 7개"·카드 3개, 로딩 aria-hidden·fetch URL·비인증 제외, 금지 문구·JSON-LD·analytics 없음
+- 관련 UI 테스트 17개 파일 묶음: 242개 중 241 통과. 실패 1건은 이번 변경과 무관(아래 후속 1).
+- `npm run typecheck`: 0 errors
+- visual-checker(390, 쿠키 배너 끔): `/love-secret-ai/`·`/yeongnyangi/` 둘 다 PASS
+  - love-secret: 본문·링크 12.86:1(rgb(246,242,237) 위), 밑줄 1px, 링크 간격 약 20px, 아래 테두리 온전
+  - 영냥이: 링크 7.64:1, 본문 10.92:1(rgb(35,52,75) 위), 줄 간격 48px, "내 상담" 붙어 있음
+  - 링크 높이 모두 44px, 가로 넘침 0, h2/h3 + aria-labelledby
+- 로딩 예약 대비 최종 높이(px): 360 = 453/455, 640 = 329/308, 768 = 329/283, 1440 = 304/258(love-secret/영냥이). 예약값 27rem(<640), 19rem(≥640), 18rem(≥1024)
+- dev 서버 12828(API 12829)은 이 워크트리 경로 해시 포트였다(`dev-with-local-auth.mjs` PID 33656 트리). 끄고 두 포트가 빈 것을 확인했다.
+- `check:fast`는 돌리지 않았다(지시).
+
+함정
+- GNU sed·perl 치환 문자열의 `\u`는 다음 글자 대문자 이스케이프다. `\u00a0`이 "내00a0상담"이 됐다.
+- Edit 도구는 `\u00a0`을 실제 NBSP 문자로 풀어 쓴다. 이스케이프로 남기려면 Write로 쓴 node 스크립트로 바꾼다.
+- `sed -i`는 CRLF 작업 사본을 LF로 바꾼다(인덱스는 LF, text=auto). 고친 뒤 `git ls-files --eol`로 w/crlf인지 본다.
+- 로컬 mock `/api/reviews`는 308 → 501이라 화면에서는 늘 사실 안내 모드다. 카드·평균 모드는 단위 테스트로만 확인했다.
+- 화면 측정 때 쿠키 배너는 `cd_cookie_consent=essential` 쿠키를 미리 넣어 끈다. 측정 스크립트: `D:\Development\Temp\claude\ec29f026d20d029c\5016f536-7db3-4def-b6e1-84b5f5a786cd\scratchpad\rp-shots.mjs`
+
+후속(보고만)
+1. `__tests__/ui/ziwei-result-disclosure.test.mjs` "other service presentation changes preserve…"가 실패한다. 단계 3(`70fe88e4d`)이 `SukuyoCompatibilityAiClient` 함수 안 `<ReviewRewardBanner afterResult/>`에 `reviewProductId="sukuyo"`를 넣어 함수 해시가 `__tests__/fixtures/result-presentation-preservation.json` 기준과 달라졌다. 의도된 변경이면 기준 해시만 갱신하면 된다(묶음 ⑤ `check:fast` 전에 처리).
+2. `/reviews/?product=<id>`는 아직 목록을 거르지 않는다(ReviewsClient는 `write=1`일 때만 `product`를 읽음). 링크는 후기 페이지로 가지만 해당 상품만 보이지는 않는다.
+3. `#yn-example` 링크는 `<details>`를 열지 않는다. 해시로 여는 스크립트는 단계 7 범위다.
+4. new-year·life-book 화면 확인은 묶음 ⑤로 미뤘다(단위 테스트·typecheck로만 확인).
+5. 로딩 예약 높이는 390에 맞췄고 다른 폭은 근사값이다. 최종 높이와의 차이(love-secret/영냥이): 360 +21/+23, 640 +25/+4, 768 +25/−21, 1440 +16/−30px. 실제 후기가 쌓이면 카드 모드 높이로 다시 맞춘다.
