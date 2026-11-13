@@ -28,6 +28,8 @@ type Props = {
   birthInput: Pick<FptiFormInput, "birthDate" | "birthTime" | "timeUnknown" | "calendarType">;
   /** 이전 구매의 복귀만 원래 보관 경로를 재개한다. 무료 결과에는 적용하지 않는다. */
   restorePurchasedReport?: boolean;
+  /** Native host keeps its own basic summary and connects PDF output to the system file picker. */
+  nativeDeep?: { savePdf: (data: string, fileName: string) => Promise<void> };
 };
 
 const DISALLOWED_RENDER_TEXT = [
@@ -441,16 +443,17 @@ const FREE_REPORT_COPY = {
   "zh-TW": { profileRequired: "請先將出生資訊儲存為檔案，再重新分析。", title: "FPTI 深度報告", description: "使用已儲存的檔案，免費閱讀性格、關係與成長解讀。", open: "免費閱讀深度報告", loading: "正在確認報告", ready: "可以閱讀完整報告", publicReady: "免費報告已載入", preview: "正在預覽第一章", unopened: "尚未開啟", previewNotice: "點擊上方免費閱讀按鈕即可開啟所有章節。", unsaved: "本次免費結果不會自動存入檔案。您可以儲存為 PDF。", archive: "閱讀原有的存檔報告", failed: "無法載入報告，請稍後重試。" },
 };
 
-export default function FptiResultCard({ result, savedProfileId = "", birthInput, restorePurchasedReport = false }: Props) {
+export default function FptiResultCard({ result, savedProfileId = "", birthInput, restorePurchasedReport = false, nativeDeep }: Props) {
   const copy = useFptiSharedCopy();
-  const freeCopy = FREE_REPORT_COPY[getCurrentLoadingLocale()] || FREE_REPORT_COPY.en;
+  const locale = getCurrentLoadingLocale();
+  const freeCopy = Object.hasOwn(FREE_REPORT_COPY, locale) ? FREE_REPORT_COPY[locale as keyof typeof FREE_REPORT_COPY] : FREE_REPORT_COPY.en;
   const codeParts = (result?.code || "").split("").filter(Boolean);
   const [archiveKey, setArchiveKey] = useState("");
   const [deepLoading, setDeepLoading] = useState(false);
   const [deepError, setDeepError] = useState("");
   const [deepNotice, setDeepNotice] = useState("");
   const [activeChapter, setActiveChapter] = useState(0);
-  const [accessChecking, setAccessChecking] = useState(Boolean(savedProfileId));
+  const [accessChecking, setAccessChecking] = useState(Boolean(savedProfileId && !nativeDeep));
   // Presentation state only. A free reading is never a payment receipt or entitlement.
   const [accessState, setAccessState] = useState<{ isUnlocked: boolean; source?: "public" | "archive" }>({ isUnlocked: false });
   const [deepReport, setDeepReport] = useState<FptiDeepReport>(() => normalizeDeepReport(createInitialDeepReport(result), false));
@@ -501,8 +504,8 @@ export default function FptiResultCard({ result, savedProfileId = "", birthInput
     setPdfBusy(false);
     setPdfExporting(false);
     setActiveChapter(0);
-    setAccessChecking(Boolean(savedProfileId));
-    if (!savedProfileId) return;
+    setAccessChecking(Boolean(savedProfileId && !nativeDeep));
+    if (!savedProfileId || nativeDeep) return;
     const attempt = beginReadingRef.current();
     if (!attempt) { setAccessChecking(false); return; }
     const valid = () => !cancelled && attempt.valid();
@@ -521,7 +524,7 @@ export default function FptiResultCard({ result, savedProfileId = "", birthInput
       }
     })().catch(() => { /* Leave the free action available after an archive lookup failure. */ });
     return () => { cancelled = true; attempt.finish(); };
-  }, [archiveIdentity, requestIdentity, restorePurchasedReport, result, savedProfileId, signature]);
+  }, [archiveIdentity, requestIdentity, restorePurchasedReport, result, savedProfileId, signature, nativeDeep]);
 
   const handleUnlockDeepReport = async () => {
     if (deepLoading || accessChecking || accessState.isUnlocked) return;
@@ -598,6 +601,10 @@ export default function FptiResultCard({ result, savedProfileId = "", birthInput
       const today = new Date().toISOString().slice(0, 10);
       await exportResultPdf({
         captureTargets: ["[data-fpti-pdf-section]"],
+        ...(nativeDeep ? {savePdfData: async (data: string, name: string) => {
+          if (!attempt.valid()) throw new Error("SESSION_CHANGED");
+          await nativeDeep.savePdf(data, name);
+        }} : {}),
         fileName: copy.pdfFileName(result?.code || "FPTI", today),
         backgroundColor: "#081329",
         cover: {
@@ -625,6 +632,7 @@ export default function FptiResultCard({ result, savedProfileId = "", birthInput
       transition={{ duration: 0.4 }}
       className="space-y-4"
     >
+      {!nativeDeep && <>
       <div className={`${styles.cosmicNeonCard} rounded-[28px] p-5 shadow-[0_18px_50px_rgba(2,8,25,0.58)] backdrop-blur-xl md:p-7`}>
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
@@ -753,6 +761,7 @@ export default function FptiResultCard({ result, savedProfileId = "", birthInput
         />
       </div>
 
+      </>}
       <div className={`${styles.cosmicNeonCard} rounded-3xl border border-[#E9C46A]/35 bg-[radial-gradient(circle_at_15%_20%,rgba(245,158,11,0.25),transparent_38%),radial-gradient(circle_at_85%_30%,rgba(56,189,248,0.22),transparent_42%),linear-gradient(145deg,rgba(15,23,42,0.95),rgba(30,41,59,0.88))] p-6`}>
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
@@ -919,7 +928,7 @@ export default function FptiResultCard({ result, savedProfileId = "", birthInput
         <div className="pointer-events-none fixed bottom-0 left-0 right-0 z-10 bg-gradient-to-t from-[#081329] to-transparent pb-[env(safe-area-inset-bottom)] pt-10" />
       </section>
 
-      <FptiShareCard result={result} />
+      {!nativeDeep && <FptiShareCard result={result} />}
     </m.section>
   );
 }

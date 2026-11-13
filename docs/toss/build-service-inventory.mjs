@@ -181,7 +181,7 @@ const localEvidence={
  'stonehenge-runes':{tossRoute:'/oracle/rune',status:'local-partial',inputContract:'StonehengeRune의 네 가지 무료 펼침',resultRenderer:'apps/toss/src/RuneReading.tsx + StonehengeRune.jsx',storageContract:'현재 화면의 원본 룬 결과·질문 프롬프트와 토스 공유. 네 배열 모두 무료',verification:'350768ae1, 73b5f45f4. 실기기 미검증'},
  'yeongnyangi-daily':{tossRoute:'/daily',status:'local-partial',inputContract:'worker/toss/daily.js',resultRenderer:'apps/toss/src/DailyReadings.tsx',storageContract:'계정별 출석·당일 결과 15종. 호라리는 별도 무료 화면'},
  'fortune-tea-house':{tossRoute:'/fortune-tea-house/',status:'local-partial',inputContract:'worker/toss/native-tea.js',resultRenderer:'apps/toss/service/Screens.jsx',storageContract:'owned-TossPurchase; device-and-console-approval-pending'},
- 'saju-fpti':{tossRoute:'/saju-fpti/',status:'local-partial',inputContract:'lib/fpti/fpti-adapter.ts',resultRenderer:'apps/toss/service/TossFpti.tsx',storageContract:'same-tab owner-scoped free result only; profile entitlement and permanent premium report not ported',verification:'mock UI and original calculation only; free-screen parity, approved permanent rights and official device pending'},
+ 'saju-fpti':{tossRoute:'/saju-fpti/',status:'local-partial',inputContract:'기본은 직접 입력 또는 저장 프로필, 무료 심층은 로그인한 소유 프로필 및 출생정보 일치. lib/fpti/fpti-adapter.ts, worker/lib/fpti-free-access.js',resultRenderer:'apps/toss/service/TossFpti.tsx + components/fpti/FptiResultCard.tsx + worker/routes/fpti.js',storageContract:'기본은 같은 탭·같은 계정 재열람. 무료 심층은 웹과 같이 자동 보관 없이 동일 프로필로 7장 재계산. 기존 구매 원문은 구매한 웹 계정의 보관함에서 열람',verification:'apps/toss/test/fpti-deep-browser.mjs 360px 일반 홈 → 게스트 기본 → 모의 로그인 → 소유 프로필 → 무료 심층 7장 → 재진입. fpti-free-route 및 fpti-free-report.behavior가 타인 프로필, 변경 출생값, 기존 구매·환불·복구 검증. 토스 실기기 PDF·운영 Worker 승격 미검증'},
  'neo-operation-room':{tossRoute:'/neo-operation-room/',status:'local-partial',inputContract:'worker/toss/native-neo.js',resultRenderer:'apps/toss/service/Screens.jsx',storageContract:'owned-TossPurchase; device-and-console-approval-pending'},
  'fusion-fortune':{tossRoute:'/fusion-fortune/',status:'local-partial',inputContract:'worker/toss/native-fusion.js',resultRenderer:'apps/toss/service/Fusion.jsx',storageContract:'owned-TossPurchase; device-and-console-approval-pending'},
  'life-book-ai':{tossRoute:'/life-book-ai/',status:'local-partial',inputContract:'worker/toss/native-life-book.js',resultRenderer:'apps/toss/service/LifeBook.jsx',storageContract:'owned-TossPurchase; device-and-console-approval-pending'},
@@ -383,6 +383,11 @@ for(const group of canonicalCandidates){
  if(group.id==='saju-compatibility'){
   group.freeCalculation=false;group.reducedBundle='홈 진입 없음';group.tossLogin='입력은 공개, 구매 및 원문은 토스 계정 필요';group.saleStatus='콘솔·운영 설정 필요';
   group.webSources=[...new Set([...group.webSources,'js/saju-engine.js','js/saju-compat-flow.mjs','worker/routes/saju-compat-basic.js','worker/lib/saju-compat-schema.js'])];
+ }
+ if(group.id==='saju-fpti'){
+  group.freeCalculation=true;group.tossLogin='기본은 게스트. 심층은 토스 로그인 및 같은 출생정보의 소유 프로필 필요';
+  group.webSources.push('components/fpti/FptiExperience.tsx','components/fpti/FptiResultCard.tsx','worker/routes/fpti.js','worker/lib/fpti-free-access.js','app/records/view/SavedFptiReading.tsx');
+  group.webProductIds=['premium-fpti-report'];group.saleStatus='현재 무료 정책. 기존 구매는 본래 웹 계정에서 보호';group.bundleVerification=group.verification;
  }
  if(group.id==='saju-sibyl'){group.freeCalculation=true;group.tossLogin='연도별 무료 분석은 공개';group.reducedBundle='홈 진입 없음';}
  if(group.id==='naming-ai')group.tossLogin='후보·입력은 게스트. 유료 상담과 기록은 토스 로그인 필요';

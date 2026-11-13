@@ -635,6 +635,12 @@ export async function handleTossRoutes(request,env) {
       const calendarRequest=new Request('https://code-destiny.com/api/kasi/calendar',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(body)});
       return forwardServiceResponse(await handleKasiRoutes(calendarRequest,env),headers);
     }
+    if(path==='/canonical/fpti/deep-report/free'&&request.method==='POST'){
+      await limit(env,auth._id,'fpti-deep',20);
+      const {readOwnedFreeFpti}=await import('../routes/fpti.js');
+      try{return reply({ok:true,data:await readOwnedFreeFpti(env,auth.ownerId,await bodyOf(request))});}
+      catch(error){if(error.status>=400&&error.status<500)throw new TossError(error.payload?.code||'INVALID_PROFILE',error.status);throw error;}
+    }
     if(path==='/canonical/saju/career-style'&&['GET','POST'].includes(request.method)){
       const statusOnly=request.method==='GET';
       if(!statusOnly)await limit(env,auth._id,'career-style',20);

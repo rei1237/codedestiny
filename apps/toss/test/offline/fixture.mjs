@@ -156,7 +156,14 @@ function createAccountFixture(storage,owner,token,now){
    if(profile.birth.timeUnknown===false){row.timeUnknown=false;row.birth={...row.birth,timeUnknown:false,hour:8,minute:35};}
    if(!state.profiles.some(p=>p.id===row.id))state.profiles.push(row);save();return respond({ok:true,profile:row});
   }
-  if(path==='/canonical/profile'&&method==='GET')return respond({ok:true,profiles:[]});
+  if(path==='/canonical/profile'&&method==='GET')return respond({ok:true,profiles:state.profiles.map(profile=>({...profile,timezone:'Asia/Seoul'}))});
+  if(path==='/canonical/fpti/deep-report/free'&&method==='POST'){
+    const {profileId,birthInput}=await request.json(),profile=state.profiles.find(row=>row.profileId===profileId);
+    if(!profile)return respond({error:'INVALID_PROFILE'},404);
+    if(birthInput?.birthDate!==profile.birthDate||birthInput?.calendarType!==profile.calendarType||birthInput?.birthTimeUnknown!==profile.timeUnknown)return respond({error:'PROFILE_INPUT_MISMATCH'},409);
+    const {fixtureFptiReport}=await import('./fpti-report.mjs');
+    return respond({ok:true,data:{source:'public',accessSource:'public',featureKey:'premium-fpti-report',profileId,saved:false,report:await fixtureFptiReport(profile)}});
+  }
   if(path==='/canonical/saju/career-style'&&['GET','POST'].includes(method)){
    const profileId=method==='GET'?url.searchParams.get('profileId'):(await request.json()).profileId;
    const profile=state.profiles.find(p=>p.profileId===profileId);

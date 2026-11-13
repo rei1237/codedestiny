@@ -26,6 +26,7 @@ const stubMap={
  'worker/toss/mansion-reports.js':"export const readOwnedMansionReport=async()=>({ok:true});",
  'worker/routes/kasi.js':"export const handleKasiRoutes=async request=>Response.json({path:new URL(request.url).pathname,input:await request.json()});",
  'worker/routes/rpg.js':"export const readOwnedQuestProgress=async(_env,owner)=>({scope:owner});export const completeOwnedQuest=async(_env,owner,key)=>Response.json({owner,key});export const adoptOwnedQuestProgress=async(_env,owner)=>Response.json({owner});",
+ 'worker/routes/fpti.js':"export const readOwnedFreeFpti=async(env,userId,body)=>{if(body.profileId!=='mine')throw Object.assign(Error(),{status:404,payload:{code:'INVALID_PROFILE'}});return {owner:String(userId),saved:false};};",
  'worker/toss/today-hub.js':"export const readTodayHub=async(_env,auth,input)=>Response.json({profileId:input.profileId,owner:String(auth._id)});",
  'worker/toss/public-section.js':"export const readTossPublicSection=async input=>Response.json({featureKey:input.featureKey});",
  'worker/toss/native-codex.js':"export const prepareNativeCodex=async()=>({paid:false}),readNativeCodex=async()=>Response.json({status:'generating'}),codexLibraryItem=async()=>({state:'PENDING'});",
@@ -102,6 +103,14 @@ test('meeting place uses the authenticated Korean calendar for lunar conversion 
   assert.deepEqual(await reply.json(),{path:'/api/kasi/calendar',input});
  }
  assert.equal((await request({method:'getSomethingElse'},endpoint)).status,400);
+});
+test('FPTI free report binds the authenticated Toss profile owner and does not start an order',async()=>{
+ const endpoint='/canonical/fpti/deep-report/free';
+ mocks.denyAuth=true;
+ try{assert.equal((await request({profileId:'mine'},endpoint)).status,401);}finally{mocks.denyAuth=false;}
+ assert.equal((await request({profileId:'foreign'},endpoint)).status,404);
+ assert.deepEqual(await (await request({profileId:'mine',userId:'foreign'},endpoint)).json(),{ok:true,data:{owner:String(auth.ownerId),saved:false}});
+ assert.equal((await request({profileId:'mine'},'/canonical/fpti/deep-report')).status,404);
 });
 test('career report accepts only a profile owned by the signed-in Toss identity',async()=>{
  const path='/canonical/saju/career-style';

@@ -1,5 +1,5 @@
 {
-  "sourceCommit": "ea2ee3c8b0deca6f848d895a8055f9551b223f18",
+  "sourceCommit": "cc63243217d67037aad44b5548b0a961d69e8ce0",
   "sourceCounts": {
     "home": 63,
     "react": 18,
@@ -6909,26 +6909,33 @@
       "status": "local-partial",
       "tossRoute": "/saju-fpti/",
       "sku": null,
-      "inputContract": "lib/fpti/fpti-adapter.ts",
-      "resultRenderer": "apps/toss/service/TossFpti.tsx",
-      "storageContract": "same-tab owner-scoped free result only; profile entitlement and permanent premium report not ported",
-      "verification": "mock UI and original calculation only; free-screen parity, approved permanent rights and official device pending",
+      "inputContract": "기본은 직접 입력 또는 저장 프로필, 무료 심층은 로그인한 소유 프로필 및 출생정보 일치. lib/fpti/fpti-adapter.ts, worker/lib/fpti-free-access.js",
+      "resultRenderer": "apps/toss/service/TossFpti.tsx + components/fpti/FptiResultCard.tsx + worker/routes/fpti.js",
+      "storageContract": "기본은 같은 탭·같은 계정 재열람. 무료 심층은 웹과 같이 자동 보관 없이 동일 프로필로 7장 재계산. 기존 구매 원문은 구매한 웹 계정의 보관함에서 열람",
+      "verification": "apps/toss/test/fpti-deep-browser.mjs 360px 일반 홈 → 게스트 기본 → 모의 로그인 → 소유 프로필 → 무료 심층 7장 → 재진입. fpti-free-route 및 fpti-free-report.behavior가 타인 프로필, 변경 출생값, 기존 구매·환불·복구 검증. 토스 실기기 PDF·운영 Worker 승격 미검증",
       "webEntries": [
         "/saju-fpti/"
       ],
       "webSources": [
-        "app/saju-fpti/page.tsx"
+        "app/saju-fpti/page.tsx",
+        "components/fpti/FptiExperience.tsx",
+        "components/fpti/FptiResultCard.tsx",
+        "worker/routes/fpti.js",
+        "worker/lib/fpti-free-access.js",
+        "app/records/view/SavedFptiReading.tsx"
       ],
-      "webProductIds": [],
-      "freeCalculation": false,
+      "webProductIds": [
+        "premium-fpti-report"
+      ],
+      "freeCalculation": true,
       "portStatus": "일부만 이식",
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "일반 홈의 진입 코드 확인",
-      "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
+      "bundleVerification": "apps/toss/test/fpti-deep-browser.mjs 360px 일반 홈 → 게스트 기본 → 모의 로그인 → 소유 프로필 → 무료 심층 7장 → 재진입. fpti-free-route 및 fpti-free-report.behavior가 타인 프로필, 변경 출생값, 기존 구매·환불·복구 검증. 토스 실기기 PDF·운영 Worker 승격 미검증",
       "tossLogin": "게스트 계산 가능. 현재 탭의 저장 결과는 같은 로그인 계정으로 재열람",
-      "tossResult": "apps/toss/service/TossFpti.tsx",
-      "reread": "same-tab owner-scoped free result only; profile entitlement and permanent premium report not ported",
-      "saleStatus": "현재 기능에 신규 구매 버튼 없음"
+      "tossResult": "apps/toss/service/TossFpti.tsx + components/fpti/FptiResultCard.tsx + worker/routes/fpti.js",
+      "reread": "기본은 같은 탭·같은 계정 재열람. 무료 심층은 웹과 같이 자동 보관 없이 동일 프로필로 7장 재계산. 기존 구매 원문은 구매한 웹 계정의 보관함에서 열람",
+      "saleStatus": "현재 무료 정책. 기존 구매는 본래 웹 계정에서 보호"
     },
     {
       "id": "saju-guardian",

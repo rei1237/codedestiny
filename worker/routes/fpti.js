@@ -1202,18 +1202,21 @@ async function handleReadDeepReport(request, env) {
   });
 }
 
-async function handleFreeDeepReport(request, env) {
-  const auth = await requireAuth(request, env);
-  const body = await readJson(request);
+export async function readOwnedFreeFpti(env, userId, body) {
   const [{ readFreeFpti }, { ProfileCard }, { analyzeFptiFromBirth }] = await Promise.all([
     import('../lib/fpti-free-access.js'), import('../lib/models.js'), import('../../lib/fpti/fpti-adapter.ts'),
   ]);
   await connectDb(env);
-  const data = await readFreeFpti({ userId: auth.userId, profileId: clean(body?.profileId), birthInput: body?.birthInput }, {
+  return readFreeFpti({ userId, profileId: clean(body?.profileId), birthInput: body?.birthInput }, {
     findProfile: ({ userId, profileId }) => ProfileCard.findOne({ userId, profileId }).select('profileId name gender birth location').lean(),
     analyze: analyzeFptiFromBirth,
     buildReport: result => { const input = normalizeInput({ result }); return toDeepPayload(buildLocalReport(input), buildReportSignature(input), {}, input); },
   });
+}
+
+async function handleFreeDeepReport(request, env) {
+  const auth = await requireAuth(request, env);
+  const data = await readOwnedFreeFpti(env, auth.userId, await readJson(request));
   return json({ ok: true, data });
 }
 
