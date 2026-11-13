@@ -61,7 +61,7 @@ check("React free entry requires a fresh session and preserves guarded historica
   assert.match(entry, /const request = beginFreeReading\(\)/);
   assert.match(entry, /await hasFreeReadingSession\(\)/);
   assert.match(entry, /if \(!request.valid\(\)\) return/);
-  assert.match(entry, /if \(!signedIn\) \{ setMatchError\(copy.loginRequiredError\); return; \}/);
+  assert.match(entry, /if \(!signedIn\) \{ setMatchError\(copy.loginRequiredError\); onLogin\?\.\(\); return; \}/);
   assert.match(entry, /startSimulationScene\(id, mode\)/);
   assert.doesNotMatch(engine, /runPaidAccessGate\(|useCanUseFeature\(/);
   assert.match(access, /authFetch\('\/api\/auth\/me', \{ method: 'GET', cache: 'no-store' \}, \{ retryOn401: false, forceFresh: true \}\)/);

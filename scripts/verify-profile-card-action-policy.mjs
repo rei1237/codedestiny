@@ -324,7 +324,7 @@ const cases = [
     includes: [
       ["loveSimulation", "readCurrentDestinyProfile"],
       ["loveSimulation", "function parseProfileSeedBirthDate"],
-      ["loveSimulation", "const currentProfile = readCurrentDestinyProfile() as StoredProfile | null"],
+      ["loveSimulation", "const currentProfile = ownedProfile===undefined ? readCurrentDestinyProfile() as StoredProfile | null : ownedProfile"],
     ],
     excludes: [
       ["loveSimulation", "profileSeed.birthDate.split(\"-\")"],
