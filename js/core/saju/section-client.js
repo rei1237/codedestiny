@@ -189,7 +189,7 @@
         if (lang() === 'ko' && root.SajuReadingRich) root.SajuReadingRich.decorateDelivered(el, null, root.G_PILLARS);
         if (lang() === 'ko') {
           var next = document.createElement('aside'); next.className = 'cd-saju-expert-next';
-          next.innerHTML = '<h3>내 성향을 알았다면, 지금의 고민을 풀어볼 차례예요.</h3><p>이직할지 남을지, 관계에서 무엇을 바꿀지. 사주 전문가 AI 상담은 내 질문과 현재 상황을 바탕으로 판단 근거와 실천 방향을 더 구체적으로 짚어드려요.</p><p>질문에 대한 핵심 답변 · 현재 고민과 명식의 연결 · 선택 전략 · 30일 실천 가이드</p><a href="#sajuConsultationEntry">내 고민으로 전문가 상담하기</a>';
+          next.innerHTML = '<div class="cd-saju-expert-next__art"><img src="/images/consultation/saju-yeoni-320.webp" srcset="/images/consultation/saju-yeoni-320.webp 320w, /images/consultation/saju-yeoni-640.webp 640w" sizes="(max-width: 560px) calc(100vw - 64px), 220px" width="320" height="213" alt="명식 책을 펼쳐 놓고 기다리는 꽃돼지 연이" loading="lazy" decoding="async"></div><div class="cd-saju-expert-next__body"><h3>내 성향을 알았다면, 지금의 고민을 풀어볼 차례예요.</h3><p>이직할지 남을지, 관계에서 무엇을 바꿀지. 사주 전문가 AI 상담은 내 질문과 현재 상황을 바탕으로 판단 근거와 실천 방향을 더 구체적으로 짚어드려요.</p><ul class="cd-saju-expert-next__chips" aria-label="상담에서 받는 내용"><li>질문에 대한 핵심 답변</li><li>현재 고민과 명식의 연결</li><li>선택 전략</li><li>30일 실천 가이드</li></ul><a href="#sajuConsultationEntry">내 고민으로 전문가 상담하기</a></div>';
           next.querySelector('a').addEventListener('click', function (event) {
             var entry = document.querySelector('[data-consultation-open]');
             if (entry) { event.preventDefault(); entry.click(); }

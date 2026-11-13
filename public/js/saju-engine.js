@@ -4707,6 +4707,33 @@ function _cdSajuKasiWarmFromForm() {
   setTimeout(_cdSajuKasiWarmFromForm, 0);
 })();
 
+/* 홈 셸은 명식 스타일이 든 전체 시트(fortune-ui.css)를 첫 입력이나 타이머(모바일 45초) 뒤에 켠다.
+   계산이 그보다 먼저 끝나면 명식이 무스타일로 그려지므로, 계산 시작과 함께 켜고 공개 전에 기다린다.
+   늦어도 timeoutMs 뒤에는 그대로 진행한다(js/saju-compat-archive.js ensureStyles 와 같은 방식). */
+function _cdEnsureFortuneUiStyles(timeoutMs) {
+  var link = document.querySelector('link[data-cd-noncritical-style-src*="/styles/fortune-ui.css"]');
+  if (!link) return Promise.resolve();
+  if (link.getAttribute('rel') === 'stylesheet' && link.sheet && link.media !== 'print') return Promise.resolve();
+  return new Promise(function(resolve) {
+    var done = false;
+    var timer = null;
+    function finish() {
+      if (done) return;
+      done = true;
+      clearTimeout(timer);
+      link.removeEventListener('load', finish);
+      link.removeEventListener('error', finish);
+      resolve();
+    }
+    link.addEventListener('load', finish);
+    link.addEventListener('error', finish);
+    timer = setTimeout(finish, timeoutMs || 5000);
+    if (link.getAttribute('rel') !== 'stylesheet') link.setAttribute('rel', 'stylesheet');
+    if (!link.getAttribute('href')) link.setAttribute('href', link.getAttribute('data-cd-noncritical-style-src'));
+    link.media = 'all';
+  });
+}
+
 function _sajuCalculationWait(task, run, timeoutMs) {
   return new Promise(function(resolve, reject) {
     var settled = false;
@@ -4912,6 +4939,8 @@ function invokeOptionalGlobalRendererWithRetry(fnName, args, options) {
 ═══════════════════════════════════════ */
 async function calculate(run){
   if (!await _sajuCalculationWait(ensureSajuResultSession(run), run)) return;
+  // 로그인 게이트를 통과한 뒤에만 문서를 건드린다. 명식 스타일이 든 전체 시트를 켜고 기다린다.
+  await _sajuCalculationWait(_cdEnsureFortuneUiStyles(5000), run, 0);
   var existingCharm=document.getElementById('specialCharmCard');
   if(existingCharm)existingCharm.remove();
 

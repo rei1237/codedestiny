@@ -1508,17 +1508,18 @@ function renderReportDashboard() {
       var tilePriceClass = (b.coinCost > 0) ? ((b.mainLock === false || b.selfGated) ? 'rpt-v2-price-badge is-per-use' : 'rpt-v2-price-badge') : 'rpt-v2-price-badge is-free';
       gridHtml += '<button type="button" class="rpt-v2-img-wrap" data-rpt-preview-src="' + thumbSrc + '" data-rpt-preview-title="' + img.label + '" aria-label="' + img.label + ' 이미지 크게 보기">';
       gridHtml += '<img class="rpt-v2-img" src="' + thumbSrc + '" alt="' + img.label + '" loading="lazy" decoding="async" onerror="handleReportThumbError(this)">';
-      gridHtml += '<span class="' + tilePriceClass + '">' + tilePriceText + '</span>';
+      // 제목 옆 배지와 같은 문구(예: 무료)면 이미지 위 배지는 생략해 두 번 보이지 않게 한다.
+      if (!(b.badge && String(b.badge) === tilePriceText)) gridHtml += '<span class="' + tilePriceClass + '">' + tilePriceText + '</span>';
       gridHtml += '</button>';
     });
     gridHtml += '</div>';
 
     /* 카드 헤더 + CTA */
     gridHtml += '<div class="rpt-v2-head">';
-    gridHtml += '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">';
+    gridHtml += '<div class="rpt-v2-title-row">';
     gridHtml += '<h3 id="' + titleId + '" class="sec-title rpt-v2-title">' + (b.shortTitle || b.title) + '</h3>';
     if (b.badge) {
-      gridHtml += '<span style="display:inline-flex;align-items:center;justify-content:center;padding:4px 10px;border-radius:999px;font-size:.68rem;font-weight:900;letter-spacing:.02em;color:#fff;background:linear-gradient(135deg,#22c55e 0%,#0ea5e9 100%);box-shadow:0 8px 16px rgba(14,165,233,.26);">' + b.badge + '</span>';
+      gridHtml += '<span class="rpt-v2-badge' + (String(b.badge) === '무료' ? ' is-free' : '') + '">' + b.badge + '</span>';
     }
     gridHtml += '</div>';
     gridHtml += '<p class="rpt-v2-preview">' + b.preview + '</p>';
