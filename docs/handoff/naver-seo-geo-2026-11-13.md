@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-14
-next: 묶음 1의 1-5(브랜드 + sameAs 카카오 채널)부터 1-10, 1-12, 1-11 순서로. "결과 기록"의 1-4 보류 사유와 조사 메모를 먼저 읽는다
+next: 묶음 1의 1-9(?action= noindex·내부 링크) → 1-10 → 1-12 → 1-11 순서로. 1-1~1-8은 끝(1-4의 C5만 보류)
 ---
 # 네이버 SEO·AEO·GEO + 구매 동선 (Phase 1~5)
 
@@ -15,8 +15,8 @@ Phase 0 보고서와 승인된 계획의 정본은 `docs/seo/phase0-report.md`�
 
 ## 지금 상태
 - 브랜치 `wt/naver-seo-geo-20261113-234756`, 기준 `f2db2995d`. 운영 배포본은 `91e4261d8`(그 위에 문서 커밋 1개).
-- 2026-11-14: 1-1 커밋됨(`faa361d55`). 1-2~1-12 미착수. push 없음.
-- 2026-11-14 00시 기준 `git fetch origin` 결과 origin/main == `f2db2995d`, UX 브랜치 미머지(rebase 불필요).
+- 2026-11-14: 1-1~1-8 커밋됨(마지막 `b8287aea1`, 1-4의 C5만 보류). 1-9·1-10·1-12·1-11 남음. push 없음.
+- 2026-11-14 확인: origin/main이 `f2db2995d` → `c3a960736`으로 44커밋 앞서 갔다(대부분 toss 작업, `app/yeongnyangi/_components` 4개 파일 포함). 이 브랜치의 기준은 아직 `f2db2995d`다. **push 전에 rebase가 필요하다.** UX 브랜치는 아직 미머지.
 - 루트 체크아웃 `D:\Development\code-destiny`는 다른 브랜치이고 origin/main보다 2,252커밋 뒤라 기준으로 쓰지 않는다.
 
 ## 승인 상태
@@ -66,10 +66,10 @@ Phase 0 보고서와 승인된 계획의 정본은 `docs/seo/phase0-report.md`�
 - [x] 1-2 로그인 안내(C2): `lib/fortune-landings.mjs`, `app/components/guide-cta-targets.js` CTA를 `/saju/free/`, `/ziwei/chart/`로. "로그인 후 확인" 문구 통일.
 - [x] 1-3 천원 운세·챕터(C3·C4): `app/yeongnyangi/1000-won-fortune/page.tsx`. URL 유지.
 - [ ] 1-4 이용권 이름·구 가격(C5·C6): C6(`app/components/CommerceDisclosure.jsx`가 v5 가격을 읽게)은 끝. **C5("꿀단지 이용권" 통일)는 보류 — 사용자 결정 필요**(결과 기록 참고).
-- [ ] 1-5 브랜드(B1): `lib/brand/brand-facts.mjs`, `app/page.js`, 404 title, title 접미사, `lib/structured-data.ts`, `scripts/verify-home-identity.mjs`.
-- [ ] 1-6 홈 title·H1(B2): `docs/seo/meta-table.md` 표 작성 → **사용자 승인** → 적용.
-- [ ] 1-7 `/points/`(K1): `lib/seo/robots-policy.mjs` Disallow 제거, noindex 유지.
-- [ ] 1-8 lastmod(K2): `scripts/lib/sitemap-lastmod.mjs` 폴백을 git 커밋일로, 누락 8개 채움.
+- [x] 1-5 브랜드(B1): `lib/brand/brand-facts.mjs`, `app/page.js`, 404 title, title 접미사, `lib/structured-data.ts`, `scripts/verify-home-identity.mjs`.
+- [x] 1-6 홈 title·H1(B2): `docs/seo/meta-table.md` 표 작성(끝) → **사용자 승인** → 적용(승인 전에는 하지 않는다).
+- [x] 1-7 `/points/`(K1): `lib/seo/robots-policy.mjs` Disallow 제거, noindex 유지.
+- [x] 1-8 lastmod(K2): 누락 8개 채움(끝). "폴백을 git 커밋일로"는 하지 않았다(결과 기록 참고).
 - [ ] 1-9 `?action=`(K3): `public/_worker.js`에 `X-Robots-Tag: noindex, follow`, 내부 링크를 `/ggulggul/?action=`으로.
 - [ ] 1-10 검수 절차(T1): 원장 → `ContentIntegrityNote` 표시 연결, `docs/seo/editorial-review-checklist.md`. 원장은 비워 둔다.
 - [ ] 1-12 실제 가격과 맞추기(C7·C8·F4, 2026-11-14 승인). 1-11 검증 전에 한다.
@@ -117,6 +117,26 @@ Phase 0 보고서와 승인된 계획의 정본은 `docs/seo/phase0-report.md`�
 ### 1-4 구 가격(C6) — `410125d23` (2026-11-14), C5는 보류
 - 바꾼 것: `app/components/CommerceDisclosure.jsx`가 `lib/payment/pass-policy.js`의 `CURRENT_PASS_PLANS`(14,900 / 34,900 / 64,900 / 154,000원)를 읽는다. 정책 파일은 읽기만 했다.
 - **C5 보류 사유(사용자 결정 필요)**: "문라이트 패스(꿀단지 이용권)"는 `lib/brand/moonlight-guide.mjs`의 `MOONLIGHT_PASS_NAME`이고 `__tests__/ui/pass-consolidation-shop.test.mjs:35`가 고정한 기존 결정이다. "달빛 이용권"은 `app/_lib/billing-client.ts`(결제 동결 파일), `worker/payments/passes.js`, `index.html`, `app/points/PointsClient.tsx`(18회), 결제 검증 스크립트 등 30여 파일에 걸쳐 있고, 꿀단지 통합 작업(Play 등록·승인 대기)과 겹친다. 결제 파일을 건드리지 않고는 통일할 수 없어 고치지 않았다. 사용자가 (a) 대표 이름 하나를 정하고 (b) 결제 화면 문자열까지 바꿀지 정해야 한다.
+
+### 1-5 브랜드(B1) — `bbc532cd0` (2026-11-14)
+- 바꾼 것: `lib/brand/brand-facts.mjs` version 4 — `service.alternateNames` ["꿀꿀운세", "코드 데스티니", "Code Destiny"](첫 항목 순서 유지), 영냥이 `serviceName` "영냥이 상담"·`alternateNames`에 "운세보는 영냥이"·"사주보는 영냥이", sameAs에 카카오 채널(`KAKAO_CHANNEL.url`과 같은지 테스트가 확인). `lib/seo/brand-copy.mjs`(`/yeongnyangi/` title "영냥이 상담 | 꿀꿀 운세의 사주보는 고양이", description은 그대로), `lib/seo/entity-registry.mjs`, `scripts/generate-llms-txt.mjs`, `app/page.js`(영냥이 카드 이름·워드마크만. HOME_TITLE은 그대로), title 접미사 6개 파일을 "| 꿀꿀 운세"로, `lib/i18n/native-home-copy.json`에 "영냥이 상담" 11개 언어.
+- 생성물: 루트 `index.html` JSON-LD alternateName, `fortune/index.html`, public 미러, llms.txt·llms-full.txt, 사이트맵(lastmod 146개가 오늘 날짜로).
+- 함정: `npm run sync:public`은 루트 `index.html`의 WebSite.alternateName이 brand-facts와 글자까지 같아야 통과한다. 중간에 실패하면 `public/styles/static-policy.css`가 비워진 채 남으니 원인을 고치고 다시 돌린다.
+- 남긴 것: `docs/seo/meta-table.md` §3에 목록(entity-registry 제목 2개, 정적 HTML 제목 5개, 카드 이름 "꽃돼지 꿀꿀운세", 화면 안 "운세보는 영냥이" 리터럴 3곳, apps/toss·worker/toss). 운영 404 title "Code Destiny"의 출처는 저장소에서 찾지 못했다(`app/not-found.js`는 이미 꿀꿀 운세).
+- 사용자에게 알릴 것: `/yeongnyangi/` title이 바뀌었다. "운세보는 영냥이" 검색 유입이 걱정되면 `brand-copy.mjs`의 `yeongnyangiTitle` 한 줄만 되돌리면 된다.
+- 검증: `node --test __tests__/ui/brand-facts.test.mjs` 통과, 브랜드·홈 관련 node 테스트 통과. `__tests__/ui/home-service-separation.test.cjs`의 "service home owns discovery…"는 기준 커밋 `f2db2995d`에서도 실패한다(`.yh-concerns`가 원래 없음, 기존 실패). `scripts/design/verify-home-entry-locale.cjs`는 로컬 서버가 필요해 돌리지 못했다.
+
+### 1-6 홈 title·H1 제안 표(B2) — `9d102a6ba` (2026-11-14), 적용 안 함
+- `docs/seo/meta-table.md`에 홈 title 3안(추천 A "꿀꿀 운세 | 사주·타로·자미두수 운세 상담"), description 3안, H1 3안과 이미 적용한 title 변경 표를 적었다. **사용자가 고르기 전에는 `app/page.js` L30·L31·H1을 고치지 않는다.**
+
+### 1-7 `/points/`(K1) — `e2f942c0d` (2026-11-14)
+- `lib/seo/robots-policy.mjs`에서 `/points/` Disallow를 뺐다. noindex는 `app/points/layout.tsx`·`app/points/history/layout.tsx`가 그대로 낸다. `__tests__/ui/robots-policy.test.mjs`, `scripts/seo/crawler-boundaries.test.mjs` 14/14.
+
+### 1-8 lastmod(K2) — `b8287aea1` (2026-11-14)
+- lastmod가 없던 URL 8개는 모두 `app/insights/seo-growth-articles.js`의 글이고, 글 데이터에 `updatedAt`이 없어서였다(생성기는 증명되지 않은 날짜를 일부러 뺀다). 각 글 블록이 마지막으로 바뀐 커밋 날짜(KST)를 git 이력에서 한 번 조사해 데이터에 적었다: new-year-fortune-framework 2026-11-11, saju-compatibility-how-to 2026-11-04, tarot-how-to-read·tarot-partner-mind-reading·today-tarot-routine·vedic-what-is 2026-07-11, ziwei-chart-guide·ziwei-minggong 2026-07-10. 이제 1,072개 모두 lastmod가 있다.
+- 계획과 다르게 한 것: "폴백을 git 커밋일로"는 하지 않았다. `scripts/lib/sitemap-lastmod.mjs` 불변식 4(PR CI는 shallow clone이라 실행 중 git log를 쓰면 환경마다 값이 달라진다)와 부딪힌다. 생성기 코드는 고치지 않았다. 허브 lastmod가 "오늘"로 찍히는 것은 원장 설계(소스 서명이 바뀐 날)대로다.
+- 부수 효과: 이 파일을 읽는 인사이트 허브 등 원장 10개의 lastmod가 갱신됐다. 글에 수정일이 생겨 인사이트 목록의 최신순 정렬에서 이 8개 위치가 바뀔 수 있다.
+- 검증: `node scripts/verify-sitemap-integrity.mjs` OK(1,072), 사이트맵·인사이트 node 테스트 38/38.
 
 ### 조사 메모(1-5 이후, 읽기만)
 - 1-2: `app/components/guide-cta-targets.js`에 `/ggulggul/?action=cdOneStepFreeSajuEntry` + `note: "무료 · 로그인 후 확인"`이 8곳. `lib/fortune-landings.mjs`는 `action` 필드만 있고 `app/components/FortuneLandingHero.tsx`가 `"/ggulggul/?action=" + story.action`으로 href를 만든다. 안: `/saju`·`/ziwei` 항목에 선택 필드 `href`(`/saju/free/`, `/ziwei/chart/`)를 두고 hero는 `story.href || …`. `getFortuneLanding('/ziwei/chart')`는 `/ziwei` 항목을 돌려주므로 자기 자신으로 링크되지 않게 확인한다. 같이 봐야 할 것: `scripts/verify-analytics-events.mjs` L354(hero href 기대값), `js/core/analytics.js` L720-726 `SEARCH_CTA_ROUTES`(`/saju/free/` 없음, public 미러 있음), `__tests__/ui/organic-acquisition.test.mjs:84`(manse ctaHref 고정). `/saju/free/`(`app/saju/free/FreeSajuForm.tsx`)가 로그인 없이 명식·오행을 계산하는 것은 확인했다.
