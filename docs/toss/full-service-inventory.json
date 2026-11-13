@@ -1,5 +1,5 @@
 {
-  "sourceCommit": "14ad9828f009907b949129bf68defdad0dea4e16",
+  "sourceCommit": "cadaed794766e493d34c54e8218d5939e209fb3f",
   "sourceCounts": {
     "home": 63,
     "react": 18,
@@ -7718,12 +7718,13 @@
         }
       ],
       "aliasEvidence": [],
-      "status": "not-ported",
-      "tossRoute": null,
+      "status": "local-partial",
+      "tossRoute": "/moonlight/season-1",
       "sku": null,
-      "inputContract": null,
-      "resultRenderer": null,
-      "storageContract": null,
+      "inputContract": "영냥이의 점술방 시즌 1 → 공개 회차 → 다음/이전 쪽. 웹 serial.mjs 게이트가 빌드 때 공개한 회차만 열람",
+      "resultRenderer": "apps/toss/src/MoonlightSeason.tsx + apps/toss/canonical/moonlight-season.mjs",
+      "storageContract": "게스트 공개. 원본 크롬과 같은 회차별 기기 이어보기. 다음 회차 번호와 시각만 사전 안내",
+      "verification": "studio-season-browser.mjs: 360px 영냥이 홈→1화 18쪽 원본, 이미지 오류 대체 대사·재시도, 재실행→3쪽, 열람 종료. 실기기 이미지 호스트 연결 미검증",
       "webEntries": [
         "/yeongnyangi/season-1/"
       ],
@@ -7732,13 +7733,13 @@
       ],
       "webProductIds": [],
       "freeCalculation": false,
-      "portStatus": "미이식",
-      "reducedBundle": "홈 진입 없음",
-      "currentEntry": "연결 경로 없음",
+      "portStatus": "일부만 이식",
+      "reducedBundle": "구현은 있으나 진입 차단",
+      "currentEntry": "일반 홈의 진입 코드 확인",
       "bundleVerification": "실기기 및 상품별 전체 흐름 미검증",
-      "tossLogin": "토스 기능 미연결",
-      "tossResult": "결과 화면 연결 미확인",
-      "reread": "재열람 경로 미확인"
+      "tossLogin": "공개 진입",
+      "tossResult": "apps/toss/src/MoonlightSeason.tsx + apps/toss/canonical/moonlight-season.mjs",
+      "reread": "게스트 공개. 원본 크롬과 같은 회차별 기기 이어보기. 다음 회차 번호와 시각만 사전 안내"
     },
     {
       "id": "yoga-guru",
