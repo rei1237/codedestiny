@@ -65,7 +65,7 @@ export function isTea640Reference(ref){return /^\/images\/service-introductions\
 export function isYeongnyangi640Reference(ref){return /^\/images\/service-introductions\/yeongnyangi-\$\{[^}\r\n]+\}-640\.webp(?=[`"'])/.test(ref);}
 
 export default function serviceCompat(){
- const references=new Set();
+ const references=new Set(['/fuctionassets/rune.webp']);
  return {name:'canonical-service-runtime',enforce:'pre',
   transform(code,id){
    if(id.includes('node_modules'))return;
