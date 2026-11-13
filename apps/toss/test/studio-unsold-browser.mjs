@@ -1,8 +1,8 @@
-// The loopback-only devtools fixture supplies four non-console SKUs at a test price.
+// The loopback-only devtools fixture supplies non-console SKUs at a test price.
 import {chromium} from 'playwright';
 import assert from 'node:assert/strict';
 
-const origin='http://127.0.0.1:4329';
+const origin='http://127.0.0.1:'+Number(process.env.TOSS_TEST_PORT||4329);
 const browser=await chromium.launch({channel:'chrome'});
 try{
  const context=await browser.newContext({viewport:{width:360,height:740},serviceWorkers:'block'});

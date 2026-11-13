@@ -2,12 +2,15 @@ import {mockZiweiDeepLibrary} from './ziwei-deep.mjs';
 import {mockCompassLibrary} from './compass.mjs';
 import {mockYogaLibrary} from './yoga.mjs';
 import {mockNakshatraLibrary} from './nakshatra-ai.mjs';
+import dailyRegistry from '../../../../worker/yeongnyangi/fortune/free/categories.json' with {type:'json'};
+import {systems,fishNames,unsoldFixtureProducts,productView,prepareSpread,drawFixture} from './yeongnyangi-contracts.mjs';
+export {unsoldFixtureProducts};
 import {reviewProductIds} from '../../../../worker/toss/review-products.js';
 import {roomPurchases,roomSdkProducts} from './room-fixture.mjs';
 import {APPROVED_TOSS_PRODUCTS} from '../../../../worker/toss/catalog.js';
 import {consultationInputCode,consultationSafetyMessages} from '../../../../lib/fortune/toss-consultation-safety.mjs';
 
-const fishNames={mackerel:'고등어',salmon:'연어',flounder:'광어',tuna:'참치'};
+
 export const reviewCatalog=reviewProductIds.map(id=>{
   const letter=id==='chat_saju';
   const featureKey=letter?'fortune-chat-consultation':'yeongnyangi-'+id.replace('_','-');
@@ -17,12 +20,7 @@ export const reviewCatalog=reviewProductIds.map(id=>{
 });
 const sdkProduct=p=>({sku:p.sku,type:'CONSUMABLE',displayName:p.name,displayAmount:p.approvedPriceKRW.toLocaleString('ko-KR')+'원',iconUrl:'',description:'오프라인 테스트 전용 가상 결제'});
 // Test-only identifiers never correspond to a console SKU or an advertised price.
-const systems={saju:'사주',astrology:'서양 점성술',vedic:'베다점',ziwei:'자미두수',sukuyo:'숙요점'};
-export const unsoldFixtureProducts=Object.entries(systems).filter(([id])=>id!=='saju').map(([domain,label])=>({
- id:domain+'_mackerel',sku:'mock-unregistered-'+domain,name:'테스트 '+label+' · 고등어',featureKey:'yeongnyangi-'+domain+'-mackerel',
- approvedPriceKRW:1,available:true,chapters:1,
-}));
-export const unsoldLetters=['yeoni','neo'].flatMap(persona=>[...Object.keys(systems),'tarot'].filter(domain=>persona!=='yeoni'||domain!=='saju').map(domain=>({
+export const unsoldLetters=['yeoni','neo'].flatMap(persona=>Object.keys(systems).filter(domain=>persona!=='yeoni'||domain!=='saju').map(domain=>({
   id:persona+':chat_'+domain,sku:'mock-unregistered-letter-'+persona+'-'+domain,name:'가상 '+(persona==='neo'?'네오':'연이')+' 편지 · '+(systems[domain]||'타로'),
   featureKey:'fortune-chat-consultation',approvedPriceKRW:1,available:true,chapters:1,
 })));
@@ -35,7 +33,7 @@ const letterSku=sku=>letterProducts.some(p=>p.sku===sku);
 const json=(data,status=200)=>Response.json(data,{status});
 const fail=(error,status)=>json({error},status);
 const fixedChapter={id:'test',title:'테스트 상담',summary:'[테스트 전용 예시] 실제 운세 해석이나 AI 상담 결과가 아닙니다.',analysis:['이 문단은 화면과 구매 후 열람을 확인하기 위한 고정 예시입니다.'],questionAnswers:[]};
-const productView=p=>{const [domain,fishId]=p.id.split('_');return {id:p.id,name:'테스트 '+systems[domain],priceKRW:p.approvedPriceKRW,currency:'KRW',domain,systems:[domain],fishId,fishName:fishNames[fishId],readingKind:'single',chapterCount:1,available:true};};
+
 export function safetyResponse(body){
   const code=consultationInputCode(body);
   return code?json({error:code,message:consultationSafetyMessages[code],retryable:false},422):null;
@@ -45,9 +43,14 @@ async function prepare(body,state,save,day){
   const blocked=safetyResponse(body);if(blocked)return blocked;
   const product=consultationCatalog.find(p=>p.id===body.productId);
   if(!product)return fail('TOSS_PRODUCT_NOT_APPROVED',503);
-  if((!state.profiles.some(p=>p.profileId===body.profileId)&&!(body.productId.startsWith('tarot_')&&body.profileId==='tarot-question'))||typeof body.question!=='string'||!body.question.trim()||!body.consultationAttemptId)return fail('INVALID_INPUT',400);
+  const tarotOnly=body.productId.startsWith('tarot_')&&body.profileId==='tarot-question';
+  const validProfile=tarotOnly||state.profiles.some(profile=>profile.profileId===body.profileId);
+  const asksQuestion=!body.consultationKind||body.consultationKind==='ask';
+  if(!validProfile||typeof body.question!=='string'||(asksQuestion&&!body.question.trim())||!body.consultationAttemptId)return fail('INVALID_INPUT',400);
   // Store a digest for retry comparison. Profiles, freeform questions and birth inputs are not fixture records.
-  const bytes=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(JSON.stringify([body.productId,body.profileId,body.question,body.questionDecision])));
+  const inputKeys=Object.keys(body).filter(key=>key!=='consultationAttemptId').sort();
+  const snapshot=JSON.stringify(Object.fromEntries(inputKeys.map(key=>[key,body[key]])));
+  const bytes=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(snapshot));
   const digest=Array.from(new Uint8Array(bytes),value=>value.toString(16).padStart(2,'0')).join('');
   const prior=[...state.fortunes.values()].find(item=>item.attempt===body.consultationAttemptId);
   if(prior)return prior.digest===digest?json({fortune:prior.fortune}):fail('REQUEST_INPUT_MISMATCH',409);
@@ -55,6 +58,7 @@ async function prepare(body,state,save,day){
   const fortune={id,profileId:body.profileId,productId:product.id,product:productView(product),locale:'ko',state:'CREATED',paid:false,createdAt:day.toISOString(),
     consultation:{question:'[테스트 전용 예시] 오늘 제가 먼저 살펴볼 일은 무엇인가요?',kindLabel:'테스트 질문'},
     manifest:[{id:'test',title:'테스트 상담',ordinal:0}],chapters:[],recovery:{canRetryNow:false,savedChapters:0,totalChapters:1}};
+  try{prepareSpread(fortune,body);}catch{return fail('INVALID_TAROT_SPREAD',400);}
   state.fortunes.set(id,{attempt:body.consultationAttemptId,digest,sku:product.sku,fortune});save();
   return json({fortune});
 }
@@ -64,6 +68,7 @@ function grant(body,state,save,date,delay){
   if(!row||row.sku!==body.sku||typeof body.orderId!=='string'||!body.orderId.trim())return fail('ORDER_MISMATCH',403);
   const prior=state.orders.get(body.orderId);
   if((state.orders.has(body.orderId)&&prior!==body.requestId)||(row.orderId&&row.orderId!==body.orderId))return fail('ORDER_ALREADY_ASSIGNED',409);
+  if(row.fortune.state==='AWAITING_DRAW')return fail('TAROT_DRAW_REQUIRED',409);
   if(!row.orderId){
     const paid={...row.fortune,paid:true,state:'GENERATING'};
     state.fortunes.set(body.requestId,{...row,orderId:body.orderId,generationCount:1,readyAt:date.getTime()+delay,fortune:paid});state.orders.set(body.orderId,body.requestId);
@@ -106,13 +111,14 @@ function daily(path,method,body,url,state,save,now){
   if(path!=='/daily/reading')return null;
   if(!daily.unlocked)return fail('DAILY_PASS_REQUIRED',403);
   const category=method==='GET'?url.searchParams.get('category'):body?.category;
-  if(!['basic','psych'].includes(category))return fail('OFFLINE_FIXTURE_NOT_IMPLEMENTED',501);
+  const config=dailyRegistry.find(item=>item.id===category&&item.id!=='horary');
+  if(!config)return fail('INVALID_CATEGORY',400);
   const saved=daily.readings[category];
   if(method==='GET')return json({result:saved||null});
   if(method!=='POST')return fail('METHOD_NOT_ALLOWED',405);
   if(saved)return json(saved);
-  if(category==='basic'&&!body.birth?.date?.year)return fail('FREE_PROFILE_REQUIRED',400);
-  const result={category,day,title:'[테스트 전용] 오늘의 이야기',kind:'reflection',summary:'오프라인 당일 결과를 확인하기 위한 고정 예시입니다.',
+  if((category==='basic'||config.fields.some(field=>field.id==='birthDate'))&&!body.birth?.date?.year)return fail('FREE_PROFILE_REQUIRED',400);
+  const result={category,day,title:'[테스트 전용] '+config.label,kind:'reflection',summary:'오프라인 당일 결과를 확인하기 위한 고정 예시입니다.',
     paragraphs:['오늘 해볼 작은 일을 하나 떠올려 보세요.'],basis:[{label:'자료',value:'합성 테스트 사례'}],limitations:['실제 출생정보나 운세 계산을 사용하지 않았습니다.'],prompt:'',version:'offline-test'};
   daily.readings[category]=result;save();return json(result);
 }
@@ -128,6 +134,8 @@ export async function handleReviewFixture(request,url,path,state,save,now,delay=
   if(path==='/canonical/yeongnyangi/products'&&method==='GET')return json({products:consultationCatalog.map(productView)});
   if(path==='/canonical/yeongnyangi/saju/experience-check'&&method==='POST')return json({check:null});
   if(path==='/canonical/yeongnyangi/requests'&&method==='POST')return prepare(await request.json(),state,save,now());
+  const draw=/^\/canonical\/yeongnyangi\/requests\/([a-f0-9]{64})\/tarot-draw$/.exec(path);
+  if(draw&&method==='POST')return drawFixture(request,state.fortunes.get(draw[1]),save);
   const owned=[...state.fortunes.values()].filter(row=>row.fortune.paid);
   if(path==='/canonical/yeongnyangi/requests'&&method==='GET')return json({fortunes:owned.map(({fortune})=>({...fortune,recovering:fortune.state!=='COMPLETED',completedChapters:fortune.chapters.length,totalChapters:1})),nextCursor:null});
   const match=/^\/canonical\/yeongnyangi\/requests\/([a-f0-9]{64})(?:\/(generate|activate|conversation|follow-up))?$/.exec(path);

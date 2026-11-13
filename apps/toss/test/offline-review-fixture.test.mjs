@@ -10,7 +10,8 @@ function fixture(){
   let date=new Date('2026-11-08T14:59:00Z'),api=createOfflineFixtureApi(storage,{now:()=>date});
   const request=(route,body,authenticated=true)=>api.handle(new Request('https://code-destiny.com/api/toss'+route,{method:body?'POST':'GET',
     headers:{...(authenticated?{Authorization:'Bearer local-mock-token'}:{}),'Content-Type':'application/json'},...(body?{body:JSON.stringify(body)}:{})}));
-  return {request,login:()=>request('/login',{},false),reload(){api=createOfflineFixtureApi(storage,{now:()=>date});},nextDay(){date=new Date('2026-11-08T15:01:00Z');},memory};
+  const asAccount=(route,token)=>api.handle(new Request('https://code-destiny.com/api/toss'+route,{headers:{Authorization:'Bearer '+token}}));
+  return {request,asAccount,login:()=>request('/login',{},false),reload(){api=createOfflineFixtureApi(storage,{now:()=>date});},nextDay(){date=new Date('2026-11-08T15:01:00Z');},memory};
 }
 const makeBody=id=>({productId:id,profileId:'mock-profile',question:'합성 진로 질문',consultationAttemptId:'test-attempt-'+id});
 
@@ -48,14 +49,15 @@ test('both letter rooms bind all six base methods to their own owner, order and 
  }
 });
 
-test('unregistered single-system mock grants use isolated test SKUs and survive a restart',async()=>{
+test('all 24 unregistered single and combined mock grants use isolated test SKUs and survive a restart',async()=>{
  const f=fixture();
  await f.login();
+ assert.equal(unsoldFixtureProducts.length,24);assert.equal(new Set(unsoldFixtureProducts.map(p=>p.sku)).size,24);
  for(const product of unsoldFixtureProducts){
   assert.ok(!APPROVED_TOSS_PRODUCTS.some(row=>row.productId===product.id||row.sku===product.sku));
   const path='/canonical/yeongnyangi/requests',prepared=await (await f.request(path,makeBody(product.id))).json();
   const {id}=prepared.fortune,order={orderId:'test-'+product.sku,requestId:id,sku:product.sku};
-  assert.equal(prepared.fortune.product.domain,product.id.split('_')[0]);
+  assert.equal(prepared.fortune.product.domain,product.id.startsWith('fusion_')?(product.id==='fusion_all'?'saju':product.id.split('_')[1]):product.id.split('_')[0]);
   assert.equal((await f.request('/orders/grant',{...order,sku:'mock-yeoni'})).status,403);
   assert.equal((await f.request('/orders/grant',order)).status,200);
   const result=(await (await f.request(path+'/'+id)).json()).fortune;
@@ -161,6 +163,11 @@ test('local sample attendance and unlock are idempotent and the stored day resul
   assert.equal((await f.request('/daily/reading',{category:'basic',draft:{}})).status,400);
   const row=await (await f.request('/daily/reading',{category:'psych',draft:{}})).json();assert.match(row.title,/테스트 전용/);
   f.reload();assert.deepEqual((await (await f.request('/daily/reading?category=psych')).json()).result,row);
+  f.memory.set('toss-offline-login-person','second');
+  const token=(await (await f.login()).json()).token;
+  const secondStatus=await (await f.asAccount('/daily/status',token)).json();
+  assert.equal(secondStatus.unlocked,false);assert.equal(secondStatus.attended,false);assert.equal(secondStatus.balance,2);
+  assert.equal((await f.asAccount('/daily/reading?category=psych',token)).status,403);
   f.nextDay();assert.equal((await (await f.request('/daily/status')).json()).unlocked,false);
   assert.equal((await f.request('/daily/reading?category=psych')).status,403);
 });

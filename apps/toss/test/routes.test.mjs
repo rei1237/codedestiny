@@ -347,6 +347,19 @@ test('a direct consultation result without a Toss purchase never reads the saved
  finally{Object.assign(mocks,previous);}
 });
 
+test('only the owner can read the empty unpaid preparation before purchasing',async()=>{
+ const previous={purchase:mocks.purchase,read:mocks.read},id='a'.repeat(64);
+ const clean={state:'AWAITING_DRAW',paid:false,chapters:[]};
+ const get=()=>handleTossRoutes(new Request('https://code-destiny.com/api/toss/canonical/yeongnyangi/requests/'+id,{headers:{Origin:'https://ai-saju-studio.private-apps.tossmini.com'}}),{TOSS_RELEASE_READY:'true'});
+ try{
+  mocks.purchase=()=>({lean:async()=>null});
+  for(const change of [null,{paid:true},{chapters:[{body:'비공개 결과'}]},{snapshot:{persona:'neo'}},{paymentClaimOrderId:'past-order'},{accessMethod:'WEB'},{state:'COMPLETED'}]){
+   mocks.read=async(_env,owner,requestId)=>{assert.equal(owner,auth.userId);assert.equal(requestId,id);return {...clean,...change};};
+   const response=await get();assert.equal(response.status,change?404:200);
+   if(change)assert.doesNotMatch(await response.text(),/비공개 결과/);
+  }
+ }finally{Object.assign(mocks,previous);}
+});
 test('original result contract rereads the owner-bound saved result and rejects refunded orders',async()=>{
  const previous={purchase:mocks.purchase,read:mocks.read,lookupOrder:mocks.lookupOrder};
  const id='a'.repeat(64),orderId='01900000-1111-7111-8111-000000000042';

@@ -34,4 +34,3 @@ export default function NativeChapterPurchase({service,feature,prefix,route,owne
     {owner==='guest'?<Button onClick={onLogin}>토스 로그인하고 심층 리포트 확인하기</Button>:orderId||sale?<Button disabled={disabled||busy||(!orderId&&paymentRequiresReview())} onClick={()=>void start()}>{orderId?'결제한 리포트 이어가기':'심층 리포트 열기 · '+sale!.displayAmount}</Button>:loaded?<p>토스 상품 등록을 기다리고 있어요.</p>:error?<Button onClick={()=>setRefresh(n=>n+1)}>상품 다시 확인하기</Button>:<p role="status">토스 상품을 확인하고 있어요.</p>}
     {error&&<p role="alert">{error}</p>}</>;
 }
-

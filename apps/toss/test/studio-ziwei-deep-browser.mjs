@@ -29,4 +29,3 @@ try{
  await page.getByRole('button',{name:/심층 리포트 열기/}).waitFor();await page.goto(result);await page.getByRole('heading',{name:'구매 기록 확인'}).waitFor();assert.equal(await page.locator('[data-ziwei-pdf-section]').count(),0);
  console.log('PASS 360px Ziwei: guest 12 palaces → eight focus options and draft → mock login and one IAP → interrupted job → 15 saved chapters → second account denied.');
 }finally{await browser.close();}
-

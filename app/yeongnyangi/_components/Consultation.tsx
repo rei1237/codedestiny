@@ -244,9 +244,10 @@ export default function Consultation({initialQuestion='',sajuOnly=false,inputNot
   setExtraTime(draft.extraTime||'');setExtraPlace(draft.extraPlace||'');setTimeUnknown(draft.timeUnknown===true);restoredDraft.current=null;
  },[profileId,profiles,profileState.loading,profileState.select]);
  useEffect(()=>{
-  if(!ready||(!relationshipStage&&!relationship))return;
-  try{sessionStorage.setItem(loginDraftKey,JSON.stringify({accountId:readDestinyProfileAccountId(),path:window.location.pathname+window.location.search,locale,productId,consultationKind:kind.id,profileId,topicId,question,partnerId,extraTime,extraPlace,timeUnknown,relationshipStage,relationshipQuestionId,participants,voiceStyle,consultationAttemptId:consultationAttemptId.current,preparationKey:preparationKey.current,savedAt:Date.now()}));}catch{/* Optional draft; paid snapshots remain on the server. */}
- },[ready,relationship,relationshipStage,relationshipQuestionId,participants,voiceStyle,locale,productId,kind.id,profileId,topicId,question,partnerId,extraTime,extraPlace,timeUnknown]);
+  const reportDraft=paymentSurface==='toss'&&(!questionMode||domain==='fusion');
+  if(!ready||(!relationshipStage&&!relationship&&!reportDraft))return;
+  try{sessionStorage.setItem(loginDraftKey,JSON.stringify({accountId:readDestinyProfileAccountId(),path:window.location.pathname+window.location.search,locale,productId,consultationKind:kind.id,profileId,topicId,question,partnerId,extraTime,extraPlace,timeUnknown,relationshipStage,relationshipQuestionId,participants,voiceStyle,tarotPlan,consultationAttemptId:consultationAttemptId.current,preparationKey:preparationKey.current,savedAt:Date.now()}));}catch{/* Optional draft; paid snapshots remain on the server. */}
+ },[ready,paymentSurface,questionMode,domain,tarotPlan,relationship,relationshipStage,relationshipQuestionId,participants,voiceStyle,locale,productId,kind.id,profileId,topicId,question,partnerId,extraTime,extraPlace,timeUnknown]);
  useEffect(()=>{
   if(!ready||!questionMode||siteLocale!=='ko'||domain==='fusion')return;
   try{sessionStorage.setItem(loginDraftKey,JSON.stringify({accountId:readDestinyProfileAccountId(),path:window.location.pathname+window.location.search,locale,productId,consultationKind:kind.id,profileId,topicId,question,partnerId,extraTime,extraPlace,timeUnknown,voiceStyle,tarotPlan,participants,questionDecision:decision||scopeDraft,editScope:!decision,intakeDomain:domain,chatStep,consultationAttemptId:consultationAttemptId.current,preparationKey:preparationKey.current,savedAt:Date.now()}));}catch{/* Optional draft: unavailable storage does not prevent preparation. */}

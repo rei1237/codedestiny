@@ -794,7 +794,10 @@ export async function handleTossRoutes(request,env) {
       const purchase=await TossPurchase.findOne({identityId:auth._id,ownerId:auth.ownerId,requestId:resultMatch[1],environment:auth.environment}).lean();
       if(!purchase&&canonical&&request.method==='GET'){
         const pending=await readRequest(env,auth.userId,resultMatch[1]);
-        if(!pending.persona&&!pending.accessMethod&&!pending.paymentId&&['CREATED','AWAITING_DRAW'].includes(pending.state))return reply({fortune:presentFortune(pending)});
+        if(!pending.persona&&!pending.snapshot?.persona&&!pending.accessMethod&&!pending.paymentId&&!pending.paymentClaimOrderId&&['CREATED','AWAITING_DRAW'].includes(pending.state)){
+          const fortune=presentFortune(pending);
+          if(fortune.paid===false&&Array.isArray(fortune.chapters)&&fortune.chapters.length===0)return reply({fortune});
+        }
       }
       if(!purchase)throw new TossError('RESULT_NOT_FOUND',404);
       if(canonical&&consultationService(purchase).id!=='yeongnyangi')throw new TossError('RESULT_NOT_FOUND',404);
