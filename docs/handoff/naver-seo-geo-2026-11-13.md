@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-14
-next: 묶음 2 중 승인 불필요 항목 진행 중(rebase 끝, 결과 기록 "묶음 2 진행" 참고). 남은 순서 = 2-2 keyword-page-map → 2-3 K4 문서 → naver-console-checklist → bundle2-decisions → 2-1 lib/seo.ts 절단 → 재검증. push는 사용자 승인 대기
+next: 2-1(lib/seo.ts 문장 경계 절단)이 작업 트리에 미커밋으로 있을 수 있다 — 빌드로 "…" 개수(기준선 229)를 다시 세고 생성물을 다시 만든 뒤 커밋·재검증. 그 뒤는 사용자 결정 대기(push 승인, docs/seo/bundle2-decisions.md, meta-table §1·§4)
 ---
 # 네이버 SEO·AEO·GEO + 구매 동선 (Phase 1~5)
 
@@ -177,7 +177,10 @@ Phase 0 보고서와 승인된 계획의 정본은 `docs/seo/phase0-report.md`�
 ### 묶음 2 진행 (2026-11-14)
 - 재료를 모을 때 쓴 스크립트는 저장소 밖 스크래치에 있어 다음 세션에는 없다. 수치는 묶음 1 빌드(`dist/`)의 HTML에서 title·description·robots를 뽑아 센 것이다.
 - **2-1 기준선**: 색인 대상 1,094쪽 중 description이 "…"로 끝나는 쪽 229개(/en 101, /insights 40, /ja 37, /stories 33, /fortune 10, /saju 3, 그 밖 각 1). 절단은 `lib/seo.ts`의 `truncateToDisplayWidth`(폭 160). 계획: 한계를 넘으면 한계 안에 온전히 들어오는 마지막 문장(`/[.!?]+(?=\s|$)|[。！？]+/g`)에서 끊고, 남는 폭이 40 미만이면 기존 "…" 폴백. 사용처: `lib/seo.ts`(buildSeoMetadata), `lib/seo/createI18nMetadata.ts`, `lib/generate-page-metadata.ts`, `app/insights/famous-saju/[slug]/page.tsx`, `app/nakshatra/codex/[index]/page.tsx`. 마지막 파일 L50 주석은 "공용 truncateToDisplayWidth를 고치지 않는다(라우트 43개 공유)"라고 경고하고 자체 `toLastCompleteSentence`를 쓴다. 이번 지시가 공용 함수 변경을 명시했으므로 고치되, 그 주석이 사실과 어긋나게 되면 같이 손본다.
-- **2-2**: `docs/seo/meta-table.md` §4(핵심 허브 표) 작성. 적용 안 함.
+- **2-2 끝(표만)**: `docs/seo/meta-table.md` §4 핵심 허브 표(`e8e5ccce6`), `docs/seo/keyword-page-map.md`(`ca4087615`). 적용 안 함. 검색량은 2026-10-08 관측값 인용뿐이고 나머지는 "미확인". 표에서 "확인 뒤 작성"으로 남긴 것: `/saju/free/` 설명("사주 기본 풀이는 로그인 후"가 C2와 맞는지), `/ziwei/chart/` 제목(C2 버튼 도착지인데 "심화 상담"), `/love/`의 "무료" 범위.
+- **2-3 K4 끝(코드 변경 없음)**: `docs/seo/internal-links-noindex.md`(`3deb16317`). noindex 대상이 전부 개인 화면·실행 화면이고 같은 목적의 색인 페이지가 없어 링크를 바꾸지 않았다. `/consultations/`(푸터에서 594쪽이 링크, `index:false, follow:false`)를 색인에 열지는 사용자 결정.
+- **네이버 체크리스트 끝**: `docs/seo/naver-console-checklist.md`(`de21745a8`). 묶음 5-2의 같은 파일 항목은 이것으로 끝.
+- **결정 문서 끝(구현 없음)**: `docs/seo/bundle2-decisions.md`(`4f984ec10`) — 신년운세 허브, 홈 이원화, `/compare/`, about 정의, llms.txt. 2-4에 대해 알아 둘 것: 색인 가능한 2027 페이지가 이미 있다(`/new-year-ai-consultation/` 내부 링크 475쪽, `/fortune/2027/` + 12띠는 15쪽뿐). Phase 0의 "허브 없음"은 불완전했다. 추천은 새 URL 없이 `/fortune/2027/`로 가는 내부 링크 보강.
 
 ### 조사 메모(1-5 이후, 읽기만)
 - 1-2: `app/components/guide-cta-targets.js`에 `/ggulggul/?action=cdOneStepFreeSajuEntry` + `note: "무료 · 로그인 후 확인"`이 8곳. `lib/fortune-landings.mjs`는 `action` 필드만 있고 `app/components/FortuneLandingHero.tsx`가 `"/ggulggul/?action=" + story.action`으로 href를 만든다. 안: `/saju`·`/ziwei` 항목에 선택 필드 `href`(`/saju/free/`, `/ziwei/chart/`)를 두고 hero는 `story.href || …`. `getFortuneLanding('/ziwei/chart')`는 `/ziwei` 항목을 돌려주므로 자기 자신으로 링크되지 않게 확인한다. 같이 봐야 할 것: `scripts/verify-analytics-events.mjs` L354(hero href 기대값), `js/core/analytics.js` L720-726 `SEARCH_CTA_ROUTES`(`/saju/free/` 없음, public 미러 있음), `__tests__/ui/organic-acquisition.test.mjs:84`(manse ctaHref 고정). `/saju/free/`(`app/saju/free/FreeSajuForm.tsx`)가 로그인 없이 명식·오행을 계산하는 것은 확인했다.
