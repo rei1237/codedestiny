@@ -1,5 +1,5 @@
 {
-  "sourceCommit": "1dcd336f5bae8813b5dac05477588d3f2fc89d97",
+  "sourceCommit": "2d006ac6b23b37041904a1b1bdf7940cf980f632",
   "sourceCounts": {
     "home": 63,
     "react": 18,
@@ -834,8 +834,8 @@
         "library": "not-verified",
         "device": "not-tested",
         "canonicalId": "juyuk-turtle",
-        "candidateStatus": "requires-full-flow-port-and-verification",
-        "canonicalRoute": null
+        "candidateStatus": "local-partial",
+        "canonicalRoute": "/oracle/turtle"
       }
     },
     {
@@ -4312,12 +4312,13 @@
         }
       ],
       "aliasEvidence": [],
-      "status": "requires-full-flow-port-and-verification",
-      "tossRoute": null,
+      "status": "local-partial",
+      "tossRoute": "/oracle/turtle",
       "sku": null,
-      "inputContract": null,
-      "resultRenderer": null,
-      "storageContract": null,
+      "inputContract": "js/iching-engine.js 원본 질문·2.2초 길게 누르기·seed·상하괘·64괘, 7장과 전문가 프롬프트. 무료 키 openJuyukModal",
+      "resultRenderer": "apps/toss/src/TurtleOracle.tsx + apps/toss/canonical/turtle-oracle.mjs",
+      "storageContract": "게스트 공개, 화면 결과. 기존 웹 주문 정책과 별개",
+      "verification": "studio-turtle-browser.mjs: 360px 게스트 홈→질문→짧게 누르기 취소→길게 누르기→7장/원문 프롬프트. 64괘 계산 비교. 실기기 제스처·클립보드 미검증",
       "webEntries": [
         "/oracle/juyuk/"
       ],
@@ -4328,13 +4329,13 @@
         "openJuyukModal"
       ],
       "freeCalculation": true,
-      "portStatus": "미이식",
-      "reducedBundle": "홈 진입 없음",
-      "currentEntry": "연결 경로 없음",
+      "portStatus": "일부만 이식",
+      "reducedBundle": "구현은 있으나 진입 차단",
+      "currentEntry": "일반 홈의 진입 코드 확인",
       "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
-      "tossLogin": "토스 기능 미연결",
-      "tossResult": "결과 화면 연결 미확인",
-      "reread": "재열람 경로 미확인"
+      "tossLogin": "공개 진입",
+      "tossResult": "apps/toss/src/TurtleOracle.tsx + apps/toss/canonical/turtle-oracle.mjs",
+      "reread": "게스트 공개, 화면 결과. 기존 웹 주문 정책과 별개"
     },
     {
       "id": "karma-destiny-ai",
