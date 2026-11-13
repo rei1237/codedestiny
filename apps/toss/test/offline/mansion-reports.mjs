@@ -1,3 +1,5 @@
+import {buildNakshatraLordReport} from '../../../../worker/lib/nakshatra-lord-report.js';
+import {buildNakshatraDashaMap} from '../../../../worker/lib/nakshatra-dasha-map.js';
 import {buildNakshatraMuhurta} from '../../../../worker/lib/nakshatra-muhurta.js';
 import {buildNakshatraVvipCodex} from '../../../../worker/lib/nakshatra-vvip-codex.js';
 import {buildVimshottariDasha,nakshatraInfo} from '../../../../worker/lib/vedic-derived-calculations.js';
@@ -17,7 +19,10 @@ export function fixtureMansionReport(kind,body,now){
     return buildNakshatraMuhurta({purposeKey:body.purpose,myMansionIndex:sukuyo.index,myNakIndex:nak.index,days});
   }
   const birthUtc=new Date('1990-01-01T03:00:00Z');
-  return buildNakshatraVvipCodex({nak,sukuyo,pada:nak.pada,dasha:buildVimshottariDasha(moon,birthUtc,now),birthUtc,now,timeUnknown:true});
+  const input={nakIndex:nak.index,nak,sukuyo,pada:nak.pada,dasha:buildVimshottariDasha(moon,birthUtc,now),birthUtc,now,timeUnknown:true};
+  if(kind==='lord-report')return buildNakshatraLordReport(input);
+  if(kind==='dasha-map')return buildNakshatraDashaMap(input);
+  return buildNakshatraVvipCodex(input);
 }
 import {assembleNatalCodex} from '../../../../worker/lib/nakshatra-codex.js';
 import {assembleNakshatraCompat} from '../../../../worker/lib/nakshatra-compat.js';

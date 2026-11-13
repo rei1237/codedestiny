@@ -1,13 +1,17 @@
 import {ProfileCard} from '../lib/models.js';
 import {withMongoRetry} from '../lib/db.js';
 import {toClientProfile} from '../routes/profile.js';
-import {handleMuhurta,handleVvipCodex} from '../routes/nakshatra-premium.js';
+import {buildMansionProfileReport,handleMuhurta,handleVvipCodex} from '../routes/nakshatra-premium.js';
 import {lunarToSolar} from '../../lib/korean-calendar/core.js';
 import {ianaOffsetHours} from '../../lib/fortune/nakshatra-timezone.mjs';
 import {isFreeFortuneFeatureKey} from '../../lib/payment/free-fortune-policy.mjs';
 import {TossError} from './policy.js';
 
-const readers={'muhurta':handleMuhurta,'vvip-codex':handleVvipCodex};
+const readers={
+  muhurta:handleMuhurta,'vvip-codex':handleVvipCodex,
+  'lord-report':(request,env,_auth,input)=>buildMansionProfileReport(request,env,'lord-report',input),
+  'dasha-map':(request,env,_auth,input)=>buildMansionProfileReport(request,env,'dasha-map',input),
+};
 export async function readOwnedMansionReport(request,env,auth,kind,body,{
   findProfile=query=>withMongoRetry(env,()=>ProfileCard.findOne(query).lean()),
   read=readers[kind],

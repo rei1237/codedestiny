@@ -407,7 +407,7 @@ export async function handleTossRoutes(request,env) {
       const response=await resolveCompat(env,{a,b},{requestUrl:request.url});
       return reply(await response.json(),response.status);
     }
-    if((path==='/nakshatra/muhurta'||path==='/nakshatra/vvip-codex')&&request.method==='POST'){
+    if(['/nakshatra/muhurta','/nakshatra/vvip-codex','/nakshatra/lord-report','/nakshatra/dasha-map'].includes(path)&&request.method==='POST'){
       await limit(env,auth._id,'mansion-report',10);
       const {readOwnedMansionReport}=await import('./mansion-reports.js');
       return reply(await readOwnedMansionReport(request,env,auth,path.split('/').pop(),await bodyOf(request)));

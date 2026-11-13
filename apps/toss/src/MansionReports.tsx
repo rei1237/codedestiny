@@ -1,21 +1,24 @@
 import {useEffect,useRef,useState} from 'react';
+import PeriodRow,{type Period} from '../../../app/nakshatra/dasha-map/PeriodRow';
+import {useNakshatraCopy} from '../../../app/nakshatra/_lib/copy';
 import {Button} from './Button';
 import {api} from './platform';
 import TossSessionScope from './TossSessionScope';
 
-export type MansionKind='muhurta'|'vvip-codex';
-const titles={muhurta:'나크샤트라 택일', 'vvip-codex':'나크샤트라 VVIP 코덱스'};
+export type MansionKind='muhurta'|'vvip-codex'|'lord-report'|'dasha-map';
+const titles={muhurta:'나크샤트라 택일', 'vvip-codex':'나크샤트라 VVIP 코덱스','lord-report':'나크샤트라 지배성 리포트','dasha-map':'나크샤트라 다샤 인생지도'};
 const purposes={marriage:'결혼·약속',business:'개업·창업',contract:'계약·거래',moving:'이사·이동',newStart:'시작·착수',healing:'치유·회복'};
 type Section={id:string;title:string;keyInsight?:string;paragraphs?:string[];bullets?:{label:string;text:string}[]};
 type Chapter=Section&{sections?:Section[];terrain?:{index:number;nameKo:string;nameHan:string;isSelf:boolean;role:string;relationTypeHan:string;gist:string}[]};
 type Day={date:string;weekdayKo:string;gradeKo:string;score:number;reason:string;nakshatraKo:string;sukuyoKo:string;taraKo:string;easternLabel:string};
-type Report={meta:{purposeKo?:string;myNakshatraKo?:string;myMansionKo?:string;rangeStart?:string;rangeEnd?:string;fusionTitle?:string;nakshatraKo?:string;sukuyoKo?:string};days?:Day[];best?:Day[];avoid?:Day[];chapters?:Chapter[];sections?:Section[]};
+type Report={headline?:string;periods?:Period[];current?:{paragraphs:string[]};meta:{purposeKo?:string;myNakshatraKo?:string;myMansionKo?:string;rangeStart?:string;rangeEnd?:string;fusionTitle?:string;nakshatraKo?:string;sukuyoKo?:string};days?:Day[];best?:Day[];avoid?:Day[];chapters?:Chapter[];sections?:Section[]};
 type Profile={profileId:string;name:string};
 
 function SectionText({section}:{section:Section}){
   return <><p>{section.keyInsight}</p>{section.paragraphs?.map((line,i)=><p key={i}>{line}</p>)}{section.bullets?.map((item,i)=><p key={i}><b>{item.label}</b> · {item.text}</p>)}</>;
 }
 function Reading({kind,profileId}:{kind:MansionKind;profileId:string}){
+  const copy=useNakshatraCopy();
   const [purpose,setPurpose]=useState('marriage');
   const [date,setDate]=useState(()=>new Date(Date.now()+9*3600000).toISOString().slice(0,10));
   const [report,setReport]=useState<Report|null>(null),[busy,setBusy]=useState(false),[error,setError]=useState('');
@@ -38,9 +41,11 @@ function Reading({kind,profileId}:{kind:MansionKind;profileId:string}){
   }
   if(!report)return <form className="form" onSubmit={event=>{event.preventDefault();void calculate();}}>
     {kind==='muhurta'&&<><label>택일 목적<select value={purpose} onChange={e=>setPurpose(e.target.value)}>{Object.entries(purposes).map(([key,label])=><option key={key} value={key}>{label}</option>)}</select></label><label>살펴볼 시작일<input type="date" required value={date} onChange={e=>setDate(e.target.value)}/></label></>}
-    <Button disabled={busy||!profileId} type="submit">{busy?'계산하고 있어요':kind==='muhurta'?'택일 리포트 보기':'코덱스 펼치기'}</Button>{error&&<p role="alert">{error}</p>}</form>;
+    <Button disabled={busy||!profileId} type="submit">{busy?'계산하고 있어요':kind==='muhurta'?'택일 리포트 보기':kind==='vvip-codex'?'코덱스 펼치기':'리포트 펼치기'}</Button>{error&&<p role="alert">{error}</p>}</form>;
   const data=report.meta;
   return <section><h2>{data.purposeKo||data.fusionTitle||titles[kind]}</h2>
+    {report.headline&&<p>{report.headline}</p>}{report.current?.paragraphs?.map((line,i)=><p key={i}>{line}</p>)}
+    {report.periods&&<section aria-label="다샤 시기별 주기"><h3>시기별 대주기와 부주기</h3>{report.periods.map(period=><PeriodRow key={period.index} period={period} copy={copy}/>)}</section>}
     {report.days&&<><p>{data.myMansionKo} · {data.myNakshatraKo} · {data.rangeStart} ~ {data.rangeEnd}</p>
       {[{heading:'추천 날짜',days:report.best},{heading:'유의할 날짜',days:report.avoid}].map(({heading,days})=><details className="paper" key={heading}><summary>{heading}</summary>{days?.map(item=><p key={item.date}>{item.date} · {item.gradeKo}<br/>{item.reason}</p>)}</details>)}
       <details className="paper"><summary>기간의 모든 날짜 · {report.days.length}일</summary>{report.days.map(item=><p key={item.date}><b>{item.date} · {item.gradeKo} {item.score}점</b><br/>{item.sukuyoKo} · {item.easternLabel} / {item.nakshatraKo} · {item.taraKo}<br/>{item.reason}</p>)}</details></>}

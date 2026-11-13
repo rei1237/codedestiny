@@ -56,7 +56,7 @@ function createAccountFixture(storage,owner,token,now){
    const {fixtureMansionReading}=await import('./mansion-reports.mjs');
    return respond(fixtureMansionReading(path,await request.json(),now()));
   }
-  if((path==='/nakshatra/muhurta'||path==='/nakshatra/vvip-codex')&&method==='POST'){
+  if(['/nakshatra/muhurta','/nakshatra/vvip-codex','/nakshatra/lord-report','/nakshatra/dasha-map'].includes(path)&&method==='POST'){
    const body=await request.json();
    if(!state.profiles.some(profile=>profile.profileId===body.profileId))return respond({error:'PROFILE_NOT_FOUND'},404);
    const {fixtureMansionReport}=await import('./mansion-reports.mjs');

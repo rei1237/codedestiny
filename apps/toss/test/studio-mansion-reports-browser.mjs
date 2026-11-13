@@ -34,6 +34,20 @@ try{
   await chapters.last().locator('summary').click();
   assert.ok(await chapters.last().getByRole('heading',{level:3}).count()>2);
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth),360);
+  await open('나크샤트라 지배성 리포트');
+  await page.getByLabel('출생 프로필').selectOption('mock-profile');
+  await page.getByRole('button',{name:'리포트 펼치기'}).click();
+  await page.locator('details.paper').first().waitFor();
+  assert.equal(await page.locator('details.paper').count(),11);
+  await open('나크샤트라 다샤 인생지도');
+  await page.getByLabel('출생 프로필').selectOption('mock-profile');
+  await page.getByRole('button',{name:'리포트 펼치기'}).click();
+  const timeline=page.getByRole('region',{name:'다샤 시기별 주기'});
+  await timeline.waitFor();
+  const periods=await timeline.locator('details').count();
+  assert.ok(periods>=9);
+  assert.equal(await timeline.locator('ul li').count(),periods*9);
+  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth),360);
   assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('toss-offline-fixture')).orders.length),0);
-  console.log('PASS 360px guest → home → login → owned profile → 6 purposes, 60-day election → reopen home → VVIP five chapters, 27 mansions, no payment.');
+  console.log('PASS 360px guest → home → login → owned profile → 6 purposes, 60-day election → reopen home → VVIP five chapters, 27 mansions, eleven planetary sections and full dasha/antardasha timeline, no payment.');
 }finally{await browser.close();}

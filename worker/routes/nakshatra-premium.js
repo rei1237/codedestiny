@@ -239,6 +239,12 @@ async function handleProduct(request, env, product, kind) {
     return json({ ok: false, reason: "INVALID_INPUT", message: MESSAGES.invalidInput }, { status: 400 });
   }
 
+  return await buildMansionProfileReport(request, env, kind, input);
+}
+
+export async function buildMansionProfileReport(request, env, kind, input) {
+  const product = PRODUCTS[kind];
+  if (!product || !isValidBirth(input)) return json({ok:false,reason:"INVALID_INPUT"},{status:400});
   const moonLon = await resolveMoon(env, input, request.url);
   if (moonLon == null) {
     return json({ ok: false, retryable: true, reason: "SWISS_MOON_UNAVAILABLE", message: MESSAGES.moonUnavailable }, { status: 502 });
