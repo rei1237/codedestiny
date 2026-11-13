@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-14
-next: 묶음 ③ 단계 7(영냥이·홈 구매 흐름) 시작
+next: 묶음 ③ 단계 8(결제 인접 화면) 시작
 ---
 
 # 꿀꿀 운세·영냥이 UX: 구매 흐름 · 후기 신뢰 · 후기 작성 · 생성 진행 · 무료 배너
@@ -20,7 +20,7 @@ next: 묶음 ③ 단계 7(영냥이·홈 구매 흐름) 시작
 - 기준: origin/main `02476159e0b545b887fe04a12815b7123b4b614d`
 - node_modules는 정션, `.env.local`·`.env.cloudflare.local`은 링크(건드리지 않는다).
 - 워크트리 제거: 다른 체크아웃에서 `npm run worktree:remove -- 'D:\Development\codedestiny-worktrees\ux-conversion-20261113-215142'` (git worktree remove 금지 — 긴 경로 고아 폴더).
-- 마지막 커밋: 단계마다 아래 표에 적는다. 묶음 ① 끝 코드 커밋 `3af1f976b`(미push). 묶음 ② 6b 끝 코드 커밋 `dd10f6156`(미push). 묶음 ② 6c-1 코드 커밋 `4dd33836e`·`9b9a8e706`·`3c8d5ac2f`(미push). 묶음 ② 6c-2 코드 커밋 `273aa5ce6`·`d1eba2bae`(미push). 묶음 ② 11a 코드 커밋 `81b1be43d`(미push). 묶음 ② 배너 모바일 다듬기 `c7edcc6c3`·사이트맵 원장 `a10578ada`(미push). 묶음 ③ 단계 5 ReviewProof `f554b8920`(미push).
+- 마지막 커밋: 단계마다 아래 표에 적는다. 묶음 ① 끝 코드 커밋 `3af1f976b`(미push). 묶음 ② 6b 끝 코드 커밋 `dd10f6156`(미push). 묶음 ② 6c-1 코드 커밋 `4dd33836e`·`9b9a8e706`·`3c8d5ac2f`(미push). 묶음 ② 6c-2 코드 커밋 `273aa5ce6`·`d1eba2bae`(미push). 묶음 ② 11a 코드 커밋 `81b1be43d`(미push). 묶음 ② 배너 모바일 다듬기 `c7edcc6c3`·사이트맵 원장 `a10578ada`(미push). 묶음 ③ 단계 5 ReviewProof `f554b8920`(미push). 단계 5 남은 일 `c674869d9`(보존 기준 해시)·`f6768d579`(`/reviews/?product=` 필터), 묶음 ③ 단계 7 `008432add`(미push).
 
 ## 승인 상태 (사용자 원문, 2026-11-13)
 
@@ -151,7 +151,7 @@ next: 묶음 ③ 단계 7(영냥이·홈 구매 흐름) 시작
 
 ### 묶음 ③ 신뢰·구매 흐름 (단계 5, 7, 8)
 - [x] 5. ReviewProof — SHA: f554b8920 (결과는 문서 끝 "묶음 ③ 단계 5 ReviewProof 결과")
-- [ ] 7. 영냥이·홈 — SHA:
+- [x] 7. 영냥이·홈 — SHA: 008432add · 단계 5 남은 일 c674869d9, f6768d579 (결과는 문서 끝 "묶음 ③ 단계 7 결과")
 - [ ] 8. 결제 인접 — SHA:
 
 ### 묶음 ④ 생성 진행 (단계 9, 10)
@@ -690,3 +690,51 @@ API 판단
 3. `#yn-example` 링크는 `<details>`를 열지 않는다. 해시로 여는 스크립트는 단계 7 범위다.
 4. new-year·life-book 화면 확인은 묶음 ⑤로 미뤘다(단위 테스트·typecheck로만 확인).
 5. 로딩 예약 높이는 390에 맞췄고 다른 폭은 근사값이다. 최종 높이와의 차이(love-secret/영냥이): 360 +21/+23, 640 +25/+4, 768 +25/−21, 1440 +16/−30px. 실제 후기가 쌓이면 카드 모드 높이로 다시 맞춘다.
+
+### 묶음 ③ 단계 7 결과 (2026-11-14 완료, 미push)
+
+커밋
+- `c674869d9` test(preservation): `__tests__/fixtures/result-presentation-preservation.json`의 `SukuyoCompatibilityAiClient` 기준 해시 갱신(단계 3의 `reviewProductId="sukuyo"` 반영). 단계 5 후속 1 해결.
+- `f6768d579` fix(reviews): `app/reviews/ReviewsClient.tsx`가 `?product=`를 `/api/reviews/products` 항목(카탈로그 slug)으로 검증한 뒤에만 목록·요약을 그 상품으로 거른다. 검증이 끝날 때까지(`filterReady`) 목록·요약 요청을 미룬다. 모르는 값은 무시하고 전체를 보인다. 테스트 `__tests__/ui/review-consent-flow.test.mjs` 11/11. 단계 5 후속 2 해결.
+- `008432add` feat(yeongnyangi): 시작 가격 한 줄·상담 예시 바로가기·홈 카드 가격. 단계 5 후속 3(`#yn-example` 열기) 해결.
+
+변경 (커밋 기준 줄)
+- a. `app/yeongnyangi/_components/NightHero.tsx` L35: 히어로 가격을 한 줄 `질문 상담 {starter.priceKRW}원부터`로 줄였다. 체험가 조건 접두(`planned!==null`)는 그대로라 가격 표시 로직은 같다. 데스크톱 소개 div 안 가격 줄과 모바일 전용 가격 줄을 없앴다. 세부("고등어 질문 상담 … 챕터 · 추가 질문 없음")는 `NightPriceDetails`(L15-22, 변경 없음)에 남는다.
+  - `night-hero.module.css` L45·L48: `.mobilePrice`·`.desktopIntro .price` 규칙 삭제, `.mobileTitle`만 남김.
+- b. `app/yeongnyangi/_components/ProductGuide.tsx` L93: `#founder-records` → `/yeongnyangi/1000-won-fortune/#founder-records`. 대상 id는 이미 `app/components/FounderTrust.tsx` L14에 있고 `app/yeongnyangi/1000-won-fortune/page.tsx` L146이 그린다. id 추가 불필요.
+- c. 새 `app/yeongnyangi/_components/RevealDetailsOnHash.tsx`: 해시가 `#<id>`이면 그 `<details>`와 바깥 `<details>`(HomeDisclosure)를 모두 열고, 다음 프레임에 `scrollIntoView`한다(움직임 줄이기면 `auto`, 아니면 `smooth`). 처음 열 때·`hashchange`·같은 해시 링크 재클릭 때 동작한다.
+  - `YeongnyangiGuide.tsx` L14 import, L82 `<RevealDetailsOnHash id="yn-example"/>`(`<details id="yn-example">` L73 안).
+  - `app/components/QuestionJourney.tsx` L18-20·L29: QuestionOffer 주 버튼 뒤에 "예시 먼저 보기" → `#yn-example`. 문서에 `#yn-example`이 있을 때만 보인다(한국어 영냥이 홈 가이드에만 있음). `QuestionJourney.module.css` L20 `.example`.
+- d. `app/page.js` L23 카탈로그 import, L32 `YN_STARTER_KRW`, L119: 영냥이 카드 태그 끝에 `N원부터`(웹 전용 `!IS_APP_BUILD`, 앱은 스토어 가격이라 뺌). 꿀꿀 카드는 그대로. 가격은 `aria-describedby` 텍스트 안에 들어간다. `home-main.module.css` L93 `.cardPrice`(토큰 `--hm-card-ink`, 영냥이 카드에서 `--yn-ivory`).
+- 새 hex·`dark:`·`prefers-color-scheme` 없음. 영냥이 대사는 바꾸지 않았고 UI 문구는 해요체·명사구.
+
+가정
+- a: 데스크톱은 기존 "상담 가격" 내비 링크와 열린 `#yn-prices`로, 모바일은 `NightPriceDetails`로 세부에 간다.
+- c: "한국어 전용"은 `#yn-example` 존재 여부로 판단했다(QuestionJourney는 한국어 FortuneHome에서만 그려진다).
+- d: 카드 폭 때문에 "질문 상담" 없이 "N원부터"만 넣었다.
+
+검증
+- 관련 UI 테스트 묶음: 1020개 중 1019 통과. 실패 1건 `home-service-separation.test.cjs` "service home owns discovery…"(`index.html`에 `.yh-concerns` 없음)는 이전부터다. origin/main `index.html`에도 `yh-concerns`가 0개이고 이번에 `index.html`을 건드리지 않았다.
+- `npm run typecheck`: EXIT 0. eslint: 0 errors(경고는 기존 패턴).
+- `verify:hero-contrast` 통과, `verify:mobile-journeys` 6개 폭 통과.
+- `verify:home-identity`: dev가 그린 HTML을 scratch `hi-dist`에 저장해 `--dist=`로 돌려 OK(실제 dist는 빌드가 필요해 돌리지 않음).
+- `measure:touch-targets`: `/yeongnyangi/` 44 미만 2(숨은 1x1 input, 기존). `/` 44 미만 5(푸터 링크 4개 실효 65x33·`home-main_footerButton`, 기존, 카드 아님).
+- 390 측정(`D:\Development\Temp\claude\ec29f026d20d029c\5016f536-7db3-4def-b6e1-84b5f5a786cd\scratchpad\s7-shots.mjs`)
+  - 히어로 가격 한 줄 "질문 상담 10,000원부터". 가격 안내 summary 48px.
+  - 예시 링크 45px, 기록 링크 45px. 클릭 → 해시 `#yn-example`, details·바깥 접힘 열림, top 0. 같은 해시 재클릭도 다시 연다. `/yeongnyangi/#yn-example` 직접 진입도 열린다.
+  - 홈 영냥이 카드 " 10,000원부터", 꿀꿀 카드 가격 없음, describedby "…살펴보세요. 10,000원부터", 가로 넘침 0.
+- visual-checker(390, 하위 에이전트): 5개 항목 모두 PASS. 히어로 가격 11.10:1, 가격 안내 10.25:1, 예시 링크 13.20:1, 카드 가격 14.95:1. 잘림·겹침 없음. 카드 높이 168/190이어도 정렬이 깨지지 않는다.
+- dev 서버 12828(API 12829)은 `npm run dev` → `dev-with-local-auth.mjs` 트리였다. 트리째 끄고 두 포트가 빈 것을 확인했다.
+- sitemap 원장·public 미러 변경 없음(`index.html`·셸·무료 배너 파일 안 건드림) → `sync:public`·`verify:sitemap-drift` 불필요. `check:fast`는 돌리지 않았다(지시).
+
+함정
+- Edit 도구가 CRLF 작업 사본(NightHero.tsx 등)을 LF로 바꾼다. 고친 뒤 `git ls-files --eol`로 w/crlf인지 보고, 아니면 node로 되돌린다. 이 PC에는 Python이 없다.
+- 테스트의 `NODE_OPTIONS --require`는 `D:/...` Windows 경로로 줘야 한다(`/d/...`면 MODULE_NOT_FOUND).
+- HomeDisclosure의 `revealHash`와 자식 effect 순서 때문에 스크롤은 rAF로 한 프레임 미룬다.
+- dev 서버에서 `measure:touch-targets`를 두 번째 돌릴 때 networkidle 대기로 시간 초과가 날 수 있다(첫 실행은 통과).
+
+후속(보고만)
+1. `js/feature-detail-panels.mjs` L146(과 public 미러)의 fortuneFounder 링크 `/yeongnyangi/#founder-records`도 죽은 앵커다. `scripts/verify-premium-detail.mjs`·`verify-premium-finder.mjs`·`__tests__/ui/feature-visual-details.test.mjs` L329가 그 값을 단언하므로 함께 바꿔야 한다.
+2. `ReviewsClient`의 `loadReviews`에 늦게 온 응답을 버리는 가드가 없다(필터·페이지를 빨리 바꾸면 이전 응답이 덮을 수 있음).
+3. `NightPriceDetails` 줄이 "기준"을 "기/준"으로 끊는다(`.shortcuts .terms>p`에 `word-break: keep-all` 없음, 기존).
+4. `home-service-separation.test.cjs`의 `.yh-concerns` 실패(기존, 위 검증).
