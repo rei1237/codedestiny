@@ -82,4 +82,3 @@ function Account({loggedIn,onLogin}:{loggedIn:boolean;onLogin:()=>void}){
   return <Journey key={loggedIn?owner:'guest'} owner={loggedIn?owner:'guest'} loggedIn={loggedIn} onLogin={onLogin}/>;
 }
 export default function DestinyCompass(props:{loggedIn:boolean;onLogin:()=>void}){return <TossSessionScope><Account {...props}/></TossSessionScope>;}
-

@@ -56,4 +56,3 @@ export async function resumeNativeCompass(env,doc){
   if(!identity)throw new TossError('SESSION_EXPIRED',401);
   return readNativeCompass(env,{...identity,userId:String(identity.ownerId),environment:row.environment,userKey:await unseal(env,identity.encryptedKey,identity._id)},row._id,true);
 }
-
