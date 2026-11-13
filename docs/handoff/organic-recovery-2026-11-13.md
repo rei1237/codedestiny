@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-13
-next: 단계 2 오늘/내일 차별화
+next: 단계 3 노출 감소 원인 정리
 ---
 # 오가닉 회복: GA4 정확도 · 오늘/내일 운세 차별화 · 노출 감소 원인 정리
 
@@ -34,7 +34,7 @@ next: 단계 2 오늘/내일 차별화
 
 ## 단계
 - [x] 1. GA4 정확도: `js/core/analytics.js`(및 React 라우트 쪽 계측·쿠키 정책 `CodeDestinyCookiePolicy`) — 지역별 consent default(`gtag('consent','default',{analytics_storage:'denied', region:[EEA+UK+CH]})` + 기본 granted, 명시 '필수만'은 denied), 태그 로드를 앞당기되 LCP 영향 측정(예: DOMContentLoaded 직후 또는 짧은 타이머, pagehide 전 손실 최소화), SPA 라우트 page_view 중복·누락 확인, 네이버 유입이 Unassigned/Direct로 빠지는 원인(리퍼러 정책·인앱 브라우저·302) 조사, 개인정보처리방침 GA 고지 확인·보강. 실제 브라우저로 쿠키 배너 미클릭 상태에서 collect 요청 발생 확인.
-- [ ] 2. 오늘/내일 차별화: 묶음 ⑤ 남은 것 구현 — 내일 페이지에서 '오늘' 표현·오늘 문장 제거, 대상일 기준 원고 풀 분리, 관계 마커·준비 문구. 목표: today/tomorrow 24쌍 5단어 Jaccard 최대 < 30%(측정 스크립트로 전후 기록). 번역 noindex는 범위 판단 후 별도 커밋.
+- [x] 2. 오늘/내일 차별화: 묶음 ⑤ 남은 것 구현 — 내일 페이지에서 '오늘' 표현·오늘 문장 제거, 대상일 기준 원고 풀 분리, 관계 마커·준비 문구. 목표: today/tomorrow 24쌍 5단어 Jaccard 최대 < 30%(측정 스크립트로 전후 기록). 번역 noindex는 범위 판단 후 별도 커밋.
 - [ ] 3. 노출 감소 원인 정리: 해외 리다이렉트 부재를 워커 테스트와 실제 요청으로 재확인(남은 국가·언어 기반 리다이렉트 전수 grep, `/?lang=en` 302의 필요성 판단), 10/08 변경 3가지의 영향 근거 문서화, `/fortune/date/*` noindex 재검토 권고(실행 X, 근거·선택지만), 결과를 `docs/seo/organic-drop-analysis-20261113.md`로.
 - [ ] 4. 반영: 관련 검사·check:fast·pre-push, Toss 상태 확인, main push, CI 확인, 운영 릴리스(기존 Release Cloudflare Pages and Worker 워크플로 방식), 운영 실측(GA4 collect, 내일 페이지 문구, 해외 리다이렉트 없음), 바뀐 URL IndexNow 제출, 결과 기록.
 
@@ -75,3 +75,22 @@ next: 단계 2 오늘/내일 차별화
 - 정적 셸에는 배너를 닫은 뒤 다시 여는 '쿠키 설정' 링크가 없다(Next 푸터에만 있음).
 - '필수만'은 이미 생긴 `_ga` 쿠키를 지우지 않고, denied 상태에서도 쿠키 없는 핑(consent mode advanced)은 나간다.
 - 홈 배너가 이제 퍼널 중간(412px 기준 y≈6600)에 인라인으로 보인다 — 위치 조정은 디자인 판단.
+
+### 단계 2 오늘/내일 차별화 (2026-11-13 완료, 커밋 `f943630a0`·`f6fbd914a`, push·배포 안 함)
+**바꾼 것**
+- 대상일 원고 풀 회전 `f943630a0`: `lib/fortune/daily-pick.mjs`(`dayRotationPick`) — 풀 크기 n일 블록마다 키별 시드 순열, 블록 경계에서 앞 블록 마지막과 같으면 첫 두 칸 교환 → 이웃 날짜는 같은 칸에서 같은 문장을 받지 않는다(풀 ≥2). `scripts/gen-daily.mjs`의 `pickTone`·별자리 keyword/color/planet/overall에 적용. 재생성 실측: 이웃 날짜 반복 91/4,320칸 → 0(남은 건 띠 `overall` 고정 설계 360칸). 타로 카드(`yeongnyangi-daily-card.ts`)는 1/22 확률로 이웃 날짜가 겹칠 수 있음 — 손대지 않음.
+- 한국어 내일 상세 전용 문구 `f6fbd914a`: `lib/fortune/tomorrow-sign-copy.ts` — 내일 고지(예고·건강·성과 보장 아님, 의료·법률·투자 판단 대체 아님), 관계 종류(비화·충·삼합·중립 / 태양 같음·달 통과·중립)별 준비 문장 + `11월 14일(내일) 준비` 마커(관계 섹션, `lang="ko" data-cd-no-trans`), 개인 풀이·분야별 조언 도입·궁합 도입 내일판, FAQ 활용 문답 내일판(화면·FAQPage 공용, 질문에 재물운 유지 — `sky-and-range` 테스트 조건). 웹툰 lead/note 내일판(`daily-webtoon.ts`). 내일 ko에서 상시 `essence`·`saju_insight` 숨김(오늘 페이지 링크는 유지). 다른 기간·sign 그리드·"하루 너머" 링크 목록을 `<section>`→`<nav>`(모든 기간·로케일). ko `narrative`·관계 `detail`·i18n 마커는 그대로.
+- 측정 `scripts/measure-daily-overlap.mjs`(SSR `<main>`, script/style/svg/nav/template 제외, 5단어 shingle Jaccard), 결과 `docs/seo/2026-11-13-today-tomorrow-overlap-{before,after}.json`. 테스트 `__tests__/fortune/today-tomorrow-separation.test.mjs`.
+
+**측정 (로컬 mock SSR, 2026-11-13/14, 24쌍)**
+- 전: 최대 39.08%(aquarius), 평균 33.46%, ≥30% 16쌍, min-set 최대 57.0%. 후: 최대 18.05%(aquarius), 평균 13.84%, ≥30% 0쌍, min-set 최대 31.5%. 목표(<30%) 통과.
+- `<nav>` 텍스트까지 넣어 재도 전 38.54% → 후 22.36%(≥30% 0쌍) — nav 전환이 목표 통과의 이유가 아님.
+- 내일 본문 '오늘 일진' 0, '오늘'이 든 문단 0(전후 모두; 남은 '오늘'은 RSC payload·다른 기간 링크 라벨뿐). 내일 본문 최소 3,671자(애드센스 기준 1,200자 이상).
+- 운영 수치(11/09 최대 56.30%)와 직접 비교는 아님 — 로컬 데이터 날짜·mock 기준. 운영 재측정은 단계 4에서.
+
+**번역 noindex: 적용 안 함(판단)** — 경계 문서 `implementation-boundaries-20261109.md` 7항: "미완성 번역 noindex는 아직 적용하지 않는다… URL별 목록과 승인 패킷이 선행한다." 검증된 URL 목록이 없어 범위 밖. 별도 커밋 없음.
+
+**검사 결과**
+- 통과: `node --test` today-tomorrow-separation(4)·daily-webtoon·sky-and-range(합 23/23), `verify:fortune-period-axis`, `verify:fortune-marker-keys`, `verify:fortune-freshness`, `typecheck`, 변경 파일 eslint(오류 0, 기존 경고 4).
+- 미실행: `next build`/`build:cf`, `verify:adsense-readiness`(dist 필요), `check:fast`(단계 4에서), 번역 로케일 내일 페이지 육안 확인.
+- 데이터: `fortune/data`·`public/fortune/data`(gitignore)를 지우고 재생성했다. 배포 시 CI가 새 회전 규칙으로 생성하므로 운영의 이미 게시된 날짜 문구는 바뀔 수 있다(같은 날짜도 이전 hashPick과 다른 문장).
