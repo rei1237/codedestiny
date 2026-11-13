@@ -1,4 +1,5 @@
 import {TONE_POOLS, ZODIAC_OVERALL_POOL, ZODIAC_PLANET_POOL} from "../lib/fortune/daily-prose.mjs";
+import {dayRotationPick} from "../lib/fortune/daily-pick.mjs";
 /**
  * 매일 운세 생성 (프롬프트 v3) →
  * - fortune/data/daily-YYYY-MM-DD.json
@@ -208,8 +209,9 @@ const COLOR_POOL = [
 
 
 
+// 원고 풀은 대상 날짜의 순환 순열로 고른다 — 이웃한 두 날짜(오늘·내일)가 같은 칸에 같은 문장을 받지 않는다.
 function pickTone(section, signKey) {
-  return hashPick(`${dateStr}|${signKey}|${section}`, TONE_POOLS[section]);
+  return dayRotationPick(dateStr, `${signKey}|${section}`, TONE_POOLS[section]);
 }
 
 function toneSections(signKey) {
@@ -409,12 +411,12 @@ function mkZodiacs() {
   const o = {};
   signs.forEach((id, i) => {
     o[id] = {
-      keyword: hashPick(`${dateStr}|z:${id}|keyword`, KEYWORD_POOL),
+      keyword: dayRotationPick(dateStr, `z:${id}|keyword`, KEYWORD_POOL),
       score: { overall: 6 + (i % 4), love: 5 + (i % 5), money: 5 + (i % 5), health: 6 + (i % 4), work: 5 + (i % 5) },
-      lucky: { ...hashPick(`${dateStr}|z:${id}|color`, COLOR_POOL), number: 1 + (i % 9) },
-      planet_message: hashPick(`${dateStr}|z:${id}|planet`, ZODIAC_PLANET_POOL),
+      lucky: { ...dayRotationPick(dateStr, `z:${id}|color`, COLOR_POOL), number: 1 + (i % 9) },
+      planet_message: dayRotationPick(dateStr, `z:${id}|planet`, ZODIAC_PLANET_POOL),
       sections: {
-        overall: hashPick(`${dateStr}|z:${id}|overall`, ZODIAC_OVERALL_POOL),
+        overall: dayRotationPick(dateStr, `z:${id}|overall`, ZODIAC_OVERALL_POOL),
         ...toneSections(`z:${id}`)
       },
       cta: [
