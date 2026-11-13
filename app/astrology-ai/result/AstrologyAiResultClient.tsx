@@ -915,10 +915,10 @@ export default function AstrologyAiResultClient({paymentSurface = "web"}: {payme
         )}
         {paymentSurface !== "toss" && !loading && shareChoices.length > 0 && (
           <div className="mt-6 max-w-3xl">
-            <ConsultationShare brand="astrology" choices={shareChoices} />
+            <ConsultationShare brand="astrology" reviewProductId="astrology" choices={shareChoices} />
           </div>
         )}
-        {!loading && consultation && <PaidResultImageGuide domain="astrology" status={consultation.status} content={assistantContent} basis={consultation.analysisBasis} />}
+        {!loading && consultation && <PaidResultImageGuide domain="astrology" reviewProductId="astrology" status={consultation.status} content={assistantContent} basis={consultation.analysisBasis} />}
         {!loading && consultation?.status === "completed" && !error && <RecommendationResult service="astrology-ai-consultation" practiceTags={reportAdviceTopics(assistantContent)}/>}
       </section>
     </main>

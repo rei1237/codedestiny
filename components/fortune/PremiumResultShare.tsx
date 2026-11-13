@@ -12,9 +12,11 @@ type Props = {
   ownerName: string;
   choices: Choice[];
   publicPath: "/life-book-ai/" | "/love-secret-ai/";
+  /** 후기 카탈로그 상품 id(worker/lib/review-product-catalog.js). */
+  reviewProductId?: string;
 };
 
-export default function PremiumResultShare({ kind, title, ownerName, choices, publicPath }: Props) {
+export default function PremiumResultShare({ kind, title, ownerName, choices, publicPath, reviewProductId }: Props) {
   const [selected, setSelected] = useState(choices[0]?.id || "");
   const [text, setText] = useState(choices[0]?.text.slice(0, 90) || "");
   const [showName, setShowName] = useState(false);
@@ -115,5 +117,5 @@ export default function PremiumResultShare({ kind, title, ownerName, choices, pu
         <figcaption>{korean ? "전송 전 카드 미리보기 · 친구에게는 공개 상담 링크만 전달됩니다." : "Preview before sending · Only the public consultation link is included."}</figcaption>
       </figure>
     </div>
-  </details><ReviewRewardBanner afterResult locale={korean ? "ko" : "en"}/></>;
+  </details><ReviewRewardBanner afterResult locale={korean ? "ko" : "en"} reviewProductId={reviewProductId}/></>;
 }

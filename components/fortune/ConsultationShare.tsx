@@ -9,9 +9,10 @@ import styles from './ConsultationShare.module.css';
 import PublicInsightCard from './PublicInsightCard';
 import ReviewRewardBanner from '@/app/components/ReviewRewardBanner';
 
-type Props = { brand: ConsultationShareBrand; choices: ConsultationShareChoice[] };
+// reviewProductId: 후기 카탈로그 상품 id(worker/lib/review-product-catalog.js).
+type Props = { brand: ConsultationShareBrand; choices: ConsultationShareChoice[]; reviewProductId?: string };
 
-export default function ConsultationShare({ brand, choices }: Props) {
+export default function ConsultationShare({ brand, choices, reviewProductId }: Props) {
   const design = consultationShareBrands[brand];
   const id = useId();
   const [open, setOpen] = useState(false);
@@ -120,5 +121,5 @@ export default function ConsultationShare({ brand, choices }: Props) {
         <figcaption>위에서 고른 문구와 서비스 소개만 담겨요.</figcaption>
       </figure>
     </div>}
-  </details><PublicInsightCard brand={brand} choices={choices} source="paid"/>{!["astrology", "vedic"].includes(brand) && <ReviewRewardBanner afterResult/>}</>;
+  </details><PublicInsightCard brand={brand} choices={choices} source="paid"/>{!["astrology", "vedic"].includes(brand) && <ReviewRewardBanner afterResult reviewProductId={reviewProductId}/>}</>;
 }

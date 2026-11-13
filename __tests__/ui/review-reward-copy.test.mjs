@@ -32,3 +32,27 @@ test("유료 결과 안내의 캐릭터와 환산은 브랜드 및 기존 단가
   assert.equal(reviewRewardWorthLabel(null,10), '');
   assert.equal(reviewRewardWorthLabel({amount:3000,valueKRW:30000,currency:'moonstone',trigger:'approved'},Number.NaN), '30,000원 상당');
 });
+
+test("결과 화면 후기 배너는 모두 후기 카탈로그 상품 id를 넘긴다", async () => {
+  const { readFileSync, readdirSync } = await import("node:fs");
+  const { join } = await import("node:path");
+  const { isReviewProductId } = await import("../../worker/lib/review-product-catalog.js");
+  const files = [];
+  const walk = (dir) => { for (const entry of readdirSync(dir, { withFileTypes: true })) { const full = join(dir, entry.name); if (entry.isDirectory()) walk(full); else if (full.endsWith(".tsx")) files.push(full); } };
+  walk("app"); walk("components");
+  const PASS_THROUGH = /<(ReviewRewardBanner|QuickReviewComposer)\b[^>]*reviewProductId=\{reviewProductId\}/;
+  let literals = 0;
+  for (const file of files) {
+    const source = readFileSync(file, "utf8");
+    for (const [, id] of source.matchAll(/reviewProductId="([^"]*)"/g)) { literals += 1; assert.ok(isReviewProductId(id), `${file}: ${id} 는 후기 카탈로그 id 가 아니에요`); }
+    for (const match of source.matchAll(/<ReviewRewardBanner\b[^>]*\bafterResult\b[^>]*>/g)) {
+      assert.ok(/reviewProductId=/.test(match[0]), `${file}: 결과 후기 배너에 reviewProductId 가 없어요 — ${match[0]}`);
+    }
+    for (const match of source.matchAll(/<(PremiumResultShare|ConsultationShare|PaidResultImageGuide)\b/g)) {
+      const tag = source.slice(match.index, source.indexOf("/>", match.index));
+      assert.ok(/reviewProductId="/.test(tag), `${file}: ${match[1]} 에 reviewProductId 가 없어요`);
+    }
+    if (/components[\/]fortune[\/](PremiumResultShare|ConsultationShare|PaidResultImageGuide)\.tsx$/.test(file)) assert.match(source, PASS_THROUGH, `${file}: 받은 reviewProductId 를 배너로 넘겨야 해요`);
+  }
+  assert.ok(literals >= 20, `리터럴이 너무 적어요: ${literals}`);
+});

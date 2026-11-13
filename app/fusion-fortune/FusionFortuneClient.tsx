@@ -3103,7 +3103,7 @@ export function FusionFortuneClient({ seoContent, valuePreview, paymentNotice, T
       </ol>
       {result && <FusionResultRail result={result} generating={loading} exporting={exporting} onOpenSection={openSection} scopeRef={threadRef} storageKey={deliveryOwnerId && readingRequestId ? `cdFusionReading:${encodeURIComponent(deliveryOwnerId)}:${encodeURIComponent(readingRequestId)}` : ""} />}
       </div>
-      {result && !loading && !stageTwoFailed && openedConsultationId && <ReviewRewardBanner afterResult/>}
+      {result && !loading && !stageTwoFailed && openedConsultationId && <ReviewRewardBanner afterResult reviewProductId="fusion-fortune"/>}
 
       {(loading || result) && <footer className="relative grid gap-3 border-t border-white/[0.07] px-4 pb-[calc(4.5rem+env(safe-area-inset-bottom))] pt-5 sm:flex sm:flex-wrap sm:px-9 lg:pb-5">
         {loading

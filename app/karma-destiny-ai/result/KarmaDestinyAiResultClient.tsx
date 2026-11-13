@@ -1579,7 +1579,7 @@ function KarmaDestinyResultInner({paymentSurface}:{paymentSurface:"web"|"toss"})
 
           {shareChoices.length > 0 && (
             <div className="kdai-share">
-              <ConsultationShare brand="karma" choices={shareChoices} />
+              <ConsultationShare brand="karma" reviewProductId="karma-destiny" choices={shareChoices} />
             </div>
           )}
 

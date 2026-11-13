@@ -3885,7 +3885,7 @@ export default function VedicAiClient({paymentSurface="web", ProfilePicker, Toss
 
 
               </ResultReference>
-              <PaidResultImageGuide domain="vedic" status={consultation.status} content={consultation.messages.filter(message=>message.role==="assistant").map(message=>message.content)} basis={consultation.analysisBasis} />
+              <PaidResultImageGuide domain="vedic" reviewProductId="vedic" status={consultation.status} content={consultation.messages.filter(message=>message.role==="assistant").map(message=>message.content)} basis={consultation.analysisBasis} />
             </>
           )}
         </section>

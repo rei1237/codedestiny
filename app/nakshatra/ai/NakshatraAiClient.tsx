@@ -458,7 +458,7 @@ export default function NakshatraAiClient() {
           {phase === "error" && <button type="button" onClick={beginConsultation} className="mt-4 min-h-11 rounded-xl border border-amber-200/40 px-5 text-amber-100">{copy.aiResumeButton}</button>}
         </div>}
         <div ref={exportRootRef}>
-          {phase === "done" && <ReviewRewardBanner afterResult/>}
+          {phase === "done" && <ReviewRewardBanner afterResult reviewProductId="nakshatra"/>}
           <AiConsultDecks
             decks={decks}
             natal={identity}

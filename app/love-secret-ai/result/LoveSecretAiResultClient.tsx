@@ -1168,6 +1168,7 @@ export default function LoveSecretAiResultClient({ paymentSurface }: { paymentSu
         {paymentSurface !== "toss" && isShareReady && consultationKey && (
           <PremiumResultShare
             kind="letter"
+            reviewProductId="love-coach"
             title={copy.deckLabel}
             ownerName={myName}
             publicPath="/love-secret-ai/"

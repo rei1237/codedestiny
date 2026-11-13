@@ -2051,6 +2051,7 @@ function LifeBookResultContent({ paymentSurface }: { paymentSurface?: "toss" }) 
         {paymentSurface !== "toss" && attemptId && result?.status === "completed" && (
           <PremiumResultShare
             kind="book"
+            reviewProductId="life-book"
             title={copy.shareKicker}
             ownerName={userName}
             publicPath="/life-book-ai/"

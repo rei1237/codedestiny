@@ -2431,7 +2431,7 @@ export default function NewYearAiConsultationPage({paymentSurface="web",ProfileP
         </section>
       </section>
 
-      {paymentSurface!=='toss' && status === "ready" && assistantMessages.length > 0 && <ReviewRewardBanner afterResult/>}
+      {paymentSurface!=='toss' && status === "ready" && assistantMessages.length > 0 && <ReviewRewardBanner afterResult reviewProductId="new-year"/>}
       {/* 소개용 마스터 프로필 — 상담 진행·결과 화면에서는 내리고, 사전이 없는 다른 로케일에는 띄우지 않는다. */}
       {paymentSurface!=='toss' && copy === NEW_YEAR_AI_COPY.ko && !isBusy && messages.length === 0 && <MasterProfile id="new-year-master" palette="page" profile={masterProfiles.neoNewYear} />}
       <style>{NYAI_SEASON_CSS}</style>
