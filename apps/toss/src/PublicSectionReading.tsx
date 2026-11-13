@@ -1,4 +1,4 @@
-import {useEffect,useRef,useState,type FormEvent} from 'react';
+import {lazy,Suspense,useEffect,useRef,useState,type FormEvent} from 'react';
 import {TOSS_PUBLIC_SECTIONS,isTossPublicSection} from '../../../lib/fortune/toss-public-sections.mjs';
 import {bindVillainResult} from 'virtual:section-villain-bindings';
 import {mountRpgQuest} from './rpg-progress';
@@ -9,6 +9,7 @@ import {api} from './platform';
 import TossSessionScope from './TossSessionScope';
 
 import {loadTravelHistory,saveTravelHistory,type TravelHistory} from './travel-history';
+const SecretHouseReading=lazy(()=>import('./SecretHouseReading'));
 type SectionKey=keyof typeof TOSS_PUBLIC_SECTIONS;
 type Energy={recent?:string[];renderedAt?:string;transform?:string;roulette?:string[]};
 type Report={rpg?:{stem:string;element:string};ok:boolean;featureKey:string;accessSource:string;html:string;css?:string;parts?:NatalParts;decadeHtml?:string;energy?:Energy};
@@ -92,8 +93,9 @@ function SectionBody({report,input,travel,onLogin}:{report:Report;input:RequestB
 }
 function Reading({kind,onLogin}:{kind:'saju'|'ziwei';onLogin:()=>void}){
   const keys=(Object.keys(TOSS_PUBLIC_SECTIONS) as SectionKey[]).filter(k=>isTossPublicSection(k)&&(kind==='saju'?!k.startsWith('ziwei_'):k.startsWith('ziwei_')));
-  const [key,setKey]=useState(keys[0]),[birth,setBirth]=useState(emptyBirth),[mode,setMode]=useState('pig'),[name,setName]=useState('');
+  const [key,setKey]=useState(keys.includes('saju_natal_reading')?'saju_natal_reading':keys[0]),[birth,setBirth]=useState(emptyBirth),[mode,setMode]=useState('pig'),[name,setName]=useState('');
   const [result,setResult]=useState<{report:Report;input:RequestBody;travel:TravelHistory}|null>(null),[busy,setBusy]=useState(false),[error,setError]=useState('');
+  const [house,setHouse]=useState(kind==='saju'&&new URLSearchParams(location.search).get('reading')==='house');
   const epoch=useRef(0),title=useRef<HTMLHeadingElement>(null);
   useEffect(()=>()=>{epoch.current++;},[]);
   useEffect(()=>{
@@ -110,6 +112,7 @@ function Reading({kind,onLogin}:{kind:'saju'|'ziwei';onLogin:()=>void}){
   },[result,busy]);
   async function submit(e:FormEvent){
     e.preventDefault();if(busy)return;
+    if(key==='rpt_secretHouseEntryCard'){setHouse(true);return;}
     const id=++epoch.current;
     setBusy(true);setError('');
     try{
@@ -124,13 +127,14 @@ function Reading({kind,onLogin}:{kind:'saju'|'ziwei';onLogin:()=>void}){
     }catch{if(epoch.current===id)setError('풀이를 불러오지 못했어요. 입력과 연결 상태를 확인한 뒤 다시 시도해 주세요.');}
     finally{if(epoch.current===id)setBusy(false);}
   }
+  if(house)return <Suspense fallback={<p>합숙소를 열고 있어요.</p>}><SecretHouseReading onBack={()=>setHouse(false)}/></Suspense>;
   if(result)return <section><h1 tabIndex={-1} ref={title}>{TOSS_PUBLIC_SECTIONS[result.input.featureKey]}</h1>
     {birth.unknown&&<p>출생 시각을 몰라 정오를 기준으로 계산했어요.</p>}
     <SectionBody {...result} onLogin={onLogin}/><Button variant="weak" display="block" onClick={()=>setResult(null)}>다른 풀이 보기</Button></section>;
   return <section><h1>{kind==='saju'?'사주 리포트':'자미두수 상세 풀이'}</h1>
     <form className="form" onSubmit={submit}><label>풀이 선택<select value={key} onChange={e=>setKey(e.target.value as SectionKey)} disabled={busy}>
     {keys.map(k=><option key={k} value={k}>{TOSS_PUBLIC_SECTIONS[k]}</option>)}</select></label>
-    <BirthFields title="풀이할 출생정보" value={birth} onChange={setBirth} disabled={busy}/>
+    {key!=='rpt_secretHouseEntryCard'&&<BirthFields title="풀이할 출생정보" value={birth} onChange={setBirth} disabled={busy}/>}
     {['saju_natal_reading','rpt_skillTreeCard'].includes(key)&&<label>풀이에서 부를 이름 (선택)<input maxLength={40} value={name} disabled={busy} onChange={e=>setName(e.target.value)}/></label>}
     {['rpt_quantumCard','saju_natal_reading'].includes(key)&&<label>해석 관점<select value={mode} disabled={busy} onChange={e=>setMode(e.target.value)}><option value="pig">연이</option><option value="neo">영냥이</option></select></label>}
     {error&&<p role="alert">{error}</p>}<Button type="submit" display="block" disabled={busy} loading={busy}>선택한 풀이 보기</Button></form></section>;

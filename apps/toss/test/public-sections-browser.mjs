@@ -40,7 +40,7 @@ try{
  }
  for(const [prefix,title] of [['rpt_','사주 리포트'],['ziwei_','자미두수 상세 풀이']]){
    await openGroup(title);
-   for(const [key,label] of Object.entries(TOSS_PUBLIC_SECTIONS).filter(([k])=>k.startsWith(prefix)||prefix==='rpt_'&&k==='saju_natal_reading')){
+   for(const [key,label] of Object.entries(TOSS_PUBLIC_SECTIONS).filter(([k])=>k!=='rpt_secretHouseEntryCard'&&(k.startsWith(prefix)||prefix==='rpt_'&&k==='saju_natal_reading'))){
      await page.getByLabel('풀이 선택').selectOption(key);
      if(key==='saju_natal_reading'){
        await page.getByLabel('풀이에서 부를 이름 (선택)').fill('달빛');

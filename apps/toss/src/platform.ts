@@ -344,6 +344,10 @@ async function restorePurchasesOnce(sessionToken:string|null,epoch:number):Promi
   }
   return {recovered,failed,denied};
 }
+export async function shareSecretHouse(text:string){
+  const link=await Share.createLink({path:'intoss://'+APP_NAME+'/saju/sections?reading=house'});
+  await Share.sendMessage({message:text.slice(0,160)+' '+link});
+}
 export async function shareService(){
   const link=await Share.createLink({path:`intoss://${APP_NAME}/?source=share`});
   await Share.sendMessage({message:`영냥이와 내 고민의 흐름을 살펴보세요. ${link}`});

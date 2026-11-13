@@ -4,10 +4,10 @@ import {TossError} from './policy.js';
 
 export function readTossPublicSection(input,env){
   if(!isTossPublicSection(input?.featureKey))throw new TossError('SECTION_NOT_PUBLIC',404);
-  const {featureKey,birth,gender,place,mode,name,energy}=input;
+  const {featureKey,birth,gender,place,mode,name,energy,house}=input;
   const request=new Request('https://code-destiny.com/api/saju/section',{
     method:'POST',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({featureKey,birth,gender,place,mode,name:typeof name==='string'?name.slice(0,40):undefined,lang:'ko',energy}),
+    body:JSON.stringify({featureKey,birth,gender,place,mode,name:typeof name==='string'?name.slice(0,40):undefined,lang:'ko',energy,house}),
   });
   return handleSajuSection(request,env);
 }

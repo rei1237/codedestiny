@@ -1,3 +1,4 @@
+import {secretHouseDocument} from './secret-house-loader.mjs';
 import {extractRpgEngine} from './rpg-loader.mjs';
 import {extractVillainBindings} from './section-bindings-loader.mjs';
 import {extractIfaEngine} from './ifa-engine-loader.mjs';
@@ -79,6 +80,7 @@ export default function serviceCompat(){
   },
   resolveId(id,importer){
    if(id==='virtual:consultation-webtoons')return '\0toss-consultation-webtoons';
+   if(id==='virtual:secret-house-page')return '\0toss-secret-house';
    if(id==='virtual:rpg-sheet')return '\0toss-rpg-sheet';
    if(id==='virtual:section-villain-bindings')return '\0toss-villain-bindings';
    if(id==='virtual:ifa-engine')return '\0toss-ifa-engine';
@@ -111,6 +113,10 @@ export default function serviceCompat(){
      ...story,cuts:story.cuts.map(cut=>({...cut,src:cut.src?'https://code-destiny.com'+cut.src:''})),
     }]));
     return 'export default '+JSON.stringify(stories);
+   }
+   if(id==='\0toss-secret-house'){
+    const file=resolve(publicRoot,'secret-house_real.html');this.addWatchFile(file);
+    return 'export default '+JSON.stringify(secretHouseDocument(await readFile(file,'utf8')))+';';
    }
    if(id==='\0toss-rpg-sheet'){
     const files=['entertain-engine.js','destiny-profile.js'].map(name=>resolve(publicRoot,'../js',name));
