@@ -16,7 +16,7 @@ test('standalone relationship consultation and Saju result subflows stay separat
  for(const id of ['personal-charm','quantum-saju','health-rhythm','life-skill-tree','energy-travel','relationship-boundaries'])assert.ok(get(id).aliasEvidence.some(value=>value.startsWith('js/core/saju/reportDashboard.js:')),id);
  const diary=get('luck-sync-diary').subfeatures;assert.deepEqual(diary.map(item=>item.id),['fortunePlanner','legacyLuckSyncDiary']);assert.deepEqual(diary.map(item=>item.status),['local-partial','requires-full-flow-port-and-verification']);
 });
-test('pet chart remains partial while paid products and durable recovery are unresolved',()=>{const pet=inventory.canonicalCandidates.find(item=>item.id==='pet-saju');assert.equal(pet.status,'local-partial');assert.equal(pet.tossRoute,'/pet-saju/');assert.match(pet.storageContract,/no app-restart or cross-device recovery/);assert.match(pet.verification,/3000 KRW.*5000 KRW/);});
+test('pet chart remains partial while paid products and durable recovery are unresolved',()=>{const pet=inventory.canonicalCandidates.find(item=>item.id==='pet-saju');assert.equal(pet.status,'local-partial');assert.equal(pet.tossRoute,'/pet-saju/');assert.match(pet.storageContract,/게스트·토스 계정별로 이 기기에 최근 다섯 마리/);assert.match(pet.verification,/3000 KRW.*5000 KRW/);});
 
 test('each public Saju and Ziwei chapter keeps its real entry and independent RPG boundary',()=>{
  const chapters=inventory.canonicalCandidates.flatMap(c=>c.publicSections||[]);

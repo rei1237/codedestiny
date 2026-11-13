@@ -1,5 +1,5 @@
 {
-  "sourceCommit": "ddda134801f3a4a3dcc307b3a09df8623e8fab33",
+  "sourceCommit": "dad73c61b738d5cbaeedc695a93b5695258e4117",
   "sourceCounts": {
     "home": 63,
     "react": 18,
@@ -6827,8 +6827,8 @@
       "sku": null,
       "inputContract": "worker/toss/pet-saju.js deterministic blueprint + worker/toss/pet-paid-contract.js paid inputs",
       "resultRenderer": "apps/toss/service/TossPetSaju.tsx with original sprite artwork and paid report reader",
-      "storageContract": "up to five free pet inputs in current screen memory; no app-restart or cross-device recovery of that list. Paid results use an owned order and intent in worker/toss/native-pet-paid.js",
-      "verification": "local mock covers all 10 free species, paid report and compatibility checkout, intent resume, library ownership and recovery. Original screen displays 3000 KRW per paid feature while server registry specifies 5000 KRW; approved SKUs, saved pets, device verification and official purchase recovery remain pending · guest-calculators-browser.mjs 360px 홈, 비회원 계산. 기본 베다 local Swiss 원본, 만세력 원본 대운·명식, 반려동물 원본 오행·유료 로그인 경계",
+      "storageContract": "게스트·토스 계정별로 이 기기에 최근 다섯 마리 입력을 저장. 재실행 후 같은 입력으로 재계산. 삭제를 유지한다. 유료 원문은 worker/toss/native-pet-paid.js의 소유 주문과 intent",
+      "verification": "local mock covers all 10 free species, paid report and compatibility checkout, intent resume, library ownership and recovery. Original screen displays 3000 KRW per paid feature while server registry specifies 5000 KRW; approved SKUs, device verification and official purchase recovery remain pending. pet-saju-ui.test.mjs: guest reopens saved animals after restart, other account sees its separate list, and deletion survives restart · guest-calculators-browser.mjs 360px 홈, 비회원 계산. 기본 베다 local Swiss 원본, 만세력 원본 대운·명식, 반려동물 원본 오행·유료 로그인 경계",
       "webEntries": [
         "/pet-saju.html"
       ],
@@ -6844,7 +6844,7 @@
       "bundleVerification": "게스트 수동 출생정보로 만세력·베다 원본 계산과 반려동물 오행 결과, 반려동물 심층 로그인 경계 · 360px 배포 AIT 브라우저, 토스 휴대폰 미검증",
       "tossLogin": "기본 입력·오행 게스트, 심층 구매·보관함은 계정별",
       "tossResult": "apps/toss/service/TossPetSaju.tsx with original sprite artwork and paid report reader",
-      "reread": "up to five free pet inputs in current screen memory; no app-restart or cross-device recovery of that list. Paid results use an owned order and intent in worker/toss/native-pet-paid.js",
+      "reread": "게스트·토스 계정별로 이 기기에 최근 다섯 마리 입력을 저장. 재실행 후 같은 입력으로 재계산. 삭제를 유지한다. 유료 원문은 worker/toss/native-pet-paid.js의 소유 주문과 intent",
       "saleStatus": "유료 상품 콘솔·운영 설정 필요",
       "archiveTests": [
         "guests"
