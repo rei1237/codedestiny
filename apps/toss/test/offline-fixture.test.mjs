@@ -42,3 +42,31 @@ test('guest charts can load public catalog metadata without expiring the session
  for(const path of ['/catalog','/tarot-library/catalog'])assert.equal((await api.handle(req(path,'GET',null,false))).status,200);
  for(const path of ['/session','/native/catalog','/library'])assert.equal((await api.handle(req(path,'GET',null,false))).status,401);
 });
+
+test('Sukuyo purchase library resumes the pending order and reopens the original consultation only for its owner',async()=>{
+  const memory=new Map(),storage={getItem:key=>memory.get(key),setItem:(key,value)=>memory.set(key,value)};
+  let api=createOfflineFixtureApi(storage);
+  const json=async(path,method,body)=>{const response=await api.handle(req(path,method,body));assert.ok(response.ok,path+' '+response.status);return response.json();};
+  await api.handle(req('/login','POST',{},false));
+  const input={personA:{name:'테스트 갑',birthDate:'1990-04-06'},personB:{name:'테스트 을',birthDate:'1990-09-15'},
+    relationshipType:'친구',topic:'관계 흐름',question:'다음 대화를 어떻게 시작할까요?',idempotencyKey:'two-person-original'};
+  const intent=await json('/native/sukuyo/prepare','POST',{input});
+  assert.deepEqual((await json('/library')).purchases,[]);
+  await json('/orders/grant','POST',{requestId:intent.id,orderId:'mock-sukuyo-order',sku:intent.sku});
+  const [pending]=(await json('/library')).purchases;
+  assert.equal(pending.href,'/sukuyo-compatibility-ai/?cid=toss_'+intent.id);
+  const path='/canonical/sukuyo-compatibility-ai',pendingId=new URL(pending.href,'https://example.test').searchParams.get('cid');
+  const {consultation}=await json(path+'/generate','POST',{resumeSessionId:pendingId});
+  assert.equal(consultation.personB.name,input.personB.name);
+  api=createOfflineFixtureApi(storage);
+  const [done]=(await json('/library')).purchases;
+  assert.equal(done.state,'COMPLETED');assert.equal(done.href,'/sukuyo-compatibility-ai/?cid='+consultation.id);
+  assert.deepEqual((await json(path+'/result?id='+done.resultId)).consultation,consultation);
+  const snapshot=storage.getItem('toss-offline-fixture');
+  assert.deepEqual((await json(path+'/generate','POST',{resumeSessionId:pendingId})).consultation,consultation);
+  assert.equal(storage.getItem('toss-offline-fixture'),snapshot);
+  storage.setItem('toss-offline-login-person','second');await api.handle(req('/login','POST',{},false));
+  const other=endpoint=>api.handle(new Request('https://code-destiny.com/api/toss'+endpoint,{headers:{Authorization:'Bearer local-mock-token-2'}}));
+  assert.deepEqual((await (await other('/library')).json()).purchases,[]);
+  assert.equal((await other(path+'/result?id='+done.resultId)).status,404);
+});

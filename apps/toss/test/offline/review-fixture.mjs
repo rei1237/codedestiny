@@ -1,3 +1,4 @@
+import {tossExpertResultHref} from '../../../../lib/fortune/toss-expert-result.mjs';
 import {mockZiweiDeepLibrary} from './ziwei-deep.mjs';
 import {mockTarotLibrary} from './paid-tarot.mjs';
 import {mockCompassLibrary} from './compass.mjs';
@@ -175,6 +176,12 @@ export async function handleReviewFixture(request,url,path,state,save,now,delay=
     return json({orderId,requestId:id,entitlement:'granted',durable:true});
   }
   if(path==='/library'&&method==='GET')return json({purchases:[
+    ...[...state.intents.values()].filter(row=>row.service==='sukuyo'&&row.paid&&state.orders.get(row.orderId)===row.id).map(row=>{
+      const resultId=row.result?.id||'toss_'+row.id;
+      return {serviceId:'yeoni',nativeService:'sukuyo',productId:'native:sukuyo:sukuyo-compatibility-ai',featureKey:'sukuyo-compatibility-ai',
+        orderId:row.orderId,requestId:row.id,sku:row.sku,status:'PURCHASED',state:row.result?.status==='completed'?'COMPLETED':row.result?.status==='generation_failed'?'GENERATION_FAILED':'PENDING',
+        href:tossExpertResultHref('sukuyo',resultId),resultId,createdAt:row.createdAt};
+    }),
     ...roomPurchases(state),...mockCompassLibrary(state),...mockZiweiDeepLibrary(state),...mockTarotLibrary(state),
     ...mockNakshatraLibrary(state),...mockYogaLibrary(state),
     ...owned.map(({fortune,orderId,sku})=>({requestId:fortune.id,orderId,sku,serviceId:'yeongnyangi',selectionId:fortune.productId,productId:fortune.productId,status:'PURCHASED',state:fortune.state,createdAt:fortune.createdAt,completedSections:fortune.chapters.length,totalSections:1})),
