@@ -67,6 +67,19 @@ try{
     await page.getByRole('button',{name:'다시 점치기'}).click();
     console.log('PASS public Ifa',label);
   }
+  await open('핀란드 주석점');
+  await page.locator('.tin-cover').evaluate(img=>img.decode());
+  await page.getByRole('button',{name:'주석점 시작하기'}).click();
+  for(const category of ['금전운','연애운','행운']){
+    await page.getByRole('button',{name:category+' 주머니'}).click();await page.getByRole('button',{name:'주석을 물에 붓기'}).click();
+    assert.ok((await page.locator('.tin-oracle article').innerText()).length>50);
+    const name=await page.locator('.tin-oracle h1').innerText();
+    await page.getByRole('button',{name:'그림자 의미 보기'}).click();
+    await page.getByRole('heading',{name:name+'의 그림자'}).waitFor();assert.ok((await page.locator('[lang="fi"]').innerText()).length>15);
+    await page.getByRole('button',{name:'형상으로 돌아가기'}).click();await page.getByRole('button',{name:'결과 나누기'}).click();
+    await page.getByRole('button',{name:'형상과 조언 공유하기'}).waitFor();await page.getByRole('button',{name:'다른 주머니 고르기'}).click();
+  }
+  console.log('PASS public tin oracle, all three categories, original images, shadow, sharing screen and repeat');
   await open('스톤헨지 룬');
   const art=page.locator('.sr-collection-img');
   await art.scrollIntoViewIfNeeded();

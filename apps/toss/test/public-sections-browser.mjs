@@ -60,6 +60,10 @@ try{
        assert.equal(await details.evaluate(el=>el.open),!open);
      }
      if(key==='saju_natal_reading'){
+       assert.equal(await page.getByLabel('그림 주제').locator('option').count(),13);
+       assert.match(await page.locator('[data-saju-image-prompt="treasure"]').innerText(),/personal wealth luck treasure map/);
+       await page.getByLabel('그림 주제').selectOption('avatar');
+       assert.ok((await page.locator('[data-saju-image-prompt="avatar"]').innerText()).length>60);
        assert.equal(await frame.locator('.natal-chapter').count(),5);
        const ten=frame.locator('[data-chapter="ten"]');
        await ten.locator(':scope > summary').press('Enter');

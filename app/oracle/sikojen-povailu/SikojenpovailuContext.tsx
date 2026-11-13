@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, ReactNode } from 'react';
-import { Shape, getRandomShape, getShapesByCategory } from './data/shapes';
+import { Shape, drawTinShape } from './data/shapes';
 
 interface SikojenpovailuContextType {
   // Phase 추적
@@ -41,22 +41,8 @@ export function SikojenpovailuProvider({ children }: { children: ReactNode }) {
     setSelectedCategory(category);
   };
 
-  const CATEGORY_SHAPE_GROUPS: Record<'금전운' | '연애운' | '행운', Shape['category'][]> = {
-    금전운: ['wealth', 'secret'],
-    연애운: ['love'],
-    행운: ['luck', 'travel', 'adventure', 'health'],
-  };
-
   const generateShape = () => {
-    let newShape = getRandomShape();
-    if (selectedCategory) {
-      const pool = CATEGORY_SHAPE_GROUPS[selectedCategory]
-        .flatMap((category) => getShapesByCategory(category));
-      if (pool.length > 0) {
-        newShape = pool[Math.floor(Math.random() * pool.length)];
-      }
-    }
-    setSelectedShape(newShape);
+    setSelectedShape(drawTinShape(selectedCategory));
   };
 
   const resetGame = () => {

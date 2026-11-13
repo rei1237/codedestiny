@@ -455,7 +455,7 @@ export function buildSajuSectionHtml(input) {
       p, natal, johu, power: shown?.power || power, gyeokguk: shown?.gyeokguk || null, jong, name: String(input.name || "").trim().slice(0, 40) || "사용자", unknown: timeUnknown, mode: neo ? "neo" : "pig", lang: input.lang || "ko",
       solar: { year: meta.civil.year, month: meta.civil.month, day: meta.civil.day, hour, minute },
     });
-    return { parts };
+    return featureKey==='saju_natal_reading'?{parts,imagePrompts:rt.imagePrompts(p,natal)}:{parts};
   }
   const dw = input.daewun || {};
   const row = rows.find((r) => r.age === Number(dw.age) && r.g === dw.gan && r.j === dw.zhi);

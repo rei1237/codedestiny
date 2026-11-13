@@ -5165,6 +5165,108 @@ function getDetailedGaeun(element,isGood){
   }
   return(GAEUN_DB[element]||GAEUN_DB.earth)[isGood?'good':'bad'];
 }
+function generateSajuLandscapePrompt(p){
+  var musangMap={'甲':'Majestic Ancient Tree','乙':'Delicate Flower Garden','丙':'Bright Warm Sun',
+    '丁':'Twinkling Candlelight','戊':'Golden High Mountain','己':'Cozy Garden Soil',
+    '庚':'Strong Silver Rock','辛':'Sparkling Jewelry','壬':'Deep Blue Ocean','癸':'Soft Misty Rain'};
+  return (musangMap[p.d.g]||'Poetic Nature Landscape')+', beautiful landscape painting, soft pastel colors, atmospheric lighting, high-detail scenic view, poetic and serene, high quality, 8k --ar 16:9';
+}
+function generateAvatarPrompt(p){
+  var avatarMap={
+    '甲':'Elegant spring deer with soft pastel green and cream colors, delicate antlers, gentle eyes, surrounded by leaves and flowers, cute nature spirit, watercolor style, whimsical, botanical aesthetic',
+    '乙':'Graceful climbing cat with pastel pink and sage green tones, flexible pose, dreamy expression, wrapped in climbing vines, mystical energy, soft illustration style, enchanting atmosphere',
+    '丙':'Radiant phoenix or fire bird with golden pastel yellow and coral hues, flowing feathers, bright joyful eyes, surrounded by gentle flames and light, warmth and vitality, storybook illustration',
+    '丁':'Soft warm rabbit with pastel rose pink and peach tones, glowing eyes, cozy expression, holding a small lamp or candle, intimate and nurturing energy, gentle illustration style',
+    '戊':'Sturdy gentle mammoth or earth bear with cream, warm brown, and earthy beige tones, grounded presence, protective aura, surrounded by mountains or earth elements, stable and comforting',
+    '己':'Nurturing honey bee or butterfly with pastel golden yellow and blush pink, delicate wings, caring expression, pollinating flowers, connecting energy, soft botanical illustration',
+    '庚':'Sleek silver wolf or snow leopard with cool silver-white and soft purple tones, sharp elegant features, noble bearing, pristine mountain landscape, refined and precise',
+    '辛':'Delicate white peacock or swan with pale silver, lavender and white tones, intricate beautiful patterns, perfectionist energy, jewel-like details, elegant illustration style',
+    '壬':'Flowing water dragon or graceful whale with cool blue and silver tones, fluid curves, wise gentle eyes, surrounded by water elements, serene mysterious energy, flowing watercolor style',
+    '癸':'Tiny silver droplet sprite or frost fairy with pale blue and white tones, delicate translucent quality, soft glowing presence, crystalline atmosphere, dreamy ethereal illustration'
+  };
+  var prompt = avatarMap[p.d.g] || 'cute magical animal character, pastel colors, soft illustration, enchanting, whimsical, kawaii style, high quality, 8k';
+  return prompt;
+}
+function generateIdealPartnerPrompt(p, natal){
+  var dg=p.d.g, dj=p.d.j;
+  var el=(GAN[dg]&&GAN[dg].e)||'earth';
+  var elName={wood:'목(우드톤)',fire:'화(웜톤)',earth:'토(어스톤)',metal:'금(실버톤)',water:'수(쿨톤)'};
+
+  var temperTypeMap={
+    hot:{mood:'열정적 에너지',feature:'밝은 얼굴빛, 생생한 눈, 따뜻한 미소'},
+    warm:{mood:'따뜻하고 편안한',feature:'친근한 온기, 편안한 눈빛, 자연스러운 미소'},
+    cool:{mood:'차분하고 신비로운',feature:'세련된 분위기, 깊이 있는 눈, 우아한 자태'},
+    cold:{mood:'정적인 매력',feature:'신비로운 분위기, 고요한 기품, 깊이 있는 표정'}
+  };
+
+  var tempType='warm';
+  if(['丙','丁','巳'].indexOf(dg)>=0) tempType='hot';
+  else if(['子','壬','癸','亥'].indexOf(dg)>=0) tempType='cold';
+
+  var tempDesc=temperTypeMap[tempType]||temperTypeMap.warm;
+
+  var partnerGender=GENDER==='F'?'handsome man':'beautiful woman';
+
+  var prompt='portrait of '+partnerGender+' with '+tempDesc.mood+' aura, '+
+    'wearing '+elName[el]+' color clothing, '+tempDesc.feature+', '+
+    'soft natural makeup, elegant sophisticated look, warm ambient lighting, '+
+    'professional portrait photography, soft focus background, natural skin texture, '+
+    'korean beauty style, high quality, 8k resolution --ar 3:4';
+
+  return prompt;
+}
+function _sajuPromptElementProfile(p, natal){
+  var dg = p && p.d ? p.d.g : '';
+  var el = ((GAN[dg] && GAN[dg].e) || (natal && natal.dominant) || 'earth');
+  var profiles = {
+    wood: { tone:'emerald green, fresh ivory, botanical gold', symbol:'ancient forest, vines, spring wind', role:'visionary creator', mood:'growing, elegant, hopeful' },
+    fire: { tone:'coral red, warm gold, sunrise orange', symbol:'sun flare, lanterns, gentle flame', role:'radiant performer', mood:'bright, passionate, cinematic' },
+    earth: { tone:'sand beige, clay brown, soft ochre', symbol:'mountain temple, fertile garden, warm stone', role:'grounded guardian', mood:'stable, warm, abundant' },
+    metal: { tone:'silver white, pearl gray, cool lavender', symbol:'moonlit jewelry, polished blade, crystal geometry', role:'refined strategist', mood:'precise, luxurious, clean' },
+    water: { tone:'deep navy, mist blue, silver aqua', symbol:'ocean wave, moon reflection, flowing mist', role:'intuitive navigator', mood:'mysterious, fluid, serene' }
+  };
+  return profiles[el] || profiles.earth;
+}
+function generateSajuLifeMoviePosterPrompt(p, natal){
+  var profile = _sajuPromptElementProfile(p, natal);
+  return 'cinematic life movie poster for a '+profile.role+', '+profile.mood+' atmosphere, '+profile.symbol+', color palette of '+profile.tone+', dramatic composition, elegant Korean editorial poster design, subtle destiny symbols, premium typography space, emotional lighting, high detail, 8k --ar 2:3';
+}
+function generateSajuLuckyCharmPrompt(p, natal){
+  var profile = _sajuPromptElementProfile(p, natal);
+  return 'personal lucky charm talisman wallpaper inspired by saju five elements, '+profile.symbol+', '+profile.tone+' color palette, mystical but modern Korean amulet design, delicate line art, soft glow, balanced symmetry, clean background, premium smartphone wallpaper, high quality, 8k --ar 9:16';
+}
+function generateSajuSoulRoomPrompt(p, natal){
+  var profile = _sajuPromptElementProfile(p, natal);
+  return 'dreamy personal soul room interior based on saju energy, '+profile.mood+' mood, '+profile.symbol+', '+profile.tone+' palette, cozy cinematic lighting, elegant objects that symbolize destiny, soft textures, Korean lifestyle magazine style, high-detail interior concept art, 8k --ar 16:9';
+}
+function generateSajuBrandLogoPrompt(p, natal){
+  var profile = _sajuPromptElementProfile(p, natal);
+  return 'personal destiny brand logo and mascot emblem based on saju energy, '+profile.role+' identity, '+profile.symbol+', '+profile.tone+' color palette, clean vector-like logo, cute but premium mascot mark, Korean fortune brand aesthetic, sticker-ready, simple background, high quality --ar 1:1';
+}
+function generateSajuPastLifeCharacterPrompt(p, natal){
+  var profile = _sajuPromptElementProfile(p, natal);
+  return 'past life character portrait inspired by saju energy, '+profile.role+' in an ancient mystical Korean fantasy world, '+profile.symbol+', '+profile.tone+' palette, ornate costume details, cinematic portrait lighting, story-rich expression, fantasy concept art, high detail, 8k --ar 3:4';
+}
+function generateSajuRpgJobPrompt(p, natal){
+  var profile = _sajuPromptElementProfile(p, natal);
+  return 'RPG game class character sheet based on saju five element destiny, '+profile.role+' hero, '+profile.symbol+', '+profile.tone+' color palette, full body character design, cute fantasy equipment, skill icons, game UI concept art, Korean mobile RPG style, high detail --ar 4:5';
+}
+function generateSajuFortuneDessertPrompt(p, natal){
+  var profile = _sajuPromptElementProfile(p, natal);
+  return 'magical fortune dessert inspired by saju energy, '+profile.symbol+', '+profile.tone+' color palette, beautiful Korean cafe dessert photography, glossy textures, cute mystical toppings, soft dreamy lighting, premium product shot, edible charm design, high quality, 8k --ar 1:1';
+}
+function generateSajuGuardianSpiritPrompt(p, natal){
+  var profile = _sajuPromptElementProfile(p, natal);
+  return 'personal guardian spirit creature born from saju energy, '+profile.mood+' aura, '+profile.symbol+', '+profile.tone+' palette, adorable but majestic mythical companion, glowing eyes, soft fur or elemental texture, storybook fantasy illustration, cinematic lighting, high detail --ar 4:5';
+}
+function generateSajuAlbumCoverPrompt(p, natal){
+  var profile = _sajuPromptElementProfile(p, natal);
+  return 'destiny music album cover based on saju energy, '+profile.mood+' mood, '+profile.symbol+', '+profile.tone+' palette, dreamy Korean indie album art, surreal symbolic composition, clean title space, emotional lighting, premium graphic design, high quality --ar 1:1';
+}
+function generateSajuTreasureMapPrompt(p, natal){
+  var profile = _sajuPromptElementProfile(p, natal);
+  return 'personal wealth luck treasure map inspired by saju five elements, '+profile.symbol+', '+profile.tone+' palette, mystical illustrated map, glowing route lines, lucky objects, elegant Korean fortune scroll design, warm magical lighting, high-detail fantasy map, 8k --ar 16:9';
+}
 const ILJU_DB = (function() {
   const STEMS = {
       "甲": ["갑목", "거목, 우뚝 솟은 큰 나무", "독립심과 리더십, 위로 뻗어나가는 기상", "당당하고 곧은 체형과 강직한 눈빛"],
@@ -26687,6 +26789,21 @@ var EL_ORGAN  = { wood: '간·담', fire: '심장·소장', earth: '비·위', m
     renderEnergyCoord: renderEnergyCoord,
     renderVillain: renderVillain,
     renderSpecialCharm: renderSpecialCharm,
+    imagePrompts: function(p,natal){ return [
+      {id:"landscape",title:"내 사주 풍경",prompt:generateSajuLandscapePrompt(p,natal)},
+      {id:"avatar",title:"내 사주 아바타",prompt:generateAvatarPrompt(p,natal)},
+      {id:"partner",title:"나의 이상형",prompt:generateIdealPartnerPrompt(p,natal)},
+      {id:"movie",title:"내 인생 영화 포스터",prompt:generateSajuLifeMoviePosterPrompt(p,natal)},
+      {id:"charm",title:"오늘의 행운 부적",prompt:generateSajuLuckyCharmPrompt(p,natal)},
+      {id:"room",title:"내 영혼의 방",prompt:generateSajuSoulRoomPrompt(p,natal)},
+      {id:"brand",title:"내 운명 브랜드 로고",prompt:generateSajuBrandLogoPrompt(p,natal)},
+      {id:"past",title:"전생의 나",prompt:generateSajuPastLifeCharacterPrompt(p,natal)},
+      {id:"rpg",title:"운명 RPG 직업",prompt:generateSajuRpgJobPrompt(p,natal)},
+      {id:"dessert",title:"행운 디저트",prompt:generateSajuFortuneDessertPrompt(p,natal)},
+      {id:"guardian",title:"나의 수호 정령",prompt:generateSajuGuardianSpiritPrompt(p,natal)},
+      {id:"album",title:"운명 앨범 커버",prompt:generateSajuAlbumCoverPrompt(p,natal)},
+      {id:"treasure",title:"재물운 보물지도",prompt:generateSajuTreasureMapPrompt(p,natal)},
+    ]; },
     renderSkillTree: renderSkillTree,
     renderZiweiPaidSections: renderZiweiPaidSections,
     renderZiweiCompatPaid: renderZiweiCompatPaid,

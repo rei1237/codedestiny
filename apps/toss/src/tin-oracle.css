@@ -1,0 +1,6 @@
+.tin-oracle { max-width: 36rem; margin: 0 auto; padding: 0 0 1.5rem; color: #302a33; }
+.tin-oracle .tin-cover { display: block; width: 100%; aspect-ratio: 5 / 3; object-fit: cover; border-radius: 1rem; margin-bottom: 1.25rem; }
+.tin-oracle h1, .tin-oracle h2 { font-family: 'Noto Serif KR', Batang, serif; text-wrap: balance; }
+.tin-oracle p { line-height: 1.75; word-break: keep-all; overflow-wrap: anywhere; }
+.tin-oracle button { margin-top: .55rem; }
+.tin-dish { display: grid; place-items: center; height: 8rem; inline-size: min(18rem, 94%); margin: 1.5rem auto; border: 1px solid #baab87; border-radius: 50%; background: radial-gradient(ellipse, #ddd8ea, #a7b4c1 50%, #51576c 74%, #292f42 95%); font-size: 3rem; color: #efe6cd; }

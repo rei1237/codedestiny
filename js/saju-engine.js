@@ -5464,6 +5464,13 @@ async function calculate(run){
 }
 
 /* ─── 사주 아바타 & 이상형 AI 프롬프트 생성 ─── */
+function generateSajuLandscapePrompt(p){
+  var musangMap={'甲':'Majestic Ancient Tree','乙':'Delicate Flower Garden','丙':'Bright Warm Sun',
+    '丁':'Twinkling Candlelight','戊':'Golden High Mountain','己':'Cozy Garden Soil',
+    '庚':'Strong Silver Rock','辛':'Sparkling Jewelry','壬':'Deep Blue Ocean','癸':'Soft Misty Rain'};
+  return (musangMap[p.d.g]||'Poetic Nature Landscape')+', beautiful landscape painting, soft pastel colors, atmospheric lighting, high-detail scenic view, poetic and serene, high quality, 8k --ar 16:9';
+}
+
 function generateAvatarPrompt(p){
   var avatarMap={
     '甲':'Elegant spring deer with soft pastel green and cream colors, delicate antlers, gentle eyes, surrounded by leaves and flowers, cute nature spirit, watercolor style, whimsical, botanical aesthetic',
@@ -8978,10 +8985,7 @@ function _bindSajuQuestionPromptCard(rootEl) {
       '</div>'+
       '</div>';
 
-    var musangMap={'甲':'Majestic Ancient Tree','乙':'Delicate Flower Garden','丙':'Bright Warm Sun',
-      '丁':'Twinkling Candlelight','戊':'Golden High Mountain','己':'Cozy Garden Soil',
-      '庚':'Strong Silver Rock','辛':'Sparkling Jewelry','壬':'Deep Blue Ocean','癸':'Soft Misty Rain'};
-    var prompt=(musangMap[p.d.g]||'Poetic Nature Landscape')+', beautiful landscape painting, soft pastel colors, atmospheric lighting, high-detail scenic view, poetic and serene, high quality, 8k --ar 16:9';
+    var prompt=generateSajuLandscapePrompt(p);
     var safePrompt=_sajuPromptSafeCopy(prompt);
     var avatarPrompt=generateAvatarPrompt(p);
     var safeAvatarPrompt=_sajuPromptSafeCopy(avatarPrompt);

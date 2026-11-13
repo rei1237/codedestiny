@@ -130,7 +130,22 @@ const qText = `var ${Q_TEXT} = ${JSON.stringify({ ko: Object.fromEntries(Q_KEYS.
 
 const engineAst = parse('saju-engine.js', read('js/saju-engine.js'));
 const SEEDS = ['GENDER', 'USER_NAME', 'BIRTH_YEAR', 'DAY_GAN', 'JOHU_TYPE', 'JOHU_SCORE', 'CURRENT_AGE', 'G_POWER', 'G_JONG', 'G_JOHU', 'G_PILLARS', 'G_NATAL', 'G_BAZI'];
-const SERVER_ROOTS = ['attachKasiDaewunBridge', '_sajuDaewunRowsFromList', 'resetEvalDaewunMemo', 'parseKasiGanjiPair', 'GAN', 'JI', 'getTenGod', 'SHENG', ...SEEDS];
+const IMAGE_PROMPTS = [
+  ["landscape","내 사주 풍경","generateSajuLandscapePrompt"],
+  ["avatar","내 사주 아바타","generateAvatarPrompt"],
+  ["partner","나의 이상형","generateIdealPartnerPrompt"],
+  ["movie","내 인생 영화 포스터","generateSajuLifeMoviePosterPrompt"],
+  ["charm","오늘의 행운 부적","generateSajuLuckyCharmPrompt"],
+  ["room","내 영혼의 방","generateSajuSoulRoomPrompt"],
+  ["brand","내 운명 브랜드 로고","generateSajuBrandLogoPrompt"],
+  ["past","전생의 나","generateSajuPastLifeCharacterPrompt"],
+  ["rpg","운명 RPG 직업","generateSajuRpgJobPrompt"],
+  ["dessert","행운 디저트","generateSajuFortuneDessertPrompt"],
+  ["guardian","나의 수호 정령","generateSajuGuardianSpiritPrompt"],
+  ["album","운명 앨범 커버","generateSajuAlbumCoverPrompt"],
+  ["treasure","재물운 보물지도","generateSajuTreasureMapPrompt"],
+];
+const SERVER_ROOTS = ['attachKasiDaewunBridge', '_sajuDaewunRowsFromList', 'resetEvalDaewunMemo', 'parseKasiGanjiPair', 'GAN', 'JI', 'getTenGod', 'SHENG', ...IMAGE_PROMPTS.map(row=>row[2]), ...SEEDS];
 const shellRoots = [...refs(paidAst), ...refs(quantumAst), ...refs(natureAst), ...refs(compatAst), ...refs(energyAst), ...refs(villainAst), ...refs(charmAst), ...refs(skillAst), ...refs(ziweiAst), ...[...refs(natalAst)].filter(k => !natalNames.has(k)), ...tarotPicked.flatMap(t => [...refs(parse('t.js', t))]), ...SERVER_ROOTS];
 const shared = closure(engineAst, engineAst.statements, shellRoots, new Set([...paidNames, ...quantumNames, ...encyclopediaNames, ...natureNames, ...compatNames, ...energyNames, ...villainNames, ...charmNames, ...skillNames, ...ziweiNames, ...natalNames, ...tarotNames]));
 const sharedNames = new Set(shared.flatMap(t => [...declared(parse('s.js', t))]));
@@ -313,6 +328,9 @@ ${healthSrc.trim()}
     renderEnergyCoord: renderEnergyCoord,
     renderVillain: renderVillain,
     renderSpecialCharm: renderSpecialCharm,
+    imagePrompts: function(p,natal){ return [
+${IMAGE_PROMPTS.map(([id,title,builder])=>'      {id:'+JSON.stringify(id)+',title:'+JSON.stringify(title)+',prompt:'+builder+'(p,natal)},').join('\n')}
+    ]; },
     renderSkillTree: renderSkillTree,
     renderZiweiPaidSections: renderZiweiPaidSections,
     renderZiweiCompatPaid: renderZiweiCompatPaid,

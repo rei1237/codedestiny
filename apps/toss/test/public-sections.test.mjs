@@ -20,6 +20,8 @@ for(const featureKey of Object.keys(TOSS_PUBLIC_SECTIONS))test('guest section re
  else if(featureKey==='saju_natal_reading'){
    for(const name of ['ilju','ten','climate','strength','terms'])assert.match(report.parts[name],/data-natal-slot/);
    assert.match(report.parts.ten,/data-natal-god/);
+   assert.equal(new Set(report.imagePrompts.map(row=>row.id)).size,13);
+   assert.match(report.imagePrompts.find(row=>row.id==='treasure').prompt,/personal wealth luck treasure map inspired by saju five elements/);
  }else assert.ok(report.html.length>5000);
  assert.deepEqual(report,await direct.json());
 });
