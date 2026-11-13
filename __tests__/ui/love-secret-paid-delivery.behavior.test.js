@@ -165,7 +165,7 @@ function clientFixture({ storageFailure = false, switchAccount = false } = {}) {
   const calls = []; let completed = 0, current = true;
   const pendingGenerationRef = { current: null };
   const ctx = vm.createContext({ nativeTossContext:()=>null, document: { hidden: false },
-    paymentNotice: undefined, permissionFailure: '권한 오류', serverFailure: '서버 오류', generationFailure: '생성 오류',
+    paymentSurface: 'web', paymentNotice: undefined, permissionFailure: '권한 오류', serverFailure: '서버 오류', generationFailure: '생성 오류',
     captureDeliveryScope: () => () => current, pendingGenerationRef,
     setPhase() {}, releasePaidFeatureGate() {}, setProgressIndex() {}, markPaidAttemptGenerationStarted() {},
     activeAttemptId: () => 'paid-attempt', pollResult: async () => { throw new Error('UNEXPECTED_POLL'); },

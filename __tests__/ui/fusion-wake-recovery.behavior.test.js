@@ -30,7 +30,7 @@ test('blocked receipt storage still resumes the owner-scoped original purchase h
   }
   visit(ast); assert.ok(effect);
   const body = { birthDate: '1995-04-18', locale: 'ko', concern: 'original private question' }, calls = [];
-  const context = { pendingPaidRequest: true, loading: false, autoResumeRef: { current: false }, document: { visibilityState: 'visible' }, navigator: { onLine: true },
+  const context = { linkedTossResult: "", pendingPaidRequest: true, loading: false, autoResumeRef: { current: false }, document: { visibilityState: 'visible' }, navigator: { onLine: true },
     readFusionPaidRequest: () => null, currentFusionOwner: () => 'original-owner', paidRequestIdRef: { current: 'original-paid-run' }, paidRequestBodyRef: { current: body },
     recoverPaidResult: async () => 'partial', recoveredStageRef: { current: 2 }, runGenerationRef: { current: async (...args) => calls.push(args) },
   };

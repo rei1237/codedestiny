@@ -69,6 +69,21 @@ test('other service presentation changes preserve named payment, storage and par
   }
 });
 
+test('web Vedic and Sukuyo results retain their entry query and fragment when adding the consultation id', () => {
+  for (const file of ['app/vedic-ai/VedicAiClient.tsx','app/sukuyo-compatibility-ai/SukuyoCompatibilityAiClient.tsx']) {
+    const tree=ts.createSourceFile(file,fs.readFileSync(file,'utf8'),ts.ScriptTarget.Latest,true,ts.ScriptKind.TSX);
+    let declaration;
+    function visit(node){if(ts.isFunctionDeclaration(node)&&node.name?.text==='rememberConsultationUrl')declaration=node.getText(tree);ts.forEachChild(node,visit);}
+    visit(tree);assert.ok(declaration);
+    const href='https://web.invalid/consultation?locale=ko&theme=lunar#result';
+    let address;
+    const context=vm.createContext({paymentSurface:'web',URL,window:{location:{href},history:{replaceState:(_state,_title,url)=>address=url}}});
+    vm.runInContext(ts.transpile(declaration,{target:ts.ScriptTarget.ES2022}),context);
+    context.rememberConsultationUrl('result/id');
+    assert.equal(address,'https://web.invalid/consultation?locale=ko&theme=lunar&cid=result%2Fid#result');
+  }
+});
+
 test('legacy result wrapper mirrors remain byte-identical', () => {
   for (const file of ['js/core/paid-editorial-report.mjs','css/paid-editorial-report.css']) {
     assert.equal(fs.readFileSync(file,'utf8'),fs.readFileSync('public/'+file,'utf8'));
