@@ -95,6 +95,13 @@ groups.get('saju').subfeatures=sajuCards.map(([id,target])=>({id,target,source:'
 if(!context.window.__cdServiceRegistry.some(row=>row.href==='/diary/')||!fs.readFileSync(path.join(root,'js/core/index-inline-runtime.js'),'utf8').includes('window.openLegacyLuckSyncDiary =')||!fs.readFileSync(path.join(root,'js/core/index-inline-runtime.js'),'utf8').includes("location.assign('/diary/')"))throw new Error('Missing new or legacy diary entry');
 groups.get('luck-sync-diary').subfeatures=[{id:'fortunePlanner',entry:'/diary/',status:'requires-full-flow-port-and-verification'},{id:'legacyLuckSyncDiary',entry:'js/luck-sync-diary.js:openLegacyLuckSyncDiary',status:'requires-full-flow-port-and-verification',verification:'legacy stored records and migration not verified'}];
 const localEvidence={
+ 'dream':{tossRoute:'/dream/tarot',status:'local-partial',inputContract:'index.html:openDreamModal + js/dream-ledger.js → worker/routes/dream.js → lib/tarot/dream-prompt.mjs',resultRenderer:'apps/toss/src/DreamPrompt.tsx',storageContract:'게스트 현재 화면 및 원문 복사. 정신분석 해몽은 별도 유료 기능',verification:'360px 일반 홈에서 1~5장 원본 카드와 프롬프트, 잘못된 입력 및 다시 쓰기 검증'},
+ 'mbti-animal-compat':{tossRoute:'/mbti/animals',status:'local-partial',inputContract:'js/astral-soul.js:ASTRAL_DATA / getPairScore / getSynergyText',resultRenderer:'apps/toss/src/AstralAnimals.tsx',storageContract:'게스트 화면 계산. 두 동물 256쌍 원본 점수·조언',verification:'astral-animals.test.mjs + 일반 홈 두 동물 선택'},
+ 'ifa-oracle':{tossRoute:'/oracle/ifa',status:'local-partial',inputContract:'public/ifa-oracle.html 여덟 표식, 오두 256개, 네 주제',resultRenderer:'apps/toss/src/IfaReading.tsx',storageContract:'현재 화면. 토스 저장·공유는 실기기 확인 필요',verification:'ifa-reading.test.mjs, 360px public-readings-browser.mjs 네 가지 주제'},
+ 'consultation-webtoons':{tossRoute:'/consultations/stories',status:'local-partial',inputContract:'app/consultations/home-stories.ts + lib/brand/consultation-webtoons.mjs',resultRenderer:'apps/toss/src/StoryLibrary.tsx + app/components/webtoon/CutReader.tsx',storageContract:'게스트 공개 14편. 읽던 이야기는 URL의 story로 유지',verification:'Vite 배포본 360px에서 14편 전체 컷 수와 대사, 원본 그림 디코딩. 원격 이미지 실기기 확인 필요'},
+ 'heukwol-story':{tossRoute:'/consultations/stories?story=heukwol',status:'local-partial',inputContract:'app/heukwol/FateWarningEpisode.tsx 및 원본 12컷',resultRenderer:'apps/toss/src/StoryLibrary.tsx + app/components/webtoon/CutReader.tsx',storageContract:'공개 서장. 유료 흑월 상담과 별도',verification:'story-library-browser.mjs 360px 12컷 원본 텍스트 비교'},
+ 'neo-letter':{tossRoute:'/fortune-tea-house/?counsel=letter&persona=neo',status:'local-partial',inputContract:'app/fortune-chat/ConsultationIntake.tsx + worker/toss/letter.js',resultRenderer:'apps/toss/service/TossLetterRoom.tsx + app/fortune-chat/ConsultationResult.tsx',storageContract:'꿀꿀운세 구매 기록. 상담자·계정·주문 소유권 검사',verification:'letter-browser.mjs 360px 두 상담자의 사주 결과 및 계정 교체. 각 6개 분야 mock 상품 매핑'},
+
  'animal-destiny':{tossRoute:'/saju/animal-destiny',status:'local-partial',inputContract:'lib/korean-calendar/natal.js:calculateNatalSaju',resultRenderer:'apps/toss/src/AnimalDestiny.tsx',storageContract:'화면 메모리. 계정 변경 시 TossSessionScope 재설정'},
  'career-style':{tossRoute:'/saju/career-style/',status:'local-partial',inputContract:'worker/routes/career-style.js:readOwnedCareerStyle',resultRenderer:'apps/toss/service/TossCareerStyle.jsx + app/saju/career-style/CareerStyleClient.tsx',storageContract:'계정별 프로필을 사용한 무료 개인 명식 8장. 실기기 미검증'},
  'yeongnyangi-horary':{tossRoute:'/yeongnyangi/fortune/?mode=horary',status:'local-partial',inputContract:'worker/yeongnyangi/fortune/free/horary.ts',resultRenderer:'app/yeongnyangi/_components/QuestionSkyConsultation.tsx',storageContract:'무료 질문 시각·도시 차트. 유료 결과 보관 계약 없음'},
@@ -236,7 +243,7 @@ const letterProducts = ['yeoni','neo'].map(persona=>({
  persona,webEntry:'/fortune-chat/?character='+persona,webInput:'app/fortune-chat/ConsultationRoom.tsx',
  worker:'worker/routes/fortune-chat-consultations.js',result:'app/fortune-chat/ConsultationResult.tsx',
  base:chatDomains.map(domain=>'chat_'+domain),questionProducts:chatQuestionProducts().map(product=>product.id),
- tossEntry:persona==='yeoni'?'/fortune-tea-house/?counsel=letter':null,library:'/records/',
+ tossEntry:'/fortune-tea-house/?counsel=letter'+(persona==='neo'?'&persona=neo':''),library:'/records/',
  registered:APPROVED_TOSS_PRODUCTS.filter(row=>row.serviceId===persona).map(row=>row.productId),
 }));
 const productContracts = ledger.products.map(product=>({
@@ -278,12 +285,12 @@ for(const group of canonicalCandidates){
  group.portStatus=group.tossRoute||group.publicSubflows?.length?'일부만 이식':'미이식';
  group.reducedBundle=releaseLink(group.id)?'홈 진입 있음':['today-hub','stonehenge-runes','yeongnyangi-prashna','yeongnyangi-horary'].includes(group.id)?'홈 진입 없음':group.tossRoute?'구현은 있으나 진입 차단':'홈 진입 없음';
  group.currentEntry=group.tossRoute?'일반 홈의 진입 코드 확인':group.publicSubflows?.length?'일부 하위 경로만 홈에 연결':'연결 경로 없음';
- group.bundleVerification='실기기 및 상품별 전체 흐름 미검증';
+ group.bundleVerification=group.id==='yeongnyangi'?'20261114-8 실제 Linux AIT 일반 홈 → 달빛 점술방 → 질문 검색 → 입력. mock 로그인과 소유 원문 조회 통과. 휴대폰 미검증':'휴대폰 및 상품별 전체 흐름 미검증';
  if(!group.tossRoute)group.tossLogin='토스 기능 미연결';
- else if(nativeSource[group.id]||['fortune-chat','yeongnyangi','yeongnyangi-prashna'].includes(group.id))group.tossLogin='구매·기록에 토스 계정 필요';
+ else if(nativeSource[group.id]||['neo-letter','fortune-chat','yeongnyangi','yeongnyangi-prashna'].includes(group.id))group.tossLogin='구매·기록에 토스 계정 필요';
  else if(['manse','astrology','vedic','human-design','flower','yeongnyangi-daily','career-style','cosmic-soul-meditation','neville-meditation'].includes(group.id))group.tossLogin='계산 또는 기록 조회에 토스 계정 필요';
  else if(group.id==='today-hub')group.tossLogin='별자리·띠는 공개. 네 체계와 오늘의 세 장은 토스 로그인 필요. 개인화는 소유 프로필만 선택';
- else if(['saju','animal-destiny','music','novel','famous-saju','bias-destiny','yeongnyangi-horary','yeongnyangi-season','olympus-oracle','stonehenge-runes'].includes(group.id))group.tossLogin='공개 진입';
+ else if(['dream','mbti-animal-compat','ifa-oracle','consultation-webtoons','heukwol-story','saju','animal-destiny','music','novel','famous-saju','bias-destiny','yeongnyangi-horary','yeongnyangi-season','olympus-oracle','stonehenge-runes'].includes(group.id))group.tossLogin='공개 진입';
  else group.tossLogin='기능별 단계 검증 필요';
  group.tossResult=group.resultRenderer||'결과 화면 연결 미확인';
  group.reread=group.storageContract||'재열람 경로 미확인';
