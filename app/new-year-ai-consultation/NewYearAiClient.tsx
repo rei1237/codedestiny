@@ -1744,7 +1744,11 @@ export default function NewYearAiConsultationPage({paymentSurface="web",ProfileP
     if(changed){tossViewedId.current=sid;tossRevision.current++;tossBusy.current=false;setMessages([]);setServerSections([]);setSajuProfile(null);setMonthlyFlow([]);setTargetYearInfo(null);setError('');}
     else if(tossBusy.current)return()=>{cancelled=true;};
     if(sid)void resumeTossNewYear(sid,()=>!cancelled&&owner());else if(changed){setTossRecovery('none');setStatus('idle');}
-    return()=>{cancelled=true;};
+    const readRevision=tossRevision.current;
+    return()=>{
+      cancelled=true;
+      if(sid&&tossRevision.current===readRevision){tossRevision.current++;tossBusy.current=false;}
+    };
     // The lifecycle epoch and owner scope control revalidation, including native back.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   },[reloadEpoch,captureDeliveryScope,paymentSurface]);

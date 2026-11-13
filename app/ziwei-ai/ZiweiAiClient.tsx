@@ -979,7 +979,11 @@ export default function ZiweiAiPage({paymentSurface="web",ProfilePicker,TossPric
       else if(busyRef.current)return ()=>{cancelled=true;};
       if(cid)void resumeTossConsultation(cid,()=>!cancelled&&isCurrent());
       else if(changed){setConsultation(null);setTossRecovery('none');}
-      return ()=>{cancelled=true;};
+      const readRevision=tossRevision.current;
+      return ()=>{
+        cancelled=true;
+        if(cid&&tossRevision.current===readRevision){tossRevision.current++;busyRef.current=false;}
+      };
     }
     (async () => {
       try {
