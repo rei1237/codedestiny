@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-14
-next: 묶음 ④ 단계 9 — 베다 이전 (신년운세·인생의 책은 끝, 결과는 문서 끝 "묶음 ④ 단계 9 결과 — 신년운세·인생의 책")
+next: 묶음 ④ 단계 10(영냥이 ReadingLoading) 시작 (단계 9는 베다까지 끝, 결과는 문서 끝 "묶음 ④ 단계 9 결과 — 베다")
 ---
 
 # 꿀꿀 운세·영냥이 UX: 구매 흐름 · 후기 신뢰 · 후기 작성 · 생성 진행 · 무료 배너
@@ -20,7 +20,7 @@ next: 묶음 ④ 단계 9 — 베다 이전 (신년운세·인생의 책은 끝,
 - 기준: origin/main `02476159e0b545b887fe04a12815b7123b4b614d`
 - node_modules는 정션, `.env.local`·`.env.cloudflare.local`은 링크(건드리지 않는다).
 - 워크트리 제거: 다른 체크아웃에서 `npm run worktree:remove -- 'D:\Development\codedestiny-worktrees\ux-conversion-20261113-215142'` (git worktree remove 금지 — 긴 경로 고아 폴더).
-- 마지막 커밋: 단계마다 아래 표에 적는다. 묶음 ① 끝 코드 커밋 `3af1f976b`(미push). 묶음 ② 6b 끝 코드 커밋 `dd10f6156`(미push). 묶음 ② 6c-1 코드 커밋 `4dd33836e`·`9b9a8e706`·`3c8d5ac2f`(미push). 묶음 ② 6c-2 코드 커밋 `273aa5ce6`·`d1eba2bae`(미push). 묶음 ② 11a 코드 커밋 `81b1be43d`(미push). 묶음 ② 배너 모바일 다듬기 `c7edcc6c3`·사이트맵 원장 `a10578ada`(미push). 묶음 ③ 단계 5 ReviewProof `f554b8920`(미push). 단계 5 남은 일 `c674869d9`(보존 기준 해시)·`f6768d579`(`/reviews/?product=` 필터), 묶음 ③ 단계 7 `008432add`(미push). 묶음 ③ 단계 8 `efafe2738`(미push) — 묶음 ③ 완료. 묶음 ④ 단계 9 공용 GenerationProgress `1c0e07c2b`·연애 비책 이전 `98ca36812`·신년운세 `6c48059f9`·인생의 책 `27e2c5eb2`(미push).
+- 마지막 커밋: 단계마다 아래 표에 적는다. 묶음 ① 끝 코드 커밋 `3af1f976b`(미push). 묶음 ② 6b 끝 코드 커밋 `dd10f6156`(미push). 묶음 ② 6c-1 코드 커밋 `4dd33836e`·`9b9a8e706`·`3c8d5ac2f`(미push). 묶음 ② 6c-2 코드 커밋 `273aa5ce6`·`d1eba2bae`(미push). 묶음 ② 11a 코드 커밋 `81b1be43d`(미push). 묶음 ② 배너 모바일 다듬기 `c7edcc6c3`·사이트맵 원장 `a10578ada`(미push). 묶음 ③ 단계 5 ReviewProof `f554b8920`(미push). 단계 5 남은 일 `c674869d9`(보존 기준 해시)·`f6768d579`(`/reviews/?product=` 필터), 묶음 ③ 단계 7 `008432add`(미push). 묶음 ③ 단계 8 `efafe2738`(미push) — 묶음 ③ 완료. 묶음 ④ 단계 9 공용 GenerationProgress `1c0e07c2b`·연애 비책 이전 `98ca36812`·신년운세 `6c48059f9`·인생의 책 `27e2c5eb2`·베다 `be646a9f1`(미push).
 
 ## 승인 상태 (사용자 원문, 2026-11-13)
 
@@ -158,7 +158,7 @@ next: 묶음 ④ 단계 9 — 베다 이전 (신년운세·인생의 책은 끝,
 - [x] 9. GenerationProgress + love-secret — SHA: 1c0e07c2b, 98ca36812 (결과는 문서 끝 "묶음 ④ 단계 9 결과")
 - [x] 9. new-year — SHA: 6c48059f9
 - [x] 9. life-book — SHA: 27e2c5eb2
-- [ ] 9. vedic — SHA:
+- [x] 9. vedic — SHA: be646a9f1
 - [ ] 10. 영냥이 ReadingLoading — SHA:
 
 ### 묶음 ⑤ 마무리 (단계 12)
@@ -986,3 +986,61 @@ UI 전용 확인
 3. 신년운세 대기 화면 문구는 한국어 리터럴이다(예전 패널도 같았다).
 4. 인생의 책 `PHASE_COPY`(opening·payment·navigating)는 한국어 전용 합니다체 그대로다.
 5. 네오 신년 초상은 모바일 원(98px) 안에서 얼굴이 약 15px로 작다.
+
+### 묶음 ④ 단계 9 결과 — 베다 (2026-11-14 완료, 미push)
+
+커밋
+- `be646a9f1` feat(vedic): 생성 대기 화면을 GenerationProgress 로 이전
+
+베다 (`app/vedic-ai/VedicAiClient.tsx` CRLF 유지, `VedicAiClient.module.css`)
+- `CosmosLoadingScreen`(L2649)이 `<GenerationProgress persona="neo">`를 그린다.
+  - 초상은 `masterProfiles.yun.portrait`(윤달, 인간형)이다.
+  - 상태는 기존 `phaseText || cosmosFallbackText`이고, 경과 시간을 센다(`timing`).
+  - 막대는 불확정이다. 베다 서버는 그룹 진행 수를 주지 않는다.
+- 서버 `basis.stages`가 있을 때만 그 아래에 `AnalysisBasisLoading`을 둔다. 재개 경로는 basis를 받지 않아 숨는다.
+- 렌더(L3664): 로더가 `!consultation && phase === "start"`일 때 빈 상태 자리를 대신한다. 겹침(absolute) 대신 일반 흐름이라 39rem 패널에서 잘리지 않는다.
+- 지운 것
+  - 시간 기반 가짜 단계 점·문구(`cosmosStages`·`cosmosFooter`)
+  - `COSMOS_GLYPHS`·`COSMOS_ORBITS`·`COSMOS_STARS`와 궤도 SVG·별 장식
+  - CSS `.cosmosStars`·`.cosmosOrbit*`·`.cosmosStageDots`·`.activeCosmosDot`·`.cosmosProgress`·`@keyframes mandalaDrift`와 관련 reduced-motion 선택자
+  - 쓰이지 않던 기존 `.cosmosLabelSwap`은 그대로 두었다.
+- 문구
+  - 12개 언어에 `generationTitle`·`generationElapsedLabel`·`leaveSafeNotice`·`tossLeaveNotice`를 넣었다(타입 L244-247).
+  - ko 제목은 "윤달이 베다점 상담문을 쓰고 있어요", ko 떠남 안내는 `LEAVE_SAFE_NOTICE`, 다른 언어는 연애 비책 번역이다.
+  - `GENERATION_TIMEOUT`의 "페이지를 닫지 말고"(옛 ko L545)를 12개 언어에서 "결제한 상담은 저장돼 있으니 잠시 뒤 다시 열면 이어서 받을 수 있어요"로 고쳤다(ko L526).
+- 떠남 안내
+  - 웹: 공용 원문을 그대로 쓴다.
+    - 다시 열면 목록 조회의 `pendingSessionId` 또는 URL `cid` → `resumeSavedConsultation` → `pollVedicResult`(202면 `resumeSessionId`로 start)로 저장된 그룹 다음부터 이어 쓴다.
+    - 크론은 `consultation-recovery-registry.js`의 `vedic-ai`(`llmMeta.resumeBody` 있는 문서)이고, 기록함은 `service-registry.js`의 `/vedic-ai/result/?id=`다.
+  - 토스: 목록 조회가 `pendingSessionId`를 주지 않는다. 그래서 "이 화면으로 돌아오면 저장된 부분 다음부터 이어서 받아요"만 말한다(`tossLeaveNotice`). URL `cid`가 남아 있을 때만 참이다.
+- "보통": 실측 근거가 없어 뺐다.
+- UI 전용: `ui-only-check` 18개 함수 SAME이다(setter 제외 없음). startConsultation·startTossConsultation·handleSubmit·handleTossSubmit·resumeSavedConsultation·resumeTossConsultation·pollVedicResult·pollVedicTossResult·buildPayload·retryTossVedic 외.
+- 픽스처: preservation 픽스처의 `CosmosLoadingScreen` 해시를 갱신했다(`93cde7…` → `0e4454…`).
+- 테스트: 옛 cosmos 마크업을 단언하던 테스트는 없었다. `verify-vedic-ai-flow`는 mandala·print 표지만 본다.
+
+검증
+- node 테스트 통과
+  - ziwei-result-disclosure·vedic-ai-wake-recovery·vedic-paid-resume·consultation-intro-hydration·mobile-pricing-source·generation-progress*·paid-generation-timeout*·paid-library-completion* 57/57
+  - vedic UI 6파일 22/22
+- 그 밖
+  - `npm run typecheck` 깨끗하다.
+  - `verify-vedic-ai-flow`·`verify-paid-gate-ui-regression`·`verify:hero-contrast` 통과.
+  - eslint 오류 0, 경고 1(`Sparkles` 미사용)은 HEAD부터 있던 것이다.
+- 화면 확인
+  - 방법: `dev:next` + 스크래치 `gp-shot.mjs vedic`. 목록 조회만 `pendingSessionId`로 답하고, `?id=` 폴·start는 붙잡았다. 과금 호출은 없었다.
+  - visual-checker 판정
+    - 1440 통과
+      - 오른쪽 열 가운데에 있고 남색 카드가 우주 톤에 맞는다.
+      - 대비는 제목 15.5:1, '경과' 10.2:1, 떠남 안내 11.9:1이다.
+      - % 없음, 초상 인간형.
+    - 390 통과(쿠키 선택을 미리 넣고 다시 찍음). 카드 전체가 y16–479 안에 있고 겹침·잘림이 없다. 대비는 제목 15.5:1, '경과' 9.75:1, 떠남 안내 11.6–11.9:1이다. % 없음, 초상 인간형(지름 약 92px).
+
+후속(보고만)
+1. 모바일에서 대기 카드가 폼 아래(문서 y≈2900)에 있다. 재개 때 화면이 그리로 가지 않으면 사용자가 카드를 보지 못할 수 있다. 예전 오버레이도 같은 자리였다.
+2. 모바일에서 "차트를 분석하는 중..."이 폼 상태줄·버튼·카드에 세 번 나온다.
+3. 첫 방문 모바일에서는 고정 쿠키 배너가 대기 카드 아래쪽을 가린다(신년운세와 같은 문제). 캡처는 쿠키 선택을 미리 넣고 찍었다.
+4. 불확정 막대 트랙 테두리 대비가 2.85:1로 그래픽 3:1에 조금 못 미친다. 공용 컴포넌트 토큰 문제다.
+5. 윤달 초상(`yun-astrology-portrait.webp`, 600x720, 89KB)에는 srcSet이 없다.
+6. 토스 재개는 URL에 `cid`가 남아 있을 때만 된다.
+7. 기존 eslint 경고 `Sparkles` 미사용, 기존 미사용 CSS `.cosmosLabelSwap`.
+8. 390에서 제목("…쓰고 / 있어요")과 떠남 안내 마지막 줄("저장해요.")에 한 어절만 남는다. 공용 컴포넌트에 `text-wrap: balance`/`pretty`를 쓰면 다듬을 수 있다(선택).
