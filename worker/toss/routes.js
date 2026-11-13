@@ -38,6 +38,7 @@ async function readNativeLibraryItem(env,auth,row){
   if(row.nativeService==='naming')return (await import('./native-naming.js')).namingLibraryItem(env,auth,row);
   if(['totem-basic','totem-deep'].includes(row.nativeService))return (await import('./native-totem.js')).totemFor(row.featureKey).libraryItem(env,auth,row);
   if(row.nativeService==='geomancy')return (await import('./native-geomancy.js')).geomancyLibraryItem(env,auth,row);
+  if(['guardian','sibyl'].includes(row.nativeService))return (await import('./birth-readings.js')).birthLibraryItem(env,auth,row);
   if(row.nativeService==='saju-compat')return (await import('./native-saju-compat.js')).compatLibraryItem(env,auth,row);
   if(row.nativeService==='dream')return (await import('./native-dream.js')).dreamLibraryItem(env,auth,row);
   if(row.nativeService==='heukwol')return (await import('./native-heukwol.js')).heukwolLibraryItem(env,auth,row);
@@ -457,6 +458,23 @@ export async function handleTossRoutes(request,env) {
       if(request.method==='POST')await limit(env,auth._id,'native-geomancy-generate',30);
       return forwardServiceResponse(await (await import('./native-geomancy.js')).readGeomancy(env,auth,geomancy[1],request.method==='POST'),headers);
     }
+    const birthReading=path.match(/^\/native\/(guardian|sibyl)\/(prepare|results\/([a-f0-9]{64}))$/);
+    if(birthReading){
+      const [,service,action,id]=birthReading;
+      const adapter=await import('./birth-readings.js');
+      if(action==='prepare'&&request.method==='POST'){
+        await limit(env,auth._id,'native-'+service+'-prepare',6);
+        const body=await bodyOf(request);
+        return reply(await adapter.prepareBirthReading(env,auth,service,body.input,body.orderId));
+      }
+      if(id&&['GET','POST'].includes(request.method)){
+        const advance=request.method==='POST';
+        if(advance)await limit(env,auth._id,'native-'+service+'-generate',30);
+        const year=new URL(request.url).searchParams.get('year');
+        const result=await adapter.readBirthReading(env,auth,service,id,year,advance);
+        return reply(result.body,result.status);
+      }
+    }
     if(path==='/native/saju-compat/prepare'&&request.method==='POST'){
       await limit(env,auth._id,'native-saju-compat-prepare',6);
       const body=await bodyOf(request);
@@ -487,7 +505,7 @@ export async function handleTossRoutes(request,env) {
       if(request.method==='POST')await limit(env,auth._id,'native-heukwol-wave',35);
       return reply(await (await import('./native-heukwol.js')).heukwolWave(env,auth,heukwol[1],request.method==='POST'));
     }
-    const nativeIntent=path.match(/^\/native\/(tea|yoga|saju-compat|codex|palm|geomancy|totem-basic|totem-deep|nakshatra|neo|naming|dream|heukwol|fusion|life-book|love-secret|astrology|vedic|ziwei|new-year|karma|maya|sukuyo|relationship|pet)\/intents\/([a-f0-9]{64})$/);
+    const nativeIntent=path.match(/^\/native\/(guardian|sibyl|tea|yoga|saju-compat|codex|palm|geomancy|totem-basic|totem-deep|nakshatra|neo|naming|dream|heukwol|fusion|life-book|love-secret|astrology|vedic|ziwei|new-year|karma|maya|sukuyo|relationship|pet)\/intents\/([a-f0-9]{64})$/);
     if(nativeIntent&&request.method==='GET'){
       const {readNativeTeaIntent}=await import('./native-tea.js');
       return reply(await readNativeTeaIntent(env,auth,nativeIntent[2],nativeIntent[1]));

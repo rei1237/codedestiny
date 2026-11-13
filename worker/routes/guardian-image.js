@@ -127,6 +127,11 @@ function buildGuardianSajuDataFromBirth(birth) {
   };
 }
 
+export function guardianPromptForBirth(birth) {
+  const data = buildGuardianSajuDataFromBirth(birth);
+  return data ? buildGuardianPromptPayload(data) : null;
+}
+
 async function handleImagePrompt(request, env, auth) {
   const body = await readJson(request);
   let access;
@@ -154,15 +159,15 @@ async function handleImagePrompt(request, env, auth) {
     }, { status: 402 });
   }
 
-  const sajuData = buildGuardianSajuDataFromBirth(access.birth);
-  if (!sajuData) {
+  const prompt = guardianPromptForBirth(access.birth);
+  if (!prompt) {
     return json({
       ok: false, reason: "INVALID_PROFILE_BIRTH", requiresProfile: true,
       message: "프로필의 출생 정보를 확인해 주세요.",
     }, { status: 400 });
   }
 
-  return json({ ok: true, ...buildGuardianPromptPayload(sajuData) });
+  return json({ ok: true, ...prompt });
 }
 
 export async function handleSajuGuardianImageRoutes(request, env) {

@@ -149,3 +149,20 @@ test('provider failure keeps saved chapters; an empty body still fails retryably
 
 // HEAD 57ef6d518의 generateSibylCounsel 프롬프트(YEAR 기준)에서 잰 값.
 const SIBYL_V1_PROMPT_SHA256='39e622558808d1442acc1d2acb34c877e5c72298140f7fcfbafa376afeb58179';
+
+test('native birth purchase keeps both years independent from web and rereads completed chapters',async()=>{
+  generate.mockResolvedValue(full());
+  const id='a'.repeat(64);
+  const native={...access,tossIntentId:id,purchaseEvidence:{orderId:'mock-toss',paymentId:'mock-toss'}};
+  const first=await store.readOrGenerateSibyl(V2_ENV,'owner',native,YEAR);
+  const repeat=await store.readOrGenerateSibyl(V2_ENV,'owner',native,YEAR);
+  expect(repeat.body).toEqual(first.body);
+  expect(generate).toHaveBeenCalledTimes(1);
+  const second=await store.readOrGenerateSibyl(V2_ENV,'owner',native,YEAR+1);
+  const web=await store.readOrGenerateSibyl(V2_ENV,'owner',access,YEAR);
+  expect(first.body.reportId).toBe('toss-sibyl:'+id+':'+YEAR);
+  expect(second.body.reportId).toBe('toss-sibyl:'+id+':'+(YEAR+1));
+  expect(web.body.reportId).toMatch(/^sibyl:/);
+  expect(rows.size).toBe(3);
+  expect(generate).toHaveBeenCalledTimes(3);
+});

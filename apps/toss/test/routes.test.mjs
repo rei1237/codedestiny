@@ -39,6 +39,7 @@ const stubMap={
  'worker/toss/native-totem.js':"export const totemFor=()=>({prepare:async()=>({paid:false}),read:async()=>Response.json({status:'generating'}),libraryItem:async()=>({state:'PENDING'})});",
  'worker/toss/native-geomancy.js':"export const prepareGeomancy=async()=>({paid:false}),readGeomancy=async()=>Response.json({status:'generating'}),geomancyLibraryItem=async()=>({state:'PENDING'});",
  'worker/routes/sibyl.js':"export const handleSibylRoutes=async req=>Response.json({path:new URL(req.url).pathname,input:await req.json()});",
+ 'worker/toss/birth-readings.js':"export const prepareBirthReading=async()=>({paid:false}),readBirthReading=async()=>({status:200,body:{archive:null}}),birthLibraryItem=async()=>({state:'PENDING'});",
  'worker/toss/native-saju-compat.js':"export const prepareCompat=async()=>({paid:false}),readCompat=async()=>Response.json({status:'generating'}),compatLibraryItem=async()=>({state:'PENDING'});",
  'worker/toss/native-yoga.js':"export const prepareYoga=async()=>({paid:false}),readNativeYoga=async()=>Response.json({status:'generating'}),nativeYogaLibraryItem=async()=>({state:'PENDING'});",
  'worker/toss/native-dream.js':"export const prepareDream=async()=>({paid:false}),readDream=async()=>Response.json({status:'generating'}),dreamLibraryItem=async()=>({state:'PENDING'});",
@@ -618,6 +619,16 @@ test('paid compatibility requires the active owner before accessing a result',as
  mocks.denyAuth=true;try{assert.equal((await request({},path)).status,401);}finally{mocks.denyAuth=false;}
  assert.equal((await request({},path,{})).status,503);
  assert.equal((await request({},path)).status,200);
+});
+
+test('Guardian and in-depth Sibyl both require an authenticated, released service',async()=>{
+ const id='a'.repeat(64);
+ for(const name of ['guardian','sibyl']){
+   const path='/native/'+name+'/results/'+id;
+   mocks.denyAuth=true;
+   try{assert.equal((await request({},path)).status,401);}finally{mocks.denyAuth=false;}
+   assert.equal((await request({},path,{})).status,503);
+ }
 });
 
 test('guest Sibyl preview forwards only the year and birth profile to the public annual engine',async()=>{

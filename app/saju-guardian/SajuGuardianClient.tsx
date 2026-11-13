@@ -18,113 +18,11 @@ import {
   getGuardianCopy,
   getStemElement,
   normalizeGanji,
-  type Ganji60,
 } from "@/app/_lib/fortune/ganjiGuardianSprite";
 import { buildGuardianIdentity, buildTenGodReadings } from "@/app/_lib/fortune/guardianIdentity";
 
 /* ─────────────────────────── 타입 ─────────────────────────── */
-interface ApiResult {
-  ok: boolean;
-  result?: {
-    dominantElement: string;
-    secondaryElement: string;
-    zodiac: string;
-    colorKo: string;
-    colorEn: string;
-    animals: string[];
-    mainAnimal: string;
-    expressionKo: string;
-    personalitySummaryKo: string;
-    personalityLines: string[];
-    headlineKo: string;
-    dayPillar?: string;
-    dayGanji?: string;
-    ilju?: string;
-    dayStemBranch?: string;
-    fourPillars?: {
-      year?: {
-        ganji?: string;
-        stem?: string;
-        branch?: string;
-      };
-      month?: {
-        ganji?: string;
-        stem?: string;
-        branch?: string;
-      };
-      day?: {
-        ganji?: string;
-        stem?: string;
-        branch?: string;
-      };
-      hour?: {
-        ganji?: string;
-        stem?: string;
-        branch?: string;
-      };
-    };
-    saju?: {
-      dayPillar?: string;
-      dayGanji?: string;
-      ilju?: string;
-      dayStemBranch?: string;
-      fourPillars?: {
-        year?: {
-          ganji?: string;
-          stem?: string;
-          branch?: string;
-        };
-        month?: {
-          ganji?: string;
-          stem?: string;
-          branch?: string;
-        };
-        day?: {
-          ganji?: string;
-          stem?: string;
-          branch?: string;
-        };
-        hour?: {
-          ganji?: string;
-          stem?: string;
-          branch?: string;
-        };
-      };
-    };
-    hasBirthTime?: boolean;
-  };
-  imageUrl?: string;
-  fallback?: boolean;
-  fallbackMessage?: string;
-  message?: string;
-  dayPillar?: string;
-  dayGanji?: string;
-  ilju?: string;
-  dayStemBranch?: string;
-  fourPillars?: {
-    year?: {
-      ganji?: string;
-      stem?: string;
-      branch?: string;
-    };
-    month?: {
-      ganji?: string;
-      stem?: string;
-      branch?: string;
-    };
-    day?: {
-      ganji?: string;
-      stem?: string;
-      branch?: string;
-    };
-    hour?: {
-      ganji?: string;
-      stem?: string;
-      branch?: string;
-    };
-  };
-  resolvedGanji?: Ganji60 | null;
-}
+import { guardianReading, STEM_TO_ELEMENT, BRANCH_TO_ZODIAC, ELEMENT_NEXT, ELEMENT_COLOR, type ApiResult } from "./guardian-reading";
 
 type Phase = "checking" | "locked" | "intro" | "form" | "loading" | "result" | "error";
 
@@ -853,50 +751,6 @@ const ANIMAL_EMOJI: Record<string, string> = {
   돼지: "🐷",
 };
 
-const STEM_TO_ELEMENT: Record<string, "목" | "화" | "토" | "금" | "수"> = {
-  갑: "목",
-  을: "목",
-  병: "화",
-  정: "화",
-  무: "토",
-  기: "토",
-  경: "금",
-  신: "금",
-  임: "수",
-  계: "수",
-};
-
-const BRANCH_TO_ZODIAC: Record<string, string> = {
-  자: "쥐",
-  축: "소",
-  인: "호랑이",
-  묘: "토끼",
-  진: "용",
-  사: "뱀",
-  오: "말",
-  미: "양",
-  신: "원숭이",
-  유: "닭",
-  술: "개",
-  해: "돼지",
-};
-
-const ELEMENT_NEXT: Record<string, "목" | "화" | "토" | "금" | "수"> = {
-  목: "화",
-  화: "토",
-  토: "금",
-  금: "수",
-  수: "목",
-};
-
-const ELEMENT_COLOR: Record<string, { ko: string; en: string }> = {
-  목: { ko: "초록", en: "Green" },
-  화: { ko: "코랄", en: "Coral" },
-  토: { ko: "샌드", en: "Sand" },
-  금: { ko: "아이보리", en: "Ivory" },
-  수: { ko: "하늘", en: "Sky" },
-};
-
 const STEM_POLARITY: Record<string, "양" | "음"> = {
   갑: "양",
   병: "양",
@@ -1436,7 +1290,7 @@ function GuardianSealDisplay({
 }
 
 /* ─────────────────────── 결과 카드 ─────────────────────────── */
-function ResultCard({
+export function ResultCard({
   data,
   onReset,
   tx,
@@ -1445,7 +1299,9 @@ function ResultCard({
   birthDay,
   birthHour,
   profileId,
+  storedPrompt,
 }: {
+  storedPrompt?: {prompt: string; negativePrompt: string; seed: number};
   data: ApiResult;
   onReset: () => void;
   tx: SajuGuardianTx;
@@ -1470,10 +1326,11 @@ function ResultCard({
   // 이미지 직접 생성은 종료됐다. 예전에 이 기기에서 받은 이미지는 지우지 않고 그대로 다시 보여 준다(읽기 전용).
   const guardianImageCacheKey = `cd_guardian_img_${birthYear}_${birthMonth}_${birthDay}_${birthHour !== "" ? birthHour : "x"}`;
   useEffect(() => {
+    if (storedPrompt) return;
     try {
       setSavedGuardianImage(window.localStorage.getItem(guardianImageCacheKey) || "");
     } catch { /* localStorage 불가 환경은 무시 */ }
-  }, [guardianImageCacheKey]);
+  }, [guardianImageCacheKey, storedPrompt]);
 
   if (!data.result) {
     return (
@@ -1512,6 +1369,10 @@ function ResultCard({
 
   const handleCreateImagePrompt = async () => {
     // 프롬프트 해금은 저장된 프로필의 생년월일 단위 — 서버는 profileId 의 저장된 출생 정보로만 만든다.
+    if (storedPrompt) {
+      setImagePrompt({status: "ready", ...storedPrompt});
+      return;
+    }
     if (!profileId) {
       setImagePrompt({ status: "error", message: tx("프로필을 저장하면 영문 이미지 프롬프트를 만들 수 있어요."), retryable: false });
       return;
@@ -2183,69 +2044,12 @@ export default function SajuGuardianPage() {
         calendarType: "solar",
       });
 
-      const resolvedGanji = normalizeGanji(local?.pillars?.day?.ganji ?? null);
-      if (!resolvedGanji) {
+      const localData = guardianReading(local.pillars, birthHour !== "");
+      if (!localData) {
         setErrorMsg(tx("일주 계산에 실패했어요. 입력값을 다시 확인해 주세요."));
         setPhase("error");
         return;
       }
-
-      const dayStem = local.pillars.day.stem;
-      const dominantElement = STEM_TO_ELEMENT[dayStem] ?? "토";
-      const secondaryElement = ELEMENT_NEXT[dominantElement] ?? "금";
-      const zodiac = BRANCH_TO_ZODIAC[local.pillars.year.branch] ?? "용";
-      const mainAnimal = GANJI_ANIMAL_MAP[resolvedGanji] ?? "용";
-      const copy = getGuardianCopy(resolvedGanji);
-      const hasBirthTime = birthHour !== "";
-      const hourPillar = hasBirthTime ? local.pillars.hour : null;
-
-      const localData: ApiResult = {
-        ok: true,
-        resolvedGanji,
-        result: {
-          dominantElement,
-          secondaryElement,
-          zodiac,
-          colorKo: ELEMENT_COLOR[dominantElement]?.ko ?? "파스텔",
-          colorEn: ELEMENT_COLOR[dominantElement]?.en ?? "Pastel",
-          animals: [mainAnimal],
-          mainAnimal,
-          expressionKo: `${mainAnimal} 기운이 깨어나는 날`,
-          personalitySummaryKo: copy.short,
-          personalityLines: copy.traits,
-          headlineKo: copy.title,
-          hasBirthTime,
-          dayPillar: resolvedGanji,
-          dayGanji: resolvedGanji,
-          ilju: resolvedGanji,
-          dayStemBranch: resolvedGanji,
-          fourPillars: {
-            year: {
-              ganji: local.pillars.year.ganji,
-              stem: local.pillars.year.stem,
-              branch: local.pillars.year.branch,
-            },
-            month: {
-              ganji: local.pillars.month.ganji,
-              stem: local.pillars.month.stem,
-              branch: local.pillars.month.branch,
-            },
-            day: {
-              ganji: resolvedGanji,
-              stem: local.pillars.day.stem,
-              branch: local.pillars.day.branch,
-            },
-            hour: hasBirthTime && hourPillar
-              ? {
-                  ganji: hourPillar.ganji,
-                  stem: hourPillar.stem,
-                  branch: hourPillar.branch,
-                }
-              : undefined,
-          },
-        },
-      };
-
       setApiData(localData);
       setPhase("result");
     } catch (e) {

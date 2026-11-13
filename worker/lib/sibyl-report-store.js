@@ -177,11 +177,12 @@ export async function advanceSibylCounselV2(env, analysis, record, owned) {
   return { chapters, model, source:'server-calculation-ai', ...(qualityWarnings.length ? { qualityWarnings } : {}) };
 }
 export async function readOrGenerateSibyl(env,userId,access,requestedYear) {
-  const year=validateSibylYear(requestedYear);
+  const year=access.tossIntentId && Number.isInteger(access.tossResumeYear) && access.tossResumeYear===requestedYear
+    ? requestedYear : validateSibylYear(requestedYear);
   const birthKey=computeBirthKey(access.card);
   if(!birthKey) throw new Error('SIBYL_INVALID_BIRTH_INPUT');
-  const executionKey=`sibyl:${birthKey}:${year}`;
-  const filter={userId,executionKey};
+  const executionKey=access.tossIntentId ? `toss-sibyl:${access.tossIntentId}:${year}` : `sibyl:${birthKey}:${year}`;
+  const filter=access.tossIntentId ? {userId,executionKey,featureKey:'premium-sibyl-dominator',reportType:'sibylAnnual',orderId:access.purchaseEvidence.orderId} : {userId,executionKey};
   await connectDb(env);
   const existing=await ServiceExecutionTransaction.findOne(filter).lean();
   if(existing && await isStoredPaidResultRevoked(userId,'premium-sibyl-dominator',existing)) return {status:403,body:{ok:false,code:'RESULT_REVOKED',message:'취소·환불된 결과는 제공할 수 없어요.'}};

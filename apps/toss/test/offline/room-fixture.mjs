@@ -13,7 +13,9 @@ const palm={service:'palm',name:'가상 손금 리포트',featureKey:'palm-readi
 const palmIntentView=row=>({id:row.id,sku:row.sku,amountKRW:row.amountKRW,paid:row.paid,orderId:row.orderId});
 const geomancy={service:'geomancy',name:'가상 지오맨시 흙점',featureKey:'geomancy',path:'/geomancy/'};
 const totems=['basic','deep'].map(k=>({service:'totem-'+k,featureKey:'animal-totem-'+k,name:'가상 애니멀 토템 '+k,path:'/animal-totem/totem-'+k+'/'}));
-const rooms=[...totems,sajuCompat,geomancy,tea,neo,heukwol,dream,naming,codex,compat,palm];
+const guardian={service:'guardian',name:'가상 사주 가디언',featureKey:'saju-guardian-unlock',path:'/saju-guardian/'};
+const sibyl={service:'sibyl',name:'가상 시빌라 심층 리포트',featureKey:'premium-sibyl-dominator',path:'/saju/sibyl/'};
+const rooms=[guardian,sibyl,...totems,sajuCompat,geomancy,tea,neo,heukwol,dream,naming,codex,compat,palm];
 export const roomProducts=rooms.map(room=>({
   id:'native:'+room.service+':'+room.featureKey,name:room.name,featureKey:room.featureKey,
   sku:'mock-unregistered-room-'+(room===compat?'codex-compat':room.service),available:true,approvedPriceKRW:1,
@@ -38,7 +40,7 @@ export function roomPurchases(state){
       productId:room.featureKey,status:'PURCHASED',state:row.result?'COMPLETED':'PENDING',createdAt:row.createdAt,
       href:room===palm||totems.includes(room)||room===sajuCompat||room===geomancy||room===dream||room===naming||room.service==='codex'?room.path+'?intentId='+row.id:room.service==='heukwol'?room.path+'?result='+row.id:room.service==='neo'?room.path+'?attemptId='+encodeURIComponent(row.result?row.resultId:'toss_'+row.id):
         room.path+'?'+(row.result?'resultId=':'recoverResultId=')+encodeURIComponent(row.resultId),
-      question:room===palm?'내 손금 리포트':room===sajuCompat?row.input.partnerName:room.service==='codex'?room.name.slice(3):room===naming?row.input.input.familyName+' 작명첩':row.input.question||row.input.dreamText,resultId:row.resultId};
+      question:room===guardian||room===sibyl?room.name:room===palm?'내 손금 리포트':room===sajuCompat?row.input.partnerName:room.service==='codex'?room.name.slice(3):room===naming?row.input.input.familyName+' 작명첩':row.input.question||row.input.dreamText,resultId:row.resultId};
   });
 }
 export async function roomRequest(request,url,path,state,save,now){
@@ -51,7 +53,13 @@ export async function roomRequest(request,url,path,state,save,now){
       return row?.service===room.service?reply(room===palm?palmIntentView(row):row):fail('RESULT_NOT_FOUND',404);
     }
     if(post&&match[2]==='prepare'){
-      let {input,orderId}=await request.json();const key=requestKey(input);
+      let {input,orderId}=await request.json();
+      if(room===guardian||room===sibyl){
+        const card=state.profiles.find(p=>p.profileId===input?.profileId);
+        if(!card)return fail('PROFILE_REQUIRED',400);
+        input.requestId=JSON.stringify([card.gender,card.birth]);
+      }
+      const key=requestKey(input);
       if(room===palm){
         const r=input?.reading;
         if(!r||!r.leftPalmImage&&!r.rightPalmImage)return fail('INVALID_PALM_IMAGE',400);
@@ -59,11 +67,11 @@ export async function roomRequest(request,url,path,state,save,now){
         input={requestId:key,digest:Array.from(new Uint8Array(bytes)).join('.'),dominantHand:r.dominantHand,analysisPurpose:r.analysisPurpose,uploadedHands:[...(r.leftPalmImage?['left']:[]),...(r.rightPalmImage?['right']:[])]};
       }
       if(room===codex&&input?.mode==='compat')room=compat;
-      const valid=room===palm?input.uploadedHands.length:totems.includes(room)?Array.isArray(input?.animalIds)&&input.animalIds.length===({one:1,three:3,five:5})[input.mode]&&(input.mode==='five')===(room===totems[1]):room===sajuCompat?input?.self?.pillars?.length===4&&input?.partner?.pillars?.length===4&&input?.facts?.score:room===geomancy?input?.question?.length>=2&&input?.counts?.length===16:room.service==='codex'?input?.reading?.birthInfo?.birthDate&&Boolean(input.reading.partnerInfo?.birthDate)===(room===compat):room===naming?input?.input?.familyName&&input.input.birthDate:room===dream?typeof input?.dreamText==='string'&&input.dreamText.trim().length>=8&&input.dreamText.length<=6000:input?.question;
+      const valid=room===guardian||room===sibyl?input.profileId:room===palm?input.uploadedHands.length:totems.includes(room)?Array.isArray(input?.animalIds)&&input.animalIds.length===({one:1,three:3,five:5})[input.mode]&&(input.mode==='five')===(room===totems[1]):room===sajuCompat?input?.self?.pillars?.length===4&&input?.partner?.pillars?.length===4&&input?.facts?.score:room===geomancy?input?.question?.length>=2&&input?.counts?.length===16:room.service==='codex'?input?.reading?.birthInfo?.birthDate&&Boolean(input.reading.partnerInfo?.birthDate)===(room===compat):room===naming?input?.input?.familyName&&input.input.birthDate:room===dream?typeof input?.dreamText==='string'&&input.dreamText.trim().length>=8&&input.dreamText.length<=6000:input?.question;
       if(!key||!valid||input.featureKey&&input.featureKey!==room.featureKey)return fail('REQUEST_INPUT_MISMATCH',400);
       if(room===heukwol){const card=state.profiles.find(p=>p.profileId===input.profileId);if(!card)return fail('PROFILE_REQUIRED',400);if(card.birth?.timeUnknown!==false)return fail('BIRTH_TIME_REQUIRED',400);}
       let row=[...state.intents.values()].find(item=>item.service===room.service&&requestKey(item.input)===key);
-      if(row&&JSON.stringify(row.input)!==JSON.stringify(input))return fail('REQUEST_INPUT_MISMATCH',409);
+      if(row&&room!==guardian&&room!==sibyl&&JSON.stringify(row.input)!==JSON.stringify(input))return fail('REQUEST_INPUT_MISMATCH',409);
       if(orderId&&(!row?.paid||row.orderId!==orderId))return fail('ORDER_MISMATCH',403);
       if(!row){
         const id=(++state.sequence).toString(16).padStart(64,'0');
@@ -155,6 +163,33 @@ export async function roomRequest(request,url,path,state,save,now){
     if(row?.service!==totemMatch[1]||!row.paid)return fail('RESULT_NOT_FOUND',404);
     if(post&&!row.result){row.result={saved:true,status:'completed',question:row.input.question,cards:row.input.animalIds.map((animalId,i)=>({animalId,slot:['mind','heart','shadow','gift','next_action'][i]})),narrative:{question_answer:'[테스트 전용] 저장한 토템 질문 답변입니다.'}};row.generationCount=1;save();}
     return reply(row.result||{saved:false,status:'generating',retryable:true});
+  }
+  const birthMatch=/^\/native\/(guardian|sibyl)\/results\/([a-f0-9]{64})$/.exec(path);
+  if(birthMatch){
+    const [,service,id]=birthMatch,row=state.intents.get(id);
+    if(!row?.paid||row.service!==service)return fail('RESULT_NOT_FOUND',404);
+    const year=Number(url.searchParams.get('year')||row.input.year),card=state.profiles.find(p=>p.profileId===row.input.profileId);
+    if(service==='guardian'){
+      if(post&&!row.result){
+        const {guardianReading}=await import('../../../../app/saju-guardian/guardian-reading.ts');
+        const day={ganji:'병진',stem:'병',branch:'진'};
+        row.result={reading:guardianReading({day,year:day,month:day},false),prompt:{prompt:'[테스트 전용] mock guardian image prompt',negativePrompt:'[테스트 전용] negative prompt',seed:123}};
+        row.generationCount=1;save();
+      }
+      return row.result?reply({ok:true,archive:row.result}):reply({ok:true,status:'pending'},202);
+    }
+    row.waves||={};row.reports||={};
+    if(post&&!row.reports[year]){
+      row.waves[year]=(row.waves[year]||0)+1;
+      if(row.waves[year]===2){
+        const {buildSibylAnnual}=await import('../../../../worker/lib/sibyl-annual.js');
+        const analysis=buildSibylAnnual({date:card.birthDate||'1990-01-01',timeKnown:false,gender:card.gender},year);
+        const chapters=Array.from({length:10},(_,n)=>({key:'test-'+n,title:'모의 상담 '+(n+1)+'장',content:'[테스트 전용] '+year+'년 '+(n+1)+'장 원문'}));
+        row.reports[year]={year,analysis,chapters,title:analysis.title};row.result=true;
+      }
+      save();
+    }
+    return reply({ok:true,year,years:Object.keys(row.waves).map(Number),status:row.reports[year]?'completed':row.waves[year]?'generating':'unopened',archive:row.reports[year]});
   }
   const geomancyMatch=/^\/native\/geomancy\/results\/([a-f0-9]{64})$/.exec(path);
   if(geomancyMatch){

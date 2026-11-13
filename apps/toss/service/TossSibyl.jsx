@@ -27,5 +27,5 @@ export default function TossSibyl(){
   {busy&&<p role="status">선택한 해의 흐름을 살피고 있어요.</p>}{error&&<p role="alert">{error}</p>}
   {preview&&<article><h2 tabIndex={-1} ref={heading}>{preview.year}년 대비 분석</h2><p>{preview.summary}</p><p>{preview.period}</p>
   {preview.traits.map(trait=><section key={trait.strength}><h3>{trait.strength}</h3><p>{trait.caution}</p></section>)}
-  <h3>먼저 실천할 대비 행동</h3><p>{preview.action}</p><p>{[preview.limitation,...preview.uncertainty].filter(Boolean).join(' ')}</p></article>}</section>;
+  <h3>먼저 실천할 대비 행동</h3><p>{preview.action}</p><p>{[preview.limitation,...preview.uncertainty].filter(Boolean).join(' ')}</p></article>}<a href={'/saju/sibyl/?deep=1&year='+year}>저장한 프로필로 심층 리포트 열기</a></section>;
 }
