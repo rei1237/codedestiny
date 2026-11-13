@@ -86,14 +86,21 @@ test('free promo list shows only features that are already free and reachable', 
   assert.ok(shell.includes(`href="${FREE_PROMO_YEONI.href}" data-cd-free-promo-yeoni`), 'index.html Yeoni entry missing');
 });
 
-test('free promo chips for other readings open their explanation pages', async () => {
+test('free promo chips open their explanation pages', async () => {
   const { FREE_PROMO_GROUPS, freePromoItemHref } = await import('../../lib/marketing/free-promo.mjs');
+  const { FREE_FEATURE_DETAILS } = await import('../../lib/marketing/free-feature-details.mjs');
   const hrefOf = Object.fromEntries(FREE_PROMO_GROUPS.flatMap(g => g.items).map(item => [item.id, freePromoItemHref(item)]));
   const expected = {
     tarot: '/tarot/', ziwei: '/ziwei/', sukuyo: '/sukuyo/', vedic: '/vedic/', astro: '/astrology/',
     compat: '/saju/compatibility/', humanDesign: '/human-design/guide/',
     manse: '/manse/', today: '/today/', career: '/saju/career-style/',
     bias: '/saju/destiny-bias/', animal: '/saju/animal-destiny/', promptHub: '/fortune/prompt-hub/',
+    fourCut: '/saju/four-cut/', dopamine: '/saju/dopamine/', hormone: '/saju/teto-egen/', tTest: '/saju/t-test/',
+    lotto: '/saju/lotto-ritual/', aiPrompt: '/saju/ai-prompt-card/', skillTree: '/saju/skill-tree/',
+    natal: '/saju/natal-chart/', seasonRhythm: '/saju/season-rhythm/',
   };
   for (const [id, href] of Object.entries(expected)) assert.equal(hrefOf[id], href, id);
+  // 사주 결과 카드 설명 페이지는 free-feature-details 의 href 와 칩 주소가 같아야 한다(details 가 free-promo.mjs 를 import 해 주소를 따로 적어 두므로 여기서 맞춘다).
+  assert.equal(FREE_FEATURE_DETAILS.length, 9);
+  for (const detail of FREE_FEATURE_DETAILS) assert.equal(hrefOf[detail.id], detail.href, detail.id + ' chip must open its detail page');
 });
