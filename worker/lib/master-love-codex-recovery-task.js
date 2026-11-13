@@ -166,7 +166,7 @@ export async function runMasterLoveCodexRecovery(env, options = {}) {
   const SessionModel = options.MasterLoveCodexSession || MasterLoveCodexSession;
   const lockFn = options.acquireBatchLock || acquireBatchLock;
   const waveFn = options.runCodexWave || runCodexWave;
-  const accessFn = options.recoverCodexSession || recoverCodexSession;
+  const accessFn = options.recoverCodexSession || (args=>recoverCodexSession({...args,verifyNative:async doc=>(await import("../toss/native-codex.js")).verifyCodexRecovery(env,doc)}));
 
   await (options.connectDb || connectDb)(env);
   const bootstrapped = await (options.bootstrapPaidCodexSessions || bootstrapPaidCodexSessions)(env, { ...options, now, deadlineAt: deadline });

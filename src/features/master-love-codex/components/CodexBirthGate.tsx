@@ -76,6 +76,7 @@ export const EMPTY_CODEX_BIRTH: CodexBirthInput = {
 };
 
 interface CodexBirthGateProps {
+  native?: {ready:boolean;ProfilePicker:React.ComponentType<{onSelect:(seed:import("@/app/_lib/ai-prefill-seed").AiPrefillSeed)=>void;disabled?:boolean;label?:string}>};
   value: CodexBirthInput;
   onChange: (next: CodexBirthInput) => void;
   onSubmit: () => void;
@@ -91,6 +92,7 @@ interface CodexBirthGateProps {
 }
 
 export default function CodexBirthGate({
+  native,
   value,
   onChange,
   onSubmit,
@@ -102,7 +104,8 @@ export default function CodexBirthGate({
   floatingCta,
 }: CodexBirthGateProps) {
   const copy = useMasterLoveCodexCopy();
-  const { seed, seedVersion } = useAiProfileSeed();
+  const { seed, seedVersion } = useAiProfileSeed({enabled:!native});
+  const ProfilePicker=native?.ProfilePicker||SavedBirthProfilePicker;
 
   const birthTouched = useRef(false);
   const valueRef = useRef(value);
@@ -236,7 +239,7 @@ export default function CodexBirthGate({
 
         <CodexReveal index={2} className="mt-10 space-y-9">
           <div className="flex justify-end">
-            <SavedBirthProfilePicker disabled={busy} onSelect={next => patch({name:next.name || "", birthDate:next.birthDate || "", birthTime:next.birthTime || "", birthTimeUnknown:Boolean(next.birthTimeUnknown), gender:next.gender === "male" || next.gender === "female" ? next.gender : "", calendarType:next.calendarType || "solar", isLeapMonth:Boolean(next.isLeapMonth)})} />
+            <ProfilePicker disabled={busy} onSelect={next => patch({name:next.name || "", birthDate:next.birthDate || "", birthTime:next.birthTime || "", birthTimeUnknown:Boolean(next.birthTimeUnknown), gender:next.gender === "male" || next.gender === "female" ? next.gender : "", calendarType:next.calendarType || "solar", isLeapMonth:Boolean(next.isLeapMonth)})} />
           </div>
 
           <div>
@@ -354,7 +357,7 @@ export default function CodexBirthGate({
             {partner ? (
               <div id="codex-partner-fields" className="mt-9 space-y-9 border-l pl-5" style={{ borderColor: "var(--codex-rule)" }}>
                 <div>
-                  <SavedBirthProfilePicker label="상대의 저장된 프로필" disabled={busy} onSelect={next => patchPartner({name:next.name || "", birthDate:next.birthDate || "", birthTime:next.birthTime || "", birthTimeUnknown:Boolean(next.birthTimeUnknown), gender:next.gender === "male" || next.gender === "female" ? next.gender : "", calendarType:next.calendarType || "solar", isLeapMonth:Boolean(next.isLeapMonth)})} />
+                  <ProfilePicker label="상대의 저장된 프로필" disabled={busy} onSelect={next => patchPartner({name:next.name || "", birthDate:next.birthDate || "", birthTime:next.birthTime || "", birthTimeUnknown:Boolean(next.birthTimeUnknown), gender:next.gender === "male" || next.gender === "female" ? next.gender : "", calendarType:next.calendarType || "solar", isLeapMonth:Boolean(next.isLeapMonth)})} />
                   <label className={labelClass} style={labelStyle} htmlFor="codex-partner-name">{copy.partnerNameLabel}</label>
                   <input
                     id="codex-partner-name"
@@ -451,7 +454,7 @@ export default function CodexBirthGate({
         {/* 결제가 붙은 버튼이다 — 누르기 전에 금액이 버튼 안에서 보여야 한다.
             문구는 "결과 보기" 하나로 유지한다(가격은 priceSlot 이 서버에서 읽어 온다). */}
         <CodexReveal index={4} className="mt-12 flex flex-col items-center gap-5">
-          <button type="button" onClick={onSubmit} disabled={busy} className={styles.cta}>
+          <button type="button" onClick={onSubmit} disabled={busy||Boolean(native&&!native.ready)} className={styles.cta}>
             {busy ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : null}
             {busy ? busyLabel : (
               <>
@@ -462,7 +465,7 @@ export default function CodexBirthGate({
             )}
           </button>
           <p className={`${styles.numeral} text-[0.75rem]`} style={{ letterSpacing: "0.14em", color: "var(--codex-gold-dim)" }}>
-            {copy.paymentDisclosure}
+            {native?"토스 단건 결제":copy.paymentDisclosure}
           </p>
         </CodexReveal>
       </div>

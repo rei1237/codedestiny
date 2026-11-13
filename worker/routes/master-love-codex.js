@@ -108,6 +108,20 @@ function resolveMode(value) {
   return clean(value) === "compat" ? MODES.compat : MODES.solo;
 }
 
+export function prepareCodexForToss(env,body){
+  const normalized=normalizeInput(body);
+  if(!normalized.ok)throw new Error("INVALID_CODEX_INPUT");
+  const now=new Date(),charts=buildCharts(normalized,now,env);
+  buildCodexConsultation(normalized.consultation,normalized.mode,charts,normalized.birthInfo,normalized.partnerInfo,now);
+  const {mode,birthInfo,partnerInfo,consultation,prologueChoice,inputHash}=normalized;
+  const input={birthInfo,partnerInfo,consultation,prologueChoice};
+  return {input,mode,sourceHash:inputHash,inputHash:sha256(JSON.stringify(input)),featureKey:resolveMode(mode).featureKey};
+}
+
+export function codexSessionForToss(doc){
+  return {...publicSession(doc),done:doc.status==="completed"};
+}
+
 /** 새 세션이 받는 장 구성 판. 세션에 `deliveryMeta.chapterPlanVersion` 으로 고정된다. */
 export const CODEX_CHAPTER_PLAN_VERSION = 2;
 
@@ -149,7 +163,7 @@ const CODEX_STEPS = Object.freeze(["pending", "writing", "validating", "saving",
  *
  * 남는 22초는 인증·DB 왕복·프롬프트 구성·병합 저장 몫이다.
  */
-const BATCH_BUDGET_MS = EDGE_RESPONSE_DEADLINE_MS - 22_000;
+export const BATCH_BUDGET_MS = EDGE_RESPONSE_DEADLINE_MS - 22_000;
 /** 이보다 적게 남았으면 새 장을 시작하지 않는다 — 시작해도 예산 안에 못 끝낸다. */
 const CHAPTER_MIN_BUDGET_MS = 12_000;
 /**
@@ -963,11 +977,12 @@ function publicSession(doc) {
 
 // ─── 핸들러 ──────────────────────────────────────────────────────────────────
 
-async function sessionWithAccessToken(env, doc) {
+async function sessionWithAccessToken(env, doc, nativeAccess = null) {
   // Recheck after generation too: a cancellation may arrive while the LLM is running.
-  const current = await recoverCodexSession({ userId: doc.userId, sessionId: doc.id });
+  const current = await recoverCodexSession({ userId: doc.userId, sessionId: doc.id, verifyNative:nativeAccess?.verify, nativeOnly:Boolean(nativeAccess) });
   if (!current || current.denied) return paymentVerifyFailed();
   doc = current.session;
+  if(nativeAccess)return json({...publicSession(doc),done:doc.status==="completed"},{status:doc.status==="completed"?200:202});
   await syncCodexExecution(doc);
   return json({
     ...publicSession(doc),
@@ -979,6 +994,10 @@ async function sessionWithAccessToken(env, doc) {
 }
 
 export async function syncCodexExecution(doc) {
+  if(doc.deliveryMeta?.tossIntentId){
+    if(doc.status==="completed"&&doc.deliveryMeta.executionSyncPending)await MasterLoveCodexSession.updateOne({id:doc.id,userId:doc.userId,"deliveryMeta.tossIntentId":doc.deliveryMeta.tossIntentId},{$set:{"deliveryMeta.executionSyncPending":false}});
+    return true;
+  }
   const saved = await PaidExecutionRecord.updateOne({
       userId: String(doc.userId), featureId: resolveMode(doc.mode).featureKey, requestId: doc.billingRequestId || doc.idempotencyKey,
     status: { $in: ["paid_pending_generation", "generating", "generation_failed", "completed"] },
@@ -1152,7 +1171,7 @@ async function handleStart(request, env) {
 }
 
 // Only authenticated HTTP and trusted, encrypted paid-order recovery call this core.
-export async function startCodexSession(request, env, auth, body) {
+export async function startCodexSession(request, env, auth, body, nativeAccess = null) {
   const idempotencyKey = clean(body?.idempotencyKey || body?.requestId, 120) || sha256(String(Date.now()));
   const normalized = normalizeInput(body);
   if (!normalized.ok) return invalidInput(normalized.message);
@@ -1160,10 +1179,10 @@ export async function startCodexSession(request, env, auth, body) {
   await connectDb(env);
   const recovered = await recoverCodexSession({
     userId: auth.userId, requestId: idempotencyKey,
-    inputHash: normalized.inputHash, mode: normalized.mode,
+    inputHash: normalized.inputHash, mode: normalized.mode, verifyNative:nativeAccess?.verify, nativeOnly:Boolean(nativeAccess),
   });
   if (recovered?.denied) return json({ ok: false, reason: recovered.reason, message: "구매한 회차의 입력 또는 구매 상태를 확인해 주세요." }, { status: 409 });
-  if (recovered?.session) return sessionWithAccessToken(env, recovered.session);
+  if (recovered?.session) return sessionWithAccessToken(env, recovered.session,nativeAccess);
 
   let charts, consultation;
   try {
@@ -1174,14 +1193,15 @@ export async function startCodexSession(request, env, auth, body) {
     return json({ ok: false, reason: "CALCULATION_FAILED", message: MESSAGES.calculationFailed }, { status: 422 });
   }
 
-  const access = await resolveStartAccess(request, env, auth, body, normalized, idempotencyKey);
+  if(nativeAccess)await nativeAccess.verify();
+  const access = nativeAccess?.access || await resolveStartAccess(request, env, auth, body, normalized, idempotencyKey);
   if (!access.ok) return paymentVerifyFailed();
 
   if (access.paymentId) {
     const funded = await recoverCodexSession({ userId: auth.userId, paymentId: access.paymentId,
-      accessType: access.accessType, inputHash: normalized.inputHash, mode: normalized.mode });
+      accessType: access.accessType, inputHash: normalized.inputHash, mode: normalized.mode, verifyNative:nativeAccess?.verify, nativeOnly:Boolean(nativeAccess) });
     if (funded?.denied) return json({ ok: false, reason: funded.reason, message: "구매한 회차와 입력이 일치하지 않습니다." }, { status: 409 });
-    if (funded?.session) return sessionWithAccessToken(env, funded.session);
+    if (funded?.session) return sessionWithAccessToken(env, funded.session,nativeAccess);
   }
 
   // Mongo's built-in _id uniqueness also protects deployments where optional indexes lag.
@@ -1214,7 +1234,7 @@ export async function startCodexSession(request, env, auth, body) {
     status: "generating",
     // 🔴 구매 시점의 장 구성을 세션에 **1회** 고정한다($setOnInsert 이므로 재요청이 덮지 않는다).
     //    이후 상품 구성이 바뀌어도 진행 중인 이 책의 기대 장 수·순서는 변하지 않는다.
-    deliveryMeta: { locale: resolveAiLocaleFromRequest(request, body), ...(selectAnswerVoice(env) ? { answerVoice: selectAnswerVoice(env) } : {}),
+    deliveryMeta: { ...(nativeAccess?{tossIntentId:nativeAccess.id,tossInputHash:nativeAccess.inputHash}:{}), locale: resolveAiLocaleFromRequest(request, body), ...(selectAnswerVoice(env) ? { answerVoice: selectAnswerVoice(env) } : {}),
       chapterPlanVersion: CODEX_CHAPTER_PLAN_VERSION,
       manifest: { mode: normalized.mode, chapterIds: codexChaptersForPlan(normalized.mode, CODEX_CHAPTER_PLAN_VERSION).map(spec => spec.id),
         version: resolveMode(normalized.mode).cacheKeyExtra } },
@@ -1229,6 +1249,7 @@ export async function startCodexSession(request, env, auth, body) {
     return json({ ok: false, reason: "PURCHASE_RUN_MISMATCH", message: "구매한 회차와 입력이 일치하지 않습니다." }, { status: 409 });
   }
 
+  if(nativeAccess)return sessionWithAccessToken(env,confirmed,nativeAccess);
   return json({
     ...publicSession(doc.toObject ? doc.toObject() : doc),
     accessToken: await createAccessToken(
@@ -1318,6 +1339,7 @@ const BILLING_REFUND_AFTER_MS = 30 * 60 * 1000;
  * 🔴 1장이라도 커밋됐으면 환불하지 않는다(기존 계약). 세션은 영구 보존되고 재개가 무료다.
  */
 async function refundSessionBillingIfNeeded(env, sessionId, userId, doc, existingChapters, dependencies = {}) {
+  if(doc.deliveryMeta?.tossIntentId)return {refunded:false,adminReviewRequired:true};
   if (existingChapters.length > 0) return { refunded: false, skipped: true, reason: "PARTIAL_DELIVERY" };
   if (doc?.billingRefund?.refundedAt) return { refunded: true, idempotent: true };
   const accessType = clean(doc?.accessType);
@@ -1691,7 +1713,7 @@ async function runCodexWaveInternal(env, { sessionId, userId, doc, lockToken, de
     }
     if (current.status !== "delivery_pending") current = await saveCodexDelivery(lockFilter, { status: "delivery_pending", chapters,
       generationProgress: { ...current.generationProgress, step: "finalizing" } }, sessionId);
-    const authorized = await recoverCodexSession({ userId: ownerId, sessionId });
+    const authorized = await recoverCodexSession({ userId: ownerId, sessionId, verifyNative:doc.deliveryMeta?.tossIntentId?async stored=>(await import("../toss/native-codex.js")).verifyCodexRecovery(env,stored):undefined });
     if (!authorized || authorized.denied) return { outcome: "denied" };
     current = await saveCodexDelivery(lockFilter, { status: "completed", generationError: null,
       loveDna: current.loveDna || null, totalCharCount: chapters.reduce((sum, row) => sum + row.body.length, 0),
@@ -1727,10 +1749,10 @@ async function handleSessions(request, env) {
   const auth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true });
   if (!auth) return loginRequired();
   await connectDb(env);
-  const docs = await MasterLoveCodexSession.find({ userId: clean(auth.userId), status: "completed" })
+  const docs = await MasterLoveCodexSession.find({ userId: clean(auth.userId), status: "completed", "deliveryMeta.tossIntentId":{$exists:false} })
     .sort({ createdAt: -1 }).limit(20)
     .select("id mode status createdAt birthInfo.name partnerInfo.name chapters.id chapters.ok chapters.chars deliveryMeta.manifest deliveryMeta.chapterPlanVersion").lean();
-  const pending = await MasterLoveCodexSession.findOne({ userId: clean(auth.userId), status: { $in: ["generating", "delivery_pending"] }, "deliveryMeta.reviewRequired": { $ne: true } })
+  const pending = await MasterLoveCodexSession.findOne({ userId: clean(auth.userId), status: { $in: ["generating", "delivery_pending"] }, "deliveryMeta.tossIntentId":{$exists:false}, "deliveryMeta.reviewRequired": { $ne: true } })
     .sort({ createdAt: -1 }).select("id").lean();
   const recovery = pending ? await recoverCodexSession({ userId: auth.userId, sessionId: pending.id }) : null;
   // Library cards read chapter IDs and stored lengths, never the report bodies.

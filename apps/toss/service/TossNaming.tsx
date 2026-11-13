@@ -3,7 +3,8 @@ import {getAuthState,useAuthStore} from '@/app/_lib/auth-store';
 import NamingAiClient,{type NamingDraft} from '@/app/naming-ai/NamingAiClient';
 import NamingAiResultClient,{type NamingNativeRead} from '@/app/naming-ai/result/NamingAiResultClient';
 import type {TossTeaPriceSelection} from '@/src/features/fortune-tea-house/lib/tossPriceSelection';
-import {api,purchase,nativeSaleProducts,paymentRequiresReview} from '../src/platform';
+import {api,paymentRequiresReview} from '../src/platform';
+import {checkoutReport} from './native-report-checkout';
 import TossTeaPrice from './TossTeaPrice';
 import TossAstrologyProfilePicker from './TossAstrologyProfilePicker';
 
@@ -14,7 +15,6 @@ const read:NamingNativeRead=async(id,advance)=>{
   const data=await api<Awaited<ReturnType<NamingNativeRead>>['data']>('/native/naming/results/'+encodeURIComponent(id),advance?{}:undefined);
   return {status:data.result?.status==='completed'||data.result?.saved?200:202,data};
 };
-type Intent={id:string;sku:string;amountKRW:number;paid:boolean;orderId?:string};
 export default function TossNaming(){
   useAuthStore();const owner=ownerId();
   if(location.pathname.includes('/result'))return <NamingAiResultClient key={owner} nativeRead={read}/>;
@@ -49,25 +49,9 @@ function Form({owner}:{owner:string}){
     if(!ready||lock.current||!current())return;
     lock.current=true;
     try{
-      const key='toss:naming-attempt:'+owner;
-      const digest=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(JSON.stringify(input)))),x=>x.toString(16).padStart(2,'0')).join('');
-      const saved=JSON.parse(localStorage.getItem(key)||'{}');
-      const requestId=saved.digest===digest&&typeof saved.id==='string'?saved.id:'naming-'+crypto.randomUUID();
-      localStorage.setItem(key,JSON.stringify({digest,id:requestId}));
-      const intent=await api<Intent>('/native/naming/prepare',{input:{requestId,input},...(orderId?{orderId}:{})});
-      if(!current())return;
-      if(orderId&&(!intent.paid||intent.orderId!==orderId))throw Error('PURCHASE_RUN_MISMATCH');
-      if(!intent.paid){
-        const item=(await nativeSaleProducts()).find(p=>p.featureKey===feature&&p.sku===intent.sku&&p.approvedPriceKRW===intent.amountKRW);
-        if(!current())return;
-        if(!item||!price||price.sku!==item.sku||item.displayAmount!==price.displayAmount)throw Error('PRODUCT_PRICE_CHANGED');
-        await new Promise<void>((done,fail)=>{cancel.current=purchase(item,intent.id,done,fail);});
-      }
-      if(!current())return;
-      const checked=await api<Intent>('/native/naming/intents/'+intent.id);
-      if(!current())return;
-      if(!checked.paid||checked.id!==intent.id)throw Error('PURCHASE_RUN_MISMATCH');
-      localStorage.removeItem(key);localStorage.removeItem(draftKey);location.replace('/naming-ai/result/?intentId='+intent.id);
+      const id=await checkoutReport({service:'naming',feature,owner,input:{input},orderId,price,current,onPurchase:cancelPurchase=>{cancel.current=cancelPurchase;}});
+      if(!id||!current())return;
+      localStorage.removeItem(draftKey);location.replace('/naming-ai/result/?intentId='+id);
     }finally{if(current())lock.current=false;}
   }
   const login='/login/?next='+encodeURIComponent(location.pathname+location.search);

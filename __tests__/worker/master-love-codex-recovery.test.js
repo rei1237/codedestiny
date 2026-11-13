@@ -23,6 +23,16 @@ test("same run cannot be reused with different inputs or product", async () => {
 test("another user cannot recover the purchase", async () => {
   expect(await recoverCodexSession({ userId: "other", sessionId: session.id }, fixtures())).toBeNull();
 });
+test("Toss purchases require their live native verifier; web and native entitlements cannot recover each other",async()=>{
+  const row={...session,deliveryMeta:{tossIntentId:"native-id"}};
+  const verifyNative=jest.fn(async()=>{});
+  expect(await recoverCodexSession({userId,sessionId:row.id},fixtures(row))).toMatchObject({denied:true});
+  expect(await recoverCodexSession({userId,sessionId:row.id,verifyNative,nativeOnly:true},fixtures())).toMatchObject({denied:true});
+  expect(await recoverCodexSession({userId,sessionId:row.id,mode:"solo",verifyNative},fixtures(row))).toMatchObject({denied:true});
+  expect(await recoverCodexSession({userId,sessionId:row.id,verifyNative},fixtures(row))).toEqual({session:row});
+  verifyNative.mockRejectedValueOnce(Error("ORDER_REFUNDED"));
+  await expect(recoverCodexSession({userId,sessionId:row.id,verifyNative},fixtures(row))).rejects.toThrow("ORDER_REFUNDED");
+});
 test.each(["refunded", "cancelled", "canceled"])("%s purchase cannot be revived by an existing session", async status => {
   const db = fixtures({ ...session, accessType: "paid", paymentId: "order-1" }, { status });
   expect(await recoverCodexSession({ userId, sessionId: session.id }, db)).toMatchObject({ reason: "PURCHASE_REFUNDED" });

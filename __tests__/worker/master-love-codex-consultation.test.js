@@ -6,6 +6,18 @@ import { calculateZiweiAiChart, FOUR_TRANSFORMATIONS } from "../../worker/lib/zi
 import { MASTER_LOVE_CODEX_CHAPTERS } from "../../worker/lib/master-love-codex-prompt.mjs";
 
 const birth = { name: "검증", gender: "female", birthDate: "1993-03-21", birthTime: "14:30", calendarType: "solar" };
+test("Toss prepares the original solo and compatibility charts and binds each question to its own purchase",async()=>{
+  const {prepareCodexForToss,codexChaptersForPlan,CODEX_CHAPTER_PLAN_VERSION}=await import("../../worker/routes/master-love-codex.js");
+  const reading={birthInfo:birth,consultation:{relationship:"dating",questions:["대화를 어떻게 이어가면 좋을까요?"]}};
+  const solo=prepareCodexForToss({},reading);
+  const compat=prepareCodexForToss({},{...reading,partnerInfo:{...birth,birthDate:"1992-06-01",gender:"male"}});
+  expect([solo.featureKey,compat.featureKey]).toEqual(["master-love-codex","master-love-codex-compat"]);
+  expect(compat.sourceHash).not.toBe(solo.sourceHash);
+  expect(prepareCodexForToss({},solo.input).inputHash).toBe(solo.inputHash);
+  expect(prepareCodexForToss({},compat.input).inputHash).toBe(compat.inputHash);
+  expect(prepareCodexForToss({},{...reading,consultation:{questions:["서로에게 적절한 거리는 무엇일까요?"]}}).inputHash).not.toBe(solo.inputHash);
+  for(const mode of ["solo","compat"])expect(codexChaptersForPlan(mode,CODEX_CHAPTER_PLAN_VERSION)).toHaveLength(20);
+});
 const charts = { saju: calculateLifeBookAiSaju(birth, { year: 2026 }), ziweiChart: calculateZiweiAiChart({ birthInfo: birth }, { year: 2026 }) };
 const input = { relationship: "reunion", situation: "한 달 전에 헤어졌어요.", questions: ["다시 연락하면 재회할 수 있나요?", "결혼 이야기는 언제 하는 게 좋을까요?", "연락해도 될까요?"] };
 const build = (value = input, now = new Date("2026-10-14T03:00:00Z"), mode = "solo") => buildCodexConsultation(value, mode, charts, birth, null, now);

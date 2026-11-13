@@ -3,7 +3,7 @@ import { MasterLoveCodexSession, Payment, PaidExecutionRecord, PointHistory, Mon
 const USABLE = new Set(["generating", "delivery_pending", "completed", "generation_failed"]);
 
 /** A session is an already purchased run, not a request to buy another run. */
-export async function recoverCodexSession({ userId, sessionId, requestId, paymentId, accessType, inputHash, mode }, models = { MasterLoveCodexSession, Payment, PaidExecutionRecord, PointHistory, MonthlyCreditLedger }) {
+export async function recoverCodexSession({ userId, sessionId, requestId, paymentId, accessType, inputHash, mode, verifyNative, nativeOnly }, models = { MasterLoveCodexSession, Payment, PaidExecutionRecord, PointHistory, MonthlyCreditLedger }) {
   if (!userId || (!sessionId && !requestId && !paymentId)) return null;
   const session = await models.MasterLoveCodexSession.findOne({
     userId: String(userId),
@@ -12,6 +12,13 @@ export async function recoverCodexSession({ userId, sessionId, requestId, paymen
       : { idempotencyKey: String(requestId) }),
   }).lean();
   if (!session) return null;
+  if (session.deliveryMeta?.tossIntentId) {
+    if (!verifyNative) return { denied: true, reason: "PURCHASE_RUN_MISMATCH" };
+    await verifyNative(session);
+    if ((inputHash && session.inputHash !== inputHash) || (mode && session.mode !== mode) || !USABLE.has(session.status)) return { denied: true, reason: "PURCHASE_RUN_MISMATCH" };
+    return { session };
+  }
+  if (nativeOnly) return { denied: true, reason: "PURCHASE_RUN_MISMATCH" };
   if (!USABLE.has(session.status)
       || (inputHash && session.inputHash !== inputHash)
       || (mode && (session.mode || "solo") !== mode)) {
