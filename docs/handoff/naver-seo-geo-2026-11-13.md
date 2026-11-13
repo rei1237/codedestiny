@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-14
-next: 2-1(lib/seo.ts 문장 경계 절단)이 작업 트리에 미커밋으로 있을 수 있다 — 빌드로 "…" 개수(기준선 229)를 다시 세고 생성물을 다시 만든 뒤 커밋·재검증. 그 뒤는 사용자 결정 대기(push 승인, docs/seo/bundle2-decisions.md, meta-table §1·§4)
+next: 사용자 결정 대기 — push 승인, 홈 title·H1(meta-table §1), 핵심 허브 description(meta-table §4), docs/seo/bundle2-decisions.md 5건, /consultations/ 색인 여부, C5, 이용권 혜택 문구. 묶음 2의 승인 불필요 항목은 끝. 남은 구현은 2-5 스테이징 Lighthouse(push 뒤)와 승인된 결정의 적용
 ---
 # 네이버 SEO·AEO·GEO + 구매 동선 (Phase 1~5)
 
@@ -81,7 +81,11 @@ Phase 0 보고서와 승인된 계획의 정본은 `docs/seo/phase0-report.md`�
 - [x] 1-11 묶음 1 검증, 변경 전·후 비교표, **push 승인 요청**.
 
 ### 묶음 2 — 검색 결과 표시와 크롤 정리
-- [ ] 2-1 description 잘림(M1), 2-2 meta 표·키워드 맵(승인 뒤 적용), 2-3 내부 링크 정리(K4)·about 정의·llms.txt, 2-4 2027 신년운세 허브, 2-5 스테이징 Lighthouse.
+- [x] 2-1 description 잘림(M1) — 문장 경계 절단. 문구 새로 쓰기는 승인 뒤.
+- [ ] 2-2 meta 표·키워드 맵: 표는 끝. **적용은 사용자 승인 뒤.**
+- [x] 2-3 내부 링크 정리(K4): 코드 변경 없음으로 결론. about 정의·llms.txt는 선택지만 정리(**승인 필요**).
+- [ ] 2-4 2027 신년운세 허브: 구체안만 정리(**승인 필요**).
+- [ ] 2-5 스테이징 Lighthouse(push 뒤).
 
 ### 묶음 3 — AEO·GEO 구조
 - [ ] 3-1 반복 섹션·`DEFAULT_FAQS`, 3-2 질문형 H2 결론 문단, 3-3 기준일·비교 페이지.
@@ -181,6 +185,11 @@ Phase 0 보고서와 승인된 계획의 정본은 `docs/seo/phase0-report.md`�
 - **2-3 K4 끝(코드 변경 없음)**: `docs/seo/internal-links-noindex.md`(`3deb16317`). noindex 대상이 전부 개인 화면·실행 화면이고 같은 목적의 색인 페이지가 없어 링크를 바꾸지 않았다. `/consultations/`(푸터에서 594쪽이 링크, `index:false, follow:false`)를 색인에 열지는 사용자 결정.
 - **네이버 체크리스트 끝**: `docs/seo/naver-console-checklist.md`(`de21745a8`). 묶음 5-2의 같은 파일 항목은 이것으로 끝.
 - **결정 문서 끝(구현 없음)**: `docs/seo/bundle2-decisions.md`(`4f984ec10`) — 신년운세 허브, 홈 이원화, `/compare/`, about 정의, llms.txt. 2-4에 대해 알아 둘 것: 색인 가능한 2027 페이지가 이미 있다(`/new-year-ai-consultation/` 내부 링크 475쪽, `/fortune/2027/` + 12띠는 15쪽뿐). Phase 0의 "허브 없음"은 불완전했다. 추천은 새 URL 없이 `/fortune/2027/`로 가는 내부 링크 보강.
+- **2-1 끝**: `c678fd32a`(lib/seo.ts), `affc25bbe`(lastmod 54쪽). 색인 대상 설명 중 "…"로 끝나는 쪽 229 → **151**. 78쪽이 온전한 문장으로 끝나게 됐다(가장 짧은 것 52자). 남은 151쪽(/en 100, /ja 36, /fortune 9, /insights 2, /manse·/saju/free·/recipes·/tarot 각 1)은 한계 안에 문장 경계가 없거나 첫 문장이 너무 짧은 경우라 **문구를 새로 써야만** 없앨 수 있다(승인 필요, `meta-table.md` §4-1에 /manse/·/saju/free/ 제안 있음).
+  - 실패와 원인: 처음에는 하한을 폭 40으로 잡았더니 "…"는 109까지 줄었지만 42쪽의 설명이 50자 미만이 되어 `scripts/verify-adsense-readiness.mjs`("meta description is too thin", 50자 미만은 빌드 실패)에 걸렸다. 하한을 "폭 80 이상이고 50자 이상"으로 올렸다. 이 하한을 낮추지 말 것.
+  - `/saju/compatibility/`는 이제 첫 문장에서 끝나 "볼 때마다 결제하는 분석" 안내가 설명에서 빠진다(본문에는 그대로 있다). `meta-table.md` §4-1 제안 문구를 승인받아 넣으면 해결된다.
+  - `app/nakshatra/codex/[index]/page.tsx`의 "공용 함수를 고치지 않는다" 주석은 사실에 맞게 고쳤다. 그 라우트의 자체 함수는 그대로다.
+- **검증(rebase 뒤 + 2-1 뒤)**: typecheck, lint, i18n:check, verify-sitemap-integrity(1,072 URL), verify-home-identity, `check-changed --profile=fast --skip-build --base=origin/main`(jest 478 스위트 7,987 통과·1 건너뜀), `npm test`(같은 수치, exit 0), `npm run build`(`ALLOW_DEV_SERVER_DURING_BUILD=1`, 다른 체크아웃의 dev 서버는 건드리지 않음), `node --test scripts/seo/*.test.mjs` 모두 통과. `npm test`는 2-1 첫 판(하한 40)이 작업 트리에 있는 상태로 돌았고, 하한을 올린 최종본으로는 check:fast·빌드만 다시 돌렸다. 못 돌린 것: `scripts/verify-home-entry-locale.cjs`(로컬 서버 필요), Lighthouse.
 
 ### 조사 메모(1-5 이후, 읽기만)
 - 1-2: `app/components/guide-cta-targets.js`에 `/ggulggul/?action=cdOneStepFreeSajuEntry` + `note: "무료 · 로그인 후 확인"`이 8곳. `lib/fortune-landings.mjs`는 `action` 필드만 있고 `app/components/FortuneLandingHero.tsx`가 `"/ggulggul/?action=" + story.action`으로 href를 만든다. 안: `/saju`·`/ziwei` 항목에 선택 필드 `href`(`/saju/free/`, `/ziwei/chart/`)를 두고 hero는 `story.href || …`. `getFortuneLanding('/ziwei/chart')`는 `/ziwei` 항목을 돌려주므로 자기 자신으로 링크되지 않게 확인한다. 같이 봐야 할 것: `scripts/verify-analytics-events.mjs` L354(hero href 기대값), `js/core/analytics.js` L720-726 `SEARCH_CTA_ROUTES`(`/saju/free/` 없음, public 미러 있음), `__tests__/ui/organic-acquisition.test.mjs:84`(manse ctaHref 고정). `/saju/free/`(`app/saju/free/FreeSajuForm.tsx`)가 로그인 없이 명식·오행을 계산하는 것은 확인했다.
