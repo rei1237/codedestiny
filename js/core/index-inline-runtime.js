@@ -1916,7 +1916,7 @@ var __cdLazyActionLoaders = {
   openHwatuModal: function() { return __cdLoadScriptOnce('/HwatuFortune.js?v=haecc3241c877'); },
   openJuyukModal: function() { return __cdLoadScriptOnce('/js/iching-engine.js?v=build-1bd57ce11c0e').then(function() { return __cdLoadScriptOnce('/js/iching-modal.js?v=build-ceb2b1b1a0eb'); }); },
   openRuneOracle: function() { window.location.assign('/oracle/rune/'); return Promise.resolve(true); },
-  openAnimalTotemModal: function() { return __cdLoadScriptOnce('/js/services/animal-totem-content-engine.js?v=build-b7d07cb6850b').then(function() { return __cdLoadScriptOnce('/js/animal-totem-experience.js?v=build-4cb9efbdfb11'); }); },
+  openAnimalTotemModal: function() { return __cdLoadScriptOnce('/js/services/animal-totem-content-engine.js?v=build-889b8c7f182e').then(function() { return __cdLoadScriptOnce('/js/animal-totem-experience.js?v=build-4cb9efbdfb11'); }); },
   openDestinyEggPage: function() { return Promise.resolve(window.location.assign('/ggulggul/#dpMasterCard')); },
   openTarotLoveModal: function() { return __cdLoadScriptOnce('/js/tarot-love-experience.js?v=build-b43826e23353'); },
   openTarotReunionModal: function() { return __cdLoadScriptOnce('/js/tarot-reunion-experience.js?v=build-8e57ec2d8607'); },
@@ -10125,7 +10125,7 @@ function openAnimalTotemModal() {
     typeof window.drawAnimalTotemSpread === 'function';
 
   if (!hasFullTotemFlow && typeof __cdLoadScriptOnce === 'function') {
-    __cdLoadScriptOnce('/js/services/animal-totem-content-engine.js?v=build-b7d07cb6850b')
+    __cdLoadScriptOnce('/js/services/animal-totem-content-engine.js?v=build-889b8c7f182e')
       .then(function() { return __cdLoadScriptOnce('/js/animal-totem-experience.js?v=build-4cb9efbdfb11'); })
       .then(function() {
         var upgradedOpen = window.openAnimalTotemModal;
