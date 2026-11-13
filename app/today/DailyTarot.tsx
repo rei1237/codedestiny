@@ -35,7 +35,8 @@ function CardImage({card,alt}:{card:DailyTarotCard;alt:string}){
  return <img src={sources[index]} alt={alt} width={480} height={720} decoding="async" onError={()=>setIndex(current=>current<sources.length-1?current+1:current)}/>;
 }
 
-export default function DailyTarot({cards}:{cards:DailyTarotCard[]}) {
+export default function DailyTarot({cards,tossOwner}:{cards:DailyTarotCard[];tossOwner?:string}) {
+ const storageKey=tossOwner?'toss:daily-three:'+tossOwner:DAILY_TAROT_KEY;
  const [reading,setReading]=useState<Reading|null>(null);
  const [today,setToday]=useState(''),[ready,setReady]=useState(false),[storageOk,setStorageOk]=useState(true);
  const [shared,setShared]=useState<number[]|null>(null),[notice,setNotice]=useState('');
@@ -47,7 +48,7 @@ export default function DailyTarot({cards}:{cards:DailyTarotCard[]}) {
  const stage=useRef<HTMLDivElement>(null),fan=useRef<HTMLDivElement>(null),canvas=useRef<HTMLCanvasElement>(null),result=useRef<HTMLDivElement>(null);
  const slotButtons=useRef<(HTMLButtonElement|null)[]>([]);
  const motes=useRef<Mote[]>([]),motesFrame=useRef(0);
- const emit=(name:string,params:Record<string,unknown>={})=>trackEvent(name,{service:'yeoni_daily',...params});
+ const emit=(name:string,params:Record<string,unknown>={})=>{if(!tossOwner)trackEvent(name,{service:'yeoni_daily',...params});};
  useEffect(()=>{
   if(initialized.current)return;initialized.current=true;
   const date=kstDay();setToday(date);
@@ -56,7 +57,7 @@ export default function DailyTarot({cards}:{cards:DailyTarotCard[]}) {
   setShared(incoming);
   if(incoming)emit('daily_tarot_share_receive');
   try{
-   const saved=restoreDailyReading(localStorage.getItem(DAILY_TAROT_KEY));
+   const saved=restoreDailyReading(localStorage.getItem(storageKey));
    if(saved){
     setReading(saved);
     if(saved.date===date)emit('daily_tarot_reopen',{complete:saved.revealed===3});
@@ -171,7 +172,7 @@ export default function DailyTarot({cards}:{cards:DailyTarotCard[]}) {
  }
  function save(next:Reading){
   setReading(next);
-  try{localStorage.setItem(DAILY_TAROT_KEY,JSON.stringify(next));}catch{setStorageOk(false);}
+  try{localStorage.setItem(storageKey,JSON.stringify(next));}catch{setStorageOk(false);}
  }
  function start(){
   resetRitual();interacted.current=true;
@@ -230,7 +231,7 @@ export default function DailyTarot({cards}:{cards:DailyTarotCard[]}) {
   if(revealed===3)return '세 장을 모두 읽었어요.';
   return DAILY_POSITIONS[revealed]+' 자리의 카드를 눌러 주세요.';
  };
- const stageTheme={'--back':`url(${fortuneTeaHouseAssets.premium.tarotCardBack})`} as CSSProperties;
+ const stageTheme={'--back':`url(${tossOwner?'/assets/yeongnyangi/tarot/v1/back-600.webp':fortuneTeaHouseAssets.premium.tarotCardBack})`} as CSSProperties;
  const rows=master?.positions??selected.map((id,index)=>({label:DAILY_POSITIONS[index],text:DAILY_MEANINGS[id][index]}));
  const riseIndex=(i:number)=>({'--i':i} as CSSProperties);
 
@@ -303,16 +304,16 @@ export default function DailyTarot({cards}:{cards:DailyTarotCard[]}) {
      <p>“세 장의 답을 전부 해내려 하지 않아도 돼요. 오늘 마음에 남은 한 가지면 충분해요.”</p><small>꽃돼지 연이</small>
      <p className={styles.note} role="status">종합 풀이를 불러오지 못했어요. 페이지를 새로 열면 다시 읽을 수 있어요.</p>
     </div>}
-    <div className={styles.cta} style={riseIndex(6)}>
+    {!tossOwner&&<div className={styles.cta} style={riseIndex(6)}>
      <b>내 질문으로 더 깊이 듣고 싶다면</b>
      <p>여기까지는 카드의 구조를 읽은 무료 풀이예요. 찻집에서 질문을 적고 세 장을 새로 뽑으면, 연이가 내 상황에 맞춰 길게 풀어 드려요. 추가 질문 1회가 포함돼요.</p>
      <a href="/fortune-tea-house/">연이의 찻집 상담 · 5,000원</a>
-    </div>
+    </div>}
    </div>}
    {showResult&&<footer className={styles.ending}>
-    <PublicInsightCard brand="daily" source="daily" day={reading.date} choices={selected.map((id,index)=>({id:String(id),label:DAILY_POSITIONS[index]+' · '+cards[id].name,text:DAILY_MEANINGS[id][index]}))}/>
+    {!tossOwner&&<PublicInsightCard brand="daily" source="daily" day={reading.date} choices={selected.map((id,index)=>({id:String(id),label:DAILY_POSITIONS[index]+' · '+cards[id].name,text:DAILY_MEANINGS[id][index]}))}/>}
     <p className={styles.note}>오늘은 이 카드를 다시 읽을 수 있어요. 내일은 새로운 세 장이 기다려요.</p>
-    <FreeQuestionNext category="tarot" source="daily_tarot_result"/>
+    {!tossOwner&&<FreeQuestionNext category="tarot" source="daily_tarot_result"/>}
    </footer>}
   </>}
   {!storageOk&&<p role="status" className={styles.note}>이 브라우저에서 저장할 수 없어 이번 방문 동안만 결과를 볼 수 있어요.</p>}
