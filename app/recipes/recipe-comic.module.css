@@ -18,3 +18,6 @@
 .panelNumber { color:var(--ia-accent); font-size:.875rem; font-weight:800; }
 .jump { display:inline-flex; align-items:center; min-height:48px; padding:8px 18px; border:1px solid var(--ia-accent); border-radius:999px; color:var(--ia-accent); background:var(--ia-card); text-decoration:none; font-weight:700; }
 @media(max-width:540px) { .shelf { grid-template-columns:1fr; gap:24px; } .panel { padding:20px 16px; } .scene { gap:10px; align-items:flex-end; } .scene img { width:88px; height:100px; } .bubble { padding:12px; } }
+
+.illustratedScene { flex-direction: column; align-items: flex-start; }
+.illustratedScene img { width: min(100%, 600px); height: auto; border-radius: 12px; }

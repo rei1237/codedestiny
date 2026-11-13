@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, existsSync } from 'node:fs';
-import { RECIPES, recipePath, recipeImage, recipeJsonLd } from '../../lib/lifestyle/recipes.mjs';
+import { RECIPES, recipePath, recipeImage, recipeStageImage, recipeJsonLd } from '../../lib/lifestyle/recipes.mjs';
 
 test('all existing recipes retain unique routes, images and matching comic steps', () => {
   assert.ok(RECIPES.length >= 20);
@@ -11,7 +11,7 @@ test('all existing recipes retain unique routes, images and matching comic steps
     assert.ok(existsSync(`public${recipeImage(r)}`));
     assert.equal(r.tips.length, r.steps.length);
     assert.equal(r.stages.length, r.steps.length);
-    for (const stage of r.stages) assert.ok(existsSync(`public/images/five-elements/yeoni-${stage}-2d.webp`));
+    for (const index of r.stages.keys()) assert.ok(existsSync(`public${recipeStageImage(r, index)}`));
     const ld = recipeJsonLd(r, 'https://code-destiny.com');
     assert.deepEqual(ld.recipeIngredient, r.ingredients);
     assert.deepEqual(ld.recipeInstructions.map(s => s.text), r.steps.map(s => s[1]));

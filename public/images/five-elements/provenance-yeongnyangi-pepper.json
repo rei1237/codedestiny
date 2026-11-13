@@ -1,0 +1,40 @@
+{
+  "reference": "public/assets/yeongnyangi/original/hero-800.webp",
+  "tool": "OpenAI image_gen",
+  "source": "exec-af3437fe-59a6-4460-b771-ce4bc245d969.png",
+  "prompt": "Draw an editorial Korean 2D webtoon illustration sheet, perfectly aligned 2-column by 2-row grid, absolutely equal panels (whole canvas landscape 3:2, each panel landscape 3:2). ZERO gutters, no text. Same exact fluffy white longhair cat from reference with recognizable gold crescent navy wizard hat, jewel collar, violet-gold eyes and gently deadpan expression, ivory apron over navy cape, no other character. In warm illustrated kitchen. Upper left HERO: chef cat presents finished pan-seared short solid cylindrical Korean white rice cakes with glazed brown shiitake wedges, sliced green scallions and abundant cracked black pepper on a large ceramic plate, glossy soy coating not red sauce. Upper right: cat carefully slicing shiitakes with short rice cakes on board. Lower left: cat gently crushing black pepper with small mortar, soy sauce bowl alongside. Lower right: cat browning rice cake cylinders and mushrooms in skillet with spatula. Frame each shot independently, central faces and food, maintain consistent drawing and proportions. Charming hand inked anime, appetizing food, no photo no 3D, no letters.",
+  "files": [
+    [
+      "black-pepper-shiitake-tteok-2d.webp",
+      [
+        1200,
+        800
+      ],
+      188920
+    ],
+    [
+      "yeongnyangi-prepare-2d.webp",
+      [
+        600,
+        400
+      ],
+      66850
+    ],
+    [
+      "yeongnyangi-mix-2d.webp",
+      [
+        600,
+        400
+      ],
+      65906
+    ],
+    [
+      "yeongnyangi-cook-2d.webp",
+      [
+        600,
+        400
+      ],
+      73754
+    ]
+  ]
+}

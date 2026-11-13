@@ -40,7 +40,7 @@ export default function ReadingLayout({ title, description, image, imageAlt, chi
           <p className="mt-6 max-w-[44ch] text-lg leading-8">{description}</p>
         </div>
         <figure><Image src={image} alt={imageAlt} width={1536} height={1024} priority sizes="(min-width:768px) 550px, 100vw" className="aspect-[3/2] w-full rounded-2xl object-cover" />
-          <figcaption className="mt-2 text-sm leading-6 text-[var(--ia-muted)]">{illustrated ? '연이의 요리 장면을 담은 AI 2D 일러스트' : 'AI로 제작한 연출 이미지'}</figcaption>
+          <figcaption className="mt-2 text-sm leading-6 text-[var(--ia-muted)]">{illustrated ? '요리 장면을 담은 AI 2D 일러스트' : 'AI로 제작한 연출 이미지'}</figcaption>
         </figure>
       </header>
       {children}
