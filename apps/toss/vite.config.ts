@@ -3,6 +3,7 @@ import {fileURLToPath} from 'node:url';
 import {createRequire} from 'node:module';
 import astralAnimals from './canonical/astral-animals.mjs';
 import animalAlmanac from './canonical/animal-almanac.mjs';
+import royalTea from './canonical/royal-tea.mjs';
 import turtleOracle from './canonical/turtle-oracle.mjs';
 import moonlightSeason from './canonical/moonlight-season.mjs';
 import cosmicSessions from './canonical/cosmic-sessions.mjs';
@@ -19,4 +20,4 @@ const theme=require('../../tailwind.config.js');
 const root=fileURLToPath(new URL('../../',import.meta.url)).replaceAll('\\','/');
 // Shared web components use Next's jsx:preserve. This CSR build must transform
 // them too, without changing the web application's TypeScript configuration.
-export default defineConfig(({mode})=>({base:'/',plugins:[turtleOracle(),moonlightSeason(),cosmicSessions(),nevilleCourses(),astralAnimals(),animalAlmanac(),musicShelf(),mansionAtlas(),novelReader(),famousArchive(),mode==='preview-fixtures'?canonicalPreview():serviceCompat()],oxc:{jsx:{runtime:'automatic'}},resolve:{alias:{'@':fileURLToPath(new URL('../../',import.meta.url))},dedupe:['react','react-dom']},css:{postcss:{plugins:[localBrandFonts(),tailwind({...theme,content:theme.content.map((path:string)=>root+'/'+path.replace(/^\.\//,''))})]}},build:{sourcemap:false,target:'es2022'},server:{host:'127.0.0.1',port:4317}}));
+export default defineConfig(({mode})=>({base:'/',plugins:[royalTea(),turtleOracle(),moonlightSeason(),cosmicSessions(),nevilleCourses(),astralAnimals(),animalAlmanac(),musicShelf(),mansionAtlas(),novelReader(),famousArchive(),mode==='preview-fixtures'?canonicalPreview():serviceCompat()],oxc:{jsx:{runtime:'automatic'}},resolve:{alias:{'@':fileURLToPath(new URL('../../',import.meta.url))},dedupe:['react','react-dom']},css:{postcss:{plugins:[localBrandFonts(),tailwind({...theme,content:theme.content.map((path:string)=>root+'/'+path.replace(/^\.\//,''))})]}},build:{sourcemap:false,target:'es2022'},server:{host:'127.0.0.1',port:4317}}));
