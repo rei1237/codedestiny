@@ -120,14 +120,14 @@ export default function TarotLibrary({products,loggedIn,onLogin,onError,onBack,o
   </div><Button variant="weak" display="block" onClick={onBack}>홈으로 돌아가기</Button></section>;
   const readingInput=()=>({question,cards:picks.map((slot,index)=>{
     const drawn=shuffledDeck[flow.id==='tarot-numerology'?index:slot];
-    return {cardId:drawn.code,orientation:drawn.orientation,position:flow.positions[index][0]};
+    return {cardId:drawn.code,orientation:drawn.orientation,position:flow.positions[index][0],positionLabel:flow.positions[index][1]};
   }),...(flow.id==='tarot-numerology'?{birthDate,topic:numberTopic,name:numberName}:{}),...(flow.id==='tarot-crystal-soul'?{gem}:{})});
   const finishDraw=async()=>{
     if(recoveredOrderId||!isFree(flow)){setPaidReady(true);return;}
     if(flow.access==='free-local'){setResult(buildLocalTarotReading(flow,question,picks,shuffledDeck));return;}
     if(buyingRef.current)return;
     const epoch=++requestEpoch.current;setBuyingState(true);
-    try{const reading=await api<LocalResult>('/tarot-library/free',{flowId:flow.id,input:readingInput()});if(alive.current&&epoch===requestEpoch.current)setResult(reading);}
+    try{const {buildPublicTarotReading}=await import('../../../lib/tarot/toss-public-readings.mjs');const reading=buildPublicTarotReading(flow.id,readingInput());if(alive.current&&epoch===requestEpoch.current)setResult(reading);}
     catch(error){if(alive.current&&epoch===requestEpoch.current)onError(error);}
     finally{if(alive.current&&epoch===requestEpoch.current)setBuyingState(false);}
   };

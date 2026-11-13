@@ -12,7 +12,7 @@ const test = require('node:test');
 
 const root = path.join(__dirname, '..', '..');
 const pagePath = path.join(root, 'tarot-ijik.html');
-const enginePath = path.join(root, 'worker', 'lib', 'tarot-ijik-reading.js');
+const enginePath = path.join(root, 'lib', 'tarot', 'ijik-reading.mjs');
 const page = fs.readFileSync(pagePath, 'utf8');
 const engineSource = fs.readFileSync(enginePath, 'utf8');
 
@@ -92,7 +92,7 @@ test('buildIjikReading 은 판정·리딩·AI 프롬프트를 한 번에 돌려�
   assert.match(result.reading, /✦ 이번 리딩의 결론/);
 });
 
-test('판정 문구는 워커 모듈이 갖는다', () => {
+test('웹과 토스가 같은 판정 문구를 읽는다', () => {
   for (const label of ['이직 쪽으로 열림', '현직 유지가 안정적', '준비 후 판단', '지금~4주', '1~3개월', '3~6개월', '준비기']) {
     assert.ok(engineSource.includes(label), `워커 모듈에 "${label}" 이 없다`);
   }
