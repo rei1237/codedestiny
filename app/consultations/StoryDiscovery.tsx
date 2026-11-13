@@ -32,14 +32,14 @@ export default function StoryDiscovery() {
   const latest = latestEpisode(serialNow());
   return <StoryShelf className={styles.shelf}>
     <h2 id="homeStoryTitle">달빛 상담 웹툰 서가</h2>
-    {/* 대표 카드는 늘 시즌 1 프롤로그. 공개된 최신화는 카드 밖 보조 링크로 잇는다(링크 안 링크 방지). */}
+    {/* 대표 카드는 늘 시즌 1의 1화(프롤로그). 공개된 최신화는 카드 밖 보조 링크로 잇는다(링크 안 링크 방지). */}
     <a className={styles.feature} data-yn-night="" href={PROLOGUE.href} data-story-id="yeongnyangi-prologue">
       <picture>
         <source type="image/avif" srcSet={`${prologuePage(1)}-720.avif`} />
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img data-prologue-cover="" src={`${prologuePage(1)}-720.webp`} width={720} height={900} loading="lazy" decoding="async" alt={`${PROLOGUE.title} 표지. 꽃무늬 원피스를 입은 연이가 방 안에서 수줍게 웃는다.`} />
+        <img data-prologue-cover="" src={`${prologuePage(1)}-720.webp`} width={720} height={900} loading="lazy" decoding="async" alt={`${PROLOGUE.title} 표지. 늦은 아침 햇살이 꽃무늬 이불을 덮고 잠든 연이를 비춘다.`} />
       </picture>
-      <div><small>영냥이 시즌 1 · 프롤로그</small><h3>{PROLOGUE.title}</h3><p>{PROLOGUE.logline}</p><strong>첫 화 읽기 →</strong></div>
+      <div><small>영냥이 시즌 1 · 1화</small><h3>{PROLOGUE.title}</h3><p>{PROLOGUE.logline}</p><strong>첫 화 읽기 →</strong></div>
     </a>
     {latest && <a className={styles.latestLink} href={latest.href} data-serial-latest="">최신화 {latest.no}화 「{latest.title}」 이어 보기 →</a>}
     <ul className={styles.picks}>{PICKS.map(id => <StoryCard key={id} story={homeStories.find(item => item.id === id)!} />)}</ul>
