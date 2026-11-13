@@ -22,6 +22,7 @@ import { rememberTossTeaPrice, type TossTeaPriceComponent, type TossTeaPriceSele
 import { PriceBadge } from "@/app/components/PriceBadge";
 import ProductJourneyLinks, { useProductView } from "@/app/components/ProductJourneyLinks";
 import CraftedProductDisclosure from "@/app/components/CraftedProductDisclosure";
+import ReviewProof from "@/app/components/ReviewProof";
 import ProductMasterStrip from "@/app/components/ProductMasterStrip";
 import MasterProfile from "@/components/fortune/MasterProfile";
 import { masterProfiles, productMasters } from "@/components/fortune/master-profiles";
@@ -1792,6 +1793,7 @@ export default function LifeBookAiClient({ paymentNotice, paymentSurface = "web"
             {copy === LIFE_BOOK_CLIENT_COPY.ko && !isBusy && <ProductJourneyLinks sampleId="life-book" />}
           </div>
         </header>
+        {paymentSurface !== "toss" && copy === LIFE_BOOK_CLIENT_COPY.ko && !isBusy && !resultUrl && <ReviewProof brand="ggulggul" productId="life-book" sampleHref="#service-samples-life-book" />}
         {copy === LIFE_BOOK_CLIENT_COPY.ko && <CraftedProductDisclosure featureKey={MODE_FEATURE_KEY[form.mode]} />}
         <div className={intro.formLayout}>
           <aside className={intro.preparation}>

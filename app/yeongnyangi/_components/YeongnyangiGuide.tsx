@@ -10,10 +10,12 @@ import resultSamples from '@/lib/marketing/result-samples.json';
 import {FUSION_BOOK_CHAPTERS,FUSION_BOOK_TARGETS} from '@/worker/yeongnyangi/fortune/fusion-book';
 import {consultationBudget} from '@/worker/yeongnyangi/fortune/consultation-budget';
 import {EXPANDED_CHAPTERS} from '@/worker/yeongnyangi/fortune/consultation-expansion';
+import ReviewProof from '@/app/components/ReviewProof';
 
 // Server-rendered guide for the indexed /yeongnyangi/ landing ("사주 보는 고양이" brand query).
 // 🔴 Prices come from the payment catalog; scope and followups from the question policy — never type them here.
-//    No reviews, ratings or sales counts: there are none we can show truthfully.
+//    No typed reviews, ratings or sales counts. ReviewProof shows only purchase-verified reviews fetched on the client
+//    (no structured data), and verified facts when there are none.
 const DOMAINS:DomainId[]=['saju','ziwei','sukuyo','vedic','astrology','tarot'];
 const TIERS=['mackerel','salmon','flounder','tuna'] as const;
 const won=(amount:number)=>`${amount.toLocaleString('ko-KR')}원`;
@@ -56,6 +58,7 @@ export default function YeongnyangiGuide(){
    </a></li>)}</ul>
    <details className={styles.panel}><summary>생선별로 살펴보는 범위</summary><dl className={styles.fishDepth}>{fishRows.map(row=><div key={row.tier}><dt>{row.name}</dt><dd>{row.tier==='mackerel'?'한 가지 고민도 답과 근거, 생활 속 해석과 지금 해볼 행동까지 챕터별로 충분히 살펴봐요.':row.depth}</dd></div>)}</dl></details>
    <p className={styles.note}>챕터 수는 신규 한국어 질문 상담 기준이며 상담 종류와 기존 구매에 따라 달라질 수 있어요. 추가 질문은 저장된 상담 근거로 답할 수 있는 범위에서 이용해요. PDF는 한국어 상담 완료 후 저장할 수 있어요.</p>
+   <ReviewProof brand="yeongnyangi" productId="yeongnyangi" sampleHref="#yn-example" headingLevel={3}/>
   </section>
 
   <section id="yn-before" aria-labelledby="yn-guide-title">

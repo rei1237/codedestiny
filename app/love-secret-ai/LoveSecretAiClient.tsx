@@ -46,6 +46,7 @@ import { useAiProfileSeed } from "@/app/hooks/useAiProfileSeed";
 import { PriceBadge } from "@/app/components/PriceBadge";
 import ProductJourneyLinks, { useProductView } from "@/app/components/ProductJourneyLinks";
 import CraftedProductDisclosure from "@/app/components/CraftedProductDisclosure";
+import ReviewProof from "@/app/components/ReviewProof";
 import ProductMasterStrip from "@/app/components/ProductMasterStrip";
 import { MasterProfileGroup } from "@/components/fortune/MasterProfile";
 import { masterProfiles, productMasters } from "@/components/fortune/master-profiles";
@@ -2340,6 +2341,7 @@ export default function LoveSecretAiPage({ paymentNotice, TossPrice, paymentSurf
 
       <section className={`${intro.shell} flex flex-col gap-6`}>
         <LoveSecretHero showWebPrice={paymentSurface !== "toss"} onStart={focusFirstStepField} busy={busy} mastersHref={!busy && !resultUrl ? `#${LOVE_MASTERS_ANCHOR_ID}` : undefined} />
+        {paymentSurface !== "toss" && copy === LOVE_SECRET_CLIENT_COPY.ko && !busy && !resultUrl && <ReviewProof brand="ggulggul" productId="love-coach" sampleHref="#service-samples-love-secret" />}
         {copy === LOVE_SECRET_CLIENT_COPY.ko && <CraftedProductDisclosure featureKey="love-secret-ai-consultation" />}
 
         <LoveSecretProgressRail

@@ -8,6 +8,7 @@ import { trackConsultationCompleted } from '@/lib/analytics';
 import BirthTimeInput from "@/app/components/BirthTimeInput";
 
 import CraftedProductDisclosure from "@/app/components/CraftedProductDisclosure";
+import ReviewProof from "@/app/components/ReviewProof";
 import ProductMasterStrip from "@/app/components/ProductMasterStrip";
 import MasterProfile from "@/components/fortune/MasterProfile";
 import { masterAvatars, masterProfiles, productMasters } from "@/components/fortune/master-profiles";
@@ -2183,6 +2184,7 @@ export default function NewYearAiConsultationPage({paymentSurface="web",ProfileP
       </section>
 
       {/* 위 소개 판·아래 작업 영역과 같은 폭(최대 1180). 540으로 묶여 768에서 본문 744보다 좁았다(2026-10-30 QA). */}
+      {paymentSurface!=='toss' && copy === NEW_YEAR_AI_COPY.ko && !isBusy && messages.length === 0 && <div style={{ width: "100%", maxWidth: 1180, margin: "0 auto" }}><ReviewProof brand="ggulggul" productId="new-year" sampleHref="#service-samples-new-year" /></div>}
       {paymentSurface!=='toss' && copy === NEW_YEAR_AI_COPY.ko && <div style={{ width: "100%", maxWidth: 1180, margin: "24px auto" }}><CraftedProductDisclosure featureKey={FEATURE_KEY} /></div>}
       <section className="nyai-workspace">
         {clientReady && (<form data-moonlit-form="" id="new-year-form" className="nyai-form nyai-panel" onSubmit={event=>{if(price.confirm(event))void handleSubmit(event);}}>
