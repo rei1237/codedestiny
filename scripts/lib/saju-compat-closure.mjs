@@ -3,7 +3,7 @@ import ts from 'typescript';
 // The legacy web engine contains DOM, checkout and chart code. Include only the transitive
 // top-level declarations of the original deterministic compatibility functions.
 export const ROOTS = ['analyzeCompat', 'analyzePastLifeCompat', 'calcNatalElement', 'analyzeJohu', 'calcPower', 'detectJong'];
-export function extractSajuCompatClosure(source){
+export function extractSajuCompatClosure(source, roots = ROOTS){
   const ast = ts.createSourceFile('saju-engine.js', source, ts.ScriptTarget.Latest, true, ts.ScriptKind.JS);
   const decl = new Map();
   for (const node of ast.statements) {
@@ -27,7 +27,7 @@ export function extractSajuCompatClosure(source){
     order.push(name);
     for (const id of idsOf(decl.get(name).node)) add(id);
   };
-  for (const root of ROOTS) {
+  for (const root of roots) {
     if (!decl.has(root)) throw new Error(`Production declaration missing: ${root}`);
     add(root);
   }

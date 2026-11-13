@@ -9,7 +9,7 @@ const require=createRequire(new URL('../package.json',import.meta.url)),Module=r
 const dom=new JSDOM('<div id="root"></div>',{url:'http://localhost/'});
 globalThis.window=dom.window;globalThis.document=dom.window.document;globalThis.IS_REACT_ACT_ENVIRONMENT=true;globalThis.__tarotScope={revision:0,listeners:new Set()};
 const React=require('react'),{createRoot}=require('react-dom/client');
-const bundle=await build({entryPoints:[path.resolve(import.meta.dirname,'../src/TarotLibrary.tsx')],bundle:true,write:false,format:'cjs',platform:'node',jsx:'automatic',external:['react','react/jsx-runtime'],plugins:[{name:'ui-boundaries',setup(b){
+const bundle=await build({entryPoints:[path.resolve(import.meta.dirname,'../src/TarotLibrary.tsx')],bundle:true,write:false,format:'cjs',platform:'node',jsx:'automatic',external:['react','react/jsx-runtime'],plugins:[{name:'ui-boundaries',setup(b){b.onResolve({filter:/^\.\/CoreTarot$/},()=>({path:'core',namespace:'core-tarot'}));b.onLoad({filter:/.*/,namespace:'core-tarot'},()=>({contents:'export default ()=>null'}));
  b.onResolve({filter:/^(\.\/platform|\.\/TarotResultActions|@toss\/tds-mobile)$/},args=>({path:args.path,namespace:'mock'}));
  b.onLoad({filter:/.*/,namespace:'mock'},args=>({contents:args.path==='./platform'?`
   export const getTossSessionRevision=()=>globalThis.__tarotScope.revision,onTossSessionRevisionChanged=listener=>{globalThis.__tarotScope.listeners.add(listener);return ()=>globalThis.__tarotScope.listeners.delete(listener);};export const paymentRequiresReview=()=>false;export const tarotLibraryProducts=async()=>{throw Error('recovery must not load a new sale')};
@@ -109,7 +109,7 @@ test('session expiry during initial recovery exits the loading state and ignores
 test('a guest question remains intact when the user logs in',async()=>{
  const view=await mount(()=>assert.fail('guest input should not fetch'),()=>{},false,'');
  try{
-  await React.act(async()=>document.querySelector('.tarot-library-item').click());
+  await React.act(async()=>[...document.querySelectorAll('.tarot-library-item')].find(row=>row.textContent.includes('재회운 등대 타로')).click());
   const field=document.querySelector('textarea');await React.act(async()=>{Object.getOwnPropertyDescriptor(dom.window.HTMLTextAreaElement.prototype,'value').set.call(field,'지금 나에게 필요한 방향은?');field.dispatchEvent(new dom.window.Event('input',{bubbles:true}));});
   await React.act(async()=>{globalThis.__tarotScope.revision++;for(const listener of [...globalThis.__tarotScope.listeners])listener();});await view.setAuth(true);assert.equal(document.querySelector('textarea').value,'지금 나에게 필요한 방향은?');
  }finally{view.close();}

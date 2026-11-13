@@ -450,7 +450,11 @@ function buildSunHealingAiPromptText(args: {
   ].filter(Boolean).join("\n");
 }
 
-export default function SunHealingTarot() {
+export default function SunHealingTarot({ onExit, onShare, listenBack }: {
+  onExit?: () => void;
+  onShare?: (title: string, summary: string) => Promise<void>;
+  listenBack?: (callback: () => void) => () => void;
+} = {}) {
   const copy = useSunHealingTarotCopy();
   const reduceMotion = useReducedMotion();
   const [stage, setStage] = useState<Stage>("intro");
@@ -468,8 +472,15 @@ export default function SunHealingTarot() {
   const progressPct = useMemo(() => clamp((revealedCount / SPREAD_CARD_COUNT) * 100, 0, 100), [revealedCount]);
 
   const goHome = useCallback(() => {
-    window.location.assign(SHELL_HOME_PATH);
-  }, []);
+    if (onExit) onExit();
+    else window.location.assign(SHELL_HOME_PATH);
+  }, [onExit]);
+
+  useEffect(() => listenBack?.(() => {
+    if (stage === "result") setStage("spread");
+    else if (stage === "spread") setStage("intro");
+    else goHome();
+  }), [listenBack, stage, goHome]);
 
   const requestReading = useCallback(async (cardsToRead: TarotCardDto[]): Promise<ReadingFetchResult> => {
     // 무료 기능: 로그인이 필요한 /api/tarot/reading 대신 같은 결정론 엔진을 브라우저에서 계산한다.
@@ -536,6 +547,7 @@ export default function SunHealingTarot() {
   const share = useCallback(async () => {
     const url = typeof window !== "undefined" ? window.location.href : SHARE_FALLBACK_URL;
     const firstLine = String(reading?.oneLineMessage || reading?.sunLine || "").trim();
+    if (onShare) { await onShare(copy.shareTitle, firstLine); return; }
     const highlightText = consultingHighlights.length ? `\n핵심 회복 메시지\n${consultingHighlights.slice(0, 2).map((line) => `• ${line}`).join("\n")}\n` : "";
     const text = `${copy.shareTextPrefix}${firstLine ? `${firstLine}\n` : ""}${highlightText}\n${url}`;
     try {
@@ -551,7 +563,7 @@ export default function SunHealingTarot() {
     } catch {
       alert(copy.shareUnsupportedAlert);
     }
-  }, [consultingHighlights, copy, reading]);
+  }, [consultingHighlights, copy, reading, onShare]);
 
   const POSITION_LABELS = copy.positionLabels;
   const POSITION_LABELS_SHORT = copy.positionLabelsShort;
@@ -681,7 +693,7 @@ export default function SunHealingTarot() {
                     return (
                       <div key={idx} style={{ perspective: "1200px" }} className="relative aspect-[3/4] min-h-[210px]">
                         <AnimatePresence>{isGlowing && (<m.div initial={{ opacity: 0.7, scale: 0.95 }} animate={{ opacity: 0, scale: 1.28 }} exit={{}} transition={{ duration: 0.85, ease: "easeOut" }} className="pointer-events-none absolute inset-0 rounded-[24px] bg-amber-200 blur-2xl" style={{ zIndex: 30 }} />)}</AnimatePresence>
-                        <m.button type="button" onClick={() => flip(idx)} disabled={!enabled} whileHover={enabled ? { y: -8, filter: "drop-shadow(0 22px 34px rgba(217,144,42,0.3))" } : undefined} transition={{ type: "spring", stiffness: 300, damping: 22 }} className="relative h-full w-full rounded-[24px]" style={{ transformStyle: "preserve-3d" }}>
+                        <m.button type="button" onClick={() => flip(idx)} aria-label={`${idx + 1}. ${POSITION_LABELS[idx]}`} disabled={!enabled} whileHover={enabled ? { y: -8, filter: "drop-shadow(0 22px 34px rgba(217,144,42,0.3))" } : undefined} transition={{ type: "spring", stiffness: 300, damping: 22 }} className="relative h-full w-full rounded-[24px]" style={{ transformStyle: "preserve-3d" }}>
                           <m.div className="absolute inset-0" style={{ transformStyle: "preserve-3d" }} animate={{ rotateY: isFlipped ? 180 : 0 }} transition={{ duration: 0.72, ease: [0.35, 0, 0.15, 1] }}>
                             <div className="absolute inset-0 rounded-[24px] shadow-[0_20px_48px_rgba(180,120,35,0.18)]" style={{ backfaceVisibility: "hidden" }}><CardBackFace copy={copy} />{enabled && (<m.div className="absolute inset-0 rounded-[24px] ring-2 ring-amber-300/80" animate={reduceMotion ? undefined : { opacity: [0.42, 1, 0.42] }} transition={{ duration: 2.2, repeat: Infinity }} />)}</div>
                             <div className="absolute inset-0 overflow-hidden rounded-[24px] shadow-[0_20px_56px_rgba(180,120,35,0.24)]" style={{ backfaceVisibility: "hidden", transform: "rotateY(180deg)" }}>

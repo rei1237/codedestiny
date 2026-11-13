@@ -1,0 +1,6 @@
+.sun-toss-reading *, .sun-toss-reading *::before, .sun-toss-reading *::after{box-sizing:border-box;border-style:solid;border-width:0}
+.sun-toss-reading button{font:inherit;cursor:pointer}
+.sun-toss-reading h2,.sun-toss-reading h3,.sun-toss-reading h4,.sun-toss-reading p{margin-block-start:0}
+
+.self-esteem-reading{width:100%;height:calc(100dvh - 70px);display:block;border:0;border-radius:16px}
+.one-card-categories{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:20px 0}

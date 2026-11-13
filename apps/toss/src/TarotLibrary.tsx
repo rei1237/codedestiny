@@ -13,7 +13,7 @@ import {TextArea} from '@toss/tds-mobile';
 import {Button} from './Button';
 import {TOSS_TAROT_LIBRARY_FLOWS} from '../../../lib/tarot/toss-library-flows.mjs';
 import {TAROT_CARDS} from '../../../lib/tarot/tarot-cards.mjs';
-import {buildLocalTarotReading} from './local-tarot-reading.mjs';
+const CoreTarot=lazy(()=>import('./CoreTarot'));
 import {api,getTossSessionRevision,onTossSessionRevisionChanged,purchaseTarotLibrary,paymentRequiresReview,tarotLibraryProducts,type TarotLibraryProduct} from './platform';
 import TarotResultActions from './TarotResultActions';
 
@@ -159,6 +159,7 @@ export default function TarotLibrary({products,loggedIn,onLogin,onError,onBack,o
   if(restoring)return <section className="tarot-library"><p role="status">저장된 타로 리딩을 다시 열고 있어요.</p></section>;
   if(result)return <Result result={result} onRestart={reset}/>;
   if(retryOrderId)return <section className="tarot-library"><h1>{flow?.name||'타로 리딩'}</h1><p className="notice" role="status">{canResume?'구매한 리딩을 이어서 만들 수 있어요. 추가 결제는 필요하지 않아요.':'저장된 결과와 진행 상태를 다시 확인해 주세요. 결제 내역과 접근 권한을 확인해 주세요.'}</p><Button display="block" loading={buying} disabled={buying} onClick={()=>void resumeReading(retryOrderId,canResume?{}:undefined)}>{canResume?'추가 결제 없이 이어서 생성':'진행 상태 확인하기'}</Button><Button variant="weak" display="block" disabled={buying} onClick={reset}>리딩 목록</Button></section>;
+  if(flow?.access==='free-local'&&!recoveredOrderId)return <Suspense fallback={<p role="status">카드를 준비하고 있어요.</p>}><CoreTarot id={flow.id} onBack={reset}/></Suspense>;
   if(flowId==='lenormand')return <Suspense fallback={<p role="status">카드를 준비하고 있어요.</p>}><Lenormand onBack={reset}/></Suspense>;
   if(!flow)return <section className="tarot-library"><TarotCover/><h1>카드에 담긴, 나의 이야기</h1><p className="intro">마음에 걸리는 질문을 고르고, 카드가 비추는 흐름과 현실적인 다음 행동을 살펴보세요.</p><div className="tarot-library-list">
     {flows.map(item=><button className="tarot-library-item" key={item.id} onClick={()=>{setShuffledDeck(shuffleTarotDeck(deck));setFlowId(item.id);setQuestion('');setDrawStarted(false);setPicks([]);setPaidReady(false);}}><img className="tarot-list-art" src={`/assets/${item.id}-320.webp`} alt="" width={88} height={72} loading="lazy" decoding="async"/><span><strong>{item.name}</strong><small>{item.resultKind==='oracle'?'1~14':item.cardCount}장 펼침 · {isFree(item)?'바로 펼치는 리딩':'단건 리딩'}</small></span><span aria-hidden>›</span></button>)}
@@ -170,7 +171,6 @@ export default function TarotLibrary({products,loggedIn,onLogin,onError,onBack,o
   }),...(flow.resultKind==='celestial'?{goldenCardId:shuffledDeck[11].code}:{}),...(flow.id==='tarot-numerology'?{birthDate,topic:numberTopic,name:numberName}:{}),...(flow.id==='tarot-crystal-soul'?{gem}:{})};
   const finishDraw=async()=>{
     if(recoveredOrderId||!isFree(flow)){setPaidReady(true);return;}
-    if(flow.access==='free-local'){setResult(buildLocalTarotReading(flow,question,picks,shuffledDeck));return;}
     if(buyingRef.current)return;
     const epoch=++requestEpoch.current;setBuyingState(true);
     try{const {buildPublicTarotReading}=await import('../../../lib/tarot/toss-public-readings.mjs');const reading=buildPublicTarotReading(flow.id,readingInput());if(alive.current&&epoch===requestEpoch.current)setResult(reading);}
