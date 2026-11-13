@@ -2,6 +2,7 @@ import {useEffect,useRef,useState,type FormEvent} from 'react';
 import {TOSS_PUBLIC_SECTIONS,isTossPublicSection} from '../../../lib/fortune/toss-public-sections.mjs';
 import {bindVillainResult} from 'virtual:section-villain-bindings';
 import {BirthFields,birthPayload,emptyBirth,type BirthInput} from './BirthFields';
+import {renderNatalReport,natalImage,type NatalParts} from './natal-report';
 import {Button} from './Button';
 import {api} from './platform';
 import TossSessionScope from './TossSessionScope';
@@ -9,7 +10,7 @@ import TossSessionScope from './TossSessionScope';
 type TravelHistory={recent:string[];winners:string[]};
 type SectionKey=keyof typeof TOSS_PUBLIC_SECTIONS;
 type Energy={recent?:string[];renderedAt?:string;transform?:string;roulette?:string[]};
-type Report={ok:boolean;featureKey:string;accessSource:string;html:string;css?:string;decadeHtml?:string;energy?:Energy};
+type Report={ok:boolean;featureKey:string;accessSource:string;html:string;css?:string;parts?:NatalParts;decadeHtml?:string;energy?:Energy};
 type RequestBody=ReturnType<typeof sectionInput>;
 const cardAreas:Record<string,[string,string]>={
   rpt_quantumCard:['quantumCard','quantumSection'],rpt_energyCoordCard:['energyCoordCard','energyCoordSection'],
@@ -18,24 +19,31 @@ const cardAreas:Record<string,[string,string]>={
 };
 const path='/canonical/saju/section';
 
-function sectionInput(featureKey:SectionKey,input:BirthInput,mode:string,recent:string[]){
+function sectionInput(featureKey:SectionKey,input:BirthInput,mode:string,recent:string[],name:string){
   const {location:c,date}=birthPayload(input);
-  return {featureKey,gender:input.gender,mode,...(featureKey==='rpt_energyCoordCard'?{energy:{recent}}:{}),birth:{date:input.date,calType:date.calType,timeKnown:!input.unknown,hour:date.hour,minute:date.minute},
+  return {featureKey,gender:input.gender,mode,...(featureKey==='saju_natal_reading'?{name}:{}),...(featureKey==='rpt_energyCoordCard'?{energy:{recent}}:{}),birth:{date:input.date,calType:date.calType,timeKnown:!input.unknown,hour:date.hour,minute:date.minute},
     place:{name:c.label,longitude:c.lng,latitude:c.lat,timezone:c.tz,baseTzOffset:9}};
 }
 function checked(response:Report,key:string){
-  if(!response.ok||response.featureKey!==key||response.accessSource!=='public'||!response.html?.trim())throw Error('Section unavailable');
+  const hasContent=key==='saju_natal_reading'?Object.values(response.parts||{}).some(Boolean):!!response.html?.trim();
+  if(!response.ok||response.featureKey!==key||response.accessSource!=='public'||!hasContent)throw Error('Section unavailable');
   return response;
 }
 function safeFragment(doc:Document,html:string){
   const template=doc.createElement('template');template.innerHTML=html;
   template.content.querySelectorAll('script,iframe,frame,object,embed,meta,base,link,form').forEach(el=>el.remove());
+  for(const img of template.content.querySelectorAll('img')){
+    const local=natalImage(img.getAttribute('src')||'');if(local)img.dataset.localImage=local;else img.remove();
+  }
   for(const el of template.content.querySelectorAll('*'))for(const attr of Array.from(el.attributes)){
     if(/^on/i.test(attr.name)||['href','xlink:href','src','srcset','action','formaction','target','srcdoc'].includes(attr.name))el.removeAttribute(attr.name);
   }
+  for(const img of template.content.querySelectorAll('img')){
+    img.src=img.dataset.localImage!;img.removeAttribute('data-local-image');
+  }
   return template.content;
 }
-const frameDocument='<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src \'none\';style-src \'unsafe-inline\';form-action \'none\';base-uri \'none\'"><meta name="viewport" content="width=device-width,initial-scale=1"><style>*{box-sizing:border-box}body{margin:0;background:#161827;color:#f6f2ef;font:15px/1.65 system-ui,sans-serif;overflow-wrap:anywhere}main{padding:12px;width:100%;overflow-x:auto}summary,button,input{cursor:pointer}details{margin-block:8px}svg{max-width:100%}h2,h3{line-height:1.4}button{max-width:100%}</style></head><body><main></main></body></html>';
+const frameDocument='<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src \'none\';style-src \'unsafe-inline\';img-src \'self\';form-action \'none\';base-uri \'none\'"><meta name="viewport" content="width=device-width,initial-scale=1"><style>*{box-sizing:border-box}body{margin:0;background:#161827;color:#f6f2ef;font:15px/1.65 system-ui,sans-serif;overflow-wrap:anywhere}main{padding:12px;width:100%;overflow-x:auto}summary,button,input{cursor:pointer}details{margin-block:8px}svg{max-width:100%}h2,h3{line-height:1.4}button{max-width:100%}img{max-width:100%;height:auto}.natal-chapter{border-top:1px solid #635772;padding:10px 0}.natal-chapter>summary{font-weight:700;color:#f5deba}.natal-chapter section{margin-block:12px}.saju-ten-button{display:grid;gap:6px;width:100%;text-align:left;padding:12px;margin:8px 0;border-radius:10px;border:1px solid #595067;background:#27263a;color:#f6f2ef}dialog{max-width:92%;max-height:80%;overflow:auto;border:1px solid #635772;border-radius:14px;background:#262437;color:#faf5ef}dialog::backdrop{background:#12111acc}</style></head><body><main></main></body></html>';
 
 function SectionBody({report,input,travel}:{report:Report;input:RequestBody;travel:TravelHistory}){
   const frame=useRef<HTMLIFrameElement>(null),[ready,setReady]=useState(false),[issue,setIssue]=useState('');
@@ -46,7 +54,7 @@ function SectionBody({report,input,travel}:{report:Report;input:RequestBody;trav
     const style=doc.createElement('style');style.textContent=report.css||'';doc.head.append(style);
     const area=doc.createElement('div'),ids=cardAreas[input.featureKey];
     if(ids){host.id=ids[0];area.id=ids[1];}
-    area.append(safeFragment(doc,report.html));host.replaceChildren(area);
+    area.append(report.parts?renderNatalReport(doc,report.parts,safeFragment):safeFragment(doc,report.html));host.replaceChildren(area);
     if(report.decadeHtml){
       const extra=doc.createElement('details'),summary=doc.createElement('summary');summary.textContent='대한 상세표';
       extra.append(summary,safeFragment(doc,report.decadeHtml));host.append(extra);
@@ -77,8 +85,8 @@ function SectionBody({report,input,travel}:{report:Report;input:RequestBody;trav
     onLoad={()=>setReady(true)} style={{width:'100%',height:'min(72svh, 800px)',display:'block',border:0,borderRadius:16}}/>{issue&&<p role="alert">{issue}</p>}</>;
 }
 function Reading({kind}:{kind:'saju'|'ziwei'}){
-  const keys=(Object.keys(TOSS_PUBLIC_SECTIONS) as SectionKey[]).filter(k=>isTossPublicSection(k)&&k.startsWith(kind==='saju'?'rpt_':'ziwei_'));
-  const [key,setKey]=useState(keys[0]),[birth,setBirth]=useState(emptyBirth),[mode,setMode]=useState('pig');
+  const keys=(Object.keys(TOSS_PUBLIC_SECTIONS) as SectionKey[]).filter(k=>isTossPublicSection(k)&&(kind==='saju'?!k.startsWith('ziwei_'):k.startsWith('ziwei_')));
+  const [key,setKey]=useState(keys[0]),[birth,setBirth]=useState(emptyBirth),[mode,setMode]=useState('pig'),[name,setName]=useState('');
   const [result,setResult]=useState<{report:Report;input:RequestBody;travel:TravelHistory}|null>(null),[busy,setBusy]=useState(false),[error,setError]=useState('');
   const travelByBirth=useRef(new Map<string,TravelHistory>());
   const epoch=useRef(0),title=useRef<HTMLHeadingElement>(null);
@@ -86,7 +94,13 @@ function Reading({kind}:{kind:'saju'|'ziwei'}){
   useEffect(()=>{
     if(!result&&!busy)return;
     if(result)title.current?.focus();
-    const back=(e:Event)=>{if(!e.defaultPrevented){e.preventDefault();epoch.current++;setBusy(false);setResult(null);setError('');}};
+    const back=(e:Event)=>{
+      if(e.defaultPrevented)return;
+      e.preventDefault();
+      const detail=title.current?.parentElement?.querySelector('iframe')?.contentDocument?.querySelector('dialog[open]');
+      if(detail){(detail as HTMLDialogElement).close();return;}
+      epoch.current++;setBusy(false);setResult(null);setError('');
+    };
     window.addEventListener('code-destiny:toss-back',back);return ()=>window.removeEventListener('code-destiny:toss-back',back);
   },[result,busy]);
   async function submit(e:FormEvent){
@@ -96,7 +110,7 @@ function Reading({kind}:{kind:'saju'|'ziwei'}){
     try{
       const birthKey=JSON.stringify(birth);
       const travel=travelByBirth.current.get(birthKey)||{recent:[],winners:[]};
-      const input=sectionInput(key,birth,mode,travel.recent);
+      const input=sectionInput(key,birth,mode,travel.recent,name);
       const report=checked(await api<Report>(path,input),key);
       if(epoch.current===id){
         if(report.energy?.recent){travel.recent=report.energy.recent;travelByBirth.current.set(birthKey,travel);}
@@ -112,7 +126,8 @@ function Reading({kind}:{kind:'saju'|'ziwei'}){
     <form className="form" onSubmit={submit}><label>풀이 선택<select value={key} onChange={e=>setKey(e.target.value as SectionKey)} disabled={busy}>
     {keys.map(k=><option key={k} value={k}>{TOSS_PUBLIC_SECTIONS[k]}</option>)}</select></label>
     <BirthFields title="풀이할 출생정보" value={birth} onChange={setBirth} disabled={busy}/>
-    {key==='rpt_quantumCard'&&<label>해석 관점<select value={mode} disabled={busy} onChange={e=>setMode(e.target.value)}><option value="pig">연이</option><option value="neo">네오</option></select></label>}
+    {key==='saju_natal_reading'&&<label>풀이에서 부를 이름 (선택)<input maxLength={40} value={name} disabled={busy} onChange={e=>setName(e.target.value)}/></label>}
+    {['rpt_quantumCard','saju_natal_reading'].includes(key)&&<label>해석 관점<select value={mode} disabled={busy} onChange={e=>setMode(e.target.value)}><option value="pig">연이</option><option value="neo">영냥이</option></select></label>}
     {error&&<p role="alert">{error}</p>}<Button type="submit" display="block" disabled={busy} loading={busy}>선택한 풀이 보기</Button></form></section>;
 }
 export default function PublicSectionReading({kind}:{kind:'saju'|'ziwei'}){return <TossSessionScope><Reading kind={kind}/></TossSessionScope>;}

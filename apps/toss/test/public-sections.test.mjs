@@ -16,7 +16,10 @@ for(const featureKey of Object.keys(TOSS_PUBLIC_SECTIONS))test('guest section re
  assert.equal(viaToss.status,200);
  const report=await viaToss.json();
  assert.equal(report.accessSource,'public');
- assert.ok(report.html.length>5000);
+ if(featureKey==='saju_natal_reading'){
+   for(const name of ['ilju','ten','climate','strength','terms'])assert.match(report.parts[name],/data-natal-slot/);
+   assert.match(report.parts.ten,/data-natal-god/);
+ }else assert.ok(report.html.length>5000);
  assert.deepEqual(report,await direct.json());
 });
 test('the guest adapter cannot forward paid sections or request saved profiles',async()=>{

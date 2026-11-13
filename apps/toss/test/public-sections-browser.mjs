@@ -37,8 +37,12 @@ try{
    await page.getByLabel('태어난 시각',{exact:true}).fill('14:30');
    await page.getByLabel('계산에 사용하는 성별').selectOption('F');
    await page.getByLabel('출생 도시').selectOption('서울');
-   for(const [key,label] of Object.entries(TOSS_PUBLIC_SECTIONS).filter(([k])=>k.startsWith(prefix))){
+   for(const [key,label] of Object.entries(TOSS_PUBLIC_SECTIONS).filter(([k])=>k.startsWith(prefix)||prefix==='rpt_'&&k==='saju_natal_reading')){
      await page.getByLabel('풀이 선택').selectOption(key);
+     if(key==='saju_natal_reading'){
+       await page.getByLabel('풀이에서 부를 이름 (선택)').fill('달빛');
+       await page.getByLabel('해석 관점').selectOption({label:'영냥이'});
+     }
      await page.getByRole('button',{name:'선택한 풀이 보기'}).click();
      const frame=page.frameLocator('iframe[title="'+label+'"]');
      await frame.locator('main > div > :first-child').first().waitFor({state:'attached'});
@@ -51,6 +55,19 @@ try{
        await summary.focus();
        await summary.press('Enter');
        assert.equal(await details.evaluate(el=>el.open),!open);
+     }
+     if(key==='saju_natal_reading'){
+       assert.equal(await frame.locator('.natal-chapter').count(),5);
+       const ten=frame.locator('[data-chapter="ten"]');
+       await ten.locator(':scope > summary').press('Enter');
+       await ten.locator('[data-saju-god]').first().click();
+       const dialog=frame.getByRole('dialog');
+       assert.ok((await dialog.innerText()).length>120);
+       await dialog.getByRole('button',{name:'닫기'}).click();
+       const terms=frame.locator('[data-chapter="terms"]');
+       await terms.locator('summary').first().press('Enter');
+       const art=terms.locator('img').first();await art.scrollIntoViewIfNeeded();
+       await art.evaluate(img=>img.decode());assert.ok(await art.evaluate(img=>img.naturalWidth>=300));
      }
      if(key==='rpt_energyCoordCard'){
        for(const mode of ['domestic','global','monthly','mixed']){
@@ -80,7 +97,7 @@ try{
      assert.equal(await page.getByLabel('태어난 날짜',{exact:true}).inputValue(),'1990-05-15');
    }
  }
- assert.equal(new Set(calls.map(c=>c.featureKey)).size,10);
+ assert.equal(new Set(calls.map(c=>c.featureKey)).size,11);
  const spins=calls.filter(c=>c.energy?.roulette);
  assert.equal(spins.length,8);
  assert.deepEqual(spins.map(c=>c.energy.roulette.spin),[1,2,3,4,5,6,7,8]);
