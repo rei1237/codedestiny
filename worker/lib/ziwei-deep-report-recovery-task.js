@@ -91,7 +91,7 @@ export async function runZiweiDeepReportRecovery(env, options = {}) {
       outcomes.push({ requestId, outcome: 'budget_exhausted' }); continue;
     }
     try {
-      const response = await runBatch(new Request('https://internal.invalid/api/ziwei-deep-report/generate'), env,
+      const response = candidate.accessType==='toss' ? await (await import('../toss/native-ziwei-deep.js')).resumeNativeZiweiDeep(env,candidate) : await runBatch(new Request('https://internal.invalid/api/ziwei-deep-report/generate'), env,
         { resumeReportId: candidate.id }, { userId }, { requireExisting: true });
       const result = await response.json();
       outcomes.push({ requestId, outcome: result.status || result.reason || 'delivery_pending', completed: result.done === true && result.saved === true });

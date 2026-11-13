@@ -22,7 +22,7 @@ import { usePaidDeliveryScope } from "@/app/hooks/usePaidDeliveryScope";
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import styles from "./ziwei-consultation.module.css";
-import { ziweiChapterPreview } from "@/lib/pdf/ziwei-report-plan";
+import {ZiweiDeepChapters} from "./ZiweiDeepChapters";
 import { getPremiumZiweiCopy } from "./_lib/advanced-ziwei-copy";
 import { Download, History, Loader2, Sparkles } from "lucide-react";
 import ExpertCharacterStage from "@/app/components/expert-consulting/ExpertCharacterStage";
@@ -645,12 +645,7 @@ export default function ZiweiDeepPdfPanel({ birth, disabled = false }: Props) {
                   className="mt-3"
                 />
               </section>
-              {report.chapters.map((ch, index) => (
-                <article key={ch.id} data-ziwei-pdf-section className={styles.pdfChapter}>
-                  <h4>{ch.title}</h4><p>{ziweiChapterPreview(ch)}</p>
-                  <details open={index === 0}><summary>{ui.chapterOpen}</summary><p>{ch.body}</p></details>
-                </article>
-              ))}
+              <ZiweiDeepChapters chapters={report.chapters} openLabel={ui.chapterOpen} className={styles.pdfChapter}/>
             </div>
           </div>
         )}

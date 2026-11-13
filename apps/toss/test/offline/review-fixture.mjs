@@ -1,3 +1,4 @@
+import {mockZiweiDeepLibrary} from './ziwei-deep.mjs';
 import {mockCompassLibrary} from './compass.mjs';
 import {mockYogaLibrary} from './yoga.mjs';
 import {mockNakshatraLibrary} from './nakshatra-ai.mjs';
@@ -157,7 +158,7 @@ export async function handleReviewFixture(request,url,path,state,save,now,delay=
     return json({orderId,requestId:id,entitlement:'granted',durable:true});
   }
   if(path==='/library'&&method==='GET')return json({purchases:[
-    ...roomPurchases(state),...mockCompassLibrary(state),
+    ...roomPurchases(state),...mockCompassLibrary(state),...mockZiweiDeepLibrary(state),
     ...mockNakshatraLibrary(state),...mockYogaLibrary(state),
     ...owned.map(({fortune,orderId,sku})=>({requestId:fortune.id,orderId,sku,serviceId:'yeongnyangi',selectionId:fortune.productId,productId:fortune.productId,status:'PURCHASED',state:fortune.state,createdAt:fortune.createdAt,completedSections:fortune.chapters.length,totalSections:1})),
     ...[...state.letters.values()].filter(row=>row.paid).map(row=>({requestId:row.id,orderId:row.orderId,sku:offlineLetterProduct(row.persona,row.productId)?.sku,serviceId:row.persona,selectionId:row.persona+':'+row.productId,productId:row.productId,status:'PURCHASED',state:row.state,createdAt:row.createdAt,completedSections:1,totalSections:1})),

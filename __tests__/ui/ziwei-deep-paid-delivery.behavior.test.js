@@ -551,3 +551,20 @@ test('판 2: 말투 이탈 장은 초안으로 남기고 다음 시도에 [보�
   assert.equal(hints.length, 2); assert.equal(hints[0], ''); assert.match(hints[1], /\[보정\]/);
   assert.doesNotMatch(f.doc.chapters.find(ch => ch.id === 'chapter0').body, /DRIFT/);
 });
+
+test('토스 주문으로 원본 15장 전달 후 동일 주문과 소유자만 재열람한다',async()=>{
+  const f=fixture();let verified=0;
+  const auth={userId:'owner',inputHash:'native-hash',orderId:'toss-order',verify:async()=>{verified++;},assertTossReport:async doc=>{
+    assert.equal(doc.accessType,'toss');assert.equal(doc.llmMeta.tossInputHash,'native-hash');assert.equal(doc.llmMeta.tossOrderId,'toss-order');verified++;
+  }};
+  const req=new Request('https://mock.test/api/ziwei-deep-report/generate',{method:'POST'});
+  for(let i=0;i<4;i++){
+    const response=await f.ctx.runZiweiDeepReportDeliveryBatch(req,{}, {idempotencyKey:'original-paid-key'},auth);
+    assert.equal(response.status,i===3?200:202);
+  }
+  assert.equal(f.doc.chapters.length,15);assert.equal(f.calls,15);assert.equal(f.starts,0);assert.equal(f.refunds,0);
+  const text=await (await f.ctx.runZiweiDeepReportDeliveryBatch(req,{}, {resumeReportId:f.doc.id},auth)).json();
+  assert.equal(text.chapters.length,15);assert.equal(f.calls,15);assert.ok(verified);
+  assert.equal((await f.post({resumeReportId:f.doc.id})).status,404);
+  await assert.rejects(f.ctx.runZiweiDeepReportDeliveryBatch(req,{}, {resumeReportId:f.doc.id},{...auth,assertTossReport:async()=>{throw Error('ORDER_REFUNDED');}}),/ORDER_REFUNDED/);
+});

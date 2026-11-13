@@ -51,7 +51,7 @@ export async function api<T>(path:string,body?:unknown):Promise<T>{
   const requestToken=token,requestEpoch=sessionEpoch,requestAttempt=loginAttempt;
   const response=await fetch(API+path,{method:body===undefined?'GET':'POST',credentials:'omit',
     headers:{...(body===undefined?{}:{'Content-Type':'application/json'}),...(requestToken?{Authorization:`Bearer ${requestToken}`}:{})},
-    ...(body===undefined?{}:{body:JSON.stringify(body)}),signal:AbortSignal.timeout(path==='/native/palm/prepare'||path.endsWith('/conversation')||body!==undefined&&(path.startsWith('/tarot-library/results/')||/^\/native\/(compass|yoga|saju-compat|codex|sibyl|naming|dream|heukwol|geomancy|totem-basic|totem-deep|nakshatra)\/results\/[a-f0-9]{64}(?:\?year=\d{4})?$/.test(path)||/^\/native\/pet\/intents\/[a-f0-9]{64}\/generate$/.test(path))?75000:20000)});
+    ...(body===undefined?{}:{body:JSON.stringify(body)}),signal:AbortSignal.timeout(path==='/native/palm/prepare'||path.endsWith('/conversation')||body!==undefined&&(path.startsWith('/tarot-library/results/')||/^\/native\/(ziwei-deep/results/')||path.startsWith('/native/compass|yoga|saju-compat|codex|sibyl|naming|dream|heukwol|geomancy|totem-basic|totem-deep|nakshatra)\/results\/[a-f0-9]{64}(?:\?year=\d{4})?$/.test(path)||/^\/native\/pet\/intents\/[a-f0-9]{64}\/generate$/.test(path))?75000:20000)});
   if(path!=='/login'&&(token!==requestToken||sessionEpoch!==requestEpoch))throw new ApiError('SESSION_CHANGED','',409);
   if(response.status===401){
     if(path!=='/login')await invalidateCurrentSession(requestToken,requestEpoch,requestAttempt);

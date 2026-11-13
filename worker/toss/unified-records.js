@@ -4,7 +4,7 @@ import {tarotResultPath} from '../../lib/tarot/toss-library-links.mjs';
 
 // Results come only from libraryPage after its owner and order checks. Unassigned
 // rights remain in the purchase library until the buyer chooses an input.
-const LABELS={compass:'운명의 나침반 심층 리포트',guardian:'사주 가디언',sibyl:'시빌라 심층 리포트','totem-basic':'애니멀 토템','totem-deep':'애니멀 토템 심화',palm:'내 손금 리포트',yoga:'디비야 요가','saju-compat':'사주 궁합',codex:'마스터 인연의 서',geomancy:'지오맨시 흙점',nakshatra:'나크샤트라 개인 심화 상담',naming:'사주 작명첩',dream:'정신분석 해몽',heukwol:'흑월의 경고',yeongnyangi:'영냥이',yeoni:'연이 상담',neo:'네오 상담','tarot-library':'타로 상담',tea:'연이의 운명 찻집',fusion:'초융합 운세','life-book':'인생의 책','love-secret':'연애 비책',astrology:'점성술 상담',vedic:'베다 상담',ziwei:'자미두수 상담','new-year':'신년운세 상담',karma:'운명의 업 전문가 상담',maya:'마야점 프롬프트',sukuyo:'숙요점 궁합 전문가 상담',relationship:'관계 경계 리포트'};
+const LABELS={'ziwei-deep':'자미두수 심층 리포트',compass:'운명의 나침반 심층 리포트',guardian:'사주 가디언',sibyl:'시빌라 심층 리포트','totem-basic':'애니멀 토템','totem-deep':'애니멀 토템 심화',palm:'내 손금 리포트',yoga:'디비야 요가','saju-compat':'사주 궁합',codex:'마스터 인연의 서',geomancy:'지오맨시 흙점',nakshatra:'나크샤트라 개인 심화 상담',naming:'사주 작명첩',dream:'정신분석 해몽',heukwol:'흑월의 경고',yeongnyangi:'영냥이',yeoni:'연이 상담',neo:'네오 상담','tarot-library':'타로 상담',tea:'연이의 운명 찻집',fusion:'초융합 운세','life-book':'인생의 책','love-secret':'연애 비책',astrology:'점성술 상담',vedic:'베다 상담',ziwei:'자미두수 상담','new-year':'신년운세 상담',karma:'운명의 업 전문가 상담',maya:'마야점 프롬프트',sukuyo:'숙요점 궁합 전문가 상담',relationship:'관계 경계 리포트'};
 function text(value){return typeof value==='string'?value.trim().slice(0,200):'';}
 function status(state){if(['COMPLETED','completed'].includes(state))return 'completed';if(state==='AWAITING_FOLLOWUP')return 'conversation';if(['PAID','GENERATING','PENDING','partial','generating','paid_pending_generation'].includes(state))return 'generating';return 'failed';}
 function groupOf(purchase){return ['yeoni','neo'].includes(purchase.serviceId)&&!purchase.nativeService?'chat':'report';}
@@ -12,7 +12,7 @@ function nativeName(purchase){return purchase.nativeService==='life-book'&&purch
 
 export async function unifiedRecordsPage(rows,read,readTarot,readNative,verify,{group='all',query='',source=''}={}){
  if(!['all','report','chat','chart'].includes(group))throw new TossError('RECORD_GROUP_INVALID',400);
- if(source&&!['compass','guardian','sibyl','totem-basic','totem-deep','palm','tea','nakshatra','geomancy','yoga','codex','saju-compat','neo','naming','dream','heukwol','fusion','life-book','love-secret','astrology','vedic','ziwei','new-year','karma','maya','sukuyo','relationship'].includes(source))return {ok:true,items:[],failures:[],nextCursor:null};
+ if(source&&!['ziwei-deep','compass','guardian','sibyl','totem-basic','totem-deep','palm','tea','nakshatra','geomancy','yoga','codex','saju-compat','neo','naming','dream','heukwol','fusion','life-book','love-secret','astrology','vedic','ziwei','new-year','karma','maya','sukuyo','relationship'].includes(source))return {ok:true,items:[],failures:[],nextCursor:null};
  const snapshots=new Map();
  const page=await libraryPage(rows,async id=>{const row=await read(id);snapshots.set(id,row);return row;},readTarot,readNative,verify);
  if(page.purchases.some(row=>row.state==='READ_FAILED'))throw new TossError('RECORDS_UNAVAILABLE',503);

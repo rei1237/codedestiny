@@ -42,6 +42,7 @@ async function readNativeLibraryItem(env,auth,row){
   if(row.nativeService==='saju-compat')return (await import('./native-saju-compat.js')).compatLibraryItem(env,auth,row);
   if(row.nativeService==='dream')return (await import('./native-dream.js')).dreamLibraryItem(env,auth,row);
   if(row.nativeService==='heukwol')return (await import('./native-heukwol.js')).heukwolLibraryItem(env,auth,row);
+  if(row.nativeService==='ziwei-deep')return (await import('./native-ziwei-deep.js')).ziweiDeepLibraryItem(env,auth,row);
   if(row.nativeService==='compass')return (await import('./native-compass.js')).compassLibraryItem(env,auth,row);
   if(row.nativeService==='yoga')return (await import('./native-yoga.js')).nativeYogaLibraryItem(env,auth,row);
   if(row.nativeService==='nakshatra')return (await import('./native-nakshatra.js')).nakshatraLibraryItem(env,auth,row);
@@ -308,6 +309,18 @@ export async function handleTossRoutes(request,env) {
       const {handleNativeAstrology}=await import('./native-astrology.js');
       return forwardServiceResponse(await handleNativeAstrology(request,env,auth,path.slice('/canonical/astrology-ai'.length)),headers);
     }
+    if(path==='/native/ziwei-deep/prepare'&&request.method==='POST'){
+      await limit(env,auth._id,'native-ziwei-deep-prepare',6);
+      const {input,orderId}=await bodyOf(request);
+      const {prepareZiweiDeep}=await import('./native-ziwei-deep.js');
+      return reply(await prepareZiweiDeep(env,auth,input,orderId));
+    }
+    const ziweiDeepResult=path.match(/^\/native\/ziwei-deep\/results\/([a-f0-9]{64})$/);
+    if(ziweiDeepResult&&['GET','POST'].includes(request.method)){
+      if(request.method==='POST')await limit(env,auth._id,'native-ziwei-deep-generate',30);
+      const {readNativeZiweiDeep}=await import('./native-ziwei-deep.js');
+      return forwardServiceResponse(await readNativeZiweiDeep(env,auth,ziweiDeepResult[1],request.method==='POST'),headers);
+    }
     if(path==='/native/compass/prepare'&&request.method==='POST'){
       await limit(env,auth._id,'native-compass-prepare',6);
       const {input,orderId}=await bodyOf(request,64000);
@@ -534,7 +547,7 @@ export async function handleTossRoutes(request,env) {
       if(request.method==='POST')await limit(env,auth._id,'native-heukwol-wave',35);
       return reply(await (await import('./native-heukwol.js')).heukwolWave(env,auth,heukwol[1],request.method==='POST'));
     }
-    const nativeIntent=path.match(/^\/native\/(compass|guardian|sibyl|tea|yoga|saju-compat|codex|palm|geomancy|totem-basic|totem-deep|nakshatra|neo|naming|dream|heukwol|fusion|life-book|love-secret|astrology|vedic|ziwei|new-year|karma|maya|sukuyo|relationship|pet)\/intents\/([a-f0-9]{64})$/);
+    const nativeIntent=path.match(/^\/native\/(ziwei-deep|compass|guardian|sibyl|tea|yoga|saju-compat|codex|palm|geomancy|totem-basic|totem-deep|nakshatra|neo|naming|dream|heukwol|fusion|life-book|love-secret|astrology|vedic|ziwei|new-year|karma|maya|sukuyo|relationship|pet)\/intents\/([a-f0-9]{64})$/);
     if(nativeIntent&&request.method==='GET'){
       const {readNativeTeaIntent}=await import('./native-tea.js');
       return reply(await readNativeTeaIntent(env,auth,nativeIntent[2],nativeIntent[1]));

@@ -8,13 +8,25 @@ import {BirthFields,birthPayload,emptyBirth} from './BirthFields';
 import {Button} from './Button';
 import TossSessionScope from './TossSessionScope';
 import './ziwei-chart.css';
+import {ZiweiDeepDelivery,ZiweiDeepOffer,useZiweiOwner} from './ZiweiDeep';
+type Props={loggedIn:boolean;onLogin:()=>void};
+const continuation='toss.ziwei-deep.login';
 
-export default function ZiweiChart(){
-  return <TossSessionScope><ChartForm/></TossSessionScope>;
+
+export default function ZiweiChart(props:Props){
+  return <TossSessionScope><AccountChart {...props}/></TossSessionScope>;
+}
+function AccountChart({loggedIn,onLogin}:Props){
+  const account=useZiweiOwner(loggedIn);
+  const id=new URLSearchParams(location.search).get('resultId');
+  if(!account.owner)return account.failed?<Button onClick={account.retry}>계정 다시 확인하기</Button>:<p role="status">계정을 확인하고 있어요.</p>;
+  if(id)return loggedIn?<ZiweiDeepDelivery id={id}/>:<Button onClick={onLogin}>토스로 로그인하기</Button>;
+  return <ChartForm key={account.owner} owner={account.owner} onLogin={onLogin}/>;
 }
 
-function ChartForm(){
-  const [birth,setBirth]=useState(emptyBirth);
+function ChartForm({owner,onLogin}:{owner:string;onLogin:()=>void}){
+  const draftKey='toss.ziwei-deep.birth.'+owner;
+  const [birth,setBirth]=useState<ReturnType<typeof emptyBirth>>(()=>{try{return JSON.parse(localStorage.getItem(draftKey)||'null')||emptyBirth();}catch{return emptyBirth();}});
   const [chart,setChart]=useState<ZiweiDeepChart|null>(null);
   const [error,setError]=useState('');
   const title=useRef<HTMLHeadingElement>(null);
@@ -26,8 +38,7 @@ function ChartForm(){
     return ()=>window.removeEventListener('code-destiny:toss-back',back);
   },[chart]);
 
-  function submit(event:FormEvent){
-    event.preventDefault();
+  function calculate(birth:ReturnType<typeof emptyBirth>){
     setError('');
     try{
       const {date,location}=birthPayload(birth);
@@ -47,8 +58,27 @@ function ChartForm(){
     }catch{setError('명반을 계산하지 못했어요. 날짜와 달력 종류를 확인해 주세요.');}
   }
 
+  useEffect(()=>{
+    if(owner==='guest')return;
+    try{
+      const raw=sessionStorage.getItem(continuation);sessionStorage.removeItem(continuation);
+      if(!raw)return;
+      const value=JSON.parse(raw);
+      if(Date.now()-value.created>300000||!value.birth?.date)return;
+      setBirth(value.birth);localStorage.setItem(draftKey,JSON.stringify(value.birth));
+      if(value.draft)localStorage.setItem('toss.ziwei-deep.draft.'+owner,value.draft);
+      localStorage.removeItem('toss.ziwei-deep.draft.guest');
+      localStorage.removeItem('toss.ziwei-deep.birth.guest');
+      calculate(value.birth);
+    }catch{/* Restart the chart when the previous entry is unavailable. */}
+  },[owner,draftKey]);
+  function login(){
+    try{sessionStorage.setItem(continuation,JSON.stringify({created:Date.now(),birth,draft:localStorage.getItem('toss.ziwei-deep.draft.guest')}));}catch{/* Login can proceed without a local draft. */}
+    onLogin();
+  }
+  function submit(event:FormEvent){event.preventDefault();calculate(birth);}
   if(!chart)return <section><h1>자미두수 명반</h1><p>태어난 날과 시각을 바탕으로 열두 궁에 놓인 별을 살펴봐요. 국내 출생지를 지원해요.</p>
-    <form className="form" onSubmit={submit}><BirthFields title="명반을 세울 출생정보" value={birth} onChange={value=>{setBirth(value);setError('');}}/>
+    <form className="form" onSubmit={submit}><BirthFields title="명반을 세울 출생정보" value={birth} onChange={value=>{setBirth(value);setError('');try{localStorage.setItem(draftKey,JSON.stringify(value));}catch{/* Device storage optional. */}}}/>
       {error&&<p role="alert">{error}</p>}<Button type="submit" display="block">명반 펼치기</Button></form></section>;
 
   return <section className="ziwei-basic"><h1 tabIndex={-1} ref={title}>나의 자미두수 명반</h1>
@@ -72,6 +102,7 @@ function ChartForm(){
       </details>
     </>}
     {chart.warnings.filter(warning=>warning.code!=='MISSING_BIRTH_TIME').map((warning,index)=><p key={index}>{warning.message}</p>)}
+    <ZiweiDeepOffer birth={birth} owner={owner} onLogin={login}/>
     <Button variant="weak" display="block" onClick={()=>setChart(null)}>출생정보 다시 보기</Button>
   </section>;
 }
