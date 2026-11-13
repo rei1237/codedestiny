@@ -1,5 +1,5 @@
 {
-  "sourceCommit": "bdcc0b6c9930646bbcd1f896d2b6e4f26597f583",
+  "sourceCommit": "33bb51554b4d7d001ac045f4d855bbdb66ead243",
   "sourceCounts": {
     "home": 63,
     "react": 18,
@@ -1578,8 +1578,8 @@
         "library": "not-verified",
         "device": "not-tested",
         "canonicalId": "neville-meditation",
-        "candidateStatus": "requires-full-flow-port-and-verification",
-        "canonicalRoute": null
+        "candidateStatus": "local-partial",
+        "canonicalRoute": "/meditation/neville"
       }
     },
     {
@@ -5460,12 +5460,13 @@
         }
       ],
       "aliasEvidence": [],
-      "status": "requires-full-flow-port-and-verification",
-      "tossRoute": null,
+      "status": "local-partial",
+      "tossRoute": "/meditation/neville",
       "sku": null,
-      "inputContract": null,
-      "resultRenderer": null,
-      "storageContract": null,
+      "inputContract": "neville-meditation.html COURSES 30·60분, 시간별 단계·안내와 THETA_PRESETS 세 음악 세트, 웹 로그인 및 무료 기능 키 neville-meditation",
+      "resultRenderer": "apps/toss/src/NevilleMeditation.tsx + apps/toss/canonical/neville-courses.mjs",
+      "storageContract": "토스 로그인 후 회차별 현재 화면 진행. 주문·LLM 없음",
+      "verification": "studio-neville-browser.mjs 360px 홈→mock 로그인→두 코스 일시정지·재개/곡 선택/단계 전환→완주. R2 스트림의 실기기 재생 미검증",
       "webEntries": [
         "/neville-meditation.html"
       ],
@@ -5477,13 +5478,13 @@
         "neville-meditation"
       ],
       "freeCalculation": true,
-      "portStatus": "미이식",
-      "reducedBundle": "홈 진입 없음",
-      "currentEntry": "연결 경로 없음",
+      "portStatus": "일부만 이식",
+      "reducedBundle": "구현은 있으나 진입 차단",
+      "currentEntry": "일반 홈의 진입 코드 확인",
       "bundleVerification": "실기기 및 상품별 전체 흐름 미검증",
-      "tossLogin": "토스 기능 미연결",
-      "tossResult": "결과 화면 연결 미확인",
-      "reread": "재열람 경로 미확인"
+      "tossLogin": "계산 또는 기록 조회에 토스 계정 필요",
+      "tossResult": "apps/toss/src/NevilleMeditation.tsx + apps/toss/canonical/neville-courses.mjs",
+      "reread": "토스 로그인 후 회차별 현재 화면 진행. 주문·LLM 없음"
     },
     {
       "id": "new-year-ai",
