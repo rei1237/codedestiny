@@ -51,10 +51,34 @@ export function seoDisplayWidth(text: string): number {
   return [...String(text)].reduce((total, char) => total + (EAST_ASIAN_WIDE.test(char) ? 2 : 1), 0);
 }
 
-/** 폭 한계에서 자르되, 뒤쪽에 공백이 있으면 거기까지 되돌려 단어를 쪼개지 않는다. */
+const SEO_DESCRIPTION_MIN_LENGTH = 50;
+// 문장 끝: 라틴 구두점은 뒤가 공백이나 끝일 때만(3.5 같은 소수점 제외), 한중일 구두점은 그대로.
+const SENTENCE_END = /[.!?]+["'”’)\]]*(?=\s|$)|[。！？]+[」』”）]*/g;
+
+/**
+ * 한계 안에 온전히 들어오는 마지막 문장까지. 너무 짧게 남으면 null 을 돌려 폭 절단에 맡긴다.
+ * 하한은 폭 절반과 50자 — `scripts/verify-adsense-readiness.mjs` 가 50자 미만 설명을 빌드 실패로 본다.
+ */
+function cutAtSentenceBoundary(source: string, limit: number): string | null {
+  let best = "";
+  for (const match of source.matchAll(SENTENCE_END)) {
+    const candidate = source.slice(0, (match.index ?? 0) + match[0].length);
+    if (seoDisplayWidth(candidate) > limit) break;
+    best = candidate;
+  }
+  return seoDisplayWidth(best) >= limit / 2 && best.length >= SEO_DESCRIPTION_MIN_LENGTH ? best : null;
+}
+
+/**
+ * 폭 한계를 넘으면 먼저 문장 경계에서 끊는다(2026-11-14, 색인 229쪽의 설명이 `…` 로 끝났다).
+ * 한계 안에 쓸 만한 문장 경계가 없을 때만 폭에서 자르고 `…` 를 붙인다. 이때 뒤쪽에 공백이
+ * 있으면 거기까지 되돌려 단어를 쪼개지 않는다.
+ */
 export function truncateToDisplayWidth(text: string, limit = SEO_DESCRIPTION_WIDTH_LIMIT): string {
   const source = String(text || "").replace(/\s+/g, " ").trim();
   if (seoDisplayWidth(source) <= limit) return source;
+  const atSentence = cutAtSentenceBoundary(source, limit);
+  if (atSentence) return atSentence;
   let out = "";
   let used = 0;
   for (const char of source) {

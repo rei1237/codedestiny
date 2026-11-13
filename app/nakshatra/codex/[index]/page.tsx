@@ -47,8 +47,8 @@ function resolve(indexParam: string) {
  * 문장이 중간에서 끝나고 `…` 가 붙는다 — 2026-08-27 실측으로 이 라우트 27개가 전부 그랬다.
  * 그래서 한계 안에 **온전히 들어오는 마지막 문장**까지만 쓴다.
  *
- * 🔴 공용 truncateToDisplayWidth 를 고치지 않는다 — 그 함수는 buildSeoMetadata 를 통해 라우트
- *    43개가 공유하므로, 절단 방식을 바꾸면 이 작업 범위 밖의 설명까지 전부 움직인다.
+ * 2026-11-14 부터는 공용 truncateToDisplayWidth 도 문장 경계에서 먼저 끊는다(네이버 SEO 묶음 2-1,
+ *    사용자 승인 계획). 이 라우트는 "두 문장 이상" 조건이 따로 있어 자체 함수를 그대로 둔다.
  * 접두부 한 문장만 남는 경우는 너무 짧아 설명 구실을 못 하므로 null 을 돌려 공통 절단에 맡긴다.
  */
 function toLastCompleteSentence(text: string): string | null {
