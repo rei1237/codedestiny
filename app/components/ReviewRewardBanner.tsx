@@ -33,12 +33,14 @@ function useResultBannerOwner(enabled: boolean) {
   return owner;
 }
 
-export default function ReviewRewardBanner({ policy, onWrite, brand = 'ggulggul', afterResult = false, locale = 'ko' }: {
+export default function ReviewRewardBanner({ policy, onWrite, brand = 'ggulggul', afterResult = false, locale = 'ko', reviewProductId }: {
   policy?: ReviewRewardPolicy | null;
   onWrite?: () => void;
   brand?: 'ggulggul' | 'yeongnyangi';
   afterResult?: boolean;
   locale?: string;
+  /** 후기 카탈로그 상품 id(worker/lib/review-product-catalog.js). 작성 가능하면 작성기가 미리 고른다. */
+  reviewProductId?: string;
 }) {
   const [loadedPolicy, setLoadedPolicy] = useState<ReviewRewardPolicy | null>(null);
   const owner = useResultBannerOwner(afterResult);
@@ -69,7 +71,7 @@ export default function ReviewRewardBanner({ policy, onWrite, brand = 'ggulggul'
           : <Link href={REVIEW_WRITE_URL} className="cd-review-invite__action">{copy.action}</Link>}
       </div>
       <Image src={afterResult ? paidReviewCopy(brand, locale).image : onWrite ? "/images/reviews/yeoni-moonstone-gift-v1.webp" : REVIEW_REWARD_IMAGE} alt={brand === 'yeongnyangi' ? '달빛 상담실의 영냥이' : onWrite ? '편지와 월정석을 든 꽃돼지 연이' : reviewRewardCopy.imageAlt} width={360} height={240} className="cd-review-invite__image" />
-      {afterResult && locale === 'ko' && <QuickReviewComposer brand={brand} rewardLabel={`${reward}${worth ? ` · ${worth}` : ''}`} />}
+      {afterResult && locale === 'ko' && <QuickReviewComposer brand={brand} reviewProductId={reviewProductId} rewardLabel={`${reward}${worth ? ` · ${worth}` : ''}`} />}
     </section>
   );
 }

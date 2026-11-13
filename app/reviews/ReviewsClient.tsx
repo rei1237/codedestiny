@@ -11,6 +11,7 @@ import ReviewRewardHistory from "./ReviewRewardHistory";
 import { normalizeReviewSocialProof } from "@/js/review-sharing.mjs";
 import { reviewRewardLabel } from "@/js/review-reward-copy.mjs";
 import { authFetch } from "../_lib/auth-client";
+import { REVIEW_QUICK_TAGS } from "../components/review/review-ui";
 import { getCurrentLoadingLocale, INTL_LOCALE_BY_LOADING_LOCALE, type LoadingLocale } from "@/constants/loadingMessages";
 
 type SortKey = "latest" | "rating_desc" | "rating_asc";
@@ -60,7 +61,6 @@ const SORT_KEYS: SortKey[] = ["latest", "rating_desc", "rating_asc"];
 
 const PAGE_SIZE = 12;
 const EMPTY_SUMMARY: Summary = { total: 0, average: 0, distribution: {} };
-const QUICK_REVIEW_TAGS = ["풀이가 자세해서 좋아요", "조금 아쉬웠어요"];
 
 type ReviewsCopy = {
   sortLabels: Record<SortKey, string>;
@@ -1415,7 +1415,7 @@ export default function ReviewsClient() {
                 </div>
 
                 <div className="flex flex-wrap gap-2" aria-label="빠른 후기 선택">
-                  {QUICK_REVIEW_TAGS.map((tag) => <button key={tag} type="button" aria-pressed={formTags.includes(tag)} onClick={() => setFormTags((current) => current.includes(tag) ? current.filter((item) => item !== tag) : [...current, tag])} className={`min-h-11 rounded-full border px-3 text-sm ${formTags.includes(tag) ? "border-[#b31955] bg-[#fdf0f5] font-semibold text-[#b31955] dark:border-[#f4bed1] dark:bg-[#4a1230] dark:text-[#f4bed1]" : "border-[#f0d4de] text-[#70445c] dark:border-[#5a3348] dark:text-[#c99cb2]"}`}>{tag}</button>)}
+                  {REVIEW_QUICK_TAGS.map((tag) => <button key={tag} type="button" aria-pressed={formTags.includes(tag)} onClick={() => setFormTags((current) => current.includes(tag) ? current.filter((item) => item !== tag) : [...current, tag])} className={`min-h-11 rounded-full border px-3 text-sm ${formTags.includes(tag) ? "border-[#b31955] bg-[#fdf0f5] font-semibold text-[#b31955] dark:border-[#f4bed1] dark:bg-[#4a1230] dark:text-[#f4bed1]" : "border-[#f0d4de] text-[#70445c] dark:border-[#5a3348] dark:text-[#c99cb2]"}`}>{tag}</button>)}
                 </div>
 
                 <div className="space-y-1">
