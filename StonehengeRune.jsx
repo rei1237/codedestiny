@@ -1,10 +1,6 @@
 "use client";
 
-import CraftedProductDisclosure from "@/app/components/CraftedProductDisclosure";
 import { useState, useCallback, useEffect } from "react";
-import { useCoinGate } from "@/app/hooks/useCoinGate";
-import { formatKrwFromCoins } from "@/lib/payment/coin-pricing";
-import { lookupServerCoinPrice } from "@/app/_lib/serviceCoinPrice";
 import { isFreeFortuneFeatureKey } from "@/lib/payment/free-fortune-policy.mjs";
 import { getCurrentLoadingLocale } from "@/constants/loadingMessages";
 import { getStonehengeRuneCopy } from "@/lib/stonehenge-rune-copy";
@@ -690,9 +686,12 @@ function buildRuneAiQuestionPrompt({ drawnRunes, spread, spreadInsight }) {
 }
 
 // ─── MAIN COMPONENT ───────────────────────────────────────────────────────────
-export default function StonehengeRune() {
+/**
+ * @typedef {{categoryKey:string, subFeatureKey:string, featureKey:string, reason:string, coinPrice:number, requestId:string, onPaid:()=>Promise<void>}} RuneAccessInput
+ * @param {{ensurePaidAccess?: (input:RuneAccessInput)=>Promise<{ok:boolean, code:string, message:string}>, isPaying?: boolean, priceLabel?: (key:string)=>string, renderDisclosure?: (key:string)=>import("react").ReactNode, onShare?: ()=>Promise<void>, onHome?: ()=>void, shareLabel?: string}} props
+ */
+export default function StonehengeRune({ ensurePaidAccess, isPaying = false, priceLabel, renderDisclosure, onShare, onHome, shareLabel } = {}) {
   const { drawnRunes, isDrawing, phase, drawRunes, reset } = useRuneDraw();
-  const { ensurePaidAccess, isPaying } = useCoinGate();
   const [spread, setSpread] = useState(null);
   const [selectedRune, setSelectedRune] = useState(null);
   const [visibleCards, setVisibleCards] = useState([]);
@@ -741,7 +740,12 @@ export default function StonehengeRune() {
       drawRunes(spread);
     };
 
-    // 관리자·선불 마커는 서버 차감 없이 바로 뽑는다(기존 우회 유지).
+    // A public reading consumes no existing entitlement or prepaid marker.
+    if (isFreeFortuneFeatureKey(RUNE_FALLBACK_FEATURE_BY_SPREAD[spread])) {
+      startDraw();
+      return;
+    }
+    if (!ensurePaidAccess) return;
     if (isRuneAdminBypass() || consumeRunePrepaidMarker()) {
       startDraw();
       return;
@@ -920,6 +924,10 @@ export default function StonehengeRune() {
   };
 
   const handleShareKakao = async () => {
+    if (onShare) {
+      try { await onShare(); } catch { window.alert(copy.shareOpenFailedAlert); }
+      return;
+    }
     const shareTitle = copy.shareTitle;
     const shareText = copy.shareText;
     const shareUrl = typeof window !== "undefined" ? window.location.href : "https://code-destiny.pages.dev/oracle/rune";
@@ -943,7 +951,8 @@ export default function StonehengeRune() {
   };
 
   const handleGoMain = () => {
-    window.location.href = "/";
+    if (onHome) onHome();
+    else window.location.href = "/";
   };
 
   useEffect(() => {
@@ -955,9 +964,12 @@ export default function StonehengeRune() {
       if (event.key === "ArrowRight") showNextRune();
     };
 
+    const onBack = event => { event.preventDefault(); closeRuneDetail(); };
+    window.addEventListener("code-destiny:toss-back", onBack);
     window.addEventListener("keydown", handleKeydown);
     return () => {
       window.removeEventListener("keydown", handleKeydown);
+      window.removeEventListener("code-destiny:toss-back", onBack);
     };
   }, [selectedRune, closeRuneDetail, showPrevRune, showNextRune]);
 
@@ -971,7 +983,7 @@ export default function StonehengeRune() {
       <style>{`
         ${GOOGLE_FONTS}
 
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        .sr-root, .sr-root *, .sr-root *::before, .sr-root *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
         .sr-root {
           min-height: 100vh;
@@ -1383,7 +1395,7 @@ export default function StonehengeRune() {
           box-shadow: 0 0 30px rgba(99,102,241,0.3), 0 0 60px rgba(99,102,241,0.1);
         }
         .sr-card.tap-cue {
-          animation: runeTapNudge 2.2s ease-in-out infinite;
+          animation: runeTapNudge 1.2s ease-in-out 1;
           animation-delay: var(--sr-tap-delay, 0ms);
         }
         .sr-card.tap-cue::after {
@@ -1399,9 +1411,12 @@ export default function StonehengeRune() {
           border: 1px solid rgba(129, 140, 248, 0.48);
           background: rgba(30, 41, 59, 0.82);
           box-shadow: 0 0 12px rgba(129, 140, 248, 0.32);
-          animation: tapBadgeBlink 1.8s ease-in-out infinite;
+          animation: tapBadgeBlink 1.8s ease-in-out 2;
           animation-delay: var(--sr-tap-delay, 0ms);
           pointer-events: none;
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .sr-card.tap-cue, .sr-card.tap-cue::after { animation: none; }
         }
         .sr-card.tap-cue:hover,
         .sr-card.tap-cue:focus-visible {
@@ -2078,12 +2093,12 @@ export default function StonehengeRune() {
                 <span className="sr-spread-btn-rune">{option.rune}</span>
                 <span className="sr-spread-btn-name">{copy[`spreadName${option.count}`] || option.name}</span>
                 <span className="sr-spread-btn-desc">{copy[`spreadDesc${option.count}`] || option.desc}</span>
-                <span className="sr-spread-btn-desc">{isFreeFortuneFeatureKey(RUNE_FALLBACK_FEATURE_BY_SPREAD[option.count]) ? copy.aiPromptFreeBadge : formatKrwFromCoins(lookupServerCoinPrice(RUNE_FALLBACK_FEATURE_BY_SPREAD[option.count]))}</span>
+                <span className="sr-spread-btn-desc">{isFreeFortuneFeatureKey(RUNE_FALLBACK_FEATURE_BY_SPREAD[option.count]) ? copy.aiPromptFreeBadge : priceLabel?.(RUNE_FALLBACK_FEATURE_BY_SPREAD[option.count])}</span>
               </button>
             ))}
           </div>
 
-          {[1, 3, 5, 12].includes(spread) && getCurrentLoadingLocale() === "ko" && <div style={{width:"100%",maxWidth:540,margin:"20px auto"}}><CraftedProductDisclosure featureKey={RUNE_FALLBACK_FEATURE_BY_SPREAD[spread]} /></div>}
+          {renderDisclosure && [1, 3, 5, 12].includes(spread) && getCurrentLoadingLocale() === "ko" && <div style={{width:"100%",maxWidth:540,margin:"20px auto"}}>{renderDisclosure(RUNE_FALLBACK_FEATURE_BY_SPREAD[spread])}</div>}
 
           {/* Draw button */}
           <button
@@ -2129,8 +2144,9 @@ export default function StonehengeRune() {
             <>
               <div className={`sr-cards-wrap count-${drawnRunes.length}`}>
                 {drawnRunes.map((rune, i) => (
-                  <div
+                  <button type="button"
                     key={rune.id}
+                    aria-haspopup="dialog"
                     className={`sr-card ${rune.isReversed ? "reversed" : ""} ${visibleCards.includes(i) ? "visible" : ""} ${selectedRune?.index === i ? "selected" : ""} ${!selectedRune ? "tap-cue" : ""}`}
                     onClick={() => (selectedRune?.index === i ? closeRuneDetail() : openRuneAt(i))}
                     style={{ "--sr-tap-delay": `${i * 120}ms` }}
@@ -2145,7 +2161,7 @@ export default function StonehengeRune() {
                     <p className={`sr-card-dir ${rune.isReversed ? "rev" : ""}`}>
                       {rune.isReversed ? copy.directionDown : copy.directionUp}
                     </p>
-                  </div>
+                  </button>
                 ))}
               </div>
 
@@ -2279,7 +2295,7 @@ export default function StonehengeRune() {
                 <p className="sr-cta-title">{copy.ctaTitle}</p>
                 <p className="sr-cta-desc">{copy.ctaDesc}</p>
                 <div className="sr-cta-btns">
-                  <button type="button" className="sr-cta-btn primary" onClick={handleShareKakao}>{copy.ctaShareKakao}</button>
+                  <button type="button" className="sr-cta-btn primary" onClick={handleShareKakao}>{shareLabel || copy.ctaShareKakao}</button>
                   <button type="button" className="sr-cta-btn" onClick={handleGoMain}>{copy.ctaGoMain}</button>
                 </div>
               </div>
