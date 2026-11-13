@@ -292,6 +292,7 @@
 /public/js/services/animal-totem-content-engine.js
 /public/js/services/destiny-flower-art.js
 /public/js/services/fortuneService.js
+/public/js/services/geomancy-chart.js
 /public/js/services/sajuService.js
 /public/js/services/sajuWorkerService.js
 /public/js/services/sajuWorkerServiceAdvanced.js

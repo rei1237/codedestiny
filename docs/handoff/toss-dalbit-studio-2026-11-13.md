@@ -41,3 +41,9 @@ D:/Development/codedestiny-worktrees/toss-studio-port-20261113-230802, wt/toss-s
 첫 번째 실제 QR은 C:/Users/user/Downloads/CodeDestiny/43450602078/toss-private-20261114-8.png, Linux AIT의 deploymentId는 01a1d58f-1af7-765a-b075-7c7c1bf9a89f. 홈에서 영냥이 질문 검색·빠른 입력, mock 토스 로그인 및 원문 보관함, 실판매 닫힘을 AIT 자체에서 확인했다. 소유자·SKU 경계 개발 검증은 새 일반 홈으로 시작하는 studio-browser / letter-browser / room-browser를 사용한다.
 
 main c3a960736에 토스 테스트 1470/1470과 pre-push 성공. GitHub push 43460224208, Linux 요청 43460223398. 다음 통합 지점 832b0d865에는 두 편지 각 6개, 찻집 추가질문·네오 작전수정, 14편 웹툰, 명상, 오라클, 사주·자미 원본 결과, RPG/룰렛 복원, 흑월 생성, 인연 장소가 있다. Windows AIT 91,098,283바이트, 확장 99,890,537바이트라 새 아트를 넣으면 용량을 재확인한다. 기기 QR은 반드시 Ubuntu 공식 빌드 후 생성한다.
+
+## 02:36 통합 검증 지점
+
+비공개 20261114-9의 원본은 Linux 커밋 0293bdf98d2829492f15889479dfaecd0578d411, 배포 ID 01a1d5da-7a2f-7d4b-ba54-b222c101b44b다. QR은 C:/Users/user/Downloads/CodeDestiny/43463538068/toss-private-20261114-9.png. 다음 main f2e46d05a의 공식 CI 43468163117 및 Linux CI 43468160819 통과. 실제 AIT의 게스트 자미 12궁·위젯·두 계정 원문 권한 36회 요청 검증 성공.
+
+작업 트리 d8ca49753에는 원본 지오맨시·작명·두 인연록·나크샤트라·요가·다이어리·관상·전생·사주 궁합·시빌라 연간 미리보기가 통합됐다. 토스 1488개 테스트와 Windows 빌드(확장 95,288,088바이트) 통과. 원본 HTML 미러 9개 동기화 후 pre-push를 재실행하고 새 Linux 번들로 확인한다. 동시에 진행 중인 개인 개발 트리에 손금, 운명 나침반, 시빌라 유료 생성이 있다. docs/toss/full-service-inventory.json의 103개 항목을 기준으로 미완료를 추적한다.
