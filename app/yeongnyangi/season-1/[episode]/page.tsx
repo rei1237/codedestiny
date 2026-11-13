@@ -11,7 +11,12 @@ type Episode = (typeof SEASON_ONE.episodes)[number] & { cuts: WebtoonCut[]; href
 // 공개된 회차만 정적 경로로 만든다. 예약 회차는 페이지 자체가 생성되지 않아 직접 URL로도 열리지 않는다.
 export const dynamicParams = false;
 const published = () => publishedEpisodes(serialNow()) as Episode[];
-export function generateStaticParams() { return published().map(episode => ({ episode: episode.slug })); }
+// output:'export'는 빈 경로 목록을 빌드 오류로 막는다. 공개 회차가 하나도 없으면 자리표시 경로 하나만 만들고 그 페이지는 notFound()로 404 화면을 낸다.
+const NO_EPISODE_PLACEHOLDER = '_';
+export function generateStaticParams() {
+  const list = published();
+  return list.length ? list.map(episode => ({ episode: episode.slug })) : [{ episode: NO_EPISODE_PLACEHOLDER }];
+}
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { episode: slug } = await params;

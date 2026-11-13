@@ -110,6 +110,8 @@ const coreRoutes = [
   { path: "/yeongnyangi/1000-won-fortune", changefreq: "weekly", priority: 0.8 },
   // 영냥이 연재는 목차만 싣는다. 회차는 공개 시각 전 노출을 막기 위해 사이트맵에 넣지 않는다.
   { path: "/yeongnyangi/season-1", changefreq: "weekly", priority: 0.7 },
+  // 프롤로그(1화)는 항상 공개라 사이트맵에 싣는다.
+  { path: "/yeongnyangi/season-1/prologue", changefreq: "weekly", priority: 0.7 },
   { path: "/saju/destiny-anatomy", changefreq: "monthly", priority: 0.76 },
   { path: "/human-design/guide", changefreq: "monthly", priority: 0.7 },
   { path: "/saju", changefreq: "daily", priority: 0.98 },

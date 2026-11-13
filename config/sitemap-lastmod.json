@@ -3,8 +3,8 @@
   "note": "사이트맵 lastmod 원장. scripts/lib/sitemap-lastmod.mjs 가 라우트별 소스 서명을 계산해 다시 쓴다. 손으로 고치지 말고 npm run sitemap:generate 로 갱신할 것.",
   "routes": {
     "/": {
-      "signature": "eefecc6a2e574116",
-      "lastmod": "2026-11-12"
+      "signature": "72a9484d8563f9e3",
+      "lastmod": "2026-11-13"
     },
     "/about/": {
       "signature": "7a3848044017f425",
@@ -2447,8 +2447,12 @@
       "lastmod": "2026-11-12"
     },
     "/yeongnyangi/season-1/": {
-      "signature": "0697a80c8df882a7",
-      "lastmod": "2026-11-09"
+      "signature": "fc1fd3807c2f9db4",
+      "lastmod": "2026-11-13"
+    },
+    "/yeongnyangi/season-1/prologue/": {
+      "signature": "d85fecc84fcc75a8",
+      "lastmod": "2026-11-13"
     },
     "/zh-tw/": {
       "signature": "2c33de1a3d8a5e45",
