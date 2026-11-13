@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-13
-next: 타로 부적을 포함해 Android 1.0.59를 다시 동기화·서명 빌드하고 Play Console에 제출한다.
+next: Apple 계정으로 App Store Connect에 로그인하고 macOS/Xcode에서 iOS 1.0.59(빌드 59)를 Archive·업로드한다.
 ---
 
 # Android 부적 앱 및 iOS 출시 인수인계
@@ -17,9 +17,13 @@ next: 타로 부적을 포함해 Android 1.0.59를 다시 동기화·서명 빌�
 - 작업 브랜치: `wt/android-talisman-launch-20261113-140159`
 - 작업 디렉터리: `D:\Development\codedestiny-worktrees\android-talisman-launch-20261113-140159`
 - 기준 커밋: `1acf1327841ea7a954d2c9e0dddcf3d58655a48c` (`origin/main`)
-- 마지막 작업 커밋: `cb8571c4d` (`feat: turn tarot cards into personal talismans`)
+- 마지막 작업 커밋: `c2619fb7a` (`chore: prepare ios 1.0.59 release`)
 - 원래 체크아웃 `D:\Development\code-destiny`는 다른 기능 브랜치와 미추적 파일이 있어 건드리지 않는다.
 - 다른 Android 워크트리 두 곳은 다른 세션 소유이므로 읽기 외 변경·정리를 하지 않는다.
+- Android 1.0.59 AAB: 293,245,248 bytes, SHA-256 `9080BA1B508C74E4AEB6D3E90F164FB521EE5ED0938CD466E4599E0D03D52C45`, `jarsigner -verify` 통과.
+- Play Console: `꿀꿀운세 1.0.59 — 타로 부적과 마음 쉼`, 버전 코드 59, 타겟 SDK 36, 기존 19개 국가 100% 출시로 제출했으며 현재 `검토 중인 변경사항`이다.
+- iOS: 최신 웹 자산과 Capacitor 플러그인 동기화 성공. `MARKETING_VERSION=1.0.59`, `CURRENT_PROJECT_VERSION=59`, Capacitor Swift PM 8.4.3으로 준비했다.
+- App Store Connect는 Apple 계정 로그인 화면까지 확인했으나 로그인 세션이 없고, Windows에는 Xcode/Apple 서명 도구가 없어 Archive·업로드는 외부 Mac 단계로 남는다.
 
 ## 승인 상태
 
@@ -59,9 +63,10 @@ next: 타로 부적을 포함해 Android 1.0.59를 다시 동기화·서명 빌�
 - [x] 영냥이·운명의 찻집 타로 카드 부적과 고급 해설 UI 구현
 - [x] Android 버전과 서명 준비 확인
 - [x] 타로 추가 전 Capacitor Android 동기화·단위 테스트·AAB 빌드
-- [ ] 타로 포함 최종 Capacitor Android 동기화·단위 테스트·AAB 빌드
-- [ ] Google Play Console 업로드·제출·상태 확인
-- [ ] iOS 동기화·App Store Connect 제출 가능 상태 확인
+- [x] 타로 포함 최종 Capacitor Android 동기화·단위 테스트·AAB 빌드
+- [x] Google Play Console 업로드·제출·상태 확인
+- [x] iOS 동기화·App Store Connect 제출 가능 상태 확인
 - [ ] 최종 targeted 검사와 `check:pre-push`
 - [ ] `origin/main` 전달·main CI 확인
+- [ ] Apple 로그인·Mac/Xcode Archive·App Store Connect 업로드
 - [ ] 인수인계 문서 `done` 처리와 자기 워크트리 정리
