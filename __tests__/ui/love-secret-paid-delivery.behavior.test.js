@@ -162,14 +162,14 @@ function clientFixture({ storageFailure = false, switchAccount = false } = {}) {
   let fn;
   function visit(node) { if (ts.isFunctionDeclaration(node) && node.name?.text === 'startConsultation') fn = node; ts.forEachChild(node, visit); }
   visit(ast); assert.ok(fn);
-  const calls = []; let completed = 0, current = true;
+  const calls = [], groupProgress = []; let completed = 0, current = true;
   const pendingGenerationRef = { current: null };
   const ctx = vm.createContext({ nativeTossContext:()=>null, document: { hidden: false },
     paymentSurface: 'web', paymentNotice: undefined, permissionFailure: '권한 오류', serverFailure: '서버 오류', generationFailure: '생성 오류',
     captureDeliveryScope: () => () => current, pendingGenerationRef,
-    setPhase() {}, releasePaidFeatureGate() {}, setProgressIndex() {}, markPaidAttemptGenerationStarted() {},
+    setPhase() {}, releasePaidFeatureGate() {}, setGroupProgress(value) { groupProgress.push(JSON.stringify(value)); }, markPaidAttemptGenerationStarted() {},
     activeAttemptId: () => 'paid-attempt', pollResult: async () => { throw new Error('UNEXPECTED_POLL'); },
-    setProgress() {}, setResultUrl() {}, setNotice() {}, setError() {}, moveResultWindow() {},
+    setResultUrl() {}, setNotice() {}, setError() {}, moveResultWindow() {},
     buildResultUrl: ({ sessionId }) => `/result/${sessionId}`,
     markPaidAttemptGenerationCompleted: () => { completed++; },
     copy: { errorMessages: { serverError: '서버 오류', llmError: '생성 오류', paymentVerifyFailed: '증빙 오류' } },
@@ -178,12 +178,12 @@ function clientFixture({ storageFailure = false, switchAccount = false } = {}) {
       if (switchAccount) current = false;
       return { response: { status: 200 }, payload: storageFailure ? { ok: false, reason: 'RESULT_STORAGE_UNAVAILABLE' } : {
         ok: true, sessionId: 'stored-session', status: calls.length === 6 ? 'completed' : 'partial', saved: calls.length === 6,
-        messages: [{ role: 'assistant', content: '부분 본문' }], completedGroups: Array(calls.length).fill('group'),
+        messages: [{ role: 'assistant', content: '부분 본문' }], completedGroups: Array(calls.length).fill('group'), totalGroups: 7,
       } };
     },
   });
   vm.runInContext(ts.transpileModule(fn.getText(ast), { compilerOptions: { target: ts.ScriptTarget.ES2022 } }).outputText, ctx);
-  return { ctx, calls, pendingGenerationRef, get completed() { return completed; } };
+  return { ctx, calls, groupProgress, pendingGenerationRef, get completed() { return completed; } };
 }
 test('연애 화면은 부분 본문을 완료 처리하지 않고 결제 없이 같은 상담을 이어받는다', async () => {
   const f = clientFixture();
@@ -193,6 +193,8 @@ test('연애 화면은 부분 본문을 완료 처리하지 않고 결제 없이
     assert.equal(request.body.resumeSessionId, 'stored-session'); assert.equal(request.key, 'paid-request');
   }
   assert.equal(f.pendingGenerationRef.current, null);
+  // 진행 표시는 서버가 돌려준 실제 완성 갈래 수만 쓴다. 시작할 때 비우고, 부분 응답마다 그 수를 그대로 싣는다.
+  assert.deepEqual(f.groupProgress, ['null', ...[1, 2, 3, 4, 5].map((n) => JSON.stringify({ completed: n, total: 7 }))]);
 });
 test('연애 화면 저장 실패는 원래 증빙을 보존한다', async () => {
   const f = clientFixture({ storageFailure: true });

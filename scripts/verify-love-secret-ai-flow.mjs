@@ -86,7 +86,7 @@ for (const marker of [
   "/api/love-secret-ai/prepare",
   "/api/love-secret-ai/generate",
   "runBillingCoinGate",
-  "LoveSecretGeneratingCard",
+  "<GenerationProgress",
   "연애 비책 상담 시작하기",
   "/love-secret-ai/result",
 ]) {

@@ -32,7 +32,7 @@ test("love-secret input steps repeat the intro registry price, never while gener
   const source = fs.readFileSync(path.join(root, "app/love-secret-ai/LoveSecretAiClient.tsx"), "utf8");
   const at = source.indexOf("data-ls-step-price");
   const block = source.slice(source.lastIndexOf("{paymentSurface", at), source.indexOf("</div>", at));
-  assert.ok(at > source.indexOf("<LoveSecretGeneratingCard"), "only in the non-busy input branch");
+  assert.ok(at > source.indexOf("<GenerationProgress"), "only in the non-busy input branch");
   assert.ok(source.indexOf("<header className=\"mb-6 flex items-start gap-3\">", at) - at < 600, "right above the step header");
   assert.match(block, /^\{paymentSurface !== "toss" && !resultUrl && \(\s*<div[^>]*data-ls-step-price=""[^>]*>\s*<PriceBadge\s+featureKey="love-secret-ai-consultation"\s+prefix=\{copy\.priceLabelPrefix\}/);
 });
