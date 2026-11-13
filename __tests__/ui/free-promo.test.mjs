@@ -104,3 +104,23 @@ test('free promo chips open their explanation pages', async () => {
   assert.equal(FREE_FEATURE_DETAILS.length, 9);
   for (const detail of FREE_FEATURE_DETAILS) assert.equal(hrefOf[detail.id], detail.href, detail.id + ' chip must open its detail page');
 });
+
+test('narrow banner shows the main CTA right after the intro and keeps the sparkle legible', () => {
+  // 2026-11-14 배너 모바일 다듬기: 머리가 쌓이는 폭(<700px)에서는 맺음(주 버튼)을 타일 묶음보다 먼저 보인다. DOM 순서는 그대로다.
+  const moduleCss = read('app/components/free-promo-banner.module.css');
+  const shellCss = read('styles/home-funnel.css');
+  assert.match(moduleCss, /@container fp \(max-width: 699\.98px\) \{\s*\.foot \{ order: 1; \}\s*\.status \{ order: 2; \}\s*\.groups \{ order: 3; \}/);
+  assert.ok(shellCss.includes('@container cdhpromo (max-width:699.98px){#cdHomeFunnel .cdh-promo__foot{order:1}#cdHomeFunnel .cdh-promo__status{order:2}#cdHomeFunnel .cdh-promo__groups{order:3}}'));
+  // 버튼 반짝이는 선 2.9 마스크만 쓴다(선 0.8 판은 16px에서 2.3~2.9:1로 옅었다).
+  assert.ok(!/--fp-sparkle:\s*var\(--yn-yehwa-mask-sparkle\)/.test(moduleCss));
+  assert.match(shellCss, /--cdh-promo-sparkle:url\("data:image\/svg\+xml,[^"]*stroke-width='2\.9'/);
+  assert.ok(shellCss.includes('mask:var(--cdh-promo-sparkle) center/contain no-repeat}'));
+  // 말풍선 문구는 바꾸지 않고 조판만 한다(문장별 줄, 끝 두 낱말 묶음).
+  assert.match(read('app/components/FreePromoBanner.tsx'), /bubbleLines\(t\('bubble'\)\)/);
+  // 셸은 번역 요소 안에 마크업을 못 두므로 줄 바꿈 문자 + pre-line 으로 같은 조판을 한다. 공백을 접으면 문구와 같다.
+  assert.ok(shellCss.includes('word-break:keep-all;white-space:pre-line;'));
+  const baked = /data-cd-trans="freePromo\.bubble">([^<]*)</.exec(read('index.html'));
+  assert.ok(baked, 'index.html must bake the bubble');
+  assert.equal(baked[1].replace(/\s+/g, ' ').trim(), FREE_PROMO_COPY_KO.bubble);
+  assert.ok(baked[1].split('\n').length >= 2 && !/\n\s*$/.test(baked[1]), 'bubble sentences start on their own line');
+});

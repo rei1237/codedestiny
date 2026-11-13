@@ -118,6 +118,8 @@
   word-break: keep-all;
   transition: border-color var(--cd-dur-fast) ease;
 }
+/* 문장마다 한 줄씩 시작한다(FreePromoBanner.tsx bubbleLines). */
+.bubbleLine { display: block; text-wrap: pretty; }
 .bubble::after {
   content: "";
   position: absolute;
@@ -246,6 +248,13 @@
 @container fp (min-width: 700px) {
   .head { grid-template-columns: minmax(0, 1fr) minmax(0, 400px); gap: 32px; }
 }
+/* 머리가 한 줄로 쌓이는 폭(모바일): 주 버튼을 타일 22개 아래가 아니라 소개 바로 뒤에 보인다.
+ * 화면 순서만 바꾸고 DOM·읽기 순서(소개 → 목록 → 버튼)는 그대로 둔다. 카드 길이도 그대로다. */
+@container fp (max-width: 699.98px) {
+  .foot { order: 1; }
+  .status { order: 2; }
+  .groups { order: 3; }
+}
 @container fp (min-width: 560px) and (max-width: 859.98px) {
   .chips { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
 }
@@ -279,7 +288,7 @@
   --fp-tile: var(--yn-surface);
   --fp-ornament: var(--yn-gold);
   --fp-focus: var(--yn-gold);
-  --fp-sparkle: var(--yn-yehwa-mask-sparkle);
+  /* 반짝이는 기본(--si-mask-sparkle, 선 2.9)을 그대로 쓴다. 밤 판(선 0.8)은 16px에서 너무 옅다. */
   width: min(1080px, calc(100% - 40px));
   margin: 28px auto 8px;
   background: radial-gradient(circle at 14% 0%, color-mix(in srgb, var(--yn-gold) 13%, transparent), transparent 23rem), var(--yn-night);
