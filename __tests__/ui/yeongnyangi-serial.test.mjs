@@ -43,7 +43,8 @@ test('the real schedule opens one ready episode a week and holds drafts', () => 
   assert.deepEqual(real('2026-12-05T21:01:00+09:00'), ['ep2', 'ep3', 'ep4']);
   assert.deepEqual(real('2026-12-12T21:01:00+09:00'), ['ep2', 'ep3', 'ep4', 'ep5']);
   assert.deepEqual(real('2026-12-19T21:01:00+09:00'), ['ep2', 'ep3', 'ep4', 'ep5', 'ep6']);
-  assert.deepEqual(real('2026-12-26T21:01:00+09:00'), ['ep2', 'ep3', 'ep4', 'ep5', 'ep6']);
+  assert.deepEqual(real('2026-12-26T20:59:00+09:00'), ['ep2', 'ep3', 'ep4', 'ep5', 'ep6']);
+  assert.deepEqual(real('2026-12-26T21:01:00+09:00'), ['ep2', 'ep3', 'ep4', 'ep5', 'ep6', 'ep7']);
   const ready = SEASON_ONE.episodes.filter(episode => episode.status === 'ready').map(episode => episode.slug);
   assert.deepEqual(real('2027-01-01T00:00:00+09:00'), ready);
   assert.deepEqual(nextRelease(new Date('2026-11-14T21:10:00+09:00')), { no: 2, publishAt: EP2 });
