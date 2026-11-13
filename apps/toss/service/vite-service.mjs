@@ -75,6 +75,8 @@ export default function serviceCompat(){
  return {name:'canonical-service-runtime',enforce:'pre',
   transform(code,id){
    if(id.includes('node_modules'))return;
+   if(id.replaceAll('\\','/').endsWith('/app/palm-reading/PalmDestinyMain.tsx'))code=code.replace(/["'](\/images\/(?:service-introductions\/palm-reading-960|expert-characters\/yeoni\/shooting-guide)\.webp)["']/g,'"https://code-destiny.com$1"');
+   if(id.replaceAll('\\','/').endsWith('/lib/palm/palm-ui-state.js'))return code.replace('module.exports = {','export default {');
    if(id.replaceAll('\\','/').endsWith('/assets/yeongnyangi/tarot/v1/manifest.json'))return JSON.stringify(screenDeckManifest(JSON.parse(code)));
    if(/\.[jt]sx?(?:\?|$)/.test(id))code=code.replace(/process\.env\.NEXT_PUBLIC_EFFECTIVE_API_BASE_URL\b/g,JSON.stringify('https://code-destiny.com')).replace(/process\.env\.(?!NODE_ENV\b)[A-Z][A-Z_0-9]*/g,'undefined');
    if(id.replaceAll('\\','/').includes('/js/core/')&&code.includes('module.exports = api')){const name=code.match(/(?:globalThis|root)\.([\w]+) = api;/)?.[1];if(name)code+='\nexport default globalThis.'+name+';';}

@@ -33,6 +33,7 @@ async function verifyLibraryOrder(env,auth,purchase){
 }
 
 async function readNativeLibraryItem(env,auth,row){
+  if(row.nativeService==='palm')return (await import('./native-palm.js')).palmLibraryItem(env,auth,row);
   if(row.nativeService==='codex')return (await import('./native-codex.js')).codexLibraryItem(env,auth,row);
   if(row.nativeService==='naming')return (await import('./native-naming.js')).namingLibraryItem(env,auth,row);
   if(['totem-basic','totem-deep'].includes(row.nativeService))return (await import('./native-totem.js')).totemFor(row.featureKey).libraryItem(env,auth,row);
@@ -408,6 +409,12 @@ export async function handleTossRoutes(request,env) {
       const {readNativeMaya}=await import('./native-maya.js');
       return reply(await readNativeMaya(env,auth,mayaResult[1],{generate:true}));
     }
+    if(path==='/native/palm/prepare'&&request.method==='POST'){
+      await limit(env,auth._id,'native-palm-prepare',6);
+      return forwardServiceResponse(await (await import('./native-palm.js')).prepareNativePalm(request,env,auth),headers);
+    }
+    const palm=path.match(/^\/native\/palm\/results\/([a-f0-9]{64})$/);
+    if(palm&&request.method==='GET')return reply(await (await import('./native-palm.js')).readNativePalm(env,auth,palm[1]));
     if(path==='/native/codex/prepare'&&request.method==='POST'){
       await limit(env,auth._id,'native-codex-prepare',6);const body=await bodyOf(request);
       return reply(await (await import('./native-codex.js')).prepareNativeCodex(env,auth,body.input,body.orderId));
@@ -480,7 +487,7 @@ export async function handleTossRoutes(request,env) {
       if(request.method==='POST')await limit(env,auth._id,'native-heukwol-wave',35);
       return reply(await (await import('./native-heukwol.js')).heukwolWave(env,auth,heukwol[1],request.method==='POST'));
     }
-    const nativeIntent=path.match(/^\/native\/(tea|yoga|saju-compat|codex|geomancy|totem-basic|totem-deep|nakshatra|neo|naming|dream|heukwol|fusion|life-book|love-secret|astrology|vedic|ziwei|new-year|karma|maya|sukuyo|relationship|pet)\/intents\/([a-f0-9]{64})$/);
+    const nativeIntent=path.match(/^\/native\/(tea|yoga|saju-compat|codex|palm|geomancy|totem-basic|totem-deep|nakshatra|neo|naming|dream|heukwol|fusion|life-book|love-secret|astrology|vedic|ziwei|new-year|karma|maya|sukuyo|relationship|pet)\/intents\/([a-f0-9]{64})$/);
     if(nativeIntent&&request.method==='GET'){
       const {readNativeTeaIntent}=await import('./native-tea.js');
       return reply(await readNativeTeaIntent(env,auth,nativeIntent[2],nativeIntent[1]));

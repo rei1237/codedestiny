@@ -1640,7 +1640,13 @@ function buildCategoryConsultations(input: {
   ];
 }
 
-export default function PalmDestinyMain() {
+export type PalmNativeAdapter = {
+  ready: boolean;
+  price: React.ReactNode;
+  start: (reading: Record<string, unknown>) => Promise<void>;
+  read: () => Promise<Record<string, unknown> | null>;
+};
+export default function PalmDestinyMain({native}: {native?: PalmNativeAdapter} = {}) {
   const copy = usePalmDestinyCopy();
   const detailLocale = useLocale();
   const HAND_ROLE_META = buildHandRoleMeta(copy);
@@ -1724,7 +1730,7 @@ export default function PalmDestinyMain() {
     return Boolean(file) && qualityFeedbackBySide[side]?.confidence === "낮음";
   });
   const isQualityBlocked = lowQualitySides.length > 0 && !qualityOverride;
-  const canStartAnalysis = baseCanStartAnalysis && !isQualityBlocked;
+  const canStartAnalysis = baseCanStartAnalysis && !isQualityBlocked && (!native || native.ready);
   const hasAnyPreview = Boolean(leftHand.previewUrl || rightHand.previewUrl);
   const flowStep: PalmFlowStep = analysisResult ? "result" : isSubmitting ? "analyzing" : hasAnyPreview ? "preview" : "pick";
 
@@ -2223,7 +2229,7 @@ export default function PalmDestinyMain() {
   const recoverPalm = async (requestId: string, signal?: AbortSignal, accessMethod = '') => {
     const token = getClientAuthToken();
     const owner = palmAccountId();
-    const payloadRoot = await readPaidPalmResult(requestId, token, signal, accessMethod);
+    const payloadRoot = native ? await native.read() : await readPaidPalmResult(requestId, token, signal, accessMethod);
     if (signal?.aborted || owner !== palmAccountId() || token !== getClientAuthToken() || !payloadRoot) return false;
     const prepared = preparePalmResult(payloadRoot);
     if (!shouldShowPalmResult(prepared.canonical)) return false;
@@ -2257,6 +2263,7 @@ export default function PalmDestinyMain() {
     return () => { controller.abort(); window.removeEventListener('cd:auth-changed', changeAccount); window.removeEventListener('online', recover); document.removeEventListener('visibilitychange', recover); };
   }, []);
   const buildResume = usePaidResume(PALM_BILLING_CATEGORY_KEY, async (args) => {
+    if (native) return false;
     const requestId = typeof args.requestId === "string" ? args.requestId : "";
     if (args.serverSaved === true) return recoverPalm(requestId);
     // Legacy receipts predate server snapshots; preserve their existing descriptor.
@@ -2272,7 +2279,7 @@ export default function PalmDestinyMain() {
     if (!canStartAnalysis || submitLockedRef.current) return;
     // A previous paid response may have been lost. Try its server receipt before
     // creating a new request or opening another payment flow.
-    const pending = readPalmResumePayload('');
+    const pending = native ? null : readPalmResumePayload('');
     if (pending?.analysisSaved && typeof pending.requestId === 'string') {
       try { if (await recoverPalm(pending.requestId)) return; }
       catch { showPalmError(copy.networkErrorMessage); return; }
@@ -2320,7 +2327,7 @@ export default function PalmDestinyMain() {
           ? copy.coinGatePriceNotFoundMessage
           : coinGateResult.error?.message || copy.coinGateGenericFailureMessage;
 
-      updatePaidFeatureGate({
+      if (!native) updatePaidFeatureGate({
         categoryKey: "palm-reading",
         subFeatureKey: initialSubFeatureKey,
         requestId: requestIdForGate,
@@ -2349,14 +2356,14 @@ export default function PalmDestinyMain() {
       setPalmStage("preparing");
       setSubmitMessage(copy.checkingImageQualityMessage);
 
-      openPaidFeatureGate({
+      if (!native) openPaidFeatureGate({
         categoryKey: "palm-reading",
         subFeatureKey: initialSubFeatureKey,
         requestId: billingRequestId,
         message: copy.checkingPassMessage,
       });
-      holdPaidFeatureGateOpen({ requestId: billingRequestId, maxMs: 45000 });
-      updatePaidFeatureGate({
+      if (!native) holdPaidFeatureGateOpen({ requestId: billingRequestId, maxMs: 45000 });
+      if (!native) updatePaidFeatureGate({
         categoryKey: "palm-reading",
         subFeatureKey: initialSubFeatureKey,
         requestId: billingRequestId,
@@ -2399,6 +2406,12 @@ export default function PalmDestinyMain() {
       setPalmStage("reading");
       setSubmitMessage(copy.readingGoldenLinesMessage);
 
+      if (native) {
+        const reading = JSON.parse(requestBody);
+        delete reading.requestId;
+        await native.start(reading);
+        return;
+      }
       let response = await fetch("/api/palm/analyze", {
         method: "POST",
         credentials: "include",
@@ -2459,7 +2472,7 @@ export default function PalmDestinyMain() {
             : typeof data?.error === "string"
             ? data.error
             : copy.analysisErrorGenericMessage;
-        updatePaidFeatureGate({
+        if (!native) updatePaidFeatureGate({
           categoryKey: "palm-reading",
           subFeatureKey: initialSubFeatureKey,
           requestId: billingRequestId,
@@ -2475,7 +2488,7 @@ export default function PalmDestinyMain() {
 
       if (!shouldShowPalmResult(payloadRoot)) {
         setAnalysisResult(null);
-        updatePaidFeatureGate({
+        if (!native) updatePaidFeatureGate({
           categoryKey: "palm-reading",
           subFeatureKey: initialSubFeatureKey,
           requestId: billingRequestId,
@@ -2534,7 +2547,7 @@ export default function PalmDestinyMain() {
       }
 
       if (error instanceof DOMException && error.name === "AbortError") {
-        updatePaidFeatureGate({
+        if (!native) updatePaidFeatureGate({
           categoryKey: "palm-reading",
           subFeatureKey: initialSubFeatureKey,
           requestId: billingRequestId,
@@ -2546,7 +2559,7 @@ export default function PalmDestinyMain() {
       }
 
       if (error instanceof TypeError) {
-        updatePaidFeatureGate({
+        if (!native) updatePaidFeatureGate({
           categoryKey: "palm-reading",
           subFeatureKey: initialSubFeatureKey,
           requestId: billingRequestId,
@@ -2557,7 +2570,7 @@ export default function PalmDestinyMain() {
         return;
       }
 
-      updatePaidFeatureGate({
+      if (!native) updatePaidFeatureGate({
         categoryKey: "palm-reading",
         subFeatureKey: initialSubFeatureKey,
         requestId: billingRequestId,
@@ -2566,7 +2579,7 @@ export default function PalmDestinyMain() {
       });
       showPalmError(copy.analysisErrorWithReasonMessage(error instanceof Error ? error.message : "unknown"));
     } finally {
-      releasePaidFeatureGate(billingRequestId);
+      if (!native) releasePaidFeatureGate(billingRequestId);
       if (requestIdRef.current === requestId) {
         setIsSubmitting(false);
         lastCompletedSignatureRef.current = requestSignature;
@@ -2600,7 +2613,8 @@ export default function PalmDestinyMain() {
 
   const handleBackToMain = () => {
     resetSessionForReanalysis({ clearImages: true, resetSelections: true });
-    hardNavigateToShellHome();
+    if (native) window.location.assign('/');
+    else hardNavigateToShellHome();
   };
 
   const handleResetOnlyResult = () => {
@@ -3017,7 +3031,8 @@ export default function PalmDestinyMain() {
           </div>
 
           <div className="relative space-y-5 px-5 py-7 md:px-10 md:py-9">
-            {detailLocale === "ko" && <div style={{maxWidth:540,marginInline:"auto"}}><CraftedProductDisclosure featureKey="palm-reading-general"/></div>}
+            {native && <div className="relative rounded-xl bg-white p-4" role="status">{native.price}</div>}
+            {!native && detailLocale === "ko" && <div style={{maxWidth:540,marginInline:"auto"}}><CraftedProductDisclosure featureKey="palm-reading-general"/></div>}
             <section className="cd-oriental-card rounded-2xl border border-[#b53660]/35 bg-white p-4 md:p-6" style={{ boxShadow: "0 10px 30px rgba(64,42,56,0.06)" }}>
               <div className="flex items-center gap-3 border-b border-[#b53660]/15 pb-3">
                 <div aria-hidden className="h-5 w-1 rounded-full" style={{ background: "linear-gradient(180deg, #e9a7bc, #b53660)" }} />

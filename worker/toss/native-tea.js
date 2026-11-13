@@ -25,7 +25,7 @@ export function nativeTeaCatalog(){
   assertUniqueApprovedSaleSkus();
   return APPROVED_TOSS_NATIVE_PRODUCTS.map(item=>{
     const product=approvedNativeTeaProduct(item.sku);
-    return {id:product.productId,name:product.nativeService==='yoga'?'디비야 요가':product.nativeService==='saju-compat'?'사주 궁합':product.nativeService==='codex'?(product.featureKey==='master-love-codex-compat'?'마스터 인연의 서 · 궁합':'마스터 인연의 서 · 개인'):product.nativeService==='geomancy'?'지오맨시 흙점':product.nativeService==='nakshatra'?'나크샤트라 개인 심화 상담':product.nativeService==='naming'?'사주 작명첩':product.nativeService==='dream'?'정신분석 해몽':product.nativeService==='heukwol'?'흑월의 경고':product.nativeService==='pet'?(product.featureKey==='pet-saju-ai-consultation'?'반려동물 사주 심층 리포트':'반려동물 궁합'):product.nativeService==='relationship'?'관계 경계 리포트':product.nativeService==='sukuyo'?'숙요점 궁합 전문가 상담':product.nativeService==='maya'?'마야점 프롬프트':product.nativeService==='karma'?'운명의 업 전문가 상담':product.nativeService==='new-year'?'신년운세 전문가 상담':product.nativeService==='ziwei'?'자미두수 전문가 상담':product.nativeService==='vedic'?'베다 전문가 상담':product.nativeService==='astrology'?'점성술 전문가 상담':product.nativeService==='love-secret'?'연애 비책':product.nativeService==='life-book'?(product.featureKey==='life-fortune-ai-consultation'?'인생 총운':'인생의 책'):product.nativeService==='fusion'?'초융합 운세':product.nativeService==='neo'?'네오의 팩폭 전략실':'운명의 찻집',sku:product.sku,featureKey:product.featureKey,
+    return {id:product.productId,name:product.nativeService==='yoga'?'디비야 요가':product.nativeService==='saju-compat'?'사주 궁합':product.nativeService==='palm'?'내 손금 리포트':product.nativeService==='codex'?(product.featureKey==='master-love-codex-compat'?'마스터 인연의 서 · 궁합':'마스터 인연의 서 · 개인'):product.nativeService==='geomancy'?'지오맨시 흙점':product.nativeService==='nakshatra'?'나크샤트라 개인 심화 상담':product.nativeService==='naming'?'사주 작명첩':product.nativeService==='dream'?'정신분석 해몽':product.nativeService==='heukwol'?'흑월의 경고':product.nativeService==='pet'?(product.featureKey==='pet-saju-ai-consultation'?'반려동물 사주 심층 리포트':'반려동물 궁합'):product.nativeService==='relationship'?'관계 경계 리포트':product.nativeService==='sukuyo'?'숙요점 궁합 전문가 상담':product.nativeService==='maya'?'마야점 프롬프트':product.nativeService==='karma'?'운명의 업 전문가 상담':product.nativeService==='new-year'?'신년운세 전문가 상담':product.nativeService==='ziwei'?'자미두수 전문가 상담':product.nativeService==='vedic'?'베다 전문가 상담':product.nativeService==='astrology'?'점성술 전문가 상담':product.nativeService==='love-secret'?'연애 비책':product.nativeService==='life-book'?(product.featureKey==='life-fortune-ai-consultation'?'인생 총운':'인생의 책'):product.nativeService==='fusion'?'초융합 운세':product.nativeService==='neo'?'네오의 팩폭 전략실':'운명의 찻집',sku:product.sku,featureKey:product.featureKey,
       approvedPriceKRW:product.approvedPriceKRW,available:true};
   });
 }
@@ -34,7 +34,7 @@ export async function prepareNativeTea(env,auth,input,orderId){
   return prepareNativeConsultation(env,auth,input,orderId,nativeTeaContract(input),'tea');
 }
 
-export async function prepareNativeConsultation(env,auth,input,orderId,contract,service){
+export async function prepareNativeConsultation(env,auth,input,orderId,contract,service,{deferAssignment=false}={}){
   const id=await nativeIntentId(auth,contract,service);
   const ownerFilter=auth=>nativeOwnerFilter(auth,service);
   const previous=await TossNativeConsultation.findOne({_id:id,...ownerFilter(auth)}).lean();
@@ -55,7 +55,7 @@ export async function prepareNativeConsultation(env,auth,input,orderId,contract,
     ...ownerFilter(auth),...contract,input,pricing:{...contract.pricing,amountKRW:product.approvedPriceKRW},sku:product.sku,
     approvedPriceKRW:product.approvedPriceKRW,priceEvidence:product.priceEvidence,status:'prepared',orderId:null,
   }},{upsert:true,new:true,runValidators:true}).lean();
-  if(recovered){
+  if(recovered&&!deferAssignment){
     assertNativeIntent(saved,auth,contract);
     const order=await lookupOrder(env,auth.userKey,orderId);
     if(order.orderId!==orderId||order.sku!==product.sku)throw new TossError('ORDER_MISMATCH',403);

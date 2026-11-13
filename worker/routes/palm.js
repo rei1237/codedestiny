@@ -56,6 +56,7 @@ function hasImage(sideData) {
  * 본문 크기 상한을 건 JSON 리더.
  * 이미지 2장의 기존 72 MiB 상한을 공용 JSON 상한과 별도로 유지한다.
  */
+export const readPalmJson = request => readJsonWithLimit(request, MAX_REQUEST_BODY_BYTES);
 async function readJsonWithLimit(request, maxBytes) {
   const copy = palmCopy();
   let text;
@@ -220,7 +221,7 @@ function buildCanonical(params) {
   return canonical;
 }
 
-export async function handlePalmRoutes(request, env) {
+export async function handlePalmRoutes(request, env, native) {
   if (request.method === 'GET' && new URL(request.url).pathname.endsWith('/result')) {
     try {
       const auth = await requirePalmAuth(request, env);
@@ -240,9 +241,9 @@ export async function handlePalmRoutes(request, env) {
   try {
     // 🔴 인증 필수. 이 라우트는 Gemini Vision(사진 최대 2장)을 태우는 유료 경로라,
     //    무인증이면 무제한 무과금 비용 경로가 된다.
-    const auth = await requirePalmAuth(request, env);
+    const auth = native?.auth || await requirePalmAuth(request, env);
 
-    const body = await readJsonWithLimit(request, MAX_REQUEST_BODY_BYTES);
+    const body = native?.body || await readPalmJson(request);
     const copy = palmCopy();
 
     const payload = {
@@ -598,7 +599,7 @@ export async function handlePalmRoutes(request, env) {
       qualityScore,
     };
     // 🔴 결제 전 응답에는 판독·해석 본문을 싣지 않는다. 본문은 결제 확인 뒤 GET /result 로만 나간다.
-    const saved = await savePalmAnalysis(env, auth.userId, body.requestId, result, deepConsult?.rawText || "");
+    const saved = await savePalmAnalysis(env, auth.userId, body.requestId, result, deepConsult?.rawText || "", native?.intentId);
     return json({
       requestId: saved.requestId,
       analysisSaved: saved.analysisSaved === true,
