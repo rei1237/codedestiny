@@ -17,7 +17,7 @@ export default function YeoniNotFound() {
             <p>괜찮아요. 익숙한 꽃길로 돌아가<br className={styles.desktopBreak} /> 다시 시작해 볼까요?</p>
             <nav className={styles.actions} aria-label="다시 시작하기">
               <a className={styles.primary} href="/">홈으로 돌아가기</a>
-              <a className={styles.secondary} href="/?action=cdOneStepFreeSajuEntry">사주 분석 시작하기</a>
+              <a className={styles.secondary} href="/ggulggul/?action=cdOneStepFreeSajuEntry">사주 분석 시작하기</a>
             </nav>
             <small className={styles.code}>페이지를 찾을 수 없습니다 · 404</small>
           </div>

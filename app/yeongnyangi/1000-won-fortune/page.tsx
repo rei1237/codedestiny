@@ -39,7 +39,7 @@ const mackerels=DOMAINS.map(domain=>single(domain,'mackerel'));
 if(new Set(mackerels.map(p=>p.priceKRW)).size!==1)throw new Error('천원사주 허브: 고등어 가격이 체계마다 다르다.');
 const PRICE=won(mackerels[0].priceKRW);
 // 옛 천원 사주 콘텐츠. 무료 만세력 결과 화면에서 개별 리포트로 이어진다(js/core/saju/reportDashboard.js).
-const FUN_ENTRY_HREF='/?action=cdOneStepFreeSajuEntry';
+const FUN_ENTRY_HREF='/ggulggul/?action=cdOneStepFreeSajuEntry';
 const BUNDLE_SPEC=(PIG_COIN_UNLOCK_PRODUCTS as Record<string,{amountKRW?:number;featureKey?:string}>)[SAJU_BUNDLE_PRODUCT_ID];
 if(!BUNDLE_SPEC||BUNDLE_SPEC.featureKey!==SAJU_BUNDLE_FEATURE_KEY||!BUNDLE_SPEC.amountKRW)throw new Error('천원 운세 허브: 라이트 사주 풀이 가격표를 찾지 못했다.');
 const BUNDLE_PRICE=won(BUNDLE_SPEC.amountKRW);
