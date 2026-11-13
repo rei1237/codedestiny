@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-14
-next: 묶음 1의 1-9(?action= noindex·내부 링크) → 1-10 → 1-12 → 1-11 순서로. 1-1~1-8은 끝(1-4의 C5만 보류)
+next: 묶음 1의 1-11(전체 검증, 변경 전·후 비교표, push 승인 요청). 1-1~1-10·1-12는 끝(1-4의 C5만 보류)
 ---
 # 네이버 SEO·AEO·GEO + 구매 동선 (Phase 1~5)
 
@@ -15,7 +15,7 @@ Phase 0 보고서와 승인된 계획의 정본은 `docs/seo/phase0-report.md`�
 
 ## 지금 상태
 - 브랜치 `wt/naver-seo-geo-20261113-234756`, 기준 `f2db2995d`. 운영 배포본은 `91e4261d8`(그 위에 문서 커밋 1개).
-- 2026-11-14: 1-1~1-8 커밋됨(마지막 `b8287aea1`, 1-4의 C5만 보류). 1-9·1-10·1-12·1-11 남음. push 없음.
+- 2026-11-14: 1-1~1-10·1-12 커밋됨(마지막 `798f5adb7`, 1-4의 C5만 보류). 1-11(전체 검증)만 남음. push 없음.
 - 2026-11-14 확인: origin/main이 `f2db2995d` → `c3a960736`으로 44커밋 앞서 갔다(대부분 toss 작업, `app/yeongnyangi/_components` 4개 파일 포함). 이 브랜치의 기준은 아직 `f2db2995d`다. **push 전에 rebase가 필요하다.** UX 브랜치는 아직 미머지.
 - 루트 체크아웃 `D:\Development\code-destiny`는 다른 브랜치이고 origin/main보다 2,252커밋 뒤라 기준으로 쓰지 않는다.
 
@@ -70,9 +70,9 @@ Phase 0 보고서와 승인된 계획의 정본은 `docs/seo/phase0-report.md`�
 - [x] 1-6 홈 title·H1(B2): `docs/seo/meta-table.md` 표 작성(끝) → **사용자 승인** → 적용(승인 전에는 하지 않는다).
 - [x] 1-7 `/points/`(K1): `lib/seo/robots-policy.mjs` Disallow 제거, noindex 유지.
 - [x] 1-8 lastmod(K2): 누락 8개 채움(끝). "폴백을 git 커밋일로"는 하지 않았다(결과 기록 참고).
-- [ ] 1-9 `?action=`(K3): `public/_worker.js`에 `X-Robots-Tag: noindex, follow`, 내부 링크를 `/ggulggul/?action=`으로.
-- [ ] 1-10 검수 절차(T1): 원장 → `ContentIntegrityNote` 표시 연결, `docs/seo/editorial-review-checklist.md`. 원장은 비워 둔다.
-- [ ] 1-12 실제 가격과 맞추기(C7·C8·F4, 2026-11-14 승인). 1-11 검증 전에 한다.
+- [x] 1-9 `?action=`(K3): `public/_worker.js`에 `X-Robots-Tag: noindex, follow`, 내부 링크를 `/ggulggul/?action=`으로.
+- [x] 1-10 검수 절차(T1): 원장 → `ContentIntegrityNote` 표시 연결, `docs/seo/editorial-review-checklist.md`. 원장은 비워 둔다.
+- [x] 1-12 실제 가격과 맞추기(C7·C8·F4, 2026-11-14 승인). 1-11 검증 전에 한다.
   - C7: "66종 · 302,000원 상당"류 문구(`lib/marketing/pass-benefits.mjs:55,65` 외, `rg`로 전체 위치 확인). 숫자는 정본(`worker/lib/paid-feature-registry.js`, `lib/payment/pass-policy.js`, `lib/payment/free-fortune-policy.mjs`)에서 계산하고, 지금 무료인 항목은 유료 가치로 합산하지 않는다. 가능하면 정본에서 파생, 외과적 범위를 넘으면 문구만 고치고 그렇게 보고.
   - C8: 29,000원 사주 묶음 안내에서 포함 12개 중 지금 무료인 항목(`worker/lib/saju-bundle-policy.js:14-27` 대조)을 유료 혜택처럼 보이지 않게, 실제 유료 항목·가격 기준으로 적는다.
   - F4: 작은 꿀단지의 건당 상한(`lib/payment/pass-policy.js:36`)을 문구에 사실대로 적어, 상한보다 비싼 상품(예: 고등어 10,000원)에는 쓸 수 없다는 점이 드러나게 한다.
@@ -137,6 +137,28 @@ Phase 0 보고서와 승인된 계획의 정본은 `docs/seo/phase0-report.md`�
 - 계획과 다르게 한 것: "폴백을 git 커밋일로"는 하지 않았다. `scripts/lib/sitemap-lastmod.mjs` 불변식 4(PR CI는 shallow clone이라 실행 중 git log를 쓰면 환경마다 값이 달라진다)와 부딪힌다. 생성기 코드는 고치지 않았다. 허브 lastmod가 "오늘"로 찍히는 것은 원장 설계(소스 서명이 바뀐 날)대로다.
 - 부수 효과: 이 파일을 읽는 인사이트 허브 등 원장 10개의 lastmod가 갱신됐다. 글에 수정일이 생겨 인사이트 목록의 최신순 정렬에서 이 8개 위치가 바뀔 수 있다.
 - 검증: `node scripts/verify-sitemap-integrity.mjs` OK(1,072), 사이트맵·인사이트 node 테스트 38/38.
+
+### 1-9 `?action=`(K3) — `d998c65a0` (2026-11-14)
+- `public/_worker.js`: `action` 쿼리가 있는 응답에 `X-Robots-Tag: noindex, follow`(홈의 302와 HTML 응답 둘 다). 기존 302의 Location은 그대로라 외부 링크(`/?action=`)는 계속 동작한다.
+- 내부 링크 11개를 `/ggulggul/?action=`으로: `lib/seo-landing-pages.js` 8, `components/errors/YeoniNotFound.jsx` 1, `app/insights/famous-saju/[slug]/page.tsx` 1, `app/yeongnyangi/1000-won-fortune/page.tsx` 1.
+- 남긴 것(테스트·검증 스크립트가 `/?action=` 형태를 고정): `lib/saju/saju-service-catalog.mjs`(셸 레지스트리 href와 같아야 함), 셸 `index.html`·`scripts/design/build-home-funnel.mjs`·`lib/marketing/yehwa-home*`(셸 안에서 data-action으로 JS가 가로챔), `app/app/AppHomeClient.tsx`·`app/_lib/mobile-tabs.ts`·`app/_lib/serviceFeatureRegistry.ts`(`verify-home-service-registry.mjs`가 접두를 요구), `PastLifeFaceUI.js`, `js/prompt-hub-honey.js`, `lib/seo-landing-pages.js`의 `/static/?action=openTarotReunionModal`. 이 링크들은 302를 한 번 거치고, 302에 noindex가 붙는다.
+- 검증: worker 라우팅 node 테스트 163 통과. 1개 실패는 `scripts/seo`의 robots-policy 테스트로, 오래된 `dist/robots.txt`가 1-7 정책과 달라서다. 빌드 뒤 1-11에서 다시 본다.
+
+### 1-10 검수 절차(T1) — `c49a1cc00` (2026-11-14)
+- `app/components/ImmersiveRelatedLinks.tsx`에 `ContentIntegrityNote contentPath={fromPath}` 한 줄(몰입형 19개 라우트). 핵심 허브 12개는 `SeoLandingTemplate.jsx`가 이미 `contentPath`를 넘기고 있어 손대지 않았다.
+- `docs/seo/editorial-review-checklist.md` 신규: 핵심 허브 12개 표, 페이지별 확인 항목, "URL · 날짜" 전달 형식, 원장 항목 형식. 검수자 박병하.
+- 원장(`lib/content/editorial-review.mjs`의 `CONTENT_REVIEWS`)은 비어 있다. 사용자가 "URL · 확인한 날짜"를 주면 그때 넣는다.
+- 남긴 것: 토정비결 전용 허브는 없다(신년운세는 `/new-year-ai-consultation/`). 가이드 페이지(`/guides/<slug>/` 등)는 원장에 연결하지 않았다. `brand-facts.mjs` pendingConfirmation의 "콘텐츠 검수에서 사람이 확인하는 범위"는 그대로 두었다.
+- 검증: `__tests__/ui/publisher-integrity.test.mjs` 13/13, `node scripts/verify-editorial-manuscripts.mjs` 통과.
+
+### 1-12 실제 가격과 맞추기(C7·C8·F4) — `798f5adb7` (2026-11-14)
+- 계산 근거(C7): 라이트 운세 판매 목록은 `worker/lib/light-fortune-catalog.js`의 `LIGHT_FORTUNE_FEATURE_KEYS` 중 `worker/payments/catalog.js` `resolveProduct()`가 `lightFortune:true`로 돌려주는 66종, 단건 가격 합 302,000원. 이 중 `lib/payment/free-fortune-policy.mjs`의 `FREE_FORTUNE_FEATURE_KEYS`(2026-11-11·11-12 승인 무료 목록)에 든 것이 65종(합 299,000원)이고, 지금 유료인 것은 1종 3,000원이다. 계산 스크립트는 `scripts/lib/build-light-fortunes.mjs`(`node scripts/lib/build-light-fortunes.mjs --check`로 재확인).
+- 바꾼 것(C7): 생성기가 `freeCount`(65)·`paidValueKRW`(3,000)를 함께 내보내고, "상당"·"이용 가치"·"절약" 숫자는 모두 `paidValueKRW`에서 계산한다. 이용 가치는 작은 23,000원(35%), 중간 63,000원(44%), 큰 123,000원(47%), 패밀리 353,000원(56%)이 됐다(이전 322,000원·95% 등). 문구는 "지금 유료인 운세 기준 … 상당", "지금 무료인 운세는 더하지 않았어요"로 바꿨다. 위치: `lib/marketing/pass-benefits.mjs`, `app/points/PointsClient.tsx`, `scripts/design/build-home-funnel.mjs`, i18n 키 `home.benefitsCopy.lightWorth`·`home.benefitsCopy.compare`·`home.gardenCopy.passLight`(12개 언어), `scripts/verify-krw-copy-canonical.mjs`.
+- C8: 바꿀 문구가 없었다. 묶음 안내(`js/core/saju/bundle-offer.js`의 `INCLUDED`)는 이미 유료 2개(라이트 사주 풀이, 대운 분석)만 적고 "무료 공개된 기본·재미 사주는 구매가 필요 없다"고 알린다. `lib/seo-landing-pages.js` FAQ도 같다. 12개 중 10개가 무료라는 것은 정책 파일의 별칭 키 목록 이야기이고, 고객 문구에는 12개 목록이 없다.
+- F4: `pass-benefits.mjs`에서 "건당 5,000원을 넘는 대표 상담은 이 꿀단지로 이용할 수 없어요."를 접힌 영역에서 바로 보이는 목록(`pb__includes`)으로 옮겼다(패밀리 제외, 상한은 `maxCoveredCoin`에서 계산). 홈 이용권 카드("건당 5,000원 이하")와 `/points/` 카드(생선 사다리, "영냥이 상담은 대상이 아니에요")는 이미 보이는 자리에 있어 그대로 두었다.
+- 고치지 않은 것: 정책 정본·결제 파일, 약관 본문. "라이트 운세 66종 횟수 제한 없이"라는 혜택 문구 자체는 사실이라 두었지만, 65종이 누구에게나 무료인 지금은 이용권의 실질 혜택이 아니다. 문구를 "유료 라이트 운세 1종 + 상담 한도"로 다시 쓸지는 사용자 결정이 필요하다. 약관(`app/terms-of-service/TermsContent.jsx`)은 "라이트 운세를 횟수 제한 없이"만 말하고 66종·금액은 적지 않아 고칠 곳이 없었다.
+- 부수 효과: `public/data/ziwei-reading/index.json` 순서가 바뀌었다(1-8에서 넣은 `updatedAt`이 `sync:public` 때 반영된 것).
+- 검증: `pass-benefits-light`·`pass-light-status`·홈·이용권 node 테스트 138/138, `verify-krw-copy-canonical` PASS, `verify:light-fortunes` fresh.
 
 ### 조사 메모(1-5 이후, 읽기만)
 - 1-2: `app/components/guide-cta-targets.js`에 `/ggulggul/?action=cdOneStepFreeSajuEntry` + `note: "무료 · 로그인 후 확인"`이 8곳. `lib/fortune-landings.mjs`는 `action` 필드만 있고 `app/components/FortuneLandingHero.tsx`가 `"/ggulggul/?action=" + story.action`으로 href를 만든다. 안: `/saju`·`/ziwei` 항목에 선택 필드 `href`(`/saju/free/`, `/ziwei/chart/`)를 두고 hero는 `story.href || …`. `getFortuneLanding('/ziwei/chart')`는 `/ziwei` 항목을 돌려주므로 자기 자신으로 링크되지 않게 확인한다. 같이 봐야 할 것: `scripts/verify-analytics-events.mjs` L354(hero href 기대값), `js/core/analytics.js` L720-726 `SEARCH_CTA_ROUTES`(`/saju/free/` 없음, public 미러 있음), `__tests__/ui/organic-acquisition.test.mjs:84`(manse ctaHref 고정). `/saju/free/`(`app/saju/free/FreeSajuForm.tsx`)가 로그인 없이 명식·오행을 계산하는 것은 확인했다.
