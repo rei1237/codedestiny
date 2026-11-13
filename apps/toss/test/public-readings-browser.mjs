@@ -81,18 +81,25 @@ try{
   }
   console.log('PASS public tin oracle, all three categories, original images, shadow, sharing screen and repeat');
   await open('스톤헨지 룬');
+  await page.clock.install();
   const art=page.locator('.sr-collection-img');
   await art.scrollIntoViewIfNeeded();
   await page.waitForFunction(()=>document.querySelector('.sr-collection-img')?.naturalWidth>0);
   for(const [index,count] of [1,3,5,12].entries()){
     await page.locator('.sr-spread-btn').nth(index).click();
     await page.locator('.sr-draw-btn').click();
-    await page.waitForFunction(n=>document.querySelectorAll('.sr-card.visible').length===n,count);
+    await page.clock.runFor(2000);
+    await page.clock.runFor(1200);
+    await page.locator('.sr-card').first().waitFor({state:'attached'});
+    await page.clock.runFor(count*400+200);
+    await page.waitForFunction(n=>document.querySelectorAll('.sr-card.visible').length===n,count,{timeout:45000});
     await page.locator('.sr-card.visible').first().click();
     const dialog=page.getByRole('dialog');
     await dialog.waitFor();
     assert.ok((await dialog.innerText()).length>100);
     await page.locator('.sr-detail-close').click();
+    await page.locator('.sr-ai-prompt-button').click();
+    assert.ok((await page.locator('.sr-ai-prompt-textarea').inputValue()).length>100);
     assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
     console.log('PASS public rune',count);
   }
