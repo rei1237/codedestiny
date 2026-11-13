@@ -53,6 +53,7 @@ module.exports = {
     // 천문·기간 검증은 node:test와 실제 TS 로더를 사용한다. 아래 전용 러너에 등록한다.
     "[\\\\/]__tests__[\\\\/]fortune[\\\\/]sky-and-range\\.test\\.mjs$",
     "[\\\\/]__tests__[\\\\/]fortune[\\\\/]daily-webtoon\\.test\\.mjs$",
+    "[\\\\/]__tests__[\\\\/]fortune[\\\\/]today-tomorrow-separation\\.test\\.mjs$",
     // node:test 로 작성된 정적 검사들. `npm run test:node` 가 돌린다.
     "[\\\\/]__tests__[\\\\/]ui[\\\\/]",
     // 릴리스 빌드 파이프라인 가드. 🔴 jest(= critical 티어) 에 두면 정작 그것이 지키는
