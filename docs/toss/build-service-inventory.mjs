@@ -54,6 +54,7 @@ for(const [id,name,entry,implementation] of [
  ['heukwol-consult','흑월의 경고 상담','/heukwol/','app/heukwol/HeukwolClient.tsx'],
  ['nakshatra-lord-report','나크샤트라 지배성 심화 리포트','/nakshatra/lord-report/','app/nakshatra/lord-report/LordReportClient.tsx'],
  ['nakshatra-dasha-map','나크샤트라 다샤 인생지도','/nakshatra/dasha-map/','app/nakshatra/dasha-map/DashaMapClient.tsx'],
+ ['past-life-face','전생 관상·전생 궁합','/?action=openPhysiognomyApp','PastLifeFaceUI.js'],
  ['home-widget','홈 화면 꾸미기','/app/home-widget/','app/app/home-widget/page.tsx'],
  ['consultation-webtoons','상담 세계관 웹툰','/consultations/','app/consultations/StoryDiscovery.tsx'],
  ['yeongnyangi-season','영냥이 시즌 연재','/yeongnyangi/season-1/','app/yeongnyangi/season-1/page.tsx'],
@@ -96,9 +97,17 @@ for(const [id,target] of sajuCards)if(!dashboard.includes(`id:'${id}'`)||!dashbo
 if(!groups.has('saju')||!groups.has('luck-sync-diary'))throw new Error('Missing parent candidate for Saju or diary');
 groups.get('saju').subfeatures=sajuCards.map(([id,target])=>({id,target,source:'js/core/saju/reportDashboard.js',status:'requires-full-flow-port-and-verification',accessEvidence:id==='lotto'?'dashboard says Saju bundle; separate entitlement mapping unverified':'dashboard points to section_summary; historic rights unverified'}));
 if(!context.window.__cdServiceRegistry.some(row=>row.href==='/diary/')||!fs.readFileSync(path.join(root,'js/core/index-inline-runtime.js'),'utf8').includes('window.openLegacyLuckSyncDiary =')||!fs.readFileSync(path.join(root,'js/core/index-inline-runtime.js'),'utf8').includes("location.assign('/diary/')"))throw new Error('Missing new or legacy diary entry');
-groups.get('luck-sync-diary').subfeatures=[{id:'fortunePlanner',entry:'/diary/',status:'requires-full-flow-port-and-verification'},{id:'legacyLuckSyncDiary',entry:'js/luck-sync-diary.js:openLegacyLuckSyncDiary',status:'requires-full-flow-port-and-verification',verification:'legacy stored records and migration not verified'}];
+groups.get('luck-sync-diary').subfeatures=[{id:'fortunePlanner',entry:'/diary/',status:'local-partial'},{id:'legacyLuckSyncDiary',entry:'js/luck-sync-diary.js:openLegacyLuckSyncDiary',status:'requires-full-flow-port-and-verification',verification:'legacy stored records and migration not verified'}];
 const localEvidence={
  'destiny-meeting-place':{tossRoute:'/saju/destiny-meeting-place/',status:'local-partial',inputContract:'app/saju/animal-destiny/lib/sajuAdapter.ts → generateDestinyMeetingPlaceResult',resultRenderer:'apps/toss/service/TossMeetingPlace.tsx + DestinyMeetingPlaceResult.tsx',storageContract:'웹처럼 계정 확인 후 현재 화면. 직접 출생 입력 또는 소유 프로필 선택',verification:'일반 홈→mock 로그인→출생정보→7131자 장소·프롬프트→같은 입력으로 돌아가기. 실제 KASI 연동은 운영 Worker 승격 후 확인'},
+ 'face-reading':{tossRoute:'/animal/physio/',status:'local-partial',inputContract:'한 사람 또는 두 사람의 얼굴 사진. 원본 FaceMesh 특징점과 27동물 분류',resultRenderer:'apps/toss/service/TossFace.jsx에서 웹 AnalysisEngine.js와 PhysiognomyUI.js 실행',storageContract:'게스트 기기 내 판독. 수집한 이미지·점과 원본 결제 주문 분리',verification:'face-browser.mjs의 합성 PNG, 고정 좌표, 게스트 360px. 기기별 모델 다운로드·촬영 미검증'},
+ 'physiognomy':{tossRoute:'/animal/physio/',status:'local-partial',inputContract:'웹 SEO /physiognomy/의 openPhysiognomyApp. 오관·점 위치 입력과 해설',resultRenderer:'apps/toss/service/TossFace.jsx 원본 상세 화면',storageContract:'현재 단말 게스트 판독',verification:'face-browser.mjs 합성 이미지·오관·점·관상 궁합. 실사진 성능 미검증'},
+ 'past-life-face':{tossRoute:'/past-life-face/',status:'local-partial',inputContract:'원본 얼굴 한 장의 전생 및 두 얼굴의 전생 궁합',resultRenderer:'apps/toss/service/TossFace.jsx와 웹 PastLifeFaceUI.js',storageContract:'게스트 현재 결과',verification:'face-browser.mjs 로컬 이미지·얼굴 특징 fixture, 전생 비교 결과. 실기기 미검증'},
+ 'luck-sync-diary':{tossRoute:'/diary',status:'local-partial',inputContract:'오늘과 과거 날짜·기분·한 줄·메모·태그·일정·할 일·루틴',resultRenderer:'apps/toss/src/FortuneDiary.tsx + app/diary/_components 원본',storageContract:'게스트/토스 계정별 기기 저장. 원본 일/월 샤드로 재실행 후 읽기',verification:'diary-browser.mjs 360px 날짜별 입력·할 일·재실행, 쓰기 API 0회. 프로필 운기·통계와 레거시 기록 이전은 별도'},
+ 'naming-ai':{tossRoute:'/naming-ai/',status:'local-partial',inputContract:'원본 성 한자·양/음력·출생과 선호, v2 무료 후보 5·유료 후보 12',resultRenderer:'apps/toss/service/TossNaming.tsx, worker/routes/naming-prompt.js의 8장',storageContract:'꿀꿀 기록에서 토스 소유 주문의 저장 원문',verification:'naming-browser.mjs, native-naming.test.mjs. mock 1주문/생성, 이탈·재실행·타 계정 차단. 전용 SKU 필요'},
+ 'master-love-codex':{tossRoute:'/master-love-codex/',status:'local-partial',inputContract:'개인판 출생·질문과 사주·자미두수 근거',resultRenderer:'원본 인연의 서 20장 세션과 결과 리더',storageContract:'개인판 토스 주문과 소유 계정의 저장 원문',verification:'codex-browser.mjs에서 개인·궁합 각 mock 주문 1건, 중간 이탈 후 재열람·타인 차단. 실상품 없음'},
+ 'master-love-codex-compat':{tossRoute:'/master-love-codex/',status:'local-partial',inputContract:'궁합판 두 사람 출생·질문과 별도 원장',resultRenderer:'원본 궁합판 20장 세션과 결과 리더',storageContract:'궁합판 토스 주문과 소유 계정의 저장 원문',verification:'codex-browser.mjs. 개인판과 독립 가상 SKU·질문 해시·생성 작업. 실상품 없음'},
+ 'geomancy-oracle':{tossRoute:'/geomancy/',status:'local-partial',inputContract:'연금술사/술탄·질문·16줄 흙점, 웹과 공유하는 방패 차트·증인 둘·재판관 계산',resultRenderer:'worker/routes/oracle.js 7부분 원본 프롬프트·생성, apps/toss/service/TossGeomancy.tsx',storageContract:'동일 주문의 흙점과 결과 원문. 꿀꿀운세 기록에 토스 소유권 적용',verification:'geomancy-browser.mjs. 360px mock 주문·생성 1회, 테마와 초안 복원·타계정 거절, 웹 Worker 45건·UI 3건 통과'},
  'home-widget':{tossRoute:'/app/home-widget',status:'local-partial',inputContract:'캐릭터 둘, 그림·꽃말·오늘 운세 위젯 선택',resultRenderer:'app/app/home-widget/HomeWidgetStudio.tsx의 미리보기',storageContract:'게스트 미리보기. OS 홈 고정은 기존 Android 앱 플러그인 전용',verification:'widget-preview-browser.mjs에서 360px, 6개 선택, 실제 그림 디코드, 결제 요청 0건'},
  'dream-psycho-analysis':{tossRoute:'/dream/psycho/',status:'local-partial',inputContract:'꿈 기록 8~6000자와 원본 자동 말투, 로그인 뒤 원래 주문으로 복귀',resultRenderer:'apps/toss/service/TossDream.tsx 및 worker/routes/dream.js의 원본 5장·10부분 생성',storageContract:'동일 토스 계정의 주문·저장된 원문. 기존 작업 재개와 환불·타 계정 접근 거절',verification:'dream-browser.mjs · native-dream.test.mjs. 실판매 SKU 미확인'},
  'heukwol-consult':{tossRoute:'/heukwol/?consult=1',status:'local-partial',inputContract:'원본 buildHeukwolAnalysis·generateHeukwolChapter, 소유 프로필의 출생 시각·선택 연도·질문',resultRenderer:'apps/toss/service/TossHeukwol.tsx + app/heukwol/HeukwolResult.tsx',storageContract:'TossNativeConsultation과 소유 구매. 원 주문과 마지막 성공 장에서 복구. 신규 SKU 미등록',verification:'360px mock 두 장으로 생성 중 이탈·다른 계정 차단. 원본 27개 프롬프트·저장 임대 테스트. 운영 실패 주문 처리 및 기기 PDF 미검증'},
@@ -283,7 +292,7 @@ const productContracts = ledger.products.map(product=>({
  historicalLedgerStatus:product.saleStatus,freeCalculation:isFreeFortuneFeatureKey(product.productId),
 }));
 const nativeSource = {
- 'yoga-guru':'yoga-guru',
+ 'geomancy-oracle':'oracle','naming-ai':'naming-prompt','master-love-codex':'master-love-codex','master-love-codex-compat':'master-love-codex','yoga-guru':'yoga-guru',
  'nakshatra-ai':'nakshatra-ai',
  'dream-psycho-analysis':'dream','fortune-tea-house':'fortune-tea-house','neo-operation-room':'neo-operation-room','life-book-ai':'life-book-ai',
  'life-fortune-report':'life-book-ai','astrology-ai':'astrology-ai','vedic-ai':'vedic-ai','ziwei-ai':'ziwei-ai',
@@ -326,7 +335,7 @@ for(const group of canonicalCandidates){
  else if(group.id==='nakshatra')group.tossLogin='출생 개인 계산·도감 게스트 공개';
  else if(group.id==='nakshatra-compat')group.tossLogin='두 사람 계산은 토스 로그인 필요';
  else if(group.id==='today-hub')group.tossLogin='별자리·띠는 공개. 네 체계와 오늘의 세 장은 토스 로그인 필요. 개인화는 소유 프로필만 선택';
- else if(['home-widget','kemet-oracle','royal-tea-oracle','juyuk-turtle','dream','mbti-animal-compat','ifa-oracle','consultation-webtoons','heukwol-story','saju','animal-destiny','music','novel','famous-saju','bias-destiny','yeongnyangi-horary','yeongnyangi-season','olympus-oracle','stonehenge-runes'].includes(group.id))group.tossLogin='공개 진입';
+ else if(['face-reading','physiognomy','past-life-face','luck-sync-diary','home-widget','kemet-oracle','royal-tea-oracle','juyuk-turtle','dream','mbti-animal-compat','ifa-oracle','consultation-webtoons','heukwol-story','saju','animal-destiny','music','novel','famous-saju','bias-destiny','yeongnyangi-horary','yeongnyangi-season','olympus-oracle','stonehenge-runes'].includes(group.id))group.tossLogin='공개 진입';
  else group.tossLogin='기능별 단계 검증 필요';
  group.tossResult=group.resultRenderer||'결과 화면 연결 미확인';
  group.reread=group.storageContract||'재열람 경로 미확인';
@@ -339,6 +348,7 @@ for(const group of canonicalCandidates){
   group.webSources=[...new Set([...group.webSources,'js/saju-engine.js','js/saju-compat-flow.mjs','worker/routes/saju-compat-basic.js','worker/lib/saju-compat-schema.js'])];
  }
  if(group.id==='saju-sibyl'){group.freeCalculation=true;group.tossLogin='연도별 무료 분석은 공개';group.reducedBundle='홈 진입 없음';}
+ if(group.id==='naming-ai')group.tossLogin='후보·입력은 게스트. 유료 상담과 기록은 토스 로그인 필요';
  if(group.id==='island-consult'){
   group.webSources=[...new Set([...group.webSources,'app/island-consult/page.tsx','worker/routes/ziwei-island-ai.js'])];
   group.webProductIds=[...new Set([...group.webProductIds,'ziwei-island-palace-consult'])];
@@ -353,6 +363,7 @@ for(const group of canonicalCandidates){
   group.tossLogin='공개 입력 · 구매 없음';
   if(group.id==='dream')group.portStatus='이미 동작';
  }
+ if(['juyuk-turtle','kemet-oracle','royal-tea-oracle'].includes(group.id))group.bundleVerification='20261114-9 Linux AIT 43463538068, 공개 홈에서 질문/점술 선택부터 원본 결과, 게스트, 360px 통과';
  if(group.publicSections){
   group.freeCalculation=true;
   group.webSources=[...new Set([...group.webSources,...group.publicSections.map(s=>s.source)])];

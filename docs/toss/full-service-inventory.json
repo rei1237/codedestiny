@@ -1,5 +1,5 @@
 {
-  "sourceCommit": "8ad146e33e71730090a396f8dfa339321dd374a0",
+  "sourceCommit": "c35de760137b93be5590de9a33f80f2795f50af4",
   "sourceCounts": {
     "home": 63,
     "react": 18,
@@ -524,8 +524,8 @@
         "library": "not-verified",
         "device": "not-tested",
         "canonicalId": "face-reading",
-        "candidateStatus": "requires-full-flow-port-and-verification",
-        "canonicalRoute": null
+        "candidateStatus": "local-partial",
+        "canonicalRoute": "/animal/physio/"
       }
     },
     {
@@ -710,8 +710,8 @@
         "library": "not-verified",
         "device": "not-tested",
         "canonicalId": "geomancy-oracle",
-        "candidateStatus": "requires-full-flow-port-and-verification",
-        "canonicalRoute": null
+        "candidateStatus": "local-partial",
+        "canonicalRoute": "/geomancy/"
       }
     },
     {
@@ -1099,8 +1099,8 @@
         "library": "not-verified",
         "device": "not-tested",
         "canonicalId": "luck-sync-diary",
-        "candidateStatus": "requires-full-flow-port-and-verification",
-        "canonicalRoute": null
+        "candidateStatus": "local-partial",
+        "canonicalRoute": "/diary"
       }
     },
     {
@@ -1165,8 +1165,8 @@
         "library": "not-verified",
         "device": "not-tested",
         "canonicalId": "master-love-codex",
-        "candidateStatus": "requires-full-flow-port-and-verification",
-        "canonicalRoute": null
+        "candidateStatus": "local-partial",
+        "canonicalRoute": "/master-love-codex/"
       }
     },
     {
@@ -1190,8 +1190,8 @@
         "library": "not-verified",
         "device": "not-tested",
         "canonicalId": "master-love-codex-compat",
-        "candidateStatus": "requires-full-flow-port-and-verification",
-        "canonicalRoute": null
+        "candidateStatus": "local-partial",
+        "canonicalRoute": "/master-love-codex/"
       }
     },
     {
@@ -1487,8 +1487,8 @@
         "library": "not-verified",
         "device": "not-tested",
         "canonicalId": "naming-ai",
-        "candidateStatus": "requires-full-flow-port-and-verification",
-        "canonicalRoute": null
+        "candidateStatus": "local-partial",
+        "canonicalRoute": "/naming-ai/"
       }
     },
     {
@@ -1809,8 +1809,8 @@
         "library": "not-verified",
         "device": "not-tested",
         "canonicalId": "physiognomy",
-        "candidateStatus": "requires-full-flow-port-and-verification",
-        "canonicalRoute": null
+        "candidateStatus": "local-partial",
+        "canonicalRoute": "/animal/physio/"
       }
     },
     {
@@ -3669,12 +3669,13 @@
         }
       ],
       "aliasEvidence": [],
-      "status": "requires-full-flow-port-and-verification",
-      "tossRoute": null,
+      "status": "local-partial",
+      "tossRoute": "/animal/physio/",
       "sku": null,
-      "inputContract": null,
-      "resultRenderer": null,
-      "storageContract": null,
+      "inputContract": "한 사람 또는 두 사람의 얼굴 사진. 원본 FaceMesh 특징점과 27동물 분류",
+      "resultRenderer": "apps/toss/service/TossFace.jsx에서 웹 AnalysisEngine.js와 PhysiognomyUI.js 실행",
+      "storageContract": "게스트 기기 내 판독. 수집한 이미지·점과 원본 결제 주문 분리",
+      "verification": "face-browser.mjs의 합성 PNG, 고정 좌표, 게스트 360px. 기기별 모델 다운로드·촬영 미검증",
       "webEntries": [
         "/animal/physio"
       ],
@@ -3683,13 +3684,13 @@
       ],
       "webProductIds": [],
       "freeCalculation": false,
-      "portStatus": "미이식",
-      "reducedBundle": "홈 진입 없음",
-      "currentEntry": "연결 경로 없음",
+      "portStatus": "일부만 이식",
+      "reducedBundle": "구현은 있으나 진입 차단",
+      "currentEntry": "일반 홈의 진입 코드 확인",
       "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
-      "tossLogin": "토스 기능 미연결",
-      "tossResult": "결과 화면 연결 미확인",
-      "reread": "재열람 경로 미확인"
+      "tossLogin": "공개 진입",
+      "tossResult": "apps/toss/service/TossFace.jsx에서 웹 AnalysisEngine.js와 PhysiognomyUI.js 실행",
+      "reread": "게스트 기기 내 판독. 수집한 이미지·점과 원본 결제 주문 분리"
     },
     {
       "id": "famous-saju",
@@ -3995,30 +3996,33 @@
         }
       ],
       "aliasEvidence": [],
-      "status": "requires-full-flow-port-and-verification",
-      "tossRoute": null,
+      "status": "local-partial",
+      "tossRoute": "/geomancy/",
       "sku": null,
-      "inputContract": null,
-      "resultRenderer": null,
-      "storageContract": null,
+      "inputContract": "연금술사/술탄·질문·16줄 흙점, 웹과 공유하는 방패 차트·증인 둘·재판관 계산",
+      "resultRenderer": "worker/routes/oracle.js 7부분 원본 프롬프트·생성, apps/toss/service/TossGeomancy.tsx",
+      "storageContract": "동일 주문의 흙점과 결과 원문. 꿀꿀운세 기록에 토스 소유권 적용",
+      "verification": "geomancy-browser.mjs. 360px mock 주문·생성 1회, 테마와 초안 복원·타계정 거절, 웹 Worker 45건·UI 3건 통과",
       "webEntries": [
         "openGeomancyOracle"
       ],
       "webSources": [
         "geomancy-oracle-v4.html showGeomancyDelivery",
-        "worker/routes/oracle.js ORACLE_SECTIONS"
+        "worker/routes/oracle.js ORACLE_SECTIONS",
+        "worker/routes/oracle.js"
       ],
       "webProductIds": [
         "openGeomancyOracle"
       ],
       "freeCalculation": false,
-      "portStatus": "미이식",
-      "reducedBundle": "홈 진입 없음",
-      "currentEntry": "연결 경로 없음",
+      "portStatus": "일부만 이식",
+      "reducedBundle": "구현은 있으나 진입 차단",
+      "currentEntry": "일반 홈의 진입 코드 확인",
       "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
-      "tossLogin": "토스 기능 미연결",
-      "tossResult": "결과 화면 연결 미확인",
-      "reread": "재열람 경로 미확인"
+      "tossLogin": "구매·기록에 토스 계정 필요",
+      "tossResult": "worker/routes/oracle.js 7부분 원본 프롬프트·생성, apps/toss/service/TossGeomancy.tsx",
+      "reread": "동일 주문의 흙점과 결과 원문. 꿀꿀운세 기록에 토스 소유권 적용",
+      "saleStatus": "콘솔·운영 설정 필요"
     },
     {
       "id": "health-rhythm",
@@ -4378,7 +4382,7 @@
       "portStatus": "일부만 이식",
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "일반 홈의 진입 코드 확인",
-      "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
+      "bundleVerification": "20261114-9 Linux AIT 43463538068, 공개 홈에서 질문/점술 선택부터 원본 결과, 게스트, 360px 통과",
       "tossLogin": "공개 진입",
       "tossResult": "apps/toss/src/TurtleOracle.tsx + apps/toss/canonical/turtle-oracle.mjs",
       "reread": "게스트 공개, 화면 결과. 기존 웹 주문 정책과 별개"
@@ -4480,7 +4484,7 @@
       "portStatus": "일부만 이식",
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "일반 홈의 진입 코드 확인",
-      "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
+      "bundleVerification": "20261114-9 Linux AIT 43463538068, 공개 홈에서 질문/점술 선택부터 원본 결과, 게스트, 360px 통과",
       "tossLogin": "공개 진입",
       "tossResult": "apps/toss/src/KemetOracle.tsx + apps/toss/canonical/kemet-oracle.mjs",
       "reread": "게스트 무료 키 openKemetModal. 현재 화면 결과"
@@ -4807,17 +4811,17 @@
         }
       ],
       "aliasEvidence": [],
-      "status": "requires-full-flow-port-and-verification",
-      "tossRoute": null,
+      "status": "local-partial",
+      "tossRoute": "/diary",
       "sku": null,
-      "inputContract": null,
-      "resultRenderer": null,
-      "storageContract": null,
+      "inputContract": "오늘과 과거 날짜·기분·한 줄·메모·태그·일정·할 일·루틴",
+      "resultRenderer": "apps/toss/src/FortuneDiary.tsx + app/diary/_components 원본",
+      "storageContract": "게스트/토스 계정별 기기 저장. 원본 일/월 샤드로 재실행 후 읽기",
       "subfeatures": [
         {
           "id": "fortunePlanner",
           "entry": "/diary/",
-          "status": "requires-full-flow-port-and-verification"
+          "status": "local-partial"
         },
         {
           "id": "legacyLuckSyncDiary",
@@ -4826,6 +4830,7 @@
           "verification": "legacy stored records and migration not verified"
         }
       ],
+      "verification": "diary-browser.mjs 360px 날짜별 입력·할 일·재실행, 쓰기 API 0회. 프로필 운기·통계와 레거시 기록 이전은 별도",
       "webEntries": [
         "/diary/"
       ],
@@ -4834,13 +4839,13 @@
       ],
       "webProductIds": [],
       "freeCalculation": false,
-      "portStatus": "미이식",
-      "reducedBundle": "홈 진입 없음",
-      "currentEntry": "연결 경로 없음",
+      "portStatus": "일부만 이식",
+      "reducedBundle": "구현은 있으나 진입 차단",
+      "currentEntry": "일반 홈의 진입 코드 확인",
       "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
-      "tossLogin": "토스 기능 미연결",
-      "tossResult": "결과 화면 연결 미확인",
-      "reread": "재열람 경로 미확인"
+      "tossLogin": "공개 진입",
+      "tossResult": "apps/toss/src/FortuneDiary.tsx + app/diary/_components 원본",
+      "reread": "게스트/토스 계정별 기기 저장. 원본 일/월 샤드로 재실행 후 읽기"
     },
     {
       "id": "manse",
@@ -4912,31 +4917,34 @@
         }
       ],
       "aliasEvidence": [],
-      "status": "requires-full-flow-port-and-verification",
-      "tossRoute": null,
+      "status": "local-partial",
+      "tossRoute": "/master-love-codex/",
       "sku": null,
-      "inputContract": null,
-      "resultRenderer": null,
-      "storageContract": null,
+      "inputContract": "개인판 출생·질문과 사주·자미두수 근거",
+      "resultRenderer": "원본 인연의 서 20장 세션과 결과 리더",
+      "storageContract": "개인판 토스 주문과 소유 계정의 저장 원문",
+      "verification": "codex-browser.mjs에서 개인·궁합 각 mock 주문 1건, 중간 이탈 후 재열람·타인 차단. 실상품 없음",
       "webEntries": [
         "/master-love-codex/"
       ],
       "webSources": [
         "app/master-love-codex/page.tsx",
-        "src/features/master-love-codex/components/CodexReader.tsx"
+        "src/features/master-love-codex/components/CodexReader.tsx",
+        "worker/routes/master-love-codex.js"
       ],
       "webProductIds": [
         "master-love-codex",
         "master-love-codex-compat"
       ],
       "freeCalculation": false,
-      "portStatus": "미이식",
-      "reducedBundle": "홈 진입 없음",
-      "currentEntry": "연결 경로 없음",
+      "portStatus": "일부만 이식",
+      "reducedBundle": "구현은 있으나 진입 차단",
+      "currentEntry": "일반 홈의 진입 코드 확인",
       "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
-      "tossLogin": "토스 기능 미연결",
-      "tossResult": "결과 화면 연결 미확인",
-      "reread": "재열람 경로 미확인"
+      "tossLogin": "구매·기록에 토스 계정 필요",
+      "tossResult": "원본 인연의 서 20장 세션과 결과 리더",
+      "reread": "개인판 토스 주문과 소유 계정의 저장 원문",
+      "saleStatus": "콘솔·운영 설정 필요"
     },
     {
       "id": "master-love-codex-compat",
@@ -4954,30 +4962,33 @@
         }
       ],
       "aliasEvidence": [],
-      "status": "requires-full-flow-port-and-verification",
-      "tossRoute": null,
+      "status": "local-partial",
+      "tossRoute": "/master-love-codex/",
       "sku": null,
-      "inputContract": null,
-      "resultRenderer": null,
-      "storageContract": null,
+      "inputContract": "궁합판 두 사람 출생·질문과 별도 원장",
+      "resultRenderer": "원본 궁합판 20장 세션과 결과 리더",
+      "storageContract": "궁합판 토스 주문과 소유 계정의 저장 원문",
+      "verification": "codex-browser.mjs. 개인판과 독립 가상 SKU·질문 해시·생성 작업. 실상품 없음",
       "webEntries": [
         "/master-love-codex/"
       ],
       "webSources": [
         "app/master-love-codex/page.tsx",
-        "src/features/master-love-codex/components/CodexReader.tsx"
+        "src/features/master-love-codex/components/CodexReader.tsx",
+        "worker/routes/master-love-codex.js"
       ],
       "webProductIds": [
         "master-love-codex-compat"
       ],
       "freeCalculation": false,
-      "portStatus": "미이식",
-      "reducedBundle": "홈 진입 없음",
-      "currentEntry": "연결 경로 없음",
+      "portStatus": "일부만 이식",
+      "reducedBundle": "구현은 있으나 진입 차단",
+      "currentEntry": "일반 홈의 진입 코드 확인",
       "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
-      "tossLogin": "토스 기능 미연결",
-      "tossResult": "결과 화면 연결 미확인",
-      "reread": "재열람 경로 미확인"
+      "tossLogin": "구매·기록에 토스 계정 필요",
+      "tossResult": "원본 궁합판 20장 세션과 결과 리더",
+      "reread": "궁합판 토스 주문과 소유 계정의 저장 원문",
+      "saleStatus": "콘솔·운영 설정 필요"
     },
     {
       "id": "maya",
@@ -5481,29 +5492,32 @@
         }
       ],
       "aliasEvidence": [],
-      "status": "requires-full-flow-port-and-verification",
-      "tossRoute": null,
+      "status": "local-partial",
+      "tossRoute": "/naming-ai/",
       "sku": null,
-      "inputContract": null,
-      "resultRenderer": null,
-      "storageContract": null,
+      "inputContract": "원본 성 한자·양/음력·출생과 선호, v2 무료 후보 5·유료 후보 12",
+      "resultRenderer": "apps/toss/service/TossNaming.tsx, worker/routes/naming-prompt.js의 8장",
+      "storageContract": "꿀꿀 기록에서 토스 소유 주문의 저장 원문",
+      "verification": "naming-browser.mjs, native-naming.test.mjs. mock 1주문/생성, 이탈·재실행·타 계정 차단. 전용 SKU 필요",
       "webEntries": [
         "/naming-ai/"
       ],
       "webSources": [
-        "app/naming-ai/page.tsx"
+        "app/naming-ai/page.tsx",
+        "worker/routes/naming-prompt.js"
       ],
       "webProductIds": [
         "premium-naming-prompt"
       ],
       "freeCalculation": false,
-      "portStatus": "미이식",
-      "reducedBundle": "홈 진입 없음",
-      "currentEntry": "연결 경로 없음",
+      "portStatus": "일부만 이식",
+      "reducedBundle": "구현은 있으나 진입 차단",
+      "currentEntry": "일반 홈의 진입 코드 확인",
       "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
-      "tossLogin": "토스 기능 미연결",
-      "tossResult": "결과 화면 연결 미확인",
-      "reread": "재열람 경로 미확인"
+      "tossLogin": "후보·입력은 게스트. 유료 상담과 기록은 토스 로그인 필요",
+      "tossResult": "apps/toss/service/TossNaming.tsx, worker/routes/naming-prompt.js의 8장",
+      "reread": "꿀꿀 기록에서 토스 소유 주문의 저장 원문",
+      "saleStatus": "콘솔·운영 설정 필요"
     },
     {
       "id": "neo-consultation",
@@ -5942,6 +5956,42 @@
       "reread": "재열람 경로 미확인"
     },
     {
+      "id": "past-life-face",
+      "discoveryIds": [],
+      "evidence": [
+        {
+          "name": "전생 관상·전생 궁합",
+          "entry": "/?action=openPhysiognomyApp",
+          "implementation": "PastLifeFaceUI.js"
+        }
+      ],
+      "aliasEvidence": [],
+      "status": "local-partial",
+      "tossRoute": "/past-life-face/",
+      "sku": null,
+      "inputContract": "원본 얼굴 한 장의 전생 및 두 얼굴의 전생 궁합",
+      "resultRenderer": "apps/toss/service/TossFace.jsx와 웹 PastLifeFaceUI.js",
+      "storageContract": "게스트 현재 결과",
+      "verification": "face-browser.mjs 로컬 이미지·얼굴 특징 fixture, 전생 비교 결과. 실기기 미검증",
+      "webEntries": [
+        "/?action=openPhysiognomyApp"
+      ],
+      "webSources": [
+        "PastLifeFaceUI.js",
+        "index.html",
+        "js/core/service-registry.js"
+      ],
+      "webProductIds": [],
+      "freeCalculation": false,
+      "portStatus": "일부만 이식",
+      "reducedBundle": "구현은 있으나 진입 차단",
+      "currentEntry": "일반 홈의 진입 코드 확인",
+      "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
+      "tossLogin": "공개 진입",
+      "tossResult": "apps/toss/service/TossFace.jsx와 웹 PastLifeFaceUI.js",
+      "reread": "게스트 현재 결과"
+    },
+    {
       "id": "personal-charm",
       "discoveryIds": [
         "personal-charm"
@@ -6069,12 +6119,13 @@
         }
       ],
       "aliasEvidence": [],
-      "status": "requires-full-flow-port-and-verification",
-      "tossRoute": null,
+      "status": "local-partial",
+      "tossRoute": "/animal/physio/",
       "sku": null,
-      "inputContract": null,
-      "resultRenderer": null,
-      "storageContract": null,
+      "inputContract": "웹 SEO /physiognomy/의 openPhysiognomyApp. 오관·점 위치 입력과 해설",
+      "resultRenderer": "apps/toss/service/TossFace.jsx 원본 상세 화면",
+      "storageContract": "현재 단말 게스트 판독",
+      "verification": "face-browser.mjs 합성 이미지·오관·점·관상 궁합. 실사진 성능 미검증",
       "webEntries": [
         "/physiognomy/"
       ],
@@ -6083,13 +6134,13 @@
       ],
       "webProductIds": [],
       "freeCalculation": false,
-      "portStatus": "미이식",
-      "reducedBundle": "홈 진입 없음",
-      "currentEntry": "연결 경로 없음",
+      "portStatus": "일부만 이식",
+      "reducedBundle": "구현은 있으나 진입 차단",
+      "currentEntry": "일반 홈의 진입 코드 확인",
       "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
-      "tossLogin": "토스 기능 미연결",
-      "tossResult": "결과 화면 연결 미확인",
-      "reread": "재열람 경로 미확인"
+      "tossLogin": "공개 진입",
+      "tossResult": "apps/toss/service/TossFace.jsx 원본 상세 화면",
+      "reread": "현재 단말 게스트 판독"
     },
     {
       "id": "points",
@@ -6399,7 +6450,7 @@
       "portStatus": "일부만 이식",
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "일반 홈의 진입 코드 확인",
-      "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
+      "bundleVerification": "20261114-9 Linux AIT 43463538068, 공개 홈에서 질문/점술 선택부터 원본 결과, 게스트, 360px 통과",
       "tossLogin": "공개 진입",
       "tossResult": "apps/toss/src/RoyalTea.tsx + apps/toss/canonical/royal-tea.mjs",
       "reread": "게스트 공개, 같은 소유자·날짜·질문의 동일한 찻잔 감정서를 재계산. 현재 화면의 최근 기록 8개"
