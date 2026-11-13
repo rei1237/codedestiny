@@ -189,3 +189,23 @@ test('a usable complete report below the target is delivered without extra calls
  expect(provider).toHaveBeenCalledTimes(12);expect(docs[0].premiumStatus).toBe('completed');
  await resume();expect(provider).toHaveBeenCalledTimes(12);
 });
+
+test('Toss uses the full web provider contract, checkpoints and original saved chapters',async()=>{
+  const {generateTarotLibraryResult}=await import('../../worker/toss/tarot-library-generator.js');
+  const input={question:'행성의 흐름을 읽고 싶어요',cards:body.cards};
+  const featureId='tarot-celestial-harmony',execution={orderId:'01900000-1111-7111-8111-000000000042',requestId:'toss-tarot:01900000-1111-7111-8111-000000000042',featureId};
+  const options={env:{TAROT_CONSUMER_FACTS_V1:'true'},execution,owner:userId,verify:async()=>{},checkpoint:async state=>{execution.tossTarotCheckpoint=structuredClone(state);}};
+  let result;
+  for(let wave=0;wave<10;wave++){
+    result=await generateTarotLibraryResult(featureId,input,options);
+    if(!result.pending)break;
+    expect(result.retryable).toBe(true);
+  }
+  expect(result.flowId).toBe(featureId);
+  expect(result.cards).toHaveLength(11);
+  expect(result.presentation.sections.length).toBeGreaterThanOrEqual(11);
+  expect(result.presentation.sections.map(section=>section.body).join('').length).toBeGreaterThan(5000);
+  const before=calls.length;
+  expect((await generateTarotLibraryResult(featureId,input,options)).presentation).toEqual(result.presentation);
+  expect(calls).toHaveLength(before);
+});

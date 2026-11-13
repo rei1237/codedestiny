@@ -62,9 +62,9 @@ test('a recovered order with no input collects cards and resumes even without a 
   const field=document.querySelector('textarea');assert.ok(field);
   await React.act(async()=>{Object.getOwnPropertyDescriptor(dom.window.HTMLTextAreaElement.prototype,'value').set.call(field,'지금 관계에서 필요한 행동은?');field.dispatchEvent(new dom.window.Event('input',{bubbles:true}));});
   await click('카드 펼치기');
-  for(let i=0;i<5;i++)await React.act(async()=>document.querySelectorAll('.tarot-deck button')[i].click());
+  for(let i=0;i<10;i++)await React.act(async()=>document.querySelectorAll('.tarot-deck button')[i].click());
   await click('선택한 카드 열기');await click('구매한 리딩 이어서 보기');
-  assert.equal(view.calls[1][0],`/tarot-library/results/${orderId}`);assert.equal(view.calls[1][1].input.cards.length,5);
+  assert.equal(view.calls[1][0],`/tarot-library/results/${orderId}`);assert.equal(view.calls[1][1].input.picks.length,10);
   assert.match(document.body.textContent,/완료된 원문/);
  }finally{view.close();}
 });

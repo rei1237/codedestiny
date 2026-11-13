@@ -227,3 +227,23 @@ test('part targets total ~9,000 chars and a short complete part is delivered wit
  expect(total).toBeGreaterThanOrEqual(12000);expect(total).toBeLessThanOrEqual(14000);
  expect(state.parts.overview).toBe(short);expect(callsFor('overview')).toBe(1);expect(provider).toHaveBeenCalledTimes(9);
 });
+
+test('Toss uses the full web provider contract, checkpoints and original saved chapters',async()=>{
+  const {generateTarotLibraryResult}=await import('../../worker/toss/tarot-library-generator.js');
+  const input={question:'관계의 흐름이 궁금해요',picks:Array.from({length:6},(_,index)=>index)};
+  const featureId='tarot-love-relationship',execution={orderId:'01900000-1111-7111-8111-000000000042',requestId:'toss-tarot:01900000-1111-7111-8111-000000000042',featureId};
+  const options={env:{TAROT_CONSUMER_FACTS_V1:'true'},execution,owner:userId,verify:async()=>{},checkpoint:async state=>{execution.tossTarotCheckpoint=structuredClone(state);}};
+  let result;
+  for(let wave=0;wave<10;wave++){
+    result=await generateTarotLibraryResult(featureId,input,options);
+    if(!result.pending)break;
+    expect(result.retryable).toBe(true);
+  }
+  expect(result.flowId).toBe(featureId);
+  expect(result.cards).toHaveLength(6);
+  expect(result.presentation.sections.length).toBeGreaterThanOrEqual(6);
+  expect(result.presentation.sections.map(section=>section.body).join('').length).toBeGreaterThan(5000);
+  const before=provider.mock.calls.length;
+  expect((await generateTarotLibraryResult(featureId,input,options)).presentation).toEqual(result.presentation);
+  expect(provider).toHaveBeenCalledTimes(before);
+});

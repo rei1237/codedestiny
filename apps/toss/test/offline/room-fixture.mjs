@@ -1,3 +1,4 @@
+import {mockTarotRecords} from './paid-tarot.mjs';
 // Local devtools only. No production price, receipt, calculation or generated text.
 import {normalizeTeaFollowUpQuestion,teaFollowUpAllowance} from '../../../../worker/lib/fortune-tea-follow-up-contract.js';
 import {neoRefinementAllowance} from '../../../../worker/lib/neo-refinement-contract.js';
@@ -111,7 +112,7 @@ export async function roomRequest(request,url,path,state,save,now){
       createdAt:r.createdAt,status:r.state==='COMPLETED'?'completed':'generating',href:r.href,nativeHref:r.href,
     }));
     const letters=[...state.letters.values()].filter(r=>r.paid&&(!group||group==='all'||group==='chat')&&!source&&(!q||r.consultation.question.includes(q))).map(r=>({id:r.id,key:r.persona+':'+r.orderId,group:'chat',source:r.persona,serviceId:r.persona,serviceName:(r.persona==='neo'?'네오':'연이')+' 상담 편지',character:r.persona,title:r.consultation.question,question:r.consultation.question,createdAt:r.createdAt,status:'completed',href:'/fortune-tea-house/?counsel=letter'+(r.persona==='neo'?'&persona=neo':'')+'&consultation='+r.id}));
-    return reply({ok:true,items:[...items,...letters],failures:[],nextCursor:null});
+    return reply({ok:true,items:[...items,...letters,...mockTarotRecords(state).filter(row=>(!group||group==='all'||group===row.group)&&(!source||source==='all'||source===row.source)&&(!q||row.question.includes(q)))],failures:[],nextCursor:null});
   }
   const palmResult=/^\/native\/palm\/results\/([a-f0-9]{64})$/.exec(path);
   if(palmResult){const row=state.intents.get(palmResult[1]);return !post&&row?.service==='palm'&&row.paid?reply(row.result):fail('RESULT_NOT_FOUND',404);}

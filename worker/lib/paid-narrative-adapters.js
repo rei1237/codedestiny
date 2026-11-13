@@ -19,6 +19,11 @@ const SERVER_RESUME_PRODUCTS = Object.freeze({
   "animal-totem": ["animal-totem-basic", "animal-totem-deep"],
 });
 
+const withTarotRecovery=(env,adapter)=>({...adapter,verifyRecovery:async doc=>{
+  const {verifyTossTarotRecovery}=await import('../toss/tarot-library-recovery.js');
+  return verifyTossTarotRecovery(env,doc);
+}});
+
 export const PAID_NARRATIVE_SERVER_RESUME_KEYS = Object.freeze(Object.entries(SERVER_RESUME_PRODUCTS)
   .flatMap(([reportType, featureKeys]) => featureKeys.map(featureKey => `${featureKey}|${reportType}`)));
 
@@ -50,15 +55,15 @@ export async function loadPaidNarrativeAdapter(env, featureKey, reportType, user
     }
     case "loveTarot": {
       const { loveTarotNarrativeAdapter } = await import("./love-tarot-delivery.js");
-      return loveTarotNarrativeAdapter(env);
+      return withTarotRecovery(env,loveTarotNarrativeAdapter(env));
     }
     case "mindscan": {
       const { mindscanNarrativeAdapter } = await import("./mindscan-delivery.js");
-      return mindscanNarrativeAdapter(env);
+      return withTarotRecovery(env,mindscanNarrativeAdapter(env));
     }
     case "tarotOracleConsultation": {
       const { tarotOracleNarrativeAdapter } = await import("./tarot-oracle-delivery.js");
-      return tarotOracleNarrativeAdapter(env);
+      return withTarotRecovery(env,tarotOracleNarrativeAdapter(env));
     }
     case "geomancyOracle": {
       const { geomancyNarrativeAdapter } = await import("../routes/oracle.js");

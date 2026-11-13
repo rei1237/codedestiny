@@ -895,6 +895,7 @@ const paidExecutionRecordSchema = new mongoose.Schema({
     default: "paid_pending_generation",
     index: true,
   },
+  tossTarotCheckpoint: { type: mongoose.Schema.Types.Mixed, default: null },
   tossDeliveryToken: { type: String, default: "", maxlength: 80 },
   tossDeliveryLeaseUntil: { type: Date, default: null },
   consumedAt: { type: Date, default: null },

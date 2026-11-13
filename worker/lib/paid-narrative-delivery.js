@@ -138,7 +138,8 @@ export async function runPaidNarrativeDelivery(request, env, auth, body, { featu
   if (doc?.lock?.token && new Date(doc.lock.until) > now) return deliver(true);
   if (!doc) {
     const baseSeed = await seed(original);
-    const seeded = nativeOrigin ? { ...baseSeed, input: { ...baseSeed.input, accessSource: 'toss' } } : baseSeed;
+    // A tarot engine snapshot signs its unmodified input. The outer origin marker below remains authoritative.
+    const seeded = nativeOrigin && !baseSeed.engineFacts ? { ...baseSeed, input: { ...baseSeed.input, accessSource: 'toss' } } : baseSeed;
     const insert = paidNarrativeInsert({ userId, executionKey, featureKey, reportType, original, seeded, locale: getAmbientAiLocale() || "ko", lock, now, timeoutAt: new Date(now.getTime() + 600000), ...(nativeOrigin ? { metadata: { tossPaidNarrative: true } } : {}) });
     try {
       const inserted = await withMongoRetry(env, () => ServiceExecutionTransaction.findOneAndUpdate({ userId, executionKey }, { $setOnInsert: insert }, { upsert: true, returnDocument: "after" }).lean(), { retries: 0 });

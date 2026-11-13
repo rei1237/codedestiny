@@ -1,12 +1,12 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {TAROT_DELIVERY_LEASE_MS,freeTarotReading,failTarotLibraryDelivery,TOSS_TAROT_LIBRARY_FLOWS,attachTarotLibraryInput,buildTarotLibraryBaseline,claimTarotLibraryDelivery,completeTarotLibraryDelivery,deliverTarotLibraryOrder,grantTarotLibraryOrder,tarotLibraryProduct,tarotLibraryResult} from '../../../worker/toss/tarot-library.js';
+import {TAROT_DELIVERY_LEASE_MS,freeTarotReading,failTarotLibraryDelivery,TOSS_TAROT_LIBRARY_FLOWS,attachTarotLibraryInput,claimTarotLibraryDelivery,completeTarotLibraryDelivery,deliverTarotLibraryOrder,grantTarotLibraryOrder,tarotLibraryProduct,tarotLibraryResult} from '../../../worker/toss/tarot-library.js';
 import {generateTarotLibraryResult} from '../../../worker/toss/tarot-library-generator.js';
 
 const order={orderId:'01900000-1111-7111-8111-000000000042',sku:'approved-tarot-library',status:'PAYMENT_COMPLETED'};
 const auth={_id:'toss-identity',ownerId:'internal-owner',revision:0,environment:'SANDBOX'};
 const rawProduct={kind:'tarot-library',tarotFlowId:'tarot-mindscan',featureKey:'tarot-mindscan',productId:'tarot-library:tarot-mindscan',sku:order.sku,approved:true,approvedPriceKRW:3000,priceEvidence:'mock-console-evidence'};
-const validInput={question:'상대의 말과 행동을 어떻게 살펴볼까요?',cards:['words','actions','gap','boundary','next'].map((position,index)=>({cardId:`M0${index}`,position,orientation:'upright'}))};
+const validInput={question:'상대의 말과 행동을 어떻게 살펴볼까요?',picks:Array.from({length:10},(_,i)=>i)};
 
 function fixture(){
   let data={purchases:{},executions:{}};let serial=Promise.resolve();
@@ -15,7 +15,9 @@ function fixture(){
     insertPurchase:async row=>{assert.equal(draft.purchases[row._id],undefined);draft.purchases[row._id]=row;},
     insertExecution:async row=>{assert.equal(draft.executions[row.orderId],undefined);draft.executions[row.orderId]=row;},
     attachExecutionInput:async(id,input)=>{const row=draft.executions[id];if(!row||row.input||row.status!=='paid_pending_generation')return null;row.input=input;return row;},
-    claimExecution:async(id,{token,now,until})=>{const row=draft.executions[id];if(!row||!(['paid_pending_generation','generation_failed'].includes(row.status)||row.status==='generating'&&row.tossDeliveryLeaseUntil&&row.tossDeliveryLeaseUntil<=now))return null;return draft.executions[id]={...row,status:'generating',error:null,tossDeliveryToken:token,tossDeliveryLeaseUntil:until};},
+    claimExecution:async(id,{token,now,until})=>{const row=draft.executions[id];if(!row||!(['paid_pending_generation','partial','generation_failed'].includes(row.status)||row.status==='generating'&&row.tossDeliveryLeaseUntil&&row.tossDeliveryLeaseUntil<=now))return null;return draft.executions[id]={...row,status:'generating',error:null,tossDeliveryToken:token,tossDeliveryLeaseUntil:until};},
+    pauseTarot:async(id,token,retryable)=>{const row=draft.executions[id];assert.equal(row.tossDeliveryToken,token);row.status=retryable?'partial':'generation_failed';row.tossDeliveryToken='';return row;},
+    saveTarotCheckpoint:async(id,token,state)=>{const row=draft.executions[id];assert.equal(row.tossDeliveryToken,token);row.tossTarotCheckpoint=structuredClone(state);},
     completeExecution:async(id,result,token)=>{const row=draft.executions[id];if(!row||row.status!=='generating'||row.tossDeliveryToken!==token)return null;return draft.executions[id]={...row,status:'completed',result,consumedAt:new Date(),completedAt:new Date(),error:null};},
     failExecution:async(id,error,token)=>{const row=draft.executions[id];if(!row||row.status!=='generating'||row.tossDeliveryToken!==token)return null;return draft.executions[id]={...row,status:'generation_failed',error};},
   };const value=await task(tx);data=draft;return value;});serial=run.catch(()=>{});return run;}}};
@@ -88,35 +90,58 @@ test('recovery input rejects a different owner, environment, flow, or refunded o
  f.get().purchases[order.orderId].status='REFUNDED';
  await assert.rejects(attachTarotLibraryInput(args),/ORDER_REFUNDED/);
 });
-test('a Toss tarot delivery stores only validated server-built card data',async()=>{
- const f=fixture(),product=tarotLibraryProduct(rawProduct);
- const input={question:'상대의 말과 행동이 달라 보여요.',cards:[
-  ['M00','words'],['M01','actions'],['M02','gap'],['M03','boundary'],['M04','next'],
- ].map(([cardId,position],index)=>({cardId,position,orientation:index===1?'reversed':'upright'}))};
- await grantTarotLibraryOrder({store:f.store,auth,order,product,input});
- const completed=await deliverTarotLibraryOrder({store:f.store,auth,orderId:order.orderId,flowId:product.flow.id});
- assert.equal(completed.state,'completed');assert.equal(completed.result.flowId,'tarot-mindscan');
- assert.equal(completed.result.cards.length,5);assert.equal(completed.result.cards[1].orientation,'reversed');
- assert.equal(typeof completed.result.opening,'string');assert.equal(typeof completed.result.advice,'string');
- assert.equal(buildTarotLibraryBaseline(product.flow.id,input).cards[0].nameKr.length>0,true);
+const card=(i,position='slot_'+i)=>({cardId:'M'+String(i).padStart(2,'0'),orientation:i%2?'reversed':'upright',position,positionLabel:'질문의 자리 '+i,positionDescription:'이 자리의 의미 '+i});
+const keys=['tarot-prompt-maker','tarot-prompt-maker-standard','tarot-prompt-maker-deep','tarot-prompt-maker-master'];
+test('each oracle SKU verifies the web card count tier then preserves every original chapter across resume and reread',async()=>{
+  const {seedTarotOracleNarrative,tarotOracleNarrativeAdapter}=await import('../../../worker/lib/tarot-oracle-delivery.js');
+  for(const [index,count] of [3,5,10,14].entries()){
+    const featureKey=keys[index],id='tarot-prompt-maker',f=fixture(),product=tarotLibraryProduct({...rawProduct,productId:'tarot-library:'+id,tarotFlowId:id,featureKey});
+    const input={spreadTitle:'원본 배열',category:'love',question:'관계의 다음 선택이 궁금해요',cards:Array.from({length:count},(_,i)=>card(i))};
+    const wrong=tarotLibraryProduct({...product,featureKey:keys[(index+1)%4]});
+    await assert.rejects(grantTarotLibraryOrder({store:f.store,auth,order,product:wrong,input}),/INPUT_INVALID/);
+    await grantTarotLibraryOrder({store:f.store,auth,order,product,input});
+    const args={store:f.store,auth,orderId:order.orderId,flowId:id};
+    let calls=0,original;
+    const narrate=async(env,owner,key,body,verify)=>{
+      await verify();assert.equal(owner,auth.ownerId);assert.equal(key,featureKey);assert.deepEqual(body.cards,input.cards);
+      if(++calls===1)return {ok:true,status:'partial',retryable:true};
+      const state=seedTarotOracleNarrative(body,{});
+      assert.ok(state.tasks.reduce((sum,t)=>sum+t.minChars,0)>=8000);
+      const parts=Object.fromEntries(state.tasks.map(t=>[t.id,'[모의] '+t.title+'의 첫 문단\n\n[모의] 다음 문단 '+t.id]));
+      original=tarotOracleNarrativeAdapter({}).render({...state,body,parts,locale:'ko'});
+      return {...original,saved:true,status:'completed'};
+    };
+    const generate=(id,input,options)=>generateTarotLibraryResult(id,input,{...options,narrate});
+    const pending=await deliverTarotLibraryOrder({...args,generate});assert.equal(pending.state,'partial');assert.equal(pending.canRetryNow,true);
+    const saved=await deliverTarotLibraryOrder({...args,generate});assert.equal(saved.state,'completed');
+    assert.deepEqual(saved.result.reading,original.consultation);
+    assert.deepEqual(saved.result.presentation.sections,original.sections.map(({title,body})=>({title,body})));
+    assert.deepEqual((await deliverTarotLibraryOrder({...args,generate})).result,saved.result);assert.equal(calls,2);
+    await assert.rejects(deliverTarotLibraryOrder({...args,auth:{...auth,ownerId:'other'}}),/OWNERSHIP/);
+  }
 });
-
-test('each paid flow uses its service generator and keeps a service-specific presentation',async()=>{
-  const oracleGenerator=async input=>({ok:true,consultation:{coreQuestion:'질문의 핵심',closingLine:'마무리 조언',actions:['오늘의 행동'],positionReadings:input.cards.map(card=>({headline:card.positionLabel,reading:'카드가 비춘 조건을 차분히 살핍니다.'}))}});
-  for(const flow of TOSS_TAROT_LIBRARY_FLOWS.filter(item=>item.access==='iap')){
-    const input={question:'지금 관계와 선택의 기준이 궁금해요.',cards:[]};
-    input.cards=flow.positions.map(([position],index)=>({cardId:`M${String(index).padStart(2,'0')}`,position,orientation:index%2?'reversed':'upright'}));
-    if(flow.id==='tarot-numerology')input.birthDate='1994-04-18';
-    if(flow.id==='tarot-crystal-soul')input.gem='amethyst';
-    const result=await generateTarotLibraryResult(flow.id,input,{oracleGenerator});
-    assert.equal(result.flowId,flow.id);assert.equal(result.renderer,flow.resultKind==='career'?'career':flow.resultKind);
-    assert.equal(result.cards.length,flow.cardCount);assert.equal(typeof result.presentation.opening,'string');
+test('love and mindscan send the selected slots to a committed server draw and receive all source sections',async()=>{
+  for(const [id,count] of [['tarot-love-relationship',6],['tarot-mindscan',10]]){
+    const f=fixture(),product=tarotLibraryProduct({...rawProduct,tarotFlowId:id,featureKey:id,productId:'tarot-library:'+id});
+    const input={...validInput,picks:validInput.picks.slice(0,count)},cards=input.picks.map(i=>card(i));
+    const args={store:f.store,auth,orderId:order.orderId,flowId:id};
+    await grantTarotLibraryOrder({store:f.store,auth,order,product,input});
+    const result=await deliverTarotLibraryOrder({...args,generate:(id,input,options)=>generateTarotLibraryResult(id,input,{...options,
+      deal:async(_env,body)=>{assert.deepEqual(body.picks,input.picks);assert.equal(body.drawId,'toss-tarot:'+order.orderId);return {cards};},
+      narrate:async(_env,_owner,key,body,verify)=>{await verify();assert.equal(key,id);
+        if(count===10){
+          assert.deepEqual(body.pairs,cards.slice(0,5).map((c,i)=>({mainCardId:c.cardId,subCardId:cards[i+5].cardId})));
+        }else{assert.deepEqual(body.cards,cards);assert.equal(body.userQuestion,input.question);}
+        return {saved:true,status:'completed',reading:{sections:cards.slice(0,5)},deliverySections:cards.map(c=>({title:c.positionLabel,body:'[모의] '+c.position}))};
+      },
+    })});
+    assert.equal(result.result.cards.length,count);assert.equal(result.result.presentation.sections.length,count);
   }
 });
 
 test('a failed generator returns the existing order to an explicit retry state',async()=>{
   const f=fixture(),product=tarotLibraryProduct(rawProduct);
-  const input={question:'상대의 말과 행동이 달라 보여요.',cards:[['M00','words'],['M01','actions'],['M02','gap'],['M03','boundary'],['M04','next']].map(([cardId,position])=>({cardId,position,orientation:'upright'}))};
+  const input=validInput;
   await grantTarotLibraryOrder({store:f.store,auth,order,product,input});
   const failed=await deliverTarotLibraryOrder({store:f.store,auth,orderId:order.orderId,flowId:product.flow.id,generate:async()=>{throw Object.assign(Error('mock failure'),{code:'MOCK_FAILURE'});}});
   assert.equal(failed.state,'generation_failed');assert.equal(failed.canRetryNow,true);assert.equal(f.get().executions[order.orderId].error.code,'MOCK_FAILURE');

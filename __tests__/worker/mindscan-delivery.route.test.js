@@ -205,3 +205,23 @@ test('a legacy state with three parts per position still renders every field',as
  const section=mindscanNarrativeAdapter({}).render(state).reading.sections[0];
  expect(section).toMatchObject({cardMeaning:'meaning 첫 문단입니다.',positionMeaning:'meaning 둘째 문단입니다.',emotionalReading:'emotion 첫 문단입니다.',hiddenMessage:'emotion 둘째 문단입니다.',caution:'action 첫 문단입니다.',advice:'action 둘째 문단입니다.'});
 });
+
+test('Toss uses the full web provider contract, checkpoints and original saved chapters',async()=>{
+  const {generateTarotLibraryResult}=await import('../../worker/toss/tarot-library-generator.js');
+  const input={question:'관계의 흐름이 궁금해요',picks:Array.from({length:10},(_,index)=>index)};
+  const featureId='tarot-mindscan',execution={orderId:'01900000-1111-7111-8111-000000000042',requestId:'toss-tarot:01900000-1111-7111-8111-000000000042',featureId};
+  const options={env:{TAROT_CONSUMER_FACTS_V1:'true'},execution,owner:userId,verify:async()=>{},checkpoint:async state=>{execution.tossTarotCheckpoint=structuredClone(state);}};
+  let result;
+  for(let wave=0;wave<10;wave++){
+    result=await generateTarotLibraryResult(featureId,input,options);
+    if(!result.pending)break;
+    expect(result.retryable).toBe(true);
+  }
+  expect(result.flowId).toBe(featureId);
+  expect(result.cards).toHaveLength(10);
+  expect(result.presentation.sections.length).toBeGreaterThanOrEqual(9);
+  expect(result.presentation.sections.map(section=>section.body).join('').length).toBeGreaterThan(5000);
+  const before=provider.mock.calls.length;
+  expect((await generateTarotLibraryResult(featureId,input,options)).presentation).toEqual(result.presentation);
+  expect(provider).toHaveBeenCalledTimes(before);
+});

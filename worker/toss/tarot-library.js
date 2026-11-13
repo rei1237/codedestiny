@@ -1,4 +1,6 @@
 import {CRYSTAL_SOUL_GEMS} from '../../lib/tarot/crystal-soul-reading.mjs';
+import {resolveOracleConsultationTier} from '../../lib/tarot/oracle-consultation-pricing.mjs';
+import {selectDeckSlots} from '../../lib/tarot/committed-deck.mjs';
 import {TOPIC_LABELS} from '../../lib/tarot/numerology-tarot.mjs';
 import {isFreeFortuneFeatureKey} from '../../lib/payment/free-fortune-policy.mjs';
 import {checkOrder,TossError} from './policy.js';
@@ -36,11 +38,26 @@ export const tarotLibraryExecutionId=orderId=>`toss-tarot-execution:${orderId}`;
 export const tarotLibraryResultId=orderId=>`toss-tarot-result:${orderId}`;
 
 function text(value){return typeof value==='string'?value.trim():'';}
-function tarotInput(flow,input){
+function tarotInput(flow,input,featureKey){
   if(!input||typeof input!=='object'||Array.isArray(input))throw new TossError('TAROT_LIBRARY_INPUT_INVALID');
   const question=text(input.question);
   if(question.length<2||question.length>600)throw new TossError('TAROT_LIBRARY_INPUT_INVALID');
+  if(['tarot-mindscan','tarot-love-relationship'].includes(flow.id)){
+    try{return {question,picks:selectDeckSlots({picks:input.picks},flow.cardCount).picks};}
+    catch{throw new TossError('TAROT_LIBRARY_INPUT_INVALID');}
+  }
   const cards=Array.isArray(input.cards)?input.cards:[];
+  if(flow.id==='tarot-prompt-maker'){
+    const spreadTitle=text(input.spreadTitle),category=text(input.category);
+    if(cards.length<1||cards.length>14||resolveOracleConsultationTier(cards.length).featureKey!==featureKey||!spreadTitle||spreadTitle.length>160||!category||category.length>60)throw new TossError('TAROT_LIBRARY_INPUT_INVALID');
+    const normalized=cards.map((card,index)=>{
+      const source=getTarotCardByAnyId(card?.cardId),positionLabel=text(card?.positionLabel),positionDescription=text(card?.positionDescription);
+      if(!source||!['upright','reversed'].includes(card.orientation)||!positionLabel||positionLabel.length>160||positionDescription.length>320)throw new TossError('TAROT_LIBRARY_INPUT_INVALID');
+      return {cardId:source.code,orientation:card.orientation,position:'slot_'+index,positionLabel,positionDescription};
+    });
+    if(new Set(normalized.map(card=>card.cardId)).size!==cards.length)throw new TossError('TAROT_LIBRARY_INPUT_INVALID');
+    return {question,spreadId:text(input.spreadId).slice(0,80),spreadTitle,category,cards:normalized};
+  }
   if(cards.length!==flow.cardCount||new Set(cards.map(card=>text(card?.cardId))).size!==cards.length)throw new TossError('TAROT_LIBRARY_INPUT_INVALID');
   const normalized=cards.map((card,index)=>{
     const source=getTarotCardByAnyId(text(card?.cardId));
@@ -54,24 +71,6 @@ function tarotInput(flow,input){
   const gem=text(input.gem).replaceAll('-','_');
   if(flow.id==='tarot-crystal-soul'&&gem&&!Object.hasOwn(CRYSTAL_SOUL_GEMS,gem))throw new TossError('TAROT_LIBRARY_INPUT_INVALID');
   return {question,cards:normalized,...(birthDate?{birthDate}:{}),...(flow.id==='tarot-numerology'?{topic,name}:{}),...(gem?{gem}:{})};
-}
-
-export function tarotLibraryInput(flowId,input){return tarotInput(tarotLibraryFlow(flowId),input);}
-
-// This deterministic baseline is intentionally card/position only. Paid flows
-// replace it with their own server generator before release; it is never a fake
-// LLM answer or a client-supplied result.
-export function buildTarotLibraryBaseline(flowId,input){
-  const flow=tarotLibraryFlow(flowId),safe=tarotInput(flow,input);
-  const cards=safe.cards.map((item,index)=>{
-    const card=getTarotCardByAnyId(item.cardId),[position,positionLabel]=flow.positions[index];
-    return {cardId:card.code,nameKr:card.nameKo,nameEn:card.nameEn,orientation:item.orientation,position,positionLabel,keywords:card.keywords.slice(0,3)};
-  });
-  const first=cards[0],last=cards[cards.length-1];
-  return {version:'toss-tarot-baseline-v1',flowId:flow.id,title:flow.name,question:safe.question,cards,
-    opening:`선택한 ${cards.length}장의 카드가 ${flow.name}의 질문을 차분히 비추고 있어요.`,
-    summary:`${first.nameKr}${first.orientation==='reversed'?' 역방향':''} 카드부터 ${last.nameKr}${last.orientation==='reversed'?' 역방향':''} 카드까지, 질문의 조건을 한 번에 단정하지 않고 순서대로 살펴봅니다.`,
-    advice:'카드가 비춘 조건을 메모하고, 이번 주 안에 확인할 수 있는 행동 하나로 바꿔 보세요.'};
 }
 
 function assertExistingPurchase(purchase,auth,product,orderId){
@@ -100,7 +99,6 @@ function assertExistingExecution(execution,auth,product,orderId){
  */
 export async function grantTarotLibraryOrder({store,auth,order,product,input}){
   checkOrder(order,{orderId:order.orderId,sku:product.sku});
-  const prepared=input===undefined?null:tarotInput(product.flow,input);
   const receipt=await store.transaction(async tx=>{
     await tx.assertIdentity(auth);
     let purchase=await tx.purchase(order.orderId);
@@ -115,6 +113,7 @@ export async function grantTarotLibraryOrder({store,auth,order,product,input}){
       await tx.insertPurchase(purchase);
     }
     if(!execution){
+      const prepared=input===undefined?null:tarotInput(product.flow,input,product.featureKey);
       execution={executionId:tarotLibraryExecutionId(order.orderId),requestId:tarotLibraryRequestId(order.orderId),
         userId:String(auth.ownerId),featureId:product.featureKey,profileId:`toss:${auth._id}`,accessMode:'per_use',accessMethod:'single',
         amountKRW:product.approvedPriceKRW,paymentId:order.orderId,orderId:order.orderId,status:'paid_pending_generation',
@@ -130,27 +129,41 @@ export async function grantTarotLibraryOrder({store,auth,order,product,input}){
 // A recovered purchase may have no question because the app closed before grant.
 // Attach it once, under the same ownership transaction; never replace paid input.
 export async function attachTarotLibraryInput({store,auth,orderId,flowId,input}){
-  const flow=tarotLibraryFlow(flowId),prepared=tarotInput(flow,input);
+  const flow=tarotLibraryFlow(flowId);
   return store.transaction(async tx=>{
     await tx.assertIdentity(auth);
     const purchase=await tx.purchase(orderId),execution=await tx.execution(orderId);
     assertExistingPurchase(purchase,auth,{...purchase,flow},orderId);
     assertExistingExecution(execution,auth,{...purchase,flow},orderId);
-    if(execution.input)return;
-    if(execution.status!=='paid_pending_generation')throw new TossError('TAROT_LIBRARY_INPUT_LOCKED',409);
+    if(execution.input&&!needsCorrectedInput(execution,flow))return;
+    const prepared=tarotInput(flow,input,purchase.featureKey);
+    if(!['paid_pending_generation','generation_failed'].includes(execution.status)&&!(execution.status==='generating'&&new Date(execution.tossDeliveryLeaseUntil).getTime()<=Date.now()))throw new TossError('TAROT_LIBRARY_INPUT_LOCKED',409);
     if(!await tx.attachExecutionInput(orderId,prepared))throw new TossError('TAROT_LIBRARY_INPUT_LOCKED',409);
   });
 }
 
-export async function deliverTarotLibraryOrder({store,auth,orderId,flowId,env={},generate=(id,input)=>generateTarotLibraryResult(id,input,{env})}){
+export async function deliverTarotLibraryOrder({store,auth,orderId,flowId,env={},generate=generateTarotLibraryResult}){
   const claimed=await claimTarotLibraryDelivery({store,auth,orderId,flowId});
-  if(claimed.state==='completed')return tarotLibraryResult(claimed.execution,tarotLibraryFlow(flowId));
+  if(claimed.state==='held'||claimed.state==='completed')return tarotLibraryResult(claimed.execution,tarotLibraryFlow(flowId));
   if(claimed.state==='input_required')return tarotLibraryResult(claimed.execution,tarotLibraryFlow(flowId));
   if(claimed.state!=='claimed')return {state:'generating',result:null,canRetryNow:false};
   const input=claimed.execution?.input;
   if(!input)throw new TossError('TAROT_LIBRARY_INPUT_MISSING',409);
   try{
-    const result=await generate(flowId,input);
+    const execution=claimed.execution,token=execution.tossDeliveryToken;
+    const authorized=task=>store.transaction(async tx=>{
+      await tx.assertIdentity(auth);
+      const purchase=await tx.purchase(orderId),current=await tx.execution(orderId),flow=tarotLibraryFlow(flowId);
+      assertExistingPurchase(purchase,auth,{...purchase,flow},orderId);
+      assertExistingExecution(current,auth,{...purchase,flow},orderId);
+      if(current.status!=='generating'||current.tossDeliveryToken!==token)throw new TossError('DELIVERY_NOT_CLAIMED',409);
+      return task?.(tx);
+    });
+    const result=await generate(flowId,input,{env,execution,owner:String(auth.ownerId),verify:()=>authorized(),checkpoint:state=>authorized(tx=>tx.saveTarotCheckpoint(orderId,token,state))});
+    if(result.pending){
+      const paused=await authorized(tx=>tx.pauseTarot(orderId,token,result.retryable));
+      return tarotLibraryResult(paused,tarotLibraryFlow(flowId));
+    }
     return completeTarotLibraryDelivery({store,auth,orderId,flowId,result,token:claimed.execution.tossDeliveryToken});
   }catch(error){
     return failTarotLibraryDelivery({store,auth,orderId,flowId,error,token:claimed.execution.tossDeliveryToken});
@@ -168,7 +181,8 @@ export async function claimTarotLibraryDelivery({store,auth,orderId,flowId,now=n
     assertExistingExecution(execution,auth,{...purchase,flow},orderId);
     if(purchase.tarotFlowId!==flow.id)throw new TossError('RESULT_NOT_FOUND',404);
     if(execution.status==='completed')return {state:'completed',execution};
-    if(!execution.input)return {state:'input_required',execution};
+    if(execution.error?.code==='DELIVERY_REVIEW_REQUIRED')return {state:'held',execution};
+    if(!execution.input||needsCorrectedInput(execution,flow))return {state:'input_required',execution};
     const claimed=await tx.claimExecution(orderId,{token:crypto.randomUUID(),now,until:new Date(now.getTime()+TAROT_DELIVERY_LEASE_MS)});
     return claimed?{state:'claimed',execution:claimed}:{state:'in_progress',execution:await tx.execution(orderId)};
   });
@@ -206,10 +220,15 @@ export async function failTarotLibraryDelivery({store,auth,orderId,flowId,error,
   });
 }
 
+function needsCorrectedInput(execution,flow){
+  if(!execution.input||!['paid_pending_generation','generation_failed','generating'].includes(execution.status))return false;
+  if(['tarot-mindscan','tarot-love-relationship'].includes(flow.id))return !execution.input.picks;
+  return flow.id==='tarot-prompt-maker'&&!execution.input.spreadTitle;
+}
 export function tarotLibraryResult(execution,flow){
   if(!execution)throw new TossError('RESULT_NOT_FOUND',404);
   if(['refunded','cancelled'].includes(execution.status))throw new TossError('ORDER_REFUNDED',409);
   return {requestId:execution.requestId,resultId:execution.resultId,flowId:flow.id,featureKey:flow.featureKeys.includes(execution.featureId)?execution.featureId:null,
-    state:execution.status==='paid_pending_generation'&&!execution.input?'input_required':execution.status,result:execution.status==='completed'?execution.result:null,
-    canRetryNow:Boolean(execution.input)&&(['paid_pending_generation','generation_failed'].includes(execution.status)||execution.status==='generating'&&!!execution.tossDeliveryLeaseUntil&&new Date(execution.tossDeliveryLeaseUntil).getTime()<=Date.now())};
+    state:(execution.status==='paid_pending_generation'&&!execution.input||needsCorrectedInput(execution,flow))?'input_required':execution.status,result:execution.status==='completed'?execution.result:null,
+    canRetryNow:!needsCorrectedInput(execution,flow)&&execution.error?.code!=='DELIVERY_REVIEW_REQUIRED'&&Boolean(execution.input)&&(['paid_pending_generation','partial','generation_failed'].includes(execution.status)||execution.status==='generating'&&!!execution.tossDeliveryLeaseUntil&&new Date(execution.tossDeliveryLeaseUntil).getTime()<=Date.now())};
 }

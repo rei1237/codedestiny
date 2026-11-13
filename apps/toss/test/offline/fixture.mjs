@@ -1,4 +1,5 @@
 import {syntheticZiweiDeep,mockZiweiDeepRequest} from './ziwei-deep.mjs';
+import {mockTarotProducts,mockTarotRequest} from './paid-tarot.mjs';
 import {syntheticCompass,mockCompassRequest} from './compass.mjs';
 import {syntheticYoga,mockYogaRequest} from './yoga.mjs';
 // Explicitly synthetic, local-only fixture for the official SDK devtools.
@@ -20,7 +21,7 @@ export function createOfflineFixtureApi(storage,{now=()=>new Date()}={}){
      ?storage?.getItem('toss-offline-login-person')==='second'
      :request.headers.get('Authorization')==='Bearer local-mock-token-2';
    const current=second?secondary:primary,other=second?primary:secondary;
-   if(path==='/api/toss/orders/grant'&&request.method==='POST'){
+   if(['/api/toss/orders/grant','/api/toss/tarot-library/orders/grant'].includes(path)&&request.method==='POST'){
      const {orderId}=await request.clone().json();
      if(other.state.orders.has(orderId))return Response.json({error:'ORDER_MISMATCH'},{status:403});
    }
@@ -59,7 +60,7 @@ function createAccountFixture(storage,owner,token,now){
   if(path==='/tarot-library/free'&&method==='POST'){
    const {freeTarotReading}=await import('../../../../worker/toss/tarot-library.js');const {flowId,input}=await request.json();return respond(await freeTarotReading(flowId,input));
   }
-  if(path==='/tarot-library/catalog'&&method==='GET')return respond({flows:[]});
+  if(path==='/tarot-library/catalog'&&method==='GET')return respond({flows:mockTarotProducts});
   if(path==='/canonical/naming-prompt/basis'&&method==='POST'){
    const {input}=await request.json();
    try{
@@ -70,6 +71,7 @@ function createAccountFixture(storage,owner,token,now){
   }
   if(path==='/canonical/yeongnyangi/products'&&method==='GET')return handleReviewFixture(request,url,path,state,save,now);
   if(!state.loggedIn||request.headers.get('Authorization')!=='Bearer '+token)return denied();
+  if(path.startsWith('/tarot-library/'))return mockTarotRequest(request,path,state,save);
   if(path==='/logout'&&method==='POST'){state.loggedIn=false;save();return respond({ok:true});}
   if(path==='/session'&&method==='GET')return respond({authenticated:true,environment:'SANDBOX'});
   if(path==='/nakshatra/compat'&&method==='POST'){

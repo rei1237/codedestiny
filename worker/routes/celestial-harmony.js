@@ -270,7 +270,7 @@ async function verifyCelestialAccess({ request, env, auth, body, reportId = "", 
   return requirePremiumReportAccess(withPdfFastDbEnv(env), auth.userId, CELESTIAL_REPORT_TYPE, accessPayload);
 }
 
-function buildCelestialHarmonyPrompt(reading = {}, goldenCard = null) {
+export function buildCelestialHarmonyPrompt(reading = {}, goldenCard = null) {
   const summary = reading?.summary || {};
   const cards = Array.isArray(reading?.cards) ? reading.cards : [];
   const cardLines = cards.map((card, index) => {

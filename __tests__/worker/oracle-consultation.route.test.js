@@ -144,3 +144,23 @@ test('a short complete part is delivered without a repair call',async()=>{
  await start();expect((await finish()).status).toBe(200);
  expect(docs[0].metadata.paidNarrative.parts.coreQuestion).toBe(short);expect(callsFor('coreQuestion')).toBe(1);expect(provider).toHaveBeenCalledTimes(17);
 });
+
+test('Toss uses the full web provider contract, checkpoints and original saved chapters',async()=>{
+  const {generateTarotLibraryResult}=await import('../../worker/toss/tarot-library-generator.js');
+  const input={...original(),spreadId:'three-card-flow'};
+  const featureId='tarot-prompt-maker',execution={orderId:'01900000-1111-7111-8111-000000000042',requestId:'toss-tarot:01900000-1111-7111-8111-000000000042',featureId};
+  const options={env:{TAROT_CONSUMER_FACTS_V1:'true'},execution,owner:userId,verify:async()=>{},checkpoint:async state=>{execution.tossTarotCheckpoint=structuredClone(state);}};
+  let result;
+  for(let wave=0;wave<10;wave++){
+    result=await generateTarotLibraryResult(featureId,input,options);
+    if(!result.pending)break;
+    expect(result.retryable).toBe(true);
+  }
+  expect(result.flowId).toBe(featureId);
+  expect(result.cards).toHaveLength(3);
+  expect(result.presentation.sections.length).toBeGreaterThanOrEqual(3);
+  expect(result.presentation.sections.map(section=>section.body).join('').length).toBeGreaterThan(5000);
+  const before=provider.mock.calls.length;
+  expect((await generateTarotLibraryResult(featureId,input,options)).presentation).toEqual(result.presentation);
+  expect(provider).toHaveBeenCalledTimes(before);
+});
