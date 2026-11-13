@@ -1,7 +1,7 @@
 ---
-status: in-progress
-updated: 2026-11-13
-next: 원본 기능표를 갱신하고 무료 타로 결과 어댑터와 두 계정 재열람 검사를 마친 뒤 Linux AIT를 검증한다.
+status: active
+updated: 2026-11-14
+next: 최신 통합 커밋의 Linux AIT와 일반 홈을 검증하고 비공개 QR을 발급한 뒤 기능표에서 남은 이식을 이어간다.
 ---
 
 ## 첫 행동
@@ -10,7 +10,7 @@ AGENTS.md와 CLAUDE.md를 읽고 이 워크트리의 변경 및 origin/main을 �
 
 ## 지금 상태
 
-D:/Development/codedestiny-worktrees/toss-studio-port-20261113-230802, wt/toss-studio-port-20261113-230802. 달빛 홈·상담 진입 커밋 1642dd289. 출발한 main f2db2995d. 사용자의 기본 체크아웃은 다른 세션이 사용 중이다.
+D:/Development/codedestiny-worktrees/toss-studio-port-20261113-230802, wt/toss-studio-port-20261113-230802. 첫 main 전달 bf2256294, 월간 운세·동물 궁합·이파까지 통합 87f6ce336. 출발한 main f2db2995d. 사용자의 기본 체크아웃은 다른 세션이 사용 중이다.
 
 ## 승인 상태
 
@@ -29,6 +29,8 @@ D:/Development/codedestiny-worktrees/toss-studio-port-20261113-230802, wt/toss-s
 - [x] 기존 Linux AIT와 main의 차이 확인, 두 세계 홈과 달빛 점술방의 원본 진입 및 360px 시각 검증
 - [x] 로컬 홈에서 영냥이 질문·로그인·mock 구매·원문 재열람
 - [ ] 웹 레지스트리·상품 원장별 현재 상태와 남은 기능 대조
-- [ ] 무료 타로 5종 원본 결과와 동일 저장소의 두 계정 격리 검증
+- [x] 무료 타로 5종 원본 결과와 동일 저장소의 두 계정 격리 검증
 - [ ] targeted, pre-push, main CI 및 Linux 산출물 확인
 - [ ] 비공개 테스트 QR 및 실기기 가이드
+
+첫 push CI 43450551020에서 핵심 검사·전체 빌드·타입검사 성공, 인수인계 상태 필드만 실패해 active로 수정했다. 첫 Linux 산출물 요청 43450602078. 신버전의 핵심 범위는 실제 Linux AIT와 콘솔 비공개 QR을 함께 확인해야 한다. docs/toss/full-service-inventory.json의 개별 상태를 전체 서비스 완료 판정의 기준으로 쓴다.
