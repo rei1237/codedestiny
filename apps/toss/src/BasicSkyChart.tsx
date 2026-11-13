@@ -16,8 +16,8 @@ function valid(r:Result,system:System){
 }
 type Props={system:System;loggedIn:boolean;onLogin:()=>void;onError:(err:unknown)=>void;request?:typeof api};
 export default function BasicSkyChart({system,loggedIn,onLogin,onError,request=api}:Props){
-  if(!loggedIn)return <section><h1>{title[system]}</h1><p>{basis[system]}</p><Button display="block" onClick={onLogin}>토스 로그인하고 차트 보기</Button></section>;
-  return <TossSessionScope><SkyForm key={system} system={system} onError={onError} request={request}/></TossSessionScope>;
+  if(!loggedIn&&system!=='vedic')return <section><h1>{title[system]}</h1><p>{basis[system]}</p><Button display="block" onClick={onLogin}>토스 로그인하고 차트 보기</Button></section>;
+  return <TossSessionScope><SkyForm key={system+String(loggedIn)} system={system} onError={onError} request={request}/></TossSessionScope>;
 }
 function SkyForm({system,onError,request}:{system:System;onError:Props['onError'];request:typeof api}){
   const [birth,setBirth]=useState(emptyBirth),[result,setResult]=useState<Result|null>(null),[error,setError]=useState(''),[busy,setBusy]=useState(false);

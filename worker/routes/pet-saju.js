@@ -19,7 +19,7 @@ function readClientKey(request) {
   ).slice(0, 160);
 }
 
-function checkRateLimit(request) {
+export function allowPetBlueprint(request) {
   const key = readClientKey(request);
   const now = Date.now();
   const current = requestBuckets.get(key);
@@ -117,7 +117,7 @@ export async function handlePetSajuRoutes(request, env) {
     }
     if (path === "/blueprint") {
       if (method !== "POST") return methodNotAllowed();
-      if (!checkRateLimit(request)) {
+      if (!allowPetBlueprint(request)) {
         return json(
           { ok: false, error: "RATE_LIMITED", message: "요청이 너무 잦습니다. 잠시 후 다시 시도해주세요." },
           { status: 429, headers: { "Retry-After": "60" } },

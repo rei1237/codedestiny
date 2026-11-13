@@ -58,6 +58,18 @@ function createAccountFixture(storage,owner,token,now){
   const url=new URL(request.url),path=url.pathname.slice('/api/toss'.length),method=request.method;
   if(path==='/login'&&method==='POST'){state.loggedIn=true;save();return respond({token});}
   // Public product lists mirror worker/toss/routes.js; private requests below still require the mock session.
+  if(path==='/manse/calculate'&&method==='POST'){
+   const [{calculateTossManse},{saju}]=await Promise.all([import('../../../../worker/toss/manse.js'),import('../../../../worker/yeongnyangi/fortune/saju/index.ts')]);
+   try{return respond(await calculateTossManse(await request.json(),saju));}catch(error){return respond({error:error.code||'INVALID_BIRTH'},400);}
+  }
+  if(path==='/pet-saju/catalog'&&method==='GET'){
+   const {tossPetCatalog}=await import('../../../../worker/toss/pet-saju.js');
+   return respond(tossPetCatalog());
+  }
+  if(path==='/pet-saju/blueprint'&&method==='POST'){
+   const {calculateTossPet}=await import('../../../../worker/toss/pet-saju.js');
+   try{return respond(calculateTossPet(await request.json()));}catch(error){return respond({error:error.code},error.status);}
+  }
   if(path==='/catalog'&&method==='GET')return respond({products:offlineCatalog});
   if(path==='/canonical/compass/moon'&&method==='POST')return respond({mansionIdx:3,calculationBasis:'mock',birthTimeKnown:false});
   if(path==='/canonical/compass/calendar'&&method==='POST')return respond({source:'unavailable',solarTerms:[]});
@@ -83,6 +95,14 @@ function createAccountFixture(storage,owner,token,now){
    }catch{return respond({error:'INVALID_NAMING_INPUT'},422);}
   }
   if(path==='/canonical/yeongnyangi/products'&&method==='GET')return handleReviewFixture(request,url,path,state,save,now);
+  if((path==='/charts/astrology'||path==='/charts/vedic')&&method==='POST'){
+   if(path==='/charts/astrology'&&(!state.loggedIn||request.headers.get('Authorization')!=='Bearer '+token))return denied();
+   const body=await request.json();
+   const system=path.endsWith('/vedic')?'vedic':'astrology';
+   if(body?.birth?.date?.timeUnknown)return respond({error:'BIRTH_TIME_REQUIRED'},400);
+   const names=system==='vedic'?['태양','달','화성','수성','목성','금성','토성','라후','케투']:['태양','달','수성','금성','화성','목성','토성','천왕성','해왕성','명왕성'];
+   return respond({system,ascendant:'양자리',positions:names.map((name,i)=>({name,sign:'양자리',house:i+1})),...(system==='vedic'?{mansion:{name:'아슈위니',pada:1}}:{})});
+  }
   if(!state.loggedIn||request.headers.get('Authorization')!=='Bearer '+token)return denied();
   if(path.startsWith('/tarot-library/'))return mockTarotRequest(request,path,state,save);
   if(path==='/logout'&&method==='POST'){state.loggedIn=false;save();return respond({ok:true});}
@@ -123,13 +143,6 @@ function createAccountFixture(storage,owner,token,now){
   const reviewResponse=await handleReviewFixture(request,url,path,state,save,now,Number.isFinite(delay)?Math.max(0,delay):0);if(reviewResponse)return reviewResponse;
   // This fixed chart is synthetic and never uses the submitted birth data.
   // The offline shell labels all of its output as test-only.
-  if((path==='/charts/astrology'||path==='/charts/vedic')&&method==='POST'){
-   const body=await request.json();
-   const system=path.endsWith('/vedic')?'vedic':'astrology';
-   if(body?.birth?.date?.timeUnknown)return respond({error:'BIRTH_TIME_REQUIRED'},400);
-   const names=system==='vedic'?['태양','달','화성','수성','목성','금성','토성','라후','케투']:['태양','달','수성','금성','화성','목성','토성','천왕성','해왕성','명왕성'];
-   return respond({system,ascendant:'양자리',positions:names.map((name,i)=>({name,sign:'양자리',house:i+1})),...(system==='vedic'?{mansion:{name:'아슈위니',pada:1}}:{})});
-  }
   if(path==='/human-design/chart'&&method==='POST')return respond(chartFixture());
   if(path==='/canonical/auth/me'&&method==='GET')return respond({ok:true,authenticated:true,user:{id:owner,name:'테스트 사용자',role:'user'}});
   if(path==='/native/catalog'&&method==='GET')return respond({products:[product,sukuyoProduct,relationshipProduct,syntheticZiweiDeep,syntheticCompass,syntheticYoga,syntheticNakshatra,...roomProducts]});

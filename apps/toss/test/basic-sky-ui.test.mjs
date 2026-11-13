@@ -14,8 +14,7 @@ test('an authenticated chart request never restores stale birth data after sessi
   const request=path=>{paths.push(path);return new Promise(done=>{resolve=done;});};
   const render=loggedIn=>React.act(()=>root.render(React.createElement(Component,{system:'vedic',loggedIn,onLogin:()=>logins++,request,onError:e=>{throw e;}})));
   try{
-    await render(false);assert.equal(document.querySelector('form'),null);
-    await React.act(()=>document.querySelector('button').click());assert.equal(logins,1);
+    await render(false);assert.ok(document.querySelector('form'));assert.equal(logins,0);
     await render(true);
     await React.act(()=>{
       set(document.querySelector('input[type=date]'),'1990-05-15');set(document.querySelector('input[type=time]'),'08:30');set(document.querySelectorAll('select')[1],'서울');

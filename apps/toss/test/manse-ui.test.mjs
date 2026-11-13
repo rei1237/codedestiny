@@ -22,11 +22,11 @@ const loaded=new Module(path.resolve(import.meta.dirname,'manse-ui.cjs'));loaded
 
 const ManseReading=loaded.exports.default,ManseResults=loaded.exports.ManseResults;
 const sample={stored:false,engineVersion:'test',limitations:[],pillars:[{key:'year',ganji:'丁丑',tenGod:'정인'},{key:'hour',ganji:null,tenGod:null}],elements:{wood:2},elementBasis:'surface',cycles:[]};
-test('manse guest cannot submit birth data and gets explicit storage disclosure',async()=>{
+test('manse guest can enter birth information without authentication and gets storage disclosure',async()=>{
  const root=createRoot(document.getElementById('root'));let calls=0,logins=0;
  try{await React.act(async()=>root.render(React.createElement(ManseReading,{loggedIn:false,request:()=>{calls++;throw Error('guest request');},onLogin:()=>logins++,onError:()=>{}})));
- assert.equal(document.querySelector('form'),null);assert.match(document.body.textContent,/보관함에 저장되지/);
- await React.act(async()=>document.querySelector('button').click());assert.equal(logins,1);assert.equal(calls,0);
+ assert.ok(document.querySelector('form'));assert.match(document.body.textContent,/보관함에 저장되지/);
+ assert.doesNotMatch(document.body.textContent,/토스 로그인/);assert.equal(logins,0);assert.equal(calls,0);
  }finally{await React.act(()=>root.unmount());}
 });
 test('manse renders unknown hour without inventing a pillar or luck boundary',async()=>{

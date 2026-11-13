@@ -105,6 +105,26 @@ export async function handleTossRoutes(request,env) {
       const product=tarotLibraryProduct(item);
       return {id:product.flow.id,name:product.flow.name,sku:product.sku,featureKey:product.featureKey,approvedPriceKRW:product.approvedPriceKRW};
     })});
+    if(path==='/pet-saju/catalog'&&request.method==='GET') {
+      const {tossPetCatalog}=await import('./pet-saju.js');
+      return reply(tossPetCatalog());
+    }
+    if(path==='/pet-saju/blueprint'&&request.method==='POST') {
+      const {allowPetBlueprint}=await import('../routes/pet-saju.js');
+      if(!allowPetBlueprint(request))throw new TossError('RATE_LIMITED',429);
+      const {calculateTossPet}=await import('./pet-saju.js');
+      return reply(calculateTossPet(await bodyOf(request)));
+    }
+    if(path==='/charts/vedic'&&request.method==='POST'){
+      await limit(env,request.headers.get('CF-Connecting-IP')||'unknown','basic-sky-chart',6);
+      const {basicSkyChart}=await import('./basic-sky-chart.js');
+      return reply(await basicSkyChart('vedic',await bodyOf(request),env,{requestUrl:'https://code-destiny.com/api/toss/charts'}));
+    }
+    if(path==='/manse/calculate'&&request.method==='POST') {
+      await limit(env,request.headers.get('CF-Connecting-IP')||'unknown','manse',15);
+      const [{calculateTossManse},{domains}]=await Promise.all([import('./manse.js'),import('../yeongnyangi/fortune/index.ts')]);
+      return reply(await calculateTossManse(await bodyOf(request),domains.saju));
+    }
     if(path==='/canonical/ziwei-island/blueprint'&&request.method==='POST'){
       const {readTossIsland}=await import('./island.js');
       return forwardServiceResponse(await readTossIsland(await bodyOf(request),env,request.headers.get('CF-Connecting-IP')),headers);
@@ -678,15 +698,10 @@ export async function handleTossRoutes(request,env) {
       if(path==='/daily/reading'&&request.method==='GET')return reply(await daily.getFreeReading(env,auth.userId,url.searchParams.get('category')));
       throw new TossError('NOT_FOUND',404);
     }
-    if((path==='/charts/astrology'||path==='/charts/vedic')&&request.method==='POST'){
+    if(path==='/charts/astrology'&&request.method==='POST'){
       await limit(env,auth._id,'basic-sky-chart',6);
       const {basicSkyChart}=await import('./basic-sky-chart.js');
       return reply(await basicSkyChart(path.slice('/charts/'.length),await bodyOf(request),env,{requestUrl:'https://code-destiny.com/api/toss/charts'}));
-    }
-    if(path==='/manse/calculate'&&request.method==='POST') {
-      await limit(env,auth._id,'manse',6);
-      const [{calculateTossManse},{domains}]=await Promise.all([import('./manse.js'),import('../yeongnyangi/fortune/index.ts')]);
-      return reply(await calculateTossManse(await bodyOf(request),domains.saju));
     }
     if(path==='/sukuyo/basic'&&request.method==='POST') {
       await limit(env,auth._id,'sukuyo-basic',6);
@@ -697,15 +712,6 @@ export async function handleTossRoutes(request,env) {
       await limit(env,auth._id,'human-design-chart',20,600000);
       const {calculateTossHumanDesign}=await import('./human-design.js');
       return reply(await calculateTossHumanDesign(await bodyOf(request),env));
-    }
-    if(path==='/pet-saju/catalog'&&request.method==='GET') {
-      const {tossPetCatalog}=await import('./pet-saju.js');
-      return reply(tossPetCatalog());
-    }
-    if(path==='/pet-saju/blueprint'&&request.method==='POST') {
-      await limit(env,auth._id,'pet-saju-blueprint',6);
-      const {calculateTossPet}=await import('./pet-saju.js');
-      return reply(calculateTossPet(await bodyOf(request)));
     }
     if(path==='/flower/match'&&request.method==='POST') {
       await limit(env,auth._id,'flower',6);

@@ -164,7 +164,17 @@ test('a dangerous follow-up never enters the conversation or sky follow-up handl
  }finally{Object.assign(mocks,prev);}
 });
 test('human design chart requires release and identity and preserves permission denial',async()=>{mocks.humanDesignCalls=0;mocks.limits=[];assert.equal((await request({birth},'/human-design/chart',{})).status,503);mocks.denyAuth=true;try{assert.equal((await request({birth},'/human-design/chart')).status,401);assert.equal(mocks.humanDesignCalls,0);}finally{mocks.denyAuth=false;}assert.equal((await request({birth},'/human-design/chart')).status,200);assert.equal(mocks.humanDesignCalls,1);assert.equal(calls.profiles.length,0);assert.equal(mocks.limits.find(x=>x.endpoint==='toss:human-design-chart').windowMs,600000);mocks.humanDesignLimited=true;try{assert.equal((await request({birth},'/human-design/chart')).status,429);assert.equal(mocks.humanDesignCalls,1);}finally{mocks.humanDesignLimited=false;}mocks.nativeFailure={code:'ACCESS_DENIED',status:403};try{const denied=await request({birth},'/human-design/chart');assert.equal(denied.status,403);assert.equal((await denied.json()).error,'ACCESS_DENIED');}finally{mocks.nativeFailure=null;}});
-test('pet catalog and free chart require release and the authenticated session',async()=>{mocks.petCatalogCalls=0;mocks.petChartCalls=0;mocks.limits=[];const get=env=>handleTossRoutes(new Request('https://code-destiny.com/api/toss/pet-saju/catalog',{headers:{Origin:'https://ai-saju-studio.private-apps.tossmini.com'}}),env);assert.equal((await get({})).status,503);assert.equal((await request({pet:{}},'/pet-saju/blueprint',{})).status,503);mocks.denyAuth=true;try{assert.equal((await get({TOSS_RELEASE_READY:'true'})).status,401);assert.equal((await request({pet:{}},'/pet-saju/blueprint')).status,401);assert.equal(mocks.petCatalogCalls,0);assert.equal(mocks.petChartCalls,0);}finally{mocks.denyAuth=false;}assert.equal((await get({TOSS_RELEASE_READY:'true'})).status,200);assert.equal((await request({pet:{}},'/pet-saju/blueprint')).status,200);assert.equal(mocks.petCatalogCalls,1);assert.equal(mocks.petChartCalls,1);assert.ok(mocks.limits.some(item=>item.endpoint==='toss:pet-saju-blueprint'));assert.equal(calls.profiles.length,0);mocks.nativeFailure={code:'ACCESS_DENIED',status:403};try{const denied=await request({pet:{}},'/pet-saju/blueprint');assert.equal(denied.status,403);assert.equal((await denied.json()).error,'ACCESS_DENIED');}finally{mocks.nativeFailure=null;}});
+test('pet catalog and free chart need no session, purchase, profile or release approval',async()=>{
+ mocks.petCatalogCalls=0;mocks.petChartCalls=0;mocks.denyAuth=true;
+ try {
+  const origin='https://ai-saju-studio.private-apps.tossmini.com';
+  const catalog=await handleTossRoutes(new Request('https://code-destiny.com/api/toss/pet-saju/catalog',{headers:{Origin:origin}}),{});
+  assert.equal(catalog.status,200);
+  assert.equal((await request({pet:{}},'/pet-saju/blueprint',{})).status,200);
+  assert.equal(mocks.petCatalogCalls,1);assert.equal(mocks.petChartCalls,1);assert.equal(calls.profiles.length,0);
+  assert.equal((await request({},'/native/pet/intents')).status,401);
+ }finally{mocks.denyAuth=false;}
+});
 test('pet paid routes enforce release and login, retain server input, and preserve denied access',async()=>{
  const id='a'.repeat(64),base='/native/pet/intents/'+id;mocks.nativePet.length=0;
  assert.equal((await request({input:{}},'/native/pet/prepare',{})).status,503);
@@ -431,26 +441,26 @@ test('tarot resume rejects an unpaid or cancelled partner order before attaching
  }finally{mocks.purchase=previous;}
 });
 
-test('manse requires release readiness and account, never creates a profile or purchase',async()=>{
- assert.equal((await request({birth},'/manse/calculate',{})).status,503);
+test('guest manse works independently of release readiness and never creates a profile or purchase',async()=>{
+ assert.equal((await request({birth},'/manse/calculate',{})).status,200);
  mocks.denyAuth=true;
- try{assert.equal((await request({birth},'/manse/calculate')).status,401);}finally{mocks.denyAuth=false;}
+ try{assert.equal((await request({birth},'/manse/calculate')).status,200);}finally{mocks.denyAuth=false;}
  const response=await request({birth},'/manse/calculate');
  assert.equal(response.status,200);assert.deepEqual(await response.json(),{stored:false});
  assert.equal(calls.profiles.length,0);assert.equal(calls.prepared.length,0);
 });
 
-test('basic sky chart routes share the release, session and rate gates without preparing purchases or writing profiles',async()=>{
+test('only the public Vedic birth chart accepts guests and neither chart writes purchases or profiles',async()=>{
  mocks.chartSystems=[];
  for(const system of ['astrology','vedic']){
    const path='/charts/'+system;
-   assert.equal((await request({birth},path,{})).status,503);
+   assert.equal((await request({birth},path,{})).status,system==='vedic'?200:503);
    mocks.denyAuth=true;
-   try{assert.equal((await request({birth},path)).status,401);}finally{mocks.denyAuth=false;}
+   try{assert.equal((await request({birth},path)).status,system==='vedic'?200:401);}finally{mocks.denyAuth=false;}
    assert.equal((await request({birth},path)).status,200);
    assert.equal(calls.profiles.length+calls.prepared.length,0);
  }
- assert.deepEqual(mocks.chartSystems,['astrology','vedic']);
+ assert.deepEqual(mocks.chartSystems,['astrology','vedic','vedic','vedic']);
  assert.ok(mocks.limits.some(x=>x.endpoint==='toss:basic-sky-chart'));
 });
 
