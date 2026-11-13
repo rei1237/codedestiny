@@ -12,6 +12,10 @@ try{
     return new URL(req.url()).origin===origin?route.continue():route.abort();
   });
   const page=await context.newPage();
+  // The native shell dispatches the overlay event first, then a page event if it was unhandled.
+  const nativeBack=()=>page.evaluate(()=>{
+    if(window.dispatchEvent(new Event('code-destiny:toss-overlay-back',{cancelable:true})))window.dispatchEvent(new Event('code-destiny:toss-back',{cancelable:true}));
+  });
   page.on('pageerror',e=>{errors.push(e.message);console.error(e.message);});
   page.setDefaultTimeout(20000);
   await page.goto(origin);
@@ -36,7 +40,7 @@ try{
   assert.ok((await prompt.inputValue()).length>500);
   assert.equal(await page.locator('article').count()>=7,true);
   assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
-  await page.evaluate(async()=>{const {dispatchServiceBack}=await import('/service/native-back.mjs');return dispatchServiceBack();});
+  await nativeBack();
   await page.getByRole('heading',{name:'카드를 하나씩 열어보세요'}).waitFor();
   await page.getByRole('button',{name:'홈',exact:true}).click();
   await page.getByRole('button',{name:/자기 기준 회복 타로/}).click();
@@ -51,7 +55,7 @@ try{
   assert.ok(await self.evaluate(el=>el.ownerDocument.documentElement.scrollWidth<=el.ownerDocument.defaultView.innerWidth));
   await frame.getByRole('button',{name:'새 기준으로 다시 보기'}).click();
   await frame.getByRole('button',{name:/다시 내 편에 서기/}).waitFor();
-  await page.evaluate(async()=>{const {dispatchServiceBack}=await import('/service/native-back.mjs');return dispatchServiceBack();});
+  await nativeBack();
   await page.getByRole('heading',{name:'카드에 담긴, 나의 이야기'}).waitFor();
   assert.deepEqual(errors,[]);assert.deepEqual(writes,[]);
   console.log('PASS 360px ordinary home: all eight one-card categories, original four sun cards, five self-esteem positions, both generated prompts and restart, no writes.');
