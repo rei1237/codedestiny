@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-14
-next: 묶음 ② 배너 모바일 다듬기(390px CTA·영냥이 말풍선 줄바꿈) 시작
+next: 묶음 ③ 단계 5(ReviewProof) 시작
 ---
 
 # 꿀꿀 운세·영냥이 UX: 구매 흐름 · 후기 신뢰 · 후기 작성 · 생성 진행 · 무료 배너
@@ -20,7 +20,7 @@ next: 묶음 ② 배너 모바일 다듬기(390px CTA·영냥이 말풍선 줄�
 - 기준: origin/main `02476159e0b545b887fe04a12815b7123b4b614d`
 - node_modules는 정션, `.env.local`·`.env.cloudflare.local`은 링크(건드리지 않는다).
 - 워크트리 제거: 다른 체크아웃에서 `npm run worktree:remove -- 'D:\Development\codedestiny-worktrees\ux-conversion-20261113-215142'` (git worktree remove 금지 — 긴 경로 고아 폴더).
-- 마지막 커밋: 단계마다 아래 표에 적는다. 묶음 ① 끝 코드 커밋 `3af1f976b`(미push). 묶음 ② 6b 끝 코드 커밋 `dd10f6156`(미push). 묶음 ② 6c-1 코드 커밋 `4dd33836e`·`9b9a8e706`·`3c8d5ac2f`(미push). 묶음 ② 6c-2 코드 커밋 `273aa5ce6`·`d1eba2bae`(미push). 묶음 ② 11a 코드 커밋 `81b1be43d`(미push).
+- 마지막 커밋: 단계마다 아래 표에 적는다. 묶음 ① 끝 코드 커밋 `3af1f976b`(미push). 묶음 ② 6b 끝 코드 커밋 `dd10f6156`(미push). 묶음 ② 6c-1 코드 커밋 `4dd33836e`·`9b9a8e706`·`3c8d5ac2f`(미push). 묶음 ② 6c-2 코드 커밋 `273aa5ce6`·`d1eba2bae`(미push). 묶음 ② 11a 코드 커밋 `81b1be43d`(미push). 묶음 ② 배너 모바일 다듬기 `c7edcc6c3`·사이트맵 원장 `a10578ada`(미push).
 
 ## 승인 상태 (사용자 원문, 2026-11-13)
 
@@ -147,6 +147,7 @@ next: 묶음 ② 배너 모바일 다듬기(390px CTA·영냥이 말풍선 줄�
   - [x] 6c-1 레지스트리·컴포넌트·페이지 — SHA: 4dd33836e, 9b9a8e706 · indexable 기본값 수정 3c8d5ac2f
   - [x] 6c-2 SEO 등록·사이트맵·llms·칩 href·미러·테스트 — SHA: 273aa5ce6(색인 등록·사이트맵·llms·스킬 트리 문구 필터), d1eba2bae(칩 href·미러·테스트)
 - [x] 11a. 명식·절기 그림·상세 9개 OG — SHA: 81b1be43d (결과는 문서 끝 "11a 결과")
+- [x] 배너 모바일 다듬기(390 주 버튼 위치·말풍선 조판·반짝이 대비) — SHA: c7edcc6c3, 사이트맵 원장 a10578ada (결과는 문서 끝 "배너 모바일 다듬기 결과")
 
 ### 묶음 ③ 신뢰·구매 흐름 (단계 5, 7, 8)
 - [ ] 5. ReviewProof — SHA:
@@ -560,3 +561,57 @@ OG 결정
 후속(보고만)
 - 상세 페이지는 next dev로만 확인했다. 빌드 산출물로 하는 검사(`verify:sitemap-canonical` 등)는 dist/·out/ 빌드가 필요해 돌리지 않았다.
 - origin/main을 리베이스한 뒤에는 `sitemap:generate`를 다시 돌린다(위 메모와 같음).
+
+### 배너 모바일 다듬기 결과 (2026-11-14 완료, 미push)
+
+커밋
+- `c7edcc6c3` fix(free-promo): 모바일 배너 주 버튼을 소개 바로 뒤로, 말풍선 문장 조판(React·셸·미러·테스트)
+- `a10578ada` chore(sitemap): 배너 소스를 읽는 라우트 36개의 원장 서명만 갱신
+
+바뀐 것
+- 390(카드 폭 700px 미만):
+  - 주 버튼 줄(`.foot`/`.cdh-promo__foot`)을 grid `order`로 타일 묶음 위에 올렸다. DOM·읽기 순서와 카드 길이는 그대로다.
+  - 카드 위에서 버튼까지 거리: home 325px, saju 326, shell 310, 영냥이 363. 전에는 약 1,230px 카드의 맨 아래였다.
+  - 카드 높이는 그대로다(home·saju 1233, shell 1210, 영냥이 498).
+- 말풍선은 문장마다 새 줄에서 시작하고, 문장 끝 두 낱말은 NBSP로 묶었다. "열어 / 뒀어요!"는 이제 갈라지지 않는다. 문구는 그대로다.
+  - React: `bubbleLines()`가 문장마다 block span을 만든다.
+  - 셸: 번역 요소 안에는 마크업을 둘 수 없다(prerender 가드). 그래서 `bubbleText()`가 줄 바꿈 문자를 넣고 CSS `white-space:pre-line`으로 나눈다.
+  - `i18n-extract-ko`는 공백을 접어 읽으므로 사전 값 drift가 없다(i18n-check·ko-coverage OK).
+- 반짝이:
+  - React 영냥이는 `--yn-yehwa-mask-sparkle`(선 0.8) 대신 기본 `--si-mask-sparkle`(선 2.9)을 쓴다.
+  - 셸은 비공개 `--cdh-promo-sparkle`(선 2.9)을 쓴다.
+  - 아이콘 대비: home·saju 6.17:1, shell 5.44:1, 영냥이 11.33:1.
+- 1440: 3열이고 버튼은 아래에 그대로 있다.
+
+visual-checker
+- 1차: 실패. 셸 390 말풍선에서 둘째 문장이 줄 중간에서 시작했고, 쿠키 배너가 일부를 가렸다.
+- 2차: 8개 모두 통과(home·영냥이·saju·shell × 390/1440).
+  - 버튼은 첫 화면 y 327~379에 있다.
+  - 구분선 하나에 위아래 24/26px로, 이중 테두리가 없다.
+  - 말풍선 꼬리와 마스코트가 잘리지 않았다.
+
+검증
+- free-promo + home-funnel-free-prices 테스트: 12/12
+- `typecheck`: exit 0
+- `i18n-check`: OK, `verify:i18n-ko-coverage`: OK
+- `verify:hero-contrast`: 통과
+- `measure:touch-targets`: 스테이징 기준이다. 44px 미달 5개는 푸터 링크·버튼으로 이번 변경과 무관하다.
+- `verify:public-mirror-fresh`: OK(커밋 뒤)
+- `verify:sitemap-drift`: OK
+- dev 서버 3217은 꺼졌고 포트가 비었다. 12828(다른 세션, PID 22560)은 건드리지 않았다.
+
+함정
+- 사이트맵:
+  - `sitemap:generate`를 날짜가 바뀐 뒤(KST 11-14) 돌리면 휘발성 운세 라우트 376개의 lastmod가 함께 바뀐다.
+  - 드리프트 검사는 휘발성 라우트를 정규화하므로 서명 36건만 담아도 통과한다.
+  - 날짜만 바뀐 줄을 되돌린 스크립트: `D:\Development\Temp\claude\ec29f026d20d029c\5016f536-7db3-4def-b6e1-84b5f5a786cd\scratchpad\sitemap-sig-only.mjs <기준 SHA>`
+  - 날짜 로직은 SEO 세션 담당이라 손대지 않았다.
+- perl 치환 문자열 안의 `\u`는 다음 글자를 대문자로 만드는 이스케이프다. `\u00a0`를 넣다가 `00a0`이 됐다. NBSP 이스케이프는 Write로 쓴 node 스크립트로 넣는다.
+- 측정 시 쿠키 배너는 `cd_cookie_consent=essential`(쿠키 + localStorage)을 미리 넣어 끈다.
+
+후속(보고만)
+- 1440 묶음 열 높이가 고르지 않다(타일 9/6/7개 → 5/3/4행).
+  - 맞추려면 3열 타일을 좁혀 이름이 줄 바꿈되거나, 항목을 다른 묶음으로 옮겨야 한다(콘텐츠 변경).
+  - 그래서 두었다.
+- 영냥이 390 말풍선은 글자 폭 약 150px에 5줄이라 좁다. 잘림은 없다. 마스코트 크기·겹침을 바꾸면 넓어지지만 영냥이 그림 검수가 필요해 두었다.
+- 영냥이 공유 버튼은 경계 대비가 1.08:1로 거의 보이지 않는다(어두운 카드 위 `--yn-deep` 버튼, 글자는 읽힘). 이번 변경 전부터 있던 스타일이다(`.yeongnyangi .share`).
