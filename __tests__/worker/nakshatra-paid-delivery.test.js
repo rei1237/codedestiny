@@ -176,3 +176,33 @@ it('delivers saved result when usage bookkeeping fails',async()=>{await start();
 it('retries only the chapter with contradictory calculated evidence',async()=>{const normal=provider.getMockImplementation();provider.mockImplementationOnce(async(...args)=>{const result=await normal(...args);const value=JSON.parse(result.text);value.vedicEvidence='잘못된 별자리';return{...result,text:JSON.stringify(value)}});await start();expect(docs[0].sections).toHaveLength(3);await batch();await batch();expect(docs[0].status).toBe('completed');expect(provider).toHaveBeenCalledTimes(10)});
 
 it('uncertain exhausted attempts remain a storage failure without refund or extra calls',async()=>{await start();const missing=definitions.find(spec=>!docs[0].sections.some(row=>row.id===spec.id));docs[0].llmMeta.attempts[missing.id]=3;expect((await batch()).status).toBe(503);expect(docs[0].status).toBe('generating');expect(provider).toHaveBeenCalledTimes(4);expect(refund).not.toHaveBeenCalled()});
+it('reuses the original nine chapters for an authenticated Toss order and keeps its stored result off the web route',async()=>{
+  const {bindNativeTossRequest}=await import('../../worker/toss/native-context.js');
+  const {nativeNakshatraContract}=await import('../../worker/routes/nakshatra-ai.js');
+  const order='synthetic-nakshatra-order';
+  const contract=nativeNakshatraContract({...body,requestId:body.idempotencyKey});
+  let usable=true;
+  const bind=request=>bindNativeTossRequest(request,{
+    auth:{userId:uid,tossNative:true},
+    async access(hash,key){
+      expect(hash).toBe(contract.inputHash);expect(key).toBe(contract.requestId);
+      return usable?{ok:true,accessType:'paid',source:'toss',paymentId:order}:{ok:false};
+    },
+    async assertStored(doc){
+      if(!usable||doc.accessSource!=='toss'||doc.paymentId!==order||doc.inputHash!==contract.inputHash)throw Object.assign(Error('denied'),{code:'RESULT_NOT_FOUND',status:404});
+    },
+  });
+  const call=(path,input)=>route(bind(new Request('https://mock.test/api/nakshatra-ai/'+path,{method:input?'POST':'GET',headers:{'content-type':'application/json'},...(input?{body:JSON.stringify(input)}:{})})),{});
+  await call('start',body);
+  expect(docs).toHaveLength(1);expect(docs[0].accessSource).toBe('toss');
+  for(let wave=0;wave<8&&docs[0].status!=='completed';wave++)await call('generate',{sessionId:docs[0].id,idempotencyKey:body.idempotencyKey});
+  expect(docs[0].status).toBe('completed');
+  expect(docs[0].decks.consultation.map(ch=>ch.id)).toEqual(definitions.map(ch=>ch.id));
+  const count=provider.mock.calls.length;
+  expect((await call('result?id='+docs[0].id)).status).toBe(200);
+  expect((await read(docs[0].id)).status).toBe(404);
+  usable=false;
+  expect((await call('result?id='+docs[0].id)).status).toBe(404);
+  expect(provider).toHaveBeenCalledTimes(count);
+  expect(usage).not.toHaveBeenCalled();expect(refund).not.toHaveBeenCalled();
+});

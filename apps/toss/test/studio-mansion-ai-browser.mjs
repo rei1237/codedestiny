@@ -1,0 +1,47 @@
+import assert from 'node:assert/strict';
+import {chromium} from 'playwright';
+
+const origin=process.env.TOSS_OFFLINE_ORIGIN||'http://127.0.0.1:4329';
+assert.equal(new URL(origin).hostname,'127.0.0.1');
+const browser=await chromium.launch({channel:'chrome'});
+try{
+  const context=await browser.newContext({viewport:{width:360,height:740},serviceWorkers:'block',reducedMotion:'reduce'});
+  await context.route('**/*',route=>new URL(route.request().url()).origin===origin?route.continue():route.abort());
+  const page=await context.newPage();
+  const open=async()=>{await page.goto(origin);await page.locator('.world-entry-ggulggul').click();await page.getByRole('button',{name:/나크샤트라 개인 심화 상담/}).click();};
+  const login=async()=>{await page.getByRole('button',{name:'토스 로그인하고 상담 입력하기'}).click();await page.getByRole('button',{name:'토스로 로그인하기'}).click();};
+  await open();await login();
+  const form=page.getByRole('group',{name:'나의 출생 정보'});
+  await form.getByLabel('양력 생년월일').fill('1990-05-12');
+  await form.getByLabel('태어난 시각을 몰라요').check();
+  await form.getByLabel('태어난 도시와 국가').selectOption('서울, 한국');
+  const q=page.getByLabel('상담에서 묻고 싶은 질문 (선택)');
+  await q.fill('모의 질문 · 나와 잘 맞는 일의 환경은 무엇일까요?');
+  await open();
+  assert.equal(await q.inputValue(),'모의 질문 · 나와 잘 맞는 일의 환경은 무엇일까요?');
+  await page.evaluate(()=>localStorage.setItem('toss-offline-generation-delay-ms','600'));
+  await page.getByRole('button',{name:'두 별 통합 상담 시작하기'}).click();
+  await page.waitForURL(/nakshatra\/ai\?resultId=/);
+  const resultUrl=page.url();
+  await page.getByText('3 / 9장 저장',{exact:true}).waitFor();
+  await page.goto(origin);
+  await page.getByRole('button',{name:'내 정보',exact:true}).click();
+  await page.getByRole('button',{name:/기록 보관함|구매 기록/}).first().click();
+  await page.locator('button.record').first().click();
+  await page.waitForURL(resultUrl);
+  await page.getByText('오프라인 테스트 원문 · 마지막 별의 문장',{exact:true}).waitFor();
+  assert.equal(await page.locator('article').count(),8);
+  const original=await page.getByText('오프라인 테스트 원문 · 마지막 별의 문장',{exact:true}).innerText();
+  await page.reload();
+  await page.getByText(original,{exact:true}).waitFor();
+  assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('toss-offline-fixture')).orders.length),1);
+  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth),360);
+  await page.goto(origin);await page.getByRole('button',{name:'내 정보',exact:true}).click();await page.getByRole('button',{name:'로그아웃',exact:true}).click();
+  await page.evaluate(()=>localStorage.setItem('toss-offline-login-person','second'));
+  await open();await login();
+  assert.equal(await q.inputValue(),'');
+  await page.goto(resultUrl);
+  await page.getByRole('heading',{name:'구매 기록 확인'}).waitFor();
+  assert.equal(await page.getByText(original,{exact:true}).count(),0);
+  console.log('PASS 360px two-star AI: home → synthetic account → persisted birth/question → one virtual IAP → partial save → library → stored nine chapters → reload → second account denied.');
+}finally{await browser.close();}

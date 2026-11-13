@@ -1,0 +1,7 @@
+.reader {
+  isolation: isolate;
+  overflow-x: clip;
+  border-radius: 16px;
+  background: #090817;
+  color: #f4efff;
+}

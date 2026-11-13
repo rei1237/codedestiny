@@ -24,7 +24,7 @@ import { jsonSchemaFromExample } from "../lib/json-text-repair.js";
 import { createHash } from "node:crypto";
 import { solarToLunar } from "../../lib/korean-calendar/index.js";
 import { getRoutePath, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
-import { getAccessTokenSecret, getJwtAudience, getJwtIssuer, getOptionalUserFromRequest, isAuthDbInfraError } from "../lib/auth.js";
+import { getAccessTokenSecret, getJwtAudience, getJwtIssuer, getOptionalUserFromRequest as webOptionalUser, isAuthDbInfraError } from "../lib/auth.js";
 import { signJwt, verifyJwt } from "../lib/jwt.js";
 import { connectDb, isTransientMongoError, mongoose, withMongoRetry } from "../lib/db.js";
 import {
@@ -70,6 +70,9 @@ import {
   extractTopInsights,
   hasForbiddenResultText,
 } from "../lib/nakshatra-ai-prompt.js";
+
+import { nativeTossContext } from "../toss/native-context.js";
+const getOptionalUserFromRequest=(request,...args)=>nativeTossContext(request)?.auth||webOptionalUser(request,...args);
 
 const SERVICE_KEY = "nakshatra-ai";
 const FEATURE_KEY = "nakshatra-ai-consultation";
@@ -324,6 +327,7 @@ async function resolveEnsureAccess(env, auth, pricing, idempotencyKey, inputHash
   await connectDb(env);
   // 풀 초기화(MongoPoolClearedError) 순간에도 접근 판정 read가 1회 실패로 죽지 않도록 재시도.
   const existing = await withMongoRetry(env, () => NakshatraAiConsultation.findOne({ userId: auth.userId, idempotencyKey }).lean());
+  if(existing?.accessSource==='toss')return {ok:false,reason:'INVALID_INPUT'};
   if (existing && clean(existing.inputHash) !== inputHash) {
     return { ok: false, reason: "INVALID_INPUT" };
   }
@@ -433,6 +437,8 @@ async function hasMonthlyConsume(env, auth, ctx, idempotencyKey) {
 }
 
 async function resolveStartAccess({ request, env, auth, body, normalized, pricing, idempotencyKey }) {
+  const toss=nativeTossContext(request);
+  if(toss)return await toss.access(normalized.inputHash,idempotencyKey);
   await connectDb(env);
   const token = clean(body?.accessToken || request.headers.get(ACCESS_TOKEN_HEADER));
   if (token) {
@@ -832,6 +838,7 @@ async function handleStart(request, env) {
   }
 
   const existing = await withMongoRetry(env, () => NakshatraAiConsultation.findOne({ userId: auth.userId, idempotencyKey }).lean());
+  if(existing){const rejected=await validateSurface(request,existing);if(rejected)return rejected;}
   if (existing && clean(existing.inputHash) !== normalized.inputHash) return invalidInput(INVALID_INPUT_MESSAGE, 409);
   if (existing?.status === "completed") return json(publicSession(existing));
   if (existing?.status === "generation_failed") return json({ ok: false, reason: "LLM_ERROR", message: LLM_ERROR_MESSAGE }, { status: 409 });
@@ -853,8 +860,10 @@ async function handleStart(request, env) {
   }
   // 결제 증빙 1건 = 상담 1건(2026-10-16). 서버가 찾은 결제 문서·월정석 원장 ID 만 묶는다(이용권·관리자는 건너뜀).
   const evidenceIds = [access.paymentDocId, access.claimEvidenceId];
-  const evidenceClaim = await claimRequestBillingEvidence(env, { userId: clean(auth.userId), requestId: idempotencyKey, evidenceIds, featureKey: FEATURE_KEY });
-  if (!evidenceClaim.ok) return json(evidenceClaimErrorBody(evidenceClaim), { status: evidenceClaim.status });
+  if(!nativeTossContext(request)){
+    const evidenceClaim = await claimRequestBillingEvidence(env, { userId: clean(auth.userId), requestId: idempotencyKey, evidenceIds, featureKey: FEATURE_KEY });
+    if (!evidenceClaim.ok) return json(evidenceClaimErrorBody(evidenceClaim), { status: evidenceClaim.status });
+  }
 
   const sessionId = existing?.id || `nakai_${clean(auth.userId).slice(-8)}_${Date.now().toString(36)}`;
   const now = new Date();
@@ -891,6 +900,8 @@ async function handleStart(request, env) {
       if (error?.code === 11000) {
         const duplicate = await NakshatraAiConsultation.findOne({ userId: auth.userId, idempotencyKey }).lean();
         if (!duplicate) throw resultStorageUnavailable(sessionId);
+        const rejected=await validateSurface(request,duplicate);if(rejected)return rejected;
+        if(duplicate.inputHash!==normalized.inputHash)return invalidInput(INVALID_INPUT_MESSAGE,409);
         if (duplicate?.status === "completed") return json(publicSession(duplicate));
         return json({ ok: true, sessionId: duplicate?.id || sessionId, status: "generating", message: "두 개의 별 언어를 한 사람의 이야기로 엮는 중이에요." }, { status: 202 });
       }
@@ -898,7 +909,7 @@ async function handleStart(request, env) {
     }
   }
 
-  await startRefundableExecution(env, auth, access, idempotencyKey, sessionId, pricing);
+  if(!nativeTossContext(request))await startRefundableExecution(env, auth, access, idempotencyKey, sessionId, pricing);
 
   // 첫 웨이브만 굽고 진행률을 돌려준다. 나머지는 클라가 /generate 를 반복 호출해 채운다.
   // 한 요청 = 1 동시성 웨이브라 엣지 100초 컷에 걸리지 않는다(waitUntil 은 여전히 쓰지 않는다).
@@ -981,19 +992,19 @@ async function advanceGeneration({ request, env, auth, sessionId, idempotencyKey
       access = await resolveStartAccess({ request, env, auth, body: session.llmMeta?.resumeBody || { paymentId: session.paymentId }, normalized: { inputHash: session.inputHash }, pricing, idempotencyKey });
     } catch { throw resultStorageUnavailable(sessionId); }
     if (!access.ok) return json({ ok: false, reason: "PAYMENT_VERIFY_FAILED" }, { status: 402 });
-    try { await applyUsageOnce({ userId: auth.userId, sessionId, accessType: access.accessType, pricing, source: access.source }); }
+    try { if(!nativeTossContext(request))await applyUsageOnce({ userId: auth.userId, sessionId, accessType: access.accessType, pricing, source: access.source }); }
     catch { throw resultStorageUnavailable(sessionId); }
     session = await saveNakshatraDelivery(filter, { status: "completed", generationError: null,
       generationProgress: { completed: NAKSHATRA_SECTIONS.length, total: NAKSHATRA_SECTIONS.length, phase: "done", lockToken: "", lockedAt: null },
       messages: [{ role: "user", content: session.question || "(자유 상담)", createdAt: new Date() }, { role: "assistant", content: JSON.stringify(completion.decks), createdAt: new Date() }] }, sessionId);
-    await recordSuccessfulUsage(auth, idempotencyKey, access, sessionId, pricing).catch(error => console.warn("[nakshatra-ai] usage record", clean(error?.message, 120)));
-    await completeRefundableExecution(env, auth, idempotencyKey, sessionId).catch(error => console.warn("[nakshatra-ai] completion record", clean(error?.message, 120)));
+    if(!nativeTossContext(request))await recordSuccessfulUsage(auth, idempotencyKey, access, sessionId, pricing).catch(error => console.warn("[nakshatra-ai] usage record", clean(error?.message, 120)));
+    if(!nativeTossContext(request))await completeRefundableExecution(env, auth, idempotencyKey, sessionId).catch(error => console.warn("[nakshatra-ai] completion record", clean(error?.message, 120)));
     return json(publicSession(session));
   } catch (error) {
     if (error?.code === "RESULT_STORAGE_UNAVAILABLE") throw error;
     await saveNakshatraDelivery(filter, { status: "generation_failed", generationError: { code: clean(error?.code || "LLM_FAILED"), message: clean(error?.message, 500) } }, sessionId);
-    await releaseRequestBillingEvidence(env, { userId: clean(auth.userId), requestId: idempotencyKey, evidenceIds: session.llmMeta?.evidenceIds });
-    await failRefundableExecution(env, auth, idempotencyKey, sessionId, error);
+    if(!nativeTossContext(request))await releaseRequestBillingEvidence(env, { userId: clean(auth.userId), requestId: idempotencyKey, evidenceIds: session.llmMeta?.evidenceIds });
+    if(!nativeTossContext(request))await failRefundableExecution(env, auth, idempotencyKey, sessionId, error);
     return json({ ok: false, reason: "LLM_ERROR", message: LLM_ERROR_MESSAGE }, { status: 503 });
   } finally {
     await NakshatraAiConsultation.updateOne(filter, { $set: { "generationProgress.lockToken": "", "generationProgress.lockedAt": null } }).catch(() => {});
@@ -1012,6 +1023,7 @@ async function handleGenerate(request, env, recoveryAuth = null) {
   await connectDb(env);
   const session = await withMongoRetry(env, () => NakshatraAiConsultation.findOne({ id: sessionId, userId: auth.userId }).lean());
   if (!session) return json({ ok: false, reason: "NOT_FOUND", message: RESULT_NOT_FOUND_MESSAGE }, { status: 404 });
+  const rejected=await validateSurface(request,session);if(rejected)return rejected;
   if (session.status === "completed") return json(publicSession(session));
   if (session.status === "generation_failed") {
     return json({ ok: false, reason: "LLM_ERROR", message: LLM_ERROR_MESSAGE, generationError: session.generationError || null }, { status: 409 });
@@ -1057,6 +1069,7 @@ async function handleResult(request, env, pathId = "") {
   }).lean();
   if (!consultation) return json({ ok: false, reason: "RESULT_NOT_FOUND", message: RESULT_NOT_FOUND_MESSAGE }, { status: 404 });
 
+  const rejected=await validateSurface(request,consultation);if(rejected)return rejected;
   const status = clean(consultation.status);
   if (["generating", "delivery_pending"].includes(status)) {
     const access = await resolveStartAccess({ request, env, auth, body: consultation.llmMeta?.resumeBody || { paymentId: consultation.paymentId }, normalized: { inputHash: consultation.inputHash }, pricing: getPricing(), idempotencyKey: consultation.idempotencyKey });
@@ -1072,7 +1085,7 @@ async function handleResult(request, env, pathId = "") {
       message: isCalculationError ? CALCULATION_ERROR_MESSAGE : LLM_ERROR_MESSAGE,
     }, { status: 409 });
   }
-  if (await isStoredPaidResultRevoked(auth.userId, FEATURE_KEY, consultation)) {
+  if (!nativeTossContext(request) && await isStoredPaidResultRevoked(auth.userId, FEATURE_KEY, consultation)) {
     return json({ ok: false, reason: "PAYMENT_REVOKED", retryable: false }, { status: 403 });
   }
   return json(publicSession(consultation));
@@ -1090,6 +1103,7 @@ export async function handleNakshatraAiRoutes(request, env = {}) {
     if (["GET", "POST"].includes(method)) return notFound();
     return methodNotAllowed();
   } catch (error) {
+    if(nativeTossContext(request)&&error?.status)return json({ok:false,reason:error.code||'ACCESS_DENIED'},{status:error.status});
     console.error("[nakshatra-ai]", clean(error?.stack || error?.message || error, 1200));
     if (error?.code === "RESULT_STORAGE_UNAVAILABLE") return json(resultStorageFailurePayload(error), { status: 503 });
     // 풀 초기화 버스트/인증 조회 중 일시 DB 장애는 재시도 신호와 함께 503으로 — 하드 500 방지(다른 AI 라우트와 동일 정본).
@@ -1107,9 +1121,29 @@ export async function handleNakshatraAiRoutes(request, env = {}) {
 
 // Internal cron continuation: only a stored owner/id is accepted, never client input.
 // The normal handler rereads that owner's record and rechecks existing payment proof.
-export function resumeConsultationOnServer(env, doc) {
+export async function resumeConsultationOnServer(env, doc) {
   if (!doc?.userId || !doc.id) throw new Error("RECOVERY_doc.id_REQUIRED");
   const request = new Request("https://internal.invalid/api/nakshatra-ai/resume", { method: "POST", headers: { "content-type": "application/json" },
     body: JSON.stringify({ sessionId: String(doc.id) }) });
-  return handleGenerate(request, env, { userId: String(doc.userId) });
+  const stored=await nativeNakshatraStored(env,doc.userId,doc.id,'id');
+  if(stored?.accessSource==='toss'){
+    const {bindNativeNakshatraRecovery}=await import('../toss/native-nakshatra.js');
+    await bindNativeNakshatraRecovery(request,env,stored);
+  }
+  return handleGenerate(request, env, nativeTossContext(request)?.auth||{ userId: String(doc.userId) });
+}
+
+async function validateSurface(request,doc){
+  const toss=nativeTossContext(request);
+  if(toss){await toss.assertStored(doc);return null;}
+  return doc?.accessSource==='toss'?notFound():null;
+}
+export function nativeNakshatraContract(body){
+  const normalized=normalizeInput(body);
+  if(!normalized.ok||!/^[a-zA-Z0-9:_-]{12,120}$/.test(body?.requestId||''))return null;
+  return {requestId:body.requestId,resultId:body.requestId,inputHash:normalized.inputHash,featureKey:FEATURE_KEY,pricing:getPricing().pricing};
+}
+export async function nativeNakshatraStored(env,userId,value,by='request'){
+  const filter={userId:String(userId),[by==='id'?'id':'idempotencyKey']:value};
+  return withMongoRetry(env,()=>NakshatraAiConsultation.findOne(filter).lean());
 }

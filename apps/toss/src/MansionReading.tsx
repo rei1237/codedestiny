@@ -2,16 +2,13 @@ import {useEffect,useRef,useState,type FormEvent} from 'react';
 import TodayMoonCard,{type TodayMoon} from '../../../app/nakshatra/result/TodayMoonCard';
 import LifeReading,{type LifeTopic} from '../../../app/nakshatra/_components/LifeReading';
 import CompatResultView,{type CompatResult} from '../../../app/nakshatra/compat/CompatResultView';
-import {PLACE_PRESETS} from '../../../lib/fortune/nakshatra-places.mjs';
-import {ianaOffsetHours} from '../../../lib/fortune/nakshatra-timezone.mjs';
+import {PersonFields,birth,emptyPerson} from './MansionBirth';
 import {api} from './platform';
 import {Button} from './Button';
 import TossSessionScope from './TossSessionScope';
 
 const loadTodayMoon=(index:number)=>api<TodayMoon>('/nakshatra/today?sukuyoIndex='+index);
 
-type Person={date:string;time:string;unknown:boolean;city:string;gender:string};
-const emptyPerson=():Person=>({date:'',time:'',unknown:false,city:'',gender:''});
 type Natal={
   summary:{fusionTitle:string};
   dongyang:{index:number;nameKo:string;nameHan:string;easternExpert:string;keywords:string[];strengths:string[];shadows:string[]};
@@ -20,24 +17,6 @@ type Natal={
   lifeReading:LifeTopic[];
   transparency:{ayanamsa:string;siderealMoonLongitude:number;pada:number|null;calendarConvention:string;uncertainty?:{note:string;possibleNakshatras:string[]}};
 };
-function PersonFields({title,value,onChange}:{title:string;value:Person;onChange:(p:Person)=>void}){
-  const set=(patch:Partial<Person>)=>onChange({...value,...patch});
-  return <fieldset className="birth-fields"><legend>{title}</legend>
-    <label>양력 생년월일<input type="date" required min="1900-01-01" max="2100-12-31" value={value.date} onChange={e=>set({date:e.target.value})}/></label>
-    <label className="check"><input type="checkbox" checked={value.unknown} onChange={e=>set({unknown:e.target.checked})}/>태어난 시각을 몰라요</label>
-    {!value.unknown&&<label>태어난 시각<input type="time" required value={value.time} onChange={e=>set({time:e.target.value})}/></label>}
-    <label>태어난 도시와 국가<select required value={value.city} onChange={e=>set({city:e.target.value})}><option value="">선택해 주세요</option>{PLACE_PRESETS.map(p=><option key={p.label}>{p.label}</option>)}</select></label>
-    <label>성별<select value={value.gender} onChange={e=>set({gender:e.target.value})}><option value="">선택하지 않음</option><option value="male">남성</option><option value="female">여성</option></select></label>
-  </fieldset>;
-}
-function birth(person:Person){
-  const place=PLACE_PRESETS.find(p=>p.label===person.city);
-  if(!place)throw Error('INVALID_PLACE');
-  const [year,month,day]=person.date.split('-').map(Number);
-  const [hour,minute]=(person.unknown?'12:00':person.time).split(':').map(Number);
-  return {year,month,day,hour,minute,timeUnknown:person.unknown,gender:person.gender,
-    lat:Number(place.latitude),lon:Number(place.longitude),timezone:ianaOffsetHours(year,month,day,hour,minute,place.timezone,0)};
-}
 function NatalView({result}:{result:Natal}){
   const {dongyang:east,india,unified,transparency}=result;
   return <section><h2>{result.summary.fusionTitle}</h2>
