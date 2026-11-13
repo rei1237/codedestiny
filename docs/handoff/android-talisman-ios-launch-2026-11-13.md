@@ -17,7 +17,7 @@ next: Apple 계정으로 App Store Connect에 로그인하고 macOS/Xcode에서 
 - 작업 브랜치: `wt/android-talisman-launch-20261113-140159`
 - 작업 디렉터리: `D:\Development\codedestiny-worktrees\android-talisman-launch-20261113-140159`
 - 기준 커밋: `1acf1327841ea7a954d2c9e0dddcf3d58655a48c` (`origin/main`)
-- 마지막 작업 커밋: `c2619fb7a` (`chore: prepare ios 1.0.59 release`)
+- 마지막 작업 커밋: `0d9bffb97` (`chore: prepare ios 1.0.59 release`)
 - 원래 체크아웃 `D:\Development\code-destiny`는 다른 기능 브랜치와 미추적 파일이 있어 건드리지 않는다.
 - 다른 Android 워크트리 두 곳은 다른 세션 소유이므로 읽기 외 변경·정리를 하지 않는다.
 - Android 1.0.59 AAB: 293,245,248 bytes, SHA-256 `9080BA1B508C74E4AEB6D3E90F164FB521EE5ED0938CD466E4599E0D03D52C45`, `jarsigner -verify` 통과.
