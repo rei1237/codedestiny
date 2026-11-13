@@ -12,6 +12,17 @@ import {syntheticNakshatra,mockNakshatraRequest} from './nakshatra-ai.mjs';
 import {assembleChart} from '../../../../lib/human-design/chart.js';
 import {DIRECT_PLANETS} from '../../../../lib/human-design/planets.js';
 const chartFixture=()=>{const longitudes=shift=>Object.fromEntries(DIRECT_PLANETS.map((planet,index)=>[planet,(index*29+shift)%360]));return {stored:false,chart:assembleChart({personalityLongitudes:longitudes(12),designLongitudes:longitudes(284)})};};
+function sukuyoFixtureSummary(input){
+ const person=(value,name,birthDate,birthTime,calendarType,gender,isLeapMonth)=>({
+   name:value?.name||name||'',birthDate:value?.birthDate||birthDate||'',birthTime:value?.birthTime||birthTime||'',
+   calendarType:value?.calendarType||calendarType||'solar',gender:value?.gender||gender||'unknown',isLeapMonth:Boolean(value?.isLeapMonth??isLeapMonth),
+   timezone:'Asia/Seoul',timezoneOffset:null,latitude:null,longitude:null,
+ });
+ return {consultationType:input.consultationType||'compatibility',
+   personA:person(input.personA,input.userName,input.birthDate,input.birthTime,input.calendarType,input.gender,input.isLeapMonth),
+   personB:person(input.personB,input.partnerName,input.partnerBirthDate,input.partnerBirthTime,input.partnerCalendarType,input.partnerGender,input.partnerIsLeapMonth),
+   question:input.question||'',topic:input.topic||'',relationshipType:input.relationshipType||''};
+}
 export function createOfflineFixtureApi(storage,{now=()=>new Date()}={}){
  // Both synthetic people use the same device storage and API. Authenticate the
  // request before selecting a person's records, including on a fresh app launch.
@@ -171,8 +182,8 @@ function createAccountFixture(storage,owner,token,now){
   if(path==='/native/sukuyo/recovery/drafts'&&method==='POST'){
    const {orderId}=await request.json();if(!state.orders.has(orderId))return respond({error:'RESULT_NOT_FOUND'},404);if((state.testOrderSkus.get(orderId)||state.intents.get(state.orders.get(orderId))?.sku)!==sukuyoProduct.sku)return respond({error:'ORDER_PRODUCT_MISMATCH'},409);
    const assigned=state.orders.get(orderId);if(assigned)return respond({state:'ASSIGNED',intentId:assigned});
-   const summary=input=>{const a=input.personA||input,b=input.personB||{};const person=(value,name,date,time,calendar,gender)=>({name:value.name||name||'',birthDate:value.birthDate||date||'',birthTime:value.birthTime||time||'',calendarType:value.calendarType||calendar||'solar',gender:value.gender||gender||'unknown',isLeapMonth:false,timezone:'Asia/Seoul',timezoneOffset:null,latitude:null,longitude:null});return {consultationType:'compatibility',personA:person(a,input.userName,input.birthDate,input.birthTime,input.calendarType,input.gender),personB:person(b,input.partnerName,input.partnerBirthDate,input.partnerBirthTime,input.partnerCalendarType,input.partnerGender),question:input.question||'',topic:input.topic||'',relationshipType:input.relationshipType||''};};
-   return respond({state:'UNASSIGNED',drafts:[...state.intents.values()].filter(row=>row.service==='sukuyo'&&!row.paid).map(row=>({id:row.id,input:summary(row.input),createdAt:row.createdAt||'2026-11-06T00:00:00.000Z'})),nextCursor:null});
+
+   return respond({state:'UNASSIGNED',drafts:[...state.intents.values()].filter(row=>row.service==='sukuyo'&&!row.paid).map(row=>({id:row.id,input:sukuyoFixtureSummary(row.input),createdAt:row.createdAt||'2026-11-06T00:00:00.000Z'})),nextCursor:null});
   }
   if(path==='/native/sukuyo/recovery/attach'&&method==='POST'){
    const {orderId,intentId}=await request.json(),intent=state.intents.get(intentId),assigned=state.orders.get(orderId);
@@ -195,7 +206,7 @@ function createAccountFixture(storage,owner,token,now){
    if(!intent?.paid)return respond({error:'PAYMENT_REQUIRED'},402);
    if(intent.result?.status==='completed')return respond({ok:true,consultation:intent.result});
    if(intent.result?.status==='generation_failed'){if(body.retryGeneration!==true||(intent.retryCount||0)>=2)return respond({error:'LLM_FAILED'},409);intent.retryCount=(intent.retryCount||0)+1;}
-   intent.result={id:intent.id.slice(-24),idempotencyKey:intent.input.idempotencyKey,status:'completed',consultationType:'compatibility',personA:intent.input.personA,personB:intent.input.personB,sukuyoResult:{},relationshipType:intent.input.relationshipType,topic:intent.input.topic,messages:[{role:'assistant',content:'[테스트 전용 예시] 실제 상담 결과가 아닙니다.'}]};save();return respond({ok:true,consultation:intent.result});
+   intent.result={id:intent.id.slice(-24),idempotencyKey:intent.input.idempotencyKey,status:'completed',...sukuyoFixtureSummary(intent.input),sukuyoResult:{},messages:[{role:'assistant',content:'[테스트 전용 예시] 실제 상담 결과가 아닙니다.'}]};save();return respond({ok:true,consultation:intent.result});
   }
   const sukuyoIntent=/^\/native\/sukuyo\/intents\/([a-f0-9]{64})$/.exec(path);
   if(sukuyoIntent&&method==='GET'){const intent=state.intents.get(sukuyoIntent[1]);return intent?.service==='sukuyo'?respond(intent):respond({error:'RESULT_NOT_FOUND'},404);}
