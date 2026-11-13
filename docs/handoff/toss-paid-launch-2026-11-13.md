@@ -1,14 +1,14 @@
 ---
 status: active
 updated: 2026-11-13
-next: 커밋된 트리에서 pre-push를 통과시키고 HEAD:main을 push한 뒤 최신 main CI를 한 번 확인한다.
+next: main `730ec6fdb` 이후 최신 CI와 Secret Scan 결과를 한 번 확인하고, 성공하면 Linux AIT 생성 workflow를 실행한다.
 ---
 
 # 앱인토스 유료 상담 결제 활성화·출시
 
 ## 첫 행동
 
-`npm run check:pre-push`를 실행한다. 성공하면 원격 main 이동 여부와 최신 CI 상태를 확인하고 `git push origin HEAD:main`으로 전달한다.
+최신 main CI와 Secret Scan 결과를 한 번 확인한다. 성공하면 `pr-ci.yml`을 `full_ci=true`, `toss_artifact=true`로 실행해 Linux AIT를 생성한다.
 
 ## 지금 상태
 
@@ -30,6 +30,7 @@ next: 커밋된 트리에서 pre-push를 통과시키고 HEAD:main을 push한 �
 - 웹툰 메타 폭 수정 `79615c45b`가 origin/main에 전달되었고 현재 작업에도 병합했다.
 - Browser Shadow 원인은 결과 재로드 중 정상 완료된 `/api/reviews/eligibility` fixture 읽기를 WebKit이 취소 CORS pageerror로 중복 보고한 것이었다. HTTP 200 증거·결제 완료·전체 챕터 완료가 모두 있을 때만 기존 `/api/reviews/products`와 같은 취소 읽기로 분류하도록 `f54590fa7`에서 수정했다.
 - 수정 후 `npm run check:fast` critical 통과: Node 5,024개, Jest 7,978개 통과(1개 스킵), Worker dry-run 통과.
+- `npm run check:pre-push` 통과 후 `730ec6fdb`를 `HEAD:main`으로 push했다.
 
 ## 승인 상태
 
@@ -73,7 +74,7 @@ next: 커밋된 트리에서 pre-push를 통과시키고 HEAD:main을 push한 �
 - [x] 별도 웹툰 수정이 origin/main에 전달되어 기존 PR CI red 원인을 제거
 - [x] Yeongnyangi Browser Shadow의 WebKit 후기 eligibility 취소 오탐 수정
 - [x] 최신 origin/main 병합
-- [ ] pre-push 후 main 전달
+- [x] pre-push 후 main 전달 — `730ec6fdb`
 - [ ] main CI 1회 확인
 - [ ] 프로덕션 승격 승인 후 비밀값/콜백/로그인 등록
 - [ ] 비공개 QR 실결제 승인 후 4,950원 1회 검증
