@@ -74,7 +74,10 @@ export async function loadPaidNarrativeAdapter(env, featureKey, reportType, user
     }
     case "dreamPsychoAnalysis": {
       const { dreamPsychoNarrativeAdapter } = await import("../routes/dream.js");
-      return dreamPsychoNarrativeAdapter(env);
+      return { ...dreamPsychoNarrativeAdapter(env), verifyRecovery: async doc => {
+        const { verifyDreamRecovery } = await import("../toss/native-dream.js");
+        return verifyDreamRecovery(env, doc);
+      } };
     }
     case "petSajuReport":
     case "petCompatReport": {

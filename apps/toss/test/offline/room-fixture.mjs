@@ -4,7 +4,8 @@ import {neoRefinementAllowance} from '../../../../worker/lib/neo-refinement-cont
 const tea={service:'tea',name:'가상 찻집 사주',featureKey:'fortune-tea-house-saju-consultation',path:'/fortune-tea-house/'};
 const neo={service:'neo',name:'가상 네오 전략 상담',featureKey:'neo-operation-room-consultation',path:'/neo-operation-room/result/'};
 const heukwol={service:'heukwol',name:'가상 흑월 상담',featureKey:'heukwol-warning-consultation',path:'/heukwol/'};
-const rooms=[tea,neo,heukwol];
+const dream={service:'dream',name:'가상 정신분석 해몽',featureKey:'dream-psycho-analysis',path:'/dream/psycho/'};
+const rooms=[tea,neo,heukwol,dream];
 export const roomProducts=rooms.map(room=>({
   id:'native:'+room.service+':'+room.featureKey,name:room.name,featureKey:room.featureKey,
   sku:'mock-unregistered-room-'+room.service,available:true,approvedPriceKRW:1,
@@ -27,9 +28,9 @@ export function roomPurchases(state){
     const room=rooms.find(item=>item.service===row.service);
     return {requestId:row.id,orderId:row.orderId,sku:row.sku,serviceId:room.service,nativeService:room.service,
       productId:room.featureKey,status:'PURCHASED',state:row.result?'COMPLETED':'PENDING',createdAt:row.createdAt,
-      href:room.service==='heukwol'?room.path+'?result='+row.id:room.service==='neo'?room.path+'?attemptId='+encodeURIComponent(row.result?row.resultId:'toss_'+row.id):
+      href:room===dream?room.path+'?intentId='+row.id:room.service==='heukwol'?room.path+'?result='+row.id:room.service==='neo'?room.path+'?attemptId='+encodeURIComponent(row.result?row.resultId:'toss_'+row.id):
         room.path+'?'+(row.result?'resultId=':'recoverResultId=')+encodeURIComponent(row.resultId),
-      question:row.input.question,resultId:row.resultId};
+      question:row.input.question||row.input.dreamText,resultId:row.resultId};
   });
 }
 export async function roomRequest(request,url,path,state,save,now){
@@ -43,7 +44,8 @@ export async function roomRequest(request,url,path,state,save,now){
     }
     if(post&&match[2]==='prepare'){
       const {input,orderId}=await request.json(),key=requestKey(input);
-      if(!key||!input?.question||input.featureKey&&input.featureKey!==room.featureKey)return fail('REQUEST_INPUT_MISMATCH',400);
+      const valid=room===dream?typeof input?.dreamText==='string'&&input.dreamText.trim().length>=8&&input.dreamText.length<=6000:input?.question;
+      if(!key||!valid||input.featureKey&&input.featureKey!==room.featureKey)return fail('REQUEST_INPUT_MISMATCH',400);
       if(room===heukwol){const card=state.profiles.find(p=>p.profileId===input.profileId);if(!card)return fail('PROFILE_REQUIRED',400);if(card.birth?.timeUnknown!==false)return fail('BIRTH_TIME_REQUIRED',400);}
       let row=[...state.intents.values()].find(item=>item.service===room.service&&requestKey(item.input)===key);
       if(row&&JSON.stringify(row.input)!==JSON.stringify(input))return fail('REQUEST_INPUT_MISMATCH',409);
@@ -83,6 +85,17 @@ export async function roomRequest(request,url,path,state,save,now){
     }));
     const letters=[...state.letters.values()].filter(r=>r.paid&&(!group||group==='all'||group==='chat')&&!source&&(!q||r.consultation.question.includes(q))).map(r=>({id:r.id,key:r.persona+':'+r.orderId,group:'chat',source:r.persona,serviceId:r.persona,serviceName:(r.persona==='neo'?'네오':'연이')+' 상담 편지',character:r.persona,title:r.consultation.question,question:r.consultation.question,createdAt:r.createdAt,status:'completed',href:'/fortune-tea-house/?counsel=letter'+(r.persona==='neo'?'&persona=neo':'')+'&consultation='+r.id}));
     return reply({ok:true,items:[...items,...letters],failures:[],nextCursor:null});
+  }
+  const dreamMatch=/^\/native\/dream\/results\/([a-f0-9]{64})$/.exec(path);
+  if(dreamMatch){
+    const row=state.intents.get(dreamMatch[1]);
+    if(row?.service!=='dream'||!row.paid)return fail('RESULT_NOT_FOUND',404);
+    if(post&&!row.result){
+      row.parts=[...(row.parts||[]),'[테스트 전용] 꿈의 저장된 해석 '+((row.parts?.length||0)+1)+'입니다.'];
+      if(row.parts.length===2){row.result={ok:true,saved:true,status:'completed',dreamText:row.input.dreamText,record:{markdown:row.parts.join('\n\n')}};row.generationCount=1;}
+      save();
+    }
+    return reply(row.result||{ok:true,saved:false,status:'generating',completedParts:row.parts||[],totalParts:2,retryable:true});
   }
   const chapter=/^\/native\/heukwol\/results\/([a-f0-9]{64})$/.exec(path);
   if(chapter){

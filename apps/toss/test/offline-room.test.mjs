@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import {createOfflineFixtureApi} from './offline/fixture.mjs';
 import {roomProducts} from './offline/room-fixture.mjs';
 
-for(const product of roomProducts.filter(p=>!p.id.startsWith('native:heukwol:')))test(product.name+' resumes only the original owner and order',async()=>{
+for(const product of roomProducts.filter(p=>['tea','neo'].includes(p.id.split(':')[1])))test(product.name+' resumes only the original owner and order',async()=>{
   const service=product.id.split(':')[1],tea=service==='tea';
   const memory=new Map(),storage={getItem:k=>memory.get(k),setItem:(k,v)=>memory.set(k,v)};
   let api=createOfflineFixtureApi(storage),account='';
