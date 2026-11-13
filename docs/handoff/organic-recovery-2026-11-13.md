@@ -1,7 +1,7 @@
 ---
-status: active
+status: done
 updated: 2026-11-13
-next: 단계 4 반영
+next: 없음 — 남은 것은 단계 4의 '사용자 결정 필요'·'후속'(사용자 판단 또는 별도 작업)
 ---
 # 오가닉 회복: GA4 정확도 · 오늘/내일 운세 차별화 · 노출 감소 원인 정리
 
@@ -36,7 +36,7 @@ next: 단계 4 반영
 - [x] 1. GA4 정확도: `js/core/analytics.js`(및 React 라우트 쪽 계측·쿠키 정책 `CodeDestinyCookiePolicy`) — 지역별 consent default(`gtag('consent','default',{analytics_storage:'denied', region:[EEA+UK+CH]})` + 기본 granted, 명시 '필수만'은 denied), 태그 로드를 앞당기되 LCP 영향 측정(예: DOMContentLoaded 직후 또는 짧은 타이머, pagehide 전 손실 최소화), SPA 라우트 page_view 중복·누락 확인, 네이버 유입이 Unassigned/Direct로 빠지는 원인(리퍼러 정책·인앱 브라우저·302) 조사, 개인정보처리방침 GA 고지 확인·보강. 실제 브라우저로 쿠키 배너 미클릭 상태에서 collect 요청 발생 확인.
 - [x] 2. 오늘/내일 차별화: 묶음 ⑤ 남은 것 구현 — 내일 페이지에서 '오늘' 표현·오늘 문장 제거, 대상일 기준 원고 풀 분리, 관계 마커·준비 문구. 목표: today/tomorrow 24쌍 5단어 Jaccard 최대 < 30%(측정 스크립트로 전후 기록). 번역 noindex는 범위 판단 후 별도 커밋.
 - [x] 3. 노출 감소 원인 정리: 해외 리다이렉트 부재를 워커 테스트와 실제 요청으로 재확인(남은 국가·언어 기반 리다이렉트 전수 grep, `/?lang=en` 302의 필요성 판단), 10/08 변경 3가지의 영향 근거 문서화, `/fortune/date/*` noindex 재검토 권고(실행 X, 근거·선택지만), 결과를 `docs/seo/organic-drop-analysis-20261113.md`로.
-- [ ] 4. 반영: 관련 검사·check:fast·pre-push, Toss 상태 확인, main push, CI 확인, 운영 릴리스(기존 Release Cloudflare Pages and Worker 워크플로 방식), 운영 실측(GA4 collect, 내일 페이지 문구, 해외 리다이렉트 없음), 바뀐 URL IndexNow 제출, 결과 기록.
+- [x] 4. 반영: 관련 검사·check:fast·pre-push, Toss 상태 확인, main push, CI 확인, 운영 릴리스(기존 Release Cloudflare Pages and Worker 워크플로 방식), 운영 실측(GA4 collect, 내일 페이지 문구, 해외 리다이렉트 없음), 바뀐 URL IndexNow 제출, 결과 기록.
 
 ## 결과 기록
 
@@ -117,3 +117,35 @@ next: 단계 4 반영
 - 내부 `/?lang=` 링크(`app/yeongnyangi/layout.tsx`, `LocalizedFortuneHome.tsx`, `LocaleSwitcher` 대안)를 도착 URL로 바로 걸지.
 - 미래 날짜 `/fortune/date/<내일>/<띠>/`가 404 대안으로 `/fortune/today/<띠>/`에 301됨(`expiredFortuneDateTarget`) — 302 또는 내일 URL로 바꿀지. 손대지 않음.
 - noindex 선택지 결정(기본 A).
+
+### 단계 4 반영 (2026-11-13 완료, 운영 반영)
+**push·CI**
+- 우리 커밋 12개를 main에 fast-forward push, 마지막 `02476159e`. 그 위에 다른 세션 문서 커밋 `91e4261d8`(웹툰 인수인계)가 올라옴.
+- 로컬: `check:pre-push`·`check:fast` 통과. Toss 번들 검사 main CI 43423487521 통과(99,661,111 / 100,000,000 bytes — 여유 0.34%).
+- `02476159e` CI 모두 success: PR CI 43428430555, Paid Flow Gates 43428431191, Secret Scan 43428430526, AI Locale 43428430597, Main drift 43428430537, Landing Watchdog 43428430682, Business Identity 43428430607, push Release(스테이징 큐) 43428430686. `91e4261d8` PR CI 43429878436 success.
+
+**운영 릴리스**
+- 43426168214(사용자 dispatch, mode=production)는 `e60316ae0` — 우리 커밋 이전이라 해당 없음, success. 43428545749·43429987806은 github-actions[bot]이 큐한 staging.
+- 우리가 dispatch: **43430777109** `mode=production`, ref main = `91e4261d8`(우리 12개 포함), 13:06→13:22Z **success**. `verify-deployed-sha`: Pages·Worker 모두 `91e4261d8f00` PASS.
+
+**운영 실측 (2026-11-13 13:2xZ, 한국 IP)**
+- 운영 홈이 `analytics.js?v=20261113-regional-consent-v1`을 로드(이전 `20261110-return-attribution-v1`).
+- GA4(Playwright 412px, collect는 가로채 204, 실제 전송 없음): 새 방문자·배너 미클릭 → gtag ~20s, `page_view` `gcs=G1-1`, `_ga`·`_ga_FMHV4ZHY3G` 생성. '필수만' 클릭 뒤 재방문 hit 모두 `G1-0`, `_ga` 재생성 없음, `cd_cookie_consent=essential`. 확인한 곳: `/`(Next 동의 UI '필수만 사용'), `/fortune/tomorrow/rat/`, `/ggulggul/`(정적 셸 배너가 350×166으로 보이고 `#cdCookieEssentialBtn` 클릭 가능 — 홈 슬롯 숨김 버그 수정 확인).
+- 오늘/내일 24쌍(`measure-daily-overlap.mjs --base https://code-destiny.com`, 11/13↔11/14): Jaccard 최대 18.05%(aquarius)·평균 13.84%, ≥30% 0쌍, min-set 최대 31.5%, 내일 본문 최소 3,671자, 내일 '오늘 일진' 0, '오늘' 든 문단 0. 11/09 운영 최대 56.30% → 18.05%. 로컬 측정과 같은 값(같은 날짜·결정적 생성).
+- 내일 rat·tiger·snake·aries: '오늘 일진' 0, '(내일) 준비' 마커 있음.
+- 핵심 URL 리다이렉트 없이 200: `/`, `/fortune/`, `/fortune/today/rat/`, `/fortune/tomorrow/rat/`, `/fortune/tomorrow/aries/`, `/fortune/weekly/`, `/en/fortune/`, `/privacy/`(`/privacy-policy/`는 기존대로 301→`/privacy/`). `/privacy/`에 GA4 고지(IP 미저장·지역별 기본값·최대 14개월·gaoptout) 노출.
+
+**IndexNow: 제출 안 됨(기존 실패, 우리 변경 무관)**
+- 릴리스 로그 "Notify IndexNow" 단계: `[indexnow] Non-public sitemap URL rejected`, exit 1(잡은 success로 끝남). 직전 운영 릴리스 43426168214도 같은 오류.
+- 원인: 웹툰 커밋 `8248e3a98`이 `https://code-destiny.com/yeongnyangi/season-1/prologue/`를 `sitemap.xml`·`sitemap-ko.xml`에 넣었는데 `scripts/lib/indexnow-delta.mjs`의 `PUBLIC_SERVICE_PAGES` 허용 목록에 없어(`/yeongnyangi/` 하위는 기본 차단) 전체 제출이 throw로 멈춘다. 웹툰 세션 범위라 손대지 않음. 고치면(허용 목록에 추가 또는 사이트맵에서 제외) 다음 릴리스에서 바뀐 내일·오늘 URL이 함께 제출된다.
+
+**후속(코드)**
+- 로컬 `npm run build`가 `scripts/next-build-with-pages-manifest.mjs` 안에서 멈춤(직접 `next build`는 됨). 원인 미해결. 그래서 `verify:adsense-readiness`는 CI(릴리스 빌드)에 의존했다.
+- IndexNow 허용 목록 문제(위).
+
+**사용자 결정 필요(모아 둠)**
+- GA4 향상된 측정 "브라우저 기록 이벤트 기반 페이지 변경" 끄기 — 사용자가 Codex로 진행 중.
+- 개인정보처리방침 시행일(2026-10-10) 올릴지(재동의 흐름 영향).
+- `/fortune/date/*` noindex 선택지(권고 A 유지).
+- 내부 `/?lang=` 링크를 도착 URL로 바로 걸지.
+- 미래 날짜 `/fortune/date/<내일>/<띠>/` → `/fortune/today/<띠>/` 301 버그 처리 방식.
