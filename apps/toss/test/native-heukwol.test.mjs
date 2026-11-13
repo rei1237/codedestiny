@@ -3,11 +3,13 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import {build} from 'esbuild';
 import {isDeepStrictEqual} from 'node:util';
+import {fileURLToPath} from 'node:url';
 
 // The adapter is real. Only side effects (Mongo, order lookup and LLM) use local doubles.
 const mocks=globalThis.__tossHeukwol={};
 const bundled=await build({
-  entryPoints:['worker/toss/native-heukwol.js'],bundle:true,format:'esm',platform:'node',write:false,
+  entryPoints:[fileURLToPath(new URL('../../../worker/toss/native-heukwol.js',import.meta.url))],
+  bundle:true,format:'esm',platform:'node',write:false,
   plugins:[{name:'heukwol-offline-dependencies',setup(build){
     const stubs={
       '../lib/models.js':'export const ProfileCard={};',
