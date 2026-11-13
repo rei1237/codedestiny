@@ -67,3 +67,7 @@
 .moonlight-questions ul { list-style:none; margin:12px 0 24px; padding:0; }
 .moonlight-questions li a { display:grid; grid-template-columns:1fr auto; gap:4px 12px; padding:15px 2px; border-bottom:1px solid var(--moon-line-soft); color:var(--moon-ink); text-decoration:none; }
 .moonlight-questions li small { grid-column:span 2; color:var(--moon-muted); }
+
+.catalog-search { display:grid; gap:7px; margin:12px 0 16px; font-size:14px; color:var(--moon-ink); }
+.catalog-search input { min-height:46px; width:100%; padding:10px 14px; font:inherit; font-size:16px; border:1px solid var(--moon-line); border-radius:12px; color:var(--moon-ink); background:var(--moon-paper); }
+.catalog-count { color:var(--moon-muted); font-size:14px; }
