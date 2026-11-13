@@ -72,6 +72,7 @@ function ZiweiPrice(){return <AstrologyPrice featureKey="ziwei-ai-consultation"/
 function NewYearProfile(props){return <AstrologyProfile {...props} calendarMode="lunar"/>;}
 function NewYearPrice(){return <AstrologyPrice featureKey="new-year-ai-consultation"/>;}
 const LoveSimulation=lazy(()=>import('./LoveSimulation.jsx'));
+const Sibyl=lazy(()=>import('./TossSibyl.jsx'));
 const SajuCompat=lazy(()=>import('./TossSajuCompat.jsx'));
 const releaseAvailability={title:'출시 준비 중',message:'상품 등록과 검수가 완료되면 토스에서 상담 결과를 생성하고 보관할 수 있어요.',action:{href:'/neo-operation-room/',label:'전략실 둘러보기'}};
 let installed=false;
@@ -158,6 +159,7 @@ export default function ServiceScreens({reviewOnly=false,verifiedReceipt=false,i
  if(location.pathname==='/maya'||location.pathname==='/maya/')return <LazyMotion features={domAnimation}><ToastProvider/>{recoveryBanner}{ready?<Suspense fallback={<p role="status">마야 달력을 열고 있어요.</p>}><Maya paymentSurface="toss" TossPrompt={verifiedReceipt?SavedMayaPrompt:MayaPrompt}/></Suspense>:<p role="status">로그인 상태를 확인하고 있어요.</p>}</LazyMotion>;
  if(/^\/(animal\/physio|past-life-face)\/?$/.test(location.pathname))return <Suspense fallback={<p>사진 상담실을 열고 있어요.</p>}><Face/></Suspense>;
  if(/^\/master-love-codex(?:\/result)?\/?$/.test(location.pathname))return <LazyMotion features={domAnimation}>{recoveryBanner}{ready&&<Suspense fallback={<p role="status">인연의 서를 열고 있어요.</p>}><Codex/></Suspense>}</LazyMotion>;
+ if(/^\/saju\/sibyl\/?$/.test(location.pathname))return <Suspense fallback={<p role="status">시빌라를 열고 있어요.</p>}><Sibyl/></Suspense>;
  if(/^\/saju\/compatibility\/?$/.test(location.pathname))return <LazyMotion features={domAnimation}>{recoveryBanner}{ready?<Suspense fallback={<p role="status">궁합을 열고 있어요.</p>}><SajuCompat/></Suspense>:<p role="status">로그인 상태를 확인하고 있어요.</p>}</LazyMotion>;
  if(/^\/naming-ai(?:\/result)?\/?$/.test(location.pathname))return <LazyMotion features={domAnimation}>{recoveryBanner}{ready&&<Suspense fallback={<p role="status">작명첩을 열고 있어요.</p>}><Naming/></Suspense>}</LazyMotion>;
  if(/^\/geomancy\/?$/.test(location.pathname))return <LazyMotion features={domAnimation}>{recoveryBanner}{ready&&<Suspense fallback={<p role="status">흙점 상담실을 열고 있어요.</p>}><Geomancy/></Suspense>}</LazyMotion>;

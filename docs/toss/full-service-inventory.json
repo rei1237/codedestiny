@@ -1,5 +1,5 @@
 {
-  "sourceCommit": "2239d63a2cb9cde91beec759ff9d8dad5b29d6bf",
+  "sourceCommit": "8ad146e33e71730090a396f8dfa339321dd374a0",
   "sourceCounts": {
     "home": 63,
     "react": 18,
@@ -2157,8 +2157,8 @@
         "library": "not-verified",
         "device": "not-tested",
         "canonicalId": "saju-sibyl",
-        "candidateStatus": "requires-full-flow-port-and-verification",
-        "canonicalRoute": null
+        "candidateStatus": "local-partial",
+        "canonicalRoute": "/saju/sibyl/"
       }
     },
     {
@@ -6698,12 +6698,13 @@
         }
       ],
       "aliasEvidence": [],
-      "status": "requires-full-flow-port-and-verification",
-      "tossRoute": null,
+      "status": "local-partial",
+      "tossRoute": "/saju/sibyl/",
       "sku": null,
-      "inputContract": null,
-      "resultRenderer": null,
-      "storageContract": null,
+      "inputContract": "양력·음력·윤달 출생 정보와 한국 시간 기준 현재부터 10개 연도",
+      "resultRenderer": "worker/routes/sibyl.js /preview → buildSibylAnnual → 원본 기질·대비 행동·불확실성",
+      "storageContract": "무료 연간 대비는 다시 계산. 심층 시빌라 보관 원문은 별도 출생정보 권리",
+      "verification": "sibyl-public-browser.mjs 360px 일반 홈, 게스트·연도 변경·원본 HTTP 일치",
       "webEntries": [
         "/saju/sibyl/"
       ],
@@ -6713,14 +6714,14 @@
       "webProductIds": [
         "premium-sibyl-dominator"
       ],
-      "freeCalculation": false,
-      "portStatus": "미이식",
+      "freeCalculation": true,
+      "portStatus": "일부만 이식",
       "reducedBundle": "홈 진입 없음",
-      "currentEntry": "연결 경로 없음",
+      "currentEntry": "일반 홈의 진입 코드 확인",
       "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
-      "tossLogin": "토스 기능 미연결",
-      "tossResult": "결과 화면 연결 미확인",
-      "reread": "재열람 경로 미확인"
+      "tossLogin": "연도별 무료 분석은 공개",
+      "tossResult": "worker/routes/sibyl.js /preview → buildSibylAnnual → 원본 기질·대비 행동·불확실성",
+      "reread": "무료 연간 대비는 다시 계산. 심층 시빌라 보관 원문은 별도 출생정보 권리"
     },
     {
       "id": "secret-house",

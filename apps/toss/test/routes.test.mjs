@@ -36,6 +36,7 @@ const stubMap={
  'worker/toss/native-heukwol.js':"export const prepareHeukwol=async()=>({paid:false}),heukwolWave=async()=>({status:'generating'}),heukwolLibraryItem=async()=>({state:'PENDING'});",
  'worker/toss/native-nakshatra.js':"export const prepareNakshatra=async()=>({paid:false}),nakshatraWave=async()=>Response.json({status:'generating'}),nakshatraLibraryItem=async()=>({state:'PENDING'});",
  'worker/toss/native-geomancy.js':"export const prepareGeomancy=async()=>({paid:false}),readGeomancy=async()=>Response.json({status:'generating'}),geomancyLibraryItem=async()=>({state:'PENDING'});",
+ 'worker/routes/sibyl.js':"export const handleSibylRoutes=async req=>Response.json({path:new URL(req.url).pathname,input:await req.json()});",
  'worker/toss/native-saju-compat.js':"export const prepareCompat=async()=>({paid:false}),readCompat=async()=>Response.json({status:'generating'}),compatLibraryItem=async()=>({state:'PENDING'});",
  'worker/toss/native-yoga.js':"export const prepareYoga=async()=>({paid:false}),readNativeYoga=async()=>Response.json({status:'generating'}),nativeYogaLibraryItem=async()=>({state:'PENDING'});",
  'worker/toss/native-dream.js':"export const prepareDream=async()=>({paid:false}),readDream=async()=>Response.json({status:'generating'}),dreamLibraryItem=async()=>({state:'PENDING'});",
@@ -615,4 +616,9 @@ test('paid compatibility requires the active owner before accessing a result',as
  mocks.denyAuth=true;try{assert.equal((await request({},path)).status,401);}finally{mocks.denyAuth=false;}
  assert.equal((await request({},path,{})).status,503);
  assert.equal((await request({},path)).status,200);
+});
+
+test('guest Sibyl preview forwards only the year and birth profile to the public annual engine',async()=>{
+  const r=await request({year:2027,profile:{gender:'F'},profileId:'another-owner',paymentId:'other'},'/canonical/sibyl/preview',{});
+  assert.equal(r.status,200);assert.deepEqual(await r.json(),{path:'/api/sibyl/preview',input:{year:2027,profile:{gender:'F'}}});
 });

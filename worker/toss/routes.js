@@ -100,6 +100,12 @@ export async function handleTossRoutes(request,env) {
       const {readTossIsland}=await import('./island.js');
       return forwardServiceResponse(await readTossIsland(await bodyOf(request),env,request.headers.get('CF-Connecting-IP')),headers);
     }
+    if(path==='/canonical/sibyl/preview'&&request.method==='POST'){
+      const {handleSibylRoutes}=await import('../routes/sibyl.js');
+      const {profile,year}=await bodyOf(request);
+      const req=new Request('https://internal.invalid/api/sibyl/preview',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({profile,year})});
+      return forwardServiceResponse(await handleSibylRoutes(req,env),headers);
+    }
     if(path==='/canonical/saju/section'&&request.method==='POST'){
       const {readTossPublicSection}=await import('./public-section.js');
       return forwardServiceResponse(await readTossPublicSection(await bodyOf(request),env),headers);
