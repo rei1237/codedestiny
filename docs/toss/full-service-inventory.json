@@ -1,5 +1,5 @@
 {
-  "sourceCommit": "dad73c61b738d5cbaeedc695a93b5695258e4117",
+  "sourceCommit": "1a69713eb8513783e52660ac5a498f29db8044c6",
   "sourceCounts": {
     "home": 63,
     "react": 18,
@@ -7299,43 +7299,61 @@
           "id": "sajuprompt",
           "target": "aiPromptCard",
           "source": "js/core/saju/reportDashboard.js",
-          "status": "requires-full-flow-port-and-verification",
-          "accessEvidence": "dashboard points to section_summary; historic rights unverified"
+          "status": "local-partial",
+          "tossRoute": "/saju/basic/play",
+          "resultRenderer": "apps/toss/src/SajuDashboard.tsx",
+          "accessEvidence": "공개 기본 사주 명식을 원본 렌더러에서 재사용",
+          "verification": "saju-dashboard-browser.mjs 일반 홈에서 독립 카드를 열고 원본 결과 및 360px 화면 확인. 공유·파일 저장은 실기기 미검증"
         },
         {
           "id": "tbal",
           "target": "tTestCard",
           "source": "js/core/saju/reportDashboard.js",
-          "status": "requires-full-flow-port-and-verification",
-          "accessEvidence": "dashboard points to section_summary; historic rights unverified"
+          "status": "local-partial",
+          "tossRoute": "/saju/basic/play",
+          "resultRenderer": "apps/toss/src/SajuDashboard.tsx",
+          "accessEvidence": "공개 기본 사주 명식을 원본 렌더러에서 재사용",
+          "verification": "saju-dashboard-browser.mjs 일반 홈에서 독립 카드를 열고 원본 결과 및 360px 화면 확인. 공유·파일 저장은 실기기 미검증"
         },
         {
           "id": "tetoegen",
           "target": "hormone-vibe-section",
           "source": "js/core/saju/reportDashboard.js",
-          "status": "requires-full-flow-port-and-verification",
-          "accessEvidence": "dashboard points to section_summary; historic rights unverified"
+          "status": "local-partial",
+          "tossRoute": "/saju/basic/play",
+          "resultRenderer": "apps/toss/src/SajuDashboard.tsx",
+          "accessEvidence": "공개 기본 사주 명식을 원본 렌더러에서 재사용",
+          "verification": "saju-dashboard-browser.mjs 일반 홈에서 독립 카드를 열고 원본 결과 및 360px 화면 확인. 공유·파일 저장은 실기기 미검증"
         },
         {
           "id": "lotto",
           "target": "lottoCard",
           "source": "js/core/saju/reportDashboard.js",
-          "status": "requires-full-flow-port-and-verification",
-          "accessEvidence": "dashboard says Saju bundle; separate entitlement mapping unverified"
+          "status": "local-partial",
+          "tossRoute": "/saju/basic/play",
+          "resultRenderer": "apps/toss/src/SajuDashboard.tsx",
+          "accessEvidence": "fun.quantumLotto.ritualReport 무료 정책과 기기·계정별 주간 결과",
+          "verification": "saju-dashboard-browser.mjs 일반 홈에서 독립 카드를 열고 원본 결과 및 360px 화면 확인. 공유·파일 저장은 실기기 미검증"
         },
         {
           "id": "4CUT",
           "target": "sajuFourCutCard",
           "source": "js/core/saju/reportDashboard.js",
-          "status": "requires-full-flow-port-and-verification",
-          "accessEvidence": "dashboard points to section_summary; historic rights unverified"
+          "status": "local-partial",
+          "tossRoute": "/saju/basic/play",
+          "resultRenderer": "apps/toss/src/SajuDashboard.tsx",
+          "accessEvidence": "공개 기본 사주 명식을 원본 렌더러에서 재사용",
+          "verification": "saju-dashboard-browser.mjs 일반 홈에서 독립 카드를 열고 원본 결과 및 360px 화면 확인. 공유·파일 저장은 실기기 미검증"
         },
         {
           "id": "dopamine",
           "target": "dopamineCard",
           "source": "js/core/saju/reportDashboard.js",
-          "status": "requires-full-flow-port-and-verification",
-          "accessEvidence": "dashboard points to section_summary; historic rights unverified"
+          "status": "local-partial",
+          "tossRoute": "/saju/basic/play",
+          "resultRenderer": "apps/toss/src/SajuDashboard.tsx",
+          "accessEvidence": "공개 기본 사주 명식을 원본 렌더러에서 재사용",
+          "verification": "saju-dashboard-browser.mjs 일반 홈에서 독립 카드를 열고 원본 결과 및 360px 화면 확인. 공유·파일 저장은 실기기 미검증"
         }
       ],
       "publicSections": [
@@ -8928,7 +8946,7 @@
       "tossLogin": "공개 진입",
       "tossResult": "app/yeongnyangi/_components/QuestionSkyConsultation.tsx",
       "reread": "무료 질문 시각·도시 차트. 유료 결과 보관 계약 없음",
-      "verification": "입구와 결과 소스 대조. 독립적인 전체 사용자 경로 검증 근거 미기록",
+      "verification": "question-sky-browser.mjs. 일반 홈에서 질문·시각·도시 → 게스트 호라리 원본 계산·외부 상담용 프롬프트. 모의 QR은 별도 고정 예시",
       "saleStatus": "현재 기능에 신규 구매 버튼 없음",
       "archiveTests": [],
       "archiveHomeButtons": []
@@ -8971,7 +8989,7 @@
       "tossLogin": "구매·기록에 토스 계정 필요",
       "tossResult": "app/yeongnyangi/_components/QuestionSkyConsultation.tsx",
       "reread": "영냥이 질문점성술 별도 권한. 일반 사주 승인 SKU로 구매 가능하다고 보지 않는다",
-      "verification": "입구와 결과 소스 대조. 독립적인 전체 사용자 경로 검증 근거 미기록",
+      "verification": "question-sky-browser.mjs. 로컬 Swiss로 임의 질문의 차트·원본 두 장 준비. 비공개 모의판은 원본에서 미리 계산한 예시 1건, 독립 모의 SKU·심화 질문·보관함 원문 재열람·다른 계정 거절",
       "saleStatus": "유료 상품 콘솔·운영 설정 필요",
       "archiveTests": [],
       "archiveHomeButtons": []

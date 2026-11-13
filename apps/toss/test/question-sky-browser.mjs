@@ -4,7 +4,10 @@ import {createServer} from 'node:http';
 import {readFile} from 'node:fs/promises';
 import {extname,resolve,sep} from 'node:path';
 const privateDir=process.env.TOSS_PRIVATE_SKY_DIST;
-let runtime,origin='http://127.0.0.1:'+Number(process.env.TOSS_TEST_PORT||4329);
+const privateArchiveOrigin=process.env.TOSS_PRIVATE_SKY_ORIGIN;
+if(privateArchiveOrigin)assert.equal(new URL(privateArchiveOrigin).hostname,'127.0.0.1');
+const simulated=!!(privateDir||privateArchiveOrigin);
+let runtime,origin=privateArchiveOrigin||'http://127.0.0.1:'+Number(process.env.TOSS_TEST_PORT||4329);
 if(privateDir){
  const folder=resolve(privateDir),mime={'.html':'text/html','.js':'text/javascript','.css':'text/css','.json':'application/json','.webp':'image/webp','.woff2':'font/woff2','.svg':'image/svg+xml'};
  runtime=createServer(async(req,res)=>{const path=new URL(req.url,'http://localhost').pathname;
@@ -17,7 +20,7 @@ const browser=await chromium.launch({channel:'chrome'});
 try{
  const ctx=await browser.newContext({viewport:{width:360,height:740},isMobile:true,serviceWorkers:'block'});
  await ctx.route('**/*',r=>new URL(r.request().url()).origin===origin?r.continue():r.abort());
- if(privateDir)await ctx.addInitScript(()=>{
+ if(simulated)await ctx.addInitScript(()=>{
   window.__appsInTossConstants={operationalEnvironment:'sandbox',safeAreaInsets:{top:0,bottom:12,left:0,right:0},schemeUri:'intoss://ai-saju-studio',locale:'ko-KR',platformOS:'android',tossAppVersion:'5.300.0'};
   const handlers={__subscribeAppEvent:()=>null,__unsubscribeAppEvent:()=>null,getStorageItem:()=>null,getPendingOrders:()=>({orders:[]})};
   window.__bridgeMethods__=Object.keys(handlers);window.ReactNativeWebView={postMessage(raw){
@@ -33,7 +36,7 @@ try{
   await p.getByRole('button',{name:new RegExp('^'+label)}).click();
  }
  async function fill(){
-  if(privateDir){await p.getByRole('button',{name:'모의 예시 입력하기'}).click();await p.locator('form button[type=submit]').last().click();return;}
+  if(simulated){await p.getByRole('button',{name:'모의 예시 입력하기'}).click();await p.locator('form button[type=submit]').last().click();return;}
   await p.locator('#sky-question').fill(question);await p.locator('#sky-topic').selectOption('work');
   await p.locator('#sky-city').selectOption('seoul');
   await p.locator('#sky-time').fill(new Date(Date.now()-86400000).toISOString().slice(0,16));
@@ -54,16 +57,20 @@ try{
  await p.getByRole('button',{name:'심화 질문 보내기'}).click();
  await p.getByText('이번 상담에 포함된 심화 질문을 모두 사용했어.').waitFor();
  await p.reload();await p.getByText('이번 상담에 포함된 심화 질문을 모두 사용했어.').waitFor();
- const state=await p.evaluate(key=>JSON.parse(localStorage.getItem(key)),privateDir?'consultations':'toss-offline-fixture');
+ const state=await p.evaluate(key=>JSON.parse(localStorage.getItem(key)),simulated?'consultations':'toss-offline-fixture');
  assert.equal(state.orders.length,1);assert.equal(state.fortunes.length,1);
  const row=state.fortunes[0][1];assert.equal(row.generationCount,1);assert.equal(row.sku,'mock-yeongnyangi-prashna');
  assert.equal(row.fortune.chapters.length,2);assert.equal(row.fortune.product.priceKRW,1);
  await p.goto(origin);await p.getByRole('button',{name:'내 정보',exact:true}).click();
  await p.getByRole('button',{name:'로그아웃',exact:true}).click();await p.getByText('로그아웃했어요.').waitFor();
- if(privateDir)await p.locator('#private-simulation-person').selectOption('B');
+ if(simulated){
+  const switched=p.waitForEvent('load');
+  await p.locator('#private-simulation-person').selectOption('B');
+  await switched;assert.equal(await p.locator('#private-simulation-person').inputValue(),'B');
+ }
  else await p.evaluate(()=>localStorage.setItem('toss-offline-login-person','second'));
  await enter('영냥 신점');await fill();await p.getByRole('button',{name:'토스로 로그인하기'}).click();
  await p.locator('#sky-question').waitFor();await p.goto(result);
  await p.locator('[role=alert]').first().waitFor();assert.doesNotMatch(await p.locator('body').innerText(),/영냥이의 첫 답변입니다/);
- console.log('PASS '+(privateDir?'packaged reference horary and Prashna':'guest local Swiss horary and Prashna')+', mock purchase, interrupted generation, owned archive, single follow-up, stored chapters and account denial.');
+ console.log('PASS '+(simulated?'packaged reference horary and Prashna':'guest local Swiss horary and Prashna')+', mock purchase, interrupted generation, owned archive, single follow-up, stored chapters and account denial.');
 }finally{await browser.close();if(runtime)await new Promise(done=>runtime.close(done));}

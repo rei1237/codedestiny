@@ -54,6 +54,10 @@ try{
  await page.getByRole('button',{name:'운명 읽기'}).click();
  await page.getByRole('heading',{name:'구름',exact:true}).waitFor();
  await page.getByRole('heading',{name:'타고난 오행'}).waitFor();
+ await open('반려동물 사주');
+ await page.getByRole('button',{name:/저장한 아이 보기/}).click();
+ await page.getByRole('button',{name:/구름.*오늘의 흐름 다시 보기/}).click();
+ await page.getByRole('heading',{name:'구름',exact:true}).waitFor();
  await page.getByRole('button',{name:/심층 리포트 보기/}).click();
  await page.getByRole('link',{name:'토스로 로그인하기'}).waitFor();
  await open('만세력');

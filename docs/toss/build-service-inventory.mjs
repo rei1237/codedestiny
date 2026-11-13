@@ -94,12 +94,11 @@ for(const [card,id,target] of [['meryok','personal-charm','specialCharmCard'],['
  if(!dashboard.includes(`id:'${card}'`)||!dashboard.includes(`target:'${target}'`)||!visual[id]?.inlineAliases?.includes(`rpt_${target}`)||!groups.has(id))throw new Error(`Missing dashboard alias evidence: ${card}`);
  groups.get(id).aliasEvidence.push(`js/core/saju/reportDashboard.js:${card} -> ${target}`,`index.html:${id}.inlineAliases -> rpt_${target}`);
 }
-// These are reachable cards within the still-unported Saju result. Track them
-// as unresolved subflows until their individual rights and aliases are proven.
+// The web dashboard cards share the basic natal input and retain distinct outputs.
 const sajuCards=[['sajuprompt','aiPromptCard'],['tbal','tTestCard'],['tetoegen','hormone-vibe-section'],['lotto','lottoCard'],['4CUT','sajuFourCutCard'],['dopamine','dopamineCard']];
 for(const [id,target] of sajuCards)if(!dashboard.includes(`id:'${id}'`)||!dashboard.includes(`target:'${target}'`))throw new Error(`Missing Saju result card: ${id}`);
 if(!groups.has('saju')||!groups.has('luck-sync-diary'))throw new Error('Missing parent candidate for Saju or diary');
-groups.get('saju').subfeatures=sajuCards.map(([id,target])=>({id,target,source:'js/core/saju/reportDashboard.js',status:'requires-full-flow-port-and-verification',accessEvidence:id==='lotto'?'dashboard says Saju bundle; separate entitlement mapping unverified':'dashboard points to section_summary; historic rights unverified'}));
+groups.get('saju').subfeatures=sajuCards.map(([id,target])=>({id,target,source:'js/core/saju/reportDashboard.js',status:'local-partial',tossRoute:'/saju/basic/play',resultRenderer:'apps/toss/src/SajuDashboard.tsx',accessEvidence:id==='lotto'?'fun.quantumLotto.ritualReport 무료 정책과 기기·계정별 주간 결과':'공개 기본 사주 명식을 원본 렌더러에서 재사용',verification:'saju-dashboard-browser.mjs 일반 홈에서 독립 카드를 열고 원본 결과 및 360px 화면 확인. 공유·파일 저장은 실기기 미검증'}));
 if(!context.window.__cdServiceRegistry.some(row=>row.href==='/diary/')||!fs.readFileSync(path.join(root,'js/core/index-inline-runtime.js'),'utf8').includes('window.openLegacyLuckSyncDiary =')||!fs.readFileSync(path.join(root,'js/core/index-inline-runtime.js'),'utf8').includes("location.assign('/diary/')"))throw new Error('Missing new or legacy diary entry');
 groups.get('luck-sync-diary').subfeatures=[{id:'fortunePlanner',entry:'/diary/',status:'local-partial'},{id:'legacyLuckSyncDiary',entry:'js/luck-sync-diary.js:openLegacyLuckSyncDiary',status:'requires-full-flow-port-and-verification',verification:'legacy stored records and migration not verified'}];
 const localEvidence={
@@ -458,6 +457,8 @@ for(const group of canonicalCandidates){
  }
  if(['manse','vedic','pet-saju'].includes(group.id))group.verification=(group.verification?group.verification+' · ':'')+'guest-calculators-browser.mjs 360px 홈, 비회원 계산. 기본 베다 local Swiss 원본, 만세력 원본 대운·명식, 반려동물 원본 오행·유료 로그인 경계';
  if(['vedic-ai','ziwei-ai','astrology-ai','new-year-ai','karma-destiny-ai','sukuyo-compatibility-ai','fusion-fortune','love-secret-ai'].includes(group.id))group.verification='expert-purchase-browser.mjs 7종 및 sukuyo-expert-browser.mjs 1종. 360px 일반 홈 → 상품별 입력·모의 결제와 생성 → 구매 기록·원문 재열람 → 다른 계정 URL 거절. expert-offers-browser.mjs 일반 판매 비활성';
+ if(group.id==='yeongnyangi-prashna'){group.verification='question-sky-browser.mjs. 로컬 Swiss로 임의 질문의 차트·원본 두 장 준비. 비공개 모의판은 원본에서 미리 계산한 예시 1건, 독립 모의 SKU·심화 질문·보관함 원문 재열람·다른 계정 거절';group.saleStatus='프라슈나 전용 콘솔 SKU 및 운영 활성화 필요';}
+ if(group.id==='yeongnyangi-horary')group.verification='question-sky-browser.mjs. 일반 홈에서 질문·시각·도시 → 게스트 호라리 원본 계산·외부 상담용 프롬프트. 모의 QR은 별도 고정 예시';
  if(group.id==='career-style')group.verification='studio-career-browser.mjs 360px 일반 홈 → 모의 로그인 → 소유 프로필 → 원본 여덟 장과 계산 근거 확인, 주문 0건';
  if(group.id==='life-book-ai'||group.id==='life-fortune-report')group.verification='life-reading-browser.mjs 360px 홈, 두 상품 각각의 모의 주문 → 원문 → 구매 기록 재열람·다른 계정 차단';
  if(!group.verification){
