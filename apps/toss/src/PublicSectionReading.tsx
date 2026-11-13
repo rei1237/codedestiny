@@ -8,7 +8,7 @@ import {Button} from './Button';
 import {api} from './platform';
 import TossSessionScope from './TossSessionScope';
 
-type TravelHistory={recent:string[];winners:string[]};
+import {loadTravelHistory,saveTravelHistory,type TravelHistory} from './travel-history';
 type SectionKey=keyof typeof TOSS_PUBLIC_SECTIONS;
 type Energy={recent?:string[];renderedAt?:string;transform?:string;roulette?:string[]};
 type Report={rpg?:{stem:string;element:string};ok:boolean;featureKey:string;accessSource:string;html:string;css?:string;parts?:NatalParts;decadeHtml?:string;energy?:Energy};
@@ -80,7 +80,7 @@ function SectionBody({report,input,travel,onLogin}:{report:Report;input:RequestB
         if(!output)throw Error('Roulette unavailable');
         output.replaceChildren(safeFragment(doc!,response.html));
         if(wheel&&response.energy?.transform)wheel.style.transform=response.energy.transform;
-        travel.winners=response.energy?.roulette||[];spin++;
+        travel.winners=response.energy?.roulette||[];saveTravelHistory(travel);spin++;
       }catch{if(active)setIssue('여행지를 뽑지 못했어요. 다시 선택해 주세요.');}
       finally{if(active){spinning=false;buttons.forEach(b=>b.disabled=false);}}
     }
@@ -94,7 +94,6 @@ function Reading({kind,onLogin}:{kind:'saju'|'ziwei';onLogin:()=>void}){
   const keys=(Object.keys(TOSS_PUBLIC_SECTIONS) as SectionKey[]).filter(k=>isTossPublicSection(k)&&(kind==='saju'?!k.startsWith('ziwei_'):k.startsWith('ziwei_')));
   const [key,setKey]=useState(keys[0]),[birth,setBirth]=useState(emptyBirth),[mode,setMode]=useState('pig'),[name,setName]=useState('');
   const [result,setResult]=useState<{report:Report;input:RequestBody;travel:TravelHistory}|null>(null),[busy,setBusy]=useState(false),[error,setError]=useState('');
-  const travelByBirth=useRef(new Map<string,TravelHistory>());
   const epoch=useRef(0),title=useRef<HTMLHeadingElement>(null);
   useEffect(()=>()=>{epoch.current++;},[]);
   useEffect(()=>{
@@ -114,12 +113,12 @@ function Reading({kind,onLogin}:{kind:'saju'|'ziwei';onLogin:()=>void}){
     const id=++epoch.current;
     setBusy(true);setError('');
     try{
-      const birthKey=JSON.stringify(birth);
-      const travel=travelByBirth.current.get(birthKey)||{recent:[],winners:[]};
+      const travel=key==='rpt_energyCoordCard'?await loadTravelHistory(JSON.stringify(birth)):{recent:[],winners:[]};
+      if(epoch.current!==id)return;
       const input=sectionInput(key,birth,mode,travel.recent,name);
       const report=checked(await api<Report>(path,input),key);
       if(epoch.current===id){
-        if(report.energy?.recent){travel.recent=report.energy.recent;travelByBirth.current.set(birthKey,travel);}
+        if(report.energy?.recent){travel.recent=report.energy.recent;saveTravelHistory(travel);}
         setResult({report,input,travel});
       }
     }catch{if(epoch.current===id)setError('풀이를 불러오지 못했어요. 입력과 연결 상태를 확인한 뒤 다시 시도해 주세요.');}

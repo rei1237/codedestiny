@@ -29,7 +29,7 @@ try{
    const box=await control.boundingBox();assert.ok(box&&box.width&&box.height);
    await page.touchscreen.tap(box.x+box.width/2,box.y+box.height/2);
  }
- for(const [prefix,title] of [['rpt_','사주 리포트'],['ziwei_','자미두수 상세 풀이']]){
+ async function openGroup(title){
    await page.goto(origin);
    await page.locator('.world-entry-ggulggul').click();
    await page.getByRole('button',{name:new RegExp(title)}).click();
@@ -37,6 +37,9 @@ try{
    await page.getByLabel('태어난 시각',{exact:true}).fill('14:30');
    await page.getByLabel('계산에 사용하는 성별').selectOption('F');
    await page.getByLabel('출생 도시').selectOption('서울');
+ }
+ for(const [prefix,title] of [['rpt_','사주 리포트'],['ziwei_','자미두수 상세 풀이']]){
+   await openGroup(title);
    for(const [key,label] of Object.entries(TOSS_PUBLIC_SECTIONS).filter(([k])=>k.startsWith(prefix)||prefix==='rpt_'&&k==='saju_natal_reading')){
      await page.getByLabel('풀이 선택').selectOption(key);
      if(key==='saju_natal_reading'){
@@ -119,5 +122,15 @@ try{
  assert.equal(spins.length,8);
  assert.deepEqual(spins.map(c=>c.energy.roulette.spin),[1,2,3,4,5,6,7,8]);
  assert.ok(spins.slice(1).every(c=>c.energy.roulette.recent.length>0));
+ await openGroup('사주 리포트');
+ await page.getByLabel('풀이 선택').selectOption('rpt_energyCoordCard');
+ await page.getByRole('button',{name:'선택한 풀이 보기'}).click();
+ const frame=page.frameLocator('iframe[title="사주로 보는 여행지"]');
+ await tap(frame.locator('[data-energy-roulette-mode="domestic"]'));
+ await frame.locator('[data-energy-roulette-reroll="domestic"]').waitFor();
+ assert.ok(calls.at(-2).energy.recent.length>0);
+ assert.equal(calls.at(-1).energy.roulette.spin,1);
+ assert.ok(calls.at(-1).energy.roulette.recent.length>0);
+ console.log('PASS reopened app retains travel history');
  assert.deepEqual(unexpected,[]);
 }finally{await browser.close();}

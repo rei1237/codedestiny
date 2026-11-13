@@ -430,7 +430,7 @@ export async function handleTossRoutes(request,env) {
       else if(current.accessMethod||current.paymentId||current.paymentClaimOrderId||!['CREATED','AWAITING_DRAW'].includes(current.state))throw new TossError('RESULT_NOT_FOUND',404);
       return reply(drawn);
     }
-    if(path==='/session'&&request.method==='GET')return reply({authenticated:true,environment:auth.environment});
+    if(path==='/session'&&request.method==='GET')return reply({authenticated:true,environment:auth.environment,storageScope:await hash('local-progress:'+auth.environment+':'+auth._id)});
     if(path==='/logout'&&request.method==='POST') {await TossSession.deleteOne({_id:auth.sessionId});return reply({ok:true});}
     if(path==='/unlink'&&request.method==='POST')return reply(await disconnectIdentity(env,auth));
     if(path.startsWith('/daily/')){
