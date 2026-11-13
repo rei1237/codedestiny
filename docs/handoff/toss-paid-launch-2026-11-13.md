@@ -1,14 +1,14 @@
 ---
-status: blocked
+status: in-progress
 updated: 2026-11-13
-next: origin/main c3d692272의 Secret Scan 실패가 해결되면 fetch·pre-push 확인 후 현재 HEAD를 main으로 전달한다.
+next: Secret Scan 범위 수정 커밋 후 pre-push를 통과시키고 최신 origin/main을 병합해 main으로 전달한다.
 ---
 
 # 앱인토스 유료 상담 결제 활성화·출시
 
 ## 첫 행동
 
-`npm run check:fast` 세션의 종료 상태를 확인한다. 성공하면 diff를 검토하고 토스 상품/결제 구현과 로그인·개인정보·mTLS 준비를 별도 커밋한다.
+Secret Scan 범위 수정 커밋을 만들고 `npm run check:pre-push`를 실행한다. 성공하면 최신 origin/main 상태를 확인하고 이동분을 병합한 뒤 `HEAD:main`으로 전달한다.
 
 ## 지금 상태
 
@@ -20,7 +20,10 @@ next: origin/main c3d692272의 Secret Scan 실패가 해결되면 fetch·pre-pus
 - 실제 SKU, 공급가, VAT 포함 판매가, 증거 URL과 1024px 불투명 이미지를 원장에 반영했다.
 - `NEW_PURCHASES_AVAILABLE=false`, `TOSS_RELEASE_READY=false/미설정` 상태를 유지한다.
 - 코드 커밋: `2db788061`, 설정·개인정보 커밋: `dce6f135d`, 공개 미러 커밋: `eb6642b51`.
-- 전달 차단: origin/main `c3d692272`의 Secret Scan run `43397660367`이 과거 이력 88건을 검출해 실패했다. 현재 작업의 비밀값은 저장하거나 push하지 않았다.
+- Secret Scan 실패 원인 확인: workflow가 범위 없는 `gitleaks git`을 실행해 main에서 도달할 수 없는 오래된 원격 `wt/*` 브랜치 3개의 이력까지 검사했다. 실패한 88건은 13개 비-main 커밋에만 있었고 모두 origin/main의 조상이 아니었다.
+- Gitleaks v8.24.2로 `--log-opts=HEAD` 범위를 직접 검사한 결과 12,288개 main 도달 커밋, 1.13GB에서 검출 0건이었다. 규칙과 allowlist는 변경하지 않았다.
+- workflow를 `gitleaks git --log-opts=HEAD --redact --verbose`로 제한하고, bare 명령으로 회귀하지 않는 테스트를 추가했다.
+- 위 수정 포함 `npm run check:fast` 통과: Jest 476개 스위트·7,978개 테스트 통과(1개 스킵).
 
 ## 승인 상태
 
@@ -58,7 +61,10 @@ next: origin/main c3d692272의 Secret Scan 실패가 해결되면 fetch·pre-pus
 - [x] 기능 단위 커밋
 - [x] 최신 origin/main 병합 및 Toss 앱 1,440개 테스트·타입 검사 재확인
 - [x] `npm run check:pre-push`
-- [ ] origin/main·CI 상태 확인 후 main 전달 — 기존 main Secret Scan 실패로 대기
+- [x] 기존 main Secret Scan 실패 원인 확인 및 main 도달 이력 검출 0건 확인
+- [x] Secret Scan을 `HEAD` 도달 이력으로 제한하고 회귀 테스트 추가
+- [ ] Secret Scan 수정 커밋과 pre-push
+- [ ] origin/main·CI 상태 확인 후 main 전달
 - [ ] main CI 1회 확인
 - [ ] 프로덕션 승격 승인 후 비밀값/콜백/로그인 등록
 - [ ] 비공개 QR 실결제 승인 후 4,950원 1회 검증
