@@ -19,6 +19,7 @@
 import type { FortunePeriodId } from "./periods";
 import type { SignFaq, SignProfile } from "./sign-profiles";
 import type { FortuneLocale } from "./localization";
+import { tomorrowUsageFaqKo } from "./tomorrow-sign-copy";
 
 /**
  * 받침 유무로 `와`/`과` 를 고른다.
@@ -156,7 +157,7 @@ export function buildPeriodBasisFaq(profile: SignProfile, period: FortunePeriodI
 
 /** 화면과 FAQPage 스키마가 함께 쓰는 목록. 기간 문답이 맨 앞에 온다. */
 export function buildPeriodFaqs(profile: SignProfile, period: FortunePeriodId, locale: FortuneLocale = "ko"): SignFaq[] {
-  const topics: SignFaq[] = locale === "ko" ? [{
+  const topics: SignFaq[] = locale === "ko" && period === "tomorrow" ? [tomorrowUsageFaqKo(profile.nameKo)] : locale === "ko" ? [{
     question: `${profile.nameKo} ${withGwaWa("연애운")} 재물운·직장운은 어떻게 활용하나요?`,
     answer: `연애운은 대화의 속도와 기대를, 재물운은 소비 계획과 지출 습관을, 직장운은 협업과 업무 우선순위를 점검하는 질문으로 읽어보세요. 건강운은 생활 리듬을 돌아보는 참고이며 의학적 판단에 사용하지 않습니다. 같은 ${profile.kind === "animal" ? "띠" : "별자리"}라도 실제 성향과 상황은 다릅니다.`,
   }] : [];

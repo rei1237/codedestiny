@@ -1,0 +1,210 @@
+{
+  "observedAt": "2026-11-13T08:32:24.665Z",
+  "source": "http://127.0.0.1:27352",
+  "method": "SSR <main> text excluding script/style/svg/nav/template; whitespace 5-word shingle sets; Jaccard (target) plus min-set share",
+  "summary": {
+    "pairs": 24,
+    "maximumJaccard": 0.18054630246502332,
+    "meanJaccard": 0.1383875803658889,
+    "pairsAtOrAbove30": 0,
+    "pairsAtOrAbove50": 0,
+    "maximumMinSet": 0.31511627906976747,
+    "minimumTomorrowCharacters": 3671,
+    "tomorrowTodayIljin": 0,
+    "tomorrowParagraphsWithToday": 0
+  },
+  "pairs": [
+    {
+      "sign": "rat",
+      "jaccard": 0.1017,
+      "minSet": 0.1939,
+      "tomorrowMainCharacters": 3765,
+      "tomorrowTodayIljin": 0,
+      "tomorrowParagraphsWithToday": []
+    },
+    {
+      "sign": "ox",
+      "jaccard": 0.1339,
+      "minSet": 0.2464,
+      "tomorrowMainCharacters": 3671,
+      "tomorrowTodayIljin": 0,
+      "tomorrowParagraphsWithToday": []
+    },
+    {
+      "sign": "tiger",
+      "jaccard": 0.1459,
+      "minSet": 0.2665,
+      "tomorrowMainCharacters": 3777,
+      "tomorrowTodayIljin": 0,
+      "tomorrowParagraphsWithToday": []
+    },
+    {
+      "sign": "rabbit",
+      "jaccard": 0.1025,
+      "minSet": 0.1985,
+      "tomorrowMainCharacters": 3718,
+      "tomorrowTodayIljin": 0,
+      "tomorrowParagraphsWithToday": []
+    },
+    {
+      "sign": "dragon",
+      "jaccard": 0.1076,
+      "minSet": 0.204,
+      "tomorrowMainCharacters": 3700,
+      "tomorrowTodayIljin": 0,
+      "tomorrowParagraphsWithToday": []
+    },
+    {
+      "sign": "snake",
+      "jaccard": 0.1309,
+      "minSet": 0.2449,
+      "tomorrowMainCharacters": 3766,
+      "tomorrowTodayIljin": 0,
+      "tomorrowParagraphsWithToday": []
+    },
+    {
+      "sign": "horse",
+      "jaccard": 0.132,
+      "minSet": 0.2458,
+      "tomorrowMainCharacters": 3703,
+      "tomorrowTodayIljin": 0,
+      "tomorrowParagraphsWithToday": []
+    },
+    {
+      "sign": "goat",
+      "jaccard": 0.1064,
+      "minSet": 0.2022,
+      "tomorrowMainCharacters": 3731,
+      "tomorrowTodayIljin": 0,
+      "tomorrowParagraphsWithToday": []
+    },
+    {
+      "sign": "monkey",
+      "jaccard": 0.1086,
+      "minSet": 0.208,
+      "tomorrowMainCharacters": 3785,
+      "tomorrowTodayIljin": 0,
+      "tomorrowParagraphsWithToday": []
+    },
+    {
+      "sign": "rooster",
+      "jaccard": 0.1034,
+      "minSet": 0.1976,
+      "tomorrowMainCharacters": 3703,
+      "tomorrowTodayIljin": 0,
+      "tomorrowParagraphsWithToday": []
+    },
+    {
+      "sign": "dog",
+      "jaccard": 0.1006,
+      "minSet": 0.1938,
+      "tomorrowMainCharacters": 3765,
+      "tomorrowTodayIljin": 0,
+      "tomorrowParagraphsWithToday": []
+    },
+    {
+      "sign": "pig",
+      "jaccard": 0.105,
+      "minSet": 0.2002,
+      "tomorrowMainCharacters": 3744,
+      "tomorrowTodayIljin": 0,
+      "tomorrowParagraphsWithToday": []
+    },
+    {
+      "sign": "aries",
+      "jaccard": 0.174,
+      "minSet": 0.2982,
+      "tomorrowMainCharacters": 3693,
+      "tomorrowTodayIljin": 0,
+      "tomorrowParagraphsWithToday": []
+    },
+    {
+      "sign": "taurus",
+      "jaccard": 0.1555,
+      "minSet": 0.2749,
+      "tomorrowMainCharacters": 3762,
+      "tomorrowTodayIljin": 0,
+      "tomorrowParagraphsWithToday": []
+    },
+    {
+      "sign": "gemini",
+      "jaccard": 0.1563,
+      "minSet": 0.2788,
+      "tomorrowMainCharacters": 3769,
+      "tomorrowTodayIljin": 0,
+      "tomorrowParagraphsWithToday": []
+    },
+    {
+      "sign": "cancer",
+      "jaccard": 0.1567,
+      "minSet": 0.2785,
+      "tomorrowMainCharacters": 3721,
+      "tomorrowTodayIljin": 0,
+      "tomorrowParagraphsWithToday": []
+    },
+    {
+      "sign": "leo",
+      "jaccard": 0.1568,
+      "minSet": 0.2811,
+      "tomorrowMainCharacters": 3759,
+      "tomorrowTodayIljin": 0,
+      "tomorrowParagraphsWithToday": []
+    },
+    {
+      "sign": "virgo",
+      "jaccard": 0.1598,
+      "minSet": 0.2866,
+      "tomorrowMainCharacters": 3736,
+      "tomorrowTodayIljin": 0,
+      "tomorrowParagraphsWithToday": []
+    },
+    {
+      "sign": "libra",
+      "jaccard": 0.1583,
+      "minSet": 0.2821,
+      "tomorrowMainCharacters": 3706,
+      "tomorrowTodayIljin": 0,
+      "tomorrowParagraphsWithToday": []
+    },
+    {
+      "sign": "scorpio",
+      "jaccard": 0.1613,
+      "minSet": 0.2869,
+      "tomorrowMainCharacters": 3746,
+      "tomorrowTodayIljin": 0,
+      "tomorrowParagraphsWithToday": []
+    },
+    {
+      "sign": "sagittarius",
+      "jaccard": 0.1649,
+      "minSet": 0.2955,
+      "tomorrowMainCharacters": 3830,
+      "tomorrowTodayIljin": 0,
+      "tomorrowParagraphsWithToday": []
+    },
+    {
+      "sign": "capricorn",
+      "jaccard": 0.1602,
+      "minSet": 0.2874,
+      "tomorrowMainCharacters": 3745,
+      "tomorrowTodayIljin": 0,
+      "tomorrowParagraphsWithToday": []
+    },
+    {
+      "sign": "aquarius",
+      "jaccard": 0.1805,
+      "minSet": 0.3151,
+      "tomorrowMainCharacters": 3728,
+      "tomorrowTodayIljin": 0,
+      "tomorrowParagraphsWithToday": []
+    },
+    {
+      "sign": "pisces",
+      "jaccard": 0.1583,
+      "minSet": 0.2837,
+      "tomorrowMainCharacters": 3741,
+      "tomorrowTodayIljin": 0,
+      "tomorrowParagraphsWithToday": []
+    }
+  ]
+}

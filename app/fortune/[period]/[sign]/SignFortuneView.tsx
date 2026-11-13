@@ -29,6 +29,7 @@ import { tomorrowReadingCopy } from "@/lib/i18n/fortune-hub-copy.mjs";
 import { TOMORROW_PREPARATION_DETAILS } from "@/lib/i18n/search-reading-paths.mjs";
 import tomorrowStyles from "../tomorrow.module.css";
 import DailyFortuneWebtoon from "../DailyFortuneWebtoon";
+import { TOMORROW_DISCLOSURE_KO, tomorrowAdviceIntroKo, tomorrowCompatibilityIntroKo, tomorrowPersonalCopyKo, tomorrowPreparationMarker, tomorrowRelationPreparation } from "@/lib/fortune/tomorrow-sign-copy";
 
 const SCORE_AXES = [
   { key: "love", label: "애정운", section: "love" },
@@ -135,6 +136,9 @@ export default function SignFortuneView({ vm: sourceVm, locale = "ko" }: { vm: S
   const tricky = profile.challengeWith.map(getSignProfile).filter(Boolean).map((item) => getLocalizedProfile(item!, locale)) as SignProfile[];
   const prefix = locale === "ko" ? "" : `/${fortuneLocaleSegment(locale)}`;
   const otherPeriods = (["today", "tomorrow", "weekly", "monthly"] as FortunePeriodId[]).filter((p) => p !== period);
+  const koTomorrow = locale === "ko" && period === "tomorrow";
+  const tomorrowPersonal = koTomorrow ? tomorrowPersonalCopyKo(profile.nameKo, kindLabel) : null;
+  const relationPreparation = koTomorrow ? tomorrowRelationPreparation(profile, vm.relation) : null;
 
   return (
     <main
@@ -189,7 +193,7 @@ export default function SignFortuneView({ vm: sourceVm, locale = "ko" }: { vm: S
         )}
 
         {period === "tomorrow" && (
-        <p className={`mt-5 break-keep text-sm leading-7 ${MUTED}`}>{FORTUNE_EDITORIAL_DISCLOSURE[locale]}</p>
+        <p className={`mt-5 break-keep text-sm leading-7 ${MUTED}`}>{koTomorrow ? TOMORROW_DISCLOSURE_KO : FORTUNE_EDITORIAL_DISCLOSURE[locale]}</p>
         )}
 
         {/* 오늘·내일 운세 웹툰 — 그날 계산값으로 말풍선을 채운 7컷(한국어 화면만) */}
@@ -234,6 +238,11 @@ export default function SignFortuneView({ vm: sourceVm, locale = "ko" }: { vm: S
               {vm.relation.badge}
             </p>
             <p {...markerAttrs(vm.relation.detailI18n)} className="mt-3 break-keep text-sm leading-7">{vm.relation.detail}</p>
+            {relationPreparation && (
+              <p lang="ko" data-cd-no-trans className={`mt-3 break-keep text-sm leading-7 ${MUTED}`}>
+                <strong className={ACCENT}>{tomorrowPreparationMarker(vm.dateKey)}</strong>{" "}{relationPreparation}
+              </p>
+            )}
           </section>
         )}
 
@@ -285,10 +294,15 @@ export default function SignFortuneView({ vm: sourceVm, locale = "ko" }: { vm: S
         </section>}
 
         {locale === "ko" && <section aria-labelledby="personal-reading-heading" className={tomorrowStyles.guide}>
+          {tomorrowPersonal ? (<>
+          <h2 id="personal-reading-heading">{tomorrowPersonal.heading}</h2>
+          <p>{tomorrowPersonal.body}</p>
+          </>) : (<>
           <h2 id="personal-reading-heading">같은 {profile.nameKo}라도 나는 어떤 흐름일까요?</h2>
           <p>위 내용은 같은 {kindLabel}에 공통으로 적용하는 {currentPeriodLabel} 운세예요.
             개인의 오행과 기질은 생년월일로 사주 명식을 세워 확인할 수 있어요.
             실제 고민을 묻고 싶다면 별도 유료 영냥이 상담의 범위를 살펴보세요.</p>
+          </>)}
           <div className={tomorrowStyles.jumpLinks}>
             <Link href="/saju/" data-cd-cross-sell={`/fortune/${period}/${profile.id}/`} data-cd-cta-placement="next_step" data-cd-target-service="saju">나의 사주 기본 결과 보기</Link>
             <Link href="/yeongnyangi/" data-cd-cross-sell={`/fortune/${period}/${profile.id}/`} data-cd-cta-placement="next_step" data-cd-target-service="yeongnyangi">영냥이에게 질문하는 방법</Link>
@@ -370,7 +384,7 @@ export default function SignFortuneView({ vm: sourceVm, locale = "ko" }: { vm: S
             {locale === "ko" ? `${currentPeriodLabel} · 분야별 조언` : `${profile.nameKo} · ${copy.profile}`}
           </h2>
           <p className={`mt-2 break-keep text-sm leading-7 ${MUTED}`}>
-            {locale === "ko" ? `아래는 기준일의 분야별 원고예요. 위의 점수·관계와 함께 읽고, 지금의 상황에 맞는 조언을 골라보세요.` : locale === "en" ? "These are enduring tendencies. The scores and relationships above change with the date; this section describes their background." : locale === "ja" ? "ここでは日付に左右されない基本的な傾向を紹介します。上のスコアや関係は日々変化しますが、この部分はその土台です。" : locale === "zh-CN" ? "以下是不随日期改变的基本倾向。上方评分和关系随日期变化，这一部分说明其基础。" : "以下是不隨日期改變的基本傾向。上方評分和關係隨日期變化，這一部分說明其基礎。"}
+            {koTomorrow ? tomorrowAdviceIntroKo() : locale === "ko" ? `아래는 기준일의 분야별 원고예요. 위의 점수·관계와 함께 읽고, 지금의 상황에 맞는 조언을 골라보세요.` : locale === "en" ? "These are enduring tendencies. The scores and relationships above change with the date; this section describes their background." : locale === "ja" ? "ここでは日付に左右されない基本的な傾向を紹介します。上のスコアや関係は日々変化しますが、この部分はその土台です。" : locale === "zh-CN" ? "以下是不随日期改变的基本倾向。上方评分和关系随日期变化，这一部分说明其基础。" : "以下是不隨日期改變的基本傾向。上方評分和關係隨日期變化，這一部分說明其基礎。"}
           </p>
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
             {SCORE_AXES.map((axis) => (
@@ -409,7 +423,7 @@ export default function SignFortuneView({ vm: sourceVm, locale = "ko" }: { vm: S
           {entry.planet_message?.kr && (
             <p className={`mt-3 break-keep text-sm leading-7 ${MUTED}`}>{dailyText(entry.planet_message.kr)}</p>
           )}
-          {entry.saju_insight && (
+          {entry.saju_insight && !koTomorrow && (
             <p className={`mt-3 break-keep text-sm leading-7 ${MUTED}`}>{dailyText(entry.saju_insight)}</p>
           )}
         </section>
@@ -419,7 +433,7 @@ export default function SignFortuneView({ vm: sourceVm, locale = "ko" }: { vm: S
           <h2 id="profile-heading" className="break-keep text-lg font-extrabold">
             {`${profile.nameKo} · ${copy.profile}`}
           </h2>
-          <p className={`mt-3 break-keep text-sm leading-7 ${MUTED}`}>{profile.essence}</p>
+          {!koTomorrow && <p className={`mt-3 break-keep text-sm leading-7 ${MUTED}`}>{profile.essence}</p>}
 
           {locale === "ko" && period === "tomorrow" ? (
             <p className={`mt-3 break-keep text-sm leading-7 ${MUTED}`}>
@@ -454,7 +468,7 @@ export default function SignFortuneView({ vm: sourceVm, locale = "ko" }: { vm: S
             {`${profile.nameKo} · ${copy.compatible}`}
           </h2>
           <p className={`mt-2 break-keep text-sm leading-7 ${MUTED}`}>
-            {profile.kind === "zodiac"
+            {koTomorrow ? tomorrowCompatibilityIntroKo(profile.kind) : profile.kind === "zodiac"
               ? locale === "ko" ? brandCopy('zodiacComparison') : locale === "en" ? "This comparison uses elemental trines and opposite signs." : locale === "ja" ? "同じ元素のトラインと向かい合う宮を基準に見ます。" : locale === "zh-CN" ? "以同元素三分相和对宫关系作为参考。" : "以同元素三分相與對宮關係作為參考。"
               : locale === "ko" ? brandCopy('animalComparison') : locale === "en" ? "This comparison uses the three-harmony and clash relationships of the zodiac." : locale === "ja" ? "十二支の三合と冲を基準に見ます。" : locale === "zh-CN" ? "以十二生肖的三合与相冲关系作为参考。" : "以十二生肖的三合與相沖關係作為參考。"}
           </p>
@@ -508,7 +522,7 @@ export default function SignFortuneView({ vm: sourceVm, locale = "ko" }: { vm: S
         </section>
 
         {/* 기간 전환 + 전체 목록 */}
-        <section aria-labelledby="more-heading" className="mt-12">
+        <nav aria-labelledby="more-heading" className="mt-12">
           <h2 id="more-heading" className="break-keep text-lg font-extrabold">
             {locale === "en" ? `Other ${kindLabel} readings` : locale === "ja" ? `他の期間の${kindLabel}運勢` : locale === "ko" ? `다른 기간과 다른 ${kindLabel}` : `其他期間的${kindLabel}運勢`}
           </h2>
@@ -539,10 +553,10 @@ export default function SignFortuneView({ vm: sourceVm, locale = "ko" }: { vm: S
             heading={profile.kind === "zodiac" ? `${copy.animal} 12` : `${copy.zodiac} 12`}
             locale={locale}
           />
-        </section>
+        </nav>
 
         {/* 더 깊이 */}
-        <section aria-labelledby="deeper-heading" className="mt-12">
+        <nav aria-labelledby="deeper-heading" className="mt-12">
           <h2 id="deeper-heading" className="break-keep text-lg font-extrabold">{locale === "ko" ? "하루 너머를 보고 싶다면" : locale === "en" ? "Go beyond today" : locale === "ja" ? "今日の先を読む" : "看看今日之外"}</h2>
           <div className="mt-4 grid gap-3 sm:grid-cols-3">
             <Link href={`${prefix}/today/`} className={`p-5 transition-colors hover:border-[#b31955]/40 ${CARD}`}>
@@ -564,7 +578,7 @@ export default function SignFortuneView({ vm: sourceVm, locale = "ko" }: { vm: S
               </span>
             </Link>
           </div>
-        </section>
+        </nav>
 
         {locale === "ko" ? (
           <FusionCrossSell fromPath={`/fortune/${period}/${profile.id}`} tone="yeoni" />

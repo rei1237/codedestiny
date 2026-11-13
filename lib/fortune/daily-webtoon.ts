@@ -250,8 +250,12 @@ export function buildDailyWebtoon(input: DailyWebtoonInput): DailyWebtoon {
   const advice = koreanDailyText(stripSpeakerLabel(entry.sections.advice?.kr || ""), period);
   return {
     heading: `${name} ${dayWord}의 운세 웹툰`,
-    lead: "사주·별·타로·숫자판·마음, 다섯 갈래 운세가 한 컷씩 말을 걸고 마지막에 연이가 하나로 묶어 드려요.",
-    note: `그림은 상담 웹툰에서 빌려 온 예화 컷이고, 말풍선은 ${month}월 ${day}일 일진·하늘·카드로 계산한 ${name}의 값입니다. 태어난 시각까지 넣은 개인 풀이와는 다릅니다.`,
+    lead: period === "today"
+      ? "사주·별·타로·숫자판·마음, 다섯 갈래 운세가 한 컷씩 말을 걸고 마지막에 연이가 하나로 묶어 드려요."
+      : `${month}월 ${day}일을 하루 앞서 읽는 일곱 컷이에요. 컷마다 미리 챙길 것 하나씩만 골라 잠들기 전 메모로 옮겨 보세요.`,
+    note: period === "today"
+      ? `그림은 상담 웹툰에서 빌려 온 예화 컷이고, 말풍선은 ${month}월 ${day}일 일진·하늘·카드로 계산한 ${name}의 값입니다. 태어난 시각까지 넣은 개인 풀이와는 다릅니다.`
+      : `말풍선 숫자는 내일 날짜로 미리 계산한 ${name}의 값이고, 그림은 상담 웹툰의 예화 컷을 옮겨 왔어요. 생년월일시를 넣는 개인 풀이를 대신하지 않습니다.`,
     cuts: [
       cut("opening", "place", [
         { speaker: "", text: `${month}월 ${day}일, ${name}의 ${dayWord}을 네오·윤달·연이·무성·서한비가 한 장씩 펼쳐 봅니다.` },
