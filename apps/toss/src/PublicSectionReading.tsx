@@ -135,6 +135,7 @@ function Reading({kind,onLogin}:{kind:'saju'|'ziwei';onLogin:()=>void}){
     {birth.unknown&&<p>출생 시각을 몰라 정오를 기준으로 계산했어요.</p>}
     <SectionBody {...result} onLogin={onLogin}/><Button variant="weak" display="block" onClick={()=>setResult(null)}>다른 풀이 보기</Button></section>;
   return <section><h1>{kind==='saju'?'사주 리포트':'자미두수 상세 풀이'}</h1>
+    {kind==='saju'&&<Button display="block" onClick={()=>location.assign('/saju/love-simulation/')}>러브 코드 · 사주 연애 시뮬레이션</Button>}
     {kind==='ziwei'&&<Button display="block" onClick={()=>setIsland(true)}>운명의 섬 탐험하기</Button>}
     <form className="form" onSubmit={submit}><label>풀이 선택<select value={key} onChange={e=>setKey(e.target.value as SectionKey)} disabled={busy}>
     {keys.map(k=><option key={k} value={k}>{TOSS_PUBLIC_SECTIONS[k]}</option>)}</select></label>

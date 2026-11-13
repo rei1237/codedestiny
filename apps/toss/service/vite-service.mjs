@@ -153,6 +153,11 @@ export default function serviceCompat(){
     if(source.includes('/fuctionassets/saju-relationship-temptation-768.webp'))references.add('/fuctionassets/saju-relationship-temptation-768.webp');
     for(const match of source.matchAll(asset)){const ref=match[1];if(isTea640Reference(ref)){tea640=true;continue;}if(ref.startsWith('/images/service-introductions/yeongnyangi-${')&&isYeongnyangi640Reference(source.slice(match.index+match[0].indexOf(ref),match.index+512))){yeongnyangi640=true;continue;}const prefix=ref.split('${')[0];if(prefix.length>8&&prefix!=='/neo-operation-room/')references.add(prefix);}
    }
+   // Original named LOVE CODE character portraits (including Korean spaces) are used by the web engine.
+   if(Object.values(bundle).some(entry=>entry.type==='chunk'&&entry.code.includes('/fuctionassets/러브 코드/'))){
+    references.add('/fuctionassets/love code.webp');
+    for(const file of await readdir(resolve(publicRoot,'fuctionassets/러브 코드')))if(file.endsWith('.webp'))references.add('/fuctionassets/러브 코드/'+file);
+   }
    if(tea640)for(const file of await readdir(resolve(publicRoot,'images/service-introductions')))if(/^tea-.+-640\.webp$/.test(file))references.add('/images/service-introductions/'+file);
    if(yeongnyangi640)for(const file of await readdir(resolve(publicRoot,'images/service-introductions')))if(/^yeongnyangi-.+-640\.webp$/.test(file))references.add('/images/service-introductions/'+file);
    // The relationship report uses five scene records from the shared web
@@ -179,6 +184,8 @@ export default function serviceCompat(){
    const emitted=new Set();
    async function sourceBytes(path){
     const ref=path.slice(publicRoot.length+1).split(sep).join('/');
+    if(ref.startsWith('fuctionassets/러브 코드/'))return sharp(path).resize({width:640,withoutEnlargement:true}).webp({quality:82}).toBuffer();
+    if(ref==='fuctionassets/love code.webp')return sharp(path).resize({width:800,withoutEnlargement:true}).webp({quality:82}).toBuffer();
     // Guardians occupy a 72px reading portrait; the map also supports pinch zoom.
     if(/^images\/destiny-island\/guardians\/[^/]+-v1\.webp$/.test(ref))return sharp(path).resize({width:240,withoutEnlargement:true}).webp({quality:85}).toBuffer();
     if(ref==='images/destiny-island/exploration-map-v3.webp')return sharp(path).resize({width:1200,withoutEnlargement:true}).webp({quality:84}).toBuffer();

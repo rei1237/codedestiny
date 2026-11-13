@@ -52,7 +52,7 @@ function normalizeMinute(rawMinute: number): number {
   return Math.max(0, Math.min(59, Math.floor(rawMinute)));
 }
 
-function fallbackSajuAnalysis(params: SajuPillarRequest): SajuAnalysis {
+export function fallbackSajuAnalysis(params: SajuPillarRequest): SajuAnalysis {
   const year = Number(params.year) || 1990;
   const month = Number(params.month) || 1;
   const day = Number(params.day) || 1;

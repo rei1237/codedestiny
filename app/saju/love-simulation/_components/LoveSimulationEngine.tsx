@@ -8,7 +8,7 @@ import React, { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { m, AnimatePresence } from "framer-motion";
 import { ArrowLeft, ChevronRight, Heart, MessageCircle, RefreshCw, Sparkles, UserRound } from "lucide-react";
 import { INITIAL_STATS, LOVE_CHARACTERS, LOVE_CHARACTER_COPY_KO, getLocalizedLoveScenes, normalizeLoveSceneTitleLocale as normalizeLoveSimulationLocale, type CharacterId, type ChoiceLog, type LoveCharacter, type LoveChoice, type LoveScene, type LoveSceneTitleLocale as LoveSimulationLocale, type LoveStats } from "../_data/loveCodeMvp";
-import { fetchSajuPillar } from "../_services/sajuApi";
+import { fallbackSajuAnalysis,fetchSajuPillar } from "../_services/sajuApi";
 import { applyEffects, getRelationshipMetrics } from "../_utils/loveCodeScoring";
 import { buildSajuCoupleCompatibility, formatTemplate, matchLoveCharactersFromSaju, LOVE_MATCHING_COPY_KO, type LoveCharacterMatchResult, type LoveMatchingCopy, type SajuCoupleCompatibility } from "../_utils/loveCharacterMatching";
 import { useLoveSimCopy } from "../_utils/loveSimCopy";
@@ -20,7 +20,7 @@ import { WEIGHTS } from "../_config/weights.config";
 import type { CompatibilityProfile } from "../_engine/compatibilityTypes";
 import type { AnimalDestinyInput } from "../../animal-destiny/lib/types";
 import { formatBirthDateDigits, normalizeBirthDateFromDigits } from "@/lib/birthDateInput";
-import { readCurrentDestinyProfile } from "@/app/_lib/profile-card-storage";
+import { fetchCurrentDestinyProfile,readCurrentDestinyProfile } from "@/app/_lib/profile-card-storage";
 import { refreshPaidFeatureEntitlements } from "@/app/_lib/billing-client";
 import { LOVE_CODE_FEATURE_KEY, normalizeLoveCodeFeatureKey } from "@/app/_lib/love-code-entitlement";
 import { useFreeReadingGuard } from "@/app/_lib/use-free-reading-guard";
@@ -569,10 +569,10 @@ function normalizeProfileGender(value: unknown): "남" | "여" {
   return /^(m|male|man|남|남성)$/i.test(raw) ? "남" : "여";
 }
 
-function readCurrentProfileSeed(): ProfileSeed | null {
+function readCurrentProfileSeed(ownedProfile?:StoredProfile|null): ProfileSeed | null {
   if (typeof window === "undefined") return null;
-  const authUser = readJsonObject<StoredAuthUser>("fortune_auth_user");
-  const currentProfile = readCurrentDestinyProfile() as StoredProfile | null;
+  const authUser = ownedProfile===undefined ? readJsonObject<StoredAuthUser>("fortune_auth_user") : null;
+  const currentProfile = ownedProfile===undefined ? readCurrentDestinyProfile() as StoredProfile | null : ownedProfile;
 
   try {
     const birthDate = normalizeBirthDateFromProfile(currentProfile) || normalizeBirthDate(authUser?.birthDate);
@@ -1448,7 +1448,21 @@ function ResultCard({
   );
 }
 
-export const LoveSimulationEngine: React.FC = () => {
+type LoveSimulationProps={
+  toss?:boolean;
+  onLogin?:()=>void;
+  OwnBirth?:React.ComponentType<{apply:(seed:ProfileSeed)=>void}>;
+};
+export const LoveSimulationEngine: React.FC<LoveSimulationProps> = ({toss=false,onLogin,OwnBirth}) => {
+  const readPillars=toss?fallbackSajuAnalysis:fetchSajuPillar;
+  const [ownBirth,setOwnBirth]=useState<ProfileSeed|null>(null);
+  const readSeed=async()=>{
+    if(!toss)return readCurrentProfileSeed();
+    if(ownBirth)return ownBirth;
+    if(!await hasFreeReadingSession().catch(()=>false))return null;
+    const profile=await fetchCurrentDestinyProfile(undefined,{reportFailure:true});
+    return readCurrentProfileSeed(profile as StoredProfile|null);
+  };
   // lg 미만 / reduced-motion 에서는 상시 연출을 통째로 끈다. 화면 4개가 전부 early return 이라
   // 훅 호출은 반드시 여기(첫 return 위)에 있어야 한다.
   const ambient = useAmbientMotionEnabled();
@@ -1539,7 +1553,9 @@ export const LoveSimulationEngine: React.FC = () => {
   // 모바일 PortOne 리다이렉트로 startWithCharacter 의 await 가 죽은 뒤, 복귀한 새 문서에서 시뮬레이션을
   // 이어받는다. 🔴 게이트를 다시 타지 않고 게이트 없는 코어(startSimulationScene)를 결제 직전 상태로 부른다.
   useEffect(() => {
-    const clear = () => { setScreen("intro"); setSelectedId(null); setProfile(null); setCoupleCompatibility(null); setMatchResults([]); setChoiceLog([]); setPartnerName(""); setPartnerBirthDate(""); setMatchError(""); setIsStartingSimulation(false); };
+    const clear = () => {
+      setOwnBirth(null);
+      setScreen("intro"); setSelectedId(null); setProfile(null); setCoupleCompatibility(null); setMatchResults([]); setChoiceLog([]); setPartnerName(""); setPartnerBirthDate(""); setMatchError(""); setIsStartingSimulation(false); };
     const events = ['cd:auth-changed','cd:auth-session-invalidated','cd:profile-changed','destiny:profile-changed','cd:current-profile-changed'];
     const storage = (event: StorageEvent) => { if (!event.key || /auth|profile|cdToken/.test(event.key)) clear(); };
     events.forEach(name => window.addEventListener(name, clear)); window.addEventListener('storage', storage);
@@ -1596,7 +1612,7 @@ export const LoveSimulationEngine: React.FC = () => {
     try {
       const signedIn = await hasFreeReadingSession();
       if (!request.valid()) return;
-      if (!signedIn) { setMatchError(copy.loginRequiredError); return; }
+      if (!signedIn) { setMatchError(copy.loginRequiredError); onLogin?.(); return; }
       setMatchError("");
       startSimulationScene(id, mode);
     } catch { if (request.valid()) setMatchError(copy.loginRequiredError); }
@@ -1639,7 +1655,7 @@ export const LoveSimulationEngine: React.FC = () => {
     setProfileStatus("loading");
 
     void (async () => {
-      const seed = readCurrentProfileSeed();
+      const seed = await readSeed().catch(()=>null);
       const selfInput = seed ? profileSeedToAnimalInput(seed) : null;
       const partnerInput =
         entryMode === "sajuMatch"
@@ -1715,6 +1731,18 @@ export const LoveSimulationEngine: React.FC = () => {
     setIsChoiceOpen(false);
   };
 
+  useEffect(()=>{
+    if(!toss||screen==='intro')return;
+    const back=(event:Event)=>{
+      if(event.defaultPrevented)return;
+      event.preventDefault();
+      if(screen==='select')setScreen('intro');
+      else if(isChoiceOpen)setIsChoiceOpen(false);
+      else setScreen('select');
+    };
+    window.addEventListener('code-destiny:toss-back',back);
+    return ()=>window.removeEventListener('code-destiny:toss-back',back);
+  },[toss,screen,isChoiceOpen]);
   const resetToSelect = () => {
     setSelectedChoice(null);
     setSceneIndex(0);
@@ -1750,23 +1778,23 @@ export const LoveSimulationEngine: React.FC = () => {
     setCoupleCompatibility(null);
 
     try {
-      const profileSeed = readCurrentProfileSeed();
+      const profileSeed = await readSeed().catch(()=>null);
       const profileBirth = profileSeed ? parseProfileSeedBirthDate(profileSeed.birthDate) : null;
       const [partnerSaju, selfSaju] = await Promise.all([
-        fetchSajuPillar({
+        readPillars({
           name: targetInput.name.trim() || "상대",
           gender: targetInput.gender === "male" ? "남" : "여",
           year,
           month,
           day,
-          hour: Number(targetInput.hour) || 12,
+          hour: targetInput.hour!=="" && Number.isFinite(Number(targetInput.hour)) ? Number(targetInput.hour) : 12,
           minute: Number(targetInput.minute) || 0,
           hasTime: targetInput.hasTime,
           calendarType: targetInput.calType,
           timezone: targetInput.country,
         }),
         profileSeed && profileBirth
-          ? fetchSajuPillar({
+          ? readPillars({
               name: profileSeed.name || "나",
               gender: profileSeed.gender,
               year: profileBirth.year,
@@ -1810,7 +1838,7 @@ export const LoveSimulationEngine: React.FC = () => {
               "복원"하면 데스크톱 히어로가 28% 어두워진다 — 되살리지 말 것. */}
           <m.img
             src={LOVE_CODE_HERO_ASSET}
-            srcSet={LOVE_CODE_HERO_SRCSET}
+            srcSet={toss?undefined:LOVE_CODE_HERO_SRCSET}
             sizes={LOVE_CODE_HERO_SIZES}
             onError={handleHeroSrcSetFailure}
             alt=""
@@ -1916,7 +1944,8 @@ export const LoveSimulationEngine: React.FC = () => {
                 {copy.introDescription}
               </p>
               </div>
-              {locale === "ko" && <div style={{width:"100%",maxWidth:540,minWidth:0,margin:"24px 0",background:"#f2e4df",color:"#583744",borderRadius:12}}><CraftedProductDisclosure featureKey="love-code" summaryLabel="러브 코드 상세 안내" /></div>}
+              {OwnBirth&&<OwnBirth apply={setOwnBirth}/>}
+              {!toss && locale === "ko" && <div style={{width:"100%",maxWidth:540,minWidth:0,margin:"24px 0",background:"#f2e4df",color:"#583744",borderRadius:12}}><CraftedProductDisclosure featureKey="love-code" summaryLabel="러브 코드 상세 안내" /></div>}
               <div className="mt-9 flex flex-col gap-3 sm:flex-row">
                 <button
                   onClick={() => setScreen("select")}
@@ -1947,7 +1976,7 @@ export const LoveSimulationEngine: React.FC = () => {
                 const [rawHour, rawMinute] = String(formData.get("partnerTime") ?? "").split(":");
                 void matchPartner({
                   name: String(formData.get("partnerName") ?? ""),
-                  birthDate: String(formData.get("partnerBirthDate") ?? ""),
+                  birthDate: normalizeBirthDateFromDigits(String(formData.get("partnerBirthDate") ?? "")),
                   calType: String(formData.get("partnerCalType") ?? "solar") as PartnerCalendarType,
                   hour: String(Number(rawHour) || 0),
                   minute: String(Number(rawMinute) || 0),
