@@ -45,6 +45,7 @@ const Fusion=lazy(()=>import('./Fusion'));
 const Vedic=lazy(()=>import('@/app/vedic-ai/VedicAiClient'));
 const Ziwei=lazy(()=>import('@/app/ziwei-ai/ZiweiAiClient'));
 const NewYear=lazy(()=>import('@/app/new-year-ai-consultation/NewYearAiClient'));
+const Face=lazy(()=>import('./TossFace'));
 const Codex=lazy(()=>import('./TossCodex'));
 const Naming=lazy(()=>import('./TossNaming'));
 const Geomancy=lazy(()=>import('./TossGeomancy'));
@@ -155,6 +156,7 @@ export default function ServiceScreens({reviewOnly=false,verifiedReceipt=false,i
  if(/^\/saju\/destiny-meeting-place\/?$/.test(location.pathname))return <LazyMotion features={domAnimation}>{recoveryBanner}{ready&&<Suspense fallback={<p role="status">인연의 장소를 열고 있어요.</p>}><TossMeetingPlace/></Suspense>}</LazyMotion>;
  if(/^\/saju\/career-style\/?$/.test(location.pathname))return <LazyMotion features={domAnimation}><ToastProvider/>{recoveryBanner}{ready&&<Suspense fallback={<p role="status">일 스타일 리포트를 열고 있어요.</p>}><TossCareerStyle/></Suspense>}</LazyMotion>;
  if(location.pathname==='/maya'||location.pathname==='/maya/')return <LazyMotion features={domAnimation}><ToastProvider/>{recoveryBanner}{ready?<Suspense fallback={<p role="status">마야 달력을 열고 있어요.</p>}><Maya paymentSurface="toss" TossPrompt={verifiedReceipt?SavedMayaPrompt:MayaPrompt}/></Suspense>:<p role="status">로그인 상태를 확인하고 있어요.</p>}</LazyMotion>;
+ if(/^\/(animal\/physio|past-life-face)\/?$/.test(location.pathname))return <Suspense fallback={<p>사진 상담실을 열고 있어요.</p>}><Face/></Suspense>;
  if(/^\/master-love-codex(?:\/result)?\/?$/.test(location.pathname))return <LazyMotion features={domAnimation}>{recoveryBanner}{ready&&<Suspense fallback={<p role="status">인연의 서를 열고 있어요.</p>}><Codex/></Suspense>}</LazyMotion>;
  if(/^\/saju\/compatibility\/?$/.test(location.pathname))return <LazyMotion features={domAnimation}>{recoveryBanner}{ready?<Suspense fallback={<p role="status">궁합을 열고 있어요.</p>}><SajuCompat/></Suspense>:<p role="status">로그인 상태를 확인하고 있어요.</p>}</LazyMotion>;
  if(/^\/naming-ai(?:\/result)?\/?$/.test(location.pathname))return <LazyMotion features={domAnimation}>{recoveryBanner}{ready&&<Suspense fallback={<p role="status">작명첩을 열고 있어요.</p>}><Naming/></Suspense>}</LazyMotion>;
