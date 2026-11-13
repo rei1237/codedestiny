@@ -72,7 +72,7 @@ function Intake({owner}:{owner:string}){
     try{
       const requestId=draft.requestId||'yoga-'+crypto.randomUUID();save({...draft,requestId});
       const input={mood:draft.mood.trim(),duration:draft.duration,requestId};
-      const intentId=await checkoutNativeInput({service:'yoga',feature,input,orderId,sku:sale?.sku,isCurrent,onCancel:cleanup=>{cancel.current=cleanup;}});
+      const intentId=await checkoutNativeInput({service:'yoga',feature,input,orderId,displayed:sale,isCurrent,onCancel:cleanup=>{cancel.current=cleanup;}});
       if(!intentId||!isCurrent())return;
       try{localStorage.removeItem(key);}catch{/* Optional persistence. */}
       location.replace('/yoga-guru?resultId='+encodeURIComponent(intentId));

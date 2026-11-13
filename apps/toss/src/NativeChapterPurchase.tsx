@@ -25,7 +25,7 @@ export default function NativeChapterPurchase({service,feature,prefix,route,owne
       const requestId=localStorage.getItem(key)||prefix+'-'+crypto.randomUUID();
       localStorage.setItem(key,requestId);
       const payload=makePayload(requestId);
-      const id=await checkoutNativeInput({service,feature,input:payload,orderId,sku:sale?.sku,isCurrent,onCancel:cleanup=>{cancel.current=cleanup;}});
+      const id=await checkoutNativeInput({service,feature,input:payload,orderId,displayed:sale,isCurrent,onCancel:cleanup=>{cancel.current=cleanup;}});
       if(id&&isCurrent())location.replace(route+'?resultId='+encodeURIComponent(id));
     }catch{if(isCurrent())setError('시작 상태를 확인하지 못했어요. 구매 기록을 확인한 뒤 같은 질문으로 이어주세요.');}
     finally{if(isCurrent()){setBusy(false);flight.current=false;}}

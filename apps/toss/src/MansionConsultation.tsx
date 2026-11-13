@@ -57,7 +57,7 @@ function Intake({owner}:{owner:string}){
     try{
       const requestId=draft.requestId||'nakai-'+crypto.randomUUID();save({...draft,requestId});
       const input={birthInfo:birth(draft.person),question:draft.question.trim(),requestId};
-      const intentId=await checkoutNativeInput({service:'nakshatra',feature,input,orderId,sku:sale?.sku,isCurrent,onCancel:cleanup=>{cancel.current=cleanup;}});
+      const intentId=await checkoutNativeInput({service:'nakshatra',feature,input,orderId,displayed:sale,isCurrent,onCancel:cleanup=>{cancel.current=cleanup;}});
       if(!intentId||!isCurrent())return;
       try{localStorage.removeItem(key);}catch{/* Optional persistence. */}
       location.replace('/nakshatra/ai?resultId='+encodeURIComponent(intentId));
