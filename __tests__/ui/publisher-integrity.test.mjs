@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
+import { readFileSync } from "node:fs";
 import { getContentReview, actualContentDate, hasAdvertisingReview } from "../../lib/content/editorial-review.mjs";
 import { inspectPublisherDocument } from "../../scripts/lib/publisher-document.mjs";
 import { canServeReviewedAdsense } from "../../lib/content/advertising-review.mjs";
@@ -24,6 +25,19 @@ test("review requires a person, actual date and evidence; advertising is a separ
   for (const change of [{ reviewer: "" }, { evidence: "" }, { reviewedAt: "-" }, { reviewedAt: "2026-02-30" }, { status: "pending" }]) {
     assert.equal(getContentReview(path, { [path]: { ...review, ...change } }), null);
   }
+});
+test("a ledger record for a core hub reaches the note that hub renders", () => {
+  // docs/seo/editorial-review-checklist.md 의 핵심 허브. 원장에 항목을 넣으면 이 경로들의 고지에 검수자와 검수일이 뜬다.
+  const hubs = ["/saju", "/manse", "/ziwei", "/compatibility", "/saju/compatibility", "/tarot", "/today", "/astrology", "/sukuyo", "/vedic", "/dream", "/love"];
+  const landings = readFileSync("lib/seo-landing-pages.js", "utf8");
+  const record = { status: "verified", reviewer: "박병하", reviewedAt: "2026-11-14", evidence: "fixture-only" };
+  for (const path of hubs) {
+    assert.ok(landings.includes(`path: "${path}",`), path + " is a landing hub");
+    assert.equal(getContentReview(path + "/", { [path]: record }), record, path);
+  }
+  assert.ok(readFileSync("app/components/SeoLandingTemplate.jsx", "utf8").includes('<ContentIntegrityNote tone="light" contentPath={page?.path || ""}'));
+  assert.ok(readFileSync("app/components/ImmersiveRelatedLinks.tsx", "utf8").includes("contentPath={fromPath}"));
+  assert.ok(readFileSync("app/components/ContentIntegrityNote.jsx", "utf8").includes("getContentReview(contentPath)"));
 });
 test("missing or invalid dates stay missing and never depend on build time", () => {
   for (const date of [undefined, null, "", "-", "2026-02-30", "not a date"]) assert.equal(actualContentDate(date), null);
