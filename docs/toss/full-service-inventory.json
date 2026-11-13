@@ -1,5 +1,5 @@
 {
-  "sourceCommit": "119689b721548d81a639511e3a7a8bb98a2fcd28",
+  "sourceCommit": "8fbcd83ff6fb587d5e6a5bd0f1d9509b2b8dbf78",
   "sourceCounts": {
     "home": 63,
     "react": 18,
@@ -1512,8 +1512,8 @@
         "library": "not-verified",
         "device": "not-tested",
         "canonicalId": "neo-consultation",
-        "candidateStatus": "requires-full-flow-port-and-verification",
-        "canonicalRoute": null
+        "candidateStatus": "local-partial",
+        "canonicalRoute": "/neo-consultation/"
       }
     },
     {
@@ -1751,8 +1751,8 @@
         "library": "not-verified",
         "device": "not-tested",
         "canonicalId": "palm-reading",
-        "candidateStatus": "requires-full-flow-port-and-verification",
-        "canonicalRoute": null
+        "candidateStatus": "local-partial",
+        "canonicalRoute": "/palm-reading/"
       }
     },
     {
@@ -3045,7 +3045,8 @@
       "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
       "tossLogin": "공개 진입",
       "tossResult": "apps/toss/src/AnimalDestiny.tsx",
-      "reread": "화면 메모리. 계정 변경 시 TossSessionScope 재설정"
+      "reread": "화면 메모리. 계정 변경 시 TossSessionScope 재설정",
+      "verification": "apps/toss/test/ animal-destiny.test.mjs · 개별 검사 범위. 실제 기기 미검증"
     },
     {
       "id": "animal-totem",
@@ -3163,7 +3164,8 @@
       "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
       "tossLogin": "계산 또는 기록 조회에 토스 계정 필요",
       "tossResult": "apps/toss/src/BasicSkyChart.tsx",
-      "reread": "result in memory only; guest/web profiles, wheel, original unlocks and device parity pending"
+      "reread": "result in memory only; guest/web profiles, wheel, original unlocks and device parity pending",
+      "verification": "apps/toss/test/ basic-sky-chart.test.mjs · basic-sky-ui.test.mjs · 개별 검사 범위. 실제 기기 미검증"
     },
     {
       "id": "astrology-ai",
@@ -3254,7 +3256,8 @@
       "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
       "tossLogin": "공개 진입",
       "tossResult": "apps/toss/src/BiasReading.tsx + BiasReport.tsx",
-      "reread": "native-card-save-summary-share-mocked; device-and-web-history-parity-pending"
+      "reread": "native-card-save-summary-share-mocked; device-and-web-history-parity-pending",
+      "verification": "apps/toss/test/ bias-report.test.mjs · 개별 검사 범위. 실제 기기 미검증"
     },
     {
       "id": "career-style",
@@ -3299,7 +3302,8 @@
       "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
       "tossLogin": "계산 또는 기록 조회에 토스 계정 필요",
       "tossResult": "apps/toss/service/TossCareerStyle.jsx + app/saju/career-style/CareerStyleClient.tsx",
-      "reread": "계정별 프로필을 사용한 무료 개인 명식 8장. 실기기 미검증"
+      "reread": "계정별 프로필을 사용한 무료 개인 명식 8장. 실기기 미검증",
+      "verification": "입구와 결과 소스 대조. 독립적인 전체 사용자 경로 검증 근거 미기록"
     },
     {
       "id": "consultation-webtoons",
@@ -3663,7 +3667,7 @@
       "inputContract": "index.html:openDreamModal + js/dream-ledger.js → worker/routes/dream.js → lib/tarot/dream-prompt.mjs",
       "resultRenderer": "apps/toss/src/DreamPrompt.tsx",
       "storageContract": "게스트 현재 화면 및 원문 복사. 정신분석 해몽은 별도 유료 기능",
-      "verification": "360px 일반 홈에서 1~5장 원본 카드와 프롬프트, 잘못된 입력 및 다시 쓰기 검증",
+      "verification": "Linux AIT c3a960736 · 43460223398 · 360px 일반 홈에서 게스트 입력과 원본 결과 확인. private-bundle-public-readings.mjs tarot olympus; 네이티브 공유는 기기 미검증",
       "webEntries": [
         "/dream/"
       ],
@@ -3678,7 +3682,8 @@
       "bundleVerification": "Linux AIT c3a960736 · 43460223398 · 360px 일반 홈에서 게스트 입력과 원본 결과 확인. private-bundle-public-readings.mjs tarot olympus; 네이티브 공유는 기기 미검증",
       "tossLogin": "공개 입력 · 구매 없음",
       "tossResult": "apps/toss/src/DreamPrompt.tsx",
-      "reread": "게스트 현재 화면 및 원문 복사. 정신분석 해몽은 별도 유료 기능"
+      "reread": "게스트 현재 화면 및 원문 복사. 정신분석 해몽은 별도 유료 기능",
+      "saleStatus": "웹 무료 계산"
     },
     {
       "id": "dream-psycho-analysis",
@@ -3893,7 +3898,8 @@
       "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
       "tossLogin": "공개 진입",
       "tossResult": "apps/toss/src/FamousSaju.tsx",
-      "reread": "public articles only; historical archive, detail deep links and device parity pending"
+      "reread": "public articles only; historical archive, detail deep links and device parity pending",
+      "verification": "apps/toss/test/ famous-archive.test.mjs · 개별 검사 범위. 실제 기기 미검증"
     },
     {
       "id": "flower",
@@ -3974,7 +3980,8 @@
       "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
       "tossLogin": "계산 또는 기록 조회에 토스 계정 필요",
       "tossResult": "apps/toss/src/FlowerReading.tsx",
-      "reread": "not-stored-by-current-policy"
+      "reread": "not-stored-by-current-policy",
+      "verification": "apps/toss/test/ flower.test.mjs · flower-ui.test.mjs · 개별 검사 범위. 실제 기기 미검증"
     },
     {
       "id": "fortune-chat",
@@ -4075,6 +4082,7 @@
       "tossLogin": "구매·기록에 토스 계정 필요",
       "tossResult": "apps/toss/service/Screens.jsx",
       "reread": "owned-TossPurchase; device-and-console-approval-pending",
+      "verification": "apps/toss/test/ room-browser.mjs · 개별 검사 범위. 실제 기기 미검증",
       "saleStatus": "콘솔·운영 설정 필요"
     },
     {
@@ -4127,6 +4135,7 @@
       "tossLogin": "구매·기록에 토스 계정 필요",
       "tossResult": "apps/toss/service/Fusion.jsx",
       "reread": "owned-TossPurchase; device-and-console-approval-pending",
+      "verification": "apps/toss/test/ fusion-billing.test.mjs · native-fusion-boundary.test.mjs · 개별 검사 범위. 실제 기기 미검증",
       "saleStatus": "콘솔·운영 설정 필요"
     },
     {
@@ -4352,7 +4361,7 @@
       "portStatus": "일부만 이식",
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "일반 홈의 진입 코드 확인",
-      "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
+      "bundleVerification": "f2e46d05a · Linux AIT 43468160819 일반 홈, 무구매 360px. 자미 12궁·초상 및 위젯 6개 구성을 확인",
       "tossLogin": "공개 진입",
       "tossResult": "app/app/home-widget/HomeWidgetStudio.tsx의 미리보기",
       "reread": "게스트 미리보기. OS 홈 고정은 기존 Android 앱 플러그인 전용"
@@ -4711,6 +4720,7 @@
       "tossLogin": "구매·기록에 토스 계정 필요",
       "tossResult": "apps/toss/service/LifeBook.jsx",
       "reread": "owned-TossPurchase; device-and-console-approval-pending",
+      "verification": "입구와 결과 소스 대조. 독립적인 전체 사용자 경로 검증 근거 미기록",
       "saleStatus": "콘솔·운영 설정 필요"
     },
     {
@@ -4990,7 +5000,7 @@
           "verification": "legacy stored records and migration not verified"
         }
       ],
-      "verification": "diary-browser.mjs 360px 날짜별 입력·할 일·재실행, 쓰기 API 0회. 프로필 운기·통계와 레거시 기록 이전은 별도",
+      "verification": "diary-browser.mjs 360px 날짜별 입력·할 일·재실행·기간별 통계와 기록→해당 날짜 달력, 쓰기 API 0회. 웹의 기존 기기 저장 기록 이전과 계정 프로필 운기는 별도",
       "webEntries": [
         "/diary/"
       ],
@@ -5051,7 +5061,8 @@
       "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
       "tossLogin": "계산 또는 기록 조회에 토스 계정 필요",
       "tossResult": "apps/toss/src/ManseReading.tsx",
-      "reread": "screen-only; web-profile-history-parity-pending"
+      "reread": "screen-only; web-profile-history-parity-pending",
+      "verification": "apps/toss/test/ manse-ui.test.mjs · 개별 검사 범위. 실제 기기 미검증"
     },
     {
       "id": "master-love-codex",
@@ -5289,7 +5300,8 @@
       "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
       "tossLogin": "공개 진입",
       "tossResult": "apps/toss/src/MusicShelf.tsx",
-      "reread": "stream only; paid downloads, library and device audio parity pending"
+      "reread": "stream only; paid downloads, library and device audio parity pending",
+      "verification": "apps/toss/test/ music-shelf.test.mjs · 개별 검사 범위. 실제 기기 미검증"
     },
     {
       "id": "nakshatra",
@@ -5695,12 +5707,13 @@
         }
       ],
       "aliasEvidence": [],
-      "status": "requires-full-flow-port-and-verification",
-      "tossRoute": null,
+      "status": "local-partial",
+      "tossRoute": "/neo-consultation/",
       "sku": null,
-      "inputContract": null,
-      "resultRenderer": null,
-      "storageContract": null,
+      "inputContract": "질문 1~10개, 본인·상대 출생, 사주·자미, 이메일 및 동의. 원본 NeoConsultationClient",
+      "resultRenderer": "worker/neo-consultation/service.js 수동 검토·답변 이메일. 토스 개발 fixture에서 접수 원문과 상태 재열람",
+      "storageContract": "새 manual_email 주문은 서버에 답변 본문 없음. 기존 웹 주문 계약 별도. 토스 실판매 비활성",
+      "verification": "360px neo-email-browser.mjs 접수·다른 계정 URL 차단. 웹 원본 회귀 41건, 모의 발송기록. 실제 메일·결제 미실행",
       "webEntries": [
         "/neo-consultation/"
       ],
@@ -5709,13 +5722,14 @@
       ],
       "webProductIds": [],
       "freeCalculation": false,
-      "portStatus": "미이식",
-      "reducedBundle": "홈 진입 없음",
-      "currentEntry": "연결 경로 없음",
+      "portStatus": "일부만 이식",
+      "reducedBundle": "구현은 있으나 진입 차단",
+      "currentEntry": "일반 홈의 진입 코드 확인",
       "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
-      "tossLogin": "토스 기능 미연결",
-      "tossResult": "결과 화면 연결 미확인",
-      "reread": "재열람 경로 미확인"
+      "tossLogin": "질문과 견적 열람 가능, 모의 접수와 기록은 계정별",
+      "tossResult": "worker/neo-consultation/service.js 수동 검토·답변 이메일. 토스 개발 fixture에서 접수 원문과 상태 재열람",
+      "reread": "새 manual_email 주문은 서버에 답변 본문 없음. 기존 웹 주문 계약 별도. 토스 실판매 비활성",
+      "saleStatus": "콘솔·운영 설정 필요"
     },
     {
       "id": "neo-letter",
@@ -5806,6 +5820,7 @@
       "tossLogin": "구매·기록에 토스 계정 필요",
       "tossResult": "apps/toss/service/Screens.jsx",
       "reread": "owned-TossPurchase; device-and-console-approval-pending",
+      "verification": "apps/toss/test/ room-browser.mjs · 개별 검사 범위. 실제 기기 미검증",
       "saleStatus": "콘솔·운영 설정 필요"
     },
     {
@@ -5955,7 +5970,8 @@
       "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
       "tossLogin": "공개 진입",
       "tossResult": "apps/toss/src/NovelReader.tsx",
-      "reread": "in-screen reading position only; persistent bookmark, visual/audio and device parity pending"
+      "reread": "in-screen reading position only; persistent bookmark, visual/audio and device parity pending",
+      "verification": "apps/toss/test/ novel-reader.test.mjs · 개별 검사 범위. 실제 기기 미검증"
     },
     {
       "id": "olympus-oracle",
@@ -6088,12 +6104,13 @@
         }
       ],
       "aliasEvidence": [],
-      "status": "requires-full-flow-port-and-verification",
-      "tossRoute": null,
+      "status": "local-partial",
+      "tossRoute": "/palm-reading/",
       "sku": null,
-      "inputContract": null,
-      "resultRenderer": null,
-      "storageContract": null,
+      "inputContract": "원본 카메라·좌/우 손 사진, 주사용 손과 판독 목적",
+      "resultRenderer": "app/palm-reading/PalmDestinyMain.tsx · worker/routes/palm.js Vision 근거 및 심층 해석",
+      "storageContract": "사진 없이 입력 해시와 준비한 판독을 보관. 결제한 토스 계정만 원문 열기",
+      "verification": "360px palm-browser.mjs 합성 이미지로 모의 판독·구매·재진입·타 계정 차단. 네이티브 14건과 웹 390/1280px 복구 검사. 사진 촬영 성능은 실기기 필요",
       "webEntries": [
         "/palm-reading/",
         "/palm-reading"
@@ -6107,13 +6124,14 @@
         "palm-reading-general"
       ],
       "freeCalculation": false,
-      "portStatus": "미이식",
-      "reducedBundle": "홈 진입 없음",
-      "currentEntry": "연결 경로 없음",
+      "portStatus": "일부만 이식",
+      "reducedBundle": "구현은 있으나 진입 차단",
+      "currentEntry": "일반 홈의 진입 코드 확인",
       "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
-      "tossLogin": "토스 기능 미연결",
-      "tossResult": "결과 화면 연결 미확인",
-      "reread": "재열람 경로 미확인"
+      "tossLogin": "분석 준비·주문·원문은 토스 계정 필요",
+      "tossResult": "app/palm-reading/PalmDestinyMain.tsx · worker/routes/palm.js Vision 근거 및 심층 해석",
+      "reread": "사진 없이 입력 해시와 준비한 판독을 보관. 결제한 토스 계정만 원문 열기",
+      "saleStatus": "콘솔·운영 설정 필요"
     },
     {
       "id": "past-life-face",
@@ -6734,7 +6752,8 @@
       "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
       "tossLogin": "공개 진입",
       "tossResult": "apps/toss/src/BasicSajuReading.tsx",
-      "reread": "memory-only free basic chart; web result and device parity pending"
+      "reread": "memory-only free basic chart; web result and device parity pending",
+      "verification": "apps/toss/test/ basic-saju-flow.test.mjs · 개별 검사 범위. 실제 기기 미검증"
     },
     {
       "id": "saju-compatibility",
@@ -6934,7 +6953,7 @@
       "reducedBundle": "홈 진입 없음",
       "currentEntry": "일반 홈의 진입 코드 확인",
       "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
-      "tossLogin": "연도별 무료 분석은 공개",
+      "tossLogin": "연간 기본 분석 공개. 각 출생 프로필의 심층 연도별 보고서는 로그인·구매 필요",
       "tossResult": "worker/routes/sibyl.js /preview → buildSibylAnnual → 원본 기질·대비 행동·불확실성",
       "reread": "무료 연간 대비는 다시 계산. 심층은 출생정보·계정별 1회 해금 후 연도별 원본 10장·월별 흐름 저장. 콘솔 SKU 미확인"
     },
@@ -7292,8 +7311,8 @@
       "portStatus": "일부만 이식",
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "일반 홈의 진입 코드 확인",
-      "bundleVerification": "Linux AIT c3a960736 · 43460223398 · 360px 일반 홈에서 게스트 입력과 원본 결과 확인. private-bundle-public-readings.mjs tarot olympus; 네이티브 공유는 기기 미검증",
-      "tossLogin": "공개 입력 · 구매 없음",
+      "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
+      "tossLogin": "기능별 단계 검증 필요",
       "tossResult": "apps/toss/src/TarotLibrary.tsx",
       "reread": "owned-TossPurchase-to-PaidExecutionRecord"
     },
@@ -7327,7 +7346,7 @@
       "inputContract": "lib/tarot/toss-library-flows.mjs",
       "resultRenderer": "apps/toss/src/TarotLibrary.tsx",
       "storageContract": "canonical-free-calculation; previously paid orders retain stored result",
-      "verification": "mock-contracts-only; device-and-web-parity-pending",
+      "verification": "Linux AIT c3a960736 · 43460223398 · 360px 일반 홈에서 게스트 입력과 원본 결과 확인. private-bundle-public-readings.mjs tarot olympus; 네이티브 공유는 기기 미검증",
       "webEntries": [
         "/tarot/crystal-soul/"
       ],
@@ -7340,13 +7359,14 @@
         "tarot-crystal-soul-reading"
       ],
       "freeCalculation": true,
-      "portStatus": "일부만 이식",
+      "portStatus": "이미 동작",
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "일반 홈의 진입 코드 확인",
       "bundleVerification": "Linux AIT c3a960736 · 43460223398 · 360px 일반 홈에서 게스트 입력과 원본 결과 확인. private-bundle-public-readings.mjs tarot olympus; 네이티브 공유는 기기 미검증",
       "tossLogin": "공개 입력 · 구매 없음",
       "tossResult": "apps/toss/src/TarotLibrary.tsx",
-      "reread": "canonical-free-calculation; previously paid orders retain stored result"
+      "reread": "canonical-free-calculation; previously paid orders retain stored result",
+      "saleStatus": "웹 무료 계산"
     },
     {
       "id": "tarot-healing",
@@ -7412,7 +7432,7 @@
       "inputContract": "lib/tarot/toss-library-flows.mjs",
       "resultRenderer": "apps/toss/src/TarotLibrary.tsx",
       "storageContract": "canonical-free-calculation; previously paid orders retain stored result",
-      "verification": "mock-contracts-only; device-and-web-parity-pending",
+      "verification": "Linux AIT c3a960736 · 43460223398 · 360px 일반 홈에서 게스트 입력과 원본 결과 확인. private-bundle-public-readings.mjs tarot olympus; 네이티브 공유는 기기 미검증",
       "webEntries": [
         "/tarot-ijik.html"
       ],
@@ -7425,13 +7445,14 @@
         "tarot-ijik"
       ],
       "freeCalculation": true,
-      "portStatus": "일부만 이식",
+      "portStatus": "이미 동작",
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "일반 홈의 진입 코드 확인",
       "bundleVerification": "Linux AIT c3a960736 · 43460223398 · 360px 일반 홈에서 게스트 입력과 원본 결과 확인. private-bundle-public-readings.mjs tarot olympus; 네이티브 공유는 기기 미검증",
       "tossLogin": "공개 입력 · 구매 없음",
       "tossResult": "apps/toss/src/TarotLibrary.tsx",
-      "reread": "canonical-free-calculation; previously paid orders retain stored result"
+      "reread": "canonical-free-calculation; previously paid orders retain stored result",
+      "saleStatus": "웹 무료 계산"
     },
     {
       "id": "tarot-love-relationship",
@@ -7568,7 +7589,7 @@
       "inputContract": "lib/tarot/toss-library-flows.mjs",
       "resultRenderer": "apps/toss/src/TarotLibrary.tsx",
       "storageContract": "canonical-free-calculation; previously paid orders retain stored result",
-      "verification": "mock-contracts-only; device-and-web-parity-pending",
+      "verification": "Linux AIT c3a960736 · 43460223398 · 360px 일반 홈에서 게스트 입력과 원본 결과 확인. private-bundle-public-readings.mjs tarot olympus; 네이티브 공유는 기기 미검증",
       "webEntries": [
         "/tarot/numerology/"
       ],
@@ -7579,13 +7600,14 @@
         "tarot-numerology-reading"
       ],
       "freeCalculation": true,
-      "portStatus": "일부만 이식",
+      "portStatus": "이미 동작",
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "일반 홈의 진입 코드 확인",
       "bundleVerification": "Linux AIT c3a960736 · 43460223398 · 360px 일반 홈에서 게스트 입력과 원본 결과 확인. private-bundle-public-readings.mjs tarot olympus; 네이티브 공유는 기기 미검증",
       "tossLogin": "공개 입력 · 구매 없음",
       "tossResult": "apps/toss/src/TarotLibrary.tsx",
-      "reread": "canonical-free-calculation; previously paid orders retain stored result"
+      "reread": "canonical-free-calculation; previously paid orders retain stored result",
+      "saleStatus": "웹 무료 계산"
     },
     {
       "id": "tarot-prompt-maker",
@@ -7668,7 +7690,7 @@
       "inputContract": "lib/tarot/toss-library-flows.mjs",
       "resultRenderer": "apps/toss/src/TarotLibrary.tsx",
       "storageContract": "canonical-free-calculation; previously paid orders retain stored result",
-      "verification": "mock-contracts-only; device-and-web-parity-pending",
+      "verification": "Linux AIT c3a960736 · 43460223398 · 360px 일반 홈에서 게스트 입력과 원본 결과 확인. private-bundle-public-readings.mjs tarot olympus; 네이티브 공유는 기기 미검증",
       "webEntries": [
         "openTarotReunionModal",
         "/index.html?action=openTarotReunionModal"
@@ -7684,13 +7706,14 @@
         "tarot-reunion-reading"
       ],
       "freeCalculation": true,
-      "portStatus": "일부만 이식",
+      "portStatus": "이미 동작",
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "일반 홈의 진입 코드 확인",
       "bundleVerification": "Linux AIT c3a960736 · 43460223398 · 360px 일반 홈에서 게스트 입력과 원본 결과 확인. private-bundle-public-readings.mjs tarot olympus; 네이티브 공유는 기기 미검증",
       "tossLogin": "공개 입력 · 구매 없음",
       "tossResult": "apps/toss/src/TarotLibrary.tsx",
-      "reread": "canonical-free-calculation; previously paid orders retain stored result"
+      "reread": "canonical-free-calculation; previously paid orders retain stored result",
+      "saleStatus": "웹 무료 계산"
     },
     {
       "id": "tarot-self-esteem",
@@ -7756,7 +7779,7 @@
       "inputContract": "lib/tarot/toss-library-flows.mjs",
       "resultRenderer": "apps/toss/src/TarotLibrary.tsx",
       "storageContract": "canonical-free-calculation; previously paid orders retain stored result",
-      "verification": "mock-contracts-only; device-and-web-parity-pending",
+      "verification": "Linux AIT c3a960736 · 43460223398 · 360px 일반 홈에서 게스트 입력과 원본 결과 확인. private-bundle-public-readings.mjs tarot olympus; 네이티브 공유는 기기 미검증",
       "webEntries": [
         "openTarotYearFortuneModal"
       ],
@@ -7769,13 +7792,14 @@
         "tarot-year-fortune"
       ],
       "freeCalculation": true,
-      "portStatus": "일부만 이식",
+      "portStatus": "이미 동작",
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "일반 홈의 진입 코드 확인",
-      "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
-      "tossLogin": "기능별 단계 검증 필요",
+      "bundleVerification": "Linux AIT c3a960736 · 43460223398 · 360px 일반 홈에서 게스트 입력과 원본 결과 확인. private-bundle-public-readings.mjs tarot olympus; 네이티브 공유는 기기 미검증",
+      "tossLogin": "공개 입력 · 구매 없음",
       "tossResult": "apps/toss/src/TarotLibrary.tsx",
-      "reread": "canonical-free-calculation; previously paid orders retain stored result"
+      "reread": "canonical-free-calculation; previously paid orders retain stored result",
+      "saleStatus": "웹 무료 계산"
     },
     {
       "id": "today-hub",
@@ -7897,7 +7921,8 @@
       "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
       "tossLogin": "계산 또는 기록 조회에 토스 계정 필요",
       "tossResult": "apps/toss/src/BasicSkyChart.tsx",
-      "reread": "result in memory only; guest/web profiles, full chart and device parity pending"
+      "reread": "result in memory only; guest/web profiles, full chart and device parity pending",
+      "verification": "apps/toss/test/ basic-sky-chart.test.mjs · basic-sky-ui.test.mjs · 개별 검사 범위. 실제 기기 미검증"
     },
     {
       "id": "vedic-ai",
@@ -7977,7 +8002,8 @@
       "bundleVerification": "20261114-8 실제 Linux AIT 일반 홈 → 달빛 점술방 → 질문 검색 → 입력. mock 로그인과 소유 원문 조회 통과. 휴대폰 미검증",
       "tossLogin": "구매·기록에 토스 계정 필요",
       "tossResult": "app/yeongnyangi/_components/Result.tsx",
-      "reread": "owner-bound TossPurchase and YeongnyangiRequest; /yeongnyangi/library/"
+      "reread": "owner-bound TossPurchase and YeongnyangiRequest; /yeongnyangi/library/",
+      "verification": "apps/toss/test/ studio-browser.mjs · private-bundle-owner-browser.mjs · 개별 검사 범위. 실제 기기 미검증"
     },
     {
       "id": "yeongnyangi-daily",
@@ -8010,7 +8036,8 @@
       "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
       "tossLogin": "계산 또는 기록 조회에 토스 계정 필요",
       "tossResult": "apps/toss/src/DailyReadings.tsx",
-      "reread": "계정별 출석·당일 결과 15종. 호라리는 별도 무료 화면"
+      "reread": "계정별 출석·당일 결과 15종. 호라리는 별도 무료 화면",
+      "verification": "apps/toss/test/ daily-ui.test.mjs · daily.test.mjs · 개별 검사 범위. 실제 기기 미검증"
     },
     {
       "id": "yeongnyangi-horary",
@@ -8044,7 +8071,8 @@
       "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
       "tossLogin": "공개 진입",
       "tossResult": "app/yeongnyangi/_components/QuestionSkyConsultation.tsx",
-      "reread": "무료 질문 시각·도시 차트. 유료 결과 보관 계약 없음"
+      "reread": "무료 질문 시각·도시 차트. 유료 결과 보관 계약 없음",
+      "verification": "입구와 결과 소스 대조. 독립적인 전체 사용자 경로 검증 근거 미기록"
     },
     {
       "id": "yeongnyangi-prashna",
@@ -8083,7 +8111,8 @@
       "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
       "tossLogin": "구매·기록에 토스 계정 필요",
       "tossResult": "app/yeongnyangi/_components/QuestionSkyConsultation.tsx",
-      "reread": "영냥이 질문점성술 별도 권한. 일반 사주 승인 SKU로 구매 가능하다고 보지 않는다"
+      "reread": "영냥이 질문점성술 별도 권한. 일반 사주 승인 SKU로 구매 가능하다고 보지 않는다",
+      "verification": "입구와 결과 소스 대조. 독립적인 전체 사용자 경로 검증 근거 미기록"
     },
     {
       "id": "yeongnyangi-season",
@@ -8375,7 +8404,8 @@
       "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
       "tossLogin": "토스 기능 미연결",
       "tossResult": "결과 화면 연결 미확인",
-      "reread": "재열람 경로 미확인"
+      "reread": "재열람 경로 미확인",
+      "verification": "독립적인 일반 홈 경로 미확인"
     },
     {
       "id": "ziwei-island",
@@ -8406,7 +8436,7 @@
       "portStatus": "일부만 이식",
       "reducedBundle": "홈 진입 없음",
       "currentEntry": "일반 홈의 진입 코드 확인",
-      "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
+      "bundleVerification": "f2e46d05a · Linux AIT 43468160819 일반 홈, 무구매 360px. 자미 12궁·초상 및 위젯 6개 구성을 확인",
       "tossLogin": "게스트 공개 계산",
       "tossResult": "public/destiny-island.html → worker/routes/ziwei-island.js → 12궁·대한·유년·수호자·섬 일지·퀘스트",
       "reread": "기기 내 게스트·토스 계정별 명반, 당일 청사진, 방문 도장과 퀘스트 EXP 복원"

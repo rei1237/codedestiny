@@ -103,12 +103,14 @@ groups.get('saju').subfeatures=sajuCards.map(([id,target])=>({id,target,source:'
 if(!context.window.__cdServiceRegistry.some(row=>row.href==='/diary/')||!fs.readFileSync(path.join(root,'js/core/index-inline-runtime.js'),'utf8').includes('window.openLegacyLuckSyncDiary =')||!fs.readFileSync(path.join(root,'js/core/index-inline-runtime.js'),'utf8').includes("location.assign('/diary/')"))throw new Error('Missing new or legacy diary entry');
 groups.get('luck-sync-diary').subfeatures=[{id:'fortunePlanner',entry:'/diary/',status:'local-partial'},{id:'legacyLuckSyncDiary',entry:'js/luck-sync-diary.js:openLegacyLuckSyncDiary',status:'requires-full-flow-port-and-verification',verification:'legacy stored records and migration not verified'}];
 const localEvidence={
+ 'palm-reading':{tossRoute:'/palm-reading/',status:'local-partial',inputContract:'원본 카메라·좌/우 손 사진, 주사용 손과 판독 목적',resultRenderer:'app/palm-reading/PalmDestinyMain.tsx · worker/routes/palm.js Vision 근거 및 심층 해석',storageContract:'사진 없이 입력 해시와 준비한 판독을 보관. 결제한 토스 계정만 원문 열기',verification:'360px palm-browser.mjs 합성 이미지로 모의 판독·구매·재진입·타 계정 차단. 네이티브 14건과 웹 390/1280px 복구 검사. 사진 촬영 성능은 실기기 필요'},
+ 'neo-consultation':{tossRoute:'/neo-consultation/',status:'local-partial',inputContract:'질문 1~10개, 본인·상대 출생, 사주·자미, 이메일 및 동의. 원본 NeoConsultationClient',resultRenderer:'worker/neo-consultation/service.js 수동 검토·답변 이메일. 토스 개발 fixture에서 접수 원문과 상태 재열람',storageContract:'새 manual_email 주문은 서버에 답변 본문 없음. 기존 웹 주문 계약 별도. 토스 실판매 비활성',verification:'360px neo-email-browser.mjs 접수·다른 계정 URL 차단. 웹 원본 회귀 41건, 모의 발송기록. 실제 메일·결제 미실행'},
  'animal-totem':{tossRoute:'/animal-totem/',status:'local-partial',inputContract:'한 장·세 장·다섯 장, 원본 동물 17종 추첨, 질문·선택 출생 정보',resultRenderer:'웹 AnimalTotemContentEngine 및 worker/routes/animal-totem.js 원본 프롬프트, 카드별 메시지·행동·그림자',storageContract:'기본·심화 상품별 주문 원문, 생성 재개 및 소유 보관함',verification:'360px totem-browser.mjs 모의 구매 1회·생성 중 이탈·재진입·타 계정 차단. 웹 Worker 61건. 실판매 SKU 미확인'},
  'destiny-meeting-place':{tossRoute:'/saju/destiny-meeting-place/',status:'local-partial',inputContract:'app/saju/animal-destiny/lib/sajuAdapter.ts → generateDestinyMeetingPlaceResult',resultRenderer:'apps/toss/service/TossMeetingPlace.tsx + DestinyMeetingPlaceResult.tsx',storageContract:'웹처럼 계정 확인 후 현재 화면. 직접 출생 입력 또는 소유 프로필 선택',verification:'일반 홈→mock 로그인→출생정보→7131자 장소·프롬프트→같은 입력으로 돌아가기. 실제 KASI 연동은 운영 Worker 승격 후 확인'},
  'face-reading':{tossRoute:'/animal/physio/',status:'local-partial',inputContract:'한 사람 또는 두 사람의 얼굴 사진. 원본 FaceMesh 특징점과 27동물 분류',resultRenderer:'apps/toss/service/TossFace.jsx에서 웹 AnalysisEngine.js와 PhysiognomyUI.js 실행',storageContract:'게스트 기기 내 판독. 수집한 이미지·점과 원본 결제 주문 분리',verification:'face-browser.mjs의 합성 PNG, 고정 좌표, 게스트 360px. 기기별 모델 다운로드·촬영 미검증'},
  'physiognomy':{tossRoute:'/animal/physio/',status:'local-partial',inputContract:'웹 SEO /physiognomy/의 openPhysiognomyApp. 오관·점 위치 입력과 해설',resultRenderer:'apps/toss/service/TossFace.jsx 원본 상세 화면',storageContract:'현재 단말 게스트 판독',verification:'face-browser.mjs 합성 이미지·오관·점·관상 궁합. 실사진 성능 미검증'},
  'past-life-face':{tossRoute:'/past-life-face/',status:'local-partial',inputContract:'원본 얼굴 한 장의 전생 및 두 얼굴의 전생 궁합',resultRenderer:'apps/toss/service/TossFace.jsx와 웹 PastLifeFaceUI.js',storageContract:'게스트 현재 결과',verification:'face-browser.mjs 로컬 이미지·얼굴 특징 fixture, 전생 비교 결과. 실기기 미검증'},
- 'luck-sync-diary':{tossRoute:'/diary',status:'local-partial',inputContract:'오늘과 과거 날짜·기분·한 줄·메모·태그·일정·할 일·루틴',resultRenderer:'apps/toss/src/FortuneDiary.tsx + app/diary/_components 원본',storageContract:'게스트/토스 계정별 기기 저장. 원본 일/월 샤드로 재실행 후 읽기',verification:'diary-browser.mjs 360px 날짜별 입력·할 일·재실행, 쓰기 API 0회. 프로필 운기·통계와 레거시 기록 이전은 별도'},
+ 'luck-sync-diary':{tossRoute:'/diary',status:'local-partial',inputContract:'오늘과 과거 날짜·기분·한 줄·메모·태그·일정·할 일·루틴',resultRenderer:'apps/toss/src/FortuneDiary.tsx + app/diary/_components 원본',storageContract:'게스트/토스 계정별 기기 저장. 원본 일/월 샤드로 재실행 후 읽기',verification:'diary-browser.mjs 360px 날짜별 입력·할 일·재실행·기간별 통계와 기록→해당 날짜 달력, 쓰기 API 0회. 웹의 기존 기기 저장 기록 이전과 계정 프로필 운기는 별도'},
  'naming-ai':{tossRoute:'/naming-ai/',status:'local-partial',inputContract:'원본 성 한자·양/음력·출생과 선호, v2 무료 후보 5·유료 후보 12',resultRenderer:'apps/toss/service/TossNaming.tsx, worker/routes/naming-prompt.js의 8장',storageContract:'꿀꿀 기록에서 토스 소유 주문의 저장 원문',verification:'naming-browser.mjs, native-naming.test.mjs. mock 1주문/생성, 이탈·재실행·타 계정 차단. 전용 SKU 필요'},
  'master-love-codex':{tossRoute:'/master-love-codex/',status:'local-partial',inputContract:'개인판 출생·질문과 사주·자미두수 근거',resultRenderer:'원본 인연의 서 20장 세션과 결과 리더',storageContract:'개인판 토스 주문과 소유 계정의 저장 원문',verification:'codex-browser.mjs에서 개인·궁합 각 mock 주문 1건, 중간 이탈 후 재열람·타인 차단. 실상품 없음'},
  'master-love-codex-compat':{tossRoute:'/master-love-codex/',status:'local-partial',inputContract:'궁합판 두 사람 출생·질문과 별도 원장',resultRenderer:'원본 궁합판 20장 세션과 결과 리더',storageContract:'궁합판 토스 주문과 소유 계정의 저장 원문',verification:'codex-browser.mjs. 개인판과 독립 가상 SKU·질문 해시·생성 작업. 실상품 없음'},
@@ -375,13 +377,17 @@ for(const group of canonicalCandidates){
   group.reread=group.storageContract;group.verification='web-history-browser.mjs 360px. 원본 Worker 신규 AI 준비·생성에 410 ISLAND_NOW_FREE. GET /result 소유자·환불·부분 원문 및 별도 고정 리포트의 birthKey 권한 mock 테스트';
  }
  if(group.id==='ziwei-island'){group.freeCalculation=true;group.tossLogin='게스트 공개 계산';group.reducedBundle='홈 진입 없음';}
- const testedGuestTarot=['tarot-reunion','tarot-crystal-soul','tarot-celestial-harmony','tarot-numerology','tarot-ijik'];
+ const testedGuestTarot=['tarot-reunion','tarot-crystal-soul','tarot-year-fortune','tarot-numerology','tarot-ijik'];
  if(testedGuestTarot.includes(group.id)||['olympus-oracle','ifa-oracle','stonehenge-runes','dream'].includes(group.id)){
   group.bundleVerification='Linux AIT c3a960736 · 43460223398 · 360px 일반 홈에서 게스트 입력과 원본 결과 확인. private-bundle-public-readings.mjs tarot olympus; 네이티브 공유는 기기 미검증';
   group.tossLogin='공개 입력 · 구매 없음';
-  if(group.id==='dream')group.portStatus='이미 동작';
+  if(group.id==='dream'||testedGuestTarot.includes(group.id)){group.portStatus='이미 동작';group.verification=group.bundleVerification;group.saleStatus='웹 무료 계산';}
  }
  if(['juyuk-turtle','kemet-oracle','royal-tea-oracle'].includes(group.id))group.bundleVerification='20261114-9 Linux AIT 43463538068, 공개 홈에서 질문/점술 선택부터 원본 결과, 게스트, 360px 통과';
+ if(group.id==='ziwei-island'||group.id==='home-widget')group.bundleVerification='f2e46d05a · Linux AIT 43468160819 일반 홈, 무구매 360px. 자미 12궁·초상 및 위젯 6개 구성을 확인';
+ if(group.id==='saju-sibyl')group.tossLogin='연간 기본 분석 공개. 각 출생 프로필의 심층 연도별 보고서는 로그인·구매 필요';
+ if(group.id==='palm-reading')group.tossLogin='분석 준비·주문·원문은 토스 계정 필요';
+ if(group.id==='neo-consultation')group.tossLogin='질문과 견적 열람 가능, 모의 접수와 기록은 계정별';
  if(group.publicSections){
   group.freeCalculation=true;
   group.webSources=[...new Set([...group.webSources,...group.publicSections.map(s=>s.source)])];
@@ -390,7 +396,11 @@ for(const group of canonicalCandidates){
    group.reducedBundle='홈 진입 없음';
   }
  }
- if(nativeSource[group.id]||group.id==='heukwol-consult')group.saleStatus='콘솔·운영 설정 필요';
+ if(!group.verification){
+  const checks={'animal-destiny':'animal-destiny.test.mjs',astrology:'basic-sky-chart.test.mjs · basic-sky-ui.test.mjs',vedic:'basic-sky-chart.test.mjs · basic-sky-ui.test.mjs','bias-destiny':'bias-report.test.mjs',flower:'flower.test.mjs · flower-ui.test.mjs','famous-saju':'famous-archive.test.mjs',novel:'novel-reader.test.mjs',music:'music-shelf.test.mjs',manse:'manse-ui.test.mjs',saju:'basic-saju-flow.test.mjs','fortune-tea-house':'room-browser.mjs','neo-operation-room':'room-browser.mjs','yeongnyangi-daily':'daily-ui.test.mjs · daily.test.mjs','fusion-fortune':'fusion-billing.test.mjs · native-fusion-boundary.test.mjs',yeongnyangi:'studio-browser.mjs · private-bundle-owner-browser.mjs'};
+  group.verification=checks[group.id]?'apps/toss/test/ '+checks[group.id]+' · 개별 검사 범위. 실제 기기 미검증':group.tossRoute?'입구와 결과 소스 대조. 독립적인 전체 사용자 경로 검증 근거 미기록':'독립적인 일반 홈 경로 미확인';
+ }
+ if(nativeSource[group.id]||['heukwol-consult','palm-reading','neo-consultation'].includes(group.id))group.saleStatus='콘솔·운영 설정 필요';
 }
 const registeredProducts=APPROVED_TOSS_PRODUCTS.map(({serviceId,productId,sku,priceEvidence,approvedPriceKRW})=>({serviceId,productId,sku,priceEvidence,approvedPriceKRW}));
 const report={
