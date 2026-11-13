@@ -271,7 +271,7 @@ export default function SeoLandingTemplate({ page, hero = null, services = null,
           ))}
         </nav>
 
-        {FREE_PROMO_LANDING_PATHS.has(String(page.path || "").replace(/\/$/, "")) ? <FreePromoBanner /> : null}
+        {FREE_PROMO_LANDING_PATHS.has(String(page.path || "").replace(/\/$/, "")) ? <FreePromoBanner currentPath={page.path} /> : null}
 
         {landingHero || <header className="mt-[clamp(2.5rem,6vw,4rem)] border-b border-[var(--cd-border)] pb-[clamp(2.5rem,6vw,4rem)]">
           <p className="flex items-center gap-2.5 text-[0.85rem] font-semibold text-[var(--cd-text-muted)]">
