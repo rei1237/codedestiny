@@ -1,41 +1,13 @@
 import fs from 'node:fs';
 import vm from 'node:vm';
-import ts from 'typescript';
+import {ROOTS,extractSajuCompatClosure} from '../../scripts/lib/saju-compat-closure.mjs';
 
 // js/saju-engine.js 의 실제 최상위 선언에서 궁합 분석 함수와 그 의존 심볼만 꺼내 vm 에서 실행한다.
 // (DOM·KASI·결제에 닿지 않는 순수 함수만 — document 는 undefined 로 막아 두어 새 의존이 생기면 즉시 실패한다.)
-const ROOTS = ['analyzeCompat', 'analyzePastLifeCompat', 'calcNatalElement', 'analyzeJohu', 'calcPower', 'detectJong'];
 
 export function loadCompatEngine(sourceUrl = new URL('../../js/saju-engine.js', import.meta.url)) {
   const source = fs.readFileSync(sourceUrl, 'utf8');
-  const ast = ts.createSourceFile('saju-engine.js', source, ts.ScriptTarget.Latest, true, ts.ScriptKind.JS);
-  const decl = new Map();
-  for (const node of ast.statements) {
-    if (ts.isFunctionDeclaration(node) && node.name) decl.set(node.name.text, { node, text: node.getText(ast) });
-    if (ts.isVariableStatement(node)) {
-      for (const d of node.declarationList.declarations) {
-        if (ts.isIdentifier(d.name)) decl.set(d.name.text, { node: d, text: `var ${d.getText(ast)};` });
-      }
-    }
-  }
-  const idsOf = (node) => {
-    const out = new Set();
-    (function walk(n) { if (ts.isIdentifier(n)) out.add(n.text); ts.forEachChild(n, walk); })(node);
-    return out;
-  };
-  const order = [];
-  const seen = new Set();
-  const add = (name) => {
-    if (seen.has(name) || !decl.has(name)) return;
-    seen.add(name);
-    order.push(name);
-    for (const id of idsOf(decl.get(name).node)) add(id);
-  };
-  for (const root of ROOTS) {
-    if (!decl.has(root)) throw new Error(`Production declaration missing: ${root}`);
-    add(root);
-  }
-  const code = order.slice().reverse().map((name) => decl.get(name).text).join('\n');
+  const {code,order,decl}=extractSajuCompatClosure(source);
   const ctx = vm.createContext({ window: {}, document: undefined, console });
   // 셸처럼 원국 판정 정본 번들(전역 SajuNatalCore)을 먼저 싣는다.
   vm.runInContext(fs.readFileSync(new URL('../../js/core/saju/natal-core.generated.js', import.meta.url), 'utf8'), ctx, { filename: 'natal-core.generated.js' });

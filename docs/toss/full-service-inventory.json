@@ -1,5 +1,5 @@
 {
-  "sourceCommit": "c859fa6e662d349bab9547dc677e2cb667d04f4a",
+  "sourceCommit": "4fed481722c8f042c454a3d0c5cc3ab2045fbf03",
   "sourceCounts": {
     "home": 63,
     "react": 18,
@@ -2041,8 +2041,8 @@
         "library": "not-verified",
         "device": "not-tested",
         "canonicalId": "saju-compatibility",
-        "candidateStatus": "requires-full-flow-port-and-verification",
-        "canonicalRoute": null
+        "candidateStatus": "local-partial",
+        "canonicalRoute": "/saju/compatibility/"
       }
     },
     {
@@ -6537,12 +6537,13 @@
         }
       ],
       "aliasEvidence": [],
-      "status": "requires-full-flow-port-and-verification",
-      "tossRoute": null,
+      "status": "local-partial",
+      "tossRoute": "/saju/compatibility/",
       "sku": null,
-      "inputContract": "두 사람의 원본 사주 점수·등급·합충 facts + 생성 이용권/과거 결제",
-      "resultRenderer": null,
-      "storageContract": null,
+      "inputContract": "두 출생정보·시간 미상·달력·상대 호칭·연인/친구/사업. 웹 정본 명식과 analyzeCompat·analyzePastLifeCompat facts",
+      "resultRenderer": "js/saju-compat-render.mjs + worker/routes/saju-compat-basic.js",
+      "storageContract": "토스 계정·주문별 paidNarrative 불변 원문. 꿀꿀운세 구매 기록에서 생성 재개와 원문 재열람",
+      "verification": "saju-compat-browser.mjs 360px 홈, mock 로그인·입력 복원·1주문·생성 도중 이탈·원문·타 계정 거절. native-saju-compat.test.mjs, 웹 정본 전달 34건",
       "webEntries": [
         "/saju/compatibility/"
       ],
@@ -6550,6 +6551,7 @@
         "app/saju/compatibility/page.js",
         "js/saju-compat-render.mjs renderSajuCompat",
         "worker/lib/saju-compat-schema.js SAJU_COMPAT_GROUPS",
+        "js/saju-engine.js",
         "js/saju-compat-flow.mjs",
         "worker/routes/saju-compat-basic.js",
         "worker/lib/saju-compat-schema.js"
@@ -6558,13 +6560,14 @@
         "compat-saju-compatibility"
       ],
       "freeCalculation": false,
-      "portStatus": "미이식",
+      "portStatus": "일부만 이식",
       "reducedBundle": "홈 진입 없음",
-      "currentEntry": "연결 경로 없음",
+      "currentEntry": "일반 홈의 진입 코드 확인",
       "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
-      "tossLogin": "토스 기능 미연결",
-      "tossResult": "결과 화면 연결 미확인",
-      "reread": "웹 계정·결제 소유권과 회수 여부 확인 후 저장된 불변 스냅샷. 토스 어댑터 미구현"
+      "tossLogin": "입력은 공개, 구매 및 원문은 토스 계정 필요",
+      "tossResult": "js/saju-compat-render.mjs + worker/routes/saju-compat-basic.js",
+      "reread": "토스 계정·주문별 paidNarrative 불변 원문. 꿀꿀운세 구매 기록에서 생성 재개와 원문 재열람",
+      "saleStatus": "콘솔·운영 설정 필요"
     },
     {
       "id": "saju-fpti",

@@ -1,3 +1,4 @@
+import {COMPAT_ART} from '../../../js/saju-compat-art.mjs';
 import {islandArtwork,islandDocument} from './island-loader.mjs';
 import {secretHouseDocument} from './secret-house-loader.mjs';
 import {extractRpgEngine} from './rpg-loader.mjs';
@@ -162,7 +163,7 @@ export default function serviceCompat(){
    if(yeongnyangi640)for(const file of await readdir(resolve(publicRoot,'images/service-introductions')))if(/^yeongnyangi-.+-640\.webp$/.test(file))references.add('/images/service-introductions/'+file);
    // The relationship report uses five scene records from the shared web
    // compatibility registry; the other compatibility flows are not in this shell.
-   if(references.delete('/images/compat-story/'))for(const id of ['love','month','past-knot','day','hour'])references.add('/images/compat-story/'+id+'.webp');
+   if(references.delete('/images/compat-story/'))for(const art of Object.values(COMPAT_ART))references.add(art.src);
    const artwork=JSON.parse(await readFile(resolve(publicRoot,'../lib/marketing/service-introduction-art.json'),'utf8'));
    const samples=JSON.parse(await readFile(resolve(publicRoot,'../lib/marketing/result-samples.json'),'utf8'));
    for(const ref of responsiveIntroductionArt(artwork,samples))references.add(ref);
@@ -186,6 +187,7 @@ export default function serviceCompat(){
     const ref=path.slice(publicRoot.length+1).split(sep).join('/');
     if(ref.startsWith('fuctionassets/러브 코드/'))return sharp(path).resize({width:640,withoutEnlargement:true}).webp({quality:82}).toBuffer();
     if(ref==='fuctionassets/love code.webp')return sharp(path).resize({width:800,withoutEnlargement:true}).webp({quality:82}).toBuffer();
+    if(ref.startsWith('images/compat-story/'))return sharp(path).resize({width:640,withoutEnlargement:true}).webp({quality:82}).toBuffer();
     // Guardians occupy a 72px reading portrait; the map also supports pinch zoom.
     if(/^images\/destiny-island\/guardians\/[^/]+-v1\.webp$/.test(ref))return sharp(path).resize({width:240,withoutEnlargement:true}).webp({quality:85}).toBuffer();
     if(ref==='images/destiny-island/exploration-map-v3.webp')return sharp(path).resize({width:1200,withoutEnlargement:true}).webp({quality:84}).toBuffer();

@@ -73,7 +73,10 @@ export async function loadPaidNarrativeAdapter(env, featureKey, reportType, user
     }
     case "sajuCompatBasic": {
       const { sajuCompatNarrativeAdapter } = await import("../routes/saju-compat-basic.js");
-      return sajuCompatNarrativeAdapter(env);
+      return {...sajuCompatNarrativeAdapter(env),verifyRecovery:async doc=>{
+        const {verifyCompatRecovery}=await import('../toss/native-saju-compat.js');
+        return verifyCompatRecovery(env,doc);
+      }};
     }
     case "dreamPsychoAnalysis": {
       const { dreamPsychoNarrativeAdapter } = await import("../routes/dream.js");

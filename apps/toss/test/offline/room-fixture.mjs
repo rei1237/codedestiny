@@ -6,10 +6,11 @@ const neo={service:'neo',name:'가상 네오 전략 상담',featureKey:'neo-oper
 const heukwol={service:'heukwol',name:'가상 흑월 상담',featureKey:'heukwol-warning-consultation',path:'/heukwol/'};
 const dream={service:'dream',name:'가상 정신분석 해몽',featureKey:'dream-psycho-analysis',path:'/dream/psycho/'};
 const naming={service:'naming',name:'가상 사주 작명첩',featureKey:'premium-naming-prompt',path:'/naming-ai/result/'};
+const sajuCompat={service:'saju-compat',name:'가상 사주 궁합',featureKey:'compat-saju-compatibility',path:'/saju/compatibility/'};
 const codex={service:'codex',name:'가상 마스터 인연의 서 · 개인',featureKey:'master-love-codex',path:'/master-love-codex/result/'};
 const compat={...codex,name:'가상 마스터 인연의 서 · 궁합',featureKey:'master-love-codex-compat'};
 const geomancy={service:'geomancy',name:'가상 지오맨시 흙점',featureKey:'geomancy',path:'/geomancy/'};
-const rooms=[geomancy,tea,neo,heukwol,dream,naming,codex,compat];
+const rooms=[sajuCompat,geomancy,tea,neo,heukwol,dream,naming,codex,compat];
 export const roomProducts=rooms.map(room=>({
   id:'native:'+room.service+':'+room.featureKey,name:room.name,featureKey:room.featureKey,
   sku:'mock-unregistered-room-'+(room===compat?'codex-compat':room.service),available:true,approvedPriceKRW:1,
@@ -32,14 +33,14 @@ export function roomPurchases(state){
     const room=rooms.find(item=>item.service===row.service&&(!row.featureKey||item.featureKey===row.featureKey));
     return {requestId:row.id,orderId:row.orderId,sku:row.sku,serviceId:room.service,nativeService:room.service,
       productId:room.featureKey,status:'PURCHASED',state:row.result?'COMPLETED':'PENDING',createdAt:row.createdAt,
-      href:room===geomancy||room===dream||room===naming||room.service==='codex'?room.path+'?intentId='+row.id:room.service==='heukwol'?room.path+'?result='+row.id:room.service==='neo'?room.path+'?attemptId='+encodeURIComponent(row.result?row.resultId:'toss_'+row.id):
+      href:room===sajuCompat||room===geomancy||room===dream||room===naming||room.service==='codex'?room.path+'?intentId='+row.id:room.service==='heukwol'?room.path+'?result='+row.id:room.service==='neo'?room.path+'?attemptId='+encodeURIComponent(row.result?row.resultId:'toss_'+row.id):
         room.path+'?'+(row.result?'resultId=':'recoverResultId=')+encodeURIComponent(row.resultId),
-      question:room.service==='codex'?room.name.slice(3):room===naming?row.input.input.familyName+' 작명첩':row.input.question||row.input.dreamText,resultId:row.resultId};
+      question:room===sajuCompat?row.input.partnerName:room.service==='codex'?room.name.slice(3):room===naming?row.input.input.familyName+' 작명첩':row.input.question||row.input.dreamText,resultId:row.resultId};
   });
 }
 export async function roomRequest(request,url,path,state,save,now){
   const post=request.method==='POST';
-  const match=/^\/native\/(\w+)\/(prepare|intents\/([a-f0-9]{64}))$/.exec(path);
+  const match=/^\/native\/([a-z-]+)\/(prepare|intents\/([a-f0-9]{64}))$/.exec(path);
   let room=match&&rooms.find(item=>item.service===match[1]);
   if(room){
     if(!post&&match[3]){
@@ -49,7 +50,7 @@ export async function roomRequest(request,url,path,state,save,now){
     if(post&&match[2]==='prepare'){
       const {input,orderId}=await request.json(),key=requestKey(input);
       if(room===codex&&input?.mode==='compat')room=compat;
-      const valid=room===geomancy?input?.question?.length>=2&&input?.counts?.length===16:room.service==='codex'?input?.reading?.birthInfo?.birthDate&&Boolean(input.reading.partnerInfo?.birthDate)===(room===compat):room===naming?input?.input?.familyName&&input.input.birthDate:room===dream?typeof input?.dreamText==='string'&&input.dreamText.trim().length>=8&&input.dreamText.length<=6000:input?.question;
+      const valid=room===sajuCompat?input?.self?.pillars?.length===4&&input?.partner?.pillars?.length===4&&input?.facts?.score:room===geomancy?input?.question?.length>=2&&input?.counts?.length===16:room.service==='codex'?input?.reading?.birthInfo?.birthDate&&Boolean(input.reading.partnerInfo?.birthDate)===(room===compat):room===naming?input?.input?.familyName&&input.input.birthDate:room===dream?typeof input?.dreamText==='string'&&input.dreamText.trim().length>=8&&input.dreamText.length<=6000:input?.question;
       if(!key||!valid||input.featureKey&&input.featureKey!==room.featureKey)return fail('REQUEST_INPUT_MISMATCH',400);
       if(room===heukwol){const card=state.profiles.find(p=>p.profileId===input.profileId);if(!card)return fail('PROFILE_REQUIRED',400);if(card.birth?.timeUnknown!==false)return fail('BIRTH_TIME_REQUIRED',400);}
       let row=[...state.intents.values()].find(item=>item.service===room.service&&requestKey(item.input)===key);
@@ -104,6 +105,18 @@ export async function roomRequest(request,url,path,state,save,now){
       }save();
     }
     return row.result?reply(row.result):reply({ok:true,mode,done:false,status:'generating',retryable:true,generationProgress:{completed:0,total:1}},202);
+  }
+  const compatMatch=/^\/native\/saju-compat\/results\/([a-f0-9]{64})$/.exec(path);
+  if(compatMatch){
+    const row=state.intents.get(compatMatch[1]);
+    if(row?.service!=='saju-compat'||!row.paid)return fail('RESULT_NOT_FOUND',404);
+    if(post&&!row.result){
+      row.parts=[...(row.parts||[]),'[테스트 전용] 두 사람의 관계를 살펴보는 궁합 해석이에요.'];
+      if(row.parts.length===2){const {compatType,partnerName,self,partner,facts}=row.input;
+        row.result={ok:true,saved:true,status:'completed',schemaVersion:2,type:'saju-compat-basic',promptVersion:'saju-compat-basic-p4',generatedAt:now().toISOString(),input:{compatType,partnerName,self,partner},facts,narrative:{overview:row.parts.join(' ')}};
+        row.generations=(row.generations||0)+1;}save();
+    }
+    return reply(row.result||{ok:true,status:'partial',completedParts:row.parts||[],retryable:true});
   }
   const nameMatch=/^\/native\/naming\/results\/([a-f0-9]{64})$/.exec(path);
   if(nameMatch){

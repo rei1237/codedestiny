@@ -120,6 +120,15 @@ function acceptable(state, group, shaped, model, attempt) {
   return hasRepeatedReportPassage(body) ? null : { evidenceHash: state.evidenceHash, body };
 }
 
+export function seedSajuCompat(env,original){
+      const normalized = normalizeSajuCompatInput(original);
+      // seed는 납품 기록이 없을 때만 호출된다.
+      const input = sajuAuthorityOn(env) ? withApprovedSajuCompat(normalized) : normalized;
+      const tasks = sajuCompatTasks(input);
+      const answerVoice = selectAnswerVoice(env);
+      return { input, tasks, minBodyChars: tasks.reduce((sum, task) => sum + task.minChars, 0), ...(answerVoice ? { answerVoice } : {}) };
+}
+
 async function handleGenerate(request, env) {
   const body = request.method === "POST" ? await readJson(request) : {};
   if (request.method === "POST" && !body.resumeResultId) normalizeSajuCompatInput(body);
@@ -137,14 +146,7 @@ async function handleGenerate(request, env) {
       });
       if (!access?.ok) throw new HttpError(Number(access?.status || 402), "결제 확인이 필요합니다.", { code: access?.code || "PAYMENT_REQUIRED" });
     },
-    seed: (original) => {
-      const normalized = normalizeSajuCompatInput(original);
-      // seed는 납품 기록이 없을 때만 호출된다.
-      const input = sajuAuthorityOn(env) ? withApprovedSajuCompat(normalized) : normalized;
-      const tasks = sajuCompatTasks(input);
-      const answerVoice = selectAnswerVoice(env);
-      return { input, tasks, minBodyChars: tasks.reduce((sum, task) => sum + task.minChars, 0), ...(answerVoice ? { answerVoice } : {}) };
-    },
+    seed: original=>seedSajuCompat(env,original),
   });
 }
 
@@ -152,7 +154,7 @@ async function handleGenerate(request, env) {
 // 보관함 — 완료된 스냅샷만. 목록은 요약 투영, 상세는 metadata.result 전체. paidNarrative(원본 요청·원문 응답)는 투영하지 않는다.
 // ---------------------------------------------------------------------------------------------
 const completedFilter = (userId, extra = {}) => ({
-  userId, featureKey: SAJU_COMPAT_FEATURE_KEY, "metadata.paidNarrative": { $exists: true }, premiumStatus: "completed", status: "success", ...extra,
+  userId, featureKey: SAJU_COMPAT_FEATURE_KEY, "metadata.tossPaidNarrative": { $ne: true }, "metadata.paidNarrative": { $exists: true }, premiumStatus: "completed", status: "success", ...extra,
 });
 const pillarKey = (side) => (Array.isArray(side?.pillars) ? side.pillars.map((pillar) => `${pillar.gan}${pillar.ji}`).join(" ") : "");
 
