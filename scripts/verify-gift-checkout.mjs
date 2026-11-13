@@ -8,7 +8,7 @@ try {
     const context = await browser.newContext({ viewport: { width, height: 900 } });
     let prepared, sdkRequest, confirms = 0;
     const user = { id: '64b000000000000000000001', _id: '64b000000000000000000001', name: '테스트 계정', email: 'test@example.invalid', phoneNumber: '01012345678' };
-    const gift = { giftId: 'gift_mock-checkout', orderId: 'mock-checkout', status: 'PENDING_PAYMENT', tokenVersion: 0, product: { name: '스탠다드 30일', tier: 'standard', durationDays: 30, wonPrice: 9900 } };
+    const gift = { giftId: 'gift_mock-checkout', orderId: 'mock-checkout', status: 'PENDING_PAYMENT', tokenVersion: 0, product: { name: '작은 꿀단지', tier: 'standard', durationDays: 30, wonPrice: 9900 } };
     await context.route('**/*', async route => {
       const url = new URL(route.request().url());
       if (!['127.0.0.1', 'localhost'].includes(url.hostname)) return route.abort();
