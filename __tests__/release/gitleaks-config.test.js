@@ -7,6 +7,10 @@ const config = readFileSync(".gitleaks.toml", "utf8")
   .split("\n")
   .filter((line) => !/^\s*#/.test(line))
   .join("\n");
+const workflow = readFileSync(".github/workflows/secret-scan.yml", "utf8")
+  .split("\n")
+  .filter((line) => !/^\s*#/.test(line))
+  .join("\n");
 
 test("기본 규칙을 상속한다 — 없으면 allowlist 만 있는 설정은 규칙이 0개라 무탐지다", () => {
   assert.match(config, /^\[extend\]\s*$[\s\S]*?^useDefault\s*=\s*true\s*$/m);
@@ -41,4 +45,10 @@ test("allowlist 는 네이버 사이트 소유확인 메타 태그 한 줄로만
   assert.ok(!re.test(meta("a1".repeat(19))), "40자 hex 가 아니면 제외하지 않는다");
   assert.ok(!re.test(`token="${"a1".repeat(20)}"`), "메타 태그 밖의 40자 값은 제외하지 않는다");
   assert.ok(!re.test('GEMINI_API_KEY="AIza' + "x".repeat(35) + '"'));
+});
+
+test("main Secret Scan은 다른 원격 ref가 아니라 현재 HEAD의 전체 이력만 검사한다", () => {
+  assert.match(workflow, /gitleaks git --log-opts=HEAD --redact --verbose/);
+  assert.doesNotMatch(workflow, /gitleaks git --redact --verbose/);
+  assert.match(workflow, /fetch-depth:\s*0/);
 });
