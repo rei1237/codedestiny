@@ -1,6 +1,7 @@
 import {readFile,readdir,stat} from 'node:fs/promises';
 import {fileURLToPath} from 'node:url';
 import {resolve,dirname,sep,extname} from 'node:path';
+import sharp from 'sharp';
 import {createHash} from 'node:crypto';
 import {extractOmikujiEngine} from './omikuji-engine-loader.mjs';
 import {TOSS_WEBP_ART} from './bundle-art.mjs';
@@ -132,13 +133,15 @@ export default function serviceCompat(){
     for(const match of source.matchAll(asset))references.add(match[1]);
    }
    const emitted=new Set();
+   const sourceBytes=async path=>path===resolve(publicRoot,'assets/yeongnyangi/tarot/v1/back-600.webp')
+    ? sharp(path).webp({quality:88,effort:6}).toBuffer():readFile(path);
    const collect=async(folder,prefix)=>{
     for(const entry of await readdir(folder,{withFileTypes:true})){
      const path=resolve(folder,entry.name);
      if(entry.isDirectory()){if(path.startsWith(prefix)||prefix.startsWith(path+sep))await collect(path,prefix);}
      else if(path.startsWith(prefix)&&mime[extname(path)]&&!emitted.has(path)){
       if(Object.hasOwn(TOSS_WEBP_ART,'/'+path.slice(publicRoot.length+1).replaceAll('\\','/')))continue;
-      emitted.add(path);this.emitFile({type:'asset',fileName:path.slice(publicRoot.length+1).replaceAll('\\','/'),source:await readFile(path)});
+      emitted.add(path);this.emitFile({type:'asset',fileName:path.slice(publicRoot.length+1).replaceAll('\\','/'),source:await sourceBytes(path)});
      }
     }
    };
@@ -146,7 +149,7 @@ export default function serviceCompat(){
     const path=resolve(publicRoot,'.'+ref);
     if(!path.startsWith(publicRoot+sep))continue;
     let info;try{info=await stat(path);}catch{/* Dynamic filename prefix. */}
-    if(info?.isFile()){if(!Object.hasOwn(TOSS_WEBP_ART,ref)&&!emitted.has(path)){emitted.add(path);this.emitFile({type:'asset',fileName:ref.slice(1),source:await readFile(path)});}continue;}
+    if(info?.isFile()){if(!Object.hasOwn(TOSS_WEBP_ART,ref)&&!emitted.has(path)){emitted.add(path);this.emitFile({type:'asset',fileName:ref.slice(1),source:await sourceBytes(path)});}continue;}
     const folder=info?.isDirectory()?path:dirname(path);
     try{await collect(folder,path);}catch(error){if(error.code!=='ENOENT')throw error;}
    }

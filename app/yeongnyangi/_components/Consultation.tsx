@@ -69,7 +69,7 @@ import {localizedTarotSpread} from '../_lib/tarot-spread-catalog-locales';
 const hasReviews=visibleReviews().length>0;
 // Every locale opens tarot on the question-first spread order.
 const defaultKind=(domainId:string)=>domainId==='tarot'?consultationKinds.tarot.find(k=>k.id===TAROT_SPREAD_KIND)!:consultationKinds[domainId][0];
-export default function Consultation({initialQuestion='',sajuOnly=false,inputNotice}:{initialQuestion?:string;sajuOnly?:boolean;inputNotice?:(body:{question:string;questionDecision?:unknown})=>string}){
+export default function Consultation({initialQuestion='',sajuOnly=false,inputNotice,paymentSurface='web'}:{paymentSurface?:'web'|'toss';initialQuestion?:string;sajuOnly?:boolean;inputNotice?:(body:{question:string;questionDecision?:unknown})=>string}){
  const [relationshipStage,setRelationshipStage]=useState(''),[relationshipQuestionId,setRelationshipQuestionId]=useState('');
  const [participants,setParticipants]=useState({self:'',partner:''});
  const [touched,setTouched]=useState<Record<string,boolean>>({});
@@ -86,6 +86,7 @@ export default function Consultation({initialQuestion='',sajuOnly=false,inputNot
  const [chatStep,setChatStep]=useState('question');
  const [domain,setDomain]=useState('saju'),[productId,setProductId]=useState('saju_mackerel');
  const [available,setAvailable]=useState<Product[]>([]),[catalogError,setCatalogError]=useState('');
+ const productPrice=(item:Product)=>{if(paymentSurface==='web')return price(item.priceKRW);const sale=available.find(row=>row.id===item.id);return sale?price(sale.priceKRW):'상품 등록 확인 중';};
  const profileState=useProfiles(),{profiles,profileId,guest}=profileState;
  const [partnerId,setPartnerId]=useState(''),[timeUnknown,setTimeUnknown]=useState(false);
  const [topicId,setTopicId]=useState('general'),[question,setQuestion]=useState(initialQuestion),[error,setError]=useState('');
@@ -106,7 +107,7 @@ export default function Consultation({initialQuestion='',sajuOnly=false,inputNot
  const initialOpen=useRef<(()=>void)|null>(null),initialOpened=useRef(false);
  const restoredDraft=useRef<{profileId?:string;partnerId?:string;extraTime?:string;extraPlace?:string;timeUnknown?:boolean}|null>(null);
  const product=products.find(p=>p.id===productId)!;
- const plannedTotal=siteLocale==='ko'?plannedPriceFor(product.fishId,product.priceKRW):null;
+ const plannedTotal=paymentSurface==='web'&&siteLocale==='ko'?plannedPriceFor(product.fishId,product.priceKRW):null;
  const inputCopy=consultationInputCopy(siteLocale);
  useEffect(()=>{
   if(!ready||viewedProduct.current===product.id)return;
@@ -326,7 +327,7 @@ export default function Consultation({initialQuestion='',sajuOnly=false,inputNot
   const intakeNotice=inputNotice?.({question,questionDecision:intake.decision});
   const openQuestionCheckout=()=>{if(intakeNotice)return;const category=questionCandidate(question)||intake.decision.category;confirmIntake({...intake,decision:{...intake.decision,category,situation:intake.decision.situation||question.slice(0,600)}});setChatStep('checkout');};
   initialOpen.current=openQuestionCheckout;
-  return <>{intakeNotice&&<p role="alert">{intakeNotice}</p>}<QuestionCheckout value={intake} open={chatStep==='checkout'} busy={busy||Boolean(intakeNotice)}
+  return <>{intakeNotice&&<p role="alert">{intakeNotice}</p>}<QuestionCheckout formatProductPrice={productPrice} value={intake} open={chatStep==='checkout'} busy={busy||Boolean(intakeNotice)}
    guidanceReady={!intakeNotice&&!guest&&!catalogError&&!missing.length&&!plan.missing.length&&!plan.unsupported&&available.some(p=>p.id===productId)}
    onChange={next=>{setQuestion(next.question);setQuestionFish(next.fish);setScopeDraft(next.decision);if(chatStep==='checkout')confirmIntake(next);else setDecision(undefined);}}
    onOpen={openQuestionCheckout}
@@ -341,7 +342,7 @@ export default function Consultation({initialQuestion='',sajuOnly=false,inputNot
  return <section className={`${styles.consultation} ${styles.consultationRoom}`}>
   {relationshipStage&&<button onClick={()=>setRelationshipStage('question')}>{relationshipCopy.change}</button>}
   <header className={styles.consultationHeader}><div><h1>{ui.title}</h1><p>{ui.intro}</p></div><Moon size={36} strokeWidth={1} aria-hidden="true"/></header>
-  {questionActive&&<div className={styles.systemDescription}><h2>{questionScopes[product.fishId as QuestionFish]}</h2><p>{question}</p><p>기본 상담 + 추가 질문 {FOLLOWUP_LIMITS[product.fishId as QuestionFish]}회 · {price(product.priceKRW)}</p><button onClick={()=>{setScopeDraft(decision);setDecision(undefined);}}>질문 범위 다시 선택하기</button></div>}
+  {questionActive&&<div className={styles.systemDescription}><h2>{questionScopes[product.fishId as QuestionFish]}</h2><p>{question}</p><p>기본 상담 + 추가 질문 {FOLLOWUP_LIMITS[product.fishId as QuestionFish]}회 · {productPrice(product)}</p><button onClick={()=>{setScopeDraft(decision);setDecision(undefined);}}>질문 범위 다시 선택하기</button></div>}
   {(()=>{const settings=<><ReadingLanguageSelect locale={locale} siteLocale={siteLocale} fallback={fallback} disabled={busy||kind.koOnly} onChange={value=>{setLocale(value);setError('');}}/></>;
   // 한국어 화면은 결과 언어를 기본값으로 접어 두고, 상담 종류와 생선 선택을 먼저 보인다.
   return siteLocale==='ko'?<details className={styles.readingSettings}><summary>세부 설정 · {readingLanguageNames[locale]}</summary>{settings}</details>:settings;})()}
@@ -358,7 +359,7 @@ export default function Consultation({initialQuestion='',sajuOnly=false,inputNot
    <aside className={styles.consultationGuide} aria-label={ui.summary}>
     <img className={styles.guideCat} src="/assets/yeongnyangi/profiles/welcome.webp" width={168} height={171} alt="Yeongnyangi"/>
     <h2>{ui.guideTitle}</h2><p>{ui.guideIntro}</p>
-    <dl className={styles.consultationSummary}><div><dt>{ui.summary}</dt><dd>{tarotSpreadView?.title||kindLabel(kind.id)} · {tierLabel(product)}</dd></div><div><dt>{ui.profile}</dt><dd>{tarotOnly?localizedSystem('tarot',siteLocale):selectedProfile?.name||inputCopy.pickerPrompt}</dd></div><div><dt>{ui.structure}</dt><dd>{previewCount} {ui.chapters}</dd></div><div><dt>{ui.methodTitle}</dt><dd>{siteLocale==='ko'?readingFeatures[domain]:localizedSystem(domain,siteLocale)}</dd></div><div><dt>{ui.paymentTitle}</dt><dd>{ui.payment} · {price(product.priceKRW)}</dd></div></dl>
+    <dl className={styles.consultationSummary}><div><dt>{ui.summary}</dt><dd>{tarotSpreadView?.title||kindLabel(kind.id)} · {tierLabel(product)}</dd></div><div><dt>{ui.profile}</dt><dd>{tarotOnly?localizedSystem('tarot',siteLocale):selectedProfile?.name||inputCopy.pickerPrompt}</dd></div><div><dt>{ui.structure}</dt><dd>{previewCount} {ui.chapters}</dd></div><div><dt>{ui.methodTitle}</dt><dd>{siteLocale==='ko'?readingFeatures[domain]:localizedSystem(domain,siteLocale)}</dd></div><div><dt>{ui.paymentTitle}</dt><dd>{ui.payment} · {productPrice(product)}</dd></div></dl>
     <p className={styles.guideNote}><Sparkles size={16} aria-hidden="true"/>{ui.about}</p>
     {siteLocale==='ko'&&hasReviews&&<details className={styles.consultationReviews}><summary>네오 1:1 상담 실제 후기 보기</summary><p>네오가 사람 1:1 상담에서 받은 후기예요. 여기서 고르는 상담은 AI가 작성해요.</p><CustomerReviews limit={2} variant="inline"/></details>}
    </aside>
@@ -385,7 +386,7 @@ export default function Consultation({initialQuestion='',sajuOnly=false,inputNot
   <p lang={siteLocale}>{ui.depthHint} {kind.question&&ui.questionHint}{siteLocale==='ko'&&domain!=='fusion'&&<small> {A4_PAGE_NOTE}</small>}</p>
   {domain!=='fusion'&&<p lang={siteLocale} data-reading-depth-note>{readingDepthCopy(siteLocale).sharedTopics}</p>}
   <div className={`${styles.fishes} ${domain==='fusion'?styles.fusionChoices:''}`} role="group" aria-label={siteLocale==='ko'?'생선 상품':ui.depth}>{choices.map(item=><button key={item.id} onClick={()=>{setProductId(item.id);setTierNotice('');}} aria-pressed={productId===item.id} disabled={!!tarotSpread&&!tierAllowsSpread(item.fishId,tarotSpread)}>
-   <img src={item.readingKind!=='single'?fusionIntroductionArt(item):siteLocale==='ko'?item.image:item.reactionAsset} alt="" width={240} height={108}/><strong>{tierLabel(item)}</strong><span className={styles.fishPrice}>{siteLocale==='ko'&&<LaunchPlannedPrice amount={plannedPriceFor(item.fishId,item.priceKRW)}/>}{siteLocale==='ko'&&plannedPriceFor(item.fishId,item.priceKRW)!==null&&<span className={styles.srOnly}>, 체험가 </span>}{price(item.priceKRW)}</span><span className={styles.fishScope}>{siteLocale==='ko'&&item.readingKind!=='single'?fusionPremiumManifest(item,topicId).length+1:consultationManifest(item,kind,topicId).length} {ui.chapters}{productId===item.id&&<b>{ui.selected}</b>}</span>{domain!=='fusion'&&<small>{targetRange(item)} {ui.target}</small>}{siteLocale==='ko'&&item.readingKind==='single'&&<small data-question-scope={item.fishId}>{questionScopes[item.fishId as QuestionFish]}</small>}{tarotSpread&&!tierAllowsSpread(item.fishId,tarotSpread)&&tarotSpread.minTier&&<small>{tarotSpreadCopy.tierLocked(tarotSpread.cardCount,fishName(tarotSpread.minTier,siteLocale))}</small>}{readingTierDepth(item.fishId,siteLocale)?<small data-reading-tier-depth={item.fishId}>{readingTierDepth(item.fishId,siteLocale)}</small>:siteLocale==='ko'&&<small>{fusionDescription(item)||depthDescriptions[item.fishId]}</small>}
+   <img src={item.readingKind!=='single'?fusionIntroductionArt(item):siteLocale==='ko'?item.image:item.reactionAsset} alt="" width={240} height={108}/><strong>{tierLabel(item)}</strong><span className={styles.fishPrice}>{paymentSurface==='web'&&siteLocale==='ko'&&<LaunchPlannedPrice amount={plannedPriceFor(item.fishId,item.priceKRW)}/>}{paymentSurface==='web'&&siteLocale==='ko'&&plannedPriceFor(item.fishId,item.priceKRW)!==null&&<span className={styles.srOnly}>, 체험가 </span>}{productPrice(item)}</span><span className={styles.fishScope}>{siteLocale==='ko'&&item.readingKind!=='single'?fusionPremiumManifest(item,topicId).length+1:consultationManifest(item,kind,topicId).length} {ui.chapters}{productId===item.id&&<b>{ui.selected}</b>}</span>{domain!=='fusion'&&<small>{targetRange(item)} {ui.target}</small>}{siteLocale==='ko'&&item.readingKind==='single'&&<small data-question-scope={item.fishId}>{questionScopes[item.fishId as QuestionFish]}</small>}{tarotSpread&&!tierAllowsSpread(item.fishId,tarotSpread)&&tarotSpread.minTier&&<small>{tarotSpreadCopy.tierLocked(tarotSpread.cardCount,fishName(tarotSpread.minTier,siteLocale))}</small>}{readingTierDepth(item.fishId,siteLocale)?<small data-reading-tier-depth={item.fishId}>{readingTierDepth(item.fishId,siteLocale)}</small>:siteLocale==='ko'&&<small>{fusionDescription(item)||depthDescriptions[item.fishId]}</small>}
   </button>)}</div>
   </>}
    {siteLocale==='ko'&&product.readingKind!=='single'&&<p>운세별 심화 해석과 생활 분야 상담, 실행 노트를 한 권에 담아요. 추가 질문은 {consultationBudget(product.fishId).followups}회 이용할 수 있어요. PDF의 실제 페이지 수는 상담 내용과 조판에 따라 달라져요.</p>}
@@ -395,7 +396,7 @@ export default function Consultation({initialQuestion='',sajuOnly=false,inputNot
     return <li key={chapter.id}>{head&&<b className={styles.partHeading}>{head}</b>}{v7Label(chapter.titleKey,siteLocale)||(siteLocale==='ko'?chapter.title:`${localizedKind(kind.id,siteLocale)} · ${i+1}`)}{questionActive&&chapter.sections&&<ul>{chapter.sections.map(section=><li key={section.id}>{section.title}</li>)}</ul>}</li>;
    })}{fusionPreview&&<li>{PREVENTION_TITLE}</li>}</ol></details>
    {siteLocale==='ko'&&product.readingKind!=='single'&&<CraftedProductDisclosure featureKey={product.cdFeatureKey}/>}
-   <div className={styles.checkoutSection}><div className={styles.checkoutTotal}><span>{tierLabel(product)} · {ui.payment}</span><strong><LaunchPlannedPrice className={styles.totalPlanned} amount={plannedTotal}/>{plannedTotal!==null&&<span className={styles.srOnly}>, 체험가 </span>}{price(product.priceKRW)}</strong></div>
+   <div className={styles.checkoutSection}><div className={styles.checkoutTotal}><span>{tierLabel(product)} · {ui.payment}</span><strong><LaunchPlannedPrice className={styles.totalPlanned} amount={plannedTotal}/>{plannedTotal!==null&&<span className={styles.srOnly}>, 체험가 </span>}{productPrice(product)}</strong></div>
    <p>{ui.afterPayment}</p><p>{askCopy.language}: <b lang={locale}>{readingLanguageNames[locale]}</b> · {ui.languageHint}</p><p>{ui.priceHint}</p>
    <p>{ui.about} {ui.limits}</p>
    {missing.length>0&&<ul className={styles.inputHints}>{missing.map(message=>{const field=Object.keys(fieldMessages).find(key=>fieldMessages[key]===message);return <li key={message}>{field?<button type="button" onClick={()=>goToField(field)}>{message}</button>:message}</li>;})}</ul>}

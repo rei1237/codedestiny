@@ -53,7 +53,7 @@ test('Maya is reachable from the Toss home without starting payment',async()=>{
  const dom=new JSDOM('<div id="root"></div>',{url:'http://localhost/'});globalThis.window=dom.window;globalThis.document=dom.window.document;globalThis.IS_REACT_ACT_ENVIRONMENT=true;
  const {default:Home}=await compile(path.join(repo,'apps/toss/src/UnifiedHome.tsx'),{
   './Button':"import React from 'react';export const Button=({children,...p})=>React.createElement('button',p,children);",
-  './content':"export const questions=[];",
+  './content':"export const questions=[],birthSystems=[];",
  });
  const root=createRoot(document.getElementById('root')),opened=[];
  try{await React.act(async()=>root.render(React.createElement(Home,{onOpen:value=>opened.push(value),onConsult:()=>{}})));

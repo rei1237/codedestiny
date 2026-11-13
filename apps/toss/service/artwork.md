@@ -12,3 +12,5 @@ Toss Image 어댑터만 로컬 표시 URL을 치환하고 Vite는 원본 PNG의 
 
 `npm test --prefix apps/toss`는 치환 범위·해상도·투명도·절감량을 검사하고,
 `npm run build --prefix apps/toss`는 최종 AIT와 압축 해제 크기를 기존 제한으로 검증한다.
+
+2026-11-13 통합 홈 번들은 타로 뒷면 back-600.webp를 패키징할 때 같은 600×900 크기로 인코딩한다. 원본 833,178바이트, WebP quality 88 파생본 192,902바이트. 카드 앞면과 웹 원본은 그대로 사용한다.

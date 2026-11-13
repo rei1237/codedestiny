@@ -44,6 +44,15 @@ export function reviewRoute(pathname,search='') {
   return 'excluded';
 }
 
+// These original result screens validate the authenticated order in their own API.
+// Native report recovery links must also match an exact URL from the purchase library.
+export function requiresOwnedReceipt(pathname,search) {
+  const path=normalizePath(pathname), query=new URLSearchParams(search);
+  if (['/result','/yeongnyangi/result','/checkout','/login'].includes(path)) return false;
+  if (path==='/fortune-tea-house' && query.get('counsel')==='letter' && !query.get('session') && !query.get('resultId')) return false;
+  return [...query].some(([key,value])=>value && (receiptKeys.has(key) || key==='session'));
+}
+
 export async function ownsReviewReceipt(href,readPage) {
   const cursors=new Set();
   let cursor=null;

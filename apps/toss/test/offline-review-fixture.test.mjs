@@ -3,7 +3,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createOfflineFixtureApi} from './offline/fixture.mjs';
 import {reviewSdkProducts,reviewCatalog} from './offline/review-fixture.mjs';
-import {getBillingFeaturePricing} from '../../../worker/lib/billing-feature-registry.js';
+import {APPROVED_TOSS_PRODUCTS} from '../../../worker/toss/catalog.js';
 
 function fixture(){
   const memory=new Map(),storage={getItem:key=>memory.get(key),setItem:(key,value)=>memory.set(key,value)};
@@ -19,7 +19,7 @@ test('the mock SDK and fixture verify the original five product prices',async()=
   assert.equal(catalog.length,5);
   for(const item of reviewCatalog){
     const linked=catalog.find(p=>p.sku===item.sku),sdk=reviewSdkProducts.find(p=>p.sku===item.sku);
-    const price=getBillingFeaturePricing({featureKey:item.featureKey}).pricing.amountKRW;
+    const price=APPROVED_TOSS_PRODUCTS.find(p=>p.productId===item.id.replace(/^yeoni:/,'')).approvedPriceKRW;
     assert.equal(linked.approvedPriceKRW,price);assert.equal(sdk.displayAmount,price.toLocaleString('ko-KR')+'원');
   }
 });

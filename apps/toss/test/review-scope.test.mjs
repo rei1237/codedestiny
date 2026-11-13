@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {chartFixture} from './chart-fixture.mjs';
-import {reviewServices,reviewYeongnyangiHref,resolveReviewEntry,ownsReviewReceipt} from '../src/review-scope.mjs';
+import {reviewServices,reviewYeongnyangiHref,resolveReviewEntry,requiresOwnedReceipt,ownsReviewReceipt} from '../src/review-scope.mjs';
 
 test('the first home offers only seven services and internal support links',async()=>{
   const {dom,React,createRoot,Component}=await chartFixture('ReviewHome.tsx','/');
@@ -88,4 +88,9 @@ test('switching accounts unmounts a verified record before checking the next acc
     await React.act(async()=>{resolve({purchases:[]});});
     assert.doesNotMatch(document.body.textContent,/소유자 기록/);
   }finally{await React.act(()=>root.unmount());dom.window.close();}
+});
+
+test('service discovery and order verification are independent at the miniapp entry',()=>{
+  for(const path of ['/','/neo-operation-room/','/life-book-ai/','/yeongnyangi/fortune/'])assert.equal(requiresOwnedReceipt(path,'?domain=vedic&flow=question'),false);
+  for(const [path,query] of [['/life-book-ai/result/','?attemptId=x'],['/tarot-library','?orderId=x'],['/neo-operation-room/','?resultId=x']])assert.equal(requiresOwnedReceipt(path,query),true);
 });

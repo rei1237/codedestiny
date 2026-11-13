@@ -9,6 +9,7 @@ import {canonicalResponse,restoreSession,recoverAfterAuthentication,onSessionInv
 import {createServiceFetch} from './transport.mjs';
 import {dispatchServiceBack} from './native-back.mjs';
 import {FPTI_RESULT_PREFIX,fptiStoredEnvelope} from './fpti-session.mjs';
+
 import {captureLetterDraft,restoreLetterDraft} from './letter-draft-bootstrap.mjs';
 import {captureTeaDraft,restoreTeaDraft} from './tea-draft-bootstrap.mjs';
 import {captureSukuyoDraft,restoreSukuyoDraft} from './sukuyo-draft-bootstrap.mjs';
@@ -69,6 +70,32 @@ function ConsultationRedirect({href}){
  useEffect(()=>{if(routed.current)return;routed.current=true;location.replace(href);},[href]);
  return <p role="status">상담을 열고 있어요.</p>;
 }
+
+function destination(location){
+  const url=new URL(location.href);
+  const next=/^\/login\/?$/.test(url.pathname)?new URL(url.searchParams.get('next')||'/',url.origin):url;
+  return next.origin===url.origin && /^\/yeongnyangi\/fortune\/?$/.test(next.pathname)?next.pathname+next.search:null;
+}
+
+function captureConsultationDraft(storage,location,now=Date.now()){
+  try{
+    const raw=storage?.getItem('yeongnyangi:consultation-login-draft');
+    if(!raw||raw.length>24000)return null;
+    const draft=JSON.parse(raw),age=now-draft.savedAt;
+    if(draft.path!==destination(location)||!draft.path||!Number.isFinite(age)||age<0||age>=3600000||typeof draft.question!=='string'||draft.question.length>1000)return null;
+    return draft;
+  }catch{return null;}
+}
+
+function restoreConsultationDraft(storage,draft,location,user){
+  try{
+    if(!draft||draft.path!==destination(location))return;
+    const owner=String(user?.id||user?.userId||user?._id||user?.uid||'').trim().toLowerCase();
+    if(draft.accountId && owner!==draft.accountId)return;
+    if(!storage.getItem('yeongnyangi:consultation-login-draft'))storage.setItem('yeongnyangi:consultation-login-draft',JSON.stringify({...draft,accountId:owner}));
+  }catch{/* Optional input draft. Paid results are stored by the server. */}
+}
+
 // The shared auth reset clears sessionStorage even during ordinary shell entry.
 // Preserve only validated owner-scoped local results; they are never shown until the
 // matching account has been restored. Unlink deletion remains a release gate.
@@ -81,7 +108,7 @@ export function preserveOmikujiSession(storage,clear){
 /** @param {{reviewOnly?:boolean, verifiedReceipt?:boolean, inputNotice?:(body:object)=>string}} props */
 export default function ServiceScreens({reviewOnly=false,verifiedReceipt=false,inputNotice}={}){
  const [ready,setReady]=useState(false),[error,setError]=useState(''),[busy,setBusy]=useState(false),[loginPending,setLoginPending]=useState(false),[,setNavigationRevision]=useState(0),[recoveryMessage,setRecoveryMessage]=useState(''),[recoveryEpoch,setRecoveryEpoch]=useState(0);
- const bootstrapDraft=useRef(null),bootstrapTeaDraft=useRef(null),bootstrapSukuyoDraft=useRef(null);
+ const consultationDraft=useRef(null),bootstrapDraft=useRef(null),bootstrapTeaDraft=useRef(null),bootstrapSukuyoDraft=useRef(null);
  const loginLock=useRef(false),loginEpoch=useRef(0),loginAlive=useRef(false);
  useEffect(()=>{loginAlive.current=true;const leave=()=>{loginEpoch.current++;setNavigationRevision(value=>value+1);if(loginLock.current)setBusy(false);};window.addEventListener('popstate',leave);return()=>{loginAlive.current=false;loginEpoch.current++;window.removeEventListener('popstate',leave);};},[]);
  useEffect(()=>{
@@ -100,8 +127,8 @@ export default function ServiceScreens({reviewOnly=false,verifiedReceipt=false,i
  useEffect(()=>{
   install();let live=true,storage;try{storage=window.sessionStorage;}catch{/* Storage is optional. */}
   const drafts=()=>({letter:bootstrapDraft.current,tea:bootstrapTeaDraft.current,sukuyo:bootstrapSukuyoDraft.current});
-  const capture=()=>{const pending=recallPendingAuthDrafts(storage,location);bootstrapDraft.current=captureLetterDraft(storage,location)||bootstrapDraft.current||pending.letter;bootstrapTeaDraft.current=captureTeaDraft(storage,location)||bootstrapTeaDraft.current||pending.tea;bootstrapSukuyoDraft.current=captureSukuyoDraft(storage)||bootstrapSukuyoDraft.current||pending.sukuyo;};
-  const restore=user=>{restoreLetterDraft(storage,bootstrapDraft.current,{location,user});restoreTeaDraft(storage,bootstrapTeaDraft.current,{location,user});restoreSukuyoDraft(storage,bootstrapSukuyoDraft.current,{user});};
+  const capture=()=>{consultationDraft.current=captureConsultationDraft(storage,location)||consultationDraft.current;const pending=recallPendingAuthDrafts(storage,location);bootstrapDraft.current=captureLetterDraft(storage,location)||bootstrapDraft.current||pending.letter;bootstrapTeaDraft.current=captureTeaDraft(storage,location)||bootstrapTeaDraft.current||pending.tea;bootstrapSukuyoDraft.current=captureSukuyoDraft(storage)||bootstrapSukuyoDraft.current||pending.sukuyo;};
+  const restore=user=>{restoreConsultationDraft(storage,consultationDraft.current,location,user);restoreLetterDraft(storage,bootstrapDraft.current,{location,user});restoreTeaDraft(storage,bootstrapTeaDraft.current,{location,user});restoreSukuyoDraft(storage,bootstrapSukuyoDraft.current,{user});};
   capture();
   let invalidationRevision=0;const invalidate=()=>{invalidationRevision++;capture();preserveOmikujiSession(storage,()=>handleSessionInvalidated({redirect:false}));rememberPendingAuthDrafts(storage,drafts());};const offSession=onSessionInvalidated(invalidate);window.addEventListener('code-destiny:toss-auth-denied',invalidate);
   preserveOmikujiSession(storage,clearClientAuthState);rememberPendingAuthDrafts(storage,drafts());restore();
@@ -132,7 +159,7 @@ export default function ServiceScreens({reviewOnly=false,verifiedReceipt=false,i
  }
  if(location.pathname.startsWith('/records'))return <LazyMotion features={domAnimation}><ToastProvider/>{recoveryBanner}{ready?<Suspense fallback={<p role="status">기록을 불러오고 있어요.</p>}><Records showWebReception={false} refreshKey={recoveryEpoch} paymentSurface="toss"/></Suspense>:<p role="status">로그인 상태를 확인하고 있어요.</p>}</LazyMotion>;
  if(tea){const params=new URLSearchParams(location.search),resultId=params.get('resultId'),consultation=params.get('consultation');const savedConsultation=/^[a-f0-9]{64}$/.test(consultation||'');const letter=params.get('counsel')==='letter'&&!params.get('session');return <LazyMotion features={domAnimation}><ToastProvider/>{recoveryBanner}{ready?<Suspense fallback={<p role="status">찻집을 열고 있어요.</p>}>{resultId?<SavedTea resultId={resultId} paymentSurface="toss"/>:letter?(consultation&&!savedConsultation?<p role="alert">상담 주소를 확인하지 못했어요. 기록 보관함에서 다시 열어 주세요.</p>:<LetterRoom inputNotice={inputNotice} reviewOnly={reviewOnly} initialId={savedConsultation?consultation:''} initialOrderId={params.get('orderId')||''}/>):savedConsultation?<ConsultationRedirect href={'/result?id='+encodeURIComponent(consultation)}/>:<Tea paymentSurface="toss" TossPrice={TeaPrice}/>}</Suspense>:<p role="status">로그인 상태를 확인하고 있어요.</p>}</LazyMotion>;}
- if(location.pathname.startsWith('/login'))return <YeongnyangiLayout><section className={styles.consultation}>{recoveryBanner}<header className={styles.spiritIntro}><img src="/assets/yeongnyangi/original/login.webp" width={440} height={557} alt=""/><div><h1>토스로 상담 시작하기</h1><p>같은 토스 계정으로 저장한 상담을 다시 읽을 수 있어요.</p><button className={styles.primaryAction} disabled={busy||loginPending} onClick={async()=>{if(loginLock.current)return;loginLock.current=true;setLoginPending(true);const epoch=loginEpoch.current,start=location.pathname+location.search,current=()=>loginAlive.current&&epoch===loginEpoch.current&&start===location.pathname+location.search;setError('');setBusy(true);try{await login();if(!current())return;const user=await refreshAuth({force:true});if(!current())return;if(!user||!(user.id||user.userId||user._id||user.uid))throw Object.assign(new Error('SESSION_CHECK_FAILED'),{code:'SESSION_CHECK_FAILED'});let storage;try{storage=window.sessionStorage;}catch{}restoreLetterDraft(storage,bootstrapDraft.current,{location,user});restoreTeaDraft(storage,bootstrapTeaDraft.current,{location,user});restoreSukuyoDraft(storage,bootstrapSukuyoDraft.current,{user});clearPendingAuthDrafts(storage,{letter:bootstrapDraft.current,tea:bootstrapTeaDraft.current,sukuyo:bootstrapSukuyoDraft.current},user);const next=new URLSearchParams(location.search).get('next')||'/yeongnyangi/fortune/';location.replace((/^\/(yeongnyangi|fortune-tea-house|neo-operation-room|fusion-fortune|life-book-ai|love-secret-ai|relationship-boundary-test|pet-saju|astrology-ai|vedic-ai|ziwei-ai|new-year-ai-consultation|karma-destiny-ai|sukuyo-compatibility-ai|maya|tarot-library|saju-fpti|fpti|records|checkout)(\/|\?|$)/.test(next))?next:'/yeongnyangi/fortune/');}catch(error){if(current()){setError(loginFailure(error));setBusy(false);}}finally{loginLock.current=false;if(loginAlive.current)setLoginPending(false);}}}>{busy||loginPending?'로그인 중':'토스로 로그인하기'}</button>{error&&<p role="alert">{error}</p>}</div></header></section></YeongnyangiLayout>;
+ if(location.pathname.startsWith('/login'))return <YeongnyangiLayout><section className={styles.consultation}>{recoveryBanner}<header className={styles.spiritIntro}><img src="/assets/yeongnyangi/original/login.webp" width={440} height={557} alt=""/><div><h1>토스로 상담 시작하기</h1><p>같은 토스 계정으로 저장한 상담을 다시 읽을 수 있어요.</p><button className={styles.primaryAction} disabled={busy||loginPending} onClick={async()=>{if(loginLock.current)return;loginLock.current=true;setLoginPending(true);const epoch=loginEpoch.current,start=location.pathname+location.search,current=()=>loginAlive.current&&epoch===loginEpoch.current&&start===location.pathname+location.search;setError('');setBusy(true);try{await login();if(!current())return;const user=await refreshAuth({force:true});if(!current())return;if(!user||!(user.id||user.userId||user._id||user.uid))throw Object.assign(new Error('SESSION_CHECK_FAILED'),{code:'SESSION_CHECK_FAILED'});let storage;try{storage=window.sessionStorage;}catch{}restoreConsultationDraft(storage,consultationDraft.current,location,user);restoreLetterDraft(storage,bootstrapDraft.current,{location,user});restoreTeaDraft(storage,bootstrapTeaDraft.current,{location,user});restoreSukuyoDraft(storage,bootstrapSukuyoDraft.current,{user});clearPendingAuthDrafts(storage,{letter:bootstrapDraft.current,tea:bootstrapTeaDraft.current,sukuyo:bootstrapSukuyoDraft.current},user);const next=new URLSearchParams(location.search).get('next')||'/yeongnyangi/fortune/';location.replace((/^\/(yeongnyangi|fortune-tea-house|neo-operation-room|fusion-fortune|life-book-ai|love-secret-ai|relationship-boundary-test|pet-saju|astrology-ai|vedic-ai|ziwei-ai|new-year-ai-consultation|karma-destiny-ai|sukuyo-compatibility-ai|maya|tarot-library|saju-fpti|fpti|records|checkout)(\/|\?|$)/.test(next))?next:'/yeongnyangi/fortune/');}catch(error){if(current()){setError(loginFailure(error));setBusy(false);}}finally{loginLock.current=false;if(loginAlive.current)setLoginPending(false);}}}>{busy||loginPending?'로그인 중':'토스로 로그인하기'}</button>{error&&<p role="alert">{error}</p>}</div></header></section></YeongnyangiLayout>;
  const Screen=location.pathname.startsWith('/checkout')?PreparedCheckout:location.pathname.includes('/result')?Result:location.pathname.includes('/library')?Library:Consultation;
- return <LazyMotion features={domAnimation}><ToastProvider/>{recoveryBanner}<YeongnyangiLayout>{ready?<Suspense fallback={<p role="status">상담실을 불러오고 있어요.</p>}><Screen {...(Screen===Result||Screen===Library?{paymentSurface:"toss"}:Screen===Consultation&&reviewOnly?{sajuOnly:true,inputNotice}:Screen===PreparedCheckout&&reviewOnly?{reviewOnly:true}:{})}/></Suspense>:<p role="status">로그인 상태를 확인하고 있어요.</p>}</YeongnyangiLayout></LazyMotion>;
+ return <LazyMotion features={domAnimation}><ToastProvider/>{recoveryBanner}<YeongnyangiLayout>{ready?<Suspense fallback={<p role="status">상담실을 불러오고 있어요.</p>}><Screen {...(Screen===Result||Screen===Library?{paymentSurface:"toss"}:Screen===Consultation?{sajuOnly:reviewOnly,inputNotice,paymentSurface:"toss"}:Screen===PreparedCheckout?{reviewOnly:true}:{})}/></Suspense>:<p role="status">로그인 상태를 확인하고 있어요.</p>}</YeongnyangiLayout></LazyMotion>;
 }

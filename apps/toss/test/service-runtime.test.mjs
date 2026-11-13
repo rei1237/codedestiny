@@ -98,6 +98,7 @@ test('canonical catalog is fail-closed; profiles use owner-scoped immutable retr
  try{
   const canonicalModule=await import('data:text/javascript;base64,'+Buffer.from(compiled.outputFiles[0].text).toString('base64'));
   assert.ok(canonicalModule.canonicalProducts([]).every(row=>!row.available));
+  assert.ok(canonicalModule.canonicalProducts([]).some(row=>row.id==='fusion_all'&&!row.available));
   const product=canonicalModule.canonicalProducts([]).find(row=>row.id==='saju_mackerel');
   const approved=[{productId:product.id,sku:'test-only-sku',approved:true,supplyPriceKRW:9000,approvedPriceKRW:9900,priceEvidence:'injected-test',serviceId:'yeongnyangi'}];
   const platformProduct=canonicalModule.canonicalProducts(approved).find(row=>row.available);

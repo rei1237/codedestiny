@@ -12,10 +12,10 @@ import {isReviewSale} from './review-products.js';
 // The original screens keep their response contract. Authentication and payment
 // remain owned by /api/toss; this is never dispatched from a web-cookie route.
 export function canonicalProducts(approved=APPROVED_TOSS_PRODUCTS) {
-  return products.filter(product=>isReviewSale(product.id)).map(product=>{
+  return products.map(product=>{
     const candidates=approved.filter(item=>item.productId===product.id&&(!item.serviceId||item.serviceId==='yeongnyangi'));
     try {
-      if(candidates.length!==1)throw new Error('ambiguous sale');
+      if(!isReviewSale(product.id)||candidates.length!==1)throw new Error('unavailable sale');
       const sale=approvedProduct(candidates[0].sku,approved);
       return {...product,priceKRW:sale.approvedPriceKRW,available:true};
     } catch { return {...product,available:false}; }

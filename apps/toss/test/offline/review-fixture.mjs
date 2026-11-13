@@ -1,12 +1,12 @@
 import {reviewProductIds} from '../../../../worker/toss/review-products.js';
-import {getBillingFeaturePricing} from '../../../../worker/lib/billing-feature-registry.js';
+import {APPROVED_TOSS_PRODUCTS} from '../../../../worker/toss/catalog.js';
 import {consultationInputCode,consultationSafetyMessages} from '../../../../lib/fortune/toss-consultation-safety.mjs';
 
 const fishNames={mackerel:'고등어',salmon:'연어',flounder:'광어',tuna:'참치'};
 export const reviewCatalog=reviewProductIds.map(id=>{
   const letter=id==='chat_saju';
   const featureKey=letter?'fortune-chat-consultation':'yeongnyangi-'+id.replace('_','-');
-  const approvedPriceKRW=getBillingFeaturePricing({featureKey}).pricing?.amountKRW;
+  const approvedPriceKRW=APPROVED_TOSS_PRODUCTS.find(p=>p.productId===id)?.approvedPriceKRW;
   if(!Number.isSafeInteger(approvedPriceKRW)||approvedPriceKRW<=0)throw Error('Missing fixture price: '+id);
   return {id:letter?'yeoni:'+id:id,sku:letter?'mock-yeoni':'mock-'+id,name:letter?'테스트 연이 상담':'테스트 사주 · '+fishNames[id.slice(5)],featureKey,approvedPriceKRW,available:true,chapters:1};
 });
@@ -27,14 +27,14 @@ async function prepare(body,state,save,day){
   const blocked=safetyResponse(body);if(blocked)return blocked;
   const product=sajuCatalog.find(p=>p.id===body.productId);
   if(!product)return fail('TOSS_PRODUCT_NOT_APPROVED',503);
-  if(body.profileId!=='mock-profile'||typeof body.question!=='string'||!body.question.trim()||!body.consultationAttemptId)return fail('INVALID_INPUT',400);
+  if((!state.profiles.some(p=>p.profileId===body.profileId)&&!(body.productId.startsWith('tarot_')&&body.profileId==='tarot-question'))||typeof body.question!=='string'||!body.question.trim()||!body.consultationAttemptId)return fail('INVALID_INPUT',400);
   // Store a digest for retry comparison. Profiles, freeform questions and birth inputs are not fixture records.
   const bytes=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(JSON.stringify([body.productId,body.profileId,body.question,body.questionDecision])));
   const digest=Array.from(new Uint8Array(bytes),value=>value.toString(16).padStart(2,'0')).join('');
   const prior=[...state.fortunes.values()].find(item=>item.attempt===body.consultationAttemptId);
   if(prior)return prior.digest===digest?json({fortune:prior.fortune}):fail('REQUEST_INPUT_MISMATCH',409);
   const id=(++state.sequence).toString(16).padStart(64,'0');
-  const fortune={id,profileId:'mock-profile',productId:product.id,product:productView(product),locale:'ko',state:'CREATED',paid:false,createdAt:day.toISOString(),
+  const fortune={id,profileId:body.profileId,productId:product.id,product:productView(product),locale:'ko',state:'CREATED',paid:false,createdAt:day.toISOString(),
     consultation:{question:'[테스트 전용 예시] 오늘 제가 먼저 살펴볼 일은 무엇인가요?',kindLabel:'테스트 질문'},
     manifest:[{id:'test',title:'테스트 상담',ordinal:0}],chapters:[],recovery:{canRetryNow:false,savedChapters:0,totalChapters:1}};
   state.fortunes.set(id,{attempt:body.consultationAttemptId,digest,sku:product.sku,fortune});save();

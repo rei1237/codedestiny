@@ -1,7 +1,7 @@
 'use client';
 import {useEffect,useRef,type ReactNode} from 'react';
 import {questionCandidate,questionTopics,questionNeedsDecisionDetails,recommendQuestion,type QuestionDecision} from '@/worker/yeongnyangi/fortune/ask/question-policy';
-import {systemNames} from '@/worker/yeongnyangi/payments/catalog';
+import {systemNames,type Product} from '@/worker/yeongnyangi/payments/catalog';
 import type {IntakeValue} from '../_lib/intake-chat';
 import QuestionFishPicker from './QuestionFishPicker';
 import styles from './question-checkout.module.css';
@@ -9,8 +9,8 @@ import FirstVisitProgress from './FirstVisitProgress';
 import QuestionEntry from './QuestionEntry';
 
 export type PreparationStep={id:string;prompt:string;answer:string;content:ReactNode;valid:boolean;pending?:boolean};
-type Props={value:IntakeValue;open:boolean;busy:boolean;guidanceReady:boolean;onChange:(value:IntakeValue)=>void;onOpen:()=>void;preparation:PreparationStep[];checkout:(children:ReactNode)=>ReactNode};
-export default function QuestionCheckout({value,open,busy,guidanceReady,onChange,onOpen,preparation,checkout}:Props){
+type Props={formatProductPrice?:(item:Product)=>string;value:IntakeValue;open:boolean;busy:boolean;guidanceReady:boolean;onChange:(value:IntakeValue)=>void;onOpen:()=>void;preparation:PreparationStep[];checkout:(children:ReactNode)=>ReactNode};
+export default function QuestionCheckout({formatProductPrice,value,open,busy,guidanceReady,onChange,onOpen,preparation,checkout}:Props){
  const heading=useRef<HTMLDivElement>(null);
  useEffect(()=>{if(open){heading.current?.focus();heading.current?.scrollIntoView({block:'start'});}},[open]);
  const update=(patch:Partial<QuestionDecision>)=>onChange({...value,decision:{...value.decision,...patch}});
@@ -19,7 +19,7 @@ export default function QuestionCheckout({value,open,busy,guidanceReady,onChange
  return <div ref={heading} tabIndex={-1} className={styles.content}><FirstVisitProgress ready={guidanceReady&&Boolean(value.question.trim())&&preparation.every(item=>item.valid&&!item.pending)}/>{checkout(<>
   <details className={styles.section}><summary>질문 수정하기</summary><label>상담 질문<textarea rows={4} maxLength={1000} value={value.question} onChange={event=>onChange({...value,question:event.target.value})}/></label></details>
   <details className={styles.section}><summary>상담 방식·깊이 변경하기</summary><label>상담 방식<select value={value.domain} onChange={event=>onChange({...value,domain:event.target.value as IntakeValue['domain']})}>{Object.entries(systemNames).map(([id,label])=><option key={id} value={id}>{label}</option>)}</select></label>
-   <QuestionFishPicker domain={value.domain} selected={value.fish||recommendQuestion(value.domain,value.decision,value.question).fish} recommended={recommendQuestion(value.domain,value.decision,value.question).fish} onSelect={fish=>onChange({...value,fish})}/>
+   <QuestionFishPicker formatProductPrice={formatProductPrice} domain={value.domain} selected={value.fish||recommendQuestion(value.domain,value.decision,value.question).fish} recommended={recommendQuestion(value.domain,value.decision,value.question).fish} onSelect={fish=>onChange({...value,fish})}/>
   </details>
   <details className={styles.section}><summary>질문의 주제와 범위 확인</summary>
    {candidate&&candidate!==value.decision.category&&<button type="button" onClick={()=>update({category:candidate})}>질문에 맞는 주제 적용하기</button>}

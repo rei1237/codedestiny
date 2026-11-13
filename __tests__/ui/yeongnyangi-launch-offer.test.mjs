@@ -80,7 +80,7 @@ test('banner renders the effective date, current catalog prices, and preserved p
 test('checkout total reads the planned price, then the labelled trial price, to a screen reader',async()=>{
  const strong=readFileSync('app/yeongnyangi/_components/Consultation.tsx','utf8').match(/<div className=\{styles\.checkoutTotal\}>.*?(<strong>.*?<\/strong>)/)?.[1];
  assert.ok(strong,'checkout total block');
- const {Total}=await load(`import LaunchPlannedPrice from './app/components/LaunchPlannedPrice';const styles={totalPlanned:'totalPlanned',srOnly:'srOnly'};export function Total({plannedTotal,product,price}){return ${strong};}`);
+ const {Total}=await load(`import LaunchPlannedPrice from './app/components/LaunchPlannedPrice';const styles={totalPlanned:'totalPlanned',srOnly:'srOnly'};export function Total({plannedTotal,product,price}){const productPrice=p=>price(p.priceKRW);return ${strong};}`);
  const React=require('react'),{renderToStaticMarkup}=require('react-dom/server'),price=n=>n.toLocaleString('ko-KR')+'원';
  const html=renderToStaticMarkup(React.createElement(Total,{plannedTotal:whileActive(()=>mod.plannedPriceFor('mackerel',1000)),product:{priceKRW:1000},price}));
  assert.equal(html.replace(/<[^>]+>/g,''),'정식 오픈 예정가 10,000원, 체험가 1,000원');
@@ -89,9 +89,9 @@ test('checkout total reads the planned price, then the labelled trial price, to 
 });
 
 test('after the offer ends fish buttons show only the current catalog price',async()=>{
- const span=readFileSync('app/yeongnyangi/_components/Consultation.tsx','utf8').match(/(<span className=\{styles\.fishPrice\}>.*?\{price\(item\.priceKRW\)\}<\/span>)/)?.[1];
+ const span=readFileSync('app/yeongnyangi/_components/Consultation.tsx','utf8').match(/(<span className=\{styles\.fishPrice\}>.*?\{productPrice\(item\)\}<\/span>)/)?.[1];
  assert.ok(span,'fish price span');
- const {Fish}=await load(`import LaunchPlannedPrice from './app/components/LaunchPlannedPrice';import {plannedPriceFor} from './lib/brand/launch-offer';const styles={fishPrice:'fishPrice',srOnly:'srOnly'};export function Fish({siteLocale,item,price}){return ${span};}`);
+ const {Fish}=await load(`import LaunchPlannedPrice from './app/components/LaunchPlannedPrice';import {plannedPriceFor} from './lib/brand/launch-offer';const styles={fishPrice:'fishPrice',srOnly:'srOnly'};export function Fish({siteLocale,item,price}){const paymentSurface='web',productPrice=p=>price(p.priceKRW);return ${span};}`);
  const React=require('react'),{renderToStaticMarkup}=require('react-dom/server'),price=n=>n.toLocaleString('ko-KR')+'원';
  const render=(siteLocale,item)=>renderToStaticMarkup(React.createElement(Fish,{siteLocale,item,price}));
  const html=render('ko',{fishId:'mackerel',priceKRW:5000});
