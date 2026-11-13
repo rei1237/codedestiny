@@ -188,7 +188,7 @@ export default function serviceCompat(){
     // The web waiting scene is displayed at most 416 CSS pixels wide.
     if(ref==='images/consultation-webtoons/heukwol/portraits/moon-library.webp')return sharp(path).resize({width:640,withoutEnlargement:true}).webp({quality:84}).toBuffer();
     // These portraits and scene covers fill at most the miniapp content width.
-    if(/^images\/(master-profiles|consultation-editorial|fusion-fortune)\/[^/]+\.webp$/.test(ref)){
+    if(/^images\/(master-profiles|consultation-editorial|service-introductions|fusion-fortune)\/[^/]+\.webp$/.test(ref)){
      const source=await readFile(path);
      const {width}=await sharp(source).metadata();
      if(width>800)return sharp(source).resize({width:800}).webp({quality:88,alphaQuality:100}).toBuffer();
