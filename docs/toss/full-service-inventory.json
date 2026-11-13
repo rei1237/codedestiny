@@ -1,5 +1,5 @@
 {
-  "sourceCommit": "3a0ea2b2e0f5628b11b4069fd32dbecefd272e58",
+  "sourceCommit": "86c2507e354f202117f369a6849f35f74e28f0e3",
   "sourceCounts": {
     "home": 63,
     "react": 18,
@@ -2121,7 +2121,7 @@
         "candidateStatus": "local-partial",
         "canonicalRoute": "/saju/basic/play",
         "saleStatus": "기본 계산은 구매 없음 · 부가 상품은 별도 행 참조",
-        "bundleVerification": "공개 사주·자미 11절 원본 계산, 사주 그림 13가지와 여행 기록 복원. 시크릿 하우스는 독립 검사 · 360px 배포 AIT 브라우저, 토스 휴대폰 미검증"
+        "bundleVerification": "공개 사주·자미 11절 원본 계산, 사주 그림 13가지와 여행 기록 복원. 시크릿 하우스는 독립 검사 · 360px 기본 사주 출생 입력 후 극T·테토/에겐·네컷·도파민·로또·그림 프롬프트 13종 중 주제 선택 및 원본 결과 · 360px 배포 AIT 브라우저, 토스 휴대폰 미검증"
       }
     },
     {
@@ -2998,7 +2998,7 @@
         "candidateStatus": "local-partial",
         "canonicalRoute": "/yeongnyangi/fortune/",
         "saleStatus": "상품별 승인된 독립 SKU만 원장에 기록. 신규 판매 보류",
-        "bundleVerification": "일반판 원화·질문에서 입력, 모의 토스 로그인, 원문 재열람. 단절 후 저장 원문·타 계정 URL 차단, 새 결제·생성 0건 · 키보드에 해당하는 360 × 420 입력 높이에서 다음 버튼 노출과 재진입 초안 복원 · 별도 모의 AIT에서 28개 원본 상품 입력·1회 주문·1회 모의 생성·앱 재진입 후 영냥이 보관함 원문 일치 · 360px 배포 AIT 브라우저, 토스 휴대폰 미검증"
+        "bundleVerification": "일반판 원화·질문에서 입력, 모의 토스 로그인, 원문 재열람. 단절 후 저장 원문·타 계정 URL 차단, 새 결제·생성 0건 · 키보드에 해당하는 360 × 420 높이에서 다음 버튼 노출과 작성 중인 질문 복원 · 별도 모의 AIT에서 28개 원본 상품 입력·1회 주문·1회 모의 생성·앱 재진입 후 영냥이 보관함 원문 일치 · 360px 배포 AIT 브라우저, 토스 휴대폰 미검증"
       }
     },
     {
@@ -7386,14 +7386,15 @@
       "portStatus": "일부만 이식",
       "reducedBundle": "홈 진입 있음",
       "currentEntry": "Linux AIT 일반 홈 → 꿀꿀운세 → 기본 사주 · 상위 화면 진입 확인",
-      "bundleVerification": "공개 사주·자미 11절 원본 계산, 사주 그림 13가지와 여행 기록 복원. 시크릿 하우스는 독립 검사 · 360px 배포 AIT 브라우저, 토스 휴대폰 미검증",
+      "bundleVerification": "공개 사주·자미 11절 원본 계산, 사주 그림 13가지와 여행 기록 복원. 시크릿 하우스는 독립 검사 · 360px 기본 사주 출생 입력 후 극T·테토/에겐·네컷·도파민·로또·그림 프롬프트 13종 중 주제 선택 및 원본 결과 · 360px 배포 AIT 브라우저, 토스 휴대폰 미검증",
       "tossLogin": "공개 진입",
       "tossResult": "apps/toss/src/BasicSajuReading.tsx",
       "reread": "memory-only free basic chart; web result and device parity pending",
       "verification": "apps/toss/test/ basic-saju-flow.test.mjs · 개별 검사 범위. 실제 기기 미검증",
       "saleStatus": "기본 계산은 구매 없음 · 부가 상품은 별도 행 참조",
       "archiveTests": [
-        "sections"
+        "sections",
+        "dashboard"
       ],
       "archiveHomeButtons": [
         "기본 사주"
@@ -7597,13 +7598,14 @@
       "portStatus": "일부만 이식",
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "Linux AIT 일반 홈 → 꿀꿀운세 → 사주 리포트 · 상위 화면 진입 확인",
-      "bundleVerification": "공개 사주·자미 11절 원본 계산, 사주 그림 13가지와 여행 기록 복원. 시크릿 하우스는 독립 검사 · 360px 배포 AIT 브라우저, 토스 휴대폰 미검증",
+      "bundleVerification": "공개 사주·자미 11절 원본 계산, 사주 그림 13가지와 여행 기록 복원. 시크릿 하우스는 독립 검사 · 360px 기본 사주 출생 입력 후 극T·테토/에겐·네컷·도파민·로또·그림 프롬프트 13종 중 주제 선택 및 원본 결과 · 360px 배포 AIT 브라우저, 토스 휴대폰 미검증",
       "tossLogin": "게스트 공개",
       "tossResult": "apps/toss/src/PublicSectionReading.tsx",
       "reread": "무료 원본을 현재 화면에 표시",
       "saleStatus": "웹 무료 계산",
       "archiveTests": [
-        "sections"
+        "sections",
+        "dashboard"
       ],
       "archiveHomeButtons": [
         "사주 리포트"
@@ -8864,7 +8866,7 @@
       "portStatus": "일부만 이식",
       "reducedBundle": "홈 진입 있음",
       "currentEntry": "일반 홈의 진입 코드 확인",
-      "bundleVerification": "일반판 원화·질문에서 입력, 모의 토스 로그인, 원문 재열람. 단절 후 저장 원문·타 계정 URL 차단, 새 결제·생성 0건 · 키보드에 해당하는 360 × 420 입력 높이에서 다음 버튼 노출과 재진입 초안 복원 · 별도 모의 AIT에서 28개 원본 상품 입력·1회 주문·1회 모의 생성·앱 재진입 후 영냥이 보관함 원문 일치 · 360px 배포 AIT 브라우저, 토스 휴대폰 미검증",
+      "bundleVerification": "일반판 원화·질문에서 입력, 모의 토스 로그인, 원문 재열람. 단절 후 저장 원문·타 계정 URL 차단, 새 결제·생성 0건 · 키보드에 해당하는 360 × 420 높이에서 다음 버튼 노출과 작성 중인 질문 복원 · 별도 모의 AIT에서 28개 원본 상품 입력·1회 주문·1회 모의 생성·앱 재진입 후 영냥이 보관함 원문 일치 · 360px 배포 AIT 브라우저, 토스 휴대폰 미검증",
       "tossLogin": "구매·기록에 토스 계정 필요",
       "tossResult": "app/yeongnyangi/_components/Result.tsx",
       "reread": "owner-bound TossPurchase and YeongnyangiRequest; /yeongnyangi/library/",
@@ -8942,13 +8944,15 @@
       "portStatus": "일부만 이식",
       "reducedBundle": "홈 진입 없음",
       "currentEntry": "일반 홈의 진입 코드 확인",
-      "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
+      "bundleVerification": "비공개 모의판 원본 Swiss 기준 예시. 무료 호라리·신점 전용 SKU, 첫 답과 심화 하나, 생성 중 종료·원문 다시 보기·타 계정 차단 · 360px 배포 AIT 브라우저, 토스 휴대폰 미검증",
       "tossLogin": "공개 진입",
       "tossResult": "app/yeongnyangi/_components/QuestionSkyConsultation.tsx",
       "reread": "무료 질문 시각·도시 차트. 유료 결과 보관 계약 없음",
       "verification": "question-sky-browser.mjs. 일반 홈에서 질문·시각·도시 → 게스트 호라리 원본 계산·외부 상담용 프롬프트. 모의 QR은 별도 고정 예시",
       "saleStatus": "현재 기능에 신규 구매 버튼 없음",
-      "archiveTests": [],
+      "archiveTests": [
+        "sky"
+      ],
       "archiveHomeButtons": []
     },
     {
@@ -8985,13 +8989,15 @@
       "portStatus": "일부만 이식",
       "reducedBundle": "홈 진입 없음",
       "currentEntry": "일반 홈의 진입 코드 확인",
-      "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
+      "bundleVerification": "비공개 모의판 원본 Swiss 기준 예시. 무료 호라리·신점 전용 SKU, 첫 답과 심화 하나, 생성 중 종료·원문 다시 보기·타 계정 차단 · 360px 배포 AIT 브라우저, 토스 휴대폰 미검증",
       "tossLogin": "구매·기록에 토스 계정 필요",
       "tossResult": "app/yeongnyangi/_components/QuestionSkyConsultation.tsx",
       "reread": "영냥이 질문점성술 별도 권한. 일반 사주 승인 SKU로 구매 가능하다고 보지 않는다",
       "verification": "question-sky-browser.mjs. 로컬 Swiss로 임의 질문의 차트·원본 두 장 준비. 비공개 모의판은 원본에서 미리 계산한 예시 1건, 독립 모의 SKU·심화 질문·보관함 원문 재열람·다른 계정 거절",
       "saleStatus": "유료 상품 콘솔·운영 설정 필요",
-      "archiveTests": [],
+      "archiveTests": [
+        "sky"
+      ],
       "archiveHomeButtons": []
     },
     {

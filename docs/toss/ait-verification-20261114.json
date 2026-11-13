@@ -1,24 +1,24 @@
 {
-  "run": "43494599476",
-  "commit": "949fcb17be9fb196ab2ee4595604a67107e219ae",
+  "run": "43503630933",
+  "commit": "1915f97056e70a851c1d4d43db32fecab0f5b50e",
   "runner": "GitHub Actions ubuntu-latest",
   "viewport": {
     "width": 360,
     "height": 740
   },
   "regular": {
-    "deploymentId": "01a1d686-3ca3-71d2-880f-6c9be4006410",
-    "archiveBytes": 87647764,
-    "expandedBytes": 99373062,
-    "sha256": "ae89321d60a6105eb243f187705272e82482e07f75735c28652d17b1dd18e585",
-    "consoleVersion": "20261114-10"
+    "deploymentId": "01a1d6bd-d09f-704b-bd5f-6ea8aba1327d",
+    "archiveBytes": 87804337,
+    "expandedBytes": 99763491,
+    "sha256": "4b5804c49b24674b26fe44ec389a9dfdaeecf74ad98aa2e0a3ed6a0d3fe3ed8c",
+    "consoleVersion": "20261114-12"
   },
   "simulation": {
-    "deploymentId": "01a1d687-2c1f-726e-b397-598cdb957d27",
-    "archiveBytes": 87666476,
-    "expandedBytes": 99419082,
-    "sha256": "6ca72d9ad66a54e376bf2b54786ef47afd1ae8d37a05f13af158583b5f154575",
-    "consoleVersion": "20261114-11"
+    "deploymentId": "01a1d6be-b769-7a89-8cb3-868e488f2213",
+    "archiveBytes": 87827687,
+    "expandedBytes": 99826447,
+    "sha256": "b24ea4c212125a184db91e3a88ae89269876831c3ce07c7445b7719ff0f33254",
+    "consoleVersion": "20261114-13"
   },
   "directory": [
     {
@@ -54,7 +54,7 @@
     {
       "title": "운기 다이어리",
       "path": "/diary",
-      "visible": "홈에서 다시 살펴보기"
+      "visible": "운기 다이어리 / 오늘 / 달력 / 기록"
     },
     {
       "title": "코스믹 소울 명상",
@@ -134,7 +134,7 @@
     {
       "title": "휴먼 디자인 차트",
       "path": "/human-design",
-      "visible": "홈에서 다시 살펴보기"
+      "visible": "휴먼 디자인 / 토스 로그인하고 살펴보기 / 홈에서 다시 살펴보기"
     },
     {
       "title": "반려동물 사주",
@@ -164,7 +164,7 @@
     {
       "title": "나크샤트라 택일",
       "path": "/nakshatra/muhurta",
-      "visible": "나크샤트라 택일 / 토스 로그인하고 리포트 보기 / 홈에서 다시 살펴보기"
+      "visible": "홈에서 다시 살펴보기"
     },
     {
       "title": "나크샤트라 VVIP 코덱스",
@@ -174,7 +174,7 @@
     {
       "title": "나의 나크샤트라",
       "path": "/nakshatra/resolve",
-      "visible": "나의 나크샤트라 / 양력 생년월일 / 태어난 시각을 몰라요 / 태어난 시각"
+      "visible": "홈에서 다시 살펴보기"
     },
     {
       "title": "나크샤트라 동서 궁합",
@@ -229,7 +229,7 @@
     {
       "title": "타로 리딩",
       "path": "/tarot-library",
-      "visible": "카드에 담긴, 나의 이야기 / 오늘의 타로1장 펼침 · 바로 펼치는 리딩› / 천체의 선율11장 펼침 · 단건 리딩› / 원석 소울 타로5장 펼침 · 바로 펼치는 리딩›"
+      "visible": "홈에서 다시 살펴보기"
     },
     {
       "title": "운명의 꽃",
@@ -359,22 +359,22 @@
     {
       "title": "점성술 전문가 상담",
       "path": "/astrology-ai/",
-      "visible": "점성술 전문가 상담 / 출생 정보 / 이름 또는 닉네임 / 성별선택여성남성기타/미입력"
+      "visible": "점성술 전문가 상담"
     },
     {
       "title": "베다 전문가 상담",
       "path": "/vedic-ai/",
-      "visible": "윤달의 베다점 상담실 / 이름 또는 닉네임 / 성별선택여성남성비공개 / 생년월일"
+      "visible": "윤달의 베다점 상담실 / 프로필 다시 확인하기 / 이름 또는 닉네임 / 성별선택여성남성비공개"
     },
     {
       "title": "자미두수 전문가 상담",
       "path": "/ziwei-ai/",
-      "visible": "자미두수 전문가 상담"
+      "visible": "자미두수 전문가 상담 / 이름 또는 닉네임 / 성별선택여성남성비공개 / 생년월일"
     },
     {
       "title": "신년운세 전문가 상담",
       "path": "/new-year-ai-consultation/",
-      "visible": "신년운세 전문가 상담 / 새해 상담에 필요한 정보를 알려주세요 / 이름 또는 닉네임 / 성별선택여성남성비공개"
+      "visible": "신년운세 전문가 상담 / 새해 상담에 필요한 정보를 알려주세요 / 프로필 다시 확인하기 / 이름 또는 닉네임"
     },
     {
       "title": "운명의 업 전문가 상담",
@@ -535,7 +535,7 @@
       "features": [
         "yeongnyangi"
       ],
-      "scope": "일반판 원화·질문에서 입력, 모의 토스 로그인, 원문 재열람. 단절 후 저장 원문·타 계정 URL 차단, 새 결제·생성 0건 · 키보드에 해당하는 360 × 420 입력 높이에서 다음 버튼 노출과 재진입 초안 복원"
+      "scope": "일반판 원화·질문에서 입력, 모의 토스 로그인, 원문 재열람. 단절 후 저장 원문·타 계정 URL 차단, 새 결제·생성 0건 · 키보드에 해당하는 360 × 420 높이에서 다음 버튼 노출과 작성 중인 질문 복원"
     },
     {
       "id": "mock-catalog",
@@ -543,6 +543,22 @@
         "yeongnyangi"
       ],
       "scope": "별도 모의 AIT에서 28개 원본 상품 입력·1회 주문·1회 모의 생성·앱 재진입 후 영냥이 보관함 원문 일치"
+    },
+    {
+      "id": "dashboard",
+      "features": [
+        "saju",
+        "saju-image-prompts"
+      ],
+      "scope": "360px 기본 사주 출생 입력 후 극T·테토/에겐·네컷·도파민·로또·그림 프롬프트 13종 중 주제 선택 및 원본 결과"
+    },
+    {
+      "id": "sky",
+      "features": [
+        "yeongnyangi-prashna",
+        "yeongnyangi-horary"
+      ],
+      "scope": "비공개 모의판 원본 Swiss 기준 예시. 무료 호라리·신점 전용 SKU, 첫 답과 심화 하나, 생성 중 종료·원문 다시 보기·타 계정 차단"
     }
   ],
   "simulatedProducts": [
@@ -579,5 +595,15 @@
     "accountBRejected": true,
     "interruptedReads": 1,
     "newCharges": 0
-  }
+  },
+  "qrDecode": [
+    {
+      "file": "toss-private-20261114-12.png",
+      "link": "intoss-private://ai-saju-studio?_deploymentId=01a1d6bd-d09f-704b-bd5f-6ea8aba1327d&host=appsInTossHost"
+    },
+    {
+      "file": "toss-mock-20261114-13.png",
+      "link": "intoss-private://ai-saju-studio?_deploymentId=01a1d6be-b769-7a89-8cb3-868e488f2213&host=appsInTossHost"
+    }
+  ]
 }

@@ -65,11 +65,11 @@
 
 ## 비공개 Linux 번들에서 실행한 범위
 
-2026-11-14 Ubuntu 빌드 `949fcb17b`에서 만든 비공개 일반판 `20261114-10`과 모의판 `20261114-11`을 360 × 740 화면에서 열었다. 일반판은 캐릭터 홈에서 검색 가능한 73개 버튼을 각각 눌러 화면이 열린 것을 확인했다. 110개 기능은 공유 화면의 하위 입력과 모드를 포함한다. 73개 경로의 버튼 이름·실제 주소·첫 화면과 상품별 결과 검사는 [AIT 실행 증거](./ait-verification-20261114.json)에 있다.
+2026-11-14 Ubuntu 빌드 `1915f9705`에서 만든 비공개 일반판 `20261114-12`와 모의판 `20261114-13`을 360 × 740 화면에서 열었다. 일반판은 캐릭터 홈에서 검색 가능한 73개 버튼을 각각 눌러 화면이 열린 것을 확인했다. 110개 기능은 공유 화면의 하위 입력과 모드를 포함한다. 73개 경로의 버튼 이름·실제 주소·첫 화면과 상품별 결과 검사는 [AIT 실행 증거](./ait-verification-20261114.json)에 있다.
 
 - 일반판에서 영냥이의 기존 주문을 연 뒤 결과 조회를 한 번 끊고 앱을 다시 열었다. 같은 계정은 저장 원문을 받았고, 다른 계정으로 같은 주소를 열면 본문이 거절됐다. 추가 결제·생성 요청은 0건이었다.
-- 모의판에서는 영냥이 28개 상품 각각을 홈에서 선택해 입력하고 모의 주문·생성을 마쳤다. 앱을 닫았다 다시 열어 각 상품의 원문과 주문·생성 횟수 1회를 확인했다.
-- 무료 계산은 반려동물 사주·만세력·베다, 타로 8종, 주석·룬·이파·거북·찻잎·케메트, 자미 섬, 사주·자미 공개 12절, 위젯, 플래너, 시빌라, 관상과 웹툰 등을 검사했다. 관상은 합성 사진과 고정 랜드마크, 웹툰 아트는 웹의 로컬 원본으로 확인했다. 네이티브 카메라·공유·키보드와 토스 서버 운영 연동은 실기기 항목이다.
+- 모의판에서는 영냥이 28개 상품 각각을 홈에서 선택해 입력하고 모의 주문·생성을 마쳤다. 앱을 닫았다 다시 열어 각 상품의 원문과 주문·생성 횟수 1회를 확인했다. 영냥 신점은 별도 모의 SKU의 첫 답·심화 답·재열람과 다른 계정 URL 거절까지 같은 AIT에서 검증했다.
+- 무료 계산은 반려동물 사주·만세력·베다, 타로 8종, 주석·룬·이파·거북·찻잎·케메트, 자미 섬, 사주·자미 공개 12절, 위젯, 플래너, 시빌라, 관상과 웹툰 등을 검사했다. 관상은 합성 사진과 고정 랜드마크, 웹툰 아트는 웹의 로컬 원본으로 확인했다. 기본 사주 결과 카드 6개와 반려동물 목록 재진입도 검사했다. 네이티브 카메라·공유·키보드와 토스 서버 운영 연동은 실기기 항목이다.
 
 ## 판매와 과거 구매
 
@@ -190,11 +190,11 @@
 | 빌런 블랙리스트 | js/core/saju/reportDashboard.js:vilun -> villainCard | /saju/sections | 홈 버튼 · 사주 리포트 | 일부만 이식 | sections |
 | 관계 경계 상담 | /relationship-boundary-test/ | /relationship-boundary-test/ | 홈 버튼 · 관계 경계 리포트 | 일부만 이식 | 상품별 로컬 근거는 JSON 참조 |
 | 영국 홍차점 | openRoyalTeaOracle | /oracle/royal-tea | 홈 버튼 · 영국 홍차점 | 이미 동작 | tea |
-| 사주 | /?action=cdOneStepFreeSajuEntry | /saju/basic/play | 홈 버튼 · 기본 사주 | 일부만 이식 | sections |
+| 사주 | /?action=cdOneStepFreeSajuEntry | /saju/basic/play | 홈 버튼 · 기본 사주 | 일부만 이식 | sections, dashboard |
 | 사주 궁합 | /saju/compatibility/ | /saju/compatibility/ | 일반 홈의 진입 코드 확인 | 일부만 이식 | 상품별 로컬 근거는 JSON 참조 |
 | 사주 FPTI | /saju-fpti/ | /saju-fpti/ | 홈 버튼 · 사주 FPTI | 일부만 이식 | 상품별 로컬 근거는 JSON 참조 |
 | 사주 가디언 아트 | /saju-guardian | /saju-guardian/ | 일반 홈의 진입 코드 확인 | 일부만 이식 | 상품별 로컬 근거는 JSON 참조 |
-| 사주 그림 프롬프트 | index.html:사주 리포트 | /saju/sections | 홈 버튼 · 사주 리포트 | 일부만 이식 | sections |
+| 사주 그림 프롬프트 | index.html:사주 리포트 | /saju/sections | 홈 버튼 · 사주 리포트 | 일부만 이식 | sections, dashboard |
 | 시빌라 연간 대비 리포트 | /saju/sibyl/ | /saju/sibyl/ | 일반 홈의 진입 코드 확인 | 일부만 이식 | sibyl |
 | 시크릿 하우스 | js/core/saju/reportDashboard.js secretHouseEntryCard → openSecretHouseRoute | /saju/sections | 홈 버튼 · 사주 리포트 | 일부만 이식 | secretHouse |
 | 스톤헨지 룬점 | /index.html?action=openRuneOracle | /oracle/rune | 홈 버튼 · 스톤헨지 룬 | 이미 동작 | tarot |
@@ -218,8 +218,8 @@
 | 윤달의 베다점 상담 | /vedic-ai | /vedic-ai/ | 홈 버튼 · 베다 전문가 상담 | 일부만 이식 | experts |
 | 운세보는 영냥이 | /yeongnyangi/ | /yeongnyangi/fortune/ | 일반 홈의 진입 코드 확인 | 일부만 이식 | mobile-owner, mock-catalog |
 | 영냥이 출석과 오늘의 운세 | /yeongnyangi/free-fortune/ | /daily | 일반 홈의 진입 코드 확인 | 일부만 이식 | 상품별 로컬 근거는 JSON 참조 |
-| 호라리 질문 차트 | /yeongnyangi/fortune/?mode=horary | /yeongnyangi/fortune/?mode=horary | 일반 홈의 진입 코드 확인 | 일부만 이식 | 상품별 로컬 근거는 JSON 참조 |
-| 프라쉬나 질문 상담 | /yeongnyangi/fortune/?mode=prashna | /yeongnyangi/fortune/?mode=spirit | 일반 홈의 진입 코드 확인 | 일부만 이식 | 상품별 로컬 근거는 JSON 참조 |
+| 호라리 질문 차트 | /yeongnyangi/fortune/?mode=horary | /yeongnyangi/fortune/?mode=horary | 일반 홈의 진입 코드 확인 | 일부만 이식 | sky |
+| 프라쉬나 질문 상담 | /yeongnyangi/fortune/?mode=prashna | /yeongnyangi/fortune/?mode=spirit | 일반 홈의 진입 코드 확인 | 일부만 이식 | sky |
 | 영냥이 시즌 연재 | /yeongnyangi/season-1/ | /moonlight/season-1 | 일반 홈의 진입 코드 확인 | 일부만 이식 | 상품별 로컬 근거는 JSON 참조 |
 | Divya Yoga | /yoga-guru.html | /yoga-guru | 홈 버튼 · 디비야 요가 | 일부만 이식 | 상품별 로컬 근거는 JSON 참조 |
 | 자미두수 | /?action=cdHomeZiweiEntry | /ziwei/chart | 홈 버튼 · 자미두수 명반 | 일부만 이식 | sections |
