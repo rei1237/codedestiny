@@ -69,6 +69,15 @@ function createAccountFixture(storage,owner,token,now){
    if(!state.profiles.some(p=>p.id===row.id))state.profiles.push(row);save();return respond({ok:true,profile:row});
   }
   if(path==='/canonical/profile'&&method==='GET')return respond({ok:true,profiles:[]});
+  if(path==='/canonical/saju/career-style'&&['GET','POST'].includes(method)){
+   const profileId=method==='GET'?url.searchParams.get('profileId'):(await request.json()).profileId;
+   const profile=state.profiles.find(p=>p.profileId===profileId);
+   if(!profile)return respond({error:'INVALID_PROFILE'},403);
+   const access={ok:true,profileId,unlocked:true,priceKRW:0,accessSource:'public'};
+   if(method==='GET')return respond(access);
+   const {buildCareerReport}=await import('../../../../lib/saju/career-style/report.mjs');
+   return respond({...access,saved:false,report:buildCareerReport({birthDate:profile.birthDate,birthTimeUnknown:profile.timeUnknown,calendarType:profile.calendarType})});
+  }
   if(path==='/native/relationship/prepare'&&method==='POST'){
    const body=await request.json();if(!body.input?.idempotencyKey||!body.input?.targetInfo||body.orderId)return respond({error:'MOCK_UNSUPPORTED'},400);
    const previous=[...state.intents.values()].find(row=>row.service==='relationship'&&row.input.idempotencyKey===body.input.idempotencyKey);
