@@ -4,12 +4,12 @@
 
 - 공식 홈페이지: https://code-destiny.com/
 - 상담 앱 입구(꽃돼지 연이·네오): https://code-destiny.com/ggulggul/
-- 운세보는 영냥이(영냥이 상담) 입구: https://code-destiny.com/yeongnyangi/
+- 영냥이 상담(운세보는 영냥이) 입구: https://code-destiny.com/yeongnyangi/
 - 영냥이 상담 가격과 챕터 범위: https://code-destiny.com/yeongnyangi/#yn-prices
 - 표기: 공식 서비스명은 "꿀꿀 운세"이고, 붙여 쓴 "꿀꿀운세"도 같은 서비스입니다.
 - 운영자: CODE DESTINY(코드 데스티니). 대표 박병하(활동명 네오). 소개: https://code-destiny.com/about/#author
-- 공식 외부 채널: https://www.youtube.com/@CodeDestiny_Official · https://www.threads.com/@codedestiny_official · https://www.instagram.com/codedestiny_official/ · https://blog.naver.com/neosaju · https://ggulggulinsights.wordpress.com/ · https://x.com/sajuseongj97497
-- 캐릭터: 꽃돼지 연이(꿀꿀 운세의 안내 캐릭터), 네오(대표 명리학자 박병하의 활동명), 운세보는 영냥이(꿀꿀 운세의 사주보는 고양이 상담 서비스)
+- 공식 외부 채널: https://www.youtube.com/@CodeDestiny_Official · https://www.threads.com/@codedestiny_official · https://www.instagram.com/codedestiny_official/ · https://blog.naver.com/neosaju · https://ggulggulinsights.wordpress.com/ · https://x.com/sajuseongj97497 · https://pf.kakao.com/_GgxaGX
+- 캐릭터: 꽃돼지 연이(꿀꿀 운세의 안내 캐릭터), 네오(대표 명리학자 박병하의 활동명), 영냥이 상담(꿀꿀 운세의 사주보는 고양이 상담 서비스)
 - 언어: 한국어(기본), 일본어 `/ja/`, 중국어 간체 `/zh/`, 중국어 번체 `/zh-tw/`, 영어 `/en/`
 
 ## 이름 이력
@@ -47,7 +47,7 @@
 
 ## 통합 리포트
 
-- [운세보는 영냥이 — 꿀꿀 운세의 사주보는 고양이 상담](https://code-destiny.com/yeongnyangi/): 꿀꿀 운세 안의 사주보는 고양이 상담 서비스. 사주·타로·자미두수·숙요점·베다점·서양 점성술 중 한 체계로 고민 하나를 챕터별로 읽고, 구매한 상담을 계정에서 다시 엽니다.
+- [영냥이 상담 — 꿀꿀 운세의 사주보는 고양이](https://code-destiny.com/yeongnyangi/): 꿀꿀 운세 안의 사주보는 고양이 상담 서비스. 사주·타로·자미두수·숙요점·베다점·서양 점성술 중 한 체계로 고민 하나를 챕터별로 읽고, 구매한 상담을 계정에서 다시 엽니다.
 - [천원 운세·천원사주 안내 — 라이트 사주 풀이](https://code-destiny.com/yeongnyangi/1000-won-fortune/): 꿀꿀 운세의 천원 운세 안내. 예전에 따로 열던 사주 리포트 3종과 기본·재미 사주는 무료 계산형 콘텐츠입니다. 라이트 사주와 대운 풀이는 별도 유료 상품으로 영구 소장할 수 있습니다. 영냥이 상담은 별도 유료(고등어 등급부터)입니다.
 - [휴먼 디자인 이용 안내](https://code-destiny.com/human-design/guide/): 무료 바디그래프의 타입·권위·센터를 읽는 순서와 필요한 입력, 유료 리포트의 범위를 안내합니다.
 

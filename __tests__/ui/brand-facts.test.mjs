@@ -5,6 +5,7 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { BRAND_FACTS, findFormerBrandNames } from '../../lib/brand/brand-facts.mjs';
 import { brandCopy } from '../../lib/seo/brand-copy.mjs';
+import { KAKAO_CHANNEL } from '../../lib/marketing/kakao-crm.mjs';
 
 const ROOT = fileURLToPath(new URL('../../', import.meta.url));
 const read = file => readFileSync(join(ROOT, file), 'utf8');
@@ -32,32 +33,38 @@ function signalStrings(value, out = []) {
 
 test('brand facts keep the service, its alias and the operator apart', () => {
   assert.equal(service.name, '꿀꿀 운세');
-  assert.deepEqual([...service.alternateNames], ['꿀꿀운세']);
+  assert.deepEqual([...service.alternateNames], ['꿀꿀운세', '코드 데스티니', 'Code Destiny']);
   assert.equal(operator.name, 'CODE DESTINY');
   assert.equal(operator.nameKo, '코드 데스티니');
   assert.ok(Number.isInteger(BRAND_FACTS.version) && BRAND_FACTS.version >= 1);
   assert.match(BRAND_FACTS.reviewedAt, /^\d{4}-\d{2}-\d{2}$/);
-  assert.equal(BRAND_FACTS.sameAs.length, 6);
+  assert.equal(BRAND_FACTS.sameAs.length, 7);
   assert.equal(BRAND_FACTS.sameAs.find(profile => profile.key === 'wordpress').url, 'https://ggulggulinsights.wordpress.com/');
   for (const profile of BRAND_FACTS.sameAs) assert.match(profile.url, /^https:\/\//);
-  assert.ok(!BRAND_FACTS.sameAs.some(profile => /pf\.kakao\.com/.test(profile.url)), 'Kakao channel is pending confirmation');
+  assert.equal(BRAND_FACTS.sameAs.find(profile => profile.key === 'kakaoChannel').url, KAKAO_CHANNEL.url, 'Kakao channel declared 2026-11-14');
+  assert.ok(!BRAND_FACTS.pendingConfirmation.some(item => item.includes('카카오')), 'Kakao channel is no longer pending');
   for (const name of [service.name, ...service.alternateNames, operator.name]) {
     assert.deepEqual(findFormerBrandNames(name), [], name);
   }
   assert.ok(Object.isFrozen(BRAND_FACTS) && Object.isFrozen(BRAND_FACTS.service));
 });
 
-test('운세보는 영냥이 names the yeongnyangi service on its landing without becoming a site alias', () => {
+test('영냥이 상담 names the yeongnyangi service; 운세보는 영냥이 stays an alternate name only', () => {
   const yeongnyangi = BRAND_FACTS.characters.find(character => character.key === 'yeongnyangi');
-  assert.equal(yeongnyangi.serviceName, '운세보는 영냥이');
-  assert.ok(!service.alternateNames.includes(yeongnyangi.serviceName), 'service alias stays 꿀꿀운세 only');
+  assert.equal(yeongnyangi.serviceName, '영냥이 상담');
+  for (const name of ['운세보는 영냥이', '사주보는 영냥이']) {
+    assert.ok(yeongnyangi.alternateNames.includes(name), name);
+    assert.ok(!service.alternateNames.includes(name), `${name} is not a site alias`);
+    assert.ok(!brandCopy('yeongnyangiTitle').includes(name), `${name} stays out of the title`);
+  }
+  assert.ok(brandCopy('yeongnyangiDescription').includes('운세보는 영냥이'), 'description keeps the search phrase');
   assert.ok(brandCopy('yeongnyangiTitle').startsWith(yeongnyangi.serviceName));
   const page = read('app/yeongnyangi/page.tsx');
   assert.ok(page.includes('buildServiceJsonLd({name:YEONGNYANGI.serviceName,alternateName:'), 'Service name');
   assert.ok(page.includes("buildBreadcrumbJsonLd([{name:BRAND_FACTS.service.name,path:'/'}"), 'breadcrumb home is /');
   const hero = read('app/yeongnyangi/_components/NightHero.tsx');
   const heading = hero.indexOf("brandCopy('yeongnyangiHeading')");
-  assert.ok(heading >= 0 && heading < hero.indexOf("brandCopy('yeongnyangiServiceName')"), 'H1 keeps 사주보는 고양이 and names 운세보는 영냥이');
+  assert.ok(heading >= 0 && heading < hero.indexOf("brandCopy('yeongnyangiServiceName')"), 'H1 keeps 사주보는 고양이 and names 영냥이 상담');
 });
 
 test('former names are detected exactly and never inside protected feature names', () => {

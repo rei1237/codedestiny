@@ -68,7 +68,7 @@ export const metadata = {
 // /ggulggul/ 은 Next RSC 페이로드가 없는 정적 셸이라 next/link 대신 <a> 로 연다(external).
 const CARDS = [
   { key: "yeoni", className: "yeoniCard", art: "yeoni", name: "꽃돼지 꿀꿀운세", href: service.appEntryPath, external: true, tag: "사주·타로부터 주제별 운세와 상담을 골라보세요.", action: "꿀꿀운세 들어가기" },
-  { key: "yn", className: "ynCard", art: "yeongnyangi", name: "운세보는 영냥이", href: YEONGNYANGI.path, tag: "궁금한 질문과 상황을 중심으로 깊이 살펴보세요.", action: "영냥이 만나기", night: true },
+  { key: "yn", className: "ynCard", art: "yeongnyangi", name: YEONGNYANGI.serviceName, href: YEONGNYANGI.path, tag: "궁금한 질문과 상황을 중심으로 깊이 살펴보세요.", action: "영냥이 만나기", night: true },
 ];
 const CARD_ART_SIZES = "(min-width: 800px) 306px, (min-width: 641px) 38vw, 42vw";
 function discoveryTracking(serviceKey, placement = "directory") {
@@ -90,7 +90,7 @@ export default function HomePage() {
       <header className={styles.brandRow}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img className={styles.brandMark} src="/fuctionassets/%EC%97%B0%EC%9D%B4.webp" width={96} height={96} alt="" decoding="async" />
-        <span className={styles.wordmark}>{IS_APP_BUILD ? service.name : "코드 데스티니"}</span>
+        <span className={styles.wordmark}>{service.name}</span>
         {!IS_APP_BUILD && <a href="#homeCardTitle">상담 추천</a>}
       </header>
 

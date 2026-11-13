@@ -97,7 +97,8 @@ function profileFor(path) {
 }
 
 const { service, operator } = BRAND_FACTS;
-const aliasLine = SEO_BRAND_ENTITY.aliases.map((name) => `"${name}"`).join(", ");
+// 붙여 쓴 표기는 첫 별칭 하나다. 나머지 별칭(운영자 이름)은 운영자 줄에서 말한다.
+const aliasLine = `"${SEO_BRAND_ENTITY.aliases[0]}"`;
 
 const lines = [];
 lines.push(`# ${service.name}`);
@@ -113,7 +114,7 @@ lines.push("");
 lines.push(`- 공식 홈페이지: ${service.homeUrl}`);
 lines.push(`- 상담 앱 입구(꽃돼지 연이·네오): ${siteBaseUrl}${service.appEntryPath}`);
 const yeongnyangi = BRAND_FACTS.characters.find((character) => character.key === "yeongnyangi");
-lines.push(`- ${yeongnyangi.serviceName}(영냥이 상담) 입구: ${siteBaseUrl}${yeongnyangi.path}`);
+lines.push(`- ${yeongnyangi.serviceName}(${yeongnyangi.alternateNames[0]}) 입구: ${siteBaseUrl}${yeongnyangi.path}`);
 lines.push(`- 영냥이 상담 가격과 챕터 범위: ${siteBaseUrl}${yeongnyangi.path}#yn-prices`);
 lines.push(`- 표기: 공식 서비스명은 "${service.name}"이고, 붙여 쓴 ${aliasLine}도 같은 서비스입니다.`);
 lines.push(`- 운영자: ${operator.name}(${operator.nameKo}). 대표 박병하(활동명 네오). 소개: ${siteBaseUrl}/about/#author`);

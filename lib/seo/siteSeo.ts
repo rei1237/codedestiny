@@ -76,7 +76,7 @@ export const siteSeo = {
    * `__tests__/ui/locale-footer.static.test.js` 가 그 일치를 강제한다.
    */
   brandName: BRAND_FACTS.service.name,
-  // WebSite 별칭. 과거 이름과 운영자 이름은 넣지 않는다(과거 이름은 이력 설명에만, 운영자는 Organization 에).
+  // WebSite 별칭. 과거 이름은 넣지 않는다(이력 설명에만). 운영자 이름 두 가지는 2026-11-13 결정으로 별칭에 넣는다(정본 주석 참고).
   alternateName: BRAND_FACTS.service.alternateNames,
   siteUrl: BRAND_FACTS.service.siteUrl,
   defaultLocale: "ko",

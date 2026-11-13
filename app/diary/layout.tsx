@@ -6,7 +6,7 @@ import { ROBOTS_META } from "../../lib/seo/index-policy.mjs";
 
 const DIARY_LAYOUT_TEXT_TRANSLATIONS = {
   ko: {
-    title: "운기 다이어리 | 코드 데스티니",
+    title: "운기 다이어리 | 꿀꿀 운세",
     description: "오늘의 운기를 보고 계획·기록·회고를 한 곳에 남기는 개인 다이어리입니다.",
   },
   en: {
