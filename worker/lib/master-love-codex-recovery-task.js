@@ -1,6 +1,6 @@
 import { connectDb } from "./db.js";
 import { MasterLoveCodexSession } from "./models.js";
-import { recoverCodexSession } from "./master-love-codex-session-access.js";
+import { recoverCodexDeliverySession } from "./master-love-codex-session-access.js";
 import { acquireBatchLock, runCodexWave, syncCodexExecution, diagnoseCodexSession, __masterLoveCodexTestUtils } from "../routes/master-love-codex.js";
 import { bootstrapPaidCodexSessions } from "./master-love-codex-paid-bootstrap.js";
 
@@ -166,7 +166,7 @@ export async function runMasterLoveCodexRecovery(env, options = {}) {
   const SessionModel = options.MasterLoveCodexSession || MasterLoveCodexSession;
   const lockFn = options.acquireBatchLock || acquireBatchLock;
   const waveFn = options.runCodexWave || runCodexWave;
-  const accessFn = options.recoverCodexSession || (args=>recoverCodexSession({...args,verifyNative:async doc=>(await import("../toss/native-codex.js")).verifyCodexRecovery(env,doc)}));
+  const accessFn = options.recoverCodexSession || (args=>recoverCodexDeliverySession(env,args));
 
   await (options.connectDb || connectDb)(env);
   const bootstrapped = await (options.bootstrapPaidCodexSessions || bootstrapPaidCodexSessions)(env, { ...options, now, deadlineAt: deadline });

@@ -30,7 +30,7 @@ import { connectDb, isTransientMongoError, mongoose, withMongoRetry } from "../l
 import {EDGE_RESPONSE_DEADLINE_MS, PAID_LLM_PARTS_PER_REQUEST } from "../lib/sync-llm-timeout.js";
 import { MasterLoveCodexSession, PaidExecutionRecord, Payment, PointHistory, User } from "../lib/models.js";
 import { findMoonstoneSpendEvidence } from "../lib/moonstone-spend-proof.js";
-import { recoverCodexSession } from "../lib/master-love-codex-session-access.js";
+import { recoverCodexSession, recoverCodexDeliverySession } from "../lib/master-love-codex-session-access.js";
 import { assertCodexChapterQuality, codexChapterRepairFloor, codexDedupedChapterFloor, dedupeCodexBody, qualityCheckedCodexCache, generateCodexChapterResponse, buildCodexChapterMemory, buildCodexStagingChapter, parseChapterJson, detectCodexSoftIssues, codexSoftIssueHint, scrubCodexSoftIssues, scrubCodexCrossRepeats, validateCodexChapterOutline } from "../lib/master-love-codex-quality.js";
 import { buildCodexEvidence, formatCodexEvidence, stripCodexEvidenceIds, CODEX_EVIDENCE_VERSION } from "../lib/master-love-codex-evidence.js";
 import { isStagingLlmMockEnabled } from "../lib/staging-llm-mock.js";
@@ -1713,8 +1713,8 @@ async function runCodexWaveInternal(env, { sessionId, userId, doc, lockToken, de
     }
     if (current.status !== "delivery_pending") current = await saveCodexDelivery(lockFilter, { status: "delivery_pending", chapters,
       generationProgress: { ...current.generationProgress, step: "finalizing" } }, sessionId);
-    const authorized = await recoverCodexSession({ userId: ownerId, sessionId, verifyNative:doc.deliveryMeta?.tossIntentId?async stored=>(await import("../toss/native-codex.js")).verifyCodexRecovery(env,stored):undefined });
-    if (!authorized || authorized.denied) return { outcome: "denied" };
+    const access = await recoverCodexDeliverySession(env, { userId: ownerId, sessionId, nativeOnly:Boolean(doc.deliveryMeta?.tossIntentId) });
+    if (!access || access.denied) return { outcome: "denied" };
     current = await saveCodexDelivery(lockFilter, { status: "completed", generationError: null,
       loveDna: current.loveDna || null, totalCharCount: chapters.reduce((sum, row) => sum + row.body.length, 0),
       deliveryMeta: { ...current.deliveryMeta, lengthPolicy: "bounded-repair-v1", reviewRequired: false, nextAttemptAt: null, outages: 0, savedChapters: chapters, executionSyncPending: true, lastProgressAt: new Date() },

@@ -1,3 +1,4 @@
+import {withMongoRetry} from '../lib/db.js';
 import {ServiceExecutionTransaction} from '../lib/models.js';
 import {paidNarrativeExecutionKey,runPaidNarrativeDelivery} from '../lib/paid-narrative-delivery.js';
 import {TossIdentity,TossNativeConsultation} from './models.js';
@@ -27,12 +28,12 @@ export function ownedNarrative({service,featureKey,reportType,route,contractFor,
     await verifiedIntent(env,auth,row);
     return {key,input,row};
   }
-  const execution=(auth,key)=>ServiceExecutionTransaction.findOne({userId:auth.userId,featureKey,executionKey:key}).lean();
+  const execution=(env,auth,key)=>withMongoRetry(env,()=>ServiceExecutionTransaction.findOne({userId:auth.userId,featureKey,executionKey:key}).lean());
   async function read(env,auth,id,advance){
     const {key,input}=await owned(env,auth,id);
     const url=new URL('https://internal.invalid/toss-narrative');
     if(!advance){
-      if(!await execution(auth,key))return Response.json({ok:true,status:'generating',completedParts:[],retryable:true},{status:202});
+      if(!await execution(env,auth,key))return Response.json({ok:true,status:'generating',completedParts:[],retryable:true},{status:202});
       url.searchParams.set('resultId',key);
     }
     return runPaidNarrativeDelivery(new Request(url,{method:advance?'POST':'GET'}),env,{userId:String(auth.userId)},advance?{...input,tossIntentId:id}:{},{
@@ -46,7 +47,7 @@ export function ownedNarrative({service,featureKey,reportType,route,contractFor,
     if(!purchase.requestId)return {state:'UNASSIGNED',href:route+'?orderId='+encodeURIComponent(purchase._id)};
     const {key,input,row}=await owned(env,auth,purchase.requestId);
     if(row.orderId!==purchase._id)deny();
-    const doc=await execution(auth,key);
+    const doc=await execution(env,auth,key);
     if(doc)await owned(env,auth,row._id,doc.metadata?.paidNarrative?.body,doc);
     return {state:doc?.premiumStatus==='completed'?'COMPLETED':doc?.metadata?.paidNarrative?.exhaustionClaimed?'GENERATION_FAILED':'PENDING',
       resultId:row._id,href:route+'?intentId='+encodeURIComponent(row._id),question:question(input).slice(0,200)};

@@ -1,9 +1,27 @@
 import { MasterLoveCodexSession, Payment, PaidExecutionRecord, PointHistory, MonthlyCreditLedger } from "./models.js";
 
+import { withMongoRetry } from "./db.js";
+const defaultModels = { MasterLoveCodexSession, Payment, PaidExecutionRecord, PointHistory, MonthlyCreditLedger };
 const USABLE = new Set(["generating", "delivery_pending", "completed", "generation_failed"]);
 
 /** A session is an already purchased run, not a request to buy another run. */
-export async function recoverCodexSession({ userId, sessionId, requestId, paymentId, accessType, inputHash, mode, verifyNative, nativeOnly }, models = { MasterLoveCodexSession, Payment, PaidExecutionRecord, PointHistory, MonthlyCreditLedger }) {
+export async function recoverCodexSession(input, models = defaultModels) {
+  return verifySession(await readSession(input, models), input.verifyNative);
+}
+
+export async function recoverCodexDeliverySession(env, input) {
+  const access = await withMongoRetry(env, () => readSession(input, defaultModels));
+  return verifySession(access, async doc => (await import("../toss/native-codex.js")).verifyCodexRecovery(env, doc));
+}
+
+async function verifySession(access, verifyNative) {
+  if (!access?.session?.deliveryMeta?.tossIntentId) return access;
+  if (!verifyNative) return { denied: true, reason: "PURCHASE_RUN_MISMATCH" };
+  await verifyNative(access.session);
+  return access;
+}
+
+async function readSession({ userId, sessionId, requestId, paymentId, accessType, inputHash, mode, nativeOnly }, models) {
   if (!userId || (!sessionId && !requestId && !paymentId)) return null;
   const session = await models.MasterLoveCodexSession.findOne({
     userId: String(userId),
@@ -13,8 +31,6 @@ export async function recoverCodexSession({ userId, sessionId, requestId, paymen
   }).lean();
   if (!session) return null;
   if (session.deliveryMeta?.tossIntentId) {
-    if (!verifyNative) return { denied: true, reason: "PURCHASE_RUN_MISMATCH" };
-    await verifyNative(session);
     if ((inputHash && session.inputHash !== inputHash) || (mode && session.mode !== mode) || !USABLE.has(session.status)) return { denied: true, reason: "PURCHASE_RUN_MISMATCH" };
     return { session };
   }

@@ -17,6 +17,8 @@ const mocks={
 };
 globalThis.__tossRouteMocks=mocks;
 const stubMap={
+ 'worker/lib/sukuyo-astronomy.js':"export const calculateSukuyoForMoment=async()=>({ok:true});",
+ 'worker/routes/destiny-compass.js':"export const handleDestinyCompassRoutes=async()=>Response.json({ok:true});",
  'worker/toss/native-palm.js':"export const prepareNativePalm=async()=>Response.json({paid:false}),readNativePalm=async()=>({saved:true}),palmLibraryItem=async()=>({state:'COMPLETED'});",
  'worker/routes/nakshatra.js':"export const resolveTodayMoon=async()=>Response.json({ok:true}),resolveNatal=async()=>Response.json({ok:true}),resolveCompat=async()=>Response.json({ok:true});",
  'worker/toss/mansion-reports.js':"export const readOwnedMansionReport=async()=>({ok:true});",
