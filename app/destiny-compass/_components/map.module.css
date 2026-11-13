@@ -259,16 +259,6 @@
   .mapHeader { padding-top: 34px; }
 }
 
-@media (max-width: 640px) {
-  .islandArt {
-    background-image:
-      radial-gradient(68% 56% at 56% 42%, rgba(196, 181, 253, 0.2), transparent 70%),
-      linear-gradient(180deg, rgba(6, 5, 18, 0.42), rgba(3, 2, 12, 0.8)),
-      var(--island-art-mobile);
-    background-position: center;
-  }
-}
-
 /* ── 맵 무대 ─────────────────────────────── */
 .mapField {
   position: relative;
@@ -318,6 +308,16 @@
     inset 0 0 0 1px rgba(232, 213, 163, 0.14);
   animation: islandBreathe var(--cd-map-breathe, 10s) ease-in-out infinite;
 }
+@media (max-width: 640px) {
+  .islandArt {
+    background-image:
+      radial-gradient(68% 56% at 56% 42%, rgba(196, 181, 253, 0.2), transparent 70%),
+      linear-gradient(180deg, rgba(6, 5, 18, 0.42), rgba(3, 2, 12, 0.8)),
+      var(--island-art-mobile);
+    background-position: center;
+  }
+}
+
 .islandArtImg {
   object-fit: cover;
   object-position: center;

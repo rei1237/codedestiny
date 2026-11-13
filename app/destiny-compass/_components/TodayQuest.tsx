@@ -19,8 +19,10 @@ export function TodayQuest({
   field,
   onArrive,
   onReset,
+  rewardsEnabled = true,
 }: {
   field: DirectionField;
+  rewardsEnabled?: boolean;
   onArrive: () => void;
   onReset: () => void;
 }) {
@@ -59,7 +61,7 @@ export function TodayQuest({
         <div className={`${styles.questCard} ${doneCount === items.length ? styles.questCardDone : ""}`}>
           <div className={styles.questTop}>
             <span className={styles.questTag}>{copy.questTag}</span>
-            <span className={styles.questExp}>+{exp} / {totalExp} EXP</span>
+            {rewardsEnabled && <span className={styles.questExp}>+{exp} / {totalExp} EXP</span>}
           </div>
           <p className={styles.questAction}>{copy.todayAction[field.primary.key]}</p>
           <div className={styles.questList}>
@@ -74,7 +76,7 @@ export function TodayQuest({
                   aria-checked={on}
                   onClick={() =>
                     setDone((prev) => {
-                      if (!prev[k]) void awardRpg("quest", k); // 켜질 때만 적립(로컬·서버 멱등)
+                      if (rewardsEnabled && !prev[k]) void awardRpg("quest", k); // 켜질 때만 적립(로컬·서버 멱등)
                       return { ...prev, [k]: !prev[k] };
                     })
                   }
@@ -85,7 +87,7 @@ export function TodayQuest({
               );
             })}
           </div>
-          <p className={styles.questExpNote}>{copy.questExpNote}</p>
+          {rewardsEnabled && <p className={styles.questExpNote}>{copy.questExpNote}</p>}
         </div>
 
         <div className={styles.resultCtas}>

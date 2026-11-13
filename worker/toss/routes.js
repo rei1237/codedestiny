@@ -124,6 +124,22 @@ export async function handleTossRoutes(request,env) {
       const {prepareHoraryPrompt}=await import('../yeongnyangi/fortune/free/horary.ts');
       return reply({ok:true,result:await prepareHoraryPrompt(env,input)});
     }
+    if(path==='/canonical/compass/moon'&&request.method==='POST'){
+      await limit(env,request.headers.get('CF-Connecting-IP')||'unknown',path,20);
+      const moment=await bodyOf(request);
+      if(!Number.isInteger(moment?.year)||moment.year<1900||moment.year>2100||!Number.isInteger(moment.month)||moment.month<1||moment.month>12||!Number.isInteger(moment.day)||moment.day<1||moment.day>31)throw new TossError('INVALID_INPUT',400);
+      const {calculateSukuyoForMoment}=await import('../lib/sukuyo-astronomy.js');
+      return reply(await calculateSukuyoForMoment(env,moment,{requestUrl:request.url}));
+    }
+    if(request.method==='POST'&&['/canonical/compass/calendar','/canonical/compass/narrate'].includes(path)){
+      const calendar=path.endsWith('/calendar');
+      if(calendar)await limit(env,request.headers.get('CF-Connecting-IP')||'unknown',path,40);
+      const target=new URL(calendar?'/api/kasi/calendar':'/api/destiny-compass/narrate',request.url);
+      const forwarded=new Request(target,{method:'POST',headers:{'Content-Type':'application/json',
+        'CF-Connecting-IP':request.headers.get('CF-Connecting-IP')||'unknown'},body:JSON.stringify(await bodyOf(request)),signal:request.signal});
+      const handler=calendar?(await import('../routes/kasi.js')).handleKasiRoutes:(await import('../routes/destiny-compass.js')).handleDestinyCompassRoutes;
+      return forwardServiceResponse(await handler(forwarded,env),headers);
+    }
     if(path==='/nakshatra/today'&&request.method==='GET'){
       await limit(env,request.headers.get('CF-Connecting-IP')||'unknown',path,20);
       const {resolveTodayMoon}=await import('../routes/nakshatra.js');

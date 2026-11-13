@@ -4,7 +4,7 @@ import {birthSystems,questions} from './content';
 
 const MoonlightQuestions=lazy(()=>import('./MoonlightQuestions'));
 
-type Destination='diary'|'app/home-widget'|'consultations/stories'|'olympus'|'meditation/cosmic'|'meditation/neville'|'saju/sections'|'ziwei/sections'|'moonlight/season-1'|'oracle/turtle'|'oracle/royal-tea'|'oracle/kemet'|'nakshatra/muhurta'|'nakshatra/vvip-codex'|'nakshatra/resolve'|'nakshatra/compat'|'nakshatra/lord-report'|'nakshatra/dasha-map'|'nakshatra/ai'|'yoga-guru'|'dream/tarot'|'oracle/ifa'|'mbti/animals'|'today'|'oracle/rune'|'saju/career-style'|'saju/animal-destiny'|'music'|'astrology'|'vedic'|'nakshatra/codex'|'novel'|'insights/famous-saju'|'saju/basic/play'|'daily'|'ziwei/chart'|'manse'|'sukuyo'|'human-design'|'pet-saju'|'tarot-library'|'flower'|'bias'|'maya'|'omikuji'|'psychotest'|'saju-fpti'|'library'|'settings';
+type Destination='diary'|'app/home-widget'|'consultations/stories'|'olympus'|'meditation/cosmic'|'meditation/neville'|'saju/sections'|'ziwei/sections'|'moonlight/season-1'|'oracle/turtle'|'oracle/royal-tea'|'oracle/kemet'|'nakshatra/muhurta'|'nakshatra/vvip-codex'|'nakshatra/resolve'|'nakshatra/compat'|'nakshatra/lord-report'|'nakshatra/dasha-map'|'nakshatra/ai'|'yoga-guru'|'destiny-compass'|'dream/tarot'|'oracle/ifa'|'mbti/animals'|'today'|'oracle/rune'|'saju/career-style'|'saju/animal-destiny'|'music'|'astrology'|'vedic'|'nakshatra/codex'|'novel'|'insights/famous-saju'|'saju/basic/play'|'daily'|'ziwei/chart'|'manse'|'sukuyo'|'human-design'|'pet-saju'|'tarot-library'|'flower'|'bias'|'maya'|'omikuji'|'psychotest'|'saju-fpti'|'library'|'settings';
 const fortuneServices = [
   {id:'diary' as const,title:'운기 다이어리',body:'오늘의 마음과 계획을 기록하고 날짜별로 다시 읽기'},
   {id:'meditation/cosmic' as const,title:'코스믹 소울 명상',body:'네 가지 의도로 떠나는 30분·60분 명상과 저널'},
@@ -34,7 +34,7 @@ const fortuneServices = [
   {id:'nakshatra/compat' as const,title:'나크샤트라 동서 궁합',body:'두 사람의 동양 숙요와 베다 여덟 항목'},
   {id:'nakshatra/lord-report' as const,title:'나크샤트라 지배성 리포트',body:'내 별을 다스리는 행성과 열한 가지 해설'},
   {id:'nakshatra/dasha-map' as const,title:'나크샤트라 다샤 인생지도',body:'인도 대주기와 동양 대운의 시기 흐름'},
-  {id:'nakshatra/ai' as const,title:'나크샤트라 개인 심화 상담',body:'숙요와 베다의 근거로 내 질문을 읽는 아홉 장'},{id:'yoga-guru' as const,title:'디비야 요가',body:'오늘의 몸과 마음에 맞춘 30분·60분 수련 코스'},{id:'dream/tarot' as const,title:'드림 타로',body:'꿈속 장면에서 카드와 해몽 질문을 펼쳐요'},
+  {id:'nakshatra/ai' as const,title:'나크샤트라 개인 심화 상담',body:'숙요와 베다의 근거로 내 질문을 읽는 아홉 장'},{id:'yoga-guru' as const,title:'디비야 요가',body:'오늘의 몸과 마음에 맞춘 30분·60분 수련 코스'},{id:'destiny-compass' as const,title:'운명의 나침반',body:'여덟 방향의 지도에서 나의 선택과 오늘의 한 걸음 읽기'},{id:'dream/tarot' as const,title:'드림 타로',body:'꿈속 장면에서 카드와 해몽 질문을 펼쳐요'},
   {id:'oracle/ifa' as const,title:'이파 오라클',body:'여덟 표식으로 읽는 네 가지 주제'},
   {id:'oracle/rune' as const,title:'스톤헨지 룬',body:'한 가지 질문부터 열두 달까지 룬으로 읽기'},
   {id:'tarot-library' as const,title:'타로 리딩',body:'오늘의 마음부터 관계의 질문까지'},

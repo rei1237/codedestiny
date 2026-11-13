@@ -42,6 +42,9 @@ function createAccountFixture(storage,owner,token,now){
   if(path==='/login'&&method==='POST'){state.loggedIn=true;save();return respond({token});}
   // Public product lists mirror worker/toss/routes.js; private requests below still require the mock session.
   if(path==='/catalog'&&method==='GET')return respond({products:offlineCatalog});
+  if(path==='/canonical/compass/moon'&&method==='POST')return respond({mansionIdx:3,calculationBasis:'mock',birthTimeKnown:false});
+  if(path==='/canonical/compass/calendar'&&method==='POST')return respond({source:'unavailable',solarTerms:[]});
+  if(path==='/canonical/compass/narrate'&&method==='POST'){const input=await request.json();return respond({ok:true,pigCommentary:input.baseText});}
   if(path==='/nakshatra/today'&&method==='GET'){
    const {fixtureTodayMoon}=await import('./mansion-reports.mjs');
    return respond(fixtureTodayMoon(url.searchParams.get('sukuyoIndex')));
