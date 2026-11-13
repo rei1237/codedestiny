@@ -1,5 +1,5 @@
 ---
-status: in-progress
+status: active
 updated: 2026-11-13
 next: 단계 4 반영
 ---
