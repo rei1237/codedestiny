@@ -1,5 +1,5 @@
 {
-  "sourceCommit": "36ce258d532941a574602ad02118f8d087f06b08",
+  "sourceCommit": "1dd5fe762467861af0d77c78677e63d7396dea00",
   "sourceCounts": {
     "home": 63,
     "react": 18,
@@ -466,8 +466,8 @@
         "library": "not-verified",
         "device": "not-tested",
         "canonicalId": "dream-psycho-analysis",
-        "candidateStatus": "requires-full-flow-port-and-verification",
-        "canonicalRoute": null
+        "candidateStatus": "local-partial",
+        "canonicalRoute": "/dream/psycho/"
       }
     },
     {
@@ -3515,11 +3515,11 @@
       ],
       "webProductIds": [],
       "freeCalculation": true,
-      "portStatus": "일부만 이식",
+      "portStatus": "이미 동작",
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "일반 홈의 진입 코드 확인",
-      "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
-      "tossLogin": "공개 진입",
+      "bundleVerification": "Linux AIT c3a960736 · 43460223398 · 360px 일반 홈에서 게스트 입력과 원본 결과 확인. private-bundle-public-readings.mjs tarot olympus; 네이티브 공유는 기기 미검증",
+      "tossLogin": "공개 입력 · 구매 없음",
       "tossResult": "apps/toss/src/DreamPrompt.tsx",
       "reread": "게스트 현재 화면 및 원문 복사. 정신분석 해몽은 별도 유료 기능"
     },
@@ -3547,30 +3547,33 @@
         }
       ],
       "aliasEvidence": [],
-      "status": "requires-full-flow-port-and-verification",
-      "tossRoute": null,
+      "status": "local-partial",
+      "tossRoute": "/dream/psycho/",
       "sku": null,
-      "inputContract": null,
-      "resultRenderer": null,
-      "storageContract": null,
+      "inputContract": "꿈 기록 8~6000자와 원본 자동 말투, 로그인 뒤 원래 주문으로 복귀",
+      "resultRenderer": "apps/toss/service/TossDream.tsx 및 worker/routes/dream.js의 원본 5장·10부분 생성",
+      "storageContract": "동일 토스 계정의 주문·저장된 원문. 기존 작업 재개와 환불·타 계정 접근 거절",
+      "verification": "dream-browser.mjs · native-dream.test.mjs. 실판매 SKU 미확인",
       "webEntries": [
         "openPsychoDreamModal"
       ],
       "webSources": [
         "worker/routes/dream.js PSYCHO_DREAM_REQUIRED_HEADERS",
-        "js/psycho-dream-analyzer-freuds-study.js"
+        "js/psycho-dream-analyzer-freuds-study.js",
+        "worker/routes/dream.js"
       ],
       "webProductIds": [
         "dream-psycho-analysis"
       ],
       "freeCalculation": false,
-      "portStatus": "미이식",
-      "reducedBundle": "홈 진입 없음",
-      "currentEntry": "연결 경로 없음",
+      "portStatus": "일부만 이식",
+      "reducedBundle": "구현은 있으나 진입 차단",
+      "currentEntry": "일반 홈의 진입 코드 확인",
       "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
-      "tossLogin": "토스 기능 미연결",
-      "tossResult": "결과 화면 연결 미확인",
-      "reread": "재열람 경로 미확인"
+      "tossLogin": "구매·기록에 토스 계정 필요",
+      "tossResult": "apps/toss/service/TossDream.tsx 및 worker/routes/dream.js의 원본 5장·10부분 생성",
+      "reread": "동일 토스 계정의 주문·저장된 원문. 기존 작업 재개와 환불·타 계정 접근 거절",
+      "saleStatus": "콘솔·운영 설정 필요"
     },
     {
       "id": "energy-travel",
@@ -4169,12 +4172,13 @@
         }
       ],
       "aliasEvidence": [],
-      "status": "not-ported",
-      "tossRoute": null,
+      "status": "local-partial",
+      "tossRoute": "/app/home-widget",
       "sku": null,
-      "inputContract": null,
-      "resultRenderer": null,
-      "storageContract": null,
+      "inputContract": "캐릭터 둘, 그림·꽃말·오늘 운세 위젯 선택",
+      "resultRenderer": "app/app/home-widget/HomeWidgetStudio.tsx의 미리보기",
+      "storageContract": "게스트 미리보기. OS 홈 고정은 기존 Android 앱 플러그인 전용",
+      "verification": "widget-preview-browser.mjs에서 360px, 6개 선택, 실제 그림 디코드, 결제 요청 0건",
       "webEntries": [
         "/app/home-widget/"
       ],
@@ -4184,13 +4188,13 @@
       "webProductIds": [],
       "platformDependency": "웹은 미리보기, 홈 위젯 설치는 HomeWidgetStudio.tsx의 Android Code Destiny 전용 네이티브 플러그인 필요",
       "freeCalculation": false,
-      "portStatus": "미이식",
-      "reducedBundle": "홈 진입 없음",
-      "currentEntry": "연결 경로 없음",
+      "portStatus": "일부만 이식",
+      "reducedBundle": "구현은 있으나 진입 차단",
+      "currentEntry": "일반 홈의 진입 코드 확인",
       "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
-      "tossLogin": "토스 기능 미연결",
-      "tossResult": "결과 화면 연결 미확인",
-      "reread": "재열람 경로 미확인"
+      "tossLogin": "공개 진입",
+      "tossResult": "app/app/home-widget/HomeWidgetStudio.tsx의 미리보기",
+      "reread": "게스트 미리보기. OS 홈 고정은 기존 Android 앱 플러그인 전용"
     },
     {
       "id": "human-design",
@@ -4287,8 +4291,8 @@
       "portStatus": "일부만 이식",
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "일반 홈의 진입 코드 확인",
-      "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
-      "tossLogin": "공개 진입",
+      "bundleVerification": "Linux AIT c3a960736 · 43460223398 · 360px 일반 홈에서 게스트 입력과 원본 결과 확인. private-bundle-public-readings.mjs tarot olympus; 네이티브 공유는 기기 미검증",
+      "tossLogin": "공개 입력 · 구매 없음",
       "tossResult": "apps/toss/src/IfaReading.tsx",
       "reread": "현재 화면. 토스 저장·공유는 실기기 확인 필요"
     },
@@ -5811,8 +5815,8 @@
       "portStatus": "일부만 이식",
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "일반 홈의 진입 코드 확인",
-      "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
-      "tossLogin": "공개 진입",
+      "bundleVerification": "Linux AIT c3a960736 · 43460223398 · 360px 일반 홈에서 게스트 입력과 원본 결과 확인. private-bundle-public-readings.mjs tarot olympus; 네이티브 공유는 기기 미검증",
+      "tossLogin": "공개 입력 · 구매 없음",
       "tossResult": "apps/toss/src/OlympusDaily.tsx + lib/fortune/olympus-daily.mjs (OlympusVIPLounge.jsx 공유)",
       "reread": "게스트 수동 입력, 현재 화면 결과. 꽃돼지 프로필에서 여는 여덟 행성 라운지와 커플 궁합은 별도"
     },
@@ -6834,8 +6838,8 @@
       "portStatus": "일부만 이식",
       "reducedBundle": "홈 진입 없음",
       "currentEntry": "일반 홈의 진입 코드 확인",
-      "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
-      "tossLogin": "공개 진입",
+      "bundleVerification": "Linux AIT c3a960736 · 43460223398 · 360px 일반 홈에서 게스트 입력과 원본 결과 확인. private-bundle-public-readings.mjs tarot olympus; 네이티브 공유는 기기 미검증",
+      "tossLogin": "공개 입력 · 구매 없음",
       "tossResult": "apps/toss/src/RuneReading.tsx + StonehengeRune.jsx",
       "reread": "현재 화면의 원본 룬 결과와 토스 공유. 유료 AI 프롬프트 별도 계약"
     },
@@ -7060,8 +7064,8 @@
       "portStatus": "일부만 이식",
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "일반 홈의 진입 코드 확인",
-      "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
-      "tossLogin": "기능별 단계 검증 필요",
+      "bundleVerification": "Linux AIT c3a960736 · 43460223398 · 360px 일반 홈에서 게스트 입력과 원본 결과 확인. private-bundle-public-readings.mjs tarot olympus; 네이티브 공유는 기기 미검증",
+      "tossLogin": "공개 입력 · 구매 없음",
       "tossResult": "apps/toss/src/TarotLibrary.tsx",
       "reread": "owned-TossPurchase-to-PaidExecutionRecord"
     },
@@ -7111,8 +7115,8 @@
       "portStatus": "일부만 이식",
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "일반 홈의 진입 코드 확인",
-      "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
-      "tossLogin": "기능별 단계 검증 필요",
+      "bundleVerification": "Linux AIT c3a960736 · 43460223398 · 360px 일반 홈에서 게스트 입력과 원본 결과 확인. private-bundle-public-readings.mjs tarot olympus; 네이티브 공유는 기기 미검증",
+      "tossLogin": "공개 입력 · 구매 없음",
       "tossResult": "apps/toss/src/TarotLibrary.tsx",
       "reread": "canonical-free-calculation; previously paid orders retain stored result"
     },
@@ -7196,8 +7200,8 @@
       "portStatus": "일부만 이식",
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "일반 홈의 진입 코드 확인",
-      "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
-      "tossLogin": "기능별 단계 검증 필요",
+      "bundleVerification": "Linux AIT c3a960736 · 43460223398 · 360px 일반 홈에서 게스트 입력과 원본 결과 확인. private-bundle-public-readings.mjs tarot olympus; 네이티브 공유는 기기 미검증",
+      "tossLogin": "공개 입력 · 구매 없음",
       "tossResult": "apps/toss/src/TarotLibrary.tsx",
       "reread": "canonical-free-calculation; previously paid orders retain stored result"
     },
@@ -7350,8 +7354,8 @@
       "portStatus": "일부만 이식",
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "일반 홈의 진입 코드 확인",
-      "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
-      "tossLogin": "기능별 단계 검증 필요",
+      "bundleVerification": "Linux AIT c3a960736 · 43460223398 · 360px 일반 홈에서 게스트 입력과 원본 결과 확인. private-bundle-public-readings.mjs tarot olympus; 네이티브 공유는 기기 미검증",
+      "tossLogin": "공개 입력 · 구매 없음",
       "tossResult": "apps/toss/src/TarotLibrary.tsx",
       "reread": "canonical-free-calculation; previously paid orders retain stored result"
     },
@@ -7455,8 +7459,8 @@
       "portStatus": "일부만 이식",
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "일반 홈의 진입 코드 확인",
-      "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
-      "tossLogin": "기능별 단계 검증 필요",
+      "bundleVerification": "Linux AIT c3a960736 · 43460223398 · 360px 일반 홈에서 게스트 입력과 원본 결과 확인. private-bundle-public-readings.mjs tarot olympus; 네이티브 공유는 기기 미검증",
+      "tossLogin": "공개 입력 · 구매 없음",
       "tossResult": "apps/toss/src/TarotLibrary.tsx",
       "reread": "canonical-free-calculation; previously paid orders retain stored result"
     },
