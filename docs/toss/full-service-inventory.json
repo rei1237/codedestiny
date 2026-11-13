@@ -1,5 +1,5 @@
 {
-  "sourceCommit": "26e505006c3a7117c28afd4a5826040ff7c61fea",
+  "sourceCommit": "ea5f881f9c3d651725a0a079c1ed8430e769b9fe",
   "sourceCounts": {
     "home": 63,
     "react": 18,
@@ -900,8 +900,8 @@
         "library": "not-verified",
         "device": "not-tested",
         "canonicalId": "kemet-oracle",
-        "candidateStatus": "requires-full-flow-port-and-verification",
-        "canonicalRoute": null
+        "candidateStatus": "local-partial",
+        "canonicalRoute": "/oracle/kemet"
       }
     },
     {
@@ -4414,12 +4414,13 @@
         }
       ],
       "aliasEvidence": [],
-      "status": "requires-full-flow-port-and-verification",
-      "tossRoute": null,
+      "status": "local-partial",
+      "tossRoute": "/oracle/kemet",
       "sku": null,
-      "inputContract": null,
-      "resultRenderer": null,
-      "storageContract": null,
+      "inputContract": "js/oracle-kcg.js 원본 12신 중 3장 선택, 질문의 사랑·재물·성취 분류, 카드별 과거/현재/미래, 합독·헤카·파피루스·전문가 프롬프트",
+      "resultRenderer": "apps/toss/src/KemetOracle.tsx + apps/toss/canonical/kemet-oracle.mjs",
+      "storageContract": "게스트 무료 키 openKemetModal. 현재 화면 결과",
+      "verification": "studio-kemet-browser.mjs: 360px 홈→세 분야 질문→카드 취소·재선택→7장·프롬프트. 12신 원문 구조·무구매 확인. 실기기 미검증",
       "webEntries": [
         "openKemetModal"
       ],
@@ -4430,13 +4431,13 @@
         "openKemetModal"
       ],
       "freeCalculation": true,
-      "portStatus": "미이식",
-      "reducedBundle": "홈 진입 없음",
-      "currentEntry": "연결 경로 없음",
+      "portStatus": "일부만 이식",
+      "reducedBundle": "구현은 있으나 진입 차단",
+      "currentEntry": "일반 홈의 진입 코드 확인",
       "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
-      "tossLogin": "토스 기능 미연결",
-      "tossResult": "결과 화면 연결 미확인",
-      "reread": "재열람 경로 미확인"
+      "tossLogin": "공개 진입",
+      "tossResult": "apps/toss/src/KemetOracle.tsx + apps/toss/canonical/kemet-oracle.mjs",
+      "reread": "게스트 무료 키 openKemetModal. 현재 화면 결과"
     },
     {
       "id": "life-book-ai",
