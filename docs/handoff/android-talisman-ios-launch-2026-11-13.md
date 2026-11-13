@@ -66,7 +66,8 @@ next: Apple 계정으로 App Store Connect에 로그인하고 macOS/Xcode에서 
 - [x] 타로 포함 최종 Capacitor Android 동기화·단위 테스트·AAB 빌드
 - [x] Google Play Console 업로드·제출·상태 확인
 - [x] iOS 동기화·App Store Connect 제출 가능 상태 확인
-- [ ] 최종 targeted 검사와 `check:pre-push`
-- [ ] `origin/main` 전달·main CI 확인
+- [x] 최종 targeted 검사와 `check:pre-push`
+- [x] `origin/main` 전달
+- [ ] main CI 최종 확인
 - [ ] Apple 로그인·Mac/Xcode Archive·App Store Connect 업로드
 - [ ] 인수인계 문서 `done` 처리와 자기 워크트리 정리
