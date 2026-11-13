@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-14
-next: 묶음 1의 1-11(전체 검증, 변경 전·후 비교표, push 승인 요청). 1-1~1-10·1-12는 끝(1-4의 C5만 보류)
+next: 사용자 결정 대기(push 승인, 홈 title·H1 선택, C5 이름 통일, 이용권 혜택 문구). 승인되면 origin/main에 rebase하고 생성물을 다시 만든 뒤 push. 묶음 1 구현은 끝
 ---
 # 네이버 SEO·AEO·GEO + 구매 동선 (Phase 1~5)
 
@@ -15,7 +15,7 @@ Phase 0 보고서와 승인된 계획의 정본은 `docs/seo/phase0-report.md`�
 
 ## 지금 상태
 - 브랜치 `wt/naver-seo-geo-20261113-234756`, 기준 `f2db2995d`. 운영 배포본은 `91e4261d8`(그 위에 문서 커밋 1개).
-- 2026-11-14: 1-1~1-10·1-12 커밋됨(마지막 `798f5adb7`, 1-4의 C5만 보류). 1-11(전체 검증)만 남음. push 없음.
+- 2026-11-14: 묶음 1 구현·검증 끝(1-4의 C5만 보류). 코드 마지막 커밋 `23c689fd2`. push 없음. push 승인을 기다린다.
 - 2026-11-14 확인: origin/main이 `f2db2995d` → `c3a960736`으로 44커밋 앞서 갔다(대부분 toss 작업, `app/yeongnyangi/_components` 4개 파일 포함). 이 브랜치의 기준은 아직 `f2db2995d`다. **push 전에 rebase가 필요하다.** UX 브랜치는 아직 미머지.
 - 루트 체크아웃 `D:\Development\code-destiny`는 다른 브랜치이고 origin/main보다 2,252커밋 뒤라 기준으로 쓰지 않는다.
 
@@ -77,7 +77,7 @@ Phase 0 보고서와 승인된 계획의 정본은 `docs/seo/phase0-report.md`�
   - C8: 29,000원 사주 묶음 안내에서 포함 12개 중 지금 무료인 항목(`worker/lib/saju-bundle-policy.js:14-27` 대조)을 유료 혜택처럼 보이지 않게, 실제 유료 항목·가격 기준으로 적는다.
   - F4: 작은 꿀단지의 건당 상한(`lib/payment/pass-policy.js:36`)을 문구에 사실대로 적어, 상한보다 비싼 상품(예: 고등어 10,000원)에는 쓸 수 없다는 점이 드러나게 한다.
   - 경계: 정책 정본·결제 실행 파일은 고치지 않는다. 표시 문구와 그 문구가 읽는 값만. i18n 키 유지. 약관 본문을 고쳐야 하면 고치지 말고 위치와 제안 문구만 보고. 계산 근거(항목 수, 합계, 출처 파일)를 "결과 기록"에 남긴다.
-- [ ] 1-11 묶음 1 검증, 변경 전·후 비교표, **push 승인 요청**.
+- [x] 1-11 묶음 1 검증, 변경 전·후 비교표, **push 승인 요청**.
 
 ### 묶음 2 — 검색 결과 표시와 크롤 정리
 - [ ] 2-1 description 잘림(M1), 2-2 meta 표·키워드 맵(승인 뒤 적용), 2-3 내부 링크 정리(K4)·about 정의·llms.txt, 2-4 2027 신년운세 허브, 2-5 스테이징 Lighthouse.
@@ -159,6 +159,16 @@ Phase 0 보고서와 승인된 계획의 정본은 `docs/seo/phase0-report.md`�
 - 고치지 않은 것: 정책 정본·결제 파일, 약관 본문. "라이트 운세 66종 횟수 제한 없이"라는 혜택 문구 자체는 사실이라 두었지만, 65종이 누구에게나 무료인 지금은 이용권의 실질 혜택이 아니다. 문구를 "유료 라이트 운세 1종 + 상담 한도"로 다시 쓸지는 사용자 결정이 필요하다. 약관(`app/terms-of-service/TermsContent.jsx`)은 "라이트 운세를 횟수 제한 없이"만 말하고 66종·금액은 적지 않아 고칠 곳이 없었다.
 - 부수 효과: `public/data/ziwei-reading/index.json` 순서가 바뀌었다(1-8에서 넣은 `updatedAt`이 `sync:public` 때 반영된 것).
 - 검증: `pass-benefits-light`·`pass-light-status`·홈·이용권 node 테스트 138/138, `verify-krw-copy-canonical` PASS, `verify:light-fortunes` fresh.
+
+### 1-11 묶음 1 검증 (2026-11-14)
+- 비교표: `docs/seo/bundle1-before-after.md`.
+- 통과: `npm run typecheck`, `npm run lint`, `npm run i18n:check`, `node scripts/verify-sitemap-integrity.mjs`, `npm run build`(verify-dist 실패 규칙 0), `node scripts/verify-home-identity.mjs`, `node --test scripts/seo/*.test.mjs` 67/67, `node scripts/check-changed.mjs --profile=fast --skip-build --base=f2db2995d`(jest 7,979 통과·1 건너뜀, node 테스트 실패 0, 결제·이용권 verify 포함).
+- `npm test`: jest 476 스위트 7,979 통과. node 테스트는 5,035 통과·1 실패였고, 실패는 내 1-7 변경 탓이었다. `__tests__/ui/sitemap-canonical.test.mjs`가 2026-11-01 운영본 robots 스냅샷을 정본과 비교하는데, 정본에서 `/points/` 차단을 뺐기 때문이다. 스냅샷은 그대로 두고 비교할 때 그 한 줄만 걷어 내도록 테스트를 고쳤다(`0c6223eab`, 38/38). 고친 뒤 `npm test` 전체를 다시 돌리지는 않았고, 기준 커밋 대비 check:fast가 같은 테스트를 포함해 통과했다.
+- 빌드: 루트 체크아웃(`D:\Development\code-destiny`)의 dev 서버가 떠 있어 `verify-no-dev-server`가 막았다. 이 워크트리는 `.next`가 따로라 `ALLOW_DEV_SERVER_DURING_BUILD=1`로 돌렸다. dev 서버는 건드리지 않았다.
+- 빌드가 RSS 4개 파일을 바꿨다. 1-8에서 넣은 `updatedAt`으로 신년운세 가이드(11-11)·사주 궁합 가이드(11-04)가 최근 60건에 들어오고 숙요 글 2개가 밀려난다. 다시 만들어 커밋했다(`23c689fd2`). pubDate가 "마지막으로 바뀐 날"이라는 점은 사용자에게 알린다.
+- 돌리지 못한 것: `scripts/verify-home-entry-locale.cjs`(로컬 서버 필요). `verify.sh`의 `check:fast` 첫 실행은 커밋되지 않은 변경만 보아 의미가 없어 `--base`로 다시 돌렸다.
+- 기존 실패(기준 커밋에서도 실패): `__tests__/ui/home-service-separation.test.cjs`의 "service home owns discovery…" 1건. `npm test`에는 들어 있지 않다.
+- push 전에: origin/main이 앞서 있어 rebase가 필요하다. 생성물(`index.html`, `public/` 미러, `config/sitemap-lastmod.json`, `rss.xml`)은 원본을 합친 뒤 다시 만든다.
 
 ### 조사 메모(1-5 이후, 읽기만)
 - 1-2: `app/components/guide-cta-targets.js`에 `/ggulggul/?action=cdOneStepFreeSajuEntry` + `note: "무료 · 로그인 후 확인"`이 8곳. `lib/fortune-landings.mjs`는 `action` 필드만 있고 `app/components/FortuneLandingHero.tsx`가 `"/ggulggul/?action=" + story.action`으로 href를 만든다. 안: `/saju`·`/ziwei` 항목에 선택 필드 `href`(`/saju/free/`, `/ziwei/chart/`)를 두고 hero는 `story.href || …`. `getFortuneLanding('/ziwei/chart')`는 `/ziwei` 항목을 돌려주므로 자기 자신으로 링크되지 않게 확인한다. 같이 봐야 할 것: `scripts/verify-analytics-events.mjs` L354(hero href 기대값), `js/core/analytics.js` L720-726 `SEARCH_CTA_ROUTES`(`/saju/free/` 없음, public 미러 있음), `__tests__/ui/organic-acquisition.test.mjs:84`(manse ctaHref 고정). `/saju/free/`(`app/saju/free/FreeSajuForm.tsx`)가 로그인 없이 명식·오행을 계산하는 것은 확인했다.
