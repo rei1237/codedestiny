@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-13
-next: 묶음 ② 단계 6a(무료 배너 카드화) 시작
+next: 묶음 ② 단계 6c(상세 페이지 9개) 시작
 ---
 
 # 꿀꿀 운세·영냥이 UX: 구매 흐름 · 후기 신뢰 · 후기 작성 · 생성 진행 · 무료 배너
@@ -20,7 +20,7 @@ next: 묶음 ② 단계 6a(무료 배너 카드화) 시작
 - 기준: origin/main `02476159e0b545b887fe04a12815b7123b4b614d`
 - node_modules는 정션, `.env.local`·`.env.cloudflare.local`은 링크(건드리지 않는다).
 - 워크트리 제거: 다른 체크아웃에서 `npm run worktree:remove -- 'D:\Development\codedestiny-worktrees\ux-conversion-20261113-215142'` (git worktree remove 금지 — 긴 경로 고아 폴더).
-- 마지막 커밋: 단계마다 아래 표에 적는다. 묶음 ① 끝 코드 커밋 `3af1f976b`(미push).
+- 마지막 커밋: 단계마다 아래 표에 적는다. 묶음 ① 끝 코드 커밋 `3af1f976b`(미push). 묶음 ② 6b 끝 코드 커밋 `dd10f6156`(미push).
 
 ## 승인 상태 (사용자 원문, 2026-11-13)
 
@@ -136,8 +136,8 @@ next: 묶음 ② 단계 6a(무료 배너 카드화) 시작
 - [x] 4. /reviews 미리 선택·보상 표시·기록함 연결 — SHA: 3af1f976b
 
 ### 묶음 ② 무료 배너·상세 (단계 6, 11 일부)
-- [ ] 6a. 배너 카드화(React·셸) — SHA:
-- [ ] 6b. 칩 연결·랜딩 액션 확인 — SHA:
+- [x] 6a. 배너 카드화(React·셸) — SHA: a631c8f7b (미러 정리 chore 4049d813b 별도)
+- [x] 6b. 칩 연결·랜딩 액션 확인 — SHA: dd10f6156
 - [ ] 6c. 상세 페이지 9개·SEO·사이트맵 — SHA:
 - [ ] 11a. 명식·절기 그림 — SHA:
 
@@ -233,3 +233,50 @@ next: 묶음 ② 단계 6a(무료 배너 카드화) 시작
 - `QuickReviewComposer`의 옛 `review_ui_view` 관찰 effect는 `eligible.length`가 바뀌면 다시 구독돼 두 번 보낼 수 있다 (기존 동작).
 - `/reviews` 요약 호출은 아직 `verifiedOnly`를 쓰지 않는다. 결정 지점 블록(단계 5)에서 쓴다.
 - 기존 후속 3건은 위 "후속으로 보고만"에 그대로 있다.
+
+### 묶음 ② A (단계 6a·6b) — 2026-11-13 완료, 미push
+
+커밋
+- `4049d813b` chore: `public/js/review-reward-copy.mjs` 미러가 묶음 ① `3af1f976b`의 `reviewCardRewardLabel`을 빠뜨려 `sync:public` 생성물만 맞췄다.
+- `a631c8f7b` 단계 6a: 무료 배너 카드화
+  - React `FreePromoBanner.tsx` + `free-promo-banner.module.css`, 셸 `lib/marketing/free-promo-shell.mjs` + `styles/home-funnel.css`, 미러(`index.html`, `public/{,en,ja,zh,zh-tw,static,ggulggul}/index.html`, `public/styles/home-funnel.css`).
+  - 가운데 카드 `min(1080px,100%)`, `--cd-r-section`, 얇은 이중 테두리(`::after` inset 6px), 메타 알약(배지 | D-day) → 제목 → 기한. 연이·말풍선은 카드 안 오른쪽.
+  - 컨테이너 쿼리(`fp`/`cdhpromo`): 700px↑ 머리 2열, 860px↑ 묶음 3열, 560px 미만 버튼 세로 꽉 참.
+  - 칩: "이름 + →" 타일(최소 44px). 화살표는 평소 회색, hover·`aria-current`만 강조색. React는 `currentPath` prop(`SeoLandingTemplate`이 `page.path` 전달)으로 `aria-current="page"`.
+  - 영냥이 변형은 `--fp-*`를 `--yn-*`로 다시 정의해 같은 구조·폭.
+  - 셸 번역 `data-cd-trans`는 칩 이름 span에만 단다(링크에 달면 → 가 덮인다).
+- `dd10f6156` 단계 6b: tarot·ziwei·sukuyo·vedic·astro·compat·humanDesign 칩을 설명 페이지로. 나머지 6개는 그대로. `policyKey`·`freeStart`는 유지.
+
+테스트·검증 (실제 수치)
+- `node --test __tests__/ui/free-promo.test.mjs __tests__/ui/home-funnel-free-prices.test.mjs`: 6a 뒤 10/10, 6b 뒤 11/11(새 테스트 1개: 칩 주소 표).
+- `npm run typecheck`: 오류 0.
+- `npm run verify:public-mirror-fresh`: 6b 커밋 뒤 OK(exit 0).
+- 개발 서버 측정(1440·390, 모션 줄임):
+  - home 카드 1080폭 좌우 180 여백, 3열; 390에서 350폭·1열·높이 약 1233px. 칩 최소 높이 44. 문서 가로 넘침 없음.
+  - `/manse/` `aria-current`=manse. 6b 뒤 `/ziwei/` `/sukuyo/` `/vedic/` `/astrology/`에서 각각 자기 칩에 `aria-current`.
+  - 셸 1440 1040폭(좌우 200), 390 328폭(좌우 31) — 바로 아래 `.cdh-free` 섹션과 같은 여백이라 그대로 둔다.
+- 랜딩 시작 버튼(6b 확인, 개발 서버): `/?action=openTarotModal`·`openSukuyoModal`·`openAstroModal` → `LegacyHomeEntry`가 `/ggulggul/?action=…`로 넘기고 각 모달 오버레이가 열린다. `/?action=navigateToVedic` → `/vedic-astrology.html?lang=ko`. 끊긴 곳이 없어 수정하지 않았다. `/ziwei/`는 처음부터 `/ggulggul/?action=cdHomeZiweiEntry`.
+- visual-checker(`.claude/agents/visual-checker.md` 절차를 general-purpose 에이전트로 실행 — 이 세션에 visual-checker 타입이 없었다)
+  - r1: 홈 버튼 글자 대비 실패(라이트 2.33:1, 네오 1.63:1), 네오 회색 글자 4.61:1 경계, 잔가지 장식이 연이 귀에 약 8px. manse·셸은 통과.
+  - r2(수정 뒤, 고정 오버레이 숨김): 10개 대상(home 라이트·네오, manse, 영냥이, 셸 × 1440·390) 모두 PASS. 홈 버튼 라이트 5.91:1, 네오 9.04:1, 네오 회색 글자 6.09:1, 현재 페이지 타일 테두리 6.41:1. 막는 결함 없음.
+
+설계와 다르게 한 점
+- 홈 `app/home-main.module.css`의 `.page :where(a){color:inherit}`가 배너 버튼 글자색을 덮어써서 선택자를 `.banner .cta`로 올렸다(홈 규칙은 그대로).
+- 네오에서 `--cd-text-muted`만으로는 4.61:1이라 배너 안 `--fp-muted`를 `color-mix(--cd-text-muted 78%, --cd-text)`로 섞었다(`--cd-*` 재선언 아님).
+- 셸 카드 모바일 여백은 React(16-20px)와 달리 31px. 셸 이웃 섹션과 맞춘 것이다.
+
+함정 (6c가 알아 둘 것)
+- `verify:public-mirror-fresh`는 작업 트리가 깨끗해야 판정한다. 커밋하고 돌린다.
+- `sync:public`은 빌드 캐시 키(og 이미지·review-reward.css·카드 이미지 `?v=build-…`)도 바꾼다. 생성물은 함께 커밋한다.
+- `free-promo.test.mjs`의 새 칩 주소 표는 6b 대상 7개 + 유지 6개만 고정한다. 6c가 fun·classic 9개 href를 바꿔도 이 표와 부딪히지 않는다.
+- 랜딩 배너는 `FREE_PROMO_LANDING_PATHS`에 있는 페이지에만 뜬다. 지금 `/tarot/`, `/saju/compatibility/`, `/human-design/guide/`에는 배너가 없다(기존 동작). 6c 상세 페이지에 배너를 달면 `currentPath`를 넘긴다.
+- 개발 서버: 워크트리에서 `npm run dev`(mock) → http://127.0.0.1:12828, 셸은 `/ggulggul/index.html`. 스크린샷 전에 쿠키 배너·하단 내비·Next 배지 같은 고정 요소를 숨겨야 배너가 가려지지 않는다.
+
+후속 (고치지 않음, 사용자 판단)
+- 모바일 홈 카드가 약 1233px로 길어 버튼이 아래로 밀린다. 모바일에서 2·3번째 묶음을 `<details>`로 접는 안(visual-checker 제안)은 설계에 없어 보류.
+- 세 열의 타일 수 9/6/7로 열 높이가 고르지 않다.
+- 셸 버튼 반짝이 아이콘 2.34:1(React 6.17:1), 영냥이 버튼 아이콘 2.93:1 — 장식이라 기준 밖이지만 두 화면이 어긋난다.
+- 영냥이 390 말풍선에서 "열어 / 뒀어요!"가 갈라진다.
+- 셸은 자체의 큰 옅은 가지 장식을 써서 React(작은 잔가지)와 톤이 조금 다르다. 연이 귀와 4-5px, 겹치지는 않는다.
+- 홈 `.page :where(a){color:inherit}`는 넓은 규칙이라 홈 안 다른 링크 버튼도 같은 덮어쓰기를 겪을 수 있다.
+- hover·focus 상태 색과 네오 테마 영냥이 화면은 정지 스크린샷으로 확인하지 못했다.
