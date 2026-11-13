@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-11-13
-next: 1단계 1차 배포(rebase → episodes [] → 사이트맵 → 검사 → push → production 수동 실행)
+next: 4단계 코드 통합(1~4화 작화 완료, 5·6화 작화 중, 7화 미착수)
 ---
 
 # 연이의 운명 노벨 웹툰: 1차 배포 → 7편 제작 → 2차 배포 → 주간 연재
@@ -54,18 +54,20 @@ next: 1단계 1차 배포(rebase → episodes [] → 사이트맵 → 검사 →
 - 원작: `content/novel/episodes.source.json`(EP.01·01A·02), 바이블 `docs/webnovel_review/SAJU_SERIES_BIBLE.md`.
 
 ## 단계
-- [ ] 1단계: 1차 배포 — rebase, `episodes: []`, null 안전(서가·시즌 목차·프롤로그 끝 카드), 주간 cron null 처리 확인(필요 시 가드), 사이트맵 coreRoutes + `npm run sitemap:generate`(루트·public·ledger 커밋), 테스트 0회차로 수정, `check:fast`·`check:pre-push`, push, CI 초록, production 실행, 운영 확인(200·sitemap·`SERIAL_NOW=2026-11-14T21:10:00+09:00 node scripts/publish-yeongnyangi-serial.mjs --check` 공개 0).
+- [x] 1단계: 1차 배포 — rebase, `episodes: []`, null 안전(서가·시즌 목차·프롤로그 끝 카드), 주간 cron null 처리 확인(필요 시 가드), 사이트맵 coreRoutes + `npm run sitemap:generate`(루트·public·ledger 커밋), 테스트 0회차로 수정, `check:fast`·`check:pre-push`, push, CI 초록, production 실행, 운영 확인(200·sitemap·`SERIAL_NOW=2026-11-14T21:10:00+09:00 node scripts/publish-yeongnyangi-serial.mjs --check` 공개 0).
 - [x] 2단계: 4~7화 글콘티(회당 30~40컷) + 7편 쪽 분할표(쪽마다 컷 번호·그림에 넣을 한국어 전문) → `docs/design/yeoni-novel-webtoon-script.md`. `docs/design/yeongnyangi-season1.md` 갱신. production_prompts.txt 복사.
 - [x] 3-1단계: 1화 작화·QC·변환 (18쪽, `ep1\out`)
 - [x] 3-2단계: 2화 작화·QC·변환 (20쪽, `ep2\out`) (11/21 21:00 전 운영 필수)
 - [x] 3-3단계: 3화 (19쪽, `ep3\out`. 13쪽은 핀 좌우를 지키려 방을 좌우 반전, 경미한 차이 수용)
-- [ ] 3-4단계: 4~5화
+- [ ] 3-4단계: 4~5화 (4화 20쪽 완료 `ep4out`, 5화 진행 중)
 - [ ] 3-5단계: 6~7화
 - [ ] 4단계: 코드 통합(페이지형 연재, 끝 카드 추출, 옛 컷 삭제, 테스트)
 - [ ] 5단계: 2차 배포, `SERIAL_NOW` 회차별 확인, Downloads 원본 삭제, 보고
 
 ## 결과 기록
 (각 단계 에이전트가 여기에 결과·커밋 SHA·운영 확인을 적는다.)
+
+- 1단계(2026-11-13): 79615c45b push → main CI 초록 → production run 43415371271 성공. 운영 sha 493ae8467(다른 세션의 Toss 커밋 포함, 그 세션도 같은 sha로 production 실행). 확인: / · /yeongnyangi/season-1/ · /prologue/ 200, 옛 ep2 404, sitemap에 prologue 1건, SERIAL_NOW 11-14 21:10 점검 공개 0(exit 0). 주간 cron은 latestEpisode 없으면 공개 단계 건너뜀.
 
 - 2단계(2026-11-13): 원고는 빌드 폴더 `script\`(pages.md·pages.json·episodes-4-7.md, 생성기 build-pages.mjs). 리포 사본 `docs/design/yeoni-novel-webtoon-script.md`. 쪽 수 18/20/19/20/20/19/17.
   - 확정한 각색 결정: 인간 연이는 시트 사복(크림 꽃무늬 블라우스·니트 조끼·모브 치마), 밤에는 조끼가 오른쪽 책상 의자에 걸림. 7화 대사 「…나였어. 사람이던 나.」. 흰 꽃잎은 바깥 아랫잎, 5화 35컷부터. 5화 33~34컷 반격 화면 「민원 처리 완료 · 교통카드 · ★☆☆☆☆」. 네오 암시 「놓치지 않는다」(5화 38)·「완성형」(7화 27). 호랑이는 스스로 이름을 대지 않음. 7화 끝 목소리 「늦었네 / 너, 항상 늦잖아」.
