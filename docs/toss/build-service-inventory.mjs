@@ -495,6 +495,24 @@ const report={
  registeredProducts,newPurchasesAvailable:NEW_PURCHASES_AVAILABLE,
 };
 fs.writeFileSync(path.join(root,'docs/toss/full-service-inventory.json'),JSON.stringify(report,null,2)+'\n');
+const matrixPath=path.join(root,'docs/toss/feature-matrix.md');
+const directoryStart='<!-- generated-service-index -->';
+const directoryEnd='<!-- /generated-service-index -->';
+const cell=value=>String(value||'—').replaceAll('|','\\|').replace(/\s+/g,' ').trim();
+const standaloneTitles={'lenormand-six':'르노르망 6장','pet-saju':'반려동물 사주','relationship-boundary-test':'관계 경계 상담','saju-image-prompts':'사주 그림 프롬프트','tarot-healing':'태양 회복 타로','tarot-self-esteem':'자기 기준 타로','tin-oracle':'핀란드 주석점',yeongnyangi:'운세보는 영냥이','ziwei-island':'자미두수 운명의 섬'};
+const indexRows=canonicalCandidates.map(group=>{
+ const name=group.evidence.find(item=>item.name)?.name||standaloneTitles[group.id]||group.id;
+ const home=group.archiveHomeButtons.length?'홈 버튼 · '+group.archiveHomeButtons.join(', '):group.currentEntry;
+ return [name,group.webEntries[0],group.tossRoute,home,group.portStatus,group.archiveTests.join(', ')||'상품별 로컬 근거는 JSON 참조']
+  .map(cell).join(' | ');
+});
+const index=[directoryStart,'<details>','<summary>웹·토스 전체 기능 '+canonicalCandidates.length+'개 펼치기</summary>','',
+ '| 기능 | 웹 진입 | 토스 진입 | 일반 홈 검증 | 이식 | 배포 AIT 세부 검사 |',
+ '|---|---|---|---|---|---|',...indexRows.map(row=>'| '+row+' |'),'','</details>',directoryEnd].join('\n');
+const matrix=fs.readFileSync(matrixPath,'utf8').replaceAll('\r\n','\n');
+const start=matrix.indexOf(directoryStart),end=matrix.indexOf(directoryEnd);
+if((start===-1)!==(end===-1))throw Error('Incomplete generated service index in feature matrix');
+fs.writeFileSync(matrixPath,start===-1?matrix.trimEnd()+'\n\n'+index+'\n':matrix.slice(0,start)+index+matrix.slice(end+directoryEnd.length));
 console.log(JSON.stringify({sourceCounts:report.sourceCounts,discoveryIds:rows.length,canonicalCandidates:groups.size,
  consultationProducts:consultationProducts.length,productKindPairs:consultationProducts.reduce((sum,p)=>sum+p.kinds.length,0),
  daily:daily.length,ledger:productContracts.length,registeredProducts:registeredProducts.length}));
