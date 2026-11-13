@@ -97,6 +97,7 @@ test('canonical catalog is fail-closed; profiles use owner-scoped immutable retr
  }}]});
  try{
   const canonicalModule=await import('data:text/javascript;base64,'+Buffer.from(compiled.outputFiles[0].text).toString('base64'));
+  for(const mode of ['prashna-v1','horary-v1','spirit-v1'])await assert.rejects(canonicalModule.prepareCanonicalFortune({}, {userId:'guest'},{productId:'saju_flounder',mode}),{code:'TOSS_PRODUCT_NOT_APPROVED'});
   assert.ok(canonicalModule.canonicalProducts([]).every(row=>!row.available));
   assert.ok(canonicalModule.canonicalProducts([]).some(row=>row.id==='fusion_all'&&!row.available));
   const product=canonicalModule.canonicalProducts([]).find(row=>row.id==='saju_mackerel');

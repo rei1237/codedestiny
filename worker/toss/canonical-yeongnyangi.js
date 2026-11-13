@@ -43,7 +43,8 @@ export async function canonicalProfiles(auth,input) {
   return {ok:true,profiles:rows.map(toClientProfile),currentId:rows[0]?.profileId||''};
 }
 export async function prepareCanonicalFortune(env,auth,input) {
-  if(!isReviewSale(input.productId))throw new TossError('TOSS_PRODUCT_NOT_APPROVED',503);
+  // The web reuses a fish tier internally for symbolic readings. A Toss SKU authorizes only its registered consultation.
+  if(input.mode||!isReviewSale(input.productId))throw new TossError('TOSS_PRODUCT_NOT_APPROVED',503);
   const sale=canonicalSale(input.productId);
   // Keep the complete original input: scope, voice, locale, selected profiles and
   // tarot spread. Server preparation validates all of it and snapshots the chart.
