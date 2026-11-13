@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-13
-next: 단계 3 노출 감소 원인 정리
+next: 단계 4 반영
 ---
 # 오가닉 회복: GA4 정확도 · 오늘/내일 운세 차별화 · 노출 감소 원인 정리
 
@@ -35,7 +35,7 @@ next: 단계 3 노출 감소 원인 정리
 ## 단계
 - [x] 1. GA4 정확도: `js/core/analytics.js`(및 React 라우트 쪽 계측·쿠키 정책 `CodeDestinyCookiePolicy`) — 지역별 consent default(`gtag('consent','default',{analytics_storage:'denied', region:[EEA+UK+CH]})` + 기본 granted, 명시 '필수만'은 denied), 태그 로드를 앞당기되 LCP 영향 측정(예: DOMContentLoaded 직후 또는 짧은 타이머, pagehide 전 손실 최소화), SPA 라우트 page_view 중복·누락 확인, 네이버 유입이 Unassigned/Direct로 빠지는 원인(리퍼러 정책·인앱 브라우저·302) 조사, 개인정보처리방침 GA 고지 확인·보강. 실제 브라우저로 쿠키 배너 미클릭 상태에서 collect 요청 발생 확인.
 - [x] 2. 오늘/내일 차별화: 묶음 ⑤ 남은 것 구현 — 내일 페이지에서 '오늘' 표현·오늘 문장 제거, 대상일 기준 원고 풀 분리, 관계 마커·준비 문구. 목표: today/tomorrow 24쌍 5단어 Jaccard 최대 < 30%(측정 스크립트로 전후 기록). 번역 noindex는 범위 판단 후 별도 커밋.
-- [ ] 3. 노출 감소 원인 정리: 해외 리다이렉트 부재를 워커 테스트와 실제 요청으로 재확인(남은 국가·언어 기반 리다이렉트 전수 grep, `/?lang=en` 302의 필요성 판단), 10/08 변경 3가지의 영향 근거 문서화, `/fortune/date/*` noindex 재검토 권고(실행 X, 근거·선택지만), 결과를 `docs/seo/organic-drop-analysis-20261113.md`로.
+- [x] 3. 노출 감소 원인 정리: 해외 리다이렉트 부재를 워커 테스트와 실제 요청으로 재확인(남은 국가·언어 기반 리다이렉트 전수 grep, `/?lang=en` 302의 필요성 판단), 10/08 변경 3가지의 영향 근거 문서화, `/fortune/date/*` noindex 재검토 권고(실행 X, 근거·선택지만), 결과를 `docs/seo/organic-drop-analysis-20261113.md`로.
 - [ ] 4. 반영: 관련 검사·check:fast·pre-push, Toss 상태 확인, main push, CI 확인, 운영 릴리스(기존 Release Cloudflare Pages and Worker 워크플로 방식), 운영 실측(GA4 collect, 내일 페이지 문구, 해외 리다이렉트 없음), 바뀐 URL IndexNow 제출, 결과 기록.
 
 ## 결과 기록
@@ -94,3 +94,26 @@ next: 단계 3 노출 감소 원인 정리
 - 통과: `node --test` today-tomorrow-separation(4)·daily-webtoon·sky-and-range(합 23/23), `verify:fortune-period-axis`, `verify:fortune-marker-keys`, `verify:fortune-freshness`, `typecheck`, 변경 파일 eslint(오류 0, 기존 경고 4).
 - 미실행: `next build`/`build:cf`, `verify:adsense-readiness`(dist 필요), `check:fast`(단계 4에서), 번역 로케일 내일 페이지 육안 확인.
 - 데이터: `fortune/data`·`public/fortune/data`(gitignore)를 지우고 재생성했다. 배포 시 CI가 새 회전 규칙으로 생성하므로 운영의 이미 게시된 날짜 문구는 바뀔 수 있다(같은 날짜도 이전 hashPick과 다른 문장).
+
+### 단계 3 노출 감소 원인 정리 (2026-11-13 완료, 커밋 `d979c1495`, 운영 코드 변경 없음, push·배포 안 함)
+정본: `docs/seo/organic-drop-analysis-20261113.md`(근거/추론 분리, 반영 뒤 관찰 목록 포함).
+
+**해외 리다이렉트**
+- 전수 검색: 국가·Accept-Language·UA로 언어나 URL을 정하는 코드 없음(`_worker.js`는 국가를 `cd_geo_country`·결제 지역에만 씀, `_redirects`·`_headers`에 국가 규칙 없음, 미들웨어·`functions/` 없음, 클라이언트 `navigator.language`는 표시 대안만).
+- 테스트 추가(`__tests__/ui/visitor-country-routing.test.mjs`): 운세 허브·오늘·내일·주간·날짜별·`/en/fortune/` × 국가 8종 × Chrome·Googlebot·Yeti × GET·HEAD → 200, Location 없음. 10/08 운영 워커(`f610e521f`)로 바꾸면 `GET /fortune/ US chrome` 302로 실패(회귀 검출 확인). 파일 23/23 통과.
+- 운영 실측(한국 IP, 3개 UA, HEAD·GET): 핵심 URL 모두 200. `/?lang=en`→302 `/en/?lang=en`, `/?lang=ko`→302 `/ggulggul/?lang=ko`. 해외 IP 실측은 못 함.
+- `/?lang=en` 302: **유지**. 도착 URL canonical이 파라미터 없는 주소, 사이트맵 0개, 같은 분기가 쿠키 선택(요청마다 다름→302 필요)과 쿼리 보존 계약을 처리.
+
+**10/08 원인(요약)**
+- 노출 -46%(주 322k→173k)인데 클릭 -7% → 사라진 건 CTR ~0.05% 저관련 노출. Google은 규모가 작아 무관, 네이버 현상.
+- 운영 반영 시각 재확인(Actions `release` 잡): noindex `8d9843c1b` 10/06 14:37, 국가 302 `c6e9cfe7b` 10/07 00:58, 내일 재작성·제목 `f610e521f` 10/08 05:26, 국가 판단 제거 `599acf294` 11/04 00:23. 이전 감사의 "셋 다 10/08"은 정정.
+- 곡선과 맞는 건 10/08 내일 운세 재작성(당일 -40.7%)이다(추론). 국가 302는 허브 루트만 대상이었고 내일·오늘 상세는 302 대상이 아니었다(옛 워커로 재현). 날짜별 URL은 어느 TOP30에도 없었다.
+
+**`/fortune/date/*` noindex**: 권고 A 유지(B 앞날 창 부분 해제, C 전체 되돌림은 비권장·승인 필요). 실행 안 함.
+
+**검사**: `node --test __tests__/ui/visitor-country-routing.test.mjs` 23/23, 옛 워커 대상 회귀 확인. `check:fast` 미실행(단계 4).
+
+**사용자 결정 / 후속**
+- 내부 `/?lang=` 링크(`app/yeongnyangi/layout.tsx`, `LocalizedFortuneHome.tsx`, `LocaleSwitcher` 대안)를 도착 URL로 바로 걸지.
+- 미래 날짜 `/fortune/date/<내일>/<띠>/`가 404 대안으로 `/fortune/today/<띠>/`에 301됨(`expiredFortuneDateTarget`) — 302 또는 내일 URL로 바꿀지. 손대지 않음.
+- noindex 선택지 결정(기본 A).
