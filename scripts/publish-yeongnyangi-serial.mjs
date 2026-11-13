@@ -7,7 +7,7 @@
 import { cpSync, mkdirSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { SEASON_ONE } from '../lib/yeongnyangi/season-1.mjs';
-import { completeness, publishedEpisodes, serialNow, cutFiles } from '../lib/yeongnyangi/serial.mjs';
+import { completeness, pageFiles, publishedEpisodes, serialNow } from '../lib/yeongnyangi/serial.mjs';
 
 const TARGET = join('public', 'assets', 'yeongnyangi', 'season-1');
 const now = serialNow();
@@ -26,7 +26,7 @@ if (!check) {
   for (const episode of published) {
     const dir = join(TARGET, episode.slug);
     mkdirSync(dir, { recursive: true });
-    for (const cut of episode.cuts) for (const file of cutFiles(cut)) cpSync(file, join(dir, file.split(/[\\/]/).pop()));
+    for (const page of episode.pages) for (const file of pageFiles(episode, page)) cpSync(file, join(dir, file.split(/[\\/]/).pop()));
   }
   console.log(`[yeongnyangi-serial] ${published.length} episode(s) copied at ${now.toISOString()}`);
 }

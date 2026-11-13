@@ -1,13 +1,14 @@
 import type { Metadata } from 'next';
 import PageReader from '@/app/components/webtoon/PageReader';
 import PageReaderChrome from '@/app/components/webtoon/PageReaderChrome';
+import SerialEndCard from '@/app/components/webtoon/SerialEndCard';
 import { PROLOGUE, PROLOGUE_DIR, PROLOGUE_WIDTHS, prologuePage } from '@/lib/yeongnyangi/prologue.mjs';
 import { SEASON_ONE } from '@/lib/yeongnyangi/season-1.mjs';
-import { formatKst, nextRelease, publishedEpisodes, serialNow } from '@/lib/yeongnyangi/serial.mjs';
+import { nextRelease, publishedEpisodes, serialNow } from '@/lib/yeongnyangi/serial.mjs';
 import { pageOpenGraph } from '@/lib/seo/page-open-graph';
 import styles from '@/app/components/webtoon/page-reader.module.css';
 
-const TITLE = `${PROLOGUE.title} · 영냥이 시즌 1 프롤로그 | 꿀꿀 운세`;
+const TITLE = `${PROLOGUE.title} · 영냥이 시즌 1 · 1화 | 꿀꿀 운세`;
 const PAGE_URL = `https://code-destiny.com${PROLOGUE.href}`;
 const COVER_W = PROLOGUE_WIDTHS[PROLOGUE_WIDTHS.length - 1];
 
@@ -25,23 +26,13 @@ export default function ProloguePage() {
   const upcoming = first ? null : nextRelease(now);
   return <main className={styles.page} lang="ko" data-webtoon="yeoni-prologue">
     <PageReaderChrome title={PROLOGUE.title} total={PROLOGUE.pages.length}
-      backHref="/yeongnyangi/season-1/" backLabel="시즌 1 목차로" storageKey="cd:webtoon:yeoni-prologue:page" />
+      backHref="/yeongnyangi/season-1/" backLabel="시즌 1 목차로" storageKey="cd:webtoon:yeoni-s1-ep1:page" />
     <article aria-labelledby="prologue-title">
-      <h1 id="prologue-title" className={styles.srOnly}>{PROLOGUE.title} · 프롤로그 · {PROLOGUE.subtitle}</h1>
+      <h1 id="prologue-title" className={styles.srOnly}>{PROLOGUE.title} · {SEASON_ONE.title} {PROLOGUE.subtitle}</h1>
       <PageReader pages={PROLOGUE.pages} dir={PROLOGUE_DIR} widths={PROLOGUE_WIDTHS} w={PROLOGUE.w} h={PROLOGUE.h} />
     </article>
-    <section className={styles.end} aria-labelledby="prologue-end">
-      <h2 id="prologue-end">연이의 운은 왜 엉켰을까요?</h2>
-      <p>이번에는 괜찮을 줄 알았던 날, 당신에게도 있었나요?<br />영냥이가 엉킨 운의 실마리를 같이 찾아 드려요.</p>
-      <a className={styles.cta} href="/yeongnyangi/">영냥이에게 내 운 물어보기</a>
-      {first
-        ? <a className={styles.next} href={first.href} rel="next"><small>다음 화</small>{first.no}화 「{first.title}」 읽기 →</a>
-        : upcoming && <p className={styles.next} data-serial-next=""><small>다음 화</small>{upcoming.publishAt ? `${formatKst(upcoming.publishAt)} 공개` : '준비 중이에요'}</p>}
-      <ul className={styles.links}>
-        <li><a href="#p-01">처음부터 다시 보기</a></li>
-        <li><a href="/yeongnyangi/season-1/">시즌 1 목차</a></li>
-        <li><a href="/">꿀꿀 운세 홈</a></li>
-      </ul>
-    </section>
+    <SerialEndCard id="prologue-end" heading="괜히 보냈나, 싶은 밤이 있었나요?" next={first} upcoming={upcoming}>
+      사과를 보내 놓고 답장을 기다리던 밤, 당신에게도 있었나요?<br />영냥이가 엉킨 운의 실마리를 같이 찾아 드려요.
+    </SerialEndCard>
   </main>;
 }

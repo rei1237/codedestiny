@@ -1,7 +1,7 @@
 # 매주 토요일 21:05 KST, 영냥이 시즌 1의 새 회차가 실린 사이트를 다시 배포한다.
 #
 # 공개 게이트는 빌드 안에 있다 — prebuild:cf 의 scripts/publish-yeongnyangi-serial.mjs 가 빌드 시각에
-# 공개된 회차(status ready + 컷·대체 텍스트·이미지 완비 + publishAt 경과)의 이미지만 public/ 으로 복사하고,
+# 공개된 회차(status ready + 쪽·대체 텍스트·이미지 완비 + publishAt 경과)의 이미지만 public/ 으로 복사하고,
 # app/yeongnyangi/season-1/[episode] 는 그 회차만 정적 경로로 만든다. 같은 커밋이라도 빌드 시각이
 # 달라지면 산출물이 달라지므로, 이 워크플로는 fortune-daily-publish.yml 과 같은 방식으로
 # **지금 라이브인 커밋**(/version.json)을 Pages 만 다시 빌드·배포한다(Worker·결제·인증은 건드리지 않는다).
