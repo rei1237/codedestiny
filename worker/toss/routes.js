@@ -201,6 +201,16 @@ export async function handleTossRoutes(request,env) {
       return reply(await (await import('./letter.js')).prepareRecoveredTossLetter(env,auth,input.orderId,checkedConsultationInput(input.consultation)),201);
     }
     const letterRecovery=path.match(/^\/canonical\/fortune-chat\/recovery\/([a-f0-9-]{36})(?:\/draft\/([a-f0-9]{64}))?$/);
+    const recoveredDraw=path.match(/^\/canonical\/fortune-chat\/recovery\/([a-f0-9-]{36})\/draft\/([a-f0-9]{64})\/draw$/);
+    if(recoveredDraw&&request.method==='POST'){
+      const {readRecoveringTossLetter}=await import('./letter.js');
+      await limit(env,auth._id,'letter-recovered-draw',6);
+      const read=()=>readRecoveringTossLetter(env,auth,recoveredDraw[1],recoveredDraw[2]);
+      const before=await read();
+      if(!before.consultation.productId.startsWith('chat_tarot_')||before.consultation.paid||!['CREATED','AWAITING_DRAW'].includes(before.consultation.state))throw new TossError('REQUEST_NOT_FOUND',404);
+      const body=await bodyOf(request);await drawTarotSpread(env,auth.userId,recoveredDraw[2],body.auto===true?{auto:true}:{picks:body.picks});
+      return reply(await read());
+    }
     if(letterRecovery&&request.method==='GET'){
       const letter=await import('./letter.js');
       return reply(letterRecovery[2]?await letter.readRecoveringTossLetter(env,auth,letterRecovery[1],letterRecovery[2]):await letter.recoverableLetterOrder(env,auth,letterRecovery[1]));

@@ -586,6 +586,16 @@ test('letter status only enables when a product passes approval and exact-price 
 
 test('letter recovery prepares only the explicitly selected order and input',async()=>{let seen;mocks.letterRecover=async(_env,owner,orderId,input)=>{seen={owner,orderId,input};return {ok:true,consultation:{id:'a'.repeat(64)}};};try{const body={orderId:'01900000-1111-7111-8111-000000000001',consultation:{persona:'yeoni',domain:'saju',question:'명시적인 질문'}};const response=await request(body,'/canonical/fortune-chat/consultations/recover');assert.equal(response.status,201);assert.equal(seen.owner,auth);assert.equal(seen.orderId,body.orderId);assert.deepEqual(seen.input,body.consultation);}finally{delete mocks.letterRecover;}});
 
+test('a restored unassigned tarot tier checks the specific owner and order on both sides of the draw',async()=>{
+ const orderId='01900000-1111-7111-8111-000000000001',id='a'.repeat(64),path='/canonical/fortune-chat/recovery/'+orderId+'/draft/'+id+'/draw';
+ const previous={letterDraft:mocks.letterDraft,draw:mocks.draw};let reads=0,draws=0,productId='chat_tarot_salmon';
+ try{
+  mocks.letterDraft=async(_env,owner,order,draft)=>{assert.equal(owner,auth);assert.equal(order,orderId);assert.equal(draft,id);reads++;return {consultation:{productId,paid:false,state:draws?'CREATED':'AWAITING_DRAW'}};};
+  mocks.draw=async(_env,owner,key,body)=>{assert.equal(owner,auth.userId);assert.equal(key,id);assert.deepEqual(body,{auto:true});draws++;};
+  assert.equal((await request({auto:true},path)).status,200);assert.deepEqual([reads,draws],[2,1]);
+  productId='chat_saju_salmon';assert.equal((await request({auto:true},path)).status,404);assert.equal(draws,1);
+ }finally{Object.assign(mocks,previous);}
+});
 test('letter recovery GET preserves the selected owner, order and draft',async()=>{const orderId='01900000-1111-7111-8111-000000000001',id='a'.repeat(64),seen=[];mocks.letterOrder=async(_env,owner,order)=>{seen.push({owner,order});return {order:{orderId:order,status:'UNASSIGNED'}};};mocks.letterDraft=async(_env,owner,order,draft)=>{seen.push({owner,order,draft});return {consultation:{id:draft}};};const get=path=>handleTossRoutes(new Request('https://code-destiny.com/api/toss'+path,{headers:{Origin:'https://ai-saju-studio.private-apps.tossmini.com'}}),{TOSS_RELEASE_READY:'true'});try{assert.equal((await get('/canonical/fortune-chat/recovery/'+orderId)).status,200);assert.equal((await get('/canonical/fortune-chat/recovery/'+orderId+'/draft/'+id)).status,200);assert.equal(seen[0].owner,auth);assert.equal(seen[0].order,orderId);assert.equal(seen[1].draft,id);}finally{delete mocks.letterOrder;delete mocks.letterDraft;}});
 
 test('Vedic routes require release and account and preserve denied result access',async()=>{

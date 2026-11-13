@@ -20,6 +20,9 @@ function requestedProductId(body){
  return chatProductId(body.domain,body.fishId);
 }
 function featureMatchesProduct(row){const fish=row?.productId?.split('_')[2];return row?.featureKey===(fish?chatQuestionFeatureKey(fish):CHAT_FEATURE_KEY);}
+function canPrepareRestoredLetter(row){
+ return row.state==='CREATED'||(row.state==='AWAITING_DRAW'&&row.productId.split('_')[1]==='tarot');
+}
 function assertLetterDeliverable(row){const issue=tossFortuneAccessIssue(row);if(issue)throw new TossError(issue,409);}
 // A base letter and a scoped question letter have separate approved SKU identities.
 // This returns no sale unless the exact Toss SKU and adviser mapping are approved.
@@ -82,7 +85,7 @@ export async function readRecoveringTossLetter(env,auth,orderId,id){
  const purchase=await verifiedUnassignedLetter(env,auth,orderId);
  if(typeof id!=='string'||!/^[a-f0-9]{64}$/.test(id))throw new TossError('RESULT_NOT_FOUND',404);
  const row=await readRequest(env,auth.userId,id);
- if(!row||row.persona!==purchase.serviceId||row.snapshot?.persona!==row.persona||!featureMatchesProduct(row)||row.productId!==purchase.productId||row.amountKRW!==purchase.approvedPriceKRW||row.state!=='CREATED'||row.accessMethod||row.paymentId||row.paymentClaimOrderId)throw new TossError('REQUEST_NOT_FOUND',404);
+ if(!row||row.persona!==purchase.serviceId||row.snapshot?.persona!==row.persona||!featureMatchesProduct(row)||row.productId!==purchase.productId||row.amountKRW!==purchase.approvedPriceKRW||!canPrepareRestoredLetter(row)||row.accessMethod||row.paymentId||row.paymentClaimOrderId)throw new TossError('REQUEST_NOT_FOUND',404);
  assertLetterDeliverable(row);
  return {ok:true,consultation:{...presentFortune(row),persona:row.persona,paidFeatureKey:row.featureKey,paymentRequestId:chatPaymentRequestId(id),tossSku:purchase.sku,perUseSource:''}};
 }
@@ -93,7 +96,7 @@ export async function prepareRecoveredTossLetter(env,auth,orderId,body){
  if(purchase.productId!==requestedProductId(body))throw new TossError('ORDER_PRODUCT_MISMATCH',409);
  const row=await prepareFortune(env,auth.userId,body,{persona:body.persona,checkoutAmountKRW:purchase.approvedPriceKRW});
  if(!/^[a-f0-9]{64}$/.test(String(row?._id||''))||row.persona!==purchase.serviceId||row.productId!==purchase.productId||row.amountKRW!==purchase.approvedPriceKRW)throw new TossError('ORDER_PRODUCT_MISMATCH',409);
- if(row.state!=='CREATED'||row.accessMethod||row.paymentId||row.paymentClaimOrderId)throw new TossError('REQUEST_ALREADY_FUNDED',409);
+ if(!canPrepareRestoredLetter(row)||row.accessMethod||row.paymentId||row.paymentClaimOrderId)throw new TossError('REQUEST_ALREADY_FUNDED',409);
  assertLetterDeliverable(row);
  return {ok:true,consultation:{...presentFortune(row),persona:row.persona,paidFeatureKey:row.featureKey,paymentRequestId:chatPaymentRequestId(String(row._id)),tossSku:purchase.sku,perUseSource:''}};
 }
