@@ -17,3 +17,12 @@ test('standalone relationship consultation and Saju result subflows stay separat
  const diary=get('luck-sync-diary').subfeatures;assert.deepEqual(diary.map(item=>item.id),['fortunePlanner','legacyLuckSyncDiary']);assert.ok(diary.every(item=>item.status==='requires-full-flow-port-and-verification'));
 });
 test('pet chart remains partial while paid products and durable recovery are unresolved',()=>{const pet=inventory.canonicalCandidates.find(item=>item.id==='pet-saju');assert.equal(pet.status,'local-partial');assert.equal(pet.tossRoute,'/pet-saju/');assert.match(pet.storageContract,/no app-restart or cross-device recovery/);assert.match(pet.verification,/3000 KRW.*5000 KRW/);});
+
+test('each public Saju and Ziwei chapter keeps its real entry and independent RPG boundary',()=>{
+ const chapters=inventory.canonicalCandidates.flatMap(c=>c.publicSections||[]);
+ assert.equal(chapters.length,11);
+ assert.equal(new Set(chapters.map(c=>c.featureKey)).size,11);
+ assert.ok(chapters.every(c=>c.login==='공개'&&!c.iap&&c.verification.includes('360px')));
+ assert.equal(chapters.filter(c=>c.tossRoute==='/ziwei/sections').length,4);
+ assert.equal(inventory.canonicalCandidates.find(c=>c.id==='life-skill-tree').remainingSubflows[0].status,'미이식');
+});

@@ -10,6 +10,7 @@ import {extractObjectLiteral} from '../../scripts/lib/feature-marketing-extract.
 import {APPROVED_TOSS_PRODUCTS} from '../../worker/toss/catalog.js';
 import {reviewServices} from '../../apps/toss/src/review-scope.mjs';
 import {isFreeFortuneFeatureKey} from '../../lib/payment/free-fortune-policy.mjs';
+import {TOSS_PUBLIC_SECTIONS} from '../../lib/fortune/toss-public-sections.mjs';
 import {TOSS_TAROT_LIBRARY_FLOWS} from '../../lib/tarot/toss-library-flows.mjs';
 const root=fileURLToPath(new URL('../../',import.meta.url));
 const context={window:{}};
@@ -163,6 +164,27 @@ if(house?.webEntitlement?.featureKey==='rpt_secretHouseEntryCard'&&dashboard.inc
  house.aliasEvidence.push('js/core/saju/reportDashboard.js -> /secret-house_real.html -> POST /api/saju/section (rpt_secretHouseEntryCard)');
 }
 for(const [id,fields] of Object.entries(localEvidence))if(groups.has(id))Object.assign(groups.get(id),fields);
+const dashboardSections={
+ rpt_quantumCard:'quantum-saju',rpt_energyCoordCard:'energy-travel',rpt_villainCard:'relationship-boundaries',
+ rpt_healthReportCard:'health-rhythm',rpt_specialCharmCard:'personal-charm',rpt_skillTreeCard:'life-skill-tree',
+};
+for(const [featureKey,title] of Object.entries(TOSS_PUBLIC_SECTIONS)){
+ const ziwei=featureKey.startsWith('ziwei_');
+ const group=groups.get(dashboardSections[featureKey]||(ziwei?'ziwei':'saju'));
+ if(!group||!isFreeFortuneFeatureKey(featureKey))throw new Error('Missing public section contract: '+featureKey);
+ const tossRoute=ziwei?'/ziwei/sections':'/saju/sections';
+ const section={featureKey,title,webEntry:ziwei?'js/saju-engine.js: 자미두수 명반 상세 장':featureKey==='saju_natal_reading'?'js/core/saju/section-client.js:loadNatalReading':'js/core/saju/reportDashboard.js',
+   source:'worker/routes/saju-section.js → worker/lib/saju-section/report.js:buildSajuSectionHtml',
+   input:'출생 날짜·시각·달력·성별·국내 출생 도시',tossRoute,
+   login:'공개',iap:false,storage:'현재 화면 메모리',status:'일부만 이식',
+   verification:'apps/toss/test/public-sections.test.mjs 원본 HTTP 응답 동등성 · public-sections-browser.mjs 360px 일반 홈에서 결과 열람. Worker 승격·실기기 미검증'};
+ (group.publicSections||=[]).push(section);
+ if(dashboardSections[featureKey])Object.assign(group,{status:'local-partial',tossRoute,inputContract:section.input,
+   resultRenderer:'apps/toss/src/PublicSectionReading.tsx',storageContract:section.storage,verification:section.verification});
+}
+groups.get('ziwei').verification='기본 열두 궁 명반 및 상세 4종 공개 계산. 다른 궁합·연운·섬·상담은 별도 계약. 실기기 미검증';
+groups.get('life-skill-tree').remainingSubflows=[{id:'rpg-quests',status:'미이식',source:'js/entertain-engine.js:requestRpgQuestCompletion → CDLevel',
+ policy:'웹 게스트는 기기 EXP·일일 퀘스트 저장, 로그인 계정은 CDLevel 프로필 진행도. 토스에서는 클래스 시트만 열림'}];
 for(const flow of TOSS_TAROT_LIBRARY_FLOWS){
  const group=groups.get(flow.id);
  if(!group)throw new Error('Missing discovered tarot flow: '+flow.id);
@@ -264,6 +286,14 @@ for(const group of canonicalCandidates){
  else group.tossLogin='기능별 단계 검증 필요';
  group.tossResult=group.resultRenderer||'결과 화면 연결 미확인';
  group.reread=group.storageContract||'재열람 경로 미확인';
+ if(group.publicSections){
+  group.freeCalculation=true;
+  group.webSources=[...new Set([...group.webSources,...group.publicSections.map(s=>s.source)])];
+  if(dashboardSections[group.publicSections[0].featureKey]){
+   group.tossLogin='공개 입력 · 구매 없음';
+   group.reducedBundle='홈 진입 없음';
+  }
+ }
  if(nativeSource[group.id])group.saleStatus='콘솔·운영 설정 필요';
 }
 const registeredProducts=APPROVED_TOSS_PRODUCTS.map(({serviceId,productId,sku,priceEvidence,approvedPriceKRW})=>({serviceId,productId,sku,priceEvidence,approvedPriceKRW}));

@@ -1,5 +1,5 @@
 {
-  "sourceCommit": "d7cd0ead5aaad69de7aea2955c8a9238fb9a9c63",
+  "sourceCommit": "14ad9828f009907b949129bf68defdad0dea4e16",
   "sourceCounts": {
     "home": 63,
     "react": 18,
@@ -491,8 +491,8 @@
         "library": "not-verified",
         "device": "not-tested",
         "canonicalId": "energy-travel",
-        "candidateStatus": "requires-full-flow-port-and-verification",
-        "canonicalRoute": null
+        "candidateStatus": "local-partial",
+        "canonicalRoute": "/saju/sections"
       }
     },
     {
@@ -735,8 +735,8 @@
         "library": "not-verified",
         "device": "not-tested",
         "canonicalId": "health-rhythm",
-        "candidateStatus": "requires-full-flow-port-and-verification",
-        "canonicalRoute": null
+        "candidateStatus": "local-partial",
+        "canonicalRoute": "/saju/sections"
       }
     },
     {
@@ -983,8 +983,8 @@
         "library": "not-verified",
         "device": "not-tested",
         "canonicalId": "life-skill-tree",
-        "candidateStatus": "requires-full-flow-port-and-verification",
-        "canonicalRoute": null
+        "candidateStatus": "local-partial",
+        "canonicalRoute": "/saju/sections"
       }
     },
     {
@@ -1776,8 +1776,8 @@
         "library": "not-verified",
         "device": "not-tested",
         "canonicalId": "personal-charm",
-        "candidateStatus": "requires-full-flow-port-and-verification",
-        "canonicalRoute": null
+        "candidateStatus": "local-partial",
+        "canonicalRoute": "/saju/sections"
       }
     },
     {
@@ -1892,8 +1892,8 @@
         "library": "not-verified",
         "device": "not-tested",
         "canonicalId": "quantum-saju",
-        "candidateStatus": "requires-full-flow-port-and-verification",
-        "canonicalRoute": null
+        "candidateStatus": "local-partial",
+        "canonicalRoute": "/saju/sections"
       }
     },
     {
@@ -1917,8 +1917,8 @@
         "library": "not-verified",
         "device": "not-tested",
         "canonicalId": "relationship-boundaries",
-        "candidateStatus": "requires-full-flow-port-and-verification",
-        "canonicalRoute": null
+        "candidateStatus": "local-partial",
+        "canonicalRoute": "/saju/sections"
       }
     },
     {
@@ -3588,12 +3588,12 @@
         "js/core/saju/reportDashboard.js:trip -> energyCoordCard",
         "index.html:energy-travel.inlineAliases -> rpt_energyCoordCard"
       ],
-      "status": "requires-full-flow-port-and-verification",
-      "tossRoute": null,
+      "status": "local-partial",
+      "tossRoute": "/saju/sections",
       "sku": null,
-      "inputContract": null,
-      "resultRenderer": null,
-      "storageContract": null,
+      "inputContract": "출생 날짜·시각·달력·성별·국내 출생 도시",
+      "resultRenderer": "apps/toss/src/PublicSectionReading.tsx",
+      "storageContract": "현재 화면 메모리",
       "webEntitlement": {
         "featureKey": "rpt_energyCoordCard",
         "bundleKey": "saju_lifetime_bundle",
@@ -3602,25 +3602,42 @@
         "source": "worker/lib/saju-bundle-policy.js",
         "contentSource": "content/product-details/energy-travel/manifest.json"
       },
+      "publicSections": [
+        {
+          "featureKey": "rpt_energyCoordCard",
+          "title": "사주로 보는 여행지",
+          "webEntry": "js/core/saju/reportDashboard.js",
+          "source": "worker/routes/saju-section.js → worker/lib/saju-section/report.js:buildSajuSectionHtml",
+          "input": "출생 날짜·시각·달력·성별·국내 출생 도시",
+          "tossRoute": "/saju/sections",
+          "login": "공개",
+          "iap": false,
+          "storage": "현재 화면 메모리",
+          "status": "일부만 이식",
+          "verification": "apps/toss/test/public-sections.test.mjs 원본 HTTP 응답 동등성 · public-sections-browser.mjs 360px 일반 홈에서 결과 열람. Worker 승격·실기기 미검증"
+        }
+      ],
+      "verification": "apps/toss/test/public-sections.test.mjs 원본 HTTP 응답 동등성 · public-sections-browser.mjs 360px 일반 홈에서 결과 열람. Worker 승격·실기기 미검증",
       "webEntries": [
         "js/core/saju/reportDashboard.js:trip -> energyCoordCard",
         "index.html:energy-travel.inlineAliases -> rpt_energyCoordCard"
       ],
       "webSources": [
         "js/core/saju/reportDashboard.js:trip -> energyCoordCard",
-        "index.html:energy-travel.inlineAliases -> rpt_energyCoordCard"
+        "index.html:energy-travel.inlineAliases -> rpt_energyCoordCard",
+        "worker/routes/saju-section.js → worker/lib/saju-section/report.js:buildSajuSectionHtml"
       ],
       "webProductIds": [
         "rpt_energyCoordCard"
       ],
       "freeCalculation": true,
-      "portStatus": "미이식",
+      "portStatus": "일부만 이식",
       "reducedBundle": "홈 진입 없음",
-      "currentEntry": "연결 경로 없음",
+      "currentEntry": "일반 홈의 진입 코드 확인",
       "bundleVerification": "실기기 및 상품별 전체 흐름 미검증",
-      "tossLogin": "토스 기능 미연결",
-      "tossResult": "결과 화면 연결 미확인",
-      "reread": "재열람 경로 미확인"
+      "tossLogin": "공개 입력 · 구매 없음",
+      "tossResult": "apps/toss/src/PublicSectionReading.tsx",
+      "reread": "현재 화면 메모리"
     },
     {
       "id": "face-reading",
@@ -4016,12 +4033,12 @@
         "js/core/saju/reportDashboard.js:sajuhealth -> healthReportCard",
         "index.html:health-rhythm.inlineAliases -> rpt_healthReportCard"
       ],
-      "status": "requires-full-flow-port-and-verification",
-      "tossRoute": null,
+      "status": "local-partial",
+      "tossRoute": "/saju/sections",
       "sku": null,
-      "inputContract": null,
-      "resultRenderer": null,
-      "storageContract": null,
+      "inputContract": "출생 날짜·시각·달력·성별·국내 출생 도시",
+      "resultRenderer": "apps/toss/src/PublicSectionReading.tsx",
+      "storageContract": "현재 화면 메모리",
       "webEntitlement": {
         "featureKey": "rpt_healthReportCard",
         "bundleKey": "saju_lifetime_bundle",
@@ -4030,6 +4047,22 @@
         "source": "worker/lib/saju-bundle-policy.js",
         "contentSource": "content/product-details/health-rhythm/manifest.json"
       },
+      "publicSections": [
+        {
+          "featureKey": "rpt_healthReportCard",
+          "title": "명리 헬스 리포트",
+          "webEntry": "js/core/saju/reportDashboard.js",
+          "source": "worker/routes/saju-section.js → worker/lib/saju-section/report.js:buildSajuSectionHtml",
+          "input": "출생 날짜·시각·달력·성별·국내 출생 도시",
+          "tossRoute": "/saju/sections",
+          "login": "공개",
+          "iap": false,
+          "storage": "현재 화면 메모리",
+          "status": "일부만 이식",
+          "verification": "apps/toss/test/public-sections.test.mjs 원본 HTTP 응답 동등성 · public-sections-browser.mjs 360px 일반 홈에서 결과 열람. Worker 승격·실기기 미검증"
+        }
+      ],
+      "verification": "apps/toss/test/public-sections.test.mjs 원본 HTTP 응답 동등성 · public-sections-browser.mjs 360px 일반 홈에서 결과 열람. Worker 승격·실기기 미검증",
       "webEntries": [
         "js/core/saju/reportDashboard.js healthReportCard",
         "index.html FEATURE_VISUAL_DETAILS health-rhythm",
@@ -4037,19 +4070,20 @@
         "index.html:health-rhythm.inlineAliases -> rpt_healthReportCard"
       ],
       "webSources": [
-        "js/entertain-engine.js buildWellnessHealthReport/renderHealthReport"
+        "js/entertain-engine.js buildWellnessHealthReport/renderHealthReport",
+        "worker/routes/saju-section.js → worker/lib/saju-section/report.js:buildSajuSectionHtml"
       ],
       "webProductIds": [
         "rpt_healthReportCard"
       ],
       "freeCalculation": true,
-      "portStatus": "미이식",
+      "portStatus": "일부만 이식",
       "reducedBundle": "홈 진입 없음",
-      "currentEntry": "연결 경로 없음",
+      "currentEntry": "일반 홈의 진입 코드 확인",
       "bundleVerification": "실기기 및 상품별 전체 흐름 미검증",
-      "tossLogin": "토스 기능 미연결",
-      "tossResult": "결과 화면 연결 미확인",
-      "reread": "재열람 경로 미확인"
+      "tossLogin": "공개 입력 · 구매 없음",
+      "tossResult": "apps/toss/src/PublicSectionReading.tsx",
+      "reread": "현재 화면 메모리"
     },
     {
       "id": "heukwol-story",
@@ -4526,12 +4560,12 @@
         "js/core/saju/reportDashboard.js:sajurpg -> skillTreeCard",
         "index.html:life-skill-tree.inlineAliases -> rpt_skillTreeCard"
       ],
-      "status": "requires-full-flow-port-and-verification",
-      "tossRoute": null,
+      "status": "local-partial",
+      "tossRoute": "/saju/sections",
       "sku": null,
-      "inputContract": null,
-      "resultRenderer": null,
-      "storageContract": null,
+      "inputContract": "출생 날짜·시각·달력·성별·국내 출생 도시",
+      "resultRenderer": "apps/toss/src/PublicSectionReading.tsx",
+      "storageContract": "현재 화면 메모리",
       "webEntitlement": {
         "featureKey": "rpt_skillTreeCard",
         "bundleKey": "saju_lifetime_bundle",
@@ -4540,6 +4574,30 @@
         "source": "worker/lib/saju-bundle-policy.js",
         "contentSource": "content/product-details/life-skill-tree/manifest.json"
       },
+      "publicSections": [
+        {
+          "featureKey": "rpt_skillTreeCard",
+          "title": "인생 스킬 트리 · 클래스 시트",
+          "webEntry": "js/core/saju/reportDashboard.js",
+          "source": "worker/routes/saju-section.js → worker/lib/saju-section/report.js:buildSajuSectionHtml",
+          "input": "출생 날짜·시각·달력·성별·국내 출생 도시",
+          "tossRoute": "/saju/sections",
+          "login": "공개",
+          "iap": false,
+          "storage": "현재 화면 메모리",
+          "status": "일부만 이식",
+          "verification": "apps/toss/test/public-sections.test.mjs 원본 HTTP 응답 동등성 · public-sections-browser.mjs 360px 일반 홈에서 결과 열람. Worker 승격·실기기 미검증"
+        }
+      ],
+      "verification": "apps/toss/test/public-sections.test.mjs 원본 HTTP 응답 동등성 · public-sections-browser.mjs 360px 일반 홈에서 결과 열람. Worker 승격·실기기 미검증",
+      "remainingSubflows": [
+        {
+          "id": "rpg-quests",
+          "status": "미이식",
+          "source": "js/entertain-engine.js:requestRpgQuestCompletion → CDLevel",
+          "policy": "웹 게스트는 기기 EXP·일일 퀘스트 저장, 로그인 계정은 CDLevel 프로필 진행도. 토스에서는 클래스 시트만 열림"
+        }
+      ],
       "webEntries": [
         "/ggulggul/ 사주결과 인생스킬트리 타일",
         "js/core/saju/reportDashboard.js:sajurpg -> skillTreeCard",
@@ -4547,19 +4605,20 @@
       ],
       "webSources": [
         "js/saju-engine.js renderSkillTree",
-        "js/core/saju/reportDashboard.js"
+        "js/core/saju/reportDashboard.js",
+        "worker/routes/saju-section.js → worker/lib/saju-section/report.js:buildSajuSectionHtml"
       ],
       "webProductIds": [
         "rpt_skillTreeCard"
       ],
       "freeCalculation": true,
-      "portStatus": "미이식",
+      "portStatus": "일부만 이식",
       "reducedBundle": "홈 진입 없음",
-      "currentEntry": "연결 경로 없음",
+      "currentEntry": "일반 홈의 진입 코드 확인",
       "bundleVerification": "실기기 및 상품별 전체 흐름 미검증",
-      "tossLogin": "토스 기능 미연결",
-      "tossResult": "결과 화면 연결 미확인",
-      "reread": "재열람 경로 미확인"
+      "tossLogin": "공개 입력 · 구매 없음",
+      "tossResult": "apps/toss/src/PublicSectionReading.tsx",
+      "reread": "현재 화면 메모리"
     },
     {
       "id": "love-code",
@@ -5763,12 +5822,12 @@
         "js/core/saju/reportDashboard.js:meryok -> specialCharmCard",
         "index.html:personal-charm.inlineAliases -> rpt_specialCharmCard"
       ],
-      "status": "requires-full-flow-port-and-verification",
-      "tossRoute": null,
+      "status": "local-partial",
+      "tossRoute": "/saju/sections",
       "sku": null,
-      "inputContract": null,
-      "resultRenderer": null,
-      "storageContract": null,
+      "inputContract": "출생 날짜·시각·달력·성별·국내 출생 도시",
+      "resultRenderer": "apps/toss/src/PublicSectionReading.tsx",
+      "storageContract": "현재 화면 메모리",
       "webEntitlement": {
         "featureKey": "rpt_specialCharmCard",
         "bundleKey": "saju_lifetime_bundle",
@@ -5777,25 +5836,42 @@
         "source": "worker/lib/saju-bundle-policy.js",
         "contentSource": "content/product-details/personal-charm/manifest.json"
       },
+      "publicSections": [
+        {
+          "featureKey": "rpt_specialCharmCard",
+          "title": "나의 매력 클래스",
+          "webEntry": "js/core/saju/reportDashboard.js",
+          "source": "worker/routes/saju-section.js → worker/lib/saju-section/report.js:buildSajuSectionHtml",
+          "input": "출생 날짜·시각·달력·성별·국내 출생 도시",
+          "tossRoute": "/saju/sections",
+          "login": "공개",
+          "iap": false,
+          "storage": "현재 화면 메모리",
+          "status": "일부만 이식",
+          "verification": "apps/toss/test/public-sections.test.mjs 원본 HTTP 응답 동등성 · public-sections-browser.mjs 360px 일반 홈에서 결과 열람. Worker 승격·실기기 미검증"
+        }
+      ],
+      "verification": "apps/toss/test/public-sections.test.mjs 원본 HTTP 응답 동등성 · public-sections-browser.mjs 360px 일반 홈에서 결과 열람. Worker 승격·실기기 미검증",
       "webEntries": [
         "js/core/saju/reportDashboard.js:meryok -> specialCharmCard",
         "index.html:personal-charm.inlineAliases -> rpt_specialCharmCard"
       ],
       "webSources": [
         "js/core/saju/reportDashboard.js:meryok -> specialCharmCard",
-        "index.html:personal-charm.inlineAliases -> rpt_specialCharmCard"
+        "index.html:personal-charm.inlineAliases -> rpt_specialCharmCard",
+        "worker/routes/saju-section.js → worker/lib/saju-section/report.js:buildSajuSectionHtml"
       ],
       "webProductIds": [
         "rpt_specialCharmCard"
       ],
       "freeCalculation": true,
-      "portStatus": "미이식",
+      "portStatus": "일부만 이식",
       "reducedBundle": "홈 진입 없음",
-      "currentEntry": "연결 경로 없음",
+      "currentEntry": "일반 홈의 진입 코드 확인",
       "bundleVerification": "실기기 및 상품별 전체 흐름 미검증",
-      "tossLogin": "토스 기능 미연결",
-      "tossResult": "결과 화면 연결 미확인",
-      "reread": "재열람 경로 미확인"
+      "tossLogin": "공개 입력 · 구매 없음",
+      "tossResult": "apps/toss/src/PublicSectionReading.tsx",
+      "reread": "현재 화면 메모리"
     },
     {
       "id": "pet-saju",
@@ -5981,12 +6057,12 @@
         "js/core/saju/reportDashboard.js:quantum -> quantumCard",
         "index.html:quantum-saju.inlineAliases -> rpt_quantumCard"
       ],
-      "status": "requires-full-flow-port-and-verification",
-      "tossRoute": null,
+      "status": "local-partial",
+      "tossRoute": "/saju/sections",
       "sku": null,
-      "inputContract": null,
-      "resultRenderer": null,
-      "storageContract": null,
+      "inputContract": "출생 날짜·시각·달력·성별·국내 출생 도시",
+      "resultRenderer": "apps/toss/src/PublicSectionReading.tsx",
+      "storageContract": "현재 화면 메모리",
       "webEntitlement": {
         "featureKey": "rpt_quantumCard",
         "bundleKey": "saju_lifetime_bundle",
@@ -5995,25 +6071,42 @@
         "source": "worker/lib/saju-bundle-policy.js",
         "contentSource": "content/product-details/quantum-saju/manifest.json"
       },
+      "publicSections": [
+        {
+          "featureKey": "rpt_quantumCard",
+          "title": "퀀텀 명리 엔진",
+          "webEntry": "js/core/saju/reportDashboard.js",
+          "source": "worker/routes/saju-section.js → worker/lib/saju-section/report.js:buildSajuSectionHtml",
+          "input": "출생 날짜·시각·달력·성별·국내 출생 도시",
+          "tossRoute": "/saju/sections",
+          "login": "공개",
+          "iap": false,
+          "storage": "현재 화면 메모리",
+          "status": "일부만 이식",
+          "verification": "apps/toss/test/public-sections.test.mjs 원본 HTTP 응답 동등성 · public-sections-browser.mjs 360px 일반 홈에서 결과 열람. Worker 승격·실기기 미검증"
+        }
+      ],
+      "verification": "apps/toss/test/public-sections.test.mjs 원본 HTTP 응답 동등성 · public-sections-browser.mjs 360px 일반 홈에서 결과 열람. Worker 승격·실기기 미검증",
       "webEntries": [
         "js/core/saju/reportDashboard.js:quantum -> quantumCard",
         "index.html:quantum-saju.inlineAliases -> rpt_quantumCard"
       ],
       "webSources": [
         "js/core/saju/reportDashboard.js:quantum -> quantumCard",
-        "index.html:quantum-saju.inlineAliases -> rpt_quantumCard"
+        "index.html:quantum-saju.inlineAliases -> rpt_quantumCard",
+        "worker/routes/saju-section.js → worker/lib/saju-section/report.js:buildSajuSectionHtml"
       ],
       "webProductIds": [
         "rpt_quantumCard"
       ],
       "freeCalculation": true,
-      "portStatus": "미이식",
+      "portStatus": "일부만 이식",
       "reducedBundle": "홈 진입 없음",
-      "currentEntry": "연결 경로 없음",
+      "currentEntry": "일반 홈의 진입 코드 확인",
       "bundleVerification": "실기기 및 상품별 전체 흐름 미검증",
-      "tossLogin": "토스 기능 미연결",
-      "tossResult": "결과 화면 연결 미확인",
-      "reread": "재열람 경로 미확인"
+      "tossLogin": "공개 입력 · 구매 없음",
+      "tossResult": "apps/toss/src/PublicSectionReading.tsx",
+      "reread": "현재 화면 메모리"
     },
     {
       "id": "relationship-boundaries",
@@ -6034,12 +6127,12 @@
         "js/core/saju/reportDashboard.js:vilun -> villainCard",
         "index.html:relationship-boundaries.inlineAliases -> rpt_villainCard"
       ],
-      "status": "requires-full-flow-port-and-verification",
-      "tossRoute": null,
+      "status": "local-partial",
+      "tossRoute": "/saju/sections",
       "sku": null,
-      "inputContract": null,
-      "resultRenderer": null,
-      "storageContract": null,
+      "inputContract": "출생 날짜·시각·달력·성별·국내 출생 도시",
+      "resultRenderer": "apps/toss/src/PublicSectionReading.tsx",
+      "storageContract": "현재 화면 메모리",
       "webEntitlement": {
         "featureKey": "rpt_villainCard",
         "bundleKey": "saju_lifetime_bundle",
@@ -6048,25 +6141,42 @@
         "source": "worker/lib/saju-bundle-policy.js",
         "contentSource": "content/product-details/relationship-boundaries/manifest.json"
       },
+      "publicSections": [
+        {
+          "featureKey": "rpt_villainCard",
+          "title": "빌런 블랙리스트",
+          "webEntry": "js/core/saju/reportDashboard.js",
+          "source": "worker/routes/saju-section.js → worker/lib/saju-section/report.js:buildSajuSectionHtml",
+          "input": "출생 날짜·시각·달력·성별·국내 출생 도시",
+          "tossRoute": "/saju/sections",
+          "login": "공개",
+          "iap": false,
+          "storage": "현재 화면 메모리",
+          "status": "일부만 이식",
+          "verification": "apps/toss/test/public-sections.test.mjs 원본 HTTP 응답 동등성 · public-sections-browser.mjs 360px 일반 홈에서 결과 열람. Worker 승격·실기기 미검증"
+        }
+      ],
+      "verification": "apps/toss/test/public-sections.test.mjs 원본 HTTP 응답 동등성 · public-sections-browser.mjs 360px 일반 홈에서 결과 열람. Worker 승격·실기기 미검증",
       "webEntries": [
         "js/core/saju/reportDashboard.js:vilun -> villainCard",
         "index.html:relationship-boundaries.inlineAliases -> rpt_villainCard"
       ],
       "webSources": [
         "js/core/saju/reportDashboard.js:vilun -> villainCard",
-        "index.html:relationship-boundaries.inlineAliases -> rpt_villainCard"
+        "index.html:relationship-boundaries.inlineAliases -> rpt_villainCard",
+        "worker/routes/saju-section.js → worker/lib/saju-section/report.js:buildSajuSectionHtml"
       ],
       "webProductIds": [
         "rpt_villainCard"
       ],
       "freeCalculation": true,
-      "portStatus": "미이식",
+      "portStatus": "일부만 이식",
       "reducedBundle": "홈 진입 없음",
-      "currentEntry": "연결 경로 없음",
+      "currentEntry": "일반 홈의 진입 코드 확인",
       "bundleVerification": "실기기 및 상품별 전체 흐름 미검증",
-      "tossLogin": "토스 기능 미연결",
-      "tossResult": "결과 화면 연결 미확인",
-      "reread": "재열람 경로 미확인"
+      "tossLogin": "공개 입력 · 구매 없음",
+      "tossResult": "apps/toss/src/PublicSectionReading.tsx",
+      "reread": "현재 화면 메모리"
     },
     {
       "id": "relationship-boundary-test",
@@ -6237,6 +6347,21 @@
           "accessEvidence": "dashboard points to section_summary; historic rights unverified"
         }
       ],
+      "publicSections": [
+        {
+          "featureKey": "saju_natal_reading",
+          "title": "사주 원국 풀이",
+          "webEntry": "js/core/saju/section-client.js:loadNatalReading",
+          "source": "worker/routes/saju-section.js → worker/lib/saju-section/report.js:buildSajuSectionHtml",
+          "input": "출생 날짜·시각·달력·성별·국내 출생 도시",
+          "tossRoute": "/saju/sections",
+          "login": "공개",
+          "iap": false,
+          "storage": "현재 화면 메모리",
+          "status": "일부만 이식",
+          "verification": "apps/toss/test/public-sections.test.mjs 원본 HTTP 응답 동등성 · public-sections-browser.mjs 360px 일반 홈에서 결과 열람. Worker 승격·실기기 미검증"
+        }
+      ],
       "webEntries": [
         "/?action=cdOneStepFreeSajuEntry",
         "/saju/basic/play"
@@ -6244,10 +6369,11 @@
       "webSources": [
         "index.html",
         "js/core/service-registry.js",
-        "app/saju/basic/play/page.tsx"
+        "app/saju/basic/play/page.tsx",
+        "worker/routes/saju-section.js → worker/lib/saju-section/report.js:buildSajuSectionHtml"
       ],
       "webProductIds": [],
-      "freeCalculation": false,
+      "freeCalculation": true,
       "portStatus": "일부만 이식",
       "reducedBundle": "홈 진입 있음",
       "currentEntry": "일반 홈의 진입 코드 확인",
@@ -7702,7 +7828,61 @@
       "inputContract": "BirthFields + normalizeZiweiInput + calculateZiweiChart; domestic locations only",
       "resultRenderer": "apps/toss/src/ZiweiChart.tsx + canonical ZiweiPalaceGrid",
       "storageContract": "current screen only; clear input and chart on session replacement or exit",
-      "verification": "basic twelve-palace chart only; original detailed readings, profile recovery, device navigation and accessibility pending",
+      "verification": "기본 열두 궁 명반 및 상세 4종 공개 계산. 다른 궁합·연운·섬·상담은 별도 계약. 실기기 미검증",
+      "publicSections": [
+        {
+          "featureKey": "ziwei_decade_luck",
+          "title": "대한 운세",
+          "webEntry": "js/saju-engine.js: 자미두수 명반 상세 장",
+          "source": "worker/routes/saju-section.js → worker/lib/saju-section/report.js:buildSajuSectionHtml",
+          "input": "출생 날짜·시각·달력·성별·국내 출생 도시",
+          "tossRoute": "/ziwei/sections",
+          "login": "공개",
+          "iap": false,
+          "storage": "현재 화면 메모리",
+          "status": "일부만 이식",
+          "verification": "apps/toss/test/public-sections.test.mjs 원본 HTTP 응답 동등성 · public-sections-browser.mjs 360px 일반 홈에서 결과 열람. Worker 승격·실기기 미검증"
+        },
+        {
+          "featureKey": "ziwei_twelve_palaces",
+          "title": "열두 궁 해석",
+          "webEntry": "js/saju-engine.js: 자미두수 명반 상세 장",
+          "source": "worker/routes/saju-section.js → worker/lib/saju-section/report.js:buildSajuSectionHtml",
+          "input": "출생 날짜·시각·달력·성별·국내 출생 도시",
+          "tossRoute": "/ziwei/sections",
+          "login": "공개",
+          "iap": false,
+          "storage": "현재 화면 메모리",
+          "status": "일부만 이식",
+          "verification": "apps/toss/test/public-sections.test.mjs 원본 HTTP 응답 동등성 · public-sections-browser.mjs 360px 일반 홈에서 결과 열람. Worker 승격·실기기 미검증"
+        },
+        {
+          "featureKey": "ziwei_love_deep",
+          "title": "부부궁 관계 흐름",
+          "webEntry": "js/saju-engine.js: 자미두수 명반 상세 장",
+          "source": "worker/routes/saju-section.js → worker/lib/saju-section/report.js:buildSajuSectionHtml",
+          "input": "출생 날짜·시각·달력·성별·국내 출생 도시",
+          "tossRoute": "/ziwei/sections",
+          "login": "공개",
+          "iap": false,
+          "storage": "현재 화면 메모리",
+          "status": "일부만 이식",
+          "verification": "apps/toss/test/public-sections.test.mjs 원본 HTTP 응답 동등성 · public-sections-browser.mjs 360px 일반 홈에서 결과 열람. Worker 승격·실기기 미검증"
+        },
+        {
+          "featureKey": "ziwei_symbolic_layer",
+          "title": "보조 상징 인장",
+          "webEntry": "js/saju-engine.js: 자미두수 명반 상세 장",
+          "source": "worker/routes/saju-section.js → worker/lib/saju-section/report.js:buildSajuSectionHtml",
+          "input": "출생 날짜·시각·달력·성별·국내 출생 도시",
+          "tossRoute": "/ziwei/sections",
+          "login": "공개",
+          "iap": false,
+          "storage": "현재 화면 메모리",
+          "status": "일부만 이식",
+          "verification": "apps/toss/test/public-sections.test.mjs 원본 HTTP 응답 동등성 · public-sections-browser.mjs 360px 일반 홈에서 결과 열람. Worker 승격·실기기 미검증"
+        }
+      ],
       "webEntries": [
         "/?action=cdHomeZiweiEntry",
         "/ziwei/chart"
@@ -7710,10 +7890,11 @@
       "webSources": [
         "index.html",
         "js/core/service-registry.js",
-        "app/ziwei/chart/page.tsx"
+        "app/ziwei/chart/page.tsx",
+        "worker/routes/saju-section.js → worker/lib/saju-section/report.js:buildSajuSectionHtml"
       ],
       "webProductIds": [],
-      "freeCalculation": false,
+      "freeCalculation": true,
       "portStatus": "일부만 이식",
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "일반 홈의 진입 코드 확인",
