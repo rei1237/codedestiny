@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-11-13
-next: 4단계 코드 통합(1~4화 작화 완료, 5·6화 작화 중, 7화 미착수)
+next: 5단계 2차 배포
 ---
 
 # 연이의 운명 노벨 웹툰: 1차 배포 → 7편 제작 → 2차 배포 → 주간 연재
@@ -59,9 +59,9 @@ next: 4단계 코드 통합(1~4화 작화 완료, 5·6화 작화 중, 7화 미�
 - [x] 3-1단계: 1화 작화·QC·변환 (18쪽, `ep1\out`)
 - [x] 3-2단계: 2화 작화·QC·변환 (20쪽, `ep2\out`) (11/21 21:00 전 운영 필수)
 - [x] 3-3단계: 3화 (19쪽, `ep3\out`. 13쪽은 핀 좌우를 지키려 방을 좌우 반전, 경미한 차이 수용)
-- [ ] 3-4단계: 4~5화 (4화 20쪽 완료 `ep4\out`, 5화 진행 중)
-- [ ] 3-5단계: 6~7화
-- [ ] 4단계: 코드 통합(페이지형 연재, 끝 카드 추출, 옛 컷 삭제, 테스트)
+- [x] 3-4단계: 4~5화 (4화 20쪽 `ep4\out`, 5화 20쪽 `ep5\out`)
+- [x] 3-5단계: 6~7화 (6화 19쪽 `ep6\out`, 7화 17쪽 `ep7\out`)
+- [x] 4단계: 코드 통합(페이지형 연재, 끝 카드 추출, 옛 컷 삭제, 테스트)
 - [ ] 5단계: 2차 배포, `SERIAL_NOW` 회차별 확인, Downloads 원본 삭제, 보고
 
 ## 결과 기록
@@ -75,3 +75,9 @@ next: 4단계 코드 통합(1~4화 작화 완료, 5·6화 작화 중, 7화 미�
 - 4화: 1~12쪽 채택(`ep4\qc\log.json`). 13~16쪽 초안, 17~20쪽 미생성 상태에서 이어받음.
 - 함정: 2026-11-13 하위 에이전트들이 API 403(Cloudflare authentication_failed)로 중단된 적 있음. 중단되면 부분 상태(`accepted`·`qc\log.json`)부터 다시 시작.
 - Windows 체크아웃에서는 `verify:public-mirror-fresh`가 index.html 줄바꿈(CRLF)만으로 실패할 수 있다. `git diff --ignore-cr-at-eol`로 내용 차이가 없으면 되돌리고 나머지 검사를 따로 돌린다.
+
+- 4단계(2026-11-13): 커밋 7e2f2ec26(1화 18쪽 교체·쪽 원고 생성·import 스크립트), ff78e8a14(쪽 단위 연재 전환, 2~6화 content, 옛 컷 삭제, season-1-cuts.mjs 삭제, SerialEndCard, 테스트, 사이트맵 원장), f2bfaba5e(출처 JSON·season1 문서), f96071a69(7화 17쪽, 2~7화 모두 ready). push 안 함.
+  - 상태: 2~7화 모두 ready(content/ 반영, 출처 yn-s1-ep2~7). 1화는 public/images/webtoons/yeoni-prologue 18쪽.
+  - 새 회차 추가 절차: `node scripts/import-yeoni-webtoon-episode.mjs --ep N --check` → `--ep N`(content 복사 + 출처 기록) → season-1.mjs에서 status 'ready' → `npm run sitemap:generate`(원장 서명이 바뀜) → 테스트의 실제 연재표 기대값 갱신. 원고(pages.json)가 바뀌면 `--pages`로 season-1-pages.mjs 재생성.
+  - 검증: node --test(연재·프롤로그 14/14), npm test(jest 7978 통과·node 5028 통과, 실패 0) — 7화 반영 전 실행, tsc 0, eslint 변경 파일 오류 0, check:fast exit 0(7화 반영 뒤 f96071a69 상태에서 재실행), SERIAL_NOW --check: 11-21 20:59 공개 0 / 11-21 21:01 ep2 / 11-28 21:01 ep2~3 / 12-05 21:01 ep2~4 / 12-12 20:59 ep2~4 / 12-12 21:01 ep2~5 / 12-19 21:01 ep2~6 / 12-26 20:59 ep2~6 / 12-26 21:01 ep2~7 / 2027-01-02 ep2~7(exit 0).
+  - 함정: season-1.mjs나 페이지 소스가 바뀌면 config/sitemap-lastmod.json 서명이 바뀌어 verify:sitemap-drift가 막는다 → `npm run sitemap:generate` 후 같은 커밋에 넣는다. 1화 이어보기 키가 `cd:webtoon:yeoni-s1-ep1:page`로 바뀌어 옛 저장 위치는 초기화된다. 1~7화 alt는 그림 OCR이 아니라 원고(pages.json)에서 만든 것. 출처 JSON이 약 1.0MB로 커졌다.
