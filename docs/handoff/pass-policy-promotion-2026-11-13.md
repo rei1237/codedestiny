@@ -1,0 +1,60 @@
+---
+status: in-progress
+updated: 2026-11-13
+next: 공식 광고·스토어 성장 자료를 확인해 홍보안을 작성하고 전달 검증·push·CI 확인을 마친다.
+---
+
+# 이용권 표기 정리와 앱 홍보안
+
+## 첫 행동
+
+`git status --short`와 이 문서를 읽고, 이용권 커밋 `a3f68fb92`가 현재 HEAD인지 확인한다. 그 다음 공식 Google Play·Google Ads·네이버·카카오 자료를 근거로 홍보안을 정리한다.
+
+## 지금 상태
+
+- 작업 디렉터리: `D:\Development\codedestiny-worktrees\android-talisman-launch-20261113-140159`
+- 브랜치: `wt/android-talisman-launch-20261113-140159`
+- 마지막 기능 커밋: `a3f68fb92` (`fix(payment): remove 30-day pass copy`)
+- 기준 커밋: `a6158fde0cb950d9c21157a5b71cae13e489fc82`
+- `npm run check:fast`는 결제 게이트 77/77을 통과한 뒤, 기준 트리의 사이트맵 lastmod·priority 원장 드리프트에서 중단됐다. URL 집합 변화는 없고 이번 변경에 사이트맵 파일은 없다.
+
+## 승인 상태
+
+- 사용자 요청(2026-11-13): “30일 이용권은 이제 없어졌어 이용권 개념만 있으니까 그렇게 현재 서비스에 적용되도록해주고 이 앱을 홍보할 방안을 제안해줘”
+- 승인 범위: 일반 달빛 이용권의 30일 표기를 없애고 기간 제한 없는 이용권 정책과 맞춘다. 홍보 방안을 제안한다.
+- 미승인: 실제 광고비 집행, 외부 광고 계정 생성·캠페인 게시, 운영 DB 쓰기, 실결제, 새 앱 버전 제출.
+
+## 작업 규칙과 함정
+
+- 사용자 노출은 “이용권”, “기간 제한 없음 · 이용 한도 소진 시 종료 · 자동결제 아님”으로 통일한다.
+- Play 상품 ID `cd_pass_*_30d_vN`과 `durationDays`·`durationMonths`·`monthlyLimitCoin`은 기존 영수증·주문·앱 카탈로그 호환 필드라 유지한다.
+- 월정석 지급분의 별도 30일 유효기간, 법정 30일, 운세 콘텐츠의 30일 흐름, 영냥이 전용 횟수권 개별 정책은 일반 이용권과 섞지 않는다.
+- 가격·건당 상한·총 이용 한도·결제 순서·인증·DB 스키마는 바꾸지 않았다.
+- 광고 추천은 최신성이 높으므로 공식 자료를 웹에서 확인하고, 실제 기능과 제안 기능을 구분한다.
+
+## 설계
+
+- 결제 서버의 보조 상품명을 작은·중간·큰·패밀리 꿀단지로 교체했다.
+- 번역 복구 스크립트의 영어 가격에서 “30 days”를 제거하고 현행 가격 정본과 맞췄다.
+- 선물 UI/체크아웃 목 데이터와 법적 문구 회귀 샘플에서 옛 30일 이름을 제거했다.
+- 결제·디자인 문서에 최신 정책을 정본으로 추가하고, 다시 옛 이름이 들어오지 않게 `verify:billing-pass-policy` 가드를 추가했다.
+
+## 단계
+
+- [x] 옛 30일 이용권 노출·보조 경로 조사
+- [x] 사용자 노출명·번역·테스트·문서 정리
+- [x] 결제·법적·Play 가격 targeted 검사
+- [x] 기능 변경 커밋
+- [ ] 공식 채널 근거로 홍보안 작성
+- [ ] 인수인계 문서를 done으로 닫고 커밋
+- [ ] `npm run check:pre-push`
+- [ ] main 전달·push 및 CI 1회 확인
+
+## 검증 기록
+
+- `npm run verify:billing-pass-policy` — PASS
+- `npm run verify:payment-legal-copy -- --self-test` — PASS(양성 24, 음성 4)
+- `npm run verify:checkout-pass-card` — PASS
+- `npm run verify:app-store-pricing` — PASS(콘텐츠 11 + 이용권 16 = SKU 27)
+- `npm run check:fast` — 결제 게이트 77/77 PASS 후 `verify:sitemap-drift`에서 기준 원장 드리프트로 중단
+- impeccable detector — 이번 최종 변경에서 UI 파일은 제외됨. 앞선 임시 주석 변경 검사에서는 기존 `animate-bounce`, `text-slate-950 on bg-amber-100` 경고 2건만 확인했고 해당 주석 변경은 되돌렸다.
