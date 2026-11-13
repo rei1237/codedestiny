@@ -1,4 +1,5 @@
 import {reviewProductIds} from '../../../../worker/toss/review-products.js';
+import {roomPurchases,roomSdkProducts} from './room-fixture.mjs';
 import {APPROVED_TOSS_PRODUCTS} from '../../../../worker/toss/catalog.js';
 import {consultationInputCode,consultationSafetyMessages} from '../../../../lib/fortune/toss-consultation-safety.mjs';
 
@@ -18,7 +19,7 @@ export const unsoldFixtureProducts=Object.entries(systems).filter(([id])=>id!=='
  approvedPriceKRW:1,available:true,chapters:1,
 }));
 export const offlineCatalog=[...reviewCatalog,...unsoldFixtureProducts];
-export const reviewSdkProducts=offlineCatalog.map(sdkProduct);
+export const reviewSdkProducts=[...offlineCatalog.map(sdkProduct),...roomSdkProducts];
 const consultationCatalog=offlineCatalog.filter(p=>!p.id.startsWith('yeoni:'));
 const letterSku=reviewCatalog.find(p=>p.id==='yeoni:chat_saju').sku;
 const json=(data,status=200)=>Response.json(data,{status});
@@ -147,6 +148,7 @@ export async function handleReviewFixture(request,url,path,state,save,now,delay=
     return json({orderId,requestId:id,entitlement:'granted',durable:true});
   }
   if(path==='/library'&&method==='GET')return json({purchases:[
+    ...roomPurchases(state),
     ...owned.map(({fortune,orderId,sku})=>({requestId:fortune.id,orderId,sku,serviceId:'yeongnyangi',selectionId:fortune.productId,productId:fortune.productId,status:'PURCHASED',state:fortune.state,createdAt:fortune.createdAt,completedSections:fortune.chapters.length,totalSections:1})),
     ...[...state.letters.values()].filter(row=>row.paid).map(row=>({requestId:row.id,orderId:row.orderId,sku:'mock-yeoni',serviceId:'yeoni',selectionId:'yeoni:chat_saju',productId:'chat_saju',status:'PURCHASED',state:row.state,createdAt:row.createdAt,completedSections:1,totalSections:1})),
   ],nextCursor:null});
