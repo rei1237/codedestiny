@@ -62,40 +62,46 @@ try{
     await page.getByRole('button',{name:'토스로 로그인하기'}).click();
     await page.waitForURL(/yeongnyangi\/fortune/);
   };
-  await fresh();await enter();
-  const checkout=page.locator('[data-yn-checkout]');await checkout.waitFor();
-  for(const [id,label,value] of [['#consultation-time','태어난 시간','0835'],['#consultation-place','출생 지역','서울']]){
-    const field=page.locator(id);
-    if(await field.count()){
-      if(!await field.isVisible())await page.locator('summary').filter({hasText:label}).first().click();
-      await field.fill(value);await field.blur();
+  if(process.argv.includes('--all-products')){
+    const {verifyAllConsultationProducts}=await import('./private-simulation-products.mjs');
+    await verifyAllConsultationProducts(origin,context,unexpected);
+    console.log('PASS complete mock catalog',reader.deploymentId);
+  }else{
+    await fresh();await enter();
+    const checkout=page.locator('[data-yn-checkout]');await checkout.waitFor();
+    for(const [id,label,value] of [['#consultation-time','태어난 시간','0835'],['#consultation-place','출생 지역','서울']]){
+      const field=page.locator(id);
+      if(await field.count()){
+        if(!await field.isVisible())await page.locator('summary').filter({hasText:label}).first().click();
+        await field.fill(value);await field.blur();
+      }
     }
+    await checkout.locator('aside').getByText('1원',{exact:true}).waitFor();
+    await checkout.getByRole('button',{name:'단건 결제로 상담 시작하기'}).click();
+    await page.waitForURL(/yeongnyangi\/result/);
+    const chapter=()=>page.getByText(/이 문단은 화면과 구매 후 열람/).first();
+    const resultUrl=page.url(),id=new URL(resultUrl).searchParams.get('id');
+    assert.ok(id);
+    const reopenFromHome=async()=>{
+      await page.close();await fresh();await page.goto(origin);
+      await page.locator('.world-entry-yeongnyangi').click();
+      await page.getByRole('link',{name:'영냥이 보관함'}).click();
+      await page.locator('a[href*="'+id+'"]').first().click();
+    };
+    // Leave as soon as the grant navigates; the first result page need not finish.
+    await reopenFromHome();await chapter().waitFor();
+    const original=await chapter().innerText();
+    await reopenFromHome();assert.equal(await chapter().innerText(),original);
+    const ledger=await page.evaluate(()=>JSON.parse(localStorage.getItem('consultations')));
+    assert.deepEqual(await page.evaluate(()=>[localStorage.getItem('regular-app-sentinel'),window.readRegularSentinel()]),[null,'leave-intact']);
+    assert.equal(ledger.orders.length,1);assert.equal(ledger.fortunes.length,1);assert.equal(ledger.fortunes[0][1].generationCount,1);
+    assert.equal(ledger.fortunes[0][1].sku,'mock-unregistered-astrology');
+    await page.getByLabel('모의 계정',{exact:true}).selectOption('B');await page.waitForLoadState('load');
+    await enter();await page.goto(resultUrl);
+    await page.locator('[role=alert]').first().waitFor();
+    assert.equal(await chapter().count(),0);
+    assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('consultations')).orders.length),0);
+    assert.deepEqual(unexpected,[]);assert.ok(bridge.includes('__subscribeAppEvent'));assert.ok(bridge.every(n=>['__subscribeAppEvent','__unsubscribeAppEvent'].includes(n)));
+    console.log('PASS private simulated AIT 360px home → question → mock login and single order → original stored example → reentry → second account denied; native navigation only',reader.deploymentId);
   }
-  await checkout.locator('aside').getByText('1원',{exact:true}).waitFor();
-  await checkout.getByRole('button',{name:'단건 결제로 상담 시작하기'}).click();
-  await page.waitForURL(/yeongnyangi\/result/);
-  const chapter=()=>page.getByText(/이 문단은 화면과 구매 후 열람/).first();
-  const resultUrl=page.url(),id=new URL(resultUrl).searchParams.get('id');
-  assert.ok(id);
-  const reopenFromHome=async()=>{
-    await page.close();await fresh();await page.goto(origin);
-    await page.locator('.world-entry-yeongnyangi').click();
-    await page.getByRole('link',{name:'영냥이 보관함'}).click();
-    await page.locator('a[href*="'+id+'"]').first().click();
-  };
-  // Leave as soon as the grant navigates; the first result page need not finish.
-  await reopenFromHome();await chapter().waitFor();
-  const original=await chapter().innerText();
-  await reopenFromHome();assert.equal(await chapter().innerText(),original);
-  const ledger=await page.evaluate(()=>JSON.parse(localStorage.getItem('consultations')));
-  assert.deepEqual(await page.evaluate(()=>[localStorage.getItem('regular-app-sentinel'),window.readRegularSentinel()]),[null,'leave-intact']);
-  assert.equal(ledger.orders.length,1);assert.equal(ledger.fortunes.length,1);assert.equal(ledger.fortunes[0][1].generationCount,1);
-  assert.equal(ledger.fortunes[0][1].sku,'mock-unregistered-astrology');
-  await page.getByLabel('모의 계정',{exact:true}).selectOption('B');await page.waitForLoadState('load');
-  await enter();await page.goto(resultUrl);
-  await page.locator('[role=alert]').first().waitFor();
-  assert.equal(await chapter().count(),0);
-  assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('consultations')).orders.length),0);
-  assert.deepEqual(unexpected,[]);assert.ok(bridge.includes('__subscribeAppEvent'));assert.ok(bridge.every(n=>['__subscribeAppEvent','__unsubscribeAppEvent'].includes(n)));
-  console.log('PASS private simulated AIT 360px home → question → mock login and single order → original stored example → reentry → second account denied; native navigation only',reader.deploymentId);
 }catch(error){console.error(page?.url(),(await page?.locator('body').innerText().catch(()=>''))?.slice(-1500));throw error;}finally{await browser.close();await new Promise(resolve=>server.close(resolve));}

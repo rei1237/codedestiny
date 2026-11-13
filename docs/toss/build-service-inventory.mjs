@@ -298,7 +298,7 @@ const consultationProducts = products.map(product=>{
   sale:sale?{sku:sale.sku,amountKRW:sale.approvedPriceKRW,evidence:sale.priceEvidence}:null,
   newPurchases:!!sale&&NEW_PURCHASES_AVAILABLE,
   mockContract:'private-simulation.test.mjs 모든 28개 모의 상품 고유 SKU, 같은 주문 중복 전달과 앱 재시작·보관함, 다른 계정 주문·결과 거절 확인',
-  deliveryVerification:product.id==='saju_mackerel'?'apps/toss/test/studio-browser.mjs 사주 질문 대표 흐름 mock 검증':['astrology_mackerel','vedic_mackerel','ziwei_mackerel','sukuyo_mackerel'].includes(product.id)?'apps/toss/test/studio-unsold-browser.mjs: 상품별 입력→분리된 mock SKU 구매→fixture 생성→보관함. 상품별 실제 출력·실기기 미검증':'상품별 전체 흐름 미검증',
+  deliveryVerification:'private-simulation-archive.mjs --all-products · 360px 일반 홈에서 이 상품 선택 → 모의 주문·생성 → 앱 재진입 → 영냥이 보관함 원문 일치. 타로는 78장 중 배열별 카드 선택',
  };
 });
 const daily = readJson('worker/yeongnyangi/fortune/free/categories.json').map(({id,label,fields})=>({
