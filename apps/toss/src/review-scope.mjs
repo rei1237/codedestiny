@@ -63,7 +63,7 @@ export async function ownsReviewReceipt(href,readPage) {
     if (page.purchases.some(row=>{
       if (!['PAYMENT_COMPLETED','PURCHASED'].includes(row.status) || ['REFUNDED','ACCESS_REVIEW','READ_FAILED'].includes(row.state)) return false;
       const link=row.href || (row.serviceId==='tarot-library' ? tarotResultPath(row.orderId) : '');
-      return !!link && link===href;
+      return Boolean(link && (link===href || (row.nativeService==='life-book' && row.entryHref===href)));
     })) return true;
     cursor=page.nextCursor;
     if (cursors.has(cursor)) return false;

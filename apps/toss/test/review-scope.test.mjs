@@ -94,3 +94,13 @@ test('service discovery and order verification are independent at the miniapp en
   for(const path of ['/','/neo-operation-room/','/life-book-ai/','/yeongnyangi/fortune/'])assert.equal(requiresOwnedReceipt(path,'?domain=vedic&flow=question'),false);
   for(const [path,query] of [['/life-book-ai/result/','?attemptId=x'],['/tarot-library','?orderId=x'],['/neo-operation-room/','?resultId=x']])assert.equal(requiresOwnedReceipt(path,query),true);
 });
+
+test('only a verified life-book order authorizes its exact form result URL',async()=>{
+ const href='/life-book-ai/result?attemptId=request';
+ const receipt={href:'/life-book-ai/result/?attemptId=saved',entryHref:href,nativeService:'life-book',status:'PURCHASED',state:'COMPLETED'};
+ const check=(request,row)=>ownsReviewReceipt(request,async()=>({purchases:[row]}));
+ assert.equal(await check(href,receipt),true);
+ assert.equal(await check(href+'&other=1',receipt),false);
+ assert.equal(await check(href,{...receipt,status:'REFUNDED'}),false);
+ assert.equal(await check(href,{...receipt,nativeService:'neo'}),false);
+});

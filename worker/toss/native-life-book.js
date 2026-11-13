@@ -81,6 +81,8 @@ export async function nativeLifeBookLibraryItem(env,auth,purchase){
   if(doc)await lifeBookContext(env,auth).assertStored(doc);
   const resultId=doc?.id||'toss_'+row._id;
   return {state:doc?.status==='completed'?'COMPLETED':doc?.status==='generation_failed'?'GENERATION_FAILED':'PENDING',resultId,
+    // The original form navigates by immutable request ID before a saved session ID is available.
+    entryHref:'/life-book-ai/result?attemptId='+encodeURIComponent(row.requestId),
     href:'/life-book-ai/result/?attemptId='+encodeURIComponent(resultId),question:String(row.input.topic||row.input.consultationTopic||'').slice(0,200)};
 }
 

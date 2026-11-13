@@ -28,6 +28,7 @@ for(const service of ['life-book','love-secret'])test(`${service} recovery uses 
  const read=service==='life-book'?loaded.exports.nativeLifeBookLibraryItem:loaded.exports.nativeLoveSecretLibraryItem;
  const purchase={_id:'order',requestId:id};
  const pending=await read({},auth,purchase);
+ if(service==='life-book')assert.equal(pending.entryHref,'/life-book-ai/result?attemptId=request');
  assert.equal(pending.state,'PENDING');assert.match(pending.href,new RegExp(`^/${service==='life-book'?'life-book-ai':'love-secret-ai'}/result/`));assert.match(pending.href,new RegExp('toss_'+id));
  state.doc={id:'saved',userId:'owner',idempotencyKey:'request',inputHash:'hash',paymentId:'order',featureKey,status:'completed'};
  const complete=await read({},auth,purchase);assert.equal(complete.state,'COMPLETED');assert.match(complete.href,/attemptId=saved/);

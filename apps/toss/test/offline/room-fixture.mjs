@@ -16,10 +16,12 @@ const geomancy={service:'geomancy',name:'가상 지오맨시 흙점',featureKey:
 const totems=['basic','deep'].map(k=>({service:'totem-'+k,featureKey:'animal-totem-'+k,name:'가상 애니멀 토템 '+k,path:'/animal-totem/totem-'+k+'/'}));
 const guardian={service:'guardian',name:'가상 사주 가디언',featureKey:'saju-guardian-unlock',path:'/saju-guardian/'};
 const sibyl={service:'sibyl',name:'가상 시빌라 심층 리포트',featureKey:'premium-sibyl-dominator',path:'/saju/sibyl/'};
-const rooms=[guardian,sibyl,...totems,sajuCompat,geomancy,tea,neo,heukwol,dream,naming,codex,compat,palm];
+const lifeBook={service:'life-book',name:'가상 인생의 책',featureKey:'life-book-ai-consultation',path:'/life-book-ai/result/'};
+const lifeFortune={...lifeBook,name:'가상 인생 총운',featureKey:'life-fortune-ai-consultation'};
+const rooms=[lifeBook,lifeFortune,guardian,sibyl,...totems,sajuCompat,geomancy,tea,neo,heukwol,dream,naming,codex,compat,palm];
 export const roomProducts=rooms.map(room=>({
   id:'native:'+room.service+':'+room.featureKey,name:room.name,featureKey:room.featureKey,
-  sku:'mock-unregistered-room-'+(room===compat?'codex-compat':room.service),available:true,approvedPriceKRW:1,
+  sku:'mock-unregistered-room-'+(room===compat?'codex-compat':room===lifeFortune?'life-fortune':room.service),available:true,approvedPriceKRW:1,
 }));
 export const roomSdkProducts=roomProducts.map(p=>({sku:p.sku,type:'CONSUMABLE',displayName:p.name,displayAmount:'1원',iconUrl:'',description:'오프라인 가상 결제'}));
 const reply=(data,status=200)=>Response.json(data,{status});
@@ -38,10 +40,11 @@ export function roomPurchases(state){
   return [...state.intents.values()].filter(row=>rooms.some(room=>room.service===row.service)&&row.paid).map(row=>{
     const room=rooms.find(item=>item.service===row.service&&(!row.featureKey||item.featureKey===row.featureKey));
     return {requestId:row.id,orderId:row.orderId,sku:row.sku,serviceId:room.service,nativeService:room.service,
-      productId:room.featureKey,status:'PURCHASED',state:row.result?'COMPLETED':'PENDING',createdAt:row.createdAt,
-      href:room===guardian||room===sibyl||room===palm||totems.includes(room)||room===sajuCompat||room===geomancy||room===dream||room===naming||room.service==='codex'?room.path+'?intentId='+row.id:room.service==='heukwol'?room.path+'?result='+row.id:room.service==='neo'?room.path+'?attemptId='+encodeURIComponent(row.result?row.resultId:'toss_'+row.id):
+      productId:room.featureKey,featureKey:room.featureKey,status:'PURCHASED',state:row.result?'COMPLETED':'PENDING',createdAt:row.createdAt,
+      ...(room.service==='life-book'?{entryHref:'/life-book-ai/result?attemptId='+encodeURIComponent(row.input.requestId)}:{}),
+      href:room.service==='life-book'?room.path+'?attemptId='+encodeURIComponent(row.id):room===guardian||room===sibyl||room===palm||totems.includes(room)||room===sajuCompat||room===geomancy||room===dream||room===naming||room.service==='codex'?room.path+'?intentId='+row.id:room.service==='heukwol'?room.path+'?result='+row.id:room.service==='neo'?room.path+'?attemptId='+encodeURIComponent(row.result?row.resultId:'toss_'+row.id):
         room.path+'?'+(row.result?'resultId=':'recoverResultId=')+encodeURIComponent(row.resultId),
-      question:room===guardian||room===sibyl?room.name:room===palm?'내 손금 리포트':room===sajuCompat?row.input.partnerName:room.service==='codex'?room.name.slice(3):room===naming?row.input.input.familyName+' 작명첩':row.input.question||row.input.dreamText,resultId:row.resultId};
+      question:room.service==='life-book'?row.input.topic:room===guardian||room===sibyl?room.name:room===palm?'내 손금 리포트':room===sajuCompat?row.input.partnerName:room.service==='codex'?room.name.slice(3):room===naming?row.input.input.familyName+' 작명첩':row.input.question||row.input.dreamText,resultId:row.resultId};
   });
 }
 export async function roomRequest(request,url,path,state,save,now){
@@ -67,8 +70,9 @@ export async function roomRequest(request,url,path,state,save,now){
         const bytes=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(JSON.stringify(r)));
         input={requestId:key,digest:Array.from(new Uint8Array(bytes)).join('.'),dominantHand:r.dominantHand,analysisPurpose:r.analysisPurpose,uploadedHands:[...(r.leftPalmImage?['left']:[]),...(r.rightPalmImage?['right']:[])]};
       }
+      if(room===lifeBook&&input?.consultationType==='lifeFortune')room=lifeFortune;
       if(room===codex&&input?.mode==='compat')room=compat;
-      const valid=room===guardian||room===sibyl?input.profileId:room===palm?input.uploadedHands.length:totems.includes(room)?Array.isArray(input?.animalIds)&&input.animalIds.length===({one:1,three:3,five:5})[input.mode]&&(input.mode==='five')===(room===totems[1]):room===sajuCompat?input?.self?.pillars?.length===4&&input?.partner?.pillars?.length===4&&input?.facts?.score:room===geomancy?input?.question?.length>=2&&input?.counts?.length===16:room.service==='codex'?input?.reading?.birthInfo?.birthDate&&Boolean(input.reading.partnerInfo?.birthDate)===(room===compat):room===naming?input?.input?.familyName&&input.input.birthDate:room===dream?typeof input?.dreamText==='string'&&input.dreamText.trim().length>=8&&input.dreamText.length<=6000:input?.question;
+      const valid=room.service==='life-book'?input?.serviceType===room.featureKey&&input?.birthInfo?.birthDate&&input?.topic:room===guardian||room===sibyl?input.profileId:room===palm?input.uploadedHands.length:totems.includes(room)?Array.isArray(input?.animalIds)&&input.animalIds.length===({one:1,three:3,five:5})[input.mode]&&(input.mode==='five')===(room===totems[1]):room===sajuCompat?input?.self?.pillars?.length===4&&input?.partner?.pillars?.length===4&&input?.facts?.score:room===geomancy?input?.question?.length>=2&&input?.counts?.length===16:room.service==='codex'?input?.reading?.birthInfo?.birthDate&&Boolean(input.reading.partnerInfo?.birthDate)===(room===compat):room===naming?input?.input?.familyName&&input.input.birthDate:room===dream?typeof input?.dreamText==='string'&&input.dreamText.trim().length>=8&&input.dreamText.length<=6000:input?.question;
       if(!key||!valid||input.featureKey&&input.featureKey!==room.featureKey)return fail('REQUEST_INPUT_MISMATCH',400);
       if(room===heukwol){const card=state.profiles.find(p=>p.profileId===input.profileId);if(!card)return fail('PROFILE_REQUIRED',400);if(card.birth?.timeUnknown!==false)return fail('BIRTH_TIME_REQUIRED',400);}
       let row=[...state.intents.values()].find(item=>item.service===room.service&&requestKey(item.input)===key);
@@ -103,6 +107,25 @@ export async function roomRequest(request,url,path,state,save,now){
       const row=state.intents.get(state.orders.get(orderId));
       return row?.paid&&row.sku===sku&&row.orderId===orderId?reply({orderId,requestId:row.id,entitlement:'granted',durable:true}):fail('ORDER_MISMATCH',403);
     }
+  }
+  if(path.startsWith('/canonical/life-book-ai/')){
+    const input=post?await request.json():null;
+    const key=post?requestKey(input):url.searchParams.get('attemptId');
+    const row=[...state.intents.values()].find(item=>item.service==='life-book'&&item.paid&&(requestKey(item.input)===key||item.id===key||item.id===input?.resumeSessionId));
+    if(post&&path.endsWith('/prepare'))return row?reply({ok:true,accessToken:'offline-owned'}):reply({ok:false,reason:'PAYMENT_REQUIRED',paymentPayload:{runtimeGate:{cost:1,amountKRW:1,membershipCreditCost:1}}},402);
+    if(!row)return fail('RESULT_NOT_FOUND',404);
+    if(path.endsWith('/result')&&!post)return row.result?reply(row.result):reply({ok:true,status:'partial',sessionId:row.id},202);
+    if(path.endsWith('/generate')&&post){
+      if(!row.result){
+        const title=row.featureKey===lifeFortune.featureKey?'인생 총운':'인생의 책';
+        const text='[테스트 전용] '+title+'에 저장된 상담 원문입니다.';
+        row.result={ok:true,status:'completed',saved:true,sessionId:row.id,idempotencyKey:requestKey(row.input),consultationType:row.input.consultationType,featureKey:row.featureKey,birthInfo:row.input.birthInfo,topic:row.input.topic,reportJson:{title:'모의 '+title,coreSummary:{oneLine:text},chapters:[{title:'모의 첫 장',content:text}]}};
+        row.generationCount=1;
+        if(!save()){delete row.result;delete row.generationCount;return fail('STORAGE_UNAVAILABLE',503);}
+      }
+      return reply(row.result);
+    }
+    return fail('ROUTE_NOT_FOUND',404);
   }
   if(path==='/canonical/records'&&!post){
     const group=url.searchParams.get('group'),source=url.searchParams.get('source'),q=url.searchParams.get('q')?.trim();
