@@ -1,5 +1,5 @@
 {
-  "sourceCommit": "172dde758ca1f9f2adbfbfcc1e725c2aeaa9dd50",
+  "sourceCommit": "36ce258d532941a574602ad02118f8d087f06b08",
   "sourceCounts": {
     "home": 63,
     "react": 18,
@@ -5267,6 +5267,82 @@
       "tossLogin": "두 사람 계산은 토스 로그인 필요",
       "tossResult": "apps/toss/src/MansionReading.tsx + app/nakshatra/compat/CompatResultView.tsx",
       "reread": "토스 로그인·무료 현재 화면 계산. 기존 웹 구매 GET은 웹 원장과 소유 인증으로 유지"
+    },
+    {
+      "id": "nakshatra-dasha-map",
+      "discoveryIds": [],
+      "evidence": [
+        {
+          "name": "나크샤트라 다샤 인생지도",
+          "entry": "/nakshatra/dasha-map/",
+          "implementation": "app/nakshatra/dasha-map/DashaMapClient.tsx"
+        }
+      ],
+      "aliasEvidence": [],
+      "status": "local-partial",
+      "tossRoute": "/nakshatra/dasha-map",
+      "sku": null,
+      "inputContract": "소유 프로필·음력/시간미상. 원본 buildNakshatraDashaMap, 비쇼타리 + 동양 대운",
+      "resultRenderer": "apps/toss/src/MansionReports.tsx + app/nakshatra/dasha-map/PeriodRow.tsx 원본 타임라인",
+      "storageContract": "무료 키와 계정을 확인하고 재계산. 웹의 과거 영구 해금은 웹 원장에 유지",
+      "verification": "360px 대주기·매번 9개 부주기·날짜·시기별 해설, 0주문. 실기기·운영 Swiss 미검증",
+      "webEntries": [
+        "/nakshatra/dasha-map/"
+      ],
+      "webSources": [
+        "app/nakshatra/dasha-map/DashaMapClient.tsx",
+        "app/nakshatra/dasha-map/page.tsx",
+        "worker/routes/nakshatra-premium.js"
+      ],
+      "webProductIds": [
+        "nakshatra-dasha-map"
+      ],
+      "freeCalculation": true,
+      "portStatus": "일부만 이식",
+      "reducedBundle": "구현은 있으나 진입 차단",
+      "currentEntry": "일반 홈의 진입 코드 확인",
+      "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
+      "tossLogin": "계산 또는 기록 조회에 토스 계정 필요",
+      "tossResult": "apps/toss/src/MansionReports.tsx + app/nakshatra/dasha-map/PeriodRow.tsx 원본 타임라인",
+      "reread": "무료 키와 계정을 확인하고 재계산. 웹의 과거 영구 해금은 웹 원장에 유지"
+    },
+    {
+      "id": "nakshatra-lord-report",
+      "discoveryIds": [],
+      "evidence": [
+        {
+          "name": "나크샤트라 지배성 심화 리포트",
+          "entry": "/nakshatra/lord-report/",
+          "implementation": "app/nakshatra/lord-report/LordReportClient.tsx"
+        }
+      ],
+      "aliasEvidence": [],
+      "status": "local-partial",
+      "tossRoute": "/nakshatra/lord-report",
+      "sku": null,
+      "inputContract": "소유 프로필·음력/시간미상. worker/routes/nakshatra-premium.js와 원본 buildNakshatraLordReport",
+      "resultRenderer": "apps/toss/src/MansionReports.tsx. 원본 지배성과 파다·기질·근거 11개 절",
+      "storageContract": "무료 기능 키를 확인하고 같은 계정의 저장된 출생으로 재계산. 웹의 예전 영구 해금은 웹 원장에 유지",
+      "verification": "studio-mansion-reports-browser.mjs: 360px 로그인과 소유 프로필→원본 11개 절·주문 0. 실제 Worker/기기 미검증",
+      "webEntries": [
+        "/nakshatra/lord-report/"
+      ],
+      "webSources": [
+        "app/nakshatra/lord-report/LordReportClient.tsx",
+        "app/nakshatra/lord-report/page.tsx",
+        "worker/routes/nakshatra-premium.js"
+      ],
+      "webProductIds": [
+        "nakshatra-lord-report"
+      ],
+      "freeCalculation": true,
+      "portStatus": "일부만 이식",
+      "reducedBundle": "구현은 있으나 진입 차단",
+      "currentEntry": "일반 홈의 진입 코드 확인",
+      "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
+      "tossLogin": "계산 또는 기록 조회에 토스 계정 필요",
+      "tossResult": "apps/toss/src/MansionReports.tsx. 원본 지배성과 파다·기질·근거 11개 절",
+      "reread": "무료 기능 키를 확인하고 같은 계정의 저장된 출생으로 재계산. 웹의 예전 영구 해금은 웹 원장에 유지"
     },
     {
       "id": "nakshatra-muhurta",

@@ -52,6 +52,8 @@ const groups=new Map();
 // A shared product or URL does not imply the same input or result.
 for(const [id,name,entry,implementation] of [
  ['heukwol-consult','흑월의 경고 상담','/heukwol/','app/heukwol/HeukwolClient.tsx'],
+ ['nakshatra-lord-report','나크샤트라 지배성 심화 리포트','/nakshatra/lord-report/','app/nakshatra/lord-report/LordReportClient.tsx'],
+ ['nakshatra-dasha-map','나크샤트라 다샤 인생지도','/nakshatra/dasha-map/','app/nakshatra/dasha-map/DashaMapClient.tsx'],
  ['home-widget','홈 화면 꾸미기','/app/home-widget/','app/app/home-widget/page.tsx'],
  ['consultation-webtoons','상담 세계관 웹툰','/consultations/','app/consultations/StoryDiscovery.tsx'],
  ['yeongnyangi-season','영냥이 시즌 연재','/yeongnyangi/season-1/','app/yeongnyangi/season-1/page.tsx'],
@@ -124,6 +126,8 @@ const localEvidence={
  astrology:{tossRoute:'/astrology',status:'local-partial',inputContract:'authenticated birth input; precise Swiss tropical/Placidus chart',resultRenderer:'apps/toss/src/BasicSkyChart.tsx',storageContract:'result in memory only; guest/web profiles, wheel, original unlocks and device parity pending'},
  vedic:{tossRoute:'/vedic',status:'local-partial',inputContract:'authenticated birth input; precise Swiss sidereal/Lahiri chart',resultRenderer:'apps/toss/src/BasicSkyChart.tsx',storageContract:'result in memory only; guest/web profiles, full chart and device parity pending'},
  nakshatra:{tossRoute:'/nakshatra/resolve',status:'local-partial',publicSubflows:['/nakshatra/codex','/nakshatra/codex/[0..26]'],inputContract:'웹 /nakshatra/calc/ 양력·출생시각/미상·도시와 국가. 원본 resolveNatal과 일본 구력, Lahiri',resultRenderer:'apps/toss/src/MansionReading.tsx + app/nakshatra/_components/LifeReading.tsx',storageContract:'게스트 현재 화면 무료 리딩 5개 주제. 기존 웹 주문·개인 AI 리포트 별도',verification:'studio-mansion-reading-browser.mjs 360px 게스트→출생→5장·계산 근거. 웹 저장 프로필 가져오기·서비스별 이력·실기기 미검증'},
+ 'nakshatra-lord-report':{tossRoute:'/nakshatra/lord-report',status:'local-partial',inputContract:'소유 프로필·음력/시간미상. worker/routes/nakshatra-premium.js와 원본 buildNakshatraLordReport',resultRenderer:'apps/toss/src/MansionReports.tsx. 원본 지배성과 파다·기질·근거 11개 절',storageContract:'무료 기능 키를 확인하고 같은 계정의 저장된 출생으로 재계산. 웹의 예전 영구 해금은 웹 원장에 유지',verification:'studio-mansion-reports-browser.mjs: 360px 로그인과 소유 프로필→원본 11개 절·주문 0. 실제 Worker/기기 미검증'},
+ 'nakshatra-dasha-map':{tossRoute:'/nakshatra/dasha-map',status:'local-partial',inputContract:'소유 프로필·음력/시간미상. 원본 buildNakshatraDashaMap, 비쇼타리 + 동양 대운',resultRenderer:'apps/toss/src/MansionReports.tsx + app/nakshatra/dasha-map/PeriodRow.tsx 원본 타임라인',storageContract:'무료 키와 계정을 확인하고 재계산. 웹의 과거 영구 해금은 웹 원장에 유지',verification:'360px 대주기·매번 9개 부주기·날짜·시기별 해설, 0주문. 실기기·운영 Swiss 미검증'},
  'nakshatra-compat':{tossRoute:'/nakshatra/compat',status:'local-partial',inputContract:'app/nakshatra/compat/NakshatraCompatClient.tsx의 각자 출생 날짜·시각·나라·성별. 원본 resolveCompat와 일본 숙요, Lahiri 아쉬타쿠타 8항목',resultRenderer:'apps/toss/src/MansionReading.tsx + app/nakshatra/compat/CompatResultView.tsx',storageContract:'토스 로그인·무료 현재 화면 계산. 기존 웹 구매 GET은 웹 원장과 소유 인증으로 유지',verification:'360px mock 로그인, 서로 다른 도시와 출생 정보 두 사람→8쿠타와 격각, 재입력 확인. 초대 링크·저장 프로필 선택·운영 Swiss·실기기 미검증'},
  saju:{tossRoute:'/saju/basic/play',status:'local-partial',inputContract:'shared natal engine; Korean city, solar/lunar/leap and unknown hour',resultRenderer:'apps/toss/src/BasicSajuReading.tsx',storageContract:'memory-only free basic chart; web result and device parity pending'},
  manse:{tossRoute:'/manse',status:'local-partial',inputContract:'worker/toss/manse.js (canonical screen saju engine)',resultRenderer:'apps/toss/src/ManseReading.tsx',storageContract:'screen-only; web-profile-history-parity-pending'},
@@ -289,6 +293,7 @@ const canonicalCandidates=[...groups.values()].sort((a,b)=>a.id.localeCompare(b.
 for(const group of canonicalCandidates){
  const webEntries=group.evidence.flatMap(item=>item.entry?[item.entry]:[]);
  const keys=group.evidence.map(item=>item.featureKey).filter(Boolean);
+ if(['nakshatra-lord-report','nakshatra-dasha-map'].includes(group.id))keys.push(group.id);
  for(const key of visual[group.id]?.inlineAliases||[])keys.push(key);
  if(group.id==='life-fortune-report')keys.push('life-fortune-ai-consultation');
  const matched=productContracts.filter(p=>p.productId===group.id||keys.includes(p.productId)||p.detailAliases?.includes(group.id));
@@ -308,7 +313,7 @@ for(const group of canonicalCandidates){
  group.bundleVerification=group.id==='yeongnyangi'?'20261114-8 실제 Linux AIT 일반 홈 → 달빛 점술방 → 질문 검색 → 입력. mock 로그인과 소유 원문 조회 통과. 휴대폰 미검증':'휴대폰 및 상품별 전체 흐름 미검증';
  if(!group.tossRoute)group.tossLogin='토스 기능 미연결';
  else if(nativeSource[group.id]||['heukwol-consult','neo-letter','fortune-chat','yeongnyangi','yeongnyangi-prashna'].includes(group.id))group.tossLogin='구매·기록에 토스 계정 필요';
- else if(['nakshatra-muhurta','nakshatra-vvip-codex','destiny-meeting-place','manse','astrology','vedic','human-design','flower','yeongnyangi-daily','career-style','cosmic-soul-meditation','neville-meditation'].includes(group.id))group.tossLogin='계산 또는 기록 조회에 토스 계정 필요';
+ else if(['nakshatra-lord-report','nakshatra-dasha-map','nakshatra-muhurta','nakshatra-vvip-codex','destiny-meeting-place','manse','astrology','vedic','human-design','flower','yeongnyangi-daily','career-style','cosmic-soul-meditation','neville-meditation'].includes(group.id))group.tossLogin='계산 또는 기록 조회에 토스 계정 필요';
  else if(group.id==='nakshatra')group.tossLogin='출생 개인 계산·도감 게스트 공개';
  else if(group.id==='nakshatra-compat')group.tossLogin='두 사람 계산은 토스 로그인 필요';
  else if(group.id==='today-hub')group.tossLogin='별자리·띠는 공개. 네 체계와 오늘의 세 장은 토스 로그인 필요. 개인화는 소유 프로필만 선택';
