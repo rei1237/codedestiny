@@ -11,3 +11,10 @@ test('WebKit opaque navigation events are ignored only after complete paid deliv
   assert.match(source, /\['\/checkout\/','\/yeongnyangi\/result\/'\]\.includes\(detail\?\.page\)/);
   assert.match(source, /if\(browser\.browserType\(\)\.name\(\)!=='webkit'\)return true/);
 });
+
+test('WebKit review reads are classified only with fulfilled HTTP proof and complete paid delivery', () => {
+  assert.match(source, /new Set\(\['\/api\/reviews\/products','\/api\/reviews\/eligibility'\]\)/);
+  assert.match(source, /reviewBannerReads\.has\(path\)&&detail\?\.page==='\/yeongnyangi\/result\/'/);
+  assert.match(source, /f\.state\.approved&&f\.row\.paid&&f\.row\.state==='COMPLETED'/);
+  assert.match(source, /f\.state\.http\.some\(response=>response\.path===path&&response\.method==='GET'&&response\.status===200\)/);
+});
