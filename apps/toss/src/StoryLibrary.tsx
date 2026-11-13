@@ -7,7 +7,7 @@ import './story-library.css';
 
 const coverDirectory = 'https://code-destiny.com/images/consultation-webtoons/covers/mobile/';
 const stories: Record<string, {title:string; cuts:WebtoonCut[]; ending:{action:string;href:string}}> = consultationWebtoons;
-const readyRooms = new Set(['tea','neo','love-secret','fusion','new-year','life-book','ziwei','astrology','vedic','sukuyo-compat','karma']);
+const readyRooms = new Set(['heukwol','tea','neo','love-secret','fusion','new-year','life-book','ziwei','astrology','vedic','sukuyo-compat','karma']);
 const storyKey = () => new URLSearchParams(location.search).get('story') || '';
 
 export default function StoryLibrary() {
@@ -48,7 +48,7 @@ export default function StoryLibrary() {
     <header><button onClick={close}>‹ 웹툰 서가</button><h1 tabIndex={-1} ref={heading}>{story.title}</h1>
       <p>{entry.lead}</p><small>도입 이야기 · {story.cuts.length}컷</small></header>
     <CutReader tone={entry.id==='heukwol'?'night':'yehwa'} cuts={story.cuts}/>
-    <footer>{readyRooms.has(entry.id) && <a href={story.ending.href}>{story.ending.action} →</a>}
+    <footer>{readyRooms.has(entry.id) && <a href={entry.id==='heukwol'?'/heukwol/?consult=1':story.ending.href}>{story.ending.action} →</a>}
       <Button variant="weak" onClick={close}>다른 이야기 읽기</Button></footer>
   </section>;
 

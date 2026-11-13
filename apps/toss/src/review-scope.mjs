@@ -48,6 +48,7 @@ export function reviewRoute(pathname,search='') {
 // Native report recovery links must also match an exact URL from the purchase library.
 export function requiresOwnedReceipt(pathname,search) {
   const path=normalizePath(pathname), query=new URLSearchParams(search);
+  if (path==='/heukwol' && query.get('result')) return true;
   if (['/result','/yeongnyangi/result','/checkout','/login'].includes(path)) return false;
   if (path==='/fortune-tea-house' && query.get('counsel')==='letter' && !query.get('session') && !query.get('resultId')) return false;
   return [...query].some(([key,value])=>value && (receiptKeys.has(key) || key==='session'));

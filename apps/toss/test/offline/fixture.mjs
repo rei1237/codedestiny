@@ -84,6 +84,7 @@ function createAccountFixture(storage,owner,token,now){
    const {profile}=await request.json();if(!profile?.profileId||!profile.birth?.year)return respond({error:'BIRTH_INVALID'},400);
    // Persist only a synthetic profile associated with the generated ID.
    const row={...state.profiles[0],id:profile.profileId,profileId:profile.profileId};
+   if(profile.birth.timeUnknown===false){row.timeUnknown=false;row.birth={...row.birth,timeUnknown:false,hour:8,minute:35};}
    if(!state.profiles.some(p=>p.id===row.id))state.profiles.push(row);save();return respond({ok:true,profile:row});
   }
   if(path==='/canonical/profile'&&method==='GET')return respond({ok:true,profiles:[]});

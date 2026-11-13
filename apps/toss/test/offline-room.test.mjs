@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import {createOfflineFixtureApi} from './offline/fixture.mjs';
 import {roomProducts} from './offline/room-fixture.mjs';
 
-for(const product of roomProducts)test(product.name+' resumes only the original owner and order',async()=>{
+for(const product of roomProducts.filter(p=>!p.id.startsWith('native:heukwol:')))test(product.name+' resumes only the original owner and order',async()=>{
   const service=product.id.split(':')[1],tea=service==='tea';
   const memory=new Map(),storage={getItem:k=>memory.get(k),setItem:(k,v)=>memory.set(k,v)};
   let api=createOfflineFixtureApi(storage),account='';
@@ -51,5 +51,41 @@ for(const product of roomProducts)test(product.name+' resumes only the original 
   assert.equal((await request(send,responseInput(1))).status,404);
   assert.equal((await request('/orders/restore',grant)).status,403);
   assert.equal((await request('/orders/grant',grant)).status,403);
+  assert.deepEqual((await (await request('/canonical/records')).json()).items,[]);
+});
+
+test('흑월의 생시, 지급, 중간 저장, 중복 방지, 다른 계정 열람 차단',async()=>{
+  const memory=new Map(),storage={getItem:k=>memory.get(k),setItem:(k,v)=>memory.set(k,v)};
+  let api=createOfflineFixtureApi(storage),token='local-mock-token';
+  const request=(path,body)=>api.handle(new Request('https://code-destiny.com/api/toss'+path,{
+    method:body?'POST':'GET',headers:{Authorization:'Bearer '+token},...(body?{body:JSON.stringify(body)}:{}),
+  }));
+  const input={requestId:'mock-heukwol-question',profileId:'mock-profile',question:'모의 상담에서 올해의 흐름을 확인하고 싶습니다.',year:2027};
+  const prepare='/native/heukwol/prepare';
+  assert.equal((await request(prepare,{input})).status,401);
+  await request('/login',{});
+  assert.equal((await (await request(prepare,{input})).json()).error,'BIRTH_TIME_REQUIRED');
+  input.profileId='mock-known-birth';
+  await request('/canonical/yeongnyangi/profiles',{profile:{profileId:input.profileId,birth:{year:1990,timeUnknown:false}}});
+  const intent=await (await request(prepare,{input})).json();
+  const path='/native/heukwol/results/'+intent.id;
+  assert.equal((await request(path)).status,404);
+  const grant={sku:intent.sku,orderId:'mock-heukwol-order',requestId:intent.id};
+  assert.equal((await request('/orders/grant',grant)).status,200);
+  assert.equal((await (await request(path,{})).json()).completedChapters,1);
+  api=createOfflineFixtureApi(storage);
+  assert.equal((await request('/orders/restore',grant)).status,200);
+  assert.equal((await (await request(path)).json()).completedChapters,1);
+  const report=await (await request(path,{})).json();
+  assert.equal(report.status,'completed');
+  assert.deepEqual(await (await request(path,{})).json(),report);
+  assert.equal(api.state.orders.size,1);
+  assert.equal(api.state.intents.get(intent.id).generationCount,1);
+  assert.equal((await request('/orders/grant',{...grant,orderId:'duplicate'})).status,409);
+  memory.set('toss-offline-login-person','second');token='local-mock-token-2';
+  await request('/login',{});
+  assert.equal((await request(path)).status,404);
+  assert.equal((await request(path,{})).status,404);
+  assert.equal((await request('/orders/restore',grant)).status,403);
   assert.deepEqual((await (await request('/canonical/records')).json()).items,[]);
 });
