@@ -15,6 +15,8 @@ export default function TossTeaPrice({featureKey,onPrice,loginNext}:{featureKey:
  },[auth.isAuthenticated,owner,featureKey,onPrice,retry,scope]);
  const visibleStatus=statusScope===scope?status:'loading';
  if(visibleStatus==='ready')return <span>{price} <button type="button" style={{minHeight:44}} onClick={()=>{setStatus('loading');setPrice('');onPrice(null);setRetry(value=>value+1);}}>{copy.retry}</button></span>;
- const next=loginNext||(typeof window==='undefined'?'/fortune-tea-house/':(()=>{const url=new URL(window.location.href);url.searchParams.set('restoreTeaDraft','1');return url.pathname+url.search;})());
+ const currentUrl=typeof window==='undefined'?null:new URL(window.location.href);
+ if(currentUrl&&/^\/fortune-tea-house\/?$/.test(currentUrl.pathname))currentUrl.searchParams.set('restoreTeaDraft','1');
+ const next=loginNext||(currentUrl?currentUrl.pathname+currentUrl.search:'/fortune-tea-house/');
  return <span role="status">{visibleStatus==='loading'?copy.priceChecking:visibleStatus==='error'?sdkMessage||copy[message]:copy.priceUnavailable}{visibleStatus==='error'&&message==='priceLogin'?<a href={'/login/?next='+encodeURIComponent(next)}>{copy.login}</a>:visibleStatus!=='loading'&&<button type="button" style={{minHeight:44}} onClick={()=>setRetry(value=>value+1)}>{copy.retry}</button>}</span>;
 }
