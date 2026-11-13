@@ -18,6 +18,7 @@ import { createLiveRouteMatcher } from "./lib/live-route-matcher.mjs";
 import { createRequire } from "node:module";
 import { ILGAN_MONTHLY_MONTHS, ILGAN_MONTHLY_STEMS } from "../lib/saju/ilgan-monthly-registry.mjs";
 import { NEW_YEAR_SEASON, NEW_YEAR_SIGNS } from "../lib/fortune/new-year-registry.mjs";
+import { FREE_FEATURE_DETAILS } from "../lib/marketing/free-feature-details.mjs";
 const requireJson = createRequire(import.meta.url);
 const STORY_EPISODE_SLUGS = requireJson("../lib/stories/vn/episodes.generated.json").episodes.map((e) => e.slug);
 
@@ -101,6 +102,8 @@ const coreRoutes = [
   ...["love-secret","new-year","life-book","neo","tea","codex","ziwei","astrology","vedic","sukuyo-compat","legacy-naming","karma","fusion"].map(slug => ({path:`/consultations/${slug}`,changefreq:"monthly",priority:0.7})),
   { path: "/saju/career-style", changefreq: "monthly", priority: 0.8 },
   { path: "/saju/free", changefreq: "weekly", priority: 0.85 },
+  // 2026-11-13: 사주 결과 카드 9개의 설명 페이지(app/saju/<slug>/). 레지스트리에서 indexable 인 것만 싣는다(false 면 noindex 라 뺀다).
+  ...FREE_FEATURE_DETAILS.filter((detail) => detail.indexable).map((detail) => ({ path: detail.path, changefreq: "monthly", priority: 0.75 })),
   { path: "/consultation-samples", changefreq: "monthly", priority: 0.7 },
   // "/" 는 꿀꿀 운세 공식 대표 홈이다(2026-10-15 사용자 결정, 200). /ggulggul/ 로케일 클러스터와
   // 섞지 않도록 alternates 없이 둔다. 앱 입구 /ggulggul/ 은 아래에 그대로 남는다.
