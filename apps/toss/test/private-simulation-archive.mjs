@@ -96,7 +96,10 @@ try{
     assert.deepEqual(await page.evaluate(()=>[localStorage.getItem('regular-app-sentinel'),window.readRegularSentinel()]),[null,'leave-intact']);
     assert.equal(ledger.orders.length,1);assert.equal(ledger.fortunes.length,1);assert.equal(ledger.fortunes[0][1].generationCount,1);
     assert.equal(ledger.fortunes[0][1].sku,'mock-unregistered-astrology');
-    await page.getByLabel('모의 계정',{exact:true}).selectOption('B');await page.waitForLoadState('load');
+    const switched=page.waitForEvent('load');
+    await page.getByLabel('모의 계정',{exact:true}).selectOption('B');
+    await switched;
+    assert.equal(await page.getByLabel('모의 계정',{exact:true}).inputValue(),'B');
     await enter();await page.goto(resultUrl);
     await page.locator('[role=alert]').first().waitFor();
     assert.equal(await chapter().count(),0);
