@@ -15,6 +15,9 @@ function Exposure({event,source,q}:{event:string;source:string;q?:QuestionGuide}
 }
 export function QuestionOffer({q,source}:{q:QuestionGuide;source:string}){
  const {product,plan}=questionScopeEntry(q);
+ // 상담 예시(#yn-example)는 한국어 영냥이 홈 가이드에만 있다. 그 페이지에서만 예시 링크를 보인다.
+ const [hasExample,setHasExample]=useState(false);
+ useEffect(()=>{setHasExample(document.getElementById('yn-example')!==null);},[]);
  return <section className={styles.offer} aria-label="선택한 질문의 상담 안내">
   <h3>{q.question}</h3><Exposure key={q.id} event="question_offer_view" source={source} q={q}/>
   <p className={styles.offerLead}>{q.next} 입력한 상황과 계산 근거를 바탕으로 질문의 답과 다음 행동을 정리해요.</p>
@@ -23,6 +26,7 @@ export function QuestionOffer({q,source}:{q:QuestionGuide;source:string}){
   <p className={styles.note}>질문의 대상과 살펴볼 기간을 바꾸면 범위와 가격도 달라질 수 있어요. 다음 화면에서 확인해 주세요.</p>
   <p className={styles.note}>로그인 후 이용권·월정석 적용 여부와 단건 결제 총액을 확인해요. 생성 중인 상담과 저장된 결과는 내 상담 기록에서 다시 확인할 수 있어요.</p>
   <a className={styles.primary} href={questionCheckoutHref(q)} onClick={()=>record('question_offer_click',source,q)}>이 질문으로 상담 준비하기</a>
+  {hasExample&&<a className={styles.example} href="#yn-example">예시 먼저 보기</a>}
   <a className={styles.library} href="/yeongnyangi/library/">이미 구매했다면 내 상담 기록 보기</a>
  </section>;
 }

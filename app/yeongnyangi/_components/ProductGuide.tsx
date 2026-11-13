@@ -90,7 +90,7 @@ export default function ProductGuide({domain,offers,surface='home_catalog'}:{dom
   <a href="/today/">오늘의 무료 흐름 먼저 살펴보기 →</a>
   <div className={styles.offer}><p><LaunchPlannedPrice amount={planned}/><strong>{offer.price.toLocaleString('ko-KR')}원</strong> · {offer.fishName} · {offer.chapters.length}개 챕터</p><p>{offer.paymentLabel}. 다음 화면에서 상담 종류와 프로필을 고르고, 로그인 후 결제창에서 적용 수단과 총액을 확인해요.</p><a href={`/yeongnyangi/fortune/?flow=legacy&domain=${domain}&fish=${offer.fish}`} onClick={()=>trackProductStep('product_start_click',domain,offer.itemId,surface)}>이 구성으로 상담 준비하기 →</a></div>
   </details>
-  {domain==='saju'&&<a href="/yeongnyangi/#founder-records">네오 1:1 상담 실제 후기 보기 →</a>}
+  {domain==='saju'&&<a href="/yeongnyangi/1000-won-fortune/#founder-records">네오 1:1 상담 실제 후기 보기 →</a>}
   {surface==='home_catalog'&&<a href={`/yeongnyangi/readings/${domain}/`}>공유할 수 있는 상품 안내 열기 →</a>}
  </div>;
 }

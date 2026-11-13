@@ -11,6 +11,7 @@ import {FUSION_BOOK_CHAPTERS,FUSION_BOOK_TARGETS} from '@/worker/yeongnyangi/for
 import {consultationBudget} from '@/worker/yeongnyangi/fortune/consultation-budget';
 import {EXPANDED_CHAPTERS} from '@/worker/yeongnyangi/fortune/consultation-expansion';
 import ReviewProof from '@/app/components/ReviewProof';
+import RevealDetailsOnHash from './RevealDetailsOnHash';
 
 // Server-rendered guide for the indexed /yeongnyangi/ landing ("사주 보는 고양이" brand query).
 // 🔴 Prices come from the payment catalog; scope and followups from the question policy — never type them here.
@@ -78,6 +79,7 @@ export default function YeongnyangiGuide(){
      <details><summary>영냥이의 해석 더 읽기</summary><p>{tarotExcerpts[1]}</p><p>{tarotExcerpts[3]}</p></details>
     </blockquote>
     <p><a href="/yeongnyangi/fortune/?domain=tarot">타로 상담 구성 보기</a> · <a href="/consultation-samples/">다른 상담 결과 예시 보기</a></p>
+    <RevealDetailsOnHash id="yn-example"/>
     <SampleExposure targetId="yn-example" itemId={single('tarot','salmon').cdFeatureKey} contentId="tarot-salmon-question-v1"/>
    </details>
    <details id="yn-receive" className={styles.panel}><summary>한 가지 질문에서, 차분히 읽는 한 권까지</summary>
