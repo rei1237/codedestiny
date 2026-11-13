@@ -85,3 +85,15 @@ test('free promo list shows only features that are already free and reachable', 
   }
   assert.ok(shell.includes(`href="${FREE_PROMO_YEONI.href}" data-cd-free-promo-yeoni`), 'index.html Yeoni entry missing');
 });
+
+test('free promo chips for other readings open their explanation pages', async () => {
+  const { FREE_PROMO_GROUPS, freePromoItemHref } = await import('../../lib/marketing/free-promo.mjs');
+  const hrefOf = Object.fromEntries(FREE_PROMO_GROUPS.flatMap(g => g.items).map(item => [item.id, freePromoItemHref(item)]));
+  const expected = {
+    tarot: '/tarot/', ziwei: '/ziwei/', sukuyo: '/sukuyo/', vedic: '/vedic/', astro: '/astrology/',
+    compat: '/saju/compatibility/', humanDesign: '/human-design/guide/',
+    manse: '/manse/', today: '/today/', career: '/saju/career-style/',
+    bias: '/saju/destiny-bias/', animal: '/saju/animal-destiny/', promptHub: '/fortune/prompt-hub/',
+  };
+  for (const [id, href] of Object.entries(expected)) assert.equal(hrefOf[id], href, id);
+});
