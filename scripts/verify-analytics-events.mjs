@@ -351,7 +351,7 @@ const eventNames = (calls) => events(calls).map((c) => c[1]);
 {
   const cases = [
     ...[...HOME_CATEGORIES, ...HOME_CONCERNS].map(item => ["/", item.href, item.key, "directory"]),
-    ...Object.entries(fortuneLandings).map(([path, story]) => [path, `/ggulggul/?action=${story.action}`, path.slice(1), "primary"]),
+    ...Object.entries(fortuneLandings).map(([path, story]) => [path, story.href || `/ggulggul/?action=${story.action}`, path.slice(1), "primary"]),
     ["/", "/ggulggul/", "ggulggul", "primary"],
     ["/", "/yeongnyangi/", "yeongnyangi", "primary"],
     ["/", "/fortune/tomorrow/rat/", "zodiac", "next_step"],

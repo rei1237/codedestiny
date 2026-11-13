@@ -719,7 +719,7 @@
   // Search-entry CTA values are public catalogue values, never link queries or input text.
   var SEARCH_CTA_ROUTES = ["/", "/ggulggul/", "/yeongnyangi/", "/yeongnyangi/1000-won-fortune/", "/saju/", "/manse/", "/tarot/", "/tarot/reunion/", "/tarot/mindscan/", "/tarot/love/", "/ziwei/", "/sukuyo/", "/sukuyo/compatibility/", "/vedic/", "/astrology/", "/naming-ai/", "/fortune/", "/fortune/today/", "/fortune/tomorrow/", "/fortune/tomorrow/rat/", "/fortune/weekly/", "/fortune/monthly/", "/today/", "/compatibility/", "/love/", "/fortune-tea-house/", "/neo-operation-room/"];
   var SEARCH_CTA_SERVICES = ["ggulggul", "yeongnyangi", "saju", "manse", "tarot", "ziwei", "sukuyo", "vedic", "astrology", "naming", "zodiac", "today", "compatibility", "tea", "neo", "love"];
-  SEARCH_CTA_ROUTES.push("/ziwei/chart/", "/ziwei/animal-destiny/", "/saju/guide/", "/saju/compatibility/", "/saju/monthly/2026-09/", "/tarot/guide/", "/ziwei/guide/", "/sukuyo/guide/", "/vedic/guide/", "/vedic-ai/", "/astrology/guide/", "/astrology-ai/");
+  SEARCH_CTA_ROUTES.push("/saju/free/", "/ziwei/chart/", "/ziwei/animal-destiny/", "/saju/guide/", "/saju/compatibility/", "/saju/monthly/2026-09/", "/tarot/guide/", "/ziwei/guide/", "/sukuyo/guide/", "/vedic/guide/", "/vedic-ai/", "/astrology/guide/", "/astrology-ai/");
   function isSearchCtaRoute(path) {
     return SEARCH_CTA_ROUTES.indexOf(path) >= 0
       || /^\/fortune\/(?:today|tomorrow|weekly|monthly)\/(?:aries|taurus|gemini|cancer|leo|virgo|libra|scorpio|sagittarius|capricorn|aquarius|pisces|rat|ox|tiger|rabbit|dragon|snake|horse|goat|monkey|rooster|dog|pig)\/$/.test(path);
