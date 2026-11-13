@@ -61,14 +61,16 @@ try{
  assert.equal(state.orders.length,1);assert.equal(state.fortunes.length,1);
  const row=state.fortunes[0][1];assert.equal(row.generationCount,1);assert.equal(row.sku,'mock-yeongnyangi-prashna');
  assert.equal(row.fortune.chapters.length,2);assert.equal(row.fortune.product.priceKRW,1);
- await p.goto(origin);await p.getByRole('button',{name:'내 정보',exact:true}).click();
- await p.getByRole('button',{name:'로그아웃',exact:true}).click();await p.getByText('로그아웃했어요.').waitFor();
  if(simulated){
   const switched=p.waitForEvent('load');
   await p.locator('#private-simulation-person').selectOption('B');
   await switched;assert.equal(await p.locator('#private-simulation-person').inputValue(),'B');
  }
- else await p.evaluate(()=>localStorage.setItem('toss-offline-login-person','second'));
+ else{
+  await p.goto(origin);await p.getByRole('button',{name:'내 정보',exact:true}).click();
+  await p.getByRole('button',{name:'로그아웃',exact:true}).click();await p.getByText('로그아웃했어요.').waitFor();
+  await p.evaluate(()=>localStorage.setItem('toss-offline-login-person','second'));
+ }
  await enter('영냥 신점');await fill();await p.getByRole('button',{name:'토스로 로그인하기'}).click();
  await p.locator('#sky-question').waitFor();await p.goto(result);
  await p.locator('[role=alert]').first().waitFor();assert.doesNotMatch(await p.locator('body').innerText(),/영냥이의 첫 답변입니다/);
