@@ -53,7 +53,9 @@ function HeroVisual({ detail }: { detail: (typeof FREE_FEATURE_DETAILS)[number] 
       </figure>
     );
   }
-  const glyphs: string[][] = Array.isArray(detail.heroGlyphs) ? detail.heroGlyphs : [];
+  // 지금은 모든 항목에 그림이 있다. image 가 없는 새 항목을 위해 heroGlyphs 글자 히어로를 남겨 둔다.
+  const fallback = (detail as { heroGlyphs?: unknown }).heroGlyphs;
+  const glyphs: string[][] = Array.isArray(fallback) ? fallback : [];
   return (
     <div
       aria-hidden="true"

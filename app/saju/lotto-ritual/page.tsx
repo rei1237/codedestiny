@@ -11,6 +11,7 @@ export const metadata = buildSeoMetadata({
   description: detail.description,
   keywords: detail.keywords,
   noindex: !detail.indexable,
+  ogImage: detail.ogImage,
 });
 
 export default function SajuLottoRitualDetailPage() {
