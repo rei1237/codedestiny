@@ -1,5 +1,5 @@
 {
-  "sourceCommit": "1142c54b96ce4cd0cb861467fae31c8684fe0fc4",
+  "sourceCommit": "63e80eeec58f72d081cf7880dbf045acadd0ea56",
   "sourceCounts": {
     "home": 63,
     "react": 18,
@@ -7316,10 +7316,10 @@
       "status": "local-partial",
       "tossRoute": "/today",
       "sku": null,
-      "inputContract": "24개 별자리·띠와 오늘·내일·이번 주 선택. 원본 loadWeekRange·computeSignScore·getPeriodReading",
-      "resultRenderer": "apps/toss/src/TodayPublic.tsx + app/today/DailyTarot.tsx",
+      "inputContract": "24개 별자리·띠와 오늘·내일·이번 주·이번 달 선택. 원본 loadWeekRange·loadMonthRange·computeSignScore·getPeriodReading. 오늘·내일 네 체계는 날짜 또는 소유 프로필 선택",
+      "resultRenderer": "apps/toss/src/TodayPublic.tsx + TodayPersonal.tsx + app/today/DailyTarot.tsx",
       "storageContract": "별자리·띠 공개. 원본 오늘의 세 장은 로그인 후 계정별 기기 저장·재열람",
-      "verification": "apps/toss/test/studio-today-browser.mjs: 360px 홈→공개 일주일→mock 로그인→세 장→재시작. 4체계 개인화·월간·전체 상세는 미검증",
+      "verification": "360px apps/toss/test/studio-today-browser.mjs: 공개 주간·월간→mock 로그인→소유 프로필 네 체계→세 장→재시작. worker/toss/today-hub.js → worker/routes/fortune-today.js 정본. __tests__/worker/toss-today-hub.test.js 소유 검증. 실기기와 운영 계산의 연결은 미검증",
       "webEntries": [
         "/today/"
       ],
@@ -7332,8 +7332,8 @@
       "reducedBundle": "홈 진입 없음",
       "currentEntry": "일반 홈의 진입 코드 확인",
       "bundleVerification": "실기기 및 상품별 전체 흐름 미검증",
-      "tossLogin": "별자리·띠 공개. 오늘의 세 장은 토스 로그인 필요",
-      "tossResult": "apps/toss/src/TodayPublic.tsx + app/today/DailyTarot.tsx",
+      "tossLogin": "별자리·띠는 공개. 네 체계와 오늘의 세 장은 토스 로그인 필요. 개인화는 소유 프로필만 선택",
+      "tossResult": "apps/toss/src/TodayPublic.tsx + TodayPersonal.tsx + app/today/DailyTarot.tsx",
       "reread": "별자리·띠 공개. 원본 오늘의 세 장은 로그인 후 계정별 기기 저장·재열람"
     },
     {
