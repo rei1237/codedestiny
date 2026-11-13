@@ -1,7 +1,8 @@
 // Run against the loopback-only dev:offline server with the shipping entry component.
 import {chromium} from 'playwright';
 import assert from 'node:assert/strict';
-const origin='http://127.0.0.1:4329';
+const origin=process.env.TOSS_OFFLINE_ORIGIN||'http://127.0.0.1:4329';
+assert.equal(new URL(origin).hostname,'127.0.0.1');
 const browser=await chromium.launch({channel:'chrome'});
 async function account(){
  const context=await browser.newContext({viewport:{width:360,height:740},isMobile:true,deviceScaleFactor:1,serviceWorkers:'block'});
@@ -21,8 +22,10 @@ async function enter(page){
  const field=page.locator('#yn-question');
  await field.fill(question);
  await page.setViewportSize({width:360,height:420});
- await page.getByRole('button',{name:'상담과 결제 확인하기'}).scrollIntoViewIfNeeded();
- assert.ok(await field.isVisible());
+ const next=page.getByRole('button',{name:'상담과 결제 확인하기'});
+ await field.focus();await next.scrollIntoViewIfNeeded();
+ const box=await next.boundingBox();assert.ok(box&&box.y>=0&&box.y+box.height<=421);
+ assert.equal(await field.inputValue(),question);
  await page.setViewportSize({width:360,height:740});
  await page.reload();
  await field.waitFor();
