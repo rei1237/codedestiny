@@ -1,7 +1,7 @@
 ---
-status: active
+status: done
 updated: 2026-11-13
-next: 5단계 2차 배포
+next: 없음(완료). 후속: 11/21 21:05 KST 주간 cron 결과 확인
 ---
 
 # 연이의 운명 노벨 웹툰: 1차 배포 → 7편 제작 → 2차 배포 → 주간 연재
@@ -62,7 +62,7 @@ next: 5단계 2차 배포
 - [x] 3-4단계: 4~5화 (4화 20쪽 `ep4\out`, 5화 20쪽 `ep5\out`)
 - [x] 3-5단계: 6~7화 (6화 19쪽 `ep6\out`, 7화 17쪽 `ep7\out`)
 - [x] 4단계: 코드 통합(페이지형 연재, 끝 카드 추출, 옛 컷 삭제, 테스트)
-- [ ] 5단계: 2차 배포, `SERIAL_NOW` 회차별 확인, Downloads 원본 삭제, 보고
+- [x] 5단계: 2차 배포, `SERIAL_NOW` 회차별 확인, Downloads 원본 삭제, 보고
 
 ## 결과 기록
 (각 단계 에이전트가 여기에 결과·커밋 SHA·운영 확인을 적는다.)
@@ -81,3 +81,5 @@ next: 5단계 2차 배포
   - 새 회차 추가 절차: `node scripts/import-yeoni-webtoon-episode.mjs --ep N --check` → `--ep N`(content 복사 + 출처 기록) → season-1.mjs에서 status 'ready' → `npm run sitemap:generate`(원장 서명이 바뀜) → 테스트의 실제 연재표 기대값 갱신. 원고(pages.json)가 바뀌면 `--pages`로 season-1-pages.mjs 재생성.
   - 검증: node --test(연재·프롤로그 14/14), npm test(jest 7978 통과·node 5028 통과, 실패 0) — 7화 반영 전 실행, tsc 0, eslint 변경 파일 오류 0, check:fast exit 0(7화 반영 뒤 f96071a69 상태에서 재실행), SERIAL_NOW --check: 11-21 20:59 공개 0 / 11-21 21:01 ep2 / 11-28 21:01 ep2~3 / 12-05 21:01 ep2~4 / 12-12 20:59 ep2~4 / 12-12 21:01 ep2~5 / 12-19 21:01 ep2~6 / 12-26 20:59 ep2~6 / 12-26 21:01 ep2~7 / 2027-01-02 ep2~7(exit 0).
   - 함정: season-1.mjs나 페이지 소스가 바뀌면 config/sitemap-lastmod.json 서명이 바뀌어 verify:sitemap-drift가 막는다 → `npm run sitemap:generate` 후 같은 커밋에 넣는다. 1화 이어보기 키가 `cd:webtoon:yeoni-s1-ep1:page`로 바뀌어 옛 저장 위치는 초기화된다. 1~7화 alt는 그림 OCR이 아니라 원고(pages.json)에서 만든 것. 출처 JSON이 약 1.0MB로 커졌다.
+- 5단계(2026-11-13): e60316ae0을 main에 fast-forward push(60669352a..e60316ae0) → main CI run 43423487521 성공 → production run 43426168214 성공(다른 세션의 60669352a production 뒤에 대기). 운영 확인: version.json gitSha e60316ae0, / · /yeongnyangi/season-1/ · /prologue/ 200, 프롤로그 HTML에 새 1122 쪽 18개, /ep2/ 404(공개 전), sitemap에 prologue 1건. SERIAL_NOW --check: 11-21 20:59 공개 0, 21:01 ep2(exit 0). `style\production_prompts.txt` 복사본 md5 일치 확인 뒤 Downloads `yeoni_prologue_romance_fantasy_v3` 삭제 완료.
+  - 후속: 11/21 21:05 KST 주간 cron(yeongnyangi-weekly-publish.yml)이 성공하고 /yeongnyangi/season-1/ep2/가 200이 되는지 확인. 이후 매주 토요일 같은 확인.
