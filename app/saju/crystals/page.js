@@ -17,9 +17,9 @@ const DESCRIPTION =
   "좋았던 해와 힘들었던 해를 사주 흐름과 함께 살펴보세요. 꿀꿀운세가 도움이 되는 오행 후보와 그에 어울리는 원석, 추천 이유를 안내합니다";
 const OG_IMAGE = "/images/saju-crystals/og-1200x630.jpg";
 const DISCLAIMER = "원석의 오행과 의미는 전통적 해석과 문화적 상징을 바탕으로 하며, 건강이나 운세의 변화를 보장하지 않습니다.";
-// 사용자가 준 진입 그림. 제목·버튼 문구가 그림 안에 박혀 있어 alt에 그대로 옮긴다(index.html #sajuCrystalEntry와 같은 문구).
+// 사주 결과의 진입 카드와 같은 연이 일러스트.
 const ENTRY_PORTRAIT_ALT =
-  "꿀꿀운세 · 연이가 골라주는 나만의 천연석. 좋았던 해와 힘들었던 해를 살펴 나에게 맞는 오행과 원석을 찾아요. 자수정, 장미수정, 시트린, 아쿠아마린, 백수정, 흑요석. 1 사주 입력, 2 지난 흐름 확인, 3 맞춤 원석 추천. 나의 원석 찾기";
+  "연꽃을 단 꽃돼지 연이가 원석 공방에서 초록빛 원석을 들여다보는 그림";
 
 // OG 이미지는 사용자가 준 진입 그림에서 연이 부분을 잘라 만들었다. 파일이 없으면 사이트 기본 OG를 쓴다.
 const hasOgImage = (() => {
@@ -175,7 +175,7 @@ export default function SajuCrystalsLandingPage() {
       <section className={styles.section} aria-labelledby="crystal-elements">
         <h2 id="crystal-elements">오행 원석, 기운별로 살펴보기</h2>
         <p className={styles.lead}>
-          원석의 오행은 색과 오행을 잇는 전통적 관점으로, 의미는 널리 전해지는 상징으로 소개해요. 나에게 맞는 원석은 도움이 되는 기운을 먼저 살핀 뒤에 골라요.
+          페리도트의 초록빛부터 청금석의 군청빛까지, 천연석을 오행별로 비교해 보세요. 색을 오행에 잇는 전통적 관점에 따라 분류하고, 각 색에서 떠올릴 수 있는 상징을 함께 적었어요. 나에게 맞는 원석은 도움이 되는 기운을 먼저 살핀 뒤에 골라요.
         </p>
         {CRYSTAL_ELEMENTS.map((el) => (
           <div key={el} className={styles.elementGroup}>
@@ -244,7 +244,7 @@ export default function SajuCrystalsLandingPage() {
 
       <p className={styles.disclaimer}>
         {DISCLAIMER} 사주가 처음이라면 <Link href="/saju/five-elements/">오행과 균형 가이드</Link>와{" "}
-        <Link href="/saju/guide/">사주 명리학 기본 가이드</Link>도 함께 읽어 보세요.
+        <Link href="/saju/guide/">사주 명리학 기본 가이드</Link>도 함께 읽어 보세요. 맛으로 오행을 만나고 싶다면 <Link href="/recipes/">연이와 영냥이의 오행 요리법</Link>을 살펴보세요.
       </p>
     </main>
   );

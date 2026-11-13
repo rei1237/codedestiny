@@ -9,7 +9,7 @@ const BASE_TEN = {
 };
 
 test('버전과 동결', () => {
-  assert.equal(CATALOG_VERSION, 'crystal-catalog-v1');
+  assert.equal(CATALOG_VERSION, 'crystal-catalog-v2');
   assert.ok(Object.isFrozen(CRYSTAL_CATALOG) && CRYSTAL_CATALOG.every((c) => Object.isFrozen(c) && Object.isFrozen(c.symbolicMeanings)));
 });
 

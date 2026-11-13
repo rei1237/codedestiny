@@ -28,5 +28,6 @@ export default function RecipesPage() {
       </article>)}</div></section>)}
     </section>
     <section className={sectionClass}><h2 className={headingClass}>레시피를 읽는 순서</h2><p>먼저 재료 목록에서 알레르기와 대체 가능한 재료를 확인하세요. 밥과 반찬을 함께 준비한다면 완성 시점이 맞도록 조리 순서를 정합니다. 손질을 마친 뒤 불을 켜면 뜨거운 팬을 두고 재료를 찾느라 서두르지 않아도 됩니다.</p><p>시간은 시작점이고 상태가 판단 기준입니다. 양파가 투명해졌는지, 쌀에 딱딱한 심이 남았는지, 두부 표면이 자연스럽게 팬에서 떨어지는지를 살피세요. 닭고기처럼 식품 안전과 관련된 익힘은 색이나 감이 아닌 중심 온도로 확인합니다. 각 글의 실패 보완법은 다음 한 번을 더 수월하게 만드는 작은 메모입니다.</p></section>
+    <p className={sectionClass}>맛으로 살펴본 오행을 색으로도 만나 보세요. <Link className={linkClass} href="/saju/crystals/">오행별 천연석과 사주 원석 추천</Link></p>
   </ReadingLayout>;
 }

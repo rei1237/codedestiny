@@ -11,7 +11,7 @@ import { authFetch } from "@/app/_lib/auth-client";
 import {
   fetchCurrentDestinyProfile, normalizeDestinyProfileCard, readCurrentDestinyProfile, readDestinyProfileAccountId,
 } from "@/app/_lib/profile-card-storage";
-import { CRYSTAL_CATALOG, CRYSTAL_ELEMENT_KO } from "../../../../lib/saju/crystal-catalog.mjs";
+import { CRYSTAL_CATALOG, CRYSTAL_ELEMENT_KO, crystalsForElement } from "../../../../lib/saju/crystal-catalog.mjs";
 import {
   SHELL_CALIBRATION_PREFIX, answersFromShellCalibration, buildCrystalRecord, crystalStorageKey, crystalYearWindow, isCrystalRecordReusable,
   loadServerCrystalRecord, parseCrystalRecord, profileToCrystalBirth, readSavedCrystalProfile, readStoredJson, resolveCrystalRecords, sanitizeCrystalFrom,
@@ -559,6 +559,18 @@ export default function CrystalFlowClient({ stoneImageIds = [] }) {
                 />
               ))}
             </div>
+            {[...new Set(out.crystals.map((stone) => stone.element))].map((element) => {
+              const alternatives = crystalsForElement(element).filter((stone) => !out.crystals.some((selected) => selected.id === stone.id));
+              if (!alternatives.length) return null;
+              return (
+                <details key={element}>
+                  <summary>{CRYSTAL_ELEMENT_KO[element]}의 다른 추천 원석 {alternatives.length}개 보기</summary>
+                  <div className={styles.stoneGrid}>
+                    {alternatives.map((stone) => <StoneCard key={stone.id} crystal={stone} elementKo={CRYSTAL_ELEMENT_KO[element]} hasImage={stoneImages.has(stone.id)} />)}
+                  </div>
+                </details>
+              );
+            })}
           </div>
         )}
 

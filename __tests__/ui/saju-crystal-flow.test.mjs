@@ -48,7 +48,7 @@ test('저장 기록은 답·키·버전만 담고, 버전이 다르면 결과를
   const parsed = parseCrystalRecord(JSON.stringify(record));
   assert.ok(isCrystalRecordReusable(parsed, VERSIONS));
   assert.ok(isCrystalRecordCurrent(parsed, VERSIONS, 'cr1-fedcba9876543210'));
-  assert.equal(isCrystalRecordCurrent(parsed, { ...VERSIONS, catalog: 'crystal-catalog-v2' }, 'cr1-fedcba9876543210'), false);
+  assert.equal(isCrystalRecordCurrent(parsed, { ...VERSIONS, catalog: 'crystal-catalog-v1' }, 'cr1-fedcba9876543210'), false);
   assert.equal(isCrystalRecordReusable(parsed, { ...VERSIONS, answers: 'crystal-answers-v2' }), false);
   assert.equal(parseCrystalRecord('{broken'), null);
   assert.equal(parseCrystalRecord({ v: 99, answers: {} }), null);

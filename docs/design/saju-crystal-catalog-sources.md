@@ -44,3 +44,15 @@
 ## 고지
 
 원석의 오행과 의미는 전통적 해석과 문화적 상징을 바탕으로 한다. 건강이나 운세의 변화를 보장하지 않는다. 엔진의 `limitations`에 항상 이 문장을 붙인다.
+
+## 2026-11-13 원석 다섯 가지와 삽화
+
+색과 소재 설명은 GIA의 원석별 안내를 확인했다. 오행 배정과 색에서 떠올린 상징은 편집 기준이다.
+
+- 페리도트 https://www.gia.edu/peridot
+- 레드 가넷 https://www.gia.edu/garnet
+- 호박 https://www.gia.edu/amber
+- 무색 지르콘 https://www.gia.edu/zircon
+- 청금석 https://www.gia.edu/lapis-lazuli
+
+연이 진입 그림과 원석 도감은 OpenAI ImageGen으로 제작했다. 연이는 yeoni-character-480.webp를 참조했다. 원석 그림은 실물 감정용 사진이 아니다.
