@@ -17,6 +17,8 @@ const mocks={
 };
 globalThis.__tossRouteMocks=mocks;
 const stubMap={
+ 'worker/routes/nakshatra.js':"export const resolveTodayMoon=async()=>Response.json({ok:true}),resolveNatal=async()=>Response.json({ok:true}),resolveCompat=async()=>Response.json({ok:true});",
+ 'worker/toss/mansion-reports.js':"export const readOwnedMansionReport=async()=>({ok:true});",
  'worker/routes/kasi.js':"export const handleKasiRoutes=async request=>Response.json({path:new URL(request.url).pathname,input:await request.json()});",
  'worker/routes/rpg.js':"export const readOwnedQuestProgress=async(_env,owner)=>({scope:owner});export const completeOwnedQuest=async(_env,owner,key)=>Response.json({owner,key});export const adoptOwnedQuestProgress=async(_env,owner)=>Response.json({owner});",
  'worker/toss/today-hub.js':"export const readTodayHub=async(_env,auth,input)=>Response.json({profileId:input.profileId,owner:String(auth._id)});",
@@ -580,5 +582,13 @@ test('guest island routes the original free blueprint outside the sale gate with
   const {blueprint}=await result.json();assert.equal(blueprint.palaces.length,12);assert.equal(blueprint.timing.timeUnknown,true);
   assert.equal((await request({...input,birthDate:'1991-30-01'},path)).status,400);
   assert.notEqual((await request(input,'/canonical/ziwei-island/report')).status,200);
+ }finally{mocks.denyAuth=false;}
+});
+
+test('personal mansion is public while pair calculation requires an account',async()=>{
+ mocks.denyAuth=true;
+ try{
+  assert.equal((await request({},'/nakshatra/resolve',{})).status,200);
+  assert.notEqual((await request({a:{},b:{}},'/nakshatra/compat',{})).status,200);
  }finally{mocks.denyAuth=false;}
 });
