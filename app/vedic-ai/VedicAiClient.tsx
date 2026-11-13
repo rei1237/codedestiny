@@ -25,6 +25,8 @@ import Link from "next/link";
 import { CalendarDays, Clock3, Compass, Download, Loader2, MapPin, Moon, Sparkles, Star } from "lucide-react";
 import { authFetch } from "@/app/_lib/auth-client";
 import AnalysisBasisLoading from "@/components/fortune/AnalysisBasisLoading";
+import GenerationProgress, { LEAVE_SAFE_NOTICE } from "@/components/fortune/GenerationProgress";
+import { masterProfiles } from "@/components/fortune/master-profiles";
 const AnalysisBasisPanel = dynamic(() => import('@/components/fortune/AnalysisBasisPanel'), { ssr: false, loading: () => <p role="status">풀이 근거를 준비하고 있어요.</p> });
 import { fetchAnalysisBasis, type AnalysisBasis } from "@/lib/fortune/analysis-basis";
 import { isRetriableResultPollFailure, runAccessCheckWithTransientRetry } from "@/app/_lib/consultationResultPolling";
@@ -148,24 +150,6 @@ const PLACE_PRESETS = [
 
 const TIMEZONE_VALUES = ["Asia/Seoul", "Asia/Shanghai", "Asia/Kolkata", "Europe/London", "America/New_York", "America/Los_Angeles"];
 
-const COSMOS_GLYPHS = ["ॐ", "☉", "☽", "↑", "★", "✦"];
-
-const COSMOS_ORBITS = [
-  { r: 56, speed: 1, color: "rgba(251,191,36,0.9)", size: 6 },
-  { r: 78, speed: 0.6, color: "rgba(196,181,253,0.9)", size: 5 },
-  { r: 100, speed: 0.4, color: "rgba(251,113,133,0.7)", size: 4 },
-  { r: 122, speed: 0.25, color: "rgba(134,239,172,0.7)", size: 4 },
-  { r: 144, speed: 0.15, color: "rgba(148,163,184,0.6)", size: 3 },
-];
-
-const COSMOS_STARS = Array.from({ length: 90 }, (_, index) => ({
-  top: `${(index * 37) % 100}%`,
-  left: `${(index * 61) % 100}%`,
-  size: `${0.5 + (index % 3) * 0.45}px`,
-  opacity: 0.18 + (index % 7) * 0.08,
-  delay: `${(index % 9) * 0.35}s`,
-}));
-
 const SECTION_GLYPHS: Record<string, string> = {
   lagna: "↑",
   rashi: "R",
@@ -260,8 +244,10 @@ type VedicAiCopy = {
   accessCheckFailTitleTransient: string;
   accessCheckFailTitle: string;
   errorText: Record<string, string>;
-  cosmosStages: Array<{ label: string; sub: string }>;
-  cosmosFooter: string;
+  generationTitle: string;
+  generationElapsedLabel: string;
+  leaveSafeNotice: string;
+  tossLeaveNotice: string;
   cosmosFallbackText: string;
   chartDetailAriaLabel: string;
   chartDetailHeading: string;
@@ -397,18 +383,13 @@ const VEDIC_AI_COPY_EN: VedicAiCopy = {
     LLM_FAILED: "A problem occurred while generating the expert reading. Any deduction will be automatically restored.",
     NETWORK_ERROR: "The connection is unstable. Please try again in a moment.",
     SERVER_ERROR: "A problem occurred while preparing the Vedic consultation. Nothing was deducted from your payment or pass.",
-    GENERATION_TIMEOUT: "The reading is taking longer than usual. Please don't close the page — try again shortly.",
+    GENERATION_TIMEOUT: "The reading is taking longer than usual. Your paid reading is saved, so reopen this page in a little while to continue.",
     TEMPORARY_UNAVAILABLE: "The connection is briefly unstable right now. Your pass is safely preserved — please try again shortly.",
   },
-  cosmosStages: [
-    { label: "Converting your birth coordinates into cosmic time...", sub: "Calculating Julian Day" },
-    { label: "Tracing the Sun's path...", sub: "Calculating Surya's ecliptic longitude" },
-    { label: "Finding the Moon's nakshatra...", sub: "Chandra Nakshatra" },
-    { label: "Raising the ascendant...", sub: "Calculating Lagna" },
-    { label: "Reading the flow of dasha...", sub: "Vimshottari Dasha" },
-    { label: "Completing the Jyotish interpretation...", sub: "Generating AI narrative" },
-  ],
-  cosmosFooter: "The planets are settling into place",
+  generationTitle: "Yun-dal is writing your Vedic reading",
+  generationElapsedLabel: "Elapsed",
+  leaveSafeNotice: "Closing this screen won't lose the reading you paid for. Reopen it to keep writing, and if you stay away for a while, the server finishes it and saves it to your records.",
+  tossLeaveNotice: "It's fine to step away to another app for a moment. When you come back to this screen, it continues from the parts already saved.",
   cosmosFallbackText: "Aligning the rashi chart...",
   chartDetailAriaLabel: "Vedic calculation details",
   chartDetailHeading: "Vedic calculation details",
@@ -545,18 +526,13 @@ const VEDIC_AI_COPY: Partial<Record<LoadingLocale, VedicAiCopy>> = {
       LLM_FAILED: "전문가 상담문을 생성하는 중 문제가 발생했어요. 차감된 내역이 있다면 자동으로 복구됩니다.",
       NETWORK_ERROR: "연결이 불안정해요. 잠시 후 다시 시도해 주세요.",
       SERVER_ERROR: "베다점 상담을 준비하는 중 문제가 발생했어요. 결제나 이용권은 차감되지 않았습니다.",
-      GENERATION_TIMEOUT: "상담 생성이 평소보다 오래 걸리고 있습니다. 페이지를 닫지 말고 잠시 후 다시 시도해 주세요.",
+      GENERATION_TIMEOUT: "상담 생성이 평소보다 오래 걸리고 있어요. 결제한 상담은 저장돼 있으니, 잠시 뒤 이 화면을 다시 열면 이어서 받을 수 있어요.",
       TEMPORARY_UNAVAILABLE: "지금 접속이 잠시 불안정해요. 이용권은 그대로 보존되니, 잠시 후 다시 시도해 주세요.",
     },
-    cosmosStages: [
-      { label: "출생 좌표를 우주 시간으로 변환하는 중", sub: "Julian Day 계산" },
-      { label: "태양의 항로를 추적하는 중", sub: "Surya 황경 계산" },
-      { label: "달의 나크샤트라를 찾는 중", sub: "Chandra Nakshatra" },
-      { label: "어센던트를 세우는 중", sub: "Lagna 계산" },
-      { label: "다샤의 흐름을 읽는 중", sub: "Vimshottari Dasha" },
-      { label: "조티시 해석을 완성하는 중", sub: "AI 서사 생성" },
-    ],
-    cosmosFooter: "행성들이 자리를 잡고 있습니다",
+    generationTitle: "윤달이 베다점 상담문을 쓰고 있어요",
+    generationElapsedLabel: "경과",
+    leaveSafeNotice: LEAVE_SAFE_NOTICE,
+    tossLeaveNotice: "잠시 다른 앱에 다녀와도 괜찮아요. 이 화면으로 돌아오면 저장된 부분 다음부터 이어서 받아요.",
     cosmosFallbackText: "라시 차트를 정렬하는 중...",
     chartDetailAriaLabel: "베다점 계산 상세",
     chartDetailHeading: "베다점 계산 상세",
@@ -692,18 +668,13 @@ const VEDIC_AI_COPY: Partial<Record<LoadingLocale, VedicAiCopy>> = {
       LLM_FAILED: "専門家相談文の生成中に問題が発生しました。差し引かれた分があれば自動的に復元されます。",
       NETWORK_ERROR: "接続が不安定です。しばらくしてから再度お試しください。",
       SERVER_ERROR: "ヴェーダ占星術相談の準備中に問題が発生しました。決済や利用権は差し引かれていません。",
-      GENERATION_TIMEOUT: "相談の生成が通常より時間がかかっています。ページを閉じずにしばらくしてから再度お試しください。",
+      GENERATION_TIMEOUT: "相談の生成が通常より時間がかかっています。お支払い済みの相談は保存されているので、少し経ってからこの画面を開き直すと続きを受け取れます。",
       TEMPORARY_UNAVAILABLE: "現在接続が一時的に不安定です。利用権はそのまま保存されますので、しばらくしてから再度お試しください。",
     },
-    cosmosStages: [
-      { label: "出生座標を宇宙時間に変換しています", sub: "Julian Day 計算" },
-      { label: "太陽の軌道を追跡しています", sub: "Surya 黄経計算" },
-      { label: "月のナクシャトラを探しています", sub: "Chandra Nakshatra" },
-      { label: "アセンダントを立てています", sub: "Lagna 計算" },
-      { label: "ダシャーの流れを読んでいます", sub: "Vimshottari Dasha" },
-      { label: "ジョーティシュの解釈を完成させています", sub: "AI 生成中" },
-    ],
-    cosmosFooter: "惑星たちが位置についています",
+    generationTitle: "ユンダルがヴェーダ占星術の相談文を書いています",
+    generationElapsedLabel: "経過",
+    leaveSafeNotice: "画面を閉じても、お支払い済みの相談は消えません。もう一度開くと続きから書き、しばらく離れていてもサーバーが仕上げて記録に保存します。",
+    tossLeaveNotice: "少しの間ほかのアプリに移っても大丈夫です。この画面に戻ると、保存済みの部分の続きから受け取れます。",
     cosmosFallbackText: "ラーシチャートを整えています...",
     chartDetailAriaLabel: "ヴェーダ占星術計算の詳細",
     chartDetailHeading: "ヴェーダ占星術計算の詳細",
@@ -838,18 +809,13 @@ const VEDIC_AI_COPY: Partial<Record<LoadingLocale, VedicAiCopy>> = {
       LLM_FAILED: "生成专家咨询文本时发生问题，如有扣除将自动恢复。",
       NETWORK_ERROR: "连接不稳定，请稍后重试。",
       SERVER_ERROR: "准备吠陀占星咨询时发生问题，付款或权益均未被扣除。",
-      GENERATION_TIMEOUT: "咨询生成比平时耗时更长，请不要关闭页面，稍后重试。",
+      GENERATION_TIMEOUT: "咨询生成比平时耗时更长。已付款的咨询已保存，稍后重新打开此页面即可继续。",
       TEMPORARY_UNAVAILABLE: "当前连接暂时不稳定，您的权益将完整保留，请稍后重试。",
     },
-    cosmosStages: [
-      { label: "正在将出生坐标转换为宇宙时间", sub: "计算儒略日" },
-      { label: "正在追踪太阳的轨迹", sub: "计算太阳黄经" },
-      { label: "正在寻找月亮的纳克夏特拉", sub: "月亮纳克夏特拉" },
-      { label: "正在确立上升点", sub: "计算上升点" },
-      { label: "正在解读大运的流转", sub: "威姆萨塔里大运" },
-      { label: "正在完成占星解读", sub: "生成AI解读文本" },
-    ],
-    cosmosFooter: "行星们正在各就其位",
+    generationTitle: "润月正在撰写你的吠陀占星咨询",
+    generationElapsedLabel: "已用时间",
+    leaveSafeNotice: "关闭页面也不会丢失已付款的咨询。重新打开会接着写；如果长时间离开，服务器会把它写完并保存到记录中。",
+    tossLeaveNotice: "暂时切换到其他应用也没关系。回到此页面后，会从已保存的部分继续。",
     cosmosFallbackText: "正在校准拉希盘...",
     chartDetailAriaLabel: "吠陀占星计算详情",
     chartDetailHeading: "吠陀占星计算详情",
@@ -984,18 +950,13 @@ const VEDIC_AI_COPY: Partial<Record<LoadingLocale, VedicAiCopy>> = {
       LLM_FAILED: "生成專家諮詢文本時發生問題，如有扣除將自動恢復。",
       NETWORK_ERROR: "連線不穩定，請稍後重試。",
       SERVER_ERROR: "準備吠陀占星諮詢時發生問題，付款或權益均未被扣除。",
-      GENERATION_TIMEOUT: "諮詢生成比平時耗時更長，請不要關閉頁面，稍後重試。",
+      GENERATION_TIMEOUT: "諮詢生成比平時耗時更長。已付款的諮詢已儲存，稍後重新開啟此頁面即可繼續。",
       TEMPORARY_UNAVAILABLE: "目前連線暫時不穩定，您的權益將完整保留，請稍後重試。",
     },
-    cosmosStages: [
-      { label: "正在將出生座標轉換為宇宙時間", sub: "計算儒略日" },
-      { label: "正在追蹤太陽的軌跡", sub: "計算太陽黃經" },
-      { label: "正在尋找月亮的納克沙特拉", sub: "月亮納克沙特拉" },
-      { label: "正在確立上升點", sub: "計算上升點" },
-      { label: "正在解讀大運的流轉", sub: "威姆薩塔里大運" },
-      { label: "正在完成占星解讀", sub: "生成AI解讀文本" },
-    ],
-    cosmosFooter: "行星們正在各就其位",
+    generationTitle: "潤月正在撰寫你的吠陀占星諮詢",
+    generationElapsedLabel: "已用時間",
+    leaveSafeNotice: "關閉頁面也不會遺失已付款的諮詢。重新開啟會接著寫；如果長時間離開，伺服器會把它寫完並儲存到紀錄中。",
+    tossLeaveNotice: "暫時切換到其他應用程式也沒關係。回到此頁面後，會從已儲存的部分繼續。",
     cosmosFallbackText: "正在校準拉希盤...",
     chartDetailAriaLabel: "吠陀占星計算詳情",
     chartDetailHeading: "吠陀占星計算詳情",
@@ -1130,18 +1091,13 @@ const VEDIC_AI_COPY: Partial<Record<LoadingLocale, VedicAiCopy>> = {
       LLM_FAILED: "Đã xảy ra sự cố khi tạo bài đọc chuyên gia. Nếu có khoản đã bị trừ sẽ được tự động hoàn lại.",
       NETWORK_ERROR: "Kết nối không ổn định. Vui lòng thử lại sau một chút.",
       SERVER_ERROR: "Đã xảy ra sự cố khi chuẩn bị buổi tư vấn Vệ Đà. Không có khoản nào bị trừ từ thanh toán hoặc gói sử dụng của bạn.",
-      GENERATION_TIMEOUT: "Việc tạo bài đọc đang mất nhiều thời gian hơn bình thường. Vui lòng không đóng trang và thử lại sau một chút.",
+      GENERATION_TIMEOUT: "Việc tạo bài đọc đang mất nhiều thời gian hơn bình thường. Buổi tư vấn bạn đã thanh toán vẫn được lưu, hãy mở lại trang này sau một lúc để tiếp tục.",
       TEMPORARY_UNAVAILABLE: "Kết nối hiện đang tạm thời không ổn định. Gói sử dụng của bạn vẫn được giữ nguyên, vui lòng thử lại sau một chút.",
     },
-    cosmosStages: [
-      { label: "Đang chuyển đổi tọa độ sinh của bạn thành thời gian vũ trụ", sub: "Tính toán Julian Day" },
-      { label: "Đang theo dõi hành trình của Mặt Trời", sub: "Tính kinh độ hoàng đạo Surya" },
-      { label: "Đang tìm nakshatra của Mặt Trăng", sub: "Chandra Nakshatra" },
-      { label: "Đang xác lập điểm mọc", sub: "Tính toán Lagna" },
-      { label: "Đang đọc dòng chảy của dasha", sub: "Vimshottari Dasha" },
-      { label: "Đang hoàn thiện diễn giải Jyotish", sub: "Đang tạo nội dung AI" },
-    ],
-    cosmosFooter: "Các hành tinh đang vào vị trí",
+    generationTitle: "Yun-dal đang viết bài tư vấn Vệ Đà của bạn",
+    generationElapsedLabel: "Đã trôi qua",
+    leaveSafeNotice: "Đóng màn hình cũng không làm mất buổi tư vấn bạn đã thanh toán. Mở lại để viết tiếp, và nếu bạn rời đi lâu, máy chủ sẽ hoàn thành rồi lưu vào mục lưu trữ của bạn.",
+    tossLeaveNotice: "Bạn có thể tạm chuyển sang ứng dụng khác. Khi quay lại màn hình này, bài đọc sẽ tiếp tục từ phần đã lưu.",
     cosmosFallbackText: "Đang căn chỉnh biểu đồ rashi...",
     chartDetailAriaLabel: "Chi tiết tính toán Vệ Đà",
     chartDetailHeading: "Chi tiết tính toán Vệ Đà",
@@ -1276,18 +1232,13 @@ const VEDIC_AI_COPY: Partial<Record<LoadingLocale, VedicAiCopy>> = {
       LLM_FAILED: "विशेषज्ञ परामर्श पाठ बनाते समय समस्या हुई। यदि कोई कटौती हुई है तो वह स्वतः बहाल हो जाएगी।",
       NETWORK_ERROR: "कनेक्शन अस्थिर है। कृपया थोड़ी देर बाद फिर कोशिश करें।",
       SERVER_ERROR: "वैदिक परामर्श तैयार करते समय समस्या हुई। आपके भुगतान या पास से कुछ भी नहीं काटा गया।",
-      GENERATION_TIMEOUT: "परामर्श बनाने में सामान्य से अधिक समय लग रहा है। पेज बंद न करें, थोड़ी देर बाद फिर कोशिश करें।",
+      GENERATION_TIMEOUT: "परामर्श बनाने में सामान्य से अधिक समय लग रहा है। आपका भुगतान किया हुआ परामर्श सहेजा हुआ है, थोड़ी देर बाद यह पेज दोबारा खोलकर वहीं से जारी रखें।",
       TEMPORARY_UNAVAILABLE: "अभी कनेक्शन अस्थायी रूप से अस्थिर है। आपका पास पूरी तरह सुरक्षित है, कृपया थोड़ी देर बाद फिर कोशिश करें।",
     },
-    cosmosStages: [
-      { label: "आपके जन्म निर्देशांकों को ब्रह्मांडीय समय में बदला जा रहा है", sub: "जूलियन दिवस की गणना" },
-      { label: "सूर्य के मार्ग का पता लगाया जा रहा है", sub: "सूर्य क्रांतिवृत्त गणना" },
-      { label: "चंद्रमा का नक्षत्र खोजा जा रहा है", sub: "चंद्र नक्षत्र" },
-      { label: "लग्न स्थापित किया जा रहा है", sub: "लग्न गणना" },
-      { label: "दशा का प्रवाह पढ़ा जा रहा है", sub: "विंशोत्तरी दशा" },
-      { label: "ज्योतिष व्याख्या पूरी की जा रही है", sub: "AI विवरण तैयार किया जा रहा है" },
-    ],
-    cosmosFooter: "ग्रह अपनी जगह ले रहे हैं",
+    generationTitle: "युन-दल आपका वैदिक परामर्श लिख रहे हैं",
+    generationElapsedLabel: "बीता समय",
+    leaveSafeNotice: "स्क्रीन बंद करने पर भी आपका भुगतान किया हुआ परामर्श नहीं खोएगा। दोबारा खोलने पर लिखना वहीं से जारी रहेगा, और देर तक दूर रहने पर सर्वर इसे पूरा करके आपके रिकॉर्ड में सहेज देगा।",
+    tossLeaveNotice: "थोड़ी देर के लिए किसी दूसरे ऐप पर जाना ठीक है। इस स्क्रीन पर लौटने पर सहेजे गए हिस्से से आगे जारी रहेगा।",
     cosmosFallbackText: "राशि चार्ट संरेखित किया जा रहा है...",
     chartDetailAriaLabel: "वैदिक गणना विवरण",
     chartDetailHeading: "वैदिक गणना विवरण",
@@ -1422,18 +1373,13 @@ const VEDIC_AI_COPY: Partial<Record<LoadingLocale, VedicAiCopy>> = {
       LLM_FAILED: "Ocurrió un problema al generar la lectura del experto. Si hubo alguna deducción, se restaurará automáticamente.",
       NETWORK_ERROR: "La conexión es inestable. Inténtalo de nuevo en un momento.",
       SERVER_ERROR: "Ocurrió un problema al preparar la consulta védica. No se dedujo nada de tu pago ni de tu pase.",
-      GENERATION_TIMEOUT: "La generación de la lectura está tardando más de lo habitual. No cierres la página, inténtalo de nuevo en un momento.",
+      GENERATION_TIMEOUT: "La generación de la lectura está tardando más de lo habitual. Tu consulta pagada está guardada; vuelve a abrir esta página en un momento para continuar.",
       TEMPORARY_UNAVAILABLE: "La conexión está temporalmente inestable ahora mismo. Tu pase se conserva intacto, inténtalo de nuevo en un momento.",
     },
-    cosmosStages: [
-      { label: "Convirtiendo tus coordenadas de nacimiento en tiempo cósmico...", sub: "Calculando el día juliano" },
-      { label: "Rastreando el recorrido del Sol...", sub: "Calculando la longitud eclíptica de Surya" },
-      { label: "Encontrando el nakshatra de la Luna...", sub: "Chandra Nakshatra" },
-      { label: "Estableciendo el ascendente...", sub: "Calculando el Lagna" },
-      { label: "Leyendo el flujo de la dasha...", sub: "Vimshottari Dasha" },
-      { label: "Completando la interpretación jyotish...", sub: "Generando la narrativa con IA" },
-    ],
-    cosmosFooter: "Los planetas están tomando su posición",
+    generationTitle: "Yun-dal está escribiendo tu lectura védica",
+    generationElapsedLabel: "Tiempo transcurrido",
+    leaveSafeNotice: "Si cierras la pantalla, la consulta que pagaste no se pierde. Al volver a abrirla seguimos escribiendo, y si te ausentas un buen rato, el servidor la termina y la guarda en tu historial.",
+    tossLeaveNotice: "Puedes pasar un momento a otra app. Al volver a esta pantalla, seguimos desde las partes ya guardadas.",
     cosmosFallbackText: "Alineando la carta rashi...",
     chartDetailAriaLabel: "Detalles del cálculo védico",
     chartDetailHeading: "Detalles del cálculo védico",
@@ -1568,18 +1514,13 @@ const VEDIC_AI_COPY: Partial<Record<LoadingLocale, VedicAiCopy>> = {
       LLM_FAILED: "Un problème est survenu lors de la génération de la lecture experte. Toute déduction sera automatiquement restaurée.",
       NETWORK_ERROR: "La connexion est instable. Réessayez dans un instant.",
       SERVER_ERROR: "Un problème est survenu lors de la préparation de la consultation védique. Rien n'a été déduit de votre paiement ni de votre pass.",
-      GENERATION_TIMEOUT: "La génération de la lecture prend plus de temps que d'habitude. Ne fermez pas la page, réessayez dans un instant.",
+      GENERATION_TIMEOUT: "La génération de la lecture prend plus de temps que d'habitude. Votre consultation payée est enregistrée : rouvrez cette page dans un instant pour continuer.",
       TEMPORARY_UNAVAILABLE: "La connexion est momentanément instable en ce moment. Votre pass est intégralement conservé, réessayez dans un instant.",
     },
-    cosmosStages: [
-      { label: "Conversion de vos coordonnées de naissance en temps cosmique...", sub: "Calcul du jour julien" },
-      { label: "Traçage de la trajectoire du Soleil...", sub: "Calcul de la longitude écliptique de Surya" },
-      { label: "Recherche du nakshatra de la Lune...", sub: "Chandra Nakshatra" },
-      { label: "Établissement de l'ascendant...", sub: "Calcul du Lagna" },
-      { label: "Lecture du flux de la dasha...", sub: "Vimshottari Dasha" },
-      { label: "Finalisation de l'interprétation jyotish...", sub: "Génération du récit par IA" },
-    ],
-    cosmosFooter: "Les planètes se mettent en position",
+    generationTitle: "Yun-dal rédige votre lecture védique",
+    generationElapsedLabel: "Temps écoulé",
+    leaveSafeNotice: "Fermer l'écran ne fait pas disparaître la consultation que vous avez payée. En la rouvrant, la rédaction reprend, et si vous restez absent un moment, le serveur la termine et l'enregistre dans votre historique.",
+    tossLeaveNotice: "Vous pouvez passer un instant sur une autre application. En revenant sur cet écran, la lecture reprend à partir des parties déjà enregistrées.",
     cosmosFallbackText: "Alignement de la carte rashi...",
     chartDetailAriaLabel: "Détails du calcul védique",
     chartDetailHeading: "Détails du calcul védique",
@@ -1714,18 +1655,13 @@ const VEDIC_AI_COPY: Partial<Record<LoadingLocale, VedicAiCopy>> = {
       LLM_FAILED: "Bei der Erstellung der Experten-Lesung ist ein Problem aufgetreten. Ein etwaiger Abzug wird automatisch wiederhergestellt.",
       NETWORK_ERROR: "Die Verbindung ist instabil. Bitte versuchen Sie es gleich noch einmal.",
       SERVER_ERROR: "Bei der Vorbereitung der vedischen Beratung ist ein Problem aufgetreten. Es wurde nichts von Ihrer Zahlung oder Ihrem Guthaben abgezogen.",
-      GENERATION_TIMEOUT: "Die Erstellung der Lesung dauert länger als gewöhnlich. Bitte schließen Sie die Seite nicht und versuchen Sie es gleich noch einmal.",
+      GENERATION_TIMEOUT: "Die Erstellung der Lesung dauert länger als gewöhnlich. Ihre bezahlte Beratung ist gespeichert – öffnen Sie diese Seite gleich noch einmal, um fortzufahren.",
       TEMPORARY_UNAVAILABLE: "Die Verbindung ist gerade kurzzeitig instabil. Ihr Guthaben bleibt vollständig erhalten, bitte versuchen Sie es gleich noch einmal.",
     },
-    cosmosStages: [
-      { label: "Ihre Geburtskoordinaten werden in kosmische Zeit umgerechnet...", sub: "Berechnung des Julianischen Tages" },
-      { label: "Die Bahn der Sonne wird verfolgt...", sub: "Berechnung der Surya-Ekliptiklänge" },
-      { label: "Das Nakshatra des Mondes wird gesucht...", sub: "Chandra Nakshatra" },
-      { label: "Der Aszendent wird errichtet...", sub: "Berechnung des Lagna" },
-      { label: "Der Fluss der Dasha wird gelesen...", sub: "Vimshottari Dasha" },
-      { label: "Die Jyotish-Deutung wird vervollständigt...", sub: "KI-Erzählung wird erstellt" },
-    ],
-    cosmosFooter: "Die Planeten nehmen ihre Positionen ein",
+    generationTitle: "Yun-dal schreibt Ihre vedische Lesung",
+    generationElapsedLabel: "Vergangene Zeit",
+    leaveSafeNotice: "Auch wenn Sie den Bildschirm schließen, geht die bezahlte Beratung nicht verloren. Beim erneuten Öffnen wird weitergeschrieben, und bleiben Sie länger weg, stellt der Server sie fertig und speichert sie in Ihrem Verlauf.",
+    tossLeaveNotice: "Sie können kurz zu einer anderen App wechseln. Wenn Sie zu diesem Bildschirm zurückkehren, geht es ab den bereits gespeicherten Teilen weiter.",
     cosmosFallbackText: "Die Rashi-Karte wird ausgerichtet...",
     chartDetailAriaLabel: "Details der vedischen Berechnung",
     chartDetailHeading: "Details der vedischen Berechnung",
@@ -1860,18 +1796,13 @@ const VEDIC_AI_COPY: Partial<Record<LoadingLocale, VedicAiCopy>> = {
       LLM_FAILED: "Er is een probleem opgetreden bij het genereren van de expertlezing. Een eventuele aftrek wordt automatisch hersteld.",
       NETWORK_ERROR: "De verbinding is instabiel. Probeer het straks opnieuw.",
       SERVER_ERROR: "Er is een probleem opgetreden bij het voorbereiden van het Vedisch consult. Er is niets afgetrokken van uw betaling of pas.",
-      GENERATION_TIMEOUT: "Het genereren van de lezing duurt langer dan gebruikelijk. Sluit de pagina niet en probeer het straks opnieuw.",
+      GENERATION_TIMEOUT: "Het genereren van de lezing duurt langer dan gebruikelijk. Je betaalde consult is bewaard; open deze pagina straks opnieuw om verder te gaan.",
       TEMPORARY_UNAVAILABLE: "De verbinding is nu tijdelijk instabiel. Uw pas blijft volledig bewaard, probeer het straks opnieuw.",
     },
-    cosmosStages: [
-      { label: "Uw geboortecoördinaten worden omgezet naar kosmische tijd...", sub: "Juliaanse dag berekenen" },
-      { label: "Het pad van de Zon wordt gevolgd...", sub: "Surya-eclipticalengte berekenen" },
-      { label: "De nakshatra van de Maan wordt gezocht...", sub: "Chandra Nakshatra" },
-      { label: "De ascendant wordt vastgesteld...", sub: "Lagna berekenen" },
-      { label: "De stroom van de dasha wordt gelezen...", sub: "Vimshottari Dasha" },
-      { label: "De jyotish-interpretatie wordt afgerond...", sub: "AI-verhaal wordt gegenereerd" },
-    ],
-    cosmosFooter: "De planeten nemen hun positie in",
+    generationTitle: "Yun-dal schrijft je Vedische lezing",
+    generationElapsedLabel: "Verstreken tijd",
+    leaveSafeNotice: "Ook als je het scherm sluit, gaat het betaalde consult niet verloren. Open het opnieuw om verder te schrijven; blijf je langer weg, dan maakt de server het af en bewaart het in je overzicht.",
+    tossLeaveNotice: "Je kunt even naar een andere app gaan. Kom je terug op dit scherm, dan gaat het verder vanaf de delen die al zijn opgeslagen.",
     cosmosFallbackText: "De rashi-kaart wordt uitgelijnd...",
     chartDetailAriaLabel: "Details van de Vedische berekening",
     chartDetailHeading: "Details van de Vedische berekening",
@@ -2006,18 +1937,13 @@ const VEDIC_AI_COPY: Partial<Record<LoadingLocale, VedicAiCopy>> = {
       LLM_FAILED: "Masalah berlaku semasa menjana bacaan pakar. Sebarang potongan akan dipulihkan secara automatik.",
       NETWORK_ERROR: "Sambungan tidak stabil. Sila cuba lagi sebentar lagi.",
       SERVER_ERROR: "Masalah berlaku semasa menyediakan perundingan Veda. Tiada apa-apa ditolak daripada pembayaran atau pas anda.",
-      GENERATION_TIMEOUT: "Penjanaan bacaan mengambil masa lebih lama daripada biasa. Sila jangan tutup halaman, cuba lagi sebentar lagi.",
+      GENERATION_TIMEOUT: "Penjanaan bacaan mengambil masa lebih lama daripada biasa. Sesi rundingan yang anda bayar telah disimpan, buka semula halaman ini sebentar lagi untuk meneruskan.",
       TEMPORARY_UNAVAILABLE: "Sambungan tidak stabil buat sementara sekarang. Pas anda kekal terpelihara sepenuhnya, sila cuba lagi sebentar lagi.",
     },
-    cosmosStages: [
-      { label: "Sedang menukar koordinat kelahiran anda kepada masa kosmik...", sub: "Mengira Hari Julian" },
-      { label: "Sedang mengesan laluan Matahari...", sub: "Mengira longitud ekliptik Surya" },
-      { label: "Sedang mencari nakshatra Bulan...", sub: "Chandra Nakshatra" },
-      { label: "Sedang menetapkan ascendant...", sub: "Mengira Lagna" },
-      { label: "Sedang membaca aliran dasha...", sub: "Vimshottari Dasha" },
-      { label: "Sedang menyelesaikan tafsiran Jyotish...", sub: "Menjana naratif AI" },
-    ],
-    cosmosFooter: "Planet-planet sedang mengambil kedudukan",
+    generationTitle: "Yun-dal sedang menulis bacaan Veda anda",
+    generationElapsedLabel: "Masa berlalu",
+    leaveSafeNotice: "Menutup skrin tidak akan menghilangkan sesi rundingan yang telah anda bayar. Buka semula untuk menyambung, dan jika anda lama tidak kembali, pelayan akan menyiapkannya dan menyimpannya dalam rekod anda.",
+    tossLeaveNotice: "Tidak mengapa beralih ke aplikasi lain seketika. Apabila kembali ke skrin ini, bacaan diteruskan dari bahagian yang telah disimpan.",
     cosmosFallbackText: "Sedang menyelaraskan carta rashi...",
     chartDetailAriaLabel: "Butiran pengiraan Veda",
     chartDetailHeading: "Butiran pengiraan Veda",
@@ -2715,99 +2641,33 @@ function scoreValue(value: unknown) {
   return Math.max(0, Math.min(100, toNumber(value, 0)));
 }
 
-function CosmosLoadingScreen({ fallbackText, basis }: { fallbackText: string; basis: AnalysisBasis | null }) {
+// 대기 화면은 공용 GenerationProgress 로 그린다. 첫 응답 전에는 서버가 진행 수를 주지 않으므로 끝을 모르는
+// 막대와 경과 시간만 보여 준다. 경과 시간으로 칠하던 가짜 막대·시간표대로 켜지던 단계 점은 뺐다.
+// "보통 N~M분" 은 실측 근거가 없어 넣지 않는다.
+// 아래 AnalysisBasisLoading 은 서버가 실제로 계산한 차트 값(근거)을 차례로 드러낸다. 근거가 없으면 상태 문장이 같은
+// 말을 하므로 숨긴다.
+// 떠남 안내(웹): 다시 열면 pendingSessionId·cid 로 저장된 그룹 다음부터 이어 쓰고(resumeSavedConsultation →
+// /start resumeSessionId), 오래 비우면 consultation-recovery-task 크론(vedic-ai)이 마저 완성해 기록함에 남긴다.
+// 토스: 목록 조회가 pendingSessionId 를 주지 않아 URL cid 가 남은 화면으로 돌아올 때 이어 받는다 → 그 경우만 말한다.
+function CosmosLoadingScreen({ status, basis, toss }: { status: string; basis: AnalysisBasis | null; toss: boolean }) {
   const copy = useVedicAiCopy();
-  const [stage, setStage] = useState(0);
-  const [progress, setProgress] = useState(0);
-
-  useEffect(() => {
-    const durations = [2000, 3000, 3000, 3000, 4000, 8000];
-    let acc = 0;
-    const timers = durations.map((duration, index) => {
-      const timer = window.setTimeout(() => setStage(index), acc);
-      acc += duration;
-      return timer;
-    });
-    const progressTimer = window.setInterval(() => setProgress((current) => Math.min(current + 0.35, 95)), 80);
-    return () => {
-      timers.forEach(window.clearTimeout);
-      window.clearInterval(progressTimer);
-    };
-  }, []);
-
-  const activeStage = { glyph: COSMOS_GLYPHS[stage] || COSMOS_GLYPHS[0], ...(copy.cosmosStages[stage] || copy.cosmosStages[0]) };
 
   return (
-    <div className={styles.cosmosLoading} aria-live="polite">
-      <div className={styles.cosmosStars} aria-hidden="true">
-        {COSMOS_STARS.map((star, index) => (
-          <span
-            key={`${star.top}-${star.left}-${index}`}
-            style={{
-              top: star.top,
-              left: star.left,
-              width: star.size,
-              height: star.size,
-              opacity: star.opacity,
-              animationDelay: star.delay,
-            }}
-          />
-        ))}
-      </div>
-
-      <div className={styles.cosmosOrbitStage}>
-        <svg viewBox="0 0 320 320" className={styles.cosmosOrbitSvg} aria-hidden="true">
-          {COSMOS_ORBITS.map((orbit) => (
-            <circle key={orbit.r} cx="160" cy="160" r={orbit.r} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="1" />
-          ))}
-          {COSMOS_ORBITS.map((orbit, index) => {
-            // 초기 각도 오프셋(index*60°)만 정적으로 배치하고, 실제 공전은 CSS로 각 궤도를 회전시킨다.
-            const theta = (index * 60) * Math.PI / 180;
-            const px = 160 + orbit.r * Math.cos(theta);
-            const py = 160 + orbit.r * Math.sin(theta);
-            return (
-              <g
-                key={`${orbit.r}-${index}`}
-                className={styles.cosmosOrbitSpin}
-                style={{ animationDuration: `${(19.2 / orbit.speed).toFixed(1)}s` }}
-              >
-                <circle
-                  cx={px}
-                  cy={py}
-                  r={orbit.size / 2}
-                  fill={orbit.color}
-                  style={{ filter: `drop-shadow(0 0 5px ${orbit.color})` }}
-                />
-              </g>
-            );
-          })}
-          <circle cx="160" cy="160" r="28" fill="rgba(124,58,237,0.14)" stroke="rgba(139,92,246,0.32)" strokeWidth="1" />
-        </svg>
-        <span className={styles.cosmosOrbitGlyph}>{activeStage.glyph}</span>
-      </div>
-
-      {/* 궤도 애니메이션은 그대로 두고, 문구 자리만 실제 계산된 차트 값으로 바꾼다.
-          근거가 아직 없거나 조회에 실패하면 기존 단계 문구로 되돌아간다. */}
-      <div className={styles.cosmosLoadingText}>
-        <AnalysisBasisLoading
-          basis={basis}
-          fallbackLabel={activeStage.label || fallbackText}
-          fallbackDetail={activeStage.sub}
-        />
-      </div>
-
-      {!basis?.stages?.length && (
-        <div className={styles.cosmosStageDots}>
-          {COSMOS_GLYPHS.map((glyph, index) => (
-            <i key={glyph} className={index <= stage ? styles.activeCosmosDot : ""}>{glyph}</i>
-          ))}
+    <div className={styles.cosmosLoading}>
+      <GenerationProgress
+        persona="neo"
+        counselor={{ src: masterProfiles.yun.portrait }}
+        title={copy.generationTitle}
+        status={status}
+        timing
+        elapsedLabel={copy.generationElapsedLabel}
+        leaveNotice={toss ? copy.tossLeaveNotice : copy.leaveSafeNotice}
+      />
+      {basis?.stages?.length ? (
+        <div className={styles.cosmosLoadingText}>
+          <AnalysisBasisLoading basis={basis} fallbackLabel={copy.cosmosFallbackText} fallbackDetail="" />
         </div>
-      )}
-
-      <div className={styles.cosmosProgress}>
-        <span style={{ transform: `scaleX(${progress / 100})` }} />
-      </div>
-      <p>{copy.cosmosFooter}</p>
+      ) : null}
     </div>
   );
 }
@@ -3808,9 +3668,9 @@ export default function VedicAiClient({paymentSurface="web", ProfilePicker, Toss
           {/* 생성 대기 화면은 이용권 확인·결제를 통과한 뒤에만 띄운다.
               확인 단계에 띄우면 "확인도 전에 결과를 만든다"로 읽히고,
               결제 단계에 띄우면 결제창 뒤에 대기 UI가 깔려 결제 흐름을 가린다. */}
-          {phase === "start" && !consultation && <CosmosLoadingScreen fallbackText={phaseText || copy.cosmosFallbackText} basis={basis} />}
-
-          {!consultation ? (
+          {!consultation && phase === "start" ? (
+            <CosmosLoadingScreen status={phaseText || copy.cosmosFallbackText} basis={basis} toss={paymentSurface === "toss"} />
+          ) : !consultation ? (
             <div className={styles.emptyState}>
               <div className={styles.emptyMandala} aria-hidden="true" />
               <h2>{copy.emptyStateHeading}</h2>
