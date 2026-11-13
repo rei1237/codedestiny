@@ -1,5 +1,5 @@
 {
-  "sourceCommit": "e056ad089a146d0786e0c3e24c81ab0502579a13",
+  "sourceCommit": "119689b721548d81a639511e3a7a8bb98a2fcd28",
   "sourceCounts": {
     "home": 63,
     "react": 18,
@@ -342,8 +342,8 @@
         "library": "not-verified",
         "device": "not-tested",
         "canonicalId": "destiny-compass",
-        "candidateStatus": "requires-full-flow-port-and-verification",
-        "canonicalRoute": null
+        "candidateStatus": "local-partial",
+        "canonicalRoute": "/destiny-compass"
       }
     },
     {
@@ -3402,12 +3402,13 @@
         }
       ],
       "aliasEvidence": [],
-      "status": "requires-full-flow-port-and-verification",
-      "tossRoute": null,
+      "status": "local-partial",
+      "tossRoute": "/destiny-compass",
       "sku": null,
-      "inputContract": null,
-      "resultRenderer": null,
-      "storageContract": null,
+      "inputContract": "양·음력, 윤달, 출생시각·성별과 고민 → computeDirectionField",
+      "resultRenderer": "JourneyHub, DestinyMap, CompassReport, TodayQuest, Arrival; worker/routes/destiny-compass.js:narrate",
+      "storageContract": "기기별 마지막 무료 차트, 소유자·게스트 구분",
+      "verification": "studio-compass-browser.mjs 360px 공개 5체계 근거, 여섯 점수, 모바일 섬 그림·네오, 재실행 복원. 웹 RPG 경험치·월정석은 웹 계정 권리",
       "webEntries": [
         "/destiny-compass/"
       ],
@@ -3419,13 +3420,166 @@
         "destiny-compass-life-voyage"
       ],
       "freeCalculation": true,
-      "portStatus": "미이식",
-      "reducedBundle": "홈 진입 없음",
-      "currentEntry": "연결 경로 없음",
+      "portStatus": "일부만 이식",
+      "reducedBundle": "구현은 있으나 진입 차단",
+      "currentEntry": "일반 홈의 진입 코드 확인",
       "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
-      "tossLogin": "토스 기능 미연결",
-      "tossResult": "결과 화면 연결 미확인",
-      "reread": "재열람 경로 미확인"
+      "tossLogin": "기본 차트·퀘스트 공개",
+      "tossResult": "JourneyHub, DestinyMap, CompassReport, TodayQuest, Arrival; worker/routes/destiny-compass.js:narrate",
+      "reread": "기기별 마지막 무료 차트, 소유자·게스트 구분"
+    },
+    {
+      "id": "destiny-compass-crossroads",
+      "discoveryIds": [],
+      "evidence": [
+        {
+          "name": "운명의 갈림길",
+          "entry": "/destiny-compass/",
+          "implementation": "app/destiny-compass/_components/Crossroads.tsx"
+        }
+      ],
+      "aliasEvidence": [],
+      "status": "local-partial",
+      "tossRoute": "/destiny-compass",
+      "sku": null,
+      "inputContract": "차트와 두 선택지 A·B",
+      "resultRenderer": "app/destiny-compass/_components/Crossroads.tsx",
+      "storageContract": "기기 마지막 차트에서 무료 재계산. 웹 과거 주문은 웹 보관 계정 소유",
+      "verification": "studio-compass-browser.mjs 360px 로그인 후 기존 질문과 무료 판독, 결제 0건",
+      "webEntries": [
+        "/destiny-compass/"
+      ],
+      "webSources": [
+        "app/destiny-compass/_components/Crossroads.tsx",
+        "app/destiny-compass/page.tsx"
+      ],
+      "webProductIds": [
+        "destiny-compass-crossroads"
+      ],
+      "freeCalculation": true,
+      "portStatus": "일부만 이식",
+      "reducedBundle": "구현은 있으나 진입 차단",
+      "currentEntry": "일반 홈의 진입 코드 확인",
+      "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
+      "tossLogin": "토스 로그인 후 무료 판독",
+      "tossResult": "app/destiny-compass/_components/Crossroads.tsx",
+      "reread": "기기 마지막 차트에서 무료 재계산. 웹 과거 주문은 웹 보관 계정 소유"
+    },
+    {
+      "id": "destiny-compass-deep-report",
+      "discoveryIds": [],
+      "evidence": [
+        {
+          "name": "운명의 지도 심층 리포트",
+          "entry": "/destiny-compass/",
+          "implementation": "app/destiny-compass/_components/SavedCompassReport.tsx"
+        }
+      ],
+      "aliasEvidence": [],
+      "status": "local-partial",
+      "tossRoute": "/destiny-compass",
+      "sku": null,
+      "inputContract": "collectDeepEvidence와 원본 워커 10장 프롬프트",
+      "resultRenderer": "app/destiny-compass/_components/SavedCompassReport.tsx",
+      "storageContract": "토스 소유 주문과 묶은 DestinyCompassReport의 미완료 상태 및 구매 기록 원문",
+      "verification": "studio-compass-browser.mjs 360px mock 1건·10장 유지·타계정 차단. 원본 Worker 저장 실패와 재생성 방지 검사. 미등록 SKU 및 실기기 미검증",
+      "webEntries": [
+        "/destiny-compass/"
+      ],
+      "webSources": [
+        "app/destiny-compass/_components/SavedCompassReport.tsx",
+        "app/destiny-compass/page.tsx",
+        "app/destiny-compass/_components/CompassReport.tsx",
+        "app/destiny-compass/_components/reportSections.ts",
+        "worker/lib/destiny-compass-report-contract.js",
+        "worker/routes/destiny-compass-ai.js"
+      ],
+      "webProductIds": [
+        "destiny-compass-deep-report"
+      ],
+      "freeCalculation": false,
+      "portStatus": "일부만 이식",
+      "reducedBundle": "구현은 있으나 진입 차단",
+      "currentEntry": "일반 홈의 진입 코드 확인",
+      "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
+      "tossLogin": "구매·기록에 토스 계정 필요",
+      "tossResult": "app/destiny-compass/_components/SavedCompassReport.tsx",
+      "reread": "토스 소유 주문과 묶은 DestinyCompassReport의 미완료 상태 및 구매 기록 원문",
+      "saleStatus": "콘솔·운영 설정 필요"
+    },
+    {
+      "id": "destiny-compass-future-sim",
+      "discoveryIds": [],
+      "evidence": [
+        {
+          "name": "미래 시뮬레이션",
+          "entry": "/destiny-compass/",
+          "implementation": "app/destiny-compass/_components/FutureSim.tsx"
+        }
+      ],
+      "aliasEvidence": [],
+      "status": "local-partial",
+      "tossRoute": "/destiny-compass",
+      "sku": null,
+      "inputContract": "차트와 30일·90일·1년·3년 시점 선택",
+      "resultRenderer": "app/destiny-compass/_components/FutureSim.tsx",
+      "storageContract": "기기 마지막 차트에서 무료 재계산. 웹 과거 주문은 웹 보관 계정 소유",
+      "verification": "studio-compass-browser.mjs 360px 로그인 후 기존 질문과 무료 판독, 결제 0건",
+      "webEntries": [
+        "/destiny-compass/"
+      ],
+      "webSources": [
+        "app/destiny-compass/_components/FutureSim.tsx",
+        "app/destiny-compass/page.tsx"
+      ],
+      "webProductIds": [
+        "destiny-compass-future-sim"
+      ],
+      "freeCalculation": true,
+      "portStatus": "일부만 이식",
+      "reducedBundle": "구현은 있으나 진입 차단",
+      "currentEntry": "일반 홈의 진입 코드 확인",
+      "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
+      "tossLogin": "토스 로그인 후 무료 판독",
+      "tossResult": "app/destiny-compass/_components/FutureSim.tsx",
+      "reread": "기기 마지막 차트에서 무료 재계산. 웹 과거 주문은 웹 보관 계정 소유"
+    },
+    {
+      "id": "destiny-compass-life-voyage",
+      "discoveryIds": [],
+      "evidence": [
+        {
+          "name": "삶의 항로",
+          "entry": "/destiny-compass/",
+          "implementation": "app/destiny-compass/_components/LifeVoyage.tsx"
+        }
+      ],
+      "aliasEvidence": [],
+      "status": "local-partial",
+      "tossRoute": "/destiny-compass",
+      "sku": null,
+      "inputContract": "차트의 방향장과 장기 시간선",
+      "resultRenderer": "app/destiny-compass/_components/LifeVoyage.tsx",
+      "storageContract": "기기 마지막 차트에서 무료 재계산. 웹 과거 주문은 웹 보관 계정 소유",
+      "verification": "studio-compass-browser.mjs 360px 로그인 후 기존 질문과 무료 판독, 결제 0건",
+      "webEntries": [
+        "/destiny-compass/"
+      ],
+      "webSources": [
+        "app/destiny-compass/_components/LifeVoyage.tsx",
+        "app/destiny-compass/page.tsx"
+      ],
+      "webProductIds": [
+        "destiny-compass-life-voyage"
+      ],
+      "freeCalculation": true,
+      "portStatus": "일부만 이식",
+      "reducedBundle": "구현은 있으나 진입 차단",
+      "currentEntry": "일반 홈의 진입 코드 확인",
+      "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
+      "tossLogin": "토스 로그인 후 무료 판독",
+      "tossResult": "app/destiny-compass/_components/LifeVoyage.tsx",
+      "reread": "기기 마지막 차트에서 무료 재계산. 웹 과거 주문은 웹 보관 계정 소유"
     },
     {
       "id": "destiny-meeting-place",

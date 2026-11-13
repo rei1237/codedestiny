@@ -52,6 +52,10 @@ const groups=new Map();
 // A shared product or URL does not imply the same input or result.
 for(const [id,name,entry,implementation] of [
  ['heukwol-consult','흑월의 경고 상담','/heukwol/','app/heukwol/HeukwolClient.tsx'],
+ ['destiny-compass-crossroads','운명의 갈림길','/destiny-compass/','app/destiny-compass/_components/Crossroads.tsx'],
+ ['destiny-compass-future-sim','미래 시뮬레이션','/destiny-compass/','app/destiny-compass/_components/FutureSim.tsx'],
+ ['destiny-compass-life-voyage','삶의 항로','/destiny-compass/','app/destiny-compass/_components/LifeVoyage.tsx'],
+ ['destiny-compass-deep-report','운명의 지도 심층 리포트','/destiny-compass/','app/destiny-compass/_components/SavedCompassReport.tsx'],
  ['nakshatra-lord-report','나크샤트라 지배성 심화 리포트','/nakshatra/lord-report/','app/nakshatra/lord-report/LordReportClient.tsx'],
  ['nakshatra-dasha-map','나크샤트라 다샤 인생지도','/nakshatra/dasha-map/','app/nakshatra/dasha-map/DashaMapClient.tsx'],
  ['past-life-face','전생 관상·전생 궁합','/?action=openPhysiognomyApp','PastLifeFaceUI.js'],
@@ -127,6 +131,11 @@ const localEvidence={
  'heukwol-story':{tossRoute:'/consultations/stories?story=heukwol',status:'local-partial',inputContract:'app/heukwol/FateWarningEpisode.tsx 및 원본 12컷',resultRenderer:'apps/toss/src/StoryLibrary.tsx + app/components/webtoon/CutReader.tsx',storageContract:'공개 서장. 유료 흑월 상담과 별도',verification:'story-library-browser.mjs 360px 12컷 원본 텍스트 비교'},
  'neo-letter':{tossRoute:'/fortune-tea-house/?counsel=letter&persona=neo',status:'local-partial',inputContract:'app/fortune-chat/ConsultationIntake.tsx + worker/toss/letter.js',resultRenderer:'apps/toss/service/TossLetterRoom.tsx + app/fortune-chat/ConsultationResult.tsx',storageContract:'꿀꿀운세 구매 기록. 상담자·계정·주문 소유권 검사',verification:'letter-browser.mjs 360px 두 상담자의 사주 결과 및 계정 교체. 각 6개 분야 mock 상품 매핑'},
 
+ 'destiny-compass':{tossRoute:'/destiny-compass',status:'local-partial',inputContract:'양·음력, 윤달, 출생시각·성별과 고민 → computeDirectionField',resultRenderer:'JourneyHub, DestinyMap, CompassReport, TodayQuest, Arrival; worker/routes/destiny-compass.js:narrate',storageContract:'기기별 마지막 무료 차트, 소유자·게스트 구분',verification:'studio-compass-browser.mjs 360px 공개 5체계 근거, 여섯 점수, 모바일 섬 그림·네오, 재실행 복원. 웹 RPG 경험치·월정석은 웹 계정 권리'},
+ 'destiny-compass-crossroads':{tossRoute:'/destiny-compass',status:'local-partial',inputContract:'차트와 두 선택지 A·B',resultRenderer:'app/destiny-compass/_components/Crossroads.tsx',storageContract:'기기 마지막 차트에서 무료 재계산. 웹 과거 주문은 웹 보관 계정 소유',verification:'studio-compass-browser.mjs 360px 로그인 후 기존 질문과 무료 판독, 결제 0건'},
+ 'destiny-compass-future-sim':{tossRoute:'/destiny-compass',status:'local-partial',inputContract:'차트와 30일·90일·1년·3년 시점 선택',resultRenderer:'app/destiny-compass/_components/FutureSim.tsx',storageContract:'기기 마지막 차트에서 무료 재계산. 웹 과거 주문은 웹 보관 계정 소유',verification:'studio-compass-browser.mjs 360px 로그인 후 기존 질문과 무료 판독, 결제 0건'},
+ 'destiny-compass-life-voyage':{tossRoute:'/destiny-compass',status:'local-partial',inputContract:'차트의 방향장과 장기 시간선',resultRenderer:'app/destiny-compass/_components/LifeVoyage.tsx',storageContract:'기기 마지막 차트에서 무료 재계산. 웹 과거 주문은 웹 보관 계정 소유',verification:'studio-compass-browser.mjs 360px 로그인 후 기존 질문과 무료 판독, 결제 0건'},
+ 'destiny-compass-deep-report':{tossRoute:'/destiny-compass',status:'local-partial',inputContract:'collectDeepEvidence와 원본 워커 10장 프롬프트',resultRenderer:'app/destiny-compass/_components/SavedCompassReport.tsx',storageContract:'토스 소유 주문과 묶은 DestinyCompassReport의 미완료 상태 및 구매 기록 원문',verification:'studio-compass-browser.mjs 360px mock 1건·10장 유지·타계정 차단. 원본 Worker 저장 실패와 재생성 방지 검사. 미등록 SKU 및 실기기 미검증'},
  'animal-destiny':{tossRoute:'/saju/animal-destiny',status:'local-partial',inputContract:'lib/korean-calendar/natal.js:calculateNatalSaju',resultRenderer:'apps/toss/src/AnimalDestiny.tsx',storageContract:'화면 메모리. 계정 변경 시 TossSessionScope 재설정'},
  'career-style':{tossRoute:'/saju/career-style/',status:'local-partial',inputContract:'worker/routes/career-style.js:readOwnedCareerStyle',resultRenderer:'apps/toss/service/TossCareerStyle.jsx + app/saju/career-style/CareerStyleClient.tsx',storageContract:'계정별 프로필을 사용한 무료 개인 명식 8장. 실기기 미검증'},
  'yeongnyangi-horary':{tossRoute:'/yeongnyangi/fortune/?mode=horary',status:'local-partial',inputContract:'worker/yeongnyangi/fortune/free/horary.ts',resultRenderer:'app/yeongnyangi/_components/QuestionSkyConsultation.tsx',storageContract:'무료 질문 시각·도시 차트. 유료 결과 보관 계약 없음'},
@@ -296,6 +305,7 @@ const productContracts = ledger.products.map(product=>({
  historicalLedgerStatus:product.saleStatus,freeCalculation:isFreeFortuneFeatureKey(product.productId),
 }));
 const nativeSource = {
+ 'destiny-compass-deep-report':'destiny-compass-ai',
  'animal-totem':'animal-totem','geomancy-oracle':'oracle','naming-ai':'naming-prompt','master-love-codex':'master-love-codex','master-love-codex-compat':'master-love-codex','yoga-guru':'yoga-guru',
  'nakshatra-ai':'nakshatra-ai',
  'dream-psycho-analysis':'dream','fortune-tea-house':'fortune-tea-house','neo-operation-room':'neo-operation-room','life-book-ai':'life-book-ai',
@@ -336,6 +346,8 @@ for(const group of canonicalCandidates){
  if(!group.tossRoute)group.tossLogin='토스 기능 미연결';
  else if(nativeSource[group.id]||['heukwol-consult','neo-letter','fortune-chat','yeongnyangi','yeongnyangi-prashna'].includes(group.id))group.tossLogin='구매·기록에 토스 계정 필요';
  else if(['nakshatra-lord-report','nakshatra-dasha-map','nakshatra-muhurta','nakshatra-vvip-codex','destiny-meeting-place','manse','astrology','vedic','human-design','flower','yeongnyangi-daily','career-style','cosmic-soul-meditation','neville-meditation'].includes(group.id))group.tossLogin='계산 또는 기록 조회에 토스 계정 필요';
+ else if(group.id==='destiny-compass')group.tossLogin='기본 차트·퀘스트 공개';
+ else if(['destiny-compass-crossroads','destiny-compass-life-voyage','destiny-compass-future-sim'].includes(group.id))group.tossLogin='토스 로그인 후 무료 판독';
  else if(group.id==='nakshatra')group.tossLogin='출생 개인 계산·도감 게스트 공개';
  else if(group.id==='nakshatra-compat')group.tossLogin='두 사람 계산은 토스 로그인 필요';
  else if(group.id==='today-hub')group.tossLogin='별자리·띠는 공개. 네 체계와 오늘의 세 장은 토스 로그인 필요. 개인화는 소유 프로필만 선택';
