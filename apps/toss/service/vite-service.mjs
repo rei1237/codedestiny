@@ -1,3 +1,4 @@
+import {extractRpgEngine} from './rpg-loader.mjs';
 import {extractVillainBindings} from './section-bindings-loader.mjs';
 import {extractIfaEngine} from './ifa-engine-loader.mjs';
 import {readFile,readdir,stat} from 'node:fs/promises';
@@ -78,6 +79,7 @@ export default function serviceCompat(){
   },
   resolveId(id,importer){
    if(id==='virtual:consultation-webtoons')return '\0toss-consultation-webtoons';
+   if(id==='virtual:rpg-sheet')return '\0toss-rpg-sheet';
    if(id==='virtual:section-villain-bindings')return '\0toss-villain-bindings';
    if(id==='virtual:ifa-engine')return '\0toss-ifa-engine';
    if(id==='virtual:omikuji-engine')return '\0toss-omikuji-engine';
@@ -109,6 +111,11 @@ export default function serviceCompat(){
      ...story,cuts:story.cuts.map(cut=>({...cut,src:cut.src?'https://code-destiny.com'+cut.src:''})),
     }]));
     return 'export default '+JSON.stringify(stories);
+   }
+   if(id==='\0toss-rpg-sheet'){
+    const files=['entertain-engine.js','destiny-profile.js'].map(name=>resolve(publicRoot,'../js',name));
+    files.forEach(file=>this.addWatchFile(file));
+    return extractRpgEngine(...await Promise.all(files.map(file=>readFile(file,'utf8'))));
    }
    if(id==='\0toss-villain-bindings'){
     const source=resolve(publicRoot,'../js/core/saju/section-client.js');this.addWatchFile(source);

@@ -446,7 +446,7 @@ export function buildSajuSectionHtml(input) {
     // 클래스 시트만 보낸다(본문 칸 #skillTreeBody 에 들어간다). 시트 스타일은 브라우저 스텁이 먼저 깔고, 그 아래 퀘스트 칸은
     // 브라우저(js/entertain-engine.js renderSkillTree 오버라이드)가 붙인다.
     rt.renderSkillTree(p, natal);
-    return { html: cardDom.byId.skillTreeSection.innerHTML, css: cardDom.css };
+    return { html: cardDom.byId.skillTreeSection.innerHTML, css: cardDom.css, rpg: { stem: p.d.g, element: rt.GAN[p.d.g].e } };
   }
   if (featureKey === "saju_lifetime_bundle" || featureKey === "saju_natal_reading") {
     // 묶음: 원국 해석(일주·십성·조후·억부·절기). 계산은 위와 같은 원국·조후·강약·종격이고, 문장은 브라우저가 아니라 여기서만 만든다.

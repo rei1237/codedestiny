@@ -18,6 +18,7 @@ const mocks={
 globalThis.__tossRouteMocks=mocks;
 const stubMap={
  'worker/routes/kasi.js':"export const handleKasiRoutes=async request=>Response.json({path:new URL(request.url).pathname,input:await request.json()});",
+ 'worker/routes/rpg.js':"export const readOwnedQuestProgress=async(_env,owner)=>({scope:owner});export const completeOwnedQuest=async(_env,owner,key)=>Response.json({owner,key});export const adoptOwnedQuestProgress=async(_env,owner)=>Response.json({owner});",
  'worker/toss/today-hub.js':"export const readTodayHub=async(_env,auth,input)=>Response.json({profileId:input.profileId,owner:String(auth._id)});",
  'worker/toss/public-section.js':"export const readTossPublicSection=async input=>Response.json({featureKey:input.featureKey});",
  'worker/routes/career-style.js':"export async function readOwnedCareerStyle(_env,{userId,profileId,statusOnly}){if(profileId!=='mine')throw Object.assign(new Error(),{status:403,payload:{code:'INVALID_PROFILE'}});return {userId,profileId,statusOnly,priceKRW:0};}",
@@ -95,6 +96,14 @@ async function request(body,path='/prepare',env={TOSS_RELEASE_READY:'true'}){
  calls.profiles=[];calls.prepared=[];calls.followups=0;
  return handleTossRoutes(new Request('https://code-destiny.com/api/toss'+path,{method:'POST',headers:{Origin:'https://ai-saju-studio.private-apps.tossmini.com','Content-Type':'application/json'},body:JSON.stringify(body)}),env);
 }
+test('RPG progress, completion and adoption take the authenticated owner only',async()=>{
+ mocks.denyAuth=true;
+ try{assert.equal((await request({questId:'foreign'},'/canonical/rpg/quest')).status,401);}finally{mocks.denyAuth=false;}
+ const completed=await request({userId:'foreign',questId:'today'},'/canonical/rpg/quest');
+ assert.deepEqual(await completed.json(),{owner:auth.userId,key:'today'});
+ const adopted=await request({userId:'foreign',totalExp:15},'/canonical/rpg/adopt');
+ assert.deepEqual(await adopted.json(),{owner:auth.userId});
+});
 test('public birth sections pass through without session or release activation',async()=>{
  mocks.denyAuth=true;
  try {

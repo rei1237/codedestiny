@@ -115,6 +115,12 @@ export async function handleTossRoutes(request,env) {
     }
     const auth=await requireTossSession(request,env);
     await limit(env,auth._id,'authenticated',120);
+    if(path.startsWith('/canonical/rpg/')){
+      const {readOwnedQuestProgress,completeOwnedQuest,adoptOwnedQuestProgress}=await import('../routes/rpg.js');
+      if(path==='/canonical/rpg/progress'&&request.method==='GET')return reply(await readOwnedQuestProgress(env,auth.userId));
+      if(path==='/canonical/rpg/quest'&&request.method==='POST')return forwardServiceResponse(await completeOwnedQuest(env,auth.userId,(await bodyOf(request)).questId),headers);
+      if(path==='/canonical/rpg/adopt'&&request.method==='POST')return forwardServiceResponse(await adoptOwnedQuestProgress(env,auth.userId,await bodyOf(request)),headers);
+    }
     if(path==='/canonical/fortune-chat/consultations/status'&&request.method==='GET')return reply({ok:true,enabled:await letterEnabled()});
     if(path==='/canonical/fortune-chat/consultations'&&request.method==='GET'){
       const persona=url.searchParams.get('persona');

@@ -87,6 +87,23 @@ try{
        await box.locator('.villain-submit-btn').click();
        assert.match(await box.locator('.villain-feedback').innerText(),/4\/5/);
      }
+     if(key==='rpt_skillTreeCard'){
+       const sheet=frame.locator('#entRpgSection'),buttons=sheet.locator('button[data-rpg-complete]');
+       await buttons.first().waitFor();
+       assert.equal(await buttons.count(),3);
+       for(let i=0;i<3;i++){
+         const button=buttons.nth(i);
+         await tap(button);
+         await sheet.locator('.ent-rpg-quest-card.is-complete').nth(i).waitFor();
+       }
+       await sheet.locator('.ent-rpg-secret-panel.is-open').waitFor();
+       const saved=await page.evaluate(()=>JSON.parse(localStorage.getItem('cd:toss:rpg:guest:v1')));
+       assert.equal(saved.totalExp,45);
+       await page.getByRole('button',{name:'다른 풀이 보기'}).click();
+       await page.getByRole('button',{name:'선택한 풀이 보기'}).click();
+       await sheet.locator('.ent-rpg-secret-panel.is-open').waitFor();
+       assert.equal(await sheet.locator('button[data-rpg-complete]:disabled').count(),3);
+     }
      if(key==='ziwei_decade_luck'){
        await frame.getByText('대한 상세표',{exact:true}).click();
        assert.ok(await frame.getByText('대한 상세표',{exact:true}).evaluate(el=>el.parentElement.open));

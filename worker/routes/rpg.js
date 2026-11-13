@@ -1725,6 +1725,64 @@ async function runLocalRpgAdopt(env, userId, localTotalExp, localStreakDays, loc
   });
 }
 
+// Toss authenticates the owner before calling these functions. Domain calculations,
+// EXP budget and log keys stay shared with the web account.
+export async function readOwnedQuestProgress(env,userId){
+ const date=kstDateKey(),scope={userId,profileId:ACCOUNT_PROFILE_SCOPE};
+ const [progress,logs]=await Promise.all([
+  withMongoRetry(env,()=>UserRpgProgress.findOne(scope).lean()),
+  withMongoRetry(env,()=>UserDailyQuestLog.find({...scope,questDateKst:date,questType:AWARD_RULES.quest.questType,status:'completed'}).select('questId').lean()),
+ ]);
+ return {scope:String(userId),date,progress:buildProgressResponse(progress),completed:logs.map(row=>String(row.questId).replace(/^quest:/,''))};
+}
+export async function completeOwnedQuest(env,userId,questId){
+ const today=kstDateKey().replaceAll('-','.');
+ if(!isHabitQuest(questId,today))return json({ok:false,code:'INVALID_QUEST'}, {status:400});
+ await connectDb(env);
+ await ensureRpgIndexes();
+ const result=await applyRpgAward(env,userId,'quest',questId);
+ return json(result.body,{status:result.status||200});
+}
+function isHabitQuest(id,date){
+ return typeof id==='string'&&id.startsWith('daily-'+date+'-')&&/^daily-\d{4}\.\d{2}\.\d{2}-[wfeam]q[1-5]$/.test(id);
+}
+
+// The guest device binds its outstanding transfer to the first authenticated
+// account before sending it. The same account-level adoption marker used by the
+// web app prevents repeated adoption after a lost response or another device.
+export async function adoptOwnedQuestProgress(env,userId,input){
+ const date=kstDateKey(),today=date.replaceAll('-','.');
+ const total=input?.totalExp,completed=input?.date===today?input.completed:[];
+ if(!Number.isSafeInteger(total)||total<1||!Array.isArray(completed)||completed.length>AWARD_RULES.quest.dailyLimit||completed.some(id=>!isHabitQuest(id,today)))return json({ok:false,code:'INVALID_QUEST_PROGRESS'},{status:400});
+ await connectDb(env);await ensureRpgIndexes();
+ const scope={userId,profileId:ACCOUNT_PROFILE_SCOPE};
+ await withMongoRetry(env,()=>loadRpgProgress(userId,ACCOUNT_PROFILE_SCOPE));
+ await withMongoRetry(env,async()=>{
+  const session=await (scopeConnection()||mongoose).startSession();
+  try{
+   await session.withTransaction(async()=>{
+    const mark={...scope,rewardType:'local_adopt',rewardKey:'v1'};
+    if(await UserRpgRewardLog.findOne(mark).session(session).lean())return;
+    const progress=await UserRpgProgress.findOne(scope).session(session).lean();
+    const state=calculateLevelState(Math.max(progress.totalExp,Math.min(total,AWARD_LOCAL_ADOPT_CAP)));
+    await UserRpgProgress.updateOne(scope,{$set:state},{session});
+    const day={...scope,questDateKst:date,questType:AWARD_RULES.quest.questType};
+    const logs=await UserDailyQuestLog.find(day).session(session).lean();
+    const ids=new Set(logs.map(log=>log.questId));
+    for(const id of completed){
+     const key='quest:'+id;
+     if(ids.size>=AWARD_RULES.quest.dailyLimit||ids.has(key))continue;
+     ids.add(key);
+     await UserDailyQuestLog.create([{...day,questId:key,expReward:AWARD_RULES.quest.exp,completedAt:new Date(),status:'completed',evidenceType:'client_reported_action',idempotencyKey:date+':'+ACCOUNT_PROFILE_SCOPE+':'+key}],{session});
+    }
+    await UserRpgRewardLog.create([{...mark,level:0,idempotencyKey:ACCOUNT_PROFILE_SCOPE+':local_adopt:v1',meta:{localTotalExp:total}}],{session});
+   },mongoTransactionOptions(env));
+  }finally{await session.endSession();}
+ });
+ invalidateRpgProgressCacheForUser(userId);
+ return json({ok:true});
+}
+
 /* 서버가 스스로 확인한 사건(카카오 공유 링크 생성 등)에 EXP 를 적립하는 통로.
    HTTP 라우트를 거치지 않으므로 자기신고가 아니며, 실패해도 원래 기능을 막지 않는다. */
 export async function grantRpgExpForServerEvent(env, userId, kind, awardKey = "") {

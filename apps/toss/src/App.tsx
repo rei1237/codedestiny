@@ -220,7 +220,7 @@ export default function App({reviewHome,reviewRoute,consultationHref,verifiedRec
     {page==='today'&&<Suspense fallback={<p role="status">오늘의 운세를 열고 있어요.</p>}><TodayPublic loggedIn={loggedIn} onLogin={()=>requireLogin('today')}/></Suspense>}
     {page==='consultations/stories'&&<Suspense fallback={<p role="status">웹툰 서가를 열고 있어요.</p>}><StoryLibrary/></Suspense>}
     {page==='dream/tarot'&&<Suspense fallback={<p role="status">꿈의 장부를 열고 있어요.</p>}><DreamPrompt/></Suspense>}
-    {(page==='saju/sections'||page==='ziwei/sections')&&<Suspense fallback={<p role="status">풀이할 항목을 펼치고 있어요.</p>}><PublicSectionReading key={page} kind={page==='saju/sections'?'saju':'ziwei'}/></Suspense>}
+    {(page==='saju/sections'||page==='ziwei/sections')&&<Suspense fallback={<p role="status">풀이할 항목을 펼치고 있어요.</p>}><PublicSectionReading key={page} onLogin={()=>requireLogin(page)} kind={page==='saju/sections'?'saju':'ziwei'}/></Suspense>}
     {page==='oracle/ifa'&&<Suspense fallback={<p role="status">이파 점판을 펼치고 있어요.</p>}><IfaReading/></Suspense>}
     {page==='oracle/turtle'&&<Suspense fallback={<p role="status">거북점을 준비하고 있어요.</p>}><TurtleOracle/></Suspense>}
     {page==='moonlight/season-1'&&<Suspense fallback={<p role="status">회차를 열고 있어요.</p>}><MoonlightSeason/></Suspense>}
