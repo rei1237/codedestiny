@@ -1,3 +1,4 @@
+import SajuDashboard from './SajuDashboard';
 import PillarAlmanac from './PillarAlmanac';
 import {useEffect,useRef,useState,type FormEvent} from 'react';
 import {calculateNatalSaju} from '@/lib/korean-calendar/natal.js';
@@ -11,7 +12,7 @@ const labels={year:'연주',month:'월주',day:'일주',hour:'시주'} as const;
 function readChart(birth:BirthInput){
   const {location}=birthPayload(birth);
   if(!birth.unknown&&!birth.time)throw new Error('INVALID_BIRTH_TIME');
-  const {pillars}=calculateNatalSaju({birthDate:birth.date,birthTime:birth.time,birthTimeUnknown:birth.unknown,
+  const {pillars,calculationMeta}=calculateNatalSaju({birthDate:birth.date,birthTime:birth.time,birthTimeUnknown:birth.unknown,
     calendarType:birth.calendar,birthPlace:{name:location.label,latitude:location.lat,longitude:location.lng,timezone:location.tz}});
   const elements:Record<FiveElement,number>={목:0,화:0,토:0,금:0,수:0};
   const dayStem=formatPillar(stemIndexOf(pillars.day[0]),branchIndexOf(pillars.day[1]),'hangul')[0];
@@ -24,7 +25,8 @@ function readChart(birth:BirthInput){
     elements[stem]++;elements[branch]++;
     return {key,hanja,korean,relation:key==='day'?'일간':tenGodOfStem(dayStem,korean[0])};
   });
-  return {rows,elements};
+  const pillar=(value:string|null|undefined)=>({g:value?.[0]||'',j:value?.[1]||''});
+  return {rows,elements,lotto:{termClock:calculationMeta.termClock,civilYear:calculationMeta.civil.year},dashboard:{y:pillar(pillars.year),m:pillar(pillars.month),d:pillar(pillars.day),h:pillar(pillars.hour)}};
 }
 export default function BasicSajuReading(){return <TossSessionScope><Reading/></TossSessionScope>;}
 function Reading(){
@@ -48,6 +50,7 @@ function Reading(){
   return <section className="manse-result"><h1 ref={title} tabIndex={-1}>나의 기본 사주</h1>
     <PillarAlmanac pillars={chart.rows.map(r=>({key:r.key,ganji:r.hanja,tenGod:r.relation}))} counts={chart.elements} basis="surface"
       unknownNote={birth.unknown?'태어난 시각을 몰라 시주는 비워 두었어요. 절기가 바뀌는 날에는 정오 기준으로 본 연주와 월주가 실제와 다를 수 있어요.':undefined}/>
+    <SajuDashboard pillars={chart.dashboard} lotto={chart.lotto}/>
     <Button variant="weak" display="block" onClick={()=>setChart(null)}>출생정보 다시 보기</Button>
   </section>;
 }

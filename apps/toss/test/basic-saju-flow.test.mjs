@@ -3,7 +3,10 @@ import assert from 'node:assert/strict';
 import {chartFixture} from './chart-fixture.mjs';
 
 test('a leap-month chart handles unknown time, preserves editable input on back, and clears private data on session replacement',async()=>{
-  const {dom,React,createRoot,Component}=await chartFixture('BasicSajuReading.tsx','/saju/basic/play');
+  const {dom,React,createRoot,Component}=await chartFixture('BasicSajuReading.tsx','/saju/basic/play',[{name:'dashboard-tested-separately',setup(build){
+    build.onResolve({filter:/^\.\/SajuDashboard$/},()=>({namespace:'dashboard-test',path:'dashboard'}));
+    build.onLoad({filter:/.*/,namespace:'dashboard-test'},()=>({contents:'export default function SajuDashboard(){return null}'}));
+  }}]);
   const root=createRoot(document.getElementById('chart'));
   const field=(el,value)=>{
     const select=el.tagName==='SELECT';

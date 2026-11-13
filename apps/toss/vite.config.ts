@@ -1,3 +1,4 @@
+import sajuDashboard from './service/saju-dashboard-loader.mjs';
 import coreTarot from './service/core-tarot-loader.mjs';
 import faceReading from './canonical/face-reading.mjs';
 import compatBasis from './service/compat-basis-loader.mjs';
@@ -26,4 +27,4 @@ const theme=require('../../tailwind.config.js');
 const root=fileURLToPath(new URL('../../',import.meta.url)).replaceAll('\\','/');
 // Shared web components use Next's jsx:preserve. This CSR build must transform
 // them too, without changing the web application's TypeScript configuration.
-export default defineConfig(({mode})=>({base:'/',plugins:[coreTarot(),compass(),faceReading(),yogaCourse(),compatBasis(),kemetOracle(),royalTea(),turtleOracle(),moonlightSeason(),cosmicSessions(),nevilleCourses(),astralAnimals(),animalAlmanac(),musicShelf(),mansionAtlas(),novelReader(),famousArchive(),mode==='preview-fixtures'?canonicalPreview():serviceCompat()],oxc:{jsx:{runtime:'automatic'}},resolve:{alias:{'@':fileURLToPath(new URL('../../',import.meta.url))},dedupe:['react','react-dom']},css:{postcss:{plugins:[localBrandFonts(),tailwind({...theme,content:theme.content.map((path:string)=>root+'/'+path.replace(/^\.\//,''))})]}},build:{sourcemap:false,target:'es2022'},server:{host:'127.0.0.1',port:4317}}));
+export default defineConfig(({mode})=>({base:'/',plugins:[sajuDashboard(),coreTarot(),compass(),faceReading(),yogaCourse(),compatBasis(),kemetOracle(),royalTea(),turtleOracle(),moonlightSeason(),cosmicSessions(),nevilleCourses(),astralAnimals(),animalAlmanac(),musicShelf(),mansionAtlas(),novelReader(),famousArchive(),mode==='preview-fixtures'?canonicalPreview():serviceCompat()],oxc:{jsx:{runtime:'automatic'}},resolve:{alias:{'@':fileURLToPath(new URL('../../',import.meta.url))},dedupe:['react','react-dom']},css:{postcss:{plugins:[localBrandFonts(),tailwind({...theme,content:theme.content.map((path:string)=>root+'/'+path.replace(/^\.\//,''))})]}},build:{sourcemap:false,target:'es2022'},server:{host:'127.0.0.1',port:4317}}));

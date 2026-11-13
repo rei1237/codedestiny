@@ -1,3 +1,4 @@
+import ImagePrompts,{type ImagePrompt} from './SajuImagePrompts';
 import {lazy,Suspense,useEffect,useRef,useState,type FormEvent} from 'react';
 import {TOSS_PUBLIC_SECTIONS,isTossPublicSection} from '../../../lib/fortune/toss-public-sections.mjs';
 import {bindVillainResult} from 'virtual:section-villain-bindings';
@@ -14,7 +15,6 @@ const IslandReading=lazy(()=>import('./IslandReading'));
 const SecretHouseReading=lazy(()=>import('./SecretHouseReading'));
 type SectionKey=keyof typeof TOSS_PUBLIC_SECTIONS;
 type Energy={recent?:string[];renderedAt?:string;transform?:string;roulette?:string[]};
-type ImagePrompt={id:string;title:string;prompt:string};
 type Report={imagePrompts?:ImagePrompt[];rpg?:{stem:string;element:string};ok:boolean;featureKey:string;accessSource:string;html:string;css?:string;parts?:NatalParts;decadeHtml?:string;energy?:Energy};
 type RequestBody=ReturnType<typeof sectionInput>;
 const cardAreas:Record<string,[string,string]>={
@@ -29,14 +29,7 @@ function sectionInput(featureKey:SectionKey,input:BirthInput,mode:string,recent:
   return {featureKey,gender:input.gender,mode,...(['saju_natal_reading','rpt_skillTreeCard'].includes(featureKey)?{name}:{}),...(featureKey==='rpt_energyCoordCard'?{energy:{recent}}:{}),birth:{date:input.date,calType:date.calType,timeKnown:!input.unknown,hour:date.hour,minute:date.minute},
     place:{name:c.label,longitude:c.lng,latitude:c.lat,timezone:c.tz,baseTzOffset:9}};
 }
-function ImagePrompts({items}:{items:ImagePrompt[]}){
-  const [id,setId]=useState('treasure'),[status,setStatus]=useState('');
-  const item=items.find(row=>row.id===id)||items[0];
-  if(!item)return null;
-  return <section className="paper"><h2>사주 그림 프롬프트</h2><p>태어난 날의 천간과 오행을 그림으로 표현하는 문장이에요.</p>
-    <label>그림 주제<select value={item.id} onChange={event=>{setId(event.target.value);setStatus('');}}>{items.map(row=><option key={row.id} value={row.id}>{row.title}</option>)}</select></label>
-    <p lang="en" data-saju-image-prompt={item.id}>{item.prompt}</p><Button variant="weak" onClick={async()=>{try{await navigator.clipboard.writeText(item.prompt);setStatus('프롬프트를 복사했어요.');}catch{setStatus('위 문장을 길게 눌러 복사해 주세요.');}}}>그림 프롬프트 복사</Button>{status&&<p role="status">{status}</p>}</section>;
-}
+
 
 function checked(response:Report,key:string){
   const hasContent=key==='saju_natal_reading'?Object.values(response.parts||{}).some(Boolean):!!response.html?.trim();
