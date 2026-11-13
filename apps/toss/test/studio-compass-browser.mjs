@@ -8,10 +8,11 @@ try{
  const external=[];await context.route('**/*',route=>{const url=new URL(route.request().url());if(url.origin===origin)return route.continue();external.push(url.href);return route.abort();});
  const page=await context.newPage();page.on('pageerror',e=>console.error(e.message));
  const open=async()=>{await page.goto(origin);await page.locator('.world-entry-ggulggul').click();await page.getByRole('button',{name:/운명의 나침반/}).click();};
- async function chart(){
+ async function chart(testDraft=false){
    await page.locator('#compass-birth-date').fill('19900512');await page.locator('#compass-gender').selectOption('female');await page.getByRole('checkbox').first().check();
    await page.getByRole('button',{name:'이 정보로 나침반 맞추기'}).click();
    const map=page.locator('input[maxlength]').first();await map.fill('이직을 위해 지금 준비할 일은 무엇인가요');
+   if(testDraft){await open();await page.getByRole('button',{name:'작성하던 질문 이어가기'}).click();assert.equal(await map.inputValue(),'이직을 위해 지금 준비할 일은 무엇인가요');}
    const island=page.locator('[style*="--island-art-mobile"]');
    const background=await island.evaluate(el=>getComputedStyle(el).backgroundImage);
    assert.match(background,/premium-destiny-island-mobile/);
@@ -19,7 +20,7 @@ try{
    await map.press('Enter');await page.getByRole('button',{name:/결과 확인하기/}).waitFor();await page.getByRole('button',{name:/결과 확인하기/}).click({timeout:60000});
    await page.locator('[data-section="coordinate"] h1').waitFor();
  }
- await open();await chart();
+ await open();await chart(true);
  const primary=await page.locator('[data-section="coordinate"] h1').innerText();
  assert.equal(await page.locator('[data-section="coordinate"] span[class*="sysChipOn"]').count(),5);
  assert.equal(await page.locator('[data-section="flow"] [data-trend]').count(),6);

@@ -21,6 +21,8 @@ const REGION_TONE: Record<string, string> = {
 };
 
 interface ConcernInputProps {
+  initialValue?:string;
+  onDraftChange?:(value:string)=>void;
   onSubmit: (concern: string) => void;
   /** 칩 hover/포커스 시 대응 노드 발광(null=해제) */
   onSpotlight?: (region: string | null) => void;
@@ -34,9 +36,9 @@ const IDLE_MS = 8000;
 // 프레임 성좌 데코(장식) — 유니코드 룬 대신 자체 SVG 별자리.
 const RUNE_VARIANTS: ConstellationVariant[] = [0, 2, 4, 1, 3, 5];
 
-export function ConcernInput({ onSubmit, onSpotlight, onWaitingChange, onPigExpr }: ConcernInputProps) {
+export function ConcernInput({ initialValue="", onDraftChange, onSubmit, onSpotlight, onWaitingChange, onPigExpr }: ConcernInputProps) {
   const copy = useDestinyCompassCopy();
-  const [value, setValue] = useState("");
+  const [value, setValue] = useState(initialValue);
   const [focused, setFocused] = useState(false);
   const [waiting, setWaiting] = useState(false);
   const idleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -100,7 +102,7 @@ export function ConcernInput({ onSubmit, onSpotlight, onWaitingChange, onPigExpr
         <input
           className={styles.oracleInput}
           value={value}
-          onChange={(e) => setValue(e.target.value)}
+          onChange={(e) => {setValue(e.target.value);onDraftChange?.(e.target.value);}}
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
           placeholder={copy.concernPlaceholder}

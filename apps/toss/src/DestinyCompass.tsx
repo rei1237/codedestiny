@@ -1,4 +1,5 @@
 import {useEffect,useState} from 'react';
+import type {AnimalDestinyInput} from '../../../app/saju/animal-destiny/lib/types';
 import {JourneyHub} from '../../../app/destiny-compass/_components/JourneyHub';
 import {DestinyMap} from '../../../app/destiny-compass/_components/DestinyMap';
 import {ConcernInput} from '../../../app/destiny-compass/_components/ConcernInput';
@@ -23,13 +24,22 @@ const leaves=new Set<CompassStep>(['futureSim','crossroad','voyage']);
 function Journey({owner,loggedIn,onLogin}:{owner:string;loggedIn:boolean;onLogin:()=>void}){
   const s=useCompassSession('hub'),copy=useDestinyCompassCopy();
   const key='toss.compass.last.'+owner;
+  const draftKey='toss.compass.draft.'+owner;
+  type Draft={birth:AnimalDestinyInput;question:string};
+  const [draft,setDraft]=useState<Draft|null>(()=>{
+    try{const d=JSON.parse(localStorage.getItem(draftKey)||'null');return d?.birth?.birthDate&&typeof d.question==='string'?d:null;}catch{return null;}
+  });
+  function saveDraft(next:Draft|null){
+    setDraft(next);
+    try{if(next)localStorage.setItem(draftKey,JSON.stringify(next));else localStorage.removeItem(draftKey);}catch{/* Optional draft persistence. */}
+  }
   const [saved,setSaved]=useState(()=>{try{return Boolean(localStorage.getItem(key));}catch{return false;}});
   const [spot,setSpot]=useState<string|null>(null),[pig,setPig]=useState<'talk'|'happy'|'think'|'surprise'|'neutral'>('talk');
   const [tilt,setTilt]=useState(false);
   useEffect(()=>{
     if(!s.field||!s.input)return;
-    try{localStorage.setItem(key,JSON.stringify({birth:s.birth,input:s.input,situation:s.situation,field:s.field}));setSaved(true);}catch{/* Optional on-device history. */}
-  },[s.field,s.input,s.birth,s.situation,key]);
+    try{localStorage.setItem(key,JSON.stringify({birth:s.birth,input:s.input,situation:s.situation,field:s.field}));localStorage.removeItem(draftKey);setSaved(true);setDraft(null);}catch{/* Optional on-device history. */}
+  },[s.field,s.input,s.birth,s.situation,key,draftKey]);
   useEffect(()=>{
     if(!loggedIn)return;
     try{
@@ -58,8 +68,8 @@ function Journey({owner,loggedIn,onLogin}:{owner:string;loggedIn:boolean;onLogin
     const back=(e:Event)=>{const next=previous[s.step];if(!next)return;e.preventDefault();s.setStep(next);};
     window.addEventListener('code-destiny:toss-back',back);return()=>window.removeEventListener('code-destiny:toss-back',back);
   },[s.step,s.setStep]);
-  if(s.step==='hub'||s.step==='birth')return <>{saved&&<Button onClick={resume}>지난 나침반 결과 다시 보기</Button>}<JourneyHub onStart={birth=>{s.setBirth(birth);s.setStep('map');}}/></>;
-  if(s.step==='map')return <DestinyMap islandArt spotlightRegion={spot} guideTilt={tilt} pigExpr={pig}><ConcernInput onSubmit={s.submitConcern} onSpotlight={setSpot} onWaitingChange={setTilt} onPigExpr={setPig}/>{s.error&&<p role="alert">{s.error}</p>}</DestinyMap>;
+  if(s.step==='hub'||s.step==='birth')return <>{draft&&<Button onClick={()=>{s.setBirth(draft.birth);s.setStep('map');}}>작성하던 질문 이어가기</Button>}{saved&&<Button onClick={resume}>지난 나침반 결과 다시 보기</Button>}<JourneyHub onStart={birth=>{saveDraft({birth,question:''});s.setBirth(birth);s.setStep('map');}}/></>;
+  if(s.step==='map')return <DestinyMap islandArt spotlightRegion={spot} guideTilt={tilt} pigExpr={pig}><ConcernInput initialValue={draft?.question||s.situation} onDraftChange={question=>{if(s.birth)saveDraft({birth:s.birth,question});}} onSubmit={s.submitConcern} onSpotlight={setSpot} onWaitingChange={setTilt} onPigExpr={setPig}/>{s.error&&<p role="alert">{s.error}</p>}</DestinyMap>;
   if(s.step==='processing')return <DestinyMap showFog hideHero hideHeader phase={s.stagePhase}><ProcessingScene/></DestinyMap>;
   if(!s.field||!s.input)return null;
   const field=s.field;
