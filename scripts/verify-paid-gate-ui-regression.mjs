@@ -399,7 +399,7 @@ assertBefore(reactWaitKindSource, 'if (mode === "MOONLIGHT_STONE"', 'if (mode ==
 assertContains(reactWaitKindSource, "membership_credit", "React wait kind treats membership_credit as monthly");
 assertNotContains(reactWaitKindSource, "이용권으로|membership", "React pass wait kind must not use broad membership regex");
 
-// 🔴 이용권(30일 이용권)과 월정석(이벤트 재화)은 별개 재화다. 대기 UI 축에서 이 둘이 섞이면
+// 🔴 이용권(기간 제한 없음)과 월정석(이벤트 재화)은 별개 재화다. 대기 UI 축에서 이 둘이 섞이면
 // 이용권 사용자에게 '월정석 잔량' 문구가 뜬다(2026-09-04 사용자 보고). 아래 넷이 그 배선을 고정한다.
 const shellWaitKindSource = section(indexSource, "function _cdResolvePaymentWaitKind(", "var CD_LOADING_MESSAGES", "shell payment wait kind");
 // 이용권 제품명이 "달빛 이용권"이라 맨 '달빛' 을 월정석 신호로 쓰면 이용권이 월정석으로 접힌다.

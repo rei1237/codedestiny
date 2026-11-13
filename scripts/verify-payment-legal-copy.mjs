@@ -277,8 +277,8 @@ const REMOVED_VIOLATIONS = {
 // 반대로 **잡히면 안 되는 것** — 환불 어휘만 있고 기한이 없는 정상 고지, 기한만 있고 환불이
 // 아닌 상품 설명. 둘 중 하나라도 걸리면 탐지기가 너무 넓어 allowlist 를 부풀리게 된다.
 const MUST_NOT_MATCH = {
-  ko: ["제공이 개시된 콘텐츠는 청약철회가 제한될 수 있습니다.", "30일 이용권"],
-  en: ["Your right to withdraw the purchase may be restricted.", "30-day Pass"],
+  ko: ["제공이 개시된 콘텐츠는 청약철회가 제한될 수 있습니다.", "기간 제한 없는 이용권"],
+  en: ["Your right to withdraw the purchase may be restricted.", "Pass with no time limit"],
 };
 
 if (SELF_TEST) {

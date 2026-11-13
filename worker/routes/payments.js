@@ -242,10 +242,10 @@ function buildDigitalProductName(body = {}, pricing = {}) {
    HONEY_PASS_POLICY 를 참조하는지, 그리고 회차 카운트 필드가 없는지를 단언하기 때문이다.
    그 가드를 V2(worker/payments/passes.js)로 옮겨 겨눈 다음에 함께 지운다. */
 const SUBSCRIPTION_BASE_PLANS = {
-  [PASS_TIERS.STANDARD]: { tier: PASS_TIERS.STANDARD, name: "스탠다드 꿀 30일", monthlyWonPrice: PASS_MONTHLY_WON.standard, profileLimit: HONEY_PASS_POLICY.standard.maxProfiles, maxCoveredCoin: HONEY_PASS_POLICY.standard.maxCoveredCoin },
-  [PASS_TIERS.PREMIUM]: { tier: PASS_TIERS.PREMIUM, name: "프리미엄 꿀 30일", monthlyWonPrice: PASS_MONTHLY_WON.premium, profileLimit: HONEY_PASS_POLICY.premium.maxProfiles, maxCoveredCoin: HONEY_PASS_POLICY.premium.maxCoveredCoin },
-  [PASS_TIERS.VVIP]: { tier: PASS_TIERS.VVIP, name: "VVIP 꿀단지 30일", monthlyWonPrice: PASS_MONTHLY_WON.vvip, profileLimit: HONEY_PASS_POLICY.vvip.maxProfiles, maxCoveredCoin: HONEY_PASS_POLICY.vvip.maxCoveredCoin },
-  [PASS_TIERS.FAMILY]: { tier: PASS_TIERS.FAMILY, name: "Code Destiny Family 30일", monthlyWonPrice: PASS_MONTHLY_WON.family, profileLimit: HONEY_PASS_POLICY.family.maxProfiles, maxCoveredCoin: HONEY_PASS_POLICY.family.maxCoveredCoin },
+  [PASS_TIERS.STANDARD]: { tier: PASS_TIERS.STANDARD, name: "작은 꿀단지", monthlyWonPrice: PASS_MONTHLY_WON.standard, profileLimit: HONEY_PASS_POLICY.standard.maxProfiles, maxCoveredCoin: HONEY_PASS_POLICY.standard.maxCoveredCoin },
+  [PASS_TIERS.PREMIUM]: { tier: PASS_TIERS.PREMIUM, name: "중간 꿀단지", monthlyWonPrice: PASS_MONTHLY_WON.premium, profileLimit: HONEY_PASS_POLICY.premium.maxProfiles, maxCoveredCoin: HONEY_PASS_POLICY.premium.maxCoveredCoin },
+  [PASS_TIERS.VVIP]: { tier: PASS_TIERS.VVIP, name: "큰 꿀단지", monthlyWonPrice: PASS_MONTHLY_WON.vvip, profileLimit: HONEY_PASS_POLICY.vvip.maxProfiles, maxCoveredCoin: HONEY_PASS_POLICY.vvip.maxCoveredCoin },
+  [PASS_TIERS.FAMILY]: { tier: PASS_TIERS.FAMILY, name: "패밀리 꿀단지", monthlyWonPrice: PASS_MONTHLY_WON.family, profileLimit: HONEY_PASS_POLICY.family.maxProfiles, maxCoveredCoin: HONEY_PASS_POLICY.family.maxCoveredCoin },
 };
 
 function toValidDate(value) {

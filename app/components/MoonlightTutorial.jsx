@@ -57,7 +57,7 @@ export default function MoonlightTutorial({ onWrite }) {
             {panel.img
               ? <picture>
                 <source type="image/avif" srcSet={panel.img.widths.map(w => panel.img.avif + '-' + w + '.avif ' + w + 'w').join(', ')} sizes="(max-width:560px) calc(100vw - 32px), 508px" />
-                <img src={panel.img.src} width={508} height={508} alt={panel.alt} loading={index === 0 ? 'eager' : 'lazy'} decoding="async" />
+                <img src={panel.img.src} width={panel.img.w || 508} height={panel.img.h || 508} alt={panel.alt} loading={index === 0 ? 'eager' : 'lazy'} decoding="async" />
               </picture>
               : <Image src={'/images/moonlight-guide/' + panel.art + '.webp'} width={508} height={508}
                 alt={panel.alt} loading={index === 0 ? 'eager' : 'lazy'} />}

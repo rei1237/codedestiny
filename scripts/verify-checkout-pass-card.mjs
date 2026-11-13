@@ -1072,7 +1072,7 @@ console.log("\n[14] 이용권 결제수단 — 결제창 표와 서버 정책의
     }
   });
 
-  check("표의 모든 orderMethod 로 이용권(30일) 구매가 허용된다", () => {
+  check("표의 모든 orderMethod 로 이용권 구매가 허용된다", () => {
     for (const [id, orderMethod] of orderMethods) {
       const verdict = validatePurchasePolicy({
         productType: "membership_pass",

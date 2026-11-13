@@ -273,7 +273,7 @@ function resolveProduct(pricing, env, body = {}) {
   };
 }
 
-/** 이용권(30일, 자동갱신 없음, 사용 횟수 제한 없음)은 Play `subs`가 아니라 `inapp`으로 등록한다. */
+/** 이용권(기간 제한 없음, 자동갱신 없음)은 Play `subs`가 아니라 `inapp`으로 등록한다. */
 function resolveAppPassPurchaseProduct(body = {}) {
   const passTier = cleanText(body.passTier || body.subscriptionTier).toLowerCase();
   const version = findAppStoreProductById(cleanText(body.productId))?.passPolicyVersion || body.passPolicyVersion || "legacy";
@@ -321,7 +321,7 @@ function isPerUseProduct(product) {
  * 티어 SKU는 기능별이 아니라 '가격대별'로 공유된다(app-store-pricing.js: 50코인 기능 전부가
  * cd_content_tier_02 하나를 쓴다). 그런데 Play 일회성 상품은 consume 하지 않으면 영구 소유
  * 상태로 남는다. 따라서 UNLOCK 하나만 사도 그 SKU가 잠겨 **같은 가격대의 나머지 기능 수십 개가
- * 전부 ITEM_ALREADY_OWNED 로 구매 불가**가 된다(이용권 30일 후 재구매 불가도 같은 원인이었다).
+ * 전부 ITEM_ALREADY_OWNED 로 구매 불가**가 된다(이용권 재구매 불가도 같은 원인이었다).
  *
  * 소비해도 권한은 잃지 않는다. 해금은 Play 소유 상태가 아니라 서버가 들고 있다 —
  * buildEntitlementUpdate 가 unlockedFeatures/paidFeatures 에 기록하고, 복원(handleRestore)은

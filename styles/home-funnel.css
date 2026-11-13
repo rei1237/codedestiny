@@ -1691,7 +1691,9 @@ html.neo-mode #cdHomeFunnel .cdh-scene-art #honeypigLogo{box-shadow:none!importa
 .cdh-widget-entry small { display:block; margin-top:4px; }
 
 /* 2026-11-12 무료 3개월 홍보 배너(lib/marketing/free-promo-shell.mjs). 표시 전용 — 마감 뒤에는 스크립트가 숨긴다. */
-#cdHomeFunnel .cdh-promo{display:grid;gap:8px;margin:clamp(32px,4vw,48px) 40px 0;padding:clamp(18px,2.4vw,26px) clamp(18px,2.6vw,30px);border:1px solid color-mix(in srgb,var(--cdh-accent) 38%,transparent);border-radius:var(--cd-r-card,20px);background:linear-gradient(135deg,color-mix(in srgb,var(--cdh-accent) 10%,var(--cdh-card)),var(--cdh-card) 62%,color-mix(in srgb,var(--cdh-gold-soft) 70%,var(--cdh-card)));box-shadow:0 14px 32px -24px color-mix(in srgb,var(--cdh-accent) 60%,transparent)}
+#cdHomeFunnel .cdh-promo{position:relative;isolation:isolate;overflow:hidden;display:grid;gap:8px;margin:clamp(32px,4vw,48px) 40px 0;padding:clamp(18px,2.4vw,26px) clamp(18px,2.6vw,30px);border:1px solid color-mix(in srgb,var(--cdh-accent) 38%,transparent);border-radius:var(--cd-r-card,20px);background:linear-gradient(135deg,color-mix(in srgb,var(--cdh-accent) 10%,var(--cdh-card)),var(--cdh-card) 62%,color-mix(in srgb,var(--cdh-gold-soft) 70%,var(--cdh-card)));box-shadow:0 14px 32px -24px color-mix(in srgb,var(--cdh-accent) 60%,transparent)}
+#cdHomeFunnel .cdh-promo::before{content:"";position:absolute;z-index:0;top:-38px;right:-34px;width:210px;height:164px;background:var(--cd-yehwa-line-deep,#a97b3e);opacity:.2;pointer-events:none;-webkit-mask:var(--cd-yehwa-mask-branch-corner) top right/contain no-repeat;mask:var(--cd-yehwa-mask-branch-corner) top right/contain no-repeat}
+#cdHomeFunnel .cdh-promo>*{position:relative;z-index:1}
 #cdHomeFunnel .cdh-promo__badge{justify-self:start;padding:3px 12px;border-radius:999px;background:var(--cdh-accent);color:var(--cdh-card);font-size:.78rem;font-weight:800;letter-spacing:.04em}
 #cdHomeFunnel .cdh-promo__title{color:var(--cdh-ink);font-family:var(--font-display);font-size:clamp(1.5rem,3vw,2.2rem);line-height:1.25;letter-spacing:-.03em}
 #cdHomeFunnel .cdh-promo__until{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;color:var(--cdh-ink);font-weight:700}
@@ -1703,7 +1705,7 @@ html.neo-mode #cdHomeFunnel .cdh-scene-art #honeypigLogo{box-shadow:none!importa
 #cdHomeFunnel .cdh-promo__yeoni{display:flex;align-items:flex-end;gap:2px;flex:0 1 380px;margin-left:auto;color:var(--cdh-ink);-webkit-tap-highlight-color:transparent}
 #cdHomeFunnel .cdh-promo__bubble{position:relative;flex:1 1 auto;margin-bottom:30px;padding:10px 14px;border:1px solid color-mix(in srgb,var(--cdh-accent) 30%,transparent);border-radius:18px 18px 6px 18px;background:var(--cdh-card);box-shadow:0 8px 18px -12px color-mix(in srgb,var(--cdh-accent) 70%,transparent);font-family:var(--font-playful,"CodeDestinyPlayful"),var(--font-body,sans-serif);font-size:.9rem;font-weight:700;line-height:1.5;word-break:keep-all}
 #cdHomeFunnel .cdh-promo__bubble::after{content:"";position:absolute;right:-7px;bottom:12px;width:12px;height:12px;border-top:1px solid color-mix(in srgb,var(--cdh-accent) 30%,transparent);border-right:1px solid color-mix(in srgb,var(--cdh-accent) 30%,transparent);background:var(--cdh-card);transform:rotate(45deg)}
-#cdHomeFunnel .cdh-promo__yeoni-img{flex:0 0 auto;width:96px;height:112px;object-fit:cover;object-position:50% 0;transform-origin:50% 100%;transition:transform .25s ease;filter:drop-shadow(0 8px 10px color-mix(in srgb,var(--cdh-accent) 22%,transparent))}
+#cdHomeFunnel .cdh-promo__yeoni-img{flex:0 0 auto;width:96px;height:112px;object-fit:contain;transform-origin:50% 100%;transition:transform .25s ease;filter:drop-shadow(0 8px 10px color-mix(in srgb,var(--cdh-accent) 22%,transparent))}
 #cdHomeFunnel .cdh-promo__yeoni:hover .cdh-promo__yeoni-img,#cdHomeFunnel .cdh-promo__yeoni:focus-visible .cdh-promo__yeoni-img{transform:translateY(-4px) rotate(-4deg)}
 #cdHomeFunnel .cdh-promo__yeoni:hover .cdh-promo__bubble{border-color:var(--cdh-accent)}
 @media (prefers-reduced-motion:no-preference){
@@ -1725,18 +1727,28 @@ html.neo-mode #cdHomeFunnel .cdh-promo__group[data-group="more"],body.neo-mode #
 #cdHomeFunnel .cdh-promo__chip:hover{border-color:var(--chip);background:color-mix(in srgb,var(--chip) 16%,var(--cdh-card))}
 #cdHomeFunnel .cdh-promo__note{color:var(--cdh-muted);font-size:.86rem}
 #cdHomeFunnel .cdh-promo__actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:6px}
-#cdHomeFunnel .cdh-promo__cta,#cdHomeFunnel .cdh-promo__share{display:inline-flex;align-items:center;justify-content:center;min-height:var(--cd-btn-h,48px);padding:10px 20px;border-radius:999px;font-size:.95rem;font-weight:800;text-align:center;cursor:pointer}
+#cdHomeFunnel .cdh-promo__cta,#cdHomeFunnel .cdh-promo__share{position:relative;isolation:isolate;overflow:hidden;display:inline-flex;align-items:center;justify-content:center;gap:9px;min-height:var(--cd-btn-h,48px);padding:10px 20px;border-radius:999px;font-size:.95rem;font-weight:800;text-align:center;cursor:pointer}
+#cdHomeFunnel .cdh-promo__cta::before,#cdHomeFunnel .cdh-promo__share::before{content:"";flex:0 0 auto;width:19px;height:19px;background:currentColor;-webkit-mask:var(--cd-yehwa-mask-sparkle) center/contain no-repeat;mask:var(--cd-yehwa-mask-sparkle) center/contain no-repeat}
+#cdHomeFunnel .cdh-promo__cta::after,#cdHomeFunnel .cdh-promo__share::after{content:"";position:absolute;z-index:-1;right:-20px;bottom:-7px;width:116px;height:30px;background:currentColor;opacity:.13;pointer-events:none;-webkit-mask:var(--cd-yehwa-mask-branch-h) right bottom/contain no-repeat;mask:var(--cd-yehwa-mask-branch-h) right bottom/contain no-repeat}
 #cdHomeFunnel .cdh-promo__cta{border:1px solid var(--cdh-accent);background:var(--cdh-accent);color:var(--cdh-card)}
 #cdHomeFunnel .cdh-promo__share{border:1px solid color-mix(in srgb,var(--cdh-accent) 55%,transparent);background:var(--cdh-card);color:var(--cdh-accent)}
 #cdHomeFunnel .cdh-promo__status:empty{display:none}
 #cdHomeFunnel .cdh-promo__status{color:var(--cdh-muted);font-size:.84rem}
 #cdHomeFunnel .cdh-promo + .cdh-free{margin-top:24px}
 @media (max-width:760px){
-  #cdHomeFunnel .cdh-promo{margin:28px 16px 0}
+  #cdHomeFunnel .cdh-promo{margin:28px 16px 0;padding:18px}
+  #cdHomeFunnel .cdh-promo::before{width:132px;height:102px;opacity:.16}
   #cdHomeFunnel .cdh-promo__actions>*{flex:1 1 100%}
+  #cdHomeFunnel .cdh-promo__cta{min-height:56px}
+  #cdHomeFunnel .cdh-promo__share{min-height:48px}
   #cdHomeFunnel .cdh-promo__yeoni{flex:1 1 100%}
-  #cdHomeFunnel .cdh-promo__yeoni-img{width:84px;height:98px}
+  #cdHomeFunnel .cdh-promo__yeoni-img{width:88px;height:104px}
   #cdHomeFunnel .cdh-promo__bubble{font-size:.86rem;margin-bottom:26px}
+  #cdHomeFunnel .cdh-promo__groups{grid-template-columns:minmax(0,1fr);gap:8px}
+  #cdHomeFunnel .cdh-promo__group{padding:10px 12px 12px}
+  #cdHomeFunnel .cdh-promo__chips{flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px;scrollbar-width:thin;scroll-snap-type:x proximity}
+  #cdHomeFunnel .cdh-promo__chips li{scroll-snap-align:start}
+  #cdHomeFunnel .cdh-promo__chip{min-height:44px}
 }
 /* "3개월 한정 무료" 씰이 모바일에서 메달과 겹치지 않게 카드 위 여백을 늘린다. */
 @media (max-width:640px){

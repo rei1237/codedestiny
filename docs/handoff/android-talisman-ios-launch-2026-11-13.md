@@ -1,5 +1,5 @@
 ---
-status: in-progress
+status: active
 updated: 2026-11-13
 next: Apple 계정으로 App Store Connect에 로그인하고 macOS/Xcode에서 iOS 1.0.59(빌드 59)를 Archive·업로드한다.
 ---

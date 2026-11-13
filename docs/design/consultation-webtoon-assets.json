@@ -2335,6 +2335,240 @@
     "public/images/moonlight-guide/5.webp"
    ],
    "prompt": "Cozy indoor tea-house table at night, warm lamplight, plum and honey-gold palette, NO forest, NO trees, NO lanterns on a path. The pink flower-pig mascot Yeoni (pink lotus flower on head, lilac neckerchief, match reference exactly) proudly holds up a small framed profile card showing a tiny cute character portrait with a little level star badge. On the table in front lies an open monthly attendance calendar sheet: a 7-column grid of blank squares where several squares are stamped with glossy golden honey-drop stamps and one square holds a tiny honey jar; no writing on it. Yeongnyangi (fluffy white cat with exactly TWO pink-lined ears, golden-violet half-lidded eyes, navy wizard hat with gold crescent moon and tassel, navy cape with gold trim, purple gem collar; aloof but secretly pleased) presses a round honey-drop stamp onto today's square with one paw, a small sparkle where it lands. A small honey jar with glowing drops sits nearby. Game-like, playful, cheerful mood, square composition, soft pastel storybook style matching reference 3."
+  },
+  {
+   "work": "moonlight-guide",
+   "cut": "cushion-05",
+   "files": "public/images/moonlight-guide/cushion-05-{640,1080}.avif + cushion-05-720.webp",
+   "origin": "reused",
+   "source": "content/yeongnyangi/season-1/ep1/05-720.webp",
+   "sourceSha256": "e9098a644e3107a0",
+   "note": "영냥이 시즌 1의 1화 「데운 방석」을 연재에서 내리며 이용 안내 웹툰으로 옮김(2026-11-13)"
+  },
+  {
+   "work": "moonlight-guide",
+   "cut": "cushion-07",
+   "files": "public/images/moonlight-guide/cushion-07-{640,1024}.avif + cushion-07-720.webp",
+   "origin": "reused",
+   "source": "content/yeongnyangi/season-1/ep1/07-720.webp",
+   "sourceSha256": "0dfb89202e4f5646",
+   "note": "영냥이 시즌 1의 1화 「데운 방석」을 연재에서 내리며 이용 안내 웹툰으로 옮김(2026-11-13)"
+  },
+  {
+   "work": "yn-prologue",
+   "cut": "01",
+   "files": "public/images/webtoons/yeoni-prologue/01-{720,1122}.{avif,webp}",
+   "origin": "supplied",
+   "source": "yeoni_prologue_romance_fantasy_v3/pages/yeoni_prologue_01.png",
+   "sourceSha256": "16298d46c4cf4182",
+   "note": "사용자 제공 완성 원고(영냥이 이름표 제거 수정본, 2026-11-13). 제작 지시는 원본 폴더의 texts/production_prompts.txt"
+  },
+  {
+   "work": "yn-prologue",
+   "cut": "02",
+   "files": "public/images/webtoons/yeoni-prologue/02-{720,1122}.{avif,webp}",
+   "origin": "supplied",
+   "source": "yeoni_prologue_romance_fantasy_v3/pages/yeoni_prologue_02.png",
+   "sourceSha256": "9352c77a99f3437e",
+   "note": "사용자 제공 완성 원고(영냥이 이름표 제거 수정본, 2026-11-13). 제작 지시는 원본 폴더의 texts/production_prompts.txt"
+  },
+  {
+   "work": "yn-prologue",
+   "cut": "03",
+   "files": "public/images/webtoons/yeoni-prologue/03-{720,1122}.{avif,webp}",
+   "origin": "supplied",
+   "source": "yeoni_prologue_romance_fantasy_v3/pages/yeoni_prologue_03.png",
+   "sourceSha256": "1f39f463d35e4431",
+   "note": "사용자 제공 완성 원고(영냥이 이름표 제거 수정본, 2026-11-13). 제작 지시는 원본 폴더의 texts/production_prompts.txt"
+  },
+  {
+   "work": "yn-prologue",
+   "cut": "04",
+   "files": "public/images/webtoons/yeoni-prologue/04-{720,1122}.{avif,webp}",
+   "origin": "supplied",
+   "source": "yeoni_prologue_romance_fantasy_v3/pages/yeoni_prologue_04.png",
+   "sourceSha256": "123c9d974214224d",
+   "note": "사용자 제공 완성 원고(영냥이 이름표 제거 수정본, 2026-11-13). 제작 지시는 원본 폴더의 texts/production_prompts.txt"
+  },
+  {
+   "work": "yn-prologue",
+   "cut": "05",
+   "files": "public/images/webtoons/yeoni-prologue/05-{720,1122}.{avif,webp}",
+   "origin": "supplied",
+   "source": "yeoni_prologue_romance_fantasy_v3/pages/yeoni_prologue_05.png",
+   "sourceSha256": "6c81d5878b6136e7",
+   "note": "사용자 제공 완성 원고(영냥이 이름표 제거 수정본, 2026-11-13). 제작 지시는 원본 폴더의 texts/production_prompts.txt"
+  },
+  {
+   "work": "yn-prologue",
+   "cut": "06",
+   "files": "public/images/webtoons/yeoni-prologue/06-{720,1122}.{avif,webp}",
+   "origin": "supplied",
+   "source": "yeoni_prologue_romance_fantasy_v3/pages/yeoni_prologue_06.png",
+   "sourceSha256": "a2f7b89344ea7e00",
+   "note": "사용자 제공 완성 원고(영냥이 이름표 제거 수정본, 2026-11-13). 제작 지시는 원본 폴더의 texts/production_prompts.txt"
+  },
+  {
+   "work": "yn-prologue",
+   "cut": "07",
+   "files": "public/images/webtoons/yeoni-prologue/07-{720,1122}.{avif,webp}",
+   "origin": "supplied",
+   "source": "yeoni_prologue_romance_fantasy_v3/pages/yeoni_prologue_07.png",
+   "sourceSha256": "2b05639bc5fc496c",
+   "note": "사용자 제공 완성 원고(영냥이 이름표 제거 수정본, 2026-11-13). 제작 지시는 원본 폴더의 texts/production_prompts.txt"
+  },
+  {
+   "work": "yn-prologue",
+   "cut": "08",
+   "files": "public/images/webtoons/yeoni-prologue/08-{720,1122}.{avif,webp}",
+   "origin": "supplied",
+   "source": "yeoni_prologue_romance_fantasy_v3/pages/yeoni_prologue_08.png",
+   "sourceSha256": "a39a68c4e1e38b02",
+   "note": "사용자 제공 완성 원고(영냥이 이름표 제거 수정본, 2026-11-13). 제작 지시는 원본 폴더의 texts/production_prompts.txt"
+  },
+  {
+   "work": "yn-prologue",
+   "cut": "09",
+   "files": "public/images/webtoons/yeoni-prologue/09-{720,1122}.{avif,webp}",
+   "origin": "supplied",
+   "source": "yeoni_prologue_romance_fantasy_v3/pages/yeoni_prologue_09.png",
+   "sourceSha256": "bee20146f90602ba",
+   "note": "사용자 제공 완성 원고(영냥이 이름표 제거 수정본, 2026-11-13). 제작 지시는 원본 폴더의 texts/production_prompts.txt"
+  },
+  {
+   "work": "yn-prologue",
+   "cut": "10",
+   "files": "public/images/webtoons/yeoni-prologue/10-{720,1122}.{avif,webp}",
+   "origin": "supplied",
+   "source": "yeoni_prologue_romance_fantasy_v3/pages/yeoni_prologue_10.png",
+   "sourceSha256": "0447f68484837066",
+   "note": "사용자 제공 완성 원고(영냥이 이름표 제거 수정본, 2026-11-13). 제작 지시는 원본 폴더의 texts/production_prompts.txt"
+  },
+  {
+   "work": "yn-prologue",
+   "cut": "11",
+   "files": "public/images/webtoons/yeoni-prologue/11-{720,1122}.{avif,webp}",
+   "origin": "supplied",
+   "source": "yeoni_prologue_romance_fantasy_v3/pages/yeoni_prologue_11.png",
+   "sourceSha256": "1cf0f1ef0b98e7b3",
+   "note": "사용자 제공 완성 원고(영냥이 이름표 제거 수정본, 2026-11-13). 제작 지시는 원본 폴더의 texts/production_prompts.txt"
+  },
+  {
+   "work": "yn-prologue",
+   "cut": "12",
+   "files": "public/images/webtoons/yeoni-prologue/12-{720,1122}.{avif,webp}",
+   "origin": "supplied",
+   "source": "yeoni_prologue_romance_fantasy_v3/pages/yeoni_prologue_12.png",
+   "sourceSha256": "ca6b2ce137f1996c",
+   "note": "사용자 제공 완성 원고(영냥이 이름표 제거 수정본, 2026-11-13). 제작 지시는 원본 폴더의 texts/production_prompts.txt"
+  },
+  {
+   "work": "yn-prologue",
+   "cut": "13",
+   "files": "public/images/webtoons/yeoni-prologue/13-{720,1122}.{avif,webp}",
+   "origin": "supplied",
+   "source": "yeoni_prologue_romance_fantasy_v3/pages/yeoni_prologue_13.png",
+   "sourceSha256": "b2837c27c05d8e3a",
+   "note": "사용자 제공 완성 원고(영냥이 이름표 제거 수정본, 2026-11-13). 제작 지시는 원본 폴더의 texts/production_prompts.txt"
+  },
+  {
+   "work": "yn-prologue",
+   "cut": "14",
+   "files": "public/images/webtoons/yeoni-prologue/14-{720,1122}.{avif,webp}",
+   "origin": "supplied",
+   "source": "yeoni_prologue_romance_fantasy_v3/pages/yeoni_prologue_14.png",
+   "sourceSha256": "77b9efc5fe565fab",
+   "note": "사용자 제공 완성 원고(영냥이 이름표 제거 수정본, 2026-11-13). 제작 지시는 원본 폴더의 texts/production_prompts.txt"
+  },
+  {
+   "work": "yn-prologue",
+   "cut": "15",
+   "files": "public/images/webtoons/yeoni-prologue/15-{720,1122}.{avif,webp}",
+   "origin": "supplied",
+   "source": "yeoni_prologue_romance_fantasy_v3/pages/yeoni_prologue_15.png",
+   "sourceSha256": "738089956879b9b1",
+   "note": "사용자 제공 완성 원고(영냥이 이름표 제거 수정본, 2026-11-13). 제작 지시는 원본 폴더의 texts/production_prompts.txt"
+  },
+  {
+   "work": "yn-prologue",
+   "cut": "16",
+   "files": "public/images/webtoons/yeoni-prologue/16-{720,1122}.{avif,webp}",
+   "origin": "supplied",
+   "source": "yeoni_prologue_romance_fantasy_v3/pages/yeoni_prologue_16.png",
+   "sourceSha256": "33cec1b4ad748f3c",
+   "note": "사용자 제공 완성 원고(영냥이 이름표 제거 수정본, 2026-11-13). 제작 지시는 원본 폴더의 texts/production_prompts.txt"
+  },
+  {
+   "work": "yn-prologue",
+   "cut": "17",
+   "files": "public/images/webtoons/yeoni-prologue/17-{720,1122}.{avif,webp}",
+   "origin": "supplied",
+   "source": "yeoni_prologue_romance_fantasy_v3/pages/yeoni_prologue_17.png",
+   "sourceSha256": "f5a02c3278715b2c",
+   "note": "사용자 제공 완성 원고(영냥이 이름표 제거 수정본, 2026-11-13). 제작 지시는 원본 폴더의 texts/production_prompts.txt"
+  },
+  {
+   "work": "yn-prologue",
+   "cut": "18",
+   "files": "public/images/webtoons/yeoni-prologue/18-{720,1122}.{avif,webp}",
+   "origin": "supplied",
+   "source": "yeoni_prologue_romance_fantasy_v3/pages/yeoni_prologue_18.png",
+   "sourceSha256": "b1cea90c9ecdfdd4",
+   "note": "사용자 제공 완성 원고(영냥이 이름표 제거 수정본, 2026-11-13). 제작 지시는 원본 폴더의 texts/production_prompts.txt"
+  },
+  {
+   "work": "yn-prologue",
+   "cut": "19",
+   "files": "public/images/webtoons/yeoni-prologue/19-{720,1122}.{avif,webp}",
+   "origin": "supplied",
+   "source": "yeoni_prologue_romance_fantasy_v3/pages/yeoni_prologue_19.png",
+   "sourceSha256": "4465d181c6724486",
+   "note": "사용자 제공 완성 원고(영냥이 이름표 제거 수정본, 2026-11-13). 제작 지시는 원본 폴더의 texts/production_prompts.txt"
+  },
+  {
+   "work": "yn-prologue",
+   "cut": "20",
+   "files": "public/images/webtoons/yeoni-prologue/20-{720,1122}.{avif,webp}",
+   "origin": "supplied",
+   "source": "yeoni_prologue_romance_fantasy_v3/pages/yeoni_prologue_20.png",
+   "sourceSha256": "5d60840dadc1f63a",
+   "note": "사용자 제공 완성 원고(영냥이 이름표 제거 수정본, 2026-11-13). 제작 지시는 원본 폴더의 texts/production_prompts.txt"
+  },
+  {
+   "work": "yn-prologue",
+   "cut": "21",
+   "files": "public/images/webtoons/yeoni-prologue/21-{720,1122}.{avif,webp}",
+   "origin": "supplied",
+   "source": "yeoni_prologue_romance_fantasy_v3/pages/yeoni_prologue_21.png",
+   "sourceSha256": "13e143485882c521",
+   "note": "사용자 제공 완성 원고(영냥이 이름표 제거 수정본, 2026-11-13). 제작 지시는 원본 폴더의 texts/production_prompts.txt"
+  },
+  {
+   "work": "yn-prologue",
+   "cut": "22",
+   "files": "public/images/webtoons/yeoni-prologue/22-{720,1122}.{avif,webp}",
+   "origin": "supplied",
+   "source": "yeoni_prologue_romance_fantasy_v3/pages/yeoni_prologue_22.png",
+   "sourceSha256": "106eb7f58940e6e5",
+   "note": "사용자 제공 완성 원고(영냥이 이름표 제거 수정본, 2026-11-13). 제작 지시는 원본 폴더의 texts/production_prompts.txt"
+  },
+  {
+   "work": "yn-prologue",
+   "cut": "23",
+   "files": "public/images/webtoons/yeoni-prologue/23-{720,1122}.{avif,webp}",
+   "origin": "supplied",
+   "source": "yeoni_prologue_romance_fantasy_v3/pages/yeoni_prologue_23.png",
+   "sourceSha256": "a8d27d7308bee8f2",
+   "note": "사용자 제공 완성 원고(영냥이 이름표 제거 수정본, 2026-11-13). 제작 지시는 원본 폴더의 texts/production_prompts.txt"
+  },
+  {
+   "work": "yn-prologue",
+   "cut": "24",
+   "files": "public/images/webtoons/yeoni-prologue/24-{720,1122}.{avif,webp}",
+   "origin": "supplied",
+   "source": "yeoni_prologue_romance_fantasy_v3/pages/yeoni_prologue_24.png",
+   "sourceSha256": "735711ddb7877544",
+   "note": "사용자 제공 완성 원고(영냥이 이름표 제거 수정본, 2026-11-13). 제작 지시는 원본 폴더의 texts/production_prompts.txt"
   }
  ],
  "legacySingleImage": {

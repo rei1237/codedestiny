@@ -27,7 +27,7 @@ export const FOREIGN_CARD_PRODUCT_POLICY = Object.freeze({
   membership_pass_gift: true,
 });
 
-// 이용권·선물은 30일 상품만 판매한다(index.js resolvePassRequest 가 30일 외 요청을 거부).
+// durationDays=30은 기존 주문·클라이언트와의 호환 식별값이다. 사용자에게 판매하는 이용권에는 기간 제한이 없다.
 const PASS_PRODUCT_TYPES = new Set(["membership_pass", "membership_pass_gift"]);
 const PASS_DURATION_DAYS = 30;
 // 일반 카드 결제창만. 카카오페이·계좌이체·상품권은 해외카드 창이 아니다.

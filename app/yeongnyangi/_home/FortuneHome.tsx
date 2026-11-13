@@ -2,6 +2,7 @@
 import Image from "next/image";
 import HomeDisclosure from "@/app/components/HomeDisclosure";
 import QuestionJourney from "@/app/components/QuestionJourney";
+import FreePromoBanner from "@/app/components/FreePromoBanner";
 import NightHero, {NightPriceDetails} from "../_components/NightHero";
 import homeStyle from "../_components/night-hero.module.css";
 import SessionControls from "./SessionControls";
@@ -143,6 +144,7 @@ export default function FortuneHome({offers,guide,passBenefits}:{offers:ProductO
 
         <main>
           <NightHero/>
+          <FreePromoBanner variant="yeongnyangi" compact/>
           {desktopHome ? <><HeavenLightCinema/><FirstVisitGuide/></> : <div className={homeStyle.shortcuts}>
             <details onToggle={event => setFirstVisitOpen(event.currentTarget.open)}>
               <summary>처음 방문했어요</summary>

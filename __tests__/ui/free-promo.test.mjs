@@ -37,6 +37,17 @@ test('free promo end date never gates access', () => {
   }
 });
 
+test('entry and Yeongnyangi surfaces reuse the policy banner with their own character treatment', () => {
+  const root = read('app/page.js');
+  const yeongnyangi = read('app/yeongnyangi/_home/FortuneHome.tsx');
+  const banner = read('app/components/FreePromoBanner.tsx');
+  assert.match(root, /<FreePromoBanner\s*\/>/);
+  assert.match(yeongnyangi, /<FreePromoBanner variant="yeongnyangi" compact\/>/);
+  assert.match(banner, /yeoni-cheer\.webp|FREE_PROMO_YEONI\.image/);
+  assert.match(banner, /hero-480\.webp/);
+  assert.match(banner, /!compact && <div className=\{styles\.groups\}/);
+});
+
 test('free promo list shows only features that are already free and reachable', async () => {
   const { FREE_PROMO_GROUPS, FREE_PROMO_SAJU_ACTION, FREE_PROMO_YEONI, freePromoItemHref } = await import('../../lib/marketing/free-promo.mjs');
   const { isFreeFortuneFeatureKey } = await import('../../lib/payment/free-fortune-policy.mjs');

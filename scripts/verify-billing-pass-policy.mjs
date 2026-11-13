@@ -916,6 +916,12 @@ assertNotContains(indexSource, "_subTier === 'family' ? 999999999", "main shell 
 // 2026-10-11: 이용권에 기간이 없어져 상품명에서 "30일"을 뺐고, 표시 이름을 '꿀단지 크기'(작은·중간·큰·패밀리 꿀단지)로 바꿨다.
 assertContains(indexSource, "family:'패밀리 꿀단지'", "main shell family payment modal copy");
 assertNotContains(indexSource, "패밀리 꿀단지 30일", "main shell family pass name carries no 30-day period");
+for (const passName of ["작은 꿀단지", "중간 꿀단지", "큰 꿀단지", "패밀리 꿀단지"]) {
+  assertContains(paymentsSource, `name: "${passName}"`, `payment fallback uses the canonical ${passName} name`);
+}
+for (const retiredName of ["스탠다드 꿀 30일", "프리미엄 꿀 30일", "VVIP 꿀단지 30일", "Code Destiny Family 30일"]) {
+  assertNotContains(paymentsSource, retiredName, `payment fallback does not restore the retired ${retiredName} name`);
+}
 // 결제창 상단 요약은 '무엇을 얼마에 여는가'만 말한다. 예전 문구("월정석 이벤트 재화 기준 · N원")는
 // 내부 재화 단위를 기준처럼 노출해 오히려 혼란스러웠고 2026-08-11 개편에서 금액 표기로 바뀌었다.
 assertContains(indexSource, "결제 금액 {amount}", "main shell payment amount summary copy");

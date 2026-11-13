@@ -40,6 +40,7 @@ export default function Layout({children}:{children:ReactNode}){
  const {siteLocale}=useReadingLanguage();
  const copy=chromeCopy(siteLocale);
  const pagePath=(pathname || '').replace(/\/index\.html$/, '/');
- if(['/yeongnyangi','/yeongnyangi/','/yeongnyangi/room','/yeongnyangi/room/'].includes(pagePath))return children;
+ // 프롤로그 웹툰은 리더가 화면 전체를 쓰므로 공통 내비·푸터를 두르지 않는다.
+ if(['/yeongnyangi','/yeongnyangi/','/yeongnyangi/room','/yeongnyangi/room/','/yeongnyangi/season-1/prologue','/yeongnyangi/season-1/prologue/'].includes(pagePath))return children;
  return <main className={styles.page} data-yn-night lang={siteLocale}><nav className={styles.nav} aria-label={copy.home}><a href={`/yeongnyangi/?lang=${siteLocale}`}>{copy.home}</a><div><a href={`/yeongnyangi/library/?lang=${siteLocale}`}>{copy.library}</a><a href={`/?lang=${siteLocale}`}>꿀꿀운세</a><LocaleSwitcher preservePath locale={siteLocale}/></div></nav>{children}<footer className={styles.footer}><p>Yeongnyangi · 꿀꿀운세</p><a href={`/terms/?lang=${siteLocale}`}>{copy.terms}</a> · <a href={`/privacy-policy/?lang=${siteLocale}`}>{copy.privacy}</a> · <a href={`/refund-policy/?lang=${siteLocale}`}>{copy.refund}</a> · <a href={`/contact/?lang=${siteLocale}`}>{copy.contact}</a></footer></main>;
 }

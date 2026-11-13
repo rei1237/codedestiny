@@ -9,7 +9,7 @@ try {
  for(const width of [360,390,430,1280]) {
   const context=await browser.newContext({viewport:{width,height:900}});
   let claimed=0;
-  const gift={giftId:'gift_test',orderId:'test',status:'PAID',senderName:'달빛 친구',recipientName:'소중한 당신',giftMessage:'올해 좋은 일만 생기길. 당신의 새로운 시작을 응원해요.',expiresAt:'2027-09-09T00:00:00Z',tokenVersion:0,product:{name:'스탠다드 30일',tier:'standard',durationDays:30,wonPrice:9900}};
+  const gift={giftId:'gift_test',orderId:'test',status:'PAID',senderName:'달빛 친구',recipientName:'소중한 당신',giftMessage:'올해 좋은 일만 생기길. 당신의 새로운 시작을 응원해요.',expiresAt:'2027-09-09T00:00:00Z',tokenVersion:0,product:{name:'작은 꿀단지',tier:'standard',durationDays:30,wonPrice:9900}};
   await context.route('**/*', async route=>{
    const u=new URL(route.request().url());
    if(u.hostname!=='127.0.0.1') return route.abort();
@@ -40,7 +40,7 @@ try {
   if(await page.getByText('선물 링크를 복사했어요.').count()) throw new Error('Share cancellation must not copy');
   await page.screenshot({path:`${out}/complete-${width}.png`,fullPage:true});
   await page.goto(origin+'/gift/box');
-  await page.getByRole('heading',{name:'스탠다드 30일'}).waitFor({timeout:90000});
+  await page.getByRole('heading',{name:'작은 꿀단지'}).waitFor({timeout:90000});
   await page.getByRole('button',{name:'받은 선물',exact:true}).click();
   await page.getByText('달빛 친구님이 보낸 선물').waitFor();
   await page.screenshot({path:`${out}/box-${width}.png`,fullPage:true});
@@ -49,7 +49,7 @@ try {
  }
  const c=await browser.newContext({viewport:{width:390,height:844}});
  let authenticated=false, contextSaved=false, resumed=false;
- const g={giftId:'gift_login',status:'PAID',senderName:'친구',recipientName:'',giftMessage:'',product:{name:'30일 이용권',tier:'standard',durationDays:30,wonPrice:9900}};
+ const g={giftId:'gift_login',status:'PAID',senderName:'친구',recipientName:'',giftMessage:'',product:{name:'작은 꿀단지',tier:'standard',durationDays:30,wonPrice:9900}};
  await c.route('**/*', async route=>{
   const u=new URL(route.request().url());
   if(u.hostname!=='127.0.0.1') return route.abort();
