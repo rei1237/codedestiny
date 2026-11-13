@@ -42,6 +42,7 @@ async function readNativeLibraryItem(env,auth,row){
   if(row.nativeService==='saju-compat')return (await import('./native-saju-compat.js')).compatLibraryItem(env,auth,row);
   if(row.nativeService==='dream')return (await import('./native-dream.js')).dreamLibraryItem(env,auth,row);
   if(row.nativeService==='heukwol')return (await import('./native-heukwol.js')).heukwolLibraryItem(env,auth,row);
+  if(row.nativeService==='compass')return (await import('./native-compass.js')).compassLibraryItem(env,auth,row);
   if(row.nativeService==='yoga')return (await import('./native-yoga.js')).nativeYogaLibraryItem(env,auth,row);
   if(row.nativeService==='nakshatra')return (await import('./native-nakshatra.js')).nakshatraLibraryItem(env,auth,row);
   return row.nativeService==='pet'?(await import('./native-pet-paid.js')).nativePetLibraryItem(env,auth,row):row.nativeService==='relationship'?(await import('./native-relationship.js')).nativeRelationshipLibraryItem(env,auth,row):row.nativeService==='sukuyo'?(await import('./native-sukuyo.js')).nativeSukuyoLibraryItem(env,auth,row):row.nativeService==='maya'?(await import('./native-maya.js')).nativeMayaLibraryItem(env,auth,row):row.nativeService==='karma'?(await import('./native-karma.js')).nativeKarmaLibraryItem(env,auth,row):row.nativeService==='new-year'?(await import('./native-new-year.js')).nativeNewYearLibraryItem(env,auth,row):row.nativeService==='ziwei'?(await import('./native-ziwei.js')).nativeZiweiLibraryItem(env,auth,row):row.nativeService==='vedic'?(await import('./native-vedic.js')).nativeVedicLibraryItem(env,auth,row):row.nativeService==='astrology'?(await import('./native-astrology.js')).nativeAstrologyLibraryItem(env,auth,row):row.nativeService==='love-secret'?(await import('./native-love-secret.js')).nativeLoveSecretLibraryItem(env,auth,row):row.nativeService==='life-book'?(await import('./native-life-book.js')).nativeLifeBookLibraryItem(env,auth,row):row.nativeService==='fusion'?(await import('./native-fusion.js')).nativeFusionLibraryItem(env,auth,row):row.nativeService==='neo'?(await import('./native-neo.js')).nativeNeoLibraryItem(env,auth,row):(await import('./native-tea.js')).nativeTeaLibraryItem(env,auth,row);
@@ -58,10 +59,10 @@ function currentTarotSale(sku){
   return item;
 }
 
-async function bodyOf(request) {
+async function bodyOf(request,maxLength=12000) {
   if(!request.headers.get('Content-Type')?.startsWith('application/json'))throw new TossError('JSON_REQUIRED',415);
   const text=await request.text();
-  if(text.length>12000)throw new TossError('BODY_TOO_LARGE',413);
+  if(text.length>maxLength)throw new TossError('BODY_TOO_LARGE',413);
   try{return JSON.parse(text);}catch{throw new TossError('JSON_INVALID');}
 }
 async function limit(env,subject,endpoint,max,windowMs=60000) {
@@ -307,6 +308,18 @@ export async function handleTossRoutes(request,env) {
       const {handleNativeAstrology}=await import('./native-astrology.js');
       return forwardServiceResponse(await handleNativeAstrology(request,env,auth,path.slice('/canonical/astrology-ai'.length)),headers);
     }
+    if(path==='/native/compass/prepare'&&request.method==='POST'){
+      await limit(env,auth._id,'native-compass-prepare',6);
+      const {input,orderId}=await bodyOf(request,64000);
+      const {prepareCompass}=await import('./native-compass.js');
+      return reply(await prepareCompass(env,auth,input,orderId));
+    }
+    const compassResult=path.match(/^\/native\/compass\/results\/([a-f0-9]{64})$/);
+    if(compassResult&&['GET','POST'].includes(request.method)){
+      if(request.method==='POST')await limit(env,auth._id,'native-compass-generate',30);
+      const {readNativeCompass}=await import('./native-compass.js');
+      return forwardServiceResponse(await readNativeCompass(env,auth,compassResult[1],request.method==='POST'),headers);
+    }
     if(path==='/native/yoga/prepare'&&request.method==='POST'){
       await limit(env,auth._id,'native-yoga-prepare',6);
       const {input,orderId}=await bodyOf(request);
@@ -521,7 +534,7 @@ export async function handleTossRoutes(request,env) {
       if(request.method==='POST')await limit(env,auth._id,'native-heukwol-wave',35);
       return reply(await (await import('./native-heukwol.js')).heukwolWave(env,auth,heukwol[1],request.method==='POST'));
     }
-    const nativeIntent=path.match(/^\/native\/(guardian|sibyl|tea|yoga|saju-compat|codex|palm|geomancy|totem-basic|totem-deep|nakshatra|neo|naming|dream|heukwol|fusion|life-book|love-secret|astrology|vedic|ziwei|new-year|karma|maya|sukuyo|relationship|pet)\/intents\/([a-f0-9]{64})$/);
+    const nativeIntent=path.match(/^\/native\/(compass|guardian|sibyl|tea|yoga|saju-compat|codex|palm|geomancy|totem-basic|totem-deep|nakshatra|neo|naming|dream|heukwol|fusion|life-book|love-secret|astrology|vedic|ziwei|new-year|karma|maya|sukuyo|relationship|pet)\/intents\/([a-f0-9]{64})$/);
     if(nativeIntent&&request.method==='GET'){
       const {readNativeTeaIntent}=await import('./native-tea.js');
       return reply(await readNativeTeaIntent(env,auth,nativeIntent[2],nativeIntent[1]));

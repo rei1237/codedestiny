@@ -21,7 +21,7 @@ import type { PaidResumeArgs, PaidResumeDescriptor, PaidResumeGrant } from "@/ap
 import { AI_LOCALE_HEADER, toAiLocale } from "@/lib/i18n/ai-locale";
 import { detectLocale } from "@/lib/i18n/dictionary";
 import type { CompassInput, DirectionField } from "../_engine/types";
-import { collectDeepEvidence } from "../_engine/evidence/collectDeepEvidence";
+import { compassReportPayload } from "../_lib/report-payload";
 import { makeGateRequestId, redirectToLoginOnAuthRequired } from "../_components/paidGate";
 import type { EvidenceGround } from "../_components/EvidenceCard";
 import type { ServerSectionKey } from "../_components/reportSections";
@@ -246,25 +246,7 @@ export function useCompassReport(
     const scope = captureLocaleScope();
     try {
       const idempotencyKey = originalRequestId;
-      const payload = {
-        idempotencyKey,
-        question,
-        emotion: input.emotion,
-        field: {
-          seed: field.seed,
-          confidence: field.confidence,
-          sources: field.sources,
-          directions: field.directions.map((d) => ({ key: d.key, score: d.score, band: d.band })),
-          primary: { key: field.primary.key, score: field.primary.score, band: field.primary.band },
-          strongArea: { key: field.strongArea.key },
-          blockedArea: { key: field.blockedArea.key },
-          timeline: field.timeline,
-        },
-        evidencePack: collectDeepEvidence(input, field),
-        transactionId,
-        purchaseId: transactionId,
-        requestId: idempotencyKey,
-      };
+      const payload = {...compassReportPayload(input,field,question,idempotencyKey), transactionId, purchaseId:transactionId, requestId:idempotencyKey};
       payloadRef.current = payload;
       try { localStorage.setItem(sessionKeyFor(field, question, scope.locale) + ":request", JSON.stringify(payload)); } catch { /* server result is the recovery source */ }
 

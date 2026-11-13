@@ -154,7 +154,7 @@ function normalizeEvidencePack(raw) {
   return { version: "compass-evidence-v1", systems };
 }
 
-function normalizeReportInput(body) {
+export function normalizeCompassReportInput(body) {
   const idempotencyKey = clean(body?.idempotencyKey, 120);
   if (idempotencyKey.length < 12) throw invalidInput("idempotencyKey가 필요합니다.");
   return {
@@ -243,6 +243,7 @@ function executionKeyOf(idempotencyKey) {
 }
 
 async function startRefundableExecution(env, auth, access, input, reportId) {
+  if (auth.assertTossReport) return false;
   const sourceTransactionId = clean(access?.matchedTransactionId, 120);
   if (!sourceTransactionId) return false; // 이용권·관리자 통과 등 차감이 없던 경로 → 되돌릴 것도 없다.
   const result = await startServiceExecution(env, auth.userId, {
@@ -263,6 +264,7 @@ async function startRefundableExecution(env, auth, access, input, reportId) {
 }
 
 async function completeRefundableExecution(env, auth, input, reportId) {
+  if (auth.assertTossReport) return;
   await completeServiceExecution(env, auth.userId, {
     executionKey: executionKeyOf(input.idempotencyKey),
     requestId: executionKeyOf(input.idempotencyKey),
@@ -274,6 +276,7 @@ async function completeRefundableExecution(env, auth, input, reportId) {
 }
 
 async function refundExecution(env, auth, input, reportId, reasonMessage) {
+  if (auth.assertTossReport) return false;
   const result = await failServiceExecution(env, auth.userId, {
     executionKey: executionKeyOf(input.idempotencyKey),
     requestId: executionKeyOf(input.idempotencyKey),
@@ -323,7 +326,13 @@ async function saveCompassDelivery(env, filter, fields, reportId) {
   } catch { throw resultStorageUnavailable(reportId); }
 }
 
-async function compassAccessCurrent(doc) {
+async function compassAccessCurrent(doc, auth) {
+  if (doc.accessType === "toss") {
+    if (!auth?.assertTossReport) return false;
+    await auth.assertTossReport(doc);
+    return true;
+  }
+  if (auth?.assertTossReport) return false;
   return !await isPaidResultRevoked(doc.userId, FEATURE_KEY, [doc.idempotencyKey, doc.llmMeta?.requestId, doc.llmMeta?.transactionId, executionKeyOf(doc.idempotencyKey)]);
 }
 
@@ -333,8 +342,13 @@ function runCompassDelivery(env, auth, initial) {
 
 async function runCompassDeliveryInLocale(env, auth, initial) {
   const reportId = initial.id;
-  if (initial.status === "completed") return json(publicStoredReport(initial));
-  if (!await compassAccessCurrent(initial)) return json({ ok: false, reason: "PAYMENT_VERIFY_FAILED" }, { status: 402 });
+  if (initial.status === "completed") {
+    if (initial.accessType === "toss" || auth.assertTossReport) {
+      if (!await compassAccessCurrent(initial,auth)) return json({ ok:false, reason:"PAYMENT_VERIFY_FAILED" },{status:402});
+    }
+    return json(publicStoredReport(initial));
+  }
+  if (!await compassAccessCurrent(initial,auth)) return json({ ok: false, reason: "PAYMENT_VERIFY_FAILED" }, { status: 402 });
   if (initial.status === "generation_failed") return json({ ok: false, reason: "GENERATION_FAILED", refunded: initial.generationError?.refunded === true }, { status: 409 });
   const claimed = await DestinyCompassReport.findOneAndUpdate({ id: reportId, userId: String(auth.userId), status: { $in: ["generating", "partial", "delivery_pending"] },
     $or: [{ lock: null }, { "lock.at": { $lt: new Date(Date.now() - 120000) } }] },
@@ -415,7 +429,7 @@ async function runCompassDeliveryInLocale(env, auth, initial) {
       const body = COMPASS_SECTIONS.map(spec => saved.get(spec.key).body).join("\n");
       if (hasRepeatedReportPassage(body)) return json({ ...publicStoredReport(current), reason: "QUALITY_REPAIR_REQUIRED", retryable: false }, { status: 202 });
       current = await saveCompassDelivery(env, filter, { status: "delivery_pending" }, reportId);
-      if (!await compassAccessCurrent(current)) return json({ ok: false, reason: "PAYMENT_VERIFY_FAILED" }, { status: 402 });
+      if (!await compassAccessCurrent(current,auth)) return json({ ok: false, reason: "PAYMENT_VERIFY_FAILED" }, { status: 402 });
       current = await saveCompassDelivery(env, filter, { status: "completed", usageAppliedAt: new Date(), lock: null }, reportId);
       await completeRefundableExecution(env, auth, input, reportId);
       return json(publicStoredReport(current));
@@ -567,7 +581,7 @@ async function runCompassPlan2({ env, auth, filter, reportId, input, context, cu
     ...(hasRepeatedReportPassage(prior) ? ["repeated_passage"] : []),
   ];
   current = await saveCompassDelivery(env, filter, { sections: sectionRows(), status: "delivery_pending", llmMeta: { ...current.llmMeta, attempts, failures, softRepairsUsed, qualityIssues } }, reportId);
-  if (!await compassAccessCurrent(current)) return json({ ok: false, reason: "PAYMENT_VERIFY_FAILED" }, { status: 402 });
+  if (!await compassAccessCurrent(current,auth)) return json({ ok: false, reason: "PAYMENT_VERIFY_FAILED" }, { status: 402 });
   current = await saveCompassDelivery(env, filter, { status: "completed", usageAppliedAt: new Date(), lock: null }, reportId);
   await completeRefundableExecution(env, auth, input, reportId);
   return json(publicStoredReport(current));
@@ -719,12 +733,16 @@ async function readContinuationToken(env, auth, token, input) {
 
 async function handleReport(request, env) {
   const body = await readJson(request);
-  const input = normalizeReportInput(body);
+  const input = normalizeCompassReportInput(body);
   const auth = await requireAuth(request, env);
   const stored = await loadStoredReport(env, auth.userId, { idempotencyKey: input.idempotencyKey });
   if (stored) return runCompassDelivery(env, auth, stored);
   const { access } = await resolveAccess(request, env, body, "/api/destiny-compass-ai/report");
-  const reportId = `dcdr_${buildHashes(input).seedHash}_${hash36(input.idempotencyKey)}`;
+  return startCompassReport(request,env,body,input,auth,access);
+}
+
+async function startCompassReport(request,env,body,input,auth,access) {
+  const reportId = auth.nativeReportId || `dcdr_${buildHashes(input).seedHash}_${hash36(input.idempotencyKey)}`;
   const context = buildContext(input);
   // 🔴 되돌릴 자리를 저장보다 먼저 연다. 차감은 프론트 게이트가 이미 끝냈으므로, 아래 저장이 실패하면
   // 기록이 없는 채로 코인만 사라진다 — 기록이 없으면 만료 스윕(sweepStaleServiceExecutions)도 회수하지 못한다.
@@ -733,7 +751,7 @@ async function handleReport(request, env) {
   const seed = { id: reportId, userId: String(auth.userId), idempotencyKey: input.idempotencyKey, inputHash: buildInputHash(input), seedHash: buildHashes(input).seedHash,
     question: input.question, emotion: input.emotion, field: { ...input.field, seed: buildHashes(input).seedHash }, evidencePack: input.evidencePack,
     basis: context.basisPayload, systemConfidence: context.systemConfidence, sections: [], status: "generating", accessType: clean(access.accessType, 40), lock: null,
-    llmMeta: { locale: resolveAiLocaleFromRequest(request, body), requestId: clean(body.requestId || input.idempotencyKey, 180), transactionId: clean(access.matchedTransactionId || body.transactionId || body.purchaseId, 180), attempts: {}, failures: {}, ...(compassDeliveryV2Enabled(env) ? { deliveryPlanVersion: COMPASS_DELIVERY_PLAN_VERSION, softRepairsUsed: 0 } : {}) } };
+    llmMeta: { ...(auth.assertTossReport ? {tossInputHash:auth.inputHash} : {}), locale: resolveAiLocaleFromRequest(request, body), requestId: clean(body.requestId || input.idempotencyKey, 180), transactionId: clean(access.matchedTransactionId || body.transactionId || body.purchaseId, 180), attempts: {}, failures: {}, ...(compassDeliveryV2Enabled(env) ? { deliveryPlanVersion: COMPASS_DELIVERY_PLAN_VERSION, softRepairsUsed: 0 } : {}) } };
   let saved;
   // 저장 실패 창에서는 즉시 환불하지 않는다. 문서가 실제로 만들어졌을 수 있어(확인만 실패) 환불하면
   // 결제 없이 읽히는 리포트가 남는다 — 위에서 연 기록을 만료 스윕이 되돌린다.
@@ -751,7 +769,7 @@ async function handleContinue(request, env, recoveryAuth = null) {
   const auth = recoveryAuth || await requireAuth(request, env);
   let reportId = clean(body?.reportId, 120);
   if (!reportId && body?.continuationToken) {
-    const payload = await readContinuationToken(env, auth, body.continuationToken, normalizeReportInput(body));
+    const payload = await readContinuationToken(env, auth, body.continuationToken, normalizeCompassReportInput(body));
     reportId = clean(payload.reportId, 120);
   }
   const idempotencyKey = clean(body?.idempotencyKey, 120);
@@ -783,14 +801,14 @@ async function handleResult(request, env) {
     if (!id) {
       const pendingOnly = new URL(request.url).searchParams.get("pending") === "1";
       const rows = await DestinyCompassReport
-        .find({ userId: String(auth.userId), status: pendingOnly ? { $in: ["generating", "partial", "delivery_pending"] } : "completed" }, { id: 1, question: 1, status: 1, createdAt: 1, systemConfidence: 1 })
+        .find({ userId: String(auth.userId), accessType: { $ne: "toss" }, status: pendingOnly ? { $in: ["generating", "partial", "delivery_pending"] } : "completed" }, { id: 1, question: 1, status: 1, createdAt: 1, systemConfidence: 1 })
         .sort({ createdAt: -1 })
         .limit(20)
         .lean();
       return json({ ok: true, reports: rows.map((r) => ({ reportId: r.id, question: r.question, status: r.status, createdAt: r.createdAt })) });
     }
     const doc = await DestinyCompassReport.findOne({ id, userId: String(auth.userId) }).lean();
-    if (!doc) return json({ ok: false, reason: "NOT_FOUND", message: "리포트를 찾을 수 없어요." }, { status: 404 });
+    if (!doc || doc.accessType === "toss") return json({ ok: false, reason: "NOT_FOUND", message: "리포트를 찾을 수 없어요." }, { status: 404 });
     if (doc.status === "generation_failed") return json({ ok: false, reason: "GENERATION_FAILED", refunded: doc.generationError?.refunded === true }, { status: 409 });
     if (doc.status === "completed" && await isStoredPaidResultRevoked(auth.userId, FEATURE_KEY, doc)) {
       return json({ ok: false, reason: "PAYMENT_REVOKED", retryable: false }, { status: 403 });
@@ -850,9 +868,22 @@ export const __destinyCompassAiTestUtils = {
 
 // Internal cron continuation: only a stored owner/id is accepted, never client input.
 // The normal handler rereads that owner's record and rechecks existing payment proof.
-export function resumeConsultationOnServer(env, doc) {
+export async function resumeConsultationOnServer(env, doc) {
+  if (doc?.accessType === "toss") return (await import("../toss/native-compass.js")).resumeNativeCompass(env,doc);
   if (!doc?.userId || !doc.id) throw new Error("RECOVERY_doc.id_REQUIRED");
   const request = new Request("https://internal.invalid/api/destiny-compass-ai/resume", { method: "POST", headers: { "content-type": "application/json" },
     body: JSON.stringify({ reportId: String(doc.id) }) });
   return handleContinue(request, env, { userId: String(doc.userId) });
+}
+
+// Only the native router supplies this authority after resolving a funded, owner-bound intent.
+export async function deliverNativeCompassReport(env, auth, input, orderId, generate) {
+  const doc = await loadStoredReport(env,auth.userId,{idempotencyKey:input.idempotencyKey});
+  if (doc) {
+    await auth.assertTossReport(doc);
+    if (!generate || doc.status === "completed") return json(publicStoredReport(doc));
+    return runCompassDelivery(env,auth,doc);
+  }
+  if (!generate) return json({ok:true,status:"pending",sections:[],progress:{completed:0,total:COMPASS_SECTIONS.length}},{status:202});
+  return startCompassReport(new Request("https://internal.invalid/toss-compass"),env,{},input,auth,{accessType:"toss",matchedTransactionId:orderId});
 }

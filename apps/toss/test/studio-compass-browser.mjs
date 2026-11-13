@@ -43,6 +43,23 @@ try{
  assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('toss-offline-fixture')).orders.length),0);
  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth),360);
  assert.deepEqual(external.filter(url=>!url.startsWith('data:')),[]);
- console.log('PASS 360px compass: guest home → birth → question → original chart and map → quest → saved chart; login-only A/B, four horizons, life voyage with zero orders.');
+ await page.evaluate(()=>localStorage.setItem('toss-offline-generation-delay-ms','500'));
+ await page.getByRole('button',{name:/심층 리포트 열기/}).click();
+ await page.waitForURL(/destiny-compass\?resultId=/);
+ const result=page.url();
+ await page.goto(origin);await page.getByRole('button',{name:'내 정보',exact:true}).click();
+ await page.getByRole('button',{name:/기록 보관함|구매 기록/}).first().click();await page.locator('button.record').first().click();
+ await page.waitForURL(result);await page.getByText('10 / 10개 장 저장').waitFor();
+ assert.equal(await page.locator('[data-saved-compass-chapter]').count(),10);
+ const original=await page.locator('[data-saved-compass-chapter]').allInnerTexts();
+ await page.reload();await page.getByText('10 / 10개 장 저장').waitFor();
+ assert.deepEqual(await page.locator('[data-saved-compass-chapter]').allInnerTexts(),original);
+ assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('toss-offline-fixture')).orders.length),1);
+ await page.goto(origin);await page.getByRole('button',{name:'내 정보',exact:true}).click();await page.getByRole('button',{name:'로그아웃',exact:true}).click();
+ await page.evaluate(()=>localStorage.setItem('toss-offline-login-person','second'));
+ await open();await chart();await page.getByRole('button',{name:/토스 로그인하고 심층/}).click();await page.getByRole('button',{name:'토스로 로그인하기'}).click();
+ await page.getByRole('button',{name:/심층 리포트 열기/}).waitFor();
+ await page.goto(result);await page.getByRole('heading',{name:'구매 기록 확인'}).waitFor();
+ assert.equal(await page.locator('[data-saved-compass-chapter]').count(),0);
+ console.log('PASS 360px compass: public map and free chart, three signed-in free extensions, one synthetic purchase, restart and ten stored chapters; second owner denied.');
 }finally{await browser.close();}
-

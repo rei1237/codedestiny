@@ -13,6 +13,7 @@ import {useCompassSession,type CompassStep} from '../../../app/destiny-compass/_
 import {DIRECTION_TO_REGION} from '../../../app/destiny-compass/_components/mapRegions';
 import {useDestinyCompassCopy} from '../../../app/destiny-compass/_lib/copy';
 import {Button} from './Button';
+import {CompassPurchase,CompassDelivery} from './CompassDeep';
 import {api} from './platform';
 import TossSessionScope from './TossSessionScope';
 
@@ -36,7 +37,7 @@ function Journey({owner,loggedIn,onLogin}:{owner:string;loggedIn:boolean;onLogin
       sessionStorage.removeItem(loginContinuation);
       if(!raw)return;
       const pending=JSON.parse(raw);
-      if(!leaves.has(pending.step)||Date.now()-pending.created>5*60_000)return;
+      if((!leaves.has(pending.step)&&pending.step!=='result')||Date.now()-pending.created>5*60_000)return;
       sessionStorage.setItem('cd-compass:session.v1',pending.snapshot);
       if(s.restoreSnapshot())s.setStep(pending.step);
     }catch{/* A fresh journey remains available if the session was interrupted. */}
@@ -70,12 +71,14 @@ function Journey({owner,loggedIn,onLogin}:{owner:string;loggedIn:boolean;onLogin
   if(s.step==='voyage')return <LifeVoyage field={field} onBack={result}/>;
   if(s.step==='today')return <TodayQuest rewardsEnabled={false} field={field} onArrive={()=>s.setStep('arrival')} onReset={restart}/>;
   if(s.step==='arrival')return <Arrival field={field} onRestart={restart}/>;
-  return <CompassReport input={s.input} field={field} situation={s.situation} onNext={()=>s.setStep('today')} onRestart={restart} onCrossroad={()=>s.setStep('crossroad')} onFutureSim={()=>s.setStep('futureSim')} onVoyage={()=>s.setStep('voyage')}/>;
+  return <><CompassPurchase input={s.input} field={field} question={s.situation} owner={owner} onLogin={continueWithLogin}/><CompassReport input={s.input} field={field} situation={s.situation} onNext={()=>s.setStep('today')} onRestart={restart} onCrossroad={()=>s.setStep('crossroad')} onFutureSim={()=>s.setStep('futureSim')} onVoyage={()=>s.setStep('voyage')}/></>;
 }
 function Account({loggedIn,onLogin}:{loggedIn:boolean;onLogin:()=>void}){
   const [owner,setOwner]=useState(''),[error,setError]=useState(false),[attempt,setAttempt]=useState(0);
   useEffect(()=>{if(!loggedIn)return;let live=true;api<{user:{id:string}}>('/canonical/auth/me').then(r=>{if(!r.user?.id)throw Error();if(live)setOwner(r.user.id);}).catch(()=>{if(live)setError(true);});return()=>{live=false;};},[loggedIn,attempt]);
   if(loggedIn&&!owner)return error?<Button onClick={()=>{setError(false);setAttempt(n=>n+1);}}>계정 다시 확인하기</Button>:<p role="status">계정을 확인하고 있어요.</p>;
+  const id=new URLSearchParams(location.search).get('resultId');
+  if(id)return loggedIn?<CompassDelivery id={id}/>:<Button onClick={onLogin}>토스로 로그인하기</Button>;
   return <Journey key={loggedIn?owner:'guest'} owner={loggedIn?owner:'guest'} loggedIn={loggedIn} onLogin={onLogin}/>;
 }
 export default function DestinyCompass(props:{loggedIn:boolean;onLogin:()=>void}){return <TossSessionScope><Account {...props}/></TossSessionScope>;}

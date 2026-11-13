@@ -195,3 +195,28 @@ describe('delivery plan 2 (new sessions only)',()=>{
  it('seeds plan 2 for a new request',async()=>{docs=[];await route(new Request('https://mock.test/api/destiny-compass-ai/report',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(requestInput())}),{});expect(docs[0].llmMeta.deliveryPlanVersion).toBe(2);
   docs=[];await route(new Request('https://mock.test/api/destiny-compass-ai/report',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(requestInput())}),{COMPASS_REPORT_DELIVERY_V2_ENABLED:'false'});expect(docs[0].llmMeta.deliveryPlanVersion).toBeUndefined();});
 });
+
+it('reopens native chapters with the same native authority and no web payment or regeneration',async()=>{
+  docs=[];
+  const {deliverNativeCompassReport,normalizeCompassReportInput}=await import('../../worker/routes/destiny-compass-ai.js');
+  const raw=normalizeCompassReportInput(requestInput());
+  const auth={userId:uid,nativeReportId:'tossdc_123',inputHash:'native-proof',assertTossReport:jest.fn(async doc=>{
+    expect(doc.accessType).toBe('toss');
+    expect(doc.llmMeta.tossInputHash).toBe('native-proof');
+    expect(doc.llmMeta.transactionId).toBe('toss-order');
+  })};
+  const run=async write=>deliverNativeCompassReport({},auth,raw,'toss-order',write);
+  expect((await run(false)).status).toBe(202);
+  for(let i=0;i<3;i++)await run(true);
+  const saved=await (await run(false)).json();
+  expect(saved.status).toBe('completed');
+  expect(saved.sections).toHaveLength(10);
+  expect(provider).toHaveBeenCalledTimes(10);
+  expect(complete).not.toHaveBeenCalled();expect(refund).not.toHaveBeenCalled();expect(access).not.toHaveBeenCalled();
+  expect(auth.assertTossReport).toHaveBeenCalled();
+  const web=await route(new Request('https://mock.test/api/destiny-compass-ai/result?id='+saved.reportId),{});
+  expect(web.status).toBe(404);
+  const forged=await route(new Request('https://mock.test/api/destiny-compass-ai/report/continue',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({reportId:saved.reportId})}),{});
+  expect(forged.status).toBe(402);
+  await expect(deliverNativeCompassReport({}, {...auth,assertTossReport:async()=>{throw Error('ORDER_REFUNDED');}}, raw,'toss-order',false)).rejects.toThrow('ORDER_REFUNDED');
+});

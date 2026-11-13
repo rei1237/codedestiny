@@ -1,6 +1,6 @@
 import {api,nativeSaleProducts,purchase} from './platform';
 type Intent={id:string;paid:boolean;sku:string;orderId:string;amountKRW:number};
-type Options={service:'nakshatra'|'yoga';feature:string;input:unknown;orderId:string;sku?:string;isCurrent:()=>boolean;onCancel:(cleanup:()=>void)=>void};
+type Options={service:'nakshatra'|'yoga'|'compass';feature:string;input:unknown;orderId:string;sku?:string;isCurrent:()=>boolean;onCancel:(cleanup:()=>void)=>void};
 export async function checkoutNativeInput({service,feature,input,orderId,sku,isCurrent,onCancel}:Options){
   const intent=await api<Intent>('/native/'+service+'/prepare',{input,...(orderId?{orderId}:{})});
   if(!isCurrent())return;
