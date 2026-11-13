@@ -75,12 +75,18 @@ try{
   await checkout.getByRole('button',{name:'단건 결제로 상담 시작하기'}).click();
   await page.waitForURL(/yeongnyangi\/result/);
   const chapter=()=>page.getByText(/이 문단은 화면과 구매 후 열람/).first();
-  await chapter().waitFor();
-  const original=await chapter().innerText(),resultUrl=page.url(),id=new URL(resultUrl).searchParams.get('id');
-  assert.ok(id);await page.close();await fresh();await page.goto(origin);
-  await page.locator('.world-entry-yeongnyangi').click();
-  await page.getByRole('link',{name:'영냥이 보관함'}).click();
-  await page.locator('a[href*="'+id+'"]').first().click();assert.equal(await chapter().innerText(),original);
+  const resultUrl=page.url(),id=new URL(resultUrl).searchParams.get('id');
+  assert.ok(id);
+  const reopenFromHome=async()=>{
+    await page.close();await fresh();await page.goto(origin);
+    await page.locator('.world-entry-yeongnyangi').click();
+    await page.getByRole('link',{name:'영냥이 보관함'}).click();
+    await page.locator('a[href*="'+id+'"]').first().click();
+  };
+  // Leave as soon as the grant navigates; the first result page need not finish.
+  await reopenFromHome();await chapter().waitFor();
+  const original=await chapter().innerText();
+  await reopenFromHome();assert.equal(await chapter().innerText(),original);
   const ledger=await page.evaluate(()=>JSON.parse(localStorage.getItem('consultations')));
   assert.deepEqual(await page.evaluate(()=>[localStorage.getItem('regular-app-sentinel'),window.readRegularSentinel()]),[null,'leave-intact']);
   assert.equal(ledger.orders.length,1);assert.equal(ledger.fortunes.length,1);assert.equal(ledger.fortunes[0][1].generationCount,1);
