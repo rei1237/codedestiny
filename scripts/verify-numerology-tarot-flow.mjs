@@ -158,9 +158,11 @@ for (const removed of ["findNumerologyPaidEvidence", "collectNumerologyPaymentTo
 }
 
 // ── 7) 경고 카드 순화가 UI 가 실제로 읽는 배열에도 걸려야 한다 ─────────────
-const guard = sliceFunctionBody(worker, "function guardNumerologyWarningInterpretation(");
+const guardSource = "lib/tarot/numerology-tarot.mjs";
+const guard = sliceFunctionBody(read(guardSource), "function guardNumerologyWarningInterpretation(");
+if (!worker.includes("guardNumerologyWarningInterpretation(fallback, cards)")) fail(`${WORKER}: 공유 경고 카드 순화를 결과에 적용해야 합니다.`);
 if (guard && !/cards: guardSections\(/.test(guard)) {
-  fail(`${WORKER}: 경고 카드 순화가 cards[] 에 적용되지 않습니다. UI 는 cards[] 를 우선 렌더합니다.`);
+  fail(`${guardSource}: 경고 카드 순화가 cards[] 에 적용되지 않습니다. UI 는 cards[] 를 우선 렌더합니다.`);
 }
 
 // ── 8) 카드 스프레드를 다시 절대배치 상자에 넣지 말 것 ─────────────────────

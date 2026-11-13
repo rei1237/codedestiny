@@ -42,9 +42,9 @@ const stubMap={
  'worker/yeongnyangi/retry.js':"export const retryFortune=(...args)=>globalThis.__tossRouteMocks.retry(...args);",
  'worker/toss/session.js':"import {TossError} from './policy.js';export const requireTossSession=async()=>{if(globalThis.__tossRouteMocks.denyAuth)throw new TossError('LOGIN_REQUIRED',401);return globalThis.__tossRouteMocks.auth();};export const createTossSession=()=>{};export const invalidateIdentity=()=>{};export const disconnectIdentity=()=>{};",
  'worker/toss/catalog.js':"import {TossError} from './policy.js';export const APPROVED_TOSS_PRODUCTS=globalThis.__tossRouteMocks.approvedProducts;export const assertUniqueApprovedSaleSkus=()=>{if(globalThis.__tossRouteMocks.skuConflict)throw new TossError('TOSS_PRODUCT_NOT_APPROVED',503);};export const APPROVED_TOSS_NATIVE_PRODUCTS=[];export const APPROVED_TOSS_TAROT_LIBRARY_PRODUCTS=globalThis.__tossRouteMocks.tarotProducts;export const approvedProduct=(...args)=>globalThis.__tossRouteMocks.product(...args);",
- 'worker/toss/models.js':"export const TossPurchase={findOne:(...args)=>globalThis.__tossRouteMocks.purchase(...args),find:()=>({sort:()=>({limit:()=>({lean:async()=>globalThis.__tossRouteMocks.libraryRows})})})};export const TossSession={};",
+ 'worker/toss/models.js':"export const TossPurchase={findOne:(...args)=>globalThis.__tossRouteMocks.purchase(...args),find:filter=>({sort:()=>({limit:()=>({lean:async()=>{globalThis.__tossRouteMocks.libraryQuery=filter;return globalThis.__tossRouteMocks.libraryRows;}})})})};export const TossSession={};",
  'worker/toss/partner.js':"export const lookupOrder=(...args)=>globalThis.__tossRouteMocks.lookupOrder(...args);",
- 'worker/toss/tarot-library.js':"export const tarotLibraryProduct=x=>x;export const tarotLibraryFlow=()=>{};export const tarotLibraryResult=()=>{};export const attachTarotLibraryInput=()=>{};export const grantTarotLibraryOrder=async args=>{globalThis.__tossRouteMocks.grants.push(args);return {orderId:args.order.orderId,durable:true,entitlement:'granted'};};export const deliverTarotLibraryOrder=()=>{globalThis.__tossRouteMocks.deliveries++;throw Error('grant must never generate')};",
+ 'worker/toss/tarot-library.js':"export const freeTarotReading=(flowId,input)=>({flowId,input});export const tarotLibraryProduct=x=>x;export const tarotLibraryFlow=()=>{};export const tarotLibraryResult=()=>{};export const attachTarotLibraryInput=()=>{};export const grantTarotLibraryOrder=async args=>{globalThis.__tossRouteMocks.grants.push(args);return {orderId:args.order.orderId,durable:true,entitlement:'granted'};};export const deliverTarotLibraryOrder=()=>{globalThis.__tossRouteMocks.deliveries++;throw Error('grant must never generate')};",
  'worker/toss/grant.js':"export const grantVerifiedOrder=(...args)=>globalThis.__tossRouteMocks.genericGrant(...args);",
  'worker/toss/purchases.js':"export const purchaseStore={};export const recordTossRefund=()=>{};",
  'worker/lib/models.js':"export const ProfileCard={updateOne:globalThis.__tossRouteMocks.profile};export const PaidExecutionRecord={findOne:()=>({lean:async()=>null})};",
@@ -218,6 +218,44 @@ test('tarot recovery routes the approved SKU on the server and acknowledges with
   assert.equal(mocks.deliveries,0);assert.equal(calls.profiles.length,0);
  }finally{mocks.tarotProducts.length=0;}
 });
+test('public tarot and consultation catalogs stay reachable when accountable operations are closed',async()=>{
+ const get=path=>handleTossRoutes(new Request('https://code-destiny.com/api/toss'+path,{headers:{Origin:'https://ai-saju-studio.private-apps.tossmini.com'}}),{});
+ mocks.denyAuth=true;
+ try{
+  assert.equal((await get('/canonical/yeongnyangi/products')).status,200);
+  assert.equal((await request({flowId:'tarot-ijik',input:{}},'/tarot-library/free',{})).status,200);
+  assert.equal((await request({},'/tarot-library/results/01900000-1111-7111-8111-000000000042')).status,401);
+ }finally{mocks.denyAuth=false;}
+});
+
+test('free tarot cannot get a new IAP grant and retained orders still recover',async()=>{
+ const orderId='01900000-1111-7111-8111-000000000042',sku='mock-previous-reunion';
+ const entry={sku,tarotFlowId:'tarot-reunion',featureKey:'tarot-reunion-reading',flow:{id:'tarot-reunion'}};
+ const previous={purchase:mocks.purchase,lookupOrder:mocks.lookupOrder};
+ mocks.tarotProducts.push(entry);mocks.grants.length=0;
+ try{
+  mocks.purchase=()=>({lean:async()=>null});
+  mocks.lookupOrder=()=>assert.fail('new IAP should not reach partner lookup');
+  for(const path of ['/tarot-library/orders/grant','/orders/restore'])assert.equal((await request({orderId,sku},path)).status,503);
+  assert.equal(mocks.grants.length,0);
+  mocks.purchase=()=>({lean:async()=>entry});
+  mocks.lookupOrder=async()=>({orderId,sku,status:'PURCHASED'});
+  assert.equal((await request({orderId,sku},'/orders/restore')).status,200);
+  assert.equal(mocks.grants.at(-1).product.featureKey,entry.featureKey);
+ }finally{Object.assign(mocks,previous);mocks.tarotProducts.length=0;}
+});
+
+test('the two service libraries constrain the account, product family and cursor on the database query',async()=>{
+ const stamp='2026-11-13T00:00:00.000Z',id='01900000-1111-7111-8111-000000000042';
+ const get=path=>handleTossRoutes(new Request('https://code-destiny.com/api/toss'+path+'?cursor='+encodeURIComponent(stamp+','+id),{headers:{Origin:'https://ai-saju-studio.private-apps.tossmini.com'}}),{TOSS_RELEASE_READY:'true'});
+ const owner={identityId:auth._id,ownerId:auth.ownerId,environment:auth.environment};
+ const cursor={$or:[{grantedAt:{$lt:new Date(stamp)}},{grantedAt:new Date(stamp),_id:{$lt:id}}]};
+ assert.equal((await get('/canonical/records')).status,200);
+ assert.deepEqual(mocks.libraryQuery,{...owner,...cursor,$and:[{$or:[{serviceId:{$in:['yeoni','neo']}},{tarotFlowId:{$type:'string',$gt:''}},{nativeService:{$type:'string',$gt:''}}]}]});
+ assert.equal((await get('/canonical/yeongnyangi/requests')).status,200);
+ assert.deepEqual(mocks.libraryQuery,{...owner,...cursor,serviceId:{$in:['yeongnyangi',null]},tarotFlowId:{$in:['',null]},nativeService:{$in:['',null]}});
+});
+
 test('missing or unconfirmed question scope is rejected before profile writes',async()=>{
  for(const form of [{...input(),questionDecision:undefined},{...input(),questionDecision:{...decision,confirmed:false}}]){const r=await request(form);assert.equal(r.status,400);assert.equal(calls.profiles.length,0);assert.equal(calls.prepared.length,0);}
 });

@@ -1,3 +1,6 @@
+import {CRYSTAL_SOUL_GEMS} from '../../lib/tarot/crystal-soul-reading.mjs';
+import {TOPIC_LABELS} from '../../lib/tarot/numerology-tarot.mjs';
+import {isFreeFortuneFeatureKey} from '../../lib/payment/free-fortune-policy.mjs';
 import {checkOrder,TossError} from './policy.js';
 import {TOSS_TAROT_LIBRARY_FLOWS,tossTarotLibraryFlow} from '../../lib/tarot/toss-library-flows.mjs';
 import {getTarotCardByAnyId} from '../../lib/tarot/tarot-cards.mjs';
@@ -22,6 +25,12 @@ export function tarotLibraryProduct(product){
   return {...product,flow};
 }
 
+export function freeTarotReading(flowId,raw){
+  const flow=tarotLibraryFlow(flowId);
+  if(!flow.featureKeys.some(isFreeFortuneFeatureKey))throw new TossError('TAROT_LIBRARY_FLOW_INVALID');
+  return generateTarotLibraryResult(flow.id,tarotInput(flow,raw));
+}
+
 export const tarotLibraryRequestId=orderId=>`toss-tarot:${orderId}`;
 export const tarotLibraryExecutionId=orderId=>`toss-tarot-execution:${orderId}`;
 export const tarotLibraryResultId=orderId=>`toss-tarot-result:${orderId}`;
@@ -36,13 +45,15 @@ function tarotInput(flow,input){
   const normalized=cards.map((card,index)=>{
     const source=getTarotCardByAnyId(text(card?.cardId));
     if(!source||!['upright','reversed'].includes(card?.orientation)||text(card?.position)!==flow.positions[index][0])throw new TossError('TAROT_LIBRARY_INPUT_INVALID');
-    return {cardId:source.code,orientation:card.orientation,position:flow.positions[index][0]};
+    return {cardId:source.code,orientation:card.orientation,position:flow.positions[index][0],positionLabel:flow.positions[index][1]};
   });
   const birthDate=text(input.birthDate);
   if(flow.id==='tarot-numerology'&&!/^\d{4}-\d{2}-\d{2}$/.test(birthDate))throw new TossError('TAROT_LIBRARY_INPUT_INVALID');
-  const gem=text(input.gem);
-  if(flow.id==='tarot-crystal-soul'&&gem&&!/^[a-z-]{3,40}$/.test(gem))throw new TossError('TAROT_LIBRARY_INPUT_INVALID');
-  return {question,cards:normalized,...(birthDate?{birthDate}:{}),...(gem?{gem}:{})};
+  const topic=text(input.topic)||'general',name=text(input.name);
+  if(flow.id==='tarot-numerology'&&(!Object.hasOwn(TOPIC_LABELS,topic)||name.length>60||normalized.some(card=>!/^M\d{2}$/.test(card.cardId))))throw new TossError('TAROT_LIBRARY_INPUT_INVALID');
+  const gem=text(input.gem).replaceAll('-','_');
+  if(flow.id==='tarot-crystal-soul'&&gem&&!Object.hasOwn(CRYSTAL_SOUL_GEMS,gem))throw new TossError('TAROT_LIBRARY_INPUT_INVALID');
+  return {question,cards:normalized,...(birthDate?{birthDate}:{}),...(flow.id==='tarot-numerology'?{topic,name}:{}),...(gem?{gem}:{})};
 }
 
 export function tarotLibraryInput(flowId,input){return tarotInput(tarotLibraryFlow(flowId),input);}

@@ -1,6 +1,6 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {TAROT_DELIVERY_LEASE_MS,failTarotLibraryDelivery,TOSS_TAROT_LIBRARY_FLOWS,attachTarotLibraryInput,buildTarotLibraryBaseline,claimTarotLibraryDelivery,completeTarotLibraryDelivery,deliverTarotLibraryOrder,grantTarotLibraryOrder,tarotLibraryProduct,tarotLibraryResult} from '../../../worker/toss/tarot-library.js';
+import {TAROT_DELIVERY_LEASE_MS,freeTarotReading,failTarotLibraryDelivery,TOSS_TAROT_LIBRARY_FLOWS,attachTarotLibraryInput,buildTarotLibraryBaseline,claimTarotLibraryDelivery,completeTarotLibraryDelivery,deliverTarotLibraryOrder,grantTarotLibraryOrder,tarotLibraryProduct,tarotLibraryResult} from '../../../worker/toss/tarot-library.js';
 import {generateTarotLibraryResult} from '../../../worker/toss/tarot-library-generator.js';
 
 const order={orderId:'01900000-1111-7111-8111-000000000042',sku:'approved-tarot-library',status:'PAYMENT_COMPLETED'};
@@ -141,4 +141,30 @@ test('expired delivery resumes once and fences late completion and failure from 
  const completed=await completeTarotLibraryDelivery({...args,token:current,result:{title:'resumed'}});
  assert.equal(completed.result.title,'resumed');
  assert.equal(Object.keys(f.get().purchases).length,1);
+});
+
+test('the five free web readings preserve their original card and chapter data',async()=>{
+  const ids=['tarot-reunion','tarot-crystal-soul','tarot-year-fortune','tarot-numerology','tarot-ijik'];
+  for(const id of ids){
+    const flow=TOSS_TAROT_LIBRARY_FLOWS.find(row=>row.id===id);
+    const cards=flow.positions.map(([position],i)=>({position,cardId:'M'+String(i).padStart(2,'0'),orientation:i%2?'reversed':'upright'}));
+    const result=await freeTarotReading(id,{question:'나의 선택을 어떻게 돌아볼까요?',birthDate:'1990-01-01',topic:'career',name:'은하',gem:'rose_quartz',cards});
+    assert.equal(result.flowId,id);
+    assert.deepEqual(result.cards.map(card=>card.code),cards.map(card=>card.cardId));
+    assert.ok(result.presentation.sections.length);
+    assert.ok(result.presentation.summary.length);
+    assert.doesNotMatch(JSON.stringify(result.presentation),/\[object Object\]/);
+    if(id==='tarot-reunion')assert.equal(result.presentation.sections[0].body,result.reading.positions[0].detailedReading);
+    if(id==='tarot-crystal-soul'){
+      assert.equal(result.reading.gem,'rose_quartz');
+      assert.deepEqual(result.reading.cards.map(card=>card.orientation),cards.map(card=>card.orientation));
+    }
+    if(id==='tarot-year-fortune')assert.equal(result.presentation.sections.length,12);
+    if(id==='tarot-numerology'){
+      assert.equal(result.reading.topic,'career');assert.match(result.reading.opening,/은하/);
+      assert.equal(result.reading.cards.length,5);
+      assert.ok(result.reading.quintessence);
+    }
+  }
+  assert.throws(()=>freeTarotReading('tarot-prompt-maker',{}),/TAROT_LIBRARY_FLOW_INVALID/);
 });

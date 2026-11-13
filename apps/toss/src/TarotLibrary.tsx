@@ -1,3 +1,6 @@
+import {buildAttunedDeck,TOPIC_LABELS} from '../../../lib/tarot/numerology-tarot.mjs';
+import {CRYSTAL_SOUL_GEMS} from '../../../lib/tarot/crystal-soul-reading.mjs';
+import {isFreeFortuneFeatureKey} from '../../../lib/payment/free-fortune-policy.mjs';
 import {shuffleTarotDeck} from './tarot-deck';
 import {TarotCover,CharacterGuide} from './Brand';
 import {useEffect,useLayoutEffect,useMemo,useRef,useState,useSyncExternalStore} from 'react';
@@ -18,8 +21,7 @@ type StoredReading={flowId?:string;state:string;result:LocalResult|null;canRetry
 
 const flows=TOSS_TAROT_LIBRARY_FLOWS as Flow[];
 const deck=TAROT_CARDS as Card[];
-const isFree=(flow:Flow)=>flow.access==='free-local';
-const orientation=(index:number):'upright'|'reversed'=>index%3===1?'reversed':'upright';
+const isFree=(flow:Flow)=>flow.access==='free-local'||flow.featureKeys.some(isFreeFortuneFeatureKey);
 const cardName=(card:DrawnCard)=>`${card.nameKo||card.nameEn}${card.orientation==='reversed'?' · 역방향':''}`;
 
 const resultPresentation=(result:LocalResult)=>{
@@ -74,10 +76,11 @@ export default function TarotLibrary({products,loggedIn,onLogin,onError,onBack,o
   useEffect(()=>{const leave=()=>{requestEpoch.current++;const needsReview=stopPurchase();setBuyingState(false);if(needsReview)setPaymentBlocked(true);};window.addEventListener('pagehide',leave);window.addEventListener('popstate',leave);return()=>{window.removeEventListener('pagehide',leave);window.removeEventListener('popstate',leave);};},[]);
   const [shuffledDeck,setShuffledDeck]=useState(()=>shuffleTarotDeck(deck));
   const [flowId,setFlowId]=useState(''),[question,setQuestion]=useState(''),[birthDate,setBirthDate]=useState(''),[gem,setGem]=useState('amethyst'),[drawStarted,setDrawStarted]=useState(false),[picks,setPicks]=useState<number[]>([]),[paidReady,setPaidReady]=useState(false),[buying,setBuying]=useState(false),[result,setResult]=useState<LocalResult|null>(null),[retryOrderId,setRetryOrderId]=useState(''),[restoring,setRestoring]=useState(false);
+  const [numberTopic,setNumberTopic]=useState('general'),[numberName,setNumberName]=useState('');
   const setBuyingState=(value:boolean)=>{buyingRef.current=value;setBuying(value);};
   const flow=useMemo(()=>flows.find(item=>item.id===flowId)||null,[flowId]);
   const [recoveredOrderId,setRecoveredOrderId]=useState(''),[canResume,setCanResume]=useState(false),[paymentBlocked,setPaymentBlocked]=useState(()=>paymentRequiresReview());
-  const clearReading=()=>{setPriceMessage('');requestEpoch.current++;const cleanupFailed=stopPurchase();if(cleanupFailed)setPaymentBlocked(true);setBuyingState(false);setRestoring(false);setFlowId('');setQuestion('');setBirthDate('');setGem('amethyst');setDrawStarted(false);setPicks([]);setPaidReady(false);setResult(null);setRetryOrderId('');setRecoveredOrderId('');setCanResume(false);return cleanupFailed;};
+  const clearReading=()=>{setPriceMessage('');requestEpoch.current++;const cleanupFailed=stopPurchase();if(cleanupFailed)setPaymentBlocked(true);setBuyingState(false);setRestoring(false);setFlowId('');setQuestion('');setNumberTopic('general');setNumberName('');setBirthDate('');setGem('amethyst');setDrawStarted(false);setPicks([]);setPaidReady(false);setResult(null);setRetryOrderId('');setRecoveredOrderId('');setCanResume(false);return cleanupFailed;};
   useLayoutEffect(()=>{if(acceptedRevision===sessionRevision)return;if(previousLogin.current){const cleanupFailed=clearReading();setVisibleProducts([]);setPaymentBlocked(cleanupFailed||paymentRequiresReview());}setAcceptedRevision(sessionRevision);},[acceptedRevision,sessionRevision]);
   const reset=()=>{if(buyingRef.current)return;clearReading();onRereadClosed?.();};
   const refreshProducts=async()=>{if(!loggedIn||buyingRef.current)return;const epoch=++requestEpoch.current,revision=sessionRevision;setBuyingState(true);setPriceMessage('');try{const latest=await tarotLibraryProducts();if(alive.current&&epoch===requestEpoch.current&&getTossSessionRevision()===revision){setVisibleProducts(latest);setPriceMessage('상품 정보를 다시 확인했어요.');}}catch(error){if(alive.current&&epoch===requestEpoch.current&&getTossSessionRevision()===revision){setPriceMessage('상품 정보를 확인하지 못했어요. 다시 시도해 주세요.');onError(error);}}finally{if(alive.current&&epoch===requestEpoch.current&&getTossSessionRevision()===revision)setBuyingState(false);}};
@@ -115,19 +118,39 @@ export default function TarotLibrary({products,loggedIn,onLogin,onError,onBack,o
   if(!flow)return <section className="tarot-library"><TarotCover/><h1>카드에 담긴, 나의 이야기</h1><p className="intro">마음에 걸리는 질문을 고르고, 카드가 비추는 흐름과 현실적인 다음 행동을 살펴보세요.</p><div className="tarot-library-list">
     {flows.map(item=><button className="tarot-library-item" key={item.id} onClick={()=>{setShuffledDeck(shuffleTarotDeck(deck));setFlowId(item.id);setQuestion('');setDrawStarted(false);setPicks([]);setPaidReady(false);}}><img className="tarot-list-art" src={`/assets/${item.id}-320.webp`} alt="" width={88} height={72} loading="lazy" decoding="async"/><span><strong>{item.name}</strong><small>{item.cardCount}장 펼침 · {isFree(item)?'바로 펼치는 리딩':'단건 리딩'}</small></span><span aria-hidden>›</span></button>)}
   </div><Button variant="weak" display="block" onClick={onBack}>홈으로 돌아가기</Button></section>;
+  const readingInput=()=>({question,cards:picks.map((slot,index)=>{
+    const drawn=shuffledDeck[flow.id==='tarot-numerology'?index:slot];
+    return {cardId:drawn.code,orientation:drawn.orientation,position:flow.positions[index][0]};
+  }),...(flow.id==='tarot-numerology'?{birthDate,topic:numberTopic,name:numberName}:{}),...(flow.id==='tarot-crystal-soul'?{gem}:{})});
+  const finishDraw=async()=>{
+    if(recoveredOrderId||!isFree(flow)){setPaidReady(true);return;}
+    if(flow.access==='free-local'){setResult(buildLocalTarotReading(flow,question,picks,shuffledDeck));return;}
+    if(buyingRef.current)return;
+    const epoch=++requestEpoch.current;setBuyingState(true);
+    try{const reading=await api<LocalResult>('/tarot-library/free',{flowId:flow.id,input:readingInput()});if(alive.current&&epoch===requestEpoch.current)setResult(reading);}
+    catch(error){if(alive.current&&epoch===requestEpoch.current)onError(error);}
+    finally{if(alive.current&&epoch===requestEpoch.current)setBuyingState(false);}
+  };
   if(paidReady){
     const product=visibleProducts.find(item=>item.id===flow.id&&item.sku&&flow.featureKeys.includes(item.featureKey)&&item.displayAmount&&Number.isSafeInteger(item.approvedPriceKRW)&&item.approvedPriceKRW>0);
-    const input={question,cards:picks.map((slot,index)=>({cardId:shuffledDeck[slot].code,orientation:shuffledDeck[slot].orientation,position:flow.positions[index][0]})),...(flow.id==='tarot-numerology'?{birthDate}:{}),...(flow.id==='tarot-crystal-soul'?{gem}:{})};
+    const input=readingInput();
     if(recoveredOrderId)return <section className="tarot-library"><h1>{flow.name}</h1><p>이미 구매한 리딩에 질문과 카드를 연결할게요. 추가 결제는 필요하지 않아요.</p><Button display="block" loading={buying} disabled={buying} onClick={()=>void resumeReading(recoveredOrderId,{input})}>구매한 리딩 이어서 보기</Button></section>;
     return <section className="tarot-library"><h1>{flow.name}</h1><p className="intro">선택한 {flow.cardCount}장의 카드와 질문을 안전하게 확인했어요.</p><section className="paper"><h2>단건 리딩 준비 완료</h2><p>선택한 카드와 질문으로 리딩을 만들어요. 완성된 결과는 같은 토스 계정의 기록 보관함에서 다시 열 수 있어요.</p></section>{paymentBlocked?<div role="status"><p>추가 결제 전에 구매 내역을 확인해 주세요.</p>{onRecovery&&<Button display="block" onClick={onRecovery}>구매 복구 열기</Button>}</div>:!product?<div className="notice"><p>이 리딩의 승인된 토스 상품을 확인하고 있어요. 현재는 결제를 시작하지 않아요.</p>{loggedIn&&<Button display="block" loading={buying} disabled={buying} onClick={()=>void refreshProducts()}>상품 다시 확인하기</Button>}</div>:!loggedIn?<Button display="block" onClick={onLogin}>토스 로그인하고 이어가기</Button>:<Button display="block" loading={buying} disabled={buying} onClick={()=>{if(buyingRef.current)return;setBuyingState(true);setPriceMessage('');const epoch=++requestEpoch.current;void (async()=>{try{const latest=await tarotLibraryProducts();if(!alive.current||epoch!==requestEpoch.current)return;const selected=latest.find(item=>item.id===product.id);if(!selected||!selected.sku||!selected.featureKey||!selected.displayAmount||!Number.isSafeInteger(selected.approvedPriceKRW)||selected.approvedPriceKRW<=0||selected.sku!==product.sku||selected.featureKey!==product.featureKey||selected.displayAmount!==product.displayAmount||selected.approvedPriceKRW!==product.approvedPriceKRW){setVisibleProducts(latest);setBuyingState(false);setPriceMessage('상품 정보가 바뀌었어요. 표시된 금액을 확인한 뒤 다시 선택해 주세요.');return;}if(stopPurchase()){setBuyingState(false);setPaymentBlocked(true);return;}purchaseCleanup.current=purchaseTarotLibrary(selected,input,orderId=>{if(alive.current&&epoch===requestEpoch.current)void resumeReading(orderId,{},true);},error=>{if(alive.current&&epoch===requestEpoch.current){setBuyingState(false);if(paymentRequiresReview())setPaymentBlocked(true);onError(error);}});}catch(error){if(alive.current&&epoch===requestEpoch.current){setBuyingState(false);if(typeof error==='object'&&error&&'code' in error&&['PAYMENT_STATUS_UNCERTAIN','RECOVERY_REQUIRED','RECOVERY_IN_PROGRESS','PAYMENT_IN_PROGRESS'].includes(String(error.code)))setPaymentBlocked(true);onError(error);}}})();}}>{product.displayAmount} 단건 리딩 시작</Button>}{priceMessage&&<p role="alert">{priceMessage}</p>}<Button variant="weak" display="block" disabled={buying} onClick={reset}>다른 리딩 살펴보기</Button></section>;
   }
-  if(!drawStarted)return <section className="tarot-library floral-form"><TarotCover flowId={flow.id}/><h1>{flow.name}</h1><p className="intro">{flow.inputHint||'질문을 적고 카드를 직접 펼쳐 보세요. 출생정보는 필요하지 않아요.'}</p><CharacterGuide title="마음에 남은 질문 하나부터">지금의 상황과 궁금한 점을 적어 주세요. 꽃돼지 연이가 카드 펼침을 안내할게요.</CharacterGuide>{flow.id==='tarot-prompt-maker'&&<p role="note">이 상담은 AI를 활용해 작성해요.</p>}<TextArea variant="box" label={flow.inputLabel} aria-label={flow.inputLabel} labelOption="sustain" value={question} onChange={event=>setQuestion(event.target.value)} maxLength={600}/>{flow.id==='tarot-numerology'&&<label className="tarot-input-label">생년월일<input type="date" value={birthDate} onChange={event=>setBirthDate(event.target.value)} required/></label>}{flow.id==='tarot-crystal-soul'&&<label className="tarot-input-label">오늘 가장 끌리는 원석<select value={gem} onChange={event=>setGem(event.target.value)}><option value="amethyst">자수정</option><option value="rose-quartz">로즈쿼츠</option><option value="citrine">시트린</option></select></label>}<Button display="block" disabled={question.trim().length<2||(flow.id==='tarot-numerology'&&!birthDate)} onClick={()=>setDrawStarted(true)}>카드 펼치기</Button><Button variant="weak" display="block" disabled={buying} onClick={reset}>리딩 목록</Button></section>;
-  return <section className="tarot-library"><h1>{flow.name}</h1><p className="intro">카드를 순서대로 열어 보세요.</p><TarotDeck flow={flow} picks={picks} onChange={setPicks} onComplete={()=>isFree(flow)?setResult(buildLocalTarotReading(flow,question,picks,shuffledDeck)):setPaidReady(true)}/></section>;
+  const startDraw=()=>{
+    if(flow.id==='tarot-numerology'){
+      const attuned=buildAttunedDeck({birthDate,topic:numberTopic,name:numberName,sessionSeed:crypto.randomUUID()});
+      setShuffledDeck(attuned.order.map(({card,orientation})=>({...deck.find(item=>item.code==='M'+String(card.id).padStart(2,'0'))!,orientation:orientation==='reversed'?'reversed':'upright'})));
+    }
+    setDrawStarted(true);
+  };
+  if(!drawStarted)return <section className="tarot-library floral-form"><TarotCover flowId={flow.id}/><h1>{flow.name}</h1><p className="intro">{flow.inputHint||'질문을 적고 카드를 직접 펼쳐 보세요. 출생정보는 필요하지 않아요.'}</p><CharacterGuide title="마음에 남은 질문 하나부터">지금의 상황과 궁금한 점을 적어 주세요. 꽃돼지 연이가 카드 펼침을 안내할게요.</CharacterGuide>{flow.id==='tarot-prompt-maker'&&<p role="note">이 상담은 AI를 활용해 작성해요.</p>}<TextArea variant="box" label={flow.inputLabel} aria-label={flow.inputLabel} labelOption="sustain" value={question} onChange={event=>setQuestion(event.target.value)} maxLength={600}/>{flow.id==='tarot-numerology'&&<><label className="tarot-input-label">상담 주제<select value={numberTopic} onChange={event=>setNumberTopic(event.target.value)}>{Object.entries(TOPIC_LABELS).map(([key,label])=><option key={key} value={key}>{label}</option>)}</select></label><label className="tarot-input-label">이름 또는 별명 (선택)<input value={numberName} maxLength={60} onChange={event=>setNumberName(event.target.value)}/></label><label className="tarot-input-label">생년월일<input type="date" value={birthDate} onChange={event=>setBirthDate(event.target.value)} required/></label></>}{flow.id==='tarot-crystal-soul'&&<label className="tarot-input-label">오늘 가장 끌리는 원석<select value={gem} onChange={event=>setGem(event.target.value)}>{Object.entries(CRYSTAL_SOUL_GEMS).map(([id,name])=><option key={id} value={id}>{name}</option>)}</select></label>}<Button display="block" disabled={question.trim().length<2||(flow.id==='tarot-numerology'&&!birthDate)} onClick={startDraw}>카드 펼치기</Button><Button variant="weak" display="block" disabled={buying} onClick={reset}>리딩 목록</Button></section>;
+  return <section className="tarot-library"><h1>{flow.name}</h1><p className="intro">카드를 순서대로 열어 보세요.</p><TarotDeck slots={shuffledDeck.length} loading={buying} flow={flow} picks={picks} onChange={setPicks} onComplete={()=>void finishDraw()}/></section>;
 }
 
-function TarotDeck({flow,picks,onChange,onComplete}:{flow:Flow;picks:number[];onChange:(next:number[])=>void;onComplete:()=>void}){
+function TarotDeck({flow,picks,onChange,onComplete,slots,loading}:{slots:number;loading:boolean;flow:Flow;picks:number[];onChange:(next:number[])=>void;onComplete:()=>void}){
   const ready=picks.length===flow.cardCount;
   return <><p role="status">{picks.length} / {flow.cardCount}장 선택{flow.positions[picks.length]?` · 다음 자리: ${flow.positions[picks.length][1]}`:''}</p><div className="tarot-deck" aria-label="뒤집힌 타로 카드">
-    {Array.from({length:Math.min(deck.length,24)},(_,slot)=>{const index=picks.indexOf(slot);return <button type="button" key={slot} aria-label={`${slot+1}번째 카드${index>=0?` · ${index+1}번째로 선택됨`:''}`} aria-pressed={index>=0} disabled={index<0&&ready} onClick={()=>onChange(index>=0?picks.filter(value=>value!==slot):[...picks,slot])}><span aria-hidden>{index>=0?index+1:'✦'}</span></button>;})}
-  </div><Button display="block" disabled={!ready} onClick={onComplete}>선택한 카드 열기</Button></>;
+    {Array.from({length:Math.min(slots,24)},(_,slot)=>{const index=picks.indexOf(slot);return <button type="button" key={slot} aria-label={`${slot+1}번째 카드${index>=0?` · ${index+1}번째로 선택됨`:''}`} aria-pressed={index>=0} disabled={loading||(index<0&&ready)} onClick={()=>onChange(index>=0?picks.filter(value=>value!==slot):[...picks,slot])}><span aria-hidden>{index>=0?index+1:'✦'}</span></button>;})}
+  </div><Button display="block" disabled={loading||!ready} loading={loading} onClick={onComplete}>선택한 카드 열기</Button></>;
 }

@@ -27,6 +27,7 @@ import {
 import { expectedCardCount, listSpreadIds, normalizeSpreadType, getSpreadDefinition } from "../../lib/tarot/spreads.mjs";
 import {
   buildFallbackInterpretation,
+  guardNumerologyWarningInterpretation,
   buildNumerologyContext,
   normalizeCardInput,
   normalizeTopic,
@@ -578,29 +579,6 @@ async function verifyTarotPerUseAccess(request, env, body, spec, verifiedAuth = 
     message: proof.reason === "NO_REQUEST_ID"
       ? `결제 요청 정보가 없어 확인하지 못했습니다. ${spec.retryHint}`
       : `결제 완료 내역을 확인할 수 없습니다. ${spec.retryHint}`,
-  };
-}
-
-function guardNumerologyWarningInterpretation(interpretation, cards = []) {
-  if (!interpretation || typeof interpretation !== "object") return interpretation;
-
-  const guardSections = (sections) => (Array.isArray(sections)
-    ? sections.map((section, idx) => {
-      const entry = cards[idx] || {};
-      const cardLike = {
-        nameKo: section?.cardNameKr || section?.cardName || entry?.card?.nameKr || entry?.nameKr,
-        nameEn: section?.cardNameEn || entry?.card?.name || entry?.name,
-        name: section?.cardNameEn || section?.cardNameKr || section?.cardName || entry?.card?.name || entry?.name,
-      };
-      return guardWarningTarotSection(section, cardLike);
-    })
-    : sections);
-
-  return {
-    ...interpretation,
-    cardReadings: guardSections(interpretation.cardReadings),
-    // UI 는 cards[] 를 우선 렌더한다. 여기를 빼면 경고 카드 순화가 화면에서 무력화된다.
-    cards: guardSections(interpretation.cards),
   };
 }
 

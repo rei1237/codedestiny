@@ -1,14 +1,14 @@
 import {buildCelestialMelodyReading} from '../../lib/tarot/celestial-melody-reading.mjs';
 import {buildCrystalSoulV3Reading} from '../../lib/tarot/crystal-soul-reading.mjs';
 import {buildMindscanDeliveryFacts} from '../../lib/tarot/mindscan-reading.mjs';
-import {buildNumerologyContext,buildFallbackInterpretation} from '../../lib/tarot/numerology-tarot.mjs';
+import {buildNumerologyContext,buildFallbackInterpretation,guardNumerologyWarningInterpretation,normalizeCardInput,normalizeTopic} from '../../lib/tarot/numerology-tarot.mjs';
 import {generateOracleConsultation} from '../../lib/tarot/oracle-consultation.mjs';
 import {buildLegacyReadingPayload,interpretTarotReading} from '../../lib/tarot/tarot-interpretation-engine.mjs';
 import {buildPremiumYearReading} from '../../lib/tarot/tarot-year-premium.mjs';
 import {buildIjikReading} from '../lib/tarot-ijik-reading.js';
 import {getTarotCardByAnyId} from '../../lib/tarot/tarot-cards.mjs';
 
-const text=value=>String(value||'').replace(/\s+/g,' ').trim();
+const text=value=>typeof value==='string'?value.trim():'';
 const cardRows=input=>(input.cards||[]).map((item,index)=>{
   const card=getTarotCardByAnyId(item.cardId);
   return {cardId:card.code,code:card.code,nameKr:card.nameKo,nameKo:card.nameKo,nameEn:card.nameEn,
@@ -40,10 +40,11 @@ function relationship(input){
 function reunion(input){
   const {reading}=interpreted(input,'reunion_lighthouse_five_card');
   return presentation('tarot-reunion','재회운 등대 타로',input.question,'reunion',reading,{opening:reading.opening,
-    summary:reading.summary||reading.oneLineMessage,sections:sections([
-      {title:'관계의 현재 거리',body:reading.currentDistance||reading.storyFlow},
-      {title:'다시 닿기 전에 볼 신호',body:reading.reconnectionSignal||reading.realityAndFuture},
-    ]),actions:reading.actionPlan||[reading.finalAdvice]});
+    summary:reading.summary.reunionChanceLabel,sections:sections([
+      ...reading.positions.map(item=>({title:item.positionTitle+' · '+item.cardName,body:item.detailedReading})),
+      {title:'등대가 비추는 길',body:reading.lighthouseGuidance},
+      {title:'다가가기 전에',body:reading.finalGuide.shouldContactNow},
+    ]),actions:reading.actionPlan});
 }
 
 function year(input){
@@ -51,7 +52,7 @@ function year(input){
   const premium=buildPremiumYearReading({reading,year:new Date().getFullYear()});
   return presentation('tarot-year-fortune','십이지신 천운 타로',input.question,'year',premium,{opening:premium.annualOverview?.summary,
     summary:premium.yearTheme?.summary||premium.annualSummary?.summary,sections:sections((premium.monthlyReadings||[]).map(month=>({
-      title:`${month.month}월 · ${month.phase||month.zodiacAnimal||'월간 흐름'}`,body:month.reading||month.summary||month.action,
+      title:`${month.month}월 · ${month.phase||month.zodiacAnimal||'월간 흐름'}`,body:[month.flow,month.money,month.work,month.relationship,month.health,month.caution,month.action].join('\n\n'),
     }))),actions:premium.luckyActions||[]});
 }
 
@@ -69,7 +70,7 @@ function crystal(input){
   const reading=built.readingData;
   return presentation('tarot-crystal-soul','원석 소울 타로',input.question,'crystal',reading,{opening:reading.intro,
     summary:reading.synthesis?.body||reading.synthesis?.gem_message,sections:sections((reading.cards||[]).map(card=>({
-      title:`${card.pos_name} · ${card.card_name}`,body:card.reading||card.gem_reading,
+      title:`${card.pos_name} · ${card.card_name}`,body:[card.reading,card.gem_reading,card.gem_focus,card.gem_shadow,card.gem_alignment].join('\n\n'),
     }))),actions:(reading.cards||[]).map(card=>card.gem_alignment).filter(Boolean).slice(-2)});
 }
 
@@ -95,8 +96,10 @@ function mindscan(input){
 }
 
 function numerology(input){
-  const numerology=buildNumerologyContext({birthDate:input.birthDate,topic:'general'});
-  const reading=buildFallbackInterpretation({numerology,cards:cardRows(input),topic:'general',question:input.question});
+  const topic=normalizeTopic(input.topic);
+  const numerology=buildNumerologyContext({birthDate:input.birthDate,topic});
+  const cards=normalizeCardInput(input.cards.map(item=>({id:Number(item.cardId.slice(1)),orientation:item.orientation})),topic);
+  const reading=guardNumerologyWarningInterpretation(buildFallbackInterpretation({numerology,cards,topic,name:input.name,question:input.question}),cards);
   return presentation('tarot-numerology','수비학 타로',input.question,'numerology',reading,{opening:reading.opening,
     summary:reading.directAnswer,sections:sections((reading.cards||[]).map(card=>({
       title:`${card.positionTitle} · ${card.cardName}`,body:card.contextualInterpretation,
