@@ -127,7 +127,7 @@ function birthFromProfile(profile: any, timeUnknown: boolean, supplement: any = 
 }
 
 /** `persona` is a server option of the fortune-chat route; a request body never selects it. */
-export async function prepareFortune(env: Record<string, unknown>, userId: string, body: any, {persona}:{persona?:ChatPersona}={}) {
+export async function prepareFortune(env: Record<string, unknown>, userId: string, body: any, {persona,checkoutAmountKRW}:{persona?:ChatPersona;checkoutAmountKRW?:number}={}) {
   if(persona&&body.mode)throw new FortuneError('INVALID_READING_MODE');
   if(persona&&body.fishId!==undefined&&body.questionDecision===undefined)throw new FortuneError('QUESTION_SCOPE_REQUIRED');
   const locale=readingLocale(body.locale);
@@ -135,6 +135,8 @@ export async function prepareFortune(env: Record<string, unknown>, userId: strin
   const attempt=consultationAttempt(body);
   if(persona&&body.questionDecision!==undefined&&!['mackerel','salmon','flounder','tuna'].includes(body.fishId))throw new FortuneError('QUESTION_PRODUCT_MISMATCH');
   const product=persona?getChatProduct(body.domain,body.questionDecision!==undefined?body.fishId:undefined):getProduct(body.productId);
+  const amountKRW=checkoutAmountKRW===undefined?product.priceKRW:checkoutAmountKRW;
+  if(!Number.isSafeInteger(amountKRW)||amountKRW<=0)throw new FortuneError('PRODUCT_PRICE_UNAVAILABLE',503);
   const decision=body.questionDecision!==undefined&&!body.mode?questionDecision(body.questionDecision):undefined;
   if(decision){
     // The question form and the purchased result can use different languages.
@@ -179,24 +181,24 @@ export async function prepareFortune(env: Record<string, unknown>, userId: strin
   // provider readiness, chart calculation or drawing; uncertain reads stop here.
   let questionIntentId:string|undefined;
   if(decision&&!relationship&&!tarotQuestion&&attempt.consultationAttemptId){
-    questionIntentId=await digest({userId,...(persona?{persona}:{}),version:QUESTION_POLICY_VERSION,...attempt,decision,locale,productId:product.id,profileId:body.profileId,question:body.question,birthDetails:body.birthDetails,timeUnknown:body.timeUnknown,...(voiceStyle?{voiceStyle}:{})});
+    questionIntentId=await digest({userId,...(persona?{persona}:{}),version:QUESTION_POLICY_VERSION,...attempt,decision,locale,productId:product.id,priceKRW:amountKRW,profileId:body.profileId,question:body.question,birthDetails:body.birthDetails,timeUnknown:body.timeUnknown,...(voiceStyle?{voiceStyle}:{})});
     await connectDb(env);
     try{return await readRequest(env,userId,questionIntentId);}catch(error:any){if(error?.code!=='FORTUNE_NOT_FOUND')throw error;}
   }
   let relationshipId:string|undefined;
   if(relationship&&attempt.consultationAttemptId){
-    relationshipId=await digest({userId,...(persona?{persona}:{}),version:RELATIONSHIP_VERSION,...attempt,...(decision?{questionDecision:decision}:{}),productId:product.id,kind:kind?.id,profileId:body.profileId,partnerProfileId:body.partnerProfileId,question:body.question,relationshipQuestionId,participants,birthDetails:body.birthDetails,timeUnknown:body.timeUnknown,partnerTimeUnknown:body.partnerTimeUnknown});
+    relationshipId=await digest({userId,...(persona?{persona}:{}),version:RELATIONSHIP_VERSION,...attempt,...(decision?{questionDecision:decision}:{}),productId:product.id,priceKRW:amountKRW,kind:kind?.id,profileId:body.profileId,partnerProfileId:body.partnerProfileId,question:body.question,relationshipQuestionId,participants,birthDetails:body.birthDetails,timeUnknown:body.timeUnknown,partnerTimeUnknown:body.partnerTimeUnknown});
     await connectDb(env);
     try{return await readRequest(env,userId,relationshipId);}catch(error:any){if(error?.code!=='FORTUNE_NOT_FOUND')throw error;}
   }
   let tarotIntentId:string|undefined;
   if(tarotV2&&attempt.consultationAttemptId){
-    tarotIntentId=await digest({userId,version:TAROT_CONSULTATION_VERSION,...attempt,locale,productId:product.id,kind:kind!.id,question:body.question,participants,...(persona?{persona}:{}),...(voiceStyle?{voiceStyle}:{})});
+    tarotIntentId=await digest({userId,version:TAROT_CONSULTATION_VERSION,...attempt,locale,productId:product.id,priceKRW:amountKRW,kind:kind!.id,question:body.question,participants,...(persona?{persona}:{}),...(voiceStyle?{voiceStyle}:{})});
     await connectDb(env);
     try{return await readRequest(env,userId,tarotIntentId);}catch(error:any){if(error?.code!=='FORTUNE_NOT_FOUND')throw error;}
   }
   if(tarotV3&&attempt.consultationAttemptId){
-    tarotIntentId=await digest({userId,...(persona?{persona}:{}),version:TAROT_SPREAD_VERSION,...attempt,...(decision?{questionDecision:decision}:{}),locale,productId:product.id,kind:kind!.id,question:body.question,spreadId:tarotOrder!.spread.id,spreadVersion:tarotOrder!.spread.version,inputs:tarotOrder!.inputs,...(voiceStyle?{voiceStyle}:{})});
+    tarotIntentId=await digest({userId,...(persona?{persona}:{}),version:TAROT_SPREAD_VERSION,...attempt,...(decision?{questionDecision:decision}:{}),locale,productId:product.id,priceKRW:amountKRW,kind:kind!.id,question:body.question,spreadId:tarotOrder!.spread.id,spreadVersion:tarotOrder!.spread.version,inputs:tarotOrder!.inputs,...(voiceStyle?{voiceStyle}:{})});
     await connectDb(env);
     try{return await readRequest(env,userId,tarotIntentId);}catch(error:any){if(error?.code!=='FORTUNE_NOT_FOUND')throw error;}
   }
@@ -226,7 +228,7 @@ export async function prepareFortune(env: Record<string, unknown>, userId: strin
   const clock=consultationClock(body.timezone,now);
   const date=clock.asOf;
   const experience=experienceCheckApplies(product)&&!spiritInput&&!persona&&!body.mode?parseExperience(body.experience,Number(date.slice(0,4))):undefined;
-  const fingerprint=await digest({...(experience?{experience:experienceKey(experience),experienceVersion:CALIBRATION_VERSION}:{}),...(locale==='ko'&&!persona&&!body.mode&&(decision||product.readingKind!=='single')?{readingExpansionVersion:CONSULTATION_EXPANSION_VERSION}:{}),...(decision?{questionDecision:decision}:{}),...(product.systems.includes("saju")?{sajuEngine:SAJU_ENGINE_VERSION,sajuPolicy:SAJU_POLICY_VERSION}:{}),productId:product.id,priceKRW:product.priceKRW,profileId:body.profileId,normalized,date,timezone:clock.timezone,consultationVersion:1,...(!spiritInput?{counselVersion:COUNSEL_VERSION}:{}),...(!spiritInput&&preventionEligible(product.fishId)?{preventionVersion:PREVENTION_VERSION}:{}),...(locale!=='ko'?{locale}:{}),...(v7?{manifestVersion:READING_V7_VERSION}:[READING_V6_VERSION,FUSION_READING_VERSION].includes(product.manifestVersion)?{manifestVersion:product.manifestVersion}:{}),...(kind?{consultationKind:kind.id,kindVersion:1}:{}),...(spiritInput?{mode:SPIRIT_MODE,spiritInput}:{}),...(persona?{persona}:{}),...(voiceStyle?{voiceStyle}:{}),...(tarotV3?{tarotSpread:{id:tarotOrder!.spread.id,version:tarotOrder!.spread.version},tarotInputs:tarotOrder!.inputs}:{})});
+  const fingerprint=await digest({...(experience?{experience:experienceKey(experience),experienceVersion:CALIBRATION_VERSION}:{}),...(locale==='ko'&&!persona&&!body.mode&&(decision||product.readingKind!=='single')?{readingExpansionVersion:CONSULTATION_EXPANSION_VERSION}:{}),...(decision?{questionDecision:decision}:{}),...(product.systems.includes("saju")?{sajuEngine:SAJU_ENGINE_VERSION,sajuPolicy:SAJU_POLICY_VERSION}:{}),productId:product.id,priceKRW:amountKRW,profileId:body.profileId,normalized,date,timezone:clock.timezone,consultationVersion:1,...(!spiritInput?{counselVersion:COUNSEL_VERSION}:{}),...(!spiritInput&&preventionEligible(product.fishId)?{preventionVersion:PREVENTION_VERSION}:{}),...(locale!=='ko'?{locale}:{}),...(v7?{manifestVersion:READING_V7_VERSION}:[READING_V6_VERSION,FUSION_READING_VERSION].includes(product.manifestVersion)?{manifestVersion:product.manifestVersion}:{}),...(kind?{consultationKind:kind.id,kindVersion:1}:{}),...(spiritInput?{mode:SPIRIT_MODE,spiritInput}:{}),...(persona?{persona}:{}),...(voiceStyle?{voiceStyle}:{}),...(tarotV3?{tarotSpread:{id:tarotOrder!.spread.id,version:tarotOrder!.spread.version},tarotInputs:tarotOrder!.inputs}:{})});
   const id=questionIntentId||tarotIntentId||relationshipId||await digest({userId,fingerprint,...attempt,...(relationship?{relationshipVersion:RELATIONSHIP_VERSION}:{}),...(tarotV2?{tarotConsultationVersion:TAROT_CONSULTATION_VERSION}:{}),...(tarotV3?{tarotConsultationVersion:TAROT_SPREAD_VERSION}:{})});
   if(askEvidenceEnabled||relationship||tarotQuestion) {
     // A retry reads the immutable purchase intent before any calculation or card draw.
@@ -347,9 +349,9 @@ export async function prepareFortune(env: Record<string, unknown>, userId: strin
   manifest=withRepeatPolicy(conciseReadingManifest(manifest));
   sealPreparedAnalysis(analysis,v7Timing);
   return createRequest(env,userId,id,{profileId:body.profileId,productId:product.id,featureKey:product.cdFeatureKey,
-    amountKRW:product.priceKRW,fingerprint,...(persona?{persona}:{}),
+    amountKRW,fingerprint,...(persona?{persona}:{}),
     ...(askEvidence?{generationCheckpoint:{version:'ask-generation-v1',evidence:askEvidence}}:{}),
-    growthAttribution:normalizeGrowthAttribution(body.growthAttribution),snapshot:{...((decision||locale==='ko'&&!persona&&!body.mode&&product.readingKind!=='single')?{questionContract:{version:QUESTION_POLICY_VERSION,followups:consultationBudget(product.fishId).followups,...(!persona&&!body.mode?{readingBudget:consultationBudget(product.fishId,manifest[0]?.consultationLayout===FUSION_BOOK_VERSION?undefined:CONSULTATION_BUDGET_VERSION)}:{})}}:{}),deliveryContract:CHAPTER_DELIVERY_VERSION,chapterTimeoutPolicy:CHAPTER_TIMEOUT_POLICY,...(product.fishId==='tuna'?{tunaQualityPolicy:TUNA_QUALITY_POLICY}:{}),...(product.systems.includes("saju")?{natalInput:normalized.saju}:{}),locale,...(persona?{persona}:{}),...(voiceStyle?{voiceStyle}:{}),...(selectAnswerVoice(env)?{answerVoice:selectAnswerVoice(env)}:{}),...(!body.mode?{outputContext:readingOutputContext(locale,body)}:{}),product,analysis,manifest,profileUpdatedAt:profile.updatedAt,...(tarotV2?{tarotConsultation:{version:TAROT_CONSULTATION_VERSION,kind:kind!.id}}:{}),...(tarotV3?{tarotConsultation:{version:TAROT_SPREAD_VERSION,kind:kind!.id},tarotSpread:spreadSnapshot(tarotOrder!.spread),tarotInputs:tarotOrder!.inputs,tarotDeck:commitTarotDeck()}:{}),...(spiritInput?{normalized}: {}),...(v7Timing?{v7Timing}:{})}},tarotV3?{initialState:'AWAITING_DRAW'}:{});
+    growthAttribution:normalizeGrowthAttribution(body.growthAttribution),snapshot:{...((decision||locale==='ko'&&!persona&&!body.mode&&product.readingKind!=='single')?{questionContract:{version:QUESTION_POLICY_VERSION,followups:consultationBudget(product.fishId).followups,...(!persona&&!body.mode?{readingBudget:consultationBudget(product.fishId,manifest[0]?.consultationLayout===FUSION_BOOK_VERSION?undefined:CONSULTATION_BUDGET_VERSION)}:{})}}:{}),deliveryContract:CHAPTER_DELIVERY_VERSION,chapterTimeoutPolicy:CHAPTER_TIMEOUT_POLICY,...(product.fishId==='tuna'?{tunaQualityPolicy:TUNA_QUALITY_POLICY}:{}),...(product.systems.includes("saju")?{natalInput:normalized.saju}:{}),locale,...(persona?{persona}:{}),...(voiceStyle?{voiceStyle}:{}),...(selectAnswerVoice(env)?{answerVoice:selectAnswerVoice(env)}:{}),...(!body.mode?{outputContext:readingOutputContext(locale,body)}:{}),product:{...product,priceKRW:amountKRW},analysis,manifest,profileUpdatedAt:profile.updatedAt,...(tarotV2?{tarotConsultation:{version:TAROT_CONSULTATION_VERSION,kind:kind!.id}}:{}),...(tarotV3?{tarotConsultation:{version:TAROT_SPREAD_VERSION,kind:kind!.id},tarotSpread:spreadSnapshot(tarotOrder!.spread),tarotInputs:tarotOrder!.inputs,tarotDeck:commitTarotDeck()}:{}),...(spiritInput?{normalized}: {}),...(v7Timing?{v7Timing}:{})}},tarotV3?{initialState:'AWAITING_DRAW'}:{});
 }
 
 /** Tuna self-review: one rewrite of a chapter whose local audit finds a problem, inside the remaining lease.

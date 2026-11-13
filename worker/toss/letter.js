@@ -15,14 +15,15 @@ import {isReviewSale} from './review-products.js';
 const DOMAINS=new Set(['saju','ziwei','sukuyo','vedic','astrology','tarot']);
 function assertLetterDeliverable(row){const issue=tossFortuneAccessIssue(row);if(issue)throw new TossError(issue,409);}
 // The original letter room uses its own base product, not a different question tier.
-// This returns no sale unless the exact Toss SKU and original registry price are approved.
+// This returns no sale unless the exact Toss SKU and adviser mapping are approved.
 export function approvedLetterSale(domain,approved=APPROVED_TOSS_PRODUCTS){
  if(!DOMAINS.has(domain))throw new TossError('PRODUCT_NOT_FOUND',404);
- const productId='chat_'+domain,product=resolveStoredProduct(productId);
+ const productId='chat_'+domain;
+ resolveStoredProduct(productId);
  const candidates=approved.filter(row=>row.serviceId==='yeoni'&&row.productId===productId);
  if(candidates.length!==1)throw new TossError('TOSS_PRODUCT_NOT_APPROVED',503);
  const sale=approvedProduct(candidates[0].sku,approved);
- if(sale.productId!==productId||sale.approvedPriceKRW!==product.priceKRW)throw new TossError('TOSS_PRODUCT_NOT_APPROVED',503);
+ if(sale.productId!==productId||sale.serviceId!=='yeoni')throw new TossError('TOSS_PRODUCT_NOT_APPROVED',503);
  return sale;
 }
 export async function prepareTossLetter(env,auth,body,approved=APPROVED_TOSS_PRODUCTS){
@@ -30,7 +31,7 @@ export async function prepareTossLetter(env,auth,body,approved=APPROVED_TOSS_PRO
  if(!DOMAINS.has(body.domain))throw new TossError('PRODUCT_NOT_FOUND',404);
  if(!isReviewSale('chat_'+body.domain,body.persona))throw new TossError('TOSS_PRODUCT_NOT_APPROVED',503);
  const sale=approvedLetterSale(body.domain,approved);
- const row=await prepareFortune(env,auth.userId,body,{persona:'yeoni'});
+ const row=await prepareFortune(env,auth.userId,body,{persona:'yeoni',checkoutAmountKRW:sale.approvedPriceKRW});
  if(!/^[a-f0-9]{64}$/.test(String(row?._id||''))||row.productId!==sale.productId||row.amountKRW!==sale.approvedPriceKRW||row.persona!=='yeoni')throw new TossError('TOSS_PRODUCT_NOT_APPROVED',503);
  assertLetterDeliverable(row);
  if(!['CREATED','AWAITING_DRAW'].includes(row.state)||row.accessMethod||row.paymentId||row.paymentClaimOrderId)return readTossLetter(env,auth,String(row._id),{requirePaid:true,approved});
@@ -55,8 +56,8 @@ async function verifiedLetterOrder(env,auth,orderId){
 async function verifiedUnassignedLetter(env,auth,orderId){
  const purchase=await verifiedLetterOrder(env,auth,orderId);
  if(purchase.requestId)throw new TossError('ORDER_PRODUCT_MISMATCH',409);
- const product=resolveStoredProduct(purchase.productId);
- if(product.priceKRW!==purchase.approvedPriceKRW)throw new TossError('PRODUCT_PRICE_CHANGED',409);
+ resolveStoredProduct(purchase.productId);
+ if(!Number.isSafeInteger(purchase.approvedPriceKRW)||purchase.approvedPriceKRW<=0||typeof purchase.priceEvidence!=='string'||!purchase.priceEvidence)throw new TossError('PRODUCT_PRICE_CHANGED',409);
  return purchase;
 }
 export async function recoverableLetterOrder(env,auth,orderId){
@@ -67,8 +68,8 @@ export async function recoverableLetterOrder(env,auth,orderId){
   assertLetterDeliverable(row);
   return {ok:true,order:{orderId,status:'ASSIGNED',requestId:purchase.requestId}};
  }
- const product=resolveStoredProduct(purchase.productId);
- if(product.priceKRW!==purchase.approvedPriceKRW)throw new TossError('PRODUCT_PRICE_CHANGED',409);
+ resolveStoredProduct(purchase.productId);
+ if(!Number.isSafeInteger(purchase.approvedPriceKRW)||purchase.approvedPriceKRW<=0||typeof purchase.priceEvidence!=='string'||!purchase.priceEvidence)throw new TossError('PRODUCT_PRICE_CHANGED',409);
  return {ok:true,order:{orderId,status:'UNASSIGNED',sku:purchase.sku,productId:purchase.productId,domain:purchase.productId.slice(5)}};
 }
 export async function readRecoveringTossLetter(env,auth,orderId,id){
@@ -83,7 +84,7 @@ export async function prepareRecoveredTossLetter(env,auth,orderId,body){
  if(!body||typeof body!=='object'||Array.isArray(body)||body.persona!=='yeoni'||body.questionDecision!==undefined||body.fishId!==undefined||!DOMAINS.has(body.domain))throw new TossError('INVALID_REQUEST',400);
  const purchase=await verifiedUnassignedLetter(env,auth,orderId);
  if(purchase.productId!=='chat_'+body.domain)throw new TossError('ORDER_PRODUCT_MISMATCH',409);
- const row=await prepareFortune(env,auth.userId,body,{persona:'yeoni'});
+ const row=await prepareFortune(env,auth.userId,body,{persona:'yeoni',checkoutAmountKRW:purchase.approvedPriceKRW});
  if(!/^[a-f0-9]{64}$/.test(String(row?._id||''))||row.persona!=='yeoni'||row.productId!==purchase.productId||row.amountKRW!==purchase.approvedPriceKRW)throw new TossError('ORDER_PRODUCT_MISMATCH',409);
  if(row.state!=='CREATED'||row.accessMethod||row.paymentId||row.paymentClaimOrderId)throw new TossError('REQUEST_ALREADY_FUNDED',409);
  assertLetterDeliverable(row);

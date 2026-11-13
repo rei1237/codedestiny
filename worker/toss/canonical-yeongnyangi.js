@@ -12,18 +12,20 @@ import {isReviewSale} from './review-products.js';
 // The original screens keep their response contract. Authentication and payment
 // remain owned by /api/toss; this is never dispatched from a web-cookie route.
 export function canonicalProducts(approved=APPROVED_TOSS_PRODUCTS) {
-  return products.filter(product=>isReviewSale(product.id)).map(product=>({
-    ...product,available:approved.some(item=>{
-      try { return approvedProduct(item.sku,approved).productId===product.id
-        && (!item.serviceId||item.serviceId==='yeongnyangi') && item.approvedPriceKRW===product.priceKRW; }
-      catch { return false; }
-    }),
-  }));
+  return products.filter(product=>isReviewSale(product.id)).map(product=>{
+    const candidates=approved.filter(item=>item.productId===product.id&&(!item.serviceId||item.serviceId==='yeongnyangi'));
+    try {
+      if(candidates.length!==1)throw new Error('ambiguous sale');
+      const sale=approvedProduct(candidates[0].sku,approved);
+      return {...product,priceKRW:sale.approvedPriceKRW,available:true};
+    } catch { return {...product,available:false}; }
+  });
 }
 export function canonicalSale(productId,approved=APPROVED_TOSS_PRODUCTS) {
-  const item=approved.find(row=>row.productId===productId&&(!row.serviceId||row.serviceId==='yeongnyangi'));
-  const sale=approvedProduct(item?.sku,approved),product=products.find(row=>row.id===productId);
-  if(!product||sale.approvedPriceKRW!==product.priceKRW)throw new TossError('TOSS_PRODUCT_NOT_APPROVED',503);
+  const candidates=approved.filter(row=>row.productId===productId&&(!row.serviceId||row.serviceId==='yeongnyangi'));
+  if(candidates.length!==1)throw new TossError('TOSS_PRODUCT_NOT_APPROVED',503);
+  const sale=approvedProduct(candidates[0].sku,approved),product=products.find(row=>row.id===productId);
+  if(!product||sale.productId!==product.id||sale.serviceId!=='yeongnyangi')throw new TossError('TOSS_PRODUCT_NOT_APPROVED',503);
   return sale;
 }
 export async function canonicalProfiles(auth,input) {
@@ -45,7 +47,7 @@ export async function prepareCanonicalFortune(env,auth,input) {
   const sale=canonicalSale(input.productId);
   // Keep the complete original input: scope, voice, locale, selected profiles and
   // tarot spread. Server preparation validates all of it and snapshots the chart.
-  const row=await prepareFortune(env,auth.userId,input);
+  const row=await prepareFortune(env,auth.userId,input,{checkoutAmountKRW:sale.approvedPriceKRW});
   if(row.productId!==sale.productId||row.amountKRW!==sale.approvedPriceKRW)throw new TossError('TOSS_PRODUCT_NOT_APPROVED',503);
   return {fortune:presentFortune(row)};
 }
