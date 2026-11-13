@@ -1,3 +1,4 @@
+import {expertProducts,mockExpertRequest} from './experts.mjs';
 import {syntheticZiweiDeep,mockZiweiDeepRequest} from './ziwei-deep.mjs';
 import {mockTarotProducts,mockTarotRequest} from './paid-tarot.mjs';
 import {syntheticCompass,mockCompassRequest} from './compass.mjs';
@@ -134,6 +135,7 @@ function createAccountFixture(storage,owner,token,now){
     :respond({error:'PLACE_NOT_FOUND'},404);
   }
   const delay=Number(storage?.getItem('toss-offline-generation-delay-ms'));
+  const expert=await mockExpertRequest(request,url,path,state,save,now,delay);if(expert)return expert;
   if(path.startsWith('/native/ziwei-deep/'))return mockZiweiDeepRequest(path,request,state,save,now,delay);
   if(path.startsWith('/native/yoga/'))return mockYogaRequest(path,request,state,save,now,delay);
   if(path.startsWith('/native/compass/'))return mockCompassRequest(path,request,state,save,now,delay);
@@ -145,7 +147,7 @@ function createAccountFixture(storage,owner,token,now){
   // The offline shell labels all of its output as test-only.
   if(path==='/human-design/chart'&&method==='POST')return respond(chartFixture());
   if(path==='/canonical/auth/me'&&method==='GET')return respond({ok:true,authenticated:true,user:{id:owner,name:'테스트 사용자',role:'user'}});
-  if(path==='/native/catalog'&&method==='GET')return respond({products:[product,sukuyoProduct,relationshipProduct,syntheticZiweiDeep,syntheticCompass,syntheticYoga,syntheticNakshatra,...roomProducts]});
+  if(path==='/native/catalog'&&method==='GET')return respond({products:[...expertProducts,product,sukuyoProduct,relationshipProduct,syntheticZiweiDeep,syntheticCompass,syntheticYoga,syntheticNakshatra,...roomProducts]});
   if(path==='/canonical/yeongnyangi/profiles'&&method==='GET')return respond({ok:true,profiles:state.profiles,currentId:state.profiles.at(-1)?.profileId});
   if(path==='/canonical/yeongnyangi/profiles'&&method==='POST'){
    const {profile}=await request.json();if(!profile?.profileId||!profile.birth?.year)return respond({error:'BIRTH_INVALID'},400);

@@ -1,3 +1,4 @@
+import {expertProducts,expertLibrary} from './experts.mjs';
 import {tossExpertResultHref} from '../../../../lib/fortune/toss-expert-result.mjs';
 import {mockZiweiDeepLibrary} from './ziwei-deep.mjs';
 import {mockTarotLibrary} from './paid-tarot.mjs';
@@ -34,7 +35,7 @@ export const tieredLetters=['yeoni','neo'].flatMap(persona=>Object.keys(systems)
 const letterProducts=[reviewCatalog.find(p=>p.id==='yeoni:chat_saju'),...unsoldLetters,...tieredLetters];
 export const offlineCatalog=[...reviewCatalog,...unsoldFixtureProducts,...unsoldLetters,...tieredLetters];
 export const offlineLetterProduct=(persona,productId)=>letterProducts.find(p=>p.id===persona+':'+productId);
-export const reviewSdkProducts=[...offlineCatalog.map(sdkProduct),...roomSdkProducts];
+export const reviewSdkProducts=[...offlineCatalog.map(sdkProduct),...expertProducts.map(sdkProduct),...roomSdkProducts];
 const consultationCatalog=offlineCatalog.filter(p=>!p.id.includes(':'));
 const letterSku=sku=>letterProducts.some(p=>p.sku===sku);
 const json=(data,status=200)=>Response.json(data,{status});
@@ -182,7 +183,7 @@ export async function handleReviewFixture(request,url,path,state,save,now,delay=
         orderId:row.orderId,requestId:row.id,sku:row.sku,status:'PURCHASED',state:row.result?.status==='completed'?'COMPLETED':row.result?.status==='generation_failed'?'GENERATION_FAILED':'PENDING',
         href:tossExpertResultHref('sukuyo',resultId),resultId,createdAt:row.createdAt};
     }),
-    ...roomPurchases(state),...mockCompassLibrary(state),...mockZiweiDeepLibrary(state),...mockTarotLibrary(state),
+    ...expertLibrary(state),...roomPurchases(state),...mockCompassLibrary(state),...mockZiweiDeepLibrary(state),...mockTarotLibrary(state),
     ...mockNakshatraLibrary(state),...mockYogaLibrary(state),
     ...owned.map(({fortune,orderId,sku})=>({requestId:fortune.id,orderId,sku,serviceId:'yeongnyangi',selectionId:fortune.productId,productId:fortune.productId,status:'PURCHASED',state:fortune.state,createdAt:fortune.createdAt,completedSections:fortune.chapters.length,totalSections:1})),
     ...[...state.letters.values()].filter(row=>row.paid).map(row=>({requestId:row.id,orderId:row.orderId,sku:offlineLetterProduct(row.persona,row.productId)?.sku,serviceId:row.persona,selectionId:row.persona+':'+row.productId,productId:row.productId,status:'PURCHASED',state:row.state,createdAt:row.createdAt,completedSections:1,totalSections:1})),
