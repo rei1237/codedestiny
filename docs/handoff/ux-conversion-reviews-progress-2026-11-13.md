@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-14
-next: 묶음 ④ 단계 9(공용 GenerationProgress + 연애 비책 이전) 시작
+next: 묶음 ④ 단계 9 — 신년운세 이전 (공용 GenerationProgress·연애 비책은 끝, 결과는 문서 끝 "묶음 ④ 단계 9 결과")
 ---
 
 # 꿀꿀 운세·영냥이 UX: 구매 흐름 · 후기 신뢰 · 후기 작성 · 생성 진행 · 무료 배너
@@ -20,7 +20,7 @@ next: 묶음 ④ 단계 9(공용 GenerationProgress + 연애 비책 이전) 시�
 - 기준: origin/main `02476159e0b545b887fe04a12815b7123b4b614d`
 - node_modules는 정션, `.env.local`·`.env.cloudflare.local`은 링크(건드리지 않는다).
 - 워크트리 제거: 다른 체크아웃에서 `npm run worktree:remove -- 'D:\Development\codedestiny-worktrees\ux-conversion-20261113-215142'` (git worktree remove 금지 — 긴 경로 고아 폴더).
-- 마지막 커밋: 단계마다 아래 표에 적는다. 묶음 ① 끝 코드 커밋 `3af1f976b`(미push). 묶음 ② 6b 끝 코드 커밋 `dd10f6156`(미push). 묶음 ② 6c-1 코드 커밋 `4dd33836e`·`9b9a8e706`·`3c8d5ac2f`(미push). 묶음 ② 6c-2 코드 커밋 `273aa5ce6`·`d1eba2bae`(미push). 묶음 ② 11a 코드 커밋 `81b1be43d`(미push). 묶음 ② 배너 모바일 다듬기 `c7edcc6c3`·사이트맵 원장 `a10578ada`(미push). 묶음 ③ 단계 5 ReviewProof `f554b8920`(미push). 단계 5 남은 일 `c674869d9`(보존 기준 해시)·`f6768d579`(`/reviews/?product=` 필터), 묶음 ③ 단계 7 `008432add`(미push). 묶음 ③ 단계 8 `efafe2738`(미push) — 묶음 ③ 완료.
+- 마지막 커밋: 단계마다 아래 표에 적는다. 묶음 ① 끝 코드 커밋 `3af1f976b`(미push). 묶음 ② 6b 끝 코드 커밋 `dd10f6156`(미push). 묶음 ② 6c-1 코드 커밋 `4dd33836e`·`9b9a8e706`·`3c8d5ac2f`(미push). 묶음 ② 6c-2 코드 커밋 `273aa5ce6`·`d1eba2bae`(미push). 묶음 ② 11a 코드 커밋 `81b1be43d`(미push). 묶음 ② 배너 모바일 다듬기 `c7edcc6c3`·사이트맵 원장 `a10578ada`(미push). 묶음 ③ 단계 5 ReviewProof `f554b8920`(미push). 단계 5 남은 일 `c674869d9`(보존 기준 해시)·`f6768d579`(`/reviews/?product=` 필터), 묶음 ③ 단계 7 `008432add`(미push). 묶음 ③ 단계 8 `efafe2738`(미push) — 묶음 ③ 완료. 묶음 ④ 단계 9 공용 GenerationProgress `1c0e07c2b`·연애 비책 이전 `98ca36812`(미push).
 
 ## 승인 상태 (사용자 원문, 2026-11-13)
 
@@ -155,7 +155,7 @@ next: 묶음 ④ 단계 9(공용 GenerationProgress + 연애 비책 이전) 시�
 - [x] 8. 결제 인접 — SHA: efafe2738 (결과는 문서 끝 "묶음 ③ 단계 8 결과")
 
 ### 묶음 ④ 생성 진행 (단계 9, 10)
-- [ ] 9. GenerationProgress + love-secret — SHA:
+- [x] 9. GenerationProgress + love-secret — SHA: 1c0e07c2b, 98ca36812 (결과는 문서 끝 "묶음 ④ 단계 9 결과")
 - [ ] 9. new-year — SHA:
 - [ ] 9. life-book — SHA:
 - [ ] 9. vedic — SHA:
@@ -823,3 +823,101 @@ RED 확인 (금액·핸들러 무변경)
    - 헤더에 `flex-wrap`을 주거나 피커를 헤더 아래로 내려야 한다.
 2. love-secret 마지막 단계에서는 같은 가격이 두 곳에 보인다. 위는 새 배지, 아래는 L2494 근처 제출 옆의 기존 가격이다. 줄이려면 아래 것을 빼야 하지만 범위 밖이라 두었다.
 3. 인트로, 마지막 단계, ExpertStickyCta의 love-secret PriceBadge는 toss에서도 보인다(기존). 토스 단건 가격과 같은지는 따로 확인해야 한다.
+
+### 묶음 ④ 단계 9 결과 — 공용 GenerationProgress·연애 비책 (2026-11-14 완료, 미push)
+
+커밋
+- `1c0e07c2b` feat(fortune): 공용 GenerationProgress 대기 화면 추가
+- `98ca36812` feat(love-secret): 생성 대기 화면을 GenerationProgress 로 이전
+
+공용 컴포넌트 (`1c0e07c2b`)
+- `components/fortune/GenerationProgress.tsx`: 원본 `app/human-design/report/_components/GenerationProgress.tsx`는 그대로 두고 본떴다.
+  - export: `LEAVE_SAFE_NOTICE`(지시 원문 그대로), `formatElapsed`, `resolveGenerationCount`, 타입.
+  - props: `title`·`status`·`description?`·`completed?`·`total?`·`countUnit?`·`steps?`·`timing?`·`elapsedLabel?`·`typicalRange?`·`leaveNotice?`(기본 원문, null이면 숨김)·`progressLabel?`·`persona?: 'yeoni'|'neo'`·`counselor?: {src, srcSet?}`.
+  - 막대: `resolveGenerationCount`가 `total`이 0보다 큰 유한수이고 `completed`가 0 이상 유한수일 때만 값을 돌려준다(completed는 total로 자름). 이때만 `role="progressbar"`(valuemin 0·valuemax total·valuenow·valuetext "N / M 단위")와 `--gp-ratio` 채움이다. 아니면 `aria-hidden` 흐르는 막대다. 퍼센트·시간 기반 숫자는 없다.
+  - 알림: `aria-live="polite" aria-atomic="true"` 영역에는 상태 문장과 "N / M"만 둔다. 경과 `<time>`(m:ss)과 "보통"은 그 밖이다. 조상에 `aria-busy` 없음.
+  - 상담사 그림은 호출하는 쪽이 넘긴 초상만 쓴다(`aria-hidden`, `alt=""`).
+- `components/fortune/useElapsed.ts`: `formatElapsed`(내림, NaN·음수는 0:00), `useElapsed(running)`(1초 간격, 멈추면 0).
+- `components/fortune/GenerationProgress.module.css`: `--cd-samples-*`(연이 분홍)·`--cd-neo-letter-*`(네오 달빛)를 사설 `--gp-*`로 옮겨 쓴다. `--cd-*` 재선언·새 hex·`dark:`·`prefers-color-scheme` 없음. 움직임은 CSS 키프레임 3개, `prefers-reduced-motion`이면 멈추고 흐르는 막대는 옅은 고정 막대가 된다. 단계 줄 최소 높이 44px.
+- `__tests__/ui/generation-progress.behavior.test.mjs`: 10개(확정·불확정·자름·퍼센트 없음·떠남 안내 원문/null/대체·m:ss·알림 영역 밖 경과·단계 상태·장식 그림).
+
+연애 비책 이전 (`98ca36812`, 커밋 기준 줄)
+- `app/love-secret-ai/LoveSecretAiClient.tsx`
+  - L47 import. 타입 L122-124와 12개 언어에 `generatingElapsedLabel`·`generatingCountUnit`·`leaveSafeNotice`를 넣었다(ko는 `LEAVE_SAFE_NOTICE` 그대로, 나머지는 번역).
+  - L1533 `WRITING_STEP_INDEX = 3`: 생성 중 상태 문장은 기존 `generatingSteps[3]`(쓰는 중) 한 문장으로 고정했다. 시간으로 단계 문장을 바꾸던 가짜 진행은 없앴다.
+  - L1947 `groupProgress` 상태가 `progress`·`progressIndex`를 대신한다. 가짜 진행 `useEffect`(700ms·1800ms 간격)를 지웠다.
+  - L2157 partial 응답마다 `setGroupProgress({ completed: completedGroups.length, total: totalGroups })`. 서버 `worker/routes/love-secret-ai.js` L1331 `totalGroups: planGroups.length`(V2 = 7).
+  - 처음 POST가 돌아오기 전에는 실제 수가 없어 불확정 막대다. 첫 partial부터 "N / 7 갈래 완성" 막대로 바뀐다.
+  - L2360 입력 단계 레일은 생성 중이 아닐 때만 보인다. L2376 생성 중에는 `<GenerationProgress persona="yeoni">`(초상 `masterProfiles.yeoniLove`), 경과 시간은 `phase === "generating"`일 때만, 떠남 안내도 그때만이다.
+  - `LoveSecretGeneratingCard` 함수와 미사용 아이콘 import(`Clock3`·`Star`·`WalletCards`)를 지웠다.
+- `LoveSecretAiClient.module.css`: 꽃잎·반짝이 입자 블록과 그 reduced-motion 규칙을 지웠다.
+- 테스트·검사 문구: `love-secret-paid-delivery.behavior` 픽스처를 `setGroupProgress`로 바꾸고, 실제 수 순서(`null`, 1/7…5/7)를 새로 단언했다. `mobile-pricing-source.static`·`scripts/verify-love-secret-ai-flow.mjs`의 표지를 `<GenerationProgress`로 바꿨다.
+
+UI 전용 확인
+- TS AST로 HEAD와 작업 사본에서 `startConsultation`·`pollResult`·`buildResume`·`handleSubmit`·`resetAttempt`·`postJson`을 뽑아 비교했다. `set(Progress|ProgressIndex|GroupProgress)(` 줄만 빼면 6개 모두 같다. 도구는 `D:\Development\Temp\claude\ec29f026d20d029c\5016f536-7db3-4def-b6e1-84b5f5a786cd\scratchpad\ui-only-check.mjs`(`node ui-only-check.mjs <rel> <fn1,fn2> '<setter 정규식>'`)이다. 신년운세 등에도 그대로 쓸 수 있다.
+- `git diff`에 fetch·postJson·await·요청 본문 변경 줄은 없다.
+
+떠남 안내 사실 확인 (연애 비책: 원문 그대로 사용)
+- 다시 열면 이어 씀
+  - 마운트 때 `GET /api/love-secret-ai/result`가 partial·generating·delivery_pending이면 `pendingGenerationRef`를 세워 이어 쓴다.
+  - 결과 화면 `LoveSecretAiResultClient.tsx`(~L875-895)도 partial을 최대 8번 이어 쓴다.
+  - 결제 복귀는 `usePaidResume`이다.
+- 오래 비우면 서버가 마저 완성함
+  - `worker/lib/consultation-recovery-task.js` 레지스트리 L19에 `love-secret-ai`가 있다.
+  - 조건: `llmMeta.delivery.resumeBody` 저장, 5분 유휴, 7일 이내, userId 필요.
+  - 운영 크론은 `*/10`(`worker/index.js` ~L2082)이다. 스테이징에는 크론이 없다.
+- 시간 약속 문구는 넣지 않았다.
+
+"보통 N~M분"
+- 연애 비책은 뺐다. 근거가 서버 예산뿐이라서다.
+  - 요청당 LLM 마감 86초, 갈래 타임아웃 54초, 주석의 "7,500자 ≈ 34초".
+  - partial 재개 횟수만큼 늘어난다.
+- 실측 분포가 없다. `typicalRange`는 근거가 있는 상품만 넘긴다.
+
+검증
+- node 테스트 13개 파일 152/152 통과.
+  - love-secret 5종: wake-recovery·paid-delivery·pdf-chapters·rejection-repair·speaker.
+  - 그 밖: mobile-pricing-source·paid-generation-timeout·paid-library-completion·feature-visual-details·signature-detail-chapters·saju-authority-consumers-a·locale-request-boundaries·generation-progress.
+- `verify-love-secret-ai-flow` PASS(변경 전에도 PASS), `verify-paid-gate-ui-regression` PASS.
+- `npm run typecheck` 깨끗, eslint 깨끗, `npm run verify:hero-contrast` 경고·실패 없음.
+- sitemap 원장·`index.html`·셸·무료 배너는 바꾸지 않았다. 그래서 `sync:public`·`verify:sitemap-drift`는 필요 없다. `check:fast`는 돌리지 않았다(지시).
+- 화면 확인(과금 호출 없음)
+  - 방법: `npm run dev:next -- -p 12931 -H 127.0.0.1`에 Playwright로 `**/api/**`를 전부 가로챘다.
+    - result GET → partial.
+    - 확정 모드: 첫 generate POST → `completedGroups` 2개/`totalGroups` 7, 그 뒤 응답 보류.
+    - 불확정 모드: 첫 POST부터 보류.
+    - `form.requestSubmit()`이 pending-generation 경로를 타서 결제를 거치지 않는다.
+  - 스크립트: `D:\Development\Temp\claude\ec29f026d20d029c\5016f536-7db3-4def-b6e1-84b5f5a786cd\scratchpad\ls-shot.mjs`.
+  - 캡처: `D:\Development\Temp\claude\ec29f026d20d029c\5016f536-7db3-4def-b6e1-84b5f5a786cd\scratchpad\shots\` 아래 `ls-390-determinate.png`·`ls-390-indeterminate.png`·`ls-1440-determinate.png`.
+  - 측정
+    - 알림 영역 "일곱 갈래의 상담을 동시에 쓰고 있어요 / 2 / 7 갈래 완성", progressbar now 2·max 7.
+    - %는 없고, 레일은 숨었다.
+    - 가로 넘침 0, 초상 `yeoni-love-portrait-360.webp`.
+- visual-checker(하위 에이전트) 판정: 5문항 모두 PASS.
+  - 390 잘림·넘침 없음.
+  - 대비: 제목·상태 12.52:1, 설명 7.06:1, 갈래 수 6.45:1, 경과 7.06:1, 안내 11.12:1.
+  - 채움 28.56%(2/7 = 28.57%).
+  - 불확정 흐름 막대 보임(3.33:1), 숫자·% 없음.
+  - 1440 카드 788×498 가운데, 초상 118px.
+- dev 서버(12931, PID 15604·부모 25136, 02:54 시작)를 트리째 끄고 12931·12828·12829가 빈 것을 확인했다.
+
+함정
+- 이전 스크립트에서 `/^( *)generatingCardSubtext: .*$/gm`이 타입 줄까지 13곳에 걸렸다. `": "` 뒤 따옴표까지 넣어(`generatingCardSubtext: ".*`) 12개 언어만 잡았다. 스크립트는 개수가 다르면 쓰기 전에 멈추게 해 두어 부분 수정은 없었다.
+- Git Bash `grep -c $'\r$'`가 CRLF 파일에서 0을 냈다(셸 따옴표 문제). CRLF 보존은 node로 셌다(CRLF 2893, 맨 LF 0).
+- 화면 확인은 `npm run dev`(로컬 인증 트리 12828/12829) 대신 `dev:next`를 단독 포트로 띄웠다. API를 전부 가로채므로 인증 서버가 필요 없다.
+
+후속(보고만)
+1. 빈 트랙과 카드의 대비가 1.16:1(테두리 1.39:1)이라 막대 끝이 옅다. 같은 정보를 "N / M" 글자가 전하므로 두었다. 손보려면 `--gp-track`이나 테두리를 한 단계 진하게 한다.
+2. 네오용 고정 보라 토큰이 없다. 네오 강조는 `--cd-samples-lilac`과 `--cd-neo-letter-silver`로 했다.
+3. 설계에 적힌 `public/images/fortune-chat/moments/{yeoni,neo}-loading.webp`는 쓰지 않았다(돼지 연이·사자 네오). 상품 상세와 같은 인간형 마스터 초상(`masterProfiles.*.portrait`)을 호출하는 쪽에서 넘긴다. 메모리 "네오는 인간, 사자 아님"과도 맞다.
+
+신년운세 이어받기 메모 (코드 변경 없음, 위치만 확인)
+- `app/new-year-ai-consultation/NewYearAiClient.tsx`(CRLF)
+  - L600-660 `READING_STAGES`·`READING_PROGRESS_CAP=92`·`READING_EXPECTED_MS=48000`·`readingProgressFromElapsed`(가짜 이징), `ReadingProgressPanel({percent})`(퍼센트 progressbar).
+  - L657 근처 안내 "다른 앱으로 옮기거나 창을 닫으면 잠시 멈추고…"가 고칠 문구다.
+  - 인라인 CSS `.nyai-progress*`는 ~L2523-2600, 미디어 규칙은 L1457이다.
+  - 실제 `progress.completed/total`은 ~L1659(아직 읽지 않음).
+  - `readDevPreviewState`(L50, 사용 ~L1905)로 대기 화면을 띄울 수 있을지 먼저 본다.
+- 초상은 `masterProfiles.neoNewYear.portrait/portraitSrcSet`, `persona="neo"`.
+- 크론 레지스트리 L17에 `new-year-ai`가 있다(`llmMeta.resumeBody`). 떠남 안내 원문을 쓰기 전에 클라이언트 이어쓰기(다시 열면 저장된 분야부터)를 코드로 확인한다.
+- `READING_EXPECTED_MS` 주석의 "4섹션 시절 실측 40~55초"는 지금 섹션 수와 다를 수 있다. "보통 N~M분" 근거로 쓰기 전에 현재 섹션 수와 맞는지 확인하고, 아니면 뺀다.
