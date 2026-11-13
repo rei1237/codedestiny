@@ -8,6 +8,8 @@ import daily from '../../../worker/yeongnyangi/fortune/free/categories.json' wit
 import {drawTarotCardsForSpread} from '../../../lib/tarot/tarot-interpretation-engine.mjs';
 
 const root=path.resolve(import.meta.dirname,'../../..'),require=createRequire(import.meta.url);
+// The original Swiss loader resolves public/ephe and its WASM relative to cwd.
+process.chdir(root);
 const source=await build({absWorkingDir:root,entryPoints:['worker/yeongnyangi/fortune/free/readings.ts'],bundle:true,platform:'node',format:'cjs',write:false,loader:{'.wasm':'binary'}});
 const unit=new Module('daily-engines',import.meta);
 unit.filename=path.join(root,'daily-engines.cjs');unit.paths=require('module')._nodeModulePaths(root);
