@@ -1,5 +1,5 @@
 // Explicitly synthetic, local-only fixture for the official SDK devtools.
-import {handleReviewFixture,reviewCatalog,safetyResponse} from './review-fixture.mjs';
+import {handleReviewFixture,reviewCatalog,offlineCatalog,safetyResponse} from './review-fixture.mjs';
 import {assembleChart} from '../../../../lib/human-design/chart.js';
 import {DIRECT_PLANETS} from '../../../../lib/human-design/planets.js';
 const chartFixture=()=>{const longitudes=shift=>Object.fromEntries(DIRECT_PLANETS.map((planet,index)=>[planet,(index*29+shift)%360]));return {stored:false,chart:assembleChart({personalityLongitudes:longitudes(12),designLongitudes:longitudes(284)})};};
@@ -38,7 +38,7 @@ function createAccountFixture(storage,owner,token,now){
   const url=new URL(request.url),path=url.pathname.slice('/api/toss'.length),method=request.method;
   if(path==='/login'&&method==='POST'){state.loggedIn=true;save();return respond({token});}
   // Public product lists mirror worker/toss/routes.js; private requests below still require the mock session.
-  if(path==='/catalog'&&method==='GET')return respond({products:reviewCatalog});
+  if(path==='/catalog'&&method==='GET')return respond({products:offlineCatalog});
   if(path==='/tarot-library/free'&&method==='POST'){
    const {freeTarotReading}=await import('../../../../worker/toss/tarot-library.js');const {flowId,input}=await request.json();return respond(await freeTarotReading(flowId,input));
   }
@@ -47,6 +47,11 @@ function createAccountFixture(storage,owner,token,now){
   if(!state.loggedIn||request.headers.get('Authorization')!=='Bearer '+token)return denied();
   if(path==='/logout'&&method==='POST'){state.loggedIn=false;save();return respond({ok:true});}
   if(path==='/session'&&method==='GET')return respond({authenticated:true,environment:'SANDBOX'});
+  if(path==='/canonical/geocode'&&method==='GET'){
+   return url.searchParams.get('place')==='서울'
+    ?respond({name:'서울',lat:37.5665,lng:126.978,timezone:'Asia/Seoul',fallback:false})
+    :respond({error:'PLACE_NOT_FOUND'},404);
+  }
   const delay=Number(storage?.getItem('toss-offline-generation-delay-ms'));
   const reviewResponse=await handleReviewFixture(request,url,path,state,save,now,Number.isFinite(delay)?Math.max(0,delay):0);if(reviewResponse)return reviewResponse;
   // This fixed chart is synthetic and never uses the submitted birth data.

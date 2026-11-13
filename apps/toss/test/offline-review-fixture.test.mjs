@@ -2,7 +2,7 @@ import '../../../scripts/lib/mock-network-guard.cjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createOfflineFixtureApi} from './offline/fixture.mjs';
-import {reviewSdkProducts,reviewCatalog} from './offline/review-fixture.mjs';
+import {reviewSdkProducts,reviewCatalog,unsoldFixtureProducts} from './offline/review-fixture.mjs';
 import {APPROVED_TOSS_PRODUCTS} from '../../../worker/toss/catalog.js';
 
 function fixture(){
@@ -16,12 +16,29 @@ const makeBody=id=>({productId:id,profileId:'mock-profile',question:'합성 진�
 
 test('the mock SDK and fixture verify the original five product prices',async()=>{
   const f=fixture(),catalog=(await (await f.request('/catalog',null,false)).json()).products;
-  assert.equal(catalog.length,5);
+  assert.equal(reviewCatalog.length,5);
+  assert.equal(catalog.length,reviewCatalog.length+unsoldFixtureProducts.length);
   for(const item of reviewCatalog){
     const linked=catalog.find(p=>p.sku===item.sku),sdk=reviewSdkProducts.find(p=>p.sku===item.sku);
     const price=APPROVED_TOSS_PRODUCTS.find(p=>p.productId===item.id.replace(/^yeoni:/,'')).approvedPriceKRW;
     assert.equal(linked.approvedPriceKRW,price);assert.equal(sdk.displayAmount,price.toLocaleString('ko-KR')+'원');
   }
+});
+
+test('unregistered single-system mock grants use isolated test SKUs and survive a restart',async()=>{
+ const f=fixture();
+ await f.login();
+ for(const product of unsoldFixtureProducts){
+  assert.ok(!APPROVED_TOSS_PRODUCTS.some(row=>row.productId===product.id||row.sku===product.sku));
+  const path='/canonical/yeongnyangi/requests',prepared=await (await f.request(path,makeBody(product.id))).json();
+  const {id}=prepared.fortune,order={orderId:'test-'+product.sku,requestId:id,sku:product.sku};
+  assert.equal(prepared.fortune.product.domain,product.id.split('_')[0]);
+  assert.equal((await f.request('/orders/grant',{...order,sku:'mock-yeoni'})).status,403);
+  assert.equal((await f.request('/orders/grant',order)).status,200);
+  const result=(await (await f.request(path+'/'+id)).json()).fortune;
+  assert.equal(result.state,'COMPLETED');
+  f.reload();assert.deepEqual((await (await f.request(path+'/'+id)).json()).fortune,result);
+ }
 });
 
 test('each mock Saju purchase is tied to its prepared owner-session input and rereads the stored example after reload',async()=>{

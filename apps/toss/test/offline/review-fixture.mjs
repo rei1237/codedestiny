@@ -11,13 +11,20 @@ export const reviewCatalog=reviewProductIds.map(id=>{
   return {id:letter?'yeoni:'+id:id,sku:letter?'mock-yeoni':'mock-'+id,name:letter?'테스트 연이 상담':'테스트 사주 · '+fishNames[id.slice(5)],featureKey,approvedPriceKRW,available:true,chapters:1};
 });
 const sdkProduct=p=>({sku:p.sku,type:'CONSUMABLE',displayName:p.name,displayAmount:p.approvedPriceKRW.toLocaleString('ko-KR')+'원',iconUrl:'',description:'오프라인 테스트 전용 가상 결제'});
-export const reviewSdkProducts=reviewCatalog.map(sdkProduct);
-const sajuCatalog=reviewCatalog.filter(p=>p.id.startsWith('saju_'));
+// Test-only identifiers never correspond to a console SKU or an advertised price.
+const systems={saju:'사주',astrology:'서양 점성술',vedic:'베다점',ziwei:'자미두수',sukuyo:'숙요점'};
+export const unsoldFixtureProducts=Object.entries(systems).filter(([id])=>id!=='saju').map(([domain,label])=>({
+ id:domain+'_mackerel',sku:'mock-unregistered-'+domain,name:'테스트 '+label+' · 고등어',featureKey:'yeongnyangi-'+domain+'-mackerel',
+ approvedPriceKRW:1,available:true,chapters:1,
+}));
+export const offlineCatalog=[...reviewCatalog,...unsoldFixtureProducts];
+export const reviewSdkProducts=offlineCatalog.map(sdkProduct);
+const consultationCatalog=offlineCatalog.filter(p=>!p.id.startsWith('yeoni:'));
 const letterSku=reviewCatalog.find(p=>p.id==='yeoni:chat_saju').sku;
 const json=(data,status=200)=>Response.json(data,{status});
 const fail=(error,status)=>json({error},status);
 const fixedChapter={id:'test',title:'테스트 상담',summary:'[테스트 전용 예시] 실제 운세 해석이나 AI 상담 결과가 아닙니다.',analysis:['이 문단은 화면과 구매 후 열람을 확인하기 위한 고정 예시입니다.'],questionAnswers:[]};
-const productView=p=>({id:p.id,name:'테스트 사주',priceKRW:p.approvedPriceKRW,currency:'KRW',domain:'saju',systems:['saju'],fishId:p.id.slice(5),fishName:fishNames[p.id.slice(5)],readingKind:'single',chapterCount:1,available:true});
+const productView=p=>{const [domain,fishId]=p.id.split('_');return {id:p.id,name:'테스트 '+systems[domain],priceKRW:p.approvedPriceKRW,currency:'KRW',domain,systems:[domain],fishId,fishName:fishNames[fishId],readingKind:'single',chapterCount:1,available:true};};
 export function safetyResponse(body){
   const code=consultationInputCode(body);
   return code?json({error:code,message:consultationSafetyMessages[code],retryable:false},422):null;
@@ -25,7 +32,7 @@ export function safetyResponse(body){
 
 async function prepare(body,state,save,day){
   const blocked=safetyResponse(body);if(blocked)return blocked;
-  const product=sajuCatalog.find(p=>p.id===body.productId);
+  const product=consultationCatalog.find(p=>p.id===body.productId);
   if(!product)return fail('TOSS_PRODUCT_NOT_APPROVED',503);
   if((!state.profiles.some(p=>p.profileId===body.profileId)&&!(body.productId.startsWith('tarot_')&&body.profileId==='tarot-question'))||typeof body.question!=='string'||!body.question.trim()||!body.consultationAttemptId)return fail('INVALID_INPUT',400);
   // Store a digest for retry comparison. Profiles, freeform questions and birth inputs are not fixture records.
@@ -107,7 +114,7 @@ export async function handleReviewFixture(request,url,path,state,save,now,delay=
     return safetyResponse(path==='/prepare'?body:body.consultation);
   }
   if(path.startsWith('/daily/'))return daily(path,method,method==='POST'?await request.json():null,url,state,save,now());
-  if(path==='/canonical/yeongnyangi/products'&&method==='GET')return json({products:sajuCatalog.map(productView)});
+  if(path==='/canonical/yeongnyangi/products'&&method==='GET')return json({products:consultationCatalog.map(productView)});
   if(path==='/canonical/yeongnyangi/saju/experience-check'&&method==='POST')return json({check:null});
   if(path==='/canonical/yeongnyangi/requests'&&method==='POST')return prepare(await request.json(),state,save,now());
   const owned=[...state.fortunes.values()].filter(row=>row.fortune.paid);
@@ -124,7 +131,7 @@ export async function handleReviewFixture(request,url,path,state,save,now,delay=
   }
   if(path==='/orders/grant'&&method==='POST'){
     const body=await request.clone().json();
-    if(sajuCatalog.some(p=>p.sku===body.sku)||state.fortunes.has(body.requestId))return grant(body,state,save,now(),delay);
+    if(consultationCatalog.some(p=>p.sku===body.sku)||state.fortunes.has(body.requestId))return grant(body,state,save,now(),delay);
     if(body.sku===letterSku||state.letters.has(body.requestId))return grantLetter(body,state,save);
   }
   if(path==='/orders/restore'&&method==='POST'){
@@ -135,7 +142,7 @@ export async function handleReviewFixture(request,url,path,state,save,now,delay=
       return json({orderId,requestId:id,entitlement:'granted',durable:true});
     }
     const row=state.fortunes.get(id);
-    if(!row&&!sajuCatalog.some(product=>product.sku===sku))return null;
+    if(!row&&!consultationCatalog.some(product=>product.sku===sku))return null;
     if(!row?.fortune.paid||row.orderId!==orderId||row.sku!==sku)return fail('ORDER_MISMATCH',403);
     return json({orderId,requestId:id,entitlement:'granted',durable:true});
   }
