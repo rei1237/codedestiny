@@ -102,3 +102,7 @@
 .directory-fortune .directory-list i { display:none; }
 .directory-books .directory-list button { padding-block:13px; }
 @media (max-width:370px) { .directory-rooms .directory-list {gap:0 8px;} .directory-fortune .directory-list,.directory-reports .directory-list {gap:0 12px;} .directory-reports .directory-list strong {font-size:15px;} }
+
+.diary-navigation {display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin:12px 0 20px;background:var(--moon-paper);border:1px solid var(--moon-line-soft);border-radius:12px;padding:4px}
+.diary-navigation button {min-height:44px;border:0;background:transparent;color:var(--moon-ink);font:inherit;border-radius:8px}
+.diary-navigation button[aria-current="page"] {background:var(--moon-accent);color:white}

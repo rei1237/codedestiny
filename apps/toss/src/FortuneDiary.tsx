@@ -2,6 +2,9 @@ import {useEffect,useState} from 'react';
 import DiaryStoreProvider,{useDiaryToday} from '../../../app/diary/_components/DiaryStoreProvider';
 import DiaryJournalCard from '../../../app/diary/_components/DiaryJournalCard';
 import DiaryPlanCard from '../../../app/diary/_components/DiaryPlanCard';
+import DiaryCalendarView from '../../../app/diary/_components/DiaryCalendarView';
+import DiaryRecordsView from '../../../app/diary/_components/DiaryRecordsView';
+import DiaryStatsView from '../../../app/diary/_components/DiaryStatsView';
 import DiaryEntryFields from '../../../app/diary/_components/DiaryEntryFields';
 import {formatKoreanDate} from '../../../app/diary/_lib/kst-date';
 import {readStoredEntry} from '../../../app/diary/_lib/today-snapshot';
@@ -38,7 +41,9 @@ function Entries(){
   </>;
 }
 
-export default function FortuneDiary(){
+const views={'diary':'오늘','diary/calendar':'달력','diary/records':'기록','diary/stats':'통계'} as const;
+export type DiaryPage=keyof typeof views;
+export default function FortuneDiary({page,onOpen}:{page:DiaryPage;onOpen:(page:DiaryPage)=>void}){
   const [storage,setStorage]=useState<Storage|null>(null);
   const [error,setError]=useState(false),[attempt,setAttempt]=useState(0);
   useEffect(()=>{
@@ -53,6 +58,6 @@ export default function FortuneDiary(){
     return ()=>{active=false;};
   },[attempt]);
   return <section className={styles.shell}><h1>운기 다이어리</h1>
-    {storage?<DiaryStoreProvider storage={storage}><Entries/></DiaryStoreProvider>:error?<p role="alert">기록을 열 수 없어요. <Button onClick={()=>setAttempt(n=>n+1)}>다시 시도하기</Button></p>:<p role="status">기록을 펼치고 있어요.</p>}
+    {storage?<DiaryStoreProvider storage={storage}><nav className="diary-navigation" aria-label="다이어리 메뉴">{(Object.entries(views) as [DiaryPage,string][]).map(([route,label])=><button key={route} aria-current={page===route?'page':undefined} onClick={()=>onOpen(route)}>{label}</button>)}</nav>{page==='diary/stats'?<DiaryStatsView/>:page==='diary/records'?<DiaryRecordsView/>:page==='diary/calendar'?<DiaryCalendarView/>:<Entries/>}</DiaryStoreProvider>:error?<p role="alert">기록을 열 수 없어요. <Button onClick={()=>setAttempt(n=>n+1)}>다시 시도하기</Button></p>:<p role="status">기록을 펼치고 있어요.</p>}
   </section>;
 }

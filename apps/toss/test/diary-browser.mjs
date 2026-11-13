@@ -33,6 +33,12 @@ try{
   await page.getByLabel('기록 날짜').fill('2026-01-21');
   assert.equal(await history.getByRole('textbox',{name:'오늘 한 줄'}).inputValue(),'그날의 기록');
   assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
+  const nav=page.getByRole('navigation',{name:'다이어리 메뉴'});
+  await nav.getByRole('button',{name:'통계'}).click();await page.getByRole('group',{name:'기간 고르기'}).waitFor();
+  await nav.getByRole('button',{name:'기록',exact:true}).click();
+  await page.getByRole('link').filter({hasText:'오늘은 천천히 걷기'}).click();
+  await page.waitForURL('**/diary/calendar/?d=*');
+  await page.getByRole('button',{name:'이전 달'}).waitFor();
   assert.deepEqual(writes,[]);
   console.log('PASS guest home search, original diary entry and planner, separate historical date, relaunch and 360px layout.');
 }finally{await browser.close();}
