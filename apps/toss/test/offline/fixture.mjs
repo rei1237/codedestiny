@@ -1,3 +1,4 @@
+import {syntheticYoga,mockYogaRequest} from './yoga.mjs';
 // Explicitly synthetic, local-only fixture for the official SDK devtools.
 import {handleReviewFixture,reviewCatalog,offlineCatalog,offlineLetterProduct,safetyResponse} from './review-fixture.mjs';
 import {roomProducts,roomRequest} from './room-fixture.mjs';
@@ -106,7 +107,7 @@ function createAccountFixture(storage,owner,token,now){
   }
   if(path==='/human-design/chart'&&method==='POST')return respond(chartFixture());
   if(path==='/canonical/auth/me'&&method==='GET')return respond({ok:true,authenticated:true,user:{id:owner,name:'테스트 사용자',role:'user'}});
-  if(path==='/native/catalog'&&method==='GET')return respond({products:[product,sukuyoProduct,relationshipProduct,syntheticNakshatra,...roomProducts]});
+  if(path==='/native/catalog'&&method==='GET')return respond({products:[product,sukuyoProduct,relationshipProduct,syntheticYoga,syntheticNakshatra,...roomProducts]});
   if(path==='/canonical/yeongnyangi/profiles'&&method==='GET')return respond({ok:true,profiles:state.profiles,currentId:state.profiles.at(-1)?.profileId});
   if(path==='/canonical/yeongnyangi/profiles'&&method==='POST'){
    const {profile}=await request.json();if(!profile?.profileId||!profile.birth?.year)return respond({error:'BIRTH_INVALID'},400);
@@ -193,7 +194,7 @@ function createAccountFixture(storage,owner,token,now){
    const id=(++state.sequence).toString(16).padStart(64,'0');const intent={id,sku:product.sku,amountKRW:product.approvedPriceKRW,paid:false,orderId:null,input:body.input};state.intents.set(id,intent);save();return respond(intent);
   }
   if(path==='/orders/grant'&&method==='POST'){
-   const body=await request.json(),intent=[product.sku,sukuyoProduct.sku,relationshipProduct.sku,syntheticNakshatra.sku].includes(body.sku)?state.intents.get(body.requestId):null;if(!intent||intent.sku&&intent.sku!==body.sku||typeof body.orderId!=='string')return respond({error:'ORDER_MISMATCH'},403);
+   const body=await request.json(),intent=[product.sku,sukuyoProduct.sku,relationshipProduct.sku,syntheticYoga.sku,syntheticNakshatra.sku].includes(body.sku)?state.intents.get(body.requestId):null;if(!intent||intent.sku&&intent.sku!==body.sku||typeof body.orderId!=='string')return respond({error:'ORDER_MISMATCH'},403);
    const prior=state.orders.get(body.orderId);if(prior&&prior!==intent.id||intent.orderId&&intent.orderId!==body.orderId)return respond({error:'ORDER_ALREADY_ASSIGNED'},409);
    state.orders.set(body.orderId,intent.id);intent.orderId=body.orderId;intent.paid=true;save();return respond({orderId:body.orderId,requestId:intent.id,entitlement:'granted',durable:true});
   }

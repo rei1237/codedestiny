@@ -1,3 +1,4 @@
+import {mockYogaLibrary} from './yoga.mjs';
 import {mockNakshatraLibrary} from './nakshatra-ai.mjs';
 import {reviewProductIds} from '../../../../worker/toss/review-products.js';
 import {roomPurchases,roomSdkProducts} from './room-fixture.mjs';
@@ -156,7 +157,7 @@ export async function handleReviewFixture(request,url,path,state,save,now,delay=
   }
   if(path==='/library'&&method==='GET')return json({purchases:[
     ...roomPurchases(state),
-    ...mockNakshatraLibrary(state),
+    ...mockNakshatraLibrary(state),...mockYogaLibrary(state),
     ...owned.map(({fortune,orderId,sku})=>({requestId:fortune.id,orderId,sku,serviceId:'yeongnyangi',selectionId:fortune.productId,productId:fortune.productId,status:'PURCHASED',state:fortune.state,createdAt:fortune.createdAt,completedSections:fortune.chapters.length,totalSections:1})),
     ...[...state.letters.values()].filter(row=>row.paid).map(row=>({requestId:row.id,orderId:row.orderId,sku:offlineLetterProduct(row.persona,row.productId)?.sku,serviceId:row.persona,selectionId:row.persona+':'+row.productId,productId:row.productId,status:'PURCHASED',state:row.state,createdAt:row.createdAt,completedSections:1,totalSections:1})),
   ],nextCursor:null});

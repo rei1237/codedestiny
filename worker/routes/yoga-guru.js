@@ -76,6 +76,7 @@ export function yogaNarrativeAdapter(env){
       requestId:state.body.requestId,duration:state.input.duration,locale:state.locale}),
   };
 }
+export const seedYogaCourse = original => ({input:yogaInput(original),tasks:[{id:"course",minChars:800}],minBodyChars:800});
 async function handleGenerateYogaCourse(request,env){
   const body=request.method==="POST"?await readJson(request):{};
   if(request.method==="POST"&&!body.resumeResultId)yogaInput(body);
@@ -91,7 +92,7 @@ async function handleGenerateYogaCourse(request,env){
       });
       if(!access?.ok)throw new HttpError(Number(access?.status||402),"결제 확인이 필요합니다.",{code:access?.code||"PAYMENT_REQUIRED"});
     },
-    seed:original=>({input:yogaInput(original),tasks:[{id:"course",minChars:800}],minBodyChars:800}),
+    seed:seedYogaCourse,
   });
 }
 export async function handleYogaGuruRoutes(request,env={}){

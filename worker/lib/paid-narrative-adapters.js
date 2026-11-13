@@ -69,7 +69,10 @@ export async function loadPaidNarrativeAdapter(env, featureKey, reportType, user
     }
     case "yogaGuruCourse": {
       const { yogaNarrativeAdapter } = await import("../routes/yoga-guru.js");
-      return yogaNarrativeAdapter(env);
+      return { ...yogaNarrativeAdapter(env), verifyRecovery: async doc => {
+        const { verifyNativeYogaRecovery } = await import("../toss/native-yoga.js");
+        return verifyNativeYogaRecovery(env, doc);
+      } };
     }
     case "sajuCompatBasic": {
       const { sajuCompatNarrativeAdapter } = await import("../routes/saju-compat-basic.js");

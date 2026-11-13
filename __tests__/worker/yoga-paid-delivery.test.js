@@ -22,9 +22,18 @@ beforeAll(async()=>{
  jest.unstable_mockModule('../../worker/lib/access-control.js',()=>({requirePremiumReportAccess:async(_env,_owner,_type,body)=>{proofs.push(body);return {ok:mode!=='denied',status:402};}}));
  jest.unstable_mockModule('../../worker/lib/models.js',()=>({...models,ServiceExecutionTransaction:model,PaidExecutionRecord:{findOne:()=>query(revoked?{}:null)},Payment:{findOne:()=>query(null)},PointHistory:{findOne:()=>query(null)},MonthlyCreditLedger:{findOne:()=>query(null)}}));
  jest.unstable_mockModule('../../worker/lib/gemini.js',()=>({callGeminiText:(...args)=>provider(...args)}));
+ const tossModels=await import('../../worker/toss/models.js');
+ jest.unstable_mockModule('../../worker/toss/models.js',()=>({...tossModels,TossNativeConsultation:{findOne:filter=>query(nativeRows.find(row=>matches(row,filter))||null)}}));
+ jest.unstable_mockModule('../../worker/toss/native-tea.js',()=>({
+   nativeOwnerFilter:(auth,service)=>({nativeService:service,identityId:auth._id,ownerId:auth.ownerId,environment:auth.environment}),
+   prepareNativeConsultation:async()=>{throw Error('New sales unavailable');},
+   verifiedIntent:async(_env,auth,row)=>nativeVerified(auth,row),
+ }));
  ({handleYogaGuruRoutes:route}=await import('../../worker/routes/yoga-guru.js'));
 });
 let proofs=[];
+let nativeRows=[],nativeVerified;
+
 let duration=30;
 function course(){return {course_metadata:{title:'맞춤 수련 안내',deity_theme:'고요한 성찰의 상징',duration_min:duration,intensity:'Beginner',focus_area:'몸과 마음의 이완',chakra_focus:'상징으로 살펴보는 주의 집중'},sequence:['Warmup','Asana','Pranayama','Relaxation'].map((type,i)=>({step_number:i+1,type,sanskrit_name:'Sukha practice '+i,english_name:'Guided practice '+i,duration_seconds:duration*15,instructions:Array.from({length:6},(_,j)=>`${i+1}단계 ${j+1}번째 안내에서는 움직임을 강요하지 않고 편안한 범위에서 자신의 상태를 관찰하세요. ${i+1}단계 ${j+1}번째 감각을 살피며 불편하면 쉬고 자연스러운 호흡으로 돌아옵니다.`),breathing_guide:i+'단계에서 편안한 자연 호흡',benefits_physical:i+'단계에서 긴장을 살펴보는 연습',benefits_spiritual:i+'단계에서 주의를 모으는 상징',caution:i+'단계에서도 불편하면 중단하세요.',visual_cue_ui:i+'단계의 차분한 시각적 안내'})),closing_mantra:'고요한 마음으로 수련을 마무리합니다.'};}
 beforeEach(()=>{docs=[];revoked=false;userId=owner;fault=null;lost=false;mode='pass';proofs=[];duration=30;provider=jest.fn(async(_env,_prompt,options)=>{expect(options.timeoutMs).toBeLessThanOrEqual(45000);expect(options.fallbackToWorkersAI).toBe(false);return {ok:true,provider:'gemini',text:JSON.stringify(course())};});external=jest.spyOn(globalThis,'fetch').mockImplementation(()=>{throw Error('external fetch forbidden');});});
@@ -49,4 +58,36 @@ test('a course cut at the token limit retries once with a doubled budget',async(
  provider.mockImplementationOnce(async()=>{const text=JSON.stringify(course()).slice(0,400);capturePaidGenerationRaw(text);return {ok:true,provider:'gemini',truncated:true,finishReason:'MAX_TOKENS',text};});
  expect((await start()).status).toBe(202);expect((await resume()).status).toBe(200);
  expect(provider.mock.calls.map(call=>call[2].maxOutputTokens)).toEqual([8192,16384]);
+});
+
+test.each([30,60])('Toss %i-minute original prompt, one delivery, resumed read and service/owner isolation',async minutes=>{
+ const {yogaContract,readNativeYoga,nativeYogaLibraryItem}=await import('../../worker/toss/native-yoga.js');
+ const {assertNativeIntent}=await import('../../worker/toss/native-consultation.js');
+ const prompts=(await import('../../js/core/yoga-guru-prompts.js')).default;
+ duration=minutes;
+ const auth={_id:'identity-a',ownerId:owner,userId:owner,environment:'sandbox'};
+ const input={mood:'테스트로 조용한 코스를 원해요.',duration,requestId:'yoga-01234567-89ab-cdef-0123-456789abcdef'};
+ const {contract}=await yogaContract(input);
+ await expect(yogaContract({...input,systemPrompt:'unsafe override'})).rejects.toMatchObject({code:'INVALID_INPUT'});
+ const id='f'.repeat(64),orderId='native-yoga-payment';
+ nativeRows=[{...contract,_id:id,input,identityId:auth._id,ownerId:owner,nativeService:'yoga',environment:'sandbox',orderId,status:'paid'}];
+ nativeVerified=(session,row)=>{assertNativeIntent(row,session);if(row.orderId!==orderId||revoked)throw Error('ORDER_REVOKED');};
+ const purchase={_id:orderId,requestId:id,featureKey:contract.featureKey,nativeService:'yoga',identityId:auth._id,ownerId:owner,environment:'sandbox'};
+ const state=async generate=>(await readNativeYoga({},auth,id,generate)).json();
+ expect((await state(false)).status).toBe('generating');
+ expect(provider).not.toHaveBeenCalled();
+ expect((await nativeYogaLibraryItem({},auth,purchase)).state).toBe('PENDING');
+ fault={kind:'throw'};await expect(state(true)).rejects.toMatchObject({code:'RESULT_STORAGE_UNAVAILABLE'});
+ expect((await state(true)).status).toBe('completed');
+ const complete=await state(false);
+ expect(complete.sequence).toHaveLength(4);
+ expect(complete.course_metadata.duration_min).toBe(minutes);
+ expect(provider.mock.calls[0][1]).toContain(prompts.buildSystemPrompt());
+ expect(provider.mock.calls[0][1]).toContain(prompts.buildUserPrompt(input.mood,minutes));
+ expect(await nativeYogaLibraryItem({},auth,purchase)).toMatchObject({state:'COMPLETED',href:'/yoga-guru?resultId='+id});
+ expect((await resume()).status).toBe(404);
+ await expect(readNativeYoga({},{...auth,ownerId:'owner-b',userId:'owner-b'},id,false)).rejects.toMatchObject({code:'RESULT_NOT_FOUND'});
+ await expect(nativeYogaLibraryItem({},auth,{...purchase,nativeService:'nakshatra'})).rejects.toMatchObject({code:'RESULT_NOT_FOUND'});
+ revoked=true;await expect(state(false)).rejects.toThrow('ORDER_REVOKED');
+ expect(provider).toHaveBeenCalledTimes(1);
 });

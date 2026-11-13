@@ -1,18 +1,18 @@
 import {useEffect,useRef,useState,type FormEvent} from 'react';
+import {checkoutNativeInput} from './checkoutNativeInput';
 import MansionPdf from './MansionPdf';
 import {useNakshatraCopy} from '../../../app/nakshatra/_lib/copy';
 import styles from './MansionConsultation.module.css';
 import AiConsultDecks,{type Decks,type NatalIdentity} from '../../../app/nakshatra/ai/AiConsultDecks';
 import MansionProfile from './MansionProfile';
 import {PersonFields,birth,emptyPerson,type Person} from './MansionBirth';
-import {api,nativeSaleProducts,purchase,paymentRequiresReview,type NativeSaleProduct} from './platform';
+import {api,nativeSaleProducts,paymentRequiresReview,type NativeSaleProduct} from './platform';
 import {Button} from './Button';
 import TossSessionScope from './TossSessionScope';
 
 const feature='nakshatra-ai-consultation';
 type Draft={person:Person;question:string;requestId:string};
 type State={status:string;question?:string;natal?:NatalIdentity;decks?:Decks;totalCharCount?:number;progress?:{completed:number;total:number}};
-type Intent={id:string;paid:boolean;sku:string;orderId:string;amountKRW:number};
 function load(key:string):Draft{
   try{const d=JSON.parse(localStorage.getItem(key)||'null');if(d&&typeof d.person==='object'&&typeof d.question==='string')return d;}catch{/* Device storage is optional. */}
   return {person:emptyPerson(),question:'',requestId:''};
@@ -57,19 +57,10 @@ function Intake({owner}:{owner:string}){
     try{
       const requestId=draft.requestId||'nakai-'+crypto.randomUUID();save({...draft,requestId});
       const input={birthInfo:birth(draft.person),question:draft.question.trim(),requestId};
-      const intent=await api<Intent>('/native/nakshatra/prepare',{input,...(orderId?{orderId}:{})});
-      if(!isCurrent())return;
-      if(orderId&&(!intent.paid||intent.orderId!==orderId))throw Error('ORDER_MISMATCH');
-      if(!intent.paid){
-        const item=(await nativeSaleProducts()).find(row=>row.featureKey===feature&&row.sku===intent.sku&&row.approvedPriceKRW===intent.amountKRW&&row.sku===sale?.sku);
-        if(!isCurrent())return;if(!item)throw Error('PRICE_CHANGED');
-        await new Promise<void>((resolve,reject)=>{cancel.current=purchase(item,intent.id,resolve,reject);});
-      }
-      if(!isCurrent())return;
-      const confirmed=await api<Intent>('/native/nakshatra/intents/'+intent.id);
-      if(!isCurrent())return;if(!confirmed.paid||confirmed.id!==intent.id)throw Error('ORDER_MISMATCH');
+      const intentId=await checkoutNativeInput({service:'nakshatra',feature,input,orderId,sku:sale?.sku,isCurrent,onCancel:cleanup=>{cancel.current=cleanup;}});
+      if(!intentId||!isCurrent())return;
       try{localStorage.removeItem(key);}catch{/* Optional persistence. */}
-      location.replace('/nakshatra/ai?resultId='+encodeURIComponent(intent.id));
+      location.replace('/nakshatra/ai?resultId='+encodeURIComponent(intentId));
     }catch{if(isCurrent())setError('상담을 시작하지 못했어요. 구매 기록을 확인한 뒤 같은 입력으로 다시 시도해 주세요.');}
     finally{if(isCurrent()){flight.current=false;setBusy(false);}}
   }
