@@ -2363,6 +2363,15 @@ export default function LoveSecretAiPage({ paymentNotice, TossPrice, paymentSurf
                 <LoveSecretGeneratingCard phase={phase} text={phaseText} progress={progress} progressIndex={progressIndex} />
               ) : (
                 <>
+                  {paymentSurface !== "toss" && !resultUrl && (
+                    <div className="-mt-1 mb-3 flex justify-end" data-ls-step-price="">
+                      <PriceBadge
+                        featureKey="love-secret-ai-consultation"
+                        prefix={copy.priceLabelPrefix}
+                        className="text-xs font-semibold text-[var(--ls-text-muted)]"
+                      />
+                    </div>
+                  )}
                   <header className="mb-6 flex items-start gap-3">
                     <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-[var(--ls-surface-sunken)] text-[var(--ls-accent)] ring-1 ring-[var(--ls-line)]">
                       <activeStep.Icon className="h-5 w-5" aria-hidden="true" />

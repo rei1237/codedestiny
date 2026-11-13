@@ -6,6 +6,7 @@ import {refreshAuth,useAuthStore} from '@/app/_lib/auth-store';
 import {fetchPaymentEligibility,readSubscriptionSnapshotForUser,runPaidAccessGate,isMobileAppRuntime,type PaymentEligibility} from '@/app/_lib/billing-client';
 import {usePaidResume} from '@/app/hooks/usePaidResume';
 import {resolveServerFeaturePricing} from '@/lib/payment/server-feature-pricing';
+import {trackEvent} from '@/lib/analytics';
 import {consultationShopPath,readConsultationContext} from '@/app/components/service-packs/consultation-context';
 import {passUpgradeNameForAmount} from '@/lib/payment/pass-fish-coverage.js';
 import {defaultCheckoutMethod,passMethodNote,passRemainingCoin,readSavedCheckoutMethod,type CheckoutMethod} from './checkout-method-order';
@@ -30,6 +31,8 @@ async function readCheckoutPacks(){
 export default function YeongnyangiCheckout({draft}:{draft:ConsultationCheckoutDraft}){
  const auth=useAuthStore(),owner=String(auth.user?.id||auth.user?._id||''),signedIn=auth.isAuthenticated||Boolean(auth.user);
  useEffect(()=>{void refreshAuth();},[]);
+ const opened=useRef('');
+ useEffect(()=>{const key=draft.product.cdFeatureKey;if(opened.current===key)return;opened.current=key;trackEvent('checkout_opened',{item_id:key,service:'yeongnyangi'});},[draft.product.cdFeatureKey]);
  const [revision,setRevision]=useState(0),[method,setMethod]=useState<CheckoutMethod>('direct');
  const [benefits,setBenefits]=useState<{owner:string;key:string;loading:boolean;eligibility:PaymentEligibility|null;packs:OwnedServicePack[];error:boolean}>({owner:'',key:'',loading:true,eligibility:null,packs:[],error:false});
  const [busy,setBusy]=useState(false),[message,setMessage]=useState('');
@@ -139,10 +142,10 @@ export default function YeongnyangiCheckout({draft}:{draft:ConsultationCheckoutD
      {method==='direct'&&!native&&pricing&&!pricing.monthlyExcluded&&pricing.monthlyCreditMultiplier===1&&<details><summary>월정석으로 일부 할인받기</summary><MoonstoneDiscountBalance signedIn={signedIn} userId={owner} maxDiscountStones={Math.floor((pricing.amountKRW-1000)/(pricing.amountKRW/pricing.membershipCreditCost))} selected={quantity} onUse={setDiscount}/><label>사용할 월정석<input type="number" min={0} step={1} max={Math.floor((pricing.amountKRW-1000)/(pricing.amountKRW/pricing.membershipCreditCost))} value={discount} onChange={event=>setDiscount(event.target.value)}/></label><p>단건 결제 잔액은 1,000원 이상이어야 해요.</p></details>}
     </fieldset>
     <div className={styles.action}><p>{checking?'보유 이용권을 확인하고 있어요.':signedIn&&!draft.ready?draft.hint||'상담 정보를 먼저 확인해 주세요.':deduction}</p><div className={styles.total}><span>추가 결제 금액</span><strong>{checking?'확인 중':method==='direct'?(native?'Google Play':validDiscount?won(amount):'수량 확인 필요'):won(0)}</strong></div><button type="button" className={styles.pay} disabled={busy||checking||signedIn&&(!draft.ready||!selectedValid)} onClick={()=>void pay()}>{busy?'상담 준비 중':checking?'이용권 확인 중':!signedIn?'로그인하고 이어가기':method==='direct'?'결제하고 상담 시작하기':'상담 시작하기'}</button></div>
-    <p ref={feedback} tabIndex={-1} className={styles.feedback} role="status">{message}</p>
-    {message&&!busy&&signedIn&&<button type="button" onClick={()=>setRevision(value=>value+1)}>보유 혜택 다시 확인하기</button>}
     <p className={styles.legal}>결제 전 필요한 정보를 모두 확인해요. 저장된 결과는 영냥이 보관함에서 다시 볼 수 있어요.</p>
     <p className={styles.legal}><a href={policyHrefs.terms}>이용약관</a> · <a href={policyHrefs.refund}>환불 안내</a> · <a href={policyHrefs.support}>문의하기</a></p>
+    <p ref={feedback} tabIndex={-1} className={styles.feedback} role="status">{message}</p>
+    {message&&!busy&&signedIn&&<button type="button" onClick={()=>setRevision(value=>value+1)}>보유 혜택 다시 확인하기</button>}
    </aside>
   </div>
  </section>;

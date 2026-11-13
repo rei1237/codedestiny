@@ -42,6 +42,13 @@ test('the Yeongnyangi checkout offers packs, then the pot, then stones, then dir
  for(const dead of ["passStorePlan:'family'",'패밀리 이용권',"tier==='family'"])assert.ok(!source.includes(dead),dead);
 });
 
+test('the Yeongnyangi checkout puts reassurance and policy links right under the pay button',async()=>{
+ const source=await read('app/checkout/YeongnyangiCheckout.tsx');
+ const order=['className={styles.pay}','결제 전 필요한 정보를 모두 확인해요.','policyHrefs.terms','className={styles.feedback}'].map(mark=>source.indexOf(mark));
+ assert.ok(order.every(at=>at>0),String(order));
+ assert.deepEqual(order,[...order].sort((a,b)=>a-b));
+});
+
 test('the shared checkout no longer offers the retired 5-use pack or a Family-only button',async()=>{
  const source=await read('app/checkout/CheckoutClient.tsx');
  for(const dead of ['readPackCatalog','packOffer','consultation-purchase','5회 이용권','보유 패밀리 꿀단지','passStorePlan: "family"'])assert.ok(!source.includes(dead),dead);
