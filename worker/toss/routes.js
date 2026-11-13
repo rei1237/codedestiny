@@ -366,6 +366,16 @@ export async function handleTossRoutes(request,env) {
       const {readTodayHub}=await import('./today-hub.js');
       return reply(await readTodayHub(env,auth,await bodyOf(request),request.url));
     }
+    if(path==='/canonical/kasi/calendar'&&request.method==='POST'){
+      await limit(env,auth._id,'kasi-calendar',30);
+      const body=await bodyOf(request);
+      const lunar=body?.method==='getSolCalInfo';
+      const summary=!body?.method&&Number.isInteger(body?.year)&&body.month===6&&body.day===15;
+      if(!lunar&&!summary)throw new TossError('INVALID_INPUT',400);
+      const {handleKasiRoutes}=await import('../routes/kasi.js');
+      const calendarRequest=new Request('https://code-destiny.com/api/kasi/calendar',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(body)});
+      return forwardServiceResponse(await handleKasiRoutes(calendarRequest,env),headers);
+    }
     if(path==='/canonical/saju/career-style'&&['GET','POST'].includes(request.method)){
       const statusOnly=request.method==='GET';
       if(!statusOnly)await limit(env,auth._id,'career-style',20);

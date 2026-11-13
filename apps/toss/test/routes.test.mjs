@@ -17,6 +17,7 @@ const mocks={
 };
 globalThis.__tossRouteMocks=mocks;
 const stubMap={
+ 'worker/routes/kasi.js':"export const handleKasiRoutes=async request=>Response.json({path:new URL(request.url).pathname,input:await request.json()});",
  'worker/toss/today-hub.js':"export const readTodayHub=async(_env,auth,input)=>Response.json({profileId:input.profileId,owner:String(auth._id)});",
  'worker/toss/public-section.js':"export const readTossPublicSection=async input=>Response.json({featureKey:input.featureKey});",
  'worker/routes/career-style.js':"export async function readOwnedCareerStyle(_env,{userId,profileId,statusOnly}){if(profileId!=='mine')throw Object.assign(new Error(),{status:403,payload:{code:'INVALID_PROFILE'}});return {userId,profileId,statusOnly,priceKRW:0};}",
@@ -71,6 +72,17 @@ const {handleTossRoutes}=loaded.exports;
 const birth={gender:'F',date:{year:1990,month:1,day:1,calType:'solar',timeUnknown:true},location:{label:'서울',lat:37.5665,lng:126.978,tz:'Asia/Seoul'}};
 const decision={version:'question-consultation-20261007',category:'self',target:'self',horizon:'current',situation:'대화할 때 내 경계를 말하고 싶어요',options:'',period:'',constraints:'',confirmed:true};
 const input=()=>({attemptId:crypto.randomUUID(),sku:'saju_mackerel',question:'어떻게 내 경계를 표현할까?',birth:structuredClone(birth),questionDecision:{...decision}});
+test('meeting place uses the authenticated Korean calendar for lunar conversion and yearly terms',async()=>{
+ const endpoint='/canonical/kasi/calendar';
+ mocks.denyAuth=true;
+ try{assert.equal((await request({year:1991,month:6,day:15},endpoint)).status,401);}finally{mocks.denyAuth=false;}
+ for(const input of [{method:'getSolCalInfo',params:{lunYear:'1991'}},{year:1991,month:6,day:15}]){
+  const reply=await request(input,endpoint);
+  assert.equal(reply.status,200);
+  assert.deepEqual(await reply.json(),{path:'/api/kasi/calendar',input});
+ }
+ assert.equal((await request({method:'getSomethingElse'},endpoint)).status,400);
+});
 test('career report accepts only a profile owned by the signed-in Toss identity',async()=>{
  const path='/canonical/saju/career-style';
  mocks.denyAuth=true;

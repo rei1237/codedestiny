@@ -8,7 +8,7 @@ import type { DestinyMeetingPlaceResult, DestinyPlaceType } from "./destinyMeeti
 
 type Props = {
   result: DestinyMeetingPlaceResult;
-  chargedCoins: number;
+  chargedCoins?: number;
 };
 
 type PromptPack = NonNullable<DestinyMeetingPlaceResult["promptPack"]>;
@@ -47,7 +47,7 @@ type ElementBadgeProps = {
 type DestinySummaryCardProps = {
   oneLine: string;
   chips: string[];
-  chargedCoins: number;
+  chargedCoins?: number;
   topPlace?: EnrichedPlace;
 };
 
@@ -696,7 +696,7 @@ function DestinySummaryCard({ oneLine, chips, chargedCoins, topPlace }: DestinyS
               {chip}
             </GlassChip>
           ))}
-          <GlassChip className="border-[#f8dfa6]/35 bg-[#f8dfa6]/15 text-[#fff1cf]">{destinyMeetingPlaceResultText("analysisValue")} {formatCoinValue(chargedCoins)}</GlassChip>
+          {chargedCoins!==undefined&&<GlassChip className="border-[#f8dfa6]/35 bg-[#f8dfa6]/15 text-[#fff1cf]">{destinyMeetingPlaceResultText("analysisValue")} {formatCoinValue(chargedCoins)}</GlassChip>}
           {topPlace ? <GlassChip className="border-[#93c5fd]/35 bg-[#93c5fd]/15 text-[#e6f2ff]">{destinyMeetingPlaceResultText("nextCoordinate")} {topPlace.name}</GlassChip> : null}
         </div>
       </div>

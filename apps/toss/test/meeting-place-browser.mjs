@@ -1,0 +1,31 @@
+import assert from 'node:assert/strict';
+import {chromium} from 'playwright';
+const origin=process.env.TOSS_OFFLINE_ORIGIN||'http://127.0.0.1:4374';
+assert.equal(new URL(origin).hostname,'127.0.0.1');
+const browser=await chromium.launch({channel:'chrome'});
+try {
+  const page=await browser.newPage({viewport:{width:360,height:740},serviceWorkers:'block',reducedMotion:'reduce'});
+  page.setDefaultTimeout(45000);
+  await page.route('**/*',route=>new URL(route.request().url()).origin===origin?route.continue():route.abort());
+  await page.goto(origin);
+  await page.locator('.world-entry-ggulggul').click();
+  await page.getByRole('button',{name:/운명의 인연 장소/}).click();
+  await page.getByRole('button',{name:'토스로 로그인하기'}).click();
+  await page.waitForURL(/\/login\//);
+  await page.getByRole('button',{name:'토스로 로그인하기'}).click();
+  await page.waitForURL(/\/saju\/destiny-meeting-place\//);
+  await page.getByLabel('생년월일',{exact:true}).fill('1991-07-18');
+  await page.getByLabel('태어난 시각',{exact:false}).fill('14:20');
+  await page.getByLabel('성별',{exact:true}).selectOption('female');
+  await page.getByRole('button',{name:'인연의 장소 분석 시작'}).click();
+  await page.getByRole('button',{name:'출생정보 다시 보기'}).waitFor();
+  const result=await page.locator('#root').innerText();
+  assert.ok(result.length>1200);
+  assert.match(result,/프롬프트/);
+  assert.match(result,/장소/);
+  assert.doesNotMatch(result,/샘플 리포트|단건 결제로|코인/);
+  assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
+  await page.getByRole('button',{name:'출생정보 다시 보기'}).click();
+  assert.equal(await page.getByLabel('생년월일',{exact:true}).inputValue(),'1991-07-18');
+  console.log('PASS 360px home → meeting place → required mock login → birth → original location and prompt report → resume input',result.length);
+}finally{await browser.close();}

@@ -6,7 +6,7 @@ import {requiresOwnedReceipt} from './review-scope.mjs';
 import {TDSMobileAITProvider} from '@toss/tds-mobile-ait';
 const App=lazy(()=>import('./AppEntry'));
 const ServiceScreens=lazy(()=>import('../service/Screens.jsx'));
-const originalScreen=/^\/(saju\/career-style|yeongnyangi\/(fortune|result|library)|love-secret-ai(?:\/result)?|relationship-boundary-test|pet-saju|life-book-ai(?:\/result)?|astrology-ai(?:\/result)?|vedic-ai|ziwei-ai|new-year-ai-consultation|karma-destiny-ai(?:\/result)?|sukuyo-compatibility-ai|fusion-fortune|fortune-tea-house|omikuji|saju-fpti(?:\/result)?|fpti(?:\/result)?|psychotest(?:\/[a-z0-9-]+)?|maya|neo-operation-room(?:\/(?:result|strategy-books))?|records|login|checkout)\/?$/.test(location.pathname);
+const originalScreen=/^\/(saju\/(?:career-style|destiny-meeting-place)|yeongnyangi\/(fortune|result|library)|love-secret-ai(?:\/result)?|relationship-boundary-test|pet-saju|life-book-ai(?:\/result)?|astrology-ai(?:\/result)?|vedic-ai|ziwei-ai|new-year-ai-consultation|karma-destiny-ai(?:\/result)?|sukuyo-compatibility-ai|fusion-fortune|fortune-tea-house|omikuji|saju-fpti(?:\/result)?|fpti(?:\/result)?|psychotest(?:\/[a-z0-9-]+)?|maya|neo-operation-room(?:\/(?:result|strategy-books))?|records|login|checkout)\/?$/.test(location.pathname);
 function serviceEntry(){
   const verifiedReceipt=requiresOwnedReceipt(location.pathname,location.search);
   const screen=originalScreen

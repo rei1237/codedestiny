@@ -651,7 +651,7 @@ function boundaryInstantMs(boundary: SolarTermBoundaryLocal, timezoneOffsetMinut
 // 한국 음양력 코어의 12節(절) 경계. 코어의 nodeTerms 는 소한→대설 순서로 12개를 내고,
 // 그 순서가 JIE_BOUNDARY_NAMES / JIE_SOLAR_LONGITUDES 의 인덱스와 그대로 맞는다.
 function buildSolarTermBoundariesFromCore(year: number, timezoneOffsetMinutes: number): SolarTermBoundaryLocal[] {
-  const nodes = nodeTerms(year);
+  const nodes: Pick<SolarTermBoundaryLocal, "year" | "month" | "day" | "hour" | "minute">[] | null = nodeTerms(year);
   if (!nodes || nodes.length !== JIE_BOUNDARY_NAMES.length) {
     throw new Error(`korean-calendar core has no node terms for ${year}`);
   }
