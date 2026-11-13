@@ -58,6 +58,21 @@ test('overseas visitors get 200 on / and entry paths with no redirect', async ()
   }
 });
 
+// Naver's top pages (2026-11-09 data) are the tomorrow/today sign pages. A country or crawler
+// redirect there is what the 10/07–11/03 edge did to overseas IPs (c6e9cfe7b → 599acf294).
+test('fortune daily pages answer 200 with no Location for every country, crawler and method', async () => {
+  const paths = ['/fortune/', '/fortune/today/', '/fortune/tomorrow/', '/fortune/today/rat/', '/fortune/tomorrow/rat/',
+    '/fortune/tomorrow/snake/', '/fortune/weekly/tiger/', '/fortune/date/2026-11-13/rat/', '/today/', '/en/fortune/'];
+  const worker = edge();
+  for (const path of paths) for (const country of [...COUNTRIES, 'DE', 'XX', undefined])
+    for (const [agent, userAgent] of Object.entries(AGENTS)) for (const method of ['GET', 'HEAD']) {
+      const label = method + ' ' + path + ' ' + country + ' ' + agent;
+      const response = await worker.fetch(visit(path, country, { method, headers: { 'User-Agent': userAgent, 'Accept-Language': 'en-US,en;q=0.9' } }), asset);
+      assert.equal(response.status, 200, label);
+      assert.equal(response.headers.get('Location'), null, label);
+    }
+});
+
 test('the URL decides the language: ?lang= and explicit cookie still redirect, privately', async () => {
   const worker = edge();
   for (const [path, headers, expected] of [
