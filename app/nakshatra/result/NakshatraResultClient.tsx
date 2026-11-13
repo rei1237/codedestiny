@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import TodayMoonCard from "./TodayMoonCard";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { NAKSHATRA_RESULT_STORAGE_KEY } from "../NakshatraFormClient";
@@ -348,60 +349,6 @@ export default function NakshatraResultClient() {
         </footer>
       </div>
     </main>
-  );
-}
-
-interface TodayMoon {
-  ok: boolean;
-  todayNakshatra: { nameKo: string };
-  todaySukuyo: { nameKo: string; nameHan: string } | null;
-  personal: {
-    dayFortune: { headline: string; advice: string; tierLabel: string } | null;
-    taraBala: { ko: string; desc: string } | null;
-  } | null;
-}
-
-function TodayMoonCard({ sukuyoIndex }: { sukuyoIndex: number }) {
-  const copy = useNakshatraCopy();
-  const [today, setToday] = useState<TodayMoon | null>(null);
-  const url = useMemo(() => `/api/nakshatra/today?sukuyoIndex=${sukuyoIndex}`, [sukuyoIndex]);
-
-  useEffect(() => {
-    let active = true;
-    fetch(url)
-      .then((r) => r.json())
-      .then((d) => {
-        if (active && d && d.ok) setToday(d);
-      })
-      .catch(() => {});
-    return () => {
-      active = false;
-    };
-  }, [url]);
-
-  if (!today) return null;
-
-  const sukuyoLine = today.todaySukuyo ? ` · ${today.todaySukuyo.nameKo}(${today.todaySukuyo.nameHan})` : "";
-
-  return (
-    <section className="mt-6 rounded-2xl border border-white/10 bg-white/[0.03] p-5 md:p-6" aria-labelledby="today-h">
-      <h2 id="today-h" className="text-base font-bold text-slate-100">{copy.resultTodayMoonTitle}</h2>
-      <p className="mt-2 break-keep text-sm leading-7 text-slate-200">
-        {copy.resultTodayMoonText(today.todayNakshatra?.nameKo || "", sukuyoLine)}
-      </p>
-      {today.personal?.dayFortune && (
-        <p className="mt-2 break-keep text-sm leading-7 text-slate-200">
-          <span className="font-semibold text-blue-100">{copy.resultEasternTodayLabel}</span>
-          {today.personal.dayFortune.headline} — {today.personal.dayFortune.advice}
-        </p>
-      )}
-      {today.personal?.taraBala && (
-        <p className="mt-1 break-keep text-sm leading-7 text-slate-200">
-          <span className="font-semibold text-amber-100">{copy.resultIndianTodayLabel}</span>
-          {today.personal.taraBala.ko} — {today.personal.taraBala.desc}
-        </p>
-      )}
-    </section>
   );
 }
 

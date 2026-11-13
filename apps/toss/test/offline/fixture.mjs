@@ -40,6 +40,10 @@ function createAccountFixture(storage,owner,token,now){
   if(path==='/login'&&method==='POST'){state.loggedIn=true;save();return respond({token});}
   // Public product lists mirror worker/toss/routes.js; private requests below still require the mock session.
   if(path==='/catalog'&&method==='GET')return respond({products:offlineCatalog});
+  if(path==='/nakshatra/today'&&method==='GET'){
+   const {fixtureTodayMoon}=await import('./mansion-reports.mjs');
+   return respond(fixtureTodayMoon(url.searchParams.get('sukuyoIndex')));
+  }
   if(path==='/nakshatra/resolve'&&method==='POST'){
    const {fixtureMansionReading}=await import('./mansion-reports.mjs');
    return respond(fixtureMansionReading(path,await request.json(),now()));

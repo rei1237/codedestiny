@@ -109,6 +109,12 @@ export async function handleTossRoutes(request,env) {
       const {prepareHoraryPrompt}=await import('../yeongnyangi/fortune/free/horary.ts');
       return reply({ok:true,result:await prepareHoraryPrompt(env,input)});
     }
+    if(path==='/nakshatra/today'&&request.method==='GET'){
+      await limit(env,request.headers.get('CF-Connecting-IP')||'unknown',path,20);
+      const {resolveTodayMoon}=await import('../routes/nakshatra.js');
+      const response=await resolveTodayMoon(env,url.searchParams,{requestUrl:request.url});
+      return reply(await response.json(),response.status);
+    }
     if(path==='/nakshatra/resolve'&&request.method==='POST'){
       await limit(env,request.headers.get('CF-Connecting-IP')||'unknown',path,10);
       const {resolveNatal}=await import('../routes/nakshatra.js');

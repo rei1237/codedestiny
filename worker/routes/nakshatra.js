@@ -114,7 +114,7 @@ export async function resolveNatal(env, body, options) {
   });
 }
 
-async function resolveTodayMoon(env, query, options) {
+export async function resolveTodayMoon(env, query, options) {
   const now = new Date();
   // KST 정오 기준으로 오늘 날짜를 잡는다(달 나크샤트라 일간 안정).
   const kst = new Date(now.getTime() + 9 * 3600000);

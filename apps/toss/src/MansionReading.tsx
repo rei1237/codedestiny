@@ -1,4 +1,5 @@
 import {useEffect,useRef,useState,type FormEvent} from 'react';
+import TodayMoonCard,{type TodayMoon} from '../../../app/nakshatra/result/TodayMoonCard';
 import LifeReading,{type LifeTopic} from '../../../app/nakshatra/_components/LifeReading';
 import CompatResultView,{type CompatResult} from '../../../app/nakshatra/compat/CompatResultView';
 import {PLACE_PRESETS} from '../../../lib/fortune/nakshatra-places.mjs';
@@ -7,11 +8,13 @@ import {api} from './platform';
 import {Button} from './Button';
 import TossSessionScope from './TossSessionScope';
 
+const loadTodayMoon=(index:number)=>api<TodayMoon>('/nakshatra/today?sukuyoIndex='+index);
+
 type Person={date:string;time:string;unknown:boolean;city:string;gender:string};
 const emptyPerson=():Person=>({date:'',time:'',unknown:false,city:'',gender:''});
 type Natal={
   summary:{fusionTitle:string};
-  dongyang:{nameKo:string;nameHan:string;easternExpert:string;keywords:string[];strengths:string[];shadows:string[]};
+  dongyang:{index:number;nameKo:string;nameHan:string;easternExpert:string;keywords:string[];strengths:string[];shadows:string[]};
   india:{nameKo:string;nameEn:string;lordKo:string;indianExpert:string;ganaKo:string;deity:string};
   unified:{convergence:string;divergence:string;fusionReading:string};
   lifeReading:LifeTopic[];
@@ -44,6 +47,7 @@ function NatalView({result}:{result:Natal}){
     <details className="paper"><summary>계산 근거</summary><p>{transparency.ayanamsa} · 달 황경 {transparency.siderealMoonLongitude}°</p>
       <p>{transparency.calendarConvention}</p>{transparency.uncertainty&&<p>{transparency.uncertainty.note} · {transparency.uncertainty.possibleNakshatras.join(' · ')}</p>}
       {transparency.pada!=null&&<p>{transparency.pada} 파다</p>}</details>
+    <TodayMoonCard sukuyoIndex={east.index} load={loadTodayMoon}/>
     <LifeReading topics={result.lifeReading} showServices={false}/></section>;
 }
 function Reading({compat}:{compat:boolean}){

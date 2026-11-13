@@ -19,6 +19,8 @@ try{
   await page.getByRole('button',{name:'내 별 읽기'}).click();
   const topics=page.getByRole('region',{name:'주제별 나의 별 읽기'});
   await topics.waitFor();
+  const moon=page.getByRole('region',{name:/오늘의 달/});
+  await moon.waitFor();assert.ok(await moon.locator('p').count()>=3);
   assert.equal(await topics.getByRole('article').count(),5);
   await topics.getByRole('article').last().getByText('이 해석의 근거 보기').click();
   await page.getByText('계산 근거',{exact:true}).click();

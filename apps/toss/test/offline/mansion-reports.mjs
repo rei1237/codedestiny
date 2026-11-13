@@ -24,7 +24,7 @@ export function fixtureMansionReport(kind,body,now){
   if(kind==='dasha-map')return buildNakshatraDashaMap(input);
   return buildNakshatraVvipCodex(input);
 }
-import {assembleNatalCodex} from '../../../../worker/lib/nakshatra-codex.js';
+import {assembleNatalCodex,assembleTodayMoon} from '../../../../worker/lib/nakshatra-codex.js';
 import {assembleNakshatraCompat} from '../../../../worker/lib/nakshatra-compat.js';
 import {japaneseSukuyoFromDate} from '../../../../worker/lib/nakshatra-japanese-calendar.js';
 
@@ -40,4 +40,8 @@ export function fixtureMansionReading(path,body,now){
   const person=fixturePerson(body);
   return {ok:true,...assembleNatalCodex({...person,japaneseSukuyo:person.sukuyo,timeUnknown:body.timeUnknown,now,
     rawChart:{planets:{Moon:person.moonLon},ascendant:0}})};
+}
+
+export function fixtureTodayMoon(index){
+  return {ok:true,...assembleTodayMoon({moonLon:123.4567,myMansionIndex:index})};
 }
