@@ -13,7 +13,7 @@ function listenBack(callback:()=>void) {
   return ()=>window.removeEventListener('code-destiny:toss-overlay-back',handle,true);
 }
 const Healing=lazy(()=>import('../../../app/components/SunHealingTarot'));
-const SelfEsteem=lazy(async()=>{const {default:page}=await import('virtual:self-esteem-tarot');return {default:({onBack,onShare}:Props)=>{
+const SelfEsteem=lazy(async()=>{const {default:page}=await import('virtual:self-esteem-tarot');return {default:function SelfEsteemReading({onBack,onShare}:Props){
   const frame=useRef<HTMLIFrameElement>(null);
   useEffect(()=>{
     const handle=(event:MessageEvent)=>{
@@ -31,7 +31,7 @@ const SelfEsteem=lazy(async()=>{const {default:page}=await import('virtual:self-
 type Props={onBack:()=>void;onShare:(title:string,text:string)=>Promise<void>};
 const OneCard=lazy(async()=>{
   const {categories,readOne}=await import('virtual:myeongri-one-card');
-  return {default:({onBack}:Pick<Props,'onBack'>)=>{
+  return {default:function OneCardReading({onBack}:Pick<Props,'onBack'>){
     const [result,setResult]=useState<ReturnType<typeof readOne>|null>(null);
     useEffect(()=>{
       if(!result)return;
