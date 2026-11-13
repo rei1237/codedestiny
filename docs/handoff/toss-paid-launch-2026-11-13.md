@@ -1,14 +1,14 @@
 ---
-status: in-progress
+status: blocked
 updated: 2026-11-13
-next: Secret Scan 범위 수정 커밋 후 pre-push를 통과시키고 최신 origin/main을 병합해 main으로 전달한다.
+next: 별도 웹툰 세션의 메타 설명 폭 수정이 main에 전달되어 PR CI가 복구되면 최신 origin/main을 병합하고 pre-push 후 HEAD:main으로 전달한다.
 ---
 
 # 앱인토스 유료 상담 결제 활성화·출시
 
 ## 첫 행동
 
-Secret Scan 범위 수정 커밋을 만들고 `npm run check:pre-push`를 실행한다. 성공하면 최신 origin/main 상태를 확인하고 이동분을 병합한 뒤 `HEAD:main`으로 전달한다.
+`git fetch origin` 후 웹툰 메타 설명 폭 수정이 main에 들어왔는지 확인한다. 들어왔다면 병합하고 targeted 검사와 `npm run check:pre-push`를 실행한 뒤 `HEAD:main`으로 전달한다.
 
 ## 지금 상태
 
@@ -24,6 +24,9 @@ Secret Scan 범위 수정 커밋을 만들고 `npm run check:pre-push`를 실행
 - Gitleaks v8.24.2로 `--log-opts=HEAD` 범위를 직접 검사한 결과 12,288개 main 도달 커밋, 1.13GB에서 검출 0건이었다. 규칙과 allowlist는 변경하지 않았다.
 - workflow를 `gitleaks git --log-opts=HEAD --redact --verbose`로 제한하고, bare 명령으로 회귀하지 않는 테스트를 추가했다.
 - 위 수정 포함 `npm run check:fast` 통과: Jest 476개 스위트·7,978개 테스트 통과(1개 스킵).
+- Secret Scan 수정 커밋 `66b62789e`, 원인 기록 커밋 `4ddab8e08`; 이후 `npm run check:pre-push` 통과.
+- 현재 전달 차단은 이번 변경이 아니다. origin/main `c3d692272`의 PR CI run `43397659983`이 `out/yeongnyangi/season-1` meta description 폭 197 > 160으로 실패했다. 별도 활성 워크트리 `yeoni-prologue-webtoon-20261113`의 커밋 `79615c45b`가 정확히 이 문제를 수정했지만 아직 origin/main에 전달되지 않아 중복 수정·체리픽하지 않았다.
+- 같은 main의 Yeongnyangi Browser Shadow run `43397659964`는 WebKit `chromium-read-503` 단계에서 로컬 `/api/reviews/eligibility` CORS page error 1건으로 실패했다. 그 전 결제 매트릭스는 통과했으며 새 main push 때 다시 실행될 비결정적 CI 실패로 분류했다.
 
 ## 승인 상태
 
@@ -63,8 +66,9 @@ Secret Scan 범위 수정 커밋을 만들고 `npm run check:pre-push`를 실행
 - [x] `npm run check:pre-push`
 - [x] 기존 main Secret Scan 실패 원인 확인 및 main 도달 이력 검출 0건 확인
 - [x] Secret Scan을 `HEAD` 도달 이력으로 제한하고 회귀 테스트 추가
-- [ ] Secret Scan 수정 커밋과 pre-push
-- [ ] origin/main·CI 상태 확인 후 main 전달
+- [x] Secret Scan 수정 커밋과 pre-push
+- [ ] 별도 웹툰 수정이 origin/main에 전달되어 기존 PR CI red가 해소되는지 확인
+- [ ] 최신 origin/main 병합·pre-push 후 main 전달
 - [ ] main CI 1회 확인
 - [ ] 프로덕션 승격 승인 후 비밀값/콜백/로그인 등록
 - [ ] 비공개 QR 실결제 승인 후 4,950원 1회 검증
