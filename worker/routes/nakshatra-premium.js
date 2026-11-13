@@ -341,10 +341,7 @@ function buildScanDays(startDate, dayCount) {
   return out;
 }
 
-async function handleMuhurta(request, env) {
-  const auth = await requireAuth(request, env);
-
-  const body = await readJson(request);
+export async function handleMuhurta(request, env, auth, body) {
   const input = normalizeBirthBody(body);
   if (!isValidBirth(input)) {
     return json({ ok: false, reason: "INVALID_INPUT", message: MESSAGES.invalidInput }, { status: 400 });
@@ -408,10 +405,7 @@ async function handleMuhurta(request, env) {
 
 // ── VVIP 결정판 통합서 — 회당 결제 ──────────────────────────────────────────
 // 택일과 같은 계약(회당 결제). 위 handleMuhurta 주석 참고.
-async function handleVvipCodex(request, env) {
-  const auth = await requireAuth(request, env);
-
-  const body = await readJson(request);
+export async function handleVvipCodex(request, env, auth, body) {
   const input = normalizeBirthBody(body);
   if (!isValidBirth(input)) {
     return json({ ok: false, reason: "INVALID_INPUT", message: MESSAGES.invalidInput }, { status: 400 });
@@ -466,8 +460,8 @@ export async function handleNakshatraPremiumRoutes(request, env = {}) {
     }
     if (method === "POST") {
       const kind = path.replace(/^\/+/, "");
-      if (kind === "muhurta") return await handleMuhurta(request, env);
-      if (kind === "vvip-codex") return await handleVvipCodex(request, env);
+      if (kind === "muhurta") return await handleMuhurta(request, env, await requireAuth(request, env), await readJson(request));
+      if (kind === "vvip-codex") return await handleVvipCodex(request, env, await requireAuth(request, env), await readJson(request));
       const product = PRODUCTS[kind];
       if (product) return await handleProduct(request, env, product, kind);
     }

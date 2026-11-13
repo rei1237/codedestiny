@@ -48,6 +48,12 @@ function createAccountFixture(storage,owner,token,now){
   if(!state.loggedIn||request.headers.get('Authorization')!=='Bearer '+token)return denied();
   if(path==='/logout'&&method==='POST'){state.loggedIn=false;save();return respond({ok:true});}
   if(path==='/session'&&method==='GET')return respond({authenticated:true,environment:'SANDBOX'});
+  if((path==='/nakshatra/muhurta'||path==='/nakshatra/vvip-codex')&&method==='POST'){
+   const body=await request.json();
+   if(!state.profiles.some(profile=>profile.profileId===body.profileId))return respond({error:'PROFILE_NOT_FOUND'},404);
+   const {fixtureMansionReport}=await import('./mansion-reports.mjs');
+   return respond({ok:true,report:fixtureMansionReport(path.split('/').pop(),body,now())});
+  }
   if(path==='/today-hub'&&method==='POST'){
    const {profileId,period}=await request.json();
    if(!['today','tomorrow'].includes(period)||typeof profileId!=='string')return respond({error:'INVALID_INPUT'},400);

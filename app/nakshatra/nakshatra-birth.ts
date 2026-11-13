@@ -2,6 +2,8 @@
 // resolve API가 timezone을 "숫자 오프셋"으로 받으므로 IANA 문자열을 숫자로 변환하고,
 // 프로필 카드(음력 저장분 포함)를 양력 폼 값으로 정규화한다.
 
+import { ianaOffsetHours } from "../../lib/fortune/nakshatra-timezone.mjs";
+export { ianaOffsetHours };
 import { authFetch } from "@/app/_lib/auth-client";
 import { seedFromDestinyProfile, type AiPrefillSeed } from "@/app/_lib/ai-prefill-seed";
 import {
@@ -32,37 +34,6 @@ export const PLACE_PRESETS: PlacePreset[] = [
   { label: "New York, USA", latitude: "40.7128", longitude: "-74.0060", timezone: "America/New_York" },
   { label: "Los Angeles, USA", latitude: "34.0522", longitude: "-118.2437", timezone: "America/Los_Angeles" },
 ];
-
-/**
- * IANA 타임존 문자열을 특정 출생 순간의 숫자 오프셋(시)으로 변환. 역사적 DST 반영.
- * 예: "Asia/Seoul" → 9, "Asia/Kolkata" → 5.5, "America/Los_Angeles"(여름) → -7.
- */
-export function ianaOffsetHours(
-  year: number,
-  month: number,
-  day: number,
-  hour: number,
-  minute: number,
-  timezone: string | undefined,
-  fallback = 9,
-): number {
-  if (!timezone) return fallback;
-  try {
-    const instant = new Date(Date.UTC(year, month - 1, day, hour || 0, minute || 0));
-    const formatter = new Intl.DateTimeFormat("en-US", {
-      timeZone: timezone,
-      timeZoneName: "shortOffset",
-      hour: "numeric",
-    });
-    const name = formatter.formatToParts(instant).find((part) => part.type === "timeZoneName")?.value || "";
-    const matched = name.match(/GMT([+-])(\d{1,2})(?::(\d{2}))?/);
-    if (!matched) return fallback;
-    const sign = matched[1] === "-" ? -1 : 1;
-    return sign * (Number(matched[2]) + Number(matched[3] || 0) / 60);
-  } catch {
-    return fallback;
-  }
-}
 
 function isLunarCalType(calType: unknown): boolean {
   const value = String(calType || "").toLowerCase();

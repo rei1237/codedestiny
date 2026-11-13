@@ -378,6 +378,11 @@ export async function handleTossRoutes(request,env) {
     }
     if(path==='/canonical/auth/me'&&request.method==='GET')return reply({ok:true,authenticated:true,user:{id:auth.userId,_id:auth.userId,name:'토스 사용자',role:'user'}});
     if(path==='/canonical/profile'&&request.method==='GET')return reply(await canonicalProfiles(auth));
+    if((path==='/nakshatra/muhurta'||path==='/nakshatra/vvip-codex')&&request.method==='POST'){
+      await limit(env,auth._id,'mansion-report',10);
+      const {readOwnedMansionReport}=await import('./mansion-reports.js');
+      return reply(await readOwnedMansionReport(request,env,auth,path.split('/').pop(),await bodyOf(request)));
+    }
     if(path==='/today-hub'&&request.method==='POST'){
       await limit(env,auth._id,'today-hub',30);
       const {readTodayHub}=await import('./today-hub.js');
