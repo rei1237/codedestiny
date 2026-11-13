@@ -109,15 +109,15 @@ export function useDiarySaveFailed() {
   return useContext(DiarySaveFailedContext);
 }
 
-export default function DiaryStoreProvider({ children }: { children: ReactNode }) {
+export default function DiaryStoreProvider({ children, storage }: { children: ReactNode; storage?: Storage }) {
   const [state, setState] = useState<DiaryTodayState>(INITIAL_STATE);
   const [saveFailed, setSaveFailed] = useState(false);
 
   /* 🔴 하이드레이션과 재읽기가 같은 한 줄을 부른다 — 갈리면 백업을 불러온 뒤의 화면과
      새로고침한 화면이 서로 다른 것을 그리게 된다. */
   const refresh = useCallback(() => {
-    setState({ ...readDiaryTodaySnapshot(kstTodayYmd()), ext: readDiaryExtDays(), hydrated: true });
-  }, []);
+    setState({ ...readDiaryTodaySnapshot(kstTodayYmd(), storage, storage ? null : undefined), ext: readDiaryExtDays(storage), hydrated: true });
+  }, [storage]);
 
   useEffect(() => {
     refresh();
@@ -135,7 +135,7 @@ export default function DiaryStoreProvider({ children }: { children: ReactNode }
 
     let next: DiaryLegacyStore | null = null;
     try {
-      next = updateDiaryEntry(window.localStorage, ymd, mutate) as DiaryLegacyStore | null;
+      next = updateDiaryEntry(storage ?? window.localStorage, ymd, mutate) as DiaryLegacyStore | null;
     } catch {
       next = null;
     }
@@ -152,7 +152,7 @@ export default function DiaryStoreProvider({ children }: { children: ReactNode }
       entry: current.ymd ? saved[current.ymd] || current.entry : current.entry,
     }));
     return true;
-  }, []);
+  }, [storage]);
 
   /* 확장 기록도 쓰기 진입점은 하나다. 🔴 저장 뒤 화면 상태는 **저장의 결과**로 갈아 끼운다 —
      `updateExtDay` 가 그 달 샤드를 다시 읽어 병합하므로, 화면이 들고 있던 사본은 입력이 아니다. */
@@ -161,7 +161,7 @@ export default function DiaryStoreProvider({ children }: { children: ReactNode }
 
     let next: DiaryExtStore | null = null;
     try {
-      next = updateExtDayInStore(window.localStorage, ymd, mutate) as DiaryExtStore | null;
+      next = updateExtDayInStore(storage ?? window.localStorage, ymd, mutate) as DiaryExtStore | null;
     } catch {
       next = null;
     }
@@ -174,7 +174,7 @@ export default function DiaryStoreProvider({ children }: { children: ReactNode }
     setSaveFailed(false);
     setState((current) => ({ ...current, ext: saved }));
     return true;
-  }, []);
+  }, [storage]);
 
   const writer = useMemo<DiaryWriterValue>(
     () => ({ updateEntry, updateExtDay, refresh }),

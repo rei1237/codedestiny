@@ -56,10 +56,10 @@ export type DiaryExtStore = Record<string, DiaryExtDay>;
 export const EMPTY_DIARY_EXT_STORE: DiaryExtStore = {};
 
 /** 저장된 확장 기록을 한 번에 읽는다. 브라우저에서만 부른다(정적 export 는 빌드 때 프리렌더된다). */
-export function readDiaryExtDays(): DiaryExtStore {
+export function readDiaryExtDays(storage?: Storage): DiaryExtStore {
   if (typeof window === "undefined") return {};
   try {
-    return readAllExtDays(window.localStorage) as DiaryExtStore;
+    return readAllExtDays(storage ?? window.localStorage) as DiaryExtStore;
   } catch {
     return {};
   }

@@ -143,14 +143,14 @@ export function resolveDiaryBirthInput(profile: DestinyProfileCard | null): Diar
 }
 
 /** 오늘 하루치를 한 번에 읽는다. 브라우저에서만 부른다(정적 export 는 빌드 때 프리렌더된다). */
-export function readDiaryTodaySnapshot(ymd: string): DiaryTodaySnapshot {
+export function readDiaryTodaySnapshot(ymd: string, storage?: Storage, sourceProfile?: DestinyProfileCard | null): DiaryTodaySnapshot {
   if (typeof window === "undefined") return { ...EMPTY_DIARY_TODAY_SNAPSHOT, ymd };
 
   let store: DiaryLegacyStore = {};
   let entry: DiaryLegacyEntry | null = null;
   try {
     /* 🔴 읽기만 한다 — `getDiaryEntry` 가 메모리 사본에 빈 엔트리를 꽂아도 저장하지 않는다. */
-    store = readDiaryStore(window.localStorage) as DiaryLegacyStore;
+    store = readDiaryStore(storage ?? window.localStorage) as DiaryLegacyStore;
     entry = getDiaryEntry(store, ymd) as DiaryLegacyEntry;
   } catch {
     store = {};
@@ -161,7 +161,7 @@ export function readDiaryTodaySnapshot(ymd: string): DiaryTodaySnapshot {
   let chart: DiaryNatalChart | null = null;
   let fortune: DiaryDayFortune | null = null;
   try {
-    birth = resolveDiaryBirthInput(readCurrentDestinyProfile());
+    birth = resolveDiaryBirthInput(sourceProfile === undefined ? readCurrentDestinyProfile() : sourceProfile);
     chart = birth ? buildDiaryNatalChart(birth, ymd) : null;
     // 관계 Lite는 양력 민용 날짜를 받는다. 음력 원본과 보정 시계는 chart 메타에 보존한다.
     if (birth && chart) birth = { ...birth, ...chart.calculationMeta.civil, calendarType: "solar", isLeapMonth: false };

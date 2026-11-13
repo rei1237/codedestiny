@@ -4,8 +4,9 @@ import {birthSystems,questions} from './content';
 
 const MoonlightQuestions=lazy(()=>import('./MoonlightQuestions'));
 
-type Destination='app/home-widget'|'consultations/stories'|'olympus'|'meditation/cosmic'|'meditation/neville'|'saju/sections'|'ziwei/sections'|'moonlight/season-1'|'oracle/turtle'|'oracle/royal-tea'|'oracle/kemet'|'nakshatra/muhurta'|'nakshatra/vvip-codex'|'nakshatra/resolve'|'nakshatra/compat'|'nakshatra/lord-report'|'nakshatra/dasha-map'|'dream/tarot'|'oracle/ifa'|'mbti/animals'|'today'|'oracle/rune'|'saju/career-style'|'saju/animal-destiny'|'music'|'astrology'|'vedic'|'nakshatra/codex'|'novel'|'insights/famous-saju'|'saju/basic/play'|'daily'|'ziwei/chart'|'manse'|'sukuyo'|'human-design'|'pet-saju'|'tarot-library'|'flower'|'bias'|'maya'|'omikuji'|'psychotest'|'saju-fpti'|'library'|'settings';
+type Destination='diary'|'app/home-widget'|'consultations/stories'|'olympus'|'meditation/cosmic'|'meditation/neville'|'saju/sections'|'ziwei/sections'|'moonlight/season-1'|'oracle/turtle'|'oracle/royal-tea'|'oracle/kemet'|'nakshatra/muhurta'|'nakshatra/vvip-codex'|'nakshatra/resolve'|'nakshatra/compat'|'nakshatra/lord-report'|'nakshatra/dasha-map'|'dream/tarot'|'oracle/ifa'|'mbti/animals'|'today'|'oracle/rune'|'saju/career-style'|'saju/animal-destiny'|'music'|'astrology'|'vedic'|'nakshatra/codex'|'novel'|'insights/famous-saju'|'saju/basic/play'|'daily'|'ziwei/chart'|'manse'|'sukuyo'|'human-design'|'pet-saju'|'tarot-library'|'flower'|'bias'|'maya'|'omikuji'|'psychotest'|'saju-fpti'|'library'|'settings';
 const fortuneServices = [
+  {id:'diary' as const,title:'운기 다이어리',body:'오늘의 마음과 계획을 기록하고 날짜별로 다시 읽기'},
   {id:'meditation/cosmic' as const,title:'코스믹 소울 명상',body:'네 가지 의도로 떠나는 30분·60분 명상과 저널'},
   {id:'saju/sections' as const,title:'사주 리포트',body:'여행지 · 건강 리듬 · 매력과 스킬 트리'},
   {id:'ziwei/sections' as const,title:'자미두수 상세 풀이',body:'대한의 흐름과 열두 궁의 해석'},

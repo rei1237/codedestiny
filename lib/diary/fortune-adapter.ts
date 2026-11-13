@@ -134,7 +134,7 @@ export function buildDiaryNatalChart(birth: DiaryBirthInput, referenceYmd: strin
     pillars,
     power,
     jong,
-    dayMasterEl: GAN_ELEM[pillars.d.g] || "earth",
+    dayMasterEl: Object.hasOwn(GAN_ELEM, pillars.d.g) ? GAN_ELEM[pillars.d.g as keyof typeof GAN_ELEM] : "earth",
     luckyEl: getLuckyElement(power, jong, referenceGz),
     referenceYmd,
     calculationMeta: natal.calculationMeta,
