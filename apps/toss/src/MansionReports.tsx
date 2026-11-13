@@ -1,4 +1,5 @@
 import {useEffect,useRef,useState} from 'react';
+import MansionPdf from './MansionPdf';
 import PeriodRow,{type Period} from '../../../app/nakshatra/dasha-map/PeriodRow';
 import {useNakshatraCopy} from '../../../app/nakshatra/_lib/copy';
 import {Button} from './Button';
@@ -11,7 +12,7 @@ const purposes={marriage:'결혼·약속',business:'개업·창업',contract:'�
 type Section={id:string;title:string;keyInsight?:string;paragraphs?:string[];bullets?:{label:string;text:string}[]};
 type Chapter=Section&{sections?:Section[];terrain?:{index:number;nameKo:string;nameHan:string;isSelf:boolean;role:string;relationTypeHan:string;gist:string}[]};
 type Day={date:string;weekdayKo:string;gradeKo:string;score:number;reason:string;nakshatraKo:string;sukuyoKo:string;taraKo:string;easternLabel:string};
-type Report={headline?:string;periods?:Period[];current?:{paragraphs:string[]};meta:{purposeKo?:string;myNakshatraKo?:string;myMansionKo?:string;rangeStart?:string;rangeEnd?:string;fusionTitle?:string;nakshatraKo?:string;sukuyoKo?:string};days?:Day[];best?:Day[];avoid?:Day[];chapters?:Chapter[];sections?:Section[]};
+type Report={headline?:string;periods?:Period[];current?:{paragraphs:string[]};meta:{purposeKo?:string;myNakshatraKo?:string;myMansionKo?:string;rangeStart?:string;rangeEnd?:string;fusionTitle?:string;sukuyoHan?:string;lordKo?:string;nakshatraKo?:string;sukuyoKo?:string};days?:Day[];best?:Day[];avoid?:Day[];chapters?:Chapter[];sections?:Section[]};
 type Profile={profileId:string;name:string};
 
 function SectionText({section}:{section:Section}){
@@ -50,7 +51,8 @@ function Reading({kind,profileId}:{kind:MansionKind;profileId:string}){
       {[{heading:'추천 날짜',days:report.best},{heading:'유의할 날짜',days:report.avoid}].map(({heading,days})=><details className="paper" key={heading}><summary>{heading}</summary>{days?.map(item=><p key={item.date}>{item.date} · {item.gradeKo}<br/>{item.reason}</p>)}</details>)}
       <details className="paper"><summary>기간의 모든 날짜 · {report.days.length}일</summary>{report.days.map(item=><p key={item.date}><b>{item.date} · {item.gradeKo} {item.score}점</b><br/>{item.sukuyoKo} · {item.easternLabel} / {item.nakshatraKo} · {item.taraKo}<br/>{item.reason}</p>)}</details></>}
     {report.sections?.map(item=><details className="paper" key={item.id}><summary>{item.title}</summary><SectionText section={item}/></details>)}
-    {report.chapters?.map(chapter=><details className="paper" key={chapter.id}><summary>{chapter.title}</summary><SectionText section={chapter}/>{chapter.terrain?.map(row=><p key={row.index}><b>{row.nameKo} {row.nameHan} · {row.role}</b> {row.relationTypeHan}{row.isSelf?' · 내 자리':''}<br/>{row.gist}</p>)}{chapter.sections?.map(item=><section key={item.id}><h3>{item.title}</h3><SectionText section={item}/></section>)}</details>)}
+    {report.chapters?.map(chapter=><details className="paper" key={chapter.id} data-mansion-chapter><summary>{chapter.title}</summary><SectionText section={chapter}/>{chapter.terrain?.map(row=><p key={row.index}><b>{row.nameKo} {row.nameHan} · {row.role}</b> {row.relationTypeHan}{row.isSelf?' · 내 자리':''}<br/>{row.gist}</p>)}{chapter.sections?.map(item=><section key={item.id}><h3>{item.title}</h3><SectionText section={item}/></section>)}</details>)}
+    {kind==='vvip-codex'&&<MansionPdf selector="[data-mansion-chapter]" options={{fileName:copy.vvipPdfFileName(data.sukuyoKo||'',data.nakshatraKo||''),backgroundColor:'#ffffff',cover:{title:copy.vvipPdfCoverTitle,subtitle:copy.vvipPdfCoverSubtitle(data.sukuyoKo||'',data.sukuyoHan||'',data.nakshatraKo||'',data.lordKo||'')}}}/>}
     <Button onClick={()=>setReport(null)}>다시 계산하기</Button></section>;
 }
 function Profiles({kind}:{kind:MansionKind}){

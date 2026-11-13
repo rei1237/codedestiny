@@ -1,4 +1,6 @@
 import {useEffect,useRef,useState,type FormEvent} from 'react';
+import MansionPdf from './MansionPdf';
+import {useNakshatraCopy} from '../../../app/nakshatra/_lib/copy';
 import styles from './MansionConsultation.module.css';
 import AiConsultDecks,{type Decks,type NatalIdentity} from '../../../app/nakshatra/ai/AiConsultDecks';
 import MansionProfile from './MansionProfile';
@@ -16,6 +18,7 @@ function load(key:string):Draft{
   return {person:emptyPerson(),question:'',requestId:''};
 }
 function Delivery({id}:{id:string}){
+  const copy=useNakshatraCopy();
   const [state,setState]=useState<State|null>(null),[message,setMessage]=useState(''),[attempt,setAttempt]=useState(0),[busy,setBusy]=useState(false);
   useEffect(()=>{
     let live=true;setBusy(true);setMessage('');
@@ -33,7 +36,7 @@ function Delivery({id}:{id:string}){
     }
     void read();return()=>{live=false;};
   },[id,attempt]);
-  if(state?.status==='completed'&&state.decks)return <div className={styles.reader}><AiConsultDecks decks={state.decks} natal={state.natal||null} question={state.question} totalChars={state.totalCharCount}/></div>;
+  if(state?.status==='completed'&&state.decks)return <><div className={styles.reader}><AiConsultDecks decks={state.decks} natal={state.natal||null} question={state.question} totalChars={state.totalCharCount}/></div><MansionPdf selector="[data-nakai-pdf-section]" options={{fileName:copy.aiPdfFileName(state.natal?.sukuyoKo||'',state.natal?.nakshatraKo||''),backgroundColor:'#0a0818',cover:{title:copy.aiFeatureTitle,subtitle:[state.natal?.sukuyoHan?state.natal.sukuyoHan+'宿':'',state.natal?.nakshatraKo].filter(Boolean).join(' · '),date:new Date().toISOString().slice(0,10)}}}/></>;
   return <section><h2>두 별 통합 상담</h2><p role="status">{state?.status==='generation_failed'?'상담 작성에 문제가 생겼어요. 구매 기록에서 처리 상태를 확인해 주세요.':state?.progress?state.progress.completed+' / '+state.progress.total+'장 저장':'구매한 상담을 확인하고 있어요.'}</p>
     {message&&<p role="alert">{message}</p>}<Button disabled={busy} onClick={()=>setAttempt(n=>n+1)}>같은 상담 이어서 열기</Button></section>;
 }

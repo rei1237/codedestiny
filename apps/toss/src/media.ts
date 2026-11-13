@@ -33,3 +33,9 @@ export async function shareTarotResultSummary(title:string,summary:string){
   await Share.sendMessage({message:`${title}\n${summary.slice(0,500)}\n\nCode Destiny 타로 리딩에서 나의 흐름을 살펴보세요. ${link}`});
   // A resolved SDK call only means the share sheet returned, never that a recipient received it.
 }
+export async function saveReportPdf(data:string,fileName:string){
+  if(!isToss())throw new ApiError('TOSS_APP_REQUIRED');
+  if(!File.saveBase64.isSupported())throw new ApiError('FILE_SAVE_NOT_SUPPORTED');
+  if(!data.startsWith('JVBERi0')||!fileName.endsWith('.pdf'))throw new ApiError('PDF_INVALID');
+  await File.saveBase64({data,fileName,mimeType:'application/pdf'});
+}

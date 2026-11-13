@@ -34,6 +34,8 @@ try{
   await chapters.last().locator('summary').click();
   assert.ok(await chapters.last().getByRole('heading',{level:3}).count()>2);
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth),360);
+  await page.getByRole('button',{name:'PDF 저장하기'}).click();
+  await page.getByText('PDF 저장 요청을 마쳤어요.',{exact:true}).waitFor({timeout:90000});
   await open('나크샤트라 지배성 리포트');
   await page.getByLabel('출생 프로필').selectOption('mock-profile');
   await page.getByRole('button',{name:'리포트 펼치기'}).click();

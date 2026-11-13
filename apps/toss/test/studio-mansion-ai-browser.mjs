@@ -33,6 +33,9 @@ try{
   await page.waitForURL(resultUrl);
   await page.getByText('오프라인 테스트 원문 · 마지막 별의 문장',{exact:true}).waitFor();
   assert.equal(await page.locator('article').count(),8);
+  const pdf=page.getByRole('button',{name:'PDF 저장하기'});
+  await pdf.click();
+  await page.getByText('PDF 저장 요청을 마쳤어요.',{exact:true}).waitFor({timeout:90000});
   const original=await page.getByText('오프라인 테스트 원문 · 마지막 별의 문장',{exact:true}).innerText();
   await page.reload();
   await page.getByText(original,{exact:true}).waitFor();

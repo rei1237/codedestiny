@@ -35,6 +35,7 @@ export type ExportResultPdfOptions = {
    */
   captureTargets: string[];
   fileName: string;
+  savePdfData?: (data: string, fileName: string) => Promise<void>;
   backgroundColor: string;
   cover?: PdfCoverInfo;
   watermarkText?: string;
@@ -274,5 +275,6 @@ async function captureResultPdf(options: ExportResultPdfOptions): Promise<void> 
 
   addFooterToAllPages(pdf, fonts ? watermarkText : "Code Destiny", fonts?.body ?? null);
 
-  pdf.save(fileName);
+  if (options.savePdfData) await options.savePdfData(arrayBufferToBase64(pdf.output("arraybuffer")), fileName);
+  else pdf.save(fileName);
 }

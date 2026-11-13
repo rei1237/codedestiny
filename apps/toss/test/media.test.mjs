@@ -41,3 +41,11 @@ test('tarot save and share keep private result identifiers out of native paths',
  assert.ok(!calls[1][1].path.includes('orderId'));
  assert.ok(!calls[1][1].path.includes('resultId'));
 });
+test('PDF export uses supported native save with the original report filename and rejects non-PDF data',async()=>{
+ const {api,calls}=await adapter();
+ const data=Buffer.from('%PDF-1.4 test').toString('base64');
+ await api.saveReportPdf(data,'나크샤트라-심화상담.pdf');
+ assert.deepEqual(calls,[['save',{data,fileName:'나크샤트라-심화상담.pdf',mimeType:'application/pdf'}]]);
+ await assert.rejects(api.saveReportPdf('bm90LXBkZg==','result.pdf'));
+ assert.equal(calls.length,1);
+});
