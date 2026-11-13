@@ -38,6 +38,10 @@ function screenFixture(file) {
       state.requests.push({ url, method: init?.method || 'GET' });
       return { ok: false, status: 401, json: async () => ({ ok: false }) };
     } },
+    '@/app/_lib/use-toss-expert-price': { useTossExpertPrice(_key, enabled) {
+      assert.equal(enabled, false, 'public web introductions do not start Toss purchases');
+      return { canStart: true, onPrice: forbidden, confirm: forbidden };
+    } },
     '@/app/_lib/billing-client': new Proxy({}, { get: () => forbidden }),
     '@/lib/birthDateInputProps': { birthDateTextInputProps: value => ({ value, readOnly: true }) },
     '@/components/fortune/master-profiles': { masterProfiles: { yun: {}, hanbi: {}, neoNewYear: {} }, productMasters: { newYear: [] } },
