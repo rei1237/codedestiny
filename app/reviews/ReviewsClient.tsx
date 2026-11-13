@@ -930,6 +930,10 @@ export default function ReviewsClient() {
   const apiBase = useMemo(() => getApiBaseUrl(), []);
 
   const [productFilter, setProductFilter] = useState("");
+  // /reviews/?product=<카탈로그 slug>(ReviewProof "후기 더 보기"): 후기 카탈로그에 있는 상품이면
+  // 그 상품으로 거른 목록부터 연다. 모르는 값은 무시한다. 확인 전에는 목록·요약을 부르지 않는다.
+  const [urlProduct] = useState(() => safeReviewProductId(new URLSearchParams(window.location.search).get("product")));
+  const [filterReady, setFilterReady] = useState(!urlProduct);
   const [sortKey, setSortKey] = useState<SortKey>("latest");
   const [verifiedOnly, setVerifiedOnly] = useState(false);
 
@@ -971,16 +975,21 @@ export default function ReviewsClient() {
   const [submittedReviewId, setSubmittedReviewId] = useState("");
 
   const loadProducts = useCallback(async () => {
+    let items: ProductOption[] = [];
     try {
       const res = await fetch(`${apiBase || ""}/api/reviews/products`, { method: "GET" });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) return;
-      setProducts(Array.isArray(data?.items) ? data.items : []);
+      items = Array.isArray(data?.items) ? data.items : [];
+      setProducts(items);
       setRewardPolicy(data?.rewardPolicy || null);
     } catch {
       setProducts([]);
+    } finally {
+      if (urlProduct && items.some((item) => item.productId === urlProduct)) setProductFilter(urlProduct);
+      setFilterReady(true);
     }
-  }, [apiBase]);
+  }, [apiBase, urlProduct]);
 
   const loadSummary = useCallback(async () => {
     const requestId = ++summaryRequest.current;
@@ -1030,11 +1039,12 @@ export default function ReviewsClient() {
   }, [apiBase, productFilter, sortKey, verifiedOnly, copy]);
 
   useEffect(() => { void loadProducts(); }, [loadProducts]);
-  useEffect(() => { void loadSummary(); }, [loadSummary]);
+  useEffect(() => { if (filterReady) void loadSummary(); }, [loadSummary, filterReady]);
   useEffect(() => {
+    if (!filterReady) return;
     setMobileExpanded(false);
     void loadReviews(1, false);
-  }, [loadReviews]);
+  }, [loadReviews, filterReady]);
 
   const openWriter = useCallback(async () => {
     setWriterOpen(true);

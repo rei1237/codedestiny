@@ -157,3 +157,26 @@ test('/reviews pre-selects an eligible requested product, keeps it on the guest 
   try{assert.ok(document.querySelector('a[href="/login?next=%2Freviews%2F%3Fwrite%3D1"]'));}finally{await unsafe.close();}
  }finally{globalThis.fetch=realFetch;}
 });
+test('/reviews/?product= filters the list and summary to a catalog product only, ignoring unknown slugs',async()=>{
+ const realFetch=globalThis.fetch;
+ let calls=[];
+ globalThis.fetch=async url=>{const text=String(url);calls.push(text);return text.includes('/api/reviews/products')?response({items:[{productId:'saju-ai',name:'사주',total:1},{productId:'tarot',name:'타로',total:2}]})
+  :text.includes('/api/reviews/summary')?response({total:0,average:0,distribution:{}})
+  :response({items:[],pagination:{totalPages:1}});};
+ const guest=async()=>({status:401,ok:false,json:async()=>({})});
+ const lists=()=>calls.filter(url=>/\/api\/reviews\?/.test(url)),summaries=()=>calls.filter(url=>url.includes('/api/reviews/summary'));
+ try{
+  const known=await mount('app/reviews/ReviewsClient.tsx',guest,{},{url:'http://localhost/reviews/?product=tarot'});
+  try{
+   assert.ok(lists().length>0&&summaries().length>0);
+   for(const url of [...lists(),...summaries()])assert.match(url,/productId=tarot/,'no unfiltered request before the catalog check');
+   assert.equal(button('타로 (2)').className.includes('bg-[#b31955]'),true);
+  }finally{await known.close();}
+  calls=[];
+  const unknown=await mount('app/reviews/ReviewsClient.tsx',guest,{},{url:'http://localhost/reviews/?product=naming'});
+  try{
+   assert.ok(lists().length>0);
+   for(const url of [...lists(),...summaries()])assert.doesNotMatch(url,/productId=/);
+  }finally{await unknown.close();}
+ }finally{globalThis.fetch=realFetch;}
+});
