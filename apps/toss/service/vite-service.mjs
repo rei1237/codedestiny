@@ -75,6 +75,7 @@ export default function serviceCompat(){
  return {name:'canonical-service-runtime',enforce:'pre',
   transform(code,id){
    if(id.includes('node_modules'))return;
+   if(id.replaceAll('\\','/').endsWith('/app/neo-consultation/NeoConsultationClient.tsx'))code=code.replace(/["'](\/(?:assets|images)\/[^"']+\.webp)["']/g,'"https://code-destiny.com$1"');
    if(id.replaceAll('\\','/').endsWith('/app/palm-reading/PalmDestinyMain.tsx'))code=code.replace(/["'](\/images\/(?:service-introductions\/palm-reading-960|expert-characters\/yeoni\/shooting-guide)\.webp)["']/g,'"https://code-destiny.com$1"');
    if(id.replaceAll('\\','/').endsWith('/lib/palm/palm-ui-state.js'))return code.replace('module.exports = {','export default {');
    if(id.replaceAll('\\','/').endsWith('/assets/yeongnyangi/tarot/v1/manifest.json'))return JSON.stringify(screenDeckManifest(JSON.parse(code)));
@@ -102,6 +103,7 @@ export default function serviceCompat(){
    if(/\/app\/(?:components\/activation\/ResultBenefits|yeongnyangi\/_components\/ResultSharing)(?:\.[jt]sx)?$/.test(normalized))return fileURLToPath(new URL('./WebReviewReward.jsx',import.meta.url));
    if(/\/components\/fortune\/ConsultationShare(?:\.[jt]sx)?$/.test(normalized))return fileURLToPath(new URL('./WebReviewReward.jsx',import.meta.url));
    if(/\/components\/fortune\/SavedRecordLink(?:\.[jt]sx)?$/.test(normalized))return fileURLToPath(new URL('./SavedRecordLink.jsx',import.meta.url));
+   if(normalized.endsWith('/app/neo-consultation/checkout'))return fileURLToPath(new URL('./neo-email-checkout.ts',import.meta.url));
    if(normalized.endsWith('/app/hooks/usePayment'))return fileURLToPath(new URL('./payment-state.jsx',import.meta.url));
    if(/\/app\/_lib\/auth-client(?:\.[jt]s)?$/.test(normalized)&&!importer?.split('?')[0].replaceAll('\\','/').endsWith('/apps/toss/service/auth-client.jsx'))return fileURLToPath(new URL('./auth-client.jsx',import.meta.url));
    if(normalized.endsWith('/app/_lib/billing-client'))return fileURLToPath(new URL('./billing.jsx',import.meta.url));

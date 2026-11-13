@@ -1,0 +1,30 @@
+import '../../../scripts/lib/mock-network-guard.cjs';
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {neoEmailFixture} from './offline/neo-email-fixture.mjs';
+import {neoQuestionPrice} from '../../../lib/neo-consultation/contract.js';
+
+test('receipts stay in the original manually delivered service with owner-bound questions and no stored answer',async()=>{
+  const values=new Map(),storage={getItem:k=>values.get(k),setItem:(k,v)=>values.set(k,v)};
+  const owner=neoEmailFixture(storage,'owner'),other=neoEmailFixture(storage,'second');
+  const attempt=crypto.randomUUID(),question={text:'직장에서 어떤 일을 먼저 살펴볼까요?',readingMode:'saju_ziwei',chartReading:false};
+  const input={questions:[question],email:'fixture@example.invalid',birth:{date:'1990-01-01',time:'08:30',calendar:'solar',leapMonth:false,timeUnknown:false},consent:true};
+  const call=(api,p,b)=>api.handle(new Request('http://localhost/test',{method:b?'POST':'GET',...(b?{body:JSON.stringify(b)}:{})}),'/native/neo-email'+p);
+  const order=async(p,b)=>{const r=await call(owner,p,b);assert.equal(r.status,200);return (await r.json()).order;};
+  const draft=await order('/create',{attempt,input});await order('/create',{attempt,input});
+  assert.equal((await call(owner,'/create',{attempt,input:{...input,email:'other@example.invalid'}})).status,409);
+  const path='/'+draft.id,quote=await order(path+'/quote',{version:draft.version});
+  assert.equal(quote.quote.totalKRW,neoQuestionPrice(question));
+  const pending=await order(path+'/prepare',{quoteId:quote.quote.id});
+  assert.equal(pending.payment.id,(await order(path+'/prepare',{quoteId:quote.quote.id})).payment.id);
+  const receipt=await order(path+'/mock-pay',{});await order(path+'/mock-pay',{});
+  assert.equal(receipt.state,'received');assert.equal(receipt.deliveryStatus.receipt,'sent');
+  assert.equal((await call(owner,path+'/complete-manual-delivery',{})).status,404);
+  assert.equal((await call(other,path)).status,404);
+  await owner.recordMockDispatch(draft.id);
+  const delivered=await order(path);
+  assert.equal(delivered.state,'sent');assert.ok(delivered.manualDelivery.sentAt);
+  assert.deepEqual(delivered.deliveries,[]);assert.equal(delivered.questions[0].answer,undefined);
+  const db=JSON.parse(values.get('toss-offline-neo-email:owner'));
+  assert.equal(Object.keys(db.payments).length,1);assert.equal(db.rows[draft.id].mailJobs[0].attempt,1);
+});

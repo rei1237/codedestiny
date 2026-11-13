@@ -1,6 +1,7 @@
 import {syntheticYoga,mockYogaRequest} from './yoga.mjs';
 // Explicitly synthetic, local-only fixture for the official SDK devtools.
 import {handleReviewFixture,reviewCatalog,offlineCatalog,offlineLetterProduct,safetyResponse} from './review-fixture.mjs';
+import {neoEmailFixture} from './neo-email-fixture.mjs';
 import {roomProducts,roomRequest} from './room-fixture.mjs';
 import {syntheticNakshatra,mockNakshatraRequest} from './nakshatra-ai.mjs';
 import {assembleChart} from '../../../../lib/human-design/chart.js';
@@ -96,6 +97,7 @@ function createAccountFixture(storage,owner,token,now){
     :respond({error:'PLACE_NOT_FOUND'},404);
   }
   const delay=Number(storage?.getItem('toss-offline-generation-delay-ms'));
+  if(path.startsWith('/native/neo-email'))return neoEmailFixture(storage,owner,now).handle(request,path);
   const roomResponse=await roomRequest(request,url,path,state,save,now);if(roomResponse)return roomResponse;
   if(path.startsWith('/native/nakshatra/'))return mockNakshatraRequest(path,request,state,save,now,delay);
   const reviewResponse=await handleReviewFixture(request,url,path,state,save,now,Number.isFinite(delay)?Math.max(0,delay):0);if(reviewResponse)return reviewResponse;
