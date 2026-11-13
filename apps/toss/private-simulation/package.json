@@ -1,0 +1,6 @@
+{
+  "name": "code-destiny-toss-private-simulation",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module"
+}

@@ -44,12 +44,15 @@ async function directoryFiles(root,directory=root){
 }
 if(process.argv[1]&&import.meta.url===pathToFileURL(resolve(process.argv[1])).href){
  try{
-  const root=resolve(dirname(fileURLToPath(import.meta.url)),'..');
-  const args=process.argv.slice(2);if(args.some(arg=>arg!=='--require-portable'))throw new Error('Unknown bundle check option');
+  const shell=resolve(dirname(fileURLToPath(import.meta.url)),'..');
+  const args=process.argv.slice(2);if(args.some(arg=>!['--require-portable','--private-simulation'].includes(arg)))throw new Error('Unknown bundle check option');
+  const root=args.includes('--private-simulation')?join(shell,'private-simulation'):shell;
   const require=createRequire(import.meta.url),cliRequire=createRequire(require.resolve('@apps-in-toss/cli/package.json'));
   const {AppsInTossBundle}=cliRequire('@apps-in-toss/ait-format');
   const archive=await readFile(join(root,'ai-saju-studio.ait')),reader=AppsInTossBundle.reader(archive);
   if(reader.appName!=='ai-saju-studio')throw new Error('Unexpected Toss app name');
+  const html=Buffer.from(await reader.readEntry('sources/index.html')).toString('utf8');
+  if(html.includes('private-simulation-marker')!==args.includes('--private-simulation'))throw new Error('Unexpected Toss archive variant');
   const result=inspectBundleIndex(reader.bundle.index,await directoryFiles(join(root,'dist')),{requirePortable:args.includes('--require-portable')});
   checkBundleSizes(archive.length,result.expandedBytes);
   console.log(`Toss bundle size OK: ait ${archive.length} bytes; expanded ${result.expandedBytes} bytes; ${result.sourceFiles} source files; limit ${BUNDLE_LIMIT_BYTES} bytes`);

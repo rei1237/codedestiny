@@ -34,6 +34,10 @@ on:
         description: "전체 검사에서 Linux 앱인토스 미리보기 번들을 보관한다"
         type: boolean
         default: false
+      toss_simulation_artifact:
+        description: "일반 미리보기 보관 후 별도의 영냥이 비공개 모의 상담 Linux AIT도 검증하고 보관한다"
+        type: boolean
+        default: false
 
 concurrency:
   # 커밋마다 독립 실행이다. main 건강 검사는 서로를 취소하면 안 되므로 끝까지 돈다
@@ -1214,6 +1218,25 @@ jobs:
         with:
           name: toss-preview-${{ github.sha }}
           path: apps/toss/ai-saju-studio.ait
+          if-no-files-found: error
+          retention-days: 1
+          compression-level: 0
+
+
+      - name: Build private simulated consultation archive after the regular preview
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.full_ci && inputs.toss_artifact && inputs.toss_simulation_artifact && needs.classify.outputs.runs_critical == 'true' }}
+        working-directory: apps/toss
+        run: |
+          npm run build:private-simulation
+          node scripts/check-bundle-size.mjs --private-simulation --require-portable
+          node test/private-simulation-archive.mjs private-simulation/ai-saju-studio.ait
+
+      - name: Store private simulated consultation archive
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.full_ci && inputs.toss_artifact && inputs.toss_simulation_artifact && needs.classify.outputs.runs_critical == 'true' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: toss-private-simulation-${{ github.sha }}
+          path: apps/toss/private-simulation/ai-saju-studio.ait
           if-no-files-found: error
           retention-days: 1
           compression-level: 0
