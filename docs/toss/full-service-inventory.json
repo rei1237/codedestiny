@@ -1,5 +1,5 @@
 {
-  "sourceCommit": "cc63243217d67037aad44b5548b0a961d69e8ce0",
+  "sourceCommit": "f2d7882b200134bbc7011bc4e84f51ade9ed5e2d",
   "sourceCounts": {
     "home": 63,
     "react": 18,
@@ -6932,7 +6932,7 @@
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "일반 홈의 진입 코드 확인",
       "bundleVerification": "apps/toss/test/fpti-deep-browser.mjs 360px 일반 홈 → 게스트 기본 → 모의 로그인 → 소유 프로필 → 무료 심층 7장 → 재진입. fpti-free-route 및 fpti-free-report.behavior가 타인 프로필, 변경 출생값, 기존 구매·환불·복구 검증. 토스 실기기 PDF·운영 Worker 승격 미검증",
-      "tossLogin": "게스트 계산 가능. 현재 탭의 저장 결과는 같은 로그인 계정으로 재열람",
+      "tossLogin": "기본은 게스트. 심층은 토스 로그인 및 같은 출생정보의 소유 프로필 필요",
       "tossResult": "apps/toss/service/TossFpti.tsx + components/fpti/FptiResultCard.tsx + worker/routes/fpti.js",
       "reread": "기본은 같은 탭·같은 계정 재열람. 무료 심층은 웹과 같이 자동 보관 없이 동일 프로필로 7장 재계산. 기존 구매 원문은 구매한 웹 계정의 보관함에서 열람",
       "saleStatus": "현재 무료 정책. 기존 구매는 본래 웹 계정에서 보호"

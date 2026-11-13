@@ -29,6 +29,16 @@ let browser;
 try{
   browser=await chromium.launch({channel:'chrome'});
   const page=await browser.newPage({viewport:{width:360,height:740},serviceWorkers:'block'});
+  await page.addInitScript(()=>{
+    window.__appsInTossConstants={operationalEnvironment:'sandbox',safeAreaInsets:{top:0,bottom:12,left:0,right:0},schemeUri:'intoss://ai-saju-studio',locale:'ko-KR',platformOS:'android',tossAppVersion:'5.300.0'};
+    const handlers={__subscribeAppEvent:()=>null,__unsubscribeAppEvent:()=>null,getStorageItem:()=>null,getPendingOrders:()=>({orders:[]})};
+    window.__bridgeMethods__=Object.keys(handlers);
+    window.ReactNativeWebView={postMessage(raw){
+      const {type,body,bridgeId}=JSON.parse(raw);if(type!=='bridge')return;
+      const {method,eventId}=body;if(!Object.hasOwn(handlers,method))throw Error('Unexpected native operation '+method);
+      queueMicrotask(()=>window.nativeEmitterMap[bridgeId].emit(method+'-'+eventId,handlers[method]()));
+    }};
+  });
   await page.route('**/*',route=>new URL(route.request().url()).origin===origin?route.continue():route.abort());
   const evidence=process.env.TOSS_ARTIFACT_QA_DIR;
   async function capture(name){

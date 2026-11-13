@@ -435,7 +435,6 @@ for(const group of canonicalCandidates){
   maya:'기본 달력 공개. 유료 프롬프트는 소유 계정 필요',
   omikuji:'비회원 뽑기 가능. 같은 탭의 임시 복구는 로그인 계정별',
   psychotest:'게스트 검사 가능. 현재 화면에서만 결과 열람',
-  'saju-fpti':'게스트 계산 가능. 현재 탭의 저장 결과는 같은 로그인 계정으로 재열람',
   'saju-guardian':'보관한 출생정보와 구매 원문은 토스 계정 필요',
   sukuyo:'기본 본명숙 입력 정책은 SukuyoBasic.tsx, 전문가 궁합은 별도 로그인·주문',
   ziwei:'기본 명반과 12궁은 게스트 계산. 별도 심층 결과는 로그인·소유 확인',
