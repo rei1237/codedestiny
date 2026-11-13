@@ -37,7 +37,7 @@ function Bar({ label, score, scoreRange, max, note }: { label: string; score: nu
   );
 }
 
-export default function CompatResultView({ result, onReset }: { result: CompatResult; onReset: () => void }) {
+export default function CompatResultView({ result, onReset, linkSources = true }: { result: CompatResult; onReset: () => void; linkSources?: boolean }) {
   const copy = useNakshatraCopy();
   const { personA, personB, india, dongyang, unified } = result;
   return (
@@ -96,7 +96,7 @@ export default function CompatResultView({ result, onReset }: { result: CompatRe
         </section>
       )}
 
-      {result.calculationVersion && <p className="mt-5 text-xs leading-6 text-slate-300">쿠타 표: <a className="underline" href="https://saravali.github.io/astrology/koota_yoni.html">Saravali / Maitreya</a> · CC BY-SA 4.0. 방향에 따른 차이를 보존한 표이며, 학파별 규칙과 점수는 다를 수 있습니다.</p>}
+      {result.calculationVersion && <p className="mt-5 text-xs leading-6 text-slate-300">쿠타 표: {linkSources ? <a className="underline" href="https://saravali.github.io/astrology/koota_yoni.html">Saravali / Maitreya</a> : "Saravali / Maitreya"} · CC BY-SA 4.0. 방향에 따른 차이를 보존한 표이며, 학파별 규칙과 점수는 다를 수 있습니다.</p>}
       <button onClick={onReset} className="mt-5 inline-flex min-h-11 w-full items-center justify-center rounded-xl border border-white/15 bg-white/[0.04] px-5 text-sm font-semibold text-amber-100 transition hover:border-amber-200/50">
         {copy.compatResetButton}
       </button>

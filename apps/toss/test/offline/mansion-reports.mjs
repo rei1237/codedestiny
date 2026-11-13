@@ -19,3 +19,20 @@ export function fixtureMansionReport(kind,body,now){
   const birthUtc=new Date('1990-01-01T03:00:00Z');
   return buildNakshatraVvipCodex({nak,sukuyo,pada:nak.pada,dasha:buildVimshottariDasha(moon,birthUtc,now),birthUtc,now,timeUnknown:true});
 }
+import {assembleNatalCodex} from '../../../../worker/lib/nakshatra-codex.js';
+import {assembleNakshatraCompat} from '../../../../worker/lib/nakshatra-compat.js';
+import {japaneseSukuyoFromDate} from '../../../../worker/lib/nakshatra-japanese-calendar.js';
+
+function fixturePerson(p){
+  const birthUtc=new Date(Date.UTC(p.year,p.month-1,p.day,p.hour,p.minute)-p.timezone*3600000);
+  const calendarDate=p.timeUnknown?new Date(Date.UTC(p.year,p.month-1,p.day,3)):birthUtc;
+  const moonLon=(p.month*19+p.day*7)%360;
+  return {birthUtc,moonLon,sukuyo:japaneseSukuyoFromDate(calendarDate),gender:p.gender,
+    uncertainty:p.timeUnknown?{possibleNakshatras:['모의 달 구간'],note:'모의 천문 입력 · 출생 시각 미상'}:null};
+}
+export function fixtureMansionReading(path,body,now){
+  if(path==='/nakshatra/compat')return {ok:true,...assembleNakshatraCompat(fixturePerson(body.a),fixturePerson(body.b))};
+  const person=fixturePerson(body);
+  return {ok:true,...assembleNatalCodex({...person,japaneseSukuyo:person.sukuyo,timeUnknown:body.timeUnknown,now,
+    rawChart:{planets:{Moon:person.moonLon},ascendant:0}})};
+}

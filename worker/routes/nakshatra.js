@@ -51,7 +51,7 @@ async function resolvePersonMoonAndSukuyo(env, input, requestUrl) {
 }
 
 // 동서 통합 궁합(유료 nakshatra-compat) — 프론트 useCoinGate 결제 후 호출. requireAuth로 보호.
-async function resolveCompat(env, body, options) {
+export async function resolveCompat(env, body, options) {
   const src = body && typeof body === "object" ? body : {};
   const inA = normalizeBirthBody(src.a);
   const inB = normalizeBirthBody(src.b);
@@ -89,7 +89,7 @@ function lunarFromInput(input) {
   return { month: lunar.lunarMonth, day: lunar.lunarDay, isLeap: lunar.isLeapMonth };
 }
 
-async function resolveNatal(env, body, options) {
+export async function resolveNatal(env, body, options) {
   const input = normalizeBirthBody(body);
   if (!isValidBirth(input)) {
     return json({ ok: false, code: "INVALID_INPUT", message: "생년월일(year/month/day)이 필요합니다." }, { status: 400 });

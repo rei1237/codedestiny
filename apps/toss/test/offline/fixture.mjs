@@ -40,6 +40,10 @@ function createAccountFixture(storage,owner,token,now){
   if(path==='/login'&&method==='POST'){state.loggedIn=true;save();return respond({token});}
   // Public product lists mirror worker/toss/routes.js; private requests below still require the mock session.
   if(path==='/catalog'&&method==='GET')return respond({products:offlineCatalog});
+  if(path==='/nakshatra/resolve'&&method==='POST'){
+   const {fixtureMansionReading}=await import('./mansion-reports.mjs');
+   return respond(fixtureMansionReading(path,await request.json(),now()));
+  }
   if(path==='/tarot-library/free'&&method==='POST'){
    const {freeTarotReading}=await import('../../../../worker/toss/tarot-library.js');const {flowId,input}=await request.json();return respond(await freeTarotReading(flowId,input));
   }
@@ -48,6 +52,10 @@ function createAccountFixture(storage,owner,token,now){
   if(!state.loggedIn||request.headers.get('Authorization')!=='Bearer '+token)return denied();
   if(path==='/logout'&&method==='POST'){state.loggedIn=false;save();return respond({ok:true});}
   if(path==='/session'&&method==='GET')return respond({authenticated:true,environment:'SANDBOX'});
+  if(path==='/nakshatra/compat'&&method==='POST'){
+   const {fixtureMansionReading}=await import('./mansion-reports.mjs');
+   return respond(fixtureMansionReading(path,await request.json(),now()));
+  }
   if((path==='/nakshatra/muhurta'||path==='/nakshatra/vvip-codex')&&method==='POST'){
    const body=await request.json();
    if(!state.profiles.some(profile=>profile.profileId===body.profileId))return respond({error:'PROFILE_NOT_FOUND'},404);

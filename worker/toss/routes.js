@@ -105,6 +105,12 @@ export async function handleTossRoutes(request,env) {
       const {prepareHoraryPrompt}=await import('../yeongnyangi/fortune/free/horary.ts');
       return reply({ok:true,result:await prepareHoraryPrompt(env,input)});
     }
+    if(path==='/nakshatra/resolve'&&request.method==='POST'){
+      await limit(env,request.headers.get('CF-Connecting-IP')||'unknown',path,10);
+      const {resolveNatal}=await import('../routes/nakshatra.js');
+      const response=await resolveNatal(env,await bodyOf(request),{requestUrl:request.url});
+      return reply(await response.json(),response.status);
+    }
     if(path==='/tarot-library/free'&&request.method==='POST'){
       const {flowId,input}=await bodyOf(request);
       return reply(await freeTarotReading(flowId,input));
@@ -389,6 +395,14 @@ export async function handleTossRoutes(request,env) {
     }
     if(path==='/canonical/auth/me'&&request.method==='GET')return reply({ok:true,authenticated:true,user:{id:auth.userId,_id:auth.userId,name:'토스 사용자',role:'user'}});
     if(path==='/canonical/profile'&&request.method==='GET')return reply(await canonicalProfiles(auth));
+    if(path==='/nakshatra/compat'&&request.method==='POST'){
+      if(!isFreeFortuneFeatureKey('nakshatra-compat'))throw new TossError('NOT_AVAILABLE',403);
+      await limit(env,auth._id,path,10);
+      const {a,b}=await bodyOf(request);
+      const {resolveCompat}=await import('../routes/nakshatra.js');
+      const response=await resolveCompat(env,{a,b},{requestUrl:request.url});
+      return reply(await response.json(),response.status);
+    }
     if((path==='/nakshatra/muhurta'||path==='/nakshatra/vvip-codex')&&request.method==='POST'){
       await limit(env,auth._id,'mansion-report',10);
       const {readOwnedMansionReport}=await import('./mansion-reports.js');

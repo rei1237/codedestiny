@@ -29,6 +29,7 @@ const StoryLibrary = lazy(() => import('./StoryLibrary'));
 const DreamPrompt = lazy(() => import('./DreamPrompt'));
 const PublicSectionReading=lazy(()=>import('./PublicSectionReading'));
 const IfaReading=lazy(()=>import('./IfaReading'));
+const MansionReading=lazy(()=>import('./MansionReading'));
 const MansionReports=lazy(()=>import('./MansionReports'));
 const KemetOracle=lazy(()=>import('./KemetOracle'));
 const RoyalTea=lazy(()=>import('./RoyalTea'));
@@ -57,11 +58,11 @@ const yeongnyangiSpreads=canonicalTarotSpreads as {id:string;title:string;summar
 const tarotLibraryTitle=new Map((TOSS_TAROT_LIBRARY_FLOWS as readonly {id:string;name:string}[]).map(flow=>[flow.id,flow.name]));
 
 type AtlasPage='nakshatra/codex'|`nakshatra/codex/${number}`;
-type Page=AtlasPage|'app/home-widget'|'consultations/stories'|'olympus'|'meditation/cosmic'|'meditation/neville'|'saju/sections'|'ziwei/sections'|'moonlight/season-1'|'oracle/turtle'|'oracle/royal-tea'|'oracle/kemet'|'nakshatra/muhurta'|'nakshatra/vvip-codex'|'dream/tarot'|'oracle/ifa'|'mbti/animals'|'today'|'oracle/rune'|'saju/career-style'|'saju/animal-destiny'|'music'|'astrology'|'vedic'|'novel'|'insights/famous-saju'|'saju/basic/play'|'ziwei/chart'|'manse'|'sukuyo'|'human-design'|'daily'|'draw'|'flower'|'bias'|'tarot-library'|'home'|'catalog'|'product'|'birth'|'login'|'purchase'|'result'|'library'|'recovery'|'settings'|'terms'|'support'|'withdraw'|'example';
+type Page=AtlasPage|'app/home-widget'|'consultations/stories'|'olympus'|'meditation/cosmic'|'meditation/neville'|'saju/sections'|'ziwei/sections'|'moonlight/season-1'|'oracle/turtle'|'oracle/royal-tea'|'oracle/kemet'|'nakshatra/muhurta'|'nakshatra/vvip-codex'|'nakshatra/resolve'|'nakshatra/compat'|'dream/tarot'|'oracle/ifa'|'mbti/animals'|'today'|'oracle/rune'|'saju/career-style'|'saju/animal-destiny'|'music'|'astrology'|'vedic'|'novel'|'insights/famous-saju'|'saju/basic/play'|'ziwei/chart'|'manse'|'sukuyo'|'human-design'|'daily'|'draw'|'flower'|'bias'|'tarot-library'|'home'|'catalog'|'product'|'birth'|'login'|'purchase'|'result'|'library'|'recovery'|'settings'|'terms'|'support'|'withdraw'|'example';
 type Chapter={title:string;summary:string;analysis:string[];advice?:string;example?:string;persona?:string;blocks?:{id:string;title:string;paragraphs:string[]}[];questionAnswers?:{answer:string;reason?:string;basis?:string;timing:string;action:string;review:string}[]};
 type Result={charts?:ReadingChart[];serviceId?:string;conversation?:Conversation;id:string;state:string;chapters:Chapter[];manifest:{id:string;title:string}[];recovery:{savedChapters:number;totalChapters:number;canRetryNow:boolean;reviewRequired:boolean};errorCode?:string};
 type Purchase={featureKey?:string;nativeService?:string;href?:string;serviceId:string;selectionId:string;orderId:string;sku:string;productId:string;requestId:string|null;status:string;state:string;completedSections:number;totalSections:number|null;createdAt:string};
-const allowedPages=new Set<Page>(['app/home-widget','consultations/stories','olympus','meditation/cosmic','meditation/neville','saju/sections','ziwei/sections','moonlight/season-1','oracle/turtle','oracle/royal-tea','oracle/kemet','nakshatra/muhurta','nakshatra/vvip-codex','dream/tarot','oracle/ifa','mbti/animals','today','oracle/rune','saju/career-style','saju/animal-destiny','music','astrology','vedic','nakshatra/codex','novel','insights/famous-saju','saju/basic/play','ziwei/chart','manse','sukuyo','human-design','daily','draw','flower','bias','tarot-library','home','catalog','product','birth','login','purchase','result','library','recovery','settings','terms','support','withdraw','example']);
+const allowedPages=new Set<Page>(['app/home-widget','consultations/stories','olympus','meditation/cosmic','meditation/neville','saju/sections','ziwei/sections','moonlight/season-1','oracle/turtle','oracle/royal-tea','oracle/kemet','nakshatra/muhurta','nakshatra/vvip-codex','nakshatra/resolve','nakshatra/compat','dream/tarot','oracle/ifa','mbti/animals','today','oracle/rune','saju/career-style','saju/animal-destiny','music','astrology','vedic','nakshatra/codex','novel','insights/famous-saju','saju/basic/play','ziwei/chart','manse','sukuyo','human-design','daily','draw','flower','bias','tarot-library','home','catalog','product','birth','login','purchase','result','library','recovery','settings','terms','support','withdraw','example']);
 function currentPage():Page {
   const value=location.pathname.replace(/^\/|\/$/g,'');
   if(/^nakshatra\/codex\/(?:[0-9]|1[0-9]|2[0-6])$/.test(value))return value as AtlasPage;
@@ -227,6 +228,7 @@ export default function App({reviewHome,reviewRoute,consultationHref,verifiedRec
     {page==='dream/tarot'&&<Suspense fallback={<p role="status">꿈의 장부를 열고 있어요.</p>}><DreamPrompt/></Suspense>}
     {(page==='saju/sections'||page==='ziwei/sections')&&<Suspense fallback={<p role="status">풀이할 항목을 펼치고 있어요.</p>}><PublicSectionReading key={page} onLogin={()=>requireLogin(page)} kind={page==='saju/sections'?'saju':'ziwei'}/></Suspense>}
     {page==='oracle/ifa'&&<Suspense fallback={<p role="status">이파 점판을 펼치고 있어요.</p>}><IfaReading/></Suspense>}
+    {(page==='nakshatra/resolve'||page==='nakshatra/compat')&&<Suspense fallback={<p role="status">별을 읽고 있어요.</p>}><MansionReading compat={page==='nakshatra/compat'} loggedIn={loggedIn} onLogin={()=>requireLogin(page)}/></Suspense>}
     {(page==='nakshatra/muhurta'||page==='nakshatra/vvip-codex')&&<Suspense fallback={<p role="status">별의 리포트를 준비하고 있어요.</p>}><MansionReports kind={page==='nakshatra/muhurta'?'muhurta':'vvip-codex'} loggedIn={loggedIn} onLogin={()=>requireLogin(page)}/></Suspense>}
     {page==='oracle/kemet'&&<Suspense fallback={<p role="status">신탁 카드를 준비하고 있어요.</p>}><KemetOracle/></Suspense>}
     {page==='oracle/royal-tea'&&<Suspense fallback={<p role="status">찻잔을 준비하고 있어요.</p>}><RoyalTea loggedIn={loggedIn}/></Suspense>}
