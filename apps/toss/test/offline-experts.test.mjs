@@ -43,4 +43,3 @@ for(const product of expertProducts)test(product.service+' recover paid original
   assert.equal(await ownsReviewReceipt(done.href,async()=> (await call('/library',null,'local-mock-token-2')).json()),false);
   assert.equal((await call(get(done.resultId),null,'local-mock-token-2')).status,404);
 });
-

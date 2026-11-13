@@ -53,4 +53,3 @@ try{
     await context.close();
   }
 }catch(error){console.warn(page?.url(),await page?.locator('body').innerText().catch(()=>''));console.warn(await page?.evaluate(()=>JSON.parse(localStorage.getItem('toss-offline-fixture'))?.intents.map(([,r])=>[r.service,r.paid,Boolean(r.result)])));throw error;}finally{await browser.close();}
-
