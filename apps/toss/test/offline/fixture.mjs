@@ -47,6 +47,17 @@ function createAccountFixture(storage,owner,token,now){
   if(!state.loggedIn||request.headers.get('Authorization')!=='Bearer '+token)return denied();
   if(path==='/logout'&&method==='POST'){state.loggedIn=false;save();return respond({ok:true});}
   if(path==='/session'&&method==='GET')return respond({authenticated:true,environment:'SANDBOX'});
+  if(path==='/today-hub'&&method==='POST'){
+   const {profileId,period}=await request.json();
+   if(!['today','tomorrow'].includes(period)||typeof profileId!=='string')return respond({error:'INVALID_INPUT'},400);
+   if(profileId&&!state.profiles.some(p=>p.profileId===profileId))return respond({error:'PROFILE_NOT_FOUND'},404);
+   const {hubDay}=await import('../../../../lib/fortune/hub-period.mjs');
+   const {buildTodayNumberDetail,buildTodayNumberPublic}=await import('../../../../worker/lib/today-number-detail.js');
+   const target=hubDay(period,now()),number=profileId?buildTodayNumberDetail({month:1,day:1},target):buildTodayNumberPublic(target);
+   const demo=(system,label)=>({system,label,anchor:'모의 차트',headline:'테스트용 '+label,body:'오프라인 차트 입력 표시 확인',sections:[]});
+   return respond({ok:true,date:[target.year,target.month,target.day].map(n=>String(n).padStart(2,'0')).join('-'),personalized:!!profileId,
+    systems:{saju:demo('saju','사주 일진'),sukuyo:demo('sukuyo','숙요 27수'),vedic:demo('vedic','베다 판창가'),number}});
+  }
   if(path==='/canonical/geocode'&&method==='GET'){
    return url.searchParams.get('place')==='서울'
     ?respond({name:'서울',lat:37.5665,lng:126.978,timezone:'Asia/Seoul',fallback:false})

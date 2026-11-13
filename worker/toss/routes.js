@@ -356,6 +356,11 @@ export async function handleTossRoutes(request,env) {
     }
     if(path==='/canonical/auth/me'&&request.method==='GET')return reply({ok:true,authenticated:true,user:{id:auth.userId,_id:auth.userId,name:'토스 사용자',role:'user'}});
     if(path==='/canonical/profile'&&request.method==='GET')return reply(await canonicalProfiles(auth));
+    if(path==='/today-hub'&&request.method==='POST'){
+      await limit(env,auth._id,'today-hub',30);
+      const {readTodayHub}=await import('./today-hub.js');
+      return reply(await readTodayHub(env,auth,await bodyOf(request),request.url));
+    }
     if(path==='/canonical/saju/career-style'&&['GET','POST'].includes(request.method)){
       const statusOnly=request.method==='GET';
       if(!statusOnly)await limit(env,auth._id,'career-style',20);
