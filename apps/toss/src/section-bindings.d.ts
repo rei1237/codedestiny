@@ -3,3 +3,5 @@ declare module 'virtual:section-villain-bindings' {
 }
 
 declare module 'virtual:secret-house-page' {const html:string;export default html;}
+
+declare module 'virtual:destiny-island' {const html:string;export default html;}

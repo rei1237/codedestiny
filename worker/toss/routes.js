@@ -90,6 +90,10 @@ export async function handleTossRoutes(request,env) {
       const product=tarotLibraryProduct(item);
       return {id:product.flow.id,name:product.flow.name,sku:product.sku,featureKey:product.featureKey,approvedPriceKRW:product.approvedPriceKRW};
     })});
+    if(path==='/canonical/ziwei-island/blueprint'&&request.method==='POST'){
+      const {readTossIsland}=await import('./island.js');
+      return forwardServiceResponse(await readTossIsland(await bodyOf(request),env,request.headers.get('CF-Connecting-IP')),headers);
+    }
     if(path==='/canonical/saju/section'&&request.method==='POST'){
       const {readTossPublicSection}=await import('./public-section.js');
       return forwardServiceResponse(await readTossPublicSection(await bodyOf(request),env),headers);

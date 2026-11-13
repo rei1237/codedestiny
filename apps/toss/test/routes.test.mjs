@@ -571,3 +571,14 @@ test('horary uses the public calculation without login or the release sale gate'
  mocks.denyAuth=true;
  try{const res=await request({question:'테스트 질문'},'/canonical/yeongnyangi/free/horary',{});assert.equal(res.status,200);assert.equal((await res.json()).result.question,'테스트 질문');assert.equal(calls.prepared.length,0);}finally{mocks.denyAuth=false;}
 });
+
+test('guest island routes the original free blueprint outside the sale gate with input validation',async()=>{
+ const path='/canonical/ziwei-island/blueprint',input={date:'2026-11-14',birthDate:'1991-11-18',birthTimeUnknown:true,gender:'female'};
+ mocks.denyAuth=true;
+ try{
+  const result=await request(input,path,{});assert.equal(result.status,200);
+  const {blueprint}=await result.json();assert.equal(blueprint.palaces.length,12);assert.equal(blueprint.timing.timeUnknown,true);
+  assert.equal((await request({...input,birthDate:'1991-30-01'},path)).status,400);
+  assert.notEqual((await request(input,'/canonical/ziwei-island/report')).status,200);
+ }finally{mocks.denyAuth=false;}
+});

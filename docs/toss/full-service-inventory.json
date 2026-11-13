@@ -1,5 +1,5 @@
 {
-  "sourceCommit": "0dd6b38f4de0c3de3f1f210f6be19045cfa668f3",
+  "sourceCommit": "172dde758ca1f9f2adbfbfcc1e725c2aeaa9dd50",
   "sourceCounts": {
     "home": 63,
     "react": 18,
@@ -4306,17 +4306,20 @@
       "status": "not-ported",
       "tossRoute": null,
       "sku": null,
-      "inputContract": null,
+      "inputContract": "기존 웹 계정 + 그 계정의 저장 세션 id 또는 pending=1",
       "resultRenderer": null,
-      "storageContract": null,
+      "storageContract": "웹에서 구매한 저장 원문·미완료 부분을 기존 계정으로 재열람. 토스와 웹 구매 계정 연동 미구현",
       "webEntries": [
         "/island-consult/"
       ],
       "webSources": [
         "app/island-consult/IslandConsultClient.tsx",
-        "app/island-consult/page.tsx"
+        "app/island-consult/page.tsx",
+        "worker/routes/ziwei-island-ai.js"
       ],
-      "webProductIds": [],
+      "webProductIds": [
+        "ziwei-island-palace-consult"
+      ],
       "freeCalculation": false,
       "portStatus": "미이식",
       "reducedBundle": "홈 진입 없음",
@@ -4324,7 +4327,8 @@
       "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
       "tossLogin": "토스 기능 미연결",
       "tossResult": "결과 화면 연결 미확인",
-      "reread": "재열람 경로 미확인"
+      "reread": "웹에서 구매한 저장 원문·미완료 부분을 기존 계정으로 재열람. 토스와 웹 구매 계정 연동 미구현",
+      "verification": "원본 Worker는 신규 준비·접근·생성·시작에 410 ISLAND_NOW_FREE. GET /result만 소유자·해금 회수 확인 후 기존 부분 반환"
     },
     {
       "id": "juyuk-turtle",
@@ -8073,12 +8077,13 @@
           "api": "/api/ziwei-island/blueprint"
         }
       ],
-      "status": "not-ported",
-      "tossRoute": null,
+      "status": "local-partial",
+      "tossRoute": "/ziwei/sections?reading=island",
       "sku": null,
-      "inputContract": null,
-      "resultRenderer": null,
-      "storageContract": null,
+      "inputContract": "원본 양력·음력·윤달, 생일·성별·시각 미상, 연도 선택",
+      "resultRenderer": "public/destiny-island.html → worker/routes/ziwei-island.js → 12궁·대한·유년·수호자·섬 일지·퀘스트",
+      "storageContract": "기기 내 게스트·토스 계정별 명반, 당일 청사진, 방문 도장과 퀘스트 EXP 복원",
+      "verification": "island-browser.mjs 360px 홈, 열두 궁 원문과 초상, 유년 변경, 재진입. 구매 종료 궁별 AI 웹 원문 복구는 별도. 토스 실기기·운영 Worker 미검증",
       "webEntries": [
         "/destiny-island.html"
       ],
@@ -8087,14 +8092,14 @@
         "public/destiny-island.html"
       ],
       "webProductIds": [],
-      "freeCalculation": false,
-      "portStatus": "미이식",
+      "freeCalculation": true,
+      "portStatus": "일부만 이식",
       "reducedBundle": "홈 진입 없음",
-      "currentEntry": "연결 경로 없음",
+      "currentEntry": "일반 홈의 진입 코드 확인",
       "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
-      "tossLogin": "토스 기능 미연결",
-      "tossResult": "결과 화면 연결 미확인",
-      "reread": "재열람 경로 미확인"
+      "tossLogin": "게스트 공개 계산",
+      "tossResult": "public/destiny-island.html → worker/routes/ziwei-island.js → 12궁·대한·유년·수호자·섬 일지·퀘스트",
+      "reread": "기기 내 게스트·토스 계정별 명반, 당일 청사진, 방문 도장과 퀘스트 EXP 복원"
     }
   ],
   "consultationProducts": [

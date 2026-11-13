@@ -9,6 +9,7 @@ import {api} from './platform';
 import TossSessionScope from './TossSessionScope';
 
 import {loadTravelHistory,saveTravelHistory,type TravelHistory} from './travel-history';
+const IslandReading=lazy(()=>import('./IslandReading'));
 const SecretHouseReading=lazy(()=>import('./SecretHouseReading'));
 type SectionKey=keyof typeof TOSS_PUBLIC_SECTIONS;
 type Energy={recent?:string[];renderedAt?:string;transform?:string;roulette?:string[]};
@@ -95,6 +96,7 @@ function Reading({kind,onLogin}:{kind:'saju'|'ziwei';onLogin:()=>void}){
   const keys=(Object.keys(TOSS_PUBLIC_SECTIONS) as SectionKey[]).filter(k=>isTossPublicSection(k)&&(kind==='saju'?!k.startsWith('ziwei_'):k.startsWith('ziwei_')));
   const [key,setKey]=useState(keys.includes('saju_natal_reading')?'saju_natal_reading':keys[0]),[birth,setBirth]=useState(emptyBirth),[mode,setMode]=useState('pig'),[name,setName]=useState('');
   const [result,setResult]=useState<{report:Report;input:RequestBody;travel:TravelHistory}|null>(null),[busy,setBusy]=useState(false),[error,setError]=useState('');
+  const [island,setIsland]=useState(kind==='ziwei'&&new URLSearchParams(location.search).get('reading')==='island');
   const [house,setHouse]=useState(kind==='saju'&&new URLSearchParams(location.search).get('reading')==='house');
   const epoch=useRef(0),title=useRef<HTMLHeadingElement>(null);
   useEffect(()=>()=>{epoch.current++;},[]);
@@ -127,11 +129,13 @@ function Reading({kind,onLogin}:{kind:'saju'|'ziwei';onLogin:()=>void}){
     }catch{if(epoch.current===id)setError('풀이를 불러오지 못했어요. 입력과 연결 상태를 확인한 뒤 다시 시도해 주세요.');}
     finally{if(epoch.current===id)setBusy(false);}
   }
+  if(island)return <Suspense fallback={<p>섬을 열고 있어요.</p>}><IslandReading onBack={()=>setIsland(false)}/></Suspense>;
   if(house)return <Suspense fallback={<p>합숙소를 열고 있어요.</p>}><SecretHouseReading onBack={()=>setHouse(false)}/></Suspense>;
   if(result)return <section><h1 tabIndex={-1} ref={title}>{TOSS_PUBLIC_SECTIONS[result.input.featureKey]}</h1>
     {birth.unknown&&<p>출생 시각을 몰라 정오를 기준으로 계산했어요.</p>}
     <SectionBody {...result} onLogin={onLogin}/><Button variant="weak" display="block" onClick={()=>setResult(null)}>다른 풀이 보기</Button></section>;
   return <section><h1>{kind==='saju'?'사주 리포트':'자미두수 상세 풀이'}</h1>
+    {kind==='ziwei'&&<Button display="block" onClick={()=>setIsland(true)}>운명의 섬 탐험하기</Button>}
     <form className="form" onSubmit={submit}><label>풀이 선택<select value={key} onChange={e=>setKey(e.target.value as SectionKey)} disabled={busy}>
     {keys.map(k=><option key={k} value={k}>{TOSS_PUBLIC_SECTIONS[k]}</option>)}</select></label>
     {key!=='rpt_secretHouseEntryCard'&&<BirthFields title="풀이할 출생정보" value={birth} onChange={setBirth} disabled={busy}/>}

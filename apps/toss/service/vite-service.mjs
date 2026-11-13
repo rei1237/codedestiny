@@ -1,3 +1,4 @@
+import {islandArtwork,islandDocument} from './island-loader.mjs';
 import {secretHouseDocument} from './secret-house-loader.mjs';
 import {extractRpgEngine} from './rpg-loader.mjs';
 import {extractVillainBindings} from './section-bindings-loader.mjs';
@@ -80,6 +81,7 @@ export default function serviceCompat(){
   },
   resolveId(id,importer){
    if(id==='virtual:consultation-webtoons')return '\0toss-consultation-webtoons';
+   if(id==='virtual:destiny-island')return '\0toss-destiny-island';
    if(id==='virtual:secret-house-page')return '\0toss-secret-house';
    if(id==='virtual:rpg-sheet')return '\0toss-rpg-sheet';
    if(id==='virtual:section-villain-bindings')return '\0toss-villain-bindings';
@@ -113,6 +115,11 @@ export default function serviceCompat(){
      ...story,cuts:story.cuts.map(cut=>({...cut,src:cut.src?'https://code-destiny.com'+cut.src:''})),
     }]));
     return 'export default '+JSON.stringify(stories);
+   }
+   if(id==='\0toss-destiny-island'){
+    const file=resolve(publicRoot,'destiny-island.html');this.addWatchFile(file);
+    for(const ref of islandArtwork)references.add(ref);
+    return 'export default '+JSON.stringify(islandDocument(await readFile(file,'utf8')))+';';
    }
    if(id==='\0toss-secret-house'){
     const file=resolve(publicRoot,'secret-house_real.html');this.addWatchFile(file);
@@ -172,6 +179,9 @@ export default function serviceCompat(){
    const emitted=new Set();
    async function sourceBytes(path){
     const ref=path.slice(publicRoot.length+1).split(sep).join('/');
+    // Guardians occupy a 72px reading portrait; the map also supports pinch zoom.
+    if(/^images\/destiny-island\/guardians\/[^/]+-v1\.webp$/.test(ref))return sharp(path).resize({width:240,withoutEnlargement:true}).webp({quality:85}).toBuffer();
+    if(ref==='images/destiny-island/exploration-map-v3.webp')return sharp(path).resize({width:1200,withoutEnlargement:true}).webp({quality:84}).toBuffer();
     if(ref==='assets/yeongnyangi/tarot/v1/back-600.webp')return sharp(path).webp({quality:88,effort:6}).toBuffer();
     // Keep the three animation frames aligned on mobile, including transparent edges.
     if(/^assets\/yeongnyangi\/readings\/[^/]+-loading-sprite-v1\.webp$/.test(ref))return sharp(path).resize({width:1536,withoutEnlargement:true}).webp({quality:87,alphaQuality:100}).toBuffer();

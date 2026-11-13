@@ -101,6 +101,7 @@ const localEvidence={
 
  'dream':{tossRoute:'/dream/tarot',status:'local-partial',inputContract:'index.html:openDreamModal + js/dream-ledger.js → worker/routes/dream.js → lib/tarot/dream-prompt.mjs',resultRenderer:'apps/toss/src/DreamPrompt.tsx',storageContract:'게스트 현재 화면 및 원문 복사. 정신분석 해몽은 별도 유료 기능',verification:'360px 일반 홈에서 1~5장 원본 카드와 프롬프트, 잘못된 입력 및 다시 쓰기 검증'},
  'mbti-animal-compat':{tossRoute:'/mbti/animals',status:'local-partial',inputContract:'js/astral-soul.js:ASTRAL_DATA / getPairScore / getSynergyText',resultRenderer:'apps/toss/src/AstralAnimals.tsx',storageContract:'게스트 화면 계산. 두 동물 256쌍 원본 점수·조언',verification:'astral-animals.test.mjs + 일반 홈 두 동물 선택'},
+ 'ziwei-island':{tossRoute:'/ziwei/sections?reading=island',status:'local-partial',inputContract:'원본 양력·음력·윤달, 생일·성별·시각 미상, 연도 선택',resultRenderer:'public/destiny-island.html → worker/routes/ziwei-island.js → 12궁·대한·유년·수호자·섬 일지·퀘스트',storageContract:'기기 내 게스트·토스 계정별 명반, 당일 청사진, 방문 도장과 퀘스트 EXP 복원',verification:'island-browser.mjs 360px 홈, 열두 궁 원문과 초상, 유년 변경, 재진입. 구매 종료 궁별 AI 웹 원문 복구는 별도. 토스 실기기·운영 Worker 미검증'},
  'ifa-oracle':{tossRoute:'/oracle/ifa',status:'local-partial',inputContract:'public/ifa-oracle.html 여덟 표식, 오두 256개, 네 주제',resultRenderer:'apps/toss/src/IfaReading.tsx',storageContract:'현재 화면. 토스 저장·공유는 실기기 확인 필요',verification:'ifa-reading.test.mjs, 360px public-readings-browser.mjs 네 가지 주제'},
  'consultation-webtoons':{tossRoute:'/consultations/stories',status:'local-partial',inputContract:'app/consultations/home-stories.ts + lib/brand/consultation-webtoons.mjs',resultRenderer:'apps/toss/src/StoryLibrary.tsx + app/components/webtoon/CutReader.tsx',storageContract:'게스트 공개 14편. 읽던 이야기는 URL의 story로 유지',verification:'Vite 배포본 360px에서 14편 전체 컷 수와 대사, 원본 그림 디코딩. 원격 이미지 실기기 확인 필요'},
  'heukwol-story':{tossRoute:'/consultations/stories?story=heukwol',status:'local-partial',inputContract:'app/heukwol/FateWarningEpisode.tsx 및 원본 12컷',resultRenderer:'apps/toss/src/StoryLibrary.tsx + app/components/webtoon/CutReader.tsx',storageContract:'공개 서장. 유료 흑월 상담과 별도',verification:'story-library-browser.mjs 360px 12컷 원본 텍스트 비교'},
@@ -315,6 +316,14 @@ for(const group of canonicalCandidates){
  else group.tossLogin='기능별 단계 검증 필요';
  group.tossResult=group.resultRenderer||'결과 화면 연결 미확인';
  group.reread=group.storageContract||'재열람 경로 미확인';
+ if(group.id==='island-consult'){
+  group.webSources=[...new Set([...group.webSources,'app/island-consult/page.tsx','worker/routes/ziwei-island-ai.js'])];
+  group.webProductIds=[...new Set([...group.webProductIds,'ziwei-island-palace-consult'])];
+  group.inputContract='기존 웹 계정 + 그 계정의 저장 세션 id 또는 pending=1';
+  group.storageContract='웹에서 구매한 저장 원문·미완료 부분을 기존 계정으로 재열람. 토스와 웹 구매 계정 연동 미구현';
+  group.reread=group.storageContract;group.verification='원본 Worker는 신규 준비·접근·생성·시작에 410 ISLAND_NOW_FREE. GET /result만 소유자·해금 회수 확인 후 기존 부분 반환';
+ }
+ if(group.id==='ziwei-island'){group.freeCalculation=true;group.tossLogin='게스트 공개 계산';group.reducedBundle='홈 진입 없음';}
  if(group.publicSections){
   group.freeCalculation=true;
   group.webSources=[...new Set([...group.webSources,...group.publicSections.map(s=>s.source)])];
