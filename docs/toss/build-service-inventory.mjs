@@ -443,6 +443,13 @@ for(const group of canonicalCandidates){
  if(['juyuk-turtle','kemet-oracle','royal-tea-oracle','stonehenge-runes','ifa-oracle'].includes(group.id))group.portStatus='이미 동작';
  if(['fortune-chat','neo-letter'].includes(group.id)){group.verification=letterProducts[0].verification;group.saleStatus='기본·질문 편지별 콘솔 원장 확인 필요';}
  if(group.id==='yeongnyangi')group.saleStatus='상품별 승인된 독립 SKU만 원장에 기록. 신규 판매 보류';
+ if(group.id==='olympus-oracle'){
+  group.inputContract='게스트의 오늘 생일 신탁, 소유 프로필 원본 7행성·ASC, 상대의 생일과 선택 시각';
+  group.resultRenderer='OlympusVIPLounge.jsx의 calcPlacements·TabResult·CompatTab·OracleTab 및 lib/fortune/olympus-daily.mjs';group.tossResult=group.resultRenderer;
+  group.storageContract='게스트 신탁은 현재 화면, 본인 프로필로 다시 계산. 상대 입력과 궁합은 화면 안에서 열람';group.reread=group.storageContract;
+  group.tossLogin='오늘의 신탁 공개. 본인 프로필의 8배치와 커플 궁합은 토스 로그인';
+  group.verification='olympus-browser.mjs 360px 일반 홈 → mock 로그인·원본 8배치 → 상대 생일·케미 4종. olympus-placements.test.mjs 로컬 Swiss 압축 해제·웹 도수 및 대체엔진 차단. 상대편은 원본 간이 배치';
+ }
  if(['manse','vedic','pet-saju'].includes(group.id))group.verification=(group.verification?group.verification+' · ':'')+'guest-calculators-browser.mjs 360px 홈, 비회원 계산. 기본 베다 local Swiss 원본, 만세력 원본 대운·명식, 반려동물 원본 오행·유료 로그인 경계';
  if(['vedic-ai','ziwei-ai','astrology-ai','new-year-ai','karma-destiny-ai','sukuyo-compatibility-ai','fusion-fortune','love-secret-ai'].includes(group.id))group.verification='expert-purchase-browser.mjs 7종 및 sukuyo-expert-browser.mjs 1종. 360px 일반 홈 → 상품별 입력·모의 결제와 생성 → 구매 기록·원문 재열람 → 다른 계정 URL 거절. expert-offers-browser.mjs 일반 판매 비활성';
  if(group.id==='life-book-ai'||group.id==='life-fortune-report')group.verification='life-reading-browser.mjs 360px 홈, 두 상품 각각의 모의 주문 → 원문 → 구매 기록 재열람·다른 계정 차단';

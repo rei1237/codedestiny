@@ -1,5 +1,5 @@
 {
-  "sourceCommit": "f2d7882b200134bbc7011bc4e84f51ade9ed5e2d",
+  "sourceCommit": "ddb783dfa81413091068362d6b5e29cc762b90e5",
   "sourceCounts": {
     "home": 63,
     "react": 18,
@@ -6068,10 +6068,10 @@
       "status": "local-partial",
       "tossRoute": "/olympus",
       "sku": null,
-      "inputContract": "웹 /olympus/ → 오늘의 신탁만 보기 → 수동 생년월일. 원본의 12별자리, 수호신, 날짜별 신탁·지령·행운 값",
-      "resultRenderer": "apps/toss/src/OlympusDaily.tsx + lib/fortune/olympus-daily.mjs (OlympusVIPLounge.jsx 공유)",
-      "storageContract": "게스트 수동 입력, 현재 화면 결과. 꽃돼지 프로필에서 여는 여덟 행성 라운지와 커플 궁합은 별도",
-      "verification": "studio-olympus-browser.mjs 360px 홈에서 게스트/별자리 경계 두 날짜/원본 지령과 행운 값 확인. 프로필 인계·여덟 배치와 궁합은 미이식",
+      "inputContract": "게스트의 오늘 생일 신탁, 소유 프로필 원본 7행성·ASC, 상대의 생일과 선택 시각",
+      "resultRenderer": "OlympusVIPLounge.jsx의 calcPlacements·TabResult·CompatTab·OracleTab 및 lib/fortune/olympus-daily.mjs",
+      "storageContract": "게스트 신탁은 현재 화면, 본인 프로필로 다시 계산. 상대 입력과 궁합은 화면 안에서 열람",
+      "verification": "olympus-browser.mjs 360px 일반 홈 → mock 로그인·원본 8배치 → 상대 생일·케미 4종. olympus-placements.test.mjs 로컬 Swiss 압축 해제·웹 도수 및 대체엔진 차단. 상대편은 원본 간이 배치",
       "webEntries": [
         "/index.html?action=openOlympusOracleModal"
       ],
@@ -6088,9 +6088,9 @@
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "일반 홈의 진입 코드 확인",
       "bundleVerification": "Linux AIT c3a960736 · 43460223398 · 360px 일반 홈에서 게스트 입력과 원본 결과 확인. private-bundle-public-readings.mjs tarot olympus; 네이티브 공유는 기기 미검증",
-      "tossLogin": "공개 입력 · 구매 없음",
-      "tossResult": "apps/toss/src/OlympusDaily.tsx + lib/fortune/olympus-daily.mjs (OlympusVIPLounge.jsx 공유)",
-      "reread": "게스트 수동 입력, 현재 화면 결과. 꽃돼지 프로필에서 여는 여덟 행성 라운지와 커플 궁합은 별도",
+      "tossLogin": "오늘의 신탁 공개. 본인 프로필의 8배치와 커플 궁합은 토스 로그인",
+      "tossResult": "OlympusVIPLounge.jsx의 calcPlacements·TabResult·CompatTab·OracleTab 및 lib/fortune/olympus-daily.mjs",
+      "reread": "게스트 신탁은 현재 화면, 본인 프로필로 다시 계산. 상대 입력과 궁합은 화면 안에서 열람",
       "saleStatus": "기본 계산은 구매 없음 · 부가 상품은 별도 행 참조"
     },
     {
