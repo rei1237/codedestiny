@@ -1,5 +1,8 @@
 /* 무료 3개월 홍보 배너(FreePromoBanner.tsx). 정적 셸 .cdh-promo(styles/home-funnel.css)와 같은 구성. */
 .banner {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
   display: grid;
   gap: 14px;
   width: 100%;
@@ -12,6 +15,20 @@
   text-align: left;
   box-sizing: border-box;
 }
+.banner::before {
+  content: "✦";
+  position: absolute;
+  z-index: 0;
+  top: 10px;
+  right: 18px;
+  color: var(--cd-yehwa-line-deep, #a97b3e);
+  font-size: 4rem;
+  line-height: 1;
+  opacity: .16;
+  pointer-events: none;
+  transform: rotate(12deg);
+}
+.banner > * { position: relative; z-index: 1; }
 .banner * { box-sizing: border-box; }
 .banner p { margin: 0; word-break: keep-all; }
 .badge {
@@ -52,7 +69,7 @@
 .head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px 24px; }
 .lead { display: grid; gap: 8px; flex: 1 1 260px; min-width: 0; }
 /* 꽃돼지 연이 진입점: 누르면 사주 입력(/ggulggul/ 셸)으로 간다. */
-.yeoni { display: flex; align-items: flex-end; gap: 2px; flex: 0 1 380px; margin-left: auto; color: var(--cd-text, #402a38); text-decoration: none; -webkit-tap-highlight-color: transparent; }
+.yeoni { display: flex; align-items: flex-end; gap: 2px; flex: 0 1 410px; min-height: 112px; margin-left: auto; color: var(--cd-text, #402a38); text-decoration: none; -webkit-tap-highlight-color: transparent; }
 .bubble {
   position: relative;
   flex: 1 1 auto;
@@ -80,16 +97,17 @@
   background: var(--cd-surface, #fff);
   transform: rotate(45deg);
 }
+.mascots { display: flex; align-items: flex-end; flex: 0 0 auto; }
 .yeoniImg {
   flex: 0 0 auto;
   width: 96px;
   height: 112px;
-  object-fit: cover;
-  object-position: 50% 0;
+  object-fit: contain;
   transform-origin: 50% 100%;
   transition: transform .25s ease;
   filter: drop-shadow(0 8px 10px color-mix(in srgb, var(--cd-accent, #b53660) 22%, transparent));
 }
+.yeongnyangiImg { width: 112px; height: 112px; margin-left: -22px; object-fit: contain; filter: drop-shadow(0 9px 12px rgb(0 0 0 / .34)); transform-origin: 50% 100%; }
 .yeoni:hover .yeoniImg,
 .yeoni:focus-visible .yeoniImg { transform: translateY(-4px) rotate(-4deg); }
 .yeoni:hover .bubble { border-color: var(--cd-accent, #b53660); }
@@ -141,6 +159,10 @@
 .actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 6px; }
 .cta,
 .share {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  gap: 9px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -155,15 +177,66 @@
   cursor: pointer;
   touch-action: manipulation;
 }
+.cta::before,
+.share::before { content: "✧"; flex: 0 0 auto; font-size: 1.1em; line-height: 1; }
+.cta::after,
+.share::after { content: ""; display: none; position: absolute; z-index: -1; right: -20px; bottom: -7px; width: 116px; height: 30px; background: currentColor; opacity: .13; pointer-events: none; }
 .cta { border: 1px solid var(--cd-accent, #b53660); background: var(--cd-accent, #b53660); color: var(--cd-surface, #fff); }
 .share { border: 1px solid color-mix(in srgb, var(--cd-accent, #b53660) 55%, transparent); background: var(--cd-surface, #fff); color: var(--cd-accent, #b53660); }
 .cta:focus-visible,
 .share:focus-visible { outline: 3px solid var(--cd-accent, #b53660); outline-offset: 3px; }
 .status { color: var(--cd-text-muted, #6b4d5e); font-size: .84rem; }
 .status:empty { display: none; }
+.yeongnyangi {
+  --cd-accent: var(--yn-gold);
+  --cd-surface: var(--yn-night);
+  --cd-text: var(--yn-ivory);
+  --cd-text-muted: var(--yn-muted);
+  width: min(1080px, calc(100% - 40px));
+  margin: 28px auto 8px;
+  border-color: var(--yn-line);
+  background: radial-gradient(circle at 14% 0%, color-mix(in srgb, var(--yn-gold) 13%, transparent), transparent 23rem), var(--yn-night);
+  color: var(--yn-ivory);
+  box-shadow: inset 0 1px color-mix(in srgb, var(--yn-gold) 18%, transparent), 0 18px 42px -30px rgb(0 0 0 / .8);
+}
+.yeongnyangi::before { content: ""; top: -38px; right: -34px; width: 210px; height: 164px; background: var(--yn-gold); opacity: .24; transform: none; -webkit-mask: var(--yn-yehwa-mask-branch-spray) top right / contain no-repeat; mask: var(--yn-yehwa-mask-branch-spray) top right / contain no-repeat; }
+.yeongnyangi .badge { background: var(--yn-gold); color: var(--yn-deep); }
+.yeongnyangi .title,
+.yeongnyangi .until { color: var(--yn-ivory); }
+.yeongnyangi .dday { border-color: var(--yn-gold); color: var(--yn-gold); }
+.yeongnyangi .bubble { border-color: var(--yn-line); background: var(--yn-surface); color: var(--yn-ivory); box-shadow: 0 12px 24px -18px rgb(0 0 0 / .9); }
+.yeongnyangi .bubble::after { border-color: var(--yn-line); background: var(--yn-surface); }
+.yeongnyangi .note,
+.yeongnyangi .status { color: var(--yn-muted); }
+.yeongnyangi .cta { border-color: var(--yn-gold); background: var(--yn-gold); color: var(--yn-deep); }
+.yeongnyangi .share { border-color: var(--yn-line); background: var(--yn-deep); color: var(--yn-ivory); }
+.yeongnyangi .cta::before,
+.yeongnyangi .share::before { content: ""; width: 19px; height: 19px; background: currentColor; -webkit-mask: var(--yn-yehwa-mask-sparkle) center / contain no-repeat; mask: var(--yn-yehwa-mask-sparkle) center / contain no-repeat; }
+.yeongnyangi .cta::after,
+.yeongnyangi .share::after { display: block; -webkit-mask: var(--yn-yehwa-mask-branch-h) right bottom / contain no-repeat; mask: var(--yn-yehwa-mask-branch-h) right bottom / contain no-repeat; }
+.yeongnyangi :is(.cta, .share, .yeoni):focus-visible { outline-color: var(--yn-gold); }
+.compact { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+.compact .head { align-items: center; }
+.compact .lead { flex-basis: 300px; }
+.compact .actions { margin-top: 0; }
 @media (max-width: 640px) {
+  .banner { padding: 18px; border-radius: var(--cd-r-card, 20px); }
+  .banner::before { top: 8px; right: 12px; font-size: 3rem; opacity: .14; }
+  .groups { grid-template-columns: minmax(0, 1fr); gap: 8px; }
+  .group { padding: 10px 12px 12px; }
+  .chips { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 4px; scrollbar-width: thin; scroll-snap-type: x proximity; }
+  .chips li { scroll-snap-align: start; }
+  .chip { min-height: 44px; }
   .actions > * { flex: 1 1 100%; }
+  .cta { min-height: 56px; }
+  .share { min-height: 48px; }
   .yeoni { flex: 1 1 100%; }
-  .yeoniImg { width: 84px; height: 98px; }
+  .yeoniImg { width: 88px; height: 104px; }
+  .yeongnyangiImg { width: 94px; height: 100px; margin-left: -18px; }
   .bubble { font-size: .86rem; margin-bottom: 26px; }
+  .yeongnyangi { width: calc(100% - 32px); margin: 18px auto 6px; }
+  .yeongnyangi::before { top: -26px; right: -22px; width: 132px; height: 102px; font-size: 0; opacity: .16; }
+  .yeongnyangi .head { gap: 8px; }
+  .yeongnyangi .yeoni { min-height: 102px; }
+  .compact .actions { display: grid; grid-template-columns: minmax(0, 1fr); }
 }
