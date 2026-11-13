@@ -76,8 +76,13 @@ bucket_name = "codedestinyassets"
 # with `wrangler secret put` or in the Cloudflare dashboard.
 # Turnstile secret:
 # `wrangler secret put TURNSTILE_SECRET_KEY`
+[[mtls_certificates]]
+binding = "TOSS_MTLS"
+certificate_id = "54538b62-1dfb-4189-a7af-9b1356c536bb"
+
 [vars]
 NODE_ENV = "production"
+TOSS_MTLS_EXPIRES_AT = "2027-12-03T00:27:15Z"
 BUSINESS_API_SALES = "saju,ziwei,tarot,astrology,vedic,sukuyo"
 # 🔴 결제 전용 소켓 레인 — 스테이징 재실측(2026-08-20 wrangler tail: DB_BUSY 503 재현) 후 켰고,
 # 2026-08-21 재실측(체크아웃 3회, wrangler tail)에서도 /api/billing/checkout·/api/prepare/v2 가

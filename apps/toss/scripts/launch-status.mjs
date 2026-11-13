@@ -22,7 +22,7 @@ const deferred=inventory.canonicalCandidates.filter(item=>!selectedIds.has(item.
 const approvedSkus=items=>new Set(items.filter(item=>item.approved===true&&typeof item.sku==='string'&&item.sku.length>0&&item.sku.trim()===item.sku).map(item=>item.sku));
 const approvedEntries=[...APPROVED_TOSS_PRODUCTS,...APPROVED_TOSS_TAROT_LIBRARY_PRODUCTS,...APPROVED_TOSS_NATIVE_PRODUCTS].filter(item=>item.approved===true);
 const skuCounts=new Map();for(const item of approvedEntries)if(typeof item.sku==='string'&&item.sku.length>0&&item.sku.trim()===item.sku)skuCounts.set(item.sku,(skuCounts.get(item.sku)||0)+1);
-// Each consultation keeps its own purchase rights and original server price.
+// The web registry price stays unchanged; Toss records the exact console price.
 const reviewProducts=reviewProductIds.map(productId=>{
   const serviceId=productId==='chat_saju'?'yeoni':'yeongnyangi';
   const featureKey=serviceId==='yeoni'?'fortune-chat-consultation':'yeongnyangi-'+productId.replace('_','-');
@@ -30,8 +30,10 @@ const reviewProducts=reviewProductIds.map(productId=>{
   if(!Number.isSafeInteger(amount)||amount<=0)throw new Error('Review product missing its registry price: '+productId);
   const matching=APPROVED_TOSS_PRODUCTS.filter(item=>item.approved&&item.productId===productId&&(item.serviceId||'yeongnyangi')===serviceId);
   const item=matching.length===1?matching[0]:null;
-  const approved=Boolean(item&&skuCounts.get(item.sku)===1&&approvedProduct(item.sku).approvedPriceKRW===amount);
-  return {productId,serviceId,featureKey,registryPriceKRW:amount,approved,sku:approved?item.sku:null};
+  let approved=false;
+  try{approved=Boolean(item&&skuCounts.get(item.sku)===1&&approvedProduct(item.sku)===item);}catch{}
+  return {productId,serviceId,featureKey,registryPriceKRW:amount,tossSupplyPriceKRW:approved?item.supplyPriceKRW:null,tossPriceKRW:approved?item.approvedPriceKRW:null,
+    priceDeltaKRW:approved?item.approvedPriceKRW-amount:null,approved,sku:approved?item.sku:null};
 });
 const releaseSource=fs.readFileSync(path.join(root,'apps/toss/src/release.ts'),'utf8');
 const report={

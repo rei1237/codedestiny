@@ -374,10 +374,11 @@ export async function verifyMobilePayments({base,products,systemNames}){
     // AppVersionGuard's cache-busted /version.json read is cancelled the same way and already falls back in its catch.
     const cancelledPath=message.match(/^\/(?:127\.0\.0\.1|localhost):\d+(\/api\/[^ ]+|\/version\.json(?=\?t=\d+ ))(?:\?t=\d+)? due to access control checks\.$/)?.[1];
     const path=cancelledPath?.split('?')[0];
-    // ReviewRewardBanner catches its aborted read on result reload. WebKit still
-    // reports a CORS pageerror for the fulfilled fixture; require both HTTP proof
-    // and the complete, paid result before classifying this one read as cancellation.
-    if(path==='/api/reviews/products'&&detail?.page==='/yeongnyangi/result/'
+    // ReviewRewardBanner and its inline composer catch their aborted reads on result reload.
+    // WebKit still reports CORS pageerrors for the fulfilled fixtures; require both HTTP proof
+    // and the complete, paid result before classifying either review read as cancellation.
+    const reviewBannerReads=new Set(['/api/reviews/products','/api/reviews/eligibility']);
+    if(reviewBannerReads.has(path)&&detail?.page==='/yeongnyangi/result/'
       &&f.state.approved&&f.row.paid&&f.row.state==='COMPLETED'&&f.row.chapters.length===product.chapterCount
       &&f.state.http.some(response=>response.path===path&&response.method==='GET'&&response.status===200))return false;
     // generation-interrupted leaves the library right after load. Library catches its GET list read and retries once

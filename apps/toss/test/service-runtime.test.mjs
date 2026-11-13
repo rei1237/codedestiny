@@ -97,12 +97,15 @@ test('canonical catalog is fail-closed; profiles use owner-scoped immutable retr
  }}]});
  try{
   const canonicalModule=await import('data:text/javascript;base64,'+Buffer.from(compiled.outputFiles[0].text).toString('base64'));
-  assert.ok(canonicalModule.canonicalProducts().every(row=>!row.available));
-  const product=canonicalModule.canonicalProducts().find(row=>row.id==='saju_mackerel');
-  const approved=[{productId:product.id,sku:'test-only-sku',approved:true,approvedPriceKRW:product.priceKRW,priceEvidence:'injected-test',serviceId:'yeongnyangi'}];
-  assert.equal(canonicalModule.canonicalProducts(approved).filter(row=>row.available).length,1);
-  assert.equal(canonicalModule.canonicalProducts([{...approved[0],approvedPriceKRW:product.priceKRW+1}]).filter(row=>row.available).length,0);
+  assert.ok(canonicalModule.canonicalProducts([]).every(row=>!row.available));
+  const product=canonicalModule.canonicalProducts([]).find(row=>row.id==='saju_mackerel');
+  const approved=[{productId:product.id,sku:'test-only-sku',approved:true,supplyPriceKRW:9000,approvedPriceKRW:9900,priceEvidence:'injected-test',serviceId:'yeongnyangi'}];
+  const platformProduct=canonicalModule.canonicalProducts(approved).find(row=>row.available);
+  assert.equal(platformProduct.priceKRW,9900);
+  assert.equal(product.priceKRW,10000);
+  assert.equal(canonicalModule.canonicalProducts([{...approved[0],approvedPriceKRW:9901}]).filter(row=>row.available).length,0);
   assert.throws(()=>canonicalModule.canonicalSale(product.id,[]),/TOSS_PRODUCT_NOT_APPROVED/);
+  assert.throws(()=>canonicalModule.canonicalSale(product.id,[approved[0],{...approved[0],sku:'second-test-sku'}]),/TOSS_PRODUCT_NOT_APPROVED/);
   const profile={profileId:'same-id',name:'first',birth:{year:1990}};
   await canonicalModule.canonicalProfiles({ownerId:'owner-a'},{profile,userId:'owner-b'});
   await canonicalModule.canonicalProfiles({ownerId:'owner-a'},{profile:{...profile,name:'overwrite'}});

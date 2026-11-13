@@ -11,7 +11,7 @@ import { OPERATOR_NAME, SUPPORT_EMAIL, SUPPORT_MAILTO } from "../../lib/site-pol
 
 // 🔴 worker/routes/auth.js 의 AUTH_PRIVACY_VERSION 과 **같은 값이어야 한다**(수동 동기화).
 // 한쪽만 고치면 사용자가 본 방침과 DB 에 기록되는 동의 버전이 조용히 어긋난다.
-export const PRIVACY_POLICY_EFFECTIVE_DATE = "2026-10-10";
+export const PRIVACY_POLICY_EFFECTIVE_DATE = "2026-11-13";
 
 export const PRIVACY_POLICY_SECTIONS = [
   {
@@ -62,6 +62,10 @@ export const PRIVACY_POLICY_SECTIONS = [
           로그인 세션은 발급 후 한 시간 동안 유효합니다. 계정의 연결 해제가 처리되면 해당 계정의 세션이 삭제되고 접근이 중단됩니다.
           이때 서버에는 암호화된 회원 식별자와 비활성 계정 기록이 남습니다.
           기록의 열람이나 삭제는 <a href="/contact/">고객센터</a>로 요청할 수 있습니다.
+        </p>
+        <p>
+          인앱 결제를 이용하면 상품 식별자(SKU), 주문 상태, 결제 당시 판매가, 결과 연결 정보와 구매 복구 기록을 처리합니다.
+          카드번호 등 결제수단 원문은 저장하지 않으며, 구매 결과 재열람·중복 지급 방지·환불 상태 확인을 위해 주문 기록을 사용합니다.
         </p>
       </>
     ),
@@ -133,9 +137,32 @@ export const PRIVACY_POLICY_SECTIONS = [
           <li>
             <strong>KG이니시스</strong> — 신용카드 등 결제 수단 승인 및 매입. 제공 항목: 이름, 휴대폰 번호, 이메일, 결제 정보
           </li>
+          <li>
+            <strong>Cloudflare, Inc.</strong> — 웹·API 호스팅, 전송 구간 보호, 트래픽 보안과 오류 기록 처리. 처리 항목: 접속 정보, 암호화된 토스 회원 식별자와 세션 요청 정보
+          </li>
+          <li>
+            <strong>MongoDB, Inc.</strong> — 데이터베이스 호스팅과 운영 지원. 처리 항목: 암호화된 토스 회원 식별자, 계정 상태, 구매·복구·결과 연결 기록
+          </li>
         </ul>
         <p>
           위탁받은 업체는 위탁 목적 범위에서만 정보를 처리하며, 보유 기간은 위탁 계약 종료 시 또는 관계 법령이 정한 기간까지입니다.
+        </p>
+        <h3 id="overseas-transfer">앱인토스 이용자의 개인정보 국외 이전</h3>
+        <p>
+          Cloudflare와 MongoDB는 미국 법인으로, 서비스 제공과 보안·운영 지원 과정에서 아래 정보가 미국으로 이전되거나 미국에서 처리될 수 있습니다.
+          MongoDB Atlas의 주 데이터 저장 지역은 대한민국 서울이며, 국외 처리는 미국 법인의 서비스 운영과 지원 범위에서 이루어질 수 있습니다.
+        </p>
+        <ul>
+          <li>
+            <strong>Cloudflare, Inc. (미국, privacyquestions@cloudflare.com)</strong> — 암호화된 토스 회원 식별자, 세션 요청 정보와 접속 기록을 웹·API 전송, 보안, 장애 대응 목적으로 서비스 이용 시 암호화된 통신망을 통해 이전합니다. 접속 기록은 최대 3개월, 그 밖의 정보는 처리 목적 달성 또는 위탁 계약 종료 시까지 보관합니다.
+          </li>
+          <li>
+            <strong>MongoDB, Inc. (미국, privacy@mongodb.com)</strong> — 암호화된 토스 회원 식별자, 계정 상태, 구매·복구·결과 연결 기록을 데이터베이스 호스팅과 운영 지원 목적으로 서비스 이용 시 암호화된 통신망을 통해 처리합니다. 회원 삭제 요청 또는 처리 목적 달성 시까지 보관하되, 결제 기록은 5년, 소비자 불만·분쟁 기록은 3년 등 관계 법령이 정한 기간을 따릅니다.
+          </li>
+        </ul>
+        <p>
+          국외 이전에 동의하지 않으면 토스 로그인과 인앱 결제 기능을 이용할 수 없습니다. 로그인 없이 제공되는 기본 운세 기능은 계속 이용할 수 있습니다.
+          국외 이전 동의의 철회와 개인정보 삭제는 <a href="/contact/">고객센터</a>로 요청할 수 있습니다.
         </p>
       </>
     ),

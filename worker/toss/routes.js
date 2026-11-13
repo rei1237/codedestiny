@@ -75,7 +75,7 @@ export async function handleTossRoutes(request,env) {
     if(path==='/catalog'&&request.method==='GET')return reply({products:APPROVED_TOSS_PRODUCTS.filter(item=>isReviewSale(item.productId,item.serviceId)).map(item=>{
       const approved=approvedProduct(item.sku),product=resolveStoredProduct(approved.productId),service=consultationService(approved);
       return {id:consultationSelection(approved),productId:product.id,serviceId:service.id,name:`${service.name} ${product.name} ${product.fishName} 상담`,sku:item.sku,approvedPriceKRW:item.approvedPriceKRW,
-        chapters:product.chapterCount,available:item.approved&&product.priceKRW===item.approvedPriceKRW};
+        chapters:product.chapterCount,available:item.approved===true};
     })});
     if(path==='/tarot-library/catalog'&&request.method==='GET')return reply({flows:APPROVED_TOSS_TAROT_LIBRARY_PRODUCTS.map(item=>{
       const product=tarotLibraryProduct(item);
@@ -454,7 +454,7 @@ export async function handleTossRoutes(request,env) {
         ...(service.persona?{domain:canonical.domain,fishId:canonical.fishId}:{}),
         questionDecision:decision,consultationKind:decision.target==='pair'?'compatibility':'ask',topicId:questionTopic(decision.category),
         ...(tarot?{tarotSpreadId:input.tarotSpreadId,tarotInputs:input.tarotInputs}:{timeUnknown:form.birth.date.timeUnknown}),...(partnerProfileId?{partnerProfileId,partnerTimeUnknown:form.partnerBirth.date.timeUnknown}:{}),
-        consultationAttemptId:form.attemptId,locale:'ko',timezone:'Asia/Seoul',voiceStyle:'honorific'}, {persona:service.persona});
+        consultationAttemptId:form.attemptId,locale:'ko',timezone:'Asia/Seoul',voiceStyle:'honorific'}, {persona:service.persona,checkoutAmountKRW:product.approvedPriceKRW});
       return reply({id:String(row._id),productId:row.productId,amountKRW:row.amountKRW,state:row.state,tarotSpread:publicTarotSpread(row.snapshot),
         manifest:row.snapshot.manifest.map(({id,title,ordinal})=>({id,title,ordinal}))});
     }

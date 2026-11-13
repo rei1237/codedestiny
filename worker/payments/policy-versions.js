@@ -14,7 +14,7 @@
  */
 export const ORDER_POLICY_VERSIONS = Object.freeze({
   terms: "2026-11-05",
-  privacy: "2026-10-10",
+  privacy: "2026-11-13",
 });
 
 /**

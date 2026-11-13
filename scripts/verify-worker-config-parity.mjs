@@ -76,11 +76,6 @@ const MUST_DIFFER_KEYS = new Set([
 
 /** 스테이징에만 있어야 하는 키. 프로덕션에 나타나면 실패한다. */
 const STAGING_ONLY_KEYS = new Set([
-  // First Toss review uses a staging client certificate. Production binding
-  // requires its own approved rollout and expiry.
-  "mtls_certificates.TOSS_MTLS.binding",
-  "mtls_certificates.TOSS_MTLS.certificate_id",
-  "vars.TOSS_MTLS_EXPIRES_AT",
   "vars.APP_ENV",
   "vars.STAGING_LLM_MOCK_ENABLED",
   "vars.CORS_ORIGIN",
@@ -126,6 +121,13 @@ const REQUIRED_ON_KEYS = new Map([
 const PINNED_PLACEMENT = new Map([
   ["placement.mode", "targeted"],
   ["placement.region", "aws:ap-northeast-2"],
+]);
+
+/** 토스 파트너 API는 두 환경 모두 승인된 인증서와 실제 만료일을 가져야 한다. */
+const REQUIRED_TOSS_MTLS = new Map([
+  ["mtls_certificates.TOSS_MTLS.binding", "TOSS_MTLS"],
+  ["mtls_certificates.TOSS_MTLS.certificate_id", "54538b62-1dfb-4189-a7af-9b1356c536bb"],
+  ["vars.TOSS_MTLS_EXPIRES_AT", "2027-12-03T00:27:15Z"],
 ]);
 
 const PRODUCTION_ORIGIN = "https://code-destiny.com";
@@ -414,6 +416,15 @@ export function compareConfigs(productionText, stagingText) {
     }
   }
 
+  for (const [key, expected] of REQUIRED_TOSS_MTLS) {
+    for (const [label, flat] of [["프로덕션", production], ["스테이징", staging]]) {
+      const value = flat.get(key);
+      if (value === expected) continue;
+      const actual = value === undefined ? "키가 없다" : `${render(value)} 다`;
+      failures.push(`${key}: ${label} 설정에서 ${render(expected)} 여야 하는데 ${actual}. 토스 파트너 호출은 인증서 또는 만료값이 없으면 중단된다.`);
+    }
+  }
+
   return failures;
 }
 
@@ -439,8 +450,13 @@ const BASE_PRODUCTION = [
   'binding = "FEEDBACK_IMAGES_BUCKET"',
   'bucket_name = "bugs"',
   '',
+  '[[mtls_certificates]]',
+  'binding = "TOSS_MTLS"',
+  'certificate_id = "54538b62-1dfb-4189-a7af-9b1356c536bb"',
+  '',
   '[vars]',
   'NODE_ENV = "production"',
+  'TOSS_MTLS_EXPIRES_AT = "2027-12-03T00:27:15Z"',
   'ENABLE_FORTUNE_CHAT_CONSULTATIONS = "true"',
   'SITE_BASE_URL = "https://code-destiny.com"',
   'AUTH_API_BASE_URL = "https://code-destiny.com"',
@@ -474,12 +490,12 @@ const BASE_STAGING = [
   '',
   '[[mtls_certificates]]',
   'binding = "TOSS_MTLS"',
-  'certificate_id = "test-certificate"',
+  'certificate_id = "54538b62-1dfb-4189-a7af-9b1356c536bb"',
   '',
   '[vars]',
   'NODE_ENV = "production"',
   'APP_ENV = "staging"',
-  'TOSS_MTLS_EXPIRES_AT = "2030-01-01T00:00:00Z"',
+  'TOSS_MTLS_EXPIRES_AT = "2027-12-03T00:27:15Z"',
   'STAGING_LLM_MOCK_ENABLED = "true"',
   'CORS_ORIGIN = "https://staging.code-destiny.com"',
   'PAYMENT_TEST_AMOUNT_KRW = "1000"',
