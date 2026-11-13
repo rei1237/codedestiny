@@ -24,5 +24,5 @@ test('each public Saju and Ziwei chapter keeps its real entry and independent RP
  assert.equal(new Set(chapters.map(c=>c.featureKey)).size,11);
  assert.ok(chapters.every(c=>c.login==='공개'&&!c.iap&&c.verification.includes('360px')));
  assert.equal(chapters.filter(c=>c.tossRoute==='/ziwei/sections').length,4);
- assert.equal(inventory.canonicalCandidates.find(c=>c.id==='life-skill-tree').remainingSubflows[0].status,'미이식');
+ assert.equal(inventory.canonicalCandidates.find(c=>c.id==='life-skill-tree').questProgress.status,'일부만 이식');
 });

@@ -192,8 +192,12 @@ for(const [featureKey,title] of Object.entries(TOSS_PUBLIC_SECTIONS)){
    resultRenderer:'apps/toss/src/PublicSectionReading.tsx',storageContract:section.storage,verification:section.verification});
 }
 groups.get('ziwei').verification='기본 열두 궁 명반 및 상세 4종 공개 계산. 다른 궁합·연운·섬·상담은 별도 계약. 실기기 미검증';
-groups.get('life-skill-tree').remainingSubflows=[{id:'rpg-quests',status:'미이식',source:'js/entertain-engine.js:requestRpgQuestCompletion → CDLevel',
- policy:'웹 게스트는 기기 EXP·일일 퀘스트 저장, 로그인 계정은 CDLevel 프로필 진행도. 토스에서는 클래스 시트만 열림'}];
+groups.get('life-skill-tree').questProgress={status:'일부만 이식',source:'js/entertain-engine.js:buildRpgTemplate, buildRpgFallbackQuests → js/destiny-profile.js:CDLevel',
+ policy:'게스트 기기 저장. 로그인하면 현재 계정에 한 번 이관. KST 일일 한도·완료 로그·EXP 적립은 worker/routes/rpg.js 원장',
+ implementation:'apps/toss/src/rpg-progress.ts → /canonical/rpg/progress, quest, adopt',
+ verification:'public-sections-browser.mjs 게스트 3회 완료·비밀 운세, rpg-progress.test.mjs 소유·중복·한도, rpg-session.test.mjs 이관 응답 유실·두 계정 격리. 운영 Worker와 토스 기기 미검증'};
+groups.get('life-skill-tree').storageContract='클래스 시트는 화면 메모리. 게스트의 퀘스트·EXP는 기기 저장, 로그인 후 계정별 진행 조회·완료·이관';
+groups.get('energy-travel').storageContract='리포트는 화면 메모리. 최근 여행지·룰렛 당첨 ID는 기기에서 게스트·토스 계정과 출생 입력별로 분리해 앱 재실행 후 복원';
 for(const flow of TOSS_TAROT_LIBRARY_FLOWS){
  const group=groups.get(flow.id);
  if(!group)throw new Error('Missing discovered tarot flow: '+flow.id);

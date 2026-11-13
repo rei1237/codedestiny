@@ -1,5 +1,5 @@
 {
-  "sourceCommit": "2d006ac6b23b37041904a1b1bdf7940cf980f632",
+  "sourceCommit": "00e176cc9be3a4033aebda9da7ded59b11bd0f45",
   "sourceCounts": {
     "home": 63,
     "react": 18,
@@ -3595,7 +3595,7 @@
       "sku": null,
       "inputContract": "출생 날짜·시각·달력·성별·국내 출생 도시",
       "resultRenderer": "apps/toss/src/PublicSectionReading.tsx",
-      "storageContract": "현재 화면 메모리",
+      "storageContract": "리포트는 화면 메모리. 최근 여행지·룰렛 당첨 ID는 기기에서 게스트·토스 계정과 출생 입력별로 분리해 앱 재실행 후 복원",
       "webEntitlement": {
         "featureKey": "rpt_energyCoordCard",
         "bundleKey": "saju_lifetime_bundle",
@@ -3639,7 +3639,7 @@
       "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
       "tossLogin": "공개 입력 · 구매 없음",
       "tossResult": "apps/toss/src/PublicSectionReading.tsx",
-      "reread": "현재 화면 메모리"
+      "reread": "리포트는 화면 메모리. 최근 여행지·룰렛 당첨 ID는 기기에서 게스트·토스 계정과 출생 입력별로 분리해 앱 재실행 후 복원"
     },
     {
       "id": "face-reading",
@@ -4570,7 +4570,7 @@
       "sku": null,
       "inputContract": "출생 날짜·시각·달력·성별·국내 출생 도시",
       "resultRenderer": "apps/toss/src/PublicSectionReading.tsx",
-      "storageContract": "현재 화면 메모리",
+      "storageContract": "클래스 시트는 화면 메모리. 게스트의 퀘스트·EXP는 기기 저장, 로그인 후 계정별 진행 조회·완료·이관",
       "webEntitlement": {
         "featureKey": "rpt_skillTreeCard",
         "bundleKey": "saju_lifetime_bundle",
@@ -4582,7 +4582,7 @@
       "publicSections": [
         {
           "featureKey": "rpt_skillTreeCard",
-          "title": "인생 스킬 트리 · 클래스 시트",
+          "title": "인생 스킬 트리와 일일 퀘스트",
           "webEntry": "js/core/saju/reportDashboard.js",
           "source": "worker/routes/saju-section.js → worker/lib/saju-section/report.js:buildSajuSectionHtml",
           "input": "출생 날짜·시각·달력·성별·국내 출생 도시",
@@ -4595,14 +4595,13 @@
         }
       ],
       "verification": "apps/toss/test/public-sections.test.mjs 원본 HTTP 응답 동등성 · public-sections-browser.mjs 360px 일반 홈에서 결과 열람. Worker 승격·실기기 미검증",
-      "remainingSubflows": [
-        {
-          "id": "rpg-quests",
-          "status": "미이식",
-          "source": "js/entertain-engine.js:requestRpgQuestCompletion → CDLevel",
-          "policy": "웹 게스트는 기기 EXP·일일 퀘스트 저장, 로그인 계정은 CDLevel 프로필 진행도. 토스에서는 클래스 시트만 열림"
-        }
-      ],
+      "questProgress": {
+        "status": "일부만 이식",
+        "source": "js/entertain-engine.js:buildRpgTemplate, buildRpgFallbackQuests → js/destiny-profile.js:CDLevel",
+        "policy": "게스트 기기 저장. 로그인하면 현재 계정에 한 번 이관. KST 일일 한도·완료 로그·EXP 적립은 worker/routes/rpg.js 원장",
+        "implementation": "apps/toss/src/rpg-progress.ts → /canonical/rpg/progress, quest, adopt",
+        "verification": "public-sections-browser.mjs 게스트 3회 완료·비밀 운세, rpg-progress.test.mjs 소유·중복·한도, rpg-session.test.mjs 이관 응답 유실·두 계정 격리. 운영 Worker와 토스 기기 미검증"
+      },
       "webEntries": [
         "/ggulggul/ 사주결과 인생스킬트리 타일",
         "js/core/saju/reportDashboard.js:sajurpg -> skillTreeCard",
@@ -4623,7 +4622,7 @@
       "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
       "tossLogin": "공개 입력 · 구매 없음",
       "tossResult": "apps/toss/src/PublicSectionReading.tsx",
-      "reread": "현재 화면 메모리"
+      "reread": "클래스 시트는 화면 메모리. 게스트의 퀘스트·EXP는 기기 저장, 로그인 후 계정별 진행 조회·완료·이관"
     },
     {
       "id": "love-code",
