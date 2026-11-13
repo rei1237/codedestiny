@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-11-13
-next: 기능 단위 커밋 뒤 최신 origin/main을 병합하고 pre-push를 실행한다.
+next: origin/main CI 상태를 확인한 뒤 현재 HEAD를 main으로 전달하고 새 main CI를 한 번 확인한다.
 ---
 
 # 앱인토스 유료 상담 결제 활성화·출시
@@ -19,6 +19,7 @@ next: 기능 단위 커밋 뒤 최신 origin/main을 병합하고 pre-push를 �
 - 토스 콘솔에 소모품 5개를 생성했으며 모두 비노출 상태다.
 - 실제 SKU, 공급가, VAT 포함 판매가, 증거 URL과 1024px 불투명 이미지를 원장에 반영했다.
 - `NEW_PURCHASES_AVAILABLE=false`, `TOSS_RELEASE_READY=false/미설정` 상태를 유지한다.
+- 코드 커밋: `2db788061`, 설정·개인정보 커밋: `dce6f135d`, 공개 미러 커밋: `eb6642b51`.
 
 ## 승인 상태
 
@@ -53,8 +54,9 @@ next: 기능 단위 커밋 뒤 최신 origin/main을 병합하고 pre-push를 �
 - [x] 테스트 추가 및 앱 테스트 1,440개·타입 검사 통과
 - [x] 개인정보처리방침·로그인 동의 초안·mTLS 설정 준비
 - [x] `npm run check:fast` 종료 확인 — Jest 476개 스위트·7,978개 테스트 통과(1개 스킵)
-- [ ] 기능 단위 커밋
-- [ ] `npm run check:pre-push`
+- [x] 기능 단위 커밋
+- [x] 최신 origin/main 병합 및 Toss 앱 1,440개 테스트·타입 검사 재확인
+- [x] `npm run check:pre-push`
 - [ ] origin/main·CI 상태 확인 후 main 전달
 - [ ] main CI 1회 확인
 - [ ] 프로덕션 승격 승인 후 비밀값/콜백/로그인 등록
