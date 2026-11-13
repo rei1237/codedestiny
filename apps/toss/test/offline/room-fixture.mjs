@@ -1,6 +1,7 @@
 // Local devtools only. No production price, receipt, calculation or generated text.
 const tea={service:'tea',name:'가상 찻집 사주',featureKey:'fortune-tea-house-saju-consultation',path:'/fortune-tea-house/'};
-const rooms=[tea];
+const neo={service:'neo',name:'가상 네오 전략 상담',featureKey:'neo-operation-room-consultation',path:'/neo-operation-room/result/'};
+const rooms=[tea,neo];
 export const roomProducts=rooms.map(room=>({
   id:'native:'+room.service+':'+room.featureKey,name:room.name,featureKey:room.featureKey,
   sku:'mock-unregistered-room-'+room.service,available:true,approvedPriceKRW:1,
@@ -23,7 +24,8 @@ export function roomPurchases(state){
     const room=rooms.find(item=>item.service===row.service);
     return {requestId:row.id,orderId:row.orderId,sku:row.sku,serviceId:room.service,nativeService:room.service,
       productId:room.featureKey,status:'PURCHASED',state:row.result?'COMPLETED':'PENDING',createdAt:row.createdAt,
-      href:room.path+'?'+(row.result?'resultId=':'recoverResultId=')+encodeURIComponent(row.resultId),
+      href:room.service==='neo'?room.path+'?attemptId='+encodeURIComponent(row.result?row.resultId:'toss_'+row.id):
+        room.path+'?'+(row.result?'resultId=':'recoverResultId=')+encodeURIComponent(row.resultId),
       question:row.input.question,resultId:row.resultId};
   });
 }
@@ -51,17 +53,26 @@ export async function roomRequest(request,url,path,state,save,now){
       return reply(row);
     }
   }
-  if(path==='/orders/restore'&&post){
-    const {sku,orderId}=await request.clone().json();
+  if((path==='/orders/restore'||path==='/orders/grant')&&post){
+    const {sku,orderId,requestId}=await request.clone().json();
     if(roomProducts.some(p=>p.sku===sku)){
+      if(path==='/orders/grant'){
+        const row=state.intents.get(requestId);
+        if(!row||row.sku!==sku||!orderId)return fail('ORDER_MISMATCH',403);
+        if(row.orderId&&row.orderId!==orderId||state.orders.has(orderId)&&state.orders.get(orderId)!==row.id)return fail('ORDER_ALREADY_ASSIGNED',409);
+        if(!row.paid){
+          row.paid=true;row.orderId=orderId;state.orders.set(orderId,row.id);
+          if(!save()){row.paid=false;row.orderId=null;state.orders.delete(orderId);return fail('STORAGE_UNAVAILABLE',503);}
+        }
+        return reply({orderId,requestId:row.id,entitlement:'granted',durable:true});
+      }
       const row=state.intents.get(state.orders.get(orderId));
       return row?.paid&&row.sku===sku&&row.orderId===orderId?reply({orderId,requestId:row.id,entitlement:'granted',durable:true}):fail('ORDER_MISMATCH',403);
     }
   }
   if(path==='/canonical/records'&&!post){
-    const group=url.searchParams.get('group'),source=url.searchParams.get('source');
-    if(group&&group!=='report'&&group!=='all')return null;
-    const items=roomPurchases(state).filter(r=>!source||source==='all'||source===r.serviceId).map(r=>({
+    const group=url.searchParams.get('group'),source=url.searchParams.get('source'),q=url.searchParams.get('q')?.trim();
+    const items=roomPurchases(state).filter(r=>(!group||group==='all'||group==='report')&&(!source||source==='all'||source===r.serviceId)&&(!q||r.question.includes(q))).map(r=>({
       id:r.resultId,key:r.serviceId+':'+r.resultId,group:'report',source:r.serviceId,serviceId:r.serviceId,
       serviceName:rooms.find(room=>room.service===r.serviceId).name,title:r.question,question:r.question,
       createdAt:r.createdAt,status:r.state==='COMPLETED'?'completed':'generating',href:r.href,nativeHref:r.href,
@@ -80,6 +91,35 @@ export async function roomRequest(request,url,path,state,save,now){
     const id=path.split('/').at(-1);
     const row=[...state.intents.values()].find(r=>r.service==='tea'&&r.resultId===id);
     return row?.paid&&row.result?reply({ok:true,result:row.result}):fail('RESULT_NOT_FOUND',404);
+  }
+  if(path==='/canonical/fortune-tea-house/pending'&&!post){
+    const id=url.searchParams.get('resultId');
+    const row=[...state.intents.values()].reverse().find(r=>r.service==='tea'&&r.paid&&!r.result&&(!id||r.resultId===id));
+    return row?reply({ok:true,status:'partial',retryable:true,resultId:row.resultId,completedSections:[],requestPayload:row.input},202):
+      fail('RESULT_NOT_FOUND',404);
+  }
+  if(path==='/canonical/neo-operation-room/start'&&post){
+    const body=await request.json(),key=requestKey(body);
+    const row=[...state.intents.values()].find(r=>r.service==='neo'&&
+      (key&&requestKey(r.input)===key||body.sessionId&&[r.resultId,'toss_'+r.id].includes(body.sessionId)));
+    if(!row?.paid)return fail('PAYMENT_REQUIRED',402);
+    if(key&&(row.input.question!==body.question||row.input.selectedMethod!==body.selectedMethod))return fail('REQUEST_INPUT_MISMATCH',409);
+    if(!row.result){
+      const text='[테스트 전용] 네오가 저장한 브리핑 원문입니다.';
+      row.result={ok:true,id:row.resultId,sessionId:row.resultId,status:'completed',selectedMethod:row.input.selectedMethod,
+        question:row.input.question,topic:row.input.topic,intensity:row.input.intensity,
+        initialBriefing:{selectedMethod:row.input.selectedMethod,operationTitle:text,neoOpening:text,coreDiagnosis:text,
+          frontlineSummary:text,actionOrders:[text],methodEvidence:[],sevenDayMission:[],realityCheckQuestions:[]},
+        resultUrl:neo.path+'?attemptId='+encodeURIComponent(row.resultId),createdAt:row.createdAt};
+      row.generationCount=1;save();
+    }
+    return reply(row.result);
+  }
+  if(path==='/canonical/neo-operation-room/result'&&!post){
+    const id=url.searchParams.get('attemptId');
+    const row=[...state.intents.values()].find(r=>r.service==='neo'&&[r.resultId,'toss_'+r.id,requestKey(r.input)].includes(id));
+    if(!row?.paid)return fail('RESULT_NOT_FOUND',404);
+    return row.result?reply(row.result):reply({ok:true,status:'generating',sessionId:'toss_'+row.id},202);
   }
   return null;
 }

@@ -2918,9 +2918,9 @@ export default function NeoOperationRoomPage({ paymentSurface = "web", TossPrice
                   <em>{busy ? "Preparing Consultation" : "Consultation"}</em>
                 </span>
               </button>
-              <p className={styles.startHint}>
+              {paymentSurface === "web" && <p className={styles.startHint}>
                 {formCopy["launchConfirm.hint"]}
-              </p>
+              </p>}
             </div>
             ) : null}
 
