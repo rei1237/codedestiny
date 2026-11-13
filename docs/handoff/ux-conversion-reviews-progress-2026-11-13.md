@@ -30,6 +30,7 @@ next: 묶음 ② 11a(명식·절기 그림)·배너 모바일 다듬기 시작
 - 후기 보상 표시: "카드마다 작은 표시 (Recommended)" — 공개 API에 읽기 전용 `rewarded` boolean 추가, 카드마다 작은 표시.
 - 계획(아래 설계) 승인됨(ExitPlanMode).
 - 이미지 생성: 허용(필요한 곳만, codex-image).
+- **범위 밖으로 넘김(2026-11-13 23:40):** 사용자가 이 세션에 잘못 보낸 "가장 급한 문제" 목록(구매 문구 모순·화폐 단순화·브랜드 통일·홈 title/H1·robots `/points/`·사이트맵 lastmod·`?action=` URL·검수 절차)과 브랜드 통일 결정("꿀꿀 운세 안의 영냥이 상담")은 사용자 지시("아 이 세션에 시키려는게 아니였는데 다른 SEO, AEO, GEO 수정 중인 세션에 전달하도록해줘")로 SEO·AEO·GEO 세션에 넘겼다. **이 워크트리에서는 손대지 않는다.**
 
 ## 작업 규칙과 함정
 
@@ -45,6 +46,10 @@ next: 묶음 ② 11a(명식·절기 그림)·배너 모바일 다듬기 시작
 - **이어하기 문구(사실 확인됨):** love-secret·new-year·life-book·vedic은 다시 열면 클라이언트가 재개. 운영은 `worker/lib/consultation-recovery-task.js`(IDLE 5분, 최대 7일)가 `*/10` 크론으로 마무리. 스테이징은 크론 없음. 문구: "화면을 닫아도 결제한 상담은 사라지지 않아요. 다시 열면 이어서 쓰고, 오래 비워 두면 서버가 마저 완성해 기록함에 저장해요." 시간 약속 금지. 영냥이는 서버 큐 생성.
 - **함정:** 영냥이 `#yn-example`은 닫힌 `<details>` 안. QuickReviewComposer 기존 이벤트 이름은 S00과 다름. 요약 집계는 운영진 등록 후기를 포함하므로 verifiedOnly 필요. 게스트 `next`에 현재 페이지(콘텐츠 ID) 넣지 않음. 꿀꿀 카드엔 "N원부터" 금지(무료 운세 있음). 두 후기 UI(QuickReviewComposer·ReviewsClient)를 합치지 않음. `ReviewsClient.tsx`는 이미 `dark:`·hex가 있으니 재스타일하지 않고 새 마크업만 토큰 사용.
 - **public 미러:** `index.html`·`styles/home-funnel.css`·`lib/marketing/free-promo*.mjs` 바꾸면 `npm run sync:public`.
+- **다른 세션과 겹치는 곳:** SEO 세션이 같은 시기에 브랜드 이름, 홈 title/H1(`app/page.js`·`lib/seo/home-discovery.mjs`), 무료 배너 문구(`lib/marketing/free-promo.mjs`), robots·사이트맵 lastmod, `?action=` 링크, `/yeongnyangi/1000-won-fortune/` 문구를 고친다.
+  - 이 워크트리에서는 브랜드 표기, 배너 문구, 사이트맵 날짜 로직을 바꾸지 않는다.
+  - 묶음 ⑤에서 push하기 전에 `git fetch` 후 origin/main 위로 리베이스한다. 문구·브랜드 충돌은 origin/main(SEO 세션) 쪽을 따른다.
+  - 리베이스한 뒤 생성물은 `npm run sitemap:generate`, `npm run llms:generate`, `npm run sync:public`으로 다시 만든다.
 - 컨텍스트가 길어지면 이 문서를 갱신·커밋하고 요약을 돌려준다(전역 규칙).
 
 ## 설계
