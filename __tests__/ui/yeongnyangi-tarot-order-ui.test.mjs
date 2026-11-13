@@ -110,6 +110,8 @@ test('the finished reading shows the stored spread with every card open, the per
  assert.match(html,/이번 상담의 카드 배열/);assert.match(html,/지금 회사/);assert.match(html,/한 달/);
  assert.equal((html.match(/tarot\/v1\/[A-Z]\d+-/g)||[]).length>=7,true);
  assert.equal((html.match(/data-reversed="true"/g)||[]).length,1);
+ assert.match(html,/\/app\/talismans\/\?deck=yeongnyangi&amp;card=M00&amp;orientation=upright/);
+ assert.match(html,/card=C02&amp;orientation=reversed/);
  assert.doesNotMatch(renderToStaticMarkup(React.createElement(reveal.TarotSpreadResult,{spread:{...spread,inputs:undefined},cards})),/지금 회사|살펴본 기간/);
 });
 

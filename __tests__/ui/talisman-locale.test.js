@@ -66,6 +66,12 @@ test("한국어 SSR 뒤 12개 앱 언어를 반영하고 직접 적용과 시스
     if (name === "./wallpaper-fit") return { normalizeScreen: (width, height) => ({ width, height }),
       wallpaperFit: () => ({ x: 0, y: 0, width: 941, height: 1672 }),
       fittedWallpaper: async () => new dom.window.File(["test"], "fit.png", { type: "image/png" }) };
+    if (name === "./TarotTalismanPanel") return { TarotTalismanControls: () => null, TarotTalismanMeaning: () => null };
+    if (name === "./tarot-talisman-data") return {
+      tarotTalismanCards: [{ id: "major_00_fool", code: "M00", group: "major", nameKo: "바보", nameEn: "The Fool" }],
+      findTarotTalismanCard: () => undefined,
+      tarotTalismanImageCandidates: () => ["/tarot.webp"],
+    };
     if (name === "@/lib/app-build-target") return { IS_APP_BUILD: false };
     throw Error("Unexpected import: " + name);
   }, scope).default;

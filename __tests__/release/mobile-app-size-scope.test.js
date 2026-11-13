@@ -62,9 +62,9 @@ test('crafted detail art moves to the website only when its bytes match public a
 test('talisman originals leave the app only when catalog, bundled and web bytes share one sha', async t => {
   const { offloadTalismanOriginals, CRAFTED_REMOTE_ORIGIN } = await import('../../scripts/build-mobile-app.mjs');
   const studio = await fs.readFile(path.join(__dirname, '../../app/app/talismans/TalismanStudio.tsx'), 'utf8');
-  assert.match(studio, /fetch\(\(IS_APP_BUILD \? TALISMAN_REMOTE_ORIGIN : ""\) \+ asset\.src/);
+  assert.match(studio, /mode === "tarot" \? tarotSources : \[\(IS_APP_BUILD \? TALISMAN_REMOTE_ORIGIN : ""\) \+ asset\.src\]/);
   assert.match(studio, /TALISMAN_REMOTE_ORIGIN = "https:\/\/code-destiny\.com"/);
-  assert.match(studio, /await verifyOriginal\(bytes, asset\)/, 'remote originals must still pass the sha check');
+  assert.match(studio, /await verifyOriginal\(bytes, illustrationAsset\)/, 'remote illustration originals must still pass the sha check');
   const root = await fs.mkdtemp(path.join(os.tmpdir(), 'cd-talisman-root-'));
   const dist = path.join(root, 'dist');
   t.after(() => fs.rm(root, { recursive: true, force: true }));

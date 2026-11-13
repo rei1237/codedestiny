@@ -66,6 +66,8 @@ export function TarotSpreadResult({spread:source,cards,locale='ko'}:{locale?:Rea
  const copy=tarotSpreadCopyFor(locale),spread=localizedTarotSpread(source,locale);
  const open=Object.fromEntries(Object.entries(cards).map(([id,card])=>[id,{...card,open:true}]));
  const period=spread.inputs?.period?tarotPlanCopy(locale).periods[spread.inputs.period]:'';
+ const talismanLabel=locale==='ko'?'부적으로 간직하기':locale==='ja'?'お守りにする':'Keep as a talisman';
+ const orderedCards=[...spread.positions].sort((a,b)=>a.readOrder-b.readOrder).flatMap(position=>cards[position.id]?[cards[position.id]]:[]);
  return <section className={spreadStyles.spread} aria-labelledby="tarot-spread-result" lang={locale} data-tarot-spread-result>
   <h2 id="tarot-spread-result">{copy.resultHeading}</h2>
   <p><strong>{spread.title}</strong> · {copy.cards(spread.cardCount)}</p>
@@ -73,5 +75,8 @@ export function TarotSpreadResult({spread:source,cards,locale='ko'}:{locale?:Rea
   {period&&<p>{copy.periodLine(period)}</p>}
   {spread.inputs?.options&&<p>{copy.optionsLine(spread.inputs.options.a,spread.inputs.options.b)}</p>}
   <TarotSpreadLayout locale={locale} spread={spread} cards={open} size="full"/>
+  <div className={spreadStyles.talismanLinks} aria-label={talismanLabel}>
+   {orderedCards.map((card,index)=><a key={`${card.cardCode}-${index}`} href={`/app/talismans/?deck=yeongnyangi&card=${encodeURIComponent(card.cardCode)}&orientation=${card.reversed?'reversed':'upright'}`}><span>{yeongnyangiCardArt(card.cardCode,locale).name}</span><strong>{talismanLabel}</strong></a>)}
+  </div>
  </section>;
 }

@@ -104,4 +104,10 @@
 /* Reveal: heading and the next-card button sit on the map's centre line. */
 .reveal header { justify-items: center; text-align: center; }
 .reveal .actions { justify-content: center; }
+.talismanLinks { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 9px; margin-top: 22px; }
+.talismanLinks a { display: grid; gap: 3px; min-height: 54px; padding: 10px 14px; border: 1px solid var(--yn-line); border-radius: 12px; background: var(--yn-night); color: var(--yn-ivory); text-decoration: none; }
+.talismanLinks a:hover { border-color: var(--yn-gold); }
+.talismanLinks a:focus-visible { outline: 2px solid var(--yn-gold); outline-offset: 3px; }
+.talismanLinks span { overflow: hidden; color: var(--yn-muted); font-size: .76rem; text-overflow: ellipsis; white-space: nowrap; }
+.talismanLinks strong { color: var(--yn-gold); font-size: .86rem; }
 @media (prefers-reduced-motion: reduce) { .pick .deck button[aria-pressed="true"] { transform: none; } }

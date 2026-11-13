@@ -28,6 +28,45 @@
 .cd-talisman input { accent-color: var(--yn-gold); }
 .cd-talisman-caption { color: var(--yn-muted); font-size: var(--yn-t-caption); line-height: 1.7; margin: 8px 0; }
 .cd-talisman-controls { min-width: 0; }
+.cd-talisman-mode, .cd-tarot-segmented { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; padding: 5px; border: 1px solid var(--yn-line); border-radius: calc(var(--yn-btn-radius) + 4px); background: color-mix(in srgb, var(--yn-night) 78%, transparent); }
+.cd-talisman-mode { margin-bottom: 26px; }
+.cd-talisman-mode button, .cd-tarot-segmented button, .cd-tarot-filters button { min-height: 44px; padding: 9px 12px; border: 1px solid transparent; border-radius: var(--yn-btn-radius); background: transparent; color: var(--yn-muted); font: inherit; font-size: .82rem; line-height: 1.4; cursor: pointer; }
+.cd-talisman-mode button[aria-pressed="true"], .cd-tarot-segmented button[aria-pressed="true"], .cd-tarot-filters button[aria-pressed="true"] { border-color: color-mix(in srgb, var(--yn-gold) 70%, transparent); background: var(--yn-raised); color: var(--yn-gold); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--yn-gold) 12%, transparent); }
+.cd-talisman-preview[data-tarot="true"] { border-color: color-mix(in srgb, var(--yn-gold) 58%, var(--yn-line)); background: radial-gradient(circle at 50% 28%, color-mix(in srgb, var(--yn-gold) 13%, transparent), transparent 42%), var(--yn-deep); box-shadow: 0 24px 80px color-mix(in srgb, var(--yn-gold) 10%, transparent); }
+.cd-talisman-preview[data-tarot="true"] > img { filter: drop-shadow(0 18px 24px rgba(0, 0, 0, .38)); }
+.cd-tarot-picker { display: grid; gap: 24px; margin-bottom: 26px; }
+.cd-tarot-choice { min-width: 0; }
+.cd-tarot-choice h3 { margin: 0 0 11px; color: var(--yn-gold); font-size: .85rem; font-weight: 500; }
+.cd-tarot-filters { display: flex; gap: 7px; padding-bottom: 4px; overflow-x: auto; scrollbar-width: thin; }
+.cd-tarot-filters button { flex: 0 0 auto; border-color: var(--yn-line); background: var(--yn-night); white-space: nowrap; }
+.cd-tarot-card-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; max-height: 342px; padding: 2px 4px 4px 2px; overflow-y: auto; overscroll-behavior: contain; scrollbar-color: var(--yn-line) transparent; }
+.cd-tarot-card-grid button { display: grid; grid-template-columns: 38px minmax(0, 1fr); align-items: center; gap: 10px; min-height: 72px; padding: 7px; border: 1px solid var(--yn-line); border-radius: 12px; background: var(--yn-night); color: var(--yn-ivory); text-align: left; cursor: pointer; }
+.cd-tarot-card-grid button[aria-pressed="true"] { border-color: var(--yn-gold); background: var(--yn-raised); box-shadow: 0 0 24px color-mix(in srgb, var(--yn-gold) 9%, transparent); }
+.cd-tarot-card-grid i { display: block; width: 38px; aspect-ratio: 2 / 3; border-radius: 5px; background-color: var(--yn-deep); background-position: center; background-size: cover; }
+.cd-tarot-card-grid span { min-width: 0; }
+.cd-tarot-card-grid b, .cd-tarot-card-grid small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cd-tarot-card-grid b { color: var(--yn-ivory); font-size: .78rem; font-weight: 600; }
+.cd-tarot-card-grid small { margin-top: 4px; color: var(--yn-muted); font-size: .66rem; }
+.cd-tarot-orientation { max-width: 380px; }
+.cd-tarot-meaning { position: relative; max-width: 980px; margin: 44px auto 0; padding: clamp(24px, 5vw, 52px); overflow: hidden; border: 1px solid color-mix(in srgb, var(--yn-gold) 40%, var(--yn-line)); border-radius: 28px; background: radial-gradient(circle at 92% 8%, color-mix(in srgb, var(--yn-gold) 11%, transparent), transparent 34%), linear-gradient(145deg, var(--yn-surface), var(--yn-deep)); box-shadow: 0 30px 90px rgba(0, 0, 0, .28); text-align: left; }
+.cd-tarot-meaning::before { content: ""; position: absolute; inset: 12px; border: 1px solid color-mix(in srgb, var(--yn-gold) 13%, transparent); border-radius: 20px; pointer-events: none; }
+.cd-tarot-meaning-head { position: relative; text-align: center; }
+.cd-tarot-meaning-head > p { margin: 0 0 10px; color: var(--yn-gold); font-size: .68rem; letter-spacing: .18em; }
+.cd-tarot-meaning-head h2 { margin: 0; font-family: var(--font-serif); font-size: clamp(1.9rem, 5vw, 3rem); font-weight: 500; letter-spacing: -.035em; }
+.cd-tarot-meaning-head > span { display: block; margin-top: 8px; color: var(--yn-muted); font-size: .82rem; }
+.cd-tarot-keywords { position: relative; display: flex; flex-wrap: wrap; justify-content: center; gap: 7px; margin: 22px 0; }
+.cd-tarot-keywords span { padding: 6px 10px; border: 1px solid color-mix(in srgb, var(--yn-gold) 28%, transparent); border-radius: 999px; color: var(--yn-gold); background: color-mix(in srgb, var(--yn-gold) 7%, transparent); font-size: .73rem; }
+.cd-tarot-meaning > blockquote { position: relative; max-width: 720px; margin: 0 auto 28px; padding: 18px 20px; border: 0; border-block: 1px solid var(--yn-line); color: var(--yn-ivory); font-family: var(--font-serif); font-size: 1rem; line-height: 1.85; text-align: center; word-break: keep-all; }
+.cd-tarot-reading-grid { position: relative; display: grid; gap: 12px; }
+.cd-tarot-reading-grid section { padding: 18px; border: 1px solid var(--yn-line); border-radius: 16px; background: color-mix(in srgb, var(--yn-night) 72%, transparent); }
+.cd-tarot-reading-grid h3 { margin: 0 0 10px; color: var(--yn-gold); font-size: .82rem; font-weight: 600; }
+.cd-tarot-reading-grid p { margin: 0; color: color-mix(in srgb, var(--yn-ivory) 88%, var(--yn-muted)); font-size: .88rem; line-height: 1.8; word-break: keep-all; }
+.cd-tarot-reading-grid p + p { margin-top: 10px; }
+.cd-tarot-caution { padding-top: 10px; border-top: 1px solid var(--yn-line); color: var(--yn-muted) !important; }
+.cd-tarot-meaning footer { position: relative; display: grid; justify-items: center; gap: 7px; margin-top: 28px; text-align: center; }
+.cd-tarot-meaning footer > span { color: var(--yn-gold); font-size: 1.25rem; }
+.cd-tarot-meaning footer p { max-width: 680px; margin: 0; font-family: var(--font-serif); color: var(--yn-ivory); line-height: 1.8; }
+.cd-tarot-meaning footer small { color: var(--yn-muted); }
 .cd-talisman fieldset { border: 0; margin: 0 0 24px; padding: 0; min-width: 0; }
 .cd-talisman legend { color: var(--yn-gold); font-size: .85rem; margin-bottom: 12px; }
 .cd-talisman-scenes, .cd-talisman-options { display: grid; gap: 8px; }
@@ -61,7 +100,9 @@
   .cd-talisman-workspace { grid-template-columns: 1fr 1.15fr; gap: 52px; align-items: start; }
   .cd-talisman-preview { width: min(100%, 300px); }
   .cd-talisman-intro { padding-block: 40px; }
+  .cd-tarot-reading-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 @media (max-width: 359px) {
   .cd-talisman:not(.cd-home-widget) .cd-talisman-scenes { grid-template-columns: 1fr; }
+  .cd-tarot-card-grid { grid-template-columns: 1fr; }
 }

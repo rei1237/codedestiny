@@ -16,6 +16,7 @@ async function main() {
     define: {
       'process.env.NODE_ENV': '"production"',
       'process.env.NEXT_PUBLIC_RUNTIME_TARGET': '"web"',
+      'process.env.NEXT_PUBLIC_ASSETS_BASE_URL': '"https://assets.code-destiny.com"',
     },
     alias: { '@': root },
   });
@@ -32,6 +33,10 @@ async function main() {
     if (url.pathname.startsWith('/assets/talismans/widget/') && /^[a-z0-9-]+\.webp$/.test(path.basename(url.pathname))) {
       const file = path.join(root, 'public', url.pathname);
       if (fs.existsSync(file)) { res.setHeader('Content-Type', 'image/webp'); res.end(fs.readFileSync(file)); return; }
+    }
+    if (url.pathname.startsWith('/assets/yeongnyangi/tarot/v1/') && /^[A-Z][0-9]{2}-(240|600|1200)\.(webp|avif)$/.test(path.basename(url.pathname))) {
+      const file = path.join(root, 'public', url.pathname);
+      if (fs.existsSync(file)) { res.setHeader('Content-Type', url.pathname.endsWith('.avif') ? 'image/avif' : 'image/webp'); res.end(fs.readFileSync(file)); return; }
     }
     res.writeHead(404); res.end();
   });
@@ -108,6 +113,18 @@ async function main() {
         await page.waitForFunction(() => !document.querySelector('.cd-talisman-actions button')?.disabled);
         returnStates[status] = await page.locator('[role="status"]').innerText();
         assert(returnStates[status] && returnStates[status] !== applied);
+      }
+      if (locale === 'ko') {
+        await page.locator('.cd-talisman-mode button').filter({ hasText: '타로 카드 부적' }).click();
+        await page.waitForFunction(() => document.querySelector('.cd-talisman-preview img')?.alt.includes('바보'));
+        await page.locator('.cd-tarot-meaning').waitFor({ state: 'visible' });
+        assert.match(await page.locator('.cd-tarot-meaning').innerText(), /카드가 비추는 흐름/);
+        assert.equal(await page.locator('.cd-tarot-card-grid button').count(), 22);
+        for (const width of [360, 390, 430]) {
+          await page.setViewportSize({ width, height: 844 });
+          assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true, `${width}px tarot overflow`);
+          await page.screenshot({ path: path.join(output, `tarot-ko-${width}.png`), fullPage: true });
+        }
       }
       assert.equal(new Set(Object.values(returnStates)).size, 4, 'Cancellation, save, picker return and chooser opening must differ');
       assert.equal(errors.length, 0, errors.join('\n'));

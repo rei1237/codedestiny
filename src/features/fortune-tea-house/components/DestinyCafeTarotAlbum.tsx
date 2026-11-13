@@ -1377,6 +1377,12 @@ function TarotCardModal({
             <h4 className="text-sm font-black text-moonveil-silver">{copy.kjcpkfd5}</h4>
             <p className="mt-2 text-sm leading-7 text-pearl-mist/88">{card.journalQuestion}</p>
           </section>
+          <a
+            href={`/app/talismans/?deck=teahouse&card=${encodeURIComponent(card.id)}&orientation=upright`}
+            className="inline-flex min-h-12 items-center justify-center rounded-full border border-champagne-gold/45 bg-champagne-gold/14 px-5 text-sm font-black text-champagne-gold shadow-[0_16px_40px_rgba(214,187,120,.10)] transition hover:border-champagne-gold/70 hover:bg-champagne-gold/20 focus:outline-none focus:ring-2 focus:ring-champagne-gold/55"
+          >
+            이 카드를 부적으로 간직하기
+          </a>
         </div>
         <div className="fixed inset-x-0 bottom-0 z-20 border-t border-white/10 bg-midnight-ink/88 px-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))] backdrop-blur-2xl sm:absolute sm:pb-3 sm:rounded-b-[2rem]">
           <div className="mx-auto flex max-w-5xl items-center gap-2">
