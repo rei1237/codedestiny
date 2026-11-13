@@ -1,7 +1,7 @@
 import {extractVillainBindings} from './section-bindings-loader.mjs';
 import {extractIfaEngine} from './ifa-engine-loader.mjs';
 import {readFile,readdir,stat} from 'node:fs/promises';
-import {fileURLToPath} from 'node:url';
+import {fileURLToPath,pathToFileURL} from 'node:url';
 import {resolve,dirname,sep,extname} from 'node:path';
 import sharp from 'sharp';
 import {createHash} from 'node:crypto';
@@ -77,6 +77,7 @@ export default function serviceCompat(){
    return code;
   },
   resolveId(id,importer){
+   if(id==='virtual:consultation-webtoons')return '\0toss-consultation-webtoons';
    if(id==='virtual:section-villain-bindings')return '\0toss-villain-bindings';
    if(id==='virtual:ifa-engine')return '\0toss-ifa-engine';
    if(id==='virtual:omikuji-engine')return '\0toss-omikuji-engine';
@@ -99,6 +100,16 @@ export default function serviceCompat(){
    if(id==='next/navigation'||defaults[id])return '\0toss-service:'+id;
   },
   async load(id){
+   if(id==='\0toss-consultation-webtoons'){
+    // Readers stream original full-size panels. Keep other services' bundled portraits local.
+    const file=resolve(publicRoot,'../lib/brand/consultation-webtoons.mjs');
+    this.addWatchFile(file);
+    const {consultationWebtoons}=await import(pathToFileURL(file).href+'?v='+(await stat(file)).mtimeMs);
+    const stories=Object.fromEntries(Object.entries(consultationWebtoons).map(([key,story])=>[key,{
+     ...story,cuts:story.cuts.map(cut=>({...cut,src:cut.src?'https://code-destiny.com'+cut.src:''})),
+    }]));
+    return 'export default '+JSON.stringify(stories);
+   }
    if(id==='\0toss-villain-bindings'){
     const source=resolve(publicRoot,'../js/core/saju/section-client.js');this.addWatchFile(source);
     return extractVillainBindings(await readFile(source,'utf8'));

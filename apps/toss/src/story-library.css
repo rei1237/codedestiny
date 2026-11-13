@@ -1,0 +1,8 @@
+.story-library{max-width:42rem;margin:auto;background:#fffaf1;color:#3d2c34;overflow:hidden;border-radius:20px}
+.story-library>header{padding:24px 18px;background:linear-gradient(125deg,#30253b,#524059);color:#fff4e5}
+.story-library h1{font:600 clamp(1.4rem,6vw,2rem)/1.35 var(--font-display,serif);margin:4px 0}
+.story-library>header p{margin:8px 0;line-height:1.65}.story-library>header button{min-height:44px;color:inherit;background:none;border:0;padding:0;font:inherit}
+.story-index{list-style:none;padding:4px 14px;margin:0}.story-index li+li{border-top:1px solid #ded0c5}
+.story-index button{display:flex;align-items:center;gap:12px;width:100%;padding:14px 0;text-align:left;background:none;border:0;color:inherit}
+.story-index img{width:78px;height:72px;border-radius:10px;object-fit:cover;background:#dacbc3}.story-index strong,.story-index small{display:block}.story-index strong{font:600 1.13rem/1.4 var(--font-display,serif)}.story-index small{margin-top:4px;line-height:1.55}
+.story-library footer{display:grid;gap:12px;padding:20px 16px}.story-library footer a{text-align:center;background:#523e54;color:#fff8eb;border-radius:12px;padding:14px;text-decoration:none}
