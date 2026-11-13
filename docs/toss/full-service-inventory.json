@@ -1,5 +1,5 @@
 {
-  "sourceCommit": "8fbcd83ff6fb587d5e6a5bd0f1d9509b2b8dbf78",
+  "sourceCommit": "a2f0898e522967e769a51cd048de1fefd12f284e",
   "sourceCounts": {
     "home": 63,
     "react": 18,
@@ -2946,8 +2946,8 @@
         "library": "not-verified",
         "device": "not-tested",
         "canonicalId": "ziwei-deep-report",
-        "candidateStatus": "requires-full-flow-port-and-verification",
-        "canonicalRoute": null
+        "candidateStatus": "local-partial",
+        "canonicalRoute": "/ziwei/chart"
       }
     },
     {
@@ -8237,7 +8237,7 @@
       "sku": null,
       "inputContract": "BirthFields + normalizeZiweiInput + calculateZiweiChart; domestic locations only",
       "resultRenderer": "apps/toss/src/ZiweiChart.tsx + canonical ZiweiPalaceGrid",
-      "storageContract": "current screen only; clear input and chart on session replacement or exit",
+      "storageContract": "기본 명반은 현재 화면에서 재계산, 출생 초안은 기기·토스 계정별. 15장 구매 기록은 별도 ziwei-deep-report 행",
       "verification": "기본 열두 궁 명반 및 상세 4종 공개 계산. 다른 궁합·연운·섬·상담은 별도 계약. 실기기 미검증",
       "publicSections": [
         {
@@ -8311,7 +8311,7 @@
       "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
       "tossLogin": "기능별 단계 검증 필요",
       "tossResult": "apps/toss/src/ZiweiChart.tsx + canonical ZiweiPalaceGrid",
-      "reread": "current screen only; clear input and chart on session replacement or exit"
+      "reread": "기본 명반은 현재 화면에서 재계산, 출생 초안은 기기·토스 계정별. 15장 구매 기록은 별도 ziwei-deep-report 행"
     },
     {
       "id": "ziwei-ai",
@@ -8381,31 +8381,33 @@
         }
       ],
       "aliasEvidence": [],
-      "status": "requires-full-flow-port-and-verification",
-      "tossRoute": null,
+      "status": "local-partial",
+      "tossRoute": "/ziwei/chart",
       "sku": null,
-      "inputContract": null,
-      "resultRenderer": null,
-      "storageContract": null,
+      "inputContract": "명반 출생(음력·윤달·시각) + 원본 8개 관심 분야·질문 → worker/toss/native-ziwei-deep.js → runZiweiDeepReportDeliveryBatch",
+      "resultRenderer": "app/components/ziwei/ZiweiDeepChapters.tsx + lib/pdf/export-ziwei-report-pdf.ts",
+      "storageContract": "구매 기록에서 본인 토스 주문의 15장 원문 재열람·저장 지점 재개. 웹 과거 구매는 웹 계정",
+      "verification": "studio-ziwei-deep-browser.mjs 360px 명반→원본 관심분야→질문 복원→모의 독립 IAP→재실행·15장 일치·타계정 차단. ziwei-deep-paid-delivery.behavior.test.js 원본 다단계·복구·환불. 전용 SKU·기기 PDF 저장 미검증",
       "webEntries": [
         "/ziwei/chart/ → 명반계산 → #ziwei-result-pdf"
       ],
       "webSources": [
         "app/components/ziwei/ZiweiDeepPdfPanel.tsx",
-        "worker/lib/ziwei-deep-report-prompt.mjs"
+        "worker/lib/ziwei-deep-report-prompt.mjs",
+        "worker/routes/ziwei-deep-report.js"
       ],
       "webProductIds": [
         "ziwei-deep-pdf"
       ],
       "freeCalculation": false,
-      "portStatus": "미이식",
-      "reducedBundle": "홈 진입 없음",
-      "currentEntry": "연결 경로 없음",
+      "portStatus": "일부만 이식",
+      "reducedBundle": "구현은 있으나 진입 차단",
+      "currentEntry": "일반 홈의 진입 코드 확인",
       "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
-      "tossLogin": "토스 기능 미연결",
-      "tossResult": "결과 화면 연결 미확인",
-      "reread": "재열람 경로 미확인",
-      "verification": "독립적인 일반 홈 경로 미확인"
+      "tossLogin": "구매·기록에 토스 계정 필요",
+      "tossResult": "app/components/ziwei/ZiweiDeepChapters.tsx + lib/pdf/export-ziwei-report-pdf.ts",
+      "reread": "구매 기록에서 본인 토스 주문의 15장 원문 재열람·저장 지점 재개. 웹 과거 구매는 웹 계정",
+      "saleStatus": "콘솔·운영 설정 필요"
     },
     {
       "id": "ziwei-island",
