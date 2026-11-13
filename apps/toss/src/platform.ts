@@ -51,7 +51,7 @@ export async function api<T>(path:string,body?:unknown):Promise<T>{
   const requestToken=token,requestEpoch=sessionEpoch,requestAttempt=loginAttempt;
   const response=await fetch(API+path,{method:body===undefined?'GET':'POST',credentials:'omit',
     headers:{...(body===undefined?{}:{'Content-Type':'application/json'}),...(requestToken?{Authorization:`Bearer ${requestToken}`}:{})},
-    ...(body===undefined?{}:{body:JSON.stringify(body)}),signal:AbortSignal.timeout(path.endsWith('/conversation')||body!==undefined&&(path.startsWith('/native/nakshatra/results/')||path.startsWith('/tarot-library/results/')||/^\/native\/(naming|dream|heukwol)\/results\/[a-f0-9]{64}$/.test(path)||/^\/native\/pet\/intents\/[a-f0-9]{64}\/generate$/.test(path))?75000:20000)});
+    ...(body===undefined?{}:{body:JSON.stringify(body)}),signal:AbortSignal.timeout(path.endsWith('/conversation')||body!==undefined&&(path.startsWith('/native/geomancy/results/')||path.startsWith('/native/nakshatra/results/')||path.startsWith('/tarot-library/results/')||/^\/native\/(naming|dream|heukwol)\/results\/[a-f0-9]{64}$/.test(path)||/^\/native\/pet\/intents\/[a-f0-9]{64}\/generate$/.test(path))?75000:20000)});
   if(path!=='/login'&&(token!==requestToken||sessionEpoch!==requestEpoch))throw new ApiError('SESSION_CHANGED','',409);
   if(response.status===401){
     if(path!=='/login')await invalidateCurrentSession(requestToken,requestEpoch,requestAttempt);

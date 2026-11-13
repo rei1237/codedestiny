@@ -62,7 +62,10 @@ export async function loadPaidNarrativeAdapter(env, featureKey, reportType, user
     }
     case "geomancyOracle": {
       const { geomancyNarrativeAdapter } = await import("../routes/oracle.js");
-      return geomancyNarrativeAdapter(env);
+      return { ...geomancyNarrativeAdapter(env), verifyRecovery: async doc => {
+        const {verifyGeomancyRecovery}=await import('../toss/native-geomancy.js');
+        return verifyGeomancyRecovery(env,doc);
+      } };
     }
     case "yogaGuruCourse": {
       const { yogaNarrativeAdapter } = await import("../routes/yoga-guru.js");

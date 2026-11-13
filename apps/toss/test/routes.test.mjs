@@ -34,6 +34,7 @@ const stubMap={
  'worker/toss/native-life-book.js':"export const prepareNativeLifeBook=()=>{};export const handleNativeLifeBook=()=>{};export const nativeLifeBookLibraryItem=()=>{};",
  'worker/toss/native-heukwol.js':"export const prepareHeukwol=async()=>({paid:false}),heukwolWave=async()=>({status:'generating'}),heukwolLibraryItem=async()=>({state:'PENDING'});",
  'worker/toss/native-nakshatra.js':"export const prepareNakshatra=async()=>({paid:false}),nakshatraWave=async()=>Response.json({status:'generating'}),nakshatraLibraryItem=async()=>({state:'PENDING'});",
+ 'worker/toss/native-geomancy.js':"export const prepareGeomancy=async()=>({paid:false}),readGeomancy=async()=>Response.json({status:'generating'}),geomancyLibraryItem=async()=>({state:'PENDING'});",
  'worker/toss/native-dream.js':"export const prepareDream=async()=>({paid:false}),readDream=async()=>Response.json({status:'generating'}),dreamLibraryItem=async()=>({state:'PENDING'});",
  'worker/toss/native-naming.js':"export const prepareNativeNaming=async()=>({paid:false}),readNativeNaming=async()=>Response.json({status:'generating'}),namingLibraryItem=async()=>({state:'PENDING'});",
  'worker/routes/naming-prompt.js':"export const handleNamingPromptRoutes=async()=>Response.json({ok:true,candidates:[]});",

@@ -34,6 +34,7 @@ async function verifyLibraryOrder(env,auth,purchase){
 
 async function readNativeLibraryItem(env,auth,row){
   if(row.nativeService==='naming')return (await import('./native-naming.js')).namingLibraryItem(env,auth,row);
+  if(row.nativeService==='geomancy')return (await import('./native-geomancy.js')).geomancyLibraryItem(env,auth,row);
   if(row.nativeService==='dream')return (await import('./native-dream.js')).dreamLibraryItem(env,auth,row);
   if(row.nativeService==='heukwol')return (await import('./native-heukwol.js')).heukwolLibraryItem(env,auth,row);
   if(row.nativeService==='nakshatra')return (await import('./native-nakshatra.js')).nakshatraLibraryItem(env,auth,row);
@@ -395,6 +396,16 @@ export async function handleTossRoutes(request,env) {
       if(request.method==='POST')await limit(env,auth._id,'native-naming-generation',30);
       return forwardServiceResponse(await (await import('./native-naming.js')).readNativeNaming(env,auth,naming[1],request.method==='POST'),headers);
     }
+    if(path==='/native/geomancy/prepare'&&request.method==='POST'){
+      await limit(env,auth._id,'native-geomancy-prepare',6);
+      const body=await bodyOf(request);
+      return reply(await (await import('./native-geomancy.js')).prepareGeomancy(env,auth,body.input,body.orderId));
+    }
+    const geomancy=path.match(/^\/native\/geomancy\/results\/([a-f0-9]{64})$/);
+    if(geomancy&&['GET','POST'].includes(request.method)){
+      if(request.method==='POST')await limit(env,auth._id,'native-geomancy-generate',30);
+      return forwardServiceResponse(await (await import('./native-geomancy.js')).readGeomancy(env,auth,geomancy[1],request.method==='POST'),headers);
+    }
     if(path==='/native/dream/prepare'&&request.method==='POST'){
       await limit(env,auth._id,'native-dream-prepare',6);
       const body=await bodyOf(request);
@@ -415,7 +426,7 @@ export async function handleTossRoutes(request,env) {
       if(request.method==='POST')await limit(env,auth._id,'native-heukwol-wave',35);
       return reply(await (await import('./native-heukwol.js')).heukwolWave(env,auth,heukwol[1],request.method==='POST'));
     }
-    const nativeIntent=path.match(/^\/native\/(tea|nakshatra|neo|naming|dream|heukwol|fusion|life-book|love-secret|astrology|vedic|ziwei|new-year|karma|maya|sukuyo|relationship|pet)\/intents\/([a-f0-9]{64})$/);
+    const nativeIntent=path.match(/^\/native\/(tea|geomancy|nakshatra|neo|naming|dream|heukwol|fusion|life-book|love-secret|astrology|vedic|ziwei|new-year|karma|maya|sukuyo|relationship|pet)\/intents\/([a-f0-9]{64})$/);
     if(nativeIntent&&request.method==='GET'){
       const {readNativeTeaIntent}=await import('./native-tea.js');
       return reply(await readNativeTeaIntent(env,auth,nativeIntent[2],nativeIntent[1]));

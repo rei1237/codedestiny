@@ -129,6 +129,13 @@ export function geomancyNarrativeAdapter(env) {
   };
 }
 
+export function seedGeomancyNarrative(original){
+  const input = oracleInput(original);
+  // 5,000원 상품: 7부분 × 1,800자 = 12,600자. 짧아도 완결된 본문은 전달한다.
+  return { input, prompt: buildGeomancyPrompt(input),
+    tasks: ORACLE_SECTIONS.map(([id, title]) => ({ id, prompt: title, minChars: 1800 })) };
+}
+
 export async function handleOracleRoutes(request, env = {}) {
   try {
     const method = request.method.toUpperCase();
@@ -159,12 +166,7 @@ export async function handleOracleRoutes(request, env = {}) {
         });
         if (!access?.ok) throw new HttpError(Number(access?.status || 402), "결제 확인이 필요합니다.", { code: access?.code || "PAYMENT_REQUIRED" });
       },
-      seed: original => {
-        const input = oracleInput(original);
-        // 5,000원 상품: 7부분 × 1,800자 = 12,600자. 짧아도 완결된 본문은 전달한다.
-        return { input, prompt: buildGeomancyPrompt(input),
-          tasks: ORACLE_SECTIONS.map(([id, title]) => ({ id, prompt: title, minChars: 1800 })) };
-      },
+      seed: seedGeomancyNarrative,
     });
   } catch (error) {
     if (error.code === "RESULT_STORAGE_UNAVAILABLE") return json({ ok: false, retryable: true, reason: error.code, resultId: error.resultId }, { status: 503 });
