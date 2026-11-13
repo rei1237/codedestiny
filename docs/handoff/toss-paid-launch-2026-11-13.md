@@ -1,7 +1,7 @@
 ---
-status: active
+status: blocked
 updated: 2026-11-13
-next: origin/main CI 상태를 확인한 뒤 현재 HEAD를 main으로 전달하고 새 main CI를 한 번 확인한다.
+next: origin/main c3d692272의 Secret Scan 실패가 해결되면 fetch·pre-push 확인 후 현재 HEAD를 main으로 전달한다.
 ---
 
 # 앱인토스 유료 상담 결제 활성화·출시
@@ -20,6 +20,7 @@ next: origin/main CI 상태를 확인한 뒤 현재 HEAD를 main으로 전달하
 - 실제 SKU, 공급가, VAT 포함 판매가, 증거 URL과 1024px 불투명 이미지를 원장에 반영했다.
 - `NEW_PURCHASES_AVAILABLE=false`, `TOSS_RELEASE_READY=false/미설정` 상태를 유지한다.
 - 코드 커밋: `2db788061`, 설정·개인정보 커밋: `dce6f135d`, 공개 미러 커밋: `eb6642b51`.
+- 전달 차단: origin/main `c3d692272`의 Secret Scan run `43397660367`이 과거 이력 88건을 검출해 실패했다. 현재 작업의 비밀값은 저장하거나 push하지 않았다.
 
 ## 승인 상태
 
@@ -57,7 +58,7 @@ next: origin/main CI 상태를 확인한 뒤 현재 HEAD를 main으로 전달하
 - [x] 기능 단위 커밋
 - [x] 최신 origin/main 병합 및 Toss 앱 1,440개 테스트·타입 검사 재확인
 - [x] `npm run check:pre-push`
-- [ ] origin/main·CI 상태 확인 후 main 전달
+- [ ] origin/main·CI 상태 확인 후 main 전달 — 기존 main Secret Scan 실패로 대기
 - [ ] main CI 1회 확인
 - [ ] 프로덕션 승격 승인 후 비밀값/콜백/로그인 등록
 - [ ] 비공개 QR 실결제 승인 후 4,950원 1회 검증
