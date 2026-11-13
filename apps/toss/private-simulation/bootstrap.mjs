@@ -1,5 +1,6 @@
 import {person,changePerson} from './storage.mjs';
-import {createSimulationApi} from './api.mjs';
+import {createSimulationApi,skyExample} from './api.mjs';
+window.__TOSS_PRIVATE_SKY_EXAMPLE__=skyExample.input;
 const serve=request=>createSimulationApi(localStorage,person)(request);
 let current=Promise.resolve();
 function handle(request){

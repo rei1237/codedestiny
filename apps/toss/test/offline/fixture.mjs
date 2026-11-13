@@ -72,6 +72,7 @@ function createAccountFixture(storage,owner,token,now){
    try{return respond(calculateTossPet(await request.json()));}catch(error){return respond({error:error.code},error.status);}
   }
   if(path==='/catalog'&&method==='GET')return respond({products:offlineCatalog});
+  if(path==='/canonical/yeongnyangi/free/horary'&&method==='POST')return fetch('/__offline_question_sky/horary',{method:'POST',body:await request.text()});
   if(path==='/canonical/compass/moon'&&method==='POST')return respond({mansionIdx:3,calculationBasis:'mock',birthTimeKnown:false});
   if(path==='/canonical/compass/calendar'&&method==='POST')return respond({source:'unavailable',solarTerms:[]});
   if(path==='/canonical/compass/narrate'&&method==='POST'){const input=await request.json();return respond({ok:true,pigCommentary:input.baseText});}

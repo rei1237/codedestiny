@@ -1,16 +1,41 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {createSimulationApi,products} from '../private-simulation/api.mjs';
+import {createSimulationApi,products,skyExample} from '../private-simulation/api.mjs';
 const url='https://local.invalid/private-simulation-api';
 const storage=()=>{const values=new Map();return {getItem:key=>values.get(key),setItem:(key,value)=>values.set(key,value)};};
 const request=(api,path,token,body)=>api(new Request(url+path,{method:body===undefined?'GET':'POST',headers:{Authorization:'Bearer '+token},...(body===undefined?{}:{body:JSON.stringify(body)})}));
+test('Prashna simulation grants only the separate SKU and reads the same two saved stages',async()=>{
+ const a=storage(),b=storage(),api=createSimulationApi(a,'A'),other=createSimulationApi(b,'B');
+ const login=async(fn,person)=>(await (await request(fn,'/login','',{authorizationCode:'private-simulation-person-'+person})).json()).token;
+ const token=await login(api,'A'),foreign=await login(other,'B'),route='/canonical/yeongnyangi/requests';
+ const input={...skyExample.input,mode:'prashna-v1',productId:'saju_flounder',consultationAttemptId:'one-sky-request'};
+ assert.equal((await request(api,'/canonical/yeongnyangi/free/horary','',skyExample.input)).status,200);
+ assert.equal((await request(api,route,token,{...input,question:'다른 질문으로 물어봐도 될까요?'})).status,422);
+ const prepared=await (await request(api,route,token,input)).json(),id=prepared.fortune.id;
+ assert.equal((await (await request(api,route,token,input)).json()).fortune.id,id);
+ const pay={requestId:id,orderId:'private-order-A-sky',sku:'mock-yeongnyangi-prashna'};
+ for(const sku of ['mock-yn-saju-flounder',products.find(item=>item.id==='saju_flounder').sku,'real-console-sku'])assert.equal((await request(api,'/orders/grant',token,{...pay,sku})).status,403);
+ assert.equal((await request(api,'/orders/grant',token,pay)).status,200);
+ assert.equal((await request(api,'/orders/grant',token,pay)).status,200);
+ assert.equal((await request(other,'/results/'+id,foreign)).status,404);
+ await new Promise(resolve=>setTimeout(resolve,1150));
+ const reopened=createSimulationApi(a,'A'),first=(await (await request(reopened,route+'/'+id,token)).json()).fortune;
+ assert.equal(first.state,'AWAITING_FOLLOWUP');assert.equal(first.chapters.length,1);
+ const followup={question:'제가 먼저 확인할 점은 무엇인가요?'};
+ assert.equal((await request(reopened,route+'/'+id+'/follow-up',token,followup)).status,200);
+ await new Promise(resolve=>setTimeout(resolve,1150));
+ const saved=(await (await request(createSimulationApi(a,'A'),route+'/'+id,token)).json()).fortune;
+ assert.equal(saved.state,'COMPLETED');assert.deepEqual(saved.chapters[0],first.chapters[0]);
+ assert.deepEqual(saved.chapters.map(c=>c.id),skyExample.prashna.manifest.map(c=>c.id));
+ assert.equal((await request(reopened,route+'/'+id+'/follow-up',token,{question:'두 번째로 더 물어볼 수 있을까요?'})).status,409);
+});
 test('private archive simulator serves the 28 existing consultation fixtures and isolates every order',async()=>{
-  assert.equal(products.length,28);
-  assert.equal(new Set(products.map(p=>p.sku)).size,28);
+  assert.equal(products.length,29);
+  assert.equal(new Set(products.map(p=>p.sku)).size,29);
   const a=storage(),b=storage(),api=createSimulationApi(a,'A'),other=createSimulationApi(b,'B');
   const login=async(fn,person)=>(await (await request(fn,'/login','',{authorizationCode:'private-simulation-person-'+person})).json()).token;
   const token=await login(api,'A'),foreign=await login(other,'B');
-  for(const p of products){
+  for(const p of products.filter(item=>item.id!=='prashna-v1')){
     assert.match(p.sku,/^mock-/);
     const args={productId:p.id,profileId:'mock-profile',question:'새로운 일의 우선순위를 알고 싶어요.',consultationAttemptId:'attempt-'+p.id};
     const {fortune}=await (await request(api,'/canonical/yeongnyangi/requests',token,args)).json();

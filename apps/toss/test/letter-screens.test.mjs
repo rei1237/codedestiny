@@ -18,7 +18,7 @@ const mocks={
  './TossLetterRoom':"import React from 'react';export default p=>React.createElement('span',{'data-letter':p.initialId,'data-order':p.initialOrderId});",
  '@/app/fortune-tea-house/SavedTeaReading':"import React from 'react';export default p=>React.createElement('span',{'data-saved':p.resultId});",
  '../src/release':"export const SERVICE_AVAILABLE=false;",
- '../src/platform':"export const isToss=()=>false,restoreSession=async()=>false,recoverAfterAuthentication=async()=>'',onSessionInvalidated=()=>()=>{},canonicalResponse=()=>{},login=()=>{};",
+ '../src/platform':"export const saleProducts=async()=>[],isToss=()=>false,restoreSession=async()=>false,recoverAfterAuthentication=async()=>'',onSessionInvalidated=()=>()=>{},canonicalResponse=()=>{},login=()=>{};",
  './transport.mjs':"export const createServiceFetch=()=>globalThis.fetch;",
  './native-back.mjs':"export const dispatchServiceBack=()=>false;",
  './letter-draft-bootstrap.mjs':"export const captureLetterDraft=()=>null,restoreLetterDraft=()=>{};",

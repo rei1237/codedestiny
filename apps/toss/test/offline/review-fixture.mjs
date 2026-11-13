@@ -33,10 +33,11 @@ export const tieredLetters=['yeoni','neo'].flatMap(persona=>Object.keys(systems)
  name:'가상 질문 편지 · '+systems[domain]+' · '+fishNames[fish],featureKey:chatQuestionFeatureKey(fish),approvedPriceKRW:1,available:true,chapters:1,
 }))));
 const letterProducts=[reviewCatalog.find(p=>p.id==='yeoni:chat_saju'),...unsoldLetters,...tieredLetters];
-export const offlineCatalog=[...reviewCatalog,...unsoldFixtureProducts,...unsoldLetters,...tieredLetters];
+export const prashnaProduct={id:'prashna-v1',name:'영냥 신점',featureKey:'mock-prashna',sku:'mock-yeongnyangi-prashna',approvedPriceKRW:1,available:true,chapters:2};
+export const offlineCatalog=[prashnaProduct,...reviewCatalog,...unsoldFixtureProducts,...unsoldLetters,...tieredLetters];
 export const offlineLetterProduct=(persona,productId)=>letterProducts.find(p=>p.id===persona+':'+productId);
 export const reviewSdkProducts=[...offlineCatalog.map(sdkProduct),...expertProducts.map(sdkProduct),...roomSdkProducts];
-const consultationCatalog=offlineCatalog.filter(p=>!p.id.includes(':'));
+const consultationCatalog=offlineCatalog.filter(p=>p.id!==prashnaProduct.id&&!p.id.includes(':'));
 const letterSku=sku=>letterProducts.some(p=>p.sku===sku);
 const json=(data,status=200)=>Response.json(data,{status});
 const fail=(error,status)=>json({error},status);
@@ -47,12 +48,15 @@ export function safetyResponse(body){
   return code?json({error:code,message:consultationSafetyMessages[code],retryable:false},422):null;
 }
 
-async function prepare(body,state,save,day){
+async function localSky(body){return fetch('/__offline_question_sky/prashna',{method:'POST',body:JSON.stringify(body)});}
+async function prepare(body,state,save,day,readSky){
   const blocked=safetyResponse(body);if(blocked)return blocked;
-  const product=consultationCatalog.find(p=>p.id===body.productId);
+  const sky=body.mode==='prashna-v1'&&body.productId==='saju_flounder';
+  if(body.mode&&!sky)return fail('INVALID_READING_MODE',400);
+  const product=sky?prashnaProduct:consultationCatalog.find(p=>p.id===body.productId);
   if(!product)return fail('TOSS_PRODUCT_NOT_APPROVED',503);
   const tarotOnly=body.productId.startsWith('tarot_')&&body.profileId==='tarot-question';
-  const validProfile=tarotOnly||state.profiles.some(profile=>profile.profileId===body.profileId);
+  const validProfile=sky||tarotOnly||state.profiles.some(profile=>profile.profileId===body.profileId);
   const asksQuestion=!body.consultationKind||body.consultationKind==='ask';
   if(!validProfile||typeof body.question!=='string'||(asksQuestion&&!body.question.trim())||!body.consultationAttemptId)return fail('INVALID_INPUT',400);
   // Store a digest for retry comparison. Profiles, freeform questions and birth inputs are not fixture records.
@@ -62,10 +66,18 @@ async function prepare(body,state,save,day){
   const digest=Array.from(new Uint8Array(bytes),value=>value.toString(16).padStart(2,'0')).join('');
   const prior=[...state.fortunes.values()].find(item=>item.attempt===body.consultationAttemptId);
   if(prior)return prior.digest===digest?json({fortune:prior.fortune}):fail('REQUEST_INPUT_MISMATCH',409);
+  let reading;
+  if(sky){
+    const response=await readSky(body);
+    if(!response.ok)return response;reading=await response.json();
+    const concurrent=[...state.fortunes.values()].find(row=>row.attempt===body.consultationAttemptId);
+    if(concurrent)return concurrent.digest===digest?json({fortune:concurrent.fortune}):fail('REQUEST_INPUT_MISMATCH',409);
+  }
   const id=(++state.sequence).toString(16).padStart(64,'0');
   const fortune={id,profileId:body.profileId,productId:product.id,product:productView(product),locale:'ko',state:'CREATED',paid:false,createdAt:day.toISOString(),
     consultation:{question:'[테스트 전용 예시] 오늘 제가 먼저 살펴볼 일은 무엇인가요?',kindLabel:'테스트 질문'},
     manifest:[{id:'test',title:'테스트 상담',ordinal:0}],chapters:[],recovery:{canRetryNow:false,savedChapters:0,totalChapters:1}};
+  if(sky)Object.assign(fortune,{profileId:'question-sky',locale:reading.locale,product:{...reading.product,id:prashnaProduct.id,cdFeatureKey:prashnaProduct.featureKey,priceKRW:prashnaProduct.approvedPriceKRW},consultation:reading.consultation,manifest:reading.manifest,recovery:{canRetryNow:false,savedChapters:0,totalChapters:2}});
   try{prepareSpread(fortune,body);}catch{return fail('INVALID_TAROT_SPREAD',400);}
   state.fortunes.set(id,{attempt:body.consultationAttemptId,digest,sku:product.sku,fortune});save();
   return json({fortune});
@@ -88,6 +100,10 @@ function grant(body,state,save,date,delay){
 function finishReadyJobs(state,save,date){
   for(const item of state.fortunes.values()){
     if(item.fortune.state!=='GENERATING'||date.getTime()<item.readyAt)continue;
+    if(item.sku===prashnaProduct.sku){
+      const row=item.fortune,ordinal=row.chapters.length,chapter={...fixedChapter,...row.manifest[ordinal],summary:ordinal?'[모의] 영냥이의 추가 답변입니다.':'[모의] 영냥이의 첫 답변입니다.'};
+      item.fortune={...row,state:ordinal?'COMPLETED':'AWAITING_FOLLOWUP',chapters:[...row.chapters,chapter],followup:{status:ordinal?'completed':'available',used:Boolean(ordinal),suggestions:ordinal?[]:['제가 먼저 확인할 점은 무엇인가요?']},recovery:{canRetryNow:false,savedChapters:ordinal+1,totalChapters:2}};save();continue;
+    }
     item.fortune={...item.fortune,state:'COMPLETED',chapters:[fixedChapter],recovery:{canRetryNow:false,savedChapters:1,totalChapters:1}};
     save();
   }
@@ -134,7 +150,7 @@ function daily(path,method,body,url,state,save,now){
   daily.readings[category]=result;save();return json(result);
 }
 
-export async function handleReviewFixture(request,url,path,state,save,now,delay=0){
+export async function handleReviewFixture(request,url,path,state,save,now,delay=0,readSky=localSky){
   const method=request.method;
   finishReadyJobs(state,save,now());
   if(method==='POST'&&(path==='/prepare'||path==='/canonical/fortune-chat/consultations/recover')){
@@ -144,17 +160,24 @@ export async function handleReviewFixture(request,url,path,state,save,now,delay=
   if(path.startsWith('/daily/'))return daily(path,method,method==='POST'?await request.json():null,url,state,save,now());
   if(path==='/canonical/yeongnyangi/products'&&method==='GET')return json({products:consultationCatalog.map(productView)});
   if(path==='/canonical/yeongnyangi/saju/experience-check'&&method==='POST')return json({check:null});
-  if(path==='/canonical/yeongnyangi/requests'&&method==='POST')return prepare(await request.json(),state,save,now());
+  if(path==='/canonical/yeongnyangi/requests'&&method==='POST')return prepare(await request.json(),state,save,now(),readSky);
   const draw=/^\/canonical\/yeongnyangi\/requests\/([a-f0-9]{64})\/tarot-draw$/.exec(path);
   if(draw&&method==='POST')return drawFixture(request,state.fortunes.get(draw[1]),save);
   const owned=[...state.fortunes.values()].filter(row=>row.fortune.paid);
-  if(path==='/canonical/yeongnyangi/requests'&&method==='GET')return json({fortunes:owned.map(({fortune})=>({...fortune,recovering:fortune.state!=='COMPLETED',completedChapters:fortune.chapters.length,totalChapters:1})),nextCursor:null});
+  if(path==='/canonical/yeongnyangi/requests'&&method==='GET')return json({fortunes:owned.map(({fortune})=>({...fortune,recovering:fortune.state!=='COMPLETED',completedChapters:fortune.chapters.length,totalChapters:fortune.manifest.length})),nextCursor:null});
   const match=/^\/canonical\/yeongnyangi\/requests\/([a-f0-9]{64})(?:\/(generate|activate|conversation|follow-up))?$/.exec(path);
   if(match){
     const row=state.fortunes.get(match[1]);
     if(!row)return fail('RESULT_NOT_FOUND',404);
     if(match[2]&&method==='POST'){
       if(!row.fortune.paid)return fail('PAYMENT_REQUIRED',402);
+      if(match[2]==='follow-up'&&row.sku===prashnaProduct.sku){
+        const input=await request.json(),notice=safetyResponse(input);if(notice)return notice;
+        if(typeof input.question!=='string'||input.question.trim().length<5||input.question.length>600)return fail('INVALID_QUESTION',400);
+        if(row.followupQuestion===input.question)return json({fortune:row.fortune});
+        if(row.fortune.state!=='AWAITING_FOLLOWUP'||row.followupQuestion)return fail('FOLLOWUP_NOT_AVAILABLE',409);
+        row.followupQuestion=input.question;row.readyAt=now().getTime()+delay;row.fortune={...row.fortune,state:'GENERATING',followup:{used:true,status:'processing',suggestions:[]}};save();return json({fortune:row.fortune});
+      }
       if(['conversation','follow-up'].includes(match[2]))return safetyResponse(await request.json())||fail('OFFLINE_FIXTURE_NOT_IMPLEMENTED',501);
     }else if(method!=='GET'||match[2])return fail('METHOD_NOT_ALLOWED',405);
     return json({fortune:row.fortune});

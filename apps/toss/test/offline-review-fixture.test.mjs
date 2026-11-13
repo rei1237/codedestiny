@@ -2,7 +2,7 @@ import '../../../scripts/lib/mock-network-guard.cjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createOfflineFixtureApi} from './offline/fixture.mjs';
-import {reviewSdkProducts,reviewCatalog,unsoldFixtureProducts,unsoldLetters,tieredLetters} from './offline/review-fixture.mjs';
+import {reviewSdkProducts,reviewCatalog,prashnaProduct,unsoldFixtureProducts,unsoldLetters,tieredLetters} from './offline/review-fixture.mjs';
 import {APPROVED_TOSS_PRODUCTS} from '../../../worker/toss/catalog.js';
 
 function fixture(){
@@ -18,7 +18,7 @@ const makeBody=id=>({productId:id,profileId:'mock-profile',question:'합성 진�
 test('the mock SDK and fixture verify the original five product prices',async()=>{
   const f=fixture(),catalog=(await (await f.request('/catalog',null,false)).json()).products;
   assert.equal(reviewCatalog.length,5);
-  assert.equal(catalog.length,reviewCatalog.length+unsoldFixtureProducts.length+unsoldLetters.length+tieredLetters.length);
+  assert.equal(catalog.length,[prashnaProduct].length+reviewCatalog.length+unsoldFixtureProducts.length+unsoldLetters.length+tieredLetters.length);
   for(const item of reviewCatalog){
     const linked=catalog.find(p=>p.sku===item.sku),sdk=reviewSdkProducts.find(p=>p.sku===item.sku);
     const price=APPROVED_TOSS_PRODUCTS.find(p=>p.productId===item.id.replace(/^yeoni:/,'')).approvedPriceKRW;

@@ -3,6 +3,7 @@ import CurrentLocationButton,{type CurrentLocation} from '@/app/components/Curre
 import FreePromptContinuation from '@/app/components/FreePromptContinuation';
 import type {FreeReading} from '@/worker/yeongnyangi/fortune/free/categories';
 import {useEffect,useRef,useState} from 'react';
+import {getAuthState} from '@/app/_lib/auth-store';
 import {products,type Product} from '@/worker/yeongnyangi/payments/catalog';
 import {questionCities,skyTopics,SKY_IMAGE,type SkyMode} from '@/worker/yeongnyangi/fortune/question-sky-contract';
 import {fortuneApi,FortuneApiError,loginForCurrentPage,resultPath,checkoutPath,type FortuneRecord} from '../_lib/api';
@@ -14,7 +15,7 @@ import {symbolicCityName} from '../_lib/symbolic-locales';
 import {readingLocationCopy} from '../_lib/current-location-copy';
 import CraftedProductDisclosure from '@/app/components/CraftedProductDisclosure';
 import ReadingLanguageSelect from './ReadingLanguageSelect';
-export default function QuestionSkyConsultation({mode,paymentSurface="web"}:{mode:SkyMode;paymentSurface?:"toss"|"web"}){
+export default function QuestionSkyConsultation({mode,paymentSurface="web",loadTossOffer,example}:{example?:{question:string;questionSky:{relationship:string;situation:string;topic:keyof typeof skyTopics;cityId:string;localTime:string;boundary:boolean}};mode:SkyMode;paymentSurface?:"toss"|"web";loadTossOffer?:()=>Promise<string|undefined>}){
   const {locale,setLocale,siteLocale,fallback}=useReadingLanguage();
   const copy=questionSkyCopyFor(siteLocale).input,extra=spiritExtraCopy(siteLocale);
   const locationCopy=readingLocationCopy(siteLocale);
@@ -24,27 +25,35 @@ export default function QuestionSkyConsultation({mode,paymentSurface="web"}:{mod
   const [question,setQuestion]=useState(''),[relationship,setRelationship]=useState(''),[situation,setSituation]=useState('');
   const [topic,setTopic]=useState<keyof typeof skyTopics>('relationship'),[boundary,setBoundary]=useState(false);
   const [cityId,setCityId]=useState(''),[localTime,setLocalTime]=useState('');
+  const [tossAmount,setTossAmount]=useState('');
   const [available,setAvailable]=useState(false),[ready,setReady]=useState(false),[busy,setBusy]=useState(false),[error,setError]=useState('');
-  const lock=useRef(false),draftKey=`yeongnyangi:question-sky:${mode}`;
+  const lock=useRef(false),draftKey=paymentSurface==='toss'?'yeongnyangi:consultation-login-draft':`yeongnyangi:question-sky:${mode}`;
   const consultationAttemptId=useRef('');
+  const [draftReady,setDraftReady]=useState(false);
+  const draftOwner=()=>{const user=getAuthState().user;return String(user?.id||'').trim().toLowerCase();};
   useEffect(()=>{
     let active=true;
-    if(free||paymentSurface==="toss"){setAvailable(free);setReady(true);}else fortuneApi<{products:(Product&{available:boolean})[]}>('products').then(r=>{if(active)setAvailable(r.products.some(p=>p.id===product.id&&p.available));}).catch(()=>{if(active)setError(copy.availabilityError);}).finally(()=>{if(active)setReady(true);});
-    try{const d=JSON.parse(sessionStorage.getItem(draftKey)||'null');if(d&&Date.now()-d.at<3600000){setQuestion(String(d.question||'').slice(0,1000));setRelationship(String(d.relationship||''));setSituation(String(d.situation||'').slice(0,600));if(Object.hasOwn(skyTopics,d.topic))setTopic(d.topic);setBoundary(d.boundary===true);setCityId(String(d.cityId||''));setLocalTime(String(d.localTime||''));if(readingLocales.includes(d.locale))setLocale(readingLocale(d.locale));}}catch{/* Optional login draft. */}
+    if(free){setAvailable(true);setReady(true);}else if(paymentSurface==='toss'){Promise.resolve(loadTossOffer?.()).then(amount=>{if(active){setTossAmount(amount||'');setAvailable(Boolean(amount));}}).catch(()=>{if(active)setAvailable(false);}).finally(()=>{if(active)setReady(true);});}else fortuneApi<{products:(Product&{available:boolean})[]}>('products').then(r=>{if(active)setAvailable(r.products.some(p=>p.id===product.id&&p.available));}).catch(()=>{if(active)setError(copy.availabilityError);}).finally(()=>{if(active)setReady(true);});
+    try{const d=JSON.parse(sessionStorage.getItem(draftKey)||'null');if(d&&Date.now()-d.at<3600000&&(paymentSurface!=='toss'||(d.mode===mode&&(!d.accountId||d.accountId===draftOwner())))){if(typeof d.attempt==='string')consultationAttemptId.current=d.attempt;setQuestion(String(d.question||'').slice(0,1000));setRelationship(String(d.relationship||''));setSituation(String(d.situation||'').slice(0,600));if(Object.hasOwn(skyTopics,d.topic))setTopic(d.topic);setBoundary(d.boundary===true);setCityId(String(d.cityId||''));setLocalTime(String(d.localTime||''));if(readingLocales.includes(d.locale))setLocale(readingLocale(d.locale));}}catch{/* Optional login draft. */}
+    setDraftReady(true);
     return()=>{active=false;};
-  },[product.id,draftKey,free,paymentSurface,copy.availabilityError]);
+  },[product.id,draftKey,free,paymentSurface,loadTossOffer,copy.availabilityError]);
+  useEffect(()=>{
+    if(paymentSurface!=='toss'||!draftReady||!question.trim())return;
+    try{const now=Date.now();sessionStorage.setItem(draftKey,JSON.stringify({mode,path:window.location.pathname+window.location.search,savedAt:now,at:now,accountId:draftOwner(),attempt:consultationAttemptId.current,locale,question,relationship,situation,topic,boundary,cityId,localTime}));}catch{/* Optional draft. */}
+  },[paymentSurface,draftReady,draftKey,mode,locale,question,relationship,situation,topic,boundary,cityId,localTime]);
   async function prepare(event:React.FormEvent){
     event.preventDefault();if(lock.current)return;
     if(question.trim().length<5||question.split(/\n+|(?<=[?？])\s*/u).filter(value=>value.trim()).length!==1||(!cityId&&!location)||!localTime){setError(copy.validation);return;}
     lock.current=true;setBusy(true);setError('');
-    const draft={locale,question,relationship,situation,topic,boundary,cityId,localTime,at:Date.now()};
+    if(!free&&!consultationAttemptId.current)consultationAttemptId.current=crypto.randomUUID();
+    const draft={mode,...(paymentSurface==='toss'?{path:window.location.pathname+window.location.search,savedAt:Date.now(),accountId:draftOwner()}:{}),attempt:consultationAttemptId.current,locale,question,relationship,situation,topic,boundary,cityId,localTime,at:Date.now()};
     try{sessionStorage.setItem(draftKey,JSON.stringify(draft));}catch{/* Server owns submitted input. */}
     try{
       if(free){
         const {result}=await fortuneApi<{result:FreeReading}>('free/horary',{locale,question,questionSky:{relationship:relationship||copy.relationships[0],situation,topic,boundary,cityId,localTime,location:location||undefined}});
         setReading(result);try{sessionStorage.removeItem(draftKey);}catch{/* Optional draft only. */}return;
       }
-      if(!consultationAttemptId.current)consultationAttemptId.current=crypto.randomUUID();
       const {fortune}=await fortuneApi<{fortune:FortuneRecord}>('requests',{locale,consultationAttemptId:consultationAttemptId.current,mode,productId:product.id,question,questionSky:{relationship:relationship||copy.relationships[0],situation,topic,boundary,cityId,localTime,location:location||undefined}});
       try{sessionStorage.removeItem(draftKey);}catch{/* Submitted input is durable. */}
       consultationAttemptId.current='';
@@ -57,7 +66,8 @@ export default function QuestionSkyConsultation({mode,paymentSurface="web"}:{mod
     <p>{copy.description}</p>
     {siteLocale==='ko'?<details className={styles.readingSettings}><summary>별의 기운은 어떻게 풀이하나요?</summary><p>영냥 신점은 인도 질문 점성술인 프라슈나로 질문 순간의 행성과 별자리 배치를 계산해요. 이 근거와 손님이 적은 상황을 함께 읽고, 영냥이의 말투로 AI가 답과 행동 조언을 풀어드려요.</p><p>서양 질문 점성술인 호라리는 별도의 영냥 호라리에서 행성 사이의 각도와 달의 움직임을 살펴요. 계산 결과와 외부 AI 상담용 프롬프트를 제공하는 방식이에요. 두 체계를 한 결과로 섞지는 않아요.</p><p>{copy.notice}</p><a href={free?'/yeongnyangi/fortune/?mode=spirit':'/yeongnyangi/fortune/?mode=horary'}>{free?'영냥 신점으로 상담하기':'영냥 호라리 살펴보기'}</a></details>:<p>{copy.notice}</p>}
     {!free&&siteLocale==='ko'&&<CraftedProductDisclosure featureKey={product.cdFeatureKey} variant="prashna"/>}
-    <form className={styles.form} onSubmit={prepare} onChange={()=>setReading(null)}>
+    {example&&<aside><p>이 비공개 모의 앱에서는 서울에서 묻는 업무 질문 예시로 결과를 확인해요.</p><button type="button" onClick={()=>{const sky=example.questionSky;consultationAttemptId.current='';setLocale('ko');setLocation(null);setQuestion(example.question);setTopic(sky.topic);setCityId(sky.cityId);setLocalTime(sky.localTime);setRelationship(sky.relationship);setSituation(sky.situation);setBoundary(sky.boundary);setError('');setReading(null);}}>모의 예시 입력하기</button></aside>}
+    <form className={styles.form} onSubmit={prepare} onChange={()=>{consultationAttemptId.current='';setReading(null);}}>
       <label htmlFor="sky-question">{copy.questionLabel}</label><textarea id="sky-question" required minLength={5} rows={4} maxLength={1000} value={question} onChange={e=>setQuestion(e.target.value)} placeholder={copy.questionPlaceholder}/>
       <label htmlFor="sky-topic">{copy.topicLabel}</label><select id="sky-topic" value={topic} onChange={e=>setTopic(e.target.value as keyof typeof skyTopics)}>{Object.keys(skyTopics).map(id=><option value={id} key={id}>{questionSkyTopicFor(id,siteLocale)}</option>)}</select>
       <p>{copy.topicHelp}</p>
@@ -68,7 +78,7 @@ export default function QuestionSkyConsultation({mode,paymentSurface="web"}:{mod
       <p>{copy.timeHelp}</p>
       <label htmlFor="sky-situation">{copy.situationLabel}</label><textarea id="sky-situation" rows={3} maxLength={600} value={situation} onChange={e=>setSituation(e.target.value)} placeholder={copy.situationPlaceholder}/>
       <label><input type="checkbox" checked={boundary} onChange={e=>setBoundary(e.target.checked)}/> {copy.boundaryLabel}</label>
-      <ReadingLanguageSelect locale={locale} siteLocale={siteLocale} onChange={setLocale} fallback={fallback} disabled={busy}/><div className={styles.checkoutSection}><h2>{copy.checkoutTitle}</h2><p>{free?copy.freeSummary:copy.paidSummary}</p><strong>{free?copy.freePrice:paymentSurface==='toss'?'토스 상품 등록 확인 중':`${readingPrice(product.priceKRW,siteLocale)} · ${copy.paidPrice}`}</strong><p>{copy.notice}</p>
+      <ReadingLanguageSelect locale={locale} siteLocale={siteLocale} onChange={setLocale} fallback={fallback} disabled={busy}/><div className={styles.checkoutSection}><h2>{copy.checkoutTitle}</h2><p>{free?copy.freeSummary:copy.paidSummary}</p><strong>{free?copy.freePrice:paymentSurface==='toss'?(tossAmount||'토스 상품 등록 확인 중'):`${readingPrice(product.priceKRW,siteLocale)} · ${copy.paidPrice}`}</strong><p>{copy.notice}</p>
         <button type="submit" disabled={busy||!ready||!available}>{busy?copy.busy:free?copy.freeSubmit:copy.submit}</button>
         {!ready&&<p role="status">{copy.preparing}</p>}{ready&&!available&&<p>{copy.unavailable}</p>}
         {error&&<p role="alert">{error}</p>}

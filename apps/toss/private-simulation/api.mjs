@@ -1,8 +1,15 @@
-import {handleReviewFixture,offlineCatalog} from '../test/offline/review-fixture.mjs';
+import skyExample from './question-sky-example.json' with {type:'json'};
+export {skyExample};
+import {handleReviewFixture,offlineCatalog,prashnaProduct} from '../test/offline/review-fixture.mjs';
 import {productView} from '../test/offline/yeongnyangi-contracts.mjs';
 
 export const products=offlineCatalog.filter(product=>!product.id.includes(':'));
 const replies=(value,status=200)=>Response.json(value,{status});
+function exampleReading(kind,body){
+  const input=skyExample.input;
+  if((body.locale||'ko')!=='ko'||body.question!==input.question||body.questionSky?.location||Object.entries(input.questionSky).some(([key,value])=>(body.questionSky||{})[key]!==value))return replies({error:'QUESTION_SKY_EXAMPLE_REQUIRED',message:'모의 예시 입력하기를 누른 뒤 예시 질문과 시각으로 다시 시도해 주세요.'},422);
+  return replies(skyExample[kind]);
+}
 const unavailable=()=>replies({error:'PRIVATE_SIMULATION_UNAVAILABLE'},404);
 const sample={id:'mock-profile',profileId:'mock-profile',name:'테스트 프로필',gender:'F',birthDate:'1990-01-01',timeUnknown:true,calendarType:'solar',birth:{year:1990,month:1,day:1,timeUnknown:true,calType:'solar'}};
 
@@ -20,7 +27,8 @@ export function createSimulationApi(storage,person){
     const path=url.pathname.slice('/private-simulation-api'.length),method=request.method;
     if(!url.pathname.startsWith('/private-simulation-api/'))return unavailable();
     if(path==='/catalog'&&method==='GET')return replies({products});
-    if(path==='/canonical/yeongnyangi/products'&&method==='GET')return replies({products:products.map(productView)});
+    if(path==='/canonical/yeongnyangi/products'&&method==='GET')return replies({products:products.filter(p=>p.id!==prashnaProduct.id).map(productView)});
+    if(path==='/canonical/yeongnyangi/free/horary'&&method==='POST')return exampleReading('horary',await request.json());
     if(path==='/login'&&method==='POST'){
       const {authorizationCode}=await request.json();
       if(authorizationCode!==owner)return replies({error:'LOGIN_REQUIRED'},401);
@@ -49,6 +57,6 @@ export function createSimulationApi(storage,person){
       const {sku,orderId}=await request.clone().json();
       if(!products.some(product=>product.sku===sku)||!orderId?.startsWith('private-order-'+person+'-'))return replies({error:'ORDER_MISMATCH'},403);
     }else if(!(/^\/canonical\/yeongnyangi\/(requests(?:\/|$)|saju\/experience-check$)/.test(path)||/^\/results\/[a-f0-9]{64}$/.test(path)||path==='/library'))return unavailable();
-    return await handleReviewFixture(request,url,path,state,save,()=>new Date(),1100)||unavailable();
+    return await handleReviewFixture(request,url,path,state,save,()=>new Date(),1100,body=>exampleReading('prashna',body))||unavailable();
   };
 }

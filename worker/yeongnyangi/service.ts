@@ -7,7 +7,7 @@ import {CONSULTATION_EXPANSION_VERSION} from './fortune/consultation-expansion';
 import {FUSION_BOOK_VERSION,DIRECT_FUSION_ANSWER} from './fortune/fusion-book';
 import {questionEvidence,questionPeriodTiming} from './fortune/ask/question-evidence';
 import {conversationView} from './fortune/ask/conversation';
-import {questionSkyCalculationInput} from './fortune/question-sky-locale-input';
+import {questionSkyReading} from './fortune/question-sky-preparation';
 import {CONSULTATION_BUDGET_VERSION,consultationBudget,fusionPremiumManifest,allocateConsultationBudget,withRequestedPeriodScope} from './fortune/consultation-budget';
 import {QUESTION_POLICY_VERSION,questionDecision,questionTopic,assertQuestionOrder,questionManifest,type QuestionFish} from './fortune/ask/question-policy';
 import {COUNSEL_VERSION,counselManifest} from './fortune/counsel-purpose';
@@ -41,9 +41,8 @@ import { v7Applies, type ChapterSpecV7 } from './fortune/reading-v7';
 import { resolveV7Ledger } from './fortune/reading-v7-ledger';
 import { buildV7TimingMatrix, v7TimingSummaries, withV7Timing } from './fortune/reading-v7-timing';
 import {validateSpiritInput,spiritPublic,spiritManifest,spiritEvidence} from './fortune/spirit';
-import {validateSkyInput,skyMoment,calculateQuestionSky} from './fortune/question-sky';
-import {skyModes,skyTopics,SKY_IMAGE,SKY_TIMING} from './fortune/question-sky-contract';
-import {questionSkyTwoStageManifest} from './fortune/question-sky-reading';
+import {validateSkyInput} from './fortune/question-sky';
+import {skyModes} from './fortune/question-sky-contract';
 import {SPIRIT_MODE,SPIRIT_TITLE,SPIRIT_IMAGE,spiritTopics} from './fortune/spirit-contract';
 import { ProfileCard } from '../lib/models.js';
 import { connectDb, withMongoRetry } from '../lib/db.js';
@@ -427,24 +426,7 @@ async function prepareQuestionSky(env:Record<string,unknown>,userId:string,body:
   // or a later version changes the interpretation. Never recalculate a purchase.
   try{return await readRequest(env,userId,id);}catch(error:any){if(error?.code!=='FORTUNE_NOT_FOUND')throw error;}
   if(!providerReady(env))throw new FortuneError('LLM_NOT_CONFIGURED',503);
-  const moment=skyMoment(input);
-  const calculated=await calculateQuestionSky(env,questionSkyCalculationInput(input,locale),moment);
-  calculated.publicData.relationship=input.relationship;
-  product.manifestVersion=QUESTION_SKY_TWO_STAGE_VERSION;product.chapterCount=2;
-  const clock=consultationClock(moment.timezone,moment.date);
-  const context=calculated.context;
-  calculated.publicData.evidenceVersion=QUESTION_SKY_TWO_STAGE_VERSION;
-  context.facts.push({id:`${context.domain}.question-calculation`,label:'프라슈나 계산 근거',value:{method:'Lahiri sidereal / Whole Sign',chart:calculated.chart,judgements:calculated.audit,limits:['위계는 본궁·고양·손상·추락만 산출','실제 감정·소재지·사건 시기의 관측 아님']}});
-  const manifest=withRepeatPolicy(conciseReadingManifest(questionSkyTwoStageManifest(context)));
-  const consultation=createConsultation(input.question,input.topic,clock,manifest);
-  // The question is displayed once in the result shell. The generated prose
-  // receives it as context but never creates a second question-answer heading.
-  consultation.questions=[];
-  consultation.questionSky=calculated.publicData;
-  consultation.topicLabel=skyTopics[input.topic];
-  consultation.period={kind:'default',label:SKY_TIMING};
-  const analysis={contexts:{[context.domain]:context},signals:[],themes:[],question:input.question,topicId:input.topic,asOf:clock.asOf,consultation};
-  product.name=skyModes[input.mode];product.image=SKY_IMAGE;
+  const {moment,calculated,manifest,analysis}=await questionSkyReading(env,input,locale,product);
   // New purchases use the registry flounder contract; old snapshots are never rewritten.
   return createRequest(env,userId,id,{profileId:'question-sky',productId:product.id,featureKey:product.cdFeatureKey,amountKRW:product.priceKRW,fingerprint,
     growthAttribution:normalizeGrowthAttribution(body.growthAttribution),snapshot:{deliveryContract:CHAPTER_DELIVERY_VERSION,chapterTimeoutPolicy:CHAPTER_TIMEOUT_POLICY,...(locale!=='ko'?{locale}:{}),...(selectAnswerVoice(env)?{answerVoice:selectAnswerVoice(env)}:{}),product,analysis,manifest,input,questionSkyStage:{version:QUESTION_SKY_TWO_STAGE_VERSION,firstChars:manifest[0].targetChars?.[0],followupChars:manifest[1].targetChars?.[0]},questionMoment:{...moment,date:moment.date.toISOString()},calculation:{raw:calculated.raw,audit:calculated.audit,moonMotion:calculated.moonMotion}}});
