@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-13
-next: 묶음 ① 단계 1(후기 서버) 시작
+next: 묶음 ② 단계 6a(무료 배너 카드화) 시작
 ---
 
 # 꿀꿀 운세·영냥이 UX: 구매 흐름 · 후기 신뢰 · 후기 작성 · 생성 진행 · 무료 배너
@@ -20,7 +20,7 @@ next: 묶음 ① 단계 1(후기 서버) 시작
 - 기준: origin/main `02476159e0b545b887fe04a12815b7123b4b614d`
 - node_modules는 정션, `.env.local`·`.env.cloudflare.local`은 링크(건드리지 않는다).
 - 워크트리 제거: 다른 체크아웃에서 `npm run worktree:remove -- 'D:\Development\codedestiny-worktrees\ux-conversion-20261113-215142'` (git worktree remove 금지 — 긴 경로 고아 폴더).
-- 마지막 커밋: 단계마다 아래 표에 적는다.
+- 마지막 커밋: 단계마다 아래 표에 적는다. 묶음 ① 끝 코드 커밋 `3af1f976b`(미push).
 
 ## 승인 상태 (사용자 원문, 2026-11-13)
 
@@ -130,10 +130,10 @@ next: 묶음 ① 단계 1(후기 서버) 시작
 ## 단계
 
 ### 묶음 ① 후기 (단계 1~4)
-- [ ] 1. 후기 서버 — SHA:
-- [ ] 2. 후기 작성기 — SHA:
-- [ ] 3. 결과 화면 reviewProductId — SHA:
-- [ ] 4. /reviews 미리 선택·보상 표시·기록함 연결 — SHA:
+- [x] 1. 후기 서버 — SHA: 4462ff058
+- [x] 2. 후기 작성기 — SHA: 3250dbb7e
+- [x] 3. 결과 화면 reviewProductId — SHA: 70fe88e4d
+- [x] 4. /reviews 미리 선택·보상 표시·기록함 연결 — SHA: 3af1f976b
 
 ### 묶음 ② 무료 배너·상세 (단계 6, 11 일부)
 - [ ] 6a. 배너 카드화(React·셸) — SHA:
@@ -163,3 +163,73 @@ next: 묶음 ① 단계 1(후기 서버) 시작
 ## 결과 기록
 
 묶음마다 요약을 여기에 덧붙인다.
+
+### 묶음 ① 후기 (단계 1~4) — 2026-11-13 완료, 미push
+
+커밋
+- `4462ff058` 단계 1: `worker/routes/reviews.js`
+  - 공개 후기 `rewarded` (투영에 `reviewReward.granted`, 목록 캐시 키 v5)
+  - 요약 `verifiedOnly` (키 `reviews:summary:v3:<productId>:<0|1>`)
+  - 빠른 태그를 좋았던 점 3개와 아쉬웠던 점 3개로 균형 맞춤 (화이트리스트 9개, 옛 태그도 허용)
+  - `worker/lib/record-library.js` 기록에 `reviewProductId` (카탈로그 slug) 추가
+- `3250dbb7e` 단계 2: 새 파일 `app/components/review/review-ui.ts` 하나에 모음
+  - 별점 라벨, 태그, slug 검증, `reviewWriteHref`, 초안 저장소 (`cd_review_draft_v1:<slug>`, 이 기기, 7일)
+  - `QuickReviewComposer`가 바뀐 점
+    - 상품 미리 선택, 초안 복원·저장, "N점 · 라벨" 표시
+    - 태그를 두 그룹으로 나눔
+    - S00 이벤트 6종 추가 (본문 미포함)
+    - 접수 뒤 3단계 타임라인
+  - `ReviewRewardBanner`가 `reviewProductId`를 받아 넘김
+  - `ReviewsClient`는 태그 목록을 공용 모듈에서 가져옴
+  - `styles/review-reward.css`와 `public/` 미러는 토큰만 사용
+- `70fe88e4d` 단계 3: 결과 화면의 후기 배너 마운트 전부에 카탈로그 상품 id 리터럴을 넘김
+  - 공유 컴포넌트 3종 (`PremiumResultShare`, `ConsultationShare`, `PaidResultImageGuide`)은 받은 값을 그대로 넘김
+  - 정적 테스트가 모든 마운트와 호출부를 훑어 카탈로그 id인지 확인
+- `3af1f976b` 단계 4: `/reviews/?write=1&product=<slug>`
+  - 작성 가능한 상품일 때만 미리 고름. 비로그인 복귀 `next`에도 같은 slug만 실림
+  - 카드에 `rewarded`면 "작성 보상(월정석) 지급 후기"를 토큰 스타일로 표시 (`reviewCardRewardLabel`, 문구는 `js/review-reward-copy.mjs` 한 곳)
+  - 후기 링크가 상품을 넘김: 기록함은 `reviewProductId`, 영냥이 보관함은 `yeongnyangi`
+
+테스트 (실제 수치)
+- 단계 1
+  - jest 6 suites, 94 passed
+  - `verify:public-api-edge-cache` OK
+- 단계 2
+  - `node --test __tests__/ui/review-consent-flow.test.mjs` 9/9
+  - `verify:analytics-events` 통과
+  - `typecheck` 0 errors
+- 단계 3
+  - `review-reward-copy.test.mjs` 4/4
+  - `typecheck` 0 errors
+- 단계 4
+  - `review-consent-flow` 10/10, `review-reward-copy` 5/5
+  - `typecheck` 0 errors
+- 묶음 끝 재실행
+  - jest (`record-library`, `review-author-masking`, `review-create`) 3 suites, 49 passed
+  - UI 두 파일 15/15
+  - `verify:public-api-edge-cache` OK
+  - `verify:analytics-events` 통과
+- `check:fast`는 묶음 ⑤에서 돌린다.
+
+설계와 다르게 한 점
+- 태그 그룹 제목은 "좋았던 점"과 "아쉬웠던 점"이다.
+- `review_write_start`는 별점·본문을 처음 직접 고칠 때만 보낸다 (태그 클릭과 복원은 제외).
+- 기존 이벤트 `review_ui_view`, `review_rating_select`, `review_submit` 등은 그대로 둔다.
+- 접수 타임라인은 이렇게 갈린다.
+  - 공개 동의를 한 경우: "익명 공개·월정석 지급"
+  - 동의하지 않은 경우: "내 후기에서 지급 상태 확인"으로 중립적으로 적는다. 비공개 후기의 지급 시점이 코드상 분명하지 않아서다.
+- 문구가 실제로 보이지는 않지만, 정적 규칙을 단순하게 유지하려고 아래 두 화면에도 `reviewProductId`를 넘긴다.
+  - astrology·vedic의 `ConsultationShare`
+  - vedic `VedicAiClient`의 `PaidResultImageGuide`
+- `/reviews` 카드 보상 문구는 ko 외 로캘에서 영어 한 줄로 나온다 (`paidReviewCopy`와 같은 규칙).
+- `public/styles/review-reward.css`는 `sync:public` 대신 같은 내용을 복사했다. 편집 전 두 파일이 같은 것을 확인했다.
+- `review-consent-flow` 테스트 하네스를 고쳤다.
+  - `opts.url`, `opts.storage`, `opts.visible` 추가
+  - 이벤트 캡처, `next/link` 목, `.css` empty 로더 추가
+- `measure:touch-targets`는 staging을 재기 때문에 로컬 변경을 잴 수 없다. 묶음 ⑤에서 배포 빌드로 잰다.
+
+후속 (고치지 않음)
+- `app/records/view/SavedRecordClient.tsx`의 후기 링크에 `product=`가 없다 (설계 범위 밖).
+- `QuickReviewComposer`의 옛 `review_ui_view` 관찰 effect는 `eligible.length`가 바뀌면 다시 구독돼 두 번 보낼 수 있다 (기존 동작).
+- `/reviews` 요약 호출은 아직 `verifiedOnly`를 쓰지 않는다. 결정 지점 블록(단계 5)에서 쓴다.
+- 기존 후속 3건은 위 "후속으로 보고만"에 그대로 있다.
