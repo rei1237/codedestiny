@@ -210,6 +210,7 @@ export default function serviceCompat(){
      const path=resolve(folder,entry.name);
      if(entry.isDirectory()){if(path.startsWith(prefix)||prefix.startsWith(path+sep))await collect(path,prefix);}
      else if(path.startsWith(prefix)&&mime[extname(path)]&&!emitted.has(path)){
+      if(/^images\/psychotest\/bmovie-v1\/[a-z]+-960\.webp$/.test(path.slice(publicRoot.length+1).split(sep).join('/')))continue;
       if(Object.hasOwn(TOSS_WEBP_ART,'/'+path.slice(publicRoot.length+1).replaceAll('\\','/')))continue;
       emitted.add(path);this.emitFile({type:'asset',fileName:path.slice(publicRoot.length+1).replaceAll('\\','/'),source:await sourceBytes(path)});
      }

@@ -6,5 +6,7 @@ export const TOSS_WEBP_ART = Object.freeze({
 });
 
 export function tossImageSource(source) {
+ // Phones already request this exact 480px original through <picture>; use it on larger miniapp windows too.
+ if(typeof source==='string'&&/^\/images\/psychotest\/bmovie-v1\/[a-z]+-960\.webp$/.test(source))return source.replace('-960.webp','-480.webp');
  return typeof source==='string'&&Object.hasOwn(TOSS_WEBP_ART,source)?TOSS_WEBP_ART[source]:source;
 }
