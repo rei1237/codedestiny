@@ -13,6 +13,7 @@ local.intents={findOne:f=>q(match(local.row,f)?local.row:null)};
 local.documents={findOne:f=>q(match(local.doc,f)?local.doc:null)};
 local.identities={findOne:f=>q(match(local.identity,f)?local.identity:null)};
 const stubs={
+  '../lib/db.js':'export const withMongoRetry=async(_env,run)=>run();',
   '../lib/models.js':'export const ServiceExecutionTransaction=globalThis.__dreamBoundary.documents;',
   './models.js':'const t=globalThis.__dreamBoundary;export const TossNativeConsultation=t.intents,TossIdentity=t.identities;',
   '../routes/dream.js':'export const normalizeDreamText=b=>({ok:b?.dreamText?.length>=8,text:b?.dreamText?.trim()}),seedDreamPsychoNarrative=()=>{},dreamPsychoNarrativeAdapter=()=>({reportType:"dreamPsychoAnalysis"});',

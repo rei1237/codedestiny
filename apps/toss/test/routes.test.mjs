@@ -17,6 +17,7 @@ const mocks={
 };
 globalThis.__tossRouteMocks=mocks;
 const stubMap={
+ 'worker/toss/native-compass.js':"export const prepareCompass=async()=>({paid:false}),readNativeCompass=async()=>Response.json({status:'generating'}),compassLibraryItem=async()=>({state:'PENDING'});",
  'worker/lib/sukuyo-astronomy.js':"export const calculateSukuyoForMoment=async()=>({ok:true});",
  'worker/routes/destiny-compass.js':"export const handleDestinyCompassRoutes=async()=>Response.json({ok:true});",
  'worker/toss/native-palm.js':"export const prepareNativePalm=async()=>Response.json({paid:false}),readNativePalm=async()=>({saved:true}),palmLibraryItem=async()=>({state:'COMPLETED'});",
