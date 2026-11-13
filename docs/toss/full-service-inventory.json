@@ -1,5 +1,5 @@
 {
-  "sourceCommit": "ea5f881f9c3d651725a0a079c1ed8430e769b9fe",
+  "sourceCommit": "832b0d8652f1a5d5be84563de9fffa11fe95e289",
   "sourceCounts": {
     "home": 63,
     "react": 18,
@@ -400,8 +400,8 @@
         "library": "not-verified",
         "device": "not-tested",
         "canonicalId": "destiny-meeting-place",
-        "candidateStatus": "requires-full-flow-port-and-verification",
-        "canonicalRoute": null
+        "candidateStatus": "local-partial",
+        "canonicalRoute": "/saju/destiny-meeting-place/"
       }
     },
     {
@@ -3448,12 +3448,13 @@
         }
       ],
       "aliasEvidence": [],
-      "status": "requires-full-flow-port-and-verification",
-      "tossRoute": null,
+      "status": "local-partial",
+      "tossRoute": "/saju/destiny-meeting-place/",
       "sku": null,
-      "inputContract": null,
-      "resultRenderer": null,
-      "storageContract": null,
+      "inputContract": "app/saju/animal-destiny/lib/sajuAdapter.ts → generateDestinyMeetingPlaceResult",
+      "resultRenderer": "apps/toss/service/TossMeetingPlace.tsx + DestinyMeetingPlaceResult.tsx",
+      "storageContract": "웹처럼 계정 확인 후 현재 화면. 직접 출생 입력 또는 소유 프로필 선택",
+      "verification": "일반 홈→mock 로그인→출생정보→7131자 장소·프롬프트→같은 입력으로 돌아가기. 실제 KASI 연동은 운영 Worker 승격 후 확인",
       "webEntries": [
         "/saju/destiny-meeting-place"
       ],
@@ -3467,13 +3468,13 @@
         "destiny_meeting_place"
       ],
       "freeCalculation": true,
-      "portStatus": "미이식",
-      "reducedBundle": "홈 진입 없음",
-      "currentEntry": "연결 경로 없음",
+      "portStatus": "일부만 이식",
+      "reducedBundle": "구현은 있으나 진입 차단",
+      "currentEntry": "일반 홈의 진입 코드 확인",
       "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
-      "tossLogin": "토스 기능 미연결",
-      "tossResult": "결과 화면 연결 미확인",
-      "reread": "재열람 경로 미확인"
+      "tossLogin": "계산 또는 기록 조회에 토스 계정 필요",
+      "tossResult": "apps/toss/service/TossMeetingPlace.tsx + DestinyMeetingPlaceResult.tsx",
+      "reread": "웹처럼 계정 확인 후 현재 화면. 직접 출생 입력 또는 소유 프로필 선택"
     },
     {
       "id": "dream",
@@ -4088,6 +4089,42 @@
       "reread": "현재 화면 메모리"
     },
     {
+      "id": "heukwol-consult",
+      "discoveryIds": [],
+      "evidence": [
+        {
+          "name": "흑월의 경고 상담",
+          "entry": "/heukwol/",
+          "implementation": "app/heukwol/HeukwolClient.tsx"
+        }
+      ],
+      "aliasEvidence": [],
+      "status": "local-partial",
+      "tossRoute": "/heukwol/?consult=1",
+      "sku": null,
+      "inputContract": "원본 buildHeukwolAnalysis·generateHeukwolChapter, 소유 프로필의 출생 시각·선택 연도·질문",
+      "resultRenderer": "apps/toss/service/TossHeukwol.tsx + app/heukwol/HeukwolResult.tsx",
+      "storageContract": "TossNativeConsultation과 소유 구매. 원 주문과 마지막 성공 장에서 복구. 신규 SKU 미등록",
+      "verification": "360px mock 두 장으로 생성 중 이탈·다른 계정 차단. 원본 27개 프롬프트·저장 임대 테스트. 운영 실패 주문 처리 및 기기 PDF 미검증",
+      "webEntries": [
+        "/heukwol/"
+      ],
+      "webSources": [
+        "app/heukwol/HeukwolClient.tsx",
+        "app/heukwol/page.tsx"
+      ],
+      "webProductIds": [],
+      "freeCalculation": false,
+      "portStatus": "일부만 이식",
+      "reducedBundle": "구현은 있으나 진입 차단",
+      "currentEntry": "일반 홈의 진입 코드 확인",
+      "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
+      "tossLogin": "구매·기록에 토스 계정 필요",
+      "tossResult": "apps/toss/service/TossHeukwol.tsx + app/heukwol/HeukwolResult.tsx",
+      "reread": "TossNativeConsultation과 소유 구매. 원 주문과 마지막 성공 장에서 복구. 신규 SKU 미등록",
+      "saleStatus": "콘솔·운영 설정 필요"
+    },
+    {
       "id": "heukwol-story",
       "discoveryIds": [],
       "evidence": [
@@ -4145,6 +4182,7 @@
         "app/app/home-widget/page.tsx"
       ],
       "webProductIds": [],
+      "platformDependency": "웹은 미리보기, 홈 위젯 설치는 HomeWidgetStudio.tsx의 Android Code Destiny 전용 네이티브 플러그인 필요",
       "freeCalculation": false,
       "portStatus": "미이식",
       "reducedBundle": "홈 진입 없음",

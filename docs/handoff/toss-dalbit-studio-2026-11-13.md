@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-11-14
-next: 최신 통합 커밋의 Linux AIT와 일반 홈을 검증하고 비공개 QR을 발급한 뒤 기능표에서 남은 이식을 이어간다.
+next: 통합 main의 초과 없는 Linux AIT를 재생하고 두 계정 검사를 통과시킨 뒤 최신 비공개 QR과 미이식 서비스 작업을 이어간다.
 ---
 
 ## 첫 행동
@@ -28,9 +28,16 @@ D:/Development/codedestiny-worktrees/toss-studio-port-20261113-230802, wt/toss-s
 
 - [x] 기존 Linux AIT와 main의 차이 확인, 두 세계 홈과 달빛 점술방의 원본 진입 및 360px 시각 검증
 - [x] 로컬 홈에서 영냥이 질문·로그인·mock 구매·원문 재열람
-- [ ] 웹 레지스트리·상품 원장별 현재 상태와 남은 기능 대조
+- [x] 웹 레지스트리·상품 원장별 현재 상태와 남은 기능 대조
 - [x] 무료 타로 5종 원본 결과와 동일 저장소의 두 계정 격리 검증
 - [ ] targeted, pre-push, main CI 및 Linux 산출물 확인
-- [ ] 비공개 테스트 QR 및 실기기 가이드
+- [x] 첫 비공개 테스트 QR 20261114-8 발급 및 AIT deploymentId 일치 확인
+- [ ] 모든 추가 서비스가 포함된 Linux AIT·QR 검증과 실기기 점검표
 
 첫 push CI 43450551020에서 핵심 검사·전체 빌드·타입검사 성공, 인수인계 상태 필드만 실패해 active로 수정했다. 첫 Linux 산출물 요청 43450602078. 신버전의 핵심 범위는 실제 Linux AIT와 콘솔 비공개 QR을 함께 확인해야 한다. docs/toss/full-service-inventory.json의 개별 상태를 전체 서비스 완료 판정의 기준으로 쓴다.
+
+## 2026-11-14 추가 이식
+
+첫 번째 실제 QR은 C:/Users/user/Downloads/CodeDestiny/43450602078/toss-private-20261114-8.png, Linux AIT의 deploymentId는 01a1d58f-1af7-765a-b075-7c7c1bf9a89f. 홈에서 영냥이 질문 검색·빠른 입력, mock 토스 로그인 및 원문 보관함, 실판매 닫힘을 AIT 자체에서 확인했다. 소유자·SKU 경계 개발 검증은 새 일반 홈으로 시작하는 studio-browser / letter-browser / room-browser를 사용한다.
+
+main c3a960736에 토스 테스트 1470/1470과 pre-push 성공. GitHub push 43460224208, Linux 요청 43460223398. 다음 통합 지점 832b0d865에는 두 편지 각 6개, 찻집 추가질문·네오 작전수정, 14편 웹툰, 명상, 오라클, 사주·자미 원본 결과, RPG/룰렛 복원, 흑월 생성, 인연 장소가 있다. Windows AIT 91,098,283바이트, 확장 99,890,537바이트라 새 아트를 넣으면 용량을 재확인한다. 기기 QR은 반드시 Ubuntu 공식 빌드 후 생성한다.
