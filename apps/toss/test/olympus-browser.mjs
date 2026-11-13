@@ -1,0 +1,30 @@
+import assert from 'node:assert/strict';
+import {chromium} from 'playwright';
+const origin='http://127.0.0.1:'+Number(process.env.TOSS_TEST_PORT||4329);
+const browser=await chromium.launch({channel:'chrome'});
+try{
+ const ctx=await browser.newContext({viewport:{width:360,height:740},isMobile:true,serviceWorkers:'block'});
+ await ctx.route('**/*',r=>new URL(r.request().url()).origin===origin?r.continue():r.abort());
+ const p=await ctx.newPage();p.on('pageerror',error=>console.error(error.message));
+ await p.goto(origin);await p.locator('.world-entry-ggulggul').click();
+ await p.getByRole('button',{name:/^올림푸스 오늘의 신탁/}).click();
+ await p.getByLabel('생년월일').fill('1990-05-15');await p.getByRole('button',{name:'신탁 듣기'}).click();
+ await p.getByRole('heading',{name:'오늘의 지령'}).waitFor();
+ await p.getByRole('button',{name:'다른 별자리 보기'}).click();
+ await p.getByRole('button',{name:'내 신탁과 커플 궁합 보기'}).click();
+ await p.getByRole('button',{name:/토스.*로그인/}).click();
+ await p.getByLabel('저장된 프로필').selectOption('mock-profile');
+ assert.equal(await p.getByLabel('양력 생년월일').inputValue(),'1990-01-01');
+ await p.getByLabel('태어난 시각 (선택)').fill('08:30');await p.getByRole('button',{name:'내 신탁 펼치기'}).click();
+ await p.getByRole('heading',{name:'테스트 프로필의 신탁'}).waitFor();
+ const placements=p.locator('.planet-grid button');assert.equal(await placements.count(),8);
+ await placements.last().click();assert.match(await placements.last().getAttribute('class'),/act/);
+ assert.ok(await p.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth+1));
+ await p.getByRole('tab',{name:'오늘 운세 탭'}).click();await p.getByText('델포이 신전의 피티아가 전합니다',{exact:true}).waitFor();
+ await p.getByRole('tab',{name:'궁합 탭'}).click();
+ await p.getByPlaceholder('상대방 이름').fill('상대');await p.locator('input[type=date]').fill('1992-09-06');
+ await p.getByRole('button',{name:'궁합 분석하기'}).click();
+ await p.getByText('행성별 케미 분석',{exact:true}).waitFor();
+ assert.equal(await p.locator('.compat-bar').count(),4);
+ console.log('PASS 360px guest oracle → mock login → own profile → eight placements → partner four-part compatibility');
+}finally{await browser.close();}

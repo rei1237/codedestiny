@@ -61,6 +61,7 @@ const stubMap={
  'worker/toss/native-neo.js':"export const prepareNativeNeo=()=>{};export const handleNativeNeo=()=>{};export const nativeNeoLibraryItem=()=>{};",
  'worker/toss/native-tea.js':"export const nativeTeaCatalog=()=>[];export const prepareNativeTea=()=>{throw Error('not used')};export const readNativeTeaIntent=()=>{};export const handleNativeTea=()=>{};export const approvedNativeTeaProduct=()=>{};",
  'worker/routes/profile.js':"export const normalizeIncomingProfile=x=>x;export const validateRequiredBirth=x=>({ok:!!x?.birth,birth:x?.birth});export const toClientProfile=x=>x;",
+ 'worker/toss/olympus.js':"export const olympusPlacements=async()=>({placements:{}});",
  'worker/toss/basic-sky-chart.js':"export const basicSkyChart=async system=>{globalThis.__tossRouteMocks.chartSystems.push(system);return {system};};",
  'worker/toss/manse.js':"export const calculateTossManse=async()=>({stored:false});",
  'worker/yeongnyangi/fortune/free/horary.ts':"export const prepareHoraryPrompt=async(_env,input)=>({category:'horary',question:input.question});",
@@ -471,6 +472,12 @@ test('only the public Vedic birth chart accepts guests and neither chart writes 
  }
  assert.deepEqual(mocks.chartSystems,['astrology','vedic','vedic','vedic']);
  assert.ok(mocks.limits.some(x=>x.endpoint==='toss:basic-sky-chart'));
+});
+
+test('Olympus profile placements are account-only without payment',async()=>{
+ const chart='/olympus/placements';assert.equal((await request({},chart,{})).status,503);
+ mocks.denyAuth=true;try{assert.equal((await request({},chart)).status,401);}finally{mocks.denyAuth=false;}
+ assert.equal((await request({},chart)).status,200);assert.equal(calls.prepared.length,0);
 });
 
 test('basic Sukuyo requires release and login without creating profiles or orders',async()=>{

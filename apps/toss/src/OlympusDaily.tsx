@@ -1,8 +1,10 @@
-import {useEffect,useState} from 'react';
+import {lazy,Suspense,useEffect,useState} from 'react';
 import {readDailyOracle} from '../../../lib/fortune/olympus-daily.mjs';
 import {Button} from './Button';
 
-export default function OlympusDaily(){
+import TossSessionScope from './TossSessionScope';
+const OlympusProfile=lazy(()=>import('./OlympusProfile'));
+export default function OlympusDaily({profile,loggedIn,openProfile,closeProfile}:{profile:boolean;loggedIn:boolean;openProfile:()=>void;closeProfile:()=>void}){
   const [birthDate,setBirthDate]=useState('');
   const [result,setResult]=useState<ReturnType<typeof readDailyOracle>|null>(null);
 
@@ -13,6 +15,7 @@ export default function OlympusDaily(){
     return ()=>window.removeEventListener('code-destiny:toss-back',back);
   },[result]);
 
+  if(profile)return loggedIn?<TossSessionScope><Suspense fallback={<p role="status">신탁을 열고 있어요.</p>}><OlympusProfile onBack={closeProfile}/></Suspense></TossSessionScope>:<Button onClick={openProfile}>토스 로그인하고 내 신탁 보기</Button>;
   if(!result)return <section>
     <h1>올림푸스 오늘의 신탁</h1>
     <p>생년월일을 입력하면 별자리의 수호신이 오늘의 지령을 전해요.</p>
@@ -20,6 +23,7 @@ export default function OlympusDaily(){
       <label>생년월일<input type="date" value={birthDate} min="1920-01-01" max="2010-12-31" required onChange={event=>setBirthDate(event.target.value)}/></label>
       <Button type="submit">신탁 듣기</Button>
     </form>
+    <Button variant="weak" onClick={openProfile}>내 신탁과 커플 궁합 보기</Button>
   </section>;
 
   const {signInfo,element,oracle}=result;

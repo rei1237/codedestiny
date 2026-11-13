@@ -704,6 +704,11 @@ export async function handleTossRoutes(request,env) {
       if(path==='/daily/reading'&&request.method==='GET')return reply(await daily.getFreeReading(env,auth.userId,url.searchParams.get('category')));
       throw new TossError('NOT_FOUND',404);
     }
+    if(path==='/olympus/placements'&&request.method==='POST'){
+      await limit(env,auth._id,'olympus-chart',15);
+      const {olympusPlacements}=await import('./olympus.js');
+      return reply(await olympusPlacements(await bodyOf(request),env));
+    }
     if(path==='/charts/astrology'&&request.method==='POST'){
       await limit(env,auth._id,'basic-sky-chart',6);
       const {basicSkyChart}=await import('./basic-sky-chart.js');

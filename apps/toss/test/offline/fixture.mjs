@@ -145,6 +145,11 @@ function createAccountFixture(storage,owner,token,now){
   const reviewResponse=await handleReviewFixture(request,url,path,state,save,now,Number.isFinite(delay)?Math.max(0,delay):0);if(reviewResponse)return reviewResponse;
   // This fixed chart is synthetic and never uses the submitted birth data.
   // The offline shell labels all of its output as test-only.
+  if(path==='/olympus/placements'&&method==='POST'){
+   const {day}=await request.json();if(!Number.isInteger(day))return respond({error:'BIRTH_INVALID'},400);
+   const keys=['aries','taurus','gemini','cancer','leo','virgo','libra','scorpio'];
+   return respond({placements:Object.fromEntries(['sun','moon','asc','mercury','venus','mars','jupiter','saturn'].map((planet,i)=>[planet,{key:keys[(day+i)%8],deg:10+i}]))});
+  }
   if(path==='/human-design/chart'&&method==='POST')return respond(chartFixture());
   if(path==='/canonical/auth/me'&&method==='GET')return respond({ok:true,authenticated:true,user:{id:owner,name:'테스트 사용자',role:'user'}});
   if(path==='/native/catalog'&&method==='GET')return respond({products:[...expertProducts,product,sukuyoProduct,relationshipProduct,syntheticZiweiDeep,syntheticCompass,syntheticYoga,syntheticNakshatra,...roomProducts]});

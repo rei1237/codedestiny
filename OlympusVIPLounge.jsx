@@ -916,7 +916,7 @@ function buildBalance(planetList){
   };
 }
 
-function calcPlacements(dateStr,timeStr,userName,sunKeyOverride,realPlacements){
+export function calcPlacements(dateStr,timeStr,userName,sunKeyOverride,realPlacements){
   const d=new Date(dateStr), m=d.getMonth()+1, day=d.getDate(), y=d.getFullYear();
   const h=timeStr?parseInt(timeStr.split(":")[0]):12;
   const real=realPlacements&&typeof realPlacements==="object"?realPlacements:null;
@@ -1343,7 +1343,7 @@ function buildPremiumTazzaGuide(ctx){
 /* ════════════════════════════════════════════════════════
    CSS
 ════════════════════════════════════════════════════════ */
-const CSS=`
+export const CSS=`
 .ov{font-family:var(--font-body);background:#04021A;min-height:100vh;color:#EFE4C0;overflow-x:hidden;position:relative;}
 .ov *{box-sizing:border-box;margin:0;padding:0;}
 .ov-home{position:fixed;top:18px;left:18px;z-index:6;display:inline-flex;align-items:center;gap:8px;padding:8px 14px;border-radius:999px;border:1px solid rgba(201,168,76,.45);background:rgba(6,4,18,.7);color:#F0D060;font-family:var(--font-body);font-size:11px;font-weight:600;letter-spacing:.05em;text-decoration:none;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);transition:all .25s;}
@@ -1748,7 +1748,7 @@ function DailyOracleResult({data,onBack}){
 /* ════════════════════════════════════════════════════════
    RESULT — MAIN TABS
 ════════════════════════════════════════════════════════ */
-function TabResult({result,onReset}){
+export function TabResult({result,onReset,loadTransit=ensureOracleCompute}){
   const [tab,setTab]=useState('profile');
   const tabs=[{k:'profile',l:'내 신탁'},{k:'compat',l:'궁합'},{k:'oracle',l:'오늘 운세'}];
   const swiss=result.calcMode==='swiss';
@@ -1773,9 +1773,9 @@ function TabResult({result,onReset}){
       <div className="ov-tabs" role="tablist">
         {tabs.map(t=><button key={t.k} role="tab" aria-selected={tab===t.k} aria-label={`${t.l} 탭`} className={`btn-tab${tab===t.k?' act':''}`} onClick={()=>setTab(t.k)} style={{flex:1}}>{t.l}</button>)}
       </div>
-      {tab==='profile' && <ProfileTab result={result}/>}
+      {tab==='profile' && <ProfileTab result={result} loadTransit={loadTransit}/>}
       {tab==='compat'  && <CompatTab myResult={result}/>}
-      {tab==='oracle'  && <OracleTab result={result}/>}
+      {tab==='oracle'  && <OracleTab result={result} loadTransit={loadTransit}/>}
       <Divider/>
       <div style={{textAlign:'center',paddingTop:4}}>
         <button className="btn-o" onClick={onReset} aria-label="처음으로 돌아가 다른 사람 분석하기">다른 사람 분석하기</button>
@@ -1788,7 +1788,7 @@ function TabResult({result,onReset}){
 /* ════════════════════════════════════════════════════════
    PROFILE TAB — 모든 섹션 포함
 ════════════════════════════════════════════════════════ */
-function ProfileTab({result}){
+function ProfileTab({result,loadTransit}){
   const [ap,setAp]=useState(0);
   const planets=[result.sun,result.moon,result.rising,result.venus,result.mars,result.mercury,result.jupiter,result.saturn];
   const sel=planets[ap];
@@ -1866,7 +1866,7 @@ function ProfileTab({result}){
       <DestinySpotSection atlas={result.atlas} elemKey={result.elemKey}/>
 
       {/* BONUS — 운명의 수레바퀴 (연애운) */}
-      <WheelOfFortuneSection result={result}/>
+      <WheelOfFortuneSection result={result} loadTransit={loadTransit}/>
     </div>
   );
 }
@@ -2501,19 +2501,19 @@ function DestinySpotSection({atlas,elemKey}){
 /* ════════════════════════════════════════════════════════
    BONUS — 운명의 수레바퀴 (연애운)
 ════════════════════════════════════════════════════════ */
-function WheelOfFortuneSection({result}){
+function WheelOfFortuneSection({result,loadTransit}){
   const [tab,setTab]=useState('venus');
   const [transitVenus,setTransitVenus]=useState(null);
   useEffect(()=>{
     let alive=true;
     const now=new Date();
     const payload={year:now.getFullYear(),month:now.getMonth()+1,day:now.getDate(),hour:now.getHours(),minute:now.getMinutes(),timezone:9,lat:37.5665,lon:126.9780};
-    ensureOracleCompute()
+    loadTransit()
       .then((fn)=>fn(payload))
       .then((r)=>{ if(alive&&r&&r.venus&&isValidSignKey(r.venus.key)) setTransitVenus(r.venus.key); })
       .catch(()=>{});
     return()=>{alive=false;};
-  },[]);
+  },[loadTransit]);
   const wheel=useMemo(()=>buildWheelOfFortune(result,transitVenus),[result,transitVenus]);
   const rose='#E8618C';
   const tabs={
@@ -2755,20 +2755,20 @@ function CompatResult({myResult,pResult,compat,onReset,ec}){
 /* ════════════════════════════════════════════════════════
    ORACLE TAB
 ════════════════════════════════════════════════════════ */
-function OracleTab({result}){
+function OracleTab({result,loadTransit}){
   const {daily,sun,element,elemKey}=result;
   const [transit,setTransit]=useState(null);
   const today=new Date(),ds=`${today.getFullYear()}년 ${today.getMonth()+1}월 ${today.getDate()}일`;
   useEffect(()=>{
     let alive=true;
     const payload={year:today.getFullYear(),month:today.getMonth()+1,day:today.getDate(),hour:today.getHours(),minute:today.getMinutes(),timezone:9,lat:37.5665,lon:126.9780};
-    ensureOracleCompute()
+    loadTransit()
       .then((fn)=>fn(payload))
       .then((r)=>{ if(alive&&r&&r.moon&&SIGNS.some(s=>s.key===r.moon.key)) setTransit(r); })
       .catch(()=>{});
     return()=>{alive=false;};
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  },[]);
+  },[loadTransit]);
   const tMoon=transit?SIGNS.find(s=>s.key===transit.moon.key):null;
   const tRelation=tMoon?elementRelation(elemKey,tMoon.elem):null;
   return(
