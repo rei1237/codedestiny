@@ -44,6 +44,21 @@
       "id": "neo-email-private",
       "kind": "private-archive",
       "detail": "DEV offline 전용 원본 모의 접수·견적·상태·취소·수정 fixture를 private AIT에 연결. 실제 메일·상품 판매·자동답변 생성은 제외"
+    },
+    {
+      "id": "animal-destiny-detail",
+      "kind": "code",
+      "detail": "원본 AnimalResultScreen의 10탭·6상세·관계·생활 조언·아트가 이름/네기둥/도감명 화면에 빠짐. 현재 free-fortune-policy는 무료이며 낡은 paid 주석으로 제외하지 않음"
+    },
+    {
+      "id": "music-download",
+      "kind": "code",
+      "detail": "전곡 무료 스트림은 연결됨. 웹 단건·월정석 MP3 다운로드 구매와 파일 저장은 별도 미이식. 이용권 커버로 다운로드를 열지 않음"
+    },
+    {
+      "id": "flower-private",
+      "kind": "private-archive",
+      "detail": "worker/toss/flower.js 원본 4체계 계산과 UI는 구현됨. private AIT API에 /flower/match가 없어 해당 검증단계만 미연결"
     }
   ],
   "rows": [
@@ -62,9 +77,14 @@
       "recordedContract": "lib/korean-calendar/natal.js:calculateNatalSaju",
       "recordedStorage": "화면 메모리. 계정 변경 시 TossSessionScope 재설정",
       "priorEvidence": "apps/toss/test/ animal-destiny.test.mjs · 개별 검사 범위. 실제 기기 미검증",
-      "reviewedModes": [],
-      "reviewState": "prior-evidence-to-reconcile",
-      "codeGaps": [],
+      "reviewedModes": [
+        "lib/korean-calendar/natal.js:calculateNatalSaju",
+        "화면 메모리. 계정 변경 시 TossSessionScope 재설정"
+      ],
+      "reviewState": "known-gaps",
+      "codeGaps": [
+        "원본 AnimalResultScreen의 10탭·6상세·관계·생활 조언·아트가 이름/네기둥/도감명 화면에 빠짐. 현재 free-fortune-policy는 무료이며 낡은 paid 주석으로 제외하지 않음"
+      ],
       "archiveEvidence": "일반 AIT에서 상위 화면 진입 확인. 하위 입력·결과·재열람의 검증 근거는 verification 참조. 휴대폰 미검증",
       "deviceState": "not-verified",
       "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도"
@@ -86,12 +106,16 @@
       "recordedContract": "한 장·세 장·다섯 장, 원본 동물 17종 추첨, 질문·선택 출생 정보",
       "recordedStorage": "기본·심화 상품별 주문 원문, 생성 재개 및 소유 보관함",
       "priorEvidence": "360px totem-browser.mjs 모의 구매 1회·생성 중 이탈·재진입·타 계정 차단. 웹 Worker 61건. 실판매 SKU 미확인",
-      "reviewedModes": [],
-      "reviewState": "prior-evidence-to-reconcile",
+      "reviewedModes": [
+        "한 장·세 장·다섯 장, 원본 동물 17종 추첨, 질문·선택 출생 정보",
+        "기본·심화 상품별 주문 원문, 생성 재개 및 소유 보관함"
+      ],
+      "reviewState": "prior-contract-evidence-reconciled",
       "codeGaps": [],
       "archiveEvidence": "일반 AIT에서 상위 화면 진입 확인. 하위 입력·결과·재열람의 검증 근거는 verification 참조. 휴대폰 미검증",
       "deviceState": "not-verified",
-      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도"
+      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도",
+      "reconciliationBasis": "기존 담당의 원본 연결·상품별 입력·저장 경계 및 아래 targeted/브라우저 증거를 현재 고정 110행과 대조했다. 새 전체 E2E 실행으로 간주하지 않는다. 실제 AIT와 실기기 단계는 archiveEvidence/deviceState를 별도 사용한다."
     },
     {
       "id": "astrology",
@@ -150,12 +174,16 @@
       "recordedContract": "worker/toss/native-astrology.js + nativeAstrologyContract",
       "recordedStorage": "owned-TossPurchase and Toss-origin AstrologyAiConsultation; approved SKU, durable checkout, policy and device verification pending",
       "priorEvidence": "expert-purchase-browser.mjs 7종 및 sukuyo-expert-browser.mjs 1종. 360px 일반 홈 → 상품별 입력·모의 결제와 생성 → 구매 기록·원문 재열람 → 다른 계정 URL 거절. expert-offers-browser.mjs 일반 판매 비활성",
-      "reviewedModes": [],
-      "reviewState": "prior-evidence-to-reconcile",
+      "reviewedModes": [
+        "worker/toss/native-astrology.js + nativeAstrologyContract",
+        "owned-TossPurchase and Toss-origin AstrologyAiConsultation; approved SKU, durable checkout, policy and device verification pending"
+      ],
+      "reviewState": "prior-contract-evidence-reconciled",
       "codeGaps": [],
       "archiveEvidence": "8개 상품별 입력 폼과 신규 판매 닫힘 확인. 모의 구매·저장 원문 검사는 별도 verification 참조 · 360px 배포 AIT 브라우저, 토스 휴대폰 미검증",
       "deviceState": "not-verified",
-      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도"
+      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도",
+      "reconciliationBasis": "기존 담당의 원본 연결·상품별 입력·저장 경계 및 아래 targeted/브라우저 증거를 현재 고정 110행과 대조했다. 새 전체 E2E 실행으로 간주하지 않는다. 실제 AIT와 실기기 단계는 archiveEvidence/deviceState를 별도 사용한다."
     },
     {
       "id": "bias-destiny",
@@ -170,12 +198,16 @@
       "recordedContract": "app/saju/destiny-bias/engine/chemiReportBridge.ts",
       "recordedStorage": "native-card-save-summary-share-mocked; device-and-web-history-parity-pending",
       "priorEvidence": "apps/toss/test/ bias-report.test.mjs · 개별 검사 범위. 실제 기기 미검증",
-      "reviewedModes": [],
-      "reviewState": "prior-evidence-to-reconcile",
+      "reviewedModes": [
+        "app/saju/destiny-bias/engine/chemiReportBridge.ts",
+        "native-card-save-summary-share-mocked; device-and-web-history-parity-pending"
+      ],
+      "reviewState": "prior-contract-evidence-reconciled",
       "codeGaps": [],
       "archiveEvidence": "일반 AIT에서 상위 화면 진입 확인. 하위 입력·결과·재열람의 검증 근거는 verification 참조. 휴대폰 미검증",
       "deviceState": "not-verified",
-      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도"
+      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도",
+      "reconciliationBasis": "기존 담당의 원본 연결·상품별 입력·저장 경계 및 아래 targeted/브라우저 증거를 현재 고정 110행과 대조했다. 새 전체 E2E 실행으로 간주하지 않는다. 실제 AIT와 실기기 단계는 archiveEvidence/deviceState를 별도 사용한다."
     },
     {
       "id": "career-style",
@@ -190,12 +222,16 @@
       "recordedContract": "worker/routes/career-style.js:readOwnedCareerStyle",
       "recordedStorage": "계정별 프로필을 사용한 무료 개인 명식 8장. 실기기 미검증",
       "priorEvidence": "studio-career-browser.mjs 360px 일반 홈 → 모의 로그인 → 소유 프로필 → 원본 여덟 장과 계산 근거 확인, 주문 0건",
-      "reviewedModes": [],
-      "reviewState": "prior-evidence-to-reconcile",
+      "reviewedModes": [
+        "worker/routes/career-style.js:readOwnedCareerStyle",
+        "계정별 프로필을 사용한 무료 개인 명식 8장. 실기기 미검증"
+      ],
+      "reviewState": "prior-contract-evidence-reconciled",
       "codeGaps": [],
       "archiveEvidence": "일반 AIT에서 상위 화면 진입 확인. 하위 입력·결과·재열람의 검증 근거는 verification 참조. 휴대폰 미검증",
       "deviceState": "not-verified",
-      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도"
+      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도",
+      "reconciliationBasis": "기존 담당의 원본 연결·상품별 입력·저장 경계 및 아래 targeted/브라우저 증거를 현재 고정 110행과 대조했다. 새 전체 E2E 실행으로 간주하지 않는다. 실제 AIT와 실기기 단계는 archiveEvidence/deviceState를 별도 사용한다."
     },
     {
       "id": "consultation-webtoons",
@@ -211,12 +247,16 @@
       "recordedContract": "app/consultations/home-stories.ts + lib/brand/consultation-webtoons.mjs",
       "recordedStorage": "게스트 공개 14편. 읽던 이야기는 URL의 story로 유지",
       "priorEvidence": "Vite 배포본 360px에서 14편 전체 컷 수와 대사, 원본 그림 디코딩. 원격 이미지 실기기 확인 필요",
-      "reviewedModes": [],
-      "reviewState": "prior-evidence-to-reconcile",
+      "reviewedModes": [
+        "app/consultations/home-stories.ts + lib/brand/consultation-webtoons.mjs",
+        "게스트 공개 14편. 읽던 이야기는 URL의 story로 유지"
+      ],
+      "reviewState": "prior-contract-evidence-reconciled",
       "codeGaps": [],
       "archiveEvidence": "일반 홈에서 14편 원본의 컷·대사 및 첫 그림 디코딩. 원격 아트는 로컬 원본 파일로 대체 · 360px 배포 AIT 브라우저, 토스 휴대폰 미검증",
       "deviceState": "not-verified",
-      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도"
+      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도",
+      "reconciliationBasis": "기존 담당의 원본 연결·상품별 입력·저장 경계 및 아래 targeted/브라우저 증거를 현재 고정 110행과 대조했다. 새 전체 E2E 실행으로 간주하지 않는다. 실제 AIT와 실기기 단계는 archiveEvidence/deviceState를 별도 사용한다."
     },
     {
       "id": "cosmic-soul-meditation",
@@ -232,12 +272,16 @@
       "recordedContract": "cosmic-soul-meditation.html 의도 4개, 30·60분 PHASES, 웹의 _composePhaseLines·_scheduleLines·_buildSchedule 원본 함수와 행동·저널",
       "recordedStorage": "토스 소유 계정별 기기 저널 최근 50개와 통계. 무료 키 cosmic-soul-meditation",
       "priorEvidence": "studio-cosmic-browser.mjs: 360px 홈→로그인→30·60분→원문·일시정지·완주→저널 저장→재실행→같은 단말 다른 계정에서 기록 없음. R2 실제 재생 미검증",
-      "reviewedModes": [],
-      "reviewState": "prior-evidence-to-reconcile",
+      "reviewedModes": [
+        "cosmic-soul-meditation.html 의도 4개, 30·60분 PHASES, 웹의 _composePhaseLines·_scheduleLines·_buildSchedule 원본 함수와 행동·저널",
+        "토스 소유 계정별 기기 저널 최근 50개와 통계. 무료 키 cosmic-soul-meditation"
+      ],
+      "reviewState": "prior-contract-evidence-reconciled",
       "codeGaps": [],
       "archiveEvidence": "일반 AIT에서 상위 화면 진입 확인. 하위 입력·결과·재열람의 검증 근거는 verification 참조. 휴대폰 미검증",
       "deviceState": "not-verified",
-      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도"
+      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도",
+      "reconciliationBasis": "기존 담당의 원본 연결·상품별 입력·저장 경계 및 아래 targeted/브라우저 증거를 현재 고정 110행과 대조했다. 새 전체 E2E 실행으로 간주하지 않는다. 실제 AIT와 실기기 단계는 archiveEvidence/deviceState를 별도 사용한다."
     },
     {
       "id": "destiny-compass",
@@ -253,12 +297,16 @@
       "recordedContract": "양·음력, 윤달, 출생시각·성별과 고민 → computeDirectionField",
       "recordedStorage": "기기별 마지막 무료 차트, 소유자·게스트 구분",
       "priorEvidence": "studio-compass-browser.mjs 360px 공개 5체계 근거, 여섯 점수, 모바일 섬 그림·네오, 재실행 복원. 웹 RPG 경험치·월정석은 웹 계정 권리",
-      "reviewedModes": [],
-      "reviewState": "prior-evidence-to-reconcile",
+      "reviewedModes": [
+        "양·음력, 윤달, 출생시각·성별과 고민 → computeDirectionField",
+        "기기별 마지막 무료 차트, 소유자·게스트 구분"
+      ],
+      "reviewState": "prior-contract-evidence-reconciled",
       "codeGaps": [],
       "archiveEvidence": "일반 AIT에서 상위 화면 진입 확인. 하위 입력·결과·재열람의 검증 근거는 verification 참조. 휴대폰 미검증",
       "deviceState": "not-verified",
-      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도"
+      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도",
+      "reconciliationBasis": "기존 담당의 원본 연결·상품별 입력·저장 경계 및 아래 targeted/브라우저 증거를 현재 고정 110행과 대조했다. 새 전체 E2E 실행으로 간주하지 않는다. 실제 AIT와 실기기 단계는 archiveEvidence/deviceState를 별도 사용한다."
     },
     {
       "id": "destiny-compass-crossroads",
@@ -274,12 +322,16 @@
       "recordedContract": "차트와 두 선택지 A·B",
       "recordedStorage": "기기 마지막 차트에서 무료 재계산. 웹 과거 주문은 웹 보관 계정 소유",
       "priorEvidence": "studio-compass-browser.mjs 360px 로그인 후 기존 질문과 무료 판독, 결제 0건",
-      "reviewedModes": [],
-      "reviewState": "prior-evidence-to-reconcile",
+      "reviewedModes": [
+        "차트와 두 선택지 A·B",
+        "기기 마지막 차트에서 무료 재계산. 웹 과거 주문은 웹 보관 계정 소유"
+      ],
+      "reviewState": "prior-contract-evidence-reconciled",
       "codeGaps": [],
       "archiveEvidence": "일반 AIT에서 상위 화면 진입 확인. 하위 입력·결과·재열람의 검증 근거는 verification 참조. 휴대폰 미검증",
       "deviceState": "not-verified",
-      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도"
+      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도",
+      "reconciliationBasis": "기존 담당의 원본 연결·상품별 입력·저장 경계 및 아래 targeted/브라우저 증거를 현재 고정 110행과 대조했다. 새 전체 E2E 실행으로 간주하지 않는다. 실제 AIT와 실기기 단계는 archiveEvidence/deviceState를 별도 사용한다."
     },
     {
       "id": "destiny-compass-deep-report",
@@ -299,12 +351,16 @@
       "recordedContract": "collectDeepEvidence와 원본 워커 10장 프롬프트",
       "recordedStorage": "토스 소유 주문과 묶은 DestinyCompassReport의 미완료 상태 및 구매 기록 원문",
       "priorEvidence": "studio-compass-browser.mjs 360px mock 1건·10장 유지·타계정 차단. 원본 Worker 저장 실패와 재생성 방지 검사. 미등록 SKU 및 실기기 미검증",
-      "reviewedModes": [],
-      "reviewState": "prior-evidence-to-reconcile",
+      "reviewedModes": [
+        "collectDeepEvidence와 원본 워커 10장 프롬프트",
+        "토스 소유 주문과 묶은 DestinyCompassReport의 미완료 상태 및 구매 기록 원문"
+      ],
+      "reviewState": "prior-contract-evidence-reconciled",
       "codeGaps": [],
       "archiveEvidence": "일반 AIT에서 상위 화면 진입 확인. 하위 입력·결과·재열람의 검증 근거는 verification 참조. 휴대폰 미검증",
       "deviceState": "not-verified",
-      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도"
+      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도",
+      "reconciliationBasis": "기존 담당의 원본 연결·상품별 입력·저장 경계 및 아래 targeted/브라우저 증거를 현재 고정 110행과 대조했다. 새 전체 E2E 실행으로 간주하지 않는다. 실제 AIT와 실기기 단계는 archiveEvidence/deviceState를 별도 사용한다."
     },
     {
       "id": "destiny-compass-future-sim",
@@ -320,12 +376,16 @@
       "recordedContract": "차트와 30일·90일·1년·3년 시점 선택",
       "recordedStorage": "기기 마지막 차트에서 무료 재계산. 웹 과거 주문은 웹 보관 계정 소유",
       "priorEvidence": "studio-compass-browser.mjs 360px 로그인 후 기존 질문과 무료 판독, 결제 0건",
-      "reviewedModes": [],
-      "reviewState": "prior-evidence-to-reconcile",
+      "reviewedModes": [
+        "차트와 30일·90일·1년·3년 시점 선택",
+        "기기 마지막 차트에서 무료 재계산. 웹 과거 주문은 웹 보관 계정 소유"
+      ],
+      "reviewState": "prior-contract-evidence-reconciled",
       "codeGaps": [],
       "archiveEvidence": "일반 AIT에서 상위 화면 진입 확인. 하위 입력·결과·재열람의 검증 근거는 verification 참조. 휴대폰 미검증",
       "deviceState": "not-verified",
-      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도"
+      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도",
+      "reconciliationBasis": "기존 담당의 원본 연결·상품별 입력·저장 경계 및 아래 targeted/브라우저 증거를 현재 고정 110행과 대조했다. 새 전체 E2E 실행으로 간주하지 않는다. 실제 AIT와 실기기 단계는 archiveEvidence/deviceState를 별도 사용한다."
     },
     {
       "id": "destiny-compass-life-voyage",
@@ -341,12 +401,16 @@
       "recordedContract": "차트의 방향장과 장기 시간선",
       "recordedStorage": "기기 마지막 차트에서 무료 재계산. 웹 과거 주문은 웹 보관 계정 소유",
       "priorEvidence": "studio-compass-browser.mjs 360px 로그인 후 기존 질문과 무료 판독, 결제 0건",
-      "reviewedModes": [],
-      "reviewState": "prior-evidence-to-reconcile",
+      "reviewedModes": [
+        "차트의 방향장과 장기 시간선",
+        "기기 마지막 차트에서 무료 재계산. 웹 과거 주문은 웹 보관 계정 소유"
+      ],
+      "reviewState": "prior-contract-evidence-reconciled",
       "codeGaps": [],
       "archiveEvidence": "일반 AIT에서 상위 화면 진입 확인. 하위 입력·결과·재열람의 검증 근거는 verification 참조. 휴대폰 미검증",
       "deviceState": "not-verified",
-      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도"
+      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도",
+      "reconciliationBasis": "기존 담당의 원본 연결·상품별 입력·저장 경계 및 아래 targeted/브라우저 증거를 현재 고정 110행과 대조했다. 새 전체 E2E 실행으로 간주하지 않는다. 실제 AIT와 실기기 단계는 archiveEvidence/deviceState를 별도 사용한다."
     },
     {
       "id": "destiny-meeting-place",
@@ -364,12 +428,16 @@
       "recordedContract": "app/saju/animal-destiny/lib/sajuAdapter.ts → generateDestinyMeetingPlaceResult",
       "recordedStorage": "웹처럼 계정 확인 후 현재 화면. 직접 출생 입력 또는 소유 프로필 선택",
       "priorEvidence": "일반 홈→mock 로그인→출생정보→7131자 장소·프롬프트→같은 입력으로 돌아가기. 실제 KASI 연동은 운영 Worker 승격 후 확인",
-      "reviewedModes": [],
-      "reviewState": "prior-evidence-to-reconcile",
+      "reviewedModes": [
+        "app/saju/animal-destiny/lib/sajuAdapter.ts → generateDestinyMeetingPlaceResult",
+        "웹처럼 계정 확인 후 현재 화면. 직접 출생 입력 또는 소유 프로필 선택"
+      ],
+      "reviewState": "prior-contract-evidence-reconciled",
       "codeGaps": [],
       "archiveEvidence": "일반 AIT에서 상위 화면 진입 확인. 하위 입력·결과·재열람의 검증 근거는 verification 참조. 휴대폰 미검증",
       "deviceState": "not-verified",
-      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도"
+      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도",
+      "reconciliationBasis": "기존 담당의 원본 연결·상품별 입력·저장 경계 및 아래 targeted/브라우저 증거를 현재 고정 110행과 대조했다. 새 전체 E2E 실행으로 간주하지 않는다. 실제 AIT와 실기기 단계는 archiveEvidence/deviceState를 별도 사용한다."
     },
     {
       "id": "dream",
@@ -384,12 +452,16 @@
       "recordedContract": "index.html:openDreamModal + js/dream-ledger.js → worker/routes/dream.js → lib/tarot/dream-prompt.mjs",
       "recordedStorage": "게스트 현재 화면 및 원문 복사. 정신분석 해몽은 별도 유료 기능",
       "priorEvidence": "Linux AIT c3a960736 · 43460223398 · 360px 일반 홈에서 게스트 입력과 원본 결과 확인. private-bundle-public-readings.mjs tarot olympus; 네이티브 공유는 기기 미검증",
-      "reviewedModes": [],
-      "reviewState": "prior-evidence-to-reconcile",
+      "reviewedModes": [
+        "index.html:openDreamModal + js/dream-ledger.js → worker/routes/dream.js → lib/tarot/dream-prompt.mjs",
+        "게스트 현재 화면 및 원문 복사. 정신분석 해몽은 별도 유료 기능"
+      ],
+      "reviewState": "prior-contract-evidence-reconciled",
       "codeGaps": [],
       "archiveEvidence": "게스트로 원본 질문·뽑기·해석과 다시 뽑기 확인 · 360px 배포 AIT 브라우저, 토스 휴대폰 미검증",
       "deviceState": "not-verified",
-      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도"
+      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도",
+      "reconciliationBasis": "기존 담당의 원본 연결·상품별 입력·저장 경계 및 아래 targeted/브라우저 증거를 현재 고정 110행과 대조했다. 새 전체 E2E 실행으로 간주하지 않는다. 실제 AIT와 실기기 단계는 archiveEvidence/deviceState를 별도 사용한다."
     },
     {
       "id": "dream-psycho-analysis",
@@ -406,12 +478,16 @@
       "recordedContract": "꿈 기록 8~6000자와 원본 자동 말투, 로그인 뒤 원래 주문으로 복귀",
       "recordedStorage": "동일 토스 계정의 주문·저장된 원문. 기존 작업 재개와 환불·타 계정 접근 거절",
       "priorEvidence": "dream-browser.mjs · native-dream.test.mjs. 실판매 SKU 미확인",
-      "reviewedModes": [],
-      "reviewState": "prior-evidence-to-reconcile",
+      "reviewedModes": [
+        "꿈 기록 8~6000자와 원본 자동 말투, 로그인 뒤 원래 주문으로 복귀",
+        "동일 토스 계정의 주문·저장된 원문. 기존 작업 재개와 환불·타 계정 접근 거절"
+      ],
+      "reviewState": "prior-contract-evidence-reconciled",
       "codeGaps": [],
       "archiveEvidence": "일반 AIT에서 상위 화면 진입 확인. 하위 입력·결과·재열람의 검증 근거는 verification 참조. 휴대폰 미검증",
       "deviceState": "not-verified",
-      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도"
+      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도",
+      "reconciliationBasis": "기존 담당의 원본 연결·상품별 입력·저장 경계 및 아래 targeted/브라우저 증거를 현재 고정 110행과 대조했다. 새 전체 E2E 실행으로 간주하지 않는다. 실제 AIT와 실기기 단계는 archiveEvidence/deviceState를 별도 사용한다."
     },
     {
       "id": "energy-travel",
@@ -429,12 +505,16 @@
       "recordedContract": "출생 날짜·시각·달력·성별·국내 출생 도시",
       "recordedStorage": "리포트는 화면 메모리. 최근 여행지·룰렛 당첨 ID는 기기에서 게스트·토스 계정과 출생 입력별로 분리해 앱 재실행 후 복원",
       "priorEvidence": "apps/toss/test/public-sections.test.mjs 원본 HTTP 응답 동등성 · public-sections-browser.mjs 360px 일반 홈에서 결과 열람. Worker 승격·실기기 미검증",
-      "reviewedModes": [],
-      "reviewState": "prior-evidence-to-reconcile",
+      "reviewedModes": [
+        "출생 날짜·시각·달력·성별·국내 출생 도시",
+        "리포트는 화면 메모리. 최근 여행지·룰렛 당첨 ID는 기기에서 게스트·토스 계정과 출생 입력별로 분리해 앱 재실행 후 복원"
+      ],
+      "reviewState": "prior-contract-evidence-reconciled",
       "codeGaps": [],
       "archiveEvidence": "공개 사주·자미 11절 원본 계산, 사주 그림 13가지와 여행 기록 복원. 시크릿 하우스는 독립 검사 · 360px 배포 AIT 브라우저, 토스 휴대폰 미검증",
       "deviceState": "not-verified",
-      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도"
+      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도",
+      "reconciliationBasis": "기존 담당의 원본 연결·상품별 입력·저장 경계 및 아래 targeted/브라우저 증거를 현재 고정 110행과 대조했다. 새 전체 E2E 실행으로 간주하지 않는다. 실제 AIT와 실기기 단계는 archiveEvidence/deviceState를 별도 사용한다."
     },
     {
       "id": "face-reading",
@@ -449,12 +529,16 @@
       "recordedContract": "한 사람 또는 두 사람의 얼굴 사진. 원본 FaceMesh 특징점과 27동물 분류",
       "recordedStorage": "게스트 기기 내 판독. 수집한 이미지·점과 원본 결제 주문 분리",
       "priorEvidence": "face-browser.mjs의 합성 PNG, 고정 좌표, 게스트 360px. 기기별 모델 다운로드·촬영 미검증",
-      "reviewedModes": [],
-      "reviewState": "prior-evidence-to-reconcile",
+      "reviewedModes": [
+        "한 사람 또는 두 사람의 얼굴 사진. 원본 FaceMesh 특징점과 27동물 분류",
+        "게스트 기기 내 판독. 수집한 이미지·점과 원본 결제 주문 분리"
+      ],
+      "reviewState": "prior-contract-evidence-reconciled",
       "codeGaps": [],
       "archiveEvidence": "합성 이미지 및 고정 랜드마크로 동물 관상과 전생 궁합 원본 결과 확인. 카메라 미검증 · 360px 배포 AIT 브라우저, 토스 휴대폰 미검증",
       "deviceState": "not-verified",
-      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도"
+      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도",
+      "reconciliationBasis": "기존 담당의 원본 연결·상품별 입력·저장 경계 및 아래 targeted/브라우저 증거를 현재 고정 110행과 대조했다. 새 전체 E2E 실행으로 간주하지 않는다. 실제 AIT와 실기기 단계는 archiveEvidence/deviceState를 별도 사용한다."
     },
     {
       "id": "famous-saju",
@@ -499,9 +583,14 @@
       "recordedContract": "worker/toss/flower.js",
       "recordedStorage": "not-stored-by-current-policy",
       "priorEvidence": "apps/toss/test/ flower.test.mjs · flower-ui.test.mjs · 개별 검사 범위. 실제 기기 미검증",
-      "reviewedModes": [],
-      "reviewState": "prior-evidence-to-reconcile",
-      "codeGaps": [],
+      "reviewedModes": [
+        "worker/toss/flower.js",
+        "not-stored-by-current-policy"
+      ],
+      "reviewState": "known-gaps",
+      "codeGaps": [
+        "worker/toss/flower.js 원본 4체계 계산과 UI는 구현됨. private AIT API에 /flower/match가 없어 해당 검증단계만 미연결"
+      ],
       "archiveEvidence": "일반 AIT에서 상위 화면 진입 확인. 하위 입력·결과·재열람의 검증 근거는 verification 참조. 휴대폰 미검증",
       "deviceState": "not-verified",
       "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도"
@@ -520,12 +609,16 @@
       "recordedContract": "worker/toss/letter.js + worker/toss/services.js",
       "recordedStorage": "persona-bound-TossPurchase-to-YeongnyangiRequest; official device and approved SKU pending",
       "priorEvidence": "Linux AIT 일반 홈에서 연이 기본 6종·등급형 21종의 원본 입력·모의 구매·생성·후속·저장 원문 재열람·다른 계정 거절 검증. 토스 휴대폰 미검증.",
-      "reviewedModes": [],
-      "reviewState": "prior-evidence-to-reconcile",
+      "reviewedModes": [
+        "worker/toss/letter.js + worker/toss/services.js",
+        "persona-bound-TossPurchase-to-YeongnyangiRequest; official device and approved SKU pending"
+      ],
+      "reviewState": "prior-contract-evidence-reconciled",
       "codeGaps": [],
       "archiveEvidence": "연이 기본 편지 사주: Linux AIT 일반 홈 → 입력 → 모의 토스 로그인 → 주문 1건 → 저장 원문 → 구매 기록 재열람·새로고침 → 다른 계정 접근 차단. 상품 ID와 원장 불변 확인. b69eea884 / run 43551511688 · 연이 기본 편지 자미두수: Linux AIT 일반 홈 → 입력 → 모의 토스 로그인 → 주문 1건 → 저장 원문 → 구매 기록 재열람·새로고침 → 다른 계정 접근 차단. 상품 ID와 원장 불변 확인. b69eea884 / run 43551511688 · 연이 기본 편지 숙요: Linux AIT 일반 홈 → 입력 → 모의 토스 로그인 → 주문 1건 → 저장 원문 → 구매 기록 재열람·새로고침 → 다른 계정 접근 차단. 상품 ID와 원장 불변 확인. b69eea884 / run 43551511688 · 연이 기본 편지 베다점: Linux AIT 일반 홈 → 입력 → 모의 토스 로그인 → 주문 1건 → 저장 원문 → 구매 기록 재열람·새로고침 → 다른 계정 접근 차단. 상품 ID와 원장 불변 확인. b69eea884 / run 43551511688 · 연이 기본 편지 서양 점성술: Linux AIT 일반 홈 → 입력 → 모의 토스 로그인 → 주문 1건 → 저장 원문 → 구매 기록 재열람·새로고침 → 다른 계정 접근 차단. 상품 ID와 원장 불변 확인. b69eea884 / run 43551511688 · 연이 기본 편지 타로: Linux AIT 일반 홈 → 입력 → 모의 토스 로그인 → 주문 1건 → 저장 원문 → 구매 기록 재열람·새로고침 → 다른 계정 접근 차단. 상품 ID와 원장 불변 확인. b69eea884 / run 43551511688 · letter saju: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · letter ziwei: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · letter sukuyo: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · letter vedic: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · letter astrology: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · letter tarot: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · letter saju-mackerel: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · letter saju-salmon: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · letter saju-flounder: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · letter saju-tuna: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · letter ziwei-mackerel: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · letter ziwei-salmon: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · letter ziwei-flounder: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · letter ziwei-tuna: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · letter sukuyo-mackerel: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · letter sukuyo-salmon: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · letter sukuyo-flounder: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · letter vedic-mackerel: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · letter vedic-salmon: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · letter vedic-flounder: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · letter vedic-tuna: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · letter astrology-mackerel: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · letter astrology-salmon: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · letter astrology-flounder: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · letter tarot-mackerel: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · letter tarot-salmon: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · letter tarot-flounder: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · 360px 배포 AIT 브라우저, 토스 휴대폰 미검증",
       "deviceState": "not-verified",
-      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도"
+      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도",
+      "reconciliationBasis": "기존 담당의 원본 연결·상품별 입력·저장 경계 및 아래 targeted/브라우저 증거를 현재 고정 110행과 대조했다. 새 전체 E2E 실행으로 간주하지 않는다. 실제 AIT와 실기기 단계는 archiveEvidence/deviceState를 별도 사용한다."
     },
     {
       "id": "fortune-tea-house",
@@ -543,12 +636,16 @@
       "recordedContract": "worker/toss/native-tea.js",
       "recordedStorage": "owned-TossPurchase; device-and-console-approval-pending",
       "priorEvidence": "apps/toss/test/ room-browser.mjs · 개별 검사 범위. 실제 기기 미검증",
-      "reviewedModes": [],
-      "reviewState": "prior-evidence-to-reconcile",
+      "reviewedModes": [
+        "worker/toss/native-tea.js",
+        "owned-TossPurchase; device-and-console-approval-pending"
+      ],
+      "reviewState": "prior-contract-evidence-reconciled",
       "codeGaps": [],
       "archiveEvidence": "운명의 찻집 사주: Linux AIT 일반 홈 → 입력 → 모의 토스 로그인 → 주문 1건 → 저장 원문 → 구매 기록 재열람·새로고침 → 다른 계정 접근 차단. 생성 1회·추가 답변 원문과 원장 불변 확인. b69eea884 / run 43551511688 · tea saju: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · tea sajuJoint: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · tea tarot: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · tea tarotFive: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · tea sajuCompatibility: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · tea sukuyo: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · 360px 배포 AIT 브라우저, 토스 휴대폰 미검증",
       "deviceState": "not-verified",
-      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도"
+      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도",
+      "reconciliationBasis": "기존 담당의 원본 연결·상품별 입력·저장 경계 및 아래 targeted/브라우저 증거를 현재 고정 110행과 대조했다. 새 전체 E2E 실행으로 간주하지 않는다. 실제 AIT와 실기기 단계는 archiveEvidence/deviceState를 별도 사용한다."
     },
     {
       "id": "fusion-fortune",
@@ -566,12 +663,16 @@
       "recordedContract": "worker/toss/native-fusion.js",
       "recordedStorage": "owned-TossPurchase; device-and-console-approval-pending",
       "priorEvidence": "expert-purchase-browser.mjs 7종 및 sukuyo-expert-browser.mjs 1종. 360px 일반 홈 → 상품별 입력·모의 결제와 생성 → 구매 기록·원문 재열람 → 다른 계정 URL 거절. expert-offers-browser.mjs 일반 판매 비활성",
-      "reviewedModes": [],
-      "reviewState": "prior-evidence-to-reconcile",
+      "reviewedModes": [
+        "worker/toss/native-fusion.js",
+        "owned-TossPurchase; device-and-console-approval-pending"
+      ],
+      "reviewState": "prior-contract-evidence-reconciled",
       "codeGaps": [],
       "archiveEvidence": "8개 상품별 입력 폼과 신규 판매 닫힘 확인. 모의 구매·저장 원문 검사는 별도 verification 참조 · 360px 배포 AIT 브라우저, 토스 휴대폰 미검증",
       "deviceState": "not-verified",
-      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도"
+      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도",
+      "reconciliationBasis": "기존 담당의 원본 연결·상품별 입력·저장 경계 및 아래 targeted/브라우저 증거를 현재 고정 110행과 대조했다. 새 전체 E2E 실행으로 간주하지 않는다. 실제 AIT와 실기기 단계는 archiveEvidence/deviceState를 별도 사용한다."
     },
     {
       "id": "geomancy-oracle",
@@ -588,12 +689,16 @@
       "recordedContract": "연금술사/술탄·질문·16줄 흙점, 웹과 공유하는 방패 차트·증인 둘·재판관 계산",
       "recordedStorage": "동일 주문의 흙점과 결과 원문. 꿀꿀운세 기록에 토스 소유권 적용",
       "priorEvidence": "geomancy-browser.mjs. 360px mock 주문·생성 1회, 테마와 초안 복원·타계정 거절, 웹 Worker 45건·UI 3건 통과",
-      "reviewedModes": [],
-      "reviewState": "prior-evidence-to-reconcile",
+      "reviewedModes": [
+        "연금술사/술탄·질문·16줄 흙점, 웹과 공유하는 방패 차트·증인 둘·재판관 계산",
+        "동일 주문의 흙점과 결과 원문. 꿀꿀운세 기록에 토스 소유권 적용"
+      ],
+      "reviewState": "prior-contract-evidence-reconciled",
       "codeGaps": [],
       "archiveEvidence": "일반 AIT에서 상위 화면 진입 확인. 하위 입력·결과·재열람의 검증 근거는 verification 참조. 휴대폰 미검증",
       "deviceState": "not-verified",
-      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도"
+      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도",
+      "reconciliationBasis": "기존 담당의 원본 연결·상품별 입력·저장 경계 및 아래 targeted/브라우저 증거를 현재 고정 110행과 대조했다. 새 전체 E2E 실행으로 간주하지 않는다. 실제 AIT와 실기기 단계는 archiveEvidence/deviceState를 별도 사용한다."
     },
     {
       "id": "health-rhythm",
@@ -612,12 +717,16 @@
       "recordedContract": "출생 날짜·시각·달력·성별·국내 출생 도시",
       "recordedStorage": "현재 화면 메모리",
       "priorEvidence": "apps/toss/test/public-sections.test.mjs 원본 HTTP 응답 동등성 · public-sections-browser.mjs 360px 일반 홈에서 결과 열람. Worker 승격·실기기 미검증",
-      "reviewedModes": [],
-      "reviewState": "prior-evidence-to-reconcile",
+      "reviewedModes": [
+        "출생 날짜·시각·달력·성별·국내 출생 도시",
+        "현재 화면 메모리"
+      ],
+      "reviewState": "prior-contract-evidence-reconciled",
       "codeGaps": [],
       "archiveEvidence": "공개 사주·자미 11절 원본 계산, 사주 그림 13가지와 여행 기록 복원. 시크릿 하우스는 독립 검사 · 360px 배포 AIT 브라우저, 토스 휴대폰 미검증",
       "deviceState": "not-verified",
-      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도"
+      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도",
+      "reconciliationBasis": "기존 담당의 원본 연결·상품별 입력·저장 경계 및 아래 targeted/브라우저 증거를 현재 고정 110행과 대조했다. 새 전체 E2E 실행으로 간주하지 않는다. 실제 AIT와 실기기 단계는 archiveEvidence/deviceState를 별도 사용한다."
     },
     {
       "id": "heukwol-consult",
@@ -633,12 +742,16 @@
       "recordedContract": "원본 buildHeukwolAnalysis·generateHeukwolChapter, 소유 프로필의 출생 시각·선택 연도·질문",
       "recordedStorage": "TossNativeConsultation과 소유 구매. 원 주문과 마지막 성공 장에서 복구. 신규 SKU 미등록",
       "priorEvidence": "360px mock 두 장으로 생성 중 이탈·다른 계정 차단. 원본 27개 프롬프트·저장 임대 테스트. 운영 실패 주문 처리 및 기기 PDF 미검증",
-      "reviewedModes": [],
-      "reviewState": "prior-evidence-to-reconcile",
+      "reviewedModes": [
+        "원본 buildHeukwolAnalysis·generateHeukwolChapter, 소유 프로필의 출생 시각·선택 연도·질문",
+        "TossNativeConsultation과 소유 구매. 원 주문과 마지막 성공 장에서 복구. 신규 SKU 미등록"
+      ],
+      "reviewState": "prior-contract-evidence-reconciled",
       "codeGaps": [],
       "archiveEvidence": "일반 AIT에서 상위 화면 진입 확인. 하위 입력·결과·재열람의 검증 근거는 verification 참조. 휴대폰 미검증",
       "deviceState": "not-verified",
-      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도"
+      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도",
+      "reconciliationBasis": "기존 담당의 원본 연결·상품별 입력·저장 경계 및 아래 targeted/브라우저 증거를 현재 고정 110행과 대조했다. 새 전체 E2E 실행으로 간주하지 않는다. 실제 AIT와 실기기 단계는 archiveEvidence/deviceState를 별도 사용한다."
     },
     {
       "id": "heukwol-story",
@@ -653,12 +766,16 @@
       "recordedContract": "app/heukwol/FateWarningEpisode.tsx 및 원본 12컷",
       "recordedStorage": "공개 서장. 유료 흑월 상담과 별도",
       "priorEvidence": "story-library-browser.mjs 360px 12컷 원본 텍스트 비교",
-      "reviewedModes": [],
-      "reviewState": "prior-evidence-to-reconcile",
+      "reviewedModes": [
+        "app/heukwol/FateWarningEpisode.tsx 및 원본 12컷",
+        "공개 서장. 유료 흑월 상담과 별도"
+      ],
+      "reviewState": "prior-contract-evidence-reconciled",
       "codeGaps": [],
       "archiveEvidence": "일반 홈에서 14편 원본의 컷·대사 및 첫 그림 디코딩. 원격 아트는 로컬 원본 파일로 대체 · 360px 배포 AIT 브라우저, 토스 휴대폰 미검증",
       "deviceState": "not-verified",
-      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도"
+      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도",
+      "reconciliationBasis": "기존 담당의 원본 연결·상품별 입력·저장 경계 및 아래 targeted/브라우저 증거를 현재 고정 110행과 대조했다. 새 전체 E2E 실행으로 간주하지 않는다. 실제 AIT와 실기기 단계는 archiveEvidence/deviceState를 별도 사용한다."
     },
     {
       "id": "home-widget",
@@ -673,12 +790,16 @@
       "recordedContract": "캐릭터 둘, 그림·꽃말·오늘 운세 위젯 선택",
       "recordedStorage": "게스트 미리보기. OS 홈 고정은 기존 Android 앱 플러그인 전용",
       "priorEvidence": "widget-preview-browser.mjs에서 360px, 6개 선택, 실제 그림 디코드, 결제 요청 0건",
-      "reviewedModes": [],
-      "reviewState": "prior-evidence-to-reconcile",
+      "reviewedModes": [
+        "캐릭터 둘, 그림·꽃말·오늘 운세 위젯 선택",
+        "게스트 미리보기. OS 홈 고정은 기존 Android 앱 플러그인 전용"
+      ],
+      "reviewState": "prior-contract-evidence-reconciled",
       "codeGaps": [],
       "archiveEvidence": "여섯 원본 위젯 실시간 미리보기 · 360px 배포 AIT 브라우저, 토스 휴대폰 미검증",
       "deviceState": "not-verified",
-      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도"
+      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도",
+      "reconciliationBasis": "기존 담당의 원본 연결·상품별 입력·저장 경계 및 아래 targeted/브라우저 증거를 현재 고정 110행과 대조했다. 새 전체 E2E 실행으로 간주하지 않는다. 실제 AIT와 실기기 단계는 archiveEvidence/deviceState를 별도 사용한다."
     },
     {
       "id": "human-design",
@@ -719,12 +840,16 @@
       "recordedContract": "public/ifa-oracle.html 여덟 표식, 오두 256개, 네 주제",
       "recordedStorage": "현재 화면. 토스 저장·공유는 실기기 확인 필요",
       "priorEvidence": "ifa-reading.test.mjs, 360px public-readings-browser.mjs 네 가지 주제",
-      "reviewedModes": [],
-      "reviewState": "prior-evidence-to-reconcile",
+      "reviewedModes": [
+        "public/ifa-oracle.html 여덟 표식, 오두 256개, 네 주제",
+        "현재 화면. 토스 저장·공유는 실기기 확인 필요"
+      ],
+      "reviewState": "prior-contract-evidence-reconciled",
       "codeGaps": [],
       "archiveEvidence": "게스트로 원본 질문·뽑기·해석과 다시 뽑기 확인 · 360px 배포 AIT 브라우저, 토스 휴대폰 미검증",
       "deviceState": "not-verified",
-      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도"
+      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도",
+      "reconciliationBasis": "기존 담당의 원본 연결·상품별 입력·저장 경계 및 아래 targeted/브라우저 증거를 현재 고정 110행과 대조했다. 새 전체 E2E 실행으로 간주하지 않는다. 실제 AIT와 실기기 단계는 archiveEvidence/deviceState를 별도 사용한다."
     },
     {
       "id": "island-consult",
@@ -743,12 +868,16 @@
       "recordedContract": "궁별 상담은 원래 웹 계정의 저장 세션 id 또는 pending=1, 고정 리포트는 동일 웹 계정에서 구매한 출생정보의 profileId",
       "recordedStorage": "웹 궁별 AI는 완료·부분 저장 원문, 별도 고정 12궁 리포트는 원래 웹 계정과 출생정보 권리로 원본을 계산",
       "priorEvidence": "web-history-browser.mjs 360px. 원본 Worker 신규 AI 준비·생성에 410 ISLAND_NOW_FREE. GET /result 소유자·환불·부분 원문 및 별도 고정 리포트의 birthKey 권한 mock 테스트",
-      "reviewedModes": [],
-      "reviewState": "prior-evidence-to-reconcile",
+      "reviewedModes": [
+        "궁별 상담은 원래 웹 계정의 저장 세션 id 또는 pending=1, 고정 리포트는 동일 웹 계정에서 구매한 출생정보의 profileId",
+        "웹 궁별 AI는 완료·부분 저장 원문, 별도 고정 12궁 리포트는 원래 웹 계정과 출생정보 권리로 원본을 계산"
+      ],
+      "reviewState": "prior-contract-evidence-reconciled",
       "codeGaps": [],
       "archiveEvidence": "휴대폰 및 상품별 전체 흐름 미검증",
       "deviceState": "not-verified",
-      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도"
+      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도",
+      "reconciliationBasis": "기존 담당의 원본 연결·상품별 입력·저장 경계 및 아래 targeted/브라우저 증거를 현재 고정 110행과 대조했다. 새 전체 E2E 실행으로 간주하지 않는다. 실제 AIT와 실기기 단계는 archiveEvidence/deviceState를 별도 사용한다."
     },
     {
       "id": "juyuk-turtle",
@@ -763,12 +892,16 @@
       "recordedContract": "js/iching-engine.js 원본 질문·2.2초 길게 누르기·seed·상하괘·64괘, 7장과 전문가 프롬프트. 무료 키 openJuyukModal",
       "recordedStorage": "게스트 공개, 화면 결과. 기존 웹 주문 정책과 별개",
       "priorEvidence": "studio-turtle-browser.mjs: 360px 게스트 홈→질문→짧게 누르기 취소→길게 누르기→7장/원문 프롬프트. 64괘 계산 비교. 실기기 제스처·클립보드 미검증",
-      "reviewedModes": [],
-      "reviewState": "prior-evidence-to-reconcile",
+      "reviewedModes": [
+        "js/iching-engine.js 원본 질문·2.2초 길게 누르기·seed·상하괘·64괘, 7장과 전문가 프롬프트. 무료 키 openJuyukModal",
+        "게스트 공개, 화면 결과. 기존 웹 주문 정책과 별개"
+      ],
+      "reviewState": "prior-contract-evidence-reconciled",
       "codeGaps": [],
       "archiveEvidence": "게스트 질문과 주역 거북점 원본 결과 열람 · 360px 배포 AIT 브라우저, 토스 휴대폰 미검증",
       "deviceState": "not-verified",
-      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도"
+      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도",
+      "reconciliationBasis": "기존 담당의 원본 연결·상품별 입력·저장 경계 및 아래 targeted/브라우저 증거를 현재 고정 110행과 대조했다. 새 전체 E2E 실행으로 간주하지 않는다. 실제 AIT와 실기기 단계는 archiveEvidence/deviceState를 별도 사용한다."
     },
     {
       "id": "karma-destiny-ai",
@@ -786,12 +919,16 @@
       "recordedContract": "worker/toss/native-karma.js + nativeKarmaContract",
       "recordedStorage": "owner-scoped Toss intent and original KarmaDestinyAiConsultation; approved SKU, purchaser binding, durable checkout and device verification pending",
       "priorEvidence": "expert-purchase-browser.mjs 7종 및 sukuyo-expert-browser.mjs 1종. 360px 일반 홈 → 상품별 입력·모의 결제와 생성 → 구매 기록·원문 재열람 → 다른 계정 URL 거절. expert-offers-browser.mjs 일반 판매 비활성",
-      "reviewedModes": [],
-      "reviewState": "prior-evidence-to-reconcile",
+      "reviewedModes": [
+        "worker/toss/native-karma.js + nativeKarmaContract",
+        "owner-scoped Toss intent and original KarmaDestinyAiConsultation; approved SKU, purchaser binding, durable checkout and device verification pending"
+      ],
+      "reviewState": "prior-contract-evidence-reconciled",
       "codeGaps": [],
       "archiveEvidence": "8개 상품별 입력 폼과 신규 판매 닫힘 확인. 모의 구매·저장 원문 검사는 별도 verification 참조 · 360px 배포 AIT 브라우저, 토스 휴대폰 미검증",
       "deviceState": "not-verified",
-      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도"
+      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도",
+      "reconciliationBasis": "기존 담당의 원본 연결·상품별 입력·저장 경계 및 아래 targeted/브라우저 증거를 현재 고정 110행과 대조했다. 새 전체 E2E 실행으로 간주하지 않는다. 실제 AIT와 실기기 단계는 archiveEvidence/deviceState를 별도 사용한다."
     },
     {
       "id": "kemet-oracle",
@@ -806,12 +943,16 @@
       "recordedContract": "js/oracle-kcg.js 원본 12신 중 3장 선택, 질문의 사랑·재물·성취 분류, 카드별 과거/현재/미래, 합독·헤카·파피루스·전문가 프롬프트",
       "recordedStorage": "게스트 무료 키 openKemetModal. 현재 화면 결과",
       "priorEvidence": "studio-kemet-browser.mjs: 360px 홈→세 분야 질문→카드 취소·재선택→7장·프롬프트. 12신 원문 구조·무구매 확인. 실기기 미검증",
-      "reviewedModes": [],
-      "reviewState": "prior-evidence-to-reconcile",
+      "reviewedModes": [
+        "js/oracle-kcg.js 원본 12신 중 3장 선택, 질문의 사랑·재물·성취 분류, 카드별 과거/현재/미래, 합독·헤카·파피루스·전문가 프롬프트",
+        "게스트 무료 키 openKemetModal. 현재 화면 결과"
+      ],
+      "reviewState": "prior-contract-evidence-reconciled",
       "codeGaps": [],
       "archiveEvidence": "게스트 케메트 상담 입력과 원본 결과 열람 · 360px 배포 AIT 브라우저, 토스 휴대폰 미검증",
       "deviceState": "not-verified",
-      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도"
+      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도",
+      "reconciliationBasis": "기존 담당의 원본 연결·상품별 입력·저장 경계 및 아래 targeted/브라우저 증거를 현재 고정 110행과 대조했다. 새 전체 E2E 실행으로 간주하지 않는다. 실제 AIT와 실기기 단계는 archiveEvidence/deviceState를 별도 사용한다."
     },
     {
       "id": "lenormand-six",
@@ -828,12 +969,16 @@
       "recordedContract": "원본 36장에서 6장을 고른 뒤 로컬 프롬프트 작성",
       "recordedStorage": "현재 화면의 무료 프롬프트",
       "priorEvidence": "paid-tarot-browser.mjs · 360px 게스트 실제 카드 6장·프롬프트",
-      "reviewedModes": [],
-      "reviewState": "prior-evidence-to-reconcile",
+      "reviewedModes": [
+        "원본 36장에서 6장을 고른 뒤 로컬 프롬프트 작성",
+        "현재 화면의 무료 프롬프트"
+      ],
+      "reviewState": "prior-contract-evidence-reconciled",
       "codeGaps": [],
       "archiveEvidence": "일반 AIT에서 상위 화면 진입 확인. 하위 입력·결과·재열람의 검증 근거는 verification 참조. 휴대폰 미검증",
       "deviceState": "not-verified",
-      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도"
+      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도",
+      "reconciliationBasis": "기존 담당의 원본 연결·상품별 입력·저장 경계 및 아래 targeted/브라우저 증거를 현재 고정 110행과 대조했다. 새 전체 E2E 실행으로 간주하지 않는다. 실제 AIT와 실기기 단계는 archiveEvidence/deviceState를 별도 사용한다."
     },
     {
       "id": "life-book-ai",
@@ -851,12 +996,16 @@
       "recordedContract": "worker/toss/native-life-book.js",
       "recordedStorage": "owned-TossPurchase; device-and-console-approval-pending",
       "priorEvidence": "life-reading-browser.mjs 360px 홈, 두 상품 각각의 모의 주문 → 원문 → 구매 기록 재열람·다른 계정 차단",
-      "reviewedModes": [],
-      "reviewState": "prior-evidence-to-reconcile",
+      "reviewedModes": [
+        "worker/toss/native-life-book.js",
+        "owned-TossPurchase; device-and-console-approval-pending"
+      ],
+      "reviewState": "prior-contract-evidence-reconciled",
       "codeGaps": [],
       "archiveEvidence": "일반 AIT에서 상위 화면 진입 확인. 하위 입력·결과·재열람의 검증 근거는 verification 참조. 휴대폰 미검증",
       "deviceState": "not-verified",
-      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도"
+      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도",
+      "reconciliationBasis": "기존 담당의 원본 연결·상품별 입력·저장 경계 및 아래 targeted/브라우저 증거를 현재 고정 110행과 대조했다. 새 전체 E2E 실행으로 간주하지 않는다. 실제 AIT와 실기기 단계는 archiveEvidence/deviceState를 별도 사용한다."
     },
     {
       "id": "life-fortune-report",
@@ -873,12 +1022,16 @@
       "recordedContract": "worker/routes/life-book-ai.js:nativeLifeBookContract (lifeFortune mode)",
       "recordedStorage": "owned-TossPurchase with life-fortune-ai-consultation feature; device-and-console-approval-pending",
       "priorEvidence": "life-reading-browser.mjs 360px 홈, 두 상품 각각의 모의 주문 → 원문 → 구매 기록 재열람·다른 계정 차단",
-      "reviewedModes": [],
-      "reviewState": "prior-evidence-to-reconcile",
+      "reviewedModes": [
+        "worker/routes/life-book-ai.js:nativeLifeBookContract (lifeFortune mode)",
+        "owned-TossPurchase with life-fortune-ai-consultation feature; device-and-console-approval-pending"
+      ],
+      "reviewState": "prior-contract-evidence-reconciled",
       "codeGaps": [],
       "archiveEvidence": "일반 AIT에서 상위 화면 진입 확인. 하위 입력·결과·재열람의 검증 근거는 verification 참조. 휴대폰 미검증",
       "deviceState": "not-verified",
-      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도"
+      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도",
+      "reconciliationBasis": "기존 담당의 원본 연결·상품별 입력·저장 경계 및 아래 targeted/브라우저 증거를 현재 고정 110행과 대조했다. 새 전체 E2E 실행으로 간주하지 않는다. 실제 AIT와 실기기 단계는 archiveEvidence/deviceState를 별도 사용한다."
     },
     {
       "id": "life-skill-tree",
@@ -897,12 +1050,16 @@
       "recordedContract": "출생 날짜·시각·달력·성별·국내 출생 도시",
       "recordedStorage": "클래스 시트는 화면 메모리. 게스트의 퀘스트·EXP는 기기 저장, 로그인 후 계정별 진행 조회·완료·이관",
       "priorEvidence": "apps/toss/test/public-sections.test.mjs 원본 HTTP 응답 동등성 · public-sections-browser.mjs 360px 일반 홈에서 결과 열람. Worker 승격·실기기 미검증",
-      "reviewedModes": [],
-      "reviewState": "prior-evidence-to-reconcile",
+      "reviewedModes": [
+        "출생 날짜·시각·달력·성별·국내 출생 도시",
+        "클래스 시트는 화면 메모리. 게스트의 퀘스트·EXP는 기기 저장, 로그인 후 계정별 진행 조회·완료·이관"
+      ],
+      "reviewState": "prior-contract-evidence-reconciled",
       "codeGaps": [],
       "archiveEvidence": "공개 사주·자미 11절 원본 계산, 사주 그림 13가지와 여행 기록 복원. 시크릿 하우스는 독립 검사 · 360px 배포 AIT 브라우저, 토스 휴대폰 미검증",
       "deviceState": "not-verified",
-      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도"
+      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도",
+      "reconciliationBasis": "기존 담당의 원본 연결·상품별 입력·저장 경계 및 아래 targeted/브라우저 증거를 현재 고정 110행과 대조했다. 새 전체 E2E 실행으로 간주하지 않는다. 실제 AIT와 실기기 단계는 archiveEvidence/deviceState를 별도 사용한다."
     },
     {
       "id": "love-code",
@@ -924,12 +1081,16 @@
       "recordedContract": "원본 16인 프리셋 또는 상대 출생정보 사주 매칭. 내 명식·상대 선택·데이트 장면 선택으로 결말",
       "recordedStorage": "현재 세션의 원본 결말. 다음 진입 때 다시 플레이. 타 계정 프로필·웹 결제 복구와 독립",
       "priorEvidence": "love-code-browser.mjs 360px 일반 홈, 게스트 탐색, mock 토스 로그인, 두 출생정보·네오 원화·선택과 결말. 실기기 미검증",
-      "reviewedModes": [],
-      "reviewState": "prior-evidence-to-reconcile",
+      "reviewedModes": [
+        "원본 16인 프리셋 또는 상대 출생정보 사주 매칭. 내 명식·상대 선택·데이트 장면 선택으로 결말",
+        "현재 세션의 원본 결말. 다음 진입 때 다시 플레이. 타 계정 프로필·웹 결제 복구와 독립"
+      ],
+      "reviewState": "prior-contract-evidence-reconciled",
       "codeGaps": [],
       "archiveEvidence": "휴대폰 및 상품별 전체 흐름 미검증",
       "deviceState": "not-verified",
-      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도"
+      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도",
+      "reconciliationBasis": "기존 담당의 원본 연결·상품별 입력·저장 경계 및 아래 targeted/브라우저 증거를 현재 고정 110행과 대조했다. 새 전체 E2E 실행으로 간주하지 않는다. 실제 AIT와 실기기 단계는 archiveEvidence/deviceState를 별도 사용한다."
     },
     {
       "id": "love-secret-ai",
@@ -947,12 +1108,16 @@
       "recordedContract": "worker/toss/native-love-secret.js",
       "recordedStorage": "owned Toss purchase, Toss-origin consultation and verified follow-up recovery; approved SKU, purchaser binding, durable checkout and device verification pending",
       "priorEvidence": "expert-purchase-browser.mjs 7종 및 sukuyo-expert-browser.mjs 1종. 360px 일반 홈 → 상품별 입력·모의 결제와 생성 → 구매 기록·원문 재열람 → 다른 계정 URL 거절. expert-offers-browser.mjs 일반 판매 비활성",
-      "reviewedModes": [],
-      "reviewState": "prior-evidence-to-reconcile",
+      "reviewedModes": [
+        "worker/toss/native-love-secret.js",
+        "owned Toss purchase, Toss-origin consultation and verified follow-up recovery; approved SKU, purchaser binding, durable checkout and device verification pending"
+      ],
+      "reviewState": "prior-contract-evidence-reconciled",
       "codeGaps": [],
       "archiveEvidence": "8개 상품별 입력 폼과 신규 판매 닫힘 확인. 모의 구매·저장 원문 검사는 별도 verification 참조 · 360px 배포 AIT 브라우저, 토스 휴대폰 미검증",
       "deviceState": "not-verified",
-      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도"
+      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도",
+      "reconciliationBasis": "기존 담당의 원본 연결·상품별 입력·저장 경계 및 아래 targeted/브라우저 증거를 현재 고정 110행과 대조했다. 새 전체 E2E 실행으로 간주하지 않는다. 실제 AIT와 실기기 단계는 archiveEvidence/deviceState를 별도 사용한다."
     },
     {
       "id": "luck-sync-diary",
@@ -967,12 +1132,16 @@
       "recordedContract": "오늘과 과거 날짜·기분·한 줄·메모·태그·일정·할 일·루틴",
       "recordedStorage": "게스트/토스 계정별 기기 저장. 원본 일/월 샤드로 재실행 후 읽기",
       "priorEvidence": "diary-browser.mjs 360px 날짜별 입력·할 일·재실행·기간별 통계와 기록→해당 날짜 달력, 쓰기 API 0회. 웹의 기존 기기 저장 기록 이전과 계정 프로필 운기는 별도",
-      "reviewedModes": [],
-      "reviewState": "prior-evidence-to-reconcile",
+      "reviewedModes": [
+        "오늘과 과거 날짜·기분·한 줄·메모·태그·일정·할 일·루틴",
+        "게스트/토스 계정별 기기 저장. 원본 일/월 샤드로 재실행 후 읽기"
+      ],
+      "reviewState": "prior-contract-evidence-reconciled",
       "codeGaps": [],
       "archiveEvidence": "게스트 플래너, 날짜에 따른 기록 구분, 앱 재진입 · 360px 배포 AIT 브라우저, 토스 휴대폰 미검증",
       "deviceState": "not-verified",
-      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도"
+      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도",
+      "reconciliationBasis": "기존 담당의 원본 연결·상품별 입력·저장 경계 및 아래 targeted/브라우저 증거를 현재 고정 110행과 대조했다. 새 전체 E2E 실행으로 간주하지 않는다. 실제 AIT와 실기기 단계는 archiveEvidence/deviceState를 별도 사용한다."
     },
     {
       "id": "manse",
@@ -987,12 +1156,16 @@
       "recordedContract": "worker/toss/manse.js (canonical screen saju engine)",
       "recordedStorage": "screen-only; web-profile-history-parity-pending",
       "priorEvidence": "guest-calculators-browser.mjs 360px 홈, 비회원 계산. 기본 베다 local Swiss 원본, 만세력 원본 대운·명식, 반려동물 원본 오행·유료 로그인 경계",
-      "reviewedModes": [],
-      "reviewState": "prior-evidence-to-reconcile",
+      "reviewedModes": [
+        "worker/toss/manse.js (canonical screen saju engine)",
+        "screen-only; web-profile-history-parity-pending"
+      ],
+      "reviewState": "prior-contract-evidence-reconciled",
       "codeGaps": [],
       "archiveEvidence": "게스트 수동 출생정보로 만세력·베다 원본 계산과 반려동물 오행 결과, 반려동물 심층 로그인 경계 · 360px 배포 AIT 브라우저, 토스 휴대폰 미검증",
       "deviceState": "not-verified",
-      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도"
+      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도",
+      "reconciliationBasis": "기존 담당의 원본 연결·상품별 입력·저장 경계 및 아래 targeted/브라우저 증거를 현재 고정 110행과 대조했다. 새 전체 E2E 실행으로 간주하지 않는다. 실제 AIT와 실기기 단계는 archiveEvidence/deviceState를 별도 사용한다."
     },
     {
       "id": "master-love-codex",
@@ -1009,12 +1182,16 @@
       "recordedContract": "개인판 출생·질문과 사주·자미두수 근거",
       "recordedStorage": "개인판 토스 주문과 소유 계정의 저장 원문",
       "priorEvidence": "codex-browser.mjs에서 개인·궁합 각 mock 주문 1건, 중간 이탈 후 재열람·타인 차단. 실상품 없음",
-      "reviewedModes": [],
-      "reviewState": "prior-evidence-to-reconcile",
+      "reviewedModes": [
+        "개인판 출생·질문과 사주·자미두수 근거",
+        "개인판 토스 주문과 소유 계정의 저장 원문"
+      ],
+      "reviewState": "prior-contract-evidence-reconciled",
       "codeGaps": [],
       "archiveEvidence": "일반 AIT에서 상위 화면 진입 확인. 하위 입력·결과·재열람의 검증 근거는 verification 참조. 휴대폰 미검증",
       "deviceState": "not-verified",
-      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도"
+      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도",
+      "reconciliationBasis": "기존 담당의 원본 연결·상품별 입력·저장 경계 및 아래 targeted/브라우저 증거를 현재 고정 110행과 대조했다. 새 전체 E2E 실행으로 간주하지 않는다. 실제 AIT와 실기기 단계는 archiveEvidence/deviceState를 별도 사용한다."
     },
     {
       "id": "master-love-codex-compat",
@@ -1031,12 +1208,16 @@
       "recordedContract": "궁합판 두 사람 출생·질문과 별도 원장",
       "recordedStorage": "궁합판 토스 주문과 소유 계정의 저장 원문",
       "priorEvidence": "codex-browser.mjs. 개인판과 독립 가상 SKU·질문 해시·생성 작업. 실상품 없음",
-      "reviewedModes": [],
-      "reviewState": "prior-evidence-to-reconcile",
+      "reviewedModes": [
+        "궁합판 두 사람 출생·질문과 별도 원장",
+        "궁합판 토스 주문과 소유 계정의 저장 원문"
+      ],
+      "reviewState": "prior-contract-evidence-reconciled",
       "codeGaps": [],
       "archiveEvidence": "일반 AIT에서 상위 화면 진입 확인. 하위 입력·결과·재열람의 검증 근거는 verification 참조. 휴대폰 미검증",
       "deviceState": "not-verified",
-      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도"
+      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도",
+      "reconciliationBasis": "기존 담당의 원본 연결·상품별 입력·저장 경계 및 아래 targeted/브라우저 증거를 현재 고정 110행과 대조했다. 새 전체 E2E 실행으로 간주하지 않는다. 실제 AIT와 실기기 단계는 archiveEvidence/deviceState를 별도 사용한다."
     },
     {
       "id": "maya",
@@ -1051,12 +1232,16 @@
       "recordedContract": "일반 진입은 웹 원본 MayaPromptGeneratorCard의 날짜·이름·출생일·주제·질문. maya-prompt-generator 무료 정책",
       "recordedStorage": "신규 무료 프롬프트는 비회원 현재 화면. 과거 구매의 저장 원문·주문 복구는 소유 계정에만 제공",
       "priorEvidence": "private-maya-free.mjs 실제 로컬 AIT 홈 → 비회원 윤일·질문 → 웹 원본 프롬프트 완전 일치, 360·390·430px, 로그인·주문 0. 기존 구매 계정/환불/초안복구 테스트 유지. Linux AIT·과거 주문 실기기 복구는 별도 확인",
-      "reviewedModes": [],
-      "reviewState": "prior-evidence-to-reconcile",
+      "reviewedModes": [
+        "일반 진입은 웹 원본 MayaPromptGeneratorCard의 날짜·이름·출생일·주제·질문. maya-prompt-generator 무료 정책",
+        "신규 무료 프롬프트는 비회원 현재 화면. 과거 구매의 저장 원문·주문 복구는 소유 계정에만 제공"
+      ],
+      "reviewState": "prior-contract-evidence-reconciled",
       "codeGaps": [],
       "archiveEvidence": "일반 AIT에서 상위 화면 진입 확인. 하위 입력·결과·재열람의 검증 근거는 verification 참조. 휴대폰 미검증",
       "deviceState": "not-verified",
-      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도"
+      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도",
+      "reconciliationBasis": "기존 담당의 원본 연결·상품별 입력·저장 경계 및 아래 targeted/브라우저 증거를 현재 고정 110행과 대조했다. 새 전체 E2E 실행으로 간주하지 않는다. 실제 AIT와 실기기 단계는 archiveEvidence/deviceState를 별도 사용한다."
     },
     {
       "id": "mbti-animal-compat",
@@ -1072,12 +1257,16 @@
       "recordedContract": "js/astral-soul.js:ASTRAL_DATA / getPairScore / getSynergyText",
       "recordedStorage": "게스트 화면 계산. 두 동물 256쌍 원본 점수·조언",
       "priorEvidence": "astral-animals.test.mjs + 일반 홈 두 동물 선택",
-      "reviewedModes": [],
-      "reviewState": "prior-evidence-to-reconcile",
+      "reviewedModes": [
+        "js/astral-soul.js:ASTRAL_DATA / getPairScore / getSynergyText",
+        "게스트 화면 계산. 두 동물 256쌍 원본 점수·조언"
+      ],
+      "reviewState": "prior-contract-evidence-reconciled",
       "codeGaps": [],
       "archiveEvidence": "일반 AIT에서 상위 화면 진입 확인. 하위 입력·결과·재열람의 검증 근거는 verification 참조. 휴대폰 미검증",
       "deviceState": "not-verified",
-      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도"
+      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도",
+      "reconciliationBasis": "기존 담당의 원본 연결·상품별 입력·저장 경계 및 아래 targeted/브라우저 증거를 현재 고정 110행과 대조했다. 새 전체 E2E 실행으로 간주하지 않는다. 실제 AIT와 실기기 단계는 archiveEvidence/deviceState를 별도 사용한다."
     },
     {
       "id": "music",
@@ -1092,9 +1281,14 @@
       "recordedContract": "stream list projected from original track manifest and free_full policy only",
       "recordedStorage": "stream only; paid downloads, library and device audio parity pending",
       "priorEvidence": "apps/toss/test/ music-shelf.test.mjs · 개별 검사 범위. 실제 기기 미검증",
-      "reviewedModes": [],
-      "reviewState": "prior-evidence-to-reconcile",
-      "codeGaps": [],
+      "reviewedModes": [
+        "stream list projected from original track manifest and free_full policy only",
+        "stream only; paid downloads, library and device audio parity pending"
+      ],
+      "reviewState": "known-gaps",
+      "codeGaps": [
+        "전곡 무료 스트림은 연결됨. 웹 단건·월정석 MP3 다운로드 구매와 파일 저장은 별도 미이식. 이용권 커버로 다운로드를 열지 않음"
+      ],
       "archiveEvidence": "일반 AIT에서 상위 화면 진입 확인. 하위 입력·결과·재열람의 검증 근거는 verification 참조. 휴대폰 미검증",
       "deviceState": "not-verified",
       "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도"
@@ -1112,12 +1306,16 @@
       "recordedContract": "웹 /nakshatra/calc/ 양력·출생시각/미상·도시와 국가. 원본 resolveNatal과 일본 구력, Lahiri",
       "recordedStorage": "게스트 현재 화면 무료 리딩 5개 주제. 기존 웹 주문·개인 AI 리포트 별도",
       "priorEvidence": "studio-mansion-reading-browser.mjs 360px 게스트→출생→5장·계산 근거·오늘의 달/격각/타라발라. 토스 세션에서는 소유 프로필 입력도 지원. 서비스별 이력·실기기 미검증",
-      "reviewedModes": [],
-      "reviewState": "prior-evidence-to-reconcile",
+      "reviewedModes": [
+        "웹 /nakshatra/calc/ 양력·출생시각/미상·도시와 국가. 원본 resolveNatal과 일본 구력, Lahiri",
+        "게스트 현재 화면 무료 리딩 5개 주제. 기존 웹 주문·개인 AI 리포트 별도"
+      ],
+      "reviewState": "prior-contract-evidence-reconciled",
       "codeGaps": [],
       "archiveEvidence": "일반 AIT에서 상위 화면 진입 확인. 하위 입력·결과·재열람의 검증 근거는 verification 참조. 휴대폰 미검증",
       "deviceState": "not-verified",
-      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도"
+      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도",
+      "reconciliationBasis": "기존 담당의 원본 연결·상품별 입력·저장 경계 및 아래 targeted/브라우저 증거를 현재 고정 110행과 대조했다. 새 전체 E2E 실행으로 간주하지 않는다. 실제 AIT와 실기기 단계는 archiveEvidence/deviceState를 별도 사용한다."
     },
     {
       "id": "nakshatra-ai",
@@ -1136,12 +1334,16 @@
       "recordedContract": "app/nakshatra/ai/NakshatraAiClient.tsx. 양력 출생 일시·시간 미상·도시(11개 프리셋)·성별과 선택 질문 1200자. 웹 상품 30000원·이용권·월정석은 웹 원장에 유지, 토스 SKU 미등록",
       "recordedStorage": "토스 주문을 원래 NakshatraAiConsultation(소유자·idempotencyKey·inputHash)에 결합. 꿀꿀운세 구매 기록으로 9장 원문을 다시 연다. 웹의 기구매·환불 경로와 분리",
       "priorEvidence": "studio-mansion-ai-browser.mjs: 360px 홈→mock 로그인→입력 복원→전용 가상 SKU 하나→3/9 생성 중 이탈→보관함→9장·재실행→다른 계정 URL 거부. nakshatra-paid-delivery.test.js 42/42. 웹 cardToFormValues로 소유 프로필 선택. 원본 PDF·네이티브 저장 호출 mock 검증. 운영 Swiss/LLM·콘솔·실기기 파일 열람 미검증",
-      "reviewedModes": [],
-      "reviewState": "prior-evidence-to-reconcile",
+      "reviewedModes": [
+        "app/nakshatra/ai/NakshatraAiClient.tsx. 양력 출생 일시·시간 미상·도시(11개 프리셋)·성별과 선택 질문 1200자. 웹 상품 30000원·이용권·월정석은 웹 원장에 유지, 토스 SKU 미등록",
+        "토스 주문을 원래 NakshatraAiConsultation(소유자·idempotencyKey·inputHash)에 결합. 꿀꿀운세 구매 기록으로 9장 원문을 다시 연다. 웹의 기구매·환불 경로와 분리"
+      ],
+      "reviewState": "prior-contract-evidence-reconciled",
       "codeGaps": [],
       "archiveEvidence": "일반 AIT에서 상위 화면 진입 확인. 하위 입력·결과·재열람의 검증 근거는 verification 참조. 휴대폰 미검증",
       "deviceState": "not-verified",
-      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도"
+      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도",
+      "reconciliationBasis": "기존 담당의 원본 연결·상품별 입력·저장 경계 및 아래 targeted/브라우저 증거를 현재 고정 110행과 대조했다. 새 전체 E2E 실행으로 간주하지 않는다. 실제 AIT와 실기기 단계는 archiveEvidence/deviceState를 별도 사용한다."
     },
     {
       "id": "nakshatra-compat",
@@ -1160,12 +1362,16 @@
       "recordedContract": "app/nakshatra/compat/NakshatraCompatClient.tsx의 각자 출생 날짜·시각·나라·성별. 원본 resolveCompat와 일본 숙요, Lahiri 아쉬타쿠타 8항목",
       "recordedStorage": "토스 로그인·무료 현재 화면 계산. 기존 웹 구매 GET은 웹 원장과 소유 인증으로 유지",
       "priorEvidence": "360px mock 로그인, 서로 다른 도시와 출생 정보 두 사람→8쿠타와 격각, 재입력 확인. 각각 소유 프로필 또는 수동 입력. 초대 링크·운영 Swiss·실기기 미검증",
-      "reviewedModes": [],
-      "reviewState": "prior-evidence-to-reconcile",
+      "reviewedModes": [
+        "app/nakshatra/compat/NakshatraCompatClient.tsx의 각자 출생 날짜·시각·나라·성별. 원본 resolveCompat와 일본 숙요, Lahiri 아쉬타쿠타 8항목",
+        "토스 로그인·무료 현재 화면 계산. 기존 웹 구매 GET은 웹 원장과 소유 인증으로 유지"
+      ],
+      "reviewState": "prior-contract-evidence-reconciled",
       "codeGaps": [],
       "archiveEvidence": "일반 AIT에서 상위 화면 진입 확인. 하위 입력·결과·재열람의 검증 근거는 verification 참조. 휴대폰 미검증",
       "deviceState": "not-verified",
-      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도"
+      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도",
+      "reconciliationBasis": "기존 담당의 원본 연결·상품별 입력·저장 경계 및 아래 targeted/브라우저 증거를 현재 고정 110행과 대조했다. 새 전체 E2E 실행으로 간주하지 않는다. 실제 AIT와 실기기 단계는 archiveEvidence/deviceState를 별도 사용한다."
     },
     {
       "id": "nakshatra-dasha-map",
@@ -1182,12 +1388,16 @@
       "recordedContract": "소유 프로필·음력/시간미상. 원본 buildNakshatraDashaMap, 비쇼타리 + 동양 대운",
       "recordedStorage": "무료 키와 계정을 확인하고 재계산. 웹의 과거 영구 해금은 웹 원장에 유지",
       "priorEvidence": "360px 대주기·매번 9개 부주기·날짜·시기별 해설, 0주문. 실기기·운영 Swiss 미검증",
-      "reviewedModes": [],
-      "reviewState": "prior-evidence-to-reconcile",
+      "reviewedModes": [
+        "소유 프로필·음력/시간미상. 원본 buildNakshatraDashaMap, 비쇼타리 + 동양 대운",
+        "무료 키와 계정을 확인하고 재계산. 웹의 과거 영구 해금은 웹 원장에 유지"
+      ],
+      "reviewState": "prior-contract-evidence-reconciled",
       "codeGaps": [],
       "archiveEvidence": "일반 AIT에서 상위 화면 진입 확인. 하위 입력·결과·재열람의 검증 근거는 verification 참조. 휴대폰 미검증",
       "deviceState": "not-verified",
-      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도"
+      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도",
+      "reconciliationBasis": "기존 담당의 원본 연결·상품별 입력·저장 경계 및 아래 targeted/브라우저 증거를 현재 고정 110행과 대조했다. 새 전체 E2E 실행으로 간주하지 않는다. 실제 AIT와 실기기 단계는 archiveEvidence/deviceState를 별도 사용한다."
     },
     {
       "id": "nakshatra-lord-report",
@@ -1204,12 +1414,16 @@
       "recordedContract": "소유 프로필·음력/시간미상. worker/routes/nakshatra-premium.js와 원본 buildNakshatraLordReport",
       "recordedStorage": "무료 기능 키를 확인하고 같은 계정의 저장된 출생으로 재계산. 웹의 예전 영구 해금은 웹 원장에 유지",
       "priorEvidence": "studio-mansion-reports-browser.mjs: 360px 로그인과 소유 프로필→원본 11개 절·주문 0. 실제 Worker/기기 미검증",
-      "reviewedModes": [],
-      "reviewState": "prior-evidence-to-reconcile",
+      "reviewedModes": [
+        "소유 프로필·음력/시간미상. worker/routes/nakshatra-premium.js와 원본 buildNakshatraLordReport",
+        "무료 기능 키를 확인하고 같은 계정의 저장된 출생으로 재계산. 웹의 예전 영구 해금은 웹 원장에 유지"
+      ],
+      "reviewState": "prior-contract-evidence-reconciled",
       "codeGaps": [],
       "archiveEvidence": "일반 AIT에서 상위 화면 진입 확인. 하위 입력·결과·재열람의 검증 근거는 verification 참조. 휴대폰 미검증",
       "deviceState": "not-verified",
-      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도"
+      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도",
+      "reconciliationBasis": "기존 담당의 원본 연결·상품별 입력·저장 경계 및 아래 targeted/브라우저 증거를 현재 고정 110행과 대조했다. 새 전체 E2E 실행으로 간주하지 않는다. 실제 AIT와 실기기 단계는 archiveEvidence/deviceState를 별도 사용한다."
     },
     {
       "id": "nakshatra-muhurta",
@@ -1226,12 +1440,16 @@
       "recordedContract": "app/nakshatra/muhurta/MuhurtaClient.tsx. 소유 출생 프로필·목적 6가지·시작일. 원본 handleMuhurta가 Swiss 달 황경으로 60일 계산",
       "recordedStorage": "웹과 같은 인증 필요. 무료 키를 재확인하고 현재 화면에 추천·유의일·60일과 원문 해설, 주문 없음",
       "priorEvidence": "studio-mansion-reports-browser.mjs의 360px 홈 입장·로그인·60일 확인. toss-mansion-reports.test.js의 음력·시간 미상·계정분리. 운영 Swiss와 실기기 미검증",
-      "reviewedModes": [],
-      "reviewState": "prior-evidence-to-reconcile",
+      "reviewedModes": [
+        "app/nakshatra/muhurta/MuhurtaClient.tsx. 소유 출생 프로필·목적 6가지·시작일. 원본 handleMuhurta가 Swiss 달 황경으로 60일 계산",
+        "웹과 같은 인증 필요. 무료 키를 재확인하고 현재 화면에 추천·유의일·60일과 원문 해설, 주문 없음"
+      ],
+      "reviewState": "prior-contract-evidence-reconciled",
       "codeGaps": [],
       "archiveEvidence": "일반 AIT에서 상위 화면 진입 확인. 하위 입력·결과·재열람의 검증 근거는 verification 참조. 휴대폰 미검증",
       "deviceState": "not-verified",
-      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도"
+      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도",
+      "reconciliationBasis": "기존 담당의 원본 연결·상품별 입력·저장 경계 및 아래 targeted/브라우저 증거를 현재 고정 110행과 대조했다. 새 전체 E2E 실행으로 간주하지 않는다. 실제 AIT와 실기기 단계는 archiveEvidence/deviceState를 별도 사용한다."
     },
     {
       "id": "nakshatra-vvip-codex",
@@ -1249,12 +1467,16 @@
       "recordedContract": "app/nakshatra/vvip/VvipClient.tsx. 소유 출생 프로필·장소·시각; 원본 handleVvipCodex 기준 달, 지배성·다샤·동양 대운",
       "recordedStorage": "무료 키를 확인하고 토스 로그인 후 5장 전체·27수 지형·지배성 세부 장과 다샤 타임라인 해설. 현재 화면에 표시",
       "priorEvidence": "360px 로그인→5장·27수·다샤 해설, 0주문. 연산 전 타계정 프로필 거부. 웹 PDF 생성·토스 파일 저장 요청 mock 검증. 운영 Swiss·실기기 파일 열람 미검증",
-      "reviewedModes": [],
-      "reviewState": "prior-evidence-to-reconcile",
+      "reviewedModes": [
+        "app/nakshatra/vvip/VvipClient.tsx. 소유 출생 프로필·장소·시각; 원본 handleVvipCodex 기준 달, 지배성·다샤·동양 대운",
+        "무료 키를 확인하고 토스 로그인 후 5장 전체·27수 지형·지배성 세부 장과 다샤 타임라인 해설. 현재 화면에 표시"
+      ],
+      "reviewState": "prior-contract-evidence-reconciled",
       "codeGaps": [],
       "archiveEvidence": "일반 AIT에서 상위 화면 진입 확인. 하위 입력·결과·재열람의 검증 근거는 verification 참조. 휴대폰 미검증",
       "deviceState": "not-verified",
-      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도"
+      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도",
+      "reconciliationBasis": "기존 담당의 원본 연결·상품별 입력·저장 경계 및 아래 targeted/브라우저 증거를 현재 고정 110행과 대조했다. 새 전체 E2E 실행으로 간주하지 않는다. 실제 AIT와 실기기 단계는 archiveEvidence/deviceState를 별도 사용한다."
     },
     {
       "id": "naming-ai",
@@ -1270,12 +1492,16 @@
       "recordedContract": "원본 성 한자·양/음력·출생과 선호, v2 무료 후보 5·유료 후보 12",
       "recordedStorage": "꿀꿀 기록에서 토스 소유 주문의 저장 원문",
       "priorEvidence": "naming-browser.mjs, native-naming.test.mjs. mock 1주문/생성, 이탈·재실행·타 계정 차단. 전용 SKU 필요",
-      "reviewedModes": [],
-      "reviewState": "prior-evidence-to-reconcile",
+      "reviewedModes": [
+        "원본 성 한자·양/음력·출생과 선호, v2 무료 후보 5·유료 후보 12",
+        "꿀꿀 기록에서 토스 소유 주문의 저장 원문"
+      ],
+      "reviewState": "prior-contract-evidence-reconciled",
       "codeGaps": [],
       "archiveEvidence": "일반 AIT에서 상위 화면 진입 확인. 하위 입력·결과·재열람의 검증 근거는 verification 참조. 휴대폰 미검증",
       "deviceState": "not-verified",
-      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도"
+      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도",
+      "reconciliationBasis": "기존 담당의 원본 연결·상품별 입력·저장 경계 및 아래 targeted/브라우저 증거를 현재 고정 110행과 대조했다. 새 전체 E2E 실행으로 간주하지 않는다. 실제 AIT와 실기기 단계는 archiveEvidence/deviceState를 별도 사용한다."
     },
     {
       "id": "neo-consultation",
@@ -1317,12 +1543,16 @@
       "recordedContract": "app/fortune-chat/ConsultationIntake.tsx + worker/toss/letter.js",
       "recordedStorage": "꿀꿀운세 구매 기록. 상담자·계정·주문 소유권 검사",
       "priorEvidence": "letter-methods-browser.mjs 12개 기본 편지, letter-question-browser.mjs 두 상담자의 등급·프로필·추가 질문·재열람. 42개 등급형은 모의 소유·SKU 계약.",
-      "reviewedModes": [],
-      "reviewState": "prior-evidence-to-reconcile",
+      "reviewedModes": [
+        "app/fortune-chat/ConsultationIntake.tsx + worker/toss/letter.js",
+        "꿀꿀운세 구매 기록. 상담자·계정·주문 소유권 검사"
+      ],
+      "reviewState": "prior-contract-evidence-reconciled",
       "codeGaps": [],
       "archiveEvidence": "일반 AIT에서 상위 화면 진입 확인. 하위 입력·결과·재열람의 검증 근거는 verification 참조. 휴대폰 미검증",
       "deviceState": "not-verified",
-      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도"
+      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도",
+      "reconciliationBasis": "기존 담당의 원본 연결·상품별 입력·저장 경계 및 아래 targeted/브라우저 증거를 현재 고정 110행과 대조했다. 새 전체 E2E 실행으로 간주하지 않는다. 실제 AIT와 실기기 단계는 archiveEvidence/deviceState를 별도 사용한다."
     },
     {
       "id": "neo-operation-room",
@@ -1344,12 +1574,16 @@
       "recordedContract": "worker/toss/native-neo.js",
       "recordedStorage": "owned-TossPurchase; device-and-console-approval-pending",
       "priorEvidence": "apps/toss/test/ room-browser.mjs · 개별 검사 범위. 실제 기기 미검증",
-      "reviewedModes": [],
-      "reviewState": "prior-evidence-to-reconcile",
+      "reviewedModes": [
+        "worker/toss/native-neo.js",
+        "owned-TossPurchase; device-and-console-approval-pending"
+      ],
+      "reviewState": "prior-contract-evidence-reconciled",
       "codeGaps": [],
       "archiveEvidence": "네오 팩폭 전략실 사주: Linux AIT 일반 홈 → 입력 → 모의 토스 로그인 → 주문 1건 → 저장 원문 → 구매 기록 재열람·새로고침 → 다른 계정 접근 차단. 생성 1회·선택 방식·수정 작전 원문과 원장 불변, 새 질문 초안 보존 확인. b69eea884 / run 43551511688 · 네오 팩폭 전략실 자미두수: Linux AIT 일반 홈 → 입력 → 모의 토스 로그인 → 주문 1건 → 저장 원문 → 구매 기록 재열람·새로고침 → 다른 계정 접근 차단. 생성 1회·선택 방식·수정 작전 원문과 원장 불변, 새 질문 초안 보존 확인. b69eea884 / run 43551511688 · 네오 팩폭 전략실 베다점: Linux AIT 일반 홈 → 입력 → 모의 토스 로그인 → 주문 1건 → 저장 원문 → 구매 기록 재열람·새로고침 → 다른 계정 접근 차단. 생성 1회·선택 방식·수정 작전 원문과 원장 불변, 새 질문 초안 보존 확인. b69eea884 / run 43551511688 · 네오 팩폭 전략실 서양 점성술: Linux AIT 일반 홈 → 입력 → 모의 토스 로그인 → 주문 1건 → 저장 원문 → 구매 기록 재열람·새로고침 → 다른 계정 접근 차단. 생성 1회·선택 방식·수정 작전 원문과 원장 불변, 새 질문 초안 보존 확인. b69eea884 / run 43551511688 · neo saju: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · neo saju-partner: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · neo ziwei: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · neo ziwei-partner: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · neo vedic: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · neo vedic-partner: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · neo astrology: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · neo astrology-partner: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · 360px 배포 AIT 브라우저, 토스 휴대폰 미검증",
       "deviceState": "not-verified",
-      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도"
+      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도",
+      "reconciliationBasis": "기존 담당의 원본 연결·상품별 입력·저장 경계 및 아래 targeted/브라우저 증거를 현재 고정 110행과 대조했다. 새 전체 E2E 실행으로 간주하지 않는다. 실제 AIT와 실기기 단계는 archiveEvidence/deviceState를 별도 사용한다."
     },
     {
       "id": "neville-meditation",
@@ -1365,12 +1599,16 @@
       "recordedContract": "neville-meditation.html COURSES 30·60분, 시간별 단계·안내와 THETA_PRESETS 세 음악 세트, 웹 로그인 및 무료 기능 키 neville-meditation",
       "recordedStorage": "토스 로그인 후 회차별 현재 화면 진행. 주문·LLM 없음",
       "priorEvidence": "studio-neville-browser.mjs 360px 홈→mock 로그인→두 코스 일시정지·재개/곡 선택/단계 전환→완주. R2 스트림의 실기기 재생 미검증",
-      "reviewedModes": [],
-      "reviewState": "prior-evidence-to-reconcile",
+      "reviewedModes": [
+        "neville-meditation.html COURSES 30·60분, 시간별 단계·안내와 THETA_PRESETS 세 음악 세트, 웹 로그인 및 무료 기능 키 neville-meditation",
+        "토스 로그인 후 회차별 현재 화면 진행. 주문·LLM 없음"
+      ],
+      "reviewState": "prior-contract-evidence-reconciled",
       "codeGaps": [],
       "archiveEvidence": "일반 AIT에서 상위 화면 진입 확인. 하위 입력·결과·재열람의 검증 근거는 verification 참조. 휴대폰 미검증",
       "deviceState": "not-verified",
-      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도"
+      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도",
+      "reconciliationBasis": "기존 담당의 원본 연결·상품별 입력·저장 경계 및 아래 targeted/브라우저 증거를 현재 고정 110행과 대조했다. 새 전체 E2E 실행으로 간주하지 않는다. 실제 AIT와 실기기 단계는 archiveEvidence/deviceState를 별도 사용한다."
     },
     {
       "id": "new-year-ai",
@@ -1388,12 +1626,16 @@
       "recordedContract": "worker/toss/native-new-year.js + nativeNewYearContract",
       "recordedStorage": "owned Toss purchase and Toss-origin NewYearAiConsultation; approved SKU, durable checkout, policy and device verification pending",
       "priorEvidence": "expert-purchase-browser.mjs 7종 및 sukuyo-expert-browser.mjs 1종. 360px 일반 홈 → 상품별 입력·모의 결제와 생성 → 구매 기록·원문 재열람 → 다른 계정 URL 거절. expert-offers-browser.mjs 일반 판매 비활성",
-      "reviewedModes": [],
-      "reviewState": "prior-evidence-to-reconcile",
+      "reviewedModes": [
+        "worker/toss/native-new-year.js + nativeNewYearContract",
+        "owned Toss purchase and Toss-origin NewYearAiConsultation; approved SKU, durable checkout, policy and device verification pending"
+      ],
+      "reviewState": "prior-contract-evidence-reconciled",
       "codeGaps": [],
       "archiveEvidence": "8개 상품별 입력 폼과 신규 판매 닫힘 확인. 모의 구매·저장 원문 검사는 별도 verification 참조 · 360px 배포 AIT 브라우저, 토스 휴대폰 미검증",
       "deviceState": "not-verified",
-      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도"
+      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도",
+      "reconciliationBasis": "기존 담당의 원본 연결·상품별 입력·저장 경계 및 아래 targeted/브라우저 증거를 현재 고정 110행과 대조했다. 새 전체 E2E 실행으로 간주하지 않는다. 실제 AIT와 실기기 단계는 archiveEvidence/deviceState를 별도 사용한다."
     },
     {
       "id": "novel",
@@ -1433,12 +1675,16 @@
       "recordedContract": "게스트의 오늘 생일 신탁, 소유 프로필 원본 7행성·ASC, 상대의 생일과 선택 시각",
       "recordedStorage": "게스트 신탁은 현재 화면, 본인 프로필로 다시 계산. 상대 입력과 궁합은 화면 안에서 열람",
       "priorEvidence": "olympus-browser.mjs 360px 일반 홈 → mock 로그인·원본 8배치 → 상대 생일·케미 4종. olympus-placements.test.mjs 로컬 Swiss 압축 해제·웹 도수 및 대체엔진 차단. 상대편은 원본 간이 배치",
-      "reviewedModes": [],
-      "reviewState": "prior-evidence-to-reconcile",
+      "reviewedModes": [
+        "게스트의 오늘 생일 신탁, 소유 프로필 원본 7행성·ASC, 상대의 생일과 선택 시각",
+        "게스트 신탁은 현재 화면, 본인 프로필로 다시 계산. 상대 입력과 궁합은 화면 안에서 열람"
+      ],
+      "reviewState": "prior-contract-evidence-reconciled",
       "codeGaps": [],
       "archiveEvidence": "게스트 생일 입력으로 별자리 경계 2건과 오늘의 신탁·행동·행운 항목 확인 · 360px 배포 AIT 브라우저, 토스 휴대폰 미검증",
       "deviceState": "not-verified",
-      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도"
+      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도",
+      "reconciliationBasis": "기존 담당의 원본 연결·상품별 입력·저장 경계 및 아래 targeted/브라우저 증거를 현재 고정 110행과 대조했다. 새 전체 E2E 실행으로 간주하지 않는다. 실제 AIT와 실기기 단계는 archiveEvidence/deviceState를 별도 사용한다."
     },
     {
       "id": "omikuji",
@@ -1481,12 +1727,16 @@
       "recordedContract": "원본 카메라·좌/우 손 사진, 주사용 손과 판독 목적",
       "recordedStorage": "사진 없이 입력 해시와 준비한 판독을 보관. 결제한 토스 계정만 원문 열기",
       "priorEvidence": "360px palm-browser.mjs 합성 이미지로 모의 판독·구매·재진입·타 계정 차단. 네이티브 14건과 웹 390/1280px 복구 검사. 사진 촬영 성능은 실기기 필요",
-      "reviewedModes": [],
-      "reviewState": "prior-evidence-to-reconcile",
+      "reviewedModes": [
+        "원본 카메라·좌/우 손 사진, 주사용 손과 판독 목적",
+        "사진 없이 입력 해시와 준비한 판독을 보관. 결제한 토스 계정만 원문 열기"
+      ],
+      "reviewState": "prior-contract-evidence-reconciled",
       "codeGaps": [],
       "archiveEvidence": "일반 AIT에서 상위 화면 진입 확인. 하위 입력·결과·재열람의 검증 근거는 verification 참조. 휴대폰 미검증",
       "deviceState": "not-verified",
-      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도"
+      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도",
+      "reconciliationBasis": "기존 담당의 원본 연결·상품별 입력·저장 경계 및 아래 targeted/브라우저 증거를 현재 고정 110행과 대조했다. 새 전체 E2E 실행으로 간주하지 않는다. 실제 AIT와 실기기 단계는 archiveEvidence/deviceState를 별도 사용한다."
     },
     {
       "id": "past-life-face",
@@ -1503,12 +1753,16 @@
       "recordedContract": "원본 얼굴 한 장의 전생 및 두 얼굴의 전생 궁합",
       "recordedStorage": "게스트 현재 결과",
       "priorEvidence": "face-browser.mjs 로컬 이미지·얼굴 특징 fixture, 전생 비교 결과. 실기기 미검증",
-      "reviewedModes": [],
-      "reviewState": "prior-evidence-to-reconcile",
+      "reviewedModes": [
+        "원본 얼굴 한 장의 전생 및 두 얼굴의 전생 궁합",
+        "게스트 현재 결과"
+      ],
+      "reviewState": "prior-contract-evidence-reconciled",
       "codeGaps": [],
       "archiveEvidence": "합성 이미지 및 고정 랜드마크로 동물 관상과 전생 궁합 원본 결과 확인. 카메라 미검증 · 360px 배포 AIT 브라우저, 토스 휴대폰 미검증",
       "deviceState": "not-verified",
-      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도"
+      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도",
+      "reconciliationBasis": "기존 담당의 원본 연결·상품별 입력·저장 경계 및 아래 targeted/브라우저 증거를 현재 고정 110행과 대조했다. 새 전체 E2E 실행으로 간주하지 않는다. 실제 AIT와 실기기 단계는 archiveEvidence/deviceState를 별도 사용한다."
     },
     {
       "id": "personal-charm",
@@ -1526,12 +1780,16 @@
       "recordedContract": "출생 날짜·시각·달력·성별·국내 출생 도시",
       "recordedStorage": "현재 화면 메모리",
       "priorEvidence": "apps/toss/test/public-sections.test.mjs 원본 HTTP 응답 동등성 · public-sections-browser.mjs 360px 일반 홈에서 결과 열람. Worker 승격·실기기 미검증",
-      "reviewedModes": [],
-      "reviewState": "prior-evidence-to-reconcile",
+      "reviewedModes": [
+        "출생 날짜·시각·달력·성별·국내 출생 도시",
+        "현재 화면 메모리"
+      ],
+      "reviewState": "prior-contract-evidence-reconciled",
       "codeGaps": [],
       "archiveEvidence": "공개 사주·자미 11절 원본 계산, 사주 그림 13가지와 여행 기록 복원. 시크릿 하우스는 독립 검사 · 360px 배포 AIT 브라우저, 토스 휴대폰 미검증",
       "deviceState": "not-verified",
-      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도"
+      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도",
+      "reconciliationBasis": "기존 담당의 원본 연결·상품별 입력·저장 경계 및 아래 targeted/브라우저 증거를 현재 고정 110행과 대조했다. 새 전체 E2E 실행으로 간주하지 않는다. 실제 AIT와 실기기 단계는 archiveEvidence/deviceState를 별도 사용한다."
     },
     {
       "id": "pet-saju",
@@ -1547,12 +1805,16 @@
       "recordedContract": "worker/toss/pet-saju.js deterministic blueprint + worker/toss/pet-paid-contract.js paid inputs",
       "recordedStorage": "게스트·토스 계정별로 이 기기에 최근 다섯 마리 입력을 저장. 재실행 후 같은 입력으로 재계산. 삭제를 유지한다. 유료 원문은 worker/toss/native-pet-paid.js의 소유 주문과 intent",
       "priorEvidence": "local mock covers all 10 free species, paid report and compatibility checkout, intent resume, library ownership and recovery. Original screen displays 3000 KRW per paid feature while server registry specifies 5000 KRW; approved SKUs, device verification and official purchase recovery remain pending. pet-saju-ui.test.mjs: guest reopens saved animals after restart, other account sees its separate list, and deletion survives restart · guest-calculators-browser.mjs 360px 홈, 비회원 계산. 기본 베다 local Swiss 원본, 만세력 원본 대운·명식, 반려동물 원본 오행·유료 로그인 경계",
-      "reviewedModes": [],
-      "reviewState": "prior-evidence-to-reconcile",
+      "reviewedModes": [
+        "worker/toss/pet-saju.js deterministic blueprint + worker/toss/pet-paid-contract.js paid inputs",
+        "게스트·토스 계정별로 이 기기에 최근 다섯 마리 입력을 저장. 재실행 후 같은 입력으로 재계산. 삭제를 유지한다. 유료 원문은 worker/toss/native-pet-paid.js의 소유 주문과 intent"
+      ],
+      "reviewState": "prior-contract-evidence-reconciled",
       "codeGaps": [],
       "archiveEvidence": "게스트 수동 출생정보로 만세력·베다 원본 계산과 반려동물 오행 결과, 반려동물 심층 로그인 경계 · 360px 배포 AIT 브라우저, 토스 휴대폰 미검증",
       "deviceState": "not-verified",
-      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도"
+      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도",
+      "reconciliationBasis": "기존 담당의 원본 연결·상품별 입력·저장 경계 및 아래 targeted/브라우저 증거를 현재 고정 110행과 대조했다. 새 전체 E2E 실행으로 간주하지 않는다. 실제 AIT와 실기기 단계는 archiveEvidence/deviceState를 별도 사용한다."
     },
     {
       "id": "physiognomy",
@@ -1567,12 +1829,16 @@
       "recordedContract": "웹 SEO /physiognomy/의 openPhysiognomyApp. 오관·점 위치 입력과 해설",
       "recordedStorage": "현재 단말 게스트 판독",
       "priorEvidence": "face-browser.mjs 합성 이미지·오관·점·관상 궁합. 실사진 성능 미검증",
-      "reviewedModes": [],
-      "reviewState": "prior-evidence-to-reconcile",
+      "reviewedModes": [
+        "웹 SEO /physiognomy/의 openPhysiognomyApp. 오관·점 위치 입력과 해설",
+        "현재 단말 게스트 판독"
+      ],
+      "reviewState": "prior-contract-evidence-reconciled",
       "codeGaps": [],
       "archiveEvidence": "합성 이미지 및 고정 랜드마크로 동물 관상과 전생 궁합 원본 결과 확인. 카메라 미검증 · 360px 배포 AIT 브라우저, 토스 휴대폰 미검증",
       "deviceState": "not-verified",
-      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도"
+      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도",
+      "reconciliationBasis": "기존 담당의 원본 연결·상품별 입력·저장 경계 및 아래 targeted/브라우저 증거를 현재 고정 110행과 대조했다. 새 전체 E2E 실행으로 간주하지 않는다. 실제 AIT와 실기기 단계는 archiveEvidence/deviceState를 별도 사용한다."
     },
     {
       "id": "points",
@@ -1589,12 +1855,16 @@
       "recordedContract": "토스 내 정보 → 웹 이용 내역 → 기존 웹 계정 인증",
       "recordedStorage": "원래 웹 계정의 이용권·월정석·단건 주문 및 이용권 사용 이력. 토스 IAP와 별도",
       "priorEvidence": "web-history-browser.mjs: 360px 일반 홈에서 순수 웹 구매 내역 주소만 이동, 토스 토큰·주문·결제 전달 없음",
-      "reviewedModes": [],
-      "reviewState": "prior-evidence-to-reconcile",
+      "reviewedModes": [
+        "토스 내 정보 → 웹 이용 내역 → 기존 웹 계정 인증",
+        "원래 웹 계정의 이용권·월정석·단건 주문 및 이용권 사용 이력. 토스 IAP와 별도"
+      ],
+      "reviewState": "prior-contract-evidence-reconciled",
       "codeGaps": [],
       "archiveEvidence": "휴대폰 및 상품별 전체 흐름 미검증",
       "deviceState": "not-verified",
-      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도"
+      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도",
+      "reconciliationBasis": "기존 담당의 원본 연결·상품별 입력·저장 경계 및 아래 targeted/브라우저 증거를 현재 고정 110행과 대조했다. 새 전체 E2E 실행으로 간주하지 않는다. 실제 AIT와 실기기 단계는 archiveEvidence/deviceState를 별도 사용한다."
     },
     {
       "id": "psychotest",
@@ -1635,12 +1905,16 @@
       "recordedContract": "출생 날짜·시각·달력·성별·국내 출생 도시",
       "recordedStorage": "현재 화면 메모리",
       "priorEvidence": "apps/toss/test/public-sections.test.mjs 원본 HTTP 응답 동등성 · public-sections-browser.mjs 360px 일반 홈에서 결과 열람. Worker 승격·실기기 미검증",
-      "reviewedModes": [],
-      "reviewState": "prior-evidence-to-reconcile",
+      "reviewedModes": [
+        "출생 날짜·시각·달력·성별·국내 출생 도시",
+        "현재 화면 메모리"
+      ],
+      "reviewState": "prior-contract-evidence-reconciled",
       "codeGaps": [],
       "archiveEvidence": "공개 사주·자미 11절 원본 계산, 사주 그림 13가지와 여행 기록 복원. 시크릿 하우스는 독립 검사 · 360px 배포 AIT 브라우저, 토스 휴대폰 미검증",
       "deviceState": "not-verified",
-      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도"
+      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도",
+      "reconciliationBasis": "기존 담당의 원본 연결·상품별 입력·저장 경계 및 아래 targeted/브라우저 증거를 현재 고정 110행과 대조했다. 새 전체 E2E 실행으로 간주하지 않는다. 실제 AIT와 실기기 단계는 archiveEvidence/deviceState를 별도 사용한다."
     },
     {
       "id": "relationship-boundaries",
@@ -1658,12 +1932,16 @@
       "recordedContract": "출생 날짜·시각·달력·성별·국내 출생 도시",
       "recordedStorage": "현재 화면 메모리",
       "priorEvidence": "apps/toss/test/public-sections.test.mjs 원본 HTTP 응답 동등성 · public-sections-browser.mjs 360px 일반 홈에서 결과 열람. Worker 승격·실기기 미검증",
-      "reviewedModes": [],
-      "reviewState": "prior-evidence-to-reconcile",
+      "reviewedModes": [
+        "출생 날짜·시각·달력·성별·국내 출생 도시",
+        "현재 화면 메모리"
+      ],
+      "reviewState": "prior-contract-evidence-reconciled",
       "codeGaps": [],
       "archiveEvidence": "공개 사주·자미 11절 원본 계산, 사주 그림 13가지와 여행 기록 복원. 시크릿 하우스는 독립 검사 · 360px 배포 AIT 브라우저, 토스 휴대폰 미검증",
       "deviceState": "not-verified",
-      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도"
+      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도",
+      "reconciliationBasis": "기존 담당의 원본 연결·상품별 입력·저장 경계 및 아래 targeted/브라우저 증거를 현재 고정 110행과 대조했다. 새 전체 E2E 실행으로 간주하지 않는다. 실제 AIT와 실기기 단계는 archiveEvidence/deviceState를 별도 사용한다."
     },
     {
       "id": "relationship-boundary-test",
@@ -1701,12 +1979,16 @@
       "recordedContract": "royal-tea-oracle.html INTENTS 5개·buildCupMap·buildCertificateHtml. 게스트 기기 또는 소유자 기초시드와 KST 날짜",
       "recordedStorage": "게스트 공개, 같은 소유자·날짜·질문의 동일한 찻잔 감정서를 재계산. 현재 화면의 최근 기록 8개",
       "priorEvidence": "studio-royal-tea-browser.mjs 360px 홈에서 5분야와 3개 구역·8장, 재실행 같은 인장 확인. 실기기 미검증",
-      "reviewedModes": [],
-      "reviewState": "prior-evidence-to-reconcile",
+      "reviewedModes": [
+        "royal-tea-oracle.html INTENTS 5개·buildCupMap·buildCertificateHtml. 게스트 기기 또는 소유자 기초시드와 KST 날짜",
+        "게스트 공개, 같은 소유자·날짜·질문의 동일한 찻잔 감정서를 재계산. 현재 화면의 최근 기록 8개"
+      ],
+      "reviewState": "prior-contract-evidence-reconciled",
       "codeGaps": [],
       "archiveEvidence": "게스트 찻잎점 질문과 원본 결과 열람 · 360px 배포 AIT 브라우저, 토스 휴대폰 미검증",
       "deviceState": "not-verified",
-      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도"
+      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도",
+      "reconciliationBasis": "기존 담당의 원본 연결·상품별 입력·저장 경계 및 아래 targeted/브라우저 증거를 현재 고정 110행과 대조했다. 새 전체 E2E 실행으로 간주하지 않는다. 실제 AIT와 실기기 단계는 archiveEvidence/deviceState를 별도 사용한다."
     },
     {
       "id": "saju",
@@ -1726,18 +2008,15 @@
       "recordedStorage": "memory-only free basic chart; web result and device parity pending",
       "priorEvidence": "apps/toss/test/ basic-saju-flow.test.mjs · 개별 검사 범위. 실제 기기 미검증",
       "reviewedModes": [
-        "극T 원본 재사용",
-        "테토·에겐",
-        "사주네컷",
-        "도파민·집중력",
-        "퀀텀 로또",
-        "그림 프롬프트 13종"
+        "shared natal engine; Korean city, solar/lunar/leap and unknown hour",
+        "memory-only free basic chart; web result and device parity pending"
       ],
-      "reviewState": "prior-evidence-to-reconcile",
+      "reviewState": "prior-contract-evidence-reconciled",
       "codeGaps": [],
       "archiveEvidence": "공개 사주·자미 11절 원본 계산, 사주 그림 13가지와 여행 기록 복원. 시크릿 하우스는 독립 검사 · 360px 기본 사주 출생 입력 후 극T·테토/에겐·네컷·도파민·로또·그림 프롬프트 13종 중 주제 선택 및 원본 결과 · 360px 배포 AIT 브라우저, 토스 휴대폰 미검증",
       "deviceState": "not-verified",
-      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도"
+      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도",
+      "reconciliationBasis": "기존 담당의 원본 연결·상품별 입력·저장 경계 및 아래 targeted/브라우저 증거를 현재 고정 110행과 대조했다. 새 전체 E2E 실행으로 간주하지 않는다. 실제 AIT와 실기기 단계는 archiveEvidence/deviceState를 별도 사용한다."
     },
     {
       "id": "saju-compatibility",
@@ -1758,12 +2037,16 @@
       "recordedContract": "두 출생정보·시간 미상·달력·상대 호칭·연인/친구/사업. 웹 정본 명식과 analyzeCompat·analyzePastLifeCompat facts",
       "recordedStorage": "토스 계정·주문별 paidNarrative 불변 원문. 꿀꿀운세 구매 기록에서 생성 재개와 원문 재열람",
       "priorEvidence": "saju-compat-browser.mjs 360px 홈, mock 로그인·입력 복원·1주문·생성 도중 이탈·원문·타 계정 거절. native-saju-compat.test.mjs, 웹 정본 전달 34건",
-      "reviewedModes": [],
-      "reviewState": "prior-evidence-to-reconcile",
+      "reviewedModes": [
+        "두 출생정보·시간 미상·달력·상대 호칭·연인/친구/사업. 웹 정본 명식과 analyzeCompat·analyzePastLifeCompat facts",
+        "토스 계정·주문별 paidNarrative 불변 원문. 꿀꿀운세 구매 기록에서 생성 재개와 원문 재열람"
+      ],
+      "reviewState": "prior-contract-evidence-reconciled",
       "codeGaps": [],
       "archiveEvidence": "휴대폰 및 상품별 전체 흐름 미검증",
       "deviceState": "not-verified",
-      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도"
+      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도",
+      "reconciliationBasis": "기존 담당의 원본 연결·상품별 입력·저장 경계 및 아래 targeted/브라우저 증거를 현재 고정 110행과 대조했다. 새 전체 E2E 실행으로 간주하지 않는다. 실제 AIT와 실기기 단계는 archiveEvidence/deviceState를 별도 사용한다."
     },
     {
       "id": "saju-fpti",
@@ -1783,12 +2066,16 @@
       "recordedContract": "기본은 직접 입력 또는 저장 프로필, 무료 심층은 로그인한 소유 프로필 및 출생정보 일치. lib/fpti/fpti-adapter.ts, worker/lib/fpti-free-access.js",
       "recordedStorage": "기본은 같은 탭·같은 계정 재열람. 무료 심층은 웹과 같이 자동 보관 없이 동일 프로필로 7장 재계산. 기존 구매 원문은 구매한 웹 계정의 보관함에서 열람",
       "priorEvidence": "apps/toss/test/fpti-deep-browser.mjs 360px 일반 홈 → 게스트 기본 → 모의 로그인 → 소유 프로필 → 무료 심층 7장 → 재진입. fpti-free-route 및 fpti-free-report.behavior가 타인 프로필, 변경 출생값, 기존 구매·환불·복구 검증. 토스 실기기 PDF·운영 Worker 승격 미검증",
-      "reviewedModes": [],
-      "reviewState": "prior-evidence-to-reconcile",
+      "reviewedModes": [
+        "기본은 직접 입력 또는 저장 프로필, 무료 심층은 로그인한 소유 프로필 및 출생정보 일치. lib/fpti/fpti-adapter.ts, worker/lib/fpti-free-access.js",
+        "기본은 같은 탭·같은 계정 재열람. 무료 심층은 웹과 같이 자동 보관 없이 동일 프로필로 7장 재계산. 기존 구매 원문은 구매한 웹 계정의 보관함에서 열람"
+      ],
+      "reviewState": "prior-contract-evidence-reconciled",
       "codeGaps": [],
       "archiveEvidence": "일반 AIT에서 상위 화면 진입 확인. 하위 입력·결과·재열람의 검증 근거는 verification 참조. 휴대폰 미검증",
       "deviceState": "not-verified",
-      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도"
+      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도",
+      "reconciliationBasis": "기존 담당의 원본 연결·상품별 입력·저장 경계 및 아래 targeted/브라우저 증거를 현재 고정 110행과 대조했다. 새 전체 E2E 실행으로 간주하지 않는다. 실제 AIT와 실기기 단계는 archiveEvidence/deviceState를 별도 사용한다."
     },
     {
       "id": "saju-guardian",
@@ -1807,12 +2094,16 @@
       "recordedContract": "계정에 저장한 프로필의 birthKey, calendar·시각 미상. 원본 calculateNatalSaju 네 기둥",
       "recordedStorage": "계정·환경·출생정보·상품별 주문 및 저장 원본, 환불 재검사. 콘솔 SKU 미확인",
       "priorEvidence": "birth-readings.test.mjs 검증. birth-readings-browser.mjs 360px 일반 홈, mock 주문 후 프롬프트, 타 계정 거절",
-      "reviewedModes": [],
-      "reviewState": "prior-evidence-to-reconcile",
+      "reviewedModes": [
+        "계정에 저장한 프로필의 birthKey, calendar·시각 미상. 원본 calculateNatalSaju 네 기둥",
+        "계정·환경·출생정보·상품별 주문 및 저장 원본, 환불 재검사. 콘솔 SKU 미확인"
+      ],
+      "reviewState": "prior-contract-evidence-reconciled",
       "codeGaps": [],
       "archiveEvidence": "휴대폰 및 상품별 전체 흐름 미검증",
       "deviceState": "not-verified",
-      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도"
+      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도",
+      "reconciliationBasis": "기존 담당의 원본 연결·상품별 입력·저장 경계 및 아래 targeted/브라우저 증거를 현재 고정 110행과 대조했다. 새 전체 E2E 실행으로 간주하지 않는다. 실제 AIT와 실기기 단계는 archiveEvidence/deviceState를 별도 사용한다."
     },
     {
       "id": "saju-image-prompts",
@@ -1827,12 +2118,16 @@
       "recordedContract": "일간 오행에 따른 그림 13종 및 10개 하위 분류",
       "recordedStorage": "무료 원본을 현재 화면에 표시",
       "priorEvidence": "일반 홈 360px public-readings-browser.mjs / public-sections-browser.mjs. 네이티브 공유·클립보드 실기기 확인 필요",
-      "reviewedModes": [],
-      "reviewState": "prior-evidence-to-reconcile",
+      "reviewedModes": [
+        "일간 오행에 따른 그림 13종 및 10개 하위 분류",
+        "무료 원본을 현재 화면에 표시"
+      ],
+      "reviewState": "prior-contract-evidence-reconciled",
       "codeGaps": [],
       "archiveEvidence": "공개 사주·자미 11절 원본 계산, 사주 그림 13가지와 여행 기록 복원. 시크릿 하우스는 독립 검사 · 360px 기본 사주 출생 입력 후 극T·테토/에겐·네컷·도파민·로또·그림 프롬프트 13종 중 주제 선택 및 원본 결과 · 360px 배포 AIT 브라우저, 토스 휴대폰 미검증",
       "deviceState": "not-verified",
-      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도"
+      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도",
+      "reconciliationBasis": "기존 담당의 원본 연결·상품별 입력·저장 경계 및 아래 targeted/브라우저 증거를 현재 고정 110행과 대조했다. 새 전체 E2E 실행으로 간주하지 않는다. 실제 AIT와 실기기 단계는 archiveEvidence/deviceState를 별도 사용한다."
     },
     {
       "id": "saju-sibyl",
@@ -1847,12 +2142,16 @@
       "recordedContract": "양력·음력·윤달 출생 정보와 한국 시간 기준 현재부터 10개 연도",
       "recordedStorage": "무료 연간 대비는 다시 계산. 심층은 출생정보·계정별 1회 해금 후 연도별 원본 10장·월별 흐름 저장. 콘솔 SKU 미확인",
       "priorEvidence": "sibyl-public-browser 및 birth-readings-browser 360px, 원본 HTTP 일치. mock 2개 연도, 중간 종료·재개·타 계정 거절. sibyl-report-store-v2 원본 LLM mock 검증",
-      "reviewedModes": [],
-      "reviewState": "prior-evidence-to-reconcile",
+      "reviewedModes": [
+        "양력·음력·윤달 출생 정보와 한국 시간 기준 현재부터 10개 연도",
+        "무료 연간 대비는 다시 계산. 심층은 출생정보·계정별 1회 해금 후 연도별 원본 10장·월별 흐름 저장. 콘솔 SKU 미확인"
+      ],
+      "reviewState": "prior-contract-evidence-reconciled",
       "codeGaps": [],
       "archiveEvidence": "게스트 출생정보의 연간 대비·행동을 계산하고 두 연도 전환 · 360px 배포 AIT 브라우저, 토스 휴대폰 미검증",
       "deviceState": "not-verified",
-      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도"
+      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도",
+      "reconciliationBasis": "기존 담당의 원본 연결·상품별 입력·저장 경계 및 아래 targeted/브라우저 증거를 현재 고정 110행과 대조했다. 새 전체 E2E 실행으로 간주하지 않는다. 실제 AIT와 실기기 단계는 archiveEvidence/deviceState를 별도 사용한다."
     },
     {
       "id": "secret-house",
@@ -1896,12 +2195,16 @@
       "recordedContract": "StonehengeRune의 네 가지 무료 펼침",
       "recordedStorage": "현재 화면의 원본 룬 결과·질문 프롬프트와 토스 공유. 네 배열 모두 무료",
       "priorEvidence": "350768ae1, 73b5f45f4. 실기기 미검증",
-      "reviewedModes": [],
-      "reviewState": "prior-evidence-to-reconcile",
+      "reviewedModes": [
+        "StonehengeRune의 네 가지 무료 펼침",
+        "현재 화면의 원본 룬 결과·질문 프롬프트와 토스 공유. 네 배열 모두 무료"
+      ],
+      "reviewState": "prior-contract-evidence-reconciled",
       "codeGaps": [],
       "archiveEvidence": "게스트로 원본 질문·뽑기·해석과 다시 뽑기 확인 · 360px 배포 AIT 브라우저, 토스 휴대폰 미검증",
       "deviceState": "not-verified",
-      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도"
+      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도",
+      "reconciliationBasis": "기존 담당의 원본 연결·상품별 입력·저장 경계 및 아래 targeted/브라우저 증거를 현재 고정 110행과 대조했다. 새 전체 E2E 실행으로 간주하지 않는다. 실제 AIT와 실기기 단계는 archiveEvidence/deviceState를 별도 사용한다."
     },
     {
       "id": "sukuyo",
@@ -1947,12 +2250,16 @@
       "recordedContract": "worker/toss/native-sukuyo.js + nativeSukuyoContract",
       "recordedStorage": "owner-scoped Toss intent and Toss-origin SukuyoCompatibilityAiConsultation; verified saved-input selection or explicit new input for unassigned orders; bounded explicit retry after authorized generation failure",
       "priorEvidence": "expert-purchase-browser.mjs 7종 및 sukuyo-expert-browser.mjs 1종. 360px 일반 홈 → 상품별 입력·모의 결제와 생성 → 구매 기록·원문 재열람 → 다른 계정 URL 거절. expert-offers-browser.mjs 일반 판매 비활성",
-      "reviewedModes": [],
-      "reviewState": "prior-evidence-to-reconcile",
+      "reviewedModes": [
+        "worker/toss/native-sukuyo.js + nativeSukuyoContract",
+        "owner-scoped Toss intent and Toss-origin SukuyoCompatibilityAiConsultation; verified saved-input selection or explicit new input for unassigned orders; bounded explicit retry after authorized generation failure"
+      ],
+      "reviewState": "prior-contract-evidence-reconciled",
       "codeGaps": [],
       "archiveEvidence": "8개 상품별 입력 폼과 신규 판매 닫힘 확인. 모의 구매·저장 원문 검사는 별도 verification 참조 · 360px 배포 AIT 브라우저, 토스 휴대폰 미검증",
       "deviceState": "not-verified",
-      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도"
+      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도",
+      "reconciliationBasis": "기존 담당의 원본 연결·상품별 입력·저장 경계 및 아래 targeted/브라우저 증거를 현재 고정 110행과 대조했다. 새 전체 E2E 실행으로 간주하지 않는다. 실제 AIT와 실기기 단계는 archiveEvidence/deviceState를 별도 사용한다."
     },
     {
       "id": "tarot",
@@ -1969,12 +2276,16 @@
       "recordedContract": "lib/tarot/toss-library-flows.mjs",
       "recordedStorage": "local-reading-not-server-stored",
       "priorEvidence": "core-tarot-browser.mjs 360px 일반 홈에서 오늘 1장, 태양 회복 4장, 자기 기준 5장. local-tarot-parity.test.mjs 원문 352조합 및 156개 카드 대조",
-      "reviewedModes": [],
-      "reviewState": "prior-evidence-to-reconcile",
+      "reviewedModes": [
+        "lib/tarot/toss-library-flows.mjs",
+        "local-reading-not-server-stored"
+      ],
+      "reviewState": "prior-contract-evidence-reconciled",
       "codeGaps": [],
       "archiveEvidence": "타로 원본 1·4·5장 입력과 결과, 프롬프트·다시 뽑기, 결제 0건 · 360px 배포 AIT 브라우저, 토스 휴대폰 미검증",
       "deviceState": "not-verified",
-      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도"
+      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도",
+      "reconciliationBasis": "기존 담당의 원본 연결·상품별 입력·저장 경계 및 아래 targeted/브라우저 증거를 현재 고정 110행과 대조했다. 새 전체 E2E 실행으로 간주하지 않는다. 실제 AIT와 실기기 단계는 archiveEvidence/deviceState를 별도 사용한다."
     },
     {
       "id": "tarot-celestial-harmony",
@@ -1992,12 +2303,16 @@
       "recordedContract": "lib/tarot/toss-library-flows.mjs",
       "recordedStorage": "owned-TossPurchase-to-PaidExecutionRecord",
       "priorEvidence": "원본 공급자 mock 단위 194개. 오라클은 360px 77개 배열 중 12장 → 고유 등급 SKU → 이탈·원문 재열람 → 타 계정 차단. 천체 메이저 11장과 황금 통합 카드 별도 검사",
-      "reviewedModes": [],
-      "reviewState": "prior-evidence-to-reconcile",
+      "reviewedModes": [
+        "lib/tarot/toss-library-flows.mjs",
+        "owned-TossPurchase-to-PaidExecutionRecord"
+      ],
+      "reviewState": "prior-contract-evidence-reconciled",
       "codeGaps": [],
       "archiveEvidence": "일반 AIT에서 상위 화면 진입 확인. 하위 입력·결과·재열람의 검증 근거는 verification 참조. 휴대폰 미검증",
       "deviceState": "not-verified",
-      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도"
+      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도",
+      "reconciliationBasis": "기존 담당의 원본 연결·상품별 입력·저장 경계 및 아래 targeted/브라우저 증거를 현재 고정 110행과 대조했다. 새 전체 E2E 실행으로 간주하지 않는다. 실제 AIT와 실기기 단계는 archiveEvidence/deviceState를 별도 사용한다."
     },
     {
       "id": "tarot-crystal-soul",
@@ -2014,12 +2329,16 @@
       "recordedContract": "lib/tarot/toss-library-flows.mjs",
       "recordedStorage": "canonical-free-calculation; previously paid orders retain stored result",
       "priorEvidence": "Linux AIT c3a960736 · 43460223398 · 360px 일반 홈에서 게스트 입력과 원본 결과 확인. private-bundle-public-readings.mjs tarot olympus; 네이티브 공유는 기기 미검증",
-      "reviewedModes": [],
-      "reviewState": "prior-evidence-to-reconcile",
+      "reviewedModes": [
+        "lib/tarot/toss-library-flows.mjs",
+        "canonical-free-calculation; previously paid orders retain stored result"
+      ],
+      "reviewState": "prior-contract-evidence-reconciled",
       "codeGaps": [],
       "archiveEvidence": "게스트로 원본 질문·뽑기·해석과 다시 뽑기 확인 · 360px 배포 AIT 브라우저, 토스 휴대폰 미검증",
       "deviceState": "not-verified",
-      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도"
+      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도",
+      "reconciliationBasis": "기존 담당의 원본 연결·상품별 입력·저장 경계 및 아래 targeted/브라우저 증거를 현재 고정 110행과 대조했다. 새 전체 E2E 실행으로 간주하지 않는다. 실제 AIT와 실기기 단계는 archiveEvidence/deviceState를 별도 사용한다."
     },
     {
       "id": "tarot-healing",
@@ -2035,12 +2354,16 @@
       "recordedContract": "lib/tarot/toss-library-flows.mjs",
       "recordedStorage": "local-reading-not-server-stored",
       "priorEvidence": "core-tarot-browser.mjs 360px 일반 홈에서 오늘 1장, 태양 회복 4장, 자기 기준 5장. local-tarot-parity.test.mjs 원문 352조합 및 156개 카드 대조",
-      "reviewedModes": [],
-      "reviewState": "prior-evidence-to-reconcile",
+      "reviewedModes": [
+        "lib/tarot/toss-library-flows.mjs",
+        "local-reading-not-server-stored"
+      ],
+      "reviewState": "prior-contract-evidence-reconciled",
       "codeGaps": [],
       "archiveEvidence": "타로 원본 1·4·5장 입력과 결과, 프롬프트·다시 뽑기, 결제 0건 · 360px 배포 AIT 브라우저, 토스 휴대폰 미검증",
       "deviceState": "not-verified",
-      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도"
+      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도",
+      "reconciliationBasis": "기존 담당의 원본 연결·상품별 입력·저장 경계 및 아래 targeted/브라우저 증거를 현재 고정 110행과 대조했다. 새 전체 E2E 실행으로 간주하지 않는다. 실제 AIT와 실기기 단계는 archiveEvidence/deviceState를 별도 사용한다."
     },
     {
       "id": "tarot-ijik",
@@ -2057,12 +2380,16 @@
       "recordedContract": "lib/tarot/toss-library-flows.mjs",
       "recordedStorage": "canonical-free-calculation; previously paid orders retain stored result",
       "priorEvidence": "Linux AIT c3a960736 · 43460223398 · 360px 일반 홈에서 게스트 입력과 원본 결과 확인. private-bundle-public-readings.mjs tarot olympus; 네이티브 공유는 기기 미검증",
-      "reviewedModes": [],
-      "reviewState": "prior-evidence-to-reconcile",
+      "reviewedModes": [
+        "lib/tarot/toss-library-flows.mjs",
+        "canonical-free-calculation; previously paid orders retain stored result"
+      ],
+      "reviewState": "prior-contract-evidence-reconciled",
       "codeGaps": [],
       "archiveEvidence": "게스트로 원본 질문·뽑기·해석과 다시 뽑기 확인 · 360px 배포 AIT 브라우저, 토스 휴대폰 미검증",
       "deviceState": "not-verified",
-      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도"
+      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도",
+      "reconciliationBasis": "기존 담당의 원본 연결·상품별 입력·저장 경계 및 아래 targeted/브라우저 증거를 현재 고정 110행과 대조했다. 새 전체 E2E 실행으로 간주하지 않는다. 실제 AIT와 실기기 단계는 archiveEvidence/deviceState를 별도 사용한다."
     },
     {
       "id": "tarot-love-relationship",
@@ -2081,12 +2408,16 @@
       "recordedContract": "lib/tarot/toss-library-flows.mjs",
       "recordedStorage": "owned-TossPurchase-to-PaidExecutionRecord",
       "priorEvidence": "원본 공급자 mock 단위 194개. 오라클은 360px 77개 배열 중 12장 → 고유 등급 SKU → 이탈·원문 재열람 → 타 계정 차단. 천체 메이저 11장과 황금 통합 카드 별도 검사",
-      "reviewedModes": [],
-      "reviewState": "prior-evidence-to-reconcile",
+      "reviewedModes": [
+        "lib/tarot/toss-library-flows.mjs",
+        "owned-TossPurchase-to-PaidExecutionRecord"
+      ],
+      "reviewState": "prior-contract-evidence-reconciled",
       "codeGaps": [],
       "archiveEvidence": "일반 AIT에서 상위 화면 진입 확인. 하위 입력·결과·재열람의 검증 근거는 verification 참조. 휴대폰 미검증",
       "deviceState": "not-verified",
-      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도"
+      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도",
+      "reconciliationBasis": "기존 담당의 원본 연결·상품별 입력·저장 경계 및 아래 targeted/브라우저 증거를 현재 고정 110행과 대조했다. 새 전체 E2E 실행으로 간주하지 않는다. 실제 AIT와 실기기 단계는 archiveEvidence/deviceState를 별도 사용한다."
     },
     {
       "id": "tarot-mindscan",
@@ -2104,12 +2435,16 @@
       "recordedContract": "lib/tarot/toss-library-flows.mjs",
       "recordedStorage": "owned-TossPurchase-to-PaidExecutionRecord",
       "priorEvidence": "원본 공급자 mock 단위 194개. 오라클은 360px 77개 배열 중 12장 → 고유 등급 SKU → 이탈·원문 재열람 → 타 계정 차단. 천체 메이저 11장과 황금 통합 카드 별도 검사",
-      "reviewedModes": [],
-      "reviewState": "prior-evidence-to-reconcile",
+      "reviewedModes": [
+        "lib/tarot/toss-library-flows.mjs",
+        "owned-TossPurchase-to-PaidExecutionRecord"
+      ],
+      "reviewState": "prior-contract-evidence-reconciled",
       "codeGaps": [],
       "archiveEvidence": "일반 AIT에서 상위 화면 진입 확인. 하위 입력·결과·재열람의 검증 근거는 verification 참조. 휴대폰 미검증",
       "deviceState": "not-verified",
-      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도"
+      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도",
+      "reconciliationBasis": "기존 담당의 원본 연결·상품별 입력·저장 경계 및 아래 targeted/브라우저 증거를 현재 고정 110행과 대조했다. 새 전체 E2E 실행으로 간주하지 않는다. 실제 AIT와 실기기 단계는 archiveEvidence/deviceState를 별도 사용한다."
     },
     {
       "id": "tarot-numerology",
@@ -2124,12 +2459,16 @@
       "recordedContract": "lib/tarot/toss-library-flows.mjs",
       "recordedStorage": "canonical-free-calculation; previously paid orders retain stored result",
       "priorEvidence": "Linux AIT c3a960736 · 43460223398 · 360px 일반 홈에서 게스트 입력과 원본 결과 확인. private-bundle-public-readings.mjs tarot olympus; 네이티브 공유는 기기 미검증",
-      "reviewedModes": [],
-      "reviewState": "prior-evidence-to-reconcile",
+      "reviewedModes": [
+        "lib/tarot/toss-library-flows.mjs",
+        "canonical-free-calculation; previously paid orders retain stored result"
+      ],
+      "reviewState": "prior-contract-evidence-reconciled",
       "codeGaps": [],
       "archiveEvidence": "게스트로 원본 질문·뽑기·해석과 다시 뽑기 확인 · 360px 배포 AIT 브라우저, 토스 휴대폰 미검증",
       "deviceState": "not-verified",
-      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도"
+      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도",
+      "reconciliationBasis": "기존 담당의 원본 연결·상품별 입력·저장 경계 및 아래 targeted/브라우저 증거를 현재 고정 110행과 대조했다. 새 전체 E2E 실행으로 간주하지 않는다. 실제 AIT와 실기기 단계는 archiveEvidence/deviceState를 별도 사용한다."
     },
     {
       "id": "tarot-prompt-maker",
@@ -2146,12 +2485,16 @@
       "recordedContract": "lib/tarot/toss-library-flows.mjs",
       "recordedStorage": "owned-TossPurchase-to-PaidExecutionRecord",
       "priorEvidence": "원본 공급자 mock 단위 194개. 오라클은 360px 77개 배열 중 12장 → 고유 등급 SKU → 이탈·원문 재열람 → 타 계정 차단. 천체 메이저 11장과 황금 통합 카드 별도 검사",
-      "reviewedModes": [],
-      "reviewState": "prior-evidence-to-reconcile",
+      "reviewedModes": [
+        "lib/tarot/toss-library-flows.mjs",
+        "owned-TossPurchase-to-PaidExecutionRecord"
+      ],
+      "reviewState": "prior-contract-evidence-reconciled",
       "codeGaps": [],
       "archiveEvidence": "일반 AIT에서 상위 화면 진입 확인. 하위 입력·결과·재열람의 검증 근거는 verification 참조. 휴대폰 미검증",
       "deviceState": "not-verified",
-      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도"
+      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도",
+      "reconciliationBasis": "기존 담당의 원본 연결·상품별 입력·저장 경계 및 아래 targeted/브라우저 증거를 현재 고정 110행과 대조했다. 새 전체 E2E 실행으로 간주하지 않는다. 실제 AIT와 실기기 단계는 archiveEvidence/deviceState를 별도 사용한다."
     },
     {
       "id": "tarot-reunion",
@@ -2171,12 +2514,16 @@
       "recordedContract": "lib/tarot/toss-library-flows.mjs",
       "recordedStorage": "canonical-free-calculation; previously paid orders retain stored result",
       "priorEvidence": "Linux AIT c3a960736 · 43460223398 · 360px 일반 홈에서 게스트 입력과 원본 결과 확인. private-bundle-public-readings.mjs tarot olympus; 네이티브 공유는 기기 미검증",
-      "reviewedModes": [],
-      "reviewState": "prior-evidence-to-reconcile",
+      "reviewedModes": [
+        "lib/tarot/toss-library-flows.mjs",
+        "canonical-free-calculation; previously paid orders retain stored result"
+      ],
+      "reviewState": "prior-contract-evidence-reconciled",
       "codeGaps": [],
       "archiveEvidence": "게스트로 원본 질문·뽑기·해석과 다시 뽑기 확인 · 360px 배포 AIT 브라우저, 토스 휴대폰 미검증",
       "deviceState": "not-verified",
-      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도"
+      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도",
+      "reconciliationBasis": "기존 담당의 원본 연결·상품별 입력·저장 경계 및 아래 targeted/브라우저 증거를 현재 고정 110행과 대조했다. 새 전체 E2E 실행으로 간주하지 않는다. 실제 AIT와 실기기 단계는 archiveEvidence/deviceState를 별도 사용한다."
     },
     {
       "id": "tarot-self-esteem",
@@ -2192,12 +2539,16 @@
       "recordedContract": "lib/tarot/toss-library-flows.mjs",
       "recordedStorage": "local-reading-not-server-stored",
       "priorEvidence": "core-tarot-browser.mjs 360px 일반 홈에서 오늘 1장, 태양 회복 4장, 자기 기준 5장. local-tarot-parity.test.mjs 원문 352조합 및 156개 카드 대조",
-      "reviewedModes": [],
-      "reviewState": "prior-evidence-to-reconcile",
+      "reviewedModes": [
+        "lib/tarot/toss-library-flows.mjs",
+        "local-reading-not-server-stored"
+      ],
+      "reviewState": "prior-contract-evidence-reconciled",
       "codeGaps": [],
       "archiveEvidence": "타로 원본 1·4·5장 입력과 결과, 프롬프트·다시 뽑기, 결제 0건 · 360px 배포 AIT 브라우저, 토스 휴대폰 미검증",
       "deviceState": "not-verified",
-      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도"
+      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도",
+      "reconciliationBasis": "기존 담당의 원본 연결·상품별 입력·저장 경계 및 아래 targeted/브라우저 증거를 현재 고정 110행과 대조했다. 새 전체 E2E 실행으로 간주하지 않는다. 실제 AIT와 실기기 단계는 archiveEvidence/deviceState를 별도 사용한다."
     },
     {
       "id": "tarot-year-fortune",
@@ -2214,12 +2565,16 @@
       "recordedContract": "lib/tarot/toss-library-flows.mjs",
       "recordedStorage": "canonical-free-calculation; previously paid orders retain stored result",
       "priorEvidence": "Linux AIT c3a960736 · 43460223398 · 360px 일반 홈에서 게스트 입력과 원본 결과 확인. private-bundle-public-readings.mjs tarot olympus; 네이티브 공유는 기기 미검증",
-      "reviewedModes": [],
-      "reviewState": "prior-evidence-to-reconcile",
+      "reviewedModes": [
+        "lib/tarot/toss-library-flows.mjs",
+        "canonical-free-calculation; previously paid orders retain stored result"
+      ],
+      "reviewState": "prior-contract-evidence-reconciled",
       "codeGaps": [],
       "archiveEvidence": "게스트로 원본 질문·뽑기·해석과 다시 뽑기 확인 · 360px 배포 AIT 브라우저, 토스 휴대폰 미검증",
       "deviceState": "not-verified",
-      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도"
+      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도",
+      "reconciliationBasis": "기존 담당의 원본 연결·상품별 입력·저장 경계 및 아래 targeted/브라우저 증거를 현재 고정 110행과 대조했다. 새 전체 E2E 실행으로 간주하지 않는다. 실제 AIT와 실기기 단계는 archiveEvidence/deviceState를 별도 사용한다."
     },
     {
       "id": "tin-oracle",
@@ -2235,12 +2590,16 @@
       "recordedContract": "원본 20형상·세 주머니·핀란드어·행운수",
       "recordedStorage": "무료 원본을 현재 화면에 표시",
       "priorEvidence": "일반 홈 360px public-readings-browser.mjs / public-sections-browser.mjs. 네이티브 공유·클립보드 실기기 확인 필요",
-      "reviewedModes": [],
-      "reviewState": "prior-evidence-to-reconcile",
+      "reviewedModes": [
+        "원본 20형상·세 주머니·핀란드어·행운수",
+        "무료 원본을 현재 화면에 표시"
+      ],
+      "reviewState": "prior-contract-evidence-reconciled",
       "codeGaps": [],
       "archiveEvidence": "게스트로 원본 질문·뽑기·해석과 다시 뽑기 확인 · 360px 배포 AIT 브라우저, 토스 휴대폰 미검증",
       "deviceState": "not-verified",
-      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도"
+      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도",
+      "reconciliationBasis": "기존 담당의 원본 연결·상품별 입력·저장 경계 및 아래 targeted/브라우저 증거를 현재 고정 110행과 대조했다. 새 전체 E2E 실행으로 간주하지 않는다. 실제 AIT와 실기기 단계는 archiveEvidence/deviceState를 별도 사용한다."
     },
     {
       "id": "today-hub",
@@ -2255,12 +2614,16 @@
       "recordedContract": "24개 별자리·띠와 오늘·내일·이번 주·이번 달 선택. 원본 loadWeekRange·loadMonthRange·computeSignScore·getPeriodReading. 오늘·내일 네 체계는 날짜 또는 소유 프로필 선택",
       "recordedStorage": "별자리·띠 공개. 원본 오늘의 세 장은 로그인 후 계정별 기기 저장·재열람",
       "priorEvidence": "360px apps/toss/test/studio-today-browser.mjs: 공개 주간·월간→mock 로그인→소유 프로필 네 체계→세 장→재시작. worker/toss/today-hub.js → worker/routes/fortune-today.js 정본. __tests__/worker/toss-today-hub.test.js 소유 검증. 실기기와 운영 계산의 연결은 미검증",
-      "reviewedModes": [],
-      "reviewState": "prior-evidence-to-reconcile",
+      "reviewedModes": [
+        "24개 별자리·띠와 오늘·내일·이번 주·이번 달 선택. 원본 loadWeekRange·loadMonthRange·computeSignScore·getPeriodReading. 오늘·내일 네 체계는 날짜 또는 소유 프로필 선택",
+        "별자리·띠 공개. 원본 오늘의 세 장은 로그인 후 계정별 기기 저장·재열람"
+      ],
+      "reviewState": "prior-contract-evidence-reconciled",
       "codeGaps": [],
       "archiveEvidence": "일반 AIT에서 상위 화면 진입 확인. 하위 입력·결과·재열람의 검증 근거는 verification 참조. 휴대폰 미검증",
       "deviceState": "not-verified",
-      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도"
+      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도",
+      "reconciliationBasis": "기존 담당의 원본 연결·상품별 입력·저장 경계 및 아래 targeted/브라우저 증거를 현재 고정 110행과 대조했다. 새 전체 E2E 실행으로 간주하지 않는다. 실제 AIT와 실기기 단계는 archiveEvidence/deviceState를 별도 사용한다."
     },
     {
       "id": "vedic",
@@ -2320,12 +2683,16 @@
       "recordedContract": "worker/toss/native-vedic.js + nativeVedicContract",
       "recordedStorage": "owned Toss purchase and Toss-origin VedicAiConsultation; approved SKU, durable checkout, policy and device verification pending",
       "priorEvidence": "expert-purchase-browser.mjs 7종 및 sukuyo-expert-browser.mjs 1종. 360px 일반 홈 → 상품별 입력·모의 결제와 생성 → 구매 기록·원문 재열람 → 다른 계정 URL 거절. expert-offers-browser.mjs 일반 판매 비활성",
-      "reviewedModes": [],
-      "reviewState": "prior-evidence-to-reconcile",
+      "reviewedModes": [
+        "worker/toss/native-vedic.js + nativeVedicContract",
+        "owned Toss purchase and Toss-origin VedicAiConsultation; approved SKU, durable checkout, policy and device verification pending"
+      ],
+      "reviewState": "prior-contract-evidence-reconciled",
       "codeGaps": [],
       "archiveEvidence": "8개 상품별 입력 폼과 신규 판매 닫힘 확인. 모의 구매·저장 원문 검사는 별도 verification 참조 · 360px 배포 AIT 브라우저, 토스 휴대폰 미검증",
       "deviceState": "not-verified",
-      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도"
+      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도",
+      "reconciliationBasis": "기존 담당의 원본 연결·상품별 입력·저장 경계 및 아래 targeted/브라우저 증거를 현재 고정 110행과 대조했다. 새 전체 E2E 실행으로 간주하지 않는다. 실제 AIT와 실기기 단계는 archiveEvidence/deviceState를 별도 사용한다."
     },
     {
       "id": "yeongnyangi",
@@ -2340,12 +2707,16 @@
       "recordedContract": "worker/toss/routes.js",
       "recordedStorage": "owner-bound TossPurchase and YeongnyangiRequest; /yeongnyangi/library/",
       "priorEvidence": "apps/toss/test/ studio-browser.mjs · private-bundle-owner-browser.mjs · 개별 검사 범위. 실제 기기 미검증",
-      "reviewedModes": [],
-      "reviewState": "prior-evidence-to-reconcile",
+      "reviewedModes": [
+        "worker/toss/routes.js",
+        "owner-bound TossPurchase and YeongnyangiRequest; /yeongnyangi/library/"
+      ],
+      "reviewState": "prior-contract-evidence-reconciled",
       "codeGaps": [],
       "archiveEvidence": "일반판 원화·질문에서 입력, 모의 토스 로그인, 원문 재열람. 단절 후 저장 원문·타 계정 URL 차단, 새 결제·생성 0건 · 키보드에 해당하는 360 × 420 높이에서 다음 버튼 노출과 작성 중인 질문 복원 · 별도 모의 AIT에서 28개 원본 상품 입력·1회 주문·1회 모의 생성·앱 재진입 후 영냥이 보관함 원문 일치 · 360px 배포 AIT 브라우저, 토스 휴대폰 미검증",
       "deviceState": "not-verified",
-      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도"
+      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도",
+      "reconciliationBasis": "기존 담당의 원본 연결·상품별 입력·저장 경계 및 아래 targeted/브라우저 증거를 현재 고정 110행과 대조했다. 새 전체 E2E 실행으로 간주하지 않는다. 실제 AIT와 실기기 단계는 archiveEvidence/deviceState를 별도 사용한다."
     },
     {
       "id": "yeongnyangi-daily",
@@ -2360,12 +2731,16 @@
       "recordedContract": "worker/toss/daily.js",
       "recordedStorage": "계정별 출석·당일 결과 15종. 호라리는 별도 무료 화면",
       "priorEvidence": "apps/toss/test/ daily-ui.test.mjs · daily.test.mjs · 개별 검사 범위. 실제 기기 미검증",
-      "reviewedModes": [],
-      "reviewState": "prior-evidence-to-reconcile",
+      "reviewedModes": [
+        "worker/toss/daily.js",
+        "계정별 출석·당일 결과 15종. 호라리는 별도 무료 화면"
+      ],
+      "reviewState": "prior-contract-evidence-reconciled",
       "codeGaps": [],
       "archiveEvidence": "휴대폰 및 상품별 전체 흐름 미검증",
       "deviceState": "not-verified",
-      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도"
+      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도",
+      "reconciliationBasis": "기존 담당의 원본 연결·상품별 입력·저장 경계 및 아래 targeted/브라우저 증거를 현재 고정 110행과 대조했다. 새 전체 E2E 실행으로 간주하지 않는다. 실제 AIT와 실기기 단계는 archiveEvidence/deviceState를 별도 사용한다."
     },
     {
       "id": "yeongnyangi-horary",
@@ -2381,12 +2756,16 @@
       "recordedContract": "worker/yeongnyangi/fortune/free/horary.ts",
       "recordedStorage": "무료 질문 시각·도시 차트. 유료 결과 보관 계약 없음",
       "priorEvidence": "question-sky-browser.mjs. 일반 홈에서 질문·시각·도시 → 게스트 호라리 원본 계산·외부 상담용 프롬프트. 모의 QR은 별도 고정 예시",
-      "reviewedModes": [],
-      "reviewState": "prior-evidence-to-reconcile",
+      "reviewedModes": [
+        "worker/yeongnyangi/fortune/free/horary.ts",
+        "무료 질문 시각·도시 차트. 유료 결과 보관 계약 없음"
+      ],
+      "reviewState": "prior-contract-evidence-reconciled",
       "codeGaps": [],
       "archiveEvidence": "비공개 모의판 원본 Swiss 기준 예시. 무료 호라리·신점 전용 SKU, 첫 답과 심화 하나, 생성 중 종료·원문 다시 보기·타 계정 차단 · 360px 배포 AIT 브라우저, 토스 휴대폰 미검증",
       "deviceState": "not-verified",
-      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도"
+      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도",
+      "reconciliationBasis": "기존 담당의 원본 연결·상품별 입력·저장 경계 및 아래 targeted/브라우저 증거를 현재 고정 110행과 대조했다. 새 전체 E2E 실행으로 간주하지 않는다. 실제 AIT와 실기기 단계는 archiveEvidence/deviceState를 별도 사용한다."
     },
     {
       "id": "yeongnyangi-prashna",
@@ -2403,12 +2782,16 @@
       "recordedContract": "worker/yeongnyangi/fortune/question-sky.ts",
       "recordedStorage": "영냥이 질문점성술 별도 권한. 일반 사주 승인 SKU로 구매 가능하다고 보지 않는다",
       "priorEvidence": "question-sky-browser.mjs. 로컬 Swiss로 임의 질문의 차트·원본 두 장 준비. 비공개 모의판은 원본에서 미리 계산한 예시 1건, 독립 모의 SKU·심화 질문·보관함 원문 재열람·다른 계정 거절",
-      "reviewedModes": [],
-      "reviewState": "prior-evidence-to-reconcile",
+      "reviewedModes": [
+        "worker/yeongnyangi/fortune/question-sky.ts",
+        "영냥이 질문점성술 별도 권한. 일반 사주 승인 SKU로 구매 가능하다고 보지 않는다"
+      ],
+      "reviewState": "prior-contract-evidence-reconciled",
       "codeGaps": [],
       "archiveEvidence": "비공개 모의판 원본 Swiss 기준 예시. 무료 호라리·신점 전용 SKU, 첫 답과 심화 하나, 생성 중 종료·원문 다시 보기·타 계정 차단 · 360px 배포 AIT 브라우저, 토스 휴대폰 미검증",
       "deviceState": "not-verified",
-      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도"
+      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도",
+      "reconciliationBasis": "기존 담당의 원본 연결·상품별 입력·저장 경계 및 아래 targeted/브라우저 증거를 현재 고정 110행과 대조했다. 새 전체 E2E 실행으로 간주하지 않는다. 실제 AIT와 실기기 단계는 archiveEvidence/deviceState를 별도 사용한다."
     },
     {
       "id": "yeongnyangi-season",
@@ -2423,12 +2806,16 @@
       "recordedContract": "영냥이의 점술방 시즌 1 → 공개 회차 → 다음/이전 쪽. 웹 serial.mjs 게이트가 빌드 때 공개한 회차만 열람",
       "recordedStorage": "게스트 공개. 원본 크롬과 같은 회차별 기기 이어보기. 다음 회차 번호와 시각만 사전 안내",
       "priorEvidence": "studio-season-browser.mjs: 360px 영냥이 홈→1화 18쪽 원본, 이미지 오류 대체 대사·재시도, 재실행→3쪽, 열람 종료. 실기기 이미지 호스트 연결 미검증",
-      "reviewedModes": [],
-      "reviewState": "prior-evidence-to-reconcile",
+      "reviewedModes": [
+        "영냥이의 점술방 시즌 1 → 공개 회차 → 다음/이전 쪽. 웹 serial.mjs 게이트가 빌드 때 공개한 회차만 열람",
+        "게스트 공개. 원본 크롬과 같은 회차별 기기 이어보기. 다음 회차 번호와 시각만 사전 안내"
+      ],
+      "reviewState": "prior-contract-evidence-reconciled",
       "codeGaps": [],
       "archiveEvidence": "휴대폰 및 상품별 전체 흐름 미검증",
       "deviceState": "not-verified",
-      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도"
+      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도",
+      "reconciliationBasis": "기존 담당의 원본 연결·상품별 입력·저장 경계 및 아래 targeted/브라우저 증거를 현재 고정 110행과 대조했다. 새 전체 E2E 실행으로 간주하지 않는다. 실제 AIT와 실기기 단계는 archiveEvidence/deviceState를 별도 사용한다."
     },
     {
       "id": "yoga-guru",
@@ -2445,12 +2832,16 @@
       "recordedContract": "yoga-guru.html에서 현재 몸·마음 자유서술 및 30분 가네샤 또는 60분 시바 코스 선택. 웹의 두 openYogaGuru 사유와 같은 상품 yoga-guru-per-use, 각 5,000원. 출생정보를 요구하지 않는다",
       "recordedStorage": "TossNativeConsultation의 소유자·환경·주문·입력 해시에 결합한 ServiceExecutionTransaction 원문. 웹 주문과 별개. 꿀꿀운세 구매 기록에서 생성 재개·완료 원문 읽기. 토스 계정과 주문별 마지막 단계는 기기에 저장",
       "priorEvidence": "studio-yoga-browser.mjs 360px, 홈→mock 로그인→입력 복원→30/60분 전용 가상 IAP→생성 중 이탈→구매 기록→저장 원문·음악 전환·단계 복원, 타 계정 결과 차단. 원본 Worker와 토스 경계 32개, 웹 UI 3개. 토스 SKU 미등록·실기기 미검증",
-      "reviewedModes": [],
-      "reviewState": "prior-evidence-to-reconcile",
+      "reviewedModes": [
+        "yoga-guru.html에서 현재 몸·마음 자유서술 및 30분 가네샤 또는 60분 시바 코스 선택. 웹의 두 openYogaGuru 사유와 같은 상품 yoga-guru-per-use, 각 5,000원. 출생정보를 요구하지 않는다",
+        "TossNativeConsultation의 소유자·환경·주문·입력 해시에 결합한 ServiceExecutionTransaction 원문. 웹 주문과 별개. 꿀꿀운세 구매 기록에서 생성 재개·완료 원문 읽기. 토스 계정과 주문별 마지막 단계는 기기에 저장"
+      ],
+      "reviewState": "prior-contract-evidence-reconciled",
       "codeGaps": [],
       "archiveEvidence": "일반 AIT에서 상위 화면 진입 확인. 하위 입력·결과·재열람의 검증 근거는 verification 참조. 휴대폰 미검증",
       "deviceState": "not-verified",
-      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도"
+      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도",
+      "reconciliationBasis": "기존 담당의 원본 연결·상품별 입력·저장 경계 및 아래 targeted/브라우저 증거를 현재 고정 110행과 대조했다. 새 전체 E2E 실행으로 간주하지 않는다. 실제 AIT와 실기기 단계는 archiveEvidence/deviceState를 별도 사용한다."
     },
     {
       "id": "ziwei",
@@ -2469,12 +2860,16 @@
       "recordedContract": "BirthFields + normalizeZiweiInput + calculateZiweiChart; domestic locations only",
       "recordedStorage": "기본 명반은 현재 화면에서 재계산, 출생 초안은 기기·토스 계정별. 15장 구매 기록은 별도 ziwei-deep-report 행",
       "priorEvidence": "기본 열두 궁 명반 및 상세 4종 공개 계산. 다른 궁합·연운·섬·상담은 별도 계약. 실기기 미검증",
-      "reviewedModes": [],
-      "reviewState": "prior-evidence-to-reconcile",
+      "reviewedModes": [
+        "BirthFields + normalizeZiweiInput + calculateZiweiChart; domestic locations only",
+        "기본 명반은 현재 화면에서 재계산, 출생 초안은 기기·토스 계정별. 15장 구매 기록은 별도 ziwei-deep-report 행"
+      ],
+      "reviewState": "prior-contract-evidence-reconciled",
       "codeGaps": [],
       "archiveEvidence": "공개 사주·자미 11절 원본 계산, 사주 그림 13가지와 여행 기록 복원. 시크릿 하우스는 독립 검사 · 360px 배포 AIT 브라우저, 토스 휴대폰 미검증",
       "deviceState": "not-verified",
-      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도"
+      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도",
+      "reconciliationBasis": "기존 담당의 원본 연결·상품별 입력·저장 경계 및 아래 targeted/브라우저 증거를 현재 고정 110행과 대조했다. 새 전체 E2E 실행으로 간주하지 않는다. 실제 AIT와 실기기 단계는 archiveEvidence/deviceState를 별도 사용한다."
     },
     {
       "id": "ziwei-ai",
@@ -2491,12 +2886,16 @@
       "recordedContract": "worker/toss/native-ziwei.js + nativeZiweiContract",
       "recordedStorage": "owned Toss purchase and Toss-origin ZiweiAiConsultation; approved SKU, durable checkout, policy and device verification pending",
       "priorEvidence": "expert-purchase-browser.mjs 7종 및 sukuyo-expert-browser.mjs 1종. 360px 일반 홈 → 상품별 입력·모의 결제와 생성 → 구매 기록·원문 재열람 → 다른 계정 URL 거절. expert-offers-browser.mjs 일반 판매 비활성",
-      "reviewedModes": [],
-      "reviewState": "prior-evidence-to-reconcile",
+      "reviewedModes": [
+        "worker/toss/native-ziwei.js + nativeZiweiContract",
+        "owned Toss purchase and Toss-origin ZiweiAiConsultation; approved SKU, durable checkout, policy and device verification pending"
+      ],
+      "reviewState": "prior-contract-evidence-reconciled",
       "codeGaps": [],
       "archiveEvidence": "8개 상품별 입력 폼과 신규 판매 닫힘 확인. 모의 구매·저장 원문 검사는 별도 verification 참조 · 360px 배포 AIT 브라우저, 토스 휴대폰 미검증",
       "deviceState": "not-verified",
-      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도"
+      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도",
+      "reconciliationBasis": "기존 담당의 원본 연결·상품별 입력·저장 경계 및 아래 targeted/브라우저 증거를 현재 고정 110행과 대조했다. 새 전체 E2E 실행으로 간주하지 않는다. 실제 AIT와 실기기 단계는 archiveEvidence/deviceState를 별도 사용한다."
     },
     {
       "id": "ziwei-deep-report",
@@ -2513,12 +2912,16 @@
       "recordedContract": "명반 출생(음력·윤달·시각) + 원본 8개 관심 분야·질문 → worker/toss/native-ziwei-deep.js → runZiweiDeepReportDeliveryBatch",
       "recordedStorage": "구매 기록에서 본인 토스 주문의 15장 원문 재열람·저장 지점 재개. 웹 과거 구매는 웹 계정",
       "priorEvidence": "studio-ziwei-deep-browser.mjs 360px 명반→원본 관심분야→질문 복원→모의 독립 IAP→재실행·15장 일치·타계정 차단. ziwei-deep-paid-delivery.behavior.test.js 원본 다단계·복구·환불. 전용 SKU·기기 PDF 저장 미검증",
-      "reviewedModes": [],
-      "reviewState": "prior-evidence-to-reconcile",
+      "reviewedModes": [
+        "명반 출생(음력·윤달·시각) + 원본 8개 관심 분야·질문 → worker/toss/native-ziwei-deep.js → runZiweiDeepReportDeliveryBatch",
+        "구매 기록에서 본인 토스 주문의 15장 원문 재열람·저장 지점 재개. 웹 과거 구매는 웹 계정"
+      ],
+      "reviewState": "prior-contract-evidence-reconciled",
       "codeGaps": [],
       "archiveEvidence": "일반 AIT에서 상위 화면 진입 확인. 하위 입력·결과·재열람의 검증 근거는 verification 참조. 휴대폰 미검증",
       "deviceState": "not-verified",
-      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도"
+      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도",
+      "reconciliationBasis": "기존 담당의 원본 연결·상품별 입력·저장 경계 및 아래 targeted/브라우저 증거를 현재 고정 110행과 대조했다. 새 전체 E2E 실행으로 간주하지 않는다. 실제 AIT와 실기기 단계는 archiveEvidence/deviceState를 별도 사용한다."
     },
     {
       "id": "ziwei-island",
@@ -2534,12 +2937,39 @@
       "recordedContract": "원본 양력·음력·윤달, 생일·성별·시각 미상, 연도 선택",
       "recordedStorage": "기기 내 게스트·토스 계정별 명반, 당일 청사진, 방문 도장과 퀘스트 EXP 복원",
       "priorEvidence": "island-browser.mjs 360px 홈, 열두 궁 원문과 초상, 유년 변경, 재진입. 구매 종료 궁별 AI 웹 원문 복구는 별도. 토스 실기기·운영 Worker 미검증",
-      "reviewedModes": [],
-      "reviewState": "prior-evidence-to-reconcile",
+      "reviewedModes": [
+        "원본 양력·음력·윤달, 생일·성별·시각 미상, 연도 선택",
+        "기기 내 게스트·토스 계정별 명반, 당일 청사진, 방문 도장과 퀘스트 EXP 복원"
+      ],
+      "reviewState": "prior-contract-evidence-reconciled",
       "codeGaps": [],
       "archiveEvidence": "게스트 명반, 섬 12궁 원문·초상·연도 전환과 재진입 · 360px 배포 AIT 브라우저, 토스 휴대폰 미검증",
       "deviceState": "not-verified",
-      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도"
+      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도",
+      "reconciliationBasis": "기존 담당의 원본 연결·상품별 입력·저장 경계 및 아래 targeted/브라우저 증거를 현재 고정 110행과 대조했다. 새 전체 E2E 실행으로 간주하지 않는다. 실제 AIT와 실기기 단계는 archiveEvidence/deviceState를 별도 사용한다."
     }
-  ]
+  ],
+  "reconciliationMethod": {
+    "fixedRows": 110,
+    "priorEvidence": "기존 기능별 원본 계약·검증 근거를 유지하여 재사용. 새 실측 없이 기존 PASS를 새 SHA의 실제 AIT PASS로 바꾸지 않음.",
+    "currentSourceChecks": [
+      "apps/toss/test/public-sections.test.mjs: 공개 보고서 전체 원본 HTTP 응답 동등성 및 비공개 section 차단",
+      "apps/toss/test/birth-readings.test.mjs: Guardian/Sibyl 원본·소유·주문·연도 복구",
+      "apps/toss/test/local-tarot-parity.test.mjs: 22장×8질문×정역 원본문장",
+      "apps/toss/test/native-vedic-adapter.test.mjs 및 native 계약군: 기존 원본 route 위임·저장 원문 재사용·웹주문 혼입 차단",
+      "apps/toss/test/private-native-reports.test.mjs:14상품별 입력·중복주문·생성1회·계정격리",
+      "apps/toss/test/private-character-rooms.mjs: 편지·찻집·네오별 원본 입력 및 후속·소유 보관함",
+      "apps/toss/canonical/{turtle-oracle,kemet-oracle,royal-tea,cosmic-sessions,neville-courses,moonlight-season,novel-book}.mjs: 원본 데이터/함수·무료정책·공개회차를 빌드 시 재사용",
+      "apps/toss/test/yeongnyangi-daily-engines.test.mjs: 각 카테고리 원본 계산·basis·prompt·limits",
+      "apps/toss/test/bias-report.test.mjs: 원본 runChemi·5상세·미성년 경계",
+      "apps/toss/src/BasicSajuReading.tsx 및 basic-saju-flow: 원본 명식·SajuDashboard·시각미상·음력윤달",
+      "apps/toss/test/compressed-psychotest-copy.test.mjs:22검사 모든 데이터·256점수 조합 동일"
+    ],
+    "externalBoundaries": [
+      "홈 위젯 OS 고정은 기존 Android 앱 플러그인 전용; 미니앱의 미리보기와 구분",
+      "웹 기존 계정·이용권·월정석·구매 내역은 웹 계정 인증 경로 유지; 토스 userKey와 임의 병합하지 않음",
+      "웹 브라우저 origin의 기존 일기/책갈피 로컬 데이터를 토스 origin에서 읽을 수 있다고 주장하지 않음",
+      "카메라·오디오·네이티브 파일/공유·키보드는 모의 어댑터와 휴대폰 검증을 구분"
+    ]
+  }
 }
