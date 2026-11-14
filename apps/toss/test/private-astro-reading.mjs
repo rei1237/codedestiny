@@ -8,7 +8,8 @@ export async function verifyPrivateAstro(origin,context){
   await page.getByRole('button',{name:'모의 예시 입력하기'}).click();await page.getByRole('button',{name:'출생차트 펼치기'}).click();await page.locator('.toss-astro-wheel svg').waitFor();
   for(const title of Object.values(TOSS_ASTRO_SECTIONS)){
    await page.getByRole('navigation',{name:'점성술 풀이 선택'}).getByRole('button',{name:title,exact:true}).click();await page.getByRole('heading',{name:title,exact:true}).first().waitFor();
-   for(const width of [360,390,430]){await page.setViewportSize({width,height:740});assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),title);}
+   const body=page.frameLocator('iframe[title="'+title+'"]').locator('main');await body.locator(':scope > *').first().waitFor();assert.ok((await body.innerText()).length>100,title+' original body');
+   for(const width of [360,390,430]){await page.setViewportSize({width,height:740});assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),title);assert.ok(await body.evaluate(el=>el.ownerDocument.documentElement.scrollWidth<=el.ownerDocument.defaultView.innerWidth+1),title+' frame overflow');}
   }
   const ledger=await page.evaluate(()=>JSON.parse(localStorage.getItem('consultations')));assert.equal(ledger?.orders?.length||0,0);assert.equal(ledger?.loggedIn||false,false);
   console.log('PASS private astrology: guest home, example rejection, original wheel and ten sections, 360/390/430px, no purchase');

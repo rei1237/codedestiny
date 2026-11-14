@@ -11,7 +11,7 @@ export async function verifyPrivateSukuyoPastLife(origin,context){
    await page.getByRole('button',{name:'출생정보 다시 보기'}).click();
   }
   const ledger=await page.evaluate(()=>JSON.parse(localStorage.getItem('consultations')));assert.equal(ledger.orders.length,0);assert.equal(ledger.fortunes.length,0);
-  await Promise.all([page.waitForEvent('load'),page.getByLabel('모의 계정',{exact:true}).selectOption('B')]);await page.getByRole('button',{name:'토스 로그인하고 인연 살펴보기'}).waitFor();assert.equal(await page.locator('iframe[title="숙요 전생 인연 리딩"]').count(),0);
+  await Promise.all([page.waitForEvent('load'),page.getByLabel('모의 계정',{exact:true}).selectOption('B')]);await page.getByRole('button',{name:'전생 인연 리딩',exact:true}).click();await page.getByRole('button',{name:'토스 로그인하고 인연 살펴보기'}).waitFor();assert.equal(await page.locator('iframe[title="숙요 전생 인연 리딩"]').count(),0);
   console.log('PASS private Sukuyo past life: home/login, nine original purposes/radar/plan/prompt, 3 widths, zero orders, account switch clears result');
  }finally{await page.close();}
 }
