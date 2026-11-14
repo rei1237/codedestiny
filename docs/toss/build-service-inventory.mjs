@@ -443,11 +443,14 @@ for(const group of canonicalCandidates){
   omikuji:'비회원 뽑기 가능. 같은 탭의 임시 복구는 로그인 계정별',
   psychotest:'게스트 검사 가능. 현재 화면에서만 결과 열람',
   'saju-guardian':'보관한 출생정보와 구매 원문은 토스 계정 필요',
-  sukuyo:'기본·네 관계 도구는 게스트. 연간은 소유 프로필, 전문가 궁합은 별도 로그인·주문',
+  sukuyo:'기본·네 관계 도구는 게스트. 연간은 소유 프로필, 무료 전생은 로그인 후 직접 입력 또는 소유 프로필. 전문가 궁합은 별도 로그인·주문',
   astrology:'기본 차트와 무료 10종 풀이 게스트 공개. 전문가 상담은 별도 로그인·주문',
   ziwei:'기본 명반과 12궁은 게스트 계산. 별도 심층 결과는 로그인·소유 확인',
  };
  if(accessByService[group.id])group.tossLogin=accessByService[group.id];
+ if(group.id==='sukuyo'){
+  group.subfeatures=[{id:'sukuyo-past-life',status:'local-partial',tossRoute:'/sukuyo',inputContract:'웹 무료 정책 그대로 로그인·직접 출생 입력 또는 소유 프로필·상대 출생·9관계 목적',resultRenderer:'apps/toss/src/SukuyoPastLife.tsx + 원본 SukuyoBondReportEngine·SukuyoRadarSVG',storageContract:'source:public, stored:false. 새 결과 저장·구매·LLM 없음, 옛 웹 archive 권리는 별도 보존',verification:'9bbc65bbf. 원본 10축 레이더·상세장·30일계획·대화·후속질문, 75 API/routes·10 UI·5 dashboard·타입검사 통과. 실제 AIT는 후속 검증 기록 참조'}];
+ }
  if(['juyuk-turtle','kemet-oracle','royal-tea-oracle','stonehenge-runes','ifa-oracle'].includes(group.id))group.portStatus='이미 동작';
  if(['fortune-chat','neo-letter'].includes(group.id)){group.verification=letterProducts.find(product=>product.persona===(group.id==='neo-letter'?'neo':'yeoni')).verification;group.saleStatus='기본·질문 편지별 콘솔 원장 확인 필요';}
  if(group.id==='yeongnyangi')group.saleStatus='상품별 승인된 독립 SKU만 원장에 기록. 신규 판매 보류';

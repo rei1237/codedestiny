@@ -1,5 +1,5 @@
 {
-  "sourceCommit": "58adb1c702fc3d1eebb88b4482790bffd84631b8",
+  "sourceCommit": "9bbc65bbf88d5c7f6701df89efe4f41d3e1d24ee",
   "sourceCounts": {
     "home": 63,
     "react": 18,
@@ -2414,7 +2414,7 @@
       ],
       "toss": {
         "screen": "not-independently-verified",
-        "login": "기본·네 관계 도구는 게스트. 연간은 소유 프로필, 전문가 궁합은 별도 로그인·주문",
+        "login": "기본·네 관계 도구는 게스트. 연간은 소유 프로필, 무료 전생은 로그인 후 직접 입력 또는 소유 프로필. 전문가 궁합은 별도 로그인·주문",
         "iapSku": null,
         "result": "apps/toss/src/SukuyoBasic.tsx + SukuyoTools.tsx + SukuyoYearly.tsx",
         "library": "기본·도구 결과는 현재 화면, 연간은 소유 프로필로 재계산. 별도 전문가 궁합과 기존 웹 구매 권리는 각 원장 유지",
@@ -2503,7 +2503,7 @@
       ],
       "toss": {
         "screen": "not-independently-verified",
-        "login": "기본·네 관계 도구는 게스트. 연간은 소유 프로필, 전문가 궁합은 별도 로그인·주문",
+        "login": "기본·네 관계 도구는 게스트. 연간은 소유 프로필, 무료 전생은 로그인 후 직접 입력 또는 소유 프로필. 전문가 궁합은 별도 로그인·주문",
         "iapSku": null,
         "result": "apps/toss/src/SukuyoBasic.tsx + SukuyoTools.tsx + SukuyoYearly.tsx",
         "library": "기본·도구 결과는 현재 화면, 연간은 소유 프로필로 재계산. 별도 전문가 궁합과 기존 웹 구매 권리는 각 원장 유지",
@@ -7991,9 +7991,20 @@
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "Linux AIT 일반 홈 → 꿀꿀운세 → 기본 숙요점 · 상위 화면 진입 확인",
       "bundleVerification": "일반 AIT에서 상위 화면 진입 확인. 하위 입력·결과·재열람의 검증 근거는 verification 참조. 휴대폰 미검증",
-      "tossLogin": "기본·네 관계 도구는 게스트. 연간은 소유 프로필, 전문가 궁합은 별도 로그인·주문",
+      "tossLogin": "기본·네 관계 도구는 게스트. 연간은 소유 프로필, 무료 전생은 로그인 후 직접 입력 또는 소유 프로필. 전문가 궁합은 별도 로그인·주문",
       "tossResult": "apps/toss/src/SukuyoBasic.tsx + SukuyoTools.tsx + SukuyoYearly.tsx",
       "reread": "기본·도구 결과는 현재 화면, 연간은 소유 프로필로 재계산. 별도 전문가 궁합과 기존 웹 구매 권리는 각 원장 유지",
+      "subfeatures": [
+        {
+          "id": "sukuyo-past-life",
+          "status": "local-partial",
+          "tossRoute": "/sukuyo",
+          "inputContract": "웹 무료 정책 그대로 로그인·직접 출생 입력 또는 소유 프로필·상대 출생·9관계 목적",
+          "resultRenderer": "apps/toss/src/SukuyoPastLife.tsx + 원본 SukuyoBondReportEngine·SukuyoRadarSVG",
+          "storageContract": "source:public, stored:false. 새 결과 저장·구매·LLM 없음, 옛 웹 archive 권리는 별도 보존",
+          "verification": "9bbc65bbf. 원본 10축 레이더·상세장·30일계획·대화·후속질문, 75 API/routes·10 UI·5 dashboard·타입검사 통과. 실제 AIT는 후속 검증 기록 참조"
+        }
+      ],
       "saleStatus": "기본 계산은 구매 없음 · 부가 상품은 별도 행 참조",
       "archiveTests": [],
       "archiveHomeButtons": [
