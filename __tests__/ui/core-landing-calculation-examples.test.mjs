@@ -77,7 +77,8 @@ test('명반 FAQ 는 화면과 JSON-LD 를 한 배열에서 만들고, 본문 �
 });
 
 test('공통 SEO 랜딩은 네오 토큰으로 배경·본문·초점·CTA 대비를 함께 전환한다',()=>{
-  const template=readFileSync('app/components/SeoLandingTemplate.jsx','utf8');
+  // FOCUS_RING·SectionHead 는 상세 화면과 함께 쓰려고 seo-landing-parts.jsx 로 옮겼다(템플릿이 import 한다).
+  const template=readFileSync('app/components/SeoLandingTemplate.jsx','utf8')+readFileSync('app/components/seo-landing-parts.jsx','utf8');
   for(const token of ['--cd-bg','--cd-text','--cd-text-muted','--cd-accent','--cd-border','--cd-focus-ring','--cd-primary','--cd-primary-ink']) {
     assert.match(template,new RegExp(`var\\(${token.replace(/[-]/g,'\\-')}\\)`),token);
   }
