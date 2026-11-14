@@ -324,7 +324,7 @@ const eventNames = (calls) => events(calls).map((c) => c[1]);
     assert.equal(calls.find(entry => entry[0] === "config")[2].page_location, "https://code-destiny.com/saju/");
     window.close();
   }
-  for (const placement of ["related", "directory", "next_step"]) {
+  for (const placement of ["related", "directory", "next_step", "free_result"]) {
     const { window } = boot({ body: `<a id="cta" data-cd-cross-sell="/" data-cd-cta-placement="${placement}" data-cd-target-service="zodiac" href="/fortune/tomorrow/">별자리</a>` });
     window.document.getElementById("cta").click();
     const recorded = events(window.dataLayer.map(entry => Array.from(entry))).filter(entry => entry[1] === "cross_sell_click");
@@ -351,7 +351,7 @@ const eventNames = (calls) => events(calls).map((c) => c[1]);
 {
   const cases = [
     ...[...HOME_CATEGORIES, ...HOME_CONCERNS].map(item => ["/", item.href, item.key, "directory"]),
-    ...Object.entries(fortuneLandings).map(([path, story]) => [path, `/ggulggul/?action=${story.action}`, path.slice(1), "primary"]),
+    ...Object.entries(fortuneLandings).map(([path, story]) => [path, story.href || `/ggulggul/?action=${story.action}`, path.slice(1), "primary"]),
     ["/", "/ggulggul/", "ggulggul", "primary"],
     ["/", "/yeongnyangi/", "yeongnyangi", "primary"],
     ["/", "/fortune/tomorrow/rat/", "zodiac", "next_step"],

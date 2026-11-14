@@ -3,7 +3,7 @@
  *
  * 브랜드 검색과 AI 답변이 읽는 대표 페이지가 서로 다른 이름이나 정본을 말하지 않게 막는다.
  *   - title 1개, rel=canonical 1개(자기 URL)
- *   - `/` 는 hreflang 없음(/ggulggul/ 로케일 클러스터와 섞지 않는다)
+ *   - `/` 는 홈 hreflang 묶음의 한국어 대표다. `/ggulggul/` 은 hreflang 없음(2026-11-14, 대표 신호를 `/` 하나로 모은다)
  *   - JSON-LD WebSite·Organization 각 1개, 이름은 lib/brand/brand-facts.mjs 와 같다
  *   - og:site_name·application-name 은 공식 서비스명
  *   - 과거 이름은 이력 블록([data-brand-history])과 FAQ 이력 문항에만 있다
@@ -18,8 +18,8 @@ import { BRAND_FACTS, findFormerBrandNames } from "../lib/brand/brand-facts.mjs"
 
 const DIST = process.argv.find((arg) => arg.startsWith("--dist="))?.slice(7) || "dist";
 export const PAGES = [
-  { path: "/", file: "index.html", hreflang: false },
-  { path: "/ggulggul/", file: "ggulggul/index.html", hreflang: true },
+  { path: "/", file: "index.html", hreflang: true },
+  { path: "/ggulggul/", file: "ggulggul/index.html", hreflang: false },
   { path: "/about/", file: "about/index.html", hreflang: true },
   { path: "/faq/", file: "faq/index.html", hreflang: true },
 ];
@@ -62,7 +62,7 @@ export function verifyPage(html, page) {
   const canonicals = [...document.querySelectorAll('link[rel="canonical"]')].map((link) => link.getAttribute("href"));
   if (canonicals.length !== 1 || canonicals[0] !== expectedUrl) failures.push(`${label}: canonical ${JSON.stringify(canonicals)} (기대 ${expectedUrl})`);
   const hreflangs = document.querySelectorAll('link[rel="alternate"][hreflang]').length;
-  if (!page.hreflang && hreflangs) failures.push(`${label}: hreflang ${hreflangs}개 — 대표 홈은 로케일 클러스터에 넣지 않는다`);
+  if (!page.hreflang && hreflangs) failures.push(`${label}: hreflang ${hreflangs}개 — 이 페이지는 hreflang 묶음에 넣지 않는다`);
 
   const meta = (selector) => document.querySelector(selector)?.getAttribute("content");
   const siteName = meta('meta[property="og:site_name"]');

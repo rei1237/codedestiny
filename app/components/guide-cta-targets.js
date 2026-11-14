@@ -38,7 +38,7 @@ export const GUIDE_CTA_TARGETS = {
     kicker: "바로 해보기",
     heading: "읽었다면, 내 명식으로 확인해 보세요",
     body: "생년월일과 태어난 시각만 넣으면 네 기둥과 오행 분포가 바로 나옵니다.",
-    primary: { href: "/ggulggul/?action=cdOneStepFreeSajuEntry", label: "사주 보기", note: "무료 · 로그인 후 확인" },
+    primary: { href: "/saju/free/", label: "사주 보기", note: "무료 · 가입 없이" },
     secondary: [
       { href: "/compatibility", label: "궁합 보기" },
       { href: "/features/life-book-ai/", label: "인생의 책 구성과 풀이 예시" },
@@ -48,9 +48,9 @@ export const GUIDE_CTA_TARGETS = {
   "/saju/ten-gods": {
     from: "ten-gods-guide",
     kicker: "바로 해보기",
-    heading: "내 사주에서 십신이 어떻게 놓였는지 보세요",
-    body: "만세력으로 여덟 글자를 세우면 어떤 십신이 어느 자리에 앉았는지 확인할 수 있습니다.",
-    primary: { href: "/ggulggul/?action=cdOneStepFreeSajuEntry", label: "사주 보기", note: "무료 · 로그인 후 확인" },
+    heading: "십신을 읽기 전에 내 여덟 글자부터 세워 보세요",
+    body: "만세력으로 네 기둥을 세우면 십신의 기준이 되는 내 일간을 확인할 수 있습니다.",
+    primary: { href: "/saju/free/", label: "사주 보기", note: "무료 · 가입 없이" },
     secondary: [{ href: "/saju/guide", label: "사주 기본 가이드" }],
   },
   "/saju/monthly/2026-09": {
@@ -58,7 +58,7 @@ export const GUIDE_CTA_TARGETS = {
     kicker: "다음 단계",
     heading: "내 일간으로 이번 달 흐름을 확인해 보세요",
     body: "만세력에서 태어난 날의 천간을 확인하면 10천간 중 내 월간 운세를 골라 읽을 수 있습니다.",
-    primary: { href: "/ggulggul/?action=cdOneStepFreeSajuEntry", label: "사주 보기", note: "무료 · 로그인 후 확인" },
+    primary: { href: "/saju/free/", label: "사주 보기", note: "무료 · 가입 없이" },
     secondary: [
       { href: "/saju/ten-gods", label: "십성 해석 가이드" },
       { href: "/saju", label: "사주 전체 분석" },
@@ -68,8 +68,8 @@ export const GUIDE_CTA_TARGETS = {
     from: "saju-ilgan-monthly-detail",
     kicker: "내 명식으로 넓혀 보기",
     heading: "일간 운세를 내 사주 전체 흐름과 함께 읽어 보세요",
-    body: "일간별 월간 운세는 한 달의 환경을 보는 기준입니다. 오행과 십성의 배치를 함께 확인하면 해석의 맥락이 더 선명해집니다.",
-    primary: { href: "/ggulggul/?action=cdOneStepFreeSajuEntry", label: "사주 보기", note: "무료 · 로그인 후 확인" },
+    body: "일간별 월간 운세는 한 달의 환경을 보는 기준입니다. 네 기둥과 오행 분포를 함께 확인하면 해석의 맥락이 더 선명해집니다.",
+    primary: { href: "/saju/free/", label: "사주 보기", note: "무료 · 가입 없이" },
     secondary: [
       { href: "/saju/ten-gods", label: "십성 뜻 살펴보기" },
       { href: "/saju", label: "사주 전체 분석" },
@@ -80,7 +80,7 @@ export const GUIDE_CTA_TARGETS = {
     kicker: "내 생년월일로 이어서",
     heading: "띠 운세 다음은 내 사주에서 2027년을 확인해 보세요",
     body: "띠별 운세는 태어난 해 하나로 보는 공통 흐름입니다. 만세력으로 내 년주와 일주를 확인하면 정미년이 내 명식 어디에 닿는지 볼 수 있습니다.",
-    primary: { href: "/ggulggul/?action=cdOneStepFreeSajuEntry", label: "사주 보기", note: "무료 · 로그인 후 확인" },
+    primary: { href: "/saju/free/", label: "사주 보기", note: "무료 · 가입 없이" },
     secondary: [
       { href: "/saju", label: "사주 원국 살펴보기" },
       { href: "/new-year-ai-consultation", label: "2027 신년운세 개인 상담" },
@@ -90,8 +90,8 @@ export const GUIDE_CTA_TARGETS = {
     from: "fortune-new-year-sign",
     kicker: "내 명식으로 넓혀 보기",
     heading: "같은 띠라도 생년월일시에 따라 2027년이 달라집니다",
-    body: "띠 운세는 년주 하나만 본 풀이입니다. 월주·일주와 대운까지 넣어 보면 정미년의 합·충이 실제로 어느 영역에서 드러나는지 더 분명해집니다.",
-    primary: { href: "/ggulggul/?action=cdOneStepFreeSajuEntry", label: "사주 보기", note: "무료 · 로그인 후 확인" },
+    body: "띠 운세는 년주 하나만 본 풀이입니다. 월주·일주까지 세워 보면 정미년이 내 명식 어디에 닿는지 더 분명해집니다.",
+    primary: { href: "/saju/free/", label: "사주 보기", note: "무료 · 가입 없이" },
     secondary: [
       { href: "/saju", label: "사주 원국 살펴보기" },
       { href: "/new-year-ai-consultation", label: "2027 신년운세 개인 상담" },
@@ -113,7 +113,7 @@ export const GUIDE_CTA_TARGETS = {
     kicker: "바로 해보기",
     heading: "내 오행은 어느 쪽으로 기울어 있을까요",
     body: "만세력으로 여덟 글자를 세우면 목화토금수의 분포와 계절감을 함께 볼 수 있습니다.",
-    primary: { href: "/ggulggul/?action=cdOneStepFreeSajuEntry", label: "사주 보기", note: "무료 · 로그인 후 확인" },
+    primary: { href: "/saju/free/", label: "사주 보기", note: "무료 · 가입 없이" },
     secondary: [{ href: "/saju/guide", label: "사주 기본 가이드" }],
   },
   "/ziwei/guide": {
@@ -220,7 +220,7 @@ export const GUIDE_CTA_TARGETS = {
     kicker: "직접 확인하기",
     heading: "두 체계를 같은 생년월일로 놓고 보세요",
     body: "네 기둥과 십이궁이 같은 사람을 어떻게 다르게 그리는지는 나란히 볼 때 드러납니다.",
-    primary: { href: "/ggulggul/?action=cdOneStepFreeSajuEntry", label: "사주 보기", note: "무료 · 로그인 후 확인" },
+    primary: { href: "/saju/free/", label: "사주 보기", note: "무료 · 가입 없이" },
     secondary: [{ href: "/ziwei/chart", label: "자미두수 명반 만들기" }],
   },
   "/compare/sukuyo-vs-vedic": {

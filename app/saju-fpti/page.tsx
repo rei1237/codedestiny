@@ -7,7 +7,7 @@ import { pageOpenGraph } from "../../lib/seo/page-open-graph";
 
 const SAJU_FPTI_METADATA_COPY = {
   ko: {
-    title: "사주 FPTI 테스트 | 코드 데스티니",
+    title: "사주 FPTI 테스트 | 꿀꿀 운세",
     description:
       "사주 오행과 십성 분포로 4축 FPTI 코드를 분석하는 무료 테스트. 핵심 결과를 바로 확인하고, 로그인 후 저장한 프로필의 심층 리포트도 무료로 읽어 보세요.",
   },

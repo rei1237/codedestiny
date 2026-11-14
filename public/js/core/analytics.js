@@ -261,11 +261,34 @@
       document.cookie = 'cd_paid_campaign=' + (value ? encodeURIComponent(JSON.stringify(value)) : '') + '; path=/; max-age=' + age + '; SameSite=Lax; Secure';
     } catch (_) { /* Campaign labels cannot block navigation or payments. */ }
   }
+  // Entry source for orders: one of eight fixed codes, consent-gated, 30 minutes.
+  // Never stores UTM text, the referrer or a click ID. Direct and unknown entries stay unlabelled,
+  // and an unclassified page (login or PG return, internal navigation) keeps the earlier label.
+  function entrySourceLabel() {
+    try {
+      var key = 'cd:entry:source';
+      if (analyticsStorageState() !== 'granted') { global.sessionStorage.removeItem(key); return null; }
+      var hosts = {'search.naver.com':'organic_naver','m.search.naver.com':'organic_naver',
+        'www.google.com':'organic_google','google.com':'organic_google','www.google.co.kr':'organic_google',
+        'search.daum.net':'organic_daum','m.search.daum.net':'organic_daum','www.bing.com':'organic_bing','cn.bing.com':'organic_bing',
+        'chatgpt.com':'ai','chat.openai.com':'ai','perplexity.ai':'ai','www.perplexity.ai':'ai','gemini.google.com':'ai','copilot.microsoft.com':'ai','copilot.com':'ai','claude.ai':'ai'};
+      var query = new URLSearchParams(global.location.search);
+      var medium = query.get('utm_medium') || '';
+      var host = document.referrer ? new URL(document.referrer).hostname.toLowerCase() : '';
+      var current = medium === 'cpc' || query.has('gclid') || query.has('gbraid') || query.has('wbraid') || query.has('NaPm') ? 'paid_search'
+        : /^(email|newsletter)$/.test(medium) ? 'email'
+        : /^(social|organic_social|share|channel)$/.test(medium) ? 'social'
+        : Object.prototype.hasOwnProperty.call(hosts, host) ? hosts[host] : '';
+      if (current) global.sessionStorage.setItem(key, JSON.stringify({value:current,until:Date.now()+1800000}));
+      var saved = JSON.parse(global.sessionStorage.getItem(key) || 'null');
+      return saved && saved.until > Date.now() && /^(organic_naver|organic_google|organic_daum|organic_bing|paid_search|social|email|ai)$/.test(saved.value) ? saved : null;
+    } catch (_) { return null; }
+  }
   function growthAttribution() {
     try {
       var key = 'cd:growth:campaign';
       var returnKey = key + ':paid-return';
-      if (analyticsStorageState() !== 'granted') { global.sessionStorage.removeItem(key); global.localStorage.removeItem(returnKey); paidCampaignCookie(null); return null; }
+      if (analyticsStorageState() !== 'granted') { global.sessionStorage.removeItem(key); global.sessionStorage.removeItem('cd:entry:source'); global.localStorage.removeItem(returnKey); paidCampaignCookie(null); return null; }
       var allowed = /^(threads_[0-9]{8}_(saju|ziwei|vedic|numerology)|threads_queue_t[0-9]{2}_v1)$/;
       // growth-20261012-v2: 4주 캠페인(블로그·YouTube·TikTok·X). 원고 ID(B01_ko)는 공개 코드라 함께 둔다.
       var allowedV2 = /^growth_(20261012_(naver_blog|youtube|tiktok|x)|20261021_(naver_blog|youtube))$/;
@@ -304,7 +327,14 @@
         global.localStorage.setItem(returnKey, JSON.stringify({campaignId:saved.campaignId,until:saved.until,
           content:paidContent.test(saved.content || '') ? saved.content : '',keyword:paidKeyword.test(saved.keyword || '') ? saved.keyword : ''}));
       }
-      if (!saved || saved.until <= Date.now() || !(paid || v2 || allowed.test(saved.campaignId))) { global.sessionStorage.removeItem(key); paidCampaignCookie(null); return null; }
+      if (!saved || saved.until <= Date.now() || !(paid || v2 || allowed.test(saved.campaignId))) {
+        global.sessionStorage.removeItem(key);
+        // No campaign: the order cookie carries the fixed entry code instead. The return value stays null,
+        // so growth_campaign events and cdReadGrowthAttribution() are unchanged.
+        var entry = entrySourceLabel();
+        paidCampaignCookie(entry ? {campaignId:entry.value,consent:true,version:'entry-20261114-v1',device:global.innerWidth < 768 ? 'mobile' : 'desktop'} : null, entry ? entry.until : 0);
+        return null;
+      }
       var device = global.innerWidth < 768 ? 'mobile' : 'desktop';
       if (paid) {
         var label = Object.assign({campaignId:saved.campaignId,consent:true,version:'paid-20261028-v1',device:device},paidContent.test(saved.content || '') ? {content:saved.content} : {},paidKeyword.test(saved.keyword || '') ? {keyword:saved.keyword} : {});
@@ -719,7 +749,7 @@
   // Search-entry CTA values are public catalogue values, never link queries or input text.
   var SEARCH_CTA_ROUTES = ["/", "/ggulggul/", "/yeongnyangi/", "/yeongnyangi/1000-won-fortune/", "/saju/", "/manse/", "/tarot/", "/tarot/reunion/", "/tarot/mindscan/", "/tarot/love/", "/ziwei/", "/sukuyo/", "/sukuyo/compatibility/", "/vedic/", "/astrology/", "/naming-ai/", "/fortune/", "/fortune/today/", "/fortune/tomorrow/", "/fortune/tomorrow/rat/", "/fortune/weekly/", "/fortune/monthly/", "/today/", "/compatibility/", "/love/", "/fortune-tea-house/", "/neo-operation-room/"];
   var SEARCH_CTA_SERVICES = ["ggulggul", "yeongnyangi", "saju", "manse", "tarot", "ziwei", "sukuyo", "vedic", "astrology", "naming", "zodiac", "today", "compatibility", "tea", "neo", "love"];
-  SEARCH_CTA_ROUTES.push("/ziwei/chart/", "/ziwei/animal-destiny/", "/saju/guide/", "/saju/compatibility/", "/saju/monthly/2026-09/", "/tarot/guide/", "/ziwei/guide/", "/sukuyo/guide/", "/vedic/guide/", "/vedic-ai/", "/astrology/guide/", "/astrology-ai/");
+  SEARCH_CTA_ROUTES.push("/saju/free/", "/ziwei/chart/", "/ziwei/animal-destiny/", "/saju/guide/", "/saju/compatibility/", "/saju/monthly/2026-09/", "/tarot/guide/", "/ziwei/guide/", "/sukuyo/guide/", "/vedic/guide/", "/vedic-ai/", "/astrology/guide/", "/astrology-ai/");
   function isSearchCtaRoute(path) {
     return SEARCH_CTA_ROUTES.indexOf(path) >= 0
       || /^\/fortune\/(?:today|tomorrow|weekly|monthly)\/(?:aries|taurus|gemini|cancer|leo|virgo|libra|scorpio|sagittarius|capricorn|aquarius|pisces|rat|ox|tiger|rabbit|dragon|snake|horse|goat|monkey|rooster|dog|pig)\/$/.test(path);
@@ -733,7 +763,7 @@
     var target = destination.pathname.replace(/\/$/, "") + "/";
     if (destination.origin !== global.location.origin
       || !isSearchCtaRoute(source) || !isSearchCtaRoute(target)
-      || ["primary", "related", "directory", "next_step"].indexOf(placement) < 0
+      || ["primary", "related", "directory", "next_step", "free_result"].indexOf(placement) < 0
       || SEARCH_CTA_SERVICES.indexOf(service) < 0) return null;
     return { from_service: source, to_service: target, placement: placement, target_service: service };
   }

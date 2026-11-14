@@ -653,7 +653,7 @@ function CelebritySajuCTA({ cta }: { cta: CelebritySajuMagazineResult["cta"] }) 
       <h2 className="text-xl font-semibold text-[#242139] [font-family:var(--font-premium)]">{cta.title}</h2>
       <p className="mt-3 text-sm leading-7 text-[#242139]">{cta.description}</p>
       <div className="mt-5 grid gap-3 sm:grid-cols-2">
-        <Link href="/?action=cdOneStepFreeSajuEntry" className="rounded-lg border border-violet-300 bg-violet-500/20 px-4 py-3 text-center text-sm font-semibold text-[#242139] transition hover:bg-violet-500/30">{cta.buttonText}</Link>
+        <Link href="/ggulggul/?action=cdOneStepFreeSajuEntry" className="rounded-lg border border-violet-300 bg-violet-500/20 px-4 py-3 text-center text-sm font-semibold text-[#242139] transition hover:bg-violet-500/30">{cta.buttonText}</Link>
         <Link href="/insights/famous-saju/" className="rounded-lg border border-violet-300/20 px-4 py-3 text-center text-sm font-semibold text-[#242139] transition hover:border-violet-200/60">다른 유명인 보기</Link>
       </div>
       <p className="mt-5 text-sm leading-7 text-[#242139]">{SEARCH_READING_PATHS.ko.lead}</p>

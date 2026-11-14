@@ -11,7 +11,7 @@ import { pathToFileURL } from "node:url";
 import { STATIC_CANONICAL_ROUTES } from "./static-canonical-route-map.mjs";
 import { SITEMAP_EXCLUDED_EXACT_PATHS, SITEMAP_NOINDEX_PREFIXES, SITEMAP_PRIVATE_ROUTE_PATTERNS } from "../lib/seo/index-policy.mjs";
 import { createSitemapLastmodLedger } from "./lib/sitemap-lastmod.mjs";
-import { alternatesFor, localeSiblings } from "../lib/seo/hreflang.mjs";
+import { alternatesFor, HOME_HREFLANG_ROUTES, localeSiblings } from "../lib/seo/hreflang.mjs";
 import { kstYmdToday } from "./lib/fortune-date.mjs";
 import { kstYmdPreviousDay } from "./lib/fortune-date.mjs";
 import { createLiveRouteMatcher } from "./lib/live-route-matcher.mjs";
@@ -105,8 +105,8 @@ const coreRoutes = [
   // 2026-11-13: 사주 결과 카드 9개의 설명 페이지(app/saju/<slug>/). 레지스트리에서 indexable 인 것만 싣는다(false 면 noindex 라 뺀다).
   ...FREE_FEATURE_DETAILS.filter((detail) => detail.indexable).map((detail) => ({ path: detail.path, changefreq: "monthly", priority: 0.75 })),
   { path: "/consultation-samples", changefreq: "monthly", priority: 0.7 },
-  // "/" 는 꿀꿀 운세 공식 대표 홈이다(2026-10-15 사용자 결정, 200). /ggulggul/ 로케일 클러스터와
-  // 섞지 않도록 alternates 없이 둔다. 앱 입구 /ggulggul/ 은 아래에 그대로 남는다.
+  // "/" 는 꿀꿀 운세 공식 대표 홈이다(2026-10-15 사용자 결정, 200). 2026-11-14 부터 홈 hreflang 묶음의
+  // 한국어 대표이기도 하다(alternates 는 아래 i18nRouteGroups 에서 붙는다). 앱 입구 /ggulggul/ 은 alternates 없이 남는다.
   { path: "/", changefreq: "daily", priority: 1.0 },
   // 공식 주소·표기 안내 페이지. 대표 홈보다 우선순위를 낮춰 브랜드 쿼리에서 자기잠식하지 않게 한다.
   // 천원사주 허브. 무료 키워드는 /saju/ 등 무료 랜딩의 몫이고, 이 페이지는 1,000원 사주 리포트와 영냥이 고등어 상담 안내를 맡는다.
@@ -259,7 +259,8 @@ const i18nRouteGroups = [
   ...INTRO_TOPICS.map(topic => ({ paths: Object.fromEntries(Object.entries(introductionRoutes(topic)).filter(([lang]) => lang !== "x-default").map(([lang, p]) => [lang === "zh-tw" ? "zh-TW" : lang, p])), changefreq: "monthly", priority: 0.8 })),
   ...TRUST_KEYS.map(key => ({ paths: Object.fromEntries(Object.entries(trustRoutes(key)).filter(([lang]) => lang !== "x-default")), changefreq: "monthly", priority: 0.7 })),
   {
-    paths: { ko: "/ggulggul", ja: "/ja", zh: "/zh", "zh-TW": "/zh-tw", en: "/en" },
+    // 홈 hreflang 묶음의 한국어 대표는 `/` 다(lib/seo/hreflang.mjs HOME_HREFLANG_ROUTES). /ggulggul 은 coreRoutes 에 alternates 없이 남는다.
+    paths: HOME_HREFLANG_ROUTES,
     changefreq: "daily",
     priority: 1.0,
   },

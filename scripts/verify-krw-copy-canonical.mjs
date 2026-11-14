@@ -75,6 +75,7 @@ add(MUSIC_TRACK_UNLOCK_PRICE_KRW);
 for (const won of Object.values(PASS_MONTHLY_WON)) add(won);
 const LIGHT_FORTUNES = buildLightFortunes();
 add(LIGHT_FORTUNES.valueKRW);
+add(LIGHT_FORTUNES.paidValueKRW);
 for (const plan of Object.values(CURRENT_PASS_PLANS)) {
   add(plan.wonPrice); add(plan.maxCoveredCoin * 100); add(plan.monthlyLimitCoin * 100);
   // Home comparison shows the saving at full usage, derived from the same plan.
@@ -82,6 +83,9 @@ for (const plan of Object.values(CURRENT_PASS_PLANS)) {
   // 라이트 운세 가치도 판매 목록에서 계산한다. 생성 파일이 아니라 빌더를 읽어 낡은 값을 정본으로 삼지 않는다.
   add(LIGHT_FORTUNES.valueKRW + plan.monthlyLimitCoin * 100);
   add(LIGHT_FORTUNES.valueKRW + plan.monthlyLimitCoin * 100 - plan.wonPrice);
+  // 2026-11-14: 화면은 지금 유료인 운세만 더한 값을 쓴다.
+  add(LIGHT_FORTUNES.paidValueKRW + plan.monthlyLimitCoin * 100);
+  add(LIGHT_FORTUNES.paidValueKRW + plan.monthlyLimitCoin * 100 - plan.wonPrice);
 }
 // 2026-10-16: 홈 이용권 배너가 영냥이 세트 가격을 보여 준다. 세트 가격 정본은 이 표 하나다.
 for (const plan of Object.values(SERVICE_PACK_PLANS)) add(plan.priceKRW);

@@ -190,3 +190,17 @@ html.neo-mode .saju-entry-card--fusion .cd-concern__fusion a {
     animation: none;
   }
 }
+
+/* 결과 화면 "관련 상담 더 보기" 접힘(cd-result-more-v20261114) */
+.cd-result-more { margin: 0 0 var(--cd-sp-md, 16px); }
+.cd-result-more__summary {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  width: fit-content; min-height: 44px; margin: 0 auto var(--cd-sp-md, 16px); padding: 10px 20px;
+  border: 1px solid color-mix(in srgb, var(--cd-accent, #b31955) 34%, transparent); border-radius: 999px;
+  color: var(--cd-text, #3c1830); font-size: var(--cd-t-body, 0.9rem); font-weight: 700;
+  list-style: none; cursor: pointer;
+}
+.cd-result-more__summary::-webkit-details-marker { display: none; }
+.cd-result-more__summary::after { content: "+"; }
+.cd-result-more[open] > .cd-result-more__summary::after { content: "−"; }
+.cd-result-more__summary:focus-visible { outline: 3px solid color-mix(in srgb, var(--cd-gold, #ead089) 82%, white); outline-offset: 4px; }

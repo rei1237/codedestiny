@@ -1763,7 +1763,7 @@
       "brandOtherEntry": "꿀꿀 운세：灵喵四柱与塔罗 →",
       "publicRecordsTitle": "十年经验命理学者朴秉河（Neo）的公开分析记录",
       "publicRecordsLink": "查看日期、原文与吻合范围",
-      "passLight": "所有蜜罐都包含{count}种轻量运势，不限次数。按各使用一次计算，价值{amount}韩元。招牌咨询不包含在内。"
+      "passLight": "所有蜜罐都包含{count}种轻量运势，不限次数。扣除目前免费的运势后，按各使用一次计算，价值{amount}韩元。招牌咨询不包含在内。"
     },
     "chatEntry": {
       "title": "向 Yeoni 和 Neo 问出此刻最想知道的一件事",
@@ -2297,7 +2297,7 @@
       "unlimitedCap": "单项金额无上限",
       "percent": "最高节省{amount}%",
       "saving": "最高节省{amount}韩元",
-      "compare": "按每种轻量运势各使用一次并用完咨询额度，与单次价格比较。",
+      "compare": "按目前收费的轻量运势各使用一次并用完咨询额度，与单次价格比较。目前免费的运势未计入。",
       "terms": "受商品适用、排除条件和剩余额度限制。",
       "cta": "查看{name}通行证",
       "validity": "无固定使用期限·不自动续费",
@@ -2308,10 +2308,10 @@
       "compactTitle": "蜜罐通行证",
       "conditions": "适用范围与使用条件",
       "otherServices": "查看其他服务通行证",
-      "lightBanner": "一个小蜜罐，就能解锁全部{count}种轻量运势。",
+      "lightBanner": "小蜜罐里也包含全部{count}种轻量运势。",
       "lightBannerSub": "除招牌咨询外，轻量运势不限次数使用。中蜜罐、大蜜罐和家庭蜜罐同样包含。",
-      "lightLine": "{count}种轻量运势，不限次数",
-      "lightWorth": "价值{amount}韩元",
+      "lightLine": "{count}种轻量运势，不限次数 · 其中{free}种无需蜜罐也免费",
+      "lightWorth": "仅计目前收费的运势，价值{amount}韩元",
       "consultLine": "专家咨询额度",
       "consultAmount": "{amount}韩元",
       "consultCap": "(每项不超过{amount}韩元)",
@@ -22512,9 +22512,9 @@
   },
   "freePromo": {
     "badge": "限时3个月",
-    "title": "限时全部免费",
+    "title": "基础运势解读限时免费",
     "until": "预计于2027年2月12日之后改为付费",
-    "note": "AI咨询以及轻量四柱命理解读与大运解析不在此列。",
+    "note": "AI咨询与AI解读、轻量四柱命理解读与大运解析、四柱守护神、AI四柱合盘分析等标有价格的项目不在此列。",
     "cta": "去看免费运势",
     "share": "趁免费告诉朋友",
     "shareText": "现在可以免费查看万年历、紫微斗数和星座解读。预计于2027年2月12日之后改为付费。",

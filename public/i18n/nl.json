@@ -1763,7 +1763,7 @@
       "brandOtherEntry": "꿀꿀 운세: Saju en tarot met Yeongnyangi →",
       "publicRecordsTitle": "Openbare analyses van Park Byung-ha (Neo), Saju-adviseur met 10 jaar ervaring",
       "publicRecordsLink": "Vergelijk datums, oorspronkelijke teksten en uitkomsten",
-      "passLight": "Elke honingpot bevat {count} lichte duidingen zonder gebruikslimiet, ter waarde van {amount} KRW bij één keer per duiding. Signature-consulten zijn niet inbegrepen."
+      "passLight": "Elke honingpot bevat {count} lichte duidingen zonder gebruikslimiet. Zonder de duidingen die nu gratis zijn, zijn ze {amount} KRW waard bij één keer per duiding. Signature-consulten zijn niet inbegrepen."
     },
     "chatEntry": {
       "title": "Vraag Yeoni en Neo wat je nu het meest bezighoudt",
@@ -2297,7 +2297,7 @@
       "unlimitedCap": "Geen prijsplafond per dienst",
       "percent": "Bespaar tot {amount}%",
       "saving": "Bespaar tot {amount} KRW",
-      "compare": "Vergeleken met losse prijzen, bij elke lichte duiding één keer en het volledige consulttegoed.",
+      "compare": "Vergeleken met losse prijzen, bij één keer gebruik van elke lichte duiding die nu betaald is en het volledige consulttegoed. Duidingen die nu gratis zijn, tellen niet mee.",
       "terms": "Afhankelijk van voorwaarden, uitsluitingen en resterend tegoed.",
       "cta": "Bekijk pas {name}",
       "validity": "Geen vaste looptijd · Geen automatische verlenging",
@@ -2308,10 +2308,10 @@
       "compactTitle": "Honingpot-passen",
       "conditions": "Dekking en voorwaarden",
       "otherServices": "Passen voor andere diensten bekijken",
-      "lightBanner": "Eén kleine honingpot opent alle {count} lichte duidingen.",
+      "lightBanner": "Ook de kleine honingpot bevat alle {count} lichte duidingen.",
       "lightBannerSub": "Gebruik lichte duidingen onbeperkt, behalve de signature-consulten. Ook de middelgrote, grote en familiepot bevatten ze.",
-      "lightLine": "{count} lichte duidingen, onbeperkt gebruik",
-      "lightWorth": "Ter waarde van {amount} KRW",
+      "lightLine": "{count} lichte duidingen, onbeperkt gebruik · {free} daarvan ook zonder honingpot gratis",
+      "lightWorth": "Ter waarde van {amount} KRW, alleen duidingen die nu betaald zijn meegeteld",
       "consultLine": "Tegoed voor expertconsulten",
       "consultAmount": "{amount} KRW",
       "consultCap": "(tot {amount} KRW per keer)",
@@ -22512,9 +22512,9 @@
   },
   "freePromo": {
     "badge": "Slechts 3 maanden",
-    "title": "Nu alles gratis",
+    "title": "Nu zijn de basislezingen gratis",
     "until": "Na 12 februari 2027 is betaald gebruik gepland",
-    "note": "AI-consulten en de Light Saju- en tienjarige-cyclus-lezingen vallen erbuiten.",
+    "note": "Onderdelen met een prijs vallen erbuiten, zoals AI-consulten en AI-lezingen, de Light Saju- en tienjarige-cyclus-lezingen, de Saju-beschermgeest en de AI Saju-compatibiliteitsanalyse.",
     "cta": "Gratis lezingen bekijken",
     "share": "Vertel het een vriend zolang het gratis is",
     "shareText": "Manseryeok, Zi Wei Dou Shu en astrologie zijn nu gratis te bekijken. Na 12 februari 2027 is betaald gebruik gepland.",

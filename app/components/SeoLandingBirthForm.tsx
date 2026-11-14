@@ -9,6 +9,7 @@ import { validateBirthDateWithAge } from "@/lib/birthDateInput";
 import { readCurrentDestinyProfile, readDestinyProfileAccountId, applyDestinyProfileBirthEdit, type DestinyProfileCard } from "@/app/_lib/profile-card-storage";
 import { useAiProfileSeed } from "@/app/hooks/useAiProfileSeed";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
+import { trackEvent } from "@/lib/analytics";
 
 interface SeoLandingBirthFormCopy {
   birthDateLabel: string;
@@ -222,6 +223,11 @@ export default function SeoLandingBirthForm({ heading, submitLabel, submitHref, 
 
     // 문서 이동으로 보낸다. 정적 셸 딥링크는 위 인계값을 먼저 홈 입력에 복원한 뒤 액션을
     // 실행하고, Next 라우트는 마운트 시 프로필 카드를 다시 읽는다.
+    // 측정값은 경로와 공개 액션 이름뿐이다. 입력한 생년월일·성별은 싣지 않는다.
+    trackEvent("landing_form_submit", {
+      from_service: window.location.pathname,
+      to_action: action && /^[A-Za-z0-9_]{1,64}$/.test(action) ? action : target.pathname,
+    });
     window.location.assign(submitHref);
   }
 

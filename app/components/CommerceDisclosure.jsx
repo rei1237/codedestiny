@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { BUSINESS_IDENTITY, BUSINESS_PHONE_INTL, SUPPORT_EMAIL, SUPPORT_MAILTO } from "../../lib/site-policy-config";
-import { PASS_MONTHLY_WON } from "../../lib/payment/pass-pricing";
+import { CURRENT_PASS_PLANS } from "../../lib/payment/pass-policy";
 import { resolveServerFeaturePricing } from "../../lib/payment/server-feature-pricing";
 import { COMMERCE_DISCLOSURE_COPY } from "../../lib/i18n/commerce-disclosure-copy.mjs";
 
@@ -31,7 +31,7 @@ export default function CommerceDisclosure({ locale }) {
         return pricing ? <li key={featureKey}>{label}: {formatPrice(pricing.amountKRW)}</li> : null;
       })}</ul>
       <h3>{copy.prices}</h3>
-      <ul>{Object.entries(PASS_MONTHLY_WON).map(([tier, price]) => (
+      <ul>{Object.values(CURRENT_PASS_PLANS).map(({ tier, wonPrice: price }) => (
         <li key={tier}>{tier === "vvip" ? "VVIP" : tier[0].toUpperCase() + tier.slice(1)}: {new Intl.NumberFormat(locale, { style: "currency", currency: "KRW", currencyDisplay: "code", maximumFractionDigits: 0 }).format(price)}</li>
       ))}</ul>
       <p>{copy.passText}</p>

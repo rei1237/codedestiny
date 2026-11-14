@@ -24,7 +24,7 @@ import {
 import { getSeoRouteProfile, getTopicClusterLinks } from "../../lib/seo/entity-registry.mjs";
 import SeoLandingBirthForm from "./SeoLandingBirthForm";
 import FortuneLandingHero, { hasFortuneLanding, FortuneLandingDirectory } from "./FortuneLandingHero";
-import { SEO_SERVICE_SCOPES } from "../../lib/seo-service-scope";
+import { SEO_SERVICE_SCOPES, SEO_SERVICE_SCOPES_UPDATED, seoServiceScopeAsOfLabel } from "../../lib/seo-service-scope";
 import { SEO_READING_EXAMPLES } from "../../lib/seo-reading-examples";
 
 const DEFAULT_FAQS = [
@@ -110,7 +110,11 @@ const SEO_LANDING_TEMPLATE_COPY = {
   },
 };
 
+/* 페이지가 쓴 FAQ 가 이 수 이상이면 공통 FAQ 를 붙이지 않는다(T2 — 여러 허브에 같은 문답이
+   반복 노출되지 않게). 그보다 적을 때만 이 수까지 채운다. 화면과 FAQ JSON-LD 는 이 함수의
+   반환값 하나를 같이 쓴다. */
 function mergeFaqs(pageFaqs) {
+  const MIN_FAQS_BEFORE_DEFAULTS = 3;
   const custom = Array.isArray(pageFaqs) ? pageFaqs : [];
   const seen = new Set();
   return [...custom, ...DEFAULT_FAQS]
@@ -121,7 +125,7 @@ function mergeFaqs(pageFaqs) {
       return true;
     })
     // Keep authored answers; defaults only fill a short FAQ, never displace its content.
-    .slice(0, Math.max(5, custom.length));
+    .slice(0, Math.max(MIN_FAQS_BEFORE_DEFAULTS, custom.length));
 }
 
 /* 🔴 손으로 쓴 relatedServices 가 토픽 클러스터를 굶기지 않게 순서를 나눠 둔다.
@@ -417,9 +421,10 @@ export default function SeoLandingTemplate({ page, hero = null, services = null,
             <p><strong>무료로 확인하는 내용</strong> · {SEO_SERVICE_SCOPES[page.path].free}</p>
             <p><strong>유료로 추가되는 내용</strong> · {SEO_SERVICE_SCOPES[page.path].paid}</p>
             <p><strong>필요한 입력</strong> · {SEO_SERVICE_SCOPES[page.path].input}</p>
-            <p>계산 엔진이 명식·별자리·카드의 근거를 만들고, AI는 선택한 상담의 해설을 작성합니다. 결과는 미래를 확정하지 않으며 입력의 정확도에 영향을 받습니다.</p>
-            <p><Link href={SEO_SERVICE_SCOPES[page.path].basis} className="underline underline-offset-4">계산·해석 기준</Link>{" · "}<Link href="/about/#author" className="underline underline-offset-4">운영자 박병하·네오의 공개 활동</Link></p>
-            <p>결제 조건과 제공 범위는 선택한 상품에서 확인하세요. 영냥이 상담은 <Link href="/yeongnyangi/library/" className="underline underline-offset-4">내 상담 기록</Link>에서 다시 열 수 있습니다.</p>
+            {/* 여러 허브에 같은 문단이 반복되지 않게 공통 안내는 한 줄로 둔다(T2). 미래를 확정하지
+                않는다는 고지는 바로 아래 면책 절과 제작·검수 안내가 맡는다. */}
+            <p>계산 엔진이 근거를 만들고 AI는 선택한 상담의 해설을 씁니다. 결제 조건은 선택한 상품에서 확인하세요. <Link href={SEO_SERVICE_SCOPES[page.path].basis} className="underline underline-offset-4">계산·해석 기준</Link>{" · "}<Link href="/about/#author" className="underline underline-offset-4">운영자 박병하·네오의 공개 활동</Link></p>
+            <p className="text-sm text-[var(--cd-text-muted)]">무료·유료 범위는 <time dateTime={SEO_SERVICE_SCOPES_UPDATED}>{seoServiceScopeAsOfLabel()}</time>이며, 바뀌면 이 날짜와 함께 고칩니다.</p>
           </section>
         ) : null}
         {nextStep ? (

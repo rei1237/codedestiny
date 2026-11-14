@@ -13,7 +13,7 @@ export async function resolve(specifier, context, next) {
   }
 }`)}`);
 
-const { HREFLANG_CODES, alternatesFor, toNextLanguages, localeSiblings } = await import("../../lib/seo/hreflang.mjs");
+const { HREFLANG_CODES, HOME_HREFLANG_ROUTES, alternatesFor, toNextLanguages, localeSiblings } = await import("../../lib/seo/hreflang.mjs");
 const localeData = await import("../../lib/i18n/locale-data.mjs");
 
 const ORIGIN = "https://code-destiny.com";
@@ -26,12 +26,14 @@ test("HREFLANG_CODES keeps one code per language plus scope-widening aliases", (
   });
 });
 
-test("home cluster keeps /ggulggul/ as ko and x-default without regional duplicates", () => {
-  const list = alternatesFor(localeData.I18N_ROUTE_MAP.home);
+test("home cluster keeps / as ko and x-default without regional duplicates", () => {
+  const list = alternatesFor(HOME_HREFLANG_ROUTES);
+  assert.ok(!list.some((alt) => alt.href === `${ORIGIN}/ggulggul/`), "/ggulggul/ is outside the home hreflang cluster");
+  assert.equal(list.find((alt) => alt.hreflang === "ko").href, `${ORIGIN}/`);
   assert.deepEqual(codes(list), ["ko", "ja", "zh-CN", "zh", "zh-Hans", "zh-TW", "zh-Hant", "en", "x-default"]);
   const xDefault = list.filter((alt) => alt.hreflang === "x-default");
   assert.equal(xDefault.length, 1);
-  assert.equal(xDefault[0].href, `${ORIGIN}/ggulggul/`);
+  assert.equal(xDefault[0].href, `${ORIGIN}/`);
   for (const dropped of ["ko-KR", "ja-JP", "en-US"]) assert.ok(!codes(list).includes(dropped), dropped);
   assert.equal(list.find((alt) => alt.hreflang === "zh-TW").href, `${ORIGIN}/zh-tw/`);
 });

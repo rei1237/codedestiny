@@ -1763,7 +1763,7 @@
       "brandOtherEntry": "꿀꿀 운세: Yeongnyangi Saju & Tarot →",
       "publicRecordsTitle": "Public analysis records by Park Byung-ha (Neo), a Saju practitioner with 10 years of experience",
       "publicRecordsLink": "Compare dates, original posts and outcomes",
-      "passLight": "Every Honey Jar includes {count} Light Readings with unlimited uses, worth KRW {amount} at one use each. Signature consultations are not included."
+      "passLight": "Every Honey Jar includes {count} Light Readings with unlimited uses. Leaving out the readings that are free today, they are worth KRW {amount} at one use each. Signature consultations are not included."
     },
     "chatEntry": {
       "title": "Ask Yeoni and Neo the one thing on your mind right now",
@@ -2297,7 +2297,7 @@
       "unlimitedCap": "No per-service price cap",
       "percent": "Save up to {amount}%",
       "saving": "Save up to KRW {amount}",
-      "compare": "Compared with single-purchase prices, using each Light Reading once and the full consultation allowance.",
+      "compare": "Compared with single-purchase prices, using each Light Reading that is paid today once and the full consultation allowance. Readings that are free today are not counted.",
       "terms": "Subject to product eligibility, exclusions and remaining allowance.",
       "cta": "View {name} pass",
       "validity": "No fixed validity period · No auto-renewal",
@@ -2308,10 +2308,10 @@
       "compactTitle": "Honey Jar passes",
       "conditions": "Coverage and terms",
       "otherServices": "Explore passes for other services",
-      "lightBanner": "One Small Honey Jar unlocks all {count} Light Readings.",
+      "lightBanner": "Even the Small Honey Jar includes all {count} Light Readings.",
       "lightBannerSub": "Enjoy Light Readings as often as you like; signature consultations are not included. Medium, Large and Family Honey Jars include them too.",
-      "lightLine": "{count} Light Readings, unlimited uses",
-      "lightWorth": "Worth KRW {amount}",
+      "lightLine": "{count} Light Readings, unlimited uses · {free} of them are free even without a Honey Jar",
+      "lightWorth": "Worth KRW {amount}, counting only readings that are paid today",
       "consultLine": "Expert consultation allowance",
       "consultAmount": "KRW {amount}",
       "consultCap": "(up to KRW {amount} each)",
@@ -22512,9 +22512,9 @@
   },
   "freePromo": {
     "badge": "3 months only",
-    "title": "Everything is free, for now",
+    "title": "Core readings are free, for now",
     "until": "Planned to become paid after February 12, 2027",
-    "note": "AI consultations and the Light Saju and ten-year cycle readings are not included.",
+    "note": "Items shown with a price are not included, such as AI consultations and AI readings, the Light Saju and ten-year cycle readings, the Saju guardian, and the AI Saju compatibility analysis.",
     "cta": "See free readings",
     "share": "Tell a friend while it's free",
     "shareText": "Manseryeok, Zi Wei Dou Shu and astrology readings are free right now. They are planned to become paid after February 12, 2027.",

@@ -65,8 +65,9 @@ test('ggulggul destination receives this reading input once without rewriting th
   find(ast);
   assert.ok(submit);
   for (const pathname of ['/ggulggul/', '/ggulggul', '/', '/vedic-ai/']) for (const owner of ['owner','previous-owner']) {
-    const entries = new Map(); let destination;
+    const entries = new Map(); let destination; const tracked = [];
     const ctx = {
+      trackEvent: (name, params) => tracked.push([name, params]),
       URL, Date, JSON, selectedCard:{current:{owner,profile:{id:'chosen-card'}}}, SEO_LANDING_ENTRY_HANDOFF_KEY: 'cd:seo-landing-entry:v1',
       form: { birthDate: '1990-01-15', birthTime: '13:30', birthTimeUnknown: false, gender: 'female', calendarType: 'solar' },
       showTime: true, showGender: true, showCalendar: true,
@@ -75,7 +76,7 @@ test('ggulggul destination receives this reading input once without rewriting th
       readCurrentDestinyProfile: () => ({ id: 'saved-card' }),
       applyDestinyProfileBirthEdit: (existing, birth) => ({ ...existing, ...birth }),
       readDestinyProfileAccountId: () => 'owner',
-      window: { location: { origin: 'https://mock.invalid', assign: href => { destination = href; } }, sessionStorage: { setItem: (key, value) => entries.set(key, value) }, localStorage: { setItem: () => assert.fail('must not change saved profile') } },
+      window: { location: { origin: 'https://mock.invalid', pathname: '/love/', assign: href => { destination = href; } }, sessionStorage: { setItem: (key, value) => entries.set(key, value) }, localStorage: { setItem: () => assert.fail('must not change saved profile') } },
     };
     vm.createContext(ctx);
     vm.runInContext(ts.transpileModule(submit.getText(ast), { compilerOptions: { target: ts.ScriptTarget.ES2022 } }).outputText, ctx);
@@ -89,5 +90,6 @@ test('ggulggul destination receives this reading input once without rewriting th
     assert.equal(handoff.accountId, 'owner');
     assert.equal(destination, ctx.submitHref);
     assert.ok(!destination.includes('1990'));
+    assert.equal(JSON.stringify(tracked), JSON.stringify([['landing_form_submit', { from_service: '/love/', to_action: 'cdOneStepFreeSajuEntry' }]]));
   }
 });

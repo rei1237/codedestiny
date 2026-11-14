@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { SEO_SERVICE_SCOPES, SEO_SERVICE_SCOPES_UPDATED, seoServiceScopeAsOfLabel } from "@/lib/seo-service-scope";
 import { comparisonCopy } from "@/lib/seo/intent-copy.mjs";
 import { SEO_READING_EXAMPLES } from "@/lib/seo-reading-examples";
 import GuideCta from "@/app/components/GuideCta";
@@ -176,6 +177,12 @@ export default function SajuVsZiweiPage() {
           <li>출생시간을 모른다면 자미두수는 명반이 서지 않으므로 사주부터 보는 편이 현실적입니다.</li>
           <li>두 체계를 모두 봤다면 겹치는 대목보다 어긋나는 대목을 먼저 살피는 편이 얻는 것이 많습니다.</li>
         </ul>
+        <p>
+          이 사이트의 사주 이용 범위 — {SEO_SERVICE_SCOPES["/saju"].free} {SEO_SERVICE_SCOPES["/saju"].paid}
+        </p>
+        <p>
+          자미두수 이용 범위 — {SEO_SERVICE_SCOPES["/ziwei"].free} {SEO_SERVICE_SCOPES["/ziwei"].paid} (<time dateTime={SEO_SERVICE_SCOPES_UPDATED}>{seoServiceScopeAsOfLabel()}</time>)
+        </p>
       </section>
 
       <section className="cd-card-grid" aria-labelledby="compare-saju-ziwei-faq-title">

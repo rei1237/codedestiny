@@ -20,7 +20,7 @@ const SITE_SEO_TEXT_TRANSLATIONS = {
     "siteSeo.015": "베다 점성술 무료 해석 | 조티쉬 차트와 다샤 흐름",
     "siteSeo.016": "무료 꿈해몽 | 꿈 상징과 심리 흐름 해석",
     "siteSeo.017": "오늘의 운세 무료 보기 | 하루의 흐름과 선택 가이드",
-    "siteSeo.018": "연애운 무료 보기 | 마음 흐름과 관계 방향",
+    "siteSeo.018": "연애운 보기 | 마음 흐름과 관계 방향",
     "siteSeo.019": "프리미엄 운세 리포트 안내 | 사주·연애·신년 PDF",
     "siteSeo.021": "연애 리포트 PDF 안내 | 관계 흐름 심층 분석",
     "siteSeo.023": "운세 인사이트 가이드 | 사주·타로·궁합·점성술",
@@ -76,7 +76,7 @@ export const siteSeo = {
    * `__tests__/ui/locale-footer.static.test.js` 가 그 일치를 강제한다.
    */
   brandName: BRAND_FACTS.service.name,
-  // WebSite 별칭. 과거 이름과 운영자 이름은 넣지 않는다(과거 이름은 이력 설명에만, 운영자는 Organization 에).
+  // WebSite 별칭. 과거 이름은 넣지 않는다(이력 설명에만). 운영자 이름 두 가지는 2026-11-13 결정으로 별칭에 넣는다(정본 주석 참고).
   alternateName: BRAND_FACTS.service.alternateNames,
   siteUrl: BRAND_FACTS.service.siteUrl,
   defaultLocale: "ko",
@@ -132,7 +132,7 @@ export const publicSeoPages: Record<string, PublicSeoPage> = {
     path: "/about",
     title: siteSeoText("siteSeo.002"),
     description:
-      "꿀꿀 운세에서 제공하는 무료 만세력, 타로, 자미두수, 점성술, 숙요점 서비스와 운영자 CODE DESTINY, 콘텐츠 운영 원칙을 소개합니다.",
+      "꿀꿀 운세는 명리학자 박병하(네오)가 운영하는 사주·타로·자미두수 운세 상담 서비스예요. 운영자, 해석 기준, 무료와 유료의 범위, 콘텐츠 운영 원칙을 소개합니다.",
     h1: "꿀꿀 운세 소개",
     changeFrequency: "monthly",
     priority: 0.8,
@@ -330,8 +330,8 @@ export const publicSeoPages: Record<string, PublicSeoPage> = {
     title: siteSeoText("siteSeo.018"),
     description:
       "연애운 페이지에서는 현재 관계의 흐름, 상대와의 거리, 대화의 실마리를 사주와 타로 관점에서 살펴봅니다.",
-    h1: "연애운 무료 보기",
-    keywords: ["연애운", "무료 연애운", "상대 마음", "재회운"],
+    h1: "연애운 보기",
+    keywords: ["연애운", "상대 마음", "재회운"],
     changeFrequency: "weekly",
     priority: 0.9,
     structuredData: ["WebPage", "BreadcrumbList", "FAQPage"],

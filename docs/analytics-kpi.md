@@ -102,14 +102,18 @@ next: "S00 기준선의 동일 KST 기간·동의/테스트 제외·승인일 �
 | `yeongnyangi_portal_impression` · `yeongnyangi_portal_click` · `yeongnyangi_portal_arrival` | `js/core/analytics.js` + `js/core/home-funnel.js` | GA4 | `from_service` · `to_service` · `placement` · `destination` · `metric_version` |
 | `home_mv_play` · `home_mv_chapter` · `home_card_impression`(card=`moonlight_mv`) | `js/core/home-mv.js` (홈 「달빛 운명여행」 뮤직비디오, 2026-10-15) | GA4 | `home_mv_play`: `quality`(`1080p`·`720p`) · `source`(`poster`·`chapter`), 페이지당 1회 / `home_mv_chapter`: `chapter`(1~5) / 노출: `placement=home_mid`, 화면 절반이 보일 때 1회 |
 | `yeongnyangi_mv_impression` · `yeongnyangi_mv_open` · `yeongnyangi_mv_play` · `yeongnyangi_mv_chapter` · `yeongnyangi_mv_complete` · `yeongnyangi_mv_cta` | `app/yeongnyangi/_components/HeavenLightCinema.tsx` (영냥이 홈 「HEAVEN LIGHT」 뮤직비디오 타로 카드·극장, 2026-10-21) | GA4 | 노출: `placement=home_journey`, 카드가 절반 보일 때 1회 / `yeongnyangi_mv_open`: 카드 클릭 / `yeongnyangi_mv_play`: `quality`(`1080p`·`720p`) · `source`(`card`·`chapter`), 극장당 첫 재생 1회 / `yeongnyangi_mv_chapter`: `chapter`(1~6) / `yeongnyangi_mv_complete`: 끝까지 재생, 1회 / `yeongnyangi_mv_cta`: `placement`(`theatre_end` 영상 끝 패널 · `theatre_footer` 극장 하단 링크), 누를 때마다 |
-| `cross_sell_click` | `js/core/analytics.js:251` | GA4 | `from_service` · `to_service` |
+| `cross_sell_click` | `js/core/analytics.js:251` | GA4 | `from_service` · `to_service` · 검색 CTA는 `placement`(`primary`·`related`·`directory`·`next_step`·`free_result`) · `target_service`. `free_result`는 2026-11-14에 허용값만 열었고 아직 이 값을 쓰는 링크는 없다 |
 | `share_receive` | `js/core/analytics.js:294` | GA4 | `referral_channel` |
 | `retention_visit` | `js/core/analytics.js:315` | GA4 | `days_since_last_visit` |
-| `free_saju_started` / `free_saju_completed` | `js/saju-engine.js:4881` / `:5413` | GA4 | `signed_in` |
+| `free_saju_started` / `free_saju_completed` | `js/saju-engine.js:4787` / `:5307` | GA4 | `signed_in` |
+| `free_saju_submitted` (2026-11-14) | `js/saju-engine.js:4775` — 로그인 확인 **앞** | GA4 | `signed_in`(불리언). 로그인하지 않은 제출까지 센다. `free_saju_started`(로그인 통과 뒤)는 그대로 둔다 |
+| `free_saju_chart_started` / `free_saju_chart_completed` (2026-11-14) | `app/saju/free/FreeSajuForm.tsx:20` / `:22` | GA4 | `surface=saju_free` · `time_known` |
+| `free_ziwei_chart_started` / `free_ziwei_chart_completed` (2026-11-14) | `app/components/AdvancedZiweiSectionV2.tsx:508` / `:576` (캐시 복원에서는 쏘지 않음) | GA4 | `surface=ziwei_chart` · `time_known` |
+| `landing_form_submit` (2026-11-14) | `app/components/SeoLandingBirthForm.tsx:227` — 셸로 이동 직전 | GA4 | `from_service`(랜딩 경로) · `to_action`(공개 액션 이름, 없으면 도착 경로) |
 | `checkout_opened` · `checkout_option_click` · `pass_verified_free` · `pass_store_entered` · `checkout_dismissed` · `checkout_pg_opened` | `js/core/checkout-entry.js:131` 의 `FUNNEL_EVENTS` | GA4 **+** 1st-party | GA4: `feature_key` · `option` · `coin_price` **뿐** (`:928`) / 1st-party: 여기에 `renderer` · `runtime` · `hasPassHint` · `dwellMs` · `steps` 추가 (`:911`) |
 | `purchase_complete` | 셸 `index.html:26293` / React `app/components/PaymentProcessingContext.tsx:893` | GA4 | `feature_key` · `payment_mode` · `coin_price` |
 | `purchase` · `entitlement_granted` | `js/core/analytics.js:192` `cdTrackConfirmedPurchase` ← 셸 `index.html:23672` · dp `js/destiny-profile.js:5803`(결제)·`:4666`(복귀) · 이용권 `app/points/PointsClient.tsx:3885` | GA4 | `transaction_id` · `value` · `items[0].item_id` |
-| `login` · `signup` | `app/components/auth/AuthShell.tsx:520,536,563` | GA4 | `method` |
+| `login` · `signup` | `app/components/auth/AuthShell.tsx:590,617,646` · 소셜 로그인(기존 회원)은 `app/auth/_components/StaticOAuthCallbackRedirect.tsx:424`(2026-11-14) | GA4 | `method`(`password`·`social`). 소셜 `login`은 콜백 페이지가 곧바로 이동해 분석 스크립트가 늦으면 빠지므로 하한값이다 |
 | `share_clicked` · `copy_link_clicked` · `native_share_opened` · `social_share_clicked` · `share_completed` · `share_failed` | `app/components/ShareWidget.tsx:128~158` (`lib/share.v2.ts:52`) | GA4 | `shareChannel` |
 
 `section` 10종(`index.html` 의 `data-cd-funnel-section`): `hero` · `concern_pick` · `today_hub` ·

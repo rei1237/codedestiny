@@ -169,6 +169,7 @@ export default function ImmersiveRelatedLinks({
       {/* 검수 노트는 관련 링크와 같은 폭·같은 톤으로 그 아래에 둔다(app/guides/[slug]/page.js 의 본문 하단 배치와 같은 판단).
           이 컴포넌트가 몰입형 19개 라우트의 유일한 서버 렌더 하단 블록이라, 여기가 저자·날짜·정책 링크의 유일한 자리다. */}
       <ContentIntegrityNote
+        contentPath={fromPath}
         contentSource="authored"
         datePublished={dates.datePublished}
         dateModified={dates.dateModified}

@@ -1763,7 +1763,7 @@
       "brandOtherEntry": "꿀꿀 운세: Saju und Tarot mit Yeongnyangi →",
       "publicRecordsTitle": "Öffentliche Analysen von Park Byung-ha (Neo), Saju-Berater mit 10 Jahren Erfahrung",
       "publicRecordsLink": "Daten, Originaltexte und Ergebnisse vergleichen",
-      "passLight": "Jeder Honigtopf enthält {count} leichte Deutungen ohne Nutzungslimit, im Wert von {amount} KRW bei je einer Nutzung. Signature-Beratungen sind nicht enthalten."
+      "passLight": "Jeder Honigtopf enthält {count} leichte Deutungen ohne Nutzungslimit. Ohne die heute kostenlosen Deutungen haben sie bei je einer Nutzung einen Wert von {amount} KRW. Signature-Beratungen sind nicht enthalten."
     },
     "chatEntry": {
       "title": "Frag Yeoni und Neo, was dich gerade am meisten beschäftigt",
@@ -2297,7 +2297,7 @@
       "unlimitedCap": "Keine Preisobergrenze je Dienst",
       "percent": "Bis zu {amount}% sparen",
       "saving": "Bis zu {amount} KRW sparen",
-      "compare": "Vergleich zum Einzelpreis bei einmaliger Nutzung jeder leichten Deutung und vollem Beratungsbudget.",
+      "compare": "Vergleich mit Einzelpreisen bei je einer Nutzung jeder heute kostenpflichtigen leichten Deutung und vollem Beratungskontingent. Heute kostenlose Deutungen sind nicht mitgezählt.",
       "terms": "Es gelten Produktbedingungen, Ausschlüsse und Restbudget.",
       "cta": "Pass {name} ansehen",
       "validity": "Keine feste Laufzeit · Keine automatische Verlängerung",
@@ -2308,10 +2308,10 @@
       "compactTitle": "Honigtopf-Pässe",
       "conditions": "Leistungsumfang und Bedingungen",
       "otherServices": "Pässe für andere Dienste ansehen",
-      "lightBanner": "Ein kleiner Honigtopf öffnet alle {count} leichten Deutungen.",
+      "lightBanner": "Auch der kleine Honigtopf enthält alle {count} leichten Deutungen.",
       "lightBannerSub": "Nutze leichte Deutungen ohne Nutzungslimit, ausgenommen Signature-Beratungen. Auch mittlere, große und Familien-Töpfe enthalten sie.",
-      "lightLine": "{count} leichte Deutungen, unbegrenzt nutzbar",
-      "lightWorth": "Im Wert von {amount} KRW",
+      "lightLine": "{count} leichte Deutungen, unbegrenzt nutzbar · {free} davon auch ohne Honigtopf kostenlos",
+      "lightWorth": "Im Wert von {amount} KRW, nur heute kostenpflichtige Deutungen gezählt",
       "consultLine": "Budget für Expertenberatung",
       "consultAmount": "{amount} KRW",
       "consultCap": "(bis {amount} KRW je Nutzung)",
@@ -22512,9 +22512,9 @@
   },
   "freePromo": {
     "badge": "Nur 3 Monate",
-    "title": "Jetzt alles kostenlos",
+    "title": "Jetzt sind die Basis-Deutungen kostenlos",
     "until": "Ab dem 12. Februar 2027 ist eine Umstellung auf kostenpflichtig geplant",
-    "note": "Ausgenommen sind KI-Beratungen sowie die Light-Saju- und Zehnjahreszyklus-Deutungen.",
+    "note": "Ausgenommen sind Angebote mit Preisangabe, etwa KI-Beratungen und KI-Deutungen, die Light-Saju- und Zehnjahreszyklus-Deutungen, der Saju-Schutzgeist und die KI-Saju-Partneranalyse.",
     "cta": "Kostenlose Deutungen ansehen",
     "share": "Freunden Bescheid sagen, solange es kostenlos ist",
     "shareText": "Manseryeok, Zi Wei Dou Shu und Astrologie sind gerade kostenlos. Ab dem 12. Februar 2027 ist eine Umstellung auf kostenpflichtig geplant.",

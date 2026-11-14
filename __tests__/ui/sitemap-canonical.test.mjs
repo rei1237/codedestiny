@@ -400,14 +400,18 @@ test('home cluster shells get the alternatesFor(home) hreflang set in place of t
   const out = withHomeClusterHreflang(shell);
   const links = [...out.matchAll(/<link\s+[^>]*rel=["']alternate["'][^>]*hreflang=["']([^"']+)["'][^>]*href=["']([^"']+)["']/gi)].map(([, lang, href]) => `${lang} ${href}`);
   assert.deepEqual(links, [
-    'ko https://code-destiny.com/ggulggul/', 'ja https://code-destiny.com/ja/',
+    'ko https://code-destiny.com/', 'ja https://code-destiny.com/ja/',
     'zh-CN https://code-destiny.com/zh/', 'zh https://code-destiny.com/zh/', 'zh-Hans https://code-destiny.com/zh/',
     'zh-TW https://code-destiny.com/zh-tw/', 'zh-Hant https://code-destiny.com/zh-tw/',
-    'en https://code-destiny.com/en/', 'x-default https://code-destiny.com/ggulggul/',
+    'en https://code-destiny.com/en/', 'x-default https://code-destiny.com/',
   ]);
   assert.equal(out.match(/type=["']application\/rss\+xml["']/gi)?.length ?? 0, shell.match(/type=["']application\/rss\+xml["']/gi)?.length ?? 0, 'RSS alternate stays');
   assert.ok(out.includes('<a href="/ggulggul/" hreflang="ko" lang="ko">KR</a>'), 'body language links stay');
   assert.equal(withHomeClusterHreflang('<head><title>x</title></head>'), '<head><title>x</title></head>', 'no block, no insert');
+  // /ggulggul/ 셸은 빈 묶음을 받아 hreflang 을 지운다(대표는 `/`). RSS alternate 는 남는다.
+  const stripped = withHomeClusterHreflang(shell, []);
+  assert.equal(stripped.match(/<link\s+[^>]*hreflang=/gi), null, 'no hreflang link left');
+  assert.equal(stripped.includes('application/rss+xml'), shell.includes('application/rss+xml'), 'RSS alternate stays after strip');
 });
 
 test('edge rules run the dist worker over emulated Pages assets, and are skipped without a worker', async () => {
@@ -470,7 +474,9 @@ test('robots-policy fails when dist/robots.txt decides any sample differently fr
   assert.equal(RULES['robots-policy'], 'fail');
 
   // 정본 그대로, 스테이징 호스트, 2026-11-01 운영본(그룹 18개·Host 줄)은 판정이 같다.
-  for (const same of [policy, renderRobotsTxt('https://staging.example'), readFileSync(new URL('../fixtures/seo/robots-2026-11-01.txt', import.meta.url), 'utf8')]) {
+  // 2026-11-14 에 정본에서 /points/ 차단을 뺐다(noindex 를 읽게 하려고). 그 한 줄만 운영본에서 걷어 내고 비교한다.
+  const production = readFileSync(new URL('../fixtures/seo/robots-2026-11-01.txt', import.meta.url), 'utf8').replace(/^Disallow: \/points\/\r?\n/gm, '');
+  for (const same of [policy, renderRobotsTxt('https://staging.example'), production]) {
     const result = await check(same);
     assert.deepEqual(result.failures, [], JSON.stringify(result.details['robots-policy']));
   }

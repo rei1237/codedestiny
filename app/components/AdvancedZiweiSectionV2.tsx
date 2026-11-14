@@ -43,6 +43,7 @@ import {
 } from "../_lib/ziwei-types";
 import { transformationTypeToLabel } from "../_lib/ziwei-advanced-normalization";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
+import { trackEvent } from "@/lib/analytics";
 // 전문가 상담 8종이 공유하는 산문 렌더러와 용어 툴팁. 자미 전용 사본을 만들지 말 것.
 import AiResultProse from "@/components/fortune/AiResultProse";
 import GlossaryTerm from "@/components/fortune/GlossaryTerm";
@@ -502,6 +503,9 @@ export default function AdvancedZiweiSectionV2({
       return;
     }
 
+    // 측정값에는 화면 이름과 출생시각 입력 여부만 싣는다. 캐시 복원(restoreCachedResult)에서는 쏘지 않는다.
+    const measure = { surface: "ziwei_chart", time_known: !form.unknownHour };
+    trackEvent("free_ziwei_chart_started", measure);
     setStep("computing");
     setProgress(0);
 
@@ -569,6 +573,7 @@ export default function AdvancedZiweiSectionV2({
 
         clearInterval(timer);
         setProgress(100);
+        trackEvent("free_ziwei_chart_completed", measure);
         setTimeout(() => { if (epoch === computationEpoch.current) setStep("result"); }, 320);
       } catch (err) {
         clearInterval(timer);

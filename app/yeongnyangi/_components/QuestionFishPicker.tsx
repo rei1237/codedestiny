@@ -6,7 +6,7 @@ import {consultationBudget,a4Label} from '@/worker/yeongnyangi/fortune/consultat
 import styles from './question-fish-picker.module.css';
 
 export default function QuestionFishPicker({formatProductPrice,domain,selected,recommended,onSelect,disabled=false}:{formatProductPrice?:(item:Product)=>string;domain:Product['domain'];selected:QuestionFish;recommended:QuestionFish;onSelect:(fish:QuestionFish)=>void;disabled?:boolean}){
- return <fieldset className={styles.picker} disabled={disabled}><legend>상담의 깊이를 골라 주세요</legend><p>질문에 맞는 생선을 추천해요. 원하는 깊이로 직접 선택할 수 있어요.</p>
+ return <fieldset className={styles.picker} disabled={disabled}><legend>상담의 깊이를 골라 주세요</legend><p>질문에 맞는 깊이를 추천해요. 가격과 분량을 보고 직접 고를 수 있어요.</p>
   {(Object.keys(FOLLOWUP_LIMITS) as QuestionFish[]).map(fish=>{
    const product=products.find(p=>p.domain===domain&&p.fishId===fish&&p.readingKind==='single')!;
    return <label key={fish} className={styles.option}><input type="radio" name="question-fish" value={fish} checked={selected===fish} onChange={()=>onSelect(fish)}/><span className={styles.copy}>

@@ -97,7 +97,8 @@ function profileFor(path) {
 }
 
 const { service, operator } = BRAND_FACTS;
-const aliasLine = SEO_BRAND_ENTITY.aliases.map((name) => `"${name}"`).join(", ");
+// 붙여 쓴 표기는 첫 별칭 하나다. 나머지 별칭(운영자 이름)은 운영자 줄에서 말한다.
+const aliasLine = `"${SEO_BRAND_ENTITY.aliases[0]}"`;
 
 const lines = [];
 lines.push(`# ${service.name}`);
@@ -105,7 +106,8 @@ lines.push("");
 
 // 첫 문단은 자립형 정의다 — AI 는 페이지가 아니라 구절을 뽑아 간다.
 lines.push(
-  `> ${service.name}는 ${service.summary}입니다. ` +
+  // 서비스 정의 한 문장은 /about 본문 첫 문장(app/_content/about-copy.js intro)과 같은 문장이다. 한쪽을 고치면 함께 고친다.
+  "> 꿀꿀 운세는 명리학자 박병하(네오)가 운영하는 사주·타로·자미두수 운세 상담 서비스예요. " +
     "생년월일과 태어난 시각을 입력하면 사주·자미두수·숙요점·베다 점성술·서양 점성술·타로 여섯 체계로 " +
     "운세를 읽어 주는 한국어 웹 서비스입니다. 각 체계를 그 체계의 기준으로 해석하고, 무료 기본 결과와 선택형 유료 AI 상담의 범위는 각 안내 페이지에서 구분합니다.",
 );
@@ -113,7 +115,7 @@ lines.push("");
 lines.push(`- 공식 홈페이지: ${service.homeUrl}`);
 lines.push(`- 상담 앱 입구(꽃돼지 연이·네오): ${siteBaseUrl}${service.appEntryPath}`);
 const yeongnyangi = BRAND_FACTS.characters.find((character) => character.key === "yeongnyangi");
-lines.push(`- ${yeongnyangi.serviceName}(영냥이 상담) 입구: ${siteBaseUrl}${yeongnyangi.path}`);
+lines.push(`- ${yeongnyangi.serviceName}(${yeongnyangi.alternateNames[0]}) 입구: ${siteBaseUrl}${yeongnyangi.path}`);
 lines.push(`- 영냥이 상담 가격과 챕터 범위: ${siteBaseUrl}${yeongnyangi.path}#yn-prices`);
 lines.push(`- 표기: 공식 서비스명은 "${service.name}"이고, 붙여 쓴 ${aliasLine}도 같은 서비스입니다.`);
 lines.push(`- 운영자: ${operator.name}(${operator.nameKo}). 대표 박병하(활동명 네오). 소개: ${siteBaseUrl}/about/#author`);

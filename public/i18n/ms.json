@@ -1763,7 +1763,7 @@
       "brandOtherEntry": "꿀꿀 운세: Saju dan Tarot bersama Yeongnyangi →",
       "publicRecordsTitle": "Rekod analisis awam Park Byung-ha (Neo), pengamal Saju berpengalaman 10 tahun",
       "publicRecordsLink": "Bandingkan tarikh, catatan asal dan hasil",
-      "passLight": "Setiap Balang Madu menyertakan {count} Bacaan Ringan tanpa had kekerapan, bernilai {amount} KRW jika setiap satu digunakan sekali. Konsultasi utama tidak disertakan."
+      "passLight": "Setiap Balang Madu menyertakan {count} Bacaan Ringan tanpa had kekerapan. Tanpa mengira bacaan yang kini percuma, nilainya {amount} KRW jika setiap satu digunakan sekali. Konsultasi utama tidak disertakan."
     },
     "chatEntry": {
       "title": "Tanya Yeoni dan Neo perkara yang paling ingin anda tahu sekarang",
@@ -2297,7 +2297,7 @@
       "unlimitedCap": "Tiada had harga setiap perkhidmatan",
       "percent": "Jimat sehingga {amount}%",
       "saving": "Jimat sehingga {amount} KRW",
-      "compare": "Berbanding harga tunggal, jika setiap Bacaan Ringan digunakan sekali dan semua had konsultasi digunakan.",
+      "compare": "Berbanding harga pembelian tunggal, dengan menggunakan setiap Bacaan Ringan yang kini berbayar sekali dan had konsultasi sepenuhnya. Bacaan yang kini percuma tidak dikira.",
       "terms": "Tertakluk pada syarat, pengecualian dan baki had.",
       "cta": "Lihat pas {name}",
       "validity": "Tiada tempoh tetap · Tiada pembaharuan automatik",
@@ -2308,10 +2308,10 @@
       "compactTitle": "Pas Balang Madu",
       "conditions": "Liputan dan syarat penggunaan",
       "otherServices": "Lihat pas untuk perkhidmatan lain",
-      "lightBanner": "Satu Balang Madu Kecil membuka kesemua {count} Bacaan Ringan.",
+      "lightBanner": "Balang Madu Kecil juga merangkumi kesemua {count} Bacaan Ringan.",
       "lightBannerSub": "Guna Bacaan Ringan tanpa had kekerapan, kecuali konsultasi utama. Balang Sederhana, Besar dan Keluarga turut menyertakannya.",
-      "lightLine": "{count} Bacaan Ringan, tanpa had kekerapan",
-      "lightWorth": "Bernilai {amount} KRW",
+      "lightLine": "{count} Bacaan Ringan, tanpa had kekerapan · {free} daripadanya percuma walaupun tanpa Balang Madu",
+      "lightWorth": "Bernilai {amount} KRW, hanya mengira bacaan yang kini berbayar",
       "consultLine": "Had konsultasi pakar",
       "consultAmount": "{amount} KRW",
       "consultCap": "(hingga {amount} KRW setiap satu)",
@@ -22512,9 +22512,9 @@
   },
   "freePromo": {
     "badge": "3 bulan sahaja",
-    "title": "Kini semuanya percuma",
+    "title": "Kini bacaan asas percuma",
     "until": "Dirancang menjadi berbayar selepas 12 Februari 2027",
-    "note": "Tidak termasuk konsultasi AI serta bacaan Saju Ringan dan kitaran sepuluh tahun.",
+    "note": "Tidak termasuk item yang memaparkan harga, seperti konsultasi AI dan bacaan AI, bacaan Saju Ringan dan kitaran sepuluh tahun, penjaga Saju serta analisis keserasian Saju AI.",
     "cta": "Lihat bacaan percuma",
     "share": "Beritahu rakan selagi percuma",
     "shareText": "Bacaan Manseryeok, Zi Wei Dou Shu dan astrologi kini boleh dilihat secara percuma. Ia dirancang menjadi berbayar selepas 12 Februari 2027.",

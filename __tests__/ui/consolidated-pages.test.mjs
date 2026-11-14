@@ -92,5 +92,20 @@ test('root action, question and payment return compatibility keeps every input',
     const response = await worker.fetch(new Request('https://code-destiny.com' + input), assets, {});
     assert.equal(response.status, 302);
     assert.equal(response.headers.get('location'), 'https://code-destiny.com' + expected);
+    assert.equal(response.headers.get('x-robots-tag'), input.includes('action=') ? 'noindex, follow' : null, input);
+  }
+});
+
+test('action query pages are served but kept out of the index', async () => {
+  const html = { ASSETS: { fetch: async () => new Response('<html></html>', { headers: { 'Content-Type': 'text/html; charset=utf-8' } }) } };
+  for (const [input, expected] of [
+    ['/ggulggul/?action=openTarotModal', 'noindex, follow'],
+    ['/saju/?action=existing', 'noindex, follow'],
+    ['/ggulggul/', null],
+    ['/saju/', null],
+  ]) {
+    const response = await worker.fetch(new Request('https://code-destiny.com' + input), html, {});
+    assert.equal(response.status, 200, input);
+    assert.equal(response.headers.get('x-robots-tag'), expected, input);
   }
 });

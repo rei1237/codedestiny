@@ -178,6 +178,10 @@ async function canonicalRedirect(request, env, url, pathCollapsed) {
   return new Response(null, { status: 301, headers: { Location: target, "Cache-Control": "no-store" } });
 }
 
+// `?action=` opens an app screen on top of a page; it is never a page of its own. Search engines
+// may follow its links but must not index the URL (2026-11-14). A stricter tag already set wins.
+const ACTION_ROBOTS_TAG = "noindex, follow";
+
 // Inputs that still keep a question guide on Yeongnyangi instead of the Ggulggul app.
 const HOME_GUIDE_KEY = /^(utm_.+|gclid|gbraid|wbraid|fbclid|msclkid|ref|question|lang)$/;
 
@@ -201,10 +205,9 @@ function brandHomeRedirect(request, url, visitorLocale) {
   }
   // Keep the query verbatim. Browsers inherit the original fragment when Location has none,
   // preserving existing service/result deep links. 302: the target depends on the request.
-  return new Response(null, {
-    status: 302,
-    headers: visitorLocaleHeaders(new Headers({ Location: target.toString(), "Cache-Control": "no-store" }), visitorLocale),
-  });
+  const headers = new Headers({ Location: target.toString(), "Cache-Control": "no-store" });
+  if (url.searchParams.has("action")) headers.set("X-Robots-Tag", ACTION_ROBOTS_TAG);
+  return new Response(null, { status: 302, headers: visitorLocaleHeaders(headers, visitorLocale) });
 }
 
 // 🔴 /fortune/** 레거시 리다이렉트가 _redirects 가 아니라 여기 있는 이유.
@@ -849,6 +852,9 @@ export default {
       }
     }
     const response = hardenResponse(request.url, assetResponse);
+    if (url.searchParams.has("action") && !response.headers.has("X-Robots-Tag") && /^text\/html\b/i.test(response.headers.get("Content-Type") || "")) {
+      response.headers.set("X-Robots-Tag", ACTION_ROBOTS_TAG);
+    }
     if (visitorLocale && response.ok && /^text\/html\b/i.test(response.headers.get("Content-Type") || "")) {
       visitorLocaleHeaders(response.headers, visitorLocale, privateCacheControl(response.headers.get("Cache-Control"), url.pathname));
     }

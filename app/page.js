@@ -22,6 +22,7 @@ import styles from "./home-main.module.css";
 import { IS_APP_BUILD } from "../lib/app-build-target";
 import { products } from "../worker/yeongnyangi/payments/catalog";
 import { ROBOTS_META } from "../lib/seo/index-policy.mjs";
+import { alternatesFor, HOME_HREFLANG_ROUTES, toNextLanguages } from "../lib/seo/hreflang.mjs";
 
 // `/` 는 꿀꿀 운세의 공식 대표 홈이다(2026-10-15). 상담 앱 입구는 /ggulggul/ 이고,
 // 기능 쿼리가 붙은 `/` 요청은 워커가 앱으로 보낸다(public/_worker.js 루트 분기).
@@ -30,8 +31,8 @@ const { service, characters } = BRAND_FACTS;
 const YEONGNYANGI = characters.find((character) => character.key === "yeongnyangi");
 // 영냥이 카드의 시작 가격은 영냥이 히어로(NightHero)와 같은 결제 카탈로그 값이다. 꿀꿀 카드엔 무료 운세가 있어 넣지 않는다.
 const YN_STARTER_KRW = products.find((product) => product.id === "saju_mackerel").priceKRW;
-const HOME_TITLE = "꿀꿀 운세 · 운세보는 영냥이 | 서비스 선택";
-const HOME_DESCRIPTION = "꽃돼지 연이와 영냥이를 만나는 꿀꿀 운세. 사주·타로와 주제별 운세를 웹에서 살펴보고, Android 앱은 Google Play에서 설치하세요.";
+const HOME_TITLE = "꿀꿀 운세 | 사주·타로·자미두수 운세 상담";
+const HOME_DESCRIPTION = "꿀꿀 운세는 명리학자 박병하(네오)가 만든 운세 서비스예요. 사주·궁합·타로·자미두수를 살펴보고, 고민은 영냥이 상담에서 챕터별로 읽어 보세요.";
 // summary_large_image 카드라 1200×630 공유 이미지를 쓴다. 정적 홈 셸(index.html)과 같은 그림이다.
 const HOME_IMAGE = siteSeo.defaultOgImage;
 const ART = "/images/home/illustrated";
@@ -44,8 +45,8 @@ export const metadata = {
   title: { absolute: HOME_TITLE },
   description: HOME_DESCRIPTION,
   keywords: [service.name, ...service.alternateNames, `${service.name} 공식`, YEONGNYANGI.serviceName, "무료 만세력", "무료 타로", "영냥이", "자미두수", "베다점", "숙요점", "휴먼 디자인", "MBTI", ...publicSeoPages.home.keywords],
-  // 대표 홈은 자기 자신만 정본으로 둔다. /ggulggul/ 로케일 클러스터(hreflang)와 섞지 않는다.
-  alternates: { canonical: service.homeUrl },
+  // 대표 홈은 자기 자신이 정본이고, 홈 hreflang 묶음의 한국어 대표·x-default 다(2026-11-14). /ggulggul/ 은 묶음에 없다.
+  alternates: { canonical: service.homeUrl, languages: toNextLanguages(alternatesFor(HOME_HREFLANG_ROUTES)) },
   robots: ROBOTS_META.INDEX,
   openGraph: {
     type: "website",
@@ -68,7 +69,7 @@ export const metadata = {
 // /ggulggul/ 은 Next RSC 페이로드가 없는 정적 셸이라 next/link 대신 <a> 로 연다(external).
 const CARDS = [
   { key: "yeoni", className: "yeoniCard", art: "yeoni", name: "꽃돼지 꿀꿀운세", href: service.appEntryPath, external: true, tag: "사주·타로부터 주제별 운세와 상담을 골라보세요.", action: "꿀꿀운세 들어가기" },
-  { key: "yn", className: "ynCard", art: "yeongnyangi", name: "운세보는 영냥이", href: YEONGNYANGI.path, tag: "궁금한 질문과 상황을 중심으로 깊이 살펴보세요.", action: "영냥이 만나기", night: true },
+  { key: "yn", className: "ynCard", art: "yeongnyangi", name: YEONGNYANGI.serviceName, href: YEONGNYANGI.path, tag: "궁금한 질문과 상황을 중심으로 깊이 살펴보세요.", action: "영냥이 만나기", night: true },
 ];
 const CARD_ART_SIZES = "(min-width: 800px) 306px, (min-width: 641px) 38vw, 42vw";
 function discoveryTracking(serviceKey, placement = "directory") {
@@ -90,7 +91,7 @@ export default function HomePage() {
       <header className={styles.brandRow}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img className={styles.brandMark} src="/fuctionassets/%EC%97%B0%EC%9D%B4.webp" width={96} height={96} alt="" decoding="async" />
-        <span className={styles.wordmark}>{IS_APP_BUILD ? service.name : "코드 데스티니"}</span>
+        <span className={styles.wordmark}>{service.name}</span>
         {!IS_APP_BUILD && <a href="#homeCardTitle">상담 추천</a>}
       </header>
 
@@ -98,7 +99,10 @@ export default function HomePage() {
         {IS_APP_BUILD ? <div className={styles.head}>
           <h1 id="homeCardTitle" className={styles.title}><NativeHomeText>꿀꿀 운세에서 어떤 운세를 만나볼까요?</NativeHomeText></h1>
           <p className={styles.lead}><NativeHomeText>마음이 향하는 상담 공간을 골라보세요.</NativeHomeText></p>
-        </div> : <h1 id="webServiceTitle" className={styles.title}>마음이 가는 카드를 골라보세요</h1>}
+        </div> : <div className={styles.head}>
+          <h1 id="webServiceTitle" className={styles.title}>꿀꿀 운세 — 사주·타로·자미두수 운세 상담</h1>
+          <p className={styles.lead}>마음이 가는 카드를 골라보세요</p>
+        </div>}
 
         {/* 카드 제목(h2)의 링크를 카드 크기로 늘려 카드 전체가 한 링크다. 설명 두 줄은 aria-describedby 로 읽힌다. */}
         <HomeCardDeck className={styles.deck} interactive={!IS_APP_BUILD} labelledBy={IS_APP_BUILD ? "homeCardTitle" : "webServiceTitle"}>

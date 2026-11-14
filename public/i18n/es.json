@@ -1763,7 +1763,7 @@
       "brandOtherEntry": "꿀꿀 운세: Saju y tarot con Yeongnyangi →",
       "publicRecordsTitle": "Análisis públicos de Park Byung-ha (Neo), especialista en Saju con 10 años de experiencia",
       "publicRecordsLink": "Comparar fechas, textos originales y resultados",
-      "passLight": "Todos los Tarros de Miel incluyen {count} Lecturas Ligeras sin límite de usos, por valor de {amount} KRW con un uso de cada una. No incluyen las consultas destacadas."
+      "passLight": "Todos los Tarros de Miel incluyen {count} Lecturas Ligeras sin límite de usos. Sin contar las lecturas que hoy son gratuitas, valen {amount} KRW con un uso de cada una. No incluyen las consultas destacadas."
     },
     "chatEntry": {
       "title": "Pregunta a Yeoni y Neo eso que más te inquieta ahora",
@@ -2297,7 +2297,7 @@
       "unlimitedCap": "Sin tope de precio por servicio",
       "percent": "Ahorra hasta un {amount}%",
       "saving": "Ahorra hasta {amount} KRW",
-      "compare": "Comparado con precios individuales, usando cada Lectura Ligera una vez y todo el saldo de consultas.",
+      "compare": "Comparado con los precios individuales, usando una vez cada Lectura Ligera que hoy es de pago y todo el límite de consultas. Las lecturas que hoy son gratuitas no se cuentan.",
       "terms": "Sujeto a condiciones, exclusiones y saldo restante.",
       "cta": "Ver pase {name}",
       "validity": "Sin plazo fijo · Sin renovación automática",
@@ -2308,10 +2308,10 @@
       "compactTitle": "Pases Tarro de Miel",
       "conditions": "Cobertura y condiciones",
       "otherServices": "Ver pases para otros servicios",
-      "lightBanner": "Un solo Tarro de Miel Pequeño abre las {count} Lecturas Ligeras.",
+      "lightBanner": "El Tarro de Miel Pequeño también incluye las {count} Lecturas Ligeras.",
       "lightBannerSub": "Usa las Lecturas Ligeras sin límite de veces, salvo las consultas destacadas. Los tarros Mediano, Grande y Familiar también las incluyen.",
-      "lightLine": "{count} Lecturas Ligeras sin límite de usos",
-      "lightWorth": "Valor de {amount} KRW",
+      "lightLine": "{count} Lecturas Ligeras sin límite de usos · {free} de ellas son gratis incluso sin Tarro de Miel",
+      "lightWorth": "Valor de {amount} KRW, contando solo las lecturas que hoy son de pago",
       "consultLine": "Saldo para consultas expertas",
       "consultAmount": "{amount} KRW",
       "consultCap": "(hasta {amount} KRW cada una)",
@@ -22512,9 +22512,9 @@
   },
   "freePromo": {
     "badge": "Solo 3 meses",
-    "title": "Ahora todo es gratis",
+    "title": "Ahora las lecturas básicas son gratis",
     "until": "Está previsto que pasen a ser de pago después del 12 de febrero de 2027",
-    "note": "No incluye las consultas con IA ni las lecturas ligeras de Saju y de ciclos de diez años.",
+    "note": "No incluye los servicios con precio indicado, como las consultas y lecturas con IA, las lecturas ligeras de Saju y de ciclos de diez años, el guardián de Saju y el análisis de compatibilidad Saju con IA.",
     "cta": "Ver lecturas gratis",
     "share": "Avisa a un amigo mientras es gratis",
     "shareText": "Ahora puedes ver gratis lecturas de Manseryeok, Zi Wei Dou Shu y astrología. Está previsto que pasen a ser de pago después del 12 de febrero de 2027.",

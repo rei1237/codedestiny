@@ -19,7 +19,7 @@ test("홈은 자바스크립트 준비 전에도 사주 직행 액션으로 연�
   assert.match(registry, /id: "saju"[\s\S]*?href: "\/?\?action=cdOneStepFreeSajuEntry"[\s\S]*?action: "cdOneStepFreeSajuEntry"/);
   assert.match(appHome, /href="\/?\?action=cdOneStepFreeSajuEntry"/);
   assert.match(homeSections, /"\/saju": "\/?\?action=cdOneStepFreeSajuEntry"/);
-  assert.match(famousSaju, /href="\/?\?action=cdOneStepFreeSajuEntry"/);
+  assert.match(famousSaju, /href="\/ggulggul\/\?action=cdOneStepFreeSajuEntry"/);
   assert.match(profile, /readFormData\(\{ allowAnonymous: true \}\)/);
   assert.match(profile, /__cdDirectSajuEntryState\.inFlight/);
 });

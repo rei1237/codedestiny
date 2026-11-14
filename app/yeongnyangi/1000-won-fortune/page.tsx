@@ -39,7 +39,7 @@ const mackerels=DOMAINS.map(domain=>single(domain,'mackerel'));
 if(new Set(mackerels.map(p=>p.priceKRW)).size!==1)throw new Error('천원사주 허브: 고등어 가격이 체계마다 다르다.');
 const PRICE=won(mackerels[0].priceKRW);
 // 옛 천원 사주 콘텐츠. 무료 만세력 결과 화면에서 개별 리포트로 이어진다(js/core/saju/reportDashboard.js).
-const FUN_ENTRY_HREF='/?action=cdOneStepFreeSajuEntry';
+const FUN_ENTRY_HREF='/ggulggul/?action=cdOneStepFreeSajuEntry';
 const BUNDLE_SPEC=(PIG_COIN_UNLOCK_PRODUCTS as Record<string,{amountKRW?:number;featureKey?:string}>)[SAJU_BUNDLE_PRODUCT_ID];
 if(!BUNDLE_SPEC||BUNDLE_SPEC.featureKey!==SAJU_BUNDLE_FEATURE_KEY||!BUNDLE_SPEC.amountKRW)throw new Error('천원 운세 허브: 라이트 사주 풀이 가격표를 찾지 못했다.');
 const BUNDLE_PRICE=won(BUNDLE_SPEC.amountKRW);
@@ -78,8 +78,8 @@ const FAQS=[
  {question:'입력한 생년월일과 질문은 어떻게 쓰이나요?',answer:'입력한 출생정보와 질문은 상담을 계산하고 결과를 기록해 다시 보여 주는 데 쓰여요. 보관과 처리 방식은 개인정보 처리방침에서 확인할 수 있어요.'},
 ];
 
-const TITLE='옛 천원 운세 | 사주 리포트와 AI 상담';
-const DESCRIPTION=`매력 클래스·인생 스킬 트리 등 옛 천원 운세 사주 리포트 ${FUN.length}종을 알아보세요. 계산형 리포트와 별도 영냥이 AI 상담(${PRICE}부터)의 차이를 안내해요.`;
+const TITLE='영냥이 사주 상담 가격과 구성 | 옛 천원 운세 안내';
+const DESCRIPTION=`영냥이 사주 상담의 가격(${PRICE}부터)과 챕터 구성을 안내해요. 천원 운세는 끝난 이벤트 이름이며, 그때의 사주 리포트 ${FUN.length}종을 지금 보는 방법도 알려 드려요.`;
 const OG_TITLE=TITLE;
 
 export const metadata:Metadata={
@@ -108,8 +108,8 @@ export default function Page(){
   <section className={styles.intro}>
    <div>
     <p className={styles.kicker}>꿀꿀 운세 · 사주 리포트</p>
-    <h1><span className={styles.h1Line}>옛 천원 운세 리포트,</span> <span className={styles.h1Line}>지금은 어떻게 볼까요?</span></h1>
-    <p>천원 운세로 알려졌던 나의 매력 클래스, 인생 스킬 트리, 달빛 럭키 리추얼은 이제 무료예요. 만세력과 기본풀이를 본 뒤 각 리포트를 이미지와 함께 펼쳐 보세요. 이미 구매하신 결과도 그대로 계속 열려요.</p>
+    <h1><span className={styles.h1Line}>영냥이 사주 상담,</span> <span className={styles.h1Line}>가격과 구성</span></h1>
+    <p>천원 운세는 지금은 끝난 예전 이벤트 이름이에요. 천원 운세로 알려졌던 나의 매력 클래스, 인생 스킬 트리, 달빛 럭키 리추얼은 이제 무료예요. 만세력과 기본풀이를 본 뒤 각 리포트를 이미지와 함께 펼쳐 보세요. 이미 구매하신 결과도 그대로 계속 열려요.</p>
     <p>한 가지 고민을 근거와 함께 길게 읽고 싶다면 영냥이 고등어 상담({PRICE})이 맞아요. 새 질문으로 시작하는 사주 고등어 상담은 {EXPANDED_CHAPTERS.mackerel}개 챕터에서 내 기질과 고민의 흐름을 읽고, 왜 그렇게 해석했는지와 생활 속에서 해볼 행동을 함께 살펴요.</p>
     <p className={styles.actions} data-cd-cross-sell="thousand_won_intro"><a className={styles.primary} href="#fun">재미 사주 리포트 보기</a><a href={QUESTION_HREF}>{PRICE} 사주에 내 질문 남기기</a></p>
     <p className={styles.policy}>계산형 재미 리포트는 결제 없이 이용해요. 별도 AI 상담은 결제창에서 총액과 적용 수단을 확인하며, 자동 결제는 없어요.</p>
@@ -131,7 +131,7 @@ export default function Page(){
 
   <section id="example" className={styles.sample} aria-labelledby="example-title">
    <h2 id="example-title">내 질문에는 어떤 답이 올까요?</h2>
-   <p>가상 입력으로 만든 짧은 편집 예시예요. 실제 고객 데이터나 AI가 생성한 상담 원문이 아니며, 전체 {EXPANDED_CHAPTERS.mackerel}개 챕터 중 답변의 형태를 보여드려요.</p>
+   <p>가상 입력으로 만든 짧은 편집 예시예요. 실제 고객 데이터나 AI가 생성한 상담 원문이 아니며, 새 질문으로 시작하는 상담의 전체 {EXPANDED_CHAPTERS.mackerel}개 챕터 중 답변의 형태를 보여드려요.</p>
    <dl className={styles.sampleReading}>
     <dt>질문 예시</dt><dd>헤어진 뒤 연락이 없어요. 제가 먼저 연락해도 될까요?</dd>
     <dt>답변 예시</dt><dd>연락하고 싶은 마음과 다시 거절당할까 두려운 마음이 함께 들 수 있어. 가령 명식에서 관계를 오래 붙드는 성향이 읽힌다면, 이번 연락으로 무엇을 확인하고 싶은지 먼저 적어보자. 상대가 거리를 요청했다면 그 뜻을 존중하고, 그렇지 않다면 답을 재촉하지 않는 짧은 안부부터 생각해볼 수 있어. 재회를 약속하는 해석은 아니야.</dd>
@@ -154,7 +154,7 @@ export default function Page(){
 
   <section aria-labelledby="systems">
    <h2 id="systems">체계별 영냥이 고등어 상담</h2>
-   <p>여섯 가지 고등어 상담은 가격이 같고, 계산에 쓰는 정보와 챕터 구성이 달라요. 아래 챕터 제목은 실제 상담이 만들어지는 순서 그대로예요.</p>
+   <p>여섯 가지 고등어 상담은 가격이 같고, 계산에 쓰는 정보와 챕터 구성이 달라요. 아래 챕터 수와 제목은 상담 종류를 골라 시작할 때 기준이고, 실제 상담이 만들어지는 순서 그대로예요.</p>
    <div className={styles.systems}>
     {mackerels.map(p=>{const info=SYSTEMS[p.domain];const chapters=readingManifest(p);return <section key={p.id} id={p.domain} className={styles.system} aria-labelledby={`${p.domain}-title`}>
      <h3 id={`${p.domain}-title`}>{info.name} <small>{systemNames[p.domain]} · {won(p.priceKRW)} · {p.chapterCount}개 챕터</small></h3>
