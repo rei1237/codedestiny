@@ -9,8 +9,10 @@ type Person={name:string;birth:string;cat:string;nationality:string};
 type Catalog={people:Person[];categories:string[];countries:Record<string,{label:string;flag:string;order:number}>;css:string};
 type Result={ok:boolean;accessSource:string;featureKey:string;html:string};
 type Props={famous?:boolean;request?:typeof api;exampleBirth?:BirthInput};
-function bindPrompt(host:HTMLElement){
+export function bindPrompt(host:HTMLElement){
  const status=host.querySelector<HTMLElement>('[data-astro-synastry-prompt-status]'),output=host.querySelector<HTMLTextAreaElement>('[data-astro-synastry-prompt-output]');
+ const badge=host.querySelector<HTMLElement>('[data-astro-synastry-prompt-card] > div:first-child > span');
+ if(badge)badge.textContent='궁합 결과 기반';
  if(status)status.textContent='계산한 차트에 기반한 분석 프롬프트예요.';
  host.querySelector('[data-astro-copy-synastry-prompt]')?.addEventListener('click',()=>void copyReadingText(output?.value||'').then(()=>{if(status)status.textContent='프롬프트를 복사했어요.';}).catch(()=>{if(status)status.textContent='위 프롬프트를 길게 눌러 직접 복사해 주세요.';}));
 }

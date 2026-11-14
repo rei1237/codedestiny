@@ -35,5 +35,5 @@ const loaded=new Module(path.resolve(import.meta.dirname,'test-chart.cjs'));
 loaded.paths=Module._nodeModulePaths(path.resolve(import.meta.dirname,'..'));
 loaded._compile(bundle.outputFiles[0].text,loaded.id);
 
-return {dom,React,createRoot,Component:loaded.exports.default};
+return {dom,React,createRoot,Component:loaded.exports.default,exports:loaded.exports};
 }
