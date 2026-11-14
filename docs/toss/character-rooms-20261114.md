@@ -29,7 +29,17 @@
 - node apps/toss/test/private-simulation-archive.mjs <AIT 파일> --character-rooms tea
 - node apps/toss/test/private-simulation-archive.mjs <AIT 파일> --character-rooms neo --neo-method <saju|ziwei|vedic|astrology>
 
-Windows 준비 검사는 --local-windows를 명시한다. Linux 결과와 QR은 확정 후 아래에 별도 기록한다. 각 경로는 360×740, 주문 1건, 저장된 결과, 창을 닫고 재진입, 다른 계정으로 기존 URL 접근 거절, 외부 API 요청 0건을 확인한다. 찻집·네오는 지급 응답 유실 뒤 저장소를 새로 열어 원 주문 복구·재시도·생성 1회를 API 검사에서도 확인한다.
+Windows 준비 검사는 --local-windows를 명시한다. 최종 Linux 결과와 QR은 아래에 기록했다. 각 경로는 360×740, 주문 1건, 저장된 결과, 창을 닫고 재진입, 다른 계정으로 기존 URL 접근 거절, 외부 API 요청 0건을 확인한다. 찻집·네오는 지급 응답 유실 뒤 저장소를 새로 열어 원 주문 복구·재시도·생성 1회를 API 검사에서도 확인한다.
+
+## 확정된 Linux 번들과 새 QR
+
+- 런타임 커밋: b69eea884e8cb431fd40d96cda39a7214d8ed9a6.
+- [main CI 43551511758](https://github.com/rei1237/codedestiny/actions/runs/43551511758), [Linux AIT CI 43551511688](https://github.com/rei1237/codedestiny/actions/runs/43551511688) 모두 success. 11개 경로를 Linux AIT의 실제 저장 바이트로 실행했다.
+- 새 비공개 모의 버전 **20261114-14**, deployment **01a1d833-9ead-7076-89f6-a79bf93d3921**. 콘솔에서 임시저장·테스트만 진행했고 QR PNG를 디코딩해 같은 배포 ID를 확인했다.
+- 산출물 폴더: C:/Users/user/Downloads/CodeDestiny/43551511688. 모의 AIT는 simulation/ai-saju-studio.ait, QR은 toss-mock-20261114-14.png. 실제 판매용 일반 AIT는 regular/ai-saju-studio.ait이며 이번 콘솔에는 올리지 않았다.
+- 모의 AIT SHA256: cfa878f98ef89720656db229f948c4405f482f3d1f62fe54a79144947b992b8c. 압축 87,872,283 bytes / 해제 99,882,470 bytes / 비호환 경로 0.
+- 일반 AIT deployment 01a1d832-b812-7d83-99b6-059b49ca5a17, SHA256 ed71a142bfaf9cd30b4ce4109a98ec32cf419ec5a5eccfabdb0f3d03ffae0749. 해제 99,803,954 bytes / 비호환 경로 0.
+- 전체 기능표는 110개 중 이미 동작 14개·일부만 이식 96개를 유지한다. 이번 11개 하위 흐름의 성공을 상담 전체 또는 전체 이식 완료로 확대하지 않는다.
 
 ## 휴대폰 확인
 
@@ -49,9 +59,12 @@ Windows 준비 검사는 --local-windows를 명시한다. Linux 결과와 QR은 
 
 ## 개발 검사 기록
 
+- 최종 런타임 b69eea884: `npm run check:fast -- --base=f63ff9bb069a41bbfe9c93ee61f2d287c63430e1` 종료코드 0. paid-gate 77개, 타입·린트·정책 검사, Node 5,037개, Jest 479 suites/8,000개 통과(기존 1개 skipped). `npm run check:pre-push`도 종료코드 0.
+- Windows AIT 최종 네오 4방식: deployment 01a1d811-b7a6-730c-9744-dbc17dc96dd0, expanded 99,888,038 bytes. 방식 보존·새 질문 복원·과거 결과 열람 중 초안 보존·원문·다른 계정 거절을 모두 확인했다. 최종 Linux 번들에서도 11개 흐름이 모두 통과했다.
+
 - private-simulation/offline-room 7개, 네오 질문 초안 2개, 기능표 계약 6개 통과. 네오 초안은 계정 분리·만료·손상 저장소와 구매 전 재진입을 검사했다.
 - 첫 check:fast는 sitemap 원본 서명 갱신이 필요해 중단됐다. 해당 공개 URL만 갱신했다. 날짜별 계산 데이터 부재로 Node 검사 하나가 실패해 외부 통신 없는 fortune:build-data로 로컬 파일을 만들고 관련 90개를 재검사했다. 나머지 계획은 이어 실행해 Jest 479 suites / 8000 tests 통과했다.
-- 첫 main CI 43547532590은 사용자 지침의 in-progress 상태와 검사기의 active 허용값 불일치로 실패했다. 기존 값과 오타 거절을 유지하면서 in-progress를 허용하는 별도 호환 수정 및 self-test 12개를 통과했다. 후속 CI 결과는 아래 배포 증거로 확정한다.
+- 첫 main CI 43547532590은 사용자 지침의 in-progress 상태와 검사기의 active 허용값 불일치로 실패했다. 기존 값과 오타 거절을 유지하면서 in-progress를 허용하는 별도 호환 수정 및 self-test 12개를 통과했다. 후속 main CI와 Linux 아티팩트 CI는 모두 성공했다.
 - 웹 SEO는 제목·검색 문구·색인 정책을 바꾸지 않았다. 공유 원본 소스가 바뀐 찻집·전략실 URL의 sitemap 서명과 lastmod만 갱신했다.
 
 ## 상품별 운영 게이트
@@ -64,11 +77,13 @@ Windows 준비 검사는 --local-windows를 명시한다. Linux 결과와 QR은 
 | 찻집 나머지 모드 | fortune-tea-house-saju-joint-consultation, fortune-tea-house-saju-compatibility-consultation, fortune-tea-house-sukuyo-compatibility-consultation, fortune-tea-house-tarot-consultation, fortune-tea-house-tarot-five-consultation | 각각의 입력·생성·복구 개발 검증과 독립 상품 등록 필요. 이번 사주 성공으로 통과시키지 않음 |
 | 네오 전략실 | nativeService=neo, neo-operation-room-consultation | 네 분석 방식은 이 상품의 입력 구분. 네오 전용 SKU·가격 근거 필요 |
 
+2026-11-14 콘솔에서 연이 SKU ait.0000019957.fd8ddb69.45f047076c.4555473325의 판매가 4,950원·미노출을 재확인했다. 등록 상품은 연이 1개·영냥이 4개이며 찻집·네오 상품은 없었다. 가격·노출은 수정하지 않았다. 앱 정보에는 아이콘·썸네일을 배경색이 포함된 사각형으로 제출하라는 기존 반려 사유가 남아 있다. 별도 검토 게이트이며 이번에 검토 요청하지 않았다.
+
 Worker 승격, 기존 TOSS_MTLS 바인딩·만료일과 신원/데이터 암호화 키·연결 해제 인증 설정, TOSS_RELEASE_READY와 NEW_PURCHASES_AVAILABLE 판매 개방은 각각 별도 승인이다. 이 작업에서는 설정값·비밀값·운영 원장을 변경하지 않는다. 검토 요청과 최종 출시는 계속 보류한다.
 
 ## 변경 파일
 
-기능 커밋 기준: a5d6f5814 → b69eea884. 검증 증거 JSON은 최종 Linux 결과로 별도 갱신한다.
+기능 커밋 기준: a5d6f5814 → b69eea884. 검증 증거 JSON과 기능표에 최종 Linux 결과를 반영했다.
 
 - [.github/workflows/pr-ci.yml](https://github.com/rei1237/codedestiny/blob/b69eea884e8cb431fd40d96cda39a7214d8ed9a6/.github/workflows/pr-ci.yml)
 - [apps/toss/private-simulation/api.mjs](https://github.com/rei1237/codedestiny/blob/b69eea884e8cb431fd40d96cda39a7214d8ed9a6/apps/toss/private-simulation/api.mjs)

@@ -1,7 +1,7 @@
 ---
-status: in-progress
+status: done
 updated: 2026-11-14
-next: Linux run 43551511688 완료·아티팩트 다운로드, 11경로 증거·QR; 브라우저 새 공간 승인 답변 확인
+next: 이번 11경로 구현·Linux AIT·비공개 QR 전달 완료. 다음 기능 단위는 찻집 나머지 5모드와 연이 등급형 입력
 ---
 
 ## 첫 행동
@@ -35,10 +35,10 @@ docs/toss/character-rooms-20261114.md. 운영 원장·SKU는 그대로. 모의 �
 - [x] 첫 check:fast 계획 전체 완료(날짜 파일 복구 후 해당 90개 재검사), Jest 8000개 통과
 - [x] 네오 구매 전 질문 복원 구현·AIT 재검사·커밋
 - [x] 두 번째 check:fast 전체 통과: Node 5037, Jest 479 suites/8000 tests. 로그 TEMP/three-draft-checkfast.txt
-- [ ] 세 번째(방식 alias·11경로 CI 검사 변경) check:fast -- --base=f63ff9bb069a41bbfe9c93ee61f2d287c63430e1 진행. 로그 TEMP/three-method-checkfast.txt
+- [x] 세 번째(방식 alias·11경로 CI 검사 변경) check:fast -- --base=f63ff9bb069a41bbfe9c93ee61f2d287c63430e1 종료코드 0. 로그 TEMP/three-method-checkfast.txt
 - [x] b69eea884 pre-push·main push·Linux artifact dispatch(full_ci/toss_artifact/toss_simulation_artifact=true)
-- [ ] Linux 11경로 검사·QR·기능표 증거 확정·최종 문서 커밋 push
-- [ ] handoff done, 자신 워크트리·스크래치 정리, 최종 보고
+- [x] Linux 11경로 검사·QR·기능표 증거 확정. 최종 문서 commit/push는 전달 커밋으로 확인
+- [x] handoff done. 최종 전달 후 자기 워크트리·스크래치만 배수
 
 ## 최신 함정과 산출물
 - 웹 네오 payload는 method를 보낸다. 기존 fixture는 selectedMethod만 써서 결과 방식이 빠졌다. 원본 Worker의 selectedMethod || method 규칙으로 수정. 다른 방식 재시도 409와 브리핑·수정 작전 방식 보존 검증.
@@ -51,3 +51,15 @@ docs/toss/character-rooms-20261114.md. 운영 원장·SKU는 그대로. 모의 �
 
 ## 이어받는 에이전트 소유
 AGENTS의 긴 컨텍스트 규칙에 따라 /root/linux_handoff가 기존 CI·Linux 다운로드·metadata·ait-verification JSON·inventory 생성영역을 담당한다. root는 상세 실행 문서·이 문서와 브라우저를 담당한다. 동일 파일을 겹쳐 수정하지 않는다. helper TEMP/three-update-ait-evidence.cjs는 portable·100MB·11개 CI PASS가 있어야 새 증거를 쓴다. 2026-11-14 12:46 KST 무렵 artifact run은 약20분 pending이라 agent가 같은 SHA push CI를 1회 진단 중이다. 반복 CI 조회·새 watch 금지.
+
+- 사용자 async 답변: “새 작업공간에서 계속” (2026-11-14). 새 Ego space55/p1 재연결 승인 완료. 현재 app-build, 최신버전13. 콘솔에서 같은 연이 SKU/4950원/미노출과 등록상품5개를 재확인. browser scripts05~12 실행. 승인 질문 다시 묻지 말고 Linux private 검증 후 업로드·임시저장·테스트 QR까지 진행한다.
+
+
+## 완료 기록 — 앞의 진행 중 상태보다 우선
+
+- 런타임 b69eea884와 main CI 43551511758 success. Linux CI 43551511688도 전체 success; 11개 AIT E2E PASS.
+- 사용자 승인으로 새 Ego space55에서 계속했다. 모의 Linux AIT를 업로드·임시저장하여 비공개 버전 20261114-14 생성. deployment 01a1d833-9ead-7076-89f6-a79bf93d3921.
+- QR을 콘솔 SVG에서 PNG로 내보내고 jsQR 디코딩으로 URL 일치 검증. task.finish({keep:[]}) 완료. 추가 브라우저 동작·실결제·검토 요청 없음.
+- 파일: C:/Users/user/Downloads/CodeDestiny/43551511688/{simulation,regular}/ai-saju-studio.ait 및 toss-mock-20261114-14.png.
+- 상세 결과·기능표·검증 로그: C:/Users/user/Downloads/CodeDestiny/three-rooms-20261114/. 110개 중 14동작·96부분이식 유지. 찻집 나머지5모드·연이 등급형·네오 상대 입력·실기기 키보드와 네이티브 뒤로가기는 다음 단위.
+- 운영 판매·Worker·비밀값·검토·출시는 미실행. 4950원 연이 SKU 미노출 유지, 찻집·네오 등록 상품 없음.

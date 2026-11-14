@@ -559,6 +559,127 @@
         "yeongnyangi-horary"
       ],
       "scope": "비공개 모의판 원본 Swiss 기준 예시. 무료 호라리·신점 전용 SKU, 첫 답과 심화 하나, 생성 중 종료·원문 다시 보기·타 계정 차단"
+    },
+    {
+      "id": "character-letter-saju",
+      "features": [
+        "fortune-chat"
+      ],
+      "run": "43551511688",
+      "commit": "b69eea884e8cb431fd40d96cda39a7214d8ed9a6",
+      "deploymentId": "01a1d833-9ead-7076-89f6-a79bf93d3921",
+      "bundleRef": "character-rooms-43551511688/simulation",
+      "scope": "연이 기본 편지 사주: Linux AIT 일반 홈 → 입력 → 모의 토스 로그인 → 주문 1건 → 저장 원문 → 구매 기록 재열람·새로고침 → 다른 계정 접근 차단. 상품 ID와 원장 불변 확인. b69eea884 / run 43551511688"
+    },
+    {
+      "id": "character-letter-ziwei",
+      "features": [
+        "fortune-chat"
+      ],
+      "run": "43551511688",
+      "commit": "b69eea884e8cb431fd40d96cda39a7214d8ed9a6",
+      "deploymentId": "01a1d833-9ead-7076-89f6-a79bf93d3921",
+      "bundleRef": "character-rooms-43551511688/simulation",
+      "scope": "연이 기본 편지 자미두수: Linux AIT 일반 홈 → 입력 → 모의 토스 로그인 → 주문 1건 → 저장 원문 → 구매 기록 재열람·새로고침 → 다른 계정 접근 차단. 상품 ID와 원장 불변 확인. b69eea884 / run 43551511688"
+    },
+    {
+      "id": "character-letter-sukuyo",
+      "features": [
+        "fortune-chat"
+      ],
+      "run": "43551511688",
+      "commit": "b69eea884e8cb431fd40d96cda39a7214d8ed9a6",
+      "deploymentId": "01a1d833-9ead-7076-89f6-a79bf93d3921",
+      "bundleRef": "character-rooms-43551511688/simulation",
+      "scope": "연이 기본 편지 숙요: Linux AIT 일반 홈 → 입력 → 모의 토스 로그인 → 주문 1건 → 저장 원문 → 구매 기록 재열람·새로고침 → 다른 계정 접근 차단. 상품 ID와 원장 불변 확인. b69eea884 / run 43551511688"
+    },
+    {
+      "id": "character-letter-vedic",
+      "features": [
+        "fortune-chat"
+      ],
+      "run": "43551511688",
+      "commit": "b69eea884e8cb431fd40d96cda39a7214d8ed9a6",
+      "deploymentId": "01a1d833-9ead-7076-89f6-a79bf93d3921",
+      "bundleRef": "character-rooms-43551511688/simulation",
+      "scope": "연이 기본 편지 베다점: Linux AIT 일반 홈 → 입력 → 모의 토스 로그인 → 주문 1건 → 저장 원문 → 구매 기록 재열람·새로고침 → 다른 계정 접근 차단. 상품 ID와 원장 불변 확인. b69eea884 / run 43551511688"
+    },
+    {
+      "id": "character-letter-astrology",
+      "features": [
+        "fortune-chat"
+      ],
+      "run": "43551511688",
+      "commit": "b69eea884e8cb431fd40d96cda39a7214d8ed9a6",
+      "deploymentId": "01a1d833-9ead-7076-89f6-a79bf93d3921",
+      "bundleRef": "character-rooms-43551511688/simulation",
+      "scope": "연이 기본 편지 서양 점성술: Linux AIT 일반 홈 → 입력 → 모의 토스 로그인 → 주문 1건 → 저장 원문 → 구매 기록 재열람·새로고침 → 다른 계정 접근 차단. 상품 ID와 원장 불변 확인. b69eea884 / run 43551511688"
+    },
+    {
+      "id": "character-letter-tarot",
+      "features": [
+        "fortune-chat"
+      ],
+      "run": "43551511688",
+      "commit": "b69eea884e8cb431fd40d96cda39a7214d8ed9a6",
+      "deploymentId": "01a1d833-9ead-7076-89f6-a79bf93d3921",
+      "bundleRef": "character-rooms-43551511688/simulation",
+      "scope": "연이 기본 편지 타로: Linux AIT 일반 홈 → 입력 → 모의 토스 로그인 → 주문 1건 → 저장 원문 → 구매 기록 재열람·새로고침 → 다른 계정 접근 차단. 상품 ID와 원장 불변 확인. b69eea884 / run 43551511688"
+    },
+    {
+      "id": "character-tea-saju",
+      "features": [
+        "fortune-tea-house"
+      ],
+      "run": "43551511688",
+      "commit": "b69eea884e8cb431fd40d96cda39a7214d8ed9a6",
+      "deploymentId": "01a1d833-9ead-7076-89f6-a79bf93d3921",
+      "bundleRef": "character-rooms-43551511688/simulation",
+      "scope": "운명의 찻집 사주: Linux AIT 일반 홈 → 입력 → 모의 토스 로그인 → 주문 1건 → 저장 원문 → 구매 기록 재열람·새로고침 → 다른 계정 접근 차단. 생성 1회·추가 답변 원문과 원장 불변 확인. b69eea884 / run 43551511688"
+    },
+    {
+      "id": "character-neo-saju",
+      "features": [
+        "neo-operation-room"
+      ],
+      "run": "43551511688",
+      "commit": "b69eea884e8cb431fd40d96cda39a7214d8ed9a6",
+      "deploymentId": "01a1d833-9ead-7076-89f6-a79bf93d3921",
+      "bundleRef": "character-rooms-43551511688/simulation",
+      "scope": "네오 팩폭 전략실 사주: Linux AIT 일반 홈 → 입력 → 모의 토스 로그인 → 주문 1건 → 저장 원문 → 구매 기록 재열람·새로고침 → 다른 계정 접근 차단. 생성 1회·선택 방식·수정 작전 원문과 원장 불변, 새 질문 초안 보존 확인. b69eea884 / run 43551511688"
+    },
+    {
+      "id": "character-neo-ziwei",
+      "features": [
+        "neo-operation-room"
+      ],
+      "run": "43551511688",
+      "commit": "b69eea884e8cb431fd40d96cda39a7214d8ed9a6",
+      "deploymentId": "01a1d833-9ead-7076-89f6-a79bf93d3921",
+      "bundleRef": "character-rooms-43551511688/simulation",
+      "scope": "네오 팩폭 전략실 자미두수: Linux AIT 일반 홈 → 입력 → 모의 토스 로그인 → 주문 1건 → 저장 원문 → 구매 기록 재열람·새로고침 → 다른 계정 접근 차단. 생성 1회·선택 방식·수정 작전 원문과 원장 불변, 새 질문 초안 보존 확인. b69eea884 / run 43551511688"
+    },
+    {
+      "id": "character-neo-vedic",
+      "features": [
+        "neo-operation-room"
+      ],
+      "run": "43551511688",
+      "commit": "b69eea884e8cb431fd40d96cda39a7214d8ed9a6",
+      "deploymentId": "01a1d833-9ead-7076-89f6-a79bf93d3921",
+      "bundleRef": "character-rooms-43551511688/simulation",
+      "scope": "네오 팩폭 전략실 베다점: Linux AIT 일반 홈 → 입력 → 모의 토스 로그인 → 주문 1건 → 저장 원문 → 구매 기록 재열람·새로고침 → 다른 계정 접근 차단. 생성 1회·선택 방식·수정 작전 원문과 원장 불변, 새 질문 초안 보존 확인. b69eea884 / run 43551511688"
+    },
+    {
+      "id": "character-neo-astrology",
+      "features": [
+        "neo-operation-room"
+      ],
+      "run": "43551511688",
+      "commit": "b69eea884e8cb431fd40d96cda39a7214d8ed9a6",
+      "deploymentId": "01a1d833-9ead-7076-89f6-a79bf93d3921",
+      "bundleRef": "character-rooms-43551511688/simulation",
+      "scope": "네오 팩폭 전략실 서양 점성술: Linux AIT 일반 홈 → 입력 → 모의 토스 로그인 → 주문 1건 → 저장 원문 → 구매 기록 재열람·새로고침 → 다른 계정 접근 차단. 생성 1회·선택 방식·수정 작전 원문과 원장 불변, 새 질문 초안 보존 확인. b69eea884 / run 43551511688"
     }
   ],
   "simulatedProducts": [
@@ -604,6 +725,60 @@
     {
       "file": "toss-mock-20261114-13.png",
       "link": "intoss-private://ai-saju-studio?_deploymentId=01a1d6be-b769-7a89-8cb3-868e488f2213&host=appsInTossHost"
+    },
+    {
+      "file": "toss-mock-20261114-14.png",
+      "link": "intoss-private://ai-saju-studio?_deploymentId=01a1d833-9ead-7076-89f6-a79bf93d3921&host=appsInTossHost",
+      "bundleRef": "character-rooms-43551511688/simulation"
+    }
+  ],
+  "followupBundles": [
+    {
+      "id": "character-rooms-43551511688",
+      "run": "43551511688",
+      "commit": "b69eea884e8cb431fd40d96cda39a7214d8ed9a6",
+      "runner": "GitHub Actions ubuntu-latest",
+      "workflowUrl": "https://github.com/rei1237/codedestiny/actions/runs/43551511688",
+      "ci": {
+        "mainRun": "43551511758",
+        "mainConclusion": "success",
+        "artifactJob": "132320833038",
+        "artifactJobConclusion": "success",
+        "artifactRunConclusion": "success"
+      },
+      "validation": {
+        "command": "npm run check:fast -- --base=f63ff9bb069a41bbfe9c93ee61f2d287c63430e1",
+        "exitCode": 0,
+        "nodeTestsPassed": 5037,
+        "jestSuitesPassed": 479,
+        "jestTestsPassed": 8000,
+        "jestTestsSkipped": 1
+      },
+      "regular": {
+        "artifactName": "toss-preview-b69eea884e8cb431fd40d96cda39a7214d8ed9a6",
+        "appName": "ai-saju-studio",
+        "deploymentId": "01a1d832-b812-7d83-99b6-059b49ca5a17",
+        "archiveBytes": 87844424,
+        "expandedBytes": 99803954,
+        "nonPortableNames": 0,
+        "sha256": "ed71a142bfaf9cd30b4ce4109a98ec32cf419ec5a5eccfabdb0f3d03ffae0749",
+        "archiveEntries": 1744
+      },
+      "simulation": {
+        "artifactName": "toss-private-simulation-b69eea884e8cb431fd40d96cda39a7214d8ed9a6",
+        "appName": "ai-saju-studio",
+        "deploymentId": "01a1d833-9ead-7076-89f6-a79bf93d3921",
+        "archiveBytes": 87872283,
+        "expandedBytes": 99882470,
+        "nonPortableNames": 0,
+        "sha256": "cfa878f98ef89720656db229f948c4405f482f3d1f62fe54a79144947b992b8c",
+        "archiveEntries": 1747,
+        "consoleVersion": "20261114-14",
+        "qrFile": "toss-mock-20261114-14.png",
+        "privateLink": "intoss-private://ai-saju-studio?_deploymentId=01a1d833-9ead-7076-89f6-a79bf93d3921&host=appsInTossHost",
+        "qrDecoded": true
+      },
+      "scope": "연이 기본 편지 6방식·찻집 사주·네오 4방식. CI에서 Linux AIT의 저장 바이트를 360px 브라우저로 실행. 토스 휴대폰·실결제·실 LLM·운영 DB는 검증하지 않음"
     }
   ]
 }

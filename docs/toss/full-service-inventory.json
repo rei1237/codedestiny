@@ -1,5 +1,5 @@
 {
-  "sourceCommit": "8b8273e2ebbdff121b99e6f0767d506886c91926",
+  "sourceCommit": "c243cbf3e1bb06af5cec4c4c814adec016b62e96",
   "sourceCounts": {
     "home": 63,
     "react": 18,
@@ -653,7 +653,7 @@
         "candidateStatus": "local-partial",
         "canonicalRoute": "/fortune-tea-house/?counsel=letter",
         "saleStatus": "연이 기본 사주는 콘솔 SKU 확인·신규 판매 닫힘. 다른 기본·질문 편지는 개별 SKU 등록 필요",
-        "bundleVerification": "일반 AIT에서 상위 화면 진입 확인. 하위 입력·결과·재열람의 검증 근거는 verification 참조. 휴대폰 미검증"
+        "bundleVerification": "연이 기본 편지 사주: Linux AIT 일반 홈 → 입력 → 모의 토스 로그인 → 주문 1건 → 저장 원문 → 구매 기록 재열람·새로고침 → 다른 계정 접근 차단. 상품 ID와 원장 불변 확인. b69eea884 / run 43551511688 · 연이 기본 편지 자미두수: Linux AIT 일반 홈 → 입력 → 모의 토스 로그인 → 주문 1건 → 저장 원문 → 구매 기록 재열람·새로고침 → 다른 계정 접근 차단. 상품 ID와 원장 불변 확인. b69eea884 / run 43551511688 · 연이 기본 편지 숙요: Linux AIT 일반 홈 → 입력 → 모의 토스 로그인 → 주문 1건 → 저장 원문 → 구매 기록 재열람·새로고침 → 다른 계정 접근 차단. 상품 ID와 원장 불변 확인. b69eea884 / run 43551511688 · 연이 기본 편지 베다점: Linux AIT 일반 홈 → 입력 → 모의 토스 로그인 → 주문 1건 → 저장 원문 → 구매 기록 재열람·새로고침 → 다른 계정 접근 차단. 상품 ID와 원장 불변 확인. b69eea884 / run 43551511688 · 연이 기본 편지 서양 점성술: Linux AIT 일반 홈 → 입력 → 모의 토스 로그인 → 주문 1건 → 저장 원문 → 구매 기록 재열람·새로고침 → 다른 계정 접근 차단. 상품 ID와 원장 불변 확인. b69eea884 / run 43551511688 · 연이 기본 편지 타로: Linux AIT 일반 홈 → 입력 → 모의 토스 로그인 → 주문 1건 → 저장 원문 → 구매 기록 재열람·새로고침 → 다른 계정 접근 차단. 상품 ID와 원장 불변 확인. b69eea884 / run 43551511688 · 360px 배포 AIT 브라우저, 토스 휴대폰 미검증"
       }
     },
     {
@@ -688,7 +688,7 @@
         "candidateStatus": "local-partial",
         "canonicalRoute": "/fortune-tea-house/",
         "saleStatus": "유료 상품 콘솔·운영 설정 필요",
-        "bundleVerification": "일반 AIT에서 상위 화면 진입 확인. 하위 입력·결과·재열람의 검증 근거는 verification 참조. 휴대폰 미검증"
+        "bundleVerification": "운명의 찻집 사주: Linux AIT 일반 홈 → 입력 → 모의 토스 로그인 → 주문 1건 → 저장 원문 → 구매 기록 재열람·새로고침 → 다른 계정 접근 차단. 생성 1회·추가 답변 원문과 원장 불변 확인. b69eea884 / run 43551511688 · 360px 배포 AIT 브라우저, 토스 휴대폰 미검증"
       }
     },
     {
@@ -1647,7 +1647,7 @@
         "candidateStatus": "local-partial",
         "canonicalRoute": "/neo-operation-room/",
         "saleStatus": "유료 상품 콘솔·운영 설정 필요",
-        "bundleVerification": "일반 AIT에서 상위 화면 진입 확인. 하위 입력·결과·재열람의 검증 근거는 verification 참조. 휴대폰 미검증"
+        "bundleVerification": "네오 팩폭 전략실 사주: Linux AIT 일반 홈 → 입력 → 모의 토스 로그인 → 주문 1건 → 저장 원문 → 구매 기록 재열람·새로고침 → 다른 계정 접근 차단. 생성 1회·선택 방식·수정 작전 원문과 원장 불변, 새 질문 초안 보존 확인. b69eea884 / run 43551511688 · 네오 팩폭 전략실 자미두수: Linux AIT 일반 홈 → 입력 → 모의 토스 로그인 → 주문 1건 → 저장 원문 → 구매 기록 재열람·새로고침 → 다른 계정 접근 차단. 생성 1회·선택 방식·수정 작전 원문과 원장 불변, 새 질문 초안 보존 확인. b69eea884 / run 43551511688 · 네오 팩폭 전략실 베다점: Linux AIT 일반 홈 → 입력 → 모의 토스 로그인 → 주문 1건 → 저장 원문 → 구매 기록 재열람·새로고침 → 다른 계정 접근 차단. 생성 1회·선택 방식·수정 작전 원문과 원장 불변, 새 질문 초안 보존 확인. b69eea884 / run 43551511688 · 네오 팩폭 전략실 서양 점성술: Linux AIT 일반 홈 → 입력 → 모의 토스 로그인 → 주문 1건 → 저장 원문 → 구매 기록 재열람·새로고침 → 다른 계정 접근 차단. 생성 1회·선택 방식·수정 작전 원문과 원장 불변, 새 질문 초안 보존 확인. b69eea884 / run 43551511688 · 360px 배포 AIT 브라우저, 토스 휴대폰 미검증"
       }
     },
     {
@@ -4326,12 +4326,19 @@
       "portStatus": "일부만 이식",
       "reducedBundle": "홈 진입 있음",
       "currentEntry": "Linux AIT 일반 홈 → 꿀꿀운세 → 연이의 상담 편지 · 상위 화면 진입 확인",
-      "bundleVerification": "일반 AIT에서 상위 화면 진입 확인. 하위 입력·결과·재열람의 검증 근거는 verification 참조. 휴대폰 미검증",
+      "bundleVerification": "연이 기본 편지 사주: Linux AIT 일반 홈 → 입력 → 모의 토스 로그인 → 주문 1건 → 저장 원문 → 구매 기록 재열람·새로고침 → 다른 계정 접근 차단. 상품 ID와 원장 불변 확인. b69eea884 / run 43551511688 · 연이 기본 편지 자미두수: Linux AIT 일반 홈 → 입력 → 모의 토스 로그인 → 주문 1건 → 저장 원문 → 구매 기록 재열람·새로고침 → 다른 계정 접근 차단. 상품 ID와 원장 불변 확인. b69eea884 / run 43551511688 · 연이 기본 편지 숙요: Linux AIT 일반 홈 → 입력 → 모의 토스 로그인 → 주문 1건 → 저장 원문 → 구매 기록 재열람·새로고침 → 다른 계정 접근 차단. 상품 ID와 원장 불변 확인. b69eea884 / run 43551511688 · 연이 기본 편지 베다점: Linux AIT 일반 홈 → 입력 → 모의 토스 로그인 → 주문 1건 → 저장 원문 → 구매 기록 재열람·새로고침 → 다른 계정 접근 차단. 상품 ID와 원장 불변 확인. b69eea884 / run 43551511688 · 연이 기본 편지 서양 점성술: Linux AIT 일반 홈 → 입력 → 모의 토스 로그인 → 주문 1건 → 저장 원문 → 구매 기록 재열람·새로고침 → 다른 계정 접근 차단. 상품 ID와 원장 불변 확인. b69eea884 / run 43551511688 · 연이 기본 편지 타로: Linux AIT 일반 홈 → 입력 → 모의 토스 로그인 → 주문 1건 → 저장 원문 → 구매 기록 재열람·새로고침 → 다른 계정 접근 차단. 상품 ID와 원장 불변 확인. b69eea884 / run 43551511688 · 360px 배포 AIT 브라우저, 토스 휴대폰 미검증",
       "tossLogin": "구매·기록에 토스 계정 필요",
       "tossResult": "apps/toss/service/TossLetterRoom.tsx + app/fortune-chat/ConsultationIntake.tsx",
       "reread": "persona-bound-TossPurchase-to-YeongnyangiRequest; official device and approved SKU pending",
       "saleStatus": "연이 기본 사주는 콘솔 SKU 확인·신규 판매 닫힘. 다른 기본·질문 편지는 개별 SKU 등록 필요",
-      "archiveTests": [],
+      "archiveTests": [
+        "character-letter-saju",
+        "character-letter-ziwei",
+        "character-letter-sukuyo",
+        "character-letter-vedic",
+        "character-letter-astrology",
+        "character-letter-tarot"
+      ],
       "archiveHomeButtons": [
         "연이의 상담 편지"
       ]
@@ -4387,7 +4394,7 @@
       "portStatus": "일부만 이식",
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "Linux AIT 일반 홈 → 꿀꿀운세 → 연이 · 운명의 찻집 · 상위 화면 진입 확인",
-      "bundleVerification": "일반 AIT에서 상위 화면 진입 확인. 하위 입력·결과·재열람의 검증 근거는 verification 참조. 휴대폰 미검증",
+      "bundleVerification": "운명의 찻집 사주: Linux AIT 일반 홈 → 입력 → 모의 토스 로그인 → 주문 1건 → 저장 원문 → 구매 기록 재열람·새로고침 → 다른 계정 접근 차단. 생성 1회·추가 답변 원문과 원장 불변 확인. b69eea884 / run 43551511688 · 360px 배포 AIT 브라우저, 토스 휴대폰 미검증",
       "tossLogin": "구매·기록에 토스 계정 필요",
       "tossResult": "apps/toss/service/Screens.jsx",
       "reread": "owned-TossPurchase; device-and-console-approval-pending",
@@ -4425,7 +4432,9 @@
           "sale": "독립 콘솔 SKU·가격 등록 필요"
         }
       ],
-      "archiveTests": [],
+      "archiveTests": [
+        "character-tea-saju"
+      ],
       "archiveHomeButtons": [
         "연이 · 운명의 찻집"
       ]
@@ -6377,13 +6386,18 @@
       "portStatus": "일부만 이식",
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "Linux AIT 일반 홈 → 꿀꿀운세 → 네오 · 팩폭 전략실 · 상위 화면 진입 확인",
-      "bundleVerification": "일반 AIT에서 상위 화면 진입 확인. 하위 입력·결과·재열람의 검증 근거는 verification 참조. 휴대폰 미검증",
+      "bundleVerification": "네오 팩폭 전략실 사주: Linux AIT 일반 홈 → 입력 → 모의 토스 로그인 → 주문 1건 → 저장 원문 → 구매 기록 재열람·새로고침 → 다른 계정 접근 차단. 생성 1회·선택 방식·수정 작전 원문과 원장 불변, 새 질문 초안 보존 확인. b69eea884 / run 43551511688 · 네오 팩폭 전략실 자미두수: Linux AIT 일반 홈 → 입력 → 모의 토스 로그인 → 주문 1건 → 저장 원문 → 구매 기록 재열람·새로고침 → 다른 계정 접근 차단. 생성 1회·선택 방식·수정 작전 원문과 원장 불변, 새 질문 초안 보존 확인. b69eea884 / run 43551511688 · 네오 팩폭 전략실 베다점: Linux AIT 일반 홈 → 입력 → 모의 토스 로그인 → 주문 1건 → 저장 원문 → 구매 기록 재열람·새로고침 → 다른 계정 접근 차단. 생성 1회·선택 방식·수정 작전 원문과 원장 불변, 새 질문 초안 보존 확인. b69eea884 / run 43551511688 · 네오 팩폭 전략실 서양 점성술: Linux AIT 일반 홈 → 입력 → 모의 토스 로그인 → 주문 1건 → 저장 원문 → 구매 기록 재열람·새로고침 → 다른 계정 접근 차단. 생성 1회·선택 방식·수정 작전 원문과 원장 불변, 새 질문 초안 보존 확인. b69eea884 / run 43551511688 · 360px 배포 AIT 브라우저, 토스 휴대폰 미검증",
       "tossLogin": "구매·기록에 토스 계정 필요",
       "tossResult": "apps/toss/service/Screens.jsx",
       "reread": "owned-TossPurchase; device-and-console-approval-pending",
       "verification": "apps/toss/test/ room-browser.mjs · 개별 검사 범위. 실제 기기 미검증",
       "saleStatus": "유료 상품 콘솔·운영 설정 필요",
-      "archiveTests": [],
+      "archiveTests": [
+        "character-neo-saju",
+        "character-neo-ziwei",
+        "character-neo-vedic",
+        "character-neo-astrology"
+      ],
       "archiveHomeButtons": [
         "네오 · 팩폭 전략실"
       ]
