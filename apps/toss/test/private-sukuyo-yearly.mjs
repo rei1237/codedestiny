@@ -4,7 +4,7 @@ import {join} from 'node:path';
 export async function verifySukuyoYearly(origin,context){
  const page=await context.newPage();page.setDefaultTimeout(30000);
  const open=async()=>{await page.goto(origin);await page.locator('.world-entry-ggulggul').click();await page.getByRole('searchbox').fill('숙요점');await page.locator('.directory-list button').filter({hasText:'숙요점'}).first().click();};
- await open();await page.getByRole('button',{name:'토스 로그인하고 살펴보기'}).click();await page.getByRole('button',{name:'토스로 로그인하기'}).click();
+ await open();await page.getByRole('heading',{name:'올해의 숙요 흐름',exact:true}).waitFor();await page.getByRole('button',{name:'토스 로그인하고 연간 흐름 보기',exact:true}).click();await page.getByRole('button',{name:'토스로 로그인하기',exact:true}).click();
  const read=async()=>{await page.getByRole('button',{name:'숙요점 1년운 살펴보기'}).click();await page.getByLabel('살펴볼 연도').fill('2026');await page.getByRole('button',{name:'1년운 살펴보기',exact:true}).click();await page.getByRole('heading',{name:'열두 달의 흐름'}).waitFor();};
  await read();const text=await page.locator('.sukuyo-basic-result').innerText();assert.equal(await page.locator('details.paper').count(),12);
  assert.equal(await page.locator('.sukuyo-basic-result p').filter({hasText:/흐름 지수 \d+ \/ 100/}).count(),19);
