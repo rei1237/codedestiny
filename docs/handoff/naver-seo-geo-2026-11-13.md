@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-14
-next: 스테이징 push 승인 대기 → 묶음 3 → 묶음 4-1~4-3. 5-1 측정 이벤트·A1 유입 분류·배너 문구는 구현·검증까지 끝났다(결과 기록 맨 끝). push·배포·운영 승격은 미승인(로컬 커밋만). F3는 구현하지 않는다.
+next: 묶음 3-2(질문형 H2 결론 문단) → 3-3 → 원장 재생성 → 묶음 4-1~4-3 → 전체 검증 → docs/seo/bundle3-4-before-after.md. 3-1은 끝(결과 기록 맨 끝 "묶음 3 진행"). push·배포·운영 승격은 미승인(로컬 커밋만). F3는 구현하지 않는다.
 ---
 # 네이버 SEO·AEO·GEO + 구매 동선 (Phase 1~5)
 
@@ -347,3 +347,14 @@ SHA는 네 번째 rebase 뒤 기준이다. 모두 로컬 커밋이고 push하지
 - 로또 리추얼 제목 폭: `0a2561b26` 기준에서는 origin/main 제목 문자열에 같은 폭 계산을 적용해 61(직접 확인)이라 upstream 실패였고, upstream `65d8accfe`가 고쳤다. 그 뒤 rebase한 브랜치에서 빌드가 통과한다.
 - 검증(직접 실행, HEAD `7bb177de4` = origin/main `eeebfadaf` 위): `npm run typecheck` 0 · `npm run lint` 0 · `npm run i18n:check` 0 · `verify-sitemap-integrity` 0(1,081 URL) · `verify-analytics-events` 0 · `ALLOW_DEV_SERVER_DURING_BUILD=1 npm run build` 0(postbuild 끝까지) · `verify-home-identity` 0 · `node --test scripts/seo/*.test.mjs` 0(67) · `npm test` 0(5,074) · `check-changed --profile=fast --skip-build --base=origin/main` 0(jest 479 스위트, 8,004 통과, 1 건너뜀).
 - 네 번째 rebase(`b67b027f3` 위) 뒤에는 typecheck·verify-analytics-events·verify-sitemap-integrity만 다시 돌렸다(모두 0, 원장 갱신 0). 전체 검증은 다시 돌리지 않았다.
+
+### 묶음 3 진행 (2026-11-14)
+- 다섯 번째 rebase: origin/main `e1fc882d7`(1커밋 앞, `scripts/lib/yeongnyangi-mobile-payment.mjs`만 변경) 위로 56커밋, 충돌 없음.
+- 3-1 `936a818aa` (`app/components/SeoLandingTemplate.jsx`만):
+  - T2의 정체는 `service-scope` 절 끝의 공통 문단 3개였다(10개 허브가 같은 문장). 1개로 줄였다. 지금 문구: "계산 엔진이 근거를 만들고 AI는 선택한 상담의 해설을 씁니다. 결제 조건은 선택한 상품에서 확인하세요. [계산·해석 기준] · [운영자 박병하·네오의 공개 활동]". 비공개 경로 `/yeongnyangi/library/` 링크 10개가 빠졌다(K4와 같은 방향). 면책 절과 `ContentIntegrityNote` 고지는 그대로다.
+  - `mergeFaqs`: 고유 FAQ가 3개 이상이면 `DEFAULT_FAQS`를 붙이지 않는다(이전 기준 5). 변경 전 기본 FAQ가 붙던 곳은 nakshatra 1곳뿐이었고(4+1), 지금은 0곳이다(nakshatra FAQ 5→4). 화면 FAQ와 FAQ JSON-LD는 같은 배열을 쓴다.
+  - 함정: `__tests__/ui/organic-acquisition.test.mjs`가 `mergeFaqs` 본문만 잘라 vm에서 돌린다. 상수 `MIN_FAQS_BEFORE_DEFAULTS`는 함수 안에 있어야 한다.
+  - 함정: 소스가 CRLF라 스크립트로 여러 줄 치환하면 일치하지 않는다. Edit 도구를 쓴다.
+- 3-2 설계(구현 전): vedic 선례(`seoLanding.vedic.comparison.*`)대로 `lib/seo-landing-pages.js`의 `SEO_LANDING_TEXT_TRANSLATIONS.ko`에 키를 추가하고, 허브 `sections` 맨 앞에 질문형 heading + 결론 문단(답 먼저) section을 넣는다. 사실 근거는 `lib/seo-service-scope.js`의 `free/paid`. 가격 숫자는 정본(`PIG_COIN_UNLOCK_PRODUCTS`)에서 읽거나 쓰지 않는다. 신년운세 허브(`app/new-year-ai-consultation/page.tsx`, `app/fortune/2027/page.tsx`)는 이 데이터 파일을 쓰지 않는다.
+- 3-3 설계(구현 전): `lib/seo-service-scope.js`에 범위 데이터 기준일 상수 하나를 두고 템플릿 범위 절에 "…기준"으로 렌더. 날짜 하드코딩은 그 한 곳만.
+- 사이트맵 원장은 묶음 3 끝에 한 번 재생성한다(3-1 뒤 아직 안 함).
