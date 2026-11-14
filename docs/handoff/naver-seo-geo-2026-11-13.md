@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-14
-next: push 승인 대기(로컬 커밋만 있음). push 전에 origin/main 위로 rebase하고 전체 검증을 다시 돌린다. 그 뒤 2-5 스테이징 Lighthouse, payment-change-proposal.md 결정 4건(F3·A1) 답 받기, 묶음 3(AEO·GEO 구조)·4(구매 동선)·5(측정) 순서. 묶음 2 결정분은 2026-11-14 추천안으로 확정·적용 끝(결과 기록 "묶음 2 적용").
+next: 결과 기록 맨 끝 "5-1·A1·배너 문구 — 설계 확정, 구현 전"의 설계대로 ① 측정 이벤트 ② A1 유입 분류 ③ 배너 문구를 구현해 항목마다 커밋하고, 검증 전체(check-changed 끝까지)를 다시 돌린다. rebase와 구현 전 검증은 끝났다. push·배포는 미승인(로컬 커밋만). F3는 구현하지 않는다.
 ---
 # 네이버 SEO·AEO·GEO + 구매 동선 (Phase 1~5)
 
@@ -294,3 +294,43 @@ push 전에 할 일
 - `node scripts/check-changed.mjs --profile=fast --skip-build --base=origin/main` 0(끝까지 실행. jest 478개 스위트 통과, 1개 건너뜀, 7,987개 통과)
 - `dist/` 확인: `/`에 hreflang 9개(ko·x-default=`/`), `/ggulggul/`에 hreflang 없음, `/en/`의 ko·x-default=`/`, `/about/`에 정의 문장. 표는 `docs/seo/bundle2-before-after.md`.
 - 스테이징·운영 확인은 하지 않았다(push 없음).
+
+### 두 번째 rebase 뒤 검증 r1 (2026-11-14, HEAD `1614207ff`, 구현 전, 모두 직접 실행)
+- `npm run typecheck` 0 · `npm run lint` 0 · `npm run i18n:check` 0 · `node scripts/verify-sitemap-integrity.mjs` 0 · `node scripts/verify-analytics-events.mjs` 0
+- `ALLOW_DEV_SERVER_DURING_BUILD=1 npm run build` **1**. Next 컴파일·정적 페이지 생성·dist 승격은 끝났고, postbuild의 `scripts/verify-adsense-readiness.mjs`(`verifyIndexableTitleWidth`)가 `out/saju/lotto-ritual`의 title 폭 61 > 60으로 실패했다. 제목은 `lib/marketing/free-feature-details.mjs:141`("사주 로또 리추얼 — 오늘의 일진으로 뽑는 상징 번호 | 꿀꿀 운세")이고, 이 제목·검사 스크립트·페이지·사이트맵 등재는 `git diff origin/main`으로 보면 이 브랜치와 origin/main이 같다. **이 브랜치 탓이 아닌 upstream 실패로 판단**했다(origin/main을 따로 빌드해 보지는 않았다). 범위 밖이라 고치지 않았다. 사용자에게 보고할 것.
+- `node scripts/verify-home-identity.mjs` 0 · `node --test scripts/seo/*.test.mjs` 0 · `npm test` 0
+- `node scripts/check-changed.mjs --profile=fast --skip-build --base=origin/main`: 0(끝까지 실행. jest 479개 스위트 통과, 1개 건너뜀, 8,004개 통과)
+- 검증 묶음 스크립트는 세션 스크래치패드에 있어 다음 세션에는 없다. 위 명령을 순서대로 돌리면 된다. check-changed는 30분 넘게 걸린다(백그라운드로 돌리고 완료 알림을 기다린다).
+
+### 5-1·A1·배너 문구 — 설계 확정, 구현 전 (2026-11-14)
+읽기 조사만 끝냈고 소스는 건드리지 않았다. 줄 번호는 `1614207ff` 기준이니 고치기 전에 `rg`로 다시 확인한다. 고친 뒤 `scripts/verify-analytics-events.mjs`(이벤트 이름을 `js`·`app`·`lib`·`index.html`에서 자동 수집)와 `docs/analytics-kpi.md` §1 표를 함께 갱신한다. `js/` 파일을 고치면 `npm run sync:public`으로 public 미러·`index.html` 해시를 다시 만든다.
+
+① 측정 이벤트(React 쪽은 `import {trackEvent} from "@/lib/analytics"`, 생년월일·이름 등은 값에 넣지 않는다)
+
+| 이벤트 | 발화 위치 | 값 |
+|---|---|---|
+| `free_saju_chart_started` / `free_saju_chart_completed` | `app/saju/free/FreeSajuForm.tsx` `submit()` — 계산 호출 앞 / `setReading(...)` 뒤 | `surface: "saju_free"`, `time_known: Boolean(time)` |
+| `free_ziwei_chart_started` / `free_ziwei_chart_completed` | `app/components/AdvancedZiweiSectionV2.tsx` `handleCompute` — 입력 검증 통과 뒤 `setStep("computing")` 부근 / 성공 경로 `setStep("result")` 부근. `restoreCachedResult`(캐시 복원)에서는 쏘지 않는다 | `surface: "ziwei_chart"`, `time_known: !form.unknownHour` |
+| `landing_form_submit` | `app/components/SeoLandingBirthForm.tsx` `handleSubmit`, `window.location.assign(submitHref)` 직전 | `from_service: window.location.pathname`, `to_action`: `?action=` 값이 `/^[A-Za-z0-9_]{1,64}$/`에 맞을 때만(아니면 대상 pathname) |
+| `login` `{method: "social"}` | `app/auth/_components/StaticOAuthCallbackRedirect.tsx` 인라인 스크립트, `persistAuthFromCallback(payload);` 뒤. 인라인 스크립트라 TS 타입 금지, `try { if (typeof window.cdTrack === "function") window.cdTrack("login", { method: "social" }); } catch (e) {}` | `method: "social"` |
+| `free_saju_submitted`(A2, 게이트 앞) | `js/saju-engine.js` 계산 시작 함수에서 `if (!await _sajuCalculationWait(ensureSajuResultSession(run), run)) return;` **앞 줄**(게이트 호출문 밖)에 한 줄 추가. 기존 `free_saju_started`는 옮기지 않는다 | `signed_in`: `window.__dpHasLoginSession()` 결과(불리언) |
+| `cross_sell_click`의 `placement: "free_result"` | `js/core/analytics.js` `searchCtaPayload`의 placement 허용 목록(`primary|related|directory|next_step`)에 추가, verify 스크립트의 placement 루프에도 추가 | 허용값만 |
+
+- funnel-spec은 소셜 로그인 이벤트 위치를 "AuthShell 소셜 복귀 처리부"라고 했지만 실제 복귀 처리는 `StaticOAuthCallbackRedirect.tsx`다. 저장소에서 `login` 발화는 `AuthShell.tsx`의 비밀번호 로그인 하나뿐이다. 신규 소셜 가입은 `/signup`으로 가서 기존 `signup` 이벤트가 쏘이므로 중복은 없다. `analytics.js`가 afterInteractive라 콜백 페이지가 바로 이동하면 유실될 수 있다(추정) → 하한값으로 본다.
+- A2: `ensureSajuResultSession`(게이트)과 그 호출문은 한 글자도 바꾸지 않는다. 추가 줄은 try/catch로 감싼 순수 추가다. `__tests__/ui/saju-loading-flow.behavior.test.js`, `saju-result-login.test.mjs`가 이 파일을 vm으로 돌리니 추가 뒤 둘 다 확인한다. 게이트 블록 안을 건드려야 하는 상황이면 하지 말고 보고한다.
+- `free_result` placement: 무료 결과 화면(무료 사주 결과, 자미두수 결과)에는 상품으로 가는 앵커가 없고 버튼뿐이라 표식을 달 곳이 없다. 허용값만 준비하고, CTA 추가는 묶음 4-1 몫으로 남긴다.
+- 관련 테스트: `__tests__/ui/seo-landing-entry-handoff.static.test.js`, `__tests__/ui/custom-event-wiring.static.test.js`.
+
+② A1 유입 분류(결제 실행 파일·`worker/payments/`는 고치지 않는다)
+- `js/core/analytics.js`의 `growthAttribution()` 앞에 `entrySourceLabel()`을 추가한다. 동의(`analyticsStorageState() === "granted"`)가 없으면 `sessionStorage`의 `cd:entry:source`를 지우고 null. 고정 코드 8개만 쓴다: `organic_naver|organic_google|organic_daum|organic_bing|paid_search|social|email|ai`. 자유 문자열 UTM은 저장하지 않는다.
+- 분류 순서: `utm_medium=cpc` 또는 클릭 ID(`gclid`, `gbraid`, `wbraid`, `n_media`, `n_ad_group` — 네이버 파라미터 이름은 추정이니 확인) → `paid_search` / `utm_medium` email·newsletter → `email` / social·organic_social·share·channel → `social` / 리퍼러 호스트 정확 일치(`search.naver.com`·`m.search.naver.com`, `www.google.com`·`google.com`·`www.google.co.kr`, `search.daum.net`·`m.search.daum.net`, `www.bing.com`·`cn.bing.com`, 기존 `aiSourceLabel`의 AI 호스트 → `ai`). 직접 유입·미분류는 라벨 없음. 분류되면 `{value, until: 지금+30분}`으로 저장하고, 분류 안 되는 진입(로그인·PG 복귀)은 기존 값을 지우지 않는다.
+- `growthAttribution()`에서 캠페인이 없어 `paidCampaignCookie(null)`을 부르는 한 지점만 바꾼다: 유입 라벨이 있으면 `paidCampaignCookie({campaignId: 라벨, consent: true, version: "entry-20261114-v1", device}, until)`을 쓰고 함수는 그대로 `null`을 돌려준다. 그래서 `growth_campaign` 이벤트 값, `cdReadGrowthAttribution()` 반환, 광고·명시 캠페인 우선순위는 그대로다.
+- `lib/marketing/growth-attribution.mjs`의 `normalizeGrowthAttribution`에 허용 규칙 추가: `version === "entry-20261114-v1"`이고 `campaignId`가 위 8개 중 하나면 `{campaignId, version, consent: true, device}`.
+- "포맷 불변" 근거(코드로 확인): 주문에는 기존 `metadata.growthAttribution`(Mongoose Mixed)에 기존 필드 `{campaignId, version, consent, device}`가 그대로 들어가고 값만 새로 생긴다. 읽는 쪽은 `worker/payments/index.js`의 `readCheckoutAttribution(request, body.growthAttribution)` 2곳, `worker/payments/orders.js`, `worker/yeongnyangi/service.ts`이고 모두 `normalizeGrowthAttribution`을 거친다. `lib/marketing/growth-metrics.mjs`는 campaignId를 그룹 키로만 쓴다. `worker/ops-hq/revenue-facts.js`와 `scripts/report-revenue-funnel.mjs`는 이 필드를 쓰지 않는다. `growth-attribution.mjs`는 `config/payment-freeze.json`에 없다.
+- 덮지 않는 것: 영냥이 결제 경로는 `app/yeongnyangi/_lib/api.ts`가 본문에 null을 넣어 쿠키를 읽지 않는다. 이번 범위 밖으로 두고 보고한다.
+- 테스트는 `__tests__/ui/purchase-analytics.test.mjs`에 같은 방식으로 추가한다(`bootFrom(url, referrer, {consent, session})`): 네이버 리퍼러+동의 → 쿠키에서 `organic_naver`/`entry-20261114-v1`, 동의 없음·임의 값 → 없음, 유료 캠페인이 있으면 그쪽 우선, `cdReadGrowthAttribution()`은 null 유지. 이 파일의 기존 단언(`utm_medium=organic` 뒤 null, 동의 철회 뒤 `cd_paid_campaign=` 없음)이 그대로 통과해야 한다. `organic-acquisition.test.mjs`, `consultation-discovery.test.mjs`도 analytics.js를 읽는다.
+
+③ 배너 문구
+- `lib/marketing/pass-benefits.mjs`의 연이 대사 "작은 꿀단지 하나면 라이트 운세 ${count}종이 모두 열려요."는 바로 아래 "이 중 N종은 꿀단지 없이도 무료"와 나란히 보면 사야 열리는 것처럼 읽힌다 → `작은 꿀단지에도 라이트 운세 ${count}종이 들어 있어요.`로 바꾼다(영냥이 쪽 대사는 이미 이 뜻이라 그대로). 동결 파일이 아니다.
+- `i18n/authored/homeOverseas-09.json`의 `home.benefitsCopy.lightBanner` 12개 언어도 같은 뜻으로 맞춘다(`{count}` 유지, ko는 기존처럼 쉼표를 둔 "작은 꿀단지에도, 라이트 운세 {count}종이 들어 있어요."). en "Even the Small Honey Jar includes all {count} Light Readings." / ja "小さなはちみつ壺にも、ライト占い{count}種が含まれています。" / zh-CN "小蜜罐里也包含全部{count}种轻量运势。" / zh-TW "小蜜罐裡也包含全部{count}種輕量運勢。" / vi "Hũ Mật Ong Nhỏ cũng đã bao gồm toàn bộ {count} bài xem nhẹ." / hi "छोटे हनी जार में भी सभी {count} लाइट रीडिंग शामिल हैं।" / es "El Tarro de Miel Pequeño también incluye las {count} Lecturas Ligeras." / fr "Le Petit Pot de Miel comprend lui aussi les {count} Lectures Légères." / de "Auch der kleine Honigtopf enthält alle {count} leichten Deutungen." / nl "Ook de kleine honingpot bevat alle {count} lichte duidingen." / ms "Balang Madu Kecil juga merangkumi kesemua {count} Bacaan Ringan." 상품 이름 표기는 같은 파일의 기존 번역과 맞는지 확인하고 쓴다. 그 뒤 `node scripts/i18n-merge-authored.mjs --core --file homeOverseas-09.json` → `node scripts/design/build-home-funnel.mjs` → `npm run sync:public`. `__tests__/ui/pass-benefits-light.test.mjs`가 12개 언어·placeholder를 검사한다.
+- `app/points/PointsClient.tsx`의 passLightLine("라이트 운세 N종 횟수 제한 없이 · 지금 유료인 운세 기준 … 상당")은 "지금 유료인 운세 기준"으로 한정돼 있어 사실과 어긋나지 않는다. 이용권 결제 화면 파일이라 고치지 않고 보고만 한다.
