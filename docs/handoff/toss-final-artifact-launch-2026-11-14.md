@@ -1,8 +1,29 @@
 ---
 status: in-progress
 updated: 2026-11-14
-next: 실행 중인 build2(session83971) 결과를 받고 actual AIT animal/music 검증부터 끝낸 뒤 최종 CI/Linux AIT/새 QR/운영 출시안을 완성한다.
+next: main 438f6c16d의 CI43595865519 및 Linux 산출물43595897060 결과를 확인하고 검증된 Linux AIT 다운로드·새 비공개 QR 등록·운영 승인 묶음 자료 전달까지 계속한다.
 ---
+
+## 최우선 최신 인계 — artifact_finish (2026-11-14)
+
+이 절이 아래 이전 상태보다 우선한다. 코드/Windows 실제AIT/검사 작업은 끝났으며, Linux 산출물과 QR·최종 전달 단계다. 반복 전체검사나 기능 재탐색으로 돌아가지 않는다.
+
+- **원격 main SHA `438f6c16dd6f4a75c04a51c94a0a261e86eb1274` push 성공**. 일반 push CI **43595865519** 진행. 공식 Linux AIT workflow_dispatch **43595897060**, full_ci/toss_artifact/toss_simulation_artifact 모두 true로 시작했다. 보통 CI는 폴링하지 말고 final/다음push 직전1회; 필수 Linux 산출물 생성완료 대기는 이번 전달을 위해 필요하다. 60초 넘는 blocking wait 없이 사용자업데이트 유지.
+- 처음push는 다른 SEO세션 원격 main `cea92ad58` 진전으로 non-fast-forward 거절. **강제push없이** 해당main CI43593465811 success 확인, `2055bc8c7` 무충돌merge로168파일 전부보존했다. root checkout에는손대지않음. source분석: Toss/Worker 변경없음, 웹홈/브랜드/상품설명/SEO 변경, saju-engine 시작에 analytics1줄. 원본추출17계산선언/154shell --check PASS; 기능표110행 unchanged. 최신source부터 번들재생성했음.
+- 공식checkfast 1회 전체PASS: `npm run check:fast -- --base=9a6ac23eb`, log `D:/Development/Temp/launch-artifact-check-fast.txt`; paid77PASS, lint/typecheck/worker guards, Jest479suites/8008tests PASS(1skipped). Toss tsc PASS log launch-toss-typecheck.txt. prepush 최종merge도PASS log launch-artifact-pre-push-merged.txt. **다시 전체 checkfast를 돌리지 말 것**. 새소스실패가나면그범위대상검사만.
+- 소스수정완료: `cf7c970c3` Screens로그인 next allowlist music추가(기존엔영냥이로잘못복귀), AnimalDestiny원본globals.css+LazyMotion/domAnimation 연결(원본카드무스타일/opacity0빈공간복구), 동물QA달력 accessible name /^달력/ 및 실제CSS/opacity검사. 로그인회귀+musicUI21PASS, animal2PASS.
+- `02ff9538a`: 기존 compressLocaleCopy를 TSX로파싱, KarmaDestinyAiClient/FusionFortuneClient의원문다국어literal만gzip(약125KBsource절감), 모든원문table/formatter 동등성5PASS. 기능/원문/아트삭제없음.
+- 통합build3 Windows deployment01a1d9fc-2ed6-7908-864d-2a4cf77daa03 expanded99,991,886B. **최신merge build4** 현재 apps/toss/private-simulation/ai-saju-studio.ait: deployment **01a1da10-5fdd-7b68-9cf1-782f2d403d82**, archive88,328,328B/expanded**99,991,890B**, 1790source files. limit100,000,000에여유8110B. `D:/Development/Temp/launch-final-private-build4-merged.txt`. Windows경로이므로최종제출은Linux를쓸것.
+- 실제build3 AIT PASS: --animal-destiny/--music-download/--astro-synastry/--free-originals/--neo-email/core(default)/--free-calculations/--free-reading/--expert-report karma/fusion. build4 merge후core재검증PASS log launch-core-merged4.txt. 나머지Linux전체스크립트는workflow가실행함. 기본/새CLI모두제대로등록됨.
+- 동물 원본144궁합동등성은**단위검사**. actualAIT는윤달/시각미상한명+상대1쌍,10탭/6본문/12도감,3폭,B입력초기화,무료주문0. screenshot `D:/Development/Temp/launch-final-screens/animal-mobile-card.png` 직접확인PASS. 원본카드보임. 음악은홈→로그인복귀→모의구매1건→합성10byte파일저장요청→cold구매기록재열람/새로고침→B동일URL ReviewReceipt **구매 기록 확인**게이트차단. SDK실파일은저장안함. B경계QA를rolealert가아닌이실제heading으로수정,권한검사우회없음.
+- 스크린샷폴더에 animal-full-original/music-owned-download/vedic-compat-input/vedic-compat-result/prashna-result/flower-result PNG. 동물/음악/베다입력직접확인. 음악은모의판원곡미다운로드로재생오류표시가능,다운로드권리QA와분리. docs아래PNG커밋금지.
+- 최신기능표갱신 `2a200f011`/`5e7a36bc0`/`438f6c16d`: **110=이미동작16+콘솔운영설정93+일부만이식1(음악큰파일)**. codeGaps빈칸을운영출시완료로말하지않음. 32MiB는 **현재 어댑터 메모리 상한, SDK 공식 용량한도 아님**. SDK3.7에는URL/stream/append파일API없고큰원곡경로미구현/기기미검증. 기존구매권리와정책유지. 기능표/원본감사/운영안/기기안내모두정확표현수정됨. inventory6PASS,YAMLparsePASS.
+- 새최종자료 `docs/toss/final-original-flows-20261114.md`, `final-device-walkthrough-20261114.md`, `launch-operational-evidence-20261114.md` 마지막운영후보표. 원본분석/QA도다시쓰지말고이자료최신Linux근거만추가.
+- **운영게이트중요**: TOSS_RELEASE_READY=true는로그인/기존결과뿐아니라native기존미완료유료생성복구·대사·unlink복구도연다. root가코드/AIT/QR준비완료후한번묶음승인질문할것. 새임의플래그/기존권리축소추가금지. 실LLM개발검증은계속금지이며운영승격영향으로기존구매의LLM재개가능성을명시. 키3종(TOSS_IDENTITY_KEY/TOSS_DATA_KEY/TOSS_CALLBACK_AUTHORIZATION)·mTLS·DB/개인정보정본대조·콘솔필드/제출문구는운영자료표에구체화. 새판매false,독립buyer증명문제유지.
+- **콘솔69/p1**: 공간68사라져기존사용자새공간승인대로복구. name `Code Destiny final verified Linux QR 20261114`. URL app-build같음. 최신snapshot round43: container@12, 버전등록@14, 앱정보수정@15. 콘솔최신15/앱정보반려/검토필요. 새업로드/검토/정보저장없음. `D:/Development/Temp/toss-launch-console-20261114/round-41.mjs` 실패(68없음),42새69,43snapshot. 다음round44 unique파일. ego-browser skill+전체guide는 fresh가다시읽을것. guide `D:/Development/Temp/launch-ego-guide.txt`는끝표시까지읽음. 업데이트알림있으나업그레이드승인없고작업필수아님.
+- Linuxartifact names `toss-preview-438f6c16dd6f4a75c04a51c94a0a261e86eb1274`, `toss-private-simulation-438f6c16dd6f4a75c04a51c94a0a261e86eb1274`; retention1day이므로완료후즉시D:/Development/Temp나사용자전달폴더로다운로드. runtimeSOURCE438가최종검증대상. 후속문서커밋은소스동일하니artifact를다시빌드하지않음.
+- 최종Linux다운로드후 `node .../private-simulation-archive.mjs <LinuxAIT>`에는 --local-windows넣지않고확인. workflow이미전체모드검증시그근거활용. 콘솔3스크린샷준비는 default actualAIT 경로에 `TOSS_CONSOLE_CAPTURE=1`, `TOSS_CAPTURE_DIR=<외부폴더>`로실행하면원본QA과정캡처함. `private-console-prep.mjs` 참고. 실제Linux AIT 캡처를확인해옛축소홈콘솔이미지교체자료로준비;검토는누르지않음.
+- next: artifact/CI완료또는실패처리→Linux원문/경로/용량/모의QA증거→새private버전16예상(콘솔실제번호확인)QR등록→QR/일반AIT/모의AIT/sha256/버전/deployment/경로영구전달자료→root운영승인묶음질문자료전달. 작은단계에서최종응답으로종료하지않는다. root에의미있는업데이트직접보내기.
 
 ## 첫 행동
 handoff 스킬/CLAUDE를 읽고 이 문서를 최신 정본으로 삼는다. 전체 사용자 요청은 중단하지 않는다. 이전 toss-launch-completion 및 toss-private-extended-native 문서는 이전 증거 참고용이다.
