@@ -49,4 +49,3 @@ export async function paidFamilyRequest(request,url,path,state,save,now=()=>new 
  for(const row of state.intents.values())if(['relationship','sukuyo'].includes(row.service)){if(!row.createdAt)row.createdAt=now().toISOString();if(row.result&&!row.generationCount)row.generationCount=1;}save();
  return response;
 }
-
