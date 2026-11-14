@@ -55,14 +55,11 @@ FAQ 수는 3-2·3-3에서 바뀌지 않았다(같은 내용을 FAQ에 다시 넣
 - 하드코딩 가격: 사용자에게 보이는 남은 곳은 모두 정본과 대조하는 가드가 있다(`saju-bundle-copy.static.test.js`, `verify-home-service-registry`, `verify-nakshatra-price-copy`, `verify-paid-gate-price-coverage` — 뒤 셋은 이번에 돌려 exit 0). `index.html`의 게이트 배지 "사주 묶음 · 29,000원 영구 소장" 2곳은 CSS가 숨겨 화면에 나오지 않는다. 그래서 정본 읽기로 바꾼 곳은 없다.
 - 이용권 이름(C5)은 2026-11-14 "지금 이름 유지" 결정대로 그대로다.
 
-### 4-3 `/ziwei/` 로그인 복귀 (`753227805`)
+### 4-3 `/ziwei/` 로그인 복귀 — 적용하지 않음
 
-| 항목 | 변경 전 | 변경 후 |
-| --- | --- | --- |
-| 프로필 저장 중 로그인 요구 시 이동 | `/login?next=%2F`(항상 홈) | `/login?next=<현재 경로>`(예: `/ziwei/`) |
+변경 전·후가 같다: 프로필 저장 중 로그인이 필요하면 `/login?next=%2F`로 가서 홈으로 돌아온다.
 
-- 로그인 쪽 `sanitizeAuthReturnPath`(내부 경로만, `//`·역슬래시·인증 경로 거부)는 그대로다. 인증 흐름·OAuth·결제 동결 영역은 건드리지 않았다.
-- 실제 브라우저 왕복은 확인하지 않았다(코드 경로만 확인).
+`753227805`로 고쳤다가 `b902804d4`로 되돌렸다. 수정 자체는 8줄이지만 이 파일 내용이 바뀌면 `verify:payment-choice-parity`가 `destiny-profile.js?v=build-…` 핀 22곳 갱신을 요구하고, 그중 하나가 결제 동결 파일 `app/_lib/billing-client.ts:468`(`PAID_SERVICE_RUNTIME_SRC`, `config/payment-freeze.json` wholeFiles 해시도 함께 갱신)이다. 나머지 21곳은 독립 정적 HTML 10개와 `public/` 미러, `scripts/verify-paid-gate-ui-regression.mjs`다. 동결 파일 수정은 승인 범위 밖이라 방법만 남긴다.
 
 ### 4-4
 

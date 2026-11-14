@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-14
-next: 전체 검증(typecheck·lint·i18n·사이트맵·분석 이벤트·빌드·홈 정체성·seo 테스트·npm test·check-changed) → docs/seo/bundle3-4-before-after.md. 묶음 3·4는 끝(결과 기록 맨 끝). push·배포·운영 승격은 미승인(로컬 커밋만). F3는 구현하지 않는다.
+next: 4-3(/ziwei/ 로그인 복귀)은 결제 동결 파일 app/_lib/billing-client.ts의 캐시 핀 갱신 승인이 있어야 한다 — 승인 전에는 하지 않는다. 그 밖의 묶음 3·4와 전체 검증은 끝(결과 기록 맨 끝). push·배포·운영 승격은 미승인(로컬 커밋만). F3는 구현하지 않는다.
 ---
 # 네이버 SEO·AEO·GEO + 구매 동선 (Phase 1~5)
 
@@ -106,7 +106,7 @@ Phase 0 보고서와 승인된 계획의 정본은 `docs/seo/phase0-report.md`�
 - [x] 3-1 반복 섹션·`DEFAULT_FAQS`, 3-2 질문형 H2 결론 문단, 3-3 기준일·비교 페이지.
 
 ### 묶음 4 — 구매 동선
-- [x] 4-1 결과 CTA 축소(F1), 4-2 사다리 표기·하드코딩 가격, 4-3 `/ziwei/` 로그인 복귀(F2), 4-4 결제 변경 제안서(F3·A1)만 쓰고 멈춤 — **4-4는 끝**(`docs/seo/payment-change-proposal.md`, 구현은 승인 뒤).
+- [ ] 4-1 결과 CTA 축소(F1), 4-2 사다리 표기·하드코딩 가격, 4-3 `/ziwei/` 로그인 복귀(F2), 4-4 결제 변경 제안서(F3·A1)만 쓰고 멈춤 — **4-4는 끝**(`docs/seo/payment-change-proposal.md`, 구현은 승인 뒤). **4-3만 남음(동결 파일 승인 필요, 결과 기록 "묶음 4 진행").**
 
 ### 묶음 5 — 측정
 - [x] 5-1 퍼널 이벤트(A2), 5-2 `docs/seo/funnel-spec.md`·`naver-console-checklist.md` — 둘 다 끝. 5-1은 2026-11-14 구현(결과 기록 맨 끝). `free_result` placement를 실제로 쓰는 CTA는 묶음 4-1 몫.
@@ -372,7 +372,8 @@ SHA는 네 번째 rebase 뒤 기준이다. 모두 로컬 커밋이고 push하지
   - 조사 결과(코드 변경 없음): 등급 카드(`ProductGuide` `.tiers`, `QuestionFishPicker` `.heading strong`, `QuestionScope`, 천원 페이지)는 이미 가격을 금색 큰 글씨로, 챕터·분량을 같은 카드에 적고 있고 가격은 `worker/yeongnyangi/payments/catalog`·`paid-feature-registry`에서 읽는다. 카드 DOM 순서(생선명이 위)는 CSS 구조를 바꿔야 해서 두었다.
   - 하드코딩 가격을 두고 간 곳과 이유: ① `index.html`의 `cd-section-gate__badge`("사주 묶음 · 29,000원 영구 소장" 2곳)는 CSS 3곳(`index.html:727`, `styles/fortune-ui-home.css:463`, `styles/fortune-ui.css:3977`)이 `display:none !important`로 숨겨 사용자에게 보이지 않는다. ② `js/core/saju/bundle-offer.js`의 `PRICE_LABEL`은 `saju-bundle-copy.static.test.js`가 문자열을 고정하고 정본 29000과 대조한다. ③ `lib/seo-landing-pages.js` FAQ의 29,000원도 같은 테스트가 대조한다(이 파일은 클라이언트 번들에 들어가 worker 정본을 import하면 안 됨). ④ `js/core/service-registry.js`·nakshatra 문구 등은 `verify-home-service-registry`·`verify-nakshatra-price-copy`·`verify-paid-gate-price-coverage`가 정본과 대조한다(셋 다 exit 0). 즉 남은 하드코딩은 모두 가드가 정본과 어긋남을 잡는다.
   - C5(이용권 이름 통일)는 2026-11-14 "유지" 확정이라 손대지 않았다.
-- 4-3 `753227805`: `js/destiny-profile.js` 프로필 저장 `AUTH_REQUIRED` 분기의 `/login?next=%2F` 고정을 현재 경로(`pathname + search`, `/`로 시작·`//`와 역슬래시 없음)로 바꿨다. 최종 검증은 로그인 쪽 `app/_lib/auth-return.js` `sanitizeAuthReturnPath`가 그대로 한다. 인증 흐름·OAuth·동결 영역은 건드리지 않았다(`verify-payment-freeze` exit 0). `npm run sync:public`으로 미러·캐시 해시 재생성.
-  - 미확인: 실제 브라우저에서 `/ziwei/` 로그인 왕복은 돌려 보지 않았다(코드 경로만 확인).
+- 4-3 **되돌림 — 사용자 승인 필요**: `753227805`로 고쳤다가 `b902804d4`(revert)로 되돌렸다. 지금 코드는 변경 전과 같다(`/ziwei/`에서 로그인하면 홈으로 돌아감).
+  - 방법(승인되면 그대로 적용): `js/destiny-profile.js` 프로필 저장 `AUTH_REQUIRED` 분기의 `/login?next=%2F`를 현재 경로(`pathname + search`, `/`로 시작·`//`와 역슬래시 없음)로 바꾸면 된다(8줄, 로그인 쪽 `sanitizeAuthReturnPath`가 최종 검증). 다만 이 파일 내용이 바뀌면 `verify:payment-choice-parity`가 `destiny-profile.js?v=build-…` 핀 22곳 갱신을 요구하고, 그중 하나가 결제 동결 파일 `app/_lib/billing-client.ts:468`(`PAID_SERVICE_RUNTIME_SRC`, `config/payment-freeze.json` wholeFiles 해시도 함께 갱신)이다. 나머지 21곳은 독립 정적 HTML 10개와 `public/` 미러, `scripts/verify-paid-gate-ui-regression.mjs`다.
+  - 실패 기록: 첫 `check-changed`가 이 핀 때문에 exit 1(paid-gate-suite, merge-base에서는 통과). 동결 파일 수정은 승인 범위 밖이라 되돌렸다.
   - 범위 밖(보고만): 같은 `next=%2F` 고정이 `js/core/index-inline-runtime.js:1619·3653·7808`, `js/iching-engine.js:419`, `js/saju-engine-tarot-sukuyo-quantum.js:6780·13253`에도 있다.
 - 원장 재생성 `5c860e17c`.
