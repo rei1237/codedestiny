@@ -5,7 +5,7 @@ export async function createManualImage(content: ManualContent, format: "feed" |
   canvas.width = 1080; canvas.height = format === "feed" ? 1350 : 1920;
   const ctx = canvas.getContext("2d");
   if (!ctx) throw new Error("canvas unavailable");
-  const shell = document.getElementById("hd-manual-title")?.closest("main") || document.querySelector('[class*="shell"]');
+  const shell = document.getElementById("hd-manual-title")?.closest('[class*="shell"]') || document.querySelector('[class*="shell"]');
   if (!shell) throw new Error("theme unavailable");
   const css = getComputedStyle(shell);
   const token = (name:string) => {const v = css.getPropertyValue(name).trim(); if (!v) throw new Error("missing theme"); return v;};

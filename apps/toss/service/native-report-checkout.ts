@@ -1,7 +1,7 @@
 import {api,purchase,nativeSaleProducts,paymentRequiresReview} from '../src/platform';
 import type {TossTeaPriceSelection} from '@/src/features/fortune-tea-house/lib/tossPriceSelection';
 type Intent={id:string;sku:string;amountKRW:number;paid:boolean;orderId?:string};
-export async function checkoutReport({service,feature,owner,input,orderId,price,current,onPurchase,preparedId,onPrepared}:{service:'naming'|'codex'|'palm';feature:string;owner:string;input:Record<string,unknown>;orderId:string|null;price:TossTeaPriceSelection|null;current:()=>boolean;onPurchase:(cancel:()=>void)=>void;preparedId?:string;onPrepared?:(id:string)=>void}){
+export async function checkoutReport({service,feature,owner,input,orderId,price,current,onPurchase,preparedId,onPrepared}:{service:'naming'|'codex'|'palm'|'human-design';feature:string;owner:string;input:Record<string,unknown>;orderId:string|null;price:TossTeaPriceSelection|null;current:()=>boolean;onPurchase:(cancel:()=>void)=>void;preparedId?:string;onPrepared?:(id:string)=>void}){
   if(!owner||!current()||!orderId&&(paymentRequiresReview()||!price||price.owner!==owner||price.featureKey!==feature))throw Error('PURCHASE_UNAVAILABLE');
   const key='toss:'+service+'-attempt:'+owner;
   const bytes=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(JSON.stringify(service==='naming'?input.input:input)));

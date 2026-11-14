@@ -65,6 +65,7 @@ export type ExportHumanDesignReportPdfOptions = {
   /** slotId → 미리 캡처한 도표. 빠진 슬롯은 그 장에서 도표 블록이 캡션까지 통째로 빠진다. */
   images?: Map<string, { dataUrl: string; ratio: number }>;
   fileName: string;
+  saveBase64?: (data: string, fileName: string) => Promise<void>;
   /** 표지에 적을 생성일. 출생일이 아니다. */
   date?: string;
   watermarkText?: string;
@@ -187,5 +188,6 @@ export async function exportHumanDesignReportPdf(options: ExportHumanDesignRepor
 
   drawContentsPage(pdf, fonts, contentsPage, entries, CONTENTS_LABEL[lang]);
   drawFooters(pdf, fonts, watermarkText);
-  pdf.save(fileName);
+  if(options.saveBase64)await options.saveBase64(pdf.output("datauristring").split(",")[1],fileName);
+  else pdf.save(fileName);
 }

@@ -1,4 +1,10 @@
-import {useEffect,useLayoutEffect,useRef,useState,type FormEvent} from 'react';
+import {useCallback,useEffect,useLayoutEffect,useRef,useState,type FormEvent} from 'react';
+import {deliverHumanDesignImage} from './human-design-media';
+import HumanDesignProfile from './HumanDesignProfile';
+import LivingGuide from '../../../app/human-design/_components/LivingGuide';
+import type {GuideApi} from '../../../app/human-design/_lib/guide-access';
+import HumanDesignDetails from './HumanDesignDetails';
+import styles from '../../../app/human-design/human-design.module.css';
 import BodyGraph from '../../../app/human-design/_components/BodyGraph';
 import DetailSheet from '../../../app/human-design/_components/DetailSheet';
 import {AUTHORITY_COPY,DEFINITION_COPY,STRATEGY_COPY,TYPE_COPY,pick} from '../../../app/human-design/_copy';
@@ -14,6 +20,8 @@ function validChart(chart:HdChart){
   &&chart.activations.every(a=>a&&Number.isInteger(a.gate)&&a.gate>=1&&a.gate<=64&&Number.isInteger(a.line)&&a.line>=1&&a.line<=6&&['personality','design'].includes(a.layer)&&typeof a.planet==='string')
   &&Array.isArray(chart.layers?.personality)&&chart.layers.personality.length===13&&Array.isArray(chart.layers?.design)&&chart.layers.design.length===13
   &&Array.isArray(chart.channels)&&chart.channels.every(c=>c&&typeof c.channelId==='string'&&typeof c.centerA==='string'&&typeof c.centerB==='string')
+  &&chart.profileLines&&Number.isInteger(chart.profileLines.personality)&&Number.isInteger(chart.profileLines.design)
+  &&chart.incarnationCross&&typeof chart.incarnationCross.notation==='string'&&chart.incarnationCross.gates
   &&Array.isArray(chart.definedCenters)&&Array.isArray(chart.undefinedCenters)&&Array.isArray(chart.activeGates)
   &&Object.hasOwn(TYPE_COPY,chart.type)&&Object.hasOwn(AUTHORITY_COPY,chart.authority)&&Object.hasOwn(STRATEGY_COPY,chart.strategy)&&Object.hasOwn(DEFINITION_COPY,chart.definition)&&typeof chart.profile==='string';
 }
@@ -21,6 +29,9 @@ type Props={loggedIn:boolean;onLogin:()=>void;onError:(error:unknown)=>void;requ
 export default function HumanDesignChart(props:Props){return <TossSessionScope><HumanDesignChartContent {...props}/></TossSessionScope>;}
 function HumanDesignChartContent({loggedIn,onLogin,onError,request=api}:Props){
  const [birth,setBirth]=useState(empty),[chart,setChart]=useState<HdChart|null>(null),[selection,setSelection]=useState<HdSelection>(null),[busy,setBusy]=useState(false),[issue,setIssue]=useState('');
+ const [guideApi,setGuideApi]=useState<GuideApi|null>(null);
+ const onGuide=useCallback((value:GuideApi|null)=>setGuideApi(value),[]);
+ const guide=chart&&guideApi?guideApi.buildGuide(chart,'ko'):null;
  const epoch=useRef(0),pending=useRef(false);
  useLayoutEffect(()=>()=>{epoch.current++;},[]);
  useEffect(()=>{epoch.current++;pending.current=false;setBirth(empty());setChart(null);setSelection(null);setBusy(false);setIssue('');},[loggedIn]);
@@ -32,7 +43,8 @@ function HumanDesignChartContent({loggedIn,onLogin,onError,request=api}:Props){
   finally{if(current===epoch.current){pending.current=false;setBusy(false);}}
  }
  const type=chart&&TYPE_COPY[chart.type as keyof typeof TYPE_COPY],authority=chart&&AUTHORITY_COPY[chart.authority as keyof typeof AUTHORITY_COPY];
- return <section className="human-design-chart"><h1>휴먼 디자인</h1><p>태어난 순간을 바탕으로 나의 바디그래프를 살펴봐요.</p><p className="muted">로그인 후 이용할 수 있어요. 이 차트는 현재 화면에서만 볼 수 있고 보관함에 저장되지 않아요.</p>
+ return <section className={"human-design-chart "+styles.shell}><h1>휴먼 디자인</h1><p>태어난 순간을 바탕으로 나의 바디그래프를 살펴봐요.</p><p className="muted">로그인 후 이용할 수 있어요. 이 차트는 현재 화면에서만 볼 수 있고 보관함에 저장되지 않아요.</p>
+  {loggedIn&&<HumanDesignProfile birth={birth} chart={chart} onSelect={change} onGuide={onGuide} request={request}/>}
   {loggedIn?<form className="form" onSubmit={submit}><fieldset className="birth-fields" disabled={busy}><legend>차트를 살펴볼 출생정보</legend>
    <label>태어난 날짜<input type="date" required value={birth.birthDate} onChange={e=>change({...birth,birthDate:e.target.value})}/></label>
    <label>태어난 시각<input type="time" required value={birth.birthTime} onChange={e=>change({...birth,birthTime:e.target.value})}/></label>
@@ -40,9 +52,9 @@ function HumanDesignChartContent({loggedIn,onLogin,onError,request=api}:Props){
    <label>출생지 타임존<input required maxLength={80} autoComplete="off" placeholder="예: Asia/Seoul" value={birth.timezone} onChange={e=>change({...birth,timezone:e.target.value})}/></label>
   </fieldset><Button type="submit" display="block" loading={busy}>{issue?'다시 계산하기':'차트 살펴보기'}</Button></form>:<Button display="block" onClick={onLogin}>토스 로그인하고 살펴보기</Button>}
   {busy&&<p role="status">태어난 순간의 차트를 계산하고 있어요.</p>}{issue&&<p role="alert">{issue}</p>}
-  {loggedIn&&chart&&type&&authority&&<section aria-label="휴먼 디자인 차트"><h2>나의 바디그래프</h2><p>센터와 게이트를 눌러 계산된 정보를 살펴볼 수 있어요.</p><BodyGraph chart={chart} locale="ko" selection={selection} onSelect={setSelection}/>
+  {loggedIn&&chart&&type&&authority&&<section aria-label="휴먼 디자인 차트"><h2>나의 바디그래프</h2><a href="/human-design/report/">휴먼 디자인 프리미엄 리포트</a><p>센터와 게이트를 눌러 계산된 정보를 살펴볼 수 있어요.</p><BodyGraph chart={chart} locale="ko" selection={selection} onSelect={setSelection}/>
    <dl className="daily-basis"><div><dt>타입</dt><dd>{pick(type.name,'ko')}</dd></div><div><dt>권위</dt><dd>{pick(authority.name,'ko')}</dd></div><div><dt>전략</dt><dd>{pick(STRATEGY_COPY[chart.strategy as keyof typeof STRATEGY_COPY],'ko')}</dd></div><div><dt>프로파일</dt><dd>{chart.profile}</dd></div><div><dt>정의</dt><dd>{pick(DEFINITION_COPY[chart.definition as keyof typeof DEFINITION_COPY],'ko')}</dd></div></dl>
-   <p className="muted">차트는 자기 이해를 위한 참고 자료예요. 중요한 결정에는 실제 상황을 함께 살펴보세요.</p><DetailSheet chart={chart} locale="ko" selection={selection} onClose={()=>setSelection(null)}/>
+   <p className="muted">차트는 자기 이해를 위한 참고 자료예요. 중요한 결정에는 실제 상황을 함께 살펴보세요.</p><LivingGuide guide={guide} deliverImage={deliverHumanDesignImage}/><HumanDesignDetails chart={chart} selection={selection} setSelection={setSelection} guide={guide}/><DetailSheet guideApi={guideApi} chart={chart} locale="ko" selection={selection} onClose={()=>setSelection(null)}/>
   </section>}
  </section>;
 }

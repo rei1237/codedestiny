@@ -3,7 +3,7 @@ import {TossError} from './policy.js';
 
 // The chart is free in the original service. Personal guides and paid reports
 // are separate products and are deliberately not produced by this endpoint.
-export async function calculateTossHumanDesign(body,env,calculate=calculateHumanDesignChart){
+export function validateTossHumanDesignBirth(body){
   const birth=body?.birth;
   if(!birth||typeof birth.birthDate!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(birth.birthDate)
     ||typeof birth.birthTime!=='string'||!/^\d{2}:\d{2}$/.test(birth.birthTime)
@@ -19,6 +19,10 @@ export async function calculateTossHumanDesign(body,env,calculate=calculateHuman
   const fixedOffset=/^(?:UTC|GMT)?\s*[+-](\d{1,2})(?::?(\d{2}))?$/i.exec(input.timezone);
   if(fixedOffset){const hours=Number(fixedOffset[1]),minutes=Number(fixedOffset[2]||0);if(hours>14||minutes>59||hours===14&&minutes!==0)throw new TossError('BIRTH_INVALID',400);}
   try{resolveBirthMoment(input);}catch{throw new TossError('BIRTH_INVALID',400);}
+  return input;
+}
+export async function calculateTossHumanDesign(body,env,calculate=calculateHumanDesignChart){
+  const input=validateTossHumanDesignBirth(body);
   let chart;
   try{chart=await calculate(env,input,{requestUrl:'https://code-destiny.com/api/toss/human-design/chart'});}
   catch(error){

@@ -29,7 +29,7 @@ for (const [file, model, handler, key] of routes) {
     ];
     let selected, filter;
     const query = { sort() { return this; }, select() { return this; }, limit(n) { selected = selected.slice(0, n); return this; }, lean: async () => selected };
-    const ctx = vm.createContext({ URL, Request, console,
+    const ctx = vm.createContext({ URL, Request, console, nativeTossContext: () => null,
       [model]: { find(value) { filter = value; selected = rows.filter(sift(value)); return query; } },
       getOptionalUserFromRequest: async () => ({ userId: 'owner' }), requireAuth: async () => ({ userId: 'owner' }),
       connectDb: async () => {}, withMongoRetry: async (_env, fn) => fn(),

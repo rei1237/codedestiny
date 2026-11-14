@@ -1,3 +1,4 @@
+import {nativeTossContext} from '../toss/native-context.js';
 import { FEATURE_KEY_PRICE_TABLE } from "../lib/paid-feature-registry.js";
 // 휴먼 디자인 프리미엄 리포트 — 회당 결제(human-design-report, 100코인 = ₩10,000).
 //
@@ -349,7 +350,8 @@ function toStoredSection(spec, locale, result) {
 // ── 라우트 ───────────────────────────────────────────────────────────────────
 
 async function handleStart(request, env) {
-  const auth = await requireAuth(request, env);
+  const native = nativeTossContext(request);
+  const auth = native?.auth || await requireAuth(request, env);
   const body = await readJson(request);
   const input = normalizeBirthBody(body);
   if (!isValidBirth(input)) {
@@ -359,13 +361,15 @@ async function handleStart(request, env) {
   const locale = resolveLocale(body);
   const requestId = clean(body?.requestId || body?.idempotencyKey, 180);
   const inputHash = await computeInputHash(input);
-  const reportKey = reportKeyOf(inputHash, locale);
+  const reportKey = (native ? "toss:" : "") + reportKeyOf(inputHash, locale);
 
   // 🔴 이미 만든 리포트면 결제 검사 없이 그대로 돌려준다. 본인이 이미 결제해 받은 것을
   //    다시 여는 길이다(fusion-fortune.js 의 재열람 계약과 같다).
   const existing = await findReport(env, auth.userId, { reportKey });
   if (existing && existing.status !== "generation_failed") {
-    if (existing.status !== "completed" && !await verifyStoredHdAccess(existing)) return json({ ok: false, reason: "PAYMENT_VERIFY_FAILED" }, { status: 402 });
+    if (native) await native.assertStored(existing);
+    else if (existing.accessSource === "toss") return notFound();
+    if (existing.status !== "completed" && !await verifyStoredHdAccess(existing, env, native)) return json({ ok: false, reason: "PAYMENT_VERIFY_FAILED" }, { status: 402 });
     return json({ ok: true, reused: true, ...publicReport(existing) }, { headers: noStore });
   }
 
@@ -373,12 +377,12 @@ async function handleStart(request, env) {
   //    LAX↔서울 왕복이 1.3초라 직렬로 두면 그만큼 그대로 늘어난다.
   const [archived, proof] = await Promise.all([
     findArchivedChart(env, auth.userId, inputHash),
-    verifyPerUsePayment(env, {
+    (native ? native.access(requestId, {inputHash, locale}) : verifyPerUsePayment(env, {
       userId: auth.userId,
       featureKey: FEATURE_KEY,
       coinPrice: COIN_PRICE,
       requestId,
-    }).catch((error) => {
+    })).catch((error) => {
       console.error("[human-design-report] payment verify threw", clean(error?.message || error, 200));
       return { proven: null, source: "", reason: "VERIFY_THREW" };
     }),
@@ -399,8 +403,8 @@ async function handleStart(request, env) {
   //    아래의 차트 계산·확정표 조립·저장은 모두 실패할 수 있으므로 되돌릴 자리를 **여기서** 연다.
   //    실행 기록보다 뒤에서 실패하면 sweepStaleServiceExecutions(service-execution-task.js)도
   //    잠글 건이 없어 그냥 지나치고, 차감은 회수 경로 없이 고아로 남는다(2026-09-19 실측).
-  const reportId = `${FEATURE_KEY}:${auth.userId}:${inputHash}:${locale}`;
-  const refundable = await openRefundableExecution(env, auth.userId, requestId, reportId, clean(proof.transactionId, 120), proof.passRefund);
+  const reportId = `${native ? "toss:" : ""}${FEATURE_KEY}:${auth.userId}:${inputHash}:${locale}`;
+  const refundable = native ? false : await openRefundableExecution(env, auth.userId, requestId, reportId, clean(proof.transactionId, 120), proof.passRefund);
 
   // 🔴 클라이언트가 보낸 차트를 믿지 않는다 — 믿으면 결제 없이도 리포트를 받을 수 있다.
   let calculation = archived?.calculation || null;
@@ -458,6 +462,7 @@ async function handleStart(request, env) {
     })),
     accessType: proof.source === "pass" ? "pass" : (proof.source === "monthly" ? "membership_credit" : "paid"),
     accessSource: clean(proof.source, 40),
+    ...(native ? {paymentId: clean(proof.transactionId,160)} : {}),
     billingRequestId: requestId,
     // 🔴 배달 2판은 새 문서에만 붙는다(진행 중인 1판 문서는 옛 동작으로 끝난다).
     deliveryPlanVersion: hdDeliveryV2Enabled(env) ? HD_DELIVERY_PLAN_VERSION : 1,
@@ -606,7 +611,13 @@ function hdValidDraft(section) {
   return countPaidReportBodyChars(hdSectionBody(section)) >= 40
     && (section.status === "ok" || hdLengthOnly(section) || section.issues?.every(issue => issue === "report_total_too_short"));
 }
-async function verifyStoredHdAccess(doc) {
+async function verifyStoredHdAccess(doc, env, native) {
+  if (doc.accessSource === "toss") {
+    if (native) await native.assertStored(doc);
+    else return false;
+    return true;
+  }
+  if (native) return false;
   if (await isPaidResultRevoked(doc.userId, FEATURE_KEY, [doc.idempotencyKey, doc.billingRequestId, doc.paymentId, executionKeyOf(doc.billingRequestId)])) return false;
   return true;
 }
@@ -626,14 +637,17 @@ async function saveHdDelivery(env, filter, fields, reportId) {
   } catch { throw resultStorageUnavailable(reportId); }
 }
 async function handleGenerate(request, env, recoveryAuth = null) {
-  const auth = recoveryAuth || await requireAuth(request, env);
+  const native = nativeTossContext(request);
+  const auth = native?.auth || recoveryAuth || await requireAuth(request, env);
   const body = await readJson(request);
   const reportId = clean(body?.reportId, 200);
   if (!reportId) return json({ ok: false, reason: "INVALID_INPUT" }, { status: 400 });
   let current = await findReport(env, auth.userId, { id: reportId });
   if (!current) return json({ ok: false, reason: "REPORT_NOT_FOUND", message: MESSAGES.notFound }, { status: 404 });
+  if (native) await native.assertStored(current);
+  else if (current.accessSource === "toss") return notFound();
   if (current.status === "completed") return json({ ok: true, ...publicReport(current) }, { headers: noStore });
-  if (!await verifyStoredHdAccess(current)) return json({ ok: false, reason: "PAYMENT_VERIFY_FAILED" }, { status: 402 });
+  if (!await verifyStoredHdAccess(current, env, native)) return json({ ok: false, reason: "PAYMENT_VERIFY_FAILED" }, { status: 402 });
   // 기존 명시적 '부족한 영역 보완'만 새 제한 실행을 연다. 자동으로 예산을 초기화하지 않는다.
 
   if (current.status === "partial") return json({ ok: true, ...publicReport(current), retryable: true }, { status: 202, headers: noStore });
@@ -715,21 +729,21 @@ async function handleGenerate(request, env, recoveryAuth = null) {
       if (failure) throw failure.reason;
       current = await saveHdDelivery(env, filter, { llmMeta: { ...current.llmMeta, waveInFlight: false } }, reportId);
     }
-    if (plan2) return await finishHdPlan2({ env, auth, filter, reportId, current, waveBudgetExhausted });
+    if (plan2) return await finishHdPlan2({ env, auth, native, filter, reportId, current, waveBudgetExhausted });
     const normal = current.sections.filter(row => row.status === "ok");
     const reportBody = normal.map(hdSectionBody).join("\n");
     if (normal.length === HD_REPORT_SECTIONS.length && !hasRepeatedReportPassage(reportBody)) {
       current = await saveHdDelivery(env, filter, { status: "delivery_pending" }, reportId);
-      if (!await verifyStoredHdAccess(current)) return json({ ok: false, reason: "PAYMENT_VERIFY_FAILED" }, { status: 402 });
+      if (!await verifyStoredHdAccess(current, env, native)) return json({ ok: false, reason: "PAYMENT_VERIFY_FAILED" }, { status: 402 });
       current = await saveHdDelivery(env, filter, { status: "completed", completedAt: new Date(), lock: null }, reportId);
-      await closeExecution(env, auth.userId, current.billingRequestId, reportId).catch(error => console.warn("[human-design-report] completion record", clean(error?.message, 120)));
+      if (!native) await closeExecution(env, auth.userId, current.billingRequestId, reportId).catch(error => console.warn("[human-design-report] completion record", clean(error?.message, 120)));
       return json({ ok: true, ...publicReport(current) }, { headers: noStore });
     }
     const exhausted = waveBudgetExhausted || current.sections.every(row => row.status === "ok" || row.attempts >= HD_REPORT_MAX_SECTION_ATTEMPTS);
     if (exhausted && !current.sections.some(row => countPaidReportBodyChars(hdSectionBody(row)) >= 400)) {
       if (current.llmMeta?.unknownAttempt || current.llmMeta?.waveInFlight) throw resultStorageUnavailable(reportId);
       current = await saveHdDelivery(env, filter, { status: "generation_failed", generationError: { reason: "BELOW_DELIVERY_FLOOR" } }, reportId);
-      const refunded = await refundExecution(env, auth.userId, current.billingRequestId, reportId, "delivery floor not met");
+      const refunded = native ? false : await refundExecution(env, auth.userId, current.billingRequestId, reportId, "delivery floor not met");
       if (refunded) current = await saveHdDelivery(env, filter, { generationError: { reason: "BELOW_DELIVERY_FLOOR", refunded: true } }, reportId);
       return json({ ok: false, reason: "REPORT_UNDELIVERABLE", refunded, message: MESSAGES.failed }, { status: 503 });
     }
@@ -739,7 +753,7 @@ async function handleGenerate(request, env, recoveryAuth = null) {
 }
 
 /** 2판 마무리: 더 부를 섹션이 없으면 본문이 있는 만큼 배달한다. 환불은 본문이 하나도 없을 때만. */
-async function finishHdPlan2({ env, auth, filter, reportId, current, waveBudgetExhausted }) {
+async function finishHdPlan2({ env, auth, native, filter, reportId, current, waveBudgetExhausted }) {
   const selection = waveBudgetExhausted ? { pending: [] } : hdPlan2Selection(current);
   const unsettled = current.sections.some(row => row.status !== "ok" && hdLengthOnly(row) && Number(row.attempts || 0) < HD_REPORT_MAX_SECTION_ATTEMPTS);
   if (selection.pending.length || (!waveBudgetExhausted && unsettled)) {
@@ -749,7 +763,7 @@ async function finishHdPlan2({ env, auth, filter, reportId, current, waveBudgetE
   if (!totalBody) {
     if (current.llmMeta?.unknownAttempt || current.llmMeta?.waveInFlight) throw resultStorageUnavailable(reportId);
     current = await saveHdDelivery(env, filter, { status: "generation_failed", generationError: { reason: "EMPTY_REPORT" } }, reportId);
-    const refunded = await refundExecution(env, auth.userId, current.billingRequestId, reportId, "report body empty");
+    const refunded = native ? false : await refundExecution(env, auth.userId, current.billingRequestId, reportId, "report body empty");
     if (refunded) current = await saveHdDelivery(env, filter, { generationError: { reason: "EMPTY_REPORT", refunded: true } }, reportId);
     return json({ ok: false, reason: "REPORT_UNDELIVERABLE", refunded, message: MESSAGES.failed }, { status: 503 });
   }
@@ -763,15 +777,16 @@ async function finishHdPlan2({ env, auth, filter, reportId, current, waveBudgetE
   ].slice(0, 40);
   const totalChars = sections.reduce((sum, row) => sum + hdBodyChars(row), 0);
   current = await saveHdDelivery(env, filter, { sections, totalChars, qualityIssues, degraded: qualityIssues.length > 0, status: "delivery_pending" }, reportId);
-  if (!await verifyStoredHdAccess(current)) return json({ ok: false, reason: "PAYMENT_VERIFY_FAILED" }, { status: 402 });
+  if (!await verifyStoredHdAccess(current, env, native)) return json({ ok: false, reason: "PAYMENT_VERIFY_FAILED" }, { status: 402 });
   current = await saveHdDelivery(env, filter, { status: "completed", completedAt: new Date(), lock: null }, reportId);
   if (qualityIssues.length) console.warn("[human-design-report] plan2 degraded delivery", reportId, qualityIssues.slice(0, 8).join(","));
-  await closeExecution(env, auth.userId, current.billingRequestId, reportId).catch(error => console.warn("[human-design-report] completion record", clean(error?.message, 120)));
+  if (!native) await closeExecution(env, auth.userId, current.billingRequestId, reportId).catch(error => console.warn("[human-design-report] completion record", clean(error?.message, 120)));
   return json({ ok: true, ...publicReport(current) }, { headers: noStore });
 }
 
 async function handleResult(request, env) {
-  const auth = await requireAuth(request, env);
+  const native = nativeTossContext(request);
+  const auth = native?.auth || await requireAuth(request, env);
   const url = new URL(request.url);
   const reportId = clean(url.searchParams.get("reportId"), 200);
   const inputHash = clean(url.searchParams.get("inputHash"), 80);
@@ -779,11 +794,12 @@ async function handleResult(request, env) {
 
   let doc = null;
   if (reportId) doc = await findReport(env, auth.userId, { id: reportId });
-  else if (inputHash && locale) doc = await findReport(env, auth.userId, { reportKey: reportKeyOf(inputHash, locale) });
+  else if (inputHash && locale) doc = await findReport(env, auth.userId, { reportKey: (native ? "toss:" : "") + reportKeyOf(inputHash, locale) });
   else {
+    if (native) return notFound();
     await connectDb(env);
     const list = await withMongoRetry(env, () => HumanDesignReport
-      .find({ userId: auth.userId, status: "completed" })
+      .find({ userId: auth.userId, status: "completed", accessSource: {$ne:"toss"} })
       .sort({ createdAt: -1 })
       .limit(20)
       .select("id locale status totalChars createdAt")
@@ -793,11 +809,13 @@ async function handleResult(request, env) {
 
   if (!doc) return json({ ok: false, reason: "REPORT_NOT_FOUND", message: MESSAGES.notFound }, { status: 404, headers: noStore });
 
+  if (native) await native.assertStored(doc);
+  else if (doc.accessSource === "toss") return notFound();
   if (doc.status === "generation_failed") return json({ ok: false, reason: "GENERATION_ALREADY_FAILED", refunded: doc.generationError?.refunded === true, message: MESSAGES.failed }, { status: 409 });
-  if (doc.status === "completed" && await isStoredPaidResultRevoked(auth.userId, FEATURE_KEY, doc)) {
+  if (!native && doc.status === "completed" && await isStoredPaidResultRevoked(auth.userId, FEATURE_KEY, doc)) {
     return json({ ok: false, reason: "PAYMENT_REVOKED", retryable: false }, { status: 403, headers: noStore });
   }
-  if (doc.status !== "completed" && !await verifyStoredHdAccess(doc)) return json({ ok: false, reason: "PAYMENT_VERIFY_FAILED" }, { status: 402 });
+  if (doc.status !== "completed" && !await verifyStoredHdAccess(doc, env, native)) return json({ ok: false, reason: "PAYMENT_VERIFY_FAILED" }, { status: 402 });
   if (!doc.basis?.chart && doc.inputHash) {
     const archived = await findArchivedChart(env, auth.userId, doc.inputHash);
     if (archived?.calculation) doc = { ...doc, basis: { ...doc.basis, chart: archived.calculation } };
@@ -842,9 +860,15 @@ export const __humanDesignReportTestUtils = {
 
 // Internal cron continuation: only a stored owner/id is accepted, never client input.
 // The normal handler rereads that owner's record and rechecks existing payment proof.
-export function resumeConsultationOnServer(env, doc) {
+export async function resumeConsultationOnServer(env, doc) {
   if (!doc?.userId || !doc.id) throw new Error("RECOVERY_doc.id_REQUIRED");
   const request = new Request("https://internal.invalid/api/human-design-report/resume", { method: "POST", headers: { "content-type": "application/json" },
     body: JSON.stringify({ reportId: String(doc.id) }) });
+  if (doc.accessSource === "toss") {
+    const {bindNativeHumanDesignRecovery}=await import("../toss/native-human-design.js");
+    await bindNativeHumanDesignRecovery(request,env,doc);
+  }
   return handleGenerate(request, env, { userId: String(doc.userId) });
 }
+
+export const nativeHumanDesignStoredState = (env,userId,requestId)=>findReport(env,userId,{billingRequestId:requestId,accessSource:"toss"});

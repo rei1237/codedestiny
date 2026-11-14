@@ -83,6 +83,20 @@ beforeEach(()=>{validate=()=>({ok:true,issues:[],keptSubsections:[],evidence:[]}
 });
 afterEach(()=>{expect(fetchBlock).not.toHaveBeenCalled();fetchBlock.mockRestore()});
 async function generate(extra={}){return route(new Request('https://mock.test/api/human-design-report/generate',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({reportId:'saved-hd',...extra})}),{})}
+for(const outcome of ['empty','completed','storage-failure'])it(`Toss plan 2 ${outcome} retains native proof and never enters web settlement`,async()=>{
+ const {bindNativeTossRequest}=await import('../../worker/toss/native-context.js');
+ const assertStored=jest.fn(async doc=>{expect(doc.accessSource).toBe('toss');expect(doc.paymentId).toBe('native-order');});
+ Object.assign(docs[0],{deliveryPlanVersion:2,accessSource:'toss',paymentId:'native-order',waveCount:40});
+ if(outcome!=='empty')docs[0].sections.forEach(row=>Object.assign(row,{body:row.key+' 저장한 본문입니다.',status:'ok'}));
+ if(outcome==='storage-failure')fault={status:'completed',kind:'throw'};
+ const call=async()=>{const request=new Request('https://mock.test/api/human-design-report/generate',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({reportId:'saved-hd'})});bindNativeTossRequest(request,{auth:{userId:uid},assertStored});return route(request,{});};
+ const response=await call();
+ expect(response.status).toBe(outcome==='completed'?200:503);
+ expect(refund).not.toHaveBeenCalled();expect(closed).toBe(0);expect(provider).not.toHaveBeenCalled();
+ expect(assertStored).toHaveBeenCalled();expect(docs[0].lock).toBe(null);
+ if(outcome==='empty')expect(docs[0].generationError.refunded).not.toBe(true);
+ if(outcome==='storage-failure'){expect((await call()).status).toBe(200);expect(refund).not.toHaveBeenCalled();expect(closed).toBe(0);expect(provider).not.toHaveBeenCalled();}
+});
 for(const accessType of ['pass','membership_credit','paid'])it(`${accessType} saves 18 units in five requests`,async()=>{docs[0].accessType=accessType;for(let i=0;i<5;i++)expect((await generate()).status).toBe(i<4?202:200);expect(docs[0].status).toBe('completed');expect(docs[0].totalChars).toBeGreaterThanOrEqual(7400);expect(provider).toHaveBeenCalledTimes(18);expect((await generate()).status).toBe(200);expect(provider).toHaveBeenCalledTimes(18);expect(refund).not.toHaveBeenCalled()});
 for(const status of ['delivery_pending','completed'])for(const kind of ['throw','null','confirm'])it(`${status} ${kind} never refunds or regenerates`,async()=>{for(let i=0;i<4;i++)await generate();fault={status,kind};const res=await generate();expect(res.status).toBe(503);expect(await res.json()).toMatchObject({reason:'RESULT_STORAGE_UNAVAILABLE',resultId:'saved-hd',retryable:true});expect(refund).not.toHaveBeenCalled();expect((await generate()).status).toBe(200);expect(provider).toHaveBeenCalledTimes(18)});
 it('checkpoint failure preserves later siblings',async()=>{fault={count:1,kind:'throw'};expect((await generate()).status).toBe(503);expect(docs[0].sections.filter(row=>row.status==='ok')).toHaveLength(3);expect(refund).not.toHaveBeenCalled();for(let i=0;i<5;i++)await generate();expect(docs[0].status).toBe('completed');expect(provider).toHaveBeenCalledTimes(19)});

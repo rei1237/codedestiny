@@ -19,12 +19,13 @@ import styles from "../report.module.css";
 
 type Props = {
   plan: ReportPlan;
+  saveBase64?: (data: string, fileName: string) => Promise<void>;
   chart: HdChart;
   /** 🔴 화면 크롬의 언어(다섯). 본문 언어와 다른 축이다 — 본문은 bodyLocale/ReportLocale 을 받는다. */
   locale: ViewerLocale;
 };
 
-export default function ReportDownload({ plan, chart, locale }: Props) {
+export default function ReportDownload({ plan, chart, locale, saveBase64 }: Props) {
   const [busy, setBusy] = useState(false);
   const [progress, setProgress] = useState({ done: 0, total: 0 });
   const [error, setError] = useState("");
@@ -54,6 +55,7 @@ export default function ReportDownload({ plan, chart, locale }: Props) {
           await exportHumanDesignReportPdf({
             plan,
             images,
+            saveBase64,
             // 🔴 파일명에 생년월일·이름을 넣지 않는다 — 표지와 같은 경계다.
             fileName: `human-design-report-${plan.locale}-${new Date().toISOString().slice(0, 10)}.pdf`,
             date: new Date().toLocaleDateString(plan.locale === "en" ? "en-US" : "ko-KR"),
@@ -75,7 +77,7 @@ export default function ReportDownload({ plan, chart, locale }: Props) {
         setBusy(false);
       }
     })();
-  }, [busy, chart, locale, plan]);
+  }, [busy, chart, locale, plan, saveBase64]);
 
   return (
     <div className={styles.download}>

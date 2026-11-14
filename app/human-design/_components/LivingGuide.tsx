@@ -17,7 +17,7 @@ export function manualShareContent(guide: HdGuide) {
 }
 
 /** 풀이가 열린 뒤에만 그려진다. 공유 이미지 기능도 이 안에만 있다. */
-export default function LivingGuide({guide}: {guide: HdGuide | null}) {
+export default function LivingGuide({guide, deliverImage}: {guide: HdGuide | null; deliverImage?: (blob: Blob, share: boolean, title: string, format: string) => Promise<"saved" | "shared" | "cancelled">}) {
   const [format, setFormat] = useState<"feed" | "story">("feed");
   const [status, setStatus] = useState("");
   const [busy, setBusy] = useState(false);
@@ -29,7 +29,7 @@ export default function LivingGuide({guide}: {guide: HdGuide | null}) {
     try {
       const { createManualImage, deliverManualImage } = await import("../_lib/manual-share");
       const blob = await createManualImage(manualShareContent(guide), format);
-      const result = await deliverManualImage(blob, share, guide.ui.title, format);
+      const result = await (deliverImage || deliverManualImage)(blob, share, guide.ui.title, format);
       if (result !== "cancelled") setStatus(result === "shared" ? guide.ui.shared : guide.ui.saved);
     } catch { setStatus(ui.failed); }
     finally { setBusy(false); }

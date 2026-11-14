@@ -5,9 +5,9 @@ import {build} from 'esbuild';
 import {createRequire} from 'node:module';
 import path from 'node:path';
 const require=createRequire(import.meta.url),Module=require('node:module');
-async function adapter({toss=true,supported=true,live=true}={}){
+async function adapter({toss=true,supported=true,live=true,humanDesign=false}={}){
  const calls=[];
- const bundle=await build({entryPoints:[path.resolve(import.meta.dirname,'../src/media.ts')],bundle:true,write:false,format:'cjs',platform:'node',plugins:[{name:'test-platform',setup(build){
+ const bundle=await build({entryPoints:[path.resolve(import.meta.dirname,humanDesign?'../src/human-design-media.ts':'../src/media.ts')],bundle:true,write:false,format:'cjs',platform:'node',plugins:[{name:'test-platform',setup(build){
   build.onResolve({filter:/^(@apps-in-toss\/web-framework|\.\/platform|\.\/release)$/},args=>({path:args.path,namespace:'test'}));
   build.onLoad({filter:/.*/,namespace:'test'},args=>({contents:args.path==='./platform'?`export const APP_NAME='ai-saju-studio'; export const isToss=()=>${toss};export class ApiError extends Error{constructor(code){super(code);this.code=code;}}`:args.path==='./release'?`export const SERVICE_AVAILABLE=${live};`:`const record=(...args)=>globalThis.mediaCalls.push(args);export const File={saveBase64:Object.assign(async p=>record('save',p),{isSupported:()=>${supported}})};export const Share={createLink:async p=>{record('link',p);return 'https://toss.test/link';},sendMessage:async p=>record('share',p)};`,loader:'js'}));
  }}]});
@@ -48,4 +48,13 @@ test('PDF export uses supported native save with the original report filename an
  assert.deepEqual(calls,[['save',{data,fileName:'나크샤트라-심화상담.pdf',mimeType:'application/pdf'}]]);
  await assert.rejects(api.saveReportPdf('bm90LXBkZg==','result.pdf'));
  assert.equal(calls.length,1);
+});
+
+test('human design image keeps original PNG, uses native save fallback, and fails closed',async()=>{
+ const {api,calls}=await adapter({humanDesign:true});
+ const image=new Blob(['original PNG'],{type:'image/png'});
+ assert.equal(await api.deliverHumanDesignImage(image,true,'private title','story'),'saved');
+ assert.deepEqual(calls,[['save',{data:Buffer.from('original PNG').toString('base64'),fileName:'human-design-manual-story.png',mimeType:'image/png'}]]);
+ await assert.rejects(api.deliverHumanDesignImage(new Blob(['bad'],{type:'text/plain'}),false,'','feed'),/CARD_IMAGE_INVALID/);
+ for(const options of [{toss:false},{supported:false}]){const blocked=await adapter({...options,humanDesign:true});await assert.rejects(blocked.api.deliverHumanDesignImage(image,false,'','feed'));assert.deepEqual(blocked.calls,[]);}
 });

@@ -37,6 +37,7 @@ test("human design quality pause preserves result and never closes or refunds ex
   let doc = { id: "owned", locale: "ko", status: "generating", sections: [section], waveCount: 1,
     lock: { token: "mine" }, basis: { snapshot: {}, allowed: {} } };
   const generate = runFunction("worker/routes/human-design-report.js", "handleGenerate", {
+    nativeTossContext: () => null,
     requireAuth: async () => ({ userId: "owner" }), readJson: async () => ({ reportId: "owned" }),
     verifyStoredHdAccess: async () => true, HD_REPORT_MAX_WAVES: 10, isHdPlan2: () => false,
     hdSectionBody: row => row.body, countPaidReportBodyChars: body => body.length,
@@ -64,6 +65,7 @@ test("human design quality pause preserves result and never closes or refunds ex
 test("partial human design result is returned on re-entry without generating or charging", async () => {
   const doc = { id: "owned", status: "partial", sections: [{ body: "saved" }] };
   const generate = runFunction("worker/routes/human-design-report.js", "handleGenerate", {
+    nativeTossContext: () => null,
     requireAuth: async () => ({ userId: "owner" }), readJson: async () => ({ reportId: "owned" }),
     verifyStoredHdAccess: async () => true,
     clean: String, claimWave: async () => null, findReport: async () => doc,

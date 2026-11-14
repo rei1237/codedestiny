@@ -245,3 +245,23 @@ test("차감이 없는 통과(관리자 등)는 실행 기록도 환불도 만�
   expect(startServiceExecutionMock).not.toHaveBeenCalled();
   expect(failServiceExecutionMock).not.toHaveBeenCalled();
 });
+
+test('Toss order proof never enters web billing or web result access', async () => {
+  const {bindNativeTossRequest}=await import('../../worker/toss/native-context.js');
+  const access=jest.fn(async()=>({proven:true,source:'toss',transactionId:'native-order'}));
+  const assertStored=jest.fn(async doc=>{if(doc.accessSource!=='toss'||doc.paymentId!=='native-order')throw Error('DENIED');});
+  const request=startRequest('native-hd-request');
+  bindNativeTossRequest(request,{auth:{userId:USER_ID},access,assertStored});
+  expect((await handleHumanDesignReportRoutes(request,ENV)).status).toBe(200);
+  expect(reports[0]).toMatchObject({accessSource:'toss',paymentId:'native-order',billingRequestId:'native-hd-request'});
+  expect(reports[0].reportKey).toMatch(/^toss:/);
+  expect(verifyPerUsePaymentMock).not.toHaveBeenCalled();
+  expect(startServiceExecutionMock).not.toHaveBeenCalled();
+  expect(failServiceExecutionMock).not.toHaveBeenCalled();
+  reports[0].status='completed';
+  const url='https://example.com/api/human-design-report/result?reportId='+encodeURIComponent(reports[0].id);
+  expect((await handleHumanDesignReportRoutes(new Request(url),ENV)).status).toBe(404);
+  const authorized=new Request(url);bindNativeTossRequest(authorized,{auth:{userId:USER_ID},access,assertStored});
+  expect((await handleHumanDesignReportRoutes(authorized,ENV)).status).toBe(200);
+  expect(assertStored).toHaveBeenCalled();
+});

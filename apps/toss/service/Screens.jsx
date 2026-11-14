@@ -48,6 +48,7 @@ const Vedic=lazy(()=>import('@/app/vedic-ai/VedicAiClient'));
 const Ziwei=lazy(()=>import('@/app/ziwei-ai/ZiweiAiClient'));
 const NewYear=lazy(()=>import('@/app/new-year-ai-consultation/NewYearAiClient'));
 const Face=lazy(()=>import('./TossFace'));
+const HumanDesignReport=lazy(()=>import('./TossHumanDesignReport'));
 const Codex=lazy(()=>import('./TossCodex'));
 const NeoEmail=lazy(()=>import('./TossNeoEmail'));
 const Palm=lazy(()=>import('./TossPalm'));
@@ -159,6 +160,7 @@ export default function ServiceScreens({reviewOnly=false,verifiedReceipt=false,i
  if(/^\/saju\/career-style\/?$/.test(location.pathname))return <LazyMotion features={domAnimation}><ToastProvider/>{recoveryBanner}{ready&&<Suspense fallback={<p role="status">일 스타일 리포트를 열고 있어요.</p>}><TossCareerStyle/></Suspense>}</LazyMotion>;
  if(location.pathname==='/maya'||location.pathname==='/maya/')return <LazyMotion features={domAnimation}><ToastProvider/>{recoveryBanner}{ready?<Suspense fallback={<p role="status">마야 달력을 열고 있어요.</p>}><Maya paymentSurface="toss" TossPrompt={verifiedReceipt?SavedMayaPrompt:MayaPrompt}/></Suspense>:<p role="status">로그인 상태를 확인하고 있어요.</p>}</LazyMotion>;
  if(/^\/(animal\/physio|past-life-face)\/?$/.test(location.pathname))return <Suspense fallback={<p>사진 상담실을 열고 있어요.</p>}><Face/></Suspense>;
+ if(/^\/human-design\/report\/?$/.test(location.pathname))return <>{recoveryBanner}{ready&&<Suspense fallback={<p role="status">리포트를 열고 있어요.</p>}><HumanDesignReport/></Suspense>}</>;
  if(/^\/master-love-codex(?:\/result)?\/?$/.test(location.pathname))return <LazyMotion features={domAnimation}>{recoveryBanner}{ready&&<Suspense fallback={<p role="status">인연의 서를 열고 있어요.</p>}><Codex/></Suspense>}</LazyMotion>;
  if(location.pathname.startsWith('/saju-guardian')||location.pathname.startsWith('/saju/sibyl')&&['intentId','orderId','deep'].some(key=>new URLSearchParams(location.search).has(key)))return <Suspense fallback={<p role="status">저장한 프로필을 확인하고 있어요.</p>}>{ready?<BirthReading service={location.pathname.startsWith('/saju-guardian')?'guardian':'sibyl'}/>:<p>계정을 확인하고 있어요.</p>}</Suspense>;
  if(/^\/saju\/sibyl\/?$/.test(location.pathname))return <Suspense fallback={<p role="status">시빌라를 열고 있어요.</p>}><Sibyl/></Suspense>;
