@@ -25,7 +25,7 @@ test('regular and leap lunar input preserve the same web natal result as their c
 test('unknown time goes to the original noon policy; identity fields and payment hints are never forwarded',async()=>{
  const unknown={...birth,date:{...birth.date,timeUnknown:true,hour:null,minute:null}};
  const natal=buildSukuyoFromMoonLongitude(15,{lunarYear:1997,lunarMonth:1,lunarDay:4,birthTimeKnown:false});
- const result=await calculate({birth:unknown,profileId:'other',orderId:'paid'}, {},{handler:async request=>{assert.equal(request.headers.get('Authorization'),null);const input=await request.json();assert.equal(input.birthTime,'');assert.equal(input.birthTimeUnknown,true);assert.equal(input.profileId,undefined);assert.equal(input.orderId,undefined);return Response.json({ok:true,astronomy:natal});}});assert.match(result.limitations.join(' '),/정오/);
+ const result=await calculate({birth:unknown,profileId:'other',orderId:'paid'}, {},{handler:async request=>{assert.equal(request.headers.get('Authorization'),null);const input=await request.json();assert.equal(input.birthTime,'');assert.equal(input.birthTimeUnknown,true);assert.equal(input.profileId,undefined);assert.equal(input.orderId,undefined);return Response.json({ok:true,astronomy:natal});}});assert.equal(result.timeKnown,false);
  for(const status of [401,403,503])await assert.rejects(calculate({birth},{},{handler:async()=>Response.json({ok:false,code:'ACCESS_DENIED'},{status})}),e=>e.status===status&&e.code==='ACCESS_DENIED');
 });
 test('unknown time executes the original Swiss noon calculation using only local ephemeris files',async()=>{
@@ -33,5 +33,5 @@ test('unknown time executes the original Swiss noon calculation using only local
  const allowed=new Set(['seas_18.se1','semo_18.se1','sepl_18.se1','sefstars.txt']);
  const server=createServer(async(req,res)=>{const name=path.basename(new URL(req.url,'http://localhost').pathname);if(!allowed.has(name)){res.writeHead(404).end();return;}try{res.writeHead(200).end(await readFile(path.join(root,'public/ephe',name)));}catch{res.writeHead(404).end();}});
  await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
- try{const unknown={...birth,date:{...birth.date,timeUnknown:true,hour:null,minute:null}};const result=await calculate({birth:unknown},{SWISS_EPHEMERIS_FILES_BASE_URL:'http://127.0.0.1:'+server.address().port+'/ephe'});assert.match(result.limitations.join(' '),/정오/);assert.match(result.mansion,/\(.+\)/);assert.equal(result.stored,false);}finally{await new Promise(resolve=>server.close(resolve));}
+ try{const unknown={...birth,date:{...birth.date,timeUnknown:true,hour:null,minute:null}};const result=await calculate({birth:unknown},{SWISS_EPHEMERIS_FILES_BASE_URL:'http://127.0.0.1:'+server.address().port+'/ephe'});assert.equal(result.timeKnown,false);assert.match(result.mansion,/\(.+\)/);assert.equal(result.stored,false);}finally{await new Promise(resolve=>server.close(resolve));}
 });

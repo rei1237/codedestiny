@@ -9,7 +9,6 @@ export function projectSukuyoPublicReading(natal){
   year:natal.lunarYear,month:natal.lunarMonth,day:natal.lunarDay,isLeap:natal.isLeapMonth}});
  if(result.mansionIdx!==natal.index)throw new TossError('SUKUYO_CHART_UNAVAILABLE',503);
  const limitations=['천문식 27숙 개인 분석입니다. 상대 정보 없이 궁합을 추정하지 않습니다.'];
- if(natal.birthTimeKnown===false)limitations.push('태어난 시각을 몰라 정오 기준으로 읽었어요. 숙의 경계에 가까운 날에는 실제 본명숙이 달라질 수 있어요.');
  return {stored:false,timeKnown:natal.birthTimeKnown!==false,engineVersion:natal.astronomyVersion,limitations,...result};
 }
 
