@@ -1,11 +1,16 @@
 ---
 status: in-progress
 updated: 2026-11-14
-next: 숙요 연간 selector 수정118456b3a와 이 인계문서를 main push한 정확SHA의 새Linux dispatch를 완료해 private AIT 다운로드·검증·새QR 등록한다. 기존7e8 private는stale검사실패로제출불가.
+next: 이미지 매핑 수정6407d8582 및 최신SEO main 병합본으로 full Linux CI와 두 AIT를 생성하고 실제 이미지6개 디코딩 후 새 비공개 QR을 등록한다.
 ---
 
 ## 최우선 최신 인계 — artifact_finish (2026-11-14)
 
+### 최우선 이미지 누락 수정 — private_qr_delivery
+
+3095의 Linux43601482167은 CI required 포함6 jobs 모두 success. 일반/모의AIT 다운로드 후 실제 펼친 요약에서 ExternalImageGuide raw img만 기존 WebP 매핑을 거치지 않아 캐릭터 PNG가 누락됨을 확인했다. 제출하지 않았고 Downloads/CodeDestiny/43601482167/SUPERSEDED.txt에 표시했다. 6407d8582는 Toss Vite projection에서 해당 원본 컴포넌트의 표시 src/캐릭터 다운로드 href만 기존 byte 동일 WebP에 연결한다. 웹 원본·공유 메타데이터·정책은 보존한다. 실제 core검사에 펼친 원본 이미지6개 decode를 추가하고390×844 실제 viewport 캡처4장을 준비했다.
+
+targeted bundle-art4 PASS, Windows actualAIT core/구매/재열람/B거절 PASS. 이미지실패0. 새 Windowsexpanded99,992,004B, deployment01a1da7a-d213-7b51-9ed7-8eabfed70713. check:fast -- --base=HEAD exit0,479suites/8008tests PASS; log D:/Development/Temp/toss-report-art-checkfast.txt. 캡처 D:/Development/Temp/toss-report-art-viewport-screens. 다음새Linux만 제출한다. 다른SEO세션c562be344의3커밋을 무충돌merge했고 app/layout.js analytics캐시핀 및 문서만 바뀌어 Toss원본경로 영향없음. 동일SHA 일반push중복은 root상시승인대로 취소하고 full_ci+두artifact superset을 완료한다. 운영 활성화/검토/실결제는 계속 보류.
 ### Linux 실행 위치 회귀 수정 — linux_qr_finish
 
 **이 문단이 아래7e8상태보다최신이다.** 7e8 Linux43598295559는 일반AIT까지PASS했으나 private actualAIT 후반의 `--sukuyo-yearly`에서 옛버튼문구 timeout으로실패했다. `SukuyoBasic.tsx`는 기본숙요 guest무료복구후 연간전용 `올해의 숙요 흐름`/`토스 로그인하고 연간 흐름 보기`를제공하는데 테스트가이전공통 `토스 로그인하고 살펴보기`를찾았다. 각CLI는새Node/browser/context라선행계정오염아님. 118456b3a에서 exact새heading/버튼으로수정, runtime변경0. 같은runtime Windows AIT01a1da10에서 숙요연간 전체PASS 및 **그이후53케이스전부PASS**(extended4,paidtarot4,paidfamily4,free/native14,Neo편지27). 로그 `D:/Development/Temp/toss-sukuyo-yearly-fix.txt`, `toss-remaining-summary.txt`(53/failures[]), 개별 `toss-remaining-00..52.txt`. 재빌드없음. Linux실패로그 `toss-linux-critical-7e8.txt`에는 연이/찻집/네오/native/expert/HumanDesign까지PASS근거가있다. 아직음악/동물등후반Linux근거로쓸수없음.
@@ -41,7 +46,7 @@ next: 숙요 연간 selector 수정118456b3a와 이 인계문서를 main push한
 - **콘솔69/p1**: 공간68사라져기존사용자새공간승인대로복구. name `Code Destiny final verified Linux QR 20261114`. URL app-build같음. 최신snapshot round43: container@12, 버전등록@14, 앱정보수정@15. 콘솔최신15/앱정보반려/검토필요. 새업로드/검토/정보저장없음. `D:/Development/Temp/toss-launch-console-20261114/round-41.mjs` 실패(68없음),42새69,43snapshot. 다음round44 unique파일. ego-browser skill+전체guide는 fresh가다시읽을것. guide `D:/Development/Temp/launch-ego-guide.txt`는끝표시까지읽음. 업데이트알림있으나업그레이드승인없고작업필수아님.
 - Linuxartifact names `toss-preview-438f6c16dd6f4a75c04a51c94a0a261e86eb1274`, `toss-private-simulation-438f6c16dd6f4a75c04a51c94a0a261e86eb1274`; retention1day이므로완료후즉시D:/Development/Temp나사용자전달폴더로다운로드. runtimeSOURCE438가최종검증대상. 후속문서커밋은소스동일하니artifact를다시빌드하지않음.
 - 최종Linux다운로드후 `node .../private-simulation-archive.mjs <LinuxAIT>`에는 --local-windows넣지않고확인. workflow이미전체모드검증시그근거활용. 콘솔3스크린샷준비는 default actualAIT 경로에 `TOSS_CONSOLE_CAPTURE=1`, `TOSS_CAPTURE_DIR=<외부폴더>`로실행하면원본QA과정캡처함. `private-console-prep.mjs` 참고. 실제Linux AIT 캡처를확인해옛축소홈콘솔이미지교체자료로준비;검토는누르지않음.
-- next: artifact/CI완료또는실패처리→Linux원문/경로/용량/모의QA증거→새private버전16예상(콘솔실제번호확인)QR등록→QR/일반AIT/모의AIT/sha256/버전/deployment/경로영구전달자료→root운영승인묶음질문자료전달. 작은단계에서최종응답으로종료하지않는다. root에의미있는업데이트직접보내기.
+- next: 이미지 매핑 수정6407d8582 및 최신SEO main 병합본으로 full Linux CI와 두 AIT를 생성하고 실제 이미지6개 디코딩 후 새 비공개 QR을 등록한다.
 
 ## 첫 행동
 handoff 스킬/CLAUDE를 읽고 이 문서를 최신 정본으로 삼는다. 전체 사용자 요청은 중단하지 않는다. 이전 toss-launch-completion 및 toss-private-extended-native 문서는 이전 증거 참고용이다.
