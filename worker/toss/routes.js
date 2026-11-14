@@ -48,7 +48,7 @@ async function readNativeLibraryItem(env,auth,row){
   if(row.nativeService==='compass')return (await import('./native-compass.js')).compassLibraryItem(env,auth,row);
   if(row.nativeService==='yoga')return (await import('./native-yoga.js')).nativeYogaLibraryItem(env,auth,row);
   if(row.nativeService==='nakshatra')return (await import('./native-nakshatra.js')).nakshatraLibraryItem(env,auth,row);
-  return row.nativeService==='pet'?(await import('./native-pet-paid.js')).nativePetLibraryItem(env,auth,row):row.nativeService==='relationship'?(await import('./native-relationship.js')).nativeRelationshipLibraryItem(env,auth,row):row.nativeService==='sukuyo'?(await import('./native-sukuyo.js')).nativeSukuyoLibraryItem(env,auth,row):row.nativeService==='maya'?(await import('./native-maya.js')).nativeMayaLibraryItem(env,auth,row):row.nativeService==='karma'?(await import('./native-karma.js')).nativeKarmaLibraryItem(env,auth,row):row.nativeService==='new-year'?(await import('./native-new-year.js')).nativeNewYearLibraryItem(env,auth,row):row.nativeService==='ziwei'?(await import('./native-ziwei.js')).nativeZiweiLibraryItem(env,auth,row):row.nativeService==='vedic'?(await import('./native-vedic.js')).nativeVedicLibraryItem(env,auth,row):row.nativeService==='astrology'?(await import('./native-astrology.js')).nativeAstrologyLibraryItem(env,auth,row):row.nativeService==='love-secret'?(await import('./native-love-secret.js')).nativeLoveSecretLibraryItem(env,auth,row):row.nativeService==='life-book'?(await import('./native-life-book.js')).nativeLifeBookLibraryItem(env,auth,row):row.nativeService==='fusion'?(await import('./native-fusion.js')).nativeFusionLibraryItem(env,auth,row):row.nativeService==='neo'?(await import('./native-neo.js')).nativeNeoLibraryItem(env,auth,row):(await import('./native-tea.js')).nativeTeaLibraryItem(env,auth,row);
+  return row.nativeService==='music'?(await import('./music-download.js')).nativeMusicLibraryItem(env,auth,row):row.nativeService==='pet'?(await import('./native-pet-paid.js')).nativePetLibraryItem(env,auth,row):row.nativeService==='relationship'?(await import('./native-relationship.js')).nativeRelationshipLibraryItem(env,auth,row):row.nativeService==='sukuyo'?(await import('./native-sukuyo.js')).nativeSukuyoLibraryItem(env,auth,row):row.nativeService==='maya'?(await import('./native-maya.js')).nativeMayaLibraryItem(env,auth,row):row.nativeService==='karma'?(await import('./native-karma.js')).nativeKarmaLibraryItem(env,auth,row):row.nativeService==='new-year'?(await import('./native-new-year.js')).nativeNewYearLibraryItem(env,auth,row):row.nativeService==='ziwei'?(await import('./native-ziwei.js')).nativeZiweiLibraryItem(env,auth,row):row.nativeService==='vedic'?(await import('./native-vedic.js')).nativeVedicLibraryItem(env,auth,row):row.nativeService==='astrology'?(await import('./native-astrology.js')).nativeAstrologyLibraryItem(env,auth,row):row.nativeService==='love-secret'?(await import('./native-love-secret.js')).nativeLoveSecretLibraryItem(env,auth,row):row.nativeService==='life-book'?(await import('./native-life-book.js')).nativeLifeBookLibraryItem(env,auth,row):row.nativeService==='fusion'?(await import('./native-fusion.js')).nativeFusionLibraryItem(env,auth,row):row.nativeService==='neo'?(await import('./native-neo.js')).nativeNeoLibraryItem(env,auth,row):(await import('./native-tea.js')).nativeTeaLibraryItem(env,auth,row);
 }
 
 async function letterEnabled(persona='yeoni'){
@@ -512,6 +512,17 @@ export async function handleTossRoutes(request,env) {
       const input=await bodyOf(request);
       return reply(await attachNativeMayaRecovery(env,auth,input.orderId,input.intentId,verifyLibraryOrder));
     }
+    if(path==='/native/music/prepare'&&request.method==='POST'){
+      await limit(env,auth._id,'native-music-prepare',6);
+      const input=await bodyOf(request);
+      return reply(await (await import('./music-download.js')).prepareNativeMusic(env,auth,input.input,input.orderId));
+    }
+    const musicResult=path.match(/^\/native\/music\/results\/([a-f0-9]{64})(\/file)?$/);
+    if(musicResult&&request.method==='GET'){
+      await limit(env,auth._id,'native-music-read',20);
+      const music=await import('./music-download.js');
+      return reply(await (musicResult[2]?music.downloadNativeMusic:music.readNativeMusic)(env,auth,musicResult[1]));
+    }
     if(path==='/native/maya/prepare'&&request.method==='POST'){
       await limit(env,auth._id,'native-maya-prepare',6);
       const {prepareNativeMaya}=await import('./native-maya.js');
@@ -632,7 +643,7 @@ export async function handleTossRoutes(request,env) {
       if(request.method==='POST')await limit(env,auth._id,'native-heukwol-wave',35);
       return reply(await (await import('./native-heukwol.js')).heukwolWave(env,auth,heukwol[1],request.method==='POST'));
     }
-    const nativeIntent=path.match(/^\/native\/(ziwei-deep|compass|guardian|sibyl|tea|yoga|saju-compat|human-design|codex|palm|geomancy|totem-basic|totem-deep|nakshatra|neo|naming|dream|heukwol|fusion|life-book|love-secret|astrology|vedic|ziwei|new-year|karma|maya|sukuyo|relationship|pet)\/intents\/([a-f0-9]{64})$/);
+    const nativeIntent=path.match(/^\/native\/(music|ziwei-deep|compass|guardian|sibyl|tea|yoga|saju-compat|human-design|codex|palm|geomancy|totem-basic|totem-deep|nakshatra|neo|naming|dream|heukwol|fusion|life-book|love-secret|astrology|vedic|ziwei|new-year|karma|maya|sukuyo|relationship|pet)\/intents\/([a-f0-9]{64})$/);
     if(nativeIntent&&request.method==='GET'){
       const {readNativeTeaIntent}=await import('./native-tea.js');
       return reply(await readNativeTeaIntent(env,auth,nativeIntent[2],nativeIntent[1]));

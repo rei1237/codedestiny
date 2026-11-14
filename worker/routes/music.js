@@ -1,3 +1,4 @@
+import {nativeTossContext} from '../toss/native-context.js';
 import { getOptionalUserFromRequest } from "../lib/auth.js";
 import { canAccessPaidFeaturesBatch, PAID_FEATURE_ACCESS_USER_PROJECTION } from "../lib/paid-feature-access.js";
 import { getRoutePath, handleRouteError, json, methodNotAllowed, notFound } from "../lib/http.js";
@@ -289,9 +290,11 @@ async function proxyMusicFile(request, env, options = {}) {
     return streamMusicPreview(env, normalizeMusicAudioSourceKey(input.key));
   }
 
-  const auth = await getOptionalUserFromRequest(request, env, { userProjection: PAID_FEATURE_ACCESS_USER_PROJECTION });
-  const { entries } = await resolveTracksAccess([input], auth, env);
-  const access = entries[0];
+  const native = options.download === true ? nativeTossContext(request) : null;
+  const auth = native?.musicDownload ? null : await getOptionalUserFromRequest(request, env, { userProjection: PAID_FEATURE_ACCESS_USER_PROJECTION });
+  const access = native?.musicDownload
+    ? await native.musicDownload(input)
+    : (await resolveTracksAccess([input], auth, env)).entries[0];
 
   const downloadBlocked = options.download === true && access.hasFullAccess && access.canDownload !== true;
   if (!access.hasFullAccess || downloadBlocked) {

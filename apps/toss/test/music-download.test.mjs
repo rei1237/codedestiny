@@ -1,0 +1,22 @@
+import '../../../scripts/lib/mock-network-guard.cjs';
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {build} from 'esbuild';
+import {createRequire} from 'node:module';
+import path from 'node:path';
+const require=createRequire(import.meta.url),Module=require('node:module'),root=path.resolve(import.meta.dirname,'../../..');
+const state={row:null,checks:0,fetches:0,denyAt:0};globalThis.__music=state;
+const bundle=await build({entryPoints:[path.join(root,'worker/toss/music-download.js')],bundle:true,platform:'node',format:'cjs',write:false,plugins:[{name:'memory',setup(b){
+ b.onLoad({filter:/worker[\\/]toss[\\/]models\.js$/},()=>({contents:`export const TossNativeConsultation={findOne:f=>({lean:async()=>globalThis.__music.row&&Object.entries(f).every(([k,v])=>globalThis.__music.row[k]===v)?structuredClone(globalThis.__music.row):null})};`}));
+ b.onLoad({filter:/worker[\\/]toss[\\/]native-tea\.js$/},()=>({contents:`export const nativeOwnerFilter=(a,s)=>({identityId:a._id,ownerId:a.ownerId,environment:a.environment,nativeService:s});export const prepareNativeConsultation=(...a)=>a;export const verifiedIntent=async(e,a,r)=>{const s=globalThis.__music;s.checks++;if(s.denyAt===s.checks)throw Object.assign(Error(),{code:'SESSION_EXPIRED'});if(r.status!=='paid')throw Object.assign(Error(),{code:r.status==='refunded'?'ORDER_REFUNDED':'PAYMENT_REQUIRED'});};`}));
+ b.onLoad({filter:/worker[\\/]routes[\\/]music\.js$/},()=>({contents:`import {nativeTossContext} from '../toss/native-context.js';export async function handleMusicRoutes(r){const u=new URL(r.url);await nativeTossContext(r).musicDownload({key:u.searchParams.get('key'),featureKey:u.searchParams.get('featureKey')});globalThis.__music.fetches++;return new Response(new Uint8Array([73,68,51,4,0,0,0,0,0,0]));}`}));
+}}]});
+const m=new Module(path.join(root,'music-fixture.cjs'));m.paths=Module._nodeModulePaths(root);m._compile(bundle.outputFiles[0].text,m.id);
+const api=m.exports,auth={_id:'identity',ownerId:'owner',environment:'SANDBOX'},id='a'.repeat(64);
+const manifestBundle=await build({entryPoints:[path.join(root,'app/music/_data/musicManifest.ts')],bundle:true,platform:'node',format:'cjs',write:false});
+const manifest=new Module(path.join(root,'music-manifest.cjs'));manifest._compile(manifestBundle.outputFiles[0].text,manifest.id);const key=manifest.exports.allTracks[0].audioSourceKey;
+async function reset(){const prepared=await api.musicContract({audioSourceKey:key});state.row={...prepared.contract,input:prepared.input,_id:id,identityId:auth._id,ownerId:auth.ownerId,environment:auth.environment,nativeService:'music',orderId:'order',status:'paid'};state.checks=state.fetches=state.denyAt=0;}
+test('canonical track contract ignores client price and uses a stable per-track request',async()=>{const a=await api.musicContract({audioSourceKey:key,amountKRW:4950}),b=await api.musicContract({audioSourceKey:key});assert.deepEqual(a,b);assert.equal(a.contract.pricing.amountKRW,0);assert.throws(()=>api.musicTrack({audioSourceKey:'neosong/unknown.mp3'}));});
+test('paid download returns the synthetic bytes; rereading does not create a new order',async()=>{await reset();const a=await api.downloadNativeMusic({},auth,id),b=await api.downloadNativeMusic({},auth,id);assert.deepEqual(a,b);assert.equal(a.mimeType,'audio/mpeg');assert.equal(atob(a.data).slice(0,3),'ID3');assert.equal(state.row.orderId,'order');assert.equal((await api.readNativeMusic({},auth,id)).state,'COMPLETED');});
+test('foreign, unpaid, refunded and session revoked downloads fail closed',async()=>{for(const status of ['prepared','refunded']){await reset();state.row.status=status;await assert.rejects(api.downloadNativeMusic({},auth,id));assert.equal(state.fetches,0);}await reset();await assert.rejects(api.downloadNativeMusic({}, {...auth,ownerId:'other'},id));assert.equal(state.fetches,0);await reset();state.denyAt=3;await assert.rejects(api.downloadNativeMusic({},auth,id),e=>e.code==='SESSION_EXPIRED');});
+test('library keeps the owned track and rejects mismatched order or tampered source',async()=>{await reset();const purchase={_id:'order',identityId:auth._id,ownerId:auth.ownerId,environment:auth.environment,nativeService:'music',requestId:id};assert.equal((await api.nativeMusicLibraryItem({},auth,purchase)).href,'/music?intentId='+id);await assert.rejects(api.nativeMusicLibraryItem({},auth,{...purchase,_id:'other'}));state.row.input.audioSourceKey='neosong/unknown.mp3';await assert.rejects(api.readNativeMusic({},auth,id));});
