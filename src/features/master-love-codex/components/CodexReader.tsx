@@ -75,6 +75,9 @@ interface CodexReaderProps {
   /** paid / pass / monthly_credit / admin — 리포트 표식의 금액 표기를 가른다 */
   accessType?: string;
   completed?: boolean;
+  /** Platform-owned purchase label and packaged illustration; web defaults stay intact. */
+  reportStamp?: import("react").ReactNode;
+  narratorImage?: { src: string; alt: string };
 }
 
 function safeFilePart(value: string, fallback: string) {
@@ -137,6 +140,8 @@ export default function CodexReader({
   mode = "solo",
   accessType = "",
   completed = true,
+  reportStamp,
+  narratorImage,
 }: CodexReaderProps) {
   const locale = useMasterLoveCodexLocale();
   const copy = useMasterLoveCodexCopy();
@@ -371,10 +376,10 @@ export default function CodexReader({
           <div className={styles.measure}>
             <CodexReveal forceVisible={isExporting}>
               {/* 표식은 표지 헤더 '안'에 둔다 — 밖으로 빼면 캡처 대상에서 빠진다 */}
-              <CodexReportStamp mode={mode} accessType={accessType} className="mb-6" />
+              {reportStamp ?? <CodexReportStamp mode={mode} accessType={accessType} className="mb-6" />}
               <Image
-                src={getNarratorAsset("calm")}
-                alt={copy.narratorClosingAlt}
+                src={narratorImage?.src ?? getNarratorAsset("calm")}
+                alt={narratorImage?.alt ?? copy.narratorClosingAlt}
                 width={300}
                 height={410}
                 unoptimized
@@ -433,6 +438,7 @@ export default function CodexReader({
         {sealed && <CodexReportOutro
           mode={mode}
           accessType={accessType}
+          reportStamp={reportStamp}
           chapterCount={rows.length}
           totalCharCount={totalCharCount}
           forceVisible={isExporting}

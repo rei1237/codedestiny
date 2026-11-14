@@ -10,6 +10,7 @@ import {api,paymentRequiresReview} from '../src/platform';
 import TossTeaPrice from './TossTeaPrice';
 import TossAstrologyProfilePicker from './TossAstrologyProfilePicker';
 import {checkoutReport} from './native-report-checkout';
+import codexPortrait from '../../../public/images/service-introductions/master-love-codex-320.webp';
 
 const ownerId=()=>{const u=getAuthState().user;return String(u?.id||u?.userId||u?._id||u?.uid||'');};
 function ProfilePicker({onSelect,disabled,label}:{onSelect:(s:AiPrefillSeed)=>void;disabled?:boolean;label?:string}){
@@ -73,7 +74,7 @@ function Reader({id,owner}:{id:string;owner:string}){
     void run();return()=>{live=false;window.removeEventListener('online',resume);document.removeEventListener('visibilitychange',resume);};
   },[id,owner,retry]);
   return <>{error&&<p role="alert">{error}</p>}{(!book?.done||error)&&<><p role="status">{book?.generationProgress?book.generationProgress.completed+' / '+book.generationProgress.total+'장 저장':'저장된 장을 확인하고 있어요.'}</p><button onClick={()=>setRetry(n=>n+1)}>저장한 인연의 서 이어서 열기</button></>}
-    {book&&book.chapters?.length>0&&<CodexReader chapters={book.chapters} consultation={book.consultation} outline={book.outline} totalChapters={book.generationProgress?.total}
+    {book&&book.chapters?.length>0&&<CodexReader reportStamp={<p className={styles.badge}>토스 구매 기록으로 열린 상담</p>} narratorImage={{src:codexPortrait,alt:"명식과 명반을 살피는 인연의 서 상담사"}} chapters={book.chapters} consultation={book.consultation} outline={book.outline} totalChapters={book.generationProgress?.total}
       mode={book.mode} completed={book.done} loveDna={book.loveDna} name={book.birthInfo?.name||''} birthLine={book.birthInfo?.birthDate||''}
       sessionId={book.sessionId} totalCharCount={book.totalCharCount}/>}</>;
 }

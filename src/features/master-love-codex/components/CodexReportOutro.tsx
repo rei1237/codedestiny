@@ -22,6 +22,7 @@ interface CodexReportOutroProps {
   chapterCount: number;
   totalCharCount: number;
   forceVisible?: boolean;
+  reportStamp?: import("react").ReactNode;
 }
 
 export default function CodexReportOutro({
@@ -30,6 +31,7 @@ export default function CodexReportOutro({
   chapterCount,
   totalCharCount,
   forceVisible = false,
+  reportStamp,
 }: CodexReportOutroProps) {
   const locale = useMasterLoveCodexLocale();
   const copy = useMasterLoveCodexCopy();
@@ -40,7 +42,7 @@ export default function CodexReportOutro({
       <div className={`${styles.measure} text-center`}>
         <CodexReveal forceVisible={forceVisible}>
           <div className={`${styles.premiumCard} ${styles.premiumCardFeatured} items-center text-center`}>
-            <CodexReportStamp mode={mode} accessType={accessType} />
+            {reportStamp ?? <CodexReportStamp mode={mode} accessType={accessType} />}
 
             <p
               className={`${styles.numeral} mt-8`}
