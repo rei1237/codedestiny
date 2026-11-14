@@ -18,6 +18,8 @@ test('only full streams from the canonical music CDN enter the shelf; download k
 test('search, play, pause and native back leave the list filtered and stop playback without exposing a download action',async()=>{
   const id='virtual:toss-music-shelf',plugin=m.exports.default();
   const {dom,React,createRoot,Component}=await chartFixture('MusicShelf.tsx','/music',[{name:'music-fixture',setup(b){
+    b.onResolve({filter:/^\.\/MusicDownload$/},()=>({path:'download-ui',namespace:'music-download-ui'}));
+    b.onLoad({filter:/.*/,namespace:'music-download-ui'},()=>({contents:'export default function Download(){return null;}'}));
     b.onResolve({filter:/^\.\/music-download-file$/},()=>({path:'file',namespace:'music-file'}));
     b.onLoad({filter:/.*/,namespace:'music-file'},()=>({contents:'export const saveMusicDownload=()=>{throw Error("Unexpected save")};'}));
     b.onResolve({filter:/^virtual:toss-music-shelf$/},()=>({path:id,namespace:'shelf'}));
