@@ -24,7 +24,7 @@ export function novelBook(){
     if(choices.length>1||(choices.length&&choices[0]!==chapter.beats.at(-1)))throw new Error('Unsupported mid-chapter choice');
     const options=choices[0]?.choice.options.map(({label,target})=>({label,target}))||[];
     if(options.some(o=>!manifest.episodes.some(e=>e.id===o.target)))throw new Error('Missing novel branch');
-    episodes.push({id:item.id,title:item.tag,ending:item.ending?.label??null,branch:item.branch??null,options,count:lines.length});
+    episodes.push({id:item.id,rev:item.rev||1,title:item.tag,ending:item.ending?.label??null,branch:item.branch??null,options,count:lines.length});
     text[item.id]=gzipSync(JSON.stringify(lines),{level:9}).toString('base64');
   }
   return {episodes,text};

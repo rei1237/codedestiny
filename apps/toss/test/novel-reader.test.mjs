@@ -25,7 +25,7 @@ test('the last fork opens the selected branch and native back keeps the current 
     b.onResolve({filter:/^virtual:toss-novel-book$/},()=>({path:id,namespace:'book'}));
     b.onLoad({filter:/.*/,namespace:'book'},()=>({contents:p.load(p.resolveId(id))}));
   }}]);
-  const root=createRoot(document.getElementById('chart'));
+  let root=createRoot(document.getElementById('chart'));
   const button=text=>Array.from(document.querySelectorAll('button')).find(el=>el.textContent===text);
   const click=text=>React.act(()=>{const el=button(text);assert.ok(el,text);el.click();});
   try{
@@ -42,5 +42,18 @@ test('the last fork opens the selected branch and native back keeps the current 
     await click('읽던 곳부터 이어보기');
     assert.equal(document.querySelector('h1').textContent,chosen.title);
     assert.match(document.querySelector('.muted').textContent,/^2 \/ /);
+    const key='toss:novel-bookmark:v1',saved=JSON.parse(window.localStorage.getItem(key));
+    assert.deepEqual(saved,{version:1,id:chosen.id,page:1,rev:chosen.rev});
+    const remount=async()=>{await React.act(()=>root.unmount());root=createRoot(document.getElementById('chart'));await React.act(()=>root.render(React.createElement(Component)));};
+    await remount();await click('읽던 곳부터 이어보기');
+    assert.equal(document.querySelector('h1').textContent,chosen.title);assert.match(document.querySelector('.muted').textContent,/^2 \/ /);
+    window.localStorage.setItem(key,JSON.stringify({...saved,rev:saved.rev-1}));
+    await remount();await click('읽던 곳부터 이어보기');assert.match(document.querySelector('.muted').textContent,/^1 \/ /);
+    for(const invalid of ['{broken',JSON.stringify({...saved,id:'missing'}),JSON.stringify({...saved,page:999999}),JSON.stringify({...saved,page:-1})]){
+      window.localStorage.setItem(key,invalid);await remount();assert.equal(button('읽던 곳부터 이어보기'),undefined);
+    }
+    const write=dom.window.Storage.prototype.setItem;
+    dom.window.Storage.prototype.setItem=()=>{throw new Error('device storage unavailable');};
+    try{await click(chosen.title);await click('다음 쪽');await click('차례로 돌아가기');await click('읽던 곳부터 이어보기');assert.match(document.querySelector('.muted').textContent,/^2 \/ /);}finally{dom.window.Storage.prototype.setItem=write;}
   }finally{await React.act(()=>root.unmount());dom.window.close();}
 });

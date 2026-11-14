@@ -4,8 +4,22 @@ import book from 'virtual:toss-novel-book';
 import {Button} from './Button';
 const pageSize=12;
 type Place={id:string;page:number};
+// Public fiction has a device-local reading bookmark on the web too. Keep it
+// separate from web storage and from private consultation/account records.
+const bookmarkKey='toss:novel-bookmark:v1';
+function readBookmark():Place|null{
+  try{
+    const raw=window.localStorage.getItem(bookmarkKey);if(!raw||raw.length>512)return null;
+    const saved=JSON.parse(raw),episode=book.episodes.find(row=>row.id===saved?.id);
+    if(saved?.version!==1||!episode||!Number.isInteger(saved.page)||saved.page<0||!Number.isInteger(saved.rev))return null;
+    // The original reader restarts an edited episode instead of opening a
+    // different sentence at an obsolete offset.
+    if(saved.rev!==episode.rev)return {id:episode.id,page:0};
+    return saved.page<Math.ceil(episode.count/pageSize)?{id:episode.id,page:saved.page}:null;
+  }catch{return null;}
+}
 export default function NovelReader(){
-  const [place,setPlace]=useState<Place|null>(null),[bookmark,setBookmark]=useState<Place|null>(null);
+  const [place,setPlace]=useState<Place|null>(null),[bookmark,setBookmark]=useState<Place|null>(readBookmark);
   const heading=useRef<HTMLHeadingElement>(null);
   const episode=book.episodes.find(e=>e.id===place?.id);
   const lines=useMemo(()=>{
@@ -20,7 +34,9 @@ export default function NovelReader(){
     window.addEventListener('code-destiny:toss-back',back);
     return ()=>window.removeEventListener('code-destiny:toss-back',back);
   },[place]);
-  function open(id:string,page=0){const next={id,page};setPlace(next);setBookmark(next);}
+  function open(id:string,page=0){const next={id,page};setPlace(next);setBookmark(next);
+    try{const episode=book.episodes.find(row=>row.id===id);if(episode)window.localStorage.setItem(bookmarkKey,JSON.stringify({version:1,id,page,rev:episode.rev}));}catch{/* Keep the in-screen bookmark when device storage is unavailable. */}
+  }
   if(!episode||!place)return <section><h1>연이의 운명 노벨</h1><p>연이에게 낯선 앱이 찾아온 날부터, 곁에 남을 세계를 선택하는 순간까지. 한국어판을 글로 읽어요.</p>
     {bookmark&&<Button display="block" onClick={()=>setPlace(bookmark)}>읽던 곳부터 이어보기</Button>}
     <h2>차례</h2>{book.episodes.map(e=><button className="record" key={e.id} onClick={()=>open(e.id)}>{e.title}</button>)}</section>;
