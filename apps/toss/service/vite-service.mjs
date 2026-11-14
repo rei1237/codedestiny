@@ -83,6 +83,12 @@ export default function serviceCompat(){
  return {name:'canonical-service-runtime',enforce:'pre',
   transform(code,id){
    if(id.includes('node_modules'))return;
+   if(id.replaceAll('\\','/').endsWith('/components/fortune/ExternalImageGuide.tsx')){
+    const image='src={art.image}',download='href={file}';
+    if(!code.includes(image)||!code.includes(download)||!code.includes('`${brand}-character.png`'))throw new Error('Report guide image contract changed');
+    const projection=fileURLToPath(new URL('./bundle-art.mjs',import.meta.url)).replaceAll('\\','/');
+    code=`import {tossImageSource as tossReportImageSource} from ${JSON.stringify(projection)};\n`+code.replace(image,'src={tossReportImageSource(art.image)}').replace(download,'href={tossReportImageSource(file)}').replace('`${brand}-character.png`','`${brand}-character.webp`');
+   }
    // Miniapp samples retain the original fallback and the highest responsive
    // candidate. Tea keeps its shared hero sizes to avoid a second decode.
    if(id.replaceAll('\\','/').endsWith('/lib/marketing/render-result-samples.mjs')){

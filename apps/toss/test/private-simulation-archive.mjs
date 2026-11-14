@@ -147,6 +147,12 @@ try{
     // Leave as soon as the grant navigates; the first result page need not finish.
     await reopenFromHome();await chapter().waitFor();
     const receiptImage=page.locator('img[alt="고등어를 받고 기뻐하는 영냥이"]');await receiptImage.scrollIntoViewIfNeeded();await receiptImage.evaluate(img=>img.decode());
+    const summary=page.locator('#my-fortune-summary > summary');await summary.click();
+    const guideImages=page.locator('#my-fortune-summary [data-external-image-guide] img');
+    assert.ok(await guideImages.count()>=6,'original mascot and character references remain available');
+    for(const img of await guideImages.all()){await img.scrollIntoViewIfNeeded();await img.evaluate(el=>el.decode());assert.ok(await img.evaluate(el=>el.complete&&el.naturalWidth>0),'expanded report artwork decodes');}
+    await capture('04-expanded-summary');
+    await summary.click();
     await capture('03-completed-mock-reading');
     if(process.env.TOSS_CONSOLE_CAPTURE){
       await page.goto(origin);await page.getByLabel('비공개 모의 상담').waitFor();await capture('01-home');

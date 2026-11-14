@@ -44,3 +44,21 @@ test('the actual Toss Image adapter renders the packaged WebP URLs',async()=>{
   assert.ok(!html.includes(original));
  }
 });
+
+test('the original expanded report guide renders the packaged mascot while retaining web metadata',async()=>{
+ const entry=fileURLToPath(new URL('../../../components/fortune/ExternalImageGuide.tsx',import.meta.url));
+ const root=fileURLToPath(new URL('../../../',import.meta.url));
+ const source=await readFile(entry,'utf8'),projected=serviceCompat().transform(source,entry);
+ assert.ok(projected.includes('download={art.download}'),'external asset links keep the authored source');
+ assert.throws(()=>serviceCompat().transform(source.replace('src={art.image}','src={changed.image}'),entry),/image contract changed/);
+ for(const toss of [false,true]){
+  const result=await build({entryPoints:[entry],bundle:true,write:false,platform:'node',format:'cjs',jsx:'automatic',external:['react','react/jsx-runtime'],alias:{'@':root},loader:{'.css':'empty'},plugins:[{name:'report-guide-source',setup(b){b.onLoad({filter:/\.css$/},()=>({contents:'export default {};',loader:'js'}));b.onLoad({filter:/ExternalImageGuide\.tsx$/},()=>({contents:toss?projected:source,loader:'tsx',resolveDir:fileURLToPath(new URL('../../../components/fortune/',import.meta.url))}));}}]});
+  const loaded={exports:{}};new Function('require','module','exports',result.outputFiles[0].text)(createRequire(import.meta.url),loaded,loaded.exports);
+  const html=renderToStaticMarkup(React.createElement(loaded.exports.default,{brand:'yeongnyangi',domain:'astrology',passages:['저장된 원문']}));
+  assert.ok(html.includes(`src="${toss?TOSS_WEBP_ART['/assets/yeongnyangi/report-saju-yeongnyangi-v1.png']:'/assets/yeongnyangi/report-saju-yeongnyangi-v1.png'}"`));
+  assert.ok(html.includes('저장된 원문'));
+  const yeoni=renderToStaticMarkup(React.createElement(loaded.exports.default,{brand:'ggulggul',domain:'saju',passages:['저장된 원문']}));
+  assert.ok(yeoni.includes(`href="${toss?TOSS_WEBP_ART['/assets/mascot/yeoni-reading-guide-v1.png']:'/assets/mascot/yeoni-reading-guide-v1.png'}"`));
+  assert.ok(yeoni.includes(`download="ggulggul-character.${toss?'webp':'png'}"`));
+ }
+});
