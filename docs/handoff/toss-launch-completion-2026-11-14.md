@@ -70,3 +70,14 @@ next: CI661 계약 테스트 복구 전달 후 서양 무료 10종·숙요 관�
 - Toss Login은 등록하기 상태, 약관/콜백 등 미등록 폼 관찰. 임의등록/secret변경 없음.
 - IAP5개 가격확인, 연이4950 SKU와 영냥이14850 SKU 상세는 미노출. 다른3개노출상태는 미확인. 새서비스에 기존SKU재사용 금지.
 - 실기기 토스로그인/IAP/키보드/nativeSDK 실제작동 및 운영Worker·권한·상품노출·검토/출시 게이트 남음. 사용자의 론칭요청을 실제 결제테스트로 확대하지 않는다.
+
+
+## 19:10 KST 이후 재개 지점
+- check:fast --base=c608b461e 전체 PASS(처음 EOF빈줄1건은298e93a1f로수정). 로그 D:/Development/Temp/launch-check-third.txt. paid77/node/guards/worker/Jest479suites8008tests1skip. 현재 push직전 정리 중.
+- 최신 로컬AIT01a1d979-42b4-7cff-b288-74abd0a36a8c: expanded99,964,684B, 파일88,044,999B,1775파일. 한도여유35,316B뿐. Windows생성물이며 Linux/QR신규미전달.
+- 위AIT에서 관계경계 rbt결과 href복원, 나크샤트라/나침반/손금 압축회귀 모두PASS. 기본영냥이 홈→질문→mock로그인·주문1→원문→재실행→B거절도8초내PASS(로그launch-private-core-current.txt).
+- private_completion이390px콘솔스크린샷3장준비 중. helper로그인 race는 검증default 경로재사용으로해결. 결과감사카드 고등어이미지1개깨짐발견, 정확URL을그에이전트handoff에서확인해원본assetregistry누락수정+AITdecode검증 필요.
+- SecretHouseReading의srcDoc는privateCSP로script차단후보. 실제AIT확인후Yoga와동일standalone sandboxHTML 방식을사용할것. 원본HTML에base64이미지5개가약450KB이므로 동일bytesasset추출(재인코딩금지)+CSPimgself추가로기능불변용량절감가능.
+- remaining_audit 새서양UI/worker원본10종, 숙요무료5종 adapter/UI 준비. 지금모두untracked, 연결대기. 기존 사주대시보드에 극T 전체헤더+5패널이이미있으므로 새로운공유runtime변경은취소, SajuDashboard를재사용한다. 숙요전생은실제auth/archive/LLM이라별도native어댑터필요.
+- 공식IAP정본을11/14재조회해최초구매자증명 미제공 확인. docs/toss/launch-operational-evidence-20261114.md에현재API/SDK/담당자답변링크및아이콘실측기록. 신규판매차단유지. 최신SDK에서고쳐진완료목록pagination과구매자증명은별개.
+- 브라우저Ego66 p1 meta/edit 2단계. round24까지실행. form로고2개600x600SHA기존교정본동일/투명0/모서리16,27,44,255. 기존스크린샷3개옛UI, 새아트제작불필요. 저장/검토요청안함. 다음browser파일round25이상.
