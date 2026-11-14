@@ -1,10 +1,17 @@
-import {sdkProducts as products} from './api.mjs';
+import {sdkProducts} from './api.mjs';
+import {createMusicSimulation} from './music-download.mjs';
+import musicTracks from 'virtual:toss-music-shelf';
+const products=[...sdkProducts,...createMusicSimulation(musicTracks).musicProducts];
 import {person} from './storage.mjs';
 const supported=fn=>Object.assign(fn,{isSupported:()=>true});
 const blocked=()=>{throw Error('PRIVATE_SIMULATION_UNAVAILABLE');};
 const disabled=new Proxy({},{get:()=>blocked});
 export const Accuracy={Balanced:'balanced'};
-export const Clipboard=disabled,File=disabled,Device=disabled,Share=disabled;
+export const Clipboard=disabled,Device=disabled,Share=disabled;
+export const File={saveBase64:supported(async value=>{
+ if(value?.data!=='SUQzBAAAAAAAAA=='||value?.mimeType!=='audio/mpeg'||value?.fileName!=='모의-음악-저장-검증.mp3')return blocked();
+ const saves=JSON.parse(localStorage.getItem('private-file-saves')||'[]');saves.push({...value,simulated:true});localStorage.setItem('private-file-saves',JSON.stringify(saves));
+})};
 export class SetClipboardTextPermissionError extends Error {}
 export const Environment={environment:'sandbox'};
 export const isMinVersionSupported=()=>true;

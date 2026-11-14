@@ -1,0 +1,24 @@
+import '../../../scripts/lib/mock-network-guard.cjs';
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {createSimulationApi} from '../private-simulation/api.mjs';
+const tracks=[{id:'mock-track',title:'음악 저장 검증',artist:'Code Destiny',audioSourceKey:'DEST1NOVA/Code Destiny.mp3',featureKey:'music-track-test'}];
+test('private music requires login and owns one purchase and file across reopen',async()=>{
+ const stores={A:new Map(),B:new Map()},apis={};
+ const make=person=>createSimulationApi({getItem:key=>stores[person].get(key),setItem:(key,value)=>stores[person].set(key,value)},person,tracks);
+ apis.A=make('A');apis.B=make('B');
+ const call=(person,path,body,auth=true)=>apis[person](new Request('http://localhost/private-simulation-api'+path,{method:body===undefined?'GET':'POST',headers:{authorization:auth?'Bearer private-simulation-token-'+person:''},...(body===undefined?{}:{body:JSON.stringify(body)})}));
+ assert.equal((await call('A','/native/music/prepare',{input:tracks[0]},false)).status,401);
+ for(const person of ['A','B'])await call(person,'/login',{authorizationCode:'private-simulation-person-'+person},false);
+ const input={input:{audioSourceKey:tracks[0].audioSourceKey}},intent=await (await call('A','/native/music/prepare',input)).json();
+ const order={requestId:intent.id,sku:intent.sku,orderId:'private-order-A-1'};
+ assert.equal((await call('B','/orders/grant',order)).status,403);
+ assert.equal((await call('A','/orders/grant',order)).status,200);assert.equal((await call('A','/orders/grant',order)).status,200);
+ apis.A=make('A');const file='/native/music/results/'+intent.id+'/file';
+ assert.deepEqual(await (await call('A',file)).json(),{data:'SUQzBAAAAAAAAA==',fileName:'모의-음악-저장-검증.mp3',mimeType:'audio/mpeg'});
+ assert.equal((await call('B',file)).status,404);
+ assert.equal((await (await call('A','/canonical/records')).json()).items.filter(row=>row.source==='music').length,1);
+ assert.equal((await (await call('B','/canonical/records')).json()).items.length,0);
+ assert.equal((await (await call('A','/library')).json()).purchases.filter(row=>row.nativeService==='music').length,1);
+ assert.equal(JSON.parse(stores.A.get('consultations')).orders.length,1);
+});

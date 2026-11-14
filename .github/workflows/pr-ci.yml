@@ -1271,6 +1271,11 @@ jobs:
           node test/private-simulation-archive.mjs private-simulation/ai-saju-studio.ait --vedic-reading
           node test/private-simulation-archive.mjs private-simulation/ai-saju-studio.ait --owned-calculations
           node test/private-simulation-archive.mjs private-simulation/ai-saju-studio.ait --astro-reading
+          node test/private-simulation-archive.mjs private-simulation/ai-saju-studio.ait --astro-synastry
+          node test/private-simulation-archive.mjs private-simulation/ai-saju-studio.ait --free-originals
+          node test/private-simulation-archive.mjs private-simulation/ai-saju-studio.ait --neo-email
+          node test/private-simulation-archive.mjs private-simulation/ai-saju-studio.ait --music-download
+          node test/private-simulation-archive.mjs private-simulation/ai-saju-studio.ait --animal-destiny
           node test/private-simulation-archive.mjs private-simulation/ai-saju-studio.ait --sukuyo-tools
           node test/private-simulation-archive.mjs private-simulation/ai-saju-studio.ait --sukuyo-past-life
           node test/private-simulation-archive.mjs private-simulation/ai-saju-studio.ait --secret-house

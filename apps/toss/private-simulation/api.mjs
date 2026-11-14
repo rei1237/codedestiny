@@ -1,3 +1,4 @@
+import {createMusicSimulation} from './music-download.mjs';
 import {privateFreeOriginal} from './free-originals.mjs';
 import {privateAstroSynastry} from './astro-synastry.mjs';
 import {neoEmailFixture} from '../test/offline/neo-email-fixture.mjs';
@@ -36,7 +37,9 @@ function exampleReading(kind,body){
 const unavailable=()=>replies({error:'PRIVATE_SIMULATION_UNAVAILABLE'},404);
 const sample={id:'mock-profile',profileId:'mock-profile',name:'테스트 프로필',gender:'F',birthDate:'1990-01-01',timeUnknown:true,calendarType:'solar',birth:{year:1990,month:1,day:1,timeUnknown:true,calType:'solar'}};
 
-export function createSimulationApi(storage,person){
+export function createSimulationApi(storage,person,musicTracks=[]){
+  const music=createMusicSimulation(musicTracks);
+  const availableProducts=[...sdkProducts,...music.musicProducts];
   const token='private-simulation-token-'+person;
   const owner='private-simulation-person-'+person;
   const saved=JSON.parse(storage.getItem('consultations')||'{}');
@@ -51,6 +54,10 @@ export function createSimulationApi(storage,person){
     if(!url.pathname.startsWith('/private-simulation-api/'))return unavailable();
     if(path==='/catalog'&&method==='GET')return replies({products:[...products,...letterProducts]});
     if(path==='/tarot-library/catalog'&&method==='GET')return replies({flows:privateTarotProducts});
+    if(path==='/animal-destiny/reading'&&method==='POST'){
+      try{const {tossAnimalDestiny}=await import('../../../worker/toss/animal-destiny.js');return replies(tossAnimalDestiny(await request.json()));}
+      catch(error){return replies({error:error?.code||'INVALID_INPUT'},error?.status||400);}
+    }
     if(path==='/canonical/saju/section'&&method==='POST')return privateSecretHouse(await request.json());
     if((path==='/sukuyo/basic'||path==='/sukuyo/tools')&&method==='POST')return privateSukuyoTools(await request.json(),path==='/sukuyo/basic');
     if(path==='/canonical/yeongnyangi/products'&&method==='GET')return replies({products:products.filter(p=>p.id!==prashnaProduct.id).map(productView)});
@@ -91,9 +98,10 @@ export function createSimulationApi(storage,person){
     if(path==='/sukuyo/yearly'&&method==='POST')return privateSukuyoYearly(person,state.profiles,await request.json());
     if(path==='/events'&&method==='POST')return replies({ok:true});
     const now=()=>new Date();
-    if(path==='/canonical/records'&&method==='GET'){const records=await roomRecords(url,state).json();return replies({...records,items:[...records.items,...expertRecords(url,state),...humanDesignRecords(url,state),...extendedRecords(url,state),...paidFamilyRecords(url,state)]});}
-    if(path==='/library'&&method==='GET'){const response=await handleReviewFixture(request,url,path,state,save,now);const body=await response.json();return replies({...body,purchases:[...body.purchases,...humanDesignPurchases(state),...paidFamilyPurchases(state).filter(row=>row.nativeService!=='sukuyo')]});}
-    if(path==='/native/catalog'&&method==='GET')return replies({products:[...characterRooms,...expertProducts,...nativeReportProducts,...humanDesignProducts,...extendedProducts,...paidFamilyProducts]});
+    if(path==='/canonical/records'&&method==='GET'){const records=await roomRecords(url,state).json();return replies({...records,items:[...records.items,...expertRecords(url,state),...humanDesignRecords(url,state),...extendedRecords(url,state),...paidFamilyRecords(url,state),...music.musicRecords(url,state)]});}
+    if(path==='/library'&&method==='GET'){const response=await handleReviewFixture(request,url,path,state,save,now);const body=await response.json();return replies({...body,purchases:[...body.purchases,...humanDesignPurchases(state),...paidFamilyPurchases(state).filter(row=>row.nativeService!=='sukuyo'),...music.musicPurchases(state)]});}
+    if(path==='/native/catalog'&&method==='GET')return replies({products:[...characterRooms,...expertProducts,...nativeReportProducts,...humanDesignProducts,...extendedProducts,...paidFamilyProducts,...music.musicProducts]});
+    if(path.startsWith('/native/music/'))return await music.musicRequest(request,url,path,state,save,now)||unavailable();
     if(!path.startsWith('/orders/')){const family=await paidFamilyRequest(request.clone(),url,path,state,save,now);if(family)return family;}
     if(path.startsWith('/native/')){const extended=await extendedRequest(request.clone(),url,path,state,save,now);if(extended)return extended;}
     if(path==='/tarot-library/catalog'||path.startsWith('/tarot-library/results/'))return await privateTarotRequest(request,path,state,save)||unavailable();
@@ -108,9 +116,10 @@ export function createSimulationApi(storage,person){
     }
     if(path==='/orders/grant'||path==='/orders/restore'||path==='/tarot-library/orders/grant'){
       const {sku,orderId}=await request.clone().json();
-      if(!sdkProducts.some(product=>product.sku===sku)||!orderId?.startsWith('private-order-'+person+'-'))return replies({error:'ORDER_MISMATCH'},403);
+      if(!availableProducts.some(product=>product.sku===sku)||!orderId?.startsWith('private-order-'+person+'-'))return replies({error:'ORDER_MISMATCH'},403);
       if(privateTarotProducts.some(product=>product.sku===sku))return await privateTarotRequest(request,path,state,save)||unavailable();
       if(path==='/tarot-library/orders/grant')return unavailable();
+      if(music.musicProducts.some(product=>product.sku===sku))return await music.musicRequest(request,url,path,state,save,now)||unavailable();
       if(paidFamilyProducts.some(product=>product.sku===sku))return await paidFamilyRequest(request,url,path,state,save,now)||unavailable();
       if(extendedProducts.some(product=>product.sku===sku))return await extendedRequest(request,url,path,state,save,now)||unavailable();
       if(humanDesignProducts.some(product=>product.sku===sku))return await humanDesignReportRequest(request,url,path,state,save,now)||unavailable();

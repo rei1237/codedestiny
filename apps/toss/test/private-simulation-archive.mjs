@@ -65,7 +65,9 @@ try{
     await page.getByRole('button',{name:'토스로 로그인하기'}).click();
     await page.waitForURL(/yeongnyangi\/fortune/);
   };
-  if(process.argv.includes('--free-originals')){const {verifyPrivateFreeOriginals}=await import('./private-free-originals.mjs');await verifyPrivateFreeOriginals(origin,context);assert.deepEqual(unexpected,[]);console.log('PASS private original free modes',reader.deploymentId);
+  if(process.argv.includes('--animal-destiny')){const {verifyPrivateAnimal}=await import('./private-animal-destiny.mjs');await verifyPrivateAnimal(origin,context);assert.deepEqual(unexpected,[]);console.log('PASS private animal destiny',reader.deploymentId);
+  }else if(process.argv.includes('--music-download')){const {verifyPrivateMusic}=await import('./private-music.mjs');await verifyPrivateMusic(origin,context);assert.deepEqual(unexpected,[]);console.log('PASS private music',reader.deploymentId);
+  }else if(process.argv.includes('--free-originals')){const {verifyPrivateFreeOriginals}=await import('./private-free-originals.mjs');await verifyPrivateFreeOriginals(origin,context);assert.deepEqual(unexpected,[]);console.log('PASS private original free modes',reader.deploymentId);
   }else if(process.argv.includes('--astro-synastry')){const {verifyPrivateSynastry}=await import('./private-astro-synastry.mjs');await verifyPrivateSynastry(origin,context);assert.deepEqual(unexpected,[]);console.log('PASS private synastry',reader.deploymentId);
   }else if(process.argv.includes('--neo-email')){const {verifyPrivateNeoEmail}=await import('./private-neo-email.mjs');await verifyPrivateNeoEmail(origin,context);assert.deepEqual(unexpected,[]);console.log('PASS private Neo email',reader.deploymentId);
   }else if(process.argv.includes('--sukuyo-past-life')){const {verifyPrivateSukuyoPastLife}=await import('./private-sukuyo-past-life.mjs');await verifyPrivateSukuyoPastLife(origin,context);assert.deepEqual(unexpected,[]);console.log('PASS private past life',reader.deploymentId);
