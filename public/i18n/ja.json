@@ -2308,7 +2308,7 @@
       "compactTitle": "蜜壺パス",
       "conditions": "対象サービスと利用条件",
       "otherServices": "ほかのサービスのパスを見る",
-      "lightBanner": "小さなはちみつ壺ひとつで、ライト占い{count}種がすべて開きます。",
+      "lightBanner": "小さなはちみつ壺にも、ライト占い{count}種が含まれています。",
       "lightBannerSub": "代表相談を除くライト占いを回数制限なくご利用いただけます。中くらい・大きな・ファミリーのはちみつ壺にも同じく含まれます。",
       "lightLine": "ライト占い{count}種 回数制限なし · うち{free}種ははちみつ壺なしでも無料",
       "lightWorth": "現在有料の占いだけで{amount}ウォン相当",

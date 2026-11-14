@@ -378,18 +378,18 @@
     "ms": "Lihat pas untuk perkhidmatan lain"
   },
   "home.benefitsCopy.lightBanner": {
-    "ko": "작은 꿀단지 하나면, 라이트 운세 {count}종이 전부 열려요.",
-    "en": "One Small Honey Jar unlocks all {count} Light Readings.",
-    "ja": "小さなはちみつ壺ひとつで、ライト占い{count}種がすべて開きます。",
-    "zh-CN": "一个小蜜罐，就能解锁全部{count}种轻量运势。",
-    "zh-TW": "一個小蜜罐，就能解鎖全部{count}種輕量運勢。",
-    "vi": "Chỉ một Hũ Mật Ong Nhỏ là mở được toàn bộ {count} bài xem nhẹ.",
-    "hi": "एक छोटा हनी जार, और सभी {count} लाइट रीडिंग खुल जाती हैं।",
-    "es": "Un solo Tarro de Miel Pequeño abre las {count} Lecturas Ligeras.",
-    "fr": "Un seul Petit Pot de Miel ouvre les {count} Lectures Légères.",
-    "de": "Ein kleiner Honigtopf öffnet alle {count} leichten Deutungen.",
-    "nl": "Eén kleine honingpot opent alle {count} lichte duidingen.",
-    "ms": "Satu Balang Madu Kecil membuka kesemua {count} Bacaan Ringan."
+    "ko": "작은 꿀단지에도, 라이트 운세 {count}종이 들어 있어요.",
+    "en": "Even the Small Honey Jar includes all {count} Light Readings.",
+    "ja": "小さなはちみつ壺にも、ライト占い{count}種が含まれています。",
+    "zh-CN": "小蜜罐里也包含全部{count}种轻量运势。",
+    "zh-TW": "小蜜罐裡也包含全部{count}種輕量運勢。",
+    "vi": "Hũ Mật Ong Nhỏ cũng đã bao gồm toàn bộ {count} bài xem nhẹ.",
+    "hi": "छोटे हनी जार में भी सभी {count} लाइट रीडिंग शामिल हैं।",
+    "es": "El Tarro de Miel Pequeño también incluye las {count} Lecturas Ligeras.",
+    "fr": "Le Petit Pot de Miel comprend lui aussi les {count} Lectures Légères.",
+    "de": "Auch der kleine Honigtopf enthält alle {count} leichten Deutungen.",
+    "nl": "Ook de kleine honingpot bevat alle {count} lichte duidingen.",
+    "ms": "Balang Madu Kecil juga merangkumi kesemua {count} Bacaan Ringan."
   },
   "home.benefitsCopy.lightBannerSub": {
     "ko": "대표 상담을 제외한 라이트 운세를 횟수 제한 없이 이용하세요. 중간·큰·패밀리 꿀단지에도 똑같이 포함돼요.",

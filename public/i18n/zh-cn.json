@@ -2308,7 +2308,7 @@
       "compactTitle": "蜜罐通行证",
       "conditions": "适用范围与使用条件",
       "otherServices": "查看其他服务通行证",
-      "lightBanner": "一个小蜜罐，就能解锁全部{count}种轻量运势。",
+      "lightBanner": "小蜜罐里也包含全部{count}种轻量运势。",
       "lightBannerSub": "除招牌咨询外，轻量运势不限次数使用。中蜜罐、大蜜罐和家庭蜜罐同样包含。",
       "lightLine": "{count}种轻量运势，不限次数 · 其中{free}种无需蜜罐也免费",
       "lightWorth": "仅计目前收费的运势，价值{amount}韩元",

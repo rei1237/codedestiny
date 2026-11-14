@@ -2308,7 +2308,7 @@
       "compactTitle": "Honey Jar passes",
       "conditions": "Coverage and terms",
       "otherServices": "Explore passes for other services",
-      "lightBanner": "One Small Honey Jar unlocks all {count} Light Readings.",
+      "lightBanner": "Even the Small Honey Jar includes all {count} Light Readings.",
       "lightBannerSub": "Enjoy Light Readings as often as you like; signature consultations are not included. Medium, Large and Family Honey Jars include them too.",
       "lightLine": "{count} Light Readings, unlimited uses · {free} of them are free even without a Honey Jar",
       "lightWorth": "Worth KRW {amount}, counting only readings that are paid today",
