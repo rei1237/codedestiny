@@ -5,7 +5,7 @@ import {TossPurchase,TossNativeConsultation} from '../../../worker/toss/models.j
 import {ZiweiAiConsultation} from '../../../worker/lib/models.js';
 
 const ownerId='507f1f77bcf86cd799439011';
-for(const service of ['tea','neo','fusion','life-book','love-secret','astrology','vedic','ziwei','maya']){
+for(const service of ['music','tea','neo','fusion','life-book','love-secret','astrology','vedic','ziwei','maya']){
  test(`${service} can persist its approved purchase and immutable intent without database access`,()=>{
   const shared={_id:'offline-model-fixture',identityId:'offline-identity',ownerId,environment:'SANDBOX',
    nativeService:service,sku:'offline-only',approvedPriceKRW:10000,priceEvidence:'offline fixture'};
