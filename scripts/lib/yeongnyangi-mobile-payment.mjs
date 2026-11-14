@@ -389,6 +389,10 @@ export async function verifyMobilePayments({base,products,systemNames}){
     // (two messages); POST to this path only happens on the checkout flow, never on /yeongnyangi/library/.
     if(path==='/api/yeongnyangi/requests'&&detail?.page==='/yeongnyangi/library/'
       &&f.state.approved&&f.row.paid&&f.row.state==='COMPLETED'&&f.row.chapters.length===product.chapterCount)return false;
+    // expired-login leaves /login/ with page.goto right after reauthentication. WebKit reports the cancelled
+    // core dictionary read as an access-control error; loadDictionary catches it and falls back to null.
+    if(/^\/(?:127\.0\.0\.1|localhost):\d+\/i18n\/[a-z-]+\.json due to access control checks\.$/.test(message)
+      &&detail?.page==='/login/'&&name.endsWith('-expired-login'))return false;
     const navigationReads=new Set(['/api/auth/me','/api/me/access-state','/api/profile','/api/billing/balance','/api/payments/birth-profile-pending','/api/payments/service-packs/quote','/api/payments/service-packs/catalog','/api/recommendations','/api/activation-rewards/status','/api/activation-rewards/snu/status','/version.json']);
     return !path||!navigationReads.has(path);
    });
