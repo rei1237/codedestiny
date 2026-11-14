@@ -5,7 +5,7 @@ import postcss from 'postcss';
 import selectors from 'postcss-selector-parser';
 const traverse=traversePackage.default||traversePackage;
 const source=new URL('../../../public/vedic-astrology.html',import.meta.url);
-export const vedicExports=['buildChart','analyze','generateInsights','buildVedicSections','buildVedicDeepDetails','buildMarriageWindows','computeDrishti','dignityDetail','renderSouthChart','renderNorthChart','renderPersonality','renderWealth','renderCareer','renderRomance','renderChakra','renderYoga','renderRemedies','renderVimshottari','renderVedicSectionCards','decorateBhavaTerms','renderBhavaMeaningPanel'];
+export const vedicExports=['buildChart','analyze','generateInsights','buildVedicSections','buildVedicDeepDetails','buildMarriageWindows','computeDrishti','dignityDetail','renderSouthChart','renderNorthChart','renderPersonality','renderWealth','renderCareer','renderRomance','renderChakra','renderYoga','renderRemedies','renderVimshottari','renderVedicSectionCards','decorateBhavaTerms','renderBhavaMeaningPanel','calcCompatibility'];
 // Retain the original lexical dependencies; exclude page startup, profile,
 // authentication, checkout and LLM event handlers rather than executing the shell.
 export function vedicReadingModule({factory=false}={}){
@@ -24,9 +24,13 @@ export function vedicReadingModule({factory=false}={}){
  }
  for(const name of vedicExports)include(name);
  const declarations=[...new Set(chosen.values())].sort((a,b)=>a.node.start-b.node.start).map(path=>path.isVariableDeclarator()?path.parent.kind+' '+code.slice(path.node.start,path.node.end)+';':code.slice(path.node.start,path.node.end));
- const body=declarations.join('\n');
- if(factory)return 'export function createVedicReader(bridge){const window={swisseph:bridge};\n'+body+'\nreturn {'+vedicExports.join(',')+',planetName:key=>PKR[key]||key,setReading:(chart,report,insights,sections,deep)=>{G.chart=chart;G.report=report;G.insights=insights;G.sections=sections;G.deep=deep;},usedFallback:()=>window.__vedicSwissFallbackUsed===true};}';
- return body+'\nexport {'+vedicExports.join(',')+'};';
+ let compatibilityTemplate;
+ program.scope.getBinding('doCompatCalcCore').path.traverse({AssignmentExpression(path){if(path.node.right.type==='TemplateLiteral'&&code.slice(path.node.right.start,path.node.right.end).includes('8 항목 상세 점수')&&code.slice(path.node.left.start,path.node.left.end).includes("getElementById('compat-result').innerHTML"))compatibilityTemplate=code.slice(path.node.right.start,path.node.right.end);}});
+ if(!compatibilityTemplate?.includes('8 항목 상세 점수'))throw Error('Original Vedic compatibility renderer missing');
+ const renderer='function renderVedicCompatibility(chart,partnerChart,compat){const G={chart},f2=partnerChart.f,nak1=chart.nak.name,nak2=partnerChart.nak.name,pc=compat.pct,pcCol=pc>=75?"#22C55E":pc>=65?"#F59E0B":"#FF5555";return '+compatibilityTemplate+';}';
+ const body=declarations.join('\n')+'\n'+renderer,exportNames=[...vedicExports,'renderVedicCompatibility'];
+ if(factory)return 'export function createVedicReader(bridge){const window={swisseph:bridge};\n'+body+'\nreturn {'+exportNames.join(',')+',planetName:key=>PKR[key]||key,setReading:(chart,report,insights,sections,deep)=>{G.chart=chart;G.report=report;G.insights=insights;G.sections=sections;G.deep=deep;},usedFallback:()=>window.__vedicSwissFallbackUsed===true};}';
+ return body+'\nexport {'+exportNames.join(',')+'};';
 }
 export function vedicReadingStyles(){
  const html=readFileSync(source,'utf8').replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi,''),css=[...html.matchAll(/<style\b[^>]*>([\s\S]*?)<\/style>/gi)].map(match=>match[1]).join('\n');

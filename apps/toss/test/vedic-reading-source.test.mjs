@@ -23,6 +23,10 @@ test('extracted Vedic reading preserves original chart, seven topics, deep detai
   assert.deepEqual(plain(engine.buildVedicSections(actual,report,insights)),plain(dom.window.buildVedicSections(expected,original,dom.window.generateInsights(expected,original))));
   assert.deepEqual(plain(engine.buildVedicDeepDetails(actual,report)),plain(dom.window.buildVedicDeepDetails(expected,original)));
   for(const name of ['renderSouthChart','renderNorthChart'])assert.equal(engine[name](actual.rasi),dom.window[name](expected.rasi));
+  const mansions=dom.window.eval('NAKS.map(n=>n.n)');
+  for(const first of mansions)for(const second of mansions)assert.deepEqual(plain(engine.calcCompatibility(first,second)),plain(dom.window.calcCompatibility(first,second)));
+  const compatibility=engine.calcCompatibility(actual.nak.name,actual.nak.name),rendered=engine.renderVedicCompatibility(actual,actual,compatibility);
+  assert.match(rendered,/8 항목 상세 점수/);assert.match(rendered,/종합 해석/);assert.equal((rendered.match(/class="compat-item"/g)||[]).length,8);assert.ok(rendered.includes(compatibility.advice));
  }finally{globalThis.window=previous;dom.window.close();}
 });
 

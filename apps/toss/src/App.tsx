@@ -51,7 +51,7 @@ const CareerStylePreview=lazy(()=>import('./CareerStylePreview'));
 const AnimalDestiny=lazy(()=>import('./AnimalDestiny'));
 const MusicShelf=lazy(()=>import('./MusicShelf'));
 const AstroReading=lazy(()=>import('./AstroHome'));
-const VedicReading=lazy(()=>import('../service/VedicReading'));
+const VedicReading=lazy(()=>import('./VedicHome'));
 const MansionAtlas=lazy(()=>import('./MansionAtlas'));
 const NovelReader=lazy(()=>import('./NovelReader'));
 const FamousSaju=lazy(()=>import('./FamousLibrary'));
@@ -225,7 +225,7 @@ export default function App({reviewHome,reviewRoute,consultationHref,verifiedRec
     {page==='ziwei/chart'&&<Suspense fallback={<p role="status">명반을 준비하고 있어요.</p>}><ZiweiChart loggedIn={loggedIn} onLogin={()=>requireLogin(page)}/></Suspense>}
     {page==='manse'&&<Suspense fallback={<p role="status">만세력을 준비하고 있어요.</p>}><ManseReading loggedIn={loggedIn} onLogin={()=>requireLogin('manse')} onError={failure}/></Suspense>}
     {page==='sukuyo'&&<Suspense fallback={<p role="status">숙요점을 준비하고 있어요.</p>}><SukuyoBasic renderAtlas={(index,onOpen)=><MansionAtlas index={index} onOpen={onOpen}/>} loggedIn={loggedIn} onLogin={()=>requireLogin('sukuyo')} onError={failure}/></Suspense>}
-    {page==='vedic'&&<Suspense fallback={<p role="status">베다 명반과 해석을 준비하고 있어요.</p>}><VedicReading onError={failure}/></Suspense>}
+    {page==='vedic'&&<Suspense fallback={<p role="status">베다 명반과 해석을 준비하고 있어요.</p>}><VedicReading loggedIn={loggedIn} onLogin={()=>requireLogin('vedic')} onError={failure}/></Suspense>}
     {page==='human-design'&&<Suspense fallback={<p role="status">차트를 준비하고 있어요.</p>}><HumanDesignChart loggedIn={loggedIn} onLogin={()=>requireLogin('human-design')} onError={failure}/></Suspense>}
     {page==='daily'&&<Suspense fallback={<p role="status">오늘의 이야기를 준비하고 있어요.</p>}><DailyReadings loggedIn={loggedIn} onLogin={()=>requireLogin('daily')} onError={failure}/></Suspense>}
     {page==='bias'&&<Suspense fallback={<p role="status">최애운명 화면을 불러오고 있어요.</p>}><BiasReading/></Suspense>}

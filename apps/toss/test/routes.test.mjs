@@ -17,6 +17,8 @@ const mocks={
 };
 globalThis.__tossRouteMocks=mocks;
 const stubMap={
+ 'worker/toss/vedic-compatibility.js':"export const tossVedicCompatibility=async(_env,auth)=>({owner:auth.ownerId,accessSource:'public',stored:false});",
+ 'worker/toss/vedic-prashna.js':"export const tossVedicPrashna=async(_env,auth)=>({owner:auth.ownerId,accessSource:'public'});",
  'worker/toss/astro-synastry.js':"export const tossAstroSynastry=async(body)=>Response.json({accessSource:'public',input:body}),tossAstroSynastryPeople=()=>({people:[],categories:[],countries:{},css:''});",
  'worker/toss/native-human-design.js':"export const prepareNativeHumanDesign=async(_env,owner)=>({owner:owner.ownerId}),readNativeHumanDesign=async(_env,owner,id)=>Response.json({owner:owner.ownerId,id}),nativeHumanDesignLibraryItem=async()=>({state:'PENDING'});",
  'worker/toss/sukuyo-past-life.js':"export const tossSukuyoPastLife=async(_env,auth)=>({owner:auth.ownerId,source:'public',stored:false});",
@@ -708,3 +710,5 @@ test('Human Design paid results and saved-profile Sukuyo annual reading keep aut
 test('original public western sections and Sukuyo tools accept guests without exposing paid result routes',async()=>{mocks.denyAuth=true;try{for(const path of ['/astro/chart','/astro/section','/astro/synastry','/sukuyo/tools']){const res=await request({birth,featureKey:'test'},path,{});assert.equal(res.status,200,path);assert.deepEqual((await res.json()).input.birth,birth);}assert.equal((await request({input:{}},'/native/astrology/prepare')).status,401);assert.equal((await request({},'/canonical/sukuyo-compatibility-ai/start')).status,401);}finally{mocks.denyAuth=false;}});
 
 test('public deterministic past-life report preserves mandatory login and uses the authenticated owner',async()=>{assert.equal((await request({},'/sukuyo/past-life',{})).status,503);mocks.denyAuth=true;try{assert.equal((await request({},'/sukuyo/past-life')).status,401);}finally{mocks.denyAuth=false;}const response=await request({userId:'other',ownerId:'other'},'/sukuyo/past-life');assert.equal(response.status,200);assert.deepEqual(await response.json(),{owner:auth.ownerId,source:'public',stored:false});});
+
+test('free Vedic compatibility and standalone Prashna remain login-required and use the authenticated owner',async()=>{for(const path of ['/vedic/compatibility','/vedic/prashna']){mocks.denyAuth=true;try{assert.equal((await request({ownerId:'foreign'},path)).status,401);}finally{mocks.denyAuth=false;}const reply=await request({ownerId:'foreign'},path);const result=await reply.json();assert.equal(reply.status,200);assert.equal(result.owner,auth.ownerId);assert.equal(result.accessSource,'public');}});

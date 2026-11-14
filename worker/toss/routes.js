@@ -758,6 +758,16 @@ export async function handleTossRoutes(request,env) {
       const {basicSkyChart}=await import('./basic-sky-chart.js');
       return reply(await basicSkyChart(path.slice('/charts/'.length),await bodyOf(request),env,{requestUrl:'https://code-destiny.com/api/toss/charts'}));
     }
+    if(path==='/vedic/compatibility'&&request.method==='POST') {
+      await limit(env,auth._id,'vedic-compatibility',6);
+      const {tossVedicCompatibility}=await import('./vedic-compatibility.js');
+      return reply(await tossVedicCompatibility(env,auth,await bodyOf(request)));
+    }
+    if(path==='/vedic/prashna'&&request.method==='POST') {
+      await limit(env,auth._id,'vedic-prashna',6);
+      const {tossVedicPrashna}=await import('./vedic-prashna.js');
+      return reply(await tossVedicPrashna(env,auth,await bodyOf(request)));
+    }
     if(path==='/sukuyo/past-life'&&request.method==='POST') {
       await limit(env,auth._id,'sukuyo-past-life',12);
       const {tossSukuyoPastLife}=await import('./sukuyo-past-life.js');
