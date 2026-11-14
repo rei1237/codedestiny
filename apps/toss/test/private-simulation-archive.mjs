@@ -62,7 +62,25 @@ try{
     await page.getByRole('button',{name:'토스로 로그인하기'}).click();
     await page.waitForURL(/yeongnyangi\/fortune/);
   };
-  if(process.argv.includes('--human-design')){
+  if(process.argv.includes('--maya-free')){
+    const {verifyMayaFree}=await import('./private-maya-free.mjs');
+    await verifyMayaFree(origin,context);assert.deepEqual(unexpected,[]);
+    console.log('PASS private AIT Maya free',reader.deploymentId);
+  }else if(process.argv.includes('--free-reading')){
+    const {verifyFreeReading}=await import('./private-free-reading.mjs');
+    await verifyFreeReading(origin,context);assert.deepEqual(unexpected,[]);
+    console.log('PASS private AIT free reading',reader.deploymentId);
+  }else if(process.argv.includes('--extended-report')){
+    const {verifyExtendedReport}=await import('./private-extended-reports.mjs');
+    const key=process.argv[process.argv.indexOf('--extended-report')+1];
+    await verifyExtendedReport(origin,context,key);assert.deepEqual(unexpected,[]);
+    console.log('PASS private AIT extended report',key,reader.deploymentId);
+  }else if(process.argv.includes('--paid-tarot')){
+    const {verifyPrivatePaidTarot}=await import('./private-paid-tarot.mjs');
+    const key=process.argv[process.argv.indexOf('--paid-tarot')+1];
+    await verifyPrivatePaidTarot(origin,context,key);assert.deepEqual(unexpected,[]);
+    console.log('PASS private AIT paid tarot',key,reader.deploymentId);
+  }else if(process.argv.includes('--human-design')){
     const {verifyHumanDesign}=await import('./private-human-design.mjs');
     await verifyHumanDesign(origin,context);assert.deepEqual(unexpected,[]);
     console.log('PASS private AIT Human Design',reader.deploymentId);

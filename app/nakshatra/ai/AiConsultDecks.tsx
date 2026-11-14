@@ -38,6 +38,8 @@ interface AiConsultDecksProps {
   natal: NatalIdentity | null;
   question?: string;
   totalChars?: number;
+  /** Embedded readers already have a platform main landmark and surface. */
+  embedded?: boolean;
 }
 
 function legacySections(decks: Decks) {
@@ -78,7 +80,8 @@ function TwoStars({ natal }: { natal: NatalIdentity | null }) {
   );
 }
 
-export default function AiConsultDecks({ decks, natal, question, totalChars = 0 }: AiConsultDecksProps) {
+export default function AiConsultDecks({ decks, natal, question, totalChars = 0, embedded = false }: AiConsultDecksProps) {
+  const Root = embedded ? "section" : "main";
   const copy = useNakshatraCopy();
   const modernSections = Array.isArray(decks.consultation) ? decks.consultation : [];
   const sections = modernSections.length ? modernSections : legacySections(decks);
@@ -90,7 +93,7 @@ export default function AiConsultDecks({ decks, natal, question, totalChars = 0 
   ].filter(Boolean).join(" · ");
 
   return (
-    <main className={styles.vars}>
+    <Root className={styles.vars}>
       <div className={styles.wrap}>
         <header className={styles.hero} data-nakai-pdf-section>
           <p className={styles.heroTitle}>하나의 별, 두 개의 언어</p>
@@ -125,6 +128,6 @@ export default function AiConsultDecks({ decks, natal, question, totalChars = 0 
           <p>{copy.aiDisclaimer}</p>
         </footer>
       </div>
-    </main>
+    </Root>
   );
 }

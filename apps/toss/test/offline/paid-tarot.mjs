@@ -7,7 +7,7 @@ const paid=TOSS_TAROT_LIBRARY_FLOWS.filter(flow=>['oracle','celestial','mindscan
 export const mockTarotProducts=paid.flatMap(flow=>flow.featureKeys.map(featureKey=>({id:flow.id,name:flow.name,sku:'mock-'+featureKey,featureKey,approvedPriceKRW:1})));
 export const mockTarotSdk=mockTarotProducts.map(p=>({...p,type:'CONSUMABLE',displayName:p.name,displayAmount:'1원',description:'가상 결제',iconUrl:''}));
 // The emulator prefixes its UUID; production Toss result URLs accept the UUID itself.
-const routeId=id=>id.replace(/^mock-order-/, '');
+const routeId=id=>id.replace(/^(?:mock-order-|private-order-[AB]-)/, '');
 const rows=state=>[...state.intents.values()].filter(row=>row.service==='tarot-library');
 export const mockTarotLibrary=state=>rows(state).map(row=>({serviceId:'tarot-library',orderId:routeId(row.orderId),productId:'tarot-library:'+row.flow.id,selectionId:row.flow.id,requestId:'toss-tarot:'+row.orderId,sku:row.product.sku,createdAt:row.createdAt,status:'PURCHASED',state:row.result?'COMPLETED':'PENDING',completedSections:row.result?1:0,totalSections:1}));
 export const mockTarotRecords=state=>rows(state).map(row=>({id:row.orderId,key:row.orderId,group:'report',source:'tarot-library',serviceId:'tarot-library',serviceName:row.flow.name,title:row.input.question,question:row.input.question,createdAt:row.createdAt,status:row.result?'completed':'generating',href:tarotResultPath(routeId(row.orderId))}));

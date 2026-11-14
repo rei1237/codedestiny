@@ -1,4 +1,6 @@
 import {privateSukuyoYearly} from './sukuyo-yearly.mjs';
+import {extendedProducts,extendedRequest,extendedPublicRequest,extendedRecords} from './extended-reports.mjs';
+import {privateTarotProducts,privateTarotRequest} from './paid-tarot.mjs';
 import {humanDesignProducts,humanDesignReportRequest,humanDesignRecords,humanDesignPurchases} from './human-design-report.mjs';
 import {privateHumanDesign} from './human-design.mjs';
 import skyExample from './question-sky-example.json' with {type:'json'};
@@ -14,7 +16,7 @@ import {roomProducts,roomRecords,roomOrderRequest,characterRoomReading} from '..
 const letterProducts=offlineCatalog.filter(product=>/^(yeoni|neo):/.test(product.id));
 const characterRooms=roomProducts.filter(product=>/^native:(tea|neo):/.test(product.id));
 export const products=offlineCatalog.filter(product=>!product.id.includes(':'));
-export const sdkProducts=[...products,...letterProducts,...characterRooms,...expertProducts,...nativeReportProducts,...humanDesignProducts];
+export const sdkProducts=[...products,...letterProducts,...characterRooms,...expertProducts,...nativeReportProducts,...humanDesignProducts,...extendedProducts,...privateTarotProducts];
 const replies=(value,status=200)=>Response.json(value,{status});
 function exampleReading(kind,body){
   const input=skyExample.input;
@@ -46,6 +48,7 @@ export function createSimulationApi(storage,person){
       state.loggedIn=true;return save()?replies({token}):replies({error:'MOCK_STORAGE_UNAVAILABLE'},503);
     }
     const publicReport=await nativeReportPublicRequest(request.clone(),path);if(publicReport)return publicReport;
+    const publicExtended=await extendedPublicRequest(request.clone(),path);if(publicExtended)return publicExtended;
     if(!state.loggedIn||request.headers.get('authorization')!=='Bearer '+token)return replies({error:'LOGIN_REQUIRED'},401);
     if(path==='/session'&&method==='GET')return replies({authenticated:true,environment:'SANDBOX'});
     if(path==='/logout'&&method==='POST'){state.loggedIn=false;save();return replies({ok:true});}
@@ -67,9 +70,11 @@ export function createSimulationApi(storage,person){
     if(path==='/sukuyo/yearly'&&method==='POST')return privateSukuyoYearly(person,state.profiles,await request.json());
     if(path==='/events'&&method==='POST')return replies({ok:true});
     const now=()=>new Date();
-    if(path==='/canonical/records'&&method==='GET'){const records=await roomRecords(url,state).json();return replies({...records,items:[...records.items,...expertRecords(url,state),...humanDesignRecords(url,state)]});}
+    if(path==='/canonical/records'&&method==='GET'){const records=await roomRecords(url,state).json();return replies({...records,items:[...records.items,...expertRecords(url,state),...humanDesignRecords(url,state),...extendedRecords(url,state)]});}
     if(path==='/library'&&method==='GET'){const response=await handleReviewFixture(request,url,path,state,save,now);const body=await response.json();return replies({...body,purchases:[...body.purchases,...humanDesignPurchases(state)]});}
-    if(path==='/native/catalog'&&method==='GET')return replies({products:[...characterRooms,...expertProducts,...nativeReportProducts,...humanDesignProducts]});
+    if(path==='/native/catalog'&&method==='GET')return replies({products:[...characterRooms,...expertProducts,...nativeReportProducts,...humanDesignProducts,...extendedProducts]});
+    if(path.startsWith('/native/')){const extended=await extendedRequest(request.clone(),url,path,state,save,now);if(extended)return extended;}
+    if(path==='/tarot-library/catalog'||path.startsWith('/tarot-library/results/'))return await privateTarotRequest(request,path,state,save)||unavailable();
     if(!path.startsWith('/orders/')){const hd=await humanDesignReportRequest(request.clone(),url,path,state,save,now);if(hd)return hd;}
     if(!path.startsWith('/orders/')){const nativeReport=await nativeReportRequest(request.clone(),url,path,state,save,now);if(nativeReport)return nativeReport;}
     const expertResponse=path.startsWith('/orders/')?null:await expertRequest(request.clone(),url,path,state,save,now);
@@ -79,10 +84,12 @@ export function createSimulationApi(storage,person){
     if(/^\/canonical\/fortune-chat\/consultations(?:\/|$)/.test(path)){
       return await letterRequest(request,url,path,state,save)||unavailable();
     }
-    if(path==='/tarot-library/catalog')return replies({products:[],flows:[]});
-    if(path==='/orders/grant'||path==='/orders/restore'){
+    if(path==='/orders/grant'||path==='/orders/restore'||path==='/tarot-library/orders/grant'){
       const {sku,orderId}=await request.clone().json();
       if(!sdkProducts.some(product=>product.sku===sku)||!orderId?.startsWith('private-order-'+person+'-'))return replies({error:'ORDER_MISMATCH'},403);
+      if(privateTarotProducts.some(product=>product.sku===sku))return await privateTarotRequest(request,path,state,save)||unavailable();
+      if(path==='/tarot-library/orders/grant')return unavailable();
+      if(extendedProducts.some(product=>product.sku===sku))return await extendedRequest(request,url,path,state,save,now)||unavailable();
       if(humanDesignProducts.some(product=>product.sku===sku))return await humanDesignReportRequest(request,url,path,state,save,now)||unavailable();
       if(nativeReportProducts.some(product=>product.sku===sku))return await nativeReportRequest(request,url,path,state,save,now)||unavailable();
       if(expertProducts.some(product=>product.sku===sku))return await expertRequest(request,url,path,state,save,now)||unavailable();

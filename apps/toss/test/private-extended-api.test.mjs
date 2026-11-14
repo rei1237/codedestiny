@@ -1,0 +1,23 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {createSimulationApi} from '../private-simulation/api.mjs';
+const storage=()=>{const map=new Map();return {getItem:key=>map.get(key)||null,setItem:(key,value)=>map.set(key,value)};};
+const call=(api,person,path,body)=>api(new Request('https://private.invalid/private-simulation-api'+path,{method:body===undefined?'GET':'POST',headers:{authorization:'Bearer private-simulation-token-'+person},...(body===undefined?{}:{body:JSON.stringify(body)})}));
+test('private entry enforces account prefixes and keeps tarot/extended library rows unique after cold restart',async()=>{
+ const a=storage(),b=storage();let A=createSimulationApi(a,'A');const B=createSimulationApi(b,'B');
+ assert.equal((await call(A,'A','/native/catalog')).status,401);
+ for(const [api,person] of [[A,'A'],[B,'B']])await call(api,person,'/login',{authorizationCode:'private-simulation-person-'+person});
+ const intent=await(await call(A,'A','/native/yoga/prepare',{input:{requestId:'yoga-test',duration:30,mood:'모의 수련'}})).json();
+ const grant={requestId:intent.id,sku:'mock-divya-yoga',orderId:'private-order-A-yoga'};
+ assert.equal((await call(A,'A','/orders/grant',{...grant,orderId:'private-order-B-forged'})).status,403);
+ assert.equal((await call(A,'A','/orders/grant',grant)).status,200);
+ const orderId='private-order-A-11111111-2222-4333-8444-555555555555',body={sku:'mock-tarot-mindscan',orderId,input:{question:'모의 질문',picks:Array.from({length:10},(_,i)=>i)}};
+ assert.equal((await call(B,'B','/tarot-library/orders/grant',body)).status,403);
+ assert.equal((await call(A,'A','/tarot-library/orders/grant',body)).status,200);
+ A=createSimulationApi(a,'A');const path='/tarot-library/results/11111111-2222-4333-8444-555555555555';
+ await call(A,'A',path,{});await call(A,'A',path,{});
+ assert.equal((await call(B,'B',path)).status,404);
+ const library=await(await call(A,'A','/library')).json();assert.equal(library.purchases.length,2);assert.equal(new Set(library.purchases.map(p=>p.orderId)).size,2);
+ const records=await(await call(A,'A','/canonical/records')).json();assert.equal(records.items.length,2);assert.ok(records.items.every(row=>row.href));
+ assert.equal((await(await call(B,'B','/canonical/records')).json()).items.length,0);
+});
