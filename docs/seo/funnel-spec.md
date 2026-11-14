@@ -65,11 +65,11 @@
 | 이후 이벤트 | 허용된 캠페인 3종류만 세션에 30분 보관해 이벤트마다 `growth_campaign`·`growth_version`을 붙인다: Threads 코드, 2026-10 성장 캠페인(블로그·YouTube·TikTok·X), 네이버 검색광고 3개(`paid_20261028_naver`·`paid_20261028_brand`·`ggulggul_2027_test`) | `js/core/analytics.js:264-318`, `:343-349` |
 | AI 유입 | 리퍼러가 ChatGPT·Perplexity·Gemini·Copilot·Claude 호스트일 때 `ai_source` 라벨 | `js/core/analytics.js:240-256` |
 | 주문 | 위 **허용 캠페인만** 주문에 실린다. 네이버 검색광고는 쿠키 `cd_paid_campaign`으로, 영냥이는 요청 본문으로 전달되고 서버가 다시 허용 목록으로 거른다 | `lib/marketing/growth-attribution.mjs`, `worker/payments/index.js:1402`, `:1547`, `worker/payments/orders.js:189`, `app/yeongnyangi/_lib/api.ts:40` |
-| 주문(그 밖의 UTM) | **실리지 않는다(A1).** 자연 검색, 일반 소셜 UTM, 이메일 UTM은 GA4 세션에만 남고 주문 원장에는 흔적이 없다 | 같은 파일들. 허용 목록 밖의 값은 `normalizeGrowthAttribution`이 버린다 |
+| 주문(그 밖의 유입) | 2026-11-14부터 캠페인이 없는 방문은 **고정 유입 코드 8개 중 하나**가 같은 쿠키(`cd_paid_campaign`)로 주문에 실린다: `organic_naver`·`organic_google`·`organic_daum`·`organic_bing`·`paid_search`·`social`·`email`·`ai` (version `entry-20261114-v1`). 자유 문자열 UTM·리퍼러 원문·클릭 ID는 저장하지 않는다. 직접 유입과 분류되지 않는 유입은 라벨이 없다. 캠페인 라벨이 있으면 그쪽이 먼저다. 영냥이 결제(요청 본문 경로)에는 실리지 않는다 | `js/core/analytics.js` `entrySourceLabel`, `lib/marketing/growth-attribution.mjs`. 허용 목록 밖의 값은 `normalizeGrowthAttribution`이 버린다 |
 | 자체 수집(`funnel-event`) | 캠페인·유입 필드가 아예 없다. 저장 항목은 이벤트명, 상품 키, 옵션, 렌더러, 런타임, 가격, 이용권 힌트, 체류 시간, 단계뿐 | `worker/routes/billing.js` `handleCheckoutFunnelEvent` |
 | 동의 거부 | 분석 동의가 없으면 세션 보관·쿠키를 모두 지우고 주문에도 싣지 않는다 | `js/core/analytics.js:268`, `lib/marketing/growth-attribution.mjs` `readCheckoutAttribution` |
 
-따라서 "네이버 자연 검색으로 들어와 결제한 사람"은 지금 **GA4 안에서만**(동의한 방문자에 한해) 볼 수 있고, 주문 원장으로는 볼 수 없다. 이를 바꾸는 안은 `docs/seo/payment-change-proposal.md`의 A1 절에 적었다.
+2026-11-14 이전 주문에는 유입 코드가 없다. 그 뒤로는 "네이버 자연 검색으로 들어와 결제한 사람"을 꿀꿀 운세 셸 결제의 주문 원장(`metadata.growthAttribution.campaignId = organic_naver`)에서 볼 수 있다(분석에 동의한 방문자, 유입 뒤 30분 안, 같은 탭 기준의 하한값). 분류 규칙: `utm_medium=cpc` 또는 클릭 표식(`gclid`·`gbraid`·`wbraid`·`NaPm`)이 있으면 `paid_search`, `utm_medium`이 email·newsletter면 `email`, social·organic_social·share·channel이면 `social`, 그 밖에는 리퍼러 호스트가 정확히 일치할 때만 검색엔진·AI로 분류한다. 설계 배경은 `docs/seo/payment-change-proposal.md`의 A1 절.
 
 ## 5. 확인하지 못한 것
 

@@ -582,3 +582,46 @@ test('AI source persists for the session only with consent and a new external so
  assert.equal(firstConfig(expired.window).ai_source,undefined);
  expired.window.close();
 });
+
+test('entry source reaches the order cookie as a fixed code only, behind consent and below campaigns',async()=>{
+ const {readCheckoutAttribution,normalizeGrowthAttribution}=await import('../../lib/marketing/growth-attribution.mjs');
+ const order=w=>readCheckoutAttribution(new Request('https://code-destiny.com/api/billing/checkout',{headers:{cookie:w.document.cookie}}));
+ for(const [url,referrer,code] of [
+  ['https://code-destiny.com/saju/','https://search.naver.com/search.naver?query=private','organic_naver'],
+  ['https://code-destiny.com/saju/','https://www.google.com/','organic_google'],
+  ['https://code-destiny.com/saju/','https://search.daum.net/search?q=private','organic_daum'],
+  ['https://code-destiny.com/saju/','https://www.bing.com/search?q=private','organic_bing'],
+  ['https://code-destiny.com/saju/','https://chatgpt.com/c/private','ai'],
+  ['https://code-destiny.com/saju/?gclid=private','https://www.google.com/','paid_search'],
+  ['https://code-destiny.com/saju/?utm_source=private&utm_medium=email&utm_campaign=private','','email'],
+  ['https://code-destiny.com/saju/?utm_source=private&utm_medium=social','','social'],
+ ]){
+  const dom=bootFrom(url,referrer,{consent:'accepted'}),w=dom.window;
+  try{
+   assert.deepEqual(order(w),{campaignId:code,version:'entry-20261114-v1',consent:true,device:'desktop'},url+' '+referrer);
+   assert.equal(w.cdReadGrowthAttribution(),null);
+   assert.equal((w.document.cookie+w.sessionStorage.getItem('cd:entry:source')).includes('private'),false);
+   w.cdTrack('view_item',{item_id:'saju'});assert.equal(w.dataLayer.at(-1)[2].growth_campaign,undefined);
+  }finally{w.close();}
+ }
+ for(const [url,referrer,consent] of [
+  ['https://code-destiny.com/saju/','https://search.naver.com/','' ],
+  ['https://code-destiny.com/saju/','https://search.naver.com/','essential'],
+  ['https://code-destiny.com/saju/','','accepted'],
+  ['https://code-destiny.com/saju/','https://search.naver.com.evil.example/','accepted'],
+  ['https://code-destiny.com/saju/?utm_source=private&utm_medium=organic','','accepted'],
+ ]){
+  const dom=bootFrom(url,referrer,{consent}),w=dom.window;
+  try{assert.equal(w.document.cookie.includes('cd_paid_campaign='),false,url+' '+referrer+' '+consent);assert.equal(w.sessionStorage.getItem('cd:entry:source'),null);}finally{w.close();}
+ }
+ const paid=bootFrom('https://code-destiny.com/new-year-ai-consultation/?utm_source=naver&utm_medium=cpc&utm_campaign=ggulggul_2027_test','https://search.naver.com/',{consent:'accepted'});
+ try{assert.equal(order(paid.window).campaignId,'ggulggul_2027_test');assert.equal(paid.window.cdReadGrowthAttribution().version,'paid-20261028-v1');}finally{paid.window.close();}
+ const kept=bootFrom('https://code-destiny.com/points/','https://code-destiny.com/saju/',{consent:'accepted',session:{'cd:entry:source':JSON.stringify({value:'organic_naver',until:Date.now()+60000})}});
+ try{assert.equal(order(kept.window).campaignId,'organic_naver');kept.window.document.cookie='cd_cookie_consent=essential; path=/';kept.window.cdSyncConsent();
+  assert.equal(kept.window.document.cookie.includes('cd_paid_campaign='),false);assert.equal(kept.window.sessionStorage.getItem('cd:entry:source'),null);}finally{kept.window.close();}
+ const forged=bootFrom('https://code-destiny.com/points/','',{consent:'accepted',session:{'cd:entry:source':JSON.stringify({value:'private_text',until:Date.now()+60000})}});
+ try{assert.equal(forged.window.document.cookie.includes('cd_paid_campaign='),false);}finally{forged.window.close();}
+ assert.equal(normalizeGrowthAttribution({campaignId:'private_text',version:'entry-20261114-v1',consent:true}),undefined);
+ assert.equal(normalizeGrowthAttribution({campaignId:'organic_naver',version:'paid-20261028-v1',consent:true}),undefined);
+ assert.equal(normalizeGrowthAttribution({campaignId:'organic_naver',version:'entry-20261114-v1',consent:false}),undefined);
+});
