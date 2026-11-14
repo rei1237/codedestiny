@@ -1,0 +1,27 @@
+import {TextField} from '@toss/tds-mobile';
+import {useEffect,useRef,useState,type FormEvent} from 'react';
+import {api} from './platform';
+import {Button} from './Button';
+
+type Profile={profileId:string;name:string};
+type Domain={title?:string;score:number;text:string;advice?:string;action?:string;evidence?:string[]};
+type Reading={yearlyTheme:{title:string;summary:string;evidence:string[]};totalFortune:Domain;firstHalf:Domain;secondHalf:Domain;loveAndRelationship:Domain;workAndBusiness:Domain;money:Domain;healthAndMind:Domain;monthlyFlow:{month:number;title:string;theme:string;relationship:string;workMoney:string;healthMind:string;action:string;caution:string;anchorDate:string;monthSukuyo:{label:string}}[];noblePersonAndCaution:Record<string,string>;sukuyoMasterFocus:Record<string,string>;finalPrescription:{oneLine:string;doThis:string[];avoidThis:string[]};calculationBasis:{methodVersion:string;monthlyAnchor:string}};
+export default function SukuyoYearly({request=api,onError}:{request?:typeof api;onError:(error:unknown)=>void}){
+ const [open,setOpen]=useState(false);
+ const [profiles,setProfiles]=useState<Profile[]>([]),[profileId,setProfileId]=useState(''),[year,setYear]=useState(new Date().getFullYear()),[result,setResult]=useState<Reading|null>(null),[busy,setBusy]=useState(false),[issue,setIssue]=useState('');
+ const epoch=useRef(0);
+ useEffect(()=>{if(!open)return;let active=true;request<{profiles:Profile[]}>('/canonical/profile').then(data=>{if(active){setProfiles(data.profiles);setProfileId(data.profiles[0]?.profileId||'');}}).catch(error=>{if(active)onError(error);});return()=>{active=false;epoch.current++;};},[request,open]);
+ const change=()=>{epoch.current++;setResult(null);setIssue('');setBusy(false);};
+ async function submit(event:FormEvent){event.preventDefault();if(busy)return;const current=++epoch.current;setBusy(true);setIssue('');setResult(null);try{const data=await request<{result:Reading}>('/sukuyo/yearly',{profileId,year});if(current===epoch.current)setResult(data.result);}catch(error){if(current===epoch.current){const code=(error as {code?:string})?.code;setIssue(code==='PRIVATE_YEARLY_EXAMPLE_ONLY'?'모의 테스트는 기본 테스트 프로필의 2026년·2027년 예시만 제공해요.':code==='TOSS_PRODUCT_NOT_APPROVED'?'현재 이용 정책을 확인하고 있어요. 구매 없이 다시 시도해 주세요.':'선택한 프로필과 연도를 확인한 뒤 다시 시도해 주세요.');onError(error);}}finally{if(current===epoch.current)setBusy(false);}}
+ if(!open)return <Button display="block" variant="weak" onClick={()=>setOpen(true)}>숙요점 1년운 살펴보기</Button>;
+ return <section aria-label="숙요점 1년운"><h2>달빛으로 읽는 한 해</h2><p>저장한 내 프로필의 본명숙과 매월 달의 자리를 대조해 관계·일·재물·회복의 흐름을 살펴봐요.</p>
+  <form className="form" onSubmit={submit}><label>1년운 프로필<select value={profileId} disabled={busy} onChange={e=>{change();setProfileId(e.target.value);}}>{profiles.map(p=><option key={p.profileId} value={p.profileId}>{p.name}</option>)}</select></label><TextField variant="box" label="살펴볼 연도" aria-label="살펴볼 연도" labelOption="sustain" type="number" min="1900" max="2100" required value={String(year)} disabled={busy} onChange={e=>{change();setYear(Number(e.target.value));}}/><Button type="submit" disabled={!profileId} loading={busy} display="block">1년운 살펴보기</Button></form>
+  {!profiles.length&&<p>먼저 홈에서 출생 프로필을 저장해 주세요.</p>}{issue&&<p role="alert">{issue}</p>}
+  {result&&<article className="sukuyo-basic-result"><h2>{result.yearlyTheme.title}</h2><p>{result.yearlyTheme.summary}</p><ul>{result.yearlyTheme.evidence.map(x=><li key={x}>{x}</li>)}</ul>
+   {([['총운',result.totalFortune],['상반기',result.firstHalf],['하반기',result.secondHalf],['사랑과 관계',result.loveAndRelationship],['일과 사업',result.workAndBusiness],['재물',result.money],['건강과 마음',result.healthAndMind]] as [string,Domain][]).map(([title,item])=><section className="paper" key={title}><h3>{item.title||title}</h3><p>{item.text}</p><p>{item.advice||item.action}</p>{item.evidence?.map(x=><p key={x}>{x}</p>)}</section>)}
+   <h2>열두 달의 흐름</h2>{result.monthlyFlow.map(item=><details className="paper" key={item.month}><summary>{item.month}월 · {item.title}</summary><p>{item.theme}</p><p>{item.relationship}</p><p>{item.workMoney}</p><p>{item.healthMind}</p><p>{item.action}</p><p>{item.caution}</p><p className="muted">{item.anchorDate} · {item.monthSukuyo.label}</p></details>)}
+   <section className="paper"><h3>인연과 경계</h3>{Object.values(result.noblePersonAndCaution).map(x=><p key={x}>{x}</p>)}</section><section className="paper"><h3>숙요 상담사의 조언</h3>{Object.values(result.sukuyoMasterFocus).map(x=><p key={x}>{x}</p>)}</section>
+   <section className="paper"><h3>한 해를 위한 실천</h3><p>{result.finalPrescription.oneLine}</p><h4>해 보면 좋은 일</h4><ul>{result.finalPrescription.doThis.map(x=><li key={x}>{x}</li>)}</ul><h4>잠시 멈출 일</h4><ul>{result.finalPrescription.avoidThis.map(x=><li key={x}>{x}</li>)}</ul></section><details><summary>계산 기준</summary><p>{result.calculationBasis.monthlyAnchor}</p><p>{result.calculationBasis.methodVersion}</p></details><p className="muted">이 계산 결과는 구매 보관함에 저장되지 않아요. 같은 프로필과 연도로 다시 살펴볼 수 있어요.</p>
+  </article>}
+ </section>;
+}

@@ -3,6 +3,7 @@ import {BirthFields,birthPayload,emptyBirth} from './BirthFields';
 import {Button} from './Button';
 import {api} from './platform';
 import TossSessionScope from './TossSessionScope';
+import SukuyoYearly from './SukuyoYearly';
 
 type TextCard={label:string;value:string;note:string};
 type Relation={label:string;han:string;essence:string;light:string;shadow:string;guide:string};
@@ -61,5 +62,6 @@ function SukuyoBasicContent({loggedIn,onLogin,onError,request=api,renderAtlas}:P
   <p className="muted">로그인 후 이용할 수 있어요. 현재 결과는 보관함에 저장되지 않으며 화면을 나가면 사라져요.</p>
   {loggedIn?<form className="form" onSubmit={submit}><BirthFields title="본명숙을 살펴볼 출생정보" value={birth} onChange={value=>{epoch.current++;setBirth(value);setResult(null);setIssue('');}} disabled={busy}/><Button type="submit" display="block" loading={busy}>{issue?'다시 계산하기':'본명숙 살펴보기'}</Button></form>:<Button display="block" onClick={onLogin}>토스 로그인하고 살펴보기</Button>}
   {loggedIn&&busy&&<p role="status">태어난 날의 숙을 읽고 있어요.</p>}{issue&&<p role="alert">{issue}</p>}{loggedIn&&result&&<SukuyoBasicResult result={result} onOpenAtlas={renderAtlas?()=>setAtlas(null):undefined}/>}
+  {loggedIn&&<SukuyoYearly request={request} onError={onError}/>}
  </section>;
 }
