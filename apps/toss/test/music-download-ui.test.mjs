@@ -21,5 +21,8 @@ test('mock purchase, remount and file save reuse one owned intent; a new session
  globalThis.__musicUI.api=async()=>{throw Error('RESULT_NOT_FOUND');};
  await React.act(async()=>{window.testSessionEpoch=1;window.dispatchEvent(new window.Event('session'));});
  assert.equal(button('MP3 파일 저장하기'),undefined);assert.match(document.querySelector('[role=alert]').textContent,/다시 결제하지/);
+ globalThis.__musicUI.api=async()=>{throw Object.assign(Error('LOGIN_REQUIRED'),{status:401});};
+ await React.act(async()=>{window.testSessionEpoch=2;window.dispatchEvent(new window.Event('session'));});
+ assert.equal(new URL(document.querySelector('a[href^="/login"]').href).searchParams.get('next'),'/music?intentId='+id);
  }finally{await React.act(()=>root.unmount());dom.window.close();delete globalThis.__musicUI;}
 });
