@@ -92,6 +92,10 @@ export async function fixtures(browser,base,product,width=390,{monthlyBalance=0}
   if(path==='/api/reviews/products'&&request.method()==='GET')return send({ok:true,
    rewardPolicy:{amount:REVIEW_REWARD_AMOUNT,currency:'moonstone',trigger:'approved'},
    items:listReviewProductSummaries().map(product=>({...product,total:0,average:0}))});
+  // ReviewProof on decision pages reads the public verified summary and newest cards.
+  // Same shapes as worker/routes/reviews.js, with no approved reviews seeded.
+  if(path==='/api/reviews/summary'&&request.method()==='GET')return send({ok:true,productId:url.searchParams.get('productId')||'',verifiedOnly:url.searchParams.get('verifiedOnly')==='1',total:0,average:0,distribution:{1:0,2:0,3:0,4:0,5:0}});
+  if(path==='/api/reviews'&&request.method()==='GET')return send({ok:true,items:[],pagination:{page:1,limit:Number(url.searchParams.get('limit'))||3,total:0,totalPages:1}});
   if(path==='/api/recommendations'&&request.method()==='GET')return send({enabled:false,products:[]});
   if(!state.auth&&path!=='/api/yeongnyangi/products')return send({ok:false,code:'UNAUTHORIZED',message:'QA 세션 만료'},401);
   // No review usage records are seeded for this payment-only account.
