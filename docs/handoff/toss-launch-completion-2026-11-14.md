@@ -26,6 +26,18 @@ next: 후속 private AIT 한도·SecretHouse·타로압축 회귀를 마치고 �
 - 전체110 정밀감사 완료 아님. remaining기준 관계/HD/Novel/Psychotest/Famous/Omikuji/Vedic기본7+8/서양10/숙요기본·연간·4도구/극T 확인. 숙요 전생은 무료순수builder+웹BondReportEngine 10축 원본 이식 중. 다음 후보 Vedic compatibility·Prashna 및 서양무료synastry2는 아직 원본대조중. `remainingPorts:[]`는 미연결화면0이라는 뜻이며 전체완료로 보고하지 않는다.
 - 운영콘솔 Ego space66,p1 재사용, round31까지. 현재 toss-login/edit 폼을 읽기만 했고 저장/검토/상품노출안함. DOM확인: 이름은필수고정(선택·사용안함disabled),나머지6항목미사용. 서버는userKey만보관하며이름복호화/DB저장없음. 기존개인정보방침의 Cloudflare/MongoDB미국·Atlas서울 근거와 실제운영바인딩일치확인필요. 상세정본 `docs/toss/launch-operational-evidence-20261114.md`. 실제secret값/상품추가임의설정금지. 새Linux/QR아직없고 이전QR15=80bd.
 
+## 후속 checkpoint · 유한 완료 기준
+
+- 정본 원본감사표 `docs/toss/original-mode-audit-20261114.json` (`967be4473`)의 **110개 canonical 행을 고정**한다. 현재8행은 이번 인계에서 원본범위대조확인,3행에알려진누락,99행은이전담당증거와원본하위모드대조대기다. 99개코드누락이라는뜻도110완료라는뜻도아니다. 각행의소스·입력·저장·기존검증근거를한번대조해확정하고,모드누락은기존행codeGaps에기록한다. 근거없는전체재탐색반복금지. 초기seed용Temp `launch-build-original-audit.mjs`를 다시돌리면수동대조상태가덮이므로재실행하지않는다.
+- 남은 알려진 유한목록: astrology의 guest 시너스트리2종, vedic의 로그인 무료궁합(36점/8항목)·독립Prashna(현재시각/좌표/질문·프롬프트,영냥이prashna와별개), 두체계국제좌표·시간대입력경계, neo-consultation의 private AIT 모의접수/상태/취소/수정. 실메일·자동답변·신규SKU는추가하지않음. 위7개만끝내고전체완료라하지말고99행대조도완료할것.
+- `9bbc65bbf` 원본전생전체, `bd0b5cba1` private9목적 및공통CSS/문자열intern(원문완전동일29,354B). `fa53182ec`는후속시너스트리어댑터2파일만별도검증커밋(2tests/lintPASS,UI/routes미연결)이다.
+- 최종현재Windows AIT `01a1d9a6-b532-7935-9435-fae5d29976ac`, archive88,186,570B, expanded99,993,828B,1784files,여유6,172B. `c9f29c671` QA-only수정후 서양10 iframe실제원문+내부overflow3폭, 전생9원문·레이더·30일플랜·프롬프트·3폭·0주문·B분리, defaultcore고등어decode·보관함·B차단PASS. 로그 `D:/Development/Temp/launch-private-{astro-body-build3,pastlife-final3,core-build3}.txt`.
+- 같은build3에서 coordinator의 `--all-products` 영냥이28개(6체계×4+융합4) 각각홈→원본입력→모의주문→저장원문·보관함재열람PASS. 로그 `D:/Development/Temp/launch-all-products-current.txt`. `8b3ba1edb` workflow에추가. build2 `01a1d99e`에서owned무료계산·free-calculations(타로5/만세/반려) 압축회귀PASS.
+- 새Linuxworkflow는기존전체에확장4/유료타로4/family4/free-reading/maya/free-calculations/vedic/owned/astro/sukuyo-tools/sukuyo-past-life/secret-house/all-products를포함한다. 아직후속Linux dispatch/QR없음. 기존QR15를새증거로제출하지않는다.
+- 실제콘솔준비3장다시캡처: `C:/Users/user/Downloads/CodeDestiny/console-preparation-20261114/{01-home,02-yeongnyangi-question,03-completed-mock-reading}-390.png`. build2,모의banner유지,초기notice없음,고등어정상. 긴fullpage이므로최종콘솔규격자료는아님. 업로드안함. helper는검증된defaultjourney만재사용·lazy이미지스크롤+boundeddecode이며로그인코드변경없음.
+- private담당다음네오메일: 기존`test/offline/neo-email-fixture.mjs`의원본createNeoService순수모의sendMail을재사용, private전용TossNeoEmail simulated=true·인증뒤fixture라우트연결. 임의자동답변없음. 초안 `D:/Development/Temp/launch-private-neo-email-test.mjs`는미연결/미검증. 별도esbuild69,606B라6KB여유초과예상,추가무손실압축필요. 후보는원본TossPsychotest/master-reading/naming/타로literal; CSS전체압축주입은순서/FOUC위험으로우선제외. source아트삭제·리사이즈금지.
+- 현재 checkfast `--base=05211086c`, 로그 `D:/Development/Temp/launch-followthrough-check-fast.txt`, session64173. paid77·Node5071·guards·Worker buildPASS, Jest진행중. 검사후 QA-only2파일은위 c9에직접AIT검증,미연결synastry2파일은별도targeted2PASS. 최종완료결과는아래전달절갱신으로확정한다.
+
 ## 승인 상태
 2026-11-14 사용자: 최종 CI 확인 후 일부만 이식 중 코드 가능 기능군부터 계속 구현, 웹 원본과 달빛 예화 유지, 실제 AIT 홈→모의 생성→보관함, 압축하며 모든 작업과 론칭까지 진행.
 검토·출시 준비를 계속하되 확정되지 않은 상품 가격·SKU·운영 설정은 구체적 근거와 영향을 준비한다. 실결제·실 LLM·운영 DB 쓰기는 개발 검증에 사용하지 않는다. 기존 4950원 SKU는 연이 기본 사주만.
