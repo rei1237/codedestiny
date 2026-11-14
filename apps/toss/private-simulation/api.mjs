@@ -1,15 +1,20 @@
+import {privateSukuyoYearly} from './sukuyo-yearly.mjs';
+import {humanDesignProducts,humanDesignReportRequest,humanDesignRecords,humanDesignPurchases} from './human-design-report.mjs';
+import {privateHumanDesign} from './human-design.mjs';
 import skyExample from './question-sky-example.json' with {type:'json'};
 export {skyExample};
 import {handleReviewFixture,offlineCatalog,prashnaProduct} from '../test/offline/review-fixture.mjs';
 import {productView} from '../test/offline/yeongnyangi-contracts.mjs';
 
+import {nativeReportProducts,nativeReportPublicRequest,nativeReportRequest} from './native-reports.mjs';
+import {expertProducts,expertRequest,expertRecords} from './experts.mjs';
 import {letterRequest} from '../test/offline/letter-fixture.mjs';
 import {roomProducts,roomRecords,roomOrderRequest,characterRoomReading} from '../test/offline/room-fixture.mjs';
 
-const letterProducts=offlineCatalog.filter(product=>product.id.startsWith('yeoni:'));
+const letterProducts=offlineCatalog.filter(product=>/^(yeoni|neo):/.test(product.id));
 const characterRooms=roomProducts.filter(product=>/^native:(tea|neo):/.test(product.id));
 export const products=offlineCatalog.filter(product=>!product.id.includes(':'));
-export const sdkProducts=[...products,...letterProducts,...characterRooms];
+export const sdkProducts=[...products,...letterProducts,...characterRooms,...expertProducts,...nativeReportProducts,...humanDesignProducts];
 const replies=(value,status=200)=>Response.json(value,{status});
 function exampleReading(kind,body){
   const input=skyExample.input;
@@ -40,6 +45,7 @@ export function createSimulationApi(storage,person){
       if(authorizationCode!==owner)return replies({error:'LOGIN_REQUIRED'},401);
       state.loggedIn=true;return save()?replies({token}):replies({error:'MOCK_STORAGE_UNAVAILABLE'},503);
     }
+    const publicReport=await nativeReportPublicRequest(request.clone(),path);if(publicReport)return publicReport;
     if(!state.loggedIn||request.headers.get('authorization')!=='Bearer '+token)return replies({error:'LOGIN_REQUIRED'},401);
     if(path==='/session'&&method==='GET')return replies({authenticated:true,environment:'SANDBOX'});
     if(path==='/logout'&&method==='POST'){state.loggedIn=false;save();return replies({ok:true});}
@@ -57,20 +63,29 @@ export function createSimulationApi(storage,person){
         return save()?replies({ok:true,profile:row}):replies({error:'MOCK_STORAGE_UNAVAILABLE'},503);
       }
     }
+    if(path==='/human-design/chart'&&method==='POST')return privateHumanDesign((await request.json()).birth);
+    if(path==='/sukuyo/yearly'&&method==='POST')return privateSukuyoYearly(person,state.profiles,await request.json());
     if(path==='/events'&&method==='POST')return replies({ok:true});
     const now=()=>new Date();
-    if(path==='/canonical/records'&&method==='GET')return roomRecords(url,state);
-    if(path==='/native/catalog'&&method==='GET')return replies({products:characterRooms});
+    if(path==='/canonical/records'&&method==='GET'){const records=await roomRecords(url,state).json();return replies({...records,items:[...records.items,...expertRecords(url,state),...humanDesignRecords(url,state)]});}
+    if(path==='/library'&&method==='GET'){const response=await handleReviewFixture(request,url,path,state,save,now);const body=await response.json();return replies({...body,purchases:[...body.purchases,...humanDesignPurchases(state)]});}
+    if(path==='/native/catalog'&&method==='GET')return replies({products:[...characterRooms,...expertProducts,...nativeReportProducts,...humanDesignProducts]});
+    if(!path.startsWith('/orders/')){const hd=await humanDesignReportRequest(request.clone(),url,path,state,save,now);if(hd)return hd;}
+    if(!path.startsWith('/orders/')){const nativeReport=await nativeReportRequest(request.clone(),url,path,state,save,now);if(nativeReport)return nativeReport;}
+    const expertResponse=path.startsWith('/orders/')?null:await expertRequest(request.clone(),url,path,state,save,now);
+    if(expertResponse&&path!=='/orders/grant'&&path!=='/orders/restore')return expertResponse;
     if(/^\/native\/(tea|neo)\/(prepare|intents\/[a-f0-9]{64})$/.test(path))return await roomOrderRequest(request,url,path,state,save,now)||unavailable();
     if(/^\/canonical\/(fortune-tea-house|neo-operation-room)\//.test(path))return await characterRoomReading(request,url,path,state,save,now)||unavailable();
     if(/^\/canonical\/fortune-chat\/consultations(?:\/|$)/.test(path)){
-      if(path.endsWith('/consultations')&&method==='POST'&&((await request.clone().json()).persona||'yeoni')!=='yeoni')return unavailable();
       return await letterRequest(request,url,path,state,save)||unavailable();
     }
     if(path==='/tarot-library/catalog')return replies({products:[],flows:[]});
     if(path==='/orders/grant'||path==='/orders/restore'){
       const {sku,orderId}=await request.clone().json();
       if(!sdkProducts.some(product=>product.sku===sku)||!orderId?.startsWith('private-order-'+person+'-'))return replies({error:'ORDER_MISMATCH'},403);
+      if(humanDesignProducts.some(product=>product.sku===sku))return await humanDesignReportRequest(request,url,path,state,save,now)||unavailable();
+      if(nativeReportProducts.some(product=>product.sku===sku))return await nativeReportRequest(request,url,path,state,save,now)||unavailable();
+      if(expertProducts.some(product=>product.sku===sku))return await expertRequest(request,url,path,state,save,now)||unavailable();
       if(characterRooms.some(product=>product.sku===sku))return await roomOrderRequest(request,url,path,state,save,now)||unavailable();
     }else if(!(/^\/canonical\/yeongnyangi\/(requests(?:\/|$)|saju\/experience-check$)/.test(path)||/^\/results\/[a-f0-9]{64}$/.test(path)||path==='/library'))return unavailable();
     return await handleReviewFixture(request,url,path,state,save,()=>new Date(),1100,body=>exampleReading('prashna',body))||unavailable();

@@ -62,7 +62,24 @@ try{
     await page.getByRole('button',{name:'토스로 로그인하기'}).click();
     await page.waitForURL(/yeongnyangi\/fortune/);
   };
-  if(process.argv.includes('--character-rooms')){
+  if(process.argv.includes('--human-design')){
+    const {verifyHumanDesign}=await import('./private-human-design.mjs');
+    await verifyHumanDesign(origin,context);assert.deepEqual(unexpected,[]);
+    console.log('PASS private AIT Human Design',reader.deploymentId);
+  }else if(process.argv.includes('--sukuyo-yearly')){
+    const {verifySukuyoYearly}=await import('./private-sukuyo-yearly.mjs');
+    await verifySukuyoYearly(origin,context);assert.deepEqual(unexpected,[]);
+    console.log('PASS private AIT Sukuyo yearly',reader.deploymentId);
+  }else if(process.argv.includes('--native-report')){
+    const {verifyNativeReports}=await import('./private-native-reports.mjs');
+    await verifyNativeReports(origin,context);assert.deepEqual(unexpected,[]);
+    console.log('PASS private AIT native report',process.argv[process.argv.indexOf('--native-report')+1],reader.deploymentId);
+  }else if(process.argv.includes('--expert-report')){
+    const {verifyExpertReport}=await import('./private-expert-reports.mjs');
+    const service=process.argv[process.argv.indexOf('--expert-report')+1];
+    await verifyExpertReport(origin,context,service);assert.deepEqual(unexpected,[]);
+    console.log('PASS private AIT expert report',service,reader.deploymentId);
+  }else if(process.argv.includes('--character-rooms')){
     const {verifyCharacterRooms}=await import('./private-character-rooms.mjs');
     await verifyCharacterRooms(origin,context);
     assert.deepEqual(unexpected,[]);assert.ok(bridge.includes('__subscribeAppEvent'));

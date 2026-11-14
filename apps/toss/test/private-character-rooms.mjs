@@ -2,12 +2,12 @@ import assert from 'node:assert/strict';
 import {mkdir} from 'node:fs/promises';
 import {join} from 'node:path';
 import {home,neo,neoQuestion,neoMethod,follow} from './character-room-steps.mjs';
-import {startLetter as letter,followLetter,assertLetterSnapshot,letterQuestion,letterCaseName} from './private-letter-steps.mjs';
+import {startLetter as letter,followLetter,assertLetterSnapshot,letterQuestion,letterCaseName,letterOriginal} from './private-letter-steps.mjs';
 import {neoPartner,neoPartnerQuestion} from './neo-partner-steps.mjs';
 import {teaModeSteps as tea,teaModeQuestion as teaQuestion,selectedTeaMode} from './tea-mode-steps.mjs';
 const withPartner=process.argv.includes('--neo-partner');
 export async function verifyCharacterRooms(origin,context,service=process.argv[process.argv.indexOf('--character-rooms')+1]){
- const cases={letter:[letter,letterQuestion,'[테스트 전용] 연이의 상담 편지 원문입니다.'],tea:[tea,teaQuestion,'[테스트 전용] 찻집에서 저장한 결과 원문입니다.'],neo:[withPartner?(page,origin)=>neoPartner(page,origin,neoMethod):neo,withPartner?neoPartnerQuestion:neoQuestion,'[테스트 전용] 네오가 저장한 브리핑 원문입니다.']};
+ const cases={letter:[letter,letterQuestion,letterOriginal],tea:[tea,teaQuestion,'[테스트 전용] 찻집에서 저장한 결과 원문입니다.'],neo:[withPartner?(page,origin)=>neoPartner(page,origin,neoMethod):neo,withPartner?neoPartnerQuestion:neoQuestion,'[테스트 전용] 네오가 저장한 브리핑 원문입니다.']};
  const [start,question,text]=cases[service];
  const read=page=>page.evaluate(()=>JSON.parse(localStorage.getItem('consultations')));
  const fresh=async()=>{const page=await context.newPage();page.setDefaultTimeout(22000);return page;};

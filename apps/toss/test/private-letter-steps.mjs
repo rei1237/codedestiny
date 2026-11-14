@@ -4,17 +4,20 @@ import assert from 'node:assert/strict';
 import {chatFishForDomain} from '../../../lib/fortune/chat-products.js';
 const methods={saju:'사주',ziwei:'자미두수',sukuyo:'숙요',vedic:'베다점',astrology:'서양 점성술',tarot:'타로'};
 const flag=name=>{const i=process.argv.indexOf(name);return i<0?'':process.argv[i+1];};
+export const letterPersona=flag('--letter-persona')||'yeoni';
+assert.ok(['yeoni','neo'].includes(letterPersona));
 export const letterDomain=flag('--letter-domain')||'saju';
 export const letterTier=flag('--letter-tier');
 assert.ok(methods[letterDomain]);
 assert.ok(!letterTier||chatFishForDomain(letterDomain).includes(letterTier),'unsupported letter tier');
+export const letterOriginal='[테스트 전용] '+(letterPersona==='neo'?'네오':'연이')+'의 상담 편지 원문입니다.';
 export const letterQuestion=letterTier?'부탁이 이어져 쉬는 시간이 짧아요. 어떻게 말하면 좋을까요?':'이직 전에 어떤 경험을 기록해 두면 좋을까요?';
 export const letterProductId='chat_'+letterDomain+(letterTier?'_'+letterTier:'');
-export const letterCaseName=letterDomain+(letterTier?'-'+letterTier:'');
+export const letterCaseName=(letterPersona==='neo'?'neo-':'')+letterDomain+(letterTier?'-'+letterTier:'');
 export async function startLetter(page,origin){
  await page.goto(origin);await page.locator('.world-entry-ggulggul').click();
- await page.getByRole('button',{name:'연이의 상담 편지',exact:true}).click();
- const room=page.locator('[data-consultation-room][data-persona="yeoni"]');
+ await page.getByRole('button',{name:letterPersona==='neo'?'네오의 상담 편지':'연이의 상담 편지',exact:true}).click();
+ const room=page.locator('[data-consultation-room][data-persona="'+letterPersona+'"]');
  await room.getByLabel('나의 질문',{exact:true}).fill(letterQuestion);
  await room.getByRole('button',{name:'계속하기'}).click();
  await room.getByRole('button',{name:'토스로 로그인하기'}).click();
@@ -58,19 +61,19 @@ export async function startLetter(page,origin){
    console.log('TAROT_VISUAL',visual);
    await page.screenshot({path:join(process.env.TOSS_CAPTURE_DIR,'letter-'+letterCaseName+'-draw.png')});
   }
-  await pick.getByRole('button',{name:'연이에게 맡기기'}).click();
+  await pick.getByRole('button',{name:letterPersona==='neo'?'네오에게 맡기기':'연이에게 맡기기'}).click();
  }
- await room.getByRole('button',{name:!letterTier&&letterDomain==='saju'?'4,950원 단건 결제':'1원 단건 결제'}).click();
+ await room.getByRole('button',{name:letterPersona==='yeoni'&&!letterTier&&letterDomain==='saju'?'4,950원 단건 결제':'1원 단건 결제'}).click();
 }
 export async function followLetter(page){
- if(!letterTier||letterTier==='mackerel')return '[테스트 전용] 연이의 상담 편지 원문입니다.';
+ if(!letterTier||letterTier==='mackerel')return letterOriginal;
  const follow=page.locator('#question-conversation');
  await follow.getByRole('textbox').fill('오늘 일을 마칠 때 무엇부터 말해볼까요?');
  await follow.getByRole('button',{name:/질문 보내기|질문하기|답변 요청하기/}).last().click();
  const text='[테스트 전용] 저장된 추가 질문 답변';await page.getByText(text,{exact:true}).waitFor();return text;
 }
 export function assertLetterSnapshot(row){
- assert.equal(row.productId,letterProductId);
+ assert.equal(row.productId,letterProductId);assert.equal(row.persona,letterPersona);
  if(!letterTier)return;
  assert.equal(row.input.fishId,letterTier);assert.equal(row.input.questionDecision.confirmed,true);
  assert.equal(row.input.questionDecision.situation,'가벼운 부탁이 이어져 쉬는 시간이 짧아요.');
