@@ -29,7 +29,7 @@ test('tarot confirmation hands displayed price across unmount exactly once and c
  async function confirm(){await React.act(async()=>button('이 질문으로 카드 준비하기').click());assert.equal(button('확인').disabled,false);await React.act(async()=>button('확인').click());assert.equal(document.querySelector('button'),null);assert.equal(confirmed.attemptId,'drawn-attempt');}
  try{
   await show('confirmed');await confirm();assert.equal(consumeTossTeaPrice(expected),true);assert.equal(consumeTossTeaPrice(expected),false);
-  for(const [field,value] of [['owner','owner-B'],['sku','different-sku'],['featureKey','fortune-tea-house-saju-consultation'],['displayAmount','4950원']]){
+  for(const [field,value] of [['owner','owner-B'],['sku','different-sku'],['featureKey','fortune-tea-house-saju-consultation'],['displayAmount','2원']]){
    await show(field);await confirm();assert.equal(consumeTossTeaPrice({...expected,[field]:value}),false);assert.equal(consumeTossTeaPrice(expected),false);
   }
   await show('unmounted');rememberTossTeaPrice(expected);await React.act(async()=>hide());assert.equal(consumeTossTeaPrice(expected),false);
