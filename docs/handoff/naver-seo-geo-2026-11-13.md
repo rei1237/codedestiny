@@ -1,7 +1,7 @@
 ---
 status: in-progress
-updated: 2026-11-14
-next: 운영 승격 막힘 — 승격은 main HEAD 전체를 내보내는데 운영(91e4261d8)에 아직 없는 다른 세션(toss·UX)의 웹 유료 라우트 인증·결제 확인·구매 접근 변경이 같이 나간다(목록 docs/seo/production-verification.md §3). 사용자가 동반 출고를 승인하거나 그 세션들이 먼저 승격해야 한다 / 승격 뒤 운영 검증 / 네이버 서치어드바이저 제출(docs/seo/naver-console-checklist.md)은 사용자 작업 / 4-3 보류 / 검수 원장 입력 대기 / LCP 후속
+updated: 2026-11-15
+next: 운영 승격·운영 검증 끝(런 43612648387, 운영 f8a4ec2af). 남은 것 — 네이버 서치어드바이저 제출(docs/seo/naver-console-checklist.md)은 사용자 작업 / IndexNow 제출 실패 후속(사이트맵의 /yeongnyangi/season-1/prologue/가 공개 URL 필터에 걸림, docs/seo/production-verification.md §5-6, 수정·재제출은 승인 필요) / 로컬 문서 커밋 2개는 미push(push는 사용자 요청 때만) / 4-3 보류 / 검수 원장 입력 대기 / LCP 후속
 ---
 # 네이버 SEO·AEO·GEO + 구매 동선 (Phase 1~5)
 
@@ -14,6 +14,7 @@ Phase 0 보고서와 승인된 계획의 정본은 `docs/seo/phase0-report.md`�
 4. 파일 경로는 추측하지 않는다. 보고서의 줄 번호는 `f2db2995d` 기준이므로 고치기 전에 `rg`로 다시 확인한다.
 
 ## 지금 상태
+- **2026-11-15 운영 승격 끝**: 운영 = origin/main = `f8a4ec2af`(승격 전 `91e4261d8`). 런 43612648387 성공, 자동 롤백 없음. 운영 검증에서 5xx 없음. 이 브랜치에는 push하지 않은 문서 커밋 2개(`8257c86b1`과 이번 승격 기록 커밋)만 있다. 워크트리는 지우지 않았다. 수치는 결과 기록 맨 끝 "운영 승격·운영 검증"과 `docs/seo/production-verification.md` §4-1·§5·§6. 아래 줄들은 그 전 기록이다.
 - **2026-11-14 밤, 운영 승격 미실행·3커밋 push 끝**: origin/main = `c562be344`(이 작업 75커밋이 모두 main에 있음). 스테이징은 `c562be344`를 서빙한다. 운영은 그대로 `91e4261d8`. 이 브랜치에는 그 위에 push하지 않은 문서 커밋(이 문서와 `docs/seo/production-verification.md`)만 있다. 워크트리는 지우지 않았다. 사유와 수치는 결과 기록 맨 끝 "운영 승격 시도".
 - **2026-11-14 스테이징 반영 끝**: `9a6ac23eb..cea92ad58`(72커밋)를 origin main에 올렸고 스테이징 검증을 마쳤다(`docs/seo/staging-verification.md`). 지금 origin/main은 `438f6c16d`(toss 35커밋 추가)이고, 이 브랜치에는 그 위에 **push하지 않은 로컬 커밋**(analytics.js 캐시 핀 수정 + 문서)이 있다. 사유는 결과 기록 마지막 절.
 - 브랜치 `wt/naver-seo-geo-20261113-234756`, 기준 `f2db2995d`. 운영 배포본은 `91e4261d8`(그 위에 문서 커밋 1개).
@@ -28,6 +29,7 @@ Phase 0 보고서와 승인된 계획의 정본은 `docs/seo/phase0-report.md`�
 - 루트 체크아웃 `D:\Development\code-destiny`는 다른 브랜치이고 origin/main보다 2,252커밋 뒤라 기준으로 쓰지 않는다.
 
 ## 승인 상태
+- **2026-11-15 동반 출고 승인**: 사용자 원문 "함께 내보내"(조정 세션이 전달). "다른 세션 변경 약 360커밋(유료 기능 인증·결제 확인 분기, 유료 실행 거래 재시도 래퍼, PaidExecutionRecord 필드 추가, 영냥이 상품·주문 준비, 꿈해몽·숙요 리팩터링 포함)을 함께 운영에 내보낼까요?"라는 질문에 대한 답이다. 2026-11-14 원문 "승격 승인할께 운영에서 이 변경이 적용되도록해줘"와 합쳐, 범위는 **운영 승격 워크플로 1회**(main HEAD 전체)다. 재실행, 수동 롤백(`mode: rollback`), main push는 들어 있지 않다. 승격 직전 확인에서 결제 실행 파일·`wrangler.toml`에 차이가 생겼거나 새 커밋이 DB 마이그레이션·시크릿·배포 워크플로를 바꿨다면 승격하지 않고 보고한다. 실결제·운영 DB 쓰기·환불·과금 LLM·로그인이 필요한 유료 실행·게이트 우회 금지.
 - **2026-11-14 운영 승격 승인**: 사용자 원문 "승격 승인할께 운영에서 이 변경이 적용되도록해줘"(조정 세션이 전달). 범위는 (a) 로컬 3커밋을 main에 push, (b) 운영 승격 **1회**. 운영 검증에서 나온 결함의 forward-fix와 재승격은 범위 밖이라 하지 않고 보고한다. 운영 DB 쓰기·실결제·환불·과금 LLM·게이트 우회 금지. **이 승인으로 승격을 실행하지 못했다**(사유는 결과 기록 "운영 승격 시도"). 승인 대상은 "이 변경"(SEO 작업)이고, 다른 세션의 인증·유료 접근 변경까지 함께 내보내는 것은 사용자가 따로 정해야 한다.
 - **2026-11-14 스테이징 push 승인**: 사용자 원문 "스테이징 푸시해"(조정 세션이 전달). 범위는 이 브랜치 커밋을 origin main에 한 번 push(=스테이징 배포)하고, 검증에서 나온 이 브랜치의 결함을 forward-fix하는 것까지다. **운영 승격(`workflow_dispatch mode=production` 등)은 미승인이라 실행하지 않는다.** 운영 DB 쓰기·실결제·과금 LLM 금지. 4-3은 계속 보류.
 - 2026-11-13 사용자가 계획 전체를 승인했다(계획 모드 승인). 승인 범위는 묶음 1~5의 **구현과 로컬 커밋**까지다.
@@ -53,7 +55,7 @@ Phase 0 보고서와 승인된 계획의 정본은 `docs/seo/phase0-report.md`�
   - **유지로 확정**: `/consultations/` noindex, "운세보는 영냥이" 설명 문장 3곳, C5 이용권 이름 통일 보류(지금 이름 유지), 번역 페이지 색인(noindex로 바꾸지 않음).
 - **아직 승인받지 않은 것**:
   - **4-3(`/ziwei/` 로그인 복귀) = 보류.** 검색 노출에 영향이 없고 결제 동결 파일 수정이 필요해 이번에 적용하지 않음(이 세션의 추천 판단). 적용하려면 동결 파일 수정에 대한 사용자 명시 승인 필요.
-  - **다른 세션 변경을 함께 내보내는 운영 승격.** SEO 변경의 승격은 2026-11-14에 승인받았지만(맨 위), 승격은 main HEAD 전체를 내보내므로 toss·UX 세션의 미운영 변경이 같이 나간다. 그 동반 출고는 승인받지 않았다.
+  - ~~다른 세션 변경을 함께 내보내는 운영 승격~~ → 2026-11-15에 승인받아 1회 실행했다(맨 위). **그 승인은 다 썼다.** 승격 재실행, 수동 롤백, main push, IndexNow 수정·재제출은 새 승인이 필요하다.
   - `docs/seo/payment-change-proposal.md`의 결정 4건(F3·A1) — 결제 변경은 제안서만 있고 구현하지 않는다.
   - 검수 원장 항목 — 사용자가 실제 검수했다고 "URL · 확인한 날짜"를 알려 준 페이지만 넣는다. 원장은 계속 비워 둔다.
 
@@ -433,3 +435,13 @@ aver-seo-staging`.
 aver-seo-production`), 읽기 전용 스모크. 로그인·결제 없이, 부하를 최소로.
 - **롤백**: 정본 §6. Actions의 같은 워크플로를 `mode: rollback`으로 실행하고 대상은 `npm run deploy:rollback -- --list`로 본다. 지금 운영 `91e4261`의 Worker 버전은 `c20216d0-4b9d-4882-b6c8-25cceb02eddd`.
 - **하지 않은 것**: 운영 승격, 운영 검증과 화면 캡처, Secret Scan 수정, 네이버 서치어드바이저 제출, 4-3, 검수 원장.
+
+### 운영 승격·운영 검증 (2026-11-15 00:40~01:30 KST, 직접 실행)
+정본은 `docs/seo/production-verification.md` §4-1(승격 직전 확인), §5(런·검증 표), §6(롤백).
+- [x] **승격 직전 확인**: 운영 `91e4261d8`, 스테이징 = origin/main = `f8a4ec2af`, 사이 438커밋. `c562be344` 이후 새 커밋 4개는 모두 toss 세션(`apps/toss/`·`docs/`만, 13파일). 결제 실행 파일·`wrangler.toml` 차이는 `lib/payment/light-fortunes.generated.json` +2줄(이 작업)뿐, 마이그레이션·`.env*`·package 파일·배포 워크플로 변경 없음. main CI 초록(Secret Scan만 알려진 오탐으로 빨강).
+- [x] **승격 1회**: `gh workflow run "Release Cloudflare Pages and Worker" --ref main -f mode=production`, 런 43612648387, success, 자동 롤백 없음. 새 Pages 배포 `da6878a5-60cd-48d0-8496-f03639fa8cb6`, 새 Worker 버전 `48113a5d-7c78-47a7-bb8b-eb41235329f0`.
+- [x] **운영 검증**: `/api/version` = `f8a4ec2af…`. 핵심 20개 URL(Yeti·모바일 UA) 200, 메타가 스테이징 표와 같음. `robots.txt`에서 `Disallow: /points/` 빠짐, `/points/`는 noindex meta. 사이트맵 1,081 loc, RSS 60 item, llms 2종에 정의 문장. `/?action=`·`/ggulggul/?action=` 모두 `X-Robots-Tag: noindex, follow`(운영에서 실제 확인). analytics 새 핀 로드. 유료 라우트 15개 비로그인 응답이 승격 전과 같고 5xx 없음. Playwright 10화면 정상.
+- **롤백 대상(실행하지 않음)**: Pages `513b3e1e-e102-4b4d-beca-48655e71c3bf`, Worker `c20216d0-4b9d-4882-b6c8-25cceb02eddd`. 명령은 정본 §6.
+- **함정 — IndexNow 제출 실패**: 런은 success지만 IndexNow 단계가 exit 1(`continue-on-error`)이라 제출이 안 됐다. 사이트맵의 `/yeongnyangi/season-1/prologue/`가 `scripts/lib/indexnow-delta.mjs` 허용 목록에 없어 전체가 거부된다. 승격 전 운영 사이트맵에도 있던 URL이라 이번 작업이 만든 문제는 아니다. 고치지 않았다(범위 밖, 재실행 금지). 런의 초록 표시만 보고 제출됐다고 믿지 말 것.
+- **확인하지 못한 것**: 로그인 뒤 유료 실행·결제 확인 분기·구매 세션 복구(금지 범위, 웹 동작 불변은 코드 근거 추정), 운영에서의 유입 쿠키 실동작, 입력 뒤 결과 화면, 쿠키 안내창 아래 화면.
+- **하지 않은 것**: 승격 재실행, 롤백, main push(문서 커밋은 로컬에만), IndexNow·Secret Scan 수정, 네이버 서치어드바이저 제출, 4-3, 검수 원장.
