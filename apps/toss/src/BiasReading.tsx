@@ -36,7 +36,7 @@ export default function BiasReading(){
     }
   }
   return <section className="bias-reading">
-    <img className="feature-cover" src="/assets/bias-stage.webp" width="1536" height="864" alt="별빛 아래 펼쳐진 가상의 아이돌 무대"/>
+    <img className="feature-cover" src="/images/destiny-bias/stage/hero-1536.webp" width="1536" height="864" alt="별빛 아래 펼쳐진 가상의 아이돌 무대"/>
     <h1>내 최애와 나,<br/>어떤 케미일까요?</h1>
     <p>공개된 최애의 생일과 내 생일로 서로 다른 기질과 응원의 방식을 살펴봐요.</p>
     <p className="muted">생일로 살펴보는 기질 해석이에요. 실제 관계나 상대의 마음을 예측하는 결과는 아니에요.</p>

@@ -60,6 +60,10 @@ test('Toss sample and Ziwei artwork projections preserve every original referenc
  assert.deepEqual(await readModule(ziweiId),{'ziwei-ai':registry['ziwei-ai']});
  assert.equal(plugin.resolveId(id,'/repo/other-consumer.mjs'),undefined);
  const refs=responsiveIntroductionArt(registry,samples);
+ const source=await readFile(new URL('../../../lib/marketing/render-result-samples.mjs',import.meta.url),'utf8');
+ assert.ok(plugin.transform(source,'/repo/lib/marketing/render-result-samples.mjs').includes('?[320,480,640,960]:[960]'));
+ for(const sample of samples)if(sample.visual!==registry['fortune-tea-house'].image)assert.ok(!refs.includes(sample.visual.replace(/\.webp$/,'-640.webp')));
+
  for(const ref of refs)assert.ok((await readFile(new URL('../../../public'+ref,import.meta.url))).length>0,ref);
  assert.ok(refs.includes(registry['ziwei-ai'].cardImage.replace('-320','-480')));
  assert.ok(refs.includes(registry['fortune-tea-house'].image.replace('.webp','-480.webp')));

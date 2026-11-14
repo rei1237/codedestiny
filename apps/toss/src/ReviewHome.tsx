@@ -16,7 +16,7 @@ export default function ReviewHome({onInternalOpen}:{onInternalOpen?:(href:strin
     <h1>오늘, 무엇이 궁금하세요?</h1>
     <a className="review-today" href={today.href}>
       <div><h2>{today.title}</h2><p>{today.description}</p><span>오늘의 운세 보기</span></div>
-      <img src="/assets/yeoni-flower-guide.webp" alt="" width={120} height={130}/>
+      <img src="/images/fortune-tea-house/flower-pig-flower.webp" alt="" width={120} height={130}/>
     </a>
     {['사주','상담'].map(group=><section key={group}>
       <h2>{group}</h2>

@@ -17,7 +17,7 @@ export function CharacterWelcome(){
   return <div className="character-welcome"><img src="/assets/yeoni-yeongnyangi-garden.webp" alt="달빛 꽃 정원에서 차와 책을 함께 보는 꽃돼지 연이와 영냥이" width={480} height={720} loading="lazy" decoding="async"/><div><h2>오늘은 누구와<br/>이야기할까요?</h2><p>꽃돼지 연이의 다정함,<br/>영냥이의 차분한 해석,<br/>네오의 현실적인 조언.</p></div></div>;
 }
 export function FloralInputWelcome(){
-  return <div className="floral-input-welcome"><img src="/assets/yeoni-flower-guide.webp" alt="꽃을 든 꽃돼지 연이" width={500} height={500} decoding="async"/><div><h2>마음 가는 속도로,<br/>하나씩 들려주세요.</h2><p>꽃돼지 연이가 곁에서 안내할게요.<br/>아는 정보부터 차근차근 적어 주세요.</p></div></div>;
+  return <div className="floral-input-welcome"><img src="/images/fortune-tea-house/flower-pig-flower.webp" alt="꽃을 든 꽃돼지 연이" width={500} height={500} decoding="async"/><div><h2>마음 가는 속도로,<br/>하나씩 들려주세요.</h2><p>꽃돼지 연이가 곁에서 안내할게요.<br/>아는 정보부터 차근차근 적어 주세요.</p></div></div>;
 }
 export function AdviserPortrait({id,className='portrait',decorative=false}:{id:string;className?:string;decorative?:boolean}){
   const adviser=advisers[id as AdviserId]||advisers.yeongnyangi;

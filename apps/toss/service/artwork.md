@@ -22,3 +22,10 @@ Toss Image 어댑터만 로컬 표시 URL을 치환하고 Vite는 원본 PNG의 
 토스 파생본: public/assets/toss-art/neo-war-room-seal.webp (320×240, 38,528 bytes).
 sharp resize width=320, withoutEnlargement=true, webp quality=82. 원본 비율·알파 유지.
 character-room-art.ts는 네오 본문·배경과 찻집 배경도 기존 번들 원화에 연결한다.
+
+
+### 2026-11-14 패키지 중복 정리
+- 카드 78장의 원본 600×900 해상도와 그림을 유지하고 Toss 빌드에서만 WebP quality90/effort6으로 인코딩한다. 더 커지면 원본 바이트를 사용한다. 웹 원본·manifest·카드 선택/해석은 바꾸지 않는다. M00/W01/S01을 원본과 직접 비교했고 밝은 영역·밤하늘·금빛 테두리의 가독성을 확인했다. 원본파일 불변·크기·78장 검사는 screen-tarot-encoding.test.mjs.
+- miniapp 상담 예시는 기존 fallback과 원본960 responsive 후보를 유지한다. 찻집은 공유 hero의320/480/640/960 후보를 유지한다. 같은 장면의 중복320/640 후보를 별도 포함하지 않는다.
+- Bias/연이 꽃안내/달빛 배경과 진로 표지는 같은 바이트의 canonical 원본 경로로 통합했다. 같은 그림 복제 파일126,078bytes와 Vite 이중 emit254,742bytes를 제거했다. 디자인·해상도 변경 없음.
+- private build9의 확장 크기99,519,144bytes. 새 Linux artifact와 실제 휴대폰 검증은 별도다.

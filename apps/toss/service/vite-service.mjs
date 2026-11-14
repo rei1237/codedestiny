@@ -61,7 +61,7 @@ export function sampleIntroductionArt(registry,samples){
 }
 export function responsiveIntroductionArt(registry,samples){
  const visuals=new Set(Object.values(registry).map(art=>art.image)),refs=new Set();
- for(const sample of samples){if(!visuals.has(sample.visual))continue;const widths=sample.visual===registry['fortune-tea-house']?.image?[320,480,640,960]:[320,640,960];for(const width of widths)refs.add(sample.visual.replace(/\.webp$/,`-${width}.webp`));}
+ for(const sample of samples){if(!visuals.has(sample.visual))continue;const widths=sample.visual===registry['fortune-tea-house']?.image?[320,480,640,960]:[960];for(const width of widths)refs.add(sample.visual.replace(/\.webp$/,`-${width}.webp`));}
  const ziwei=registry['ziwei-ai']?.cardImage;
  if(typeof ziwei!=='string'||!ziwei.endsWith('-320.webp'))throw new Error('Ziwei responsive artwork missing');
  for(const width of [320,480,640,960])refs.add(ziwei.replace('-320.webp',`-${width}.webp`));
@@ -70,11 +70,25 @@ export function responsiveIntroductionArt(registry,samples){
 export function isTea640Reference(ref){return /^\/images\/service-introductions\/tea-\$\{[^}]+\}-640\.webp$/.test(ref);}
 export function isYeongnyangi640Reference(ref){return /^\/images\/service-introductions\/yeongnyangi-\$\{[^}\r\n]+\}-640\.webp(?=[`"'])/.test(ref);}
 
+// Encode the same 600×900 screen artwork at high quality; never resize or
+// replace the shared source. Retain original bytes if recompression is larger.
+export async function screenTarotBytes(source){
+ const encoded=await sharp(source).webp({quality:90,effort:6,alphaQuality:100}).toBuffer();
+ return encoded.length<source.length?encoded:source;
+}
+
 export default function serviceCompat(){
  const references=new Set(['/fuctionassets/rune.webp']);
  return {name:'canonical-service-runtime',enforce:'pre',
   transform(code,id){
    if(id.includes('node_modules'))return;
+   // Miniapp samples retain the original fallback and the highest responsive
+   // candidate. Tea keeps its shared hero sizes to avoid a second decode.
+   if(id.replaceAll('\\','/').endsWith('/lib/marketing/render-result-samples.mjs')){
+    const widths='?[320,480,640,960]:[320,640,960]';
+    if(!code.includes(widths))throw new Error('Sample responsive artwork contract changed');
+    code=code.replace(widths,'?[320,480,640,960]:[960]');
+   }
    if(id.replaceAll('\\','/').endsWith('/app/neo-consultation/NeoConsultationClient.tsx'))code=code.replace(/["'](\/(?:assets|images)\/[^"']+\.webp)["']/g,'"https://code-destiny.com$1"');
    if(id.replaceAll('\\','/').endsWith('/app/palm-reading/PalmDestinyMain.tsx'))code=code.replace(/["'](\/images\/(?:service-introductions\/palm-reading-960|expert-characters\/yeoni\/shooting-guide)\.webp)["']/g,'"https://code-destiny.com$1"');
    if(id.replaceAll('\\','/').endsWith('/lib/palm/palm-ui-state.js'))return code.replace('module.exports = {','export default {');
@@ -196,6 +210,7 @@ export default function serviceCompat(){
     // Guardians occupy a 72px reading portrait; the map also supports pinch zoom.
     if(/^images\/destiny-island\/guardians\/[^/]+-v1\.webp$/.test(ref))return sharp(path).resize({width:240,withoutEnlargement:true}).webp({quality:85}).toBuffer();
     if(ref==='images/destiny-island/exploration-map-v3.webp')return sharp(path).resize({width:1200,withoutEnlargement:true}).webp({quality:84}).toBuffer();
+    if(/^assets\/yeongnyangi\/tarot\/v1\/[A-Z]\d{2}-600\.webp$/.test(ref))return screenTarotBytes(await readFile(path));
     if(ref==='assets/yeongnyangi/tarot/v1/back-600.webp')return sharp(path).webp({quality:88,effort:6}).toBuffer();
     // Keep the three animation frames aligned on mobile, including transparent edges.
     if(/^assets\/yeongnyangi\/readings\/[^/]+-loading-sprite-v1\.webp$/.test(ref))return sharp(path).resize({width:1536,withoutEnlargement:true}).webp({quality:87,alphaQuality:100}).toBuffer();

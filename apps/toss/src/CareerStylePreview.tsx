@@ -1,5 +1,5 @@
 import {useState} from 'react';
-import careerArt from '@/public/images/career-style/yeoni-work-style.webp';
+const careerArt='/images/career-style/yeoni-work-style.webp';
 import './career-style-preview.css';
 
 // Only the fixed public example and questions about everyday work belong here.

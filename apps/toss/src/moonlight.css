@@ -23,7 +23,7 @@ main h1{max-width:19ch;text-wrap:balance}
 main h3,main legend{font-family:var(--toss-serif)}
 main .intro,main .muted,main small,main .section-description{color:var(--moon-muted)}
 .page-manse,.page-catalog,.page-product,.page-birth,.page-login,.page-purchase,.page-result,.page-library,.page-recovery,.page-settings,.page-terms,.page-support,.page-withdraw,.page-example,.page-daily{
-  background-image:url('/assets/moon-floral-light.webp');background-repeat:no-repeat;background-size:100% 165px;
+  background-image:url('/images/home/illustrated/moon-floral-light-480.webp');background-repeat:no-repeat;background-size:100% 165px;
 }
 main>h1,main>section>h1{position:relative}
 .preview-note{background:#f5eee3;color:#756251;border:1px solid #e6d9c4}
@@ -79,7 +79,7 @@ main>.moon-button+.moon-button,.paper>.moon-button+.moon-button{margin-top:12px}
 .adviser-choice strong,.feature-entry strong{font-family:var(--toss-serif)}
 .moonlight-navigation{
   margin:36px -8px 0;padding:24px 16px 12px;border-radius:26px;
-  background:var(--moon-paper) url('/assets/moon-floral-light.webp') top center/100% auto no-repeat;
+  background:var(--moon-paper) url('/images/home/illustrated/moon-floral-light-480.webp') top center/100% auto no-repeat;
   border:1px solid var(--moon-line-soft);color:var(--moon-ink);
 }
 .moonlight-divider{display:flex;align-items:center;justify-content:center;gap:12px;margin:0 0 20px;color:var(--moon-gold)}
