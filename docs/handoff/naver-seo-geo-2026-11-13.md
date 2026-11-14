@@ -377,3 +377,8 @@ SHA는 네 번째 rebase 뒤 기준이다. 모두 로컬 커밋이고 push하지
   - 실패 기록: 첫 `check-changed`가 이 핀 때문에 exit 1(paid-gate-suite, merge-base에서는 통과). 동결 파일 수정은 승인 범위 밖이라 되돌렸다.
   - 범위 밖(보고만): 같은 `next=%2F` 고정이 `js/core/index-inline-runtime.js:1619·3653·7808`, `js/iching-engine.js:419`, `js/saju-engine-tarot-sukuyo-quantum.js:6780·13253`에도 있다.
 - 원장 재생성 `5c860e17c`.
+
+### 묶음 3·4 전체 검증 (2026-11-14, HEAD `615ec11d3`에서 실행)
+- exit 0: `npm run typecheck`, `npm run lint`, `npm run i18n:check`, `verify-sitemap-integrity`, `verify-analytics-events`, 빌드(`ALLOW_DEV_SERVER_DURING_BUILD=1 npm run build`), `verify-home-identity`, `node --test scripts/seo/*.test.mjs`, `npm test`(jest 479 스위트·8004 통과·1 건너뜀 + node 테스트), `verify-payment-freeze`, `node scripts/check-changed.mjs --profile=fast --skip-build --base=origin/main`.
+- 첫 실행(4-3 포함 HEAD)에서는 `check-changed`만 exit 1이었다(캐시 핀, 위 4-3 참고). 4-3을 되돌린 뒤 전부 다시 돌렸다.
+- 실행 뒤 로컬 `origin/main` 참조가 `661e25a95`로 앞서 있었다(다른 체크아웃의 fetch). merge-base는 `e1fc882d7` 그대로이고 다시 rebase하지 않았다 — push 전에 한 번 더 rebase한다.
