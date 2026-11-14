@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-14
-next: 묶음 ④ 단계 10(영냥이 ReadingLoading) 시작 (단계 9는 베다까지 끝, 결과는 문서 끝 "묶음 ④ 단계 9 결과 — 베다")
+next: 묶음 ⑤ 단계 12(최종 점검·리베이스·스테이징 push) 시작
 ---
 
 # 꿀꿀 운세·영냥이 UX: 구매 흐름 · 후기 신뢰 · 후기 작성 · 생성 진행 · 무료 배너
@@ -20,7 +20,7 @@ next: 묶음 ④ 단계 10(영냥이 ReadingLoading) 시작 (단계 9는 베다�
 - 기준: origin/main `02476159e0b545b887fe04a12815b7123b4b614d`
 - node_modules는 정션, `.env.local`·`.env.cloudflare.local`은 링크(건드리지 않는다).
 - 워크트리 제거: 다른 체크아웃에서 `npm run worktree:remove -- 'D:\Development\codedestiny-worktrees\ux-conversion-20261113-215142'` (git worktree remove 금지 — 긴 경로 고아 폴더).
-- 마지막 커밋: 단계마다 아래 표에 적는다. 묶음 ① 끝 코드 커밋 `3af1f976b`(미push). 묶음 ② 6b 끝 코드 커밋 `dd10f6156`(미push). 묶음 ② 6c-1 코드 커밋 `4dd33836e`·`9b9a8e706`·`3c8d5ac2f`(미push). 묶음 ② 6c-2 코드 커밋 `273aa5ce6`·`d1eba2bae`(미push). 묶음 ② 11a 코드 커밋 `81b1be43d`(미push). 묶음 ② 배너 모바일 다듬기 `c7edcc6c3`·사이트맵 원장 `a10578ada`(미push). 묶음 ③ 단계 5 ReviewProof `f554b8920`(미push). 단계 5 남은 일 `c674869d9`(보존 기준 해시)·`f6768d579`(`/reviews/?product=` 필터), 묶음 ③ 단계 7 `008432add`(미push). 묶음 ③ 단계 8 `efafe2738`(미push) — 묶음 ③ 완료. 묶음 ④ 단계 9 공용 GenerationProgress `1c0e07c2b`·연애 비책 이전 `98ca36812`·신년운세 `6c48059f9`·인생의 책 `27e2c5eb2`·베다 `be646a9f1`(미push).
+- 마지막 커밋: 단계마다 아래 표에 적는다. 묶음 ① 끝 코드 커밋 `3af1f976b`(미push). 묶음 ② 6b 끝 코드 커밋 `dd10f6156`(미push). 묶음 ② 6c-1 코드 커밋 `4dd33836e`·`9b9a8e706`·`3c8d5ac2f`(미push). 묶음 ② 6c-2 코드 커밋 `273aa5ce6`·`d1eba2bae`(미push). 묶음 ② 11a 코드 커밋 `81b1be43d`(미push). 묶음 ② 배너 모바일 다듬기 `c7edcc6c3`·사이트맵 원장 `a10578ada`(미push). 묶음 ③ 단계 5 ReviewProof `f554b8920`(미push). 단계 5 남은 일 `c674869d9`(보존 기준 해시)·`f6768d579`(`/reviews/?product=` 필터), 묶음 ③ 단계 7 `008432add`(미push). 묶음 ③ 단계 8 `efafe2738`(미push) — 묶음 ③ 완료. 묶음 ④ 단계 9 공용 GenerationProgress `1c0e07c2b`·연애 비책 이전 `98ca36812`·신년운세 `6c48059f9`·인생의 책 `27e2c5eb2`·베다 `be646a9f1`(미push). 묶음 ④ 단계 10 영냥이 대기 화면 `b397bcddf`·공용 막대 테두리/줄바꿈 `d0d6f2144`(미push) — 묶음 ④ 완료.
 
 ## 승인 상태 (사용자 원문, 2026-11-13)
 
@@ -154,12 +154,12 @@ next: 묶음 ④ 단계 10(영냥이 ReadingLoading) 시작 (단계 9는 베다�
 - [x] 7. 영냥이·홈 — SHA: 008432add · 단계 5 남은 일 c674869d9, f6768d579 (결과는 문서 끝 "묶음 ③ 단계 7 결과")
 - [x] 8. 결제 인접 — SHA: efafe2738 (결과는 문서 끝 "묶음 ③ 단계 8 결과")
 
-### 묶음 ④ 생성 진행 (단계 9, 10)
+### 묶음 ④ 생성 진행 (단계 9, 10) — 완료(2026-11-14)
 - [x] 9. GenerationProgress + love-secret — SHA: 1c0e07c2b, 98ca36812 (결과는 문서 끝 "묶음 ④ 단계 9 결과")
 - [x] 9. new-year — SHA: 6c48059f9
 - [x] 9. life-book — SHA: 27e2c5eb2
 - [x] 9. vedic — SHA: be646a9f1
-- [ ] 10. 영냥이 ReadingLoading — SHA:
+- [x] 10. 영냥이 ReadingLoading — SHA: b397bcddf, d0d6f2144 (결과는 문서 끝 "묶음 ④ 단계 10 결과")
 
 ### 묶음 ⑤ 마무리 (단계 12)
 - [ ] check:fast·검증 스크립트
@@ -1044,3 +1044,63 @@ UI 전용 확인
 6. 토스 재개는 URL에 `cid`가 남아 있을 때만 된다.
 7. 기존 eslint 경고 `Sparkles` 미사용, 기존 미사용 CSS `.cosmosLabelSwap`.
 8. 390에서 제목("…쓰고 / 있어요")과 떠남 안내 마지막 줄("저장해요.")에 한 어절만 남는다. 공용 컴포넌트에 `text-wrap: balance`/`pretty`를 쓰면 다듬을 수 있다(선택).
+
+### 묶음 ④ 단계 10 결과 — 영냥이 대기 화면 (2026-11-14 완료, 미push)
+
+커밋
+- `b397bcddf` feat(yeongnyangi): 기다리는 화면에 경과 시간과 쓰는 중인 장 표시
+- `d0d6f2144` fix(fortune): 생성 대기 불확정 막대 테두리 3:1, 줄바꿈 다듬기
+
+A. 영냥이 `ReadingLoading` (`app/yeongnyangi/_components/ReadingLoading.tsx`, CRLF 유지)
+- 새 props: `manifest?: ChapterSpec[]`, `timing?: boolean`. `Result.tsx` L226의 결과 폴링 화면만 `manifest={row!.manifest} timing`을 넘긴다. L247 의식 자리표시는 그대로다.
+- L12 `waitCopy`: 12개 언어 문구. ko는 "기다린 시간", "N번째 장 쓰는 중 · 전체 M장"이다.
+- L37: 쓰는 장 = 저장된 장 + 1. 장은 순서대로 하나씩 쓴다.
+  - 장 제목은 manifest가 있을 때만 보인다. ko는 `title`, 다른 언어는 `v7Label(titleKey)`다.
+  - 수가 없으면(`total=0`) `data-reading-count="indeterminate"`로 흐르는 막대만 보인다(L50). %는 없다.
+- L40·L51: `useElapsed`로 m:ss를 센다. 알림 영역(`aria-live`) 밖에 두어, 장이 바뀔 때만 읽힌다.
+- L27 떠남 안내(반말): "창을 닫아도 괜찮아. 남은 장은 서버가 이어서 써. 영냥이 보관함에서 다시 열면 그동안 쓴 장을 바로 읽을 수 있어."
+  - 시간 약속은 없다. 생성 중일 때만 보인다.
+  - 다른 언어는 기존 `copy.generating` 제목이 같은 사실을 말한다.
+- CSS(`reading-loading.module.css`): `--yn-*` 토큰만 쓴다. 새 hex·dark:·prefers-color-scheme는 없다.
+  - `.count`(금색)·`.chapterTitle`·`.elapsed`·`.flow`(`ynReadingFlow`)를 더했다. `prefers-reduced-motion`이면 멈춘다.
+  - `.copy p`에 `text-wrap: pretty`, `.title`에 `balance`를 넣었다. 이미지는 건드리지 않았다.
+- UI만 바뀌었다. `ui-only-check.mjs`로 `Result`·`load`·`generate`·`sameRequest`·toss 3개·`hideDeniedTossResult`를 비교하니 모두 SAME이었다(`^ const loading=` 줄만 뺌). API·워커 변경도 없다.
+
+떠나도 안전한지 확인한 근거 (영냥이, 모두 참)
+- `worker/yeongnyangi/queue.js`의 `consumeConsultationQueue`가 장마다 `generateNextChapter`를 실행하고 다시 큐에 넣는다. 브라우저와 상관없이 돈다.
+- 다시 열면 `delivery.js`의 `readAndContinueFortune`이 GET에서 빠진 큐 인계를 다시 걸고, 저장된 장을 보여 준다. 토스 결과 GET(`worker/toss/routes.js` L570)도 큐에 넣는다.
+- 운영은 `*/10` 크론(`worker/index.js` L2072)의 `runYeongnyangiRecovery`가 5분 넘게 버려진 주문을 다시 잡는다.
+- 스테이징은 `crons = []`이지만 큐 소비자는 있다.
+
+"보통 몇 분" 줄은 넣지 않았다. 실측 근거가 없고, 있는 것은 `chapterTimeoutMs`·`chapterLeaseMs` 같은 상한값뿐이다.
+
+B. 공용 `GenerationProgress.module.css`
+- 불확정 막대 트랙 테두리를 L140·L144의 기존 토큰 `color-mix`로 진하게 했다.
+  - 네오: silver 45% + blue → 카드 바탕 대비 2.85 → **3.93:1**(픽셀 실측)
+  - 연이: muted 70% + blush → 1.39 → 3.7:1(계산값)
+  - 확정 막대(N/M 글자가 정보를 전함)는 그대로 두었다.
+- 줄바꿈: `.title`에 `text-wrap: balance`, `.description`·`.status`·`.leave`에 `pretty`를 넣었다.
+
+검증
+- `__tests__/ui/yeongnyangi-result-focus.test.mjs`에 4개를 더했다: 경과 표시(알림 영역 밖), 실제 수로만 센 장, 가짜 % 없음, 반말 떠남 안내. 8/8 통과.
+- `generation-progress.behavior`, `yeongnyangi-ui-locale-copy`, `yeongnyangi-reading-v7-copy`, `yeongnyangi-all-locales`: 38/38 통과.
+- `npm run typecheck` 통과, `npm run verify:hero-contrast` 통과. 해당하는 영냥이 verify 스크립트는 없다(tarot-assets는 무관). check:fast는 돌리지 않았다(지시).
+- 시각 검사(visual-checker 하위 에이전트)는 Playwright로 `/api/**`를 가로채고 쿠키 선택을 미리 넣어 찍었다. 과금·결제·DB는 없었다. 모두 통과했다.
+  - 영냥이 390 세 장
+    - 0장 저장: 비압축
+    - 2장 저장: 압축 96px
+    - manifest 없음: 흐르는 막대
+  - 영냥이 1440 한 장
+  - 대비는 제목 16.2:1, 금색 11.3:1, 흐린 글 11.1:1이다. 막대 금색 대 바탕은 9.2:1, 테두리 대 페이지는 3.21:1이다.
+  - 고아 어절과 가로 넘침은 없다.
+  - 귀는 2개다. 압축 96px에서는 왼쪽 귀가 작아 확정하지 못했지만, 같은 원본이다.
+  - 베다 390 불확정은 테두리 3.93:1, 고아 어절 없음으로 통과했다.
+- 개발 서버(3417)는 내렸고, 포트가 비어 있음을 확인했다.
+
+후속(보고만)
+1. questionSky에서 "전체 2장"은 사용자가 묻고 나서야 쓰는 후속 장까지 센다. 기존 데이터 그대로다(예전에는 "0 / 2"로 보였다).
+2. manifest가 비면 `Result.tsx`가 `chapters.length===manifest.length`로 '검토 중' 단계를 고른다. 그래서 불확정 막대가 "최종 확인" 제목과 함께 보인다. 기존 단계 판정 로직이다.
+3. 범위 밖 시각 결함 2건
+   - "영냥이의 감사 인사" 카드에서 "찬찬히"가 "찬 / 찬히"로 끊긴다(keep-all 누락 추정).
+   - 390 압축 화면에서 왼쪽 아래 떠 있는 버튼이 본문 제목 앞 글자를 가린다(스크롤 위치에 따라).
+4. 결과 화면 하단 링크(이용약관 등, 높이 16~19px)는 44px 탭 기준에 못 미친다. 기존 상태다.
