@@ -28,6 +28,7 @@ state.transaction=async fn=>fn({assertIdentity:async()=>assert.ok(state.identity
 globalThis.__fusionNative=state;
 const root=path.resolve(import.meta.dirname,'../../..');
 const stubs={
+ 'lib/toss-release.mjs':'export const NEW_PURCHASES_AVAILABLE=true;',
  'worker/toss/native-life-book.js':'export const nativeLifeBookLibraryItem=()=>{throw Error("LIFE_OUTSIDE_TEST")};',
  'worker/toss/native-love-secret.js':'export const nativeLoveSecretLibraryItem=()=>{throw Error("LOVE_OUTSIDE_TEST")};',
  'worker/toss/models.js':'export const {TossNativeConsultation,TossPurchase,TossIdentity}=globalThis.__fusionNative.models;',
@@ -73,7 +74,7 @@ const stubs={
  }
  `,
 };
-const bundle=await build({stdin:{contents:"export * from './worker/toss/native-fusion.js';export * from './worker/toss/native-consultation.js';",resolveDir:root},bundle:true,platform:'node',format:'cjs',write:false,plugins:[{name:'offline',setup(b){b.onLoad({filter:/\.js$/},args=>{const contents=stubs[path.relative(root,args.path).replaceAll('\\','/')];if(contents)return {contents,loader:'js'}})}}]});
+const bundle=await build({stdin:{contents:"export * from './worker/toss/native-fusion.js';export * from './worker/toss/native-consultation.js';",resolveDir:root},bundle:true,platform:'node',format:'cjs',write:false,plugins:[{name:'offline',setup(b){b.onLoad({filter:/\.(mjs|js)$/},args=>{const contents=stubs[path.relative(root,args.path).replaceAll('\\','/')];if(contents)return {contents,loader:'js'}})}}]});
 const loaded=new Module(path.join(root,'fusion-native-test.cjs'));loaded.paths=Module._nodeModulePaths(root);loaded._compile(bundle.outputFiles[0].text,loaded.id);const api=loaded.exports;
 const call=(suffix,body,who=auth)=>api.handleNativeFusion(new Request('https://example.invalid'+suffix,{method:body?'POST':'GET',headers:{Cookie:'forbidden',Authorization:'forbidden'},...(body?{body:JSON.stringify(body)}:{})}),{},who,suffix.split('?')[0]);
 

@@ -1,3 +1,4 @@
+import {NEW_PURCHASES_AVAILABLE} from '../../lib/toss-release.mjs';
 import {CHAT_DOMAINS,CHAT_PRODUCT_IDS,chatProductId,chatQuestionFeatureKey,CHAT_FEATURE_KEY} from '../../lib/fortune/chat-products.js';
 import {APPROVED_TOSS_PRODUCTS,approvedProduct} from './catalog.js';
 import {resolveStoredProduct} from '../yeongnyangi/payments/catalog.ts';
@@ -40,6 +41,7 @@ export async function prepareTossLetter(env,auth,body,approved=APPROVED_TOSS_PRO
  if(!body||typeof body!=='object'||Array.isArray(body)||!letterPersonas.includes(body.persona))throw new TossError('INVALID_REQUEST',400);
  requestedProductId(body);
  const sale=approvedLetterSale(body.domain,approved,body.persona,body.fishId);
+ if(!NEW_PURCHASES_AVAILABLE)throw new TossError('TOSS_PURCHASES_DISABLED',503);
  const row=await prepareFortune(env,auth.userId,body,{persona:body.persona,checkoutAmountKRW:sale.approvedPriceKRW});
  if(!/^[a-f0-9]{64}$/.test(String(row?._id||''))||row.productId!==sale.productId||row.amountKRW!==sale.approvedPriceKRW||row.persona!==body.persona||!featureMatchesProduct(row))throw new TossError('TOSS_PRODUCT_NOT_APPROVED',503);
  assertLetterDeliverable(row);

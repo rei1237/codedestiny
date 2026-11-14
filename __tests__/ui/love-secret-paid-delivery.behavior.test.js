@@ -301,6 +301,7 @@ test('Toss original love-secret waves use one bound order, saved chapters, recov
   globalThis.__loveNative = state;
   const root = process.cwd();
   const stubs={
+    'lib/toss-release.mjs':'export const NEW_PURCHASES_AVAILABLE=true;',
     'worker/lib/db.js':'export const withMongoRetry=async(e,f)=>f();',
     'worker/toss/models.js':'export const {TossNativeConsultation,TossPurchase,TossIdentity}=globalThis.__loveNative.models;',
     'worker/toss/catalog.js':'export const assertUniqueApprovedSaleSkus=()=>{};export const APPROVED_TOSS_NATIVE_PRODUCTS=globalThis.__loveNative.catalog;',
@@ -316,7 +317,7 @@ test('Toss original love-secret waves use one bound order, saved chapters, recov
       export const nativeLoveSecretContract=input=>({requestId:input.idempotencyKey,resultId:input.idempotencyKey,featureKey:'love-secret-ai-consultation',inputHash:input.inputHash,pricing:{amountKRW:6000}});
       export const nativeLoveSecretStoredState=s.stored,handleLoveSecretAiRoutes=s.handle;`,
   };
-  const bundle=await build({stdin:{contents:"export * from './worker/toss/native-love-secret.js';export * from './worker/toss/native-context.js';export * from './worker/toss/native-consultation.js';",resolveDir:root},bundle:true,platform:'node',format:'cjs',write:false,plugins:[{name:'offline',setup(b){b.onLoad({filter:/\.js$/},args=>{const contents=stubs[path.relative(root,args.path).replaceAll('\\','/')];if(contents)return {contents,loader:'js'};});}}]});
+  const bundle=await build({stdin:{contents:"export * from './worker/toss/native-love-secret.js';export * from './worker/toss/native-context.js';export * from './worker/toss/native-consultation.js';",resolveDir:root},bundle:true,platform:'node',format:'cjs',write:false,plugins:[{name:'offline',setup(b){b.onLoad({filter:/\.(mjs|js)$/},args=>{const contents=stubs[path.relative(root,args.path).replaceAll('\\','/')];if(contents)return {contents,loader:'js'};});}}]});
   const loaded=new Module(path.join(root,'native-love-secret-test.cjs'));loaded.paths=Module._nodeModulePaths(root);loaded._compile(bundle.outputFiles[0].text,loaded.id);const api=loaded.exports;
   f.ctx.nativeTossContext=api.nativeTossContext;f.ctx.bindNativeTossRequest=api.bindNativeTossRequest;
   f.ctx.getOptionalUserFromRequest=async request=>{const native=api.nativeTossContext(request);assert.ok(native,'no web auth fallback');return native.auth;};

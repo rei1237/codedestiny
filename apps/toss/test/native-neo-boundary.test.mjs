@@ -22,6 +22,7 @@ state.models={
 globalThis.__nativeNeoBoundary=state;
 const root=path.resolve(import.meta.dirname,'../../..');
 const stubs={
+ 'lib/toss-release.mjs':'export const NEW_PURCHASES_AVAILABLE=true;',
  'worker/toss/native-life-book.js':'export const nativeLifeBookLibraryItem=()=>{throw Error("LIFE_OUTSIDE_TEST")};',
  'worker/toss/native-love-secret.js':'export const nativeLoveSecretLibraryItem=()=>{throw Error("LOVE_OUTSIDE_TEST")};',
   'worker/lib/db.js':'export const withMongoRetry=async(e,f)=>f();',
@@ -56,7 +57,7 @@ const stubs={
 
 };
 const bundle=await build({entryPoints:[path.join(root,'worker/toss/native-neo.js')],bundle:true,platform:'node',format:'cjs',write:false,
-  plugins:[{name:'offline-native-boundaries',setup(b){b.onLoad({filter:/\.js$/},args=>{const contents=stubs[path.relative(root,args.path).replaceAll('\\','/')];if(contents)return {contents,loader:'js'};});}}]});
+  plugins:[{name:'offline-native-boundaries',setup(b){b.onLoad({filter:/\.(mjs|js)$/},args=>{const contents=stubs[path.relative(root,args.path).replaceAll('\\','/')];if(contents)return {contents,loader:'js'};});}}]});
 const loaded=new Module(path.join(root,'native-tea-boundary.cjs'));loaded.paths=Module._nodeModulePaths(root);loaded._compile(bundle.outputFiles[0].text,loaded.id);
 const api=loaded.exports;
 const call=(suffix,body,who=auth)=>api.handleNativeNeo(new Request('https://example.invalid'+suffix,{method:body?'POST':'GET',

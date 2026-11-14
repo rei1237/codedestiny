@@ -1,6 +1,7 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {grantVerifiedOrder} from '../../../worker/toss/grant.js';
+import {mockSaleModule} from './mock-sale-module.mjs';
+const {grantVerifiedOrder}=await mockSaleModule('worker/toss/grant.js');
 const order={orderId:'01900000-1111-7111-8111-000000000001',sku:'approved-test-sku',status:'PAYMENT_COMPLETED'};
 const product={sku:order.sku,productId:'saju_tuna',approvedPriceKRW:30000,priceEvidence:'mock-console-evidence'};
 const auth={_id:'toss-identity',ownerId:'internal-owner',revision:0,environment:'SANDBOX'};
@@ -73,4 +74,13 @@ test('chat order cannot fund the other persona even with identical product and o
  await grantVerifiedOrder({store:f.store,auth,order,product:chat,requestId:'original',enqueue:async()=>{}});
  assert.equal(f.get().purchases[order.orderId].serviceId,'yeoni');
  await assert.rejects(grantVerifiedOrder({store:f.store,auth,order,product:{...chat,serviceId:'neo'},requestId:'original',enqueue:async()=>assert.fail()}),/ORDER_PRODUCT_MISMATCH/);
+});
+
+
+test('closed policy rejects first attribution but preserves an already owned order',async()=>{
+ const {grantVerifiedOrder:closedGrant}=await import('../../../worker/toss/grant.js');const f=fixture();
+ const args={store:f.store,auth,order,product,enqueue:async()=>{}};
+ await assert.rejects(closedGrant(args),/TOSS_PURCHASES_DISABLED/);assert.equal(Object.keys(f.get().purchases).length,0);
+ await grantVerifiedOrder(args);assert.equal((await closedGrant(args)).durable,true);
+ await assert.rejects(closedGrant({...args,auth:{...auth,ownerId:'other'}}),/ORDER_OWNERSHIP_MISMATCH/);
 });

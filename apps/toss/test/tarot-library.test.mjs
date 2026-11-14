@@ -1,6 +1,7 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {TAROT_DELIVERY_LEASE_MS,freeTarotReading,failTarotLibraryDelivery,TOSS_TAROT_LIBRARY_FLOWS,attachTarotLibraryInput,claimTarotLibraryDelivery,completeTarotLibraryDelivery,deliverTarotLibraryOrder,grantTarotLibraryOrder,tarotLibraryProduct,tarotLibraryResult} from '../../../worker/toss/tarot-library.js';
+import {mockSaleModule} from './mock-sale-module.mjs';
+const {TAROT_DELIVERY_LEASE_MS,freeTarotReading,failTarotLibraryDelivery,TOSS_TAROT_LIBRARY_FLOWS,attachTarotLibraryInput,claimTarotLibraryDelivery,completeTarotLibraryDelivery,deliverTarotLibraryOrder,grantTarotLibraryOrder,tarotLibraryProduct,tarotLibraryResult}=await mockSaleModule('worker/toss/tarot-library.js');
 import {generateTarotLibraryResult} from '../../../worker/toss/tarot-library-generator.js';
 
 const order={orderId:'01900000-1111-7111-8111-000000000042',sku:'approved-tarot-library',status:'PAYMENT_COMPLETED'};
@@ -192,4 +193,16 @@ test('the five free web readings preserve their original card and chapter data',
     }
   }
   assert.throws(()=>freeTarotReading('tarot-prompt-maker',{}),/TAROT_LIBRARY_FLOW_INVALID/);
+});
+
+
+test('closed tarot policy forbids first attribution and preserves owned execution',async()=>{
+ const {grantTarotLibraryOrder:closedGrant}=await import('../../../worker/toss/tarot-library.js');const f=fixture(),product=tarotLibraryProduct(rawProduct);const args={store:f.store,auth,order,product,input:validInput};
+ await assert.rejects(closedGrant(args),/TOSS_PURCHASES_DISABLED/);assert.deepEqual(f.get(),{purchases:{},executions:{}});
+ await grantTarotLibraryOrder(args);assert.equal((await closedGrant(args)).durable,true);
+ await assert.rejects(closedGrant({...args,auth:{...auth,ownerId:'other'}}));
+ delete f.get().executions[order.orderId];
+ await assert.rejects(closedGrant({...args,auth:{...auth,ownerId:'other'}}));
+ assert.deepEqual(f.get().executions,{});
+ assert.equal((await closedGrant(args)).durable,true);
 });

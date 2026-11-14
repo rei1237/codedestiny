@@ -35,7 +35,7 @@ const reviewProducts=reviewProductIds.map(productId=>{
   return {productId,serviceId,featureKey,registryPriceKRW:amount,tossSupplyPriceKRW:approved?item.supplyPriceKRW:null,tossPriceKRW:approved?item.approvedPriceKRW:null,
     priceDeltaKRW:approved?item.approvedPriceKRW-amount:null,approved,sku:approved?item.sku:null};
 });
-const releaseSource=fs.readFileSync(path.join(root,'apps/toss/src/release.ts'),'utf8');
+const releaseSource=fs.readFileSync(path.join(root,'lib/toss-release.mjs'),'utf8');
 const report={
  scope:'전체 서비스 홈 · 상담과 무료 콘텐츠 · 소유 결과 보호 유지',
  entrySource:'apps/toss/src/main.tsx → AppEntry.tsx(reviewOnly=false) → App.tsx',

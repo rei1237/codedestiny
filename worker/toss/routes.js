@@ -1,3 +1,4 @@
+import {NEW_PURCHASES_AVAILABLE} from '../../lib/toss-release.mjs';
 import {CHAT_PRODUCT_IDS} from '../../lib/fortune/chat-products.js';
 import {checkedConsultationInput,consultationSafetyMessages} from './consultation-safety.js';
 import {questionConversation} from '../yeongnyangi/question-followup.ts';
@@ -100,11 +101,11 @@ export async function handleTossRoutes(request,env) {
     if(path==='/catalog'&&request.method==='GET')return reply({products:APPROVED_TOSS_PRODUCTS.filter(item=>isReviewSale(item.productId,item.serviceId)||(['yeoni','neo'].includes(item.serviceId)&&CHAT_PRODUCT_IDS.includes(item.productId))).map(item=>{
       const approved=approvedProduct(item.sku),product=resolveStoredProduct(approved.productId),service=consultationService(approved);
       return {id:consultationSelection(approved),productId:product.id,serviceId:service.id,name:`${service.name} ${product.name} ${product.fishName} 상담`,sku:item.sku,approvedPriceKRW:item.approvedPriceKRW,
-        chapters:product.chapterCount,available:item.approved===true};
+        chapters:product.chapterCount,available:NEW_PURCHASES_AVAILABLE&&item.approved===true};
     })});
     if(path==='/tarot-library/catalog'&&request.method==='GET')return reply({flows:APPROVED_TOSS_TAROT_LIBRARY_PRODUCTS.filter(item=>!isFreeFortuneFeatureKey(item.featureKey)).map(item=>{
       const product=tarotLibraryProduct(item);
-      return {id:product.flow.id,name:product.flow.name,sku:product.sku,featureKey:product.featureKey,approvedPriceKRW:product.approvedPriceKRW};
+      return {id:product.flow.id,name:product.flow.name,sku:product.sku,featureKey:product.featureKey,approvedPriceKRW:product.approvedPriceKRW,available:NEW_PURCHASES_AVAILABLE};
     })});
     if(path==='/pet-saju/catalog'&&request.method==='GET') {
       const {tossPetCatalog}=await import('./pet-saju.js');
@@ -804,6 +805,7 @@ export async function handleTossRoutes(request,env) {
       return reply(await matchTossFlowers(await bodyOf(request),env,domains));
     }
     if(path==='/prepare'&&request.method==='POST') {
+      if(!NEW_PURCHASES_AVAILABLE)throw new TossError('TOSS_PURCHASES_DISABLED',503);
       assertUniqueApprovedSaleSkus();
       await limit(env,auth._id,'prepare',6);
       const input=checkedConsultationInput(await bodyOf(request)),product=approvedProduct(input.sku);
@@ -845,6 +847,7 @@ export async function handleTossRoutes(request,env) {
     if((path==='/orders/grant'||path==='/orders/restore')&&request.method==='POST') {
       const input=await bodyOf(request);
       const stored=await TossPurchase.findOne({_id:input.orderId,identityId:auth._id,ownerId:auth.ownerId,environment:auth.environment}).lean();
+      if(!stored&&!NEW_PURCHASES_AVAILABLE)throw new TossError('TOSS_PURCHASES_DISABLED',503);
       if(!stored)assertUniqueApprovedSaleSkus();
       // A durable purchase keeps its original product and price after a sale ends.
       const tarotProduct=path==='/orders/restore'&&(stored?(stored.tarotFlowId?{...stored,kind:'tarot-library',approved:true}:null):currentTarotSale(input.sku));
@@ -866,6 +869,7 @@ export async function handleTossRoutes(request,env) {
     if(path==='/tarot-library/orders/grant'&&request.method==='POST') {
       const input=await bodyOf(request);
       const stored=await TossPurchase.findOne({_id:input.orderId,identityId:auth._id,ownerId:auth.ownerId,environment:auth.environment}).lean();
+      if(!stored&&!NEW_PURCHASES_AVAILABLE)throw new TossError('TOSS_PURCHASES_DISABLED',503);
       if(!stored)assertUniqueApprovedSaleSkus();
       const product=tarotLibraryProduct(stored?.tarotFlowId?{...stored,kind:'tarot-library',approved:true}:currentTarotSale(input.sku));
       const order=await lookupOrder(env,auth.userKey,input.orderId);

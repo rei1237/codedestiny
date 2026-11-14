@@ -17,6 +17,7 @@ const mocks={
 };
 globalThis.__tossRouteMocks=mocks;
 const stubMap={
+ 'lib/toss-release.mjs':'export const NEW_PURCHASES_AVAILABLE=true;',
  'worker/toss/music-download.js':"import {TossError} from './policy.js';const call=(kind,...args)=>{const state=globalThis.__tossRouteMocks;(state.musicCalls??=[]).push([kind,...args]);if(state.nativeFailure)throw new TossError(state.nativeFailure.code,state.nativeFailure.status);return {owner:args[1].ownerId};};export const prepareNativeMusic=(...args)=>call('prepare',...args),readNativeMusic=(...args)=>call('read',...args),downloadNativeMusic=(...args)=>call('file',...args);",
  'worker/toss/vedic-compatibility.js':"export const tossVedicCompatibility=async(_env,auth)=>({owner:auth.ownerId,accessSource:'public',stored:false});",
  'worker/toss/vedic-prashna.js':"export const tossVedicPrashna=async(_env,auth)=>({owner:auth.ownerId,accessSource:'public'});",
@@ -103,7 +104,7 @@ const stubMap={
  'worker/yeongnyangi/question-followup.ts':"export const questionConversation=globalThis.__tossRouteMocks.followup;"
 };
 const root=path.resolve(import.meta.dirname,'../../..');
-const bundle=await build({entryPoints:[path.join(root,'worker/toss/routes.js')],bundle:true,platform:'node',format:'cjs',write:false,loader:{'.wasm':'binary'},plugins:[{name:'offline-boundaries',setup(b){b.onLoad({filter:/\.(js|ts)$/},args=>{const source=stubMap[path.relative(root,args.path).replaceAll('\\','/')];if(source)return {contents:source,loader:'js'};});}}]});
+const bundle=await build({entryPoints:[path.join(root,'worker/toss/routes.js')],bundle:true,platform:'node',format:'cjs',write:false,loader:{'.wasm':'binary'},plugins:[{name:'offline-boundaries',setup(b){b.onLoad({filter:/\.(mjs|js|ts)$/},args=>{const source=stubMap[path.relative(root,args.path).replaceAll('\\','/')];if(source)return {contents:source,loader:'js'};});}}]});
 const loaded=new Module(path.join(root,'toss-route-check.cjs'));loaded.paths=Module._nodeModulePaths(root);loaded._compile(bundle.outputFiles[0].text,loaded.id);
 const {handleTossRoutes}=loaded.exports;
 const birth={gender:'F',date:{year:1990,month:1,day:1,calType:'solar',timeUnknown:true},location:{label:'서울',lat:37.5665,lng:126.978,tz:'Asia/Seoul'}};
@@ -730,3 +731,24 @@ test('original public western sections and Sukuyo tools accept guests without ex
 test('public deterministic past-life report preserves mandatory login and uses the authenticated owner',async()=>{assert.equal((await request({},'/sukuyo/past-life',{})).status,503);mocks.denyAuth=true;try{assert.equal((await request({},'/sukuyo/past-life')).status,401);}finally{mocks.denyAuth=false;}const response=await request({userId:'other',ownerId:'other'},'/sukuyo/past-life');assert.equal(response.status,200);assert.deepEqual(await response.json(),{owner:auth.ownerId,source:'public',stored:false});});
 
 test('free Vedic compatibility and standalone Prashna remain login-required and use the authenticated owner',async()=>{for(const path of ['/vedic/compatibility','/vedic/prashna']){mocks.denyAuth=true;try{assert.equal((await request({ownerId:'foreign'},path)).status,401);}finally{mocks.denyAuth=false;}const reply=await request({ownerId:'foreign'},path);const result=await reply.json();assert.equal(reply.status,200);assert.equal(result.owner,auth.ownerId);assert.equal(result.accessSource,'public');}});
+
+
+test('production sales policy closes public catalogs and rejects raw prepare before profile writes',async()=>{
+ const compiled=await build({entryPoints:[path.join(root,'worker/toss/routes.js')],bundle:true,platform:'node',format:'cjs',write:false,loader:{'.wasm':'binary'},plugins:[{name:'closed-routes',setup(b){b.onLoad({filter:/\.(js|ts)$/},args=>{const source=stubMap[path.relative(root,args.path).replaceAll('\\','/')];if(source)return {contents:source,loader:'js'};});}}]});
+ const closed=new Module(path.join(root,'closed-routes.cjs'));closed.paths=Module._nodeModulePaths(root);closed._compile(compiled.outputFiles[0].text,closed.id);
+ const beforeProfiles=calls.profiles.length,beforePrepared=calls.prepared.length;
+ const previousPurchase=mocks.purchase,previousOrder=mocks.lookupOrder;
+ mocks.purchase=()=>({lean:async()=>null});mocks.lookupOrder=()=>assert.fail('partner lookup must not happen for an unattributed order');
+ try{for(const endpoint of ['/orders/grant','/orders/restore','/tarot-library/orders/grant']){
+  const denied=await closed.exports.handleTossRoutes(new Request('https://code-destiny.com/api/toss'+endpoint,{method:'POST',headers:{Origin:'https://ai-saju-studio.apps.tossmini.com','Content-Type':'application/json',Authorization:'Bearer mock'},body:JSON.stringify({orderId:'01900000-1111-7111-8111-000000000042',sku:'known-paid-sku'})}),{TOSS_RELEASE_READY:'true'});
+  assert.equal(denied.status,503);assert.equal((await denied.json()).error,'TOSS_PURCHASES_DISABLED');
+ }}finally{mocks.purchase=previousPurchase;mocks.lookupOrder=previousOrder;}
+ const response=await closed.exports.handleTossRoutes(new Request('https://code-destiny.com/api/toss/prepare',{method:'POST',headers:{Origin:'https://ai-saju-studio.apps.tossmini.com','Content-Type':'application/json',Authorization:'Bearer mock'},body:JSON.stringify(input())}),{TOSS_RELEASE_READY:'true'});
+ assert.equal(response.status,503);assert.equal((await response.json()).error,'TOSS_PURCHASES_DISABLED');
+ assert.equal(calls.profiles.length,beforeProfiles);assert.equal(calls.prepared.length,beforePrepared);
+ mocks.approvedProducts.push({productId:'saju_mackerel',serviceId:'yeongnyangi',sku:'saju_mackerel',approved:true,approvedPriceKRW:1});
+ try{
+  const catalog=await closed.exports.handleTossRoutes(new Request('https://code-destiny.com/api/toss/catalog',{headers:{Origin:'https://ai-saju-studio.apps.tossmini.com'}}),{});
+  assert.equal(catalog.status,200);const products=(await catalog.json()).products;assert.ok(products.length);assert.ok(products.every(p=>p.available===false));
+ }finally{mocks.approvedProducts.pop();}
+});

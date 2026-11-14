@@ -1,3 +1,4 @@
+import {NEW_PURCHASES_AVAILABLE} from '../../lib/toss-release.mjs';
 import {checkOrder,TossError} from './policy.js';
 import {consultationService,requestMatchesService} from './services.js';
 
@@ -13,8 +14,9 @@ export async function grantVerifiedOrder({store,auth,order,product,requestId=nul
   const receipt=await store.transaction(async tx=>{
     await tx.assertIdentity(auth);
     let purchase=await tx.purchase(order.orderId);
+    if(!purchase&&!NEW_PURCHASES_AVAILABLE)throw new TossError('TOSS_PURCHASES_DISABLED',503);
     if(purchase) {
-      if(purchase.identityId!==auth._id || purchase.sku!==product.sku || purchase.environment!==auth.environment) throw new TossError('ORDER_OWNERSHIP_MISMATCH',403);
+      if(purchase.identityId!==auth._id || String(purchase.ownerId)!==String(auth.ownerId) || purchase.sku!==product.sku || purchase.environment!==auth.environment) throw new TossError('ORDER_OWNERSHIP_MISMATCH',403);
       if(purchase.status==='REFUNDED')throw new TossError('ORDER_REFUNDED',409);
       if((purchase.serviceId||'yeongnyangi')!==service.id||purchase.productId!==product.productId)throw new TossError('ORDER_PRODUCT_MISMATCH',409);
       if(purchase.requestId&&requestId&&purchase.requestId!==requestId)throw new TossError('ORDER_ALREADY_ASSIGNED',409);

@@ -1,8 +1,9 @@
+import {NEW_PURCHASES_AVAILABLE} from '../../lib/toss-release.mjs';
 import {withMongoRetry} from "../lib/db.js";
 import {TossNativeConsultation,TossPurchase,TossIdentity} from './models.js';
 import {APPROVED_TOSS_NATIVE_PRODUCTS,assertUniqueApprovedSaleSkus} from './catalog.js';
 import {hash,unseal} from './crypto.js';
-import {TossError} from './policy.js';
+import {checkOrder,TossError} from './policy.js';
 import {lookupOrder} from './partner.js';
 import {recordTossRefund,purchaseStore} from './purchases.js';
 import {assertNativeIntent,nativeProduct,retainedNativeProduct,grantNativeOrder} from './native-consultation.js';
@@ -26,7 +27,7 @@ export function nativeTeaCatalog(){
   return APPROVED_TOSS_NATIVE_PRODUCTS.map(item=>{
     const product=approvedNativeTeaProduct(item.sku);
     return {id:product.productId,name:product.nativeService==='music'?'음악 MP3 다운로드':product.nativeService==='ziwei-deep'?'자미두수 심층 리포트':product.nativeService==='compass'?'운명의 나침반 심층 리포트':product.nativeService==='yoga'?'디비야 요가':product.nativeService==='guardian'?'사주 가디언':product.nativeService==='sibyl'?'시빌라 연간 대비 리포트':product.nativeService==='saju-compat'?'사주 궁합':product.nativeService==='palm'?'내 손금 리포트':product.nativeService==='human-design'?'휴먼 디자인 프리미엄 리포트':product.nativeService==='codex'?(product.featureKey==='master-love-codex-compat'?'마스터 인연의 서 · 궁합':'마스터 인연의 서 · 개인'):product.nativeService==='geomancy'?'지오맨시 흙점':product.nativeService==='nakshatra'?'나크샤트라 개인 심화 상담':product.nativeService==='naming'?'사주 작명첩':product.nativeService==='dream'?'정신분석 해몽':product.nativeService==='heukwol'?'흑월의 경고':product.nativeService==='pet'?(product.featureKey==='pet-saju-ai-consultation'?'반려동물 사주 심층 리포트':'반려동물 궁합'):product.nativeService==='relationship'?'관계 경계 리포트':product.nativeService==='sukuyo'?'숙요점 궁합 전문가 상담':product.nativeService==='maya'?'마야점 프롬프트':product.nativeService==='karma'?'운명의 업 전문가 상담':product.nativeService==='new-year'?'신년운세 전문가 상담':product.nativeService==='ziwei'?'자미두수 전문가 상담':product.nativeService==='vedic'?'베다 전문가 상담':product.nativeService==='astrology'?'점성술 전문가 상담':product.nativeService==='love-secret'?'연애 비책':product.nativeService==='life-book'?(product.featureKey==='life-fortune-ai-consultation'?'인생 총운':'인생의 책'):product.nativeService==='fusion'?'초융합 운세':product.nativeService==='neo'?'네오의 팩폭 전략실':'운명의 찻집',sku:product.sku,featureKey:product.featureKey,
-      approvedPriceKRW:product.approvedPriceKRW,available:true};
+      approvedPriceKRW:product.approvedPriceKRW,available:NEW_PURCHASES_AVAILABLE};
   });
 }
 
@@ -43,23 +44,30 @@ export async function prepareNativeConsultation(env,auth,input,orderId,contract,
   if(recovered?.requestId&&recovered.requestId!==id)throw new TossError('ORDER_ALREADY_ASSIGNED',409);
   if(previous){
     assertNativeIntent(previous,auth,contract);
-    if(!orderId||previous.status==='paid'){
-      if(previous.status!=='paid')assertUniqueApprovedSaleSkus();
+    if(previous.status==='paid'){
+      if(orderId&&previous.orderId!==orderId)throw new TossError('ORDER_ALREADY_ASSIGNED',409);
+      await verifiedIntent(env,auth,previous);
       return view(previous);
     }
   }
+  if(!recovered&&!NEW_PURCHASES_AVAILABLE)throw new TossError('TOSS_PURCHASES_DISABLED',503);
   if(!recovered)assertUniqueApprovedSaleSkus();
   const product=recovered?retainedNativeProduct(recovered,auth):nativeProduct(APPROVED_TOSS_NATIVE_PRODUCTS.find(item=>item.nativeService===service&&item.featureKey===contract.featureKey),contract);
-  if(product.featureKey!==contract.featureKey)throw new TossError('ORDER_PRODUCT_MISMATCH',409);
+  if(product.nativeService!==service||product.featureKey!==contract.featureKey)throw new TossError('ORDER_PRODUCT_MISMATCH',409);
+  // Validate recovery before creating an intent, including deferred palm assignment.
+  const order=recovered?await lookupOrder(env,auth.userKey,orderId):null;
+  if(order){
+    if(order.orderId!==orderId||order.sku!==product.sku)throw new TossError('ORDER_MISMATCH',403);
+    if(order.status==='REFUNDED'){await withMongoRetry(env,()=>recordTossRefund(auth,order),{retries:0});throw new TossError('ORDER_REFUNDED',409);}
+    checkOrder(order,{orderId,sku:product.sku});
+  }
+  if(previous&&!recovered)return view(previous);
   const saved=await TossNativeConsultation.findOneAndUpdate({_id:id},{$setOnInsert:{
     ...ownerFilter(auth),...contract,input,pricing:{...contract.pricing,amountKRW:product.approvedPriceKRW},sku:product.sku,
     approvedPriceKRW:product.approvedPriceKRW,priceEvidence:product.priceEvidence,status:'prepared',orderId:null,
   }},{upsert:true,new:true,runValidators:true}).lean();
   if(recovered&&!deferAssignment){
     assertNativeIntent(saved,auth,contract);
-    const order=await lookupOrder(env,auth.userKey,orderId);
-    if(order.orderId!==orderId||order.sku!==product.sku)throw new TossError('ORDER_MISMATCH',403);
-    if(order.status==='REFUNDED'){await withMongoRetry(env,()=>recordTossRefund(auth,order),{retries:0});throw new TossError('ORDER_REFUNDED',409);}
     await grantNativeOrder({store:purchaseStore,auth,order,product,requestId:id});
     return readNativeTeaIntent(env,auth,id,service);
   }

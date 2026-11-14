@@ -1,3 +1,4 @@
+import {NEW_PURCHASES_AVAILABLE} from '../../lib/toss-release.mjs';
 import {checkOrder,TossError} from './policy.js';
 
 export function nativeProduct(item,contract){
@@ -35,6 +36,7 @@ export async function grantNativeOrder({store,auth,order,product,requestId=null}
   return store.transaction(async tx=>{
     await tx.assertIdentity(auth);
     let purchase=await tx.purchase(order.orderId);
+    if(!purchase&&!NEW_PURCHASES_AVAILABLE)throw new TossError('TOSS_PURCHASES_DISABLED',503);
     if(purchase){
       if(purchase.identityId!==auth._id||String(purchase.ownerId)!==String(auth.ownerId)||purchase.environment!==auth.environment||purchase.sku!==product.sku
         ||purchase.nativeService!==product.nativeService||purchase.featureKey!==product.featureKey)

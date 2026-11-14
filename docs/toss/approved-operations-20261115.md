@@ -51,3 +51,17 @@
 privacy 변경의 검증·커밋·main CI 확인 → READY가 닫힌 채 공식 production 승격 → 공개 방침 확인 → 로그인 콘솔 등록 → 정상 Cloudflare plain_text `TOSS_RELEASE_READY=true` 설정 → production vars 정본 기록 및 staging false 고정 검사. 각 설정 직전 최신 바인딩과 코드 SHA를 다시 읽어 다른 세션 변경을 보존한다.
 
 승격 전 추가 필수 보완: 기존 앱의 신규 판매 false 상태를 서버 신규 상담 준비에도 동일하게 집행한다. 현재 서버는 READY를 켜면 등록 SKU의 새 intent를 만들 수 있다. 기존 구매 복구·재열람을 보존하는 별도 코드 검증을 먼저 완료한다.
+
+
+## 신규 판매 서버 집행 보완 — 2026-11-15
+
+- 신규 판매 정본은 lib/toss-release.mjs의 NEW_PURCHASES_AVAILABLE=false다. 앱은 기존 release.ts를 통해 재수출하며 서버 catalog·신규 prepare도 같은 값을 따른다. 가격/SKU는 유지한다.
+- /prepare, canonical 신규 상담, letter 신규 상담을 차단한다. native 공통 prepare는 기존 소유 구매 원장과 서비스/SKU 및 실제 paid 주문을 쓰기 전에 검증한다. paid 재시도도 verifiedIntent를 통과한다.
+- 미귀속 주문 최초 제출은 구매자 독립 증명이 아니므로 /orders/grant, /orders/restore, /tarot-library/orders/grant에서 원장이 없으면 partner 조회 전에 차단한다. 세 grant 트랜잭션도 원장 없는 첫 삽입을 차단한다. 기존 소유자의 원장·가격·미완료 입력 복구·결과 재열람은 유지한다.
+- 일반 및 tarot 원장 검증에 ownerId 대조를 명시했다. tarot execution이 없는 기존 원장을 다른 owner로 복구하는 경우도 쓰지 않는다.
+- private 구매 전체 흐름은 테스트 전용 module DI의 true로 유지한다. 실서버/env/body 우회는 추가하지 않았다.
+- 공용 상수 추출 전후 플랫폼 번들은 identifier minify를 끈 동일 esbuild 옵션에서 23,862 bytes 완전 일치했다. 기존 최종 AIT/QR은 유지한다.
+- 최초 targeted 104개 통과. 최초 귀속 보완 후 115개 통과, 누락 의존성과 fixture 수정 후 관련 118개 통과, 마지막 tarot owner 회귀 13개 통과. Toss 전체 첫 실행은 1,739/1,745 통과였고 3건 fixture와 3건 새 worktree 앱 의존성 누락을 위 targeted 검사로 해소했다. lock 기준 npm ci --ignore-scripts, 앱 typecheck 통과. 전체 check:fast는 추가 보완 이전에 시작했으므로 검사 시점을 구분하고 최종 CI가 최종 트리를 검사한다.
+- 콜백 자격 문자열은 작업공간73 p1 input[name="callback.basicAuth"] DOM에만 있다. 저장 전 reload/close하지 않는다. 분실하면 identity/data키는 보존하고 미등록 callback만 메모리 생성해 서버 secret과 콘솔 raw를 같이 재설정한다. 출력·파일 기록 금지.
+
+최종 로컬 결과: check:fast critical 계약 77/77, Node 5,072/5,074. life-book/love-secret 기존 구매 전체 흐름 fixture 2개가 닫힌 판매 정본을 읽어 실패했다. 명시 mock module DI로 보완 후 해당 파일 95개 통과. Worker build와 Toss typecheck 통과. 전체 check:fast 통과로 표시하지 않으며 최종 main CI로 최종 트리를 검증한다. 추가 가격/정책 변경 및 실호출은 없다.

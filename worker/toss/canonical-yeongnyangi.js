@@ -1,3 +1,4 @@
+import {NEW_PURCHASES_AVAILABLE} from '../../lib/toss-release.mjs';
 import {products} from '../yeongnyangi/payments/catalog.ts';
 import {prepareFortune,presentFortune,drawTarotSpread} from '../yeongnyangi/service.ts';
 import {ProfileCard} from '../lib/models.js';
@@ -17,7 +18,7 @@ export function canonicalProducts(approved=APPROVED_TOSS_PRODUCTS) {
     try {
       if(!isReviewSale(product.id)||candidates.length!==1)throw new Error('unavailable sale');
       const sale=approvedProduct(candidates[0].sku,approved);
-      return {...product,priceKRW:sale.approvedPriceKRW,available:true};
+      return {...product,priceKRW:sale.approvedPriceKRW,available:NEW_PURCHASES_AVAILABLE};
     } catch { return {...product,available:false}; }
   });
 }
@@ -46,6 +47,7 @@ export async function prepareCanonicalFortune(env,auth,input) {
   // The web reuses a fish tier internally for symbolic readings. A Toss SKU authorizes only its registered consultation.
   if(input.mode||!isReviewSale(input.productId))throw new TossError('TOSS_PRODUCT_NOT_APPROVED',503);
   const sale=canonicalSale(input.productId);
+  if(!NEW_PURCHASES_AVAILABLE)throw new TossError('TOSS_PURCHASES_DISABLED',503);
   // Keep the complete original input: scope, voice, locale, selected profiles and
   // tarot spread. Server preparation validates all of it and snapshots the chart.
   const row=await prepareFortune(env,auth.userId,input,{checkoutAmountKRW:sale.approvedPriceKRW});

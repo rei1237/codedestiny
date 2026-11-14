@@ -1,3 +1,4 @@
+import {NEW_PURCHASES_AVAILABLE} from '../../lib/toss-release.mjs';
 import {CRYSTAL_SOUL_GEMS} from '../../lib/tarot/crystal-soul-reading.mjs';
 import {resolveOracleConsultationTier} from '../../lib/tarot/oracle-consultation-pricing.mjs';
 import {selectDeckSlots} from '../../lib/tarot/committed-deck.mjs';
@@ -79,7 +80,7 @@ function tarotInput(flow,input,featureKey){
 }
 
 function assertExistingPurchase(purchase,auth,product,orderId){
-  if(!purchase||purchase.identityId!==auth._id||purchase.environment!==auth.environment||purchase.sku!==product.sku
+  if(!purchase||purchase.identityId!==auth._id||String(purchase.ownerId)!==String(auth.ownerId)||purchase.environment!==auth.environment||purchase.sku!==product.sku
     ||purchase.productId!==product.productId||purchase.tarotFlowId!==product.flow.id||purchase.featureKey!==product.featureKey) {
     throw new TossError('ORDER_OWNERSHIP_MISMATCH',403);
   }
@@ -107,6 +108,7 @@ export async function grantTarotLibraryOrder({store,auth,order,product,input}){
   const receipt=await store.transaction(async tx=>{
     await tx.assertIdentity(auth);
     let purchase=await tx.purchase(order.orderId);
+    if(!purchase&&!NEW_PURCHASES_AVAILABLE)throw new TossError('TOSS_PURCHASES_DISABLED',503);
     let execution=await tx.execution(order.orderId);
     if(purchase)assertExistingPurchase(purchase,auth,product,order.orderId);
     if(execution)assertExistingExecution(execution,auth,product,order.orderId);

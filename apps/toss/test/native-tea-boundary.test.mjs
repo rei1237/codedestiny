@@ -22,6 +22,7 @@ state.models={
 globalThis.__nativeTeaBoundary=state;
 const root=path.resolve(import.meta.dirname,'../../..');
 const stubs={
+ 'lib/toss-release.mjs':'export const NEW_PURCHASES_AVAILABLE=true;',
  'worker/toss/native-life-book.js':'export const nativeLifeBookLibraryItem=()=>{throw Error("LIFE_OUTSIDE_TEST")};',
  'worker/toss/native-love-secret.js':'export const nativeLoveSecretLibraryItem=()=>{throw Error("LOVE_OUTSIDE_TEST")};',
   'worker/lib/db.js':'export const withMongoRetry=async(e,f)=>f();',
@@ -48,7 +49,7 @@ const stubs={
     }`,
 };
 const bundle=await build({entryPoints:[path.join(root,'worker/toss/native-tea.js')],bundle:true,platform:'node',format:'cjs',write:false,
-  plugins:[{name:'offline-native-boundaries',setup(b){b.onLoad({filter:/\.js$/},args=>{const contents=stubs[path.relative(root,args.path).replaceAll('\\','/')];if(contents)return {contents,loader:'js'};});}}]});
+  plugins:[{name:'offline-native-boundaries',setup(b){b.onLoad({filter:/\.(mjs|js|ts)$/},args=>{const contents=stubs[path.relative(root,args.path).replaceAll('\\','/')];if(contents)return {contents,loader:'js'};});}}]});
 const loaded=new Module(path.join(root,'native-tea-boundary.cjs'));loaded.paths=Module._nodeModulePaths(root);loaded._compile(bundle.outputFiles[0].text,loaded.id);
 const api=loaded.exports;
 const call=(suffix,body,who=auth)=>api.handleNativeTea(new Request('https://example.invalid'+suffix,{method:body?'POST':'GET',
@@ -88,4 +89,35 @@ test('native adapter preserves immutable input, proves live orders and rereads t
   await assert.rejects(api.nativeTeaLibraryItem({},auth,state.purchases[0]),/SESSION_EXPIRED/);
   await assert.rejects(call('/results/original'),/SESSION_EXPIRED/);
   assert.equal(state.web,0);assert.ok(state.lookups>=3);
+});
+
+
+test('closed sales reject new intents and fabricated orders before writes while verified paid retries survive',async()=>{
+ const closedBundle=await build({entryPoints:[path.join(root,'worker/toss/native-tea.js')],bundle:true,platform:'node',format:'cjs',write:false,
+ plugins:[{name:'closed-sales-offline',setup(b){b.onLoad({filter:/\.(js|ts)$/},args=>{const contents=stubs[path.relative(root,args.path).replaceAll('\\','/')];if(contents)return {contents,loader:'js'};});}}]});
+ const closed=new Module(path.join(root,'closed-native.cjs'));closed._compile(closedBundle.outputFiles[0].text,closed.id);const prepare=closed.exports.prepareNativeTea;
+ state.rows=[];state.purchases=[];state.catalog.splice(0,state.catalog.length,product);state.identity=true;state.order=order;
+ assert.equal(closed.exports.nativeTeaCatalog()[0].available,false);
+ await assert.rejects(prepare({},auth,input),/TOSS_PURCHASES_DISABLED/);assert.equal(state.rows.length,0);
+ await assert.rejects(prepare({},auth,input,order.orderId),/RESULT_NOT_FOUND/);assert.equal(state.rows.length,0);
+ const purchase={...product,_id:order.orderId,identityId:auth._id,ownerId:auth.ownerId,environment:auth.environment,status:'PURCHASED',requestId:null};
+ state.purchases=[purchase];
+ for(const bad of [{ownerId:'other'},{environment:'DEFAULT'},{nativeService:'music'},{featureKey:'other'},{status:'REFUNDED'}]){
+  state.purchases=[{...purchase,...bad}];await assert.rejects(prepare({},auth,input,order.orderId));assert.equal(state.rows.length,0);
+ }
+ state.purchases=[purchase];
+ for(const bad of [{orderId:'other'},{sku:'other'},{status:'PENDING'},{status:'REFUNDED'}]){
+  state.order={...order,...bad};await assert.rejects(prepare({},auth,input,order.orderId));assert.equal(state.rows.length,0);
+ }
+ state.order=order;
+ // Deferred assignment still requires a live paid order before creating input.
+ const contract={requestId:input.requestId,resultId:input.resultId,featureKey:product.featureKey,inputHash:'hash',pricing:{amountKRW:6000}};
+ const prepared=await closed.exports.prepareNativeConsultation({},auth,input,order.orderId,contract,'tea',{deferAssignment:true});
+ assert.equal(prepared.paid,false);assert.equal(state.rows.length,1);
+ const row=state.rows[0];row.status='paid';row.orderId=order.orderId;purchase.requestId=row._id;
+ assert.equal((await closed.exports.prepareNativeConsultation({},auth,input,undefined,contract,'tea')).paid,true);
+ state.order={...order,status:'PENDING'};
+ await assert.rejects(closed.exports.prepareNativeConsultation({},auth,input,undefined,contract,'tea'),/ORDER_NOT_PAID/);
+ state.order=order;state.purchases=[];
+ await assert.rejects(closed.exports.prepareNativeConsultation({},auth,input,undefined,contract,'tea'),/RESULT_NOT_FOUND/);
 });

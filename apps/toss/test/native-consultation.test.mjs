@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {grantNativeOrder,assertNativeIntent,nativeProduct,retainedNativeProduct} from '../../../worker/toss/native-consultation.js';
+import {mockSaleModule} from './mock-sale-module.mjs';
+const {grantNativeOrder,assertNativeIntent,nativeProduct,retainedNativeProduct}=await mockSaleModule('worker/toss/native-consultation.js');
 import {bindNativeTossRequest,nativeTossContext} from '../../../worker/toss/native-context.js';
 
 const auth={_id:'owner-identity',ownerId:'owner',environment:'SANDBOX'};
@@ -123,4 +124,12 @@ test('native Neo grant binds only the approved strategy SKU and keeps its own se
  assert.equal(storage.state.purchases.get(order.orderId).nativeService,'neo');
  assert.equal(storage.state.purchases.get(order.orderId).serviceId,'neo');
  await assert.rejects(grantNativeOrder({store:storage,auth,product,order,requestId:initial._id}),/ORDER_OWNERSHIP_MISMATCH/);
+});
+
+
+test('closed native policy forbids first attribution and keeps stored rights',async()=>{
+ const {grantNativeOrder:closedGrant}=await import('../../../worker/toss/native-consultation.js');const f=store();const args={store:f,auth,order,product};
+ await assert.rejects(closedGrant(args),/TOSS_PURCHASES_DISABLED/);assert.equal(f.state.writes,0);
+ await grantNativeOrder(args);assert.equal((await closedGrant(args)).durable,true);
+ await assert.rejects(closedGrant({...args,auth:{...auth,ownerId:'other'}}),/ORDER_OWNERSHIP_MISMATCH/);
 });
