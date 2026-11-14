@@ -400,14 +400,18 @@ test('home cluster shells get the alternatesFor(home) hreflang set in place of t
   const out = withHomeClusterHreflang(shell);
   const links = [...out.matchAll(/<link\s+[^>]*rel=["']alternate["'][^>]*hreflang=["']([^"']+)["'][^>]*href=["']([^"']+)["']/gi)].map(([, lang, href]) => `${lang} ${href}`);
   assert.deepEqual(links, [
-    'ko https://code-destiny.com/ggulggul/', 'ja https://code-destiny.com/ja/',
+    'ko https://code-destiny.com/', 'ja https://code-destiny.com/ja/',
     'zh-CN https://code-destiny.com/zh/', 'zh https://code-destiny.com/zh/', 'zh-Hans https://code-destiny.com/zh/',
     'zh-TW https://code-destiny.com/zh-tw/', 'zh-Hant https://code-destiny.com/zh-tw/',
-    'en https://code-destiny.com/en/', 'x-default https://code-destiny.com/ggulggul/',
+    'en https://code-destiny.com/en/', 'x-default https://code-destiny.com/',
   ]);
   assert.equal(out.match(/type=["']application\/rss\+xml["']/gi)?.length ?? 0, shell.match(/type=["']application\/rss\+xml["']/gi)?.length ?? 0, 'RSS alternate stays');
   assert.ok(out.includes('<a href="/ggulggul/" hreflang="ko" lang="ko">KR</a>'), 'body language links stay');
   assert.equal(withHomeClusterHreflang('<head><title>x</title></head>'), '<head><title>x</title></head>', 'no block, no insert');
+  // /ggulggul/ 셸은 빈 묶음을 받아 hreflang 을 지운다(대표는 `/`). RSS alternate 는 남는다.
+  const stripped = withHomeClusterHreflang(shell, []);
+  assert.equal(stripped.match(/<link\s+[^>]*hreflang=/gi), null, 'no hreflang link left');
+  assert.equal(stripped.includes('application/rss+xml'), shell.includes('application/rss+xml'), 'RSS alternate stays after strip');
 });
 
 test('edge rules run the dist worker over emulated Pages assets, and are skipped without a worker', async () => {

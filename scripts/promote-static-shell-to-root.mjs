@@ -206,7 +206,8 @@ function alignHomeClusterHreflang() {
     const destinationPath = resolve(rootDir, "dist", routeFile);
     if (!existsSync(destinationPath)) continue;
     const html = readFileSync(destinationPath, "utf8");
-    const nextHtml = withHomeClusterHreflang(html);
+    // /ggulggul/ 은 홈 hreflang 묶음에서 빠졌다(대표는 `/`). hreflang 을 지우고 자기 canonical 만 남긴다.
+    const nextHtml = routeFile === "ggulggul/index.html" ? withHomeClusterHreflang(html, []) : withHomeClusterHreflang(html);
     if (nextHtml !== html) writeFileSync(destinationPath, nextHtml, "utf8");
   }
 }

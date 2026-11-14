@@ -15,8 +15,7 @@
  *    가 같은 이유로 사이트맵에서도 뺀다. follow 는 유지해 링크 자산은 통과시킨다.
  */
 
-import { I18N_ROUTE_MAP } from "../../lib/i18n/locale-data.mjs";
-import { alternatesFor } from "../../lib/seo/hreflang.mjs";
+import { alternatesFor, HOME_HREFLANG_ROUTES } from "../../lib/seo/hreflang.mjs";
 
 const SITE_ORIGIN = "https://code-destiny.com";
 
@@ -57,9 +56,10 @@ function withoutHreflangLinks(html) {
 
 /**
  * 꽃돼지 홈 클러스터 셸(/ggulggul/·/en/·/ja/·/zh/·/zh-tw/)의 hreflang 을 사이트맵과 같은 집합으로 바꾼다(묶음 ③ T8).
+ * 2026-11-14: 한국어 대표·x-default 는 `/` 다(HOME_HREFLANG_ROUTES). /ggulggul/ 셸은 빈 배열을 넘겨 hreflang 을 지운다.
  *
  * 이 셸들은 루트 index.html 의 hreflang 12줄(ko-KR·ja-JP·en-US 포함)을 그대로 들고 나온다. 설계상 index.html 은
- * 고치지 않으므로(다른 브랜치가 같은 파일을 만진다) 배포 산출물에서만 alternatesFor(I18N_ROUTE_MAP.home) 로 갈아 끼운다.
+ * 고치지 않으므로(다른 브랜치가 같은 파일을 만진다) 배포 산출물에서만 alternatesFor(HOME_HREFLANG_ROUTES) 로 갈아 끼운다.
  * 사이트맵(generate-sitemap.mjs)도 같은 지도·같은 함수라 HTML = 사이트맵이 된다.
  * 첫 hreflang 줄 자리에 새 묶음을 넣고 나머지는 지운다. hreflang 줄이 없으면 그대로 둔다(없는 클러스터를 만들지 않는다).
  * 🔴 RSS 링크(rel="alternate" type=rss)는 hreflang 이 없어 건드리지 않는다.
@@ -72,7 +72,7 @@ export const HOME_CLUSTER_SHELL_FILES = Object.freeze([
   "zh-tw/index.html",
 ]);
 
-export function withHomeClusterHreflang(html, alternates = alternatesFor(I18N_ROUTE_MAP.home)) {
+export function withHomeClusterHreflang(html, alternates = alternatesFor(HOME_HREFLANG_ROUTES)) {
   const block = alternates
     .map((alt) => `<link rel="alternate" hreflang="${escapeHtmlAttr(alt.hreflang)}" href="${escapeHtmlAttr(alt.href)}">`)
     .join("\n");

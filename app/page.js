@@ -22,6 +22,7 @@ import styles from "./home-main.module.css";
 import { IS_APP_BUILD } from "../lib/app-build-target";
 import { products } from "../worker/yeongnyangi/payments/catalog";
 import { ROBOTS_META } from "../lib/seo/index-policy.mjs";
+import { alternatesFor, HOME_HREFLANG_ROUTES, toNextLanguages } from "../lib/seo/hreflang.mjs";
 
 // `/` 는 꿀꿀 운세의 공식 대표 홈이다(2026-10-15). 상담 앱 입구는 /ggulggul/ 이고,
 // 기능 쿼리가 붙은 `/` 요청은 워커가 앱으로 보낸다(public/_worker.js 루트 분기).
@@ -44,8 +45,8 @@ export const metadata = {
   title: { absolute: HOME_TITLE },
   description: HOME_DESCRIPTION,
   keywords: [service.name, ...service.alternateNames, `${service.name} 공식`, YEONGNYANGI.serviceName, "무료 만세력", "무료 타로", "영냥이", "자미두수", "베다점", "숙요점", "휴먼 디자인", "MBTI", ...publicSeoPages.home.keywords],
-  // 대표 홈은 자기 자신만 정본으로 둔다. /ggulggul/ 로케일 클러스터(hreflang)와 섞지 않는다.
-  alternates: { canonical: service.homeUrl },
+  // 대표 홈은 자기 자신이 정본이고, 홈 hreflang 묶음의 한국어 대표·x-default 다(2026-11-14). /ggulggul/ 은 묶음에 없다.
+  alternates: { canonical: service.homeUrl, languages: toNextLanguages(alternatesFor(HOME_HREFLANG_ROUTES)) },
   robots: ROBOTS_META.INDEX,
   openGraph: {
     type: "website",

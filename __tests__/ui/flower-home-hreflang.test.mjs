@@ -18,20 +18,23 @@ test('translated Flower Pig homes have reciprocal alternates to the same service
   assert.ok(!alternates.some(a=>a.getAttribute('href')===origin+'/'));
  }
 });
-test('sitemap and HTML keep the Flower Pig cluster separate from Yeongnyangi root',()=>{
+test('sitemap puts the brand home / at the head of the home hreflang cluster and leaves /ggulggul/ out',()=>{
  const sitemap=new JSDOM(readFileSync('sitemap.xml','utf8'),{contentType:'text/xml'}).window.document;
  const rows=[...sitemap.getElementsByTagName('url')];
- for(const path of homes){
-  const row=rows.find(r=>r.getElementsByTagName('loc')[0]?.textContent===origin+path);
-  assert.ok(row,path);
-  const links=[...row.getElementsByTagName('xhtml:link')];
-  assert.equal(links.find(a=>a.getAttribute('hreflang')==='ko')?.getAttribute('href'),origin+'/ggulggul/');
-  for(const href of homes)assert.ok(links.some(a=>a.getAttribute('href')===origin+href),`${path} misses ${href}`);
+ // 2026-11-14(bundle2-decisions §2 A안): 홈 hreflang 묶음의 한국어 대표·x-default 는 `/` 다. 소스 셸(public/)은 그대로 두고
+ // 배포 산출물과 사이트맵만 바꾼다(scripts/promote-static-shell-to-root.mjs alignHomeClusterHreflang).
+ const cluster=['/','/en/','/ja/','/zh/','/zh-tw/'];
+ for(const path of cluster){
+  const matched=rows.filter(r=>r.getElementsByTagName('loc')[0]?.textContent===origin+path);
+  assert.equal(matched.length,1,`${path} is in the sitemap once`);
+  const links=[...matched[0].getElementsByTagName('xhtml:link')];
+  for(const lang of ['ko','x-default'])assert.equal(links.find(a=>a.getAttribute('hreflang')===lang)?.getAttribute('href'),origin+'/',`${path} ${lang}`);
+  for(const href of cluster)assert.ok(links.some(a=>a.getAttribute('href')===origin+href),`${path} misses ${href}`);
+  assert.ok(!links.some(a=>a.getAttribute('href')===origin+'/ggulggul/'),`${path} still points at /ggulggul/`);
  }
- // 2026-10-15: `/` 는 200 브랜드 대표 홈이다. 꽃돼지 로케일 클러스터와 섞이지 않게 alternates 없이 하나만 둔다.
- const rootRows=rows.filter(r=>r.getElementsByTagName('loc')[0]?.textContent===origin+'/');
- assert.equal(rootRows.length,1,'the brand home is in the sitemap once');
- assert.equal(rootRows[0].getElementsByTagName('xhtml:link').length,0,'the brand home has no hreflang alternates');
+ const appRows=rows.filter(r=>r.getElementsByTagName('loc')[0]?.textContent===origin+'/ggulggul/');
+ assert.equal(appRows.length,1,'the app entry is in the sitemap once');
+ assert.equal(appRows[0].getElementsByTagName('xhtml:link').length,0,'the app entry has no hreflang alternates');
 });
 
 test('Flower Pig shell page identities match their canonical URL and localized metadata',()=>{
