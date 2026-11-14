@@ -6,6 +6,7 @@ import {Module} from 'node:module';
 import {build} from 'esbuild';
 import {TOSS_SUKUYO_TOOLS} from '../../../lib/fortune/toss-sukuyo-tools.mjs';
 const root=path.resolve(import.meta.dirname,'../../..');
+process.chdir(root);
 const bundle=await build({entryPoints:[path.join(root,'worker/toss/sukuyo-tools.js')],bundle:true,write:false,platform:'node',format:'cjs',loader:{'.wasm':'binary'}});
 const compiled=new Module(path.join(root,'test-toss-sukuyo-tools.cjs'));compiled.paths=Module._nodeModulePaths(root);compiled._compile(bundle.outputFiles[0].text,compiled.id);
 const read=compiled.exports.readTossSukuyoTool;

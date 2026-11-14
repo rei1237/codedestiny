@@ -4,6 +4,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import {chartFixture} from './chart-fixture.mjs';
 import {TOSS_ASTRO_SECTIONS} from '../../../lib/fortune/toss-astro-sections.mjs';
+process.chdir(path.resolve(import.meta.dirname,'../../..'));
 const exampleBirth={date:'1990-02-03',time:'08:35',unknown:false,calendar:'solar',gender:'F',city:'서울'};
 const fixture={ok:true,planets:['Sun','Moon','Mercury','Venus','Mars','Jupiter','Saturn'].map((name,index)=>({name,longitude:index*40,house:index+1})),angles:{ascendant:{longitude:10},midheaven:{longitude:280}},houses:Array.from({length:12},(_,index)=>({longitude:index*30+10})),aspects:[{p1:'Sun',p2:'Moon',type:'sextile',orb:1}]};
 test('guest western reading opens original wheel and all ten sections, caches returns and preserves birth on native back',async()=>{

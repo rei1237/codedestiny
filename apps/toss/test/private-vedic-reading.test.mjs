@@ -7,6 +7,7 @@ import path from 'node:path';
 import {privateVedicReading,vedicExampleBirth} from '../private-simulation/vedic-reading.mjs';
 import example from '../private-simulation/vedic-reading-example.json' with {type:'json'};
 const root=path.resolve(import.meta.dirname,'../../..');
+process.chdir(root);
 test('private Vedic example is identical to canonical local Swiss and rejects all other births',async()=>{
  const bundled=await build({entryPoints:[path.join(root,'worker/toss/vedic-reading.js')],bundle:true,write:false,platform:'node',format:'cjs',loader:{'.wasm':'binary'}});
  const compiled=new Module(path.join(root,'test-private-vedic.cjs'));compiled.paths=Module._nodeModulePaths(root);compiled._compile(bundled.outputFiles[0].text,compiled.id);

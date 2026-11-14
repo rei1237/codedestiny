@@ -7,6 +7,7 @@ import {build} from 'esbuild';
 import {vedicReadingModule} from '../canonical/vedic-reading.mjs';
 import {buildOriginalVedicReading,vedicSourceBridge} from '../service/vedic-source-bridge.mjs';
 const root=path.resolve(import.meta.dirname,'../../..');
+process.chdir(root);
 const bundle=await build({entryPoints:[path.join(root,'worker/toss/vedic-reading.js')],bundle:true,write:false,platform:'node',format:'cjs',loader:{'.wasm':'binary'}});
 const compiled=new Module(path.join(root,'test-vedic-reader.cjs'));compiled.paths=Module._nodeModulePaths(root);compiled._compile(bundle.outputFiles[0].text,compiled.id);
 const prepare=compiled.exports.tossVedicReading;
