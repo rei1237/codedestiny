@@ -1077,7 +1077,7 @@ function useNeoTypewriter(text: string, enabled: boolean) {
   return { displayed, isTyping, complete };
 }
 
-export default function NeoOperationRoomPage({ paymentSurface = "web", TossPrice, TossProfile, draftOwner = "" }: { paymentSurface?: "web" | "toss"; TossPrice?: TossTeaPriceComponent; TossProfile?: ComponentType<{onSelect:(seed:AiPrefillSeed)=>void;calendarMode?:"lunar";label?:string}>; draftOwner?: string } = {}) {
+export default function NeoOperationRoomPage({ paymentSurface = "web", TossPrice, TossProfile, draftOwner = "", initialQuestion = "", onQuestionChange }: { initialQuestion?: string; onQuestionChange?: (question: string) => void; paymentSurface?: "web" | "toss"; TossPrice?: TossTeaPriceComponent; TossProfile?: ComponentType<{onSelect:(seed:AiPrefillSeed)=>void;calendarMode?:"lunar";label?:string}>; draftOwner?: string } = {}) {
   const ProfilePicker = paymentSurface === "toss" ? TossProfile : SavedBirthProfilePicker;
   const [tossPrice, setTossPrice] = useState<TossTeaPriceSelection | null>(null);
   const [priceEpoch, setPriceEpoch] = useState(0);
@@ -1090,7 +1090,7 @@ export default function NeoOperationRoomPage({ paymentSurface = "web", TossPrice
   const [intensity, setIntensity] = useState<IntensityId | "">("standard");
   const [lastCommandChoice, setLastCommandChoice] = useState<NeoCommandChoice | null>(null);
   const guideSeed = useRef("");
-  const [question, setQuestion] = useState("");
+  const [question, setQuestion] = useState(initialQuestion);
   const [operationReady, setOperationReady] = useState(false);
   const [flowPhase, setFlowPhase] = useState<FlowPhase>("idle");
   const [validationErrors, setValidationErrors] = useState<NeoWarRoomValidationError[]>([]);
@@ -1098,6 +1098,7 @@ export default function NeoOperationRoomPage({ paymentSurface = "web", TossPrice
   const [briefing, setBriefing] = useState<NeoBriefing | null>(null);
   const [compatSummary, setCompatSummary] = useState<NeoCompatSummary | null>(null);
   const [sessionId, setSessionId] = useState("");
+  useEffect(() => { onQuestionChange?.(sessionId ? "" : question); }, [question, sessionId, onQuestionChange]);
   const [selectedRealityChecks, setSelectedRealityChecks] = useState<string[]>([]);
   const [realityFreeform, setRealityFreeform] = useState("");
   const [refinedOrder, setRefinedOrder] = useState<NeoRefinedOrder | null>(null);

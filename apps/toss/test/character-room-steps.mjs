@@ -31,6 +31,10 @@ export async function neo(page,origin){
   await button(page,'토스로 로그인하기').click();
   await button(page,'고민부터 적어보기').click();
   await page.locator('#neo-operation-question').fill(neoQuestion);
+  await page.reload();
+  await page.getByRole('button',{name:'고민부터 적어보기'}).click();
+  assert.equal(await page.locator('#neo-operation-question').inputValue(),neoQuestion);
+
   await button(page,'직업 / 이직').click();
   await page.getByRole('button',{name:/^사주/}).first().click();
   await page.getByPlaceholder('이름 또는 별명').fill('테스트');
