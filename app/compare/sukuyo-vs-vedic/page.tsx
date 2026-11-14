@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { SEO_SERVICE_SCOPES, SEO_SERVICE_SCOPES_UPDATED, seoServiceScopeAsOfLabel } from "@/lib/seo-service-scope";
 import GuideCta from "@/app/components/GuideCta";
 import { GUIDE_CTA_TARGETS } from "@/app/components/guide-cta-targets";
 import { generatePageMetadata } from "@/lib/generate-page-metadata";
@@ -172,6 +173,12 @@ export default function SukuyoVsVedicPage() {
           <li>출생시간을 모른다면 각 도구가 사용한 기본 시각과 계산 방식을 먼저 확인합니다. 달 황경을 쓰는 숙요점의 본명숙도 구간 경계에서는 달라질 수 있고, 베다의 라그나·하우스 해석도 유보해야 합니다.</li>
           <li>두 결과가 어긋난다면 입력 조건과 계산값부터 대조한 뒤 해석을 비교합니다. 계산 오류나 입력 차이를 단순히 관점의 차이라고 넘기지 않습니다.</li>
         </ul>
+        <p>
+          이 사이트에서 숙요점은: {SEO_SERVICE_SCOPES["/sukuyo"].free} {SEO_SERVICE_SCOPES["/sukuyo"].paid}
+        </p>
+        <p>
+          베다 점성술은: {SEO_SERVICE_SCOPES["/vedic"].free} {SEO_SERVICE_SCOPES["/vedic"].paid} (<time dateTime={SEO_SERVICE_SCOPES_UPDATED}>{seoServiceScopeAsOfLabel()}</time>)
+        </p>
       </section>
 
       <section className="cd-card-grid" aria-labelledby="compare-sukuyo-vedic-faq-title">

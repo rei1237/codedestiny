@@ -24,7 +24,7 @@ import {
 import { getSeoRouteProfile, getTopicClusterLinks } from "../../lib/seo/entity-registry.mjs";
 import SeoLandingBirthForm from "./SeoLandingBirthForm";
 import FortuneLandingHero, { hasFortuneLanding, FortuneLandingDirectory } from "./FortuneLandingHero";
-import { SEO_SERVICE_SCOPES } from "../../lib/seo-service-scope";
+import { SEO_SERVICE_SCOPES, SEO_SERVICE_SCOPES_UPDATED, seoServiceScopeAsOfLabel } from "../../lib/seo-service-scope";
 import { SEO_READING_EXAMPLES } from "../../lib/seo-reading-examples";
 
 const DEFAULT_FAQS = [
@@ -424,6 +424,7 @@ export default function SeoLandingTemplate({ page, hero = null, services = null,
             {/* 여러 허브에 같은 문단이 반복되지 않게 공통 안내는 한 줄로 둔다(T2). 미래를 확정하지
                 않는다는 고지는 바로 아래 면책 절과 제작·검수 안내가 맡는다. */}
             <p>계산 엔진이 근거를 만들고 AI는 선택한 상담의 해설을 씁니다. 결제 조건은 선택한 상품에서 확인하세요. <Link href={SEO_SERVICE_SCOPES[page.path].basis} className="underline underline-offset-4">계산·해석 기준</Link>{" · "}<Link href="/about/#author" className="underline underline-offset-4">운영자 박병하·네오의 공개 활동</Link></p>
+            <p className="text-sm text-[var(--cd-text-muted)]">무료·유료 범위는 <time dateTime={SEO_SERVICE_SCOPES_UPDATED}>{seoServiceScopeAsOfLabel()}</time>이며, 바뀌면 이 날짜와 함께 고칩니다.</p>
           </section>
         ) : null}
         {nextStep ? (

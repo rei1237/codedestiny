@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { SEO_SERVICE_SCOPES_UPDATED, seoServiceScopeAsOfLabel } from "@/lib/seo-service-scope";
 import GuideCta from "@/app/components/GuideCta";
 import { GUIDE_CTA_TARGETS } from "@/app/components/guide-cta-targets";
 import { generatePageMetadata } from "@/lib/generate-page-metadata";
@@ -241,7 +242,7 @@ export default function FortuneAppsComparePage() {
         <p>
           오늘의 운세와 별자리·띠별 운세, 타로 리딩은 로그인 없이 무료로 볼 수 있고, 무료 만세력(사주 원국과 한 줄
           성향)은 로그인 후 확인할 수 있습니다. 사주 전체 풀이와 여섯 체계를 한 상담 안에서 교차 검증하는 초융합
-          심층 리딩은 유료이며, 금액과 결제 수단은 결제 전에 화면에서 확인할 수 있습니다.
+          심층 리딩은 유료이며, 금액과 결제 수단은 결제 전에 화면에서 확인할 수 있습니다. (<time dateTime={SEO_SERVICE_SCOPES_UPDATED}>{seoServiceScopeAsOfLabel()}</time>)
         </p>
       </section>
 
