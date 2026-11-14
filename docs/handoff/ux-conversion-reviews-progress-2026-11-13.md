@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-14
-next: 묶음 ⑤ 단계 12 — 실화면 판정(390·1440) 후 스테이징 push
+next: 묶음 ⑤ 단계 12 — check:pre-push 뒤 스테이징 push(git push origin HEAD:main)
 ---
 
 # 꿀꿀 운세·영냥이 UX: 구매 흐름 · 후기 신뢰 · 후기 작성 · 생성 진행 · 무료 배너
@@ -164,7 +164,7 @@ next: 묶음 ⑤ 단계 12 — 실화면 판정(390·1440) 후 스테이징 push
 ### 묶음 ⑤ 마무리 (단계 12)
 - [x] 리베이스(origin/main a5d6f5814)·재생성 — SHA: ca4d878b6, 3f3f5476b (결과는 문서 끝 "묶음 ⑤ 단계 12 결과 — 리베이스·검사")
 - [x] check:fast·검증 스크립트
-- [ ] visual-checker 판정·수정
+- [x] visual-checker 판정·수정 — 회귀 없음, 수정 커밋 없음(문서 끝 "묶음 ⑤ 단계 12 결과 — 실화면·push")
 - [x] SEO 점검(정적)
 - [ ] push(origin main, 내 커밋만) — 범위:
 - [ ] 문서 done·워크트리 정리
@@ -1164,3 +1164,116 @@ SEO 동시 점검 (정적, 네트워크 없음)
 - 실화면 판정(visual-checker 390·1440, 설계 §12 목록) → 스테이징 push(내 커밋만 `git push origin HEAD:main`). 운영 승격은 승인되지 않았다.
 - push 직전 `git fetch` 후 origin/main이 또 움직였으면 다시 리베이스하고 재생성·검사한다(사이트맵 원장은 서명만).
 - 백업 브랜치 `backup/ux-conversion-pre-rebase-20261114`는 push가 끝나면 지운다.
+
+### 묶음 ⑤ 단계 12 결과 — 실화면·push (2026-11-14)
+
+실화면 판정 방법
+- dev 서버 1개(`npm run dev:next -- -p 12941 -H 127.0.0.1`), Playwright 390·1440, 쿠키 선택(`cd_cookie_consent=essential`)과 영냥이 프롤로그 읽음을 미리 넣었다.
+- `page.route('**/api/**')`로 모든 API를 가로챘다. 후기 상품·자격·요약·목록과 영냥이 완료 요청만 가짜 JSON을 주고, 나머지는 404를 돌려줬다. 유료 모델 호출, 실제 결제, 운영 DB 접근은 없었다.
+- 후기 자리표시 3건("화면 확인용 자리표시…")은 캡처에만 쓰였다. 저장소와 DB에는 넣지 않았다.
+- 스크린샷은 visual-checker 하위 에이전트가 읽었다. 대비는 픽셀 값을 sharp로 쟀다.
+- 끝난 뒤 dev 서버 트리를 종료했고 12941 포트가 비었음을 확인했다.
+
+판정 (페이지 · 폭)
+
+| 화면 | 390 | 1440 | 근거 |
+|---|---|---|---|
+| `/` 무료 배너 | PASS | PASS | 1440 카드 1080px 가운데 정렬, 칩 44px, 대비 5.91~15.38:1 |
+| `/` 영냥이 카드 가격 | PASS | PASS | "10,000원부터" 한 번 표시, 연이 카드엔 가격 없음, 가로 넘침 0 |
+| `/saju/four-cut/`·`natal-chart/`·`season-rhythm/` | PASS | PASS | H1 일치, 이미지 표시, 대비 ≥5.3:1, 시작 버튼이 첫 화면 안 |
+| `/love-secret-ai/` 인트로 ReviewProof | PASS | PASS | summary 모드(평균 4.3·3건, 보상 표시, 고지문), 대비 ≥10.37:1 |
+| `/love-secret-ai/` 단계 가격 줄 | PASS | PASS | "상담 이용 가격 30,000원" 6.55:1. 글자가 11~12px로 작다(후속) |
+| `/new-year-ai-consultation/`·`/life-book-ai/` ReviewProof | PASS* | PASS | facts 모드. *390에서는 하단 고정 바와 dev 전용 버튼이 일부를 가렸다(캡처 시점 문제, 아래) |
+| `/yeongnyangi/` 히어로 가격 | PASS | PASS | "질문 상담 10,000원부터" 11.1:1, 영냥이 귀 2개 |
+| `/yeongnyangi/` 가격 안내 | PASS | PASS | 9.5:1. 390 "기/준" 줄바꿈은 기존 문제. 390 가격 캡처 1장은 대상이 어긋나 푸터를 찍었다(재촬영 안 함) |
+| `/yeongnyangi/` "예시 먼저 보기" | PASS | PASS | 클릭하면 `#yn-example` details가 열린다(`open=true`). 13.2:1. 밑줄은 `.journey a` 규칙으로 이미 있다. 축소 캡처에서는 얇아서 잘 보이지 않았다 |
+| 영냥이 결제 목업 | PASS | PASS | 순서가 버튼 → 안심 문구 → 약관 링크다. 고정 결제 바(y≈735)가 약관을 가리지 않는다. 9.0~10.0:1 |
+| 결과 화면 후기 작성기(영냥이, 목업) | PASS | PASS | 별 약 55~59×51px, 태그 3/3 묶음, "4점 · 좋아요" |
+| `/reviews/?write=1&product=love-coach` | PASS | PASS | love-coach가 미리 선택된다 |
+| `/reviews/?product=yeongnyangi` | PASS | PASS | 보상 표시 7.52:1, 작고 튀지 않는다 |
+| 대기 화면: 신년운세(꿀꿀) | PASS | PASS | 막대 28.6%(2/7), 퍼센트 글자 없음, ≥9.13:1, 은발 인간 네오 |
+| 대기 화면: 영냥이 | PASS | PASS | ≥9.2:1, 귀 2개 |
+
+이 브랜치가 만든 회귀: 없음. 이번 단계에서 고친 코드는 없다(수정 커밋 없음).
+- 여러 390 캡처의 왼쪽 아래 버튼(결제 바 "총 결제 금액", 작성기 칩, 후기 모달 동의 체크박스, 신년·인생의 책 본문을 가림)은 dev 전용 "개발 결제 테스터"(`fixed bottom-4 left-4`)다. 이 브랜치 diff에는 함정 메모 한 줄로만 나온다. 운영과 상관없다.
+- 작성기 제출 버튼 `.cd-quick-review__submit`과 별 색 CSS는 이 브랜치 diff에서 바뀌지 않은 줄이다. 바뀐 것은 태그 묶음 grid뿐이다.
+
+재리베이스 (push 직전)
+- `git fetch` 결과 origin/main이 `a5d6f5814` → `f63ff9bb0`로 5커밋 움직였다(toss 위주, `41e168dd7` handoff 규약 검사 완화). 백업 `backup/ux-conversion-pre-rebase2-20261114`를 만든 뒤 리베이스했다.
+- 충돌은 `config/sitemap-lastmod.json` 1건이었다. 생성물이라 upstream 값을 받고, 사이트맵 XML 12개도 upstream 값으로 맞췄다.
+- 그 뒤 `sitemap:generate`·`llms:generate`·`sync:public`을 돌리고 서명 전용 도우미를 적용했다(서명이 바뀐 47개 라우트만 남기고 날짜만 바뀐 375개는 되돌림) → `c4843b4e5`.
+- SEO 세션의 브랜드·title 변경은 아직 origin/main에 없다. 그래서 문구를 맞출 일이 없었다.
+
+## 후속 과제 (통합, 중복 제거 — 2026-11-14)
+
+위 각 절의 "후속"을 모았다. 해결된 항목(취소선, 단계 5 후속 1~3)은 뺐다. 모두 이 브랜치에서 고치지 않았다.
+
+후기·신뢰 (법무·운영 판단 포함)
+1. 운영진이 등록한 후기에 "운영진 작성" 표시가 없다.
+2. 후기 POST에 rate limit이 없다.
+3. `/ggulggul/` `index.html`에 죽은 후기 위젯 스크립트와 쓰지 않는 AggregateRating 빌더가 남아 있다.
+4. `app/records/view/SavedRecordClient.tsx`의 후기 링크에 `product=`가 없다.
+5. `QuickReviewComposer`의 `review_ui_view`가 두 번 전송될 수 있다(`eligible.length`가 바뀌면 다시 구독함).
+6. `ReviewsClient` `loadReviews`에 늦게 도착한 응답을 버리는 가드가 없다.
+7. `ReviewsClient` 대비 부족(기존 hex): placeholder 2.54:1, 글자 수 카운터 4.21:1, "4일 전" 4.25:1, 별 2.38:1.
+8. 작성기 문제
+   - 선택된 금색 별이 선택 안 된 흰 별보다 어두워 보인다(기존 CSS).
+   - 제출 버튼이 칩과 비슷해 눈에 덜 띈다.
+   - 보상 문구가 두 번 나온다.
+9. ReviewProof 예약 높이는 390 기준이다. 실제 후기가 쌓이면 카드 모드 높이로 다시 맞춘다.
+
+구매 흐름·가격 표시 (가격 값 자체는 RED, 표시만)
+10. love-secret 390 "내 정보" 단계
+    - `SavedBirthProfilePicker`가 헤더 폭을 다 차지해 제목 열이 0px로 무너진다.
+    - 헤더에 `flex-wrap`을 주거나 피커를 헤더 아래로 내려야 한다.
+11. love-secret 가격 표시
+    - 마지막 단계에서 같은 가격이 두 번 보인다.
+    - 단계 가격 줄은 11~12px로 작다.
+    - toss에서 보이는 PriceBadge가 토스 단건 가격과 같은지 따로 확인해야 한다.
+12. `NightPriceDetails` "기/준" 줄바꿈과 감사 카드 "찬/찬히" 줄바꿈은 `word-break: keep-all`이 빠져서 생긴다.
+13. `js/feature-detail-panels.mjs` fortuneFounder 링크 `/yeongnyangi/#founder-records`는 죽은 앵커다. 바꿀 때 검사 스크립트 2개와 테스트 1개도 함께 고쳐야 한다.
+14. 결과·결제 화면의 약관 링크(15px 인라인), 결과 하단 링크(16~19px), 푸터 5개 요소가 44px 탭 기준에 못 미친다.
+
+무료 배너·상세 페이지
+15. 1440 묶음 열 높이가 고르지 않다(타일 9/6/7). 고치려면 콘텐츠 이동이 필요하다.
+16. 모바일 홈 카드가 약 1233px로 길다. `<details>`로 접는 안은 설계 밖이라 보류했다.
+17. 영냥이 390 말풍선
+    - 글자 폭이 약 150px에 5줄로 좁다.
+    - "열어 / 뒀어요!"가 갈라진다.
+18. 아이콘·버튼 대비
+    - 셸과 영냥이 버튼 아이콘 대비가 2.34~2.93:1로 React 화면과 어긋난다.
+    - 영냥이 공유 버튼 경계 대비가 1.08:1이다.
+19. 홈 `.page :where(a){color:inherit}`가 넓어서 다른 링크 버튼도 덮어쓸 수 있다.
+20. 스킬 트리 trustNotes 원천 문구가 어긋난다("고정값" vs "변할 수 있습니다"). 셸 사주 결과 카드에는 그대로 남아 있다.
+21. hover·focus 색과 네오 테마 영냥이 화면은 정지 캡처로 확인하지 못했다.
+
+생성 진행·대기 화면
+22. 불확정 막대 대비
+    - 빈 트랙이 1.16:1, 테두리가 1.39:1이다.
+    - 베다 트랙 테두리는 2.85:1로 그래픽 기준 3:1에 못 미친다.
+    - 공용 토큰 `--gp-track`을 조정해야 한다.
+23. 네오 전용 보라 토큰이 없다. 지금은 `--cd-samples-lilac`과 `--cd-neo-letter-silver`로 대신한다.
+24. 첫 방문 모바일에서는 고정 쿠키 배너가 대기 카드 아래쪽(떠남 안내)을 가린다(신년운세·베다).
+25. 대기 화면 이미지
+    - 인생의 책 카드가 남색이라 페이지 색과 떨어져 보인다. 호박색 persona 토큰이 필요하다.
+    - 네오 신년 초상은 얼굴이 약 15px로 작다.
+    - 윤달 초상에 srcSet이 없다.
+26. 대기 화면 문구
+    - 신년운세 문구와 인생의 책 `PHASE_COPY`는 한국어 리터럴이다.
+    - 베다 모바일에서는 "차트를 분석하는 중..."이 세 번 나온다.
+    - 390 제목 끝에 한 어절만 남는다. `text-wrap: balance`를 쓸지 선택한다.
+27. 베다 대기 카드가 폼 아래(y≈2900)에 있다. 토스 재개는 URL에 `cid`가 남아 있을 때만 된다.
+28. 영냥이 대기 화면
+    - questionSky "전체 2장"이 후속 장까지 센다.
+    - manifest가 비면 "최종 확인" 제목과 불확정 막대가 함께 보인다.
+    - `<progress>`는 chapters/(manifest+1) 식이라 28.5%로 보인다.
+    - 목차 "1 / 6"과 "3번째 장"이 어긋난다.
+    - 모두 기존 로직이다.
+29. 설계에 적힌 `moments/{yeoni,neo}-loading.webp`는 쓰지 않는다(돼지·사자 그림이라). 지울지 판단해야 한다.
+30. 베다 eslint 경고(`Sparkles` 미사용), 쓰지 않는 CSS `.cosmosLabelSwap`.
+
+검사·운영
+31. `verify:adsense-readiness`·`verify:home-identity`는 `dist/` 빌드(네트워크 CMS 받기)가 필요해 돌리지 않았다. 운영 승격 전에 빌드 환경에서 돌린다.
+32. 알려진 기존 실패: `home-service-separation.test.cjs` `.yh-concerns`.
+33. SEO 세션의 브랜드·title 변경이 들어오면 신규 `/saju/<slug>/` 9개 문구를 "꿀꿀 운세 안의 영냥이 상담" 결정과 다시 대조한다.
+34. 운영 승격은 사용자 승인이 1회 필요하다(이번에는 스테이징까지만 승인됨).
