@@ -462,3 +462,6 @@ export function buildSajuSectionHtml(input) {
   if (!row) throw new SajuSectionInputError("대운을 다시 선택해 주세요.", "SAJU_INVALID_DAEWUN");
   return { html: rt.buildDaewunDetailHtml(row.age, row.g, row.j), daewun: { age: row.age, gan: row.g, zhi: row.j } };
 }
+
+// Same public-facing bond/radar report the web reveals after its access check.
+export function buildSukuyoBondReport(input){return sukuyoRuntime(input).buildSukuyoBondReport(input);}

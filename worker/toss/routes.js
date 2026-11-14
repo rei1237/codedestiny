@@ -749,6 +749,11 @@ export async function handleTossRoutes(request,env) {
       const {basicSkyChart}=await import('./basic-sky-chart.js');
       return reply(await basicSkyChart(path.slice('/charts/'.length),await bodyOf(request),env,{requestUrl:'https://code-destiny.com/api/toss/charts'}));
     }
+    if(path==='/sukuyo/past-life'&&request.method==='POST') {
+      await limit(env,auth._id,'sukuyo-past-life',12);
+      const {tossSukuyoPastLife}=await import('./sukuyo-past-life.js');
+      return reply(await tossSukuyoPastLife(env,auth,await bodyOf(request)));
+    }
     if(path==='/sukuyo/yearly'&&request.method==='POST') {
       await limit(env,auth._id,'sukuyo-yearly',6);
       const {tossSukuyoYearly}=await import('./sukuyo-yearly.js');

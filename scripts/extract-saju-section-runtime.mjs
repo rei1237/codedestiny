@@ -118,8 +118,11 @@ if (!freeSukuyoNode) throw new Error('Missing canonical free Sukuyo reading');
 const freeSukuyoSrc = freeSukuyoNode.getText(tarotAst).replace(/^function syBuildBasicReading\(/, 'function syBuildBasicReadingFree(');
 if (freeSukuyoSrc === freeSukuyoNode.getText(tarotAst)) throw new Error('Cannot isolate free Sukuyo reading');
 const freeSukuyoAst = parse('free-sukuyo.js', freeSukuyoSrc);
+let bondStyles='';
+(function findBondStyles(node){if(ts.isNoSubstitutionTemplateLiteral(node)&&node.text.includes('.sy-past-life-card'))bondStyles=node.text;ts.forEachChild(node,findBondStyles);})(tarotAst);
+if(!bondStyles)throw new Error('Missing original Sukuyo bond styles');
 const Q_TEXT = 'SAJU_QUANTUM_TEXT_TRANSLATIONS';
-const tarotPicked = closure(tarotAst, tarotAst.statements, [...refs(quantumAst), ...refs(encyclopediaAst), ...refs(natureAst), ...refs(freeSukuyoAst), ...refs(compatAst), ...refs(energyAst)], new Set([...quantumNames, ...encyclopediaNames, ...natureNames, ...compatNames, ...energyNames, Q_TEXT]));
+const tarotPicked = closure(tarotAst, tarotAst.statements, ['SukuyoBondReportEngine', ...refs(quantumAst), ...refs(encyclopediaAst), ...refs(natureAst), ...refs(freeSukuyoAst), ...refs(compatAst), ...refs(energyAst)], new Set([...quantumNames, ...encyclopediaNames, ...natureNames, ...compatNames, ...energyNames, Q_TEXT]));
 const tarotNames = new Set(tarotPicked.flatMap(t => [...declared(parse('t.js', t))]));
 const Q_KEYS = [...new Set([quantumSrc, encyclopediaSrc, natureSrc, freeSukuyoSrc, compatSrc, energySrc, ...tarotPicked].join('\n').match(/_sajuQuantumText\("([^"]+)"\)/g).map(m => m.slice(18, -2)))].sort();
 const qTextNode = tarotAst.statements.find(n => ownNames(n).includes(Q_TEXT));
@@ -307,6 +310,7 @@ ${healthSrc.trim()}
     buildDaewunDetailHtml: buildDaewunDetailHtml,
     renderQuantumStrategy: renderQuantumStrategy,
     renderExtremeTPaidPanels: window.renderExtremeTPaidPanels,
+    buildSukuyoBondReport: function(input){var data=SukuyoBondReportEngine.build(input);return {data:data,html:SukuyoBondReportEngine.render(data,true),css:${JSON.stringify(bondStyles)}};},
     renderSukuyoEncyclopediaPaid: renderSukuyoEncyclopediaPaid,
     renderSukuyoNatureDeepDivePaid: renderSukuyoNatureDeepDivePaid,
     buildSukuyoBasicFree: function (lunarObj, sourceProfile) {

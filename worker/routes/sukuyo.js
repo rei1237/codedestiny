@@ -2212,3 +2212,10 @@ export async function handleSukuyoRoutes(request, env = {}, ctx = null) {
     });
   }
 }
+
+// Pure original helpers shared with the native adapter. Authentication and old
+// web archive reads/writes remain owned by handleSukuyoPastLifeReading above.
+export const sukuyoPastLifeCore=Object.freeze({
+ normalizePersonInput,normalizePastLifePartner,normalizePastLifePurpose,
+ normalizeProfileCardForSukuyo,
+});

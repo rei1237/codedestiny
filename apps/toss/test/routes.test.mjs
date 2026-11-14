@@ -18,6 +18,7 @@ const mocks={
 globalThis.__tossRouteMocks=mocks;
 const stubMap={
  'worker/toss/native-human-design.js':"export const prepareNativeHumanDesign=async(_env,owner)=>({owner:owner.ownerId}),readNativeHumanDesign=async(_env,owner,id)=>Response.json({owner:owner.ownerId,id}),nativeHumanDesignLibraryItem=async()=>({state:'PENDING'});",
+ 'worker/toss/sukuyo-past-life.js':"export const tossSukuyoPastLife=async(_env,auth)=>({owner:auth.ownerId,source:'public',stored:false});",
  'worker/toss/sukuyo-yearly.js':"export const tossSukuyoYearly=async(_env,owner)=>({owner:owner.ownerId,stored:false});",
 
  'worker/toss/vedic-reading.js':"export const tossVedicReading=async(body)=>({stored:false,accessSource:'public',input:body});",
@@ -704,3 +705,5 @@ test('original Vedic full reading is guest-public while paid Vedic generation re
 test('Human Design paid results and saved-profile Sukuyo annual reading keep authenticated owner boundaries',async()=>{const id='a'.repeat(64);for(const endpoint of ['/native/human-design/prepare','/native/human-design/results/'+id,'/sukuyo/yearly']){mocks.denyAuth=true;try{assert.equal((await request({ownerId:'foreign',profileId:'foreign'},endpoint)).status,401);}finally{mocks.denyAuth=false;}assert.equal((await request({},endpoint,{})).status,503);const response=await request({ownerId:'foreign',profileId:'foreign'},endpoint);assert.equal(response.status,200);assert.equal((await response.json()).owner,auth.ownerId);}});
 
 test('original public western sections and Sukuyo tools accept guests without exposing paid result routes',async()=>{mocks.denyAuth=true;try{for(const path of ['/astro/chart','/astro/section','/sukuyo/tools']){const res=await request({birth,featureKey:'test'},path,{});assert.equal(res.status,200,path);assert.deepEqual((await res.json()).input.birth,birth);}assert.equal((await request({input:{}},'/native/astrology/prepare')).status,401);assert.equal((await request({},'/canonical/sukuyo-compatibility-ai/start')).status,401);}finally{mocks.denyAuth=false;}});
+
+test('public deterministic past-life report preserves mandatory login and uses the authenticated owner',async()=>{assert.equal((await request({},'/sukuyo/past-life',{})).status,503);mocks.denyAuth=true;try{assert.equal((await request({},'/sukuyo/past-life')).status,401);}finally{mocks.denyAuth=false;}const response=await request({userId:'other',ownerId:'other'},'/sukuyo/past-life');assert.equal(response.status,200);assert.deepEqual(await response.json(),{owner:auth.ownerId,source:'public',stored:false});});
