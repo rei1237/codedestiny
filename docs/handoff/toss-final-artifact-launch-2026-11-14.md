@@ -1,10 +1,28 @@
 ---
 status: in-progress
 updated: 2026-11-14
-next: main 438f6c16d의 CI43595865519 및 Linux 산출물43595897060 결과를 확인하고 검증된 Linux AIT 다운로드·새 비공개 QR 등록·운영 승인 묶음 자료 전달까지 계속한다.
+next: 숙요 연간 selector 수정118456b3a와 이 인계문서를 main push한 정확SHA의 새Linux dispatch를 완료해 private AIT 다운로드·검증·새QR 등록한다. 기존7e8 private는stale검사실패로제출불가.
 ---
 
 ## 최우선 최신 인계 — artifact_finish (2026-11-14)
+
+### Linux 실행 위치 회귀 수정 — linux_qr_finish
+
+**이 문단이 아래7e8상태보다최신이다.** 7e8 Linux43598295559는 일반AIT까지PASS했으나 private actualAIT 후반의 `--sukuyo-yearly`에서 옛버튼문구 timeout으로실패했다. `SukuyoBasic.tsx`는 기본숙요 guest무료복구후 연간전용 `올해의 숙요 흐름`/`토스 로그인하고 연간 흐름 보기`를제공하는데 테스트가이전공통 `토스 로그인하고 살펴보기`를찾았다. 각CLI는새Node/browser/context라선행계정오염아님. 118456b3a에서 exact새heading/버튼으로수정, runtime변경0. 같은runtime Windows AIT01a1da10에서 숙요연간 전체PASS 및 **그이후53케이스전부PASS**(extended4,paidtarot4,paidfamily4,free/native14,Neo편지27). 로그 `D:/Development/Temp/toss-sukuyo-yearly-fix.txt`, `toss-remaining-summary.txt`(53/failures[]), 개별 `toss-remaining-00..52.txt`. 재빌드없음. Linux실패로그 `toss-linux-critical-7e8.txt`에는 연이/찻집/네오/native/expert/HumanDesign까지PASS근거가있다. 아직음악/동물등후반Linux근거로쓸수없음.
+
+- 7e8일반AIT만 `C:/Users/user/Downloads/CodeDestiny/43598295559/regular/ai-saju-studio.ait` 다운로드완료: deployment01a1da34-60b4-7fde-ba71-f6a1cd4fa16a, archive87668230, expanded98824729, source1760, nonPortable0, SHA25626bb1aa7fa5442f95f17529adaba5880fbab3c3e226a510cd75d439370764c5a. private upload저장단계전실패라private파일없음. 최종은새런regular/private쌍사용.
+- main pushCI43598296786는 다음push직전1회조회시 in_progress였고7e8정확SHA였다. artifact43598295559는실패. 기존watch74707는완료됐거나종료대기. 새런dispatch가필요하며root에게런번호직접알릴것. fullroot검사중복불필요: 이미Toss1741/root479통과,최신은QAselector1줄뿐.
+- 118 prepush첫시도는 이인계문서미커밋때문에mirror판정불가(실제mirror drift아님). 이문서commit후prepush재실행하고push. final보고에통과시도/판정불가이유분리.
+- console69/p1 meta/edit 살아있음(22:33쯤round50확인), 저장/업로드/검토변경0. p2는우리새GitHubjob로그페이지(readonly), root유저페이지아님. 정상AIT setInputFiles→memo/releaseNote→임시저장→app-build테스트→newQR. round51까지 `D:/Development/Temp/toss-launch-console-20261114/` 사용. 안내버전은기존15이므로새16예상이나실제관찰확인.
+- 브라우저및Linux준비: ego-guide `D:/Development/Temp/linux-qr-ego-guide.txt`; inspect script `.../inspect-linux-artifacts.mjs`는현재7e8/run43598295559상수라최종새값으로바꿀것. `node ...inspect-linux-artifacts.mjs <folder> [regular|simulation]`; filedownload완료후실행. screenshots는actualarchive defaultcore에 `TOSS_CONSOLE_CAPTURE=1`/`TOSS_CAPTURE_DIR=<permanentfolder>/screens`로3장. `tools.view_image`로확인.
+- 최종README/QR/metadata/AIT/screens는 `C:/Users/user/Downloads/CodeDestiny/<최종run>/`에묶고root에QR부터전달. 기능표상단구버전정보갱신, ait-verification JSON의과거근거보존해최신절추가, 110행16/93/1유지. 32MiB는현재메모리상한/SDKstream없음이지공식한도아님. 운영활성화·검토는root가새QR관찰뒤구체질문,임의실행금지.
+
+- `438f6c16d` 일반 CI43595865519 및 Linux dispatch43595897060은 전체 Jest 통과 후 Toss 계약 검사 실패. `astro-synastry-ui.test.mjs`가 `path.resolve('public/styles/...')`로 실행 위치에 의존했고, `routes.test.mjs`는 신규 music-download mock 누락으로 실제 웹 auth/models를 부분 stub과 섞었다. 로컬 기존 targeted가 root cwd에서 실행되고 음악 통합 뒤 라우트 전체검사가 없었던 차이이며, runtime 제품 결함을 뜻하지 않는다. 실패 로그 `D:/Development/Temp/toss-linux-critical-438.txt`, `toss-main-failure-438.txt`. 이 두 런에서 제출 가능한 AIT는 생성되지 않았다.
+- `7e8d6523acc2cfece64159d7fa38dbc41373020e`에서 CSS 경로를 import.meta 기준으로 고정하고 음악 라우트 mock 경계와 prepare/read/file 인증·403 보존 테스트를 추가. cwd 상대경로를 Toss test 범위로 점검했고 해당 누락만 확인. 실제 `apps/toss` cwd targeted78 PASS, **npm test 전체1741/1741 PASS(55초)**, pre-push PASS. 로그 `toss-linux-fixtures-targeted.txt`, `toss-linux-fixtures-full.txt`, `toss-linux-fixtures-prepush.txt`. 루트479suites를 반복하지 않았다.
+- **main 7e8d6523a push 완료**, 새 Linux workflow dispatch **43598295559** in_progress, 일반 push CI **43598296786** pending. 이번에는 artifact dispatch가 먼저 실행 중이다. watcher session74707, `D:/Development/Temp/toss-linux-artifact-watch-7e8.txt`. 이전 watcher23750은 실패 런의 나머지 job 종료까지 대기 중으로 중복dispatch 아님. 새 런만 최종 산출물로 사용한다.
+- runtime은438과 같고 새 변경은 테스트2파일 및 문서뿐. 위치 운영고지 초안 `18d3bf6cd`도 push 포함: 명시 클릭/별도 전송/무료결과 DB 미저장/LLM없음, 외부 천체력 설정시 좌표 전달 가능. 고지 정본이나 운영 설정은 변경하지 않았다.
+- 새 artifact 이름은 `toss-preview-7e8d6523acc2cfece64159d7fa38dbc41373020e`, `toss-private-simulation-7e8d6523acc2cfece64159d7fa38dbc41373020e`. 최종 전달 디렉터리 `C:/Users/user/Downloads/CodeDestiny/43598295559/regular` 및 `/simulation`. 기존 임시 inspect-linux-artifacts.mjs의438/run 상수도 새SHA로 수정하고 사용한다.
+- 콘솔69/p1은 정상 `meta/edit` 상태. 확인된 파일input은 `input[type=file][accept=".ait"]`, 텍스트 `input[name="releaseNote"]`, `input[name="bundle.memo"]`. 아직 파일업로드/값변경/저장 전. 정상 파일업로드+memo/releaseNote+임시저장 뒤 app-build 테스트로 새QR, 검토버튼은 누르지 않는다. Browser round49까지 read-only; skill guide `D:/Development/Temp/linux-qr-ego-guide.txt` 재사용.
 
 이 절이 아래 이전 상태보다 우선한다. 코드/Windows 실제AIT/검사 작업은 끝났으며, Linux 산출물과 QR·최종 전달 단계다. 반복 전체검사나 기능 재탐색으로 돌아가지 않는다.
 
