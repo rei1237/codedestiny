@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-14
-next: 묶음 4-1(결과 CTA 축소) → 4-2 → 4-3 → 전체 검증 → docs/seo/bundle3-4-before-after.md. 묶음 3은 끝(결과 기록 맨 끝 "묶음 3 진행"). push·배포·운영 승격은 미승인(로컬 커밋만). F3는 구현하지 않는다.
+next: 전체 검증(typecheck·lint·i18n·사이트맵·분석 이벤트·빌드·홈 정체성·seo 테스트·npm test·check-changed) → docs/seo/bundle3-4-before-after.md. 묶음 3·4는 끝(결과 기록 맨 끝). push·배포·운영 승격은 미승인(로컬 커밋만). F3는 구현하지 않는다.
 ---
 # 네이버 SEO·AEO·GEO + 구매 동선 (Phase 1~5)
 
@@ -106,7 +106,7 @@ Phase 0 보고서와 승인된 계획의 정본은 `docs/seo/phase0-report.md`�
 - [x] 3-1 반복 섹션·`DEFAULT_FAQS`, 3-2 질문형 H2 결론 문단, 3-3 기준일·비교 페이지.
 
 ### 묶음 4 — 구매 동선
-- [ ] 4-1 결과 CTA 축소(F1), 4-2 사다리 표기·하드코딩 가격, 4-3 `/ziwei/` 로그인 복귀(F2), 4-4 결제 변경 제안서(F3·A1)만 쓰고 멈춤 — **4-4는 끝**(`docs/seo/payment-change-proposal.md`, 구현은 승인 뒤).
+- [x] 4-1 결과 CTA 축소(F1), 4-2 사다리 표기·하드코딩 가격, 4-3 `/ziwei/` 로그인 복귀(F2), 4-4 결제 변경 제안서(F3·A1)만 쓰고 멈춤 — **4-4는 끝**(`docs/seo/payment-change-proposal.md`, 구현은 승인 뒤).
 
 ### 묶음 5 — 측정
 - [x] 5-1 퍼널 이벤트(A2), 5-2 `docs/seo/funnel-spec.md`·`naver-console-checklist.md` — 둘 다 끝. 5-1은 2026-11-14 구현(결과 기록 맨 끝). `free_result` placement를 실제로 쓰는 CTA는 묶음 4-1 몫.
@@ -363,3 +363,16 @@ SHA는 네 번째 rebase 뒤 기준이다. 모두 로컬 커밋이고 push하지
   - 함정: 이 파일에는 "무료 사주"를 쓰면 `saju-bundle-copy.static.test.js`가 실패한다. 사주 궁합 title·description에는 "무료"를 쓰면 안 된다.
 - 3-3 `a95049633`: `lib/seo-service-scope.js`에 `SEO_SERVICE_SCOPES_UPDATED = '2026-11-14'`와 `seoServiceScopeAsOfLabel()`. 템플릿 범위 절 끝에 "무료·유료 범위는 2026년 11월 14일 기준이며, 바뀌면 이 날짜와 함께 고칩니다."(`<time>`). 비교 글 3종: `fortune-apps`는 무료 범위 문단 끝에 "(…기준)", `saju-vs-ziwei`·`sukuyo-vs-vedic`은 "어느 쪽부터 보면 좋은가" 아래에 `SEO_SERVICE_SCOPES`의 free·paid를 읽는 두 문단 + 기준일. `Review`/`AggregateRating` 없음.
 - 원장 재생성 `HEAD`(이 문서 커밋 직전 커밋): 갱신 21.
+
+### 묶음 4 진행 (2026-11-14)
+- 4-1 `0af792696`: `index.html` `#resultPage`에서 연애 비책·신년운세·초융합 카드 3개를 `<details class="cd-result-more" data-cd-marker="cd-result-more-v20261114" data-cd-cross-sell="saju_result">`("관련 상담 더 보기", 기존 키 `home.typographyPicker.more` 재사용, 새 i18n 키 없음)로 접었다. 인생의 책 타일 1개만 펼쳐 둔다. 스타일은 `styles/saju-entry-flow.css` `.cd-result-more*`.
+  - CTA 수(정적 마크업을 직접 셈): 기본 노출 9 → 6(묶음 인라인 카드 1, 대운·요약 게이트 2, 궁합 실행 1, 인생의 책 1, 시빌라 1), 접힘 3 → 6(pf-showcase 3 + 더 보기 3). 카드와 결제 진입은 그대로다.
+  - 하지 않은 것: 시빌라 섹션은 모달 마크업을 품고 있어 옮기지 않았다. `free_result` 분류형 계측은 `js/core/analytics.js`의 `SEARCH_CTA_ROUTES`·`SEARCH_CTA_SERVICES`에 `/life-book-ai/` 등이 없어 붙이지 못했다(허용 목록을 넓혀야 함). 비분류형 `data-cd-cross-sell="saju_result"`만 달았고, 버튼인 연애 비책은 앵커가 아니라 잡히지 않는다.
+- 4-2 `04c5aafce`: `app/yeongnyangi/_components/ProductGuide.tsx` 선택 요약 줄을 "가격 · N개 챕터"(굵게) + 생선명(뒤)으로, `QuestionFishPicker.tsx` 안내 문장을 "질문에 맞는 깊이를 추천해요. 가격과 분량을 보고 직접 고를 수 있어요."로 바꿨다. 가격은 그대로 카탈로그에서 읽는다.
+  - 조사 결과(코드 변경 없음): 등급 카드(`ProductGuide` `.tiers`, `QuestionFishPicker` `.heading strong`, `QuestionScope`, 천원 페이지)는 이미 가격을 금색 큰 글씨로, 챕터·분량을 같은 카드에 적고 있고 가격은 `worker/yeongnyangi/payments/catalog`·`paid-feature-registry`에서 읽는다. 카드 DOM 순서(생선명이 위)는 CSS 구조를 바꿔야 해서 두었다.
+  - 하드코딩 가격을 두고 간 곳과 이유: ① `index.html`의 `cd-section-gate__badge`("사주 묶음 · 29,000원 영구 소장" 2곳)는 CSS 3곳(`index.html:727`, `styles/fortune-ui-home.css:463`, `styles/fortune-ui.css:3977`)이 `display:none !important`로 숨겨 사용자에게 보이지 않는다. ② `js/core/saju/bundle-offer.js`의 `PRICE_LABEL`은 `saju-bundle-copy.static.test.js`가 문자열을 고정하고 정본 29000과 대조한다. ③ `lib/seo-landing-pages.js` FAQ의 29,000원도 같은 테스트가 대조한다(이 파일은 클라이언트 번들에 들어가 worker 정본을 import하면 안 됨). ④ `js/core/service-registry.js`·nakshatra 문구 등은 `verify-home-service-registry`·`verify-nakshatra-price-copy`·`verify-paid-gate-price-coverage`가 정본과 대조한다(셋 다 exit 0). 즉 남은 하드코딩은 모두 가드가 정본과 어긋남을 잡는다.
+  - C5(이용권 이름 통일)는 2026-11-14 "유지" 확정이라 손대지 않았다.
+- 4-3 `753227805`: `js/destiny-profile.js` 프로필 저장 `AUTH_REQUIRED` 분기의 `/login?next=%2F` 고정을 현재 경로(`pathname + search`, `/`로 시작·`//`와 역슬래시 없음)로 바꿨다. 최종 검증은 로그인 쪽 `app/_lib/auth-return.js` `sanitizeAuthReturnPath`가 그대로 한다. 인증 흐름·OAuth·동결 영역은 건드리지 않았다(`verify-payment-freeze` exit 0). `npm run sync:public`으로 미러·캐시 해시 재생성.
+  - 미확인: 실제 브라우저에서 `/ziwei/` 로그인 왕복은 돌려 보지 않았다(코드 경로만 확인).
+  - 범위 밖(보고만): 같은 `next=%2F` 고정이 `js/core/index-inline-runtime.js:1619·3653·7808`, `js/iching-engine.js:419`, `js/saju-engine-tarot-sukuyo-quantum.js:6780·13253`에도 있다.
+- 원장 재생성 `5c860e17c`.
