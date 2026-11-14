@@ -1,11 +1,23 @@
 ---
-status: in-progress
-updated: 2026-11-14
-next: 이미지 매핑 수정6407d8582 및 최신SEO main 병합본으로 full Linux CI와 두 AIT를 생성하고 실제 이미지6개 디코딩 후 새 비공개 QR을 등록한다.
+status: done
+updated: 2026-11-15
+next: 코드·Linux·새QR 전달은 완료. root가 Downloads의 운영 후보안으로 별도 승인 게이트와 실기기 확인을 진행한다. 문서 최종push/정리 기록은 아래 완료 절 참조.
 ---
 
+## 최종 전달 완료 — 2026-11-15
+
+공식 런43607109624, 정확runtime14685e048b046f324f461a2fa855f9c9aaf6dd95의6jobs/CI required 모두success. 동일SHA중복push43607109785만승인취소. 일반/모의AIT 모두Linuxportable·100MB검사PASS. private deployment01a1da96-cd8d-734f-82d5-b3c44273984c, archive88,326,500B/expanded99,986,143B. core6이미지decode·모의구매·cold재열람·B동일URL거절과390×844 실제캡처4장PASS. 공식workflow의전체후속군PASS. 110각행개별E2E라는주장은하지않음.
+
+정상콘솔meta/edit업로드→빌드완료→임시저장→app-build의 **20261115-16** 테스트에서새QR관찰. QR디코딩과deployment일치PASS. 검토요청/운영설정/실결제/실LLM/운영DB쓰기는하지않음. 최종 영구폴더 **C:/Users/user/Downloads/CodeDestiny/43607109624/**: regular/simulation AIT와metadata, toss-mock-20261115-16.png/svg/txt/json, console-qr.png, screens4장, CI전체로그/ci-result, core-capture.log, README, 기능표·inventory·audit·verification·원본흐름·기기안내·운영안. 후속문서commit은runtime와분리하며새artifact빌드불필요.
+
+개발판16동작/93운영필요/1음악큰파일미완료 유지. 32MiB는현재메모리상한이지SDK공식한도나정책아님. root가신규판매닫힘무료+기존권리운영안(미완료기존유료LLM재개영향포함)으로별도승인질문. 휴대폰·위치권한·OS저장미검증. 콘솔72는관찰QRdialog이며 root후속사용여부에따라finish를조율한다. 전체검사재실행금지: 최종문서targeted6PASS뒤docfast/prepush/push만수행.
 ## 최우선 최신 인계 — artifact_finish (2026-11-14)
 
+### 현재 실행 — 2026-11-15 00:22 KST
+
+정확 main/HEAD 14685e048b046f324f461a2fa855f9c9aaf6dd95, 이미지수정6407+SEO보존merge4337+handoff14685. prepush PASS 후push. full Linux run43607109624 진행(동일SHA중복push43607109785는rootstanding승인으로취소). Risk/Typecheck/Build/Static 모두success, Critical 실제AIT 후속군진행. 일반artifact는 Downloads/CodeDestiny/43607109624/regular 다운로드·inspect PASS: deployment01a1da95-7f41-7a56-843d-a262f3916715, archive87668562/expanded98824845, portable0, SHA256897d7d34c7b9bbce83302747c1ce16b541875092a1d7357e319747f786d81dcd. private 로그상deployment01a1da96-cd8d-734f-82d5-b3c44273984c, archive88326500/expanded99986143. 아직privateupload전으로다운로드없음. core6images/영냥이28/연이6+등급21/찻집6/네오8/native초반통과확인; 최종CI미완료.
+
+watcher72204 D:/Development/Temp/toss-linux-artifact-watch-14685.txt. 콘솔69소멸로사용자새공간계속승인에따라72(name Code Destiny corrected report Linux QR 20261114)복구. p1meta/edit 로그인정상/fileait/임시저장enabled, 변경없음. p2GitHub critical job132484273705. step15로그는자동갱신멈춰보일수있으니reload→waitselector→details열기→innerText>1000 wait후tail. ego rounds67까지. guide private-qr-ego-guide.txt. 모든최종유틸 D:/Development/Temp/toss-launch-console-20261114/: inspect-linux-artifacts.mjs는14685/run최신, decode-final-qr.cjs, finalize-evidence.mjs는최종QR JSONarg+ci-result준비후실행할문서작성script(아직실행안함). 새folder README초안/운영안/phoneguide만준비. 최종runtime변경없으면doc커밋때문에새AIT빌드하지말것.
 ### 최우선 이미지 누락 수정 — private_qr_delivery
 
 3095의 Linux43601482167은 CI required 포함6 jobs 모두 success. 일반/모의AIT 다운로드 후 실제 펼친 요약에서 ExternalImageGuide raw img만 기존 WebP 매핑을 거치지 않아 캐릭터 PNG가 누락됨을 확인했다. 제출하지 않았고 Downloads/CodeDestiny/43601482167/SUPERSEDED.txt에 표시했다. 6407d8582는 Toss Vite projection에서 해당 원본 컴포넌트의 표시 src/캐릭터 다운로드 href만 기존 byte 동일 WebP에 연결한다. 웹 원본·공유 메타데이터·정책은 보존한다. 실제 core검사에 펼친 원본 이미지6개 decode를 추가하고390×844 실제 viewport 캡처4장을 준비했다.
@@ -46,7 +58,7 @@ targeted bundle-art4 PASS, Windows actualAIT core/구매/재열람/B거절 PASS.
 - **콘솔69/p1**: 공간68사라져기존사용자새공간승인대로복구. name `Code Destiny final verified Linux QR 20261114`. URL app-build같음. 최신snapshot round43: container@12, 버전등록@14, 앱정보수정@15. 콘솔최신15/앱정보반려/검토필요. 새업로드/검토/정보저장없음. `D:/Development/Temp/toss-launch-console-20261114/round-41.mjs` 실패(68없음),42새69,43snapshot. 다음round44 unique파일. ego-browser skill+전체guide는 fresh가다시읽을것. guide `D:/Development/Temp/launch-ego-guide.txt`는끝표시까지읽음. 업데이트알림있으나업그레이드승인없고작업필수아님.
 - Linuxartifact names `toss-preview-438f6c16dd6f4a75c04a51c94a0a261e86eb1274`, `toss-private-simulation-438f6c16dd6f4a75c04a51c94a0a261e86eb1274`; retention1day이므로완료후즉시D:/Development/Temp나사용자전달폴더로다운로드. runtimeSOURCE438가최종검증대상. 후속문서커밋은소스동일하니artifact를다시빌드하지않음.
 - 최종Linux다운로드후 `node .../private-simulation-archive.mjs <LinuxAIT>`에는 --local-windows넣지않고확인. workflow이미전체모드검증시그근거활용. 콘솔3스크린샷준비는 default actualAIT 경로에 `TOSS_CONSOLE_CAPTURE=1`, `TOSS_CAPTURE_DIR=<외부폴더>`로실행하면원본QA과정캡처함. `private-console-prep.mjs` 참고. 실제Linux AIT 캡처를확인해옛축소홈콘솔이미지교체자료로준비;검토는누르지않음.
-- next: 이미지 매핑 수정6407d8582 및 최신SEO main 병합본으로 full Linux CI와 두 AIT를 생성하고 실제 이미지6개 디코딩 후 새 비공개 QR을 등록한다.
+- next: 코드·Linux·새QR 전달은 완료. root가 Downloads의 운영 후보안으로 별도 승인 게이트와 실기기 확인을 진행한다. 문서 최종push/정리 기록은 아래 완료 절 참조.
 
 ## 첫 행동
 handoff 스킬/CLAUDE를 읽고 이 문서를 최신 정본으로 삼는다. 전체 사용자 요청은 중단하지 않는다. 이전 toss-launch-completion 및 toss-private-extended-native 문서는 이전 증거 참고용이다.

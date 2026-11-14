@@ -17963,5 +17963,17 @@
       "approvedPriceKRW": 29700
     }
   ],
-  "newPurchasesAvailable": false
+  "newPurchasesAvailable": false,
+  "latestArchiveEvidence": {
+    "run": "43607109624",
+    "commit": "14685e048b046f324f461a2fa855f9c9aaf6dd95",
+    "consoleVersion": "20261115-16",
+    "verification": "docs/toss/ait-verification-20261114.json",
+    "developmentStatusCounts": {
+      "alreadyWorking": 16,
+      "requiresOperations": 93,
+      "partial": 1
+    },
+    "deviceState": "not-verified"
+  }
 }

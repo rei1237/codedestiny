@@ -1,5 +1,5 @@
 {
-  "updated": "2026-11-14",
+  "updated": "2026-11-15",
   "scopeSource": "docs/toss/full-service-inventory.json",
   "scopeCount": 110,
   "rule": "기존 110개 행의 하위 모드만 추가한다. prior-evidence-to-reconcile은 코드 누락 판정이 아니라 기존 담당 증거와 원본 하위 모드 경계 대조 대기다. 한 번 대조하여 확인된 누락과 완료 근거를 고정하고, 근거 없는 전체 재탐색을 반복하지 않는다.",
@@ -14,71 +14,71 @@
       "id": "astro-synastry",
       "kind": "code",
       "detail": "compat-astro-synastry 무료 guest 원본 입력·본문 연결",
-      "state": "implemented-local-ait-verified",
-      "next": "최종 Linux AIT 및 기기 검증은 별도"
+      "state": "implemented-linux-ait-verified",
+      "next": "운영 활성화 및 실기기 검증은 별도"
     },
     {
       "id": "astro-direct-synastry",
       "kind": "code",
       "detail": "compat-astro-direct-synastry 무료 guest 원본 입력·본문 연결",
-      "state": "implemented-local-ait-verified",
-      "next": "최종 Linux AIT 및 기기 검증은 별도"
+      "state": "implemented-linux-ait-verified",
+      "next": "운영 활성화 및 실기기 검증은 별도"
     },
     {
       "id": "astro-global-birth",
       "kind": "input-contract",
       "detail": "웹 국제 좌표·시간대 입력과 현재 국내 도시 입력의 차이 대조·복구",
-      "state": "implemented-local-ait-verified",
-      "next": "최종 Linux AIT 및 기기 검증은 별도"
+      "state": "implemented-linux-ait-verified",
+      "next": "운영 활성화 및 실기기 검증은 별도"
     },
     {
       "id": "vedic-compatibility",
       "kind": "code",
       "detail": "로그인 무료 36점·8항목·강점·주의·조언. 별도 유료 상담과 분리",
-      "state": "implemented-local-ait-verified",
-      "next": "최종 Linux AIT 및 기기 검증은 별도"
+      "state": "implemented-linux-ait-verified",
+      "next": "운영 활성화 및 실기기 검증은 별도"
     },
     {
       "id": "vedic-prashna",
       "kind": "code",
       "detail": "로그인 무료 현재시각·질문·좌표 차트/원본 프롬프트. 영냥이 prashna와 별개, 신규저장·주문 없음",
-      "state": "implemented-local-ait-verified",
-      "next": "최종 Linux AIT 및 기기 검증은 별도"
+      "state": "implemented-linux-ait-verified",
+      "next": "운영 활성화 및 실기기 검증은 별도"
     },
     {
       "id": "vedic-global-birth",
       "kind": "input-contract",
       "detail": "웹 국제 좌표·시간대 입력과 현재 국내 도시 입력의 차이 대조·복구",
-      "state": "implemented-local-ait-verified",
-      "next": "최종 Linux AIT 및 기기 검증은 별도"
+      "state": "implemented-linux-ait-verified",
+      "next": "운영 활성화 및 실기기 검증은 별도"
     },
     {
       "id": "neo-email-private",
       "kind": "private-archive",
       "detail": "DEV offline 전용 원본 모의 접수·견적·상태·취소·수정 fixture를 private AIT에 연결. 실제 메일·상품 판매·자동답변 생성은 제외",
-      "state": "implemented-local-ait-verified",
-      "next": "최종 Linux AIT 및 기기 검증은 별도"
+      "state": "implemented-linux-ait-verified",
+      "next": "운영 활성화 및 실기기 검증은 별도"
     },
     {
       "id": "animal-destiny-detail",
       "kind": "code",
       "detail": "원본 10탭·6상세·12도감·생활조언·관계·카드 전체 및 globals/LazyMotion 복구",
-      "state": "implemented-local-ait-verified",
-      "next": "최종 Linux AIT와 실기기 저장·공유는 별도"
+      "state": "implemented-linux-ait-verified",
+      "next": "운영 활성화 및 실기기 검증은 별도"
     },
     {
       "id": "music-download",
       "kind": "code",
       "detail": "곡별 모의 SKU·소유주문·원본 proxy·파일 어댑터·재열람 구현. 32MiB 초과 파일은 현재 어댑터의 메모리 상한으로 저장 미완료. SDK 공식 용량 한도가 아님",
-      "state": "implemented-with-sdk-limit-local-ait-verified",
-      "next": "큰 원곡 전체 지원 미완료. 곡별 SKU/실곡 크기/실기기 저장 검증 필요"
+      "state": "implemented-with-memory-limit-linux-ait-verified",
+      "next": "32MiB초과 원곡 저장 미완료. 곡별 SKU/실곡 크기/실기기 저장 필요"
     },
     {
       "id": "flower-private",
       "kind": "private-archive",
       "detail": "worker/toss/flower.js 원본 4체계 계산과 UI는 구현됨. private AIT API에 /flower/match가 없어 해당 검증단계만 미연결",
-      "state": "implemented-local-ait-verified",
-      "next": "최종 Linux AIT 및 기기 검증은 별도"
+      "state": "implemented-linux-ait-verified",
+      "next": "운영 활성화 및 실기기 검증은 별도"
     }
   ],
   "rows": [
@@ -107,7 +107,8 @@
       "archiveEvidence": "일반 AIT에서 상위 화면 진입 확인. 하위 입력·결과·재열람의 검증 근거는 verification 참조. 휴대폰 미검증",
       "deviceState": "not-verified",
       "operations": "계산·화면은 무료. 운영 Worker 승격, 네이티브 저장/공유·기기 확인 별도",
-      "currentArchiveEvidence": "Windows AIT 01a1d9fc-2ed6-7908-864d-2a4cf77daa03 --animal-destiny PASS; 360/390/430px, 원본 CSS 카드/애니메이션 표시 확인. Linux/실기기 별도"
+      "currentArchiveEvidence": "Linux AIT 01a1da96-cd8d-734f-82d5-b3c44273984c, run 43607109624, --animal-destiny PASS. 기존 원본/계정 경계·화면 폭 검사 유지. 휴대폰 SDK·실운영은 미검증.",
+      "historicalArchiveEvidence": "Windows AIT 01a1d9fc-2ed6-7908-864d-2a4cf77daa03 --animal-destiny PASS; 360/390/430px, 원본 CSS 카드/애니메이션 표시 확인. Linux/실기기 별도"
     },
     {
       "id": "animal-totem",
@@ -162,7 +163,8 @@
       "archiveEvidence": "일반 AIT에서 상위 화면 진입 확인. 하위 입력·결과·재열람의 검증 근거는 verification 참조. 휴대폰 미검증",
       "deviceState": "not-verified",
       "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도",
-      "currentArchiveEvidence": "66080e7c9 + b5de20414. actual Windows AIT01a1d9c9에서 두 궁합 guest·원본문장·3폭·0주문 PASS; 옛 가격배지 수정은 후속번들 재검증 필요."
+      "currentArchiveEvidence": "Linux AIT 01a1da96-cd8d-734f-82d5-b3c44273984c, run 43607109624, --astro-synastry PASS. 기존 원본/계정 경계·화면 폭 검사 유지. 휴대폰 SDK·실운영은 미검증.",
+      "historicalArchiveEvidence": "66080e7c9 + b5de20414. actual Windows AIT01a1d9c9에서 두 궁합 guest·원본문장·3폭·0주문 PASS; 옛 가격배지 수정은 후속번들 재검증 필요."
     },
     {
       "id": "astrology-ai",
@@ -599,7 +601,8 @@
       "archiveEvidence": "일반 AIT에서 상위 화면 진입 확인. 하위 입력·결과·재열람의 검증 근거는 verification 참조. 휴대폰 미검증",
       "deviceState": "not-verified",
       "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도",
-      "currentArchiveEvidence": "ab355fbc0 + e587ad595. actual Windows AIT01a1d9c9 홈→로그인→4원문/SVGdecode·3폭·B초기화·0주문 PASS. 원본정책대로보관함저장없음."
+      "currentArchiveEvidence": "Linux AIT 01a1da96-cd8d-734f-82d5-b3c44273984c, run 43607109624, --free-originals PASS. 기존 원본/계정 경계·화면 폭 검사 유지. 휴대폰 SDK·실운영은 미검증.",
+      "historicalArchiveEvidence": "ab355fbc0 + e587ad595. actual Windows AIT01a1d9c9 홈→로그인→4원문/SVGdecode·3폭·B초기화·0주문 PASS. 원본정책대로보관함저장없음."
     },
     {
       "id": "fortune-chat",
@@ -1299,7 +1302,8 @@
       "archiveEvidence": "일반 AIT에서 상위 화면 진입 확인. 하위 입력·결과·재열람의 검증 근거는 verification 참조. 휴대폰 미검증",
       "deviceState": "not-verified",
       "operations": "곡별 승인 SKU·콘솔 가격, 실원곡 크기·실기기 저장, 운영 Worker 필요. 신규 판매 false",
-      "currentArchiveEvidence": "Windows AIT 01a1d9fc-2ed6-7908-864d-2a4cf77daa03 --music-download PASS; 홈→로그인복귀→모의구매1건→합성파일저장기록→cold보관함/새로고침→B동일URL차단, 3폭. 실제 음원 다운로드/파일저장 미실행"
+      "currentArchiveEvidence": "Linux AIT 01a1da96-cd8d-734f-82d5-b3c44273984c, run 43607109624, --music-download PASS. 기존 원본/계정 경계·화면 폭 검사 유지. 휴대폰 SDK·실운영은 미검증.",
+      "historicalArchiveEvidence": "Windows AIT 01a1d9fc-2ed6-7908-864d-2a4cf77daa03 --music-download PASS; 홈→로그인복귀→모의구매1건→합성파일저장기록→cold보관함/새로고침→B동일URL차단, 3폭. 실제 음원 다운로드/파일저장 미실행"
     },
     {
       "id": "nakshatra",
@@ -1534,7 +1538,8 @@
       "archiveEvidence": "일반 AIT에서 상위 화면 진입 확인. 하위 입력·결과·재열람의 검증 근거는 verification 참조. 휴대폰 미검증",
       "deviceState": "not-verified",
       "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도",
-      "currentArchiveEvidence": "ab355fbc0 + e587ad595. actual Windows AIT01a1d9c9 홈→질문복원→모의구매1→접수→새탭보관함→취소요청→재진입→B같은URL거절·3폭 PASS. 취소요청은 환불완료가 아님."
+      "currentArchiveEvidence": "Linux AIT 01a1da96-cd8d-734f-82d5-b3c44273984c, run 43607109624, --neo-email PASS. 기존 원본/계정 경계·화면 폭 검사 유지. 휴대폰 SDK·실운영은 미검증.",
+      "historicalArchiveEvidence": "ab355fbc0 + e587ad595. actual Windows AIT01a1d9c9 홈→질문복원→모의구매1→접수→새탭보관함→취소요청→재진입→B같은URL거절·3폭 PASS. 취소요청은 환불완료가 아님."
     },
     {
       "id": "neo-letter",
@@ -2658,7 +2663,8 @@
       "archiveEvidence": "게스트 수동 출생정보로 만세력·베다 원본 계산과 반려동물 오행 결과, 반려동물 심층 로그인 경계 · 360px 배포 AIT 브라우저, 토스 휴대폰 미검증",
       "deviceState": "not-verified",
       "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도",
-      "currentArchiveEvidence": "f857266dd. actual Windows AIT01a1d9c9 홈→로그인→궁합원문·출생재입력·Prashna차트/프롬프트완전동일·nativeback·3폭·0주문 PASS."
+      "currentArchiveEvidence": "Linux AIT 01a1da96-cd8d-734f-82d5-b3c44273984c, run 43607109624, --free-originals PASS. 기존 원본/계정 경계·화면 폭 검사 유지. 휴대폰 SDK·실운영은 미검증.",
+      "historicalArchiveEvidence": "f857266dd. actual Windows AIT01a1d9c9 홈→로그인→궁합원문·출생재입력·Prashna차트/프롬프트완전동일·nativeback·3폭·0주문 PASS."
     },
     {
       "id": "vedic-ai",
@@ -2965,5 +2971,11 @@
       "웹 브라우저 origin의 기존 일기/책갈피 로컬 데이터를 토스 origin에서 읽을 수 있다고 주장하지 않음",
       "카메라·오디오·네이티브 파일/공유·키보드는 모의 어댑터와 휴대폰 검증을 구분"
     ]
+  },
+  "finalLinuxEvidence": {
+    "run": "43607109624",
+    "commit": "14685e048b046f324f461a2fa855f9c9aaf6dd95",
+    "verification": "docs/toss/ait-verification-20261114.json",
+    "deviceState": "not-verified"
   }
 }

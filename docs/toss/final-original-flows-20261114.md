@@ -1,5 +1,8 @@
 # 마지막 원본 기능군 검증
 
+
+최신 Linux 검증: 커밋 `14685e048b046f324f461a2fa855f9c9aaf6dd95`, 실행 [43607109624](https://github.com/rei1237/codedestiny/actions/runs/43607109624), CI required 성공. 비공개 모의 버전 **20261115-16**, deployment `01a1da96-cd8d-734f-82d5-b3c44273984c`. 최종 전달 폴더: `C:/Users/user/Downloads/CodeDestiny/43607109624`. 이 기록은 아래 Windows 및 과거 콘솔 관찰을 보완하며 운영 승인·실기기 검증을 대신하지 않는다.
+
 2026-11-14, 실행 코드 `02ff9538a`. Windows AIT `01a1d9fc-2ed6-7908-864d-2a4cf77daa03`: 파일 88,328,122바이트, 압축 해제 99,991,886바이트. 이 값은 최종 Linux 제출본의 값이 아니다. 모든 검사는 모의 계정·모의 결제·저장된 원본 예시만 사용했고 실 LLM·실결제·운영 DB·실음원 다운로드를 실행하지 않았다.
 
 ## 실제 AIT 경로

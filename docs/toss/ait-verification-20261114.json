@@ -1323,6 +1323,90 @@
         "inventoryContractTestsPassed": 6,
         "focusFixtureTestsPassed": 8
       }
+    },
+    {
+      "id": "final-original-flows-43607109624",
+      "run": "43607109624",
+      "commit": "14685e048b046f324f461a2fa855f9c9aaf6dd95",
+      "runner": "GitHub Actions ubuntu-latest",
+      "workflowUrl": "https://github.com/rei1237/codedestiny/actions/runs/43607109624",
+      "ci": {
+        "conclusion": "success",
+        "required": "success",
+        "jobs": [
+          {
+            "name": "Risk tier",
+            "conclusion": "success"
+          },
+          {
+            "name": "Typecheck and lint",
+            "conclusion": "success"
+          },
+          {
+            "name": "Build Pages and Worker",
+            "conclusion": "success"
+          },
+          {
+            "name": "Critical checks",
+            "conclusion": "success"
+          },
+          {
+            "name": "Static guards",
+            "conclusion": "success"
+          },
+          {
+            "name": "CI required",
+            "conclusion": "success"
+          }
+        ],
+        "duplicatePushRun": "43607109785",
+        "duplicatePushConclusion": "cancelled",
+        "note": "동일 SHA 일반 push만 취소하고 full_ci+일반/모의 AIT superset 전체 성공으로 검증"
+      },
+      "regular": {
+        "commit": "14685e048b046f324f461a2fa855f9c9aaf6dd95",
+        "run": "43607109624",
+        "kind": "regular",
+        "appName": "ai-saju-studio",
+        "deploymentId": "01a1da95-7f41-7a56-843d-a262f3916715",
+        "archiveBytes": 87668562,
+        "expandedBytes": 98824845,
+        "sourceFiles": 1760,
+        "nonPortable": 0,
+        "sha256": "897d7d34c7b9bbce83302747c1ce16b541875092a1d7357e319747f786d81dcd"
+      },
+      "simulation": {
+        "commit": "14685e048b046f324f461a2fa855f9c9aaf6dd95",
+        "run": "43607109624",
+        "kind": "simulation",
+        "appName": "ai-saju-studio",
+        "deploymentId": "01a1da96-cd8d-734f-82d5-b3c44273984c",
+        "archiveBytes": 88326500,
+        "expandedBytes": 99986143,
+        "sourceFiles": 1790,
+        "nonPortable": 0,
+        "sha256": "6926bf8cdc59ebea062b7f896d60fa4f496f8fad45f3a038c469ae2f4b51506d",
+        "consoleVersion": "20261115-16",
+        "privateLink": "intoss-private://ai-saju-studio?_deploymentId=01a1da96-cd8d-734f-82d5-b3c44273984c&host=appsInTossHost",
+        "qrFile": "toss-mock-20261115-16.png",
+        "qrDecoded": true
+      },
+      "directory": "C:/Users/user/Downloads/CodeDestiny/43607109624",
+      "scope": "공식 workflow의 실제 AIT 전체 모드 회귀 및 홈→입력→모의 구매→생성→재열람/B계정 거절. 펼친 원본 이미지6개 decode 포함. 110개 행마다 별도 E2E를 했다는 뜻이 아님.",
+      "validation": {
+        "checkFastExitCode": 0,
+        "jestSuitesPassed": 479,
+        "jestTestsPassed": 8008,
+        "bundleArtTestsPassed": 4,
+        "linuxCoreCapture": "core-capture.log",
+        "screens": [
+          "01-home-390.png",
+          "02-yeongnyangi-question-390.png",
+          "03-completed-mock-reading-390.png",
+          "04-expanded-summary-390.png"
+        ]
+      },
+      "limits": "실기기·실결제·실 LLM·운영 DB·실음원 다운로드 미검증. 음악32MiB초과 원곡 저장 미완료(현재 어댑터 메모리 상한, SDK 공식 한도 아님). 신규 판매 닫힘."
     }
   ]
 }
