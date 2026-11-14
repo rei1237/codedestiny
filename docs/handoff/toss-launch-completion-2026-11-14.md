@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-14
-next: 후속 private AIT 한도·SecretHouse·타로압축 회귀를 마치고 숙요 전생 등 원본 잔여를 이어 구현, 묶음 checkfast/push 및 Linux AIT 검증
+next: 최신 전달 상태 확인 후 remaining_audit의 서양 시너스트리2·베다 궁합/Prashna 구현을 해제하고, fresh private 담당에게 Neo 모의접수·압축·AIT를 맡겨 고정110 원본감사표를 끝낸다
 ---
 
 ## 첫 행동
@@ -39,6 +39,12 @@ next: 후속 private AIT 한도·SecretHouse·타로압축 회귀를 마치고 �
 - 현재 checkfast `--base=05211086c`, 로그 `D:/Development/Temp/launch-followthrough-check-fast.txt`, session64173. paid77·Node5071·guards·Worker buildPASS, Jest진행중. 검사후 QA-only2파일은위 c9에직접AIT검증,미연결synastry2파일은별도targeted2PASS. 최종완료결과는아래전달절갱신으로확정한다.
 
 ## 승인 상태
+### 2026-11-14 전달 직전 검사 갱신
+- `check:fast -- --base=05211086c` 종료0: paid77, Node5071, guards, Worker build, Jest479 suites/8008 tests/1 skipped PASS. 로그 `D:/Development/Temp/launch-followthrough-check-fast.txt`.
+- 직전 main052의 CI43584114406은3실패. Yoga prepare 빈입력 예상404/실제400은11252에서이미수정. Vedic2는 앱cwd에서로컬WASM경로를못찾는테스트설정결함으로확인됐다. `fd69b92c1`에서 Vedic2/서양UI 원본CSS/숙요tools의 테스트cwd를기존basic-sky와같이저장소루트로고정했다. 프로덕션런타임변경없음.
+- 앱cwd의 `npm test`:1703중1701PASS,추가발견2실패(서양CSS·숙요WASM)까지위커밋에서복구. 이후실패범위+Vedic2 재실행7/7PASS·eslintPASS. 전체재실행으로오표기금지. 로그 `D:/Development/Temp/launch-toss-app-tests.txt`, `launch-ci-cwd-targeted.txt`.
+- private_finish 담당은 완료 후 종료. 정본 `toss-private-extended-native-2026-11-14.md`와 commit cd786a06e로 fresh 담당에게 Neo 이메일 private 연결부터 넘긴다. remaining_audit는 freeze 중이고 Temp에만다음4모드초안작성. checkpoint push후해제.
+
 2026-11-14 사용자: 최종 CI 확인 후 일부만 이식 중 코드 가능 기능군부터 계속 구현, 웹 원본과 달빛 예화 유지, 실제 AIT 홈→모의 생성→보관함, 압축하며 모든 작업과 론칭까지 진행.
 검토·출시 준비를 계속하되 확정되지 않은 상품 가격·SKU·운영 설정은 구체적 근거와 영향을 준비한다. 실결제·실 LLM·운영 DB 쓰기는 개발 검증에 사용하지 않는다. 기존 4950원 SKU는 연이 기본 사주만.
 
