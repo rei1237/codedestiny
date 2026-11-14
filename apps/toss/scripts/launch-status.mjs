@@ -13,11 +13,11 @@ if(inventory.canonicalCandidates.some(item=>!knownStatuses.has(item.status)))thr
 const selectedIds=new Set(reviewServices.map(service=>service.id));
 const selected=inventory.canonicalCandidates.filter(item=>selectedIds.has(item.id));
 if(!selected.length||selected.length!==reviewServices.length)throw new Error('Review services must be unique and present in the inventory');
-const local=selected.filter(item=>item.status==='local-partial');
-const complete=selected.filter(item=>item.status==='verified-full-flow');
+const local=inventory.canonicalCandidates.filter(item=>item.status==='local-partial');
+const complete=inventory.canonicalCandidates.filter(item=>item.status==='verified-full-flow');
 const excluded=inventory.canonicalCandidates.filter(item=>item.status==='excluded');
 if(excluded.some(item=>typeof item.exclusionReason!=='string'||!item.exclusionReason.trim()))throw new Error('Every exclusion needs a documented reason');
-const remaining=selected.filter(item=>!['local-partial','verified-full-flow'].includes(item.status));
+const remaining=inventory.canonicalCandidates.filter(item=>!['local-partial','verified-full-flow','excluded'].includes(item.status));
 const deferred=inventory.canonicalCandidates.filter(item=>!selectedIds.has(item.id));
 const approvedSkus=items=>new Set(items.filter(item=>item.approved===true&&typeof item.sku==='string'&&item.sku.length>0&&item.sku.trim()===item.sku).map(item=>item.sku));
 const approvedEntries=[...APPROVED_TOSS_PRODUCTS,...APPROVED_TOSS_TAROT_LIBRARY_PRODUCTS,...APPROVED_TOSS_NATIVE_PRODUCTS].filter(item=>item.approved===true);
@@ -37,17 +37,19 @@ const reviewProducts=reviewProductIds.map(productId=>{
 });
 const releaseSource=fs.readFileSync(path.join(root,'apps/toss/src/release.ts'),'utf8');
 const report={
- scope:'꿀꿀운세 첫 심사 · 오늘의 운세, 사주 콘텐츠, 대표 상담',
+ scope:'전체 서비스 홈 · 상담과 무료 콘텐츠 · 소유 결과 보호 유지',
+ entrySource:'apps/toss/src/main.tsx → AppEntry.tsx(reviewOnly=false) → App.tsx',
  inventorySourceCommit:inventory.sourceCommit,
  canonicalCandidates:inventory.canonicalCandidates.length,
  reviewServices:reviewServices.map(({id,title,href})=>({id,title,href})),
  deferredFromReview:deferred.map(item=>item.id),
- locallyPresent:selected.filter(item=>['local-partial','verified-full-flow'].includes(item.status)).map(item=>item.id),
+ reviewScopeMeaning:'이전 축소 심사 목록의 이력입니다. 현재 일반 AIT의 탐색 제한이나 판매 승인 목록이 아닙니다.',
+ locallyPresent:inventory.canonicalCandidates.filter(item=>['local-partial','verified-full-flow'].includes(item.status)).map(item=>item.id),
  remainingPorts:remaining.map(item=>item.id),
  fullServicePortHistory:{
    verifiedWholeService:complete.map(item=>item.id),
    partialWholeService:local.map(item=>item.id),
-   meaning:'원본 서비스 전체의 이식 이력입니다. 이번에 선정한 하위 흐름의 완료 판정은 공식 기기 증거로 확인합니다.',
+   meaning:'전체 기능표의 코드 이력입니다. 일부 이식에는 운영·기기 검증만 남은 항목도 포함되므로 개별 단계와 AIT 근거를 함께 확인합니다.',
  },
  reviewProducts,
  approvedReviewProducts:reviewProducts.filter(item=>item.approved).length,
@@ -59,7 +61,7 @@ const report={
  duplicateApprovedSkus:[...skuCounts].filter(([,count])=>count>1).map(([sku,count])=>({sku,count})),
  releaseConfiguration:releaseSource.match(/SERVICE_AVAILABLE\s*=\s*(true|false)/)?.[1]||'unknown',
  newPurchasesConfiguration:releaseSource.match(/NEW_PURCHASES_AVAILABLE\s*=\s*(true|false)/)?.[1]||'unknown',
- nextSteps:'docs/toss/2026-11-08-representative-review.md',
+ nextSteps:'docs/toss/feature-matrix.md',
  limitation:'로컬 코드 목록입니다. 콘솔 승인, 실기기, CI, 업로드 및 출시 상태를 증명하지 않습니다.',
 };
 console.log(JSON.stringify(report,null,2));
