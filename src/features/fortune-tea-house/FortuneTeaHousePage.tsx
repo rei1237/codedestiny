@@ -1157,7 +1157,7 @@ export default function FortuneTeaHousePage({paymentSurface = "web",TossPrice}: 
     startGenerationProgress(nextQuestionInput.consultationMode);
     const consultRunId = consultRunRef.current + 1;
     consultRunRef.current = consultRunId;
-    const useLocalPreview = canUseLocalConsultPreview();
+    const useLocalPreview = paymentSurface !== "toss" && canUseLocalConsultPreview();
     let localPreviewResult: FortuneTeaHouseConsultResponse | null = null;
     let localPreviewResultId = "";
     let accessGateStarted = false;

@@ -1230,6 +1230,9 @@ jobs:
           npm run build:private-simulation
           node scripts/check-bundle-size.mjs --private-simulation --require-portable
           node test/private-simulation-archive.mjs private-simulation/ai-saju-studio.ait
+          for room in letter tea neo; do
+            node test/private-simulation-archive.mjs private-simulation/ai-saju-studio.ait --character-rooms "$room"
+          done
 
       - name: Store private simulated consultation archive
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.full_ci && inputs.toss_artifact && inputs.toss_simulation_artifact && needs.classify.outputs.runs_critical == 'true' }}

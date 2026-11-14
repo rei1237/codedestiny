@@ -47,7 +47,17 @@ export function roomPurchases(state){
       question:room.service==='life-book'?row.input.topic:room===guardian||room===sibyl?room.name:room===palm?'내 손금 리포트':room===sajuCompat?row.input.partnerName:room.service==='codex'?room.name.slice(3):room===naming?row.input.input.familyName+' 작명첩':row.input.question||row.input.dreamText,resultId:row.resultId};
   });
 }
-export async function roomRequest(request,url,path,state,save,now){
+export function roomRecords(url,state){
+    const group=url.searchParams.get('group'),source=url.searchParams.get('source'),q=url.searchParams.get('q')?.trim();
+    const items=roomPurchases(state).filter(r=>(!group||group==='all'||group==='report')&&(!source||source==='all'||source===r.serviceId)&&(!q||r.question.includes(q))).map(r=>({
+      id:r.resultId,key:r.serviceId+':'+r.resultId,group:'report',source:r.serviceId,serviceId:r.serviceId,
+      serviceName:rooms.find(room=>room.service===r.serviceId).name,title:r.question,question:r.question,
+      createdAt:r.createdAt,status:r.state==='COMPLETED'?'completed':'generating',href:r.href,nativeHref:r.href,
+    }));
+    const letters=[...state.letters.values()].filter(r=>r.paid&&(!group||group==='all'||group==='chat')&&(!source||source==='all'||source===r.persona)&&(!q||r.consultation.question.includes(q))).map(r=>({id:r.id,key:r.persona+':'+r.orderId,group:'chat',source:r.persona,serviceId:r.persona,serviceName:(r.persona==='neo'?'네오':'연이')+' 상담 편지',character:r.persona,title:r.consultation.question,question:r.consultation.question,createdAt:r.createdAt,status:'completed',href:'/fortune-tea-house/?counsel=letter'+(r.persona==='neo'?'&persona=neo':'')+'&consultation='+r.id}));
+    return reply({ok:true,items:[...items,...letters,...mockTarotRecords(state).filter(row=>(!group||group==='all'||group===row.group)&&(!source||source==='all'||source===row.source)&&(!q||row.question.includes(q)))],failures:[],nextCursor:null});
+}
+export async function roomOrderRequest(request,url,path,state,save,now){
   const post=request.method==='POST';
   const match=/^\/native\/([a-z-]+)\/(prepare|intents\/([a-f0-9]{64}))$/.exec(path);
   let room=match&&rooms.find(item=>item.service===match[1]);
@@ -108,6 +118,11 @@ export async function roomRequest(request,url,path,state,save,now){
       return row?.paid&&row.sku===sku&&row.orderId===orderId?reply({orderId,requestId:row.id,entitlement:'granted',durable:true}):fail('ORDER_MISMATCH',403);
     }
   }
+  return null;
+}
+export async function roomRequest(request,url,path,state,save,now){
+  const order=await roomOrderRequest(request,url,path,state,save,now);if(order)return order;
+  const post=request.method==='POST';
   if(path.startsWith('/canonical/life-book-ai/')){
     const input=post?await request.json():null;
     const key=post?requestKey(input):url.searchParams.get('attemptId');
@@ -127,16 +142,7 @@ export async function roomRequest(request,url,path,state,save,now){
     }
     return fail('ROUTE_NOT_FOUND',404);
   }
-  if(path==='/canonical/records'&&!post){
-    const group=url.searchParams.get('group'),source=url.searchParams.get('source'),q=url.searchParams.get('q')?.trim();
-    const items=roomPurchases(state).filter(r=>(!group||group==='all'||group==='report')&&(!source||source==='all'||source===r.serviceId)&&(!q||r.question.includes(q))).map(r=>({
-      id:r.resultId,key:r.serviceId+':'+r.resultId,group:'report',source:r.serviceId,serviceId:r.serviceId,
-      serviceName:rooms.find(room=>room.service===r.serviceId).name,title:r.question,question:r.question,
-      createdAt:r.createdAt,status:r.state==='COMPLETED'?'completed':'generating',href:r.href,nativeHref:r.href,
-    }));
-    const letters=[...state.letters.values()].filter(r=>r.paid&&(!group||group==='all'||group==='chat')&&!source&&(!q||r.consultation.question.includes(q))).map(r=>({id:r.id,key:r.persona+':'+r.orderId,group:'chat',source:r.persona,serviceId:r.persona,serviceName:(r.persona==='neo'?'네오':'연이')+' 상담 편지',character:r.persona,title:r.consultation.question,question:r.consultation.question,createdAt:r.createdAt,status:'completed',href:'/fortune-tea-house/?counsel=letter'+(r.persona==='neo'?'&persona=neo':'')+'&consultation='+r.id}));
-    return reply({ok:true,items:[...items,...letters,...mockTarotRecords(state).filter(row=>(!group||group==='all'||group===row.group)&&(!source||source==='all'||source===row.source)&&(!q||row.question.includes(q)))],failures:[],nextCursor:null});
-  }
+  if(path==='/canonical/records'&&!post)return roomRecords(url,state);
   const palmResult=/^\/native\/palm\/results\/([a-f0-9]{64})$/.exec(path);
   if(palmResult){const row=state.intents.get(palmResult[1]);return !post&&row?.service==='palm'&&row.paid?reply(row.result):fail('RESULT_NOT_FOUND',404);}
   const codexResult=/^\/native\/codex\/results\/([a-f0-9]{64})$/.exec(path);
@@ -255,6 +261,15 @@ export async function roomRequest(request,url,path,state,save,now){
       save();
     }
     return reply({ok:true,id:row.id,year:row.input.year,status:row.result?'completed':'generating',completedChapters:row.completed||0,totalChapters:2,...(row.result?{report:row.result}:{})});
+  }
+  return characterRoomReading(request,url,path,state,save,now);
+}
+export async function characterRoomReading(request,url,path,state,save,now){
+  const post=request.method==='POST';
+  if(path==='/canonical/fortune-tea-house/ensure-access'&&post){
+    const body=await request.json(),key=requestKey(body);
+    const paid=[...state.intents.values()].find(row=>row.service==='tea'&&row.paid&&key&&requestKey(row.input)===key);
+    return paid&&body.question===paid.input.question?reply({ok:true}):reply({ok:false,paymentRequired:true,reason:'PAYMENT_REQUIRED'},402);
   }
   if(path==='/canonical/fortune-tea-house/consult'&&post){
     const body=await request.json(),key=requestKey(body);

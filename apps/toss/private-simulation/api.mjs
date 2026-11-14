@@ -3,7 +3,13 @@ export {skyExample};
 import {handleReviewFixture,offlineCatalog,prashnaProduct} from '../test/offline/review-fixture.mjs';
 import {productView} from '../test/offline/yeongnyangi-contracts.mjs';
 
+import {letterRequest} from '../test/offline/letter-fixture.mjs';
+import {roomProducts,roomRecords,roomOrderRequest,characterRoomReading} from '../test/offline/room-fixture.mjs';
+
+const letterProducts=offlineCatalog.filter(product=>product.id.startsWith('yeoni:'));
+const characterRooms=roomProducts.filter(product=>/^native:(tea|neo):/.test(product.id));
 export const products=offlineCatalog.filter(product=>!product.id.includes(':'));
+export const sdkProducts=[...products,...letterProducts,...characterRooms];
 const replies=(value,status=200)=>Response.json(value,{status});
 function exampleReading(kind,body){
   const input=skyExample.input;
@@ -18,15 +24,15 @@ export function createSimulationApi(storage,person){
   const owner='private-simulation-person-'+person;
   const saved=JSON.parse(storage.getItem('consultations')||'{}');
   const state={profiles:saved.profiles||[sample],loggedIn:saved.loggedIn===true,sequence:saved.sequence??(person==='B'?2**40:0),
-    fortunes:new Map(saved.fortunes),orders:new Map(saved.orders),letters:new Map(),intents:new Map()};
+    fortunes:new Map(saved.fortunes),orders:new Map(saved.orders),letters:new Map(saved.letters),intents:new Map(saved.intents)};
   const save=()=>{try{
-    storage.setItem('consultations',JSON.stringify({profiles:state.profiles,loggedIn:state.loggedIn,sequence:state.sequence,fortunes:[...state.fortunes],orders:[...state.orders]}));return true;
+    storage.setItem('consultations',JSON.stringify({profiles:state.profiles,loggedIn:state.loggedIn,sequence:state.sequence,fortunes:[...state.fortunes],orders:[...state.orders],letters:[...state.letters],intents:[...state.intents]}));return true;
   }catch{return false;}};
   return async request=>{
     const url=new URL(request.url);
     const path=url.pathname.slice('/private-simulation-api'.length),method=request.method;
     if(!url.pathname.startsWith('/private-simulation-api/'))return unavailable();
-    if(path==='/catalog'&&method==='GET')return replies({products});
+    if(path==='/catalog'&&method==='GET')return replies({products:[...products,...letterProducts]});
     if(path==='/canonical/yeongnyangi/products'&&method==='GET')return replies({products:products.filter(p=>p.id!==prashnaProduct.id).map(productView)});
     if(path==='/canonical/yeongnyangi/free/horary'&&method==='POST')return exampleReading('horary',await request.json());
     if(path==='/login'&&method==='POST'){
@@ -39,7 +45,7 @@ export function createSimulationApi(storage,person){
     if(path==='/logout'&&method==='POST'){state.loggedIn=false;save();return replies({ok:true});}
     if(path==='/canonical/auth/me'&&method==='GET')return replies({ok:true,authenticated:true,user:{id:owner,name:'모의 계정 '+person,role:'user'}});
     if(path==='/canonical/geocode'&&method==='GET')return url.searchParams.get('place')==='서울'?replies({name:'서울',lat:37.5665,lng:126.978,timezone:'Asia/Seoul',fallback:false}):replies({error:'PLACE_NOT_FOUND'},404);
-    if(path==='/canonical/profile'&&method==='GET')return replies({ok:true,profiles:[]});
+    if(path==='/canonical/profile'&&method==='GET')return replies({ok:true,profiles:state.profiles.map(profile=>({...profile,timezone:'Asia/Seoul'}))});
     if(path==='/canonical/yeongnyangi/profiles'){
       if(method==='GET')return replies({ok:true,profiles:state.profiles,currentId:state.profiles.at(-1)?.profileId});
       if(method==='POST'){
@@ -52,10 +58,20 @@ export function createSimulationApi(storage,person){
       }
     }
     if(path==='/events'&&method==='POST')return replies({ok:true});
-    if(['/native/catalog','/tarot-library/catalog'].includes(path))return replies({products:[],flows:[]});
+    const now=()=>new Date();
+    if(path==='/canonical/records'&&method==='GET')return roomRecords(url,state);
+    if(path==='/native/catalog'&&method==='GET')return replies({products:characterRooms});
+    if(/^\/native\/(tea|neo)\/(prepare|intents\/[a-f0-9]{64})$/.test(path))return await roomOrderRequest(request,url,path,state,save,now)||unavailable();
+    if(/^\/canonical\/(fortune-tea-house|neo-operation-room)\//.test(path))return await characterRoomReading(request,url,path,state,save,now)||unavailable();
+    if(/^\/canonical\/fortune-chat\/consultations(?:\/|$)/.test(path)){
+      if(path.endsWith('/consultations')&&method==='POST'&&((await request.clone().json()).persona||'yeoni')!=='yeoni')return unavailable();
+      return await letterRequest(request,url,path,state,save)||unavailable();
+    }
+    if(path==='/tarot-library/catalog')return replies({products:[],flows:[]});
     if(path==='/orders/grant'||path==='/orders/restore'){
       const {sku,orderId}=await request.clone().json();
-      if(!products.some(product=>product.sku===sku)||!orderId?.startsWith('private-order-'+person+'-'))return replies({error:'ORDER_MISMATCH'},403);
+      if(!sdkProducts.some(product=>product.sku===sku)||!orderId?.startsWith('private-order-'+person+'-'))return replies({error:'ORDER_MISMATCH'},403);
+      if(characterRooms.some(product=>product.sku===sku))return await roomOrderRequest(request,url,path,state,save,now)||unavailable();
     }else if(!(/^\/canonical\/yeongnyangi\/(requests(?:\/|$)|saju\/experience-check$)/.test(path)||/^\/results\/[a-f0-9]{64}$/.test(path)||path==='/library'))return unavailable();
     return await handleReviewFixture(request,url,path,state,save,()=>new Date(),1100,body=>exampleReading('prashna',body))||unavailable();
   };

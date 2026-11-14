@@ -16,3 +16,9 @@ Toss Image 어댑터만 로컬 표시 URL을 치환하고 Vite는 원본 PNG의 
 2026-11-13 통합 홈 번들은 타로 뒷면 back-600.webp를 패키징할 때 같은 600×900 크기로 인코딩한다. 원본 833,178바이트, WebP quality 88 파생본 192,902바이트. 카드 앞면과 웹 원본은 그대로 사용한다.
 
 상담가 초상과 상담 표지(images/master-profiles, images/consultation-editorial, images/fusion-fortune) 중 가로 800px를 넘는 이미지는 토스 번들에서 800px WebP로 만든다. 작은 원본과 인쇄용 리포트 이미지는 원래 해상도를 사용한다.
+
+## 2026-11-14 전략실 휘장
+원본: https://assets.code-destiny.com/DestinyWar/%EC%9E%91%EC%A0%84%EC%8B%A4%20%EC%97%90%EC%85%8B1-Photoroom.webp
+토스 파생본: public/assets/toss-art/neo-war-room-seal.webp (320×240, 38,528 bytes).
+sharp resize width=320, withoutEnlargement=true, webp quality=82. 원본 비율·알파 유지.
+character-room-art.ts는 네오 본문·배경과 찻집 배경도 기존 번들 원화에 연결한다.

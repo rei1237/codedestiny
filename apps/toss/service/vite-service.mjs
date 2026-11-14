@@ -84,6 +84,7 @@ export default function serviceCompat(){
    return code;
   },
   resolveId(id,importer){
+   if(id.replaceAll('\\','/').endsWith('/lib/r2-public-url')&&/\/(?:neo-war-room|fortune-tea-house)\/data\/assets\.ts$/.test(importer?.replaceAll('\\','/')||''))return fileURLToPath(new URL('./character-room-art.ts',import.meta.url));
    if(id==='virtual:consultation-webtoons')return '\0toss-consultation-webtoons';
    if(id==='virtual:destiny-island')return '\0toss-destiny-island';
    if(id==='virtual:secret-house-page')return '\0toss-secret-house';

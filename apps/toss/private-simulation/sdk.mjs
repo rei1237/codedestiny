@@ -1,4 +1,4 @@
-import {products} from './api.mjs';
+import {sdkProducts as products} from './api.mjs';
 import {person} from './storage.mjs';
 const supported=fn=>Object.assign(fn,{isSupported:()=>true});
 const blocked=()=>{throw Error('PRIVATE_SIMULATION_UNAVAILABLE');};

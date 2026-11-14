@@ -62,7 +62,12 @@ try{
     await page.getByRole('button',{name:'토스로 로그인하기'}).click();
     await page.waitForURL(/yeongnyangi\/fortune/);
   };
-  if(process.argv.includes('--all-products')){
+  if(process.argv.includes('--character-rooms')){
+    const {verifyCharacterRooms}=await import('./private-character-rooms.mjs');
+    await verifyCharacterRooms(origin,context);
+    assert.deepEqual(unexpected,[]);assert.ok(bridge.includes('__subscribeAppEvent'));
+    console.log('PASS private AIT character rooms',reader.deploymentId);
+  }else if(process.argv.includes('--all-products')){
     const {verifyAllConsultationProducts}=await import('./private-simulation-products.mjs');
     await verifyAllConsultationProducts(origin,context,unexpected);
     console.log('PASS complete mock catalog',reader.deploymentId);

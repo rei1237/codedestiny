@@ -53,3 +53,31 @@ test('private archive simulator serves the 28 existing consultation fixtures and
   assert.equal((await request(reentry,'/native/yoga/prepare',token,{})).status,404);
   assert.equal((await request(reentry,'/library',foreign)).status,401);
 });
+
+for(const service of ['tea','neo'])test('private '+service+' persists the receipt across interrupted generation and denies other owners',async()=>{
+ const data=storage();let api=createSimulationApi(data,'A');
+ const token=(await (await request(api,'/login','',{authorizationCode:'private-simulation-person-A'})).json()).token;
+ const products=(await (await request(api,'/native/catalog',token)).json()).products;
+ const product=products.find(p=>p.id.startsWith('native:'+service+':'));
+ assert.notEqual(product.sku,'mock-yeoni');assert.equal(product.approvedPriceKRW,1);
+ const input={idempotencyKey:'one-request',question:'테스트 질문입니다.',selectedMethod:'saju',featureKey:product.featureKey};
+ const route='/native/'+service+'/prepare';
+ const row=await (await request(api,route,token,{input})).json();
+ const grant={requestId:row.id,orderId:'private-order-A-one',sku:product.sku};
+ const generate=service==='tea'?'/canonical/fortune-tea-house/consult':'/canonical/neo-operation-room/start';
+ assert.equal((await request(api,generate,token,input)).status,402);
+ assert.equal((await request(api,'/orders/grant',token,{...grant,sku:'mock-yeoni'})).status,403);
+ assert.equal((await request(api,'/orders/grant',token,grant)).status,200);
+ api=createSimulationApi(data,'A');
+ assert.equal((await request(api,'/orders/restore',token,grant)).status,200);
+ assert.equal((await request(api,'/orders/grant',token,grant)).status,200);
+ assert.equal((await (await request(api,route,token,{input})).json()).id,row.id);
+ const result=await (await request(api,generate,token,input)).json();
+ assert.deepEqual(await (await request(createSimulationApi(data,'A'),generate,token,input)).json(),result);
+ const saved=JSON.parse(data.getItem('consultations'));assert.equal(saved.orders.length,1);assert.equal(saved.intents[0][1].generationCount,1);
+ const other=createSimulationApi(storage(),'B'),foreign=(await (await request(other,'/login','',{authorizationCode:'private-simulation-person-B'})).json()).token;
+ const read=service==='tea'?'/canonical/fortune-tea-house/results/'+row.resultId:'/canonical/neo-operation-room/result?attemptId='+row.resultId;
+ assert.equal((await request(other,read,foreign)).status,404);
+ assert.equal((await request(other,'/orders/restore',foreign,grant)).status,403);
+ assert.equal((await (await request(other,'/canonical/records',foreign)).json()).items.length,0);
+});
