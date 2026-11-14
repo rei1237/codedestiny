@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-15
-next: 기존 운영 키·Toss DB 집계·배포 바인딩을 읽기 전용으로 대조하고 승인된 운영 설정을 실행한다.
+next: 신규판매 상태의 서버 집행을 보완·mock 검증한다. privacy 커밋과 함께 push/CI 확인 후 하나의 공식 production 승격을 실행하고 콘솔 등록 및 READY 활성화를 진행한다.
 ---
 
 ## 첫 행동
@@ -31,8 +31,33 @@ handoff 스킬, CLAUDE.md, docs/toss/launch-operational-evidence-20261114.md를 
 
 ## 단계
 - [x] 사용자 승인과 작업 범위 기록, 안전 워크트리 준비
-- [ ] 운영 배포·바인딩·기존 키/DB 집계 확인
+- [x] 운영 배포·바인딩·기존 키/DB 집계 확인
 - [ ] 개인정보 고지와 콘솔 필수 항목 대조
 - [ ] 키 등록·공식 Worker/Pages 승격·토스 로그인 설정
 - [ ] 준비 상태 확인 후 서버 활성화, 신규 판매 닫힘 검증
 - [ ] 결과 문서·targeted 검사·커밋·pre-push·push·최종 CI 확인 및 정리
+
+## 2026-11-15 운영 진행 기록
+- 운영 Toss 컬렉션 4종은 모두 0건이었다. canonical DB에서 실제 운영 appName `code-destiny-worker` 연결 8개를 읽기 전용으로 확인했다(동일 DB 이름만으로 클러스터 일치를 단정하지 않음).
+- 기존 Toss 키가 없는 상태에서 신원 키·데이터 키·콜백 인증값 3개를 메모리 생성 및 보안 stdin으로 등록했다. 비밀값은 파일·로그에 남기지 않았다. READY는 미설정, mTLS 바인딩은 보존했다.
+- Ego 작업공간73 p1에 로그인 설정 초안이 있다. 필수 이름 외 6항목 사용 안 함. 서비스 약관·개인정보 수집 이용·국외 이전의 필수 동의문을 정상 추가 UI로 준비했다. 콜백 POST URL과 raw Basic Auth 입력은 준비됐지만 최종 등록은 아직 안 했다. 콜백 값은 DOM에만 있으므로 화면 출력에서 반드시 가리고, 저장 전 탭을 닫거나 새로고침하지 않는다.
+- 고정 국외 이전 템플릿은 이름 보관·보유기간이 실제 처리와 달라 사용하지 않았다. 정상 custom 동의문 경로를 사용한다. name은 암호화 응답에 일시 수신되며 복호화·DB·로그 보관하지 않는다.
+- 현재 운영 외부 Vedic base/key 바인딩은 없다. 현재 Swiss 로컬 계산 경로와 프라슈나 좌표·질문·시각 처리를 privacy에 명확히 반영했다. AUTH_PRIVACY_VERSION도 2026-11-15로 맞췄다.
+- privacy 수정 후 첫 critical 검사는 sitemap drift에서 실패했다. 공식 sitemap:generate로 재생성했다. 두 번째 검사는 5,074개 중 5,073개 통과, 신규 worktree의 일일 계산 산출물 누락으로 1개 실패했다. 공식 fortune:build-data(외부 호출 없음) 실행 후 세 번째 critical 검사 session79937 진행 중이며 실패했던 항목도 통과했다. 생성 sitemap 날짜 변경은 privacy 및 공식 volatile 운세 날짜이며 URL 목록은 유지된다.
+- 이 세션 production dispatch는 아직 0회다. 다른 세션의 공식 run43612648387이 2026-11-14T16:09:27Z 성공해 live Pages/Worker를 f8a4ec2afa7ba2bacb7913201aae6962c4c6e232로 갱신했다. root도 이 실행을 시작하지 않았다. 기존 동시 배포는 취소·롤백하지 않으며 새 rollback baseline으로 식별값을 다시 읽는다.
+- 승인된 실행 순서: 공개 privacy를 READY 닫힌 상태의 공식 1회 production 승격으로 반영 → 콘솔 등록 → 정상 Cloudflare plain_text 설정으로 READY=true → 저장소 production vars 정본에 동일 값 기록. staging에는 활성화를 전파하지 않는다. 설정 변경 직전 최신 바인딩·코드 SHA를 다시 읽고 다른 세션 값과 3키·mTLS를 보존한다.
+- 새 baseline: Pages da6878a5-60cd-48d0-8496-f03639fa8cb6 / Worker deployment56b263aa-480d-483f-a7c1-83ace58ad3ee, version10e51006-c4b6-4869-a13a-4533acdaf6b4. 키3개 포함된 버전이다. 코드 양쪽 f8a.
+- Cloudflare 정상 UI 로그인 완료, 작업공간73 p2 production settings에 있다. Add variable 모달에서 Production만 선택된 plain 변수 입력 경로를 확인했지만 저장하지 않았다. 설정 버튼은 Add variable and deploy이며 최신 코드/다른바인딩 보존을 사전·사후 확인해야 한다.
+- activation vars는 production true/staging false, 딱 TOSS_RELEASE_READY 한 키만 parity 검증기에 명시적 환경 차이+값 단언으로 추가하도록 root도 확인했다. 일반 unknown/mismatch 검증은 약화하지 않는다.
+
+## 활성화 전 필수 보완 — 신규 판매 서버 집행
+
+privacy 검사79937은 Node5074 전부, critical 계약/Worker 빌드 통과, Jest8007 pass/1 skipped/1 fail로 종료했다. 유일한 실패는 주문용 정책버전도 동기화해야 한다는 대조 테스트다. worker/payments/policy-versions.js의 privacy를 2026-11-15로 맞춘 뒤 `npm run test:jest -- --runTestsByPath __tests__/worker/payments-v2.policy-versions.test.js` 2/2 pass. 전체 재실행은 하지 않고 최종 CI가 전체 검증한다. 원래 정책/가격/결제 동작은 유지한다.
+
+privacy 최초 커밋 후 pre-push가 `public/static/policies/privacy/index.html` 미러 누락을 찾았다. 공식 `npm run sync:public`은 이 파일 1개만 최종 변경했고 source와 같은 커밋으로 amend한다. 생성 중 일시적으로 표시된 feature-details 변경은 완료 후 사라졌으며 다른 변경은 섞이지 않았다.
+
+2026-11-15 root 요청으로 재확인한 결과 `apps/toss/src/release.ts`의 `NEW_PURCHASES_AVAILABLE=false`는 클라이언트에만 적용된다. Worker `/catalog`는 승인 SKU를 available:true로 표시하고, READY true 이후 `/prepare`, `/canonical/fortune-chat/consultations` POST, native 공통 `prepareNativeConsultation`은 새 미결제 상담 intent를 만들 수 있다. **이 상태로 READY를 켜지 않는다.**
+
+root 승인: 기존 NEW_PURCHASES_AVAILABLE를 단일 정본으로 앱/서버가 공유하고, 원래 승인된 판매 닫힘 정책을 서버에서 집행한다. 새 env·SKU·독립 정책 게이트를 만들지 않는다. 등록 원장·가격·기존 grant/recover/read/paid retry를 보존한다. native·tarot·music 등 모든 신규 intent 진입을 추적한다. native-tea.js의 공통 함수는 orderId가 있는 구매 복구와 없는 신규 준비를 구분한다. 기존 준비/완료 결과를 신뢰된 주문 소유권 없이 반환하면 안 된다.
+
+mock 로그인·구매·생성은 명시 DI로 계속 검증하며 실서버 폴백은 금지한다. 앱 release 정본 이동 시 `apps/toss/scripts/launch-status.mjs`의 정규식 읽기와 관련 static 테스트도 새 정본으로 맞춰야 한다. 실제 앱 번들에서 공용 상수 참조가 달라지면 AIT 재빌드 필요 여부를 root에 알린다. 변경 파일·함수와 targeted 검사 결과를 root에 보내 활성화 전 읽기 검토를 받는다. privacy 단독 커밋 후 서버 보완을 분리 커밋하고 **하나의 공식 production 승격**에 포함한다.
