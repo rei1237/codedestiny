@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-14
-next: 남은 native 리포트의 private AIT 계약 연결, 원본 대비 코드 누락 수정, 전체 기능 단계별 판정
+next: CI661 계약 테스트 복구 전달 후 서양 무료 10종·숙요 관계 원본 누락을 완료하고 Linux AIT 전체 경로 검증
 ---
 
 ## 첫 행동
@@ -51,3 +51,22 @@ next: 남은 native 리포트의 private AIT 계약 연결, 원본 대비 코드
 - 남은private무료누락 parent감사: manse/calculate, pet catalog/blueprint, compass moon/calendar/narrate, nakshatra today/resolve/compat/muhurta/vvip/lord/dasha, today-hub, olympus placements, tarot-library/free. offline/fixture58~155 공통기존계약재사용. SecretHouse srcDoc private strictCSP도Yoga와같은문제일수있어실제전체경로확인필요.
 - ego guide전문 D:/Development/Temp/launch-ego-guide.txt 끝까지읽음. 아직본작업새space없음. 사용자새space복구승인유효. console새QR전한space생성하고이후id재사용/끝finish. 이전space끝났음.
 - 새운영상태: approved5SKU(Yeoni1/Yeongnyangi4), native/tarot0, NEW_PURCHASES_AVAILABLE=false. 가격임의추가금지. launch-status이전7서비스선정이력이현재탐색범위처럼보이던오류수정6dce.
+
+
+## 2026-11-14 후속 구현과 전달 상태
+- 최신 로컬 7252ac031. 원격661e25a95의 CI43578407030 Critical checks는 routes.test의 Swiss WASM loader 누락 및 신규 nativeHD/yearly mock 경계 누락으로 실패. ac81e7d3f에 loader와 명시적인 route mock+guest/owner 경계 테스트 추가, 71/71 통과. 런타임 fallback은 추가하지 않음.
+- c608b461e 무료 만세력·반려 차트·무료타로5종 private API 연결. 원본 free tarot 생성기만 private alias로 가져와 실 LLM/DB 번들 유입 방지. 실제 AIT7경로 및360/390/430px21스크린샷 통과.
+- 38a3b4162 베다 원본 전체 UI: 남북 명반,7토픽,8상세,12바바용어,원본CSS. 로컬 Swiss 원본 계산 fixture로 실제 AIT3폭 및 nativeback 통과. 일반경로는 자유 출생입력/strictSwiss, private만 고정예시·다른입력422를 명시.
+- 203837969 반려2·숙요·관계 모의 구매/재열람 계약 및 베다fixture. 숙요/반려2 실제AIT 통과. 관계 결과 rbt ID와 intentID 차이를 발견해 보관함 URL 수정, 다음 빌드 재검증 중. b3d0e2692 베다바바팝업 QA 강화.
+- 77bdf72e6 원본 birthInput 공유모듈로 만세력의 불필요 꽃데이터 의존 분리, 러브코드 전체원문 gzip(12언어/선택지/점수 동등성). 7252ac031 나크샤트라/나침반/손금 번역 데이터 무손실 압축(키순서·모든언어·함수 동등성3tests).
+- 직전 AIT01a1d971-8d68-7cf7-bdee-349209dd7458 expanded100,232,178B 초과. 추가 번역압축 반영 AIT 생성 중. Windows 로컬 QA이며 Linux/QR 신규 전달 아님. 이전 QR15 runtime80bd만 존재.
+- check:fast --base=661e25a95 실행: 초기 유명인 module변수 lint 오류 수정 후 나머지 검사를 재개하여 통과. paid77, node/guards/typecheck/worker 및 Jest479suites8008PASS1skip. pre-push는 후속변경이 미커밋이어서 신선도 판정 차단됨; 단위커밋 후 다시 실행해야 함.
+- 아직 원본 정밀 감사 미완료. 다음 실코드 누락: 서양 무료10종 원본section/휠, 숙요 관계도구. 일부만이식96을 모두 같은 결함으로 취급하지 말고 코드/운영/실기기 단계를 분리한다.
+- 담당 remaining_audit: 서양 원본 UI·worker adapter와 숙요 감사. 담당 private_completion: 유료4+베다+무료7 AIT 및 다음 서양 privatefixture. 본 에이전트: CI복구/push·압축·기능표/전체AIT·콘솔.
+
+## 운영 콘솔 관찰 (수정/저장/검토 요청 안 함)
+- Ego TaskSpace66,p1 유지. D:/Development/Temp/toss-launch-console-20261114/round-22.mjs까지 실행. 다음은23 이상 새파일. 소유 세션 종료/재생성하지 않음.
+- 메타 edit에 반려사유: 앱 아이콘 및 썸네일은 크롭되지 않으며 배경색이 포함된 꽉 찬 사각형 형태 필요. 앱번들 재등록 필요없다는 안내. 현재 한국어명꿀꿀운세/영어Code Destiny, private 설명은 옛 축소판 설명이라 출시전 실제범위로 수정 필요.
+- Toss Login은 등록하기 상태, 약관/콜백 등 미등록 폼 관찰. 임의등록/secret변경 없음.
+- IAP5개 가격확인, 연이4950 SKU와 영냥이14850 SKU 상세는 미노출. 다른3개노출상태는 미확인. 새서비스에 기존SKU재사용 금지.
+- 실기기 토스로그인/IAP/키보드/nativeSDK 실제작동 및 운영Worker·권한·상품노출·검토/출시 게이트 남음. 사용자의 론칭요청을 실제 결제테스트로 확대하지 않는다.
