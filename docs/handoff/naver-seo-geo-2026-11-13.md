@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-15
-next: 운영 승격·운영 검증 끝(런 43612648387, 운영 f8a4ec2af). 남은 것 — 네이버 서치어드바이저 제출(docs/seo/naver-console-checklist.md)은 사용자 작업 / IndexNow 제출 실패 후속(사이트맵의 /yeongnyangi/season-1/prologue/가 공개 URL 필터에 걸림, docs/seo/production-verification.md §5-6, 수정·재제출은 승인 필요) / 로컬 문서 커밋 2개는 미push(push는 사용자 요청 때만) / 4-3 보류 / 검수 원장 입력 대기 / LCP 후속
+next: 운영 승격·운영 검증 끝(런 43612648387, 운영 f8a4ec2af). 남은 것 — 네이버 서치어드바이저 제출(docs/seo/naver-console-checklist.md)은 사용자 작업 / IndexNow는 고쳐서 main f03d8add0에 올리고 1,081건 수동 제출 끝(§5-6a), 체크포인트 캐시는 비어 있어 다음 운영 승격 때 전체가 한 번 더 나감(정상) / 로컬 커밋(문서 3개 + 수정 원본 b954a1a91)은 미push(문서 push는 사용자 요청 때만) / 4-3 보류 / 검수 원장 입력 대기 / LCP 후속
 ---
 # 네이버 SEO·AEO·GEO + 구매 동선 (Phase 1~5)
 
@@ -445,3 +445,13 @@ aver-seo-production`), 읽기 전용 스모크. 로그인·결제 없이, 부하
 - **함정 — IndexNow 제출 실패**: 런은 success지만 IndexNow 단계가 exit 1(`continue-on-error`)이라 제출이 안 됐다. 사이트맵의 `/yeongnyangi/season-1/prologue/`가 `scripts/lib/indexnow-delta.mjs` 허용 목록에 없어 전체가 거부된다. 승격 전 운영 사이트맵에도 있던 URL이라 이번 작업이 만든 문제는 아니다. 고치지 않았다(범위 밖, 재실행 금지). 런의 초록 표시만 보고 제출됐다고 믿지 말 것.
 - **확인하지 못한 것**: 로그인 뒤 유료 실행·결제 확인 분기·구매 세션 복구(금지 범위, 웹 동작 불변은 코드 근거 추정), 운영에서의 유입 쿠키 실동작, 입력 뒤 결과 화면, 쿠키 안내창 아래 화면.
 - **하지 않은 것**: 승격 재실행, 롤백, main push(문서 커밋은 로컬에만), IndexNow·Secret Scan 수정, 네이버 서치어드바이저 제출, 4-3, 검수 원장.
+
+### IndexNow 수정·수동 제출 (2026-11-15 01:20~01:50 KST, 직접 실행)
+정본은 `docs/seo/production-verification.md` §5-6a.
+- 승인 원문: "인덱스 나우는 고쳐줘 로컬 문서 커밋은 올리지 않아도 될것 같다" (2026-11-15). 범위: IndexNow 수정 커밋만 main push, 운영 승격 없는 제출 1회. **이 승인은 다 썼다.** 문서 커밋 push, 승격 재실행, 롤백은 들어 있지 않다.
+- [x] **원인 확인**: 직전 진단과 같다. 운영 사이트맵 1,081개 중 `/yeongnyangi/season-1/prologue/` 1건만 거부.
+- [x] **수정**: 허용 목록에 그 경로 1건 추가 + 테스트. 로컬 `b954a1a91`, main `f03d8add0`(`f8a4ec2af` 위에 이 커밋만, `git merge-tree`·`commit-tree`로 만들어 `git push origin <sha>:refs/heads/main`). 회차(2화~)는 noindex라 계열 전체를 열지 않았다.
+- [x] **제출 1회**: 이 워크트리에서 `CD_DEPLOY_TARGET=production`으로 `scripts/indexnow-submit.mjs` 실행, 1,081건, `200 OK`. 키는 시크릿이 아니라 `lib/indexnow.ts`의 공개 값이다.
+- **함정 — 체크포인트는 비어 있다**: 체크포인트는 Actions 캐시에만 저장된다. 다음 운영 승격의 IndexNow 단계는 "initial"로 전체를 다시 보내고 그때 저장된다. 그 런에서 "Notify IndexNow" 단계 로그에 `OK — N건 제출 완료`와 "Save successful IndexNow checkpoint" 실행을 확인할 것.
+- **함정 — 사이트맵에 `/yeongnyangi/` 아래 새 공개 경로를 넣으면** `scripts/lib/indexnow-delta.mjs`의 `PUBLIC_SERVICE_PAGES`에도 넣어야 한다. 안 넣으면 제출 전체가 거부되는데 런은 초록이다. `node scripts/indexnow-submit.mjs --dry-run`으로 미리 볼 수 있다.
+- **실수와 복구**: 작업 중 `git stash pop`이 공용 stash 맨 위(`stash@{0}`, 다른 세션의 "backup: local main uncommitted changes before prod sync 20261018")를 이 워크트리에 풀어 충돌이 났다. 충돌이라 stash 항목은 그대로 남았고(30개, `ca3a76d3d`), 이 워크트리는 `git reset --hard HEAD`와 stash에서 나온 미추적 파일 2개 삭제(stash 안의 것과 해시 일치 확인)로 깨끗한 상태로 되돌렸다. 다른 체크아웃은 건드리지 않았다. stash는 워크트리끼리 공유되니 이 저장소에서 `git stash`를 쓰지 말 것.

@@ -1,6 +1,6 @@
 # 운영 승격 전 패킷과 운영 검증 (2026-11-14 ~ 2026-11-15)
 
-**결론: 2026-11-15 00:54 KST에 운영 승격을 1회 실행했고 성공했다.** 런 43612648387, 운영은 `91e4261d8` → `f8a4ec2af`. 자동 롤백은 없었다. 운영 검증(5절)에서 홈·핵심 허브·유료 라우트의 5xx는 없었다. 남은 문제는 IndexNow 제출 실패 1건이다(5-6, 이 승격 전부터 있던 원인).
+**결론: 2026-11-15 00:54 KST에 운영 승격을 1회 실행했고 성공했다.** 런 43612648387, 운영은 `91e4261d8` → `f8a4ec2af`. 자동 롤백은 없었다. 운영 검증(5절)에서 홈·핵심 허브·유료 라우트의 5xx는 없었다. 승격 때 IndexNow 제출이 실패했고(5-6, 이 승격 전부터 있던 원인), 같은 날 고쳐서 1,081건을 따로 제출했다(5-6a, 수정 `f03d8add0`).
 
 2026-11-14에는 승격을 실행하지 않았다. 다른 세션의 웹 운영 변경이 같이 나가는데 그 동반 출고가 승인되지 않았기 때문이다(2~4절은 그때의 패킷). 2026-11-15에 사용자가 동반 출고를 승인했다.
 
@@ -211,13 +211,26 @@
 
 눈으로 열어 본 스크린샷은 3장이다(`mobile-home.png`, `mobile-saju-free.png`, `desktop-yeongnyangi-price.png`). 글자 깨짐이나 레이아웃 붕괴는 없었다. 세 장 모두 쿠키 안내창이 화면 아래쪽을 덮고 있어(첫 방문 상태) 그 밑의 내용은 보지 못했다. 나머지 17장은 수치만 확인했다.
 
-### 5-6. 결함 — IndexNow 제출 실패 (고치지 않음)
+### 5-6. 결함 — IndexNow 제출 실패 (승격 당시 기록, 수정은 5-6a)
 
 - 런 43612648387의 "Notify IndexNow of changed URLs" 단계가 `[indexnow] Non-public sitemap URL rejected` 뒤 exit code 1로 끝났다. 이 단계는 `continue-on-error`라 런은 success로 표시되지만 "Save successful IndexNow checkpoint"가 건너뛰어졌다. **이번 승격의 변경 URL은 IndexNow에 제출되지 않았다.** 복원할 이전 체크포인트 캐시도 없었다("Cache not found").
 - 원인(확인함): `scripts/lib/indexnow-delta.mjs`의 `publicNotificationUrl()`은 `/yeongnyangi/` 아래 경로를 허용 목록(`/yeongnyangi/`, `/yeongnyangi/1000-won-fortune/`, `/yeongnyangi/season-1/`)에 있는 것만 통과시키는데, 사이트맵에 `https://code-destiny.com/yeongnyangi/season-1/prologue/`가 있다. 운영 `sitemap.xml`의 loc 1,081개에 그 함수를 적용하면 거부되는 것은 이 1건뿐이다. `buildSubmissionState()`는 1건이라도 거부되면 전체를 던진다.
 - 이 URL은 승격 전 운영(`91e4261d8`)의 사이트맵에도 있었다. 이 SEO 작업이나 이번 승격이 만든 문제가 아니다. 이전 운영 승격에서도 같은 이유로 실패했을 가능성이 높다(추정, 이전 런 로그는 보지 않았다).
 - 영향: 네이버·Bing으로 가는 IndexNow 알림이 빠진다. 사이트맵과 robots는 정상이라 일반 크롤로는 수집된다. 네이버 서치어드바이저 수동 제출(`docs/seo/naver-console-checklist.md`)과는 별개다.
-- 고치는 방법(하지 않음, 범위 밖): 허용 목록에 `/yeongnyangi/season-1/prologue/`를 넣거나 사이트맵에서 그 URL을 뺀다. 고친 뒤 제출하려면 운영 승격을 한 번 더 돌리거나 `npm run seo:indexnow`를 따로 실행해야 하는데, 둘 다 이번 승인 범위에 없다.
+- 고치는 방법(승격 당시에는 하지 않음): 허용 목록에 `/yeongnyangi/season-1/prologue/`를 넣거나 사이트맵에서 그 URL을 뺀다. → 2026-11-15에 승인받아 고치고 제출했다(5-6a).
+
+### 5-6a. IndexNow 수정과 수동 제출 (2026-11-15 01:20~01:50 KST, 직접 실행)
+
+- 승인 원문: "인덱스 나우는 고쳐줘 로컬 문서 커밋은 올리지 않아도 될것 같다" (2026-11-15, 조정 세션이 전달). 범위는 IndexNow 수정 커밋만 main push, 운영 승격 없는 제출 1회.
+- 원인 재확인: 런 43612648387 로그에 `Cache not found for input keys: indexnow-production-43612648387-1, indexnow-production-`와 `[indexnow] Non-public sitemap URL rejected`가 있다. 운영 `sitemap.xml` loc 1,081개를 수정 전 `publicNotificationUrl()`에 넣으면 거부는 `/yeongnyangi/season-1/prologue/` 1건, 수정 뒤에는 0건이다. 5-6의 진단과 같다.
+- 허용 목록의 취지: `37cb17270`(2026-11-09)이 넣은 정확 일치 목록이다. `api`·`result`·`library` 같은 비공개 이름과 겹치는 공개 소개 페이지만 정확한 경로로 통과시키고 대시보드·결과·하위 경로는 계속 막는다. 프롤로그는 `8248e3a98`(2026-11-13)에서 사이트맵에 들어갔는데 이 목록은 같이 고쳐지지 않았다.
+- 프롤로그가 색인 대상인지: 운영에서 200, `meta robots`는 `index, follow`, canonical은 자기 자신, `X-Robots-Tag` 없음, robots.txt Disallow 아님. `scripts/generate-sitemap.mjs`의 주석대로 프롤로그(1화)만 항상 공개라 사이트맵에 있고, 2화부터의 회차(`app/yeongnyangi/season-1/[episode]/page.tsx`)는 `robots: index false`라 사이트맵에 넣지 않는다. 그래서 계열 전체가 아니라 **정확한 경로 1건**만 허용 목록에 넣었다.
+- 수정: `scripts/lib/indexnow-delta.mjs`의 `PUBLIC_SERVICE_PAGES`에 `/yeongnyangi/season-1/prologue/` 추가, `__tests__/ui/indexnow-delta.test.mjs`에 통과 1건과 거부 2건(`/yeongnyangi/season-1/ep2/`, `/yeongnyangi/season-1/prologue/result/`) 추가. 로컬 커밋 `b954a1a91`, main에는 `f03d8add0`(origin/main `f8a4ec2af` 위에 이 커밋만 올림, force 아님).
+- 검증: `node --test __tests__/ui/indexnow-delta.test.mjs` 7/7 통과(수정 전 모듈로는 새 단언이 실패하는 것도 확인), `npm run typecheck`·`npm run lint`·`node scripts/verify-sitemap-integrity.mjs`(1,081 URL)·`npm run verify:indexnow-wiring`·`npm run check:pre-push` 모두 exit 0, `node scripts/indexnow-submit.mjs --dry-run`은 1,081건 선택.
+- push 뒤 CI(`f03d8add0`): PR CI 43615888362, AI Locale Gate, Main drift watchdog, Landing Watchdog 모두 success. Secret Scan 43615888346만 failure이고 로그의 발견은 알려진 1건(`9bbc65bbf`, `worker/lib/saju-section/runtime.generated.mjs` 9행)뿐이다. 스테이징 배포 런 43615962112 success, 스테이징 `/api/version`이 `f03d8add0`. 운영은 `f8a4ec2af` 그대로다(승격하지 않음).
+- 제출: IndexNow 키는 시크릿이 아니라 저장소(`lib/indexnow.ts`)와 운영 키 파일에 있는 공개 값이다. 운영 키 파일이 200이고 내용이 일치하는 것, 로컬 `sitemap.xml`의 loc 집합이 운영 사이트맵과 같은 것(1,081 대 1,081, 한쪽에만 있는 것 0)을 확인한 뒤 이 워크트리에서 `CD_DEPLOY_TARGET=production npm run seo:indexnow`에 해당하는 명령을 **1회** 실행했다(2026-11-14T16:30:22Z). 결과: `sitemap 1081 URLs; changes/removals 1081; checkpoint initial`, `batch 1 attempt 1: 200 OK`, `OK — 1081건 제출 완료`.
+- 체크포인트: 릴리스 워크플로의 체크포인트는 GitHub Actions 캐시(`indexnow-production-<run_id>-<attempt>`)에만 저장되고 로컬에서는 쓸 수 없다. **캐시는 여전히 비어 있다.** 다음 운영 승격 때 IndexNow 단계는 "initial"로 사이트맵 전체(지금 기준 1,081건, 한 배치)를 다시 보내고, 성공하면 그때 체크포인트가 저장된다. 중복 제출 1회는 해가 없다. 그 뒤부터는 변경분만 나간다.
+- 로컬 `sitemap.xml`의 lastmod는 운영 것과 376건 다르다(운영 빌드가 다시 생성). 첫 제출은 전체라 제출 목록에는 영향이 없다.
 
 ### 5-7. 확인하지 못한 것
 
