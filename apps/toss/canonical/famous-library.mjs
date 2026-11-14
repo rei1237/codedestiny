@@ -23,8 +23,8 @@ export async function famousLibrary(){
   }
   return {people,readings,ilju:ILJU.map(item=>getIljuReading(item.name))};
  }`,resolveDir:root,loader:'ts'},bundle:true,write:false,define:{'process.cwd':'tossFamousBuildRoot'},banner:{js:'const tossFamousBuildRoot=()=>'+JSON.stringify(root)+';'},platform:'node',format:'cjs',external:['*.wasm'],logLevel:'silent'});
- const module={exports:{}};new Function('require','module','exports',result.outputFiles[0].text)(createRequire(new URL('../../../package.json',import.meta.url)),module,module.exports);
- return {...await module.exports.collect(),approved:publishedReadings()};
+ const compiled={exports:{}};new Function('require','module','exports',result.outputFiles[0].text)(createRequire(new URL('../../../package.json',import.meta.url)),compiled,compiled.exports);
+ return {...await compiled.exports.collect(),approved:publishedReadings()};
 }
 export default function famousLibraryAsset(){
  const key='virtual:toss-famous-library',file='assets/famous-library.json.gz';let pending;

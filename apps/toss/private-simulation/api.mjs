@@ -1,5 +1,6 @@
 import {privateSukuyoYearly} from './sukuyo-yearly.mjs';
-import {extendedProducts,extendedRequest,extendedPublicRequest,extendedRecords} from './extended-reports.mjs';
+import {extendedProducts,extendedRequest,extendedRecords} from './extended-reports.mjs';
+import {privatePublicCalculation,privateOwnedCalculation} from './free-calculations.mjs';
 import {privateTarotProducts,privateTarotRequest} from './paid-tarot.mjs';
 import {humanDesignProducts,humanDesignReportRequest,humanDesignRecords,humanDesignPurchases} from './human-design-report.mjs';
 import {privateHumanDesign} from './human-design.mjs';
@@ -48,8 +49,9 @@ export function createSimulationApi(storage,person){
       state.loggedIn=true;return save()?replies({token}):replies({error:'MOCK_STORAGE_UNAVAILABLE'},503);
     }
     const publicReport=await nativeReportPublicRequest(request.clone(),path);if(publicReport)return publicReport;
-    const publicExtended=await extendedPublicRequest(request.clone(),path);if(publicExtended)return publicExtended;
+    const publicCalculation=await privatePublicCalculation(request.clone(),url,path);if(publicCalculation)return publicCalculation;
     if(!state.loggedIn||request.headers.get('authorization')!=='Bearer '+token)return replies({error:'LOGIN_REQUIRED'},401);
+    const ownedCalculation=await privateOwnedCalculation(request.clone(),url,path,state);if(ownedCalculation)return ownedCalculation;
     if(path==='/session'&&method==='GET')return replies({authenticated:true,environment:'SANDBOX'});
     if(path==='/logout'&&method==='POST'){state.loggedIn=false;save();return replies({ok:true});}
     if(path==='/canonical/auth/me'&&method==='GET')return replies({ok:true,authenticated:true,user:{id:owner,name:'모의 계정 '+person,role:'user'}});

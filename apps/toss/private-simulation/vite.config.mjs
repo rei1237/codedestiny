@@ -15,6 +15,7 @@ function privateSimulation(){
     resolveId(id,importer){
       if(!importer)return;
       const from=importer.replaceAll('\\','/').split('?')[0];
+      if(from.endsWith('/worker/toss/tarot-library.js')&&id==='./tarot-library-generator.js')return resolve(here,'free-tarot-generator.mjs');
       if(!from.endsWith('/private-simulation/tarot-links.mjs')&&id.endsWith('/lib/tarot/toss-library-links.mjs'))return resolve(here,'tarot-links.mjs');
       if(id.startsWith('.')&&resolve(dirname(from),id).replaceAll('\\','/')===release)return '\0private-release';
       if(id==='@apps-in-toss/web-framework'&&/\/apps\/toss\/(?:src|service)\//.test(from)){

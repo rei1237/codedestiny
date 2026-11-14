@@ -10,13 +10,6 @@ const families={
  nakshatra:{product:syntheticNakshatra,request:mockNakshatraRequest,library:mockNakshatraLibrary},
 };
 export const extendedProducts=Object.values(families).map(row=>row.product);
-export async function extendedPublicRequest(request,path){
- if(request.method!=='POST')return null;
- if(path==='/canonical/compass/moon')return Response.json({mansionIdx:3,calculationBasis:'mock',birthTimeKnown:false});
- if(path==='/canonical/compass/calendar')return Response.json({source:'unavailable',solarTerms:[]});
- if(path==='/canonical/compass/narrate'){const input=await request.json();return Response.json({ok:true,pigCommentary:input.baseText});}
- return null;
-}
 export const extendedLibrary=state=>Object.values(families).flatMap(row=>row.library(state));
 export function extendedRecords(url,state){
  const group=url.searchParams.get('group'),source=url.searchParams.get('source'),q=url.searchParams.get('q')?.trim();
