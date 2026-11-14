@@ -490,13 +490,13 @@ test('Olympus profile placements are account-only without payment',async()=>{
  assert.equal((await request({},chart)).status,200);assert.equal(calls.prepared.length,0);
 });
 
-test('basic Sukuyo requires release and login without creating profiles or orders',async()=>{
+test('basic Sukuyo is guest-public without creating profiles or orders',async()=>{
  mocks.sukuyoBasicCalls=0;
- assert.equal((await request({birth},'/sukuyo/basic',{})).status,503);
- mocks.denyAuth=true;try{assert.equal((await request({birth},'/sukuyo/basic')).status,401);}finally{mocks.denyAuth=false;}
- assert.equal(mocks.sukuyoBasicCalls,0);
+ assert.equal((await request({birth},'/sukuyo/basic',{})).status,200);
+ mocks.denyAuth=true;try{assert.equal((await request({birth},'/sukuyo/basic')).status,200);}finally{mocks.denyAuth=false;}
+ assert.equal(mocks.sukuyoBasicCalls,2);
  const response=await request({birth},'/sukuyo/basic');assert.equal(response.status,200);assert.deepEqual(await response.json(),{stored:false});
- assert.equal(mocks.sukuyoBasicCalls,1);assert.equal(calls.profiles.length,0);assert.equal(calls.prepared.length,0);
+ assert.equal(mocks.sukuyoBasicCalls,3);assert.equal(calls.profiles.length,0);assert.equal(calls.prepared.length,0);
  mocks.nativeFailure={code:'ACCESS_DENIED',status:403};try{const denied=await request({birth},'/sukuyo/basic');assert.equal(denied.status,403);assert.equal((await denied.json()).error,'ACCESS_DENIED');}finally{mocks.nativeFailure=null;}
 });
 

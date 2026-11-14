@@ -126,6 +126,11 @@ export async function handleTossRoutes(request,env) {
       const {readTossAstroChart}=await import('./astro-chart.js');
       return forwardServiceResponse(await readTossAstroChart(await bodyOf(request),env),headers);
     }
+    if(path==='/sukuyo/basic'&&request.method==='POST') {
+      await limit(env,request.headers.get('CF-Connecting-IP')||'unknown','sukuyo-basic',6);
+      const {calculateTossSukuyoBasic}=await import('./sukuyo-basic.js');
+      return reply(await calculateTossSukuyoBasic(await bodyOf(request),env));
+    }
     if(path==='/sukuyo/tools'&&request.method==='POST'){
       await limit(env,request.headers.get('CF-Connecting-IP')||'unknown','sukuyo-tools',12);
       const {readTossSukuyoTool}=await import('./sukuyo-tools.js');
@@ -748,11 +753,6 @@ export async function handleTossRoutes(request,env) {
       await limit(env,auth._id,'sukuyo-yearly',6);
       const {tossSukuyoYearly}=await import('./sukuyo-yearly.js');
       return reply(await tossSukuyoYearly(env,auth,await bodyOf(request)));
-    }
-    if(path==='/sukuyo/basic'&&request.method==='POST') {
-      await limit(env,auth._id,'sukuyo-basic',6);
-      const [{calculateTossSukuyoBasic},{domains}]=await Promise.all([import('./sukuyo-basic.js'),import('../yeongnyangi/fortune/index.ts')]);
-      return reply(await calculateTossSukuyoBasic(await bodyOf(request),env,domains.sukuyo));
     }
     if(path==='/human-design/chart'&&request.method==='POST') {
       await limit(env,auth._id,'human-design-chart',20,600000);
