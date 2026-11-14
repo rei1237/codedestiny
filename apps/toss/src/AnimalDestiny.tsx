@@ -1,3 +1,5 @@
+import '@/styles/globals.css';
+import {LazyMotion,domAnimation} from 'framer-motion';
 import {useEffect,useRef,useState,type FormEvent} from 'react';
 import AnimalResultScreen from '@/app/saju/animal-destiny/components/AnimalResultScreen';
 import type {AnimalDestinyData,AnimalDestinyInput,PartnerResult,SajuEngineResult,TwelveStagePillars} from '@/app/saju/animal-destiny/lib/types';
@@ -13,7 +15,7 @@ export type AnimalResponse={ok:true;accessSource:'public';stored:false;featureKe
 const emptyPartner:PartnerResult={input:null,animalId:null,animalData:null,primaryStage:null,score:null,relationType:null,summary:null,goodPoints:[],clashPoints:[],tips:[],stageEvidence:null,breakdown:null};
 const animalInput=(birth:BirthInput,name:string):AnimalDestinyInput=>({name,birthDate:birth.date,birthTime:birth.unknown?'':birth.time,gender:birth.gender==='M'?'male':birth.gender==='F'?'female':'unknown',calendarType:birth.calendar==='solar'?'solar':'lunar',lunarLeap:birth.calendar==='lunar_leap'});
 type Props={request?:typeof api;save?:typeof saveAnimalCard;share?:typeof shareAnimalCard};
-export default function AnimalDestiny(props:Props){return <TossSessionScope><Reading {...props}/></TossSessionScope>;}
+export default function AnimalDestiny(props:Props){return <TossSessionScope><LazyMotion features={domAnimation}><Reading {...props}/></LazyMotion></TossSessionScope>;}
 function Reading({request=api,save=saveAnimalCard,share=shareAnimalCard}:Props){
  const [birth,setBirth]=useState(emptyBirth),[name,setName]=useState(''),[result,setResult]=useState<AnimalResponse|null>(null),[busy,setBusy]=useState(false),[exporting,setExporting]=useState(false),[error,setError]=useState(''),[notice,setNotice]=useState('');
  const heading=useRef<HTMLHeadingElement>(null),card=useRef<HTMLDivElement>(null),epoch=useRef(0),pending=useRef(false);

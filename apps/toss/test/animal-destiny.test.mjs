@@ -13,6 +13,7 @@ test('full original animal screen exposes ten tabs, six chapters, dex, native ba
   builder.onResolve({filter:/^\.\/animal-media$/},()=>({path:'animal-media',namespace:'animal-test'}));
   builder.onLoad({filter:/.*/,namespace:'animal-test'},()=>({contents:'export const saveAnimalCard=()=>{},shareAnimalCard=()=>{};'}));
  }}]);
+ globalThis.Element=dom.window.Element;globalThis.HTMLElement=dom.window.HTMLElement;globalThis.SVGElement=dom.window.SVGElement;
  const root=createRoot(document.getElementById('chart')),request=async(path,body)=>{assert.equal(path,'/animal-destiny/reading');return animalSource.tossAnimalDestiny(body);};
  const field=(el,value)=>{const select=el.tagName==='SELECT';Object.getOwnPropertyDescriptor(select?window.HTMLSelectElement.prototype:window.HTMLInputElement.prototype,'value').set.call(el,value);el.dispatchEvent(new window.Event(select?'change':'input',{bubbles:true}));};
  const button=label=>Array.from(document.querySelectorAll('button')).find(el=>el.textContent===label);

@@ -9,8 +9,9 @@ export async function verifyPrivateAnimal(origin,context){
  const expected=tossAnimalDestiny({input});
  try{
   await page.goto(origin);await page.locator('.world-entry-ggulggul').click();await page.getByRole('searchbox').fill('십이운성 동물점');await page.locator('.directory-list button').filter({hasText:'십이운성 동물점'}).first().click();
-  await page.getByLabel('태어난 날짜',{exact:true}).fill(input.birthDate);await page.getByLabel('달력',{exact:true}).selectOption('lunar_leap');await page.getByLabel('태어난 시각을 몰라요').check();await page.getByRole('button',{name:'나의 동물 찾기',exact:true}).click();
+  await page.getByLabel('태어난 날짜',{exact:true}).fill(input.birthDate);await page.getByLabel(/^달력/).selectOption('lunar_leap');await page.getByLabel('태어난 시각을 몰라요').check();await page.getByRole('button',{name:'나의 동물 찾기',exact:true}).click();
   await page.getByRole('button',{name:'출생정보 다시 보기',exact:true}).waitFor();
+  await page.waitForFunction(()=>{const card=document.querySelector('.animal-destiny-reading section.relative.overflow-hidden');return card&&Number(getComputedStyle(card).opacity)===1&&parseFloat(getComputedStyle(card).borderRadius)>=24;});
   for(const section of expected.reading.sections){await page.getByRole('button',{name:section.label,exact:true}).click();assert.ok((await page.locator('body').innerText()).includes(section.content),section.label);}
   const body=(await page.locator('body').innerText()).replace(/\s+/g,' ');
   for(const key of ['personality','love','career','wealth','relationship','today'])assert.ok(body.includes(expected.reading.detailed[key].replace(/\s+/g,' ').trim()),key);
@@ -20,7 +21,7 @@ export async function verifyPrivateAnimal(origin,context){
   const partner=tossAnimalDestiny({input,partner:{birthDate:'1990-01-01',birthTime:'08:30',gender:'female',calendarType:'solar',lunarLeap:false}}).partner;
   await page.getByText(partner.summary,{exact:true}).waitFor();
   for(const width of [360,390,430]){await page.setViewportSize({width,height:740});assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'animal mobile width '+width);}
-  if(process.env.TOSS_CAPTURE_DIR){await mkdir(process.env.TOSS_CAPTURE_DIR,{recursive:true});await page.setViewportSize({width:360,height:740});await page.screenshot({path:join(process.env.TOSS_CAPTURE_DIR,'animal-full-original.png'),fullPage:true});}
+  if(process.env.TOSS_CAPTURE_DIR){await mkdir(process.env.TOSS_CAPTURE_DIR,{recursive:true});await page.setViewportSize({width:360,height:740});await page.screenshot({path:join(process.env.TOSS_CAPTURE_DIR,'animal-full-original.png'),fullPage:true});await page.evaluate(()=>scrollTo(0,0));await page.screenshot({path:join(process.env.TOSS_CAPTURE_DIR,'animal-mobile-card.png')});}
   await page.getByRole('button',{name:'출생정보 다시 보기',exact:true}).click();assert.equal(await page.getByLabel('태어난 날짜',{exact:true}).inputValue(),input.birthDate);
   await page.getByRole('button',{name:'나의 동물 찾기',exact:true}).click();await page.getByRole('button',{name:'출생정보 다시 보기',exact:true}).waitFor();
   const ledger=await page.evaluate(()=>JSON.parse(localStorage.getItem('consultations')));assert.equal(ledger?.orders?.length||0,0);
