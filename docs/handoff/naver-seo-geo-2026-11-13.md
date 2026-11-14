@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-14
-next: 사용자 결정 대기 — push 승인, payment-change-proposal.md의 결정 4건(F3·A1), /love/ 제목·H1·설명의 "무료 연애운" 표현, 홈 title·H1(meta-table §1), 핵심 허브 description(meta-table §4), docs/seo/bundle2-decisions.md 5건, /consultations/ 색인 여부, C5, 이용권 혜택 문구. 묶음 2의 승인 불필요 항목은 끝. 남은 구현은 2-5 스테이징 Lighthouse(push 뒤)와 승인된 결정의 적용
+next: push 승인 대기(로컬 커밋만 있음). push 전에 origin/main 위로 rebase하고 전체 검증을 다시 돌린다. 그 뒤 2-5 스테이징 Lighthouse, payment-change-proposal.md 결정 4건(F3·A1) 답 받기, 묶음 3(AEO·GEO 구조)·4(구매 동선)·5(측정) 순서. 묶음 2 결정분은 2026-11-14 추천안으로 확정·적용 끝(결과 기록 "묶음 2 적용").
 ---
 # 네이버 SEO·AEO·GEO + 구매 동선 (Phase 1~5)
 
@@ -18,6 +18,7 @@ Phase 0 보고서와 승인된 계획의 정본은 `docs/seo/phase0-report.md`�
 - 2026-11-14: 묶음 1 구현·검증 끝(1-4의 C5만 보류). 코드 마지막 커밋 `23c689fd2`. push 없음. push 승인을 기다린다.
 - 2026-11-14 확인: origin/main이 `f2db2995d` → `c3a960736`으로 44커밋 앞서 갔다(대부분 toss 작업, `app/yeongnyangi/_components` 4개 파일 포함). 이 브랜치의 기준은 아직 `f2db2995d`다. **push 전에 rebase가 필요하다.** UX 브랜치는 아직 미머지.
 - **2026-11-14 rebase 끝**: rebase 전 HEAD `fc9be92f6`(기준 `f2db2995d`) → origin/main `f2e46d05a`(75커밋 앞, 대부분 toss 작업) 위로 19커밋을 옮겼다. 손으로 푼 충돌은 없다. 겹친 것은 생성물 5개(`config/sitemap-lastmod.json`, `sitemap.xml`, `sitemap-ko.xml`, `public/` 미러 2개)뿐이라 upstream 쪽으로 두고 `build-home-funnel` → `sync:public` → `sitemap:generate`로 다시 만들었다(`ad405fbb8`, 원장 서명 7개만 바뀌고 sitemap.xml은 그대로, 1,072 URL). UX 브랜치(`wt/ux-conversion-20261113-215142`)는 **아직 main에 없다**(로컬에서 origin/main보다 32커밋 앞). push 없음. 위 두 줄의 SHA(`23c689fd2` 등)는 rebase 전 값이다.
+- **2026-11-14 묶음 2 적용 끝**(결정 일괄 승인 뒤). 이번 커밋은 `2bd7a928e`부터 문서 커밋까지다(결과 기록 "묶음 2 적용" 참고). push 없음. 이 시점에 origin/main은 이 브랜치의 기준보다 116커밋 앞서 있고 UX 브랜치는 아직 미머지다. **push 전에 rebase하고 생성물(홈 퍼널·public 미러·사이트맵·RSS·llms)을 다시 만들어야 한다.** UX 브랜치와 인접한 줄: `app/page.js`의 `HOME_TITLE` 바로 위(UX가 2줄 추가), `scripts/generate-sitemap.mjs` coreRoutes의 `/` 주석 바로 위(UX가 2줄 추가). 같은 줄은 아니지만 rebase 때 충돌로 잡힐 수 있고, 양쪽을 다 살리면 된다.
 - 루트 체크아웃 `D:\Development\code-destiny`는 다른 브랜치이고 origin/main보다 2,252커밋 뒤라 기준으로 쓰지 않는다.
 
 ## 승인 상태
@@ -32,10 +33,20 @@ Phase 0 보고서와 승인된 계획의 정본은 `docs/seo/phase0-report.md`�
   - C7·C8·F4 문구 = "이 부분은 실제 가격과 동일하게 해주면될것 같다". 대상은 "66종 · 302,000원 상당", 29,000원 묶음, 작은 꿀단지 상한 문구. → 단계 1-12.
   - sameAs = 지금 있는 6개 유지 + 카카오 채널 '꿀꿀운세' `https://pf.kakao.com/_GgxaGX`(출처 `lib/marketing/kakao-crm.mjs`의 `KAKAO_CHANNEL.url`) 추가. 다른 URL은 추가하지 않는다. → 1-5에서 처리.
   - 검수 범위 = "핵심 허브만, 읽은 뒤 표시". 검수자 박병하(운영자). 원장은 계속 비워 두고, 사용자가 "URL · 확인한 날짜"를 알려 주면 그때 넣는다. → 1-10 체크리스트에 반영.
-- **아직 승인받지 않은 것**(구현하지 말고 선택지를 정리해 사용자에게 묻는다):
-  - 홈 title·H1 확정 문구와 전체 title/description 표 — `docs/seo/meta-table.md`에 현재 → 제안 표를 만들어 승인받은 뒤 적용.
-  - 홈 이원화(B3), `/compare/` 인덱스(A3), 번역 페이지 noindex.
-  - 검수 원장 항목 — 사용자가 실제 검수했다고 "URL · 확인한 날짜"를 알려 준 페이지만 넣는다.
+- **2026-11-14 결정 일괄 승인**(조정 세션이 사용자 답변을 전달. 원문 그대로): "결정에 대해서는 가장 추천되는 방식으로 진행해줘 seo에 유리하도록". 대기 중이던 결정을 문서의 추천안으로 확정한다. **push 승인은 여기에 들어 있지 않다.** 확정 내용:
+  - 홈 title·description·H1 = `docs/seo/meta-table.md` §1 A안. 핵심 허브 description 6곳 = §4-1 제안.
+  - `/love/`의 "무료 연애운"은 사실대로 고친다. `/ziwei/chart/`는 title·H1·description에 무료·가입 없이를 드러낸다. `/saju/free/` description은 §4-1 제안.
+  - 신년운세(2027) = 새 URL을 만들지 않고 `/fortune/2027/`로 내부 링크를 늘린다. 토정비결 페이지는 만들지 않는다.
+  - 홈 이원화(B3) = `docs/seo/bundle2-decisions.md` §2 A안(`/`가 hreflang 한국어 대표·x-default, `/ggulggul/`은 묶음에서 뺌).
+  - `/compare/` = 목록 페이지를 만들지 않고 관련 허브에서 비교 글로 링크(§3 A안).
+  - about 한 문장 정의 = §4 1안 "꿀꿀 운세는 명리학자 박병하(네오)가 운영하는 사주·타로·자미두수 운세 상담 서비스예요." llms.txt·llms-full.txt도 같은 문장.
+  - RSS pubDate = 최초 발행일, 사이트맵 lastmod = 수정일.
+  - 이용권 혜택 문구 = 표시 문구만 사실대로(정책 정본은 그대로).
+  - **유지로 확정**: `/consultations/` noindex, "운세보는 영냥이" 설명 문장 3곳, C5 이용권 이름 통일 보류(지금 이름 유지), 번역 페이지 색인(noindex로 바꾸지 않음).
+- **아직 승인받지 않은 것**:
+  - **main push·스테이징 배포·운영 승격.** 묶음 2 적용분까지 모두 로컬 커밋뿐이다.
+  - `docs/seo/payment-change-proposal.md`의 결정 4건(F3·A1) — 결제 변경은 제안서만 있고 구현하지 않는다.
+  - 검수 원장 항목 — 사용자가 실제 검수했다고 "URL · 확인한 날짜"를 알려 준 페이지만 넣는다. 원장은 계속 비워 둔다.
 
 ## 작업 규칙과 함정
 - 사용자 프롬프트의 절대 규칙(그대로 유지):
@@ -82,9 +93,10 @@ Phase 0 보고서와 승인된 계획의 정본은 `docs/seo/phase0-report.md`�
 
 ### 묶음 2 — 검색 결과 표시와 크롤 정리
 - [x] 2-1 description 잘림(M1) — 문장 경계 절단. 문구 새로 쓰기는 승인 뒤.
-- [ ] 2-2 meta 표·키워드 맵: 표는 끝. **적용은 사용자 승인 뒤.**
-- [x] 2-3 내부 링크 정리(K4): 코드 변경 없음으로 결론. about 정의·llms.txt는 선택지만 정리(**승인 필요**).
-- [ ] 2-4 2027 신년운세 허브: 구체안만 정리(**승인 필요**).
+- [x] 2-2 meta 표·키워드 맵: 표 작성, 2026-11-14 승인 뒤 적용 끝(결과 기록 "묶음 2 적용").
+- [x] 2-3 내부 링크 정리(K4): about 정의·llms.txt·`/compare/` 링크 적용 끝(`7241b2ba6`).
+- [x] 2-4 2027 신년운세: 새 URL 없이 `/fortune/2027/` 내부 링크 보강으로 끝(`ba3269622`).
+- [x] 2-6 홈 이원화(B3): `/`가 hreflang 한국어 대표(`9dc6743e1`).
 - [ ] 2-5 스테이징 Lighthouse(push 뒤).
 
 ### 묶음 3 — AEO·GEO 구조
@@ -225,3 +237,48 @@ Phase 0 보고서와 승인된 계획의 정본은 `docs/seo/phase0-report.md`�
 - 1-5: `lib/brand/brand-facts.mjs` version 3, reviewedAt 2026-10-31, service.alternateNames ["꿀꿀운세"]. `scripts/verify-home-identity.mjs`는 WebSite.alternateName이 이 배열과 정확히 같기를 요구하므로 brand-facts만 바꾸면 따라온다. 파일 헤더 주석은 "운영자명을 WebSite 별칭에 섞지 말라"고 하는데 새 결정(alternateName에 "코드 데스티니", "Code Destiny")과 어긋나니 주석과 `__tests__/ui/brand-facts.test.mjs`를 같이 고친다. `findFormerBrandNames`가 새 별칭을 과거 이름으로 잡지 않는지 확인. `app/page.js` HOME_TITLE(L30)은 1-6이라 적용 금지. UX 브랜치의 커밋된 diff에는 `app/page.js` 변경이 없다.
 - 1-8: `scripts/lib/sitemap-lastmod.mjs`의 불변식 #4가 "git log는 쓸 수 없다(CI shallow clone)"고 못 박는다. 계획("폴백을 git 커밋일로")과 충돌한다. 고치기 전에 그 불변식의 이유를 읽고, git을 쓰지 않는 방법(누락 8개를 원장에 직접 채우기 등)을 먼저 검토한다. 불변식을 깨야만 한다면 고치지 말고 보고한다.
 - 기존 SEO 재구축 인수인계 문서는 ④를 "미승인"으로 적지만 운영에 이미 있다(Phase 0에서 확인). 남의 워크트리 문서라 고치지 않았다.
+
+### 묶음 2 적용 — 2026-11-14 일괄 승인분 (2026-11-14)
+사용자 답변 "결정에 대해서는 가장 추천되는 방식으로 진행해줘 seo에 유리하도록"에 따라 문서의 추천안으로 확정해 적용했다. push는 하지 않았다. 변경 전·후 표는 `docs/seo/bundle2-before-after.md`.
+
+| # | 항목 | 커밋 |
+| --- | --- | --- |
+| 1 | 홈 title·description·H1 (meta-table §1 추천안) | `2bd7a928e` |
+| 2 | 핵심 허브 description 6곳 (meta-table §4) | `bdaab95cb` |
+| 3 | `/love/` "무료 연애운" → 실제 조건 | `aeb040ad3`, `a294eb64b` |
+| 4 | `/ziwei/chart/` 제목·설명·H1 | `ba014b229` |
+| 5 | `/saju/free/` description | `084ef94a8` |
+| 6 | 신년운세(2027) 내부 링크 | `ba3269622` |
+| 7 | 홈 이원화 B3 A안(hreflang 묶음을 `/`로) | `9dc6743e1` |
+| 8 | `/compare/` 내부 링크 | `7241b2ba6` |
+| 9 | about 정의 문장 + llms.txt | `7241b2ba6` |
+| 10 | RSS pubDate = 최초 발행일 | `810c39752`, 재생성 `8e022d1d0` |
+| 11 | 라이트 운세 혜택 문구 | `1782d0e2f` |
+
+최종 문구
+- 홈 `/`: title "꿀꿀 운세 | 사주·타로·자미두수 운세 상담" · description "꿀꿀 운세는 명리학자 박병하(네오)가 만든 운세 서비스예요. 사주·궁합·타로·자미두수를 살펴보고, 고민은 영냥이 상담에서 챕터별로 읽어 보세요." · H1 "꿀꿀 운세 — 사주·타로·자미두수 운세 상담"
+- `/love/`: title "연애운 사주로 읽는 법 | 로그인 후 무료 기본 풀이" · description "연애운을 사주로 읽는 법을 안내해요. 관성·식상과 배우자 자리를 보는 법을 살펴보고, 로그인하면 명식·십성 중심의 사주 기본 풀이를 무료로 볼 수 있어요." · H1 "연애운 — 사주로 읽는 지금의 관계 흐름"
+- `/ziwei/chart/`: title "자미두수 심화 풀이 | 가입 없이 무료로 보는 명반" · description "가입 없이 생년월일로 자미두수 명반을 세우고 총론·질문별 풀이와 오늘의 조언까지 무료로 읽어 보세요. 유료는 따로 선택하는 PDF 상담서뿐이에요." · H1 "자미두수 심화 풀이 — 가입 없이 무료로 보는 명반"
+- `/saju/free/`: description "결제 없이 보는 무료 사주·운세를 한곳에 모았어요. 생년월일만 넣으면 이 페이지에서 네 기둥과 오행을 바로 확인하고, 사주 기본 풀이는 로그인 후 무료로 보세요."
+- `/fortune/2027/`: 제목·설명·H1은 그대로 두었다(이미 "2027년 띠별 운세"로 맞음). 내부 링크만 보탰다.
+- about 첫 문장 = llms.txt 첫 문단: "꿀꿀 운세는 명리학자 박병하(네오)가 운영하는 사주·타로·자미두수 운세 상담 서비스예요."
+- 라이트 운세: "라이트 운세 {count}종 횟수 제한 없이 · 이 중 {free}종은 꿀단지 없이도 무료"(12개 언어)
+
+구조 메모(다음 사람이 알아야 할 것)
+- 항목 7: SEO 전용 묶음 `HOME_HREFLANG_ROUTES`(`lib/seo/hreflang.mjs`)를 새로 두었다. 화면 이동용 `I18N_ROUTE_MAP.home`(ko=`/ggulggul`)은 그대로다. 소스 `index.html`·`public/` 셸의 hreflang은 고치지 않았다. 배포 산출물 `dist/`에서만 `scripts/promote-static-shell-to-root.mjs`가 갈아 끼운다(기존 설계). `/ggulggul/`은 hreflang이 없어지고, `/en/`·`/ja/` 등은 ko 대응이 `/`가 된다. `/en/` 등은 꽃돼지 홈의 번역이라 `/`의 정확한 번역은 아니다(승인된 A안의 알려진 한계).
+- 항목 10: 최초 발행일은 별도 데이터 파일에서 읽는다. 날짜는 git 커밋일 기준으로 채운 값이라 실제 공개일과 하루쯤 다를 수 있다(추정). 부수 효과로 JSON-LD `datePublished`, 허브 정렬, RSS 60건 선정이 같은 날짜를 쓴다.
+- 항목 11: `lib/marketing/pass-benefits.mjs`의 한국어 문구와 i18n ko 문자열이 글자까지 같아야 `scripts/design/build-home-funnel.mjs`가 번역 속성을 붙인다. 한쪽만 고치면 번역이 빠진다.
+- `i18n-merge-authored`는 homeOverseas 키에 `--core --file homeOverseas-09.json`으로 돌린다. `--core` 없이 돌리면 추적되지 않는 `public/i18n/<lang>/homeOverseas.json` 12개가 생긴다(지우면 됨).
+- 테스트 파일은 `.static.test.js`도 `node --test`로 돌린다. jest 러너로는 찾지 못한다.
+
+계획과 다르게 처리했거나 손대지 않은 것
+- `/love/`: 제목·H1·설명 말고도 같은 페이지의 단계·결과 항목·FAQ·keywords와 다른 화면의 "무료 연애운" 라벨 3곳을 함께 고쳤다. `entity-registry`의 "무료 연애운" 항목과 shell-05 검색 예시는 그대로다.
+- `/ziwei/chart/`: ko만 고쳤다. en·ja·zh 메타와 버튼 문구는 그대로다.
+- 인사이트 본문 2건을 고쳤고 `updatedAt`도 함께 올렸다(항목 6).
+- 라이트 운세 배너 "작은 꿀단지 하나면 라이트 운세 66종이 모두 열려요."(`lib/marketing/pass-benefits.mjs:29`, `home.benefitsCopy.lightBanner`)와 `app/points/PointsClient.tsx`의 passLightLine은 그대로다. 필요하면 다음에 같은 방식으로 맞춘다.
+- about 신규 문구는 ko 키만 있다(about 본문은 ko만 렌더하는 기존 규칙). `service.summary`와 about의 기존 소개 문장은 그대로다.
+- `/consultations/` noindex, "운세보는 영냥이" 설명 문장 3곳, C5 이용권 이름, 번역 페이지 색인은 유지로 확정했다. 검수 원장은 비워 둔 그대로다.
+- `sitemap:generate`를 돌릴 때마다 lastmod 원장이 28~35건 갱신된다. 이번 커밋들의 내용 변경이 반영된 것으로 보이나 건별로 확인하지는 않았다(추정).
+
+push 전에 할 일
+- origin/main이 이 브랜치보다 116커밋 앞서 있고 UX 브랜치(`wt/ux-conversion-20261113-215142`)는 아직 main에 없다. push 전에 rebase가 필요하다. UX 브랜치와 인접한 줄: `app/page.js`의 `HOME_TITLE` 위, `scripts/generate-sitemap.mjs` coreRoutes `/` 주석 위.

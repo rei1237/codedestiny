@@ -6,7 +6,9 @@
 
 글자 수는 공백을 포함해 센 값이다. 네이버 모바일 검색 결과는 제목이 대략 30자 안팎에서 잘리므로, 제안은 모두 30자 안으로 맞췄다. 앞쪽 15자 안에 가장 중요한 말이 오게 했다.
 
-## 1. 홈(`/`) — 승인 필요, 아직 적용하지 않음
+## 1. 홈(`/`) — 적용됨(`2bd7a928e`, 2026-11-14 승인, A안)
+
+적용 문구: title "꿀꿀 운세 | 사주·타로·자미두수 운세 상담", H1 "꿀꿀 운세 — 사주·타로·자미두수 운세 상담"(서브카피 "마음이 가는 카드를 골라보세요"), description "꿀꿀 운세는 명리학자 박병하(네오)가 만든 운세 서비스예요. 사주·궁합·타로·자미두수를 살펴보고, 고민은 영냥이 상담에서 챕터별로 읽어 보세요." 아래 표는 승인 전 제안 기록이다.
 
 출처: `app/page.js`의 `HOME_TITLE`(L30), `HOME_DESCRIPTION`(L31), 웹 H1(L98 부근).
 
@@ -74,7 +76,18 @@
 - 운영 404 응답의 제목이 "Code Destiny"로 보였다는 Phase 0 기록: 소스(`app/not-found.js`)는 이미 "페이지를 찾을 수 없습니다 | 꿀꿀 운세"다. 빌드 결과에서 다시 확인한다.
 - 전체 색인 페이지의 title·description 표는 묶음 2-2에서 만든다.
 
-## 4. 핵심 허브 title · description (묶음 2-2) — 승인 필요, 아직 적용하지 않음
+## 4. 핵심 허브 title · description (묶음 2-2) — 적용됨(2026-11-14 승인)
+
+적용 커밋(아래 4-1 표는 승인 전 제안 기록이고, 최종 문구와 글자 수는 `docs/seo/bundle2-before-after.md`에 있다)
+
+| URL | 항목 | 상태 |
+|---|---|---|
+| `/saju/`, `/manse/`, `/saju/compatibility/`, `/today/`, `/insights/`, `/about/` | description | 적용됨(`bdaab95cb`) |
+| `/saju/free/` | description | 적용됨(`084ef94a8`) |
+| `/ziwei/chart/` | title · H1 · description | 적용됨(`ba014b229`) |
+| `/love/` | title · H1 · description · 본문 | 적용됨(`aeb040ad3`, `a294eb64b`) — 4-1 표에는 없던 항목, 무료 범위를 사실대로 |
+| `/fortune/2027/` | title · description | 유지(대표 키워드 "띠별 운세·삼재"와 맞음, `keyword-page-map.md`) |
+| `/about/` | 본문 첫 문장 | 적용됨(`7241b2ba6`) — H1은 그대로 |
 
 작성일 2026-11-14. "현재" 값은 묶음 1 빌드 결과(`dist/<경로>/index.html`)의 `<title>`과 `<meta name="description">`에서 읽었다. 글자 수는 공백 포함이고, description은 한글 80자(화면 폭 160) 안에 들어와야 잘리지 않는다(`lib/seo.ts`의 `SEO_DESCRIPTION_WIDTH_LIMIT`).
 
