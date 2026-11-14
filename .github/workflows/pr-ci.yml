@@ -1268,6 +1268,10 @@ jobs:
           node test/private-simulation-archive.mjs private-simulation/ai-saju-studio.ait --maya-free
           node test/private-simulation-archive.mjs private-simulation/ai-saju-studio.ait --free-calculations
           node test/private-simulation-archive.mjs private-simulation/ai-saju-studio.ait --vedic-reading
+          node test/private-simulation-archive.mjs private-simulation/ai-saju-studio.ait --owned-calculations
+          node test/private-simulation-archive.mjs private-simulation/ai-saju-studio.ait --astro-reading
+          node test/private-simulation-archive.mjs private-simulation/ai-saju-studio.ait --sukuyo-tools
+          node test/private-simulation-archive.mjs private-simulation/ai-saju-studio.ait --secret-house
           for domain in saju ziwei sukuyo vedic astrology tarot; do
             node test/private-simulation-archive.mjs private-simulation/ai-saju-studio.ait --character-rooms letter --letter-persona neo --letter-domain "$domain"
             tiers="mackerel salmon flounder"
