@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-14
-next: 스테이징 push 명시 승인 대기 → push 뒤 스테이징 Yeti UA·Lighthouse·화면 확인
+next: 운영 승격 승인 대기 / 4-3 보류 / 검수 원장은 사용자 입력 대기 — 그 전에 로컬 커밋(analytics.js 캐시 핀 수정 + 문서)을 main에 올릴지 결정 필요(main의 Secret Scan이 다른 작업 커밋 9bbc65bbf 때문에 실패 중)
 ---
 # 네이버 SEO·AEO·GEO + 구매 동선 (Phase 1~5)
 
@@ -14,6 +14,7 @@ Phase 0 보고서와 승인된 계획의 정본은 `docs/seo/phase0-report.md`�
 4. 파일 경로는 추측하지 않는다. 보고서의 줄 번호는 `f2db2995d` 기준이므로 고치기 전에 `rg`로 다시 확인한다.
 
 ## 지금 상태
+- **2026-11-14 스테이징 반영 끝**: `9a6ac23eb..cea92ad58`(72커밋)를 origin main에 올렸고 스테이징 검증을 마쳤다(`docs/seo/staging-verification.md`). 지금 origin/main은 `438f6c16d`(toss 35커밋 추가)이고, 이 브랜치에는 그 위에 **push하지 않은 로컬 커밋**(analytics.js 캐시 핀 수정 + 문서)이 있다. 사유는 결과 기록 마지막 절.
 - 브랜치 `wt/naver-seo-geo-20261113-234756`, 기준 `f2db2995d`. 운영 배포본은 `91e4261d8`(그 위에 문서 커밋 1개).
 - 2026-11-14: 묶음 1 구현·검증 끝(1-4의 C5만 보류). 코드 마지막 커밋 `23c689fd2`. push 없음. push 승인을 기다린다.
 - 2026-11-14 확인: origin/main이 `f2db2995d` → `c3a960736`으로 44커밋 앞서 갔다(대부분 toss 작업, `app/yeongnyangi/_components` 4개 파일 포함). 이 브랜치의 기준은 아직 `f2db2995d`다. **push 전에 rebase가 필요하다.** UX 브랜치는 아직 미머지.
@@ -26,6 +27,7 @@ Phase 0 보고서와 승인된 계획의 정본은 `docs/seo/phase0-report.md`�
 - 루트 체크아웃 `D:\Development\code-destiny`는 다른 브랜치이고 origin/main보다 2,252커밋 뒤라 기준으로 쓰지 않는다.
 
 ## 승인 상태
+- **2026-11-14 스테이징 push 승인**: 사용자 원문 "스테이징 푸시해"(조정 세션이 전달). 범위는 이 브랜치 커밋을 origin main에 한 번 push(=스테이징 배포)하고, 검증에서 나온 이 브랜치의 결함을 forward-fix하는 것까지다. **운영 승격(`workflow_dispatch mode=production` 등)은 미승인이라 실행하지 않는다.** 운영 DB 쓰기·실결제·과금 LLM 금지. 4-3은 계속 보류.
 - 2026-11-13 사용자가 계획 전체를 승인했다(계획 모드 승인). 승인 범위는 묶음 1~5의 **구현과 로컬 커밋**까지다.
 - **main push(스테이징)는 묶음마다 사용자 승인**, **운영 승격은 별도 승인**이다. 사용자 답변 원문: 작업 방식 = "저장소 규칙대로 (Recommended)" — origin/main 기반 전용 워크트리, 묶음마다 승인 뒤 내 커밋만 main push, 운영 승격은 별도 승인.
 - 확정된 결정(2026-11-13, 사용자 직접 답변):
@@ -48,13 +50,14 @@ Phase 0 보고서와 승인된 계획의 정본은 `docs/seo/phase0-report.md`�
   - 이용권 혜택 문구 = 표시 문구만 사실대로(정책 정본은 그대로).
   - **유지로 확정**: `/consultations/` noindex, "운세보는 영냥이" 설명 문장 3곳, C5 이용권 이름 통일 보류(지금 이름 유지), 번역 페이지 색인(noindex로 바꾸지 않음).
 - **아직 승인받지 않은 것**:
-  - **스테이징 push = 사용자 명시 승인 대기**(2026-11-14). 사용자 원문 "seo에서 추천되는 사항으로 결정해서 진행해줘"는 받았으나, push를 직접 가리키는 승인 문장을 다시 받기로 했다. 그 문장을 받기 전에는 push하지 않는다.
   - **4-3(`/ziwei/` 로그인 복귀) = 보류.** 검색 노출에 영향이 없고 결제 동결 파일 수정이 필요해 이번에 적용하지 않음(이 세션의 추천 판단). 적용하려면 동결 파일 수정에 대한 사용자 명시 승인 필요.
-  - **main push·스테이징 배포·운영 승격.** 모두 로컬 커밋뿐이다.
+  - **운영 승격.** 스테이징 push는 2026-11-14에 승인받아 한 번 했다(위). 운영 승격은 따로 승인받아야 한다.
   - `docs/seo/payment-change-proposal.md`의 결정 4건(F3·A1) — 결제 변경은 제안서만 있고 구현하지 않는다.
   - 검수 원장 항목 — 사용자가 실제 검수했다고 "URL · 확인한 날짜"를 알려 준 페이지만 넣는다. 원장은 계속 비워 둔다.
 
 ## 작업 규칙과 함정
+- 스테이징은 모든 응답에 `X-Robots-Tag: noindex, nofollow`·robots meta `noindex,nofollow`·`robots.txt Disallow: /`를 덮어쓴다. 운영용 robots 값은 스테이징에서 볼 수 없고 `dist/`로만 확인한다. Cloudflare가 UA별로 다른 꼬리 스크립트를 넣으므로 Yeti·모바일 본문 비교는 그 스크립트를 빼고 한다.
+- 이 PC에서 스테이징 정적 자산이 느리게 내려온다(페이지 load 10~50초, curl이 2분을 넘기기도 함). 브라우저 자동화는 `domcontentloaded` + 넉넉한 대기로 쓴다.
 - 사용자 프롬프트의 절대 규칙(그대로 유지):
   - 최소·외과적 변경. 리팩터링·디자인 전면 교체 금지. 데스크톱 960px 레이아웃 유지. 모든 사용자 노출 문자열은 i18n 키 사용.
   - `sajuAdapter.ts`의 `calculateLocalResult()` 수정 금지. KASI prefetch에 timezone 주입 금지, `normalizeSaju.ts`에 timezone 필드 추가 금지. 6개 점술 엔진은 읽기 전용.
@@ -103,7 +106,7 @@ Phase 0 보고서와 승인된 계획의 정본은 `docs/seo/phase0-report.md`�
 - [x] 2-3 내부 링크 정리(K4): about 정의·llms.txt·`/compare/` 링크 적용 끝(`7241b2ba6`).
 - [x] 2-4 2027 신년운세: 새 URL 없이 `/fortune/2027/` 내부 링크 보강으로 끝(`ba3269622`).
 - [x] 2-6 홈 이원화(B3): `/`가 hreflang 한국어 대표(`9dc6743e1`).
-- [ ] 2-5 스테이징 Lighthouse(push 뒤).
+- [x] 2-5 스테이징 Lighthouse(2026-11-14 측정, `docs/seo/staging-verification.md` 6절). 수치만 기록, 개선은 범위 밖.
 
 ### 묶음 3 — AEO·GEO 구조
 - [x] 3-1 반복 섹션·`DEFAULT_FAQS`, 3-2 질문형 H2 결론 문단, 3-3 기준일·비교 페이지.
@@ -392,3 +395,23 @@ SHA는 네 번째 rebase 뒤 기준이다. 모두 로컬 커밋이고 push하지
 - 일곱 번째 rebase(HEAD `2fb08f421` = origin/main `9a6ac23eb` 위) 뒤에는 typecheck · `sitemap:generate`(갱신 0) · verify-sitemap-integrity · verify-analytics-events · verify-payment-freeze · `node --test scripts/seo/*.test.mjs`만 다시 돌렸다(모두 exit 0). **빌드·lint·i18n:check·verify-home-identity·`npm test`·check-changed는 이 HEAD에서 다시 돌리지 않았다.** 그 사이 upstream 25커밋은 `apps/toss`·`worker/toss`·`docs`·`lib/fortune` 2개·`worker/lib/saju-section` 2개·`worker/routes` 1개·`scripts` 1개·`.github/workflows` 1개이고 이 브랜치가 고친 파일과 겹치지 않는다. push 직전에 origin/main이 또 움직였으면 다시 rebase하고 check-changed를 돌린다.
 - 로컬 사전 점검: `docs/seo/prepush-verification.md`(빌드 산출물 `dist/`에서 핵심 20개 경로의 title·description·canonical·robots·hreflang·JSON-LD·H1, robots.txt·sitemap.xml·rss.xml·llms.txt). 이 브랜치 탓인 결함은 찾지 못해 코드 수정이 없다. 보고용 관찰 5건은 그 문서의 "눈에 띄는 점" 표.
 - 못 한 것: 스테이징 Yeti UA 응답·Lighthouse·화면 확인(push 뒤), 워커가 붙이는 응답 헤더(`X-Robots-Tag`)의 실제 응답 확인, `scripts/verify-home-entry-locale.cjs`(로컬 서버 필요).
+
+### 스테이징 push·CI·1차 검증 (2026-11-14, 직접 실행)
+- push 전 HEAD `cea92ad58`에서 typecheck, lint, i18n:check, verify-sitemap-integrity, verify-analytics-events, build(`ALLOW_DEV_SERVER_DURING_BUILD=1`), verify-home-identity, `node --test scripts/seo/*.test.mjs`, `npm test`(jest 479 스위트 통과·1 건너뜀, 8,008 테스트 통과·1 건너뜀), verify:payment-freeze, check:pre-push, check-changed(fast) 모두 exit 0.
+- **push**: 2026-11-14 21:10 KST `git push origin HEAD:main` → `9a6ac23eb..cea92ad58`(72커밋, fast-forward, 강제 옵션 없음).
+- **CI(`cea92ad58`)**: PR CI, Release Cloudflare Pages and Worker(push + staging dispatch), Paid Flow Gates, Yeongnyangi Browser Shadow, Landing Watchdog, Main drift watchdog, Gift transaction integrity, AI Locale Gate, Business Identity Gate 성공. **Secret Scan 실패** — gitleaks `generic-api-key`가 `worker/lib/saju-section/runtime.generated.mjs` 9행(커밋 `9bbc65bbf`, toss 작업, 이 브랜치 범위 밖)을 잡는다. push 전 `9a6ac23eb`에서도 이미 실패였다(마지막 성공 `05211086c`). push 전에 상위 5개 run만 보고 이를 놓쳤다. 이 브랜치가 고칠 대상이 아니라 보고만 한다.
+- **스테이징이 서빙하는 버전**: `/api/version`·`/version.json` 모두 `cea92ad58`.
+- **핵심 20개 URL(Yeti UA·모바일 UA)**: 전부 200, title·description·H1 각 1개, 길이와 canonical·hreflang·JSON-LD 수가 `docs/seo/prepush-verification.md` 표와 같다. UA 간 head 동일, 본문은 Cloudflare 삽입 스크립트를 빼면 동일. `/?action=…`은 302 + `X-Robots-Tag: noindex, follow`(push 전에는 헤더 없음). `/ggulggul/?action=…`은 200이고 스테이징 덮어쓰기 값만 보인다(운영 값은 코드로만 추론). sitemap.xml 1,081 loc, rss.xml 60 item, llms.txt 정의 문장 확인.
+aver-seo-staging`.
+
+### 스테이징 화면·유입·Lighthouse 검증과 캐시 핀 결함 (2026-11-14, 직접 실행)
+표와 수치의 정본은 `docs/seo/staging-verification.md`다. 여기에는 결론과 함정만 적는다.
+- **화면**: 홈·`/saju/`·`/saju/free/` 모바일(390)·데스크톱(1280) 모두 가로 넘침 없음, 페이지 오류 0. `/saju/free/`는 임의 예시 생년월일로 로그인 없이 명식 결과가 나온다. 영냥이 상품 안내(`/yeongnyangi/readings/saju/`)는 접힌 영역을 펼치면 "10,000원 · 5개 챕터 고등어"처럼 가격+분량이 주 표기다. 데스크톱 결과 화면의 "관련 상담 더 보기"는 기본 접힘(로그인 전이라 `#resultPage`를 강제로 보이게 해서 확인).
+- **못 본 것**: 모바일 결과 화면. 모바일 폭에서는 셸이 DOMContentLoaded 직후 `#resultPage`를 DOM에서 떼어 낸다(운영도 같은 동작, 이 브랜치와 무관). 로그인해야 결과가 열려서 떼어 낸 노드가 접힌 채 돌아오는지 확인하지 못했다.
+- **유입 쿠키**: `analytics.js`는 운영 origin이 아니면 시작하자마자 빠져나가서 스테이징 페이지에서는 `cd_paid_campaign`이 만들어지지 않는다. 스테이징이 배포한 스크립트를 운영 origin으로 꾸민 격리 브라우저(모든 요청 로컬 처리)에서 돌려 확인했다. 분석 동의가 있을 때만 네이버 referrer → `organic_naver`, `NaPm` → `paid_search`(referrer가 네이버여도), 수명 30분, 사이트 안 이동 뒤 유지. 동의 없음·필수만·직접 진입은 쿠키 없음.
+- **결함(이 브랜치)**: `app/layout.js`의 `/js/core/analytics.js?v=20261113-regional-consent-v1` 핀을 올리지 않아, 7일 캐시된 옛 스크립트가 Next 페이지에 내려간다(스테이징·운영 CDN 모두 그 URL은 옛 내용). 핀을 `20261114-entry-source-v1`로 올린 커밋을 만들었다. **함정: `js/core/analytics.js`를 고치면 `app/layout.js`의 핀도 손으로 올려야 한다.** 셸은 빌드 해시라 자동이다.
+- **Lighthouse(모바일, 1회)**: `/` 성능 55·SEO 69·LCP 11.8초·CLS 0.004·TBT 50ms, `/saju/` 52·69·21.9초·0.02·200ms, `/ggulggul/` 54·69·15.4초·0.015·120ms. SEO 69는 스테이징 noindex(`is-crawlable`) 하나만 실패한 값. `/saju/`의 LCP 요소는 쿠키 배너 문단. push 전 기준값이 없어 이 브랜치의 영향인지는 모른다.
+- **push하지 않은 로컬 커밋**: 이 문서 커밋들과 캐시 핀 수정. main의 Secret Scan이 `9bbc65bbf`(toss 작업, `worker/lib/saju-section/runtime.generated.mjs` 9행) 때문에 `9a6ac23eb`부터 계속 실패 중이고, 저장소 규칙이 빨간 main 위에 push하지 말고 보고하라고 해서 멈췄다. 첫 push(`cea92ad58`)는 이를 놓치고 올린 것이다. 올리기로 하면 fetch → rebase → `npm run check:pre-push` → `git push origin HEAD:main`.
+- push 뒤 origin/main은 `438f6c16d`로 움직였고(toss 35커밋) 로컬 커밋은 그 위로 rebase해 두었다. 스테이징은 지금 `438f6c16d`를 서빙한다.
+- 운영 승격 전에 알아야 할 것: (1) 캐시 핀 수정이 먼저 main에 들어가야 한다. (2) Secret Scan 실패는 승격 직전 `verify:no-secret-leak`에서도 걸릴 수 있다(추론). (3) 운영 robots meta·robots.txt·`/ggulggul/?action=` 헤더는 승격 뒤에만 실제 응답으로 확인할 수 있다. (4) `NaPm`=유료 가정은 운영 데이터로 확인이 필요하다.
+- 캐시 핀 수정 검증(직접 실행, 모두 exit 0): typecheck, lint, verify-analytics-events, check:pre-push, build(`ALLOW_DEV_SERVER_DURING_BUILD=1`), `check-changed --profile=fast --skip-build --base=origin/main`(jest 8 스위트 115 테스트 통과), verify:payment-freeze, verify-home-identity. 빌드된 `dist/saju/index.html`은 새 핀만 부른다(옛 핀 0회). 스테이징에서는 push 전이라 확인하지 못했다.
