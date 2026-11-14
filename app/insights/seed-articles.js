@@ -2,6 +2,7 @@ import { MOON_LIBRARY_ARTICLES } from './moon-library-articles';
 import { SEARCH_INTENT_ARTICLES } from './search-intent-articles.mjs';
 import { PUBLIC_RECORD_ARTICLE } from './public-record-article';
 import { actualContentDate } from "../../lib/content/editorial-review.mjs";
+import { INSIGHT_FIRST_PUBLISHED } from "./first-published.mjs";
 import { INSIGHT_ARTICLES } from "./articles";
 import { getExplicitInsightTopic, getInsightTopicLabel } from "./insight-topic";
 import {
@@ -881,7 +882,8 @@ function buildSeedArticle(article, index) {
       ? String(article.author.name || DEFAULT_AUTHOR)
       : String(article?.author || DEFAULT_AUTHOR);
 
-  const publishedAt = actualContentDate(article?.publishedAt);
+  // 최초 발행일. 글에 없으면 first-published.mjs(저장소에 처음 들어온 커밋일)에서 읽는다.
+  const publishedAt = actualContentDate(article?.publishedAt || INSIGHT_FIRST_PUBLISHED[slug]);
   const phase3UpdatedAt = phase3PrimaryContentHtml
     ? PHASE3_ARTICLE_UPDATED_AT
     : (phase3Batch2ContentHtml ? PHASE3_BATCH2_UPDATED_AT : article?.updatedAt);
