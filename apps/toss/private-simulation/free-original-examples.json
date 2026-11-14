@@ -1,0 +1,3219 @@
+{
+  "compatInput": {
+    "name": "나",
+    "birth": {
+      "gender": "F",
+      "date": {
+        "year": 1990,
+        "month": 2,
+        "day": 3,
+        "hour": 8,
+        "minute": 35,
+        "timeUnknown": false,
+        "calType": "solar"
+      },
+      "location": {
+        "label": "서울",
+        "lat": 37.5665,
+        "lng": 126.978,
+        "tz": "Asia/Seoul"
+      }
+    },
+    "partner": {
+      "name": "상대",
+      "birth": {
+        "gender": "M",
+        "date": {
+          "year": 1991,
+          "month": 4,
+          "day": 5,
+          "hour": 12,
+          "minute": 30,
+          "timeUnknown": false,
+          "calType": "solar"
+        },
+        "location": {
+          "label": "서울",
+          "lat": 37.5665,
+          "lng": 126.978,
+          "tz": "Asia/Seoul"
+        }
+      }
+    }
+  },
+  "prashnaInput": {
+    "question": "이 계약을 이번 달 안에 진행하는 것이 유리할까?",
+    "latitude": 37.5665,
+    "longitude": 126.978
+  },
+  "compatibility": {
+    "ok": true,
+    "accessSource": "public",
+    "featureKey": "vedic-compatibility-per-use",
+    "stored": false,
+    "mine": {
+      "stored": false,
+      "accessSource": "public",
+      "input": {
+        "year": 1990,
+        "month": 2,
+        "day": 3,
+        "hour": 8,
+        "minute": 35,
+        "timezone": 9,
+        "lat": 37.5665,
+        "lon": 126.978,
+        "gender": "F",
+        "name": "나",
+        "birthTimeKnown": true
+      },
+      "natal": {
+        "providerVersion": "imd1956-ae2.1.19-v1",
+        "ayanamsha": {
+          "system": "IMD-1956",
+          "degrees": 23.721979893098364
+        },
+        "lagna": {
+          "longitude": 310.1282885134864,
+          "rashi": "물병자리",
+          "nakshatra": "Shatabhisha",
+          "pada": 2
+        },
+        "planets": {
+          "Sun": {
+            "longitude": 290.151902923272,
+            "rashi": "염소자리",
+            "nakshatra": "Shravana",
+            "pada": 4
+          },
+          "Moon": {
+            "longitude": 22.921145023408485,
+            "rashi": "양자리",
+            "nakshatra": "Bharani",
+            "pada": 3
+          },
+          "Mercury": {
+            "longitude": 265.0956708651755,
+            "rashi": "사수자리",
+            "nakshatra": "Purva Ashadha",
+            "pada": 4
+          },
+          "Venus": {
+            "longitude": 267.8018436076793,
+            "rashi": "사수자리",
+            "nakshatra": "Uttara Ashadha",
+            "pada": 1
+          },
+          "Mars": {
+            "longitude": 249.44563241855758,
+            "rashi": "사수자리",
+            "nakshatra": "Mula",
+            "pada": 3
+          },
+          "Jupiter": {
+            "longitude": 67.87163069436144,
+            "rashi": "쌍둥이자리",
+            "nakshatra": "Ardra",
+            "pada": 1
+          },
+          "Saturn": {
+            "longitude": 265.7225718546972,
+            "rashi": "사수자리",
+            "nakshatra": "Purva Ashadha",
+            "pada": 4
+          }
+        }
+      },
+      "samples": [
+        {
+          "planets": {
+            "Sun": 289.6443106304341,
+            "Moon": 15.822934656801749,
+            "Mercury": 264.554602452366,
+            "Venus": 267.9148221183257,
+            "Mars": 249.0840614910138,
+            "Jupiter": 67.90718570548734,
+            "Saturn": 265.6665936322347,
+            "Rahu": 292.7697175997728,
+            "Ketu": 112.76971759977278
+          },
+          "retrograde": {
+            "Sun": false,
+            "Moon": false,
+            "Mercury": false,
+            "Venus": true,
+            "Mars": false,
+            "Jupiter": true,
+            "Saturn": false
+          },
+          "ayanamsa": 23.718648862510292,
+          "ascendantSidereal": 142.50677212491917,
+          "source": "swiss-wasm-local",
+          "engineQuality": "swiss",
+          "fallbackUsed": false,
+          "jd": 2447924.982638889
+        },
+        {
+          "planets": {
+            "Sun": 290.151559763136,
+            "Moon": 22.920654970115038,
+            "Mercury": 265.0957683055915,
+            "Venus": 267.7985463571963,
+            "Mars": 249.44511839908728,
+            "Jupiter": 67.87136023524579,
+            "Saturn": 265.722396562933,
+            "Rahu": 292.769732677324,
+            "Ketu": 112.76973267732399
+          },
+          "retrograde": {
+            "Sun": false,
+            "Moon": false,
+            "Mercury": false,
+            "Venus": true,
+            "Mars": false,
+            "Jupiter": true,
+            "Saturn": false
+          },
+          "ayanamsa": 23.718667984031185,
+          "ascendantSidereal": 310.12805683123634,
+          "source": "swiss-wasm-local",
+          "engineQuality": "swiss",
+          "fallbackUsed": false,
+          "jd": 2447925.482638889
+        },
+        {
+          "planets": {
+            "Sun": 290.65871028934816,
+            "Moon": 30.011340503169492,
+            "Mercury": 265.64662907072034,
+            "Venus": 267.69247483659115,
+            "Mars": 249.80630298226765,
+            "Jupiter": 67.83629140389274,
+            "Saturn": 265.77806802431564,
+            "Rahu": 292.76924023095194,
+            "Ketu": 112.76924023095194
+          },
+          "retrograde": {
+            "Sun": false,
+            "Moon": false,
+            "Mercury": false,
+            "Venus": true,
+            "Mars": false,
+            "Jupiter": true,
+            "Saturn": false
+          },
+          "ayanamsa": 23.718687105552135,
+          "ascendantSidereal": 143.30964909353042,
+          "source": "swiss-wasm-local",
+          "engineQuality": "swiss",
+          "fallbackUsed": false,
+          "jd": 2447925.982638889
+        }
+      ]
+    },
+    "partner": {
+      "stored": false,
+      "accessSource": "public",
+      "input": {
+        "year": 1991,
+        "month": 4,
+        "day": 5,
+        "hour": 12,
+        "minute": 30,
+        "timezone": 9,
+        "lat": 37.5665,
+        "lon": 126.978,
+        "gender": "M",
+        "name": "상대",
+        "birthTimeKnown": true
+      },
+      "natal": {
+        "providerVersion": "imd1956-ae2.1.19-v1",
+        "ayanamsha": {
+          "system": "IMD-1956",
+          "degrees": 23.738915689312478
+        },
+        "lagna": {
+          "longitude": 93.52758086270973,
+          "rashi": "게자리",
+          "nakshatra": "Pushya",
+          "pada": 1
+        },
+        "planets": {
+          "Sun": {
+            "longitude": 351.1141671136251,
+            "rashi": "물고기자리",
+            "nakshatra": "Revati",
+            "pada": 2
+          },
+          "Moon": {
+            "longitude": 237.9700236694448,
+            "rashi": "전갈자리",
+            "nakshatra": "Jyeshtha",
+            "pada": 4
+          },
+          "Mercury": {
+            "longitude": 5.275836574316713,
+            "rashi": "양자리",
+            "nakshatra": "Ashwini",
+            "pada": 2
+          },
+          "Venus": {
+            "longitude": 26.95937847713617,
+            "rashi": "양자리",
+            "nakshatra": "Krittika",
+            "pada": 1
+          },
+          "Mars": {
+            "longitude": 67.38146324323225,
+            "rashi": "쌍둥이자리",
+            "nakshatra": "Ardra",
+            "pada": 1
+          },
+          "Jupiter": {
+            "longitude": 99.85987314357862,
+            "rashi": "게자리",
+            "nakshatra": "Pushya",
+            "pada": 2
+          },
+          "Saturn": {
+            "longitude": 281.69796075804834,
+            "rashi": "염소자리",
+            "nakshatra": "Shravana",
+            "pada": 1
+          }
+        }
+      },
+      "samples": [
+        {
+          "planets": {
+            "Sun": 350.6216263898265,
+            "Moon": 232.03172079394687,
+            "Mercury": 5.282976738467369,
+            "Venus": 26.364805494825873,
+            "Mars": 67.11547117988573,
+            "Jupiter": 99.85110199929841,
+            "Saturn": 281.6649977879017,
+            "Rahu": 270.4497011843382,
+            "Ketu": 90.44970118433821
+          },
+          "retrograde": {
+            "Sun": false,
+            "Moon": false,
+            "Mercury": false,
+            "Venus": false,
+            "Mars": false,
+            "Jupiter": false,
+            "Saturn": false
+          },
+          "ayanamsa": 23.734946681106123,
+          "ascendantSidereal": 239.47891226572506,
+          "source": "swiss-wasm-local",
+          "engineQuality": "swiss",
+          "fallbackUsed": false,
+          "jd": 2448351.1458333335
+        },
+        {
+          "planets": {
+            "Sun": 351.11404399364756,
+            "Moon": 237.96988612599523,
+            "Mercury": 5.27493794476743,
+            "Venus": 26.95945081093936,
+            "Mars": 67.3813518885944,
+            "Jupiter": 99.85952742758923,
+            "Saturn": 281.69755140120253,
+            "Rahu": 270.419059261156,
+            "Ketu": 90.41905926115601
+          },
+          "retrograde": {
+            "Sun": false,
+            "Moon": false,
+            "Mercury": true,
+            "Venus": false,
+            "Mars": false,
+            "Jupiter": false,
+            "Saturn": false
+          },
+          "ayanamsa": 23.734965802725185,
+          "ascendantSidereal": 93.52734919083309,
+          "source": "swiss-wasm-local",
+          "engineQuality": "swiss",
+          "fallbackUsed": false,
+          "jd": 2448351.6458333335
+        },
+        {
+          "planets": {
+            "Sun": 351.6063370926572,
+            "Moon": 243.8860340672095,
+            "Mercury": 5.23846930225551,
+            "Venus": 27.55373922576598,
+            "Mars": 67.64762347912716,
+            "Jupiter": 99.86873469674032,
+            "Saturn": 281.72977062185146,
+            "Rahu": 270.39808450405894,
+            "Ketu": 90.39808450405894
+          },
+          "retrograde": {
+            "Sun": false,
+            "Moon": false,
+            "Mercury": true,
+            "Venus": false,
+            "Mars": false,
+            "Jupiter": false,
+            "Saturn": false
+          },
+          "ayanamsa": 23.734984924344246,
+          "ascendantSidereal": 240.34827123751768,
+          "source": "swiss-wasm-local",
+          "engineQuality": "swiss",
+          "fallbackUsed": false,
+          "jd": 2448352.1458333335
+        }
+      ]
+    }
+  },
+  "prashna": {
+    "ok": true,
+    "accessSource": "public",
+    "featureKey": "vedic_prashna_prompt",
+    "snapshot": {
+      "orderId": "prashna_mwgb6749_m79daipv",
+      "productCode": "PRASHNA_PROMPT_1",
+      "productName": "프라슈나 프롬프트",
+      "amount": 5000,
+      "currency": "KRW",
+      "paymentType": "ONE_TIME",
+      "paymentStatus": "PENDING",
+      "generationStatus": "NOT_STARTED",
+      "question": "이 계약을 이번 달 안에 진행하는 것이 유리할까?",
+      "questionCategory": "계약·문서",
+      "questionMeta": {
+        "category": "계약·문서",
+        "mainHouses": [
+          "3하우스",
+          "7하우스"
+        ],
+        "supportHouses": [
+          "9하우스",
+          "10하우스"
+        ],
+        "naturalKarakas": [
+          "수성",
+          "목성"
+        ],
+        "reason": "계약·문서 질문에서 전통적으로 먼저 확인하는 하우스와 자연 카라카를 기준으로 분류했습니다."
+      },
+      "latitude": 37.5665,
+      "longitude": 126.978,
+      "timezone": "Asia/Seoul",
+      "timezoneOffsetHours": 9,
+      "capturedAtUtc": "2026-11-14T11:14:28.616Z",
+      "capturedAtLocal": "2026-11-14T20:14:28",
+      "zodiacType": "Sidereal",
+      "ayanamsha": "Lahiri",
+      "houseSystem": "Whole Sign",
+      "nodeType": "True Node",
+      "snapshotHash": "9bda26aa893136950cc2d7b321d617d057a933402eb83491a4e9152dfe0bc2eb"
+    },
+    "result": {
+      "resultId": "prashna_result_mwgb6757_flmjf7oi",
+      "orderId": "prashna_mwgb6749_m79daipv",
+      "productCode": "PRASHNA_PROMPT_1",
+      "productName": "프라슈나 프롬프트",
+      "amount": 5000,
+      "currency": "KRW",
+      "snapshot": {
+        "orderId": "prashna_mwgb6749_m79daipv",
+        "productCode": "PRASHNA_PROMPT_1",
+        "productName": "프라슈나 프롬프트",
+        "amount": 5000,
+        "currency": "KRW",
+        "paymentType": "ONE_TIME",
+        "paymentStatus": "PENDING",
+        "generationStatus": "NOT_STARTED",
+        "question": "이 계약을 이번 달 안에 진행하는 것이 유리할까?",
+        "questionCategory": "계약·문서",
+        "questionMeta": {
+          "category": "계약·문서",
+          "mainHouses": [
+            "3하우스",
+            "7하우스"
+          ],
+          "supportHouses": [
+            "9하우스",
+            "10하우스"
+          ],
+          "naturalKarakas": [
+            "수성",
+            "목성"
+          ],
+          "reason": "계약·문서 질문에서 전통적으로 먼저 확인하는 하우스와 자연 카라카를 기준으로 분류했습니다."
+        },
+        "latitude": 37.5665,
+        "longitude": 126.978,
+        "timezone": "Asia/Seoul",
+        "timezoneOffsetHours": 9,
+        "capturedAtUtc": "2026-11-14T11:14:28.616Z",
+        "capturedAtLocal": "2026-11-14T20:14:28",
+        "zodiacType": "Sidereal",
+        "ayanamsha": "Lahiri",
+        "houseSystem": "Whole Sign",
+        "nodeType": "True Node",
+        "snapshotHash": "9bda26aa893136950cc2d7b321d617d057a933402eb83491a4e9152dfe0bc2eb"
+      },
+      "chart": {
+        "basic": {
+          "question": "이 계약을 이번 달 안에 진행하는 것이 유리할까?",
+          "capturedAtUtc": "2026-11-14T11:14:28.616Z",
+          "capturedAtLocal": "2026-11-14T20:14:28",
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978,
+          "ayanamsha": "Lahiri",
+          "houseSystem": "Whole Sign",
+          "calculationEngine": "Swiss Ephemeris via sweph-wasm",
+          "calculationVersion": "sweph-wasm 2.6.9"
+        },
+        "ascendant": {
+          "sign": "쌍둥이자리",
+          "signEn": "Gemini",
+          "degree": 13.507840207804918,
+          "lord": "Mercury",
+          "nakshatra": "Ardra",
+          "pada": 3
+        },
+        "moon": {
+          "sign": "사수자리",
+          "degree": 24.86,
+          "house": 7,
+          "nakshatra": "푸르바 아샤다",
+          "pada": 4,
+          "condition": "neutral"
+        },
+        "planets": [
+          {
+            "name": "Sun",
+            "nameKo": "태양",
+            "longitude": 207.8604344691919,
+            "degree": 27.86,
+            "sign": "천칭자리",
+            "signEn": "Libra",
+            "house": 5,
+            "nakshatra": "비샤카",
+            "pada": 3,
+            "retrograde": false,
+            "combust": "미산출",
+            "dignity": "debilitated",
+            "ownedHouses": [
+              "3하우스"
+            ]
+          },
+          {
+            "name": "Moon",
+            "nameKo": "달",
+            "longitude": 264.86404848549114,
+            "degree": 24.86,
+            "sign": "사수자리",
+            "signEn": "Sagittarius",
+            "house": 7,
+            "nakshatra": "푸르바 아샤다",
+            "pada": 4,
+            "retrograde": false,
+            "combust": "미산출",
+            "dignity": "neutral",
+            "ownedHouses": [
+              "2하우스"
+            ]
+          },
+          {
+            "name": "Mercury",
+            "nameKo": "수성",
+            "longitude": 190.85836122196054,
+            "degree": 10.86,
+            "sign": "천칭자리",
+            "signEn": "Libra",
+            "house": 4,
+            "nakshatra": "스와티",
+            "pada": 2,
+            "retrograde": false,
+            "combust": "미산출",
+            "dignity": "neutral",
+            "ownedHouses": [
+              "1하우스",
+              "4하우스"
+            ]
+          },
+          {
+            "name": "Venus",
+            "nameKo": "금성",
+            "longitude": 178.63295286985203,
+            "degree": 28.63,
+            "sign": "처녀자리",
+            "signEn": "Virgo",
+            "house": 4,
+            "nakshatra": "치트라",
+            "pada": 2,
+            "retrograde": false,
+            "combust": "미산출",
+            "dignity": "debilitated",
+            "ownedHouses": [
+              "5하우스",
+              "12하우스"
+            ]
+          },
+          {
+            "name": "Mars",
+            "nameKo": "화성",
+            "longitude": 120.84625366753261,
+            "degree": 0.85,
+            "sign": "사자자리",
+            "signEn": "Leo",
+            "house": 2,
+            "nakshatra": "마가",
+            "pada": 1,
+            "retrograde": false,
+            "combust": "미산출",
+            "dignity": "neutral",
+            "ownedHouses": [
+              "6하우스",
+              "11하우스"
+            ]
+          },
+          {
+            "name": "Jupiter",
+            "nameKo": "목성",
+            "longitude": 121.50169406023451,
+            "degree": 1.5,
+            "sign": "사자자리",
+            "signEn": "Leo",
+            "house": 2,
+            "nakshatra": "마가",
+            "pada": 1,
+            "retrograde": false,
+            "combust": "미산출",
+            "dignity": "neutral",
+            "ownedHouses": [
+              "7하우스",
+              "10하우스"
+            ]
+          },
+          {
+            "name": "Saturn",
+            "nameKo": "토성",
+            "longitude": 344.31646162205004,
+            "degree": 14.32,
+            "sign": "물고기자리",
+            "signEn": "Pisces",
+            "house": 10,
+            "nakshatra": "우타라 바드라파다",
+            "pada": 4,
+            "retrograde": true,
+            "combust": "미산출",
+            "dignity": "neutral",
+            "ownedHouses": [
+              "8하우스",
+              "9하우스"
+            ]
+          },
+          {
+            "name": "Rahu",
+            "nameKo": "라후",
+            "longitude": 300.9964019012889,
+            "degree": 1,
+            "sign": "물병자리",
+            "signEn": "Aquarius",
+            "house": 8,
+            "nakshatra": "다니슈타",
+            "pada": 3,
+            "retrograde": false,
+            "combust": "미산출",
+            "dignity": "neutral",
+            "ownedHouses": []
+          },
+          {
+            "name": "Ketu",
+            "nameKo": "케투",
+            "longitude": 120.99640190128889,
+            "degree": 1,
+            "sign": "사자자리",
+            "signEn": "Leo",
+            "house": 2,
+            "nakshatra": "마가",
+            "pada": 1,
+            "retrograde": false,
+            "combust": "미산출",
+            "dignity": "neutral",
+            "ownedHouses": []
+          }
+        ],
+        "houses": [
+          {
+            "house": 1,
+            "sign": "쌍둥이자리",
+            "signEn": "Gemini",
+            "lord": "Mercury",
+            "planets": [],
+            "text": "쌍둥이자리 · 로드 Mercury · 입궁 행성 없음"
+          },
+          {
+            "house": 2,
+            "sign": "게자리",
+            "signEn": "Cancer",
+            "lord": "Moon",
+            "planets": [
+              "화성",
+              "목성",
+              "케투"
+            ],
+            "text": "게자리 · 로드 Moon · 입궁 행성 화성, 목성, 케투"
+          },
+          {
+            "house": 3,
+            "sign": "사자자리",
+            "signEn": "Leo",
+            "lord": "Sun",
+            "planets": [],
+            "text": "사자자리 · 로드 Sun · 입궁 행성 없음"
+          },
+          {
+            "house": 4,
+            "sign": "처녀자리",
+            "signEn": "Virgo",
+            "lord": "Mercury",
+            "planets": [
+              "수성",
+              "금성"
+            ],
+            "text": "처녀자리 · 로드 Mercury · 입궁 행성 수성, 금성"
+          },
+          {
+            "house": 5,
+            "sign": "천칭자리",
+            "signEn": "Libra",
+            "lord": "Venus",
+            "planets": [
+              "태양"
+            ],
+            "text": "천칭자리 · 로드 Venus · 입궁 행성 태양"
+          },
+          {
+            "house": 6,
+            "sign": "전갈자리",
+            "signEn": "Scorpio",
+            "lord": "Mars",
+            "planets": [],
+            "text": "전갈자리 · 로드 Mars · 입궁 행성 없음"
+          },
+          {
+            "house": 7,
+            "sign": "사수자리",
+            "signEn": "Sagittarius",
+            "lord": "Jupiter",
+            "planets": [
+              "달"
+            ],
+            "text": "사수자리 · 로드 Jupiter · 입궁 행성 달"
+          },
+          {
+            "house": 8,
+            "sign": "염소자리",
+            "signEn": "Capricorn",
+            "lord": "Saturn",
+            "planets": [
+              "라후"
+            ],
+            "text": "염소자리 · 로드 Saturn · 입궁 행성 라후"
+          },
+          {
+            "house": 9,
+            "sign": "물병자리",
+            "signEn": "Aquarius",
+            "lord": "Saturn",
+            "planets": [],
+            "text": "물병자리 · 로드 Saturn · 입궁 행성 없음"
+          },
+          {
+            "house": 10,
+            "sign": "물고기자리",
+            "signEn": "Pisces",
+            "lord": "Jupiter",
+            "planets": [
+              "토성"
+            ],
+            "text": "물고기자리 · 로드 Jupiter · 입궁 행성 토성"
+          },
+          {
+            "house": 11,
+            "sign": "양자리",
+            "signEn": "Aries",
+            "lord": "Mars",
+            "planets": [],
+            "text": "양자리 · 로드 Mars · 입궁 행성 없음"
+          },
+          {
+            "house": 12,
+            "sign": "황소자리",
+            "signEn": "Taurus",
+            "lord": "Venus",
+            "planets": [],
+            "text": "황소자리 · 로드 Venus · 입궁 행성 없음"
+          }
+        ],
+        "conjunctions": [
+          "4하우스: 수성, 금성",
+          "2하우스: 화성, 목성, 케투"
+        ],
+        "aspects": [
+          "태양 5하우스 → 11하우스",
+          "달 7하우스 → 1하우스",
+          "수성 4하우스 → 10하우스",
+          "금성 4하우스 → 10하우스",
+          "화성 2하우스 → 5하우스",
+          "화성 2하우스 → 8하우스",
+          "화성 2하우스 → 9하우스",
+          "목성 2하우스 → 6하우스",
+          "목성 2하우스 → 8하우스",
+          "목성 2하우스 → 10하우스",
+          "토성 10하우스 → 12하우스",
+          "토성 10하우스 → 4하우스",
+          "토성 10하우스 → 7하우스",
+          "라후 8하우스 → 2하우스",
+          "케투 2하우스 → 8하우스"
+        ],
+        "exchanges": [
+          "미산출"
+        ],
+        "beneficInfluences": [
+          "달 7하우스",
+          "수성 4하우스",
+          "금성 4하우스",
+          "목성 2하우스"
+        ],
+        "maleficInfluences": [
+          "태양 5하우스",
+          "화성 2하우스",
+          "토성 10하우스",
+          "라후 8하우스",
+          "케투 2하우스"
+        ],
+        "panchanga": {
+          "tithi": "미산출",
+          "vara": "미산출",
+          "yoga": "미산출",
+          "karana": "미산출",
+          "hora": "미산출"
+        },
+        "navamsa": "미산출",
+        "additionalFactors": {
+          "gulika": "미산출",
+          "mandi": "미산출",
+          "sourceQuality": {
+            "ok": true,
+            "issues": [
+              "미산출"
+            ],
+            "source": "swiss-wasm-local",
+            "engineQuality": "swiss",
+            "calculationMode": "full",
+            "fallbackUsed": false,
+            "hasAllPlanets": true,
+            "hasAscendant": true,
+            "hasAyanamsaValue": true,
+            "hasAyanamsaName": true,
+            "hasAyanamsa": true,
+            "hasMoonNakshatra": true,
+            "hasDasha": true,
+            "sourcePlanetCount": 9,
+            "requiredPlanetCount": 9,
+            "missingPlanets": [
+              "미산출"
+            ],
+            "trustedSource": true,
+            "engineTrusted": true,
+            "qualityScore": 100,
+            "qualityGrade": "premium",
+            "trustedSourceRequired": false
+          }
+        },
+        "calculationEngine": "Swiss Ephemeris via sweph-wasm",
+        "calculationVersion": "sweph-wasm 2.6.9",
+        "calculatedAt": "2026-11-14T11:14:28.649Z",
+        "localChart": {
+          "birthInput": {
+            "name": "미산출",
+            "gender": "unknown",
+            "birthDate": "2026-11-14",
+            "birthYear": 2026,
+            "birthMonth": 11,
+            "birthDay": 14,
+            "birthTime": "20:14",
+            "birthHour": 20,
+            "birthMinute": 14,
+            "timezone": "Asia/Seoul",
+            "birthPlace": "미산출",
+            "latitude": 37.5665,
+            "longitude": 126.978,
+            "isTimeUnknown": false
+          },
+          "calculationMode": "full",
+          "settings": {
+            "zodiac": "sidereal",
+            "ayanamsa": "Lahiri",
+            "houseSystem": "whole-sign"
+          },
+          "chart": {
+            "lagnaSign": "쌍둥이자리",
+            "lagnaSignEn": "Gemini",
+            "moonSign": "사수자리",
+            "sunSign": "천칭자리",
+            "atmakaraka": "금성",
+            "nakshatra": {
+              "name": "푸르바 아샤다",
+              "pada": 4,
+              "lord": "Venus"
+            },
+            "planets": [
+              {
+                "name": "Sun",
+                "nameKo": "태양",
+                "sign": "천칭자리",
+                "signEn": "Libra",
+                "degree": 27.86,
+                "longitude": 207.8604344691919,
+                "house": 5,
+                "nakshatra": "비샤카",
+                "pada": 3,
+                "retrograde": false,
+                "dignity": "debilitated"
+              },
+              {
+                "name": "Moon",
+                "nameKo": "달",
+                "sign": "사수자리",
+                "signEn": "Sagittarius",
+                "degree": 24.86,
+                "longitude": 264.86404848549114,
+                "house": 7,
+                "nakshatra": "푸르바 아샤다",
+                "pada": 4,
+                "retrograde": false,
+                "dignity": "neutral"
+              },
+              {
+                "name": "Mercury",
+                "nameKo": "수성",
+                "sign": "천칭자리",
+                "signEn": "Libra",
+                "degree": 10.86,
+                "longitude": 190.85836122196054,
+                "house": 4,
+                "nakshatra": "스와티",
+                "pada": 2,
+                "retrograde": false,
+                "dignity": "neutral"
+              },
+              {
+                "name": "Venus",
+                "nameKo": "금성",
+                "sign": "처녀자리",
+                "signEn": "Virgo",
+                "degree": 28.63,
+                "longitude": 178.63295286985203,
+                "house": 4,
+                "nakshatra": "치트라",
+                "pada": 2,
+                "retrograde": false,
+                "dignity": "debilitated"
+              },
+              {
+                "name": "Mars",
+                "nameKo": "화성",
+                "sign": "사자자리",
+                "signEn": "Leo",
+                "degree": 0.85,
+                "longitude": 120.84625366753261,
+                "house": 2,
+                "nakshatra": "마가",
+                "pada": 1,
+                "retrograde": false,
+                "dignity": "neutral"
+              },
+              {
+                "name": "Jupiter",
+                "nameKo": "목성",
+                "sign": "사자자리",
+                "signEn": "Leo",
+                "degree": 1.5,
+                "longitude": 121.50169406023451,
+                "house": 2,
+                "nakshatra": "마가",
+                "pada": 1,
+                "retrograde": false,
+                "dignity": "neutral"
+              },
+              {
+                "name": "Saturn",
+                "nameKo": "토성",
+                "sign": "물고기자리",
+                "signEn": "Pisces",
+                "degree": 14.32,
+                "longitude": 344.31646162205004,
+                "house": 10,
+                "nakshatra": "우타라 바드라파다",
+                "pada": 4,
+                "retrograde": true,
+                "dignity": "neutral"
+              },
+              {
+                "name": "Rahu",
+                "nameKo": "라후",
+                "sign": "물병자리",
+                "signEn": "Aquarius",
+                "degree": 1,
+                "longitude": 300.9964019012889,
+                "house": 8,
+                "nakshatra": "다니슈타",
+                "pada": 3,
+                "retrograde": false,
+                "dignity": "neutral"
+              },
+              {
+                "name": "Ketu",
+                "nameKo": "케투",
+                "sign": "사자자리",
+                "signEn": "Leo",
+                "degree": 1,
+                "longitude": 120.99640190128889,
+                "house": 2,
+                "nakshatra": "마가",
+                "pada": 1,
+                "retrograde": false,
+                "dignity": "neutral"
+              }
+            ],
+            "houses": [
+              {
+                "house": 1,
+                "sign": "쌍둥이자리",
+                "signEn": "Gemini",
+                "lord": "Mercury",
+                "lordKo": "수성",
+                "planets": []
+              },
+              {
+                "house": 2,
+                "sign": "게자리",
+                "signEn": "Cancer",
+                "lord": "Moon",
+                "lordKo": "달",
+                "planets": [
+                  "화성",
+                  "목성",
+                  "케투"
+                ]
+              },
+              {
+                "house": 3,
+                "sign": "사자자리",
+                "signEn": "Leo",
+                "lord": "Sun",
+                "lordKo": "태양",
+                "planets": []
+              },
+              {
+                "house": 4,
+                "sign": "처녀자리",
+                "signEn": "Virgo",
+                "lord": "Mercury",
+                "lordKo": "수성",
+                "planets": [
+                  "수성",
+                  "금성"
+                ]
+              },
+              {
+                "house": 5,
+                "sign": "천칭자리",
+                "signEn": "Libra",
+                "lord": "Venus",
+                "lordKo": "금성",
+                "planets": [
+                  "태양"
+                ]
+              },
+              {
+                "house": 6,
+                "sign": "전갈자리",
+                "signEn": "Scorpio",
+                "lord": "Mars",
+                "lordKo": "화성",
+                "planets": []
+              },
+              {
+                "house": 7,
+                "sign": "사수자리",
+                "signEn": "Sagittarius",
+                "lord": "Jupiter",
+                "lordKo": "목성",
+                "planets": [
+                  "달"
+                ]
+              },
+              {
+                "house": 8,
+                "sign": "염소자리",
+                "signEn": "Capricorn",
+                "lord": "Saturn",
+                "lordKo": "토성",
+                "planets": [
+                  "라후"
+                ]
+              },
+              {
+                "house": 9,
+                "sign": "물병자리",
+                "signEn": "Aquarius",
+                "lord": "Saturn",
+                "lordKo": "토성",
+                "planets": []
+              },
+              {
+                "house": 10,
+                "sign": "물고기자리",
+                "signEn": "Pisces",
+                "lord": "Jupiter",
+                "lordKo": "목성",
+                "planets": [
+                  "토성"
+                ]
+              },
+              {
+                "house": 11,
+                "sign": "양자리",
+                "signEn": "Aries",
+                "lord": "Mars",
+                "lordKo": "화성",
+                "planets": []
+              },
+              {
+                "house": 12,
+                "sign": "황소자리",
+                "signEn": "Taurus",
+                "lord": "Venus",
+                "lordKo": "금성",
+                "planets": []
+              }
+            ],
+            "aspects": [
+              {
+                "planetA": "태양",
+                "planetB": "화성",
+                "type": "square",
+                "strength": "medium"
+              },
+              {
+                "planetA": "태양",
+                "planetB": "목성",
+                "type": "square",
+                "strength": "medium"
+              },
+              {
+                "planetA": "태양",
+                "planetB": "라후",
+                "type": "square",
+                "strength": "medium"
+              },
+              {
+                "planetA": "태양",
+                "planetB": "케투",
+                "type": "square",
+                "strength": "medium"
+              },
+              {
+                "planetA": "달",
+                "planetB": "금성",
+                "type": "square",
+                "strength": "medium"
+              },
+              {
+                "planetA": "금성",
+                "planetB": "라후",
+                "type": "trine",
+                "strength": "strong"
+              },
+              {
+                "planetA": "화성",
+                "planetB": "목성",
+                "type": "conjunction",
+                "strength": "strong"
+              },
+              {
+                "planetA": "화성",
+                "planetB": "라후",
+                "type": "opposition",
+                "strength": "medium"
+              },
+              {
+                "planetA": "화성",
+                "planetB": "케투",
+                "type": "conjunction",
+                "strength": "strong"
+              },
+              {
+                "planetA": "목성",
+                "planetB": "라후",
+                "type": "opposition",
+                "strength": "medium"
+              },
+              {
+                "planetA": "목성",
+                "planetB": "케투",
+                "type": "conjunction",
+                "strength": "strong"
+              },
+              {
+                "planetA": "라후",
+                "planetB": "케투",
+                "type": "opposition",
+                "strength": "medium"
+              }
+            ],
+            "dashas": {
+              "system": "vimshottari",
+              "currentMahaDasha": "금성",
+              "currentAntarDasha": "태양",
+              "periods": [
+                {
+                  "type": "maha",
+                  "lord": "금성",
+                  "start": "",
+                  "end": "",
+                  "years": 20
+                },
+                {
+                  "type": "maha",
+                  "lord": "태양",
+                  "start": "",
+                  "end": "",
+                  "years": 6
+                },
+                {
+                  "type": "maha",
+                  "lord": "달",
+                  "start": "",
+                  "end": "",
+                  "years": 10
+                },
+                {
+                  "type": "maha",
+                  "lord": "화성",
+                  "start": "",
+                  "end": "",
+                  "years": 7
+                },
+                {
+                  "type": "maha",
+                  "lord": "라후",
+                  "start": "",
+                  "end": "",
+                  "years": 18
+                },
+                {
+                  "type": "maha",
+                  "lord": "목성",
+                  "start": "",
+                  "end": "",
+                  "years": 16
+                },
+                {
+                  "type": "maha",
+                  "lord": "토성",
+                  "start": "",
+                  "end": "",
+                  "years": 19
+                },
+                {
+                  "type": "maha",
+                  "lord": "수성",
+                  "start": "",
+                  "end": "",
+                  "years": 17
+                },
+                {
+                  "type": "maha",
+                  "lord": "케투",
+                  "start": "",
+                  "end": "",
+                  "years": 7
+                }
+              ]
+            },
+            "karakas": {
+              "atmakaraka": {
+                "planet": "Venus",
+                "planetKo": "금성",
+                "sign": "처녀자리",
+                "degree": 28.63
+              },
+              "amatyakaraka": {
+                "planet": "Sun",
+                "planetKo": "태양",
+                "sign": "천칭자리",
+                "degree": 27.86
+              },
+              "bhratrikaraka": {
+                "planet": "Moon",
+                "planetKo": "달",
+                "sign": "사수자리",
+                "degree": 24.86
+              },
+              "matrikaraka": {
+                "planet": "Saturn",
+                "planetKo": "토성",
+                "sign": "물고기자리",
+                "degree": 14.32
+              },
+              "putrakaraka": {
+                "planet": "Mercury",
+                "planetKo": "수성",
+                "sign": "천칭자리",
+                "degree": 10.86
+              },
+              "gnatikaraka": {
+                "planet": "Jupiter",
+                "planetKo": "목성",
+                "sign": "사자자리",
+                "degree": 1.5
+              },
+              "darakaraka": {
+                "planet": "Mars",
+                "planetKo": "화성",
+                "sign": "사자자리",
+                "degree": 0.85
+              }
+            }
+          },
+          "interpretationSeeds": {
+            "personalityKeywords": [
+              "쌍둥이자리",
+              "사수자리",
+              "천칭자리"
+            ],
+            "careerKeywords": [
+              "물고기자리",
+              "물고기자리",
+              "2하우스"
+            ],
+            "moneyKeywords": [
+              "게자리",
+              "양자리",
+              "사자자리"
+            ],
+            "relationshipKeywords": [
+              "처녀자리",
+              "사수자리",
+              "푸르바 아샤다"
+            ],
+            "healingKeywords": [
+              "물고기자리",
+              "사수자리",
+              "전갈자리"
+            ],
+            "timingKeywords": [
+              "금성",
+              "태양"
+            ],
+            "karmaKeywords": [
+              "물병자리",
+              "사자자리"
+            ]
+          },
+          "insights": {
+            "version": "vedic-insights-v1",
+            "nakshatra": {
+              "name": "푸르바 아샤다",
+              "pada": 4,
+              "lord": "Venus",
+              "instinct": "신념, 승리 의지, 물처럼 밀어붙이는 힘",
+              "shadow": "고집, 설득 강박, 감정 과열",
+              "advice": "믿음이 강할수록 검증의 물을 통과시켜라.",
+              "summary": "푸르바 아샤다는 신념, 승리 의지, 물처럼 밀어붙이는 힘을 품고 있으며, 그림자는 고집, 설득 강박, 감정 과열으로 드러납니다."
+            },
+            "dasha": {
+              "current": "Venus",
+              "currentKo": "금성",
+              "nextKo": "태양",
+              "theme": "사랑, 예술, 관계의 즐거움, 풍요",
+              "opportunity": "매력과 감각을 수익, 관계, 창작으로 바꾸기 좋은 흐름이다.",
+              "caution": "편안함과 쾌락에 머물면 중요한 결정을 늦출 수 있다.",
+              "advice": "아름다움을 즐기되 관계와 돈의 경계선을 선명하게 세워라."
+            },
+            "karakas": {
+              "atmakaraka": {
+                "planet": "Venus",
+                "planetKo": "금성",
+                "sign": "처녀자리",
+                "degree": 28.63
+              },
+              "amatyakaraka": {
+                "planet": "Sun",
+                "planetKo": "태양",
+                "sign": "천칭자리",
+                "degree": 27.86
+              },
+              "bhratrikaraka": {
+                "planet": "Moon",
+                "planetKo": "달",
+                "sign": "사수자리",
+                "degree": 24.86
+              },
+              "matrikaraka": {
+                "planet": "Saturn",
+                "planetKo": "토성",
+                "sign": "물고기자리",
+                "degree": 14.32
+              },
+              "putrakaraka": {
+                "planet": "Mercury",
+                "planetKo": "수성",
+                "sign": "천칭자리",
+                "degree": 10.86
+              },
+              "gnatikaraka": {
+                "planet": "Jupiter",
+                "planetKo": "목성",
+                "sign": "사자자리",
+                "degree": 1.5
+              },
+              "darakaraka": {
+                "planet": "Mars",
+                "planetKo": "화성",
+                "sign": "사자자리",
+                "degree": 0.85
+              }
+            },
+            "drishti": [
+              {
+                "graha": "Sun",
+                "grahaKo": "태양",
+                "fromHouse": 5,
+                "targetHouse": 11,
+                "type": "direct"
+              },
+              {
+                "graha": "Moon",
+                "grahaKo": "달",
+                "fromHouse": 7,
+                "targetHouse": 1,
+                "type": "direct"
+              },
+              {
+                "graha": "Mercury",
+                "grahaKo": "수성",
+                "fromHouse": 4,
+                "targetHouse": 10,
+                "type": "direct"
+              },
+              {
+                "graha": "Venus",
+                "grahaKo": "금성",
+                "fromHouse": 4,
+                "targetHouse": 10,
+                "type": "direct"
+              },
+              {
+                "graha": "Mars",
+                "grahaKo": "화성",
+                "fromHouse": 2,
+                "targetHouse": 5,
+                "type": "special"
+              },
+              {
+                "graha": "Mars",
+                "grahaKo": "화성",
+                "fromHouse": 2,
+                "targetHouse": 8,
+                "type": "direct"
+              },
+              {
+                "graha": "Mars",
+                "grahaKo": "화성",
+                "fromHouse": 2,
+                "targetHouse": 9,
+                "type": "special"
+              },
+              {
+                "graha": "Jupiter",
+                "grahaKo": "목성",
+                "fromHouse": 2,
+                "targetHouse": 6,
+                "type": "special"
+              },
+              {
+                "graha": "Jupiter",
+                "grahaKo": "목성",
+                "fromHouse": 2,
+                "targetHouse": 8,
+                "type": "direct"
+              },
+              {
+                "graha": "Jupiter",
+                "grahaKo": "목성",
+                "fromHouse": 2,
+                "targetHouse": 10,
+                "type": "special"
+              },
+              {
+                "graha": "Saturn",
+                "grahaKo": "토성",
+                "fromHouse": 10,
+                "targetHouse": 12,
+                "type": "special"
+              },
+              {
+                "graha": "Saturn",
+                "grahaKo": "토성",
+                "fromHouse": 10,
+                "targetHouse": 4,
+                "type": "direct"
+              },
+              {
+                "graha": "Saturn",
+                "grahaKo": "토성",
+                "fromHouse": 10,
+                "targetHouse": 7,
+                "type": "special"
+              },
+              {
+                "graha": "Rahu",
+                "grahaKo": "라후",
+                "fromHouse": 8,
+                "targetHouse": 2,
+                "type": "direct"
+              },
+              {
+                "graha": "Ketu",
+                "grahaKo": "케투",
+                "fromHouse": 2,
+                "targetHouse": 8,
+                "type": "direct"
+              }
+            ],
+            "yogas": [
+              {
+                "id": "dhana",
+                "title": "다나 요가 신호",
+                "summary": "2·11하우스 또는 목성의 재물 축이 살아 있어 수입과 축적의 통로를 만들 수 있습니다."
+              }
+            ],
+            "dignity": {
+              "strongPlanets": [
+                "미산출"
+              ],
+              "weakPlanets": [
+                "태양",
+                "금성"
+              ],
+              "summary": "강한 행성은 생활 속 반복으로 키워야 합니다. 보강할 행성은 태양, 금성."
+            },
+            "cards": [
+              {
+                "id": "soul",
+                "title": "영혼의 출발점",
+                "text": "라그나 쌍둥이자리와 달 사수자리이 이번 생의 기본 자세를 이룹니다. 태양 천칭자리은 세상에 드러낼 중심의 빛입니다."
+              },
+              {
+                "id": "nakshatra",
+                "title": "달의 별자리",
+                "text": "푸르바 아샤다 4파다는 신념, 승리 의지, 물처럼 밀어붙이는 힘을 열고, 믿음이 강할수록 검증의 물을 통과시켜라."
+              },
+              {
+                "id": "dasha",
+                "title": "현재 다샤",
+                "text": "금성 다샤는 사랑, 예술, 관계의 즐거움, 풍요을 삶의 전면에 올립니다. 아름다움을 즐기되 관계와 돈의 경계선을 선명하게 세워라."
+              },
+              {
+                "id": "love",
+                "title": "사랑과 인연",
+                "text": "7하우스 사수자리, 금성 처녀자리, 화성 사자자리이 끌림과 지속성의 온도를 나눠 보여 줍니다."
+              },
+              {
+                "id": "career_money",
+                "title": "직업과 재물",
+                "text": "10하우스 물고기자리, 2하우스 게자리, 11하우스 양자리가 일과 돈의 실제 길을 만듭니다. 목성 사자자리은 확장, 토성 물고기자리은 지속성을 맡습니다."
+              },
+              {
+                "id": "karma",
+                "title": "카르마 축",
+                "text": "라후 물병자리는 낯선 성장의 문이고, 케투 사자자리는 이미 익숙한 습관입니다. 편한 길에서 배운 힘을 낯선 선택으로 옮길 때 운의 방향이 바뀝니다."
+              }
+            ]
+          },
+          "chartSource": {
+            "source": "swiss-wasm-local",
+            "engineQuality": "swiss",
+            "fallbackUsed": false,
+            "ayanamsaName": "Lahiri",
+            "hasAscendant": true,
+            "hasAyanamsaValue": true,
+            "hasAyanamsaName": true,
+            "planetCount": 9
+          },
+          "chartSourceQuality": {
+            "ok": true,
+            "issues": [
+              "미산출"
+            ],
+            "source": "swiss-wasm-local",
+            "engineQuality": "swiss",
+            "calculationMode": "full",
+            "fallbackUsed": false,
+            "hasAllPlanets": true,
+            "hasAscendant": true,
+            "hasAyanamsaValue": true,
+            "hasAyanamsaName": true,
+            "hasAyanamsa": true,
+            "hasMoonNakshatra": true,
+            "hasDasha": true,
+            "sourcePlanetCount": 9,
+            "requiredPlanetCount": 9,
+            "missingPlanets": [
+              "미산출"
+            ],
+            "trustedSource": true,
+            "engineTrusted": true,
+            "qualityScore": 100,
+            "qualityGrade": "premium",
+            "trustedSourceRequired": false
+          }
+        },
+        "planetByName": {
+          "Sun": {
+            "name": "Sun",
+            "nameKo": "태양",
+            "longitude": 207.8604344691919,
+            "degree": 27.86,
+            "sign": "천칭자리",
+            "signEn": "Libra",
+            "house": 5,
+            "nakshatra": "비샤카",
+            "pada": 3,
+            "retrograde": false,
+            "combust": "미산출",
+            "dignity": "debilitated",
+            "ownedHouses": [
+              "3하우스"
+            ]
+          },
+          "Moon": {
+            "name": "Moon",
+            "nameKo": "달",
+            "longitude": 264.86404848549114,
+            "degree": 24.86,
+            "sign": "사수자리",
+            "signEn": "Sagittarius",
+            "house": 7,
+            "nakshatra": "푸르바 아샤다",
+            "pada": 4,
+            "retrograde": false,
+            "combust": "미산출",
+            "dignity": "neutral",
+            "ownedHouses": [
+              "2하우스"
+            ]
+          },
+          "Mercury": {
+            "name": "Mercury",
+            "nameKo": "수성",
+            "longitude": 190.85836122196054,
+            "degree": 10.86,
+            "sign": "천칭자리",
+            "signEn": "Libra",
+            "house": 4,
+            "nakshatra": "스와티",
+            "pada": 2,
+            "retrograde": false,
+            "combust": "미산출",
+            "dignity": "neutral",
+            "ownedHouses": [
+              "1하우스",
+              "4하우스"
+            ]
+          },
+          "Venus": {
+            "name": "Venus",
+            "nameKo": "금성",
+            "longitude": 178.63295286985203,
+            "degree": 28.63,
+            "sign": "처녀자리",
+            "signEn": "Virgo",
+            "house": 4,
+            "nakshatra": "치트라",
+            "pada": 2,
+            "retrograde": false,
+            "combust": "미산출",
+            "dignity": "debilitated",
+            "ownedHouses": [
+              "5하우스",
+              "12하우스"
+            ]
+          },
+          "Mars": {
+            "name": "Mars",
+            "nameKo": "화성",
+            "longitude": 120.84625366753261,
+            "degree": 0.85,
+            "sign": "사자자리",
+            "signEn": "Leo",
+            "house": 2,
+            "nakshatra": "마가",
+            "pada": 1,
+            "retrograde": false,
+            "combust": "미산출",
+            "dignity": "neutral",
+            "ownedHouses": [
+              "6하우스",
+              "11하우스"
+            ]
+          },
+          "Jupiter": {
+            "name": "Jupiter",
+            "nameKo": "목성",
+            "longitude": 121.50169406023451,
+            "degree": 1.5,
+            "sign": "사자자리",
+            "signEn": "Leo",
+            "house": 2,
+            "nakshatra": "마가",
+            "pada": 1,
+            "retrograde": false,
+            "combust": "미산출",
+            "dignity": "neutral",
+            "ownedHouses": [
+              "7하우스",
+              "10하우스"
+            ]
+          },
+          "Saturn": {
+            "name": "Saturn",
+            "nameKo": "토성",
+            "longitude": 344.31646162205004,
+            "degree": 14.32,
+            "sign": "물고기자리",
+            "signEn": "Pisces",
+            "house": 10,
+            "nakshatra": "우타라 바드라파다",
+            "pada": 4,
+            "retrograde": true,
+            "combust": "미산출",
+            "dignity": "neutral",
+            "ownedHouses": [
+              "8하우스",
+              "9하우스"
+            ]
+          },
+          "Rahu": {
+            "name": "Rahu",
+            "nameKo": "라후",
+            "longitude": 300.9964019012889,
+            "degree": 1,
+            "sign": "물병자리",
+            "signEn": "Aquarius",
+            "house": 8,
+            "nakshatra": "다니슈타",
+            "pada": 3,
+            "retrograde": false,
+            "combust": "미산출",
+            "dignity": "neutral",
+            "ownedHouses": [
+              "미산출"
+            ]
+          },
+          "Ketu": {
+            "name": "Ketu",
+            "nameKo": "케투",
+            "longitude": 120.99640190128889,
+            "degree": 1,
+            "sign": "사자자리",
+            "signEn": "Leo",
+            "house": 2,
+            "nakshatra": "마가",
+            "pada": 1,
+            "retrograde": false,
+            "combust": "미산출",
+            "dignity": "neutral",
+            "ownedHouses": [
+              "미산출"
+            ]
+          }
+        }
+      },
+      "promptText": "[베딕 프라슈나 분석 프롬프트]\n\n당신은 베딕 점성술과 프라슈나 해석에 숙련된 전문 상담가입니다.\n\n아래 자료는 질문자가 질문을 확정하고 생성 버튼을 누른 순간의 시각과 위치를 기준으로 계산한 실제 프라슈나 차트 산출값입니다.\n\n제공된 차트 값만 사용하여 질문을 분석해 주세요.\n\n중요한 해석 원칙:\n\n- 입력된 행성 위치나 차트 값을 임의로 수정하지 마세요.\n- 제공되지 않은 값을 추정하거나 만들어내지 마세요.\n- 계산이 필요한 값이 누락되어 있으면 “제공된 자료만으로 판단하기 어렵다”고 표시하세요.\n- 질문에 해당하는 핵심 하우스, 하우스 로드, 자연 카라카를 먼저 선정하고 그 이유를 설명하세요.\n- 라그나, 라그나 로드, 달, 질문 하우스와 그 로드 사이의 관계를 핵심 근거로 사용하세요.\n- 좋은 신호와 방해 신호를 모두 제시하세요.\n- 단정적인 운명 예언보다 현재 가능성, 조건, 장애물, 전환점과 현실적인 행동 기준을 설명하세요.\n- 시기를 판단할 충분한 근거가 없는 경우 임의로 날짜를 만들지 마세요.\n- 의료, 법률, 재무 등 중요한 결정은 전문가의 검토가 필요하다고 안내하세요.\n- 답변은 한국어로 작성하세요.\n\n[질문 정보]\n\n질문:\n이 계약을 이번 달 안에 진행하는 것이 유리할까?\n\n질문 카테고리:\n계약·문서\n\n질문 기록 시각:\n2026-11-14T20:14:28\n\nUTC 시각:\n2026-11-14T11:14:28.616Z\n\n시간대:\nAsia/Seoul\n\n위도:\n37.5665\n\n경도:\n126.978\n\n[차트 계산 기준]\n\n황도 기준:\nSidereal\n\n아야남샤:\nLahiri\n\n하우스 계산 기준:\nWhole Sign\n\n노드 계산 기준:\nTrue Node\n\n계산 엔진:\nSwiss Ephemeris via sweph-wasm\n\n계산 엔진 버전:\nsweph-wasm 2.6.9\n\n[라그나]\n\n상승궁:\n쌍둥이자리\n\n상승궁 도수:\n13.51°\n\n라그나 로드:\nMercury\n\n라그나 나크샤트라:\nArdra\n\n라그나 파다:\n3\n\n[달]\n\n달의 별자리:\n사수자리\n\n달의 도수:\n24.86°\n\n달의 하우스:\n7하우스\n\n달의 나크샤트라:\n푸르바 아샤다\n\n달의 파다:\n4\n\n달의 상태:\nneutral\n\n[행성 위치]\n\n태양:\n천칭자리 27.86° · 5하우스 · 비샤카 파다 3 · 역행 아니오 · 연소 미산출 · 품위 debilitated · 소유 3하우스\n\n달:\n사수자리 24.86° · 7하우스 · 푸르바 아샤다 파다 4 · 역행 아니오 · 연소 미산출 · 품위 neutral · 소유 2하우스\n\n화성:\n사자자리 0.85° · 2하우스 · 마가 파다 1 · 역행 아니오 · 연소 미산출 · 품위 neutral · 소유 6하우스, 11하우스\n\n수성:\n천칭자리 10.86° · 4하우스 · 스와티 파다 2 · 역행 아니오 · 연소 미산출 · 품위 neutral · 소유 1하우스, 4하우스\n\n목성:\n사자자리 1.50° · 2하우스 · 마가 파다 1 · 역행 아니오 · 연소 미산출 · 품위 neutral · 소유 7하우스, 10하우스\n\n금성:\n처녀자리 28.63° · 4하우스 · 치트라 파다 2 · 역행 아니오 · 연소 미산출 · 품위 debilitated · 소유 5하우스, 12하우스\n\n토성:\n물고기자리 14.32° · 10하우스 · 우타라 바드라파다 파다 4 · 역행 예 · 연소 미산출 · 품위 neutral · 소유 8하우스, 9하우스\n\n라후:\n물병자리 1.00° · 8하우스 · 다니슈타 파다 3 · 역행 아니오 · 연소 미산출 · 품위 neutral · 소유 미산출\n\n케투:\n사자자리 1.00° · 2하우스 · 마가 파다 1 · 역행 아니오 · 연소 미산출 · 품위 neutral · 소유 미산출\n\n각 행성 정보에는 가능한 범위에서 별자리, 도수, 하우스, 나크샤트라, 파다, 역행, 연소, 품위, 소유 하우스를 포함하세요.\n\n[하우스 정보]\n\n1하우스:\n쌍둥이자리 · 로드 Mercury · 입궁 행성 없음\n\n2하우스:\n게자리 · 로드 Moon · 입궁 행성 화성, 목성, 케투\n\n3하우스:\n사자자리 · 로드 Sun · 입궁 행성 없음\n\n4하우스:\n처녀자리 · 로드 Mercury · 입궁 행성 수성, 금성\n\n5하우스:\n천칭자리 · 로드 Venus · 입궁 행성 태양\n\n6하우스:\n전갈자리 · 로드 Mars · 입궁 행성 없음\n\n7하우스:\n사수자리 · 로드 Jupiter · 입궁 행성 달\n\n8하우스:\n염소자리 · 로드 Saturn · 입궁 행성 라후\n\n9하우스:\n물병자리 · 로드 Saturn · 입궁 행성 없음\n\n10하우스:\n물고기자리 · 로드 Jupiter · 입궁 행성 토성\n\n11하우스:\n양자리 · 로드 Mars · 입궁 행성 없음\n\n12하우스:\n황소자리 · 로드 Venus · 입궁 행성 없음\n\n[행성 관계 및 보조 지표]\n\n주요 합:\n4하우스: 수성, 금성\n2하우스: 화성, 목성, 케투\n\n주요 드리슈티:\n태양 5하우스 → 11하우스\n달 7하우스 → 1하우스\n수성 4하우스 → 10하우스\n금성 4하우스 → 10하우스\n화성 2하우스 → 5하우스\n화성 2하우스 → 8하우스\n화성 2하우스 → 9하우스\n목성 2하우스 → 6하우스\n목성 2하우스 → 8하우스\n목성 2하우스 → 10하우스\n토성 10하우스 → 12하우스\n토성 10하우스 → 4하우스\n토성 10하우스 → 7하우스\n라후 8하우스 → 2하우스\n케투 2하우스 → 8하우스\n\n상호 교환:\n미산출\n\n길성의 지지:\n달 7하우스\n수성 4하우스\n금성 4하우스\n목성 2하우스\n\n흉성의 방해:\n태양 5하우스\n화성 2하우스\n토성 10하우스\n라후 8하우스\n케투 2하우스\n\n판창가:\n{\"tithi\":\"미산출\",\"vara\":\"미산출\",\"yoga\":\"미산출\",\"karana\":\"미산출\",\"hora\":\"미산출\"}\n\n나바암샤:\n미산출\n\n기타 산출값:\n{\"gulika\":\"미산출\",\"mandi\":\"미산출\",\"sourceQuality\":{\"ok\":true,\"issues\":[\"미산출\"],\"source\":\"swiss-wasm-local\",\"engineQuality\":\"swiss\",\"calculationMode\":\"full\",\"fallbackUsed\":false,\"hasAllPlanets\":true,\"hasAscendant\":true,\"hasAyanamsaValue\":true,\"hasAyanamsaName\":true,\"hasAyanamsa\":true,\"hasMoonNakshatra\":true,\"hasDasha\":true,\"sourcePlanetCount\":9,\"requiredPlanetCount\":9,\"missingPlanets\":[\"미산출\"],\"trustedSource\":true,\"engineTrusted\":true,\"qualityScore\":100,\"qualityGrade\":\"premium\",\"trustedSourceRequired\":false},\"mainJudgmentHouses\":[\"3하우스\",\"7하우스\"],\"supportJudgmentHouses\":[\"9하우스\",\"10하우스\"],\"naturalKarakas\":[\"수성\",\"목성\"],\"categoryReason\":\"계약·문서 질문에서 전통적으로 먼저 확인하는 하우스와 자연 카라카를 기준으로 분류했습니다.\"}\n\n[해석 요청]\n\n다음 순서로 해석해 주세요.\n\n1. 질문을 한 문장으로 다시 정리하고, 한 차트에서 판단할 수 있는 질문인지 확인해 주세요.\n2. 이 질문을 판단할 주된 하우스, 보조 하우스, 자연 카라카를 선정하고 그 이유를 설명해 주세요.\n3. 라그나와 라그나 로드가 질문자 본인의 현재 상태, 의지, 실행력을 어떻게 나타내는지 설명해 주세요.\n4. 달의 별자리, 하우스, 나크샤트라와 관계를 바탕으로 질문자의 심리와 사건의 진행 흐름을 설명해 주세요.\n5. 질문 하우스와 그 로드의 상태를 분석하여 대상이나 결과의 상태를 설명해 주세요.\n6. 라그나 로드와 질문 하우스 로드 사이에 연결, 합, 드리슈티, 교환 또는 상호 지지가 있는지 확인해 주세요.\n7. 결과를 돕는 신호와 방해하는 신호를 각각 구분해 주세요.\n8. 질문에 대한 판단을 아래 중 하나로 정리해 주세요.\n   - 유리\n   - 조건부로 유리\n   - 보류가 유리\n   - 불리\n   - 현재 자료만으로 판단 유보\n9. 위 판단을 뒷받침하는 핵심 차트 근거를 강한 순서대로 3개에서 5개 제시해 주세요.\n10. 상황이 바뀌는 조건이나 전환점이 있다면 설명해 주세요.\n11. 시기 판단이 가능한 자료가 충분할 때만 예상 범위를 제시하고, 사용한 판단 근거와 오차 가능성을 함께 설명해 주세요.\n12. 질문자가 현실에서 확인할 체크포인트 3개와 다음 행동 후보 3개를 제안해 주세요.\n13. 마지막에 전체 결론을 다음 형식으로 정리해 주세요.\n\n- 판단 요약:\n- 가장 강한 긍정 신호:\n- 가장 강한 방해 신호:\n- 필요한 조건:\n- 예상 전환점:\n- 현실적인 다음 행동:\n- 해석의 한계:\n\n[출력 스타일]\n\n- 결론을 먼저 제시한 뒤 근거를 설명하세요.\n- 전문용어를 사용할 때에는 쉬운 한국어 설명을 함께 붙이세요.\n- 근거가 없는 확신이나 공포를 조성하는 문장을 사용하지 마세요.\n- 동일한 내용을 반복하지 마세요.\n- 전체 분량은 약 2,000자에서 3,500자 내외로 작성하세요.\n- 차트에 없는 정보를 만들어내지 마세요.\n- 프라슈나 결과는 참고 및 자기 점검을 위한 자료임을 마지막에 안내하세요.",
+      "copyCount": 0,
+      "createdAt": "2026-11-14T11:14:28.651Z",
+      "lastViewedAt": "2026-11-14T11:14:28.651Z"
+    },
+    "promptText": "[베딕 프라슈나 분석 프롬프트]\n\n당신은 베딕 점성술과 프라슈나 해석에 숙련된 전문 상담가입니다.\n\n아래 자료는 질문자가 질문을 확정하고 생성 버튼을 누른 순간의 시각과 위치를 기준으로 계산한 실제 프라슈나 차트 산출값입니다.\n\n제공된 차트 값만 사용하여 질문을 분석해 주세요.\n\n중요한 해석 원칙:\n\n- 입력된 행성 위치나 차트 값을 임의로 수정하지 마세요.\n- 제공되지 않은 값을 추정하거나 만들어내지 마세요.\n- 계산이 필요한 값이 누락되어 있으면 “제공된 자료만으로 판단하기 어렵다”고 표시하세요.\n- 질문에 해당하는 핵심 하우스, 하우스 로드, 자연 카라카를 먼저 선정하고 그 이유를 설명하세요.\n- 라그나, 라그나 로드, 달, 질문 하우스와 그 로드 사이의 관계를 핵심 근거로 사용하세요.\n- 좋은 신호와 방해 신호를 모두 제시하세요.\n- 단정적인 운명 예언보다 현재 가능성, 조건, 장애물, 전환점과 현실적인 행동 기준을 설명하세요.\n- 시기를 판단할 충분한 근거가 없는 경우 임의로 날짜를 만들지 마세요.\n- 의료, 법률, 재무 등 중요한 결정은 전문가의 검토가 필요하다고 안내하세요.\n- 답변은 한국어로 작성하세요.\n\n[질문 정보]\n\n질문:\n이 계약을 이번 달 안에 진행하는 것이 유리할까?\n\n질문 카테고리:\n계약·문서\n\n질문 기록 시각:\n2026-11-14T20:14:28\n\nUTC 시각:\n2026-11-14T11:14:28.616Z\n\n시간대:\nAsia/Seoul\n\n위도:\n37.5665\n\n경도:\n126.978\n\n[차트 계산 기준]\n\n황도 기준:\nSidereal\n\n아야남샤:\nLahiri\n\n하우스 계산 기준:\nWhole Sign\n\n노드 계산 기준:\nTrue Node\n\n계산 엔진:\nSwiss Ephemeris via sweph-wasm\n\n계산 엔진 버전:\nsweph-wasm 2.6.9\n\n[라그나]\n\n상승궁:\n쌍둥이자리\n\n상승궁 도수:\n13.51°\n\n라그나 로드:\nMercury\n\n라그나 나크샤트라:\nArdra\n\n라그나 파다:\n3\n\n[달]\n\n달의 별자리:\n사수자리\n\n달의 도수:\n24.86°\n\n달의 하우스:\n7하우스\n\n달의 나크샤트라:\n푸르바 아샤다\n\n달의 파다:\n4\n\n달의 상태:\nneutral\n\n[행성 위치]\n\n태양:\n천칭자리 27.86° · 5하우스 · 비샤카 파다 3 · 역행 아니오 · 연소 미산출 · 품위 debilitated · 소유 3하우스\n\n달:\n사수자리 24.86° · 7하우스 · 푸르바 아샤다 파다 4 · 역행 아니오 · 연소 미산출 · 품위 neutral · 소유 2하우스\n\n화성:\n사자자리 0.85° · 2하우스 · 마가 파다 1 · 역행 아니오 · 연소 미산출 · 품위 neutral · 소유 6하우스, 11하우스\n\n수성:\n천칭자리 10.86° · 4하우스 · 스와티 파다 2 · 역행 아니오 · 연소 미산출 · 품위 neutral · 소유 1하우스, 4하우스\n\n목성:\n사자자리 1.50° · 2하우스 · 마가 파다 1 · 역행 아니오 · 연소 미산출 · 품위 neutral · 소유 7하우스, 10하우스\n\n금성:\n처녀자리 28.63° · 4하우스 · 치트라 파다 2 · 역행 아니오 · 연소 미산출 · 품위 debilitated · 소유 5하우스, 12하우스\n\n토성:\n물고기자리 14.32° · 10하우스 · 우타라 바드라파다 파다 4 · 역행 예 · 연소 미산출 · 품위 neutral · 소유 8하우스, 9하우스\n\n라후:\n물병자리 1.00° · 8하우스 · 다니슈타 파다 3 · 역행 아니오 · 연소 미산출 · 품위 neutral · 소유 미산출\n\n케투:\n사자자리 1.00° · 2하우스 · 마가 파다 1 · 역행 아니오 · 연소 미산출 · 품위 neutral · 소유 미산출\n\n각 행성 정보에는 가능한 범위에서 별자리, 도수, 하우스, 나크샤트라, 파다, 역행, 연소, 품위, 소유 하우스를 포함하세요.\n\n[하우스 정보]\n\n1하우스:\n쌍둥이자리 · 로드 Mercury · 입궁 행성 없음\n\n2하우스:\n게자리 · 로드 Moon · 입궁 행성 화성, 목성, 케투\n\n3하우스:\n사자자리 · 로드 Sun · 입궁 행성 없음\n\n4하우스:\n처녀자리 · 로드 Mercury · 입궁 행성 수성, 금성\n\n5하우스:\n천칭자리 · 로드 Venus · 입궁 행성 태양\n\n6하우스:\n전갈자리 · 로드 Mars · 입궁 행성 없음\n\n7하우스:\n사수자리 · 로드 Jupiter · 입궁 행성 달\n\n8하우스:\n염소자리 · 로드 Saturn · 입궁 행성 라후\n\n9하우스:\n물병자리 · 로드 Saturn · 입궁 행성 없음\n\n10하우스:\n물고기자리 · 로드 Jupiter · 입궁 행성 토성\n\n11하우스:\n양자리 · 로드 Mars · 입궁 행성 없음\n\n12하우스:\n황소자리 · 로드 Venus · 입궁 행성 없음\n\n[행성 관계 및 보조 지표]\n\n주요 합:\n4하우스: 수성, 금성\n2하우스: 화성, 목성, 케투\n\n주요 드리슈티:\n태양 5하우스 → 11하우스\n달 7하우스 → 1하우스\n수성 4하우스 → 10하우스\n금성 4하우스 → 10하우스\n화성 2하우스 → 5하우스\n화성 2하우스 → 8하우스\n화성 2하우스 → 9하우스\n목성 2하우스 → 6하우스\n목성 2하우스 → 8하우스\n목성 2하우스 → 10하우스\n토성 10하우스 → 12하우스\n토성 10하우스 → 4하우스\n토성 10하우스 → 7하우스\n라후 8하우스 → 2하우스\n케투 2하우스 → 8하우스\n\n상호 교환:\n미산출\n\n길성의 지지:\n달 7하우스\n수성 4하우스\n금성 4하우스\n목성 2하우스\n\n흉성의 방해:\n태양 5하우스\n화성 2하우스\n토성 10하우스\n라후 8하우스\n케투 2하우스\n\n판창가:\n{\"tithi\":\"미산출\",\"vara\":\"미산출\",\"yoga\":\"미산출\",\"karana\":\"미산출\",\"hora\":\"미산출\"}\n\n나바암샤:\n미산출\n\n기타 산출값:\n{\"gulika\":\"미산출\",\"mandi\":\"미산출\",\"sourceQuality\":{\"ok\":true,\"issues\":[\"미산출\"],\"source\":\"swiss-wasm-local\",\"engineQuality\":\"swiss\",\"calculationMode\":\"full\",\"fallbackUsed\":false,\"hasAllPlanets\":true,\"hasAscendant\":true,\"hasAyanamsaValue\":true,\"hasAyanamsaName\":true,\"hasAyanamsa\":true,\"hasMoonNakshatra\":true,\"hasDasha\":true,\"sourcePlanetCount\":9,\"requiredPlanetCount\":9,\"missingPlanets\":[\"미산출\"],\"trustedSource\":true,\"engineTrusted\":true,\"qualityScore\":100,\"qualityGrade\":\"premium\",\"trustedSourceRequired\":false},\"mainJudgmentHouses\":[\"3하우스\",\"7하우스\"],\"supportJudgmentHouses\":[\"9하우스\",\"10하우스\"],\"naturalKarakas\":[\"수성\",\"목성\"],\"categoryReason\":\"계약·문서 질문에서 전통적으로 먼저 확인하는 하우스와 자연 카라카를 기준으로 분류했습니다.\"}\n\n[해석 요청]\n\n다음 순서로 해석해 주세요.\n\n1. 질문을 한 문장으로 다시 정리하고, 한 차트에서 판단할 수 있는 질문인지 확인해 주세요.\n2. 이 질문을 판단할 주된 하우스, 보조 하우스, 자연 카라카를 선정하고 그 이유를 설명해 주세요.\n3. 라그나와 라그나 로드가 질문자 본인의 현재 상태, 의지, 실행력을 어떻게 나타내는지 설명해 주세요.\n4. 달의 별자리, 하우스, 나크샤트라와 관계를 바탕으로 질문자의 심리와 사건의 진행 흐름을 설명해 주세요.\n5. 질문 하우스와 그 로드의 상태를 분석하여 대상이나 결과의 상태를 설명해 주세요.\n6. 라그나 로드와 질문 하우스 로드 사이에 연결, 합, 드리슈티, 교환 또는 상호 지지가 있는지 확인해 주세요.\n7. 결과를 돕는 신호와 방해하는 신호를 각각 구분해 주세요.\n8. 질문에 대한 판단을 아래 중 하나로 정리해 주세요.\n   - 유리\n   - 조건부로 유리\n   - 보류가 유리\n   - 불리\n   - 현재 자료만으로 판단 유보\n9. 위 판단을 뒷받침하는 핵심 차트 근거를 강한 순서대로 3개에서 5개 제시해 주세요.\n10. 상황이 바뀌는 조건이나 전환점이 있다면 설명해 주세요.\n11. 시기 판단이 가능한 자료가 충분할 때만 예상 범위를 제시하고, 사용한 판단 근거와 오차 가능성을 함께 설명해 주세요.\n12. 질문자가 현실에서 확인할 체크포인트 3개와 다음 행동 후보 3개를 제안해 주세요.\n13. 마지막에 전체 결론을 다음 형식으로 정리해 주세요.\n\n- 판단 요약:\n- 가장 강한 긍정 신호:\n- 가장 강한 방해 신호:\n- 필요한 조건:\n- 예상 전환점:\n- 현실적인 다음 행동:\n- 해석의 한계:\n\n[출력 스타일]\n\n- 결론을 먼저 제시한 뒤 근거를 설명하세요.\n- 전문용어를 사용할 때에는 쉬운 한국어 설명을 함께 붙이세요.\n- 근거가 없는 확신이나 공포를 조성하는 문장을 사용하지 마세요.\n- 동일한 내용을 반복하지 마세요.\n- 전체 분량은 약 2,000자에서 3,500자 내외로 작성하세요.\n- 차트에 없는 정보를 만들어내지 마세요.\n- 프라슈나 결과는 참고 및 자기 점검을 위한 자료임을 마지막에 안내하세요.",
+    "chart": {
+      "basic": {
+        "question": "이 계약을 이번 달 안에 진행하는 것이 유리할까?",
+        "capturedAtUtc": "2026-11-14T11:14:28.616Z",
+        "capturedAtLocal": "2026-11-14T20:14:28",
+        "timezone": "Asia/Seoul",
+        "latitude": 37.5665,
+        "longitude": 126.978,
+        "ayanamsha": "Lahiri",
+        "houseSystem": "Whole Sign",
+        "calculationEngine": "Swiss Ephemeris via sweph-wasm",
+        "calculationVersion": "sweph-wasm 2.6.9"
+      },
+      "ascendant": {
+        "sign": "쌍둥이자리",
+        "signEn": "Gemini",
+        "degree": 13.507840207804918,
+        "lord": "Mercury",
+        "nakshatra": "Ardra",
+        "pada": 3
+      },
+      "moon": {
+        "sign": "사수자리",
+        "degree": 24.86,
+        "house": 7,
+        "nakshatra": "푸르바 아샤다",
+        "pada": 4,
+        "condition": "neutral"
+      },
+      "planets": [
+        {
+          "name": "Sun",
+          "nameKo": "태양",
+          "longitude": 207.8604344691919,
+          "degree": 27.86,
+          "sign": "천칭자리",
+          "signEn": "Libra",
+          "house": 5,
+          "nakshatra": "비샤카",
+          "pada": 3,
+          "retrograde": false,
+          "combust": "미산출",
+          "dignity": "debilitated",
+          "ownedHouses": [
+            "3하우스"
+          ]
+        },
+        {
+          "name": "Moon",
+          "nameKo": "달",
+          "longitude": 264.86404848549114,
+          "degree": 24.86,
+          "sign": "사수자리",
+          "signEn": "Sagittarius",
+          "house": 7,
+          "nakshatra": "푸르바 아샤다",
+          "pada": 4,
+          "retrograde": false,
+          "combust": "미산출",
+          "dignity": "neutral",
+          "ownedHouses": [
+            "2하우스"
+          ]
+        },
+        {
+          "name": "Mercury",
+          "nameKo": "수성",
+          "longitude": 190.85836122196054,
+          "degree": 10.86,
+          "sign": "천칭자리",
+          "signEn": "Libra",
+          "house": 4,
+          "nakshatra": "스와티",
+          "pada": 2,
+          "retrograde": false,
+          "combust": "미산출",
+          "dignity": "neutral",
+          "ownedHouses": [
+            "1하우스",
+            "4하우스"
+          ]
+        },
+        {
+          "name": "Venus",
+          "nameKo": "금성",
+          "longitude": 178.63295286985203,
+          "degree": 28.63,
+          "sign": "처녀자리",
+          "signEn": "Virgo",
+          "house": 4,
+          "nakshatra": "치트라",
+          "pada": 2,
+          "retrograde": false,
+          "combust": "미산출",
+          "dignity": "debilitated",
+          "ownedHouses": [
+            "5하우스",
+            "12하우스"
+          ]
+        },
+        {
+          "name": "Mars",
+          "nameKo": "화성",
+          "longitude": 120.84625366753261,
+          "degree": 0.85,
+          "sign": "사자자리",
+          "signEn": "Leo",
+          "house": 2,
+          "nakshatra": "마가",
+          "pada": 1,
+          "retrograde": false,
+          "combust": "미산출",
+          "dignity": "neutral",
+          "ownedHouses": [
+            "6하우스",
+            "11하우스"
+          ]
+        },
+        {
+          "name": "Jupiter",
+          "nameKo": "목성",
+          "longitude": 121.50169406023451,
+          "degree": 1.5,
+          "sign": "사자자리",
+          "signEn": "Leo",
+          "house": 2,
+          "nakshatra": "마가",
+          "pada": 1,
+          "retrograde": false,
+          "combust": "미산출",
+          "dignity": "neutral",
+          "ownedHouses": [
+            "7하우스",
+            "10하우스"
+          ]
+        },
+        {
+          "name": "Saturn",
+          "nameKo": "토성",
+          "longitude": 344.31646162205004,
+          "degree": 14.32,
+          "sign": "물고기자리",
+          "signEn": "Pisces",
+          "house": 10,
+          "nakshatra": "우타라 바드라파다",
+          "pada": 4,
+          "retrograde": true,
+          "combust": "미산출",
+          "dignity": "neutral",
+          "ownedHouses": [
+            "8하우스",
+            "9하우스"
+          ]
+        },
+        {
+          "name": "Rahu",
+          "nameKo": "라후",
+          "longitude": 300.9964019012889,
+          "degree": 1,
+          "sign": "물병자리",
+          "signEn": "Aquarius",
+          "house": 8,
+          "nakshatra": "다니슈타",
+          "pada": 3,
+          "retrograde": false,
+          "combust": "미산출",
+          "dignity": "neutral",
+          "ownedHouses": []
+        },
+        {
+          "name": "Ketu",
+          "nameKo": "케투",
+          "longitude": 120.99640190128889,
+          "degree": 1,
+          "sign": "사자자리",
+          "signEn": "Leo",
+          "house": 2,
+          "nakshatra": "마가",
+          "pada": 1,
+          "retrograde": false,
+          "combust": "미산출",
+          "dignity": "neutral",
+          "ownedHouses": []
+        }
+      ],
+      "houses": [
+        {
+          "house": 1,
+          "sign": "쌍둥이자리",
+          "signEn": "Gemini",
+          "lord": "Mercury",
+          "planets": [],
+          "text": "쌍둥이자리 · 로드 Mercury · 입궁 행성 없음"
+        },
+        {
+          "house": 2,
+          "sign": "게자리",
+          "signEn": "Cancer",
+          "lord": "Moon",
+          "planets": [
+            "화성",
+            "목성",
+            "케투"
+          ],
+          "text": "게자리 · 로드 Moon · 입궁 행성 화성, 목성, 케투"
+        },
+        {
+          "house": 3,
+          "sign": "사자자리",
+          "signEn": "Leo",
+          "lord": "Sun",
+          "planets": [],
+          "text": "사자자리 · 로드 Sun · 입궁 행성 없음"
+        },
+        {
+          "house": 4,
+          "sign": "처녀자리",
+          "signEn": "Virgo",
+          "lord": "Mercury",
+          "planets": [
+            "수성",
+            "금성"
+          ],
+          "text": "처녀자리 · 로드 Mercury · 입궁 행성 수성, 금성"
+        },
+        {
+          "house": 5,
+          "sign": "천칭자리",
+          "signEn": "Libra",
+          "lord": "Venus",
+          "planets": [
+            "태양"
+          ],
+          "text": "천칭자리 · 로드 Venus · 입궁 행성 태양"
+        },
+        {
+          "house": 6,
+          "sign": "전갈자리",
+          "signEn": "Scorpio",
+          "lord": "Mars",
+          "planets": [],
+          "text": "전갈자리 · 로드 Mars · 입궁 행성 없음"
+        },
+        {
+          "house": 7,
+          "sign": "사수자리",
+          "signEn": "Sagittarius",
+          "lord": "Jupiter",
+          "planets": [
+            "달"
+          ],
+          "text": "사수자리 · 로드 Jupiter · 입궁 행성 달"
+        },
+        {
+          "house": 8,
+          "sign": "염소자리",
+          "signEn": "Capricorn",
+          "lord": "Saturn",
+          "planets": [
+            "라후"
+          ],
+          "text": "염소자리 · 로드 Saturn · 입궁 행성 라후"
+        },
+        {
+          "house": 9,
+          "sign": "물병자리",
+          "signEn": "Aquarius",
+          "lord": "Saturn",
+          "planets": [],
+          "text": "물병자리 · 로드 Saturn · 입궁 행성 없음"
+        },
+        {
+          "house": 10,
+          "sign": "물고기자리",
+          "signEn": "Pisces",
+          "lord": "Jupiter",
+          "planets": [
+            "토성"
+          ],
+          "text": "물고기자리 · 로드 Jupiter · 입궁 행성 토성"
+        },
+        {
+          "house": 11,
+          "sign": "양자리",
+          "signEn": "Aries",
+          "lord": "Mars",
+          "planets": [],
+          "text": "양자리 · 로드 Mars · 입궁 행성 없음"
+        },
+        {
+          "house": 12,
+          "sign": "황소자리",
+          "signEn": "Taurus",
+          "lord": "Venus",
+          "planets": [],
+          "text": "황소자리 · 로드 Venus · 입궁 행성 없음"
+        }
+      ],
+      "conjunctions": [
+        "4하우스: 수성, 금성",
+        "2하우스: 화성, 목성, 케투"
+      ],
+      "aspects": [
+        "태양 5하우스 → 11하우스",
+        "달 7하우스 → 1하우스",
+        "수성 4하우스 → 10하우스",
+        "금성 4하우스 → 10하우스",
+        "화성 2하우스 → 5하우스",
+        "화성 2하우스 → 8하우스",
+        "화성 2하우스 → 9하우스",
+        "목성 2하우스 → 6하우스",
+        "목성 2하우스 → 8하우스",
+        "목성 2하우스 → 10하우스",
+        "토성 10하우스 → 12하우스",
+        "토성 10하우스 → 4하우스",
+        "토성 10하우스 → 7하우스",
+        "라후 8하우스 → 2하우스",
+        "케투 2하우스 → 8하우스"
+      ],
+      "exchanges": [
+        "미산출"
+      ],
+      "beneficInfluences": [
+        "달 7하우스",
+        "수성 4하우스",
+        "금성 4하우스",
+        "목성 2하우스"
+      ],
+      "maleficInfluences": [
+        "태양 5하우스",
+        "화성 2하우스",
+        "토성 10하우스",
+        "라후 8하우스",
+        "케투 2하우스"
+      ],
+      "panchanga": {
+        "tithi": "미산출",
+        "vara": "미산출",
+        "yoga": "미산출",
+        "karana": "미산출",
+        "hora": "미산출"
+      },
+      "navamsa": "미산출",
+      "additionalFactors": {
+        "gulika": "미산출",
+        "mandi": "미산출",
+        "sourceQuality": {
+          "ok": true,
+          "issues": [
+            "미산출"
+          ],
+          "source": "swiss-wasm-local",
+          "engineQuality": "swiss",
+          "calculationMode": "full",
+          "fallbackUsed": false,
+          "hasAllPlanets": true,
+          "hasAscendant": true,
+          "hasAyanamsaValue": true,
+          "hasAyanamsaName": true,
+          "hasAyanamsa": true,
+          "hasMoonNakshatra": true,
+          "hasDasha": true,
+          "sourcePlanetCount": 9,
+          "requiredPlanetCount": 9,
+          "missingPlanets": [
+            "미산출"
+          ],
+          "trustedSource": true,
+          "engineTrusted": true,
+          "qualityScore": 100,
+          "qualityGrade": "premium",
+          "trustedSourceRequired": false
+        }
+      },
+      "calculationEngine": "Swiss Ephemeris via sweph-wasm",
+      "calculationVersion": "sweph-wasm 2.6.9",
+      "calculatedAt": "2026-11-14T11:14:28.649Z",
+      "localChart": {
+        "birthInput": {
+          "name": "미산출",
+          "gender": "unknown",
+          "birthDate": "2026-11-14",
+          "birthYear": 2026,
+          "birthMonth": 11,
+          "birthDay": 14,
+          "birthTime": "20:14",
+          "birthHour": 20,
+          "birthMinute": 14,
+          "timezone": "Asia/Seoul",
+          "birthPlace": "미산출",
+          "latitude": 37.5665,
+          "longitude": 126.978,
+          "isTimeUnknown": false
+        },
+        "calculationMode": "full",
+        "settings": {
+          "zodiac": "sidereal",
+          "ayanamsa": "Lahiri",
+          "houseSystem": "whole-sign"
+        },
+        "chart": {
+          "lagnaSign": "쌍둥이자리",
+          "lagnaSignEn": "Gemini",
+          "moonSign": "사수자리",
+          "sunSign": "천칭자리",
+          "atmakaraka": "금성",
+          "nakshatra": {
+            "name": "푸르바 아샤다",
+            "pada": 4,
+            "lord": "Venus"
+          },
+          "planets": [
+            {
+              "name": "Sun",
+              "nameKo": "태양",
+              "sign": "천칭자리",
+              "signEn": "Libra",
+              "degree": 27.86,
+              "longitude": 207.8604344691919,
+              "house": 5,
+              "nakshatra": "비샤카",
+              "pada": 3,
+              "retrograde": false,
+              "dignity": "debilitated"
+            },
+            {
+              "name": "Moon",
+              "nameKo": "달",
+              "sign": "사수자리",
+              "signEn": "Sagittarius",
+              "degree": 24.86,
+              "longitude": 264.86404848549114,
+              "house": 7,
+              "nakshatra": "푸르바 아샤다",
+              "pada": 4,
+              "retrograde": false,
+              "dignity": "neutral"
+            },
+            {
+              "name": "Mercury",
+              "nameKo": "수성",
+              "sign": "천칭자리",
+              "signEn": "Libra",
+              "degree": 10.86,
+              "longitude": 190.85836122196054,
+              "house": 4,
+              "nakshatra": "스와티",
+              "pada": 2,
+              "retrograde": false,
+              "dignity": "neutral"
+            },
+            {
+              "name": "Venus",
+              "nameKo": "금성",
+              "sign": "처녀자리",
+              "signEn": "Virgo",
+              "degree": 28.63,
+              "longitude": 178.63295286985203,
+              "house": 4,
+              "nakshatra": "치트라",
+              "pada": 2,
+              "retrograde": false,
+              "dignity": "debilitated"
+            },
+            {
+              "name": "Mars",
+              "nameKo": "화성",
+              "sign": "사자자리",
+              "signEn": "Leo",
+              "degree": 0.85,
+              "longitude": 120.84625366753261,
+              "house": 2,
+              "nakshatra": "마가",
+              "pada": 1,
+              "retrograde": false,
+              "dignity": "neutral"
+            },
+            {
+              "name": "Jupiter",
+              "nameKo": "목성",
+              "sign": "사자자리",
+              "signEn": "Leo",
+              "degree": 1.5,
+              "longitude": 121.50169406023451,
+              "house": 2,
+              "nakshatra": "마가",
+              "pada": 1,
+              "retrograde": false,
+              "dignity": "neutral"
+            },
+            {
+              "name": "Saturn",
+              "nameKo": "토성",
+              "sign": "물고기자리",
+              "signEn": "Pisces",
+              "degree": 14.32,
+              "longitude": 344.31646162205004,
+              "house": 10,
+              "nakshatra": "우타라 바드라파다",
+              "pada": 4,
+              "retrograde": true,
+              "dignity": "neutral"
+            },
+            {
+              "name": "Rahu",
+              "nameKo": "라후",
+              "sign": "물병자리",
+              "signEn": "Aquarius",
+              "degree": 1,
+              "longitude": 300.9964019012889,
+              "house": 8,
+              "nakshatra": "다니슈타",
+              "pada": 3,
+              "retrograde": false,
+              "dignity": "neutral"
+            },
+            {
+              "name": "Ketu",
+              "nameKo": "케투",
+              "sign": "사자자리",
+              "signEn": "Leo",
+              "degree": 1,
+              "longitude": 120.99640190128889,
+              "house": 2,
+              "nakshatra": "마가",
+              "pada": 1,
+              "retrograde": false,
+              "dignity": "neutral"
+            }
+          ],
+          "houses": [
+            {
+              "house": 1,
+              "sign": "쌍둥이자리",
+              "signEn": "Gemini",
+              "lord": "Mercury",
+              "lordKo": "수성",
+              "planets": []
+            },
+            {
+              "house": 2,
+              "sign": "게자리",
+              "signEn": "Cancer",
+              "lord": "Moon",
+              "lordKo": "달",
+              "planets": [
+                "화성",
+                "목성",
+                "케투"
+              ]
+            },
+            {
+              "house": 3,
+              "sign": "사자자리",
+              "signEn": "Leo",
+              "lord": "Sun",
+              "lordKo": "태양",
+              "planets": []
+            },
+            {
+              "house": 4,
+              "sign": "처녀자리",
+              "signEn": "Virgo",
+              "lord": "Mercury",
+              "lordKo": "수성",
+              "planets": [
+                "수성",
+                "금성"
+              ]
+            },
+            {
+              "house": 5,
+              "sign": "천칭자리",
+              "signEn": "Libra",
+              "lord": "Venus",
+              "lordKo": "금성",
+              "planets": [
+                "태양"
+              ]
+            },
+            {
+              "house": 6,
+              "sign": "전갈자리",
+              "signEn": "Scorpio",
+              "lord": "Mars",
+              "lordKo": "화성",
+              "planets": []
+            },
+            {
+              "house": 7,
+              "sign": "사수자리",
+              "signEn": "Sagittarius",
+              "lord": "Jupiter",
+              "lordKo": "목성",
+              "planets": [
+                "달"
+              ]
+            },
+            {
+              "house": 8,
+              "sign": "염소자리",
+              "signEn": "Capricorn",
+              "lord": "Saturn",
+              "lordKo": "토성",
+              "planets": [
+                "라후"
+              ]
+            },
+            {
+              "house": 9,
+              "sign": "물병자리",
+              "signEn": "Aquarius",
+              "lord": "Saturn",
+              "lordKo": "토성",
+              "planets": []
+            },
+            {
+              "house": 10,
+              "sign": "물고기자리",
+              "signEn": "Pisces",
+              "lord": "Jupiter",
+              "lordKo": "목성",
+              "planets": [
+                "토성"
+              ]
+            },
+            {
+              "house": 11,
+              "sign": "양자리",
+              "signEn": "Aries",
+              "lord": "Mars",
+              "lordKo": "화성",
+              "planets": []
+            },
+            {
+              "house": 12,
+              "sign": "황소자리",
+              "signEn": "Taurus",
+              "lord": "Venus",
+              "lordKo": "금성",
+              "planets": []
+            }
+          ],
+          "aspects": [
+            {
+              "planetA": "태양",
+              "planetB": "화성",
+              "type": "square",
+              "strength": "medium"
+            },
+            {
+              "planetA": "태양",
+              "planetB": "목성",
+              "type": "square",
+              "strength": "medium"
+            },
+            {
+              "planetA": "태양",
+              "planetB": "라후",
+              "type": "square",
+              "strength": "medium"
+            },
+            {
+              "planetA": "태양",
+              "planetB": "케투",
+              "type": "square",
+              "strength": "medium"
+            },
+            {
+              "planetA": "달",
+              "planetB": "금성",
+              "type": "square",
+              "strength": "medium"
+            },
+            {
+              "planetA": "금성",
+              "planetB": "라후",
+              "type": "trine",
+              "strength": "strong"
+            },
+            {
+              "planetA": "화성",
+              "planetB": "목성",
+              "type": "conjunction",
+              "strength": "strong"
+            },
+            {
+              "planetA": "화성",
+              "planetB": "라후",
+              "type": "opposition",
+              "strength": "medium"
+            },
+            {
+              "planetA": "화성",
+              "planetB": "케투",
+              "type": "conjunction",
+              "strength": "strong"
+            },
+            {
+              "planetA": "목성",
+              "planetB": "라후",
+              "type": "opposition",
+              "strength": "medium"
+            },
+            {
+              "planetA": "목성",
+              "planetB": "케투",
+              "type": "conjunction",
+              "strength": "strong"
+            },
+            {
+              "planetA": "라후",
+              "planetB": "케투",
+              "type": "opposition",
+              "strength": "medium"
+            }
+          ],
+          "dashas": {
+            "system": "vimshottari",
+            "currentMahaDasha": "금성",
+            "currentAntarDasha": "태양",
+            "periods": [
+              {
+                "type": "maha",
+                "lord": "금성",
+                "start": "",
+                "end": "",
+                "years": 20
+              },
+              {
+                "type": "maha",
+                "lord": "태양",
+                "start": "",
+                "end": "",
+                "years": 6
+              },
+              {
+                "type": "maha",
+                "lord": "달",
+                "start": "",
+                "end": "",
+                "years": 10
+              },
+              {
+                "type": "maha",
+                "lord": "화성",
+                "start": "",
+                "end": "",
+                "years": 7
+              },
+              {
+                "type": "maha",
+                "lord": "라후",
+                "start": "",
+                "end": "",
+                "years": 18
+              },
+              {
+                "type": "maha",
+                "lord": "목성",
+                "start": "",
+                "end": "",
+                "years": 16
+              },
+              {
+                "type": "maha",
+                "lord": "토성",
+                "start": "",
+                "end": "",
+                "years": 19
+              },
+              {
+                "type": "maha",
+                "lord": "수성",
+                "start": "",
+                "end": "",
+                "years": 17
+              },
+              {
+                "type": "maha",
+                "lord": "케투",
+                "start": "",
+                "end": "",
+                "years": 7
+              }
+            ]
+          },
+          "karakas": {
+            "atmakaraka": {
+              "planet": "Venus",
+              "planetKo": "금성",
+              "sign": "처녀자리",
+              "degree": 28.63
+            },
+            "amatyakaraka": {
+              "planet": "Sun",
+              "planetKo": "태양",
+              "sign": "천칭자리",
+              "degree": 27.86
+            },
+            "bhratrikaraka": {
+              "planet": "Moon",
+              "planetKo": "달",
+              "sign": "사수자리",
+              "degree": 24.86
+            },
+            "matrikaraka": {
+              "planet": "Saturn",
+              "planetKo": "토성",
+              "sign": "물고기자리",
+              "degree": 14.32
+            },
+            "putrakaraka": {
+              "planet": "Mercury",
+              "planetKo": "수성",
+              "sign": "천칭자리",
+              "degree": 10.86
+            },
+            "gnatikaraka": {
+              "planet": "Jupiter",
+              "planetKo": "목성",
+              "sign": "사자자리",
+              "degree": 1.5
+            },
+            "darakaraka": {
+              "planet": "Mars",
+              "planetKo": "화성",
+              "sign": "사자자리",
+              "degree": 0.85
+            }
+          }
+        },
+        "interpretationSeeds": {
+          "personalityKeywords": [
+            "쌍둥이자리",
+            "사수자리",
+            "천칭자리"
+          ],
+          "careerKeywords": [
+            "물고기자리",
+            "물고기자리",
+            "2하우스"
+          ],
+          "moneyKeywords": [
+            "게자리",
+            "양자리",
+            "사자자리"
+          ],
+          "relationshipKeywords": [
+            "처녀자리",
+            "사수자리",
+            "푸르바 아샤다"
+          ],
+          "healingKeywords": [
+            "물고기자리",
+            "사수자리",
+            "전갈자리"
+          ],
+          "timingKeywords": [
+            "금성",
+            "태양"
+          ],
+          "karmaKeywords": [
+            "물병자리",
+            "사자자리"
+          ]
+        },
+        "insights": {
+          "version": "vedic-insights-v1",
+          "nakshatra": {
+            "name": "푸르바 아샤다",
+            "pada": 4,
+            "lord": "Venus",
+            "instinct": "신념, 승리 의지, 물처럼 밀어붙이는 힘",
+            "shadow": "고집, 설득 강박, 감정 과열",
+            "advice": "믿음이 강할수록 검증의 물을 통과시켜라.",
+            "summary": "푸르바 아샤다는 신념, 승리 의지, 물처럼 밀어붙이는 힘을 품고 있으며, 그림자는 고집, 설득 강박, 감정 과열으로 드러납니다."
+          },
+          "dasha": {
+            "current": "Venus",
+            "currentKo": "금성",
+            "nextKo": "태양",
+            "theme": "사랑, 예술, 관계의 즐거움, 풍요",
+            "opportunity": "매력과 감각을 수익, 관계, 창작으로 바꾸기 좋은 흐름이다.",
+            "caution": "편안함과 쾌락에 머물면 중요한 결정을 늦출 수 있다.",
+            "advice": "아름다움을 즐기되 관계와 돈의 경계선을 선명하게 세워라."
+          },
+          "karakas": {
+            "atmakaraka": {
+              "planet": "Venus",
+              "planetKo": "금성",
+              "sign": "처녀자리",
+              "degree": 28.63
+            },
+            "amatyakaraka": {
+              "planet": "Sun",
+              "planetKo": "태양",
+              "sign": "천칭자리",
+              "degree": 27.86
+            },
+            "bhratrikaraka": {
+              "planet": "Moon",
+              "planetKo": "달",
+              "sign": "사수자리",
+              "degree": 24.86
+            },
+            "matrikaraka": {
+              "planet": "Saturn",
+              "planetKo": "토성",
+              "sign": "물고기자리",
+              "degree": 14.32
+            },
+            "putrakaraka": {
+              "planet": "Mercury",
+              "planetKo": "수성",
+              "sign": "천칭자리",
+              "degree": 10.86
+            },
+            "gnatikaraka": {
+              "planet": "Jupiter",
+              "planetKo": "목성",
+              "sign": "사자자리",
+              "degree": 1.5
+            },
+            "darakaraka": {
+              "planet": "Mars",
+              "planetKo": "화성",
+              "sign": "사자자리",
+              "degree": 0.85
+            }
+          },
+          "drishti": [
+            {
+              "graha": "Sun",
+              "grahaKo": "태양",
+              "fromHouse": 5,
+              "targetHouse": 11,
+              "type": "direct"
+            },
+            {
+              "graha": "Moon",
+              "grahaKo": "달",
+              "fromHouse": 7,
+              "targetHouse": 1,
+              "type": "direct"
+            },
+            {
+              "graha": "Mercury",
+              "grahaKo": "수성",
+              "fromHouse": 4,
+              "targetHouse": 10,
+              "type": "direct"
+            },
+            {
+              "graha": "Venus",
+              "grahaKo": "금성",
+              "fromHouse": 4,
+              "targetHouse": 10,
+              "type": "direct"
+            },
+            {
+              "graha": "Mars",
+              "grahaKo": "화성",
+              "fromHouse": 2,
+              "targetHouse": 5,
+              "type": "special"
+            },
+            {
+              "graha": "Mars",
+              "grahaKo": "화성",
+              "fromHouse": 2,
+              "targetHouse": 8,
+              "type": "direct"
+            },
+            {
+              "graha": "Mars",
+              "grahaKo": "화성",
+              "fromHouse": 2,
+              "targetHouse": 9,
+              "type": "special"
+            },
+            {
+              "graha": "Jupiter",
+              "grahaKo": "목성",
+              "fromHouse": 2,
+              "targetHouse": 6,
+              "type": "special"
+            },
+            {
+              "graha": "Jupiter",
+              "grahaKo": "목성",
+              "fromHouse": 2,
+              "targetHouse": 8,
+              "type": "direct"
+            },
+            {
+              "graha": "Jupiter",
+              "grahaKo": "목성",
+              "fromHouse": 2,
+              "targetHouse": 10,
+              "type": "special"
+            },
+            {
+              "graha": "Saturn",
+              "grahaKo": "토성",
+              "fromHouse": 10,
+              "targetHouse": 12,
+              "type": "special"
+            },
+            {
+              "graha": "Saturn",
+              "grahaKo": "토성",
+              "fromHouse": 10,
+              "targetHouse": 4,
+              "type": "direct"
+            },
+            {
+              "graha": "Saturn",
+              "grahaKo": "토성",
+              "fromHouse": 10,
+              "targetHouse": 7,
+              "type": "special"
+            },
+            {
+              "graha": "Rahu",
+              "grahaKo": "라후",
+              "fromHouse": 8,
+              "targetHouse": 2,
+              "type": "direct"
+            },
+            {
+              "graha": "Ketu",
+              "grahaKo": "케투",
+              "fromHouse": 2,
+              "targetHouse": 8,
+              "type": "direct"
+            }
+          ],
+          "yogas": [
+            {
+              "id": "dhana",
+              "title": "다나 요가 신호",
+              "summary": "2·11하우스 또는 목성의 재물 축이 살아 있어 수입과 축적의 통로를 만들 수 있습니다."
+            }
+          ],
+          "dignity": {
+            "strongPlanets": [
+              "미산출"
+            ],
+            "weakPlanets": [
+              "태양",
+              "금성"
+            ],
+            "summary": "강한 행성은 생활 속 반복으로 키워야 합니다. 보강할 행성은 태양, 금성."
+          },
+          "cards": [
+            {
+              "id": "soul",
+              "title": "영혼의 출발점",
+              "text": "라그나 쌍둥이자리와 달 사수자리이 이번 생의 기본 자세를 이룹니다. 태양 천칭자리은 세상에 드러낼 중심의 빛입니다."
+            },
+            {
+              "id": "nakshatra",
+              "title": "달의 별자리",
+              "text": "푸르바 아샤다 4파다는 신념, 승리 의지, 물처럼 밀어붙이는 힘을 열고, 믿음이 강할수록 검증의 물을 통과시켜라."
+            },
+            {
+              "id": "dasha",
+              "title": "현재 다샤",
+              "text": "금성 다샤는 사랑, 예술, 관계의 즐거움, 풍요을 삶의 전면에 올립니다. 아름다움을 즐기되 관계와 돈의 경계선을 선명하게 세워라."
+            },
+            {
+              "id": "love",
+              "title": "사랑과 인연",
+              "text": "7하우스 사수자리, 금성 처녀자리, 화성 사자자리이 끌림과 지속성의 온도를 나눠 보여 줍니다."
+            },
+            {
+              "id": "career_money",
+              "title": "직업과 재물",
+              "text": "10하우스 물고기자리, 2하우스 게자리, 11하우스 양자리가 일과 돈의 실제 길을 만듭니다. 목성 사자자리은 확장, 토성 물고기자리은 지속성을 맡습니다."
+            },
+            {
+              "id": "karma",
+              "title": "카르마 축",
+              "text": "라후 물병자리는 낯선 성장의 문이고, 케투 사자자리는 이미 익숙한 습관입니다. 편한 길에서 배운 힘을 낯선 선택으로 옮길 때 운의 방향이 바뀝니다."
+            }
+          ]
+        },
+        "chartSource": {
+          "source": "swiss-wasm-local",
+          "engineQuality": "swiss",
+          "fallbackUsed": false,
+          "ayanamsaName": "Lahiri",
+          "hasAscendant": true,
+          "hasAyanamsaValue": true,
+          "hasAyanamsaName": true,
+          "planetCount": 9
+        },
+        "chartSourceQuality": {
+          "ok": true,
+          "issues": [
+            "미산출"
+          ],
+          "source": "swiss-wasm-local",
+          "engineQuality": "swiss",
+          "calculationMode": "full",
+          "fallbackUsed": false,
+          "hasAllPlanets": true,
+          "hasAscendant": true,
+          "hasAyanamsaValue": true,
+          "hasAyanamsaName": true,
+          "hasAyanamsa": true,
+          "hasMoonNakshatra": true,
+          "hasDasha": true,
+          "sourcePlanetCount": 9,
+          "requiredPlanetCount": 9,
+          "missingPlanets": [
+            "미산출"
+          ],
+          "trustedSource": true,
+          "engineTrusted": true,
+          "qualityScore": 100,
+          "qualityGrade": "premium",
+          "trustedSourceRequired": false
+        }
+      },
+      "planetByName": {
+        "Sun": {
+          "name": "Sun",
+          "nameKo": "태양",
+          "longitude": 207.8604344691919,
+          "degree": 27.86,
+          "sign": "천칭자리",
+          "signEn": "Libra",
+          "house": 5,
+          "nakshatra": "비샤카",
+          "pada": 3,
+          "retrograde": false,
+          "combust": "미산출",
+          "dignity": "debilitated",
+          "ownedHouses": [
+            "3하우스"
+          ]
+        },
+        "Moon": {
+          "name": "Moon",
+          "nameKo": "달",
+          "longitude": 264.86404848549114,
+          "degree": 24.86,
+          "sign": "사수자리",
+          "signEn": "Sagittarius",
+          "house": 7,
+          "nakshatra": "푸르바 아샤다",
+          "pada": 4,
+          "retrograde": false,
+          "combust": "미산출",
+          "dignity": "neutral",
+          "ownedHouses": [
+            "2하우스"
+          ]
+        },
+        "Mercury": {
+          "name": "Mercury",
+          "nameKo": "수성",
+          "longitude": 190.85836122196054,
+          "degree": 10.86,
+          "sign": "천칭자리",
+          "signEn": "Libra",
+          "house": 4,
+          "nakshatra": "스와티",
+          "pada": 2,
+          "retrograde": false,
+          "combust": "미산출",
+          "dignity": "neutral",
+          "ownedHouses": [
+            "1하우스",
+            "4하우스"
+          ]
+        },
+        "Venus": {
+          "name": "Venus",
+          "nameKo": "금성",
+          "longitude": 178.63295286985203,
+          "degree": 28.63,
+          "sign": "처녀자리",
+          "signEn": "Virgo",
+          "house": 4,
+          "nakshatra": "치트라",
+          "pada": 2,
+          "retrograde": false,
+          "combust": "미산출",
+          "dignity": "debilitated",
+          "ownedHouses": [
+            "5하우스",
+            "12하우스"
+          ]
+        },
+        "Mars": {
+          "name": "Mars",
+          "nameKo": "화성",
+          "longitude": 120.84625366753261,
+          "degree": 0.85,
+          "sign": "사자자리",
+          "signEn": "Leo",
+          "house": 2,
+          "nakshatra": "마가",
+          "pada": 1,
+          "retrograde": false,
+          "combust": "미산출",
+          "dignity": "neutral",
+          "ownedHouses": [
+            "6하우스",
+            "11하우스"
+          ]
+        },
+        "Jupiter": {
+          "name": "Jupiter",
+          "nameKo": "목성",
+          "longitude": 121.50169406023451,
+          "degree": 1.5,
+          "sign": "사자자리",
+          "signEn": "Leo",
+          "house": 2,
+          "nakshatra": "마가",
+          "pada": 1,
+          "retrograde": false,
+          "combust": "미산출",
+          "dignity": "neutral",
+          "ownedHouses": [
+            "7하우스",
+            "10하우스"
+          ]
+        },
+        "Saturn": {
+          "name": "Saturn",
+          "nameKo": "토성",
+          "longitude": 344.31646162205004,
+          "degree": 14.32,
+          "sign": "물고기자리",
+          "signEn": "Pisces",
+          "house": 10,
+          "nakshatra": "우타라 바드라파다",
+          "pada": 4,
+          "retrograde": true,
+          "combust": "미산출",
+          "dignity": "neutral",
+          "ownedHouses": [
+            "8하우스",
+            "9하우스"
+          ]
+        },
+        "Rahu": {
+          "name": "Rahu",
+          "nameKo": "라후",
+          "longitude": 300.9964019012889,
+          "degree": 1,
+          "sign": "물병자리",
+          "signEn": "Aquarius",
+          "house": 8,
+          "nakshatra": "다니슈타",
+          "pada": 3,
+          "retrograde": false,
+          "combust": "미산출",
+          "dignity": "neutral",
+          "ownedHouses": [
+            "미산출"
+          ]
+        },
+        "Ketu": {
+          "name": "Ketu",
+          "nameKo": "케투",
+          "longitude": 120.99640190128889,
+          "degree": 1,
+          "sign": "사자자리",
+          "signEn": "Leo",
+          "house": 2,
+          "nakshatra": "마가",
+          "pada": 1,
+          "retrograde": false,
+          "combust": "미산출",
+          "dignity": "neutral",
+          "ownedHouses": [
+            "미산출"
+          ]
+        }
+      }
+    }
+  },
+  "flower": {
+    "sources": {
+      "saju": {
+        "state": "ready",
+        "flower": {
+          "id": "cosmos",
+          "name": "코스모스",
+          "scientific_name": "Cosmos bipinnatus",
+          "symbolism": "균형, 우아함, 가벼운 자유",
+          "primary_color": "#FFB3C7",
+          "secondary_color": "#FFD4A3",
+          "particle_type": "pollen_glow",
+          "title": "바람을 타는 균형, 코스모스",
+          "keywords": [
+            "균형",
+            "자유",
+            "우아"
+          ],
+          "description": "가벼움 속 중심을 유지하는 토기운의 성숙함을 보여줍니다.",
+          "vibe_message": "유연함이 곧 당신의 중심입니다.",
+          "elements": [
+            "Earth",
+            "Wood"
+          ],
+          "seasons": [
+            "Autumn"
+          ],
+          "environments": [
+            "Field"
+          ],
+          "water_levels": [
+            "balanced"
+          ],
+          "flower_language": "순정, 조화"
+        },
+        "narrative": "당신의 일간은 기토(己土)입니다. 겨울의 들판의 개방성 위, 건조한 기운이 감도는 이 무대에서 이 일간이 어떻게 제 빛을 내는지부터 찬찬히 살펴보았어요. 오행을 짚어 보면 토(土) 기운이 지금의 당신을 이끌고, 화(火) 기운이 그 곁에서 결을 보태며 균형을 잡아 줍니다. 기토(己土)는 부드럽게 사이를 조율하며 분위기를 맞추는 데 뛰어난 기운이에요. 밀고 당기는 완급만 잘 조절하면 그것이 곧 행운이 됩니다. 그래서 지금 당신에게 건네는 꽃은 코스모스(Cosmos bipinnatus)입니다. 균형, 우아함, 가벼운 자유을 품은 이 꽃은, 지금 당신이 지나는 시기의 결과 놀랍도록 닮아 있어요. 가벼움 속 중심을 유지하는 토기운의 성숙함을 보여줍니다. 유연함이 곧 당신의 중심입니다. 오행의 비율은 목(木) 0.0% · 화(火) 25.0% · 토(土) 62.5% · 금(金) 0.0% · 수(水) 12.5%로 나타납니다.",
+        "limitations": [
+          "강약·용신은 월령·통근·조후와 함께 읽는 참고 판단입니다.",
+          "절입은 실제 출생 순간으로 비교하며 일주·시주는 지역 평균시 보정 후 함께 계산합니다."
+        ],
+        "engineVersion": "saju-natal-v2",
+        "algorithmVersion": "1.2.0-day-master-environment"
+      },
+      "astrology": {
+        "state": "ready",
+        "flower": {
+          "id": "orchid",
+          "name": "난초",
+          "scientific_name": "Orchidaceae",
+          "symbolism": "섬세함, 고급감, 집중력",
+          "primary_color": "#C9B6FF",
+          "secondary_color": "#8FE3FF",
+          "particle_type": "starlight",
+          "title": "정교한 감각의 난초",
+          "keywords": [
+            "품격",
+            "정교함",
+            "집중"
+          ],
+          "description": "목과 금의 균형이 섬세한 감각을 만듭니다. 복잡한 정보를 아름답게 정리하는 재능이 돋보입니다.",
+          "vibe_message": "정밀한 감각은 당신의 가장 강력한 무기입니다.",
+          "elements": [
+            "Wood",
+            "Metal"
+          ],
+          "seasons": [
+            "Spring",
+            "Autumn"
+          ],
+          "environments": [
+            "Garden",
+            "Forest"
+          ],
+          "water_levels": [
+            "balanced",
+            "high"
+          ],
+          "flower_language": "청초한 아름다움, 우아함"
+        },
+        "narrative": "물병자리에 자리한 태양이 공기의 불씨로 당신이라는 꽃의 중심을 세웁니다. 겉으로 드러나는 결은 상승궁 물고기자리(공기)이 빚고, 마음속 습도는 달궁 황소자리(공기)이 밤이슬처럼 맞춰 주지요. 이 셋이 어우러질 때 난초의 \"섬세함\"이 가장 맑게 피어나며, 지금 당신에게는 \"품격\"가 그 개화를 부르는 별의 신호가 됩니다.",
+        "limitations": [
+          "출생 차트 해석이며 실시간 트랜짓은 포함하지 않습니다."
+        ],
+        "engineVersion": "code-destiny-integrated-v1",
+        "algorithmVersion": "1.0.0-astrology-flower"
+      },
+      "jamidusu": {
+        "state": "ready",
+        "flower": {
+          "id": "honeysuckle",
+          "name": "인동초",
+          "scientific_name": "Lonicera japonica",
+          "symbolism": "지속, 유대, 회복탄력",
+          "primary_color": "#e1efcc",
+          "secondary_color": "#9dbfbc",
+          "particle_type": "mist_orb",
+          "title": "끈기의 유대, 인동초",
+          "keywords": [
+            "지속",
+            "유대",
+            "회복",
+            "순수",
+            "생명력"
+          ],
+          "description": "끈기 있게 관계와 목표를 이어가는 장기전의 강자입니다.",
+          "vibe_message": "당신의 지속성은 결국 결실로 돌아옵니다.",
+          "elements": [
+            "Wood",
+            "Earth"
+          ],
+          "seasons": [
+            "Summer"
+          ],
+          "environments": [
+            "Forest",
+            "Garden"
+          ],
+          "water_levels": [
+            "balanced",
+            "high"
+          ],
+          "flower_language": "사랑의 인연, 헌신적인 사랑"
+        },
+        "narrative": "명궁에 주성이 없어 마주 보는 천이궁의 천기·천량을 빌려 읽었어요. 천기의 \"부드러운 지략\" — 상황을 유연하게 읽고 최적 해법을 찾는 전략형의 기질이에요. 그래서 지금 당신에게 건네는 꽃은 인동초입니다.",
+        "limitations": [
+          "출생지 경도·과거 서머타임으로 보정한 시각과 한국 음력으로 계산한 명반입니다."
+        ],
+        "engineVersion": "code-destiny-integrated-v1",
+        "algorithmVersion": "1.2.0-jamidusu-flower"
+      },
+      "sukuyo": {
+        "state": "ready",
+        "flower": {
+          "id": "red_spider_lily",
+          "name": "석산",
+          "scientific_name": "Lycoris radiata",
+          "symbolism": "이별과 전환, 강렬한 재생",
+          "primary_color": "#D90429",
+          "secondary_color": "#FF6B6B",
+          "particle_type": "ember_spark",
+          "title": "경계의 불꽃, 석산",
+          "keywords": [
+            "전환",
+            "재생",
+            "강렬함"
+          ],
+          "description": "끝과 시작의 경계에서 가장 강한 변화를 만들어내는 꽃입니다.",
+          "vibe_message": "끝을 받아들이는 용기가 재탄생을 부릅니다.",
+          "elements": [
+            "Fire",
+            "Water"
+          ],
+          "seasons": [
+            "Autumn"
+          ],
+          "environments": [
+            "Field",
+            "Rock"
+          ],
+          "water_levels": [
+            "balanced"
+          ],
+          "flower_language": "다시 만날 날을 기다리며"
+        },
+        "narrative": "필숙(경쾌숙)이 맺어 주는 인연의 결, 달 위상 초승달이 밀어 올리는 감정의 조수, 수호동물 까마귀가 새겨 준 보호의 문양이 한밤의 정원에서 하나로 겹칩니다. 이 세 갈래 달빛을 포개어 읽으면 \"이별과 전환, 강렬한 재생\"의 성향이 짙게 배어나고, 지금 당신에게 가장 정확한 한 송이는 석산입니다.",
+        "limitations": [
+          "천문식 27숙 개인 분석입니다. 상대 정보 없이 궁합을 추정하지 않습니다."
+        ],
+        "engineVersion": "code-destiny-integrated-v1",
+        "algorithmVersion": "1.0.0-sukuyo-flower"
+      }
+    },
+    "stored": false
+  }
+}

@@ -3,6 +3,7 @@ import {person} from './storage.mjs';
 const supported=fn=>Object.assign(fn,{isSupported:()=>true});
 const blocked=()=>{throw Error('PRIVATE_SIMULATION_UNAVAILABLE');};
 const disabled=new Proxy({},{get:()=>blocked});
+export const Accuracy={Balanced:'balanced'};
 export const Clipboard=disabled,File=disabled,Device=disabled,Share=disabled;
 export class SetClipboardTextPermissionError extends Error {}
 export const Environment={environment:'sandbox'};

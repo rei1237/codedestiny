@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-14
-next: coordinator의 checkpoint push와 source freeze 해제를 확인한 뒤 네오 이메일 private fixture 연결·실제 AIT 검증을 수행하고, 후속 서양 궁합·베다 adapter를 새 private 담당에게 이어준다.
+next: final coordinator가 remaining_audit 소스 안정 후 private AIT 1회 빌드하고 새 --neo-email / --astro-synastry 및 베다2·꽃4 actual AIT 검증을 완료한다.
 ---
 
 # 첫 행동
@@ -130,3 +130,15 @@ node apps/toss/test/private-simulation-archive.mjs apps/toss/private-simulation/
 ### 최신 검증
 
 `node --test apps/toss/test/private-launch-completion.test.mjs apps/toss/test/private-astro-reading.test.mjs apps/toss/test/private-simulation.test.mjs` 8/8 PASS. private paid/extended/offline 회귀17/17 PASS. `private-sukuyo-past-life.test.mjs` 2/2 PASS. 관련 eslint error0. 공통 check:fast는 coordinator 실행 중이며 완료 여부는 그 담당에게 확인한다. source 수정은 checkpoint push 이후에만 재개한다.
+
+
+## private_finish 2026-11-14 최종 인계 — API/fixture 완료, actual AIT 미실행
+
+- 공유 worktree: D:/Development/codedestiny-worktrees/toss-launch-completion-20261114-165438. 소유 parent /root/launch_final_coordinator. source App/routes/Vedic UI는 /root/launch_completion/remaining_audit 소유, 현재 변경중. 부모가 슬롯 확보 요청하여 검증된 private 변경을 커밋하고 인계한다.
+- Neo: private API의 인증 뒤 기존 neoEmailFixture(storage,owner) 연결. private Vite에서만 TossNeoEmail simulated=true. 원본 manual_email 정책, 수정요청 전 수정409, operator fixture 후 수정, 취소, 재진입, B404/외국token401, 주문/결제1개·receipt1개·delivery0 API PASS. 실제메일 전송 없음. UI QA apps/toss/test/private-neo-email.mjs는 이전 초안 채택, 실제 AIT 미실행. 현재 UI QA는 접수·재열람·B차단; UI수정/취소 추가 가능(API완료).
+- Astro: 원본 worker/toss/astro-synastry.js + strict Swiss 로컬 ephe로 305명 전체카탈로그·direct/famous2 원문 생성. 고정 본인1990-02-03 F08:35서울, 상대1991-04-05 M12:30서울 이름'상대', celeb 실제 catalog첫 뉴진스 하니(2004-10-06). JSON gzip 전송(무손실). private guest API 지원. UI QA strict main.innerHTML 비교는 bindPrompt가 상태DOM변경하면 실제 확인 후 안정영역비교로 수정 필요(아직미실행).
+- Vedic2 + Flower4: free-original-examples.json은 원본 tossVedicCompatibility / tossVedicPrashna / matchTossFlowers+canonical domains를 esbuild로 번들하여 loopback ephe 아래 실제계산. 차트대체·LLM없음. 생성스크립트 .tmp/private-astro/build-free-originals.mjs (mock-network-guard 실행). 4꽃 모두ready확인. JSON gzip 등록. API 인증 뒤 연결, 다른입력422, 동일계정0주문. 이름만 원본입력에반영. VedicCompatibility private example slot연결, Flower는private모의예시버튼추가. Prashna 원본계약버튼+서울좌표 직접입력 안내(private만). 현재위치 SDK는disabled 유지하여 실제위치를거짓반환하지않음. Accuracy export만추가.
+- private-source 새 테스트: private-free-originals.test.mjs PASS1(로그인401,원문반환,다른입력422,꽃4,주문0), private-neo-email.test.mjs PASS1, private-astro-synastry.test.mjs PASS1; 기존 private-simulation.test.mjs4 PASS. eslint0오류/private Vite기존anonymousdefault1warning. node --check vite PASS. actualAIT/build는 이번에 실행하지 않았다.
+- 다음 정확명령(소스freeze확인후): npm --prefix apps/toss run build:private-simulation ; node apps/toss/test/private-simulation-archive.mjs apps/toss/private-simulation/ai-saju-studio.ait --local-windows --neo-email ; 같은명령 --astro-synastry. Linux archive에는 --local-windows 빼야함. 베다/꽃 actualAIT QA는 아직 작성해야함: 홈→검색베다점→아쉬타쿠타 궁합/프라슈나 질문차트→로그인→모의예시/계약+37.5665/126.978→원문계산0주문, 홈→운명의꽃→로그인→모의예시→4꽃원문·artdecode·0주문. 무료원본정책: 베다기본/서양궁합guest, 베다compat/Prashna/꽃login, 저장보관함없음. 무리한유료/저장강제금지.
+- 바이트: 직전AIT99,993,828. parent62598c2f3 Psychotest gzip추가했지만 신규fixture/Neo 포함후실제size미확인. 부족시더무손실압축. fixture알고리즘/CSS/art삭제금지.
+- 사라져도복원가능한스크래치: .tmp/private-astro/build-synastry.mjs, build-free-originals.mjs. 완료후자기스크래치만정리. parent가새소유자로최종문서done처리.

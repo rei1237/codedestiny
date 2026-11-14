@@ -26,7 +26,9 @@ export default function compressedNamingData(){
    const astro=from.endsWith('/private-simulation/astro-reading.mjs')&&id==='./astro-reading-example.json';
    const sukuyo=from.endsWith('/private-simulation/sukuyo-tools.mjs')&&id==='./sukuyo-tools-examples.json';
    const past=from.endsWith('/private-simulation/sukuyo-past-life.mjs')&&id==='./sukuyo-past-life-examples.json';
-   if(!naming&&!yearly&&!astro&&!sukuyo&&!past)return;
+   const synastry=from.endsWith('/private-simulation/astro-synastry.mjs')&&id==='./astro-synastry-example.json';
+   const originals=from.endsWith('/private-simulation/free-originals.mjs')&&id==='./free-original-examples.json';
+   if(!originals&&!naming&&!yearly&&!astro&&!sukuyo&&!past&&!synastry)return;
    const resolved=await this.resolve(id,importer,{skipSelf:true});
    if(!resolved)throw Error('Original naming data missing: '+id);
    return '\0packed-naming:'+resolved.id+'.mjs';

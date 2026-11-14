@@ -1,3 +1,6 @@
+import {privateFreeOriginal} from './free-originals.mjs';
+import {privateAstroSynastry} from './astro-synastry.mjs';
+import {neoEmailFixture} from '../test/offline/neo-email-fixture.mjs';
 import {privateVedicReading} from './vedic-reading.mjs';
 import {privateAstroReading} from './astro-reading.mjs';
 import {privateSecretHouse} from './secret-house.mjs';
@@ -52,6 +55,8 @@ export function createSimulationApi(storage,person){
     if((path==='/sukuyo/basic'||path==='/sukuyo/tools')&&method==='POST')return privateSukuyoTools(await request.json(),path==='/sukuyo/basic');
     if(path==='/canonical/yeongnyangi/products'&&method==='GET')return replies({products:products.filter(p=>p.id!==prashnaProduct.id).map(productView)});
     if(path==='/canonical/yeongnyangi/free/horary'&&method==='POST')return exampleReading('horary',await request.json());
+    if(path==='/astro/synastry/people'&&method==='GET')return privateAstroSynastry();
+    if(path==='/astro/synastry'&&method==='POST')return privateAstroSynastry(await request.json());
     if(path==='/login'&&method==='POST'){
       const {authorizationCode}=await request.json();
       if(authorizationCode!==owner)return replies({error:'LOGIN_REQUIRED'},401);
@@ -64,6 +69,8 @@ export function createSimulationApi(storage,person){
     if(!state.loggedIn||request.headers.get('authorization')!=='Bearer '+token)return replies({error:'LOGIN_REQUIRED'},401);
     if(path==='/sukuyo/past-life'&&method==='POST')return privateSukuyoPastLife(await request.json());
     const ownedCalculation=await privateOwnedCalculation(request.clone(),url,path,state);if(ownedCalculation)return ownedCalculation;
+    if(path.startsWith('/native/neo-email'))return neoEmailFixture(storage,owner).handle(request,path);
+    if(['/vedic/compatibility','/vedic/prashna','/flower/match'].includes(path)&&method==='POST')return privateFreeOriginal(path,await request.json());
     if(path==='/session'&&method==='GET')return replies({authenticated:true,environment:'SANDBOX'});
     if(path==='/logout'&&method==='POST'){state.loggedIn=false;save();return replies({ok:true});}
     if(path==='/canonical/auth/me'&&method==='GET')return replies({ok:true,authenticated:true,user:{id:owner,name:'모의 계정 '+person,role:'user'}});
