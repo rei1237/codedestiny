@@ -132,7 +132,7 @@ export const publicSeoPages: Record<string, PublicSeoPage> = {
     path: "/about",
     title: siteSeoText("siteSeo.002"),
     description:
-      "꿀꿀 운세에서 제공하는 무료 만세력, 타로, 자미두수, 점성술, 숙요점 서비스와 운영자 CODE DESTINY, 콘텐츠 운영 원칙을 소개합니다.",
+      "꿀꿀 운세는 명리학자 박병하(네오)가 운영하는 사주·타로·자미두수 운세 상담 서비스예요. 운영자, 해석 기준, 무료와 유료의 범위, 콘텐츠 운영 원칙을 소개합니다.",
     h1: "꿀꿀 운세 소개",
     changeFrequency: "monthly",
     priority: 0.8,
