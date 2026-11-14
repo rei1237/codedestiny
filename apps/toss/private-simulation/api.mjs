@@ -1,3 +1,5 @@
+import {privateVedicReading} from './vedic-reading.mjs';
+import {paidFamilyProducts,paidFamilyRequest,paidFamilyPurchases,paidFamilyRecords} from './paid-families.mjs';
 import {privateSukuyoYearly} from './sukuyo-yearly.mjs';
 import {extendedProducts,extendedRequest,extendedRecords} from './extended-reports.mjs';
 import {privatePublicCalculation,privateOwnedCalculation} from './free-calculations.mjs';
@@ -17,7 +19,7 @@ import {roomProducts,roomRecords,roomOrderRequest,characterRoomReading} from '..
 const letterProducts=offlineCatalog.filter(product=>/^(yeoni|neo):/.test(product.id));
 const characterRooms=roomProducts.filter(product=>/^native:(tea|neo):/.test(product.id));
 export const products=offlineCatalog.filter(product=>!product.id.includes(':'));
-export const sdkProducts=[...products,...letterProducts,...characterRooms,...expertProducts,...nativeReportProducts,...humanDesignProducts,...extendedProducts,...privateTarotProducts];
+export const sdkProducts=[...products,...letterProducts,...characterRooms,...expertProducts,...nativeReportProducts,...humanDesignProducts,...extendedProducts,...privateTarotProducts,...paidFamilyProducts];
 const replies=(value,status=200)=>Response.json(value,{status});
 function exampleReading(kind,body){
   const input=skyExample.input;
@@ -48,6 +50,7 @@ export function createSimulationApi(storage,person){
       if(authorizationCode!==owner)return replies({error:'LOGIN_REQUIRED'},401);
       state.loggedIn=true;return save()?replies({token}):replies({error:'MOCK_STORAGE_UNAVAILABLE'},503);
     }
+    if(path==='/vedic/reading'&&method==='POST')return privateVedicReading(await request.json());
     const publicReport=await nativeReportPublicRequest(request.clone(),path);if(publicReport)return publicReport;
     const publicCalculation=await privatePublicCalculation(request.clone(),url,path);if(publicCalculation)return publicCalculation;
     if(!state.loggedIn||request.headers.get('authorization')!=='Bearer '+token)return replies({error:'LOGIN_REQUIRED'},401);
@@ -72,9 +75,10 @@ export function createSimulationApi(storage,person){
     if(path==='/sukuyo/yearly'&&method==='POST')return privateSukuyoYearly(person,state.profiles,await request.json());
     if(path==='/events'&&method==='POST')return replies({ok:true});
     const now=()=>new Date();
-    if(path==='/canonical/records'&&method==='GET'){const records=await roomRecords(url,state).json();return replies({...records,items:[...records.items,...expertRecords(url,state),...humanDesignRecords(url,state),...extendedRecords(url,state)]});}
-    if(path==='/library'&&method==='GET'){const response=await handleReviewFixture(request,url,path,state,save,now);const body=await response.json();return replies({...body,purchases:[...body.purchases,...humanDesignPurchases(state)]});}
-    if(path==='/native/catalog'&&method==='GET')return replies({products:[...characterRooms,...expertProducts,...nativeReportProducts,...humanDesignProducts,...extendedProducts]});
+    if(path==='/canonical/records'&&method==='GET'){const records=await roomRecords(url,state).json();return replies({...records,items:[...records.items,...expertRecords(url,state),...humanDesignRecords(url,state),...extendedRecords(url,state),...paidFamilyRecords(url,state)]});}
+    if(path==='/library'&&method==='GET'){const response=await handleReviewFixture(request,url,path,state,save,now);const body=await response.json();return replies({...body,purchases:[...body.purchases,...humanDesignPurchases(state),...paidFamilyPurchases(state).filter(row=>row.nativeService!=='sukuyo')]});}
+    if(path==='/native/catalog'&&method==='GET')return replies({products:[...characterRooms,...expertProducts,...nativeReportProducts,...humanDesignProducts,...extendedProducts,...paidFamilyProducts]});
+    if(!path.startsWith('/orders/')){const family=await paidFamilyRequest(request.clone(),url,path,state,save,now);if(family)return family;}
     if(path.startsWith('/native/')){const extended=await extendedRequest(request.clone(),url,path,state,save,now);if(extended)return extended;}
     if(path==='/tarot-library/catalog'||path.startsWith('/tarot-library/results/'))return await privateTarotRequest(request,path,state,save)||unavailable();
     if(!path.startsWith('/orders/')){const hd=await humanDesignReportRequest(request.clone(),url,path,state,save,now);if(hd)return hd;}
@@ -91,6 +95,7 @@ export function createSimulationApi(storage,person){
       if(!sdkProducts.some(product=>product.sku===sku)||!orderId?.startsWith('private-order-'+person+'-'))return replies({error:'ORDER_MISMATCH'},403);
       if(privateTarotProducts.some(product=>product.sku===sku))return await privateTarotRequest(request,path,state,save)||unavailable();
       if(path==='/tarot-library/orders/grant')return unavailable();
+      if(paidFamilyProducts.some(product=>product.sku===sku))return await paidFamilyRequest(request,url,path,state,save,now)||unavailable();
       if(extendedProducts.some(product=>product.sku===sku))return await extendedRequest(request,url,path,state,save,now)||unavailable();
       if(humanDesignProducts.some(product=>product.sku===sku))return await humanDesignReportRequest(request,url,path,state,save,now)||unavailable();
       if(nativeReportProducts.some(product=>product.sku===sku))return await nativeReportRequest(request,url,path,state,save,now)||unavailable();

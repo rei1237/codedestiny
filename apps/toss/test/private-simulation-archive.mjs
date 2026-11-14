@@ -62,7 +62,10 @@ try{
     await page.getByRole('button',{name:'토스로 로그인하기'}).click();
     await page.waitForURL(/yeongnyangi\/fortune/);
   };
-  if(process.argv.includes('--maya-free')){
+  if(process.argv.includes('--vedic-reading')){const {verifyPrivateVedic}=await import('./private-vedic-reading.mjs');await verifyPrivateVedic(origin,context);assert.deepEqual(unexpected,[]);console.log('PASS private AIT Vedic reading',reader.deploymentId);
+  }else if(process.argv.includes('--free-calculations')){const {verifyFreeCalculations}=await import('./private-free-calculation-browser.mjs');await verifyFreeCalculations(origin,context);assert.deepEqual(unexpected,[]);console.log('PASS private AIT free calculations',reader.deploymentId);
+  }else if(process.argv.includes('--paid-family')){const {verifyPaidFamily}=await import('./private-paid-families.mjs');const key=process.argv[process.argv.indexOf('--paid-family')+1];await verifyPaidFamily(origin,context,key);assert.deepEqual(unexpected,[]);console.log('PASS private AIT paid family',key,reader.deploymentId);
+  }else if(process.argv.includes('--maya-free')){
     const {verifyMayaFree}=await import('./private-maya-free.mjs');
     await verifyMayaFree(origin,context);assert.deepEqual(unexpected,[]);
     console.log('PASS private AIT Maya free',reader.deploymentId);

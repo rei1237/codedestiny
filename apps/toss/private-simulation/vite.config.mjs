@@ -26,6 +26,7 @@ function privateSimulation(){
     load(id){if(id==='\0private-release')return 'export const SERVICE_AVAILABLE=true,NEW_PURCHASES_AVAILABLE=true;';},
     transform(code,id){
       const from=id.replaceAll('\\','/').split('?')[0];
+      if(from.endsWith('/apps/toss/service/VedicReading.jsx')){const slot='<Reading {...props}/>';if(!code.includes(slot))throw Error('Private Vedic example slot changed');return code.replace(slot,"<Reading {...props} exampleBirth={{date:'1990-02-03',time:'08:35',unknown:false,calendar:'solar',gender:'F',city:'서울'}}/>");}
       if(from.endsWith('/apps/toss/src/platform.ts')){
         const api="const API='https://code-destiny.com/api/toss';";
         if(!code.includes(api))throw Error('Private simulation API boundary changed');

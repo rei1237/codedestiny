@@ -1,0 +1,180 @@
+{
+  "birth": {
+    "gender": "F",
+    "date": {
+      "year": 1990,
+      "month": 2,
+      "day": 3,
+      "hour": 8,
+      "minute": 35,
+      "timeUnknown": false,
+      "calType": "solar"
+    },
+    "location": {
+      "label": "서울",
+      "lat": 37.5665,
+      "lng": 126.978,
+      "tz": "Asia/Seoul"
+    }
+  },
+  "result": {
+    "stored": false,
+    "accessSource": "public",
+    "input": {
+      "year": 1990,
+      "month": 2,
+      "day": 3,
+      "hour": 8,
+      "minute": 35,
+      "timezone": 9,
+      "lat": 37.5665,
+      "lon": 126.978,
+      "gender": "F",
+      "name": "나",
+      "birthTimeKnown": true
+    },
+    "natal": {
+      "providerVersion": "imd1956-ae2.1.19-v1",
+      "ayanamsha": {
+        "system": "IMD-1956",
+        "degrees": 23.721979893098364
+      },
+      "lagna": {
+        "longitude": 310.1282885134864,
+        "rashi": "물병자리",
+        "nakshatra": "Shatabhisha",
+        "pada": 2
+      },
+      "planets": {
+        "Sun": {
+          "longitude": 290.151902923272,
+          "rashi": "염소자리",
+          "nakshatra": "Shravana",
+          "pada": 4
+        },
+        "Moon": {
+          "longitude": 22.921145023408485,
+          "rashi": "양자리",
+          "nakshatra": "Bharani",
+          "pada": 3
+        },
+        "Mercury": {
+          "longitude": 265.0956708651755,
+          "rashi": "사수자리",
+          "nakshatra": "Purva Ashadha",
+          "pada": 4
+        },
+        "Venus": {
+          "longitude": 267.8018436076793,
+          "rashi": "사수자리",
+          "nakshatra": "Uttara Ashadha",
+          "pada": 1
+        },
+        "Mars": {
+          "longitude": 249.44563241855758,
+          "rashi": "사수자리",
+          "nakshatra": "Mula",
+          "pada": 3
+        },
+        "Jupiter": {
+          "longitude": 67.87163069436144,
+          "rashi": "쌍둥이자리",
+          "nakshatra": "Ardra",
+          "pada": 1
+        },
+        "Saturn": {
+          "longitude": 265.7225718546972,
+          "rashi": "사수자리",
+          "nakshatra": "Purva Ashadha",
+          "pada": 4
+        }
+      }
+    },
+    "samples": [
+      {
+        "planets": {
+          "Sun": 289.6443106304341,
+          "Moon": 15.822934656801749,
+          "Mercury": 264.554602452366,
+          "Venus": 267.9148221183257,
+          "Mars": 249.0840614910138,
+          "Jupiter": 67.90718570548734,
+          "Saturn": 265.6665936322347,
+          "Rahu": 292.7697175997728,
+          "Ketu": 112.76971759977278
+        },
+        "retrograde": {
+          "Sun": false,
+          "Moon": false,
+          "Mercury": false,
+          "Venus": true,
+          "Mars": false,
+          "Jupiter": true,
+          "Saturn": false
+        },
+        "ayanamsa": 23.718648862510292,
+        "ascendantSidereal": 142.50677212491917,
+        "source": "swiss-wasm-local",
+        "engineQuality": "swiss",
+        "fallbackUsed": false,
+        "jd": 2447924.982638889
+      },
+      {
+        "planets": {
+          "Sun": 290.151559763136,
+          "Moon": 22.920654970115038,
+          "Mercury": 265.0957683055915,
+          "Venus": 267.7985463571963,
+          "Mars": 249.44511839908728,
+          "Jupiter": 67.87136023524579,
+          "Saturn": 265.722396562933,
+          "Rahu": 292.769732677324,
+          "Ketu": 112.76973267732399
+        },
+        "retrograde": {
+          "Sun": false,
+          "Moon": false,
+          "Mercury": false,
+          "Venus": true,
+          "Mars": false,
+          "Jupiter": true,
+          "Saturn": false
+        },
+        "ayanamsa": 23.718667984031185,
+        "ascendantSidereal": 310.12805683123634,
+        "source": "swiss-wasm-local",
+        "engineQuality": "swiss",
+        "fallbackUsed": false,
+        "jd": 2447925.482638889
+      },
+      {
+        "planets": {
+          "Sun": 290.65871028934816,
+          "Moon": 30.011340503169492,
+          "Mercury": 265.64662907072034,
+          "Venus": 267.69247483659115,
+          "Mars": 249.80630298226765,
+          "Jupiter": 67.83629140389274,
+          "Saturn": 265.77806802431564,
+          "Rahu": 292.76924023095194,
+          "Ketu": 112.76924023095194
+        },
+        "retrograde": {
+          "Sun": false,
+          "Moon": false,
+          "Mercury": false,
+          "Venus": true,
+          "Mars": false,
+          "Jupiter": true,
+          "Saturn": false
+        },
+        "ayanamsa": 23.718687105552135,
+        "ascendantSidereal": 143.30964909353042,
+        "source": "swiss-wasm-local",
+        "engineQuality": "swiss",
+        "fallbackUsed": false,
+        "jd": 2447925.982638889
+      }
+    ]
+  }
+}
