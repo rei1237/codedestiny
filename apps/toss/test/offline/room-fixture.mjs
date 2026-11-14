@@ -1,8 +1,11 @@
+import {teaTarotRequest,readMockTeaDraw} from './tea-tarot-fixture.mjs';
+import {teaModes,teaMode,sameTeaInput,teaModeResult} from './tea-modes.mjs';
+import {neoPartnerResult,sameNeoPartnerInput} from './neo-partner-fixture.mjs';
 import {mockTarotRecords} from './paid-tarot.mjs';
 // Local devtools only. No production price, receipt, calculation or generated text.
 import {normalizeTeaFollowUpQuestion,teaFollowUpAllowance} from '../../../../worker/lib/fortune-tea-follow-up-contract.js';
 import {neoRefinementAllowance} from '../../../../worker/lib/neo-refinement-contract.js';
-const tea={service:'tea',name:'가상 찻집 사주',featureKey:'fortune-tea-house-saju-consultation',path:'/fortune-tea-house/'};
+const tea=teaModes[0];
 const neo={service:'neo',name:'가상 네오 전략 상담',featureKey:'neo-operation-room-consultation',path:'/neo-operation-room/result/'};
 const heukwol={service:'heukwol',name:'가상 흑월 상담',featureKey:'heukwol-warning-consultation',path:'/heukwol/'};
 const dream={service:'dream',name:'가상 정신분석 해몽',featureKey:'dream-psycho-analysis',path:'/dream/psycho/'};
@@ -18,10 +21,10 @@ const guardian={service:'guardian',name:'가상 사주 가디언',featureKey:'sa
 const sibyl={service:'sibyl',name:'가상 시빌라 심층 리포트',featureKey:'premium-sibyl-dominator',path:'/saju/sibyl/'};
 const lifeBook={service:'life-book',name:'가상 인생의 책',featureKey:'life-book-ai-consultation',path:'/life-book-ai/result/'};
 const lifeFortune={...lifeBook,name:'가상 인생 총운',featureKey:'life-fortune-ai-consultation'};
-const rooms=[lifeBook,lifeFortune,guardian,sibyl,...totems,sajuCompat,geomancy,tea,neo,heukwol,dream,naming,codex,compat,palm];
+const rooms=[lifeBook,lifeFortune,guardian,sibyl,...totems,sajuCompat,geomancy,...teaModes,neo,heukwol,dream,naming,codex,compat,palm];
 export const roomProducts=rooms.map(room=>({
   id:'native:'+room.service+':'+room.featureKey,name:room.name,featureKey:room.featureKey,
-  sku:'mock-unregistered-room-'+(room===compat?'codex-compat':room===lifeFortune?'life-fortune':room.service),available:true,approvedPriceKRW:1,
+  sku:'mock-unregistered-room-'+(room.service==='tea'&&room!==tea?'tea-'+room.mode:room===compat?'codex-compat':room===lifeFortune?'life-fortune':room.service),available:true,approvedPriceKRW:1,
 }));
 export const roomSdkProducts=roomProducts.map(p=>({sku:p.sku,type:'CONSUMABLE',displayName:p.name,displayAmount:'1원',iconUrl:'',description:'오프라인 가상 결제'}));
 const reply=(data,status=200)=>Response.json(data,{status});
@@ -82,6 +85,9 @@ export async function roomOrderRequest(request,url,path,state,save,now){
       }
       if(room===lifeBook&&input?.consultationType==='lifeFortune')room=lifeFortune;
       if(room===codex&&input?.mode==='compat')room=compat;
+      if(room.service==='tea'){room=teaModes.find(item=>item.mode===teaMode(input));if(!room)return fail('REQUEST_INPUT_MISMATCH',400);
+        if(input.consultationMode==='tarot'){try{readMockTeaDraw(state,input);}catch(error){return fail(error.code,error.status);}}
+      }
       const valid=room.service==='life-book'?input?.serviceType===room.featureKey&&input?.birthInfo?.birthDate&&input?.topic:room===guardian||room===sibyl?input.profileId:room===palm?input.uploadedHands.length:totems.includes(room)?Array.isArray(input?.animalIds)&&input.animalIds.length===({one:1,three:3,five:5})[input.mode]&&(input.mode==='five')===(room===totems[1]):room===sajuCompat?input?.self?.pillars?.length===4&&input?.partner?.pillars?.length===4&&input?.facts?.score:room===geomancy?input?.question?.length>=2&&input?.counts?.length===16:room.service==='codex'?input?.reading?.birthInfo?.birthDate&&Boolean(input.reading.partnerInfo?.birthDate)===(room===compat):room===naming?input?.input?.familyName&&input.input.birthDate:room===dream?typeof input?.dreamText==='string'&&input.dreamText.trim().length>=8&&input.dreamText.length<=6000:input?.question;
       if(!key||!valid||input.featureKey&&input.featureKey!==room.featureKey)return fail('REQUEST_INPUT_MISMATCH',400);
       if(room===heukwol){const card=state.profiles.find(p=>p.profileId===input.profileId);if(!card)return fail('PROFILE_REQUIRED',400);if(card.birth?.timeUnknown!==false)return fail('BIRTH_TIME_REQUIRED',400);}
@@ -265,18 +271,21 @@ export async function roomRequest(request,url,path,state,save,now){
   return characterRoomReading(request,url,path,state,save,now);
 }
 export async function characterRoomReading(request,url,path,state,save,now){
+  const tarotResponse=await teaTarotRequest(request,path,state,save,now);if(tarotResponse)return tarotResponse;
   const post=request.method==='POST';
   if(path==='/canonical/fortune-tea-house/ensure-access'&&post){
     const body=await request.json(),key=requestKey(body);
     const paid=[...state.intents.values()].find(row=>row.service==='tea'&&row.paid&&key&&requestKey(row.input)===key);
-    return paid&&body.question===paid.input.question?reply({ok:true}):reply({ok:false,paymentRequired:true,reason:'PAYMENT_REQUIRED'},402);
+    return paid&&sameTeaInput(paid.input,body)?reply({ok:true}):reply({ok:false,paymentRequired:true,reason:'PAYMENT_REQUIRED'},402);
   }
   if(path==='/canonical/fortune-tea-house/consult'&&post){
     const body=await request.json(),key=requestKey(body);
     const row=[...state.intents.values()].find(r=>r.service==='tea'&&requestKey(r.input)===key);
     if(!row?.paid)return fail('PAYMENT_REQUIRED',402);
-    if(row.input.question!==body.question)return fail('REQUEST_INPUT_MISMATCH',409);
-    if(!row.result){row.result=teaResult(row);row.generationCount=1;save();}
+    if(!sameTeaInput(row.input,body))return fail('REQUEST_INPUT_MISMATCH',409);
+    if(!row.result){
+      let draw;try{if(row.input.consultationMode==='tarot')draw=readMockTeaDraw(state,row.input);}catch(error){return fail(error.code,error.status);}
+      row.result=teaModeResult(row,body,teaResult(row),draw);row.generationCount=1;save();}
     return reply({ok:true,result:row.result});
   }
   if(path.startsWith('/canonical/fortune-tea-house/results/')&&!post){
@@ -311,12 +320,13 @@ export async function characterRoomReading(request,url,path,state,save,now){
     const row=[...state.intents.values()].find(r=>r.service==='neo'&&
       (key&&requestKey(r.input)===key||body.sessionId&&[r.resultId,'toss_'+r.id].includes(body.sessionId)));
     if(!row?.paid)return fail('PAYMENT_REQUIRED',402);
-    if(key&&(row.input.question!==body.question||(row.input.selectedMethod||row.input.method)!==(body.selectedMethod||body.method)))return fail('REQUEST_INPUT_MISMATCH',409);
+    if(key&&(row.input.question!==body.question||(row.input.selectedMethod||row.input.method)!==(body.selectedMethod||body.method)||!sameNeoPartnerInput(row.input,body)))return fail('REQUEST_INPUT_MISMATCH',409);
     if(!row.result){
       const text='[테스트 전용] 네오가 저장한 브리핑 원문입니다.';
-      row.result={ok:true,id:row.resultId,sessionId:row.resultId,status:'completed',selectedMethod:row.input.selectedMethod||row.input.method,
+      const partner=neoPartnerResult(row.input);
+      row.result={...partner.session,ok:true,id:row.resultId,sessionId:row.resultId,status:'completed',selectedMethod:row.input.selectedMethod||row.input.method,
         question:row.input.question,topic:row.input.topic,intensity:row.input.intensity,
-        initialBriefing:{selectedMethod:row.input.selectedMethod||row.input.method,operationTitle:text,neoOpening:text,coreDiagnosis:text,
+        initialBriefing:{...partner.sections,selectedMethod:row.input.selectedMethod||row.input.method,operationTitle:text,neoOpening:text,coreDiagnosis:text,
           frontlineSummary:text,actionOrders:[text],methodEvidence:[],sevenDayMission:[],realityCheckQuestions:[]},
         resultUrl:neo.path+'?attemptId='+encodeURIComponent(row.resultId),createdAt:row.createdAt};
       row.generationCount=1;save();

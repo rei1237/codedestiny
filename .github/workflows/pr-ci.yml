@@ -1233,9 +1233,19 @@ jobs:
           for domain in saju ziwei sukuyo vedic astrology tarot; do
             node test/private-simulation-archive.mjs private-simulation/ai-saju-studio.ait --character-rooms letter --letter-domain "$domain"
           done
-          node test/private-simulation-archive.mjs private-simulation/ai-saju-studio.ait --character-rooms tea
+          for tea_mode in saju sajuJoint tarot tarotFive sajuCompatibility sukuyo; do
+            node test/private-simulation-archive.mjs private-simulation/ai-saju-studio.ait --character-rooms tea --tea-mode "$tea_mode"
+          done
+          for domain in saju ziwei sukuyo vedic astrology tarot; do
+            tiers="mackerel salmon flounder"
+            case "$domain" in saju|ziwei|vedic) tiers="$tiers tuna" ;; esac
+            for tier in $tiers; do
+              node test/private-simulation-archive.mjs private-simulation/ai-saju-studio.ait --character-rooms letter --letter-domain "$domain" --letter-tier "$tier"
+            done
+          done
           for method in saju ziwei vedic astrology; do
             node test/private-simulation-archive.mjs private-simulation/ai-saju-studio.ait --character-rooms neo --neo-method "$method"
+            node test/private-simulation-archive.mjs private-simulation/ai-saju-studio.ait --character-rooms neo --neo-method "$method" --neo-partner
           done
 
       - name: Store private simulated consultation archive

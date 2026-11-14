@@ -1,0 +1,34 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {createSimulationApi} from '../private-simulation/api.mjs';
+import {teaModes} from './offline/tea-modes.mjs';
+import {teaModeInput,prepareTeaModeDraw} from './tea-mode-test-input.mjs';
+const storage=()=>{const map=new Map();return {getItem:k=>map.get(k),setItem:(k,v)=>map.set(k,v)}};
+const call=(api,path,token,body)=>api(new Request('https://local.invalid/private-simulation-api'+path,{method:body===undefined?'GET':'POST',headers:{Authorization:'Bearer '+token},...(body===undefined?{}:{body:JSON.stringify(body)})}));
+for(const {mode,featureKey} of teaModes)test('Tea '+mode+' restores its own SKU, input and saved result',async()=>{
+ const data=storage();let api=createSimulationApi(data,'A');
+ const token=(await (await call(api,'/login','',{authorizationCode:'private-simulation-person-A'})).json()).token;
+ const catalog=(await (await call(api,'/native/catalog',token)).json()).products.filter(p=>p.id.startsWith('native:tea:'));
+ assert.equal(catalog.length,6);assert.equal(new Set(catalog.map(p=>p.sku)).size,6);
+ const product=catalog.find(p=>p.featureKey===featureKey);
+ const input={...teaModeInput(mode),idempotencyKey:'tea-'+mode,question:'서로의 차이를 이해하고 다음 행동을 준비하고 싶어요.',featureKey};
+ const draw=await prepareTeaModeDraw((path,body)=>call(api,path,token,body),input);
+ const row=await (await call(api,'/native/tea/prepare',token,{input})).json();assert.equal(row.sku,product.sku);
+ const grant={requestId:row.id,orderId:'private-order-A-tea-'+mode,sku:product.sku};
+ assert.equal((await call(api,'/orders/grant',token,{...grant,sku:catalog.find(p=>p.sku!==product.sku).sku})).status,403);
+ assert.equal((await call(api,'/orders/grant',token,grant)).status,200);api=createSimulationApi(data,'A');
+ assert.equal((await call(api,'/orders/restore',token,grant)).status,200);
+ const pending=await call(api,'/canonical/fortune-tea-house/pending?resultId='+row.resultId,token);assert.equal(pending.status,202);
+ assert.deepEqual((await pending.json()).requestPayload,input);
+ const generate='/canonical/fortune-tea-house/consult';
+ assert.equal((await call(api,generate,token,{...input,question:'바뀐 질문입니다.'})).status,409);
+ const result=await (await call(api,generate,token,input)).json();assert.equal(result.result.featureKey,featureKey);
+ assert.equal(result.result.consultationMode,input.consultationMode);
+ if(draw){assert.equal(result.result.tarotSpreadCards.length,draw.cards.length);assert.deepEqual(result.result.tarotSpreadCards.map(c=>[c.cardId,c.orientation,c.positionId]),draw.cards.map(c=>[c.cardId,c.orientation,c.positionId]));}
+ assert.deepEqual(await (await call(api,generate,token,input)).json(),result);
+ const read='/canonical/fortune-tea-house/results/'+row.resultId;
+ assert.deepEqual(await (await call(createSimulationApi(data,'A'),read,token)).json(),result);
+ const persisted=JSON.parse(data.getItem('consultations'));assert.equal(persisted.orders.length,1);assert.equal(persisted.intents[0][1].generationCount,1);
+ const other=createSimulationApi(storage(),'B'),foreign=(await (await call(other,'/login','',{authorizationCode:'private-simulation-person-B'})).json()).token;
+ assert.equal((await call(other,read,foreign)).status,404);assert.equal((await call(other,'/orders/restore',foreign,grant)).status,403);
+});

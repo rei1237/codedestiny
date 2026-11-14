@@ -3,6 +3,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createOfflineFixtureApi} from './offline/fixture.mjs';
 import {roomProducts} from './offline/room-fixture.mjs';
+import {teaModes} from './offline/tea-modes.mjs';
+import {teaModeInput,prepareTeaModeDraw} from './tea-mode-test-input.mjs';
 
 for(const product of roomProducts.filter(p=>['tea','neo'].includes(p.id.split(':')[1])))test(product.name+' resumes only the original owner and order',async()=>{
   const service=product.id.split(':')[1],tea=service==='tea';
@@ -13,10 +15,11 @@ for(const product of roomProducts.filter(p=>['tea','neo'].includes(p.id.split(':
     ...(body?{body:JSON.stringify(body)}:{}),
   }));
   const generate=tea?'/canonical/fortune-tea-house/consult':'/canonical/neo-operation-room/start';
-  const input={idempotencyKey:'synthetic-question-one',question:'가상 질문',featureKey:product.featureKey,selectedMethod:'saju'};
+  const input={...(tea?teaModeInput(teaModes.find(mode=>mode.featureKey===product.featureKey).mode):{}),idempotencyKey:'synthetic-question-one',question:'가상 질문',featureKey:product.featureKey,selectedMethod:'saju'};
   const prepare='/native/'+service+'/prepare';
   assert.equal((await request(prepare,{input})).status,401);
   await request('/login',{});
+  await prepareTeaModeDraw(request,input);
   const saved=await (await request(prepare,{input})).json();
   const grant={requestId:saved.id,sku:product.sku,orderId:'local-order'};
   assert.equal((await request(generate,input)).status,402);

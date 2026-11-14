@@ -1,0 +1,28 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {createSimulationApi} from '../private-simulation/api.mjs';
+const storage=()=>{const map=new Map();return {getItem:k=>map.get(k),setItem:(k,v)=>map.set(k,v)}};
+const call=(api,path,token,body)=>api(new Request('https://local.invalid/private-simulation-api'+path,{method:body===undefined?'GET':'POST',headers:{Authorization:'Bearer '+token},...(body===undefined?{}:{body:JSON.stringify(body)})}));
+for(const method of ['saju','ziwei','vedic','astrology'])test('Neo '+method+' partner survives receipt interruption and owner-only archive reread',async()=>{
+ const data=storage();let api=createSimulationApi(data,'A');
+ const token=(await (await call(api,'/login','',{authorizationCode:'private-simulation-person-A'})).json()).token;
+ const input={method,topic:'연애 / 재회',question:'서로의 속도가 다른 관계에서 대화를 준비하고 싶어요.',intensity:'spicy',idempotencyKey:'partner-'+method,partnerBirthInput:{birthDate:'1992-02-02',gender:'male',birthTimeUnknown:true},relationshipStatus:'reconciling'};
+ const product=(await (await call(api,'/native/catalog',token)).json()).products.find(p=>p.id.startsWith('native:neo:'));
+ const row=await (await call(api,'/native/neo/prepare',token,{input})).json();
+ const grant={requestId:row.id,orderId:'private-order-A-partner-'+method,sku:product.sku};
+ assert.equal((await call(api,'/orders/grant',token,grant)).status,200);
+ api=createSimulationApi(data,'A');assert.equal((await call(api,'/orders/restore',token,grant)).status,200);
+ const start='/canonical/neo-operation-room/start';
+ const result=await (await call(api,start,token,input)).json();
+ assert.equal(result.relationshipMode,'compat');assert.equal(result.relationshipStatus,'reconciling');
+ assert.ok(result.initialBriefing.mutualRead.towardPartner.description);assert.ok(result.initialBriefing.relationStrategy.steps.length);
+ assert.equal((await call(api,start,token,{...input,partnerBirthInput:{...input.partnerBirthInput,birthDate:'1993-02-02'}})).status,409);
+ assert.equal((await call(api,start,token,{...input,relationshipStatus:'dating'})).status,409);
+ const read='/canonical/neo-operation-room/result?attemptId='+row.resultId;
+ assert.deepEqual(await (await call(createSimulationApi(data,'A'),read,token)).json(),result);
+ assert.equal((await (await call(api,'/canonical/records',token)).json()).items.length,1);
+ const persisted=JSON.parse(data.getItem('consultations'));assert.equal(persisted.orders.length,1);assert.equal(persisted.intents[0][1].generationCount,1);
+ const other=createSimulationApi(storage(),'B');const foreign=(await (await call(other,'/login','',{authorizationCode:'private-simulation-person-B'})).json()).token;
+ assert.equal((await call(other,read,foreign)).status,404);
+ assert.equal((await call(other,'/orders/restore',foreign,grant)).status,403);
+});

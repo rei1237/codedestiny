@@ -24,9 +24,9 @@ export function createSimulationApi(storage,person){
   const owner='private-simulation-person-'+person;
   const saved=JSON.parse(storage.getItem('consultations')||'{}');
   const state={profiles:saved.profiles||[sample],loggedIn:saved.loggedIn===true,sequence:saved.sequence??(person==='B'?2**40:0),
-    fortunes:new Map(saved.fortunes),orders:new Map(saved.orders),letters:new Map(saved.letters),intents:new Map(saved.intents)};
+    fortunes:new Map(saved.fortunes),orders:new Map(saved.orders),letters:new Map(saved.letters),intents:new Map(saved.intents),teaDrafts:new Map(saved.teaDrafts)};
   const save=()=>{try{
-    storage.setItem('consultations',JSON.stringify({profiles:state.profiles,loggedIn:state.loggedIn,sequence:state.sequence,fortunes:[...state.fortunes],orders:[...state.orders],letters:[...state.letters],intents:[...state.intents]}));return true;
+    storage.setItem('consultations',JSON.stringify({profiles:state.profiles,loggedIn:state.loggedIn,sequence:state.sequence,fortunes:[...state.fortunes],orders:[...state.orders],letters:[...state.letters],intents:[...state.intents],teaDrafts:[...state.teaDrafts]}));return true;
   }catch{return false;}};
   return async request=>{
     const url=new URL(request.url);
