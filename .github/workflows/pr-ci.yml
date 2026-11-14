@@ -1086,7 +1086,7 @@ jobs:
     needs: classify
     if: needs.classify.outputs.runs_critical == 'true'
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 45
     steps:
       # 블롭 지연 로딩 (PR #1650 과 같은 근거). 이 잡의 검사는 전부 워킹트리 대상이다 —
       # `npm test` 와 배포 게이트들은 체크아웃된 HEAD 만 읽고, git 을 부르는 것들도
@@ -1246,6 +1246,22 @@ jobs:
           for method in saju ziwei vedic astrology; do
             node test/private-simulation-archive.mjs private-simulation/ai-saju-studio.ait --character-rooms neo --neo-method "$method"
             node test/private-simulation-archive.mjs private-simulation/ai-saju-studio.ait --character-rooms neo --neo-method "$method" --neo-partner
+          done
+          for report in life-book life-fortune dream naming heukwol codex codex-compat saju-compat geomancy totem-basic totem-deep guardian sibyl palm; do
+            node test/private-simulation-archive.mjs private-simulation/ai-saju-studio.ait --native-report "$report"
+          done
+          for expert in vedic ziwei astrology new-year karma fusion love-secret; do
+            node test/private-simulation-archive.mjs private-simulation/ai-saju-studio.ait --expert-report "$expert"
+          done
+          node test/private-simulation-archive.mjs private-simulation/ai-saju-studio.ait --human-design
+          node test/private-simulation-archive.mjs private-simulation/ai-saju-studio.ait --sukuyo-yearly
+          for domain in saju ziwei sukuyo vedic astrology tarot; do
+            node test/private-simulation-archive.mjs private-simulation/ai-saju-studio.ait --character-rooms letter --letter-persona neo --letter-domain "$domain"
+            tiers="mackerel salmon flounder"
+            case "$domain" in saju|ziwei|vedic) tiers="$tiers tuna" ;; esac
+            for tier in $tiers; do
+              node test/private-simulation-archive.mjs private-simulation/ai-saju-studio.ait --character-rooms letter --letter-persona neo --letter-domain "$domain" --letter-tier "$tier"
+            done
           done
 
       - name: Store private simulated consultation archive
