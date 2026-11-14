@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-14
-next: 4-3(/ziwei/ 로그인 복귀)은 결제 동결 파일 app/_lib/billing-client.ts의 캐시 핀 갱신 승인이 있어야 한다 — 승인 전에는 하지 않는다. 그 밖의 묶음 3·4와 전체 검증은 끝(결과 기록 맨 끝). push·배포·운영 승격은 미승인(로컬 커밋만). F3는 구현하지 않는다.
+next: 스테이징 push 명시 승인 대기 → push 뒤 스테이징 Yeti UA·Lighthouse·화면 확인
 ---
 # 네이버 SEO·AEO·GEO + 구매 동선 (Phase 1~5)
 
@@ -20,6 +20,7 @@ Phase 0 보고서와 승인된 계획의 정본은 `docs/seo/phase0-report.md`�
 - **2026-11-14 rebase 끝**: rebase 전 HEAD `fc9be92f6`(기준 `f2db2995d`) → origin/main `f2e46d05a`(75커밋 앞, 대부분 toss 작업) 위로 19커밋을 옮겼다. 손으로 푼 충돌은 없다. 겹친 것은 생성물 5개(`config/sitemap-lastmod.json`, `sitemap.xml`, `sitemap-ko.xml`, `public/` 미러 2개)뿐이라 upstream 쪽으로 두고 `build-home-funnel` → `sync:public` → `sitemap:generate`로 다시 만들었다(`ad405fbb8`, 원장 서명 7개만 바뀌고 sitemap.xml은 그대로, 1,072 URL). UX 브랜치(`wt/ux-conversion-20261113-215142`)는 **아직 main에 없다**(로컬에서 origin/main보다 32커밋 앞). push 없음. 위 두 줄의 SHA(`23c689fd2` 등)는 rebase 전 값이다.
 - **2026-11-14 묶음 2 적용 끝**(결정 일괄 승인 뒤). 이번 커밋은 `2bd7a928e`부터 문서 커밋까지다(결과 기록 "묶음 2 적용" 참고). push 없음. 이 시점에 origin/main은 이 브랜치의 기준보다 116커밋 앞서 있고 UX 브랜치는 아직 미머지다. **push 전에 rebase하고 생성물(홈 퍼널·public 미러·사이트맵·RSS·llms)을 다시 만들어야 한다.** UX 브랜치와 인접한 줄: `app/page.js`의 `HOME_TITLE` 바로 위(UX가 2줄 추가), `scripts/generate-sitemap.mjs` coreRoutes의 `/` 주석 바로 위(UX가 2줄 추가). 같은 줄은 아니지만 rebase 때 충돌로 잡힐 수 있고, 양쪽을 다 살리면 된다.
 - **2026-11-14 두 번째 rebase 끝**: rebase 전 HEAD `a762b38d3`(기준 `f2e46d05a`) → origin/main `3b82aa2ce`(167커밋 앞) 위로 옮겼다. **UX 세션은 main에 머지됐다**(`wt/ux-conversion-20261113-215142` 팁 = `3b82aa2ce` = origin/main). 충돌과 해결: 생성물(`config/sitemap-lastmod.json`, `sitemap*.xml`, `public/` 미러)과 `index.html`의 생성 부분 6곳(빌드 해시, `build-home-funnel`이 만드는 프로모 섹션)은 upstream 쪽으로 두고 다시 만들었다. 소스 충돌은 `app/page.js` 1건으로, UX의 `YN_STARTER_KRW` 상수·주석과 이쪽 `HOME_TITLE`·`HOME_DESCRIPTION`을 둘 다 남겼다. `scripts/generate-sitemap.mjs`, `app/components/SeoLandingTemplate.jsx`, `lib/marketing/free-promo.mjs`는 충돌 없이 합쳐졌고, free-promo 무료 문구(title "지금은 기본 운세 풀이 무료", 가격 표시 항목 제외 note)는 그대로다(UX는 그룹·href만 바꿈). 이전 재생성 커밋 `ad405fbb8`은 내용이 비어 빠졌다(49커밋 → 48 + 재생성 1). 재생성 커밋 `1856c615d`(사이트맵 1,081 URL, llms·rss 변경 없음). push 없음. 위 줄들의 SHA는 rebase 전 값이다.
+- **2026-11-14 여섯·일곱 번째 rebase 끝(push 없음)**: `c70bc8a8d`(기준 `e1fc882d7`) → origin/main `05211086c`(30커밋 앞) 위 `3e2f444bd` → 전체 검증 중 origin/main이 또 움직여 `9a6ac23eb`(25커밋 앞) 위 `2fb08f421`로 한 번 더 옮겼다. 두 번 모두 충돌 0건(upstream 변경은 toss 앱·문서·worker/toss 등이고 이 브랜치가 고친 파일과 겹치는 것이 없다). `npm run sitemap:generate`는 두 번 모두 "갱신 0"이라 재생성 커밋이 없다. 71커밋 그대로. 검증과 사전 점검은 결과 기록 맨 끝.
 - 함정(이번에 겪음): 이 PC에는 python이 없다. 충돌 해결 스크립트는 node로 쓴다. 해결 명령과 `git add`·`rebase --continue`는 `&&`로 묶어, 해결이 실패하면 진행되지 않게 한다(한 번 충돌 마커가 커밋돼 `--fixup`+autosquash로 고쳤다).
 - 다음 순서(2026-11-14 지시): rebase 뒤 전체 검증 → 5-1 측정 이벤트 구현 → A1(유입 정보를 주문에 싣기, 결제 실행 파일을 건드리지 않는 쿠키 경로 재사용 안만) → 이용권 배너 문구 확인 → 검증 전체 재실행. F3(인앱 브라우저)는 구현하지 않고 제안서 상태로 둔다.
 - 루트 체크아웃 `D:\Development\code-destiny`는 다른 브랜치이고 origin/main보다 2,252커밋 뒤라 기준으로 쓰지 않는다.
@@ -47,7 +48,9 @@ Phase 0 보고서와 승인된 계획의 정본은 `docs/seo/phase0-report.md`�
   - 이용권 혜택 문구 = 표시 문구만 사실대로(정책 정본은 그대로).
   - **유지로 확정**: `/consultations/` noindex, "운세보는 영냥이" 설명 문장 3곳, C5 이용권 이름 통일 보류(지금 이름 유지), 번역 페이지 색인(noindex로 바꾸지 않음).
 - **아직 승인받지 않은 것**:
-  - **main push·스테이징 배포·운영 승격.** 묶음 2 적용분까지 모두 로컬 커밋뿐이다.
+  - **스테이징 push = 사용자 명시 승인 대기**(2026-11-14). 사용자 원문 "seo에서 추천되는 사항으로 결정해서 진행해줘"는 받았으나, push를 직접 가리키는 승인 문장을 다시 받기로 했다. 그 문장을 받기 전에는 push하지 않는다.
+  - **4-3(`/ziwei/` 로그인 복귀) = 보류.** 검색 노출에 영향이 없고 결제 동결 파일 수정이 필요해 이번에 적용하지 않음(이 세션의 추천 판단). 적용하려면 동결 파일 수정에 대한 사용자 명시 승인 필요.
+  - **main push·스테이징 배포·운영 승격.** 모두 로컬 커밋뿐이다.
   - `docs/seo/payment-change-proposal.md`의 결정 4건(F3·A1) — 결제 변경은 제안서만 있고 구현하지 않는다.
   - 검수 원장 항목 — 사용자가 실제 검수했다고 "URL · 확인한 날짜"를 알려 준 페이지만 넣는다. 원장은 계속 비워 둔다.
 
@@ -106,7 +109,7 @@ Phase 0 보고서와 승인된 계획의 정본은 `docs/seo/phase0-report.md`�
 - [x] 3-1 반복 섹션·`DEFAULT_FAQS`, 3-2 질문형 H2 결론 문단, 3-3 기준일·비교 페이지.
 
 ### 묶음 4 — 구매 동선
-- [ ] 4-1 결과 CTA 축소(F1), 4-2 사다리 표기·하드코딩 가격, 4-3 `/ziwei/` 로그인 복귀(F2), 4-4 결제 변경 제안서(F3·A1)만 쓰고 멈춤 — **4-4는 끝**(`docs/seo/payment-change-proposal.md`, 구현은 승인 뒤). **4-3만 남음(동결 파일 승인 필요, 결과 기록 "묶음 4 진행").**
+- [ ] 4-1 결과 CTA 축소(F1), 4-2 사다리 표기·하드코딩 가격, 4-3 `/ziwei/` 로그인 복귀(F2), 4-4 결제 변경 제안서(F3·A1)만 쓰고 멈춤 — **4-4는 끝**(`docs/seo/payment-change-proposal.md`, 구현은 승인 뒤). **4-3은 보류** — 검색 노출에 영향이 없고 결제 동결 파일 수정이 필요해 이번에 적용하지 않음(이 세션의 추천 판단). 적용하려면 동결 파일 수정에 대한 사용자 명시 승인 필요(방법은 결과 기록 "묶음 4 진행").
 
 ### 묶음 5 — 측정
 - [x] 5-1 퍼널 이벤트(A2), 5-2 `docs/seo/funnel-spec.md`·`naver-console-checklist.md` — 둘 다 끝. 5-1은 2026-11-14 구현(결과 기록 맨 끝). `free_result` placement를 실제로 쓰는 CTA는 묶음 4-1 몫.
@@ -382,3 +385,10 @@ SHA는 네 번째 rebase 뒤 기준이다. 모두 로컬 커밋이고 push하지
 - exit 0: `npm run typecheck`, `npm run lint`, `npm run i18n:check`, `verify-sitemap-integrity`, `verify-analytics-events`, 빌드(`ALLOW_DEV_SERVER_DURING_BUILD=1 npm run build`), `verify-home-identity`, `node --test scripts/seo/*.test.mjs`, `npm test`(jest 479 스위트·8004 통과·1 건너뜀 + node 테스트), `verify-payment-freeze`, `node scripts/check-changed.mjs --profile=fast --skip-build --base=origin/main`.
 - 첫 실행(4-3 포함 HEAD)에서는 `check-changed`만 exit 1이었다(캐시 핀, 위 4-3 참고). 4-3을 되돌린 뒤 전부 다시 돌렸다.
 - 실행 뒤 로컬 `origin/main` 참조가 `661e25a95`로 앞서 있었다(다른 체크아웃의 fetch). merge-base는 `e1fc882d7` 그대로이고 다시 rebase하지 않았다 — push 전에 한 번 더 rebase한다.
+
+### push 전 rebase·전체 검증·로컬 사전 점검 (2026-11-14)
+- rebase: 위 "지금 상태"의 여섯·일곱 번째 rebase. 충돌 0건, 재생성 0건, `git log origin/main..HEAD` 71커밋(이 문서 커밋 전 기준, 모두 이 작업 커밋).
+- 전체 검증(직접 실행, HEAD `3e2f444bd` = origin/main `05211086c` 위, 모두 exit 0): `npm run typecheck` · `npm run lint` · `npm run i18n:check` · `verify-sitemap-integrity`(1,081 URL) · `verify-analytics-events` · `ALLOW_DEV_SERVER_DURING_BUILD=1 npm run build`(postbuild 끝까지, verify-dist 실패 규칙 0. 다른 체크아웃 dev 서버는 건드리지 않음) · `verify-home-identity` · `node --test scripts/seo/*.test.mjs`(67) · `npm test`(jest 479 스위트·8,008 통과·1 건너뜀, node 5,074 통과·실패 0) · `verify-payment-freeze`(region 4 · file 3) · `node scripts/check-changed.mjs --profile=fast --skip-build --base=origin/main`(끝까지, jest 같은 수치). 실행 뒤 작업 트리 깨끗함.
+- 일곱 번째 rebase(HEAD `2fb08f421` = origin/main `9a6ac23eb` 위) 뒤에는 typecheck · `sitemap:generate`(갱신 0) · verify-sitemap-integrity · verify-analytics-events · verify-payment-freeze · `node --test scripts/seo/*.test.mjs`만 다시 돌렸다(모두 exit 0). **빌드·lint·i18n:check·verify-home-identity·`npm test`·check-changed는 이 HEAD에서 다시 돌리지 않았다.** 그 사이 upstream 25커밋은 `apps/toss`·`worker/toss`·`docs`·`lib/fortune` 2개·`worker/lib/saju-section` 2개·`worker/routes` 1개·`scripts` 1개·`.github/workflows` 1개이고 이 브랜치가 고친 파일과 겹치지 않는다. push 직전에 origin/main이 또 움직였으면 다시 rebase하고 check-changed를 돌린다.
+- 로컬 사전 점검: `docs/seo/prepush-verification.md`(빌드 산출물 `dist/`에서 핵심 20개 경로의 title·description·canonical·robots·hreflang·JSON-LD·H1, robots.txt·sitemap.xml·rss.xml·llms.txt). 이 브랜치 탓인 결함은 찾지 못해 코드 수정이 없다. 보고용 관찰 5건은 그 문서의 "눈에 띄는 점" 표.
+- 못 한 것: 스테이징 Yeti UA 응답·Lighthouse·화면 확인(push 뒤), 워커가 붙이는 응답 헤더(`X-Robots-Tag`)의 실제 응답 확인, `scripts/verify-home-entry-locale.cjs`(로컬 서버 필요).
