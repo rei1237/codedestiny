@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-14
-next: Linux artifact run43566721402(80bd0336a)에서 41경로·번들 검증 후 TaskSpace60 새 QR 등록·기능표 갱신·최종 전달
+next: Linux artifact run43566721402(80bd0336a)에서 41경로·번들 검증 후 TaskSpace63 새 QR 등록·기능표 갱신·최종 전달
 ---
 
 ## 첫 행동
@@ -63,3 +63,10 @@ tea-modes.mjs가 6모의상품/입력비교/기존계산snapshot 기반모의결
 - 최초로취소한artifact43563354748, push거절뒤의도치않게발생했으나즉시취소43566492420은사용금지. 새검증run43566721402는80bd정확SHA확인. watcher98131, logD:/Development/Temp/remaining-linux-ci-watch-final.txt. SHAref는GitHub422로지원안됨, mainref후실SHA확인필수.
 - title폭54(실adsense함수로9개모두≤60), freepromo7PASS. sitemap9서명갱신·일일375날짜보존은최신main수정유지. check1081URLPASS. 로그remaining-merged-prepush.txt. 전체checkfast반복불필요(기능코드추가변경없음).
 - docs/handoff,build-service-inventory,remaining-modes의진행중편집은prepush동안Temp/remaining-docs-hold에보존했다가현재복원됨. 다른세션파일을수정하지않음.
+
+## 최종 전달 세션
+- linux_delivery가 handoff 정본을 읽고 편집·전달을 인수했다. 기존 Ego TaskSpace60은 `task space not found`로 소실 확인. 사용자 원문 “새 작업공간에서 계속”의 지속 승인을 root가 재확인하여 같은 QR 목표로 TaskSpace63/p1을 생성했다. 기존 사용자 소유 0·24는 건드리지 않았다.
+- TaskSpace63의 ai-saju-studio 업로드 폼이 준비됐으며 아직 새 파일 업로드·임시저장 없음. Ego Lite 업데이트 알림만 확인, 업그레이드는 하지 않았다.
+- Linux artifact run43566721402는 정확한 runtime SHA80bd의 선행 pushCI와 concurrency로 대기 중. 기존 watcher 핸들은 새 세션에서 사용할 수 없어 gh run watch 세션69583으로 필요한 산출물만 기다린다. 새 runtime 커밋·push·dispatch 없음.
+- 선행 mainCI43566695390은 Static guards 취소/aggregate 실패로 종료. Critical·Build·Typecheck는 성공. 35분 정체를 진단하니 기존 `yeongnyangi-result-focus.test.mjs`의 Next Image mock이 경고 2개의 base64 스택을 7,716,181 bytes 출력했다. 로컬 기존8검사 0.72초 PASS, DOM 속성 mock 최소수정 후 같은8검사 0.39초·901 bytes PASS. runtime 변경 없이 별도 테스트 복구 커밋한다. 취소 요청은 이미 종료된 run이라 거절됐으며 우리가 실제 취소한 것은 아님.
+- Linux artifact run43566721402는 시작됐고 Critical job132370661041에서 정확80bd AIT 생성·41경로 검사를 실행한다. 테스트 대역만 고친 최종 전달 SHA와 runtime SHA80bd를 구분한다.
