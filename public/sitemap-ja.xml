@@ -2,7 +2,7 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
     <loc>https://code-destiny.com/ja/</loc>
-    <xhtml:link rel="alternate" hreflang="ko" href="https://code-destiny.com/ggulggul/" />
+    <xhtml:link rel="alternate" hreflang="ko" href="https://code-destiny.com/" />
     <xhtml:link rel="alternate" hreflang="ja" href="https://code-destiny.com/ja/" />
     <xhtml:link rel="alternate" hreflang="zh-CN" href="https://code-destiny.com/zh/" />
     <xhtml:link rel="alternate" hreflang="zh" href="https://code-destiny.com/zh/" />
@@ -10,7 +10,7 @@
     <xhtml:link rel="alternate" hreflang="zh-TW" href="https://code-destiny.com/zh-tw/" />
     <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh-tw/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/ggulggul/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/" />
     <lastmod>2026-11-14</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.00</priority>
@@ -24,7 +24,7 @@
     <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://code-destiny.com/zh/about/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/about/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/about/" />
-    <lastmod>2026-11-13</lastmod>
+    <lastmod>2026-11-14</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.70</priority>
   </url>
@@ -67,7 +67,7 @@
     <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://code-destiny.com/zh/contact/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/contact/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/contact/" />
-    <lastmod>2026-11-13</lastmod>
+    <lastmod>2026-11-14</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.70</priority>
   </url>
@@ -93,7 +93,7 @@
     <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://code-destiny.com/zh/disclaimer/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/disclaimer/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/disclaimer/" />
-    <lastmod>2026-11-13</lastmod>
+    <lastmod>2026-11-14</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.70</priority>
   </url>
@@ -106,7 +106,7 @@
     <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://code-destiny.com/zh/faq/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/faq/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/faq/" />
-    <lastmod>2026-11-13</lastmod>
+    <lastmod>2026-11-14</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.70</priority>
   </url>
