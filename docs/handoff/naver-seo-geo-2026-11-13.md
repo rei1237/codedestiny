@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-14
-next: 운영 승격 승인 대기 / 4-3 보류 / 검수 원장은 사용자 입력 대기 — 그 전에 로컬 커밋(analytics.js 캐시 핀 수정 + 문서)을 main에 올릴지 결정 필요(main의 Secret Scan이 다른 작업 커밋 9bbc65bbf 때문에 실패 중)
+next: 운영 승격 막힘 — 승격은 main HEAD 전체를 내보내는데 운영(91e4261d8)에 아직 없는 다른 세션(toss·UX)의 웹 유료 라우트 인증·결제 확인·구매 접근 변경이 같이 나간다(목록 docs/seo/production-verification.md §3). 사용자가 동반 출고를 승인하거나 그 세션들이 먼저 승격해야 한다 / 승격 뒤 운영 검증 / 네이버 서치어드바이저 제출(docs/seo/naver-console-checklist.md)은 사용자 작업 / 4-3 보류 / 검수 원장 입력 대기 / LCP 후속
 ---
 # 네이버 SEO·AEO·GEO + 구매 동선 (Phase 1~5)
 
@@ -14,6 +14,7 @@ Phase 0 보고서와 승인된 계획의 정본은 `docs/seo/phase0-report.md`�
 4. 파일 경로는 추측하지 않는다. 보고서의 줄 번호는 `f2db2995d` 기준이므로 고치기 전에 `rg`로 다시 확인한다.
 
 ## 지금 상태
+- **2026-11-14 밤, 운영 승격 미실행·3커밋 push 끝**: origin/main = `c562be344`(이 작업 75커밋이 모두 main에 있음). 스테이징은 `c562be344`를 서빙한다. 운영은 그대로 `91e4261d8`. 이 브랜치에는 그 위에 push하지 않은 문서 커밋(이 문서와 `docs/seo/production-verification.md`)만 있다. 워크트리는 지우지 않았다. 사유와 수치는 결과 기록 맨 끝 "운영 승격 시도".
 - **2026-11-14 스테이징 반영 끝**: `9a6ac23eb..cea92ad58`(72커밋)를 origin main에 올렸고 스테이징 검증을 마쳤다(`docs/seo/staging-verification.md`). 지금 origin/main은 `438f6c16d`(toss 35커밋 추가)이고, 이 브랜치에는 그 위에 **push하지 않은 로컬 커밋**(analytics.js 캐시 핀 수정 + 문서)이 있다. 사유는 결과 기록 마지막 절.
 - 브랜치 `wt/naver-seo-geo-20261113-234756`, 기준 `f2db2995d`. 운영 배포본은 `91e4261d8`(그 위에 문서 커밋 1개).
 - 2026-11-14: 묶음 1 구현·검증 끝(1-4의 C5만 보류). 코드 마지막 커밋 `23c689fd2`. push 없음. push 승인을 기다린다.
@@ -27,6 +28,7 @@ Phase 0 보고서와 승인된 계획의 정본은 `docs/seo/phase0-report.md`�
 - 루트 체크아웃 `D:\Development\code-destiny`는 다른 브랜치이고 origin/main보다 2,252커밋 뒤라 기준으로 쓰지 않는다.
 
 ## 승인 상태
+- **2026-11-14 운영 승격 승인**: 사용자 원문 "승격 승인할께 운영에서 이 변경이 적용되도록해줘"(조정 세션이 전달). 범위는 (a) 로컬 3커밋을 main에 push, (b) 운영 승격 **1회**. 운영 검증에서 나온 결함의 forward-fix와 재승격은 범위 밖이라 하지 않고 보고한다. 운영 DB 쓰기·실결제·환불·과금 LLM·게이트 우회 금지. **이 승인으로 승격을 실행하지 못했다**(사유는 결과 기록 "운영 승격 시도"). 승인 대상은 "이 변경"(SEO 작업)이고, 다른 세션의 인증·유료 접근 변경까지 함께 내보내는 것은 사용자가 따로 정해야 한다.
 - **2026-11-14 스테이징 push 승인**: 사용자 원문 "스테이징 푸시해"(조정 세션이 전달). 범위는 이 브랜치 커밋을 origin main에 한 번 push(=스테이징 배포)하고, 검증에서 나온 이 브랜치의 결함을 forward-fix하는 것까지다. **운영 승격(`workflow_dispatch mode=production` 등)은 미승인이라 실행하지 않는다.** 운영 DB 쓰기·실결제·과금 LLM 금지. 4-3은 계속 보류.
 - 2026-11-13 사용자가 계획 전체를 승인했다(계획 모드 승인). 승인 범위는 묶음 1~5의 **구현과 로컬 커밋**까지다.
 - **main push(스테이징)는 묶음마다 사용자 승인**, **운영 승격은 별도 승인**이다. 사용자 답변 원문: 작업 방식 = "저장소 규칙대로 (Recommended)" — origin/main 기반 전용 워크트리, 묶음마다 승인 뒤 내 커밋만 main push, 운영 승격은 별도 승인.
@@ -51,7 +53,7 @@ Phase 0 보고서와 승인된 계획의 정본은 `docs/seo/phase0-report.md`�
   - **유지로 확정**: `/consultations/` noindex, "운세보는 영냥이" 설명 문장 3곳, C5 이용권 이름 통일 보류(지금 이름 유지), 번역 페이지 색인(noindex로 바꾸지 않음).
 - **아직 승인받지 않은 것**:
   - **4-3(`/ziwei/` 로그인 복귀) = 보류.** 검색 노출에 영향이 없고 결제 동결 파일 수정이 필요해 이번에 적용하지 않음(이 세션의 추천 판단). 적용하려면 동결 파일 수정에 대한 사용자 명시 승인 필요.
-  - **운영 승격.** 스테이징 push는 2026-11-14에 승인받아 한 번 했다(위). 운영 승격은 따로 승인받아야 한다.
+  - **다른 세션 변경을 함께 내보내는 운영 승격.** SEO 변경의 승격은 2026-11-14에 승인받았지만(맨 위), 승격은 main HEAD 전체를 내보내므로 toss·UX 세션의 미운영 변경이 같이 나간다. 그 동반 출고는 승인받지 않았다.
   - `docs/seo/payment-change-proposal.md`의 결정 4건(F3·A1) — 결제 변경은 제안서만 있고 구현하지 않는다.
   - 검수 원장 항목 — 사용자가 실제 검수했다고 "URL · 확인한 날짜"를 알려 준 페이지만 넣는다. 원장은 계속 비워 둔다.
 
@@ -415,3 +417,19 @@ aver-seo-staging`.
 - push 뒤 origin/main은 `438f6c16d`로 움직였고(toss 35커밋) 로컬 커밋은 그 위로 rebase해 두었다. 스테이징은 지금 `438f6c16d`를 서빙한다.
 - 운영 승격 전에 알아야 할 것: (1) 캐시 핀 수정이 먼저 main에 들어가야 한다. (2) Secret Scan 실패는 승격 직전 `verify:no-secret-leak`에서도 걸릴 수 있다(추론). (3) 운영 robots meta·robots.txt·`/ggulggul/?action=` 헤더는 승격 뒤에만 실제 응답으로 확인할 수 있다. (4) `NaPm`=유료 가정은 운영 데이터로 확인이 필요하다.
 - 캐시 핀 수정 검증(직접 실행, 모두 exit 0): typecheck, lint, verify-analytics-events, check:pre-push, build(`ALLOW_DEV_SERVER_DURING_BUILD=1`), `check-changed --profile=fast --skip-build --base=origin/main`(jest 8 스위트 115 테스트 통과), verify:payment-freeze, verify-home-identity. 빌드된 `dist/saju/index.html`은 새 핀만 부른다(옛 핀 0회). 스테이징에서는 push 전이라 확인하지 못했다.
+
+
+### 운영 승격 시도 — 실행하지 않음 (2026-11-14 밤, 직접 실행)
+정본은 `docs/seo/production-verification.md`(승격 전 패킷·막힌 이유·롤백 방법)다.
+- **3커밋 push**: `git push origin HEAD:main` → `3095d6149..c562be344`(`98b0280ae` 문서, `38dd3ed7d` 캐시 핀 수정, `c562be344` 문서. fast-forward, 강제 옵션 없음). push 전 `git log origin/main..HEAD`가 이 3개뿐임을 확인했다. 로컬 검증은 `7e8d6523a` 위에서 check:pre-push·typecheck·verify-analytics-events·verify:payment-freeze·빌드 모두 exit 0(`dist/saju/index.html` 새 핀 1회·옛 핀 0회), `3095d6149`로 rebase한 뒤에는 check:pre-push만 다시 돌렸다(exit 0, 그 사이 upstream 변경은 toss 테스트·문서뿐).
+- **push 전 main CI**: `438f6c16d` push 런은 실패(toss 테스트가 없는 CSS 파일을 찾음)했고 toss 세션이 `7e8d6523a`·`118456b3a`로 고쳤다. `3095d6149` 전체 CI 수동 런 43601482167이 Critical checks까지 성공한 것을 보고 올렸다.
+- **push 뒤 CI(`c562be344`)**: PR CI 43604643252 성공(CI required 성공, Critical checks는 위험 등급 판정으로 건너뜀), Release push 43604643296 성공, 스테이징 배포 43604706416 성공, Landing Watchdog·Main drift watchdog·AI Locale Gate 성공. Secret Scan 43604643281 실패(아래).
+- **스테이징 확인**: `https://staging.code-destiny.com/api/version` = `c562be34432c…`. `/saju/`·`/saju/free/` HTML(Yeti UA)에 `analytics.js?v=20261114-entry-source-v1` 2회, 옛 핀 `20261113-regional-consent-v1` 0회. 그 URL은 200(25,571바이트)이고 유입 처리 코드가 들어 있다. `/about/`은 운영·스테이징 모두 analytics.js를 부르지 않는다(이 작업 전부터 그런 페이지).
+- **Secret Scan**: 지금도 실패(탐지 1건, 지문 `9bbc65bbf88d5c7f6701df89efe4f41d3e1d24ee:worker/lib/saju-section/runtime.generated.mjs:generic-api-key:9`). 오탐으로 판단했다 — 번역 사전 한 줄 안의 번역 키 이름(`sajuQuantum.sq_<숫자 4자리>_prop_label` 모양)이고 자격 증명이 아니다. 릴리스 워크플로는 Secret Scan을 참조하지 않아 승격을 막지 않는다(워크플로 정의 확인 + 같은 파일이 든 스테이징 릴리스 성공). 고치는 일(`.gitleaksignore`에 지문 추가)은 그 파일을 만든 toss 세션 몫이라 손대지 않았다. 직전 절의 "승격 직전 `verify:no-secret-leak`에서 걸릴 수 있다"는 추론은 틀렸다 — 그 검사는 빌드 산출물을 보는 다른 검사다.
+- **승격을 실행하지 않은 이유**: 운영 `91e4261d8`과 main 사이는 429커밋(`7e8d6523a` 기준)이고 이 작업은 72개, 다른 세션이 357개다. 그 357개 가운데 36개가 웹과 같이 쓰는 Worker(`worker/routes`·`worker/lib`·`worker/yeongnyangi`)를 고쳤고, 그중에 유료 라우트의 `requireAuth` 분기, 결제 확인(`verifyPerUsePayment`) 분기, 환불 가능 실행 기록·사용량 차감을 건너뛰는 분기, 구매 세션 접근 판정, 유료 실행 거래 DB 호출 감싸기, `PaidExecutionRecord` 스키마 필드 추가가 있다(파일·커밋 표는 정본 §3). 지시가 "다른 세션 커밋 중 웹 운영 경로의 결제 실행·가격/이용권 정책·인증·DB 마이그레이션·wrangler.toml을 바꾸는 것이 있고 아직 운영에 없으면 승격하지 말고 보고"였고, 사용자가 승인한 것은 "이 변경"이다.
+  - 덜 걱정해도 되는 근거: toss 분기는 `worker/toss/native-context.js`의 `WeakMap`에 toss 라우터가 묶은 요청에서만 켜지고 헤더·쿠키로 만들 수 없다(코드 확인). 결제 실행 파일(`worker/routes/billing.js`·`payments.js`, `worker/payments/`, `lib/payment/`, `config/payment-freeze.json`)·`worker/wrangler.toml`·`worker/index.js`·인증 라이브러리·package 파일은 운영과 같다. 전부 스테이징에는 배포돼 있고 main CI는 초록이다. 웹 요청 동작이 그대로라는 것은 추정이다(운영에서 돈 적이 없다).
+- **승격하려면 사용자가 정할 것**: (가) 다른 세션 357커밋을 함께 운영에 내보내도 된다고 승인하거나, (나) toss·UX 세션이 자기 변경의 승격 승인을 받아 먼저 올린 뒤 이 작업을 올린다. (가)라면 승격 명령은 `gh workflow run "Release Cloudflare Pages and Worker" --ref main -f mode=production`(그때의 main HEAD가 나간다. 실행 직전에 `git log 91e4261d8..origin/main`을 다시 보고 새 민감 변경이 없는지 확인한다).
+- **승격 뒤 할 운영 검증(아직 안 함)**: `/api/version` SHA, 핵심 20개 URL(Yeti·모바일 UA), `robots.txt`·`sitemap.xml`·`rss.xml`·`llms.txt`, `/?action=`·`/ggulggul/?action=` 헤더, `/points/` noindex, Next 페이지의 analytics 핀, Playwright 화면(`D:DevelopmentTemp
+aver-seo-production`), 읽기 전용 스모크. 로그인·결제 없이, 부하를 최소로.
+- **롤백**: 정본 §6. Actions의 같은 워크플로를 `mode: rollback`으로 실행하고 대상은 `npm run deploy:rollback -- --list`로 본다. 지금 운영 `91e4261`의 Worker 버전은 `c20216d0-4b9d-4882-b6c8-25cceb02eddd`.
+- **하지 않은 것**: 운영 승격, 운영 검증과 화면 캡처, Secret Scan 수정, 네이버 서치어드바이저 제출, 4-3, 검수 원장.
