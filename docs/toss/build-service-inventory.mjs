@@ -151,9 +151,9 @@ const localEvidence={
  maya:{tossRoute:'/maya/',status:'local-partial',inputContract:'일반 진입은 웹 원본 MayaPromptGeneratorCard의 날짜·이름·출생일·주제·질문. maya-prompt-generator 무료 정책',resultRenderer:'Screens.jsx가 일반 무료 프롬프트와 verifiedReceipt 과거 구매 TossMayaPrompt를 구분. 원본 generateMayaReadingPrompt 재사용',storageContract:'신규 무료 프롬프트는 비회원 현재 화면. 과거 구매의 저장 원문·주문 복구는 소유 계정에만 제공',verification:'private-maya-free.mjs 실제 로컬 AIT 홈 → 비회원 윤일·질문 → 웹 원본 프롬프트 완전 일치, 360·390·430px, 로그인·주문 0. 기존 구매 계정/환불/초안복구 테스트 유지. Linux AIT·과거 주문 실기기 복구는 별도 확인'},
  novel:{tossRoute:'/novel',status:'local-partial',inputContract:'원본 한국어 공개 텍스트판의 회차·인물·현실/운명 선택',resultRenderer:'apps/toss/src/NovelReader.tsx',storageContract:'공개 콘텐츠의 회차·쪽·개정값을 같은 기기에 저장. 개정된 회차는 첫 쪽부터. 웹 텍스트판과 비주얼노벨의 제공 범위는 구분',verification:'novel-reader.test.mjs 원본 공개 회차·분기·재진입·개정·잘못된 값·저장 불가 확인. private-free-reading.mjs 로컬 AIT 홈에서 2쪽을 읽고 탭 종료·재진입해 같은 위치 복원, 360·390·430px 및 0주문 확인. Linux AIT·휴대폰은 별도 확인'},
  'famous-saju':{tossRoute:'/insights/famous-saju',status:'local-partial',inputContract:'웹 getFamousArchive의 공개 인물·분야·국가·일간·일주·정렬·페이지, 60일주와 원본 상세',resultRenderer:'apps/toss/src/FamousLibrary.tsx + 원본 getCelebritySajuPage·getCelebrityEditorial·buildCelebrityMultiSystem·getIljuReading',storageContract:'공개 원문 227명과 60일주. 검색/상세/필터 URL로 재진입. 승인 글과 원본 검수 전 해설 상태를 구분',verification:'famous-library.test.mjs 원문·공개 경계·227명·60일주 대조. 로컬 AIT 홈 → 60일주·계산 후보 → 원본 상세·세 체계 → 새로고침 동일 상세. 360·390·430px, 로그인·주문 0. Linux AIT 및 휴대폰은 별도 확인'},
- music:{tossRoute:'/music',status:'local-partial',inputContract:'stream list projected from original track manifest and free_full policy only',resultRenderer:'apps/toss/src/MusicShelf.tsx',storageContract:'stream only; paid downloads, library and device audio parity pending'},
- astrology:{tossRoute:'/astrology',status:'local-partial',inputContract:'게스트 출생정보와 시각 미상. 원본 /api/astrology/basic 차트와 무료 10종 strict Swiss 풀이',resultRenderer:'apps/toss/src/AstroReading.tsx + AstroChartView.tsx + AstroReadingBody.tsx',storageContract:'현재 화면의 원본 휠·행성·각도와 10종 풀이. 저장 출생정보와 별도 유료 전문가 상담의 권리는 분리',verification:'ce93c3eac. 서양·숙요 원본 계약 targeted 81개와 Toss 타입 검사 통과. 새 private fixture·실제 AIT·기기 검증은 후속 기록 참조'},
- vedic:{tossRoute:'/vedic',status:'local-partial',inputContract:'authenticated birth input; precise Swiss sidereal/Lahiri chart',resultRenderer:'apps/toss/src/BasicSkyChart.tsx',storageContract:'result in memory only; guest/web profiles, full chart and device parity pending'},
+ music:{tossRoute:'/music',status:'local-partial',inputContract:'원본 allTracks/free_full 무료 재생. MP3는 곡별 독립 featureKey·토스 승인 SKU의 소유 다운로드',resultRenderer:'apps/toss/src/MusicShelf.tsx + MusicDownload.tsx + music-download-file.ts',storageContract:'동일 곡 주문의 원본 음원권리·보관함·재열람, 웹 구매·이용권과 토스 계정은 분리',verification:'음악 source/원본 proxy/모의 API/SDK 파일 경계 targeted 검증. 실제 AIT 추가 QA 진행. SDK base64 경로의 32MiB 초과 파일은 저장 제한·권리 유지, 실곡/기기 확인 필요'},
+ astrology:{tossRoute:'/astrology',status:'local-partial',inputContract:'게스트 국제 출생·IANA시간대·시각미상. 원본 strict Swiss 차트·10종 풀이 및 직접/305명 유명인 시너스트리2종',resultRenderer:'apps/toss/src/AstroHome.tsx + AstroReading.tsx + AstroChartView.tsx + AstroReadingBody.tsx + AstroSynastry.tsx',storageContract:'현재 화면의 원본 휠·행성·각도와 10종 풀이. 저장 출생정보와 별도 유료 전문가 상담의 권리는 분리',verification:'ce93c3eac. 서양·숙요 원본 계약 targeted 81개와 Toss 타입 검사 통과. 새 private fixture·실제 AIT·기기 검증은 후속 기록 참조'},
+ vedic:{tossRoute:'/vedic',status:'local-partial',inputContract:'기본 guest 명반은 국제 출생·IANA 시간대와 strict Swiss Lahiri. 궁합은 로그인 뒤 두 출생정보, 독립 Prashna는 단일 질문·현재시각·위도/경도',resultRenderer:'apps/toss/src/VedicHome.tsx + service/VedicReading.jsx + service/VedicCompatibility.jsx + src/VedicPrashna.tsx',storageContract:'기본 명반·무료 궁합·Prashna는 현재 화면. 원본정책대로 새 구매 보관함 저장 없음',verification:'기본7토픽/8상세·남북명반, 궁합27×27/8항목, Prashna원본 prompt·chart 동등성 및 실제 Windows AIT 홈·로그인/무료·3폭 확인'},
  nakshatra:{tossRoute:'/nakshatra/resolve',status:'local-partial',publicSubflows:['/nakshatra/codex','/nakshatra/codex/[0..26]'],inputContract:'웹 /nakshatra/calc/ 양력·출생시각/미상·도시와 국가. 원본 resolveNatal과 일본 구력, Lahiri',resultRenderer:'apps/toss/src/MansionReading.tsx + app/nakshatra/_components/LifeReading.tsx',storageContract:'게스트 현재 화면 무료 리딩 5개 주제. 기존 웹 주문·개인 AI 리포트 별도',verification:'studio-mansion-reading-browser.mjs 360px 게스트→출생→5장·계산 근거·오늘의 달/격각/타라발라. 토스 세션에서는 소유 프로필 입력도 지원. 서비스별 이력·실기기 미검증'},
  'nakshatra-lord-report':{tossRoute:'/nakshatra/lord-report',status:'local-partial',inputContract:'소유 프로필·음력/시간미상. worker/routes/nakshatra-premium.js와 원본 buildNakshatraLordReport',resultRenderer:'apps/toss/src/MansionReports.tsx. 원본 지배성과 파다·기질·근거 11개 절',storageContract:'무료 기능 키를 확인하고 같은 계정의 저장된 출생으로 재계산. 웹의 예전 영구 해금은 웹 원장에 유지',verification:'studio-mansion-reports-browser.mjs: 360px 로그인과 소유 프로필→원본 11개 절·주문 0. 실제 Worker/기기 미검증'},
  'nakshatra-dasha-map':{tossRoute:'/nakshatra/dasha-map',status:'local-partial',inputContract:'소유 프로필·음력/시간미상. 원본 buildNakshatraDashaMap, 비쇼타리 + 동양 대운',resultRenderer:'apps/toss/src/MansionReports.tsx + app/nakshatra/dasha-map/PeriodRow.tsx 원본 타임라인',storageContract:'무료 키와 계정을 확인하고 재계산. 웹의 과거 영구 해금은 웹 원장에 유지',verification:'360px 대주기·매번 9개 부주기·날짜·시기별 해설, 0주문. 실기기·운영 Swiss 미검증'},
@@ -495,6 +495,24 @@ for(const group of canonicalCandidates){
  if(destinations.length)group.currentEntry='Linux AIT 일반 홈 → 꿀꿀운세 → '+group.archiveHomeButtons.join(' / ')+' · 상위 화면 진입 확인';
  if(checks.length)group.bundleVerification=checks.map(check=>check.scope).join(' · ')+' · 360px 배포 AIT 브라우저, 토스 휴대폰 미검증';
  else if(destinations.length)group.bundleVerification='일반 AIT에서 상위 화면 진입 확인. 하위 입력·결과·재열람의 검증 근거는 verification 참조. 휴대폰 미검증';
+}
+// A code gap, a missing production configuration and a device check are separate
+// stages. Preserve historical status fields, but stop labelling every device-only
+// follow-up as unfinished implementation.
+const sourceAudit=readJson('docs/toss/original-mode-audit-20261114.json');
+if(sourceAudit.rows.length!==canonicalCandidates.length||new Set(sourceAudit.rows.map(row=>row.id)).size!==canonicalCandidates.length)throw Error('Original mode audit scope changed');
+const localOnly=new Set(['consultation-webtoons','heukwol-story','home-widget','juyuk-turtle','kemet-oracle','royal-tea-oracle','stonehenge-runes','ifa-oracle','lenormand-six','mbti-animal-compat','novel','psychotest','famous-saju','bias-destiny','tin-oracle','yeongnyangi-season']);
+for(const group of canonicalCandidates){
+ const audit=sourceAudit.rows.find(row=>row.id===group.id);if(!audit)throw Error('Missing original mode audit: '+group.id);
+ group.sourceAudit={path:'docs/toss/original-mode-audit-20261114.json',reviewState:audit.reviewState,reviewedModes:audit.reviewedModes,codeGaps:audit.codeGaps};
+ group.implementationStage=audit.codeGaps.length?'확인된 코드/모의 연결 누락 있음':'기존 원본 계약 및 개발 검증 근거 대조 완료';
+ group.deviceStage='토스 휴대폰의 SDK·키보드·네트워크·파일/오디오 확인 미완료';
+ group.portStatus=audit.codeGaps.length?'일부만 이식':localOnly.has(group.id)?'이미 동작':'콘솔·운영 설정 필요';
+ group.portStatusScope='개발 구현 판정이며 운영 출시 완료를 뜻하지 않음';
+ if(group.id==='vedic')group.tossLogin='기본 명반은 게스트, 무료 궁합·Prashna는 로그인';
+ if(group.id==='astrology')group.tossLogin='기본 차트·10풀이·두 궁합 모두 게스트';
+ if(group.id==='music')group.tossLogin='무료 재생은 게스트, MP3 구매·저장은 소유 계정';
+ if(audit.currentArchiveEvidence)group.currentArchiveEvidence=audit.currentArchiveEvidence;
 }
 for(const row of rows){
  const group=groups.get(row.toss.canonicalId);

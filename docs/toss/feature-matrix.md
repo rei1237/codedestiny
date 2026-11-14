@@ -2,6 +2,8 @@
 
 2026-11-14 기준. 기존 비공개 QR15는 `80bd0336a` 시점의 Linux 검증판이다. 후속 서양·숙요·전생·시크릿하우스와 무손실 압축을 포함한 로컬 Windows AIT `01a1d9a6-b532-7935-9435-fae5d29976ac`는 확장 크기 99,993,828바이트이며, 이 후속 변경의 새 Linux AIT·QR 전달은 아직 완료하지 않았다. 로컬 AIT 검증과 토스 휴대폰·운영 검증을 구분한다.
 
+최신 단계별 판정은 아래 자동 생성 110개 목록과 원본 하위 모드 대조표를 기준으로 합니다. `일부만 이식`은 현재 확인된 코드 누락(동물점 상세·음악 다운로드 후속 검증)에만 사용하고, 코드가 연결됐지만 운영 Worker·상품·로그인 설정이 필요한 경우는 `콘솔·운영 설정 필요`로 구분합니다. `이미 동작`도 개발 검증 범위이며 휴대폰 검증이나 출시 완료를 뜻하지 않습니다. 아래 수동 상세 표의 과거 `일부만 이식` 문구는 당시 검증 이력이며, 최신 단계 판정을 덮어쓰지 않습니다.
+
 전체 행은 [기능별 원장](./full-service-inventory.json)에 있다. `canonicalCandidates`는 홈 별칭을 합친 기능별 목록이다. 각 행에 웹 진입·원본·상품 키, 축소판 진입, 새 홈 연결, 토스 로그인·결과·저장 계약과 검증 한계를 기록한다. `consultationProducts`는 같은 상품 안에서도 질문·궁합·대운처럼 입력과 챕터가 달라지는 모드를 나눈다. `productContracts`의 179개 행에는 판매 종료·옛 별칭도 포함된다. 현재 웹에서 179개 상품을 판매한다는 뜻으로 사용할 수 없다.
 
 [110개 원본 하위 모드 대조표](./original-mode-audit-20261114.json)는 같은 110개 행 안에서 대조한 원본 범위, 확인된 코드 누락, 기존 담당 증거의 대조 대기, AIT·실기기·운영 단계를 구분한다. `prior-evidence-to-reconcile`은 새로운 코드 누락 판정이 아니다. 기존 증거와 원본 선택지를 한 번 대조해 상태를 확정하며, 확인한 항목을 근거 없이 전체 재탐색하지 않는다.
@@ -125,115 +127,115 @@
 | 기능 | 웹 진입 | 토스 진입 | 일반 홈 검증 | 이식 | 배포 AIT 세부 검사 |
 |---|---|---|---|---|---|
 | 십이운성 동물점 | /saju/animal-destiny/ | /saju/animal-destiny | 홈 버튼 · 십이운성 동물점 | 일부만 이식 | 상품별 로컬 근거는 JSON 참조 |
-| 애니멀 토템 | openAnimalTotemModal | /animal-totem/ | 홈 버튼 · 애니멀 토템 | 일부만 이식 | 상품별 로컬 근거는 JSON 참조 |
-| 점성술 | /?action=cdHomeAstroEntry | /astrology | 홈 버튼 · 서양 점성술 출생차트 | 일부만 이식 | 상품별 로컬 근거는 JSON 참조 |
-| 점성술 전문가 상담 | /astrology-ai | /astrology-ai/ | 홈 버튼 · 점성술 전문가 상담 | 일부만 이식 | experts |
-| 최애운명 | /saju/destiny-bias | /bias | 홈 버튼 · 최애운명 | 일부만 이식 | 상품별 로컬 근거는 JSON 참조 |
-| 나의 일 스타일 | /saju/career-style/ | /saju/career-style/ | 홈 버튼 · 나의 일 스타일 | 일부만 이식 | 상품별 로컬 근거는 JSON 참조 |
-| 상담 세계관 웹툰 | /consultations/ | /consultations/stories | 홈 버튼 · 달빛 상담 웹툰 서가 | 일부만 이식 | stories |
-| 코스믹 소울 명상 | /cosmic-soul-meditation.html | /meditation/cosmic | 홈 버튼 · 코스믹 소울 명상 | 일부만 이식 | 상품별 로컬 근거는 JSON 참조 |
-| 운명의 나침반 | /destiny-compass/ | /destiny-compass | 홈 버튼 · 운명의 나침반 | 일부만 이식 | 상품별 로컬 근거는 JSON 참조 |
-| 운명의 갈림길 | /destiny-compass/ | /destiny-compass | 홈 버튼 · 운명의 나침반 | 일부만 이식 | 상품별 로컬 근거는 JSON 참조 |
-| 운명의 지도 심층 리포트 | /destiny-compass/ | /destiny-compass | 홈 버튼 · 운명의 나침반 | 일부만 이식 | 상품별 로컬 근거는 JSON 참조 |
-| 미래 시뮬레이션 | /destiny-compass/ | /destiny-compass | 홈 버튼 · 운명의 나침반 | 일부만 이식 | 상품별 로컬 근거는 JSON 참조 |
-| 삶의 항로 | /destiny-compass/ | /destiny-compass | 홈 버튼 · 운명의 나침반 | 일부만 이식 | 상품별 로컬 근거는 JSON 참조 |
-| 사주로 보는 인연의 장소 | /saju/destiny-meeting-place | /saju/destiny-meeting-place/ | 홈 버튼 · 운명의 인연 장소 | 일부만 이식 | 상품별 로컬 근거는 JSON 참조 |
-| 꿈해몽 | /dream/ | /dream/tarot | 홈 버튼 · 드림 타로 | 이미 동작 | tarot |
-| 정신분석 해몽 | openPsychoDreamModal | /dream/psycho/ | 홈 버튼 · 정신분석 해몽 | 일부만 이식 | 상품별 로컬 근거는 JSON 참조 |
-| 사주로 보는 여행지 | js/core/saju/reportDashboard.js:trip -> energyCoordCard | /saju/sections | 홈 버튼 · 사주 리포트 | 일부만 이식 | sections |
-| 전문가 관상 분석 | /animal/physio | /animal/physio/ | 홈 버튼 · 전문가 동물 관상 | 일부만 이식 | face |
-| 유명인 사주 | /insights/famous-saju/ | /insights/famous-saju | 홈 버튼 · 유명인 사주 | 일부만 이식 | 상품별 로컬 근거는 JSON 참조 |
-| 점성술 꽃 | /index.html?action=openAstrologyFlowerStudio | /flower | 홈 버튼 · 운명의 꽃 | 일부만 이식 | 상품별 로컬 근거는 JSON 참조 |
-| 대화형 운명 상담 | /fortune-chat/ | /fortune-tea-house/?counsel=letter | 홈 버튼 · 연이의 상담 편지 | 일부만 이식 | character-letter-saju, character-letter-ziwei, character-letter-sukuyo, character-letter-vedic, character-letter-astrology, character-letter-tarot, remaining-letter-saju, remaining-letter-ziwei, remaining-letter-sukuyo, remaining-letter-vedic, remaining-letter-astrology, remaining-letter-tarot, remaining-letter-saju-mackerel, remaining-letter-saju-salmon, remaining-letter-saju-flounder, remaining-letter-saju-tuna, remaining-letter-ziwei-mackerel, remaining-letter-ziwei-salmon, remaining-letter-ziwei-flounder, remaining-letter-ziwei-tuna, remaining-letter-sukuyo-mackerel, remaining-letter-sukuyo-salmon, remaining-letter-sukuyo-flounder, remaining-letter-vedic-mackerel, remaining-letter-vedic-salmon, remaining-letter-vedic-flounder, remaining-letter-vedic-tuna, remaining-letter-astrology-mackerel, remaining-letter-astrology-salmon, remaining-letter-astrology-flounder, remaining-letter-tarot-mackerel, remaining-letter-tarot-salmon, remaining-letter-tarot-flounder |
-| 운명의 찻집 | /fortune-tea-house/ | /fortune-tea-house/ | 홈 버튼 · 연이 · 운명의 찻집 | 일부만 이식 | character-tea-saju, remaining-tea-saju, remaining-tea-sajuJoint, remaining-tea-tarot, remaining-tea-tarotFive, remaining-tea-sajuCompatibility, remaining-tea-sukuyo |
-| 초융합 심층 리딩 | /fusion-fortune/ | /fusion-fortune/ | 홈 버튼 · 초융합 운세 | 일부만 이식 | experts |
-| 지오맨시 흙점 | openGeomancyOracle | /geomancy/ | 홈 버튼 · 지오맨시 흙점 | 일부만 이식 | 상품별 로컬 근거는 JSON 참조 |
-| 명리 헬스 리포트 | js/core/saju/reportDashboard.js healthReportCard | /saju/sections | 홈 버튼 · 사주 리포트 | 일부만 이식 | sections |
-| 흑월의 경고 상담 | /heukwol/ | /heukwol/?consult=1 | 홈 버튼 · 흑월의 경고 상담 | 일부만 이식 | 상품별 로컬 근거는 JSON 참조 |
-| 흑월 이야기 | /heukwol/#heukwol-story | /consultations/stories?story=heukwol | 일반 홈의 진입 코드 확인 | 일부만 이식 | stories |
-| 홈 화면 꾸미기 | /app/home-widget/ | /app/home-widget | 홈 버튼 · 연이의 달빛 홈 화면 | 일부만 이식 | widget |
-| 휴먼 디자인 | /human-design/ | /human-design | 홈 버튼 · 휴먼 디자인 차트 | 일부만 이식 | 상품별 로컬 근거는 JSON 참조 |
+| 애니멀 토템 | openAnimalTotemModal | /animal-totem/ | 홈 버튼 · 애니멀 토템 | 콘솔·운영 설정 필요 | 상품별 로컬 근거는 JSON 참조 |
+| 점성술 | /?action=cdHomeAstroEntry | /astrology | 홈 버튼 · 서양 점성술 출생차트 | 콘솔·운영 설정 필요 | 상품별 로컬 근거는 JSON 참조 |
+| 점성술 전문가 상담 | /astrology-ai | /astrology-ai/ | 홈 버튼 · 점성술 전문가 상담 | 콘솔·운영 설정 필요 | experts |
+| 최애운명 | /saju/destiny-bias | /bias | 홈 버튼 · 최애운명 | 이미 동작 | 상품별 로컬 근거는 JSON 참조 |
+| 나의 일 스타일 | /saju/career-style/ | /saju/career-style/ | 홈 버튼 · 나의 일 스타일 | 콘솔·운영 설정 필요 | 상품별 로컬 근거는 JSON 참조 |
+| 상담 세계관 웹툰 | /consultations/ | /consultations/stories | 홈 버튼 · 달빛 상담 웹툰 서가 | 이미 동작 | stories |
+| 코스믹 소울 명상 | /cosmic-soul-meditation.html | /meditation/cosmic | 홈 버튼 · 코스믹 소울 명상 | 콘솔·운영 설정 필요 | 상품별 로컬 근거는 JSON 참조 |
+| 운명의 나침반 | /destiny-compass/ | /destiny-compass | 홈 버튼 · 운명의 나침반 | 콘솔·운영 설정 필요 | 상품별 로컬 근거는 JSON 참조 |
+| 운명의 갈림길 | /destiny-compass/ | /destiny-compass | 홈 버튼 · 운명의 나침반 | 콘솔·운영 설정 필요 | 상품별 로컬 근거는 JSON 참조 |
+| 운명의 지도 심층 리포트 | /destiny-compass/ | /destiny-compass | 홈 버튼 · 운명의 나침반 | 콘솔·운영 설정 필요 | 상품별 로컬 근거는 JSON 참조 |
+| 미래 시뮬레이션 | /destiny-compass/ | /destiny-compass | 홈 버튼 · 운명의 나침반 | 콘솔·운영 설정 필요 | 상품별 로컬 근거는 JSON 참조 |
+| 삶의 항로 | /destiny-compass/ | /destiny-compass | 홈 버튼 · 운명의 나침반 | 콘솔·운영 설정 필요 | 상품별 로컬 근거는 JSON 참조 |
+| 사주로 보는 인연의 장소 | /saju/destiny-meeting-place | /saju/destiny-meeting-place/ | 홈 버튼 · 운명의 인연 장소 | 콘솔·운영 설정 필요 | 상품별 로컬 근거는 JSON 참조 |
+| 꿈해몽 | /dream/ | /dream/tarot | 홈 버튼 · 드림 타로 | 콘솔·운영 설정 필요 | tarot |
+| 정신분석 해몽 | openPsychoDreamModal | /dream/psycho/ | 홈 버튼 · 정신분석 해몽 | 콘솔·운영 설정 필요 | 상품별 로컬 근거는 JSON 참조 |
+| 사주로 보는 여행지 | js/core/saju/reportDashboard.js:trip -> energyCoordCard | /saju/sections | 홈 버튼 · 사주 리포트 | 콘솔·운영 설정 필요 | sections |
+| 전문가 관상 분석 | /animal/physio | /animal/physio/ | 홈 버튼 · 전문가 동물 관상 | 콘솔·운영 설정 필요 | face |
+| 유명인 사주 | /insights/famous-saju/ | /insights/famous-saju | 홈 버튼 · 유명인 사주 | 이미 동작 | 상품별 로컬 근거는 JSON 참조 |
+| 점성술 꽃 | /index.html?action=openAstrologyFlowerStudio | /flower | 홈 버튼 · 운명의 꽃 | 콘솔·운영 설정 필요 | 상품별 로컬 근거는 JSON 참조 |
+| 대화형 운명 상담 | /fortune-chat/ | /fortune-tea-house/?counsel=letter | 홈 버튼 · 연이의 상담 편지 | 콘솔·운영 설정 필요 | character-letter-saju, character-letter-ziwei, character-letter-sukuyo, character-letter-vedic, character-letter-astrology, character-letter-tarot, remaining-letter-saju, remaining-letter-ziwei, remaining-letter-sukuyo, remaining-letter-vedic, remaining-letter-astrology, remaining-letter-tarot, remaining-letter-saju-mackerel, remaining-letter-saju-salmon, remaining-letter-saju-flounder, remaining-letter-saju-tuna, remaining-letter-ziwei-mackerel, remaining-letter-ziwei-salmon, remaining-letter-ziwei-flounder, remaining-letter-ziwei-tuna, remaining-letter-sukuyo-mackerel, remaining-letter-sukuyo-salmon, remaining-letter-sukuyo-flounder, remaining-letter-vedic-mackerel, remaining-letter-vedic-salmon, remaining-letter-vedic-flounder, remaining-letter-vedic-tuna, remaining-letter-astrology-mackerel, remaining-letter-astrology-salmon, remaining-letter-astrology-flounder, remaining-letter-tarot-mackerel, remaining-letter-tarot-salmon, remaining-letter-tarot-flounder |
+| 운명의 찻집 | /fortune-tea-house/ | /fortune-tea-house/ | 홈 버튼 · 연이 · 운명의 찻집 | 콘솔·운영 설정 필요 | character-tea-saju, remaining-tea-saju, remaining-tea-sajuJoint, remaining-tea-tarot, remaining-tea-tarotFive, remaining-tea-sajuCompatibility, remaining-tea-sukuyo |
+| 초융합 심층 리딩 | /fusion-fortune/ | /fusion-fortune/ | 홈 버튼 · 초융합 운세 | 콘솔·운영 설정 필요 | experts |
+| 지오맨시 흙점 | openGeomancyOracle | /geomancy/ | 홈 버튼 · 지오맨시 흙점 | 콘솔·운영 설정 필요 | 상품별 로컬 근거는 JSON 참조 |
+| 명리 헬스 리포트 | js/core/saju/reportDashboard.js healthReportCard | /saju/sections | 홈 버튼 · 사주 리포트 | 콘솔·운영 설정 필요 | sections |
+| 흑월의 경고 상담 | /heukwol/ | /heukwol/?consult=1 | 홈 버튼 · 흑월의 경고 상담 | 콘솔·운영 설정 필요 | 상품별 로컬 근거는 JSON 참조 |
+| 흑월 이야기 | /heukwol/#heukwol-story | /consultations/stories?story=heukwol | 일반 홈의 진입 코드 확인 | 이미 동작 | stories |
+| 홈 화면 꾸미기 | /app/home-widget/ | /app/home-widget | 홈 버튼 · 연이의 달빛 홈 화면 | 이미 동작 | widget |
+| 휴먼 디자인 | /human-design/ | /human-design | 홈 버튼 · 휴먼 디자인 차트 | 콘솔·운영 설정 필요 | 상품별 로컬 근거는 JSON 참조 |
 | IFÀ 오라클 | /ifa-oracle.html | /oracle/ifa | 홈 버튼 · 이파 오라클 | 이미 동작 | tarot |
-| 자미두수 섬 해설·궁별 상담 | /island-consult/ | /ziwei/sections#island-history | 일반 홈의 진입 코드 확인 | 일부만 이식 | 상품별 로컬 근거는 JSON 참조 |
+| 자미두수 섬 해설·궁별 상담 | /island-consult/ | /ziwei/sections#island-history | 일반 홈의 진입 코드 확인 | 콘솔·운영 설정 필요 | 상품별 로컬 근거는 JSON 참조 |
 | 주역 거북점 | /oracle/juyuk/ | /oracle/turtle | 홈 버튼 · 주역 거북점 | 이미 동작 | turtle |
-| 네오와 서한비의 붉은 실 | /karma-destiny-ai/ | /karma-destiny-ai/ | 홈 버튼 · 운명의 업 전문가 상담 | 일부만 이식 | experts |
+| 네오와 서한비의 붉은 실 | /karma-destiny-ai/ | /karma-destiny-ai/ | 홈 버튼 · 운명의 업 전문가 상담 | 콘솔·운영 설정 필요 | experts |
 | 이집트 신탁 | openKemetModal | /oracle/kemet | 홈 버튼 · 이집트 신탁 | 이미 동작 | kemet |
-| 르노르망 6장 | /tarot/prompt-maker/ | /tarot-library | 홈 버튼 · 타로 리딩 | 일부만 이식 | 상품별 로컬 근거는 JSON 참조 |
-| 인생의 책 | /life-book-ai/ | /life-book-ai/ | 홈 버튼 · 인생의 책 | 일부만 이식 | 상품별 로컬 근거는 JSON 참조 |
-| 인생 총운 전문가 상담 | /premium-unlock/ | /life-book-ai/?mode=lifeFortune | 홈 버튼 · 인생 총운 | 일부만 이식 | 상품별 로컬 근거는 JSON 참조 |
-| 인생 스킬 트리 | /ggulggul/ 사주결과 인생스킬트리 타일 | /saju/sections | 홈 버튼 · 사주 리포트 | 일부만 이식 | sections |
-| 러브 코드 | /index.html?action=openLoveSimulation | /saju/love-simulation/ | 일반 홈의 진입 코드 확인 | 일부만 이식 | 상품별 로컬 근거는 JSON 참조 |
-| 연애 비책 | /love-secret-ai/ | /love-secret-ai/ | 홈 버튼 · 연애 비책 | 일부만 이식 | experts |
-| 운기 다이어리와 플래너 | /diary/ | /diary | 홈 버튼 · 운기 다이어리 | 일부만 이식 | diary |
-| 만세력 | /manse/ | /manse | 홈 버튼 · 만세력 | 일부만 이식 | guests |
-| 마스터 인연의 서 | /master-love-codex/ | /master-love-codex/ | 홈 버튼 · 마스터 인연의 서 | 일부만 이식 | 상품별 로컬 근거는 JSON 참조 |
-| 마스터 인연의 서 · 궁합편 | /master-love-codex/ | /master-love-codex/ | 홈 버튼 · 마스터 인연의 서 | 일부만 이식 | 상품별 로컬 근거는 JSON 참조 |
-| 마야점 | /maya/ | /maya/ | 홈 버튼 · 마야 달력 | 일부만 이식 | 상품별 로컬 근거는 JSON 참조 |
-| MBTI 동물 궁합 | openMbtiModal | /mbti/animals | 홈 버튼 · MBTI 동물 궁합 | 일부만 이식 | 상품별 로컬 근거는 JSON 참조 |
+| 르노르망 6장 | /tarot/prompt-maker/ | /tarot-library | 홈 버튼 · 타로 리딩 | 이미 동작 | 상품별 로컬 근거는 JSON 참조 |
+| 인생의 책 | /life-book-ai/ | /life-book-ai/ | 홈 버튼 · 인생의 책 | 콘솔·운영 설정 필요 | 상품별 로컬 근거는 JSON 참조 |
+| 인생 총운 전문가 상담 | /premium-unlock/ | /life-book-ai/?mode=lifeFortune | 홈 버튼 · 인생 총운 | 콘솔·운영 설정 필요 | 상품별 로컬 근거는 JSON 참조 |
+| 인생 스킬 트리 | /ggulggul/ 사주결과 인생스킬트리 타일 | /saju/sections | 홈 버튼 · 사주 리포트 | 콘솔·운영 설정 필요 | sections |
+| 러브 코드 | /index.html?action=openLoveSimulation | /saju/love-simulation/ | 일반 홈의 진입 코드 확인 | 콘솔·운영 설정 필요 | 상품별 로컬 근거는 JSON 참조 |
+| 연애 비책 | /love-secret-ai/ | /love-secret-ai/ | 홈 버튼 · 연애 비책 | 콘솔·운영 설정 필요 | experts |
+| 운기 다이어리와 플래너 | /diary/ | /diary | 홈 버튼 · 운기 다이어리 | 콘솔·운영 설정 필요 | diary |
+| 만세력 | /manse/ | /manse | 홈 버튼 · 만세력 | 콘솔·운영 설정 필요 | guests |
+| 마스터 인연의 서 | /master-love-codex/ | /master-love-codex/ | 홈 버튼 · 마스터 인연의 서 | 콘솔·운영 설정 필요 | 상품별 로컬 근거는 JSON 참조 |
+| 마스터 인연의 서 · 궁합편 | /master-love-codex/ | /master-love-codex/ | 홈 버튼 · 마스터 인연의 서 | 콘솔·운영 설정 필요 | 상품별 로컬 근거는 JSON 참조 |
+| 마야점 | /maya/ | /maya/ | 홈 버튼 · 마야 달력 | 콘솔·운영 설정 필요 | 상품별 로컬 근거는 JSON 참조 |
+| MBTI 동물 궁합 | openMbtiModal | /mbti/animals | 홈 버튼 · MBTI 동물 궁합 | 이미 동작 | 상품별 로컬 근거는 JSON 참조 |
 | 달빛 음악 플레이어 | /music/ | /music | 홈 버튼 · 꿀꿀운세 음악실 | 일부만 이식 | 상품별 로컬 근거는 JSON 참조 |
-| 나크샤트라 결정판 | /nakshatra/ | /nakshatra/resolve | 홈 버튼 · 나의 나크샤트라 | 일부만 이식 | 상품별 로컬 근거는 JSON 참조 |
-| 숙요·나크샤트라 통합 상담 | /nakshatra/ai/ | /nakshatra/ai | 홈 버튼 · 나크샤트라 개인 심화 상담 | 일부만 이식 | 상품별 로컬 근거는 JSON 참조 |
-| 동서 통합 궁합 | /nakshatra/compat/ | /nakshatra/compat | 홈 버튼 · 나크샤트라 동서 궁합 | 일부만 이식 | 상품별 로컬 근거는 JSON 참조 |
-| 나크샤트라 다샤 인생지도 | /nakshatra/dasha-map/ | /nakshatra/dasha-map | 홈 버튼 · 나크샤트라 다샤 인생지도 | 일부만 이식 | 상품별 로컬 근거는 JSON 참조 |
-| 나크샤트라 지배성 심화 리포트 | /nakshatra/lord-report/ | /nakshatra/lord-report | 홈 버튼 · 나크샤트라 지배성 리포트 | 일부만 이식 | 상품별 로컬 근거는 JSON 참조 |
-| 택일 무후르타 | /nakshatra/muhurta/ | /nakshatra/muhurta | 홈 버튼 · 나크샤트라 택일 | 일부만 이식 | 상품별 로컬 근거는 JSON 참조 |
-| 나크샤트라 VVIP 코덱스 | /nakshatra/vvip/ | /nakshatra/vvip-codex | 홈 버튼 · 나크샤트라 VVIP 코덱스 | 일부만 이식 | 상품별 로컬 근거는 JSON 참조 |
-| 전문가 작명소 | /naming-ai/ | /naming-ai/ | 홈 버튼 · 사주 작명첩 | 일부만 이식 | 상품별 로컬 근거는 JSON 참조 |
-| 네오에게 물어봐 | /neo-consultation/ | /neo-consultation/ | 홈 버튼 · 네오 작전 결정서 · 이메일 상담 | 일부만 이식 | 상품별 로컬 근거는 JSON 참조 |
-| 네오 상담 편지 | /fortune-chat/?character=neo | /fortune-tea-house/?counsel=letter&persona=neo | 홈 버튼 · 네오의 상담 편지 | 일부만 이식 | 상품별 로컬 근거는 JSON 참조 |
-| 팩폭 전략소 | /neo-operation-room/ | /neo-operation-room/ | 홈 버튼 · 네오 · 팩폭 전략실 | 일부만 이식 | character-neo-saju, character-neo-ziwei, character-neo-vedic, character-neo-astrology, remaining-neo-saju, remaining-neo-saju-partner, remaining-neo-ziwei, remaining-neo-ziwei-partner, remaining-neo-vedic, remaining-neo-vedic-partner, remaining-neo-astrology, remaining-neo-astrology-partner |
-| 네빌 명상 실습 | /neville-meditation.html | /meditation/neville | 홈 버튼 · 네빌 명상 실습 | 일부만 이식 | 상품별 로컬 근거는 JSON 참조 |
-| 신년운세 | /new-year-ai-consultation/ | /new-year-ai-consultation/ | 홈 버튼 · 신년운세 전문가 상담 | 일부만 이식 | experts |
-| 라이트 노벨 | /codedestiny-novel.html | /novel | 홈 버튼 · 연이의 운명 노벨 | 일부만 이식 | 상품별 로컬 근거는 JSON 참조 |
-| 올림푸스 신탁 | /index.html?action=openOlympusOracleModal | /olympus | 홈 버튼 · 올림푸스 오늘의 신탁 | 일부만 이식 | olympus |
-| 이모이 오미쿠지 | /emoi_omikuji_v2.html | /omikuji/ | 홈 버튼 · 이모이 오미쿠지 | 일부만 이식 | 상품별 로컬 근거는 JSON 참조 |
-| 손금 | /palm-reading/ | /palm-reading/ | 홈 버튼 · 내 손금 리포트 | 일부만 이식 | 상품별 로컬 근거는 JSON 참조 |
-| 전생 관상·전생 궁합 | /?action=openPhysiognomyApp | /past-life-face/ | 홈 버튼 · 전생 관상 | 일부만 이식 | face |
-| 나의 매력 클래스 | js/core/saju/reportDashboard.js:meryok -> specialCharmCard | /saju/sections | 홈 버튼 · 사주 리포트 | 일부만 이식 | sections |
-| 반려동물 사주 | /pet-saju.html | /pet-saju/ | 홈 버튼 · 반려동물 사주 | 일부만 이식 | guests |
-| 관상 | /physiognomy/ | /animal/physio/ | 홈 버튼 · 전문가 동물 관상 | 일부만 이식 | face |
-| 달빛 이용권 | /points/ | /settings#web-history | 일반 홈의 진입 코드 확인 | 일부만 이식 | 상품별 로컬 근거는 JSON 참조 |
-| 심리테스트 | /psychotest/ | /psychotest/ | 홈 버튼 · 심리테스트 | 일부만 이식 | 상품별 로컬 근거는 JSON 참조 |
-| 퀀텀 명리 엔진 | js/core/saju/reportDashboard.js:quantum -> quantumCard | /saju/sections | 홈 버튼 · 사주 리포트 | 일부만 이식 | sections |
-| 빌런 블랙리스트 | js/core/saju/reportDashboard.js:vilun -> villainCard | /saju/sections | 홈 버튼 · 사주 리포트 | 일부만 이식 | sections |
-| 관계 경계 상담 | /relationship-boundary-test/ | /relationship-boundary-test/ | 홈 버튼 · 관계 경계 리포트 | 일부만 이식 | 상품별 로컬 근거는 JSON 참조 |
+| 나크샤트라 결정판 | /nakshatra/ | /nakshatra/resolve | 홈 버튼 · 나의 나크샤트라 | 콘솔·운영 설정 필요 | 상품별 로컬 근거는 JSON 참조 |
+| 숙요·나크샤트라 통합 상담 | /nakshatra/ai/ | /nakshatra/ai | 홈 버튼 · 나크샤트라 개인 심화 상담 | 콘솔·운영 설정 필요 | 상품별 로컬 근거는 JSON 참조 |
+| 동서 통합 궁합 | /nakshatra/compat/ | /nakshatra/compat | 홈 버튼 · 나크샤트라 동서 궁합 | 콘솔·운영 설정 필요 | 상품별 로컬 근거는 JSON 참조 |
+| 나크샤트라 다샤 인생지도 | /nakshatra/dasha-map/ | /nakshatra/dasha-map | 홈 버튼 · 나크샤트라 다샤 인생지도 | 콘솔·운영 설정 필요 | 상품별 로컬 근거는 JSON 참조 |
+| 나크샤트라 지배성 심화 리포트 | /nakshatra/lord-report/ | /nakshatra/lord-report | 홈 버튼 · 나크샤트라 지배성 리포트 | 콘솔·운영 설정 필요 | 상품별 로컬 근거는 JSON 참조 |
+| 택일 무후르타 | /nakshatra/muhurta/ | /nakshatra/muhurta | 홈 버튼 · 나크샤트라 택일 | 콘솔·운영 설정 필요 | 상품별 로컬 근거는 JSON 참조 |
+| 나크샤트라 VVIP 코덱스 | /nakshatra/vvip/ | /nakshatra/vvip-codex | 홈 버튼 · 나크샤트라 VVIP 코덱스 | 콘솔·운영 설정 필요 | 상품별 로컬 근거는 JSON 참조 |
+| 전문가 작명소 | /naming-ai/ | /naming-ai/ | 홈 버튼 · 사주 작명첩 | 콘솔·운영 설정 필요 | 상품별 로컬 근거는 JSON 참조 |
+| 네오에게 물어봐 | /neo-consultation/ | /neo-consultation/ | 홈 버튼 · 네오 작전 결정서 · 이메일 상담 | 콘솔·운영 설정 필요 | 상품별 로컬 근거는 JSON 참조 |
+| 네오 상담 편지 | /fortune-chat/?character=neo | /fortune-tea-house/?counsel=letter&persona=neo | 홈 버튼 · 네오의 상담 편지 | 콘솔·운영 설정 필요 | 상품별 로컬 근거는 JSON 참조 |
+| 팩폭 전략소 | /neo-operation-room/ | /neo-operation-room/ | 홈 버튼 · 네오 · 팩폭 전략실 | 콘솔·운영 설정 필요 | character-neo-saju, character-neo-ziwei, character-neo-vedic, character-neo-astrology, remaining-neo-saju, remaining-neo-saju-partner, remaining-neo-ziwei, remaining-neo-ziwei-partner, remaining-neo-vedic, remaining-neo-vedic-partner, remaining-neo-astrology, remaining-neo-astrology-partner |
+| 네빌 명상 실습 | /neville-meditation.html | /meditation/neville | 홈 버튼 · 네빌 명상 실습 | 콘솔·운영 설정 필요 | 상품별 로컬 근거는 JSON 참조 |
+| 신년운세 | /new-year-ai-consultation/ | /new-year-ai-consultation/ | 홈 버튼 · 신년운세 전문가 상담 | 콘솔·운영 설정 필요 | experts |
+| 라이트 노벨 | /codedestiny-novel.html | /novel | 홈 버튼 · 연이의 운명 노벨 | 이미 동작 | 상품별 로컬 근거는 JSON 참조 |
+| 올림푸스 신탁 | /index.html?action=openOlympusOracleModal | /olympus | 홈 버튼 · 올림푸스 오늘의 신탁 | 콘솔·운영 설정 필요 | olympus |
+| 이모이 오미쿠지 | /emoi_omikuji_v2.html | /omikuji/ | 홈 버튼 · 이모이 오미쿠지 | 콘솔·운영 설정 필요 | 상품별 로컬 근거는 JSON 참조 |
+| 손금 | /palm-reading/ | /palm-reading/ | 홈 버튼 · 내 손금 리포트 | 콘솔·운영 설정 필요 | 상품별 로컬 근거는 JSON 참조 |
+| 전생 관상·전생 궁합 | /?action=openPhysiognomyApp | /past-life-face/ | 홈 버튼 · 전생 관상 | 콘솔·운영 설정 필요 | face |
+| 나의 매력 클래스 | js/core/saju/reportDashboard.js:meryok -> specialCharmCard | /saju/sections | 홈 버튼 · 사주 리포트 | 콘솔·운영 설정 필요 | sections |
+| 반려동물 사주 | /pet-saju.html | /pet-saju/ | 홈 버튼 · 반려동물 사주 | 콘솔·운영 설정 필요 | guests |
+| 관상 | /physiognomy/ | /animal/physio/ | 홈 버튼 · 전문가 동물 관상 | 콘솔·운영 설정 필요 | face |
+| 달빛 이용권 | /points/ | /settings#web-history | 일반 홈의 진입 코드 확인 | 콘솔·운영 설정 필요 | 상품별 로컬 근거는 JSON 참조 |
+| 심리테스트 | /psychotest/ | /psychotest/ | 홈 버튼 · 심리테스트 | 이미 동작 | 상품별 로컬 근거는 JSON 참조 |
+| 퀀텀 명리 엔진 | js/core/saju/reportDashboard.js:quantum -> quantumCard | /saju/sections | 홈 버튼 · 사주 리포트 | 콘솔·운영 설정 필요 | sections |
+| 빌런 블랙리스트 | js/core/saju/reportDashboard.js:vilun -> villainCard | /saju/sections | 홈 버튼 · 사주 리포트 | 콘솔·운영 설정 필요 | sections |
+| 관계 경계 상담 | /relationship-boundary-test/ | /relationship-boundary-test/ | 홈 버튼 · 관계 경계 리포트 | 콘솔·운영 설정 필요 | 상품별 로컬 근거는 JSON 참조 |
 | 영국 홍차점 | openRoyalTeaOracle | /oracle/royal-tea | 홈 버튼 · 영국 홍차점 | 이미 동작 | tea |
-| 사주 | /?action=cdOneStepFreeSajuEntry | /saju/basic/play | 홈 버튼 · 기본 사주 | 일부만 이식 | sections, dashboard |
-| 사주 궁합 | /saju/compatibility/ | /saju/compatibility/ | 일반 홈의 진입 코드 확인 | 일부만 이식 | 상품별 로컬 근거는 JSON 참조 |
-| 사주 FPTI | /saju-fpti/ | /saju-fpti/ | 홈 버튼 · 사주 FPTI | 일부만 이식 | 상품별 로컬 근거는 JSON 참조 |
-| 사주 가디언 아트 | /saju-guardian | /saju-guardian/ | 일반 홈의 진입 코드 확인 | 일부만 이식 | 상품별 로컬 근거는 JSON 참조 |
-| 사주 그림 프롬프트 | index.html:사주 리포트 | /saju/sections | 홈 버튼 · 사주 리포트 | 일부만 이식 | sections, dashboard |
-| 시빌라 연간 대비 리포트 | /saju/sibyl/ | /saju/sibyl/ | 일반 홈의 진입 코드 확인 | 일부만 이식 | sibyl |
-| 시크릿 하우스 | js/core/saju/reportDashboard.js secretHouseEntryCard → openSecretHouseRoute | /saju/sections | 홈 버튼 · 사주 리포트 | 일부만 이식 | secretHouse |
+| 사주 | /?action=cdOneStepFreeSajuEntry | /saju/basic/play | 홈 버튼 · 기본 사주 | 콘솔·운영 설정 필요 | sections, dashboard |
+| 사주 궁합 | /saju/compatibility/ | /saju/compatibility/ | 일반 홈의 진입 코드 확인 | 콘솔·운영 설정 필요 | 상품별 로컬 근거는 JSON 참조 |
+| 사주 FPTI | /saju-fpti/ | /saju-fpti/ | 홈 버튼 · 사주 FPTI | 콘솔·운영 설정 필요 | 상품별 로컬 근거는 JSON 참조 |
+| 사주 가디언 아트 | /saju-guardian | /saju-guardian/ | 일반 홈의 진입 코드 확인 | 콘솔·운영 설정 필요 | 상품별 로컬 근거는 JSON 참조 |
+| 사주 그림 프롬프트 | index.html:사주 리포트 | /saju/sections | 홈 버튼 · 사주 리포트 | 콘솔·운영 설정 필요 | sections, dashboard |
+| 시빌라 연간 대비 리포트 | /saju/sibyl/ | /saju/sibyl/ | 일반 홈의 진입 코드 확인 | 콘솔·운영 설정 필요 | sibyl |
+| 시크릿 하우스 | js/core/saju/reportDashboard.js secretHouseEntryCard → openSecretHouseRoute | /saju/sections | 홈 버튼 · 사주 리포트 | 콘솔·운영 설정 필요 | secretHouse |
 | 스톤헨지 룬점 | /index.html?action=openRuneOracle | /oracle/rune | 홈 버튼 · 스톤헨지 룬 | 이미 동작 | tarot |
-| 숙요점 | /?action=cdHomeSukuyoEntry | /sukuyo | 홈 버튼 · 기본 숙요점 | 일부만 이식 | 상품별 로컬 근거는 JSON 참조 |
-| 숙요점 궁합 전문가 상담 | /sukuyo-compatibility-ai/ | /sukuyo-compatibility-ai/ | 홈 버튼 · 숙요점 궁합 전문가 상담 | 일부만 이식 | experts |
-| 타로 | /?action=cdHomeTarotEntry | /tarot-library | 홈 버튼 · 타로 리딩 | 이미 동작 | coreTarot |
-| 천체의 선율 | /celestial-harmony.html | /tarot-library | 홈 버튼 · 타로 리딩 | 일부만 이식 | 상품별 로컬 근거는 JSON 참조 |
-| 원석 소울 타로 | /tarot/crystal-soul/ | /tarot-library | 홈 버튼 · 타로 리딩 | 이미 동작 | tarot |
-| 태양 회복 타로 | /tarot/healing/ | /tarot-library | 홈 버튼 · 타로 리딩 | 이미 동작 | coreTarot |
-| 이직 운명의 카드 | /tarot-ijik.html | /tarot-library | 홈 버튼 · 타로 리딩 | 이미 동작 | tarot |
-| 우리는 무슨 사이? | openTarotLoveModal | /tarot-library | 홈 버튼 · 타로 리딩 | 일부만 이식 | 상품별 로컬 근거는 JSON 참조 |
-| 말과 행동 사이 타로 | /tarot/mindscan/ | /tarot-library | 홈 버튼 · 타로 리딩 | 일부만 이식 | 상품별 로컬 근거는 JSON 참조 |
-| 수비학 타로 | /tarot/numerology/ | /tarot-library | 홈 버튼 · 타로 리딩 | 이미 동작 | tarot |
-| 타로 오라클 상담 | /tarot/prompt-maker | /tarot-library | 홈 버튼 · 타로 리딩 | 일부만 이식 | 상품별 로컬 근거는 JSON 참조 |
-| 재회운 타로 | openTarotReunionModal | /tarot-library | 홈 버튼 · 타로 리딩 | 이미 동작 | tarot |
-| 자기 기준 타로 | /tarot/self-esteem/ | /tarot-library | 홈 버튼 · 타로 리딩 | 이미 동작 | coreTarot |
-| 십이지신 천운 타로 | openTarotYearFortuneModal | /tarot-library | 홈 버튼 · 타로 리딩 | 이미 동작 | tarot |
-| 핀란드 주석점 | /oracle/sikojen-povailu/ | /oracle/sikojen-povailu | 홈 버튼 · 연이의 핀란드 주석점 | 일부만 이식 | tarot |
-| 오늘의 운세 | /today/ | /today | 홈 버튼 · 오늘의 운세 | 일부만 이식 | 상품별 로컬 근거는 JSON 참조 |
-| 베다점 | /?action=cdHomeVedicEntry | /vedic | 홈 버튼 · 베다점 출생차트 | 일부만 이식 | guests |
-| 윤달의 베다점 상담 | /vedic-ai | /vedic-ai/ | 홈 버튼 · 베다 전문가 상담 | 일부만 이식 | experts |
-| 운세보는 영냥이 | /yeongnyangi/ | /yeongnyangi/fortune/ | 일반 홈의 진입 코드 확인 | 일부만 이식 | mobile-owner, mock-catalog |
-| 영냥이 출석과 오늘의 운세 | /yeongnyangi/free-fortune/ | /daily | 일반 홈의 진입 코드 확인 | 일부만 이식 | 상품별 로컬 근거는 JSON 참조 |
-| 호라리 질문 차트 | /yeongnyangi/fortune/?mode=horary | /yeongnyangi/fortune/?mode=horary | 일반 홈의 진입 코드 확인 | 일부만 이식 | sky |
-| 프라쉬나 질문 상담 | /yeongnyangi/fortune/?mode=prashna | /yeongnyangi/fortune/?mode=spirit | 일반 홈의 진입 코드 확인 | 일부만 이식 | sky |
-| 영냥이 시즌 연재 | /yeongnyangi/season-1/ | /moonlight/season-1 | 일반 홈의 진입 코드 확인 | 일부만 이식 | 상품별 로컬 근거는 JSON 참조 |
-| Divya Yoga | /yoga-guru.html | /yoga-guru | 홈 버튼 · 디비야 요가 | 일부만 이식 | 상품별 로컬 근거는 JSON 참조 |
-| 자미두수 | /?action=cdHomeZiweiEntry | /ziwei/chart | 홈 버튼 · 자미두수 명반 | 일부만 이식 | sections |
-| 자미두수 전문가 상담 | /ziwei-ai | /ziwei-ai/ | 홈 버튼 · 자미두수 전문가 상담 | 일부만 이식 | experts |
-| 자미두수 심층 리포트 | /ziwei/chart/ → 명반계산 → #ziwei-result-pdf | /ziwei/chart | 홈 버튼 · 자미두수 명반 | 일부만 이식 | 상품별 로컬 근거는 JSON 참조 |
-| 자미두수 운명의 섬 | /destiny-island.html | /ziwei/sections?reading=island | 일반 홈의 진입 코드 확인 | 일부만 이식 | island |
+| 숙요점 | /?action=cdHomeSukuyoEntry | /sukuyo | 홈 버튼 · 기본 숙요점 | 콘솔·운영 설정 필요 | 상품별 로컬 근거는 JSON 참조 |
+| 숙요점 궁합 전문가 상담 | /sukuyo-compatibility-ai/ | /sukuyo-compatibility-ai/ | 홈 버튼 · 숙요점 궁합 전문가 상담 | 콘솔·운영 설정 필요 | experts |
+| 타로 | /?action=cdHomeTarotEntry | /tarot-library | 홈 버튼 · 타로 리딩 | 콘솔·운영 설정 필요 | coreTarot |
+| 천체의 선율 | /celestial-harmony.html | /tarot-library | 홈 버튼 · 타로 리딩 | 콘솔·운영 설정 필요 | 상품별 로컬 근거는 JSON 참조 |
+| 원석 소울 타로 | /tarot/crystal-soul/ | /tarot-library | 홈 버튼 · 타로 리딩 | 콘솔·운영 설정 필요 | tarot |
+| 태양 회복 타로 | /tarot/healing/ | /tarot-library | 홈 버튼 · 타로 리딩 | 콘솔·운영 설정 필요 | coreTarot |
+| 이직 운명의 카드 | /tarot-ijik.html | /tarot-library | 홈 버튼 · 타로 리딩 | 콘솔·운영 설정 필요 | tarot |
+| 우리는 무슨 사이? | openTarotLoveModal | /tarot-library | 홈 버튼 · 타로 리딩 | 콘솔·운영 설정 필요 | 상품별 로컬 근거는 JSON 참조 |
+| 말과 행동 사이 타로 | /tarot/mindscan/ | /tarot-library | 홈 버튼 · 타로 리딩 | 콘솔·운영 설정 필요 | 상품별 로컬 근거는 JSON 참조 |
+| 수비학 타로 | /tarot/numerology/ | /tarot-library | 홈 버튼 · 타로 리딩 | 콘솔·운영 설정 필요 | tarot |
+| 타로 오라클 상담 | /tarot/prompt-maker | /tarot-library | 홈 버튼 · 타로 리딩 | 콘솔·운영 설정 필요 | 상품별 로컬 근거는 JSON 참조 |
+| 재회운 타로 | openTarotReunionModal | /tarot-library | 홈 버튼 · 타로 리딩 | 콘솔·운영 설정 필요 | tarot |
+| 자기 기준 타로 | /tarot/self-esteem/ | /tarot-library | 홈 버튼 · 타로 리딩 | 콘솔·운영 설정 필요 | coreTarot |
+| 십이지신 천운 타로 | openTarotYearFortuneModal | /tarot-library | 홈 버튼 · 타로 리딩 | 콘솔·운영 설정 필요 | tarot |
+| 핀란드 주석점 | /oracle/sikojen-povailu/ | /oracle/sikojen-povailu | 홈 버튼 · 연이의 핀란드 주석점 | 이미 동작 | tarot |
+| 오늘의 운세 | /today/ | /today | 홈 버튼 · 오늘의 운세 | 콘솔·운영 설정 필요 | 상품별 로컬 근거는 JSON 참조 |
+| 베다점 | /?action=cdHomeVedicEntry | /vedic | 홈 버튼 · 베다점 출생차트 | 콘솔·운영 설정 필요 | guests |
+| 윤달의 베다점 상담 | /vedic-ai | /vedic-ai/ | 홈 버튼 · 베다 전문가 상담 | 콘솔·운영 설정 필요 | experts |
+| 운세보는 영냥이 | /yeongnyangi/ | /yeongnyangi/fortune/ | 일반 홈의 진입 코드 확인 | 콘솔·운영 설정 필요 | mobile-owner, mock-catalog |
+| 영냥이 출석과 오늘의 운세 | /yeongnyangi/free-fortune/ | /daily | 일반 홈의 진입 코드 확인 | 콘솔·운영 설정 필요 | 상품별 로컬 근거는 JSON 참조 |
+| 호라리 질문 차트 | /yeongnyangi/fortune/?mode=horary | /yeongnyangi/fortune/?mode=horary | 일반 홈의 진입 코드 확인 | 콘솔·운영 설정 필요 | sky |
+| 프라쉬나 질문 상담 | /yeongnyangi/fortune/?mode=prashna | /yeongnyangi/fortune/?mode=spirit | 일반 홈의 진입 코드 확인 | 콘솔·운영 설정 필요 | sky |
+| 영냥이 시즌 연재 | /yeongnyangi/season-1/ | /moonlight/season-1 | 일반 홈의 진입 코드 확인 | 이미 동작 | 상품별 로컬 근거는 JSON 참조 |
+| Divya Yoga | /yoga-guru.html | /yoga-guru | 홈 버튼 · 디비야 요가 | 콘솔·운영 설정 필요 | 상품별 로컬 근거는 JSON 참조 |
+| 자미두수 | /?action=cdHomeZiweiEntry | /ziwei/chart | 홈 버튼 · 자미두수 명반 | 콘솔·운영 설정 필요 | sections |
+| 자미두수 전문가 상담 | /ziwei-ai | /ziwei-ai/ | 홈 버튼 · 자미두수 전문가 상담 | 콘솔·운영 설정 필요 | experts |
+| 자미두수 심층 리포트 | /ziwei/chart/ → 명반계산 → #ziwei-result-pdf | /ziwei/chart | 홈 버튼 · 자미두수 명반 | 콘솔·운영 설정 필요 | 상품별 로컬 근거는 JSON 참조 |
+| 자미두수 운명의 섬 | /destiny-island.html | /ziwei/sections?reading=island | 일반 홈의 진입 코드 확인 | 콘솔·운영 설정 필요 | island |
 
 </details>
 <!-- /generated-service-index -->

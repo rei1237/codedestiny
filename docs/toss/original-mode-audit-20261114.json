@@ -13,52 +13,70 @@
     {
       "id": "astro-synastry",
       "kind": "code",
-      "detail": "compat-astro-synastry 무료 guest 원본 입력·본문 연결"
+      "detail": "compat-astro-synastry 무료 guest 원본 입력·본문 연결",
+      "state": "implemented-local-ait-verified",
+      "next": "최종 Linux AIT 및 기기 검증은 별도"
     },
     {
       "id": "astro-direct-synastry",
       "kind": "code",
-      "detail": "compat-astro-direct-synastry 무료 guest 원본 입력·본문 연결"
+      "detail": "compat-astro-direct-synastry 무료 guest 원본 입력·본문 연결",
+      "state": "implemented-local-ait-verified",
+      "next": "최종 Linux AIT 및 기기 검증은 별도"
     },
     {
       "id": "astro-global-birth",
       "kind": "input-contract",
-      "detail": "웹 국제 좌표·시간대 입력과 현재 국내 도시 입력의 차이 대조·복구"
+      "detail": "웹 국제 좌표·시간대 입력과 현재 국내 도시 입력의 차이 대조·복구",
+      "state": "implemented-local-ait-verified",
+      "next": "최종 Linux AIT 및 기기 검증은 별도"
     },
     {
       "id": "vedic-compatibility",
       "kind": "code",
-      "detail": "로그인 무료 36점·8항목·강점·주의·조언. 별도 유료 상담과 분리"
+      "detail": "로그인 무료 36점·8항목·강점·주의·조언. 별도 유료 상담과 분리",
+      "state": "implemented-local-ait-verified",
+      "next": "최종 Linux AIT 및 기기 검증은 별도"
     },
     {
       "id": "vedic-prashna",
       "kind": "code",
-      "detail": "로그인 무료 현재시각·질문·좌표 차트/원본 프롬프트. 영냥이 prashna와 별개, 신규저장·주문 없음"
+      "detail": "로그인 무료 현재시각·질문·좌표 차트/원본 프롬프트. 영냥이 prashna와 별개, 신규저장·주문 없음",
+      "state": "implemented-local-ait-verified",
+      "next": "최종 Linux AIT 및 기기 검증은 별도"
     },
     {
       "id": "vedic-global-birth",
       "kind": "input-contract",
-      "detail": "웹 국제 좌표·시간대 입력과 현재 국내 도시 입력의 차이 대조·복구"
+      "detail": "웹 국제 좌표·시간대 입력과 현재 국내 도시 입력의 차이 대조·복구",
+      "state": "implemented-local-ait-verified",
+      "next": "최종 Linux AIT 및 기기 검증은 별도"
     },
     {
       "id": "neo-email-private",
       "kind": "private-archive",
-      "detail": "DEV offline 전용 원본 모의 접수·견적·상태·취소·수정 fixture를 private AIT에 연결. 실제 메일·상품 판매·자동답변 생성은 제외"
+      "detail": "DEV offline 전용 원본 모의 접수·견적·상태·취소·수정 fixture를 private AIT에 연결. 실제 메일·상품 판매·자동답변 생성은 제외",
+      "state": "implemented-local-ait-verified",
+      "next": "최종 Linux AIT 및 기기 검증은 별도"
     },
     {
       "id": "animal-destiny-detail",
       "kind": "code",
-      "detail": "원본 AnimalResultScreen의 10탭·6상세·관계·생활 조언·아트가 이름/네기둥/도감명 화면에 빠짐. 현재 free-fortune-policy는 무료이며 낡은 paid 주석으로 제외하지 않음"
+      "detail": "원본 AnimalResultScreen의 10탭·6상세·관계·생활 조언·아트가 이름/네기둥/도감명 화면에 빠짐. 현재 free-fortune-policy는 무료이며 낡은 paid 주석으로 제외하지 않음",
+      "state": "implementation-in-progress"
     },
     {
       "id": "music-download",
       "kind": "code",
-      "detail": "전곡 무료 스트림은 연결됨. 웹 단건·월정석 MP3 다운로드 구매와 파일 저장은 별도 미이식. 이용권 커버로 다운로드를 열지 않음"
+      "detail": "전곡 무료 스트림은 연결됨. 웹 단건·월정석 MP3 다운로드 구매와 파일 저장은 별도 미이식. 이용권 커버로 다운로드를 열지 않음",
+      "state": "implementation-in-progress"
     },
     {
       "id": "flower-private",
       "kind": "private-archive",
-      "detail": "worker/toss/flower.js 원본 4체계 계산과 UI는 구현됨. private AIT API에 /flower/match가 없어 해당 검증단계만 미연결"
+      "detail": "worker/toss/flower.js 원본 4체계 계산과 UI는 구현됨. private AIT API에 /flower/match가 없어 해당 검증단계만 미연결",
+      "state": "implemented-local-ait-verified",
+      "next": "최종 Linux AIT 및 기기 검증은 별도"
     }
   ],
   "rows": [
@@ -133,30 +151,16 @@
       "recordedStorage": "현재 화면의 원본 휠·행성·각도와 10종 풀이. 저장 출생정보와 별도 유료 전문가 상담의 권리는 분리",
       "priorEvidence": "ce93c3eac. 서양·숙요 원본 계약 targeted 81개와 Toss 타입 검사 통과. 새 private fixture·실제 AIT·기기 검증은 후속 기록 참조",
       "reviewedModes": [
-        "원본 기본 차트·wheel·행성·각도",
-        "무료 10종 원문"
+        "기본 guest 명반·wheel·10원문",
+        "두 사람 직접 궁합·305명 유명인 궁합",
+        "국제 위도·경도·IANA 시간대와 DST 입력"
       ],
-      "reviewState": "known-gaps",
-      "codeGaps": [
-        {
-          "id": "astro-synastry",
-          "kind": "code",
-          "detail": "compat-astro-synastry 무료 guest 원본 입력·본문 연결"
-        },
-        {
-          "id": "astro-direct-synastry",
-          "kind": "code",
-          "detail": "compat-astro-direct-synastry 무료 guest 원본 입력·본문 연결"
-        },
-        {
-          "id": "astro-global-birth",
-          "kind": "input-contract",
-          "detail": "웹 국제 좌표·시간대 입력과 현재 국내 도시 입력의 차이 대조·복구"
-        }
-      ],
+      "reviewState": "original-contract-reviewed",
+      "codeGaps": [],
       "archiveEvidence": "일반 AIT에서 상위 화면 진입 확인. 하위 입력·결과·재열람의 검증 근거는 verification 참조. 휴대폰 미검증",
       "deviceState": "not-verified",
-      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도"
+      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도",
+      "currentArchiveEvidence": "66080e7c9 + b5de20414. actual Windows AIT01a1d9c9에서 두 궁합 guest·원본문장·3폭·0주문 PASS; 옛 가격배지 수정은 후속번들 재검증 필요."
     },
     {
       "id": "astrology-ai",
@@ -584,16 +588,16 @@
       "recordedStorage": "not-stored-by-current-policy",
       "priorEvidence": "apps/toss/test/ flower.test.mjs · flower-ui.test.mjs · 개별 검사 범위. 실제 기기 미검증",
       "reviewedModes": [
-        "worker/toss/flower.js",
-        "not-stored-by-current-policy"
+        "로그인 무료 사주·서양·자미·숙요 원본4꽃",
+        "원본 SVG·꽃말·narrative·해석범위",
+        "private 고정출생예시, 예시외입력422; 운영은 원본 자유입력"
       ],
-      "reviewState": "known-gaps",
-      "codeGaps": [
-        "worker/toss/flower.js 원본 4체계 계산과 UI는 구현됨. private AIT API에 /flower/match가 없어 해당 검증단계만 미연결"
-      ],
+      "reviewState": "original-contract-reviewed",
+      "codeGaps": [],
       "archiveEvidence": "일반 AIT에서 상위 화면 진입 확인. 하위 입력·결과·재열람의 검증 근거는 verification 참조. 휴대폰 미검증",
       "deviceState": "not-verified",
-      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도"
+      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도",
+      "currentArchiveEvidence": "ab355fbc0 + e587ad595. actual Windows AIT01a1d9c9 홈→로그인→4원문/SVGdecode·3폭·B초기화·0주문 PASS. 원본정책대로보관함저장없음."
     },
     {
       "id": "fortune-chat",
@@ -1516,18 +1520,17 @@
       "recordedContract": "질문 1~10개, 본인·상대 출생, 사주·자미, 이메일 및 동의. 원본 NeoConsultationClient",
       "recordedStorage": "새 manual_email 주문은 서버에 답변 본문 없음. 기존 웹 주문 계약 별도. 토스 실판매 비활성",
       "priorEvidence": "360px neo-email-browser.mjs 접수·다른 계정 URL 차단. 웹 원본 회귀 41건, 모의 발송기록. 실제 메일·결제 미실행",
-      "reviewedModes": [],
-      "reviewState": "known-gaps",
-      "codeGaps": [
-        {
-          "id": "neo-email-private",
-          "kind": "private-archive",
-          "detail": "DEV offline 전용 원본 모의 접수·견적·상태·취소·수정 fixture를 private AIT에 연결. 실제 메일·상품 판매·자동답변 생성은 제외"
-        }
+      "reviewedModes": [
+        "원본 manual_email 질문1~10·사주/자미·본인/상대출생·이메일동의",
+        "모의 견적·결제·receipt1회, 답변자동생성없음",
+        "질문초안·접수정보재열람·취소요청·계정격리; 정정요청/정정 API"
       ],
+      "reviewState": "original-contract-reviewed",
+      "codeGaps": [],
       "archiveEvidence": "일반 AIT에서 상위 화면 진입 확인. 하위 입력·결과·재열람의 검증 근거는 verification 참조. 휴대폰 미검증",
       "deviceState": "not-verified",
-      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도"
+      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도",
+      "currentArchiveEvidence": "ab355fbc0 + e587ad595. actual Windows AIT01a1d9c9 홈→질문복원→모의구매1→접수→새탭보관함→취소요청→재진입→B같은URL거절·3폭 PASS. 취소요청은 환불완료가 아님."
     },
     {
       "id": "neo-letter",
@@ -2641,30 +2644,17 @@
       "recordedStorage": "result in memory only; guest/web profiles, full chart and device parity pending",
       "priorEvidence": "guest-calculators-browser.mjs 360px 홈, 비회원 계산. 기본 베다 local Swiss 원본, 만세력 원본 대운·명식, 반려동물 원본 오행·유료 로그인 경계",
       "reviewedModes": [
-        "남북 명반",
-        "7토픽·8상세·12바바"
+        "기본 guest 남북명반·7토픽·8상세·12바바",
+        "로그인 무료 아쉬타쿠타36점·8항목",
+        "독립 Prashna 현재시각·좌표·단일질문·원본 차트/프롬프트",
+        "국제좌표·IANA시간대"
       ],
-      "reviewState": "known-gaps",
-      "codeGaps": [
-        {
-          "id": "vedic-compatibility",
-          "kind": "code",
-          "detail": "로그인 무료 36점·8항목·강점·주의·조언. 별도 유료 상담과 분리"
-        },
-        {
-          "id": "vedic-prashna",
-          "kind": "code",
-          "detail": "로그인 무료 현재시각·질문·좌표 차트/원본 프롬프트. 영냥이 prashna와 별개, 신규저장·주문 없음"
-        },
-        {
-          "id": "vedic-global-birth",
-          "kind": "input-contract",
-          "detail": "웹 국제 좌표·시간대 입력과 현재 국내 도시 입력의 차이 대조·복구"
-        }
-      ],
+      "reviewState": "original-contract-reviewed",
+      "codeGaps": [],
       "archiveEvidence": "게스트 수동 출생정보로 만세력·베다 원본 계산과 반려동물 오행 결과, 반려동물 심층 로그인 경계 · 360px 배포 AIT 브라우저, 토스 휴대폰 미검증",
       "deviceState": "not-verified",
-      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도"
+      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도",
+      "currentArchiveEvidence": "f857266dd. actual Windows AIT01a1d9c9 홈→로그인→궁합원문·출생재입력·Prashna차트/프롬프트완전동일·nativeback·3폭·0주문 PASS."
     },
     {
       "id": "vedic-ai",

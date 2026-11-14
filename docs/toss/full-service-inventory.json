@@ -1,5 +1,5 @@
 {
-  "sourceCommit": "9bbc65bbf88d5c7f6701df89efe4f41d3e1d24ee",
+  "sourceCommit": "e38e1f1a1a83eab35e7271d3a135c2b5c4a98b43",
   "sourceCounts": {
     "home": 63,
     "react": 18,
@@ -144,9 +144,9 @@
       ],
       "toss": {
         "screen": "not-independently-verified",
-        "login": "기본 차트와 무료 10종 풀이 게스트 공개. 전문가 상담은 별도 로그인·주문",
+        "login": "기본 차트·10풀이·두 궁합 모두 게스트",
         "iapSku": null,
-        "result": "apps/toss/src/AstroReading.tsx + AstroChartView.tsx + AstroReadingBody.tsx",
+        "result": "apps/toss/src/AstroHome.tsx + AstroReading.tsx + AstroChartView.tsx + AstroReadingBody.tsx + AstroSynastry.tsx",
         "library": "현재 화면의 원본 휠·행성·각도와 10종 풀이. 저장 출생정보와 별도 유료 전문가 상담의 권리는 분리",
         "device": "not-tested",
         "canonicalId": "astrology",
@@ -1366,10 +1366,10 @@
       ],
       "toss": {
         "screen": "not-independently-verified",
-        "login": "공개 진입",
+        "login": "무료 재생은 게스트, MP3 구매·저장은 소유 계정",
         "iapSku": null,
-        "result": "apps/toss/src/MusicShelf.tsx",
-        "library": "stream only; paid downloads, library and device audio parity pending",
+        "result": "apps/toss/src/MusicShelf.tsx + MusicDownload.tsx + music-download-file.ts",
+        "library": "동일 곡 주문의 원본 음원권리·보관함·재열람, 웹 구매·이용권과 토스 계정은 분리",
         "device": "not-tested",
         "canonicalId": "music",
         "candidateStatus": "local-partial",
@@ -2939,10 +2939,10 @@
       ],
       "toss": {
         "screen": "not-independently-verified",
-        "login": "비회원 수동 출생정보 계산 가능",
+        "login": "기본 명반은 게스트, 무료 궁합·Prashna는 로그인",
         "iapSku": null,
-        "result": "apps/toss/src/BasicSkyChart.tsx",
-        "library": "result in memory only; guest/web profiles, full chart and device parity pending",
+        "result": "apps/toss/src/VedicHome.tsx + service/VedicReading.jsx + service/VedicCompatibility.jsx + src/VedicPrashna.tsx",
+        "library": "기본 명반·무료 궁합·Prashna는 현재 화면. 원본정책대로 새 구매 보관함 저장 없음",
         "device": "not-tested",
         "canonicalId": "vedic",
         "candidateStatus": "local-partial",
@@ -3244,7 +3244,21 @@
       "archiveTests": [],
       "archiveHomeButtons": [
         "십이운성 동물점"
-      ]
+      ],
+      "sourceAudit": {
+        "path": "docs/toss/original-mode-audit-20261114.json",
+        "reviewState": "known-gaps",
+        "reviewedModes": [
+          "lib/korean-calendar/natal.js:calculateNatalSaju",
+          "화면 메모리. 계정 변경 시 TossSessionScope 재설정"
+        ],
+        "codeGaps": [
+          "원본 AnimalResultScreen의 10탭·6상세·관계·생활 조언·아트가 이름/네기둥/도감명 화면에 빠짐. 현재 free-fortune-policy는 무료이며 낡은 paid 주석으로 제외하지 않음"
+        ]
+      },
+      "implementationStage": "확인된 코드/모의 연결 누락 있음",
+      "deviceStage": "토스 휴대폰의 SDK·키보드·네트워크·파일/오디오 확인 미완료",
+      "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음"
     },
     {
       "id": "animal-totem",
@@ -3299,7 +3313,7 @@
         "animal-totem-basic"
       ],
       "freeCalculation": false,
-      "portStatus": "일부만 이식",
+      "portStatus": "콘솔·운영 설정 필요",
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "Linux AIT 일반 홈 → 꿀꿀운세 → 애니멀 토템 · 상위 화면 진입 확인",
       "bundleVerification": "일반 AIT에서 상위 화면 진입 확인. 하위 입력·결과·재열람의 검증 근거는 verification 참조. 휴대폰 미검증",
@@ -3310,7 +3324,19 @@
       "archiveTests": [],
       "archiveHomeButtons": [
         "애니멀 토템"
-      ]
+      ],
+      "sourceAudit": {
+        "path": "docs/toss/original-mode-audit-20261114.json",
+        "reviewState": "prior-contract-evidence-reconciled",
+        "reviewedModes": [
+          "한 장·세 장·다섯 장, 원본 동물 17종 추첨, 질문·선택 출생 정보",
+          "기본·심화 상품별 주문 원문, 생성 재개 및 소유 보관함"
+        ],
+        "codeGaps": []
+      },
+      "implementationStage": "기존 원본 계약 및 개발 검증 근거 대조 완료",
+      "deviceStage": "토스 휴대폰의 SDK·키보드·네트워크·파일/오디오 확인 미완료",
+      "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음"
     },
     {
       "id": "astrology",
@@ -3347,8 +3373,8 @@
       "status": "local-partial",
       "tossRoute": "/astrology",
       "sku": null,
-      "inputContract": "게스트 출생정보와 시각 미상. 원본 /api/astrology/basic 차트와 무료 10종 strict Swiss 풀이",
-      "resultRenderer": "apps/toss/src/AstroReading.tsx + AstroChartView.tsx + AstroReadingBody.tsx",
+      "inputContract": "게스트 국제 출생·IANA시간대·시각미상. 원본 strict Swiss 차트·10종 풀이 및 직접/305명 유명인 시너스트리2종",
+      "resultRenderer": "apps/toss/src/AstroHome.tsx + AstroReading.tsx + AstroChartView.tsx + AstroReadingBody.tsx + AstroSynastry.tsx",
       "storageContract": "현재 화면의 원본 휠·행성·각도와 10종 풀이. 저장 출생정보와 별도 유료 전문가 상담의 권리는 분리",
       "verification": "ce93c3eac. 서양·숙요 원본 계약 targeted 81개와 Toss 타입 검사 통과. 새 private fixture·실제 AIT·기기 검증은 후속 기록 참조",
       "webEntries": [
@@ -3361,18 +3387,32 @@
       ],
       "webProductIds": [],
       "freeCalculation": false,
-      "portStatus": "일부만 이식",
+      "portStatus": "콘솔·운영 설정 필요",
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "Linux AIT 일반 홈 → 꿀꿀운세 → 서양 점성술 출생차트 · 상위 화면 진입 확인",
       "bundleVerification": "일반 AIT에서 상위 화면 진입 확인. 하위 입력·결과·재열람의 검증 근거는 verification 참조. 휴대폰 미검증",
-      "tossLogin": "기본 차트와 무료 10종 풀이 게스트 공개. 전문가 상담은 별도 로그인·주문",
-      "tossResult": "apps/toss/src/AstroReading.tsx + AstroChartView.tsx + AstroReadingBody.tsx",
+      "tossLogin": "기본 차트·10풀이·두 궁합 모두 게스트",
+      "tossResult": "apps/toss/src/AstroHome.tsx + AstroReading.tsx + AstroChartView.tsx + AstroReadingBody.tsx + AstroSynastry.tsx",
       "reread": "현재 화면의 원본 휠·행성·각도와 10종 풀이. 저장 출생정보와 별도 유료 전문가 상담의 권리는 분리",
       "saleStatus": "현재 기능에 신규 구매 버튼 없음",
       "archiveTests": [],
       "archiveHomeButtons": [
         "서양 점성술 출생차트"
-      ]
+      ],
+      "sourceAudit": {
+        "path": "docs/toss/original-mode-audit-20261114.json",
+        "reviewState": "original-contract-reviewed",
+        "reviewedModes": [
+          "기본 guest 명반·wheel·10원문",
+          "두 사람 직접 궁합·305명 유명인 궁합",
+          "국제 위도·경도·IANA 시간대와 DST 입력"
+        ],
+        "codeGaps": []
+      },
+      "implementationStage": "기존 원본 계약 및 개발 검증 근거 대조 완료",
+      "deviceStage": "토스 휴대폰의 SDK·키보드·네트워크·파일/오디오 확인 미완료",
+      "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음",
+      "currentArchiveEvidence": "66080e7c9 + b5de20414. actual Windows AIT01a1d9c9에서 두 궁합 guest·원본문장·3폭·0주문 PASS; 옛 가격배지 수정은 후속번들 재검증 필요."
     },
     {
       "id": "astrology-ai",
@@ -3410,7 +3450,7 @@
         "astrology-ai-consultation"
       ],
       "freeCalculation": false,
-      "portStatus": "일부만 이식",
+      "portStatus": "콘솔·운영 설정 필요",
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "Linux AIT 일반 홈 → 꿀꿀운세 → 점성술 전문가 상담 · 상위 화면 진입 확인",
       "bundleVerification": "8개 상품별 입력 폼과 신규 판매 닫힘 확인. 모의 구매·저장 원문 검사는 별도 verification 참조 · 360px 배포 AIT 브라우저, 토스 휴대폰 미검증",
@@ -3423,7 +3463,19 @@
       ],
       "archiveHomeButtons": [
         "점성술 전문가 상담"
-      ]
+      ],
+      "sourceAudit": {
+        "path": "docs/toss/original-mode-audit-20261114.json",
+        "reviewState": "prior-contract-evidence-reconciled",
+        "reviewedModes": [
+          "worker/toss/native-astrology.js + nativeAstrologyContract",
+          "owned-TossPurchase and Toss-origin AstrologyAiConsultation; approved SKU, durable checkout, policy and device verification pending"
+        ],
+        "codeGaps": []
+      },
+      "implementationStage": "기존 원본 계약 및 개발 검증 근거 대조 완료",
+      "deviceStage": "토스 휴대폰의 SDK·키보드·네트워크·파일/오디오 확인 미완료",
+      "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음"
     },
     {
       "id": "bias-destiny",
@@ -3463,7 +3515,7 @@
       ],
       "webProductIds": [],
       "freeCalculation": true,
-      "portStatus": "일부만 이식",
+      "portStatus": "이미 동작",
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "Linux AIT 일반 홈 → 꿀꿀운세 → 최애운명 · 상위 화면 진입 확인",
       "bundleVerification": "일반 AIT에서 상위 화면 진입 확인. 하위 입력·결과·재열람의 검증 근거는 verification 참조. 휴대폰 미검증",
@@ -3475,7 +3527,19 @@
       "archiveTests": [],
       "archiveHomeButtons": [
         "최애운명"
-      ]
+      ],
+      "sourceAudit": {
+        "path": "docs/toss/original-mode-audit-20261114.json",
+        "reviewState": "prior-contract-evidence-reconciled",
+        "reviewedModes": [
+          "app/saju/destiny-bias/engine/chemiReportBridge.ts",
+          "native-card-save-summary-share-mocked; device-and-web-history-parity-pending"
+        ],
+        "codeGaps": []
+      },
+      "implementationStage": "기존 원본 계약 및 개발 검증 근거 대조 완료",
+      "deviceStage": "토스 휴대폰의 SDK·키보드·네트워크·파일/오디오 확인 미완료",
+      "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음"
     },
     {
       "id": "career-style",
@@ -3514,7 +3578,7 @@
       ],
       "webProductIds": [],
       "freeCalculation": true,
-      "portStatus": "일부만 이식",
+      "portStatus": "콘솔·운영 설정 필요",
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "Linux AIT 일반 홈 → 꿀꿀운세 → 나의 일 스타일 · 상위 화면 진입 확인",
       "bundleVerification": "일반 AIT에서 상위 화면 진입 확인. 하위 입력·결과·재열람의 검증 근거는 verification 참조. 휴대폰 미검증",
@@ -3526,7 +3590,19 @@
       "archiveTests": [],
       "archiveHomeButtons": [
         "나의 일 스타일"
-      ]
+      ],
+      "sourceAudit": {
+        "path": "docs/toss/original-mode-audit-20261114.json",
+        "reviewState": "prior-contract-evidence-reconciled",
+        "reviewedModes": [
+          "worker/routes/career-style.js:readOwnedCareerStyle",
+          "계정별 프로필을 사용한 무료 개인 명식 8장. 실기기 미검증"
+        ],
+        "codeGaps": []
+      },
+      "implementationStage": "기존 원본 계약 및 개발 검증 근거 대조 완료",
+      "deviceStage": "토스 휴대폰의 SDK·키보드·네트워크·파일/오디오 확인 미완료",
+      "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음"
     },
     {
       "id": "consultation-webtoons",
@@ -3555,7 +3631,7 @@
       ],
       "webProductIds": [],
       "freeCalculation": false,
-      "portStatus": "일부만 이식",
+      "portStatus": "이미 동작",
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "Linux AIT 일반 홈 → 꿀꿀운세 → 달빛 상담 웹툰 서가 · 상위 화면 진입 확인",
       "bundleVerification": "일반 홈에서 14편 원본의 컷·대사 및 첫 그림 디코딩. 원격 아트는 로컬 원본 파일로 대체 · 360px 배포 AIT 브라우저, 토스 휴대폰 미검증",
@@ -3568,7 +3644,19 @@
       ],
       "archiveHomeButtons": [
         "달빛 상담 웹툰 서가"
-      ]
+      ],
+      "sourceAudit": {
+        "path": "docs/toss/original-mode-audit-20261114.json",
+        "reviewState": "prior-contract-evidence-reconciled",
+        "reviewedModes": [
+          "app/consultations/home-stories.ts + lib/brand/consultation-webtoons.mjs",
+          "게스트 공개 14편. 읽던 이야기는 URL의 story로 유지"
+        ],
+        "codeGaps": []
+      },
+      "implementationStage": "기존 원본 계약 및 개발 검증 근거 대조 완료",
+      "deviceStage": "토스 휴대폰의 SDK·키보드·네트워크·파일/오디오 확인 미완료",
+      "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음"
     },
     {
       "id": "cosmic-soul-meditation",
@@ -3604,7 +3692,7 @@
         "cosmic-soul-meditation"
       ],
       "freeCalculation": true,
-      "portStatus": "일부만 이식",
+      "portStatus": "콘솔·운영 설정 필요",
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "Linux AIT 일반 홈 → 꿀꿀운세 → 코스믹 소울 명상 · 상위 화면 진입 확인",
       "bundleVerification": "일반 AIT에서 상위 화면 진입 확인. 하위 입력·결과·재열람의 검증 근거는 verification 참조. 휴대폰 미검증",
@@ -3615,7 +3703,19 @@
       "archiveTests": [],
       "archiveHomeButtons": [
         "코스믹 소울 명상"
-      ]
+      ],
+      "sourceAudit": {
+        "path": "docs/toss/original-mode-audit-20261114.json",
+        "reviewState": "prior-contract-evidence-reconciled",
+        "reviewedModes": [
+          "cosmic-soul-meditation.html 의도 4개, 30·60분 PHASES, 웹의 _composePhaseLines·_scheduleLines·_buildSchedule 원본 함수와 행동·저널",
+          "토스 소유 계정별 기기 저널 최근 50개와 통계. 무료 키 cosmic-soul-meditation"
+        ],
+        "codeGaps": []
+      },
+      "implementationStage": "기존 원본 계약 및 개발 검증 근거 대조 완료",
+      "deviceStage": "토스 휴대폰의 SDK·키보드·네트워크·파일/오디오 확인 미완료",
+      "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음"
     },
     {
       "id": "destiny-compass",
@@ -3659,7 +3759,7 @@
         "destiny-compass-life-voyage"
       ],
       "freeCalculation": true,
-      "portStatus": "일부만 이식",
+      "portStatus": "콘솔·운영 설정 필요",
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "Linux AIT 일반 홈 → 꿀꿀운세 → 운명의 나침반 · 상위 화면 진입 확인",
       "bundleVerification": "일반 AIT에서 상위 화면 진입 확인. 하위 입력·결과·재열람의 검증 근거는 verification 참조. 휴대폰 미검증",
@@ -3670,7 +3770,19 @@
       "archiveTests": [],
       "archiveHomeButtons": [
         "운명의 나침반"
-      ]
+      ],
+      "sourceAudit": {
+        "path": "docs/toss/original-mode-audit-20261114.json",
+        "reviewState": "prior-contract-evidence-reconciled",
+        "reviewedModes": [
+          "양·음력, 윤달, 출생시각·성별과 고민 → computeDirectionField",
+          "기기별 마지막 무료 차트, 소유자·게스트 구분"
+        ],
+        "codeGaps": []
+      },
+      "implementationStage": "기존 원본 계약 및 개발 검증 근거 대조 완료",
+      "deviceStage": "토스 휴대폰의 SDK·키보드·네트워크·파일/오디오 확인 미완료",
+      "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음"
     },
     {
       "id": "destiny-compass-crossroads",
@@ -3701,7 +3813,7 @@
         "destiny-compass-crossroads"
       ],
       "freeCalculation": true,
-      "portStatus": "일부만 이식",
+      "portStatus": "콘솔·운영 설정 필요",
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "Linux AIT 일반 홈 → 꿀꿀운세 → 운명의 나침반 · 상위 화면 진입 확인",
       "bundleVerification": "일반 AIT에서 상위 화면 진입 확인. 하위 입력·결과·재열람의 검증 근거는 verification 참조. 휴대폰 미검증",
@@ -3712,7 +3824,19 @@
       "archiveTests": [],
       "archiveHomeButtons": [
         "운명의 나침반"
-      ]
+      ],
+      "sourceAudit": {
+        "path": "docs/toss/original-mode-audit-20261114.json",
+        "reviewState": "prior-contract-evidence-reconciled",
+        "reviewedModes": [
+          "차트와 두 선택지 A·B",
+          "기기 마지막 차트에서 무료 재계산. 웹 과거 주문은 웹 보관 계정 소유"
+        ],
+        "codeGaps": []
+      },
+      "implementationStage": "기존 원본 계약 및 개발 검증 근거 대조 완료",
+      "deviceStage": "토스 휴대폰의 SDK·키보드·네트워크·파일/오디오 확인 미완료",
+      "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음"
     },
     {
       "id": "destiny-compass-deep-report",
@@ -3747,7 +3871,7 @@
         "destiny-compass-deep-report"
       ],
       "freeCalculation": false,
-      "portStatus": "일부만 이식",
+      "portStatus": "콘솔·운영 설정 필요",
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "Linux AIT 일반 홈 → 꿀꿀운세 → 운명의 나침반 · 상위 화면 진입 확인",
       "bundleVerification": "일반 AIT에서 상위 화면 진입 확인. 하위 입력·결과·재열람의 검증 근거는 verification 참조. 휴대폰 미검증",
@@ -3758,7 +3882,19 @@
       "archiveTests": [],
       "archiveHomeButtons": [
         "운명의 나침반"
-      ]
+      ],
+      "sourceAudit": {
+        "path": "docs/toss/original-mode-audit-20261114.json",
+        "reviewState": "prior-contract-evidence-reconciled",
+        "reviewedModes": [
+          "collectDeepEvidence와 원본 워커 10장 프롬프트",
+          "토스 소유 주문과 묶은 DestinyCompassReport의 미완료 상태 및 구매 기록 원문"
+        ],
+        "codeGaps": []
+      },
+      "implementationStage": "기존 원본 계약 및 개발 검증 근거 대조 완료",
+      "deviceStage": "토스 휴대폰의 SDK·키보드·네트워크·파일/오디오 확인 미완료",
+      "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음"
     },
     {
       "id": "destiny-compass-future-sim",
@@ -3789,7 +3925,7 @@
         "destiny-compass-future-sim"
       ],
       "freeCalculation": true,
-      "portStatus": "일부만 이식",
+      "portStatus": "콘솔·운영 설정 필요",
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "Linux AIT 일반 홈 → 꿀꿀운세 → 운명의 나침반 · 상위 화면 진입 확인",
       "bundleVerification": "일반 AIT에서 상위 화면 진입 확인. 하위 입력·결과·재열람의 검증 근거는 verification 참조. 휴대폰 미검증",
@@ -3800,7 +3936,19 @@
       "archiveTests": [],
       "archiveHomeButtons": [
         "운명의 나침반"
-      ]
+      ],
+      "sourceAudit": {
+        "path": "docs/toss/original-mode-audit-20261114.json",
+        "reviewState": "prior-contract-evidence-reconciled",
+        "reviewedModes": [
+          "차트와 30일·90일·1년·3년 시점 선택",
+          "기기 마지막 차트에서 무료 재계산. 웹 과거 주문은 웹 보관 계정 소유"
+        ],
+        "codeGaps": []
+      },
+      "implementationStage": "기존 원본 계약 및 개발 검증 근거 대조 완료",
+      "deviceStage": "토스 휴대폰의 SDK·키보드·네트워크·파일/오디오 확인 미완료",
+      "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음"
     },
     {
       "id": "destiny-compass-life-voyage",
@@ -3831,7 +3979,7 @@
         "destiny-compass-life-voyage"
       ],
       "freeCalculation": true,
-      "portStatus": "일부만 이식",
+      "portStatus": "콘솔·운영 설정 필요",
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "Linux AIT 일반 홈 → 꿀꿀운세 → 운명의 나침반 · 상위 화면 진입 확인",
       "bundleVerification": "일반 AIT에서 상위 화면 진입 확인. 하위 입력·결과·재열람의 검증 근거는 verification 참조. 휴대폰 미검증",
@@ -3842,7 +3990,19 @@
       "archiveTests": [],
       "archiveHomeButtons": [
         "운명의 나침반"
-      ]
+      ],
+      "sourceAudit": {
+        "path": "docs/toss/original-mode-audit-20261114.json",
+        "reviewState": "prior-contract-evidence-reconciled",
+        "reviewedModes": [
+          "차트의 방향장과 장기 시간선",
+          "기기 마지막 차트에서 무료 재계산. 웹 과거 주문은 웹 보관 계정 소유"
+        ],
+        "codeGaps": []
+      },
+      "implementationStage": "기존 원본 계약 및 개발 검증 근거 대조 완료",
+      "deviceStage": "토스 휴대폰의 SDK·키보드·네트워크·파일/오디오 확인 미완료",
+      "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음"
     },
     {
       "id": "destiny-meeting-place",
@@ -3888,7 +4048,7 @@
         "destiny_meeting_place"
       ],
       "freeCalculation": true,
-      "portStatus": "일부만 이식",
+      "portStatus": "콘솔·운영 설정 필요",
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "Linux AIT 일반 홈 → 꿀꿀운세 → 운명의 인연 장소 · 상위 화면 진입 확인",
       "bundleVerification": "일반 AIT에서 상위 화면 진입 확인. 하위 입력·결과·재열람의 검증 근거는 verification 참조. 휴대폰 미검증",
@@ -3899,7 +4059,19 @@
       "archiveTests": [],
       "archiveHomeButtons": [
         "운명의 인연 장소"
-      ]
+      ],
+      "sourceAudit": {
+        "path": "docs/toss/original-mode-audit-20261114.json",
+        "reviewState": "prior-contract-evidence-reconciled",
+        "reviewedModes": [
+          "app/saju/animal-destiny/lib/sajuAdapter.ts → generateDestinyMeetingPlaceResult",
+          "웹처럼 계정 확인 후 현재 화면. 직접 출생 입력 또는 소유 프로필 선택"
+        ],
+        "codeGaps": []
+      },
+      "implementationStage": "기존 원본 계약 및 개발 검증 근거 대조 완료",
+      "deviceStage": "토스 휴대폰의 SDK·키보드·네트워크·파일/오디오 확인 미완료",
+      "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음"
     },
     {
       "id": "dream",
@@ -3940,7 +4112,7 @@
       ],
       "webProductIds": [],
       "freeCalculation": true,
-      "portStatus": "이미 동작",
+      "portStatus": "콘솔·운영 설정 필요",
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "Linux AIT 일반 홈 → 꿀꿀운세 → 드림 타로 · 상위 화면 진입 확인",
       "bundleVerification": "게스트로 원본 질문·뽑기·해석과 다시 뽑기 확인 · 360px 배포 AIT 브라우저, 토스 휴대폰 미검증",
@@ -3953,7 +4125,19 @@
       ],
       "archiveHomeButtons": [
         "드림 타로"
-      ]
+      ],
+      "sourceAudit": {
+        "path": "docs/toss/original-mode-audit-20261114.json",
+        "reviewState": "prior-contract-evidence-reconciled",
+        "reviewedModes": [
+          "index.html:openDreamModal + js/dream-ledger.js → worker/routes/dream.js → lib/tarot/dream-prompt.mjs",
+          "게스트 현재 화면 및 원문 복사. 정신분석 해몽은 별도 유료 기능"
+        ],
+        "codeGaps": []
+      },
+      "implementationStage": "기존 원본 계약 및 개발 검증 근거 대조 완료",
+      "deviceStage": "토스 휴대폰의 SDK·키보드·네트워크·파일/오디오 확인 미완료",
+      "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음"
     },
     {
       "id": "dream-psycho-analysis",
@@ -3998,7 +4182,7 @@
         "dream-psycho-analysis"
       ],
       "freeCalculation": false,
-      "portStatus": "일부만 이식",
+      "portStatus": "콘솔·운영 설정 필요",
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "Linux AIT 일반 홈 → 꿀꿀운세 → 정신분석 해몽 · 상위 화면 진입 확인",
       "bundleVerification": "일반 AIT에서 상위 화면 진입 확인. 하위 입력·결과·재열람의 검증 근거는 verification 참조. 휴대폰 미검증",
@@ -4009,7 +4193,19 @@
       "archiveTests": [],
       "archiveHomeButtons": [
         "정신분석 해몽"
-      ]
+      ],
+      "sourceAudit": {
+        "path": "docs/toss/original-mode-audit-20261114.json",
+        "reviewState": "prior-contract-evidence-reconciled",
+        "reviewedModes": [
+          "꿈 기록 8~6000자와 원본 자동 말투, 로그인 뒤 원래 주문으로 복귀",
+          "동일 토스 계정의 주문·저장된 원문. 기존 작업 재개와 환불·타 계정 접근 거절"
+        ],
+        "codeGaps": []
+      },
+      "implementationStage": "기존 원본 계약 및 개발 검증 근거 대조 완료",
+      "deviceStage": "토스 휴대폰의 SDK·키보드·네트워크·파일/오디오 확인 미완료",
+      "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음"
     },
     {
       "id": "energy-travel",
@@ -4073,7 +4269,7 @@
         "rpt_energyCoordCard"
       ],
       "freeCalculation": true,
-      "portStatus": "일부만 이식",
+      "portStatus": "콘솔·운영 설정 필요",
       "reducedBundle": "홈 진입 없음",
       "currentEntry": "Linux AIT 일반 홈 → 꿀꿀운세 → 사주 리포트 · 상위 화면 진입 확인",
       "bundleVerification": "공개 사주·자미 11절 원본 계산, 사주 그림 13가지와 여행 기록 복원. 시크릿 하우스는 독립 검사 · 360px 배포 AIT 브라우저, 토스 휴대폰 미검증",
@@ -4086,7 +4282,19 @@
       ],
       "archiveHomeButtons": [
         "사주 리포트"
-      ]
+      ],
+      "sourceAudit": {
+        "path": "docs/toss/original-mode-audit-20261114.json",
+        "reviewState": "prior-contract-evidence-reconciled",
+        "reviewedModes": [
+          "출생 날짜·시각·달력·성별·국내 출생 도시",
+          "리포트는 화면 메모리. 최근 여행지·룰렛 당첨 ID는 기기에서 게스트·토스 계정과 출생 입력별로 분리해 앱 재실행 후 복원"
+        ],
+        "codeGaps": []
+      },
+      "implementationStage": "기존 원본 계약 및 개발 검증 근거 대조 완료",
+      "deviceStage": "토스 휴대폰의 SDK·키보드·네트워크·파일/오디오 확인 미완료",
+      "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음"
     },
     {
       "id": "face-reading",
@@ -4127,7 +4335,7 @@
       ],
       "webProductIds": [],
       "freeCalculation": false,
-      "portStatus": "일부만 이식",
+      "portStatus": "콘솔·운영 설정 필요",
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "Linux AIT 일반 홈 → 꿀꿀운세 → 전문가 동물 관상 · 상위 화면 진입 확인",
       "bundleVerification": "합성 이미지 및 고정 랜드마크로 동물 관상과 전생 궁합 원본 결과 확인. 카메라 미검증 · 360px 배포 AIT 브라우저, 토스 휴대폰 미검증",
@@ -4140,7 +4348,19 @@
       ],
       "archiveHomeButtons": [
         "전문가 동물 관상"
-      ]
+      ],
+      "sourceAudit": {
+        "path": "docs/toss/original-mode-audit-20261114.json",
+        "reviewState": "prior-contract-evidence-reconciled",
+        "reviewedModes": [
+          "한 사람 또는 두 사람의 얼굴 사진. 원본 FaceMesh 특징점과 27동물 분류",
+          "게스트 기기 내 판독. 수집한 이미지·점과 원본 결제 주문 분리"
+        ],
+        "codeGaps": []
+      },
+      "implementationStage": "기존 원본 계약 및 개발 검증 근거 대조 완료",
+      "deviceStage": "토스 휴대폰의 SDK·키보드·네트워크·파일/오디오 확인 미완료",
+      "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음"
     },
     {
       "id": "famous-saju",
@@ -4181,7 +4401,7 @@
       ],
       "webProductIds": [],
       "freeCalculation": false,
-      "portStatus": "일부만 이식",
+      "portStatus": "이미 동작",
       "reducedBundle": "홈 진입 있음",
       "currentEntry": "Linux AIT 일반 홈 → 꿀꿀운세 → 유명인 사주 · 상위 화면 진입 확인",
       "bundleVerification": "일반 AIT에서 상위 화면 진입 확인. 하위 입력·결과·재열람의 검증 근거는 verification 참조. 휴대폰 미검증",
@@ -4192,7 +4412,20 @@
       "archiveTests": [],
       "archiveHomeButtons": [
         "유명인 사주"
-      ]
+      ],
+      "sourceAudit": {
+        "path": "docs/toss/original-mode-audit-20261114.json",
+        "reviewState": "original-contract-reviewed",
+        "reviewedModes": [
+          "227명 공개 seed",
+          "60일주 원문",
+          "승인 기사와 미검수 계산 결과 분리"
+        ],
+        "codeGaps": []
+      },
+      "implementationStage": "기존 원본 계약 및 개발 검증 근거 대조 완료",
+      "deviceStage": "토스 휴대폰의 SDK·키보드·네트워크·파일/오디오 확인 미완료",
+      "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음"
     },
     {
       "id": "flower",
@@ -4267,7 +4500,7 @@
       ],
       "webProductIds": [],
       "freeCalculation": false,
-      "portStatus": "일부만 이식",
+      "portStatus": "콘솔·운영 설정 필요",
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "Linux AIT 일반 홈 → 꿀꿀운세 → 운명의 꽃 · 상위 화면 진입 확인",
       "bundleVerification": "일반 AIT에서 상위 화면 진입 확인. 하위 입력·결과·재열람의 검증 근거는 verification 참조. 휴대폰 미검증",
@@ -4279,7 +4512,21 @@
       "archiveTests": [],
       "archiveHomeButtons": [
         "운명의 꽃"
-      ]
+      ],
+      "sourceAudit": {
+        "path": "docs/toss/original-mode-audit-20261114.json",
+        "reviewState": "original-contract-reviewed",
+        "reviewedModes": [
+          "로그인 무료 사주·서양·자미·숙요 원본4꽃",
+          "원본 SVG·꽃말·narrative·해석범위",
+          "private 고정출생예시, 예시외입력422; 운영은 원본 자유입력"
+        ],
+        "codeGaps": []
+      },
+      "implementationStage": "기존 원본 계약 및 개발 검증 근거 대조 완료",
+      "deviceStage": "토스 휴대폰의 SDK·키보드·네트워크·파일/오디오 확인 미완료",
+      "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음",
+      "currentArchiveEvidence": "ab355fbc0 + e587ad595. actual Windows AIT01a1d9c9 홈→로그인→4원문/SVGdecode·3폭·B초기화·0주문 PASS. 원본정책대로보관함저장없음."
     },
     {
       "id": "fortune-chat",
@@ -4323,7 +4570,7 @@
         "fortune-chat-consultation"
       ],
       "freeCalculation": false,
-      "portStatus": "일부만 이식",
+      "portStatus": "콘솔·운영 설정 필요",
       "reducedBundle": "홈 진입 있음",
       "currentEntry": "Linux AIT 일반 홈 → 꿀꿀운세 → 연이의 상담 편지 · 상위 화면 진입 확인",
       "bundleVerification": "연이 기본 편지 사주: Linux AIT 일반 홈 → 입력 → 모의 토스 로그인 → 주문 1건 → 저장 원문 → 구매 기록 재열람·새로고침 → 다른 계정 접근 차단. 상품 ID와 원장 불변 확인. b69eea884 / run 43551511688 · 연이 기본 편지 자미두수: Linux AIT 일반 홈 → 입력 → 모의 토스 로그인 → 주문 1건 → 저장 원문 → 구매 기록 재열람·새로고침 → 다른 계정 접근 차단. 상품 ID와 원장 불변 확인. b69eea884 / run 43551511688 · 연이 기본 편지 숙요: Linux AIT 일반 홈 → 입력 → 모의 토스 로그인 → 주문 1건 → 저장 원문 → 구매 기록 재열람·새로고침 → 다른 계정 접근 차단. 상품 ID와 원장 불변 확인. b69eea884 / run 43551511688 · 연이 기본 편지 베다점: Linux AIT 일반 홈 → 입력 → 모의 토스 로그인 → 주문 1건 → 저장 원문 → 구매 기록 재열람·새로고침 → 다른 계정 접근 차단. 상품 ID와 원장 불변 확인. b69eea884 / run 43551511688 · 연이 기본 편지 서양 점성술: Linux AIT 일반 홈 → 입력 → 모의 토스 로그인 → 주문 1건 → 저장 원문 → 구매 기록 재열람·새로고침 → 다른 계정 접근 차단. 상품 ID와 원장 불변 확인. b69eea884 / run 43551511688 · 연이 기본 편지 타로: Linux AIT 일반 홈 → 입력 → 모의 토스 로그인 → 주문 1건 → 저장 원문 → 구매 기록 재열람·새로고침 → 다른 계정 접근 차단. 상품 ID와 원장 불변 확인. b69eea884 / run 43551511688 · letter saju: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · letter ziwei: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · letter sukuyo: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · letter vedic: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · letter astrology: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · letter tarot: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · letter saju-mackerel: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · letter saju-salmon: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · letter saju-flounder: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · letter saju-tuna: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · letter ziwei-mackerel: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · letter ziwei-salmon: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · letter ziwei-flounder: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · letter ziwei-tuna: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · letter sukuyo-mackerel: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · letter sukuyo-salmon: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · letter sukuyo-flounder: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · letter vedic-mackerel: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · letter vedic-salmon: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · letter vedic-flounder: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · letter vedic-tuna: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · letter astrology-mackerel: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · letter astrology-salmon: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · letter astrology-flounder: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · letter tarot-mackerel: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · letter tarot-salmon: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · letter tarot-flounder: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · 360px 배포 AIT 브라우저, 토스 휴대폰 미검증",
@@ -4368,7 +4615,19 @@
       ],
       "archiveHomeButtons": [
         "연이의 상담 편지"
-      ]
+      ],
+      "sourceAudit": {
+        "path": "docs/toss/original-mode-audit-20261114.json",
+        "reviewState": "prior-contract-evidence-reconciled",
+        "reviewedModes": [
+          "worker/toss/letter.js + worker/toss/services.js",
+          "persona-bound-TossPurchase-to-YeongnyangiRequest; official device and approved SKU pending"
+        ],
+        "codeGaps": []
+      },
+      "implementationStage": "기존 원본 계약 및 개발 검증 근거 대조 완료",
+      "deviceStage": "토스 휴대폰의 SDK·키보드·네트워크·파일/오디오 확인 미완료",
+      "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음"
     },
     {
       "id": "fortune-tea-house",
@@ -4418,7 +4677,7 @@
         "fortune-tea-house-sukuyo-compatibility-consultation"
       ],
       "freeCalculation": false,
-      "portStatus": "일부만 이식",
+      "portStatus": "콘솔·운영 설정 필요",
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "Linux AIT 일반 홈 → 꿀꿀운세 → 연이 · 운명의 찻집 · 상위 화면 진입 확인",
       "bundleVerification": "운명의 찻집 사주: Linux AIT 일반 홈 → 입력 → 모의 토스 로그인 → 주문 1건 → 저장 원문 → 구매 기록 재열람·새로고침 → 다른 계정 접근 차단. 생성 1회·추가 답변 원문과 원장 불변 확인. b69eea884 / run 43551511688 · tea saju: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · tea sajuJoint: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · tea tarot: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · tea tarotFive: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · tea sajuCompatibility: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · tea sukuyo: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · 360px 배포 AIT 브라우저, 토스 휴대폰 미검증",
@@ -4488,7 +4747,19 @@
       ],
       "archiveHomeButtons": [
         "연이 · 운명의 찻집"
-      ]
+      ],
+      "sourceAudit": {
+        "path": "docs/toss/original-mode-audit-20261114.json",
+        "reviewState": "prior-contract-evidence-reconciled",
+        "reviewedModes": [
+          "worker/toss/native-tea.js",
+          "owned-TossPurchase; device-and-console-approval-pending"
+        ],
+        "codeGaps": []
+      },
+      "implementationStage": "기존 원본 계약 및 개발 검증 근거 대조 완료",
+      "deviceStage": "토스 휴대폰의 SDK·키보드·네트워크·파일/오디오 확인 미완료",
+      "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음"
     },
     {
       "id": "fusion-fortune",
@@ -4533,7 +4804,7 @@
         "fusion-fortune-consultation"
       ],
       "freeCalculation": false,
-      "portStatus": "일부만 이식",
+      "portStatus": "콘솔·운영 설정 필요",
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "Linux AIT 일반 홈 → 꿀꿀운세 → 초융합 운세 · 상위 화면 진입 확인",
       "bundleVerification": "8개 상품별 입력 폼과 신규 판매 닫힘 확인. 모의 구매·저장 원문 검사는 별도 verification 참조 · 360px 배포 AIT 브라우저, 토스 휴대폰 미검증",
@@ -4547,7 +4818,19 @@
       ],
       "archiveHomeButtons": [
         "초융합 운세"
-      ]
+      ],
+      "sourceAudit": {
+        "path": "docs/toss/original-mode-audit-20261114.json",
+        "reviewState": "prior-contract-evidence-reconciled",
+        "reviewedModes": [
+          "worker/toss/native-fusion.js",
+          "owned-TossPurchase; device-and-console-approval-pending"
+        ],
+        "codeGaps": []
+      },
+      "implementationStage": "기존 원본 계약 및 개발 검증 근거 대조 완료",
+      "deviceStage": "토스 휴대폰의 SDK·키보드·네트워크·파일/오디오 확인 미완료",
+      "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음"
     },
     {
       "id": "geomancy-oracle",
@@ -4592,7 +4875,7 @@
         "openGeomancyOracle"
       ],
       "freeCalculation": false,
-      "portStatus": "일부만 이식",
+      "portStatus": "콘솔·운영 설정 필요",
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "Linux AIT 일반 홈 → 꿀꿀운세 → 지오맨시 흙점 · 상위 화면 진입 확인",
       "bundleVerification": "일반 AIT에서 상위 화면 진입 확인. 하위 입력·결과·재열람의 검증 근거는 verification 참조. 휴대폰 미검증",
@@ -4603,7 +4886,19 @@
       "archiveTests": [],
       "archiveHomeButtons": [
         "지오맨시 흙점"
-      ]
+      ],
+      "sourceAudit": {
+        "path": "docs/toss/original-mode-audit-20261114.json",
+        "reviewState": "prior-contract-evidence-reconciled",
+        "reviewedModes": [
+          "연금술사/술탄·질문·16줄 흙점, 웹과 공유하는 방패 차트·증인 둘·재판관 계산",
+          "동일 주문의 흙점과 결과 원문. 꿀꿀운세 기록에 토스 소유권 적용"
+        ],
+        "codeGaps": []
+      },
+      "implementationStage": "기존 원본 계약 및 개발 검증 근거 대조 완료",
+      "deviceStage": "토스 휴대폰의 SDK·키보드·네트워크·파일/오디오 확인 미완료",
+      "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음"
     },
     {
       "id": "health-rhythm",
@@ -4668,7 +4963,7 @@
         "rpt_healthReportCard"
       ],
       "freeCalculation": true,
-      "portStatus": "일부만 이식",
+      "portStatus": "콘솔·운영 설정 필요",
       "reducedBundle": "홈 진입 없음",
       "currentEntry": "Linux AIT 일반 홈 → 꿀꿀운세 → 사주 리포트 · 상위 화면 진입 확인",
       "bundleVerification": "공개 사주·자미 11절 원본 계산, 사주 그림 13가지와 여행 기록 복원. 시크릿 하우스는 독립 검사 · 360px 배포 AIT 브라우저, 토스 휴대폰 미검증",
@@ -4681,7 +4976,19 @@
       ],
       "archiveHomeButtons": [
         "사주 리포트"
-      ]
+      ],
+      "sourceAudit": {
+        "path": "docs/toss/original-mode-audit-20261114.json",
+        "reviewState": "prior-contract-evidence-reconciled",
+        "reviewedModes": [
+          "출생 날짜·시각·달력·성별·국내 출생 도시",
+          "현재 화면 메모리"
+        ],
+        "codeGaps": []
+      },
+      "implementationStage": "기존 원본 계약 및 개발 검증 근거 대조 완료",
+      "deviceStage": "토스 휴대폰의 SDK·키보드·네트워크·파일/오디오 확인 미완료",
+      "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음"
     },
     {
       "id": "heukwol-consult",
@@ -4710,7 +5017,7 @@
       ],
       "webProductIds": [],
       "freeCalculation": false,
-      "portStatus": "일부만 이식",
+      "portStatus": "콘솔·운영 설정 필요",
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "Linux AIT 일반 홈 → 꿀꿀운세 → 흑월의 경고 상담 · 상위 화면 진입 확인",
       "bundleVerification": "일반 AIT에서 상위 화면 진입 확인. 하위 입력·결과·재열람의 검증 근거는 verification 참조. 휴대폰 미검증",
@@ -4721,7 +5028,19 @@
       "archiveTests": [],
       "archiveHomeButtons": [
         "흑월의 경고 상담"
-      ]
+      ],
+      "sourceAudit": {
+        "path": "docs/toss/original-mode-audit-20261114.json",
+        "reviewState": "prior-contract-evidence-reconciled",
+        "reviewedModes": [
+          "원본 buildHeukwolAnalysis·generateHeukwolChapter, 소유 프로필의 출생 시각·선택 연도·질문",
+          "TossNativeConsultation과 소유 구매. 원 주문과 마지막 성공 장에서 복구. 신규 SKU 미등록"
+        ],
+        "codeGaps": []
+      },
+      "implementationStage": "기존 원본 계약 및 개발 검증 근거 대조 완료",
+      "deviceStage": "토스 휴대폰의 SDK·키보드·네트워크·파일/오디오 확인 미완료",
+      "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음"
     },
     {
       "id": "heukwol-story",
@@ -4749,7 +5068,7 @@
       ],
       "webProductIds": [],
       "freeCalculation": false,
-      "portStatus": "일부만 이식",
+      "portStatus": "이미 동작",
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "일반 홈의 진입 코드 확인",
       "bundleVerification": "일반 홈에서 14편 원본의 컷·대사 및 첫 그림 디코딩. 원격 아트는 로컬 원본 파일로 대체 · 360px 배포 AIT 브라우저, 토스 휴대폰 미검증",
@@ -4760,7 +5079,19 @@
       "archiveTests": [
         "stories"
       ],
-      "archiveHomeButtons": []
+      "archiveHomeButtons": [],
+      "sourceAudit": {
+        "path": "docs/toss/original-mode-audit-20261114.json",
+        "reviewState": "prior-contract-evidence-reconciled",
+        "reviewedModes": [
+          "app/heukwol/FateWarningEpisode.tsx 및 원본 12컷",
+          "공개 서장. 유료 흑월 상담과 별도"
+        ],
+        "codeGaps": []
+      },
+      "implementationStage": "기존 원본 계약 및 개발 검증 근거 대조 완료",
+      "deviceStage": "토스 휴대폰의 SDK·키보드·네트워크·파일/오디오 확인 미완료",
+      "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음"
     },
     {
       "id": "home-widget",
@@ -4789,7 +5120,7 @@
       "webProductIds": [],
       "platformDependency": "웹은 미리보기, 홈 위젯 설치는 HomeWidgetStudio.tsx의 Android Code Destiny 전용 네이티브 플러그인 필요",
       "freeCalculation": false,
-      "portStatus": "일부만 이식",
+      "portStatus": "이미 동작",
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "Linux AIT 일반 홈 → 꿀꿀운세 → 연이의 달빛 홈 화면 · 상위 화면 진입 확인",
       "bundleVerification": "여섯 원본 위젯 실시간 미리보기 · 360px 배포 AIT 브라우저, 토스 휴대폰 미검증",
@@ -4802,7 +5133,19 @@
       ],
       "archiveHomeButtons": [
         "연이의 달빛 홈 화면"
-      ]
+      ],
+      "sourceAudit": {
+        "path": "docs/toss/original-mode-audit-20261114.json",
+        "reviewState": "prior-contract-evidence-reconciled",
+        "reviewedModes": [
+          "캐릭터 둘, 그림·꽃말·오늘 운세 위젯 선택",
+          "게스트 미리보기. OS 홈 고정은 기존 Android 앱 플러그인 전용"
+        ],
+        "codeGaps": []
+      },
+      "implementationStage": "기존 원본 계약 및 개발 검증 근거 대조 완료",
+      "deviceStage": "토스 휴대폰의 SDK·키보드·네트워크·파일/오디오 확인 미완료",
+      "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음"
     },
     {
       "id": "human-design",
@@ -4845,7 +5188,7 @@
         "human-design-chart"
       ],
       "freeCalculation": false,
-      "portStatus": "일부만 이식",
+      "portStatus": "콘솔·운영 설정 필요",
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "Linux AIT 일반 홈 → 꿀꿀운세 → 휴먼 디자인 차트 · 상위 화면 진입 확인",
       "bundleVerification": "일반 AIT에서 상위 화면 진입 확인. 하위 입력·결과·재열람의 검증 근거는 verification 참조. 휴대폰 미검증",
@@ -4856,7 +5199,20 @@
       "archiveTests": [],
       "archiveHomeButtons": [
         "휴먼 디자인 차트"
-      ]
+      ],
+      "sourceAudit": {
+        "path": "docs/toss/original-mode-audit-20261114.json",
+        "reviewState": "original-contract-reviewed",
+        "reviewedModes": [
+          "무료 차트",
+          "원본 유료 18장",
+          "소유 원문 재열람"
+        ],
+        "codeGaps": []
+      },
+      "implementationStage": "기존 원본 계약 및 개발 검증 근거 대조 완료",
+      "deviceStage": "토스 휴대폰의 SDK·키보드·네트워크·파일/오디오 확인 미완료",
+      "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음"
     },
     {
       "id": "ifa-oracle",
@@ -4914,7 +5270,19 @@
       ],
       "archiveHomeButtons": [
         "이파 오라클"
-      ]
+      ],
+      "sourceAudit": {
+        "path": "docs/toss/original-mode-audit-20261114.json",
+        "reviewState": "prior-contract-evidence-reconciled",
+        "reviewedModes": [
+          "public/ifa-oracle.html 여덟 표식, 오두 256개, 네 주제",
+          "현재 화면. 토스 저장·공유는 실기기 확인 필요"
+        ],
+        "codeGaps": []
+      },
+      "implementationStage": "기존 원본 계약 및 개발 검증 근거 대조 완료",
+      "deviceStage": "토스 휴대폰의 SDK·키보드·네트워크·파일/오디오 확인 미완료",
+      "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음"
     },
     {
       "id": "island-consult",
@@ -4948,7 +5316,7 @@
         "ziwei-island-deep-report"
       ],
       "freeCalculation": false,
-      "portStatus": "일부만 이식",
+      "portStatus": "콘솔·운영 설정 필요",
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "일반 홈의 진입 코드 확인",
       "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
@@ -4958,7 +5326,19 @@
       "verification": "web-history-browser.mjs 360px. 원본 Worker 신규 AI 준비·생성에 410 ISLAND_NOW_FREE. GET /result 소유자·환불·부분 원문 및 별도 고정 리포트의 birthKey 권한 mock 테스트",
       "saleStatus": "현재 기능에 신규 구매 버튼 없음",
       "archiveTests": [],
-      "archiveHomeButtons": []
+      "archiveHomeButtons": [],
+      "sourceAudit": {
+        "path": "docs/toss/original-mode-audit-20261114.json",
+        "reviewState": "prior-contract-evidence-reconciled",
+        "reviewedModes": [
+          "궁별 상담은 원래 웹 계정의 저장 세션 id 또는 pending=1, 고정 리포트는 동일 웹 계정에서 구매한 출생정보의 profileId",
+          "웹 궁별 AI는 완료·부분 저장 원문, 별도 고정 12궁 리포트는 원래 웹 계정과 출생정보 권리로 원본을 계산"
+        ],
+        "codeGaps": []
+      },
+      "implementationStage": "기존 원본 계약 및 개발 검증 근거 대조 완료",
+      "deviceStage": "토스 휴대폰의 SDK·키보드·네트워크·파일/오디오 확인 미완료",
+      "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음"
     },
     {
       "id": "juyuk-turtle",
@@ -5014,7 +5394,19 @@
       ],
       "archiveHomeButtons": [
         "주역 거북점"
-      ]
+      ],
+      "sourceAudit": {
+        "path": "docs/toss/original-mode-audit-20261114.json",
+        "reviewState": "prior-contract-evidence-reconciled",
+        "reviewedModes": [
+          "js/iching-engine.js 원본 질문·2.2초 길게 누르기·seed·상하괘·64괘, 7장과 전문가 프롬프트. 무료 키 openJuyukModal",
+          "게스트 공개, 화면 결과. 기존 웹 주문 정책과 별개"
+        ],
+        "codeGaps": []
+      },
+      "implementationStage": "기존 원본 계약 및 개발 검증 근거 대조 완료",
+      "deviceStage": "토스 휴대폰의 SDK·키보드·네트워크·파일/오디오 확인 미완료",
+      "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음"
     },
     {
       "id": "karma-destiny-ai",
@@ -5060,7 +5452,7 @@
         "karma-destiny-ai-consultation"
       ],
       "freeCalculation": false,
-      "portStatus": "일부만 이식",
+      "portStatus": "콘솔·운영 설정 필요",
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "Linux AIT 일반 홈 → 꿀꿀운세 → 운명의 업 전문가 상담 · 상위 화면 진입 확인",
       "bundleVerification": "8개 상품별 입력 폼과 신규 판매 닫힘 확인. 모의 구매·저장 원문 검사는 별도 verification 참조 · 360px 배포 AIT 브라우저, 토스 휴대폰 미검증",
@@ -5073,7 +5465,19 @@
       ],
       "archiveHomeButtons": [
         "운명의 업 전문가 상담"
-      ]
+      ],
+      "sourceAudit": {
+        "path": "docs/toss/original-mode-audit-20261114.json",
+        "reviewState": "prior-contract-evidence-reconciled",
+        "reviewedModes": [
+          "worker/toss/native-karma.js + nativeKarmaContract",
+          "owner-scoped Toss intent and original KarmaDestinyAiConsultation; approved SKU, purchaser binding, durable checkout and device verification pending"
+        ],
+        "codeGaps": []
+      },
+      "implementationStage": "기존 원본 계약 및 개발 검증 근거 대조 완료",
+      "deviceStage": "토스 휴대폰의 SDK·키보드·네트워크·파일/오디오 확인 미완료",
+      "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음"
     },
     {
       "id": "kemet-oracle",
@@ -5129,7 +5533,19 @@
       ],
       "archiveHomeButtons": [
         "이집트 신탁"
-      ]
+      ],
+      "sourceAudit": {
+        "path": "docs/toss/original-mode-audit-20261114.json",
+        "reviewState": "prior-contract-evidence-reconciled",
+        "reviewedModes": [
+          "js/oracle-kcg.js 원본 12신 중 3장 선택, 질문의 사랑·재물·성취 분류, 카드별 과거/현재/미래, 합독·헤카·파피루스·전문가 프롬프트",
+          "게스트 무료 키 openKemetModal. 현재 화면 결과"
+        ],
+        "codeGaps": []
+      },
+      "implementationStage": "기존 원본 계약 및 개발 검증 근거 대조 완료",
+      "deviceStage": "토스 휴대폰의 SDK·키보드·네트워크·파일/오디오 확인 미완료",
+      "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음"
     },
     {
       "id": "lenormand-six",
@@ -5158,7 +5574,7 @@
       ],
       "webProductIds": [],
       "freeCalculation": true,
-      "portStatus": "일부만 이식",
+      "portStatus": "이미 동작",
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "Linux AIT 일반 홈 → 꿀꿀운세 → 타로 리딩 · 상위 화면 진입 확인",
       "bundleVerification": "일반 AIT에서 상위 화면 진입 확인. 하위 입력·결과·재열람의 검증 근거는 verification 참조. 휴대폰 미검증",
@@ -5169,7 +5585,19 @@
       "archiveTests": [],
       "archiveHomeButtons": [
         "타로 리딩"
-      ]
+      ],
+      "sourceAudit": {
+        "path": "docs/toss/original-mode-audit-20261114.json",
+        "reviewState": "prior-contract-evidence-reconciled",
+        "reviewedModes": [
+          "원본 36장에서 6장을 고른 뒤 로컬 프롬프트 작성",
+          "현재 화면의 무료 프롬프트"
+        ],
+        "codeGaps": []
+      },
+      "implementationStage": "기존 원본 계약 및 개발 검증 근거 대조 완료",
+      "deviceStage": "토스 휴대폰의 SDK·키보드·네트워크·파일/오디오 확인 미완료",
+      "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음"
     },
     {
       "id": "life-book-ai",
@@ -5226,7 +5654,7 @@
         "life-book-ai-consultation"
       ],
       "freeCalculation": false,
-      "portStatus": "일부만 이식",
+      "portStatus": "콘솔·운영 설정 필요",
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "Linux AIT 일반 홈 → 꿀꿀운세 → 인생의 책 · 상위 화면 진입 확인",
       "bundleVerification": "일반 AIT에서 상위 화면 진입 확인. 하위 입력·결과·재열람의 검증 근거는 verification 참조. 휴대폰 미검증",
@@ -5238,7 +5666,19 @@
       "archiveTests": [],
       "archiveHomeButtons": [
         "인생의 책"
-      ]
+      ],
+      "sourceAudit": {
+        "path": "docs/toss/original-mode-audit-20261114.json",
+        "reviewState": "prior-contract-evidence-reconciled",
+        "reviewedModes": [
+          "worker/toss/native-life-book.js",
+          "owned-TossPurchase; device-and-console-approval-pending"
+        ],
+        "codeGaps": []
+      },
+      "implementationStage": "기존 원본 계약 및 개발 검증 근거 대조 완료",
+      "deviceStage": "토스 휴대폰의 SDK·키보드·네트워크·파일/오디오 확인 미완료",
+      "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음"
     },
     {
       "id": "life-fortune-report",
@@ -5275,7 +5715,7 @@
         "life-fortune-ai-consultation"
       ],
       "freeCalculation": false,
-      "portStatus": "일부만 이식",
+      "portStatus": "콘솔·운영 설정 필요",
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "Linux AIT 일반 홈 → 꿀꿀운세 → 인생 총운 · 상위 화면 진입 확인",
       "bundleVerification": "일반 AIT에서 상위 화면 진입 확인. 하위 입력·결과·재열람의 검증 근거는 verification 참조. 휴대폰 미검증",
@@ -5286,7 +5726,19 @@
       "archiveTests": [],
       "archiveHomeButtons": [
         "인생 총운"
-      ]
+      ],
+      "sourceAudit": {
+        "path": "docs/toss/original-mode-audit-20261114.json",
+        "reviewState": "prior-contract-evidence-reconciled",
+        "reviewedModes": [
+          "worker/routes/life-book-ai.js:nativeLifeBookContract (lifeFortune mode)",
+          "owned-TossPurchase with life-fortune-ai-consultation feature; device-and-console-approval-pending"
+        ],
+        "codeGaps": []
+      },
+      "implementationStage": "기존 원본 계약 및 개발 검증 근거 대조 완료",
+      "deviceStage": "토스 휴대폰의 SDK·키보드·네트워크·파일/오디오 확인 미완료",
+      "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음"
     },
     {
       "id": "life-skill-tree",
@@ -5358,7 +5810,7 @@
         "rpt_skillTreeCard"
       ],
       "freeCalculation": true,
-      "portStatus": "일부만 이식",
+      "portStatus": "콘솔·운영 설정 필요",
       "reducedBundle": "홈 진입 없음",
       "currentEntry": "Linux AIT 일반 홈 → 꿀꿀운세 → 사주 리포트 · 상위 화면 진입 확인",
       "bundleVerification": "공개 사주·자미 11절 원본 계산, 사주 그림 13가지와 여행 기록 복원. 시크릿 하우스는 독립 검사 · 360px 배포 AIT 브라우저, 토스 휴대폰 미검증",
@@ -5371,7 +5823,19 @@
       ],
       "archiveHomeButtons": [
         "사주 리포트"
-      ]
+      ],
+      "sourceAudit": {
+        "path": "docs/toss/original-mode-audit-20261114.json",
+        "reviewState": "prior-contract-evidence-reconciled",
+        "reviewedModes": [
+          "출생 날짜·시각·달력·성별·국내 출생 도시",
+          "클래스 시트는 화면 메모리. 게스트의 퀘스트·EXP는 기기 저장, 로그인 후 계정별 진행 조회·완료·이관"
+        ],
+        "codeGaps": []
+      },
+      "implementationStage": "기존 원본 계약 및 개발 검증 근거 대조 완료",
+      "deviceStage": "토스 휴대폰의 SDK·키보드·네트워크·파일/오디오 확인 미완료",
+      "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음"
     },
     {
       "id": "love-code",
@@ -5424,7 +5888,7 @@
         "love-code"
       ],
       "freeCalculation": true,
-      "portStatus": "일부만 이식",
+      "portStatus": "콘솔·운영 설정 필요",
       "reducedBundle": "홈 진입 없음",
       "currentEntry": "일반 홈의 진입 코드 확인",
       "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
@@ -5433,7 +5897,19 @@
       "reread": "현재 세션의 원본 결말. 다음 진입 때 다시 플레이. 타 계정 프로필·웹 결제 복구와 독립",
       "saleStatus": "기본 계산은 구매 없음 · 부가 상품은 별도 행 참조",
       "archiveTests": [],
-      "archiveHomeButtons": []
+      "archiveHomeButtons": [],
+      "sourceAudit": {
+        "path": "docs/toss/original-mode-audit-20261114.json",
+        "reviewState": "prior-contract-evidence-reconciled",
+        "reviewedModes": [
+          "원본 16인 프리셋 또는 상대 출생정보 사주 매칭. 내 명식·상대 선택·데이트 장면 선택으로 결말",
+          "현재 세션의 원본 결말. 다음 진입 때 다시 플레이. 타 계정 프로필·웹 결제 복구와 독립"
+        ],
+        "codeGaps": []
+      },
+      "implementationStage": "기존 원본 계약 및 개발 검증 근거 대조 완료",
+      "deviceStage": "토스 휴대폰의 SDK·키보드·네트워크·파일/오디오 확인 미완료",
+      "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음"
     },
     {
       "id": "love-secret-ai",
@@ -5479,7 +5955,7 @@
         "love-secret-ai-consultation"
       ],
       "freeCalculation": false,
-      "portStatus": "일부만 이식",
+      "portStatus": "콘솔·운영 설정 필요",
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "Linux AIT 일반 홈 → 꿀꿀운세 → 연애 비책 · 상위 화면 진입 확인",
       "bundleVerification": "8개 상품별 입력 폼과 신규 판매 닫힘 확인. 모의 구매·저장 원문 검사는 별도 verification 참조 · 360px 배포 AIT 브라우저, 토스 휴대폰 미검증",
@@ -5492,7 +5968,19 @@
       ],
       "archiveHomeButtons": [
         "연애 비책"
-      ]
+      ],
+      "sourceAudit": {
+        "path": "docs/toss/original-mode-audit-20261114.json",
+        "reviewState": "prior-contract-evidence-reconciled",
+        "reviewedModes": [
+          "worker/toss/native-love-secret.js",
+          "owned Toss purchase, Toss-origin consultation and verified follow-up recovery; approved SKU, purchaser binding, durable checkout and device verification pending"
+        ],
+        "codeGaps": []
+      },
+      "implementationStage": "기존 원본 계약 및 개발 검증 근거 대조 완료",
+      "deviceStage": "토스 휴대폰의 SDK·키보드·네트워크·파일/오디오 확인 미완료",
+      "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음"
     },
     {
       "id": "luck-sync-diary",
@@ -5546,7 +6034,7 @@
       ],
       "webProductIds": [],
       "freeCalculation": false,
-      "portStatus": "일부만 이식",
+      "portStatus": "콘솔·운영 설정 필요",
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "Linux AIT 일반 홈 → 꿀꿀운세 → 운기 다이어리 · 상위 화면 진입 확인",
       "bundleVerification": "게스트 플래너, 날짜에 따른 기록 구분, 앱 재진입 · 360px 배포 AIT 브라우저, 토스 휴대폰 미검증",
@@ -5559,7 +6047,19 @@
       ],
       "archiveHomeButtons": [
         "운기 다이어리"
-      ]
+      ],
+      "sourceAudit": {
+        "path": "docs/toss/original-mode-audit-20261114.json",
+        "reviewState": "prior-contract-evidence-reconciled",
+        "reviewedModes": [
+          "오늘과 과거 날짜·기분·한 줄·메모·태그·일정·할 일·루틴",
+          "게스트/토스 계정별 기기 저장. 원본 일/월 샤드로 재실행 후 읽기"
+        ],
+        "codeGaps": []
+      },
+      "implementationStage": "기존 원본 계약 및 개발 검증 근거 대조 완료",
+      "deviceStage": "토스 휴대폰의 SDK·키보드·네트워크·파일/오디오 확인 미완료",
+      "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음"
     },
     {
       "id": "manse",
@@ -5599,7 +6099,7 @@
       ],
       "webProductIds": [],
       "freeCalculation": false,
-      "portStatus": "일부만 이식",
+      "portStatus": "콘솔·운영 설정 필요",
       "reducedBundle": "홈 진입 있음",
       "currentEntry": "Linux AIT 일반 홈 → 꿀꿀운세 → 만세력 · 상위 화면 진입 확인",
       "bundleVerification": "게스트 수동 출생정보로 만세력·베다 원본 계산과 반려동물 오행 결과, 반려동물 심층 로그인 경계 · 360px 배포 AIT 브라우저, 토스 휴대폰 미검증",
@@ -5613,7 +6113,19 @@
       ],
       "archiveHomeButtons": [
         "만세력"
-      ]
+      ],
+      "sourceAudit": {
+        "path": "docs/toss/original-mode-audit-20261114.json",
+        "reviewState": "prior-contract-evidence-reconciled",
+        "reviewedModes": [
+          "worker/toss/manse.js (canonical screen saju engine)",
+          "screen-only; web-profile-history-parity-pending"
+        ],
+        "codeGaps": []
+      },
+      "implementationStage": "기존 원본 계약 및 개발 검증 근거 대조 완료",
+      "deviceStage": "토스 휴대폰의 SDK·키보드·네트워크·파일/오디오 확인 미완료",
+      "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음"
     },
     {
       "id": "master-love-codex",
@@ -5659,7 +6171,7 @@
         "master-love-codex-compat"
       ],
       "freeCalculation": false,
-      "portStatus": "일부만 이식",
+      "portStatus": "콘솔·운영 설정 필요",
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "Linux AIT 일반 홈 → 꿀꿀운세 → 마스터 인연의 서 · 상위 화면 진입 확인",
       "bundleVerification": "일반 AIT에서 상위 화면 진입 확인. 하위 입력·결과·재열람의 검증 근거는 verification 참조. 휴대폰 미검증",
@@ -5670,7 +6182,19 @@
       "archiveTests": [],
       "archiveHomeButtons": [
         "마스터 인연의 서"
-      ]
+      ],
+      "sourceAudit": {
+        "path": "docs/toss/original-mode-audit-20261114.json",
+        "reviewState": "prior-contract-evidence-reconciled",
+        "reviewedModes": [
+          "개인판 출생·질문과 사주·자미두수 근거",
+          "개인판 토스 주문과 소유 계정의 저장 원문"
+        ],
+        "codeGaps": []
+      },
+      "implementationStage": "기존 원본 계약 및 개발 검증 근거 대조 완료",
+      "deviceStage": "토스 휴대폰의 SDK·키보드·네트워크·파일/오디오 확인 미완료",
+      "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음"
     },
     {
       "id": "master-love-codex-compat",
@@ -5707,7 +6231,7 @@
         "master-love-codex-compat"
       ],
       "freeCalculation": false,
-      "portStatus": "일부만 이식",
+      "portStatus": "콘솔·운영 설정 필요",
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "Linux AIT 일반 홈 → 꿀꿀운세 → 마스터 인연의 서 · 상위 화면 진입 확인",
       "bundleVerification": "일반 AIT에서 상위 화면 진입 확인. 하위 입력·결과·재열람의 검증 근거는 verification 참조. 휴대폰 미검증",
@@ -5718,7 +6242,19 @@
       "archiveTests": [],
       "archiveHomeButtons": [
         "마스터 인연의 서"
-      ]
+      ],
+      "sourceAudit": {
+        "path": "docs/toss/original-mode-audit-20261114.json",
+        "reviewState": "prior-contract-evidence-reconciled",
+        "reviewedModes": [
+          "궁합판 두 사람 출생·질문과 별도 원장",
+          "궁합판 토스 주문과 소유 계정의 저장 원문"
+        ],
+        "codeGaps": []
+      },
+      "implementationStage": "기존 원본 계약 및 개발 검증 근거 대조 완료",
+      "deviceStage": "토스 휴대폰의 SDK·키보드·네트워크·파일/오디오 확인 미완료",
+      "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음"
     },
     {
       "id": "maya",
@@ -5759,7 +6295,7 @@
       ],
       "webProductIds": [],
       "freeCalculation": true,
-      "portStatus": "일부만 이식",
+      "portStatus": "콘솔·운영 설정 필요",
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "Linux AIT 일반 홈 → 꿀꿀운세 → 마야 달력 · 상위 화면 진입 확인",
       "bundleVerification": "일반 AIT에서 상위 화면 진입 확인. 하위 입력·결과·재열람의 검증 근거는 verification 참조. 휴대폰 미검증",
@@ -5770,7 +6306,19 @@
       "archiveTests": [],
       "archiveHomeButtons": [
         "마야 달력"
-      ]
+      ],
+      "sourceAudit": {
+        "path": "docs/toss/original-mode-audit-20261114.json",
+        "reviewState": "prior-contract-evidence-reconciled",
+        "reviewedModes": [
+          "일반 진입은 웹 원본 MayaPromptGeneratorCard의 날짜·이름·출생일·주제·질문. maya-prompt-generator 무료 정책",
+          "신규 무료 프롬프트는 비회원 현재 화면. 과거 구매의 저장 원문·주문 복구는 소유 계정에만 제공"
+        ],
+        "codeGaps": []
+      },
+      "implementationStage": "기존 원본 계약 및 개발 검증 근거 대조 완료",
+      "deviceStage": "토스 휴대폰의 SDK·키보드·네트워크·파일/오디오 확인 미완료",
+      "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음"
     },
     {
       "id": "mbti-animal-compat",
@@ -5812,7 +6360,7 @@
       ],
       "webProductIds": [],
       "freeCalculation": true,
-      "portStatus": "일부만 이식",
+      "portStatus": "이미 동작",
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "Linux AIT 일반 홈 → 꿀꿀운세 → MBTI 동물 궁합 · 상위 화면 진입 확인",
       "bundleVerification": "일반 AIT에서 상위 화면 진입 확인. 하위 입력·결과·재열람의 검증 근거는 verification 참조. 휴대폰 미검증",
@@ -5823,7 +6371,19 @@
       "archiveTests": [],
       "archiveHomeButtons": [
         "MBTI 동물 궁합"
-      ]
+      ],
+      "sourceAudit": {
+        "path": "docs/toss/original-mode-audit-20261114.json",
+        "reviewState": "prior-contract-evidence-reconciled",
+        "reviewedModes": [
+          "js/astral-soul.js:ASTRAL_DATA / getPairScore / getSynergyText",
+          "게스트 화면 계산. 두 동물 256쌍 원본 점수·조언"
+        ],
+        "codeGaps": []
+      },
+      "implementationStage": "기존 원본 계약 및 개발 검증 근거 대조 완료",
+      "deviceStage": "토스 휴대폰의 SDK·키보드·네트워크·파일/오디오 확인 미완료",
+      "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음"
     },
     {
       "id": "music",
@@ -5852,9 +6412,10 @@
       "status": "local-partial",
       "tossRoute": "/music",
       "sku": null,
-      "inputContract": "stream list projected from original track manifest and free_full policy only",
-      "resultRenderer": "apps/toss/src/MusicShelf.tsx",
-      "storageContract": "stream only; paid downloads, library and device audio parity pending",
+      "inputContract": "원본 allTracks/free_full 무료 재생. MP3는 곡별 독립 featureKey·토스 승인 SKU의 소유 다운로드",
+      "resultRenderer": "apps/toss/src/MusicShelf.tsx + MusicDownload.tsx + music-download-file.ts",
+      "storageContract": "동일 곡 주문의 원본 음원권리·보관함·재열람, 웹 구매·이용권과 토스 계정은 분리",
+      "verification": "음악 source/원본 proxy/모의 API/SDK 파일 경계 targeted 검증. 실제 AIT 추가 QA 진행. SDK base64 경로의 32MiB 초과 파일은 저장 제한·권리 유지, 실곡/기기 확인 필요",
       "webEntries": [
         "/music/"
       ],
@@ -5867,15 +6428,28 @@
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "Linux AIT 일반 홈 → 꿀꿀운세 → 꿀꿀운세 음악실 · 상위 화면 진입 확인",
       "bundleVerification": "일반 AIT에서 상위 화면 진입 확인. 하위 입력·결과·재열람의 검증 근거는 verification 참조. 휴대폰 미검증",
-      "tossLogin": "공개 진입",
-      "tossResult": "apps/toss/src/MusicShelf.tsx",
-      "reread": "stream only; paid downloads, library and device audio parity pending",
-      "verification": "apps/toss/test/ music-shelf.test.mjs · 개별 검사 범위. 실제 기기 미검증",
+      "tossLogin": "무료 재생은 게스트, MP3 구매·저장은 소유 계정",
+      "tossResult": "apps/toss/src/MusicShelf.tsx + MusicDownload.tsx + music-download-file.ts",
+      "reread": "동일 곡 주문의 원본 음원권리·보관함·재열람, 웹 구매·이용권과 토스 계정은 분리",
       "saleStatus": "현재 기능에 신규 구매 버튼 없음",
       "archiveTests": [],
       "archiveHomeButtons": [
         "꿀꿀운세 음악실"
-      ]
+      ],
+      "sourceAudit": {
+        "path": "docs/toss/original-mode-audit-20261114.json",
+        "reviewState": "known-gaps",
+        "reviewedModes": [
+          "stream list projected from original track manifest and free_full policy only",
+          "stream only; paid downloads, library and device audio parity pending"
+        ],
+        "codeGaps": [
+          "전곡 무료 스트림은 연결됨. 웹 단건·월정석 MP3 다운로드 구매와 파일 저장은 별도 미이식. 이용권 커버로 다운로드를 열지 않음"
+        ]
+      },
+      "implementationStage": "확인된 코드/모의 연결 누락 있음",
+      "deviceStage": "토스 휴대폰의 SDK·키보드·네트워크·파일/오디오 확인 미완료",
+      "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음"
     },
     {
       "id": "nakshatra",
@@ -5920,7 +6494,7 @@
       ],
       "webProductIds": [],
       "freeCalculation": true,
-      "portStatus": "일부만 이식",
+      "portStatus": "콘솔·운영 설정 필요",
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "Linux AIT 일반 홈 → 꿀꿀운세 → 나의 나크샤트라 · 상위 화면 진입 확인",
       "bundleVerification": "일반 AIT에서 상위 화면 진입 확인. 하위 입력·결과·재열람의 검증 근거는 verification 참조. 휴대폰 미검증",
@@ -5931,7 +6505,19 @@
       "archiveTests": [],
       "archiveHomeButtons": [
         "나의 나크샤트라"
-      ]
+      ],
+      "sourceAudit": {
+        "path": "docs/toss/original-mode-audit-20261114.json",
+        "reviewState": "prior-contract-evidence-reconciled",
+        "reviewedModes": [
+          "웹 /nakshatra/calc/ 양력·출생시각/미상·도시와 국가. 원본 resolveNatal과 일본 구력, Lahiri",
+          "게스트 현재 화면 무료 리딩 5개 주제. 기존 웹 주문·개인 AI 리포트 별도"
+        ],
+        "codeGaps": []
+      },
+      "implementationStage": "기존 원본 계약 및 개발 검증 근거 대조 완료",
+      "deviceStage": "토스 휴대폰의 SDK·키보드·네트워크·파일/오디오 확인 미완료",
+      "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음"
     },
     {
       "id": "nakshatra-ai",
@@ -5978,7 +6564,7 @@
         "nakshatra-ai-consultation"
       ],
       "freeCalculation": false,
-      "portStatus": "일부만 이식",
+      "portStatus": "콘솔·운영 설정 필요",
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "Linux AIT 일반 홈 → 꿀꿀운세 → 나크샤트라 개인 심화 상담 · 상위 화면 진입 확인",
       "bundleVerification": "일반 AIT에서 상위 화면 진입 확인. 하위 입력·결과·재열람의 검증 근거는 verification 참조. 휴대폰 미검증",
@@ -5989,7 +6575,19 @@
       "archiveTests": [],
       "archiveHomeButtons": [
         "나크샤트라 개인 심화 상담"
-      ]
+      ],
+      "sourceAudit": {
+        "path": "docs/toss/original-mode-audit-20261114.json",
+        "reviewState": "prior-contract-evidence-reconciled",
+        "reviewedModes": [
+          "app/nakshatra/ai/NakshatraAiClient.tsx. 양력 출생 일시·시간 미상·도시(11개 프리셋)·성별과 선택 질문 1200자. 웹 상품 30000원·이용권·월정석은 웹 원장에 유지, 토스 SKU 미등록",
+          "토스 주문을 원래 NakshatraAiConsultation(소유자·idempotencyKey·inputHash)에 결합. 꿀꿀운세 구매 기록으로 9장 원문을 다시 연다. 웹의 기구매·환불 경로와 분리"
+        ],
+        "codeGaps": []
+      },
+      "implementationStage": "기존 원본 계약 및 개발 검증 근거 대조 완료",
+      "deviceStage": "토스 휴대폰의 SDK·키보드·네트워크·파일/오디오 확인 미완료",
+      "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음"
     },
     {
       "id": "nakshatra-compat",
@@ -6036,7 +6634,7 @@
         "nakshatra-compat"
       ],
       "freeCalculation": true,
-      "portStatus": "일부만 이식",
+      "portStatus": "콘솔·운영 설정 필요",
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "Linux AIT 일반 홈 → 꿀꿀운세 → 나크샤트라 동서 궁합 · 상위 화면 진입 확인",
       "bundleVerification": "일반 AIT에서 상위 화면 진입 확인. 하위 입력·결과·재열람의 검증 근거는 verification 참조. 휴대폰 미검증",
@@ -6047,7 +6645,19 @@
       "archiveTests": [],
       "archiveHomeButtons": [
         "나크샤트라 동서 궁합"
-      ]
+      ],
+      "sourceAudit": {
+        "path": "docs/toss/original-mode-audit-20261114.json",
+        "reviewState": "prior-contract-evidence-reconciled",
+        "reviewedModes": [
+          "app/nakshatra/compat/NakshatraCompatClient.tsx의 각자 출생 날짜·시각·나라·성별. 원본 resolveCompat와 일본 숙요, Lahiri 아쉬타쿠타 8항목",
+          "토스 로그인·무료 현재 화면 계산. 기존 웹 구매 GET은 웹 원장과 소유 인증으로 유지"
+        ],
+        "codeGaps": []
+      },
+      "implementationStage": "기존 원본 계약 및 개발 검증 근거 대조 완료",
+      "deviceStage": "토스 휴대폰의 SDK·키보드·네트워크·파일/오디오 확인 미완료",
+      "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음"
     },
     {
       "id": "nakshatra-dasha-map",
@@ -6079,7 +6689,7 @@
         "nakshatra-dasha-map"
       ],
       "freeCalculation": true,
-      "portStatus": "일부만 이식",
+      "portStatus": "콘솔·운영 설정 필요",
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "Linux AIT 일반 홈 → 꿀꿀운세 → 나크샤트라 다샤 인생지도 · 상위 화면 진입 확인",
       "bundleVerification": "일반 AIT에서 상위 화면 진입 확인. 하위 입력·결과·재열람의 검증 근거는 verification 참조. 휴대폰 미검증",
@@ -6090,7 +6700,19 @@
       "archiveTests": [],
       "archiveHomeButtons": [
         "나크샤트라 다샤 인생지도"
-      ]
+      ],
+      "sourceAudit": {
+        "path": "docs/toss/original-mode-audit-20261114.json",
+        "reviewState": "prior-contract-evidence-reconciled",
+        "reviewedModes": [
+          "소유 프로필·음력/시간미상. 원본 buildNakshatraDashaMap, 비쇼타리 + 동양 대운",
+          "무료 키와 계정을 확인하고 재계산. 웹의 과거 영구 해금은 웹 원장에 유지"
+        ],
+        "codeGaps": []
+      },
+      "implementationStage": "기존 원본 계약 및 개발 검증 근거 대조 완료",
+      "deviceStage": "토스 휴대폰의 SDK·키보드·네트워크·파일/오디오 확인 미완료",
+      "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음"
     },
     {
       "id": "nakshatra-lord-report",
@@ -6122,7 +6744,7 @@
         "nakshatra-lord-report"
       ],
       "freeCalculation": true,
-      "portStatus": "일부만 이식",
+      "portStatus": "콘솔·운영 설정 필요",
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "Linux AIT 일반 홈 → 꿀꿀운세 → 나크샤트라 지배성 리포트 · 상위 화면 진입 확인",
       "bundleVerification": "일반 AIT에서 상위 화면 진입 확인. 하위 입력·결과·재열람의 검증 근거는 verification 참조. 휴대폰 미검증",
@@ -6133,7 +6755,19 @@
       "archiveTests": [],
       "archiveHomeButtons": [
         "나크샤트라 지배성 리포트"
-      ]
+      ],
+      "sourceAudit": {
+        "path": "docs/toss/original-mode-audit-20261114.json",
+        "reviewState": "prior-contract-evidence-reconciled",
+        "reviewedModes": [
+          "소유 프로필·음력/시간미상. worker/routes/nakshatra-premium.js와 원본 buildNakshatraLordReport",
+          "무료 기능 키를 확인하고 같은 계정의 저장된 출생으로 재계산. 웹의 예전 영구 해금은 웹 원장에 유지"
+        ],
+        "codeGaps": []
+      },
+      "implementationStage": "기존 원본 계약 및 개발 검증 근거 대조 완료",
+      "deviceStage": "토스 휴대폰의 SDK·키보드·네트워크·파일/오디오 확인 미완료",
+      "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음"
     },
     {
       "id": "nakshatra-muhurta",
@@ -6178,7 +6812,7 @@
         "nakshatra-muhurta"
       ],
       "freeCalculation": true,
-      "portStatus": "일부만 이식",
+      "portStatus": "콘솔·운영 설정 필요",
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "Linux AIT 일반 홈 → 꿀꿀운세 → 나크샤트라 택일 · 상위 화면 진입 확인",
       "bundleVerification": "일반 AIT에서 상위 화면 진입 확인. 하위 입력·결과·재열람의 검증 근거는 verification 참조. 휴대폰 미검증",
@@ -6189,7 +6823,19 @@
       "archiveTests": [],
       "archiveHomeButtons": [
         "나크샤트라 택일"
-      ]
+      ],
+      "sourceAudit": {
+        "path": "docs/toss/original-mode-audit-20261114.json",
+        "reviewState": "prior-contract-evidence-reconciled",
+        "reviewedModes": [
+          "app/nakshatra/muhurta/MuhurtaClient.tsx. 소유 출생 프로필·목적 6가지·시작일. 원본 handleMuhurta가 Swiss 달 황경으로 60일 계산",
+          "웹과 같은 인증 필요. 무료 키를 재확인하고 현재 화면에 추천·유의일·60일과 원문 해설, 주문 없음"
+        ],
+        "codeGaps": []
+      },
+      "implementationStage": "기존 원본 계약 및 개발 검증 근거 대조 완료",
+      "deviceStage": "토스 휴대폰의 SDK·키보드·네트워크·파일/오디오 확인 미완료",
+      "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음"
     },
     {
       "id": "nakshatra-vvip-codex",
@@ -6235,7 +6881,7 @@
         "nakshatra-vvip-codex"
       ],
       "freeCalculation": true,
-      "portStatus": "일부만 이식",
+      "portStatus": "콘솔·운영 설정 필요",
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "Linux AIT 일반 홈 → 꿀꿀운세 → 나크샤트라 VVIP 코덱스 · 상위 화면 진입 확인",
       "bundleVerification": "일반 AIT에서 상위 화면 진입 확인. 하위 입력·결과·재열람의 검증 근거는 verification 참조. 휴대폰 미검증",
@@ -6246,7 +6892,19 @@
       "archiveTests": [],
       "archiveHomeButtons": [
         "나크샤트라 VVIP 코덱스"
-      ]
+      ],
+      "sourceAudit": {
+        "path": "docs/toss/original-mode-audit-20261114.json",
+        "reviewState": "prior-contract-evidence-reconciled",
+        "reviewedModes": [
+          "app/nakshatra/vvip/VvipClient.tsx. 소유 출생 프로필·장소·시각; 원본 handleVvipCodex 기준 달, 지배성·다샤·동양 대운",
+          "무료 키를 확인하고 토스 로그인 후 5장 전체·27수 지형·지배성 세부 장과 다샤 타임라인 해설. 현재 화면에 표시"
+        ],
+        "codeGaps": []
+      },
+      "implementationStage": "기존 원본 계약 및 개발 검증 근거 대조 완료",
+      "deviceStage": "토스 휴대폰의 SDK·키보드·네트워크·파일/오디오 확인 미완료",
+      "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음"
     },
     {
       "id": "naming-ai",
@@ -6290,7 +6948,7 @@
         "premium-naming-prompt"
       ],
       "freeCalculation": false,
-      "portStatus": "일부만 이식",
+      "portStatus": "콘솔·운영 설정 필요",
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "Linux AIT 일반 홈 → 꿀꿀운세 → 사주 작명첩 · 상위 화면 진입 확인",
       "bundleVerification": "일반 AIT에서 상위 화면 진입 확인. 하위 입력·결과·재열람의 검증 근거는 verification 참조. 휴대폰 미검증",
@@ -6301,7 +6959,19 @@
       "archiveTests": [],
       "archiveHomeButtons": [
         "사주 작명첩"
-      ]
+      ],
+      "sourceAudit": {
+        "path": "docs/toss/original-mode-audit-20261114.json",
+        "reviewState": "prior-contract-evidence-reconciled",
+        "reviewedModes": [
+          "원본 성 한자·양/음력·출생과 선호, v2 무료 후보 5·유료 후보 12",
+          "꿀꿀 기록에서 토스 소유 주문의 저장 원문"
+        ],
+        "codeGaps": []
+      },
+      "implementationStage": "기존 원본 계약 및 개발 검증 근거 대조 완료",
+      "deviceStage": "토스 휴대폰의 SDK·키보드·네트워크·파일/오디오 확인 미완료",
+      "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음"
     },
     {
       "id": "neo-consultation",
@@ -6334,7 +7004,7 @@
       ],
       "webProductIds": [],
       "freeCalculation": false,
-      "portStatus": "일부만 이식",
+      "portStatus": "콘솔·운영 설정 필요",
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "Linux AIT 일반 홈 → 꿀꿀운세 → 네오 작전 결정서 · 이메일 상담 · 상위 화면 진입 확인",
       "bundleVerification": "일반 AIT에서 상위 화면 진입 확인. 하위 입력·결과·재열람의 검증 근거는 verification 참조. 휴대폰 미검증",
@@ -6345,7 +7015,21 @@
       "archiveTests": [],
       "archiveHomeButtons": [
         "네오 작전 결정서 · 이메일 상담"
-      ]
+      ],
+      "sourceAudit": {
+        "path": "docs/toss/original-mode-audit-20261114.json",
+        "reviewState": "original-contract-reviewed",
+        "reviewedModes": [
+          "원본 manual_email 질문1~10·사주/자미·본인/상대출생·이메일동의",
+          "모의 견적·결제·receipt1회, 답변자동생성없음",
+          "질문초안·접수정보재열람·취소요청·계정격리; 정정요청/정정 API"
+        ],
+        "codeGaps": []
+      },
+      "implementationStage": "기존 원본 계약 및 개발 검증 근거 대조 완료",
+      "deviceStage": "토스 휴대폰의 SDK·키보드·네트워크·파일/오디오 확인 미완료",
+      "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음",
+      "currentArchiveEvidence": "ab355fbc0 + e587ad595. actual Windows AIT01a1d9c9 홈→질문복원→모의구매1→접수→새탭보관함→취소요청→재진입→B같은URL거절·3폭 PASS. 취소요청은 환불완료가 아님."
     },
     {
       "id": "neo-letter",
@@ -6374,7 +7058,7 @@
       ],
       "webProductIds": [],
       "freeCalculation": false,
-      "portStatus": "일부만 이식",
+      "portStatus": "콘솔·운영 설정 필요",
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "Linux AIT 일반 홈 → 꿀꿀운세 → 네오의 상담 편지 · 상위 화면 진입 확인",
       "bundleVerification": "일반 AIT에서 상위 화면 진입 확인. 하위 입력·결과·재열람의 검증 근거는 verification 참조. 휴대폰 미검증",
@@ -6385,7 +7069,19 @@
       "archiveTests": [],
       "archiveHomeButtons": [
         "네오의 상담 편지"
-      ]
+      ],
+      "sourceAudit": {
+        "path": "docs/toss/original-mode-audit-20261114.json",
+        "reviewState": "prior-contract-evidence-reconciled",
+        "reviewedModes": [
+          "app/fortune-chat/ConsultationIntake.tsx + worker/toss/letter.js",
+          "꿀꿀운세 구매 기록. 상담자·계정·주문 소유권 검사"
+        ],
+        "codeGaps": []
+      },
+      "implementationStage": "기존 원본 계약 및 개발 검증 근거 대조 완료",
+      "deviceStage": "토스 휴대폰의 SDK·키보드·네트워크·파일/오디오 확인 미완료",
+      "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음"
     },
     {
       "id": "neo-operation-room",
@@ -6434,7 +7130,7 @@
         "neo-operation-room-consultation"
       ],
       "freeCalculation": false,
-      "portStatus": "일부만 이식",
+      "portStatus": "콘솔·운영 설정 필요",
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "Linux AIT 일반 홈 → 꿀꿀운세 → 네오 · 팩폭 전략실 · 상위 화면 진입 확인",
       "bundleVerification": "네오 팩폭 전략실 사주: Linux AIT 일반 홈 → 입력 → 모의 토스 로그인 → 주문 1건 → 저장 원문 → 구매 기록 재열람·새로고침 → 다른 계정 접근 차단. 생성 1회·선택 방식·수정 작전 원문과 원장 불변, 새 질문 초안 보존 확인. b69eea884 / run 43551511688 · 네오 팩폭 전략실 자미두수: Linux AIT 일반 홈 → 입력 → 모의 토스 로그인 → 주문 1건 → 저장 원문 → 구매 기록 재열람·새로고침 → 다른 계정 접근 차단. 생성 1회·선택 방식·수정 작전 원문과 원장 불변, 새 질문 초안 보존 확인. b69eea884 / run 43551511688 · 네오 팩폭 전략실 베다점: Linux AIT 일반 홈 → 입력 → 모의 토스 로그인 → 주문 1건 → 저장 원문 → 구매 기록 재열람·새로고침 → 다른 계정 접근 차단. 생성 1회·선택 방식·수정 작전 원문과 원장 불변, 새 질문 초안 보존 확인. b69eea884 / run 43551511688 · 네오 팩폭 전략실 서양 점성술: Linux AIT 일반 홈 → 입력 → 모의 토스 로그인 → 주문 1건 → 저장 원문 → 구매 기록 재열람·새로고침 → 다른 계정 접근 차단. 생성 1회·선택 방식·수정 작전 원문과 원장 불변, 새 질문 초안 보존 확인. b69eea884 / run 43551511688 · neo saju: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · neo saju-partner: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · neo ziwei: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · neo ziwei-partner: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · neo vedic: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · neo vedic-partner: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · neo astrology: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · neo astrology-partner: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · 360px 배포 AIT 브라우저, 토스 휴대폰 미검증",
@@ -6459,7 +7155,19 @@
       ],
       "archiveHomeButtons": [
         "네오 · 팩폭 전략실"
-      ]
+      ],
+      "sourceAudit": {
+        "path": "docs/toss/original-mode-audit-20261114.json",
+        "reviewState": "prior-contract-evidence-reconciled",
+        "reviewedModes": [
+          "worker/toss/native-neo.js",
+          "owned-TossPurchase; device-and-console-approval-pending"
+        ],
+        "codeGaps": []
+      },
+      "implementationStage": "기존 원본 계약 및 개발 검증 근거 대조 완료",
+      "deviceStage": "토스 휴대폰의 SDK·키보드·네트워크·파일/오디오 확인 미완료",
+      "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음"
     },
     {
       "id": "neville-meditation",
@@ -6503,7 +7211,7 @@
         "neville-meditation"
       ],
       "freeCalculation": true,
-      "portStatus": "일부만 이식",
+      "portStatus": "콘솔·운영 설정 필요",
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "Linux AIT 일반 홈 → 꿀꿀운세 → 네빌 명상 실습 · 상위 화면 진입 확인",
       "bundleVerification": "일반 AIT에서 상위 화면 진입 확인. 하위 입력·결과·재열람의 검증 근거는 verification 참조. 휴대폰 미검증",
@@ -6514,7 +7222,19 @@
       "archiveTests": [],
       "archiveHomeButtons": [
         "네빌 명상 실습"
-      ]
+      ],
+      "sourceAudit": {
+        "path": "docs/toss/original-mode-audit-20261114.json",
+        "reviewState": "prior-contract-evidence-reconciled",
+        "reviewedModes": [
+          "neville-meditation.html COURSES 30·60분, 시간별 단계·안내와 THETA_PRESETS 세 음악 세트, 웹 로그인 및 무료 기능 키 neville-meditation",
+          "토스 로그인 후 회차별 현재 화면 진행. 주문·LLM 없음"
+        ],
+        "codeGaps": []
+      },
+      "implementationStage": "기존 원본 계약 및 개발 검증 근거 대조 완료",
+      "deviceStage": "토스 휴대폰의 SDK·키보드·네트워크·파일/오디오 확인 미완료",
+      "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음"
     },
     {
       "id": "new-year-ai",
@@ -6560,7 +7280,7 @@
         "new-year-ai-consultation"
       ],
       "freeCalculation": false,
-      "portStatus": "일부만 이식",
+      "portStatus": "콘솔·운영 설정 필요",
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "Linux AIT 일반 홈 → 꿀꿀운세 → 신년운세 전문가 상담 · 상위 화면 진입 확인",
       "bundleVerification": "8개 상품별 입력 폼과 신규 판매 닫힘 확인. 모의 구매·저장 원문 검사는 별도 verification 참조 · 360px 배포 AIT 브라우저, 토스 휴대폰 미검증",
@@ -6573,7 +7293,19 @@
       ],
       "archiveHomeButtons": [
         "신년운세 전문가 상담"
-      ]
+      ],
+      "sourceAudit": {
+        "path": "docs/toss/original-mode-audit-20261114.json",
+        "reviewState": "prior-contract-evidence-reconciled",
+        "reviewedModes": [
+          "worker/toss/native-new-year.js + nativeNewYearContract",
+          "owned Toss purchase and Toss-origin NewYearAiConsultation; approved SKU, durable checkout, policy and device verification pending"
+        ],
+        "codeGaps": []
+      },
+      "implementationStage": "기존 원본 계약 및 개발 검증 근거 대조 완료",
+      "deviceStage": "토스 휴대폰의 SDK·키보드·네트워크·파일/오디오 확인 미완료",
+      "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음"
     },
     {
       "id": "novel",
@@ -6614,7 +7346,7 @@
       ],
       "webProductIds": [],
       "freeCalculation": false,
-      "portStatus": "일부만 이식",
+      "portStatus": "이미 동작",
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "Linux AIT 일반 홈 → 꿀꿀운세 → 연이의 운명 노벨 · 상위 화면 진입 확인",
       "bundleVerification": "일반 AIT에서 상위 화면 진입 확인. 하위 입력·결과·재열람의 검증 근거는 verification 참조. 휴대폰 미검증",
@@ -6625,7 +7357,19 @@
       "archiveTests": [],
       "archiveHomeButtons": [
         "연이의 운명 노벨"
-      ]
+      ],
+      "sourceAudit": {
+        "path": "docs/toss/original-mode-audit-20261114.json",
+        "reviewState": "original-contract-reviewed",
+        "reviewedModes": [
+          "원본 무료 소설 전체",
+          "책갈피와 이어보기"
+        ],
+        "codeGaps": []
+      },
+      "implementationStage": "기존 원본 계약 및 개발 검증 근거 대조 완료",
+      "deviceStage": "토스 휴대폰의 SDK·키보드·네트워크·파일/오디오 확인 미완료",
+      "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음"
     },
     {
       "id": "olympus-oracle",
@@ -6662,7 +7406,7 @@
         "olympus-fc"
       ],
       "freeCalculation": true,
-      "portStatus": "일부만 이식",
+      "portStatus": "콘솔·운영 설정 필요",
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "Linux AIT 일반 홈 → 꿀꿀운세 → 올림푸스 오늘의 신탁 · 상위 화면 진입 확인",
       "bundleVerification": "게스트 생일 입력으로 별자리 경계 2건과 오늘의 신탁·행동·행운 항목 확인 · 360px 배포 AIT 브라우저, 토스 휴대폰 미검증",
@@ -6675,7 +7419,19 @@
       ],
       "archiveHomeButtons": [
         "올림푸스 오늘의 신탁"
-      ]
+      ],
+      "sourceAudit": {
+        "path": "docs/toss/original-mode-audit-20261114.json",
+        "reviewState": "prior-contract-evidence-reconciled",
+        "reviewedModes": [
+          "게스트의 오늘 생일 신탁, 소유 프로필 원본 7행성·ASC, 상대의 생일과 선택 시각",
+          "게스트 신탁은 현재 화면, 본인 프로필로 다시 계산. 상대 입력과 궁합은 화면 안에서 열람"
+        ],
+        "codeGaps": []
+      },
+      "implementationStage": "기존 원본 계약 및 개발 검증 근거 대조 완료",
+      "deviceStage": "토스 휴대폰의 SDK·키보드·네트워크·파일/오디오 확인 미완료",
+      "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음"
     },
     {
       "id": "omikuji",
@@ -6725,7 +7481,7 @@
       ],
       "webProductIds": [],
       "freeCalculation": false,
-      "portStatus": "일부만 이식",
+      "portStatus": "콘솔·운영 설정 필요",
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "Linux AIT 일반 홈 → 꿀꿀운세 → 이모이 오미쿠지 · 상위 화면 진입 확인",
       "bundleVerification": "일반 AIT에서 상위 화면 진입 확인. 하위 입력·결과·재열람의 검증 근거는 verification 참조. 휴대폰 미검증",
@@ -6736,7 +7492,20 @@
       "archiveTests": [],
       "archiveHomeButtons": [
         "이모이 오미쿠지"
-      ]
+      ],
+      "sourceAudit": {
+        "path": "docs/toss/original-mode-audit-20261114.json",
+        "reviewState": "original-contract-reviewed",
+        "reviewedModes": [
+          "비회원 뽑기",
+          "원본 결과",
+          "계정별 임시 복구"
+        ],
+        "codeGaps": []
+      },
+      "implementationStage": "기존 원본 계약 및 개발 검증 근거 대조 완료",
+      "deviceStage": "토스 휴대폰의 SDK·키보드·네트워크·파일/오디오 확인 미완료",
+      "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음"
     },
     {
       "id": "palm-reading",
@@ -6790,7 +7559,7 @@
         "palm-reading-general"
       ],
       "freeCalculation": false,
-      "portStatus": "일부만 이식",
+      "portStatus": "콘솔·운영 설정 필요",
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "Linux AIT 일반 홈 → 꿀꿀운세 → 내 손금 리포트 · 상위 화면 진입 확인",
       "bundleVerification": "일반 AIT에서 상위 화면 진입 확인. 하위 입력·결과·재열람의 검증 근거는 verification 참조. 휴대폰 미검증",
@@ -6801,7 +7570,19 @@
       "archiveTests": [],
       "archiveHomeButtons": [
         "내 손금 리포트"
-      ]
+      ],
+      "sourceAudit": {
+        "path": "docs/toss/original-mode-audit-20261114.json",
+        "reviewState": "prior-contract-evidence-reconciled",
+        "reviewedModes": [
+          "원본 카메라·좌/우 손 사진, 주사용 손과 판독 목적",
+          "사진 없이 입력 해시와 준비한 판독을 보관. 결제한 토스 계정만 원문 열기"
+        ],
+        "codeGaps": []
+      },
+      "implementationStage": "기존 원본 계약 및 개발 검증 근거 대조 완료",
+      "deviceStage": "토스 휴대폰의 SDK·키보드·네트워크·파일/오디오 확인 미완료",
+      "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음"
     },
     {
       "id": "past-life-face",
@@ -6831,7 +7612,7 @@
       ],
       "webProductIds": [],
       "freeCalculation": false,
-      "portStatus": "일부만 이식",
+      "portStatus": "콘솔·운영 설정 필요",
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "Linux AIT 일반 홈 → 꿀꿀운세 → 전생 관상 · 상위 화면 진입 확인",
       "bundleVerification": "합성 이미지 및 고정 랜드마크로 동물 관상과 전생 궁합 원본 결과 확인. 카메라 미검증 · 360px 배포 AIT 브라우저, 토스 휴대폰 미검증",
@@ -6844,7 +7625,19 @@
       ],
       "archiveHomeButtons": [
         "전생 관상"
-      ]
+      ],
+      "sourceAudit": {
+        "path": "docs/toss/original-mode-audit-20261114.json",
+        "reviewState": "prior-contract-evidence-reconciled",
+        "reviewedModes": [
+          "원본 얼굴 한 장의 전생 및 두 얼굴의 전생 궁합",
+          "게스트 현재 결과"
+        ],
+        "codeGaps": []
+      },
+      "implementationStage": "기존 원본 계약 및 개발 검증 근거 대조 완료",
+      "deviceStage": "토스 휴대폰의 SDK·키보드·네트워크·파일/오디오 확인 미완료",
+      "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음"
     },
     {
       "id": "personal-charm",
@@ -6908,7 +7701,7 @@
         "rpt_specialCharmCard"
       ],
       "freeCalculation": true,
-      "portStatus": "일부만 이식",
+      "portStatus": "콘솔·운영 설정 필요",
       "reducedBundle": "홈 진입 없음",
       "currentEntry": "Linux AIT 일반 홈 → 꿀꿀운세 → 사주 리포트 · 상위 화면 진입 확인",
       "bundleVerification": "공개 사주·자미 11절 원본 계산, 사주 그림 13가지와 여행 기록 복원. 시크릿 하우스는 독립 검사 · 360px 배포 AIT 브라우저, 토스 휴대폰 미검증",
@@ -6921,7 +7714,19 @@
       ],
       "archiveHomeButtons": [
         "사주 리포트"
-      ]
+      ],
+      "sourceAudit": {
+        "path": "docs/toss/original-mode-audit-20261114.json",
+        "reviewState": "prior-contract-evidence-reconciled",
+        "reviewedModes": [
+          "출생 날짜·시각·달력·성별·국내 출생 도시",
+          "현재 화면 메모리"
+        ],
+        "codeGaps": []
+      },
+      "implementationStage": "기존 원본 계약 및 개발 검증 근거 대조 완료",
+      "deviceStage": "토스 휴대폰의 SDK·키보드·네트워크·파일/오디오 확인 미완료",
+      "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음"
     },
     {
       "id": "pet-saju",
@@ -6949,7 +7754,7 @@
       ],
       "webProductIds": [],
       "freeCalculation": false,
-      "portStatus": "일부만 이식",
+      "portStatus": "콘솔·운영 설정 필요",
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "Linux AIT 일반 홈 → 꿀꿀운세 → 반려동물 사주 · 상위 화면 진입 확인",
       "bundleVerification": "게스트 수동 출생정보로 만세력·베다 원본 계산과 반려동물 오행 결과, 반려동물 심층 로그인 경계 · 360px 배포 AIT 브라우저, 토스 휴대폰 미검증",
@@ -6962,7 +7767,19 @@
       ],
       "archiveHomeButtons": [
         "반려동물 사주"
-      ]
+      ],
+      "sourceAudit": {
+        "path": "docs/toss/original-mode-audit-20261114.json",
+        "reviewState": "prior-contract-evidence-reconciled",
+        "reviewedModes": [
+          "worker/toss/pet-saju.js deterministic blueprint + worker/toss/pet-paid-contract.js paid inputs",
+          "게스트·토스 계정별로 이 기기에 최근 다섯 마리 입력을 저장. 재실행 후 같은 입력으로 재계산. 삭제를 유지한다. 유료 원문은 worker/toss/native-pet-paid.js의 소유 주문과 intent"
+        ],
+        "codeGaps": []
+      },
+      "implementationStage": "기존 원본 계약 및 개발 검증 근거 대조 완료",
+      "deviceStage": "토스 휴대폰의 SDK·키보드·네트워크·파일/오디오 확인 미완료",
+      "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음"
     },
     {
       "id": "physiognomy",
@@ -7003,7 +7820,7 @@
       ],
       "webProductIds": [],
       "freeCalculation": false,
-      "portStatus": "일부만 이식",
+      "portStatus": "콘솔·운영 설정 필요",
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "Linux AIT 일반 홈 → 꿀꿀운세 → 전문가 동물 관상 · 상위 화면 진입 확인",
       "bundleVerification": "합성 이미지 및 고정 랜드마크로 동물 관상과 전생 궁합 원본 결과 확인. 카메라 미검증 · 360px 배포 AIT 브라우저, 토스 휴대폰 미검증",
@@ -7016,7 +7833,19 @@
       ],
       "archiveHomeButtons": [
         "전문가 동물 관상"
-      ]
+      ],
+      "sourceAudit": {
+        "path": "docs/toss/original-mode-audit-20261114.json",
+        "reviewState": "prior-contract-evidence-reconciled",
+        "reviewedModes": [
+          "웹 SEO /physiognomy/의 openPhysiognomyApp. 오관·점 위치 입력과 해설",
+          "현재 단말 게스트 판독"
+        ],
+        "codeGaps": []
+      },
+      "implementationStage": "기존 원본 계약 및 개발 검증 근거 대조 완료",
+      "deviceStage": "토스 휴대폰의 SDK·키보드·네트워크·파일/오디오 확인 미완료",
+      "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음"
     },
     {
       "id": "points",
@@ -7051,7 +7880,7 @@
       ],
       "webProductIds": [],
       "freeCalculation": false,
-      "portStatus": "일부만 이식",
+      "portStatus": "콘솔·운영 설정 필요",
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "일반 홈의 진입 코드 확인",
       "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
@@ -7060,7 +7889,19 @@
       "reread": "원래 웹 계정의 이용권·월정석·단건 주문 및 이용권 사용 이력. 토스 IAP와 별도",
       "saleStatus": "토스 판매 없음 · 웹 보유권 조회",
       "archiveTests": [],
-      "archiveHomeButtons": []
+      "archiveHomeButtons": [],
+      "sourceAudit": {
+        "path": "docs/toss/original-mode-audit-20261114.json",
+        "reviewState": "prior-contract-evidence-reconciled",
+        "reviewedModes": [
+          "토스 내 정보 → 웹 이용 내역 → 기존 웹 계정 인증",
+          "원래 웹 계정의 이용권·월정석·단건 주문 및 이용권 사용 이력. 토스 IAP와 별도"
+        ],
+        "codeGaps": []
+      },
+      "implementationStage": "기존 원본 계약 및 개발 검증 근거 대조 완료",
+      "deviceStage": "토스 휴대폰의 SDK·키보드·네트워크·파일/오디오 확인 미완료",
+      "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음"
     },
     {
       "id": "psychotest",
@@ -7101,7 +7942,7 @@
       ],
       "webProductIds": [],
       "freeCalculation": false,
-      "portStatus": "일부만 이식",
+      "portStatus": "이미 동작",
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "Linux AIT 일반 홈 → 꿀꿀운세 → 심리테스트 · 상위 화면 진입 확인",
       "bundleVerification": "일반 AIT에서 상위 화면 진입 확인. 하위 입력·결과·재열람의 검증 근거는 verification 참조. 휴대폰 미검증",
@@ -7112,7 +7953,19 @@
       "archiveTests": [],
       "archiveHomeButtons": [
         "심리테스트"
-      ]
+      ],
+      "sourceAudit": {
+        "path": "docs/toss/original-mode-audit-20261114.json",
+        "reviewState": "original-contract-reviewed",
+        "reviewedModes": [
+          "22개 검사 원본 질문·결과",
+          "원본 추천·주의 안내"
+        ],
+        "codeGaps": []
+      },
+      "implementationStage": "기존 원본 계약 및 개발 검증 근거 대조 완료",
+      "deviceStage": "토스 휴대폰의 SDK·키보드·네트워크·파일/오디오 확인 미완료",
+      "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음"
     },
     {
       "id": "quantum-saju",
@@ -7176,7 +8029,7 @@
         "rpt_quantumCard"
       ],
       "freeCalculation": true,
-      "portStatus": "일부만 이식",
+      "portStatus": "콘솔·운영 설정 필요",
       "reducedBundle": "홈 진입 없음",
       "currentEntry": "Linux AIT 일반 홈 → 꿀꿀운세 → 사주 리포트 · 상위 화면 진입 확인",
       "bundleVerification": "공개 사주·자미 11절 원본 계산, 사주 그림 13가지와 여행 기록 복원. 시크릿 하우스는 독립 검사 · 360px 배포 AIT 브라우저, 토스 휴대폰 미검증",
@@ -7189,7 +8042,19 @@
       ],
       "archiveHomeButtons": [
         "사주 리포트"
-      ]
+      ],
+      "sourceAudit": {
+        "path": "docs/toss/original-mode-audit-20261114.json",
+        "reviewState": "prior-contract-evidence-reconciled",
+        "reviewedModes": [
+          "출생 날짜·시각·달력·성별·국내 출생 도시",
+          "현재 화면 메모리"
+        ],
+        "codeGaps": []
+      },
+      "implementationStage": "기존 원본 계약 및 개발 검증 근거 대조 완료",
+      "deviceStage": "토스 휴대폰의 SDK·키보드·네트워크·파일/오디오 확인 미완료",
+      "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음"
     },
     {
       "id": "relationship-boundaries",
@@ -7253,7 +8118,7 @@
         "rpt_villainCard"
       ],
       "freeCalculation": true,
-      "portStatus": "일부만 이식",
+      "portStatus": "콘솔·운영 설정 필요",
       "reducedBundle": "홈 진입 없음",
       "currentEntry": "Linux AIT 일반 홈 → 꿀꿀운세 → 사주 리포트 · 상위 화면 진입 확인",
       "bundleVerification": "공개 사주·자미 11절 원본 계산, 사주 그림 13가지와 여행 기록 복원. 시크릿 하우스는 독립 검사 · 360px 배포 AIT 브라우저, 토스 휴대폰 미검증",
@@ -7266,7 +8131,19 @@
       ],
       "archiveHomeButtons": [
         "사주 리포트"
-      ]
+      ],
+      "sourceAudit": {
+        "path": "docs/toss/original-mode-audit-20261114.json",
+        "reviewState": "prior-contract-evidence-reconciled",
+        "reviewedModes": [
+          "출생 날짜·시각·달력·성별·국내 출생 도시",
+          "현재 화면 메모리"
+        ],
+        "codeGaps": []
+      },
+      "implementationStage": "기존 원본 계약 및 개발 검증 근거 대조 완료",
+      "deviceStage": "토스 휴대폰의 SDK·키보드·네트워크·파일/오디오 확인 미완료",
+      "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음"
     },
     {
       "id": "relationship-boundary-test",
@@ -7298,7 +8175,7 @@
         "relationship-boundary-test"
       ],
       "freeCalculation": false,
-      "portStatus": "일부만 이식",
+      "portStatus": "콘솔·운영 설정 필요",
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "Linux AIT 일반 홈 → 꿀꿀운세 → 관계 경계 리포트 · 상위 화면 진입 확인",
       "bundleVerification": "일반 AIT에서 상위 화면 진입 확인. 하위 입력·결과·재열람의 검증 근거는 verification 참조. 휴대폰 미검증",
@@ -7309,7 +8186,18 @@
       "archiveTests": [],
       "archiveHomeButtons": [
         "관계 경계 리포트"
-      ]
+      ],
+      "sourceAudit": {
+        "path": "docs/toss/original-mode-audit-20261114.json",
+        "reviewState": "original-contract-reviewed",
+        "reviewedModes": [
+          "원본 독립 관계 상담 입력·결과·복구·소유 경계"
+        ],
+        "codeGaps": []
+      },
+      "implementationStage": "기존 원본 계약 및 개발 검증 근거 대조 완료",
+      "deviceStage": "토스 휴대폰의 SDK·키보드·네트워크·파일/오디오 확인 미완료",
+      "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음"
     },
     {
       "id": "royal-tea-oracle",
@@ -7365,7 +8253,19 @@
       ],
       "archiveHomeButtons": [
         "영국 홍차점"
-      ]
+      ],
+      "sourceAudit": {
+        "path": "docs/toss/original-mode-audit-20261114.json",
+        "reviewState": "prior-contract-evidence-reconciled",
+        "reviewedModes": [
+          "royal-tea-oracle.html INTENTS 5개·buildCupMap·buildCertificateHtml. 게스트 기기 또는 소유자 기초시드와 KST 날짜",
+          "게스트 공개, 같은 소유자·날짜·질문의 동일한 찻잔 감정서를 재계산. 현재 화면의 최근 기록 8개"
+        ],
+        "codeGaps": []
+      },
+      "implementationStage": "기존 원본 계약 및 개발 검증 근거 대조 완료",
+      "deviceStage": "토스 휴대폰의 SDK·키보드·네트워크·파일/오디오 확인 미완료",
+      "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음"
     },
     {
       "id": "saju",
@@ -7494,7 +8394,7 @@
       ],
       "webProductIds": [],
       "freeCalculation": true,
-      "portStatus": "일부만 이식",
+      "portStatus": "콘솔·운영 설정 필요",
       "reducedBundle": "홈 진입 있음",
       "currentEntry": "Linux AIT 일반 홈 → 꿀꿀운세 → 기본 사주 · 상위 화면 진입 확인",
       "bundleVerification": "공개 사주·자미 11절 원본 계산, 사주 그림 13가지와 여행 기록 복원. 시크릿 하우스는 독립 검사 · 360px 기본 사주 출생 입력 후 극T·테토/에겐·네컷·도파민·로또·그림 프롬프트 13종 중 주제 선택 및 원본 결과 · 360px 배포 AIT 브라우저, 토스 휴대폰 미검증",
@@ -7509,7 +8409,19 @@
       ],
       "archiveHomeButtons": [
         "기본 사주"
-      ]
+      ],
+      "sourceAudit": {
+        "path": "docs/toss/original-mode-audit-20261114.json",
+        "reviewState": "prior-contract-evidence-reconciled",
+        "reviewedModes": [
+          "shared natal engine; Korean city, solar/lunar/leap and unknown hour",
+          "memory-only free basic chart; web result and device parity pending"
+        ],
+        "codeGaps": []
+      },
+      "implementationStage": "기존 원본 계약 및 개발 검증 근거 대조 완료",
+      "deviceStage": "토스 휴대폰의 SDK·키보드·네트워크·파일/오디오 확인 미완료",
+      "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음"
     },
     {
       "id": "saju-compatibility",
@@ -7550,7 +8462,7 @@
         "compat-saju-compatibility"
       ],
       "freeCalculation": false,
-      "portStatus": "일부만 이식",
+      "portStatus": "콘솔·운영 설정 필요",
       "reducedBundle": "홈 진입 없음",
       "currentEntry": "일반 홈의 진입 코드 확인",
       "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
@@ -7559,7 +8471,19 @@
       "reread": "토스 계정·주문별 paidNarrative 불변 원문. 꿀꿀운세 구매 기록에서 생성 재개와 원문 재열람",
       "saleStatus": "콘솔·운영 설정 필요",
       "archiveTests": [],
-      "archiveHomeButtons": []
+      "archiveHomeButtons": [],
+      "sourceAudit": {
+        "path": "docs/toss/original-mode-audit-20261114.json",
+        "reviewState": "prior-contract-evidence-reconciled",
+        "reviewedModes": [
+          "두 출생정보·시간 미상·달력·상대 호칭·연인/친구/사업. 웹 정본 명식과 analyzeCompat·analyzePastLifeCompat facts",
+          "토스 계정·주문별 paidNarrative 불변 원문. 꿀꿀운세 구매 기록에서 생성 재개와 원문 재열람"
+        ],
+        "codeGaps": []
+      },
+      "implementationStage": "기존 원본 계약 및 개발 검증 근거 대조 완료",
+      "deviceStage": "토스 휴대폰의 SDK·키보드·네트워크·파일/오디오 확인 미완료",
+      "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음"
     },
     {
       "id": "saju-fpti",
@@ -7599,7 +8523,7 @@
         "premium-fpti-report"
       ],
       "freeCalculation": true,
-      "portStatus": "일부만 이식",
+      "portStatus": "콘솔·운영 설정 필요",
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "Linux AIT 일반 홈 → 꿀꿀운세 → 사주 FPTI · 상위 화면 진입 확인",
       "bundleVerification": "일반 AIT에서 상위 화면 진입 확인. 하위 입력·결과·재열람의 검증 근거는 verification 참조. 휴대폰 미검증",
@@ -7610,7 +8534,19 @@
       "archiveTests": [],
       "archiveHomeButtons": [
         "사주 FPTI"
-      ]
+      ],
+      "sourceAudit": {
+        "path": "docs/toss/original-mode-audit-20261114.json",
+        "reviewState": "prior-contract-evidence-reconciled",
+        "reviewedModes": [
+          "기본은 직접 입력 또는 저장 프로필, 무료 심층은 로그인한 소유 프로필 및 출생정보 일치. lib/fpti/fpti-adapter.ts, worker/lib/fpti-free-access.js",
+          "기본은 같은 탭·같은 계정 재열람. 무료 심층은 웹과 같이 자동 보관 없이 동일 프로필로 7장 재계산. 기존 구매 원문은 구매한 웹 계정의 보관함에서 열람"
+        ],
+        "codeGaps": []
+      },
+      "implementationStage": "기존 원본 계약 및 개발 검증 근거 대조 완료",
+      "deviceStage": "토스 휴대폰의 SDK·키보드·네트워크·파일/오디오 확인 미완료",
+      "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음"
     },
     {
       "id": "saju-guardian",
@@ -7670,7 +8606,7 @@
         "saju-guardian-unlock"
       ],
       "freeCalculation": false,
-      "portStatus": "일부만 이식",
+      "portStatus": "콘솔·운영 설정 필요",
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "일반 홈의 진입 코드 확인",
       "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
@@ -7679,7 +8615,19 @@
       "reread": "계정·환경·출생정보·상품별 주문 및 저장 원본, 환불 재검사. 콘솔 SKU 미확인",
       "saleStatus": "유료 상품 콘솔·운영 설정 필요",
       "archiveTests": [],
-      "archiveHomeButtons": []
+      "archiveHomeButtons": [],
+      "sourceAudit": {
+        "path": "docs/toss/original-mode-audit-20261114.json",
+        "reviewState": "prior-contract-evidence-reconciled",
+        "reviewedModes": [
+          "계정에 저장한 프로필의 birthKey, calendar·시각 미상. 원본 calculateNatalSaju 네 기둥",
+          "계정·환경·출생정보·상품별 주문 및 저장 원본, 환불 재검사. 콘솔 SKU 미확인"
+        ],
+        "codeGaps": []
+      },
+      "implementationStage": "기존 원본 계약 및 개발 검증 근거 대조 완료",
+      "deviceStage": "토스 휴대폰의 SDK·키보드·네트워크·파일/오디오 확인 미완료",
+      "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음"
     },
     {
       "id": "saju-image-prompts",
@@ -7706,7 +8654,7 @@
       ],
       "webProductIds": [],
       "freeCalculation": true,
-      "portStatus": "일부만 이식",
+      "portStatus": "콘솔·운영 설정 필요",
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "Linux AIT 일반 홈 → 꿀꿀운세 → 사주 리포트 · 상위 화면 진입 확인",
       "bundleVerification": "공개 사주·자미 11절 원본 계산, 사주 그림 13가지와 여행 기록 복원. 시크릿 하우스는 독립 검사 · 360px 기본 사주 출생 입력 후 극T·테토/에겐·네컷·도파민·로또·그림 프롬프트 13종 중 주제 선택 및 원본 결과 · 360px 배포 AIT 브라우저, 토스 휴대폰 미검증",
@@ -7720,7 +8668,19 @@
       ],
       "archiveHomeButtons": [
         "사주 리포트"
-      ]
+      ],
+      "sourceAudit": {
+        "path": "docs/toss/original-mode-audit-20261114.json",
+        "reviewState": "prior-contract-evidence-reconciled",
+        "reviewedModes": [
+          "일간 오행에 따른 그림 13종 및 10개 하위 분류",
+          "무료 원본을 현재 화면에 표시"
+        ],
+        "codeGaps": []
+      },
+      "implementationStage": "기존 원본 계약 및 개발 검증 근거 대조 완료",
+      "deviceStage": "토스 휴대폰의 SDK·키보드·네트워크·파일/오디오 확인 미완료",
+      "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음"
     },
     {
       "id": "saju-sibyl",
@@ -7763,7 +8723,7 @@
         "premium-sibyl-dominator"
       ],
       "freeCalculation": true,
-      "portStatus": "일부만 이식",
+      "portStatus": "콘솔·운영 설정 필요",
       "reducedBundle": "홈 진입 없음",
       "currentEntry": "일반 홈의 진입 코드 확인",
       "bundleVerification": "게스트 출생정보의 연간 대비·행동을 계산하고 두 연도 전환 · 360px 배포 AIT 브라우저, 토스 휴대폰 미검증",
@@ -7774,7 +8734,19 @@
       "archiveTests": [
         "sibyl"
       ],
-      "archiveHomeButtons": []
+      "archiveHomeButtons": [],
+      "sourceAudit": {
+        "path": "docs/toss/original-mode-audit-20261114.json",
+        "reviewState": "prior-contract-evidence-reconciled",
+        "reviewedModes": [
+          "양력·음력·윤달 출생 정보와 한국 시간 기준 현재부터 10개 연도",
+          "무료 연간 대비는 다시 계산. 심층은 출생정보·계정별 1회 해금 후 연도별 원본 10장·월별 흐름 저장. 콘솔 SKU 미확인"
+        ],
+        "codeGaps": []
+      },
+      "implementationStage": "기존 원본 계약 및 개발 검증 근거 대조 완료",
+      "deviceStage": "토스 휴대폰의 SDK·키보드·네트워크·파일/오디오 확인 미완료",
+      "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음"
     },
     {
       "id": "secret-house",
@@ -7837,7 +8809,7 @@
         "rpt_secretHouseEntryCard"
       ],
       "freeCalculation": true,
-      "portStatus": "일부만 이식",
+      "portStatus": "콘솔·운영 설정 필요",
       "reducedBundle": "홈 진입 없음",
       "currentEntry": "Linux AIT 일반 홈 → 꿀꿀운세 → 사주 리포트 · 상위 화면 진입 확인",
       "bundleVerification": "원본 다섯 인물·선택·반응·결말·재도전 16회 계산 요청 · 360px 배포 AIT 브라우저, 토스 휴대폰 미검증",
@@ -7850,7 +8822,19 @@
       ],
       "archiveHomeButtons": [
         "사주 리포트"
-      ]
+      ],
+      "sourceAudit": {
+        "path": "docs/toss/original-mode-audit-20261114.json",
+        "reviewState": "original-contract-reviewed",
+        "reviewedModes": [
+          "원본 sandbox 문서 및 5이미지 바이트 동일",
+          "전체 단계·최종 원문·재시작 실제 AIT"
+        ],
+        "codeGaps": []
+      },
+      "implementationStage": "기존 원본 계약 및 개발 검증 근거 대조 완료",
+      "deviceStage": "토스 휴대폰의 SDK·키보드·네트워크·파일/오디오 확인 미완료",
+      "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음"
     },
     {
       "id": "stonehenge-runes",
@@ -7921,7 +8905,19 @@
       ],
       "archiveHomeButtons": [
         "스톤헨지 룬"
-      ]
+      ],
+      "sourceAudit": {
+        "path": "docs/toss/original-mode-audit-20261114.json",
+        "reviewState": "prior-contract-evidence-reconciled",
+        "reviewedModes": [
+          "StonehengeRune의 네 가지 무료 펼침",
+          "현재 화면의 원본 룬 결과·질문 프롬프트와 토스 공유. 네 배열 모두 무료"
+        ],
+        "codeGaps": []
+      },
+      "implementationStage": "기존 원본 계약 및 개발 검증 근거 대조 완료",
+      "deviceStage": "토스 휴대폰의 SDK·키보드·네트워크·파일/오디오 확인 미완료",
+      "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음"
     },
     {
       "id": "sukuyo",
@@ -7987,7 +8983,7 @@
         "compat-sukuyo-compatibility"
       ],
       "freeCalculation": true,
-      "portStatus": "일부만 이식",
+      "portStatus": "콘솔·운영 설정 필요",
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "Linux AIT 일반 홈 → 꿀꿀운세 → 기본 숙요점 · 상위 화면 진입 확인",
       "bundleVerification": "일반 AIT에서 상위 화면 진입 확인. 하위 입력·결과·재열람의 검증 근거는 verification 참조. 휴대폰 미검증",
@@ -8009,7 +9005,21 @@
       "archiveTests": [],
       "archiveHomeButtons": [
         "기본 숙요점"
-      ]
+      ],
+      "sourceAudit": {
+        "path": "docs/toss/original-mode-audit-20261114.json",
+        "reviewState": "original-contract-reviewed",
+        "reviewedModes": [
+          "기본 guest·시각미상·verified natal",
+          "도감·본성·궁합·정밀 4도구",
+          "연간 12개월",
+          "전생 9목적·10축·전체 본문"
+        ],
+        "codeGaps": []
+      },
+      "implementationStage": "기존 원본 계약 및 개발 검증 근거 대조 완료",
+      "deviceStage": "토스 휴대폰의 SDK·키보드·네트워크·파일/오디오 확인 미완료",
+      "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음"
     },
     {
       "id": "sukuyo-compatibility-ai",
@@ -8047,7 +9057,7 @@
         "sukuyo-compatibility-ai"
       ],
       "freeCalculation": false,
-      "portStatus": "일부만 이식",
+      "portStatus": "콘솔·운영 설정 필요",
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "Linux AIT 일반 홈 → 꿀꿀운세 → 숙요점 궁합 전문가 상담 · 상위 화면 진입 확인",
       "bundleVerification": "8개 상품별 입력 폼과 신규 판매 닫힘 확인. 모의 구매·저장 원문 검사는 별도 verification 참조 · 360px 배포 AIT 브라우저, 토스 휴대폰 미검증",
@@ -8060,7 +9070,19 @@
       ],
       "archiveHomeButtons": [
         "숙요점 궁합 전문가 상담"
-      ]
+      ],
+      "sourceAudit": {
+        "path": "docs/toss/original-mode-audit-20261114.json",
+        "reviewState": "prior-contract-evidence-reconciled",
+        "reviewedModes": [
+          "worker/toss/native-sukuyo.js + nativeSukuyoContract",
+          "owner-scoped Toss intent and Toss-origin SukuyoCompatibilityAiConsultation; verified saved-input selection or explicit new input for unassigned orders; bounded explicit retry after authorized generation failure"
+        ],
+        "codeGaps": []
+      },
+      "implementationStage": "기존 원본 계약 및 개발 검증 근거 대조 완료",
+      "deviceStage": "토스 휴대폰의 SDK·키보드·네트워크·파일/오디오 확인 미완료",
+      "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음"
     },
     {
       "id": "tarot",
@@ -8111,7 +9133,7 @@
       ],
       "webProductIds": [],
       "freeCalculation": true,
-      "portStatus": "이미 동작",
+      "portStatus": "콘솔·운영 설정 필요",
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "Linux AIT 일반 홈 → 꿀꿀운세 → 타로 리딩 · 상위 화면 진입 확인",
       "bundleVerification": "타로 원본 1·4·5장 입력과 결과, 프롬프트·다시 뽑기, 결제 0건 · 360px 배포 AIT 브라우저, 토스 휴대폰 미검증",
@@ -8124,7 +9146,19 @@
       ],
       "archiveHomeButtons": [
         "타로 리딩"
-      ]
+      ],
+      "sourceAudit": {
+        "path": "docs/toss/original-mode-audit-20261114.json",
+        "reviewState": "prior-contract-evidence-reconciled",
+        "reviewedModes": [
+          "lib/tarot/toss-library-flows.mjs",
+          "local-reading-not-server-stored"
+        ],
+        "codeGaps": []
+      },
+      "implementationStage": "기존 원본 계약 및 개발 검증 근거 대조 완료",
+      "deviceStage": "토스 휴대폰의 SDK·키보드·네트워크·파일/오디오 확인 미완료",
+      "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음"
     },
     {
       "id": "tarot-celestial-harmony",
@@ -8171,7 +9205,7 @@
         "tarot-celestial-harmony"
       ],
       "freeCalculation": false,
-      "portStatus": "일부만 이식",
+      "portStatus": "콘솔·운영 설정 필요",
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "Linux AIT 일반 홈 → 꿀꿀운세 → 타로 리딩 · 상위 화면 진입 확인",
       "bundleVerification": "일반 AIT에서 상위 화면 진입 확인. 하위 입력·결과·재열람의 검증 근거는 verification 참조. 휴대폰 미검증",
@@ -8182,7 +9216,19 @@
       "archiveTests": [],
       "archiveHomeButtons": [
         "타로 리딩"
-      ]
+      ],
+      "sourceAudit": {
+        "path": "docs/toss/original-mode-audit-20261114.json",
+        "reviewState": "prior-contract-evidence-reconciled",
+        "reviewedModes": [
+          "lib/tarot/toss-library-flows.mjs",
+          "owned-TossPurchase-to-PaidExecutionRecord"
+        ],
+        "codeGaps": []
+      },
+      "implementationStage": "기존 원본 계약 및 개발 검증 근거 대조 완료",
+      "deviceStage": "토스 휴대폰의 SDK·키보드·네트워크·파일/오디오 확인 미완료",
+      "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음"
     },
     {
       "id": "tarot-crystal-soul",
@@ -8227,7 +9273,7 @@
         "tarot-crystal-soul-reading"
       ],
       "freeCalculation": true,
-      "portStatus": "이미 동작",
+      "portStatus": "콘솔·운영 설정 필요",
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "Linux AIT 일반 홈 → 꿀꿀운세 → 타로 리딩 · 상위 화면 진입 확인",
       "bundleVerification": "게스트로 원본 질문·뽑기·해석과 다시 뽑기 확인 · 360px 배포 AIT 브라우저, 토스 휴대폰 미검증",
@@ -8240,7 +9286,19 @@
       ],
       "archiveHomeButtons": [
         "타로 리딩"
-      ]
+      ],
+      "sourceAudit": {
+        "path": "docs/toss/original-mode-audit-20261114.json",
+        "reviewState": "prior-contract-evidence-reconciled",
+        "reviewedModes": [
+          "lib/tarot/toss-library-flows.mjs",
+          "canonical-free-calculation; previously paid orders retain stored result"
+        ],
+        "codeGaps": []
+      },
+      "implementationStage": "기존 원본 계약 및 개발 검증 근거 대조 완료",
+      "deviceStage": "토스 휴대폰의 SDK·키보드·네트워크·파일/오디오 확인 미완료",
+      "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음"
     },
     {
       "id": "tarot-healing",
@@ -8268,7 +9326,7 @@
       ],
       "webProductIds": [],
       "freeCalculation": true,
-      "portStatus": "이미 동작",
+      "portStatus": "콘솔·운영 설정 필요",
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "Linux AIT 일반 홈 → 꿀꿀운세 → 타로 리딩 · 상위 화면 진입 확인",
       "bundleVerification": "타로 원본 1·4·5장 입력과 결과, 프롬프트·다시 뽑기, 결제 0건 · 360px 배포 AIT 브라우저, 토스 휴대폰 미검증",
@@ -8281,7 +9339,19 @@
       ],
       "archiveHomeButtons": [
         "타로 리딩"
-      ]
+      ],
+      "sourceAudit": {
+        "path": "docs/toss/original-mode-audit-20261114.json",
+        "reviewState": "prior-contract-evidence-reconciled",
+        "reviewedModes": [
+          "lib/tarot/toss-library-flows.mjs",
+          "local-reading-not-server-stored"
+        ],
+        "codeGaps": []
+      },
+      "implementationStage": "기존 원본 계약 및 개발 검증 근거 대조 완료",
+      "deviceStage": "토스 휴대폰의 SDK·키보드·네트워크·파일/오디오 확인 미완료",
+      "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음"
     },
     {
       "id": "tarot-ijik",
@@ -8326,7 +9396,7 @@
         "tarot-ijik"
       ],
       "freeCalculation": true,
-      "portStatus": "이미 동작",
+      "portStatus": "콘솔·운영 설정 필요",
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "Linux AIT 일반 홈 → 꿀꿀운세 → 타로 리딩 · 상위 화면 진입 확인",
       "bundleVerification": "게스트로 원본 질문·뽑기·해석과 다시 뽑기 확인 · 360px 배포 AIT 브라우저, 토스 휴대폰 미검증",
@@ -8339,7 +9409,19 @@
       ],
       "archiveHomeButtons": [
         "타로 리딩"
-      ]
+      ],
+      "sourceAudit": {
+        "path": "docs/toss/original-mode-audit-20261114.json",
+        "reviewState": "prior-contract-evidence-reconciled",
+        "reviewedModes": [
+          "lib/tarot/toss-library-flows.mjs",
+          "canonical-free-calculation; previously paid orders retain stored result"
+        ],
+        "codeGaps": []
+      },
+      "implementationStage": "기존 원본 계약 및 개발 검증 근거 대조 완료",
+      "deviceStage": "토스 휴대폰의 SDK·키보드·네트워크·파일/오디오 확인 미완료",
+      "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음"
     },
     {
       "id": "tarot-love-relationship",
@@ -8387,7 +9469,7 @@
         "tarot-love-relationship"
       ],
       "freeCalculation": false,
-      "portStatus": "일부만 이식",
+      "portStatus": "콘솔·운영 설정 필요",
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "Linux AIT 일반 홈 → 꿀꿀운세 → 타로 리딩 · 상위 화면 진입 확인",
       "bundleVerification": "일반 AIT에서 상위 화면 진입 확인. 하위 입력·결과·재열람의 검증 근거는 verification 참조. 휴대폰 미검증",
@@ -8398,7 +9480,19 @@
       "archiveTests": [],
       "archiveHomeButtons": [
         "타로 리딩"
-      ]
+      ],
+      "sourceAudit": {
+        "path": "docs/toss/original-mode-audit-20261114.json",
+        "reviewState": "prior-contract-evidence-reconciled",
+        "reviewedModes": [
+          "lib/tarot/toss-library-flows.mjs",
+          "owned-TossPurchase-to-PaidExecutionRecord"
+        ],
+        "codeGaps": []
+      },
+      "implementationStage": "기존 원본 계약 및 개발 검증 근거 대조 완료",
+      "deviceStage": "토스 휴대폰의 SDK·키보드·네트워크·파일/오디오 확인 미완료",
+      "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음"
     },
     {
       "id": "tarot-mindscan",
@@ -8445,7 +9539,7 @@
         "tarot-mindscan"
       ],
       "freeCalculation": false,
-      "portStatus": "일부만 이식",
+      "portStatus": "콘솔·운영 설정 필요",
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "Linux AIT 일반 홈 → 꿀꿀운세 → 타로 리딩 · 상위 화면 진입 확인",
       "bundleVerification": "일반 AIT에서 상위 화면 진입 확인. 하위 입력·결과·재열람의 검증 근거는 verification 참조. 휴대폰 미검증",
@@ -8456,7 +9550,19 @@
       "archiveTests": [],
       "archiveHomeButtons": [
         "타로 리딩"
-      ]
+      ],
+      "sourceAudit": {
+        "path": "docs/toss/original-mode-audit-20261114.json",
+        "reviewState": "prior-contract-evidence-reconciled",
+        "reviewedModes": [
+          "lib/tarot/toss-library-flows.mjs",
+          "owned-TossPurchase-to-PaidExecutionRecord"
+        ],
+        "codeGaps": []
+      },
+      "implementationStage": "기존 원본 계약 및 개발 검증 근거 대조 완료",
+      "deviceStage": "토스 휴대폰의 SDK·키보드·네트워크·파일/오디오 확인 미완료",
+      "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음"
     },
     {
       "id": "tarot-numerology",
@@ -8499,7 +9605,7 @@
         "tarot-numerology-reading"
       ],
       "freeCalculation": true,
-      "portStatus": "이미 동작",
+      "portStatus": "콘솔·운영 설정 필요",
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "Linux AIT 일반 홈 → 꿀꿀운세 → 타로 리딩 · 상위 화면 진입 확인",
       "bundleVerification": "게스트로 원본 질문·뽑기·해석과 다시 뽑기 확인 · 360px 배포 AIT 브라우저, 토스 휴대폰 미검증",
@@ -8512,7 +9618,19 @@
       ],
       "archiveHomeButtons": [
         "타로 리딩"
-      ]
+      ],
+      "sourceAudit": {
+        "path": "docs/toss/original-mode-audit-20261114.json",
+        "reviewState": "prior-contract-evidence-reconciled",
+        "reviewedModes": [
+          "lib/tarot/toss-library-flows.mjs",
+          "canonical-free-calculation; previously paid orders retain stored result"
+        ],
+        "codeGaps": []
+      },
+      "implementationStage": "기존 원본 계약 및 개발 검증 근거 대조 완료",
+      "deviceStage": "토스 휴대폰의 SDK·키보드·네트워크·파일/오디오 확인 미완료",
+      "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음"
     },
     {
       "id": "tarot-prompt-maker",
@@ -8558,7 +9676,7 @@
         "tarot-prompt-maker"
       ],
       "freeCalculation": false,
-      "portStatus": "일부만 이식",
+      "portStatus": "콘솔·운영 설정 필요",
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "Linux AIT 일반 홈 → 꿀꿀운세 → 타로 리딩 · 상위 화면 진입 확인",
       "bundleVerification": "일반 AIT에서 상위 화면 진입 확인. 하위 입력·결과·재열람의 검증 근거는 verification 참조. 휴대폰 미검증",
@@ -8569,7 +9687,19 @@
       "archiveTests": [],
       "archiveHomeButtons": [
         "타로 리딩"
-      ]
+      ],
+      "sourceAudit": {
+        "path": "docs/toss/original-mode-audit-20261114.json",
+        "reviewState": "prior-contract-evidence-reconciled",
+        "reviewedModes": [
+          "lib/tarot/toss-library-flows.mjs",
+          "owned-TossPurchase-to-PaidExecutionRecord"
+        ],
+        "codeGaps": []
+      },
+      "implementationStage": "기존 원본 계약 및 개발 검증 근거 대조 완료",
+      "deviceStage": "토스 휴대폰의 SDK·키보드·네트워크·파일/오디오 확인 미완료",
+      "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음"
     },
     {
       "id": "tarot-reunion",
@@ -8617,7 +9747,7 @@
         "tarot-reunion-reading"
       ],
       "freeCalculation": true,
-      "portStatus": "이미 동작",
+      "portStatus": "콘솔·운영 설정 필요",
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "Linux AIT 일반 홈 → 꿀꿀운세 → 타로 리딩 · 상위 화면 진입 확인",
       "bundleVerification": "게스트로 원본 질문·뽑기·해석과 다시 뽑기 확인 · 360px 배포 AIT 브라우저, 토스 휴대폰 미검증",
@@ -8630,7 +9760,19 @@
       ],
       "archiveHomeButtons": [
         "타로 리딩"
-      ]
+      ],
+      "sourceAudit": {
+        "path": "docs/toss/original-mode-audit-20261114.json",
+        "reviewState": "prior-contract-evidence-reconciled",
+        "reviewedModes": [
+          "lib/tarot/toss-library-flows.mjs",
+          "canonical-free-calculation; previously paid orders retain stored result"
+        ],
+        "codeGaps": []
+      },
+      "implementationStage": "기존 원본 계약 및 개발 검증 근거 대조 완료",
+      "deviceStage": "토스 휴대폰의 SDK·키보드·네트워크·파일/오디오 확인 미완료",
+      "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음"
     },
     {
       "id": "tarot-self-esteem",
@@ -8658,7 +9800,7 @@
       ],
       "webProductIds": [],
       "freeCalculation": true,
-      "portStatus": "이미 동작",
+      "portStatus": "콘솔·운영 설정 필요",
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "Linux AIT 일반 홈 → 꿀꿀운세 → 타로 리딩 · 상위 화면 진입 확인",
       "bundleVerification": "타로 원본 1·4·5장 입력과 결과, 프롬프트·다시 뽑기, 결제 0건 · 360px 배포 AIT 브라우저, 토스 휴대폰 미검증",
@@ -8671,7 +9813,19 @@
       ],
       "archiveHomeButtons": [
         "타로 리딩"
-      ]
+      ],
+      "sourceAudit": {
+        "path": "docs/toss/original-mode-audit-20261114.json",
+        "reviewState": "prior-contract-evidence-reconciled",
+        "reviewedModes": [
+          "lib/tarot/toss-library-flows.mjs",
+          "local-reading-not-server-stored"
+        ],
+        "codeGaps": []
+      },
+      "implementationStage": "기존 원본 계약 및 개발 검증 근거 대조 완료",
+      "deviceStage": "토스 휴대폰의 SDK·키보드·네트워크·파일/오디오 확인 미완료",
+      "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음"
     },
     {
       "id": "tarot-year-fortune",
@@ -8716,7 +9870,7 @@
         "tarot-year-fortune"
       ],
       "freeCalculation": true,
-      "portStatus": "이미 동작",
+      "portStatus": "콘솔·운영 설정 필요",
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "Linux AIT 일반 홈 → 꿀꿀운세 → 타로 리딩 · 상위 화면 진입 확인",
       "bundleVerification": "게스트로 원본 질문·뽑기·해석과 다시 뽑기 확인 · 360px 배포 AIT 브라우저, 토스 휴대폰 미검증",
@@ -8729,7 +9883,19 @@
       ],
       "archiveHomeButtons": [
         "타로 리딩"
-      ]
+      ],
+      "sourceAudit": {
+        "path": "docs/toss/original-mode-audit-20261114.json",
+        "reviewState": "prior-contract-evidence-reconciled",
+        "reviewedModes": [
+          "lib/tarot/toss-library-flows.mjs",
+          "canonical-free-calculation; previously paid orders retain stored result"
+        ],
+        "codeGaps": []
+      },
+      "implementationStage": "기존 원본 계약 및 개발 검증 근거 대조 완료",
+      "deviceStage": "토스 휴대폰의 SDK·키보드·네트워크·파일/오디오 확인 미완료",
+      "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음"
     },
     {
       "id": "tin-oracle",
@@ -8757,7 +9923,7 @@
       ],
       "webProductIds": [],
       "freeCalculation": true,
-      "portStatus": "일부만 이식",
+      "portStatus": "이미 동작",
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "Linux AIT 일반 홈 → 꿀꿀운세 → 연이의 핀란드 주석점 · 상위 화면 진입 확인",
       "bundleVerification": "게스트로 원본 질문·뽑기·해석과 다시 뽑기 확인 · 360px 배포 AIT 브라우저, 토스 휴대폰 미검증",
@@ -8770,7 +9936,19 @@
       ],
       "archiveHomeButtons": [
         "연이의 핀란드 주석점"
-      ]
+      ],
+      "sourceAudit": {
+        "path": "docs/toss/original-mode-audit-20261114.json",
+        "reviewState": "prior-contract-evidence-reconciled",
+        "reviewedModes": [
+          "원본 20형상·세 주머니·핀란드어·행운수",
+          "무료 원본을 현재 화면에 표시"
+        ],
+        "codeGaps": []
+      },
+      "implementationStage": "기존 원본 계약 및 개발 검증 근거 대조 완료",
+      "deviceStage": "토스 휴대폰의 SDK·키보드·네트워크·파일/오디오 확인 미완료",
+      "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음"
     },
     {
       "id": "today-hub",
@@ -8830,7 +10008,7 @@
       ],
       "webProductIds": [],
       "freeCalculation": true,
-      "portStatus": "일부만 이식",
+      "portStatus": "콘솔·운영 설정 필요",
       "reducedBundle": "홈 진입 없음",
       "currentEntry": "Linux AIT 일반 홈 → 꿀꿀운세 → 오늘의 운세 · 상위 화면 진입 확인",
       "bundleVerification": "일반 AIT에서 상위 화면 진입 확인. 하위 입력·결과·재열람의 검증 근거는 verification 참조. 휴대폰 미검증",
@@ -8841,7 +10019,19 @@
       "archiveTests": [],
       "archiveHomeButtons": [
         "오늘의 운세"
-      ]
+      ],
+      "sourceAudit": {
+        "path": "docs/toss/original-mode-audit-20261114.json",
+        "reviewState": "prior-contract-evidence-reconciled",
+        "reviewedModes": [
+          "24개 별자리·띠와 오늘·내일·이번 주·이번 달 선택. 원본 loadWeekRange·loadMonthRange·computeSignScore·getPeriodReading. 오늘·내일 네 체계는 날짜 또는 소유 프로필 선택",
+          "별자리·띠 공개. 원본 오늘의 세 장은 로그인 후 계정별 기기 저장·재열람"
+        ],
+        "codeGaps": []
+      },
+      "implementationStage": "기존 원본 계약 및 개발 검증 근거 대조 완료",
+      "deviceStage": "토스 휴대폰의 SDK·키보드·네트워크·파일/오디오 확인 미완료",
+      "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음"
     },
     {
       "id": "vedic",
@@ -8878,9 +10068,10 @@
       "status": "local-partial",
       "tossRoute": "/vedic",
       "sku": null,
-      "inputContract": "authenticated birth input; precise Swiss sidereal/Lahiri chart",
-      "resultRenderer": "apps/toss/src/BasicSkyChart.tsx",
-      "storageContract": "result in memory only; guest/web profiles, full chart and device parity pending",
+      "inputContract": "기본 guest 명반은 국제 출생·IANA 시간대와 strict Swiss Lahiri. 궁합은 로그인 뒤 두 출생정보, 독립 Prashna는 단일 질문·현재시각·위도/경도",
+      "resultRenderer": "apps/toss/src/VedicHome.tsx + service/VedicReading.jsx + service/VedicCompatibility.jsx + src/VedicPrashna.tsx",
+      "storageContract": "기본 명반·무료 궁합·Prashna는 현재 화면. 원본정책대로 새 구매 보관함 저장 없음",
+      "verification": "기본7토픽/8상세·남북명반, 궁합27×27/8항목, Prashna원본 prompt·chart 동등성 및 실제 Windows AIT 홈·로그인/무료·3폭 확인 · guest-calculators-browser.mjs 360px 홈, 비회원 계산. 기본 베다 local Swiss 원본, 만세력 원본 대운·명식, 반려동물 원본 오행·유료 로그인 경계",
       "webEntries": [
         "/?action=cdHomeVedicEntry",
         "/index.html?action=navigateToVedic"
@@ -8891,21 +10082,35 @@
       ],
       "webProductIds": [],
       "freeCalculation": false,
-      "portStatus": "일부만 이식",
+      "portStatus": "콘솔·운영 설정 필요",
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "Linux AIT 일반 홈 → 꿀꿀운세 → 베다점 출생차트 · 상위 화면 진입 확인",
       "bundleVerification": "게스트 수동 출생정보로 만세력·베다 원본 계산과 반려동물 오행 결과, 반려동물 심층 로그인 경계 · 360px 배포 AIT 브라우저, 토스 휴대폰 미검증",
-      "tossLogin": "비회원 수동 출생정보 계산 가능",
-      "tossResult": "apps/toss/src/BasicSkyChart.tsx",
-      "reread": "result in memory only; guest/web profiles, full chart and device parity pending",
-      "verification": "guest-calculators-browser.mjs 360px 홈, 비회원 계산. 기본 베다 local Swiss 원본, 만세력 원본 대운·명식, 반려동물 원본 오행·유료 로그인 경계",
+      "tossLogin": "기본 명반은 게스트, 무료 궁합·Prashna는 로그인",
+      "tossResult": "apps/toss/src/VedicHome.tsx + service/VedicReading.jsx + service/VedicCompatibility.jsx + src/VedicPrashna.tsx",
+      "reread": "기본 명반·무료 궁합·Prashna는 현재 화면. 원본정책대로 새 구매 보관함 저장 없음",
       "saleStatus": "현재 기능에 신규 구매 버튼 없음",
       "archiveTests": [
         "guests"
       ],
       "archiveHomeButtons": [
         "베다점 출생차트"
-      ]
+      ],
+      "sourceAudit": {
+        "path": "docs/toss/original-mode-audit-20261114.json",
+        "reviewState": "original-contract-reviewed",
+        "reviewedModes": [
+          "기본 guest 남북명반·7토픽·8상세·12바바",
+          "로그인 무료 아쉬타쿠타36점·8항목",
+          "독립 Prashna 현재시각·좌표·단일질문·원본 차트/프롬프트",
+          "국제좌표·IANA시간대"
+        ],
+        "codeGaps": []
+      },
+      "implementationStage": "기존 원본 계약 및 개발 검증 근거 대조 완료",
+      "deviceStage": "토스 휴대폰의 SDK·키보드·네트워크·파일/오디오 확인 미완료",
+      "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음",
+      "currentArchiveEvidence": "f857266dd. actual Windows AIT01a1d9c9 홈→로그인→궁합원문·출생재입력·Prashna차트/프롬프트완전동일·nativeback·3폭·0주문 PASS."
     },
     {
       "id": "vedic-ai",
@@ -8944,7 +10149,7 @@
         "vedic-ai-consultation"
       ],
       "freeCalculation": false,
-      "portStatus": "일부만 이식",
+      "portStatus": "콘솔·운영 설정 필요",
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "Linux AIT 일반 홈 → 꿀꿀운세 → 베다 전문가 상담 · 상위 화면 진입 확인",
       "bundleVerification": "8개 상품별 입력 폼과 신규 판매 닫힘 확인. 모의 구매·저장 원문 검사는 별도 verification 참조 · 360px 배포 AIT 브라우저, 토스 휴대폰 미검증",
@@ -8957,7 +10162,19 @@
       ],
       "archiveHomeButtons": [
         "베다 전문가 상담"
-      ]
+      ],
+      "sourceAudit": {
+        "path": "docs/toss/original-mode-audit-20261114.json",
+        "reviewState": "prior-contract-evidence-reconciled",
+        "reviewedModes": [
+          "worker/toss/native-vedic.js + nativeVedicContract",
+          "owned Toss purchase and Toss-origin VedicAiConsultation; approved SKU, durable checkout, policy and device verification pending"
+        ],
+        "codeGaps": []
+      },
+      "implementationStage": "기존 원본 계약 및 개발 검증 근거 대조 완료",
+      "deviceStage": "토스 휴대폰의 SDK·키보드·네트워크·파일/오디오 확인 미완료",
+      "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음"
     },
     {
       "id": "yeongnyangi",
@@ -8985,7 +10202,7 @@
       ],
       "webProductIds": [],
       "freeCalculation": false,
-      "portStatus": "일부만 이식",
+      "portStatus": "콘솔·운영 설정 필요",
       "reducedBundle": "홈 진입 있음",
       "currentEntry": "일반 홈의 진입 코드 확인",
       "bundleVerification": "일반판 원화·질문에서 입력, 모의 토스 로그인, 원문 재열람. 단절 후 저장 원문·타 계정 URL 차단, 새 결제·생성 0건 · 키보드에 해당하는 360 × 420 높이에서 다음 버튼 노출과 작성 중인 질문 복원 · 별도 모의 AIT에서 28개 원본 상품 입력·1회 주문·1회 모의 생성·앱 재진입 후 영냥이 보관함 원문 일치 · 360px 배포 AIT 브라우저, 토스 휴대폰 미검증",
@@ -8998,7 +10215,19 @@
         "mobile-owner",
         "mock-catalog"
       ],
-      "archiveHomeButtons": []
+      "archiveHomeButtons": [],
+      "sourceAudit": {
+        "path": "docs/toss/original-mode-audit-20261114.json",
+        "reviewState": "prior-contract-evidence-reconciled",
+        "reviewedModes": [
+          "worker/toss/routes.js",
+          "owner-bound TossPurchase and YeongnyangiRequest; /yeongnyangi/library/"
+        ],
+        "codeGaps": []
+      },
+      "implementationStage": "기존 원본 계약 및 개발 검증 근거 대조 완료",
+      "deviceStage": "토스 휴대폰의 SDK·키보드·네트워크·파일/오디오 확인 미완료",
+      "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음"
     },
     {
       "id": "yeongnyangi-daily",
@@ -9025,7 +10254,7 @@
       ],
       "webProductIds": [],
       "freeCalculation": false,
-      "portStatus": "일부만 이식",
+      "portStatus": "콘솔·운영 설정 필요",
       "reducedBundle": "홈 진입 있음",
       "currentEntry": "일반 홈의 진입 코드 확인",
       "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
@@ -9035,7 +10264,19 @@
       "verification": "apps/toss/test/ daily-ui.test.mjs · daily.test.mjs · 개별 검사 범위. 실제 기기 미검증",
       "saleStatus": "현재 기능에 신규 구매 버튼 없음",
       "archiveTests": [],
-      "archiveHomeButtons": []
+      "archiveHomeButtons": [],
+      "sourceAudit": {
+        "path": "docs/toss/original-mode-audit-20261114.json",
+        "reviewState": "prior-contract-evidence-reconciled",
+        "reviewedModes": [
+          "worker/toss/daily.js",
+          "계정별 출석·당일 결과 15종. 호라리는 별도 무료 화면"
+        ],
+        "codeGaps": []
+      },
+      "implementationStage": "기존 원본 계약 및 개발 검증 근거 대조 완료",
+      "deviceStage": "토스 휴대폰의 SDK·키보드·네트워크·파일/오디오 확인 미완료",
+      "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음"
     },
     {
       "id": "yeongnyangi-horary",
@@ -9063,7 +10304,7 @@
       ],
       "webProductIds": [],
       "freeCalculation": false,
-      "portStatus": "일부만 이식",
+      "portStatus": "콘솔·운영 설정 필요",
       "reducedBundle": "홈 진입 없음",
       "currentEntry": "일반 홈의 진입 코드 확인",
       "bundleVerification": "비공개 모의판 원본 Swiss 기준 예시. 무료 호라리·신점 전용 SKU, 첫 답과 심화 하나, 생성 중 종료·원문 다시 보기·타 계정 차단 · 360px 배포 AIT 브라우저, 토스 휴대폰 미검증",
@@ -9075,7 +10316,19 @@
       "archiveTests": [
         "sky"
       ],
-      "archiveHomeButtons": []
+      "archiveHomeButtons": [],
+      "sourceAudit": {
+        "path": "docs/toss/original-mode-audit-20261114.json",
+        "reviewState": "prior-contract-evidence-reconciled",
+        "reviewedModes": [
+          "worker/yeongnyangi/fortune/free/horary.ts",
+          "무료 질문 시각·도시 차트. 유료 결과 보관 계약 없음"
+        ],
+        "codeGaps": []
+      },
+      "implementationStage": "기존 원본 계약 및 개발 검증 근거 대조 완료",
+      "deviceStage": "토스 휴대폰의 SDK·키보드·네트워크·파일/오디오 확인 미완료",
+      "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음"
     },
     {
       "id": "yeongnyangi-prashna",
@@ -9108,7 +10361,7 @@
         "yeongnyangi-prashna"
       ],
       "freeCalculation": false,
-      "portStatus": "일부만 이식",
+      "portStatus": "콘솔·운영 설정 필요",
       "reducedBundle": "홈 진입 없음",
       "currentEntry": "일반 홈의 진입 코드 확인",
       "bundleVerification": "비공개 모의판 원본 Swiss 기준 예시. 무료 호라리·신점 전용 SKU, 첫 답과 심화 하나, 생성 중 종료·원문 다시 보기·타 계정 차단 · 360px 배포 AIT 브라우저, 토스 휴대폰 미검증",
@@ -9120,7 +10373,19 @@
       "archiveTests": [
         "sky"
       ],
-      "archiveHomeButtons": []
+      "archiveHomeButtons": [],
+      "sourceAudit": {
+        "path": "docs/toss/original-mode-audit-20261114.json",
+        "reviewState": "prior-contract-evidence-reconciled",
+        "reviewedModes": [
+          "worker/yeongnyangi/fortune/question-sky.ts",
+          "영냥이 질문점성술 별도 권한. 일반 사주 승인 SKU로 구매 가능하다고 보지 않는다"
+        ],
+        "codeGaps": []
+      },
+      "implementationStage": "기존 원본 계약 및 개발 검증 근거 대조 완료",
+      "deviceStage": "토스 휴대폰의 SDK·키보드·네트워크·파일/오디오 확인 미완료",
+      "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음"
     },
     {
       "id": "yeongnyangi-season",
@@ -9148,7 +10413,7 @@
       ],
       "webProductIds": [],
       "freeCalculation": false,
-      "portStatus": "일부만 이식",
+      "portStatus": "이미 동작",
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "일반 홈의 진입 코드 확인",
       "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
@@ -9157,7 +10422,19 @@
       "reread": "게스트 공개. 원본 크롬과 같은 회차별 기기 이어보기. 다음 회차 번호와 시각만 사전 안내",
       "saleStatus": "현재 기능에 신규 구매 버튼 없음",
       "archiveTests": [],
-      "archiveHomeButtons": []
+      "archiveHomeButtons": [],
+      "sourceAudit": {
+        "path": "docs/toss/original-mode-audit-20261114.json",
+        "reviewState": "prior-contract-evidence-reconciled",
+        "reviewedModes": [
+          "영냥이의 점술방 시즌 1 → 공개 회차 → 다음/이전 쪽. 웹 serial.mjs 게이트가 빌드 때 공개한 회차만 열람",
+          "게스트 공개. 원본 크롬과 같은 회차별 기기 이어보기. 다음 회차 번호와 시각만 사전 안내"
+        ],
+        "codeGaps": []
+      },
+      "implementationStage": "기존 원본 계약 및 개발 검증 근거 대조 완료",
+      "deviceStage": "토스 휴대폰의 SDK·키보드·네트워크·파일/오디오 확인 미완료",
+      "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음"
     },
     {
       "id": "yoga-guru",
@@ -9202,7 +10479,7 @@
         "yoga-guru-per-use"
       ],
       "freeCalculation": false,
-      "portStatus": "일부만 이식",
+      "portStatus": "콘솔·운영 설정 필요",
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "Linux AIT 일반 홈 → 꿀꿀운세 → 디비야 요가 · 상위 화면 진입 확인",
       "bundleVerification": "일반 AIT에서 상위 화면 진입 확인. 하위 입력·결과·재열람의 검증 근거는 verification 참조. 휴대폰 미검증",
@@ -9213,7 +10490,19 @@
       "archiveTests": [],
       "archiveHomeButtons": [
         "디비야 요가"
-      ]
+      ],
+      "sourceAudit": {
+        "path": "docs/toss/original-mode-audit-20261114.json",
+        "reviewState": "prior-contract-evidence-reconciled",
+        "reviewedModes": [
+          "yoga-guru.html에서 현재 몸·마음 자유서술 및 30분 가네샤 또는 60분 시바 코스 선택. 웹의 두 openYogaGuru 사유와 같은 상품 yoga-guru-per-use, 각 5,000원. 출생정보를 요구하지 않는다",
+          "TossNativeConsultation의 소유자·환경·주문·입력 해시에 결합한 ServiceExecutionTransaction 원문. 웹 주문과 별개. 꿀꿀운세 구매 기록에서 생성 재개·완료 원문 읽기. 토스 계정과 주문별 마지막 단계는 기기에 저장"
+        ],
+        "codeGaps": []
+      },
+      "implementationStage": "기존 원본 계약 및 개발 검증 근거 대조 완료",
+      "deviceStage": "토스 휴대폰의 SDK·키보드·네트워크·파일/오디오 확인 미완료",
+      "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음"
     },
     {
       "id": "ziwei",
@@ -9320,7 +10609,7 @@
       ],
       "webProductIds": [],
       "freeCalculation": true,
-      "portStatus": "일부만 이식",
+      "portStatus": "콘솔·운영 설정 필요",
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "Linux AIT 일반 홈 → 꿀꿀운세 → 자미두수 명반 · 상위 화면 진입 확인",
       "bundleVerification": "공개 사주·자미 11절 원본 계산, 사주 그림 13가지와 여행 기록 복원. 시크릿 하우스는 독립 검사 · 360px 배포 AIT 브라우저, 토스 휴대폰 미검증",
@@ -9333,7 +10622,19 @@
       ],
       "archiveHomeButtons": [
         "자미두수 명반"
-      ]
+      ],
+      "sourceAudit": {
+        "path": "docs/toss/original-mode-audit-20261114.json",
+        "reviewState": "prior-contract-evidence-reconciled",
+        "reviewedModes": [
+          "BirthFields + normalizeZiweiInput + calculateZiweiChart; domestic locations only",
+          "기본 명반은 현재 화면에서 재계산, 출생 초안은 기기·토스 계정별. 15장 구매 기록은 별도 ziwei-deep-report 행"
+        ],
+        "codeGaps": []
+      },
+      "implementationStage": "기존 원본 계약 및 개발 검증 근거 대조 완료",
+      "deviceStage": "토스 휴대폰의 SDK·키보드·네트워크·파일/오디오 확인 미완료",
+      "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음"
     },
     {
       "id": "ziwei-ai",
@@ -9378,7 +10679,7 @@
         "ziwei-ai-consultation"
       ],
       "freeCalculation": false,
-      "portStatus": "일부만 이식",
+      "portStatus": "콘솔·운영 설정 필요",
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "Linux AIT 일반 홈 → 꿀꿀운세 → 자미두수 전문가 상담 · 상위 화면 진입 확인",
       "bundleVerification": "8개 상품별 입력 폼과 신규 판매 닫힘 확인. 모의 구매·저장 원문 검사는 별도 verification 참조 · 360px 배포 AIT 브라우저, 토스 휴대폰 미검증",
@@ -9391,7 +10692,19 @@
       ],
       "archiveHomeButtons": [
         "자미두수 전문가 상담"
-      ]
+      ],
+      "sourceAudit": {
+        "path": "docs/toss/original-mode-audit-20261114.json",
+        "reviewState": "prior-contract-evidence-reconciled",
+        "reviewedModes": [
+          "worker/toss/native-ziwei.js + nativeZiweiContract",
+          "owned Toss purchase and Toss-origin ZiweiAiConsultation; approved SKU, durable checkout, policy and device verification pending"
+        ],
+        "codeGaps": []
+      },
+      "implementationStage": "기존 원본 계약 및 개발 검증 근거 대조 완료",
+      "deviceStage": "토스 휴대폰의 SDK·키보드·네트워크·파일/오디오 확인 미완료",
+      "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음"
     },
     {
       "id": "ziwei-deep-report",
@@ -9428,7 +10741,7 @@
         "ziwei-deep-pdf"
       ],
       "freeCalculation": false,
-      "portStatus": "일부만 이식",
+      "portStatus": "콘솔·운영 설정 필요",
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "Linux AIT 일반 홈 → 꿀꿀운세 → 자미두수 명반 · 상위 화면 진입 확인",
       "bundleVerification": "일반 AIT에서 상위 화면 진입 확인. 하위 입력·결과·재열람의 검증 근거는 verification 참조. 휴대폰 미검증",
@@ -9439,7 +10752,19 @@
       "archiveTests": [],
       "archiveHomeButtons": [
         "자미두수 명반"
-      ]
+      ],
+      "sourceAudit": {
+        "path": "docs/toss/original-mode-audit-20261114.json",
+        "reviewState": "prior-contract-evidence-reconciled",
+        "reviewedModes": [
+          "명반 출생(음력·윤달·시각) + 원본 8개 관심 분야·질문 → worker/toss/native-ziwei-deep.js → runZiweiDeepReportDeliveryBatch",
+          "구매 기록에서 본인 토스 주문의 15장 원문 재열람·저장 지점 재개. 웹 과거 구매는 웹 계정"
+        ],
+        "codeGaps": []
+      },
+      "implementationStage": "기존 원본 계약 및 개발 검증 근거 대조 완료",
+      "deviceStage": "토스 휴대폰의 SDK·키보드·네트워크·파일/오디오 확인 미완료",
+      "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음"
     },
     {
       "id": "ziwei-island",
@@ -9467,7 +10792,7 @@
       ],
       "webProductIds": [],
       "freeCalculation": true,
-      "portStatus": "일부만 이식",
+      "portStatus": "콘솔·운영 설정 필요",
       "reducedBundle": "홈 진입 없음",
       "currentEntry": "일반 홈의 진입 코드 확인",
       "bundleVerification": "게스트 명반, 섬 12궁 원문·초상·연도 전환과 재진입 · 360px 배포 AIT 브라우저, 토스 휴대폰 미검증",
@@ -9478,7 +10803,19 @@
       "archiveTests": [
         "island"
       ],
-      "archiveHomeButtons": []
+      "archiveHomeButtons": [],
+      "sourceAudit": {
+        "path": "docs/toss/original-mode-audit-20261114.json",
+        "reviewState": "prior-contract-evidence-reconciled",
+        "reviewedModes": [
+          "원본 양력·음력·윤달, 생일·성별·시각 미상, 연도 선택",
+          "기기 내 게스트·토스 계정별 명반, 당일 청사진, 방문 도장과 퀘스트 EXP 복원"
+        ],
+        "codeGaps": []
+      },
+      "implementationStage": "기존 원본 계약 및 개발 검증 근거 대조 완료",
+      "deviceStage": "토스 휴대폰의 SDK·키보드·네트워크·파일/오디오 확인 미완료",
+      "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음"
     }
   ],
   "consultationProducts": [
