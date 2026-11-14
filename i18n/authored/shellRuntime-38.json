@@ -323,18 +323,18 @@
     "ms": "Overlay the major cycle you are passing through with this year's annual cycle, and sort out one thing to push on with and one thing to put off."
   },
   "shellRuntime.f2228": {
-    "ko": "만세력으로 여덟 글자를 세우면 어떤 십신이 어느 자리에 앉았는지 확인할 수 있습니다.",
-    "en": "Raise the eight characters with the perpetual calendar and you can see which of the ten gods sits in which seat.",
-    "ja": "万年暦で八文字を立てれば、どの十神がどの位置に座っているかを確認できます。",
-    "zh-CN": "用万年历把八个字立起来，就能看到哪个十神坐在哪个位置。",
-    "zh-TW": "用萬年曆把八個字立起來，就能看到哪個十神坐在哪個位置。",
-    "vi": "Raise the eight characters with the perpetual calendar and you can see which of the ten gods sits in which seat.",
-    "hi": "Raise the eight characters with the perpetual calendar and you can see which of the ten gods sits in which seat.",
-    "es": "Raise the eight characters with the perpetual calendar and you can see which of the ten gods sits in which seat.",
-    "fr": "Raise the eight characters with the perpetual calendar and you can see which of the ten gods sits in which seat.",
-    "de": "Raise the eight characters with the perpetual calendar and you can see which of the ten gods sits in which seat.",
-    "nl": "Raise the eight characters with the perpetual calendar and you can see which of the ten gods sits in which seat.",
-    "ms": "Raise the eight characters with the perpetual calendar and you can see which of the ten gods sits in which seat."
+    "ko": "만세력으로 네 기둥을 세우면 십신의 기준이 되는 내 일간을 확인할 수 있습니다.",
+    "en": "Raise your four pillars with the perpetual calendar and you can see your day stem, the reference point for the ten gods.",
+    "ja": "万年暦で四柱を立てれば、十神の基準になる自分の日干を確認できます。",
+    "zh-CN": "用万年历排出四柱，就能确认作为十神基准的日干。",
+    "zh-TW": "用萬年曆排出四柱，就能確認作為十神基準的日干。",
+    "vi": "Raise your four pillars with the perpetual calendar and you can see your day stem, the reference point for the ten gods.",
+    "hi": "Raise your four pillars with the perpetual calendar and you can see your day stem, the reference point for the ten gods.",
+    "es": "Raise your four pillars with the perpetual calendar and you can see your day stem, the reference point for the ten gods.",
+    "fr": "Raise your four pillars with the perpetual calendar and you can see your day stem, the reference point for the ten gods.",
+    "de": "Raise your four pillars with the perpetual calendar and you can see your day stem, the reference point for the ten gods.",
+    "nl": "Raise your four pillars with the perpetual calendar and you can see your day stem, the reference point for the ten gods.",
+    "ms": "Raise your four pillars with the perpetual calendar and you can see your day stem, the reference point for the ten gods."
   },
   "shellRuntime.f2229": {
     "ko": "십성의 맞물림 — 재성·관성·식상이 어느 자리에서 만나 어떤 역할 분담으로 드러나는지",

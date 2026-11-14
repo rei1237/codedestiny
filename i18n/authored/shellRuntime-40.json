@@ -239,18 +239,18 @@
     "ms": "A conversation whose current shifts with saju disposition and your choices"
   },
   "shellRuntime.f2272": {
-    "ko": "내 사주에서 십신이 어떻게 놓였는지 보세요",
-    "en": "See how the ten gods are placed in your own chart",
-    "ja": "自分の四柱で十神がどう置かれているか見てみましょう",
-    "zh-CN": "看看十神在你自己的命式里是怎么排的",
-    "zh-TW": "看看十神在你自己的命式裡是怎麼排的",
-    "vi": "See how the ten gods are placed in your own chart",
-    "hi": "See how the ten gods are placed in your own chart",
-    "es": "See how the ten gods are placed in your own chart",
-    "fr": "See how the ten gods are placed in your own chart",
-    "de": "See how the ten gods are placed in your own chart",
-    "nl": "See how the ten gods are placed in your own chart",
-    "ms": "See how the ten gods are placed in your own chart"
+    "ko": "십신을 읽기 전에 내 여덟 글자부터 세워 보세요",
+    "en": "Before reading the ten gods, raise your own eight characters first",
+    "ja": "十神を読む前に、まず自分の八字を立ててみましょう",
+    "zh-CN": "读十神之前，先排出自己的八字",
+    "zh-TW": "讀十神之前，先排出自己的八字",
+    "vi": "Before reading the ten gods, raise your own eight characters first",
+    "hi": "Before reading the ten gods, raise your own eight characters first",
+    "es": "Before reading the ten gods, raise your own eight characters first",
+    "fr": "Before reading the ten gods, raise your own eight characters first",
+    "de": "Before reading the ten gods, raise your own eight characters first",
+    "nl": "Before reading the ten gods, raise your own eight characters first",
+    "ms": "Before reading the ten gods, raise your own eight characters first"
   },
   "shellRuntime.f2273": {
     "ko": "생년월일을 넣으면 바로 명식을 뽑습니다",

@@ -48,8 +48,8 @@ export const GUIDE_CTA_TARGETS = {
   "/saju/ten-gods": {
     from: "ten-gods-guide",
     kicker: "바로 해보기",
-    heading: "내 사주에서 십신이 어떻게 놓였는지 보세요",
-    body: "만세력으로 여덟 글자를 세우면 어떤 십신이 어느 자리에 앉았는지 확인할 수 있습니다.",
+    heading: "십신을 읽기 전에 내 여덟 글자부터 세워 보세요",
+    body: "만세력으로 네 기둥을 세우면 십신의 기준이 되는 내 일간을 확인할 수 있습니다.",
     primary: { href: "/saju/free/", label: "사주 보기", note: "무료 · 가입 없이" },
     secondary: [{ href: "/saju/guide", label: "사주 기본 가이드" }],
   },
@@ -68,7 +68,7 @@ export const GUIDE_CTA_TARGETS = {
     from: "saju-ilgan-monthly-detail",
     kicker: "내 명식으로 넓혀 보기",
     heading: "일간 운세를 내 사주 전체 흐름과 함께 읽어 보세요",
-    body: "일간별 월간 운세는 한 달의 환경을 보는 기준입니다. 오행과 십성의 배치를 함께 확인하면 해석의 맥락이 더 선명해집니다.",
+    body: "일간별 월간 운세는 한 달의 환경을 보는 기준입니다. 네 기둥과 오행 분포를 함께 확인하면 해석의 맥락이 더 선명해집니다.",
     primary: { href: "/saju/free/", label: "사주 보기", note: "무료 · 가입 없이" },
     secondary: [
       { href: "/saju/ten-gods", label: "십성 뜻 살펴보기" },
@@ -90,7 +90,7 @@ export const GUIDE_CTA_TARGETS = {
     from: "fortune-new-year-sign",
     kicker: "내 명식으로 넓혀 보기",
     heading: "같은 띠라도 생년월일시에 따라 2027년이 달라집니다",
-    body: "띠 운세는 년주 하나만 본 풀이입니다. 월주·일주와 대운까지 넣어 보면 정미년의 합·충이 실제로 어느 영역에서 드러나는지 더 분명해집니다.",
+    body: "띠 운세는 년주 하나만 본 풀이입니다. 월주·일주까지 세워 보면 정미년이 내 명식 어디에 닿는지 더 분명해집니다.",
     primary: { href: "/saju/free/", label: "사주 보기", note: "무료 · 가입 없이" },
     secondary: [
       { href: "/saju", label: "사주 원국 살펴보기" },
