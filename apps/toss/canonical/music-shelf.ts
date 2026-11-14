@@ -7,7 +7,7 @@ export function publicStreamList(tracks=allTracks){
     if(track.accessTier!=='free_full'||!current.hasFreeFullAccess)return [];
     const url=new URL(track.audioUrl);
     if(url.protocol!=='https:'||url.username||url.password||!['music.code-destiny.com','assets.code-destiny.com'].includes(url.hostname))throw new Error('Unexpected public music origin');
-    return [{id:track.id,title:track.title,artist:track.artistName,artistKey:track.artistKey,stream:url.href}];
+    return [{id:track.id,title:track.title,artist:track.artistName,artistKey:track.artistKey,stream:url.href,audioSourceKey:track.audioSourceKey,featureKey:current.purchaseFeatureKey}];
   });
 }
 export default function musicShelf(){

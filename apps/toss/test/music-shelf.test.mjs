@@ -9,15 +9,17 @@ const file=path.resolve(import.meta.dirname,'../canonical/music-shelf.ts');
 const out=await build({entryPoints:[file],format:'cjs',bundle:true,platform:'node',write:false});
 const m=new Module(file);m._compile(out.outputFiles[0].text,file);
 const tracks=m.exports.publicStreamList();
-test('only full streams from the canonical music CDN enter the shelf; paid purchase and download fields stay out',()=>{
+test('only full streams from the canonical music CDN enter the shelf; download keys carry no unapproved price or SKU',()=>{
   assert.ok(tracks.length>0);assert.equal(new Set(tracks.map(t=>t.id)).size,tracks.length);
-  assert.ok(tracks.every(t=>/^https:\/\//.test(t.stream)&&Object.keys(t).every(k=>['id','title','artist','artistKey','stream'].includes(k))));
+  assert.ok(tracks.every(t=>/^https:\/\//.test(t.stream)&&Object.keys(t).every(k=>['id','title','artist','artistKey','stream','audioSourceKey','featureKey'].includes(k))));
   assert.deepEqual(m.exports.publicStreamList([{accessTier:'locked_preview',audioSourceKey:decodeURIComponent(new URL(tracks[0].stream).pathname.split('/').slice(-2).join('/')),audioUrl:'https://invalid.example/protected.mp3'}]),[]);
   assert.throws(()=>m.exports.publicStreamList([{accessTier:'free_full',audioSourceKey:decodeURIComponent(new URL(tracks[0].stream).pathname.split('/').slice(-2).join('/')),audioUrl:'https://invalid.example/private.mp3'}]));
 });
 test('search, play, pause and native back leave the list filtered and stop playback without exposing a download action',async()=>{
   const id='virtual:toss-music-shelf',plugin=m.exports.default();
   const {dom,React,createRoot,Component}=await chartFixture('MusicShelf.tsx','/music',[{name:'music-fixture',setup(b){
+    b.onResolve({filter:/^\.\/music-download-file$/},()=>({path:'file',namespace:'music-file'}));
+    b.onLoad({filter:/.*/,namespace:'music-file'},()=>({contents:'export const saveMusicDownload=()=>{throw Error("Unexpected save")};'}));
     b.onResolve({filter:/^virtual:toss-music-shelf$/},()=>({path:id,namespace:'shelf'}));
     b.onLoad({filter:/.*/,namespace:'shelf'},()=>({contents:plugin.load(plugin.resolveId(id))}));
   }}]);

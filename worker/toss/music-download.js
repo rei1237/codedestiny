@@ -29,19 +29,19 @@ export async function prepareNativeMusic(env,auth,input,orderId){
   const prepared=await musicContract(input);
   return prepareNativeConsultation(env,auth,prepared.input,orderId,prepared.contract,SERVICE);
 }
-async function checked(env,auth,id){
+async function checked(env,auth,id,allowPrepared=false){
   if(!ID.test(id))throw new TossError('RESULT_NOT_FOUND',404);
   const row=await TossNativeConsultation.findOne({_id:id,...nativeOwnerFilter(auth,SERVICE)}).lean();
   assertNativeIntent(row,auth);
   const prepared=await musicContract(row.input);
   assertNativeIntent(row,auth,prepared.contract);
   if(row.nativeService!==SERVICE)throw new TossError('RESULT_NOT_FOUND',404);
-  await verifiedIntent(env,auth,row);
+  if(!allowPrepared||row.status!=='prepared')await verifiedIntent(env,auth,row);
   return {row,track:musicTrack(row.input)};
 }
 export async function readNativeMusic(env,auth,id){
-  const {row,track}=await checked(env,auth,id);
-  return {id:row._id,resultId:row.resultId,state:'COMPLETED',track};
+  const {row,track}=await checked(env,auth,id,true);
+  return {id:row._id,resultId:row.resultId,state:row.status==='paid'?'COMPLETED':'PENDING',track};
 }
 export async function nativeMusicLibraryItem(env,auth,purchase){
   if(!purchase||purchase.identityId!==auth._id||String(purchase.ownerId)!==String(auth.ownerId)||purchase.environment!==auth.environment||purchase.nativeService!==SERVICE)throw new TossError('RESULT_NOT_FOUND',404);

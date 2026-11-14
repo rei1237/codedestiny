@@ -1,6 +1,7 @@
 import {useCallback,useEffect,useRef,useState} from 'react';
 import {TextField} from '@toss/tds-mobile';
 import {Button} from './Button';
+import MusicDownload from './MusicDownload';
 import tracks from 'virtual:toss-music-shelf';
 
 type Track=typeof tracks[number];
@@ -23,13 +24,15 @@ function Player({track,onClose}:{track:Track;onClose:()=>void}){
     <Button display="block" onClick={()=>playing?player.current?.pause():play()}>{playing?'일시 정지':error?'재생 다시 시도':'곡 재생하기'}</Button>
     {duration>0&&<label>재생 위치 · {clock(time)} / {clock(duration)}<input aria-label="재생 위치" type="range" min={0} max={duration} step={1} value={Math.min(duration,time)} onChange={e=>{if(player.current)player.current.currentTime=Number(e.target.value);}}/></label>}
     {error&&<p role="alert">음악을 불러오지 못했어요. 연결 상태를 확인하고 다시 시도해 주세요.</p>}
-    <Button display="block" variant="weak" onClick={onClose}>곡 목록으로</Button></section>;
+    <MusicDownload track={track} orderId={new URLSearchParams(location.search).get('orderId')||''}/><Button display="block" variant="weak" onClick={onClose}>곡 목록으로</Button></section>;
 }
 export default function MusicShelf(){
-  const [query,setQuery]=useState(''),[current,setCurrent]=useState<Track|null>(null);
-  const close=useCallback(()=>setCurrent(null),[]);
+  const [query,setQuery]=useState(''),[current,setCurrent]=useState<Track|null>(()=>tracks.find(track=>track.audioSourceKey===new URLSearchParams(location.search).get('track'))||null);
+  const close=useCallback(()=>{setCurrent(null);window.history.replaceState(window.history.state,'','/music');},[]);
+  const intentId=new URLSearchParams(location.search).get('intentId')||'';
   const lastId=useRef<string|null>(null);
   useEffect(()=>{if(!current&&lastId.current)document.getElementById('track-'+lastId.current)?.focus();},[current]);
+  if(intentId&&!current)return <section><MusicDownload intentId={intentId}/><a href="/music">곡 목록으로</a></section>;
   if(current)return <Player track={current} onClose={close}/>;
   const term=query.trim().toLocaleLowerCase('ko'),visible=tracks.filter(t=>(t.title+' '+t.artist).toLocaleLowerCase('ko').includes(term));
   return <section><h1>꿀꿀운세 음악실</h1><p>마음에 드는 곡을 골라 재생해 보세요.</p>
