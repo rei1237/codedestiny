@@ -282,3 +282,12 @@ Phase 0 보고서와 승인된 계획의 정본은 `docs/seo/phase0-report.md`�
 
 push 전에 할 일
 - origin/main이 이 브랜치보다 116커밋 앞서 있고 UX 브랜치(`wt/ux-conversion-20261113-215142`)는 아직 main에 없다. push 전에 rebase가 필요하다. UX 브랜치와 인접한 줄: `app/page.js`의 `HOME_TITLE` 위, `scripts/generate-sitemap.mjs` coreRoutes `/` 주석 위.
+
+검증(2026-11-14, 코드 마지막 커밋 `8e022d1d0` 기준, 모두 직접 실행)
+- `npm run typecheck` 0 · `npm run lint` 0 · `npm run i18n:check` 0 · `node scripts/verify-sitemap-integrity.mjs` OK(1,072 URL)
+- `npm run build` 0. 다른 체크아웃의 dev 서버 때문에 가드에 막혀 `ALLOW_DEV_SERVER_DURING_BUILD=1`로 돌렸다.
+- `node scripts/verify-home-identity.mjs` OK(`/`, `/ggulggul/`, `/about/`, `/faq/`) · `node --test scripts/seo/*.test.mjs` 0
+- `npm test` 0(5,036개 통과, 실패 0)
+- `node scripts/check-changed.mjs --profile=fast --skip-build --base=origin/main` 0(끝까지 실행. jest 478개 스위트 통과, 1개 건너뜀, 7,987개 통과)
+- `dist/` 확인: `/`에 hreflang 9개(ko·x-default=`/`), `/ggulggul/`에 hreflang 없음, `/en/`의 ko·x-default=`/`, `/about/`에 정의 문장. 표는 `docs/seo/bundle2-before-after.md`.
+- 스테이징·운영 확인은 하지 않았다(push 없음).
