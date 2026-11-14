@@ -2310,7 +2310,7 @@
       "otherServices": "Voir les pass des autres services",
       "lightBanner": "Un seul Petit Pot de Miel ouvre les {count} Lectures Légères.",
       "lightBannerSub": "Profitez des Lectures Légères sans limite, hors consultations phares. Les pots Moyen, Grand et Famille les incluent aussi.",
-      "lightLine": "{count} Lectures Légères, utilisations illimitées",
+      "lightLine": "{count} Lectures Légères, utilisations illimitées · {free} d'entre elles sont gratuites même sans Pot de Miel",
       "lightWorth": "D'une valeur de {amount} KRW, en comptant seulement les lectures payantes aujourd'hui",
       "consultLine": "Solde de consultations expertes",
       "consultAmount": "{amount} KRW",

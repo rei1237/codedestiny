@@ -2310,7 +2310,7 @@
       "otherServices": "ほかのサービスのパスを見る",
       "lightBanner": "小さなはちみつ壺ひとつで、ライト占い{count}種がすべて開きます。",
       "lightBannerSub": "代表相談を除くライト占いを回数制限なくご利用いただけます。中くらい・大きな・ファミリーのはちみつ壺にも同じく含まれます。",
-      "lightLine": "ライト占い{count}種 回数制限なし",
+      "lightLine": "ライト占い{count}種 回数制限なし · うち{free}種ははちみつ壺なしでも無料",
       "lightWorth": "現在有料の占いだけで{amount}ウォン相当",
       "consultLine": "専門家相談の利用枠",
       "consultAmount": "{amount}ウォン",

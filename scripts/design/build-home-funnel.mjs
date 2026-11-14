@@ -278,7 +278,7 @@ function localizedPassBenefits() {
   const add = (key, values) => labels.set(copy[key].ko.replace(/\{(\w+)\}/g, (_, name) => values[name]), { key, values });
   const lightCount = String(lightFortunes.count);
   add('home.benefitsCopy.lightBanner', { count: lightCount });
-  add('home.benefitsCopy.lightLine', { count: lightCount });
+  add('home.benefitsCopy.lightLine', { count: lightCount, free: String(lightFortunes.freeCount) });
   add('home.benefitsCopy.lightListTitle', { count: lightCount });
   add('home.benefitsCopy.lightWorth', { amount: lightFortunes.paidValueKRW.toLocaleString('ko-KR') });
   for (const offer of passBenefitOffers('honey')) {

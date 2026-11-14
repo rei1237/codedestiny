@@ -2310,7 +2310,7 @@
       "otherServices": "Lihat pas untuk perkhidmatan lain",
       "lightBanner": "Satu Balang Madu Kecil membuka kesemua {count} Bacaan Ringan.",
       "lightBannerSub": "Guna Bacaan Ringan tanpa had kekerapan, kecuali konsultasi utama. Balang Sederhana, Besar dan Keluarga turut menyertakannya.",
-      "lightLine": "{count} Bacaan Ringan, tanpa had kekerapan",
+      "lightLine": "{count} Bacaan Ringan, tanpa had kekerapan · {free} daripadanya percuma walaupun tanpa Balang Madu",
       "lightWorth": "Bernilai {amount} KRW, hanya mengira bacaan yang kini berbayar",
       "consultLine": "Had konsultasi pakar",
       "consultAmount": "{amount} KRW",

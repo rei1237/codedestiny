@@ -2310,7 +2310,7 @@
       "otherServices": "Xem vé cho dịch vụ khác",
       "lightBanner": "Chỉ một Hũ Mật Ong Nhỏ là mở được toàn bộ {count} bài xem nhẹ.",
       "lightBannerSub": "Dùng các bài xem nhẹ không giới hạn số lần, trừ tư vấn tiêu biểu. Hũ Vừa, Lớn và Gia Đình cũng đều có.",
-      "lightLine": "{count} bài xem nhẹ, không giới hạn lượt",
+      "lightLine": "{count} bài xem nhẹ, không giới hạn lượt · {free} bài trong số đó miễn phí dù không có Hũ Mật Ong",
       "lightWorth": "Trị giá {amount} KRW, chỉ tính các bài hiện đang thu phí",
       "consultLine": "Hạn mức tư vấn chuyên gia",
       "consultAmount": "{amount} KRW",

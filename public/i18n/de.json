@@ -2310,7 +2310,7 @@
       "otherServices": "Pässe für andere Dienste ansehen",
       "lightBanner": "Ein kleiner Honigtopf öffnet alle {count} leichten Deutungen.",
       "lightBannerSub": "Nutze leichte Deutungen ohne Nutzungslimit, ausgenommen Signature-Beratungen. Auch mittlere, große und Familien-Töpfe enthalten sie.",
-      "lightLine": "{count} leichte Deutungen, unbegrenzt nutzbar",
+      "lightLine": "{count} leichte Deutungen, unbegrenzt nutzbar · {free} davon auch ohne Honigtopf kostenlos",
       "lightWorth": "Im Wert von {amount} KRW, nur heute kostenpflichtige Deutungen gezählt",
       "consultLine": "Budget für Expertenberatung",
       "consultAmount": "{amount} KRW",

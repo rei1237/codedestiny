@@ -420,18 +420,18 @@
     "ms": "Peraturan pas telah berubah. Lihat notis perubahan terma"
   },
   "home.benefitsCopy.lightLine": {
-    "ko": "라이트 운세 {count}종 횟수 제한 없이",
-    "en": "{count} Light Readings, unlimited uses",
-    "ja": "ライト占い{count}種 回数制限なし",
-    "zh-CN": "{count}种轻量运势，不限次数",
-    "zh-TW": "{count}種輕量運勢，不限次數",
-    "vi": "{count} bài xem nhẹ, không giới hạn lượt",
-    "hi": "{count} लाइट रीडिंग, असीमित उपयोग",
-    "es": "{count} Lecturas Ligeras sin límite de usos",
-    "fr": "{count} Lectures Légères, utilisations illimitées",
-    "de": "{count} leichte Deutungen, unbegrenzt nutzbar",
-    "nl": "{count} lichte duidingen, onbeperkt gebruik",
-    "ms": "{count} Bacaan Ringan, tanpa had kekerapan"
+    "ko": "라이트 운세 {count}종 횟수 제한 없이 · 이 중 {free}종은 꿀단지 없이도 무료",
+    "en": "{count} Light Readings, unlimited uses · {free} of them are free even without a Honey Jar",
+    "ja": "ライト占い{count}種 回数制限なし · うち{free}種ははちみつ壺なしでも無料",
+    "zh-CN": "{count}种轻量运势，不限次数 · 其中{free}种无需蜜罐也免费",
+    "zh-TW": "{count}種輕量運勢，不限次數 · 其中{free}種無需蜜罐也免費",
+    "vi": "{count} bài xem nhẹ, không giới hạn lượt · {free} bài trong số đó miễn phí dù không có Hũ Mật Ong",
+    "hi": "{count} लाइट रीडिंग, असीमित उपयोग · इनमें से {free} हनी जार के बिना भी मुफ़्त",
+    "es": "{count} Lecturas Ligeras sin límite de usos · {free} de ellas son gratis incluso sin Tarro de Miel",
+    "fr": "{count} Lectures Légères, utilisations illimitées · {free} d'entre elles sont gratuites même sans Pot de Miel",
+    "de": "{count} leichte Deutungen, unbegrenzt nutzbar · {free} davon auch ohne Honigtopf kostenlos",
+    "nl": "{count} lichte duidingen, onbeperkt gebruik · {free} daarvan ook zonder honingpot gratis",
+    "ms": "{count} Bacaan Ringan, tanpa had kekerapan · {free} daripadanya percuma walaupun tanpa Balang Madu"
   },
   "home.benefitsCopy.lightWorth": {
     "ko": "지금 유료인 운세 기준 {amount}원 상당",

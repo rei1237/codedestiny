@@ -2310,7 +2310,7 @@
       "otherServices": "Ver pases para otros servicios",
       "lightBanner": "Un solo Tarro de Miel Pequeño abre las {count} Lecturas Ligeras.",
       "lightBannerSub": "Usa las Lecturas Ligeras sin límite de veces, salvo las consultas destacadas. Los tarros Mediano, Grande y Familiar también las incluyen.",
-      "lightLine": "{count} Lecturas Ligeras sin límite de usos",
+      "lightLine": "{count} Lecturas Ligeras sin límite de usos · {free} de ellas son gratis incluso sin Tarro de Miel",
       "lightWorth": "Valor de {amount} KRW, contando solo las lecturas que hoy son de pago",
       "consultLine": "Saldo para consultas expertas",
       "consultAmount": "{amount} KRW",

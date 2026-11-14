@@ -2159,7 +2159,7 @@
       "otherServices": "다른 서비스 이용권도 살펴보기",
       "lightBanner": "작은 꿀단지 하나면, 라이트 운세 {count}종이 전부 열려요.",
       "lightBannerSub": "대표 상담을 제외한 라이트 운세를 횟수 제한 없이 이용하세요. 중간·큰·패밀리 꿀단지에도 똑같이 포함돼요.",
-      "lightLine": "라이트 운세 {count}종 횟수 제한 없이",
+      "lightLine": "라이트 운세 {count}종 횟수 제한 없이 · 이 중 {free}종은 꿀단지 없이도 무료",
       "lightWorth": "지금 유료인 운세 기준 {amount}원 상당",
       "consultLine": "전문가 상담 이용 한도",
       "consultAmount": "{amount}원",
