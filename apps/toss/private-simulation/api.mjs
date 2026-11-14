@@ -1,4 +1,7 @@
 import {privateVedicReading} from './vedic-reading.mjs';
+import {privateAstroReading} from './astro-reading.mjs';
+import {privateSecretHouse} from './secret-house.mjs';
+import {privateSukuyoTools} from './sukuyo-tools.mjs';
 import {paidFamilyProducts,paidFamilyRequest,paidFamilyPurchases,paidFamilyRecords} from './paid-families.mjs';
 import {privateSukuyoYearly} from './sukuyo-yearly.mjs';
 import {extendedProducts,extendedRequest,extendedRecords} from './extended-reports.mjs';
@@ -43,6 +46,9 @@ export function createSimulationApi(storage,person){
     const path=url.pathname.slice('/private-simulation-api'.length),method=request.method;
     if(!url.pathname.startsWith('/private-simulation-api/'))return unavailable();
     if(path==='/catalog'&&method==='GET')return replies({products:[...products,...letterProducts]});
+    if(path==='/tarot-library/catalog'&&method==='GET')return replies({flows:privateTarotProducts});
+    if(path==='/canonical/saju/section'&&method==='POST')return privateSecretHouse(await request.json());
+    if((path==='/sukuyo/basic'||path==='/sukuyo/tools')&&method==='POST')return privateSukuyoTools(await request.json(),path==='/sukuyo/basic');
     if(path==='/canonical/yeongnyangi/products'&&method==='GET')return replies({products:products.filter(p=>p.id!==prashnaProduct.id).map(productView)});
     if(path==='/canonical/yeongnyangi/free/horary'&&method==='POST')return exampleReading('horary',await request.json());
     if(path==='/login'&&method==='POST'){
@@ -51,6 +57,7 @@ export function createSimulationApi(storage,person){
       state.loggedIn=true;return save()?replies({token}):replies({error:'MOCK_STORAGE_UNAVAILABLE'},503);
     }
     if(path==='/vedic/reading'&&method==='POST')return privateVedicReading(await request.json());
+    if((path==='/astro/chart'||path==='/astro/section')&&method==='POST')return privateAstroReading(await request.json(),path==='/astro/chart'?'chart':'section');
     const publicReport=await nativeReportPublicRequest(request.clone(),path);if(publicReport)return publicReport;
     const publicCalculation=await privatePublicCalculation(request.clone(),url,path);if(publicCalculation)return publicCalculation;
     if(!state.loggedIn||request.headers.get('authorization')!=='Bearer '+token)return replies({error:'LOGIN_REQUIRED'},401);

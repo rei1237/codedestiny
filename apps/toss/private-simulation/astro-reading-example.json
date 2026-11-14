@@ -1,0 +1,2164 @@
+{
+  "birth": {
+    "gender": "F",
+    "date": {
+      "year": 1990,
+      "month": 2,
+      "day": 3,
+      "hour": 8,
+      "minute": 35,
+      "timeUnknown": false,
+      "calType": "solar"
+    },
+    "location": {
+      "label": "서울",
+      "lat": 37.5665,
+      "lng": 126.978,
+      "tz": "Asia/Seoul"
+    }
+  },
+  "calculatedAt": "2026-11-14T09:56:29.666Z",
+  "chart": {
+    "ok": true,
+    "engine": {
+      "name": "Astronomy Engine",
+      "mode": "placidus",
+      "version": "astronomy-engine-2.1.19-placidus-v1",
+      "ephemerisLoaded": true
+    },
+    "birth": {
+      "date": "1990-02-03",
+      "time": "08:35",
+      "timezone": "9",
+      "latitude": 37.5665,
+      "longitude": 126.978,
+      "utcIso": "1990-02-02T23:35:00.000Z",
+      "julianDayUt": 694761.9826388889
+    },
+    "angles": {
+      "ascendant": {
+        "name": "Ascendant",
+        "longitude": 333.850268,
+        "sign": "Pisces",
+        "house": 1,
+        "element": "Water",
+        "mode": "Mutable"
+      },
+      "midheaven": {
+        "name": "Midheaven",
+        "longitude": 254.911603,
+        "sign": "Sagittarius",
+        "house": 10,
+        "element": "Fire",
+        "mode": "Mutable"
+      }
+    },
+    "planets": [
+      {
+        "name": "Sun",
+        "longitude": 313.873883,
+        "sign": "Aquarius",
+        "house": 12,
+        "speedLongitude": 1.0144448734718026,
+        "retrograde": false,
+        "element": "Air",
+        "mode": "Fixed"
+      },
+      {
+        "name": "Moon",
+        "longitude": 46.643125,
+        "sign": "Taurus",
+        "house": 2,
+        "speedLongitude": 14.189888405751844,
+        "retrograde": false,
+        "element": "Earth",
+        "mode": "Fixed"
+      },
+      {
+        "name": "Mercury",
+        "longitude": 288.817651,
+        "sign": "Capricorn",
+        "house": 11,
+        "speedLongitude": 1.0923482313064596,
+        "retrograde": false,
+        "element": "Earth",
+        "mode": "Cardinal"
+      },
+      {
+        "name": "Venus",
+        "longitude": 291.523824,
+        "sign": "Capricorn",
+        "house": 11,
+        "speedLongitude": -0.22232098188669625,
+        "retrograde": true,
+        "element": "Earth",
+        "mode": "Cardinal"
+      },
+      {
+        "name": "Mars",
+        "longitude": 273.167612,
+        "sign": "Capricorn",
+        "house": 10,
+        "speedLongitude": 0.7222921326729193,
+        "retrograde": false,
+        "element": "Earth",
+        "mode": "Cardinal"
+      },
+      {
+        "name": "Jupiter",
+        "longitude": 91.593611,
+        "sign": "Cancer",
+        "house": 4,
+        "speedLongitude": -0.0708485321633816,
+        "retrograde": true,
+        "element": "Water",
+        "mode": "Cardinal"
+      },
+      {
+        "name": "Saturn",
+        "longitude": 289.444552,
+        "sign": "Capricorn",
+        "house": 11,
+        "speedLongitude": 0.11152039201306252,
+        "retrograde": false,
+        "element": "Earth",
+        "mode": "Cardinal"
+      },
+      {
+        "name": "Uranus",
+        "longitude": 277.62722,
+        "sign": "Capricorn",
+        "house": 11,
+        "speedLongitude": 0.051310298559656076,
+        "retrograde": false,
+        "element": "Earth",
+        "mode": "Cardinal"
+      },
+      {
+        "name": "Neptune",
+        "longitude": 283.224997,
+        "sign": "Capricorn",
+        "house": 11,
+        "speedLongitude": 0.033684445537801366,
+        "retrograde": false,
+        "element": "Earth",
+        "mode": "Cardinal"
+      },
+      {
+        "name": "Pluto",
+        "longitude": 227.708836,
+        "sign": "Scorpio",
+        "house": 8,
+        "speedLongitude": 0.009757723928487394,
+        "retrograde": false,
+        "element": "Water",
+        "mode": "Fixed"
+      }
+    ],
+    "houses": [
+      {
+        "house": 1,
+        "longitude": 333.850268,
+        "sign": "Pisces",
+        "element": "Water",
+        "mode": "Mutable"
+      },
+      {
+        "house": 2,
+        "longitude": 18.913612,
+        "sign": "Aries",
+        "element": "Fire",
+        "mode": "Cardinal"
+      },
+      {
+        "house": 3,
+        "longitude": 50.876075,
+        "sign": "Taurus",
+        "element": "Earth",
+        "mode": "Fixed"
+      },
+      {
+        "house": 4,
+        "longitude": 74.911603,
+        "sign": "Gemini",
+        "element": "Air",
+        "mode": "Mutable"
+      },
+      {
+        "house": 5,
+        "longitude": 96.595388,
+        "sign": "Cancer",
+        "element": "Water",
+        "mode": "Cardinal"
+      },
+      {
+        "house": 6,
+        "longitude": 120.561245,
+        "sign": "Leo",
+        "element": "Fire",
+        "mode": "Fixed"
+      },
+      {
+        "house": 7,
+        "longitude": 153.850268,
+        "sign": "Virgo",
+        "element": "Earth",
+        "mode": "Mutable"
+      },
+      {
+        "house": 8,
+        "longitude": 198.913612,
+        "sign": "Libra",
+        "element": "Air",
+        "mode": "Cardinal"
+      },
+      {
+        "house": 9,
+        "longitude": 230.876075,
+        "sign": "Scorpio",
+        "element": "Water",
+        "mode": "Fixed"
+      },
+      {
+        "house": 10,
+        "longitude": 254.911603,
+        "sign": "Sagittarius",
+        "element": "Fire",
+        "mode": "Mutable"
+      },
+      {
+        "house": 11,
+        "longitude": 276.595388,
+        "sign": "Capricorn",
+        "element": "Earth",
+        "mode": "Cardinal"
+      },
+      {
+        "house": 12,
+        "longitude": 300.561245,
+        "sign": "Aquarius",
+        "element": "Air",
+        "mode": "Fixed"
+      }
+    ],
+    "aspects": [
+      {
+        "p1": "Sun",
+        "p2": "Moon",
+        "type": "square",
+        "orb": 2.77
+      },
+      {
+        "p1": "Sun",
+        "p2": "Pluto",
+        "type": "square",
+        "orb": 3.83
+      },
+      {
+        "p1": "Moon",
+        "p2": "Mercury",
+        "type": "trine",
+        "orb": 2.17
+      },
+      {
+        "p1": "Moon",
+        "p2": "Venus",
+        "type": "trine",
+        "orb": 4.88
+      },
+      {
+        "p1": "Moon",
+        "p2": "Saturn",
+        "type": "trine",
+        "orb": 2.8
+      },
+      {
+        "p1": "Moon",
+        "p2": "Neptune",
+        "type": "trine",
+        "orb": 3.42
+      },
+      {
+        "p1": "Moon",
+        "p2": "Pluto",
+        "type": "opposition",
+        "orb": 1.07
+      },
+      {
+        "p1": "Mercury",
+        "p2": "Venus",
+        "type": "conjunction",
+        "orb": 2.71
+      },
+      {
+        "p1": "Mercury",
+        "p2": "Saturn",
+        "type": "conjunction",
+        "orb": 0.63
+      },
+      {
+        "p1": "Mercury",
+        "p2": "Neptune",
+        "type": "conjunction",
+        "orb": 5.59
+      },
+      {
+        "p1": "Mercury",
+        "p2": "Pluto",
+        "type": "sextile",
+        "orb": 1.11
+      },
+      {
+        "p1": "Venus",
+        "p2": "Saturn",
+        "type": "conjunction",
+        "orb": 2.08
+      },
+      {
+        "p1": "Venus",
+        "p2": "Pluto",
+        "type": "sextile",
+        "orb": 3.81
+      },
+      {
+        "p1": "Mars",
+        "p2": "Jupiter",
+        "type": "opposition",
+        "orb": 1.57
+      },
+      {
+        "p1": "Mars",
+        "p2": "Uranus",
+        "type": "conjunction",
+        "orb": 4.46
+      },
+      {
+        "p1": "Jupiter",
+        "p2": "Uranus",
+        "type": "opposition",
+        "orb": 6.03
+      },
+      {
+        "p1": "Saturn",
+        "p2": "Neptune",
+        "type": "conjunction",
+        "orb": 6.22
+      },
+      {
+        "p1": "Saturn",
+        "p2": "Pluto",
+        "type": "sextile",
+        "orb": 1.74
+      },
+      {
+        "p1": "Uranus",
+        "p2": "Neptune",
+        "type": "conjunction",
+        "orb": 5.6
+      },
+      {
+        "p1": "Neptune",
+        "p2": "Pluto",
+        "type": "sextile",
+        "orb": 4.48
+      }
+    ],
+    "summary": {
+      "sunSign": "Aquarius",
+      "moonSign": "Taurus",
+      "risingSign": "Pisces",
+      "dominantElements": [
+        "Earth",
+        "Water",
+        "Air"
+      ],
+      "dominantModes": [
+        "Cardinal",
+        "Fixed"
+      ]
+    }
+  },
+  "sections": {
+    "astro_basic_deep_pack": {
+      "ok": true,
+      "unlocked": true,
+      "accessSource": "public",
+      "featureKey": "astro_basic_deep_pack",
+      "asOf": "2026-11-14",
+      "report": {
+        "timeKnown": true,
+        "cover": {
+          "name": "",
+          "timeKnown": true,
+          "big3": [
+            {
+              "key": "Sun",
+              "role": "의식하는 나",
+              "signIdx": 10,
+              "sign": "물병자리",
+              "phrase": "틀을 깨는 독창성"
+            },
+            {
+              "key": "Moon",
+              "role": "속마음",
+              "signIdx": 1,
+              "signs": null,
+              "sign": "황소자리",
+              "phrase": "변함없는 꾸준함이 있어야 편한 마음"
+            },
+            {
+              "key": "ASC",
+              "role": "첫인상",
+              "signIdx": 11,
+              "sign": "물고기자리",
+              "phrase": "부드럽고 몽환적인 인상"
+            }
+          ],
+          "band": [
+            {
+              "body": "Sun",
+              "lon": 313.9
+            },
+            {
+              "body": "Moon",
+              "lon": 46.6
+            },
+            {
+              "body": "Mercury",
+              "lon": 288.8
+            },
+            {
+              "body": "Venus",
+              "lon": 291.5
+            },
+            {
+              "body": "Mars",
+              "lon": 273.2
+            },
+            {
+              "body": "Jupiter",
+              "lon": 91.6
+            },
+            {
+              "body": "Saturn",
+              "lon": 289.4
+            },
+            {
+              "body": "Uranus",
+              "lon": 277.6
+            },
+            {
+              "body": "Neptune",
+              "lon": 283.2
+            },
+            {
+              "body": "Pluto",
+              "lon": 227.7
+            },
+            {
+              "body": "ASC",
+              "lon": 333.9
+            }
+          ]
+        },
+        "portrait": {
+          "headline": "겉은 몽글하고 여려 보이지만, 속은 익숙한 것에서 안정을 찾는 사람이에요",
+          "paragraphs": [
+            {
+              "key": "face",
+              "title": "겉과 속",
+              "text": [
+                "태양이 물병자리에 있어 남과 다른 생각을 밀고 나갈 때 당신다워져요.",
+                "달이 황소자리에 있어 익숙한 공간과 맛있는 한 끼가 마음을 달래 줘요.",
+                "첫인상 별자리가 물고기자리라 부드럽고 꿈꾸는 듯한 분위기로 기억돼요."
+              ],
+              "evidence": [
+                "태양 · 물병자리 · 혼자만의 시간의 자리",
+                "달 · 황소자리 · 돈과 소유의 자리",
+                "첫인상 별자리 · 물고기자리"
+              ]
+            },
+            {
+              "key": "energy",
+              "title": "에너지의 결",
+              "text": [
+                "흙 기운이 59%로 뚜렷하게 가장 많아, 눈에 보이는 결과와 현실 감각을 믿어요.",
+                "기질은 시작형이 많아, 새 일을 여는 데 강하고 기다림엔 약한 편이에요.",
+                "수성, 금성, 화성, 토성이 모두 염소자리에 모여 있어, 그 별자리의 색이 삶 전체에 짙게 배어 있어요."
+              ],
+              "evidence": [
+                "원소 균형 · 흙 59%",
+                "기질 · 시작형 49%",
+                "몰림 · 염소자리 · 수성·금성·화성·토성"
+              ]
+            },
+            {
+              "key": "pair",
+              "title": "내 안의 긴장",
+              "text": [
+                "수성과 토성이 한자리에 모인 사이라 말하기 전에 너무 오래 고민해 기회를 놓치기도 해요.",
+                "두 힘이 한 몸처럼 움직여서, 좋을 때도 힘들 때도 크게 드러나요."
+              ],
+              "evidence": [
+                "수성 · 염소자리 · 친구와 모임의 자리 · 토성과 한자리에 모인 사이 · 정확도 높음",
+                "토성 · 염소자리 · 친구와 모임의 자리"
+              ]
+            }
+          ]
+        },
+        "categories": [
+          {
+            "id": "love",
+            "title": "연애",
+            "conclusion": "신중하게 고르고 책임감 있게 사랑해요",
+            "bullets": [
+              "처음엔 느리지만 한번 시작한 관계는 오래 지키려 해요. 특히 친구와 모임 속에서 이런 모습이 잘 드러나요.",
+              "끌리는 사람에게는 신중하고 책임감 있게 다가가요. 화성이 제 집처럼 편한 별자리라, 이 힘을 자연스럽게 잘 써요.",
+              "금성과 토성이 한자리에 모인 사이라 깊고 오래가는 사랑을 원해 마음을 여는 데 시간이 걸려요."
+            ],
+            "scene": "예를 들면, 화려한 이벤트보다 늘 가던 식당에서 보내는 저녁이 더 설레요.",
+            "fit": "믿을 수 있는 책임감을 자연스럽게 건네는 사람과 잘 맞아요.",
+            "caution": "연애에서는 쉬는 것을 미루는 버릇이 앞서지 않게 살펴 주세요.",
+            "action": "좋아하는 사람과 함께할 소박한 식사 약속을 하나 잡아 보세요.",
+            "evidence": [
+              "금성 · 염소자리 · 친구와 모임의 자리",
+              "화성 · 염소자리 · 일과 사회적 자리의 자리",
+              "금성 · 염소자리 · 친구와 모임의 자리 · 토성과 한자리에 모인 사이 · 정확도 높음",
+              "토성 · 염소자리 · 친구와 모임의 자리"
+            ],
+            "factors": [
+              {
+                "key": "Venus",
+                "kind": "sign",
+                "w": 3,
+                "data": {
+                  "body": "Venus",
+                  "signIdx": 9,
+                  "house": 11,
+                  "anchor": true
+                },
+                "ev": [
+                  {
+                    "body": "Venus",
+                    "signIdx": 9,
+                    "label": "금성 · 염소자리 · 친구와 모임의 자리",
+                    "house": 11
+                  }
+                ],
+                "order": 0,
+                "tone": "neutral",
+                "score": 3
+              },
+              {
+                "key": "Mars",
+                "kind": "sign",
+                "w": 2,
+                "data": {
+                  "body": "Mars",
+                  "signIdx": 9,
+                  "house": 10,
+                  "anchor": false
+                },
+                "ev": [
+                  {
+                    "body": "Mars",
+                    "signIdx": 9,
+                    "label": "화성 · 염소자리 · 일과 사회적 자리의 자리",
+                    "house": 10
+                  }
+                ],
+                "order": 2,
+                "tone": "flow",
+                "score": 2.9
+              },
+              {
+                "key": "asp:Venus-Saturn",
+                "kind": "aspect",
+                "w": 2,
+                "data": {
+                  "body": "Venus",
+                  "other": "Saturn",
+                  "type": "conjunction",
+                  "orb": 2.1,
+                  "exact": true
+                },
+                "ev": [
+                  {
+                    "body": "Venus",
+                    "signIdx": 9,
+                    "label": "금성 · 염소자리 · 친구와 모임의 자리 · 토성과 한자리에 모인 사이",
+                    "house": 11,
+                    "aspect": {
+                      "with": "Saturn",
+                      "type": "conjunction",
+                      "orb": 2.1
+                    }
+                  },
+                  {
+                    "body": "Saturn",
+                    "signIdx": 9,
+                    "label": "토성 · 염소자리 · 친구와 모임의 자리",
+                    "house": 11
+                  }
+                ],
+                "order": 5,
+                "tone": "tension",
+                "score": 2.3
+              }
+            ]
+          },
+          {
+            "id": "money",
+            "title": "재물",
+            "conclusion": "벌 때도 쓸 때도 빠르게 결정해요",
+            "bullets": [
+              "기회를 보면 바로 움직이는 힘이 있으니, 충동 지출만 한 번 걸러 보세요. 돈의 자리를 다스리는 화성 덕분에 사회에서 일하는 자리에서 돈의 흐름이 생기기 쉬워요.",
+              "돈의 기회는 아늑하고 다정한 흐름을 탈 때 넓어지기 쉬워요. 목성에게 잘 맞는 별자리라 이 힘이 막힘없이 흘러요.",
+              "돈의 자리에 달이 있어, 그때그때의 마음이 벌고 쓰는 방식에 묻어나요."
+            ],
+            "scene": "예를 들면, 마음에 드는 물건을 보면 고민보다 결제가 먼저일 때가 있어요.",
+            "fit": "밀어붙이는 추진력을 살릴 수 있는 돈 관리 방식이 잘 맞아요.",
+            "caution": "돈 문제에서는 성급하게 내리는 결론을 한 번 의심해 보세요.",
+            "action": "기분이 지출로 이어진 날을 돌아보고 메모해 두세요.",
+            "evidence": [
+              "돈과 소유의 자리 · 양자리에서 시작",
+              "화성 · 염소자리 · 일과 사회적 자리의 자리",
+              "목성 · 게자리 · 집과 가족의 자리",
+              "달 · 황소자리 · 돈과 소유의 자리"
+            ],
+            "factors": [
+              {
+                "key": "h2",
+                "kind": "cusp",
+                "w": 3,
+                "data": {
+                  "house": 2,
+                  "signIdx": 0,
+                  "ruler": "Mars",
+                  "rulerHouse": 10,
+                  "rulerSign": 9,
+                  "anchor": true
+                },
+                "ev": [
+                  {
+                    "body": "house",
+                    "house": 2,
+                    "signIdx": 0,
+                    "label": "돈과 소유의 자리 · 양자리에서 시작"
+                  },
+                  {
+                    "body": "Mars",
+                    "signIdx": 9,
+                    "label": "화성 · 염소자리 · 일과 사회적 자리의 자리",
+                    "house": 10
+                  }
+                ],
+                "order": 0,
+                "tone": "flow",
+                "score": 3.9
+              },
+              {
+                "key": "Jupiter",
+                "kind": "sign",
+                "w": 2,
+                "data": {
+                  "body": "Jupiter",
+                  "signIdx": 3,
+                  "house": 4,
+                  "anchor": false
+                },
+                "ev": [
+                  {
+                    "body": "Jupiter",
+                    "signIdx": 3,
+                    "label": "목성 · 게자리 · 집과 가족의 자리",
+                    "house": 4
+                  }
+                ],
+                "order": 2,
+                "tone": "flow",
+                "score": 2.9
+              },
+              {
+                "key": "in2",
+                "kind": "occupants",
+                "w": 2,
+                "data": {
+                  "house": 2,
+                  "bodies": [
+                    "Moon"
+                  ],
+                  "lead": "Moon"
+                },
+                "ev": [
+                  {
+                    "body": "Moon",
+                    "signIdx": 1,
+                    "label": "달 · 황소자리 · 돈과 소유의 자리",
+                    "house": 2
+                  }
+                ],
+                "order": 1,
+                "tone": "neutral",
+                "score": 2
+              }
+            ]
+          },
+          {
+            "id": "people",
+            "title": "인간관계",
+            "conclusion": "예의와 신뢰를 바탕으로 관계를 쌓아요",
+            "bullets": [
+              "처음엔 거리를 두지만, 시간이 지날수록 믿음직한 사람으로 남아요. 친구와 모임 속에서 이 힘이 자주 쓰여요.",
+              "친구와 모임의 자리가 염소자리에서 시작해, 단단하고 진지한 모임에서 인연이 넓어져요.",
+              "일대일 관계의 자리가 처녀자리에서 시작해, 가까운 사이엔 세심한 배려가 중요해요."
+            ],
+            "scene": "예를 들면, 오래된 친구 몇 명과의 정기 모임이 가장 편해요.",
+            "fit": "믿을 수 있는 책임감을 아는 사람들 곁에서 관계가 오래가요.",
+            "caution": "관계가 꼬일 땐 쉬는 것을 미루는 버릇이 끼어들지 않았는지 살펴보세요.",
+            "action": "가까운 사람과 정기적으로 만날 날을 하나 정해 보세요.",
+            "evidence": [
+              "수성 · 염소자리 · 친구와 모임의 자리",
+              "친구와 모임의 자리 · 염소자리에서 시작",
+              "토성 · 염소자리 · 친구와 모임의 자리",
+              "짝과 일대일 관계의 자리 · 처녀자리에서 시작"
+            ],
+            "factors": [
+              {
+                "key": "Mercury",
+                "kind": "sign",
+                "w": 2,
+                "data": {
+                  "body": "Mercury",
+                  "signIdx": 9,
+                  "house": 11,
+                  "anchor": true
+                },
+                "ev": [
+                  {
+                    "body": "Mercury",
+                    "signIdx": 9,
+                    "label": "수성 · 염소자리 · 친구와 모임의 자리",
+                    "house": 11
+                  }
+                ],
+                "order": 0,
+                "tone": "neutral",
+                "score": 2
+              },
+              {
+                "key": "h11",
+                "kind": "cusp",
+                "w": 2,
+                "data": {
+                  "house": 11,
+                  "signIdx": 9,
+                  "ruler": "Saturn",
+                  "rulerHouse": 11,
+                  "rulerSign": 9,
+                  "anchor": false
+                },
+                "ev": [
+                  {
+                    "body": "house",
+                    "house": 11,
+                    "signIdx": 9,
+                    "label": "친구와 모임의 자리 · 염소자리에서 시작"
+                  },
+                  {
+                    "body": "Saturn",
+                    "signIdx": 9,
+                    "label": "토성 · 염소자리 · 친구와 모임의 자리",
+                    "house": 11
+                  }
+                ],
+                "order": 1,
+                "tone": "flow",
+                "score": 2.3
+              },
+              {
+                "key": "h7",
+                "kind": "cusp",
+                "w": 2,
+                "data": {
+                  "house": 7,
+                  "signIdx": 5,
+                  "ruler": "Mercury",
+                  "rulerHouse": 11,
+                  "rulerSign": 9,
+                  "anchor": false
+                },
+                "ev": [
+                  {
+                    "body": "house",
+                    "house": 7,
+                    "signIdx": 5,
+                    "label": "짝과 일대일 관계의 자리 · 처녀자리에서 시작"
+                  },
+                  {
+                    "body": "Mercury",
+                    "signIdx": 9,
+                    "label": "수성 · 염소자리 · 친구와 모임의 자리",
+                    "house": 11
+                  }
+                ],
+                "order": 2,
+                "tone": "neutral",
+                "score": 2
+              }
+            ]
+          },
+          {
+            "id": "work",
+            "title": "일",
+            "conclusion": "넓은 세상과 배움을 잇는 일에서 신이 나요",
+            "bullets": [
+              "가르치거나 멀리 오가는 일, 큰 그림을 그리는 역할에서 생기가 돌아요. 사회에서 보이는 모습을 다스리는 목성 덕분에 집과 가족 곁에서 일의 실마리가 보여요.",
+              "책임이 무거운 일은 신중하고 책임감 있게 풀어 가요. 토성이 힘을 쓰기 좋은 자리라 기대만큼 해내요.",
+              "사회의 자리에 화성이 있어, 일에서 빠른 결단력이 이름처럼 따라다녀요."
+            ],
+            "scene": "예를 들면, 아무도 손대지 않은 일을 먼저 맡아 판을 벌이곤 해요.",
+            "fit": "멀리 보는 낙관이 결과로 보이는 자리가 잘 맞아요.",
+            "caution": "일이 막히면 약속을 가볍게 넘기는 버릇을 먼저 점검해 보세요.",
+            "action": "이번 주 할 일을 세 가지로 줄여 적어 보세요.",
+            "evidence": [
+              "사회에서 보이는 모습 · 사수자리",
+              "목성 · 게자리 · 집과 가족의 자리",
+              "토성 · 염소자리 · 친구와 모임의 자리",
+              "화성 · 염소자리 · 일과 사회적 자리의 자리"
+            ],
+            "factors": [
+              {
+                "key": "MC",
+                "kind": "angle",
+                "w": 3,
+                "data": {
+                  "angle": "MC",
+                  "signIdx": 8,
+                  "anchor": true,
+                  "ruler": "Jupiter",
+                  "rulerHouse": 4
+                },
+                "ev": [
+                  {
+                    "body": "MC",
+                    "signIdx": 8,
+                    "label": "사회에서 보이는 모습 · 사수자리"
+                  },
+                  {
+                    "body": "Jupiter",
+                    "signIdx": 3,
+                    "label": "목성 · 게자리 · 집과 가족의 자리",
+                    "house": 4
+                  }
+                ],
+                "order": 0,
+                "tone": "flow",
+                "score": 3
+              },
+              {
+                "key": "Saturn",
+                "kind": "sign",
+                "w": 2,
+                "data": {
+                  "body": "Saturn",
+                  "signIdx": 9,
+                  "house": 11,
+                  "anchor": false
+                },
+                "ev": [
+                  {
+                    "body": "Saturn",
+                    "signIdx": 9,
+                    "label": "토성 · 염소자리 · 친구와 모임의 자리",
+                    "house": 11
+                  }
+                ],
+                "order": 3,
+                "tone": "flow",
+                "score": 2.4
+              },
+              {
+                "key": "in10",
+                "kind": "occupants",
+                "w": 2,
+                "data": {
+                  "house": 10,
+                  "bodies": [
+                    "Mars"
+                  ],
+                  "lead": "Mars"
+                },
+                "ev": [
+                  {
+                    "body": "Mars",
+                    "signIdx": 9,
+                    "label": "화성 · 염소자리 · 일과 사회적 자리의 자리",
+                    "house": 10
+                  }
+                ],
+                "order": 1,
+                "tone": "neutral",
+                "score": 2
+              }
+            ]
+          },
+          {
+            "id": "heal",
+            "title": "마음과 회복",
+            "conclusion": "익숙한 공간과 감각의 즐거움이 마음을 달래요",
+            "bullets": [
+              "좋은 음식, 포근한 이불, 느린 산책처럼 몸이 편한 것이 먼저예요. 달이 제 집처럼 편한 별자리라, 이 힘을 자연스럽게 잘 써요.",
+              "집과 뿌리의 자리가 쌍둥이자리에서 시작해, 가볍고 즐거운 공간에서 마음이 쉬어요.",
+              "혼자만의 쉼을 뜻하는 자리가 물병자리에서 시작해, 쉴 때는 독특하고 자유롭게 비워 내는 게 좋아요."
+            ],
+            "scene": "예를 들면, 따뜻한 차 한 잔과 정리된 방이 어떤 위로보다 빨라요.",
+            "fit": "변함없는 꾸준함이 채워지는 시간이 회복을 도와요.",
+            "caution": "변화를 미루는 고집이 쌓이면 마음이 먼저 지쳐요.",
+            "action": "머릿속 걱정을 종이에 모두 적고 덮어 두세요.",
+            "evidence": [
+              "달 · 황소자리 · 돈과 소유의 자리",
+              "집과 가족의 자리 · 쌍둥이자리에서 시작",
+              "수성 · 염소자리 · 친구와 모임의 자리",
+              "혼자만의 시간의 자리 · 물병자리에서 시작",
+              "토성 · 염소자리 · 친구와 모임의 자리"
+            ],
+            "factors": [
+              {
+                "key": "Moon",
+                "kind": "sign",
+                "w": 3,
+                "data": {
+                  "body": "Moon",
+                  "signIdx": 1,
+                  "house": 2,
+                  "anchor": true
+                },
+                "ev": [
+                  {
+                    "body": "Moon",
+                    "signIdx": 1,
+                    "label": "달 · 황소자리 · 돈과 소유의 자리",
+                    "house": 2
+                  }
+                ],
+                "order": 0,
+                "tone": "flow",
+                "score": 3.6
+              },
+              {
+                "key": "h4",
+                "kind": "cusp",
+                "w": 2,
+                "data": {
+                  "house": 4,
+                  "signIdx": 2,
+                  "ruler": "Mercury",
+                  "rulerHouse": 11,
+                  "rulerSign": 9,
+                  "anchor": false
+                },
+                "ev": [
+                  {
+                    "body": "house",
+                    "house": 4,
+                    "signIdx": 2,
+                    "label": "집과 가족의 자리 · 쌍둥이자리에서 시작"
+                  },
+                  {
+                    "body": "Mercury",
+                    "signIdx": 9,
+                    "label": "수성 · 염소자리 · 친구와 모임의 자리",
+                    "house": 11
+                  }
+                ],
+                "order": 2,
+                "tone": "neutral",
+                "score": 2.3
+              },
+              {
+                "key": "h12",
+                "kind": "cusp",
+                "w": 2,
+                "data": {
+                  "house": 12,
+                  "signIdx": 10,
+                  "ruler": "Saturn",
+                  "rulerHouse": 11,
+                  "rulerSign": 9,
+                  "anchor": false
+                },
+                "ev": [
+                  {
+                    "body": "house",
+                    "house": 12,
+                    "signIdx": 10,
+                    "label": "혼자만의 시간의 자리 · 물병자리에서 시작"
+                  },
+                  {
+                    "body": "Saturn",
+                    "signIdx": 9,
+                    "label": "토성 · 염소자리 · 친구와 모임의 자리",
+                    "house": 11
+                  }
+                ],
+                "order": 3,
+                "tone": "flow",
+                "score": 2.3
+              }
+            ]
+          },
+          {
+            "id": "growth",
+            "title": "성장",
+            "conclusion": "올해는 나 자신을 새로 세우는 해예요",
+            "bullets": [
+              "외모, 건강 습관, 첫인상처럼 나를 드러내는 방식을 다듬기 좋아요. 올해의 길잡이 행성은 목성이라, 배움과 넓은 시야가 기회를 데려와요.",
+              "인생 시기 지도로 보면 2021~2030년은 달의 시기예요. 생활의 기반과 마음의 안정을 돌보는 일이 중심에 와요.",
+              "아늑하고 다정한 경험을 할 때 시야가 넓어지고 기회도 눈에 들어와요. 특히 집과 가족 곁에서 이런 모습이 잘 드러나요."
+            ],
+            "scene": "예를 들면, 지난 감정을 정리하고 나면 비로소 다음 걸음이 가벼워져요.",
+            "fit": "보이지 않는 걸 읽는 감수성을 꾸준히 쓰는 연습이 성장을 도와요.",
+            "caution": "경계가 흐려져 지치는 일은 성장을 늦추는 흔한 함정이에요.",
+            "action": "지난 한 달 동안 마음에 남은 일을 한 줄씩 적어 보세요.",
+            "evidence": [
+              "올해의 주제 · 나 자신의 자리 · 물고기자리",
+              "목성 · 게자리 · 집과 가족의 자리",
+              "인생 시기 지도 · 달의 시기 · 2021~2030년",
+              "달 · 황소자리 · 돈과 소유의 자리"
+            ],
+            "factors": [
+              {
+                "key": "profection",
+                "kind": "profection",
+                "w": 3,
+                "data": {
+                  "house": 1,
+                  "signIdx": 11,
+                  "lord": "Jupiter",
+                  "lordHouse": 4,
+                  "anchor": true
+                },
+                "ev": [
+                  {
+                    "body": "profection",
+                    "house": 1,
+                    "signIdx": 11,
+                    "label": "올해의 주제 · 나 자신의 자리 · 물고기자리"
+                  },
+                  {
+                    "body": "Jupiter",
+                    "signIdx": 3,
+                    "label": "목성 · 게자리 · 집과 가족의 자리",
+                    "house": 4
+                  }
+                ],
+                "order": 0,
+                "tone": "flow",
+                "score": 3
+              },
+              {
+                "key": "firdaria",
+                "kind": "firdaria",
+                "w": 2,
+                "data": {
+                  "lord": "Moon",
+                  "fromYear": 2021,
+                  "toYear": 2030
+                },
+                "ev": [
+                  {
+                    "body": "firdaria",
+                    "lord": "Moon",
+                    "label": "인생 시기 지도 · 달의 시기 · 2021~2030년"
+                  },
+                  {
+                    "body": "Moon",
+                    "signIdx": 1,
+                    "label": "달 · 황소자리 · 돈과 소유의 자리",
+                    "house": 2
+                  }
+                ],
+                "order": 1,
+                "tone": "neutral",
+                "score": 2
+              },
+              {
+                "key": "Jupiter",
+                "kind": "sign",
+                "w": 2,
+                "data": {
+                  "body": "Jupiter",
+                  "signIdx": 3,
+                  "house": 4,
+                  "anchor": false
+                },
+                "ev": [
+                  {
+                    "body": "Jupiter",
+                    "signIdx": 3,
+                    "label": "목성 · 게자리 · 집과 가족의 자리",
+                    "house": 4
+                  }
+                ],
+                "order": 3,
+                "tone": "flow",
+                "score": 1.16
+              }
+            ]
+          }
+        ],
+        "deep": {
+          "planets": [
+            {
+              "body": "Sun",
+              "ko": "태양",
+              "where": "물병자리 · 혼자만의 시간의 자리",
+              "retro": false,
+              "line": "틀을 깨는 독창성으로 자기 자리를 만들어 가요.",
+              "text": [
+                "태양은 삶의 방향과 스스로를 드러내는 힘을 보여 줘요.",
+                "이 힘은 혼자 있는 시간에 가장 잘 드러나요.",
+                "태양과 달이 부딪히며 키우는 사이라 하고 싶은 것과 필요한 것 사이에서 자주 고민해요."
+              ]
+            },
+            {
+              "body": "Moon",
+              "ko": "달",
+              "where": "황소자리 · 돈과 소유의 자리",
+              "retro": false,
+              "line": "변함없는 꾸준함이 채워질 때 마음이 가장 편안해요.",
+              "text": [
+                "달은 마음이 쉬는 방식과 감정의 리듬을 보여 줘요.",
+                "삶의 무대가 돈과 소유라, 그 안에서 자주 쓰여요.",
+                "달과 명왕성이 마주 보며 균형을 찾는 사이라 한번 상처받으면 오래 붙잡고 있게 돼요."
+              ]
+            },
+            {
+              "body": "Mercury",
+              "ko": "수성",
+              "where": "염소자리 · 친구와 모임의 자리",
+              "retro": false,
+              "line": "생각을 정리하고 말할 때는 계획을 세워 차근차근 풀어 가요.",
+              "text": [
+                "수성은 생각하고 배우고 말하는 방식을 보여 줘요.",
+                "친구와 모임 속에서 이 힘이 먼저 깨어나요.",
+                "잘 쓰면 버텨 내는 인내가 되고, 지나치면 쉬는 것을 미루는 버릇으로 기울어요."
+              ]
+            },
+            {
+              "body": "Venus",
+              "ko": "금성",
+              "where": "염소자리 · 친구와 모임의 자리",
+              "retro": true,
+              "line": "단단하고 진지한 사람과 분위기에 마음이 먼저 끌려요.",
+              "text": [
+                "금성은 좋아하는 것과 사랑하는 방식, 즐기는 감각을 보여 줘요.",
+                "이 힘은 친구와 모임 속에서 가장 잘 드러나요.",
+                "태어날 때 역행 중이라, 이 힘을 밖으로 쓰기 전에 안으로 곱씹는 흐름이 있어요."
+              ]
+            },
+            {
+              "body": "Mars",
+              "ko": "화성",
+              "where": "염소자리 · 일과 사회적 자리의 자리",
+              "retro": false,
+              "line": "원하는 게 생기면 계획을 세워 차근차근 움직이는 편이에요.",
+              "text": [
+                "화성은 원하는 것을 향해 움직이는 힘과 화를 내는 방식을 보여 줘요.",
+                "이 힘은 사회에서 일하는 자리에서 가장 잘 드러나요.",
+                "화성과 목성이 마주 보며 균형을 찾는 사이라 의욕이 커서 한 번에 너무 많이 벌이기 쉬워요."
+              ]
+            },
+            {
+              "body": "Jupiter",
+              "ko": "목성",
+              "where": "게자리 · 집과 가족의 자리",
+              "retro": true,
+              "line": "아늑하고 다정한 경험 쪽으로 운의 문이 넓게 열려요.",
+              "text": [
+                "목성은 운이 넓어지는 쪽과 믿음의 방향을 보여 줘요.",
+                "이 힘은 집과 가족 곁에서 가장 잘 드러나요.",
+                "목성이 제 집처럼 편한 별자리라, 이 힘을 자연스럽게 잘 써요."
+              ]
+            },
+            {
+              "body": "Saturn",
+              "ko": "토성",
+              "where": "염소자리 · 친구와 모임의 자리",
+              "retro": false,
+              "line": "쉬는 것을 미루는 버릇을 다스리는 법을 익힐수록 단단해져요.",
+              "text": [
+                "토성은 오래 걸려도 단단히 쌓아야 하는 숙제를 보여 줘요.",
+                "삶의 무대가 친구와 모임이라, 그 안에서 자주 쓰여요.",
+                "토성이 제 집처럼 편한 별자리라, 이 힘을 자연스럽게 잘 써요."
+              ]
+            },
+            {
+              "body": "Uranus",
+              "ko": "천왕성",
+              "where": "염소자리 · 친구와 모임의 자리",
+              "retro": false,
+              "line": "같은 세대와 함께 염소자리의 결로 낡은 틀을 바꾸고 싶어 해요.",
+              "text": [
+                "천왕성은 틀을 깨고 새로 바꾸려는 힘을 보여 줘요.",
+                "이 자리에서는 믿을 수 있는 책임감이 있을 때 힘이 제대로 나와요."
+              ]
+            },
+            {
+              "body": "Neptune",
+              "ko": "해왕성",
+              "where": "염소자리 · 친구와 모임의 자리",
+              "retro": false,
+              "line": "같은 세대와 함께 단단하고 진지한 꿈과 이상을 품고 자랐어요.",
+              "text": [
+                "해왕성은 상상과 이상, 경계가 흐려지는 곳을 보여 줘요.",
+                "달과 해왕성이 편하게 돕는 사이라 남의 마음을 말없이 알아채는 감수성이 커요."
+              ]
+            },
+            {
+              "body": "Pluto",
+              "ko": "명왕성",
+              "where": "전갈자리 · 나눔과 깊은 신뢰의 자리",
+              "retro": false,
+              "line": "같은 세대와 함께 전갈자리의 결로 깊은 변화를 겪으며 단단해져요.",
+              "text": [
+                "명왕성은 무너졌다 다시 서며 깊어지는 힘을 보여 줘요.",
+                "이 힘은 깊이 나누는 관계에서 가장 잘 드러나요.",
+                "잘 쓰면 깊이 파고드는 집중력이 되고, 지나치면 다 알기 전엔 믿지 않는 경계심으로 기울어요."
+              ]
+            }
+          ],
+          "talk": [
+            {
+              "a": "Mercury",
+              "b": "Saturn",
+              "type": "conjunction",
+              "orb": 0.6,
+              "kind": "한자리에 모인 사이(합)",
+              "closeness": "아주 정확해요",
+              "text": [
+                "수성의 정보와 말솜씨와 토성의 오래 쌓는 성실함이 한자리에 모인 사이예요.",
+                "두 힘이 늘 함께 움직여서, 한쪽을 쓰면 다른 쪽도 따라 깨어나요."
+              ]
+            },
+            {
+              "a": "Moon",
+              "b": "Pluto",
+              "type": "opposition",
+              "orb": 1.1,
+              "kind": "마주 보며 균형을 찾는 사이(대립)",
+              "closeness": "정확한 편",
+              "text": [
+                "달의 그때그때의 마음과 명왕성의 깊이 바꾸는 힘이 마주 보며 균형을 찾는 사이예요.",
+                "한쪽으로 쏠리지 않게 둘 사이의 균형을 찾는 게 숙제예요."
+              ]
+            },
+            {
+              "a": "Mercury",
+              "b": "Pluto",
+              "type": "sextile",
+              "orb": 1.1,
+              "kind": "가볍게 돕는 사이(육분)",
+              "closeness": "정확한 편",
+              "text": [
+                "수성과 명왕성이 가볍게 돕는 사이라 핵심을 꿰뚫는 질문을 잘 던져요.",
+                "조금만 손을 보태면 서로를 살려 주는 사이예요."
+              ]
+            },
+            {
+              "a": "Mars",
+              "b": "Jupiter",
+              "type": "opposition",
+              "orb": 1.6,
+              "kind": "마주 보며 균형을 찾는 사이(대립)",
+              "closeness": "정확한 편",
+              "text": [
+                "화성의 빠른 결단력과 목성의 넉넉하게 넓히는 힘이 마주 보며 균형을 찾는 사이예요."
+              ]
+            },
+            {
+              "a": "Venus",
+              "b": "Saturn",
+              "type": "conjunction",
+              "orb": 2.1,
+              "kind": "한자리에 모인 사이(합)",
+              "closeness": "정확한 편",
+              "text": [
+                "금성의 취향과 사람 복과 토성의 오래 쌓는 성실함이 한자리에 모인 사이예요."
+              ]
+            }
+          ],
+          "periods": {
+            "items": [
+              {
+                "key": "firdaria",
+                "title": "인생 시기 지도",
+                "text": [
+                  "지금은 달의 시기예요. 2021년부터 2030년까지 이어져요.",
+                  "그 안에서 2027년까지는 태양의 결이 함께 섞여요.",
+                  "2030년부터는 토성의 시기로 넘어가요."
+                ]
+              },
+              {
+                "key": "profection",
+                "title": "올해의 주제 집",
+                "text": [
+                  "36세인 올해는 나 자신이 중심이 되는 해예요.",
+                  "이 해의 주인 행성은 목성이에요. 배움과 넓은 시야가 기회를 데려와요."
+                ]
+              }
+            ],
+            "note": "시기 해석은 흐름을 읽는 지도예요. 정해진 일을 말하지는 않아요."
+          },
+          "balance": {
+            "text": [
+              "흙 기운이 59%로 가장 많고, 시작형 결이 가장 강해요.",
+              "수성·금성·화성과 해·달에는 불·물 기운이 없어요."
+            ],
+            "elements": [
+              {
+                "key": "fire",
+                "ko": "불",
+                "share": 0
+              },
+              {
+                "key": "earth",
+                "ko": "흙",
+                "share": 59
+              },
+              {
+                "key": "air",
+                "ko": "공기",
+                "share": 16
+              },
+              {
+                "key": "water",
+                "ko": "물",
+                "share": 24
+              }
+            ],
+            "modes": [
+              {
+                "key": "cardinal",
+                "ko": "시작형",
+                "share": 49
+              },
+              {
+                "key": "fixed",
+                "ko": "유지형",
+                "share": 35
+              },
+              {
+                "key": "mutable",
+                "ko": "적응형",
+                "share": 16
+              }
+            ]
+          },
+          "calc": [
+            "행성 위치는 스위스 천문력(Swiss Ephemeris)으로 계산한 회귀 황도 기준이에요.",
+            "집은 플라시더스(Placidus) 방식으로 나눴어요. 태어난 시각과 장소를 그대로 반영해서, 몇 분 차이로도 집 경계가 움직일 수 있어요.",
+            "별자리 하나를 집 하나로 보는 홀사인(Whole Sign) 방식은 큰 방향을 볼 때 써요. 두 방식이 다른 행성은 위치 표 아래에 따로 적었어요.",
+            "행성끼리의 각은 해·달 8°, 수성·금성·화성 6°, 나머지는 5°까지 허용해서 셌어요.",
+            "원소 균형은 해·달·상승점에 3, 수성·금성·화성에 2, 목성·토성에 1, 바깥 행성에 0.5를 주고 셌어요.",
+            "인생 시기 지도는 낮에 태어났는지 밤에 태어났는지에 따라 순서를 달리 쓰고, 75년을 한 바퀴로 봐요."
+          ]
+        },
+        "planets": [
+          {
+            "body": "Sun",
+            "ko": "태양",
+            "lon": 313.9,
+            "uncertain": false,
+            "signIdx": 10,
+            "sign": "물병자리",
+            "deg": 13.9,
+            "degText": "13°52′",
+            "house": 12,
+            "wholeHouse": 12,
+            "retro": false,
+            "dignity": -5,
+            "angular": false
+          },
+          {
+            "body": "Moon",
+            "ko": "달",
+            "lon": 46.6,
+            "uncertain": false,
+            "signIdx": 1,
+            "sign": "황소자리",
+            "deg": 16.6,
+            "degText": "16°38′",
+            "house": 2,
+            "wholeHouse": 3,
+            "retro": false,
+            "dignity": 4,
+            "angular": false
+          },
+          {
+            "body": "Mercury",
+            "ko": "수성",
+            "lon": 288.8,
+            "uncertain": false,
+            "signIdx": 9,
+            "sign": "염소자리",
+            "deg": 18.8,
+            "degText": "18°49′",
+            "house": 11,
+            "wholeHouse": 11,
+            "retro": false,
+            "dignity": 0,
+            "angular": false
+          },
+          {
+            "body": "Venus",
+            "ko": "금성",
+            "lon": 291.5,
+            "uncertain": false,
+            "signIdx": 9,
+            "sign": "염소자리",
+            "deg": 21.5,
+            "degText": "21°31′",
+            "house": 11,
+            "wholeHouse": 11,
+            "retro": true,
+            "dignity": 0,
+            "angular": false
+          },
+          {
+            "body": "Mars",
+            "ko": "화성",
+            "lon": 273.2,
+            "uncertain": false,
+            "signIdx": 9,
+            "sign": "염소자리",
+            "deg": 3.2,
+            "degText": "3°10′",
+            "house": 10,
+            "wholeHouse": 11,
+            "retro": false,
+            "dignity": 4,
+            "angular": true
+          },
+          {
+            "body": "Jupiter",
+            "ko": "목성",
+            "lon": 91.6,
+            "uncertain": false,
+            "signIdx": 3,
+            "sign": "게자리",
+            "deg": 1.6,
+            "degText": "1°35′",
+            "house": 4,
+            "wholeHouse": 5,
+            "retro": true,
+            "dignity": 4,
+            "angular": true
+          },
+          {
+            "body": "Saturn",
+            "ko": "토성",
+            "lon": 289.4,
+            "uncertain": false,
+            "signIdx": 9,
+            "sign": "염소자리",
+            "deg": 19.4,
+            "degText": "19°26′",
+            "house": 11,
+            "wholeHouse": 11,
+            "retro": false,
+            "dignity": 5,
+            "angular": false
+          },
+          {
+            "body": "Uranus",
+            "ko": "천왕성",
+            "lon": 277.6,
+            "uncertain": false,
+            "signIdx": 9,
+            "sign": "염소자리",
+            "deg": 7.6,
+            "degText": "7°37′",
+            "house": 11,
+            "wholeHouse": 11,
+            "retro": false,
+            "dignity": 0,
+            "angular": false
+          },
+          {
+            "body": "Neptune",
+            "ko": "해왕성",
+            "lon": 283.2,
+            "uncertain": false,
+            "signIdx": 9,
+            "sign": "염소자리",
+            "deg": 13.2,
+            "degText": "13°13′",
+            "house": 11,
+            "wholeHouse": 11,
+            "retro": false,
+            "dignity": 0,
+            "angular": false
+          },
+          {
+            "body": "Pluto",
+            "ko": "명왕성",
+            "lon": 227.7,
+            "uncertain": false,
+            "signIdx": 7,
+            "sign": "전갈자리",
+            "deg": 17.7,
+            "degText": "17°42′",
+            "house": 8,
+            "wholeHouse": 9,
+            "retro": false,
+            "dignity": 0,
+            "angular": false
+          }
+        ],
+        "angles": {
+          "asc": 333.9,
+          "mc": 254.9,
+          "ascSign": 11,
+          "mcSign": 8,
+          "cusps": [
+            333.9,
+            18.9,
+            50.9,
+            74.9,
+            96.6,
+            120.6,
+            153.9,
+            198.9,
+            230.9,
+            254.9,
+            276.6,
+            300.6
+          ]
+        },
+        "aspects": [
+          {
+            "a": "Mercury",
+            "b": "Saturn",
+            "type": "conjunction",
+            "orb": 0.6,
+            "exact": true
+          },
+          {
+            "a": "Mars",
+            "b": "ASC",
+            "type": "sextile",
+            "orb": 0.7,
+            "exact": true
+          },
+          {
+            "a": "Sun",
+            "b": "MC",
+            "type": "sextile",
+            "orb": 1,
+            "exact": true
+          },
+          {
+            "a": "Moon",
+            "b": "Pluto",
+            "type": "opposition",
+            "orb": 1.1,
+            "exact": true
+          },
+          {
+            "a": "Mercury",
+            "b": "Pluto",
+            "type": "sextile",
+            "orb": 1.1,
+            "exact": true
+          },
+          {
+            "a": "Mars",
+            "b": "Jupiter",
+            "type": "opposition",
+            "orb": 1.6,
+            "exact": true
+          },
+          {
+            "a": "Venus",
+            "b": "Saturn",
+            "type": "conjunction",
+            "orb": 2.1,
+            "exact": true
+          },
+          {
+            "a": "Moon",
+            "b": "Mercury",
+            "type": "trine",
+            "orb": 2.2,
+            "exact": true
+          },
+          {
+            "a": "Jupiter",
+            "b": "ASC",
+            "type": "trine",
+            "orb": 2.3,
+            "exact": true
+          },
+          {
+            "a": "Mercury",
+            "b": "Venus",
+            "type": "conjunction",
+            "orb": 2.7,
+            "exact": true
+          },
+          {
+            "a": "Sun",
+            "b": "Moon",
+            "type": "square",
+            "orb": 2.8,
+            "exact": true
+          },
+          {
+            "a": "Moon",
+            "b": "Saturn",
+            "type": "trine",
+            "orb": 2.8,
+            "exact": true
+          },
+          {
+            "a": "Moon",
+            "b": "Neptune",
+            "type": "trine",
+            "orb": 3.4,
+            "exact": false
+          },
+          {
+            "a": "Sun",
+            "b": "Pluto",
+            "type": "square",
+            "orb": 3.8,
+            "exact": false
+          },
+          {
+            "a": "Venus",
+            "b": "Pluto",
+            "type": "sextile",
+            "orb": 3.8,
+            "exact": false
+          },
+          {
+            "a": "Uranus",
+            "b": "ASC",
+            "type": "sextile",
+            "orb": 3.8,
+            "exact": false
+          },
+          {
+            "a": "Mars",
+            "b": "Uranus",
+            "type": "conjunction",
+            "orb": 4.5,
+            "exact": false
+          },
+          {
+            "a": "Moon",
+            "b": "Venus",
+            "type": "trine",
+            "orb": 4.9,
+            "exact": false
+          },
+          {
+            "a": "Mercury",
+            "b": "Neptune",
+            "type": "conjunction",
+            "orb": 5.6,
+            "exact": false
+          }
+        ],
+        "periods": {
+          "age": 36,
+          "sect": "day",
+          "profection": {
+            "age": 36,
+            "house": 1,
+            "signIdx": 11,
+            "lord": "Jupiter"
+          },
+          "firdaria": {
+            "sect": "day",
+            "list": [
+              {
+                "lord": "Sun",
+                "fromAge": 0,
+                "toAge": 10,
+                "fromYear": 1990,
+                "toYear": 2000
+              },
+              {
+                "lord": "Venus",
+                "fromAge": 10,
+                "toAge": 18,
+                "fromYear": 2000,
+                "toYear": 2008
+              },
+              {
+                "lord": "Mercury",
+                "fromAge": 18,
+                "toAge": 31,
+                "fromYear": 2008,
+                "toYear": 2021
+              },
+              {
+                "lord": "Moon",
+                "fromAge": 31,
+                "toAge": 40,
+                "fromYear": 2021,
+                "toYear": 2030
+              },
+              {
+                "lord": "Saturn",
+                "fromAge": 40,
+                "toAge": 51,
+                "fromYear": 2030,
+                "toYear": 2041
+              },
+              {
+                "lord": "Jupiter",
+                "fromAge": 51,
+                "toAge": 63,
+                "fromYear": 2041,
+                "toYear": 2053
+              },
+              {
+                "lord": "Mars",
+                "fromAge": 63,
+                "toAge": 70,
+                "fromYear": 2053,
+                "toYear": 2060
+              },
+              {
+                "lord": "NorthNode",
+                "fromAge": 70,
+                "toAge": 73,
+                "fromYear": 2060,
+                "toYear": 2063
+              },
+              {
+                "lord": "SouthNode",
+                "fromAge": 73,
+                "toAge": 75,
+                "fromYear": 2063,
+                "toYear": 2065
+              }
+            ],
+            "current": {
+              "lord": "Moon",
+              "fromYear": 2021,
+              "toYear": 2030,
+              "sub": {
+                "lord": "Sun",
+                "fromYear": 2026,
+                "toYear": 2027
+              }
+            },
+            "next": {
+              "lord": "Saturn",
+              "fromYear": 2030
+            }
+          }
+        },
+        "balance": {
+          "elements": [
+            {
+              "key": "fire",
+              "ko": "불",
+              "weight": 0,
+              "share": 0
+            },
+            {
+              "key": "earth",
+              "ko": "흙",
+              "weight": 11,
+              "share": 59
+            },
+            {
+              "key": "air",
+              "ko": "공기",
+              "weight": 3,
+              "share": 16
+            },
+            {
+              "key": "water",
+              "ko": "물",
+              "weight": 4.5,
+              "share": 24
+            }
+          ],
+          "modes": [
+            {
+              "key": "cardinal",
+              "ko": "시작형",
+              "weight": 9,
+              "share": 49
+            },
+            {
+              "key": "fixed",
+              "ko": "유지형",
+              "weight": 6.5,
+              "share": 35
+            },
+            {
+              "key": "mutable",
+              "ko": "적응형",
+              "weight": 3,
+              "share": 16
+            }
+          ],
+          "dominant": "earth",
+          "leading": "earth",
+          "mode": "cardinal",
+          "empty": [
+            "fire",
+            "water"
+          ]
+        },
+        "stellium": {
+          "kind": "sign",
+          "value": 9,
+          "bodies": [
+            "Mercury",
+            "Venus",
+            "Mars",
+            "Saturn"
+          ]
+        },
+        "notes": {
+          "moonSigns": null,
+          "timeNote": null
+        }
+      },
+      "html": "<div class=\"as-reading as-story\" id=\"asStory\"><header class=\"as-cover\"><div class=\"as-cover-sky\"><svg class=\"as-band\" viewBox=\"0 0 360 62\" aria-hidden=\"true\" focusable=\"false\"><line class=\"as-band-line\" x1=\"0\" y1=\"48\" x2=\"360\" y2=\"48\"/><line class=\"as-band-tick\" x1=\"0\" y1=\"43\" x2=\"0\" y2=\"53\"/><line class=\"as-band-tick\" x1=\"30\" y1=\"43\" x2=\"30\" y2=\"53\"/><line class=\"as-band-tick\" x1=\"60\" y1=\"43\" x2=\"60\" y2=\"53\"/><line class=\"as-band-tick\" x1=\"90\" y1=\"43\" x2=\"90\" y2=\"53\"/><line class=\"as-band-tick\" x1=\"120\" y1=\"43\" x2=\"120\" y2=\"53\"/><line class=\"as-band-tick\" x1=\"150\" y1=\"43\" x2=\"150\" y2=\"53\"/><line class=\"as-band-tick\" x1=\"180\" y1=\"43\" x2=\"180\" y2=\"53\"/><line class=\"as-band-tick\" x1=\"210\" y1=\"43\" x2=\"210\" y2=\"53\"/><line class=\"as-band-tick\" x1=\"240\" y1=\"43\" x2=\"240\" y2=\"53\"/><line class=\"as-band-tick\" x1=\"270\" y1=\"43\" x2=\"270\" y2=\"53\"/><line class=\"as-band-tick\" x1=\"300\" y1=\"43\" x2=\"300\" y2=\"53\"/><line class=\"as-band-tick\" x1=\"330\" y1=\"43\" x2=\"330\" y2=\"53\"/><line class=\"as-band-tick\" x1=\"360\" y1=\"43\" x2=\"360\" y2=\"53\"/><circle class=\"as-band-dot\" cx=\"288.8\" cy=\"48\" r=\"2.4\"/><circle class=\"as-band-dot\" cx=\"291.5\" cy=\"48\" r=\"2.4\"/><circle class=\"as-band-dot\" cx=\"273.2\" cy=\"48\" r=\"2.4\"/><circle class=\"as-band-dot\" cx=\"91.6\" cy=\"48\" r=\"2.4\"/><circle class=\"as-band-dot\" cx=\"289.4\" cy=\"48\" r=\"2.4\"/><circle class=\"as-band-dot\" cx=\"277.6\" cy=\"48\" r=\"2.4\"/><circle class=\"as-band-dot\" cx=\"283.2\" cy=\"48\" r=\"2.4\"/><circle class=\"as-band-dot\" cx=\"227.7\" cy=\"48\" r=\"2.4\"/><circle class=\"as-band-dot is-key\" cx=\"313.9\" cy=\"48\" r=\"3.6\"/><circle class=\"as-band-dot is-key\" cx=\"46.6\" cy=\"48\" r=\"3.6\"/><circle class=\"as-band-dot is-key\" cx=\"333.9\" cy=\"48\" r=\"3.6\"/><text class=\"as-band-label\" x=\"46.6\" y=\"32\" text-anchor=\"middle\">달</text><text class=\"as-band-label\" x=\"313.9\" y=\"32\" text-anchor=\"middle\">태양</text><text class=\"as-band-label\" x=\"333.9\" y=\"14\" text-anchor=\"middle\">첫인상</text></svg></div><h2 class=\"as-portrait\">겉은 몽글하고 여려 보이지만, 속은 익숙한 것에서 안정을 찾는 사람이에요</h2><ul class=\"as-big3\"><li class=\"as-big3-row\" data-key=\"Sun\"><span class=\"as-big3-role\">의식하는 나</span><span class=\"as-big3-sign\">물병자리</span><span class=\"as-big3-phrase\">틀을 깨는 독창성</span></li><li class=\"as-big3-row\" data-key=\"Moon\"><span class=\"as-big3-role\">속마음</span><span class=\"as-big3-sign\">황소자리</span><span class=\"as-big3-phrase\">변함없는 꾸준함이 있어야 편한 마음</span></li><li class=\"as-big3-row\" data-key=\"ASC\"><span class=\"as-big3-role\">첫인상</span><span class=\"as-big3-sign\">물고기자리</span><span class=\"as-big3-phrase\">부드럽고 몽환적인 인상</span></li></ul></header><section class=\"as-temperament\" aria-labelledby=\"asTemperamentTitle\"><h3 class=\"as-h3\" id=\"asTemperamentTitle\">타고난 성향</h3><div class=\"as-para\" data-key=\"face\"><h4 class=\"as-h4\">겉과 속</h4><p>태양이 물병자리에 있어 남과 다른 생각을 밀고 나갈 때 당신다워져요. 달이 황소자리에 있어 익숙한 공간과 맛있는 한 끼가 마음을 달래 줘요. 첫인상 별자리가 물고기자리라 부드럽고 꿈꾸는 듯한 분위기로 기억돼요.</p><div class=\"as-ev-chips\" role=\"list\"><span role=\"listitem\">태양&nbsp;· 물병자리&nbsp;· 혼자만의 시간의 자리</span><span role=\"listitem\">달&nbsp;· 황소자리&nbsp;· 돈과 소유의 자리</span><span role=\"listitem\">첫인상 별자리&nbsp;· 물고기자리</span></div></div><div class=\"as-para\" data-key=\"energy\"><h4 class=\"as-h4\">에너지의 결</h4><p>흙 기운이 59%로 뚜렷하게 가장 많아, 눈에 보이는 결과와 현실 감각을 믿어요. 기질은 시작형이 많아, 새 일을 여는 데 강하고 기다림엔 약한 편이에요. 수성, 금성, 화성, 토성이 모두 염소자리에 모여 있어, 그 별자리의 색이 삶 전체에 짙게 배어 있어요.</p><div class=\"as-ev-chips\" role=\"list\"><span role=\"listitem\">원소 균형&nbsp;· 흙 59%</span><span role=\"listitem\">기질&nbsp;· 시작형 49%</span><span role=\"listitem\">몰림&nbsp;· 염소자리&nbsp;· 수성·금성·화성·토성</span></div></div><div class=\"as-para\" data-key=\"pair\"><h4 class=\"as-h4\">내 안의 긴장</h4><p>수성과 토성이 한자리에 모인 사이라 말하기 전에 너무 오래 고민해 기회를 놓치기도 해요. 두 힘이 한 몸처럼 움직여서, 좋을 때도 힘들 때도 크게 드러나요.</p><div class=\"as-ev-chips\" role=\"list\"><span role=\"listitem\">수성&nbsp;· 염소자리&nbsp;· 친구와 모임의 자리&nbsp;· 토성과 한자리에 모인 사이&nbsp;· 정확도 높음</span><span role=\"listitem\">토성&nbsp;· 염소자리&nbsp;· 친구와 모임의 자리</span></div></div></section><section class=\"as-cats\" aria-labelledby=\"asCatsTitle\"><h3 class=\"as-h3\" id=\"asCatsTitle\">삶의 여섯 갈래</h3><details class=\"as-cat\" data-cat=\"love\"><summary><span class=\"as-cat-title\">연애</span><span class=\"as-cat-gist\">신중하게 고르고 책임감 있게 사랑해요</span></summary><div class=\"as-cat-body\"><div class=\"as-label\">당신은 이래요</div><ul class=\"as-bullets\"><li>처음엔 느리지만 한번 시작한 관계는 오래 지키려 해요. 특히 친구와 모임 속에서 이런 모습이 잘 드러나요.</li><li>끌리는 사람에게는 신중하고 책임감 있게 다가가요. 화성이 제 집처럼 편한 별자리라, 이 힘을 자연스럽게 잘 써요.</li><li>금성과 토성이 한자리에 모인 사이라 깊고 오래가는 사랑을 원해 마음을 여는 데 시간이 걸려요.</li></ul><p class=\"as-scene\">예를 들면, 화려한 이벤트보다 늘 가던 식당에서 보내는 저녁이 더 설레요.</p><dl class=\"as-fit\"><div><dt>잘 맞는 것</dt><dd>믿을 수 있는 책임감을 자연스럽게 건네는 사람과 잘 맞아요.</dd></div><div><dt>조심할 것</dt><dd>연애에서는 쉬는 것을 미루는 버릇이 앞서지 않게 살펴 주세요.</dd></div></dl><p class=\"as-action\"><span class=\"as-label\">이번 주 해볼 한 가지</span>좋아하는 사람과 함께할 소박한 식사 약속을 하나 잡아 보세요.</p><details class=\"as-why\"><summary>왜 이렇게 읽었나요</summary><ul class=\"as-ev-list\"><li>금성&nbsp;· 염소자리&nbsp;· 친구와 모임의 자리</li><li>화성&nbsp;· 염소자리&nbsp;· 일과 사회적 자리의 자리</li><li>금성&nbsp;· 염소자리&nbsp;· 친구와 모임의 자리&nbsp;· 토성과 한자리에 모인 사이&nbsp;· 정확도 높음</li><li>토성&nbsp;· 염소자리&nbsp;· 친구와 모임의 자리</li></ul></details></div></details><details class=\"as-cat\" data-cat=\"money\"><summary><span class=\"as-cat-title\">재물</span><span class=\"as-cat-gist\">벌 때도 쓸 때도 빠르게 결정해요</span></summary><div class=\"as-cat-body\"><div class=\"as-label\">당신은 이래요</div><ul class=\"as-bullets\"><li>기회를 보면 바로 움직이는 힘이 있으니, 충동 지출만 한 번 걸러 보세요. 돈의 자리를 다스리는 화성 덕분에 사회에서 일하는 자리에서 돈의 흐름이 생기기 쉬워요.</li><li>돈의 기회는 아늑하고 다정한 흐름을 탈 때 넓어지기 쉬워요. 목성에게 잘 맞는 별자리라 이 힘이 막힘없이 흘러요.</li><li>돈의 자리에 달이 있어, 그때그때의 마음이 벌고 쓰는 방식에 묻어나요.</li></ul><p class=\"as-scene\">예를 들면, 마음에 드는 물건을 보면 고민보다 결제가 먼저일 때가 있어요.</p><dl class=\"as-fit\"><div><dt>잘 맞는 것</dt><dd>밀어붙이는 추진력을 살릴 수 있는 돈 관리 방식이 잘 맞아요.</dd></div><div><dt>조심할 것</dt><dd>돈 문제에서는 성급하게 내리는 결론을 한 번 의심해 보세요.</dd></div></dl><p class=\"as-action\"><span class=\"as-label\">이번 주 해볼 한 가지</span>기분이 지출로 이어진 날을 돌아보고 메모해 두세요.</p><details class=\"as-why\"><summary>왜 이렇게 읽었나요</summary><ul class=\"as-ev-list\"><li>돈과 소유의 자리&nbsp;· 양자리에서 시작</li><li>화성&nbsp;· 염소자리&nbsp;· 일과 사회적 자리의 자리</li><li>목성&nbsp;· 게자리&nbsp;· 집과 가족의 자리</li><li>달&nbsp;· 황소자리&nbsp;· 돈과 소유의 자리</li></ul></details></div></details><details class=\"as-cat\" data-cat=\"people\"><summary><span class=\"as-cat-title\">인간관계</span><span class=\"as-cat-gist\">예의와 신뢰를 바탕으로 관계를 쌓아요</span></summary><div class=\"as-cat-body\"><div class=\"as-label\">당신은 이래요</div><ul class=\"as-bullets\"><li>처음엔 거리를 두지만, 시간이 지날수록 믿음직한 사람으로 남아요. 친구와 모임 속에서 이 힘이 자주 쓰여요.</li><li>친구와 모임의 자리가 염소자리에서 시작해, 단단하고 진지한 모임에서 인연이 넓어져요.</li><li>일대일 관계의 자리가 처녀자리에서 시작해, 가까운 사이엔 세심한 배려가 중요해요.</li></ul><p class=\"as-scene\">예를 들면, 오래된 친구 몇 명과의 정기 모임이 가장 편해요.</p><dl class=\"as-fit\"><div><dt>잘 맞는 것</dt><dd>믿을 수 있는 책임감을 아는 사람들 곁에서 관계가 오래가요.</dd></div><div><dt>조심할 것</dt><dd>관계가 꼬일 땐 쉬는 것을 미루는 버릇이 끼어들지 않았는지 살펴보세요.</dd></div></dl><p class=\"as-action\"><span class=\"as-label\">이번 주 해볼 한 가지</span>가까운 사람과 정기적으로 만날 날을 하나 정해 보세요.</p><details class=\"as-why\"><summary>왜 이렇게 읽었나요</summary><ul class=\"as-ev-list\"><li>수성&nbsp;· 염소자리&nbsp;· 친구와 모임의 자리</li><li>친구와 모임의 자리&nbsp;· 염소자리에서 시작</li><li>토성&nbsp;· 염소자리&nbsp;· 친구와 모임의 자리</li><li>짝과 일대일 관계의 자리&nbsp;· 처녀자리에서 시작</li></ul></details></div></details><details class=\"as-cat\" data-cat=\"work\"><summary><span class=\"as-cat-title\">일</span><span class=\"as-cat-gist\">넓은 세상과 배움을 잇는 일에서 신이 나요</span></summary><div class=\"as-cat-body\"><div class=\"as-label\">당신은 이래요</div><ul class=\"as-bullets\"><li>가르치거나 멀리 오가는 일, 큰 그림을 그리는 역할에서 생기가 돌아요. 사회에서 보이는 모습을 다스리는 목성 덕분에 집과 가족 곁에서 일의 실마리가 보여요.</li><li>책임이 무거운 일은 신중하고 책임감 있게 풀어 가요. 토성이 힘을 쓰기 좋은 자리라 기대만큼 해내요.</li><li>사회의 자리에 화성이 있어, 일에서 빠른 결단력이 이름처럼 따라다녀요.</li></ul><p class=\"as-scene\">예를 들면, 아무도 손대지 않은 일을 먼저 맡아 판을 벌이곤 해요.</p><dl class=\"as-fit\"><div><dt>잘 맞는 것</dt><dd>멀리 보는 낙관이 결과로 보이는 자리가 잘 맞아요.</dd></div><div><dt>조심할 것</dt><dd>일이 막히면 약속을 가볍게 넘기는 버릇을 먼저 점검해 보세요.</dd></div></dl><p class=\"as-action\"><span class=\"as-label\">이번 주 해볼 한 가지</span>이번 주 할 일을 세 가지로 줄여 적어 보세요.</p><details class=\"as-why\"><summary>왜 이렇게 읽었나요</summary><ul class=\"as-ev-list\"><li>사회에서 보이는 모습&nbsp;· 사수자리</li><li>목성&nbsp;· 게자리&nbsp;· 집과 가족의 자리</li><li>토성&nbsp;· 염소자리&nbsp;· 친구와 모임의 자리</li><li>화성&nbsp;· 염소자리&nbsp;· 일과 사회적 자리의 자리</li></ul></details></div></details><details class=\"as-cat\" data-cat=\"heal\"><summary><span class=\"as-cat-title\">마음과 회복</span><span class=\"as-cat-gist\">익숙한 공간과 감각의 즐거움이 마음을 달래요</span></summary><div class=\"as-cat-body\"><div class=\"as-label\">당신은 이래요</div><ul class=\"as-bullets\"><li>좋은 음식, 포근한 이불, 느린 산책처럼 몸이 편한 것이 먼저예요. 달이 제 집처럼 편한 별자리라, 이 힘을 자연스럽게 잘 써요.</li><li>집과 뿌리의 자리가 쌍둥이자리에서 시작해, 가볍고 즐거운 공간에서 마음이 쉬어요.</li><li>혼자만의 쉼을 뜻하는 자리가 물병자리에서 시작해, 쉴 때는 독특하고 자유롭게 비워 내는 게 좋아요.</li></ul><p class=\"as-scene\">예를 들면, 따뜻한 차 한 잔과 정리된 방이 어떤 위로보다 빨라요.</p><dl class=\"as-fit\"><div><dt>잘 맞는 것</dt><dd>변함없는 꾸준함이 채워지는 시간이 회복을 도와요.</dd></div><div><dt>조심할 것</dt><dd>변화를 미루는 고집이 쌓이면 마음이 먼저 지쳐요.</dd></div></dl><p class=\"as-action\"><span class=\"as-label\">이번 주 해볼 한 가지</span>머릿속 걱정을 종이에 모두 적고 덮어 두세요.</p><details class=\"as-why\"><summary>왜 이렇게 읽었나요</summary><ul class=\"as-ev-list\"><li>달&nbsp;· 황소자리&nbsp;· 돈과 소유의 자리</li><li>집과 가족의 자리&nbsp;· 쌍둥이자리에서 시작</li><li>수성&nbsp;· 염소자리&nbsp;· 친구와 모임의 자리</li><li>혼자만의 시간의 자리&nbsp;· 물병자리에서 시작</li><li>토성&nbsp;· 염소자리&nbsp;· 친구와 모임의 자리</li></ul></details></div></details><details class=\"as-cat\" data-cat=\"growth\"><summary><span class=\"as-cat-title\">성장</span><span class=\"as-cat-gist\">올해는 나 자신을 새로 세우는 해예요</span></summary><div class=\"as-cat-body\"><div class=\"as-label\">당신은 이래요</div><ul class=\"as-bullets\"><li>외모, 건강 습관, 첫인상처럼 나를 드러내는 방식을 다듬기 좋아요. 올해의 길잡이 행성은 목성이라, 배움과 넓은 시야가 기회를 데려와요.</li><li>인생 시기 지도로 보면 2021~2030년은 달의 시기예요. 생활의 기반과 마음의 안정을 돌보는 일이 중심에 와요.</li><li>아늑하고 다정한 경험을 할 때 시야가 넓어지고 기회도 눈에 들어와요. 특히 집과 가족 곁에서 이런 모습이 잘 드러나요.</li></ul><p class=\"as-scene\">예를 들면, 지난 감정을 정리하고 나면 비로소 다음 걸음이 가벼워져요.</p><dl class=\"as-fit\"><div><dt>잘 맞는 것</dt><dd>보이지 않는 걸 읽는 감수성을 꾸준히 쓰는 연습이 성장을 도와요.</dd></div><div><dt>조심할 것</dt><dd>경계가 흐려져 지치는 일은 성장을 늦추는 흔한 함정이에요.</dd></div></dl><p class=\"as-action\"><span class=\"as-label\">이번 주 해볼 한 가지</span>지난 한 달 동안 마음에 남은 일을 한 줄씩 적어 보세요.</p><details class=\"as-why\"><summary>왜 이렇게 읽었나요</summary><ul class=\"as-ev-list\"><li>올해의 주제&nbsp;· 나 자신의 자리&nbsp;· 물고기자리</li><li>목성&nbsp;· 게자리&nbsp;· 집과 가족의 자리</li><li>인생 시기 지도&nbsp;· 달의 시기&nbsp;· 2021~2030년</li><li>달&nbsp;· 황소자리&nbsp;· 돈과 소유의 자리</li></ul></details></div></details></section></div><div class=\"as-reading as-deep\" id=\"asDeep\"><section class=\"as-deep-part\" aria-labelledby=\"asDeepPlanets\"><h3 class=\"as-h3\" id=\"asDeepPlanets\">행성 열 개</h3><div class=\"as-planets\"><details class=\"as-planet\" data-body=\"Sun\"><summary><span class=\"as-pl-name\">태양</span><span class=\"as-pl-where\">물병자리&nbsp;· 혼자만의 시간의 자리</span><span class=\"as-pl-line\">틀을 깨는 독창성으로 자기 자리를 만들어 가요.</span></summary><p class=\"as-pl-body\">태양은 삶의 방향과 스스로를 드러내는 힘을 보여 줘요. 이 힘은 혼자 있는 시간에 가장 잘 드러나요. 태양과 달이 부딪히며 키우는 사이라 하고 싶은 것과 필요한 것 사이에서 자주 고민해요.</p></details><details class=\"as-planet\" data-body=\"Moon\"><summary><span class=\"as-pl-name\">달</span><span class=\"as-pl-where\">황소자리&nbsp;· 돈과 소유의 자리</span><span class=\"as-pl-line\">변함없는 꾸준함이 채워질 때 마음이 가장 편안해요.</span></summary><p class=\"as-pl-body\">달은 마음이 쉬는 방식과 감정의 리듬을 보여 줘요. 삶의 무대가 돈과 소유라, 그 안에서 자주 쓰여요. 달과 명왕성이 마주 보며 균형을 찾는 사이라 한번 상처받으면 오래 붙잡고 있게 돼요.</p></details><details class=\"as-planet\" data-body=\"Mercury\"><summary><span class=\"as-pl-name\">수성</span><span class=\"as-pl-where\">염소자리&nbsp;· 친구와 모임의 자리</span><span class=\"as-pl-line\">생각을 정리하고 말할 때는 계획을 세워 차근차근 풀어 가요.</span></summary><p class=\"as-pl-body\">수성은 생각하고 배우고 말하는 방식을 보여 줘요. 친구와 모임 속에서 이 힘이 먼저 깨어나요. 잘 쓰면 버텨 내는 인내가 되고, 지나치면 쉬는 것을 미루는 버릇으로 기울어요.</p></details><details class=\"as-planet\" data-body=\"Venus\"><summary><span class=\"as-pl-name\">금성</span><span class=\"as-pl-where\">염소자리&nbsp;· 친구와 모임의 자리 <span class=\"as-rx\">역행</span></span><span class=\"as-pl-line\">단단하고 진지한 사람과 분위기에 마음이 먼저 끌려요.</span></summary><p class=\"as-pl-body\">금성은 좋아하는 것과 사랑하는 방식, 즐기는 감각을 보여 줘요. 이 힘은 친구와 모임 속에서 가장 잘 드러나요. 태어날 때 역행 중이라, 이 힘을 밖으로 쓰기 전에 안으로 곱씹는 흐름이 있어요.</p></details><details class=\"as-planet\" data-body=\"Mars\"><summary><span class=\"as-pl-name\">화성</span><span class=\"as-pl-where\">염소자리&nbsp;· 일과 사회적 자리의 자리</span><span class=\"as-pl-line\">원하는 게 생기면 계획을 세워 차근차근 움직이는 편이에요.</span></summary><p class=\"as-pl-body\">화성은 원하는 것을 향해 움직이는 힘과 화를 내는 방식을 보여 줘요. 이 힘은 사회에서 일하는 자리에서 가장 잘 드러나요. 화성과 목성이 마주 보며 균형을 찾는 사이라 의욕이 커서 한 번에 너무 많이 벌이기 쉬워요.</p></details><details class=\"as-planet\" data-body=\"Jupiter\"><summary><span class=\"as-pl-name\">목성</span><span class=\"as-pl-where\">게자리&nbsp;· 집과 가족의 자리 <span class=\"as-rx\">역행</span></span><span class=\"as-pl-line\">아늑하고 다정한 경험 쪽으로 운의 문이 넓게 열려요.</span></summary><p class=\"as-pl-body\">목성은 운이 넓어지는 쪽과 믿음의 방향을 보여 줘요. 이 힘은 집과 가족 곁에서 가장 잘 드러나요. 목성이 제 집처럼 편한 별자리라, 이 힘을 자연스럽게 잘 써요.</p></details><details class=\"as-planet\" data-body=\"Saturn\"><summary><span class=\"as-pl-name\">토성</span><span class=\"as-pl-where\">염소자리&nbsp;· 친구와 모임의 자리</span><span class=\"as-pl-line\">쉬는 것을 미루는 버릇을 다스리는 법을 익힐수록 단단해져요.</span></summary><p class=\"as-pl-body\">토성은 오래 걸려도 단단히 쌓아야 하는 숙제를 보여 줘요. 삶의 무대가 친구와 모임이라, 그 안에서 자주 쓰여요. 토성이 제 집처럼 편한 별자리라, 이 힘을 자연스럽게 잘 써요.</p></details><details class=\"as-planet\" data-body=\"Uranus\"><summary><span class=\"as-pl-name\">천왕성</span><span class=\"as-pl-where\">염소자리&nbsp;· 친구와 모임의 자리</span><span class=\"as-pl-line\">같은 세대와 함께 염소자리의 결로 낡은 틀을 바꾸고 싶어 해요.</span></summary><p class=\"as-pl-body\">천왕성은 틀을 깨고 새로 바꾸려는 힘을 보여 줘요. 이 자리에서는 믿을 수 있는 책임감이 있을 때 힘이 제대로 나와요.</p></details><details class=\"as-planet\" data-body=\"Neptune\"><summary><span class=\"as-pl-name\">해왕성</span><span class=\"as-pl-where\">염소자리&nbsp;· 친구와 모임의 자리</span><span class=\"as-pl-line\">같은 세대와 함께 단단하고 진지한 꿈과 이상을 품고 자랐어요.</span></summary><p class=\"as-pl-body\">해왕성은 상상과 이상, 경계가 흐려지는 곳을 보여 줘요. 달과 해왕성이 편하게 돕는 사이라 남의 마음을 말없이 알아채는 감수성이 커요.</p></details><details class=\"as-planet\" data-body=\"Pluto\"><summary><span class=\"as-pl-name\">명왕성</span><span class=\"as-pl-where\">전갈자리&nbsp;· 나눔과 깊은 신뢰의 자리</span><span class=\"as-pl-line\">같은 세대와 함께 전갈자리의 결로 깊은 변화를 겪으며 단단해져요.</span></summary><p class=\"as-pl-body\">명왕성은 무너졌다 다시 서며 깊어지는 힘을 보여 줘요. 이 힘은 깊이 나누는 관계에서 가장 잘 드러나요. 잘 쓰면 깊이 파고드는 집중력이 되고, 지나치면 다 알기 전엔 믿지 않는 경계심으로 기울어요.</p></details></div></section><section class=\"as-deep-part\" aria-labelledby=\"asDeepTalk\"><h3 class=\"as-h3\" id=\"asDeepTalk\">행성끼리의 대화</h3><ol class=\"as-talk\"><li class=\"as-talk-item\"><div class=\"as-talk-head\"><span class=\"as-talk-pair\">수성&nbsp;· 토성</span><span class=\"as-talk-kind\">한자리에 모인 사이(합)</span><span class=\"as-talk-orb\">아주 정확해요</span></div><p>수성의 정보와 말솜씨와 토성의 오래 쌓는 성실함이 한자리에 모인 사이예요. 두 힘이 늘 함께 움직여서, 한쪽을 쓰면 다른 쪽도 따라 깨어나요.</p></li><li class=\"as-talk-item is-hard\"><div class=\"as-talk-head\"><span class=\"as-talk-pair\">달&nbsp;· 명왕성</span><span class=\"as-talk-kind\">마주 보며 균형을 찾는 사이(대립)</span><span class=\"as-talk-orb\">정확한 편</span></div><p>달의 그때그때의 마음과 명왕성의 깊이 바꾸는 힘이 마주 보며 균형을 찾는 사이예요. 한쪽으로 쏠리지 않게 둘 사이의 균형을 찾는 게 숙제예요.</p></li><li class=\"as-talk-item\"><div class=\"as-talk-head\"><span class=\"as-talk-pair\">수성&nbsp;· 명왕성</span><span class=\"as-talk-kind\">가볍게 돕는 사이(육분)</span><span class=\"as-talk-orb\">정확한 편</span></div><p>수성과 명왕성이 가볍게 돕는 사이라 핵심을 꿰뚫는 질문을 잘 던져요. 조금만 손을 보태면 서로를 살려 주는 사이예요.</p></li><li class=\"as-talk-item is-hard\"><div class=\"as-talk-head\"><span class=\"as-talk-pair\">화성&nbsp;· 목성</span><span class=\"as-talk-kind\">마주 보며 균형을 찾는 사이(대립)</span><span class=\"as-talk-orb\">정확한 편</span></div><p>화성의 빠른 결단력과 목성의 넉넉하게 넓히는 힘이 마주 보며 균형을 찾는 사이예요.</p></li><li class=\"as-talk-item\"><div class=\"as-talk-head\"><span class=\"as-talk-pair\">금성&nbsp;· 토성</span><span class=\"as-talk-kind\">한자리에 모인 사이(합)</span><span class=\"as-talk-orb\">정확한 편</span></div><p>금성의 취향과 사람 복과 토성의 오래 쌓는 성실함이 한자리에 모인 사이예요.</p></li></ol></section><section class=\"as-deep-part\" aria-labelledby=\"asDeepPeriods\"><h3 class=\"as-h3\" id=\"asDeepPeriods\">인생 시기</h3><div class=\"as-period\" data-key=\"firdaria\"><h4 class=\"as-h4\">인생 시기 지도</h4><p>지금은 달의 시기예요. 2021년부터 2030년까지 이어져요. 그 안에서 2027년까지는 태양의 결이 함께 섞여요. 2030년부터는 토성의 시기로 넘어가요.</p></div><div class=\"as-period\" data-key=\"profection\"><h4 class=\"as-h4\">올해의 주제 집</h4><p>36세인 올해는 나 자신이 중심이 되는 해예요. 이 해의 주인 행성은 목성이에요. 배움과 넓은 시야가 기회를 데려와요.</p></div><p class=\"as-note\">시기 해석은 흐름을 읽는 지도예요. 정해진 일을 말하지는 않아요.</p></section><section class=\"as-deep-part\" aria-labelledby=\"asDeepBalance\"><h3 class=\"as-h3\" id=\"asDeepBalance\">원소와 기질의 균형</h3><p>흙 기운이 59%로 가장 많고, 시작형 결이 가장 강해요. 수성⁠·⁠금성⁠·⁠화성과 해⁠·⁠달에는 불⁠·⁠물 기운이 없어요.</p><div class=\"as-balance\"><div><h4 class=\"as-h4\">원소</h4><div class=\"as-bars is-elements\" role=\"list\"><div class=\"as-bar\" role=\"listitem\" data-key=\"fire\"><span class=\"as-bar-name\">불</span><svg class=\"as-bar-track\" viewBox=\"0 0 100 6\" preserveAspectRatio=\"none\" aria-hidden=\"true\" focusable=\"false\"><rect class=\"as-bar-bg\" width=\"100\" height=\"6\"/><rect class=\"as-bar-fill\" width=\"0\" height=\"6\"/></svg><span class=\"as-bar-val\">0%</span></div><div class=\"as-bar\" role=\"listitem\" data-key=\"earth\"><span class=\"as-bar-name\">흙</span><svg class=\"as-bar-track\" viewBox=\"0 0 100 6\" preserveAspectRatio=\"none\" aria-hidden=\"true\" focusable=\"false\"><rect class=\"as-bar-bg\" width=\"100\" height=\"6\"/><rect class=\"as-bar-fill\" width=\"59\" height=\"6\"/></svg><span class=\"as-bar-val\">59%</span></div><div class=\"as-bar\" role=\"listitem\" data-key=\"air\"><span class=\"as-bar-name\">공기</span><svg class=\"as-bar-track\" viewBox=\"0 0 100 6\" preserveAspectRatio=\"none\" aria-hidden=\"true\" focusable=\"false\"><rect class=\"as-bar-bg\" width=\"100\" height=\"6\"/><rect class=\"as-bar-fill\" width=\"16\" height=\"6\"/></svg><span class=\"as-bar-val\">16%</span></div><div class=\"as-bar\" role=\"listitem\" data-key=\"water\"><span class=\"as-bar-name\">물</span><svg class=\"as-bar-track\" viewBox=\"0 0 100 6\" preserveAspectRatio=\"none\" aria-hidden=\"true\" focusable=\"false\"><rect class=\"as-bar-bg\" width=\"100\" height=\"6\"/><rect class=\"as-bar-fill\" width=\"24\" height=\"6\"/></svg><span class=\"as-bar-val\">24%</span></div></div></div><div><h4 class=\"as-h4\">기질</h4><div class=\"as-bars is-modes\" role=\"list\"><div class=\"as-bar\" role=\"listitem\" data-key=\"cardinal\"><span class=\"as-bar-name\">시작형</span><svg class=\"as-bar-track\" viewBox=\"0 0 100 6\" preserveAspectRatio=\"none\" aria-hidden=\"true\" focusable=\"false\"><rect class=\"as-bar-bg\" width=\"100\" height=\"6\"/><rect class=\"as-bar-fill\" width=\"49\" height=\"6\"/></svg><span class=\"as-bar-val\">49%</span></div><div class=\"as-bar\" role=\"listitem\" data-key=\"fixed\"><span class=\"as-bar-name\">유지형</span><svg class=\"as-bar-track\" viewBox=\"0 0 100 6\" preserveAspectRatio=\"none\" aria-hidden=\"true\" focusable=\"false\"><rect class=\"as-bar-bg\" width=\"100\" height=\"6\"/><rect class=\"as-bar-fill\" width=\"35\" height=\"6\"/></svg><span class=\"as-bar-val\">35%</span></div><div class=\"as-bar\" role=\"listitem\" data-key=\"mutable\"><span class=\"as-bar-name\">적응형</span><svg class=\"as-bar-track\" viewBox=\"0 0 100 6\" preserveAspectRatio=\"none\" aria-hidden=\"true\" focusable=\"false\"><rect class=\"as-bar-bg\" width=\"100\" height=\"6\"/><rect class=\"as-bar-fill\" width=\"16\" height=\"6\"/></svg><span class=\"as-bar-val\">16%</span></div></div></div></div></section><details class=\"as-calc\"><summary>어떻게 계산했나요</summary><ul><li>행성 위치는 스위스 천문력(Swiss Ephemeris)⁠으로 계산한 회귀 황도 기준이에요.</li><li>집은 플라시더스(Placidus) 방식으로 나눴어요. 태어난 시각과 장소를 그대로 반영해서, 몇 분 차이로도 집 경계가 움직일 수 있어요.</li><li>별자리 하나를 집 하나로 보는 홀사인(Whole Sign) 방식은 큰 방향을 볼 때 써요. 두 방식이 다른 행성은 위치 표 아래에 따로 적었어요.</li><li>행성끼리의 각은 해⁠·⁠달 8°, 수성⁠·⁠금성⁠·⁠화성 6°, 나머지는 5°까지 허용해서 셌어요.</li><li>원소 균형은 해⁠·⁠달⁠·⁠상승점에 3, 수성⁠·⁠금성⁠·⁠화성에 2, 목성⁠·⁠토성에 1, 바깥 행성에 0.5를 주고 셌어요.</li><li>인생 시기 지도는 낮에 태어났는지 밤에 태어났는지에 따라 순서를 달리 쓰고, 75년을 한 바퀴로 봐요.</li></ul></details></div>"
+    },
+    "astro_career_talent_deep": {
+      "ok": true,
+      "unlocked": true,
+      "accessSource": "public",
+      "featureKey": "astro_career_talent_deep",
+      "html": "<div class=\"astro-counsel-career-steps\"><p><b>1. MC 사인</b> MC는 세상 앞에 남기려는 이름과 공적 방향입니다. 당신의 MC는 사수자리라서 더 넓은 세계를 향해 의미를 찾는 화살으로 커리어 정점을 잡습니다. <span>현실에서는 중요한 일일수록 “내 이름으로 어떤 기준을 남길까”를 먼저 묻게 됩니다.</span></p><p><b>2. 10하우스 룰러</b> 10하우스 룰러는 커리어가 실제 사건으로 움직이는 엔진입니다. 이 리딩은 목성(전통) 기준으로 보며, 실제 배치는 목성 게자리 5하우스, 즉 창작, 연애, 즐거움입니다. <span>사회적 성취는 창작, 연애, 즐거움을 통해 결과물로 굳어집니다.</span></p><p><b>3. 6하우스 업무 스타일</b> 6하우스는 매일 반복되는 일의 질서입니다. 당신의 6하우스는 사자자리이고, 배치 행성은 강한 행성 없음입니다. <span>큰 비전보다 하루 단위의 작업 조건이 맞을 때 집중력이 오래 유지됩니다.</span></p><p><b>4. ASC 룰러</b> ASC 룰러는 에너지가 흘러가는 첫 통로입니다. 이 리딩은 목성(전통) · 해왕성(현대 보조) 기준으로 보며, 실제 배치는 목성 게자리 5하우스, 즉 창작, 연애, 즐거움입니다. <span>처음에는 조심스러워도 결국 창작, 연애, 즐거움에서 주도권을 잡게 됩니다.</span></p><p><b>5. 목성 하우스</b> 목성은 재능이 커지는 문입니다. 당신의 목성은 게자리 5하우스, 즉 창작, 연애, 즐거움에 있습니다. <span>기회는 창작, 연애, 즐거움과 연결된 제안으로 확장되는 경우가 많습니다.</span></p></div><div class=\"astro-counsel-job-list\"><article><strong>배움과 의미를 전달하는 역할</strong><span>지식, 철학, 경험을 넓은 언어로 풀어 누군가의 시야를 확장할 때 기회가 커집니다. 이 판단은 MC 사수자리의 공적 지향, 10하우스 룰러 목성(전통)가 놓인 5하우스, 즉 창작, 연애, 즐거움, 그리고 목성이 여는 5하우스, 즉 창작, 연애, 즐거움의 기회 흐름에서 옵니다.</span></article><article><strong>상징을 언어와 이미지로 바꾸는 역할</strong><span>콘텐츠, 브랜드, 해석, 큐레이션처럼 보이지 않는 의미를 전달 가능한 형태로 바꾸는 환경에서 빛납니다. 이 판단은 MC 사수자리의 공적 지향, 10하우스 룰러 목성(전통)가 놓인 5하우스, 즉 창작, 연애, 즐거움, 그리고 목성이 여는 5하우스, 즉 창작, 연애, 즐거움의 기회 흐름에서 옵니다.</span></article><article><strong>사람과 관계 흐름을 조율하는 역할</strong><span>정서, 협업, 조직 분위기, 상담처럼 사람 사이의 미묘한 흐름을 읽는 자리에서 적성이 모입니다. 이 판단은 MC 사수자리의 공적 지향, 10하우스 룰러 목성(전통)가 놓인 5하우스, 즉 창작, 연애, 즐거움, 그리고 목성이 여는 5하우스, 즉 창작, 연애, 즐거움의 기회 흐름에서 옵니다.</span></article><article><strong>취향과 감각을 설계하는 역할</strong><span>미감, 관계의 온도, 브랜드 감각을 실제 선택 가능한 가치로 바꿀 때 매력이 드러납니다. 이 판단은 MC 사수자리의 공적 지향, 10하우스 룰러 목성(전통)가 놓인 5하우스, 즉 창작, 연애, 즐거움, 그리고 목성이 여는 5하우스, 즉 창작, 연애, 즐거움의 기회 흐름에서 옵니다.</span></article></div>"
+    },
+    "astro_talent_attraction_deep": {
+      "ok": true,
+      "unlocked": true,
+      "accessSource": "public",
+      "featureKey": "astro_talent_attraction_deep",
+      "html": "<div class=\"astro-counsel-planet-grid\"><article class=\"astro-counsel-planet\"><strong>재능과 매력 · 금성 염소자리</strong><p>금성은 애정, 취향, 관계를 여는 감각입니다. 기쁨이 어디에서 되살아나고 어떤 분위기에서 매력이 자연스럽게 흐르는지 보여줍니다.</p><p><b>현실에서는</b> 네트워크와 미래 비전에서 염소자리의 방식으로 선택과 반응이 선명해집니다.</p></article><article class=\"astro-counsel-planet\"><strong>욕망과 추진력 · 화성 염소자리</strong><p>화성은 욕망과 추진력의 불씨입니다. 반드시 움직여야 한다고 느끼는 지점, 갈등 앞에서 힘이 켜지는 방식을 드러냅니다.</p><p><b>현실에서는</b> 네트워크와 미래 비전에서 염소자리의 방식으로 선택과 반응이 선명해집니다.</p></article><article class=\"astro-counsel-planet\"><strong>확장과 기회 · 목성 게자리</strong><p>목성은 확장과 신뢰의 문입니다. 경험이 커지고 사람들의 지지를 얻는 영역, 배움이 기회로 바뀌는 통로를 보여줍니다.</p><p><b>현실에서는</b> 창작, 연애, 즐거움에서 게자리의 방식으로 선택과 반응이 선명해집니다.</p></article></div>"
+    },
+    "astro_relationship_deep": {
+      "ok": true,
+      "unlocked": true,
+      "accessSource": "public",
+      "featureKey": "astro_relationship_deep",
+      "html": "<div class=\"astro-counsel-planet-grid\"><article class=\"astro-counsel-planet\"><strong>금성 · 염소자리</strong><p>관계에서 마음이 열리는 취향은 네트워크와 미래 비전에서 선명해집니다. 좋아함을 억지로 설명하기보다, 자연스럽게 머무르고 싶은 분위기를 먼저 살펴보세요.</p></article><article class=\"astro-counsel-planet\"><strong>화성 · 염소자리</strong><p>끌림이 행동으로 바뀌는 속도는 네트워크와 미래 비전에서 강하게 나타납니다. 갈등을 피하기보다, 어느 지점에서 욕구가 켜지는지 아는 것이 관계의 열쇠입니다.</p></article><article class=\"astro-counsel-planet\"><strong>7하우스 · 처녀자리</strong><p>관계는 혼자 완성한 성향을 비추는 거울입니다. 시너스트리 궁합에서는 상대의 태양·달·금성·화성이 이 문을 어떤 방식으로 건드리는지 이어서 봅니다.</p></article></div>"
+    },
+    "astro_growth_shadow_deep": {
+      "ok": true,
+      "unlocked": true,
+      "accessSource": "public",
+      "featureKey": "astro_growth_shadow_deep",
+      "html": "<div class=\"astro-counsel-planet-grid\"><article class=\"astro-counsel-planet\"><strong>넘어야 할 과제 · 토성 염소자리</strong><p>토성은 과제와 숙련의 문턱입니다. 오래 버텨야 진짜 실력이 되는 영역, 책임을 구조로 바꾸는 방식을 가리킵니다.</p><p><b>현실에서는</b> 네트워크와 미래 비전에서 염소자리의 방식으로 선택과 반응이 선명해집니다.</p></article><article class=\"astro-counsel-planet\"><strong>변화의 압력 · 명왕성 전갈자리</strong><p>명왕성은 깊은 변화와 권력의 압력입니다. 피할 수 없어서 결국 태도와 욕망의 뿌리를 바꾸게 하는 힘입니다.</p><p><b>현실에서는</b> 철학, 여행, 고등학습에서 전갈자리의 방식으로 선택과 반응이 선명해집니다.</p></article><article class=\"astro-counsel-planet\"><strong>무의식과 직관 · 해왕성 염소자리</strong><p>해왕성은 무의식과 영감의 안개입니다. 말로 설명되기 전에 먼저 감지되는 직관, 경계가 흐려지는 지점을 보여줍니다.</p><p><b>현실에서는</b> 네트워크와 미래 비전에서 염소자리의 방식으로 선택과 반응이 선명해집니다.</p></article></div>"
+    },
+    "astro_stellar_career_room": {
+      "ok": true,
+      "unlocked": true,
+      "accessSource": "public",
+      "featureKey": "astro_stellar_career_room",
+      "html": "<article class=\"astro-stellar-reading\"><div class=\"astro-stellar-reading__kicker\">MC · 10H Ruler · 6H · ASC Ruler · Jupiter</div><h4>일과 역할: 사회에 남길 별의 이름</h4><p class=\"astro-stellar-reading__lead\">당신의 차트에서 일은 단순한 생계가 아니라, 세상에 어떤 이름으로 남을지를 묻는 자리입니다.</p><div class=\"astro-stellar-reading__chips\"><span class=\"astro-stellar-reading__chip\"><b>MC</b>사수자리</span><span class=\"astro-stellar-reading__chip\"><b>10하우스 룰러</b>목성 게자리 · 5하우스, 즉 창작, 연애, 즐거움</span><span class=\"astro-stellar-reading__chip\"><b>6하우스</b>사자자리</span><span class=\"astro-stellar-reading__chip\"><b>ASC 룰러</b>목성 게자리 · 5하우스, 즉 창작, 연애, 즐거움</span><span class=\"astro-stellar-reading__chip\"><b>목성</b>목성 게자리 · 5하우스, 즉 창작, 연애, 즐거움</span></div><div class=\"astro-stellar-reading__body\"><p><b>상담의 첫 문장</b>이 리딩은 직업명을 하나로 못 박기보다, 당신이 오래 버틸 수 있는 무대와 그 무대에서 남기는 인상을 함께 읽습니다. 차트는 직함보다 더 깊은 질문을 던집니다. 어디에서 당신의 기준이 살아나고, 어떤 일을 할 때 사람들이 당신을 다시 찾는가입니다.</p><p><b>사회적 이름</b>MC 사수자리는 세상 앞에 걸리는 간판입니다. 더 넓은 세계를 향해 의미를 찾는 화살이 강해질수록 당신은 단순히 주어진 일을 처리하는 사람보다, 방향을 정하고 기준을 남기는 사람으로 기억되기 쉽습니다.</p><p><b>커리어가 흘러가는 통로</b>10하우스 룰러인 목성은 목성 게자리 · 5하우스, 즉 창작, 연애, 즐거움에 놓여 있습니다. 이름을 얻는 사건은 갑자기 떨어지는 행운보다 창작, 연애, 즐거움을 구체적인 결과물로 만들 때 열립니다.</p><p><b>일상의 노동 리듬</b>6하우스 사자자리은 몸이 버티는 방식과 매일 반복되는 질서를 가리킵니다. 큰 목표가 있어도 하루의 리듬이 맞지 않으면 별은 쉽게 흐려집니다. 당신에게 필요한 것은 더 많은 근성이 아니라, 업무 시간과 협업 거리와 회복 주기를 정확히 맞춘 루틴입니다.</p><p><b>ASC 룰러의 시작 방식</b>ASC 룰러 목성 게자리 · 5하우스, 즉 창작, 연애, 즐거움은 당신이 일을 시작하고 사람들 앞에 등장하는 방식을 보여줍니다. 창작, 연애, 즐거움에서 먼저 몸을 움직일 때 기회가 열리며, 처음부터 완벽하게 보이려 하기보다 당신다운 속도로 문을 여는 편이 좋습니다.</p><p><b>목성이 키우는 무대</b>목성 목성 게자리 · 5하우스, 즉 창작, 연애, 즐거움은 성장의 문입니다. 배움, 신뢰, 소개, 확장 제안은 창작, 연애, 즐거움을 통해 들어옵니다. 이 별은 과장된 약속보다 꾸준히 지킨 약속을 좋아하므로, 작게 시작해도 신뢰의 기록을 남기면 무대가 점점 넓어집니다.</p><p><b>현실에서 나타나는 장면</b>일이 잘 풀릴 때 당신은 한 번에 크게 뛰기보다, 반복해서 쌓은 기준이 어느 순간 평판으로 바뀌는 흐름을 탑니다. 사람들이 당신에게 맡기고 싶은 것은 단순한 손이 아니라 판단력, 책임감, 그리고 일을 끝까지 가져가는 온도입니다.</p><p><b>피해야 할 그림자</b>성과 기준은 흐릿한데 감정 노동만 많은 자리, 책임은 많은데 권한이 없는 자리, 오래 남길 이름보다 당장의 반응만 요구하는 자리는 기운을 소모시킬 수 있습니다. 별은 당신에게 바쁜 사람이 아니라 방향을 가진 사람이 되라고 말합니다.</p><p><b>종합 처방</b>이번 달에는 대표 결과물 하나에 이름을 붙이세요. 문서, 포트폴리오, 제안서, 기록, 공개 가능한 샘플처럼 형태가 남는 것이 좋습니다. 당신의 커리어 별은 막연한 가능성보다 세상에 놓인 증거를 통해 힘을 얻습니다.</p></div><div class=\"astro-stellar-reading__notes\"><span class=\"astro-stellar-reading__note\">잘 맞는 환경: 기준, 권한, 성장 경로가 보이고 결과물을 오래 축적할 수 있는 무대</span><span class=\"astro-stellar-reading__note\">수익화 포인트: 당신의 판단 기준을 설명 가능한 언어로 바꾸면 신뢰가 가격이 됩니다</span><span class=\"astro-stellar-reading__note\">주의할 환경: 책임은 큰데 결정권이 없고, 감정 소모가 성과로 인정되지 않는 자리</span><span class=\"astro-stellar-reading__note\">30일 처방: 대표 결과물 하나, 반복 루틴 하나, 보여줄 수 있는 기록 하나를 동시에 세우기</span><span class=\"astro-stellar-reading__note\">마지막 문장: 당신의 일은 빨리 빛나는 불꽃보다 오래 방향을 비추는 별에 가깝습니다</span></div></article>"
+    },
+    "astro_stellar_talent_room": {
+      "ok": true,
+      "unlocked": true,
+      "accessSource": "public",
+      "featureKey": "astro_stellar_talent_room",
+      "html": "<article class=\"astro-stellar-reading\"><div class=\"astro-stellar-reading__kicker\">Venus · Mars · Jupiter</div><h4>재능과 끌림: 매력이 사람에게 도착하는 방식</h4><p class=\"astro-stellar-reading__lead\">금성은 좋아하는 것, 화성은 움직이게 하는 것, 목성은 그 재능이 사람들 사이에서 커지는 길입니다.</p><div class=\"astro-stellar-reading__chips\"><span class=\"astro-stellar-reading__chip\"><b>금성</b>금성 염소자리 · 11하우스, 즉 네트워크와 미래 비전</span><span class=\"astro-stellar-reading__chip\"><b>화성</b>화성 염소자리 · 11하우스, 즉 네트워크와 미래 비전</span><span class=\"astro-stellar-reading__chip\"><b>목성</b>목성 게자리 · 5하우스, 즉 창작, 연애, 즐거움</span></div><div class=\"astro-stellar-reading__body\"><p><b>상담의 첫 문장</b>당신의 매력은 큰 소리로 증명할 때보다, 스스로 좋아하는 것을 정확히 고르고 오래 다듬을 때 더 선명해집니다. 이 장은 타고난 재능을 칭찬하는 데서 멈추지 않고, 그 재능이 사람에게 어떻게 닿는지까지 읽습니다.</p><p><b>금성의 취향</b>금성 염소자리은 호감과 아름다움이 열리는 문입니다. 네트워크와 미래 비전에서 자연스럽게 기쁨이 살아나며, 좋아하는 것을 정성스럽게 고르는 태도 자체가 당신의 분위기가 됩니다. 억지로 눈에 띄려 할수록 빛은 흐려지고, 진짜 취향을 숨기지 않을수록 매력은 깊어집니다.</p><p><b>화성의 점화</b>화성 염소자리은 욕망이 행동으로 바뀌는 순간을 가리킵니다. 네트워크와 미래 비전에서 경쟁심과 용기가 켜지지만, 급하게 증명하려 하면 에너지가 흩어질 수 있습니다. 이 화성은 무작정 빠른 돌진보다 정확히 겨냥한 한 걸음에서 힘을 얻습니다.</p><p><b>목성의 확장</b>목성 목성 게자리 · 5하우스, 즉 창작, 연애, 즐거움은 재능이 사람들의 신뢰를 얻고 더 큰 장으로 퍼지는 길입니다. 창작, 연애, 즐거움과 연결된 공부, 소개, 협업, 발표를 꾸준히 열면 당신의 장점은 혼자만의 감각에서 사회적 자산으로 바뀝니다.</p><p><b>세 별의 연결</b>금성이 좋아하는 것을 고르고, 화성이 그것을 향해 몸을 움직이며, 목성이 사람들 사이로 넓힙니다. 좋아하지만 움직이지 않는 것은 취미에 머물고, 움직이지만 좋아하지 않는 것은 쉽게 지칩니다. 좋아함과 추진력과 확장이 겹치는 지점이 가장 오래 가는 재능의 별자리입니다.</p><p><b>브랜딩의 문장</b>당신에게 어울리는 표현은 과장된 포장보다 선택 기준을 보여주는 방식입니다. 왜 이것을 좋아하는지, 왜 이 방식으로 움직이는지, 왜 이 방향으로 키우고 싶은지를 말할 수 있을 때 사람들은 재능보다 먼저 당신의 결을 신뢰합니다.</p><p><b>관계에서 보이는 매력</b>대인 관계에서는 빠른 반응보다 지속되는 관심이 더 큰 매력이 됩니다. 상대가 당신에게 끌리는 순간은 화려한 연출보다, 좋아하는 것을 세심하게 기억하고 필요한 순간에 움직이는 태도에서 시작될 가능성이 큽니다.</p><p><b>과잉 사용의 그림자</b>금성이 지나치면 취향이 까다로움으로 보이고, 화성이 지나치면 다급한 증명욕으로 보이며, 목성이 지나치면 아직 익지 않은 가능성을 너무 크게 말할 수 있습니다. 매력은 넘치는 것보다 정확한 온도에서 오래 남습니다.</p><p><b>종합 처방</b>오늘부터 좋아하는 일, 바로 움직이는 일, 커질 수 있는 일을 각각 한 줄로 적으세요. 세 줄이 만나는 곳에 당신의 다음 콘텐츠, 다음 제안, 다음 관계의 문이 있습니다. 별은 이미 있는 재능을 더 선명한 선택으로 불러내라고 말합니다.</p></div><div class=\"astro-stellar-reading__notes\"><span class=\"astro-stellar-reading__note\">브랜딩 포인트: 취향을 숨기지 말고, 선택 기준과 반복되는 관심사를 보여주기</span><span class=\"astro-stellar-reading__note\">창작 포인트: 금성의 미감, 화성의 실행력, 목성의 확장성을 하나의 프로젝트에 묶기</span><span class=\"astro-stellar-reading__note\">관계 포인트: 즉각적인 반응보다 지속되는 관심과 약속 이행으로 매력을 남기기</span><span class=\"astro-stellar-reading__note\">주의할 패턴: 좋아 보이는 모든 것에 힘을 쓰다가 중심 재능이 흐려지는 것</span><span class=\"astro-stellar-reading__note\">마지막 문장: 당신의 매력은 시선을 빼앗는 빛보다 다시 돌아오게 만드는 향에 가깝습니다</span></div></article>"
+    },
+    "astro_stellar_relationship_room": {
+      "ok": true,
+      "unlocked": true,
+      "accessSource": "public",
+      "featureKey": "astro_stellar_relationship_room",
+      "html": "<article class=\"astro-stellar-reading\"><div class=\"astro-stellar-reading__kicker\">Venus · Mars · 7H</div><h4>관계의 문: 사랑이 들어오고 머무는 자리</h4><p class=\"astro-stellar-reading__lead\">관계운은 누가 맞고 틀린가보다, 어떤 문으로 서로에게 들어오고 어디에서 오래 머무는지를 볼 때 선명해집니다.</p><div class=\"astro-stellar-reading__chips\"><span class=\"astro-stellar-reading__chip\"><b>금성</b>금성 염소자리 · 11하우스, 즉 네트워크와 미래 비전</span><span class=\"astro-stellar-reading__chip\"><b>화성</b>화성 염소자리 · 11하우스, 즉 네트워크와 미래 비전</span><span class=\"astro-stellar-reading__chip\"><b>7하우스</b>처녀자리</span><span class=\"astro-stellar-reading__chip\"><b>7하우스 룰러</b>수성 염소자리 · 11하우스, 즉 네트워크와 미래 비전</span></div><div class=\"astro-stellar-reading__body\"><p><b>상담의 첫 문장</b>사랑은 단순히 좋은 사람을 만나는 문제만은 아닙니다. 어떤 분위기에서 마음이 열리고, 어떤 순간에 욕망이 움직이며, 어떤 상대 앞에서 같은 패턴을 반복하는지를 볼 때 관계의 별자리가 드러납니다.</p><p><b>금성의 애정 언어</b>금성 염소자리은 애정이 편안하게 흐르는 분위기입니다. 당신은 네트워크와 미래 비전에서 상대의 섬세함과 취향을 읽으며, 거창한 고백보다 반복되는 태도에서 마음을 여는 편입니다. 이 금성은 마음을 급히 몰아붙이는 사랑보다, 천천히 취향과 신뢰를 나누는 사랑에서 부드럽게 빛납니다.</p><p><b>화성의 끌림과 갈등</b>화성 염소자리은 관계 안에서 욕망과 갈등이 켜지는 지점입니다. 네트워크와 미래 비전에서 먼저 다가가거나 방어적으로 반응하기 쉬우므로, 감정이 빨라질수록 원하는 것을 정확히 말해야 합니다. 화성은 침묵 속에서 추측하게 만들 때보다 솔직한 방향을 가질 때 건강하게 움직입니다.</p><p><b>7하우스의 상대상</b>7하우스 처녀자리은 당신이 관계에서 자주 마주치는 거울입니다. 이상하게 끌리는 사람, 반복해서 부딪히는 사람, 나와 다르지만 자꾸 의식되는 사람이 이 문을 통해 들어옵니다. 상대에게 끌리는 이유와 불편해지는 이유가 같은 뿌리를 가질 수 있습니다.</p><p><b>7하우스 룰러의 생활화</b>7하우스 룰러 수성 염소자리 · 11하우스, 즉 네트워크와 미래 비전은 관계가 실제 생활에서 어디로 흘러가는지를 보여줍니다. 네트워크와 미래 비전을 존중하는 약속이 있을 때 설렘은 잠깐의 불꽃에서 안정된 온기로 바뀝니다.</p><p><b>궁합에서 먼저 볼 것</b>시너스트리에서는 상대의 태양, 달, 금성, 화성이 당신의 금성·화성·7하우스 문을 어떻게 건드리는지 함께 봐야 합니다. 끌림이 강하다고 곧 안정적인 것은 아니며, 편안하다고 반드시 설레지 않는 것도 아닙니다. 두 사람의 별은 끌림과 생활 리듬을 따로 읽을 때 더 정확합니다.</p><p><b>잘 맞는 상대의 분위기</b>당신에게 오래 남는 사람은 감정을 크게 흔드는 사람보다, 당신의 애정 언어를 배우려는 사람일 가능성이 큽니다. 마음이 열리는 속도를 존중하고, 갈등이 생겼을 때 회피보다 조율을 선택하는 상대와 관계의 별이 안정됩니다.</p><p><b>관계가 깨지는 패턴</b>좋아함을 증명하려고 너무 빨리 결론을 내리거나, 상대가 내 마음을 알아서 읽어주길 기다리는 태도는 관계의 문을 흐리게 할 수 있습니다. 금성은 애정을 원하고, 화성은 방향을 원하며, 7하우스는 상호성을 원합니다. 이 셋 중 하나가 빠지면 설렘이 쉽게 피로가 됩니다.</p><p><b>종합 처방</b>상대에게 바라는 태도 하나와 내가 지킬 태도 하나를 따로 적으세요. 궁합은 운명처럼 찾아오는 것이기도 하지만, 반복해서 선택하는 태도 속에서 자라는 것이기도 합니다. 별은 당신에게 사랑을 서두르기보다 사랑이 머무를 자리를 만들라고 말합니다.</p></div><div class=\"astro-stellar-reading__notes\"><span class=\"astro-stellar-reading__note\">궁합 포인트: 끌림의 강도, 감정 회복 방식, 생활 약속의 안정성을 따로 확인하기</span><span class=\"astro-stellar-reading__note\">시너스트리 포인트: 상대의 태양·달·금성·화성이 내 금성·화성·7하우스를 어떻게 건드리는지 보기</span><span class=\"astro-stellar-reading__note\">주의할 패턴: 좋아함을 증명하려고 관계의 속도를 억지로 빠르게 만들기</span><span class=\"astro-stellar-reading__note\">관계 처방: 원하는 것 하나, 불편한 것 하나, 지킬 수 있는 약속 하나를 말로 꺼내기</span><span class=\"astro-stellar-reading__note\">마지막 문장: 당신의 사랑은 문을 활짝 여는 순간보다, 문을 닫지 않고 지켜내는 태도에서 깊어집니다</span></div></article>"
+    },
+    "astro_stellar_growth_room": {
+      "ok": true,
+      "unlocked": true,
+      "accessSource": "public",
+      "featureKey": "astro_stellar_growth_room",
+      "html": "<article class=\"astro-stellar-reading\"><div class=\"astro-stellar-reading__kicker\">Saturn · Pluto · Neptune</div><h4>과제와 변화: 오래된 안개를 통과하는 법</h4><p class=\"astro-stellar-reading__lead\">토성은 반복 훈련, 명왕성은 통제와 상실의 문, 해왕성은 이상화와 영감의 안개입니다.</p><div class=\"astro-stellar-reading__chips\"><span class=\"astro-stellar-reading__chip\"><b>토성</b>토성 염소자리 · 11하우스, 즉 네트워크와 미래 비전</span><span class=\"astro-stellar-reading__chip\"><b>명왕성</b>명왕성 전갈자리 · 9하우스, 즉 철학, 여행, 고등학습</span><span class=\"astro-stellar-reading__chip\"><b>해왕성</b>해왕성 염소자리 · 11하우스, 즉 네트워크와 미래 비전</span></div><div class=\"astro-stellar-reading__body\"><p><b>상담의 첫 문장</b>이 장은 삶에서 자꾸 반복되는 무거운 감각을 벌로 보지 않습니다. 느리게 오는 별들은 우리를 급히 흔들기보다, 오래된 습관과 두려움과 환상을 차례로 벗기며 더 진실한 형태로 데려갑니다.</p><p><b>토성의 문턱</b>토성 염소자리은 오래 버텨야 실력이 되는 자리를 가리킵니다. 네트워크와 미래 비전에서 느린 진전이나 책임감이 반복될 수 있지만, 바로 그 영역에서 당신의 신뢰가 가장 단단하게 자랍니다. 토성은 빠른 위로보다 지킬 수 있는 구조를 요구합니다.</p><p><b>토성이 주는 훈련</b>같은 문제가 반복된다면 그것은 실패의 표시라기보다 아직 뼈대가 필요한 자리일 수 있습니다. 일정, 계약, 비용, 역할, 마감처럼 확인 가능한 언어로 삶을 정리할 때 토성의 압박은 두려움이 아니라 실력으로 바뀝니다.</p><p><b>명왕성의 깊은 전환</b>명왕성 전갈자리은 피하고 싶어도 결국 뿌리째 바꾸게 되는 주제입니다. 철학, 여행, 고등학습에서 통제하려는 마음이 강해질수록, 무엇을 잃을까 두려운지 먼저 보아야 합니다. 명왕성은 빼앗기 위해 오는 별이 아니라, 더 이상 낡은 방식으로는 살 수 없음을 알려주는 별입니다.</p><p><b>명왕성 해석의 주의점</b>명왕성은 세대 행성이므로 사인 하나만으로 개인의 운명을 단정하지 않습니다. 다만 이 별이 놓인 하우스와 개인 행성과의 접촉이 강할수록, 그 주제는 삶에서 더 개인적인 전환점으로 드러납니다. 이 리딩은 그 깊은 층을 조심스럽게 여는 첫 문입니다.</p><p><b>해왕성의 안개</b>해왕성 염소자리은 영감과 혼란이 함께 오는 자리입니다. 네트워크와 미래 비전에서 이상화가 일어나기 쉬우므로, 아름다운 감각을 살리되 약속과 경계는 글로 남기는 편이 안전합니다. 해왕성은 꿈을 주지만, 경계가 없을 때 피로도 함께 데려옵니다.</p><p><b>현실로 돌아오는 의식</b>불안이 커질 때는 마음을 더 파헤치기보다 현실의 작은 증거를 확인하세요. 오늘 지킬 약속, 실제로 가진 돈, 몸이 쉬어야 할 시간, 상대가 말한 문장처럼 손에 잡히는 것들이 해왕성의 안개를 걷어냅니다.</p><p><b>세 별의 연결</b>토성이 구조를 세우고, 해왕성이 마음의 진짜 소망을 들려주며, 명왕성이 더 이상 예전 방식으로 돌아갈 수 없는 전환점을 만듭니다. 이 셋은 빠른 해결보다 반복 관찰에 강합니다. 당신은 지금 고장 난 것이 아니라 오래된 껍질을 벗는 중일 수 있습니다.</p><p><b>종합 처방</b>미뤄온 문제 하나를 고르되 바로 해결하려 들지 마세요. 먼저 15분 동안 같은 장면이 언제 반복되는지, 그때 무엇을 통제하려 하는지, 어떤 환상을 붙잡고 있는지 적어보세요. 별은 해결보다 자각이 먼저라고 말합니다.</p></div><div class=\"astro-stellar-reading__notes\"><span class=\"astro-stellar-reading__note\">회복 포인트: 애매한 불안을 일정, 비용, 약속, 역할처럼 확인 가능한 언어로 바꾸기</span><span class=\"astro-stellar-reading__note\">경계 포인트: 연민과 책임을 구분하고, 아름다운 말보다 실제 행동을 기준으로 삼기</span><span class=\"astro-stellar-reading__note\">명왕성 포인트: 잃을까 두려운 것을 적으면 통제의 뿌리가 보입니다</span><span class=\"astro-stellar-reading__note\">주의할 패턴: 구원자 역할을 맡거나, 모든 것을 혼자 통제하려 하거나, 불편한 진실을 환상으로 덮기</span><span class=\"astro-stellar-reading__note\">마지막 문장: 당신의 변화는 무너짐이 아니라 더 진실한 형태로 다시 태어나는 과정입니다</span></div></article>"
+    },
+    "astro_yearly_transit": {
+      "ok": true,
+      "unlocked": true,
+      "accessSource": "public",
+      "featureKey": "astro_yearly_transit",
+      "reading": {
+        "from": "2026-11-14",
+        "to": "2027-11-13",
+        "rangeLabel": "2026년 11월 14일 ~ 2027년 11월 13일",
+        "preview": {
+          "month": "2026년 11월",
+          "line": "앞으로 12개월 중 흐름이 가장 두드러지는 달은 2026년 11월이에요.",
+          "sub": "일·연애·돈·관계·건강에서 계획을 돌아볼 기간과 날짜를 살펴보세요."
+        },
+        "theme": [
+          "2026년 2월 3일 ~ 2027년 2월 2일: 올해의 주제는 '나 자신과 몸'이에요. 올해를 이끄는 별은 목성 — 배움과 기회로 무대가 넓어지는 해예요.",
+          "2027년 2월 3일 ~ 2028년 2월 2일: 다음 생일부터의 주제는 '돈과 소유'예요. 이끄는 별은 화성 — 용기 내어 밀어붙이고 경쟁하는 해예요.",
+          "2021~2030년은 인생 시기 지도에서 달의 시기예요 — 집·가족·마음의 뿌리를 돌보는 시기. 그중 2026~2027년은 태양의 결이 더해져요."
+        ],
+        "big": [
+          {
+            "key": "Uranus-ASC-square",
+            "range": "2026년 5월 11일 ~ 2028년 3월 30일",
+            "text": "천왕성이 당신의 첫인상과 부딪혀요 — 몸과 태도 쪽에서 갑작스러운 변경이 생기기 쉬워요.",
+            "peak": "가장 강한 날(별이 앞뒤로 오가며 2번 닿아요): 2026년 11월 22일, 2027년 4월 23일",
+            "action": "일정 사이에 30분씩 여유를 두세요."
+          },
+          {
+            "key": "Saturn-Sun-sextile",
+            "range": "2026년 5월 17일 ~ 2027년 4월 1일",
+            "text": "토성이 당신의 태양을 살짝 도와요 — 자신감과 방향 쪽에서 꾸준히 해 온 것이 인정받아요.",
+            "peak": "가장 강한 날: 2027년 3월 8일",
+            "action": "장기 계획 하나를 날짜까지 정해 적어 두세요."
+          },
+          {
+            "key": "Saturn-MC-trine",
+            "range": "2026년 5월 28일 ~ 2027년 4월 10일",
+            "text": "토성이 당신의 일과 평판을 편하게 도와요 — 일과 평판 쪽에서 꾸준히 해 온 것이 인정받아요.",
+            "peak": "가장 강한 날: 2027년 3월 16일",
+            "action": "장기 계획 하나를 날짜까지 정해 적어 두세요."
+          },
+          {
+            "key": "Jupiter-ASC-opposition",
+            "range": "2027년 7월 30일 ~ 8월 27일",
+            "text": "목성이 당신의 첫인상과 마주 서요 — 몸과 태도 쪽에서 욕심이 커져 무리하기 쉬워요.",
+            "peak": "가장 강한 날: 2027년 8월 13일",
+            "action": "약속과 지출은 평소의 80%만 하세요."
+          }
+        ],
+        "months": [
+          {
+            "key": "2026-11",
+            "label": "2026년 11월",
+            "level": "top",
+            "levelLabel": "가장 큰 달",
+            "items": [
+              "11월 14일: 금성이 다시 앞으로 가요. 미뤄 둔 구매·고백을 진행해도 좋아요.",
+              "11월 14일: 수성이 다시 앞으로 가요. 미뤄 둔 계약·연락을 진행해도 좋아요.",
+              "11월 22일: 천왕성이 당신의 첫인상과 부딪히는 흐름이 가장 강해져요."
+            ]
+          },
+          {
+            "key": "2026-12",
+            "label": "2026년 12월",
+            "level": "mid",
+            "levelLabel": "보통",
+            "items": [
+              "12월 9일 새 달(사수자리): '일과 평판' 영역에서 새로 시작할 일을 정하기 좋은 날이에요.",
+              "12월 24일 보름달(게자리): '집과 가족' 쪽 결과가 드러나고 감정이 커지는 날이에요."
+            ]
+          },
+          {
+            "key": "2027-01",
+            "label": "2027년 1월",
+            "level": "mid",
+            "levelLabel": "보통",
+            "items": [
+              "1월 8일 새 달(염소자리): '친구와 모임' 영역에서 새로 시작할 일을 정하기 좋은 날이에요.",
+              "1월 10일: 화성 역행이 시작돼요(4월 1일까지). 새 일보다 하던 일을 마무리하세요.",
+              "1월 22일 보름달(사자자리): '일과와 건강 관리' 쪽 결과가 드러나고 감정이 커지는 날이에요."
+            ]
+          },
+          {
+            "key": "2027-02",
+            "label": "2027년 2월",
+            "level": "big",
+            "levelLabel": "큰 달",
+            "items": [
+              "2월 7일 일식: '휴식과 혼자만의 시간' 영역에서 하나가 끝나고 새로 시작되는 신호예요.",
+              "2월 21일 월식: 당신의 첫인상에 닿는 월식이라 몸과 태도 쪽에 큰 전환점이 와요.",
+              "2월 28일: 해왕성이 당신의 화성과 부딪히는 흐름이 가장 강해져요."
+            ]
+          },
+          {
+            "key": "2027-03",
+            "label": "2027년 3월",
+            "level": "big",
+            "levelLabel": "큰 달",
+            "items": [
+              "3월 3일: 수성이 다시 앞으로 가요. 미뤄 둔 계약·연락을 진행해도 좋아요.",
+              "3월 8일: 토성이 당신의 태양을 살짝 돕는 흐름이 가장 강해져요.",
+              "3월 16일: 토성이 당신의 일과 평판을 편하게 돕는 흐름이 가장 강해져요."
+            ]
+          },
+          {
+            "key": "2027-04",
+            "label": "2027년 4월",
+            "level": "big",
+            "levelLabel": "큰 달",
+            "items": [
+              "4월 1일: 토성이 당신의 태양을 살짝 돕는 흐름이 마무리돼요.",
+              "4월 14일부터: 토성이 당신의 금성과 부딪히는 흐름이 시작돼요.",
+              "4월 23일: 천왕성이 당신의 첫인상과 부딪히는 흐름이 가장 강해져요."
+            ]
+          },
+          {
+            "key": "2027-05",
+            "label": "2027년 5월",
+            "level": "calm",
+            "levelLabel": "잔잔한 달",
+            "items": [
+              "5월 8일: 목성이 당신의 일과 평판을 편하게 돕는 흐름이 마무리돼요.",
+              "5월 9일: 토성이 당신의 금성과 부딪히는 흐름이 가장 강해져요.",
+              "5월 26일: 목성이 당신의 달과 부딪히는 흐름이 마무리돼요."
+            ]
+          },
+          {
+            "key": "2027-06",
+            "label": "2027년 6월",
+            "level": "calm",
+            "levelLabel": "잔잔한 달",
+            "items": [
+              "6월 5일 새 달(쌍둥이자리): '연락과 가까운 이동' 영역에서 새로 시작할 일을 정하기 좋은 날이에요.",
+              "6월 11일: 수성 역행이 시작돼요(7월 5일까지). 연락·계약은 한 번 더 확인하세요.",
+              "6월 19일 보름달(사수자리): '일과 평판' 쪽 결과가 드러나고 감정이 커지는 날이에요."
+            ]
+          },
+          {
+            "key": "2027-07",
+            "label": "2027년 7월",
+            "level": "mid",
+            "levelLabel": "보통",
+            "items": [
+              "7월 19일 월식: '친구와 모임' 영역에서 하나가 끝나고 새로 시작되는 신호예요.",
+              "7월 27일부터: 목성이 당신의 화성을 편하게 돕는 흐름이 시작돼요.",
+              "7월 30일부터: 목성이 당신의 첫인상과 마주 서는 흐름이 시작돼요."
+            ]
+          },
+          {
+            "key": "2027-08",
+            "label": "2027년 8월",
+            "level": "mid",
+            "levelLabel": "보통",
+            "items": [
+              "8월 2일 일식: '일과와 건강 관리' 영역에서 하나가 끝나고 새로 시작되는 신호예요.",
+              "8월 13일: 목성이 당신의 첫인상과 마주 서는 흐름이 가장 강해져요.",
+              "8월 17일 월식: '휴식과 혼자만의 시간' 영역에서 하나가 끝나고 새로 시작되는 신호예요."
+            ]
+          },
+          {
+            "key": "2027-09",
+            "label": "2027년 9월",
+            "level": "calm",
+            "levelLabel": "잔잔한 달",
+            "items": [
+              "9월 1일 새 달(처녀자리): '파트너와 1:1 관계' 영역에서 새로 시작할 일을 정하기 좋은 날이에요.",
+              "9월 20일부터: 목성이 당신의 일과 평판과 부딪히는 흐름이 시작돼요.",
+              "9월 28일부터: 목성이 당신의 달을 편하게 돕는 흐름이 시작돼요."
+            ]
+          },
+          {
+            "key": "2027-10",
+            "label": "2027년 10월",
+            "level": "mid",
+            "levelLabel": "보통",
+            "items": [
+              "10월 4일: 목성이 당신의 일과 평판과 부딪히는 흐름이 가장 강해져요.",
+              "10월 7일: 수성 역행이 시작돼요(10월 28일까지). 연락·계약은 한 번 더 확인하세요.",
+              "10월 13일: 목성이 당신의 달을 편하게 돕는 흐름이 가장 강해져요."
+            ]
+          }
+        ],
+        "fields": [
+          {
+            "id": "work",
+            "label": "일",
+            "good": [
+              "2026년 5월 17일 ~ 2027년 4월 1일: 토성이 당신의 태양을 살짝 도와요 — 일에서 기회를 잡고 성과를 보이기 좋아요. 가장 강한 날은 2027년 3월 8일이에요.",
+              "2026년 5월 28일 ~ 2027년 4월 10일: 토성이 당신의 일과 평판을 편하게 도와요 — 꾸준히 해 온 것이 인정받아요. 가장 강한 날은 2027년 3월 16일이에요."
+            ],
+            "caution": [
+              "지금 ~ 2028년 3월 22일: 해왕성이 당신의 화성과 부딪혀요 — 착각하거나 흐려지기 쉬워요. 가장 강한 날은 2027년 2월 28일이에요.",
+              "2026년 10월 24일 ~ 11월 14일, 2027년 2월 10일 ~ 3월 3일, 2027년 6월 11일 ~ 7월 5일, 2027년 10월 7일 ~ 10월 28일: 수성 역행 — 계약·서류는 한 번 더 확인하세요.",
+              "2027년 9월 20일 ~ 2028년 5월 29일: 목성이 당신의 일과 평판과 부딪혀요 — 책임이 늘고 일정이 빡빡해지기 쉬워요. 가장 강한 날은 2027년 10월 4일이에요."
+            ]
+          },
+          {
+            "id": "love",
+            "label": "연애",
+            "good": [
+              "2027년 10월 22일 ~ 2028년 7월 26일: 목성이 당신의 금성을 편하게 도와요 — 마음을 표현하고 만남을 늘리기 좋아요. 가장 강한 날은 2027년 11월 8일이에요."
+            ],
+            "caution": [
+              "2026년 10월 3일 ~ 11월 14일: 금성 역행 — 지난 인연이 떠오르기 쉬워요. 새 고백보다 지금 관계를 돌보세요.",
+              "2027년 4월 14일 ~ 2028년 2월 26일: 토성이 당신의 금성과 부딪혀요 — 관계가 시험받거나 거리가 생기기 쉬워요. 가장 강한 날은 2027년 5월 9일이에요."
+            ]
+          },
+          {
+            "id": "money",
+            "label": "돈",
+            "good": [
+              "2027년 10월 22일 ~ 2028년 7월 26일: 목성이 당신의 금성을 편하게 도와요 — 수입을 늘리거나 협상하기 좋아요. 가장 강한 날은 2027년 11월 8일이에요."
+            ],
+            "caution": [
+              "2026년 10월 3일 ~ 11월 14일: 금성 역행 — 큰 구매나 투자는 이 기간 뒤로 미루세요.",
+              "2027년 4월 14일 ~ 2028년 2월 26일: 토성이 당신의 금성과 부딪혀요 — 지출이 커지거나 돈 문제를 정리해야 할 수 있어요. 가장 강한 날은 2027년 5월 9일이에요."
+            ]
+          },
+          {
+            "id": "people",
+            "label": "관계",
+            "good": [
+              "2027년 9월 28일 ~ 2028년 6월 21일: 목성이 당신의 달을 편하게 도와요 — 도움을 주고받고 인맥을 넓히기 좋아요. 가장 강한 날은 2027년 10월 13일이에요."
+            ],
+            "caution": [
+              "2026년 9월 1일 ~ 2027년 5월 26일: 목성이 당신의 달과 부딪혀요 — 오해나 갈등이 생기기 쉬워요.",
+              "2026년 10월 24일 ~ 11월 14일, 2027년 2월 10일 ~ 3월 3일, 2027년 6월 11일 ~ 7월 5일, 2027년 10월 7일 ~ 10월 28일: 수성 역행 — 말이 엇갈리기 쉬우니 중요한 얘기는 글로 남기세요."
+            ]
+          },
+          {
+            "id": "health",
+            "label": "건강",
+            "good": [
+              "2026년 5월 17일 ~ 2027년 4월 1일: 토성이 당신의 태양을 살짝 도와요 — 몸을 만들고 새 습관을 들이기 좋아요. 가장 강한 날은 2027년 3월 8일이에요.",
+              "2027년 9월 28일 ~ 2028년 6월 21일: 목성이 당신의 달을 편하게 도와요 — 기회와 도움이 들어와요. 가장 강한 날은 2027년 10월 13일이에요."
+            ],
+            "caution": [
+              "지금 ~ 2028년 3월 22일: 해왕성이 당신의 화성과 부딪혀요 — 착각하거나 흐려지기 쉬워요. 가장 강한 날은 2027년 2월 28일이에요.",
+              "2026년 5월 11일 ~ 2028년 3월 30일: 천왕성이 당신의 첫인상과 부딪혀요 — 쉽게 지치니 잠과 휴식을 먼저 챙기세요. 가장 강한 날은 2026년 11월 22일, 2027년 4월 23일이에요.",
+              "2027년 7월 30일 ~ 8월 27일: 목성이 당신의 첫인상과 마주 서요 — 욕심이 커져 무리하기 쉬워요. 가장 강한 날은 2027년 8월 13일이에요."
+            ]
+          }
+        ],
+        "timeNote": "",
+        "evidence": [
+          "계산: 느린 별(목성·토성·천왕성·해왕성·명왕성)이 출생 태양·달·상승점(ASC)·천정(MC)·금성·화성과 3° 안으로 만나는 기간을 하루 단위로 훑고, 정확한 날은 시간 단위까지 좁혔어요.",
+          "천왕성 사각(90°) 출생 상승점(ASC) · 정확한 날 2026-07-04, 2026-11-22, 2027-04-23 · 3° 안 2026-05-11~2028-03-30 · 출생 차트 3번째 집(하우스)",
+          "토성 육분(60°) 출생 태양 · 정확한 날 2026-06-24, 2026-08-28, 2027-03-08 · 3° 안 2026-05-17~2027-04-01 · 출생 차트 1번째 집(하우스)",
+          "토성 삼분(120°) 출생 천정(MC) · 정확한 날 2027-03-16 · 3° 안 2026-05-28~2027-04-10 · 출생 차트 1번째 집(하우스)",
+          "목성 대립(180°) 출생 상승점(ASC) · 정확한 날 2027-08-13 · 3° 안 2027-07-30~2027-08-27 · 출생 차트 7번째 집(하우스)",
+          "금성 역행: 2026-10-03 16:08 ~ 2026-11-14 09:23",
+          "수성 역행: 2026-10-24 16:08 ~ 2026-11-14 01:08",
+          "화성 역행: 2027-01-10 22:08 ~ 2027-04-01 22:53",
+          "수성 역행: 2027-02-10 02:38 ~ 2027-03-03 21:23",
+          "수성 역행: 2027-06-11 03:23 ~ 2027-07-05 04:53",
+          "수성 역행: 2027-10-07 23:38 ~ 2027-10-28 22:53",
+          "일식(금환): 2027-02-07 00:59 · 물병자리 17.6°",
+          "월식(반영): 2027-02-21 08:12 · 처녀자리 2.0° · 출생 첫인상 대립(180°) 오차 1.9°",
+          "월식(반영): 2027-07-19 01:02 · 염소자리 26.0°",
+          "일식(개기): 2027-08-02 19:06 · 사자자리 9.9°",
+          "월식(반영): 2027-08-17 16:13 · 물병자리 24.1°",
+          "올해의 주제: 만 36세 → 상승점에서 1번째 집(물고기자리), 그 별자리의 주인 별 목성(연주 프로펙션)",
+          "인생 시기 지도: 낮 차트 순서의 피르다리아 · 달 2021~2030년",
+          "시각은 기기 시간대 기준이에요."
+        ]
+      },
+      "html": "<div class=\"as-year-body\"><h4 class=\"as-h4\">올해의 주제</h4><ul class=\"as-bullets as-year-theme\"><li>2026년 2월 3일 ~ 2027년 2월 2일: 올해의 주제는 &#39;나 자신과 몸&#39;이에요. 올해를 이끄는 별은 목성 — 배움과 기회로 무대가 넓어지는 해예요.</li><li>2027년 2월 3일 ~ 2028년 2월 2일: 다음 생일부터의 주제는 &#39;돈과 소유&#39;예요. 이끄는 별은 화성 — 용기 내어 밀어붙이고 경쟁하는 해예요.</li><li>2021~2030년은 인생 시기 지도에서 달의 시기예요 — 집·가족·마음의 뿌리를 돌보는 시기. 그중 2026~2027년은 태양의 결이 더해져요.</li></ul><h4 class=\"as-h4\">큰 사건</h4><ol class=\"as-year-big\"><li data-key=\"Uranus-ASC-square\"><p class=\"as-year-when\">2026년 5월 11일 ~ 2028년 3월 30일</p><p class=\"as-year-text\">천왕성이 당신의 첫인상과 부딪혀요 — 몸과 태도 쪽에서 갑작스러운 변경이 생기기 쉬워요.</p><p class=\"as-year-peak\">가장 강한 날(별이 앞뒤로 오가며 2번 닿아요): 2026년 11월 22일, 2027년 4월 23일</p><p class=\"as-action\"><span class=\"as-label\">이렇게 하세요</span>일정 사이에 30분씩 여유를 두세요.</p></li><li data-key=\"Saturn-Sun-sextile\"><p class=\"as-year-when\">2026년 5월 17일 ~ 2027년 4월 1일</p><p class=\"as-year-text\">토성이 당신의 태양을 살짝 도와요 — 자신감과 방향 쪽에서 꾸준히 해 온 것이 인정받아요.</p><p class=\"as-year-peak\">가장 강한 날: 2027년 3월 8일</p><p class=\"as-action\"><span class=\"as-label\">이렇게 하세요</span>장기 계획 하나를 날짜까지 정해 적어 두세요.</p></li><li data-key=\"Saturn-MC-trine\"><p class=\"as-year-when\">2026년 5월 28일 ~ 2027년 4월 10일</p><p class=\"as-year-text\">토성이 당신의 일과 평판을 편하게 도와요 — 일과 평판 쪽에서 꾸준히 해 온 것이 인정받아요.</p><p class=\"as-year-peak\">가장 강한 날: 2027년 3월 16일</p><p class=\"as-action\"><span class=\"as-label\">이렇게 하세요</span>장기 계획 하나를 날짜까지 정해 적어 두세요.</p></li><li data-key=\"Jupiter-ASC-opposition\"><p class=\"as-year-when\">2027년 7월 30일 ~ 8월 27일</p><p class=\"as-year-text\">목성이 당신의 첫인상과 마주 서요 — 몸과 태도 쪽에서 욕심이 커져 무리하기 쉬워요.</p><p class=\"as-year-peak\">가장 강한 날: 2027년 8월 13일</p><p class=\"as-action\"><span class=\"as-label\">이렇게 하세요</span>약속과 지출은 평소의 80%만 하세요.</p></li></ol><h4 class=\"as-h4\">달마다 볼 날</h4><ol class=\"as-year-months\"><li data-month=\"2026-11\" data-level=\"top\"><p class=\"as-year-month\"><strong>2026년 11월</strong><span class=\"as-year-level\">가장 큰 달</span></p><ul class=\"as-year-items\"><li>11월 14일: 금성이 다시 앞으로 가요. 미뤄 둔 구매·고백을 진행해도 좋아요.</li><li>11월 14일: 수성이 다시 앞으로 가요. 미뤄 둔 계약·연락을 진행해도 좋아요.</li><li>11월 22일: 천왕성이 당신의 첫인상과 부딪히는 흐름이 가장 강해져요.</li></ul></li><li data-month=\"2026-12\" data-level=\"mid\"><p class=\"as-year-month\"><strong>2026년 12월</strong><span class=\"as-year-level\">보통</span></p><ul class=\"as-year-items\"><li>12월 9일 새 달(사수자리): &#39;일과 평판&#39; 영역에서 새로 시작할 일을 정하기 좋은 날이에요.</li><li>12월 24일 보름달(게자리): &#39;집과 가족&#39; 쪽 결과가 드러나고 감정이 커지는 날이에요.</li></ul></li><li data-month=\"2027-01\" data-level=\"mid\"><p class=\"as-year-month\"><strong>2027년 1월</strong><span class=\"as-year-level\">보통</span></p><ul class=\"as-year-items\"><li>1월 8일 새 달(염소자리): &#39;친구와 모임&#39; 영역에서 새로 시작할 일을 정하기 좋은 날이에요.</li><li>1월 10일: 화성 역행이 시작돼요(4월 1일까지). 새 일보다 하던 일을 마무리하세요.</li><li>1월 22일 보름달(사자자리): &#39;일과와 건강 관리&#39; 쪽 결과가 드러나고 감정이 커지는 날이에요.</li></ul></li><li data-month=\"2027-02\" data-level=\"big\"><p class=\"as-year-month\"><strong>2027년 2월</strong><span class=\"as-year-level\">큰 달</span></p><ul class=\"as-year-items\"><li>2월 7일 일식: &#39;휴식과 혼자만의 시간&#39; 영역에서 하나가 끝나고 새로 시작되는 신호예요.</li><li>2월 21일 월식: 당신의 첫인상에 닿는 월식이라 몸과 태도 쪽에 큰 전환점이 와요.</li><li>2월 28일: 해왕성이 당신의 화성과 부딪히는 흐름이 가장 강해져요.</li></ul></li><li data-month=\"2027-03\" data-level=\"big\"><p class=\"as-year-month\"><strong>2027년 3월</strong><span class=\"as-year-level\">큰 달</span></p><ul class=\"as-year-items\"><li>3월 3일: 수성이 다시 앞으로 가요. 미뤄 둔 계약·연락을 진행해도 좋아요.</li><li>3월 8일: 토성이 당신의 태양을 살짝 돕는 흐름이 가장 강해져요.</li><li>3월 16일: 토성이 당신의 일과 평판을 편하게 돕는 흐름이 가장 강해져요.</li></ul></li><li data-month=\"2027-04\" data-level=\"big\"><p class=\"as-year-month\"><strong>2027년 4월</strong><span class=\"as-year-level\">큰 달</span></p><ul class=\"as-year-items\"><li>4월 1일: 토성이 당신의 태양을 살짝 돕는 흐름이 마무리돼요.</li><li>4월 14일부터: 토성이 당신의 금성과 부딪히는 흐름이 시작돼요.</li><li>4월 23일: 천왕성이 당신의 첫인상과 부딪히는 흐름이 가장 강해져요.</li></ul></li><li data-month=\"2027-05\" data-level=\"calm\"><p class=\"as-year-month\"><strong>2027년 5월</strong><span class=\"as-year-level\">잔잔한 달</span></p><ul class=\"as-year-items\"><li>5월 8일: 목성이 당신의 일과 평판을 편하게 돕는 흐름이 마무리돼요.</li><li>5월 9일: 토성이 당신의 금성과 부딪히는 흐름이 가장 강해져요.</li><li>5월 26일: 목성이 당신의 달과 부딪히는 흐름이 마무리돼요.</li></ul></li><li data-month=\"2027-06\" data-level=\"calm\"><p class=\"as-year-month\"><strong>2027년 6월</strong><span class=\"as-year-level\">잔잔한 달</span></p><ul class=\"as-year-items\"><li>6월 5일 새 달(쌍둥이자리): &#39;연락과 가까운 이동&#39; 영역에서 새로 시작할 일을 정하기 좋은 날이에요.</li><li>6월 11일: 수성 역행이 시작돼요(7월 5일까지). 연락·계약은 한 번 더 확인하세요.</li><li>6월 19일 보름달(사수자리): &#39;일과 평판&#39; 쪽 결과가 드러나고 감정이 커지는 날이에요.</li></ul></li><li data-month=\"2027-07\" data-level=\"mid\"><p class=\"as-year-month\"><strong>2027년 7월</strong><span class=\"as-year-level\">보통</span></p><ul class=\"as-year-items\"><li>7월 19일 월식: &#39;친구와 모임&#39; 영역에서 하나가 끝나고 새로 시작되는 신호예요.</li><li>7월 27일부터: 목성이 당신의 화성을 편하게 돕는 흐름이 시작돼요.</li><li>7월 30일부터: 목성이 당신의 첫인상과 마주 서는 흐름이 시작돼요.</li></ul></li><li data-month=\"2027-08\" data-level=\"mid\"><p class=\"as-year-month\"><strong>2027년 8월</strong><span class=\"as-year-level\">보통</span></p><ul class=\"as-year-items\"><li>8월 2일 일식: &#39;일과와 건강 관리&#39; 영역에서 하나가 끝나고 새로 시작되는 신호예요.</li><li>8월 13일: 목성이 당신의 첫인상과 마주 서는 흐름이 가장 강해져요.</li><li>8월 17일 월식: &#39;휴식과 혼자만의 시간&#39; 영역에서 하나가 끝나고 새로 시작되는 신호예요.</li></ul></li><li data-month=\"2027-09\" data-level=\"calm\"><p class=\"as-year-month\"><strong>2027년 9월</strong><span class=\"as-year-level\">잔잔한 달</span></p><ul class=\"as-year-items\"><li>9월 1일 새 달(처녀자리): &#39;파트너와 1:1 관계&#39; 영역에서 새로 시작할 일을 정하기 좋은 날이에요.</li><li>9월 20일부터: 목성이 당신의 일과 평판과 부딪히는 흐름이 시작돼요.</li><li>9월 28일부터: 목성이 당신의 달을 편하게 돕는 흐름이 시작돼요.</li></ul></li><li data-month=\"2027-10\" data-level=\"mid\"><p class=\"as-year-month\"><strong>2027년 10월</strong><span class=\"as-year-level\">보통</span></p><ul class=\"as-year-items\"><li>10월 4일: 목성이 당신의 일과 평판과 부딪히는 흐름이 가장 강해져요.</li><li>10월 7일: 수성 역행이 시작돼요(10월 28일까지). 연락·계약은 한 번 더 확인하세요.</li><li>10월 13일: 목성이 당신의 달을 편하게 돕는 흐름이 가장 강해져요.</li></ul></li></ol><h4 class=\"as-h4\">분야별 언제</h4><div class=\"as-year-fields\"><section data-field=\"work\"><h5 class=\"as-year-field\">일</h5><p class=\"as-label\">좋은 때</p><ul class=\"as-year-items\"><li>2026년 5월 17일 ~ 2027년 4월 1일: 토성이 당신의 태양을 살짝 도와요 — 일에서 기회를 잡고 성과를 보이기 좋아요. 가장 강한 날은 2027년 3월 8일이에요.</li><li>2026년 5월 28일 ~ 2027년 4월 10일: 토성이 당신의 일과 평판을 편하게 도와요 — 꾸준히 해 온 것이 인정받아요. 가장 강한 날은 2027년 3월 16일이에요.</li></ul><p class=\"as-label\">조심할 때</p><ul class=\"as-year-items\"><li>지금 ~ 2028년 3월 22일: 해왕성이 당신의 화성과 부딪혀요 — 착각하거나 흐려지기 쉬워요. 가장 강한 날은 2027년 2월 28일이에요.</li><li>2026년 10월 24일 ~ 11월 14일, 2027년 2월 10일 ~ 3월 3일, 2027년 6월 11일 ~ 7월 5일, 2027년 10월 7일 ~ 10월 28일: 수성 역행 — 계약·서류는 한 번 더 확인하세요.</li><li>2027년 9월 20일 ~ 2028년 5월 29일: 목성이 당신의 일과 평판과 부딪혀요 — 책임이 늘고 일정이 빡빡해지기 쉬워요. 가장 강한 날은 2027년 10월 4일이에요.</li></ul></section><section data-field=\"love\"><h5 class=\"as-year-field\">연애</h5><p class=\"as-label\">좋은 때</p><ul class=\"as-year-items\"><li>2027년 10월 22일 ~ 2028년 7월 26일: 목성이 당신의 금성을 편하게 도와요 — 마음을 표현하고 만남을 늘리기 좋아요. 가장 강한 날은 2027년 11월 8일이에요.</li></ul><p class=\"as-label\">조심할 때</p><ul class=\"as-year-items\"><li>2026년 10월 3일 ~ 11월 14일: 금성 역행 — 지난 인연이 떠오르기 쉬워요. 새 고백보다 지금 관계를 돌보세요.</li><li>2027년 4월 14일 ~ 2028년 2월 26일: 토성이 당신의 금성과 부딪혀요 — 관계가 시험받거나 거리가 생기기 쉬워요. 가장 강한 날은 2027년 5월 9일이에요.</li></ul></section><section data-field=\"money\"><h5 class=\"as-year-field\">돈</h5><p class=\"as-label\">좋은 때</p><ul class=\"as-year-items\"><li>2027년 10월 22일 ~ 2028년 7월 26일: 목성이 당신의 금성을 편하게 도와요 — 수입을 늘리거나 협상하기 좋아요. 가장 강한 날은 2027년 11월 8일이에요.</li></ul><p class=\"as-label\">조심할 때</p><ul class=\"as-year-items\"><li>2026년 10월 3일 ~ 11월 14일: 금성 역행 — 큰 구매나 투자는 이 기간 뒤로 미루세요.</li><li>2027년 4월 14일 ~ 2028년 2월 26일: 토성이 당신의 금성과 부딪혀요 — 지출이 커지거나 돈 문제를 정리해야 할 수 있어요. 가장 강한 날은 2027년 5월 9일이에요.</li></ul></section><section data-field=\"people\"><h5 class=\"as-year-field\">관계</h5><p class=\"as-label\">좋은 때</p><ul class=\"as-year-items\"><li>2027년 9월 28일 ~ 2028년 6월 21일: 목성이 당신의 달을 편하게 도와요 — 도움을 주고받고 인맥을 넓히기 좋아요. 가장 강한 날은 2027년 10월 13일이에요.</li></ul><p class=\"as-label\">조심할 때</p><ul class=\"as-year-items\"><li>2026년 9월 1일 ~ 2027년 5월 26일: 목성이 당신의 달과 부딪혀요 — 오해나 갈등이 생기기 쉬워요.</li><li>2026년 10월 24일 ~ 11월 14일, 2027년 2월 10일 ~ 3월 3일, 2027년 6월 11일 ~ 7월 5일, 2027년 10월 7일 ~ 10월 28일: 수성 역행 — 말이 엇갈리기 쉬우니 중요한 얘기는 글로 남기세요.</li></ul></section><section data-field=\"health\"><h5 class=\"as-year-field\">건강</h5><p class=\"as-label\">좋은 때</p><ul class=\"as-year-items\"><li>2026년 5월 17일 ~ 2027년 4월 1일: 토성이 당신의 태양을 살짝 도와요 — 몸을 만들고 새 습관을 들이기 좋아요. 가장 강한 날은 2027년 3월 8일이에요.</li><li>2027년 9월 28일 ~ 2028년 6월 21일: 목성이 당신의 달을 편하게 도와요 — 기회와 도움이 들어와요. 가장 강한 날은 2027년 10월 13일이에요.</li></ul><p class=\"as-label\">조심할 때</p><ul class=\"as-year-items\"><li>지금 ~ 2028년 3월 22일: 해왕성이 당신의 화성과 부딪혀요 — 착각하거나 흐려지기 쉬워요. 가장 강한 날은 2027년 2월 28일이에요.</li><li>2026년 5월 11일 ~ 2028년 3월 30일: 천왕성이 당신의 첫인상과 부딪혀요 — 쉽게 지치니 잠과 휴식을 먼저 챙기세요. 가장 강한 날은 2026년 11월 22일, 2027년 4월 23일이에요.</li><li>2027년 7월 30일 ~ 8월 27일: 목성이 당신의 첫인상과 마주 서요 — 욕심이 커져 무리하기 쉬워요. 가장 강한 날은 2027년 8월 13일이에요.</li></ul></section></div><details class=\"as-why\"><summary>왜 이렇게 봤나요</summary><ul class=\"as-ev-list\"><li>계산: 느린 별(목성·토성·천왕성·해왕성·명왕성)이 출생 태양·달·상승점(ASC)·천정(MC)·금성·화성과 3° 안으로 만나는 기간을 하루 단위로 훑고, 정확한 날은 시간 단위까지 좁혔어요.</li><li>천왕성 사각(90°) 출생 상승점(ASC) · 정확한 날 2026-07-04, 2026-11-22, 2027-04-23 · 3° 안 2026-05-11~2028-03-30 · 출생 차트 3번째 집(하우스)</li><li>토성 육분(60°) 출생 태양 · 정확한 날 2026-06-24, 2026-08-28, 2027-03-08 · 3° 안 2026-05-17~2027-04-01 · 출생 차트 1번째 집(하우스)</li><li>토성 삼분(120°) 출생 천정(MC) · 정확한 날 2027-03-16 · 3° 안 2026-05-28~2027-04-10 · 출생 차트 1번째 집(하우스)</li><li>목성 대립(180°) 출생 상승점(ASC) · 정확한 날 2027-08-13 · 3° 안 2027-07-30~2027-08-27 · 출생 차트 7번째 집(하우스)</li><li>금성 역행: 2026-10-03 16:08 ~ 2026-11-14 09:23</li><li>수성 역행: 2026-10-24 16:08 ~ 2026-11-14 01:08</li><li>화성 역행: 2027-01-10 22:08 ~ 2027-04-01 22:53</li><li>수성 역행: 2027-02-10 02:38 ~ 2027-03-03 21:23</li><li>수성 역행: 2027-06-11 03:23 ~ 2027-07-05 04:53</li><li>수성 역행: 2027-10-07 23:38 ~ 2027-10-28 22:53</li><li>일식(금환): 2027-02-07 00:59 · 물병자리 17.6°</li><li>월식(반영): 2027-02-21 08:12 · 처녀자리 2.0° · 출생 첫인상 대립(180°) 오차 1.9°</li><li>월식(반영): 2027-07-19 01:02 · 염소자리 26.0°</li><li>일식(개기): 2027-08-02 19:06 · 사자자리 9.9°</li><li>월식(반영): 2027-08-17 16:13 · 물병자리 24.1°</li><li>올해의 주제: 만 36세 → 상승점에서 1번째 집(물고기자리), 그 별자리의 주인 별 목성(연주 프로펙션)</li><li>인생 시기 지도: 낮 차트 순서의 피르다리아 · 달 2021~2030년</li><li>시각은 기기 시간대 기준이에요.</li></ul></details></div>"
+    }
+  }
+}

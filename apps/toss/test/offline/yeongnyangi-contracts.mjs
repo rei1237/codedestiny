@@ -17,6 +17,7 @@ export function productView(p){
  const parts=p.id.split('_'),domains=fusions[p.id]||[parts[0]];
  const fishId=domains.length===2?'assorted':domains.length>2?'omakase':parts[1];
  return {id:p.id,name:p.name,priceKRW:p.approvedPriceKRW,currency:'KRW',cdFeatureKey:p.featureKey,domain:domains[0],
+   image:`/assets/yeongnyangi/fish/${fishId}.webp`,reactionAsset:`/assets/yeongnyangi/fish/reaction-${fishId}.webp`,
    systems:domains,fishId,fishName:fishNames[fishId],readingKind:domains.length===1?'single':domains.length===2?'pair':'all',chapterCount:1,available:true};
 }
 export function prepareSpread(fortune,input){

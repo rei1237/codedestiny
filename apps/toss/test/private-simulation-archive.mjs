@@ -54,6 +54,7 @@ try{
   const fresh=async()=>{page=await context.newPage();page.setDefaultTimeout(45000);page.on('pageerror',error=>console.warn(error.message));};
   const enter=async()=>{
     await page.goto(origin);await page.getByLabel('비공개 모의 상담').waitFor();
+    assert.equal(await page.getByText('로그인 시간이 만료되었어요. 다시 로그인해 주세요.',{exact:true}).count(),0);
     await page.locator('.world-entry-yeongnyangi').click();
     await page.getByRole('button',{name:/서양 점성술 상담/}).first().click();
     await page.locator('#yn-question').fill('새 직장에서 어떤 장점을 살려보면 좋을까요?');
@@ -62,7 +63,11 @@ try{
     await page.getByRole('button',{name:'토스로 로그인하기'}).click();
     await page.waitForURL(/yeongnyangi\/fortune/);
   };
-  if(process.argv.includes('--vedic-reading')){const {verifyPrivateVedic}=await import('./private-vedic-reading.mjs');await verifyPrivateVedic(origin,context);assert.deepEqual(unexpected,[]);console.log('PASS private AIT Vedic reading',reader.deploymentId);
+  if(process.argv.includes('--owned-calculations')){const {verifyOwnedCalculations}=await import('./private-owned-calculations.mjs');await verifyOwnedCalculations(origin,context);assert.deepEqual(unexpected,[]);console.log('PASS private owned calculations',reader.deploymentId);
+  }else if(process.argv.includes('--astro-reading')){const {verifyPrivateAstro}=await import('./private-astro-reading.mjs');await verifyPrivateAstro(origin,context);assert.deepEqual(unexpected,[]);console.log('PASS private astrology',reader.deploymentId);
+  }else if(process.argv.includes('--sukuyo-tools')){const {verifyPrivateSukuyo}=await import('./private-sukuyo-tools.mjs');await verifyPrivateSukuyo(origin,context);assert.deepEqual(unexpected,[]);console.log('PASS private Sukuyo',reader.deploymentId);
+  }else if(process.argv.includes('--secret-house')){const {verifyPrivateSecretHouse}=await import('./private-secret-house.mjs');await verifyPrivateSecretHouse(origin,context);assert.deepEqual(unexpected,[]);console.log('PASS private Secret House',reader.deploymentId);
+  }else if(process.argv.includes('--vedic-reading')){const {verifyPrivateVedic}=await import('./private-vedic-reading.mjs');await verifyPrivateVedic(origin,context);assert.deepEqual(unexpected,[]);console.log('PASS private AIT Vedic reading',reader.deploymentId);
   }else if(process.argv.includes('--free-calculations')){const {verifyFreeCalculations}=await import('./private-free-calculation-browser.mjs');await verifyFreeCalculations(origin,context);assert.deepEqual(unexpected,[]);console.log('PASS private AIT free calculations',reader.deploymentId);
   }else if(process.argv.includes('--paid-family')){const {verifyPaidFamily}=await import('./private-paid-families.mjs');const key=process.argv[process.argv.indexOf('--paid-family')+1];await verifyPaidFamily(origin,context,key);assert.deepEqual(unexpected,[]);console.log('PASS private AIT paid family',key,reader.deploymentId);
   }else if(process.argv.includes('--maya-free')){
@@ -133,6 +138,7 @@ try{
     };
     // Leave as soon as the grant navigates; the first result page need not finish.
     await reopenFromHome();await chapter().waitFor();
+    await page.locator('img[alt="고등어를 받고 기뻐하는 영냥이"]').evaluate(img=>img.decode());
     const original=await chapter().innerText();
     await reopenFromHome();assert.equal(await chapter().innerText(),original);
     const ledger=await page.evaluate(()=>JSON.parse(localStorage.getItem('consultations')));

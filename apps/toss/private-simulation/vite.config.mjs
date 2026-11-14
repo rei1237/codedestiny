@@ -1,5 +1,6 @@
 import compressedNamingData from './compressed-naming-data.mjs';
 import privateYogaReader from './yoga-reader.mjs';
+import privateSecretHouseDocument from './secret-house-document.mjs';
 import privateSectionMetadata from './section-metadata.mjs';
 import {dirname,resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
@@ -26,6 +27,9 @@ function privateSimulation(){
     load(id){if(id==='\0private-release')return 'export const SERVICE_AVAILABLE=true,NEW_PURCHASES_AVAILABLE=true;';},
     transform(code,id){
       const from=id.replaceAll('\\','/').split('?')[0];
+      if(from.endsWith('/apps/toss/src/SukuyoBasic.tsx')){const slot='<form className="form" onSubmit={submit}>';if(!code.includes(slot))throw Error('Private Sukuyo basic example slot changed');return code.replace(slot,slot+"<p>비공개 모의 상담은 1990년 2월 3일 서울 예시를 지원해요. 시각 미상도 확인할 수 있어요.</p><Button type=\"button\" variant=\"weak\" onClick={()=>setBirth({date:'1990-02-03',time:'08:35',unknown:false,calendar:'solar',gender:'F',city:'서울'})}>모의 예시 입력하기</Button>");}
+      if(from.endsWith('/apps/toss/src/SukuyoTools.tsx')){const slot='<Reading {...props}/>';if(!code.includes(slot))throw Error('Private Sukuyo example slot changed');return code.replace(slot,"<Reading {...props} exampleBirth={{date:'1990-02-03',time:'08:35',unknown:false,calendar:'solar',gender:'F',city:'서울'}}/>");}
+      if(from.endsWith('/apps/toss/src/AstroReading.tsx')){const slot='<Reading {...props}/>';if(!code.includes(slot))throw Error('Private astrology example slot changed');return code.replace(slot,"<Reading {...props} exampleBirth={{date:'1990-02-03',time:'08:35',unknown:false,calendar:'solar',gender:'F',city:'서울'}}/>");}
       if(from.endsWith('/apps/toss/service/VedicReading.jsx')){const slot='<Reading {...props}/>';if(!code.includes(slot))throw Error('Private Vedic example slot changed');return code.replace(slot,"<Reading {...props} exampleBirth={{date:'1990-02-03',time:'08:35',unknown:false,calendar:'solar',gender:'F',city:'서울'}}/>");}
       if(from.endsWith('/apps/toss/src/platform.ts')){
         const api="const API='https://code-destiny.com/api/toss';";
@@ -45,5 +49,5 @@ function privateSimulation(){
 export default async env=>{
   if(env.command!=='build'||env.mode!=='private-simulation')throw Error('Use build:private-simulation for the isolated private archive');
   const config=await base(env);
-  return {...config,root:shell,plugins:[privateSimulation(),privateSectionMetadata(),privateYogaReader(),compressedNamingData(),...config.plugins],build:{...config.build,outDir:resolve(here,'dist')}};
+  return {...config,root:shell,plugins:[privateSimulation(),privateSectionMetadata(),privateYogaReader(),privateSecretHouseDocument(),compressedNamingData(),...config.plugins],build:{...config.build,outDir:resolve(here,'dist')}};
 };

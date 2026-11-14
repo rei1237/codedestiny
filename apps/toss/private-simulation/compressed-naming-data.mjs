@@ -13,7 +13,9 @@ export default function compressedNamingData(){
    const from=importer?.replaceAll('\\','/')||'';
    const naming=from.endsWith('/worker/naming-engine/data.ts')&&names.has(id.split('/').at(-1));
    const yearly=from.endsWith('/private-simulation/sukuyo-yearly.mjs')&&id==='./sukuyo-yearly-examples.json';
-   if(!naming&&!yearly)return;
+   const astro=from.endsWith('/private-simulation/astro-reading.mjs')&&id==='./astro-reading-example.json';
+   const sukuyo=from.endsWith('/private-simulation/sukuyo-tools.mjs')&&id==='./sukuyo-tools-examples.json';
+   if(!naming&&!yearly&&!astro&&!sukuyo)return;
    const resolved=await this.resolve(id,importer,{skipSelf:true});
    if(!resolved)throw Error('Original naming data missing: '+id);
    return '\0packed-naming:'+resolved.id+'.mjs';

@@ -50,7 +50,8 @@ test('private archive simulator serves the 28 existing consultation fixtures and
   const library=await (await request(reentry,'/library',token)).json();
   assert.equal(library.purchases.length,28);assert.ok(library.purchases.every(row=>row.serviceId==='yeongnyangi'));
   assert.ok(JSON.parse(a.getItem('consultations')).fortunes.every(([,row])=>row.generationCount===1));
-  assert.equal((await request(reentry,'/native/yoga/prepare',token,{})).status,404);
+  assert.equal((await request(reentry,'/native/unsupported/prepare',token,{})).status,404);
+  assert.equal((await request(reentry,'/native/yoga/prepare',token,{})).status,400);
   assert.equal((await request(reentry,'/library',foreign)).status,401);
 });
 
