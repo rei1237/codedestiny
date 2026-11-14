@@ -11,7 +11,7 @@
  *
  * 무엇을 강제하는가 (정본: docs/handoff/_TEMPLATE.md):
  *   ① 파일이 `---` 프론트매터로 시작한다
- *   ② `status` 가 active | blocked | done 중 하나다
+ *   ② `status` 가 in-progress | active | blocked | done 중 하나다
  *   ③ `updated` 가 YYYY-MM-DD 다 (템플릿 자신만 자리표시자 `YYYY-MM-DD` 허용)
  *   ④ `next` 가 비어 있지 않은 한 줄이다
  *
@@ -30,7 +30,7 @@ import { fileURLToPath } from 'node:url';
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const TARGET_DIR = 'docs/handoff';
 const TEMPLATE = `${TARGET_DIR}/_TEMPLATE.md`;
-const ALLOWED_STATUS = ['active', 'blocked', 'done'];
+const ALLOWED_STATUS = ['in-progress', 'active', 'blocked', 'done'];
 
 /**
  * 한 문서의 프론트매터를 검사해 위반 문자열 배열을 돌려준다. 순수 함수라 --self-test 가
@@ -100,7 +100,8 @@ function selfTest() {
     ['정상', TEMPLATE.replace('_TEMPLATE', 'sample'), good, 0],
     ['프론트매터 없음', 'docs/handoff/x.md', '# 제목\n본문\n', 1],
     ['닫히지 않음', 'docs/handoff/x.md', '---\nstatus: active\n', 1],
-    ['status 오타', 'docs/handoff/x.md', good.replace('active', 'in-progress'), 1],
+    ['사용자 지침 진행 상태', 'docs/handoff/x.md', good.replace('active', 'in-progress'), 0],
+    ['status 오타', 'docs/handoff/x.md', good.replace('active', 'working'), 1],
     ['status 누락', 'docs/handoff/x.md', good.replace('status: active\n', ''), 1],
     ['updated 형식 위반', 'docs/handoff/x.md', good.replace('2026-08-29', '2026/08/29'), 1],
     ['updated 자리표시자는 템플릿에서만 허용', 'docs/handoff/x.md', good.replace('2026-08-29', 'YYYY-MM-DD'), 1],

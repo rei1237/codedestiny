@@ -1,5 +1,5 @@
 ---
-status: active
+status: in-progress
 updated: YYYY-MM-DD
 next: <한 줄 — 이어받는 세션이 처음 할 일>
 ---
@@ -54,3 +54,5 @@ npm run ...
 - 코드·타입·설정 전문 복사 → 파일 경로와 줄번호
 - 변경 파일 목록 표 → `git diff --name-only <base>...<head>`
 - 레포 공통 규칙(워크트리·`sync:public`·머지는 사용자) → CLAUDE.md 가 매 세션 자동 로드된다
+
+진행 상태는 사용자 지침의 `in-progress`를 사용한다. 기존 `active`도 호환을 위해 허용하며, `blocked`와 `done`은 유지한다.
