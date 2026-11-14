@@ -60,7 +60,7 @@ for(const service of ['tea','neo'])test('private '+service+' persists the receip
  const products=(await (await request(api,'/native/catalog',token)).json()).products;
  const product=products.find(p=>p.id.startsWith('native:'+service+':'));
  assert.notEqual(product.sku,'mock-yeoni');assert.equal(product.approvedPriceKRW,1);
- const input={idempotencyKey:'one-request',question:'테스트 질문입니다.',selectedMethod:'saju',featureKey:product.featureKey};
+ const input={idempotencyKey:'one-request',question:'테스트 질문입니다.',method:'vedic',featureKey:product.featureKey};
  const route='/native/'+service+'/prepare';
  const row=await (await request(api,route,token,{input})).json();
  const grant={requestId:row.id,orderId:'private-order-A-one',sku:product.sku};
@@ -73,6 +73,11 @@ for(const service of ['tea','neo'])test('private '+service+' persists the receip
  assert.equal((await request(api,'/orders/grant',token,grant)).status,200);
  assert.equal((await (await request(api,route,token,{input})).json()).id,row.id);
  const result=await (await request(api,generate,token,input)).json();
+ if(service==='neo'){
+  assert.equal(result.selectedMethod,'vedic');
+  assert.equal(result.initialBriefing.selectedMethod,'vedic');
+  assert.equal((await request(api,generate,token,{...input,method:'astrology'})).status,409);
+ }
  assert.deepEqual(await (await request(createSimulationApi(data,'A'),generate,token,input)).json(),result);
  const saved=JSON.parse(data.getItem('consultations'));assert.equal(saved.orders.length,1);assert.equal(saved.intents[0][1].generationCount,1);
  const other=createSimulationApi(storage(),'B'),foreign=(await (await request(other,'/login','',{authorizationCode:'private-simulation-person-B'})).json()).token;

@@ -311,12 +311,12 @@ export async function characterRoomReading(request,url,path,state,save,now){
     const row=[...state.intents.values()].find(r=>r.service==='neo'&&
       (key&&requestKey(r.input)===key||body.sessionId&&[r.resultId,'toss_'+r.id].includes(body.sessionId)));
     if(!row?.paid)return fail('PAYMENT_REQUIRED',402);
-    if(key&&(row.input.question!==body.question||row.input.selectedMethod!==body.selectedMethod))return fail('REQUEST_INPUT_MISMATCH',409);
+    if(key&&(row.input.question!==body.question||(row.input.selectedMethod||row.input.method)!==(body.selectedMethod||body.method)))return fail('REQUEST_INPUT_MISMATCH',409);
     if(!row.result){
       const text='[테스트 전용] 네오가 저장한 브리핑 원문입니다.';
-      row.result={ok:true,id:row.resultId,sessionId:row.resultId,status:'completed',selectedMethod:row.input.selectedMethod,
+      row.result={ok:true,id:row.resultId,sessionId:row.resultId,status:'completed',selectedMethod:row.input.selectedMethod||row.input.method,
         question:row.input.question,topic:row.input.topic,intensity:row.input.intensity,
-        initialBriefing:{selectedMethod:row.input.selectedMethod,operationTitle:text,neoOpening:text,coreDiagnosis:text,
+        initialBriefing:{selectedMethod:row.input.selectedMethod||row.input.method,operationTitle:text,neoOpening:text,coreDiagnosis:text,
           frontlineSummary:text,actionOrders:[text],methodEvidence:[],sevenDayMission:[],realityCheckQuestions:[]},
         resultUrl:neo.path+'?attemptId='+encodeURIComponent(row.resultId),createdAt:row.createdAt};
       row.generationCount=1;save();
@@ -340,7 +340,7 @@ export async function characterRoomReading(request,url,path,state,save,now){
     const allowance=entries=>neoRefinementAllowance({llmMeta:{refinementHistory:entries}});
     if(!allowance(history).remaining)return fail('REFINEMENT_LIMIT_REACHED',409);
     const text='[테스트 전용] 네오의 수정 작전 원문 '+(history.length+1)+'입니다.';
-    const refinedOrder={selectedMethod:row.input.selectedMethod,operationTitle:text,neoReview:text,verdict:{status:'가상 판단',statement:text},actionAlternatives:[],peopleToMeet:[],thirtyDayStrategy:[text],tsundereClosing:text};
+    const refinedOrder={selectedMethod:row.input.selectedMethod||row.input.method,operationTitle:text,neoReview:text,verdict:{status:'가상 판단',statement:text},actionAlternatives:[],peopleToMeet:[],thirtyDayStrategy:[text],tsundereClosing:text};
     const refinements=[...history,{order:refinedOrder,realityCheck,createdAt:now().toISOString()}];
     Object.assign(result,{refinementStatus:'completed',refinedOrder,refinements,realityCheck,refinementAllowance:allowance(refinements)});
     save();return reply(result);

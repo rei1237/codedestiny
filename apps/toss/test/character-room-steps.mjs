@@ -1,5 +1,9 @@
 import assert from 'node:assert/strict';
 export const teaQuestion='새 직무에서 무엇을 먼저 준비할까요?';
+const neoMethods={saju:'사주',ziwei:'자미두수',vedic:'베다점',astrology:'점성술'};
+const neoFlag=process.argv.indexOf('--neo-method');
+export const neoMethod=neoFlag<0?'saju':process.argv[neoFlag+1];
+assert.ok(neoMethods[neoMethod],'supported Neo method required');
 export const neoQuestion='이직 전 먼저 정리할 자격과 경험을 알고 싶습니다.';
 const button=(page,name)=>page.getByRole('button',{name,exact:true});
 export async function home(page,origin){
@@ -36,7 +40,7 @@ export async function neo(page,origin){
   assert.equal(await page.locator('#neo-operation-question').inputValue(),neoQuestion);
 
   await button(page,'직업 / 이직').click();
-  await page.getByRole('button',{name:/^사주/}).first().click();
+  await page.getByRole('button',{name:new RegExp('^'+neoMethods[neoMethod])}).first().click();
   await page.getByPlaceholder('이름 또는 별명').fill('테스트');
   await page.locator('select').filter({has:page.getByRole('option',{name:'여성',exact:true})}).selectOption({label:'여성'});
   await page.getByPlaceholder('YYYY-MM-DD').fill('19900101');
