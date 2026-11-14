@@ -9780,7 +9780,14 @@
       restoreCardAfterSaveAttempt();
       if (msg === 'AUTH_REQUIRED') {
         if (window.confirm(_dpText('loginRequiredConfirm'))) {
-          window.location.href = '/login?next=%2F';
+          // 로그인 뒤 보던 화면으로 돌아온다(/ziwei/ 등 독립 경로에서 홈으로 튕기지 않게, phase0 F2).
+          // 같은 출처의 현재 경로만 넘긴다. 최종 검증은 로그인 쪽 sanitizeAuthReturnPath 가 한다.
+          var dpLoginNext = '/';
+          try {
+            var dpHere = String(window.location.pathname || '/') + String(window.location.search || '');
+            if (dpHere.charAt(0) === '/' && dpHere.charAt(1) !== '/' && dpHere.indexOf(String.fromCharCode(92)) < 0) dpLoginNext = dpHere;
+          } catch (_) {}
+          window.location.href = '/login?next=' + encodeURIComponent(dpLoginNext);
           return;
         }
         msg = '로그인 상태를 확인한 뒤 다시 시도해 주세요.';
