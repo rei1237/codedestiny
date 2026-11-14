@@ -35,10 +35,10 @@ test('private paths, credentials and encoded private paths never become notifica
 });
 
 test('public service introductions are accepted without allowing their private descendants',()=>{
-  const paths=['/business/api/','/business/api/docs/','/yeongnyangi/season-1/'];
+  const paths=['/business/api/','/business/api/docs/','/yeongnyangi/season-1/','/yeongnyangi/season-1/prologue/'];
   const entries=paths.map(path=>({loc:`https://${host}${path}`,lastmod:'2026-11-09'}));
   assert.deepEqual(Object.keys(buildSubmissionState(entries,{routes:{}},host).urls),entries.map(entry=>entry.loc));
-  for(const path of ['/business/api/dashboard/','/business/api/docs/private/','/business/%61pi/','/yeongnyangi/season-1/result/','/yeongnyangi/library/']) {
+  for(const path of ['/business/api/dashboard/','/business/api/docs/private/','/business/%61pi/','/yeongnyangi/season-1/result/','/yeongnyangi/season-1/ep2/','/yeongnyangi/season-1/prologue/result/','/yeongnyangi/library/']) {
     assert.equal(publicNotificationUrl(`https://${host}${path}`,host),false,path);
   }
   for(const suffix of ['?token=secret','#secret']) {

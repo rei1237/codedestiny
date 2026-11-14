@@ -7,6 +7,8 @@ const PUBLIC_SERVICE_PAGES = new Set([
   '/yeongnyangi/',
   '/yeongnyangi/1000-won-fortune/',
   '/yeongnyangi/season-1/',
+  // 1화(프롤로그)는 항상 공개·색인 대상이라 사이트맵에 있다. 2화부터의 회차는 noindex 라 넣지 않는다.
+  '/yeongnyangi/season-1/prologue/',
 ]);
 
 export function publicNotificationUrl(value, host) {
