@@ -8,7 +8,7 @@ export const metadata = buildSeoMetadata(SEO_LANDING_PAGES.tarotMindscan);
 const relatedLabels: Record<string, string> = {
   "/tarot": "무료 타로 리딩",
   "/tarot/reunion": "재회 타로 리딩",
-  "/love": "연애운 무료 보기",
+  "/love": "연애운 보기",
   "/compatibility": "무료 궁합 보기",
   "/guides/how-tarot-actually-works": "타로 리딩 가이드",
 };
