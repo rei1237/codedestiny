@@ -17,6 +17,7 @@ const mocks={
 };
 globalThis.__tossRouteMocks=mocks;
 const stubMap={
+ 'worker/toss/music-download.js':"import {TossError} from './policy.js';const call=(kind,...args)=>{const state=globalThis.__tossRouteMocks;(state.musicCalls??=[]).push([kind,...args]);if(state.nativeFailure)throw new TossError(state.nativeFailure.code,state.nativeFailure.status);return {owner:args[1].ownerId};};export const prepareNativeMusic=(...args)=>call('prepare',...args),readNativeMusic=(...args)=>call('read',...args),downloadNativeMusic=(...args)=>call('file',...args);",
  'worker/toss/vedic-compatibility.js':"export const tossVedicCompatibility=async(_env,auth)=>({owner:auth.ownerId,accessSource:'public',stored:false});",
  'worker/toss/vedic-prashna.js':"export const tossVedicPrashna=async(_env,auth)=>({owner:auth.ownerId,accessSource:'public'});",
  'worker/toss/astro-synastry.js':"export const tossAstroSynastry=async(body)=>Response.json({accessSource:'public',input:body}),tossAstroSynastryPeople=()=>({people:[],categories:[],countries:{},css:''});",
@@ -139,6 +140,23 @@ async function request(body,path='/prepare',env={TOSS_RELEASE_READY:'true'}){
  calls.profiles=[];calls.prepared=[];calls.followups=0;
  return handleTossRoutes(new Request('https://code-destiny.com/api/toss'+path,{method:'POST',headers:{Origin:'https://ai-saju-studio.private-apps.tossmini.com','Content-Type':'application/json'},body:JSON.stringify(body)}),env);
 }
+test('music prepare, reopen and file routes use authenticated owner and preserve denied access',async()=>{
+ const id='a'.repeat(64),input={audioSourceKey:'fixture'},body={input,orderId:'order',ownerId:'foreign'};
+ mocks.musicCalls=[];
+ assert.equal((await request(body,'/native/music/prepare',{})).status,503);
+ mocks.denyAuth=true;
+ try{assert.equal((await request(body,'/native/music/prepare')).status,401);}finally{mocks.denyAuth=false;}
+ assert.equal(mocks.musicCalls.length,0);
+ assert.equal((await request(body,'/native/music/prepare')).status,200);
+ assert.deepEqual(mocks.musicCalls.at(-1).slice(2),[auth,input,'order']);
+ for(const suffix of ['', '/file']){
+  const get=()=>handleTossRoutes(new Request('https://code-destiny.com/api/toss/native/music/results/'+id+suffix,{headers:{Origin:'https://ai-saju-studio.private-apps.tossmini.com'}}),{TOSS_RELEASE_READY:'true'});
+  mocks.denyAuth=true;try{assert.equal((await get()).status,401);}finally{mocks.denyAuth=false;}
+  const response=await get();assert.equal(response.status,200);assert.equal((await response.json()).owner,auth.ownerId);
+  assert.deepEqual(mocks.musicCalls.at(-1).slice(2),[auth,id]);assert.equal(mocks.musicCalls.at(-1)[0],suffix?'file':'read');
+  mocks.nativeFailure={code:'ACCESS_DENIED',status:403};try{assert.equal((await get()).status,403);}finally{mocks.nativeFailure=null;}
+ }
+});
 test('RPG progress, completion and adoption take the authenticated owner only',async()=>{
  mocks.denyAuth=true;
  try{assert.equal((await request({questId:'foreign'},'/canonical/rpg/quest')).status,401);}finally{mocks.denyAuth=false;}
