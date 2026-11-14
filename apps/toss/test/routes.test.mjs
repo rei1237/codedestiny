@@ -17,6 +17,14 @@ const mocks={
 };
 globalThis.__tossRouteMocks=mocks;
 const stubMap={
+ 'worker/toss/native-human-design.js':"export const prepareNativeHumanDesign=async(_env,owner)=>({owner:owner.ownerId}),readNativeHumanDesign=async(_env,owner,id)=>Response.json({owner:owner.ownerId,id}),nativeHumanDesignLibraryItem=async()=>({state:'PENDING'});",
+ 'worker/toss/sukuyo-yearly.js':"export const tossSukuyoYearly=async(_env,owner)=>({owner:owner.ownerId,stored:false});",
+
+ 'worker/toss/vedic-reading.js':"export const tossVedicReading=async(body)=>({stored:false,accessSource:'public',input:body});",
+ 'worker/toss/astro-section.js':"export const readTossAstroSection=async(body)=>Response.json({accessSource:'public',input:body});",
+ 'worker/routes/astro-section.js':"export const handleAstroSection=async()=>Response.json({accessSource:'public'});",
+ 'worker/routes/astro-basic-deep.js':"export const handleAstroBasicDeep=async()=>Response.json({accessSource:'public'});",
+
  'worker/toss/native-ziwei-deep.js':"export const prepareZiweiDeep=async()=>({paid:false}),readNativeZiweiDeep=async()=>Response.json({status:'generating'}),ziweiDeepLibraryItem=async()=>({state:'PENDING'});",
  'worker/toss/native-compass.js':"export const prepareCompass=async()=>({paid:false}),readNativeCompass=async()=>Response.json({status:'generating'}),compassLibraryItem=async()=>({state:'PENDING'});",
  'worker/lib/sukuyo-astronomy.js':"export const calculateSukuyoForMoment=async()=>({ok:true});",
@@ -88,7 +96,7 @@ const stubMap={
  'worker/yeongnyangi/question-followup.ts':"export const questionConversation=globalThis.__tossRouteMocks.followup;"
 };
 const root=path.resolve(import.meta.dirname,'../../..');
-const bundle=await build({entryPoints:[path.join(root,'worker/toss/routes.js')],bundle:true,platform:'node',format:'cjs',write:false,plugins:[{name:'offline-boundaries',setup(b){b.onLoad({filter:/\.(js|ts)$/},args=>{const source=stubMap[path.relative(root,args.path).replaceAll('\\','/')];if(source)return {contents:source,loader:'js'};});}}]});
+const bundle=await build({entryPoints:[path.join(root,'worker/toss/routes.js')],bundle:true,platform:'node',format:'cjs',write:false,loader:{'.wasm':'binary'},plugins:[{name:'offline-boundaries',setup(b){b.onLoad({filter:/\.(js|ts)$/},args=>{const source=stubMap[path.relative(root,args.path).replaceAll('\\','/')];if(source)return {contents:source,loader:'js'};});}}]});
 const loaded=new Module(path.join(root,'toss-route-check.cjs'));loaded.paths=Module._nodeModulePaths(root);loaded._compile(bundle.outputFiles[0].text,loaded.id);
 const {handleTossRoutes}=loaded.exports;
 const birth={gender:'F',date:{year:1990,month:1,day:1,calType:'solar',timeUnknown:true},location:{label:'서울',lat:37.5665,lng:126.978,tz:'Asia/Seoul'}};
@@ -688,3 +696,7 @@ test('guest Sibyl preview forwards only the year and birth profile to the public
   const r=await request({year:2027,profile:{gender:'F'},profileId:'another-owner',paymentId:'other'},'/canonical/sibyl/preview',{});
   assert.equal(r.status,200);assert.deepEqual(await r.json(),{path:'/api/sibyl/preview',input:{year:2027,profile:{gender:'F'}}});
 });
+
+test('original Vedic full reading is guest-public while paid Vedic generation remains owner-protected',async()=>{mocks.denyAuth=true;try{const res=await request({birth,name:'게스트'},'/vedic/reading',{});assert.equal(res.status,200);assert.equal((await res.json()).accessSource,'public');assert.equal((await request({input:{}},'/native/vedic/prepare')).status,401);assert.equal((await request({},'/canonical/vedic-ai/start')).status,401);}finally{mocks.denyAuth=false;}});
+
+test('Human Design paid results and saved-profile Sukuyo annual reading keep authenticated owner boundaries',async()=>{const id='a'.repeat(64);for(const endpoint of ['/native/human-design/prepare','/native/human-design/results/'+id,'/sukuyo/yearly']){mocks.denyAuth=true;try{assert.equal((await request({ownerId:'foreign',profileId:'foreign'},endpoint)).status,401);}finally{mocks.denyAuth=false;}assert.equal((await request({},endpoint,{})).status,503);const response=await request({ownerId:'foreign',profileId:'foreign'},endpoint);assert.equal(response.status,200);assert.equal((await response.json()).owner,auth.ownerId);}});
