@@ -37,12 +37,25 @@ export async function verifyCharacterRooms(origin,context,service=process.argv[p
   assert.equal(rows.length,1);
   if(service!=='letter')assert.equal(rows[0][1].generationCount,1);
   await page.close();page=await fresh();await home(page,origin);
+  const newNeoQuestion='새 상담 질문은 이전 작전서를 열어도 보존합니다.';
+  if(service==='neo'){
+   await page.getByRole('button',{name:/네오 · 팩폭 전략실/}).click();
+   await page.getByRole('button',{name:'고민부터 적어보기'}).click();
+   await page.locator('#neo-operation-question').fill(newNeoQuestion);
+   await home(page,origin);
+  }
   await page.getByRole('link',{name:'꿀꿀운세 구매 기록'}).click();
   await page.locator('article').filter({hasText:question}).getByRole('link',{name:'다시 보기'}).click();
   await page.getByText(text,{exact:true}).first().waitFor();
   const ownedUrl=page.url();
   await page.reload();await page.getByText(followText,{exact:true}).first().waitFor();
   assert.deepEqual(await read(page),saved);
+  if(service==='neo'){
+   await home(page,origin);
+   await page.getByRole('button',{name:/네오 · 팩폭 전략실/}).click();
+   await page.getByRole('button',{name:'고민부터 적어보기'}).click();
+   assert.equal(await page.locator('#neo-operation-question').inputValue(),newNeoQuestion);
+  }
   await Promise.all([page.waitForEvent('load'),page.getByLabel('모의 계정',{exact:true}).selectOption('B')]);
   await home(page,origin);
   await page.getByRole('button',{name:/연이 · 운명의 찻집/}).click();
