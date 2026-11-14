@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-14
-next: 묶음 ⑤ 단계 12(최종 점검·리베이스·스테이징 push) 시작
+next: 묶음 ⑤ 단계 12 — 실화면 판정(390·1440) 후 스테이징 push
 ---
 
 # 꿀꿀 운세·영냥이 UX: 구매 흐름 · 후기 신뢰 · 후기 작성 · 생성 진행 · 무료 배너
@@ -17,7 +17,7 @@ next: 묶음 ⑤ 단계 12(최종 점검·리베이스·스테이징 push) 시�
 
 - 워크트리: `D:\Development\codedestiny-worktrees\ux-conversion-20261113-215142`
 - 브랜치: `wt/ux-conversion-20261113-215142`
-- 기준: origin/main `02476159e0b545b887fe04a12815b7123b4b614d`
+- 기준: origin/main `a5d6f5814e996f7bc5292e40042c7a7fdb572421` (2026-11-14 리베이스, 이전 기준 `02476159e`, 리베이스 전 끝 `e17001343` = 백업 브랜치 `backup/ux-conversion-pre-rebase-20261114`)
 - node_modules는 정션, `.env.local`·`.env.cloudflare.local`은 링크(건드리지 않는다).
 - 워크트리 제거: 다른 체크아웃에서 `npm run worktree:remove -- 'D:\Development\codedestiny-worktrees\ux-conversion-20261113-215142'` (git worktree remove 금지 — 긴 경로 고아 폴더).
 - 마지막 커밋: 단계마다 아래 표에 적는다. 묶음 ① 끝 코드 커밋 `3af1f976b`(미push). 묶음 ② 6b 끝 코드 커밋 `dd10f6156`(미push). 묶음 ② 6c-1 코드 커밋 `4dd33836e`·`9b9a8e706`·`3c8d5ac2f`(미push). 묶음 ② 6c-2 코드 커밋 `273aa5ce6`·`d1eba2bae`(미push). 묶음 ② 11a 코드 커밋 `81b1be43d`(미push). 묶음 ② 배너 모바일 다듬기 `c7edcc6c3`·사이트맵 원장 `a10578ada`(미push). 묶음 ③ 단계 5 ReviewProof `f554b8920`(미push). 단계 5 남은 일 `c674869d9`(보존 기준 해시)·`f6768d579`(`/reviews/?product=` 필터), 묶음 ③ 단계 7 `008432add`(미push). 묶음 ③ 단계 8 `efafe2738`(미push) — 묶음 ③ 완료. 묶음 ④ 단계 9 공용 GenerationProgress `1c0e07c2b`·연애 비책 이전 `98ca36812`·신년운세 `6c48059f9`·인생의 책 `27e2c5eb2`·베다 `be646a9f1`(미push). 묶음 ④ 단계 10 영냥이 대기 화면 `b397bcddf`·공용 막대 테두리/줄바꿈 `d0d6f2144`(미push) — 묶음 ④ 완료.
@@ -162,9 +162,10 @@ next: 묶음 ⑤ 단계 12(최종 점검·리베이스·스테이징 push) 시�
 - [x] 10. 영냥이 ReadingLoading — SHA: b397bcddf, d0d6f2144 (결과는 문서 끝 "묶음 ④ 단계 10 결과")
 
 ### 묶음 ⑤ 마무리 (단계 12)
-- [ ] check:fast·검증 스크립트
+- [x] 리베이스(origin/main a5d6f5814)·재생성 — SHA: ca4d878b6, 3f3f5476b (결과는 문서 끝 "묶음 ⑤ 단계 12 결과 — 리베이스·검사")
+- [x] check:fast·검증 스크립트
 - [ ] visual-checker 판정·수정
-- [ ] SEO 점검
+- [x] SEO 점검(정적)
 - [ ] push(origin main, 내 커밋만) — 범위:
 - [ ] 문서 done·워크트리 정리
 
@@ -1104,3 +1105,62 @@ B. 공용 `GenerationProgress.module.css`
    - "영냥이의 감사 인사" 카드에서 "찬찬히"가 "찬 / 찬히"로 끊긴다(keep-all 누락 추정).
    - 390 압축 화면에서 왼쪽 아래 떠 있는 버튼이 본문 제목 앞 글자를 가린다(스크롤 위치에 따라).
 4. 결과 화면 하단 링크(이용약관 등, 높이 16~19px)는 44px 탭 기준에 못 미친다. 기존 상태다.
+
+### 묶음 ⑤ 단계 12 결과 — 리베이스·검사 (2026-11-14, 미push)
+
+리베이스
+- 리베이스 전 끝: `e170013436a35ddff32bfde19635d4f50cc2b86f` (백업 브랜치 `backup/ux-conversion-pre-rebase-20261114`).
+- 옛 기준: `02476159e`. 새 기준 origin/main: `a5d6f5814e996f7bc5292e40042c7a7fdb572421`. origin/main이 192커밋 앞서 있었다(대부분 toss 작업, SEO 세션의 브랜드·홈 title·배너·robots·lastmod 변경은 아직 origin/main에 없음).
+- 우리 커밋 43개 → 41개로 옮겨졌다. 빈 커밋이 되어 빠진 2개: `a10578ada`(사이트맵 원장 서명만), `c674869d9`(숙요 보존 해시). 둘 다 아래 재생성·테스트 커밋으로 대신했다.
+- 리베이스 뒤 끝(재생성 전): `64cdc03d0`.
+
+충돌과 해결
+- `config/sitemap-lastmod.json` — `273aa5ce6`·`d1eba2bae`·`81b1be43d`·`a10578ada`에서 충돌. 생성물이라 손으로 합치지 않고 origin/main 쪽을 받은 뒤 재생성했다.
+- `app/love-secret-ai/LoveSecretAiClient.tsx` (`f554b8920`) — origin/main이 `LoveSecretHero`에 `showWebPrice` prop을 더했다. 그 줄은 origin/main 그대로 두고, 바로 아래에 우리 `ReviewProof` 줄만 다시 넣었다.
+- `app/love-secret-ai/LoveSecretAiClient.tsx` (`98ca36812`, 2곳) — origin/main이 `buildResultUrl(..., paymentSurface)` 인자를 더했다. 그 인자는 유지하고, 진행률은 우리 `setGroupProgress`를 쓰며 옛 `setProgress` 줄을 뺐다. 결제 로직(`onSubmit`의 `price.confirm`)은 자동 병합된 origin/main 그대로다. 가격·결제·이용권·환불 로직 충돌은 없었다.
+- `__tests__/fixtures/result-presentation-preservation.json` (`c674869d9`) — 기준 해시 충돌. origin/main 쪽을 받고 리베이스 뒤 다시 계산했다.
+- `lib/marketing/free-promo.mjs`는 자동 병합됐다. 칩 href 구조 변경만 있고 문구 충돌은 없다.
+
+재생성 (리베이스 뒤)
+- `npm run sync:public`·`sitemap:generate`·`llms:generate`를 다시 돌렸다.
+- `index.html` 미러 8개는 js·styles 해시 캐시 키(`?v=build-…`)만 바뀌었다.
+- 사이트맵 원장·XML은 스크래치 도우미 `sitemap-sig-only.mjs HEAD`로 서명이 바뀐 라우트만 남겼다. 날짜만 바뀐 75개는 되돌렸다. 신규 `/saju/<slug>/` 9개가 들어가 있다.
+- llms 출력은 바뀌지 않았다.
+- 커밋 `ca4d878b6` chore(generated). 그 뒤 `verify:sitemap-drift` OK(URL 1081개), `verify:public-mirror-fresh` OK, `generate-llms-txt --check` OK.
+
+리베이스로 생긴 실패와 수정 — 커밋 `3f3f5476b`
+- `ziwei-result-disclosure.test.mjs` 보존 해시: `SukuyoCompatibilityAiClient` 해시를 `ad51ce12…`로 갱신했다. origin/main 대비 차이는 우리 `reviewProductId="sukuyo"` 한 줄뿐인 것을 diff로 확인했다.
+- `core-landing-calculation-examples.test.mjs`: 6c-1에서 `FOCUS_RING`·`SectionHead`를 `seo-landing-parts.jsx`로 옮겨 템플릿 파일만 읽던 토큰 검사가 실패했다(이 브랜치 원인). 검사가 두 파일을 함께 읽게 고쳤다.
+- `fortune/sky-and-range.test.mjs`: 무시 파일 `fortune/data/daily-2026-11-14.json`이 없어서 실패했다(환경 원인, 브랜치 무관). `npm run fortune:build-data`로 만든 뒤 통과했다. 추적 파일 변화는 없다.
+
+검사 결과 (최종 끝 `3f3f5476b` 기준)
+- `check:fast`: 그냥 돌리면 작업 트리=HEAD라 "검사할 변경 없음"으로 끝난다. 그래서 `node scripts/check-changed.mjs --profile=fast --skip-build --base=origin/main`으로 돌렸다.
+  - 1회차: test:node 3건 실패(위 3건).
+  - 수정 뒤 2회차: 통과(EXIT 0). test:node fail 0. 결제·이용권 verify 묶음과 build:worker 통과. test:jest 479 suites, 8004 tests 통과(1 skipped).
+- 통과: `npm run typecheck`, `verify:hero-contrast`, `verify:mobile-detail-nonintrusive`, `verify:analytics-events`, `node scripts/verify-seo-entity-registry.mjs`(profiles=72), `verify:adsense-route-policy`, `verify:saju-fun-content-gate`, `verify:public-api-edge-cache`.
+- 못 돌림: `verify:adsense-readiness`·`verify:home-identity`는 `dist/` 빌드 산출물이 필요하다. 빌드(`build-cf-main.mjs`)는 `fetch-published-cms.mjs`로 네트워크에서 CMS를 받아 오므로 이번 범위에서 돌리지 않았다.
+- 대상 테스트
+  - node:test 118파일(review-*, free-promo, free-feature*, yeongnyangi-*, love-secret-*, new-year-*, life-book-*, vedic-*, purchase-analytics, checkout-method-order, generation-progress, ziwei-result-disclosure 등): 923 통과, 0 실패.
+  - jest 대상(record-library, review-create, review-author-masking 등 워커 후기 테스트 포함): 35 suites, 754 통과.
+- 알려진 기존 실패(지시서에 적힌 것, 이 브랜치 무관): `home-service-separation.test.cjs` `.yh-concerns` 1건. 그대로 둔다.
+- `npm run check:pre-push`: 통과(EXIT 0). 스크립트는 push하지 않는다(home-service-registry → public-mirror-fresh → sitemap-drift → llms --check → seo-entity-registry → repo-hygiene).
+- 줄바꿈: origin/main에서 CRLF였다가 LF로 바뀐 파일은 0개다.
+- 개발 서버는 띄우지 않았다.
+
+SEO 동시 점검 (정적, 네트워크 없음)
+- 신규 `/saju/<slug>/` 9개(four-cut, dopamine, teto-egen, t-test, lotto-ritual, ai-prompt-card, skill-tree, natal-chart, season-rhythm)
+  - title(32~38자, "| 꿀꿀 운세")·description(63~70자)·H1이 서로 맞고, 9개 모두 다르다.
+  - canonical은 `buildSeoMetadata(path)`가 만들고 trailingSlash다.
+  - `indexable: true` → noindex 없음. 사이트맵 9/9, llms-full 9/9.
+  - JSON-LD는 WebPage·BreadcrumbList·FAQPage다. FAQ는 화면의 `<details>` 목록(2~4문항)과 같은 데이터다. Offer·price·isAccessibleForFree·AggregateRating은 없다.
+  - 레지스트리 primary 키워드는 72개 중 중복 0이다(9개 primary: 사주 네컷, 사주 도파민, 테토 에겐 사주, 극T 테스트, 사주 로또, 사주 AI 프롬프트, 인생 스킬 트리, 사주 12신살, 사주 절기).
+- `/`: 우리 변경은 영냥이 카드의 "N원부터" 표시뿐이다(결제 카탈로그 `saju_mackerel` 값, 앱 빌드 제외). title·H1·description·JSON-LD는 바꾸지 않았다.
+- `/yeongnyangi/`, 대표 상품 3개(`/love-secret-ai/`·`/new-year-ai-consultation/`·`/life-book-ai/`): 우리 diff에 metadata·H1·JSON-LD 변경이 없다. ReviewProof는 JSON-LD를 만들지 않는다(클라이언트 데이터라 AggregateRating 금지 주석 유지).
+- `/reviews/`: `robots: { index: false, follow: true }` 유지.
+- SEO 세션과 겹침: origin/main(a5d6f5814)에는 아직 SEO 세션의 브랜드·홈 title/H1·배너 문구·robots·lastmod·`?action=` 변경이 없다(192커밋은 toss·sitemap 원장 위주). 그래서 맞출 문구 충돌은 없었다. 우리 신규 페이지는 브랜드를 title 끝 "꿀꿀 운세"로만 쓰고 '영냥이' 표기는 없다.
+  - push 직전에 SEO 세션 변경이 origin/main에 들어와 있으면 다시 리베이스하고, 브랜드 결정("꿀꿀 운세 안의 영냥이 상담")과 우리 페이지 문구를 다시 대조한다.
+
+남은 일
+- 실화면 판정(visual-checker 390·1440, 설계 §12 목록) → 스테이징 push(내 커밋만 `git push origin HEAD:main`). 운영 승격은 승인되지 않았다.
+- push 직전 `git fetch` 후 origin/main이 또 움직였으면 다시 리베이스하고 재생성·검사한다(사이트맵 원장은 서명만).
+- 백업 브랜치 `backup/ux-conversion-pre-rebase-20261114`는 push가 끝나면 지운다.
