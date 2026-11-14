@@ -733,7 +733,7 @@
     var target = destination.pathname.replace(/\/$/, "") + "/";
     if (destination.origin !== global.location.origin
       || !isSearchCtaRoute(source) || !isSearchCtaRoute(target)
-      || ["primary", "related", "directory", "next_step"].indexOf(placement) < 0
+      || ["primary", "related", "directory", "next_step", "free_result"].indexOf(placement) < 0
       || SEARCH_CTA_SERVICES.indexOf(service) < 0) return null;
     return { from_service: source, to_service: target, placement: placement, target_service: service };
   }

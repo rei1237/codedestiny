@@ -2291,7 +2291,7 @@ function __cdEnsureSajuCoreLoaded() {
     '/js/core/kasi-calendar-service.js?v=build-2004797c0450',
     '/js/compat-llm-prompts.js?v=build-f4b380e036d0',
     '/js/core/saju/manse-shinsal.js',
-    '/js/saju-engine.js?v=build-ba4f9c08d297',
+    '/js/saju-engine.js?v=build-639a37c65478',
       '/js/core/saju/extremeTResult.js?v=build-5f0576c62518',
       /* 숙요 정본(Swiss 항성 달 황경). quantum.js 의 calcSukuyoData 가 이것 없이는 수(宿)를 내지 않는다. */
       '/js/core/sukuyo-astronomy.js?v=build-5198c8e4c8b2',
@@ -9153,7 +9153,7 @@ function __cdEnsureSukuyoZiweiCoreLoaded() {
     '/js/core/saju/natal-core.generated.js?v=build-38051d7297a0',
     '/js/compat-llm-prompts.js?v=build-f4b380e036d0',
       '/js/core/saju/manse-shinsal.js',
-      '/js/saju-engine.js?v=build-ba4f9c08d297',
+      '/js/saju-engine.js?v=build-639a37c65478',
       '/js/core/sukuyo-astronomy.js?v=build-5198c8e4c8b2',
       '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-e5e217e24dce'
   ];

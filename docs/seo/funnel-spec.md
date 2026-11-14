@@ -1,6 +1,6 @@
 # 검색 유입 퍼널 계측 명세
 
-작성 2026-11-14 · 근거 브랜치 `wt/naver-seo-geo-20261113-234756` · 구현 없음(명세만)
+작성 2026-11-14 · 근거 브랜치 `wt/naver-seo-geo-20261113-234756` · 3절의 제안 이벤트는 2026-11-14에 구현했다(3-1절)
 
 이 문서는 검색으로 들어온 방문자가 결제까지 가는 길에서 **지금 실제로 나가는 이벤트**와 **비어 있는 구간**을 적는다. 수치는 없다. 운영 GA4와 DB를 조회하지 않았고, 코드만 읽었다.
 
@@ -22,9 +22,9 @@
 | ① 검색 유입 | `page_view` (`page_location`에 경로와 허용 목록에 든 `utm_*`만 실림) | `js/core/analytics.js:161` `pageLocation`, `:203` config | 확인. 네이버·구글 자연 검색은 UTM이 없어 GA4의 리퍼러 분류에만 의존한다. 검색엔진별 전용 이벤트는 없다 |
 | ② 랜딩 | `page_view`. 랜딩 시작 버튼을 누르면 `cross_sell_click` (`from_service`·`to_service`, 표식이 있으면 `placement`) | `js/core/analytics.js:780-792` (표식 `data-cd-cross-sell` 안의 링크만) | 확인. 사주·자미두수 랜딩 시작 버튼에는 표식이 있다(`app/components/FortuneLandingHero.tsx:21`). 가이드 하단 CTA에도 있다(`app/components/GuideCta.jsx:29`) |
 | ③ 무료 결과 | 셸 사주: `free_saju_started`, `free_saju_completed` | `js/saju-engine.js:4786`, `:5306` | 확인. **`free_saju_started`는 로그인 확인을 통과한 뒤에만 나간다(A2).** 로그인하지 않은 방문자는 대신 `fortune_login_required`(`js/saju-engine.js:4462`)가 나간다 |
-| ③ 무료 결과 | `/saju/free/` 명식 계산, `/ziwei/chart/` 명반 계산 | `app/saju/free/FreeSajuForm.tsx`, `app/components/AdvancedZiweiSectionV2.tsx` | 확인. **이벤트가 하나도 없다.** 두 화면 모두 가입 없이 결과가 나오는데 시작·완료가 잡히지 않는다 |
+| ③ 무료 결과 | `/saju/free/` 명식 계산 `free_saju_chart_started`·`_completed`, `/ziwei/chart/` 명반 계산 `free_ziwei_chart_started`·`_completed` | `app/saju/free/FreeSajuForm.tsx`, `app/components/AdvancedZiweiSectionV2.tsx` | 확인. 2026-11-14에 추가했다(3-1절). 그 전에는 이벤트가 없었다 |
 | ④ 상품 보기 | 영냥이 `view_item`, 꿀꿀 운세 `checkout_opened` | `lib/analytics.ts` `trackDiscovery`, `js/core/checkout-entry.js:181` `FUNNEL_EVENTS` | 문서 기준 |
-| ⑤ 로그인 | `login`(비밀번호 로그인만), `sign_up`(비밀번호·소셜) | `app/components/auth/AuthShell.tsx:590`, `:617`, `:646`. `signup`은 `js/core/analytics.js:331`에서 `sign_up`으로 바뀐다 | 확인. **소셜 로그인 성공(기존 회원)은 `login`이 나가지 않는다**(해당 파일에서 `login` 발화는 590행 하나) |
+| ⑤ 로그인 | `login`(비밀번호·소셜), `sign_up`(비밀번호·소셜) | `app/components/auth/AuthShell.tsx:590`, `:617`, `:646`, 소셜 `login`은 `app/auth/_components/StaticOAuthCallbackRedirect.tsx:424`. `signup`은 `js/core/analytics.js`에서 `sign_up`으로 바뀐다 | 확인. 소셜 `login`은 2026-11-14에 추가했고 하한값이다(3-1절) |
 | ⑥ 결제창 진입 | `checkout_option_click`, `checkout_pg_opened`(이때 `begin_checkout`도 함께) | `js/core/checkout-entry.js:181`, `js/core/analytics.js:354-356` | 확인(begin_checkout), 문서 기준(나머지). GA4와 자체 수집 양쪽으로 나간다 |
 | ⑦ 결제 완료 | `purchase` | `js/core/analytics.js:623-641` `cdTrackConfirmedPurchase` | 확인. 서버 승인 응답을 본 브라우저만 보낸다. 정본은 서버 주문 |
 
@@ -44,6 +44,19 @@
 
 구현할 때 함께 고칠 것: `scripts/verify-analytics-events.mjs`(이름이 기존 발화·GA4 예약어와 겹치지 않는지 검사하는 가드가 있다), `docs/analytics-kpi.md` 이벤트 표.
 
+### 3-1. 구현 결과 (2026-11-14)
+
+위 표의 제안과 달라진 점을 함께 적는다. 어떤 값에도 생년월일·이름·전화번호·이메일은 없다. 분석 동의 전에는 GA4가 로드되지 않는 기존 동작은 그대로다.
+
+| 이벤트 | 발화 위치 | 값 | 제안과 다른 점 |
+|---|---|---|---|
+| `free_saju_chart_started` / `free_saju_chart_completed` | `app/saju/free/FreeSajuForm.tsx:20` / `:22` | `surface: "saju_free"`, `time_known` | 없음. 계산이 실패하면 completed는 나가지 않는다 |
+| `free_ziwei_chart_started` / `free_ziwei_chart_completed` | `app/components/AdvancedZiweiSectionV2.tsx:508` / `:576` | `surface: "ziwei_chart"`, `time_known` | 저장된 결과를 복원할 때(`restoreCachedResult`)는 쏘지 않는다. 명반 검증에 실패하면 completed는 나가지 않는다 |
+| `landing_form_submit` | `app/components/SeoLandingBirthForm.tsx:227` | `from_service`(랜딩 경로), `to_action` | `to_action`은 `?action=` 값이 영문·숫자·밑줄 64자 이내일 때만 싣고, 아니면 도착 경로를 싣는다. 바로 문서 이동이 일어나 전송이 끊기면 빠질 수 있다(하한값) |
+| `login` `{method: "social"}` | `app/auth/_components/StaticOAuthCallbackRedirect.tsx:424` | `method: "social"` | **위치가 다르다.** 소셜 복귀를 실제로 처리하는 곳은 `AuthShell.tsx`가 아니라 이 콜백 페이지의 인라인 스크립트다. 콜백 페이지는 곧바로 다음 화면으로 이동하므로 분석 스크립트(afterInteractive)가 아직 없거나 전송이 끊기면 이벤트가 빠진다. **하한값**으로만 쓴다. 신규 소셜 가입은 `/signup`으로 가서 기존 `sign_up`이 나가므로 겹치지 않는다 |
+| `free_saju_submitted` | `js/saju-engine.js:4775` (로그인 확인 호출문 바로 앞 줄) | `signed_in`(불리언) | 기존 `free_saju_started`를 옮기지 않고 새 이름을 더했다. 과거 수치의 분모가 바뀌지 않는다. 로그인 전 이탈률 = 1 − `free_saju_started` ÷ `free_saju_submitted` |
+| `cross_sell_click`의 `placement: "free_result"` | `js/core/analytics.js:736` 허용 목록 | 허용값 | 허용값만 열었다. 무료 결과 화면에는 상품으로 가는 링크가 아직 없어 이 값은 나가지 않는다(묶음 4-1에서 링크를 달 때 쓴다) |
+
 ## 4. UTM·귀속이 어디까지 따라가는가
 
 | 구간 | 지금 동작 | 근거 |
@@ -62,4 +75,4 @@
 
 - 운영 GA4·DB의 실제 수치. 이 문서는 발화 코드의 존재만 확인했다.
 - ④ 상품 보기, ⑥ 결제창의 세부 이벤트 줄 번호는 `docs/analytics-kpi.md` 기준이다.
-- 소셜 로그인 복귀 뒤 다른 경로로 `login`이 나가는지(추정: 나가지 않는다. `app/components/auth/AuthShell.tsx` 밖은 찾지 않았다).
+- 소셜 `login`이 실제로 얼마나 빠지는지. 콜백 페이지에서 분석 스크립트가 이동보다 먼저 준비되는지는 브라우저로 재지 않았다(추정: 일부 빠진다).

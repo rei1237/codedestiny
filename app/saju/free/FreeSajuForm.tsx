@@ -4,6 +4,7 @@ import {computeFreeSaju,preloadFreeSajuEngine} from "@/lib/free-saju/engine";
 import type {FreeSajuReading} from "@/lib/free-saju/compute";
 import {birthDateTextInputProps} from "@/lib/birthDateInputProps";
 import {elementBalanceLine} from "@/lib/free-saju/copy";
+import {trackEvent} from "@/lib/analytics";
 
 export default function FreeSajuForm() {
   const [birthDate,setBirthDate]=useState("");
@@ -14,7 +15,11 @@ export default function FreeSajuForm() {
     setPending(true);setError("");setReading(null);
     try {
       const calendar=data.get("calendar");
+      // 측정값에는 화면 이름과 출생시각 입력 여부만 싣는다. 생년월일은 싣지 않는다.
+      const measure={surface:"saju_free",time_known:Boolean(String(data.get("time")||""))};
+      trackEvent("free_saju_chart_started",measure);
       setReading(await computeFreeSaju({birthDate:String(data.get("date")),birthTime:String(data.get("time")||"")||null,calendarType:calendar==="solar"?"solar":"lunar",leapMonth:calendar==="leap"}));
+      trackEvent("free_saju_chart_completed",measure);
     } catch {setError("입력한 날짜와 달력 구분을 확인해 주세요.");}
     finally {setPending(false);}
   }

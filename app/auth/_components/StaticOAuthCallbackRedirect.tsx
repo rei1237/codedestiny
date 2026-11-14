@@ -421,6 +421,7 @@ function buildInlineScript(provider: StaticOAuthCallbackRedirectProps["provider"
         }
 
         persistAuthFromCallback(payload);
+        try { if (typeof window.cdTrack === "function") window.cdTrack("login", { method: "social" }); } catch (e) {}
         debugAuth("[auth] auth store updated");
 
 

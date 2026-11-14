@@ -4772,6 +4772,7 @@ async function startSajuCalculationFlow() {
   try {
     _sajuSetCalculationLoading(false, 'checking');
     setSajuFormStatus('입력 정보를 확인하고 있어요.', 'info');
+    try { if (typeof window.cdTrack === 'function') window.cdTrack('free_saju_submitted', { signed_in: !!(typeof window.__dpHasLoginSession === 'function' && window.__dpHasLoginSession()) }); } catch (_) {}
     if (!await _sajuCalculationWait(ensureSajuResultSession(run), run)) return;
     try {
       if (location && (location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {
