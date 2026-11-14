@@ -42,13 +42,11 @@
 }
 
 .copy h1 .brandName{font:inherit;color:inherit}
-.copy .mobileTitle,.mobilePrice{display:none}
-.desktopIntro .price{color:var(--yn-muted)}
+.copy .mobileTitle{display:none}
 @media(max-width:699px){
  .desktopIntro{display:none}
- .copy .mobileTitle,.copy .mobilePrice{display:block}
+ .copy .mobileTitle{display:block}
  .copy .mobileTitle{color:var(--yn-ivory)}
- .copy .mobilePrice{font-size:14px;margin:8px 0 4px}
 }
 
 .homeFold>summary{display:flex;align-items:center;justify-content:space-between;min-height:52px;padding-inline:16px;cursor:pointer;color:var(--yn-ivory);font-weight:700}

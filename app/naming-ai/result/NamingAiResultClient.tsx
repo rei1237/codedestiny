@@ -688,7 +688,7 @@ export default function NamingAiResultClient({nativeRead}:{nativeRead?:NamingNat
           </div>
         )}
         {!loading && !pending && !error && result && (
-          <ConsultationShare brand="naming" choices={namingShareChoices(result, executionId)} />
+          <ConsultationShare brand="naming" reviewProductId="naming" choices={namingShareChoices(result, executionId)} />
         )}
       </section>
     </main>

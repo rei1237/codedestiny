@@ -263,6 +263,16 @@ test('a V2 solo Codex book with short (1,000-char plan) chapters is completed, V
   expect(library.recordStatus({status:'completed',mode:'solo',chapterPlanVersion:2,chapterManifest:chapterManifest.slice(1)},source)).toBe('partial');
 });
 
+test('records carry the review catalog slug for the review-write link, never a content id',async()=>{
+  const {recordService}=await import('../../lib/records/service-registry.js');
+  const {getReviewProduct}=await import('../../worker/lib/review-product-catalog.js');
+  const codex=library.recordMetadata(recordService('codex'),{id:'compat',mode:'compat'});
+  expect(codex.reviewProductId).toBe('master-love-codex');expect(getReviewProduct(codex.reviewProductId)).toBeTruthy();
+  const lifeBook=library.recordMetadata(recordService('life-book'),{id:'r1',featureKey:'life-book-ai-consultation'});
+  expect(lifeBook.reviewProductId).toBe('life-book');expect(lifeBook.reviewProductId).not.toContain('r1');
+  expect(library.recordMetadata(recordService('life-book'),{id:'r2',featureKey:'unknown-feature-key'}).reviewProductId).toBe('');
+});
+
 test('compass AI reports carry the deep-report billing key so refund revocation checks the right product',async()=>{
   const {recordService}=await import('../../lib/records/service-registry.js');
   const {FEATURE_KEY_PRICE_TABLE}=await import('../../worker/lib/paid-feature-registry.js');

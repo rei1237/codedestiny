@@ -416,6 +416,16 @@ test('PG funnel emits one begin_checkout without leaking payload or estimating c
  assert.equal(events[0][2].items[0].item_id,'fusion-fortune-consultation');
  assert.equal(events[0][2].value,undefined);assert.equal(JSON.stringify(events).includes('private'),false);dom.window.close();
 });
+test('Yeongnyangi checkout reports opening once per product and leaves the PG funnel to the shared runtime',()=>{
+ const page=readFileSync(new URL('../../app/checkout/YeongnyangiCheckout.tsx',import.meta.url),'utf8');
+ assert.match(page,/if\(opened\.current===key\)return;opened\.current=key;trackEvent\('checkout_opened',\{item_id:key,service:'yeongnyangi'\}\);/);
+ assert.equal(/checkout_pg_opened|begin_checkout/.test(page),false,'a page-level PG event would double begin_checkout');
+ assert.ok(page.includes('runPaidAccessGate('));
+ const runtime=readFileSync(new URL('../../js/destiny-profile.js',import.meta.url),'utf8');
+ const emit=runtime.indexOf("_dpTrackCheckoutEvent('checkout_pg_opened'"),pg=runtime.indexOf('window.PortOne.requestPayment(requestData)',emit);
+ assert.ok(emit>0&&pg>emit,String([emit,pg]));
+});
+
 test('stored consultation completion is deduplicated and rejects partial results',()=>{
  const dom=boot();const w=dom.window;
  const record={id:'server-result-1',featureKey:'new-year-ai-consultation',status:'partial'};

@@ -39,16 +39,26 @@ import { normalizeReviewSocialProof } from "../../js/review-sharing.mjs";
 const DEFAULT_PAGE_SIZE = 20;
 const MAX_PAGE_SIZE = 50;
 const PUBLIC_CACHE_HEADERS = Object.freeze({ "Cache-Control": "public, max-age=60" });
-const PUBLIC_REVIEW_PROJECTION = "productId productName rating title body quickTags locale isVerifiedPurchase usageSource displayedAt";
-const OWN_REVIEW_PROJECTION = `${PUBLIC_REVIEW_PROJECTION} authorName status adminNote createdAt socialProof reviewReward publicConsent publicConsentAt privacyHold`;
+const REVIEW_BASE_FIELDS = "productId productName rating title body quickTags locale isVerifiedPurchase usageSource displayedAt";
+// 공개 응답은 보상 지급 여부(boolean)만 쓴다 — 금액·지급자·원장 id 는 읽지도 않는다.
+const PUBLIC_REVIEW_PROJECTION = `${REVIEW_BASE_FIELDS} reviewReward.granted`;
+// 🔴 본인 응답은 reviewReward 전체를 읽는다. 여기에 reviewReward.granted 를 함께 넣으면 Mongo 가
+//    path collision 으로 쿼리를 거부하므로 공개 프로젝션을 그대로 이어 붙이지 않는다.
+const OWN_REVIEW_PROJECTION = `${REVIEW_BASE_FIELDS} authorName status adminNote createdAt socialProof reviewReward publicConsent publicConsentAt privacyHold`;
 const ANONYMOUS_REVIEW_AUTHOR = "익명의 운세손님";
+// 작성기(app/components/review/review-ui.ts)는 이 목록의 부분집합만 보여 준다
+// (__tests__/ui/review-consent-flow.test.mjs 가 정적으로 맞춰 본다). 기존 태그는 지우지 않는다 —
+// 이미 저장된 후기의 태그가 공개 응답에서 사라진다.
 const REVIEW_QUICK_TAGS = new Set([
   "소름 돋게 잘 맞아요",
   "제 성격을 잘 짚었어요",
   "과거 이야기가 정확해요",
   "앞으로의 방향에 도움 됐어요",
   "풀이가 자세해서 좋아요",
+  "설명이 이해하기 쉬웠어요",
   "조금 아쉬웠어요",
+  "기대와 달랐어요",
+  "더 구체적이면 좋겠어요",
 ]);
 
 // 공개 조회(목록·요약)는 엣지 캐시를 지난다. TTL 은 위 Cache-Control 과 같은 60초라 클라이언트가
@@ -114,6 +124,9 @@ export function toPublicReview(doc) {
     isVerifiedPurchase: Boolean(doc?.isVerifiedPurchase),
     usageSource: toText(doc?.usageSource),
     displayedAt: doc?.displayedAt ? new Date(doc.displayedAt).toISOString() : "",
+    // 작성 보상(월정석)을 받은 후기인지 — 카드마다 경제적 이해를 표시하는 데만 쓴다.
+    // 🔴 금액·지급 시각·지급자 같은 다른 보상 필드는 공개 응답에 싣지 않는다.
+    rewarded: Boolean(doc?.reviewReward?.granted),
   };
 }
 
@@ -183,7 +196,8 @@ async function handleList(request, env) {
     // stale 창(15분) 동안 그 필드가 빠진 옛 응답이 나간다.
     // 🔴 v3: authorName 을 마스킹했다. 여기를 안 올리면 배포 직후 stale 창 동안
     //    **마스킹 안 된 원본 이름이 그대로 서빙된다** — 캐시가 개인정보 조치를 무효화한다.
-    key: `reviews:list:v4:${productId}:${sortKey}:${verifiedOnly ? "verified" : "all"}:${page}:${limit}`,
+    // v5: toPublicReview 에 rewarded 가 생겼다. 안 올리면 stale 창 동안 보상 표시가 빠진 카드가 나간다.
+    key: `reviews:list:v5:${productId}:${sortKey}:${verifiedOnly ? "verified" : "all"}:${page}:${limit}`,
     ttlSeconds: PUBLIC_CACHE_TTL_SECONDS,
     staleTtlSeconds: PUBLIC_CACHE_STALE_TTL_SECONDS,
     load: async () => {
@@ -220,20 +234,27 @@ async function handleList(request, env) {
 async function handleSummary(request, env) {
   const url = new URL(request.url);
   const productId = toText(url.searchParams.get("productId"));
+  // 결정 지점 신뢰 블록은 구매 인증 후기만 센다. 운영진 등록 후기는 isVerifiedPurchase:false 로
+  // 저장되므로(admin.js) 이 조건 하나로 빠진다. 목록(handleList)의 verifiedOnly 와 같은 뜻이다.
+  const verifiedOnly = ["1", "true", "yes"].includes(toText(url.searchParams.get("verifiedOnly")).toLowerCase());
   if (productId && !getReviewProduct(productId)) {
     throw createHttpError(400, "존재하지 않는 상품입니다.", { code: "UNKNOWN_PRODUCT" });
   }
 
   let loaded = false;
   const { value, stale } = await readCmsThroughCache({
-    key: `reviews:summary:v2:${productId}`,
+    // v3: verifiedOnly 가 생겼다. 키에 넣지 않으면 전체 집계와 인증 집계가 서로의 캐시를 덮는다.
+    key: `reviews:summary:v3:${productId}:${verifiedOnly ? 1 : 0}`,
     ttlSeconds: PUBLIC_CACHE_TTL_SECONDS,
     staleTtlSeconds: PUBLIC_CACHE_STALE_TTL_SECONDS,
     load: async () => {
       loaded = true;
       await connectDb(env);
-      const summary = await aggregateSummary(env, productId ? { productId } : {});
-      return { ok: true, productId, ...summary };
+      const summary = await aggregateSummary(env, {
+        ...(productId ? { productId } : {}),
+        ...(verifiedOnly ? { isVerifiedPurchase: true } : {}),
+      });
+      return { ok: true, productId, verifiedOnly, ...summary };
     },
   });
 

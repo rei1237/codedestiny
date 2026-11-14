@@ -2,6 +2,18 @@
 import { jest } from "@jest/globals";
 const create = jest.fn();
 const findExisting = jest.fn();
+// 요약 집계 mock: $match 의 단순 등호 조건만 흉내 내 seed 를 걸러 rating 별로 센다.
+let summarySeed = [];
+const aggregate = jest.fn(async (pipeline) => {
+  const match = pipeline[0]?.$match || {};
+  const rows = summarySeed.filter((doc) => Object.entries(match).every(([key, test]) => {
+    if (test && typeof test === "object" && "$ne" in test) return doc[key] !== test.$ne;
+    return doc[key] === test;
+  }));
+  const counts = new Map();
+  for (const doc of rows) counts.set(doc.rating, (counts.get(doc.rating) || 0) + 1);
+  return [...counts].map(([rating, count]) => ({ _id: rating, count }));
+});
 let authenticated = true;
 const usage = jest.fn(async () => ({ featureKey: "tarot-year-fortune", sources: ["payment"] }));
 let handleReviewRoutes;
@@ -18,7 +30,7 @@ beforeAll(async () => {
   }));
   await jest.unstable_mockModule("../../worker/lib/review-models.js", () => ({
     PUBLIC_REVIEW_STATUS: "approved", REVIEW_BODY_MAX_LENGTH: 1000, REVIEW_BODY_MIN_LENGTH: 20, REVIEW_TITLE_MAX_LENGTH: 60,
-    Review: { create, aggregate: async () => [], findOne: () => ({ select: () => ({ lean: findExisting }) }) },
+    Review: { create, aggregate, findOne: () => ({ select: () => ({ lean: findExisting }) }) },
   }));
   await jest.unstable_mockModule("../../worker/lib/review-eligibility.js", () => ({
     findUsedReviewProduct: usage, listReviewableProducts: async () => [],
@@ -83,6 +95,26 @@ test("중복은 409로 반환하고 이용 기록 없는 제출은 403으로 막
   usage.mockResolvedValueOnce(null);
   expect((await handleReviewRoutes(request(), {})).status).toBe(403);
   expect(create).toHaveBeenCalledTimes(1);
+});
+test("균형 빠른 태그(긍정·아쉬움)는 허용 목록에 있어 저장된다", async () => {
+  const quickTags = ["설명이 이해하기 쉬웠어요", "기대와 달랐어요", "더 구체적이면 좋겠어요"];
+  const response = await handleReviewRoutes(new Request("https://mock.local/api/reviews", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ productId: "tarot", rating: 3, body: "", quickTags, publicConsent: false }) }), {});
+  expect(response.status).toBe(201);
+  expect(create).toHaveBeenCalledWith(expect.objectContaining({ quickTags }));
+});
+test("요약 verifiedOnly=1 은 운영진 등록 후기(isVerifiedPurchase:false)를 빼고 센다", async () => {
+  const base = { status: "approved", productId: "new-year", publicConsent: true, privacyHold: false };
+  summarySeed = [
+    { ...base, rating: 5, isVerifiedPurchase: true, createdByAdmin: false },
+    { ...base, rating: 3, isVerifiedPurchase: true, createdByAdmin: false },
+    { ...base, rating: 5, isVerifiedPurchase: false, createdByAdmin: true },
+    { ...base, rating: 5, isVerifiedPurchase: false, createdByAdmin: true },
+  ];
+  const all = await (await handleReviewRoutes(new Request("https://mock.local/api/reviews/summary?productId=new-year"), {})).json();
+  const verified = await (await handleReviewRoutes(new Request("https://mock.local/api/reviews/summary?productId=new-year&verifiedOnly=1"), {})).json();
+  expect(all).toMatchObject({ total: 4, verifiedOnly: false });
+  expect(verified).toMatchObject({ total: 2, average: 4, verifiedOnly: true, distribution: { 5: 1, 3: 1 } });
+  expect(aggregate).toHaveBeenLastCalledWith([expect.objectContaining({ $match: expect.objectContaining({ productId: "new-year", isVerifiedPurchase: true }) }), expect.anything()]);
 });
 test("공개 상품 API의 보상 조건은 기존 승인 보상 상수에서 나온다", async () => {
   const response = await handleReviewRoutes(new Request("https://mock.local/api/reviews/products"), {});

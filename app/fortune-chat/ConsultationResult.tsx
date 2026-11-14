@@ -147,7 +147,7 @@ export default function ConsultationResult({ row, onNew, readOnly = false }: { r
     <div className={`${styles.result} ${row.persona === "yeoni" ? salon.result : ""}`} data-consultation-result data-persona={row.persona}>
       {order.map((key) => sections[key]())}
 
-      {!readOnly && shouldInvitePaidReview(row) && <ReviewRewardBanner afterResult/>}
+      {!readOnly && shouldInvitePaidReview(row) && <ReviewRewardBanner afterResult reviewProductId="fortune-chat"/>}
       {!readOnly && row.state === 'COMPLETED' && <ResultBenefits requestId={row.id} locale={row.locale||'ko'}/>}
       {writing ? (
         <p className={styles.progress} role="status" aria-live="polite">

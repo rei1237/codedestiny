@@ -1654,7 +1654,7 @@ export default function ZiweiAiPage({paymentSurface="web",ProfilePicker,TossPric
 
                   </div>
                 </details>
-                <PaidResultImageGuide domain="ziwei" status={consultation.status} content={assistantMessages.map(message=>message.content)} basis={consultation.analysisBasis} toolsLabel={resultCopy.imageTools} />
+                <PaidResultImageGuide domain="ziwei" reviewProductId="ziwei" status={consultation.status} content={assistantMessages.map(message=>message.content)} basis={consultation.analysisBasis} toolsLabel={resultCopy.imageTools} />
               </div>
               {consultation.status === "completed" && !busy && <RecommendationResult service="ziwei-ai-consultation" practiceTags={adviceTopics([structuredResult?.sections?.action_plan?.body])}/>}
             </>

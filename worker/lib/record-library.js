@@ -63,6 +63,8 @@ export function recordMetadata(source, doc) {
       source.id === 'ziwei' && doc.serviceType === 'ziwei-island-palace-consult' ? '운명의 섬 12궁 상담' : source.name;
   const status = recordStatus(doc, source);
   return { id, source: source.id, key: `${source.id}:${id}`, serviceId: featureKey || source.id, serviceName: name,
+    // 후기 작성 링크(/reviews/?write=1&product=…)가 쓰는 카탈로그 slug. 콘텐츠 ID 가 아니다.
+    reviewProductId: product?.productId || '',
     title: titleFields.map(field => clean(readRecordField(doc, field), 200)).find(Boolean) || name,
     question: questionFields.map(field => clean(readRecordField(doc, field))).find(Boolean) || clean(doc.questionExcerpt) || clean(doc.summaryExcerpt),
     createdAt: doc.createdAt && Number.isFinite(Date.parse(doc.createdAt)) ? new Date(doc.createdAt).toISOString() : null,

@@ -487,67 +487,16 @@
   z-index: 1;
 }
 
+/* 생성 대기 화면: 공용 GenerationProgress 카드 아래에 실제 차트 근거를 쌓는다. 결과 패널 안에서 흐름대로 놓인다. */
 .cosmosLoading {
-  position: absolute;
-  inset: 0;
-  z-index: 3;
   display: grid;
-  place-items: center;
-  align-content: center;
-  gap: 1.25rem;
-  padding: 2rem;
-  overflow: hidden;
-  text-align: center;
-  background: radial-gradient(ellipse at 50% 40%, var(--vd-bg-deep) 0%, var(--vd-bg-deep) 60%, var(--vd-bg-deep) 100%);
-}
-
-.cosmosStars {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-}
-
-.cosmosStars span {
-  position: absolute;
-  border-radius: 999px;
-  background: #fff;
-}
-
-.cosmosOrbitStage {
-  position: relative;
-  width: min(20rem, 78vw);
-  aspect-ratio: 1;
-}
-
-.cosmosOrbitSvg {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-}
-
-/* 중앙 글리프. 그라디언트 텍스트는 쓰지 않는다 — 단색 사프란에 글로우만 얹는다. */
-.cosmosOrbitStage > span {
-  position: absolute;
-  inset: 0;
-  display: grid;
-  place-items: center;
-  color: var(--vd-saffron-lit);
-  font-size: 2.6rem;
-  filter: drop-shadow(0 0 18px rgba(var(--vd-saffron-rgb), 0.45));
-}
-
-/* 각 궤도의 행성을 SVG 중심(160,160) 기준으로 CSS 회전 — JS setInterval 리렌더 제거(GPU transform). */
-.cosmosOrbitSpin {
-  transform-box: view-box;
-  transform-origin: 160px 160px;
-  animation: mandalaDrift linear infinite;
-  will-change: transform;
+  gap: var(--vd-gap-md);
 }
 
 .cosmosLoadingText {
   display: grid;
   gap: var(--vd-gap-xs);
+  text-align: center;
 }
 
 .cosmosLoadingText strong {
@@ -566,50 +515,6 @@
 /* 스테이지 전환 시 라벨/서브텍스트 크로스페이드(React key 리마운트로 매 스테이지 재생) */
 .cosmosLabelSwap {
   animation: cosmosLabelFade 0.62s cubic-bezier(0.18, 0.83, 0.34, 1) both;
-}
-
-.cosmosStageDots {
-  display: flex;
-  gap: 0.85rem;
-  justify-content: center;
-}
-
-.cosmosStageDots i {
-  color: rgba(255, 255, 255, 0.18);
-  font-style: normal;
-  transition: color 0.35s ease, transform 0.35s ease, text-shadow 0.35s ease;
-}
-
-.cosmosStageDots .activeCosmosDot {
-  color: rgba(var(--vd-moon-rgb), 0.86);
-  text-shadow: 0 0 10px rgba(var(--vd-moon-rgb), 0.9);
-  transform: scale(1.25);
-}
-
-.cosmosProgress {
-  width: 13rem;
-  height: 1px;
-  overflow: hidden;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.08);
-}
-
-/* width가 아니라 scaleX로 늘린다 — 100ms마다 레이아웃을 다시 계산시키지 않는다. */
-.cosmosProgress span {
-  display: block;
-  width: 100%;
-  height: 100%;
-  transform-origin: left center;
-  border-radius: inherit;
-  background: linear-gradient(90deg, var(--vd-saffron-deep), var(--vd-saffron) 55%, var(--vd-saffron-lit));
-  box-shadow: 0 0 8px rgba(var(--vd-saffron-rgb), 0.5);
-  transition: transform 0.1s linear;
-}
-
-.cosmosLoading p {
-  margin: 0;
-  color: var(--vd-text-dim);
-  font-size: 0.78rem;
 }
 
 .resumeStatus {
@@ -1382,14 +1287,6 @@
   }
 }
 
-/* 생성 대기 화면의 궤도 회전에만 남긴다 — 이건 장식이 아니라 "지금 계산 중"이라는 상태 표시다.
-   히어로·빈 화면·요약 링의 상시 회전/호흡/반짝임은 전부 걷어냈다. */
-@keyframes mandalaDrift {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
 @keyframes cosmosLabelFade {
   from {
     opacity: 0;
@@ -1998,9 +1895,6 @@
   .orbitTwo,
   .emptyMandala,
   .loadingMandala,
-  .cosmosStars span,
-  .cosmosOrbitSpin,
-  .cosmosOrbitGlyph,
   .medallionRing,
   .heroChartPreview,
   .spin {
@@ -2019,8 +1913,6 @@
   /* 링·점수바·진행바 등 값 변화는 트랜지션 없이 즉시 반영 */
   .dashaRingProgress,
   .scorePanel b,
-  .cosmosProgress span,
-  .cosmosStageDots i,
   .pdfButton {
     transition: none !important;
   }

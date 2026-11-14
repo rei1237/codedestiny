@@ -90,9 +90,21 @@ describe("공개 후기 응답(GET /api/reviews)", () => {
       "productName",
       "quickTags",
       "rating",
+      "rewarded",
       "title",
       "usageSource",
     ]);
+  });
+
+  test("작성 보상은 지급 여부 boolean 하나만 공개한다", () => {
+    const doc = {
+      ...reviewDoc("reader"),
+      reviewReward: { granted: true, amount: 3000, grantedAt: new Date("2026-09-02T00:00:00.000Z"), grantedBy: "private-admin-id", ledgerSourceId: "private-ledger-id" },
+    };
+    expect(toPublicReview(doc).rewarded).toBe(true);
+    expect(toPublicReview(reviewDoc("reader")).rewarded).toBe(false);
+    const payload = JSON.stringify(toPublicReview(doc));
+    for (const hidden of ["3000", "2026-09-02", "private-admin-id", "private-ledger-id"]) expect(payload).not.toContain(hidden);
   });
 });
 

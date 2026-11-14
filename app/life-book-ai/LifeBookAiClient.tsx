@@ -22,8 +22,10 @@ import { rememberTossTeaPrice, type TossTeaPriceComponent, type TossTeaPriceSele
 import { PriceBadge } from "@/app/components/PriceBadge";
 import ProductJourneyLinks, { useProductView } from "@/app/components/ProductJourneyLinks";
 import CraftedProductDisclosure from "@/app/components/CraftedProductDisclosure";
+import ReviewProof from "@/app/components/ReviewProof";
 import ProductMasterStrip from "@/app/components/ProductMasterStrip";
 import MasterProfile from "@/components/fortune/MasterProfile";
+import GenerationProgress, { LEAVE_SAFE_NOTICE } from "@/components/fortune/GenerationProgress";
 import { masterProfiles, productMasters } from "@/components/fortune/master-profiles";
 import { ExpertStickyCta, ExpertValueCards } from "@/app/components/expert-consulting/ExpertConsultationFrame";
 import { toDisplayText } from "@/lib/llm-text";
@@ -48,7 +50,6 @@ import {
   MODE_FEATURE_KEY,
   PHASE_COPY,
   REASON_COPY,
-  WRITING_STAGES,
   reasonCopy,
 } from "./lifeBookCopy";
 import { detectLocale } from "@/lib/i18n/dictionary";
@@ -112,7 +113,10 @@ type LifeBookCopy = {
   writingHeading: string;
   writingDescription: string;
   writingProgressAria: string;
-  chapterCountUnit: (completed: number, total: number) => string;
+  writingStatus: string;
+  writingCountUnit: string;
+  writingElapsedLabel: string;
+  leaveSafeNotice: string;
   completedHeading: string;
   completedDescription: string;
   openResultCta: string;
@@ -201,7 +205,10 @@ const LIFE_BOOK_CLIENT_EN: LifeBookCopy = {
   writingHeading: "Your Book of Life Is Being Written",
   writingDescription: "We're weaving the frame of your chart with the flow of time to complete each chapter in turn.",
   writingProgressAria: "Book of Life writing progress",
-  chapterCountUnit: (completed, total) => `${completed}/${total} chapters · `,
+  writingStatus: "Writing each part of your book",
+  writingCountUnit: "parts done",
+  writingElapsedLabel: "Elapsed",
+  leaveSafeNotice: "Closing this screen won't lose the reading you paid for. Reopen it to keep writing, and if you stay away for a while, the server finishes it and saves it to your records.",
   completedHeading: "Your Completed Book of Life Has Opened",
   completedDescription: "If the screen didn't move automatically, use the button below to open the result page.",
   openResultCta: "Open the Completed Book of Life",
@@ -288,10 +295,13 @@ const LIFE_BOOK_CLIENT_COPY: Partial<Record<LoadingLocale, LifeBookCopy>> = {
     notEntered: "미입력",
     unknownLabel: "모름",
     generateCta: "인생의 책 생성하기",
-    writingHeading: "당신의 인생의 책을 집필하는 중입니다",
-    writingDescription: "사주의 뼈대와 시간의 흐름을 엮어 각 장을 차례로 완성하고 있습니다.",
+    writingHeading: "윤달이 당신의 인생의 책을 쓰고 있어요",
+    writingDescription: "사주의 뼈대와 시간의 흐름을 엮어 책의 각 부분을 쓰고, 다 쓴 부분부터 저장해요.",
     writingProgressAria: "인생의 책 집필 진행률",
-    chapterCountUnit: (completed, total) => `${completed}/${total}장 · `,
+    writingStatus: "책의 각 부분을 쓰고 있어요",
+    writingCountUnit: "부분 완성",
+    writingElapsedLabel: "경과",
+    leaveSafeNotice: LEAVE_SAFE_NOTICE,
     completedHeading: "완성된 인생의 책이 열렸습니다",
     completedDescription: "화면이 자동으로 넘어가지 않았다면 아래 버튼으로 결과 페이지를 열어 주세요.",
     openResultCta: "완성된 인생의 책 열기",
@@ -380,7 +390,10 @@ const LIFE_BOOK_CLIENT_COPY: Partial<Record<LoadingLocale, LifeBookCopy>> = {
     writingHeading: "あなたの人生の本を執筆しています",
     writingDescription: "命式の骨組みと時の流れを編み込み、各章を順に完成させています。",
     writingProgressAria: "人生の本 執筆進捗",
-    chapterCountUnit: (completed, total) => `${completed}/${total}章 · `,
+    writingStatus: "本の各パートを執筆しています",
+    writingCountUnit: "パート完成",
+    writingElapsedLabel: "経過",
+    leaveSafeNotice: "画面を閉じても、お支払い済みの相談は消えません。もう一度開くと続きから書き、しばらく離れていてもサーバーが仕上げて記録に保存します。",
     completedHeading: "完成した人生の本が開きました",
     completedDescription: "画面が自動的に切り替わらなかった場合は、下のボタンで結果ページを開いてください。",
     openResultCta: "完成した人生の本を開く",
@@ -468,7 +481,10 @@ const LIFE_BOOK_CLIENT_COPY: Partial<Record<LoadingLocale, LifeBookCopy>> = {
     writingHeading: "正在为您撰写人生之书",
     writingDescription: "正在编织命盘的骨架与时间的流动，依次完成各章。",
     writingProgressAria: "人生之书撰写进度",
-    chapterCountUnit: (completed, total) => `${completed}/${total}章 · `,
+    writingStatus: "正在撰写书的各个部分",
+    writingCountUnit: "部分已完成",
+    writingElapsedLabel: "已用时间",
+    leaveSafeNotice: "关闭页面也不会丢失已付款的咨询。重新打开会接着写；如果长时间离开，服务器会把它写完并保存到记录中。",
     completedHeading: "您完成的人生之书已开启",
     completedDescription: "如果画面没有自动跳转，请使用下方按钮打开结果页面。",
     openResultCta: "打开已完成的人生之书",
@@ -556,7 +572,10 @@ const LIFE_BOOK_CLIENT_COPY: Partial<Record<LoadingLocale, LifeBookCopy>> = {
     writingHeading: "正在為您撰寫人生之書",
     writingDescription: "正在編織命盤的骨架與時間的流動，依序完成各章。",
     writingProgressAria: "人生之書撰寫進度",
-    chapterCountUnit: (completed, total) => `${completed}/${total}章 · `,
+    writingStatus: "正在撰寫書的各個部分",
+    writingCountUnit: "部分已完成",
+    writingElapsedLabel: "已用時間",
+    leaveSafeNotice: "關閉頁面也不會遺失已付款的諮詢。重新開啟會接著寫；如果長時間離開，伺服器會把它寫完並儲存到紀錄中。",
     completedHeading: "您完成的人生之書已開啟",
     completedDescription: "如果畫面沒有自動跳轉，請使用下方按鈕打開結果頁面。",
     openResultCta: "打開已完成的人生之書",
@@ -644,7 +663,10 @@ const LIFE_BOOK_CLIENT_COPY: Partial<Record<LoadingLocale, LifeBookCopy>> = {
     writingHeading: "Cuốn Sách Cuộc Đời của bạn đang được viết",
     writingDescription: "Chúng tôi đang đan kết khung lá số với dòng chảy thời gian để hoàn thành từng chương lần lượt.",
     writingProgressAria: "Tiến độ viết Cuốn Sách Cuộc Đời",
-    chapterCountUnit: (completed, total) => `${completed}/${total} chương · `,
+    writingStatus: "Đang viết từng phần của cuốn sách",
+    writingCountUnit: "phần đã xong",
+    writingElapsedLabel: "Đã trôi qua",
+    leaveSafeNotice: "Đóng màn hình cũng không làm mất buổi tư vấn bạn đã thanh toán. Mở lại để viết tiếp, và nếu bạn rời đi lâu, máy chủ sẽ hoàn thành rồi lưu vào mục lưu trữ của bạn.",
     completedHeading: "Cuốn Sách Cuộc Đời hoàn thành của bạn đã mở",
     completedDescription: "Nếu màn hình không tự động chuyển, hãy dùng nút bên dưới để mở trang kết quả.",
     openResultCta: "Mở Cuốn Sách Cuộc Đời đã hoàn thành",
@@ -732,7 +754,10 @@ const LIFE_BOOK_CLIENT_COPY: Partial<Record<LoadingLocale, LifeBookCopy>> = {
     writingHeading: "आपकी जीवन की पुस्तक लिखी जा रही है",
     writingDescription: "हम कुंडली की संरचना को समय के प्रवाह के साथ बुनकर प्रत्येक अध्याय को क्रमशः पूरा कर रहे हैं।",
     writingProgressAria: "जीवन की पुस्तक लेखन प्रगति",
-    chapterCountUnit: (completed, total) => `${completed}/${total} अध्याय · `,
+    writingStatus: "पुस्तक का हर हिस्सा लिखा जा रहा है",
+    writingCountUnit: "हिस्से पूरे",
+    writingElapsedLabel: "बीता समय",
+    leaveSafeNotice: "स्क्रीन बंद करने पर भी आपका भुगतान किया हुआ परामर्श नहीं खोएगा। दोबारा खोलने पर लिखना वहीं से जारी रहेगा, और देर तक दूर रहने पर सर्वर इसे पूरा करके आपके रिकॉर्ड में सहेज देगा।",
     completedHeading: "आपकी पूर्ण जीवन की पुस्तक खुल गई है",
     completedDescription: "यदि स्क्रीन स्वचालित रूप से नहीं बदली, तो नीचे दिए गए बटन से परिणाम पृष्ठ खोलें।",
     openResultCta: "पूर्ण जीवन की पुस्तक खोलें",
@@ -820,7 +845,10 @@ const LIFE_BOOK_CLIENT_COPY: Partial<Record<LoadingLocale, LifeBookCopy>> = {
     writingHeading: "Tu Libro de la Vida se está escribiendo",
     writingDescription: "Estamos entrelazando la estructura de tu carta con el flujo del tiempo para completar cada capítulo en orden.",
     writingProgressAria: "Progreso de escritura del Libro de la Vida",
-    chapterCountUnit: (completed, total) => `${completed}/${total} capítulos · `,
+    writingStatus: "Escribiendo cada parte de tu libro",
+    writingCountUnit: "partes listas",
+    writingElapsedLabel: "Tiempo transcurrido",
+    leaveSafeNotice: "Si cierras la pantalla, la consulta que pagaste no se pierde. Al volver a abrirla seguimos escribiendo, y si te ausentas un buen rato, el servidor la termina y la guarda en tu historial.",
     completedHeading: "Tu Libro de la Vida completado se ha abierto",
     completedDescription: "Si la pantalla no cambió automáticamente, usa el botón de abajo para abrir la página de resultados.",
     openResultCta: "Abrir el Libro de la Vida completado",
@@ -908,7 +936,10 @@ const LIFE_BOOK_CLIENT_COPY: Partial<Record<LoadingLocale, LifeBookCopy>> = {
     writingHeading: "Votre Livre de la Vie est en cours d'écriture",
     writingDescription: "Nous tissons la structure de votre thème avec le flux du temps pour compléter chaque chapitre à tour de rôle.",
     writingProgressAria: "Progression de l'écriture du Livre de la Vie",
-    chapterCountUnit: (completed, total) => `${completed}/${total} chapitres · `,
+    writingStatus: "Rédaction de chaque partie de votre livre",
+    writingCountUnit: "parties terminées",
+    writingElapsedLabel: "Temps écoulé",
+    leaveSafeNotice: "Fermer l'écran ne fait pas disparaître la consultation que vous avez payée. En la rouvrant, la rédaction reprend, et si vous restez absent un moment, le serveur la termine et l'enregistre dans votre historique.",
     completedHeading: "Votre Livre de la Vie terminé s'est ouvert",
     completedDescription: "Si l'écran n'a pas changé automatiquement, utilisez le bouton ci-dessous pour ouvrir la page de résultats.",
     openResultCta: "Ouvrir le Livre de la Vie terminé",
@@ -996,7 +1027,10 @@ const LIFE_BOOK_CLIENT_COPY: Partial<Record<LoadingLocale, LifeBookCopy>> = {
     writingHeading: "Ihr Lebensbuch wird geschrieben",
     writingDescription: "Wir verweben das Gerüst Ihres Charts mit dem Zeitfluss, um jedes Kapitel der Reihe nach zu vollenden.",
     writingProgressAria: "Fortschritt beim Schreiben des Lebensbuchs",
-    chapterCountUnit: (completed, total) => `${completed}/${total} Kapitel · `,
+    writingStatus: "Jeder Teil Ihres Buches wird geschrieben",
+    writingCountUnit: "Teile fertig",
+    writingElapsedLabel: "Vergangene Zeit",
+    leaveSafeNotice: "Auch wenn Sie den Bildschirm schließen, geht die bezahlte Beratung nicht verloren. Beim erneuten Öffnen wird weitergeschrieben, und bleiben Sie länger weg, stellt der Server sie fertig und speichert sie in Ihrem Verlauf.",
     completedHeading: "Ihr fertiges Lebensbuch wurde geöffnet",
     completedDescription: "Wenn sich der Bildschirm nicht automatisch geändert hat, öffnen Sie die Ergebnisseite über die Schaltfläche unten.",
     openResultCta: "Fertiges Lebensbuch öffnen",
@@ -1084,7 +1118,10 @@ const LIFE_BOOK_CLIENT_COPY: Partial<Record<LoadingLocale, LifeBookCopy>> = {
     writingHeading: "Je Levensboek wordt geschreven",
     writingDescription: "We weven het raamwerk van je horoscoop samen met de tijdsstroom om elk hoofdstuk op zijn beurt te voltooien.",
     writingProgressAria: "Voortgang schrijven Levensboek",
-    chapterCountUnit: (completed, total) => `${completed}/${total} hoofdstukken · `,
+    writingStatus: "Elk deel van je boek wordt geschreven",
+    writingCountUnit: "delen klaar",
+    writingElapsedLabel: "Verstreken tijd",
+    leaveSafeNotice: "Ook als je het scherm sluit, gaat het betaalde consult niet verloren. Open het opnieuw om verder te schrijven; blijf je langer weg, dan maakt de server het af en bewaart het in je overzicht.",
     completedHeading: "Je voltooide Levensboek is geopend",
     completedDescription: "Als het scherm niet automatisch is veranderd, gebruik dan de knop hieronder om de resultatenpagina te openen.",
     openResultCta: "Voltooid Levensboek openen",
@@ -1172,7 +1209,10 @@ const LIFE_BOOK_CLIENT_COPY: Partial<Record<LoadingLocale, LifeBookCopy>> = {
     writingHeading: "Buku Kehidupan anda sedang ditulis",
     writingDescription: "Kami menganyam rangka carta anda dengan aliran masa untuk melengkapkan setiap bab secara bergilir.",
     writingProgressAria: "Kemajuan penulisan Buku Kehidupan",
-    chapterCountUnit: (completed, total) => `${completed}/${total} bab · `,
+    writingStatus: "Menulis setiap bahagian buku anda",
+    writingCountUnit: "bahagian siap",
+    writingElapsedLabel: "Masa berlalu",
+    leaveSafeNotice: "Menutup skrin tidak akan menghilangkan sesi rundingan yang telah anda bayar. Buka semula untuk menyambung, dan jika anda lama tidak kembali, pelayan akan menyiapkannya dan menyimpannya dalam rekod anda.",
     completedHeading: "Buku Kehidupan anda yang lengkap telah dibuka",
     completedDescription: "Jika skrin tidak bertukar secara automatik, gunakan butang di bawah untuk membuka halaman hasil.",
     openResultCta: "Buka Buku Kehidupan yang lengkap",
@@ -1246,7 +1286,14 @@ const FOCUS_TOPIC_KO: Record<FocusAreaType, string> = {
   turningPoint: "인생 전환점",
 };
 
-const GENERATION_STEPS = WRITING_STAGES;
+// 대기 화면은 공용 GenerationProgress 로 그린다. 막대는 웨이브 응답의 progress(저장된 섹션 수 / plan 길이)로만
+// 칠하고, 첫 웨이브 응답 전과 생성 단계 밖에서는 끝을 모르는 막대다. plan 은 장·해설 섹션 단위(15·25개)라
+// 장 수와 다르므로 "부분"으로 센다. 섹션은 병렬로 쓰여 어느 장이 끝났는지 알 수 없어 단계 목록은 두지 않는다.
+// "보통 N~M분" 은 실측 근거가 없어 넣지 않는다.
+// 떠남 안내(웹): 화면을 숨기면 다음 웨이브 전에 결과 화면으로 옮기고, 결과 화면(기록함 링크도 같은 곳)이 다시
+// 보이면 저장된 섹션 다음부터 이어 쓴다. 오래 비우면 consultation-recovery-task 크론(life-book-ai)이 마저 쓴다.
+// 토스는 기록함·크론 경로를 확인하지 못해, 확인한 사실(저장·결과 화면에서 이어 쓰기)만 말한다.
+const LIFE_BOOK_TOSS_LEAVE_NOTICE = "다 쓴 부분은 그때그때 저장돼요. 잠시 다른 앱에 다녀와도 결과 화면에서 저장된 부분 다음부터 이어서 써요.";
 
 const LOGIN_REQUIRED_MESSAGE = REASON_COPY.LOGIN_REQUIRED;
 const PAYMENT_REQUIRED_MESSAGE = REASON_COPY.PAYMENT_REQUIRED;
@@ -1405,8 +1452,6 @@ export default function LifeBookAiClient({ paymentNotice, paymentSurface = "web"
   const [error, setError] = useState("");
   const [resultUrl, setResultUrl] = useState("");
   const [waveProgress, setWaveProgress] = useState<{ completed: number; total: number } | null>(null);
-  const [startedAt, setStartedAt] = useState(0);
-  const [elapsedMs, setElapsedMs] = useState(0);
   const [refunded, setRefunded] = useState(false);
   const startLockRef = useRef(false);
   const retryRef = useRef<{ payload: ReturnType<typeof buildConsultationPayload>; requestId: string; access: Record<string, unknown> | null; mode: LifeBookMode } | null>(null);
@@ -1443,43 +1488,12 @@ export default function LifeBookAiClient({ paymentNotice, paymentSurface = "web"
   const validationMessage = useMemo(() => validateForm(form, copy), [form, copy]);
   const isReadyToGenerate = !validationMessage;
 
-  // 🔴 예전 activeStep = tick % 8 은 11초마다 1단계로 되돌아갔다(사용자에겐 "멈춘 것"처럼 보인다).
-  //    서버가 주는 progress(completed/total)를 1순위로 쓰고, 없을 때만 경과 시간 기반 점근선을 쓴다.
-  //    점근선은 단조 증가하며 100에 닿지 않는다.
-  const progress = useMemo(() => {
-    if (status === "completed" || status === "navigating") return 100;
-    if (!isBusy) return 0;
-    if (status === "opening") return 12;
-    if (status === "payment") return 26;
-    if (waveProgress && waveProgress.total > 0) {
-      return Math.min(97, 45 + Math.round((waveProgress.completed / waveProgress.total) * 52));
-    }
-    return Math.min(96, Math.round(45 + 50 * (1 - Math.exp(-elapsedMs / 90000))));
-  }, [status, isBusy, waveProgress, elapsedMs]);
-
-  const activeStep = useMemo(() => {
-    if (status !== "generating") return 0;
-    if (waveProgress && waveProgress.total > 0) {
-      const ratio = waveProgress.completed / waveProgress.total;
-      return Math.min(GENERATION_STEPS.length - 1, Math.floor(ratio * GENERATION_STEPS.length));
-    }
-    return Math.min(GENERATION_STEPS.length - 1, Math.floor(elapsedMs / 30000));
-  }, [status, waveProgress, elapsedMs]);
-
-  useEffect(() => {
-    if (!isBusy || !startedAt) return;
-    const timer = window.setInterval(() => setElapsedMs(Date.now() - startedAt), 1000);
-    return () => window.clearInterval(timer);
-  }, [isBusy, startedAt]);
-
   const resetAttempt = useCallback(() => {
     if (isBusy) return;
     idempotencyKeyRef.current = createIdempotencyKey();
     retryRef.current = null;
     setResultUrl("");
     setWaveProgress(null);
-    setStartedAt(0);
-    setElapsedMs(0);
     setRefunded(false);
     setError("");
     setNotice("");
@@ -1573,7 +1587,6 @@ export default function LifeBookAiClient({ paymentNotice, paymentSurface = "web"
     setError("");
     setNotice("");
     setRefunded(false);
-    setStartedAt(Date.now());
     setWaveProgress(null);
     try {
       return await runGeneration(payload, requestId, access);
@@ -1617,7 +1630,6 @@ export default function LifeBookAiClient({ paymentNotice, paymentSurface = "web"
     const payload = buildConsultationPayload(form, requestId);
     setError("");
     setNotice("");
-    setStartedAt(Date.now());
     setWaveProgress(null);
     setStatus("opening");
     beginPaidFeatureGateCheck({
@@ -1763,9 +1775,9 @@ export default function LifeBookAiClient({ paymentNotice, paymentSurface = "web"
     }
   }, [isBusy, runGeneration, submit, captureDeliveryScope]);
   const statusLabel = useMemo(() => {
-    if (status === "generating") return GENERATION_STEPS[activeStep] || GENERATION_STEPS[0];
+    if (status === "generating") return copy.writingStatus;
     return PHASE_COPY[status] || PHASE_COPY.idle;
-  }, [status, activeStep]);
+  }, [status, copy]);
 
   return (
     <main className={intro.bookPage}>
@@ -1792,6 +1804,7 @@ export default function LifeBookAiClient({ paymentNotice, paymentSurface = "web"
             {copy === LIFE_BOOK_CLIENT_COPY.ko && !isBusy && <ProductJourneyLinks sampleId="life-book" />}
           </div>
         </header>
+        {paymentSurface !== "toss" && copy === LIFE_BOOK_CLIENT_COPY.ko && !isBusy && !resultUrl && <ReviewProof brand="ggulggul" productId="life-book" sampleHref="#service-samples-life-book" />}
         {copy === LIFE_BOOK_CLIENT_COPY.ko && <CraftedProductDisclosure featureKey={MODE_FEATURE_KEY[form.mode]} />}
         <div className={intro.formLayout}>
           <aside className={intro.preparation}>
@@ -1981,47 +1994,20 @@ export default function LifeBookAiClient({ paymentNotice, paymentSurface = "web"
             )}
 
             {isBusy && (
-              <section className="rounded-lg border border-amber-200/20 bg-[#20362a] p-4 shadow-2xl shadow-black/20  sm:p-5">
-                <p className="text-xs font-bold uppercase tracking-[0.18em] text-amber-200">Writing in Progress</p>
-                <h2 className="mt-1 text-2xl font-semibold text-amber-50">{copy.writingHeading}</h2>
-                <p className="mt-2 text-sm leading-6 text-[#e7d2b5]">
-                  {copy.writingDescription}
-                </p>
-
-                <div
-                  role="progressbar"
-                  aria-valuenow={progress}
-                  aria-valuemin={0}
-                  aria-valuemax={100}
-                  aria-valuetext={statusLabel}
-                  aria-label={copy.writingProgressAria}
-                  className="mt-5 overflow-hidden rounded-full border border-amber-200/20 bg-black/30"
-                >
-                  <div className="h-3 rounded-full bg-gradient-to-r from-[#9f6b24] via-[#f2d07a] to-[#fff3b0] transition-all duration-700 motion-reduce:transition-none" style={{ width: `${progress}%` }} />
-                </div>
-                {/* ⚠️ 진행률 숫자는 aria-live 에 넣지 않는다 — 1초마다 숫자를 읽어 스크린리더 사용이 불가능해진다. */}
-                <div className="mt-3 flex items-center justify-between text-xs font-bold text-amber-100">
-                  <span aria-live="polite" aria-atomic="true">{statusLabel}</span>
-                  <span aria-hidden="true">
-                    {waveProgress ? copy.chapterCountUnit(waveProgress.completed, waveProgress.total) : ""}{progress}%
-                  </span>
-                </div>
-
-                <div className="mt-5 grid gap-3">
-                  {GENERATION_STEPS.slice(0, 4).map((step, index) => (
-                    <div key={step} className={`flex items-center gap-3 rounded-2xl border px-4 py-3 text-sm font-bold ${index <= activeStep ? "border-amber-200/30 bg-amber-50/10 text-amber-50" : "border-amber-100/10 bg-black/20 text-[#bda988]"}`}>
-                      <span className="grid h-7 w-7 place-items-center rounded-full border border-amber-200/25 text-xs">{index + 1}</span>
-                      {step}
-                    </div>
-                  ))}
-                </div>
-
-                <div className="mt-5 grid grid-cols-3 gap-2">
-                  {[0, 1, 2].map((item) => (
-                    <div key={item} className="h-28 animate-pulse rounded-2xl border border-amber-200/15 bg-gradient-to-br from-amber-100/15 to-black/20 motion-reduce:animate-none" />
-                  ))}
-                </div>
-              </section>
+              <GenerationProgress
+                persona="neo"
+                counselor={{ src: masterProfiles.yunLifeBook.portrait, srcSet: masterProfiles.yunLifeBook.portraitSrcSet }}
+                title={copy.writingHeading}
+                description={copy.writingDescription}
+                status={statusLabel}
+                completed={status === "generating" ? waveProgress?.completed : null}
+                total={status === "generating" ? waveProgress?.total : null}
+                countUnit={copy.writingCountUnit}
+                timing={status === "generating"}
+                elapsedLabel={copy.writingElapsedLabel}
+                progressLabel={copy.writingProgressAria}
+                leaveNotice={status !== "generating" ? null : paymentSurface === "toss" ? LIFE_BOOK_TOSS_LEAVE_NOTICE : copy.leaveSafeNotice}
+              />
             )}
 
             {status === "completed" && resultUrl && (

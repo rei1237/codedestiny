@@ -870,7 +870,7 @@ export default function LoveRelationshipTarot() {
             </div>
           </section>
         ) : null}
-        {delivery?.saved && readingRaw && <ReviewRewardBanner afterResult locale={locale}/>}
+        {delivery?.saved && readingRaw && <ReviewRewardBanner afterResult locale={locale} reviewProductId="tarot"/>}
       </div>
     </main>
   );

@@ -90,6 +90,7 @@
 .card:has(.cardLink:focus-visible) { outline: 3px solid var(--cd-focus-ring); outline-offset: 6px; transform: translateY(-2px) rotate(var(--hm-card-angle)); }
 .ynCard:has(.cardLink:focus-visible) { outline-color: var(--yn-gold); }
 .cardTag { margin-top: 8px !important; margin-bottom: 14px !important; min-height: 3.2em; font: 400 .875rem/1.6 var(--font-body); color: var(--hm-card-muted); text-wrap: balance; }
+.cardPrice { display: block; margin-top: 4px; font-weight: 700; color: var(--hm-card-ink); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .cardAction { display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; min-height: 48px; margin-top: auto; border: 1px solid var(--hm-card-edge); border-radius: var(--cd-r-pill); background: color-mix(in oklab, var(--hm-card-ink) 6%, var(--hm-card-bg)); color: var(--hm-card-ink); font: 700 .875rem/1.4 var(--font-body); }
 .cardAction svg { flex: none; width: 14px; transition: transform 250ms ease-out; }
 .cardFoil { position: absolute; inset: 8px 8px auto; aspect-ratio: 3 / 4; z-index: 3; overflow: hidden; border-radius: inherit; pointer-events: none; }

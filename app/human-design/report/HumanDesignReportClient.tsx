@@ -253,7 +253,7 @@ export default function HumanDesignReportClient({ locale: localeOverride }: { lo
           {/* 🔴 생성이 끝난 뒤에만 내보낸다. 진행 중에 만들면 아직 안 쓰인 장이 빠진 PDF 가
               사용자 손에 남고, 그게 완성본인 줄 알게 된다. */}
           {phase === "reading" && <ReportDownload plan={plan} chart={chart} locale={locale} />}
-          {phase === "reading" && doc && <ConsultationShare brand="humanDesign" choices={humanDesignShareChoices(doc)} />}
+          {phase === "reading" && doc && <ConsultationShare brand="humanDesign" reviewProductId="human-design" choices={humanDesignShareChoices(doc)} />}
 
           <div className={styles.readerBody}>
             <ReportRail

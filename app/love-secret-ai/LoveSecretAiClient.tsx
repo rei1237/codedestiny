@@ -14,16 +14,13 @@ import {
   Check,
   ChevronLeft,
   ChevronRight,
-  Clock3,
   Heart,
   Loader2,
   MessageCircleHeart,
   Moon,
   Sparkles,
-  Star,
   UserRound,
   Users,
-  WalletCards,
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type FormEvent, type ReactNode } from "react";
 import { authFetch } from "@/app/_lib/auth-client";
@@ -46,9 +43,11 @@ import { useAiProfileSeed } from "@/app/hooks/useAiProfileSeed";
 import { PriceBadge } from "@/app/components/PriceBadge";
 import ProductJourneyLinks, { useProductView } from "@/app/components/ProductJourneyLinks";
 import CraftedProductDisclosure from "@/app/components/CraftedProductDisclosure";
+import ReviewProof from "@/app/components/ReviewProof";
 import ProductMasterStrip from "@/app/components/ProductMasterStrip";
 import { MasterProfileGroup } from "@/components/fortune/MasterProfile";
 import { masterProfiles, productMasters } from "@/components/fortune/master-profiles";
+import GenerationProgress, { LEAVE_SAFE_NOTICE } from "@/components/fortune/GenerationProgress";
 import { ExpertStickyCta, ExpertValueCards } from "@/app/components/expert-consulting/ExpertConsultationFrame";
 import {
   getActivePaidAttemptSession,
@@ -123,6 +122,9 @@ type LoveSecretClientCopy = {
   promiseCardFooter: string;
   generatingCardHeading: string;
   generatingCardSubtext: string;
+  generatingElapsedLabel: string;
+  generatingCountUnit: string;
+  leaveSafeNotice: string;
   heroTitle: string;
   heroSubtitle: string;
   heroDescription: string;
@@ -248,6 +250,9 @@ const LOVE_SECRET_CLIENT_EN: LoveSecretClientCopy = {
   promiseCardFooter: "Interpreted only from your calculated chart and day pillars. No baseless claims or invented dates.",
   generatingCardHeading: "Reading the Temperature of Your Heart",
   generatingCardSubtext: "Each finished section is saved as the rest of your reading is prepared.",
+  generatingElapsedLabel: "Elapsed",
+  generatingCountUnit: "sections done",
+  leaveSafeNotice: "Closing this screen won't lose the reading you paid for. Reopen it to keep writing, and if you stay away for a while, the server finishes it and saves it to your records.",
   heroTitle: "Love Strategy AI",
   heroSubtitle: "A Love Consultant Just for You",
   heroDescription: "We read your birth chart together with love psychology to point out exactly what to do today and what to hold off on.",
@@ -357,6 +362,9 @@ const LOVE_SECRET_CLIENT_COPY: Partial<Record<LoadingLocale, LoveSecretClientCop
     promiseCardFooter: "계산된 명식과 일진 안에서만 해석합니다. 근거 없는 단정이나 지어낸 날짜는 쓰지 않습니다.",
     generatingCardHeading: "마음의 온도를 읽는 중입니다",
     generatingCardSubtext: "완료된 부분부터 저장하며 나머지 상담을 이어서 작성하고 있어요.",
+    generatingElapsedLabel: "경과",
+    generatingCountUnit: "갈래 완성",
+    leaveSafeNotice: LEAVE_SAFE_NOTICE,
     heroTitle: "연애 비책 AI",
     heroSubtitle: "당신만을 위한 연애 컨설턴트",
     heroDescription: "사주 명식과 연애 심리를 함께 읽어, 오늘 무엇을 하고 무엇을 미뤄야 하는지까지 짚어 드립니다.",
@@ -465,6 +473,9 @@ const LOVE_SECRET_CLIENT_COPY: Partial<Record<LoadingLocale, LoveSecretClientCop
     promiseCardFooter: "計算された命式と日辰の範囲内でのみ解釈します。根拠のない断定や作られた日付は使いません。",
     generatingCardHeading: "心の温度を読み取っています",
     generatingCardSubtext: "完成した部分から保存し、残りの鑑定を続けて作成しています。",
+    generatingElapsedLabel: "経過",
+    generatingCountUnit: "パート完成",
+    leaveSafeNotice: "画面を閉じても、お支払い済みの相談は消えません。もう一度開くと続きから書き、しばらく離れていてもサーバーが仕上げて記録に保存します。",
     heroTitle: "恋愛秘策AI",
     heroSubtitle: "あなただけの恋愛コンサルタント",
     heroDescription: "四柱命式と恋愛心理を合わせて読み解き、今日すべきことと控えるべきことまで示します。",
@@ -572,6 +583,9 @@ const LOVE_SECRET_CLIENT_COPY: Partial<Record<LoadingLocale, LoveSecretClientCop
     promiseCardFooter: "仅在推算出的命盘与日辰范围内进行解读，不使用无依据的断言或虚构的日期。",
     generatingCardHeading: "正在解读您的心意温度",
     generatingCardSubtext: "已完成的部分会先保存，其余解读将继续生成。",
+    generatingElapsedLabel: "已用时间",
+    generatingCountUnit: "部分已完成",
+    leaveSafeNotice: "关闭页面也不会丢失已付款的咨询。重新打开会接着写；如果长时间离开，服务器会把它写完并保存到记录中。",
     heroTitle: "恋爱秘诀AI",
     heroSubtitle: "专属于您的恋爱顾问",
     heroDescription: "结合四柱命盘与恋爱心理，为您指出今天该做什么、该搁置什么。",
@@ -679,6 +693,9 @@ const LOVE_SECRET_CLIENT_COPY: Partial<Record<LoadingLocale, LoveSecretClientCop
     promiseCardFooter: "僅在推算出的命盤與日辰範圍內進行解讀，不使用無依據的斷言或虛構的日期。",
     generatingCardHeading: "正在解讀您的心意溫度",
     generatingCardSubtext: "已完成的部分會先儲存，其餘解讀將繼續生成。",
+    generatingElapsedLabel: "已用時間",
+    generatingCountUnit: "部分已完成",
+    leaveSafeNotice: "關閉頁面也不會遺失已付款的諮詢。重新開啟會接著寫；如果長時間離開，伺服器會把它寫完並儲存到紀錄中。",
     heroTitle: "戀愛秘訣AI",
     heroSubtitle: "專屬於您的戀愛顧問",
     heroDescription: "結合四柱命盤與戀愛心理，為您指出今天該做什麼、該擱置什麼。",
@@ -793,6 +810,9 @@ const LOVE_SECRET_CLIENT_COPY: Partial<Record<LoadingLocale, LoveSecretClientCop
     promiseCardFooter: "Chỉ diễn giải trong phạm vi lá số và nhật thần đã tính toán. Không đưa ra khẳng định vô căn cứ hay ngày tháng bịa đặt.",
     generatingCardHeading: "Đang đọc nhiệt độ trong lòng bạn",
     generatingCardSubtext: "Các phần đã hoàn thành được lưu trong khi phần tư vấn còn lại tiếp tục được tạo.",
+    generatingElapsedLabel: "Đã trôi qua",
+    generatingCountUnit: "phần đã xong",
+    leaveSafeNotice: "Đóng màn hình cũng không làm mất buổi tư vấn bạn đã thanh toán. Mở lại để viết tiếp, và nếu bạn rời đi lâu, máy chủ sẽ hoàn thành rồi lưu vào mục lưu trữ của bạn.",
     heroTitle: "Bí Quyết Tình Yêu AI",
     heroSubtitle: "Một Chuyên Gia Tư Vấn Tình Yêu Chỉ Dành Cho Bạn",
     heroDescription: "Chúng tôi đọc lá số Tứ Trụ cùng với tâm lý tình yêu để chỉ rõ những gì nên làm và nên hoãn lại hôm nay.",
@@ -902,6 +922,9 @@ const LOVE_SECRET_CLIENT_COPY: Partial<Record<LoadingLocale, LoveSecretClientCop
     promiseCardFooter: "केवल गणना की गई कुंडली और तिथियों के भीतर ही व्याख्या की जाती है। बिना आधार के दावे या गढ़ी गई तारीखों का उपयोग नहीं किया जाता।",
     generatingCardHeading: "आपके मन का तापमान पढ़ा जा रहा है",
     generatingCardSubtext: "पूरा हुआ हर भाग सहेजा जाता है और शेष परामर्श तैयार किया जाता है।",
+    generatingElapsedLabel: "बीता समय",
+    generatingCountUnit: "भाग पूरे",
+    leaveSafeNotice: "स्क्रीन बंद करने पर भी आपका भुगतान किया हुआ परामर्श नहीं खोएगा। दोबारा खोलने पर लिखना वहीं से जारी रहेगा, और देर तक दूर रहने पर सर्वर इसे पूरा करके आपके रिकॉर्ड में सहेज देगा।",
     heroTitle: "लव सीक्रेट AI",
     heroSubtitle: "केवल आपके लिए एक प्रेम सलाहकार",
     heroDescription: "हम जन्म कुंडली को प्रेम मनोविज्ञान के साथ मिलाकर पढ़ते हैं, ताकि आज क्या करना है और क्या टालना है, यह भी बता सकें।",
@@ -1016,6 +1039,9 @@ const LOVE_SECRET_CLIENT_COPY: Partial<Record<LoadingLocale, LoveSecretClientCop
     promiseCardFooter: "Interpretado solo a partir de tu carta calculada y los pilares del día. Sin afirmaciones infundadas ni fechas inventadas.",
     generatingCardHeading: "Leyendo la temperatura de tu corazón",
     generatingCardSubtext: "Cada sección terminada se guarda mientras se prepara el resto de la lectura.",
+    generatingElapsedLabel: "Tiempo transcurrido",
+    generatingCountUnit: "secciones listas",
+    leaveSafeNotice: "Si cierras la pantalla, la consulta que pagaste no se pierde. Al volver a abrirla seguimos escribiendo, y si te ausentas un buen rato, el servidor la termina y la guarda en tu historial.",
     heroTitle: "Secreto del Amor IA",
     heroSubtitle: "Un consultor amoroso solo para ti",
     heroDescription: "Leemos tu carta natal junto con la psicología amorosa para señalar exactamente qué hacer hoy y qué posponer.",
@@ -1130,6 +1156,9 @@ const LOVE_SECRET_CLIENT_COPY: Partial<Record<LoadingLocale, LoveSecretClientCop
     promiseCardFooter: "Interprété uniquement à partir de votre thème calculé et des piliers du jour. Aucune affirmation infondée ni date inventée.",
     generatingCardHeading: "Lecture de la température de votre cœur",
     generatingCardSubtext: "Chaque partie terminée est enregistrée pendant la préparation de la suite.",
+    generatingElapsedLabel: "Temps écoulé",
+    generatingCountUnit: "parties terminées",
+    leaveSafeNotice: "Fermer l'écran ne fait pas disparaître la consultation que vous avez payée. En la rouvrant, la rédaction reprend, et si vous restez absent un moment, le serveur la termine et l'enregistre dans votre historique.",
     heroTitle: "Secret de l'Amour IA",
     heroSubtitle: "Un consultant amoureux rien que pour vous",
     heroDescription: "Nous lisons votre thème natal avec la psychologie amoureuse pour indiquer exactement quoi faire aujourd'hui et quoi remettre à plus tard.",
@@ -1244,6 +1273,9 @@ const LOVE_SECRET_CLIENT_COPY: Partial<Record<LoadingLocale, LoveSecretClientCop
     promiseCardFooter: "Nur innerhalb Ihres berechneten Charts und der Tagessäulen interpretiert. Keine unbegründeten Behauptungen oder erfundenen Daten.",
     generatingCardHeading: "Die Temperatur Ihres Herzens wird gelesen",
     generatingCardSubtext: "Fertige Abschnitte werden gespeichert, während der Rest der Deutung entsteht.",
+    generatingElapsedLabel: "Vergangene Zeit",
+    generatingCountUnit: "Abschnitte fertig",
+    leaveSafeNotice: "Auch wenn Sie den Bildschirm schließen, geht die bezahlte Beratung nicht verloren. Beim erneuten Öffnen wird weitergeschrieben, und bleiben Sie länger weg, stellt der Server sie fertig und speichert sie in Ihrem Verlauf.",
     heroTitle: "Liebesgeheimnis KI",
     heroSubtitle: "Ein Liebesberater nur für Sie",
     heroDescription: "Wir lesen Ihr Geburtshoroskop zusammen mit der Liebespsychologie, um genau zu zeigen, was heute zu tun und was aufzuschieben ist.",
@@ -1358,6 +1390,9 @@ const LOVE_SECRET_CLIENT_COPY: Partial<Record<LoadingLocale, LoveSecretClientCop
     promiseCardFooter: "Alleen geïnterpreteerd binnen je berekende horoscoop en dagpilaren. Geen ongefundeerde beweringen of verzonnen data.",
     generatingCardHeading: "De temperatuur van je hart wordt gelezen",
     generatingCardSubtext: "Voltooide delen worden opgeslagen terwijl de rest van de duiding wordt voorbereid.",
+    generatingElapsedLabel: "Verstreken tijd",
+    generatingCountUnit: "onderdelen klaar",
+    leaveSafeNotice: "Ook als je het scherm sluit, gaat het betaalde consult niet verloren. Open het opnieuw om verder te schrijven; blijf je langer weg, dan maakt de server het af en bewaart het in je overzicht.",
     heroTitle: "Liefdesgeheim AI",
     heroSubtitle: "Een liefdesadviseur alleen voor jou",
     heroDescription: "We lezen je geboortehoroscoop samen met liefdespsychologie om precies aan te geven wat je vandaag moet doen en wat je moet uitstellen.",
@@ -1472,6 +1507,9 @@ const LOVE_SECRET_CLIENT_COPY: Partial<Record<LoadingLocale, LoveSecretClientCop
     promiseCardFooter: "Ditafsirkan hanya dalam carta yang dikira dan tiang hari. Tiada dakwaan tanpa asas atau tarikh rekaan.",
     generatingCardHeading: "Membaca suhu hati anda",
     generatingCardSubtext: "Bahagian yang siap disimpan sementara baki bacaan terus disediakan.",
+    generatingElapsedLabel: "Masa berlalu",
+    generatingCountUnit: "bahagian siap",
+    leaveSafeNotice: "Menutup skrin tidak akan menghilangkan sesi rundingan yang telah anda bayar. Buka semula untuk menyambung, dan jika anda lama tidak kembali, pelayan akan menyiapkannya dan menyimpannya dalam rekod anda.",
     heroTitle: "AI Rahsia Cinta",
     heroSubtitle: "Perunding Cinta Khusus Untuk Anda",
     heroDescription: "Kami membaca carta kelahiran anda bersama psikologi percintaan untuk menunjukkan dengan tepat apa yang perlu dilakukan hari ini dan apa yang perlu ditangguhkan.",
@@ -1491,6 +1529,11 @@ const LOVE_SECRET_CLIENT_COPY: Partial<Record<LoadingLocale, LoveSecretClientCop
 function getLoveSecretClientCopy(locale: LoadingLocale): LoveSecretClientCopy {
   return LOVE_SECRET_CLIENT_COPY[locale] || LOVE_SECRET_CLIENT_EN;
 }
+
+// 생성 중 상태 문장. generatingSteps[3] 은 모든 로케일에서 "일곱 갈래를 함께 쓰는 중" 이다.
+// 🔴 서버는 한 요청 안에서 갈래를 동시에 쓰므로, 클라이언트가 아는 사실은 "쓰는 중" 과 서버가
+//    돌려준 완성 갈래 수뿐이다. 시간으로 단계를 넘기던 가짜 체크리스트는 없앴다.
+const WRITING_STEP_INDEX = 3;
 
 function useLoveSecretClientCopy(): LoveSecretClientCopy {
   // Match the server's Korean snapshot; resolve the browser locale after hydration.
@@ -1905,8 +1948,8 @@ export default function LoveSecretAiPage({ paymentNotice, TossPrice, paymentSurf
   const [error, setError] = useState("");
   const [resultUrl, setResultUrl] = useState("");
   const [resultOpenMessage, setResultOpenMessage] = useState("");
-  const [progress, setProgress] = useState(0);
-  const [progressIndex, setProgressIndex] = useState(0);
+  // 서버가 돌려준 실제 완성 갈래 수. 없으면 끝을 모르는 막대만 보인다(가짜 퍼센트 없음).
+  const [groupProgress, setGroupProgress] = useState<{ completed: number; total: number } | null>(null);
   const startLockRef = useRef(false);
   const resultWindowRef = useRef<Window | null>(null);
   const idempotencyKeyRef = useRef(createIdempotencyKey());
@@ -1969,10 +2012,10 @@ export default function LoveSecretAiPage({ paymentNotice, TossPrice, paymentSurf
   const phaseText = useMemo(() => {
     if (phase === "reading") return copy.phaseReading;
     if (phase === "payment") return copy.phasePayment;
-    if (phase === "generating") return copy.generatingSteps[progressIndex] || copy.generatingSteps[0];
+    if (phase === "generating") return copy.generatingSteps[WRITING_STEP_INDEX] || copy.generatingSteps[0];
     if (phase === "ready") return copy.phaseReady;
     return copy.phaseIdle;
-  }, [phase, progressIndex, copy]);
+  }, [phase, copy]);
 
   useEffect(() => {
     console.info("[LoveSecret AI Page Enter]", { route: "/love-secret-ai" });
@@ -1991,30 +2034,6 @@ export default function LoveSecretAiPage({ paymentNotice, TossPrice, paymentSurf
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  useEffect(() => {
-    if (!busy) {
-      if (phase === "ready") setProgress(100);
-      if (phase === "idle" || phase === "error") setProgress(0);
-      return;
-    }
-    const base = phase === "reading" ? 14 : phase === "payment" ? 28 : 40;
-    setProgress((current) => Math.max(current, base));
-    const progressTimer = window.setInterval(() => {
-      setProgress((current) => {
-        const ceiling = phase === "generating" ? 95 : phase === "payment" ? 42 : 32;
-        if (current >= ceiling) return ceiling;
-        return Math.min(ceiling, current + (phase === "generating" ? 3 : 2));
-      });
-    }, 700);
-    const stepTimer = window.setInterval(() => {
-      if (phase === "generating") setProgressIndex((current) => Math.min(copy.generatingSteps.length - 1, current + 1));
-    }, 1800);
-    return () => {
-      window.clearInterval(progressTimer);
-      window.clearInterval(stepTimer);
-    };
-  }, [busy, phase, copy]);
-
   const resetAttempt = useCallback(() => {
     // 모든 사용자 입력 핸들러가 이 함수를 거치므로, 여기서 입력 시작 여부를 기록
     formTouchedRef.current = true;
@@ -2025,8 +2044,7 @@ export default function LoveSecretAiPage({ paymentNotice, TossPrice, paymentSurf
     setNotice("");
     setError("");
     setPhase("idle");
-    setProgress(0);
-    setProgressIndex(0);
+    setGroupProgress(null);
   }, [busy]);
 
   function setPersonField(target: "myInfo" | "partnerInfo", field: keyof PersonInfo, value: string | boolean) {
@@ -2124,7 +2142,7 @@ export default function LoveSecretAiPage({ paymentNotice, TossPrice, paymentSurf
     setPhase("generating");
     // 다음 화면(생성 중 상태)이 마운트되는 시점 — 게이트 오버레이 hold를 해제한다.
     releasePaidFeatureGate(idempotencyKey);
-    setProgressIndex(0);
+    setGroupProgress(null);
     markPaidAttemptGenerationStarted("love_secret_ai_generate_start");
     const attemptId = activeAttemptId();
     let { response: generationResponse, payload: result } = await postJson<ConsultationResult>("/api/love-secret-ai/generate", {
@@ -2141,7 +2159,7 @@ export default function LoveSecretAiPage({ paymentNotice, TossPrice, paymentSurf
       if (result.status === "generating") result = await pollResult(result.sessionId || idempotencyKey);
       if (!isCurrent()) return false;
       if (result.status !== "partial" || !result.sessionId) break;
-      setProgress(Math.min(90, Math.round((result.completedGroups?.length || 0) / (result.totalGroups || 6) * 90)));
+      setGroupProgress({ completed: result.completedGroups?.length || 0, total: result.totalGroups || 0 });
       const partialUrl = buildResultUrl({ sessionId: result.sessionId, requestId: idempotencyKey, pending: true }, paymentSurface);
       setResultUrl(partialUrl);
       if (document.hidden) break;
@@ -2153,7 +2171,6 @@ export default function LoveSecretAiPage({ paymentNotice, TossPrice, paymentSurf
 
     if (completed?.ok && completed.sessionId) {
       const url = buildResultUrl({ sessionId: completed.sessionId, attemptId: attemptId || undefined }, paymentSurface);
-      setProgress(100);
       setNotice("");
       setError("");
       setPhase("ready");
@@ -2179,7 +2196,7 @@ export default function LoveSecretAiPage({ paymentNotice, TossPrice, paymentSurf
     idempotencyKeyRef.current = idempotencyKey;
     setError("");
     setNotice("");
-    setProgressIndex(0);
+    setGroupProgress(null);
     try {
       return await startConsultation(payload, idempotencyKey, extractPayment(grant?.payload, idempotencyKey));
     } catch (caught) {
@@ -2229,7 +2246,7 @@ export default function LoveSecretAiPage({ paymentNotice, TossPrice, paymentSurf
     setError("");
     setNotice("");
     setPhase("reading");
-    setProgressIndex(0);
+    setGroupProgress(null);
     beginPaidFeatureGateCheck({
       featureKey: SERVICE_TYPE,
       requestId: idempotencyKey,
@@ -2328,7 +2345,7 @@ export default function LoveSecretAiPage({ paymentNotice, TossPrice, paymentSurf
     window.setTimeout(() => target?.querySelector<HTMLButtonElement>("button")?.focus(), 420);
   }
 
-  const stepPercent = busy ? Math.max(5, Math.min(100, progress)) : Math.round(((step + 1) / STEPS.length) * 100);
+  const stepPercent = Math.round(((step + 1) / STEPS.length) * 100);
   const activeStep = STEPS[step];
 
   return (
@@ -2340,13 +2357,16 @@ export default function LoveSecretAiPage({ paymentNotice, TossPrice, paymentSurf
 
       <section className={`${intro.shell} flex flex-col gap-6`}>
         <LoveSecretHero showWebPrice={paymentSurface !== "toss"} onStart={focusFirstStepField} busy={busy} mastersHref={!busy && !resultUrl ? `#${LOVE_MASTERS_ANCHOR_ID}` : undefined} />
+        {paymentSurface !== "toss" && copy === LOVE_SECRET_CLIENT_COPY.ko && !busy && !resultUrl && <ReviewProof brand="ggulggul" productId="love-coach" sampleHref="#service-samples-love-secret" />}
         {copy === LOVE_SECRET_CLIENT_COPY.ko && <CraftedProductDisclosure featureKey="love-secret-ai-consultation" />}
 
-        <LoveSecretProgressRail
-          mode={busy ? "generating" : "form"}
-          label={busy ? phaseText : copy.stepLabelFormat(step + 1, copy.stepTitle[activeStep.id])}
-          percent={stepPercent}
-        />
+        {/* 생성 중에는 레일을 숨긴다. 진행은 아래 GenerationProgress 가 실제 완성 수로만 말한다. */}
+        {!busy && (
+          <LoveSecretProgressRail
+            label={copy.stepLabelFormat(step + 1, copy.stepTitle[activeStep.id])}
+            percent={stepPercent}
+          />
+        )}
 
         <div className={intro.valueSlot}>
           <ExpertValueCards theme="love" points={[{ title: "내 마음의 속도", description: "지금 관계에서 내가 먼저 반응하는 지점과 원하는 거리를 살핍니다." }, { title: "상대와의 결", description: "상대의 마음을 단정하지 않고 관계의 패턴과 흐름으로 읽습니다." }, { title: "다음 대화", description: "불안을 키우기보다 지금 선택할 수 있는 대화와 간격을 정리합니다." }]} />
@@ -2355,12 +2375,34 @@ export default function LoveSecretAiPage({ paymentNotice, TossPrice, paymentSurf
           <form data-moonlit-form="" onSubmit={event=>{if(price.confirm(event,Boolean(pendingGenerationRef.current)))void handleSubmit(event);}} id={FORM_ANCHOR_ID} className={styles.entryForm}>
             <div
               key={busy ? "busy" : activeStep.id}
-              className={`${styles.stepEnter} rounded-lg border border-[var(--ls-line)] bg-[var(--ls-surface)] p-5 sm:p-7`}
+              className={busy ? styles.stepEnter : `${styles.stepEnter} rounded-lg border border-[var(--ls-line)] bg-[var(--ls-surface)] p-5 sm:p-7`}
             >
               {busy ? (
-                <LoveSecretGeneratingCard phase={phase} text={phaseText} progress={progress} progressIndex={progressIndex} />
+                <GenerationProgress
+                  persona="yeoni"
+                  counselor={{ src: masterProfiles.yeoniLove.portrait, srcSet: masterProfiles.yeoniLove.portraitSrcSet }}
+                  title={copy.generatingCardHeading}
+                  description={copy.generatingCardSubtext}
+                  status={phaseText}
+                  completed={groupProgress?.completed}
+                  total={groupProgress?.total}
+                  countUnit={copy.generatingCountUnit}
+                  timing={phase === "generating"}
+                  elapsedLabel={copy.generatingElapsedLabel}
+                  leaveNotice={phase === "generating" ? copy.leaveSafeNotice : null}
+                  progressLabel={copy.progressGeneratingSrLabel}
+                />
               ) : (
                 <>
+                  {paymentSurface !== "toss" && !resultUrl && (
+                    <div className="-mt-1 mb-3 flex justify-end" data-ls-step-price="">
+                      <PriceBadge
+                        featureKey="love-secret-ai-consultation"
+                        prefix={copy.priceLabelPrefix}
+                        className="text-xs font-semibold text-[var(--ls-text-muted)]"
+                      />
+                    </div>
+                  )}
                   <header className="mb-6 flex items-start gap-3">
                     <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-[var(--ls-surface-sunken)] text-[var(--ls-accent)] ring-1 ring-[var(--ls-line)]">
                       <activeStep.Icon className="h-5 w-5" aria-hidden="true" />
@@ -2559,7 +2601,7 @@ function LoveSecretHero({ onStart, busy, mastersHref, showWebPrice }: { showWebP
   );
 }
 
-function LoveSecretProgressRail({ mode, label, percent }: { mode: "form" | "generating"; label: string; percent: number }) {
+function LoveSecretProgressRail({ label, percent }: { label: string; percent: number }) {
   const copy = useLoveSecretClientCopy();
   return (
     <div className="rounded-2xl border border-[var(--ls-line)] bg-[var(--ls-surface)] px-4 py-3">
@@ -2567,14 +2609,14 @@ function LoveSecretProgressRail({ mode, label, percent }: { mode: "form" | "gene
         <span className="min-w-0 truncate text-[var(--ls-text)]">{label}</span>
         <span className="shrink-0 text-[var(--ls-accent)]">{percent}%</span>
       </div>
-      {/* 접근 가능한 진행 안내는 생성 카드의 aria-live 가 담당한다. 여기서 또 알리면 중복 낭독이 된다. */}
+      {/* 입력 단계 진행(몇 번째 단계인지)만 말한다. 생성 진행은 GenerationProgress 가 맡는다. */}
       <div className={`mt-2 h-2 overflow-hidden rounded-full ${styles.railTrack}`} aria-hidden="true">
         <div
           className={`h-full rounded-full ${styles.railFill}`}
           style={{ "--ls-progress": percent / 100 } as CSSProperties}
         />
       </div>
-      <span className="sr-only">{mode === "generating" ? copy.progressGeneratingSrLabel : copy.progressFormSrLabel} {percent}%</span>
+      <span className="sr-only">{copy.progressFormSrLabel} {percent}%</span>
     </div>
   );
 }
@@ -2851,60 +2893,6 @@ function LoveSecretPromiseCard() {
       <p className="mt-5 border-t border-[var(--ls-line)] pt-4 text-sm leading-6 text-[var(--ls-text-muted)]">
         {copy.promiseCardFooter}
       </p>
-    </section>
-  );
-}
-
-function LoveSecretGeneratingCard({ phase, text, progress, progressIndex }: { phase: Phase; text: string; progress: number; progressIndex: number }) {
-  const copy = useLoveSecretClientCopy();
-  return (
-    <section className="relative overflow-hidden rounded-3xl bg-[var(--ls-surface-sunken)] p-6" aria-live="polite">
-      <div className={`${styles.petalField} ${styles.sparkleField}`} aria-hidden="true">
-        {Array.from({ length: 14 }, (_, index) => (
-          <span key={index} className={styles.petal} />
-        ))}
-      </div>
-
-      <div className="relative flex items-start gap-3">
-        <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-[var(--ls-surface)] text-[var(--ls-accent)] ring-1 ring-[var(--ls-line)]">
-          {phase === "payment"
-            ? <WalletCards className="h-5 w-5" aria-hidden="true" />
-            : <Clock3 className="h-5 w-5" aria-hidden="true" />}
-        </span>
-        <div className="min-w-0 flex-1">
-          <h3 className="break-keep text-lg font-semibold text-[var(--ls-text)] [font-family:var(--font-serif)]">
-            {copy.generatingCardHeading}
-          </h3>
-          <p className="mt-1.5 text-sm leading-6 text-[var(--ls-text-muted)]">{text}</p>
-          <p className="mt-1 text-xs text-[var(--ls-text-muted)]">{copy.generatingCardSubtext}</p>
-        </div>
-      </div>
-
-      <div className="relative mt-5 h-2.5 overflow-hidden rounded-full bg-[var(--ls-surface)]" aria-hidden="true">
-        <div
-          className={`h-full rounded-full ${styles.railFill}`}
-          style={{ "--ls-progress": Math.max(5, Math.min(100, progress)) / 100 } as CSSProperties}
-        />
-      </div>
-
-      <ul className="relative mt-5 grid gap-2">
-        {copy.generatingSteps.map((item, index) => (
-          <li
-            key={item}
-            className={cx(
-              "flex items-center gap-3 rounded-2xl border px-3 py-2.5 text-xs font-bold transition",
-              progressIndex >= index
-                ? "border-[var(--ls-line-control)] bg-[var(--ls-surface)] text-[var(--ls-text)]"
-                : "border-[var(--ls-line)] bg-transparent text-[var(--ls-text-muted)]",
-            )}
-          >
-            {progressIndex >= index
-              ? <Check className="h-4 w-4 shrink-0 text-[var(--ls-accent)]" aria-hidden="true" />
-              : <Star className="h-4 w-4 shrink-0" aria-hidden="true" />}
-            <span className="min-w-0">{item}</span>
-          </li>
-        ))}
-      </ul>
     </section>
   );
 }

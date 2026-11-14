@@ -1,0 +1,327 @@
+/*
+ * 유료 상담 생성 대기 화면(공용).
+ * 🔴 --cd-* 를 다시 선언하지 않는다. 고정 팔레트 토큰을 --gp-* 로 옮겨 쓰고 새 색값을 만들지 않는다.
+ * 🔴 연이(분홍)·네오(달빛)는 페이지 모드(html[data-cd-theme])와 상관없이 고정이다. 대비는 AA 이상.
+ * 🔴 움직임은 CSS 로만, prefers-reduced-motion 이면 멈춘다.
+ */
+
+.root {
+  --gp-surface: var(--cd-samples-paper);
+  --gp-raised: var(--cd-samples-sheet);
+  --gp-ink: var(--cd-samples-ink);
+  --gp-muted: var(--cd-samples-muted);
+  --gp-accent: var(--cd-samples-rose);
+  --gp-track: var(--cd-samples-blush);
+  --gp-line: var(--cd-samples-line);
+  --gp-glow: var(--cd-samples-blush);
+  --gp-notice: var(--cd-samples-lilac);
+  --gp-fill: linear-gradient(90deg, color-mix(in srgb, var(--cd-samples-rose) 72%, var(--cd-samples-sheet)), var(--cd-samples-rose));
+
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr;
+  justify-items: center;
+  gap: 18px;
+  padding: 24px 20px;
+  border: 1px solid var(--gp-line);
+  border-radius: var(--cd-r-md, 16px);
+  background: var(--gp-surface);
+  color: var(--gp-ink);
+  text-align: center;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
+.root[data-persona="neo"] {
+  --gp-surface: var(--cd-neo-letter-night);
+  --gp-raised: var(--cd-neo-letter-blue);
+  --gp-ink: var(--cd-neo-letter-paper);
+  --gp-muted: var(--cd-neo-letter-silver);
+  --gp-accent: var(--cd-samples-lilac);
+  --gp-track: var(--cd-neo-letter-blue);
+  --gp-line: color-mix(in srgb, var(--cd-neo-letter-silver) 30%, transparent);
+  --gp-glow: color-mix(in srgb, var(--cd-samples-lilac) 34%, transparent);
+  --gp-notice: color-mix(in srgb, var(--cd-neo-letter-blue) 70%, var(--cd-neo-letter-night));
+  --gp-fill: linear-gradient(90deg, var(--cd-neo-letter-silver), var(--cd-samples-lilac));
+}
+
+/* ── 상담사 ───────────────────────────────────── */
+.scene {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 104px;
+  height: 104px;
+}
+
+.halo {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--gp-glow) 0%, transparent 70%);
+  animation: gp-breathe 3.2s ease-in-out infinite;
+}
+
+.counselor {
+  position: relative;
+  display: block;
+  width: 88px;
+  height: 88px;
+  border-radius: 50%;
+  border: 2px solid var(--gp-raised);
+  outline: 1px solid var(--gp-line);
+  outline-offset: 2px;
+  object-fit: cover;
+  object-position: 50% 12%;
+  background: var(--gp-track);
+}
+
+/* ── 본문 ───────────────────────────────────── */
+.body {
+  display: grid;
+  gap: 12px;
+  width: 100%;
+  max-width: 34rem;
+  min-width: 0;
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-serif, Batang, serif);
+  font-size: 1.3rem;
+  font-weight: 600;
+  line-height: 1.45;
+  color: var(--gp-ink);
+  text-wrap: balance;
+}
+
+.description {
+  margin: 0;
+  text-wrap: pretty;
+  font-size: 0.95rem;
+  line-height: 1.7;
+  color: var(--gp-muted);
+}
+
+.live {
+  display: grid;
+  gap: 2px;
+}
+
+.status {
+  margin: 0;
+  text-wrap: pretty;
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.6;
+  color: var(--gp-ink);
+}
+
+.count {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--gp-accent);
+}
+
+/* ── 막대 ───────────────────────────────────── */
+.track {
+  --gp-ratio: 0;
+  position: relative;
+  height: 8px;
+  overflow: hidden;
+  border-radius: var(--cd-r-pill, 999px);
+  background: var(--gp-track);
+  box-shadow: inset 0 0 0 1px var(--gp-line);
+}
+
+/* 끝을 모르는 막대는 숫자가 없어 테두리가 막대 모양을 전한다. 카드 바탕과 3:1 이상(연이 3.7:1, 네오 3.9:1). */
+.root[data-gp-mode="indeterminate"] .track {
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--cd-samples-muted) 70%, var(--cd-samples-blush));
+}
+
+.root[data-persona="neo"][data-gp-mode="indeterminate"] .track {
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--cd-neo-letter-silver) 45%, var(--cd-neo-letter-blue));
+}
+
+.fill {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: var(--gp-fill);
+  transform: scaleX(var(--gp-ratio));
+  transform-origin: left center;
+  transition: transform var(--cd-dur-emph, 380ms) var(--cd-ease-out, ease-out);
+}
+
+[dir="rtl"] .fill {
+  transform-origin: right center;
+}
+
+.sweep {
+  position: absolute;
+  inset-block: 0;
+  left: 0;
+  width: 38%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, transparent, var(--gp-accent), transparent);
+  animation: gp-sweep 1.8s var(--cd-ease-out, ease-in-out) infinite;
+}
+
+/* ── 경과·보통 시간 ───────────────────────────── */
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px 14px;
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: var(--gp-muted);
+}
+
+.elapsed time {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  color: var(--gp-ink);
+}
+
+/* ── 단계 ───────────────────────────────────── */
+.steps {
+  display: grid;
+  gap: 8px;
+  margin: 4px 0 0;
+  padding: 0;
+  list-style: none;
+  text-align: start;
+}
+
+.step {
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  padding: 8px 12px;
+  border: 1px solid var(--gp-line);
+  border-radius: var(--cd-r-sm, 8px);
+  background: var(--gp-raised);
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: var(--gp-muted);
+}
+
+.step[data-state="current"] {
+  border-color: var(--gp-accent);
+  color: var(--gp-ink);
+  font-weight: 600;
+}
+
+.step[data-state="done"] {
+  color: var(--gp-ink);
+}
+
+.marker {
+  position: relative;
+  width: 14px;
+  height: 14px;
+  justify-self: center;
+  border-radius: 50%;
+  border: 2px solid var(--gp-muted);
+}
+
+.step[data-state="done"] .marker {
+  border-color: var(--gp-accent);
+  background: var(--gp-accent);
+}
+
+.step[data-state="current"] .marker {
+  border-color: var(--gp-accent);
+  animation: gp-ring 1.6s ease-in-out infinite;
+}
+
+.stepLabel {
+  min-width: 0;
+}
+
+/* ── 떠나도 안전 ─────────────────────────────── */
+.leave {
+  margin: 4px 0 0;
+  padding: 12px 14px;
+  border: 1px solid var(--gp-line);
+  border-radius: var(--cd-r-sm, 8px);
+  background: var(--gp-notice);
+  font-size: 0.9rem;
+  line-height: 1.7;
+  color: var(--gp-ink);
+  text-align: start;
+  text-wrap: pretty;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (min-width: 641px) {
+  .root {
+    padding: 32px 28px;
+  }
+
+  .scene {
+    width: 132px;
+    height: 132px;
+  }
+
+  .counselor {
+    width: 112px;
+    height: 112px;
+  }
+
+  .title {
+    font-size: 1.45rem;
+  }
+}
+
+@keyframes gp-breathe {
+  0%, 100% { opacity: 0.55; transform: scale(0.94); }
+  50% { opacity: 1; transform: scale(1.04); }
+}
+
+@keyframes gp-sweep {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(270%); }
+}
+
+@keyframes gp-ring {
+  0%, 100% { box-shadow: 0 0 0 0 var(--gp-glow); }
+  50% { box-shadow: 0 0 0 5px var(--gp-glow); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .halo,
+  .sweep,
+  .step[data-state="current"] .marker {
+    animation: none;
+  }
+
+  .fill {
+    transition: none;
+  }
+
+  /* 끝을 모르는 막대는 흐르지 않는 옅은 막대로 둔다. */
+  .sweep {
+    left: 0;
+    width: 100%;
+    opacity: 0.35;
+    background: var(--gp-accent);
+  }
+}

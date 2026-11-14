@@ -1,8 +1,16 @@
 .loading{display:grid;justify-items:center;gap:20px;margin:28px 0;color:var(--yn-ivory);text-align:center}
 .scene{position:relative;isolation:isolate;width:min(80vw,320px);aspect-ratio:2/3;overflow:hidden;border-radius:20px;background:var(--yn-surface)}
 .scene img{display:block;width:100%;height:100%;object-fit:contain}
-.copy{max-width:42ch}.copy p{margin:0 0 8px;line-height:1.7;word-break:keep-all}
-.title{font-size:clamp(18px,4.5vw,23px);font-weight:700}.detail{color:var(--yn-muted);font-size:14px;font-variant-numeric:tabular-nums}
+.copy{display:grid;justify-items:inherit;max-width:42ch}.copy p{margin:0 0 8px;line-height:1.7;word-break:keep-all;text-wrap:pretty}
+.title{font-size:clamp(18px,4.5vw,23px);font-weight:700;text-wrap:balance}.detail{color:var(--yn-muted);font-size:14px;font-variant-numeric:tabular-nums}
 .compact{grid-template-columns:144px minmax(0,1fr);justify-items:start;text-align:left;align-items:center;gap:16px}
 .compact .scene{width:100%;border-radius:12px}.compact .title{font-size:17px}
 @media(max-width:430px){.compact{grid-template-columns:96px minmax(0,1fr);gap:12px}.loading{margin:20px 0}}
+/* 장 수는 서버가 돌려준 manifest·chapters 로만 센다. 수가 없으면 막대만 흐르고 %는 쓰지 않는다. */
+.count{color:var(--yn-gold);font-size:15px;font-weight:700;font-variant-numeric:tabular-nums}
+.chapterTitle{color:var(--yn-ivory);font-size:15px}
+.elapsed{color:var(--yn-muted);font-size:14px}.elapsed time{color:var(--yn-ivory);font-weight:600;font-variant-numeric:tabular-nums}
+.flow{position:relative;display:block;width:min(100%,220px);height:6px;margin:4px 0 12px;overflow:hidden;border:1px solid var(--yn-line);border-radius:999px;background:var(--yn-surface)}
+.flow::after{content:"";position:absolute;inset:0 auto 0 0;width:40%;border-radius:inherit;background:var(--yn-gold);animation:ynReadingFlow 1.6s ease-in-out infinite}
+@keyframes ynReadingFlow{from{transform:translateX(-100%)}to{transform:translateX(250%)}}
+@media(prefers-reduced-motion:reduce){.flow::after{animation:none;width:100%;opacity:.45}}

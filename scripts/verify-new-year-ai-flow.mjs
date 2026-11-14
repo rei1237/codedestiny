@@ -233,7 +233,7 @@ assert(
 assertIncludes(pageSourcePath, "serverSections", "client should consume the server section payload");
 assertIncludes(answerSectionsSourcePath, "groupSectionsByDomain", "answer parser should keep the legacy assembled-text fallback parser");
 assertIncludes(pageSourcePath, "DOMAIN_CARDS", "client should render the domain consultation cards");
-assertIncludes(pageSourcePath, "ReadingProgressPanel", "client should show generation progress");
+assertIncludes(pageSourcePath, "<GenerationProgress", "client should show generation progress");
 assertIncludes(pageSourcePath, '`domain-${chapter.key}`', "domain chapters should stay in the PDF capture set");
 assertIncludes(pageSourcePath, "buildNewYearPdfChapters", "PDF should typeset every chapter as text before falling back to capture");
 assertIncludes(pageSourcePath, "is-exporting", "client should force-reveal off-screen cards before PDF capture");

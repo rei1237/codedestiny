@@ -9,8 +9,9 @@ import ReviewRewardBanner, { type ReviewRewardPolicy } from "../components/Revie
 import ReviewSocialFields, { type ReviewSocialProof } from "./ReviewSocialFields";
 import ReviewRewardHistory from "./ReviewRewardHistory";
 import { normalizeReviewSocialProof } from "@/js/review-sharing.mjs";
-import { reviewRewardLabel } from "@/js/review-reward-copy.mjs";
+import { reviewCardRewardLabel, reviewRewardLabel } from "@/js/review-reward-copy.mjs";
 import { authFetch } from "../_lib/auth-client";
+import { REVIEW_QUICK_TAGS, reviewWriteHref, safeReviewProductId } from "../components/review/review-ui";
 import { getCurrentLoadingLocale, INTL_LOCALE_BY_LOADING_LOCALE, type LoadingLocale } from "@/constants/loadingMessages";
 
 type SortKey = "latest" | "rating_desc" | "rating_asc";
@@ -28,6 +29,8 @@ interface ReviewCard {
   isVerifiedPurchase: boolean;
   // 옛 엣지 캐시 응답(v1 키)에는 없다. 없으면 배지를 붙이지 않는 쪽으로 떨어진다.
   usageSource?: string;
+  // 작성 보상(월정석)이 지급된 후기. 옛 엣지 캐시 응답(v4 이하 키)에는 없다.
+  rewarded?: boolean;
   displayedAt: string;
 }
 
@@ -60,7 +63,6 @@ const SORT_KEYS: SortKey[] = ["latest", "rating_desc", "rating_asc"];
 
 const PAGE_SIZE = 12;
 const EMPTY_SUMMARY: Summary = { total: 0, average: 0, distribution: {} };
-const QUICK_REVIEW_TAGS = ["풀이가 자세해서 좋아요", "조금 아쉬웠어요"];
 
 type ReviewsCopy = {
   sortLabels: Record<SortKey, string>;
@@ -874,7 +876,7 @@ function Avatar({ name, image, copy }: { name: string; image: string; copy: Revi
   );
 }
 
-function ReviewCardView({ review, copy }: { review: ReviewCard; copy: ReviewsCopy }) {
+function ReviewCardView({ review, copy, rewardedLabel }: { review: ReviewCard; copy: ReviewsCopy; rewardedLabel: string }) {
   return (
     <article className="flex h-full flex-col rounded-2xl border border-[#f0d4de] bg-white p-5 shadow-[0_8px_24px_-18px_rgba(179,25,85,0.45)] dark:border-[#5a3348] dark:bg-[#2b0c1f]">
       <header className="flex items-start gap-3">
@@ -898,6 +900,7 @@ function ReviewCardView({ review, copy }: { review: ReviewCard; copy: ReviewsCop
 
       <footer className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-[#f7e6ec] pt-3 dark:border-[#4a2438]">
         <span className="text-xs text-[#8a6478] dark:text-[#c99cb2]">{copy.productPrefix}{review.productName}</span>
+        <span className="flex flex-wrap items-center justify-end gap-1.5">
         {review.isVerifiedPurchase ? (
           <span className="inline-flex items-center gap-1 rounded-full bg-[#fdf0f5] px-2 py-0.5 text-xs font-medium text-[#b31955] dark:bg-[#4a1230] dark:text-[#f4bed1]">
             <BadgeCheck className="h-3.5 w-3.5" aria-hidden="true" />
@@ -909,6 +912,12 @@ function ReviewCardView({ review, copy }: { review: ReviewCard; copy: ReviewsCop
             {copy.experienceBadge}
           </span>
         ) : null}
+        {review.rewarded ? (
+          <span className="inline-flex items-center rounded-full border border-cd-border bg-cd-surface-2 px-2 py-0.5 text-xs font-medium text-cd-muted">
+            {rewardedLabel}
+          </span>
+        ) : null}
+        </span>
       </footer>
     </article>
   );
@@ -917,9 +926,14 @@ function ReviewCardView({ review, copy }: { review: ReviewCard; copy: ReviewsCop
 export default function ReviewsClient() {
   const copy = useReviewsCopy();
   const numberLocale = INTL_LOCALE_BY_LOADING_LOCALE[getCurrentLoadingLocale()];
+  const rewardedLabel = reviewCardRewardLabel(getCurrentLoadingLocale());
   const apiBase = useMemo(() => getApiBaseUrl(), []);
 
   const [productFilter, setProductFilter] = useState("");
+  // /reviews/?product=<카탈로그 slug>(ReviewProof "후기 더 보기"): 후기 카탈로그에 있는 상품이면
+  // 그 상품으로 거른 목록부터 연다. 모르는 값은 무시한다. 확인 전에는 목록·요약을 부르지 않는다.
+  const [urlProduct] = useState(() => safeReviewProductId(new URLSearchParams(window.location.search).get("product")));
+  const [filterReady, setFilterReady] = useState(!urlProduct);
   const [sortKey, setSortKey] = useState<SortKey>("latest");
   const [verifiedOnly, setVerifiedOnly] = useState(false);
 
@@ -942,6 +956,9 @@ export default function ReviewsClient() {
   const [eligible, setEligible] = useState<EligibleProduct[]>([]);
   const [eligibleState, setEligibleState] = useState<"idle" | "loading" | "ready" | "guest" | "error">("idle");
   const [formProductId, setFormProductId] = useState("");
+  // /reviews/?write=1&product=<카탈로그 slug>: 작성 가능한 상품일 때만 미리 고른다.
+  const requestedProductRef = useRef("");
+  const [requestedProduct, setRequestedProduct] = useState("");
   const [formRating, setFormRating] = useState(0);
   const [formTags, setFormTags] = useState<string[]>([]);
   const [formTitle, setFormTitle] = useState("");
@@ -958,16 +975,21 @@ export default function ReviewsClient() {
   const [submittedReviewId, setSubmittedReviewId] = useState("");
 
   const loadProducts = useCallback(async () => {
+    let items: ProductOption[] = [];
     try {
       const res = await fetch(`${apiBase || ""}/api/reviews/products`, { method: "GET" });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) return;
-      setProducts(Array.isArray(data?.items) ? data.items : []);
+      items = Array.isArray(data?.items) ? data.items : [];
+      setProducts(items);
       setRewardPolicy(data?.rewardPolicy || null);
     } catch {
       setProducts([]);
+    } finally {
+      if (urlProduct && items.some((item) => item.productId === urlProduct)) setProductFilter(urlProduct);
+      setFilterReady(true);
     }
-  }, [apiBase]);
+  }, [apiBase, urlProduct]);
 
   const loadSummary = useCallback(async () => {
     const requestId = ++summaryRequest.current;
@@ -1017,11 +1039,12 @@ export default function ReviewsClient() {
   }, [apiBase, productFilter, sortKey, verifiedOnly, copy]);
 
   useEffect(() => { void loadProducts(); }, [loadProducts]);
-  useEffect(() => { void loadSummary(); }, [loadSummary]);
+  useEffect(() => { if (filterReady) void loadSummary(); }, [loadSummary, filterReady]);
   useEffect(() => {
+    if (!filterReady) return;
     setMobileExpanded(false);
     void loadReviews(1, false);
-  }, [loadReviews]);
+  }, [loadReviews, filterReady]);
 
   const openWriter = useCallback(async () => {
     setWriterOpen(true);
@@ -1045,7 +1068,8 @@ export default function ReviewsClient() {
       if (requestId !== eligibilityRequest.current) return;
       const items: EligibleProduct[] = Array.isArray(data?.items) ? data.items : [];
       setEligible(items);
-      setFormProductId((current) => items.some((item) => item.productId === current) ? current : items[0]?.productId || "");
+      setFormProductId((current) => items.some((item) => item.productId === current) ? current
+        : items.find((item) => item.productId === requestedProductRef.current)?.productId || items[0]?.productId || "");
       setEligibleState("ready");
     } catch {
       if (requestId !== eligibilityRequest.current) return;
@@ -1054,7 +1078,12 @@ export default function ReviewsClient() {
   }, []);
 
   useEffect(() => {
-    if (new URLSearchParams(window.location.search).get("write") === "1") void openWriter();
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("write") !== "1") return;
+    const product = safeReviewProductId(params.get("product"));
+    requestedProductRef.current = product;
+    setRequestedProduct(product);
+    void openWriter();
   }, [openWriter]);
 
   useEffect(() => {
@@ -1271,7 +1300,7 @@ export default function ReviewsClient() {
           <p className="mb-3 text-xs text-[#8a6478] dark:text-[#c99cb2]">{copy.maskedNameNotice}</p>
           <div className="grid gap-4 sm:hidden">
             {visibleOnMobile.map((review) => (
-              <ReviewCardView key={review.id} review={review} copy={copy} />
+              <ReviewCardView key={review.id} review={review} copy={copy} rewardedLabel={rewardedLabel} />
             ))}
           </div>
           {!mobileExpanded && reviews.length > 3 ? (
@@ -1286,7 +1315,7 @@ export default function ReviewsClient() {
 
           <div className="hidden gap-4 sm:grid sm:grid-cols-2 lg:grid-cols-3">
             {reviews.map((review) => (
-              <ReviewCardView key={review.id} review={review} copy={copy} />
+              <ReviewCardView key={review.id} review={review} copy={copy} rewardedLabel={rewardedLabel} />
             ))}
           </div>
         </section>
@@ -1341,7 +1370,7 @@ export default function ReviewsClient() {
                   {copy.guestMessage}
                 </p>
                 <Link
-                  href="/login?next=%2Freviews%2F%3Fwrite%3D1"
+                  href={`/login?next=${encodeURIComponent(reviewWriteHref(requestedProduct))}`}
                   className="inline-flex min-h-[44px] items-center justify-center rounded-full bg-[#b31955] px-5 text-sm font-semibold text-white hover:bg-[#951245] dark:bg-[#f4bed1] dark:text-[#3c1830]"
                 >
                   {copy.loginButton}
@@ -1415,7 +1444,7 @@ export default function ReviewsClient() {
                 </div>
 
                 <div className="flex flex-wrap gap-2" aria-label="빠른 후기 선택">
-                  {QUICK_REVIEW_TAGS.map((tag) => <button key={tag} type="button" aria-pressed={formTags.includes(tag)} onClick={() => setFormTags((current) => current.includes(tag) ? current.filter((item) => item !== tag) : [...current, tag])} className={`min-h-11 rounded-full border px-3 text-sm ${formTags.includes(tag) ? "border-[#b31955] bg-[#fdf0f5] font-semibold text-[#b31955] dark:border-[#f4bed1] dark:bg-[#4a1230] dark:text-[#f4bed1]" : "border-[#f0d4de] text-[#70445c] dark:border-[#5a3348] dark:text-[#c99cb2]"}`}>{tag}</button>)}
+                  {REVIEW_QUICK_TAGS.map((tag) => <button key={tag} type="button" aria-pressed={formTags.includes(tag)} onClick={() => setFormTags((current) => current.includes(tag) ? current.filter((item) => item !== tag) : [...current, tag])} className={`min-h-11 rounded-full border px-3 text-sm ${formTags.includes(tag) ? "border-[#b31955] bg-[#fdf0f5] font-semibold text-[#b31955] dark:border-[#f4bed1] dark:bg-[#4a1230] dark:text-[#f4bed1]" : "border-[#f0d4de] text-[#70445c] dark:border-[#5a3348] dark:text-[#c99cb2]"}`}>{tag}</button>)}
                 </div>
 
                 <div className="space-y-1">

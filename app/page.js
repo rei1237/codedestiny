@@ -20,6 +20,7 @@ import "./yeongnyangi/night-tokens.css";
 import "./yeongnyangi/yehwa-night.generated.css";
 import styles from "./home-main.module.css";
 import { IS_APP_BUILD } from "../lib/app-build-target";
+import { products } from "../worker/yeongnyangi/payments/catalog";
 import { ROBOTS_META } from "../lib/seo/index-policy.mjs";
 
 // `/` 는 꿀꿀 운세의 공식 대표 홈이다(2026-10-15). 상담 앱 입구는 /ggulggul/ 이고,
@@ -27,6 +28,8 @@ import { ROBOTS_META } from "../lib/seo/index-policy.mjs";
 // 두 서비스 선택은 이 화면에서, 상담 탐색과 이용 안내는 각 서비스 홈에서 제공한다.
 const { service, characters } = BRAND_FACTS;
 const YEONGNYANGI = characters.find((character) => character.key === "yeongnyangi");
+// 영냥이 카드의 시작 가격은 영냥이 히어로(NightHero)와 같은 결제 카탈로그 값이다. 꿀꿀 카드엔 무료 운세가 있어 넣지 않는다.
+const YN_STARTER_KRW = products.find((product) => product.id === "saju_mackerel").priceKRW;
 const HOME_TITLE = "꿀꿀 운세 · 운세보는 영냥이 | 서비스 선택";
 const HOME_DESCRIPTION = "꽃돼지 연이와 영냥이를 만나는 꿀꿀 운세. 사주·타로와 주제별 운세를 웹에서 살펴보고, Android 앱은 Google Play에서 설치하세요.";
 // summary_large_image 카드라 1200×630 공유 이미지를 쓴다. 정적 홈 셸(index.html)과 같은 그림이다.
@@ -113,7 +116,7 @@ export default function HomePage() {
                 {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
                 <NativeHomeCardLink {...linkProps} name={card.name} action={card.action} external={card.external} />
               </h2>
-              <p id={`${card.key}CardTag`} className={styles.cardTag}><NativeHomeText>{card.tag}</NativeHomeText></p>
+              <p id={`${card.key}CardTag`} className={styles.cardTag}><NativeHomeText>{card.tag}</NativeHomeText>{card.key === "yn" && !IS_APP_BUILD && <span className={styles.cardPrice}>{" "}{YN_STARTER_KRW.toLocaleString("ko-KR")}원부터</span>}</p>
 
               <span className={styles.cardAction} aria-hidden="true"><NativeHomeText>{card.action}</NativeHomeText><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M4 12h15m-6-6 6 6-6 6" /></svg></span></div>
               <span className={styles.cardFoil} aria-hidden="true" />

@@ -66,7 +66,7 @@ export function ReportActions({ targetRef, coordinate, reportId, shareChoices = 
         {busy ? copy.pdfButtonBusy : copy.pdfButtonIdle}
       </button>
       <div className={styles.reportShare}>
-        {reportId && shareChoices.length ? <ConsultationShare brand="compass" choices={shareChoices} /> : !reportId ? <DeferredShareWidget
+        {reportId && shareChoices.length ? <ConsultationShare brand="compass" reviewProductId="destiny-compass" choices={shareChoices} /> : !reportId ? <DeferredShareWidget
           title={copy.shareTitle(coordinate)}
           description={copy.shareDescriptionDefault}
           path="/destiny-compass"

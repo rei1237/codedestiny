@@ -20,6 +20,11 @@ export function reviewRewardLabel(policy) {
     : reviewRewardCopy.fallbackReward;
 }
 
+// 공개 후기 카드의 경제적 이해관계 표시. 카드 문구는 이 함수 한 곳에서만 정한다.
+export function reviewCardRewardLabel(locale = 'ko') {
+  return locale === 'ko' ? '작성 보상(월정석) 지급 후기' : 'The reviewer received moonstones for this review';
+}
+
 export function paidReviewCopy(brand = 'ggulggul', locale = 'ko') {
   const character = PAID_REVIEW_CHARACTERS[brand] || PAID_REVIEW_CHARACTERS.ggulggul;
   if (locale !== 'ko') return {

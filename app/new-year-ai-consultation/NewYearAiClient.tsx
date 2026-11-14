@@ -8,6 +8,7 @@ import { trackConsultationCompleted } from '@/lib/analytics';
 import BirthTimeInput from "@/app/components/BirthTimeInput";
 
 import CraftedProductDisclosure from "@/app/components/CraftedProductDisclosure";
+import ReviewProof from "@/app/components/ReviewProof";
 import ProductMasterStrip from "@/app/components/ProductMasterStrip";
 import MasterProfile from "@/components/fortune/MasterProfile";
 import { masterAvatars, masterProfiles, productMasters } from "@/components/fortune/master-profiles";
@@ -39,7 +40,6 @@ import {
   DOMAIN_CARDS,
   MONTHLY_CHAPTER,
   READING_SECTION_TOTAL,
-  READING_STEPS,
   buildDomainBodies,
   classifySections,
   isGenuineCustomQuestion,
@@ -49,6 +49,7 @@ import {
 } from "./_lib/answer-sections";
 import AiResultProse from "@/components/fortune/AiResultProse";
 import ConsultationIllustration from "@/components/fortune/ConsultationIllustration";
+import GenerationProgress from "@/components/fortune/GenerationProgress";
 import { readDevPreviewState } from "@/lib/dev-preview/core";
 import { buildNewYearPreviewPayload } from "@/lib/dev-preview/fixtures/new-year";
 import SajuPillarTable from "@/components/fortune/SajuPillarTable";
@@ -599,65 +600,32 @@ function DomainConsultationCards({ bodies, monthly }: { bodies: Map<string, stri
   );
 }
 
-// 진행바는 서버가 알려주는 값이 아니라 경과 시간의 함수다. 그래서 92%를 넘지 않게 묶어
-// 완료를 거짓으로 알리지 않는다 — 실제 완료는 폴링 응답이 도착할 때만 100%가 된다.
-const READING_STAGES = [
-  { at: 0, label: "명식과 세운을 세우는 중" },
-  { at: 16, label: "올해의 총운을 읽는 중" },
-  { at: 36, label: "재물과 직업의 결을 읽는 중" },
-  { at: 54, label: "애정과 대인관계를 살피는 중" },
-  { at: 70, label: "건강과 개운법, 열두 달을 정리하는 중" },
-  { at: 88, label: "명식과 다시 대조하는 중" },
-];
-const READING_PROGRESS_CAP = 92;
-// 4섹션 시절 실측 대역(40~55초)의 중앙값. 지수 완화라 이보다 오래 걸려도 상한에 수렴할 뿐 넘지 않는다.
-const READING_EXPECTED_MS = 48000;
+// 대기 화면은 공용 GenerationProgress 로 그린다. 막대는 서버가 돌려준 실제 저장 분야 수
+// (progress.completed/total)로만 칠하고, 첫 응답이 오기 전에는 끝을 모르는 막대다.
+// "보통 N~M분" 은 넣지 않는다 — 남아 있던 실측(40~55초)은 4섹션(V1) 시절 값이라 지금의
+// 7섹션·여러 웨이브 구성에는 맞지 않는다.
+// 떠남 안내(웹): 다시 열면 sid·pendingSessionId 로 저장된 분야부터 이어 쓰고(loadSession → startConsultation),
+// 오래 비우면 consultation-recovery-task 크론(new-year-ai)이 마저 완성해 기록함에 남긴다 → 공용 원문 그대로.
+// 토스는 다시 열어도 자동으로 이어 쓰지 않고 '구매한 상담 이어보기' 버튼으로 이어 가므로 그 사실만 말한다.
+const NEW_YEAR_TOSS_LEAVE_NOTICE = "다 쓴 분야는 그때그때 저장돼요. 이 상담을 다시 열면 저장된 분야부터 이어서 받을 수 있고, 다시 결제되지 않아요.";
 
-function readingProgressFromElapsed(elapsedMs: number) {
-  const ratio = 1 - Math.exp(-Math.max(0, elapsedMs) / (READING_EXPECTED_MS / 2.4));
-  return Math.min(READING_PROGRESS_CAP, READING_PROGRESS_CAP * ratio);
-}
-
-function readingStageLabel(percent: number) {
-  return READING_STAGES.reduce((label, stage) => (percent >= stage.at ? stage.label : label), READING_STAGES[0].label);
-}
-
-function ReadingProgressPanel({ percent }: { percent: number }) {
+function NewYearGenerationPanel({ count, toss }: { count: { completed: number; total: number } | null; toss: boolean }) {
   const copy = useNewYearAiCopy();
-  const rounded = Math.round(percent);
   return (
-    <div className="nyai-progress" data-pdf-skip="true">
-      <div className="nyai-progress-head">
-        <strong>{readingStageLabel(percent)}</strong>
-        <span>{rounded}%</span>
-      </div>
-      <div
-        className="nyai-progress-track"
-        role="progressbar"
-        aria-valuemin={0}
-        aria-valuemax={100}
-        aria-valuenow={rounded}
-        aria-valuetext={`${readingStageLabel(percent)} ${rounded}%`}
-        aria-label={copy.progressAria}
-      >
-        <i style={{ width: `${rounded}%` }} />
-      </div>
-      <ol className="nyai-progress-steps">
-        {READING_STEPS.map((card, index) => {
-          const startsAt = READING_STAGES[index + 1]?.at ?? READING_STAGES[READING_STAGES.length - 1].at;
-          const endsAt = READING_STAGES[index + 2]?.at ?? READING_STAGES[READING_STAGES.length - 1].at;
-          const done = percent >= endsAt;
-          const active = !done && percent >= startsAt;
-          return (
-            <li key={card.key} className={done ? "is-done" : active ? "is-active" : ""}>
-              <span className="nyai-progress-glyph" aria-hidden="true">{card.glyph}</span>
-              {card.label}
-            </li>
-          );
-        })}
-      </ol>
-      {/* 화면이 숨으면 생성을 멈추고, 다시 열면 서버의 진행 중 상담(pendingSessionId)부터 이어 간다. */}
-      <p className="nyai-progress-note">{READING_SECTION_TOTAL}개 분야를 읽고 있어 잠시 시간이 걸립니다. 다른 앱으로 옮기거나 창을 닫으면 잠시 멈추고, 다시 열면 저장된 분야부터 이어 갑니다. 다시 결제되지 않습니다.</p>
+    <div data-pdf-skip="true">
+      <GenerationProgress
+        persona="neo"
+        counselor={{ src: masterProfiles.neoNewYear.portrait, srcSet: masterProfiles.neoNewYear.portraitSrcSet }}
+        title="네오가 새해 상담문을 쓰고 있어요"
+        description={`${count?.total || READING_SECTION_TOTAL}개 분야를 나눠 쓰고, 다 쓴 분야부터 저장해요.`}
+        status="분야별 상담문을 쓰고 있어요"
+        completed={count?.completed}
+        total={count?.total}
+        countUnit="분야 완성"
+        timing
+        progressLabel={copy.progressAria}
+        leaveNotice={toss ? NEW_YEAR_TOSS_LEAVE_NOTICE : undefined}
+      />
     </div>
   );
 }
@@ -1456,7 +1424,6 @@ const NYAI_SEASON_CSS = `
   .nyai-letter-grid { grid-template-columns: repeat(2, 1fr); }
   .nyai-report-details > summary { padding: 14px; }
   .nyai-report-body { padding: 14px 14px 16px; font-size: 15px; }
-  .nyai-progress-steps li { font-size: 12.5px; }
 }
 `;
 
@@ -1561,7 +1528,7 @@ export default function NewYearAiConsultationPage({paymentSurface="web",ProfileP
   const [accessType, setAccessType] = useState<AccessType | "">("");
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [serverSections, setServerSections] = useState<ConsultationSection[]>([]);
-  const [readingProgress, setReadingProgress] = useState(0);
+  const [readingCount, setReadingCount] = useState<{ completed: number; total: number } | null>(null);
   const [sajuProfile, setSajuProfile] = useState<SajuProfile | null>(null);
   const [monthlyFlow, setMonthlyFlow] = useState<MonthlyFlowRow[]>([]);
   const [targetYearInfo, setTargetYearInfo] = useState<TargetYearInfo | null>(null);
@@ -1609,7 +1576,7 @@ export default function NewYearAiConsultationPage({paymentSurface="web",ProfileP
     setAccessType(result.accessType || "");
     setMessages(Array.isArray(result.messages) ? result.messages : []);
     setServerSections(Array.isArray(result.sections) ? result.sections : []);
-    setReadingProgress(result.status && result.status !== "completed" ? Math.round(100 * (result.progress?.completed || 0) / (result.progress?.total || READING_SECTION_TOTAL)) : 100);
+    setReadingCount(result.status && result.status !== "completed" ? result.progress ?? null : null);
     setSajuProfile(result.sajuProfile || null);
     setMonthlyFlow(Array.isArray(result.monthlyFlow) ? result.monthlyFlow : []);
     setTargetYearInfo(result.targetYear || null);
@@ -1775,25 +1742,13 @@ export default function NewYearAiConsultationPage({paymentSurface="web",ProfileP
     return () => window.clearInterval(timer);
   }, []);
 
-  // 서버는 진행률을 알려주지 않는다(생성이 waitUntil 백그라운드에서 돌고 클라는 /result만 폴링).
-  // 그래서 진행바는 경과 시간의 함수이며 상한 92%에 수렴한다 — 100%는 결과가 실제로 도착했을 때만.
-  useEffect(() => {
-    if (status !== "reading") return undefined;
-    const startedAt = Date.now();
-    setReadingProgress(readingProgressFromElapsed(0));
-    const timer = window.setInterval(() => {
-      setReadingProgress(readingProgressFromElapsed(Date.now() - startedAt));
-    }, 250);
-    return () => window.clearInterval(timer);
-  }, [status]);
-
   const resetAttempt = useCallback(() => {
     if (isBusy) return;
     idempotencyKeyRef.current = createIdempotencyKey();
     setAccessType("");
     setMessages([]);
     setServerSections([]);
-    setReadingProgress(0);
+    setReadingCount(null);
     setSajuProfile(null);
     setMonthlyFlow([]);
     setTargetYearInfo(null);
@@ -2183,6 +2138,7 @@ export default function NewYearAiConsultationPage({paymentSurface="web",ProfileP
       </section>
 
       {/* 위 소개 판·아래 작업 영역과 같은 폭(최대 1180). 540으로 묶여 768에서 본문 744보다 좁았다(2026-10-30 QA). */}
+      {paymentSurface!=='toss' && copy === NEW_YEAR_AI_COPY.ko && !isBusy && messages.length === 0 && <div style={{ width: "100%", maxWidth: 1180, margin: "0 auto" }}><ReviewProof brand="ggulggul" productId="new-year" sampleHref="#service-samples-new-year" /></div>}
       {paymentSurface!=='toss' && copy === NEW_YEAR_AI_COPY.ko && <div style={{ width: "100%", maxWidth: 1180, margin: "24px auto" }}><CraftedProductDisclosure featureKey={FEATURE_KEY} /></div>}
       <section className="nyai-workspace">
         {clientReady && (<form data-moonlit-form="" id="new-year-form" className="nyai-form nyai-panel" onSubmit={event=>{if(price.confirm(event))void handleSubmit(event);}}>
@@ -2353,7 +2309,7 @@ export default function NewYearAiConsultationPage({paymentSurface="web",ProfileP
             )}
           </div>
           <div className="nyai-messages" ref={resultRef}>
-            {status === "reading" ? <ReadingProgressPanel percent={readingProgress} /> : null}
+            {status === "reading" ? <NewYearGenerationPanel count={readingCount} toss={paymentSurface === 'toss'} /> : null}
             {assistantMessages.length === 0 ? (
               status === "reading" ? null : (
               <div className="nyai-empty">
@@ -2431,7 +2387,7 @@ export default function NewYearAiConsultationPage({paymentSurface="web",ProfileP
         </section>
       </section>
 
-      {paymentSurface!=='toss' && status === "ready" && assistantMessages.length > 0 && <ReviewRewardBanner afterResult/>}
+      {paymentSurface!=='toss' && status === "ready" && assistantMessages.length > 0 && <ReviewRewardBanner afterResult reviewProductId="new-year"/>}
       {/* 소개용 마스터 프로필 — 상담 진행·결과 화면에서는 내리고, 사전이 없는 다른 로케일에는 띄우지 않는다. */}
       {paymentSurface!=='toss' && copy === NEW_YEAR_AI_COPY.ko && !isBusy && messages.length === 0 && <MasterProfile id="new-year-master" palette="page" profile={masterProfiles.neoNewYear} />}
       <style>{NYAI_SEASON_CSS}</style>
@@ -2524,110 +2480,6 @@ export default function NewYearAiConsultationPage({paymentSurface="web",ProfileP
         .nyai-messages.is-exporting .nyai-reveal > * {
           opacity: 1 !important;
           transform: none !important;
-        }
-
-        .nyai-progress {
-          display: grid;
-          gap: 12px;
-          padding: 18px;
-          border: 1px solid var(--nyai-gold-dim);
-          border-radius: var(--nyai-radius-md);
-          background:
-            linear-gradient(180deg, rgba(201, 162, 39, .09), rgba(16, 6, 9, .6)),
-            rgba(28, 12, 18, .78);
-        }
-
-        .nyai-progress-head {
-          display: flex;
-          align-items: baseline;
-          justify-content: space-between;
-          gap: 12px;
-        }
-
-        .nyai-progress-head strong {
-          font-family: var(--nyai-serif);
-          font-size: 16px;
-          color: var(--nyai-gold-bright);
-        }
-
-        .nyai-progress-head span {
-          font-size: 13px;
-          font-variant-numeric: tabular-nums;
-          color: var(--nyai-text-dim);
-        }
-
-        .nyai-progress-track {
-          height: 6px;
-          border-radius: var(--nyai-radius-pill);
-          background: rgba(242, 230, 216, .1);
-          overflow: hidden;
-        }
-
-        .nyai-progress-track i {
-          display: block;
-          height: 100%;
-          border-radius: var(--nyai-radius-pill);
-          background: linear-gradient(90deg, var(--nyai-jade), var(--nyai-gold) 62%, var(--nyai-gold-bright));
-          transition: width .35s cubic-bezier(.16, 1, .3, 1);
-        }
-
-        .nyai-progress-steps {
-          display: grid;
-          gap: 6px;
-          margin: 0;
-          padding: 0;
-          list-style: none;
-        }
-
-        .nyai-progress-steps li {
-          display: flex;
-          align-items: center;
-          gap: 9px;
-          padding: 7px 10px;
-          border: 1px solid transparent;
-          border-radius: 10px;
-          color: var(--nyai-text-dim);
-          font-size: 13px;
-          transition: color .3s ease, border-color .3s ease, background .3s ease;
-        }
-
-        .nyai-progress-steps li.is-active {
-          border-color: var(--nyai-gold-dim);
-          background: var(--nyai-gold-veil);
-          color: var(--nyai-text);
-        }
-
-        .nyai-progress-steps li.is-done {
-          color: var(--nyai-jade-bright);
-        }
-
-        .nyai-progress-glyph {
-          display: inline-grid;
-          place-items: center;
-          width: 22px;
-          height: 22px;
-          flex-shrink: 0;
-          border: 1px solid var(--nyai-gold-hair);
-          border-radius: 50%;
-          font-family: var(--nyai-serif);
-          font-size: 12px;
-        }
-
-        .nyai-progress-steps li.is-active .nyai-progress-glyph {
-          border-color: var(--nyai-gold);
-          color: var(--nyai-gold-bright);
-        }
-
-        .nyai-progress-steps li.is-done .nyai-progress-glyph {
-          border-color: var(--nyai-jade);
-          color: var(--nyai-jade-bright);
-        }
-
-        .nyai-progress-note {
-          margin: 0;
-          font-size: 12px;
-          line-height: 1.6;
-          color: var(--nyai-text-dim);
         }
 
         .nyai-domain-report {
@@ -3517,8 +3369,6 @@ export default function NewYearAiConsultationPage({paymentSurface="web",ProfileP
            ③ 줄바꿈 불가한 긴 런을 끊는다(keep-all 단독은 못 끊고 break-word 는 min-content 를 안 줄인다). */
         .nyai-month-letter,
         .nyai-question-answer,
-        .nyai-progress,
-        .nyai-progress-steps,
         .nyai-domain-report,
         .nyai-report-heading,
         .nyai-consult-card,
@@ -3585,19 +3435,11 @@ export default function NewYearAiConsultationPage({paymentSurface="web",ProfileP
           .nyai-report-heading strong {
             font-size: 16px;
           }
-
-          .nyai-progress {
-            padding: 15px;
-          }
         }
 
         @media (prefers-reduced-motion: reduce) {
           .nyai-orbit {
             animation: none;
-          }
-
-          .nyai-progress-track i {
-            transition: none;
           }
         }
       `}</style>

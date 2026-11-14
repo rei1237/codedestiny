@@ -2103,7 +2103,7 @@ export default function SukuyoCompatibilityAiClient({paymentSurface="web",draftO
             </>
           ) : !result ? (
             <div className={styles.resultPanel}>
-              {consultation?.status === "completed" && <ReviewRewardBanner afterResult/>}
+              {consultation?.status === "completed" && <ReviewRewardBanner afterResult reviewProductId="sukuyo"/>}
               <div className={styles.resultHeader}>
                 <p><Moon size={15} /> 상담실이 열렸습니다</p>
                 <h2>두 사람의 달빛 결을 이어 읽습니다</h2>

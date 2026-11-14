@@ -1418,7 +1418,7 @@ function ResultStage({ drawn, drawnSub, reading, question, onRestart, reportRef,
           </div>
         </m.article>
 
-        {resultId && <ReviewRewardBanner afterResult/>}
+        {resultId && <ReviewRewardBanner afterResult reviewProductId="tarot"/>}
         <button type="button" onClick={onRestart}
           className="mt-6 mb-12 px-8 py-3 rounded-full border border-amber-300/35 text-amber-100/80 text-sm font-medium tracking-wide hover:bg-amber-400/15 hover:text-amber-50 transition-all">
           {copy.restartButton}

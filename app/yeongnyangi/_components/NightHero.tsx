@@ -32,11 +32,7 @@ export default function NightHero(){
    <div className={styles.actions}>
     <a className={styles.primary} href="#questions" data-cd-business-entry="question"><PawPrint size={20} aria-hidden="true"/>내 고민 상담하기<ArrowRight size={19} aria-hidden="true"/></a>
    </div>
-   <div className={styles.desktopIntro}>
-   <p className={styles.price}>{planned!==null?<>선착순 {launchOffer.limit.toLocaleString('ko-KR')}명 체험가 · <LaunchPlannedPrice amount={planned}/></>:null}<span className={styles.keep}>질문 상담 {starter.priceKRW.toLocaleString('ko-KR')}원부터</span> · 질문 범위에 따라 안내</p>
-   <p className={styles.price}>고등어 질문 상담 {starter.priceKRW.toLocaleString('ko-KR')}원 · 한 체계 · 신규 한국어 질문 기준 {EXPANDED_CHAPTERS.mackerel}챕터 · {FOLLOWUP_LIMITS.mackerel===0?'추가 질문 없음':`추가 질문 ${FOLLOWUP_LIMITS.mackerel}회`}</p>
-   </div>
-   <p className={styles.mobilePrice}>질문 상담 {starter.priceKRW.toLocaleString('ko-KR')}원부터</p>
+   <p className={styles.price}>{planned!==null?<>선착순 {launchOffer.limit.toLocaleString('ko-KR')}명 체험가 · <LaunchPlannedPrice amount={planned}/> · </>:null}<span className={styles.keep}>질문 상담 {starter.priceKRW.toLocaleString('ko-KR')}원부터</span></p>
 
   </div>
   <div className={styles.character}>
