@@ -92,10 +92,12 @@
   font-weight: 600;
   line-height: 1.45;
   color: var(--gp-ink);
+  text-wrap: balance;
 }
 
 .description {
   margin: 0;
+  text-wrap: pretty;
   font-size: 0.95rem;
   line-height: 1.7;
   color: var(--gp-muted);
@@ -108,6 +110,7 @@
 
 .status {
   margin: 0;
+  text-wrap: pretty;
   font-size: 1rem;
   font-weight: 600;
   line-height: 1.6;
@@ -131,6 +134,15 @@
   border-radius: var(--cd-r-pill, 999px);
   background: var(--gp-track);
   box-shadow: inset 0 0 0 1px var(--gp-line);
+}
+
+/* 끝을 모르는 막대는 숫자가 없어 테두리가 막대 모양을 전한다. 카드 바탕과 3:1 이상(연이 3.7:1, 네오 3.9:1). */
+.root[data-gp-mode="indeterminate"] .track {
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--cd-samples-muted) 70%, var(--cd-samples-blush));
+}
+
+.root[data-persona="neo"][data-gp-mode="indeterminate"] .track {
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--cd-neo-letter-silver) 45%, var(--cd-neo-letter-blue));
 }
 
 .fill {
@@ -244,6 +256,7 @@
   line-height: 1.7;
   color: var(--gp-ink);
   text-align: start;
+  text-wrap: pretty;
 }
 
 .srOnly {
