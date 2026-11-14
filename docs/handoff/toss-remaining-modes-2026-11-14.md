@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-14
-next: 최신 연이 카드토큰 AIT 시각검사 후 pre-push/main push/Linux41경로/QR 전달
+next: Linux artifact run43566721402(80bd0336a)에서 41경로·번들 검증 후 TaskSpace60 새 QR 등록·기능표 갱신·최종 전달
 ---
 
 ## 첫 행동
@@ -27,7 +27,7 @@ tea-modes.mjs가 6모의상품/입력비교/기존계산snapshot 기반모의결
 - [x] 웹 계약대조, 원본UI 재사용 확인
 - [x] 연이21 API검사, 네오상대4 API/4fixture, 기존private4 합계33 PASS
 - [x] 찻집6 API·Windows AIT01a1d870 모든경로/복구/다른계정 검사
-- [ ] targeted/checkfast/commit/prepush/main push/CI
+- [x] targeted/checkfast/commit/prepush/main push (main CI 확인은 최종 전달 전)
 - [ ] Linux AIT/privateQR/기능표/최종 전달·정리
 
 ## 검증과 다음 실행 상세
@@ -49,3 +49,17 @@ tea-modes.mjs가 6모의상품/입력비교/기존계산snapshot 기반모의결
 - checkfast 최초5070/5071PASS, 오늘무료운세daily파일없는환경실패1. npm run fortune:build-data(오프라인계산)완료후 전체checkfast --base=0a2561b26b74c501ae5c17b8345fb99c1a53411a 재실행34274. logremaining-checkfast-final.txt. 이전70684는실패로종료. 완료후재실행반복하지말고 결과기록.
 - git fetch완료, origin/main 여전히0a2561b26. 부모는기존main PR CI43556072272 success확인. 다른최근workflow43560537803 등도success. push전 prepush필수, 미커밋없어야함. 본체checkout금지, git push origin HEAD:main 가능(다른세션보존).
 - neo_partner 에이전트 Linux/QR 절차읽고준비됨. 새main SHA/run통보하면맡길수있음. 새TaskSpace아직안만듦.
+
+## Linux 전달 진행
+- 현재 main 구현 SHA `fece5889d7c5ec451fbc1d1884916f63d14dde3d`. 코드 main push 완료. 가격 불일치 테스트의 정본 가드 지적은 모의 `2원` 상수로 수정했고 운영 가격 변경 없음.
+- checkfast 잔여 단계 3~33 완료: Node5071 PASS, Jest479스위트/8004테스트 PASS(1skip), lint/typecheck/정책/Worker/인코딩 PASS. 로그 D:/Development/Temp/remaining-checkfast-resumed-node24.txt. exact HEAD prepush PASS(log remaining-runtime-prepush.txt).
+- push CI43563346966 진행 중. Linux artifact 전용 dispatch43563354748은 같은 SHA concurrency 대기; gh run watch 세션25103, D:/Development/Temp/remaining-linux-ci-watch.txt. 일반 CI를 기다리는 작업이 아니라 필요한 AIT 산출물 대기다.
+- Ego 스킬 확인, 새 TaskSpace60/p1 업로드 폼 준비. 아직 파일 업로드·임시저장 없음. 최신 콘솔14는 이전b69번들. 최종 Linux simulation AIT를 업로드하고 임시저장→새 행 테스트만 누른다. 검토 요청 금지. QR 내보내기/디코드 후 finish keep[] 정확히1회.
+- temp remaining-ait-metadata.cjs, remaining-write-evidence.py에 산출물 메타데이터/41로그 assertion 준비. 신규30+기존11=41. 실제 Linux PASS 후 JSON 기록. generator는 상품별 tea featureKey 증거와 연이21/네오편지 분리 반영 편집중.
+
+## CI 기존 결함 복구와 동시 main 병합
+- fece mainCI43563346966에서 기존 LoveSecret/records 테스트 대역4건, 로또 title폭61 결함이 드러났다. 원본 변경 커밋130defc7d,201a7bfea,f060b3d06. 기능 구현 변경과 별개였으며 root 승인으로 전달 필수 최소복구를 별도7b75b2e17에커밋.
+- 동일 시각 독립 사용자 세션에서 main65d8accfe(title)/9733ee4ce(mock)/00433b122(ReviewProof fixture)/eeebfadaf(일일날짜복구)를 반영. 이를 모두 보존해 merge80bd0336aeb9f7db61c681693344dce42a01fc10. 병합 tree는eeebfadaf와동일. 충돌5파일 최신main선택, targeted7/7PASS, prepushPASS. main push완료.
+- 최초로취소한artifact43563354748, push거절뒤의도치않게발생했으나즉시취소43566492420은사용금지. 새검증run43566721402는80bd정확SHA확인. watcher98131, logD:/Development/Temp/remaining-linux-ci-watch-final.txt. SHAref는GitHub422로지원안됨, mainref후실SHA확인필수.
+- title폭54(실adsense함수로9개모두≤60), freepromo7PASS. sitemap9서명갱신·일일375날짜보존은최신main수정유지. check1081URLPASS. 로그remaining-merged-prepush.txt. 전체checkfast반복불필요(기능코드추가변경없음).
+- docs/handoff,build-service-inventory,remaining-modes의진행중편집은prepush동안Temp/remaining-docs-hold에보존했다가현재복원됨. 다른세션파일을수정하지않음.
