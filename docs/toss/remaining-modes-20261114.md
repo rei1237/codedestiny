@@ -6,11 +6,11 @@
 
 | 기능 | 웹 원본·생성 경로 | 입력·결과 구분 | 개발 상태 |
 |---|---|---|---|
-| 찻집 공동 사주 | FortuneTeaHousePage → QuestionInputScene → worker/toss/native-tea.js → worker/routes/fortune-tea-house.js | 본인 출생정보·질문·직업 범주, saju-specialist-v2, 원본 공동 상담 챕터 | 공동 상담 버전이 초안 변경 시 사라지는 결함 수정. 최종 AIT 재검사 중 |
-| 찻집 타로 3장 | 같은 찻집 원본 + TeaConsultConfirmation·카드 선택 화면 | 출생정보 없이 질문·3장 선택·결제 전 뽑기 확정·카드별 해석 | 독립 모의 상품·뽑기 저장·재시도 구현. 최종 AIT 재검사 중 |
-| 찻집 타로 5장 | 같은 원본, tarotSpread=five | 5장 선택·카드별 해석, 3장과 별도 상품 | 독립 모의 상품·선택 장수 보존. 최종 AIT 재검사 중 |
-| 찻집 사주 궁합 | 원본 궁합 입력 → TeaHouseSajuCompatResultPanel → 같은 Worker | 두 사람 이름·출생정보·관계 상황·질문, 계산 근거·강점·주의점·관계 조언 | Windows AIT 구매·재열람 통과. 원본 결과 CSS 연결 수정 후 최종 재검사 중 |
-| 찻집 숙요 궁합 | 원본 숙요 입력·결과 → 같은 Worker | 두 사람 출생정보·관계 상황·질문, 숙요 체계의 관계 결과 | Windows AIT 구매·재열람 통과. 최종 AIT 재검사 중 |
+| 찻집 공동 사주 | FortuneTeaHousePage → QuestionInputScene → worker/toss/native-tea.js → worker/routes/fortune-tea-house.js | 본인 출생정보·질문·직업 범주, saju-specialist-v2, 원본 공동 상담 챕터 | 공동 상담 버전이 초안 변경 시 사라지는 결함 수정. Windows AIT 전체 경로 통과; 최종 Linux 대기 |
+| 찻집 타로 3장 | 같은 찻집 원본 + TeaConsultConfirmation·카드 선택 화면 | 출생정보 없이 질문·3장 선택·결제 전 뽑기 확정·카드별 해석 | 독립 모의 상품·뽑기 저장·재시도 구현. Windows AIT 전체 경로 통과; 최종 Linux 대기 |
+| 찻집 타로 5장 | 같은 원본, tarotSpread=five | 5장 선택·카드별 해석, 3장과 별도 상품 | 독립 모의 상품·선택 장수 보존. Windows AIT 전체 경로 통과; 최종 Linux 대기 |
+| 찻집 사주 궁합 | 원본 궁합 입력 → TeaHouseSajuCompatResultPanel → 같은 Worker | 두 사람 이름·출생정보·관계 상황·질문, 계산 근거·강점·주의점·관계 조언 | Windows AIT 구매·재열람 통과. 원본 결과 CSS 연결 및 번들 아트 수정 후 Windows 재검사 통과 |
+| 찻집 숙요 궁합 | 원본 숙요 입력·결과 → 같은 Worker | 두 사람 출생정보·관계 상황·질문, 숙요 체계의 관계 결과 | Windows AIT 구매·재열람 통과. Windows AIT 전체 경로 통과; 최종 Linux 대기 |
 | 연이 등급형 질문 편지 | TossLetterRoom·LetterQuestionScope → 원본 ConsultationIntake/Result → worker/toss/letter.js → worker/yeongnyangi/delivery.js | 사주·자미두수·베다 4등급씩, 숙요·서양 점성술·타로 3등급씩: 총 21개 상품 | 기존 원본 입력과 타로 뽑기·후속 대화를 재사용. Windows AIT 21조합 통과 |
 | 네오 상대방 입력 | NeoOperationRoomPage → TossNeoGate → worker/toss/native-neo.js → worker/routes/neo-operation-room.js | 연애/재회·본인과 상대 출생정보·관계 상태·말투·사주/자미두수/베다/점성술 | 관계 판독·갈등 패턴·관계 작전 및 수정 작전. Windows AIT 4방식 통과 |
 
@@ -25,6 +25,7 @@
 - `offline/neo-partner-fixture.mjs`: 원본 상대방 입력 별칭과 관계 상태를 읽어 관계 판독 결과 형식을 모의 구현한다. 다른 상대방으로 같은 주문을 재사용하지 않는다.
 - `offline/letter-fixture.mjs`: 원본 입력 스냅샷을 모의 저장소에 보존해 등급·질문 범위·타로 입력 전달을 확인한다. 기존 `TossLetterRoom`의 원본 질문·말투·결과·뽑기·후속 질문 기능을 다시 만들지 않는다.
 - `TossLetterRoom.tsx`·`letter-shared-tokens.module.css`: 공유 타로·후속 질문 컴포넌트가 요구하는 `--yn-*` 토큰을 기존 상담 팔레트에 연결했다. 토큰 누락 때문에 카드 배치칸 테두리·배경이 사라졌던 문제다. 카드 아트 파일은 정상이며 긴 화면 캡처의 빈 덱은 lazy 이미지가 아직 로드되지 않은 별도 현상이었다. 실제 덱으로 스크롤하고 이미지 decode를 기다린 뷰포트 캡처로 구분했다.
+- `character-room-art.ts`: 궁합 장식의 CDN 전용 연이 반신상 대신 이미 번들에 있는 웹 원본 찻집 인물화를 연결했다. 새 이미지나 외부 요청 없이 캐릭터를 유지한다. AIT `01a1d87e-34bb-73b6-8269-3963a008f585`에서 궁합의 모든 표시 이미지로 스크롤해 로드·실패 상태를 확인하고 재열람까지 통과했다(99,916,331 bytes).
 - AIT 검사 helper와 CI 실행을 확장했다. 테스트는 일반 홈 카드에서 시작하며 개발 전용 메뉴나 결과 URL로 진입을 대신하지 않는다.
 
 ## 검증 기록과 한계
@@ -35,9 +36,9 @@
 - Windows AIT `01a1d861-fcaa-792a-bada-b65fa094eab5`: 연이 **21조합**, 네오 상대방 **4방식** 통과. 360×740에서 홈 → 입력 → 모의 로그인·구매 → 원문·후속 답변 → 창을 닫고 재진입 → 구매 기록 재열람 → 계정 B 거절을 실행했다.
 - 위 연이 검사의 로그는 `D:/Development/Temp/remaining-letter-21.txt`. 모든 상품은 주문 1건이며 재열람 뒤 원장과 결과가 바뀌지 않았다. 타로는 확정한 카드와 장수, 참치는 장기 흐름과 기간 입력을 확인했다.
 - 최초 참치 검사에서 ‘살펴볼 흐름’ select를 찾는 exact label이 선택지 텍스트 때문에 일치하지 않았다. 원본 DOM의 ‘장기 시기 전환’ option을 포함한 select로 검사 locator를 수정한 뒤 21조합을 통과했다. 제품 입력 화면의 결함으로 기록하지 않는다.
-- 최신 Windows AIT `01a1d870-4551-7929-a087-fe938f3921a6`: 해제 크기 **99,915,648 bytes**. 찻집 6모드 최종 회귀와 시각 검사는 진행 중이며 아직 통과로 기록하지 않는다.
+- 최신 Windows AIT `01a1d870-4551-7929-a087-fe938f3921a6`: 해제 크기 **99,915,648 bytes**. 찻집 6모드의 모의 구매·생성·재열람·다른 계정 차단을 모두 통과했다.
 
-- 토큰 연결 뒤 `letter-room.test.mjs`·`letter-intake.test.mjs` 회귀 **65/65 PASS**. 최종 AIT의 실제 색상·카드 캡처는 새 빌드에서 재확인한다.
+- 토큰 연결 뒤 `letter-room.test.mjs`·`letter-intake.test.mjs` 회귀 **65/65 PASS**. AIT `01a1d87a`에서 실제 색상·배치칸 테두리·불투명 덱 배경·442px 내부 스크롤·원본 카드 decode와 연어 타로 전체 경로도 통과했다.
 
 ### 최종 확정 전 항목
 

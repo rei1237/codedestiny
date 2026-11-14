@@ -43,11 +43,19 @@ export async function startLetter(page,origin){
  if(letterTier&&letterDomain==='tarot'){
   const pick=room.locator('section[aria-labelledby="tarot-pick-heading"]');await pick.waitFor();
   assert.equal(await pick.getByRole('group').getByRole('button').count(),78);
+  const deck=pick.getByRole('group'),firstImage=deck.locator('img').first();
+  const slot=await pick.getByRole('img').locator('span').first().evaluate(el=>({border:getComputedStyle(el).borderTopStyle,color:getComputedStyle(el).borderTopColor}));
+  assert.notEqual(slot.border,'none','empty card slots must retain their original visible frames');
+  assert.notEqual(slot.color,'rgba(0, 0, 0, 0)');
+  await firstImage.scrollIntoViewIfNeeded();
+  await firstImage.evaluate(async img=>{await img.decode();});
+  const visual=await deck.evaluate(el=>({background:getComputedStyle(el).backgroundColor,height:el.clientHeight,scrollHeight:el.scrollHeight,token:getComputedStyle(el).getPropertyValue('--yn-night'),loaded:el.querySelector('img')?.naturalWidth}));
+  assert.ok(visual.token.trim(),'shared tarot must inherit the adviser palette');
+  assert.notEqual(visual.background,'rgba(0, 0, 0, 0)');
+  assert.ok(visual.height>0&&visual.height<=560,'deck stays within its own scroll area');
+  assert.ok(visual.loaded>0,'bundled card back must decode');
   if(process.env.TOSS_CAPTURE_DIR){
-   const deck=pick.getByRole('group'),firstImage=deck.locator('img').first();
-   await firstImage.scrollIntoViewIfNeeded();
-   await firstImage.evaluate(async img=>{await img.decode();});
-   console.log('TAROT_VISUAL',await deck.evaluate(el=>({background:getComputedStyle(el).backgroundColor,height:el.clientHeight,scrollHeight:el.scrollHeight,token:getComputedStyle(el).getPropertyValue('--yn-night'),image:el.querySelector('img')?.currentSrc,loaded:el.querySelector('img')?.naturalWidth})));
+   console.log('TAROT_VISUAL',visual);
    await page.screenshot({path:join(process.env.TOSS_CAPTURE_DIR,'letter-'+letterCaseName+'-draw.png')});
   }
   await pick.getByRole('button',{name:'연이에게 맡기기'}).click();

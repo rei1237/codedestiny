@@ -1,0 +1,19 @@
+/* Original shared tarot/conversation components inherit the current adviser palette. */
+.room {
+  --yn-deep: var(--salon-paper, var(--bubble));
+  --yn-night: var(--bubble);
+  --yn-surface: var(--salon-paper, var(--bubble));
+  --yn-raised: var(--rose-soft);
+  --yn-violet: var(--rose);
+  --yn-gold: var(--rose);
+  --yn-ivory: var(--ink);
+  --yn-muted: var(--muted);
+  --yn-line: var(--line);
+  --yn-radius: 16px;
+  --yn-btn-radius: 12px;
+  --yn-btn-h: 52px;
+  --yn-btn-h-sm: 44px;
+  --yn-t-body: 1rem;
+  --yn-t-caption: .875rem;
+  --yn-reading-width: var(--type-reading-measure, 65ch);
+}

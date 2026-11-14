@@ -25,7 +25,7 @@ export async function verifyCharacterRooms(origin,context,service=process.argv[p
    for(let i=0;i<await sprites.count();i++){
     const sprite=sprites.nth(i);if(!await sprite.isVisible())continue;
     await sprite.scrollIntoViewIfNeeded();
-    await page.waitForFunction(el=>el.dataset.loaded==='true',await sprite.elementHandle());
+    await page.waitForFunction(el=>el.dataset.loaded==='true',await sprite.elementHandle()).catch(async error=>{console.error('SPRITE',i,await sprite.evaluate(el=>({html:el.outerHTML,rect:el.getBoundingClientRect().toJSON()})));await page.screenshot({path:join(process.env.TOSS_CAPTURE_DIR,'tea-sprite-visible.png')});throw error;});
     assert.equal(await sprite.getAttribute('data-failed'),'false');
    }
    await page.screenshot({path:join(process.env.TOSS_CAPTURE_DIR,'tea-sajuCompatibility-loaded-result.png'),fullPage:true});

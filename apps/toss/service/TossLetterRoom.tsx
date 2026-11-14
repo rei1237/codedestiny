@@ -17,6 +17,7 @@ import {api,event,purchase,saleProducts,paymentRequiresReview,type SaleProduct} 
 import base from '@/app/fortune-chat/fortune-chat.module.css';
 import styles from '@/app/fortune-chat/consultation.module.css';
 import salon from '@/app/fortune-chat/yeoni-salon.module.css';
+import sharedTokens from './letter-shared-tokens.module.css';
 
 // The original intake and result presentation are shared. Purchases and reads
 // use only the authenticated Toss adapter and its approved catalog.
@@ -96,8 +97,8 @@ export default function TossLetterRoom({initialId='',initialOrderId='',persona='
  useEffect(()=>{if(row?.paid&&row.state==='COMPLETED'&&row.chapters?.length&&!viewed.current.has(row.id)){viewed.current.add(row.id);event('result_first_view',{screen:'result'});}},[row?.id,row?.paid,row?.state,row?.chapters?.length]);
  useEffect(()=>{if(!row?.paid||['COMPLETED','REFUNDED','AWAITING_FOLLOWUP'].includes(row.state))return;const id=row.id;const timer=setTimeout(()=>void open(id),5000);return()=>clearTimeout(timer);},[row,open]);
  const startNew=()=>{if(initialOrderId&&(reviewOnly||!recoveryResolved)){location.assign('/fortune-tea-house/?counsel=letter'+(persona==='neo'?'&persona=neo':''));return;}if(reviewOnly)setDomain('saju');epoch.current++;setRow(null);setError('');setNotice('');remember('');void list();};
- if(previousAccount.current&&(!auth.isAuthenticated||previousAccount.current!==account))return <main className={`${base.room} ${persona==='neo'?styles.starlight:salon.room}`}><p role="status">계정을 확인하고 있어요.</p></main>;
- return <main className={`${base.room} ${persona==='neo'?styles.starlight:salon.room}`} style={{paddingBottom:'var(--toss-service-bottom, 0px)'}} data-consultation-room data-persona={persona}>
+ if(previousAccount.current&&(!auth.isAuthenticated||previousAccount.current!==account))return <main className={`${base.room} ${persona==='neo'?styles.starlight:salon.room} ${sharedTokens.room}`}><p role="status">계정을 확인하고 있어요.</p></main>;
+ return <main className={`${base.room} ${persona==='neo'?styles.starlight:salon.room} ${sharedTokens.room}`} style={{paddingBottom:'var(--toss-service-bottom, 0px)'}} data-consultation-room data-persona={persona}>
   <header className={`${base.header} ${salon.header}`}><strong>{name} 상담</strong><Link href="/records/">지난 상담</Link><Link href={reviewOnly?"/":persona==='neo'?'/neo-operation-room/':'/fortune-tea-house/'}>{reviewOnly?"홈":persona==='neo'?'작전실':'찻집'}</Link></header>
   <div className={`${base.timeline} ${salon.timeline}`}>
    {!row&&busy&&<p role="status">상담을 확인하고 있어요.</p>}

@@ -41,3 +41,11 @@ tea-modes.mjs가 6모의상품/입력비교/기존계산snapshot 기반모의결
 - Linux 최종 workflow_dispatch full_ci/toss_artifact/toss_simulation_artifact=true, .github/workflows/pr-ci.yml에41경로. artifacts <100MB,현재99.916MB로여유작음.
 - docs/toss/remaining-modes-20261114.md 작성됨. 최종Linux증거확정후 ait-verification-20261114.json checks/followupBundles와 build-service-inventory.mjs tea productVerification 갱신.
 - 다른세션원본checkout과임시파일보존. 원래QR14는b69번들이므로새QR필요. Ego브라우저기존55는finished, 새goal하나로시작.
+
+## 마지막 전달 직전 갱신
+- 구현/모의계약 커밋 7c3adc51f,81fef3994. 최종CSS/art/helper커밋 이어서생성.
+- 최종Windows AIT01a1d87e-34bb-73b6-8269-3963a008f585 expanded99,916,331bytes. 궁합 모든표시이미지 scroll/data-loaded=true 확인 후 전체재열람PASS(logremaining-tea-visible3.txt). CDN반신상2경로를 이미번들된원본찻집portrait로연결.
+- 연이토큰/slot/불투명배경/442px덱/카드이미지decode+salmon타로모든경로PASS(logremaining-letter-visual-fixed.txt),추가65targetedPASS.
+- checkfast 최초5070/5071PASS, 오늘무료운세daily파일없는환경실패1. npm run fortune:build-data(오프라인계산)완료후 전체checkfast --base=0a2561b26b74c501ae5c17b8345fb99c1a53411a 재실행34274. logremaining-checkfast-final.txt. 이전70684는실패로종료. 완료후재실행반복하지말고 결과기록.
+- git fetch완료, origin/main 여전히0a2561b26. 부모는기존main PR CI43556072272 success확인. 다른최근workflow43560537803 등도success. push전 prepush필수, 미커밋없어야함. 본체checkout금지, git push origin HEAD:main 가능(다른세션보존).
+- neo_partner 에이전트 Linux/QR 절차읽고준비됨. 새main SHA/run통보하면맡길수있음. 새TaskSpace아직안만듦.
