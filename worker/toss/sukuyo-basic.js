@@ -1,6 +1,6 @@
 import {solarToLunar} from '../../lib/korean-calendar/index.js';
 import {buildSukuyoBasicFree} from '../lib/saju-section/report.js';
-import {flowerBirthInput} from './flower.js';
+import {flowerBirthInput} from './birth-input.js';
 import {TossError} from './policy.js';
 
 // The domain engine owns calendar conversion and Swiss astronomy. Only the

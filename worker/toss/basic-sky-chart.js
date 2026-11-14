@@ -1,4 +1,4 @@
-import {flowerBirthInput} from './flower.js';
+import {flowerBirthInput} from './birth-input.js';
 import {TossError} from './policy.js';
 import {validateInput} from '../yeongnyangi/fortune/shared/input.ts';
 import {chartInput} from '../yeongnyangi/fortune/shared/time.ts';

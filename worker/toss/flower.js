@@ -1,22 +1,11 @@
-import {validateBirth} from './preparation.js';
+import {flowerBirthInput} from './birth-input.js';
+export {flowerBirthInput} from './birth-input.js';
 import {TossError} from './policy.js';
 import {matchDestinyFlower,matchAstrologyFlower,matchJamidusuFlower,matchSukuyoFlower} from '../lib/destiny-flower-engine.js';
 
 export const FLOWER_SOURCES=Object.freeze(['saju','astrology','jamidusu','sukuyo']);
 const matchers={saju:matchDestinyFlower,astrology:matchAstrologyFlower,jamidusu:matchJamidusuFlower,sukuyo:matchSukuyoFlower};
 const factMap=context=>Object.fromEntries(context.facts.map(f=>[f.label,f.value]));
-const pad=n=>String(n).padStart(2,'0');
-
-export function flowerBirthInput(raw){
-  const b=validateBirth(raw),d=b.date;
-  return {personA:{birthDate:`${d.year}-${pad(d.month)}-${pad(d.day)}`,
-    ...(!d.timeUnknown?{birthTime:`${pad(d.hour)}:${pad(d.minute)}`} : {}),
-    ...(b.gender==='M'?{gender:'male'}:b.gender==='F'?{gender:'female'}:{}),
-    calendarType:d.calType==='solar'?'solar':'lunar',leapMonth:d.calType==='lunar_leap',
-    birthPlace:{name:b.location.label,latitude:b.location.lat,longitude:b.location.lng,timezone:b.location.tz}},
-    readingMode:'personal',question:''};
-}
-
 function requireFact(value){if(value===undefined||value===null||value==='')throw new TossError('FLOWER_CHART_UNAVAILABLE',503);return value;}
 function flowerProfile(source,input,context){
   const f=factMap(context),p=input.personA;
