@@ -1,5 +1,5 @@
 {
-  "sourceCommit": "02ff9538a6ef43760613c654019303ff052d0237",
+  "sourceCommit": "32e34778c623c4e9ed24fcc8778be6529b7b76aa",
   "sourceCounts": {
     "home": 63,
     "react": 18,
@@ -6415,7 +6415,7 @@
       "inputContract": "원본 allTracks/free_full 무료 재생. MP3는 곡별 독립 featureKey·토스 승인 SKU의 소유 다운로드",
       "resultRenderer": "apps/toss/src/MusicShelf.tsx + MusicDownload.tsx + music-download-file.ts",
       "storageContract": "동일 곡 주문의 원본 음원권리·보관함·재열람, 웹 구매·이용권과 토스 계정은 분리",
-      "verification": "음악 source/원본 proxy/모의 API/SDK 파일 경계 targeted 검증. 실제 AIT 홈·모의구매1건·합성파일저장·cold보관함·B차단 PASS. 32MiB 초과 원곡 저장은 SDK base64 기술제약으로 미지원(구매정책 제한 아님), 실곡/기기 확인 필요",
+      "verification": "음악 source/원본 proxy/모의 API/SDK 파일 경계 targeted 검증. 실제 AIT 홈·모의구매1건·합성파일저장·cold보관함·B차단 PASS. 32MiB 초과 원곡 저장은 현 어댑터 메모리 상한으로 미완료(SDK 공식 한도/구매정책 제한 아님; SDK 스트림 API 없음), 실곡/기기 확인 필요",
       "webEntries": [
         "/music/"
       ],
@@ -6445,7 +6445,7 @@
           "곡별 독립 SKU, 소유주문·환불확인, 원본 proxy, File.saveBase64 경계"
         ],
         "codeGaps": [
-          "32MiB 초과 원곡 네이티브 저장 미지원: SDK 3.7.0은 saveBase64만 지원하며 스트리밍/URL 파일 API 없음. 원본 구매 정책 제한이 아니라 현 어댑터 기술제약"
+          "32MiB 초과 원곡 네이티브 저장 미완료: 32MiB는 현재 어댑터의 메모리 상한이며 SDK 공식 용량 한도가 아님. SDK 3.7.0은 스트리밍/URL 파일 API를 제공하지 않음. 기존 구매 권리는 보존"
         ]
       },
       "implementationStage": "확인된 코드/모의 연결 누락 있음",

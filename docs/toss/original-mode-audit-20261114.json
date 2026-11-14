@@ -69,7 +69,7 @@
     {
       "id": "music-download",
       "kind": "code",
-      "detail": "곡별 모의 SKU·소유주문·원본 proxy·파일 어댑터·재열람 구현. 32MiB 초과 파일은 SDK base64 메모리 경계로 저장 미지원",
+      "detail": "곡별 모의 SKU·소유주문·원본 proxy·파일 어댑터·재열람 구현. 32MiB 초과 파일은 현재 어댑터의 메모리 상한으로 저장 미완료. SDK 공식 용량 한도가 아님",
       "state": "implemented-with-sdk-limit-local-ait-verified",
       "next": "큰 원곡 전체 지원 미완료. 곡별 SKU/실곡 크기/실기기 저장 검증 필요"
     },
@@ -1294,7 +1294,7 @@
       ],
       "reviewState": "original-modes-verified-sdk-limit",
       "codeGaps": [
-        "32MiB 초과 원곡 네이티브 저장 미지원: SDK 3.7.0은 saveBase64만 지원하며 스트리밍/URL 파일 API 없음. 원본 구매 정책 제한이 아니라 현 어댑터 기술제약"
+        "32MiB 초과 원곡 네이티브 저장 미완료: 32MiB는 현재 어댑터의 메모리 상한이며 SDK 공식 용량 한도가 아님. SDK 3.7.0은 스트리밍/URL 파일 API를 제공하지 않음. 기존 구매 권리는 보존"
       ],
       "archiveEvidence": "일반 AIT에서 상위 화면 진입 확인. 하위 입력·결과·재열람의 검증 근거는 verification 참조. 휴대폰 미검증",
       "deviceState": "not-verified",
