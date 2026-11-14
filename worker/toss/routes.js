@@ -116,6 +116,10 @@ export async function handleTossRoutes(request,env) {
       const {calculateTossPet}=await import('./pet-saju.js');
       return reply(calculateTossPet(await bodyOf(request)));
     }
+    if(path==='/animal-destiny/reading'&&request.method==='POST'){
+      const {tossAnimalDestiny}=await import('./animal-destiny.js');
+      return reply(tossAnimalDestiny(await bodyOf(request)));
+    }
     if(path==='/astro/synastry/people'&&request.method==='GET'){
       const {tossAstroSynastryPeople}=await import('./astro-synastry.js');
       return reply(tossAstroSynastryPeople());

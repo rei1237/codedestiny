@@ -98,6 +98,8 @@ function tsBody(file) {
   });
 }
 const animalFree = ['components/fortune/animal-twelve/animalTwelveData.ts', 'app/saju/animal-destiny/lib/twelveStages.ts', 'app/saju/animal-destiny/lib/animalMapping.ts'].map(f => [f, tsBody(f)]);
+const animalEvidence = tsBody('app/saju/animal-destiny/lib/analysisNarrative.ts').filter(body => /^(const STAGE_INDEX\b|function buildCompatibilityStageEvidence\b)/.test(body));
+if (animalEvidence.length !== 2) throw new Error('Missing original animal compatibility evidence');
 const animalPath = 'worker/lib/saju-section/paid-animal.src.js';
 const animalSrc = read(animalPath);
 const animalFreeText = animalFree.map(([f, body]) => `  // ── ${f} ──\n${body.join('\n')}`).join('\n');
@@ -379,6 +381,10 @@ export function createAnimalDestinyRuntime() {
 ${animalFreeText}
   // ── paid twelve-stage animal reading ──
 ${animalSrc.trim()}
+  const stageEvidence = (() => {
+${animalEvidence.join('\n')}
+    return buildCompatibilityStageEvidence;
+  })();
 
   return {
     STAGE_KEY_TO_LABEL: STAGE_KEY_TO_LABEL, ANIMAL_DESTINY_LIST: ANIMAL_DESTINY_LIST,
@@ -387,6 +393,7 @@ ${animalSrc.trim()}
     getAnimalBySajuResult: getAnimalBySajuResult, getAnimalDisplayData: getAnimalDisplayData,
     resolveTwelveGrowthAnimalResult: resolveTwelveGrowthAnimalResult, buildTwelveAnimalSections: buildTwelveAnimalSections,
     buildDetailedInterpretation: buildDetailedInterpretation,
+    calculateAnimalCompatibility: calculateAnimalCompatibility, buildCompatibilityStageEvidence: stageEvidence,
   };
 }
 `;

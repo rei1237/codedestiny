@@ -30051,6 +30051,41 @@ function buildDetailedInterpretation(args) {
         growthMissions,
     };
 }
+  const stageEvidence = (() => {
+const STAGE_INDEX = {
+    장생: 0,
+    목욕: 1,
+    관대: 2,
+    건록: 3,
+    제왕: 4,
+    쇠: 5,
+    병: 6,
+    사: 7,
+    묘: 8,
+    절: 9,
+    태: 10,
+    양: 11,
+};
+function buildCompatibilityStageEvidence(myStage, partnerStage) {
+    if (!myStage || !partnerStage)
+        return null;
+    const myIdx = STAGE_INDEX[myStage];
+    const partnerIdx = STAGE_INDEX[partnerStage];
+    const diff = Math.abs(myIdx - partnerIdx);
+    const circularDiff = Math.min(diff, 12 - diff);
+    if (circularDiff <= 1) {
+        return `두 사람의 핵심 십이운성(${myStage}/${partnerStage})이 거의 맞닿아 있어 감정의 박자가 자연스럽게 동기화됩니다.`;
+    }
+    if (circularDiff <= 3) {
+        return `핵심 십이운성(${myStage}/${partnerStage})이 보완 축에 위치해 역할을 선명히 나누면 큰 시너지가 납니다.`;
+    }
+    if (circularDiff <= 5) {
+        return `핵심 십이운성(${myStage}/${partnerStage})의 거리가 중간권이라 결정 속도와 표현 방식 조율이 궁합 점수를 좌우합니다.`;
+    }
+    return `핵심 십이운성(${myStage}/${partnerStage}) 간격이 커 충돌이 생기기 쉬운 조합입니다. 경계선과 약속을 먼저 합의하면 안정도가 빠르게 올라갑니다.`;
+}
+    return buildCompatibilityStageEvidence;
+  })();
 
   return {
     STAGE_KEY_TO_LABEL: STAGE_KEY_TO_LABEL, ANIMAL_DESTINY_LIST: ANIMAL_DESTINY_LIST,
@@ -30059,5 +30094,6 @@ function buildDetailedInterpretation(args) {
     getAnimalBySajuResult: getAnimalBySajuResult, getAnimalDisplayData: getAnimalDisplayData,
     resolveTwelveGrowthAnimalResult: resolveTwelveGrowthAnimalResult, buildTwelveAnimalSections: buildTwelveAnimalSections,
     buildDetailedInterpretation: buildDetailedInterpretation,
+    calculateAnimalCompatibility: calculateAnimalCompatibility, buildCompatibilityStageEvidence: stageEvidence,
   };
 }

@@ -1,6 +1,7 @@
 import {readFileSync} from 'node:fs';
 import {createAnimalDestinyRuntime} from '../../../worker/lib/saju-section/runtime.generated.mjs';
 import {STEM_HANJA,BRANCH_HANJA} from '../../../lib/korean-calendar/labels.js';
+import {compressAnimalRuntime} from './compressed-animal-runtime.mjs';
 
 // Build-time projection: the browser gets only the stage cross-table and the names on the public dex.
 export function publicAnimalAlmanac(){
@@ -20,5 +21,6 @@ export function publicAnimalAlmanac(){
 }
 export default function animalAlmanac(){const key='virtual:toss-animal-almanac';return {
   name:'toss-public-animal-almanac',resolveId(id){if(id===key)return '\0'+key;},
+  enforce:'pre',transform(code,id){if(id.replaceAll('\\','/').split('?')[0].endsWith('/worker/lib/saju-section/runtime.generated.mjs'))return compressAnimalRuntime(code);},
   load(id){if(id==='\0'+key)return 'export default '+JSON.stringify(publicAnimalAlmanac());},
 };}
