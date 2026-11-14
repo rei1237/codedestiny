@@ -8,13 +8,13 @@
 
 | 기능 | 웹 원본·생성 경로 | 입력·결과 구분 | 개발 상태 |
 |---|---|---|---|
-| 찻집 공동 사주 | FortuneTeaHousePage → QuestionInputScene → worker/toss/native-tea.js → worker/routes/fortune-tea-house.js | 본인 출생정보·질문·직업 범주, saju-specialist-v2, 원본 공동 상담 챕터 | 공동 상담 버전이 초안 변경 시 사라지는 결함 수정. Windows AIT 전체 경로 통과; 최종 Linux 대기 |
-| 찻집 타로 3장 | 같은 찻집 원본 + TeaConsultConfirmation·카드 선택 화면 | 출생정보 없이 질문·3장 선택·결제 전 뽑기 확정·카드별 해석 | 독립 모의 상품·뽑기 저장·재시도 구현. Windows AIT 전체 경로 통과; 최종 Linux 대기 |
-| 찻집 타로 5장 | 같은 원본, tarotSpread=five | 5장 선택·카드별 해석, 3장과 별도 상품 | 독립 모의 상품·선택 장수 보존. Windows AIT 전체 경로 통과; 최종 Linux 대기 |
-| 찻집 사주 궁합 | 원본 궁합 입력 → TeaHouseSajuCompatResultPanel → 같은 Worker | 두 사람 이름·출생정보·관계 상황·질문, 계산 근거·강점·주의점·관계 조언 | Windows AIT 구매·재열람 통과. 원본 결과 CSS 연결 및 번들 아트 수정 후 Windows 재검사 통과 |
-| 찻집 숙요 궁합 | 원본 숙요 입력·결과 → 같은 Worker | 두 사람 출생정보·관계 상황·질문, 숙요 체계의 관계 결과 | Windows AIT 구매·재열람 통과. Windows AIT 전체 경로 통과; 최종 Linux 대기 |
-| 연이 등급형 질문 편지 | TossLetterRoom·LetterQuestionScope → 원본 ConsultationIntake/Result → worker/toss/letter.js → worker/yeongnyangi/delivery.js | 사주·자미두수·베다 4등급씩, 숙요·서양 점성술·타로 3등급씩: 총 21개 상품 | 기존 원본 입력과 타로 뽑기·후속 대화를 재사용. Windows AIT 21조합 통과 |
-| 네오 상대방 입력 | NeoOperationRoomPage → TossNeoGate → worker/toss/native-neo.js → worker/routes/neo-operation-room.js | 연애/재회·본인과 상대 출생정보·관계 상태·말투·사주/자미두수/베다/점성술 | 관계 판독·갈등 패턴·관계 작전 및 수정 작전. Windows AIT 4방식 통과 |
+| 찻집 공동 사주 | FortuneTeaHousePage → QuestionInputScene → worker/toss/native-tea.js → worker/routes/fortune-tea-house.js | 본인 출생정보·질문·직업 범주, saju-specialist-v2, 원본 공동 상담 챕터 | 공동 상담 버전이 초안 변경 시 사라지는 결함 수정. Windows·Linux AIT 전체 경로 통과 |
+| 찻집 타로 3장 | 같은 찻집 원본 + TeaConsultConfirmation·카드 선택 화면 | 출생정보 없이 질문·3장 선택·결제 전 뽑기 확정·카드별 해석 | 독립 모의 상품·뽑기 저장·재시도 구현. Windows·Linux AIT 전체 경로 통과 |
+| 찻집 타로 5장 | 같은 원본, tarotSpread=five | 5장 선택·카드별 해석, 3장과 별도 상품 | 독립 모의 상품·선택 장수 보존. Windows·Linux AIT 전체 경로 통과 |
+| 찻집 사주 궁합 | 원본 궁합 입력 → TeaHouseSajuCompatResultPanel → 같은 Worker | 두 사람 이름·출생정보·관계 상황·질문, 계산 근거·강점·주의점·관계 조언 | Windows AIT 구매·재열람 통과. 원본 결과 CSS 연결 및 번들 아트 수정 후 Windows·Linux 재검사 통과 |
+| 찻집 숙요 궁합 | 원본 숙요 입력·결과 → 같은 Worker | 두 사람 출생정보·관계 상황·질문, 숙요 체계의 관계 결과 | Windows AIT 구매·재열람 통과. Windows·Linux AIT 전체 경로 통과 |
+| 연이 등급형 질문 편지 | TossLetterRoom·LetterQuestionScope → 원본 ConsultationIntake/Result → worker/toss/letter.js → worker/yeongnyangi/delivery.js | 사주·자미두수·베다 4등급씩, 숙요·서양 점성술·타로 3등급씩: 총 21개 상품 | 기존 원본 입력과 타로 뽑기·후속 대화를 재사용. Windows·Linux AIT 21조합 통과 |
+| 네오 상대방 입력 | NeoOperationRoomPage → TossNeoGate → worker/toss/native-neo.js → worker/routes/neo-operation-room.js | 연애/재회·본인과 상대 출생정보·관계 상태·말투·사주/자미두수/베다/점성술 | 관계 판독·갈등 패턴·관계 작전 및 수정 작전. Windows·Linux AIT 4방식 통과 |
 
 원본 계산·프롬프트·페르소나는 그대로다. 테스트 전용 모의 응답은 운영 생성기를 대체하지 않는다. 특히 숙요 모의 응답의 `mock-response-no-astronomy`는 천문 계산을 수행했다는 표시가 아니다.
 
@@ -42,10 +42,11 @@
 
 - 토큰 연결 뒤 `letter-room.test.mjs`·`letter-intake.test.mjs` 회귀 **65/65 PASS**. AIT `01a1d87a`에서 실제 색상·배치칸 테두리·불투명 덱 배경·442px 내부 스크롤·원본 카드 decode와 연어 타로 전체 경로도 통과했다.
 
-### 최종 확정 전 항목
+### 최종 Linux 검증
 
-- 최종 Linux AIT·커밋 SHA·main CI·비공개 QR은 아직 이 문서의 확인된 결과가 아니다. 검증 후 별도 증거에 반영한다.
-- 최종 Linux 검사는 연이 기본 6 + 등급형 21 + 찻집 6 + 네오 단독 4 + 상대방 4 = **41개 경로**를 실행할 예정이다.
+- runtime 커밋 `80bd0336aeb9f7db61c681693344dce42a01fc10`, [Linux run 43566721402](https://github.com/rei1237/codedestiny/actions/runs/43566721402)의 Critical job `132370661041` **성공**. 연이 기본 6 + 등급형 21 + 찻집 6 + 네오 단독 4 + 상대방 4 = **41개 경로 모두 통과**했다. 신규 30개 입력 경로와 기존 11개 회귀를 합친 수치다.
+- 일반 AIT 배포 ID `01a1d8e9-c1e0-70c0-a4b0-b3becc522d27`: 압축 87,854,267 / 해제 99,820,536 bytes. 모의 AIT `01a1d8ea-a09b-7e48-b1bc-e70faae36c8c`: 압축 87,886,190 / 해제 **99,910,754 bytes**. 둘 다 appName `ai-saju-studio`, 비포터블 경로 0, 100MB 제한 통과. 모의 해제 크기의 남은 여유는 89,246 bytes다.
+- 모의 AIT SHA-256: `ed565f8d3fc4468ea217ebc5187907343afed14fad2668cf0e501f1dde1c509a`. 실제 AIT 로그의 상품별 PASS 41개와 같은 배포 ID 41회를 대조해 [검증 JSON](./ait-verification-20261114.json)에 기록했다. 전체 기능 판정은 **110개 중 14개 동작·96개 일부만 이식**으로 유지한다.
 - 실제 토스 기기의 키보드·네이티브 뒤로가기·앱 강제 종료·접근성 읽기와 실제 로그인/IAP는 브라우저 모의 검사로 통과 처리하지 않는다.
 
 ### 재현 명령
@@ -62,7 +63,7 @@ node apps/toss/test/private-simulation-archive.mjs <Linux AIT> --character-rooms
 
 ## 휴대폰에서 누를 버튼과 기대 결과
 
-최종 새 QR이 준비된 후 사용한다. 기존 `20261114-14` QR은 직전 커밋의 번들이므로 이번 수정 확인에 사용하지 않는다. 모의판의 **비공개 모의 상담 · 실제 결제 없음**, **모의 계정 A** 표시를 확인한다.
+새 **20261114-15** QR을 사용한다. 파일은 `C:/Users/user/Downloads/CodeDestiny/43566721402/toss-mock-20261114-15.png`이며 같은 이름 `.txt`에 앱 링크를 보관했다. 콘솔 버전·배포 ID를 대조하고 PNG 디코딩으로 링크 일치를 확인했다. 기존 `20261114-14` QR은 직전 번들이다. 모의판의 **비공개 모의 상담 · 실제 결제 없음**, **모의 계정 A** 표시를 확인한다.
 
 공통 진입은 **연이 그림 카드 → 운세 골라보기**다. 로그인은 화면의 **토스로 로그인하기**로 모의 로그인한다.
 
@@ -99,5 +100,16 @@ node apps/toss/test/private-simulation-archive.mjs <Linux AIT> --character-rooms
 - 이미 통과한 검사를 반복하지 않고 `verify:krw-copy-canonical`과 실제 React 가격 인계 회귀 테스트를 재검사한 뒤 계획의 잔여 3~33단계를 실행했다. Node **5,071/5,071**, Jest **479 스위트·8,004 테스트 통과, 1개 스킵**. 타입·린트·정책·Worker 빌드·인코딩도 통과.
 - 최종 커밋 트리에서 `npm run check:pre-push` 통과. 실행 로그는 `remaining-checkfast-resumed-node24.txt`, `remaining-runtime-prepush.txt`에 보관했다.
 - 최초 main CI는 기존 웹 변경의 테스트 대역 누락과 로또 안내 제목 폭 때문에 실패했다. LoveSecret 진행 상태 함수, 구매 기록 후기 링크 함수의 대역을 현재 원본에 맞추고 제목 폭을 61에서 54로 줄였다. 동일 결함을 복구한 다른 사용자 세션의 main 변경(`65d8accfe`, `9733ee4ce`, `00433b122`, `eeebfadaf`)을 보존해 `80bd0336aeb9f7db61c681693344dce42a01fc10`에 병합했다. 테스트 대역 7개·무료 기능 7개·제목 폭·사이트맵 1,081 URL 검사 및 병합 트리 pre-push 통과. 상담 기능 코드는 이 복구 과정에서 추가 변경하지 않았다.
+- 이어진 `80bd` main CI의 Critical·Build·Typecheck는 성공했지만 Static guards가 취소되어 전체 성공으로 기록하지 않는다. 기존 영냥이 기다리는 화면 테스트의 Next Image 대역이 DOM에 전용 속성을 넘겨 경고 스택 **7,716,181 bytes**를 출력했다. 테스트 8개 자체는 로컬 0.72초에 통과했다. `8ef82c75b`에서 대역의 속성 변환만 바로잡아 같은 8개가 0.39초·901 bytes 출력으로 통과했다. 검사를 지우거나 경고를 전역 차단하지 않았고 AIT 런타임 코드는 바꾸지 않았다.
 
-주요 변경은 `src/features/fortune-tea-house/components/{QuestionInputScene,TeaConsultConfirmation,TeaHouseSajuCompatResultPanel}.tsx`, `apps/toss/private-simulation/api.mjs`, `apps/toss/test/offline/{room-fixture,tea-modes,neo-partner-fixture,letter-fixture}.mjs`, 실제 AIT 검사 helper와 관련 계약 테스트, `.github/workflows/pr-ci.yml`이다. 최종 커밋과 기능표의 검증 근거는 Linux AIT 검증이 끝난 뒤 확정한다.
+주요 변경은 `src/features/fortune-tea-house/components/{QuestionInputScene,TeaConsultConfirmation,TeaHouseSajuCompatResultPanel}.tsx`, `apps/toss/private-simulation/api.mjs`, `apps/toss/test/offline/{room-fixture,tea-modes,neo-partner-fixture,letter-fixture}.mjs`, 실제 AIT 검사 helper와 관련 계약 테스트, `.github/workflows/pr-ci.yml`이다. `build-service-inventory.mjs`는 찻집 6개 featureKey와 연이 등급형 21개를 각각 실제 AIT 증거에 연결한다. `full-service-inventory.json`·`feature-matrix.md`를 재생성했고 `inventory-contract.test.mjs` **6/6 PASS**다.
+
+## 최종 전달 증거
+
+- 비공개 QR **20261114-15**, `ai-saju-studio` / `01a1d8ea-a09b-7e48-b1bc-e70faae36c8c`. 업로드·임시저장·테스트 QR만 실행했고 검토 요청·푸시 알림·상품 등록/노출은 하지 않았다.
+- 실제 링크: `intoss-private://ai-saju-studio?_deploymentId=01a1d8ea-a09b-7e48-b1bc-e70faae36c8c&host=appsInTossHost`. PNG 450×450의 jsQR 디코딩과 일치했다. Ego TaskSpace64는 `finish({keep:[]})` 한 번으로 종료했다.
+- 테스트 대역 복구까지 반영한 main `26b2f860ba8edad2cef5b10b05e7af8ccafc1aa5`의 [CI43569727847](https://github.com/rei1237/codedestiny/actions/runs/43569727847)는 **CI required 포함 모든 lane 성공**. AIT runtime80bd와 이후 테스트·문서 전달 커밋을 구분한다.
+- Linux artifact run은 Critical job에서 41경로와 두 AIT 보관을 완료했다. 구형 테스트 대역이 있는 Static guards를 계속 기다리지 않고 산출물 다운로드와 복구 main CI 성공 확인 뒤 전체 run 취소를 요청했다. 이를 전체 CI 성공으로 표시하지 않는다.
+- 보관 폴더 `C:/Users/user/Downloads/CodeDestiny/43566721402/`: 일반/모의 `.ait`, 각각의 `metadata.json`, `artifact-job.txt`, QR PNG·앱 링크·디코딩 JSON 및 이 보고서 사본. 기존 Windows 시각 검수 자료는 `C:/Users/user/Downloads/CodeDestiny/remaining-modes-20261114/`에 유지한다.
+- 최종 증거 문서의 `npm run check:fast -- --plan`은 fast(whitespace·문서 신선도)로 판정했고 `npm run check:fast` 통과. 재생성 후 inventory 계약 6/6, handoff 계약 235개 문서 통과. 찻집 6개 상품 각각에 실제 AIT 검사 근거 1개씩 연결됐고 110/14/96 집계를 다시 대조했다.
+- 공개 URL·검색 노출·canonical·robots·sitemap 정책은 이번 AIT 증거 갱신에 영향 없음. 휴대폰 키보드·네이티브 뒤로가기·실로그인/IAP·운영 SKU·Worker 승격은 여전히 미검증/미실행이다. Ego 업데이트 알림은 확인했으나 업그레이드하지 않았다.

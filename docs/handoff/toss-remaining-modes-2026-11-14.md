@@ -1,7 +1,7 @@
 ---
-status: in-progress
+status: done
 updated: 2026-11-14
-next: Linux artifact run43566721402(80bd0336a)에서 41경로·번들 검증 후 TaskSpace63 새 QR 등록·기능표 갱신·최종 전달
+next: 이번 신규30·회귀41 Linux AIT 및 QR15 전달 완료. 실기기·운영 상품·Worker 승격은 별도 승인 게이트
 ---
 
 ## 첫 행동
@@ -28,7 +28,7 @@ tea-modes.mjs가 6모의상품/입력비교/기존계산snapshot 기반모의결
 - [x] 연이21 API검사, 네오상대4 API/4fixture, 기존private4 합계33 PASS
 - [x] 찻집6 API·Windows AIT01a1d870 모든경로/복구/다른계정 검사
 - [x] targeted/checkfast/commit/prepush/main push (main CI 확인은 최종 전달 전)
-- [ ] Linux AIT/privateQR/기능표/최종 전달·정리
+- [x] Linux AIT/privateQR/기능표 검증 완료. 최종 문서 커밋·push와 자기 워크트리 배수는 종료 절차로 수행
 
 ## 검증과 다음 실행 상세
 - Windows AIT 01a1d870-4551-7929-a087-fe938f3921a6: 찻집6 PASS(log D:/Development/Temp/remaining-tea-final2.txt). 3/5카드는 확인화면 배열 선택이 최종상품을 결정한다.
@@ -70,3 +70,10 @@ tea-modes.mjs가 6모의상품/입력비교/기존계산snapshot 기반모의결
 - Linux artifact run43566721402는 정확한 runtime SHA80bd의 선행 pushCI와 concurrency로 대기 중. 기존 watcher 핸들은 새 세션에서 사용할 수 없어 gh run watch 세션69583으로 필요한 산출물만 기다린다. 새 runtime 커밋·push·dispatch 없음.
 - 선행 mainCI43566695390은 Static guards 취소/aggregate 실패로 종료. Critical·Build·Typecheck는 성공. 35분 정체를 진단하니 기존 `yeongnyangi-result-focus.test.mjs`의 Next Image mock이 경고 2개의 base64 스택을 7,716,181 bytes 출력했다. 로컬 기존8검사 0.72초 PASS, DOM 속성 mock 최소수정 후 같은8검사 0.39초·901 bytes PASS. runtime 변경 없이 별도 테스트 복구 커밋한다. 취소 요청은 이미 종료된 run이라 거절됐으며 우리가 실제 취소한 것은 아님.
 - Linux artifact run43566721402는 시작됐고 Critical job132370661041에서 정확80bd AIT 생성·41경로 검사를 실행한다. 테스트 대역만 고친 최종 전달 SHA와 runtime SHA80bd를 구분한다.
+
+## 최종 결과
+- Linux80bd artifact43566721402 Critical job132370661041 success, 41/41 PASS. 일반87,854,267/99,820,536 bytes, 모의87,886,190/99,910,754 bytes(압축/해제), 포터블 오류0. 근거JSON/generator/기능표갱신, inventory6PASS.
+- main26b2f860b CI43569727847 모든 lane success. 기존 main80bd CI43566695390은 guards cancelled, artifact run은 산출물 성공 뒤 구형 guards 대기 취소 요청. 런 전체 성공으로 기록하지 않는다.
+- Ego63도 대기중 소실. 동일 목표 새공간 지속 승인으로64사용. 검증 AIT업로드·임시저장→새버전20261114-15→테스트QR, 배포ID01a1d8ea-a09b-7e48-b1bc-e70faae36c8c 일치. 메모는meta초안에서입력했으나버전목록표시는공란이었다(메모를버전증거로사용하지않음).
+- Ego내부에서sharp로드 시NodeRuntime disconnected, 파일출력·finish전중단확인. 순수DOM캔버스PNG내보내기후외부Node sharp+jsQR로decode하여URL일치PASS. 별도마지막스크립트에서finish keep[] 정확히1회성공. 브라우저추가동작없음.
+- 최종 산출물 C:/Users/user/Downloads/CodeDestiny/43566721402/, QR toss-mock-20261114-15.png. 휴대폰버튼표 remaining-modes-20261114.md. 전체110/14/96 유지. 실LLM·실결제·운영DB·Worker·상품노출·검토요청·출시 미실행.

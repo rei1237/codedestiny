@@ -680,6 +680,490 @@
       "deploymentId": "01a1d833-9ead-7076-89f6-a79bf93d3921",
       "bundleRef": "character-rooms-43551511688/simulation",
       "scope": "네오 팩폭 전략실 서양 점성술: Linux AIT 일반 홈 → 입력 → 모의 토스 로그인 → 주문 1건 → 저장 원문 → 구매 기록 재열람·새로고침 → 다른 계정 접근 차단. 생성 1회·선택 방식·수정 작전 원문과 원장 불변, 새 질문 초안 보존 확인. b69eea884 / run 43551511688"
+    },
+    {
+      "id": "remaining-letter-saju",
+      "features": [
+        "fortune-chat"
+      ],
+      "run": "43566721402",
+      "commit": "80bd0336aeb9f7db61c681693344dce42a01fc10",
+      "deploymentId": "01a1d8ea-a09b-7e48-b1bc-e70faae36c8c",
+      "bundleRef": "remaining-modes-43566721402/simulation",
+      "scope": "letter saju: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402"
+    },
+    {
+      "id": "remaining-letter-ziwei",
+      "features": [
+        "fortune-chat"
+      ],
+      "run": "43566721402",
+      "commit": "80bd0336aeb9f7db61c681693344dce42a01fc10",
+      "deploymentId": "01a1d8ea-a09b-7e48-b1bc-e70faae36c8c",
+      "bundleRef": "remaining-modes-43566721402/simulation",
+      "scope": "letter ziwei: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402"
+    },
+    {
+      "id": "remaining-letter-sukuyo",
+      "features": [
+        "fortune-chat"
+      ],
+      "run": "43566721402",
+      "commit": "80bd0336aeb9f7db61c681693344dce42a01fc10",
+      "deploymentId": "01a1d8ea-a09b-7e48-b1bc-e70faae36c8c",
+      "bundleRef": "remaining-modes-43566721402/simulation",
+      "scope": "letter sukuyo: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402"
+    },
+    {
+      "id": "remaining-letter-vedic",
+      "features": [
+        "fortune-chat"
+      ],
+      "run": "43566721402",
+      "commit": "80bd0336aeb9f7db61c681693344dce42a01fc10",
+      "deploymentId": "01a1d8ea-a09b-7e48-b1bc-e70faae36c8c",
+      "bundleRef": "remaining-modes-43566721402/simulation",
+      "scope": "letter vedic: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402"
+    },
+    {
+      "id": "remaining-letter-astrology",
+      "features": [
+        "fortune-chat"
+      ],
+      "run": "43566721402",
+      "commit": "80bd0336aeb9f7db61c681693344dce42a01fc10",
+      "deploymentId": "01a1d8ea-a09b-7e48-b1bc-e70faae36c8c",
+      "bundleRef": "remaining-modes-43566721402/simulation",
+      "scope": "letter astrology: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402"
+    },
+    {
+      "id": "remaining-letter-tarot",
+      "features": [
+        "fortune-chat"
+      ],
+      "run": "43566721402",
+      "commit": "80bd0336aeb9f7db61c681693344dce42a01fc10",
+      "deploymentId": "01a1d8ea-a09b-7e48-b1bc-e70faae36c8c",
+      "bundleRef": "remaining-modes-43566721402/simulation",
+      "scope": "letter tarot: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402"
+    },
+    {
+      "id": "remaining-letter-saju-mackerel",
+      "features": [
+        "fortune-chat"
+      ],
+      "run": "43566721402",
+      "commit": "80bd0336aeb9f7db61c681693344dce42a01fc10",
+      "deploymentId": "01a1d8ea-a09b-7e48-b1bc-e70faae36c8c",
+      "bundleRef": "remaining-modes-43566721402/simulation",
+      "scope": "letter saju-mackerel: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402",
+      "productId": "chat_saju_mackerel"
+    },
+    {
+      "id": "remaining-letter-saju-salmon",
+      "features": [
+        "fortune-chat"
+      ],
+      "run": "43566721402",
+      "commit": "80bd0336aeb9f7db61c681693344dce42a01fc10",
+      "deploymentId": "01a1d8ea-a09b-7e48-b1bc-e70faae36c8c",
+      "bundleRef": "remaining-modes-43566721402/simulation",
+      "scope": "letter saju-salmon: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402",
+      "productId": "chat_saju_salmon"
+    },
+    {
+      "id": "remaining-letter-saju-flounder",
+      "features": [
+        "fortune-chat"
+      ],
+      "run": "43566721402",
+      "commit": "80bd0336aeb9f7db61c681693344dce42a01fc10",
+      "deploymentId": "01a1d8ea-a09b-7e48-b1bc-e70faae36c8c",
+      "bundleRef": "remaining-modes-43566721402/simulation",
+      "scope": "letter saju-flounder: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402",
+      "productId": "chat_saju_flounder"
+    },
+    {
+      "id": "remaining-letter-saju-tuna",
+      "features": [
+        "fortune-chat"
+      ],
+      "run": "43566721402",
+      "commit": "80bd0336aeb9f7db61c681693344dce42a01fc10",
+      "deploymentId": "01a1d8ea-a09b-7e48-b1bc-e70faae36c8c",
+      "bundleRef": "remaining-modes-43566721402/simulation",
+      "scope": "letter saju-tuna: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402",
+      "productId": "chat_saju_tuna"
+    },
+    {
+      "id": "remaining-letter-ziwei-mackerel",
+      "features": [
+        "fortune-chat"
+      ],
+      "run": "43566721402",
+      "commit": "80bd0336aeb9f7db61c681693344dce42a01fc10",
+      "deploymentId": "01a1d8ea-a09b-7e48-b1bc-e70faae36c8c",
+      "bundleRef": "remaining-modes-43566721402/simulation",
+      "scope": "letter ziwei-mackerel: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402",
+      "productId": "chat_ziwei_mackerel"
+    },
+    {
+      "id": "remaining-letter-ziwei-salmon",
+      "features": [
+        "fortune-chat"
+      ],
+      "run": "43566721402",
+      "commit": "80bd0336aeb9f7db61c681693344dce42a01fc10",
+      "deploymentId": "01a1d8ea-a09b-7e48-b1bc-e70faae36c8c",
+      "bundleRef": "remaining-modes-43566721402/simulation",
+      "scope": "letter ziwei-salmon: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402",
+      "productId": "chat_ziwei_salmon"
+    },
+    {
+      "id": "remaining-letter-ziwei-flounder",
+      "features": [
+        "fortune-chat"
+      ],
+      "run": "43566721402",
+      "commit": "80bd0336aeb9f7db61c681693344dce42a01fc10",
+      "deploymentId": "01a1d8ea-a09b-7e48-b1bc-e70faae36c8c",
+      "bundleRef": "remaining-modes-43566721402/simulation",
+      "scope": "letter ziwei-flounder: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402",
+      "productId": "chat_ziwei_flounder"
+    },
+    {
+      "id": "remaining-letter-ziwei-tuna",
+      "features": [
+        "fortune-chat"
+      ],
+      "run": "43566721402",
+      "commit": "80bd0336aeb9f7db61c681693344dce42a01fc10",
+      "deploymentId": "01a1d8ea-a09b-7e48-b1bc-e70faae36c8c",
+      "bundleRef": "remaining-modes-43566721402/simulation",
+      "scope": "letter ziwei-tuna: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402",
+      "productId": "chat_ziwei_tuna"
+    },
+    {
+      "id": "remaining-letter-sukuyo-mackerel",
+      "features": [
+        "fortune-chat"
+      ],
+      "run": "43566721402",
+      "commit": "80bd0336aeb9f7db61c681693344dce42a01fc10",
+      "deploymentId": "01a1d8ea-a09b-7e48-b1bc-e70faae36c8c",
+      "bundleRef": "remaining-modes-43566721402/simulation",
+      "scope": "letter sukuyo-mackerel: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402",
+      "productId": "chat_sukuyo_mackerel"
+    },
+    {
+      "id": "remaining-letter-sukuyo-salmon",
+      "features": [
+        "fortune-chat"
+      ],
+      "run": "43566721402",
+      "commit": "80bd0336aeb9f7db61c681693344dce42a01fc10",
+      "deploymentId": "01a1d8ea-a09b-7e48-b1bc-e70faae36c8c",
+      "bundleRef": "remaining-modes-43566721402/simulation",
+      "scope": "letter sukuyo-salmon: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402",
+      "productId": "chat_sukuyo_salmon"
+    },
+    {
+      "id": "remaining-letter-sukuyo-flounder",
+      "features": [
+        "fortune-chat"
+      ],
+      "run": "43566721402",
+      "commit": "80bd0336aeb9f7db61c681693344dce42a01fc10",
+      "deploymentId": "01a1d8ea-a09b-7e48-b1bc-e70faae36c8c",
+      "bundleRef": "remaining-modes-43566721402/simulation",
+      "scope": "letter sukuyo-flounder: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402",
+      "productId": "chat_sukuyo_flounder"
+    },
+    {
+      "id": "remaining-letter-vedic-mackerel",
+      "features": [
+        "fortune-chat"
+      ],
+      "run": "43566721402",
+      "commit": "80bd0336aeb9f7db61c681693344dce42a01fc10",
+      "deploymentId": "01a1d8ea-a09b-7e48-b1bc-e70faae36c8c",
+      "bundleRef": "remaining-modes-43566721402/simulation",
+      "scope": "letter vedic-mackerel: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402",
+      "productId": "chat_vedic_mackerel"
+    },
+    {
+      "id": "remaining-letter-vedic-salmon",
+      "features": [
+        "fortune-chat"
+      ],
+      "run": "43566721402",
+      "commit": "80bd0336aeb9f7db61c681693344dce42a01fc10",
+      "deploymentId": "01a1d8ea-a09b-7e48-b1bc-e70faae36c8c",
+      "bundleRef": "remaining-modes-43566721402/simulation",
+      "scope": "letter vedic-salmon: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402",
+      "productId": "chat_vedic_salmon"
+    },
+    {
+      "id": "remaining-letter-vedic-flounder",
+      "features": [
+        "fortune-chat"
+      ],
+      "run": "43566721402",
+      "commit": "80bd0336aeb9f7db61c681693344dce42a01fc10",
+      "deploymentId": "01a1d8ea-a09b-7e48-b1bc-e70faae36c8c",
+      "bundleRef": "remaining-modes-43566721402/simulation",
+      "scope": "letter vedic-flounder: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402",
+      "productId": "chat_vedic_flounder"
+    },
+    {
+      "id": "remaining-letter-vedic-tuna",
+      "features": [
+        "fortune-chat"
+      ],
+      "run": "43566721402",
+      "commit": "80bd0336aeb9f7db61c681693344dce42a01fc10",
+      "deploymentId": "01a1d8ea-a09b-7e48-b1bc-e70faae36c8c",
+      "bundleRef": "remaining-modes-43566721402/simulation",
+      "scope": "letter vedic-tuna: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402",
+      "productId": "chat_vedic_tuna"
+    },
+    {
+      "id": "remaining-letter-astrology-mackerel",
+      "features": [
+        "fortune-chat"
+      ],
+      "run": "43566721402",
+      "commit": "80bd0336aeb9f7db61c681693344dce42a01fc10",
+      "deploymentId": "01a1d8ea-a09b-7e48-b1bc-e70faae36c8c",
+      "bundleRef": "remaining-modes-43566721402/simulation",
+      "scope": "letter astrology-mackerel: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402",
+      "productId": "chat_astrology_mackerel"
+    },
+    {
+      "id": "remaining-letter-astrology-salmon",
+      "features": [
+        "fortune-chat"
+      ],
+      "run": "43566721402",
+      "commit": "80bd0336aeb9f7db61c681693344dce42a01fc10",
+      "deploymentId": "01a1d8ea-a09b-7e48-b1bc-e70faae36c8c",
+      "bundleRef": "remaining-modes-43566721402/simulation",
+      "scope": "letter astrology-salmon: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402",
+      "productId": "chat_astrology_salmon"
+    },
+    {
+      "id": "remaining-letter-astrology-flounder",
+      "features": [
+        "fortune-chat"
+      ],
+      "run": "43566721402",
+      "commit": "80bd0336aeb9f7db61c681693344dce42a01fc10",
+      "deploymentId": "01a1d8ea-a09b-7e48-b1bc-e70faae36c8c",
+      "bundleRef": "remaining-modes-43566721402/simulation",
+      "scope": "letter astrology-flounder: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402",
+      "productId": "chat_astrology_flounder"
+    },
+    {
+      "id": "remaining-letter-tarot-mackerel",
+      "features": [
+        "fortune-chat"
+      ],
+      "run": "43566721402",
+      "commit": "80bd0336aeb9f7db61c681693344dce42a01fc10",
+      "deploymentId": "01a1d8ea-a09b-7e48-b1bc-e70faae36c8c",
+      "bundleRef": "remaining-modes-43566721402/simulation",
+      "scope": "letter tarot-mackerel: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402",
+      "productId": "chat_tarot_mackerel"
+    },
+    {
+      "id": "remaining-letter-tarot-salmon",
+      "features": [
+        "fortune-chat"
+      ],
+      "run": "43566721402",
+      "commit": "80bd0336aeb9f7db61c681693344dce42a01fc10",
+      "deploymentId": "01a1d8ea-a09b-7e48-b1bc-e70faae36c8c",
+      "bundleRef": "remaining-modes-43566721402/simulation",
+      "scope": "letter tarot-salmon: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402",
+      "productId": "chat_tarot_salmon"
+    },
+    {
+      "id": "remaining-letter-tarot-flounder",
+      "features": [
+        "fortune-chat"
+      ],
+      "run": "43566721402",
+      "commit": "80bd0336aeb9f7db61c681693344dce42a01fc10",
+      "deploymentId": "01a1d8ea-a09b-7e48-b1bc-e70faae36c8c",
+      "bundleRef": "remaining-modes-43566721402/simulation",
+      "scope": "letter tarot-flounder: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402",
+      "productId": "chat_tarot_flounder"
+    },
+    {
+      "id": "remaining-tea-saju",
+      "features": [
+        "fortune-tea-house"
+      ],
+      "run": "43566721402",
+      "commit": "80bd0336aeb9f7db61c681693344dce42a01fc10",
+      "deploymentId": "01a1d8ea-a09b-7e48-b1bc-e70faae36c8c",
+      "bundleRef": "remaining-modes-43566721402/simulation",
+      "scope": "tea saju: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402",
+      "productId": "fortune-tea-house-saju-consultation",
+      "featureKey": "fortune-tea-house-saju-consultation"
+    },
+    {
+      "id": "remaining-tea-sajuJoint",
+      "features": [
+        "fortune-tea-house"
+      ],
+      "run": "43566721402",
+      "commit": "80bd0336aeb9f7db61c681693344dce42a01fc10",
+      "deploymentId": "01a1d8ea-a09b-7e48-b1bc-e70faae36c8c",
+      "bundleRef": "remaining-modes-43566721402/simulation",
+      "scope": "tea sajuJoint: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402",
+      "productId": "fortune-tea-house-saju-joint-consultation",
+      "featureKey": "fortune-tea-house-saju-joint-consultation"
+    },
+    {
+      "id": "remaining-tea-tarot",
+      "features": [
+        "fortune-tea-house"
+      ],
+      "run": "43566721402",
+      "commit": "80bd0336aeb9f7db61c681693344dce42a01fc10",
+      "deploymentId": "01a1d8ea-a09b-7e48-b1bc-e70faae36c8c",
+      "bundleRef": "remaining-modes-43566721402/simulation",
+      "scope": "tea tarot: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402",
+      "productId": "fortune-tea-house-tarot-consultation",
+      "featureKey": "fortune-tea-house-tarot-consultation"
+    },
+    {
+      "id": "remaining-tea-tarotFive",
+      "features": [
+        "fortune-tea-house"
+      ],
+      "run": "43566721402",
+      "commit": "80bd0336aeb9f7db61c681693344dce42a01fc10",
+      "deploymentId": "01a1d8ea-a09b-7e48-b1bc-e70faae36c8c",
+      "bundleRef": "remaining-modes-43566721402/simulation",
+      "scope": "tea tarotFive: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402",
+      "productId": "fortune-tea-house-tarot-five-consultation",
+      "featureKey": "fortune-tea-house-tarot-five-consultation"
+    },
+    {
+      "id": "remaining-tea-sajuCompatibility",
+      "features": [
+        "fortune-tea-house"
+      ],
+      "run": "43566721402",
+      "commit": "80bd0336aeb9f7db61c681693344dce42a01fc10",
+      "deploymentId": "01a1d8ea-a09b-7e48-b1bc-e70faae36c8c",
+      "bundleRef": "remaining-modes-43566721402/simulation",
+      "scope": "tea sajuCompatibility: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402",
+      "productId": "fortune-tea-house-saju-compatibility-consultation",
+      "featureKey": "fortune-tea-house-saju-compatibility-consultation"
+    },
+    {
+      "id": "remaining-tea-sukuyo",
+      "features": [
+        "fortune-tea-house"
+      ],
+      "run": "43566721402",
+      "commit": "80bd0336aeb9f7db61c681693344dce42a01fc10",
+      "deploymentId": "01a1d8ea-a09b-7e48-b1bc-e70faae36c8c",
+      "bundleRef": "remaining-modes-43566721402/simulation",
+      "scope": "tea sukuyo: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402",
+      "productId": "fortune-tea-house-sukuyo-compatibility-consultation",
+      "featureKey": "fortune-tea-house-sukuyo-compatibility-consultation"
+    },
+    {
+      "id": "remaining-neo-saju",
+      "features": [
+        "neo-operation-room"
+      ],
+      "run": "43566721402",
+      "commit": "80bd0336aeb9f7db61c681693344dce42a01fc10",
+      "deploymentId": "01a1d8ea-a09b-7e48-b1bc-e70faae36c8c",
+      "bundleRef": "remaining-modes-43566721402/simulation",
+      "scope": "neo saju: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402"
+    },
+    {
+      "id": "remaining-neo-saju-partner",
+      "features": [
+        "neo-operation-room"
+      ],
+      "run": "43566721402",
+      "commit": "80bd0336aeb9f7db61c681693344dce42a01fc10",
+      "deploymentId": "01a1d8ea-a09b-7e48-b1bc-e70faae36c8c",
+      "bundleRef": "remaining-modes-43566721402/simulation",
+      "scope": "neo saju-partner: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402"
+    },
+    {
+      "id": "remaining-neo-ziwei",
+      "features": [
+        "neo-operation-room"
+      ],
+      "run": "43566721402",
+      "commit": "80bd0336aeb9f7db61c681693344dce42a01fc10",
+      "deploymentId": "01a1d8ea-a09b-7e48-b1bc-e70faae36c8c",
+      "bundleRef": "remaining-modes-43566721402/simulation",
+      "scope": "neo ziwei: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402"
+    },
+    {
+      "id": "remaining-neo-ziwei-partner",
+      "features": [
+        "neo-operation-room"
+      ],
+      "run": "43566721402",
+      "commit": "80bd0336aeb9f7db61c681693344dce42a01fc10",
+      "deploymentId": "01a1d8ea-a09b-7e48-b1bc-e70faae36c8c",
+      "bundleRef": "remaining-modes-43566721402/simulation",
+      "scope": "neo ziwei-partner: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402"
+    },
+    {
+      "id": "remaining-neo-vedic",
+      "features": [
+        "neo-operation-room"
+      ],
+      "run": "43566721402",
+      "commit": "80bd0336aeb9f7db61c681693344dce42a01fc10",
+      "deploymentId": "01a1d8ea-a09b-7e48-b1bc-e70faae36c8c",
+      "bundleRef": "remaining-modes-43566721402/simulation",
+      "scope": "neo vedic: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402"
+    },
+    {
+      "id": "remaining-neo-vedic-partner",
+      "features": [
+        "neo-operation-room"
+      ],
+      "run": "43566721402",
+      "commit": "80bd0336aeb9f7db61c681693344dce42a01fc10",
+      "deploymentId": "01a1d8ea-a09b-7e48-b1bc-e70faae36c8c",
+      "bundleRef": "remaining-modes-43566721402/simulation",
+      "scope": "neo vedic-partner: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402"
+    },
+    {
+      "id": "remaining-neo-astrology",
+      "features": [
+        "neo-operation-room"
+      ],
+      "run": "43566721402",
+      "commit": "80bd0336aeb9f7db61c681693344dce42a01fc10",
+      "deploymentId": "01a1d8ea-a09b-7e48-b1bc-e70faae36c8c",
+      "bundleRef": "remaining-modes-43566721402/simulation",
+      "scope": "neo astrology: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402"
+    },
+    {
+      "id": "remaining-neo-astrology-partner",
+      "features": [
+        "neo-operation-room"
+      ],
+      "run": "43566721402",
+      "commit": "80bd0336aeb9f7db61c681693344dce42a01fc10",
+      "deploymentId": "01a1d8ea-a09b-7e48-b1bc-e70faae36c8c",
+      "bundleRef": "remaining-modes-43566721402/simulation",
+      "scope": "neo astrology-partner: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402"
     }
   ],
   "simulatedProducts": [
@@ -730,6 +1214,11 @@
       "file": "toss-mock-20261114-14.png",
       "link": "intoss-private://ai-saju-studio?_deploymentId=01a1d833-9ead-7076-89f6-a79bf93d3921&host=appsInTossHost",
       "bundleRef": "character-rooms-43551511688/simulation"
+    },
+    {
+      "file": "toss-mock-20261114-15.png",
+      "link": "intoss-private://ai-saju-studio?_deploymentId=01a1d8ea-a09b-7e48-b1bc-e70faae36c8c&host=appsInTossHost",
+      "bundleRef": "remaining-modes-43566721402/simulation"
     }
   ],
   "followupBundles": [
@@ -779,6 +1268,61 @@
         "qrDecoded": true
       },
       "scope": "연이 기본 편지 6방식·찻집 사주·네오 4방식. CI에서 Linux AIT의 저장 바이트를 360px 브라우저로 실행. 토스 휴대폰·실결제·실 LLM·운영 DB는 검증하지 않음"
+    },
+    {
+      "id": "remaining-modes-43566721402",
+      "run": "43566721402",
+      "commit": "80bd0336aeb9f7db61c681693344dce42a01fc10",
+      "runner": "GitHub Actions ubuntu-latest",
+      "workflowUrl": "https://github.com/rei1237/codedestiny/actions/runs/43566721402",
+      "ci": {
+        "mainRun": "43569727847",
+        "artifactJob": "132370661041",
+        "mainConclusion": "success",
+        "mainCommit": "26b2f860ba8edad2cef5b10b05e7af8ccafc1aa5",
+        "artifactJobConclusion": "success",
+        "artifactRunStatus": "cancellation_requested_after_artifact_success",
+        "runtimeMainRun": "43566695390",
+        "runtimeMainConclusion": "cancelled",
+        "note": "80bd의 기존 Next Image 테스트 대역이 7.7MB 경고 스택을 출력. 8ef82c75b는 테스트 대역만 수정하며 AIT runtime은 동일. 복구 main CI는 모든 lane 성공. artifact job 성공 뒤 구형 guards만 남은 artifact run 취소 요청."
+      },
+      "regular": {
+        "variant": "regular",
+        "appName": "ai-saju-studio",
+        "deploymentId": "01a1d8e9-c1e0-70c0-a4b0-b3becc522d27",
+        "archiveBytes": 87854267,
+        "expandedBytes": 99820536,
+        "nonPortableNames": 0,
+        "archiveEntries": 1748,
+        "sha256": "258dc3608017c3e3c1883df96f69c614090199ee7e36672af191f3b9d4ad7114",
+        "artifactName": "toss-preview-80bd0336aeb9f7db61c681693344dce42a01fc10"
+      },
+      "simulation": {
+        "variant": "simulation",
+        "appName": "ai-saju-studio",
+        "deploymentId": "01a1d8ea-a09b-7e48-b1bc-e70faae36c8c",
+        "archiveBytes": 87886190,
+        "expandedBytes": 99910754,
+        "nonPortableNames": 0,
+        "archiveEntries": 1750,
+        "sha256": "ed565f8d3fc4468ea217ebc5187907343afed14fad2668cf0e501f1dde1c509a",
+        "artifactName": "toss-private-simulation-80bd0336aeb9f7db61c681693344dce42a01fc10",
+        "consoleVersion": "20261114-15",
+        "qrFile": "toss-mock-20261114-15.png",
+        "privateLink": "intoss-private://ai-saju-studio?_deploymentId=01a1d8ea-a09b-7e48-b1bc-e70faae36c8c&host=appsInTossHost",
+        "qrDecoded": true
+      },
+      "scope": "연이 기본6·등급형21, 찻집6, 네오 단독4·상대방4의 41경로. Linux AIT 바이트 360px 브라우저 모의 검사. 실기기·실결제·실 LLM·운영 DB 미검증.",
+      "validation": {
+        "command": "npm run check:fast -- --base=0a2561b26b74c501ae5c17b8345fb99c1a53411a",
+        "exitCode": 0,
+        "nodeTestsPassed": 5071,
+        "jestSuitesPassed": 479,
+        "jestTestsPassed": 8004,
+        "jestTestsSkipped": 1,
+        "inventoryContractTestsPassed": 6,
+        "focusFixtureTestsPassed": 8
+      }
     }
   ]
 }

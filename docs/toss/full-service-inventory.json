@@ -1,5 +1,5 @@
 {
-  "sourceCommit": "c243cbf3e1bb06af5cec4c4c814adec016b62e96",
+  "sourceCommit": "26b2f860ba8edad2cef5b10b05e7af8ccafc1aa5",
   "sourceCounts": {
     "home": 63,
     "react": 18,
@@ -653,7 +653,7 @@
         "candidateStatus": "local-partial",
         "canonicalRoute": "/fortune-tea-house/?counsel=letter",
         "saleStatus": "연이 기본 사주는 콘솔 SKU 확인·신규 판매 닫힘. 다른 기본·질문 편지는 개별 SKU 등록 필요",
-        "bundleVerification": "연이 기본 편지 사주: Linux AIT 일반 홈 → 입력 → 모의 토스 로그인 → 주문 1건 → 저장 원문 → 구매 기록 재열람·새로고침 → 다른 계정 접근 차단. 상품 ID와 원장 불변 확인. b69eea884 / run 43551511688 · 연이 기본 편지 자미두수: Linux AIT 일반 홈 → 입력 → 모의 토스 로그인 → 주문 1건 → 저장 원문 → 구매 기록 재열람·새로고침 → 다른 계정 접근 차단. 상품 ID와 원장 불변 확인. b69eea884 / run 43551511688 · 연이 기본 편지 숙요: Linux AIT 일반 홈 → 입력 → 모의 토스 로그인 → 주문 1건 → 저장 원문 → 구매 기록 재열람·새로고침 → 다른 계정 접근 차단. 상품 ID와 원장 불변 확인. b69eea884 / run 43551511688 · 연이 기본 편지 베다점: Linux AIT 일반 홈 → 입력 → 모의 토스 로그인 → 주문 1건 → 저장 원문 → 구매 기록 재열람·새로고침 → 다른 계정 접근 차단. 상품 ID와 원장 불변 확인. b69eea884 / run 43551511688 · 연이 기본 편지 서양 점성술: Linux AIT 일반 홈 → 입력 → 모의 토스 로그인 → 주문 1건 → 저장 원문 → 구매 기록 재열람·새로고침 → 다른 계정 접근 차단. 상품 ID와 원장 불변 확인. b69eea884 / run 43551511688 · 연이 기본 편지 타로: Linux AIT 일반 홈 → 입력 → 모의 토스 로그인 → 주문 1건 → 저장 원문 → 구매 기록 재열람·새로고침 → 다른 계정 접근 차단. 상품 ID와 원장 불변 확인. b69eea884 / run 43551511688 · 360px 배포 AIT 브라우저, 토스 휴대폰 미검증"
+        "bundleVerification": "연이 기본 편지 사주: Linux AIT 일반 홈 → 입력 → 모의 토스 로그인 → 주문 1건 → 저장 원문 → 구매 기록 재열람·새로고침 → 다른 계정 접근 차단. 상품 ID와 원장 불변 확인. b69eea884 / run 43551511688 · 연이 기본 편지 자미두수: Linux AIT 일반 홈 → 입력 → 모의 토스 로그인 → 주문 1건 → 저장 원문 → 구매 기록 재열람·새로고침 → 다른 계정 접근 차단. 상품 ID와 원장 불변 확인. b69eea884 / run 43551511688 · 연이 기본 편지 숙요: Linux AIT 일반 홈 → 입력 → 모의 토스 로그인 → 주문 1건 → 저장 원문 → 구매 기록 재열람·새로고침 → 다른 계정 접근 차단. 상품 ID와 원장 불변 확인. b69eea884 / run 43551511688 · 연이 기본 편지 베다점: Linux AIT 일반 홈 → 입력 → 모의 토스 로그인 → 주문 1건 → 저장 원문 → 구매 기록 재열람·새로고침 → 다른 계정 접근 차단. 상품 ID와 원장 불변 확인. b69eea884 / run 43551511688 · 연이 기본 편지 서양 점성술: Linux AIT 일반 홈 → 입력 → 모의 토스 로그인 → 주문 1건 → 저장 원문 → 구매 기록 재열람·새로고침 → 다른 계정 접근 차단. 상품 ID와 원장 불변 확인. b69eea884 / run 43551511688 · 연이 기본 편지 타로: Linux AIT 일반 홈 → 입력 → 모의 토스 로그인 → 주문 1건 → 저장 원문 → 구매 기록 재열람·새로고침 → 다른 계정 접근 차단. 상품 ID와 원장 불변 확인. b69eea884 / run 43551511688 · letter saju: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · letter ziwei: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · letter sukuyo: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · letter vedic: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · letter astrology: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · letter tarot: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · letter saju-mackerel: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · letter saju-salmon: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · letter saju-flounder: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · letter saju-tuna: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · letter ziwei-mackerel: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · letter ziwei-salmon: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · letter ziwei-flounder: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · letter ziwei-tuna: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · letter sukuyo-mackerel: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · letter sukuyo-salmon: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · letter sukuyo-flounder: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · letter vedic-mackerel: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · letter vedic-salmon: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · letter vedic-flounder: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · letter vedic-tuna: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · letter astrology-mackerel: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · letter astrology-salmon: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · letter astrology-flounder: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · letter tarot-mackerel: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · letter tarot-salmon: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · letter tarot-flounder: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · 360px 배포 AIT 브라우저, 토스 휴대폰 미검증"
       }
     },
     {
@@ -688,7 +688,7 @@
         "candidateStatus": "local-partial",
         "canonicalRoute": "/fortune-tea-house/",
         "saleStatus": "유료 상품 콘솔·운영 설정 필요",
-        "bundleVerification": "운명의 찻집 사주: Linux AIT 일반 홈 → 입력 → 모의 토스 로그인 → 주문 1건 → 저장 원문 → 구매 기록 재열람·새로고침 → 다른 계정 접근 차단. 생성 1회·추가 답변 원문과 원장 불변 확인. b69eea884 / run 43551511688 · 360px 배포 AIT 브라우저, 토스 휴대폰 미검증"
+        "bundleVerification": "운명의 찻집 사주: Linux AIT 일반 홈 → 입력 → 모의 토스 로그인 → 주문 1건 → 저장 원문 → 구매 기록 재열람·새로고침 → 다른 계정 접근 차단. 생성 1회·추가 답변 원문과 원장 불변 확인. b69eea884 / run 43551511688 · tea saju: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · tea sajuJoint: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · tea tarot: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · tea tarotFive: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · tea sajuCompatibility: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · tea sukuyo: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · 360px 배포 AIT 브라우저, 토스 휴대폰 미검증"
       }
     },
     {
@@ -1647,7 +1647,7 @@
         "candidateStatus": "local-partial",
         "canonicalRoute": "/neo-operation-room/",
         "saleStatus": "유료 상품 콘솔·운영 설정 필요",
-        "bundleVerification": "네오 팩폭 전략실 사주: Linux AIT 일반 홈 → 입력 → 모의 토스 로그인 → 주문 1건 → 저장 원문 → 구매 기록 재열람·새로고침 → 다른 계정 접근 차단. 생성 1회·선택 방식·수정 작전 원문과 원장 불변, 새 질문 초안 보존 확인. b69eea884 / run 43551511688 · 네오 팩폭 전략실 자미두수: Linux AIT 일반 홈 → 입력 → 모의 토스 로그인 → 주문 1건 → 저장 원문 → 구매 기록 재열람·새로고침 → 다른 계정 접근 차단. 생성 1회·선택 방식·수정 작전 원문과 원장 불변, 새 질문 초안 보존 확인. b69eea884 / run 43551511688 · 네오 팩폭 전략실 베다점: Linux AIT 일반 홈 → 입력 → 모의 토스 로그인 → 주문 1건 → 저장 원문 → 구매 기록 재열람·새로고침 → 다른 계정 접근 차단. 생성 1회·선택 방식·수정 작전 원문과 원장 불변, 새 질문 초안 보존 확인. b69eea884 / run 43551511688 · 네오 팩폭 전략실 서양 점성술: Linux AIT 일반 홈 → 입력 → 모의 토스 로그인 → 주문 1건 → 저장 원문 → 구매 기록 재열람·새로고침 → 다른 계정 접근 차단. 생성 1회·선택 방식·수정 작전 원문과 원장 불변, 새 질문 초안 보존 확인. b69eea884 / run 43551511688 · 360px 배포 AIT 브라우저, 토스 휴대폰 미검증"
+        "bundleVerification": "네오 팩폭 전략실 사주: Linux AIT 일반 홈 → 입력 → 모의 토스 로그인 → 주문 1건 → 저장 원문 → 구매 기록 재열람·새로고침 → 다른 계정 접근 차단. 생성 1회·선택 방식·수정 작전 원문과 원장 불변, 새 질문 초안 보존 확인. b69eea884 / run 43551511688 · 네오 팩폭 전략실 자미두수: Linux AIT 일반 홈 → 입력 → 모의 토스 로그인 → 주문 1건 → 저장 원문 → 구매 기록 재열람·새로고침 → 다른 계정 접근 차단. 생성 1회·선택 방식·수정 작전 원문과 원장 불변, 새 질문 초안 보존 확인. b69eea884 / run 43551511688 · 네오 팩폭 전략실 베다점: Linux AIT 일반 홈 → 입력 → 모의 토스 로그인 → 주문 1건 → 저장 원문 → 구매 기록 재열람·새로고침 → 다른 계정 접근 차단. 생성 1회·선택 방식·수정 작전 원문과 원장 불변, 새 질문 초안 보존 확인. b69eea884 / run 43551511688 · 네오 팩폭 전략실 서양 점성술: Linux AIT 일반 홈 → 입력 → 모의 토스 로그인 → 주문 1건 → 저장 원문 → 구매 기록 재열람·새로고침 → 다른 계정 접근 차단. 생성 1회·선택 방식·수정 작전 원문과 원장 불변, 새 질문 초안 보존 확인. b69eea884 / run 43551511688 · neo saju: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · neo saju-partner: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · neo ziwei: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · neo ziwei-partner: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · neo vedic: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · neo vedic-partner: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · neo astrology: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · neo astrology-partner: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · 360px 배포 AIT 브라우저, 토스 휴대폰 미검증"
       }
     },
     {
@@ -4311,7 +4311,7 @@
       "inputContract": "worker/toss/letter.js + worker/toss/services.js",
       "resultRenderer": "apps/toss/service/TossLetterRoom.tsx + app/fortune-chat/ConsultationIntake.tsx",
       "storageContract": "persona-bound-TossPurchase-to-YeongnyangiRequest; official device and approved SKU pending",
-      "verification": "letter-methods-browser.mjs 12개 기본 편지, letter-question-browser.mjs 두 상담자의 등급·프로필·추가 질문·재열람. 42개 등급형은 모의 소유·SKU 계약.",
+      "verification": "Linux AIT 일반 홈에서 연이 기본 6종·등급형 21종의 원본 입력·모의 구매·생성·후속·저장 원문 재열람·다른 계정 거절 검증. 토스 휴대폰 미검증.",
       "webEntries": [
         "/fortune-chat/"
       ],
@@ -4326,7 +4326,7 @@
       "portStatus": "일부만 이식",
       "reducedBundle": "홈 진입 있음",
       "currentEntry": "Linux AIT 일반 홈 → 꿀꿀운세 → 연이의 상담 편지 · 상위 화면 진입 확인",
-      "bundleVerification": "연이 기본 편지 사주: Linux AIT 일반 홈 → 입력 → 모의 토스 로그인 → 주문 1건 → 저장 원문 → 구매 기록 재열람·새로고침 → 다른 계정 접근 차단. 상품 ID와 원장 불변 확인. b69eea884 / run 43551511688 · 연이 기본 편지 자미두수: Linux AIT 일반 홈 → 입력 → 모의 토스 로그인 → 주문 1건 → 저장 원문 → 구매 기록 재열람·새로고침 → 다른 계정 접근 차단. 상품 ID와 원장 불변 확인. b69eea884 / run 43551511688 · 연이 기본 편지 숙요: Linux AIT 일반 홈 → 입력 → 모의 토스 로그인 → 주문 1건 → 저장 원문 → 구매 기록 재열람·새로고침 → 다른 계정 접근 차단. 상품 ID와 원장 불변 확인. b69eea884 / run 43551511688 · 연이 기본 편지 베다점: Linux AIT 일반 홈 → 입력 → 모의 토스 로그인 → 주문 1건 → 저장 원문 → 구매 기록 재열람·새로고침 → 다른 계정 접근 차단. 상품 ID와 원장 불변 확인. b69eea884 / run 43551511688 · 연이 기본 편지 서양 점성술: Linux AIT 일반 홈 → 입력 → 모의 토스 로그인 → 주문 1건 → 저장 원문 → 구매 기록 재열람·새로고침 → 다른 계정 접근 차단. 상품 ID와 원장 불변 확인. b69eea884 / run 43551511688 · 연이 기본 편지 타로: Linux AIT 일반 홈 → 입력 → 모의 토스 로그인 → 주문 1건 → 저장 원문 → 구매 기록 재열람·새로고침 → 다른 계정 접근 차단. 상품 ID와 원장 불변 확인. b69eea884 / run 43551511688 · 360px 배포 AIT 브라우저, 토스 휴대폰 미검증",
+      "bundleVerification": "연이 기본 편지 사주: Linux AIT 일반 홈 → 입력 → 모의 토스 로그인 → 주문 1건 → 저장 원문 → 구매 기록 재열람·새로고침 → 다른 계정 접근 차단. 상품 ID와 원장 불변 확인. b69eea884 / run 43551511688 · 연이 기본 편지 자미두수: Linux AIT 일반 홈 → 입력 → 모의 토스 로그인 → 주문 1건 → 저장 원문 → 구매 기록 재열람·새로고침 → 다른 계정 접근 차단. 상품 ID와 원장 불변 확인. b69eea884 / run 43551511688 · 연이 기본 편지 숙요: Linux AIT 일반 홈 → 입력 → 모의 토스 로그인 → 주문 1건 → 저장 원문 → 구매 기록 재열람·새로고침 → 다른 계정 접근 차단. 상품 ID와 원장 불변 확인. b69eea884 / run 43551511688 · 연이 기본 편지 베다점: Linux AIT 일반 홈 → 입력 → 모의 토스 로그인 → 주문 1건 → 저장 원문 → 구매 기록 재열람·새로고침 → 다른 계정 접근 차단. 상품 ID와 원장 불변 확인. b69eea884 / run 43551511688 · 연이 기본 편지 서양 점성술: Linux AIT 일반 홈 → 입력 → 모의 토스 로그인 → 주문 1건 → 저장 원문 → 구매 기록 재열람·새로고침 → 다른 계정 접근 차단. 상품 ID와 원장 불변 확인. b69eea884 / run 43551511688 · 연이 기본 편지 타로: Linux AIT 일반 홈 → 입력 → 모의 토스 로그인 → 주문 1건 → 저장 원문 → 구매 기록 재열람·새로고침 → 다른 계정 접근 차단. 상품 ID와 원장 불변 확인. b69eea884 / run 43551511688 · letter saju: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · letter ziwei: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · letter sukuyo: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · letter vedic: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · letter astrology: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · letter tarot: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · letter saju-mackerel: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · letter saju-salmon: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · letter saju-flounder: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · letter saju-tuna: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · letter ziwei-mackerel: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · letter ziwei-salmon: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · letter ziwei-flounder: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · letter ziwei-tuna: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · letter sukuyo-mackerel: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · letter sukuyo-salmon: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · letter sukuyo-flounder: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · letter vedic-mackerel: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · letter vedic-salmon: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · letter vedic-flounder: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · letter vedic-tuna: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · letter astrology-mackerel: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · letter astrology-salmon: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · letter astrology-flounder: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · letter tarot-mackerel: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · letter tarot-salmon: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · letter tarot-flounder: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · 360px 배포 AIT 브라우저, 토스 휴대폰 미검증",
       "tossLogin": "구매·기록에 토스 계정 필요",
       "tossResult": "apps/toss/service/TossLetterRoom.tsx + app/fortune-chat/ConsultationIntake.tsx",
       "reread": "persona-bound-TossPurchase-to-YeongnyangiRequest; official device and approved SKU pending",
@@ -4337,7 +4337,34 @@
         "character-letter-sukuyo",
         "character-letter-vedic",
         "character-letter-astrology",
-        "character-letter-tarot"
+        "character-letter-tarot",
+        "remaining-letter-saju",
+        "remaining-letter-ziwei",
+        "remaining-letter-sukuyo",
+        "remaining-letter-vedic",
+        "remaining-letter-astrology",
+        "remaining-letter-tarot",
+        "remaining-letter-saju-mackerel",
+        "remaining-letter-saju-salmon",
+        "remaining-letter-saju-flounder",
+        "remaining-letter-saju-tuna",
+        "remaining-letter-ziwei-mackerel",
+        "remaining-letter-ziwei-salmon",
+        "remaining-letter-ziwei-flounder",
+        "remaining-letter-ziwei-tuna",
+        "remaining-letter-sukuyo-mackerel",
+        "remaining-letter-sukuyo-salmon",
+        "remaining-letter-sukuyo-flounder",
+        "remaining-letter-vedic-mackerel",
+        "remaining-letter-vedic-salmon",
+        "remaining-letter-vedic-flounder",
+        "remaining-letter-vedic-tuna",
+        "remaining-letter-astrology-mackerel",
+        "remaining-letter-astrology-salmon",
+        "remaining-letter-astrology-flounder",
+        "remaining-letter-tarot-mackerel",
+        "remaining-letter-tarot-salmon",
+        "remaining-letter-tarot-flounder"
       ],
       "archiveHomeButtons": [
         "연이의 상담 편지"
@@ -4394,7 +4421,7 @@
       "portStatus": "일부만 이식",
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "Linux AIT 일반 홈 → 꿀꿀운세 → 연이 · 운명의 찻집 · 상위 화면 진입 확인",
-      "bundleVerification": "운명의 찻집 사주: Linux AIT 일반 홈 → 입력 → 모의 토스 로그인 → 주문 1건 → 저장 원문 → 구매 기록 재열람·새로고침 → 다른 계정 접근 차단. 생성 1회·추가 답변 원문과 원장 불변 확인. b69eea884 / run 43551511688 · 360px 배포 AIT 브라우저, 토스 휴대폰 미검증",
+      "bundleVerification": "운명의 찻집 사주: Linux AIT 일반 홈 → 입력 → 모의 토스 로그인 → 주문 1건 → 저장 원문 → 구매 기록 재열람·새로고침 → 다른 계정 접근 차단. 생성 1회·추가 답변 원문과 원장 불변 확인. b69eea884 / run 43551511688 · tea saju: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · tea sajuJoint: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · tea tarot: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · tea tarotFive: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · tea sajuCompatibility: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · tea sukuyo: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · 360px 배포 AIT 브라우저, 토스 휴대폰 미검증",
       "tossLogin": "구매·기록에 토스 계정 필요",
       "tossResult": "apps/toss/service/Screens.jsx",
       "reread": "owned-TossPurchase; device-and-console-approval-pending",
@@ -4403,37 +4430,61 @@
       "productVerification": [
         {
           "featureKey": "fortune-tea-house-tarot-consultation",
-          "development": "웹 원본 연결 있음; 상품별 mock·배포 AIT 전체 흐름 미검증",
+          "development": "Linux AIT 일반 홈·상품별 입력·모의 구매·생성·추가 질문·저장 원문 재열람·다른 계정 거절 검증",
+          "archiveTests": [
+            "remaining-tea-tarot"
+          ],
           "sale": "독립 콘솔 SKU·가격 등록 필요"
         },
         {
           "featureKey": "fortune-tea-house-tarot-five-consultation",
-          "development": "웹 원본 연결 있음; 상품별 mock·배포 AIT 전체 흐름 미검증",
+          "development": "Linux AIT 일반 홈·상품별 입력·모의 구매·생성·추가 질문·저장 원문 재열람·다른 계정 거절 검증",
+          "archiveTests": [
+            "remaining-tea-tarotFive"
+          ],
           "sale": "독립 콘솔 SKU·가격 등록 필요"
         },
         {
           "featureKey": "fortune-tea-house-saju-consultation",
-          "development": "사주 상담·추가 질문·재열람 모의 구현",
+          "development": "Linux AIT 일반 홈·상품별 입력·모의 구매·생성·추가 질문·저장 원문 재열람·다른 계정 거절 검증",
+          "archiveTests": [
+            "remaining-tea-saju"
+          ],
           "sale": "독립 콘솔 SKU·가격 등록 필요"
         },
         {
           "featureKey": "fortune-tea-house-saju-joint-consultation",
-          "development": "웹 원본 연결 있음; 상품별 mock·배포 AIT 전체 흐름 미검증",
+          "development": "Linux AIT 일반 홈·상품별 입력·모의 구매·생성·추가 질문·저장 원문 재열람·다른 계정 거절 검증",
+          "archiveTests": [
+            "remaining-tea-sajuJoint"
+          ],
           "sale": "독립 콘솔 SKU·가격 등록 필요"
         },
         {
           "featureKey": "fortune-tea-house-saju-compatibility-consultation",
-          "development": "웹 원본 연결 있음; 상품별 mock·배포 AIT 전체 흐름 미검증",
+          "development": "Linux AIT 일반 홈·상품별 입력·모의 구매·생성·추가 질문·저장 원문 재열람·다른 계정 거절 검증",
+          "archiveTests": [
+            "remaining-tea-sajuCompatibility"
+          ],
           "sale": "독립 콘솔 SKU·가격 등록 필요"
         },
         {
           "featureKey": "fortune-tea-house-sukuyo-compatibility-consultation",
-          "development": "웹 원본 연결 있음; 상품별 mock·배포 AIT 전체 흐름 미검증",
+          "development": "Linux AIT 일반 홈·상품별 입력·모의 구매·생성·추가 질문·저장 원문 재열람·다른 계정 거절 검증",
+          "archiveTests": [
+            "remaining-tea-sukuyo"
+          ],
           "sale": "독립 콘솔 SKU·가격 등록 필요"
         }
       ],
       "archiveTests": [
-        "character-tea-saju"
+        "character-tea-saju",
+        "remaining-tea-saju",
+        "remaining-tea-sajuJoint",
+        "remaining-tea-tarot",
+        "remaining-tea-tarotFive",
+        "remaining-tea-sajuCompatibility",
+        "remaining-tea-sukuyo"
       ],
       "archiveHomeButtons": [
         "연이 · 운명의 찻집"
@@ -6386,7 +6437,7 @@
       "portStatus": "일부만 이식",
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "Linux AIT 일반 홈 → 꿀꿀운세 → 네오 · 팩폭 전략실 · 상위 화면 진입 확인",
-      "bundleVerification": "네오 팩폭 전략실 사주: Linux AIT 일반 홈 → 입력 → 모의 토스 로그인 → 주문 1건 → 저장 원문 → 구매 기록 재열람·새로고침 → 다른 계정 접근 차단. 생성 1회·선택 방식·수정 작전 원문과 원장 불변, 새 질문 초안 보존 확인. b69eea884 / run 43551511688 · 네오 팩폭 전략실 자미두수: Linux AIT 일반 홈 → 입력 → 모의 토스 로그인 → 주문 1건 → 저장 원문 → 구매 기록 재열람·새로고침 → 다른 계정 접근 차단. 생성 1회·선택 방식·수정 작전 원문과 원장 불변, 새 질문 초안 보존 확인. b69eea884 / run 43551511688 · 네오 팩폭 전략실 베다점: Linux AIT 일반 홈 → 입력 → 모의 토스 로그인 → 주문 1건 → 저장 원문 → 구매 기록 재열람·새로고침 → 다른 계정 접근 차단. 생성 1회·선택 방식·수정 작전 원문과 원장 불변, 새 질문 초안 보존 확인. b69eea884 / run 43551511688 · 네오 팩폭 전략실 서양 점성술: Linux AIT 일반 홈 → 입력 → 모의 토스 로그인 → 주문 1건 → 저장 원문 → 구매 기록 재열람·새로고침 → 다른 계정 접근 차단. 생성 1회·선택 방식·수정 작전 원문과 원장 불변, 새 질문 초안 보존 확인. b69eea884 / run 43551511688 · 360px 배포 AIT 브라우저, 토스 휴대폰 미검증",
+      "bundleVerification": "네오 팩폭 전략실 사주: Linux AIT 일반 홈 → 입력 → 모의 토스 로그인 → 주문 1건 → 저장 원문 → 구매 기록 재열람·새로고침 → 다른 계정 접근 차단. 생성 1회·선택 방식·수정 작전 원문과 원장 불변, 새 질문 초안 보존 확인. b69eea884 / run 43551511688 · 네오 팩폭 전략실 자미두수: Linux AIT 일반 홈 → 입력 → 모의 토스 로그인 → 주문 1건 → 저장 원문 → 구매 기록 재열람·새로고침 → 다른 계정 접근 차단. 생성 1회·선택 방식·수정 작전 원문과 원장 불변, 새 질문 초안 보존 확인. b69eea884 / run 43551511688 · 네오 팩폭 전략실 베다점: Linux AIT 일반 홈 → 입력 → 모의 토스 로그인 → 주문 1건 → 저장 원문 → 구매 기록 재열람·새로고침 → 다른 계정 접근 차단. 생성 1회·선택 방식·수정 작전 원문과 원장 불변, 새 질문 초안 보존 확인. b69eea884 / run 43551511688 · 네오 팩폭 전략실 서양 점성술: Linux AIT 일반 홈 → 입력 → 모의 토스 로그인 → 주문 1건 → 저장 원문 → 구매 기록 재열람·새로고침 → 다른 계정 접근 차단. 생성 1회·선택 방식·수정 작전 원문과 원장 불변, 새 질문 초안 보존 확인. b69eea884 / run 43551511688 · neo saju: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · neo saju-partner: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · neo ziwei: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · neo ziwei-partner: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · neo vedic: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · neo vedic-partner: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · neo astrology: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · neo astrology-partner: Linux AIT 일반 홈 → 원본 입력 → 모의 로그인·구매 → 저장 원문·후속 → 앱 재진입·구매 기록 → 계정 B 거절. 주문·생성 1회, 선택 상품·입력 보존. 80bd0336a / run 43566721402 · 360px 배포 AIT 브라우저, 토스 휴대폰 미검증",
       "tossLogin": "구매·기록에 토스 계정 필요",
       "tossResult": "apps/toss/service/Screens.jsx",
       "reread": "owned-TossPurchase; device-and-console-approval-pending",
@@ -6396,7 +6447,15 @@
         "character-neo-saju",
         "character-neo-ziwei",
         "character-neo-vedic",
-        "character-neo-astrology"
+        "character-neo-astrology",
+        "remaining-neo-saju",
+        "remaining-neo-saju-partner",
+        "remaining-neo-ziwei",
+        "remaining-neo-ziwei-partner",
+        "remaining-neo-vedic",
+        "remaining-neo-vedic-partner",
+        "remaining-neo-astrology",
+        "remaining-neo-astrology-partner"
       ],
       "archiveHomeButtons": [
         "네오 · 팩폭 전략실"
@@ -12344,7 +12403,7 @@
       "worker": "worker/routes/fortune-chat-consultations.js",
       "result": "app/fortune-chat/ConsultationResult.tsx",
       "webVisibleModes": "기본 편지 폼에 6분야. 상담자별 등급형 21개는 웹 Worker catalog/prepare 계약",
-      "verification": "letter-methods-browser.mjs 12개 기본 편지, letter-question-browser.mjs 두 상담자의 등급·프로필·추가 질문·재열람. 42개 등급형은 모의 소유·SKU 계약.",
+      "verification": "Linux AIT 일반 홈에서 연이 기본 6종·등급형 21종의 원본 입력·모의 구매·생성·후속·저장 원문 재열람·다른 계정 거절 검증. 토스 휴대폰 미검증.",
       "base": [
         "chat_saju",
         "chat_ziwei",

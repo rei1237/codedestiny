@@ -65,9 +65,9 @@
 
 ## 연이·찻집·네오 후속 구현 (2026-11-14)
 
-모의판에서 연이 편지, 찻집·네오의 독립 상품 목록과 주문·상담 저장을 연결했다. 연이 기본 편지 6가지·찻집 사주·네오 분석 4가지의 11개 경로는 홈 입력부터 모의 구매, 원문, 후속 답변, 앱 재진입·구매 기록, 다른 계정 거절까지 Windows 준비 검사와 최종 Linux AIT에서 통과했다. 비공개 모의 버전 20261114-14의 QR은 [세 상담의 실행 기록](./character-rooms-20261114.md)에 기록한다.
+모의판에서 연이 편지, 찻집·네오의 독립 상품 목록과 주문·상담 저장을 연결했다. 최종 Linux AIT `80bd0336a` / run `43566721402`에서 **연이 기본6·등급형21 + 찻집6 + 네오 단독4·상대방4 = 41경로** 모두 일반 홈 → 원본 입력 → 모의 구매·생성 → 후속 답변 → 앱 재진입·구매 기록 → 다른 계정 거절을 통과했다. 기존11에 신규30개 하위 입력 경로를 더한 것으로, 41개의 완성 서비스를 뜻하지 않는다. [전체 실행 기록과 휴대폰 버튼 안내](./remaining-modes-20261114.md), [상품별 AIT 증거](./ait-verification-20261114.json)를 참조한다.
 
-찻집은 한 화면 안에서도 **사주·공동 사주·사주 궁합·숙요 궁합·타로 3장·타로 5장**의 서로 다른 상품이다. 원본 consultPricing.ts의 여섯 featureKey를 기능표 JSON에 기록하고 사주 외에는 미검증 상태를 유지한다. 110개 후보·14개 이미 동작·96개 일부만 이식의 집계는 대표 사주 경로만으로 낮추지 않는다. 신규 실판매·Worker 승격·실기기·검토 요청은 별도 단계다.
+비공개 모의판 **20261114-15**의 배포 ID는 `01a1d8ea-a09b-7e48-b1bc-e70faae36c8c`다. 콘솔 QR의 PNG 디코딩으로 같은 ID를 확인했다. 찻집은 **사주·공동 사주·사주 궁합·숙요 궁합·타로 3장·타로 5장**의 여섯 featureKey별 검증 근거를 연결했고 연이 등급형21은 네오 편지의 검증으로 확장하지 않았다. **110개 후보·14개 동작·96개 일부만 이식** 판정을 유지한다. 신규 실판매·Worker 승격·실기기·검토 요청은 별도 단계다.
 
 ## 비공개 Linux 번들에서 실행한 범위
 
@@ -142,8 +142,8 @@
 | 전문가 관상 분석 | /animal/physio | /animal/physio/ | 홈 버튼 · 전문가 동물 관상 | 일부만 이식 | face |
 | 유명인 사주 | /insights/famous-saju/ | /insights/famous-saju | 홈 버튼 · 유명인 사주 | 일부만 이식 | 상품별 로컬 근거는 JSON 참조 |
 | 점성술 꽃 | /index.html?action=openAstrologyFlowerStudio | /flower | 홈 버튼 · 운명의 꽃 | 일부만 이식 | 상품별 로컬 근거는 JSON 참조 |
-| 대화형 운명 상담 | /fortune-chat/ | /fortune-tea-house/?counsel=letter | 홈 버튼 · 연이의 상담 편지 | 일부만 이식 | character-letter-saju, character-letter-ziwei, character-letter-sukuyo, character-letter-vedic, character-letter-astrology, character-letter-tarot |
-| 운명의 찻집 | /fortune-tea-house/ | /fortune-tea-house/ | 홈 버튼 · 연이 · 운명의 찻집 | 일부만 이식 | character-tea-saju |
+| 대화형 운명 상담 | /fortune-chat/ | /fortune-tea-house/?counsel=letter | 홈 버튼 · 연이의 상담 편지 | 일부만 이식 | character-letter-saju, character-letter-ziwei, character-letter-sukuyo, character-letter-vedic, character-letter-astrology, character-letter-tarot, remaining-letter-saju, remaining-letter-ziwei, remaining-letter-sukuyo, remaining-letter-vedic, remaining-letter-astrology, remaining-letter-tarot, remaining-letter-saju-mackerel, remaining-letter-saju-salmon, remaining-letter-saju-flounder, remaining-letter-saju-tuna, remaining-letter-ziwei-mackerel, remaining-letter-ziwei-salmon, remaining-letter-ziwei-flounder, remaining-letter-ziwei-tuna, remaining-letter-sukuyo-mackerel, remaining-letter-sukuyo-salmon, remaining-letter-sukuyo-flounder, remaining-letter-vedic-mackerel, remaining-letter-vedic-salmon, remaining-letter-vedic-flounder, remaining-letter-vedic-tuna, remaining-letter-astrology-mackerel, remaining-letter-astrology-salmon, remaining-letter-astrology-flounder, remaining-letter-tarot-mackerel, remaining-letter-tarot-salmon, remaining-letter-tarot-flounder |
+| 운명의 찻집 | /fortune-tea-house/ | /fortune-tea-house/ | 홈 버튼 · 연이 · 운명의 찻집 | 일부만 이식 | character-tea-saju, remaining-tea-saju, remaining-tea-sajuJoint, remaining-tea-tarot, remaining-tea-tarotFive, remaining-tea-sajuCompatibility, remaining-tea-sukuyo |
 | 초융합 심층 리딩 | /fusion-fortune/ | /fusion-fortune/ | 홈 버튼 · 초융합 운세 | 일부만 이식 | experts |
 | 지오맨시 흙점 | openGeomancyOracle | /geomancy/ | 홈 버튼 · 지오맨시 흙점 | 일부만 이식 | 상품별 로컬 근거는 JSON 참조 |
 | 명리 헬스 리포트 | js/core/saju/reportDashboard.js healthReportCard | /saju/sections | 홈 버튼 · 사주 리포트 | 일부만 이식 | sections |
@@ -179,7 +179,7 @@
 | 전문가 작명소 | /naming-ai/ | /naming-ai/ | 홈 버튼 · 사주 작명첩 | 일부만 이식 | 상품별 로컬 근거는 JSON 참조 |
 | 네오에게 물어봐 | /neo-consultation/ | /neo-consultation/ | 홈 버튼 · 네오 작전 결정서 · 이메일 상담 | 일부만 이식 | 상품별 로컬 근거는 JSON 참조 |
 | 네오 상담 편지 | /fortune-chat/?character=neo | /fortune-tea-house/?counsel=letter&persona=neo | 홈 버튼 · 네오의 상담 편지 | 일부만 이식 | 상품별 로컬 근거는 JSON 참조 |
-| 팩폭 전략소 | /neo-operation-room/ | /neo-operation-room/ | 홈 버튼 · 네오 · 팩폭 전략실 | 일부만 이식 | character-neo-saju, character-neo-ziwei, character-neo-vedic, character-neo-astrology |
+| 팩폭 전략소 | /neo-operation-room/ | /neo-operation-room/ | 홈 버튼 · 네오 · 팩폭 전략실 | 일부만 이식 | character-neo-saju, character-neo-ziwei, character-neo-vedic, character-neo-astrology, remaining-neo-saju, remaining-neo-saju-partner, remaining-neo-ziwei, remaining-neo-ziwei-partner, remaining-neo-vedic, remaining-neo-vedic-partner, remaining-neo-astrology, remaining-neo-astrology-partner |
 | 네빌 명상 실습 | /neville-meditation.html | /meditation/neville | 홈 버튼 · 네빌 명상 실습 | 일부만 이식 | 상품별 로컬 근거는 JSON 참조 |
 | 신년운세 | /new-year-ai-consultation/ | /new-year-ai-consultation/ | 홈 버튼 · 신년운세 전문가 상담 | 일부만 이식 | experts |
 | 라이트 노벨 | /codedestiny-novel.html | /novel | 홈 버튼 · 연이의 운명 노벨 | 일부만 이식 | 상품별 로컬 근거는 JSON 참조 |
