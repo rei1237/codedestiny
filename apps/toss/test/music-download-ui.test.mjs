@@ -16,6 +16,8 @@ test('mock purchase, remount and file save reuse one owned intent; a new session
  assert.ok(button('MP3 파일 저장하기'));assert.equal(purchases,1);assert.equal(prepares,1);
  await React.act(async()=>root.render(React.createElement(Component,{intentId:id,key:'reopen'})));
  await React.act(async()=>button('MP3 파일 저장하기').click());assert.equal(saves,1);assert.equal(purchases,1);assert.equal(prepares,1);
+ globalThis.__musicUI.save=async()=>{throw Object.assign(new Error('MUSIC_FILE_TOO_LARGE'),{code:'MUSIC_FILE_TOO_LARGE'});};
+ await React.act(async()=>button('MP3 파일 저장하기').click());assert.match(document.querySelector('[role=alert]').textContent,/파일 크기.*구매 권리는 유지/);assert.equal(purchases,1);
  globalThis.__musicUI.api=async()=>{throw Error('RESULT_NOT_FOUND');};
  await React.act(async()=>{window.testSessionEpoch=1;window.dispatchEvent(new window.Event('session'));});
  assert.equal(button('MP3 파일 저장하기'),undefined);assert.match(document.querySelector('[role=alert]').textContent,/다시 결제하지/);

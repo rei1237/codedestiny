@@ -5,6 +5,7 @@ export async function saveMusicDownload(id:string){
  const revision=getTossSessionRevision();
  const file=await api<{data:string;fileName:string;mimeType:string}>('/native/music/results/'+id+'/file');
  if(revision!==getTossSessionRevision())throw new Error('SESSION_CHANGED');
- if(file.mimeType!=='audio/mpeg'||typeof file.data!=='string'||!file.data.length||file.data.length>44739244||!file.fileName?.endsWith('.mp3')||/[\/\\\r\n]/.test(file.fileName))throw new Error('MUSIC_FILE_INVALID');
+ if(typeof file.data==='string'&&file.data.length>44739244)throw new Error('MUSIC_FILE_TOO_LARGE');
+ if(file.mimeType!=='audio/mpeg'||typeof file.data!=='string'||!file.data.length||!file.fileName?.endsWith('.mp3')||/[\/\\\r\n]/.test(file.fileName))throw new Error('MUSIC_FILE_INVALID');
  await File.saveBase64(file);
 }
