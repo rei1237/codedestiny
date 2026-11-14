@@ -493,12 +493,13 @@ export default function QuestionInputScene({ paymentSurface = "web", TossPrice, 
   // storage. Returning to cup selection must not discard an unsubmitted form.
   useEffect(() => {
     onDraftChange?.({ consultationMode, nickname, profileId, birthDate, birthTime,
+      sajuReportVersion: jointSaju ? "saju-specialist-v2" : undefined,
       attemptId: initialInput?.question === question && initialInput?.consultationMode === consultationMode ? initialInput?.attemptId : undefined,
       tarotSpreadId: initialInput?.tarotSpreadId, consultationVersion: "tea-v2",
       birthTimeUnknown, birthPlace, timezone, gender, calendarType, tarotSpread, isLeapMonth, longitude: longitude === "" ? undefined : Number(longitude),
       sukuyo: sukuyoInput, sajuCompatibility: sajuCompatInput, question, questionCategory,
       concernTopic: selectedCup.topic });
-  }, [onDraftChange, consultationMode, nickname, profileId, birthDate, birthTime,
+  }, [onDraftChange, consultationMode, jointSaju, nickname, profileId, birthDate, birthTime,
     birthTimeUnknown, birthPlace, timezone, gender, calendarType, tarotSpread,
     sukuyoInput, sajuCompatInput, question, questionCategory, selectedCup.topic, isLeapMonth, longitude]);
 

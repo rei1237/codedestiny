@@ -1,6 +1,6 @@
 "use client";
 import { trackEvent } from "@/lib/analytics";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { authFetch } from "@/app/_lib/auth-client";
 import { getAuthState } from "@/app/_lib/auth-store";
 import { teaSpreads, recommendTeaSpread } from "@/lib/fortune-tea-house/tarot-contract.mjs";
@@ -38,7 +38,8 @@ export default function TeaConsultConfirmation({paymentSurface="web",TossPrice,i
  const [draft,setDraft]=useState<Draft|null>(null),[picks,setPicks]=useState<number[]>([]),[loading,setLoading]=useState(false),[error,setError]=useState("");
  const [tossPrice,setTossPrice]=useState<TossTeaPriceSelection|null>(null);
  const [loginError,setLoginError]=useState(false);
- useEffect(()=>()=>{if(paymentSurface==="toss")rememberTossTeaPrice(null);},[paymentSurface]);
+ const handedToCheckout=useRef(false);
+ useEffect(()=>()=>{if(paymentSurface==="toss"&&!handedToCheckout.current)rememberTossTeaPrice(null);},[paymentSurface]);
  useEffect(()=>{
   if(paymentSurface!=="toss")return;
   const onNativeBack=(event:Event)=>{event.preventDefault();if(!busy&&!loading)onBack();};
@@ -100,6 +101,6 @@ export default function TeaConsultConfirmation({paymentSurface="web",TossPrice,i
    </>}
   </>}
   {error&&<p role="alert">{error}{(loginError||!getAuthState().user)&&<a href={paymentSurface==="toss"?"/login/?next=%2Ffortune-tea-house%2F%3FrestoreTeaDraft%3D1":"/login/?next=%2Ffortune-tea-house%2F"}>{paymentSurface==="toss"?tossTeaPaymentCopy(locale).loginAction:copy.login}</a>}</p>}
-  <div className={styles.actions}><TeaHouseButton variant="ghost" onClick={onBack} disabled={busy||loading}>{copy.edit}</TeaHouseButton><TeaHouseButton disabled={loading||!priceReady||(isTarot&&draft?.status!=="drawn")} loading={busy} onClick={()=>{if(!priceReady)return;if(paymentSurface==="toss")rememberTossTeaPrice(recoveryOrder?null:tossPrice);trackEvent("tea_consult_confirmed",{method:input.consultationMode});onConfirm({...input,consultationVersion:"tea-v2",...(isTarot?{attemptId:draft!.attemptId,tarotSpreadId:spreadId,tarotSpread:size}:{})});}}>{paymentSurface==="toss"?tossTeaPaymentCopy(locale).action:copy.continue}</TeaHouseButton></div>
+  <div className={styles.actions}><TeaHouseButton variant="ghost" onClick={onBack} disabled={busy||loading}>{copy.edit}</TeaHouseButton><TeaHouseButton disabled={loading||!priceReady||(isTarot&&draft?.status!=="drawn")} loading={busy} onClick={()=>{if(!priceReady)return;if(paymentSurface==="toss"){rememberTossTeaPrice(recoveryOrder?null:tossPrice);handedToCheckout.current=true;}trackEvent("tea_consult_confirmed",{method:input.consultationMode});onConfirm({...input,consultationVersion:"tea-v2",...(isTarot?{attemptId:draft!.attemptId,tarotSpreadId:spreadId,tarotSpread:size}:{})});}}>{paymentSurface==="toss"?tossTeaPaymentCopy(locale).action:copy.continue}</TeaHouseButton></div>
  </section>;
 }

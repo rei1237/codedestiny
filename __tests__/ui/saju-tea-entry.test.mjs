@@ -86,3 +86,19 @@ test('ordinary tea saju and joint consultation retain distinct entry versions',(
  assert.equal(restoreEntry({query:'?mode=saju'}).input.sajuReportVersion,undefined);
  assert.equal(restoreEntry({query:'?mode=saju&reading=joint'}).input.sajuReportVersion,'saju-specialist-v2');
 });
+
+
+test('joint product identity survives the original form draft feedback loop',()=>{
+ const form=fs.readFileSync('src/features/fortune-tea-house/components/QuestionInputScene.tsx','utf8');
+ const tree=ts.createSourceFile('form.tsx',form,ts.ScriptTarget.Latest,true,ts.ScriptKind.TSX);
+ let callback;
+ const visit=node=>{if(ts.isCallExpression(node)&&node.expression.getText(tree)==='useEffect'&&node.arguments[0]?.getText(tree).includes('onDraftChange?.'))callback=node.arguments[0].getText(tree);ts.forEachChild(node,visit);};visit(tree);
+ assert.ok(callback);
+ const effect=ts.transpileModule('const effect = '+callback,{compilerOptions:{target:ts.ScriptTarget.ES2022}}).outputText;
+ let input={consultationMode:'saju',sajuReportVersion:'saju-specialist-v2',question:'새 질문'};
+ for(let render=0;render<3;render++){
+  const ctx={initialInput:input,onDraftChange:next=>{input=next;},consultationMode:'saju',jointSaju:input.sajuReportVersion==='saju-specialist-v2',question:'새 질문',nickname:'테스트',profileId:'p',birthDate:'1990-01-01',birthTime:'',birthTimeUnknown:true,birthPlace:'서울',timezone:'Asia/Seoul',gender:'female',calendarType:'solar',tarotSpread:'three',isLeapMonth:false,longitude:'126.978',sukuyoInput:{},sajuCompatInput:{},questionCategory:'career',selectedCup:{topic:'직업'}};
+  new Function(...Object.keys(ctx),effect+';effect();')(...Object.values(ctx));
+  assert.equal(input.sajuReportVersion,'saju-specialist-v2');
+ }
+});

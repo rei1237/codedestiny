@@ -4,7 +4,7 @@ import type { FortuneTeaHouseCalendarType, FortuneTeaHouseConsultResponse, Fortu
 import { fortuneTeaHouseAssets } from "../data/assets";
 import LlmParagraphs from "@/components/fortune/LlmParagraphs";
 import AssetImage from "./AssetImage";
-import styles from "../styles/fortune-tea-house.module.css";
+import styles from "../styles/tea-report.module.css";
 import { useTeaHouseCopy } from "../lib/teaHouseCopy";
 
 type TeaHouseSajuCompatResultPanelProps = {
@@ -152,7 +152,7 @@ export default function TeaHouseSajuCompatResultPanel({ result }: TeaHouseSajuCo
             <h4 id="sajuCompatStrengthTitle">{copy.strengthTitle}</h4>
           </div>
           <AssetImage
-            className={styles.resultSectionMascot}
+            className={styles.honeyLetterMascot}
             src={fortuneTeaHouseAssets.yeoni.transparent.bust}
             fallbackSrc={fortuneTeaHouseAssets.yeoni.bust}
             alt=""
