@@ -47,7 +47,7 @@ Coordinator: private API/bootstrap/sdk, `private-music.mjs` actual AIT runner, i
 
 # 검증
 
-Passed targeted music tests (12 tests across 8 files):
+Passed targeted music tests (12 tests across 7 files):
 - `node --test apps/toss/test/music-download.test.mjs` (4)
 - `node --test apps/toss/test/music-shelf.test.mjs` (2)
 - `node --test apps/toss/test/music-download-ui.test.mjs` (1; rerun after final cleanup/login fix)
