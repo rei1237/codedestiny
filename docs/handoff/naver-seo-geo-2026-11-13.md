@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-14
-next: 묶음 3-2(질문형 H2 결론 문단) → 3-3 → 원장 재생성 → 묶음 4-1~4-3 → 전체 검증 → docs/seo/bundle3-4-before-after.md. 3-1은 끝(결과 기록 맨 끝 "묶음 3 진행"). push·배포·운영 승격은 미승인(로컬 커밋만). F3는 구현하지 않는다.
+next: 묶음 4-1(결과 CTA 축소) → 4-2 → 4-3 → 전체 검증 → docs/seo/bundle3-4-before-after.md. 묶음 3은 끝(결과 기록 맨 끝 "묶음 3 진행"). push·배포·운영 승격은 미승인(로컬 커밋만). F3는 구현하지 않는다.
 ---
 # 네이버 SEO·AEO·GEO + 구매 동선 (Phase 1~5)
 
@@ -103,7 +103,7 @@ Phase 0 보고서와 승인된 계획의 정본은 `docs/seo/phase0-report.md`�
 - [ ] 2-5 스테이징 Lighthouse(push 뒤).
 
 ### 묶음 3 — AEO·GEO 구조
-- [ ] 3-1 반복 섹션·`DEFAULT_FAQS`, 3-2 질문형 H2 결론 문단, 3-3 기준일·비교 페이지.
+- [x] 3-1 반복 섹션·`DEFAULT_FAQS`, 3-2 질문형 H2 결론 문단, 3-3 기준일·비교 페이지.
 
 ### 묶음 4 — 구매 동선
 - [ ] 4-1 결과 CTA 축소(F1), 4-2 사다리 표기·하드코딩 가격, 4-3 `/ziwei/` 로그인 복귀(F2), 4-4 결제 변경 제안서(F3·A1)만 쓰고 멈춤 — **4-4는 끝**(`docs/seo/payment-change-proposal.md`, 구현은 승인 뒤).
@@ -358,3 +358,8 @@ SHA는 네 번째 rebase 뒤 기준이다. 모두 로컬 커밋이고 push하지
 - 3-2 설계(구현 전): vedic 선례(`seoLanding.vedic.comparison.*`)대로 `lib/seo-landing-pages.js`의 `SEO_LANDING_TEXT_TRANSLATIONS.ko`에 키를 추가하고, 허브 `sections` 맨 앞에 질문형 heading + 결론 문단(답 먼저) section을 넣는다. 사실 근거는 `lib/seo-service-scope.js`의 `free/paid`. 가격 숫자는 정본(`PIG_COIN_UNLOCK_PRODUCTS`)에서 읽거나 쓰지 않는다. 신년운세 허브(`app/new-year-ai-consultation/page.tsx`, `app/fortune/2027/page.tsx`)는 이 데이터 파일을 쓰지 않는다.
 - 3-3 설계(구현 전): `lib/seo-service-scope.js`에 범위 데이터 기준일 상수 하나를 두고 템플릿 범위 절에 "…기준"으로 렌더. 날짜 하드코딩은 그 한 곳만.
 - 사이트맵 원장은 묶음 3 끝에 한 번 재생성한다(3-1 뒤 아직 안 함).
+- 3-2 `1283eadf5` (`lib/seo-landing-pages.js`만, 키는 `seoLanding.<hub>.scope.heading/answer`): 사주·만세력·궁합·사주 궁합·타로는 `sections` 맨 앞에 질문형 H2 + 결론 문단 1개, 자미두수는 기존 질문형 H2("무료 자미두수 명반, 어디까지 보고 심화로 넘어가야 할까") 아래 첫 문단으로 결론을 넣었다. 가격 숫자는 넣지 않았다(이 파일은 `app/components/guide-cta-targets.js`도 import하므로 worker 정본을 끌어오지 않았다). FAQ에는 중복해 넣지 않았다. 허브 화면에서는 sections가 `<details>`로 접혀 렌더된다(UX 세션 의도, 그대로).
+  - 하지 않은 것: 신년운세 허브(`app/new-year-ai-consultation/page.tsx`, `app/fortune/2027/page.tsx`)는 이 데이터 파일을 쓰지 않아 손대지 않았다. love·freeSaju도 그대로.
+  - 함정: 이 파일에는 "무료 사주"를 쓰면 `saju-bundle-copy.static.test.js`가 실패한다. 사주 궁합 title·description에는 "무료"를 쓰면 안 된다.
+- 3-3 `a95049633`: `lib/seo-service-scope.js`에 `SEO_SERVICE_SCOPES_UPDATED = '2026-11-14'`와 `seoServiceScopeAsOfLabel()`. 템플릿 범위 절 끝에 "무료·유료 범위는 2026년 11월 14일 기준이며, 바뀌면 이 날짜와 함께 고칩니다."(`<time>`). 비교 글 3종: `fortune-apps`는 무료 범위 문단 끝에 "(…기준)", `saju-vs-ziwei`·`sukuyo-vs-vedic`은 "어느 쪽부터 보면 좋은가" 아래에 `SEO_SERVICE_SCOPES`의 free·paid를 읽는 두 문단 + 기준일. `Review`/`AggregateRating` 없음.
+- 원장 재생성 `HEAD`(이 문서 커밋 직전 커밋): 갱신 21.
