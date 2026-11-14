@@ -14,6 +14,8 @@ export async function verifyPrivateAnimal(origin,context){
   for(const section of expected.reading.sections){await page.getByRole('button',{name:section.label,exact:true}).click();assert.ok((await page.locator('body').innerText()).includes(section.content),section.label);}
   const body=(await page.locator('body').innerText()).replace(/\s+/g,' ');
   for(const key of ['personality','love','career','wealth','relationship','today'])assert.ok(body.includes(expected.reading.detailed[key].replace(/\s+/g,' ').trim()),key);
+  const dex=page.getByRole('heading',{name:'운명 도감 12단계',exact:true}).locator('../..');assert.equal(await dex.getByRole('button').count(),12);
+  for(let index=0;index<12;index++){await dex.getByRole('button').nth(index).click();assert.ok((await dex.innerText()).includes(expected.reading.dex[index].personality));assert.ok((await dex.innerText()).includes(expected.reading.dex[index].growthMission));}
   await page.getByPlaceholder('YYYYMMDD',{exact:true}).fill('19900101');await page.getByLabel('태어난 시간(선택)',{exact:true}).fill('08:30');await page.getByRole('button',{name:'궁합 확인하기',exact:true}).click();
   const partner=tossAnimalDestiny({input,partner:{birthDate:'1990-01-01',birthTime:'08:30',gender:'female',calendarType:'solar',lunarLeap:false}}).partner;
   await page.getByText(partner.summary,{exact:true}).waitFor();
