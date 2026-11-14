@@ -65,3 +65,9 @@ privacy 변경의 검증·커밋·main CI 확인 → READY가 닫힌 채 공식 
 - 콜백 자격 문자열은 작업공간73 p1 input[name="callback.basicAuth"] DOM에만 있다. 저장 전 reload/close하지 않는다. 분실하면 identity/data키는 보존하고 미등록 callback만 메모리 생성해 서버 secret과 콘솔 raw를 같이 재설정한다. 출력·파일 기록 금지.
 
 최종 로컬 결과: check:fast critical 계약 77/77, Node 5,072/5,074. life-book/love-secret 기존 구매 전체 흐름 fixture 2개가 닫힌 판매 정본을 읽어 실패했다. 명시 mock module DI로 보완 후 해당 파일 95개 통과. Worker build와 Toss typecheck 통과. 전체 check:fast 통과로 표시하지 않으며 최종 main CI로 최종 트리를 검증한다. 추가 가격/정책 변경 및 실호출은 없다.
+
+서버 판매 닫힘 보완은 main a18cf23c7e0990bd532878f1e725335aaf7608be로 전달됐다. pre-push PASS. main CI43618278370은 독립 작업 후 1회 확인에서 진행 중이며 공식 운영 승격·콘솔 등록·READY 활성화는 아직 실행하지 않았다. 운영 true/staging false 설정 후보는 별도 임시 파일에서 parity 및 27개 회귀 검사 PASS, 실제 설정은 미적용이다.
+
+전체 Toss 최초 실패 6개는 추가 전체 반복 없이 final-sales-targeted.log의 118 PASS로 모두 해소 검증했다: native-fusion-boundary(2), native-neo-boundary(1)는 명시 mock DI 보완; official-devtools(1), vedic-extra-ui(1), vedic-reading-ui(1)는 잠금 파일 기준 앱 의존성 설치 후 통과. 같은 실행에 grant/native-consultation/tarot-library/routes 회귀를 포함했다. 최종 tarot ownerId 보강은 그 뒤 13 PASS로 별도 검증했다.
+
+공식 운영 실행을 정확히 1회 시작했다: https://github.com/rei1237/codedestiny/actions/runs/43618733981 (mode=production, 코드 a18cf23c7). main CI는 아직 성공으로 기록하지 않는다. 공식 release 자체 고위험 preflight를 생략하지 않으며 실패하면 승격 전 차단한다. 로그인 콘솔 저장·READY 설정은 공개 반영을 확인한 뒤 실행한다.

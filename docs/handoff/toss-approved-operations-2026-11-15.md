@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-15
-next: 신규판매 상태의 서버 집행을 보완·mock 검증한다. privacy 커밋과 함께 push/CI 확인 후 하나의 공식 production 승격을 실행하고 콘솔 등록 및 READY 활성화를 진행한다.
+next: 공식 production run43618733981의 결과를 다음 실제 활성화 판단 시점에 1회 확인한다. 성공한 공개 privacy/SHA 확인 뒤 콘솔 등록과 READY 설정을 진행한다.
 ---
 
 ## 첫 행동
@@ -75,3 +75,22 @@ mock 로그인·구매·생성은 명시 DI로 계속 검증하며 실서버 폴
 - 콜백 자격 문자열은 작업공간73 p1 input[name="callback.basicAuth"] DOM에만 있다. 저장 전 reload/close하지 않는다. 분실하면 identity/data키는 보존하고 미등록 callback만 메모리 생성해 서버 secret과 콘솔 raw를 같이 재설정한다. 출력·파일 기록 금지.
 
 최종 로컬 결과: check:fast critical 계약 77/77, Node 5,072/5,074. life-book/love-secret 기존 구매 전체 흐름 fixture 2개가 닫힌 판매 정본을 읽어 실패했다. 명시 mock module DI로 보완 후 해당 파일 95개 통과. Worker build와 Toss typecheck 통과. 전체 check:fast 통과로 표시하지 않으며 최종 main CI로 최종 트리를 검증한다. 추가 가격/정책 변경 및 실호출은 없다.
+
+## 현재 전달 지점 — 2026-11-15 01:58 KST
+
+- 서버 보완+privacy가 main a18cf23c7e0990bd532878f1e725335aaf7608be로 push됐다. 원래 privacy 및 승인기록 커밋은 origin/main f03d8add0 위에 rebase됐다. 원본 checkout은 수정하지 않았다.
+- check:pre-push 모두 PASS. 최종 main CI https://github.com/rei1237/codedestiny/actions/runs/43618278370 는 독립 작업 후 1회 확인에서 in_progress였다. 저장소 규칙에 따라 기다리거나 반복 폴링하지 않았다.
+- 운영 dispatch는 여전히 0회. READY 미설정. 운영 baseline은 f8a4ec2afa7ba2bacb7913201aae6962c4c6e232의 Pages da6878a5-60cd-48d0-8496-f03639fa8cb6 / Worker version10e51006-c4b6-4869-a13a-4533acdaf6b4로 동일하며 키3개·mTLS 유지.
+- 작업공간73 p1 초안 credential 존재를 다시 확인했다. round39까지 실행. 다음 browser 파일은 round40부터, 이전 파일 재실행 금지. console 등록은 아직 실행 안 했다. Ego 업데이트 알림은 있었으나 업데이트하지 않았다.
+- .tmp/toss-operations/record-activation.mjs는 운영 활성화 성공 뒤 저장소 prod=true/staging=false와 정합성 가드를 적용할 준비 스크립트다. 아직 실제 파일에 실행하지 않았다. preview-activation.mjs가 만든 .tmp 후보만 검사했고 parity 및 27 self-tests 모두 PASS. 초기 후보는 주석 속 [vars]를 잘못 잡아 실패했으며 정확한 ^[vars] 행으로 수정해 재검증했다.
+- root 읽기 검토에서 발견한 최초 귀속 및 tarot ownerId 두 blocker는 수정·검증됐다. root는 추가 blocker 없이 CI 성공 후 승인 범위대로 진행함을 확인했다.
+- 남은 실행: CI 성공 확인 → gh workflow run "Release Cloudflare Pages and Worker" --ref main -f mode=production 딱1회 → 독립 작업 후 공개 privacy/배포SHA 확인 → p1 등록하기(가입하기/테스트하기 아님) → 최신바인딩 확인하고 p2 정상 UI Add variable and deploy로 plain READY=true → read-after-write SHA/키/mtls/기타바인딩보존 확인 → record-activation.mjs 적용/검증/커밋/push → handoff done 및 자기워크트리/스크래치정리. 추가 코드승격 금지, 실결제/실LLM테스트/운영DB임의쓰기/공개출시 제외.
+
+전체 Toss 최초 실패 6개는 추가 전체 반복 없이 final-sales-targeted.log의 118 PASS로 모두 해소 검증했다: native-fusion-boundary(2), native-neo-boundary(1)는 명시 mock DI 보완; official-devtools(1), vedic-extra-ui(1), vedic-reading-ui(1)는 잠금 파일 기준 앱 의존성 설치 후 통과. 같은 실행에 grant/native-consultation/tarot-library/routes 회귀를 포함했다. 최종 tarot ownerId 보강은 그 뒤 13 PASS로 별도 검증했다.
+
+## 공식 운영 실행 시작 — 2026-11-15
+
+- https://github.com/rei1237/codedestiny/actions/runs/43618733981 : 승인된 mode=production을 정확히 1회 dispatch했다. 원격 main a18cf23c7e0990bd532878f1e725335aaf7608be 확인 후 실행했고 스킵/재배포 옵션은 없다. 앞으로 같은 요청으로 두 번째 production dispatch를 하지 않는다.
+- main CI pending은 통과로 간주하지 않는다. 정본 문서는 main CI를 전달 완료 조건으로 규정하고 배포 자체의 별도 안전장치도 명시한다. 공식 production workflow의 checks가 lint/typecheck/상시 auth-payment/high-risk deploy:critical/Node를 승격 전에 실행하고 실패 시 닫히므로 별도 대기 게이트를 추가하지 않았다. root도 이 계약을 읽고 진행을 확인했다.
+- READY는 아직 미설정이며 p1 로그인 초안은 미등록이다. p2는 production settings 화면에서 저장하지 않은 상태다. browser round40까지 실행했으며 다음은 round41.
+- 이후 실제 활성화 판단에서 main CI 및 release 결과를 각 1회 확인한다. 중간 대기/반복 폴링·실LLM/실결제/검토제출/공개출시는 하지 않는다.
