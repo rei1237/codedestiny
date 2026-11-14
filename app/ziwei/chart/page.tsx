@@ -8,9 +8,9 @@ import YehwaCard from "../../components/service-intro/YehwaCard";
 
 const ZIWEI_CHART_METADATA_COPY = {
   ko: {
-    title: "심화 자미두수 상담 · 12궁·사화·대한 해석",
+    title: "자미두수 심화 풀이 | 가입 없이 무료로 보는 명반",
     description:
-      "자미두수(紫微斗數) 명반을 기반으로 12궁·명궁·신궁·사화·대한 흐름을 정밀하게 엮어 내면의 방향과 현실의 선택을 읽는 심화 상담 리포트입니다.",
+      "가입 없이 생년월일로 자미두수 명반을 세우고 총론·질문별 풀이와 오늘의 조언까지 무료로 읽어 보세요. 유료는 따로 선택하는 PDF 상담서뿐이에요.",
     keywords: ["자미두수", "자미두수 명반", "심화 자미두수 상담", "12궁", "명궁", "신궁", "사화", "대한", "자미두수 심화", "12궁 심층 분석", "ziwei chart", "zi wei dou shu"],
   },
   en: {
@@ -67,9 +67,9 @@ export default function ZiweiChartPage() {
     <main className="relative min-h-[100dvh] bg-[#030712] text-slate-100">
       <RouteMetadataLocaleSync entries={ZIWEI_CHART_METADATA_COPY} />
       <header className="mx-auto max-w-3xl px-4 pb-6 pt-20 md:px-6">
-        <h1 className="break-keep font-[family-name:var(--font-serif)] text-3xl leading-snug [text-wrap:balance] md:text-4xl">자미두수 심화 상담</h1>
-        <p className="mt-4 max-w-[68ch] break-keep leading-8 text-slate-300">명반의 12궁·사화·대한을 함께 읽는 심화 상담입니다. 생년월일·출생시간·성별과 궁금한 주제를 입력하세요. 유료 이용 조건은 진행 화면에서 확인할 수 있습니다. 기본 명반부터 보고 싶다면 <Link href="/ziwei/" className="underline underline-offset-4">자미두수 명반 안내</Link>에서 시작하세요.</p>
-        <a href="#ziwei-chart-input" data-cd-cross-sell="/ziwei/chart/" data-cd-cta-placement="primary" data-cd-target-service="ziwei" className="mt-4 inline-flex min-h-12 items-center rounded-[var(--cd-r-control)] border border-slate-400 px-5 font-semibold underline-offset-4 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4">심화 상담 입력하기</a>
+        <h1 className="break-keep font-[family-name:var(--font-serif)] text-3xl leading-snug [text-wrap:balance] md:text-4xl">자미두수 심화 풀이 — 가입 없이 무료로 보는 명반</h1>
+        <p className="mt-4 max-w-[68ch] break-keep leading-8 text-slate-300">가입 없이 명반과 풀이를 무료로 볼 수 있습니다. 생년월일·출생시간·성별과 궁금한 주제를 입력하면 12궁 명반과 총론·질문별 풀이·오늘의 조언이 이 화면에 나옵니다. 유료는 따로 선택하는 PDF 상담서뿐이며, 가격과 조건은 결제 전에 확인할 수 있습니다. 명반 읽는 법부터 보고 싶다면 <Link href="/ziwei/" className="underline underline-offset-4">자미두수 명반 안내</Link>에서 시작하세요.</p>
+        <a href="#ziwei-chart-input" data-cd-cross-sell="/ziwei/chart/" data-cd-cta-placement="primary" data-cd-target-service="ziwei" className="mt-4 inline-flex min-h-12 items-center rounded-[var(--cd-r-control)] border border-slate-400 px-5 font-semibold underline-offset-4 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4">명반 입력하기</a>
       </header>
       <details className="mx-auto mb-6 max-w-3xl space-y-4 break-keep px-4 leading-8 text-slate-300 md:px-6">
         <summary className="min-h-11 cursor-pointer py-2 font-semibold text-slate-100 focus-visible:outline focus-visible:outline-2">12궁과 심화 해설에서 확인할 내용</summary>
