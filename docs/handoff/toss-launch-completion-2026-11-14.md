@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-14
-next: CI661 계약 테스트 복구 전달 후 서양 무료 10종·숙요 관계 원본 누락을 완료하고 Linux AIT 전체 경로 검증
+next: 후속 private AIT 한도·SecretHouse·타로압축 회귀를 마치고 숙요 전생 등 원본 잔여를 이어 구현, 묶음 checkfast/push 및 Linux AIT 검증
 ---
 
 ## 첫 행동
@@ -11,6 +11,20 @@ next: CI661 계약 테스트 복구 전달 후 서양 무료 10종·숙요 관�
 - 워크트리 D:/Development/codedestiny-worktrees/toss-launch-completion-20261114-165438, wt/toss-launch-completion-20261114-165438. 시작 e1fc882d7.
 - 이전 전달 b67b027f3 main CI 43571942205 success 확인. 직전 QR15의 Linux runtime80bd는 41개 경로 통과.
 - root 원본 checkout feat/world-cast-page 및 기존 untracked 2개는 다른 세션 소유.
+
+## Fresh coordinator 진행 (2026-11-14)
+
+- 현재 담당 `/root/launch_completion/launch_followthrough`, 동료 `/root/launch_completion/remaining_audit`, private 담당 `/root/launch_completion/launch_followthrough/private_finish`. 같은 워크트리 사용, root checkout 편집 금지. 이 아래 오래된 시점 문구보다 본 절과 최신 git log 우선.
+- 원격 main `05211086c`까지 push 완료. 해당 CI는 다음 push 직전 한 번 확인한다. 이전 `661e25` CI 실패는 `ac81e7d3f`에 복구됐다.
+- 완료 로컬 단위: `ce93c3eac` 원본 서양10·wheel/숙요4, `3913148c7` 기본숙요 guest/시각미상 원본 정책 85검사, `58adb1c70` 기존 추가군 Linux private workflow·운영안, `e8e641cf4` 기능표 서양/숙요 갱신, `f1f67a95b` 콘솔 이름필수 확인, `2afd08674` 실제AIT owned 무료계산 검사, `37a3885e3` 타로원문 무손실압축.
+- private담당은 API/fixtures/vite-private/CLI/SecretHouse/고등어·guestnotice 및 AIT 빌드 소유. remaining은 숙요전생과 원본 추가감사 소유. coordinator는 일반 Vite 압축·workflow·기능표·전달·운영 콘솔 소유. 서로 stage에 섞지 않는다.
+- 최신 private build1 `01a1d999-b162-767a-a0b0-b96905a0c5ef`는 expanded100,118,136B로 한도118,136초과. 그 AIT에서 core guestnotice없음·고등어decode·구매/보관함/B차단, 서양10/wheel3폭, 기본숙요known/unknown+4도구3폭 통과. SecretHouse standalone sandbox+5동일bytes이미지로 시작과 단계진입 복구, 마지막 이미지QA는 private담당이 진행 중.
+- 한도 복구 `37a3885e3`: rich-card-meanings 원본파일은 그대로 두고 Toss빌드의 MAJOR/MINOR literal만 gzip.285089→89887B(source표현)·78장 모든 원문/정역/질문별해석/경고가드/lookup·identity동일2testsPASS,eslintPASS. 타로압축 포함 build2는 private담당이 생성 중. 실제 절감값은 빌드 후 확정.
+- 새 `--owned-calculations` 실제 이전AIT01a1d979 PASS: 나크샤트라4리포트(60일/27수/5장·11장/다샤전체), 오늘4체계·원본수비학·3장img.decode·재실행동일, 올림포스8배치·커플4축, B계정카드격리, 주문0,360/390/430overflow0. 로그 `D:/Development/Temp/launch-owned-calculations-first.txt`. build2 후 coordinator가 owned+free-calculations 재검증한다.
+- workflow 새4옵션 owned/astro/sukuyo-tools/secret-house 추가는 아직미커밋. 새CLI는 private담당커밋에포함. `.github/workflows/pr-ci.yml` YAML parse PASS. `verify-ci-required-lanes`를 로컬에서 직접 부르면 CI 환경변수없음으로 실패하므로 로컬 workflow parser로 검증했다; 검사우회없음.
+- `check:fast -- --plan --base=05211086c` 확인, 계획파일 `D:/Development/Temp/launch-followthrough-check-plan.txt`. 실행은 source단위가 안정되면 한 번 수행, 이후 prepush/기존mainCI1회조회/HEAD:main push. 아직 최신묶음 checkfast 미실행.
+- 전체110 정밀감사 완료 아님. remaining기준 관계/HD/Novel/Psychotest/Famous/Omikuji/Vedic기본7+8/서양10/숙요기본·연간·4도구/극T 확인. 숙요 전생은 무료순수builder+웹BondReportEngine 10축 원본 이식 중. 다음 후보 Vedic compatibility·Prashna 및 서양무료synastry2는 아직 원본대조중. `remainingPorts:[]`는 미연결화면0이라는 뜻이며 전체완료로 보고하지 않는다.
+- 운영콘솔 Ego space66,p1 재사용, round31까지. 현재 toss-login/edit 폼을 읽기만 했고 저장/검토/상품노출안함. DOM확인: 이름은필수고정(선택·사용안함disabled),나머지6항목미사용. 서버는userKey만보관하며이름복호화/DB저장없음. 기존개인정보방침의 Cloudflare/MongoDB미국·Atlas서울 근거와 실제운영바인딩일치확인필요. 상세정본 `docs/toss/launch-operational-evidence-20261114.md`. 실제secret값/상품추가임의설정금지. 새Linux/QR아직없고 이전QR15=80bd.
 
 ## 승인 상태
 2026-11-14 사용자: 최종 CI 확인 후 일부만 이식 중 코드 가능 기능군부터 계속 구현, 웹 원본과 달빛 예화 유지, 실제 AIT 홈→모의 생성→보관함, 압축하며 모든 작업과 론칭까지 진행.
