@@ -46,3 +46,8 @@ docs/toss/character-rooms-20261114.md. 운영 원장·SKU는 그대로. 모의 �
 - 최종 CI는 letter --letter-domain 6종, tea, neo --neo-method 4종을 모두 실제 AIT에서 실행.
 - 증거 JSON 기존 ait-verification-20261114.json의 상위 1915f9705 번들 기록은 보존. 새 checks에 별도 run/commit/deploymentId를 넣고 followupBundles에 b69eea884 아티팩트 기록. generator는 checks를 이미 기능별로 연결한다.
 - metadata helper TEMP/three-ait-metadata.cjs. Downloads/CodeDestiny/<run>에 일반(toss-preview-<SHA>)·모의(toss-private-simulation-<SHA>) 저장.
+
+- 공식 CLI 3.7.0의 ait deploy --location/--scheme-only는 비공개 intoss-private 등록을 지원하지만 C:/Users/user/.ait/credentials가 없다(존재 여부만 확인). 새 토큰 등록은 승인된 범위가 아니므로 실행하지 않음. 브라우저 새 공간 승인 답변을 기다린다.
+
+## 이어받는 에이전트 소유
+AGENTS의 긴 컨텍스트 규칙에 따라 /root/linux_handoff가 기존 CI·Linux 다운로드·metadata·ait-verification JSON·inventory 생성영역을 담당한다. root는 상세 실행 문서·이 문서와 브라우저를 담당한다. 동일 파일을 겹쳐 수정하지 않는다. helper TEMP/three-update-ait-evidence.cjs는 portable·100MB·11개 CI PASS가 있어야 새 증거를 쓴다. 2026-11-14 12:46 KST 무렵 artifact run은 약20분 pending이라 agent가 같은 SHA push CI를 1회 진단 중이다. 반복 CI 조회·새 watch 금지.

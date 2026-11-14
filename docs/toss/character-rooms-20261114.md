@@ -33,12 +33,19 @@ Windows 준비 검사는 --local-windows를 명시한다. Linux 결과와 QR은 
 
 ## 휴대폰 확인
 
-새 비공개 모의판에서 상단 '비공개 모의 상담 · 실제 결제 없음'을 확인하고 계정 A로 시작한다. 위 표의 홈 버튼으로 들어가 질문을 작성한다. 출생지 확인은 모의 지원 도시 '서울'을 사용한다.
+새 비공개 모의판에서 상단 **비공개 모의 상담 · 실제 결제 없음**과 **모의 계정 A**를 확인한다. 홈의 연이 그림 카드에서 **운세 골라보기**를 누른다.
 
-1. 상담 시작 뒤 토스 앱을 닫았다 열고 홈 → 꿀꿀운세 → 꿀꿀운세 구매 기록 → 다시 보기. 같은 원문과 추가 답변이 보여야 한다.
-2. 상단 모의 계정 B로 바꾸고 A의 결과 주소를 열면 원문을 볼 수 없어야 한다.
-3. 실제 키보드를 띄워 질문·출생정보·다음 버튼을 눌러 본다. 토스 상단 뒤로가기 후 작성 내용 및 구매 기록 복원을 확인한다.
-4. 주문·LLM은 모두 기기의 모의 데이터다. 실제 토스 로그인·IAP·운영 저장은 이 QR의 검증 범위가 아니다.
+| 경로 | 누를 버튼과 입력 | 기대 결과 |
+|---|---|---|
+| 연이 편지 | **연이의 상담 편지** → 질문 → **계속하기** → **토스로 로그인하기** → 로그인 화면의 같은 버튼 → **계속하기** → 해석 방식·테스트 프로필 → **계속하기** → **상담 준비하기** → 모의 단건 결제 | 로그인 뒤 작성 질문 유지. 선택한 기본 편지의 테스트 전용 원문. 사주만 모의 4,950원, 나머지는 모의 1원으로 표시되며 실제 결제 없음 |
+| 운명의 찻집 | **연이 · 운명의 찻집** → 상단 **계정**에서 모의 로그인 → 첫 사주 찻잔의 **이 상담 시작하기** → 1990-01-01·시간 모름·여성·서울 → **출생지 확인** → 질문·직업 진로 → **상담 내용과 가격 확인** → **상담 시작하기** | 모의 사주 원문과 추가 질문 입력. **연이에게 묻기**로 답변을 받고 함께 재열람 |
+| 네오 전략실 | **네오 · 팩폭 전략실** → 모의 로그인 → **고민부터 적어보기** → 질문·직업/이직·해석 방식·테스트 출생정보·매운맛 → **상담 시작하기** | 선택 방식의 모의 브리핑. 현실 점검 입력 후 **수정 작전 명령서 받기**로 수정 작전 표시 |
+
+- 각 결과를 받은 뒤 토스 앱을 닫고 같은 QR로 다시 연다. **운세 골라보기 → 꿀꿀운세 구매 기록 → 해당 질문의 다시 보기**에서 같은 원문과 추가 답변이 보여야 한다. 새 구매나 생성은 없어야 한다.
+- 네오에서 새 질문을 쓰고 닫았다 돌아오면 질문이 남아야 한다. 이전 구매 결과를 읽었다가 입력 화면으로 돌아와도 새 질문이 보존되어야 한다.
+- 현재 결과에서 **모의 계정 B**로 바꾼다. A의 본문이 숨겨지고 B로 로그인해도 A의 구매 기록이 보이지 않아야 한다.
+- 키보드를 띄운 상태로 질문·출생정보와 다음 버튼을 누른다. 토스 상단 뒤로가기, 입력 위치, 하단 버튼 가림, BGM을 확인한다. 이 항목은 브라우저 검사로 실기기 통과를 대신하지 않는다.
+- 주문·LLM은 모두 기기에 저장되는 모의 데이터다. 실제 토스 로그인·IAP·운영 저장은 이 QR의 검증 범위가 아니다. 기존 웹 계정의 구매 권리는 웹 보관함에 유지된다.
 
 ## 개발 검사 기록
 
@@ -58,3 +65,41 @@ Windows 준비 검사는 --local-windows를 명시한다. Linux 결과와 QR은 
 | 네오 전략실 | nativeService=neo, neo-operation-room-consultation | 네 분석 방식은 이 상품의 입력 구분. 네오 전용 SKU·가격 근거 필요 |
 
 Worker 승격, 기존 TOSS_MTLS 바인딩·만료일과 신원/데이터 암호화 키·연결 해제 인증 설정, TOSS_RELEASE_READY와 NEW_PURCHASES_AVAILABLE 판매 개방은 각각 별도 승인이다. 이 작업에서는 설정값·비밀값·운영 원장을 변경하지 않는다. 검토 요청과 최종 출시는 계속 보류한다.
+
+## 변경 파일
+
+기능 커밋 기준: a5d6f5814 → b69eea884. 검증 증거 JSON은 최종 Linux 결과로 별도 갱신한다.
+
+- [.github/workflows/pr-ci.yml](https://github.com/rei1237/codedestiny/blob/b69eea884e8cb431fd40d96cda39a7214d8ed9a6/.github/workflows/pr-ci.yml)
+- [apps/toss/private-simulation/api.mjs](https://github.com/rei1237/codedestiny/blob/b69eea884e8cb431fd40d96cda39a7214d8ed9a6/apps/toss/private-simulation/api.mjs)
+- [apps/toss/private-simulation/sdk.mjs](https://github.com/rei1237/codedestiny/blob/b69eea884e8cb431fd40d96cda39a7214d8ed9a6/apps/toss/private-simulation/sdk.mjs)
+- [apps/toss/service/TossNeoGate.tsx](https://github.com/rei1237/codedestiny/blob/b69eea884e8cb431fd40d96cda39a7214d8ed9a6/apps/toss/service/TossNeoGate.tsx)
+- [apps/toss/service/artwork.md](https://github.com/rei1237/codedestiny/blob/b69eea884e8cb431fd40d96cda39a7214d8ed9a6/apps/toss/service/artwork.md)
+- [apps/toss/service/character-room-art.ts](https://github.com/rei1237/codedestiny/blob/b69eea884e8cb431fd40d96cda39a7214d8ed9a6/apps/toss/service/character-room-art.ts)
+- [apps/toss/service/neo-question-draft.mjs](https://github.com/rei1237/codedestiny/blob/b69eea884e8cb431fd40d96cda39a7214d8ed9a6/apps/toss/service/neo-question-draft.mjs)
+- [apps/toss/service/vite-service.mjs](https://github.com/rei1237/codedestiny/blob/b69eea884e8cb431fd40d96cda39a7214d8ed9a6/apps/toss/service/vite-service.mjs)
+- [apps/toss/test/character-room-steps.mjs](https://github.com/rei1237/codedestiny/blob/b69eea884e8cb431fd40d96cda39a7214d8ed9a6/apps/toss/test/character-room-steps.mjs)
+- [apps/toss/test/neo-question-draft.test.mjs](https://github.com/rei1237/codedestiny/blob/b69eea884e8cb431fd40d96cda39a7214d8ed9a6/apps/toss/test/neo-question-draft.test.mjs)
+- [apps/toss/test/offline/fixture.mjs](https://github.com/rei1237/codedestiny/blob/b69eea884e8cb431fd40d96cda39a7214d8ed9a6/apps/toss/test/offline/fixture.mjs)
+- [apps/toss/test/offline/letter-fixture.mjs](https://github.com/rei1237/codedestiny/blob/b69eea884e8cb431fd40d96cda39a7214d8ed9a6/apps/toss/test/offline/letter-fixture.mjs)
+- [apps/toss/test/offline/room-fixture.mjs](https://github.com/rei1237/codedestiny/blob/b69eea884e8cb431fd40d96cda39a7214d8ed9a6/apps/toss/test/offline/room-fixture.mjs)
+- [apps/toss/test/private-character-rooms.mjs](https://github.com/rei1237/codedestiny/blob/b69eea884e8cb431fd40d96cda39a7214d8ed9a6/apps/toss/test/private-character-rooms.mjs)
+- [apps/toss/test/private-simulation-archive.mjs](https://github.com/rei1237/codedestiny/blob/b69eea884e8cb431fd40d96cda39a7214d8ed9a6/apps/toss/test/private-simulation-archive.mjs)
+- [apps/toss/test/private-simulation.test.mjs](https://github.com/rei1237/codedestiny/blob/b69eea884e8cb431fd40d96cda39a7214d8ed9a6/apps/toss/test/private-simulation.test.mjs)
+- [apps/toss/test/room-browser.mjs](https://github.com/rei1237/codedestiny/blob/b69eea884e8cb431fd40d96cda39a7214d8ed9a6/apps/toss/test/room-browser.mjs)
+- [config/sitemap-lastmod.json](https://github.com/rei1237/codedestiny/blob/b69eea884e8cb431fd40d96cda39a7214d8ed9a6/config/sitemap-lastmod.json)
+- [docs/CONTEXT_AUDIT.md](https://github.com/rei1237/codedestiny/blob/b69eea884e8cb431fd40d96cda39a7214d8ed9a6/docs/CONTEXT_AUDIT.md)
+- [docs/handoff/_TEMPLATE.md](https://github.com/rei1237/codedestiny/blob/b69eea884e8cb431fd40d96cda39a7214d8ed9a6/docs/handoff/_TEMPLATE.md)
+- [docs/handoff/toss-three-rooms-2026-11-14.md](https://github.com/rei1237/codedestiny/blob/b69eea884e8cb431fd40d96cda39a7214d8ed9a6/docs/handoff/toss-three-rooms-2026-11-14.md)
+- [docs/toss/build-service-inventory.mjs](https://github.com/rei1237/codedestiny/blob/b69eea884e8cb431fd40d96cda39a7214d8ed9a6/docs/toss/build-service-inventory.mjs)
+- [docs/toss/character-rooms-20261114.md](https://github.com/rei1237/codedestiny/blob/b69eea884e8cb431fd40d96cda39a7214d8ed9a6/docs/toss/character-rooms-20261114.md)
+- [docs/toss/feature-matrix.md](https://github.com/rei1237/codedestiny/blob/b69eea884e8cb431fd40d96cda39a7214d8ed9a6/docs/toss/feature-matrix.md)
+- [docs/toss/full-service-inventory.json](https://github.com/rei1237/codedestiny/blob/b69eea884e8cb431fd40d96cda39a7214d8ed9a6/docs/toss/full-service-inventory.json)
+- [public/assets/toss-art/neo-war-room-seal.webp](https://github.com/rei1237/codedestiny/blob/b69eea884e8cb431fd40d96cda39a7214d8ed9a6/public/assets/toss-art/neo-war-room-seal.webp)
+- [public/sitemap-ko.xml](https://github.com/rei1237/codedestiny/blob/b69eea884e8cb431fd40d96cda39a7214d8ed9a6/public/sitemap-ko.xml)
+- [public/sitemap.xml](https://github.com/rei1237/codedestiny/blob/b69eea884e8cb431fd40d96cda39a7214d8ed9a6/public/sitemap.xml)
+- [scripts/verify-handoff-contract.mjs](https://github.com/rei1237/codedestiny/blob/b69eea884e8cb431fd40d96cda39a7214d8ed9a6/scripts/verify-handoff-contract.mjs)
+- [sitemap-ko.xml](https://github.com/rei1237/codedestiny/blob/b69eea884e8cb431fd40d96cda39a7214d8ed9a6/sitemap-ko.xml)
+- [sitemap.xml](https://github.com/rei1237/codedestiny/blob/b69eea884e8cb431fd40d96cda39a7214d8ed9a6/sitemap.xml)
+- [src/features/fortune-tea-house/FortuneTeaHousePage.tsx](https://github.com/rei1237/codedestiny/blob/b69eea884e8cb431fd40d96cda39a7214d8ed9a6/src/features/fortune-tea-house/FortuneTeaHousePage.tsx)
+- [src/features/neo-war-room/NeoOperationRoomPage.tsx](https://github.com/rei1237/codedestiny/blob/b69eea884e8cb431fd40d96cda39a7214d8ed9a6/src/features/neo-war-room/NeoOperationRoomPage.tsx)
