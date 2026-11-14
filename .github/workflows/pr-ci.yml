@@ -1230,6 +1230,7 @@ jobs:
           npm run build:private-simulation
           node scripts/check-bundle-size.mjs --private-simulation --require-portable
           node test/private-simulation-archive.mjs private-simulation/ai-saju-studio.ait
+          node test/private-simulation-archive.mjs private-simulation/ai-saju-studio.ait --all-products
           for domain in saju ziwei sukuyo vedic astrology tarot; do
             node test/private-simulation-archive.mjs private-simulation/ai-saju-studio.ait --character-rooms letter --letter-domain "$domain"
           done
