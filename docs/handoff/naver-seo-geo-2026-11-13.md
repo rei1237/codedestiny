@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-14
-next: 스테이징 push 명시 승인 대기 → push 뒤 스테이징 Yeti UA·Lighthouse·화면 확인
+next: 스테이징 검증 마무리(화면·유입 쿠키·Lighthouse) → docs/seo/staging-verification.md 기록 → 운영 승격 승인 대기 / 4-3 보류 / 검수 원장은 사용자 입력 대기
 ---
 # 네이버 SEO·AEO·GEO + 구매 동선 (Phase 1~5)
 
@@ -26,6 +26,7 @@ Phase 0 보고서와 승인된 계획의 정본은 `docs/seo/phase0-report.md`�
 - 루트 체크아웃 `D:\Development\code-destiny`는 다른 브랜치이고 origin/main보다 2,252커밋 뒤라 기준으로 쓰지 않는다.
 
 ## 승인 상태
+- **2026-11-14 스테이징 push 승인**: 사용자 원문 "스테이징 푸시해"(조정 세션이 전달). 범위는 이 브랜치 커밋을 origin main에 한 번 push(=스테이징 배포)하고, 검증에서 나온 이 브랜치의 결함을 forward-fix하는 것까지다. **운영 승격(`workflow_dispatch mode=production` 등)은 미승인이라 실행하지 않는다.** 운영 DB 쓰기·실결제·과금 LLM 금지. 4-3은 계속 보류.
 - 2026-11-13 사용자가 계획 전체를 승인했다(계획 모드 승인). 승인 범위는 묶음 1~5의 **구현과 로컬 커밋**까지다.
 - **main push(스테이징)는 묶음마다 사용자 승인**, **운영 승격은 별도 승인**이다. 사용자 답변 원문: 작업 방식 = "저장소 규칙대로 (Recommended)" — origin/main 기반 전용 워크트리, 묶음마다 승인 뒤 내 커밋만 main push, 운영 승격은 별도 승인.
 - 확정된 결정(2026-11-13, 사용자 직접 답변):
@@ -55,6 +56,8 @@ Phase 0 보고서와 승인된 계획의 정본은 `docs/seo/phase0-report.md`�
   - 검수 원장 항목 — 사용자가 실제 검수했다고 "URL · 확인한 날짜"를 알려 준 페이지만 넣는다. 원장은 계속 비워 둔다.
 
 ## 작업 규칙과 함정
+- 스테이징은 모든 응답에 `X-Robots-Tag: noindex, nofollow`·robots meta `noindex,nofollow`·`robots.txt Disallow: /`를 덮어쓴다. 운영용 robots 값은 스테이징에서 볼 수 없고 `dist/`로만 확인한다. Cloudflare가 UA별로 다른 꼬리 스크립트를 넣으므로 Yeti·모바일 본문 비교는 그 스크립트를 빼고 한다.
+- 이 PC에서 스테이징 정적 자산이 느리게 내려온다(페이지 load 10~50초, curl이 2분을 넘기기도 함). 브라우저 자동화는 `domcontentloaded` + 넉넉한 대기로 쓴다.
 - 사용자 프롬프트의 절대 규칙(그대로 유지):
   - 최소·외과적 변경. 리팩터링·디자인 전면 교체 금지. 데스크톱 960px 레이아웃 유지. 모든 사용자 노출 문자열은 i18n 키 사용.
   - `sajuAdapter.ts`의 `calculateLocalResult()` 수정 금지. KASI prefetch에 timezone 주입 금지, `normalizeSaju.ts`에 timezone 필드 추가 금지. 6개 점술 엔진은 읽기 전용.
@@ -392,3 +395,13 @@ SHA는 네 번째 rebase 뒤 기준이다. 모두 로컬 커밋이고 push하지
 - 일곱 번째 rebase(HEAD `2fb08f421` = origin/main `9a6ac23eb` 위) 뒤에는 typecheck · `sitemap:generate`(갱신 0) · verify-sitemap-integrity · verify-analytics-events · verify-payment-freeze · `node --test scripts/seo/*.test.mjs`만 다시 돌렸다(모두 exit 0). **빌드·lint·i18n:check·verify-home-identity·`npm test`·check-changed는 이 HEAD에서 다시 돌리지 않았다.** 그 사이 upstream 25커밋은 `apps/toss`·`worker/toss`·`docs`·`lib/fortune` 2개·`worker/lib/saju-section` 2개·`worker/routes` 1개·`scripts` 1개·`.github/workflows` 1개이고 이 브랜치가 고친 파일과 겹치지 않는다. push 직전에 origin/main이 또 움직였으면 다시 rebase하고 check-changed를 돌린다.
 - 로컬 사전 점검: `docs/seo/prepush-verification.md`(빌드 산출물 `dist/`에서 핵심 20개 경로의 title·description·canonical·robots·hreflang·JSON-LD·H1, robots.txt·sitemap.xml·rss.xml·llms.txt). 이 브랜치 탓인 결함은 찾지 못해 코드 수정이 없다. 보고용 관찰 5건은 그 문서의 "눈에 띄는 점" 표.
 - 못 한 것: 스테이징 Yeti UA 응답·Lighthouse·화면 확인(push 뒤), 워커가 붙이는 응답 헤더(`X-Robots-Tag`)의 실제 응답 확인, `scripts/verify-home-entry-locale.cjs`(로컬 서버 필요).
+
+### 스테이징 push·CI·1차 검증 (2026-11-14, 직접 실행)
+- push 전 HEAD `cea92ad58`에서 typecheck, lint, i18n:check, verify-sitemap-integrity, verify-analytics-events, build(`ALLOW_DEV_SERVER_DURING_BUILD=1`), verify-home-identity, `node --test scripts/seo/*.test.mjs`, `npm test`(jest 479 스위트 통과·1 건너뜀, 8,008 테스트 통과·1 건너뜀), verify:payment-freeze, check:pre-push, check-changed(fast) 모두 exit 0.
+- **push**: 2026-11-14 21:10 KST `git push origin HEAD:main` → `9a6ac23eb..cea92ad58`(72커밋, fast-forward, 강제 옵션 없음).
+- **CI(`cea92ad58`)**: PR CI, Release Cloudflare Pages and Worker(push + staging dispatch), Paid Flow Gates, Yeongnyangi Browser Shadow, Landing Watchdog, Main drift watchdog, Gift transaction integrity, AI Locale Gate, Business Identity Gate 성공. **Secret Scan 실패** — gitleaks `generic-api-key`가 `worker/lib/saju-section/runtime.generated.mjs` 9행(커밋 `9bbc65bbf`, toss 작업, 이 브랜치 범위 밖)을 잡는다. push 전 `9a6ac23eb`에서도 이미 실패였다(마지막 성공 `05211086c`). push 전에 상위 5개 run만 보고 이를 놓쳤다. 이 브랜치가 고칠 대상이 아니라 보고만 한다.
+- **스테이징이 서빙하는 버전**: `/api/version`·`/version.json` 모두 `cea92ad58`.
+- **핵심 20개 URL(Yeti UA·모바일 UA)**: 전부 200, title·description·H1 각 1개, 길이와 canonical·hreflang·JSON-LD 수가 `docs/seo/prepush-verification.md` 표와 같다. UA 간 head 동일, 본문은 Cloudflare 삽입 스크립트를 빼면 동일. `/?action=…`은 302 + `X-Robots-Tag: noindex, follow`(push 전에는 헤더 없음). `/ggulggul/?action=…`은 200이고 스테이징 덮어쓰기 값만 보인다(운영 값은 코드로만 추론). sitemap.xml 1,081 loc, rss.xml 60 item, llms.txt 정의 문장 확인.
+- **아직 결론 못 낸 것**(다음 사람이 이어서): `/saju/free/` 무료 결과 표시, 영냥이 상품 안내 가격+분량(`/yeongnyangi/readings/saju/`로 확인할 것 — `love`는 없는 slug), 유입 쿠키 `cd_paid_campaign`(4초 대기로는 `analytics.js`가 아직 실행 전이었다), Lighthouse. 스크립트는 세션 scratchpad(`staging-fetch.mjs`, `staging-browser.cjs`), 스크린샷은 `D:DevelopmentTemp
+aver-seo-staging`.
+- push 뒤 origin/main이 `438f6c16d`로 다시 움직였다(toss 작업 35커밋). 문서 커밋은 그 위로 rebase해 올린다.
