@@ -30,8 +30,8 @@ const { service, characters } = BRAND_FACTS;
 const YEONGNYANGI = characters.find((character) => character.key === "yeongnyangi");
 // 영냥이 카드의 시작 가격은 영냥이 히어로(NightHero)와 같은 결제 카탈로그 값이다. 꿀꿀 카드엔 무료 운세가 있어 넣지 않는다.
 const YN_STARTER_KRW = products.find((product) => product.id === "saju_mackerel").priceKRW;
-const HOME_TITLE = "꿀꿀 운세 · 운세보는 영냥이 | 서비스 선택";
-const HOME_DESCRIPTION = "꽃돼지 연이와 영냥이를 만나는 꿀꿀 운세. 사주·타로와 주제별 운세를 웹에서 살펴보고, Android 앱은 Google Play에서 설치하세요.";
+const HOME_TITLE = "꿀꿀 운세 | 사주·타로·자미두수 운세 상담";
+const HOME_DESCRIPTION = "꿀꿀 운세는 명리학자 박병하(네오)가 만든 운세 서비스예요. 사주·궁합·타로·자미두수를 살펴보고, 고민은 영냥이 상담에서 챕터별로 읽어 보세요.";
 // summary_large_image 카드라 1200×630 공유 이미지를 쓴다. 정적 홈 셸(index.html)과 같은 그림이다.
 const HOME_IMAGE = siteSeo.defaultOgImage;
 const ART = "/images/home/illustrated";
@@ -98,7 +98,10 @@ export default function HomePage() {
         {IS_APP_BUILD ? <div className={styles.head}>
           <h1 id="homeCardTitle" className={styles.title}><NativeHomeText>꿀꿀 운세에서 어떤 운세를 만나볼까요?</NativeHomeText></h1>
           <p className={styles.lead}><NativeHomeText>마음이 향하는 상담 공간을 골라보세요.</NativeHomeText></p>
-        </div> : <h1 id="webServiceTitle" className={styles.title}>마음이 가는 카드를 골라보세요</h1>}
+        </div> : <div className={styles.head}>
+          <h1 id="webServiceTitle" className={styles.title}>꿀꿀 운세 — 사주·타로·자미두수 운세 상담</h1>
+          <p className={styles.lead}>마음이 가는 카드를 골라보세요</p>
+        </div>}
 
         {/* 카드 제목(h2)의 링크를 카드 크기로 늘려 카드 전체가 한 링크다. 설명 두 줄은 aria-describedby 로 읽힌다. */}
         <HomeCardDeck className={styles.deck} interactive={!IS_APP_BUILD} labelledBy={IS_APP_BUILD ? "homeCardTitle" : "webServiceTitle"}>
