@@ -108,3 +108,13 @@ handoff 스킬과 CLAUDE.md를 읽고 아래 공유 worktree에서 이어간다.
 - [ ] 이handoff status done 닫기(코드완료후)
 
 이문서는전체110정밀감사완료선언이 아니다. coordinator가별도110행audit정본을 소유한다. 이전 직접대조완료는 관계회복/HD/Novel/Psychotest/Famous/Omikuji/Vedic기본7+8/서양10/숙요기본·4도구·극T·전생, 연간은다른담당근거다.
+
+## Animal 구현 체크포인트 (2026-11-14, 02ebf0ffc / 029670ad0)
+
+- [x] Worker 공개 API `/animal-destiny/reading`: 원본 서울 기본 명식, 윤달/시간모름, 원본 전체 reading + 상대방 원본 궁합/4축/근거.
+- [x] Toss 화면에서 원본 AnimalResultScreen 전체 직접 재사용: 10탭·6심층·12도감·성장미션·상대방 입력·공유카드. 무료 정책 유지, 구매 보관함 저장을 새로 만들지 않음.
+- [x] Native File/Share 어댑터. 실제 파일 저장·공유는 실기기 잔여, 모의 adapter 테스트로 원본 1080×1920 PNG 및 공개 진입 링크 경계 확인.
+- [x] 원본 런타임 AST의 정적 데이터/문구만 gzip, structuredClone으로 매 factory의 객체 독립성 보존. 소스 27,817바이트 절감; 최종 AIT 측정은 coordinator.
+- [x] Targeted 7 PASS, Toss tsc PASS, 원본 추출 --check PASS, eslint PASS, impeccable detector PASS.
+- [ ] 실제 AIT 실행: `apps/toss/test/private-animal-destiny.mjs`의 `verifyPrivateAnimal(origin,context)`. coordinator CLI에 `--animal-destiny` 연결 완료. 원본10탭/6본문/12도감/궁합, 360·390·430px, 재입력, 계정B 초기화, 0주문 확인.
+- 다음 행동: coordinator가 만든 최신 AIT에 위 QA 실행, 스크린샷 확인하고 발견 문제를 한 번에 수정. 이후 이 문서 done으로 닫고 coordinator에 결과 전달. 전체 push/CI/비공개 QR은 coordinator 소유.
