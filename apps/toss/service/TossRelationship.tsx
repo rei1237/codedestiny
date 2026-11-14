@@ -11,7 +11,7 @@ import './toss-relationship.css';
 
 type Person={gender:''|'female'|'male';birthDate:string;birthTime:string;birthTimeUnknown:boolean;calendarType:'solar'|'lunar';isLeapMonth:boolean};
 type Report={sessionId:string;status:string;mode?:string;sceneIds?:string[];score:number;grade:Grade;character:{title:string;caption:string};scoreFactors:string[];summary:string;sections:{title:string;body:string}[];finalMessage:string;completedParts?:string[];totalParts?:number};
-type Payload={ok?:boolean;reason?:string;message?:string;retryable?:boolean;sessionId?:string;resumeBody?:{resumeSessionId?:string};completedParts?:string[];totalParts?:number}&Partial<Report>;
+type Payload={ok?:boolean;reason?:string;error?:string;message?:string;retryable?:boolean;sessionId?:string;resumeBody?:{resumeSessionId?:string};completedParts?:string[];totalParts?:number}&Partial<Report>;
 type Intent={id:string;sku:string;paid:boolean;amountKRW:number;orderId?:string|null};
 const blank=():Person=>({gender:'',birthDate:'',birthTime:'',birthTimeUnknown:false,calendarType:'solar',isLeapMonth:false});
 const validId=(value:unknown):value is string=>typeof value==='string'&&/^(?:rbt_[a-zA-Z0-9_:-]{8,120}|toss_[a-f0-9]{64})$/.test(value);
@@ -65,7 +65,7 @@ function RelationshipScreen(){
    const response=await canonicalResponse('/canonical/relationship-boundary-test/'+path,request);let data:Payload;
    try{data=await response.json() as Payload;}catch(reason){if((reason as {code?:string})?.code==='SESSION_CHANGED')throw reason;if(!response.ok)throw Object.assign(new Error('REQUEST_FAILED'),{status:response.status,code:'REQUEST_FAILED'});throw new Error('INVALID_RESPONSE');}
    if(!current(run))throw Object.assign(new Error('SESSION_CHANGED'),{code:'SESSION_CHANGED'});
-   if(!response.ok)throw Object.assign(new Error(data.reason||'REQUEST_FAILED'),{status:response.status,code:data.reason||'REQUEST_FAILED'});
+   if(!response.ok){const code=data.reason||data.error||'REQUEST_FAILED';throw Object.assign(new Error(code),{status:response.status,code});}
    return {status:response.status,data};
   }finally{clearTimeout(timer);if(requestController.current===controller)requestController.current=null;}
  }
