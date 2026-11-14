@@ -53,7 +53,7 @@ const MusicShelf=lazy(()=>import('./MusicShelf'));
 const BasicSkyChart=lazy(()=>import('./BasicSkyChart'));
 const MansionAtlas=lazy(()=>import('./MansionAtlas'));
 const NovelReader=lazy(()=>import('./NovelReader'));
-const FamousSaju=lazy(()=>import('./FamousSaju'));
+const FamousSaju=lazy(()=>import('./FamousLibrary'));
 const BasicSajuReading=lazy(()=>import('./BasicSajuReading'));
 const ZiweiChart=lazy(()=>import('./ZiweiChart'));
 const ManseReading=lazy(()=>import('./ManseReading'));
@@ -71,6 +71,7 @@ type Purchase={featureKey?:string;nativeService?:string;href?:string;serviceId:s
 const allowedPages=new Set<Page>(['diary','diary/calendar','diary/records','diary/stats','app/home-widget','consultations/stories','olympus','olympus/profile','meditation/cosmic','meditation/neville','saju/sections','ziwei/sections','moonlight/season-1','oracle/turtle','oracle/royal-tea','oracle/kemet','nakshatra/muhurta','nakshatra/vvip-codex','nakshatra/resolve','nakshatra/compat','nakshatra/lord-report','nakshatra/dasha-map','nakshatra/ai','yoga-guru','destiny-compass','dream/tarot','oracle/sikojen-povailu','oracle/ifa','mbti/animals','today','oracle/rune','saju/career-style','saju/animal-destiny','music','astrology','vedic','nakshatra/codex','novel','insights/famous-saju','saju/basic/play','ziwei/chart','manse','sukuyo','human-design','daily','draw','flower','bias','tarot-library','home','catalog','product','birth','login','purchase','result','library','recovery','settings','terms','support','withdraw','example']);
 function currentPage():Page {
   const value=location.pathname.replace(/^\/|\/$/g,'');
+  if(/^insights\/famous-saju\/(?:[a-z0-9-]+|ilju\/cycle-[0-9]{2})$/.test(value))return 'insights/famous-saju';
   if(/^nakshatra\/codex\/(?:[0-9]|1[0-9]|2[0-6])$/.test(value))return value as AtlasPage;
   if(value===''||value==='index.html'){
     const action=new URLSearchParams(location.search).get('action');

@@ -18,7 +18,7 @@ test('search by alias, read the original article, and go back to the filtered li
     b.onResolve({filter:/^virtual:toss-famous-archive$/},()=>({path:moduleId,namespace:'articles'}));
     b.onLoad({filter:/.*/,namespace:'articles'},()=>({contents:plugin.load(plugin.resolveId(moduleId))}));
   }}]);
-  const root=createRoot(document.getElementById('chart'));
+  let root=createRoot(document.getElementById('chart'));
   const article=publishedReadings().find(a=>a.aliases.length);
   try{
     await React.act(()=>root.render(React.createElement(Component)));
@@ -28,8 +28,12 @@ test('search by alias, read the original article, and go back to the filtered li
       field.dispatchEvent(new window.Event('input',{bubbles:true}));
     });
     await React.act(()=>document.getElementById('article-'+article.slug).click());
+    assert.equal(new URLSearchParams(window.location.search).get('article'),article.slug);
+    await React.act(()=>root.unmount());root=createRoot(document.getElementById('chart'));await React.act(()=>root.render(React.createElement(Component)));
     assert.ok(document.body.textContent.includes(article.reading));assert.equal(document.querySelectorAll('details a').length,article.sources.length);
     await React.act(()=>assert.equal(window.dispatchEvent(new window.Event('code-destiny:toss-back',{cancelable:true})),false));
-    assert.equal(document.querySelector('input').value,article.aliases[0]);assert.equal(document.activeElement.id,'article-'+article.slug);
+    assert.equal(document.querySelector('input').value,article.aliases[0]);assert.equal(new URLSearchParams(window.location.search).get('q'),article.aliases[0]);
+    const filter=document.querySelector('select');await React.act(()=>{filter.value=article.fields[0];filter.dispatchEvent(new window.Event('change',{bubbles:true}));});assert.equal(new URLSearchParams(window.location.search).get('field'),article.fields[0]);
+    window.history.replaceState({},'', '/insights/famous-saju?article=unpublished-draft');await React.act(()=>window.dispatchEvent(new window.PopStateEvent('popstate')));assert.match(document.querySelector('[role=alert]').textContent,/공개된 글을 찾을 수 없어요/);
   }finally{await React.act(()=>root.unmount());dom.window.close();}
 });
