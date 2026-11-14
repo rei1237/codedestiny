@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-14
-next: 결과 기록 맨 끝 "5-1·A1·배너 문구 — 설계 확정, 구현 전"의 설계대로 ① 측정 이벤트 ② A1 유입 분류 ③ 배너 문구를 구현해 항목마다 커밋하고, 검증 전체(check-changed 끝까지)를 다시 돌린다. rebase와 구현 전 검증은 끝났다. push·배포는 미승인(로컬 커밋만). F3는 구현하지 않는다.
+next: 스테이징 push 승인 대기 → 묶음 3 → 묶음 4-1~4-3. 5-1 측정 이벤트·A1 유입 분류·배너 문구는 구현·검증까지 끝났다(결과 기록 맨 끝). push·배포·운영 승격은 미승인(로컬 커밋만). F3는 구현하지 않는다.
 ---
 # 네이버 SEO·AEO·GEO + 구매 동선 (Phase 1~5)
 
@@ -109,7 +109,7 @@ Phase 0 보고서와 승인된 계획의 정본은 `docs/seo/phase0-report.md`�
 - [ ] 4-1 결과 CTA 축소(F1), 4-2 사다리 표기·하드코딩 가격, 4-3 `/ziwei/` 로그인 복귀(F2), 4-4 결제 변경 제안서(F3·A1)만 쓰고 멈춤 — **4-4는 끝**(`docs/seo/payment-change-proposal.md`, 구현은 승인 뒤).
 
 ### 묶음 5 — 측정
-- [ ] 5-1 퍼널 이벤트(A2), 5-2 `docs/seo/funnel-spec.md`·`naver-console-checklist.md` — **5-2는 끝**(둘 다 작성). 5-1 구현은 남음.
+- [x] 5-1 퍼널 이벤트(A2), 5-2 `docs/seo/funnel-spec.md`·`naver-console-checklist.md` — 둘 다 끝. 5-1은 2026-11-14 구현(결과 기록 맨 끝). `free_result` placement를 실제로 쓰는 CTA는 묶음 4-1 몫.
 
 ## 결과 기록
 (단계가 끝날 때마다 커밋 SHA와 검증 결과를 적는다.)
@@ -334,3 +334,16 @@ push 전에 할 일
 - `lib/marketing/pass-benefits.mjs`의 연이 대사 "작은 꿀단지 하나면 라이트 운세 ${count}종이 모두 열려요."는 바로 아래 "이 중 N종은 꿀단지 없이도 무료"와 나란히 보면 사야 열리는 것처럼 읽힌다 → `작은 꿀단지에도 라이트 운세 ${count}종이 들어 있어요.`로 바꾼다(영냥이 쪽 대사는 이미 이 뜻이라 그대로). 동결 파일이 아니다.
 - `i18n/authored/homeOverseas-09.json`의 `home.benefitsCopy.lightBanner` 12개 언어도 같은 뜻으로 맞춘다(`{count}` 유지, ko는 기존처럼 쉼표를 둔 "작은 꿀단지에도, 라이트 운세 {count}종이 들어 있어요."). en "Even the Small Honey Jar includes all {count} Light Readings." / ja "小さなはちみつ壺にも、ライト占い{count}種が含まれています。" / zh-CN "小蜜罐里也包含全部{count}种轻量运势。" / zh-TW "小蜜罐裡也包含全部{count}種輕量運勢。" / vi "Hũ Mật Ong Nhỏ cũng đã bao gồm toàn bộ {count} bài xem nhẹ." / hi "छोटे हनी जार में भी सभी {count} लाइट रीडिंग शामिल हैं।" / es "El Tarro de Miel Pequeño también incluye las {count} Lecturas Ligeras." / fr "Le Petit Pot de Miel comprend lui aussi les {count} Lectures Légères." / de "Auch der kleine Honigtopf enthält alle {count} leichten Deutungen." / nl "Ook de kleine honingpot bevat alle {count} lichte duidingen." / ms "Balang Madu Kecil juga merangkumi kesemua {count} Bacaan Ringan." 상품 이름 표기는 같은 파일의 기존 번역과 맞는지 확인하고 쓴다. 그 뒤 `node scripts/i18n-merge-authored.mjs --core --file homeOverseas-09.json` → `node scripts/design/build-home-funnel.mjs` → `npm run sync:public`. `__tests__/ui/pass-benefits-light.test.mjs`가 12개 언어·placeholder를 검사한다.
 - `app/points/PointsClient.tsx`의 passLightLine("라이트 운세 N종 횟수 제한 없이 · 지금 유료인 운세 기준 … 상당")은 "지금 유료인 운세 기준"으로 한정돼 있어 사실과 어긋나지 않는다. 이용권 결제 화면 파일이라 고치지 않고 보고만 한다.
+
+### 5-1·A1·배너 문구 — 구현·검증 끝 (2026-11-14)
+SHA는 네 번째 rebase 뒤 기준이다. 모두 로컬 커밋이고 push하지 않았다.
+
+- rebase: 작업 중 origin/main이 세 번 움직였다. `0a2561b26`(충돌 없음) → `eeebfadaf`(`config/sitemap-lastmod.json`만 3번 충돌, upstream 채택 뒤 `npm run sitemap:generate`로 재생성. 재생성 결과는 rebase 전 브랜치 원장과 lastmod 0건·서명 10건 차이, `sitemap.xml`은 같음) → `b67b027f3`(충돌 없음, upstream 변경은 docs/toss·테스트 7개 파일뿐).
+- ① 측정 이벤트 `5bad8b321`: 설계 표 그대로. `free_saju_chart_started/completed`(`app/saju/free/FreeSajuForm.tsx:20,22`), `free_ziwei_chart_started/completed`(`app/components/AdvancedZiweiSectionV2.tsx:508,576`), `landing_form_submit`(`app/components/SeoLandingBirthForm.tsx:227`), `login {method:"social"}`(`app/auth/_components/StaticOAuthCallbackRedirect.tsx:424`), `free_saju_submitted {signed_in}`(`js/saju-engine.js:4775`, 게이트 호출문 앞 순수 1줄 추가), `cross_sell_click` placement `free_result` 허용(`js/core/analytics.js:766`). `calculate()` 안의 두 번째 게이트 호출에는 넣지 않았다(중복 방지). `free_result`를 쓰는 CTA는 아직 없다.
+- ② A1 `a7d8554f9`: `js/core/analytics.js:267` `entrySourceLabel()`(세션 키 `cd:entry:source`, 고정 코드 8개, 30분, 동의 없으면 삭제), 캠페인 없는 분기(`:334`)에서만 쿠키에 `{campaignId: 코드, version: "entry-20261114-v1", consent, device}`. `lib/marketing/growth-attribution.mjs:17` 허용 규칙 추가. `worker/payments/`·결제 실행 파일은 고치지 않았다. `n_media`·`n_ad_group`은 저장소 근거가 없어 쓰지 않았고, 근거가 있는 `NaPm`(`js/core/naver-conversion-frame.js`)과 `gclid|gbraid|wbraid`만 썼다. "NaPm이 광고 클릭에만 붙는다"는 저장소가 말해 주지 않는 추정이다.
+  - 알아 둘 것: 캠페인 없던 주문에도 이제 `metadata.growthAttribution`이 생길 수 있다(기존 선택 필드). `lib/marketing/growth-metrics.mjs`가 campaignId로 묶으므로 캠페인 집계에 `organic_naver` 같은 그룹이 새로 보인다. 영냥이 결제 경로는 쿠키를 읽지 않아 유입 코드가 실리지 않는다. 새 탭 복귀 때 sessionStorage가 비면 라벨이 없다(하한값).
+- ③ 배너 문구 `d78d7f21e`: `home.benefitsCopy.lightBanner` 12개 언어와 `lib/marketing/pass-benefits.mjs:29` 연이 대사. `app/points/PointsClient.tsx`는 그대로.
+- 원장 재생성 `b3fe6bf5e`.
+- 로또 리추얼 제목 폭: `0a2561b26` 기준에서는 origin/main 제목 문자열에 같은 폭 계산을 적용해 61(직접 확인)이라 upstream 실패였고, upstream `65d8accfe`가 고쳤다. 그 뒤 rebase한 브랜치에서 빌드가 통과한다.
+- 검증(직접 실행, HEAD `7bb177de4` = origin/main `eeebfadaf` 위): `npm run typecheck` 0 · `npm run lint` 0 · `npm run i18n:check` 0 · `verify-sitemap-integrity` 0(1,081 URL) · `verify-analytics-events` 0 · `ALLOW_DEV_SERVER_DURING_BUILD=1 npm run build` 0(postbuild 끝까지) · `verify-home-identity` 0 · `node --test scripts/seo/*.test.mjs` 0(67) · `npm test` 0(5,074) · `check-changed --profile=fast --skip-build --base=origin/main` 0(jest 479 스위트, 8,004 통과, 1 건너뜀).
+- 네 번째 rebase(`b67b027f3` 위) 뒤에는 typecheck·verify-analytics-events·verify-sitemap-integrity만 다시 돌렸다(모두 0, 원장 갱신 0). 전체 검증은 다시 돌리지 않았다.
