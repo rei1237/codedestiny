@@ -2,6 +2,7 @@ import {privateVedicReading} from './vedic-reading.mjs';
 import {privateAstroReading} from './astro-reading.mjs';
 import {privateSecretHouse} from './secret-house.mjs';
 import {privateSukuyoTools} from './sukuyo-tools.mjs';
+import {privateSukuyoPastLife} from './sukuyo-past-life.mjs';
 import {paidFamilyProducts,paidFamilyRequest,paidFamilyPurchases,paidFamilyRecords} from './paid-families.mjs';
 import {privateSukuyoYearly} from './sukuyo-yearly.mjs';
 import {extendedProducts,extendedRequest,extendedRecords} from './extended-reports.mjs';
@@ -61,6 +62,7 @@ export function createSimulationApi(storage,person){
     const publicReport=await nativeReportPublicRequest(request.clone(),path);if(publicReport)return publicReport;
     const publicCalculation=await privatePublicCalculation(request.clone(),url,path);if(publicCalculation)return publicCalculation;
     if(!state.loggedIn||request.headers.get('authorization')!=='Bearer '+token)return replies({error:'LOGIN_REQUIRED'},401);
+    if(path==='/sukuyo/past-life'&&method==='POST')return privateSukuyoPastLife(await request.json());
     const ownedCalculation=await privateOwnedCalculation(request.clone(),url,path,state);if(ownedCalculation)return ownedCalculation;
     if(path==='/session'&&method==='GET')return replies({authenticated:true,environment:'SANDBOX'});
     if(path==='/logout'&&method==='POST'){state.loggedIn=false;save();return replies({ok:true});}
