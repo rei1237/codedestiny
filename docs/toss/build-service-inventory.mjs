@@ -468,7 +468,16 @@ for(const group of canonicalCandidates){
  if(nativeSource[group.id]||['heukwol-consult','palm-reading','neo-consultation','saju-guardian','saju-sibyl','maya','pet-saju','yeongnyangi-prashna'].includes(group.id))group.saleStatus='유료 상품 콘솔·운영 설정 필요';
  if(!group.saleStatus)group.saleStatus=group.freeCalculation?'기본 계산은 구매 없음 · 부가 상품은 별도 행 참조':'현재 기능에 신규 구매 버튼 없음';
 }
+// A shared screen is not a shared product: keep unverified tea modes explicit.
+const teaPriceSource='src/features/fortune-tea-house/data/consultPricing.ts';
+const teaFeatures=[...fs.readFileSync(path.join(root,teaPriceSource),'utf8').matchAll(/featureKey: "(fortune-tea-house-[^"]+)"/g)].map(match=>match[1]);
 for(const group of canonicalCandidates){
+ if(group.id==='fortune-tea-house'){
+  group.webProductIds=[...new Set(teaFeatures)];
+  group.webSources=[...new Set([...group.webSources,teaPriceSource])];
+  group.productVerification=group.webProductIds.map(featureKey=>({featureKey,development:featureKey==='fortune-tea-house-saju-consultation'?'사주 상담·추가 질문·재열람 모의 구현':'웹 원본 연결 있음; 상품별 mock·배포 AIT 전체 흐름 미검증',sale:'독립 콘솔 SKU·가격 등록 필요'}));
+ }
+ if(group.id==='fortune-chat')group.saleStatus='연이 기본 사주는 콘솔 SKU 확인·신규 판매 닫힘. 다른 기본·질문 편지는 개별 SKU 등록 필요';
  const destinations=archiveEvidence.directory.filter(row=>group.tossRoute&&routeKey(row.path)===routeKey(group.tossRoute));
  const checks=archiveEvidence.checks.filter(check=>check.features.includes(group.id));
  group.archiveTests=checks.map(({id})=>id);

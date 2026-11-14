@@ -1,5 +1,5 @@
 {
-  "sourceCommit": "86c2507e354f202117f369a6849f35f74e28f0e3",
+  "sourceCommit": "8b8273e2ebbdff121b99e6f0767d506886c91926",
   "sourceCounts": {
     "home": 63,
     "react": 18,
@@ -652,7 +652,7 @@
         "canonicalId": "fortune-chat",
         "candidateStatus": "local-partial",
         "canonicalRoute": "/fortune-tea-house/?counsel=letter",
-        "saleStatus": "기본·질문 편지별 콘솔 원장 확인 필요",
+        "saleStatus": "연이 기본 사주는 콘솔 SKU 확인·신규 판매 닫힘. 다른 기본·질문 편지는 개별 SKU 등록 필요",
         "bundleVerification": "일반 AIT에서 상위 화면 진입 확인. 하위 입력·결과·재열람의 검증 근거는 verification 참조. 휴대폰 미검증"
       }
     },
@@ -4330,7 +4330,7 @@
       "tossLogin": "구매·기록에 토스 계정 필요",
       "tossResult": "apps/toss/service/TossLetterRoom.tsx + app/fortune-chat/ConsultationIntake.tsx",
       "reread": "persona-bound-TossPurchase-to-YeongnyangiRequest; official device and approved SKU pending",
-      "saleStatus": "기본·질문 편지별 콘솔 원장 확인 필요",
+      "saleStatus": "연이 기본 사주는 콘솔 SKU 확인·신규 판매 닫힘. 다른 기본·질문 편지는 개별 SKU 등록 필요",
       "archiveTests": [],
       "archiveHomeButtons": [
         "연이의 상담 편지"
@@ -4372,10 +4372,16 @@
       "webSources": [
         "app/fortune-tea-house/page.tsx",
         "src/features/fortune-tea-house/components/TeaHouseResultSheet.tsx",
-        "worker/routes/fortune-tea-house.js"
+        "worker/routes/fortune-tea-house.js",
+        "src/features/fortune-tea-house/data/consultPricing.ts"
       ],
       "webProductIds": [
-        "fortune-tea-house-tarot-consultation"
+        "fortune-tea-house-tarot-consultation",
+        "fortune-tea-house-tarot-five-consultation",
+        "fortune-tea-house-saju-consultation",
+        "fortune-tea-house-saju-joint-consultation",
+        "fortune-tea-house-saju-compatibility-consultation",
+        "fortune-tea-house-sukuyo-compatibility-consultation"
       ],
       "freeCalculation": false,
       "portStatus": "일부만 이식",
@@ -4387,6 +4393,38 @@
       "reread": "owned-TossPurchase; device-and-console-approval-pending",
       "verification": "apps/toss/test/ room-browser.mjs · 개별 검사 범위. 실제 기기 미검증",
       "saleStatus": "유료 상품 콘솔·운영 설정 필요",
+      "productVerification": [
+        {
+          "featureKey": "fortune-tea-house-tarot-consultation",
+          "development": "웹 원본 연결 있음; 상품별 mock·배포 AIT 전체 흐름 미검증",
+          "sale": "독립 콘솔 SKU·가격 등록 필요"
+        },
+        {
+          "featureKey": "fortune-tea-house-tarot-five-consultation",
+          "development": "웹 원본 연결 있음; 상품별 mock·배포 AIT 전체 흐름 미검증",
+          "sale": "독립 콘솔 SKU·가격 등록 필요"
+        },
+        {
+          "featureKey": "fortune-tea-house-saju-consultation",
+          "development": "사주 상담·추가 질문·재열람 모의 구현",
+          "sale": "독립 콘솔 SKU·가격 등록 필요"
+        },
+        {
+          "featureKey": "fortune-tea-house-saju-joint-consultation",
+          "development": "웹 원본 연결 있음; 상품별 mock·배포 AIT 전체 흐름 미검증",
+          "sale": "독립 콘솔 SKU·가격 등록 필요"
+        },
+        {
+          "featureKey": "fortune-tea-house-saju-compatibility-consultation",
+          "development": "웹 원본 연결 있음; 상품별 mock·배포 AIT 전체 흐름 미검증",
+          "sale": "독립 콘솔 SKU·가격 등록 필요"
+        },
+        {
+          "featureKey": "fortune-tea-house-sukuyo-compatibility-consultation",
+          "development": "웹 원본 연결 있음; 상품별 mock·배포 AIT 전체 흐름 미검증",
+          "sale": "독립 콘솔 SKU·가격 등록 필요"
+        }
+      ],
       "archiveTests": [],
       "archiveHomeButtons": [
         "연이 · 운명의 찻집"

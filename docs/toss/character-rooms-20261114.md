@@ -6,13 +6,14 @@
 |---|---|---|---|---|
 | 연이 상담 편지 | app/fortune-chat/ConsultationIntake.tsx, ConsultationResult.tsx → worker/toss/letter.js → worker/yeongnyangi/delivery.js | 홈 → 꿀꿀운세 → 연이의 상담 편지 | 원본 질문·프로필·준비·사주 편지, 로그인 후 질문 복원, 별도 mock-yeoni 주문, 앱 재진입 및 꿀꿀운세 구매 기록의 원문 | 질문 등급·타로 뽑기·다른 점술 방식의 Linux AIT 전수 검증, 실기기 |
 | 운명의 찻집 | src/features/fortune-tea-house/FortuneTeaHousePage.tsx → worker/toss/native-tea.js → worker/routes/fortune-tea-house.js | 홈 → 꿀꿀운세 → 연이 · 운명의 찻집 | 찻잔 선택·출생일·시간 모름·성별·서울 확인·질문·직업 카테고리·가격 확인, 모의 사주 상담 및 추가 질문 1회, 구매 기록 재열람 | 타로 3·5장, 공동 사주·사주 궁합·숙요 궁합의 별도 계약·모의 AIT 검증, 실기기 |
-| 네오 팩폭 전략실 | src/features/neo-war-room/NeoOperationRoomPage.tsx → worker/toss/native-neo.js → worker/routes/neo-operation-room.js | 홈 → 꿀꿀운세 → 네오 · 팩폭 전략실 | 고민·직업/이직·사주·출생정보·매운맛, 모의 브리핑·현실 점검·수정 작전, 구매 기록 원문 | 다른 분석 방식·현실 점검 한도·중단 복원의 실기기 검증 |
+| 네오 팩폭 전략실 | src/features/neo-war-room/NeoOperationRoomPage.tsx → worker/toss/native-neo.js → worker/routes/neo-operation-room.js | 홈 → 꿀꿀운세 → 네오 · 팩폭 전략실 | 고민 작성 후 재진입·질문 복원·직업/이직·사주·출생정보·매운맛, 모의 브리핑·현실 점검·수정 작전, 구매 기록 원문 | 다른 분석 방식·현실 점검 한도·중단 복원의 실기기 검증 |
 
 ## 수정과 경계
 
 - 일반 AIT와 같은 main.tsx → AppEntry.tsx → App.tsx 홈을 사용한다. 개발 메뉴나 결과 URL로 시작하지 않는다.
 - private-simulation에서만 연이 편지 SKU와 찻집·네오의 독립 모의 SKU를 연다. 기존 영냥이 29개 목록은 별도로 유지한다.
 - 모의 letters/intents/orders를 계정 A/B의 기존 격리 저장소에 함께 저장한다. 결과 원문·추가 질문·수정 작전은 재진입 시 그대로 읽는다.
+- 네오의 미결제 질문을 Toss 어댑터에서 계정별로 24시간 보관한다. 다시 열면 질문을 복원하고 생성된 상담 ID가 생기면 해당 초안만 비운다. 이 만료는 구매 결과에 적용하지 않는다. 웹의 저장 정책은 바꾸지 않는다.
 - 찻집의 ensure-access 모의 응답을 연결했다. 토스 화면은 localhost에서도 웹 미리보기 결과로 폴백하지 않는다.
 - 편지·찻집·전략실 모의 처리기는 기존 오프라인 검사와 공유한다. 실제 LLM 계산·프롬프트를 대체하는 운영 코드가 아니다. 모의 결과에는 테스트 전용 표시가 남는다.
 - 원본 차분한 달빛 예화 화면과 아트를 유지한다. 찻집 배경과 네오 본문·배경을 이미 번들에 든 캐릭터 그림으로 연결한다. 네오 휘장은 원본 CDN 파일을 320px WebP로 줄여 함께 넣었다.
@@ -21,7 +22,7 @@
 
 ## 검증 명령
 
-- node --test apps/toss/test/private-simulation.test.mjs apps/toss/test/offline-room.test.mjs
+- node --test apps/toss/test/private-simulation.test.mjs apps/toss/test/offline-room.test.mjs apps/toss/test/neo-question-draft.test.mjs
 - npm --prefix apps/toss run build:private-simulation
 - node apps/toss/test/private-simulation-archive.mjs <AIT 파일> --character-rooms letter
 - node apps/toss/test/private-simulation-archive.mjs <AIT 파일> --character-rooms tea
@@ -37,3 +38,10 @@ Windows 준비 검사는 --local-windows를 명시한다. Linux 결과와 QR은 
 2. 상단 모의 계정 B로 바꾸고 A의 결과 주소를 열면 원문을 볼 수 없어야 한다.
 3. 실제 키보드를 띄워 질문·출생정보·다음 버튼을 눌러 본다. 토스 상단 뒤로가기 후 작성 내용 및 구매 기록 복원을 확인한다.
 4. 주문·LLM은 모두 기기의 모의 데이터다. 실제 토스 로그인·IAP·운영 저장은 이 QR의 검증 범위가 아니다.
+
+## 개발 검사 기록
+
+- private-simulation/offline-room 7개, 네오 질문 초안 2개, 기능표 계약 6개 통과. 네오 초안은 계정 분리·만료·손상 저장소와 구매 전 재진입을 검사했다.
+- 첫 check:fast는 sitemap 원본 서명 갱신이 필요해 중단됐다. 해당 공개 URL만 갱신했다. 날짜별 계산 데이터 부재로 Node 검사 하나가 실패해 외부 통신 없는 fortune:build-data로 로컬 파일을 만들고 관련 90개를 재검사했다. 나머지 계획은 이어 실행해 Jest 479 suites / 8000 tests 통과했다.
+- 첫 main CI 43547532590은 사용자 지침의 in-progress 상태와 검사기의 active 허용값 불일치로 실패했다. 기존 값과 오타 거절을 유지하면서 in-progress를 허용하는 별도 호환 수정 및 self-test 12개를 통과했다. 후속 CI 결과는 아래 배포 증거로 확정한다.
+- 웹 SEO는 제목·검색 문구·색인 정책을 바꾸지 않았다. 공유 원본 소스가 바뀐 찻집·전략실 URL의 sitemap 서명과 lastmod만 갱신했다.
