@@ -25,12 +25,15 @@ export function novelBook(){
     const options=choices[0]?.choice.options.map(({label,target})=>({label,target}))||[];
     if(options.some(o=>!manifest.episodes.some(e=>e.id===o.target)))throw new Error('Missing novel branch');
     episodes.push({id:item.id,rev:item.rev||1,title:item.tag,ending:item.ending?.label??null,branch:item.branch??null,options,count:lines.length});
-    text[item.id]=gzipSync(JSON.stringify(lines),{level:9}).toString('base64');
+    text[item.id]=lines;
   }
   return {episodes,text};
 }
 export default function novelReader(){
   const moduleId='virtual:toss-novel-book';
   return {name:'toss-novel-reader',resolveId(id){if(id===moduleId)return '\0'+id;},
-    load(id){if(id==='\0'+moduleId)return 'export default '+JSON.stringify(novelBook());}};
+    load(id){if(id==='\0'+moduleId){
+      const packed=gzipSync(JSON.stringify(novelBook()),{level:9}).toString('base64');
+      return `import {gunzipSync,strFromU8} from 'fflate';export default JSON.parse(strFromU8(gunzipSync(Uint8Array.from(atob(${JSON.stringify(packed)}),c=>c.charCodeAt(0)))));`;
+    }}};
 }

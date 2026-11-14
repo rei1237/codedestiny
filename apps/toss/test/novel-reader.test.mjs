@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {gunzipSync} from 'node:zlib';
+import {fileURLToPath} from 'node:url';
 import novelReader,{novelBook} from '../canonical/novel-book.mjs';
 import {chartFixture} from './chart-fixture.mjs';
 
@@ -12,7 +12,7 @@ test('each shipped episode retains the original Korean dialogue, choices and end
   assert.equal(episodes.length,manifest.episodeCount);
   for(const [i,e] of episodes.entries()){
     const source=JSON.parse(readFileSync(new URL(manifest.episodes[i].path.slice(1),root)));
-    const rows=JSON.parse(gunzipSync(Buffer.from(text[e.id],'base64')));
+    const rows=text[e.id];
     assert.deepEqual(rows.map(r=>r[1]),source.beats.map(b=>b.t));
     for(const [n,b] of source.beats.entries())if(b.nm)assert.equal(rows[n][0],b.nm);
     assert.deepEqual(e.options,(source.beats.at(-1).choice?.options||[]).map(({label,target})=>({label,target})));
@@ -23,7 +23,7 @@ test('the last fork opens the selected branch and native back keeps the current 
   const p=novelReader(),id='virtual:toss-novel-book',book=novelBook();
   const {dom,React,createRoot,Component}=await chartFixture('NovelReader.tsx','/novel',[{name:'test-novel-book',setup(b){
     b.onResolve({filter:/^virtual:toss-novel-book$/},()=>({path:id,namespace:'book'}));
-    b.onLoad({filter:/.*/,namespace:'book'},()=>({contents:p.load(p.resolveId(id))}));
+    b.onLoad({filter:/.*/,namespace:'book'},()=>({contents:p.load(p.resolveId(id)),resolveDir:fileURLToPath(new URL('../',import.meta.url))}));
   }}]);
   let root=createRoot(document.getElementById('chart'));
   const button=text=>Array.from(document.querySelectorAll('button')).find(el=>el.textContent===text);

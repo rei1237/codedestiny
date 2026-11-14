@@ -1,5 +1,4 @@
 import {useEffect,useMemo,useRef,useState} from 'react';
-import {gunzipSync,strFromU8} from 'fflate';
 import book from 'virtual:toss-novel-book';
 import {Button} from './Button';
 const pageSize=12;
@@ -24,8 +23,7 @@ export default function NovelReader(){
   const episode=book.episodes.find(e=>e.id===place?.id);
   const lines=useMemo(()=>{
     if(!episode)return [];
-    const bytes=Uint8Array.from(atob(book.text[episode.id]),c=>c.charCodeAt(0));
-    return JSON.parse(strFromU8(gunzipSync(bytes))) as [string,string][];
+    return book.text[episode.id];
   },[episode]);
   useEffect(()=>{
     if(!place)return;
