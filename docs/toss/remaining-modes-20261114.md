@@ -2,6 +2,8 @@
 
 2026-11-14 후속 구현 기록. [직전 11경로 검증](./character-rooms-20261114.md)에서 남겼던 입력 모드를 다룬다. 개발 모의 검증과 실제 상품 판매를 구분하며, 다른 상품의 성공으로 해당 기능 전체를 완료 처리하지 않는다.
 
+이번 추가 범위는 **30개 입력 경로**(찻집 5종 + 연이 등급형 21종 + 네오 상대방 4종)다. 기존 기본 11경로를 포함한 최종 회귀 범위는 **41경로**이며, 서로 다른 완성 서비스 41개라는 뜻이 아니다.
+
 ## 기능별 원본과 이번 범위
 
 | 기능 | 웹 원본·생성 경로 | 입력·결과 구분 | 개발 상태 |
@@ -89,5 +91,13 @@ node apps/toss/test/private-simulation-archive.mjs <Linux AIT> --character-rooms
 - 운영 Worker 승격, mTLS·신원/데이터 암호화·연결 해제 설정, 상품 노출, 판매 개방, 검토 요청, 출시는 각각 별도 게이트로 남는다.
 
 ## 수정 파일 안내
+
+### 로컬 전달 검사
+
+- 구현 커밋: `7c3adc51f`, `81fef3994`, `f2558769d`. 가격 불일치 테스트 상수 수정: `fece5889d7c5ec451fbc1d1884916f63d14dde3d` (main 반영).
+- `check:fast --base=0a2561b26b74c501ae5c17b8345fb99c1a53411a` 계획의 전체 단계 완료. 처음에는 당일 무료 운세 생성 파일 누락을 오프라인 `fortune:build-data`로 보완했다. 이어 모의 테스트의 가격 불일치 문자열을 정본 가격 가드가 지적해 `2원`으로 수정했으며 운영 가격은 바꾸지 않았다.
+- 이미 통과한 검사를 반복하지 않고 `verify:krw-copy-canonical`과 실제 React 가격 인계 회귀 테스트를 재검사한 뒤 계획의 잔여 3~33단계를 실행했다. Node **5,071/5,071**, Jest **479 스위트·8,004 테스트 통과, 1개 스킵**. 타입·린트·정책·Worker 빌드·인코딩도 통과.
+- 최종 커밋 트리에서 `npm run check:pre-push` 통과. 실행 로그는 `remaining-checkfast-resumed-node24.txt`, `remaining-runtime-prepush.txt`에 보관했다.
+- 최초 main CI는 기존 웹 변경의 테스트 대역 누락과 로또 안내 제목 폭 때문에 실패했다. LoveSecret 진행 상태 함수, 구매 기록 후기 링크 함수의 대역을 현재 원본에 맞추고 제목 폭을 61에서 54로 줄였다. 동일 결함을 복구한 다른 사용자 세션의 main 변경(`65d8accfe`, `9733ee4ce`, `00433b122`, `eeebfadaf`)을 보존해 `80bd0336aeb9f7db61c681693344dce42a01fc10`에 병합했다. 테스트 대역 7개·무료 기능 7개·제목 폭·사이트맵 1,081 URL 검사 및 병합 트리 pre-push 통과. 상담 기능 코드는 이 복구 과정에서 추가 변경하지 않았다.
 
 주요 변경은 `src/features/fortune-tea-house/components/{QuestionInputScene,TeaConsultConfirmation,TeaHouseSajuCompatResultPanel}.tsx`, `apps/toss/private-simulation/api.mjs`, `apps/toss/test/offline/{room-fixture,tea-modes,neo-partner-fixture,letter-fixture}.mjs`, 실제 AIT 검사 helper와 관련 계약 테스트, `.github/workflows/pr-ci.yml`이다. 최종 커밋과 기능표의 검증 근거는 Linux AIT 검증이 끝난 뒤 확정한다.

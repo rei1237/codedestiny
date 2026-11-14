@@ -316,7 +316,9 @@ const letterProducts = ['yeoni','neo'].map(persona=>({
  persona,webEntry:'/fortune-chat/?character='+persona,webInput:'app/fortune-chat/ConsultationRoom.tsx',
  worker:'worker/routes/fortune-chat-consultations.js',result:'app/fortune-chat/ConsultationResult.tsx',
  webVisibleModes:'기본 편지 폼에 6분야. 상담자별 등급형 21개는 웹 Worker catalog/prepare 계약',
- verification:'letter-methods-browser.mjs 12개 기본 편지, letter-question-browser.mjs 두 상담자의 등급·프로필·추가 질문·재열람. 42개 등급형은 모의 소유·SKU 계약.',
+ verification:persona==='yeoni'&&archiveEvidence.checks.filter(check=>check.id.startsWith('remaining-letter-')&&check.productId).length===21
+  ?'Linux AIT 일반 홈에서 연이 기본 6종·등급형 21종의 원본 입력·모의 구매·생성·후속·저장 원문 재열람·다른 계정 거절 검증. 토스 휴대폰 미검증.'
+  :'letter-methods-browser.mjs 12개 기본 편지, letter-question-browser.mjs 두 상담자의 등급·프로필·추가 질문·재열람. 42개 등급형은 모의 소유·SKU 계약.',
  base:chatDomains.map(domain=>'chat_'+domain),questionProducts:chatQuestionProducts().map(product=>product.id),
  tossEntry:'/fortune-tea-house/?counsel=letter'+(persona==='neo'?'&persona=neo':''),library:'/records/',
  registered:APPROVED_TOSS_PRODUCTS.filter(row=>row.serviceId===persona).map(row=>row.productId),
@@ -446,7 +448,7 @@ for(const group of canonicalCandidates){
  };
  if(accessByService[group.id])group.tossLogin=accessByService[group.id];
  if(['juyuk-turtle','kemet-oracle','royal-tea-oracle','stonehenge-runes','ifa-oracle'].includes(group.id))group.portStatus='이미 동작';
- if(['fortune-chat','neo-letter'].includes(group.id)){group.verification=letterProducts[0].verification;group.saleStatus='기본·질문 편지별 콘솔 원장 확인 필요';}
+ if(['fortune-chat','neo-letter'].includes(group.id)){group.verification=letterProducts.find(product=>product.persona===(group.id==='neo-letter'?'neo':'yeoni')).verification;group.saleStatus='기본·질문 편지별 콘솔 원장 확인 필요';}
  if(group.id==='yeongnyangi')group.saleStatus='상품별 승인된 독립 SKU만 원장에 기록. 신규 판매 보류';
  if(group.id==='olympus-oracle'){
   group.inputContract='게스트의 오늘 생일 신탁, 소유 프로필 원본 7행성·ASC, 상대의 생일과 선택 시각';
@@ -468,14 +470,17 @@ for(const group of canonicalCandidates){
  if(nativeSource[group.id]||['heukwol-consult','palm-reading','neo-consultation','saju-guardian','saju-sibyl','maya','pet-saju','yeongnyangi-prashna'].includes(group.id))group.saleStatus='유료 상품 콘솔·운영 설정 필요';
  if(!group.saleStatus)group.saleStatus=group.freeCalculation?'기본 계산은 구매 없음 · 부가 상품은 별도 행 참조':'현재 기능에 신규 구매 버튼 없음';
 }
-// A shared screen is not a shared product: keep unverified tea modes explicit.
+// A shared screen is not a shared product: bind each mode to its own AIT evidence.
 const teaPriceSource='src/features/fortune-tea-house/data/consultPricing.ts';
 const teaFeatures=[...fs.readFileSync(path.join(root,teaPriceSource),'utf8').matchAll(/featureKey: "(fortune-tea-house-[^"]+)"/g)].map(match=>match[1]);
 for(const group of canonicalCandidates){
  if(group.id==='fortune-tea-house'){
   group.webProductIds=[...new Set(teaFeatures)];
   group.webSources=[...new Set([...group.webSources,teaPriceSource])];
-  group.productVerification=group.webProductIds.map(featureKey=>({featureKey,development:featureKey==='fortune-tea-house-saju-consultation'?'사주 상담·추가 질문·재열람 모의 구현':'웹 원본 연결 있음; 상품별 mock·배포 AIT 전체 흐름 미검증',sale:'독립 콘솔 SKU·가격 등록 필요'}));
+  group.productVerification=group.webProductIds.map(featureKey=>{
+   const evidence=archiveEvidence.checks.filter(check=>check.features.includes(group.id)&&check.featureKey===featureKey);
+   return {featureKey,development:evidence.length?'Linux AIT 일반 홈·상품별 입력·모의 구매·생성·추가 질문·저장 원문 재열람·다른 계정 거절 검증':featureKey==='fortune-tea-house-saju-consultation'?'사주 상담·추가 질문·재열람 모의 구현':'웹 원본 연결 있음; 상품별 mock·배포 AIT 전체 흐름 미검증',archiveTests:evidence.map(check=>check.id),sale:'독립 콘솔 SKU·가격 등록 필요'};
+  });
  }
  if(group.id==='fortune-chat')group.saleStatus='연이 기본 사주는 콘솔 SKU 확인·신규 판매 닫힘. 다른 기본·질문 편지는 개별 SKU 등록 필요';
  const destinations=archiveEvidence.directory.filter(row=>group.tossRoute&&routeKey(row.path)===routeKey(group.tossRoute));
