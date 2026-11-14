@@ -1,5 +1,5 @@
 {
-  "sourceCommit": "e38e1f1a1a83eab35e7271d3a135c2b5c4a98b43",
+  "sourceCommit": "02ff9538a6ef43760613c654019303ff052d0237",
   "sourceCounts": {
     "home": 63,
     "react": 18,
@@ -33,7 +33,7 @@
         "screen": "not-independently-verified",
         "login": "공개 진입",
         "iapSku": null,
-        "result": "apps/toss/src/AnimalDestiny.tsx",
+        "result": "apps/toss/src/AnimalDestiny.tsx + 원본 AnimalResultScreen 전체",
         "library": "화면 메모리. 계정 변경 시 TossSessionScope 재설정",
         "device": "not-tested",
         "canonicalId": "animal-destiny",
@@ -60,7 +60,7 @@
         "screen": "not-independently-verified",
         "login": "공개 진입",
         "iapSku": null,
-        "result": "apps/toss/src/AnimalDestiny.tsx",
+        "result": "apps/toss/src/AnimalDestiny.tsx + 원본 AnimalResultScreen 전체",
         "library": "화면 메모리. 계정 변경 시 TossSessionScope 재설정",
         "device": "not-tested",
         "canonicalId": "animal-destiny",
@@ -3209,8 +3209,8 @@
       "status": "local-partial",
       "tossRoute": "/saju/animal-destiny",
       "sku": null,
-      "inputContract": "lib/korean-calendar/natal.js:calculateNatalSaju",
-      "resultRenderer": "apps/toss/src/AnimalDestiny.tsx",
+      "inputContract": "원본 사주·십이운성, solar/lunar/leap/unknown 및 직접 상대 입력",
+      "resultRenderer": "apps/toss/src/AnimalDestiny.tsx + 원본 AnimalResultScreen 전체",
       "storageContract": "화면 메모리. 계정 변경 시 TossSessionScope 재설정",
       "webEntitlement": {
         "featureKey": "animal-destiny-unlock",
@@ -3232,12 +3232,12 @@
         "animal-destiny-unlock"
       ],
       "freeCalculation": true,
-      "portStatus": "일부만 이식",
+      "portStatus": "콘솔·운영 설정 필요",
       "reducedBundle": "홈 진입 있음",
       "currentEntry": "Linux AIT 일반 홈 → 꿀꿀운세 → 십이운성 동물점 · 상위 화면 진입 확인",
       "bundleVerification": "일반 AIT에서 상위 화면 진입 확인. 하위 입력·결과·재열람의 검증 근거는 verification 참조. 휴대폰 미검증",
       "tossLogin": "공개 진입",
-      "tossResult": "apps/toss/src/AnimalDestiny.tsx",
+      "tossResult": "apps/toss/src/AnimalDestiny.tsx + 원본 AnimalResultScreen 전체",
       "reread": "화면 메모리. 계정 변경 시 TossSessionScope 재설정",
       "verification": "apps/toss/test/ animal-destiny.test.mjs · 개별 검사 범위. 실제 기기 미검증",
       "saleStatus": "기본 계산은 구매 없음 · 부가 상품은 별도 행 참조",
@@ -3247,18 +3247,18 @@
       ],
       "sourceAudit": {
         "path": "docs/toss/original-mode-audit-20261114.json",
-        "reviewState": "known-gaps",
+        "reviewState": "original-modes-verified",
         "reviewedModes": [
-          "lib/korean-calendar/natal.js:calculateNatalSaju",
-          "화면 메모리. 계정 변경 시 TossSessionScope 재설정"
+          "원본 10탭·6상세·12도감·성장루틴·관계·저장/공유 어댑터",
+          "단위검사 solar/lunar/leap/unknown 및 12×12 궁합 동등성",
+          "실제 AIT 윤달·시각미상 1명/상대 1쌍, 도감12, B입력초기화, 무료 주문0"
         ],
-        "codeGaps": [
-          "원본 AnimalResultScreen의 10탭·6상세·관계·생활 조언·아트가 이름/네기둥/도감명 화면에 빠짐. 현재 free-fortune-policy는 무료이며 낡은 paid 주석으로 제외하지 않음"
-        ]
+        "codeGaps": []
       },
-      "implementationStage": "확인된 코드/모의 연결 누락 있음",
+      "implementationStage": "기존 원본 계약 및 개발 검증 근거 대조 완료",
       "deviceStage": "토스 휴대폰의 SDK·키보드·네트워크·파일/오디오 확인 미완료",
-      "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음"
+      "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음",
+      "currentArchiveEvidence": "Windows AIT 01a1d9fc-2ed6-7908-864d-2a4cf77daa03 --animal-destiny PASS; 360/390/430px, 원본 CSS 카드/애니메이션 표시 확인. Linux/실기기 별도"
     },
     {
       "id": "animal-totem",
@@ -6415,7 +6415,7 @@
       "inputContract": "원본 allTracks/free_full 무료 재생. MP3는 곡별 독립 featureKey·토스 승인 SKU의 소유 다운로드",
       "resultRenderer": "apps/toss/src/MusicShelf.tsx + MusicDownload.tsx + music-download-file.ts",
       "storageContract": "동일 곡 주문의 원본 음원권리·보관함·재열람, 웹 구매·이용권과 토스 계정은 분리",
-      "verification": "음악 source/원본 proxy/모의 API/SDK 파일 경계 targeted 검증. 실제 AIT 추가 QA 진행. SDK base64 경로의 32MiB 초과 파일은 저장 제한·권리 유지, 실곡/기기 확인 필요",
+      "verification": "음악 source/원본 proxy/모의 API/SDK 파일 경계 targeted 검증. 실제 AIT 홈·모의구매1건·합성파일저장·cold보관함·B차단 PASS. 32MiB 초과 원곡 저장은 SDK base64 기술제약으로 미지원(구매정책 제한 아님), 실곡/기기 확인 필요",
       "webEntries": [
         "/music/"
       ],
@@ -6438,18 +6438,20 @@
       ],
       "sourceAudit": {
         "path": "docs/toss/original-mode-audit-20261114.json",
-        "reviewState": "known-gaps",
+        "reviewState": "original-modes-verified-sdk-limit",
         "reviewedModes": [
-          "stream list projected from original track manifest and free_full policy only",
-          "stream only; paid downloads, library and device audio parity pending"
+          "원본 allTracks/free_full 재생",
+          "원본 단건·월정석 다운로드 권리 보존, 이용권/월구독 다운로드 불허",
+          "곡별 독립 SKU, 소유주문·환불확인, 원본 proxy, File.saveBase64 경계"
         ],
         "codeGaps": [
-          "전곡 무료 스트림은 연결됨. 웹 단건·월정석 MP3 다운로드 구매와 파일 저장은 별도 미이식. 이용권 커버로 다운로드를 열지 않음"
+          "32MiB 초과 원곡 네이티브 저장 미지원: SDK 3.7.0은 saveBase64만 지원하며 스트리밍/URL 파일 API 없음. 원본 구매 정책 제한이 아니라 현 어댑터 기술제약"
         ]
       },
       "implementationStage": "확인된 코드/모의 연결 누락 있음",
       "deviceStage": "토스 휴대폰의 SDK·키보드·네트워크·파일/오디오 확인 미완료",
-      "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음"
+      "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음",
+      "currentArchiveEvidence": "Windows AIT 01a1d9fc-2ed6-7908-864d-2a4cf77daa03 --music-download PASS; 홈→로그인복귀→모의구매1건→합성파일저장기록→cold보관함/새로고침→B동일URL차단, 3폭. 실제 음원 다운로드/파일저장 미실행"
     },
     {
       "id": "nakshatra",

@@ -62,14 +62,16 @@
     {
       "id": "animal-destiny-detail",
       "kind": "code",
-      "detail": "원본 AnimalResultScreen의 10탭·6상세·관계·생활 조언·아트가 이름/네기둥/도감명 화면에 빠짐. 현재 free-fortune-policy는 무료이며 낡은 paid 주석으로 제외하지 않음",
-      "state": "implementation-in-progress"
+      "detail": "원본 10탭·6상세·12도감·생활조언·관계·카드 전체 및 globals/LazyMotion 복구",
+      "state": "implemented-local-ait-verified",
+      "next": "최종 Linux AIT와 실기기 저장·공유는 별도"
     },
     {
       "id": "music-download",
       "kind": "code",
-      "detail": "전곡 무료 스트림은 연결됨. 웹 단건·월정석 MP3 다운로드 구매와 파일 저장은 별도 미이식. 이용권 커버로 다운로드를 열지 않음",
-      "state": "implementation-in-progress"
+      "detail": "곡별 모의 SKU·소유주문·원본 proxy·파일 어댑터·재열람 구현. 32MiB 초과 파일은 SDK base64 메모리 경계로 저장 미지원",
+      "state": "implemented-with-sdk-limit-local-ait-verified",
+      "next": "큰 원곡 전체 지원 미완료. 곡별 SKU/실곡 크기/실기기 저장 검증 필요"
     },
     {
       "id": "flower-private",
@@ -92,20 +94,20 @@
       ],
       "tossRoute": "/saju/animal-destiny",
       "renderer": "apps/toss/src/AnimalDestiny.tsx",
-      "recordedContract": "lib/korean-calendar/natal.js:calculateNatalSaju",
+      "recordedContract": "worker/toss/animal-destiny.js → 원본 sajuAdapter/buildAnimalDestinyReading/calculateAnimalCompatibility",
       "recordedStorage": "화면 메모리. 계정 변경 시 TossSessionScope 재설정",
       "priorEvidence": "apps/toss/test/ animal-destiny.test.mjs · 개별 검사 범위. 실제 기기 미검증",
       "reviewedModes": [
-        "lib/korean-calendar/natal.js:calculateNatalSaju",
-        "화면 메모리. 계정 변경 시 TossSessionScope 재설정"
+        "원본 10탭·6상세·12도감·성장루틴·관계·저장/공유 어댑터",
+        "단위검사 solar/lunar/leap/unknown 및 12×12 궁합 동등성",
+        "실제 AIT 윤달·시각미상 1명/상대 1쌍, 도감12, B입력초기화, 무료 주문0"
       ],
-      "reviewState": "known-gaps",
-      "codeGaps": [
-        "원본 AnimalResultScreen의 10탭·6상세·관계·생활 조언·아트가 이름/네기둥/도감명 화면에 빠짐. 현재 free-fortune-policy는 무료이며 낡은 paid 주석으로 제외하지 않음"
-      ],
+      "reviewState": "original-modes-verified",
+      "codeGaps": [],
       "archiveEvidence": "일반 AIT에서 상위 화면 진입 확인. 하위 입력·결과·재열람의 검증 근거는 verification 참조. 휴대폰 미검증",
       "deviceState": "not-verified",
-      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도"
+      "operations": "계산·화면은 무료. 운영 Worker 승격, 네이티브 저장/공유·기기 확인 별도",
+      "currentArchiveEvidence": "Windows AIT 01a1d9fc-2ed6-7908-864d-2a4cf77daa03 --animal-destiny PASS; 360/390/430px, 원본 CSS 카드/애니메이션 표시 확인. Linux/실기기 별도"
     },
     {
       "id": "animal-totem",
@@ -1286,16 +1288,18 @@
       "recordedStorage": "stream only; paid downloads, library and device audio parity pending",
       "priorEvidence": "apps/toss/test/ music-shelf.test.mjs · 개별 검사 범위. 실제 기기 미검증",
       "reviewedModes": [
-        "stream list projected from original track manifest and free_full policy only",
-        "stream only; paid downloads, library and device audio parity pending"
+        "원본 allTracks/free_full 재생",
+        "원본 단건·월정석 다운로드 권리 보존, 이용권/월구독 다운로드 불허",
+        "곡별 독립 SKU, 소유주문·환불확인, 원본 proxy, File.saveBase64 경계"
       ],
-      "reviewState": "known-gaps",
+      "reviewState": "original-modes-verified-sdk-limit",
       "codeGaps": [
-        "전곡 무료 스트림은 연결됨. 웹 단건·월정석 MP3 다운로드 구매와 파일 저장은 별도 미이식. 이용권 커버로 다운로드를 열지 않음"
+        "32MiB 초과 원곡 네이티브 저장 미지원: SDK 3.7.0은 saveBase64만 지원하며 스트리밍/URL 파일 API 없음. 원본 구매 정책 제한이 아니라 현 어댑터 기술제약"
       ],
       "archiveEvidence": "일반 AIT에서 상위 화면 진입 확인. 하위 입력·결과·재열람의 검증 근거는 verification 참조. 휴대폰 미검증",
       "deviceState": "not-verified",
-      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도"
+      "operations": "곡별 승인 SKU·콘솔 가격, 실원곡 크기·실기기 저장, 운영 Worker 필요. 신규 판매 false",
+      "currentArchiveEvidence": "Windows AIT 01a1d9fc-2ed6-7908-864d-2a4cf77daa03 --music-download PASS; 홈→로그인복귀→모의구매1건→합성파일저장기록→cold보관함/새로고침→B동일URL차단, 3폭. 실제 음원 다운로드/파일저장 미실행"
     },
     {
       "id": "nakshatra",

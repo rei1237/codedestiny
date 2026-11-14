@@ -126,7 +126,7 @@
 
 | 기능 | 웹 진입 | 토스 진입 | 일반 홈 검증 | 이식 | 배포 AIT 세부 검사 |
 |---|---|---|---|---|---|
-| 십이운성 동물점 | /saju/animal-destiny/ | /saju/animal-destiny | 홈 버튼 · 십이운성 동물점 | 일부만 이식 | 상품별 로컬 근거는 JSON 참조 |
+| 십이운성 동물점 | /saju/animal-destiny/ | /saju/animal-destiny | 홈 버튼 · 십이운성 동물점 | 콘솔·운영 설정 필요 | 상품별 로컬 근거는 JSON 참조 |
 | 애니멀 토템 | openAnimalTotemModal | /animal-totem/ | 홈 버튼 · 애니멀 토템 | 콘솔·운영 설정 필요 | 상품별 로컬 근거는 JSON 참조 |
 | 점성술 | /?action=cdHomeAstroEntry | /astrology | 홈 버튼 · 서양 점성술 출생차트 | 콘솔·운영 설정 필요 | 상품별 로컬 근거는 JSON 참조 |
 | 점성술 전문가 상담 | /astrology-ai | /astrology-ai/ | 홈 버튼 · 점성술 전문가 상담 | 콘솔·운영 설정 필요 | experts |
