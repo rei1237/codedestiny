@@ -116,6 +116,21 @@ export async function handleTossRoutes(request,env) {
       const {calculateTossPet}=await import('./pet-saju.js');
       return reply(calculateTossPet(await bodyOf(request)));
     }
+    if(path==='/astro/section'&&request.method==='POST'){
+      await limit(env,request.headers.get('CF-Connecting-IP')||'unknown','astro-section',24);
+      const {readTossAstroSection}=await import('./astro-section.js');
+      return forwardServiceResponse(await readTossAstroSection(await bodyOf(request),env),headers);
+    }
+    if(path==='/astro/chart'&&request.method==='POST'){
+      await limit(env,request.headers.get('CF-Connecting-IP')||'unknown','astro-chart',6);
+      const {readTossAstroChart}=await import('./astro-chart.js');
+      return forwardServiceResponse(await readTossAstroChart(await bodyOf(request),env),headers);
+    }
+    if(path==='/sukuyo/tools'&&request.method==='POST'){
+      await limit(env,request.headers.get('CF-Connecting-IP')||'unknown','sukuyo-tools',12);
+      const {readTossSukuyoTool}=await import('./sukuyo-tools.js');
+      return forwardServiceResponse(await readTossSukuyoTool(await bodyOf(request),env),headers);
+    }
     if(path==='/vedic/reading'&&request.method==='POST'){
       await limit(env,request.headers.get('CF-Connecting-IP')||'unknown','vedic-reading',6);
       const {tossVedicReading}=await import('./vedic-reading.js');

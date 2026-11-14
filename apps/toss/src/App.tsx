@@ -50,7 +50,7 @@ const TarotLibrary=lazy(()=>import('./TarotLibrary'));
 const CareerStylePreview=lazy(()=>import('./CareerStylePreview'));
 const AnimalDestiny=lazy(()=>import('./AnimalDestiny'));
 const MusicShelf=lazy(()=>import('./MusicShelf'));
-const BasicSkyChart=lazy(()=>import('./BasicSkyChart'));
+const AstroReading=lazy(()=>import('./AstroReading'));
 const VedicReading=lazy(()=>import('../service/VedicReading'));
 const MansionAtlas=lazy(()=>import('./MansionAtlas'));
 const NovelReader=lazy(()=>import('./NovelReader'));
@@ -58,7 +58,7 @@ const FamousSaju=lazy(()=>import('./FamousLibrary'));
 const BasicSajuReading=lazy(()=>import('./BasicSajuReading'));
 const ZiweiChart=lazy(()=>import('./ZiweiChart'));
 const ManseReading=lazy(()=>import('./ManseReading'));
-const SukuyoBasic=lazy(()=>import('./SukuyoBasic'));
+const SukuyoBasic=lazy(()=>import('./SukuyoHome'));
 const HumanDesignChart=lazy(()=>import('./HumanDesignChart'));
 const DailyReadings=lazy(()=>import('./DailyReadings'));
 const yeongnyangiSpreads=canonicalTarotSpreads as {id:string;title:string;summary:string;cardCount:number;requiredInputs:string[];topic:string}[];
@@ -217,7 +217,7 @@ export default function App({reviewHome,reviewRoute,consultationHref,verifiedRec
     {page==='saju/career-style'&&CareerStylePreview&&<Suspense fallback={<p role="status">일 스타일 예시를 펼치고 있어요.</p>}><CareerStylePreview/></Suspense>}
     {page==='saju/animal-destiny'&&<Suspense fallback={<p role="status">동물 도감을 준비하고 있어요.</p>}><AnimalDestiny/></Suspense>}
     {page==='music'&&MusicShelf&&<Suspense fallback={<p role="status">음악실을 준비하고 있어요.</p>}><MusicShelf/></Suspense>}
-    {page==='astrology'&&<Suspense fallback={<p role="status">출생차트를 준비하고 있어요.</p>}><BasicSkyChart system={page} loggedIn={loggedIn} onLogin={()=>requireLogin(page)} onError={failure}/></Suspense>}
+    {page==='astrology'&&<Suspense fallback={<p role="status">출생차트를 준비하고 있어요.</p>}><AstroReading/></Suspense>}
     {(page==='nakshatra/codex'||page.startsWith('nakshatra/codex/'))&&<Suspense fallback={<p role="status">별자리 도감을 펼치고 있어요.</p>}><MansionAtlas index={page==='nakshatra/codex'?null:Number(page.split('/')[2])} onOpen={index=>go(index===null?'nakshatra/codex':`nakshatra/codex/${index}`)}/></Suspense>}
     {page==='novel'&&NovelReader&&<Suspense fallback={<p role="status">차례를 펼치고 있어요.</p>}><NovelReader/></Suspense>}
     {page==='insights/famous-saju'&&<Suspense fallback={<p role="status">인물 이야기를 준비하고 있어요.</p>}><FamousSaju/></Suspense>}

@@ -21,6 +21,8 @@ const stubMap={
  'worker/toss/sukuyo-yearly.js':"export const tossSukuyoYearly=async(_env,owner)=>({owner:owner.ownerId,stored:false});",
 
  'worker/toss/vedic-reading.js':"export const tossVedicReading=async(body)=>({stored:false,accessSource:'public',input:body});",
+ 'worker/toss/astro-chart.js':"export const readTossAstroChart=async(body)=>Response.json({ok:true,input:body});",
+ 'worker/toss/sukuyo-tools.js':"export const readTossSukuyoTool=async(body)=>Response.json({ok:true,accessSource:'public',input:body});",
  'worker/toss/astro-section.js':"export const readTossAstroSection=async(body)=>Response.json({accessSource:'public',input:body});",
  'worker/routes/astro-section.js':"export const handleAstroSection=async()=>Response.json({accessSource:'public'});",
  'worker/routes/astro-basic-deep.js':"export const handleAstroBasicDeep=async()=>Response.json({accessSource:'public'});",
@@ -700,3 +702,5 @@ test('guest Sibyl preview forwards only the year and birth profile to the public
 test('original Vedic full reading is guest-public while paid Vedic generation remains owner-protected',async()=>{mocks.denyAuth=true;try{const res=await request({birth,name:'게스트'},'/vedic/reading',{});assert.equal(res.status,200);assert.equal((await res.json()).accessSource,'public');assert.equal((await request({input:{}},'/native/vedic/prepare')).status,401);assert.equal((await request({},'/canonical/vedic-ai/start')).status,401);}finally{mocks.denyAuth=false;}});
 
 test('Human Design paid results and saved-profile Sukuyo annual reading keep authenticated owner boundaries',async()=>{const id='a'.repeat(64);for(const endpoint of ['/native/human-design/prepare','/native/human-design/results/'+id,'/sukuyo/yearly']){mocks.denyAuth=true;try{assert.equal((await request({ownerId:'foreign',profileId:'foreign'},endpoint)).status,401);}finally{mocks.denyAuth=false;}assert.equal((await request({},endpoint,{})).status,503);const response=await request({ownerId:'foreign',profileId:'foreign'},endpoint);assert.equal(response.status,200);assert.equal((await response.json()).owner,auth.ownerId);}});
+
+test('original public western sections and Sukuyo tools accept guests without exposing paid result routes',async()=>{mocks.denyAuth=true;try{for(const path of ['/astro/chart','/astro/section','/sukuyo/tools']){const res=await request({birth,featureKey:'test'},path,{});assert.equal(res.status,200,path);assert.deepEqual((await res.json()).input.birth,birth);}assert.equal((await request({input:{}},'/native/astrology/prepare')).status,401);assert.equal((await request({},'/canonical/sukuyo-compatibility-ai/start')).status,401);}finally{mocks.denyAuth=false;}});
