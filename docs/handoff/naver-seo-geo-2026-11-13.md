@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-14
-next: 사용자 결정 대기 — push 승인, 홈 title·H1(meta-table §1), 핵심 허브 description(meta-table §4), docs/seo/bundle2-decisions.md 5건, /consultations/ 색인 여부, C5, 이용권 혜택 문구. 묶음 2의 승인 불필요 항목은 끝. 남은 구현은 2-5 스테이징 Lighthouse(push 뒤)와 승인된 결정의 적용
+next: 사용자 결정 대기 — push 승인, payment-change-proposal.md의 결정 4건(F3·A1), /love/ 제목·H1·설명의 "무료 연애운" 표현, 홈 title·H1(meta-table §1), 핵심 허브 description(meta-table §4), docs/seo/bundle2-decisions.md 5건, /consultations/ 색인 여부, C5, 이용권 혜택 문구. 묶음 2의 승인 불필요 항목은 끝. 남은 구현은 2-5 스테이징 Lighthouse(push 뒤)와 승인된 결정의 적용
 ---
 # 네이버 SEO·AEO·GEO + 구매 동선 (Phase 1~5)
 
@@ -91,10 +91,10 @@ Phase 0 보고서와 승인된 계획의 정본은 `docs/seo/phase0-report.md`�
 - [ ] 3-1 반복 섹션·`DEFAULT_FAQS`, 3-2 질문형 H2 결론 문단, 3-3 기준일·비교 페이지.
 
 ### 묶음 4 — 구매 동선
-- [ ] 4-1 결과 CTA 축소(F1), 4-2 사다리 표기·하드코딩 가격, 4-3 `/ziwei/` 로그인 복귀(F2), 4-4 결제 변경 제안서(F3·A1)만 쓰고 멈춤.
+- [ ] 4-1 결과 CTA 축소(F1), 4-2 사다리 표기·하드코딩 가격, 4-3 `/ziwei/` 로그인 복귀(F2), 4-4 결제 변경 제안서(F3·A1)만 쓰고 멈춤 — **4-4는 끝**(`docs/seo/payment-change-proposal.md`, 구현은 승인 뒤).
 
 ### 묶음 5 — 측정
-- [ ] 5-1 퍼널 이벤트(A2), 5-2 `docs/seo/funnel-spec.md`·`naver-console-checklist.md`.
+- [ ] 5-1 퍼널 이벤트(A2), 5-2 `docs/seo/funnel-spec.md`·`naver-console-checklist.md` — **5-2는 끝**(둘 다 작성). 5-1 구현은 남음.
 
 ## 결과 기록
 (단계가 끝날 때마다 커밋 SHA와 검증 결과를 적는다.)
@@ -190,6 +190,33 @@ Phase 0 보고서와 승인된 계획의 정본은 `docs/seo/phase0-report.md`�
   - `/saju/compatibility/`는 이제 첫 문장에서 끝나 "볼 때마다 결제하는 분석" 안내가 설명에서 빠진다(본문에는 그대로 있다). `meta-table.md` §4-1 제안 문구를 승인받아 넣으면 해결된다.
   - `app/nakshatra/codex/[index]/page.tsx`의 "공용 함수를 고치지 않는다" 주석은 사실에 맞게 고쳤다. 그 라우트의 자체 함수는 그대로다.
 - **검증(rebase 뒤 + 2-1 뒤)**: typecheck, lint, i18n:check, verify-sitemap-integrity(1,072 URL), verify-home-identity, `check-changed --profile=fast --skip-build --base=origin/main`(jest 478 스위트 7,987 통과·1 건너뜀), `npm test`(같은 수치, exit 0), `npm run build`(`ALLOW_DEV_SERVER_DURING_BUILD=1`, 다른 체크아웃의 dev 서버는 건드리지 않음), `node --test scripts/seo/*.test.mjs` 모두 통과. `npm test`는 2-1 첫 판(하한 40)이 작업 트리에 있는 상태로 돌았고, 하한을 올린 최종본으로는 check:fast·빌드만 다시 돌렸다. 못 돌린 것: `scripts/verify-home-entry-locale.cjs`(로컬 서버 필요), Lighthouse.
+
+### 1-2 재확인 — C2가 사실인지 (2026-11-14, `a81318f81`)
+방법: 코드 추적 + 이전 빌드 산출물(`dist/`)을 로컬 정적 서버로 띄워 Playwright(로그인하지 않은 새 브라우저, 외부 요청 차단, `/api/*`는 401 응답으로 대체)로 확인. 운영 서버·실제 로그인·결제는 쓰지 않았다. **로그인한 뒤의 화면은 브라우저로 보지 못했다**(코드 추적만).
+
+| 도착지 | 로그인 없이 | 로그인 뒤 | 확인 방법 |
+|---|---|---|---|
+| `/saju/free/` | 생년월일을 넣으면 네 기둥(년·월·일·시주)과 오행 균형 한 줄이 그 자리에 나온다. API 호출 0건. 십신·대운·풀이 본문은 없다 | 같은 화면. 사주 기본 풀이는 `/saju` → 셸에서 로그인 뒤 무료 | 브라우저 + 코드 |
+| `/ziwei/chart/` | 명반과 규칙 기반 긴 풀이(총론·질문별·명반·오늘의 조언)가 나온다. 출생시간 미상으로 확인 | 같은 화면. 30,000원 PDF 상담서만 유료(회당 결제) | 브라우저 + 코드 |
+| `/love/` 폼 → 셸 | 개인정보 동의 창 → "동의하고 결과 보기" → **"로그인 필요" 창**. 결과 없음 | 사주 기본 풀이(명식·일주·십성·조후·억부)가 무료. 연애운 전용 구역이 있는지는 확인 못 함 | 브라우저(로그인 전) + 코드(로그인 뒤) |
+
+- 문구 대조: 묶음 1이 넣은 "무료 · 가입 없이"(가이드 CTA 8곳)는 `/saju/free/`의 명식·오행 범위에서 사실이다. 유지했다. 기존부터 있던 `/ziwei/chart` "무료 · 가입 없이"도 사실이다.
+- 고친 것(`a81318f81`): 도착지가 `/saju/free/`로 바뀌면서 사실보다 넓어진 문구.
+  - `app/components/guide-cta-targets.js`: `/saju/ten-gods` 제목·본문(십신 배치 확인 → 일간 확인), `/saju/monthly/[month]/[stem]` 본문(오행과 십성 → 네 기둥과 오행), `/fortune/2027/[sign]` 본문(대운 언급 삭제).
+  - 번역 키 `shellRuntime.f2228`·`f2272`를 12개 언어에서 같이 고쳤다(키 유지). 병합은 `node scripts/i18n-merge-authored.mjs --file shellRuntime-38.json`, `--file shellRuntime-40.json`.
+  - `lib/seo-service-scope.js` `/saju` 무료 범위 문장: "명식과 오행은 가입 없이 바로, 십성 등 기본 풀이는 로그인 후 무료".
+  - `lib/seo-landing-pages.js` `/love` 이용 순서 1번에 로그인 조건을 적었다.
+  - 사이트맵 lastmod 58쪽 갱신.
+- 고치지 않은 것(사용자 결정 대기 범위와 겹침):
+  - `/love/` 제목·H1·설명·버튼의 "무료 연애운": 비용은 무료가 맞지만 로그인이 필요하고, 설명이 약속하는 "배우자궁이 올해 세운과 만나는 자리"가 무료 결과에 있는지 확인하지 못했다. meta 표 적용과 함께 결정.
+  - `/ziwei/chart/` 제목·H1 "심화 자미두수 상담": 틀린 말은 아니지만 가입 없이 무료라는 점이 드러나지 않는다.
+  - `/saju/free/` 설명: 사실과 맞다. 다만 이 페이지에서 바로 되는 명식 계산은 언급이 없다.
+- 함정: `node scripts/i18n-merge-authored.mjs`를 인자 없이 돌리면 `i18n/authored/_moduleCopy-skeleton.json`의 누락 370건 때문에 실패하고 아무것도 쓰지 않는다(기존 문제). `--file`로 파일을 지정한다.
+- 검증: typecheck, 바뀐 파일 eslint, i18n:check, node 테스트 31개(`organic-acquisition`·`saju-bundle-copy.static`·`sukuyo-landing-scope`), `verify-analytics-events` 통과. `check-changed --profile=fast --skip-build --base=origin/main`은 **끝내지 못했다**: 11:06에 시작해 jest 단계에서 25분 넘게 멈춰 있어 중단했다(같은 PC에서 다른 체크아웃의 검사가 함께 돌아 CPU 100%, jest가 14분 동안 CPU 2.7초만 썼다). 실패가 난 것은 아니고 결과가 없다. push 전에 다시 돌려야 한다. i18n:check는 번역 병합 뒤에도 다시 통과했다. 빌드는 다시 돌리지 않았다(문구만 바뀜, 브라우저 확인은 수정 전 빌드 기준).
+
+### 문서 2종 (2026-11-14)
+- `docs/seo/funnel-spec.md`(`d1fb4f1c4`): 단계별 현재 이벤트, 빈 구간, 제안 이벤트, UTM이 따라가는 범위.
+- `docs/seo/payment-change-proposal.md`(`0cc130385`): F3·A1 제안. 0단계 보고서의 "복귀 티켓이 sessionStorage"는 결제 티켓에는 맞지 않는다(정본은 localStorage, `js/core/checkout-entry.js:1514-1528`). 로그인 직전 입력값 보관만 sessionStorage다.
 
 ### 조사 메모(1-5 이후, 읽기만)
 - 1-2: `app/components/guide-cta-targets.js`에 `/ggulggul/?action=cdOneStepFreeSajuEntry` + `note: "무료 · 로그인 후 확인"`이 8곳. `lib/fortune-landings.mjs`는 `action` 필드만 있고 `app/components/FortuneLandingHero.tsx`가 `"/ggulggul/?action=" + story.action`으로 href를 만든다. 안: `/saju`·`/ziwei` 항목에 선택 필드 `href`(`/saju/free/`, `/ziwei/chart/`)를 두고 hero는 `story.href || …`. `getFortuneLanding('/ziwei/chart')`는 `/ziwei` 항목을 돌려주므로 자기 자신으로 링크되지 않게 확인한다. 같이 봐야 할 것: `scripts/verify-analytics-events.mjs` L354(hero href 기대값), `js/core/analytics.js` L720-726 `SEARCH_CTA_ROUTES`(`/saju/free/` 없음, public 미러 있음), `__tests__/ui/organic-acquisition.test.mjs:84`(manse ctaHref 고정). `/saju/free/`(`app/saju/free/FreeSajuForm.tsx`)가 로그인 없이 명식·오행을 계산하는 것은 확인했다.
