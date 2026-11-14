@@ -9,6 +9,7 @@ import {fileURLToPath,pathToFileURL} from 'node:url';
 import {resolve,dirname,sep,extname} from 'node:path';
 import sharp from 'sharp';
 import {createHash} from 'node:crypto';
+import {gzipSync} from 'node:zlib';
 import {extractOmikujiEngine} from './omikuji-engine-loader.mjs';
 import {TOSS_WEBP_ART} from './bundle-art.mjs';
 const publicRoot=fileURLToPath(new URL('../../../public/',import.meta.url)).replace(/[\\/]$/,'');
@@ -143,7 +144,8 @@ export default function serviceCompat(){
    }
    if(id==='\0toss-secret-house'){
     const file=resolve(publicRoot,'secret-house_real.html');this.addWatchFile(file);
-    return 'export default '+JSON.stringify(secretHouseDocument(await readFile(file,'utf8')))+';';
+    const packed=gzipSync(secretHouseDocument(await readFile(file,'utf8')),{level:9}).toString('base64');
+    return `import {gunzipSync,strFromU8} from 'fflate';export default strFromU8(gunzipSync(Uint8Array.from(atob(${JSON.stringify(packed)}),c=>c.charCodeAt(0))));`;
    }
    if(id==='\0toss-rpg-sheet'){
     const files=['entertain-engine.js','destiny-profile.js'].map(name=>resolve(publicRoot,'../js',name));
