@@ -1,7 +1,7 @@
 ---
-status: in-progress
+status: done
 updated: 2026-11-14
-next: 묶음 ⑤ 단계 12 — check:pre-push 뒤 스테이징 push(git push origin HEAD:main)
+next: 완료 — 운영 승격은 사용자 1회 승인 필요
 ---
 
 # 꿀꿀 운세·영냥이 UX: 구매 흐름 · 후기 신뢰 · 후기 작성 · 생성 진행 · 무료 배너
@@ -166,8 +166,8 @@ next: 묶음 ⑤ 단계 12 — check:pre-push 뒤 스테이징 push(git push ori
 - [x] check:fast·검증 스크립트
 - [x] visual-checker 판정·수정 — 회귀 없음, 수정 커밋 없음(문서 끝 "묶음 ⑤ 단계 12 결과 — 실화면·push")
 - [x] SEO 점검(정적)
-- [ ] push(origin main, 내 커밋만) — 범위:
-- [ ] 문서 done·워크트리 정리
+- [x] push(origin main, 내 커밋만) — 범위: b69eea884..3b82aa2ce(본편), fece5889d..eeebfadaf·b67b027f3..e1fc882d7(CI·스테이징 수정)
+- [x] 문서 done·워크트리 정리 — 백업 브랜치 삭제, 워크트리는 지시대로 남김
 
 ## 결과 기록
 
@@ -1204,6 +1204,63 @@ SEO 동시 점검 (정적, 네트워크 없음)
 - 그 뒤 `sitemap:generate`·`llms:generate`·`sync:public`을 돌리고 서명 전용 도우미를 적용했다(서명이 바뀐 47개 라우트만 남기고 날짜만 바뀐 375개는 되돌림) → `c4843b4e5`.
 - SEO 세션의 브랜드·title 변경은 아직 origin/main에 없다. 그래서 문구를 맞출 일이 없었다.
 
+### 묶음 ⑤ 단계 12 결과 — push 뒤 CI·스테이징 수정 (2026-11-14)
+
+본편 push
+- 두 번째 재리베이스: origin/main이 `f63ff9bb0` → `b69eea884`로 움직였다. 충돌은 없었다.
+- `git push origin HEAD:main` 범위: `b69eea884..3b82aa2ce`.
+
+push 뒤 깨진 것과 고친 것(모두 이 브랜치가 원인)
+1. 스테이징 배포 실패 — `[adsense-readiness] out/saju/lotto-ritual: <title> 표시 폭 61 > 60`.
+   - title을 '사주 로또 리추얼 — 일진으로 뽑는 상징 번호 | 꿀꿀 운세'(54)로 줄였다. H1은 그대로다 → `65d8accfe`.
+   - 로컬 전체 빌드에서 adsense-readiness·home-identity가 둘 다 통과했다.
+2. Yeongnyangi Browser Shadow — `Unrecognised API`: `GET /api/reviews/summary`, `GET /api/reviews`(ReviewProof).
+   - 픽스처에 공개 읽기 두 개를 빈 응답으로 추가했다(승인 후기는 넣지 않음) → `00433b122`.
+3. PR CI Critical checks — toss 계약 테스트 4개 파일.
+   - native-delivery-messages: `setGroupProgress` 스텁 추가.
+   - records-access·records-recheck·records-refresh: `@/app/components/review/review-ui`의 `reviewWriteHref` 목 추가 → `9733ee4ce`.
+4. 사이트맵 원장 — 1번 수정 때 재생성하면서 서명이 그대로인 375개 라우트까지 날짜가 올라갔다.
+   - 서명 전용 도우미로 되돌려 서명이 바뀐 9개만 남겼다 → `eeebfadaf`.
+5. Shadow `webkit-expired-login` — 재로그인 직후 `page.goto`가 `/login/`을 떠날 때 끊긴 `/i18n/ko.json` 읽기를 WebKit이 접근 제어 오류로 올렸다.
+   - 재실행 2회 모두 같았다. `loadDictionary`는 catch로 null을 돌려준다.
+   - 그래서 `/login/` 페이지·이 시나리오에서만 취소로 분류했다 → `e1fc882d7`.
+   - WebKit이 로컬에 없어 CI에서 확인했다. 결과는 통과(아래).
+
+push 범위(수정분): `fece5889d..eeebfadaf`(1~4), `b67b027f3..e1fc882d7`(5). 매번 fetch 뒤 리베이스했다. 충돌은 없었고 force-push는 하지 않았다.
+
+검사
+- 로컬
+  - `check-changed --base=<upstream>`(build:cf 포함): 통과.
+  - `check:pre-push`: 3회 모두 통과.
+  - sitemap-drift·mirror-fresh: 통과.
+  - toss 전체 1590건 중 1589건 통과. 1건은 로컬에 `@apps-in-toss/devtools`가 없는 환경 문제이고 CI에서는 통과한다.
+  - 영냥이 chromium 매트릭스: 통과(로컬 정적 서버가 리다이렉트 때 쿼리를 버리던 문제를 고친 뒤).
+- 다른 세션의 `D:Developmentcode-destiny` dev 서버(별도 .next) 때문에 빌드 가드가 막혀 `ALLOW_DEV_SERVER_DURING_BUILD=1`로 돌렸다. 그 서버는 건드리지 않았다.
+- CI
+  - PR CI `26b2f860b`(우리 커밋 포함): 전체 job 통과.
+  - `eeebfadaf` 자체의 PR CI는 뒤 push에 밀려 취소됐다.
+- 스테이징 배포: dispatch `43563647504`(eeebfadaf) 성공, 마지막 dispatch `43572225433`(e1fc882d7) 성공. 이제 staging `version.json` gitSha는 `e1fc882d7`이다.
+- `e1fc882d7`: Yeongnyangi Browser Shadow `43572170854`(webkit 포함) 통과, PR CI `43572170878` 통과.
+
+스테이징 라우트 (plain GET, 2026-11-14 · eeebfadaf/26b2f860b에서 H1을 확인했고 e1fc882d7에서 다시 200을 확인)
+
+| 경로 | HTTP | H1 |
+|---|---|---|
+| `/` | 200 | 마음이 가는 카드를 골라보세요 |
+| `/saju/four-cut/` | 200 | 사주 네컷 — 오늘의 일주로 만드는 인생네컷 |
+| `/saju/natal-chart/` | 200 | 사주 명식과 12신살 — 네 기둥 여덟 글자 읽기 |
+| `/saju/season-rhythm/` | 200 | 내 절기 리듬 — 태어난 절기로 읽는 월령 |
+| `/saju/lotto-ritual/` | 200 | 사주 로또 리추얼 — 오늘의 상징 번호 (title 54폭 반영) |
+| `/reviews/?product=yeongnyangi` | 200 | 실시간 사용자 리뷰 — 구매 인증 후기 모음 |
+
+스테이징은 모든 경로가 `noindex,nofollow`다(스테이징 규칙).
+
+정리
+- 백업 브랜치 2개를 삭제했다.
+- 스크래치 정적 서버와 dev 서버를 종료했다. 3118·12941 포트가 비었다.
+- 워크트리는 남겼다.
+- 운영 승격은 하지 않았다. 사용자 승인 1회가 필요하다.
+
 ## 후속 과제 (통합, 중복 제거 — 2026-11-14)
 
 위 각 절의 "후속"을 모았다. 해결된 항목(취소선, 단계 5 후속 1~3)은 뺐다. 모두 이 브랜치에서 고치지 않았다.
@@ -1273,7 +1330,7 @@ SEO 동시 점검 (정적, 네트워크 없음)
 30. 베다 eslint 경고(`Sparkles` 미사용), 쓰지 않는 CSS `.cosmosLabelSwap`.
 
 검사·운영
-31. `verify:adsense-readiness`·`verify:home-identity`는 `dist/` 빌드(네트워크 CMS 받기)가 필요해 돌리지 않았다. 운영 승격 전에 빌드 환경에서 돌린다.
+31. ~~`verify:adsense-readiness`·`verify:home-identity` 미실행~~ — 2026-11-14 로컬 전체 빌드와 스테이징 배포에서 둘 다 통과했다(로또 title 61→54 수정 뒤).
 32. 알려진 기존 실패: `home-service-separation.test.cjs` `.yh-concerns`.
 33. SEO 세션의 브랜드·title 변경이 들어오면 신규 `/saju/<slug>/` 9개 문구를 "꿀꿀 운세 안의 영냥이 상담" 결정과 다시 대조한다.
 34. 운영 승격은 사용자 승인이 1회 필요하다(이번에는 스테이징까지만 승인됨).
