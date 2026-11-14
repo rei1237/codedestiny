@@ -2,7 +2,7 @@ import {useEffect,useRef,useState} from 'react';
 import {createVedicReader} from 'virtual:toss-vedic-reading';
 import 'virtual:toss-vedic-reading.css';
 import {buildOriginalVedicReading} from './vedic-source-bridge.mjs';
-import {BirthFields,birthPayload,emptyBirth} from '../src/BirthFields';
+import {AstralBirthFields as BirthFields,astralBirthPayload as birthPayload,emptyBirth} from '../src/AstralBirthFields';
 import {Button} from '../src/Button';
 import {api} from '../src/platform';
 import TossSessionScope from '../src/TossSessionScope';

@@ -116,6 +116,15 @@ export async function handleTossRoutes(request,env) {
       const {calculateTossPet}=await import('./pet-saju.js');
       return reply(calculateTossPet(await bodyOf(request)));
     }
+    if(path==='/astro/synastry/people'&&request.method==='GET'){
+      const {tossAstroSynastryPeople}=await import('./astro-synastry.js');
+      return reply(tossAstroSynastryPeople());
+    }
+    if(path==='/astro/synastry'&&request.method==='POST'){
+      await limit(env,request.headers.get('CF-Connecting-IP')||'unknown','astro-synastry',6);
+      const {tossAstroSynastry}=await import('./astro-synastry.js');
+      return forwardServiceResponse(await tossAstroSynastry(await bodyOf(request),env),headers);
+    }
     if(path==='/astro/section'&&request.method==='POST'){
       await limit(env,request.headers.get('CF-Connecting-IP')||'unknown','astro-section',24);
       const {readTossAstroSection}=await import('./astro-section.js');

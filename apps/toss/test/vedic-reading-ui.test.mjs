@@ -13,7 +13,7 @@ test('Vedic full reader submits birth input, switches both charts, opens eight o
  const inputValue=async(element,value)=>React.act(()=>{Object.getOwnPropertyDescriptor(element.tagName==='SELECT'?window.HTMLSelectElement.prototype:window.HTMLInputElement.prototype,'value').set.call(element,value);element.dispatchEvent(new window.Event(element.tagName==='SELECT'?'change':'input',{bubbles:true}));});
  try{
   await React.act(()=>root.render(React.createElement(Component,{request})));
-  await inputValue(document.querySelector('[type=date]'),'1990-02-03');await inputValue(document.querySelector('[type=time]'),'08:35');const selects=document.querySelectorAll('select');await inputValue(selects[1],'F');await inputValue(selects[2],'서울');
+  await inputValue(document.querySelector('[type=date]'),'1990-02-03');await inputValue(document.querySelector('[type=time]'),'08:35');const selects=document.querySelectorAll('select');await inputValue(selects[1],'F');await inputValue([...selects].find(select=>[...select.options].some(option=>option.value==='서울')),'서울');
   await React.act(async()=>{document.querySelector('form').dispatchEvent(new window.Event('submit',{bubbles:true,cancelable:true}));});
   assert.equal(calls,1);assert.equal(document.querySelector('h1').textContent,'나의 베다 명반');assert.equal(document.querySelectorAll('[aria-label="베다 해석 주제"] button').length,7);
   await click('북인도 명반');assert.ok(document.querySelector('svg'));await click('남인도 명반');

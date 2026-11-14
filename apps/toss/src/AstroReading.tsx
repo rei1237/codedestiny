@@ -1,5 +1,5 @@
 import {useEffect,useRef,useState,type FormEvent} from 'react';
-import {BirthFields,birthPayload,emptyBirth,type BirthInput} from './BirthFields';
+import {AstralBirthFields as BirthFields,astralBirthPayload as birthPayload,emptyBirth,type AstralBirthInput as BirthInput} from './AstralBirthFields';
 import {Button} from './Button';
 import {api} from './platform';
 import TossSessionScope from './TossSessionScope';
@@ -31,7 +31,7 @@ function Reading({request=api,exampleBirth}:Props){
  return <section><h1>서양 점성술 출생차트</h1><p>태어난 순간의 행성과 별자리에서 기질과 관계, 앞으로의 흐름을 살펴봐요.</p>
  {!submitted?<form className="form" onSubmit={submit}>
  {exampleBirth&&<><p>비공개 모의 상담에서는 검증된 예시 출생정보로 원본 풀이를 확인할 수 있어요.</p><Button type="button" variant="weak" onClick={()=>setBirth({...exampleBirth})}>모의 예시 입력하기</Button></>}
- <BirthFields title="별자리를 읽을 출생정보" showGender={false} value={birth} disabled={busy} onChange={setBirth}/><p>국내 출생지를 지원해요. 태어난 시각을 모르면 상승점과 하우스 해석은 제한돼요.</p>
+ <BirthFields title="별자리를 읽을 출생정보" showGender={false} value={birth} disabled={busy} onChange={setBirth}/><p>태어난 시각을 모르면 상승점과 하우스 해석은 제한돼요.</p>
  <Button type="submit" display="block" disabled={busy} loading={busy}>출생차트 펼치기</Button></form>:<>
  {chart&&<AstroChartView result={chart} timeKnown={!submitted.unknown}/>}
  <nav style={{display:'flex',flexWrap:'wrap',gap:8,marginBlock:20}} aria-label="점성술 풀이 선택" className="mode-tabs">{(Object.keys(TOSS_ASTRO_SECTIONS) as Key[]).filter(isTossAstroSection).map(key=><Button key={key} disabled={busy} variant={result?.featureKey===key?'fill':'weak'} aria-pressed={result?.featureKey===key} onClick={()=>void open(key,submitted)}>{TOSS_ASTRO_SECTIONS[key]}</Button>)}</nav>

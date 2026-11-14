@@ -50,7 +50,7 @@ const TarotLibrary=lazy(()=>import('./TarotLibrary'));
 const CareerStylePreview=lazy(()=>import('./CareerStylePreview'));
 const AnimalDestiny=lazy(()=>import('./AnimalDestiny'));
 const MusicShelf=lazy(()=>import('./MusicShelf'));
-const AstroReading=lazy(()=>import('./AstroReading'));
+const AstroReading=lazy(()=>import('./AstroHome'));
 const VedicReading=lazy(()=>import('../service/VedicReading'));
 const MansionAtlas=lazy(()=>import('./MansionAtlas'));
 const NovelReader=lazy(()=>import('./NovelReader'));

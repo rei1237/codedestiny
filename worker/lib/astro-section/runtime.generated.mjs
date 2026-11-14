@@ -21,6 +21,9 @@ export function createAstroSectionRuntime(ctx) {
   // ── js/saju-engine.js top-level text helpers ──
 var SAJU_ENGINE_TEXT_TRANSLATIONS = {
   ko: {
+    "astro_swiss_unavailable_title": "점성술 엔진 연결 중",
+    "astro_swiss_unavailable_body": "정확한 차트 계산용 Swiss 라이브러리 연결에 실패했습니다.",
+    "astro_swiss_unavailable_retry": "출생지/출생시간 입력을 확인한 뒤 다시 시도해 주세요. 문제가 반복되면 잠시 후 다시 열어 주세요.",
     "se_10026_prop_title": "일·공부",
     "se_10027_prop_title": "연애·관계",
     "se_10028_prop_title": "돈·생활",

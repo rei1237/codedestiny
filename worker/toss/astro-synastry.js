@@ -4,8 +4,10 @@ import {flowerBirthInput} from './birth-input.js';
 import {validateInput} from '../yeongnyangi/fortune/shared/input.ts';
 import {chartInput} from '../yeongnyangi/fortune/shared/time.ts';
 import {TossError} from './policy.js';
+import {createAstroSynastryRuntime,astroSynastryStyles} from '../lib/astro-section/synastry-runtime.generated.mjs';
 
 const keys=['compat-astro-synastry','compat-astro-direct-synastry'];
+export function tossAstroSynastryPeople(){return {...createAstroSynastryRuntime({lang:'ko'}).catalog(),css:astroSynastryStyles};}
 function moment(birth){
  try{
   const raw=flowerBirthInput({...birth,gender:birth?.gender||'OTHER'});
