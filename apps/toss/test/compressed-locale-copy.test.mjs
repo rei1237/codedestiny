@@ -5,6 +5,7 @@ import {readFile} from 'node:fs/promises';
 import {fileURLToPath} from 'node:url';
 import {build,transformSync} from 'esbuild';
 import {compressLocaleCopy} from '../canonical/compressed-locale-copy.mjs';
+import ts from 'typescript';
 
 async function evaluate(contents){
  const result=await build({stdin:{contents,loader:'ts',resolveDir:fileURLToPath(new URL('../',import.meta.url))},alias:{'@':fileURLToPath(new URL('../../../',import.meta.url))},bundle:true,write:false,platform:'node',format:'esm'});
@@ -25,4 +26,19 @@ for(const [feature,getter] of [['nakshatra','getNakshatraCopy'],['destiny-compas
   assert.deepEqual(normalize(after),normalize(before),locale);
  }
  assert.ok(Buffer.byteLength(packed)<Buffer.byteLength(source));
+});
+
+for(const [path,prefix] of [['karma-destiny-ai/KarmaDestinyAiClient.tsx','KARMA_DESTINY'],['fusion-fortune/FusionFortuneClient.tsx','FUSION_FORTUNE']])test(path+' keeps every authored locale table and formatter',async()=>{
+ const source=await readFile(new URL('../../../app/'+path,import.meta.url),'utf8');
+ const packed=compressLocaleCopy(source);
+ function tables(code){
+  const tree=ts.createSourceFile('client.tsx',code,ts.ScriptTarget.Latest,true,ts.ScriptKind.TSX);
+  const selected=tree.statements.filter(node=>ts.isVariableStatement(node)&&node.declarationList.declarations.some(decl=>[prefix+'_EN',prefix+'_COPY','originalLocaleText'].includes(decl.name.getText(tree))));
+  const imports=tree.statements.filter(node=>ts.isImportDeclaration(node)&&node.moduleSpecifier.text==='fflate');
+  return [...imports,...selected].map(node=>node.getText(tree)).join('\n')+'\nexport const tables=['+prefix+'_EN,'+prefix+'_COPY];';
+ }
+ const [before,after]=await Promise.all([evaluate(tables(source)),evaluate(tables(packed))]);
+ const normalize=value=>typeof value==='function'?{fn:transformSync('('+value.toString()+')',{minifyWhitespace:true}).code}:Array.isArray(value)?value.map(normalize):value&&typeof value==='object'?Object.fromEntries(Object.entries(value).map(([key,item])=>[key,normalize(item)])):value;
+ assert.deepEqual(normalize(after.tables),normalize(before.tables));
+ assert.ok(Buffer.byteLength(source)-Buffer.byteLength(packed)>40000);
 });
