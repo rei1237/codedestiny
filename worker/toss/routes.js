@@ -116,6 +116,11 @@ export async function handleTossRoutes(request,env) {
       const {calculateTossPet}=await import('./pet-saju.js');
       return reply(calculateTossPet(await bodyOf(request)));
     }
+    if(path==='/vedic/reading'&&request.method==='POST'){
+      await limit(env,request.headers.get('CF-Connecting-IP')||'unknown','vedic-reading',6);
+      const {tossVedicReading}=await import('./vedic-reading.js');
+      return reply(await tossVedicReading(await bodyOf(request),env,{requestUrl:'https://code-destiny.com/api/toss/vedic/reading'}));
+    }
     if(path==='/charts/vedic'&&request.method==='POST'){
       await limit(env,request.headers.get('CF-Connecting-IP')||'unknown','basic-sky-chart',6);
       const {basicSkyChart}=await import('./basic-sky-chart.js');

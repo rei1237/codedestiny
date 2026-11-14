@@ -51,6 +51,7 @@ const CareerStylePreview=lazy(()=>import('./CareerStylePreview'));
 const AnimalDestiny=lazy(()=>import('./AnimalDestiny'));
 const MusicShelf=lazy(()=>import('./MusicShelf'));
 const BasicSkyChart=lazy(()=>import('./BasicSkyChart'));
+const VedicReading=lazy(()=>import('../service/VedicReading'));
 const MansionAtlas=lazy(()=>import('./MansionAtlas'));
 const NovelReader=lazy(()=>import('./NovelReader'));
 const FamousSaju=lazy(()=>import('./FamousLibrary'));
@@ -216,7 +217,7 @@ export default function App({reviewHome,reviewRoute,consultationHref,verifiedRec
     {page==='saju/career-style'&&CareerStylePreview&&<Suspense fallback={<p role="status">일 스타일 예시를 펼치고 있어요.</p>}><CareerStylePreview/></Suspense>}
     {page==='saju/animal-destiny'&&<Suspense fallback={<p role="status">동물 도감을 준비하고 있어요.</p>}><AnimalDestiny/></Suspense>}
     {page==='music'&&MusicShelf&&<Suspense fallback={<p role="status">음악실을 준비하고 있어요.</p>}><MusicShelf/></Suspense>}
-    {(page==='astrology'||page==='vedic')&&<Suspense fallback={<p role="status">출생차트를 준비하고 있어요.</p>}><BasicSkyChart system={page} loggedIn={loggedIn} onLogin={()=>requireLogin(page)} onError={failure}/></Suspense>}
+    {page==='astrology'&&<Suspense fallback={<p role="status">출생차트를 준비하고 있어요.</p>}><BasicSkyChart system={page} loggedIn={loggedIn} onLogin={()=>requireLogin(page)} onError={failure}/></Suspense>}
     {(page==='nakshatra/codex'||page.startsWith('nakshatra/codex/'))&&<Suspense fallback={<p role="status">별자리 도감을 펼치고 있어요.</p>}><MansionAtlas index={page==='nakshatra/codex'?null:Number(page.split('/')[2])} onOpen={index=>go(index===null?'nakshatra/codex':`nakshatra/codex/${index}`)}/></Suspense>}
     {page==='novel'&&NovelReader&&<Suspense fallback={<p role="status">차례를 펼치고 있어요.</p>}><NovelReader/></Suspense>}
     {page==='insights/famous-saju'&&<Suspense fallback={<p role="status">인물 이야기를 준비하고 있어요.</p>}><FamousSaju/></Suspense>}
@@ -224,6 +225,7 @@ export default function App({reviewHome,reviewRoute,consultationHref,verifiedRec
     {page==='ziwei/chart'&&<Suspense fallback={<p role="status">명반을 준비하고 있어요.</p>}><ZiweiChart loggedIn={loggedIn} onLogin={()=>requireLogin(page)}/></Suspense>}
     {page==='manse'&&<Suspense fallback={<p role="status">만세력을 준비하고 있어요.</p>}><ManseReading loggedIn={loggedIn} onLogin={()=>requireLogin('manse')} onError={failure}/></Suspense>}
     {page==='sukuyo'&&<Suspense fallback={<p role="status">숙요점을 준비하고 있어요.</p>}><SukuyoBasic renderAtlas={(index,onOpen)=><MansionAtlas index={index} onOpen={onOpen}/>} loggedIn={loggedIn} onLogin={()=>requireLogin('sukuyo')} onError={failure}/></Suspense>}
+    {page==='vedic'&&<Suspense fallback={<p role="status">베다 명반과 해석을 준비하고 있어요.</p>}><VedicReading onError={failure}/></Suspense>}
     {page==='human-design'&&<Suspense fallback={<p role="status">차트를 준비하고 있어요.</p>}><HumanDesignChart loggedIn={loggedIn} onLogin={()=>requireLogin('human-design')} onError={failure}/></Suspense>}
     {page==='daily'&&<Suspense fallback={<p role="status">오늘의 이야기를 준비하고 있어요.</p>}><DailyReadings loggedIn={loggedIn} onLogin={()=>requireLogin('daily')} onError={failure}/></Suspense>}
     {page==='bias'&&<Suspense fallback={<p role="status">최애운명 화면을 불러오고 있어요.</p>}><BiasReading/></Suspense>}
