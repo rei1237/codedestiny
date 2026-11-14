@@ -1255,6 +1255,19 @@ jobs:
           done
           node test/private-simulation-archive.mjs private-simulation/ai-saju-studio.ait --human-design
           node test/private-simulation-archive.mjs private-simulation/ai-saju-studio.ait --sukuyo-yearly
+          for report in ziwei-deep compass yoga nakshatra; do
+            node test/private-simulation-archive.mjs private-simulation/ai-saju-studio.ait --extended-report "$report"
+          done
+          for tarot in oracle celestial relationship mindscan; do
+            node test/private-simulation-archive.mjs private-simulation/ai-saju-studio.ait --paid-tarot "$tarot"
+          done
+          for family in relationship sukuyo pet pet-compat; do
+            node test/private-simulation-archive.mjs private-simulation/ai-saju-studio.ait --paid-family "$family"
+          done
+          node test/private-simulation-archive.mjs private-simulation/ai-saju-studio.ait --free-reading
+          node test/private-simulation-archive.mjs private-simulation/ai-saju-studio.ait --maya-free
+          node test/private-simulation-archive.mjs private-simulation/ai-saju-studio.ait --free-calculations
+          node test/private-simulation-archive.mjs private-simulation/ai-saju-studio.ait --vedic-reading
           for domain in saju ziwei sukuyo vedic astrology tarot; do
             node test/private-simulation-archive.mjs private-simulation/ai-saju-studio.ait --character-rooms letter --letter-persona neo --letter-domain "$domain"
             tiers="mackerel salmon flounder"
