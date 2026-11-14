@@ -1,3 +1,4 @@
+import compressedNamingData from './compressed-naming-data.mjs';
 import {dirname,resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import base from '../vite.config.ts';
@@ -39,5 +40,5 @@ function privateSimulation(){
 export default async env=>{
   if(env.command!=='build'||env.mode!=='private-simulation')throw Error('Use build:private-simulation for the isolated private archive');
   const config=await base(env);
-  return {...config,root:shell,plugins:[privateSimulation(),...config.plugins],build:{...config.build,outDir:resolve(here,'dist')}};
+  return {...config,root:shell,plugins:[privateSimulation(),compressedNamingData(),...config.plugins],build:{...config.build,outDir:resolve(here,'dist')}};
 };
