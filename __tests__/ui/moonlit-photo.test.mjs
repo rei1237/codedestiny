@@ -9,6 +9,23 @@ const source=compile('app/moonlit-lotus/_lib/photo-poses.ts')
  .replace('../model-review/sprite-clips',data(compile('app/moonlit-lotus/model-review/sprite-clips.ts')))
  .replace('./companions',data(compile('app/moonlit-lotus/_lib/companions.ts')));
 const {photoDrawing,PHOTO_POSES,PHOTO_ART_POSES}=await import(data(source));
+const {transformGesture,hitTransform,constrainTransform}=await import(data(compile('app/moonlit-lotus/_lib/photo-transform.ts')));
+
+test('photo gestures keep the pinch midpoint and rotate in aspect-independent coordinates',()=>{
+ const t={x:.5,y:.3,size:.2,rotation:0};
+ const result=transformGesture(t,[{x:.4,y:.3},{x:.6,y:.3}],[{x:.5,y:.1},{x:.5,y:.5}],2/3);
+ for(const [key,value] of Object.entries({x:.5,y:.3,size:.4,rotation:90}))assert.ok(Math.abs(result[key]-value)<1e-8);
+ const resumed=transformGesture(result,[{x:.5,y:.5}],[{x:.55,y:.52}],2/3);
+ assert.ok(Math.abs(resumed.x-.55)<1e-8);assert.ok(Math.abs(resumed.y-.32)<1e-8);
+ assert.equal(resumed.size,result.size);assert.equal(resumed.rotation,result.rotation);
+});
+test('rotated caption hit areas and off-canvas gesture bounds remain recoverable',()=>{
+ const t={x:.5,y:.3,size:.2,rotation:90};
+ assert.ok(hitTransform({x:.5,y:.39},t,.2,.05));
+ assert.ok(!hitTransform({x:.59,y:.3},t,.2,.05));
+ assert.deepEqual(constrainTransform({x:-3,y:5,size:8,rotation:720},2/3),{x:0,y:2/3,size:.8,rotation:0});
+ assert.deepEqual(transformGesture(t,[],[],2/3),t);
+});
 test('changing Hanbi to Yeongnyangi or Yeoni does not reuse the old photo character',()=>{
  const savedLook={species:'hanbi'};
  for(const [pose] of PHOTO_POSES){
