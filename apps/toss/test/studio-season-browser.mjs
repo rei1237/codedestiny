@@ -30,7 +30,7 @@ try{
   });
   const page=await context.newPage();
   await page.goto(origin);
-  await page.locator('.world-entry-yeongnyangi').click();
+  await page.locator('.world-entry-yeongnyangi').click();for(const section of await page.locator('.world-disclosure>summary').all())await section.click();
   await page.getByRole('button',{name:'영냥이의 점술방 시즌 1 읽기'}).click();
   for(const item of season.chapters){
     await page.getByRole('button',{name:item.no+'화 읽기 · '+item.pages.length+'쪽'}).click();

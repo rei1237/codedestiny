@@ -7,7 +7,7 @@ const p=await ctx.newPage(),methods={saju:'사주',ziwei:'자미두수',sukuyo:'
 try{
  for(const [persona,name] of Object.entries({yeoni:'연이',neo:'네오'})){
   for(const [domain,method] of Object.entries(methods)){
-   await p.goto(origin);await p.locator('.world-entry-ggulggul').click();
+   await p.goto(origin);await p.locator('.world-entry-ggulggul').click();await p.getByRole('button',{name:'전체 펼치기',exact:true}).click();
    await p.getByRole('button',{name:name+'의 상담 편지',exact:true}).click();
    const room=p.locator('[data-consultation-room]'),q=name+'의 '+method+' 편지로 오늘 할 수 있는 일을 알고 싶어요.';
    await room.getByLabel('나의 질문',{exact:true}).fill(q);await room.getByRole('button',{name:'계속하기'}).click();
@@ -21,7 +21,7 @@ try{
    await room.getByRole('button',{name:persona==='yeoni'&&domain==='saju'?'4,950원 단건 결제':'1원 단건 결제'}).click();
    const text='[테스트 전용] '+name+'의 상담 편지 원문입니다.';await room.getByText(text,{exact:true}).first().waitFor();
    const id=new URL(p.url()).searchParams.get('consultation');
-   await p.goto(origin);await p.locator('.world-entry-ggulggul').click();
+   await p.goto(origin);await p.locator('.world-entry-ggulggul').click();await p.getByRole('button',{name:'전체 펼치기',exact:true}).click();
    await p.getByRole('link',{name:'꿀꿀운세 구매 기록'}).click();await p.locator('article').filter({hasText:q}).getByRole('link',{name:'다시 보기'}).click();
    await room.getByText(text,{exact:true}).first().waitFor();assert.equal(new URL(p.url()).searchParams.get('consultation'),id);
    const row=await p.evaluate(id=>JSON.parse(localStorage.getItem('toss-offline-fixture')).letters.find(([key])=>key===id)[1],id);

@@ -5,7 +5,7 @@ const browser=await chromium.launch({channel:'chrome'});
 const context=await browser.newContext({viewport:{width:360,height:740},isMobile:true,serviceWorkers:'block'});
 context.setDefaultTimeout(25000);await context.route('**/*',r=>new URL(r.request().url()).origin===origin?r.continue():r.abort());
 const question='새 업무를 시작할 때 어떤 조건을 확인할까요?';
-async function open(p){await p.goto(origin);await p.locator('.world-entry-ggulggul').click();await p.getByRole('button',{name:'네오 작전 결정서 · 이메일 상담'}).click();}
+async function open(p){await p.goto(origin);await p.locator('.world-entry-ggulggul').click();await p.getByRole('button',{name:'전체 펼치기',exact:true}).click();await p.getByRole('button',{name:'네오 작전 결정서 · 이메일 상담'}).click();}
 async function login(p){await p.getByRole('link',{name:'토스로 로그인하기'}).click();await p.getByRole('button',{name:'토스로 로그인하기'}).click();}
 try{
  const p=await context.newPage();p.on('pageerror',e=>console.error(e.message));await open(p);await login(p);

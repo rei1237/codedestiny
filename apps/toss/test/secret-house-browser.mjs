@@ -17,7 +17,7 @@ try{
    return route.fulfill({status:response.status,contentType:'application/json',body:await response.text()});
  });
  const p=await context.newPage();p.setDefaultTimeout(18000);
- await p.goto(origin);await p.locator('.world-entry-ggulggul').click();
+ await p.goto(origin);await p.locator('.world-entry-ggulggul').click();await p.getByRole('button',{name:'전체 펼치기',exact:true}).click();
  await p.getByRole('button',{name:/^사주 리포트/}).click();
  await p.getByLabel('풀이 선택').selectOption('rpt_secretHouseEntryCard');
  assert.equal(await p.getByLabel('태어난 날짜',{exact:true}).count(),0);

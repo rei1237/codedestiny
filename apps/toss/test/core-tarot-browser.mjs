@@ -19,7 +19,7 @@ try{
   page.on('pageerror',e=>{errors.push(e.message);console.error(e.message);});
   page.setDefaultTimeout(20000);
   await page.goto(origin);
-  await page.locator('.world-entry-ggulggul').click();
+  await page.locator('.world-entry-ggulggul').click();await page.getByRole('button',{name:'전체 펼치기',exact:true}).click();
   await page.getByRole('button',{name:/타로 리딩/}).first().click();
   await page.getByRole('button',{name:/오늘의 타로/}).click();
   for(const label of ['오늘의 운세','연애운','재회운','직장·커리어운','재물운','건강운','시험·합격운','대인관계운']){

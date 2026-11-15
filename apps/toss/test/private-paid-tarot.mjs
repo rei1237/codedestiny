@@ -3,7 +3,7 @@ import {privateTarotUuid} from '../private-simulation/tarot-links.mjs';
 const cases={oracle:{title:'타로 오라클 상담',count:12},celestial:{title:'천체의 선율',count:11},relationship:{title:'우리는 무슨 사이?',count:6},mindscan:{title:'말과 행동 사이 타로',count:10}};
 export async function verifyPrivatePaidTarot(origin,context,key='oracle'){
  const mode=cases[key];assert.ok(mode);let page=await context.newPage();page.setDefaultTimeout(30000);
- const home=async()=>{await page.goto(origin);await page.locator('.world-entry-ggulggul').click();};
+ const home=async()=>{await page.goto(origin);await page.locator('.world-entry-ggulggul').click();await page.getByRole('button',{name:'전체 펼치기',exact:true}).click();};
  const ledger=()=>page.evaluate(()=>JSON.parse(localStorage.getItem('consultations')));
  try{
   await home();await page.getByRole('searchbox').fill('타로 리딩');await page.locator('.directory-list button').filter({hasText:'타로 리딩'}).first().click();await page.getByRole('button',{name:new RegExp(mode.title.replace('?','\\?'))}).click();

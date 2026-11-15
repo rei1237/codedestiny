@@ -18,7 +18,7 @@ await ctx.addInitScript(({indices,points})=>{
 const photo={name:'solid-local-fixture.png',mimeType:'image/png',buffer:await sharp({create:{width:480,height:600,channels:3,background:'#77665b'}}).png().toBuffer()};
 const p=await ctx.newPage();p.on('pageerror',e=>console.error(e.message));
 try{
- await p.goto(origin);await p.locator('.world-entry-ggulggul').click();await p.getByRole('button',{name:'전문가 동물 관상',exact:true}).click();
+ await p.goto(origin);await p.locator('.world-entry-ggulggul').click();await p.getByRole('button',{name:'전체 펼치기',exact:true}).click();await p.getByRole('button',{name:'전문가 동물 관상',exact:true}).click();
  const f=p.frameLocator('iframe[title="전문가 동물 관상"]');
  await f.locator('#phyFileInput').setInputFiles(photo);await f.locator('#captureBtn').click();
  await f.locator('#expertReportContainer details').first().waitFor();assert.equal(await f.locator('#phyTop3 .phy-top3__name').count(),3);

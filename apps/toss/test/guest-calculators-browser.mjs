@@ -43,7 +43,7 @@ try{
  const page=await ctx.newPage();
  async function open(label){
   await page.goto(origin);
-  await page.locator('.world-entry-ggulggul').click();
+  await page.locator('.world-entry-ggulggul').click();await page.getByRole('button',{name:'전체 펼치기',exact:true}).click();
   await page.getByRole('button',{name:new RegExp('^'+label)}).first().click();
  }
  await open('반려동물 사주');

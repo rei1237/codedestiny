@@ -25,7 +25,7 @@ try{
    assert.equal(page.url(),web+expected);assert.ok(await page.evaluate(()=>window.opener===null));await page.close();
  }
  await p.getByText('웹 이용권·월정석 내역',{exact:true}).click();await openLink('웹 이용 내역 열기','/points/history/');
- await p.goto(origin);await p.locator('.world-entry-ggulggul').click();await p.getByRole('button',{name:/자미두수 상세 풀이/}).click();
+ await p.goto(origin);await p.locator('.world-entry-ggulggul').click();await p.getByRole('button',{name:'전체 펼치기',exact:true}).click();await p.getByRole('button',{name:/자미두수 상세 풀이/}).click();
  await p.getByText('기존 운명의 섬 상담',{exact:true}).click();
  await openLink('웹 구매 기록 열기','/records/');await openLink('웹 12궁 심층 리포트 확인','/island-consult/?view=report');
  assert.deepEqual(visits,['/points/history/','/records/','/island-consult/?view=report']);assert.deepEqual(unexpected,[]);

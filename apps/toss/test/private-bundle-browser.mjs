@@ -50,7 +50,7 @@ try{
   await page.goto(origin);
   await page.locator('.world-entry-yeongnyangi').waitFor();
   await capture('home');
-  await page.locator('.world-entry-yeongnyangi').click();
+  await page.locator('.world-entry-yeongnyangi').click();for(const section of await page.locator('.world-disclosure>summary').all())await section.click();
   await page.getByRole('heading',{name:/달빛 점술방/}).waitFor();
   assert.ok(await page.locator('.world-cat').evaluate(img=>img.complete&&img.naturalWidth>0));
   await capture('moonlight-room');

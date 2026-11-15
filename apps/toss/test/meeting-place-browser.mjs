@@ -8,7 +8,7 @@ try {
   page.setDefaultTimeout(45000);
   await page.route('**/*',route=>new URL(route.request().url()).origin===origin?route.continue():route.abort());
   await page.goto(origin);
-  await page.locator('.world-entry-ggulggul').click();
+  await page.locator('.world-entry-ggulggul').click();await page.getByRole('button',{name:'전체 펼치기',exact:true}).click();
   await page.getByRole('button',{name:/운명의 인연 장소/}).click();
   await page.getByRole('button',{name:'토스로 로그인하기'}).click();
   await page.waitForURL(/\/login\//);

@@ -8,7 +8,7 @@ try{
   const context=await browser.newContext({viewport:{width:360,height:740},serviceWorkers:'block',reducedMotion:'reduce'});
   await context.route('**/*',route=>new URL(route.request().url()).origin===origin?route.continue():route.abort());
   const page=await context.newPage();
-  const open=async title=>{await page.goto(origin);await page.locator('.world-entry-ggulggul').click();await page.getByRole('button',{name:new RegExp(title)}).click();};
+  const open=async title=>{await page.goto(origin);await page.locator('.world-entry-ggulggul').click();await page.getByRole('button',{name:'전체 펼치기',exact:true}).click();await page.getByRole('button',{name:new RegExp(title)}).click();};
   await open('나크샤트라 택일');
   await page.getByRole('button',{name:'토스 로그인하고 리포트 보기'}).click();
   await page.getByRole('button',{name:'토스로 로그인하기'}).click();

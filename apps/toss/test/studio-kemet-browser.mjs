@@ -9,7 +9,7 @@ const browser=await chromium.launch({channel:'chrome'});
 try{
   const context=await browser.newContext({viewport:{width:360,height:740},serviceWorkers:'block',reducedMotion:'reduce'});
   const paths=[];await context.route('**/*',route=>{const url=new URL(route.request().url());if(url.origin!==origin)return route.abort();paths.push(url.pathname);return route.continue();});
-  const page=await context.newPage();await page.goto(origin);await page.locator('.world-entry-ggulggul').click();await page.getByRole('button',{name:/이집트 신탁/}).click();
+  const page=await context.newPage();await page.goto(origin);await page.locator('.world-entry-ggulggul').click();await page.getByRole('button',{name:'전체 펼치기',exact:true}).click();await page.getByRole('button',{name:/이집트 신탁/}).click();
   for(const [q,topic] of [['관계를 어떻게 이어갈까요','사랑과 관계'],['재산을 어떻게 모을까요','풍요와 재물'],['진로를 바꾸고 싶어요','성취와 갈등']]){
     await page.getByLabel('제단에 올릴 질문').fill(q);await page.getByRole('button',{name:'신탁 카드 섞기'}).click();
     const choose=page.getByRole('group',{name:'열두 신탁 카드'});assert.equal(await choose.getByRole('button').count(),12);

@@ -8,6 +8,12 @@ try{
  const page=await ctx.newPage();page.setDefaultTimeout(60000);
  async function catalog(){await page.goto(origin);await page.locator('.world-entry-ggulggul').click();return page.getByRole('searchbox',{name:'운세 찾기'});}
  let input=await catalog();
+ assert.equal(await page.locator('.directory-group>div:not([hidden]) .directory-list button:not([hidden])').count(),5);
+ await page.locator('.directory-fortune .directory-heading button').click();
+ assert.equal(await page.locator('.directory-fortune .directory-list button:not([hidden])').count(),9);
+ await page.getByRole('button',{name:/^숙요·베다·점성술/}).click();
+ assert.equal(await page.locator('.directory-fortune .directory-list button:not([hidden])').count(),12);
+ await page.getByRole('button',{name:'전체 펼치기',exact:true}).click();
  for(const kind of ['rooms','books','reports']){
    const section=page.locator('.directory-'+kind);await section.scrollIntoViewIfNeeded();
    await section.locator('img').evaluateAll(images=>Promise.all(images.map(i=>i.decode())));
@@ -24,7 +30,7 @@ try{
  input=await catalog();await input.fill('작전실');await page.getByRole('button',{name:'네오 작전 결정서 · 이메일 상담',exact:true}).click();await page.waitForURL('**/neo-consultation/');
  input=await catalog();await input.fill('서재 웹툰');await page.getByRole('button',{name:/달빛 상담 웹툰 서가/}).click();await page.waitForURL('**/consultations/stories');
  input=await catalog();await input.fill('찾을수없는테스트');await page.getByRole('status').filter({hasText:'일치하는 운세가 없어요'}).waitFor();assert.equal(await page.locator('.directory-list button').count(),0);
- await page.getByRole('button',{name:'검색어 지우기'}).click();assert.equal(await page.locator('.directory-list button').count(),total);assert.ok(await input.evaluate(i=>i===document.activeElement));
+ await page.getByRole('button',{name:'검색어 지우기'}).click();assert.equal(await page.locator('.directory-list button').count(),total);assert.equal(await page.locator('.directory-group>div:not([hidden]) .directory-list button:not([hidden])').count(),5);assert.ok(await input.evaluate(i=>i===document.activeElement));
  assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
  console.log('PASS 360px home: '+total+' searchable destinations, palm/naming/Neo strategy+email/books actual routes, artwork and empty results.');
 }finally{await browser.close();}

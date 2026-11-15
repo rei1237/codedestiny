@@ -11,7 +11,7 @@ try{
  page.setDefaultTimeout(25000);
  for(const [domain,title] of [['astrology','서양 점성술'],['vedic','베다점'],['ziwei','자미두수'],['sukuyo','숙요점']]){
   await page.goto(origin);
-  await page.locator('.world-entry-yeongnyangi').click();
+  await page.locator('.world-entry-yeongnyangi').click();for(const section of await page.locator('.world-disclosure>summary').all())await section.click();
   await page.getByRole('button',{name:title+' 상담',exact:false}).first().click();
   await page.locator('#yn-question').fill('새로운 직장에서 어떤 장점을 먼저 살려보면 좋을까요?');
   await page.getByRole('button',{name:'상담과 결제 확인하기'}).click();
@@ -37,7 +37,7 @@ try{
   await chapter.waitFor();
   const resultUrl=page.url(),text=await chapter.textContent();
   await page.goto(origin);
-  await page.locator('.world-entry-yeongnyangi').click();
+  await page.locator('.world-entry-yeongnyangi').click();for(const section of await page.locator('.world-disclosure>summary').all())await section.click();
   await page.getByRole('link',{name:'영냥이 보관함'}).click();
   const id=new URL(resultUrl).searchParams.get('id');
   await page.locator('a[href*="'+id+'"]').first().click();

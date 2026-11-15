@@ -13,7 +13,7 @@ try{
   });
   async function open(){
     await page.goto(origin);
-    await page.locator('.world-entry-ggulggul').click();
+    await page.locator('.world-entry-ggulggul').click();await page.getByRole('button',{name:'전체 펼치기',exact:true}).click();
     await page.getByRole('searchbox',{name:'운세 찾기'}).fill('다이어리');
     await page.getByRole('button',{name:/운기 다이어리/}).click();
     await page.getByRole('heading',{name:'오늘의 마음 한 장'}).waitFor();

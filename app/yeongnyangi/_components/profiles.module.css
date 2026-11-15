@@ -46,3 +46,15 @@
 .profileForm.paper button { background: var(--cd-samples-rose); border-color: var(--cd-samples-rose); color: var(--cd-pass-on-rose); font-family: var(--font-body); }
 .profileForm.paper button:hover:not(:disabled) { background: var(--cd-pass-rose-deep); }
 .profileForm.paper :is(input, select, button):focus-visible { outline-color: var(--cd-samples-rose); }
+
+.profileForm.guided { margin-top:18px; padding-top:18px; }
+.guided [data-profile-step][hidden] { display:none; }
+.guided .stepCount { margin:0 0 6px; font-variant-numeric:tabular-nums; color:var(--yn-muted,#c7b5ce); }
+.guided h3 { scroll-margin-block:24px; }
+.guided .stepActions { display:flex; gap:12px; margin-top:24px; padding-bottom:env(safe-area-inset-bottom); }
+.guided .stepActions button:last-child { flex:1; }
+.guided .stepActions button[type=button] { background:transparent; color:var(--yn-ivory,#fff3e2); border-color:var(--yn-line,#715e7e); }
+.guided input { caret-color:var(--yn-gold,#e9c78d); }
+
+/* An unfinished profile owns the next action; the purchase summary returns after save/cancel. */
+:global([data-yn-checkout]):has(.guided) :global(aside[aria-label="상담과 결제 요약"]) { display:none; }

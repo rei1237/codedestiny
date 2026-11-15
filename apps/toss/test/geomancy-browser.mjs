@@ -7,7 +7,7 @@ context.setDefaultTimeout(90000);
 await context.route('**/*',route=>new URL(route.request().url()).origin===origin?route.continue():route.abort());
 const dream='직장 변화에 앞서 무엇을 점검할까요?';
 const saved='[테스트 전용] 흙점의 저장된 해석 1입니다.';
-async function home(p){await p.goto(origin);await p.locator('.world-entry-ggulggul').click();}
+async function home(p){await p.goto(origin);await p.locator('.world-entry-ggulggul').click();await p.getByRole('button',{name:'전체 펼치기',exact:true}).click();}
 async function login(p){
   await home(p);await p.getByRole('button',{name:'지오맨시 흙점'}).click();
   await p.getByRole('link',{name:'토스로 로그인하기'}).click();

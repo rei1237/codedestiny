@@ -18,7 +18,7 @@ try{
   });
   const page=await context.newPage();
   await page.goto(origin);
-  await page.locator('.world-entry-ggulggul').click();
+  await page.locator('.world-entry-ggulggul').click();await page.getByRole('button',{name:'전체 펼치기',exact:true}).click();
   await page.getByRole('button',{name:/네빌 명상 실습/}).click();
   await page.getByRole('button',{name:'토스 로그인하고 명상하기'}).click();
   await page.getByRole('button',{name:'토스로 로그인하기'}).click();

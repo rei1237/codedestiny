@@ -8,7 +8,7 @@ export async function verifyAllConsultationProducts(origin,context,unexpected){
   await fresh();
   for(const [domain,title] of Object.entries({astrology:'서양 점성술',vedic:'베다점',sukuyo:'숙요점',saju:'사주',ziwei:'자미두수',tarot:'타로',fusion:'융합'})){
     for(const tier of tiers){
-      await page.goto(origin);await page.locator('.world-entry-yeongnyangi').click();
+      await page.goto(origin);await page.locator('.world-entry-yeongnyangi').click();for(const section of await page.locator('.world-disclosure>summary').all())await section.click();
       await page.getByRole('button',{name:title+' 상담'}).first().click();
       if(domain==='fusion'){
         const choices=page.getByRole('group',{name:'생선 상품'}).getByRole('button');
@@ -46,7 +46,7 @@ export async function verifyAllConsultationProducts(origin,context,unexpected){
       const chapter=()=>page.getByText(/이 문단은 화면과 구매 후 열람/).first();await chapter().waitFor();
       const body=await chapter().textContent();
       await page.close();await fresh();await page.goto(origin);
-      await page.locator('.world-entry-yeongnyangi').click();await page.getByRole('link',{name:'영냥이 보관함'}).click();
+      await page.locator('.world-entry-yeongnyangi').click();for(const section of await page.locator('.world-disclosure>summary').all())await section.click();await page.getByRole('link',{name:'영냥이 보관함'}).click();
       await page.locator('a[href*="'+id+'"]').first().click();await chapter().waitFor();assert.equal(await chapter().textContent(),body);
       const saved=await page.evaluate(k=>JSON.parse(localStorage.getItem('consultations')).fortunes.find(r=>r[0]===k)[1],id);
       const expected=domain==='fusion'?['fusion_saju_ziwei','fusion_sukuyo_vedic','fusion_astrology_tarot','fusion_all'][tiers.indexOf(tier)]:domain+'_'+tier;

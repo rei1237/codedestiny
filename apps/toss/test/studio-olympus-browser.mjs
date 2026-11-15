@@ -17,7 +17,7 @@ try{
   const page=await context.newPage();
   await page.clock.install({time:new Date(2026,10,14,12)});
   await page.goto(origin);
-  await page.locator('.world-entry-ggulggul').click();
+  await page.locator('.world-entry-ggulggul').click();await page.getByRole('button',{name:'전체 펼치기',exact:true}).click();
   await page.getByRole('button',{name:/올림푸스 오늘의 신탁/}).click();
   const submit=page.getByRole('button',{name:'신탁 듣기'});
   await submit.click();

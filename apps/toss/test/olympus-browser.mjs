@@ -6,7 +6,7 @@ try{
  const ctx=await browser.newContext({viewport:{width:360,height:740},isMobile:true,serviceWorkers:'block'});
  await ctx.route('**/*',r=>new URL(r.request().url()).origin===origin?r.continue():r.abort());
  const p=await ctx.newPage();p.on('pageerror',error=>console.error(error.message));
- await p.goto(origin);await p.locator('.world-entry-ggulggul').click();
+ await p.goto(origin);await p.locator('.world-entry-ggulggul').click();await p.getByRole('button',{name:'전체 펼치기',exact:true}).click();
  await p.getByRole('button',{name:/^올림푸스 오늘의 신탁/}).click();
  await p.getByLabel('생년월일').fill('1990-05-15');await p.getByRole('button',{name:'신탁 듣기'}).click();
  await p.getByRole('heading',{name:'오늘의 지령'}).waitFor();

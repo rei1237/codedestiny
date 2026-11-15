@@ -11,7 +11,7 @@ export const nativeReportText=key=>({
  geomancy:'[테스트 전용] 흙점의 저장된 해석 1입니다.','totem-basic':'[테스트 전용] 저장한 토템 질문 답변입니다.','totem-deep':'[테스트 전용] 저장한 토템 질문 답변입니다.',
  guardian:'[테스트 전용] mock guardian image prompt',sibyl:'모의 상담 10장',palm:'[테스트 전용] 저장된 손금 판독 원문입니다.',
 })[key];
-export async function nativeHome(page,origin){await page.goto(origin);await page.locator('.world-entry-ggulggul').click();}
+export async function nativeHome(page,origin){await page.goto(origin);await page.locator('.world-entry-ggulggul').click();await page.getByRole('button',{name:'전체 펼치기',exact:true}).click();}
 async function enter(page,origin,key){
  await nativeHome(page,origin);
  if(['saju-compat','guardian','sibyl'].includes(key)){

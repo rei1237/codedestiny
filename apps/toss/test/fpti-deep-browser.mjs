@@ -7,7 +7,7 @@ try{
  const context=await browser.newContext({viewport:{width:360,height:740},locale:'ko-KR',reducedMotion:'reduce'});
  await context.route('**/*',route=>new URL(route.request().url()).origin===origin?route.continue():route.abort());
  const page=await context.newPage();page.setDefaultTimeout(60000);page.on('pageerror',error=>console.error(error.message));
- const open=async()=>{await page.goto(origin);await page.locator('.world-entry-ggulggul').click();await page.getByRole('button',{name:/사주 FPTI/}).first().click();await page.getByRole('heading',{name:'나의 운명 성향'}).waitFor().catch(async error=>{console.error(page.url(),(await page.locator('body').innerText()).slice(0,350));throw error;});};
+ const open=async()=>{await page.goto(origin);await page.locator('.world-entry-ggulggul').click();await page.getByRole('button',{name:'전체 펼치기',exact:true}).click();await page.getByRole('button',{name:/사주 FPTI/}).first().click();await page.getByRole('heading',{name:'나의 운명 성향'}).waitFor().catch(async error=>{console.error(page.url(),(await page.locator('body').innerText()).slice(0,350));throw error;});};
  await open();
  await page.locator('input[type=date]').fill('1990-01-01');await page.getByLabel('태어난 시간을 몰라요').check();
  await page.getByRole('button',{name:'성향 분석 시작하기'}).click();

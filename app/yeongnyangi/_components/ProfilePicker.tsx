@@ -4,21 +4,25 @@ import {Check,Plus,Search} from 'lucide-react';
 import {readDestinyProfileAccountId} from '@/app/_lib/profile-card-storage';
 import {profileKey,type useProfiles} from '../_lib/use-profiles';
 import {loginForCurrentPage} from '../_lib/api';
-import ProfileForm from './ProfileForm';
+import ProfileForm,{profileEntryDraftScope} from './ProfileForm';
+import {readFeatureSessionDraft} from '@/app/_lib/feature-session-draft';
 import type {VoiceStyle} from '../_lib/voice-style-copy';
 import {consultationInputCopy,profileLoadError} from '../_lib/consultation-input-copy';
 import type {ReadingLocale} from '@/worker/yeongnyangi/fortune/reading-locale';
 import styles from './profiles.module.css';
 type ProfileState=ReturnType<typeof useProfiles>;
-export default function ProfilePicker({state,locale,conversational=false,voice='banmal',showPolicyNote=true,onLogin=loginForCurrentPage}:{state:ProfileState;locale?:ReadingLocale;conversational?:boolean;voice?:VoiceStyle;showPolicyNote?:boolean;onLogin?:()=>void}){
+export default function ProfilePicker({state,locale,conversational=false,guided=false,onEditingChange,voice='banmal',showPolicyNote=true,onLogin=loginForCurrentPage}:{state:ProfileState;locale?:ReadingLocale;conversational?:boolean;guided?:boolean;onEditingChange?:(editing:boolean)=>void;voice?:VoiceStyle;showPolicyNote?:boolean;onLogin?:()=>void}){
  const copy=consultationInputCopy(locale);
- const [query,setQuery]=useState(''),[open,setOpen]=useState(false);
+ const [query,setQuery]=useState(''),[open,setOpen]=useState(()=>guided&&Boolean(readFeatureSessionDraft(profileEntryDraftScope())));
  const account=readDestinyProfileAccountId();
- useEffect(()=>{setOpen(false);setQuery('');},[account]);
+ useEffect(()=>{setOpen(guided&&Boolean(readFeatureSessionDraft(profileEntryDraftScope())));setQuery('');},[account,guided]);
  const selected=state.profiles.find(p=>profileKey(p)===state.profileId);
+ const firstEntry=guided&&!state.loading&&!state.error&&!state.profiles.length;
+ const editing=open||firstEntry;
+ useEffect(()=>{onEditingChange?.(guided&&editing&&!state.guest);return()=>onEditingChange?.(false);},[guided,editing,state.guest,onEditingChange]);
  const matches=state.profiles.filter(p=>(p.name||'').toLocaleLowerCase().includes(query.trim().toLocaleLowerCase()));
  return <section className={styles.picker} aria-label={copy.picker} lang={locale||'ko'}>
-  <header className={styles.heading}><img src="/assets/yeongnyangi/profiles/welcome.webp" width={56} height={56} alt=""/><div><h3>{copy.picker}</h3><p>{selected?copy.selected(selected.name||copy.selectedFallback):copy.pickerPrompt}</p></div></header>
+  <header className={styles.heading}><img src="/assets/yeongnyangi/profiles/welcome.webp" width={56} height={56} alt=""/><div><h3>{guided?'상담할 사람':copy.picker}</h3><p>{selected?copy.selected(selected.name||copy.selectedFallback):copy.pickerPrompt}</p></div></header>
   {state.guest?<div className={styles.message}><p>{copy.guest}</p><button type="button" onClick={onLogin}>{copy.login}</button></div>:<>
    {state.loading&&<p className={styles.status} role="status"><img src="/assets/yeongnyangi/profiles/serious.webp" width={28} height={28} alt=""/>{state.profiles.length?copy.loadingExisting:copy.loading}</p>}
    {state.profiles.length>4&&<label className={styles.search}><Search size={17} aria-hidden="true"/><span className={styles.srOnly}>{copy.search}</span><input type="search" value={query} onChange={e=>setQuery(e.target.value)} placeholder={copy.searchPlaceholder}/></label>}
@@ -27,12 +31,12 @@ export default function ProfilePicker({state,locale,conversational=false,voice='
      <span className={styles.initial} aria-hidden="true">{(profile.name||copy.guestName).slice(0,1)}</span><span className={styles.identity}><strong>{profile.name||copy.profileNumber(index+1)}</strong><small>{profile.birthDate||copy.savedBirth}</small></span><span className={styles.check} aria-hidden="true">{profileKey(profile)===state.profileId&&<Check size={18}/>}</span>
     </button>)}
    </div>
-   {!state.loading&&!state.profiles.length&&!state.error&&<p className={styles.message}>{copy.empty}</p>}
+   {!guided&&!state.loading&&!state.profiles.length&&!state.error&&<p className={styles.message}>{copy.empty}</p>}
    {query&&!matches.length&&<p className={styles.message}>{copy.noMatch}</p>}
    {state.error&&<div className={styles.error} role="alert"><p>{locale==='ko'?state.error:profileLoadError(locale)}</p><button type="button" onClick={()=>void state.refresh(true)}>{copy.retry}</button></div>}
-   <button type="button" className={styles.add} aria-expanded={open} onClick={()=>setOpen(!open)}><Plus size={17}/>{open?copy.close:copy.add}</button>
+   {!firstEntry&&<button type="button" className={styles.add} aria-expanded={open} onClick={()=>setOpen(!open)}><Plus size={17}/>{open?copy.close:guided?'다른 사람 출생정보 입력':copy.add}</button>}
    {showPolicyNote&&<p className={styles.note}>{copy.family}</p>}
-   {open&&<ProfileForm key={account} locale={locale} conversational={conversational} voice={voice} onLogin={onLogin} onSaved={profile=>{state.saved(profile);setOpen(false);}}/>}
+   {editing&&<ProfileForm key={account} locale={locale} conversational={conversational} guided={guided} voice={voice} onLogin={onLogin} onSaved={profile=>{state.saved(profile);setOpen(false);}}/>}
   </>}
  </section>;
 }

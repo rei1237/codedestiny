@@ -7,7 +7,7 @@ try{
  const context=await browser.newContext({viewport:{width:360,height:740},serviceWorkers:'block',reducedMotion:'reduce'});
  await context.route('**/*',route=>new URL(route.request().url()).origin===origin?route.continue():route.abort());
  const page=await context.newPage();page.on('pageerror',e=>console.error(e.message));
- async function open(){await page.goto(origin);await page.locator('.world-entry-ggulggul').click();await page.getByRole('button',{name:/자미두수 명반/}).click();}
+ async function open(){await page.goto(origin);await page.locator('.world-entry-ggulggul').click();await page.getByRole('button',{name:'전체 펼치기',exact:true}).click();await page.getByRole('button',{name:/자미두수 명반/}).click();}
  async function chart(){await page.getByLabel('태어난 날짜').fill('1991-05-12');await page.getByLabel('태어난 시각',{exact:true}).fill('14:10');await page.getByLabel('계산에 사용하는 성별').selectOption('F');await page.getByLabel('출생 도시').selectOption({index:1});await page.getByRole('button',{name:'명반 펼치기'}).click();}
  const question='다음 이직 준비에서 먼저 살펴볼 것은 무엇인가요';
  await open();await chart();assert.equal(await page.locator('.ziwei-palace').count(),12);

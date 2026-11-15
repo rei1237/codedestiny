@@ -23,7 +23,7 @@ export async function verifyPaidFamily(origin,context,key){
   }
   await page.waitForURL(url=>['sessionId','cid','intentId'].some(param=>url.searchParams.has(param)));assert.equal((await ledger()).orders.length,1);const intent=(await ledger()).intents[0][1],id=intent.id;
   await page.close();page=await context.newPage();page.setDefaultTimeout(45000);
-  await page.goto(origin);await page.locator('.world-entry-ggulggul').click();await page.getByRole('link',{name:'꿀꿀운세 구매 기록'}).click();await page.locator('article a[href*="'+id+'"]').last().click();
+  await page.goto(origin);await page.locator('.world-entry-ggulggul').click();await page.getByRole('button',{name:'전체 펼치기',exact:true}).click();await page.getByRole('link',{name:'꿀꿀운세 구매 기록'}).click();await page.locator('article a[href*="'+id+'"]').last().click();
   const resume=page.getByRole('button',{name:key==='relationship'?'같은 상담 이어서 확인하기':'같은 결과 이어서 받기',exact:true});
   if(key!=='sukuyo')await resume.click();
   const done=()=>page.getByText(key.startsWith('pet')?'[비공개 모의 예시] 실제 상담 결과가 아닙니다.':'[테스트 전용 예시] 실제 상담 결과가 아닙니다.',{exact:false}).first().waitFor();await done();

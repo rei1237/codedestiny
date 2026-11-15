@@ -15,7 +15,7 @@ export const letterQuestion=letterTier?'부탁이 이어져 쉬는 시간이 짧
 export const letterProductId='chat_'+letterDomain+(letterTier?'_'+letterTier:'');
 export const letterCaseName=(letterPersona==='neo'?'neo-':'')+letterDomain+(letterTier?'-'+letterTier:'');
 export async function startLetter(page,origin){
- await page.goto(origin);await page.locator('.world-entry-ggulggul').click();
+ await page.goto(origin);await page.locator('.world-entry-ggulggul').click();await page.getByRole('button',{name:'전체 펼치기',exact:true}).click();
  await page.getByRole('button',{name:letterPersona==='neo'?'네오의 상담 편지':'연이의 상담 편지',exact:true}).click();
  const room=page.locator('[data-consultation-room][data-persona="'+letterPersona+'"]');
  await room.getByLabel('나의 질문',{exact:true}).fill(letterQuestion);

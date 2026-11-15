@@ -3,6 +3,7 @@ import test from 'node:test';import assert from 'node:assert/strict';import {JSD
 const root=path.resolve(import.meta.dirname,'../../..'),require=createRequire(new URL('../package.json',import.meta.url)),Module=require('node:module'),React=require('react'),{createRoot}=require('react-dom/client');
 const src=fs.readFileSync(path.join(root,'apps/toss/service/Screens.jsx'),'utf8');
 const mocks={
+ './profile-entry-session.mjs':fs.readFileSync(path.join(root,'apps/toss/service/profile-entry-session.mjs'),'utf8'),
  './fpti-session.mjs':fs.readFileSync(path.join(root,'apps/toss/service/fpti-session.mjs'),'utf8'),
  '@/app/vedic-ai/VedicAiClient':"import React from 'react';export default p=>React.createElement('span',{'data-vedic':p.paymentSurface,'data-profile':Boolean(p.ProfilePicker),'data-price':Boolean(p.TossPrice)});",
  '@/app/ziwei-ai/ZiweiAiClient':"import React from 'react';export default p=>React.createElement('span',{'data-ziwei':p.paymentSurface,'data-profile':Boolean(p.ProfilePicker),'data-price':Boolean(p.TossPrice)});",
@@ -62,4 +63,12 @@ test('authentication cleanup keeps only valid owner-scoped FPTI results',()=>{
  const key='toss:fpti-result:v1:'+encodeURIComponent('user:owner'),raw=JSON.stringify({version:1,owner:'owner',result});
  storage.setItem(key,raw);storage.setItem('toss:fpti-result:v1:bad',raw);storage.setItem('unrelated','clear');
  try{loaded.exports.preserveOmikujiSession(storage,()=>storage.clear());assert.equal(storage.getItem(key),raw);assert.equal(storage.getItem('toss:fpti-result:v1:bad'),null);assert.equal(storage.getItem('unrelated'),null);}finally{dom.window.close();}
+});
+
+test('ordinary shell cleanup preserves only valid account/route-scoped guided profile drafts',()=>{
+ const dom=new JSDOM('',{url:'http://localhost/'}),storage=dom.window.sessionStorage;
+ const row={version:1,featureKey:'toss-profile-entry',profileId:'account:owner-a',route:'/yeongnyangi/fortune/?flow=question',savedAt:Date.now(),value:{name:'테스트',date:'1990-01-01',time:'',gender:'F',calendar:'solar',place:'',unknown:true,step:3}};
+ const key=['cd','feature-draft','v1',row.featureKey,encodeURIComponent(row.profileId),encodeURIComponent(row.route)].join(':');
+ const raw=JSON.stringify(row);storage.setItem(key,raw);storage.setItem(key+'bad',raw);storage.setItem('unrelated','clear');
+ try{loaded.exports.preserveOmikujiSession(storage,()=>storage.clear());assert.equal(storage.getItem(key),raw);assert.equal(storage.length,1);storage.setItem(key,JSON.stringify({...row,profileId:'account:'}));loaded.exports.preserveOmikujiSession(storage,()=>storage.clear());assert.equal(storage.length,0);}finally{dom.window.close();}
 });
