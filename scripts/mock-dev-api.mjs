@@ -1,3 +1,4 @@
+import { createHeukwolMock, HEUKWOL_MOCK_PROFILE, HEUKWOL_MOCK_SUBSCRIPTION } from './fixtures/mock-heukwol.mjs';
 import http from 'node:http';
 import { createRecommendationMock, MOCK_RECOMMENDATION_TOKEN } from './fixtures/mock-recommendations.mjs';
 import { createTeaMock } from './fixtures/mock-tea-house.mjs';
@@ -40,7 +41,10 @@ export function createMockApiServer() {
   const teaMock = createTeaMock();
   const recommendationMock = createRecommendationMock();
   let workshop;
-  let loggedIn = false;
+  const heukwolEnabled=process.env.CD_MOCK_HEUKWOL_FLOW==='1' && process.env.NODE_ENV!=='production';
+  const heukwolMock=createHeukwolMock();
+  let loggedIn = heukwolEnabled;
+  if(heukwolEnabled)profiles.set(HEUKWOL_MOCK_PROFILE.id,structuredClone(HEUKWOL_MOCK_PROFILE));
   let currentProfileId = '';
   return http.createServer(async (req, res) => {
     const send = (status, body) => {
@@ -79,6 +83,7 @@ export function createMockApiServer() {
       }
       if (recommendationMock(route, body, req.headers['x-admin-token'], send, url.searchParams)) return;
       if (await teaMock(route, body, loggedIn ? 'mock-user' : null, send)) return;
+      if(heukwolEnabled && heukwolMock(route,body,loggedIn?'mock-user':null,send,url.searchParams))return;
       if (route === 'GET /api/payments/pass-offers') {
         const { listCurrentPassOffers } = await import('../worker/lib/pass-sale-policy.js');
         return send(200, { ok: true, offers: listCurrentPassOffers(url.searchParams.get('channel') === 'googlePlay' ? 'googlePlay' : 'web') });
@@ -88,7 +93,7 @@ export function createMockApiServer() {
       if (route === 'POST /api/auth/logout') { loggedIn = false; return send(200, { ok: true }); }
       if (route === 'POST /api/auth/login' || route === 'GET /api/auth/me') {
         return send(loggedIn ? 200 : 401, loggedIn
-          ? { ok: true, user: { id: 'mock-user', _id: 'mock-user', email: 'mock@example.invalid', nickname: '개발 사용자' } }
+          ? { ok: true, user: { id: 'mock-user', _id: 'mock-user', email: 'mock@example.invalid', nickname: '개발 사용자', ...(heukwolEnabled?{profileSubscription:HEUKWOL_MOCK_SUBSCRIPTION}:{}) } }
           : { ok: false, reason: 'LOGIN_REQUIRED' });
       }
       // Explicit development-only state API; not a replacement production schema.

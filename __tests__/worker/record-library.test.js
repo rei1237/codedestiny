@@ -305,3 +305,8 @@ test('free results are absent from lists and direct detail URLs while paid resul
   expect((await route(request('/detail?source=human-design-chart&id=record-3'))).status).toBe(200);
   expect((await route(request('/detail?source=executions&id=paid'))).status).toBe(200);
 });
+
+test('unfinished Heukwol records resume their existing consultation rather than payment history',()=>{
+ const record=library.recordMetadata({id:'executions',idField:'executionKey',dynamic:true,href:'/ggulggul/',group:'report'},{executionKey:'heukwol:existing',featureKey:'heukwol-warning-consultation',status:'pending',metadata:{archive:{title:'흑월의 경고'}}});
+ expect(record.recoveryHref).toBe('/heukwol/?result=heukwol%3Aexisting');
+});
