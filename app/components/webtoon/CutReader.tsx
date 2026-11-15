@@ -11,7 +11,7 @@ const SIZES = '(max-width:680px) 100vw, 680px';
 
 /** One painted cut per figure; every line of dialogue stays selectable HTML below the art.
  *  An empty `src` renders the dialogue alone (art not delivered yet) instead of a broken image. */
-export default function CutReader({ cuts, eager = 2, tone = 'paper' }: { cuts: WebtoonCut[]; eager?: number; tone?: 'paper' | 'night' | 'yehwa' }) {
+export default function CutReader({ cuts, eager = 2, tone = 'paper' }: { cuts: WebtoonCut[]; eager?: number; tone?: 'paper' | 'night' | 'yehwa' | 'lantern' }) {
   return <ol className={`${styles.reader} ${styles[tone]}`}>
     {cuts.map((cut, index) => <li key={cut.src || `cut-${index}`} className={styles.cut} data-kind={cut.kind} data-art={cut.src ? undefined : 'pending'}>
       <figure>

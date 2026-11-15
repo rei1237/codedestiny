@@ -6,8 +6,10 @@ import {APPROVED_TOSS_PRODUCTS,APPROVED_TOSS_TAROT_LIBRARY_PRODUCTS,APPROVED_TOS
 import {getBillingFeaturePricing} from '../../../worker/lib/billing-feature-registry.js';
 import {reviewProductIds} from '../../../worker/toss/review-products.js';
 import {reviewServices} from '../src/review-scope.mjs';
+import {implementationReadiness} from './implementation-readiness.mjs';
 const root=fileURLToPath(new URL('../../../',import.meta.url));
 const inventory=JSON.parse(fs.readFileSync(path.join(root,'docs/toss/full-service-inventory.json'),'utf8'));
+const modeAudit=JSON.parse(fs.readFileSync(path.join(root,'docs/toss/original-mode-audit-20261114.json'),'utf8'));
 const knownStatuses=new Set(['local-partial','verified-full-flow','not-ported','requires-full-flow-port-and-verification','excluded']);
 if(inventory.canonicalCandidates.some(item=>!knownStatuses.has(item.status)))throw new Error('Unknown inventory candidate status');
 const selectedIds=new Set(reviewServices.map(service=>service.id));
@@ -41,6 +43,8 @@ const report={
  entrySource:'apps/toss/src/main.tsx → AppEntry.tsx(reviewOnly=false) → App.tsx',
  inventorySourceCommit:inventory.sourceCommit,
  canonicalCandidates:inventory.canonicalCandidates.length,
+ implementationReadiness:implementationReadiness(inventory,modeAudit),
+ deviceEvidenceSource:'docs/toss/launch-readiness-20261115.md',
  reviewServices:reviewServices.map(({id,title,href})=>({id,title,href})),
  deferredFromReview:deferred.map(item=>item.id),
  reviewScopeMeaning:'이전 축소 심사 목록의 이력입니다. 현재 일반 AIT의 탐색 제한이나 판매 승인 목록이 아닙니다.',
@@ -49,7 +53,7 @@ const report={
  fullServicePortHistory:{
    verifiedWholeService:complete.map(item=>item.id),
    partialWholeService:local.map(item=>item.id),
-   meaning:'전체 기능표의 코드 이력입니다. 일부 이식에는 운영·기기 검증만 남은 항목도 포함되므로 개별 단계와 AIT 근거를 함께 확인합니다.',
+   meaning:'과거 status 필드의 이력입니다. 현재 코드 누락 수는 implementationReadiness를 확인하세요. 이 이력을 현재 미구현 기능 수로 사용하지 않습니다.',
  },
  reviewProducts,
  approvedReviewProducts:reviewProducts.filter(item=>item.approved).length,
