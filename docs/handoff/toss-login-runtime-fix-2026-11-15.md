@@ -63,3 +63,9 @@ next: main의 기존 CI와 public 미러 실패가 해소되면 검증 커밋을
 
 ## 전달 게이트
 `npm run check:pre-push`는 verify:public-mirror-fresh에서 public/index.html이 소스보다 낡았다는 기존 main 결함으로 실패했다. 다른 세션의 웹 홈 작업 범위이므로 sync:public이나 root 편집을 하지 않았다. 서버/UI 커밋은 준비됐지만 main push·CI green·새 Linux AIT·새 QR·운영 반영은 완료로 보고하지 않는다. 브라우저 검수는 round38로 완료했고 space4는 round39 finish로 종료했다. 자체 offline 서버도 종료했다. 검수 중 `/login?product=...` 새로고침에서는 로컬 service/Screens.jsx 동적 import 실패가 발생했다. 홈부터의 정상 mock 로그인/보관함 왕복은 통과했으며 이 새로고침 실패를 실제 AIT 성공으로 해석하지 않는다. 새 Linux AIT 검증 때 재확인할 항목이다.
+
+## 최신 main 통합 — 2026-11-15 후속
+- eda40c1d9를 워크트리에 보존 merge(6d2bd0bca)했다. 기존 웹 홈/i18n 수정은 그대로 포함된다.
+- 앞선 pre-push 실패 경로는 public/index.html이 아니라 root index.html이었다. Windows의 함수.toString()이 CRLF9개를 HTML에 삽입하여 내용diff 없이 dirty가 되는 문제를 확인했다. 82985b270에서 free-promo-shell의 두 함수 직렬화만 LF로 정규화했다. 관련6개 테스트PASS, 마지막 pre-push exit0.
+- 로그인/UI targeted21+61PASS, 앱typecheckPASS는 유지된다. 과거22개Node실패를 최종트리실패로 재사용하지 않는다. 최신main CI43691843070은 마지막 확인 시 실패 없이 진행중. root 지시에 따라 이를 추가대기게이트로 만들지 않고 안전main통합 및push,공식LinuxAIT artifact실행을 이어간다.
+- 사용자 최신 지시로 이름불일치/지원문의는 사용자가 담당한다. 해당 외부문의는 전송하지 않으며 추가 조작하지 않는다.
