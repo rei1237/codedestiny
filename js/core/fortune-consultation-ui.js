@@ -49,10 +49,11 @@
   function guide(service) {
     var item = services[service];
     if (!item || !item.master) return '';
+    var face = {ziwei:'museong',sukuyo:'seohanbi',astrology:'yun',vedic:'yun'}[service];
     var labels = {ziwei:'자미두수',sukuyo:'숙요점',astrology:'서양 점성술',vedic:'베다점'};
     return '<section class="fc-master-reading" data-fc-master="'+item.avatar+'" aria-label="'+item.master+'의 '+labels[service]+' 해설">'
-      + '<img class="fc-master-reading__portrait" src="'+item.image+'" width="600" height="720" decoding="async" alt="'+item.alt+'">'
-      + '<div class="fc-master-reading__copy"><h3>'+item.master+'의 <br>'+labels[service]+' 해설</h3><p>'+item.freeLead+'</p><p class="fc-master-reading__basis">'+item.basis+'</p></div></section>';
+      + '<img class="fc-master-reading__portrait" src="/images/home/free-fortune-faces/'+face+'.webp" width="192" height="192" decoding="async" alt="">'
+      + '<div class="fc-master-reading__copy"><h3>'+item.master+'의 '+labels[service]+' 해설</h3><p>'+item.freeLead+'</p><p class="fc-master-reading__basis">'+item.basis+'</p></div></section>';
   }
 
   function refreshPrices(service) {

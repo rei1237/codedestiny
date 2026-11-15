@@ -2537,6 +2537,19 @@
     },
     "entryCards": {
       "webtoon": "Histoire au clair de lune : webtoon de présentation"
+    },
+    "moonlit": {
+      "manseStart": "Voir mon thème natal gratuitement",
+      "signatureOpen": "Voir les consultations à la une",
+      "heukwolTitle": "L’avertissement de la Lune Noire",
+      "heukwolDescription": "Explorez les périodes qui demandent de l’attention et les façons de vous préparer.",
+      "heukwolFormat": "Quatre Piliers × Ziwei · Tendances et conseils mensuels",
+      "heukwolCta": "Voir les périodes à surveiller",
+      "gardenAlt": "Yeoni ouvre un livre du destin dans un jardin au clair de lune",
+      "featuredFree": "Lectures gratuites à la une",
+      "heukwolNote": "Préparez votre profil et votre question, puis consultez les conditions sur la page de consultation.",
+      "heukwolTrust": "Lisez ceci comme un éclairage pour vos choix, sans certitude sur l’avenir.",
+      "sajuZiwei": "Quatre Piliers × Ziwei"
     }
   },
   "terms": {
@@ -17646,6 +17659,20 @@
           "detail": "Explore tendencies and the month branch, working conditions and roles, the downsides of strengths, and small career experiments."
         }
       ]
+    },
+    "heukwol": {
+      "tagline": "Explore periods that call for care and practical ways to prepare.",
+      "premiumIntro": "Explore periods that call for care and practical ways to prepare.",
+      "ctaNote": "Prepare your profile and question, then review the terms on the consultation page.",
+      "fallbackCta": "Explore periods to watch",
+      "premiumOutcomes": [
+        "Read this as guidance for your choices, not a certainty about the future."
+      ],
+      "fallbackTitle": "Black Moon Warning",
+      "premiumRequired": [
+        "Saved profile",
+        "Year and question to explore"
+      ]
     }
   },
   "featureMarketingCategory": {
@@ -17677,7 +17704,8 @@
     "physiognomy": "Face Reading",
     "article": "Reading",
     "pass": "Pass",
-    "totem": "Lecture de totem"
+    "totem": "Lecture de totem",
+    "sajuZiwei": "Quatre Piliers × Ziwei"
   },
   "featureMarketingTrust": {
     "paid": {
@@ -22515,13 +22543,13 @@
     "title": "Le jardin de lectures gratuites de Yeoni",
     "until": "Jusqu’au {date} · Accès payant prévu ensuite",
     "note": "Hors services affichés avec un prix : consultations et lectures IA, lecture Saju légère et cycles de dix ans, gardien Saju, analyse de compatibilité Saju par IA.",
-    "cta": "Commencer le Saju de base gratuit",
+    "cta": "Commencer le Manseryeok de base gratuit",
     "share": "Prévenir un ami tant que c'est gratuit",
-    "shareText": "Découvrez les lectures de base gratuites de Saju, Ziwei et astrologie jusqu’au {date}.",
+    "shareText": "Découvrez les lectures de base gratuites de Manseryeok, Ziwei et astrologie jusqu’au {date}.",
     "copied": "Lien copié. Collez-le pour l'envoyer à un ami.",
     "copyFailed": "Impossible de copier le lien. Copiez-le depuis la barre d'adresse.",
     "tileBadge": "Gratuit 3 mois",
-    "bubble": "Choisissez une lecture gratuite de Saju, tarot ou des traditions du monde.",
+    "bubble": "Choisissez une lecture gratuite de Manseryeok, tarot ou des traditions du monde.",
     "groupFun": "Saju ludique",
     "groupClassic": "Saju classique",
     "groupMore": "Autres lectures",
@@ -22557,7 +22585,8 @@
       "tarot": "Explorez émotions et choix par les cartes",
       "ziwei": "Découvrez les douze palais du thème natal",
       "sukuyo": "Nature et relations selon la Lune",
-      "vedic": "Explorez le ciel de votre naissance"
+      "vedic": "Explorez le ciel de votre naissance",
+      "astro": "Explorez votre nature à travers les planètes et les maisons"
     }
   }
 }

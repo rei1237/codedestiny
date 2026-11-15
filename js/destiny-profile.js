@@ -11050,11 +11050,15 @@
     if(typeof window.dpStartProfileCreate==='function') window.dpStartProfileCreate();
     _dpHomeInputLabel(type);
   }
+  function _dpHomeEntryProfile(type) {
+    // Birth modals consume DPStorage, not the broader guest/form cache used by saju.
+    return type === 'saju' ? _dpResolveCurrentProfileForSaju('') : DPStorage.current();
+  }
   function _dpResumeHomeEntry() {
     // A newly submitted draft must survive rollback/login; consume it only after save succeeds.
     if (_dpProfileSaveInFlight) return;
     var type=_dpHomePendingType();
-    var profile=_dpResolveCurrentProfileForSaju('');
+    var profile=_dpHomeEntryProfile(type);
     if(!_dpHomeEntryNames[type] || !_dpHomeEntryProfileReady(profile)) return;
     _dpHomeIntent('');
     _dpSyncProfileFormToCurrent(profile);
@@ -11064,7 +11068,7 @@
     if(!_dpHomeEntryNames[type]) return;
     _dpHomeIntent('');
     if(type==='tarot') { window._dpOpenFortuneType(type); return; }
-    var profile=_dpResolveCurrentProfileForSaju('');
+    var profile=_dpHomeEntryProfile(type);
     if(_dpHomeEntryProfileReady(profile)) {
       _dpSyncProfileFormToCurrent(profile);
       window._dpOpenFortuneType(type);
@@ -11077,7 +11081,7 @@
       _dpLoadFromServer(function() {
         var pending=_dpHomePendingType();
         if(pending!==type) return; // server-ready 이벤트가 이미 이어서 열었다
-        var loaded=_dpResolveCurrentProfileForSaju('');
+        var loaded=_dpHomeEntryProfile(type);
         if(_dpHomeEntryProfileReady(loaded)) { _dpResumeHomeEntry(); return; }
         _dpPromptHomeEntryProfile(type);
       });

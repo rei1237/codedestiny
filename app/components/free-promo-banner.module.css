@@ -27,7 +27,8 @@
 .until {margin:8px 0 0;font-size:14px;color:var(--fp-muted);}
 .featured {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-top:28px;}
 .banner .card {display:flex;flex-direction:column;overflow:hidden;border:1px solid #ded3c2;border-radius:16px;background:var(--fp-bg);transition:transform .16s ease,border-color .16s ease;min-width:0;}
-.card > img {display:block;width:100%;height:auto;aspect-ratio:3/2;object-fit:contain;}
+.symbol {display:grid;place-items:center;min-height:136px;padding:16px;background:#242139 url('/images/home/illustrated/moon-floral-dark-480.webp') center/cover;border-bottom:1px solid #b3935b;}
+.symbol > img {display:block;width:104px;height:104px;object-fit:contain;filter:drop-shadow(0 5px 8px rgba(0,0,0,.2));}
 .copy {display:flex;flex:1;flex-direction:column;gap:8px;padding:16px;}
 .copy > strong {font:400 23px/1.4 var(--font-display, Jua, sans-serif);color:var(--fp-ink);word-break:keep-all;}
 .desc {font-size:15px;color:var(--fp-muted);word-break:keep-all;}
@@ -57,6 +58,8 @@
  .description {max-width:none;}
  .actions {margin-top:16px;}
  .featured {grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:20px;}
+ .symbol {min-height:112px;padding:8px;}
+ .symbol > img {width:96px;height:96px;}
  .copy {padding:12px;gap:6px;}
  .copy > strong {font-size:21px;}
  .cardFoot {flex-direction:column;align-items:flex-start;gap:6px;}

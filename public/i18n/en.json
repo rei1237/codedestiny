@@ -2537,6 +2537,19 @@
     },
     "entryCards": {
       "webtoon": "Moonlight story: introductory webtoon"
+    },
+    "moonlit": {
+      "manseStart": "View my natal chart for free",
+      "signatureOpen": "Browse featured consultations",
+      "heukwolTitle": "Black Moon Warning",
+      "heukwolDescription": "Explore periods that call for care and practical ways to prepare.",
+      "heukwolFormat": "Four Pillars × Ziwei · Monthly patterns and guidance",
+      "heukwolCta": "Explore periods to watch",
+      "gardenAlt": "Yeoni the flower pig opens a fortune book in a moonlit garden",
+      "featuredFree": "Featured free readings",
+      "heukwolNote": "Prepare your profile and question, then review the terms on the consultation page.",
+      "heukwolTrust": "Read this as guidance for your choices, not a certainty about the future.",
+      "sajuZiwei": "Four Pillars × Ziwei"
     }
   },
   "terms": {
@@ -17646,6 +17659,20 @@
           "detail": "Explore tendencies and the month branch, working conditions and roles, the downsides of strengths, and small career experiments."
         }
       ]
+    },
+    "heukwol": {
+      "tagline": "Explore periods that call for care and practical ways to prepare.",
+      "premiumIntro": "Explore periods that call for care and practical ways to prepare.",
+      "ctaNote": "Prepare your profile and question, then review the terms on the consultation page.",
+      "fallbackCta": "Explore periods to watch",
+      "premiumOutcomes": [
+        "Read this as guidance for your choices, not a certainty about the future."
+      ],
+      "fallbackTitle": "Black Moon Warning",
+      "premiumRequired": [
+        "Saved profile",
+        "Year and question to explore"
+      ]
     }
   },
   "featureMarketingCategory": {
@@ -17677,7 +17704,8 @@
     "physiognomy": "Face Reading",
     "article": "Reading",
     "pass": "Pass",
-    "totem": "Totem Reading"
+    "totem": "Totem Reading",
+    "sajuZiwei": "Four Pillars × Ziwei"
   },
   "featureMarketingTrust": {
     "paid": {
@@ -22557,7 +22585,8 @@
       "tarot": "Explore your feelings and choices with cards",
       "ziwei": "Discover your natal chart’s twelve palaces",
       "sukuyo": "Read your nature and relationships by the Moon",
-      "vedic": "Explore the sky at your birth"
+      "vedic": "Explore the sky at your birth",
+      "astro": "Explore your nature through planets and houses"
     }
   }
 }

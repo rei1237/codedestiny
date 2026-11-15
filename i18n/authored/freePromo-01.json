@@ -59,16 +59,16 @@
   "freePromo.cta": {
     "ko": "무료 기본 사주 바로 보기",
     "en": "Start free basic Saju",
-    "ja": "無料の基本四柱推命を始める",
-    "zh-CN": "开始免费基础四柱解读",
-    "zh-TW": "開始免費基礎四柱解讀",
-    "vi": "Bắt đầu Tứ trụ cơ bản miễn phí",
-    "hi": "मुफ़्त मूल साजू शुरू करें",
-    "es": "Iniciar Saju básico gratis",
-    "fr": "Commencer le Saju de base gratuit",
-    "de": "Kostenloses Basis-Saju starten",
-    "nl": "Gratis basis-Saju starten",
-    "ms": "Mulakan Saju asas percuma"
+    "ja": "無料の基本万年暦を始める",
+    "zh-CN": "开始免费基础万年历命盘解读",
+    "zh-TW": "開始免費基礎萬年曆命盤解讀",
+    "vi": "Bắt đầu Manseryeok cơ bản miễn phí",
+    "hi": "मुफ़्त मूल मन्सेर्योक शुरू करें",
+    "es": "Iniciar Manseryeok básico gratis",
+    "fr": "Commencer le Manseryeok de base gratuit",
+    "de": "Kostenloses Basis-Manseryeok starten",
+    "nl": "Gratis basis-Manseryeok starten",
+    "ms": "Mulakan Manseryeok asas percuma"
   },
   "freePromo.share": {
     "ko": "친구에게도 무료일 때 알려주기",
@@ -87,16 +87,16 @@
   "freePromo.shareText": {
     "ko": "만세력·자미두수·별자리 기본 풀이를 {date}까지 무료로 만나보세요.",
     "en": "Explore free basic Saju, Ziwei and astrology readings until {date}.",
-    "ja": "{date}まで、四柱推命・紫微斗数・占星術の基本鑑定を無料で体験できます。",
-    "zh-CN": "截至{date}，可免费体验四柱、紫微斗数与占星基础解读。",
-    "zh-TW": "截至{date}，可免費體驗四柱、紫微斗數與占星基礎解讀。",
-    "vi": "Trải nghiệm Tứ trụ, Tử Vi và chiêm tinh cơ bản miễn phí đến {date}.",
-    "hi": "{date} तक मूल साजू, ज़िवेई और ज्योतिष पाठ मुफ़्त देखें।",
-    "es": "Explora Saju, Ziwei y astrología básicos gratis hasta {date}.",
-    "fr": "Découvrez les lectures de base gratuites de Saju, Ziwei et astrologie jusqu’au {date}.",
-    "de": "Kostenlose Basisdeutungen für Saju, Ziwei und Astrologie bis {date}.",
-    "nl": "Gratis basislezingen van Saju, Ziwei en astrologie tot {date}.",
-    "ms": "Terokai bacaan asas Saju, Ziwei dan astrologi percuma hingga {date}."
+    "ja": "{date}まで、万年暦・紫微斗数・占星術の基本鑑定を無料で体験できます。",
+    "zh-CN": "截至{date}，可免费体验万年历命盘、紫微斗数与占星基础解读。",
+    "zh-TW": "截至{date}，可免費體驗萬年曆命盤、紫微斗數與占星基礎解讀。",
+    "vi": "Trải nghiệm Manseryeok, Tử Vi và chiêm tinh cơ bản miễn phí đến {date}.",
+    "hi": "{date} तक मूल मन्सेर्योक, ज़िवेई और ज्योतिष पाठ मुफ़्त देखें।",
+    "es": "Explora Manseryeok, Ziwei y astrología básicos gratis hasta {date}.",
+    "fr": "Découvrez les lectures de base gratuites de Manseryeok, Ziwei et astrologie jusqu’au {date}.",
+    "de": "Kostenlose Basisdeutungen für Manseryeok, Ziwei und Astrologie bis {date}.",
+    "nl": "Gratis basislezingen van Manseryeok, Ziwei en astrologie tot {date}.",
+    "ms": "Terokai bacaan asas Manseryeok, Ziwei dan astrologi percuma hingga {date}."
   },
   "freePromo.copied": {
     "ko": "링크를 복사했어요. 친구에게 붙여 넣어 보내 주세요.",
@@ -143,16 +143,16 @@
   "freePromo.bubble": {
     "ko": "사주부터 타로와 세계 운세까지, 지금 만날 수 있는 무료 운세를 골라보세요",
     "en": "Explore free readings, from Saju and tarot to traditions around the world.",
-    "ja": "四柱推命からタロット、世界の占いまで、今出会える無料鑑定を選んでください。",
-    "zh-CN": "从四柱、塔罗到世界占卜，选择现在可体验的免费解读。",
-    "zh-TW": "從四柱、塔羅到世界占卜，選擇現在可體驗的免費解讀。",
-    "vi": "Chọn luận giải miễn phí từ Tứ trụ, tarot và các truyền thống thế giới.",
-    "hi": "साजू, टैरो और विश्व की परंपराओं से मुफ़्त पाठ चुनें।",
-    "es": "Elige lecturas gratis de Saju, tarot y tradiciones del mundo.",
-    "fr": "Choisissez une lecture gratuite de Saju, tarot ou des traditions du monde.",
-    "de": "Entdecken Sie kostenlose Deutungen aus Saju, Tarot und Welttraditionen.",
-    "nl": "Kies gratis lezingen uit Saju, tarot en wereldtradities.",
-    "ms": "Pilih bacaan percuma daripada Saju, tarot dan tradisi dunia."
+    "ja": "万年暦からタロット、世界の占いまで、今出会える無料鑑定を選んでください。",
+    "zh-CN": "从万年历命盘、塔罗到世界占卜，选择现在可体验的免费解读。",
+    "zh-TW": "從萬年曆命盤、塔羅到世界占卜，選擇現在可體驗的免費解讀。",
+    "vi": "Chọn luận giải miễn phí từ Manseryeok, tarot và các truyền thống thế giới.",
+    "hi": "मन्सेर्योक, टैरो और विश्व की परंपराओं से मुफ़्त पाठ चुनें।",
+    "es": "Elige lecturas gratis de Manseryeok, tarot y tradiciones del mundo.",
+    "fr": "Choisissez une lecture gratuite de Manseryeok, tarot ou des traditions du monde.",
+    "de": "Entdecken Sie kostenlose Deutungen aus Manseryeok, Tarot und Welttraditionen.",
+    "nl": "Kies gratis lezingen uit Manseryeok, tarot en wereldtradities.",
+    "ms": "Pilih bacaan percuma daripada Manseryeok, tarot dan tradisi dunia."
   },
   "freePromo.groupFun": {
     "ko": "재밌는 사주 콘텐츠",
@@ -615,5 +615,19 @@
     "de": "Der Himmel bei Ihrer Geburt",
     "nl": "De hemel bij je geboorte",
     "ms": "Langit ketika kelahiran anda"
+  },
+  "freePromo.desc.astro": {
+    "ko": "행성과 하우스로 나의 성향을 살펴봐요",
+    "en": "Explore your nature through planets and houses",
+    "ja": "惑星とハウスから自分の傾向を読みます",
+    "zh-CN": "通过行星与宫位了解自己的倾向",
+    "zh-TW": "透過行星與宮位了解自己的傾向",
+    "vi": "Khám phá tính cách qua hành tinh và các cung nhà",
+    "hi": "ग्रहों और भावों से अपना स्वभाव जानें",
+    "es": "Explora tu carácter a través de planetas y casas",
+    "fr": "Explorez votre nature à travers les planètes et les maisons",
+    "de": "Entdecke dein Wesen durch Planeten und Häuser",
+    "nl": "Ontdek je aard via planeten en huizen",
+    "ms": "Kenali sifat diri melalui planet dan rumah astrologi"
   }
 }

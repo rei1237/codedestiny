@@ -2537,6 +2537,19 @@
     },
     "entryCards": {
       "webtoon": "Maanlichtverhaal: introductiewebtoon"
+    },
+    "moonlit": {
+      "manseStart": "Mijn geboortehoroscoop gratis bekijken",
+      "signatureOpen": "Uitgelichte consulten bekijken",
+      "heukwolTitle": "De waarschuwing van de Zwarte Maan",
+      "heukwolDescription": "Bekijk perioden die aandacht vragen en manieren om je voor te bereiden.",
+      "heukwolFormat": "Vier Pijlers × Ziwei · Maandelijkse patronen en advies",
+      "heukwolCta": "Perioden om op te letten bekijken",
+      "gardenAlt": "Yeoni opent een lotsboek in een tuin bij maanlicht",
+      "featuredFree": "Uitgelichte gratis duidingen",
+      "heukwolNote": "Bereid je profiel en vraag voor en bekijk de voorwaarden op de consultpagina.",
+      "heukwolTrust": "Lees dit als hulp bij je keuzes, niet als een vaststaande toekomst.",
+      "sajuZiwei": "Vier Pijlers × Ziwei"
     }
   },
   "terms": {
@@ -17646,6 +17659,20 @@
           "detail": "Explore tendencies and the month branch, working conditions and roles, the downsides of strengths, and small career experiments."
         }
       ]
+    },
+    "heukwol": {
+      "tagline": "Explore periods that call for care and practical ways to prepare.",
+      "premiumIntro": "Explore periods that call for care and practical ways to prepare.",
+      "ctaNote": "Prepare your profile and question, then review the terms on the consultation page.",
+      "fallbackCta": "Explore periods to watch",
+      "premiumOutcomes": [
+        "Read this as guidance for your choices, not a certainty about the future."
+      ],
+      "fallbackTitle": "Black Moon Warning",
+      "premiumRequired": [
+        "Saved profile",
+        "Year and question to explore"
+      ]
     }
   },
   "featureMarketingCategory": {
@@ -17677,7 +17704,8 @@
     "physiognomy": "Face Reading",
     "article": "Reading",
     "pass": "Pass",
-    "totem": "Totemreading"
+    "totem": "Totemreading",
+    "sajuZiwei": "Vier Pijlers × Ziwei"
   },
   "featureMarketingTrust": {
     "paid": {
@@ -22515,13 +22543,13 @@
     "title": "Yeoni’s tuin met gratis lezingen",
     "until": "Tot {date} · Daarna betaald gepland",
     "note": "Onderdelen met een prijs vallen erbuiten, zoals AI-consulten en AI-lezingen, de Light Saju- en tienjarige-cyclus-lezingen, de Saju-beschermgeest en de AI Saju-compatibiliteitsanalyse.",
-    "cta": "Gratis basis-Saju starten",
+    "cta": "Gratis basis-Manseryeok starten",
     "share": "Vertel het een vriend zolang het gratis is",
-    "shareText": "Gratis basislezingen van Saju, Ziwei en astrologie tot {date}.",
+    "shareText": "Gratis basislezingen van Manseryeok, Ziwei en astrologie tot {date}.",
     "copied": "Link gekopieerd. Plak hem om naar een vriend te sturen.",
     "copyFailed": "De link kon niet worden gekopieerd. Kopieer hem uit de adresbalk.",
     "tileBadge": "3 maanden gratis",
-    "bubble": "Kies gratis lezingen uit Saju, tarot en wereldtradities.",
+    "bubble": "Kies gratis lezingen uit Manseryeok, tarot en wereldtradities.",
     "groupFun": "Leuke Saju-content",
     "groupClassic": "Klassieke Saju",
     "groupMore": "Meer lezingen",
@@ -22557,7 +22585,8 @@
       "tarot": "Gevoelens en keuzes met kaarten",
       "ziwei": "De twaalf paleizen van je geboortehoroscoop",
       "sukuyo": "Je aard en relaties via de maan",
-      "vedic": "De hemel bij je geboorte"
+      "vedic": "De hemel bij je geboorte",
+      "astro": "Ontdek je aard via planeten en huizen"
     }
   }
 }

@@ -2537,6 +2537,19 @@
     },
     "entryCards": {
       "webtoon": "Kisah cahaya bulan: webtoon pengenalan"
+    },
+    "moonlit": {
+      "manseStart": "Lihat carta kelahiran saya percuma",
+      "signatureOpen": "Lihat konsultasi pilihan",
+      "heukwolTitle": "Amaran Bulan Hitam",
+      "heukwolDescription": "Kenali tempoh yang memerlukan perhatian dan cara bersedia yang sesuai.",
+      "heukwolFormat": "Empat Tiang × Ziwei · Aliran dan nasihat bulanan",
+      "heukwolCta": "Lihat tempoh yang perlu diberi perhatian",
+      "gardenAlt": "Yeoni membuka buku nasib di taman cahaya bulan",
+      "featuredFree": "Bacaan percuma pilihan",
+      "heukwolNote": "Sediakan profil dan soalan, kemudian semak syarat pada halaman konsultasi.",
+      "heukwolTrust": "Anggap tafsiran ini sebagai panduan untuk pilihan anda, bukan masa depan yang pasti.",
+      "sajuZiwei": "Empat Tiang × Ziwei"
     }
   },
   "terms": {
@@ -17646,6 +17659,20 @@
           "detail": "Explore tendencies and the month branch, working conditions and roles, the downsides of strengths, and small career experiments."
         }
       ]
+    },
+    "heukwol": {
+      "tagline": "Explore periods that call for care and practical ways to prepare.",
+      "premiumIntro": "Explore periods that call for care and practical ways to prepare.",
+      "ctaNote": "Prepare your profile and question, then review the terms on the consultation page.",
+      "fallbackCta": "Explore periods to watch",
+      "premiumOutcomes": [
+        "Read this as guidance for your choices, not a certainty about the future."
+      ],
+      "fallbackTitle": "Black Moon Warning",
+      "premiumRequired": [
+        "Saved profile",
+        "Year and question to explore"
+      ]
     }
   },
   "featureMarketingCategory": {
@@ -17677,7 +17704,8 @@
     "physiognomy": "Face Reading",
     "article": "Reading",
     "pass": "Pass",
-    "totem": "Bacaan totem"
+    "totem": "Bacaan totem",
+    "sajuZiwei": "Empat Tiang × Ziwei"
   },
   "featureMarketingTrust": {
     "paid": {
@@ -22515,13 +22543,13 @@
     "title": "Taman bacaan percuma Yeoni",
     "until": "Hingga {date} · Akses berbayar dirancang selepas itu",
     "note": "Tidak termasuk item yang memaparkan harga, seperti konsultasi AI dan bacaan AI, bacaan Saju Ringan dan kitaran sepuluh tahun, penjaga Saju serta analisis keserasian Saju AI.",
-    "cta": "Mulakan Saju asas percuma",
+    "cta": "Mulakan Manseryeok asas percuma",
     "share": "Beritahu rakan selagi percuma",
-    "shareText": "Terokai bacaan asas Saju, Ziwei dan astrologi percuma hingga {date}.",
+    "shareText": "Terokai bacaan asas Manseryeok, Ziwei dan astrologi percuma hingga {date}.",
     "copied": "Pautan disalin. Tampal untuk dihantar kepada rakan.",
     "copyFailed": "Pautan tidak dapat disalin. Sila salin dari bar alamat.",
     "tileBadge": "Percuma 3 bulan",
-    "bubble": "Pilih bacaan percuma daripada Saju, tarot dan tradisi dunia.",
+    "bubble": "Pilih bacaan percuma daripada Manseryeok, tarot dan tradisi dunia.",
     "groupFun": "Kandungan Saju yang seronok",
     "groupClassic": "Saju klasik",
     "groupMore": "Bacaan lain",
@@ -22557,7 +22585,8 @@
       "tarot": "Perasaan dan pilihan melalui kad",
       "ziwei": "Dua belas istana carta kelahiran",
       "sukuyo": "Sifat dan hubungan melalui bulan",
-      "vedic": "Langit ketika kelahiran anda"
+      "vedic": "Langit ketika kelahiran anda",
+      "astro": "Kenali sifat diri melalui planet dan rumah astrologi"
     }
   }
 }

@@ -2295,8 +2295,8 @@ function __cdEnsureSajuCoreLoaded() {
       '/js/core/saju/extremeTResult.js?v=build-5f0576c62518',
       /* 숙요 정본(Swiss 항성 달 황경). quantum.js 의 calcSukuyoData 가 이것 없이는 수(宿)를 내지 않는다. */
       '/js/core/sukuyo-astronomy.js?v=build-5198c8e4c8b2',
-      '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-e5e217e24dce',
-    '/js/core/saju/basicFortunePresentation.js?v=build-900c866ed926',
+      '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-26d74f85012f',
+    '/js/core/saju/basicFortunePresentation.js?v=build-2625c92ed995',
     '/js/core/saju/modalProfileState.js?v=build-70bc2c91ff63',
     '/js/core/saju/reportDashboard.js?v=build-2fa27e381213',
     '/js/saju-engine-continuation.js?v=build-f4d87e14c1c7',
@@ -2325,7 +2325,7 @@ function __cdEnsureDestinyProfileLoaded() {
   if (window.DestinyProfileManager) return Promise.resolve(true);
   if (__cdDestinyProfileLoadPromise) return __cdDestinyProfileLoadPromise;
 
-  __cdDestinyProfileLoadPromise = __cdLoadScriptOnce('/js/destiny-profile.js?v=build-de1d774ab51e')
+  __cdDestinyProfileLoadPromise = __cdLoadScriptOnce('/js/destiny-profile.js?v=build-54a26ae28e2e')
     .then(function() { return true; })
     .catch(function(err) {
       __cdDestinyProfileLoadPromise = null;
@@ -9155,7 +9155,7 @@ function __cdEnsureSukuyoZiweiCoreLoaded() {
       '/js/core/saju/manse-shinsal.js',
       '/js/saju-engine.js?v=build-639a37c65478',
       '/js/core/sukuyo-astronomy.js?v=build-5198c8e4c8b2',
-      '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-e5e217e24dce'
+      '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-26d74f85012f'
   ];
 
   /* 🔴 예전에는 이 체인 앞에 lunar-javascript CDN 대기가 있었고, 그것이 reject 되면 생년월일
@@ -9172,7 +9172,7 @@ function __cdEnsureBirthModalDepsLoaded() {
   if (__cdBirthModalDepsLoadPromise) return __cdBirthModalDepsLoadPromise;
   var presentationReady = window.BasicFortunePresentation
     ? Promise.resolve()
-    : __cdLoadScriptOnce('/js/core/saju/basicFortunePresentation.js?v=build-900c866ed926');
+    : __cdLoadScriptOnce('/js/core/saju/basicFortunePresentation.js?v=build-2625c92ed995');
   var tasks = [presentationReady];
   if (
     typeof _ModalProfileState === 'undefined' ||

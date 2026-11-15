@@ -7,7 +7,7 @@ import type {Consultation,Destination} from './home-directory';
 
 const MoonlightQuestions=lazy(()=>import('./MoonlightQuestions'));
 
-export default function UnifiedHome({onOpen,onConsult}:{onOpen:(page:Destination)=>void;onConsult:(service:Consultation,question?:typeof questions[number])=>void}){
+export default function UnifiedHome({onOpen,onConsult,loggedIn,onAccount}:{onOpen:(page:Destination)=>void;onConsult:(service:Consultation,question?:typeof questions[number])=>void;loggedIn:boolean;onAccount:()=>void}){
  const currentWorld=()=>{if(/^\/yeongnyangi\/?$/.test(window.location.pathname))return 'yeongnyangi';const value=new URLSearchParams(window.location.search).get('world');return value==='ggulggul'||value==='yeongnyangi'?value:'home';};
  const [world,showWorld]=useState<'home'|'yeongnyangi'|'ggulggul'>(currentWorld);
  function setWorld(next:typeof world){
@@ -21,7 +21,7 @@ export default function UnifiedHome({onOpen,onConsult}:{onOpen:(page:Destination
   return ()=>{window.removeEventListener('popstate',pop);window.removeEventListener('code-destiny:toss-back',back);};
  },[]);
  return <div className={'unified-home world-'+world}>
-  <header className="unified-brand"><img src="/assets/yeoni-flower-pig.webp" alt="" width={40} height={40}/><strong>꿀꿀 운세</strong><button onClick={()=>onOpen('settings')}>내 정보</button></header>
+  <header className="unified-brand"><img src="/assets/yeoni-flower-pig.webp" alt="" width={40} height={40}/><strong>꿀꿀 운세</strong><button onClick={onAccount}>{loggedIn?'기록 보관함':'토스 로그인'}</button></header>
   <nav className="world-navigation" aria-label="서비스 공간">{[['home','전체'],['ggulggul','꿀꿀운세'],['yeongnyangi','영냥이']].map(([id,label])=><button key={id} aria-current={world===id?'page':undefined} onClick={()=>setWorld(id as typeof world)}>{label}</button>)}</nav>
   {world==='home'?<><div className="world-opening"><h1>어떤 운세를<br/>만나볼까요?</h1></div><div className="world-entries">{[{id:'ggulggul' as const,art:'yeoni',title:'꿀꿀 운세',description:'사주·타로부터 주제별 리포트까지',action:'운세 골라보기'},{id:'yeongnyangi' as const,art:'yeongnyangi',title:'운세보는 영냥이',description:'내 질문과 상황을 바탕으로 깊이 읽기',action:'영냥이 만나기'}].map(item=><button key={item.id} className={'world-entry world-entry-'+item.id} onClick={()=>setWorld(item.id)}><img src={'/assets/root-card-'+item.art+'.webp'} alt="" width={360} height={480}/><span><strong>{item.title}</strong><small>{item.description}</small><b>{item.action} <span aria-hidden>→</span></b></span></button>)}</div></>:world==='yeongnyangi'?<>
    <section className="world-cat-hero"><img className="world-room" src="/assets/consultation-room-mobile.webp" alt="" width={768} height={1152}/><div><h1>영냥이의<br/>달빛 점술방</h1><p>네 질문과 상황을 듣고,<br/>답과 근거, 지금 해볼 행동을 함께 읽어.</p><Button onClick={()=>onConsult('yeongnyangi')}>내 고민 상담하기</Button></div><img className="world-cat" src="/assets/yeongnyangi.webp" alt="이야기를 기다리는 영냥이" width={800} height={800}/></section>

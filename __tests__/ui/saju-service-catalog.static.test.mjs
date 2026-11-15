@@ -39,7 +39,7 @@ test("every saju-method registry service is in the /saju/#services catalog with 
 
 test("catalog groups keep the signature deck first and every link resolves to a real route", () => {
   assert.equal(SAJU_SERVICE_GROUPS[0].id, "saju-signature");
-  assert.equal(SAJU_SERVICE_GROUPS[0].items.length, 6);
+  assert.equal(SAJU_SERVICE_GROUPS[0].items.length, 7);
   assert.equal(new Set(SAJU_SERVICE_ITEMS.map((item) => item.href)).size, SAJU_SERVICE_ITEMS.length, "href 중복");
   for (const item of SAJU_SERVICE_ITEMS) assert.ok(routeExists(item.href), `${item.name}: ${item.href} 라우트 없음`);
 });
