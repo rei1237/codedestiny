@@ -20,9 +20,9 @@ type Scene=keyof typeof SCENES;
 const PANELS={meditation:'명상',prayer:'나의 기도',bow:'온라인 108배',affirmation:'긍정 확언',music:'명상 음악',fortune:'오늘의 운세',records:'나의 기록',custom:'캐릭터 꾸미기'};
 type Panel=keyof typeof PANELS;
 const HOTSPOTS:Record<Scene,{label:string;x:number;y:number;panel?:Panel;scene?:Scene;strike?:boolean}[]>={
- courtyard:[{label:'법당 들어가기',x:41,y:39,scene:'hall'},{label:'음악함 열기',x:17,y:57,panel:'music'},{label:'목탁 두드리기',x:64,y:56,strike:true},{label:'염주 · 108배',x:73,y:65,panel:'bow'},{label:'연못으로',x:85,y:53,scene:'pond'},{label:'생선 · 오늘의 운세',x:87,y:73,panel:'fortune'}],
+ courtyard:[{label:'법당 들어가기',x:41,y:46,scene:'hall'},{label:'음악함 열기',x:17,y:57,panel:'music'},{label:'목탁 두드리기',x:64,y:51,strike:true},{label:'염주 · 108배',x:73,y:65,panel:'bow'},{label:'연못으로',x:85,y:53,scene:'pond'},{label:'생선 · 오늘의 운세',x:86,y:80,panel:'fortune'}],
  hall:[{label:'불상 앞에서 기도',x:50,y:49,panel:'prayer'},{label:'음악함 열기',x:20,y:63,panel:'music'},{label:'목탁 두드리기',x:77,y:62,strike:true},{label:'염주 · 108배',x:84,y:74,panel:'bow'},{label:'기도 수첩',x:23,y:83,panel:'records'}],
- pond:[{label:'법당으로',x:28,y:27,scene:'hall'},{label:'음악함 열기',x:14,y:57,panel:'music'},{label:'운세책 펼치기',x:22,y:59,panel:'fortune'},{label:'연꽃 앞에서 명상',x:72,y:56,panel:'meditation'}],
+ pond:[{label:'법당으로',x:28,y:27,scene:'hall'},{label:'음악함 열기',x:14,y:51,panel:'music'},{label:'운세책 펼치기',x:22,y:67,panel:'fortune'},{label:'연꽃 앞에서 명상',x:72,y:56,panel:'meditation'}],
 };
 export default function Space(){
  const profile=useSpaceProfile();
@@ -103,7 +103,7 @@ function PrivateSpace({profile}:{profile:ReturnType<typeof useSpaceProfile>}){
  const active=bow.session.status==='running'||bow.session.status==='paused';
  const ended=bow.session.status==='complete'||bow.session.status==='stopped';
  const characterPosition:CSSProperties={left:scene==='hall'?'50%':'46%',top:scene==='hall'?'86%':'82%'};
- return <main className={styles.page} data-immersive={quiet}>
+ return <main className={styles.page} lang="ko" data-cd-no-trans data-immersive={quiet}>
   <header className={styles.header}><Link href="/" className={styles.home}><ArrowLeft size={17}/>꿀꿀 운세</Link><div><h1>달빛 연화당</h1><p>오직 나 혼자, 마음을 쉬어가는 작은 절</p></div><button onClick={()=>open('custom')} aria-label="캐릭터와 화면 설정"><Settings2 size={20}/><span>꾸미기</span></button></header>
   <p className={styles.privateNote}><Heart size={15} aria-hidden="true"/>다른 사람이 접속해도, 이 공간에는 나의 캐릭터만 머물러요.</p>
   <nav className={styles.sceneNav} aria-label="장면 이동">{(Object.entries(SCENES) as [Scene,string][]).map(([id,title])=><button key={id} aria-pressed={scene===id} onClick={()=>changeScene(id)}>{title}</button>)}</nav>
