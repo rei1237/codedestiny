@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-16
-next: 병합된 main 5b74dd4a6와 원본 quick5/기존14편의 진입을 대조한 뒤 기존 Toss StoryLibrary에 웹툰 설명을 구현하고 검증한다.
+next: 웹툰 검증 단위를 pre-push 후 root에 main 병합을 요청하고 고정 main SHA Linux AIT와 실제 archive 검증을 이어간다.
 ---
 
 ## 첫 행동
@@ -69,9 +69,24 @@ handoff 스킬과 CLAUDE.md를 읽고 아래 워크트리에서 git 상태/fetch
 
 - [x] 앞선 간편 UI 단위의 최종 CI/Linux AIT/QR19 완료
 - [x] 부모 QR19 문서 전달5b74dd4a6 병합, 새 작업 정본 확정
-- [ ] 원본 quick5 + 기존14편의 CTA/입력 경로 대조
-- [ ] 원본 설명·CutReader를 재사용한 간편 웹툰 선택/읽기/진입 구현
-- [ ] 사용자 미리보기와 분리한 mock 동선·모바일·뒤로가기·그림 검증
+- [x] 원본 quick5 + 기존14편의 CTA/입력 경로 대조
+- [x] 원본 설명·CutReader를 재사용한 간편 웹툰 선택/읽기/진입 구현
+- [x] 사용자 미리보기와 분리한 mock 동선·모바일·뒤로가기·그림 검증
 - [ ] targeted/check:fast/작은 커밋/pre-push/main CI
 - [ ] 고정 소스 Linux 일반 AIT·실제 archive 검증·비공개 테스트 전달(새 검토/실결제 없음)
 - [ ] handoff done/미리보기 유지/자기 worktree·임시 파일 정리
+
+## 웹툰 구현·검증 (2026-11-16)
+
+- 후속 `/root/toss_entry_usability/webtoon_guide`가 소스·검사를 단독 편집했고 `/root`가 main 전달/콘솔을 담당한다.
+- StoryLibrary에 `virtual:service-guide`로 원본 quick5 대사/그림/CTA와 guideGroups 대표6·전문7을 재사용했다. 흑월은 별도 단일 링크로 보존하고 기존14편의 모든 CTA(인연의 서·작명 포함)를 실제 입력 경로로 연결했다.
+- 홈 캐릭터2장 아래 안내 진입1개. 서가는 quick5만 기본 펼침, 대표·전문은 닫힘. 원본 CutReader lantern/yehwa/night 및 창작 안내 고지를 유지한다. 전문편→CTA→뒤로→서가의 묶음을 query story에서 복원한다.
+- quick web→Toss: `/saju/free/`→`/manse`, `/fortune/today/`→`/today`, `/tarot/`→`/tarot-library`, `/sukuyo/`→`/sukuyo`, `/yeongnyangi/` 유지. 결제/인증/API/DB/신규판매 게이트는 수정하지 않았다. 비공개 미니앱만 변경하므로 공개 SEO/title/canonical/sitemap 영향 없음.
+- vite-service의 private-simulation에서만 `__story-art`에 원본 AVIF 후보/WebP fallback/표지를 정확한 바이트로 넣는다. CSP·외부 API 차단 유지. 일반 AIT는 원화 스트리밍 유지하며 새 원화를 중복 포함하지 않는다. private 미리보기 dist는136,665,394bytes/2,219files이며 로컬전용이다. 일반 업로드100MB 검증과 구분하고 모의판은 업로드하지 않는다.
+- 읽기전용 운영 그림 GET: 총428 URL 전부200/206 + image/* (2026-11-16). 새 운영 배포 필요 없음. 검증 JSON `C:/Users/user/Downloads/CodeDestiny/20261116-webtoon-guide/verification/webtoon-art-live.json`.
+- `node --test apps/toss/test/story-guide.test.mjs`:2PASS(일반/private 원본 대사·그림 계약 동일). Toss typecheck최종PASS(그룹복원 변경포함).
+- `story-library-browser.mjs`: 모의19편 모든컷 decode·대사일치·360px overflow없음·CTA실제화면과컨트롤·browser back/native back·대표전문묶음복원 PASS, 네트워크POST0. 테스트가 main만 찾던 부분은 일부 서비스의 기존 div/h2 구조에 맞춰 수정했고, Vedic async 준비 컨트롤을 기다리도록 수정했다(런타임 결함 아님). 같은 실패 반복 없음.
+- 목록360/390/430·saju3컷/CTA 캡처를 root가 독립 시각검수PASS. 추가 꾸미기 없음. detector `[]`. Ego21은 finish완료(사용자 공간 아님).
+- 사용자 새미리보기 `http://127.0.0.1:4333/preview`를 root가 이미 안내했다. **4333도 사용자용이므로 조작/초기화 금지**. 독립 Downloads 사본으로 동일포트 이관완료(exec3320), index SHA동일/HTTP200/mockmarker확인. 사본 `C:/Users/user/Downloads/CodeDestiny/20261116-webtoon-guide`의 scripts/private-simulation/사용안내.txt. 기존4330/exec23303도 유지. worktree 서버19488은 종료. 이후 QA는 실제 AIT 테스트의 독립 browser context만 사용한다.
+- `npm run check:fast` 전체계획 PASS(exit0): `.tmp/webtoon-checkfast.log`. critical 자동승격 유지. paid77/lint/sitemap/typecheck/Node5104/정책/Worker dry build/encoding PASS, Jest479suites/8012tests PASS(1skip). 오늘 fortune 결정적 데이터를 mock-network-guard로 준비했고 데이터는 git변경없음.
+- Linux AIT workflow: `gh workflow run pr-ci.yml --ref main -f full_ci=true -f toss_artifact=true -f toss_simulation_artifact=false`. dispatch직전 origin/main=검증할40SHA, 결과run.headSha일치확인. artifact `toss-preview-<40SHA>`(retention1day). root가 main merge/push 후 SHA전달. 완성archive를 `story-library-browser.mjs <ait>`로 검증 가능하며 원화 로컬fixture/실외부API차단/일반AIT에__story-art없음 검사 포함.

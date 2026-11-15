@@ -1,8 +1,15 @@
-.story-library{max-width:42rem;margin:auto;background:#fffaf1;color:#3d2c34;overflow:hidden;border-radius:20px}
-.story-library>header{padding:24px 18px;background:linear-gradient(125deg,#30253b,#524059);color:#fff4e5}
-.story-library h1{font:600 clamp(1.4rem,6vw,2rem)/1.35 var(--font-display,serif);margin:4px 0}
-.story-library>header p{margin:8px 0;line-height:1.65}.story-library>header button{min-height:44px;color:inherit;background:none;border:0;padding:0;font:inherit}
-.story-index{list-style:none;padding:4px 14px;margin:0}.story-index li+li{border-top:1px solid #ded0c5}
-.story-index button{display:flex;align-items:center;gap:12px;width:100%;padding:14px 0;text-align:left;background:none;border:0;color:inherit}
-.story-index img{width:78px;height:72px;border-radius:10px;object-fit:cover;background:#dacbc3}.story-index strong,.story-index small{display:block}.story-index strong{font:600 1.13rem/1.4 var(--font-display,serif)}.story-index small{margin-top:4px;line-height:1.55}
-.story-library footer{display:grid;gap:12px;padding:20px 16px}.story-library footer a{text-align:center;background:#523e54;color:#fff8eb;border-radius:12px;padding:14px;text-decoration:none}
+.story-library{max-width:42rem;margin:auto;background:var(--moon-surface);color:var(--moon-ink);overflow:hidden;border:1px solid var(--moon-line);border-radius:20px}
+.story-library>header{position:relative;padding:24px 18px;background:var(--moon-paper);border-bottom:1px solid var(--moon-line);box-shadow:inset 0 0 0 4px var(--moon-surface),inset 0 0 0 5px var(--moon-line-soft)}
+.story-library>header:after{content:'';position:absolute;right:12px;top:12px;width:42px;height:30px;background:var(--moon-gold);mask:var(--cd-yehwa-mask-branch-corner) center/contain no-repeat;opacity:.3;pointer-events:none}
+.story-library h1{font:600 clamp(1.4rem,6vw,2rem)/1.4 var(--toss-serif);margin:4px 0;text-wrap:balance}
+.story-library>header p{margin:12px 0 8px;line-height:1.75}.story-library>header button{min-height:48px;color:var(--moon-accent);background:none;border:0;padding:0;font:inherit}
+.story-library .story-note{font-size:14px;line-height:1.7;padding:16px 18px;margin:0;color:var(--moon-muted)}
+.story-group{border-top:1px solid var(--moon-line-soft)}.story-library .story-group>summary{padding:20px 18px;cursor:pointer;font:600 1.1rem/1.6 var(--toss-serif);min-height:56px}.story-group>summary small{display:block;font:400 14px/1.6 var(--font-body,sans-serif);margin:4px 0 0 18px}.story-group[open]>summary{background:var(--moon-paper)}
+.story-group-intro{margin:12px 18px;line-height:1.75;font-size:15px}
+.story-index{list-style:none;padding:0 18px;margin:0}.story-index li+li{border-top:1px solid var(--moon-line-soft)}
+.story-index button{display:flex;align-items:center;gap:14px;width:100%;min-height:56px;padding:18px 0;text-align:left;background:none;border:0;color:inherit;font:inherit}
+.story-index img{width:78px;height:72px;flex-shrink:0;border-radius:10px;object-fit:cover;background:var(--moon-paper)}.story-index strong,.story-index small{display:block}.story-index strong{font:600 1.13rem/1.5 var(--toss-serif)}.story-index small{margin-top:5px;font-size:14px;line-height:1.65}.story-quick strong{margin-top:4px}.story-quick i{width:8px;height:8px;flex-shrink:0;border-top:1px solid var(--moon-accent);border-right:1px solid var(--moon-accent);transform:rotate(45deg);margin-left:auto}
+.story-library footer{display:grid;gap:14px;padding:24px 18px}.story-library footer a{text-align:center;background:var(--moon-accent);color:var(--moon-surface);border:1px solid var(--moon-line);box-shadow:inset 0 0 0 3px var(--moon-accent),inset 0 0 0 4px var(--moon-line);border-radius:14px;padding:16px;text-decoration:none;min-height:52px;line-height:1.6;font-weight:650}.story-library footer p{margin:0;font-size:14px;line-height:1.75;color:var(--moon-muted)}
+.story-afterword{display:grid;gap:6px;width:100%;padding:22px 18px;border:0;border-top:1px solid var(--moon-line);background:var(--moon-paper);color:var(--moon-accent);text-align:left;font:inherit}.story-afterword strong{font:600 1.1rem/1.5 var(--toss-serif)}.story-afterword span{font-size:14px;line-height:1.7}
+.story-library button:focus-visible,.story-library a:focus-visible{outline:3px solid var(--moon-focus);outline-offset:-3px}.story-library button:active{background:var(--moon-paper)}
+@media(hover:hover){.story-index button:hover,.story-afterword:hover{background:var(--moon-paper);text-decoration:underline;text-underline-offset:4px}}

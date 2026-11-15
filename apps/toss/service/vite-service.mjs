@@ -80,7 +80,15 @@ export async function screenTarotBytes(source){
 
 export default function serviceCompat(){
  const references=new Set(['/fuctionassets/rune.webp']);
+ let privateArt=false;
+ const storyAssets=new Set();
+ const storySource=src=>privateArt?'/__story-art'+src:'https://code-destiny.com'+src;
+ const projectCuts=cuts=>cuts.map(cut=>{
+  if(privateArt&&cut.src){for(const width of cut.widths)storyAssets.add(cut.src+'-'+width+'.avif');storyAssets.add(cut.src+'-'+cut.fallback+'.webp');}
+  return {...cut,src:cut.src?storySource(cut.src):''};
+ });
  return {name:'canonical-service-runtime',enforce:'pre',
+  configResolved(config){privateArt=config.mode==='private-simulation';},
   transform(code,id){
    if(id.includes('node_modules'))return;
    if(id.replaceAll('\\','/').endsWith('/components/fortune/ExternalImageGuide.tsx')){
@@ -106,6 +114,7 @@ export default function serviceCompat(){
   },
   resolveId(id,importer){
    if(id.replaceAll('\\','/').endsWith('/lib/r2-public-url')&&/\/(?:neo-war-room|fortune-tea-house)\/data\/assets\.ts$/.test(importer?.replaceAll('\\','/')||''))return fileURLToPath(new URL('./character-room-art.ts',import.meta.url));
+   if(id==='virtual:service-guide')return '\0toss-service-guide';
    if(id==='virtual:consultation-webtoons')return '\0toss-consultation-webtoons';
    if(id==='virtual:destiny-island')return '\0toss-destiny-island';
    if(id==='virtual:secret-house-page')return '\0toss-secret-house';
@@ -133,15 +142,21 @@ export default function serviceCompat(){
    if(id==='next/navigation'||defaults[id])return '\0toss-service:'+id;
   },
   async load(id){
+   if(id==='\0toss-service-guide'){
+    const file=resolve(publicRoot,'../lib/brand/service-guide-webtoon.mjs');this.addWatchFile(file);
+    const {quickGuideStories,guideGroups}=await import(pathToFileURL(file).href+'?v='+(await stat(file)).mtimeMs);
+    return 'export const guideGroups='+JSON.stringify(guideGroups)+';export const quickGuideStories='+JSON.stringify(quickGuideStories.map(story=>({...story,cuts:projectCuts(story.cuts)})))+';';
+   }
    if(id==='\0toss-consultation-webtoons'){
     // Readers stream original full-size panels. Keep other services' bundled portraits local.
     const file=resolve(publicRoot,'../lib/brand/consultation-webtoons.mjs');
     this.addWatchFile(file);
     const {consultationWebtoons}=await import(pathToFileURL(file).href+'?v='+(await stat(file)).mtimeMs);
     const stories=Object.fromEntries(Object.entries(consultationWebtoons).map(([key,story])=>[key,{
-     ...story,cuts:story.cuts.map(cut=>({...cut,src:cut.src?'https://code-destiny.com'+cut.src:''})),
+     ...story,cuts:projectCuts(story.cuts),
     }]));
-    return 'export default '+JSON.stringify(stories);
+    if(privateArt)for(const key of Object.keys(stories))storyAssets.add('/images/consultation-webtoons/covers/mobile/'+key+'.webp');
+    return 'export const coverDirectory='+JSON.stringify(storySource('/images/consultation-webtoons/covers/mobile/'))+';export default '+JSON.stringify(stories);
    }
    if(id==='\0toss-destiny-island'){
     const file=resolve(publicRoot,'destiny-island.html');this.addWatchFile(file);
@@ -173,6 +188,8 @@ export default function serviceCompat(){
    try{const bytes=await readFile(path);res.setHeader('Content-Type',mime[extname(path)]);res.end(bytes);}catch{next();}
   });},
   async generateBundle(_options,bundle){
+   // Only the offline simulation embeds exact original panels. The release streams them.
+   for(const ref of storyAssets)this.emitFile({type:'asset',fileName:'__story-art'+ref,source:await readFile(resolve(publicRoot,'.'+ref))});
    let tea640=false,yeongnyangi640=false;
    // Inspect the emitted chunks, not every imported module before tree shaking.
    // Otherwise dead catalog entries and navigation URLs copy whole art archives.
