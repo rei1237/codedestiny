@@ -107,7 +107,7 @@ let lastPage;try{
   assert.ok(failedReads>0);
   assert.equal(await reopened.getByText(original,{exact:true}).first().textContent(),original);
   await reopened.goto(origin);
-  await reopened.getByRole('button',{name:'내 정보',exact:true}).click();
+  await reopened.getByRole('button',{name:'설정·고객지원',exact:true}).click();
   await reopened.getByRole('button',{name:'로그아웃',exact:true}).click();
   await reopened.getByText('로그아웃했어요.').waitFor();
   memory.set('toss-offline-login-person','second');
