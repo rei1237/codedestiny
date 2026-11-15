@@ -35,6 +35,7 @@ const TarotCardPick=dynamic(()=>import('./tarot/TarotCardPick'),{ssr:false,loadi
 const TarotSpreadReveal=dynamic(()=>import('./tarot/TarotSpreadReveal'),{ssr:false,loading:TarotPresentationLoading});
 import {useReadingLanguage} from '../_lib/use-reading-language';
 import {localizedSystem,localizedTier,localizedKind} from '../_lib/consultation-locale-copy';
+import {freeFeatureForDomain} from '@/lib/records/saved-record-next.mjs';
 // Completed-reading tools load after the record selects them. The reading body
 // keeps its original mount timing and space ahead of the benefits section.
 function RecoveryNotice({message,busy,onRetry,locale}:{message:string;busy:boolean;onRetry:()=>void;locale?:FortuneRecord['locale']}){
@@ -70,6 +71,8 @@ function ResultBridge({row,locale,paymentSurface}:{row:FortuneRecord;locale?:For
  const copy=resultBridgeCopy(locale);
  const domain=row.product.systems.length>1?'fusion':row.product.domain;
  const href=`/yeongnyangi/fortune/?domain=${encodeURIComponent(domain)}&lang=${encodeURIComponent(locale||'ko')}`;
+ // 무료 기능 1개: 한국어 꿀꿀운세 진입점이라 ko 이고 토스 표면이 아닐 때만.
+ const free=locale==='ko'&&paymentSurface!=='toss'?freeFeatureForDomain(row.product.domain):null;
  return <section className={styles.resultBridge} aria-labelledby="yn-result-bridge-title" data-cd-cross-sell="yeongnyangi_result_complete">
   <div>
    <h2 id="yn-result-bridge-title">{copy.title}</h2>
@@ -77,6 +80,7 @@ function ResultBridge({row,locale,paymentSurface}:{row:FortuneRecord;locale?:For
   </div>
   <nav aria-label={copy.title}>
    <a className={styles.button} href={href}>{copy.related}</a>
+   {free && <span data-cd-cross-sell="/yeongnyangi/result/"><a href={free.href} data-cd-cta-placement="free_result" data-cd-target-service={free.service}>{free.label}</a></span>}
    {paymentSurface !== 'toss' && <a href={`/ggulggul/?lang=${encodeURIComponent(locale||'ko')}`}>{copy.garden}</a>}
   </nav>
  </section>;

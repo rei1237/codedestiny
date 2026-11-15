@@ -750,6 +750,8 @@
   var SEARCH_CTA_ROUTES = ["/", "/ggulggul/", "/yeongnyangi/", "/yeongnyangi/1000-won-fortune/", "/saju/", "/manse/", "/tarot/", "/tarot/reunion/", "/tarot/mindscan/", "/tarot/love/", "/ziwei/", "/sukuyo/", "/sukuyo/compatibility/", "/vedic/", "/astrology/", "/naming-ai/", "/fortune/", "/fortune/today/", "/fortune/tomorrow/", "/fortune/tomorrow/rat/", "/fortune/weekly/", "/fortune/monthly/", "/today/", "/compatibility/", "/love/", "/fortune-tea-house/", "/neo-operation-room/"];
   var SEARCH_CTA_SERVICES = ["ggulggul", "yeongnyangi", "saju", "manse", "tarot", "ziwei", "sukuyo", "vedic", "astrology", "naming", "zodiac", "today", "compatibility", "tea", "neo", "love"];
   SEARCH_CTA_ROUTES.push("/saju/free/", "/ziwei/chart/", "/ziwei/animal-destiny/", "/saju/guide/", "/saju/compatibility/", "/saju/monthly/2026-09/", "/tarot/guide/", "/ziwei/guide/", "/sukuyo/guide/", "/vedic/guide/", "/vedic-ai/", "/astrology/guide/", "/astrology-ai/");
+  // 결과 화면은 출발점으로만 쓴다(무료 기능으로 이어지는 free_result 링크). 목적지로는 받지 않는다.
+  var CTA_SOURCE_ONLY_ROUTES = ["/records/view/", "/yeongnyangi/result/"];
   function isSearchCtaRoute(path) {
     return SEARCH_CTA_ROUTES.indexOf(path) >= 0
       || /^\/fortune\/(?:today|tomorrow|weekly|monthly)\/(?:aries|taurus|gemini|cancer|leo|virgo|libra|scorpio|sagittarius|capricorn|aquarius|pisces|rat|ox|tiger|rabbit|dragon|snake|horse|goat|monkey|rooster|dog|pig)\/$/.test(path);
@@ -762,7 +764,7 @@
     var destination = new URL(anchor.getAttribute("href"), global.location.href);
     var target = destination.pathname.replace(/\/$/, "") + "/";
     if (destination.origin !== global.location.origin
-      || !isSearchCtaRoute(source) || !isSearchCtaRoute(target)
+      || !(isSearchCtaRoute(source) || CTA_SOURCE_ONLY_ROUTES.indexOf(source) >= 0) || !isSearchCtaRoute(target)
       || ["primary", "related", "directory", "next_step", "free_result"].indexOf(placement) < 0
       || SEARCH_CTA_SERVICES.indexOf(service) < 0) return null;
     return { from_service: source, to_service: target, placement: placement, target_service: service };
