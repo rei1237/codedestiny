@@ -21,14 +21,14 @@ function runtime(fetch){
  }
  return load(path.resolve('app/components/SavedBirthProfilePicker.tsx')).default;
 }
-async function mount(fetch,profiles,calendarMode,onSelected){
+async function mount(fetch,profiles,calendarMode,onSelected,onClear){
  const dom=new JSDOM('<!doctype html><html lang="ko"><body><div id="root"></div></body></html>',{url:'https://example.invalid'});
  for(const key of ['window','document','localStorage','sessionStorage','Event'])global[key]=dom.window[key];
  global.IS_REACT_ACT_ENVIRONMENT=true;
  localStorage.setItem('fortune_auth_user',JSON.stringify({id:'owner'}));
  if(profiles)localStorage.setItem('FORTUNE_APP_USER_PROFILES.list::owner',JSON.stringify(profiles));
  const Picker=runtime(fetch),root=createRoot(document.getElementById('root')),choices=[];
- await act(async()=>root.render(React.createElement(React.Fragment,null,React.createElement(Picker,{label:'본인',calendarMode,onSelect:seed=>{choices[0]=seed;return onSelected?.(seed);}}),React.createElement(Picker,{label:'상대',calendarMode,onSelect:seed=>choices[1]=seed}))));
+ await act(async()=>root.render(React.createElement(React.Fragment,null,React.createElement(Picker,{label:'본인',calendarMode,onClear,onSelect:seed=>{choices[0]=seed;return onSelected?.(seed);}}),React.createElement(Picker,{label:'상대',calendarMode,onSelect:seed=>choices[1]=seed}))));
  return {choices,async choose(index,id){await act(async()=>{const select=document.querySelectorAll('select')[index];select.value=id;select.dispatchEvent(new Event('change',{bubbles:true}));});},async close(){await act(async()=>root.unmount());dom.window.close();}};
 }
 const cards=[{id:'a',name:'본인 예시',birthDate:'1990-01-01',birthTime:'00:00',gender:'female',location:{label:'New York, USA',lat:40.7,lng:-74,tz:'America/New_York'}},{id:'b',name:'상대 예시',birthDate:'1992-02-02',timeUnknown:true}];
@@ -65,4 +65,9 @@ test('switching to manual input cancels the pending selection indicator',async()
  let finish;const pending=new Promise(resolve=>{finish=resolve;});
  const ui=await mount(()=>{throw Error('no fetch')},cards,undefined,()=>pending);
  try {await ui.choose(0,'a');assert.match(document.querySelector('[data-saved-birth-profile]').textContent,/프로필 확인 중/);await ui.choose(0,'');assert.doesNotMatch(document.querySelector('[data-saved-birth-profile]').textContent,/프로필 확인 중/);await act(async()=>finish());}finally{await ui.close();}
+});
+
+test('clearing a selected saved profile notifies consumers before another consultation',async()=>{
+ let selected='';const ui=await mount(()=>{throw Error('cached')},cards,undefined,()=>{selected='a';},()=>{selected='';});
+ try{await ui.choose(0,'a');assert.equal(selected,'a');await ui.choose(0,'');assert.equal(selected,'');}finally{await ui.close();}
 });

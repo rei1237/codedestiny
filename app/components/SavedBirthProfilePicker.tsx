@@ -16,8 +16,8 @@ const copy = {
  ja: {title:"保存したプロフィール",choose:"プロフィールを選択",manual:"直接入力する",hint:"選んだ情報は今回の鑑定にのみ使用します。",empty:"保存したプロフィールがありません。下に入力してください。",guest:"ログインすると保存したプロフィールを使えます。",error:"読み込めませんでした。再読み込みするか直接入力してください。",loading:"確認中",refresh:"一覧を更新",solar:"陽暦",lunar:"陰暦",leap:"閏月",unknown:"時刻不明"},
  zh: {title:"已保存的档案",choose:"选择档案",manual:"手动输入",hint:"所选信息仅用于本次解读。",empty:"暂无档案，请在下方输入。",guest:"登录后可使用已保存的档案。",error:"无法加载档案，请重试或手动输入。",loading:"正在加载",refresh:"刷新档案",solar:"公历",lunar:"农历",leap:"闰月",unknown:"时间不详"}
 };
-type Props = { locale?: keyof typeof copy; calendarMode?: "solar" | "lunar" | "lunar-leap"; onSelect: (seed: AiPrefillSeed, profile: DestinyProfileCard) => void; label?: string; disabled?: boolean; className?: string };
-export default function SavedBirthProfilePicker({onSelect,label,disabled,className="",calendarMode="lunar-leap",locale:localeOverride}: Props) {
+type Props = { locale?: keyof typeof copy; calendarMode?: "solar" | "lunar" | "lunar-leap"; onSelect: (seed: AiPrefillSeed, profile: DestinyProfileCard) => void; label?: string; onClear?: () => void; disabled?: boolean; className?: string };
+export default function SavedBirthProfilePicker({onSelect,onClear,label,disabled,className="",calendarMode="lunar-leap",locale:localeOverride}: Props) {
   const {profiles,loading,error,owner,reload} = useSavedBirthProfiles();
   const [selected,setSelected] = useState("");
   const [detectedLocale,setLocale] = useState<keyof typeof copy>("ko");
@@ -41,7 +41,7 @@ export default function SavedBirthProfilePicker({onSelect,label,disabled,classNa
       if(owner!==readDestinyProfileAccountId())return;
       const request=++selection.current;
       setSelected(event.target.value);setSelectionMessage("");
-      if(!next){setSelecting(false);return;}
+      if(!next){setSelecting(false);onClear?.();return;}
       setSelecting(true);
       try {
         let nextSeed=selectedBirthProfileSeed(next);
