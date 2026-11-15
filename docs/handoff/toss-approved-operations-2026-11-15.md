@@ -1,7 +1,7 @@
 ---
-status: in-progress
+status: done
 updated: 2026-11-15
-next: 공식 production run43618733981의 결과를 다음 실제 활성화 판단 시점에 1회 확인한다. 성공한 공개 privacy/SHA 확인 뒤 콘솔 등록과 READY 설정을 진행한다.
+next: 승인된 로그인 등록·운영 활성화 완료. 추가 운영 릴리스·검토 제출·공개 출시·신규 판매를 실행하지 않는다.
 ---
 
 ## 첫 행동
@@ -11,7 +11,8 @@ handoff 스킬, CLAUDE.md, docs/toss/launch-operational-evidence-20261114.md를 
 - 작업 디렉터리: D:/Development/codedestiny-worktrees/toss-approved-operations-20261115-005204
 - 브랜치: wt/toss-approved-operations-20261115-005204, 시작 SHA f8a4ec2afa7ba2bacb7913201aae6962c4c6e232.
 - 원본 root 체크아웃의 다른 세션 미추적 파일은 보존한다.
-- 기존 코드/AIT 검증 및 비공개 QR 20261115-16은 완료됐다. 운영 활성화는 아직 실행하지 않았다.
+- 기존 코드/AIT 검증 및 비공개 QR 20261115-16은 유지했다. 후속 세션에서 로그인 등록과 운영 활성화를 완료했다(문서 마지막 기록 참조).
+- 마지막 구현 커밋: 81f2eb4bb5f9912b6cf5acd5a88e080fc6bbf173. 그 뒤 완료 기록을 별도 커밋한다. 완료 기록의 정본은 main의 이 문서이며 작업 워크트리는 전달 뒤 배수한다.
 
 ## 승인 상태
 2026-11-15 사용자에게 질문한 범위: “신규 판매를 닫아 둔 채, 무료 기능·기존 구매 권리를 위한 운영 Worker 승격, 비밀키·토스 로그인 설정을 진행할까요? 서버 활성화는 기존 미완료 유료 상담의 LLM 생성 재개도 가능하게 합니다. 실결제 테스트와 검토 제출·공개 출시는 이번 승인에 포함하지 않습니다.”
@@ -32,10 +33,10 @@ handoff 스킬, CLAUDE.md, docs/toss/launch-operational-evidence-20261114.md를 
 ## 단계
 - [x] 사용자 승인과 작업 범위 기록, 안전 워크트리 준비
 - [x] 운영 배포·바인딩·기존 키/DB 집계 확인
-- [ ] 개인정보 고지와 콘솔 필수 항목 대조
-- [ ] 키 등록·공식 Worker/Pages 승격·토스 로그인 설정
-- [ ] 준비 상태 확인 후 서버 활성화, 신규 판매 닫힘 검증
-- [ ] 결과 문서·targeted 검사·커밋·pre-push·push·최종 CI 확인 및 정리
+- [x] 개인정보 고지와 콘솔 필수 항목 대조
+- [x] 키 등록·공식 Worker/Pages 승격·토스 로그인 설정
+- [x] 준비 상태 확인 후 서버 활성화, 신규 판매 닫힘 검증
+- [x] 결과 문서·targeted 검사·커밋·pre-push·push·최종 CI 상태 1회 확인 및 자기 워크트리 정리(최종 전달 결과는 채팅 보고)
 
 ## 2026-11-15 운영 진행 기록
 - 운영 Toss 컬렉션 4종은 모두 0건이었다. canonical DB에서 실제 운영 appName `code-destiny-worker` 연결 8개를 읽기 전용으로 확인했다(동일 DB 이름만으로 클러스터 일치를 단정하지 않음).
@@ -94,3 +95,20 @@ mock 로그인·구매·생성은 명시 DI로 계속 검증하며 실서버 폴
 - main CI pending은 통과로 간주하지 않는다. 정본 문서는 main CI를 전달 완료 조건으로 규정하고 배포 자체의 별도 안전장치도 명시한다. 공식 production workflow의 checks가 lint/typecheck/상시 auth-payment/high-risk deploy:critical/Node를 승격 전에 실행하고 실패 시 닫히므로 별도 대기 게이트를 추가하지 않았다. root도 이 계약을 읽고 진행을 확인했다.
 - READY는 아직 미설정이며 p1 로그인 초안은 미등록이다. p2는 production settings 화면에서 저장하지 않은 상태다. browser round40까지 실행했으며 다음은 round41.
 - 이후 실제 활성화 판단에서 main CI 및 release 결과를 각 1회 확인한다. 중간 대기/반복 폴링·실LLM/실결제/검토제출/공개출시는 하지 않는다.
+
+## 운영 활성화 완료 — 2026-11-15 후속 세션
+
+- 사용자 요청 원문: “운영 릴리스 43618733981의 결과 확인부터 이어서 로그인 등록과 서버 활성화를 완료한다. 운영 릴리스를 중복 실행하지 않는다.” 시작 커밋 75adb661d21e85d9dbdcba6d7065e6885a475582와 clean 워크트리를 확인했다.
+- 기존 릴리스 43618733981은 success다. production dispatch 추가 0회. 공개 `/version.json`, `/api/version` 및 Cloudflare 배포 메타데이터의 SHA가 모두 a18cf23c7e0990bd532878f1e725335aaf7608be다. `/privacy-policy/` 200과 2026-11-15 고지·프라슈나·이름 미복호화·국외 이전 앵커를 확인했다.
+- main CI 43618278370은 Toss 1,748개 중 손금 테스트 1건 실패였다. 신규 판매 닫힘이 먼저 적용되는 신규 주문 fixture였고, 기존 소유 주문의 미완료 손금 입력 복구라는 검증 목적에 맞게 fixture만 변경했다. 로컬 2/2 통과, 66999b346 커밋 및 main push 완료. 운영 코드는 수정하지 않았다.
+- 이전 Ego 공간73이 사라져 승인된 새 공간1에서 정상 UI로 복원했다. 이름 필수, 나머지 6항목 미사용, 필수 서비스 약관·개인정보 수집 이용·국외 이전 동의문을 공개 URL에 연결하고 최종 등록했다. 콘솔에 `토스 로그인 정보`, 이름 Scope, 필수 약관과 콜백 URL이 표시됐다. 등록 응답이 초기 10초 관찰보다 늦었지만 중복 등록하지 않고 결과를 확인했다.
+- 미등록 콜백 자격이 이전 DOM과 함께 소실되어 `TOSS_CALLBACK_AUTHORIZATION`만 메모리 생성·보안 stdin으로 교체했다. 신원·데이터 키를 교체하지 않았다. 값은 출력·파일·커밋에 남기지 않았다. 콜백 POST와 Basic Auth raw 값을 대응 등록했으며 테스트하기·가입하기·복호화 키 이메일 발송은 실행하지 않았다.
+- 정상 Cloudflare UI에서 Production만 선택하고 Secret 미선택 상태의 plain `TOSS_RELEASE_READY=true`를 저장했다. 활성화 후 deployment `4d16f09e-911b-4ef7-8751-e999617826c9`, version `f927e22a-619f-4223-aa9a-8ba95890a17b`. Pages `2cf90b9e-7911-4a25-810f-2310aba401cc` 유지.
+- 코드 etag `415042163ad2c014719b5d3a1add4e46d1e6c722a169609bb20b62e611a5f86c`, handler·placement, 나머지 바인딩별 digest가 모두 동일하다. 최초 사후 비교는 배포 출처 metadata의 `wrangler`→`dash` 차이로 중단됐으며, 이 의도된 출처 필드만 분리해 코드 etag·모든 나머지 필드를 다시 검증했다. 키3개와 mTLS 보존. staging READY는 미설정으로 계속 닫힘.
+- 읽기 전용 확인: `/api/toss/catalog` 200, 5개 전부 available=false; `/tarot-library/catalog` 200, 등록 유료 flow 0개; `/native/catalog` 무인증 401 LOGIN_REQUIRED(기존 RELEASE_PENDING이 아님). 실로그인·실LLM·실결제·운영 DB 쓰기·콜백 실행·검토 제출·공개 출시 검증은 하지 않았다.
+- 저장소 prod=true/staging=false 및 TOSS_RELEASE_READY 한 키의 명시적 환경 차이·정확한 값 단언을 반영했다. parity 검사와 self-test 27개 통과. 일반 미분류/mismatch 검사는 유지한다. 공개 URL·SEO 콘텐츠는 이 후속 세션에서 변경하지 않았다.
+- 작업공간1은 최종 성공 확인 뒤 정상 종료했다. 이전 round 재실행 없음. 현재 .tmp/toss-operations의 후속 자료는 정리 시 삭제 대상이며 비밀값을 담지 않는다.
+- 활성화 롤백 기준: 문제가 확인되면 동일 운영 Worker의 plain TOSS_RELEASE_READY를 false로 닫고 저장소 정본도 대응한다. 코드·신원/데이터 키·mTLS·소유 구매 원장은 건드리지 않는다. 현재 롤백을 실행할 문제는 발견하지 않았다. 활성화 직전 Worker version은 6099dbad-8f88-432d-932e-8fa8811d86a8이며 같은 코드 etag다.
+- 최종 로컬 검증: `npm run check:fast -- --plan` critical 계획 확인, `npm run check:fast` exit 0. critical 계약 77/77, Node 5,074/5,074, Jest 479 suite·8,008 test PASS(기존 1 suite·1 test skipped), lint/typecheck/Worker build 및 필수 정적 검사 통과. 별도 `native-palm.test.mjs` 2/2, parity/self-test 27/27도 통과했다. 전체 검사는 1회만 실행했다.
+- 손금 fixture 수정 main CI [43675644501](https://github.com/rei1237/codedestiny/actions/runs/43675644501)는 success다. 이전 a18cf23c7의 실패를 정상으로 포장하지 않으며 테스트만 수정한 66999b346에서 해소됐음을 구분한다. 최종 설정·문서 push의 새 CI는 최종 보고 직전 1회 상태 확인하고 대기·반복 폴링하지 않는다.
+- 원본 main의 다른 세션 미추적 `.claude/skills/fire-your-seo-agency/`와 다른 워크트리는 보존한다. 실기기 로그인 왕복·기존 실제 결과 복구, 실결제·실LLM, 앱 검토·공개 출시는 이번 검증 범위 밖이다. 별도 운영 승인 없이 추가 실행하지 않는다.
