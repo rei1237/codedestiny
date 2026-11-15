@@ -2,22 +2,20 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Pause, Play, RotateCcw } from "lucide-react";
 import { advance, CYCLE_MS, newSession, poseAt, restoreSession, serializeSession, type Session } from "./bow-session";
-import manifest from "@/public/assets/moonlit-lotus/yeoni/2d-v1/manifest.json";
+import manifest from "@/public/assets/moonlit-lotus/yeoni/2d-v2/manifest.json";
+import Sprite, { spriteStyle } from "./Sprite";
+import { ASSET_BASE, PREVIEW_CLIPS, POSES, type Sheet } from "./sprite-clips";
 import styles from "./review.module.css";
 
-const BASE = "/assets/moonlit-lotus/yeoni/2d-v1";
+const BASE = ASSET_BASE;
 const STORAGE = "cd:moonlit-lotus:yeoni-bow:v1";
-const MODES = { idle: "표정", greeting: "인사", meditation: "명상", bow: "온라인 108배" };
+const MODES = { idle: "표정과 포즈", greeting: "인사", meditation: "명상", bow: "온라인 108배" };
 type Mode = keyof typeof MODES;
-const EXPRESSIONS = [{ frame: 0, label: "다정하게" }, { frame: 2, label: "활짝 웃기" }, { frame: 3, label: "깜짝 놀람" }, { frame: 6, label: "마음 듣기" }, { frame: 7, label: "기쁜 마음" }];
-const SEQUENCES = { idle: [{ frame: 0, ms: 3200 }, { frame: 1, ms: 160 }, { frame: 0, ms: 1700 }], greeting: [{ frame: 4, ms: 550 }, { frame: 5, ms: 550 }, { frame: 4, ms: 550 }, { frame: 5, ms: 550 }, { frame: 6, ms: 1400 }], meditation: [{ frame: 8, ms: 3500 }, { frame: 9, ms: 3500 }, { frame: 8, ms: 3500 }, { frame: 11, ms: 1500 }] };
+const SEQUENCES = PREVIEW_CLIPS;
 const COPY = { idle: ["오늘도 만나서 반가워요", "다정한 미소부터 작은 놀람까지, 연이의 표정을 골라보세요."], greeting: ["반가운 마음을 건네요", "짧고 통통한 손으로 천천히 인사해요."], meditation: ["잠시, 마음을 내려놓아요", "연이와 함께 편안하게 쉬어가세요. 호흡을 억지로 맞추지 않아도 괜찮아요."], bow: ["한 번에 하나씩, 천천히", "캐릭터와 함께하는 온라인 108배예요. 사용자의 신체 움직임을 측정하지 않습니다."] };
-function spriteStyle(sheet: 'expressions' | 'bow', frame: number): CSSProperties {
-  return { backgroundImage: `url(${BASE}/${sheet}.webp)`, backgroundPosition: `${frame % 4 / 3 * 100}% ${Math.floor(frame / 4) / 2 * 100}%` };
-}
 
 export default function ModelReview() {
   const [mode, setMode] = useState<Mode>('idle');
@@ -57,11 +55,13 @@ export default function ModelReview() {
   useEffect(() => {
     let cancelled = false;
     setAssetStatus('loading');
-    Promise.all(['expressions', 'bow'].map(name => new Promise<void>((resolve, reject) => {
-      const img = new window.Image(); img.onload = () => resolve(); img.onerror = () => reject(new Error('sprite-load')); img.src = `${BASE}/${name}.webp`;
-    }))).then(() => { if (!cancelled) setAssetStatus('ready'); }).catch(() => { if (!cancelled) setAssetStatus('error'); });
+    const sheets: Sheet[] = mode === 'bow' ? ['bow-down', 'bow-lower', 'bow-up'] : mode === 'meditation' ? ['rest'] : mode === 'idle' ? ['expressions', 'rest'] : ['expressions'];
+    Promise.all(sheets.map(async name => {
+      const img = new window.Image(); img.src = `${BASE}/${name}.webp`;
+      await img.decode();
+    })).then(() => { if (!cancelled) setAssetStatus('ready'); }).catch(() => { if (!cancelled) setAssetStatus('error'); });
     return () => { cancelled = true; };
-  }, [attempt]);
+  }, [attempt, mode]);
 
   useEffect(() => {
     if (mode === 'bow' || !playing || reduced || hidden || assetStatus !== 'ready' || (mode === 'idle' && expression !== 0)) return;
@@ -91,8 +91,8 @@ export default function ModelReview() {
   const resetSession = (target = session.target) => setSession(newSession(crypto.randomUUID(), target));
   const start = () => setSession(current => ({ ...(current.sessionId ? current : newSession(crypto.randomUUID(), current.target)), status: 'running' }));
   const bow = poseAt(session.elapsed);
-  const frame = mode === 'bow' ? (reduced ? 0 : bow.frame) : mode === 'idle' && expression !== 0 ? expression : SEQUENCES[mode][(reduced ? 0 : previewStep) % SEQUENCES[mode].length].frame;
-  const frameLabel = mode === 'bow' ? bow.phase : mode === 'meditation' ? '편안히 앉아 명상하는 연이' : mode === 'greeting' ? '손을 흔들며 인사하는 연이' : EXPRESSIONS.find(item => item.frame === expression)?.label || '다정하게';
+  const drawing = mode === 'bow' ? (reduced ? { sheet: 'bow-down' as const, frame: 0 } : bow) : mode === 'idle' && expression !== 0 ? POSES[expression] : SEQUENCES[mode][(reduced ? 0 : previewStep) % SEQUENCES[mode].length];
+  const frameLabel = mode === 'bow' ? bow.phase : mode === 'meditation' ? '편안히 앉아 명상하는 연이' : mode === 'greeting' ? '손을 흔들며 인사하는 연이' : POSES[expression].label;
   const ended = session.status === 'complete' || session.status === 'stopped';
   const active = session.status === 'running' || session.status === 'paused';
 
@@ -102,7 +102,7 @@ export default function ModelReview() {
     <div className={styles.workbench}>
       <section className={styles.stage} aria-label="연이 2D 애니메이션">
         <div className={styles.stageArt}>
-          {assetStatus === 'ready' ? <div className={styles.sprite} role="img" aria-label={frameLabel} data-sheet={mode === 'bow' ? 'bow' : 'expressions'} data-frame={frame} style={spriteStyle(mode === 'bow' ? 'bow' : 'expressions', frame)} /> : <div className={styles.fallback}><Image src={`${BASE}/still.webp`} alt="연이의 정지 미리보기" width={384} height={384} priority /><p role="status">{assetStatus === 'loading' ? '연이를 불러오고 있어요.' : '동작 이미지를 불러오지 못했어요.'}</p>{assetStatus === 'error' && <button onClick={() => setAttempt(value => value + 1)}>이미지 다시 불러오기</button>}</div>}
+          {assetStatus === 'ready' ? <Sprite sheet={drawing.sheet} frame={drawing.frame} label={frameLabel} reduced={reduced} /> : <div className={styles.fallback}><Image src={`${BASE}/still.webp`} alt="연이의 정지 미리보기" width={384} height={384} priority /><p role="status">{assetStatus === 'loading' ? '연이를 불러오고 있어요.' : '동작 이미지를 불러오지 못했어요.'}</p>{assetStatus === 'error' && <button onClick={() => setAttempt(value => value + 1)}>이미지 다시 불러오기</button>}</div>}
         </div>
         <p className={styles.stageCaption}>{mode === 'bow' ? bow.phase : mode === 'meditation' ? '서두르지 않아도 괜찮아요.' : mode === 'greeting' ? '오늘도 와 주어서 반가워요.' : '당신의 이야기를 듣고 있어요.'}</p>
         {mode !== 'bow' && <button className={styles.playButton} disabled={reduced || assetStatus !== 'ready'} onClick={() => setPlaying(value => !value)}>{playing ? <Pause size={17} /> : <Play size={17} />}{playing ? '동작 멈추기' : '동작 이어 보기'}</button>}
@@ -110,9 +110,9 @@ export default function ModelReview() {
       </section>
       <section className={styles.controls} aria-label="활동 설정">
         <h2>{COPY[mode][0]}</h2><p className={styles.intro}>{COPY[mode][1]}</p>
-        {mode === 'idle' && <div className={styles.expressions} aria-label="표정 선택">{EXPRESSIONS.map(item => <button key={item.frame} aria-pressed={expression === item.frame} onClick={() => { setExpression(item.frame); setPreviewStep(0); }}><span className={styles.thumbnail} aria-hidden="true" style={spriteStyle('expressions', item.frame)} /><span>{item.label}</span></button>)}</div>}
-        {mode === 'greeting' && <p className={styles.note}>작은 손 인사와 수줍은 미소가 이어져요. 동작을 멈추고 한 장씩 살펴볼 수도 있어요.</p>}
-        {mode === 'meditation' && <p className={styles.note}>눈을 감고 쉬는 모습, 작은 숨결, 두 손을 모은 모습으로 이어집니다. 음악 연결은 다음 단계에서 준비해요.</p>}
+        {mode === 'idle' && <div className={styles.expressions} aria-label="표정과 포즈 선택">{POSES.map((item, index) => <button key={item.id} aria-pressed={expression === index} onClick={() => { setExpression(index); setPreviewStep(0); }}><span className={styles.thumbnail} aria-hidden="true" style={spriteStyle(item.sheet, item.frame)} /><span>{item.label}</span></button>)}</div>}
+        {mode === 'greeting' && <p className={styles.note}>손을 살짝 들어 올리고, 좌우로 흔들며 반가움을 전해요. 동작을 멈추고 한 장씩 살펴볼 수도 있어요.</p>}
+        {mode === 'meditation' && <p className={styles.note}>눈을 감고 앉아 작은 숨결에 따라 편안히 쉬어요. 음악 연결은 다음 단계에서 준비해요.</p>}
         {mode !== 'bow' && <div className={styles.previewTools}><button onClick={() => { setPlaying(false); setExpression(0); setPreviewStep(step => step + 1); }}>다음 동작 보기</button><button aria-label="동작 처음부터 보기" onClick={() => { setPreviewStep(0); setExpression(0); setPlaying(true); }}><RotateCcw size={16} /></button></div>}
         {mode === 'bow' && <>
           <fieldset className={styles.targets} disabled={active}><legend>오늘은 얼마나 쉬어갈까요?</legend>{[9, 27, 108].map(target => <button key={target} aria-pressed={session.target === target} onClick={() => resetSession(target)}>{target}배</button>)}</fieldset>
@@ -129,6 +129,6 @@ export default function ModelReview() {
         </>}
       </section>
     </div>
-    <details className={styles.reference}><summary>원본과 스프라이트 시트 살펴보기</summary><div><a href={`${BASE}/reference.webp`} target="_blank" rel="noreferrer"><Image src={`${BASE}/reference.webp`} alt="연이 최종 참조 프로필 시트" width={1122} height={1402} sizes="(max-width: 800px) 90vw, 320px" />원본 크게 보기</a><section><h2>원본의 귀여움을 그대로</h2><p>연분홍 볼과 통통한 배, 분홍 연꽃과 보라색 스카프를 담은 2D 그림입니다. 표정·인사·명상 12장과 큰절 자세 12장을 사용해요.</p><p>연이부터 준비하고 있으며, 영냥이는 다음 단계입니다.</p><a href={manifest.sheets.expressions.url} download>표정·명상 시트 저장</a><a href={manifest.sheets.bow.url} download>큰절 시트 저장</a><a href={`${BASE}/manifest.json`} download>프레임 명세 저장</a></section></div></details>
+    <details className={styles.reference}><summary>원본과 스프라이트 시트 살펴보기</summary><div><a href={`${BASE}/reference.webp`} target="_blank" rel="noreferrer"><Image src={`${BASE}/reference.webp`} alt="연이 최종 참조 프로필 시트" width={1122} height={1402} sizes="(max-width: 800px) 90vw, 320px" />원본 크게 보기</a><section><h2>원본의 귀여움을 그대로</h2><p>연분홍 볼과 통통한 배, 분홍 연꽃과 보라색 스카프를 담은 2D 그림입니다. 표정과 인사 16장, 명상과 휴식 16장, 큰절 자세 48장으로 총 80컷을 준비했어요.</p><p>연이부터 준비하고 있으며, 영냥이는 다음 단계입니다.</p>{Object.entries(manifest.sheets).map(([name, sheet]) => <a key={name} href={sheet.url} download>{({ expressions: '표정과 인사', rest: '명상과 휴식', 'bow-down': '큰절 준비', 'bow-lower': '큰절 낮추기', 'bow-up': '큰절 일어나기' } as Record<string, string>)[name]} 시트 저장</a>)}<a href={`${BASE}/manifest.json`} download>프레임 명세 저장</a></section></div></details>
   </main>;
 }
