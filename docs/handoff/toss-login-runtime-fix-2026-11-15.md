@@ -1,77 +1,62 @@
 ---
-status: in-progress
+status: done
 updated: 2026-11-15
-next: 최신 재진입 수정을 포함한 Linux AIT를 확보한다. 새 운영 승격은 root의 별도 승인 전까지 실행하지 않는다.
+next: 구현과 운영 릴리스는 완료됐다. 기존 QR17 로그인·보관함 복귀·재진입은 사용자 정상 보고로 확인됐다. root가 별도 UI/UX 개선과 콘솔 등록 잠금 등 잔여 게이트를 추적한다. 운영 릴리스를 재실행하지 않는다.
 ---
 
 ## 첫 행동
-`D:/Development/codedestiny-worktrees/toss-login-name-fix-20261115-162213`에서 상태를 확인한다. 실행 중 검사 로그는 저장소 밖 `D:/Development/Temp/toss-login-fix-20261115/check-fast.log`다. root는 다른 세션 웹 홈/i18n 변경이 있으므로 편집·reset·stash하지 않는다.
+이 문서는 로그인 오류 수정·홈 진입 개선·검증·운영 반영의 완료 기록이다. 다음 세션은 아래 고정 운영 SHA와 릴리스 결과부터 읽는다. 실기기 실패가 추가 보고되면 그 시각과 안전 오류코드를 근거로 새 문제를 진단한다. 이번 운영 승인으로 추가 배포하지 않는다.
 
 ## 지금 상태
-- 안전 워크트리 `wt/toss-login-name-fix-20261115-162213`, 시작 SHA `06ba90272dd5308e5bd6826f76a7a23fa9d0be11`.
-- 이전 운영 릴리스 43618733981 성공, 코드 a18cf23c7. 이번 작업의 운영 배포 0회.
-- 실제 QR 20261115-17의 Android 로그인 실패를 Cloudflare read-only Logs에서 확인했다. 2026-11-15 16:16:41 및 16:22:29 KST `/api/toss/login` HTTP 502. 후자는 wallTime 262ms, DB 연결 성공 175ms, 연결완료 8ms 뒤 응답. 개인정보·토큰·요청 본문은 근거 문서에 보관하지 않는다.
+- 구현 작업 워크트리: D:/Development/codedestiny-worktrees/toss-login-name-fix-20261115-162213, branch wt/toss-login-name-fix-20261115-162213. 문서 전달 후 자체 워크트리를 배수한다.
+- 검증·배포 소스 SHA: 08103bec6de88481e89a6dd87c3a8abab223b54d. 마지막 완료 문서 커밋은 이 SHA 이후 문서 변경뿐이며 운영 소스와 구분한다.
+- main CI43696444456 SUCCESS. 일반 Linux AIT43696559157도 Critical/Static/Build/Typecheck/CI required 모두 SUCCESS.
+- 공식 운영43698214314 SUCCESS. verify-deployed-sha로 /version.json(Pages), /api/version(Worker) 모두08103bec6de8 PASS 확인.
+- root의 다른 세션 파일·untracked skill을 편집/삭제하지 않았다.
 
 ## 승인 상태
-- 2026-11-15 사용자: “로그인은 요청을 완료 못했다면서 안되고 있고 이 서비스 이름이 AI 사주 물상으로 나오는데 이 문제를 해결해줘”. 추가 캡처에서 네이티브 상단 옛 이름과 로그인 오류, 홈 로그인 버튼 부재가 확인됐다.
-- 새 브라우저 작업공간 사용, 코드 수정·mock 검증은 승인 범위다. 실결제·실LLM·운영 DB 테스트 쓰기·키 회전·검토 제출·공개 출시를 수행하지 않는다.
-- 이전 운영 승격 1회 승인은 이미 사용됐다. 새 수정의 운영 승격은 검증 커밋·영향을 root에 전달하고 별도 구체 승인 후 공식 workflow로 수행한다.
-- 콘솔에서 버전17의 검토가 이미 진행 중임을 발견했다. 이 세션은 제출하지 않았다. 요청 취소·재제출을 하지 않는다.
+- 사용자 요청: 실제 QR17 로그인 실패 및 옛 이름 표시 해결, 홈 로그인 진입 개선. 이름 문제는 후속 지시 “이건 그냥 놓아두고 내가 할테니까 나머지 앱 론칭작업을 완료해줘”에 따라 사용자 담당이다.
+- 2026-11-15 사용자 승인 원문: “이 범위로 운영에 1회 반영”. 범위: 최종 CI 통과 후 검증 로그인 수정과 누적 웹 변경을 공식 Pages/Worker로1회, 신규판매닫힘 유지. 실결제·검토제출·토스 공개출시는 제외. main 변경 시 영향 재확인.
+- 승인 당시be22 이후966은 흑월 번역3키·무료 홈 아트/문구·캐릭터 결과 이미지/CSS·동일 generated runtime/SEO, 081은 private 숙요 CSS fixture1개만 추가됐다. root가 가격정책/auth/API/DB 추가변경 없음을 검토하고 기존1회 승인 범위 내 허용했다.
+- 다른 actor/session이 같은081의 공식production43698214314를 이미 시작했다. gate 로그 DISPATCH_MODE: production을 확인하고 중복하지 않았다. 이 담당자의 production dispatch0회. 이미 실행된1회 결과 추적으로 승인 범위를 소진했다.
+- 비밀값·키·mTLS 변경, 실LLM·실결제·운영 DB 테스트 쓰기, 검토 취소/제출, 공개출시를 실행하지 않았다.
 
-## 작업 규칙과 함정
-- SDK3.x에는 brand.displayName/icon이 없다. 공식 문서 `https://developers-apps-in-toss.toss.im/llms-full.txt` 브랜드 이름 절은 콘솔만 사용한다고 명시한다. 설정에 속성을 추가하거나 withTitle=false로 옛 이름을 숨기지 않는다.
-- 콘솔 정상 UI가 조회한 meta-overview/release-overview를 read-only 대조: title/review.title 모두 `꿀꿀운세`, reviewState IN_REVIEW, reviewTarget BOTH, isEditable false, isDeployed false, liveBundle null. 최초 메타+번들 동시 검토 중이며 editable gate가 닫혔다. native 옛 이름의 캐시/전파 원인은 아직 미확정이다.
-- 최초 검토 번들 deployment `01a1da95-7f41-7a56-843d-a262f3916715`, SDK3.7.0, 20261115-17. 파일 SHA256 `897d7d34c7b9bbce83302747c1ce16b541875092a1d7357e319747f786d81dcd`.
-- REQUEST_FAILED 문구만으로 generic503으로 오판하면 안 된다. 실제502의 미등록 code도 같은 fallback으로 표시됐다.
-- 기존 routes catch는 errorId를 응답에만 넣고 로그에는 남기지 않는다. 과거 errorId만으로 로그 상관관계가 있다고 주장하지 않는다.
-- Ego space4, p1 토스 콘솔, p2 Cloudflare, p3 로컬 mock. 브라우저 스크립트 round38까지. 매 round 새 파일로 쓰고 이전 round 재실행 금지. 완료 전 finish하지 않는다.
+## 설계와 수정
+- 실제 /api/toss/login HTTP502를 read-only 운영 로그에서 확인했다(2026-11-15 16:16:41/16:22:29KST). REQUEST_FAILED는 미등록 오류코드의 공통 표시였다.
+- Workers는 fetch redirect:error를 지원하지 않아 요청 구성 시 TypeError가 발생했다. worker/toss/partner.js를 manual로 바꾸고 기존 !response.ok로3xx 거절을 유지했다. 타임아웃·재시도·키·자격증명 전달·소유권·판매 게이트는 보존했다. 공식 근거: https://developers.cloudflare.com/workers/runtime-apis/request/ 및 workerd src/workerd/api/http.c++.
+- dcf43cfb9: 수정 및 Miniflare/workerd mock 회귀. 일반 outbound는 거절하고 mTLS service binding만 mock. 기존502 재현→수정200 및302차단.
+- 8338a0c3f: 홈 토스로그인/기록보관함 CTA, 로그인 주요버튼 우선배치, 오류 본문/닫기 분리, 허용 코드·UUID 줄바꿈. 401/403 기존 안내 우선.
+- 476e36e05: 홈 보관함 로그인 URL next=/library 보존. canonical 화면은 정확한/library만 추가 허용하며 외부 URL·유사 접두어·하위경로·query는 거절한다.
+- 82985b270: Windows 함수.toString의 CRLF로 public freshness가 오탐한 부분만 LF 직렬화 정규화.
+- be22b3ba5: 기존 웹 destiny-profile 변경 뒤 낡은 캐시핀을 공식 scripts/restamp-paid-runtime-pins.mjs로 재생성. sync:public 관리 vedic2개는 공식값 보존. 최종23파일 각1줄. billing-client는 PAID_SERVICE_RUNTIME_SRC URL버전1줄뿐이며 동결 정본 절차 verify-payment-freeze --update로 해당 wholeFile hash1개만 함께 갱신했다. 정책/원본로직 변경 없음.
 
-## 설계
-공통 `worker/toss/partner.js`가 fetch에 `redirect:'error'`를 주었다. Workers는 이를 지원하지 않아 Request 구성 시 TypeError를 발생시킨다. 공식 근거: `https://developers.cloudflare.com/workers/runtime-apis/request/`, workerd `src/workerd/api/http.c++`.
+## 검증과 실패 이력
+- 서버 targeted21PASS, UI61PASS, 재진입34PASS 및 엄격/library 허용목록6PASS, 앱 typecheckPASS.
+- 실제 offline mock 홈→로그인→보관함, 새로고침→mock로그인→/library, 앱 재진입 확인. 360/390px 오류코드/UUID/닫기 겹침 없고 주요 로그인버튼 접근 가능.
+- 초기06ba check:fast는 계약77PASS, lint/typecheckPASS 후 기존 웹22실패로 종료했다. 이를 전체PASS라고 보고하지 않는다.
+- verify:release의 기존 캐시핀 실패는 공식생성기로 수정 후 parity/paidgate/freeze PASS. 이미 통과한 앞부분을 반복하지 않고 나머지 deploy:critical을 원래 순서로 실행하여 모두exit0(Worker dry-run 포함).
+- be22 main CI는 흑월 fallbackTitle/premiumRequired.0/.1 누락 실패. 다른 세션966에서 보완되어 dictionary11locale/112namespace/46574경로PASS.
+- 966 CI Toss1750개 중1749PASS/1FAIL은 원본CSS와 private 숙요 fixture 불일치. 다른 세션081에서 fixture만 동기화. 해당2테스트PASS, 최종 전체 AIT Critical PASS.
+- 최종 pre-pushPASS, 검증 코드 main push 완료. main 및 AIT 최종 CI 모두SUCCESS.
+- 사후 읽기 전용: /api/toss/catalog200,5개available0; /native/catalog 무인증401; /tarot-library/catalog200,0개. 신규판매닫힘과 인증경계 유지.
 
-`manual`로 바꾸고 기존 `!response.ok` 검사를 유지한다. 따라서 3xx를 따라가지 않고 실패로 닫으며 토큰·인가코드가 다른 호스트로 전달되지 않는다. 타임아웃·재시도·키·판매 게이트·계정 및 결과 소유권은 변경하지 않는다. 원인이 확정되어 불필요한 서버 로그 추가는 생략한다.
-
-새 Miniflare/workerd 회귀는 실제 Worker Request 구현을 사용하고 TOSS_MTLS를 mock 서비스 바인딩으로 주입한다. 일반 outbound는 무조건 실패한다. 기존 코드로 502 실패를 재현했고 수정 후 로그인200 및302거절을 검증했다. 외부 OAuth·결제·DB 호출은 없다.
+## 실제 AIT·전달 자료
+- C:/Users/user/Downloads/CodeDestiny/20261115-login-fix-08103bec6/ai-saju-studio.ait
+- SHA256 df5d4e1e92b9d339d44f7904ea9e8b5cfa79af3fecf69c672ac7525a78fb55fd
+- 87668788 bytes, expanded98825884 bytes, portable sources1760개. 일반SDK판(privateSimulation=false).
+- 실제 AIT 추출본을 코드 변경 없이 외부네트워크 차단 로컬서버에서 확인: / 새홈 CTA, /login?next=%2Flibrary 새로고침 canonical 진입, 홈카드→/?world=yeongnyangi 달빛점술방. ait-home-360.png/ait-yeongnyangi-360.png 참조.
+- 실제 AIT 로그인·구매·생성 fullE2E는 미수행이다. SDK가 실제 기기를 요구하며 offline mock 검증과 구분한다.
+- README.md에 기존17QR 로그인→보관함복귀→앱종료→동일QR재진입 절차와 실패code/UUID/발생시각 기록 안내가 있다. 구17은 generic 오류문구일 수 있다. 새홈CTA는 새AIT등록 이후에만 보인다.
+- 콘솔 재확인: 버전17 검토 중, 버전등록 버튼 disabled=true. 검토 취소·재제출하지 않아 새QR미발급. 구QR을 새QR로 복사하지 않았다.
+- 공식SDK3 brand에는 displayName이 없다. 옛 이름을 숨기기 위한 navigationBar 변경 등 우회하지 않았다.
 
 ## 단계
-- [x] 실제 실패 요청 상태와 SDK 브랜드 계약 확인
-- [x] workerd에서 기존 코드 실패 재현
-- [x] manual 리디렉션 수정 및 targeted 21/21 통과
-- [x] check:fast critical 실행 및 서버 커밋(전체 통과 아님, 아래 근거)
-- [x] 홈 로그인 진입·오류 겹침·안전 코드 안내 수정 및 모바일 mock 검증
-- [x] pre-push 실행(기존 public/index.html 미러 불일치로 실패; 통과 아님)
-- [ ] main 통합·CI 결과 확인 및 새 Linux AIT/비공개 QR 준비
-- [ ] 승인된 새 운영 승격 후 실기기 로그인 왕복 확인
-- [ ] 콘솔 이름 전파 확인(검토 취소·재제출 금지), 결과 전달 및 자기 워크트리 정리
+- [x] 로그인 실제 실패 원인 확인 및 코드 수정
+- [x] 홈/오류 UI·재진입 수정 및 targeted/mock 검증
+- [x] main 전달, 최종CI·LinuxAIT검수
+- [x] 승인된 기존 운영run 결과·라이브 양쪽SHA 확인, 신규판매닫힘 확인
+- [x] 전달 파일과 실기기 확인 절차 준비
+- [x] 2026-11-15 사용자 직접 보고: “로그인·보관함 복귀·재진입 모두 정상”. 기존17QR+운영081 서버의 실기기 확인이며 에이전트가 직접 기기를 조작한 것은 아니다.
+- [ ] 외부 잔여: 콘솔 등록 잠금 해제 후 새AIT등록/새QR, 이름문제 사용자 담당
 
-## 검증과 커밋
-- `dcf43cfb9`: 서버 manual redirect 및 workerd 회귀. 기존 코드 502 재현 후 수정본21/21 PASS.
-- `8338a0c3f`: 홈 상단 토스 로그인/기록 보관함을 기존 requireLogin에 연결. 로그인 주요 버튼을 긴 설명 위로 이동. 오류 본문과 닫기 버튼을 분리하고 허용된 오류코드·UUID만 각각 줄바꿈. 401/403은 기존 인증 안내 우선 유지.
-- 앱 typecheck 첫 실행과 독립 두 번째 확인 모두 exit0. 전체 check:fast는 계약77/77, lint/sitemap/typecheck 통과 후 Node5078 중5056 pass/22 fail로 종료. 실패는 기존 웹 번역·홈카탈로그 관련이며 Jest와 이후 단계는 미실행. 검사 로그에서 실패 명칭을 확인할 것. 전체 검사를 반복하지 않는다.
-- UI targeted `automatic-recovery-home`, `native-session-integration`, `tarot-login-return`, `session-draft-relogin`:61/61 PASS. 초기 unknown401 메시지 회귀1건을 찾아 인증 안내 우선으로 고친 뒤 통과했다.
-- 실제 브라우저로 홈→토스로그인→mock 로그인→보관함→홈 재진입→기록보관함 확인. 기존 mock 저장소에 있던 숙요 결과 목록은 날짜/챕터 메타가 누락된 fixture라 그 원문 재열람을 이번 로그인 검증으로 주장하지 않는다.
-- 360px 주요 로그인버튼 y248~302, 가로 넘침 없음. 오류 화면360/390px에서 본문/닫기 겹침 없음, 코드 표시 확인. 캡처는 `D:/Development/Temp/toss-login-fix-20261115/home-360.png`, `login-360.png`, `login-error-360.png`, `login-error-390.png`.
-- Impeccable detector는 변경 이전부터 있던 style.css 결과 인용문의 border-left 한 건만 경고했다. 이번 수정 범위 밖 기존 디자인은 보존한다. 공개 웹 URL/SEO 변경 없음.
-- 원격 main 재확인06ba90272, CI43685434571 failure 유지. root의 다른 세션 WIP는 편집/스테이징하지 않았으며 이 작업 push/배포/검토제출0회다.
-
-## 이름 불일치 지원 문의 초안 — 미전송
-사용자가 토스 앱 완전종료 후 QR17을 다시 열어도 상단 `ai 사주 물상`이 유지됨을 확인했다. 단순 앱 재시작으로 해결된다는 가설은 배제했다. 콘솔의 miniApp/review 응답 전체에서 name/title/display/brand 필드와 `사주 물상` 문자열을 대조했으며 title은 꿀꿀운세만 존재했다.
-
-> 앱 ai-saju-studio, workspace21957의 비공개 테스트20261115-17(deployment01a1da95-7f41-7a56-843d-a262f3916715), SDK3.7.0에서 네이티브 상단명이 `ai 사주 물상`으로 표시됩니다. 콘솔 miniApp.title/review.title은 모두 `꿀꿀운세`이며 최초 앱정보와 번들이 IN_REVIEW/BOTH, isEditable=false, liveBundle=null 상태입니다. 토스 앱을 완전히 종료한 뒤 같은 QR로 재진입해도 같습니다. SDK3에는 brand.displayName 설정이 없다는 공식 가이드를 확인했습니다. 검토를 취소하지 않고 테스트 미니앱의 네이티브 브랜드 메타데이터를 현재 콘솔명과 동기화할 수 있는지 확인 부탁드립니다.
-
-외부 문의는 전송하지 않았다. 검토 취소·재제출이나 무효 config 속성 추가, 네이티브 제목 숨김으로 우회하지 않는다.
-
-## 전달 게이트
-`npm run check:pre-push`는 verify:public-mirror-fresh에서 public/index.html이 소스보다 낡았다는 기존 main 결함으로 실패했다. 다른 세션의 웹 홈 작업 범위이므로 sync:public이나 root 편집을 하지 않았다. 서버/UI 커밋은 준비됐지만 main push·CI green·새 Linux AIT·새 QR·운영 반영은 완료로 보고하지 않는다. 브라우저 검수는 round38로 완료했고 space4는 round39 finish로 종료했다. 자체 offline 서버도 종료했다. 검수 중 `/login?product=...` 새로고침에서는 로컬 service/Screens.jsx 동적 import 실패가 발생했다. 홈부터의 정상 mock 로그인/보관함 왕복은 통과했으며 이 새로고침 실패를 실제 AIT 성공으로 해석하지 않는다. 새 Linux AIT 검증 때 재확인할 항목이다.
-
-## 최신 main 통합 — 2026-11-15 후속
-- eda40c1d9를 워크트리에 보존 merge(6d2bd0bca)했다. 기존 웹 홈/i18n 수정은 그대로 포함된다.
-- 앞선 pre-push 실패 경로는 public/index.html이 아니라 root index.html이었다. Windows의 함수.toString()이 CRLF9개를 HTML에 삽입하여 내용diff 없이 dirty가 되는 문제를 확인했다. 82985b270에서 free-promo-shell의 두 함수 직렬화만 LF로 정규화했다. 관련6개 테스트PASS, 마지막 pre-push exit0.
-- 로그인/UI targeted21+61PASS, 앱typecheckPASS는 유지된다. 과거22개Node실패를 최종트리실패로 재사용하지 않는다. 최신main CI43691843070은 마지막 확인 시 실패 없이 진행중. root 지시에 따라 이를 추가대기게이트로 만들지 않고 안전main통합 및push,공식LinuxAIT artifact실행을 이어간다.
-- 사용자 최신 지시로 이름불일치/지원문의는 사용자가 담당한다. 해당 외부문의는 전송하지 않으며 추가 조작하지 않는다.
-
-## 재진입 검증 및 최종 번들 준비
-- 476e36e05: 홈 로그인 next=/library 및 canonical의 정확한 /library 허용. 외부 URL, 하위 경로, 유사 접두어, query 경로 거절 유지. targeted34개 및 엄격 허용 목록6개 PASS, pre-push exit0.
-- 브라우저 space7 round43에서 홈 로그인 → 새로고침 → mock 로그인 → /library 도착 확인. Screens.jsx import200. 실제 AIT 검증은 남아 있다.
-- main2039226ba push CI43692520769는 직전 확인 시 진행 중. 대체되는 pending artifact43692520976만 취소 요청했다. main CI는 취소하지 않았다.
-- 타 세션 6fa305538의 home 테스트 변경을 보존 merge했다. 운영 승격·실결제·검토 제출은 수행하지 않았다. 이름 문제는 사용자 담당이다.
+구현·운영 반영·사용자 실기기 로그인 확인은 완료했지만 새QR·전체 토스 출시 완료를 뜻하지 않는다. 후속의 더 직관적인 로그인/CTA UI·UX 개선 요청은 root가 별도로 진행하며 이번 담당자는 새 UI 파일을 편집하지 않는다. 추가 실결제·검토제출·공개출시는 계속 별도 게이트다.

@@ -17,7 +17,7 @@
 .workbench { display:grid; grid-template-columns:minmax(0,1.2fr) minmax(300px,1fr); gap:56px; align-items:start; }
 .stage { background:#fff0f1; border-radius:36px; min-height:530px; text-align:center; padding:24px 20px 28px; overflow:hidden; }
 .stageArt { min-height:380px; display:flex; justify-content:center; align-items:end; }
-.sprite { width:min(100%,420px); aspect-ratio:1; background-size:400% 300%; background-repeat:no-repeat; flex-shrink:0; }
+.sprite { width:min(100%,420px); aspect-ratio:1; position:relative; flex-shrink:0; isolation:isolate; }
 .stageCaption { font-family:var(--font-display),serif; font-size:1.2rem; margin:8px 0 20px; }
 .page .playButton { display:inline-flex; gap:8px; justify-content:center; align-items:center; border:0; color:var(--muted); }
 .motionNote { font-size:.78rem; color:var(--muted); line-height:1.6; }
@@ -27,7 +27,7 @@
 .note { margin-top:28px; }
 .expressions { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; margin-top:28px; }
 .expressions button { padding:8px 5px 12px; display:flex; flex-direction:column; align-items:center; gap:4px; font-size:.8rem; }
-.thumbnail { display:block; width:80px; max-width:100%; aspect-ratio:1; background-size:400% 300%; background-repeat:no-repeat; }
+.thumbnail { display:block; width:80px; max-width:100%; aspect-ratio:1; background-size:400% 400%; background-repeat:no-repeat; }
 .previewTools { display:flex; gap:10px; margin-top:28px; }
 .previewTools button:last-child { display:flex; align-items:center; justify-content:center; width:44px; padding:0; }
 .targets { padding:0; margin:28px 0; border:0; display:flex; gap:8px; }
@@ -62,3 +62,10 @@
 @media(max-width:900px) { .workbench { gap:30px; grid-template-columns:minmax(0,1fr) minmax(280px,1fr); } .stage { min-height:460px; padding-inline:12px; } .stageArt { min-height:320px; } }
 @media(max-width:700px) { .page { padding:28px 18px 60px; } .header { display:block; margin-bottom:20px; } .header>a { display:inline-block; margin-top:8px; } .workbench { display:flex; flex-direction:column; gap:28px; } .stage { width:100%; min-height:0; padding:16px 10px; border-radius:28px; } .stageArt { min-height:0; } .sprite { max-width:350px; } .stageCaption { font-size:1.05rem; margin:0 0 10px; } .controls { width:100%; padding-top:0; } .controls h2 { font-size:1.5rem; } .modes { gap:6px; padding-bottom:18px; } .modes button { padding:10px 13px; font-size:.83rem; } .reference>div { display:block; } .reference img { max-width:320px; } .reference section { margin-top:30px; } .expressions { grid-template-columns:repeat(3,minmax(0,1fr)); } }
 @media(prefers-reduced-motion:reduce) { .page *, .page *::before,.page *::after { animation:none; transition:none; scroll-behavior:auto; } }
+
+.spriteLayer { position:absolute; inset:0; background-size:400% 400%; background-repeat:no-repeat; }
+.departing { animation:frameOut 75ms linear forwards; }
+.arriving { animation:frameIn 75ms linear both; }
+@keyframes frameOut { to { opacity:0; } }
+@keyframes frameIn { from { opacity:0; } to { opacity:1; } }
+@media (prefers-reduced-motion:reduce) { .departing { display:none; } .arriving { animation:none; } }

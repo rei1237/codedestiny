@@ -1,9 +1,19 @@
 'use client';
 import {useState} from 'react';
+import Image from 'next/image';
 import {readDestinyProfileAccountId} from '@/app/_lib/profile-card-storage';
 import type {HeukwolReport} from './types';
 import styles from './heukwol.module.css';
 const labels:Record<string,string>={huaLu:'화록 · 활용할 자원',huaQuan:'화권 · 책임과 실행',huaKe:'화과 · 조력과 정리',huaJi:'화기 · 막힘을 점검'};
+const voices = {
+ heukwol: {name:'흑월의 예고',role:'겹쳐지는 조건을 살펴봐요',src:'/images/consultation-webtoons/heukwol/03-720.webp'},
+ yeoni: {name:'연이의 해석',role:'근거를 당신의 이야기로 풀어요',src:'/images/master-profiles/avatars/yeoni.webp'},
+ neo: {name:'네오의 해결책',role:'지금 실행할 대응을 정해요',src:'/images/master-profiles/avatars/neo.webp'},
+};
+function VoiceHeading({voice}:{voice:keyof typeof voices}) {
+ const item=voices[voice];
+ return <header className={styles.voiceHeading}><Image className={styles.voicePortrait} src={item.src} alt="" width={80} height={80} sizes="80px"/><div><h3>{item.name}</h3><p>{item.role}</p></div></header>;
+}
 function ReadingPassage({text}:{text:string}) {
  return <>{text.split(/\n\s*\n/).map((paragraph,index)=><p key={index}>
   {paragraph.split(/(\*\*[^*\n]+\*\*)/g).map((part,i)=>part.startsWith('**')&&part.endsWith('**')?<strong key={i}>{part.slice(2,-2)}</strong>:part.replace(/^(\s*)\*\s+/gm,'$1• '))}
@@ -30,9 +40,9 @@ export default function HeukwolResult({report,isCurrent=()=>true}:{report:Heukwo
   <details id="report-contents" className={styles.readerTools}><summary>상담서 차례 · {report.chapters.length}장</summary><nav className={styles.contents} aria-label="리포트 차례">{report.chapters.map(c=><a key={c.key} href={`#chapter-${c.key}`}>{c.title}</a>)}</nav></details>
   {report.chapters.map((c,index)=><article key={c.key} id={`chapter-${c.key}`} className={styles.chapter}>
    <p className={styles.eyebrow}>{index+1} / {report.chapters.length}장</p><h2>{c.title}</h2>
-   <div className={styles.forewarning}><h3>흑월의 예고</h3><ReadingPassage text={c.warning}/></div>
-   <div className={styles.readingVoice}><h3>연이의 해석</h3><ReadingPassage text={c.interpretation}/></div>
-   <div className={styles.readingVoice}><h3>네오의 해결책</h3><ReadingPassage text={c.strategy}/></div>
+   <div className={styles.forewarning}><VoiceHeading voice="heukwol"/><ReadingPassage text={c.warning}/></div>
+   <div className={styles.readingVoice}><VoiceHeading voice="yeoni"/><ReadingPassage text={c.interpretation}/></div>
+   <div className={styles.readingVoice}><VoiceHeading voice="neo"/><ReadingPassage text={c.strategy}/></div>
    {c.checkpoints?.length?<aside className={styles.actionList}><h3>실천 점검</h3><ul>{c.checkpoints.map((line,i)=><li key={i}>{line}</li>)}</ul></aside>:null}
    <nav className={styles.chapterLinks} aria-label={`${c.title} 읽기 이동`}><a href="#report-contents">차례로</a>{report.chapters[index+1]&&<a href={`#chapter-${report.chapters[index+1].key}`}>다음 장으로</a>}</nav>
   </article>)}

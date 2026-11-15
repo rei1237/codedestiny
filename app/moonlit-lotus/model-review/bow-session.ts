@@ -1,5 +1,6 @@
-export const BOW_FRAMES = [0, 1, 2, 3, 4, 5, 6, 7, 8, 7, 6, 5, 4, 3, 2, 1, 0] as const;
-export const FRAME_MS = [600, 600, 450, 500, 500, 600, 500, 900, 1300, 600, 500, 600, 450, 500, 450, 600, 650] as const;
+import { BOW_CLIP } from './sprite-clips';
+export const BOW_FRAMES = BOW_CLIP.map(item => item.frame);
+export const FRAME_MS = BOW_CLIP.map(item => item.ms);
 export const CYCLE_MS = FRAME_MS.reduce((sum, value) => sum + value, 0);
 export type Session = {
   sessionId: string; status: 'ready' | 'running' | 'paused' | 'complete' | 'stopped';
@@ -22,8 +23,8 @@ export function poseAt(elapsed: number) {
   let end = 0;
   const index = FRAME_MS.findIndex(duration => { end += duration; return elapsed < end; });
   const step = index < 0 ? BOW_FRAMES.length - 1 : index;
-  const phase = step < 2 ? '서서 합장' : step < 5 ? '몸을 낮추고 무릎 꿇기' : step < 7 ? '손으로 바닥 지지' : step < 10 ? '천천히 머리 낮추기' : step < 14 ? '상체 회복' : '기립 · 합장';
-  return { frame: BOW_FRAMES[step], step, phase };
+  const {sheet,frame,phase}=BOW_CLIP[step];
+  return { sheet,frame,step,phase };
 }
 export function restoreSession(raw: string | null): Session | null {
   try {
