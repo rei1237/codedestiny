@@ -2537,6 +2537,19 @@
     },
     "entryCards": {
       "webtoon": "月光故事：入門漫畫"
+    },
+    "moonlit": {
+      "manseStart": "免費查看我的萬年曆命盤",
+      "signatureOpen": "瀏覽精選諮詢",
+      "heukwolTitle": "黑月的警告",
+      "heukwolDescription": "提前了解需要留意的時期，找到適合自己的應對方向。",
+      "heukwolFormat": "四柱 × 紫微斗數 · 每月趨勢與建議",
+      "heukwolCta": "查看需要留意的時期",
+      "gardenAlt": "花豬蓮伊在月光花園裡翻開占卜書",
+      "featuredFree": "精選免費解讀",
+      "heukwolNote": "請在諮詢頁面準備個人資料與問題，並確認使用條件。",
+      "heukwolTrust": "解讀不代表確定的未來，請將其作為做出選擇的參考。",
+      "sajuZiwei": "四柱 × 紫微斗數"
     }
   },
   "terms": {
@@ -17646,6 +17659,15 @@
           "detail": "依序了解性格傾向與月支、工作條件與角色、優勢的另一面，以及小型職涯探索實踐。"
         }
       ]
+    },
+    "heukwol": {
+      "tagline": "提前了解需要留意的時期，找到適合自己的應對方向。",
+      "premiumIntro": "提前了解需要留意的時期，找到適合自己的應對方向。",
+      "ctaNote": "請在諮詢頁面準備個人資料與問題，並確認使用條件。",
+      "fallbackCta": "查看需要留意的時期",
+      "premiumOutcomes": [
+        "解讀不代表確定的未來，請將其作為做出選擇的參考。"
+      ]
     }
   },
   "featureMarketingCategory": {
@@ -17677,7 +17699,8 @@
     "physiognomy": "面相",
     "article": "讀物",
     "pass": "通行券",
-    "totem": "圖騰解讀"
+    "totem": "圖騰解讀",
+    "sajuZiwei": "四柱 × 紫微斗數"
   },
   "featureMarketingTrust": {
     "paid": {
@@ -22515,13 +22538,13 @@
     "title": "蓮伊的免費占卜花園",
     "until": "截至{date} · 結束後計畫轉為付費",
     "note": "AI諮詢與AI解讀、輕量四柱命理解讀與大運解析、四柱守護神、AI四柱合盤分析等標有價格的項目不在此列。",
-    "cta": "開始免費基礎四柱解讀",
+    "cta": "開始免費基礎萬年曆命盤解讀",
     "share": "趁免費告訴朋友",
-    "shareText": "截至{date}，可免費體驗四柱、紫微斗數與占星基礎解讀。",
+    "shareText": "截至{date}，可免費體驗萬年曆命盤、紫微斗數與占星基礎解讀。",
     "copied": "連結已複製，貼上傳給朋友吧。",
     "copyFailed": "無法複製連結，請從網址列複製。",
     "tileBadge": "限時3個月免費",
-    "bubble": "從四柱、塔羅到世界占卜，選擇現在可體驗的免費解讀。",
+    "bubble": "從萬年曆命盤、塔羅到世界占卜，選擇現在可體驗的免費解讀。",
     "groupFun": "趣味四柱內容",
     "groupClassic": "正統四柱",
     "groupMore": "其他占卜",
@@ -22555,9 +22578,10 @@
       "natal": "從四柱與星位了解氣質",
       "today": "今日趨勢與小小行動",
       "tarot": "用卡牌探索心情與選擇",
-      "ziwei": "透過十二宮命盤了解先天氣質",
-      "sukuyo": "從月宿了解性格與關係",
-      "vedic": "探索出生時的天空圖"
+      "ziwei": "Museong · 透過十二宮命盤了解先天氣質",
+      "sukuyo": "Seohanbi · 從月宿了解性格與關係",
+      "vedic": "Yundal · 探索出生時的天空圖",
+      "astro": "Yundal · 透過行星與宮位了解自己的傾向"
     }
   }
 }

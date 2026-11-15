@@ -18,7 +18,7 @@ const declarations = selector => {
 test('banner keeps its copy, heading translation keys, and free-entry action', () => {
   assert.equal(document.querySelector('#cdhTitle').textContent, '오늘은 어떤 이야기가궁금하세요?');
   assert.equal(document.querySelector('.yh-greeting p').textContent, '사주·타로와 고민별 상담.무료 만세력부터 시작해 보세요.');
-  assert.deepEqual([...document.querySelectorAll('[data-cd-trans]')].map(node => node.dataset.cdTrans), ['home.yehwa.titleA', 'home.yehwa.titleB']);
+  assert.deepEqual([...document.querySelectorAll('[data-cd-trans]')].map(node => node.dataset.cdTrans), ['home.yehwa.titleA', 'home.yehwa.titleB', 'home.moonlit.manseStart']);
   const cta = document.querySelector('.yh-free-start');
   assert.equal(cta.textContent, '무료로 내 만세력 확인하기');
   assert.equal(cta.getAttribute('href'), '/?action=cdOneStepFreeSajuEntry');

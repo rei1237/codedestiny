@@ -3,7 +3,7 @@ import { PriceBadge } from "../components/PriceBadge";
 import { SAJU_SERVICE_GROUPS, SAJU_SERVICE_ITEMS } from "../../lib/saju/saju-service-catalog.mjs";
 import styles from "./saju-service-catalog.module.css";
 
-const numerals = ["Ⅰ", "Ⅱ", "Ⅲ", "Ⅳ", "Ⅴ", "Ⅵ"];
+const numerals = ["Ⅰ", "Ⅱ", "Ⅲ", "Ⅳ", "Ⅴ", "Ⅵ", "Ⅶ"];
 
 function Price({ item }) {
   if (item.featureKey) return <PriceBadge featureKey={item.featureKey} className={styles.price} />;

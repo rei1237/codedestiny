@@ -13,8 +13,9 @@ const shell = fs.readFileSync('index.html', 'utf8');
 const introductionArt = JSON.parse(fs.readFileSync('lib/marketing/service-introduction-art.json','utf8'));
 // Registry discovery is not editorial publication. Keep this explicit so newly
 // discovered services cannot silently become verified product introductions.
-const inventoryOnlySlugs = ['career-style', 'love-code', 'neo-consultation', 'points', 'saju-animal', 'saju-compatibility', 'saju-fpti'];
+const inventoryOnlySlugs = ['career-style', 'heukwol', 'love-code', 'neo-consultation', 'points', 'saju-animal', 'saju-compatibility', 'saju-fpti'];
 const inventoryOnlyPaidRoutes = {
+  '/heukwol/': { slug: 'heukwol', featureKey: 'heukwol-warning-consultation', source: 'app/heukwol/page.tsx' },
   '/saju/compatibility/': { slug: 'saju-compatibility', featureKey: 'compat-saju-compatibility', source: 'app/saju/compatibility/page.js' },
   '/neo-consultation/': { slug: 'neo-consultation', featureKey: 'neo-email-consultation', source: 'app/neo-consultation/page.tsx' },
 };
@@ -213,6 +214,7 @@ test('restored hero artwork, catalog reuse, and collection previews stay in sync
 
   const signatureSources = Object.fromEntries([...fragment.querySelectorAll('#cdSignatureConsult [data-cd-service-id]')].map(card => [card.getAttribute('data-cd-service-id'), card.querySelector('img')?.getAttribute('src') || '']));
   const signatureArtwork = {
+    heukwol: '/images/service-introductions/heukwol.webp',
     'neo-operation-room': '/images/feature-details/neo-operation-room-hero-v2-textless.webp',
     'fortune-tea-house': '/images/home/yeoni-tea-together-v1-1200.webp',
     'master-love-codex': '/images/feature-details/master-love-codex-hero-v3.webp',

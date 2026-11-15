@@ -98,6 +98,9 @@ test('campaign entries use existing actions and existing result sections', async
  }
  assert.equal(FREE_PROMO_GROUPS.flatMap(g=>g.items).length,22);
  assert.equal(FREE_PROMO_FEATURED.length,6);
+ const {freePromoEndDateIso}=await import('../../lib/marketing/free-promo.mjs');
+ assert.equal(freePromoEndDateIso('2027-02-12T23:59:59+09:00'),'2027-02-12');
+ assert.equal(freePromoEndDateIso('2027-02-12T15:00:00Z'),'2027-02-13');
  for(const item of FREE_PROMO_FEATURED){
   const card=doc.querySelector('#cdQuickServices [data-cd-service-id="'+item.serviceId+'"]');
   assert.ok(card,'missing catalog identity '+item.serviceId);
