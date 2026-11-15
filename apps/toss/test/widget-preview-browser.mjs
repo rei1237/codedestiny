@@ -17,7 +17,7 @@ try {
     return route.abort();
   });
   await page.goto(origin);
-  await page.locator('.world-entry-ggulggul').click();
+  await page.locator('.world-entry-ggulggul').click();await page.getByRole('button',{name:'전체 펼치기',exact:true}).click();
   await page.getByRole('button',{name:/연이의 달빛 홈 화면/}).click();
   const studio=page.locator('.cd-home-widget');
   await studio.getByRole('heading',{name:'연이의 달빛 홈 화면'}).waitFor();

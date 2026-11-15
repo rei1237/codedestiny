@@ -8,7 +8,7 @@ context.setDefaultTimeout(25000);
 await context.route('**/*',route=>new URL(route.request().url()).origin===origin?route.continue():route.abort());
 const sample={name:'solid-local-fixture.png',mimeType:'image/png',buffer:await sharp({create:{width:480,height:620,channels:3,background:'#987c75'}}).png().toBuffer()};
 const text='[테스트 전용] 저장된 손금 판독 원문입니다.';
-async function home(p){await p.goto(origin);await p.locator('.world-entry-ggulggul').click();}
+async function home(p){await p.goto(origin);await p.locator('.world-entry-ggulggul').click();await p.getByRole('button',{name:'전체 펼치기',exact:true}).click();}
 async function open(p){await home(p);await p.getByRole('button',{name:'내 손금 리포트',exact:true}).click();}
 async function login(p){await p.getByRole('link',{name:'토스로 로그인하기'}).click();await p.getByRole('button',{name:'토스로 로그인하기'}).click();}
 try{

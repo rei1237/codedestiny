@@ -12,7 +12,7 @@ try{
  const context=await browser.newContext({viewport:{width:360,height:740},serviceWorkers:'block',reducedMotion:'reduce'});
  const requests=[];
  await context.route('**/*',route=>{const url=new URL(route.request().url());if(url.origin!==origin)return route.abort();requests.push(url.pathname);return route.continue();});
- const page=await context.newPage();await page.goto(origin);await page.locator('.world-entry-ggulggul').click();
+ const page=await context.newPage();await page.goto(origin);await page.locator('.world-entry-ggulggul').click();await page.getByRole('button',{name:'전체 펼치기',exact:true}).click();
  await page.getByRole('button',{name:/주역 거북점/}).click();
  await page.getByLabel('거북에게 묻고 싶은 질문').fill('나의 진로를 바꿔도 될까요?');
  const button=page.getByRole('button',{name:'거북 등껍질 길게 누르기'});

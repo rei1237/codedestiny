@@ -9,7 +9,7 @@ try{
  const page=await context.newPage();page.setDefaultTimeout(30000);
  const reportLinks=[];
  for(const title of ['인생 총운','인생의 책']){
-  await page.goto(origin);await page.locator('.world-entry-ggulggul').click();
+  await page.goto(origin);await page.locator('.world-entry-ggulggul').click();await page.getByRole('button',{name:'전체 펼치기',exact:true}).click();
   await page.getByRole('searchbox').fill(title);
   await page.locator('.directory-list button').filter({hasText:title}).first().click();
   const form=page.locator('#life-book-form');

@@ -7,7 +7,7 @@ try{
   const context=await browser.newContext({viewport:{width:360,height:740},serviceWorkers:'block',reducedMotion:'reduce'});
   await context.route('**/*',route=>new URL(route.request().url()).origin===origin?route.continue():route.abort());
   const page=await context.newPage();
-  const open=async title=>{await page.goto(origin);await page.locator('.world-entry-ggulggul').click();await page.getByRole('button',{name:new RegExp(title)}).click();};
+  const open=async title=>{await page.goto(origin);await page.locator('.world-entry-ggulggul').click();await page.getByRole('button',{name:'전체 펼치기',exact:true}).click();await page.getByRole('button',{name:new RegExp(title)}).click();};
   async function fill(group,date,city,unknown){
     await group.getByLabel('양력 생년월일').fill(date);
     if(unknown)await group.getByLabel('태어난 시각을 몰라요').check();

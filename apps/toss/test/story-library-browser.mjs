@@ -20,7 +20,7 @@ try {
     return route.abort();
   });
   await page.goto(origin);
-  await page.locator('.world-entry-ggulggul').click();
+  await page.locator('.world-entry-ggulggul').click();await page.getByRole('button',{name:'전체 펼치기',exact:true}).click();
   await page.getByRole('button',{name:/달빛 상담 웹툰 서가/}).click();
   const buttons=page.locator('.story-index button');
   await buttons.first().waitFor();

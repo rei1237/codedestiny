@@ -6,7 +6,7 @@ const ctx=await browser.newContext({viewport:{width:360,height:740},serviceWorke
 ctx.setDefaultTimeout(25000);
 await ctx.route('**/*',r=>new URL(r.request().url()).origin===origin?r.continue():r.abort());
 const p=await ctx.newPage();p.on('pageerror',e=>console.error(e.message));
-async function home(){await p.goto(origin);await p.locator('.world-entry-yeongnyangi').click();}
+async function home(){await p.goto(origin);await p.locator('.world-entry-yeongnyangi').click();for(const section of await p.locator('.world-disclosure>summary').all())await section.click();}
 try{
  await home();await p.getByRole('button',{name:'타로 상담',exact:false}).first().click();
  await p.locator('#yn-question').fill('지금 직장에서 어떤 장점을 먼저 살려보면 좋을까요?');

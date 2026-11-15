@@ -5,7 +5,7 @@ const browser=await chromium.launch({channel:'chrome'});
 const context=await browser.newContext({viewport:{width:360,height:740},isMobile:true,serviceWorkers:'block'});
 context.setDefaultTimeout(90000);
 await context.route('**/*',r=>new URL(r.request().url()).origin===origin?r.continue():r.abort());
-const home=async p=>{await p.goto(origin);await p.locator('.world-entry-ggulggul').click();};
+const home=async p=>{await p.goto(origin);await p.locator('.world-entry-ggulggul').click();await p.getByRole('button',{name:'전체 펼치기',exact:true}).click();};
 const enter=async p=>{await home(p);await p.getByRole('button',{name:'흑월의 경고 상담'}).click();};
 try{
   const page=await context.newPage();

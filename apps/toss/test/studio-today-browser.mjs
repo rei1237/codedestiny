@@ -15,7 +15,7 @@ try{
  });
  const page=await context.newPage();
  await page.goto(origin);
- await page.locator('.world-entry-ggulggul').click();
+ await page.locator('.world-entry-ggulggul').click();await page.getByRole('button',{name:'전체 펼치기',exact:true}).click();
  await page.getByRole('button',{name:/오늘의 운세/}).first().click();
  const sign=page.getByLabel('별자리·띠');
  await sign.waitFor();

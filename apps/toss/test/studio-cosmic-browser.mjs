@@ -12,7 +12,7 @@ try{
  await context.route('**/*',route=>{const url=new URL(route.request().url());if(url.origin!==origin)return route.abort();requests.push(url.pathname);return route.continue();});
  const page=await context.newPage();
  async function enter(){
-   await page.goto(origin);await page.locator('.world-entry-ggulggul').click();
+   await page.goto(origin);await page.locator('.world-entry-ggulggul').click();await page.getByRole('button',{name:'전체 펼치기',exact:true}).click();
    await page.getByRole('button',{name:/코스믹 소울 명상/}).click();
    const login=page.getByRole('button',{name:'토스 로그인하고 명상하기'});
    await login.click();await page.getByRole('button',{name:'토스로 로그인하기'}).click();

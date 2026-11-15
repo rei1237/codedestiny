@@ -57,7 +57,7 @@ try{
   const enter=async()=>{
     await page.goto(origin);await page.getByLabel('비공개 모의 상담').waitFor();
     assert.equal(await page.getByText('로그인 시간이 만료되었어요. 다시 로그인해 주세요.',{exact:true}).count(),0);
-    await page.locator('.world-entry-yeongnyangi').click();
+    await page.locator('.world-entry-yeongnyangi').click();for(const section of await page.locator('.world-disclosure>summary').all())await section.click();
     await page.getByRole('button',{name:/서양 점성술 상담/}).first().click();
     await page.locator('#yn-question').fill('새 직장에서 어떤 장점을 살려보면 좋을까요?');
     await page.getByRole('button',{name:'상담과 결제 확인하기'}).click();
@@ -65,7 +65,8 @@ try{
     await page.getByRole('button',{name:'토스로 로그인하기'}).click();
     await page.waitForURL(/yeongnyangi\/fortune/);
   };
-  if(process.argv.includes('--animal-destiny')){const {verifyPrivateAnimal}=await import('./private-animal-destiny.mjs');await verifyPrivateAnimal(origin,context);assert.deepEqual(unexpected,[]);console.log('PASS private animal destiny',reader.deploymentId);
+  if(process.argv.includes('--guided-profile')){const {verifyGuidedProfile}=await import('./private-guided-profile.mjs');await verifyGuidedProfile(origin,context);assert.deepEqual(unexpected,[]);console.log('PASS private guided profile',reader.deploymentId);
+  }else if(process.argv.includes('--animal-destiny')){const {verifyPrivateAnimal}=await import('./private-animal-destiny.mjs');await verifyPrivateAnimal(origin,context);assert.deepEqual(unexpected,[]);console.log('PASS private animal destiny',reader.deploymentId);
   }else if(process.argv.includes('--music-download')){const {verifyPrivateMusic}=await import('./private-music.mjs');await verifyPrivateMusic(origin,context);assert.deepEqual(unexpected,[]);console.log('PASS private music',reader.deploymentId);
   }else if(process.argv.includes('--free-originals')){const {verifyPrivateFreeOriginals}=await import('./private-free-originals.mjs');await verifyPrivateFreeOriginals(origin,context);assert.deepEqual(unexpected,[]);console.log('PASS private original free modes',reader.deploymentId);
   }else if(process.argv.includes('--astro-synastry')){const {verifyPrivateSynastry}=await import('./private-astro-synastry.mjs');await verifyPrivateSynastry(origin,context);assert.deepEqual(unexpected,[]);console.log('PASS private synastry',reader.deploymentId);
@@ -140,7 +141,7 @@ try{
     assert.ok(id);
     const reopenFromHome=async()=>{
       await page.close();await fresh();await page.goto(origin);
-      await page.locator('.world-entry-yeongnyangi').click();
+      await page.locator('.world-entry-yeongnyangi').click();for(const section of await page.locator('.world-disclosure>summary').all())await section.click();
       await page.getByRole('link',{name:'영냥이 보관함'}).click();
       await page.locator('a[href*="'+id+'"]').first().click();
     };
@@ -156,7 +157,7 @@ try{
     await capture('03-completed-mock-reading');
     if(process.env.TOSS_CONSOLE_CAPTURE){
       await page.goto(origin);await page.getByLabel('비공개 모의 상담').waitFor();await capture('01-home');
-      await page.locator('.world-entry-yeongnyangi').click();await page.getByRole('button',{name:/서양 점성술 상담/}).first().click();await page.locator('#yn-question').fill('새 직장에서 어떤 장점을 살려보면 좋을까요?');await capture('02-yeongnyangi-question');
+      await page.locator('.world-entry-yeongnyangi').click();for(const section of await page.locator('.world-disclosure>summary').all())await section.click();await page.getByRole('button',{name:/서양 점성술 상담/}).first().click();await page.locator('#yn-question').fill('새 직장에서 어떤 장점을 살려보면 좋을까요?');await capture('02-yeongnyangi-question');
       await page.goto(resultUrl);await chapter().waitFor();
     }
     const original=await chapter().innerText();

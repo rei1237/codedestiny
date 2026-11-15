@@ -8,7 +8,7 @@ try{
   const context=await browser.newContext({viewport:{width:360,height:740},serviceWorkers:'block',reducedMotion:'reduce'});
   await context.route('**/*',route=>new URL(route.request().url()).origin===origin?route.continue():route.abort());
   const page=await context.newPage();
-  const open=async()=>{await page.goto(origin);await page.locator('.world-entry-ggulggul').click();await page.getByRole('button',{name:/디비야 요가/}).click();};
+  const open=async()=>{await page.goto(origin);await page.locator('.world-entry-ggulggul').click();await page.getByRole('button',{name:'전체 펼치기',exact:true}).click();await page.getByRole('button',{name:/디비야 요가/}).click();};
   const login=async()=>{await page.getByRole('button',{name:'토스 로그인하고 수련 입력하기'}).click();await page.getByRole('button',{name:'토스로 로그인하기'}).click();};
   const mood=page.getByLabel('오늘의 몸과 마음');
   const frame=page.frameLocator('iframe[title="단계별 수련 지도"]');

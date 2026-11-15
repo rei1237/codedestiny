@@ -6,7 +6,7 @@ const {generateMayaReadingPrompt,MAYA_PROMPT_TOPICS}=loadTsModule('src/lib/maya-
 export async function verifyMayaFree(origin,context){
  const page=await context.newPage();page.setDefaultTimeout(25000);
  try{
-  await page.goto(origin);await page.locator('.world-entry-ggulggul').click();
+  await page.goto(origin);await page.locator('.world-entry-ggulggul').click();await page.getByRole('button',{name:'전체 펼치기',exact:true}).click();
   await page.getByRole('searchbox').fill('마야 달력');await page.locator('.directory-list button').filter({hasText:'마야 달력'}).click();
   await page.getByLabel('마야 달력 연도 선택').selectOption('2024');
   await page.getByLabel('마야 달력 월 선택').selectOption('2');await page.getByLabel('마야 달력 일 선택').selectOption('29');

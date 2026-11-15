@@ -10,7 +10,7 @@ await ctx.route('**/*',r=>new URL(r.request().url()).origin===origin?r.continue(
 const page=await ctx.newPage();
 async function room(){
  await page.goto(origin);
- await page.locator('.world-entry-yeongnyangi').click();
+ await page.locator('.world-entry-yeongnyangi').click();for(const section of await page.locator('.world-disclosure>summary').all())await section.click();
 }
 try{
  await room();await page.getByRole('button',{name:/분야별 리포트/}).click();

@@ -7,12 +7,12 @@ export const teaModeQuestion='새 직무에서 무엇을 먼저 준비할까요?
 export async function teaModeSteps(page,origin,mode=selectedTeaMode){
  assert.ok(modes.includes(mode));
  const button=name=>page.getByRole('button',{name,exact:true});
- await page.goto(origin);await page.locator('.world-entry-ggulggul').click();
+ await page.goto(origin);await page.locator('.world-entry-ggulggul').click();await page.getByRole('button',{name:'전체 펼치기',exact:true}).click();
  await page.getByRole('button',{name:/연이 · 운명의 찻집/}).click();
  await page.getByRole('link',{name:'계정',exact:true}).click();await button('토스로 로그인하기').click();
- if(mode==='sajuJoint')await page.getByRole('link',{name:'공동 상담 자세히 보기'}).click();
- else if(mode==='sajuCompatibility')await button('두 사람의 사주 궁합도 볼 수 있어요').click();
- else await button('이 상담 시작하기').nth(mode==='sukuyo'?2:mode.startsWith('tarot')?1:0).click();
+ if(mode==='sajuJoint')await page.getByRole('link',{name:'연이·네오 공동 사주 상담 시작하기'}).click();
+ else if(mode==='sajuCompatibility')await button('사주 궁합 상담 시작하기').click();
+ else await button((mode==='sukuyo'?'숙요점':mode.startsWith('tarot')?'타로':'사주')+' 상담 시작하기').click();
  if(mode==='saju'||mode==='sajuJoint'){
   await page.locator('#fortuneTeaBirthDate').fill('19900101');await page.locator('#fortuneTeaBirthTimeUnknown').check();
   await page.locator('#fortuneTeaGender').selectOption('female');await page.locator('#fortuneTeaBirthPlace').fill('서울');

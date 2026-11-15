@@ -5,7 +5,7 @@ const browser=await chromium.launch({channel:'chrome'});
 const context=await browser.newContext({viewport:{width:360,height:740},isMobile:true,serviceWorkers:'block'});
 context.setDefaultTimeout(90000);
 await context.route('**/*',r=>new URL(r.request().url()).origin===origin?r.continue():r.abort());
-const home=async page=>{await page.goto(origin);await page.locator('.world-entry-ggulggul').click();};
+const home=async page=>{await page.goto(origin);await page.locator('.world-entry-ggulggul').click();await page.getByRole('button',{name:'전체 펼치기',exact:true}).click();};
 try{
   for(const [persona,name] of [['neo','네오'],['yeoni','연이']]){
     const question=name+'에게 묻습니다. 이직 전에 무엇부터 정리할까요?';

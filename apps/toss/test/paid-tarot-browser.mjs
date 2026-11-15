@@ -8,7 +8,7 @@ try{
   await page.route('**/*',route=>new URL(route.request().url()).origin===origin?route.continue():route.abort());
   page.setDefaultTimeout(20000);
   const button=name=>page.getByRole('button',{name});
-  const library=async()=>{await page.goto(origin);await page.locator('.world-entry-ggulggul').click();await button(/타로 리딩/).first().click();};
+  const library=async()=>{await page.goto(origin);await page.locator('.world-entry-ggulggul').click();await page.getByRole('button',{name:'전체 펼치기',exact:true}).click();await button(/타로 리딩/).first().click();};
   await library();await button(/레노먼드 6장 흐름/).click();await page.getByLabel('레노먼드에 묻고 싶은 질문').fill('반복되는 신호가 무엇인가요?');
   await button('카드 펼치기').click();for(let i=1;i<=6;i++)await page.getByRole('button',{name:i+'번째 레노먼드 카드',exact:true}).click();
   await button('프롬프트 만들기').click();assert.match(await page.getByLabel('레노먼드 프롬프트 원문').inputValue(),/반복되는 신호가 무엇인가요/);

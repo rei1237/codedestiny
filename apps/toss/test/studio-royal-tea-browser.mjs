@@ -8,7 +8,7 @@ const browser=await chromium.launch({channel:'chrome'});
 try{
   const context=await browser.newContext({viewport:{width:360,height:740},serviceWorkers:'block',reducedMotion:'reduce'});
   const paths=[];await context.route('**/*',route=>{const url=new URL(route.request().url());if(url.origin!==origin)return route.abort();paths.push(url.pathname);return route.continue();});
-  const page=await context.newPage();await page.goto(origin);await page.locator('.world-entry-ggulggul').click();await page.getByRole('button',{name:/영국 홍차점/}).click();
+  const page=await context.newPage();await page.goto(origin);await page.locator('.world-entry-ggulggul').click();await page.getByRole('button',{name:'전체 펼치기',exact:true}).click();await page.getByRole('button',{name:/영국 홍차점/}).click();
   const topic=page.getByLabel('질문 영역');await topic.waitFor();
   const key=await page.evaluate(()=>localStorage.getItem('royal_tea_guest_key'));
   const serials=new Set();

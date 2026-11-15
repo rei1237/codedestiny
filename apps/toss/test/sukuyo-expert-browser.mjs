@@ -9,7 +9,7 @@ try{
   await context.route('**/*',route=>new URL(route.request().url()).origin===origin?route.continue():route.abort());
   page=await context.newPage();page.setDefaultTimeout(20000);
   const open=async()=>{
-    await page.goto(origin);await page.locator('.world-entry-ggulggul').click();
+    await page.goto(origin);await page.locator('.world-entry-ggulggul').click();await page.getByRole('button',{name:'전체 펼치기',exact:true}).click();
     await page.getByRole('searchbox').fill('숙요점 궁합 전문가');
     await page.getByRole('button',{name:/숙요점 궁합 전문가/}).click();
   };

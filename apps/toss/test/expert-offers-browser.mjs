@@ -36,7 +36,7 @@ try{
   });
   page=await context.newPage();page.setDefaultTimeout(30000);
   for(const [label,path] of [['베다 전문가','vedic-ai'],['자미두수 전문가','ziwei-ai'],['점성술 전문가','astrology-ai'],['신년운세 전문가','new-year-ai-consultation'],['운명의 업 전문가','karma-destiny-ai'],['숙요점 궁합 전문가','sukuyo-compatibility-ai'],['초융합 운세','fusion-fortune'],['연애 비책','love-secret-ai']]){
-    await page.goto(origin);await page.locator('.world-entry-ggulggul').click();
+    await page.goto(origin);await page.locator('.world-entry-ggulggul').click();await page.getByRole('button',{name:'전체 펼치기',exact:true}).click();
     await page.getByRole('searchbox').fill(label);
     await page.getByRole('button',{name:new RegExp(label)}).first().click();
     await page.waitForURL(url=>url.pathname.endsWith('/'+path+'/'));

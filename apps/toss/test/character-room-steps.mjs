@@ -8,14 +8,14 @@ export const neoQuestion='이직 전 먼저 정리할 자격과 경험을 알고
 const button=(page,name)=>page.getByRole('button',{name,exact:true});
 export async function home(page,origin){
   await page.goto(origin);
-  await page.locator('.world-entry-ggulggul').click();
+  await page.locator('.world-entry-ggulggul').click();await page.getByRole('button',{name:'전체 펼치기',exact:true}).click();
 }
 export async function tea(page,origin){
   await home(page,origin);
   await page.getByRole('button',{name:/연이 · 운명의 찻집/}).click();
   await page.getByRole('link',{name:'계정',exact:true}).click();
   await button(page,'토스로 로그인하기').click();
-  await button(page,'이 상담 시작하기').first().click();
+  await button(page,'사주 상담 시작하기').click();
   await page.locator('#fortuneTeaBirthDate').fill('19900101');
   await page.locator('#fortuneTeaBirthTimeUnknown').check();
   await page.locator('#fortuneTeaGender').selectOption({label:'여성'});

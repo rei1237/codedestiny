@@ -4,7 +4,7 @@ export async function neoPartner(page,origin,method='saju'){
  const names={saju:'사주',ziwei:'자미두수',vedic:'베다점',astrology:'점성술'};
  assert.ok(names[method]);
  const button=name=>page.getByRole('button',{name,exact:true});
- await page.goto(origin);await page.locator('.world-entry-ggulggul').click();
+ await page.goto(origin);await page.locator('.world-entry-ggulggul').click();await page.getByRole('button',{name:'전체 펼치기',exact:true}).click();
  await page.getByRole('button',{name:/네오 · 팩폭 전략실/}).click();
  await page.getByRole('link',{name:'토스로 로그인하기'}).click();await button('토스로 로그인하기').click();
  await button('고민부터 적어보기').click();await page.locator('#neo-operation-question').fill(neoPartnerQuestion);

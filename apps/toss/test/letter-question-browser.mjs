@@ -8,7 +8,7 @@ const p=await ctx.newPage();p.on('pageerror',error=>console.error(error.message)
 try{
  for(const [persona,name,domain,method] of [['yeoni','연이','saju','사주'],['neo','네오','tarot','타로']]){
   const q=name+'에게 묻는 질문입니다. 쉬는 시간을 어떻게 지킬까요?';
-  await p.goto(origin);await p.locator('.world-entry-ggulggul').click();
+  await p.goto(origin);await p.locator('.world-entry-ggulggul').click();await p.getByRole('button',{name:'전체 펼치기',exact:true}).click();
   await p.getByRole('button',{name:name+'의 상담 편지',exact:true}).click();
   const room=p.locator('[data-consultation-room][data-persona="'+persona+'"]');
   await room.getByLabel('나의 질문',{exact:true}).fill(q);await room.getByRole('button',{name:'계속하기'}).click();
@@ -53,7 +53,7 @@ try{
   await follow.getByRole('button',{name:/질문 보내기|질문하기|답변 요청하기/}).last().click();
   await room.getByText('[테스트 전용] 저장된 추가 질문 답변',{exact:true}).waitFor();
   const id=new URL(p.url()).searchParams.get('consultation');
-  await p.goto(origin);await p.locator('.world-entry-ggulggul').click();await p.getByRole('link',{name:'꿀꿀운세 구매 기록'}).click();
+  await p.goto(origin);await p.locator('.world-entry-ggulggul').click();await p.getByRole('button',{name:'전체 펼치기',exact:true}).click();await p.getByRole('link',{name:'꿀꿀운세 구매 기록'}).click();
   await p.locator('article').filter({hasText:q}).getByRole('link',{name:'다시 보기'}).click();
   await p.getByText('[테스트 전용] 저장된 추가 질문 답변',{exact:true}).waitFor();
   const saved=await p.evaluate(id=>JSON.parse(localStorage.getItem('toss-offline-fixture')).letters.find(([key])=>key===id)[1],id);

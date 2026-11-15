@@ -31,7 +31,7 @@ try{
  }
  async function openGroup(title){
    await page.goto(origin);
-   await page.locator('.world-entry-ggulggul').click();
+   await page.locator('.world-entry-ggulggul').click();await page.getByRole('button',{name:'전체 펼치기',exact:true}).click();
    await page.getByRole('button',{name:new RegExp('^'+title)}).click();
    await page.getByLabel('태어난 날짜',{exact:true}).fill('1990-05-15');
    await page.getByLabel('태어난 시각',{exact:true}).fill('14:30');

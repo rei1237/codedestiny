@@ -16,7 +16,7 @@ try{
   page.setDefaultTimeout(15000);
   const open=async label=>{
     await page.goto(origin);
-    await page.locator('.world-entry-ggulggul').click();
+    await page.locator('.world-entry-ggulggul').click();await page.getByRole('button',{name:'전체 펼치기',exact:true}).click();
     await page.getByRole('button',{name:new RegExp(label)}).first().click();
   };
   await open('타로 리딩');

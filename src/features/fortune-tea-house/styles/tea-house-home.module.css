@@ -20,3 +20,16 @@
 .section .chatSpeech{position:relative;margin:20px 0 0;padding:20px 24px;border-radius:var(--cd-r-card);background:var(--home-panel);color:var(--tea-ink);font-size:clamp(1.1rem,2vw,1.4rem);font-weight:600;word-break:keep-all;overflow-wrap:anywhere}
 .chatSpeech::before{content:"";position:absolute;left:-12px;top:24px;border-top:12px solid transparent;border-bottom:12px solid transparent;border-right:12px solid var(--home-panel)}
 @media(max-width:700px){.chatInvitation{flex-direction:column;align-items:flex-start;gap:20px}.chatCharacter{width:160px;align-self:center}.chatContent{width:100%}.chatSpeech::before{left:calc(50% - 12px);top:-12px;border-left:12px solid transparent;border-right:12px solid transparent;border-top:0;border-bottom:12px solid var(--home-panel)}}
+
+/* Toss uses the same consultation modes and art, with a compact first choice. */
+.tossEntry{--tea-ink:#493342;--tea-green:#82415b;--tea-rose:#92723d;--home-bg:#fffbf5;--home-panel:#f7eddf;--home-muted:#725868;max-width:760px;margin:auto;min-height:100dvh}
+.tossEntry .primary{color:#fffaf2}
+.tossWelcome{position:relative;isolation:isolate;overflow:hidden;padding:30px 24px;min-height:220px;display:flex;align-items:center;background:#f2e5d4}
+.tossWelcome img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:70% 40%;z-index:-2}
+.tossWelcome::before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,#fff8ed 12%,#fff8edef 48%,#fff8ed33);z-index:-1}
+.tossWelcome h1{font-family:var(--font-display,var(--font-body));font-size:clamp(1.8rem,6vw,2.4rem);line-height:1.4;letter-spacing:-.025em;margin:0 0 14px;word-break:keep-all}
+.tossWelcome p{max-width:24ch;font-size:14px;line-height:1.7;margin:0;color:var(--home-muted)}
+.tossChoices{padding:26px 20px 12px}.tossChoices h2{font:700 1.35rem/1.5 var(--font-display,var(--font-body));margin:0 0 4px}.tossChoices>p{font-size:14px;color:var(--home-muted);margin:0 0 14px}
+.tossChoices>button,.tossChoices>a{display:flex;align-items:center;gap:14px;min-height:108px;width:100%;border:0;border-bottom:1px solid #ddcdb6;padding:14px 0;background:none;text-decoration:none;text-align:left;color:var(--tea-ink)}
+.tossChoices img{flex-shrink:0;width:76px;height:76px;border-radius:10px;object-fit:cover}.tossChoices span{flex:1;min-width:0}.tossChoices strong{display:block;font:700 18px/1.45 var(--font-display,var(--font-body));word-break:keep-all;overflow-wrap:anywhere}.tossChoices small,.tossChoices em{display:block;font-size:13px;line-height:1.65;color:var(--home-muted);font-style:normal;margin-top:3px}.tossChoices em{font-size:12px}.tossChoices svg{flex-shrink:0;color:var(--tea-green)}.tossChoices .note{margin-top:20px;font-size:12px}
+.tossExplore{margin:12px 20px 24px;border-block:1px solid #ddcdb6;padding:12px 0}.tossExplore summary{min-height:44px;padding:10px 0;cursor:pointer;font-weight:600}.tossExplore p{font-size:14px;color:var(--home-muted)}.tossExplore .actions{margin-top:12px;gap:12px}.tossEntry .history{padding:28px 20px}.tossEntry .header{padding:14px 20px}.tossEntry .header nav{justify-content:flex-start;gap:24px}.tossEntry button:hover,.tossEntry a:hover{color:#663047}.tossEntry .primary:hover{color:#fffaf2;background:#663047}

@@ -11,7 +11,7 @@ try{
  const page=await context.newPage();
  page.setDefaultTimeout(30000);
  await page.goto(origin);
- await page.locator('.world-entry-ggulggul').click();
+ await page.locator('.world-entry-ggulggul').click();await page.getByRole('button',{name:'전체 펼치기',exact:true}).click();
  await page.getByRole('button',{name:/나의 일 스타일/}).click();
  await page.getByRole('button',{name:'로그인하고 리포트 확인하기'}).click();
  await page.getByRole('button',{name:'토스로 로그인하기'}).click();

@@ -33,6 +33,7 @@ try{
  const question='새 업무를 맡기 전에 어떤 점을 확인해야 할까요?';
  async function enter(label){
   await p.goto(origin);await p.locator('.world-entry-yeongnyangi').click({timeout:10000}).catch(async error=>{console.error((await p.locator('body').innerText()).slice(0,600));throw error;});
+  await p.locator('.world-disclosure>summary').nth(1).click();
   await p.getByRole('button',{name:new RegExp('^'+label)}).click();
  }
  async function fill(){

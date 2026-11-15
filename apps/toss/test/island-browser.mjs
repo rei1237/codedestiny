@@ -22,7 +22,7 @@ try{
   await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(json)});
  });
  const p=await ctx.newPage();p.setDefaultTimeout(15000);
- async function open(){await p.goto(origin);await p.locator('.world-entry-ggulggul').click();
+ async function open(){await p.goto(origin);await p.locator('.world-entry-ggulggul').click();await p.getByRole('button',{name:'전체 펼치기',exact:true}).click();
   await p.getByRole('button',{name:/자미두수 상세 풀이/}).click();
   await p.getByRole('button',{name:'운명의 섬 탐험하기'}).click();return p.frameLocator('iframe[title="운명의 섬"]');}
  let f=await open();

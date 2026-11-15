@@ -22,7 +22,7 @@ export async function verifyExtendedReport(origin,context,key){
    await page.getByRole('button',{name:/심층 리포트/}).click();await page.getByRole('button',{name:'토스로 로그인하기'}).click();await page.getByRole('button',{name:/심층 리포트 열기/}).click();
   }
   await page.waitForURL(url=>url.searchParams.has('resultId'));const owned=page.url(),id=new URL(owned).searchParams.get('resultId');assert.equal((await ledger()).orders.length,1);
-  await page.close();page=await context.newPage();page.setDefaultTimeout(45000);await page.goto(origin);await page.locator('.world-entry-ggulggul').click();await page.getByRole('link',{name:'꿀꿀운세 구매 기록'}).click();await page.locator('article a[href*="'+id+'"]').last().click();
+  await page.close();page=await context.newPage();page.setDefaultTimeout(45000);await page.goto(origin);await page.locator('.world-entry-ggulggul').click();await page.getByRole('button',{name:'전체 펼치기',exact:true}).click();await page.getByRole('link',{name:'꿀꿀운세 구매 기록'}).click();await page.locator('article a[href*="'+id+'"]').last().click();
   const done=async()=>{if(key==='yoga')await page.frameLocator('iframe[title="단계별 수련 지도"]').getByText('테스트 전용 30분 수련',{exact:true}).waitFor();else await page.getByText(key==='ziwei-deep'?'15 / 15개 장 저장':key==='compass'?'10 / 10개 장 저장':'오프라인 테스트 원문 · 마지막 별의 문장',{exact:true}).waitFor();};
   await done();
   if(key==='nakshatra'){assert.equal(await page.locator('main main').count(),0);assert.equal(await page.locator('[class*="_reader_"]').evaluate(el=>getComputedStyle(el).backgroundColor),'rgb(9, 8, 23)');}

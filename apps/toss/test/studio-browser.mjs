@@ -13,7 +13,7 @@ async function account(){
 }
 async function start(page){
  await page.goto(origin);
- await page.locator('.world-entry-yeongnyangi').click();
+ await page.locator('.world-entry-yeongnyangi').click();for(const section of await page.locator('.world-disclosure>summary').all())await section.click();
  await page.getByRole('button',{name:'사주 상담',exact:false}).first().click();
 }
 const question='새로운 업무에서 제 강점을 어떻게 활용할 수 있을까요?';
@@ -60,7 +60,7 @@ try{
  const reopened=await context.newPage();
  reopened.setDefaultTimeout(45000);
  await reopened.goto(origin);
- await reopened.locator('.world-entry-yeongnyangi').click();
+ await reopened.locator('.world-entry-yeongnyangi').click();for(const section of await reopened.locator('.world-disclosure>summary').all())await section.click();
  await reopened.getByRole('link',{name:'영냥이 보관함'}).click();
  await reopened.locator('a[href*="/yeongnyangi/result/"]').first().click();
  const chapter=reopened.getByText(/이 문단은 화면과 구매 후 열람/).first();

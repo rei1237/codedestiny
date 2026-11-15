@@ -10,6 +10,7 @@ import {canonicalResponse,saleProducts,restoreSession,recoverAfterAuthentication
 import {createServiceFetch} from './transport.mjs';
 import {dispatchServiceBack} from './native-back.mjs';
 import {FPTI_RESULT_PREFIX,fptiStoredEnvelope} from './fpti-session.mjs';
+import {profileEntryStoredEnvelope} from './profile-entry-session.mjs';
 
 import {captureLetterDraft,restoreLetterDraft} from './letter-draft-bootstrap.mjs';
 import {captureTeaDraft,restoreTeaDraft} from './tea-draft-bootstrap.mjs';
@@ -117,7 +118,7 @@ function restoreConsultationDraft(storage,draft,location,user){
 // matching account has been restored. Unlink deletion remains a release gate.
 export function preserveOmikujiSession(storage,clear){
  const rows=[];const prefix='toss:omikuji-session:v1:';
- try{for(let index=0;index<storage.length;index++){try{const key=storage.key(index);if(!key)continue;const raw=storage.getItem(key);if(key.startsWith(FPTI_RESULT_PREFIX)){if(fptiStoredEnvelope(key,raw))rows.push([key,raw]);continue;}if(!key.startsWith(prefix)||!raw||raw.length>5000)continue;const saved=JSON.parse(raw);if(typeof saved.scope!=='string'||!saved.scope.startsWith('user:')||saved.scope.length<=5||key!==prefix+encodeURIComponent(saved.scope)||typeof saved.input?.question!=='string'||saved.input.question.length>220||saved.screen!=='result')continue;rows.push([key,raw]);}catch{/* A malformed record must not discard other owners' results. */}}}catch{/* Storage is optional. */}
+ try{for(let index=0;index<storage.length;index++){try{const key=storage.key(index);if(!key)continue;const raw=storage.getItem(key);if(key.startsWith('cd:feature-draft:v1:toss-profile-entry:')){if(profileEntryStoredEnvelope(key,raw))rows.push([key,raw]);continue;}if(key.startsWith(FPTI_RESULT_PREFIX)){if(fptiStoredEnvelope(key,raw))rows.push([key,raw]);continue;}if(!key.startsWith(prefix)||!raw||raw.length>5000)continue;const saved=JSON.parse(raw);if(typeof saved.scope!=='string'||!saved.scope.startsWith('user:')||saved.scope.length<=5||key!==prefix+encodeURIComponent(saved.scope)||typeof saved.input?.question!=='string'||saved.input.question.length>220||saved.screen!=='result')continue;rows.push([key,raw]);}catch{/* A malformed record must not discard other owners' results. */}}}catch{/* Storage is optional. */}
  clear();
  try{for(const [key,raw] of rows)if(storage.getItem(key)===null)storage.setItem(key,raw);}catch{/* The screen reports unavailable storage when saving. */}
 }

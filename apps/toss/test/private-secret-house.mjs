@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 export async function verifyPrivateSecretHouse(origin,context){
  const page=await context.newPage();page.setDefaultTimeout(12000);
  try{
-  await page.goto(origin);await page.locator('.world-entry-ggulggul').click();
+  await page.goto(origin);await page.locator('.world-entry-ggulggul').click();await page.getByRole('button',{name:'전체 펼치기',exact:true}).click();
   await page.getByRole('button',{name:/^사주 리포트/}).click();
   await page.getByLabel('풀이 선택').selectOption('rpt_secretHouseEntryCard');
   await page.getByRole('button',{name:'선택한 풀이 보기'}).click();

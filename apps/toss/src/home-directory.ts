@@ -49,6 +49,16 @@ export type Consultation = 'yeongnyangi'|'yeoni'|'neo'|'fusion'|'life-book'|'lov
 export type DirectoryItem = {title:string; body?:string; keywords?:string; art?:string} & ({id:Destination} | {href:string} | {room:Consultation});
 export type DirectoryGroup = {kind:'rooms'|'fortune'|'books'|'reports'; title:string; entries:DirectoryItem[]};
 
+// Explicit destinations follow the web registry's method collections; labels never infer routing.
+export const fortuneCollections=[
+ {id:'saju',title:'사주',destinations:['saju/sections','saju/basic/play','saju/career-style','saju/animal-destiny','manse','insights/famous-saju','pet-saju','saju-fpti','/saju/destiny-meeting-place/']},
+ {id:'ziwei',title:'자미두수',destinations:['ziwei/sections','ziwei/chart']},
+ {id:'stars',title:'숙요·베다·점성술',destinations:['astrology','vedic','nakshatra/codex','sukuyo','human-design','nakshatra/muhurta','nakshatra/vvip-codex','nakshatra/resolve','nakshatra/compat','nakshatra/lord-report','nakshatra/dasha-map','nakshatra/ai']},
+ {id:'oracle',title:'타로·신탁',destinations:['olympus','oracle/turtle','oracle/royal-tea','oracle/kemet','dream/tarot','oracle/sikojen-povailu','oracle/ifa','oracle/rune','tarot-library','omikuji']},
+ {id:'life',title:'오늘·성향·마음',destinations:['diary','meditation/cosmic','meditation/neville','today','yoga-guru','destiny-compass','flower','bias','maya','mbti/animals','psychotest']},
+];
+export const directoryDestination=(item:DirectoryItem)=>'id' in item?item.id:'href' in item?item.href:item.room;
+
 const rooms:DirectoryItem[]=[
  {title:'연이 · 운명의 찻집',body:'마음과 관계를 다정한 편지로',art:'/assets/yeoni-flower-pig.webp',room:'yeoni'},
  {title:'네오 · 팩폭 전략실',body:'고민을 현실적인 다음 행동으로',keywords:'작전실 전략가',art:'/assets/neo.webp',room:'neo'},

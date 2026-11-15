@@ -29,7 +29,7 @@ export async function verifyHumanDesign(origin,context){
   await page.getByRole('button',{name:'리포트 시작하기',exact:true}).click();await page.waitForURL(/intentId=/);
   const id=new URL(page.url()).searchParams.get('intentId'),ownedUrl=page.url();assert.ok(id);
   await page.close();page=await context.newPage();page.setDefaultTimeout(35000);
-  await page.goto(origin);await page.locator('.world-entry-ggulggul').click();await page.getByRole('link',{name:'꿀꿀운세 구매 기록'}).click();await page.locator('article a[href*="'+id+'"]').last().click();
+  await page.goto(origin);await page.locator('.world-entry-ggulggul').click();await page.getByRole('button',{name:'전체 펼치기',exact:true}).click();await page.getByRole('link',{name:'꿀꿀운세 구매 기록'}).click();await page.locator('article a[href*="'+id+'"]').last().click();
   await page.locator('section[id^=hd-ch-]').last().waitFor();assert.equal(await page.locator('section[id^=hd-ch-]').count(),18);
   const original=await page.locator('article').innerText();assert.match(original,/모의 결과/);
   for(const width of [360,390,430]){await page.setViewportSize({width,height:740});await page.locator('section[id^=hd-ch-]').first().scrollIntoViewIfNeeded();await fits();await shot('report-'+width);}

@@ -5,7 +5,7 @@ const browser=await chromium.launch({channel:'chrome'});
 const context=await browser.newContext({viewport:{width:360,height:740},isMobile:true,serviceWorkers:'block'});
 context.setDefaultTimeout(45000);
 await context.route('**/*',route=>new URL(route.request().url()).origin===origin?route.continue():route.abort());
-async function home(page){await page.goto(origin);await page.locator('.world-entry-ggulggul').click();}
+async function home(page){await page.goto(origin);await page.locator('.world-entry-ggulggul').click();await page.getByRole('button',{name:'전체 펼치기',exact:true}).click();}
 async function enter(page){await home(page);await page.getByRole('button',{name:'사주 작명첩'}).click();}
 async function login(page){await page.getByRole('link',{name:'토스로 로그인하기'}).click();await page.getByRole('button',{name:'토스로 로그인하기'}).click();}
 async function birth(page){

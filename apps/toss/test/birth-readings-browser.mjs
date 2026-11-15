@@ -4,7 +4,7 @@ const origin='http://127.0.0.1:'+Number(process.env.TOSS_TEST_PORT||4392);
 const browser=await chromium.launch({channel:'chrome'});
 const ctx=await browser.newContext({viewport:{width:360,height:740},isMobile:true,serviceWorkers:'block'});
 ctx.setDefaultTimeout(45000);await ctx.route('**/*',r=>new URL(r.request().url()).origin===origin?r.continue():r.abort());
-const home=async p=>{await p.goto(origin);await p.locator('.world-entry-ggulggul').click();};
+const home=async p=>{await p.goto(origin);await p.locator('.world-entry-ggulggul').click();await p.getByRole('button',{name:'전체 펼치기',exact:true}).click();};
 const open=async(p,label)=>{await home(p);await p.getByRole('button',{name:/^사주 리포트/}).click();await p.getByRole('button',{name:label,exact:true}).click();};
 try{
  let p=await ctx.newPage();p.on('pageerror',e=>console.error(e.message));
