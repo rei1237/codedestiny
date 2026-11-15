@@ -48,3 +48,5 @@
 
 .page-catalog>label{display:block;font-size:14px;font-weight:650}.page-catalog>label select{display:block;margin-top:8px}
 .sukuyo-master-art{display:block;width:100%;height:auto;border-radius:16px;margin-top:28px}
+
+.library-help{margin-top:28px;padding-top:20px;border-top:1px solid var(--moon-line-soft)}.library-help p{margin:0 0 10px;font-size:14px;color:var(--moon-muted)}
