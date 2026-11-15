@@ -2,6 +2,10 @@
 
 2026-11-16. 실제 결제·실 LLM·운영 DB 쓰기는 하지 않았다. 모의 검증 통과를 운영 결제·생성 성공이나 전체 출시 완료로 해석하지 않는다.
 
+**새 비공개 버전 `20261116-21` 등록 완료.** 콘솔 상태는 `검토 필요`이며 새 검토·공개 출시를 실행하지 않았다. QR 원본 SVG·PNG·URI는 `C:/Users/user/Downloads/CodeDestiny/20261116-launch-validation/qr-20261116-21.{svg,png,txt}`에 보존한다. QR20과 다른 deployment다.
+
+테스트 URI: `intoss-private://ai-saju-studio?_deploymentId=01a1e08b-9241-73a0-80e2-7dedc170c8e7&host=appsInTossHost`.
+
 ## 고정된 제품 변경
 
 - UI 커밋 `d82393691`, main 병합 소스 `324b95f47757b158b702b628f7683441fb941f46`.
@@ -54,5 +58,10 @@
 
 - UI `npm run check:fast`: PASS(Node 5,125, core 47 포함). main 병합 후 `npm run check:pre-push`: PASS, push 완료. 고정 제품 소스의 [main CI 43746069292](https://github.com/rei1237/codedestiny/actions/runs/43746069292)는 SUCCESS다.
 - `npm run launch:status --prefix apps/toss`: PASS. 110개 원본 기능 ID 중 기록된 코드 누락 없음 109, 음악 저장 제약 1. 이 집계는 실제 결제 제공 성공률이 아니다.
-- 고정 Linux CI: [43746082025](https://github.com/rei1237/codedestiny/actions/runs/43746082025). 결과와 최종 AIT/QR 증빙은 완료 후 갱신한다.
+- 고정 Linux 전체 CI: [43746082025](https://github.com/rei1237/codedestiny/actions/runs/43746082025) **SUCCESS**.
+- AIT: `C:/Users/user/Downloads/CodeDestiny/20261116-launch-validation/linux/ai-saju-studio.ait`. deployment `01a1e08b-9241-73a0-80e2-7dedc170c8e7`, SHA256 `496187da96c6fe8a55ea293a89242d5f819990bb5e0befdd961ede0ac3cb0c84`. 파일 88,027,923바이트, 확장 99,289,360바이트. Linux 경로·100MB 한도·모의 marker 없음 PASS.
+- 실제 일반 archive의 `private-bundle-browser.mjs`, `private-bundle-owner-browser.mjs <ait> new`, `story-library-browser.mjs <ait>` PASS. 정상 홈·원본 질문·360×420 입력/다음 버튼·초안 복원, 저장 원문/새 창 재진입, 결과 통신 단절1회 후 재열람, 계정 B 거부, 새 주문/생성 호출0, 웹툰19편/상담 연결을 확인했다. 별도 archive 검사로 새 하단3버튼의 실제 경로와 원본6종 삽화도 PASS.
+- 브라우저는 네이티브 bridge와 API를 모의 처리하며 외부 호출을 차단했다. 최초 임시 검사 환경에 빠진 SDK bridge를 기존 검사와 동일하게 보완한 후 PASS했다. 제품 코드를 수정하거나 운영 API로 폴백하지 않았다.
+- 기존 운영 릴리스 source `08103bec6de88481e89a6dd87c3a8abab223b54d`와 고정 후보 사이의 `worker/toss`·`lib/toss-release.mjs` 차이는 없다. 이번 UI 변경으로 운영 서버를 재배포하지 않았다.
 - 모의 archive 기본 76행 + 등급/복구/무료 독서 보완 44행 = **120행 PASS**. 영냥이 28상품은 catalog 1행 내부, 연이/네오 편지 42등급 조합은 보완 행렬에 포함된다. 기본과 등급 검사가 겹치므로 120개 고유 서비스나 운영 SKU를 뜻하지 않는다. [기능군별 단언 범위와 한계](./paid-launch-validation-2026-11-16.md)를 참고한다.
+- 테스트 보완·검증 보고를 포함한 `71f1da639`의 [main CI 43748450144](https://github.com/rei1237/codedestiny/actions/runs/43748450144)도 SUCCESS다. 다른 세션의 후속 main 병합은 보존했고, 고정 AIT 이후 토스 앱/서비스·Worker 제품 코드 차이가 없음을 확인했다.
