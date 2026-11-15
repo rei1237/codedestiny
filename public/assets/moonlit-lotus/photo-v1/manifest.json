@@ -1,0 +1,493 @@
+{
+  "version": 1,
+  "poses": [
+    "cheek",
+    "cuddle",
+    "tea",
+    "hooray"
+  ],
+  "size": 512,
+  "generator": "built-in image_gen",
+  "assets": [
+    {
+      "character": "yeoni",
+      "pose": "cheek",
+      "path": "yeoni/cheek.webp",
+      "bytes": 47224,
+      "width": 512,
+      "height": 512
+    },
+    {
+      "character": "yeoni",
+      "pose": "cuddle",
+      "path": "yeoni/cuddle.webp",
+      "bytes": 48188,
+      "width": 512,
+      "height": 512
+    },
+    {
+      "character": "yeoni",
+      "pose": "tea",
+      "path": "yeoni/tea.webp",
+      "bytes": 43922,
+      "width": 512,
+      "height": 512
+    },
+    {
+      "character": "yeoni",
+      "pose": "hooray",
+      "path": "yeoni/hooray.webp",
+      "bytes": 52596,
+      "width": 512,
+      "height": 512
+    },
+    {
+      "character": "cat",
+      "pose": "cheek",
+      "path": "cat/cheek.webp",
+      "bytes": 87678,
+      "width": 512,
+      "height": 512
+    },
+    {
+      "character": "cat",
+      "pose": "cuddle",
+      "path": "cat/cuddle.webp",
+      "bytes": 82210,
+      "width": 512,
+      "height": 512
+    },
+    {
+      "character": "cat",
+      "pose": "tea",
+      "path": "cat/tea.webp",
+      "bytes": 83426,
+      "width": 512,
+      "height": 512
+    },
+    {
+      "character": "cat",
+      "pose": "hooray",
+      "path": "cat/hooray.webp",
+      "bytes": 88154,
+      "width": 512,
+      "height": 512
+    },
+    {
+      "character": "hanbi",
+      "pose": "cheek",
+      "path": "hanbi/cheek.webp",
+      "bytes": 67292,
+      "width": 512,
+      "height": 512
+    },
+    {
+      "character": "hanbi",
+      "pose": "cuddle",
+      "path": "hanbi/cuddle.webp",
+      "bytes": 73480,
+      "width": 512,
+      "height": 512
+    },
+    {
+      "character": "hanbi",
+      "pose": "tea",
+      "path": "hanbi/tea.webp",
+      "bytes": 68170,
+      "width": 512,
+      "height": 512
+    },
+    {
+      "character": "hanbi",
+      "pose": "hooray",
+      "path": "hanbi/hooray.webp",
+      "bytes": 77428,
+      "width": 512,
+      "height": 512
+    },
+    {
+      "character": "mouse",
+      "pose": "cheek",
+      "path": "mouse/cheek.webp",
+      "bytes": 80254,
+      "width": 512,
+      "height": 512
+    },
+    {
+      "character": "mouse",
+      "pose": "cuddle",
+      "path": "mouse/cuddle.webp",
+      "bytes": 82798,
+      "width": 512,
+      "height": 512
+    },
+    {
+      "character": "mouse",
+      "pose": "tea",
+      "path": "mouse/tea.webp",
+      "bytes": 73554,
+      "width": 512,
+      "height": 512
+    },
+    {
+      "character": "mouse",
+      "pose": "hooray",
+      "path": "mouse/hooray.webp",
+      "bytes": 83360,
+      "width": 512,
+      "height": 512
+    },
+    {
+      "character": "ox",
+      "pose": "cheek",
+      "path": "ox/cheek.webp",
+      "bytes": 77736,
+      "width": 512,
+      "height": 512
+    },
+    {
+      "character": "ox",
+      "pose": "cuddle",
+      "path": "ox/cuddle.webp",
+      "bytes": 75228,
+      "width": 512,
+      "height": 512
+    },
+    {
+      "character": "ox",
+      "pose": "tea",
+      "path": "ox/tea.webp",
+      "bytes": 65006,
+      "width": 512,
+      "height": 512
+    },
+    {
+      "character": "ox",
+      "pose": "hooray",
+      "path": "ox/hooray.webp",
+      "bytes": 77418,
+      "width": 512,
+      "height": 512
+    },
+    {
+      "character": "tiger",
+      "pose": "cheek",
+      "path": "tiger/cheek.webp",
+      "bytes": 77596,
+      "width": 512,
+      "height": 512
+    },
+    {
+      "character": "tiger",
+      "pose": "cuddle",
+      "path": "tiger/cuddle.webp",
+      "bytes": 78240,
+      "width": 512,
+      "height": 512
+    },
+    {
+      "character": "tiger",
+      "pose": "tea",
+      "path": "tiger/tea.webp",
+      "bytes": 66984,
+      "width": 512,
+      "height": 512
+    },
+    {
+      "character": "tiger",
+      "pose": "hooray",
+      "path": "tiger/hooray.webp",
+      "bytes": 78538,
+      "width": 512,
+      "height": 512
+    },
+    {
+      "character": "rabbit",
+      "pose": "cheek",
+      "path": "rabbit/cheek.webp",
+      "bytes": 57092,
+      "width": 512,
+      "height": 512
+    },
+    {
+      "character": "rabbit",
+      "pose": "cuddle",
+      "path": "rabbit/cuddle.webp",
+      "bytes": 53524,
+      "width": 512,
+      "height": 512
+    },
+    {
+      "character": "rabbit",
+      "pose": "tea",
+      "path": "rabbit/tea.webp",
+      "bytes": 53224,
+      "width": 512,
+      "height": 512
+    },
+    {
+      "character": "rabbit",
+      "pose": "hooray",
+      "path": "rabbit/hooray.webp",
+      "bytes": 58032,
+      "width": 512,
+      "height": 512
+    },
+    {
+      "character": "dragon",
+      "pose": "cheek",
+      "path": "dragon/cheek.webp",
+      "bytes": 97042,
+      "width": 512,
+      "height": 512
+    },
+    {
+      "character": "dragon",
+      "pose": "cuddle",
+      "path": "dragon/cuddle.webp",
+      "bytes": 99570,
+      "width": 512,
+      "height": 512
+    },
+    {
+      "character": "dragon",
+      "pose": "tea",
+      "path": "dragon/tea.webp",
+      "bytes": 96936,
+      "width": 512,
+      "height": 512
+    },
+    {
+      "character": "dragon",
+      "pose": "hooray",
+      "path": "dragon/hooray.webp",
+      "bytes": 105280,
+      "width": 512,
+      "height": 512
+    },
+    {
+      "character": "snake",
+      "pose": "cheek",
+      "path": "snake/cheek.webp",
+      "bytes": 58614,
+      "width": 512,
+      "height": 512
+    },
+    {
+      "character": "snake",
+      "pose": "cuddle",
+      "path": "snake/cuddle.webp",
+      "bytes": 55084,
+      "width": 512,
+      "height": 512
+    },
+    {
+      "character": "snake",
+      "pose": "tea",
+      "path": "snake/tea.webp",
+      "bytes": 54550,
+      "width": 512,
+      "height": 512
+    },
+    {
+      "character": "snake",
+      "pose": "hooray",
+      "path": "snake/hooray.webp",
+      "bytes": 66774,
+      "width": 512,
+      "height": 512
+    },
+    {
+      "character": "horse",
+      "pose": "cheek",
+      "path": "horse/cheek.webp",
+      "bytes": 53520,
+      "width": 512,
+      "height": 512
+    },
+    {
+      "character": "horse",
+      "pose": "cuddle",
+      "path": "horse/cuddle.webp",
+      "bytes": 56044,
+      "width": 512,
+      "height": 512
+    },
+    {
+      "character": "horse",
+      "pose": "tea",
+      "path": "horse/tea.webp",
+      "bytes": 48664,
+      "width": 512,
+      "height": 512
+    },
+    {
+      "character": "horse",
+      "pose": "hooray",
+      "path": "horse/hooray.webp",
+      "bytes": 55004,
+      "width": 512,
+      "height": 512
+    },
+    {
+      "character": "sheep",
+      "pose": "cheek",
+      "path": "sheep/cheek.webp",
+      "bytes": 74760,
+      "width": 512,
+      "height": 512
+    },
+    {
+      "character": "sheep",
+      "pose": "cuddle",
+      "path": "sheep/cuddle.webp",
+      "bytes": 80002,
+      "width": 512,
+      "height": 512
+    },
+    {
+      "character": "sheep",
+      "pose": "tea",
+      "path": "sheep/tea.webp",
+      "bytes": 69462,
+      "width": 512,
+      "height": 512
+    },
+    {
+      "character": "sheep",
+      "pose": "hooray",
+      "path": "sheep/hooray.webp",
+      "bytes": 82242,
+      "width": 512,
+      "height": 512
+    },
+    {
+      "character": "monkey",
+      "pose": "cheek",
+      "path": "monkey/cheek.webp",
+      "bytes": 75480,
+      "width": 512,
+      "height": 512
+    },
+    {
+      "character": "monkey",
+      "pose": "cuddle",
+      "path": "monkey/cuddle.webp",
+      "bytes": 75250,
+      "width": 512,
+      "height": 512
+    },
+    {
+      "character": "monkey",
+      "pose": "tea",
+      "path": "monkey/tea.webp",
+      "bytes": 66590,
+      "width": 512,
+      "height": 512
+    },
+    {
+      "character": "monkey",
+      "pose": "hooray",
+      "path": "monkey/hooray.webp",
+      "bytes": 83750,
+      "width": 512,
+      "height": 512
+    },
+    {
+      "character": "rooster",
+      "pose": "cheek",
+      "path": "rooster/cheek.webp",
+      "bytes": 69400,
+      "width": 512,
+      "height": 512
+    },
+    {
+      "character": "rooster",
+      "pose": "cuddle",
+      "path": "rooster/cuddle.webp",
+      "bytes": 69604,
+      "width": 512,
+      "height": 512
+    },
+    {
+      "character": "rooster",
+      "pose": "tea",
+      "path": "rooster/tea.webp",
+      "bytes": 63322,
+      "width": 512,
+      "height": 512
+    },
+    {
+      "character": "rooster",
+      "pose": "hooray",
+      "path": "rooster/hooray.webp",
+      "bytes": 73468,
+      "width": 512,
+      "height": 512
+    },
+    {
+      "character": "dog",
+      "pose": "cheek",
+      "path": "dog/cheek.webp",
+      "bytes": 72124,
+      "width": 512,
+      "height": 512
+    },
+    {
+      "character": "dog",
+      "pose": "cuddle",
+      "path": "dog/cuddle.webp",
+      "bytes": 72510,
+      "width": 512,
+      "height": 512
+    },
+    {
+      "character": "dog",
+      "pose": "tea",
+      "path": "dog/tea.webp",
+      "bytes": 63626,
+      "width": 512,
+      "height": 512
+    },
+    {
+      "character": "dog",
+      "pose": "hooray",
+      "path": "dog/hooray.webp",
+      "bytes": 81258,
+      "width": 512,
+      "height": 512
+    },
+    {
+      "character": "pig",
+      "pose": "cheek",
+      "path": "pig/cheek.webp",
+      "bytes": 67678,
+      "width": 512,
+      "height": 512
+    },
+    {
+      "character": "pig",
+      "pose": "cuddle",
+      "path": "pig/cuddle.webp",
+      "bytes": 73952,
+      "width": 512,
+      "height": 512
+    },
+    {
+      "character": "pig",
+      "pose": "tea",
+      "path": "pig/tea.webp",
+      "bytes": 56934,
+      "width": 512,
+      "height": 512
+    },
+    {
+      "character": "pig",
+      "pose": "hooray",
+      "path": "pig/hooray.webp",
+      "bytes": 67038,
+      "width": 512,
+      "height": 512
+    }
+  ]
+}

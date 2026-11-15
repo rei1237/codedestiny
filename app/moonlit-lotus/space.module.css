@@ -80,6 +80,19 @@
 .photoTools button,.photoDialog>.primary { display:inline-flex; align-items:center; justify-content:center; gap:6px; }
 .photoTools input { min-height:44px; vertical-align:middle; width:54px; }
 .photoCanvas { width:100%; height:auto; display:block; touch-action:none; border-radius:16px; }
+.photoArtPoses { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; border:0; padding:0; margin:20px 0 14px; }
+.photoArtPoses legend,.photoEditTools legend { color:var(--ml-gold); margin-bottom:12px; font-weight:600; }
+.photoArtPoses button { display:flex; flex-direction:column; align-items:center; justify-content:flex-end; gap:8px; padding:12px 6px; border-radius:20px; min-width:0; font-size:.85rem; }
+.photoArtPoses img { display:block; width:112px; height:112px; max-width:100%; object-fit:contain; }
+.photoArtPoses span { line-height:1.5; word-break:keep-all; }
+.photoLegacyPoses { border-block:1px solid var(--ml-line); padding:8px 0; }
+.photoLegacyPoses summary { cursor:pointer; min-height:44px; padding:10px 0; color:var(--ml-muted); }
+.photoEditTools { border:0; padding:0; margin:26px 0 12px; min-width:0; }
+.photoCaptions { display:flex; flex-wrap:wrap; gap:8px; }
+.photoCaptions button { font-size:.9rem; }
+.photoSaveActions { display:flex; flex-wrap:wrap; gap:10px; margin-top:20px; }
+.photoSaveActions button { display:inline-flex; align-items:center; justify-content:center; gap:8px; flex:1 1 190px; }
+@media(max-width:480px) { .photoArtPoses { grid-template-columns:repeat(2,minmax(0,1fr)); } .photoArtPoses img { width:104px; height:104px; } }
 @media(max-width:600px) { .photoDialog { padding:16px; } .photoTools button { padding:9px 12px; font-size:.85rem; } .sceneToolbar { flex-wrap:wrap; } .header button span { font-size:.75rem; white-space:normal; max-width:48px; } }
 .customFace { width:100%; height:100%; background-size:400% 300%; background-repeat:no-repeat; background-color:var(--ml-soft); transform-origin:center; }
 .customFace :global(.pg-pet) { width:100%; height:100%; animation:none; }
