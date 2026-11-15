@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-16
-next: 웹툰 검증 단위를 pre-push 후 root에 main 병합을 요청하고 고정 main SHA Linux AIT와 실제 archive 검증을 이어간다.
+next: 고정 소스3102ddaeb의 Linux 전체CI43731375338(exec77077) 완료 후 일반 AIT를 내려받아 실제 archive19편·원본보존·소유권 검증하고 root에 비공개 QR 등록을 전달한다.
 ---
 
 ## 첫 행동
@@ -90,3 +90,14 @@ handoff 스킬과 CLAUDE.md를 읽고 아래 워크트리에서 git 상태/fetch
 - 사용자 새미리보기 `http://127.0.0.1:4333/preview`를 root가 이미 안내했다. **4333도 사용자용이므로 조작/초기화 금지**. 독립 Downloads 사본으로 동일포트 이관완료(exec3320), index SHA동일/HTTP200/mockmarker확인. 사본 `C:/Users/user/Downloads/CodeDestiny/20261116-webtoon-guide`의 scripts/private-simulation/사용안내.txt. 기존4330/exec23303도 유지. worktree 서버19488은 종료. 이후 QA는 실제 AIT 테스트의 독립 browser context만 사용한다.
 - `npm run check:fast` 전체계획 PASS(exit0): `.tmp/webtoon-checkfast.log`. critical 자동승격 유지. paid77/lint/sitemap/typecheck/Node5104/정책/Worker dry build/encoding PASS, Jest479suites/8012tests PASS(1skip). 오늘 fortune 결정적 데이터를 mock-network-guard로 준비했고 데이터는 git변경없음.
 - Linux AIT workflow: `gh workflow run pr-ci.yml --ref main -f full_ci=true -f toss_artifact=true -f toss_simulation_artifact=false`. dispatch직전 origin/main=검증할40SHA, 결과run.headSha일치확인. artifact `toss-preview-<40SHA>`(retention1day). root가 main merge/push 후 SHA전달. 완성archive를 `story-library-browser.mjs <ait>`로 검증 가능하며 원화 로컬fixture/실외부API차단/일반AIT에__story-art없음 검사 포함.
+
+## main 전달·고정 Linux 빌드 진행
+
+- 구현 커밋 `3102ddaeb87e0bdb1bfdb17781ef2655923496a0`을 root가 main FF병합·pre-push PASS·push 완료했다. worktree도 같은 소스다. 앞선5b74 CI43728662177SUCCESS를 root가 다음push전에1회확인했다.
+- 전체 check:fast exit0와 별도 Toss typecheck/원본투영2tests/기존bundle-art4tests/모의19편 PASS. 증거 `C:/Users/user/Downloads/CodeDestiny/20261116-webtoon-guide/verification`에 복사했다.
+- dispatch직전 origin/main의40SHA일치, 결과run.headSha일치확인: `43731375338`, https://github.com/rei1237/codedestiny/actions/runs/43731375338 . full_ci=true,toss_artifact=true,toss_simulation_artifact=false.
+- workflow의 concurrency가 `pr-ci-${github.sha}`, cancel-in-progress=false여서 같은SHA의자동pushCI뒤에서 대기한다. 취소/게이트완화하지 않는다. 사용자 요청 최종CI 완료를 위해 단일 `gh run watch 43731375338 --exit-status --interval 60` 프로세스(exec77077)가 `.tmp/webtoon-linux-ci.log`에 상태를 수집한다. gh run list 수동반복은 하지 않는다.
+- artifact명 `toss-preview-3102ddaeb87e0bdb1bfdb17781ef2655923496a0`, 다운로드 예정경로 `C:/Users/user/Downloads/CodeDestiny/20261116-webtoon-guide/linux/ai-saju-studio.ait`.
+- 준비된검사: `.tmp/webtoon-verify-ait.mjs <ait> <json>`이100MB/portable/일반variant/__story-art없음/원본스트리밍URL/sha256을 검증한다. `TOSS_STORY_EVIDENCE=.../verification/linux`로 `node apps/toss/test/story-library-browser.mjs <ait>`를 실행해 실제archive19편을 검사한다. 이후기존 `private-bundle-browser.mjs`, `private-bundle-owner-browser.mjs`로 홈/신규판매닫힘/기존원문·계정경계를 mock검증한다. 각스크립트실제인자/출력확인후진행한다.
+- root가비공개콘솔업로드를담당한다. 새검토·실결제·신규판매·운영배포금지. root에게일반AIT절대경로/해시/전체CI/실제archive결과전달후root가QR등록,문서done,최종main전달/워크트리배수를조율한다.
+- 이 인수인계 이후 문서커밋은 고정AIT소스3102를 바꾸지 않는다. 앱 런타임 변화 없으면 문서정리때문에AIT를재생성하지않는다.
