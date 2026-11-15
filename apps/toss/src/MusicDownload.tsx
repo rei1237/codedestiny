@@ -36,7 +36,7 @@ function Panel({track,intentId='',orderId=''}:{track?:Track;intentId?:string;ord
  {paid?<Button display="block" disabled={busy} onClick={()=>void save()}>MP3 파일 저장하기</Button>:<>
  {product&&<p>상품 금액: {product.displayAmount}</p>}<Button display="block" disabled={busy||(!product&&!orderId)} onClick={()=>void start()}>{orderId?'선택한 주문으로 받기':'단건 결제로 다운로드 열기'}</Button>
  {!product&&!orderId&&<p role="status">{saleState==='unavailable'?'다운로드 판매 준비 중이에요. 기존 웹 구매는 웹 이용 내역에서 확인해 주세요.':saleState==='error'?'상품을 확인하지 못했어요. 잠시 후 음악실을 다시 열어 주세요.':saleState==='login'?'다운로드 상품을 확인하려면 로그인해 주세요.':'다운로드 상품을 확인하고 있어요.'}{saleState==='login'&&<a href={'/login/?next='+encodeURIComponent(intent?'/music?intentId='+intent:'/music?track='+encodeURIComponent(item?.audioSourceKey||''))}>토스 로그인하기</a>}</p>}</>}
- {busy&&<p role="status">구매 내역을 확인하고 있어요.</p>}{notice&&<p role="status">{notice}</p>}{error&&<p role="alert">{error}</p>}
+ {busy&&<p role="status">{paid?'MP3 파일 저장을 준비하고 있어요.':'구매 내역을 확인하고 있어요.'}</p>}{!busy&&!error&&notice&&<p role="status">{notice}</p>}{error&&<><p role="alert">{error}</p><p><a href="/settings">고객지원에서 문의하기</a></p></>}
  <p><a href="/records">나의 보관함</a> · <a href="/recovery">구매 내역 복구하기</a></p></section>;
 }
 export default function MusicDownload(props:{track?:Track;intentId?:string;orderId?:string}){return <TossSessionScope><Panel {...props}/></TossSessionScope>;}
