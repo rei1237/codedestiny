@@ -1,17 +1,17 @@
 ---
-status: in-progress
-updated: 2026-11-15
-next: 구현한 홈·찻집·프로필의 최종 check:fast와 커밋/pre-push/main CI를 완료하고 일반 Linux AIT로 새 비공개 QR을 등록한다.
+status: done
+updated: 2026-11-16
+next: QR19 간편 진입 단위는 완료했다. 승인된 후속 웹툰 설명 이식을 별도 단위로 진행한다.
 ---
 
 ## 첫 행동
-이 문서를 읽고 아래 작업 디렉터리에서 상태를 확인한다. 부모 검증은 PASS 후 main a7f5dd6d1으로 전달됐다. 새 UI 전담 워크트리에서 구현을 계속한다. 기존 기능 원장의 코드 존재를 사용 가능한 UX 증거로 취급하지 않는다.
+이 단위는 완료했다. 아래 최종 전달 결과가 이전 진행 기록보다 우선한다. 기존 기능 원장의 코드 존재를 사용 가능한 UX 증거로 취급하지 않는다.
 
 ## 지금 상태
 - 작업 디렉터리 `D:/Development/codedestiny-worktrees/toss-guided-entry-20261115-221109`, 브랜치 `wt/toss-guided-entry-20261115-221109`.
-- 기준 커밋 `a7f5dd6d1e8ea4b263adf1435dd4504f7c297514`은 부모가 main에 전달했다. 이번 UI 변경은 아직 미커밋이며 이 워크트리에서 전담한다.
-- 부모의 이전 준비 작업 check:fast는 Node5099/Jest8011(479 suites)/pre-push PASS로 종료했다. 이번 UI 작업의 최종 check:fast는 별도 필요하다.
-- 다른 세션의 root ServiceGuide/webtoon 등 미커밋 변경은 보존한다. root 직접 편집 금지.
+- UI 커밋3b48cdd98은 병합b39b5c29e를 거쳐 main에 전달됐고, 고정 AIT source는 `d38c0997cab26fb08f280618c243c21d19ce8e56`이다. 워크트리는 승인된 후속 웹툰 구현에서 이어 사용 후 정리한다.
+- UI 최종 check:fast 계획과 pre-push, main CI, 전체 수동 CI와 Linux AIT 검증을 완료했다.
+- 다른 세션의 웹툰 변경은 main 원본으로 보존·병합했다. 기존 untracked `.claude/skills/fire-your-seo-agency/`는 건드리지 않았다.
 
 ## 승인 상태
 - 2026-11-15 추가 요청 원문: “가상 모바일로 확인해볼게. 최종 CI와 새 비공개 테스트 QR 등록까지 계속 마무리하고, 그다음 기존 웹툰 방식 설명도 원본을 재사용해서 이식해줘. 실결제와 새 검토 제출은 계속 보류해.” 현재 QR 단위 완료 후 웹툰 구현을 별도 단위로 계속한다.
@@ -41,9 +41,9 @@ next: 구현한 홈·찻집·프로필의 최종 check:fast와 커밋/pre-push/m
 - [x] 부모checkfast종료/기존준비단위전달 (Node5099/Jest8011/prepush PASS, main a7f5dd6d1)
 - [x] 웹원본·실제토스홈/프로필/찻집모드접근대조
 - [x] 점진노출·간편입력·모든모드진입구현
-- [ ] mock실사용동선/모바일시각·키보드/nativeback검증
-- [ ] targeted/checkfast/커밋/prepush/mainCI
-- [ ] 검증소스LinuxAIT·새비공개QR(검토미제출)·정리
+- [x] mock실사용동선/모바일시각/nativeback검증 (실기기 키보드는 추가 확인)
+- [x] targeted/checkfast/커밋/prepush/mainCI
+- [x] 검증소스LinuxAIT·새비공개QR(검토미제출); 사용자 미리보기와 후속 작업용 워크트리만 유지
 
 ## UI 구현 재개 상태
 - 새 전담 worktree: `D:/Development/codedestiny-worktrees/toss-guided-entry-20261115-221109`, 기준 a7f5dd6d1. 이전 readiness worktree는 부모가 배수했다.
@@ -65,3 +65,11 @@ next: 구현한 홈·찻집·프로필의 최종 check:fast와 커밋/pre-push/m
 - paid77/lint/typecheck PASS. Node5099 중 당일 생성물 누락 1건은 로컬 fortune:build-data 후 해당 파일7/7 PASS로 해소했다. 나머지 계약/Worker/encoding PASS. 마지막 Jest479 suites/8011 tests PASS,1skip(448초), agent session77993 exit0. check:fast 공식 계획의 모든 단계를 완료했으며 전체 재실행하지 않는다. 로그5종은 Downloads/CodeDestiny/20261115-guided-entry-preview/verification에 보존했다.
 - root가 push와 콘솔 QR 등록을 담당하고 agent가 고정 push SHA의 Linux AIT 생성·검수를 담당한다. 콘솔 Ego20 p1에서 QR18 검토 필요·버전 등록 활성 확인. 검토 요청 버튼은 누르지 않는다.
 - 사용자 preview 4330은 계속 유지한다. 웹툰 원본은 main93f73981d에 들어왔으며 이번 QR 등록 후 기존 StoryLibrary/CutReader를 재사용해 후속 구현한다.
+
+## 최종 전달 결과 — 2026-11-16
+- source `d38c0997cab26fb08f280618c243c21d19ce8e56`, main CI43725837626 SUCCESS. 전체 검증을 강제한 Linux run43725888081도 CI required 포함 SUCCESS.
+- AIT `C:/Users/user/Downloads/CodeDestiny/20261115-guided-entry-linux/ai-saju-studio.ait`: archive87,856,544 / expanded99,099,236 bytes, portable 경로 PASS. SHA256 `ac4a4cd8904b15e099d073555c4d4e7d7f907cdb3b6dfdabfe47a83ef4961e86`.
+- 해당 Linux AIT의 홈73경로·질문 복원·360×420 CTA·신규 판매 닫힘·저장 원문·연결 단절 재열람·계정B 거부 PASS. 새 결제0. 테스트의 옛 '내 정보' 선택자만 수정한 후속 로컬 커밋11cce55f7은 후속 웹툰 단위에 전달하며 AIT 런타임은 변경하지 않았다.
+- 콘솔 `20261116-19` 등록·빌드 완료, 검토 필요 상태. 테스트 URI `intoss-private://ai-saju-studio?_deploymentId=01a1dfb2-f631-72f8-a8e3-fa56410e9908&host=appsInTossHost`. 같은 폴더에 QR png/svg, 링크txt, 콘솔 상태json, 검증 로그·캡처를 보존했다.
+- root Ego20은 정상 finish. 실결제·운영 재배포·테스트 푸시·새 검토 제출·공개 출시0. 토스 상단 이름은 사용자 담당 범위를 유지한다.
+- QR19 실기기 키보드/뒤로가기와 변경된 입력 흐름 확인은 아직 미검증이다. 기존 QR18의 사용자 로그인·보관함·재진입 확인을 QR19 전체 검증으로 확대하지 않는다.
