@@ -1,18 +1,18 @@
 ---
-status: in-progress
+status: done
 updated: 2026-11-16
-next: root가 테스트 검증 커밋을 main에 병합하고 QR20 완료 문서를 done으로 닫아 push/CI 확인 후 이 워크트리를 배수한다.
+next: 웹툰 이식·Linux 검증·QR20 등록 완료. 새 휴대폰 확인 결과나 별도 운영 승인 때 다음 작업을 시작한다.
 ---
 
 ## 첫 행동
 
-handoff 스킬과 CLAUDE.md를 읽고 아래 워크트리에서 git 상태/fetch를 확인한다. 부모 `/root`가 QR19 문서 전달5b74dd4a6을 완료했고 이 워크트리에 병합했다. 기존 UI handoff는 done이다. 새 웹툰 코드·검사·미리보기는 이 워크트리의 후속 에이전트가 전담한다.
+이 작업은 완료했다. 후속 작업은 main에서 시작하며 아래 내용은 당시 작업 기록이다. 최종 검증과 전달은 문서 마지막 절과 `docs/toss/webtoon-guide-20261116.md`를 따른다. 사용자용 미리보기와 Downloads 산출물은 유지한다.
 
 ## 지금 상태
 
 - 작업 디렉터리: `D:/Development/codedestiny-worktrees/toss-guided-entry-20261115-221109`
 - 브랜치: `wt/toss-guided-entry-20261115-221109`. UI 구현3b48cdd98은 main에 병합됐고, Linux/QR19 소스는 `d38c0997cab26fb08f280618c243c21d19ce8e56`이다.
-- 이 문서 직전 HEAD: `11cce55f73633b49baf4c3509f0a9d411a28d0b9`(실제 설정 버튼에 맞춘 테스트1줄, main 미전달, pre-push PASS). 앞으로 웹툰 단위와 함께 main에 전달한다.
+- 초기 테스트 수정11cce55f7은 main에 포함됐다. 최종 AIT 런타임 소스3102ddaeb와 테스트 수정b3ff46a97도 main에 병합했다(최종 병합3c6427b62).
 - QR19 `20261116-19` 등록 완료, 검토 필요 상태. 실제 구매와 검토 제출은 하지 않았다.
 - URI: `intoss-private://ai-saju-studio?_deploymentId=01a1dfb2-f631-72f8-a8e3-fa56410e9908&host=appsInTossHost`
 - Linux AIT: `C:/Users/user/Downloads/CodeDestiny/20261115-guided-entry-linux/ai-saju-studio.ait`. SHA256 `ac4a4cd8904b15e099d073555c4d4e7d7f907cdb3b6dfdabfe47a83ef4961e86`. expanded99,099,236 bytes, archive87,856,544, portable=true.
@@ -74,7 +74,7 @@ handoff 스킬과 CLAUDE.md를 읽고 아래 워크트리에서 git 상태/fetch
 - [x] 사용자 미리보기와 분리한 mock 동선·모바일·뒤로가기·그림 검증
 - [x] targeted/check:fast/작은 커밋/pre-push/main CI
 - [x] 고정 소스 Linux 일반 AIT·실제 archive 검증·비공개 테스트 전달(새 검토/실결제 없음)
-- [ ] handoff done/미리보기 유지/자기 worktree·임시 파일 정리
+- [x] handoff done/독립 미리보기 유지. 최종 main 전달 후 자기 worktree는 공식 배수 절차로 정리한다.
 
 ## 웹툰 구현·검증 (2026-11-16)
 
