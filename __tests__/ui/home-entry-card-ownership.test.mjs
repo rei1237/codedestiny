@@ -16,7 +16,7 @@ test('service chooser omits only the four service-home discovery cards', () => {
 
 test('ggulggul retains destinations and opens active games without promoting the paused hub', () => {
   const home = doc.querySelector('#cdHomeFunnel');
-  for (const href of ['/saju/free/', '/entry-webtoon/']) {
+  for (const href of ['/entry-webtoon/']) {
     assert.equal(template.querySelectorAll(`[data-cdh-entry-card] a[href="${href}"]`).length, 1, `generator source: ${href}`);
     const links = home.querySelectorAll(`a[href="${href}"]`);
     assert.equal(links.length, 1, href);
@@ -30,6 +30,7 @@ test('ggulggul retains destinations and opens active games without promoting the
   assert.ok(home.querySelector('a[data-action="cdOneStepFreeSajuEntry"]'));
   assert.ok(home.querySelector('#cdhLightFortunes a[href="/emoi_omikuji_v2.html"]'));
   for (const surface of [template, home]) {
+    assert.equal(surface.querySelectorAll('[data-cdh-entry-card="free-saju"]').length, 0);
     assert.equal(surface.querySelectorAll('a[href="/mini-games/"]').length, 0);
     const games = surface.querySelector('details#cdhLightFortunes[data-cdh-entry-card="mini-games"]');
     assert.ok(games);

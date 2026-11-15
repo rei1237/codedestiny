@@ -54,7 +54,7 @@ window.__cdServiceRegistryMeta = {
 window.__cdServiceRegistry = [
   {
     id: "heukwol", name: "흑월의 경고", href: "/heukwol/",
-    featureKey: "heukwol-warning-consultation", price: "가격 확인 중",
+    featureKey: "heukwol-warning-consultation", price: "50,000원",
     image: "/images/service-introductions/heukwol-320.webp",
     imageAlt: "금빛 테두리의 어두운 달 아래 펼쳐진 운세책과 별자리",
     desc: "주의가 필요한 시기를 미리 살피고, 나에게 맞는 대비 방향을 확인하세요",
@@ -491,7 +491,6 @@ window.__cdServiceRegistry = [
     purposes: ["life", "self", "career", "money"],
     methods: ["astrology"],
     keys: "점성술 별자리 호로스코프 차트",
-    roles: ["quick"],
   },
   {
     image: "/images/service-introductions/human-design-320.webp",
@@ -557,6 +556,7 @@ window.__cdServiceRegistry = [
     methods: ["saju"],
     keys: "오늘 데일리 일일운세 하루",
     badge: "티저",
+    roles: ["quick"],
   },
   {
     image: "/images/service-introductions/today-hub-320.webp",

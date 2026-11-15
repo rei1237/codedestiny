@@ -20,7 +20,7 @@ test('banner keeps its copy, heading translation keys, and free-entry action', (
   assert.equal(document.querySelector('.yh-greeting p').textContent, '사주·타로와 고민별 상담.무료 만세력부터 시작해 보세요.');
   assert.deepEqual([...document.querySelectorAll('[data-cd-trans]')].map(node => node.dataset.cdTrans), ['home.yehwa.titleA', 'home.yehwa.titleB']);
   const cta = document.querySelector('.yh-free-start');
-  assert.equal(cta.textContent, '무료 만세력 시작하기');
+  assert.equal(cta.textContent, '무료로 내 만세력 확인하기');
   assert.equal(cta.getAttribute('href'), '/?action=cdOneStepFreeSajuEntry');
   assert.equal(cta.dataset.action, 'cdOneStepFreeSajuEntry');
   assert.equal(cta.dataset.cdServiceId, 'saju');

@@ -18,6 +18,7 @@ import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import vm from "node:vm";
 import { isFreeFortuneFeatureKey } from "../lib/payment/free-fortune-policy.mjs";
+import { FREE_PROMO_FEATURED, freePromoItemHref } from "../lib/marketing/free-promo.mjs";
 
 const ROOT = process.cwd();
 const REGISTRY_FILE = resolve(ROOT, "js/core/service-registry.js");
@@ -217,7 +218,7 @@ const shell = readFileSync(SHELL_FILE, "utf8");
 const TILE_OPEN = /<(?:a|button)\b([^>]*\bdata-feature-key="[^"]+"[^>]*)>/g;
 const attrOf = (head, name) => {
   const m = head.match(new RegExp(`${name}="([^"]*)"`));
-  return m ? m[1] : "";
+  return m ? m[1].replace(/&amp;/g, "&") : "";
 };
 
 let tileCount = 0;
@@ -320,9 +321,15 @@ for (const { role, sectionIds, label } of PLACEMENTS) {
       fail(`${label} 카드 "${id}": 레지스트리 roles 에 "${role}" 이 없다 — 배치와 데이터가 어긋난다`);
     }
     const href = attrOf(head, "href");
-    const collection = role === "quick" ? item.quickCollection : null;
-    const expectedHref = role === "quick" && item.quickHref ? item.quickHref : collection ? `#${collection}` : item.href;
-    if (role === "quick" && item.quickHref && !/^\/[a-z0-9/-]+\/$/.test(item.quickHref)) {
+    const promo = role === "quick" ? FREE_PROMO_FEATURED.find(feature => feature.serviceId === id) : null;
+    const collection = role === "quick" && !promo ? item.quickCollection : null;
+    const expectedHref = promo ? freePromoItemHref(promo) : role === "quick" && item.quickHref ? item.quickHref : collection ? `#${collection}` : item.href;
+    if (promo && (promo.action || item.action || attrOf(head, "data-action"))) {
+      if (!promo.action || promo.action !== item.action || promo.action !== attrOf(head, "data-action")) {
+        fail(`${label} 카드 "${id}": 무료 캠페인·레지스트리·화면 action 이 일치해야 한다`);
+      }
+    }
+    if (!promo && role === "quick" && item.quickHref && !/^\/[a-z0-9/-]+\/$/.test(item.quickHref)) {
       const entryAction = new URL(item.quickHref, "https://code-destiny.com").searchParams.get("action");
       if (!item.quickHref.startsWith("/?action=") || !entryAction || entryAction !== item.action || entryAction !== attrOf(head, "data-action")) {
         fail(`${label} 카드 "${id}": 직행 링크와 레지스트리·화면 action 이 일치해야 한다`);

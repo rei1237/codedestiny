@@ -17,6 +17,8 @@
 - `오늘 하루 보지 않기`: 기존 `cd_signature_consult_hide_until_v1`의 유효값 존중, 새 값은 다음 한국 시간 자정. 세션 키는 `cd_signature_consult_seen_v2`, 이전 세션 닫기 키만 한정 이관. 저장소 차단 시 메모리 폴백; 수동 열기는 자동 제한과 무관하다. 전체 저장소 삭제 없음.
 - `destiny-profile.js`: 선택 기능·사주 하위 섹션 유지, 저장 성공 시 이어 열기, 허용된 기능만 로그인 next에 포함. 기존 저장·동의·인증 검증을 사용한다.
 - 개발 mock 서버에 기존 프로필 UI 계약과 흑월 가격 fixture 추가. 메모리만 사용하며 미구현 경로는 501, 결제 대역은 402, 운영 연동 폴백 없음.
+- 추가 요청: 중복된 본문 `사주 보기` 보조 카드만 제거하고, 상단 공통 버튼을 `무료로 내 만세력 확인하기`로 변경했다. 기존 사주 실행 함수와 `/saju/free/` 페이지는 유지했다.
+- 전달 전 레지스트리 검사에서 대표 무료 카드의 서비스 ID/quick 배치 누락을 확인해 공통 캠페인 데이터와 연결했다. 흑월 카탈로그 가격은 기존 결제 정본과 대조하고, 해당 상품의 상세 안내 문안도 등록했다.
 
 ## 실제 연결
 
@@ -51,6 +53,8 @@
 - UI 회귀 27개 통과. 최종 팝업/흑월 연결 재검사 10개 통과. mock 서버 4개 통과.
 - 흑월 Jest 2개 suite, 33개 통과: 기존 네오 근거와의 일치, 실제 LLM 요청에 전달되는 사주/자미두수 근거를 mock으로 캡처, 챕터 저장·재개·소유권·결제 증빙 회귀 확인.
 - `npm run check:fast`: 결제 회귀 가드 77/77, 변경 lint 및 전체 lint 통과. sitemap drift에서 중단되어 정본 재생성 후 해당 검사 통과. `npm run typecheck`는 기존 무시된 `outputs/` 백업 TSX의 상대 import 오류로 실패. 해당 백업만 제외한 임시 tsconfig의 전체 서비스 소스 검사는 통과했다. 백업 파일을 지우거나 검사를 통과했다고 표시하지 않는다.
+- `npm run verify:home-service-registry`: 64개 상품, quick 6개, 대표 7개, 상세 문안 64/64 대조 통과. 추가 버튼 문구·중복 제거 관련 기존 테스트도 통과했다. 최종 360px 브라우저에서 중복 카드 0개, 새 문구와 가로 넘침 없음 확인 (`manse-cta-360.jpg`).
+- `npm run build`: 외부 네트워크를 차단한 환경에서 Next.js 컴파일·정적 페이지 생성 완료. 전체 명령은 postbuild의 기존 주간·월간 운세 날짜 검사에서 실패했다(`fortune/data/run-manifest.json` 일간 기준 2026-10-19, 검사 기준 2026-11-15 KST). 이번 변경에서 운세 발행 데이터를 생성하거나 날짜를 임의로 고치지 않았다. 전체 빌드 통과로 표시하지 않는다.
 
 캡처 원본: `D:/moonlit-review-20261115/` (`garden-360.jpg`, `garden-390.jpg`, `garden-768.jpg`, `home-1280.jpg`, `popup-360.jpg`, `popup-1280.jpg`, `heukwol-home-390.jpg`, `heukwol-home-1280.jpg`, `ziwei-after-login-390.jpg`, `heukwol-input-360.jpg`, `root-garden-360.jpg`). 저장소에는 캡처를 추가하지 않는다.
 

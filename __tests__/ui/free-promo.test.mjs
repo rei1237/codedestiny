@@ -98,6 +98,11 @@ test('campaign entries use existing actions and existing result sections', async
  }
  assert.equal(FREE_PROMO_GROUPS.flatMap(g=>g.items).length,22);
  assert.equal(FREE_PROMO_FEATURED.length,6);
+ for(const item of FREE_PROMO_FEATURED){
+  const card=doc.querySelector('#cdQuickServices [data-cd-service-id="'+item.serviceId+'"]');
+  assert.ok(card,'missing catalog identity '+item.serviceId);
+  assert.equal(card.getAttribute('href'),freePromoItemHref(item));
+ }
  for(const card of doc.querySelectorAll('#cdQuickServices > a')){
   assert.ok(card.querySelector('img'));assert.equal(card.querySelectorAll('a,button').length,0);
  }

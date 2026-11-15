@@ -15,7 +15,7 @@
       ],
       "catalogImage": "/images/service-introductions/heukwol-320.webp",
       "category": "사주·심층 상담",
-      "description": "주의가 필요한 시기를 미리 살피고, 나에게 맞는 대비 방향을 확인하세요",
+      "description": "사주와 자미두수의 근거를 함께 읽고, 선택한 연도의 월별 흐름과 대응 방향을 살펴봐요.",
       "verification": "source-inventory-only"
     },
     {
@@ -1548,12 +1548,12 @@
         "/heukwol"
       ],
       "category": "사주·심층 상담",
-      "headline": "흑월의 경고",
-      "description": "주의가 필요한 시기를 미리 살피고, 나에게 맞는 대비 방향을 확인하세요",
+      "headline": "주의가 필요한 시기를 미리 살피고, 나에게 맞는 대비 방향을 확인하세요",
+      "description": "사주와 자미두수의 근거를 함께 읽고, 선택한 연도의 월별 흐름과 대응 방향을 살펴봐요.",
       "panels": [],
-      "ctaLabel": "이 기능 시작하기",
+      "ctaLabel": "내가 주의할 시기 보기",
       "evidence": [
-        "js/core/service-registry.js"
+        "index.html:FEATURE_MARKETING_COPY:heukwol"
       ],
       "verification": "source-inventory-only",
       "imageAlt": "금빛 테두리의 어두운 달 아래 펼쳐진 운세책과 별자리",
@@ -1564,7 +1564,7 @@
       "journey": {
         "questions": [],
         "trustNotes": [
-          "운세 결과는 참고용이며, 중요한 선택은 현실적인 판단과 함께 확인해 주세요."
+          "해석은 미래를 확정하지 않으며, 중요한 선택을 위한 참고로 읽어 주세요."
         ],
         "faq": []
       }
