@@ -64,3 +64,5 @@ CSS 배경 위치로 프레임을 표시하므로 WebGL·3D 엔진이 필요 없
 실제 브라우저: 인사 프레임 변화, 큰절 최저 자세(frame 8, 4809.9ms) 일시정지 → 재개 → 기립 완료 후 1회 기록을 확인했다. 새로고침 후 count=1, elapsed=0, paused 복원. 새 탭 전환 시 일시정지와 복귀 시 동일 elapsed=417.8ms/count=1 보존을 관찰했다(관찰 도구가 원래 탭을 활성화하여 hidden 값 자체는 false로 반환됨). 모션 감소 시 정지 명상 frame 8과 안내. 이미지 요청 차단 시 정지 미리보기·다시 불러오기·진행 UI 유지, 차단 해제 후 frame 0/count=1 복구. robots=noindex,nofollow.
 
 360/390/430px 에뮬레이션에서 scrollWidth=viewport, 조작 버튼 높이 44px 이상. 실제 모바일 기기 성능과 OS 화면 잠금은 미검증이다. 최종 스크린샷·브라우저 관찰 JSON은 제작 폴더 `D:/CodeDestiny-Build/moonlit-lotus/yeoni/2d-v1/`에 보관한다.
+
+저장소 검사: `check:fast -- --plan`은 미분류 자산 명세·제작 스크립트 때문에 critical로 승격됐다. `check:fast`는 77개 paid gate를 통과한 뒤 기준 커밋의 홈 번역·카탈로그 및 로컬 운세 생성물 부재로 실패를 출력하여 중단했다. 전체 게이트 통과로 보고하지 않는다. 최신 main 통합 후 실패한 홈 범위와 연이 관련 검사 144개 통과. 외부 호출 없는 공식 `npm run fortune:build-data`로 누락된 로컬 생성물을 준비한 뒤 운세 검사 7개 통과. `npm run check:pre-push` 통과. 전체 CI는 push 후 별도 결과를 따른다.

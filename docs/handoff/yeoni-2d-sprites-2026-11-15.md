@@ -1,14 +1,14 @@
 ---
-status: in-progress
+status: done
 updated: 2026-11-15
-next: 실행 중인 check:fast 결과를 정리하고 최신 main 통합·pre-push·전달을 진행한다.
+next: 후속 요청 시 main의 독립 검수 화면과 스프라이트 계약에서 이어간다. 영냥이 제작은 별도 단계다.
 ---
 
 # 연이 2D 스프라이트
 
 ## 첫 행동
 
-작업 디렉터리 `D:/Development/codedestiny-worktrees/yeoni-model-stage1-20261115-163923`에서 `.tmp/yeoni-stage1/sprite-check-fast.log`와 git 상태를 확인한다. 검사 프로세스가 실행 중이면 파일을 머지해 검사 입력을 바꾸지 않는다.
+후속 작업 디렉터리 `D:/Development/code-destiny`에서 사용자 변경과 git 상태를 확인한 뒤 `docs/design/moonlit-lotus-sprite-contract.md`를 읽는다. 3D 제작을 재개하지 않는다.
 
 ## 왜 · 승인 상태
 
@@ -16,9 +16,9 @@ next: 실행 중인 check:fast 결과를 정리하고 최신 main 통합·pre-pu
 
 ## 지금 상태
 
-- 작업 브랜치 `wt/yeoni-model-stage1-20261115-163923`, 커밋 `12c0d0bf4`(2D 자산·화면·세션·테스트). 아직 main 미통합·미푸시.
+- 구현 커밋 `12c0d0bf4`(2D 자산·화면·세션·테스트), 최신 main 통합 커밋 `e9f7aa892`. 최종 전달 SHA·원격 상태는 `git log`와 `origin/main`이 정본이다.
 - root main의 다른 작업은 보존. 마지막 확인에서 `.claude/skills/fire-your-seo-agency/`만 미추적이었다. 실제 상태를 다시 확인한다.
-- 제작 원본·검수 이미지: `D:/CodeDestiny-Build/moonlit-lotus/yeoni/2d-v1/`. 검수용 mock 서버 `http://127.0.0.1:20198/moonlit-lotus/model-review/` 실행 중. ego task 6은 finish 완료.
+- 제작 원본·검수 이미지·재생 GIF: `D:/CodeDestiny-Build/moonlit-lotus/yeoni/2d-v1/`. 주소 `/moonlit-lotus/model-review/`. ego task 6은 finish 완료. 실행 서버 포트는 최종 보고를 따른다.
 
 ## 설계·정본
 
@@ -29,9 +29,9 @@ WebP 2장·24포즈, 384px 셀/기준선354, 큰절 왕복 17프레임/10.3초. 
 
 - [x] 원본 기반 2D 자산, 검수 화면, 카운터, 모바일·오류·복원 검수
 - [x] 관련 자동 검사 17개, 타입 검사, ESLint 통과
-- [ ] check:fast 결과 기록(기준 커밋의 홈 번역·카탈로그 실패 관찰 중)
-- [ ] 최신 main 통합 후 필요한 범위 재검증, committed-tree pre-push
-- [ ] main push/CI 1회 확인, 자기 워크트리와 스크래치 정리
+- [x] check:fast의 기준 커밋 홈 실패·운세 생성물 부재를 기록(전체 실행 통과 아님)
+- [x] 최신 main 통합 후 관련 144개 + 운세 생성물 준비 후 7개 통과
+- [x] committed-tree pre-push 통과. 전달은 저장소의 main push·CI 1회 확인 규칙을 따른다.
 
 ## 함정·미검증
 
