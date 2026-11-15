@@ -8,7 +8,7 @@ const data=s=>'data:text/javascript;base64,'+Buffer.from(s).toString('base64');
 const source=compile('app/moonlit-lotus/_lib/photo-poses.ts')
  .replace('../model-review/sprite-clips',data(compile('app/moonlit-lotus/model-review/sprite-clips.ts')))
  .replace('./companions',data(compile('app/moonlit-lotus/_lib/companions.ts')));
-const {photoDrawing,PHOTO_POSES}=await import(data(source));
+const {photoDrawing,PHOTO_POSES,PHOTO_ART_POSES}=await import(data(source));
 test('changing Hanbi to Yeongnyangi or Yeoni does not reuse the old photo character',()=>{
  const savedLook={species:'hanbi'};
  for(const [pose] of PHOTO_POSES){
@@ -16,6 +16,21 @@ test('changing Hanbi to Yeongnyangi or Yeoni does not reuse the old photo charac
   assert.match(photoDrawing('cat',savedLook,'',pose).url,/companions-v2\/cat-motion/);
   assert.match(photoDrawing('yeoni',savedLook,'',pose).url,/yeoni\/2d-v2/);
  }
+});
+
+test('photo illustrations preserve selected identity and all fifteen characters have four standalone assets',()=>{
+ const manifest=JSON.parse(readFileSync(new URL('public/assets/moonlit-lotus/photo-v1/manifest.json',root),'utf8'));
+ assert.equal(manifest.assets.length,60);
+ const identities=['yeoni','cat','hanbi','mouse','ox','tiger','rabbit','dragon','snake','horse','sheep','monkey','rooster','dog','pig'];
+ for(const id of identities)for(const [pose] of PHOTO_ART_POSES){
+  const kind=id==='yeoni'||id==='cat'?id:'custom';
+  const drawing=photoDrawing(kind,{species:kind==='custom'?id:'hanbi'},'',pose);
+  assert.equal(drawing.url,`/assets/moonlit-lotus/photo-v1/${id}/${pose}.webp`);
+  assert.equal(drawing.standalone,true);
+  assert.ok(existsSync(new URL('public'+drawing.url,root)));
+  assert.ok(manifest.assets.some(a=>a.character===id&&a.pose===pose&&a.width===512&&a.bytes<150000));
+ }
+ assert.match(photoDrawing('custom',{species:'unknown'},'','cheek').url,/\/yeoni\/cheek.webp$/);
 });
 test('every offered photo frame is within a shipped four-by-four sheet',()=>{
  for(const species of ['hanbi','yeongnyangi','mouse','ox','tiger','rabbit','dragon','snake','horse','sheep','monkey','rooster','dog','pig']){
