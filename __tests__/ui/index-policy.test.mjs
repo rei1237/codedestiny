@@ -19,6 +19,7 @@ import * as robotsPolicy from "../../lib/seo/robots-policy.mjs";
 
 // 원장으로 옮기기 직전(2026-11-08) lib/seo/siteSeo.ts noindexPathPrefixes 리터럴. 순서까지 고정한다.
 const SITE_SEO_NOINDEX_PREFIXES_BEFORE = [
+  "/moonlit-lotus/model-review", // 2026-11-15 공개 접근 가능한 제작 검수 화면
   "/saju/love-simulation", "/secret-house_real", "/destiny-poker", "/mini-games", "/fortune/date",
   "/saju/crystals/start", // 2026-11-11 사주 원석 추천 질문·결과 화면
   "/neo-operation-room/strategy-books", "/records", "/consultations", "/api", "/api-hello-test", "/admin", "/auth",
@@ -37,6 +38,7 @@ const SITEMAP_EXCLUDED_EXACT_BEFORE = [
   "/account/delete/",
 ];
 const SITEMAP_NOINDEX_PREFIXES_BEFORE = [
+  "/moonlit-lotus/model-review", // 2026-11-15
   "/saju/love-simulation", "/secret-house_real", "/destiny-poker", "/mini-games", "/fortune/date",
   "/saju/crystals/start", // 2026-11-11
   "/neo-operation-room/strategy-books", "/records", "/business/api/dashboard", "/consultations", "/animal/physio", "/diary", "/maya",
@@ -74,6 +76,13 @@ test("ledger entries are well formed and unique", () => {
     if (entry.private) assert.equal(entry.sitemap, false, entry.path);
   }
   assert.ok(Object.isFrozen(INDEX_POLICY) && Object.isFrozen(INDEX_POLICY[0]));
+});
+
+test("model review stays out of search without hiding the future public space", () => {
+  assert.equal(isMetaNoindexPath("/moonlit-lotus/model-review/"), true);
+  assert.equal(isSitemapExcludedPath("/moonlit-lotus/model-review/"), true);
+  assert.equal(isIndexablePath("/moonlit-lotus/"), true);
+  assert.equal(isIndexablePath("/moonlit-lotus/model-review-guide/"), true);
 });
 
 test("prefix boundary: neighbours are not swallowed", () => {
