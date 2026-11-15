@@ -1,7 +1,7 @@
 "use client";
 import Link from 'next/link';
 import {useCallback,useEffect,useRef,useState,type CSSProperties} from 'react';
-import {ArrowLeft,ArrowRight,BookOpen,Flower2,Heart,Music2,Settings2,Volume2,VolumeX,X} from 'lucide-react';
+import {ArrowLeft,ArrowRight,BookOpen,Flower2,Heart,HandHeart,CircleDot,Moon,Music2,Settings2,Volume2,VolumeX,X} from 'lucide-react';
 import {useLocale} from '@/lib/i18n/useT';
 import {MOONLIT_ENTRY_COPY} from './_lib/entry-copy';
 import Character,{type Activity} from './_components/Character';
@@ -21,6 +21,7 @@ import {CYCLE_MS,poseAt} from './model-review/bow-session';
 import {kstTodayYmd} from '@/app/diary/_lib/kst-date';
 import {pickTrainingAffirmation} from '@/app/diary/_lib/mind-training-pool';
 import styles from './space.module.css';
+import {photoDrawing} from './_lib/photo-poses';
 
 const ART='/assets/moonlit-lotus/space-v1';
 const SCENES={courtyard:'달빛 마당',hall:'연화당 법당',pond:'연꽃 연못'};
@@ -119,8 +120,8 @@ function PrivateSpace({profile}:{profile:ReturnType<typeof useSpaceProfile>}){
  const characterPosition:CSSProperties={left:scene==='hall'?'50%':'46%',top:scene==='hall'?'86%':'82%'};
  const activateSpot=(spot:(typeof HOTSPOTS)[Scene][number])=>spot.scene?changeScene(spot.scene):spot.panel?open(spot.panel):void effects.strike();
  return <main className={styles.page} lang="ko" data-cd-no-trans data-immersive={quiet} data-panel-open={!!panel}>
-  <header className={styles.header}><Link href="/" className={styles.home}><ArrowLeft size={17}/>꿀꿀 운세</Link><div lang={introLocale}><h1>{intro.title}</h1><p>{intro.description}</p></div><button onClick={()=>open('custom')} aria-label="캐릭터 꾸미기"><Settings2 size={20}/><span>캐릭터 꾸미기</span></button></header>
-  <div className={styles.sceneToolbar}><button onClick={()=>open('music')}><Music2 size={17}/>음악</button><ImmersionControl/><PhotoStudio disabled={!!journey} target={()=>worldViewport.current?.querySelector<HTMLElement>('[data-scene]')||null} onPrepare={()=>bow.pause()}/></div>
+  <header className={styles.header}><Link href="/" className={styles.home}><ArrowLeft size={17}/>꿀꿀 운세</Link><div lang={introLocale}><h1><Moon size={25} aria-hidden="true"/> {intro.title}</h1><p>{intro.description}</p></div><button onClick={()=>open('custom')} aria-label="캐릭터 꾸미기"><Settings2 size={20}/><span>캐릭터 꾸미기</span></button></header>
+  <div className={styles.sceneToolbar}><button onClick={()=>open('music')}><Music2 size={17}/>음악</button><ImmersionControl/><PhotoStudio poseDrawing={pose=>photoDrawing(character,profile.avatar,profile.image,pose)} disabled={!!journey} target={()=>worldViewport.current?.querySelector<HTMLElement>('[data-scene]')||null} onPrepare={()=>bow.pause()}/></div>
   <p className={styles.privateNote}><Heart size={15} aria-hidden="true"/>다른 사람이 접속해도, 이 공간에는 나의 캐릭터만 머물러요.</p>
   <nav className={styles.sceneNav} aria-label="장면 이동">{(Object.entries(SCENES) as [Scene,string][]).map(([id,title])=><button key={id} aria-pressed={scene===id} onClick={()=>changeScene(id)}>{title}</button>)}</nav>
   <div className={styles.experience}>
@@ -128,14 +129,14 @@ function PrivateSpace({profile}:{profile:ReturnType<typeof useSpaceProfile>}){
     <div className={styles.worldViewport} ref={worldViewport} tabIndex={0} aria-label="나만의 사찰 풍경">
      <div className={styles.world} data-scene={scene}>
       {!sceneError?<picture><source media="(max-width:700px)" srcSet={ART+'/'+scene+'-768.webp'}/>{/* eslint-disable-next-line @next/next/no-img-element */}<img className={styles.scenery} key={scene+retry} src={ART+'/'+scene+'-1536.webp'} width={1536} height={1024} alt={SCENES[scene]+'의 달빛과 연꽃, 꽃돼지 불상과 조용한 참배 자리'} onError={()=>setSceneError(true)} fetchPriority="high"/></picture>:<div className={styles.artFallback}><Flower2 size={48}/><p>풍경을 불러오지 못했어요.<br/>아래 버튼으로 명상과 108배를 계속 이용할 수 있어요.</p><button onClick={()=>{setSceneError(false);setRetry(v=>v+1);}}>풍경 다시 불러오기</button></div>}
-      {journey?<WalkingYeoni kind={character} look={profile.avatar} image={profile.image} portrait={profile.portrait} key={journey.from+'-'+journey.to} fromX={journey.from==='hall'?50:46} fromY={journey.from==='hall'?86:82} toX={journey.to==='hall'?50:46} toY={journey.to==='hall'?86:82} onCross={()=>setScene(journey.to)} onDone={()=>navigate(journey.panel,journey.to)}/>:<div className={styles.character} style={characterPosition}>
+      {journey?<WalkingYeoni kind={character} look={profile.avatar} image={profile.image} portrait={profile.portrait} key={journey.from+'-'+journey.to} fromX={journey.from==='hall'?50:46} fromY={journey.from==='hall'?86:82} toX={journey.to==='hall'?50:46} toY={journey.to==='hall'?86:82} onCross={()=>setScene(journey.to)} onDone={()=>navigate(journey.panel,journey.to)}/>:<div className={styles.character} data-photo-character style={characterPosition}>
        {!characterError&&(!light||character==='custom')?<ActivityTransition identity={character+activity+(profile.avatar.species||'profile')} reduced={noMotion}><Character key={retry} kind={character} activity={activity} elapsed={bow.session.elapsed} reduced={noMotion} look={profile.avatar} image={profile.image} portrait={profile.portrait} onFailure={()=>setCharacterError(true)}/></ActivityTransition>:<div className={styles.still}>{/* eslint-disable-next-line @next/next/no-img-element */}<img src={character==='custom'&&profile.avatar.species==='hanbi'?HANBI_ART+'-still.webp':character==='custom'&&isZodiac(speciesOf(profile.avatar,profile.image))?zodiacStill(speciesOf(profile.avatar,profile.image) as import('./_lib/companions').ZodiacSpecies):character==='cat'?COMPANION_ART+'/cat-still.webp':'/assets/moonlit-lotus/yeoni/2d-v2/still.webp'} width={384} height={384} alt="동작을 줄인 정지 캐릭터"/>{characterError&&<button onClick={()=>{setCharacterError(false);setRetry(v=>v+1);}}>동작 다시 불러오기</button>}</div>}
       </div>}
       {!quiet&&<div className={styles.hotspots} data-photo-hide>{HOTSPOTS[scene].map(spot=><button key={spot.label} style={{left:spot.x+'%',top:spot.y+'%'}} onClick={()=>activateSpot(spot)} aria-label={spot.label}><Flower2 size={18} aria-hidden="true"/><span>{spot.label}</span></button>)}</div>}
      </div>
     </div>
     <div className={styles.sceneCaption}><span>{activity==='bow'?phase:activity==='prayer'?'말하지 못했던 마음도, 여기에 놓아두어요.':activity==='meditation'?'잠시 눈을 감고, 편안한 호흡으로.':'서두르지 않아도 괜찮아요.'}</span><button aria-pressed={effects.enabled} onClick={effects.toggle}>{effects.enabled?<Volume2 size={17}/>:<VolumeX size={17}/>}효과음 {effects.enabled?'켜짐':'꺼짐'}</button></div>
-    <nav className={styles.dock} aria-label="나만의 명상 활동">{(['meditation','prayer','bow'] as const).map(id=><button key={id} aria-pressed={panel===id} onClick={()=>open(id)}><Flower2 size={18}/><span>{id==='bow'?'108배':PANELS[id]}</span></button>)}<button aria-expanded={more} aria-controls="moonlit-more" onClick={()=>setMore(v=>!v)}><BookOpen size={18}/><span>더보기</span></button></nav>
+    <nav className={styles.dock} aria-label="나만의 명상 활동">{(['meditation','prayer','bow'] as const).map(id=><button key={id} data-activity={id} aria-pressed={panel===id} onClick={()=>open(id)}><>{id==='meditation'?<Flower2 size={22}/>:id==='prayer'?<HandHeart size={22}/>:<CircleDot size={22}/>}</><span>{id==='bow'?'108배':PANELS[id]}</span></button>)}<button aria-expanded={more} aria-controls="moonlit-more" onClick={()=>setMore(v=>!v)}><BookOpen size={18}/><span>더보기</span></button></nav>
     {more&&<nav id="moonlit-more" className={styles.moreActions} aria-label="더 많은 활동">{(['affirmation','fortune','records','custom','music'] as const).map(id=><button key={id} onClick={()=>open(id)}>{PANELS[id]}</button>)}</nav>}
     {!quiet&&<details className={styles.sceneTools} key={scene}><summary><Flower2 size={18} aria-hidden="true"/>소품으로 시작하기</summary><div>{HOTSPOTS[scene].map(spot=><button key={spot.label} onClick={()=>activateSpot(spot)}>{spot.label}</button>)}</div></details>}
     {speaking&&<div className={styles.affirmationOverlay}><p>{affirmation}</p><button disabled={savingText} onClick={()=>saveText('affirmation')}>소리 내어 읽었어요</button><button onClick={()=>setSpeaking(false)}>닫기</button></div>}
