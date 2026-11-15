@@ -75,7 +75,10 @@ export function buildHeukwolAnalysis(birth, requestedYear, now = new Date(), { e
     saju:buildNeoBasisPayload({method:'saju',pillars:{day,dayMaster:day?.[0]},fiveElements:years[1].natal.elements,
       tenGods:years[1].natal.tenGods,natalInteractions:years[1].natal.interactions}),
     ziwei:buildNeoBasisPayload({method:'ziwei',mingGong:chart.lifePalace,shenGong:chart.bodyPalace,
-      palaces:chart.palaces,fourTransformations:chart.fourTransformations,sanFangSiZheng:chart.sanFangSiZheng}),
+      palaces:chart.palaces,fourTransformations:chart.fourTransformations,
+      // Same chart adapter as Neo's strategy room: the basis renderer expects
+      // the life-palace axis, not the engine's byPalace lookup table.
+      sanFangSiZheng:{core:chart.sanFangSiZheng.core,lifePalace:chart.sanFangSiZheng.byPalace[chart.lifePalace]}}),
   };
   return {version:HEUKWOL_VERSION,year,months,pillars:years[1].pillars,natal:years[1].natal,chart,neoBasis,
     limitation:'사주 점검 우선순위와 자미두수 사화 근거를 구분한 전통 해석 지표입니다. 사고·손실의 발생 확률이 아니며 두 체계의 수치를 임의로 합산하지 않습니다.',

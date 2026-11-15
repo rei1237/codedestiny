@@ -1,7 +1,9 @@
 /** @jest-environment node */
+import { jest } from "@jest/globals";
 import { buildHeukwolAnalysis, heukwolProfileBirth } from '../../worker/lib/heukwol-analysis.js';
 import { calculateLifeBookAiSaju } from '../../worker/lib/life-book-ai-saju.js';
 import { calculateZiweiConsumerChart } from '../../worker/lib/ziwei-consumer-chart.js';
+import { buildNeoBasisPayload } from '../../worker/lib/neo-operation-room-basis.js';
 import { HEUKWOL_CHAPTERS, HEUKWOL_PROMPT_PREFIX, heukwolPrompt, chapterEvidence, generateHeukwolChapter } from '../../worker/lib/heukwol-report.js';
 
 const now = new Date('2026-11-06T00:00:00Z');
@@ -12,6 +14,15 @@ const card = {
 };
 const birth = heukwolProfileBirth(card);
 const analysis = buildHeukwolAnalysis(birth, 2027, now);
+
+test('Heukwol uses the same Ming-palace axis adapter as the existing Neo strategy room', () => {
+  const chart = analysis.chart;
+  const expected = buildNeoBasisPayload({ method:'ziwei', mingGong:chart.lifePalace, shenGong:chart.bodyPalace,
+    palaces:chart.palaces, fourTransformations:chart.fourTransformations,
+    sanFangSiZheng:{core:chart.sanFangSiZheng.core, lifePalace:chart.sanFangSiZheng.byPalace[chart.lifePalace]} });
+  expect(analysis.neoBasis.ziwei).toEqual(expected);
+  expect(JSON.stringify(expected)).toContain('삼방사정(명궁)');
+});
 
 test('all chapters share a cacheable instruction prefix while personal evidence stays request-specific', () => {
   for (const chapter of HEUKWOL_CHAPTERS) {
@@ -72,6 +83,26 @@ const value = {
   evidenceIds: ['natal-saju', 'natal-ziwei'],
 };
 const provider = async () => ({ ok: true, text: JSON.stringify(value) });
+
+test.each(['nature-love','month-2'])('mock LLM receives computed Ziwei and Saju evidence for %s', async key => {
+  const chapter = HEUKWOL_CHAPTERS.find(item => item.key === key);
+  const evidence = chapterEvidence(analysis, chapter);
+  const evidenceIds = chapter.month
+    ? [evidence.months[0].saju[0].id, evidence.months[0].ziwei[0].id]
+    : ['natal-saju','natal-ziwei'];
+  const capture = jest.fn(async (_env, prompt) => {
+    expect(prompt).toContain(JSON.stringify(evidence));
+    expect(evidence.neoBasis.saju).toBeDefined();
+    expect(evidence.neoBasis.ziwei).toBeDefined();
+    expect(evidence.natalEvidence[1].palaces.length).toBeGreaterThan(0);
+    if (chapter.month) expect(evidence.months[0].ziwei[0].marks.length).toBe(4);
+    else expect(JSON.stringify(evidence.neoBasis.ziwei)).toContain('삼방사정(명궁)');
+    return {ok:true,text:JSON.stringify({...value,evidenceIds})};
+  });
+  const result = await generateHeukwolChapter({}, analysis, chapter, '이번 흐름에서 확인할 조건은?', [], capture);
+  expect(capture).toHaveBeenCalledTimes(1);
+  expect(result.evidenceIds).toEqual(evidenceIds);
+});
 
 test('a later chapter cannot reuse the same long passages to reach the paid length minimum', async () => {
   const first = await generateHeukwolChapter({}, analysis, HEUKWOL_CHAPTERS[0], '확인할 조건은 무엇인가요?', [], provider);
