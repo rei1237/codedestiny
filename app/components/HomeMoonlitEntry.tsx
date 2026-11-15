@@ -1,11 +1,16 @@
+"use client";
 import Link from 'next/link';
+import {ArrowRight} from 'lucide-react';
+import {useLocale} from '@/lib/i18n/useT';
+import {MOONLIT_ENTRY_COPY} from '../moonlit-lotus/_lib/entry-copy';
 import {MOONLIT_LOTUS_ENABLED} from '../moonlit-lotus/_lib/config';
 import styles from './HomeMoonlitEntry.module.css';
 export default function HomeMoonlitEntry(){
+ const locale=useLocale()==='ja'?'ja':'ko',copy=MOONLIT_ENTRY_COPY[locale];
  if(!MOONLIT_LOTUS_ENABLED)return null;
- return <Link href="/moonlit-lotus/" className={styles.entry} data-moonlit-entry>
+ return <Link href={locale==='ja'?'/moonlit-lotus/?lang=ja':'/moonlit-lotus/'} className={styles.entry} data-moonlit-entry lang={locale} data-cd-no-trans>
   {/* eslint-disable-next-line @next/next/no-img-element */}
-  <img src="/assets/moonlit-lotus/space-v1/hall-768.webp" width={768} height={512} loading="lazy" alt="연꽃 좌대의 꽃돼지 불상과 따뜻한 법당"/>
-  <span><strong>달빛 연화당</strong><span>나 혼자 머무는 작은 절.<br/>기도하고, 명상하고, 마음을 쉬어가요.</span><b>나만의 연화당 들어가기</b></span>
+  <img src="/assets/moonlit-lotus/entry-v1/yeoni-768.webp" srcSet="/assets/moonlit-lotus/entry-v1/yeoni-480.webp 480w, /assets/moonlit-lotus/entry-v1/yeoni-768.webp 768w" sizes="(max-width:600px) calc(100vw - 56px), 336px" width={768} height={512} loading="lazy" decoding="async" alt={copy.image}/>
+  <span className={styles.copy}><strong>{copy.title}</strong><span>{copy.description}</span><b>{copy.action}<ArrowRight size={18} aria-hidden="true"/></b></span>
  </Link>;
 }

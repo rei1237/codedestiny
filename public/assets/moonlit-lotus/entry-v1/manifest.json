@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "generator": "built-in image_gen",
+  "reference": "docs/design/character-references/yeoni-profile-v1.png",
+  "original": "D:/CodeDestiny-Build/moonlit-lotus/entry-v1/yeoni-original.png",
+  "purpose": "Private meditation and affirmation temple entry illustration; one Yeoni character only, no text",
+  "files": [
+    {"path":"yeoni-480.webp","width":480,"height":320,"bytes":27628},
+    {"path":"yeoni-768.webp","width":768,"height":512,"bytes":57450}
+  ],
+  "processing": "sharp resize to width 480 or 768, WebP quality 84, no crop"
+}
