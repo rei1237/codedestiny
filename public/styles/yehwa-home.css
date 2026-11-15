@@ -20,6 +20,18 @@
 .yh-entry-scene .yh-greeting .yh-trust{max-width:46ch;margin-top:14px;color:var(--cd-text-muted);font-size:.875rem;line-height:1.6}
 .yh-trust a{font-weight:600;white-space:nowrap;text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:3px}
 html:not([lang="ko"]) .yh-trust{display:none}
+/* 2026-11-16 상황형 첫 화면: 질문 1·결과 1·버튼 1, 그림은 작게. 한국어 화면에만 보인다. */
+.yh-situations{margin-top:16px}
+.yh-situations__list{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:0;padding:0;list-style:none}
+.yh-situation{display:grid;grid-template-columns:minmax(0,1fr) 56px;grid-template-areas:"copy art" "cta cta";align-items:start;gap:12px;padding:16px;border:1px solid var(--cd-line);border-radius:var(--cd-r-card);background:var(--cd-surface)}
+.yh-situation__art{grid-area:art;display:block;width:56px;height:56px;border-radius:var(--cd-r-sm);object-fit:cover}
+.yh-situation__copy{grid-area:copy;min-width:0}
+.yh-situation__q{color:var(--cd-text);font-size:1rem;font-weight:600;line-height:1.5}
+.yh-situation__result{margin-top:4px;color:var(--cd-text-muted);font-size:.875rem;line-height:1.55}
+.yh-home .yh-situation__cta{grid-area:cta;width:100%;white-space:normal}
+.yh-situation__price{white-space:nowrap}
+@media(max-width:900px){.yh-situations__list{grid-template-columns:1fr}}
+html:not([lang="ko"]) .yh-situations{display:none}
 .yh-free-start svg{width:1.0625rem;height:1.0625rem;flex:none}
 .yh-home .yh-guide-open{display:block;padding:0;min-height:44px;margin-top:8px;border:0;background:transparent;text-decoration:underline;text-underline-offset:5px;font-size:14px;color:var(--cd-accent)}
 .yh-art{position:relative;width:100%;max-width:270px;justify-self:center;align-self:center;isolation:isolate}

@@ -2397,8 +2397,8 @@
       "career": "Kerja · Kerjaya",
       "relationship": "Keserasian · Hubungan",
       "yearly": "Tahun ini · Tahun depan",
-      "introduction": "Saju, tarot dan panduan mengikut persoalan anda.",
-      "freeIntroduction": "Mulakan dengan carta Manseryeok percuma.",
+      "introduction": "Pilih dahulu situasi yang sedang bermain di fikiran anda.",
+      "freeIntroduction": "Lihat keputusan dahulu, kemudian tentukan sama ada mahu mendalaminya.",
       "freeStart": "Mulakan Manseryeok percuma",
       "paidLabel": "Berbayar ·",
       "result": {
@@ -22587,6 +22587,14 @@
       "sukuyo": "Sifat dan hubungan melalui bulan",
       "vedic": "Langit ketika kelahiran anda",
       "astro": "Kenali sifat diri melalui planet dan rumah astrologi"
+    },
+    "action": {
+      "natal": "Lihat carta saya",
+      "tarot": "Cabut kad",
+      "ziwei": "Lihat carta Ziwei saya",
+      "sukuyo": "Lihat rumah bulan kelahiran saya",
+      "vedic": "Lihat peta langit saya",
+      "astro": "Lihat carta kelahiran saya"
     }
   }
 }

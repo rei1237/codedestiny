@@ -12,7 +12,7 @@ import { CONSULTATION_MASTERS } from '../../lib/marketing/consultation-discovery
 import { renderConsultationMethodGuide } from '../../lib/brand/consultation-methods.mjs';
 
 import { brandCopy } from '../../lib/seo/brand-copy.mjs';
-import { renderYehwaHome } from '../../lib/marketing/yehwa-home.mjs';
+import { renderYehwaHome, renderSituationCards } from '../../lib/marketing/yehwa-home.mjs';
 import { renderHomeConsultationPicker } from '../../lib/marketing/home-consultation-picker.mjs';
 import { chatQuestionFeatureKey } from '../../lib/fortune/chat-products.js';
 import { isFreeFortuneFeatureKey } from '../../lib/payment/free-fortune-policy.mjs';
@@ -349,6 +349,8 @@ const template = readFileSync('templates/home-funnel.html', 'utf8');
 // Keep the existing pass renderer between concern results and records/navigation.
 vars.yehwaHome = renderYehwaHome(registryWindow.__cdServiceRegistry, {
   consultationHtml: '<div class="cdh-slot" id="cdhFeatured"><div id="cdhSignatureSlot"><span id="homeSignature"></span>' + vars.signature + '</div></div>',
+  // 2026-11-16 상황형 카드 3장 — 히어로 바로 아래, 무료 홍보 배너 위.
+  situationHtml: renderSituationCards(registryWindow.__cdServiceRegistry),
   // 2026-11-12 무료 3개월 홍보 배너(표시 전용) — 무료 타일 바로 위.
   quickHtml: renderFreePromoShellBanner(),
   installHtml: "<aside class=\"cd-home-install-entry\" data-pwa-install-entry hidden aria-label=\"홈 화면에 추가\" lang=\"ko\" data-cd-no-trans><img src=\"/icons/moonlight-garden-v1-192.png\" width=\"48\" height=\"48\" alt=\"\" loading=\"lazy\"><div><strong>다음에도 바로 찾아오세요</strong><p>홈 화면의 아이콘으로 꿀꿀 운세를 열어요.</p></div><button type=\"button\" data-pwa-install>홈 화면에 추가하기</button></aside>",

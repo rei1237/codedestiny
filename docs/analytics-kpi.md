@@ -118,7 +118,7 @@ next: "S00 기준선의 동일 KST 기간·동의/테스트 제외·승인일 �
 
 `section` 10종(`index.html` 의 `data-cd-funnel-section`): `hero` · `concern_pick` · `today_hub` ·
 `today_pick` · `quick_services` · `signature_consult` · `service_index` · `finder` · `why_us` ·
-`secondary_panel`. 2026-10-15 에 `moonlight_mv`(홈 뮤직비디오의 `/music/` 링크)가 더해졌다.
+`secondary_panel`. 2026-10-15 에 `moonlight_mv`(홈 뮤직비디오의 `/music/` 링크)가 더해졌다. 2026-11-16 에 `situation_pick`(/ggulggul/ 히어로 아래 상황형 카드 3장)이 더해졌다.
 
 ## 2. 채널이 둘이고, 담는 것이 다르다
 

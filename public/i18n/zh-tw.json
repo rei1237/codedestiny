@@ -2397,8 +2397,8 @@
       "career": "工作·職涯方向",
       "relationship": "合盤·人際關係",
       "yearly": "今年·明年運勢",
-      "introduction": "四柱、塔羅與針對不同煩惱的諮詢。",
-      "freeIntroduction": "從免費萬年曆解讀開始吧。",
+      "introduction": "先從此刻讓你掛心的情況選起吧。",
+      "freeIntroduction": "先看結果，再決定要不要深入。",
       "freeStart": "開始免費萬年曆解讀",
       "paidLabel": "付費 ·",
       "result": {
@@ -22587,6 +22587,14 @@
       "sukuyo": "從月宿了解性格與關係",
       "vedic": "探索出生時的天空圖",
       "astro": "透過行星與宮位了解自己的傾向"
+    },
+    "action": {
+      "natal": "查看我的命式",
+      "tarot": "抽牌",
+      "ziwei": "查看我的命盤",
+      "sukuyo": "查看本命宿",
+      "vedic": "查看天空星圖",
+      "astro": "查看出生星盤"
     }
   }
 }

@@ -2246,8 +2246,8 @@
       "career": "직장·진로",
       "relationship": "궁합·인간관계",
       "yearly": "올해·내년 운세",
-      "introduction": "사주·타로와 고민별 상담.",
-      "freeIntroduction": "무료 만세력부터 시작해 보세요.",
+      "introduction": "지금 마음에 걸리는 상황부터 골라 보세요.",
+      "freeIntroduction": "결과를 먼저 보고, 더 깊게 볼지는 그다음에.",
       "freeStart": "무료 만세력 시작하기",
       "paidLabel": "유료 ·",
       "result": {
@@ -13594,6 +13594,14 @@
       "sukuyo": "달의 별자리로 나의 성향과 관계를 읽어요",
       "vedic": "태어난 순간의 하늘 지도로 기질을 살펴봐요",
       "astro": "행성과 하우스로 나의 성향을 살펴봐요"
+    },
+    "action": {
+      "natal": "내 명식 보기",
+      "tarot": "카드 뽑기",
+      "ziwei": "내 명반 보기",
+      "sukuyo": "본명숙 보기",
+      "vedic": "하늘 지도 보기",
+      "astro": "출생 차트 보기"
     }
   },
   "featureMarketingCategory": {

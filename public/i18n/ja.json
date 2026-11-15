@@ -2397,8 +2397,8 @@
       "career": "仕事・進路",
       "relationship": "相性・人間関係",
       "yearly": "今年・来年の運勢",
-      "introduction": "四柱推命・タロットとお悩み別の相談。",
-      "freeIntroduction": "無料の万年暦から始めてみましょう。",
+      "introduction": "今、気になっている状況から選んでみてください。",
+      "freeIntroduction": "まず結果を見て、深く見るかはそのあとで。",
       "freeStart": "無料の万年暦を始める",
       "paidLabel": "有料 ·",
       "result": {
@@ -22587,6 +22587,14 @@
       "sukuyo": "月の星宿から性質と関係を読む",
       "vedic": "生まれた瞬間の空から気質を見る",
       "astro": "惑星とハウスから自分の傾向を読みます"
+    },
+    "action": {
+      "natal": "命式を見る",
+      "tarot": "カードを引く",
+      "ziwei": "命盤を見る",
+      "sukuyo": "本命宿を見る",
+      "vedic": "天空図を見る",
+      "astro": "出生図を見る"
     }
   }
 }

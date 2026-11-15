@@ -2397,8 +2397,8 @@
       "career": "Travail et carrière",
       "relationship": "Compatibilité et relations",
       "yearly": "Cette année et la suivante",
-      "introduction": "Saju, tarot et conseils selon vos préoccupations.",
-      "freeIntroduction": "Commencez par une lecture Manseryeok gratuite.",
+      "introduction": "Commencez par la situation qui vous préoccupe en ce moment.",
+      "freeIntroduction": "Voyez d'abord le résultat, puis décidez d'aller plus loin.",
       "freeStart": "Commencer Manseryeok gratuitement",
       "paidLabel": "Payant ·",
       "result": {
@@ -22587,6 +22587,14 @@
       "sukuyo": "Nature et relations selon la Lune",
       "vedic": "Explorez le ciel de votre naissance",
       "astro": "Explorez votre nature à travers les planètes et les maisons"
+    },
+    "action": {
+      "natal": "Voir mon thème",
+      "tarot": "Tirer les cartes",
+      "ziwei": "Voir mon thème Ziwei",
+      "sukuyo": "Voir ma demeure natale",
+      "vedic": "Voir ma carte du ciel",
+      "astro": "Voir mon thème natal"
     }
   }
 }
