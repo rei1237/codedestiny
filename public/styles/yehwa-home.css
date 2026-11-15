@@ -29,6 +29,7 @@ html:not([lang="ko"]) .yh-trust{display:none}
 .yh-situation__q{color:var(--cd-text);font-size:1rem;font-weight:600;line-height:1.5}
 .yh-situation__result{margin-top:4px;color:var(--cd-text-muted);font-size:.875rem;line-height:1.55}
 .yh-home .yh-situation__cta{grid-area:cta;width:100%;white-space:normal}
+.yh-home .yh-situation__cta.cd-yehwa-button--primary{color:var(--cd-cta-primary-ink)}
 .yh-situation__price{white-space:nowrap}
 @media(max-width:900px){.yh-situations__list{grid-template-columns:1fr}}
 html:not([lang="ko"]) .yh-situations{display:none}
