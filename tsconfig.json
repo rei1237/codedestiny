@@ -57,6 +57,8 @@
     "test-results",
     "build-cache",
     "output",
+    "outputs",
+    ".tmp",
     ".cache",
     "backups",
     "**/_tmp_*.mjs",
