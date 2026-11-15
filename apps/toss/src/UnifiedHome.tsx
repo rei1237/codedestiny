@@ -30,6 +30,10 @@ export default function UnifiedHome({onOpen,onConsult,loggedIn,onAccount}:{onOpe
    <section className="world-flower-hero"><div><h1>오늘은 어떤<br/>이야기를 펼칠까요?</h1><p>나를 알아가는 사주,<br/>마음을 비추는 타로와 운세.</p></div><img src="/images/fortune-tea-house/flower-pig-flower.webp" alt="꽃을 든 연이" width={500} height={500}/></section>
    <FortuneDirectory onOpen={onOpen} onConsult={onConsult}/>
   </>}
-  <footer className="world-footer">{world==='yeongnyangi'?<a href="/yeongnyangi/library/">영냥이 보관함</a>:<a href="/records/">꿀꿀운세 구매 기록</a>}<a href="/recovery">구매 복구</a><button onClick={()=>onOpen('settings')}>설정·고객지원</button></footer>
+  <footer className="world-footer" aria-label="내 기록과 도움">
+   <a className="world-footer-library" href={world==='yeongnyangi'?'/yeongnyangi/library/':'/records/'} aria-label={world==='yeongnyangi'?'영냥이 보관함':'꿀꿀운세 구매 기록'}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true"><path d="M12 5v15M3 4c3-1 6 0 9 2 3-2 6-3 9-2v15c-3-1-6 0-9 2-3-2-6-3-9-2Z"/></svg><span><strong>{world==='yeongnyangi'?'영냥이 보관함':'꿀꿀운세 구매 기록'}</strong><small>소중한 이야기를 다시 펼쳐보세요</small></span><i aria-hidden="true"/></a>
+   <a href="/recovery" aria-label="구매 복구"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true"><path d="M4 10a8 8 0 1 1 1 7M4 4v6h6M12 8v5l3 2"/></svg><span><strong>구매 복구</strong><small>받지 못한 결과 확인</small></span></a>
+   <button aria-label="설정·고객지원" onClick={()=>onOpen('settings')}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true"><path d="M4 13v-2a8 8 0 0 1 16 0v7c0 3-4 3-7 3M4 11H2v7h4v-7Zm16 0h2v7h-4v-7Z"/></svg><span><strong>설정·고객지원</strong><small>이용 안내와 문의</small></span></button>
+  </footer>
  </div>;
 }
