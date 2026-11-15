@@ -7,9 +7,4 @@ export function resumeSaved(row:StoredSession):Session {
  return {...row.session,elapsed:0,status:row.session.status==='running'?'paused':row.session.status};
 }
 export type Character='yeoni'|'cat'|'custom';
-export function defaultCharacter(manual:Character|null,gender:string):Character|null{
- if(manual)return manual;
- if(['female','f','여성','여','woman'].includes(gender.toLowerCase()))return 'yeoni';
- if(['male','m','남성','남','man'].includes(gender.toLowerCase()))return 'cat';
- return null;
-}
+export function defaultCharacter(manual:Character|null,_gender:string):Character|null{ return manual||'yeoni'; }

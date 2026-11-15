@@ -16,9 +16,9 @@ test('ownership, revision and lease reject second tab and stale replay',()=>{
  const restored=resumeSaved(row);assert.equal(restored.completed,37);assert.equal(restored.elapsed,0);assert.equal(restored.status,'paused');
  assert.equal(resumeSaved({...row,session:{...row.session,status:'complete',completed:108}}).status,'complete');
 });
-test('manual character first, gender optional, no guessed gender',()=>{
+test('manual character first, Yeoni default for every gender',()=>{
  assert.equal(defaultCharacter('cat','female'),'cat');assert.equal(defaultCharacter('custom','male'),'custom');
- assert.equal(defaultCharacter(null,'female'),'yeoni');assert.equal(defaultCharacter(null,'M'),'cat');assert.equal(defaultCharacter(null,''),null);assert.equal(defaultCharacter(null,'other'),null);
+ assert.equal(defaultCharacter(null,'female'),'yeoni');assert.equal(defaultCharacter(null,'M'),'yeoni');assert.equal(defaultCharacter(null,''),'yeoni');assert.equal(defaultCharacter(null,'other'),'yeoni');
 });
 test('time gaps and speed boundaries do not award incomplete cycles',()=>{
  const s={...newSession('timing'),status:'running',elapsed:100,pendingSpeed:1.25};assert.equal(advance(s,20000),s);

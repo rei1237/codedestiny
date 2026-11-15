@@ -25,7 +25,7 @@
 .page button:hover { background:var(--ml-petal); color:var(--ml-ink); border-color:var(--ml-gold); box-shadow:0 4px 12px rgb(79 52 72 / 14%); }
 .page button:active { box-shadow:inset 0 2px 5px rgb(79 52 72 / 12%); }
 .page button:disabled { opacity:.55; cursor:default; }
-.page button[aria-pressed=true],.page .primary { background:var(--ml-accent); color:var(--ml-paper); border-color:var(--ml-accent); }
+.page button[aria-pressed=true],.page .primary { background:var(--ml-accent); color:var(--ml-paper); border-color:var(--ml-accent); transition:none; }
 .page button[aria-pressed=true]::before,.page .primary::before { border-color:var(--ml-gold-line); opacity:.65; }
 .page .primary:hover { background:var(--ml-ink); color:var(--ml-paper); }
 .page a { color:var(--ml-accent); text-underline-offset:4px; }
@@ -48,7 +48,27 @@
 .scenery { position:absolute; inset:0; width:100%; height:100%; object-fit:contain; z-index:0; }
 .character { position:absolute; width:25%; aspect-ratio:1; transform:translate(-50%,-92.1875%); z-index:10; pointer-events:none; }
 .character>div,.character>svg { width:100%; height:100%; }
-.characterDrawing { background-size:400% 400%; background-repeat:no-repeat; }
+.characterDrawing { width:100%; height:100%; background-size:400% 400%; background-repeat:no-repeat; }
+.fullCompanion { width:100%; height:100%; transform-origin:50% 94%; transition:transform 160ms ease-out; }
+.fullCompanion :global(.pg-pet) { display:block; position:relative; width:100%; height:100%; max-width:none; margin:0; }
+.fullCompanion :global(.pg-body) { translate:0 0; }
+.fullCompanion[data-moving=true] :global(.pg-body) { background-image:var(--room-walk); background-size:400% 100%; background-position:var(--room-frame); animation:none; }
+.fullCompanion[data-activity=bow] :global(.pg-body),.fullCompanion[data-activity=prayer] :global(.pg-body) { animation:none; }
+.poseBlend,.poseBlend>div { width:100%; height:100%; }
+.poseBlend { position:relative; }
+.posePrevious { position:absolute; inset:0; animation:poseOut 220ms ease-out both; }
+.poseCurrent { animation:poseIn 220ms ease-out both; }
+@keyframes poseIn { from { opacity:0; transform:translateY(2%); } to { opacity:1; transform:none; } }
+@keyframes poseOut { to { opacity:0; } }
+.photoDialog { width:min(96vw,900px); max-height:94dvh; overflow:auto; background:var(--ml-paper); color:var(--ml-ink); border:1px solid var(--ml-gold-line); border-radius:24px; padding:24px; }
+.photoDialog::backdrop { background:rgb(45 25 40 / 65%); }
+.photoDialog header { display:flex; justify-content:space-between; align-items:center; gap:12px; }
+.photoDialog h2 { font:400 1.6rem/1.5 var(--ml-display); margin:0; }
+.photoTools { display:flex; align-items:center; flex-wrap:wrap; gap:8px; margin:16px 0; }
+.photoTools button,.photoDialog>.primary { display:inline-flex; align-items:center; justify-content:center; gap:6px; }
+.photoTools input { min-height:44px; vertical-align:middle; width:54px; }
+.photoCanvas { width:100%; height:auto; display:block; touch-action:none; border-radius:16px; }
+@media(max-width:600px) { .photoDialog { padding:16px; } .photoTools button { padding:9px 12px; font-size:.85rem; } .sceneToolbar { flex-wrap:wrap; } .header button span { font-size:.75rem; white-space:normal; max-width:48px; } }
 .customFace { width:100%; height:100%; background-size:400% 300%; background-repeat:no-repeat; background-color:var(--ml-soft); transform-origin:center; }
 .customFace :global(.pg-pet) { width:100%; height:100%; animation:none; }
 .customFace :global(.pg-body) { animation:none; background-position:0 0; }
@@ -247,3 +267,5 @@
  .sceneCaption { padding:4px 0; }
  .side { max-height:calc(100dvh - 110px); overflow:auto; padding:4px; }
 }
+
+.fullCompanion[data-reduced=true] *{animation:none!important;transition:none!important}
