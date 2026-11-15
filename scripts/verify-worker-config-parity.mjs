@@ -46,6 +46,8 @@ const STRUCTURAL_KEYS = new Set([
  * (같다 = 스테이징이 프로덕션 자원을 가리키고 있다는 뜻이다.)
  */
 const MUST_DIFFER_KEYS = new Set([
+  // Approved production account/recovery activation; staging stays closed.
+  "vars.TOSS_RELEASE_READY",
   'queues.producers.YEONGNYANGI_QUEUE.queue',
   'queues.consumers.consultation.queue',
   "name",
@@ -378,6 +380,10 @@ export function compareConfigs(productionText, stagingText) {
     }
   }
 
+  for (const [label, flat, expected] of [["프로덕션", production, "true"], ["스테이징", staging, "false"]]) {
+    if (flat.get("vars.TOSS_RELEASE_READY") !== expected) failures.push(`vars.TOSS_RELEASE_READY: ${label} must be ${expected}`);
+  }
+
   // 개별 단언 — "다르기만 하면 통과"로는 지킬 수 없는 것들.
   const crons = staging.get("triggers.crons");
   if (Array.isArray(crons) && crons.length > 0) {
@@ -456,6 +462,7 @@ const BASE_PRODUCTION = [
   '',
   '[vars]',
   'NODE_ENV = "production"',
+  'TOSS_RELEASE_READY = "true"',
   'TOSS_MTLS_EXPIRES_AT = "2027-12-03T00:27:15Z"',
   'ENABLE_FORTUNE_CHAT_CONSULTATIONS = "true"',
   'SITE_BASE_URL = "https://code-destiny.com"',
@@ -494,6 +501,7 @@ const BASE_STAGING = [
   '',
   '[vars]',
   'NODE_ENV = "production"',
+  'TOSS_RELEASE_READY = "false"',
   'APP_ENV = "staging"',
   'TOSS_MTLS_EXPIRES_AT = "2027-12-03T00:27:15Z"',
   'STAGING_LLM_MOCK_ENABLED = "true"',
@@ -536,6 +544,17 @@ function withExtraVar(fixture, line) {
 
 function runSelfTest() {
   const cases = [
+    ...['true','false','missing'].map(value=>({
+      name:'Toss production '+value,
+      production:value==='missing'?BASE_PRODUCTION.replace('TOSS_RELEASE_READY = "true"',''):BASE_PRODUCTION.replace('TOSS_RELEASE_READY = "true"','TOSS_RELEASE_READY = "'+value+'"'),
+      staging:BASE_STAGING,expectFailure:value==='true'?false:/vars.TOSS_RELEASE_READY/,
+    })),
+    ...['true','false','missing'].map(value=>({
+      name:'Toss staging '+value,
+      production:BASE_PRODUCTION,
+      staging:value==='missing'?BASE_STAGING.replace('TOSS_RELEASE_READY = "false"',''):BASE_STAGING.replace('TOSS_RELEASE_READY = "false"','TOSS_RELEASE_READY = "'+value+'"'),
+      expectFailure:value==='false'?false:/vars.TOSS_RELEASE_READY/,
+    })),
     ...[...STAGING_ONLY_KEYS].map((key) => ({
       name: `${key} missing from both configurations fails closed`,
       production: BASE_PRODUCTION,

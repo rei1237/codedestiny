@@ -81,6 +81,8 @@ binding = "TOSS_MTLS"
 certificate_id = "54538b62-1dfb-4189-a7af-9b1356c536bb"
 
 [vars]
+# Approved Toss service activation; new sales remain closed in lib/toss-release.mjs.
+TOSS_RELEASE_READY = "true"
 NODE_ENV = "production"
 TOSS_MTLS_EXPIRES_AT = "2027-12-03T00:27:15Z"
 BUSINESS_API_SALES = "saju,ziwei,tarot,astrology,vedic,sukuyo"
