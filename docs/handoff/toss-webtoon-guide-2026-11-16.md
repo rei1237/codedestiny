@@ -1,12 +1,12 @@
 ---
 status: in-progress
 updated: 2026-11-16
-next: 부모의 QR19 문서 전달 SHA를 받은 뒤 현재 워크트리에 최신 main을 병합하고 원본 웹툰 설명을 기존 Toss StoryLibrary에 이식한다.
+next: 병합된 main 5b74dd4a6와 원본 quick5/기존14편의 진입을 대조한 뒤 기존 Toss StoryLibrary에 웹툰 설명을 구현하고 검증한다.
 ---
 
 ## 첫 행동
 
-handoff 스킬과 CLAUDE.md를 읽고 아래 워크트리에서 git 상태/fetch를 확인한다. 부모 `/root`가 QR19 문서 전달을 진행하므로 그 SHA와 병합 시점을 메시지로 확인한다. 기존 UI handoff는 부모가 done으로 닫는다. 새 웹툰 코드·검사·미리보기는 이 워크트리의 후속 에이전트가 전담한다.
+handoff 스킬과 CLAUDE.md를 읽고 아래 워크트리에서 git 상태/fetch를 확인한다. 부모 `/root`가 QR19 문서 전달5b74dd4a6을 완료했고 이 워크트리에 병합했다. 기존 UI handoff는 done이다. 새 웹툰 코드·검사·미리보기는 이 워크트리의 후속 에이전트가 전담한다.
 
 ## 지금 상태
 
@@ -30,7 +30,7 @@ handoff 스킬과 CLAUDE.md를 읽고 아래 워크트리에서 git 상태/fetch
 
 - root 체크아웃을 편집하지 않는다. 부모가 main 문서 정리/콘솔을 담당하고 후속이 이 워크트리 구현을 전담한다. 무관한 main 변경도 보존하고 병합한다.
 - 새 사용자용 미리보기 `http://127.0.0.1:4330/preview`는 이미 사용자에게 전달됐다. 사용자 브라우저를 조작하거나 A/B 계정·기록을 초기화하지 않는다.
-- 현재 구현 에이전트가 4330을 동일 바이트의 독립 사본 서버로 이관할 예정이다. 실제 이관 결과/exec session은 부모 또는 이전 에이전트 메시지로 확인한다. 사본은 `C:/Users/user/Downloads/CodeDestiny/20261115-guided-entry-preview`(scripts/preview-private.mjs, private-simulation/dist, 사용안내.txt). 같은 포트와 origin이므로 사용자 기록은 유지된다.
+- 4330을 동일 바이트의 독립 사본 서버로 이관 완료했다(exec session23303). Frame/App HTTP200 및 mock marker 확인, 브라우저 저장소는 조작하지 않았다. 사본은 `C:/Users/user/Downloads/CodeDestiny/20261115-guided-entry-preview`(scripts/preview-private.mjs, private-simulation/dist, 사용안내.txt). 같은 포트와 origin이므로 사용자 기록은 유지된다. 이전36448은 종료했다.
 - 독립 사본의 `node scripts/preview-private.mjs`는 node 내장 모듈만 필요하며 cwd와 무관하게 동작한다. 후속 웹툰 개발/검수는 별도 포트/브라우저에서 하고 사용자4330을 건드리지 않는다.
 - 기존 소스 개발 서버4329(exec46027)가 남아 있다. 필요 시 자기 서버만 정리한다. QA4332는 이미 종료했다. Ego17/p1은 사용자 미리보기 페이지이므로 조작하지 않는다.
 - Windows Python은 `py -3`, 파일 UTF8 명시. PowerShell rg 경로 wildcard와 추측 파일 경로를 쓰지 않는다. `rg --files`로 관련 경로를 먼저 찾는다. `apps/toss` 전체를 검색할 때 생성 dist가 섞이지 않게 src/service/test 등 좁은 범위를 지정한다.
@@ -68,7 +68,7 @@ handoff 스킬과 CLAUDE.md를 읽고 아래 워크트리에서 git 상태/fetch
 ## 단계
 
 - [x] 앞선 간편 UI 단위의 최종 CI/Linux AIT/QR19 완료
-- [ ] 부모 QR19 문서 전달 SHA 병합, 새 작업 정본 확정
+- [x] 부모 QR19 문서 전달5b74dd4a6 병합, 새 작업 정본 확정
 - [ ] 원본 quick5 + 기존14편의 CTA/입력 경로 대조
 - [ ] 원본 설명·CutReader를 재사용한 간편 웹툰 선택/읽기/진입 구현
 - [ ] 사용자 미리보기와 분리한 mock 동선·모바일·뒤로가기·그림 검증
