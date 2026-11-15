@@ -1,18 +1,19 @@
 ---
-status: in-progress
+status: done
 updated: 2026-11-15
-next: 남은 장애·두 탭·접근성 검수 후 문서와 검증된 구현을 커밋하고 main에 전달한다.
+next: 구현 완료. 운영 승격은 하지 않으며, 실기기 검수 항목은 결과 문서의 미검증 목록을 따른다.
 ---
 
 # 달빛 연화당 개인 공간
 
 ## 첫 행동
-`.tmp/moonlit-space` 검수 로그와 `docs/design/moonlit-lotus-space.md` 결과를 확인한다. 브라우저는 ego taskSpace 12, p1을 사용한다. 새 공간을 만들지 않는다.
+`docs/design/moonlit-lotus-space.md`와 `D:/CodeDestiny-Build/moonlit-lotus/space-v1/`의 결과·검수 로그를 확인한다. 이전 브라우저 검수 공간과 작업 워크트리는 전달 후 정리한다.
 
 ## 지금 상태
 - 작업 디렉터리 `D:/Development/codedestiny-worktrees/moonlit-lotus-space-20261115-184751`
 - 브랜치 `wt/moonlit-lotus-space-20261115-184751`, 기반 main `6243d576776ae2b6905ab3c3ba01aacb8b39a124`.
 - 기존 연이 80컷 v2는 `066f97e97`에 완료, main 푸시됨. 원본·model-review는 이번 단계에서 수정하지 않음.
+- 공간 구현 커밋 `8a2407cf1`, 다른 세션의 최신 main 보존 병합 `47e61dbdf797c60ecf9fcd2fb5ede468e9df417b`. main에 fast-forward 완료.
 - 로컬 mock 미리보기 `http://127.0.0.1:24106/moonlit-lotus/`, API 24107. main의 다른 세션 34052 서버는 건드리지 않는다.
 - 다른 세션의 `.claude/skills/fire-your-seo-agency/` 미추적 파일 보존.
 
@@ -41,6 +42,9 @@ next: 남은 장애·두 탭·접근성 검수 후 문서와 검증된 구현을
 - [x] 기도·참배·명상·확언·음악·운세·개인 기록·꾸미기 구현
 - [x] 37회 복원, 107→108, 미완료 새로고침, 소유권 차단 UI 검수
 - [x] 음악 실제 재생·탐색·타이머, 운세 왕복, 계정 분리, 기록 수정·삭제
-- [ ] 최종 장애/감소모션/두 탭/메모리 검수와 정확한 미검증 항목 기록
-- [ ] 문서·커밋·pre-push·main 병합·push·CI 1회 확인
-- [ ] 브라우저 종료, 자체 서버 중지, 워크트리 배수, 본 문서 done 처리
+- [x] 최종 장애/감소모션/두 탭/메모리 검수와 정확한 미검증 항목 기록
+- [x] 문서·구현 커밋·pre-push 통과·main 병합
+- [x] 본 문서 done 처리. push/CI 최종 상태와 작업 환경 정리는 최종 전달 결과를 따른다.
+
+## 전달 준비 결과
+실제 IndexedDB 동시 claim 두 건 중 하나만 성공, stale save 거부, 완료 기록 1개, 삭제 뒤 완료 재전송 시 0개 유지. 음악 실제 재생과 오류 복구, 홈 한 번 진입, 운세 왕복, 자정 fixture 확인. 최종 자동 검사 22+7 통과, typecheck 통과. 기록은 로컬 전용이며 실제 모바일 기기·화면 낭독기·운영 부하 시험은 미검증이다. 미리보기 서버는 main에서 `npm run dev`, 기본 `http://127.0.0.1:34052/moonlit-lotus/?scene=hall`로 재현한다.

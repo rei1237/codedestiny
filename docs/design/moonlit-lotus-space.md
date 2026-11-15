@@ -127,6 +127,7 @@ Chromium 데스크톱 개발 서버와 모바일 폭 에뮬레이션에서 확�
 - `node --test __tests__/ui/moonlit-private-space.test.mjs __tests__/ui/index-policy.test.mjs`: **22/22**.
 - `node --test __tests__/ui/yeoni-sprite-session.test.mjs`: **7/7**.
 - `git diff --check`: 통과.
+- 구현 커밋 `8a2407cf1` 이후 `npm run check:pre-push`: 미러·사이트맵·SEO 레지스트리·저장소 위생 **통과**. 최신 main 병합 후 사이트맵도 다시 일치했다.
 - Impeccable detect: 종료 코드 0, 출력 없음. 시각 검수를 대신하지 않는다.
 - 실제 브라우저 기록: 외부 산출물 폴더의 `*-observations.json`, `failure-tabs-performance.json`, `home-music-midnight.json`.
 
@@ -136,4 +137,4 @@ Chromium 데스크톱 개발 서버와 모바일 폭 에뮬레이션에서 확�
 
 `app/moonlit-lotus/_lib/config.ts`의 `MOONLIT_LOTUS_ENABLED=false`로 홈 카드와 새 공간을 함께 비활성화할 수 있다. 로컬 기록과 원본 검수 페이지는 유지된다. 전체 되돌림은 이번 공간 구현 커밋만 `git revert`하고 원격 절차를 따른다. 다른 작업 커밋이나 기존 v1/v2를 되돌리지 않는다.
 
-로컬 실행은 저장소의 `npm run dev`(기본 mock 인증/API). 출력된 포트에서 `/moonlit-lotus/?scene=hall`을 연다. 검수 당시 별도 워크트리 서버는 24106이었으며 정리 시 종료한다. 운영 URL이 이미 배포되었다고 주장하지 않는다. main push 후 CI는 저장소 규칙대로 최종 보고 전 한 번만 확인하며 pending이면 미통과로 보고한다.
+로컬 실행은 저장소의 `npm run dev`(기본 mock 인증/API). main 기본 포트의 `http://127.0.0.1:34052/moonlit-lotus/?scene=hall`을 연다. 검수 당시 별도 워크트리 서버는 24106이었으며 정리 시 종료한다. 운영 URL이 이미 배포되었다고 주장하지 않는다. main push 후 CI는 저장소 규칙대로 최종 보고 전 한 번만 확인하며 pending이면 미통과로 보고한다.
