@@ -26,8 +26,8 @@
 - 찻집 6모드: 홈부터 모의 로그인/주문 1건/생성 1회/앱 재열기/저장 원문 및 후속상담/계정 B 결과 거부 PASS.
 - 모바일 360/390/430 및 높이 650 입력 화면 검수. 날짜·출생지 단계에 이전/다음/저장 버튼이 보이고 결제 CTA와 경쟁하지 않는다. 실제 휴대폰 키보드와 토스 네이티브 동작은 새 QR에서 추가 확인한다.
 - 디자인 검사 1회: 원본 웹의 찻집 테두리와 기존 홈 활성 표시 경고 4개 및 글자 크기 참고 경고. 원본 예화 디자인과 승인된 렌더링을 유지했고 무관한 웹 스타일은 변경하지 않았다.
-- 최종 check:fast/pre-push/main CI/Linux AIT/새 비공개 QR은 완료 후 인수인계 문서에 기록한다. 실결제와 새 검토 제출은 보류다.
+- 추가 targeted73 PASS, paid77/lint/typecheck PASS. Node5099 중 당일 데이터 미준비1건은 정식 로컬 생성 후 해당 파일7/7 PASS로 해소했고 나머지 계약/Worker/encoding/Jest(479 suites·8011 tests PASS,1skip)까지 완료했다. 병합 트리 pre-push PASS. main CI/Linux AIT/새 비공개 QR은 완료 후 인수인계 문서에 기록한다. 실결제와 새 검토 제출은 보류다.
 
 ## 후속 웹툰 설명
 
-사용자 요청에 따라 웹툰 설명은 다음 이식 단위로 남긴다. 원본 `app/_entry/ServiceGuide.tsx`의 `CutReader`와 `lib/brand/service-guide-webtoon.mjs`(quickGuideStories 5종, 대표 6·전문 7 그룹)의 확정된 원본을 재사용하고 각 원본 href/상담 ID에 연결한다. 현재 다른 세션의 미커밋 원본은 수정하거나 복사하지 않았다.
+2026-11-15 사용자는 최종 CI와 새 비공개 QR 등록을 마친 다음 웹툰 설명도 이어서 이식하도록 승인했다. 원본 `app/_entry/ServiceGuide.tsx`의 `CutReader`와 `lib/brand/service-guide-webtoon.mjs`(quickGuideStories 5종, 대표 6·전문 7 그룹)를 재사용하고 각 원본 href/상담 ID에 연결한다. 원본은 main의 `93f73981d`에 반영됐으며, 기존 Toss `StoryLibrary.tsx`와 `virtual:consultation-webtoons`를 재사용 시작점으로 삼는다. 이 후속 구현은 현재 간편 진입 UI와 별도 검증 단위로 진행한다.

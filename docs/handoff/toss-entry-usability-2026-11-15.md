@@ -14,6 +14,7 @@ next: 구현한 홈·찻집·프로필의 최종 check:fast와 커밋/pre-push/m
 - 다른 세션의 root ServiceGuide/webtoon 등 미커밋 변경은 보존한다. root 직접 편집 금지.
 
 ## 승인 상태
+- 2026-11-15 추가 요청 원문: “가상 모바일로 확인해볼게. 최종 CI와 새 비공개 테스트 QR 등록까지 계속 마무리하고, 그다음 기존 웹툰 방식 설명도 원본을 재사용해서 이식해줘. 실결제와 새 검토 제출은 계속 보류해.” 현재 QR 단위 완료 후 웹툰 구현을 별도 단위로 계속한다.
 - 2026-11-15 사용자는 QR18의 로그인·보관함·재진입 정상 확인.
 - 최신 제보 원문: “일단 프로필 카드 설정이 어렵게 되어있어서 확인이 어렵고 모든 운세 기능들 이식은 한것 같지만 ui/ux가 이용하기에 직관적이지 않아서 내 서비스를 참조해서 간편하게 개선해줘야할것 같다 너무 한 화면에 기능들이 모여있고 운명 찻집은 타로밖에 없는데 모든 운세 기능들이 이식이 되어야해 다른 기능들도 마찬가지이고”. 이것이 현재 작업의 성공 기준이다. 기능표 정리만으로 종료하지 않는다.
 - 실결제·실LLM·운영DB 테스트 쓰기·새 검토 제출·공개 출시 보류. 신규판매 닫힘. 기존가격/권리/서비스·계정소유권 유지. 새 UI 코드 구현·mock검수·LinuxAIT/비공개QR 등록은 기존 사용자 승인 범위.
@@ -57,3 +58,10 @@ next: 구현한 홈·찻집·프로필의 최종 check:fast와 커밋/pre-push/m
 - 별도 모의 AIT `--guided-profile`: 홈→로그인→4단계 초안→reload→네이티브 뒤로→B 빈 초안→A 복원 PASS. 편지 saju 및 네오 saju-partner도 주문 1건·원문·후속·cold reopen·B 거부 PASS.
 - check:fast는 paid77/lint PASS 뒤 sitemap 드리프트에서 종료. 정식 sitemap:generate와 재검사(1081 URL) PASS. 기존 계획의 나머지 단계를 `.tmp/guided-check-remaining.mjs`로 동일 guard/env에서 진행 중(session62014); 전체 타입 검사 PASS 후 Node 회귀 단계다. 통과한 앞 단계를 중복 실행하지 않는다.
 - 원본 웹툰 설명은 후속 이식: 다른 세션의 app/_entry/ServiceGuide.tsx, CutReader, lib/brand/service-guide-webtoon.mjs가 확정된 뒤 quickGuideStories 5종과 대표6/전문7 그룹을 원본 href/상담ID로 재사용한다. 이번에 미커밋 원본을 가져오지 않았다.
+
+## main 병합과 전달 진행
+- UI 복구 커밋 `3b48cdd9872dd0be9dfc5e885bb68ab177365dfb`를 root main에 병합한 커밋은 `b39b5c29e`이며 아직 push 전이다. 이전 main `1872bd579f0439be09a0e671f74dd1e050365d35` CI `43722216643`의 SUCCESS를 1회 확인했다.
+- 원장 충돌은 최신 main 원장을 기반으로 정식 sitemap:generate를 실행해 해소했다. verify:sitemap-drift URL1081, 병합 트리 check:pre-push 전체 PASS. 다른 세션 untracked `.claude/skills/fire-your-seo-agency/`는 보존했다.
+- paid77/lint/typecheck PASS. Node5099 중 당일 생성물 누락 1건은 로컬 fortune:build-data 후 해당 파일7/7 PASS로 해소했다. 나머지 계약/Worker/encoding PASS. 마지막 Jest479 suites/8011 tests PASS,1skip(448초), agent session77993 exit0. check:fast 공식 계획의 모든 단계를 완료했으며 전체 재실행하지 않는다. 로그5종은 Downloads/CodeDestiny/20261115-guided-entry-preview/verification에 보존했다.
+- root가 push와 콘솔 QR 등록을 담당하고 agent가 고정 push SHA의 Linux AIT 생성·검수를 담당한다. 콘솔 Ego20 p1에서 QR18 검토 필요·버전 등록 활성 확인. 검토 요청 버튼은 누르지 않는다.
+- 사용자 preview 4330은 계속 유지한다. 웹툰 원본은 main93f73981d에 들어왔으며 이번 QR 등록 후 기존 StoryLibrary/CutReader를 재사용해 후속 구현한다.
