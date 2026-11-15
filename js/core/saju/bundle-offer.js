@@ -35,6 +35,46 @@
     '대운 분석과 인생 흐름 해석'
   ];
 
+  // 결제 전 결정 정보(2026-11-15). 한국어 화면에만 붙는다(번역 사전에 키가 없는 문장이라 다른 언어에 한국어가 섞이지 않게).
+  // 문장·가격의 정본은 lib/marketing/decision-facts.mjs 와 lib/marketing/trust-record.mjs 이고, 이 사본은 __tests__/ui/decision-facts.test.mjs 가 대조한다.
+  var FACTS = [
+    ['결제', '한 번 결제로 끝나요. 구독·자동결제가 아니고, 이용권·월정석으로는 결제할 수 없어요.'],
+    ['다시 보기', '로그인한 같은 계정에서 구매한 생년월일 프로필로 다시 열어요.'],
+    ['작성', 'AI 생성이 아닌 명식 계산 풀이예요.']
+  ];
+  var TRUST_LINE = '2024년 공개 글로 두 대통령의 2025년을 미리 짚은 명리학자가 만든 상담';
+  var TRUST_HREF = '/insights/presidential-saju-public-records/';
+  var TRUST_LINK = '원문 날짜 확인하기';
+
+  function isKoreanSurface() {
+    try {
+      var lang = String((root.document && root.document.documentElement && root.document.documentElement.getAttribute('lang')) || 'ko').toLowerCase();
+      return lang === 'ko' || lang.indexOf('ko-') === 0;
+    } catch (_e) {
+      return false;
+    }
+  }
+
+  // 환불·청약철회 등 정책 링크는 결제창과 같은 빌더(checkout-entry.js buildPaymentPolicyLinksHtml)를 쓴다. 빌더가 아직 없으면 한국어 환불 안내만 건다.
+  function policyLinksHtml() {
+    try {
+      var entry = root.__cdCheckoutEntry;
+      if (entry && typeof entry.buildPaymentPolicyLinksHtml === 'function') return entry.buildPaymentPolicyLinksHtml({ escape: esc });
+    } catch (_e) { /* 빌더 실패 시 아래 기본 링크 */ }
+    return '<p class="cd-direct-payment-legal" data-policy-links><a href="/refund-policy" target="_blank" rel="noopener noreferrer">환불·청약철회</a></p>';
+  }
+
+  function factsHtml() {
+    if (!isKoreanSurface()) return '';
+    var rows = FACTS.map(function (row) { return '<dt>' + esc(row[0]) + '</dt><dd>' + esc(row[1]) + '</dd>'; }).join('');
+    return '<dl class="cd-bundle-offer__facts" data-cd-decision-facts>' + rows + '</dl>' + policyLinksHtml();
+  }
+
+  function trustHtml() {
+    if (!isKoreanSurface()) return '';
+    return '<p class="cd-bundle-offer__trust" lang="ko">' + esc(TRUST_LINE) + ' <a href="' + esc(TRUST_HREF) + '" target="_blank" rel="noopener noreferrer">' + esc(TRUST_LINK) + ' <span aria-hidden="true">›</span></a></p>';
+  }
+
   var SAMPLE = '예시 · 겉으로는 차분해 보여도 결정 앞에서는 근거를 오래 모으는 편이에요. 그 신중함이 언제 힘이 되고 언제 발목을 잡는지 장별로 풀어 드려요.';
 
   function isOpen() {
@@ -121,8 +161,10 @@
       + '<ul class="cd-bundle-offer__list">' + items + '</ul>'
       + '<p class="cd-bundle-offer__sample">' + esc(t('saju.bundle.sample', SAMPLE)) + '</p>'
       + '<p class="cd-bundle-offer__own">' + esc(t('saju.bundle.ownFreePolicy', '구매한 생년월일의 라이트 사주와 대운 풀이를 기간 제한 없이 다시 읽어요. 무료 공개된 기본·재미 사주는 별도 구매 없이 제공돼요. AI 생성 상담은 별도 상품이며 직접 선택할 때만 결제가 진행돼요.')) + '</p>'
+      + factsHtml()
       + guidance
       + (profileMissing ? saveButtonHtml() : payButtonHtml())
+      + trustHtml()
       + '</div>';
   }
 
@@ -139,6 +181,9 @@
       + '.cd-bundle-offer__price{margin:0 0 10px;font-size:.92rem}.cd-bundle-offer__price strong{font-size:1.2rem}'
       + '.cd-bundle-offer__list{margin:0 0 10px;padding-left:18px;font-size:.86rem;line-height:1.6;word-break:keep-all}'
       + '.cd-bundle-offer__sample,.cd-bundle-offer__own,.cd-bundle-offer__guide{margin:0 0 10px;font-size:.82rem;line-height:1.6;word-break:keep-all;color:#4b4560}'
+      + '.cd-bundle-offer__facts{display:grid;grid-template-columns:auto 1fr;gap:2px 10px;margin:0 0 6px;font-size:.8rem;line-height:1.55;word-break:keep-all;color:#4b4560}.cd-bundle-offer__facts dt{font-weight:700}.cd-bundle-offer__facts dd{margin:0}'
+      + '#' + OVERLAY_ID + ' .cd-direct-payment-legal{margin:0 0 10px;font-size:.78rem;color:#4b4560}#' + OVERLAY_ID + ' .cd-direct-payment-legal a,.cd-bundle-offer__trust a{color:inherit;text-decoration:underline;text-underline-offset:3px}'
+      + '.cd-bundle-offer__trust{margin:10px 0 0;font-size:.76rem;line-height:1.55;word-break:keep-all;color:#6b6480}'
       + '.cd-bundle-offer__pay,.cd-bundle-offer__more,.cd-bundle-offer__save{display:flex;align-items:center;justify-content:center;width:100%;min-height:44px;border:0;border-radius:10px;font-weight:800;font-size:.9rem;cursor:pointer;background:linear-gradient(90deg,#ffd54f,#ff8c00);color:#1a0a3a}'
       + '.cd-bundle-inline{margin:12px 0;padding:14px;border-radius:14px;border:1px solid rgba(187,163,113,.5);background:rgba(255,248,230,.6);color:#1f1b2d}'
       + '.cd-bundle-inline__title{margin:0 0 4px;font-size:.98rem}.cd-bundle-inline__desc{margin:0 0 10px;font-size:.84rem;line-height:1.55;word-break:keep-all}';

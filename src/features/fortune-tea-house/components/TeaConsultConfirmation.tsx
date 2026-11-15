@@ -8,6 +8,7 @@ import { teaSpreadCopy } from "../data/teaSpreadCopy";
 import { getFortuneTeaHouseConsultPriceLabel, getFortuneTeaHouseConsultFeatureKey } from "../data/consultPricing";
 import {rememberTossTeaPrice,type TossTeaPriceComponent,type TossTeaPriceSelection} from "../lib/tossPriceSelection";
 import CraftedProductDisclosure from "@/app/components/CraftedProductDisclosure";
+import DecisionFacts from "@/app/components/conversion/DecisionFacts";
 import { useLocale } from "@/lib/i18n/useT";
 import type { FortuneTeaHouseQuestionInput } from "../data/consult";
 import { useTeaHouseCopy } from "../lib/teaHouseCopy";
@@ -101,6 +102,7 @@ export default function TeaConsultConfirmation({paymentSurface="web",TossPrice,i
    </>}
   </>}
   {error&&<p role="alert">{error}{(loginError||!getAuthState().user)&&<a href={paymentSurface==="toss"?"/login/?next=%2Ffortune-tea-house%2F%3FrestoreTeaDraft%3D1":"/login/?next=%2Ffortune-tea-house%2F"}>{paymentSurface==="toss"?tossTeaPaymentCopy(locale).loginAction:copy.login}</a>}</p>}
+  {paymentSurface!=="toss"&&locale==="ko"&&<DecisionFacts/>}
   <div className={styles.actions}><TeaHouseButton variant="ghost" onClick={onBack} disabled={busy||loading}>{copy.edit}</TeaHouseButton><TeaHouseButton disabled={loading||!priceReady||(isTarot&&draft?.status!=="drawn")} loading={busy} onClick={()=>{if(!priceReady)return;if(paymentSurface==="toss"){rememberTossTeaPrice(recoveryOrder?null:tossPrice);handedToCheckout.current=true;}trackEvent("tea_consult_confirmed",{method:input.consultationMode});onConfirm({...input,consultationVersion:"tea-v2",...(isTarot?{attemptId:draft!.attemptId,tarotSpreadId:spreadId,tarotSpread:size}:{})});}}>{paymentSurface==="toss"?tossTeaPaymentCopy(locale).action:copy.continue}</TeaHouseButton></div>
  </section>;
 }

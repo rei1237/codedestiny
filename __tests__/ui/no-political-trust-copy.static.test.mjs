@@ -5,7 +5,7 @@ import path from 'node:path';
 import { trustStoriesCopy } from '../../lib/brand/trust-stories.mjs';
 
 // 신뢰·마케팅의 정치 주장은 제한한다. 2026-10-04 사용자 요청으로 날짜·원문을 갖춘 기존 기록 3건만 복원한다.
-const ROOTS = ['app', 'templates', 'lib/brand', 'lib/seo/public-record-copy.mjs', 'lib/marketing/trust-record.mjs', 'js/feature-detail-panels.mjs', 'i18n/authored', 'store-assets'];
+const ROOTS = ['app', 'templates', 'lib/brand', 'lib/seo/public-record-copy.mjs', 'lib/marketing/trust-record.mjs', 'js/core/saju/bundle-offer.js', 'js/feature-detail-panels.mjs', 'i18n/authored', 'store-assets'];
 const POLITICAL = /대통령|탄핵|윤석열|이재명|대선|president/gi;
 const TEXT = new Set(['.css', '.csv', '.html', '.js', '.json', '.jsx', '.md', '.mjs', '.ts', '.tsx', '.txt']);
 const BINARY = new Set(['.png', '.webp', '.jpg', '.jpeg', '.svg', '.ico', '.gif', '.avif']);
@@ -25,6 +25,7 @@ const ALLOWED = {
   'app/business/api/page.jsx': { count: 2, reason: '2026-11-08 사용자 지정 기업 API 제목과 원문 링크. 공개 기록의 시점과 사건 방식 차이를 함께 표시' },
   'lib/seo/public-record-copy.mjs': { count: 17, reason: '2026-10-28 사용자 요청: 종합 운세 플랫폼 제작자 소개를 공개 원문 비교와 연결. 적중률이나 사건 방식의 일치 보장 없음' },
   'lib/marketing/trust-record.mjs': { count: 4, reason: '2026-11-15 사용자 결정: 첫 화면 신뢰 띠 전체·축약 문구 각 1건 + 근거를 trust-stories.mjs에서 읽는 식별자 2건. "미리 짚은" 시점 표현만, 적중·유일·방식 일치 없음' },
+  'js/core/saju/bundle-offer.js': { count: 2, reason: '2026-11-15 사용자 결정: 라이트 사주 결제 안내 하단 신뢰 띠 축약 문구 1건 + 공개 기록 경로 1건(trust-record.mjs 사본, decision-facts 테스트가 대조). 적중·유일·방식 일치 없음' },
   'app/insights/public-record-article.js': { count: 3, reason: '2026-10-05 승인한 원문 3건의 날짜·사건·일치 한계 비교 문서' },
   'i18n/authored/globalReading-01.json': { count: 2, reason: '2026-10-05 해외 현지화 요청: 기존 공개 기록 소개 번역, 미래 적중 보장 제외' },
   'i18n/authored/homeOverseas-01.json': { count: 3, reason: '2026-10-06 현지화 요청: 기존 공개 기록 제목·설명을 번역 키로 이동. 아래에서 기존 원문과 정확히 대조' },

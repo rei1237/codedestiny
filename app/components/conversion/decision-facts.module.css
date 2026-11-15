@@ -1,0 +1,7 @@
+/* 결제 직전 결정 정보. 색은 놓인 화면(찻집 확인지)에서 물려받는다. */
+.facts { display: grid; gap: 6px; margin: 16px 0 0; padding: 12px 14px; border: 1px solid color-mix(in srgb, currentColor 18%, transparent); border-radius: 10px; font-size: .8125rem; line-height: 1.6; word-break: keep-all; overflow-wrap: anywhere; }
+.row { margin: 0; }
+.more summary { min-height: 32px; cursor: pointer; font-weight: 600; }
+.more .row + .row { margin-top: 4px; }
+.link { color: inherit; font-weight: 600; text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; }
+.trust { max-width: none; opacity: .85; }
