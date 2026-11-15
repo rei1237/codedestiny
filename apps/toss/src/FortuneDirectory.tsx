@@ -1,14 +1,23 @@
-import {useRef,useState} from 'react';
+import {useEffect,useRef,useState} from 'react';
 import {directory,fortuneCollections,directoryDestination,searchDirectory,type Consultation,type Destination,type DirectoryItem} from './home-directory';
 
 type Props={onOpen:(page:Destination)=>void;onConsult:(service:Consultation)=>void};
 const sectionArt={books:'/assets/yeoni-yeongnyangi-garden.webp',reports:'/assets/toss-art/report-saju-yeongnyangi-v1.webp'};
 const sectionDescription={rooms:'연이·네오에게 내 고민 상담하기',fortune:'사주·타로·점성술과 오늘의 운세',books:'이야기·음악·달빛 홈 화면',reports:'연애·재물·인생을 깊이 살펴보기'};
+// Match the web garden's six entry points; keep descriptions and destinations in the catalogue.
+const quickDestinations=['saju/basic/play','tarot-library','ziwei/chart','sukuyo','vedic','astrology'];
+const quickEntries=quickDestinations.map(id=>directory.flatMap(group=>group.entries).find(item=>directoryDestination(item)===id)!);
+type BrowseState={query:string;expanded:string[];collection:string};
 
 export default function FortuneDirectory({onOpen,onConsult}:Props){
- const [query,setQuery]=useState('');
- const [expanded,setExpanded]=useState<string[]>(['rooms']);
- const [collection,setCollection]=useState('saju');
+ const saved=useRef<BrowseState|undefined>(window.history.state?.tossDirectory);
+ const [query,setQuery]=useState(saved.current?.query??'');
+ const [expanded,setExpanded]=useState<string[]>(saved.current?.expanded??['rooms']);
+ const [collection,setCollection]=useState(saved.current?.collection??'saju');
+ useEffect(()=>{
+   // Stay on this history entry: Back restores browsing without retaining account/profile data.
+   window.history.replaceState({...window.history.state,tossDirectory:{query,expanded,collection}},'');
+ },[query,expanded,collection]);
  const input=useRef<HTMLInputElement>(null);
  const groups=searchDirectory(query);
  const count=groups.reduce((sum,group)=>sum+group.entries.length,0);
@@ -19,6 +28,10 @@ export default function FortuneDirectory({onOpen,onConsult}:Props){
    else location.assign(item.href);
  }
  return <div className="fortune-directory">
+   {!searching&&<section className="directory-quick" aria-labelledby="directory-quick-title">
+     <h2 id="directory-quick-title">어떤 운세부터 볼까요?</h2>
+     <div>{quickEntries.map(item=><button key={item.title} type="button" aria-label={item.title+' 바로 시작하기'} onClick={()=>open(item)}><strong>{item.title}</strong><small>{item.body}</small><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg></button>)}</div>
+   </section>}
    <div className="directory-search">
      <label htmlFor="fortune-directory-query">운세 찾기</label>
      <div><input id="fortune-directory-query" ref={input} type="search" placeholder="사주, 작명, 네오, 웹툰…" value={query} onChange={e=>setQuery(e.target.value)}/>

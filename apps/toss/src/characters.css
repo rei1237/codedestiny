@@ -74,6 +74,15 @@
 
 .fortune-directory { color:var(--moon-ink); margin-top:24px; }
 .directory-search { display:grid; gap:7px; }
+.directory-quick { margin-bottom:32px; }
+.directory-quick h2 { margin:0 0 12px; color:var(--moon-ink); font:600 21px/1.5 var(--toss-serif); }
+.directory-quick>div { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:0 16px; border-top:1px solid var(--moon-line); }
+.directory-quick button { position:relative; min-width:0; min-height:88px; padding:14px 18px 14px 0; border:0; border-bottom:1px solid var(--moon-line); background:transparent; color:var(--moon-ink); text-align:left; cursor:pointer; }
+.directory-quick strong { display:block; font:600 16px/1.5 var(--toss-serif); word-break:keep-all; overflow-wrap:anywhere; }
+.directory-quick small { display:block; margin-top:4px; color:var(--moon-muted); font:400 13px/1.6 var(--toss-sans,sans-serif); word-break:keep-all; overflow-wrap:anywhere; }
+.directory-quick svg { position:absolute; right:0; top:18px; color:var(--moon-accent); }
+.directory-quick button:focus-visible { outline:2px solid var(--moon-accent); outline-offset:3px; }
+.directory-quick button:active { background:var(--moon-paper); }
 .directory-search label { color:var(--moon-ink); font:600 15px/1.6 var(--toss-serif); }
 .directory-search>div { display:flex; align-items:center; background:#fffcf6; border:1px solid #b6a183; border-radius:12px; }
 .directory-search>div:focus-within { outline:2px solid var(--moon-accent); outline-offset:2px; }
