@@ -236,5 +236,47 @@
     "de": "Vier Säulen × Ziwei",
     "nl": "Vier Pijlers × Ziwei",
     "ms": "Empat Tiang × Ziwei"
+  },
+  "featureMarketing.heukwol.fallbackTitle": {
+    "ko": "흑월의 경고",
+    "en": "Black Moon Warning",
+    "ja": "黒月の警告",
+    "zh-CN": "黑月的警告",
+    "zh-TW": "黑月的警告",
+    "vi": "Lời cảnh báo của Trăng Đen",
+    "hi": "काले चाँद की चेतावनी",
+    "es": "La advertencia de la Luna Negra",
+    "fr": "L’avertissement de la Lune Noire",
+    "de": "Die Warnung des Schwarzen Mondes",
+    "nl": "De waarschuwing van de Zwarte Maan",
+    "ms": "Amaran Bulan Hitam"
+  },
+  "featureMarketing.heukwol.premiumRequired.0": {
+    "ko": "저장된 프로필",
+    "en": "Saved profile",
+    "ja": "保存したプロフィール",
+    "zh-CN": "已保存的个人资料",
+    "zh-TW": "已儲存的個人資料",
+    "vi": "Hồ sơ đã lưu",
+    "hi": "सहेजी गई प्रोफ़ाइल",
+    "es": "Perfil guardado",
+    "fr": "Profil enregistré",
+    "de": "Gespeichertes Profil",
+    "nl": "Opgeslagen profiel",
+    "ms": "Profil tersimpan"
+  },
+  "featureMarketing.heukwol.premiumRequired.1": {
+    "ko": "살펴볼 연도와 질문",
+    "en": "Year and question to explore",
+    "ja": "確認したい年と質問",
+    "zh-CN": "希望了解的年份与问题",
+    "zh-TW": "希望了解的年份與問題",
+    "vi": "Năm và câu hỏi muốn tìm hiểu",
+    "hi": "वह वर्ष और प्रश्न जिसे देखना है",
+    "es": "Año y pregunta que quieres explorar",
+    "fr": "Année et question à explorer",
+    "de": "Gewünschtes Jahr und Ihre Frage",
+    "nl": "Het jaar en de vraag die je wilt onderzoeken",
+    "ms": "Tahun dan soalan yang ingin diterokai"
   }
 }

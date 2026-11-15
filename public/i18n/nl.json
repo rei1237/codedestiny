@@ -17667,6 +17667,11 @@
       "fallbackCta": "Explore periods to watch",
       "premiumOutcomes": [
         "Read this as guidance for your choices, not a certainty about the future."
+      ],
+      "fallbackTitle": "Black Moon Warning",
+      "premiumRequired": [
+        "Saved profile",
+        "Year and question to explore"
       ]
     }
   },
@@ -22578,10 +22583,10 @@
       "natal": "Je aard in de vier pijlers",
       "today": "De dag en een kleine stap",
       "tarot": "Gevoelens en keuzes met kaarten",
-      "ziwei": "Museong · De twaalf paleizen van je geboortehoroscoop",
-      "sukuyo": "Seohanbi · Je aard en relaties via de maan",
-      "vedic": "Yundal · De hemel bij je geboorte",
-      "astro": "Yundal · Ontdek je aard via planeten en huizen"
+      "ziwei": "De twaalf paleizen van je geboortehoroscoop",
+      "sukuyo": "Je aard en relaties via de maan",
+      "vedic": "De hemel bij je geboorte",
+      "astro": "Ontdek je aard via planeten en huizen"
     }
   }
 }

@@ -17667,6 +17667,11 @@
       "fallbackCta": "Explore periods to watch",
       "premiumOutcomes": [
         "Read this as guidance for your choices, not a certainty about the future."
+      ],
+      "fallbackTitle": "Black Moon Warning",
+      "premiumRequired": [
+        "Saved profile",
+        "Year and question to explore"
       ]
     }
   },
@@ -22578,10 +22583,10 @@
       "natal": "चार स्तंभों से स्वभाव जानें",
       "today": "आज का प्रवाह और छोटा कदम",
       "tarot": "कार्ड से भावनाएँ और विकल्प जानें",
-      "ziwei": "Museong · जन्म कुंडली के बारह महल देखें",
-      "sukuyo": "Seohanbi · चंद्र नक्षत्र से स्वभाव और रिश्ते",
-      "vedic": "Yundal · जन्म के आकाश से स्वभाव जानें",
-      "astro": "Yundal · ग्रहों और भावों से अपना स्वभाव जानें"
+      "ziwei": "जन्म कुंडली के बारह महल देखें",
+      "sukuyo": "चंद्र नक्षत्र से स्वभाव और रिश्ते",
+      "vedic": "जन्म के आकाश से स्वभाव जानें",
+      "astro": "ग्रहों और भावों से अपना स्वभाव जानें"
     }
   }
 }

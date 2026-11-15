@@ -17667,6 +17667,11 @@
       "fallbackCta": "Explore periods to watch",
       "premiumOutcomes": [
         "Read this as guidance for your choices, not a certainty about the future."
+      ],
+      "fallbackTitle": "Black Moon Warning",
+      "premiumRequired": [
+        "Saved profile",
+        "Year and question to explore"
       ]
     }
   },
@@ -22578,10 +22583,10 @@
       "natal": "Sifat melalui empat tiang",
       "today": "Aliran hari ini dan langkah kecil",
       "tarot": "Perasaan dan pilihan melalui kad",
-      "ziwei": "Museong · Dua belas istana carta kelahiran",
-      "sukuyo": "Seohanbi · Sifat dan hubungan melalui bulan",
-      "vedic": "Yundal · Langit ketika kelahiran anda",
-      "astro": "Yundal · Kenali sifat diri melalui planet dan rumah astrologi"
+      "ziwei": "Dua belas istana carta kelahiran",
+      "sukuyo": "Sifat dan hubungan melalui bulan",
+      "vedic": "Langit ketika kelahiran anda",
+      "astro": "Kenali sifat diri melalui planet dan rumah astrologi"
     }
   }
 }

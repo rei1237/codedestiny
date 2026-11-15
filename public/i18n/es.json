@@ -17667,6 +17667,11 @@
       "fallbackCta": "Explore periods to watch",
       "premiumOutcomes": [
         "Read this as guidance for your choices, not a certainty about the future."
+      ],
+      "fallbackTitle": "Black Moon Warning",
+      "premiumRequired": [
+        "Saved profile",
+        "Year and question to explore"
       ]
     }
   },
@@ -22578,10 +22583,10 @@
       "natal": "Tu naturaleza en los cuatro pilares",
       "today": "El flujo de hoy y un pequeño paso",
       "tarot": "Explora emociones y opciones con cartas",
-      "ziwei": "Museong · Descubre los doce palacios de tu carta",
-      "sukuyo": "Seohanbi · Naturaleza y relaciones según la Luna",
-      "vedic": "Yundal · Explora el cielo de tu nacimiento",
-      "astro": "Yundal · Explora tu carácter a través de planetas y casas"
+      "ziwei": "Descubre los doce palacios de tu carta",
+      "sukuyo": "Naturaleza y relaciones según la Luna",
+      "vedic": "Explora el cielo de tu nacimiento",
+      "astro": "Explora tu carácter a través de planetas y casas"
     }
   }
 }

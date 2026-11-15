@@ -17667,6 +17667,11 @@
       "fallbackCta": "Explore periods to watch",
       "premiumOutcomes": [
         "Read this as guidance for your choices, not a certainty about the future."
+      ],
+      "fallbackTitle": "Black Moon Warning",
+      "premiumRequired": [
+        "Saved profile",
+        "Year and question to explore"
       ]
     }
   },
@@ -22578,10 +22583,10 @@
       "natal": "Wesen in den vier Säulen",
       "today": "Tagesfluss und ein kleiner Schritt",
       "tarot": "Gefühle und Entscheidungen mit Karten",
-      "ziwei": "Museong · Die zwölf Paläste des Geburtshoroskops",
-      "sukuyo": "Seohanbi · Wesen und Beziehungen nach dem Mond",
-      "vedic": "Yundal · Der Himmel bei Ihrer Geburt",
-      "astro": "Yundal · Entdecke dein Wesen durch Planeten und Häuser"
+      "ziwei": "Die zwölf Paläste des Geburtshoroskops",
+      "sukuyo": "Wesen und Beziehungen nach dem Mond",
+      "vedic": "Der Himmel bei Ihrer Geburt",
+      "astro": "Entdecke dein Wesen durch Planeten und Häuser"
     }
   }
 }

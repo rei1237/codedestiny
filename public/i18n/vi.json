@@ -17667,6 +17667,11 @@
       "fallbackCta": "Explore periods to watch",
       "premiumOutcomes": [
         "Read this as guidance for your choices, not a certainty about the future."
+      ],
+      "fallbackTitle": "Black Moon Warning",
+      "premiumRequired": [
+        "Saved profile",
+        "Year and question to explore"
       ]
     }
   },
@@ -22578,10 +22583,10 @@
       "natal": "Đọc tính cách qua Tứ trụ",
       "today": "Xu hướng hôm nay và hành động nhỏ",
       "tarot": "Đọc cảm xúc và lựa chọn qua bài",
-      "ziwei": "Museong · Khám phá mười hai cung lá số",
-      "sukuyo": "Seohanbi · Tính cách và quan hệ qua sao Mặt Trăng",
-      "vedic": "Yundal · Khám phá bầu trời lúc chào đời",
-      "astro": "Yundal · Khám phá tính cách qua hành tinh và các cung nhà"
+      "ziwei": "Khám phá mười hai cung lá số",
+      "sukuyo": "Tính cách và quan hệ qua sao Mặt Trăng",
+      "vedic": "Khám phá bầu trời lúc chào đời",
+      "astro": "Khám phá tính cách qua hành tinh và các cung nhà"
     }
   }
 }

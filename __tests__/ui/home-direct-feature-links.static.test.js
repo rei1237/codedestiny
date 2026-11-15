@@ -52,7 +52,7 @@ assert.ok(quickSection, "홈 무료 바로 시작 섹션을 찾지 못했습니�
 const quickCards=[...homeDocument.querySelectorAll('#cdQuickServices > a')];
 assert.deepEqual(quickCards.map(card=>card.dataset.cdFreePromoItem),['natal','tarot','ziwei','sukuyo','vedic','astro']);
 assert.equal(homeDocument.querySelector('#cdhFreePromoAll [data-cd-free-promo-item="today"]').getAttribute('href'),'/today/','오늘의 운세는 전체 무료 목록에 유지한다');
-for(const card of quickCards) assert.match(card.querySelector('.cdh-promo__guide img').getAttribute('src'),/^\/images\/home\/free-fortune-faces\//,'설명 옆에는 아틀리에의 투명 얼굴 배지를 쓴다');
+for(const card of quickCards) assert.match(card.querySelector('.cdh-promo__symbol img').getAttribute('src'),/^\/images\/home\/illustrated\/method-/,'진입점에는 얼굴 대신 운세 체계별 상징을 쓴다');
 for(const card of quickCards)assert.ok(card.getAttribute('href').startsWith('/ggulggul/?action=')||card.getAttribute('href')==='/today/');
 const heukwol=homeDocument.querySelector('[data-picker-featured] [data-cd-service-id="heukwol"]');
 assert.ok(heukwol&&!heukwol.hidden&&!heukwol.closest('details'));

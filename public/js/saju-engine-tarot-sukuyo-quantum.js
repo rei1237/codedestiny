@@ -6625,7 +6625,7 @@ function syRenderWheelCard(wheelState, compatInfo) {
 }
 
 function syHanbiGuide(message) {
-  return '<div class="sy-master-voice"><img src="/images/master-profiles/avatars/hanbi.webp" width="48" height="48" alt="" loading="lazy"><p><strong>서한비</strong>' + syCanonicalEsc(message) + '</p></div>';
+  return '<div class="sy-master-voice"><img src="/images/home/free-fortune-faces/seohanbi.webp" width="192" height="192" alt="" decoding="async"><p><strong>서한비</strong>' + syCanonicalEsc(message) + '</p></div>';
 }
 
 function syCanonicalEsc(value) {
@@ -8938,15 +8938,13 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         @media (hover: hover) { .sy-card:hover { transform: translateY(-3px); border-color:rgba(248,250,252,0.36); box-shadow:0 22px 58px rgba(2,6,23,0.52), 0 0 28px rgba(219,234,254,0.14); } }
         .sy-intro-card { animation:syIntroFade 0.7s ease both; }
         .sy-intro-head { display:flex; align-items:center; gap:12px; margin-bottom:12px; }
-        .sy-intro-card.sy-master-intro { display:grid; grid-template-columns:minmax(0,0.9fr) minmax(0,1.1fr); gap:22px; align-items:center; border:1px solid rgba(219,234,254,.3); }
-        .sy-master-art { display:block; width:100%; height:auto; aspect-ratio:3/2; border-radius:12px; }
+        .sy-intro-card.sy-master-intro { border:1px solid rgba(219,234,254,.3); }
         .sy-master-reading { min-width:0; }
         .sy-master-reading .sy-intro-title { overflow-wrap:anywhere; }
         .sy-master-voice { display:flex; align-items:center; gap:12px; margin:16px 0; color:#e2e8f0; line-height:1.75; }
-        .sy-master-voice img { width:48px; height:48px; flex:0 0 48px; border-radius:50%; object-fit:cover; }
+        .sy-master-voice img { width:56px; height:56px; flex:0 0 56px; border-radius:0; object-fit:contain; background:none; }
         .sy-master-voice p { margin:0; min-width:0; }
         .sy-master-voice strong { display:block; color:#f8e7b7; }
-        @media(max-width:600px) { .sy-intro-card.sy-master-intro { grid-template-columns:minmax(0,1fr); gap:16px; } }
         .sy-intro-icon { flex:0 0 auto; width:46px; height:46px; display:flex; align-items:center; justify-content:center; font-size:1.5rem; border-radius:999px; background:radial-gradient(circle at 34% 30%, rgba(255,255,255,0.22), rgba(191,219,254,0.1) 60%, transparent 100%); border:1px solid rgba(219,234,254,0.3); box-shadow:0 0 20px rgba(219,234,254,0.14); }
         .sy-intro-eyebrow { margin:0; font-size:0.72rem; letter-spacing:0.14em; color:#a5b4fc; }
         .sy-intro-title { margin:3px 0 0; font-size:1.16rem; color:#f1f5ff; font-weight:600; line-height:1.4; }
@@ -9539,7 +9537,6 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
       var _introSymbol = syReadingOverrideByIndex(sData.mansionIdx, 'symbolLine');
       var _introArchetype = syEnsureSentenceEnding(String(_introTr.desc || _introTr.core || '').trim());
       html += `<div class="sy-card sy-intro-card sy-master-intro">
-        <img class="sy-master-art" src="/images/master-profiles/hanbi-sukuyo-reading.webp" width="1200" height="800" alt="달빛 아래 장부를 펼쳐 본명숙을 읽어 주는 서한비" decoding="async">
         <div class="sy-master-reading">
         <div class="sy-intro-head">
           <span class="sy-intro-icon" aria-hidden="true">${syCanonicalMoonSvg({elongationAngle:180}, '달 장식')}</span>

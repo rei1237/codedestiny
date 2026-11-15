@@ -1721,8 +1721,8 @@ html.neo-mode #cdHomeFunnel .cdh-scene-art #honeypigLogo{box-shadow:none!importa
 .cdh-promo__until {margin:8px 0 0;font-size:14px;color:var(--fp-muted);}
 .cdh-promo__featured {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-top:28px;}
 #cdHomeFunnel .cdh-promo .cdh-promo__card {display:flex;flex-direction:column;overflow:hidden;border:1px solid #ded3c2;border-radius:16px;background:var(--fp-bg);transition:transform .16s ease,border-color .16s ease;min-width:0;}
-.cdh-promo__guide {display:flex;align-items:center;gap:12px;min-height:72px;}
-.cdh-promo__guide > img {display:block;flex:0 0 64px;width:64px;height:64px;object-fit:contain;background:none;}
+.cdh-promo__symbol {display:grid;place-items:center;min-height:136px;padding:16px;background:#242139 url('/images/home/illustrated/moon-floral-dark-480.webp') center/cover;border-bottom:1px solid #b3935b;}
+.cdh-promo__symbol > img {display:block;width:104px;height:104px;object-fit:contain;filter:drop-shadow(0 5px 8px rgba(0,0,0,.2));}
 .cdh-promo__copy {display:flex;flex:1;flex-direction:column;gap:8px;padding:16px;}
 .cdh-promo__copy > strong {font:400 23px/1.4 var(--font-display, Jua, sans-serif);color:var(--fp-ink);word-break:keep-all;}
 .cdh-promo__desc {font-size:15px;color:var(--fp-muted);word-break:keep-all;}
@@ -1751,10 +1751,12 @@ html.neo-mode #cdHomeFunnel .cdh-scene-art #honeypigLogo{box-shadow:none!importa
  #cdHomeFunnel .cdh-promo .cdh-promo__title {font-size:28px;}
  .cdh-promo__description {max-width:none;}
  .cdh-promo__actions {margin-top:16px;}
- .cdh-promo__featured {grid-template-columns:1fr;gap:12px;margin-top:20px;}
+ .cdh-promo__featured {grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:20px;}
+ .cdh-promo__symbol {min-height:112px;padding:8px;}
+ .cdh-promo__symbol > img {width:96px;height:96px;}
  .cdh-promo__copy {padding:12px;gap:6px;}
  .cdh-promo__copy > strong {font-size:21px;}
- .cdh-promo__cardFoot {gap:6px;}
+ .cdh-promo__cardFoot {flex-direction:column;align-items:flex-start;gap:6px;}
  .cdh-promo__groups {grid-template-columns:1fr;gap:12px;}
 }
 @media(prefers-reduced-motion:reduce){.cdh-promo__card{transition:none;}.cdh-promo__card:hover{transform:none;}}
