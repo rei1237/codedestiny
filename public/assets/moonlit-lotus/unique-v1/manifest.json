@@ -1,0 +1,289 @@
+{
+  "version": 1,
+  "generator": "built-in image_gen",
+  "cell": 384,
+  "baseline": 354,
+  "columns": 4,
+  "rows": 4,
+  "frames": [
+    "idle",
+    "blink",
+    "greeting",
+    "meditation",
+    "prayer",
+    "lower",
+    "kneel",
+    "floor_support",
+    "bow_low",
+    "recover_support",
+    "recover_kneel",
+    "stand_prayer",
+    "walk_contact",
+    "walk_pass",
+    "walk_opposite_contact",
+    "walk_opposite_pass"
+  ],
+  "assets": [
+    {
+      "species": "hanbi-motion",
+      "source": "e96d6d67-c0d9-4b92-b1d7-714f6663895a",
+      "bytes": 670492,
+      "frames": [
+        {
+          "name": "hanbi-motion_0",
+          "height": 318,
+          "sha256": "8123205713c5d2b67bd218b45bb266b7bddd11e67da42c6eb2c59cfdddd9ed11"
+        },
+        {
+          "name": "hanbi-motion_1",
+          "height": 317,
+          "sha256": "689a04be7f6f85ebf9cfa6f2f5ff58e1b703cd5574106c0c5da7cec39a9535d9"
+        },
+        {
+          "name": "hanbi-motion_2",
+          "height": 318,
+          "sha256": "aba7556238cb098fb588b89bdcccadf20630bcd2d24ed41bec24c58c1274679f"
+        },
+        {
+          "name": "hanbi-motion_3",
+          "height": 318,
+          "sha256": "99d91301c98b91c4fa0acd50e3109e8203a694d3c0408dfac73d65cf34fc2887"
+        },
+        {
+          "name": "hanbi-motion_4",
+          "height": 317,
+          "sha256": "8cf3d69e380d0a050176e6997739b90949599c795c0bfd7e371ba74bd8462d21"
+        },
+        {
+          "name": "hanbi-motion_5",
+          "height": 317,
+          "sha256": "1e76fda2ca28863e72a6e50cf0c9af704cd3711c479d18da930b696546f36fd2"
+        },
+        {
+          "name": "hanbi-motion_6",
+          "height": 318,
+          "sha256": "c3176e056c0c47474d09f367acef0a5fc94fcbcd34d48aa4bd86f4f56f6400b8"
+        },
+        {
+          "name": "hanbi-motion_7",
+          "height": 318,
+          "sha256": "e19828697570b2f29afc77be62519d10c304c6a7fcc7fe00ec9e46c8d9d5e22e"
+        },
+        {
+          "name": "hanbi-motion_8",
+          "height": 303,
+          "sha256": "b55a96c5c7cb990a29ae6c81f0a55116c48c84d92d17a43398cd9bf8cdfdd3aa"
+        },
+        {
+          "name": "hanbi-motion_9",
+          "height": 300,
+          "sha256": "f17b8603baa6c1d0a8e677efc81646d41a6d97d3eeaca05636ea1bf948f5aa09"
+        },
+        {
+          "name": "hanbi-motion_10",
+          "height": 300,
+          "sha256": "fc361d270ac9e04b8371975e5c1eb0e885685177b2b78fd8122a342317ba847a"
+        },
+        {
+          "name": "hanbi-motion_11",
+          "height": 300,
+          "sha256": "b50e147968f2e44250ffa6ce60f69991e7b8b4c4a76a6fc5e1a9e0a3687b7e19"
+        },
+        {
+          "name": "hanbi-motion_12",
+          "height": 317,
+          "sha256": "808baafcadd4acc086c957f6a27e8e8356816d7f9ab6363d31fef168b3ad080e"
+        },
+        {
+          "name": "hanbi-motion_13",
+          "height": 308,
+          "sha256": "b92ef08e98e4bd3147c77c1673968ea1285834bdaf69b4c46d27a14cacbe06f1"
+        },
+        {
+          "name": "hanbi-motion_14",
+          "height": 309,
+          "sha256": "e30eef11c1739562711c34d0c7aa01ccb0c80da2d0c8f791b707949353bb6205"
+        },
+        {
+          "name": "hanbi-motion_15",
+          "height": 310,
+          "sha256": "301d08057a4276f41f034000ee6d5a995228c8d74c487b9e7907f0ee550bf32e"
+        }
+      ]
+    },
+    {
+      "species": "hanbi-walk",
+      "source": "0f7b61b0-63b8-4fe3-a1e6-440d39a70692",
+      "bytes": 516440,
+      "frames": [
+        {
+          "name": "hanbi-walk_0",
+          "height": 299,
+          "sha256": "7a0bcdf767036456b8ee52aee5e3f10757d025c20aaa6a0efb647b6b49878bb8"
+        },
+        {
+          "name": "hanbi-walk_1",
+          "height": 299,
+          "sha256": "340f1f4e55fb7f5c8df709752e9fa12dea6c2a7bbe18fb0645241e9fffcc81d2"
+        },
+        {
+          "name": "hanbi-walk_2",
+          "height": 297,
+          "sha256": "16d47d80a4122e738c932090c7b54e87beb7ee782856e63e0bf6a6c6d6c39fad"
+        },
+        {
+          "name": "hanbi-walk_3",
+          "height": 297,
+          "sha256": "f16c309a79a1db6538b411899d404c398d740c38718e35a1c44a56d69b443cd0"
+        },
+        {
+          "name": "hanbi-walk_4",
+          "height": 290,
+          "sha256": "85003395c6c1d12e8a64026af1af77c4ebae6ced3814ff3d738b6ae424eea971"
+        },
+        {
+          "name": "hanbi-walk_5",
+          "height": 282,
+          "sha256": "3fdeed8c56f0bfe71b3ba6006af7c054e7212027f92376e6cbbbd7c85ebc8792"
+        },
+        {
+          "name": "hanbi-walk_6",
+          "height": 283,
+          "sha256": "8d948bfd5fcff38e61158593afa542a3cc4660349fdd39f356f81861fce53423"
+        },
+        {
+          "name": "hanbi-walk_7",
+          "height": 278,
+          "sha256": "a08831004561199d53f9f71f16ed7dc6cebefe8c266b6449ca32905c2d43426c"
+        },
+        {
+          "name": "hanbi-walk_8",
+          "height": 283,
+          "sha256": "9c5d0b9edfef0e49dc1b32d785e4a55defa8954117acf9dd7ea837db6e98dc2c"
+        },
+        {
+          "name": "hanbi-walk_9",
+          "height": 286,
+          "sha256": "91cf7a9b06b358da64a2ff2216d48b7af8ffc1fb7439e9517ce33bcd34d82383"
+        },
+        {
+          "name": "hanbi-walk_10",
+          "height": 286,
+          "sha256": "ba8cbb1167c4831220045810b2ae97f7e09e416e0f69f3ad5eb3f96fcef17e60"
+        },
+        {
+          "name": "hanbi-walk_11",
+          "height": 288,
+          "sha256": "4554a1a4e35a8b12a74f03e7abe048c2a23bc08c051abb151b76e89434543413"
+        },
+        {
+          "name": "hanbi-walk_12",
+          "height": 296,
+          "sha256": "b188cba5f85277c40c8b8411a65ae4f7e78c01e67c28799c49ebb2305df7c605"
+        },
+        {
+          "name": "hanbi-walk_13",
+          "height": 291,
+          "sha256": "922a1389c420b5337e4a53a9687b67fd0cace9aafe623323c4f1c81f14f946ac"
+        },
+        {
+          "name": "hanbi-walk_14",
+          "height": 294,
+          "sha256": "4470805daf6ec8f38de67bd4685cefb106f7e433d7d831c2d74e923e5eb97959"
+        },
+        {
+          "name": "hanbi-walk_15",
+          "height": 299,
+          "sha256": "f9d4189f97edafaa9788f7a365e3839077dd375a893dcc07df19bc7f765c6a01"
+        }
+      ]
+    },
+    {
+      "species": "hanbi-bow",
+      "source": "17f5f6c8-801a-44c7-a977-6b0107bbdf4b",
+      "bytes": 521078,
+      "frames": [
+        {
+          "name": "hanbi-bow_0",
+          "height": 320,
+          "sha256": "06cbaea9f48253a1cdc8553c959eade442ce203fbcb14d63989fde71564f7a10"
+        },
+        {
+          "name": "hanbi-bow_1",
+          "height": 298,
+          "sha256": "4092dff302eda6b8ee4a99649751c2d3cdbeabea160e4240891c50c603b1b749"
+        },
+        {
+          "name": "hanbi-bow_2",
+          "height": 280,
+          "sha256": "ff16703f5246c77985621d89d387ac46352a975161450a85c44bf704ac873103"
+        },
+        {
+          "name": "hanbi-bow_3",
+          "height": 246,
+          "sha256": "6dfb9f90543c142b883338d0d8d61851c0e7bb7c60f8560bea3695b675c50800"
+        },
+        {
+          "name": "hanbi-bow_4",
+          "height": 272,
+          "sha256": "b2f18c9f86cb67fad85aefe35b9d5871e030141842fb34c20475ad4631243964"
+        },
+        {
+          "name": "hanbi-bow_5",
+          "height": 266,
+          "sha256": "e52512e697947af80101eb9671037008faa3b4930e60bbf8f524e03968c50d26"
+        },
+        {
+          "name": "hanbi-bow_6",
+          "height": 253,
+          "sha256": "e43bdd7babd80729963d67ae5c6727d41982cd6804d92f4720a877d88dfc91d2"
+        },
+        {
+          "name": "hanbi-bow_7",
+          "height": 225,
+          "sha256": "5d616a1111fff3c31a53c2f40219b03a00192967ec302067327cd4d898661b50"
+        },
+        {
+          "name": "hanbi-bow_8",
+          "height": 179,
+          "sha256": "8c31a0dc66deba14340db78c5b3796b056fc6069310902e8b3941154163a04d4"
+        },
+        {
+          "name": "hanbi-bow_9",
+          "height": 203,
+          "sha256": "a321e06c939dc88b75a646afa2cb52bcafee29afceb17131c0ba7ba8f10de0b3"
+        },
+        {
+          "name": "hanbi-bow_10",
+          "height": 238,
+          "sha256": "321887ad5f7a835ca0d7edec2dfa73537f543e506634242f3e084aa858b2dc44"
+        },
+        {
+          "name": "hanbi-bow_11",
+          "height": 258,
+          "sha256": "05533b1d3a8da153981d29ebcb53fcf86ca55d0b2edb08c13685ea666fb02768"
+        },
+        {
+          "name": "hanbi-bow_12",
+          "height": 273,
+          "sha256": "c3ccd70adfce7737e7d2676de4fff2225126c99d57255e4a3e852c3917ab34fe"
+        },
+        {
+          "name": "hanbi-bow_13",
+          "height": 296,
+          "sha256": "cde75d58d2e4dc7b0757c4c24960b72f2a4d18a6294ee96300a947ad1d175e66"
+        },
+        {
+          "name": "hanbi-bow_14",
+          "height": 315,
+          "sha256": "40ffb655524d4fbfb45a28330d2d5961b8b06338a1243fadaf7520c9500196f5"
+        },
+        {
+          "name": "hanbi-bow_15",
+          "height": 321,
+          "sha256": "abfbac6895baf202f32761172d7044ff3cee113ef9bb0e7f2c426f84754688fe"
+        }
+      ]
+    }
+  ]
+}
