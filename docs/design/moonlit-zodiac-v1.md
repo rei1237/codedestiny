@@ -54,3 +54,4 @@
 - 외부API 없는 fortune:build-data 후 실패파일 sky-and-range.test.mjs 재실행7/7통과. 이미통과한5105개를반복하지않고 계획의 test:node 다음단계부터 순서대로 실행했다.
 - 추가서한비반영후 typecheck, 변경파일ESLint 통과. 관련 UI/세션/자산 Node검사17/17통과.
 - 실제9회완료,새로고침1회복원,키보드선택,걷기이미지디코딩실패대체 확인. impeccable detect 선택컴포넌트 findings0.
+- 나머지 공식 계획의 정책검증·Worker dry build·인코딩 검사 통과. Jest479 suites/8012 tests 통과, 기존1개 skipped.
