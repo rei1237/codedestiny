@@ -1,0 +1,269 @@
+{
+  "version": "yeoni-2d-v1",
+  "renderer": "2d-sprite",
+  "columns": 4,
+  "rows": 3,
+  "cell": 384,
+  "baseline": 354,
+  "sheets": {
+    "expressions": {
+      "url": "/assets/moonlit-lotus/yeoni/2d-v1/expressions.webp",
+      "width": 1536,
+      "height": 1152,
+      "bytes": 510320,
+      "frames": [
+        {
+          "index": 0,
+          "sourceCrop": {
+            "left": 77,
+            "top": 13,
+            "width": 217,
+            "height": 330
+          },
+          "baseline": 354
+        },
+        {
+          "index": 1,
+          "sourceCrop": {
+            "left": 76,
+            "top": 14,
+            "width": 218,
+            "height": 329
+          },
+          "baseline": 354
+        },
+        {
+          "index": 2,
+          "sourceCrop": {
+            "left": 76,
+            "top": 14,
+            "width": 219,
+            "height": 329
+          },
+          "baseline": 354
+        },
+        {
+          "index": 3,
+          "sourceCrop": {
+            "left": 76,
+            "top": 14,
+            "width": 219,
+            "height": 329
+          },
+          "baseline": 354
+        },
+        {
+          "index": 4,
+          "sourceCrop": {
+            "left": 77,
+            "top": 12,
+            "width": 241,
+            "height": 331
+          },
+          "baseline": 354
+        },
+        {
+          "index": 5,
+          "sourceCrop": {
+            "left": 76,
+            "top": 13,
+            "width": 242,
+            "height": 330
+          },
+          "baseline": 354
+        },
+        {
+          "index": 6,
+          "sourceCrop": {
+            "left": 59,
+            "top": 21,
+            "width": 232,
+            "height": 322
+          },
+          "baseline": 354
+        },
+        {
+          "index": 7,
+          "sourceCrop": {
+            "left": 67,
+            "top": 16,
+            "width": 223,
+            "height": 327
+          },
+          "baseline": 354
+        },
+        {
+          "index": 8,
+          "sourceCrop": {
+            "left": 76,
+            "top": 21,
+            "width": 219,
+            "height": 322
+          },
+          "baseline": 354
+        },
+        {
+          "index": 9,
+          "sourceCrop": {
+            "left": 74,
+            "top": 18,
+            "width": 221,
+            "height": 325
+          },
+          "baseline": 354
+        },
+        {
+          "index": 10,
+          "sourceCrop": {
+            "left": 75,
+            "top": 19,
+            "width": 220,
+            "height": 324
+          },
+          "baseline": 354
+        },
+        {
+          "index": 11,
+          "sourceCrop": {
+            "left": 67,
+            "top": 21,
+            "width": 228,
+            "height": 322
+          },
+          "baseline": 354
+        }
+      ],
+      "sourceSha256": "d96753879dbae4f73b99406dbc8f37e00dbce9ff7c8e5ecbaf7975dd858e6170"
+    },
+    "bow": {
+      "url": "/assets/moonlit-lotus/yeoni/2d-v1/bow.webp",
+      "width": 1536,
+      "height": 1152,
+      "bytes": 342368,
+      "frames": [
+        {
+          "index": 0,
+          "sourceCrop": {
+            "left": 78,
+            "top": 9,
+            "width": 224,
+            "height": 343
+          },
+          "baseline": 354
+        },
+        {
+          "index": 1,
+          "sourceCrop": {
+            "left": 78,
+            "top": 9,
+            "width": 224,
+            "height": 344
+          },
+          "baseline": 354
+        },
+        {
+          "index": 2,
+          "sourceCrop": {
+            "left": 69,
+            "top": 37,
+            "width": 216,
+            "height": 317
+          },
+          "baseline": 354
+        },
+        {
+          "index": 3,
+          "sourceCrop": {
+            "left": 67,
+            "top": 70,
+            "width": 214,
+            "height": 287
+          },
+          "baseline": 354
+        },
+        {
+          "index": 4,
+          "sourceCrop": {
+            "left": 62,
+            "top": 57,
+            "width": 236,
+            "height": 287
+          },
+          "baseline": 354
+        },
+        {
+          "index": 5,
+          "sourceCrop": {
+            "left": 53,
+            "top": 73,
+            "width": 246,
+            "height": 276
+          },
+          "baseline": 354
+        },
+        {
+          "index": 6,
+          "sourceCrop": {
+            "left": 33,
+            "top": 104,
+            "width": 248,
+            "height": 242
+          },
+          "baseline": 354
+        },
+        {
+          "index": 7,
+          "sourceCrop": {
+            "left": 28,
+            "top": 146,
+            "width": 260,
+            "height": 202
+          },
+          "baseline": 354
+        },
+        {
+          "index": 8,
+          "sourceCrop": {
+            "left": 48,
+            "top": 149,
+            "width": 261,
+            "height": 200
+          },
+          "baseline": 354
+        },
+        {
+          "index": 9,
+          "sourceCrop": {
+            "left": 58,
+            "top": 88,
+            "width": 234,
+            "height": 262
+          },
+          "baseline": 354
+        },
+        {
+          "index": 10,
+          "sourceCrop": {
+            "left": 68,
+            "top": 48,
+            "width": 217,
+            "height": 301
+          },
+          "baseline": 354
+        },
+        {
+          "index": 11,
+          "sourceCrop": {
+            "left": 75,
+            "top": 10,
+            "width": 224,
+            "height": 341
+          },
+          "baseline": 354
+        }
+      ],
+      "sourceSha256": "cfa3f03e93b58349428f0eca60eea17132fd54e168aec75961e4bbd242a9f3d6"
+    }
+  },
+  "referenceSha256": "4b7b01cc92a8ea66dbc6234630df46b7238c9a383eff0fe6064c2b59546b0425"
+}
