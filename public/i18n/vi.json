@@ -2397,8 +2397,8 @@
       "career": "Công việc · Sự nghiệp",
       "relationship": "Độ hợp · Các mối quan hệ",
       "yearly": "Vận trình năm nay · Năm tới",
-      "introduction": "Tứ trụ, tarot và tư vấn theo mối quan tâm.",
-      "freeIntroduction": "Bắt đầu với lịch vạn niên miễn phí.",
+      "introduction": "Hãy bắt đầu từ điều đang khiến bạn bận lòng lúc này.",
+      "freeIntroduction": "Xem kết quả trước, rồi hãy quyết định có xem sâu hơn không.",
       "freeStart": "Bắt đầu Lịch vạn niên miễn phí",
       "paidLabel": "Trả phí ·",
       "result": {
@@ -22587,6 +22587,14 @@
       "sukuyo": "Tính cách và quan hệ qua sao Mặt Trăng",
       "vedic": "Khám phá bầu trời lúc chào đời",
       "astro": "Khám phá tính cách qua hành tinh và các cung nhà"
+    },
+    "action": {
+      "natal": "Xem lá số của tôi",
+      "tarot": "Rút bài",
+      "ziwei": "Xem lá số Tử Vi",
+      "sukuyo": "Xem sao bản mệnh",
+      "vedic": "Xem bản đồ bầu trời",
+      "astro": "Xem bản đồ sao ngày sinh"
     }
   }
 }

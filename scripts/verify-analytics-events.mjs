@@ -332,7 +332,16 @@ const eventNames = (calls) => events(calls).map((c) => c[1]);
     assert.equal(recorded[0][2].placement, placement);
     window.close();
   }
+  for (const [source, destination, service] of [["/records/view/", "/saju/free/", "saju"], ["/yeongnyangi/result/", "/ggulggul/?action=cdHomeTarotEntry", "tarot"]]) {
+    const { window } = boot({ body: `<span data-cd-cross-sell="${source}"><a id="cta" data-cd-cta-placement="free_result" data-cd-target-service="${service}" href="${destination}">무료</a></span>` });
+    window.document.getElementById("cta").click();
+    const recorded = events(window.dataLayer.map(entry => Array.from(entry))).filter(entry => entry[1] === "cross_sell_click");
+    assert.equal(recorded.length, 1, "결과 화면 → 무료 기능 링크는 free_result 로 기록");
+    assert.equal(recorded[0][2].from_service, source);
+    window.close();
+  }
   for (const [source, destination, placement, service] of [
+    ["/records/view/", "/yeongnyangi/result/", "free_result", "saju"],
     ["/saju/?question=private", "/ggulggul/", "primary", "saju"],
     ["/saju/", "/yeongnyangi/result/", "primary", "saju"],
     ["/saju/", "https://other.example/ggulggul/", "primary", "saju"],

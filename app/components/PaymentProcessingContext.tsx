@@ -201,7 +201,7 @@ const PAID_GATE_COPY: Record<PaidFeatureGateStatus, PaidGateCopy> = {
   loadingProducts: { label: "확인 중", title: "이용권/결제 확인", message: ACCESS_CHECKING_MESSAGE },
   readyToPay: { label: "선택 대기", title: "결제 수단 선택", message: "이 콘텐츠를 열 수 있는 결제 수단을 선택해 주세요." },
   paymentProcessing: { label: "처리 중", title: "결제 처리 중", message: "결제 승인과 이용 권한을 확인하고 있어요\n창을 닫지 말아 주세요" },
-  paymentSuccess: { label: "완료", title: "결제 완료", message: "결제가 완료됐어요\n결과를 준비하고 있어요" },
+  paymentSuccess: { label: "완료", title: "결제 확인 완료", message: "결제는 끝났어요\n이제 결과를 작성하고 있어요" },
   paymentFailed: { label: "실패", title: "결제 확인 실패", message: "결제를 완료하지 못했습니다. 다시 시도해 주세요." },
   // 🔴 `error` 는 네트워크 실패·결제 증빙 확인 실패까지 함께 받는 범용 상태다. 여기서 "이용권"을
   //    특정하면 카드로 결제를 끝낸 사용자에게 "이용권 확인 실패"가 뜬다(운명 찻집 실사고). 수단을
@@ -224,7 +224,7 @@ const PAID_GATE_LOCALIZED_COPY: Record<Exclude<LoadingLocale, "ko">, Partial<Rec
     loadingProducts: { label: "Checking", title: "Payment/pass check", message: "Checking your pass.\nPlease wait a moment." },
     readyToPay: { label: "Choose payment", title: "Choose a payment method", message: "Select a payment method to open this content." },
     paymentProcessing: { label: "Processing", title: "Processing payment", message: "Confirming your payment and access.\nPlease don't close this window." },
-    paymentSuccess: { label: "Complete", title: "Payment complete", message: "Your payment is complete.\nPreparing your result." },
+    paymentSuccess: { label: "Complete", title: "Payment confirmed", message: "Your payment is done.\nWe are now writing your result." },
     paymentFailed: { label: "Failed", title: "Payment check failed", message: "Payment could not be completed." },
     error: { label: "Error", title: "Check failed", message: "Please check your network and try again." },
     paymentPreparing: { label: "Preparing", title: "Preparing your payment", message: "Setting up your order and verification.\nPlease don't close this window." },
@@ -242,7 +242,7 @@ const PAID_GATE_LOCALIZED_COPY: Record<Exclude<LoadingLocale, "ko">, Partial<Rec
     loadingProducts: { label: "確認中", title: "決済・利用券の確認", message: "利用券を確認しています。\n少々お待ちください。" },
     readyToPay: { label: "選択待ち", title: "決済方法の選択", message: "このコンテンツを開く決済方法を選んでください。" },
     paymentProcessing: { label: "処理中", title: "決済処理中", message: "決済の承認と利用権限を確認しています。\nウィンドウを閉じないでください。" },
-    paymentSuccess: { label: "完了", title: "決済完了", message: "決済が完了しました。\n結果を準備しています。" },
+    paymentSuccess: { label: "完了", title: "決済確認完了", message: "決済は完了しました。\nいま結果を作成しています。" },
     paymentFailed: { label: "失敗", title: "決済確認に失敗しました", message: "お支払いを完了できませんでした。" },
     error: { label: "エラー", title: "確認に失敗しました", message: "通信状況を確認して、もう一度お試しください。" },
     paymentPreparing: { label: "決済準備", title: "決済を準備しています", message: "注文情報と認証を確認しています。\nウィンドウを閉じないでください。" },
@@ -260,7 +260,7 @@ const PAID_GATE_LOCALIZED_COPY: Record<Exclude<LoadingLocale, "ko">, Partial<Rec
     loadingProducts: { label: "确认中", title: "支付/通行券确认", message: "正在确认通行券。\n请稍候。" },
     readyToPay: { label: "等待选择", title: "选择支付方式", message: "请选择可打开此内容的支付方式。" },
     paymentProcessing: { label: "处理中", title: "正在处理支付", message: "正在确认支付和使用权限。\n请勿关闭窗口。" },
-    paymentSuccess: { label: "完成", title: "支付完成", message: "支付已完成。\n正在准备结果。" },
+    paymentSuccess: { label: "完成", title: "支付已确认", message: "支付已完成。\n现在正在撰写结果。" },
     paymentFailed: { label: "失败", title: "支付确认失败", message: "未能完成支付。" },
     error: { label: "错误", title: "确认失败", message: "请检查网络状态后重试。" },
     paymentPreparing: { label: "支付准备", title: "正在准备支付", message: "正在核对订单信息和验证流程。\n请勿关闭窗口。" },
@@ -278,7 +278,7 @@ const PAID_GATE_LOCALIZED_COPY: Record<Exclude<LoadingLocale, "ko">, Partial<Rec
     loadingProducts: { label: "確認中", title: "付款/通行券確認", message: "正在確認通行券。\n請稍候。" },
     readyToPay: { label: "等待選擇", title: "選擇付款方式", message: "請選擇可開啟此內容的付款方式。" },
     paymentProcessing: { label: "處理中", title: "正在處理付款", message: "正在確認付款與使用權限。\n請勿關閉視窗。" },
-    paymentSuccess: { label: "完成", title: "付款完成", message: "付款已完成。\n正在準備結果。" },
+    paymentSuccess: { label: "完成", title: "付款已確認", message: "付款已完成。\n現在正在撰寫結果。" },
     paymentFailed: { label: "失敗", title: "付款確認失敗", message: "未能完成付款。" },
     error: { label: "錯誤", title: "確認失敗", message: "請檢查網路狀態後再試一次。" },
     paymentPreparing: { label: "付款準備", title: "正在準備付款", message: "正在核對訂單資訊與驗證流程。\n請勿關閉視窗。" },
@@ -416,7 +416,7 @@ const PAID_GATE_LOCALIZED_COPY: Record<Exclude<LoadingLocale, "ko">, Partial<Rec
 };
 
 const PAID_GATE_UI_COPY: Record<LoadingLocale, PaidGateUiCopy> = {
-  ko: { closeLabel: "닫기", costPrefix: "필요 금액", costSuffix: "원", payAction: "결제 상품 보기", genericLabel: "확인 중", progressLabel: "이용권 확인 진행 상태", progressSteps: ["권한 확인", "처리 진행", "결과 준비"] },
+  ko: { closeLabel: "닫기", costPrefix: "필요 금액", costSuffix: "원", payAction: "결제 상품 보기", genericLabel: "확인 중", progressLabel: "이용권 확인 진행 상태", progressSteps: ["권한 확인", "처리 진행", "결과 작성"] },
   en: { closeLabel: "Close", costPrefix: "Required amount", costSuffix: " KRW", payAction: "View payment options", genericLabel: "Checking", progressLabel: "Access check progress", progressSteps: ["Check access", "Processing", "Prepare result"] },
   ja: { closeLabel: "閉じる", costPrefix: "必要金額", costSuffix: "ウォン", payAction: "決済商品を見る", genericLabel: "確認中", progressLabel: "利用券確認の進行状況", progressSteps: ["権限確認", "処理中", "結果準備"] },
   "zh-CN": { closeLabel: "关闭", costPrefix: "所需金额", costSuffix: "韩元", payAction: "查看支付选项", genericLabel: "确认中", progressLabel: "权限确认进度", progressSteps: ["确认权限", "处理中", "准备结果"] },
@@ -508,7 +508,7 @@ function resolvePaymentLoadingVariant(message?: string, mode?: string): PaymentL
 
 function resolvePaymentLoadingStage(variant: PaymentLoadingVariant, message?: string): LoadingStage {
   const normalizedMessage = String(message || "");
-  if (/활성화되고|완료됐어요|확인했어요|결과를 불러오는 중|결과를 준비하고/.test(normalizedMessage)) return "result_loading";
+  if (/활성화되고|완료됐어요|확인했어요|결과를 불러오는 중|결과를 준비하고|결과를 작성하고/.test(normalizedMessage)) return "result_loading";
   if (/결제를 처리하고 있어요|결제 승인과 이용 권한|창을 닫지 말아 주세요/.test(normalizedMessage)) return "pg_processing";
   if (/정보를 확인하는 중이에요|이용권을 확인하는 중이에요|이용권 확인 중|결제 가능 상태를 확인하고 있어요/.test(normalizedMessage)) return "access_check";
   if (variant === "subscription" || variant === "checkout" || variant === "confirm") return "pg_processing";
@@ -520,7 +520,7 @@ function resolvePaymentLoadingType(variant: PaymentLoadingVariant, message?: str
   const normalizedMessage = String(message || "");
   if (/이용권을 확인하는 중이에요|이용권 확인|이용권을 확인했어요|이용권 적용|이용권 혜택|이용권이 활성화|30일 이용권으로|보유한 이용권으로/.test(normalizedMessage)) return "pass";
   if (/월정석/.test(normalizedMessage)) return "subscription";
-  if (/단건|결제가 완료됐어요|결제를 처리하고 있어요/.test(normalizedMessage)) return "single";
+  if (/단건|결제가 완료됐어요|결제는 끝났어요|결제를 처리하고 있어요/.test(normalizedMessage)) return "single";
   // 🔴 variant 'subscription' = 이용권 결제 승인/활성화, 'monthly' = 월정석. 두 재화는 별개다.
   if (variant === "subscription") return "pass";
   if (variant === "monthly") return "subscription";

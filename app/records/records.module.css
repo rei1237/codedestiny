@@ -308,3 +308,5 @@
   .lightFrame .recordFooter { margin-top: 10px; }
   .lightFrame .recordFooter .button { min-height: 44px; }
 }
+.readingNext { display: grid; gap: 12px; margin-top: 20px; color: var(--cd-text-muted, inherit); }
+.readingNext p { margin: 0; line-height: 1.6; }

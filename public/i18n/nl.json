@@ -2397,8 +2397,8 @@
       "career": "Werk & loopbaan",
       "relationship": "Compatibiliteit & relaties",
       "yearly": "Dit & volgend jaar",
-      "introduction": "Saju, tarot en advies bij je vragen.",
-      "freeIntroduction": "Begin met een gratis Manseryeok-overzicht.",
+      "introduction": "Kies eerst de situatie die je nu bezighoudt.",
+      "freeIntroduction": "Bekijk eerst het resultaat en beslis daarna of je dieper gaat.",
       "freeStart": "Gratis Manseryeok starten",
       "paidLabel": "Betaald ·",
       "result": {
@@ -22587,6 +22587,14 @@
       "sukuyo": "Je aard en relaties via de maan",
       "vedic": "De hemel bij je geboorte",
       "astro": "Ontdek je aard via planeten en huizen"
+    },
+    "action": {
+      "natal": "Mijn kaart bekijken",
+      "tarot": "Kaarten trekken",
+      "ziwei": "Mijn Ziwei-kaart bekijken",
+      "sukuyo": "Mijn geboortehuis bekijken",
+      "vedic": "Mijn hemelkaart bekijken",
+      "astro": "Mijn geboortehoroscoop bekijken"
     }
   }
 }

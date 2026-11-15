@@ -73,7 +73,7 @@ next: "S00 기준선의 동일 KST 기간·동의/테스트 제외·승인일 �
 - 구매 원장은 서버 주문이다. 브라우저 `purchase`는 승인 응답 관찰이며 PG 콜백만으로 전송하지 않는다. `purchase_complete` 과거 건수와 더하지 않는다.
 - 영냥이 상품 선택 확정 `view_item`, 버튼 클릭 `purchase_attempt`, 요청 생성 성공 `consultation_start`를 구분한다. item_id는 canonical 구매 키다.
 - `fortune_completed`와 `fortune_first_open`은 호환용 **브라우저 최초 관찰**이다. 계정 전체의 최초 열람이나 실제 저장 완료의 원장이 아니다. v2부터 `metric_version:2`로 분리한다.
-- `fortune_result_view`: 실제 렌더된 paid 챕터에만 발생. result_state=partial/complete, entry_source=direct/library, observation=browser_render. 각 상태를 문서 생명주기 내 중복 제거한다. 보관함 링크 클릭 자체를 열람으로 세지 않는다.
+- `fortune_result_view`: 실제 렌더된 paid 챕터에만 발생. result_state=partial/complete, entry_source=direct/library, observation=browser_render. 각 상태를 문서 생명주기 내 중복 제거한다. 보관함 링크 클릭 자체를 열람으로 세지 않는다. 꿀꿀운세 보관함 상세 `/records/view/`(`app/records/view/SavedRecordClient.tsx`)도 기록을 렌더한 뒤 기록 1건당 1회 entry_source=library 로 보낸다(완료=complete, 부분 저장=partial, 생성 중·실패·환불은 보내지 않음). item_id 는 공개 상품 키만, 본문·질문·기록 ID 는 싣지 않는다.
 - 실제 전달률은 동일 승인 코호트의 주문→요청 연결, COMPLETED·manifest 전체 저장·completedAt을 대조한다. 미연결·부분·환불·테스트·미분류를 별도 집계한다. 0개 분모는 0%가 아니라 N/A다.
 - 공개 이벤트에는 프로필·생년월일·질문·결과 본문·상담 ID를 보내지 않는다. 인증 토큰을 URL/이벤트에 넣지 않는다. 기존 동의 정책과 브라우저 중복 제거의 기기별 한계를 유지한다.
 - 8/24~9/20 생성 주문 중 현재 paid 5건과 GA4 구매 0은 승인일 코호트나 적격 고객 매출이 아니다. 테스트 제외·PG 대조·보고 시간대 대조 전 숫자를 전환율로 만들지 않는다.
@@ -102,7 +102,7 @@ next: "S00 기준선의 동일 KST 기간·동의/테스트 제외·승인일 �
 | `yeongnyangi_portal_impression` · `yeongnyangi_portal_click` · `yeongnyangi_portal_arrival` | `js/core/analytics.js` + `js/core/home-funnel.js` | GA4 | `from_service` · `to_service` · `placement` · `destination` · `metric_version` |
 | `home_mv_play` · `home_mv_chapter` · `home_card_impression`(card=`moonlight_mv`) | `js/core/home-mv.js` (홈 「달빛 운명여행」 뮤직비디오, 2026-10-15) | GA4 | `home_mv_play`: `quality`(`1080p`·`720p`) · `source`(`poster`·`chapter`), 페이지당 1회 / `home_mv_chapter`: `chapter`(1~5) / 노출: `placement=home_mid`, 화면 절반이 보일 때 1회 |
 | `yeongnyangi_mv_impression` · `yeongnyangi_mv_open` · `yeongnyangi_mv_play` · `yeongnyangi_mv_chapter` · `yeongnyangi_mv_complete` · `yeongnyangi_mv_cta` | `app/yeongnyangi/_components/HeavenLightCinema.tsx` (영냥이 홈 「HEAVEN LIGHT」 뮤직비디오 타로 카드·극장, 2026-10-21) | GA4 | 노출: `placement=home_journey`, 카드가 절반 보일 때 1회 / `yeongnyangi_mv_open`: 카드 클릭 / `yeongnyangi_mv_play`: `quality`(`1080p`·`720p`) · `source`(`card`·`chapter`), 극장당 첫 재생 1회 / `yeongnyangi_mv_chapter`: `chapter`(1~6) / `yeongnyangi_mv_complete`: 끝까지 재생, 1회 / `yeongnyangi_mv_cta`: `placement`(`theatre_end` 영상 끝 패널 · `theatre_footer` 극장 하단 링크), 누를 때마다 |
-| `cross_sell_click` | `js/core/analytics.js:251` | GA4 | `from_service` · `to_service` · 검색 CTA는 `placement`(`primary`·`related`·`directory`·`next_step`·`free_result`) · `target_service`. `free_result`는 2026-11-14에 허용값만 열었고 아직 이 값을 쓰는 링크는 없다 |
+| `cross_sell_click` | `js/core/analytics.js:251` | GA4 | `from_service` · `to_service` · 검색 CTA는 `placement`(`primary`·`related`·`directory`·`next_step`·`free_result`) · `target_service`. `free_result`는 2026-11-16부터 완료 결과 화면의 무료 기능 링크 1개가 쓴다(`/records/view/`·`/yeongnyangi/result/` → 무료 진입점). 두 결과 경로는 출발점으로만 허용하고 목적지로는 받지 않는다 |
 | `share_receive` | `js/core/analytics.js:294` | GA4 | `referral_channel` |
 | `retention_visit` | `js/core/analytics.js:315` | GA4 | `days_since_last_visit` |
 | `free_saju_started` / `free_saju_completed` | `js/saju-engine.js:4787` / `:5307` | GA4 | `signed_in` |
@@ -118,7 +118,7 @@ next: "S00 기준선의 동일 KST 기간·동의/테스트 제외·승인일 �
 
 `section` 10종(`index.html` 의 `data-cd-funnel-section`): `hero` · `concern_pick` · `today_hub` ·
 `today_pick` · `quick_services` · `signature_consult` · `service_index` · `finder` · `why_us` ·
-`secondary_panel`. 2026-10-15 에 `moonlight_mv`(홈 뮤직비디오의 `/music/` 링크)가 더해졌다.
+`secondary_panel`. 2026-10-15 에 `moonlight_mv`(홈 뮤직비디오의 `/music/` 링크)가 더해졌다. 2026-11-16 에 `situation_pick`(/ggulggul/ 히어로 아래 상황형 카드 3장)이 더해졌다.
 
 ## 2. 채널이 둘이고, 담는 것이 다르다
 

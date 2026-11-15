@@ -1,0 +1,3 @@
+/* 한 줄 신뢰 띠. 색은 놓인 화면에서 물려받아 연이 정원·영냥이 밤 양쪽에 맞춘다. */
+.line { margin: 0; max-width: 46ch; font-size: .8125rem; line-height: 1.6; letter-spacing: -.01em; word-break: keep-all; overflow-wrap: anywhere; }
+.link { display: inline-block; white-space: nowrap; color: inherit; font-weight: 600; text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; }
