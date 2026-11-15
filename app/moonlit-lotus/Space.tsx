@@ -7,6 +7,7 @@ import {MOONLIT_ENTRY_COPY} from './_lib/entry-copy';
 import Character,{type Activity} from './_components/Character';
 import MusicPlayer from './_components/MusicPlayer';
 import ImmersionControl from './_components/ImmersionControl';
+import WalkingYeoni from './_components/WalkingYeoni';
 import PrivateRecords from './_components/PrivateRecords';
 import {useSpaceProfile} from './_lib/use-space-profile';
 import {usePrivateBow} from './_lib/use-private-bow';
@@ -36,6 +37,7 @@ function PrivateSpace({profile}:{profile:ReturnType<typeof useSpaceProfile>}){
  const bow=usePrivateBow(profile.scope),effects=useEffects();
  const [scene,setScene]=useState<Scene>('courtyard'),[panel,setPanel]=useState<Panel|null>(null),[activity,setActivity]=useState<Activity>('greeting');
  const [more,setMore]=useState(false);
+ const [journey,setJourney]=useState<{from:Scene;to:Scene;panel:Panel|null}|null>(null);
  const [immersive,setImmersive]=useState(false),[light,setLight]=useState(false),[reduced,setReduced]=useState(false);
  const [sceneError,setSceneError]=useState(false),[characterError,setCharacterError]=useState(false),[retry,setRetry]=useState(0);
  const [day,setDay]=useState(''),[prayer,setPrayer]=useState(''),[affirmation,setAffirmation]=useState(''),[affirmIndex,setAffirmIndex]=useState(-1),[notice,setNotice]=useState(''),[speaking,setSpeaking]=useState(false);
@@ -64,7 +66,7 @@ function PrivateSpace({profile}:{profile:ReturnType<typeof useSpaceProfile>}){
  useEffect(()=>{if(panel==='fortune')void loadFortune();},[panel,day,loadFortune]);
  useEffect(()=>{
   const readLocation=()=>{const params=new URLSearchParams(location.search),value=params.get('activity'),place=params.get('scene');setPanel(value&&value in PANELS?value as Panel:null);if(place&&place in SCENES)setScene(place as Scene);else if(value==='bow'||value==='prayer')setScene('hall');if(['bow','prayer','meditation','affirmation'].includes(value||''))setActivity(value as Activity);};
-  const back=()=>{pauseBow.current();setImmersive(false);setSpeaking(false);readLocation();};
+  const back=()=>{pauseBow.current();setJourney(null);setImmersive(false);setSpeaking(false);readLocation();};
   readLocation();window.addEventListener('popstate',back);return()=>window.removeEventListener('popstate',back);
  },[]);
  useEffect(()=>{if(panel)panelHeading.current?.focus({preventScroll:true});},[panel]);
@@ -77,7 +79,8 @@ function PrivateSpace({profile}:{profile:ReturnType<typeof useSpaceProfile>}){
   return()=>observer.disconnect();
  },[scene]);
  useEffect(()=>{if(profile.character==='custom'&&!profile.loaded&&!profile.loading&&!profile.imageError)void profile.loadImage();},[profile]);
- const navigate=(nextPanel:Panel|null,nextScene=scene)=>{
+ const navigate=(nextPanel:Panel|null,nextScene=scene,walking=false)=>{
+  if(!walking)setJourney(null);
   if(nextPanel)lastTrigger.current=document.activeElement as HTMLElement;setMore(false);setPanel(nextPanel);setScene(nextScene);setNotice('');setSpeaking(false);
   const params=new URLSearchParams();const lang=new URLSearchParams(location.search).get('lang');if(lang)params.set('lang',lang);params.set('scene',nextScene);if(nextPanel)params.set('activity',nextPanel);
   history.pushState(null,'','?'+params.toString());
@@ -86,10 +89,12 @@ function PrivateSpace({profile}:{profile:ReturnType<typeof useSpaceProfile>}){
   if(['meditation','prayer','affirmation'].includes(next))bow.pause();
   const place=['bow','prayer'].includes(next)?'hall':scene;
   if(['bow','prayer','meditation','affirmation'].includes(next))setActivity(next as Activity);
-  navigate(next,place);
+  if(place!==scene&&canWalk()){bow.pause();setPanel(null);setJourney({from:scene,to:place,panel:next});}else navigate(next,place);
  };
  const close=()=>{navigate(null);lastTrigger.current?.focus();};
- const changeScene=(next:Scene)=>{bow.pause();setImmersive(false);setActivity('idle');navigate(null,next);};
+ const canWalk=()=>!reduced&&!light&&!characterError&&(profile.character||'yeoni')==='yeoni'&&!matchMedia('(prefers-reduced-motion: reduce)').matches;
+ const changeScene=(next:Scene)=>{bow.pause();setImmersive(false);setActivity('idle');setMore(false);if(next!==scene&&canWalk()){setPanel(null);setJourney({from:scene,to:next,panel:null});}else navigate(null,next);};
+ useEffect(()=>{if(journey&&(reduced||light||profile.character==='cat'||profile.character==='custom')){setScene(journey.from);setJourney(null);}},[reduced,light,profile.character,journey]);
  const saveText=async(kind:'prayer'|'affirmation')=>{
   if(saving.current)return;
   const text=(kind==='prayer'?prayer:affirmation).trim();if(!text){setNotice('마음에 담을 문장을 먼저 적어 주세요.');return;}
@@ -119,9 +124,9 @@ function PrivateSpace({profile}:{profile:ReturnType<typeof useSpaceProfile>}){
     <div className={styles.worldViewport} ref={worldViewport} tabIndex={0} aria-label="나만의 사찰 풍경">
      <div className={styles.world} data-scene={scene}>
       {!sceneError?<picture><source media="(max-width:700px)" srcSet={ART+'/'+scene+'-768.webp'}/>{/* eslint-disable-next-line @next/next/no-img-element */}<img className={styles.scenery} key={scene+retry} src={ART+'/'+scene+'-1536.webp'} width={1536} height={1024} alt={SCENES[scene]+'의 달빛과 연꽃, 꽃돼지 불상과 조용한 참배 자리'} onError={()=>setSceneError(true)} fetchPriority="high"/></picture>:<div className={styles.artFallback}><Flower2 size={48}/><p>풍경을 불러오지 못했어요.<br/>아래 버튼으로 명상과 108배를 계속 이용할 수 있어요.</p><button onClick={()=>{setSceneError(false);setRetry(v=>v+1);}}>풍경 다시 불러오기</button></div>}
-      <div className={styles.character} style={characterPosition}>
+      {journey?<WalkingYeoni key={journey.from+'-'+journey.to} fromX={journey.from==='hall'?50:46} fromY={journey.from==='hall'?86:82} toX={journey.to==='hall'?50:46} toY={journey.to==='hall'?86:82} onCross={()=>setScene(journey.to)} onDone={()=>navigate(journey.panel,journey.to)}/>:<div className={styles.character} style={characterPosition}>
        {!characterError&&(!light||character==='custom')?<Character key={retry} kind={character} activity={activity} elapsed={bow.session.elapsed} reduced={noMotion} look={profile.avatar} image={profile.image} portrait={profile.portrait} onFailure={()=>setCharacterError(true)}/>:<div className={styles.still}>{/* eslint-disable-next-line @next/next/no-img-element */}<img src={character==='cat'?ART+'/cat-still.webp':'/assets/moonlit-lotus/yeoni/2d-v2/still.webp'} width={384} height={384} alt="동작을 줄인 정지 캐릭터"/>{characterError&&<button onClick={()=>{setCharacterError(false);setRetry(v=>v+1);}}>동작 다시 불러오기</button>}</div>}
-      </div>
+      </div>}
       {!quiet&&<div className={styles.hotspots}>{HOTSPOTS[scene].map(spot=><button key={spot.label} style={{left:spot.x+'%',top:spot.y+'%'}} onClick={()=>activateSpot(spot)} aria-label={spot.label}><Flower2 size={18} aria-hidden="true"/><span>{spot.label}</span></button>)}</div>}
      </div>
     </div>
@@ -170,6 +175,6 @@ function PrivateSpace({profile}:{profile:ReturnType<typeof useSpaceProfile>}){
     </div>
    </div>
   </div>
-  <footer className={styles.footer}><p>나의 기도와 기록은 이 브라우저에만 저장돼요. 다른 이용자의 공간과 연결되지 않으며, 공개 목록이나 실시간 방문자 표시가 없어요.</p><p>{day} · 달빛 연화당</p><Link href="/moonlit-lotus/model-review/">연이 동작 살펴보기</Link></footer>
+  <footer className={styles.footer}><Link href="/moonlit-lotus/story/">웹툰 · 연이가 쉬어가는 이야기</Link><p>나의 기도와 기록은 이 브라우저에만 저장돼요. 다른 이용자의 공간과 연결되지 않으며, 공개 목록이나 실시간 방문자 표시가 없어요.</p><p>{day} · 달빛 연화당</p><Link href="/moonlit-lotus/model-review/">연이 동작 살펴보기</Link></footer>
  </main>;
 }

@@ -27,3 +27,8 @@
 }
 
 .invite { display:block; font:400 .85rem/1.8 var(--font-body),sans-serif; margin:0 0 20px; color:var(--ml-home-accent); }
+.storyLink { display:flex; align-items:center; justify-content:center; gap:14px; width:min(100%,800px); margin:-12px auto 32px; padding:16px 20px; min-height:56px; box-sizing:border-box; color:var(--cd-text); text-decoration:none; font-family:var(--font-display),sans-serif; }
+.storyLink>svg { flex-shrink:0; color:var(--cd-primary); }
+.storyLink small { display:block; margin-top:5px; font:400 .85rem/1.6 var(--font-body),sans-serif; color:var(--cd-text-muted); }
+.storyLink:hover span { text-decoration:underline; text-underline-offset:5px; }
+.storyLink:focus-visible { outline:3px solid var(--cd-primary); outline-offset:4px; }
