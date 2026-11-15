@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-15
-next: main의 기존 CI와 public 미러 실패가 해소되면 검증 커밋을 통합한다. root가 새 운영 승격 및 이름 지원 문의 승인을 각각 처리한다.
+next: 최신 재진입 수정을 포함한 Linux AIT를 확보한다. 새 운영 승격은 root의 별도 승인 전까지 실행하지 않는다.
 ---
 
 ## 첫 행동
@@ -69,3 +69,9 @@ next: main의 기존 CI와 public 미러 실패가 해소되면 검증 커밋을
 - 앞선 pre-push 실패 경로는 public/index.html이 아니라 root index.html이었다. Windows의 함수.toString()이 CRLF9개를 HTML에 삽입하여 내용diff 없이 dirty가 되는 문제를 확인했다. 82985b270에서 free-promo-shell의 두 함수 직렬화만 LF로 정규화했다. 관련6개 테스트PASS, 마지막 pre-push exit0.
 - 로그인/UI targeted21+61PASS, 앱typecheckPASS는 유지된다. 과거22개Node실패를 최종트리실패로 재사용하지 않는다. 최신main CI43691843070은 마지막 확인 시 실패 없이 진행중. root 지시에 따라 이를 추가대기게이트로 만들지 않고 안전main통합 및push,공식LinuxAIT artifact실행을 이어간다.
 - 사용자 최신 지시로 이름불일치/지원문의는 사용자가 담당한다. 해당 외부문의는 전송하지 않으며 추가 조작하지 않는다.
+
+## 재진입 검증 및 최종 번들 준비
+- 476e36e05: 홈 로그인 next=/library 및 canonical의 정확한 /library 허용. 외부 URL, 하위 경로, 유사 접두어, query 경로 거절 유지. targeted34개 및 엄격 허용 목록6개 PASS, pre-push exit0.
+- 브라우저 space7 round43에서 홈 로그인 → 새로고침 → mock 로그인 → /library 도착 확인. Screens.jsx import200. 실제 AIT 검증은 남아 있다.
+- main2039226ba push CI43692520769는 직전 확인 시 진행 중. 대체되는 pending artifact43692520976만 취소 요청했다. main CI는 취소하지 않았다.
+- 타 세션 6fa305538의 home 테스트 변경을 보존 merge했다. 운영 승격·실결제·검토 제출은 수행하지 않았다. 이름 문제는 사용자 담당이다.
