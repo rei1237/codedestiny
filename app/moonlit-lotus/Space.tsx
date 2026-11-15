@@ -7,6 +7,9 @@ import {MOONLIT_ENTRY_COPY} from './_lib/entry-copy';
 import Character,{type Activity} from './_components/Character';
 import MusicPlayer from './_components/MusicPlayer';
 import ImmersionControl from './_components/ImmersionControl';
+import PhotoStudio from './_components/PhotoStudio';
+import ActivityTransition from './_components/ActivityTransition';
+import {COMPANIONS,COMPANION_ART} from './_lib/companions';
 import WalkingYeoni from './_components/WalkingYeoni';
 import PrivateRecords from './_components/PrivateRecords';
 import {useSpaceProfile} from './_lib/use-space-profile';
@@ -78,7 +81,7 @@ function PrivateSpace({profile}:{profile:ReturnType<typeof useSpaceProfile>}){
   setSceneError(false);
   return()=>observer.disconnect();
  },[scene]);
- useEffect(()=>{if(profile.character==='custom'&&!profile.loaded&&!profile.loading&&!profile.imageError)void profile.loadImage();},[profile]);
+ useEffect(()=>{if(profile.character==='custom'&&(!profile.avatar.species||profile.avatar.species==='profile')&&!profile.loaded&&!profile.loading&&!profile.imageError)void profile.loadImage();},[profile]);
  const navigate=(nextPanel:Panel|null,nextScene=scene,walking=false)=>{
   if(!walking)setJourney(null);
   if(nextPanel)lastTrigger.current=document.activeElement as HTMLElement;setMore(false);setPanel(nextPanel);setScene(nextScene);setNotice('');setSpeaking(false);
@@ -92,9 +95,9 @@ function PrivateSpace({profile}:{profile:ReturnType<typeof useSpaceProfile>}){
   if(place!==scene&&canWalk()){bow.pause();setPanel(null);setJourney({from:scene,to:place,panel:next});}else navigate(next,place);
  };
  const close=()=>{navigate(null);lastTrigger.current?.focus();};
- const canWalk=()=>!reduced&&!light&&!characterError&&(profile.character||'yeoni')==='yeoni'&&!matchMedia('(prefers-reduced-motion: reduce)').matches;
+ const canWalk=()=>!reduced&&!light&&!characterError&&!matchMedia('(prefers-reduced-motion: reduce)').matches;
  const changeScene=(next:Scene)=>{bow.pause();setImmersive(false);setActivity('idle');setMore(false);if(next!==scene&&canWalk()){setPanel(null);setJourney({from:scene,to:next,panel:null});}else navigate(null,next);};
- useEffect(()=>{if(journey&&(reduced||light||profile.character==='cat'||profile.character==='custom')){setScene(journey.from);setJourney(null);}},[reduced,light,profile.character,journey]);
+ useEffect(()=>{if(journey&&(reduced||light)){setScene(journey.from);setJourney(null);}},[reduced,light,profile.character,journey]);
  const saveText=async(kind:'prayer'|'affirmation')=>{
   if(saving.current)return;
   const text=(kind==='prayer'?prayer:affirmation).trim();if(!text){setNotice('마음에 담을 문장을 먼저 적어 주세요.');return;}
@@ -115,8 +118,8 @@ function PrivateSpace({profile}:{profile:ReturnType<typeof useSpaceProfile>}){
  const characterPosition:CSSProperties={left:scene==='hall'?'50%':'46%',top:scene==='hall'?'86%':'82%'};
  const activateSpot=(spot:(typeof HOTSPOTS)[Scene][number])=>spot.scene?changeScene(spot.scene):spot.panel?open(spot.panel):void effects.strike();
  return <main className={styles.page} lang="ko" data-cd-no-trans data-immersive={quiet} data-panel-open={!!panel}>
-  <header className={styles.header}><Link href="/" className={styles.home}><ArrowLeft size={17}/>꿀꿀 운세</Link><div lang={introLocale}><h1>{intro.title}</h1><p>{intro.description}</p></div><button onClick={()=>open('custom')} aria-label="캐릭터와 화면 설정"><Settings2 size={20}/><span>꾸미기</span></button></header>
-  <div className={styles.sceneToolbar}><button onClick={()=>open('music')}><Music2 size={17}/>음악</button><ImmersionControl/></div>
+  <header className={styles.header}><Link href="/" className={styles.home}><ArrowLeft size={17}/>꿀꿀 운세</Link><div lang={introLocale}><h1>{intro.title}</h1><p>{intro.description}</p></div><button onClick={()=>open('custom')} aria-label="캐릭터 꾸미기"><Settings2 size={20}/><span>캐릭터 꾸미기</span></button></header>
+  <div className={styles.sceneToolbar}><button onClick={()=>open('music')}><Music2 size={17}/>음악</button><ImmersionControl/><PhotoStudio disabled={!!journey} target={()=>worldViewport.current?.querySelector<HTMLElement>('[data-scene]')||null} onPrepare={()=>bow.pause()}/></div>
   <p className={styles.privateNote}><Heart size={15} aria-hidden="true"/>다른 사람이 접속해도, 이 공간에는 나의 캐릭터만 머물러요.</p>
   <nav className={styles.sceneNav} aria-label="장면 이동">{(Object.entries(SCENES) as [Scene,string][]).map(([id,title])=><button key={id} aria-pressed={scene===id} onClick={()=>changeScene(id)}>{title}</button>)}</nav>
   <div className={styles.experience}>
@@ -124,10 +127,10 @@ function PrivateSpace({profile}:{profile:ReturnType<typeof useSpaceProfile>}){
     <div className={styles.worldViewport} ref={worldViewport} tabIndex={0} aria-label="나만의 사찰 풍경">
      <div className={styles.world} data-scene={scene}>
       {!sceneError?<picture><source media="(max-width:700px)" srcSet={ART+'/'+scene+'-768.webp'}/>{/* eslint-disable-next-line @next/next/no-img-element */}<img className={styles.scenery} key={scene+retry} src={ART+'/'+scene+'-1536.webp'} width={1536} height={1024} alt={SCENES[scene]+'의 달빛과 연꽃, 꽃돼지 불상과 조용한 참배 자리'} onError={()=>setSceneError(true)} fetchPriority="high"/></picture>:<div className={styles.artFallback}><Flower2 size={48}/><p>풍경을 불러오지 못했어요.<br/>아래 버튼으로 명상과 108배를 계속 이용할 수 있어요.</p><button onClick={()=>{setSceneError(false);setRetry(v=>v+1);}}>풍경 다시 불러오기</button></div>}
-      {journey?<WalkingYeoni key={journey.from+'-'+journey.to} fromX={journey.from==='hall'?50:46} fromY={journey.from==='hall'?86:82} toX={journey.to==='hall'?50:46} toY={journey.to==='hall'?86:82} onCross={()=>setScene(journey.to)} onDone={()=>navigate(journey.panel,journey.to)}/>:<div className={styles.character} style={characterPosition}>
-       {!characterError&&(!light||character==='custom')?<Character key={retry} kind={character} activity={activity} elapsed={bow.session.elapsed} reduced={noMotion} look={profile.avatar} image={profile.image} portrait={profile.portrait} onFailure={()=>setCharacterError(true)}/>:<div className={styles.still}>{/* eslint-disable-next-line @next/next/no-img-element */}<img src={character==='cat'?ART+'/cat-still.webp':'/assets/moonlit-lotus/yeoni/2d-v2/still.webp'} width={384} height={384} alt="동작을 줄인 정지 캐릭터"/>{characterError&&<button onClick={()=>{setCharacterError(false);setRetry(v=>v+1);}}>동작 다시 불러오기</button>}</div>}
+      {journey?<WalkingYeoni kind={character} look={profile.avatar} image={profile.image} portrait={profile.portrait} key={journey.from+'-'+journey.to} fromX={journey.from==='hall'?50:46} fromY={journey.from==='hall'?86:82} toX={journey.to==='hall'?50:46} toY={journey.to==='hall'?86:82} onCross={()=>setScene(journey.to)} onDone={()=>navigate(journey.panel,journey.to)}/>:<div className={styles.character} style={characterPosition}>
+       {!characterError&&(!light||character==='custom')?<ActivityTransition identity={character+activity+(profile.avatar.species||'profile')} reduced={noMotion}><Character key={retry} kind={character} activity={activity} elapsed={bow.session.elapsed} reduced={noMotion} look={profile.avatar} image={profile.image} portrait={profile.portrait} onFailure={()=>setCharacterError(true)}/></ActivityTransition>:<div className={styles.still}>{/* eslint-disable-next-line @next/next/no-img-element */}<img src={character==='cat'?COMPANION_ART+'/cat-still.webp':'/assets/moonlit-lotus/yeoni/2d-v2/still.webp'} width={384} height={384} alt="동작을 줄인 정지 캐릭터"/>{characterError&&<button onClick={()=>{setCharacterError(false);setRetry(v=>v+1);}}>동작 다시 불러오기</button>}</div>}
       </div>}
-      {!quiet&&<div className={styles.hotspots}>{HOTSPOTS[scene].map(spot=><button key={spot.label} style={{left:spot.x+'%',top:spot.y+'%'}} onClick={()=>activateSpot(spot)} aria-label={spot.label}><Flower2 size={18} aria-hidden="true"/><span>{spot.label}</span></button>)}</div>}
+      {!quiet&&<div className={styles.hotspots} data-photo-hide>{HOTSPOTS[scene].map(spot=><button key={spot.label} style={{left:spot.x+'%',top:spot.y+'%'}} onClick={()=>activateSpot(spot)} aria-label={spot.label}><Flower2 size={18} aria-hidden="true"/><span>{spot.label}</span></button>)}</div>}
      </div>
     </div>
     <div className={styles.sceneCaption}><span>{activity==='bow'?phase:activity==='prayer'?'말하지 못했던 마음도, 여기에 놓아두어요.':activity==='meditation'?'잠시 눈을 감고, 편안한 호흡으로.':'서두르지 않아도 괜찮아요.'}</span><button aria-pressed={effects.enabled} onClick={effects.toggle}>{effects.enabled?<Volume2 size={17}/>:<VolumeX size={17}/>}효과음 {effects.enabled?'켜짐':'꺼짐'}</button></div>
@@ -159,13 +162,14 @@ function PrivateSpace({profile}:{profile:ReturnType<typeof useSpaceProfile>}){
      </>}
      {panel==='fortune'&&<><div className={styles.fortuneLetter}><Flower2 size={26} aria-hidden="true"/><time dateTime={day}>{day}</time>{fortuneBusy?<p role="status">오늘의 흐름을 확인하고 있어요.</p>:fortuneError?<p role="alert">오늘의 흐름을 불러오지 못했어요.<button onClick={loadFortune}>다시 확인</button></p>:<p>{fortune}</p>}</div><Link className={styles.actionLink} href="/today/">오늘의 운세 자세히 보기<ArrowRight size={18} aria-hidden="true"/></Link><p className={styles.panelNote}>돌아오면 마지막 완료 횟수부터 이어갈 수 있어요.</p></>}
      {panel==='records'&&<PrivateRecords scope={profile.scope}/>}
-     {panel==='custom'&&<><p>이곳에서 보이는 나의 모습이에요. 기존 프로필과 친구의 성장 기록은 그대로 유지해요.</p><div className={styles.characterChoices} aria-label="머무를 캐릭터">{(['yeoni','cat','custom'] as const).map((id,index)=><button key={id} aria-pressed={character===id} onClick={()=>profile.save(id)}>{id==='custom'?<UserRound size={42} strokeWidth={1.3} aria-hidden="true"/>:/* eslint-disable-next-line @next/next/no-img-element */<img src={id==='cat'?ART+'/cat-still.webp':'/assets/moonlit-lotus/yeoni/2d-v2/still.webp'} width={72} height={72} alt=""/>}<span>{['꽃돼지 연이','영냥이','나만의 아바타'][index]}</span></button>)}</div>
+     {panel==='custom'&&<><p>이곳에서 보이는 나의 모습이에요. 기존 프로필과 친구의 성장 기록은 그대로 유지해요.</p><div className={styles.characterChoices} aria-label="머무를 캐릭터">{(['yeoni','cat','custom'] as const).map((id,index)=><button key={id} aria-pressed={character===id} onClick={()=>profile.save(id)}>{id==='custom'?<UserRound size={42} strokeWidth={1.3} aria-hidden="true"/>:/* eslint-disable-next-line @next/next/no-img-element */<img src={id==='cat'?COMPANION_ART+'/cat-still.webp':'/assets/moonlit-lotus/yeoni/2d-v2/still.webp'} width={72} height={72} alt=""/>}<span>{['꽃돼지 연이','영냥이','프로필 · 동물 친구'][index]}</span></button>)}</div>
       <figure className={styles.avatarPreview}><div><Character kind={character} activity="idle" elapsed={0} reduced look={profile.avatar} image={profile.image} portrait={profile.portrait} onFailure={()=>setCharacterError(true)}/></div><figcaption>{character==='custom'?profile.avatar.name||'나의 친구':character==='cat'?'영냥이':'꽃돼지 연이'}와 함께 쉬어가요</figcaption></figure>
       {character==='custom'&&<><button onClick={profile.loadImage} disabled={profile.loading}>{profile.loading?'프로필 이미지 확인 중':'현재 프로필 친구 이미지 가져오기'}</button>{profile.imageError&&<p role="alert">{profile.imageError} <Link href="/ggulggul/?action=dpOpenList&petEntry=my">프로필 친구 확인하기</Link></p>}
-      <p className={styles.small}>저장된 친구 이미지에서 얼굴을 맞추고, 둥근 몸과 색상을 꾸며요. 이미지를 AI로 새로 생성하거나 업로드하지 않아요.</p>
-      <label className={styles.field}>아바타 이름<input maxLength={20} value={profile.avatar.name} onChange={e=>profile.setAvatar({...profile.avatar,name:e.target.value})}/></label>
-      <label className={styles.field}>옷 색상<input type="color" value={profile.avatar.color} onChange={e=>profile.setAvatar({...profile.avatar,color:e.target.value})}/></label>
-      {(['zoom','x','y'] as const).map((key,index)=><label className={styles.field} key={key}>{['얼굴 크기','가로 위치','세로 위치'][index]}<input type="range" min={key==='zoom'?.8:0} max={key==='zoom'?1.8:100} step={key==='zoom'?.05:1} value={profile.avatar[key]} onChange={e=>profile.setAvatar({...profile.avatar,[key]:Number(e.target.value)})}/></label>)}
+      <p className={styles.small}>프로필 친구의 전신과 장식을 그대로 가져와요. 아래 동물 모습은 연화당에서만 바뀌며 친구의 종·성장·보유 기록은 변경하지 않아요.</p>
+      <label className={styles.field}>함께 쉴 모습<select value={profile.avatar.species||'profile'} onChange={e=>{profile.setAvatar({...profile.avatar,species:e.target.value});setCharacterError(false);}}><option value="profile">현재 프로필 친구</option>{COMPANIONS.map(([id,name])=><option key={id} value={id}>{name}</option>)}</select></label>
+      {(!profile.avatar.species||profile.avatar.species==='profile')&&!profile.loaded&&<p className={styles.small}>친구를 가져오기 전에는 토끼 예시가 보여요.</p>}
+      <label className={styles.field}>이름<input maxLength={20} value={profile.avatar.name} onChange={e=>profile.setAvatar({...profile.avatar,name:e.target.value})}/></label>
+      {profile.avatar.species&&profile.avatar.species!=='profile'&&<><label className={styles.field}>머리 장식<select value={profile.avatar.headwear||0} onChange={e=>profile.setAvatar({...profile.avatar,headwear:Number(e.target.value)})}>{Array.from({length:16},(_,i)=><option key={i} value={i}>장식 {i+1}</option>)}</select></label><label className={styles.field}>장식 색감<select value={profile.avatar.trim||0} onChange={e=>profile.setAvatar({...profile.avatar,trim:Number(e.target.value)})}>{['꽃빛','살구','햇살','새싹','물빛','하늘','보라','장미'].map((name,i)=><option key={name} value={i}>{name}</option>)}</select></label></>}
       <button className={styles.primary} onClick={()=>{profile.save('custom');setNotice('나만의 모습을 저장했어요.');}}>이 모습으로 머무르기</button></>}
       <div className={styles.displayOptions}><label className={styles.check}><input type="checkbox" checked={light} onChange={event=>setLight(event.target.checked)}/>가볍게 보기 · 동작 이미지 줄이기</label><p className={styles.small}>화면 표현만 바뀌고 진행 중인 108배와 완료 횟수는 유지돼요.{reduced?' 기기의 모션 감소 설정도 적용 중이에요.':''}</p></div>
      </>}

@@ -1,9 +1,11 @@
 "use client";
-import {useEffect,useRef,useState} from 'react';
+import {useEffect,useRef,useState,type CSSProperties} from 'react';
+import {walkDrawing,roomMarkup} from '../_lib/companions';
+import type {AvatarStyle} from '../_lib/use-space-profile';
 import styles from '../space.module.css';
-const WALK='/assets/moonlit-lotus/yeoni/2d-v2/walk.webp';
 /** A cosmetic journey only: never drives the bow session or its counter. */
-export default function WalkingYeoni({fromX,fromY,toX,toY,onCross,onDone}:{fromX:number;fromY:number;toX:number;toY:number;onCross:()=>void;onDone:()=>void}){
+export default function WalkingYeoni({fromX,fromY,toX,toY,onCross,onDone,kind,look,image,portrait}:{fromX:number;fromY:number;toX:number;toY:number;onCross:()=>void;onDone:()=>void;kind:string;look:AvatarStyle;image:string;portrait:string}){
+ const drawing=walkDrawing(kind,look,image),WALK=drawing.url;
  const [progress,setProgress]=useState(0),callbacks=useRef({onCross,onDone});callbacks.current={onCross,onDone};
  useEffect(()=>{
   let alive=true,raf=0,crossed=false,elapsed=0,last=0;
@@ -20,11 +22,12 @@ export default function WalkingYeoni({fromX,fromY,toX,toY,onCross,onDone}:{fromX
   img.decode().then(()=>{if(alive){if(document.hidden)finish();else raf=requestAnimationFrame(tick);}}).catch(finish);
   document.addEventListener('visibilitychange',visibility);
   return()=>{alive=false;cancelAnimationFrame(raf);document.removeEventListener('visibilitychange',visibility);};
- },[]);
+ },[WALK]);
  const entering=progress>=.5,t=entering?(progress-.5)*2:progress*2;
  // Gentle acceleration/deceleration; pose cadence uses distance, not a second clock.
  const distance=t*t*(3-2*t),x=entering?20+(toX-20)*distance:fromX+(78-fromX)*distance;
- const frame=Math.floor((entering?1:0)*16+distance*16)%16;
+ const frame=Math.floor(distance*drawing.frames*2)%drawing.frames;
  const opacity=entering?Math.min(1,t*7):Math.min(1,(1-t)*7);
- return <div className={styles.character} data-walking="true" style={{left:x+'%',top:(entering?toY:fromY)+'%',opacity}}><div className={styles.characterDrawing} role="img" aria-label="연이가 천천히 걸어가는 중" style={{backgroundImage:`url(${WALK})`,backgroundPosition:`${frame%4/3*100}% ${Math.floor(frame/4)/3*100}%`}}/></div>;
+ const position=`${frame%4/3*100}% ${drawing.rows===1?0:Math.floor(frame/4)/3*100}%`;
+ return <div className={styles.character} data-walking="true" style={{left:x+'%',top:(entering?toY:fromY)+'%',opacity}}>{kind==='custom'&&drawing.rows===1?<div className={styles.fullCompanion} data-moving="true" style={{'--room-walk':`url(${WALK})`,'--room-frame':position} as CSSProperties} dangerouslySetInnerHTML={{__html:roomMarkup(look,portrait)}}/>:<div className={styles.characterDrawing} role="img" aria-label="선택한 캐릭터가 천천히 걸어가는 중" style={{backgroundImage:`url(${WALK})`,backgroundPosition:position,backgroundSize:`400% ${drawing.rows*100}%`}}/>}</div>;
 }

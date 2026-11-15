@@ -5,7 +5,8 @@ import {authFetch} from '@/app/_lib/auth-client';
 import {petArtUrl} from '@/js/core/profile-pet.mjs';
 import {petSpriteMarkup} from '@/js/core/profile-pet-card.mjs';
 import {defaultCharacter,type Character} from './session-policy';
-export type AvatarStyle={color:string;zoom:number;x:number;y:number;name:string};
+import {COMPANIONS,type RoomLook} from './companions';
+export type AvatarStyle=RoomLook&{color:string;zoom:number;x:number;y:number;name:string};
 export const DEFAULT_AVATAR:AvatarStyle={color:'#b998cf',zoom:1,x:50,y:35,name:'나의 친구'};
 export function useSpaceProfile(){
  const [identity,setIdentity]=useState({scope:'guest|default',account:'',profileId:'',gender:''});
@@ -21,7 +22,7 @@ export function useSpaceProfile(){
    const prefs=JSON.parse(localStorage.getItem('cd:moonlit:prefs:'+scope)||'{}');
    const manual=['yeoni','cat','custom'].includes(prefs.character)?prefs.character as Character:null;
    setCharacter(defaultCharacter(manual,profile?.gender||''));
-   setAvatar({color:/^#[a-f0-9]{6}$/i.test(prefs.avatar?.color)?prefs.avatar.color:DEFAULT_AVATAR.color,zoom:Math.min(1.8,Math.max(.8,Number(prefs.avatar?.zoom)||1)),x:Math.min(100,Math.max(0,Number(prefs.avatar?.x)||50)),y:Math.min(100,Math.max(0,Number(prefs.avatar?.y)||35)),name:String(prefs.avatar?.name||'나의 친구').slice(0,20)});
+   setAvatar({species:COMPANIONS.some(([id])=>id===prefs.avatar?.species)?prefs.avatar.species:'profile',headwear:Math.min(15,Math.max(0,Math.floor(Number(prefs.avatar?.headwear)||0))),trim:Math.min(7,Math.max(0,Math.floor(Number(prefs.avatar?.trim)||0))),color:/^#[a-f0-9]{6}$/i.test(prefs.avatar?.color)?prefs.avatar.color:DEFAULT_AVATAR.color,zoom:Math.min(1.8,Math.max(.8,Number(prefs.avatar?.zoom)||1)),x:Math.min(100,Math.max(0,Number(prefs.avatar?.x)||50)),y:Math.min(100,Math.max(0,Number(prefs.avatar?.y)||35)),name:String(prefs.avatar?.name||'나의 친구').slice(0,20)});
   }catch{setCharacter(defaultCharacter(null,profile?.gender||''));setAvatar(DEFAULT_AVATAR);}
  },[]);
  useEffect(()=>{

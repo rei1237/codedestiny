@@ -1,0 +1,97 @@
+{
+  "generator": "built-in image_gen",
+  "cell": 384,
+  "baseline": 354,
+  "assets": [
+    {
+      "species": "mouse",
+      "source": "d713d499-f0b7-4aad-b0d3-7d561b406fb7",
+      "frames": 4
+    },
+    {
+      "species": "ox",
+      "source": "d713d499-f0b7-4aad-b0d3-7d561b406fb7",
+      "frames": 4
+    },
+    {
+      "species": "tiger",
+      "source": "d713d499-f0b7-4aad-b0d3-7d561b406fb7",
+      "frames": 4
+    },
+    {
+      "species": "rabbit",
+      "source": "d713d499-f0b7-4aad-b0d3-7d561b406fb7",
+      "frames": 4
+    },
+    {
+      "species": "dragon",
+      "source": "177e3921-dacd-45b7-896b-7405be76256f",
+      "frames": 4
+    },
+    {
+      "species": "snake",
+      "source": "177e3921-dacd-45b7-896b-7405be76256f",
+      "frames": 4
+    },
+    {
+      "species": "horse",
+      "source": "177e3921-dacd-45b7-896b-7405be76256f",
+      "frames": 4
+    },
+    {
+      "species": "sheep",
+      "source": "177e3921-dacd-45b7-896b-7405be76256f",
+      "frames": 4
+    },
+    {
+      "species": "monkey",
+      "source": "db0d3c6c-8508-4d64-9cee-1e846a63de11",
+      "frames": 4
+    },
+    {
+      "species": "rooster",
+      "source": "db0d3c6c-8508-4d64-9cee-1e846a63de11",
+      "frames": 4
+    },
+    {
+      "species": "dog",
+      "source": "db0d3c6c-8508-4d64-9cee-1e846a63de11",
+      "frames": 4
+    },
+    {
+      "species": "pig",
+      "source": "db0d3c6c-8508-4d64-9cee-1e846a63de11",
+      "frames": 4
+    },
+    {
+      "species": "lion",
+      "source": "96264fd6-673f-42e0-89dd-3057209f41b1",
+      "frames": 4
+    },
+    {
+      "species": "giraffe",
+      "source": "96264fd6-673f-42e0-89dd-3057209f41b1",
+      "frames": 4
+    },
+    {
+      "species": "rhino",
+      "source": "96264fd6-673f-42e0-89dd-3057209f41b1",
+      "frames": 4
+    },
+    {
+      "name": "cat-motion",
+      "source": "56ec8304-1991-4d67-bf0d-d28af715fc3b",
+      "frames": 16
+    },
+    {
+      "name": "cat-walk",
+      "source": "fb4b3f89-1479-493f-9ee6-60c034de7d5a",
+      "frames": 16
+    },
+    {
+      "name": "cat-bow",
+      "source": "66722bc9-f51b-486b-9116-e7d2fe413311",
+      "frames": 16
+    }
+  ]
+}
