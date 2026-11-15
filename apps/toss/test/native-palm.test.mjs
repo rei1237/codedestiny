@@ -48,9 +48,10 @@ test('original photo analysis executes once, survives a lost response, and only 
  await assert.rejects(readNativePalm({},{...auth,_id:'other'},id),/DENIED/);
  state.refunded=true;await assert.rejects(readNativePalm({},auth,id),/DENIED/);assert.equal(state.calls,1);
 });
-test('a paid SKU cannot attach to a palm intent until the original result has been saved',async()=>{
+test('an owned paid SKU cannot attach to a palm intent until the original result has been saved',async()=>{
  const product={nativeService:'palm',featureKey,sku:'mock-palm',approvedPriceKRW:1};
  const row={...auth,...product,identityId:auth._id,status:'prepared',input:{}};
- const store={transaction:fn=>fn({assertIdentity:()=>{},purchase:()=>null,insertPurchase:()=>{},nativeIntent:()=>row})};
+ const purchase={...row,_id:'order',status:'PURCHASED',requestId:null};
+ const store={transaction:fn=>fn({assertIdentity:()=>{},purchase:()=>purchase,insertPurchase:()=>assert.fail('owned recovery must not insert a purchase'),nativeIntent:()=>row})};
  await assert.rejects(grantNativeOrder({store,auth,product,requestId:id,order:{orderId:'order',sku:product.sku,status:'PURCHASED'}}),e=>e.code==='PALM_ANALYSIS_INCOMPLETE');
 });
