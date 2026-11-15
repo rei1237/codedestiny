@@ -15,6 +15,7 @@ import MobileHomeNav from './components/MobileHomeNav';
 import HomeCardDeck from "./components/HomeCardDeck";
 import FreePromoBanner from "./components/FreePromoBanner";
 import HomeDailyEntry from "./components/HomeDailyEntry";
+import HomeMoonlitEntry from "./components/HomeMoonlitEntry";
 import { NativeHomeRoot, NativeHomeNav, NativeHomeText, NativeHomeCardLink, NativeHomeDictionaryText } from "./components/NativeHomeCopy";
 import "./yeongnyangi/night-tokens.css";
 import "./yeongnyangi/yehwa-night.generated.css";
@@ -127,6 +128,7 @@ export default function HomePage() {
             </li>;
           })}
         </HomeCardDeck>
+        <HomeMoonlitEntry />
         {!IS_APP_BUILD && <FreePromoBanner />}
         {!IS_APP_BUILD && <HomeQuestionGuide />}
         {!IS_APP_BUILD && <StoryDiscovery />}

@@ -1,0 +1,391 @@
+{
+  "version": 1,
+  "scenes": {
+    "courtyard": {
+      "sourceSha256": "0a08243adc8242726fe9e8fe37147456100fbd43fa62d2624b70600a5f1d4520",
+      "sizes": {
+        "768": 125568,
+        "1536": 468372
+      }
+    },
+    "hall": {
+      "sourceSha256": "e5167af73d2156b93277a424c71e7d834bf14af3e5a1831abc3cb35079030259",
+      "sizes": {
+        "768": 108446,
+        "1536": 400794
+      }
+    },
+    "pond": {
+      "sourceSha256": "f0888a3b6889905b2ab22a6d2d7baa9d40f5f59af36ef18428f8788431acd3cd",
+      "sizes": {
+        "768": 138090,
+        "1536": 469066
+      }
+    }
+  },
+  "characters": {
+    "cat-motion": {
+      "frames": [
+        {
+          "index": 0,
+          "source": {
+            "x": 0,
+            "y": 0,
+            "width": 314,
+            "height": 314
+          },
+          "sha256": "da0f291611a2e8bd9ecd2ae5842a8c75d6ee3a96edc708c54207ac75ccf358e9",
+          "baseline": 354
+        },
+        {
+          "index": 1,
+          "source": {
+            "x": 314,
+            "y": 0,
+            "width": 313,
+            "height": 314
+          },
+          "sha256": "b24fb5f304773a7fe00b7cfab4e342dd9eee98605a480c9b8bb252f4c5f82690",
+          "baseline": 354
+        },
+        {
+          "index": 2,
+          "source": {
+            "x": 627,
+            "y": 0,
+            "width": 314,
+            "height": 314
+          },
+          "sha256": "2534575d8175ce83ca9af83c3cada9161d5db74ae2e324a290766f91efe22869",
+          "baseline": 354
+        },
+        {
+          "index": 3,
+          "source": {
+            "x": 941,
+            "y": 0,
+            "width": 313,
+            "height": 314
+          },
+          "sha256": "bd38f23f50054ef16cb7ecd6af80483036c196aa675303f297dfe8089f4ec156",
+          "baseline": 354
+        },
+        {
+          "index": 4,
+          "source": {
+            "x": 0,
+            "y": 314,
+            "width": 314,
+            "height": 313
+          },
+          "sha256": "74981ed0920b1baacf486971e5cf37217d91877ab21b23d7ec0b775ae685fdc1",
+          "baseline": 354
+        },
+        {
+          "index": 5,
+          "source": {
+            "x": 314,
+            "y": 314,
+            "width": 313,
+            "height": 313
+          },
+          "sha256": "28172c0cdc48db9f2bcf04a713cf006fcdb61222b511879752b94b4884812335",
+          "baseline": 354
+        },
+        {
+          "index": 6,
+          "source": {
+            "x": 627,
+            "y": 314,
+            "width": 314,
+            "height": 313
+          },
+          "sha256": "1d12a4d0e66a76086922b715b50bf25cf2d513be55fc7e0942e670b15b6756ab",
+          "baseline": 354
+        },
+        {
+          "index": 7,
+          "source": {
+            "x": 941,
+            "y": 314,
+            "width": 313,
+            "height": 313
+          },
+          "sha256": "2a7e45d32c9a831bf6eb8138eb6ee09be75368d0205e7323e54bb6d49eb1cbcd",
+          "baseline": 354
+        },
+        {
+          "index": 8,
+          "source": {
+            "x": 0,
+            "y": 627,
+            "width": 314,
+            "height": 314
+          },
+          "sha256": "e450b321f8133bfaf74a82c85b05d4a9ea8dba07058f15f5306ea30227c43633",
+          "baseline": 354
+        },
+        {
+          "index": 9,
+          "source": {
+            "x": 314,
+            "y": 627,
+            "width": 313,
+            "height": 314
+          },
+          "sha256": "4d1ed76124af885779109185acebad9b859fcbec4398d8ef6b2f3f6b74bd70cc",
+          "baseline": 354
+        },
+        {
+          "index": 10,
+          "source": {
+            "x": 627,
+            "y": 627,
+            "width": 314,
+            "height": 314
+          },
+          "sha256": "e5df9027a46b5c20a4f656c7390c64009d41dc4caddb2317451d90fa4750865d",
+          "baseline": 354
+        },
+        {
+          "index": 11,
+          "source": {
+            "x": 941,
+            "y": 627,
+            "width": 313,
+            "height": 314
+          },
+          "sha256": "11748d73badfa33e7bbd145ec8655c771793a73aa1422074df7216650b19e4ff",
+          "baseline": 354
+        },
+        {
+          "index": 12,
+          "source": {
+            "x": 0,
+            "y": 941,
+            "width": 314,
+            "height": 313
+          },
+          "sha256": "3cee6bec73a7909e875c7fbb3fc7999319d36bf260f2180408d7a9021986db33",
+          "baseline": 354
+        },
+        {
+          "index": 13,
+          "source": {
+            "x": 314,
+            "y": 941,
+            "width": 313,
+            "height": 313
+          },
+          "sha256": "bea91afa84a94f9a510a0dfdb92088aa4450649351c3e4a522927a6f7ff555e0",
+          "baseline": 354
+        },
+        {
+          "index": 14,
+          "source": {
+            "x": 627,
+            "y": 941,
+            "width": 314,
+            "height": 313
+          },
+          "sha256": "0fe840da68762c56966c1a8a32b7b920b291a4ba572ad19163a2d08ee86518b3",
+          "baseline": 354
+        },
+        {
+          "index": 15,
+          "source": {
+            "x": 941,
+            "y": 941,
+            "width": 313,
+            "height": 313
+          },
+          "sha256": "c43082a82f43041f7ac690a882123471db10d458d0a73266e4b2825ebfea0b3e",
+          "baseline": 354
+        }
+      ],
+      "bytes": 692706
+    },
+    "cat-bow": {
+      "frames": [
+        {
+          "index": 0,
+          "source": {
+            "x": 0,
+            "y": 0,
+            "width": 315,
+            "height": 312
+          },
+          "sha256": "e7721cdee14b4116b474bf722ca7503929c0322cb9fdbf748157b952fb28ee40",
+          "baseline": 354
+        },
+        {
+          "index": 1,
+          "source": {
+            "x": 315,
+            "y": 0,
+            "width": 316,
+            "height": 312
+          },
+          "sha256": "6686bda4f746d8b06c54d51d42882477b29467be8636cc6f005e2ac4bb8376dc",
+          "baseline": 354
+        },
+        {
+          "index": 2,
+          "source": {
+            "x": 631,
+            "y": 0,
+            "width": 315,
+            "height": 312
+          },
+          "sha256": "d855b6f0299a604981f43999cc60ea4ddcca183de8bb4de450d9c29234c89a57",
+          "baseline": 354
+        },
+        {
+          "index": 3,
+          "source": {
+            "x": 946,
+            "y": 0,
+            "width": 315,
+            "height": 312
+          },
+          "sha256": "757c4a3337e10a86645b05147aeb14c143c6e833051aca882f0c5bbf571a78d2",
+          "baseline": 354
+        },
+        {
+          "index": 4,
+          "source": {
+            "x": 0,
+            "y": 312,
+            "width": 315,
+            "height": 312
+          },
+          "sha256": "ebc70090ef35d2ad6e6c2fa99361d51ea2584f429e83f560906f8c692435cfbf",
+          "baseline": 354
+        },
+        {
+          "index": 5,
+          "source": {
+            "x": 315,
+            "y": 312,
+            "width": 316,
+            "height": 312
+          },
+          "sha256": "500e8bf470d5bc7a1687d7278aca4ef0a4519bbc7d4e481290ef77fcd022da65",
+          "baseline": 354
+        },
+        {
+          "index": 6,
+          "source": {
+            "x": 631,
+            "y": 312,
+            "width": 315,
+            "height": 312
+          },
+          "sha256": "a8066e98164d6d695ebc6a5c1a3e898492eb65a845ca609c9218cf55c368871f",
+          "baseline": 354
+        },
+        {
+          "index": 7,
+          "source": {
+            "x": 946,
+            "y": 312,
+            "width": 315,
+            "height": 312
+          },
+          "sha256": "5cd86b3582b4ce1bea8f43316821dbc2fc2dceb59782b37cc51f69c66965ee89",
+          "baseline": 354
+        },
+        {
+          "index": 8,
+          "source": {
+            "x": 0,
+            "y": 624,
+            "width": 315,
+            "height": 311
+          },
+          "sha256": "8cbf622513fad0c7408ed663a049c0637777b38c34622517455fe48974e8171b",
+          "baseline": 354
+        },
+        {
+          "index": 9,
+          "source": {
+            "x": 315,
+            "y": 624,
+            "width": 316,
+            "height": 311
+          },
+          "sha256": "5ea0932f36b3245255241304af7ea132bc3da3c040db1070741b31f4cb3cf3fe",
+          "baseline": 354
+        },
+        {
+          "index": 10,
+          "source": {
+            "x": 631,
+            "y": 624,
+            "width": 315,
+            "height": 311
+          },
+          "sha256": "d6ff431b3e6b995f26551b562130367baeefa28e9bd228f84ccaa89459175d1b",
+          "baseline": 354
+        },
+        {
+          "index": 11,
+          "source": {
+            "x": 946,
+            "y": 624,
+            "width": 315,
+            "height": 311
+          },
+          "sha256": "9a17e600694c3037df4a5c8da0ce875e8ff8a24066b3c2540d3e7ff65ee17c83",
+          "baseline": 354
+        },
+        {
+          "index": 12,
+          "source": {
+            "x": 0,
+            "y": 935,
+            "width": 315,
+            "height": 312
+          },
+          "sha256": "6f861878f1961c814ac2636f14c2696e83ac388f2909d9d1d666a92869e16db3",
+          "baseline": 354
+        },
+        {
+          "index": 13,
+          "source": {
+            "x": 315,
+            "y": 935,
+            "width": 316,
+            "height": 312
+          },
+          "sha256": "6bda366f09c162f01b5032f6f7c3ab855c4b69a63e5534bb8f181bc787dd392b",
+          "baseline": 354
+        },
+        {
+          "index": 14,
+          "source": {
+            "x": 631,
+            "y": 935,
+            "width": 315,
+            "height": 312
+          },
+          "sha256": "99a389046a57d79b6bbd4ee87ea118c9a8e7be1e9a96680ddddc0211a3473a22",
+          "baseline": 354
+        },
+        {
+          "index": 15,
+          "source": {
+            "x": 946,
+            "y": 935,
+            "width": 315,
+            "height": 312
+          },
+          "sha256": "4b01dfda60e54f3099df79a09e932616d697cbb929278db63911a7ddbacf78fe",
+          "baseline": 354
+        }
+      ],
+      "bytes": 576696
+    }
+  },
+  "sourceFolder": "D:/CodeDestiny-Build/moonlit-lotus/space-v1"
+}
