@@ -23,7 +23,7 @@ export default function Page() {
       <header className="biz-hero">
         <div>
           <h1>
-            대통령 운세를 적중한 명리학자가 설계한 사주 로직, 이제 우리
+            대통령의 2025년을 미리 짚은 명리학자가 설계한 사주 로직, 이제 우리
             서비스에서
           </h1>
           <p>{lead}</p>

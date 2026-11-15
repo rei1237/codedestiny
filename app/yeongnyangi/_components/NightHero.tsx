@@ -6,6 +6,7 @@ import {products} from '@/worker/yeongnyangi/payments/catalog';
 import {EXPANDED_CHAPTERS} from '@/worker/yeongnyangi/fortune/consultation-expansion';
 import {FOLLOWUP_LIMITS} from '@/worker/yeongnyangi/fortune/ask/question-policy';
 import LaunchPlannedPrice from '@/app/components/LaunchPlannedPrice';
+import TrustRecordLine from '@/app/components/conversion/TrustRecordLine';
 import {launchOffer,plannedPriceFor} from '@/lib/brand/launch-offer';
 import styles from './night-hero.module.css';
 
@@ -33,6 +34,7 @@ export default function NightHero(){
     <a className={styles.primary} href="#questions" data-cd-business-entry="question"><PawPrint size={20} aria-hidden="true"/>내 고민 상담하기<ArrowRight size={19} aria-hidden="true"/></a>
    </div>
    <p className={styles.price}>{planned!==null?<>선착순 {launchOffer.limit.toLocaleString('ko-KR')}명 체험가 · <LaunchPlannedPrice amount={planned}/> · </>:null}<span className={styles.keep}>질문 상담 {starter.priceKRW.toLocaleString('ko-KR')}원부터</span></p>
+   <TrustRecordLine variant="short" className={styles.trust}/>
 
   </div>
   <div className={styles.character}>

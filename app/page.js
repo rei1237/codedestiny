@@ -16,6 +16,7 @@ import HomeCardDeck from "./components/HomeCardDeck";
 import FreePromoBanner from "./components/FreePromoBanner";
 import HomeDailyEntry from "./components/HomeDailyEntry";
 import HomeMoonlitEntry from "./components/HomeMoonlitEntry";
+import TrustRecordLine from "./components/conversion/TrustRecordLine";
 import { NativeHomeRoot, NativeHomeNav, NativeHomeText, NativeHomeCardLink, NativeHomeDictionaryText } from "./components/NativeHomeCopy";
 import "./yeongnyangi/night-tokens.css";
 import "./yeongnyangi/yehwa-night.generated.css";
@@ -103,6 +104,8 @@ export default function HomePage() {
         </div> : <div className={styles.head}>
           <h1 id="webServiceTitle" className={styles.title}>꿀꿀 운세 — 사주·타로·자미두수 운세 상담</h1>
           <p className={styles.lead}>마음이 가는 카드를 골라보세요</p>
+          {/* 2026-11-15 사용자 결정: 카드 위 한 줄 근거. 날짜가 찍힌 원문 비교로만 연결한다. */}
+          <TrustRecordLine className={styles.trust} />
         </div>}
 
         {/* 카드 제목(h2)의 링크를 카드 크기로 늘려 카드 전체가 한 링크다. 설명 두 줄은 aria-describedby 로 읽힌다. */}
