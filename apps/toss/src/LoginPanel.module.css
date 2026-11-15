@@ -1,0 +1,34 @@
+.panel {
+ --moon-accent:var(--cd-entry-button);
+ --moon-paper:var(--cd-entry-paper);
+ --moon-line:var(--cd-entry-line);
+ --moon-surface:var(--cd-entry-paper);
+ --moon-line-soft:var(--cd-entry-petal);
+ color:var(--cd-entry-ink);
+ --login-body:"CodeDestinyBody","Pretendard","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+ font-family:var(--login-body);
+ width:100%;
+}
+.standalone {
+ max-width:600px;
+ min-height:100svh;
+ margin:0 auto;
+ padding:32px 24px calc(24px + max(env(safe-area-inset-bottom,0px),var(--toss-service-bottom,0px)));
+ background:var(--cd-entry-paper);
+}
+:global(main.page-login) { background:var(--cd-entry-paper); }
+.heading { display:grid;grid-template-columns:minmax(0,1fr) 76px;gap:12px;align-items:start;margin:20px 0 28px; }
+.heading h1 { margin:0 0 16px;font:400 28px/1.4 "CodeDestinyRounded",var(--login-body);letter-spacing:-.03em;color:var(--cd-entry-ink); }
+.heading p { margin:0;font-size:15px;line-height:1.8;color:var(--cd-entry-muted);word-break:keep-all;overflow-wrap:anywhere; }
+.heading img { display:block;width:76px;height:100px;object-fit:contain;margin-top:8px; }
+.actions { display:grid;gap:12px; }
+.panel :global(.moon-button) { width:100%;min-height:54px;border:1px solid var(--cd-entry-line);border-radius:12px;background:var(--cd-entry-button);color:var(--cd-entry-on-button);font-family:var(--login-body);font-size:16px;line-height:1.5;box-shadow:none; }
+.panel :global(.moon-button):disabled { opacity:.65;cursor:wait; }
+.returnNote { margin:0;text-align:center;color:var(--cd-entry-muted);font-size:13px;line-height:1.7; }
+.browse { min-height:48px;padding:12px;border:0;background:transparent;color:var(--cd-entry-button);font:600 15px/1.5 var(--login-body);cursor:pointer; }
+.privacy { margin-top:24px;border-top:1px solid var(--cd-entry-line);padding-top:8px; }
+.privacy summary { min-height:48px;padding:12px 0;color:var(--cd-entry-muted);font-size:14px;line-height:1.7;cursor:pointer; }
+.privacy p { color:var(--cd-entry-muted);font-size:14px;line-height:1.8;margin:8px 0 16px;word-break:keep-all; }
+.error { margin:0;padding:16px;border:1px solid var(--cd-entry-line);border-radius:12px;background:var(--cd-entry-petal);font-size:14px;line-height:1.8;white-space:pre-line;overflow-wrap:anywhere; }
+.panel button:focus-visible,.privacy summary:focus-visible { outline:3px solid var(--cd-entry-button);outline-offset:3px; }
+@media(max-width:360px) { .standalone{padding-inline:18px}.heading{grid-template-columns:minmax(0,1fr) 64px;gap:8px}.heading img{width:64px}.heading h1{font-size:26px} }

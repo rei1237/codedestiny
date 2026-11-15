@@ -22,7 +22,8 @@ const bundle=await build({
     b.onResolve({filter:/toss-letter-recovery-link\.mjs$/},()=>({path:path.join(repo,'lib/fortune/toss-letter-recovery-link.mjs')}));
     b.onResolve({filter:/^\.\/initial-selection\.mjs$/},()=>({path:path.join(repo,'apps/toss/src/initial-selection.mjs')}));
     b.onResolve({filter:/native-back\.mjs$/},()=>({path:path.join(repo,'apps/toss/service/native-back.mjs')}));
-    b.onResolve({filter:/.*/},a=>a.kind==='entry-point'?null:/^react(?:\/jsx-runtime)?$/.test(a.path)?{path:a.path,external:true}:{path:a.path,namespace:'mock'});
+    b.onResolve({filter:/LoginPanel$/},()=>({path:path.resolve(import.meta.dirname,'../src/LoginPanel.tsx')}));
+ b.onResolve({filter:/.*/},a=>a.kind==='entry-point'?null:/^react(?:\/jsx-runtime)?$/.test(a.path)?{path:a.path,external:true}:{path:a.path,namespace:'mock'});
     b.onLoad({filter:/.*/,namespace:'mock'},({path:p})=>({contents:
       p==='./release'?'export const SERVICE_AVAILABLE=true;export const NEW_PURCHASES_AVAILABLE=true;':
       p==='@apps-in-toss/web-framework'?`const supported=fn=>Object.assign(fn,{isSupported:()=>true});export const Environment={environment:'sandbox'},isMinVersionSupported=()=>true,TossAuth={login:async()=>({authorizationCode:'mock',referrer:'SANDBOX'})},Storage={getItem:async()=>globalThis.__nativeIntegration.stored,setItem:async(_key,value)=>{globalThis.__nativeIntegration.stored=value},removeItem:async()=>{if(globalThis.__nativeIntegration.removeError)throw globalThis.__nativeIntegration.removeError;globalThis.__nativeIntegration.stored=null}},Share={},IAP={getProductItemList:supported(async()=>({products:[]})),getPendingOrders:supported(async()=>({orders:[]})),completeProductGrant:supported(async()=>true)},SafeArea={get:()=>({bottom:0}),subscribe:()=>()=>{}},Screen={close:()=>{}},graniteEvent={addEventListener:()=>()=>{}};`:
