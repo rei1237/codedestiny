@@ -1,4 +1,6 @@
 import { ENTRY_WEBTOON, entryCuts } from '@/lib/brand/entry-webtoon.mjs';
+import { Fragment } from 'react';
+import { SERVICE_GUIDE_LABEL } from '@/lib/brand/service-guide-webtoon.mjs';
 import { cmsRecordFlat } from '@/lib/cms/build-text';
 import { homeCopyDefaults, HOME_COPY_BANNED, HOME_COPY_MAX_LENGTH } from '@/lib/cms/home-copy.mjs';
 import { HOME_CONCERNS, freeEntryHref } from '@/lib/marketing/home-concerns.mjs';
@@ -13,10 +15,11 @@ import OfferCard from './OfferChapters';
 import ConcernPicker from './ConcernPicker';
 import StickyCta from './StickyCta';
 import EntryTracker from './EntryTracker';
+import ServiceGuide from './ServiceGuide';
 import '../../styles/fonts-serif.css';
 import styles from './entry-webtoon.module.css';
 
-// 첫 화면(/) 진입 웹툰. 대본은 lib/brand/entry-webtoon.mjs, 기록·후기·언론·가격은 각 정본에서 읽는다.
+// 서비스 이용 안내(/entry-webtoon/). 대본·기록·후기·언론·가격은 각 정본에서 읽는다.
 // 대사·기록·CTA는 모두 서버 HTML이라 JS가 없거나 그림이 깨져도 읽고 누를 수 있다.
 
 type HomeConcernId = (typeof HOME_CONCERNS)[number]['id'];
@@ -130,15 +133,15 @@ export default function EntryWebtoon() {
     <EntryTracker />
     <StickyCta label={ENTRY_WEBTOON.stickyLabel} href={entryHref} watchId={watchId} />
     <header className={styles.hero}>
-      <a className={styles.skip} data-entry-skip="" href="#entry-invite">{ENTRY_WEBTOON.skipLabel}</a>
-      <p className={styles.kicker}>{ENTRY_WEBTOON.title}</p>
-      <h1 id="homeCardTitle" className={styles.title}>{ENTRY_WEBTOON.h1}</h1>
+      <a className={styles.skip} data-entry-skip="" href="#service-guide">이야기 골라 읽기 →</a>
+      <h1 id="homeCardTitle" className={styles.title}>{SERVICE_GUIDE_LABEL}</h1>
+      <p className={styles.byline}>찻집의 문을 열면, 고민마다 다른 이야기가 기다려요.<br/>사주부터 타로, 대표 상담과 전문가 상담까지.</p>
       <p className={styles.byline}>{founder.byline}</p>
-      <a data-entry-cta="" data-position="hero" className={styles.ctaButton} href={entryHref}>
-        {ENTRY_WEBTOON.ctaLabel}<span aria-hidden="true"> →</span>
+      <a className={styles.ctaButton} href="#service-guide">
+        내게 맞는 이야기 고르기<span aria-hidden="true"> →</span>
       </a>
     </header>
-    {ENTRY_WEBTOON.chapters.map(chapter => <section key={chapter.id} id={`entry-${chapter.id}`} className={styles.chapter}
+    {ENTRY_WEBTOON.chapters.map(chapter => <Fragment key={chapter.id}><section id={`entry-${chapter.id}`} className={styles.chapter}
       data-chapter={chapter.id} aria-labelledby={`entry-${chapter.id}-title`}>
       <h2 id={`entry-${chapter.id}-title`} className={styles.srOnly}>{CHAPTER_LABEL[chapter.id]}</h2>
       <ol className={styles.cuts}>
@@ -146,7 +149,7 @@ export default function EntryWebtoon() {
           <CutBody cut={cut} prices={prices} firstImageId={firstImageId} entryHref={entryHref} />
         </li>)}
       </ol>
-    </section>)}
+    </section>{chapter.id === 'imagine' && <ServiceGuide />}</Fragment>)}
     <p className={styles.fine}>{trustStories.trustStoriesCopy.fine}</p>
   </div>;
 }
