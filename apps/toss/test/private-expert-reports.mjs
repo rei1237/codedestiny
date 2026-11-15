@@ -6,7 +6,7 @@ export async function verifyExpertReport(origin,context,service){
  try{
     page=await context.newPage();page.setDefaultTimeout(18000);
     const open=async()=>{await page.goto(origin);await page.locator('.world-entry-ggulggul').click();await page.getByRole('searchbox').fill(label);await page.getByRole('button',{name:new RegExp(label)}).first().click();};
-    const login=async()=>{await page.goto(origin);await page.getByRole('button',{name:'내 정보',exact:true}).click();await page.getByRole('button',{name:/로그인/}).first().click();await page.getByRole('button',{name:'토스로 로그인하기'}).click();await page.waitForURL(url=>!url.pathname.startsWith('/login'));};
+    const login=async()=>{await page.goto(origin);await page.getByRole('button',{name:'설정·고객지원',exact:true}).click();await page.getByRole('button',{name:/로그인/}).first().click();await page.getByRole('button',{name:'토스로 로그인하기'}).click();await page.waitForURL(url=>!url.pathname.startsWith('/login'));};
     await login();await open();
     const form=page.locator('form[data-moonlit-form]').first();
     if(service==='love-secret'){
@@ -27,7 +27,7 @@ export async function verifyExpertReport(origin,context,service){
       const question=form.locator('textarea').first();if(await question.count())await question.fill('이직을 준비하면서 내가 먼저 살펴볼 습관은 무엇일까요?');
     }
     await page.getByText(/^1원/).first().waitFor();await form.locator('button[type=submit]').first().click();
-    await page.waitForFunction(service=>{const state=JSON.parse(localStorage.getItem('consultations'));return state.intents.some(([,row])=>row.service===service&&row.result);},service,{timeout:26000});
+    await page.waitForFunction(service=>{const state=JSON.parse(localStorage.getItem('consultations'));return state?.intents?.some(([,row])=>row.service===service&&row.result);},service,{timeout:26000});
     if(service==='love-secret')await page.getByRole('link',{name:'결과 확인하기'}).click();
     await page.waitForURL(url=>['cid','id','sid','sessionId','attemptId'].some(key=>url.searchParams.has(key)),{timeout:28000});
     const state=async()=>page.evaluate(()=>JSON.parse(localStorage.getItem('consultations')));
@@ -35,7 +35,7 @@ export async function verifyExpertReport(origin,context,service){
     assert.equal(first.orders.length,1);assert.equal(row.generationCount,1);
     await page.waitForURL(url=>[...url.searchParams.values()].includes(row.result.id),{timeout:18000});
     const resultUrl=page.url();await page.goto(origin);
-    await page.getByRole('button',{name:'내 정보',exact:true}).click();
+    await page.getByRole('button',{name:'설정·고객지원',exact:true}).click();
     await page.getByRole('button',{name:/기록 보관함|구매 기록/}).first().click();
     await page.locator('button.record').first().click();await page.waitForURL(resultUrl);
     await page.reload();await page.waitForURL(resultUrl);
