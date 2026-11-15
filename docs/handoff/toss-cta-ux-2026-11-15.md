@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-15
-next: 남은 check:fast 단계(session90485) 종료를 확인하고 최종 pre-push 후 main에 통합·push, CI와 Linux 일반 AIT를 확인해 전달하고 워크트리를 배수한다.
+next: cde0b14ea 고정 Linux AIT run43703521077 산출물을 받아 검수하고 최종 문서 commit/push 후 워크트리를 배수한다.
 ---
 
 ## 첫 행동
@@ -49,9 +49,9 @@ next: 남은 check:fast 단계(session90485) 종료를 확인하고 최종 pre-p
 - [x] UI 구현·행동 경계 보존·타입 및 관련 통합 검사
 - [x] 독립 시각검수 및 1회 보정 후 최종 확인
 - [x] 코드 커밋, 최신 main 보존 merge, pre-push PASS
-- [ ] 남은 check:fast 단계 종료 확인, 실패 시 해당 항목만 처리
-- [ ] 최종 커밋 main 통합/push 및 main CI 확인
-- [ ] 공식 `pr-ci.yml` workflow_dispatch `full_ci=true,toss_artifact=true,toss_simulation_artifact=false`로 Linux 일반AIT 생성. 운영릴리스는 실행하지 않는다. 기존 source AIT를 새UI판이라고 쓰지 않는다.
+- [x] 남은 check:fast 단계 종료 확인: Jest 479 suites / 8011 tests PASS, 1 skipped. 마지막 exit0 및 Remaining check:fast gates PASS 확인.
+- [x] cde0b14ea main fast-forward 통합/push. Push CI 43703512772 실행, 최종 결과 확인 전.
+- [x] 공식 `pr-ci.yml` workflow_dispatch `full_ci=true,toss_artifact=true,toss_simulation_artifact=false` 요청: run43703521077. Linux AIT 결과 확인 전. 운영 릴리스 실행 없음.
 - [ ] 산출물 다운로드·해시·portable 검수·새CTA 포함 확인. 같은SHA mainCI가PASS라면 artifact Critical upload 성공 시 다운로드 가능, 나머지 run상태는 별도 표기.
 - [ ] 최신 AIT/검증화면/README를 Downloads/CodeDestiny의 새 명확한 폴더에 정리. QR 잠금/실기기 최신UI 잔여를 명시.
 - [ ] 자기 문서 done, 커밋/push/CI 확인, 워크트리/브랜치 배수 및 자체 scratch 정리. root의 다른 .claude untracked나 다른워크트리는 건드리지 않는다.
@@ -59,3 +59,20 @@ next: 남은 check:fast 단계(session90485) 종료를 확인하고 최종 pre-p
 ## 이전 정리 제한
 
 로그인fix의 외부 임시·중간(be22/966)폴더 3개 일괄 재귀삭제는 자동 승인검토가 blocked by policy(세부사유없음)로 거절하여 남겼고 root가 이미 사용자에게 설명했다. 이 작업이 우회 삭제하지 않는다. 새UI의 검수 산출물은 전달 폴더로 보존 후 자기 스크래치만 정상 절차로 정리한다.
+
+## 전달 진행 추가
+
+- main 전달 SHA: cde0b14ea71889a20b9785904cb1514e0cb2a1e5. 최종 pre-push exit0.
+- 새 전달 폴더: C:/Users/user/Downloads/CodeDestiny/20261115-login-cta-ux (검수 캡처 9개, README, 검증 로그).
+- Linux AIT 다운로드 후 D:/Development/Temp/toss-cta-ux-20261115/verify-delivery.mjs로 경로·일반판·크기·새 CTA·SHA256 검증 준비.
+
+## AIT 완료 추적 승인 원문
+
+부모 세션이 2026-11-15 원문을 재확인했다: “검증된 커밋으로 Linux AIT를 생성하고, 기존 축소 버전과 구분되는 새 비공개 테스트 QR을 준비해.”, “최종 CI 결과를 확인하고 ... 실제 AIT에서 홈 진입부터 ... 검증해줘”, “나머지 앱 론칭작업을 완료해줘”. 따라서 AIT 산출물 확보와 이 요청의 최종 CI 확인은 일반 push의 습관적 폴링과 달리 명시된 납품 범위로 완료까지 추적한다. 새 QR은 기존 콘솔 검토 잠금을 우회하지 않는다.
+
+## CI 실패 수선
+
+- cde0b14ea Push CI43703512772는 기존 홈 nav를 찾는 5개 테스트(FPTI 2, 휴먼디자인 1, 마야 1, 심리 1)가 실패했다. 제품 UI나 라우팅 오류가 아니라 승인된 캐릭터 카드 진입에 맞춘 테스트 갱신 누락이었다.
+- 제품 코드는 변경하지 않고 4개 테스트 파일을 실제 `button.world-entry-ggulggul`로 진입하도록 갱신했다. FPTI 공유 DOM 테스트는 시작 URL을 `/`로 초기화해 직전 테스트의 world 쿼리 영향을 제거했다. 기존 목적지/assertion 강도 유지.
+- 관련 7개 테스트 파일 18/18 PASS. 수선 커밋 62e0b6d16. 폐기된 cde AIT 요청43703521077 취소 요청.
+- pre-push는 이 문서 미커밋 때문에 판정 불가로 1회 중단됐다. 문서 커밋 후 다시 수행하며, 이를 코드 회귀로 기록하지 않는다.
