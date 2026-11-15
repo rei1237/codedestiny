@@ -25,7 +25,7 @@ test('login without email works; only verified userKey survives',async()=>{
   }}};
   assert.deepEqual(await loginIdentity(local,{authorizationCode:'once',referrer:'DEFAULT'}),{userKey:'123',referrer:'DEFAULT'});
   assert.equal(calls[1][1].headers.Authorization,'Bearer private');
-  assert.equal(calls[0][1].redirect,'error');
+  assert.equal(calls[0][1].redirect,'manual');
 });
 test('order status requires a local identity but never claims the endpoint verifies its owner',async()=>{
   await assert.rejects(lookupOrder({...env,TOSS_MTLS:{fetch:()=>assert.fail()}},'',orderId));

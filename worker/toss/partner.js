@@ -28,7 +28,9 @@ export async function partnerRequest(env, operation, {body, accessToken, userKey
   try {
     const response = await env.TOSS_MTLS.fetch(BASE + PATH + spec[1], {
       method: spec[0], headers, ...(body ? {body: JSON.stringify(body)} : {}),
-      signal: controller.signal, redirect: 'error',
+      // Workers rejects redirect:'error' before sending. Manual returns 3xx to
+      // the !ok check below, without forwarding credentials to another URL.
+      signal: controller.signal, redirect: 'manual',
     });
     if (!response.ok) throw new TossError('TOSS_PARTNER_UNAVAILABLE', 502);
     const result = await response.json();
