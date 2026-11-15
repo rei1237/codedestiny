@@ -6,6 +6,7 @@ import {useLocale} from '@/lib/i18n/useT';
 import {MOONLIT_ENTRY_COPY} from './_lib/entry-copy';
 import Character,{type Activity} from './_components/Character';
 import MusicPlayer from './_components/MusicPlayer';
+import ImmersionControl from './_components/ImmersionControl';
 import PrivateRecords from './_components/PrivateRecords';
 import {useSpaceProfile} from './_lib/use-space-profile';
 import {usePrivateBow} from './_lib/use-private-bow';
@@ -34,6 +35,7 @@ function PrivateSpace({profile}:{profile:ReturnType<typeof useSpaceProfile>}){
  const introLocale=useLocale()==='ja'?'ja':'ko',intro=MOONLIT_ENTRY_COPY[introLocale];
  const bow=usePrivateBow(profile.scope),effects=useEffects();
  const [scene,setScene]=useState<Scene>('courtyard'),[panel,setPanel]=useState<Panel|null>(null),[activity,setActivity]=useState<Activity>('greeting');
+ const [more,setMore]=useState(false);
  const [immersive,setImmersive]=useState(false),[light,setLight]=useState(false),[reduced,setReduced]=useState(false);
  const [sceneError,setSceneError]=useState(false),[characterError,setCharacterError]=useState(false),[retry,setRetry]=useState(0);
  const [day,setDay]=useState(''),[prayer,setPrayer]=useState(''),[affirmation,setAffirmation]=useState(''),[affirmIndex,setAffirmIndex]=useState(-1),[notice,setNotice]=useState(''),[speaking,setSpeaking]=useState(false);
@@ -76,7 +78,7 @@ function PrivateSpace({profile}:{profile:ReturnType<typeof useSpaceProfile>}){
  },[scene]);
  useEffect(()=>{if(profile.character==='custom'&&!profile.loaded&&!profile.loading&&!profile.imageError)void profile.loadImage();},[profile]);
  const navigate=(nextPanel:Panel|null,nextScene=scene)=>{
-  if(nextPanel)lastTrigger.current=document.activeElement as HTMLElement;setPanel(nextPanel);setScene(nextScene);setNotice('');setSpeaking(false);
+  if(nextPanel)lastTrigger.current=document.activeElement as HTMLElement;setMore(false);setPanel(nextPanel);setScene(nextScene);setNotice('');setSpeaking(false);
   const params=new URLSearchParams();const lang=new URLSearchParams(location.search).get('lang');if(lang)params.set('lang',lang);params.set('scene',nextScene);if(nextPanel)params.set('activity',nextPanel);
   history.pushState(null,'','?'+params.toString());
  };
@@ -107,29 +109,32 @@ function PrivateSpace({profile}:{profile:ReturnType<typeof useSpaceProfile>}){
  const ended=bow.session.status==='complete'||bow.session.status==='stopped';
  const characterPosition:CSSProperties={left:scene==='hall'?'50%':'46%',top:scene==='hall'?'86%':'82%'};
  const activateSpot=(spot:(typeof HOTSPOTS)[Scene][number])=>spot.scene?changeScene(spot.scene):spot.panel?open(spot.panel):void effects.strike();
- return <main className={styles.page} lang="ko" data-cd-no-trans data-immersive={quiet}>
+ return <main className={styles.page} lang="ko" data-cd-no-trans data-immersive={quiet} data-panel-open={!!panel}>
   <header className={styles.header}><Link href="/" className={styles.home}><ArrowLeft size={17}/>꿀꿀 운세</Link><div lang={introLocale}><h1>{intro.title}</h1><p>{intro.description}</p></div><button onClick={()=>open('custom')} aria-label="캐릭터와 화면 설정"><Settings2 size={20}/><span>꾸미기</span></button></header>
+  <div className={styles.sceneToolbar}><button onClick={()=>open('music')}><Music2 size={17}/>음악</button><ImmersionControl/></div>
   <p className={styles.privateNote}><Heart size={15} aria-hidden="true"/>다른 사람이 접속해도, 이 공간에는 나의 캐릭터만 머물러요.</p>
   <nav className={styles.sceneNav} aria-label="장면 이동">{(Object.entries(SCENES) as [Scene,string][]).map(([id,title])=><button key={id} aria-pressed={scene===id} onClick={()=>changeScene(id)}>{title}</button>)}</nav>
   <div className={styles.experience}>
    <section className={styles.sceneSection} aria-label={SCENES[scene]}>
-    <div className={styles.worldViewport} ref={worldViewport} tabIndex={0} aria-label="사찰 풍경. 작은 화면에서는 좌우로 살펴볼 수 있어요.">
+    <div className={styles.worldViewport} ref={worldViewport} tabIndex={0} aria-label="나만의 사찰 풍경">
      <div className={styles.world} data-scene={scene}>
       {!sceneError?<picture><source media="(max-width:700px)" srcSet={ART+'/'+scene+'-768.webp'}/>{/* eslint-disable-next-line @next/next/no-img-element */}<img className={styles.scenery} key={scene+retry} src={ART+'/'+scene+'-1536.webp'} width={1536} height={1024} alt={SCENES[scene]+'의 달빛과 연꽃, 꽃돼지 불상과 조용한 참배 자리'} onError={()=>setSceneError(true)} fetchPriority="high"/></picture>:<div className={styles.artFallback}><Flower2 size={48}/><p>풍경을 불러오지 못했어요.<br/>아래 버튼으로 명상과 108배를 계속 이용할 수 있어요.</p><button onClick={()=>{setSceneError(false);setRetry(v=>v+1);}}>풍경 다시 불러오기</button></div>}
       <div className={styles.character} style={characterPosition}>
        {!characterError&&(!light||character==='custom')?<Character key={retry} kind={character} activity={activity} elapsed={bow.session.elapsed} reduced={noMotion} look={profile.avatar} image={profile.image} portrait={profile.portrait} onFailure={()=>setCharacterError(true)}/>:<div className={styles.still}>{/* eslint-disable-next-line @next/next/no-img-element */}<img src={character==='cat'?ART+'/cat-still.webp':'/assets/moonlit-lotus/yeoni/2d-v2/still.webp'} width={384} height={384} alt="동작을 줄인 정지 캐릭터"/>{characterError&&<button onClick={()=>{setCharacterError(false);setRetry(v=>v+1);}}>동작 다시 불러오기</button>}</div>}
       </div>
-      {!quiet&&<div className={styles.hotspots}>{HOTSPOTS[scene].map(spot=><button key={spot.label} style={{left:spot.x+'%',top:spot.y+'%'}} onClick={()=>activateSpot(spot)} aria-label={spot.label}>{spot.label}</button>)}</div>}
+      {!quiet&&<div className={styles.hotspots}>{HOTSPOTS[scene].map(spot=><button key={spot.label} style={{left:spot.x+'%',top:spot.y+'%'}} onClick={()=>activateSpot(spot)} aria-label={spot.label}><Flower2 size={18} aria-hidden="true"/><span>{spot.label}</span></button>)}</div>}
      </div>
     </div>
     <div className={styles.sceneCaption}><span>{activity==='bow'?phase:activity==='prayer'?'말하지 못했던 마음도, 여기에 놓아두어요.':activity==='meditation'?'잠시 눈을 감고, 편안한 호흡으로.':'서두르지 않아도 괜찮아요.'}</span><button aria-pressed={effects.enabled} onClick={effects.toggle}>{effects.enabled?<Volume2 size={17}/>:<VolumeX size={17}/>}효과음 {effects.enabled?'켜짐':'꺼짐'}</button></div>
+    <nav className={styles.dock} aria-label="나만의 명상 활동">{(['meditation','prayer','bow'] as const).map(id=><button key={id} aria-pressed={panel===id} onClick={()=>open(id)}><Flower2 size={18}/><span>{id==='bow'?'108배':PANELS[id]}</span></button>)}<button aria-expanded={more} aria-controls="moonlit-more" onClick={()=>setMore(v=>!v)}><BookOpen size={18}/><span>더보기</span></button></nav>
+    {more&&<nav id="moonlit-more" className={styles.moreActions} aria-label="더 많은 활동">{(['affirmation','fortune','records','custom','music'] as const).map(id=><button key={id} onClick={()=>open(id)}>{PANELS[id]}</button>)}</nav>}
     {!quiet&&<details className={styles.sceneTools} key={scene}><summary><Flower2 size={18} aria-hidden="true"/>소품으로 시작하기</summary><div>{HOTSPOTS[scene].map(spot=><button key={spot.label} onClick={()=>activateSpot(spot)}>{spot.label}</button>)}</div></details>}
     {speaking&&<div className={styles.affirmationOverlay}><p>{affirmation}</p><button disabled={savingText} onClick={()=>saveText('affirmation')}>소리 내어 읽었어요</button><button onClick={()=>setSpeaking(false)}>닫기</button></div>}
     {effects.error&&<p role="status">{effects.error}</p>}
    </section>
    <div className={styles.side}>
     {!profile.character&&<section className={styles.welcome}><h2>누구와 쉬어갈까요?</h2><p>성별을 입력하지 않아도 괜찮아요. 마음이 가는 친구를 골라 주세요.</p><div className={styles.row}><button onClick={()=>profile.save('yeoni')}>연이와 함께</button><button onClick={()=>profile.save('cat')}>영냥이와 함께</button></div></section>}
-    {!quiet&&<nav className={styles.activities} aria-label="나만의 명상 활동">{(Object.entries(PANELS) as [Panel,string][]).filter(([id])=>id!=='custom').map(([id,label])=><button key={id} aria-pressed={panel===id} onClick={()=>open(id)}>{id==='music'?<Music2 size={17}/>:id==='records'||id==='fortune'?<BookOpen size={17}/>:<Flower2 size={17}/>}<span>{label}</span></button>)}</nav>}
+
     <div className={panel==='music'?styles.musicPanel:undefined}>
     {panel?<section className={styles.panel} data-activity={panel} aria-labelledby="space-panel-title"><div className={styles.panelHead}><h2 id="space-panel-title" ref={panelHeading} tabIndex={-1}>{PANELS[panel]}</h2><button aria-label="활동 패널 닫기" onClick={close}><X size={19}/></button></div>
      {panel==='meditation'&&<><p>지금은 잘하려고 애쓰지 않아도 괜찮아요.<br/>나의 속도로 들이쉬고, 천천히 내쉬어요.</p><div className={styles.breath} data-moving={!noMotion}><Flower2 size={32} strokeWidth={1.3} aria-hidden="true"/><span>편안하게<br/>머물러요</span></div><div className={styles.row}><button className={styles.primary} onClick={()=>open('music')}>명상 음악 고르기</button><button onClick={()=>{setActivity('idle');setNotice('충분히 쉬었어요. 준비되면 다시 시작해요.');}}>명상 마치기</button></div></>}

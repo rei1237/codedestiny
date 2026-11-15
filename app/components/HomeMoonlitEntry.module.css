@@ -3,7 +3,7 @@
   --ml-home-paper:#fffaf7; --ml-home-ink:#4f3448; --ml-home-accent:#843c65;
   --ml-home-line:#d7bfa0; --ml-home-petal:#f8e4e9;
   position:relative; isolation:isolate; display:grid; grid-template-columns:42% minmax(0,1fr);
-  width:min(100%,800px); margin:32px auto; padding:10px; gap:26px; box-sizing:border-box;
+  width:min(100%,800px); margin:32px auto; padding:14px; gap:30px; box-sizing:border-box;
   background:var(--ml-home-paper); color:var(--ml-home-ink); border:1px solid var(--ml-home-line);
   border-radius:26px; box-shadow:0 8px 24px rgb(79 52 72 / 10%); text-decoration:none; text-align:left;
 }
@@ -25,3 +25,5 @@
  .entry strong { font-size:1.5rem; }
  .entry b { display:flex; }
 }
+
+.invite { display:block; font:400 .85rem/1.8 var(--font-body),sans-serif; margin:0 0 20px; color:var(--ml-home-accent); }
