@@ -36,10 +36,17 @@ try {
     window.__bridgeMethods__=Object.keys(handlers);
     window.ReactNativeWebView={postMessage(raw){const {type,body,bridgeId}=JSON.parse(raw);if(type!=='bridge')return;const {method,eventId}=body;if(!Object.hasOwn(handlers,method))throw Error('Unexpected native operation '+method);queueMicrotask(()=>window.nativeEmitterMap[bridgeId].emit(method+'-'+eventId,handlers[method]()));}};
   });
-  const writes=[];
+  const writes=[],analytics=[];
   await page.route('**/*',async route=>{
     const req=route.request(),url=new URL(req.url());
-    if(req.method()==='POST')writes.push(url.pathname);
+    if(req.method()==='POST'){
+      if(url.href==='https://code-destiny.com/api/toss/events'){
+        const payload=req.postDataJSON();
+        assert.equal(payload.event,'home_view');
+        assert.deepEqual(payload.fields,{screen:'home'});
+        analytics.push(payload.event);
+      }else writes.push(url.pathname);
+    }
     if(url.origin===origin)return route.continue();
     // Release art is fulfilled with the exact local original; simulation art must be same-origin.
     if(url.origin==='https://code-destiny.com'&&/^\/images\/(?:consultation-webtoons|entry-webtoon)\/[a-z0-9/-]+\.(?:avif|webp)$/.test(url.pathname)){
@@ -97,4 +104,5 @@ try {
     console.log('PASS webtoon',story.key,story.cuts.length,story.target);
   }
   assert.equal(writes.length,0);
+  console.log('PASS no mutation POST; blocked home-view analytics:',analytics.length);
 }finally{await browser.close();if(archiveServer)await new Promise(resolve=>archiveServer.close(resolve));}

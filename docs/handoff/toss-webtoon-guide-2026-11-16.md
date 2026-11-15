@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-16
-next: 고정 소스3102ddaeb의 Linux 전체CI43731375338(exec77077) 완료 후 일반 AIT를 내려받아 실제 archive19편·원본보존·소유권 검증하고 root에 비공개 QR 등록을 전달한다.
+next: root가 테스트 검증 커밋을 main에 병합하고 QR20 완료 문서를 done으로 닫아 push/CI 확인 후 이 워크트리를 배수한다.
 ---
 
 ## 첫 행동
@@ -72,8 +72,8 @@ handoff 스킬과 CLAUDE.md를 읽고 아래 워크트리에서 git 상태/fetch
 - [x] 원본 quick5 + 기존14편의 CTA/입력 경로 대조
 - [x] 원본 설명·CutReader를 재사용한 간편 웹툰 선택/읽기/진입 구현
 - [x] 사용자 미리보기와 분리한 mock 동선·모바일·뒤로가기·그림 검증
-- [ ] targeted/check:fast/작은 커밋/pre-push/main CI
-- [ ] 고정 소스 Linux 일반 AIT·실제 archive 검증·비공개 테스트 전달(새 검토/실결제 없음)
+- [x] targeted/check:fast/작은 커밋/pre-push/main CI
+- [x] 고정 소스 Linux 일반 AIT·실제 archive 검증·비공개 테스트 전달(새 검토/실결제 없음)
 - [ ] handoff done/미리보기 유지/자기 worktree·임시 파일 정리
 
 ## 웹툰 구현·검증 (2026-11-16)
@@ -101,3 +101,17 @@ handoff 스킬과 CLAUDE.md를 읽고 아래 워크트리에서 git 상태/fetch
 - 준비된검사: `.tmp/webtoon-verify-ait.mjs <ait> <json>`이100MB/portable/일반variant/__story-art없음/원본스트리밍URL/sha256을 검증한다. `TOSS_STORY_EVIDENCE=.../verification/linux`로 `node apps/toss/test/story-library-browser.mjs <ait>`를 실행해 실제archive19편을 검사한다. 이후기존 `private-bundle-browser.mjs`, `private-bundle-owner-browser.mjs`로 홈/신규판매닫힘/기존원문·계정경계를 mock검증한다. 각스크립트실제인자/출력확인후진행한다.
 - root가비공개콘솔업로드를담당한다. 새검토·실결제·신규판매·운영배포금지. root에게일반AIT절대경로/해시/전체CI/실제archive결과전달후root가QR등록,문서done,최종main전달/워크트리배수를조율한다.
 - 이 인수인계 이후 문서커밋은 고정AIT소스3102를 바꾸지 않는다. 앱 런타임 변화 없으면 문서정리때문에AIT를재생성하지않는다.
+
+## Linux 실제 archive 최종 검증 (2026-11-16)
+
+- 일반 AIT 소스는 `3102ddaeb87e0bdb1bfdb17781ef2655923496a0`으로 고정했다. 전체 dispatch CI `43731375338` watcher exit0, CI required SUCCESS(ID132876047978). 자동 push CI `43731345878`도 별도 1회 조회로 completed/success 확인했다.
+- AIT: `C:/Users/user/Downloads/CodeDestiny/20261116-webtoon-guide/linux/ai-saju-studio.ait`. SHA256 `531d59f810442474741cf230c8e8111330bbcac8b1cc9037034b87375efcccc0`. archive87,859,808 / expanded99,112,664 bytes, portable=true, 일반 variant, 원본 스트리밍 URL 유지, `__story-art` 없음. 100MB 게이트 PASS.
+- `story-library-browser.mjs <ait>` 실제 19편: 원화 decode·원문·실제 CTA·360/390/430·browser/native back·전문 그룹 복원 PASS(exit0). 모든 실외부 API는 차단했고 구매/생성 등 mutation POST는0이다.
+- 최초 동일 archive 검사는 모든19편 동선이 통과한 뒤 마지막 전체 POST0 단언에서 실패했다. 원인은 기존 `platform.ts:event()`/`App.tsx:home_view`의 일반판 화면 분석 이벤트25개이며 모두 `/api/toss/events`로 차단됐다. 모의판 POST0과 일반판을 구분해야 한다. 테스트만 정확한 endpoint + event=`home_view` + fields=`{screen:'home'}`를 단언해 분리하고, 그 밖의 POST0 및 모든 실외부 route.abort를 유지했다. 제품 런타임/AIT 변경 없이 같은 AIT 재검증 PASS.
+- `private-bundle-browser.mjs <ait>` PASS: 정상 홈/원본 캐릭터/질문 검색·입력/새로고침 복원/360×420 CTA.
+- `private-bundle-owner-browser.mjs <ait> new` PASS: 신규 판매 버튼 disabled, 기존 저장 원문, 단절 복구, 다른 계정 거부, 추가 과금0. 원문 재열람에서 grant/generate0.
+- 증거: 위 Downloads 폴더 `verification/linux-ait.json`, `linux-story.log`, `linux-bundle.log`, `linux-owner.log`, `webtoon-linux-ci.log`, `linux/` 캡처. 사용자4330/4333 브라우저·저장소는 조작하지 않았다.
+- root가 같은 AIT를 콘솔20261116-20에 1회 등록했고 최종 QR 확인/문서done/main전달/배수를 맡는다. 새 검토·실결제·실LLM·운영DB쓰기·공개출시는 하지 않았다.
+- 테스트 수정 check:fast 전체 계획 PASS(exit0): paid77/lint/typecheck/Node5104/정책/Worker dry build/encoding, Jest479 suites·8012tests PASS(1skip,473.964초). unclassified critical 자동승격을 유지했다. 로그는 Downloads verification/webtoon-analytics-checkfast.log에 보존했다.
+
+- root 확인: QR20(20261116-20) 등록 완료, 검토 필요/테스트 QR 정상. URI: intoss-private://ai-saju-studio?_deploymentId=01a1dffc-1b66-760e-88a1-62497e6ae5cc&host=appsInTossHost . test-qr-20261116-20.png/svg/link/statusJSON은 Downloads에 보존. 실결제/새 검토 제출0.
