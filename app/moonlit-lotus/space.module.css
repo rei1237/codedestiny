@@ -80,6 +80,16 @@
 .photoTools button,.photoDialog>.primary { display:inline-flex; align-items:center; justify-content:center; gap:6px; }
 .photoTools input { min-height:44px; vertical-align:middle; width:54px; }
 .photoCanvas { width:100%; height:auto; display:block; touch-action:none; border-radius:16px; }
+.photoWorkspace { margin-block:20px; }
+.photoStage { position:relative; overflow:hidden; border-radius:16px; background:var(--ml-soft); }
+.photoSelection { position:absolute; border:2px dashed var(--ml-on-accent); outline:1px solid var(--ml-ink); pointer-events:none; }
+.photoObjectPicker { display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
+.photoObjectPicker select { flex:1; min-width:120px; max-width:100%; min-height:44px; font-size:16px; }
+.photoTransformTools { border:0; padding:0; margin:16px 0 0; min-width:0; }
+.photoTransformTools legend { color:var(--ml-gold); font-weight:600; margin-bottom:8px; }
+.photoTransformTools>label { display:grid; grid-template-columns:3rem minmax(80px,1fr) 3.5rem; align-items:center; gap:8px; }
+.photoTransformTools input { width:100%; min-height:44px; accent-color:var(--ml-gold); }
+.photoTransformTools output { text-align:right; font-variant-numeric:tabular-nums; }
 .photoArtPoses { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; border:0; padding:0; margin:20px 0 14px; }
 .photoArtPoses legend,.photoEditTools legend { color:var(--ml-gold); margin-bottom:12px; font-weight:600; }
 .photoArtPoses button { display:flex; flex-direction:column; align-items:center; justify-content:flex-end; gap:8px; padding:12px 6px; border-radius:20px; min-width:0; font-size:.85rem; }
