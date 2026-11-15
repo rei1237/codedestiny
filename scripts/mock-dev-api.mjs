@@ -41,6 +41,7 @@ export function createMockApiServer() {
   const recommendationMock = createRecommendationMock();
   let workshop;
   let loggedIn = false;
+  let currentProfileId = '';
   return http.createServer(async (req, res) => {
     const send = (status, body) => {
       res.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store', 'X-Code-Destiny-Mock': '1' });
@@ -97,6 +98,26 @@ export function createMockApiServer() {
         return send(200, { ok: true, profile: profiles.get(id) });
       }
       if (route === 'GET /api/mock/profiles') return send(200, { ok: true, profiles: [...profiles.values()] });
+      // Existing profile UI contract, held only in this mock process. No production fallback.
+      if (path === '/api/profile' || path.startsWith('/api/profile/')) {
+        if (!loggedIn) return send(401, { ok: false, reason: 'LOGIN_REQUIRED' });
+        if (route === 'POST /api/profile') {
+          const id = String(body.profileId || body.profile?.id || 'mock-profile');
+          profiles.set(id, { ...body.profile, id, profileId: id, syncStatus: 'synced' });
+          currentProfileId = id;
+        } else if (route === 'PATCH /api/profile/current') {
+          const id = String(body.profileId || body.currentId || '');
+          if (!profiles.has(id)) return send(404, { ok: false });
+          currentProfileId = id;
+        } else if (route !== 'GET /api/profile') {
+          return send(501, { ok: false, error: 'MOCK_ROUTE_NOT_IMPLEMENTED', path });
+        }
+        return send(200, { ok: true, profiles: [...profiles.values()], currentId: currentProfileId, profile: profiles.get(currentProfileId) || null });
+      }
+      if (route === 'GET /api/heukwol/pricing') {
+        const { getBillingFeaturePricing } = await import('../worker/lib/billing-feature-registry.js');
+        return send(200, { ok: true, pricing: getBillingFeaturePricing({ featureKey: 'heukwol-warning-consultation' }).pricing });
+      }
       if (route === 'POST /api/fortune/saju/ai-prompt') return send(200, sajuResponse);
       if (['POST /api/ziwei-ai/start', 'POST /api/ziwei-ai/generate', 'GET /api/ziwei-ai/result'].includes(route)) return send(200, ziweiResponse);
       if (route === 'POST /api/tarot/crystal-soul') return send(200, tarotResponse);

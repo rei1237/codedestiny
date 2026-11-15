@@ -49,17 +49,15 @@ assert.equal([...fusionBand.matchAll(/title="[^"]+에게 물어보기"[^>]*><img
 
 const quickSection = home.match(/id="cdQuickServices"[\s\S]*?<\/section>/)?.[0] || "";
 assert.ok(quickSection, "홈 무료 바로 시작 섹션을 찾지 못했습니다");
-for (const link of [
-  'href="/?action=cdOneStepFreeSajuEntry" data-action="cdOneStepFreeSajuEntry"',
-  'href="/?action=cdHomeTarotEntry" data-action="cdHomeTarotEntry"',
-  'href="/?action=cdHomeZiweiEntry" data-action="cdHomeZiweiEntry"',
-  'href="/?action=cdHomeSukuyoEntry" data-action="cdHomeSukuyoEntry"',
-  'href="/?action=cdHomeVedicEntry" data-action="cdHomeVedicEntry"',
-  'href="/?action=cdHomeAstroEntry" data-action="cdHomeAstroEntry"',
-]) assert.ok(quickSection.includes(link), `직접 기능 링크가 없습니다: ${link}`);
-assert.doesNotMatch(quickSection, /data-cd-open-collection/, 'home tiles open the selected fortune directly');
-assert.deepEqual([...quickSection.matchAll(/data-cd-service-id="([^"]+)"/g)].map(m => m[1]), ['saju', 'tarot', 'ziwei', 'sukuyo', 'vedic', 'astrology']);
-assert.equal([...quickSection.matchAll(/href="\/\?action=([^"]+)" data-action="\1"/g)].length, 6, 'early clicks retain the selected action before JavaScript is ready');
+const quickCards=[...homeDocument.querySelectorAll('#cdQuickServices > a')];
+assert.deepEqual(quickCards.map(card=>card.dataset.cdFreePromoItem),['natal','today','tarot','ziwei','sukuyo','vedic']);
+for(const card of quickCards)assert.ok(card.getAttribute('href').startsWith('/ggulggul/?action=')||card.getAttribute('href')==='/today/');
+const heukwol=homeDocument.querySelector('[data-picker-featured] [data-cd-service-id="heukwol"]');
+assert.ok(heukwol&&!heukwol.hidden&&!heukwol.closest('details'));
+assert.equal(heukwol.getAttribute('href'),'/heukwol/');
+assert.equal(heukwol.hasAttribute('data-pvw-paid'),false,'흑월은 자체 상세·입력 페이지로 이동하며 공용 미리보기 시트가 가로채지 않는다');
+assert.equal(heukwol.querySelector('.cd-sig-card__price').textContent,'50,000원');
+assert.ok(homeDocument.querySelector('[data-signature-open]'));
 
 const signatureSection = homeDocument.querySelector('#cdSignatureConsult')?.outerHTML || '';
 assert.ok(homeDocument.querySelector('#cdSignatureConsult #cdConcernPick'), 'Concern selection belongs to the consultation section');
@@ -72,7 +70,7 @@ assert.ok(signatureSection, '대표 운명 상담 섹션을 찾지 못했습니�
 assert.ok(homeDocument.querySelector('#cdSignatureConsult .cd-picker-links a[href="/consultation-samples/"]'),'complete sample guide remains');
 assert.deepEqual(
   [...signatureSection.matchAll(/data-cd-service-id="([^"]+)"/g)].map((match) => match[1]).sort(),
-  ['fortune-tea-house', 'life-book-ai', 'new-year-ai', 'love-secret-ai', 'neo-operation-room', 'master-love-codex'].sort(),
+  ['heukwol', 'fortune-tea-house', 'life-book-ai', 'new-year-ai', 'love-secret-ai', 'neo-operation-room', 'master-love-codex'].sort(),
   '기존 여섯 상품을 한 번씩 유지합니다',
 );
 assert.deepEqual([...signatureSection.matchAll(/data-cd-signature-id="([^"]+)"/g)].map(match => match[1]), ['fortune-chat', 'yeongnyangi-question']);

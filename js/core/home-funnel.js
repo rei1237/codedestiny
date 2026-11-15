@@ -207,7 +207,7 @@
     }
   }
 
-  setupSignatureLetter(Array.prototype.slice.call(home.querySelectorAll('#cdSigGrid [data-cd-service-id]')));
+  setupSignatureConsultPopup(Array.prototype.slice.call(home.querySelectorAll('#cdSignatureConsult [data-cd-service-id]')));
 
   // 결제 복귀 문서에서는 대표 상담 팝업이 결제한 콘텐츠를 덮으면 안 된다. 재개(js/destiny-profile.js)가
   // 먼저 돌아 복귀 쿼리와 티켓을 지울 수 있으므로, 쿼리는 문서가 처음 받은 주소에서도 읽는다.
@@ -228,70 +228,104 @@
     });
   }
 
-  function setupSignatureLetter(cards) {
-    var pathname = String(location.pathname || '');
-    var localFixture = /^(?:localhost|127\.0\.0\.1)$/i.test(location.hostname) && /\/(?:static\/)?index\.html$/.test(pathname);
-    if (!/^ko(?:-|$)/i.test(document.documentElement.lang || 'ko') ||
-        (pathname !== '/ggulggul/' && !localFixture) || !cards.length ||
-        location.hash || new URLSearchParams(location.search).has('action') || isPaymentReturnDocument()) return;
-
-    var hideUntilKey = 'cd_signature_consult_hide_until_v1';
-    try {
-      if (Number(localStorage.getItem(hideUntilKey)) > Date.now()) return;
-    } catch (_) {}
-
-    var mobileEntries = home.querySelector('#cdSignatureConsult');
-    var desktopEntries = home.querySelector('#cdSignatureConsult');
-    if (!mobileEntries || !desktopEntries) return;
-    var desktop = window.matchMedia('(min-width:700px)');
-    var letter = document.createElement('details');
-    letter.className = 'cd-consult-letter';
-    letter.open = true;
-    letter.innerHTML = '<summary><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M22 4a12 12 0 1 0 6 18A15 15 0 0 1 22 4Z"/></svg>달빛 추천 편지</summary>' +
-      '<div class="cd-consult-letter__body"><img width="320" height="180" loading="lazy" decoding="async" alt="">' +
-      '<div class="cd-consult-letter__reading" aria-live="polite"><h3></h3><p></p><a><span></span> <span aria-hidden="true">→</span></a></div></div>' +
-      '<div class="cd-consult-letter__foot"><button type="button" data-hide>오늘 숨기기</button>' +
-      '<nav aria-label="추천 편지 이동"><button type="button" data-prev aria-label="이전 추천">‹</button><span data-position></span>' +
-      '<button type="button" data-next aria-label="다음 추천">›</button></nav></div>';
-    var index = 0;
-    function renderLetter() {
-      var card = cards[index];
-      var art = card.querySelector('.cd-sig-card__img, .cd-picker-main > img');
-      var image = letter.querySelector('img');
-      if (art) {
-        image.sizes = '(max-width: 600px) 100px, 180px';
-        image.srcset = art.getAttribute('srcset') || '';
-        image.src = art.getAttribute('src');
+  function setupSignatureConsultPopup(cards) {
+    var path = String(location.pathname || '');
+    var fixture = /^(localhost|127\.0\.0\.1)$/.test(location.hostname) && /\/(?:static\/)?index\.html$/.test(path);
+    if ((path !== '/ggulggul/' && !fixture) || !cards.length) return;
+    var opener = home.querySelector('[data-signature-open]');
+    var hideKey = 'cd_signature_consult_hide_until_v1';
+    var seenKey = 'cd_signature_consult_seen_v2';
+    var lockKey = 'signature-consult-popup';
+    var modal, previousFocus, frame = 0, memorySeen = '', memoryHidden = 0;
+    var returnDocument = isPaymentReturnDocument();
+    var explicitEntry = !!location.hash || new URLSearchParams(location.search).has('action');
+    function dayKey() { return new Date(Date.now() + 9 * 3600000).toISOString().slice(0, 10); }
+    function read(store, key) { try { return window[store].getItem(key); } catch (_) { return null; } }
+    function write(store, key, value) { try { window[store].setItem(key, value); return true; } catch (_) { return false; } }
+    // Migrate only the old session dismissal, giving it a calendar-day expiry.
+    if (read('sessionStorage','cd_signature_consult_session_closed_v1') === '1') {
+      if (!read('sessionStorage',seenKey)) write('sessionStorage',seenKey,dayKey());
+      try { sessionStorage.removeItem('cd_signature_consult_session_closed_v1'); } catch (_) {}
+    }
+    function blocked(manual) {
+      if ((!manual && document.hidden) || document.documentElement.classList.contains('cdh-input-open')) return true;
+      return Array.prototype.some.call(document.querySelectorAll('dialog[open],[role="dialog"][aria-modal="true"],.payment-modal.active,#cdCookieConsent.is-visible,#tarotModalOverlay'), function(node) {
+        return node !== modal && !node.hidden && node.getClientRects().length > 0 && getComputedStyle(node).visibility !== 'hidden' && getComputedStyle(node).display !== 'none';
+      });
+    }
+    function closed(restore) {
+      if (!modal || !modal.open) return;
+      modal.close();
+      if (typeof window.__cdUnlockBodyScroll === 'function') window.__cdUnlockBodyScroll(lockKey);
+      document.documentElement.removeAttribute('data-signature-popup-open');
+      if (restore !== false && previousFocus && document.contains(previousFocus)) previousFocus.focus({preventScroll:true});
+      previousFocus = null;
+    }
+    function build() {
+      if (modal) return;
+      modal = document.createElement('dialog');
+      modal.id = 'cdSignatureConsultPopup';
+      modal.className = 'cd-signature-popup';
+      modal.setAttribute('aria-labelledby','cdSignaturePopupTitle');
+      modal.setAttribute('aria-describedby','cdSignaturePopupIntro');
+      modal.innerHTML = '<header class="cd-signature-popup__head"><div><h2 id="cdSignaturePopupTitle">지금 내게 필요한 상담</h2><p id="cdSignaturePopupIntro">당신의 고민에 어울리는 상담을 골라보세요</p></div><button type="button" data-signature-close aria-label="대표 상담 닫기">×</button></header><div class="cd-signature-popup__list"></div><footer><button type="button" data-signature-today>오늘 하루 보지 않기</button><span>한국 시간 자정까지</span></footer>';
+      document.body.appendChild(modal);
+      modal.querySelector('[data-signature-close]').addEventListener('click',function(){closed(true);});
+      modal.addEventListener('cancel',function(event){event.preventDefault();closed(true);});
+      modal.addEventListener('click',function(event){
+        if(event.target.closest('a')) { closed(false); return; }
+        if(event.target===modal) {
+          var rect=modal.getBoundingClientRect();
+          if(event.clientX<rect.left||event.clientX>rect.right||event.clientY<rect.top||event.clientY>rect.bottom)closed(true);
+        }
+      });
+      modal.querySelector('[data-signature-today]').addEventListener('click',function(){
+        var DAY=86400000,KST=9*3600000;
+        memoryHidden=(Math.floor((Date.now()+KST)/DAY)+1)*DAY-KST;
+        var saved=write('localStorage',hideKey,String(memoryHidden));
+        closed(true);
+        if(!saved&&typeof window.showToast==='function')window.showToast('이 화면에서는 숨겼어요. 브라우저 저장이 차단되어 다음 방문에는 다시 보일 수 있어요.');
+      });
+    }
+    function refreshItems() {
+      var list=modal.querySelector('.cd-signature-popup__list');
+      list.replaceChildren();
+      cards.forEach(function(card){
+        var link=document.createElement('a');link.href=card.getAttribute('href');
+        link.dataset.signatureService=card.getAttribute('data-cd-service-id');
+        var original=card.querySelector('img');
+        if(original){var image=document.createElement('img');image.src=original.getAttribute('src');image.alt='';image.width=180;image.height=120;image.loading='lazy';image.decoding='async';link.appendChild(image);}
+        var copy=document.createElement('span');copy.className='cd-signature-popup__copy';
+        var title=document.createElement('strong');title.textContent=card.querySelector('h3').textContent;
+        var desc=document.createElement('span');desc.textContent=card.getAttribute('data-cd-popup-copy')||card.querySelector('.cd-picker-copy p')?.textContent||'';
+        var price=document.createElement('span');price.className='cd-signature-popup__price';price.textContent=card.querySelector('.cd-sig-card__price')?.textContent||'이용 조건 확인하기';
+        var cta=document.createElement('span');cta.className='cd-signature-popup__action';cta.textContent=(card.querySelector('.cd-picker-action')?.textContent||'상담 시작하기 →').trim().replace(/\s+→$/,'\u00a0→');
+        copy.append(title,desc,price,cta);link.appendChild(copy);list.appendChild(link);
+      });
+    }
+    function open(manual) {
+      if(modal&&modal.open)return;
+      if(blocked(manual))return;
+      if(!manual) {
+        if(returnDocument||explicitEntry||!/^ko(?:-|$)/i.test(document.documentElement.lang||'ko'))return;
+        if(memorySeen===dayKey()||read('sessionStorage',seenKey)===dayKey()||Math.max(memoryHidden,Number(read('localStorage',hideKey))||0)>Date.now())return;
       }
-      image.hidden = !art;
-      letter.querySelector('h3').textContent = card.querySelector('.cd-sig-card__title, h3').textContent;
-      letter.querySelector('p').textContent = card.getAttribute('data-cd-popup-copy') || card.querySelector('.cd-sig-card__q, .cd-picker-copy p')?.textContent || '';
-      var link = letter.querySelector('a');
-      link.href = card.href;
-      link.firstElementChild.textContent = [card.querySelector('.cd-sig-card__cta span')?.textContent || '상담 보기',
-        card.querySelector('.cd-sig-card__price')?.textContent].filter(Boolean).join(' · ');
-      letter.querySelector('[data-position]').textContent = (index + 1) + ' / ' + cards.length;
+      build();refreshItems();
+      previousFocus=document.activeElement;
+      memorySeen=dayKey();write('sessionStorage',seenKey,memorySeen);
+      modal.showModal();
+      document.documentElement.setAttribute('data-signature-popup-open','');
+      if(typeof window.__cdLockBodyScroll==='function')window.__cdLockBodyScroll(lockKey);
+      modal.querySelector('[data-signature-close]').focus({preventScroll:true});
     }
-    function placeLetter() {
-      (desktop.matches ? desktopEntries : mobileEntries).after(letter);
-    }
-    function moveLetter(step) {
-      index = (index + step + cards.length) % cards.length;
-      renderLetter();
-    }
-    letter.querySelector('[data-prev]').addEventListener('click', function () { moveLetter(-1); });
-    letter.querySelector('[data-next]').addEventListener('click', function () { moveLetter(1); });
-    letter.querySelector('[data-hide]').addEventListener('click', function () {
-      var tomorrow = new Date();
-      tomorrow.setHours(24, 0, 0, 0);
-      try { localStorage.setItem(hideUntilKey, String(tomorrow.getTime())); } catch (_) {}
-      desktop.removeEventListener('change', placeLetter);
-      (desktop.matches ? desktopEntries : mobileEntries).querySelector('a')?.focus({ preventScroll: true });
-      letter.remove();
-    });
-    renderLetter();
-    placeLetter();
-    desktop.addEventListener('change', placeLetter);
+    function schedule(){if(!frame)frame=requestAnimationFrame(function(){frame=0;open(false);});}
+    if(opener)opener.addEventListener('click',function(){open(true);});
+    var observer=new MutationObserver(schedule);
+    observer.observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['hidden','class','open','aria-hidden','aria-modal']});
+    document.addEventListener('visibilitychange',schedule);
+    window.addEventListener('pageshow',function(){observer.observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['hidden','class','open','aria-hidden','aria-modal']});schedule();});
+    window.addEventListener('pagehide',function(){closed(false);observer.disconnect();cancelAnimationFrame(frame);frame=0;});
+    if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',schedule,{once:true});else schedule();
   }
 
   var formPanel = document.getElementById('dpDestinyPanel');

@@ -1,5 +1,33 @@
 [
   {
+    "id": "heukwol",
+    "name": "흑월의 경고",
+    "href": "/heukwol/",
+    "featureKey": "heukwol-warning-consultation",
+    "price": "가격 확인 중",
+    "image": "/images/service-introductions/heukwol-320.webp",
+    "imageAlt": "금빛 테두리의 어두운 달 아래 펼쳐진 운세책과 별자리",
+    "desc": "주의가 필요한 시기를 미리 살피고, 나에게 맞는 대비 방향을 확인하세요",
+    "question": "언제 한 번 더 살피고, 어떻게 준비하면 좋을까요?",
+    "resultFormat": "사주 × 자미두수 · 월별 흐름과 대응 조언",
+    "purposes": [
+      "life",
+      "money",
+      "career",
+      "self"
+    ],
+    "methods": [
+      "saju",
+      "ziwei",
+      "ai"
+    ],
+    "keys": "흑월 경고 주의 시기 월별 대비",
+    "badge": "대표",
+    "roles": [
+      "recommended"
+    ]
+  },
+  {
     "image": "/images/service-introductions/master-love-codex-320.webp",
     "imageAlt": "마스터의 마스터 인연의 서 상담 장면",
     "id": "master-love-codex",

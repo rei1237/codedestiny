@@ -6,7 +6,7 @@ const source=readFileSync('js/destiny-profile.js','utf8');
 function setup({session=false,server=null}={}){
  const events={},state=new Map(),opened=[],synced=[];
  let profile=null,creates=0,loads=0;
- const ctx={sessionStorage:{setItem:(k,v)=>state.set(k,v),removeItem:k=>state.delete(k),getItem:k=>state.get(k)},document:{addEventListener:(n,fn)=>events[n]=fn},window:{addEventListener:(n,fn)=>events[n]=fn,_dpOpenFortuneType:t=>opened.push(t),dpStartProfileCreate:()=>creates++},_dpResolveCurrentProfileForSaju:()=>profile,_dpHasValidProfileDate:(y,m,d)=>!!(y&&m&&d),_dpSyncProfileFormToCurrent:p=>synced.push(p),_toast(){},_dpHasSessionHint:()=>session,_dpLoadFromServer:cb=>{loads++;if(server)profile=server;cb(!!server);}};
+ const ctx={_dpProfileSaveInFlight:false,sessionStorage:{setItem:(k,v)=>state.set(k,v),removeItem:k=>state.delete(k),getItem:k=>state.get(k)},document:{addEventListener:(n,fn)=>events[n]=fn},window:{addEventListener:(n,fn)=>events[n]=fn,_dpOpenFortuneType:t=>opened.push(t),dpStartProfileCreate:()=>creates++},_dpResolveCurrentProfileForSaju:()=>profile,_dpHasValidProfileDate:(y,m,d)=>!!(y&&m&&d),_dpSyncProfileFormToCurrent:p=>synced.push(p),_toast(){},_dpHasSessionHint:()=>session,_dpLoadFromServer:cb=>{loads++;if(server)profile=server;cb(!!server);}};
  vm.runInNewContext(source.slice(source.indexOf("  var _dpHomeEntryKey ="),source.indexOf("  window.cdOneStepFreeSajuEntry =")),ctx);
  return {ctx,events,state,opened,synced,setProfile:p=>profile=p,creates:()=>creates,loads:()=>loads};
 }
@@ -43,12 +43,9 @@ test('tarot needs no birth card; home navigation cancels an unfinished entry',()
  h.ctx.window.cdHomeFortuneEntry('astro');h.events.click({target:{closest:()=>true}});h.setProfile({birth:{year:1990,month:1,day:1}});h.events.destinyProfileChanged();assert.deepEqual(h.opened,['tarot']);
 });
 
-test('home tarot opens the mobile service library instead of the basic draw modal',()=>{
- const h=setup(),libraries=[];
- h.ctx.document.getElementById=()=>({});
- h.ctx.window.cdMobileCollectionFullscreen={open:id=>libraries.push(id),isOpen:()=>true};
- h.ctx.window.cdHomeTarotEntry();
- assert.deepEqual(libraries,['tarotCollection']);assert.deepEqual(h.opened,[]);assert.equal(h.creates(),0);
+test('home tarot opens the existing draw on the first tap without a profile',()=>{
+ const h=setup();h.ctx.window.cdHomeTarotEntry();
+ assert.deepEqual(h.opened,['tarot']);assert.equal(h.creates(),0);
 });
 
 test('returning from profile entry cancels the pending service before a later save',()=>{
@@ -59,12 +56,23 @@ test('returning from profile entry cancels the pending service before a later sa
  assert.deepEqual(h.opened,[]);
 });
 
-test('desktop library unfolds the garden without closing an already open collection',()=>{
- const h=setup();let open=false,toggles=0,garden=0,scroll=0;
- const collection={getAttribute:()=>String(open),querySelector:()=>({click:()=>{toggles++;open=true;}}),scrollIntoView:()=>scroll++};
- h.ctx.document.getElementById=()=>collection;
- h.ctx.window.cdMobileCollectionFullscreen={open:()=>{},isOpen:()=>false};
- h.ctx.window.__cdOpenGarden=()=>garden++;h.ctx.window.requestAnimationFrame=fn=>fn();
- h.ctx.window.cdHomeTarotEntry();h.ctx.window.cdHomeTarotEntry();
- assert.equal(garden,2);assert.equal(toggles,1);assert.equal(scroll,2);assert.deepEqual(h.opened,[]);
+test('blocked session storage still resumes the chosen feature in memory',()=>{
+ const h=setup();h.ctx.sessionStorage.getItem=()=>{throw Error('blocked')};h.ctx.sessionStorage.setItem=()=>{throw Error('blocked')};
+ h.ctx.window.cdHomeFortuneEntry('ziwei');h.setProfile({birth:{year:1990,month:1,day:1}});h.events.destinyProfileChanged();
+ assert.deepEqual(h.opened,['ziwei']);
+});
+
+
+test('optimistic create does not consume the selected feature before authenticated save',()=>{
+ const h=setup();h.ctx.window.cdHomeZiweiEntry();h.ctx._dpProfileSaveInFlight=true;
+ h.setProfile({birth:{year:1990,month:1,day:1},syncStatus:'pending'});h.events.destinyProfileChanged();
+ assert.deepEqual(h.opened,[]);
+ assert.equal(h.ctx._dpHomeEntryReturnPath(),'/ggulggul/?action=cdHomeZiweiEntry');
+ h.ctx._dpProfileSaveInFlight=false;h.setProfile({birth:{year:1990,month:1,day:1},syncStatus:'synced'});
+ h.events.destinyProfileChanged();h.events.destinyProfileChanged();assert.deepEqual(h.opened,['ziwei']);
+});
+test('login return permits only known feature actions and preserves saju subsection',()=>{
+ const h=setup();h.ctx._dpHomeIntent('saju');h.ctx._dpHomeSection='terms24Card';
+ assert.equal(h.ctx._dpHomeEntryReturnPath(),'/ggulggul/?action=cdOneStepFreeSajuEntry&section=terms24Card');
+ h.ctx._dpHomeIntent('https://outside.invalid');assert.equal(h.ctx._dpHomeEntryReturnPath(),'/');
 });

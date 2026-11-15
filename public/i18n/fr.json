@@ -22511,17 +22511,17 @@
     }
   },
   "freePromo": {
-    "badge": "3 mois seulement",
-    "title": "Les lectures de base sont gratuites, pour l'instant",
-    "until": "Passage au payant prévu après le 12 février 2027",
+    "badge": "3 mois · Lectures de base gratuites",
+    "title": "Le jardin de lectures gratuites de Yeoni",
+    "until": "Jusqu’au {date} · Accès payant prévu ensuite",
     "note": "Hors services affichés avec un prix : consultations et lectures IA, lecture Saju légère et cycles de dix ans, gardien Saju, analyse de compatibilité Saju par IA.",
-    "cta": "Voir les lectures gratuites",
+    "cta": "Commencer le Saju de base gratuit",
     "share": "Prévenir un ami tant que c'est gratuit",
-    "shareText": "Les lectures Manseryeok, Zi Wei Dou Shu et astrologie sont gratuites en ce moment. Leur passage au payant est prévu après le 12 février 2027.",
+    "shareText": "Découvrez les lectures de base gratuites de Saju, Ziwei et astrologie jusqu’au {date}.",
     "copied": "Lien copié. Collez-le pour l'envoyer à un ami.",
     "copyFailed": "Impossible de copier le lien. Copiez-le depuis la barre d'adresse.",
     "tileBadge": "Gratuit 3 mois",
-    "bubble": "Yeoni a tout ouvert jusqu’au 12 février ! Touche-moi pour aller tout de suite à ta lecture Saju.",
+    "bubble": "Choisissez une lecture gratuite de Saju, tarot ou des traditions du monde.",
     "groupFun": "Saju ludique",
     "groupClassic": "Saju classique",
     "groupMore": "Autres lectures",
@@ -22548,6 +22548,16 @@
       "astro": "Astrologie",
       "humanDesign": "Human Design",
       "promptHub": "Générateur de prompts"
+    },
+    "all": "Voir toutes les lectures gratuites",
+    "start": "Commencer",
+    "desc": {
+      "natal": "Votre nature à travers les quatre piliers",
+      "today": "Le fil du jour et un petit pas",
+      "tarot": "Explorez émotions et choix par les cartes",
+      "ziwei": "Découvrez les douze palais du thème natal",
+      "sukuyo": "Nature et relations selon la Lune",
+      "vedic": "Explorez le ciel de votre naissance"
     }
   }
 }

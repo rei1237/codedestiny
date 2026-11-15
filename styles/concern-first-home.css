@@ -296,32 +296,46 @@ html.cdh-input-open body .cdh-input-return:focus-visible{outline:3px solid var(-
 @media(prefers-reduced-motion:reduce){#cdHomeFunnel .cd-choice .cd-sig__viewport{scroll-behavior:auto}}
 
 /* 대표 상담 6종 안내 — 기존 상담 카드의 이미지·가격·경로를 읽는 한국어 홈의 달빛 추천 편지. */
-#cdHomeFunnel .cd-consult-letter {
-  width: min(100%, 960px); margin: 16px auto; box-sizing: border-box;
-  padding: 0 clamp(16px, 3vw, 28px); border-radius: var(--cd-r-card);
-  border: 1px solid color-mix(in srgb, var(--cdh-gold) 45%, var(--cdh-card));
-  background: color-mix(in srgb, var(--cdh-accent) 7%, var(--cdh-card)); color: var(--cdh-ink);
+
+/* Dialog is in the browser top layer; no ancestor clipping or z-index race. */
+.cd-signature-popup {
+ width:min(720px,calc(100% - 32px)); max-width:100%; max-height:85dvh; margin:auto; padding:0; box-sizing:border-box;
+ border:1px solid #b3935b; border-radius:24px; background:#fffdf8; color:#242139;
+ box-shadow:0 24px 70px rgba(24,16,40,.3); overflow:hidden;
+ font:400 16px/1.6 var(--font-body,Pretendard,sans-serif);
 }
-.cd-consult-letter summary {
-  display: flex; align-items: center; gap: 10px; min-height: 54px;
-  font: 700 18px/1.5 var(--cdh-serif); list-style: none; cursor: pointer;
+.cd-signature-popup[open] {display:flex;flex-direction:column;}
+.cd-signature-popup::backdrop {background:rgba(30,21,43,.5);}
+.cd-signature-popup__head {display:flex;align-items:flex-start;gap:12px;justify-content:space-between;padding:22px 24px 16px;border-bottom:1px solid #dfd1b9;flex:none;}
+.cd-signature-popup h2 {margin:0;color:#242139;font:400 28px/1.4 var(--font-display,Jua,sans-serif);word-break:keep-all;}
+.cd-signature-popup__head p {margin:6px 0 0;color:#635b70;font-size:15px;word-break:keep-all;}
+.cd-signature-popup button {min-height:48px;min-width:48px;border:0;background:transparent;color:#72324f;font:600 15px/1.5 var(--font-body,sans-serif);cursor:pointer;}
+.cd-signature-popup [data-signature-close] {font-size:30px;line-height:1;flex:none;border-radius:12px;background:#ede7f5;}
+.cd-signature-popup__list {min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:8px 24px;scrollbar-width:thin;scrollbar-color:#b3935b #fffdf8;}
+.cd-signature-popup__list > a {display:grid;grid-template-columns:144px minmax(0,1fr);align-items:center;gap:18px;padding:18px 0;border-bottom:1px solid #e5dac8;color:#242139;text-decoration:none;}
+.cd-signature-popup__list img {display:block;width:100%;height:auto;aspect-ratio:3/2;object-fit:contain;border-radius:12px;}
+.cd-signature-popup__copy {display:flex;flex-direction:column;gap:6px;min-width:0;}
+.cd-signature-popup__copy strong {font:400 23px/1.4 var(--font-display,Jua,sans-serif);}
+.cd-signature-popup__copy > span {font-size:15px;color:#635b70;word-break:keep-all;}
+.cd-signature-popup__copy .cd-signature-popup__price {color:#72324f;font-weight:600;font-variant-numeric:tabular-nums;}
+.cd-signature-popup__copy .cd-signature-popup__action {color:#72324f;text-decoration:underline;text-underline-offset:4px;}
+.cd-signature-popup footer {display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 24px calc(8px + env(safe-area-inset-bottom));border-top:1px solid #dfd1b9;flex:none;}
+.cd-signature-popup footer span {font-size:13px;color:#635b70;}
+.cd-signature-popup :focus-visible {outline:3px solid #72324f;outline-offset:2px;}
+#cdHomeFunnel .cd-signature-open {display:inline-flex;align-items:center;justify-content:center;min-height:48px;margin-top:14px;padding:10px 20px;background:#ede7f5;color:#543048;border:1px solid #b3935b;border-radius:12px;font:600 16px/1.5 var(--font-body,sans-serif);}
+.cd-signature-featured {margin:8px 0 28px;}
+.cd-signature-featured .cd-picker-main {display:grid;grid-template-columns:1fr 1.25fr;gap:24px;padding:16px;background:#242139;color:#fffdf8;}
+.cd-signature-featured .cd-picker-main > img {aspect-ratio:3/2;}
+#cdHomeFunnel .cd-signature-featured .cd-picker-copy h3 {color:#fffdf8;font-size:28px;}
+.cd-signature-featured .cd-picker-copy p {color:#ede7f5;}
+#cdHomeFunnel .cd-signature-featured .cd-sig-card__price,.cd-signature-featured .cd-picker-action {color:#f4d69f;}
+@media(max-width:699px){
+ .cd-signature-popup {width:100%;max-height:85dvh;margin:auto 0 0;border-radius:22px 22px 0 0;}
+ .cd-signature-popup__head {padding:16px;}
+ .cd-signature-popup h2 {font-size:21px;}
+ .cd-signature-popup__list {padding:4px 16px;}
+ .cd-signature-popup__list > a {grid-template-columns:80px minmax(0,1fr);gap:12px;align-items:start;}
+ .cd-signature-popup__copy strong {font-size:22px;}
+ .cd-signature-popup footer {padding-inline:16px;}
+ .cd-signature-featured .cd-picker-main {grid-template-columns:1fr;gap:0;}
 }
-.cd-consult-letter summary::-webkit-details-marker { display: none; }
-.cd-consult-letter summary svg { width: 24px; height: 24px; fill: none; stroke: var(--cdh-gold); stroke-width: 1.5; }
-.cd-consult-letter summary::after {
-  content: ""; width: 8px; height: 8px; margin-inline: auto 4px;
-  border: solid currentColor; border-width: 0 1.5px 1.5px 0; transform: rotate(45deg);
-}
-.cd-consult-letter[open] summary::after { transform: rotate(225deg); }
-.cd-consult-letter__body { display: grid; grid-template-columns: clamp(88px, 24vw, 180px) minmax(0,1fr); align-items: center; gap: clamp(12px, 3vw, 24px); padding-top: 14px; border-top: 1px solid var(--cdh-line); }
-.cd-consult-letter__body img { width: 100%; height: auto; aspect-ratio: 4/3; object-fit: cover; border-radius: var(--cd-r-md); }
-.cd-consult-letter__reading h3 { margin: 0; font: 700 clamp(17px,2vw,22px)/1.4 var(--cdh-serif); }
-.cd-consult-letter__reading p { margin: 6px 0 0; color: var(--cdh-muted); font-size: 14px; line-height: 1.65; }
-.cd-consult-letter__reading a { display: inline-flex; gap: 6px; align-items: center; min-height: 44px; color: var(--cdh-accent); font-weight: 700; }
-.cd-consult-letter__foot, .cd-consult-letter nav { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
-.cd-consult-letter__foot { padding: 4px 0; }
-.cd-consult-letter__foot nav { flex: none; width: auto; }
-#cdHomeFunnel .cd-consult-letter button { min-height: 44px; min-width: 44px; border: 0; padding: 0 4px; color: var(--cdh-muted); background: transparent; cursor: pointer; font-size: 14px; }
-#cdHomeFunnel .cd-consult-letter nav button { font-size: 24px; }
-.cd-consult-letter nav span { white-space: nowrap; flex: none; color: var(--cdh-muted); font-size: 13px; font-variant-numeric: tabular-nums; }
-.cd-consult-letter :focus-visible { outline: 2px solid var(--cdh-accent); outline-offset: 2px; }

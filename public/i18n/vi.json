@@ -22511,17 +22511,17 @@
     }
   },
   "freePromo": {
-    "badge": "Chỉ trong 3 tháng",
-    "title": "Hiện các luận giải cơ bản đang miễn phí",
-    "until": "Dự kiến chuyển sang tính phí sau ngày 12/2/2027",
+    "badge": "3 tháng · Miễn phí cơ bản",
+    "title": "Khu vườn luận giải miễn phí của Yeoni",
+    "until": "Đến {date} · Dự kiến tính phí sau đó",
     "note": "Không bao gồm các mục có hiển thị giá như tư vấn AI và luận giải AI, Saju Light và luận giải đại vận, thần hộ mệnh Saju, phân tích hợp tuổi Saju bằng AI.",
-    "cta": "Xem các luận giải miễn phí",
+    "cta": "Bắt đầu Tứ trụ cơ bản miễn phí",
     "share": "Báo cho bạn bè khi còn miễn phí",
-    "shareText": "Hiện có thể xem miễn phí luận giải Lịch vạn niên, Tử Vi Đẩu Số và chiêm tinh. Dự kiến chuyển sang tính phí sau ngày 12/2/2027.",
+    "shareText": "Trải nghiệm Tứ trụ, Tử Vi và chiêm tinh cơ bản miễn phí đến {date}.",
     "copied": "Đã sao chép liên kết. Hãy dán và gửi cho bạn bè.",
     "copyFailed": "Không thể sao chép liên kết. Hãy sao chép từ thanh địa chỉ.",
     "tileBadge": "Miễn phí 3 tháng",
-    "bubble": "Yeoni đã mở sẵn ngần này đến ngày 12/2! Chạm vào mình để xem Tứ Trụ ngay nhé.",
+    "bubble": "Chọn luận giải miễn phí từ Tứ trụ, tarot và các truyền thống thế giới.",
     "groupFun": "Nội dung Saju thú vị",
     "groupClassic": "Saju truyền thống",
     "groupMore": "Bói khác",
@@ -22548,6 +22548,16 @@
       "astro": "Chiêm tinh",
       "humanDesign": "Human Design",
       "promptHub": "Trình tạo prompt"
+    },
+    "all": "Xem tất cả luận giải miễn phí",
+    "start": "Bắt đầu ngay",
+    "desc": {
+      "natal": "Đọc tính cách qua Tứ trụ",
+      "today": "Xu hướng hôm nay và hành động nhỏ",
+      "tarot": "Đọc cảm xúc và lựa chọn qua bài",
+      "ziwei": "Khám phá mười hai cung lá số",
+      "sukuyo": "Tính cách và quan hệ qua sao Mặt Trăng",
+      "vedic": "Khám phá bầu trời lúc chào đời"
     }
   }
 }

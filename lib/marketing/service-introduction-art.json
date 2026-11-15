@@ -518,5 +518,10 @@
     "image": "/images/career-style/yeoni-work-style.webp",
     "cardImage": "/fuctionassets/career-style-yeoni.webp",
     "alt": "노트와 나침반으로 진로 탐색을 돕는 연이"
+  },
+  "heukwol": {
+    "image": "/images/service-introductions/heukwol.webp",
+    "cardImage": "/images/service-introductions/heukwol-320.webp",
+    "alt": "금빛 테두리의 어두운 달 아래 펼쳐진 운세책과 별자리"
   }
 }

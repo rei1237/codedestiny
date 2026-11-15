@@ -9560,6 +9560,7 @@
     _dpSetProfileFieldValue('birthDate', '');
     _dpSetProfileFieldValue('birthHour', '');
     _dpSetProfileFieldValue('birthMinute', '');
+    _dpSetProfileFieldValue('birthTimeText', '');
     var calBtns = document.querySelectorAll('input[name="calType"]');
     calBtns.forEach(function(btn) {
       btn.checked = btn.value === 'solar';
@@ -9596,7 +9597,10 @@
     _dpUpdateSaveBtn();
   }
 
+  var _dpProfileSaveInFlight = false;
   window.dpSaveProfile = function() {
+    if (_dpProfileSaveInFlight) return;
+    _dpSyncBirthTimeSelectsFromText(_DP_BIRTH_TIME_FIELDSETS[0]);
     var data = readFormData();
     if (!data) {
       alert('이름과 생년월일을 입력해주세요.');
@@ -9637,6 +9641,7 @@
     function restoreCardAfterSaveAttempt() {
       notifyForestCard('ready');
       rollbackOptimisticCreate();
+      _dpProfileSaveInFlight = false;
       if (!savingCardVisible) {
         renderMasterCard(DPStorage.current());
         renderProfileList();
@@ -9678,6 +9683,7 @@
       btn.style.opacity = '0.65';
       btn.style.cursor = 'not-allowed';
     }
+    _dpProfileSaveInFlight = true;
     if (!applyOptimisticCreate()) {
       restoreCardAfterSaveAttempt();
       if (btn) {
@@ -9740,6 +9746,7 @@
         _dpSetProfileState(scope, list, currentId);
       }
       optimisticState = null;
+      _dpProfileSaveInFlight = false;
       // 저장이 끝났으면 편집 모드를 닫아, 다음 저장이 이 카드를 다시 덮어쓰지 않게 한다.
       _dpClearProfileEditMode();
       // 시트 안에서 저장했다면 폼을 홈으로 돌려보내 아래 renderProfileList() 결과를 보여 준다.
@@ -9780,7 +9787,7 @@
       restoreCardAfterSaveAttempt();
       if (msg === 'AUTH_REQUIRED') {
         if (window.confirm(_dpText('loginRequiredConfirm'))) {
-          window.location.href = '/login?next=%2F';
+          window.location.href = '/login?next=' + encodeURIComponent(_dpHomeEntryReturnPath());
           return;
         }
         msg = '로그인 상태를 확인한 뒤 다시 시도해 주세요.';
@@ -9790,6 +9797,7 @@
       }
       window.alert(msg);
     }).finally(function() {
+      _dpProfileSaveInFlight = false;
       if (btn) {
         btn.disabled = false;
         btn.style.opacity = '';
@@ -10978,8 +10986,56 @@
   // Entry intent contains only a service name, never a birth record or a free result.
   var _dpHomeEntryKey = 'cd:home-fortune-intent:v1';
   var _dpHomeEntryNames = {saju:'사주',ziwei:'자미두수',sukuyo:'숙요점',vedic:'베다점',astro:'점성술',tarot:'타로'};
+  var _dpHomeEntryMemory = '';
+  var _dpHomeFormOriginal = null;
+  var _dpHomeSectionKey = 'cd:home-fortune-section:v1';
+  var _dpHomeSections = {sajuCard:'명식·12신살',terms24Card:'절기 리듬',sajuFourCutCard:'사주 네컷',dopamineCard:'도파민·집중력','hormone-vibe-section':'테토·에겐 바이브',tTestCard:'극T 테스트',lottoCard:'사주 로또 리추얼',aiPromptCard:'AI 프롬프트 카드',skillTreeCard:'인생 스킬 트리',compatCard:'사주 궁합'};
+  var _dpHomeSection = '';
+  var _dpHomeSectionObserver = null;
+  try {
+    var homeParams = new URLSearchParams(window.location.search);
+    var requestedSection = homeParams.get('action') === 'cdOneStepFreeSajuEntry' ? homeParams.get('section') : '';
+    _dpHomeSection = _dpHomeSections[requestedSection] ? requestedSection : sessionStorage.getItem(_dpHomeSectionKey) || '';
+    if (!_dpHomeSections[_dpHomeSection]) _dpHomeSection = '';
+    if (_dpHomeSection) sessionStorage.setItem(_dpHomeSectionKey,_dpHomeSection);
+  } catch (_) {}
+  function _dpHomePendingType() {
+    try { return sessionStorage.getItem(_dpHomeEntryKey)||_dpHomeEntryMemory; } catch (_) { return _dpHomeEntryMemory; }
+  }
+  function _dpHomeEntryReturnPath() {
+    var actions={saju:'cdOneStepFreeSajuEntry',ziwei:'cdHomeZiweiEntry',sukuyo:'cdHomeSukuyoEntry',vedic:'cdHomeVedicEntry',astro:'cdHomeAstroEntry',tarot:'cdHomeTarotEntry'};
+    var type=_dpHomePendingType(),action=actions[type];
+    if(!action)return '/';
+    return '/ggulggul/?action='+action+(type==='saju'&&_dpHomeSections[_dpHomeSection]?'&section='+encodeURIComponent(_dpHomeSection):'');
+  }
+  function _dpHomeInputLabel(type) {
+    if (!document.getElementById) return;
+    var button=document.getElementById('run-btn'),form=document.getElementById('destinyCardForm');
+    if (!button||!form) return;
+    var context=document.getElementById('dpHomeEntryContext');
+    if (!type) {
+      if (_dpHomeFormOriginal) {
+        button.innerHTML=_dpHomeFormOriginal.html;button.setAttribute('data-action',_dpHomeFormOriginal.action);
+        button.setAttribute('aria-label',_dpHomeFormOriginal.label);
+        button.setAttribute('data-cd-trans-attr',_dpHomeFormOriginal.translate);
+        _dpHomeFormOriginal=null;
+      }
+      if(context)context.remove();
+      return;
+    }
+    if(!context){context=document.createElement('p');context.id='dpHomeEntryContext';context.className='dp-home-entry-context';context.setAttribute('role','status');form.prepend(context);}
+    var name=type==='saju'&&_dpHomeSection?_dpHomeSections[_dpHomeSection]:_dpHomeEntryNames[type];
+    context.textContent=name+' 시작하기 · 입력한 프로필로 선택한 운세를 이어서 열어요.';
+    if(type==='saju')return;
+    if(!_dpHomeFormOriginal)_dpHomeFormOriginal={html:button.innerHTML,action:button.getAttribute('data-action'),label:button.getAttribute('aria-label'),translate:button.getAttribute('data-cd-trans-attr')||''};
+    // Reuse the existing save/consent/login flow; its profile event resumes this intent.
+    button.textContent='프로필 저장하고 '+name+' 보기';button.setAttribute('aria-label',button.textContent);
+    button.removeAttribute('data-cd-trans-attr');button.setAttribute('data-action','dpSaveProfile');
+  }
   function _dpHomeIntent(type) {
+    _dpHomeEntryMemory=type||'';
     try { if(type) sessionStorage.setItem(_dpHomeEntryKey,type); else sessionStorage.removeItem(_dpHomeEntryKey); } catch (_) {}
+    if(!type)_dpHomeInputLabel('');
   }
   // 낙관적 저장(syncStatus 'pending') 카드도 생년월일이 유효하면 바로 쓴다 — 서버 확인을 기다리면
   // 저장된 프로필이 있는데도 '프로필을 설정해 주세요'가 뜬다(2026-11-12 홈 무료 타일 회귀).
@@ -10992,10 +11048,12 @@
     var entryParticle=(type==='saju'||type==='ziwei')?'를':'을';
     _toast(entryName+entryParticle+' 보려면 프로필을 설정해 주세요.','profile-guide','프로필을 저장하면 지금 고른 운세를 이어서 열어드릴게요.');
     if(typeof window.dpStartProfileCreate==='function') window.dpStartProfileCreate();
+    _dpHomeInputLabel(type);
   }
   function _dpResumeHomeEntry() {
-    var type='';
-    try { type=sessionStorage.getItem(_dpHomeEntryKey)||''; } catch (_) {}
+    // A newly submitted draft must survive rollback/login; consume it only after save succeeds.
+    if (_dpProfileSaveInFlight) return;
+    var type=_dpHomePendingType();
     var profile=_dpResolveCurrentProfileForSaju('');
     if(!_dpHomeEntryNames[type] || !_dpHomeEntryProfileReady(profile)) return;
     _dpHomeIntent('');
@@ -11017,8 +11075,7 @@
     if(_dpHasSessionHint()) {
       _dpHomeIntent(type);
       _dpLoadFromServer(function() {
-        var pending='';
-        try { pending=sessionStorage.getItem(_dpHomeEntryKey)||''; } catch (_) {}
+        var pending=_dpHomePendingType();
         if(pending!==type) return; // server-ready 이벤트가 이미 이어서 열었다
         var loaded=_dpResolveCurrentProfileForSaju('');
         if(_dpHomeEntryProfileReady(loaded)) { _dpResumeHomeEntry(); return; }
@@ -11032,26 +11089,45 @@
   window.cdHomeSukuyoEntry=function(){window.cdHomeFortuneEntry('sukuyo');};
   window.cdHomeVedicEntry=function(){window.cdHomeFortuneEntry('vedic');};
   window.cdHomeAstroEntry=function(){window.cdHomeFortuneEntry('astro');};
-  // The home shortcut is the service library. Drawing starts only after choosing a service.
-  window.cdHomeTarotEntry=function(){
-    _dpHomeIntent('');
-    var collection=document.getElementById('tarotCollection');
-    if(!collection){window.location.href='/?action=cdHomeTarotEntry';return;}
-    var fullscreen=window.cdMobileCollectionFullscreen;
-    if(fullscreen){fullscreen.open('tarotCollection');if(fullscreen.isOpen())return;}
-    if(typeof window.__cdOpenGarden==='function')window.__cdOpenGarden();
-    var toggle=collection.querySelector('[data-action="toggleCollection"]');
-    if(toggle&&collection.getAttribute('data-collection-open')!=='true')toggle.click();
-    window.requestAnimationFrame(function(){collection.scrollIntoView({block:'start'});});
-  };
+  window.cdHomeTarotEntry=function(){window.cdHomeFortuneEntry('tarot');};
   document.addEventListener('destinyProfileChanged',_dpResumeHomeEntry);
   window.addEventListener('cd:destiny-profile-server-ready',_dpResumeHomeEntry);
-  window.addEventListener('cd:saju-summary-ready',function(){_dpHomeIntent('');});
+  function _dpClearHomeSection() {
+    _dpHomeSection='';try{sessionStorage.removeItem(_dpHomeSectionKey);}catch(_){}
+    if(_dpHomeSectionObserver){_dpHomeSectionObserver.disconnect();_dpHomeSectionObserver=null;}
+  }
+  function _dpRevealHomeSection() {
+    _dpHomeIntent('');
+    if(!_dpHomeSection||!document.getElementById)return;
+    function reveal(){
+      var node=document.getElementById(_dpHomeSection);
+      if(!node||!node.getClientRects().length)return false;
+      var heading=node.querySelector('h2,h3,h4')||node;
+      heading.setAttribute('tabindex','-1');heading.focus({preventScroll:true});
+      node.scrollIntoView({block:'start',behavior:'instant'});_dpClearHomeSection();return true;
+    }
+    window.requestAnimationFrame(function(){
+      if(reveal())return;
+      if(_dpHomeSectionObserver)_dpHomeSectionObserver.disconnect();
+      _dpHomeSectionObserver=new MutationObserver(reveal);
+      _dpHomeSectionObserver.observe(document.getElementById('resultPage')||document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['class','style','hidden']});
+    });
+  }
+  window.addEventListener('cd:saju-summary-ready',_dpRevealHomeSection);
+  window.addEventListener('pagehide',function(){if(_dpHomeSectionObserver)_dpHomeSectionObserver.disconnect();});
+  document.addEventListener('click',function(event){
+    if(event.button!==0||event.metaKey||event.ctrlKey||event.shiftKey||event.altKey)return;
+    var link=event.target.closest&&event.target.closest('a[data-cd-free-promo-item],a[data-cd-free-promo-yeoni]');
+    if(!link)return;
+    _dpClearHomeSection();
+    var selected=new URL(link.href,location.href).searchParams.get('section');
+    if(_dpHomeSections[selected]){_dpHomeSection=selected;try{sessionStorage.setItem(_dpHomeSectionKey,selected);}catch(_){}}
+  },true);
   document.addEventListener('click',function(event){
     var target=event.target && event.target.closest ? event.target : null;
-    if(target && target.closest('[data-nav-key="home"]')) _dpHomeIntent('');
+    if(target && target.closest('[data-nav-key="home"]')) {_dpHomeIntent('');_dpClearHomeSection();}
     // 입력 취소는 home-funnel의 캡처 핸들러가 기본 이동을 막은 뒤에도 예약을 지운다.
-    if(target && target.closest('[data-cdh-input-return]') && !event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey && event.button === 0) _dpHomeIntent('');
+    if(target && target.closest('[data-cdh-input-return]') && !event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey && event.button === 0) {_dpHomeIntent('');_dpClearHomeSection();}
   });
 
   window.cdOneStepFreeSajuEntry = function() {

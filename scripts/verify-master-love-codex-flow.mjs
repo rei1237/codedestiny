@@ -559,12 +559,13 @@ for (const shell of [
     source.includes("html.neo-mode body .cd-sig-card__title"),
     `${shell}: 네오 모드 텍스트 오버라이드가 빠지면 배경만 바뀌고 글자가 안 보입니다(반쪽 오버라이드 금지)`,
   );
-  // Unified comparison retains two introductions and all six curated products.
+  // Unified comparison retains two introductions and seven curated products, including pinned Heukwol.
   // Additional concern cards share this grid but keep their own price keys.
   const cards = [...source.matchAll(/<a class="cd-picker-main"[^>]*>/g)]
     .map(match => match[0]).filter(tag => /data-cd-(?:service|signature)-id=/.test(tag));
   const sectionHtml = cards.join('\n');
-  assert(cards.length === 8, shell + ': 대표 상담 소개 2장과 상품 6장이 필요합니다 (현재 ' + cards.length + '장)');
+  assert(cards.length === 9, shell + ': 대표 상담 소개 2장과 상품 7장이 필요합니다 (현재 ' + cards.length + '장)');
+  assert(cards.some(tag => tag.includes('data-cd-service-id="heukwol"') && tag.includes('href="/heukwol/"')), shell + ': 흑월 상담의 실제 진입점이 필요합니다');
   // 2026-10-17 "직관성": 대표 상담 아래 초융합 추천 블록은 홈에서 뺐다(초융합은 전체 운세 시트에서 들어간다).
   // 홈에 다시 붙어 대표 상담 카드와 겹쳐 보이지 않도록 0장으로 고정한다.
   assert(!source.includes('class="cd-sig-card cd-sig-card--fusion"'), shell + ': 초융합 추천 카드는 홈에 다시 두지 않는다');

@@ -162,6 +162,13 @@ for (const question of QUESTION_CATEGORIES.flatMap(category => category.question
 const storySlugByProduct = {'love-secret-ai':'love-secret','new-year-ai':'new-year','life-book-ai':'life-book','neo-operation-room':'neo','fortune-tea-house':'tea','master-love-codex':'codex'};
 const signatureProducts = [
   {
+    id: 'heukwol', href: '/heukwol/', title: '흑월의 경고',
+    question: '주의가 필요한 시기를 미리 살피고, 나에게 맞는 대비 방향을 확인하세요',
+    popupCopy: '주의가 필요한 시기를 미리 살피고, 나에게 맞는 대비 방향을 확인하세요',
+    featureKey: 'heukwol-warning-consultation', cta: '내가 주의할 시기 보기',
+    resultFormat: '사주 × 자미두수 · 월별 흐름과 대응 조언'
+  },
+  {
     id: 'love-secret-ai',
     className: 'love',
     href: '/love-secret-ai/',
@@ -245,7 +252,7 @@ const signatureProducts = [
   },
 ];
 for (const product of signatureProducts) {
-  product.question = consultationStories[storySlugByProduct[product.id]].lead;
+  if (storySlugByProduct[product.id]) product.question = consultationStories[storySlugByProduct[product.id]].lead;
   const art = introductionArt[product.id];
   if (!art) throw new Error(`Missing introduction artwork: ${product.id}`);
   product.image = art.image.replace('.webp', '-640.webp');
@@ -265,7 +272,7 @@ const introCards = [
 ];
 vars.signature = renderHomeConsultationPicker({
   catalog: registryWindow.__cdServiceRegistry,
-  products: signatureProducts.map(product => ({...product, priceLabel:signaturePrice(product.featureKey, product.priceSuffix), resultFormat:storyBenefits[storySlugByProduct[product.id]].join(' · ')})),
+  products: signatureProducts.map(product => ({...product, priceLabel:signaturePrice(product.featureKey, product.priceSuffix), resultFormat:product.resultFormat || storyBenefits[storySlugByProduct[product.id]].join(' · ')})),
   intros: introCards.map(card => card.id === 'yeongnyangi-question' ? {...card, featureKey:chatQuestionFeatureKey('mackerel'), priceLabel:signaturePrice(chatQuestionFeatureKey('mackerel'), '부터'), priceSuffix:'부터'} : card),
   categories: QUESTION_CATEGORIES.map(category => ({...category, questions:category.questions.map(question => ({...question, priceLabel:questionPriceLabel(question.price)}))})),
 });
@@ -343,7 +350,7 @@ const template = readFileSync('templates/home-funnel.html', 'utf8');
 vars.yehwaHome = renderYehwaHome(registryWindow.__cdServiceRegistry, {
   consultationHtml: '<div class="cdh-slot" id="cdhFeatured"><div id="cdhSignatureSlot"><span id="homeSignature"></span>' + vars.signature + '</div></div>',
   // 2026-11-12 무료 3개월 홍보 배너(표시 전용) — 무료 타일 바로 위.
-  quickHtml: renderFreePromoShellBanner() + '<section class="cdh-free" aria-labelledby="cdhFreeTitle"><h2 class="cdh-free__title" id="cdhFreeTitle" data-cd-trans="home.simpleHome.freeTitle">무료로 먼저</h2><div class="cdh-slot" id="cdhQuickSlot">' + vars.quick + '</div></section>',
+  quickHtml: renderFreePromoShellBanner(),
   installHtml: "<aside class=\"cd-home-install-entry\" data-pwa-install-entry hidden aria-label=\"홈 화면에 추가\" lang=\"ko\" data-cd-no-trans><img src=\"/icons/moonlight-garden-v1-192.png\" width=\"48\" height=\"48\" alt=\"\" loading=\"lazy\"><div><strong>다음에도 바로 찾아오세요</strong><p>홈 화면의 아이콘으로 꿀꿀 운세를 열어요.</p></div><button type=\"button\" data-pwa-install>홈 화면에 추가하기</button></aside>",
   passHtml: '<div class="cdh-slot cdh-slot--pass" id="cdhPass"><div id="cdhPassSlot">' + vars.pass + '</div></div>',
 });
@@ -364,6 +371,7 @@ const copyReference = text => {
   return '@' + key;
 };
 for (const product of signatureProducts) {
+  if (!product.master) continue;
   homeHtml = homeHtml.replace('aria-label="' + product.title + ' — ' + product.cta + '"',
     'aria-label="' + product.title + ' — ' + product.cta + '" data-cd-trans-attr="aria-label:home.guideCopy.cardLabel"' + varsAttribute({ title: copyReference(product.title), action: copyReference(product.cta) }));
   homeHtml = homeHtml.replace('alt="' + product.imageAlt + '"',

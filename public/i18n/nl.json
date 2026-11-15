@@ -22511,17 +22511,17 @@
     }
   },
   "freePromo": {
-    "badge": "Slechts 3 maanden",
-    "title": "Nu zijn de basislezingen gratis",
-    "until": "Na 12 februari 2027 is betaald gebruik gepland",
+    "badge": "3 maanden · Gratis basislezingen",
+    "title": "Yeoni’s tuin met gratis lezingen",
+    "until": "Tot {date} · Daarna betaald gepland",
     "note": "Onderdelen met een prijs vallen erbuiten, zoals AI-consulten en AI-lezingen, de Light Saju- en tienjarige-cyclus-lezingen, de Saju-beschermgeest en de AI Saju-compatibiliteitsanalyse.",
-    "cta": "Gratis lezingen bekijken",
+    "cta": "Gratis basis-Saju starten",
     "share": "Vertel het een vriend zolang het gratis is",
-    "shareText": "Manseryeok, Zi Wei Dou Shu en astrologie zijn nu gratis te bekijken. Na 12 februari 2027 is betaald gebruik gepland.",
+    "shareText": "Gratis basislezingen van Saju, Ziwei en astrologie tot {date}.",
     "copied": "Link gekopieerd. Plak hem om naar een vriend te sturen.",
     "copyFailed": "De link kon niet worden gekopieerd. Kopieer hem uit de adresbalk.",
     "tileBadge": "3 maanden gratis",
-    "bubble": "Yeoni heeft dit allemaal opengezet tot 12 februari! Tik op mij en ga meteen naar je Saju-lezing.",
+    "bubble": "Kies gratis lezingen uit Saju, tarot en wereldtradities.",
     "groupFun": "Leuke Saju-content",
     "groupClassic": "Klassieke Saju",
     "groupMore": "Meer lezingen",
@@ -22548,6 +22548,16 @@
       "astro": "Astrologie",
       "humanDesign": "Human Design",
       "promptHub": "Promptgenerator"
+    },
+    "all": "Alle gratis lezingen bekijken",
+    "start": "Beginnen",
+    "desc": {
+      "natal": "Je aard in de vier pijlers",
+      "today": "De dag en een kleine stap",
+      "tarot": "Gevoelens en keuzes met kaarten",
+      "ziwei": "De twaalf paleizen van je geboortehoroscoop",
+      "sukuyo": "Je aard en relaties via de maan",
+      "vedic": "De hemel bij je geboorte"
     }
   }
 }

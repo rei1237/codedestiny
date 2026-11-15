@@ -22511,17 +22511,17 @@
     }
   },
   "freePromo": {
-    "badge": "Nur 3 Monate",
-    "title": "Jetzt sind die Basis-Deutungen kostenlos",
-    "until": "Ab dem 12. Februar 2027 ist eine Umstellung auf kostenpflichtig geplant",
+    "badge": "3 Monate · Kostenlose Basisdeutungen",
+    "title": "Yeonis Garten kostenloser Deutungen",
+    "until": "Bis {date} · Danach kostenpflichtig geplant",
     "note": "Ausgenommen sind Angebote mit Preisangabe, etwa KI-Beratungen und KI-Deutungen, die Light-Saju- und Zehnjahreszyklus-Deutungen, der Saju-Schutzgeist und die KI-Saju-Partneranalyse.",
-    "cta": "Kostenlose Deutungen ansehen",
+    "cta": "Kostenloses Basis-Saju starten",
     "share": "Freunden Bescheid sagen, solange es kostenlos ist",
-    "shareText": "Manseryeok, Zi Wei Dou Shu und Astrologie sind gerade kostenlos. Ab dem 12. Februar 2027 ist eine Umstellung auf kostenpflichtig geplant.",
+    "shareText": "Kostenlose Basisdeutungen für Saju, Ziwei und Astrologie bis {date}.",
     "copied": "Link kopiert. Füge ihn ein, um ihn an Freunde zu schicken.",
     "copyFailed": "Der Link konnte nicht kopiert werden. Bitte kopiere ihn aus der Adressleiste.",
     "tileBadge": "3 Monate gratis",
-    "bubble": "Yeoni hat all das bis zum 12. Februar geöffnet! Tipp mich an und los geht’s zu deiner Saju-Deutung.",
+    "bubble": "Entdecken Sie kostenlose Deutungen aus Saju, Tarot und Welttraditionen.",
     "groupFun": "Saju zum Spaß",
     "groupClassic": "Klassisches Saju",
     "groupMore": "Weitere Deutungen",
@@ -22548,6 +22548,16 @@
       "astro": "Astrologie",
       "humanDesign": "Human Design",
       "promptHub": "Prompt-Generator"
+    },
+    "all": "Alle kostenlosen Deutungen",
+    "start": "Jetzt starten",
+    "desc": {
+      "natal": "Wesen in den vier Säulen",
+      "today": "Tagesfluss und ein kleiner Schritt",
+      "tarot": "Gefühle und Entscheidungen mit Karten",
+      "ziwei": "Die zwölf Paläste des Geburtshoroskops",
+      "sukuyo": "Wesen und Beziehungen nach dem Mond",
+      "vedic": "Der Himmel bei Ihrer Geburt"
     }
   }
 }

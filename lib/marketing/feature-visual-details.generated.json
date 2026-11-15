@@ -1,6 +1,24 @@
 {
   "index": [
     {
+      "slug": "heukwol",
+      "title": "흑월의 경고",
+      "href": "/heukwol/",
+      "featureKey": "heukwol-warning-consultation",
+      "accessType": "unknown",
+      "image": "/images/service-introductions/heukwol.webp",
+      "aliases": [
+        "heukwol-warning-consultation",
+        "heukwol",
+        "/heukwol/",
+        "/heukwol"
+      ],
+      "catalogImage": "/images/service-introductions/heukwol-320.webp",
+      "category": "사주·심층 상담",
+      "description": "주의가 필요한 시기를 미리 살피고, 나에게 맞는 대비 방향을 확인하세요",
+      "verification": "source-inventory-only"
+    },
+    {
       "slug": "master-love-codex",
       "title": "마스터 인연의 서",
       "href": "/master-love-codex/",
@@ -1515,6 +1533,42 @@
     }
   ],
   "items": {
+    "heukwol": {
+      "slug": "heukwol",
+      "title": "흑월의 경고",
+      "href": "/heukwol/",
+      "featureKey": "heukwol-warning-consultation",
+      "featureKeyTo": "",
+      "accessType": "unknown",
+      "image": "/images/service-introductions/heukwol.webp",
+      "aliases": [
+        "heukwol-warning-consultation",
+        "heukwol",
+        "/heukwol/",
+        "/heukwol"
+      ],
+      "category": "사주·심층 상담",
+      "headline": "흑월의 경고",
+      "description": "주의가 필요한 시기를 미리 살피고, 나에게 맞는 대비 방향을 확인하세요",
+      "panels": [],
+      "ctaLabel": "이 기능 시작하기",
+      "evidence": [
+        "js/core/service-registry.js"
+      ],
+      "verification": "source-inventory-only",
+      "imageAlt": "금빛 테두리의 어두운 달 아래 펼쳐진 운세책과 별자리",
+      "catalogImage": "/images/service-introductions/heukwol-320.webp",
+      "benefits": [],
+      "contents": [],
+      "theme": "navy",
+      "journey": {
+        "questions": [],
+        "trustNotes": [
+          "운세 결과는 참고용이며, 중요한 선택은 현실적인 판단과 함께 확인해 주세요."
+        ],
+        "faq": []
+      }
+    },
     "master-love-codex": {
       "slug": "master-love-codex",
       "title": "마스터 인연의 서",

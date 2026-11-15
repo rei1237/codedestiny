@@ -32,10 +32,16 @@ test('fixtures, error, retry, delay and process-local profile state', async () =
       assert.ok(performance.now() - start >= 250);
     }
     assert.equal((await fetch(base + '/api/auth/me')).status, 401);
+    assert.equal((await fetch(base + '/api/profile')).status, 401);
     assert.equal((await post('/api/auth/login')).status, 200);
+    const saved = await (await fetch(base + '/api/profile', { method:'POST', body:JSON.stringify({profileId:'moonlit',profile:{name:'검수',birth:{year:1990,month:7,day:15}}}) })).json();
+    assert.equal(saved.currentId,'moonlit');assert.equal(saved.profile.syncStatus,'synced');
+    const list=await (await fetch(base + '/api/profile')).json();assert.equal(list.profiles[0].name,'검수');
+    const pricing=await (await fetch(base + '/api/heukwol/pricing')).json();assert.equal(pricing.pricing.amountKRW,50000);
+    assert.equal((await post('/api/heukwol/start')).status,501);
     assert.equal((await fetch(base + '/api/auth/me')).status, 200);
     await fetch(base + '/api/mock/profiles', { method: 'POST', body: JSON.stringify({ name: 'fixture' }) });
-    assert.equal((await (await fetch(base + '/api/mock/profiles')).json()).profiles[0].name, 'fixture');
+    assert.equal((await (await fetch(base + '/api/mock/profiles')).json()).profiles.find(p=>p.id==='mock-profile').name, 'fixture');
     assert.equal((await post('/api/billing/checkout')).status, 402);
     assert.equal((await post('/api/unknown')).status, 501);
     assert.equal((await fetch(base + '/api/mock/profiles', { method: 'POST', body: '{' })).status, 400);

@@ -22511,17 +22511,17 @@
     }
   },
   "freePromo": {
-    "badge": "3 bulan sahaja",
-    "title": "Kini bacaan asas percuma",
-    "until": "Dirancang menjadi berbayar selepas 12 Februari 2027",
+    "badge": "3 bulan · Bacaan asas percuma",
+    "title": "Taman bacaan percuma Yeoni",
+    "until": "Hingga {date} · Akses berbayar dirancang selepas itu",
     "note": "Tidak termasuk item yang memaparkan harga, seperti konsultasi AI dan bacaan AI, bacaan Saju Ringan dan kitaran sepuluh tahun, penjaga Saju serta analisis keserasian Saju AI.",
-    "cta": "Lihat bacaan percuma",
+    "cta": "Mulakan Saju asas percuma",
     "share": "Beritahu rakan selagi percuma",
-    "shareText": "Bacaan Manseryeok, Zi Wei Dou Shu dan astrologi kini boleh dilihat secara percuma. Ia dirancang menjadi berbayar selepas 12 Februari 2027.",
+    "shareText": "Terokai bacaan asas Saju, Ziwei dan astrologi percuma hingga {date}.",
     "copied": "Pautan disalin. Tampal untuk dihantar kepada rakan.",
     "copyFailed": "Pautan tidak dapat disalin. Sila salin dari bar alamat.",
     "tileBadge": "Percuma 3 bulan",
-    "bubble": "Yeoni dah buka semua ini sehingga 12 Februari! Ketik saya untuk terus ke bacaan Saju anda.",
+    "bubble": "Pilih bacaan percuma daripada Saju, tarot dan tradisi dunia.",
     "groupFun": "Kandungan Saju yang seronok",
     "groupClassic": "Saju klasik",
     "groupMore": "Bacaan lain",
@@ -22548,6 +22548,16 @@
       "astro": "Astrologi",
       "humanDesign": "Human Design",
       "promptHub": "Penjana prompt"
+    },
+    "all": "Lihat semua bacaan percuma",
+    "start": "Mulakan sekarang",
+    "desc": {
+      "natal": "Sifat melalui empat tiang",
+      "today": "Aliran hari ini dan langkah kecil",
+      "tarot": "Perasaan dan pilihan melalui kad",
+      "ziwei": "Dua belas istana carta kelahiran",
+      "sukuyo": "Sifat dan hubungan melalui bulan",
+      "vedic": "Langit ketika kelahiran anda"
     }
   }
 }

@@ -22511,17 +22511,17 @@
     }
   },
   "freePromo": {
-    "badge": "3 months only",
-    "title": "Core readings are free, for now",
-    "until": "Planned to become paid after February 12, 2027",
+    "badge": "3 months only · Free basic readings",
+    "title": "Yeoni’s garden of free readings",
+    "until": "Until {date} · Paid access planned afterwards",
     "note": "Items shown with a price are not included, such as AI consultations and AI readings, the Light Saju and ten-year cycle readings, the Saju guardian, and the AI Saju compatibility analysis.",
-    "cta": "See free readings",
+    "cta": "Start free basic Saju",
     "share": "Tell a friend while it's free",
-    "shareText": "Manseryeok, Zi Wei Dou Shu and astrology readings are free right now. They are planned to become paid after February 12, 2027.",
+    "shareText": "Explore free basic Saju, Ziwei and astrology readings until {date}.",
     "copied": "Link copied. Paste it to send to a friend.",
     "copyFailed": "Couldn't copy the link. Please copy it from the address bar.",
     "tileBadge": "Free for 3 months",
-    "bubble": "Yeoni opened up all of this until Feb 12! Tap me to jump right into your Saju reading.",
+    "bubble": "Explore free readings, from Saju and tarot to traditions around the world.",
     "groupFun": "Fun Saju picks",
     "groupClassic": "Classic Saju",
     "groupMore": "More readings",
@@ -22548,6 +22548,16 @@
       "astro": "Astrology",
       "humanDesign": "Human Design",
       "promptHub": "Prompt generator"
+    },
+    "all": "See all free readings",
+    "start": "Start reading",
+    "desc": {
+      "natal": "Read your nature through the four pillars",
+      "today": "Today’s flow and a small practical step",
+      "tarot": "Explore your feelings and choices with cards",
+      "ziwei": "Discover your natal chart’s twelve palaces",
+      "sukuyo": "Read your nature and relationships by the Moon",
+      "vedic": "Explore the sky at your birth"
     }
   }
 }
