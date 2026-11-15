@@ -103,6 +103,7 @@ function PrivateSpace({profile}:{profile:ReturnType<typeof useSpaceProfile>}){
  const active=bow.session.status==='running'||bow.session.status==='paused';
  const ended=bow.session.status==='complete'||bow.session.status==='stopped';
  const characterPosition:CSSProperties={left:scene==='hall'?'50%':'46%',top:scene==='hall'?'86%':'82%'};
+ const activateSpot=(spot:(typeof HOTSPOTS)[Scene][number])=>spot.scene?changeScene(spot.scene):spot.panel?open(spot.panel):void effects.strike();
  return <main className={styles.page} lang="ko" data-cd-no-trans data-immersive={quiet}>
   <header className={styles.header}><Link href="/" className={styles.home}><ArrowLeft size={17}/>꿀꿀 운세</Link><div><h1>달빛 연화당</h1><p>오직 나 혼자, 마음을 쉬어가는 작은 절</p></div><button onClick={()=>open('custom')} aria-label="캐릭터와 화면 설정"><Settings2 size={20}/><span>꾸미기</span></button></header>
   <p className={styles.privateNote}><Heart size={15} aria-hidden="true"/>다른 사람이 접속해도, 이 공간에는 나의 캐릭터만 머물러요.</p>
@@ -115,18 +116,20 @@ function PrivateSpace({profile}:{profile:ReturnType<typeof useSpaceProfile>}){
       <div className={styles.character} style={characterPosition}>
        {!characterError&&(!light||character==='custom')?<Character key={retry} kind={character} activity={activity} elapsed={bow.session.elapsed} reduced={noMotion} look={profile.avatar} image={profile.image} portrait={profile.portrait} onFailure={()=>setCharacterError(true)}/>:<div className={styles.still}>{/* eslint-disable-next-line @next/next/no-img-element */}<img src={character==='cat'?ART+'/cat-still.webp':'/assets/moonlit-lotus/yeoni/2d-v2/still.webp'} width={384} height={384} alt="동작을 줄인 정지 캐릭터"/>{characterError&&<button onClick={()=>{setCharacterError(false);setRetry(v=>v+1);}}>동작 다시 불러오기</button>}</div>}
       </div>
-      {!quiet&&<div className={styles.hotspots}>{HOTSPOTS[scene].map(spot=><button key={spot.label} style={{left:spot.x+'%',top:spot.y+'%'}} onClick={()=>spot.scene?changeScene(spot.scene):spot.panel?open(spot.panel):void effects.strike()} aria-label={spot.label}>{spot.label}</button>)}</div>}
-      {speaking&&<div className={styles.affirmationOverlay}><p>{affirmation}</p><button disabled={savingText} onClick={()=>saveText('affirmation')}>소리 내어 읽었어요</button><button onClick={()=>setSpeaking(false)}>닫기</button></div>}
+      {!quiet&&<div className={styles.hotspots}>{HOTSPOTS[scene].map(spot=><button key={spot.label} style={{left:spot.x+'%',top:spot.y+'%'}} onClick={()=>activateSpot(spot)} aria-label={spot.label}>{spot.label}</button>)}</div>}
      </div>
     </div>
     <div className={styles.sceneCaption}><span>{activity==='bow'?phase:activity==='prayer'?'말하지 못했던 마음도, 여기에 놓아두어요.':activity==='meditation'?'잠시 눈을 감고, 편안한 호흡으로.':'서두르지 않아도 괜찮아요.'}</span><button aria-pressed={effects.enabled} onClick={effects.toggle}>{effects.enabled?<Volume2 size={17}/>:<VolumeX size={17}/>}효과음 {effects.enabled?'켜짐':'꺼짐'}</button></div>
+    {!quiet&&<details className={styles.sceneTools} key={scene}><summary><Flower2 size={18} aria-hidden="true"/>소품으로 시작하기</summary><div>{HOTSPOTS[scene].map(spot=><button key={spot.label} onClick={()=>activateSpot(spot)}>{spot.label}</button>)}</div></details>}
+    {speaking&&<div className={styles.affirmationOverlay}><p>{affirmation}</p><button disabled={savingText} onClick={()=>saveText('affirmation')}>소리 내어 읽었어요</button><button onClick={()=>setSpeaking(false)}>닫기</button></div>}
     {effects.error&&<p role="status">{effects.error}</p>}
    </section>
    <div className={styles.side}>
     {!profile.character&&<section className={styles.welcome}><h2>누구와 쉬어갈까요?</h2><p>성별을 입력하지 않아도 괜찮아요. 마음이 가는 친구를 골라 주세요.</p><div className={styles.row}><button onClick={()=>profile.save('yeoni')}>연이와 함께</button><button onClick={()=>profile.save('cat')}>영냥이와 함께</button></div></section>}
     {!quiet&&<nav className={styles.activities} aria-label="나만의 명상 활동">{(Object.entries(PANELS) as [Panel,string][]).filter(([id])=>id!=='custom').map(([id,label])=><button key={id} aria-pressed={panel===id} onClick={()=>open(id)}>{id==='music'?<Music2 size={17}/>:id==='records'||id==='fortune'?<BookOpen size={17}/>:<Flower2 size={17}/>}<span>{label}</span></button>)}</nav>}
-    {panel?<section className={styles.panel} aria-labelledby="space-panel-title"><div className={styles.panelHead}><h2 id="space-panel-title" ref={panelHeading} tabIndex={-1}>{PANELS[panel]}</h2><button aria-label="활동 패널 닫기" onClick={close}><X size={19}/></button></div>
-     {panel==='meditation'&&<><p>지금은 잘하려고 애쓰지 않아도 괜찮아요.<br/>나의 속도로 들이쉬고, 천천히 내쉬어요.</p><div className={styles.breath} data-moving={!noMotion}>편안하게<br/>머물러요</div><button onClick={()=>open('music')}>명상 음악 고르기</button><button onClick={()=>{setActivity('idle');setNotice('충분히 쉬었어요. 준비되면 다시 시작해요.');}}>명상 마치기</button></>}
+    <div className={panel==='music'?styles.musicPanel:undefined}>
+    {panel?<section className={styles.panel} data-activity={panel} aria-labelledby="space-panel-title"><div className={styles.panelHead}><h2 id="space-panel-title" ref={panelHeading} tabIndex={-1}>{PANELS[panel]}</h2><button aria-label="활동 패널 닫기" onClick={close}><X size={19}/></button></div>
+     {panel==='meditation'&&<><p>지금은 잘하려고 애쓰지 않아도 괜찮아요.<br/>나의 속도로 들이쉬고, 천천히 내쉬어요.</p><div className={styles.breath} data-moving={!noMotion}><Flower2 size={32} strokeWidth={1.3} aria-hidden="true"/><span>편안하게<br/>머물러요</span></div><div className={styles.row}><button className={styles.primary} onClick={()=>open('music')}>명상 음악 고르기</button><button onClick={()=>{setActivity('idle');setNotice('충분히 쉬었어요. 준비되면 다시 시작해요.');}}>명상 마치기</button></div></>}
      {panel==='prayer'&&<><p>누군가에게 보여주지 않아도 되는 나의 기도예요. 불상 앞에서 마음을 모으고, 바라는 일을 적어보세요.</p><label className={styles.field}>오늘의 기도<textarea maxLength={2000} value={prayer} onChange={event=>setPrayer(event.target.value)} placeholder="지금 내 마음에 가장 필요한 것은…"/></label><div className={styles.row}><button className={styles.primary} disabled={savingText} onClick={()=>saveText('prayer')}>기도를 마음에 담기</button><button onClick={()=>{setActivity('prayer');setNotice('두 손을 모으고, 나의 마음에 잠시 귀 기울여요.');}}>조용히 참배하기</button></div></>}
      {panel==='affirmation'&&<><p>이곳에서는 나의 목소리로, 나에게 다정한 말을 건네요.</p><label className={styles.field}>오늘의 확언<textarea maxLength={2000} value={affirmation} onChange={event=>setAffirmation(event.target.value)}/></label><div className={styles.row}><button className={styles.primary} onClick={()=>setSpeaking(true)}>소리 내어 읽기</button><button onClick={()=>{const picked=pickTrainingAffirmation('회복력 강화',affirmIndex);setAffirmIndex(picked.index);setAffirmation(picked.text);}}>다른 문장 만나기</button></div><p className={styles.small}>직접 읽고 ‘읽었어요’를 누르면 나의 기록에 남아요. 마이크를 켜거나 녹음하지 않아요.</p></>}
      {panel==='bow'&&<><p>캐릭터와 함께하는 온라인 108배예요.<br/>나의 몸을 측정하거나 횟수를 판정하지 않아요.</p>
@@ -155,6 +158,7 @@ function PrivateSpace({profile}:{profile:ReturnType<typeof useSpaceProfile>}){
      {notice&&<p role="status" className={styles.status}>{notice}</p>}
     </section>:<div className={styles.invitation}><h2>오늘의 마음을 놓아두세요</h2><p>마당을 둘러보거나 법당에 들어가요.<br/>기도도, 참배도, 잠깐의 쉼도<br/>오롯이 나를 위한 시간이에요.</p><button className={styles.primary} onClick={()=>changeScene('hall')}>법당 안으로</button><button onClick={()=>open('meditation')}>조용히 명상하기</button></div>}
     <MusicPlayer scope={profile.scope} open={panel==='music'}/>
+    </div>
    </div>
   </div>
   <footer className={styles.footer}><p>나의 기도와 기록은 이 브라우저에만 저장돼요. 다른 이용자의 공간과 연결되지 않으며, 공개 목록이나 실시간 방문자 표시가 없어요.</p><p>{day} · 달빛 연화당</p><Link href="/moonlit-lotus/model-review/">연이 동작 살펴보기</Link></footer>
