@@ -92,17 +92,17 @@ export function resolveFortuneBuildDateContext({ rootDir, now = new Date() }) {
     const parsed = JSON.parse(readFileSync(resolve(rootDir, 'fortune/data/run-manifest.json'), 'utf8'));
     if (['today', 'tomorrow', 'weekly', 'monthly'].every(key => typeof parsed?.[key] === 'string')) manifest = parsed;
   } catch {}
-  // Match the existing renderers: daily-data resolves its manifest, whereas
-  // range-data derives week/month ranges from its current KST clock. Environment
-  // variables used by publishing/gen-daily are not renderer date overrides.
+  // build-view passes resolvePeriodDate('today') into both range loaders.
+  // The manifest anchors every period; only absent manifests use the KST clock.
+  const businessDate = manifest?.today || clockDate;
   const dates = {
-    today: manifest?.today || clockDate,
+    today: businessDate,
     tomorrow: manifest?.tomorrow || kstYmdNextDay(clockDate),
-    weekly: kstWeekStartYmd(clockDate),
-    monthly: kstMonthStartYmd(clockDate),
+    weekly: kstWeekStartYmd(businessDate),
+    monthly: kstMonthStartYmd(businessDate),
   };
   for (const value of Object.values(dates)) kstYmdNextDay(value); // Validate before inspecting output.
-  return { dailySource: manifest ? 'fortune/data/run-manifest.json' : 'KST clock fallback', businessDate: dates.today, rangeBusinessDate: clockDate, dates };
+  return { dailySource: manifest ? 'fortune/data/run-manifest.json' : 'KST clock fallback', businessDate, rangeBusinessDate: businessDate, dates };
 }
 
 // 검사 시각과 렌더 창 앞 시각의 날짜 문맥. 둘의 날짜가 같으면 하나만 남는다. buildTime 은 그 시점이다.

@@ -491,6 +491,7 @@ window.__cdServiceRegistry = [
     purposes: ["life", "self", "career", "money"],
     methods: ["astrology"],
     keys: "점성술 별자리 호로스코프 차트",
+    roles: ["quick"],
   },
   {
     image: "/images/service-introductions/human-design-320.webp",
@@ -556,7 +557,6 @@ window.__cdServiceRegistry = [
     methods: ["saju"],
     keys: "오늘 데일리 일일운세 하루",
     badge: "티저",
-    roles: ["quick"],
   },
   {
     image: "/images/service-introductions/today-hub-320.webp",

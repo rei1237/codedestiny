@@ -6,7 +6,7 @@ const source=readFileSync('js/destiny-profile.js','utf8');
 function setup({session=false,server=null}={}){
  const events={},state=new Map(),opened=[],synced=[];
  let profile=null,creates=0,loads=0;
- const ctx={_dpProfileSaveInFlight:false,sessionStorage:{setItem:(k,v)=>state.set(k,v),removeItem:k=>state.delete(k),getItem:k=>state.get(k)},document:{addEventListener:(n,fn)=>events[n]=fn},window:{addEventListener:(n,fn)=>events[n]=fn,_dpOpenFortuneType:t=>opened.push(t),dpStartProfileCreate:()=>creates++},_dpResolveCurrentProfileForSaju:()=>profile,_dpHasValidProfileDate:(y,m,d)=>!!(y&&m&&d),_dpSyncProfileFormToCurrent:p=>synced.push(p),_toast(){},_dpHasSessionHint:()=>session,_dpLoadFromServer:cb=>{loads++;if(server)profile=server;cb(!!server);}};
+ const ctx={DPStorage:{current:()=>profile},_dpProfileSaveInFlight:false,sessionStorage:{setItem:(k,v)=>state.set(k,v),removeItem:k=>state.delete(k),getItem:k=>state.get(k)},document:{addEventListener:(n,fn)=>events[n]=fn},window:{addEventListener:(n,fn)=>events[n]=fn,_dpOpenFortuneType:t=>opened.push(t),dpStartProfileCreate:()=>creates++},_dpResolveCurrentProfileForSaju:()=>profile,_dpHasValidProfileDate:(y,m,d)=>!!(y&&m&&d),_dpSyncProfileFormToCurrent:p=>synced.push(p),_toast(){},_dpHasSessionHint:()=>session,_dpLoadFromServer:cb=>{loads++;if(server)profile=server;cb(!!server);}};
  vm.runInNewContext(source.slice(source.indexOf("  var _dpHomeEntryKey ="),source.indexOf("  window.cdOneStepFreeSajuEntry =")),ctx);
  return {ctx,events,state,opened,synced,setProfile:p=>profile=p,creates:()=>creates,loads:()=>loads};
 }
@@ -75,4 +75,14 @@ test('login return permits only known feature actions and preserves saju subsect
  const h=setup();h.ctx._dpHomeIntent('saju');h.ctx._dpHomeSection='terms24Card';
  assert.equal(h.ctx._dpHomeEntryReturnPath(),'/ggulggul/?action=cdOneStepFreeSajuEntry&section=terms24Card');
  h.ctx._dpHomeIntent('https://outside.invalid');assert.equal(h.ctx._dpHomeEntryReturnPath(),'/');
+});
+
+test('a stale guest cache cannot open a birth modal after login without a saved profile',()=>{
+ const h=setup({session:true});
+ h.ctx._dpResolveCurrentProfileForSaju=()=>({birth:{year:1990,month:1,day:1}});
+ h.ctx.window.cdHomeZiweiEntry();
+ assert.deepEqual(h.opened,[]);assert.equal(h.creates(),1);
+ assert.equal(h.ctx._dpHomeEntryReturnPath(),'/ggulggul/?action=cdHomeZiweiEntry');
+ h.setProfile({birth:{year:1990,month:1,day:1}});h.events.destinyProfileChanged();
+ assert.deepEqual(h.opened,['ziwei']);
 });

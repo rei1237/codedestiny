@@ -40,7 +40,7 @@ test('weekly and monthly ranges use the same calendar convention across month/ye
   assert.deepEqual(verifyFortuneDateContract(tomorrow, { period: 'tomorrow', businessDate: '2026-12-31', buildTime: new Date('2026-12-30T15:20:00Z') }).failures, []);
 });
 
-test('build guard follows the daily manifest across midnight while range renderer keeps its KST clock', () => {
+test('build guard follows the renderer manifest for all periods across midnight', () => {
   const rootDir = mkdtempSync(join(tmpdir(), 'cd-fortune-date-contract-'));
   try {
     mkdirSync(join(rootDir, 'fortune/data'), { recursive: true });
@@ -48,7 +48,7 @@ test('build guard follows the daily manifest across midnight while range rendere
     writeFileSync(file, JSON.stringify({ today: '2026-12-31', tomorrow: '2027-01-01', weekly: '2026-12-28', monthly: '2026-12-01' }));
     const context = resolveFortuneBuildDateContext({ rootDir, now: new Date('2026-12-31T15:01:00Z') });
     assert.equal(context.dailySource, 'fortune/data/run-manifest.json');
-    assert.deepEqual(context.dates, { today: '2026-12-31', tomorrow: '2027-01-01', weekly: '2026-12-28', monthly: '2027-01-01' });
+    assert.deepEqual(context.dates, { today: '2026-12-31', tomorrow: '2027-01-01', weekly: '2026-12-28', monthly: '2026-12-01' });
     writeFileSync(file, JSON.stringify({ today: '2026-12-31' }));
     const partial = resolveFortuneBuildDateContext({ rootDir, now: new Date('2026-12-31T15:01:00Z') });
     assert.equal(partial.dailySource, 'KST clock fallback', 'partial manifests must be rejected just like daily-data.ts');
@@ -153,7 +153,7 @@ test('a day-before datePublished is accepted only for tomorrow or a build that p
   assert.ok(verifyFortuneDateContract(weekly, { period: 'weekly', periodDate: '2026-10-26', buildTime: new Date('2026-10-28T00:00:00Z') }).failures.some((m) => m.includes('datePublished')));
 });
 
-test('build guard accepts pages rendered before a week/month boundary within the render window only', () => {
+test('manifest anchors rendered periods; clock fallback only accepts the bounded render window', () => {
   const rootDir = mkdtempSync(join(tmpdir(), 'cd-fortune-render-window-'));
   try {
     const signs = Array.from({ length: 24 }, (_, i) => `s${i}`);
@@ -180,9 +180,12 @@ test('build guard accepts pages rendered before a week/month boundary within the
     const verify = (now) => verifyFortuneBuildDates({ rootDir, outputDir: 'out', periods: Object.keys(pages), signIds: signs, dateContexts: resolveFortuneBuildDateContexts({ rootDir, now }) });
     assert.equal(resolveFortuneBuildDateContexts({ rootDir, now: new Date('2026-11-04T03:00:00Z') }).length, 1, 'mid-week: one context');
     assert.deepEqual(verify(new Date('2026-11-01T15:30:00Z')).failures, []);
+    assert.deepEqual(verify(new Date('2026-11-01T19:00:00Z')).failures, [], 'published manifest remains the renderer source');
+    rmSync(join(rootDir, 'fortune/data/run-manifest.json'));
+    assert.deepEqual(verify(new Date('2026-11-01T15:30:00Z')).failures, [], 'clock fallback accepts the boundary render window');
     const late = verify(new Date('2026-11-01T19:00:00Z'));
     const failedRoutes = new Set(late.failures.map((m) => m.slice(0, m.indexOf(':'))));
-    assert.equal(failedRoutes.size, 24, late.failures.slice(0, 3).join('; '));
-    assert.ok([...failedRoutes].every((route) => route.startsWith('/fortune/weekly/')));
+    assert.equal(failedRoutes.size, 72, late.failures.slice(0, 3).join('; '));
+    assert.ok([...failedRoutes].every((route) => !route.startsWith('/fortune/monthly/')));
   } finally { rmSync(rootDir, { recursive: true, force: true }); }
 });

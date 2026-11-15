@@ -2537,6 +2537,19 @@
     },
     "entryCards": {
       "webtoon": "चाँदनी की कहानी: परिचय वेबटून"
+    },
+    "moonlit": {
+      "manseStart": "अपनी जन्म-कुंडली मुफ़्त देखें",
+      "signatureOpen": "प्रमुख परामर्श देखें",
+      "heukwolTitle": "काले चाँद की चेतावनी",
+      "heukwolDescription": "सावधानी वाले समय और अपने लिए उपयुक्त तैयारी के तरीके जानें।",
+      "heukwolFormat": "चार स्तंभ × ज़ीवेई · मासिक प्रवाह और सलाह",
+      "heukwolCta": "सावधानी वाले समय देखें",
+      "gardenAlt": "चाँदनी बगीचे में भाग्य की किताब खोलती फूलों वाली पिग योनी",
+      "featuredFree": "प्रमुख मुफ़्त पाठ",
+      "heukwolNote": "परामर्श पृष्ठ पर प्रोफ़ाइल और प्रश्न तैयार करें और उपयोग की शर्तें देखें।",
+      "heukwolTrust": "इसे अपने चुनावों के लिए मार्गदर्शन मानें, भविष्य की निश्चितता नहीं।",
+      "sajuZiwei": "चार स्तंभ × ज़ीवेई"
     }
   },
   "terms": {
@@ -17646,6 +17659,15 @@
           "detail": "Explore tendencies and the month branch, working conditions and roles, the downsides of strengths, and small career experiments."
         }
       ]
+    },
+    "heukwol": {
+      "tagline": "Explore periods that call for care and practical ways to prepare.",
+      "premiumIntro": "Explore periods that call for care and practical ways to prepare.",
+      "ctaNote": "Prepare your profile and question, then review the terms on the consultation page.",
+      "fallbackCta": "Explore periods to watch",
+      "premiumOutcomes": [
+        "Read this as guidance for your choices, not a certainty about the future."
+      ]
     }
   },
   "featureMarketingCategory": {
@@ -17677,7 +17699,8 @@
     "physiognomy": "Face Reading",
     "article": "Reading",
     "pass": "Pass",
-    "totem": "टोटेम रीडिंग"
+    "totem": "टोटेम रीडिंग",
+    "sajuZiwei": "चार स्तंभ × ज़ीवेई"
   },
   "featureMarketingTrust": {
     "paid": {
@@ -22515,13 +22538,13 @@
     "title": "योनी का मुफ़्त भविष्य-पाठ उद्यान",
     "until": "{date} तक · बाद में सशुल्क करने की योजना",
     "note": "जिन पर कीमत दिखती है वे शामिल नहीं हैं, जैसे AI परामर्श और AI व्याख्याएँ, लाइट साजू व दस-वर्षीय भाग्य चक्र व्याख्याएँ, साजू रक्षक और AI साजू अनुकूलता विश्लेषण।",
-    "cta": "मुफ़्त मूल साजू शुरू करें",
+    "cta": "मुफ़्त मूल मन्सेर्योक शुरू करें",
     "share": "मुफ़्त रहते दोस्तों को बताएँ",
-    "shareText": "{date} तक मूल साजू, ज़िवेई और ज्योतिष पाठ मुफ़्त देखें।",
+    "shareText": "{date} तक मूल मन्सेर्योक, ज़िवेई और ज्योतिष पाठ मुफ़्त देखें।",
     "copied": "लिंक कॉपी हो गया। दोस्त को भेजने के लिए पेस्ट करें।",
     "copyFailed": "लिंक कॉपी नहीं हो सका। कृपया एड्रेस बार से कॉपी करें।",
     "tileBadge": "3 महीने मुफ़्त",
-    "bubble": "साजू, टैरो और विश्व की परंपराओं से मुफ़्त पाठ चुनें।",
+    "bubble": "मन्सेर्योक, टैरो और विश्व की परंपराओं से मुफ़्त पाठ चुनें।",
     "groupFun": "मज़ेदार साजू कंटेंट",
     "groupClassic": "पारंपरिक साजू",
     "groupMore": "अन्य रीडिंग",
@@ -22555,9 +22578,10 @@
       "natal": "चार स्तंभों से स्वभाव जानें",
       "today": "आज का प्रवाह और छोटा कदम",
       "tarot": "कार्ड से भावनाएँ और विकल्प जानें",
-      "ziwei": "जन्म कुंडली के बारह महल देखें",
-      "sukuyo": "चंद्र नक्षत्र से स्वभाव और रिश्ते",
-      "vedic": "जन्म के आकाश से स्वभाव जानें"
+      "ziwei": "Museong · जन्म कुंडली के बारह महल देखें",
+      "sukuyo": "Seohanbi · चंद्र नक्षत्र से स्वभाव और रिश्ते",
+      "vedic": "Yundal · जन्म के आकाश से स्वभाव जानें",
+      "astro": "Yundal · ग्रहों और भावों से अपना स्वभाव जानें"
     }
   }
 }
