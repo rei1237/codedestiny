@@ -39,7 +39,10 @@ for (const channel of ['chrome', 'msedge']) {
       await assertHomePicker(page, width);
       const letter = main.locator('.cd-consult-letter');
       await letter.waitFor({ state: 'visible' });
-      assert.equal(await letter.evaluate(node => !node.matches('dialog,details') && getComputedStyle(node).position !== 'fixed'), true, 'consultation letter is inline and never a popup');
+      assert.equal(await letter.evaluate(node => node.matches('dialog') && node.open), true, 'consultation letter opens as a dialog popup');
+      await letter.locator('img').first().evaluate(image => image.decode());
+      await letter.screenshot({ path: output + '/' + channel + '-letter-' + width + '.png' });
+      await letter.locator('[data-signature-letter-close]').click();
       const pass = main.locator('.pb--honey');
       assert(await pass.isVisible(), 'pass is inline on both mobile and desktop');
       const dialogue = pass.locator('cd-pass-duet');
@@ -67,9 +70,6 @@ for (const channel of ['chrome', 'msedge']) {
       await lightList.locator('summary').click();
       assert.equal(await main.locator('.yh-webtoon-link').getAttribute('href'), '/#homeStoryTitle');
       await pass.screenshot({ path: output + '/' + channel + '-pass-' + width + '.png' });
-      await letter.evaluate(node => node.scrollIntoView({ block: 'center', behavior: 'instant' }));
-      await letter.locator('img').evaluate(image => image.decode());
-      await letter.screenshot({ path: output + '/' + channel + '-letter-' + width + '.png' });
       await page.evaluate(() => window.scrollTo(0, 0));
       const overflow = await page.evaluate(() => document.documentElement.scrollWidth - innerWidth);
       assert(overflow <= 0, 'home overflow: '+width+' / '+overflow);
@@ -106,10 +106,10 @@ for (const channel of ['chrome', 'msedge']) {
       });
       const page = await context.newPage();
       await page.goto(base + '/ggulggul/', { waitUntil: 'domcontentloaded', timeout: 120000 });
-      const letter = page.locator('.cd-consult-letter');
-      await letter.waitFor({ state: 'visible' });
       const cookie = page.locator('#cdCookieEssentialBtn');
       if (await cookie.isVisible()) await cookie.click();
+      const letter = page.locator('.cd-consult-letter');
+      await letter.waitFor({ state: 'visible' });
       const active = () => letter.locator('[data-signature-letter-slide]:not([hidden])');
       const first = await active().locator('.cd-consult-letter__action>a').getAttribute('href');
       await letter.locator('[data-signature-letter-next]').click();
@@ -119,8 +119,12 @@ for (const channel of ['chrome', 'msedge']) {
       assert.equal(await active().locator('.cd-consult-letter__action>a').getAttribute('href'), first);
       await letter.locator('[data-signature-letter-stage]').press('End');
       assert.equal(await letter.locator('[data-signature-letter-position]').textContent(), '6 / 6');
-      assert.equal(await page.locator('dialog.cd-signature-popup,[data-signature-open]').count(), 0);
-      assert.equal(await page.evaluate(() => localStorage.getItem('cd_signature_consult_hide_until_v1')), null);
+      assert.equal(await page.locator('dialog.cd-signature-popup,[data-signature-open]').count(), 2);
+      await letter.locator('[data-signature-letter-today]').click();
+      assert.ok(Number(await page.evaluate(() => localStorage.getItem('cd_signature_consult_hide_until_v1'))) > Date.now());
+      await page.locator('[data-signature-open]').click();
+      assert.equal(await letter.evaluate(node => node.open), true);
+      await letter.locator('[data-signature-letter-close]').click();
       assert.equal(await page.locator('[data-sig-next],[data-sig-pause]').count(), 0);
       await context.close();
 
@@ -142,7 +146,7 @@ for (const channel of ['chrome', 'msedge']) {
       await desktopLetter.locator('[data-signature-letter-stage]').focus();
       await desktopPage.keyboard.press('ArrowRight');
       assert.equal(await desktopLetter.locator('[data-signature-letter-position]').textContent(), '2 / 6');
-      rows.push({ channel: 'chrome', width: 1440, inlineLetter: true });
+      rows.push({ channel: 'chrome', width: 1440, popupLetter: true });
       await desktopContext.close();
     }
   } finally { await browser.close(); }

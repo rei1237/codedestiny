@@ -60,10 +60,14 @@ assert.equal(heukwol.getAttribute('href'),'/heukwol/');
 assert.equal(heukwol.hasAttribute('data-pvw-paid'),false,'흑월은 자체 상세·입력 페이지로 이동하며 공용 미리보기 시트가 가로채지 않는다');
 assert.equal(heukwol.querySelector('.cd-sig-card__price').textContent,'50,000원');
 const signatureLetter=homeDocument.querySelector('[data-signature-letter]');
-assert.ok(signatureLetter,'대표 상담은 팝업이 아니라 홈 안의 상담 편지로 보여야 합니다');
+assert.ok(signatureLetter,'대표 상담 달빛 편지를 찾지 못했습니다');
+assert.equal(signatureLetter.tagName,'DIALOG','대표 상담 편지는 실제 팝업 대화상자로 표시합니다');
+assert.ok(signatureLetter.classList.contains('cd-signature-popup'));
 assert.equal(signatureLetter.querySelectorAll('[data-signature-letter-slide]').length,6);
 assert.equal(signatureLetter.querySelectorAll('[data-signature-letter-slide]:not([hidden])').length,1);
-assert.equal(homeDocument.querySelector('[data-signature-open],.cd-signature-popup'),null,'대표 상담 팝업 진입과 팝업 표면을 남기지 않습니다');
+assert.ok(homeDocument.querySelector('[data-signature-open][aria-haspopup="dialog"]'),'닫은 상담 편지를 다시 여는 버튼을 유지합니다');
+assert.ok(signatureLetter.querySelector('[data-signature-letter-close]'));
+assert.ok(signatureLetter.querySelector('[data-signature-letter-today]'));
 assert.equal(signatureLetter.querySelectorAll('[data-signature-letter-dot]').length,6);
 assert.equal(signatureLetter.querySelector('[data-signature-letter-position]').textContent,'1 / 6');
 

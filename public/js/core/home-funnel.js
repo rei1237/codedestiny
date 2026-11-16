@@ -210,19 +210,84 @@
   function setupSignatureLetter() {
     var letter = home.querySelector('[data-signature-letter]');
     if (!letter) return;
+    var path = String(location.pathname || '');
+    var fixture = /^(localhost|127\.0\.0\.1)$/.test(location.hostname) && /\/(?:static\/)?index\.html$/.test(path);
+    if (path !== '/ggulggul/' && !fixture) return;
     var stage = letter.querySelector('[data-signature-letter-stage]');
     var slides = Array.prototype.slice.call(letter.querySelectorAll('[data-signature-letter-slide]'));
     var dots = Array.prototype.slice.call(letter.querySelectorAll('[data-signature-letter-dot]'));
     var previous = letter.querySelector('[data-signature-letter-prev]');
     var next = letter.querySelector('[data-signature-letter-next]');
     var position = letter.querySelector('[data-signature-letter-position]');
-    if (!stage || !slides.length || !previous || !next || !position) return;
+    var opener = home.querySelector('[data-signature-open]');
+    var closeButton = letter.querySelector('[data-signature-letter-close]');
+    var todayButton = letter.querySelector('[data-signature-letter-today]');
+    if (!stage || !slides.length || !previous || !next || !position || !opener || !closeButton || !todayButton) return;
+    var hideKey = 'cd_signature_consult_hide_until_v1';
+    var seenKey = 'cd_signature_consult_seen_v3';
+    var lockKey = 'signature-consult-popup';
+    var previousFocus = null;
+    var frame = 0;
+    var memorySeen = '';
+    var memoryHidden = 0;
     var index = 0;
+    var returnDocument = isPaymentReturnDocument();
+    var explicitEntry = !!location.hash || new URLSearchParams(location.search).has('action');
+    function dayKey() { return new Date(Date.now() + 9 * 3600000).toISOString().slice(0, 10); }
+    function read(store, key) { try { return window[store].getItem(key); } catch (_) { return null; } }
+    function write(store, key, value) { try { window[store].setItem(key, value); return true; } catch (_) { return false; } }
+    function isPaymentReturnDocument() {
+      var RETURN_QUERY = /[?&](?:portone_redirect|paid_pass_resume|paymentId|payment_id|imp_uid)=/;
+      var navigation = null;
+      try { navigation = performance.getEntriesByType('navigation')[0]; } catch (_) {}
+      if (RETURN_QUERY.test(location.search) || (navigation && RETURN_QUERY.test(navigation.name))) return true;
+      var stores = [];
+      try { stores = [localStorage, sessionStorage]; } catch (_) {}
+      return stores.some(function (store) {
+        try {
+          var ticket = JSON.parse(store.getItem('cd_direct_payment_resume') || 'null');
+          var age = Date.now() - (Number(ticket && ticket.at) || 0);
+          return !!ticket && !!ticket.merchantUid && !!ticket.confirmBody && age >= 60000 && age <= 1800000;
+        } catch (_) { return false; }
+      });
+    }
+    function blocked(manual) {
+      if ((!manual && document.hidden) || document.documentElement.classList.contains('cdh-input-open')) return true;
+      return Array.prototype.some.call(document.querySelectorAll('dialog[open],[role="dialog"][aria-modal="true"],.payment-modal.active,#cdCookieConsent.is-visible,#tarotModalOverlay'), function (node) {
+        return node !== letter && !node.hidden && node.getClientRects().length > 0 && getComputedStyle(node).visibility !== 'hidden' && getComputedStyle(node).display !== 'none';
+      });
+    }
     function render(nextIndex) {
       index = (nextIndex + slides.length) % slides.length;
       slides.forEach(function (slide, slideIndex) { slide.hidden = slideIndex !== index; });
       dots.forEach(function (dot, dotIndex) { dot.setAttribute('aria-pressed', String(dotIndex === index)); });
       position.textContent = (index + 1) + ' / ' + slides.length;
+    }
+    function closeLetter(restore) {
+      if (!letter.open) return;
+      letter.close();
+      if (typeof window.__cdUnlockBodyScroll === 'function') window.__cdUnlockBodyScroll(lockKey);
+      document.documentElement.removeAttribute('data-signature-popup-open');
+      if (restore !== false && previousFocus && document.contains(previousFocus)) previousFocus.focus({ preventScroll: true });
+      previousFocus = null;
+    }
+    function openLetter(manual) {
+      if (letter.open || blocked(manual)) return;
+      if (!manual) {
+        if (returnDocument || explicitEntry || !/^ko(?:-|$)/i.test(document.documentElement.lang || 'ko')) return;
+        if (memorySeen === dayKey() || read('sessionStorage', seenKey) === dayKey() || Math.max(memoryHidden, Number(read('localStorage', hideKey)) || 0) > Date.now()) return;
+      }
+      previousFocus = document.activeElement;
+      memorySeen = dayKey();
+      write('sessionStorage', seenKey, memorySeen);
+      render(index);
+      letter.showModal();
+      document.documentElement.setAttribute('data-signature-popup-open', '');
+      if (typeof window.__cdLockBodyScroll === 'function') window.__cdLockBodyScroll(lockKey);
+      closeButton.focus({ preventScroll: true });
+    }
+    function schedule() {
+      if (!frame) frame = requestAnimationFrame(function () { frame = 0; openLetter(false); });
     }
     previous.addEventListener('click', function () { render(index - 1); });
     next.addEventListener('click', function () { render(index + 1); });
@@ -232,7 +297,29 @@
       if (nextIndex === null) return;
       event.preventDefault(); render(nextIndex);
     });
+    opener.addEventListener('click', function () { openLetter(true); });
+    closeButton.addEventListener('click', function () { closeLetter(true); });
+    todayButton.addEventListener('click', function () {
+      var DAY = 86400000, KST = 9 * 3600000;
+      memoryHidden = (Math.floor((Date.now() + KST) / DAY) + 1) * DAY - KST;
+      var saved = write('localStorage', hideKey, String(memoryHidden));
+      closeLetter(true);
+      if (!saved && typeof window.showToast === 'function') window.showToast('이 화면에서는 닫았어요. 브라우저 저장이 차단되어 다음 방문에는 다시 보일 수 있어요.');
+    });
+    letter.addEventListener('cancel', function (event) { event.preventDefault(); closeLetter(true); });
+    letter.addEventListener('click', function (event) {
+      if (event.target.closest('a')) { closeLetter(false); return; }
+      if (event.target !== letter) return;
+      var rect = letter.getBoundingClientRect();
+      if (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom) closeLetter(true);
+    });
+    var observer = new MutationObserver(schedule);
+    observer.observe(document.body, { subtree: true, childList: true, attributes: true, attributeFilter: ['hidden', 'class', 'open', 'aria-hidden', 'aria-modal'] });
+    document.addEventListener('visibilitychange', schedule);
+    window.addEventListener('pageshow', function () { observer.observe(document.body, { subtree: true, childList: true, attributes: true, attributeFilter: ['hidden', 'class', 'open', 'aria-hidden', 'aria-modal'] }); schedule(); });
+    window.addEventListener('pagehide', function () { closeLetter(false); observer.disconnect(); cancelAnimationFrame(frame); frame = 0; }, { once: true });
     render(0);
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', schedule, { once: true }); else schedule();
   }
   setupSignatureLetter();
 

@@ -295,36 +295,60 @@ html.cdh-input-open body .cdh-input-return:focus-visible{outline:3px solid var(-
 }
 @media(prefers-reduced-motion:reduce){#cdHomeFunnel .cd-choice .cd-sig__viewport{scroll-behavior:auto}}
 
-/* 대표 상담 6종 — 팝업 없이 한 편씩 읽는 달빛 예화 상담 편지. */
-#cdHomeFunnel .cd-consult-letter {position:relative;z-index:1;width:min(100%,960px);margin:26px auto 32px;color:var(--cd-text);font:400 16px/1.65 var(--font-body,Pretendard,sans-serif);}
-#cdHomeFunnel .cd-consult-letter__stage {border:1px solid color-mix(in srgb,var(--cd-accent) 28%,var(--cd-line));border-radius:var(--cd-r-section);background:var(--cd-surface);box-shadow:0 18px 44px color-mix(in srgb,var(--cd-accent) 15%,transparent);overflow:hidden;}
-#cdHomeFunnel .cd-consult-letter__slide {display:grid;grid-template-columns:minmax(0,1.08fr) minmax(340px,.92fr);min-height:420px;}
+/* 대표 상담 6종 — 한 편씩 떠오르는 러블리 달빛 예화 상담 편지. */
+#cdHomeFunnel .cd-signature-open {display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:48px;margin-top:18px;padding:0 24px;border:1px solid rgba(234,208,137,.72);border-radius:var(--cd-r-pill);background:#fff8dc;color:#6f2147;font:800 var(--cd-t-body)/1.4 var(--font-body,sans-serif);box-shadow:0 10px 24px rgba(42,9,28,.18);cursor:pointer;}
+#cdHomeFunnel .cd-signature-open svg {width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.5;}
+#cdHomeFunnel .cd-signature-open:hover {background:#fff0f6;}
+#cdHomeFunnel .cd-signature-open:active {transform:translateY(1px);box-shadow:0 6px 16px rgba(42,9,28,.16);}
+#cdHomeFunnel .cd-consult-letter {--letter-bg:#fffaf7;--letter-surface:rgba(255,253,248,.94);--letter-text:#3c1830;--letter-muted:#70445c;--letter-accent:#b31955;--letter-gold:#9b7330;--letter-line:rgba(179,25,85,.2);width:min(920px,calc(100vw - 32px));max-width:none;max-height:calc(100dvh - 40px);margin:auto;padding:0;border:0;background:transparent;color:var(--letter-text);overflow:visible;font:400 var(--cd-t-body)/1.7 var(--font-body,Pretendard,sans-serif);}
+body.neo-mode #cdHomeFunnel .cd-consult-letter {--letter-bg:#13102a;--letter-surface:rgba(19,16,42,.94);--letter-text:#f4eeff;--letter-muted:#d8c8f4;--letter-accent:#c4b5fd;--letter-gold:#e8d5a3;--letter-line:rgba(196,181,253,.28);}
+#cdHomeFunnel .cd-consult-letter::backdrop {background:rgba(45,10,31,.72);backdrop-filter:blur(6px) saturate(.9);}
+#cdHomeFunnel .cd-consult-letter[open] {animation:cdConsultLetterIn .28s cubic-bezier(.16,1,.3,1) both;}
+#cdHomeFunnel .cd-consult-letter__frame {position:relative;display:grid;grid-template-rows:auto minmax(0,1fr) auto;max-height:calc(100dvh - 40px);overflow:hidden;border:1px solid rgba(234,208,137,.88);border-radius:30px;background-color:var(--letter-bg);background-image:url('/images/home/illustrated/moon-floral-light-1280.webp');background-position:center;background-size:cover;box-shadow:0 28px 76px rgba(42,9,28,.38);isolation:isolate;}
+body.neo-mode #cdHomeFunnel .cd-consult-letter__frame {background-image:url('/images/home/illustrated/moon-floral-dark-1280.webp');box-shadow:0 28px 76px rgba(4,3,14,.58);}
+#cdHomeFunnel .cd-consult-letter__frame::before {content:"";position:absolute;z-index:3;inset:7px;border:1px solid rgba(234,208,137,.48);border-radius:23px;pointer-events:none;}
+#cdHomeFunnel .cd-consult-letter__head {position:relative;z-index:2;display:grid;grid-template-columns:80px minmax(0,1fr) 48px;align-items:center;gap:16px;padding:18px 22px 15px;border-bottom:1px solid var(--letter-line);background:color-mix(in srgb,var(--letter-surface) 91%,transparent);}
+#cdHomeFunnel .cd-consult-letter__head > img {display:block;width:80px;height:auto;}
+#cdHomeFunnel .cd-consult-letter__head h2 {margin:0;color:var(--letter-text);font:700 var(--cd-t-section)/1.35 var(--cdh-serif);letter-spacing:-.03em;word-break:keep-all;}
+#cdHomeFunnel .cd-consult-letter__head p {margin:5px 0 0;color:var(--letter-muted);font-size:var(--cd-t-body);line-height:1.55;word-break:keep-all;}
+#cdHomeFunnel .cd-consult-letter__close {display:grid;place-items:center;width:48px;height:48px;padding:0;border:1px solid var(--letter-line);border-radius:50%;background:var(--letter-surface);color:var(--letter-accent);cursor:pointer;}
+#cdHomeFunnel .cd-consult-letter__close svg {width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.7;}
+#cdHomeFunnel .cd-consult-letter__stage {position:relative;z-index:1;min-height:0;margin:18px 22px 0;overflow:auto;overscroll-behavior:contain;border:1px solid var(--letter-line);border-radius:var(--cd-r-section);background:var(--letter-surface);scrollbar-color:var(--letter-accent) transparent;scrollbar-width:thin;}
+#cdHomeFunnel .cd-consult-letter__slide {display:grid;grid-template-columns:minmax(270px,.82fr) minmax(0,1.18fr);min-height:390px;}
 #cdHomeFunnel .cd-consult-letter__slide[hidden] {display:none;}
-#cdHomeFunnel .cd-consult-letter__visual {position:relative;min-height:420px;overflow:hidden;background:color-mix(in srgb,var(--cd-accent) 18%,var(--cd-bg));}
-#cdHomeFunnel .cd-consult-letter__visual img {display:block;width:100%;height:100%;object-fit:cover;object-position:center;}
-#cdHomeFunnel .cd-consult-letter__visual::after {content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent 62%,color-mix(in srgb,var(--cd-accent) 16%,transparent));pointer-events:none;}
-#cdHomeFunnel .cd-consult-letter__visual > span {position:absolute;z-index:1;top:20px;left:20px;display:inline-flex;align-items:center;min-height:36px;padding:7px 14px;border:1px solid color-mix(in srgb,var(--cd-surface) 72%,transparent);border-radius:var(--cd-r-pill);background:color-mix(in srgb,var(--cd-accent) 88%,transparent);color:var(--cd-primary-ink);font-size:13px;font-weight:700;box-shadow:0 8px 22px color-mix(in srgb,var(--cd-text) 20%,transparent);}
-#cdHomeFunnel .cd-consult-letter__copy {display:flex;flex-direction:column;min-width:0;padding:34px 32px 28px;}
-#cdHomeFunnel .cd-consult-letter__copy h3 {margin:0;color:var(--cd-accent);font:700 clamp(24px,3vw,30px)/1.35 var(--cdh-serif);letter-spacing:-.03em;word-break:keep-all;}
-#cdHomeFunnel .cd-consult-letter__description {margin:12px 0 19px;color:var(--cd-text-muted);font-size:15px;line-height:1.78;word-break:keep-all;}
-#cdHomeFunnel .cd-consult-letter__copy dl {margin:0;padding:17px 0;border-block:1px solid var(--cd-line);}
-#cdHomeFunnel .cd-consult-letter__copy dt,#cdHomeFunnel .cd-consult-letter__result span {margin:0 0 8px;color:color-mix(in srgb,var(--cd-gold) 72%,var(--cd-text));font-size:13px;font-weight:800;}
-#cdHomeFunnel .cd-consult-letter__copy dd {margin:0;color:var(--cd-text);font-size:14px;line-height:1.7;word-break:keep-all;}
-#cdHomeFunnel .cd-consult-letter__result {display:flex;flex-direction:column;margin:16px 0 0;color:var(--cd-text-muted);font-size:14px;line-height:1.65;word-break:keep-all;}
-#cdHomeFunnel .cd-consult-letter__action {display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-top:auto;padding-top:22px;}
-#cdHomeFunnel .cd-consult-letter__price {color:var(--cd-accent);font-size:16px;font-weight:800;font-variant-numeric:tabular-nums;white-space:nowrap;}
-#cdHomeFunnel .cd-consult-letter__action > a {display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:48px;padding:0 20px;border-radius:var(--cd-r-pill);background:var(--cd-accent);color:var(--cd-primary-ink);font-size:14px;font-weight:800;text-decoration:none;box-shadow:0 9px 24px color-mix(in srgb,var(--cd-accent) 24%,transparent);}
-#cdHomeFunnel .cd-consult-letter__action > a:hover {background:color-mix(in srgb,var(--cd-accent) 88%,var(--cd-text));}
-#cdHomeFunnel .cd-consult-letter__controls {display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:14px;margin-top:18px;}
-#cdHomeFunnel .cd-consult-letter__controls > button {display:inline-flex;align-items:center;gap:8px;justify-self:start;min-height:44px;min-width:44px;padding:0;border:0;background:transparent;color:var(--cd-accent);font:700 14px/1.4 var(--font-body,sans-serif);cursor:pointer;}
+#cdHomeFunnel .cd-consult-letter__visual {position:relative;display:grid;place-items:center;min-height:390px;padding:62px 30px 28px;overflow:hidden;border-right:1px solid var(--letter-line);background:color-mix(in srgb,var(--letter-accent) 7%,transparent);}
+#cdHomeFunnel .cd-consult-letter__visual::before {content:"";position:absolute;inset:0;background:url('/assets/sharing/yeoni-letter-v1.webp') 66% 68%/cover no-repeat;opacity:.2;pointer-events:none;}
+body.neo-mode #cdHomeFunnel .cd-consult-letter__visual::before {background-image:url('/assets/sharing/neo-letter-v1.webp');opacity:.22;}
+#cdHomeFunnel .cd-consult-letter__portrait {position:relative;width:min(100%,292px);aspect-ratio:4/3;padding:7px;border:1px solid rgba(234,208,137,.9);border-radius:22px;background:rgba(255,250,247,.72);box-shadow:0 18px 34px rgba(77,22,50,.22);transform:rotate(-1.2deg);}
+#cdHomeFunnel .cd-consult-letter__portrait::before {content:"";position:absolute;inset:3px;border:1px solid rgba(179,25,85,.2);border-radius:17px;pointer-events:none;}
+#cdHomeFunnel .cd-consult-letter__portrait img {display:block;width:100%;height:100%;border-radius:15px;object-fit:cover;object-position:center;}
+#cdHomeFunnel .cd-consult-letter__visual > span {position:absolute;z-index:1;top:20px;left:22px;display:inline-flex;align-items:center;min-height:36px;padding:6px 14px;border:1px solid rgba(234,208,137,.78);border-radius:var(--cd-r-pill);background:var(--letter-surface);color:var(--letter-accent);font-size:var(--cd-t-caption);font-weight:800;box-shadow:0 8px 18px rgba(77,22,50,.12);}
+#cdHomeFunnel .cd-consult-letter__copy {display:flex;flex-direction:column;min-width:0;padding:31px 32px 28px;}
+#cdHomeFunnel .cd-consult-letter__copy h3 {margin:0;color:var(--letter-accent);font:700 clamp(1.5rem,3vw,2.05rem)/1.35 var(--cdh-serif);letter-spacing:-.03em;word-break:keep-all;}
+#cdHomeFunnel .cd-consult-letter__description {margin:10px 0 17px;color:var(--letter-muted);font-size:var(--cd-t-body);line-height:1.75;word-break:keep-all;}
+#cdHomeFunnel .cd-consult-letter__copy dl {margin:0;padding:15px 0;border-block:1px solid var(--letter-line);}
+#cdHomeFunnel .cd-consult-letter__copy dt,#cdHomeFunnel .cd-consult-letter__result span {margin:0 0 7px;color:var(--letter-gold);font-size:var(--cd-t-caption);font-weight:800;}
+#cdHomeFunnel .cd-consult-letter__copy dd {margin:0;color:var(--letter-text);font-size:var(--cd-t-body);line-height:1.65;word-break:keep-all;}
+#cdHomeFunnel .cd-consult-letter__result {display:flex;flex-direction:column;margin:14px 0 0;color:var(--letter-muted);font-size:var(--cd-t-body);line-height:1.65;word-break:keep-all;}
+#cdHomeFunnel .cd-consult-letter__action {display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-top:auto;padding-top:18px;}
+#cdHomeFunnel .cd-consult-letter__price {color:var(--letter-accent);font-size:1rem;font-weight:800;font-variant-numeric:tabular-nums;white-space:nowrap;}
+#cdHomeFunnel .cd-consult-letter__action > a {display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:48px;padding:0 20px;border-radius:var(--cd-r-pill);background:var(--letter-accent);color:#fffaf7;font-size:var(--cd-t-body);font-weight:800;text-decoration:none;box-shadow:0 10px 24px color-mix(in srgb,var(--letter-accent) 28%,transparent);}
+body.neo-mode #cdHomeFunnel .cd-consult-letter__action > a {color:#13102a;}
+#cdHomeFunnel .cd-consult-letter__action > a:hover {background:color-mix(in srgb,var(--letter-accent) 86%,var(--letter-text));}
+#cdHomeFunnel .cd-consult-letter__footer {position:relative;z-index:2;padding:10px 22px 16px;background:color-mix(in srgb,var(--letter-surface) 93%,transparent);}
+#cdHomeFunnel .cd-consult-letter__controls {display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:14px;}
+#cdHomeFunnel .cd-consult-letter__controls > button {display:inline-flex;align-items:center;gap:8px;justify-self:start;min-height:44px;min-width:44px;padding:0;border:0;background:transparent;color:var(--letter-accent);font:700 var(--cd-t-body)/1.4 var(--font-body,sans-serif);cursor:pointer;}
 #cdHomeFunnel .cd-consult-letter__controls > button:last-child {justify-self:end;}
-#cdHomeFunnel .cd-consult-letter__controls svg {width:34px;height:34px;padding:8px;border:1px solid var(--cd-line);border-radius:50%;background:var(--cd-surface);fill:none;stroke:currentColor;stroke-width:1.6;}
-#cdHomeFunnel .cd-consult-letter__position {display:flex;align-items:center;gap:9px;color:var(--cd-text-muted);font-size:12px;font-variant-numeric:tabular-nums;}
+#cdHomeFunnel .cd-consult-letter__controls svg {width:36px;height:36px;padding:8px;border:1px solid var(--letter-line);border-radius:50%;background:var(--letter-surface);fill:none;stroke:currentColor;stroke-width:1.6;}
+#cdHomeFunnel .cd-consult-letter__position {display:flex;align-items:center;gap:9px;color:var(--letter-muted);font-size:var(--cd-t-caption);font-variant-numeric:tabular-nums;white-space:nowrap;}
 #cdHomeFunnel .cd-consult-letter__dots {display:flex;align-items:center;gap:0;}
-#cdHomeFunnel .cd-consult-letter__dots button {display:grid;place-items:center;width:32px;height:44px;min-width:32px;min-height:44px;padding:0;border:0;background:transparent;cursor:pointer;}
-#cdHomeFunnel .cd-consult-letter__dots button::before {content:"";width:26px;height:8px;border-radius:var(--cd-r-pill);background:color-mix(in srgb,var(--cd-accent) 30%,var(--cd-surface));transform:scaleX(.31);transition:transform .18s ease-out,background-color .18s ease-out;}
-#cdHomeFunnel .cd-consult-letter__dots button[aria-pressed="true"]::before {background:var(--cd-accent);transform:scaleX(1);}
-#cdHomeFunnel .cd-consult-letter :focus-visible {outline:3px solid var(--cd-accent);outline-offset:3px;}
+#cdHomeFunnel .cd-consult-letter__dots button {display:grid;place-items:center;width:30px;height:44px;min-width:30px;min-height:44px;padding:0;border:0;background:transparent;cursor:pointer;}
+#cdHomeFunnel .cd-consult-letter__dots button::before {content:"";width:24px;height:7px;border-radius:var(--cd-r-pill);background:color-mix(in srgb,var(--letter-accent) 30%,var(--letter-surface));transform:scaleX(.32);transition:transform .18s ease-out,background-color .18s ease-out;}
+#cdHomeFunnel .cd-consult-letter__dots button[aria-pressed="true"]::before {background:var(--letter-accent);transform:scaleX(1);}
+#cdHomeFunnel .cd-consult-letter__today {display:flex;align-items:center;justify-content:center;gap:8px;min-height:44px;margin:2px auto 0;padding:0 12px;border:0;background:transparent;color:var(--letter-muted);font:700 var(--cd-t-caption)/1.4 var(--font-body,sans-serif);cursor:pointer;}
+#cdHomeFunnel .cd-consult-letter__today span {font-weight:400;}
+#cdHomeFunnel .cd-consult-letter ::selection {background:color-mix(in srgb,var(--letter-accent) 24%,transparent);color:var(--letter-text);}
+#cdHomeFunnel .cd-consult-letter :focus-visible,#cdHomeFunnel .cd-signature-open:focus-visible {outline:3px solid var(--letter-accent,#b31955);outline-offset:3px;}
 .cd-signature-featured {margin:8px 0 28px;}
 .cd-signature-featured .cd-picker-main {display:grid;grid-template-columns:1fr 1.25fr;gap:24px;padding:16px;background:#242139;color:#fffdf8;}
 .cd-signature-featured .cd-picker-main > img {aspect-ratio:3/2;}
@@ -332,17 +356,33 @@ html.cdh-input-open body .cdh-input-return:focus-visible{outline:3px solid var(-
 .cd-signature-featured .cd-picker-copy p {color:#ede7f5;}
 #cdHomeFunnel .cd-signature-featured .cd-sig-card__price,.cd-signature-featured .cd-picker-action {color:#f4d69f;}
 @media(max-width:699px){
- #cdHomeFunnel .cd-consult-letter {margin:20px auto 28px;}
- #cdHomeFunnel .cd-consult-letter__stage {border-radius:var(--cd-r-card);}
+ #cdHomeFunnel .cd-signature-open {width:min(100%,320px);padding-inline:18px;}
+ #cdHomeFunnel .cd-consult-letter {width:calc(100vw - 16px);max-height:calc(100dvh - 16px);}
+ #cdHomeFunnel .cd-consult-letter__frame {max-height:calc(100dvh - 16px);border-radius:24px;}
+ #cdHomeFunnel .cd-consult-letter__frame::before {inset:5px;border-radius:18px;}
+ #cdHomeFunnel .cd-consult-letter__head {grid-template-columns:48px minmax(0,1fr) 44px;gap:10px;padding:14px 15px 12px;}
+ #cdHomeFunnel .cd-consult-letter__head > img {width:48px;}
+ #cdHomeFunnel .cd-consult-letter__head h2 {font-size:var(--cd-t-card);}
+ #cdHomeFunnel .cd-consult-letter__head p {font-size:var(--cd-t-caption);}
+ #cdHomeFunnel .cd-consult-letter__close {width:44px;height:44px;}
+ #cdHomeFunnel .cd-consult-letter__stage {margin:12px 12px 0;border-radius:var(--cd-r-card);}
  #cdHomeFunnel .cd-consult-letter__slide {grid-template-columns:1fr;min-height:0;}
- #cdHomeFunnel .cd-consult-letter__visual {min-height:0;aspect-ratio:16/10;}
- #cdHomeFunnel .cd-consult-letter__copy {padding:24px 21px 22px;}
- #cdHomeFunnel .cd-consult-letter__copy h3 {font-size:24px;}
- #cdHomeFunnel .cd-consult-letter__description {font-size:14px;}
- #cdHomeFunnel .cd-consult-letter__action {align-items:flex-end;}
- #cdHomeFunnel .cd-consult-letter__action > a {padding-inline:16px;}
+ #cdHomeFunnel .cd-consult-letter__visual {min-height:168px;padding:50px 18px 18px;border-right:0;border-bottom:1px solid var(--letter-line);}
+ #cdHomeFunnel .cd-consult-letter__portrait {width:min(72%,220px);}
+ #cdHomeFunnel .cd-consult-letter__visual > span {top:12px;left:14px;min-height:32px;padding:5px 11px;}
+ #cdHomeFunnel .cd-consult-letter__copy {padding:21px 20px 20px;}
+ #cdHomeFunnel .cd-consult-letter__copy h3 {font-size:var(--cd-t-section);}
+ #cdHomeFunnel .cd-consult-letter__description {margin-block:8px 13px;}
+ #cdHomeFunnel .cd-consult-letter__copy dl {padding-block:12px;}
+ #cdHomeFunnel .cd-consult-letter__result {margin-top:12px;}
+ #cdHomeFunnel .cd-consult-letter__action {align-items:flex-end;padding-top:16px;}
+ #cdHomeFunnel .cd-consult-letter__action > a {padding-inline:15px;}
+ #cdHomeFunnel .cd-consult-letter__footer {padding:6px 12px 10px;}
+ #cdHomeFunnel .cd-consult-letter__controls {gap:6px;}
+ #cdHomeFunnel .cd-consult-letter__dots button {width:28px;min-width:28px;}
  #cdHomeFunnel [data-signature-letter-position] {position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;}
  #cdHomeFunnel .cd-consult-letter__controls > button span {position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;}
  .cd-signature-featured .cd-picker-main {grid-template-columns:1fr;gap:0;}
 }
-@media(prefers-reduced-motion:reduce){#cdHomeFunnel .cd-consult-letter__dots button::before{transition:none;}}
+@keyframes cdConsultLetterIn{from{opacity:0;transform:translateY(14px) scale(.985)}to{opacity:1;transform:translateY(0) scale(1)}}
+@media(prefers-reduced-motion:reduce){#cdHomeFunnel .cd-consult-letter[open]{animation:none}#cdHomeFunnel .cd-consult-letter__dots button::before{transition:none}}
