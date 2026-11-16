@@ -62,15 +62,21 @@ export async function downloadNativeMusic(env,auth,id){
   }});
   const response=await handleMusicRoutes(request,env);
   if(!response.ok||!response.body)throw new TossError('MUSIC_DOWNLOAD_UNAVAILABLE',502);
-  const reader=response.body.getReader(),chunks=[];let length=0;
+  const reader=response.body.getReader(),encoded=[];let length=0,pending='';
   try{
     for(;;){const {done,value}=await reader.read();if(done)break;length+=value.length;
-      if(length>MAX_NATIVE_MUSIC_BYTES)throw new TossError('MUSIC_FILE_TOO_LARGE',413);chunks.push(value);}
+      if(length>MAX_NATIVE_MUSIC_BYTES)throw new TossError('MUSIC_FILE_TOO_LARGE',413);
+      // Encode complete triples in bounded blocks; only the final block may use padding.
+      // Do not retain the whole raw file and a second full-size binary string.
+      for(let offset=0;offset<value.length;offset+=8190){
+        pending+=String.fromCharCode(...value.subarray(offset,offset+8190));
+        const complete=pending.length-pending.length%3;
+        if(complete>=8190){encoded.push(btoa(pending.slice(0,complete)));pending=pending.slice(complete);}
+      }
+    }
   }finally{await reader.cancel();}
   if(!length)throw new TossError('MUSIC_DOWNLOAD_UNAVAILABLE',502);
   await verifiedIntent(env,auth,row);
-  const bytes=new Uint8Array(length);let offset=0;
-  for(const chunk of chunks){bytes.set(chunk,offset);offset+=chunk.length;}
-  let binary='';for(let i=0;i<bytes.length;i+=8192)binary+=String.fromCharCode(...bytes.subarray(i,i+8192));
-  return {data:btoa(binary),fileName:track.audioSourceKey.split('/').pop().replace(/[\r\n"\\]/g,''),mimeType:'audio/mpeg'};
+  if(pending)encoded.push(btoa(pending));
+  return {data:encoded.join(''),fileName:track.audioSourceKey.split('/').pop().replace(/[\r\n"\\]/g,''),mimeType:'audio/mpeg'};
 }

@@ -19,6 +19,12 @@
 
 ### 검토 대기 중 후속 준비 점검 (2026-11-16)
 
+- 재확인: 저장 안내 수정 `543a13020`의 [CI 43762290829](https://github.com/rei1237/codedestiny/actions/runs/43762290829), 후속 다른 기능 병합 main `ac1ed9a3c`의 [CI 43764040772](https://github.com/rei1237/codedestiny/actions/runs/43764040772) 모두 성공. QR21 콘솔 행은 여전히 `검토 중`이며 `테스트 / 요청 취소`만 보였다. 공개 출시·검토 취소·중복 제출은 실행하지 않았다.
+- 대용량 음원 준비 후속: `worker/toss/music-download.js`는 원본 전체 청크·합쳐진 바이트 배열·전체 바이너리 문자열을 동시에 유지하던 변환을 작은 블록 단위 Base64 변환으로 바꿨다. 3바이트 경계를 이어 인코딩하므로 네트워크 청크 경계에 패딩이 삽입되지 않는다. 출력 Base64 전체는 여전히 메모리에 필요하며 실제 기기 메모리 한도 통과를 뜻하지 않는다.
+- `node --test apps/toss/test/music-download.test.mjs apps/toss/test/music-download-file.test.mjs`: 8개 통과. 1/2/3/8191/65537바이트 청크의 원본 일치, 정확히32MiB 원문 일치, 32MiB+1 거절·스트림 취소, 빈 응답·중단 시 부분 반환 금지, 기존 주문 보존, 타계정·미결제·환불·세션 철회 차단을 mock으로 검증했다. 첫 테스트 실행은 fixture 연결 누락, 두 번째는 종료된 mock 스트림의 취소 콜백 기대 때문에 실패했다. fixture를 연결하고 선읽기 없는 열린 스트림으로 취소를 검증한 뒤 통과했다. 운영 로직에 예외 우회는 추가하지 않았다.
+- SDK3.7.0의 `dist/index.d.cts` File 선언은 전체 Base64 저장과 PDF 뷰어를 제공한다. 이 선언에서 URL·스트림 저장 API는 확인되지 않았다. [공식 API 목록](https://developers-apps-in-toss.toss.im/llms.txt)도 File.saveBase64를 안내한다. 32MiB는 서비스의 현재 메모리 방어 상한이며 SDK 공식 용량 한도로 해석하지 않는다. 초과 원본 저장·실기기 메모리 검증은 계속 미완료, 운영 Worker 반영은 별도다.
+- 후속 변환의 `check:fast`는 critical로 실행되어 Node5130개·Jest479 suites/8012개(기존 skip1), lint·typecheck·정책 가드·Worker 빌드를 통과했다. 첫 실행은 기준 문서의15일 경과로 중단됐으며 현재 토스 코드·CI·콘솔 상태를 대조해 `CURRENT_DEV_BASELINE.md`를 갱신한 뒤 통과했다. 신규 판매·실결제·실LLM·운영 DB 쓰기·운영 배포는 실행하지 않았다.
+
 - 제출 기록 커밋 `58db6c1023f0074820d10708e85b719f0c53bf39`의 최종 main CI [43755718564](https://github.com/rei1237/codedestiny/actions/runs/43755718564)는 성공했다. 콘솔을 다시 열어 QR21 행의 `검토 중`, `테스트`, `요청 취소`를 확인했다. 출시 버튼은 없어 공개 출시를 실행하지 않았다.
 - `apps/toss/src/MusicDownload.tsx` 후속 개선: 구매한 MP3 저장 중에는 저장 준비 상태를 안내하고, 저장 중·실패 시 이전 성공 안내가 함께 표시되지 않도록 했다. 실패 안내 아래 기존 `/settings` 고객지원 경로를 연결했다. mock 렌더로 저장 중·실패·성공 3상태를 확인했고 실제 결제·파일 저장·서버 요청은 실행하지 않았다.
 - 이 후속 소스 수정은 **검토 중인 QR21 AIT에는 포함되지 않는다**. 검토 취소·재제출·운영 재배포를 하지 않았다. 기존 32MiB 저장 제한과 대용량 원본 전달의 실기기 검증은 미해결이며, 안내 개선을 다운로드 기능 완결로 집계하지 않는다.
