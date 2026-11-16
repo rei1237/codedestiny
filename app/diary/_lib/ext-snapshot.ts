@@ -19,7 +19,16 @@ export interface DiaryScheduleItem {
   at?: string;
   text?: string;
   createdAt?: number;
+  date?: string;
+  endAt?: string;
+  allDay?: boolean;
+  note?: string;
+  repeat?: { frequency: "daily" | "weekly" | "monthly"; weekdays?: number[]; until?: string };
+  /** Original occurrence date → edited occurrence, or null when skipped. */
+  exceptions?: Record<string, DiaryScheduleOverride | null>;
 }
+
+export type DiaryScheduleOverride = Pick<DiaryScheduleItem, "date" | "at" | "endAt" | "allDay" | "text" | "note">;
 
 /** 오늘 끝낼 것. 완료는 항목 안의 `done` 하나로만 판정한다(별도 완료 목록을 두지 않는다). */
 export interface DiaryTodoItem {
@@ -27,6 +36,7 @@ export interface DiaryTodoItem {
   text?: string;
   done?: boolean;
   createdAt?: number;
+  date?: string;
 }
 
 /** 하루치 확장 기록. 🔴 뒤 PR 이 같은 객체에 필드를 더한다 — 모르는 키는 저장소에 그대로 남는다. */

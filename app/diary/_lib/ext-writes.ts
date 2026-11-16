@@ -11,6 +11,7 @@
 import { createExtItemId, DIARY_EXT_TEXT_MAX } from "@/lib/diary/diary-ext-store";
 import type { DiaryExtDayMutate } from "../_components/DiaryStoreProvider";
 import { DIARY_TAG_MAX_PER_DAY, DIARY_TAG_TEXT_MAX } from "./ext-snapshot";
+import type { DiaryScheduleItem } from "./ext-snapshot";
 
 /** 입력을 저장 형태로 다듬는다. 빈 글자는 항목을 만들지 않는다(빈 줄이 목록에 쌓이지 않게). */
 export function normalizePlanText(text: string): string {
@@ -19,16 +20,17 @@ export function normalizePlanText(text: string): string {
 
 /** `HH:MM` 만 통과시킨다. 그 밖은 시간 미정으로 둔다(브라우저마다 시간 입력 값이 다르다). */
 export function normalizePlanTime(at: string): string {
-  return /^\d{2}:\d{2}$/.test(at) ? at : "";
+  return /^(?:[01]\d|2[0-3]):[0-5]\d$/.test(at) ? at : "";
 }
 
 /** 일정 추가. 시간은 비워 둘 수 있다 — 시간이 정해지지 않은 약속도 그날의 일정이다. */
-export function addSchedule(at: string, text: string): DiaryExtDayMutate {
+export function addSchedule(at: string, text: string, details: Omit<DiaryScheduleItem, "id" | "at" | "text" | "createdAt"> = {}): DiaryExtDayMutate {
   return (day) => {
     const items = Array.isArray(day.schedules) ? day.schedules : [];
     day.schedules = [
       ...items,
       {
+        ...details,
         id: createExtItemId(),
         at: normalizePlanTime(at),
         text: normalizePlanText(text),
