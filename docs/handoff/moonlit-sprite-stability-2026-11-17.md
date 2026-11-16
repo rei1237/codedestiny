@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-17
-next: main CI 43937690547(c3f94ec) 통과 확인 후 production workflow를 실행하고 실제 Pages/Worker SHA와 운영 화면을 검수.
+next: 이미 실행한 운영 릴리스43940997422를 추적(중복실행금지), 성공 후 공개 Pages/Worker c3f94ec SHA와 browser-production.mjs로 실제 화면 확인.
 ---
 
 ## 첫 행동
@@ -69,3 +69,14 @@ next: main CI 43937690547(c3f94ec) 통과 확인 후 production workflow를 실�
 - 안정화후viewports-final.json:360/390/430의캐릭터138.75px,1440에서339px,overflow모두false. 앞선360staleDOM은쓰지않음. 음악 play-state(false paused)와사진dialog1536x1024/33controls실제mockUI확인(features.json),실제음악청취보장아님.
 - 외부 최종보고 draft report.md가현재정본. 운영전달결과/SHA아직없음. main실제운영은기존376b32d로추정만하며배포후검증명령필수. 운영workflow modeproduction/target_sha비움/pages_onlyfalse,원격main c3확인하고실행. run.headSha만믿지말고checkout+공개version.json/api/version대조.
 - 끝나면repohandoff statusdone+commit/mainmerge/push(문서커밋만이라운영SHAc3와차이있을수있음),최종문서CI확인,ego46finishkeep[],자기서버48231/74621종료,worktree배수. 외부JSON/PNG/report는증거보존,자기스크래치mjs/tsx/js/css/log정리. 타untracked .claude/skills/fire-your-seo-agency/보존.
+
+## 운영 실행 정본 — 중복 발행 금지
+
+- 최종 check:fast exec36074 exit0: Node5143/Jest8012pass(기존skip1), pre-push-merged exit0, verify:release exit0.
+- main CI43937690547은CI required까지success(Static17m15s/Critical10m46s/Build8m4s). exec46707 종료0.
+- 원격main c3f94ec1d659db473a4ca4009735a781afb2faf1 확인 후 gh workflow run cloudflare-pages-deploy.yml --ref main -f mode=production 을 **이미 실행했다**. 실행43940997422, headc3, override비움/pages_onlyfalse. watch exec49335, 외부release-watch.log. release preflight모두pass, Deploy Pages and Worker at exact SHA 진행중. 새dispatch하지말고이실행결과부터읽을것.
+- 배포전 공개Pages/Worker376b32d 일치실측. 성공후 npm run verify:deployed-sha -- --sha=c3f94ec1d659db473a4ca4009735a781afb2faf1, checkout로그target대조필수.
+- 운영후브라우저script D:/CodeDestiny-Build/moonlit-lotus/flicker-v2/browser-production.mjs 준비됨: ego46p1, 기존실제counter/선택저장건드리지않고시점·활동·폭만변경. 실세션start/seed/리셋 금지(프로필공유가능). version둘다c3검증후진행.
+- 자기local mock/harness 서버exec48231/74621은CtrlC로종료됨. Listen19416/19418없음확인. 다른root20780server보존. mock자기합성record37/107만삭제, 실제운영저장미변경.
+- adb devices -l 실기기0. 최종responsive viewport 360/390/430/1440 안정측정 viewports-final.json, 원본/캐시12장실기기RAM미측정.
+- 이worktree문서진행커밋은아직main에push안함: 운영대상c3고정을위해운영후done문서와함께mainffmerge/push. 소스코드는이미모두main/운영대상에포함되어있음.
