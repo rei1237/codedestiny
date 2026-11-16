@@ -1,6 +1,6 @@
 # Current Dev Baseline
 
-Last curated: `2026-11-01`
+Last curated: `2026-11-16`
 
 ## Curation Rules
 
@@ -23,11 +23,18 @@ Last curated: `2026-11-01`
 
 ## Current Focus
 
-### Latest verified delivery — 2026-11-01
+### Latest verified recipe delivery — 2026-11-16
+
+- 이번 검토는 공개 요리 페이지, 홈 진입, 전달 계약을 현재 코드와 대조한 범위다. 아래 날짜가 있는 과거 실측은 당시 기록이다.
+- 공개 레시피 정본은 `lib/lifestyle/recipes.mjs`다. `app/recipes/page.jsx` 목록과 `app/recipes/[slug]/page.jsx` 상세가 이를 사용하고, 같은 데이터에서 Recipe 구조화 데이터를 만든다. 상세는 로그인·결제 없이 읽을 수 있다.
+- 11월 16일 주간 레시피 5개는 `lib/lifestyle/recipes-week-20261116.mjs`에 있으며 기존 26개와 합해 31개다. 대표 그림은 실제 1200×800 WebP이며 `public/images/five-elements/provenance-20261116.json`에 생성 출처를 기록했다. 관련 테스트 3건과 사이트맵 1,086 URL 검사가 통과했고, 이번 운영 승격은 사용자 요청에 따라 별도 진행한다.
+- 이전 원석·영냥이 요리 운영 릴리스 `60669352ac59249aa6c335b64651b208fdaffcce`는 [43425100481](https://github.com/rei1237/codedestiny/actions/runs/43425100481)에서 성공했다. main 반영과 운영 공개 여부는 각각 확인한다.
+
+### Prior verified delivery — 2026-11-01
 
 - SNULIFE 검수 코드·정식 코드 분리의 정본은 `worker/lib/snulife-code.js`, `worker/lib/snu-campus.js`다. 정식 1,000계정 모집은 게시일 확정 전 비활성이다. 검수는 별도 최대 3계정이며 기존 수량·수령 권리와 결제 정책을 보존한다.
 - 운영 릴리스 `4d58f3dc58e66bfd04dc265bf9dbf7392cab1c81`: 공식 CI [41209939007](https://github.com/rei1237/codedestiny/actions/runs/41209939007) 440 suites / 7,210 tests 성공, 공식 운영 [41213033014](https://github.com/rei1237/codedestiny/actions/runs/41213033014)에서 Worker·Pages SHA 일치 확인. 전용 계정의 검수 해금·재로그인·접근 조회 검증 후 제휴 검토 메일 1회 발송 완료. 상세는 [전달 기록](handoff/yeoni-activation-snu-2026-10-31.md).
-- 현재 후속 작업은 `/snu/`의 서체·정보 순서·공용 내비 및 쿠키 안내 겹침 개선이다. 기존 API·코드·수량·권리·인증·일반 결제 정책은 변경하지 않는다. 이번 큐레이션은 해당 전달·실행 계약을 확인한 범위이며 아래 과거 실측 수치를 새로 측정한 것으로 보지 않는다.
+- 11월 1일 당시 후속 작업은 `/snu/`의 서체·정보 순서·공용 내비 및 쿠키 안내 겹침 개선이었다. 해당 기록과 이후 진행 상황은 관련 전달 문서에서 확인한다.
 
 ### 1. Billing, access, and pass safety
 
@@ -50,7 +57,7 @@ Last curated: `2026-11-01`
 ### 4. Static shell and runtime sync
 
 - Source files: `index.html`, `js/core/index-inline-runtime.js`, `js/core/uiBindings.js`
-- Why it matters now: the root shell is the source of truth for `/ggulggul/` and the legacy locale shells — not for `/`, which is `app/page.js` (the 꿀꿀 운세 search-facing guide; `LegacyHomeEntry` sends browsers on to `/ggulggul/`). Yeongnyangi lives at `/yeongnyangi/` (`app/yeongnyangi/`): the 2026-09-21 Yeongnyangi-root switch (`3a9a0378d`) was reversed on 2026-09-30 (`5687ea634`; see `CLAUDE.md`). Mirror sync remains a recurring regression risk.
+- Why it matters now: `index.html` owns `/ggulggul/` and the legacy locale shells. `app/page.js` owns the public `/` home with service cards and content discovery. `LegacyHomeEntry` handles legacy deep links and standalone PWA entry. Yeongnyangi lives at `/yeongnyangi/` (`app/yeongnyangi/`). Keep generated shell mirrors in sync with their source.
 
 ### 5. main 단독 전달 안전장치
 
