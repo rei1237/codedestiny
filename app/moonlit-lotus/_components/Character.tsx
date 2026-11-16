@@ -1,6 +1,7 @@
 "use client";
 import {memo,useEffect,useRef,useState} from 'react';
-import {BOW_CLIP,PREVIEW_CLIPS,ASSET_BASE} from '../model-review/sprite-clips';
+import {PREVIEW_CLIPS,ASSET_BASE} from '../model-review/sprite-clips';
+import {frontBowPoseAt} from '../_lib/bow-drawing';
 import {CYCLE_MS,poseAt} from '../model-review/bow-session';
 import type {Character as CharacterKind} from '../_lib/session-policy';
 import type {AvatarStyle} from '../_lib/use-space-profile';
@@ -24,7 +25,7 @@ export default memo(function Character({kind,activity,elapsed,reduced,look,image
  const [clock,setClock]=useState({key:clockKey,step:0}),step=clock.key===clockKey?clock.step:0;
  const savedClock=useRef(clock);savedClock.current=clock;
  const bow=poseAt(elapsed),sequence=PREVIEW_CLIPS[activity==='meditation'?'meditation':activity==='greeting'?'greeting':'idle'];
- const frame=activity==='bow'?{sheet:BOW_CLIP[bow.step].sheet,frame:bow.frame}:activity==='prayer'?{sheet:'bow-down',frame:2}:activity==='affirmation'?{sheet:'expressions',frame:14}:sequence[step%sequence.length];
+ const frame=activity==='bow'?frontBowPoseAt(elapsed):activity==='prayer'?{sheet:'bow-down',frame:2}:activity==='affirmation'?{sheet:'expressions',frame:14}:sequence[step%sequence.length];
  let drawing:SpriteDrawing=hanbi?catFrame(activity,elapsed,step,HANBI_ART):zodiac?{url:activity==='bow'?zodiacBow(zodiac):zodiacSheet(zodiac),frame:zodiacFrame(activity,elapsed/CYCLE_MS,step)}:kind==='cat'?catFrame(activity,elapsed,step):{url:ASSET_BASE+'/'+frame.sheet+'.webp',frame:frame.frame};
  let preload=kind==='yeoni'&&activity==='bow'?['bow-down','bow-lower','bow-up'].map(name=>ASSET_BASE+'/'+name+'.webp'):[drawing.url];
  let fallback=hanbi?HANBI_ART+'-still.webp':zodiac?zodiacStill(zodiac):kind==='cat'?COMPANION_ART+'/cat-still.webp':ASSET_BASE+'/still.webp';

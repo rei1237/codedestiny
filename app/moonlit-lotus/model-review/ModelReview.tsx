@@ -103,7 +103,7 @@ export default function ModelReview() {
     <div className={styles.workbench}>
       <section className={styles.stage} aria-label="연이 2D 애니메이션">
         <div className={styles.stageArt}>
-          {assetStatus === 'ready' ? <Sprite sheet={drawing.sheet} frame={drawing.frame} label={frameLabel} reduced={reduced} rear={mode==='bow'&&rearView} elapsed={session.elapsed}/> : <div className={styles.fallback}><Image src={`${BASE}/still.webp`} alt="연이의 정지 미리보기" width={384} height={384} priority /><p role="status">{assetStatus === 'loading' ? '연이를 불러오고 있어요.' : '동작 이미지를 불러오지 못했어요.'}</p>{assetStatus === 'error' && <button onClick={() => setAttempt(value => value + 1)}>이미지 다시 불러오기</button>}</div>}
+          {assetStatus === 'ready' ? <Sprite sheet={drawing.sheet} frame={drawing.frame} label={frameLabel} reduced={reduced} rear={mode==='bow'&&rearView} bowing={mode==='bow'} elapsed={session.elapsed}/> : <div className={styles.fallback}><Image src={`${BASE}/still.webp`} alt="연이의 정지 미리보기" width={384} height={384} priority /><p role="status">{assetStatus === 'loading' ? '연이를 불러오고 있어요.' : '동작 이미지를 불러오지 못했어요.'}</p>{assetStatus === 'error' && <button onClick={() => setAttempt(value => value + 1)}>이미지 다시 불러오기</button>}</div>}
         </div>
         <p className={styles.stageCaption}>{mode === 'bow' ? bow.phase : mode === 'meditation' ? '서두르지 않아도 괜찮아요.' : mode === 'greeting' ? '오늘도 와 주어서 반가워요.' : '당신의 이야기를 듣고 있어요.'}</p>
         {mode==='bow'&&<button className={styles.playButton} aria-pressed={rearView} onClick={()=>setRearView(v=>!v)}>{rearView?'앞모습 보기':'불상 바라보기 · 새 후면'}</button>}
