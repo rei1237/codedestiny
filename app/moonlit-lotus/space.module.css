@@ -330,6 +330,3 @@
 /* Painted rear atlas: keep the previous frame opaque while the next arrives. */
 .rearSprite { position:relative; width:min(100%,420px); aspect-ratio:1; isolation:isolate; }
 .rearLayer { position:absolute; inset:0; background-size:400% 400%; background-repeat:no-repeat; }
-.rearArriving { animation:rearReveal 70ms linear both; }
-@keyframes rearReveal { from {opacity:0} to {opacity:1} }
-@media(prefers-reduced-motion:reduce) { .rearArriving { animation:none; } }
