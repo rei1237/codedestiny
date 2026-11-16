@@ -1,82 +1,61 @@
 ---
-status: in-progress
+status: done
 updated: 2026-11-17
-next: 이미 실행한 운영 릴리스43940997422를 추적(중복실행금지), 성공 후 공개 Pages/Worker c3f94ec SHA와 browser-production.mjs로 실제 화면 확인.
+next: 없음. 사용자 수용 범위에서 구현·검증·운영 반영을 마쳤다.
 ---
 
 ## 첫 행동
 
-이 문서와 외부 `D:/CodeDestiny-Build/moonlit-lotus/flicker-v2/work-state.md`를 읽는다. AGENTS/CLAUDE 절차 유지. 이전 작업의 완료 주장을 전제로 삼지 않는다.
+추가 제보가 오면 D:/CodeDestiny-Build/moonlit-lotus/flicker-v2/report.md와 현재 운영 SHA부터 대조한다. 이전의 빈 프레임0/FPS만으로 해결을 전제하지 않는다.
 
 ## 지금 상태
 
-- 작업 워크트리 `D:/Development/codedestiny-worktrees/moonlit-sprite-stability-20261117-032528`, 브랜치 `wt/moonlit-sprite-stability-20261117-032528`.
-- 시작 main/운영 SHA `376b32d6636fbfc701bd60d308ceee88eb797c2f`. main은 최신 pull 확인. 다른 active 음성 작업 chat 때문에 worktree 예외 사용.
-- 마지막 구현 커밋 `1008fe3d92c714c237961c776011d989c7e6e074`, 아직 push 안 함. 원본 자산·counter·payment/auth/API/DB 변경 없음.
-- main의 타 작업 미추적 `.claude/skills/fire-your-seo-agency/` 보존. 타 워크트리·서버 PID20780 등 건드리지 않는다.
-- 본 세션 dev 서버 exec48231(http127.0.0.1:19416 mock only), 별도 실제 컴포넌트 QA 번들 서버 exec74621(http127.0.0.1:19418, 외부 폴더). 종료 시 자기 두 서버만 정리.
-- ego-browser space46 p1 실제앱(현재 mock), p2 QA. 끝에 별도 script로 finish keep[] 필요. 사용자 space41 접근 금지.
+- 구현1008fe3d92c714c237961c776011d989c7e6e074, 자세 수정de7ed4416197664d50755d31609963fe8e8d0a94.
+- main 병합 및 실제 운영 코드 c3f94ec1d659db473a4ca4009735a781afb2faf1. 다른 음성 작업의3f9ceb02a/bc3367542 문서 커밋을 보존했다.
+- 작업 워크트리 D:/Development/codedestiny-worktrees/moonlit-sprite-stability-20261117-032528의 문서 종료 커밋을 main에 동기화하고 배수한다. 소스는 이미 운영에 있으며 이후 문서 커밋 때문에 main HEAD와 운영 SHA가 달라질 수 있다.
+- main의 타 작업 미추적 .claude/skills/fire-your-seo-agency/ 보존. 다른 워크트리·root 개발서버는 건드리지 않았다.
 
 ## 승인 상태
 
-2026-11-17 사용자: “계획이나 설명으로 끝내지 말고 구현·검수·CI 확인과 운영 반영까지 진행하라”, “기존 승인 범위에서 이 기능의 수정·검수·운영 반영을 진행한다.” 이번 1회 운영 승격까지 승인. 실LLM/실결제/운영DB 쓰기 승인 아님.
+2026-11-17 사용자: “구현·검수·CI 확인과 운영 반영까지 진행하라.” 이번 기능의 운영 반영 승인. 실LLM/실결제/운영DB 쓰기 범위 아님.
+운영 공개 SHA 검증 후 ego46의 제어 종료 hard stop이 발생했다. 재개를 질문했고 사용자가 **“현재 검수 범위로 마무리”**라고 명시했다. 따라서 배포 후 운영 브라우저 시각 검수는 미실시로 남기고 제어를 다시 가져오거나 새 공간으로 우회하지 않는다. 기존 브라우저 공간은 사용자 제어 경계를 보존한다.
 
 ## 작업 규칙과 함정
 
-- 작업 단위 commit, 마지막 main에 ff merge → pre-push → push → main CI확인 → 정해진 Cloudflare workflow(mode production). target_sha override/headSha 착각 금지. 실제checkout+공개 Pages/Worker SHA 대조.
-- 일반 push CI sleep polling 금지. 이 요청은 운영 전달을 명시 요구하므로 필요한 실행 추적은 수행하되 반복 무의미 조회 금지.
-- `.tmp` 자기 파일만 삭제. 외부 QA 폴더의 JSON/PNG/report는 검수 증거로 보존, harness JS/번들 등 자기 scratch는 끝에 제거.
-- ego script에서 sharp 네이티브 모듈을 import하면 `NodeRuntime disconnected`로 끝남. 브라우저 작업/PNG JSON 보존만 ego에서 하고 sharp 합성은 일반 Node CLI에서 실행. 여러 차례 실패 원인 분리됨. browser-harness-light도 끝의 sharp 때문에 종료됐으나 `stepped-bows.json` 1120개는 이미 정상 저장됨.
-- CDP metrics는 goto 이후 적용. innerWidth만 기다리면 ResizeObserver 전의 stale 캐릭터 위치를 읽을 수 있음. viewport CSS --ml-world-width가 client sizes와 일치한 후 측정. native screenshot actual-390은 유효, local-390은1893px라 모바일 증거로 쓰지 않음.
-- 검수 브라우저 rAF 간헐1초 지연(active/visible에도). 앱 FPS로 쓰지 않는다. deterministic elapsed/rAF step QA는 실기기 영상과 구분.
+- GitHub run.headSha와 실제 checkout/공개 SHA를 반드시 함께 대조. 이번 release는 override없음/pages_onlyfalse로 Pages·Worker를 함께 승격.
+- 일반 push CI 반복 대기 금지. 이번 운영 요청은 기존 실행43940997422 하나를 추적했으며 중복 dispatch하지 않았다.
+- ego에서 sharp 네이티브 모듈 import는 NodeRuntime disconnected를 일으켰다. 브라우저 JSON/PNG만 ego에서 보존하고 합성은 일반 Node CLI로 분리.
+- 브라우저 rAF 간헐1초 지연은 active/visible에서도 관찰됐다. 실기기 FPS로 쓰지 않는다. 단계별 elapsed/rAF 제어 검수와 실시간 영상은 다르다.
+- viewport는 goto 뒤 적용하고 ResizeObserver의 --ml-world-width 안정화 뒤 잰다. 초기 local-390.png는1893px이므로 모바일 증거에서 제외.
+- 자기 mock/harness서버19416/19418 종료, Listen없음 확인. mock 합성record37/107만 삭제했고 실제운영 카운터·선택저장값은 변경하지 않았다.
 
-## 설계와 확인된 원인
+## 설계
 
-- 운영 before-dom.json: 행동 CSS220ms+전면 CSS75ms 중복, key 재마운트, ready reset으로 still 재등장. 약55%/45% 두 그림과 배경 혼합으로 알파 약75%, previous제거시new86%. before-strip172ms 이중몸/색옅어짐 visual agent 확인.
-- 커밋1008fe3: 한 persistent AtlasSprite/canvas. decoded 다음 그림을 clear+draw 한 task에서 교체. CSS/key/70ms lighter혼합 제거. 캐시12장, stale decode 취소, 실패시 이전그림유지+실클릭retry, StrictMode/컨텍스트retry, fallback과canvas같은task에서교체. frozen품질변경에서기존pose유지, idleclockresume. Space/preview/modelreview/front/rear/walk 공통경로. walkingmidpoint x78→78,y연속, opacity1.
-- 그러나 시각 QA에서 추가 결함: source atlas 교대 타임라인이 높이만 정렬되어 volume/posture가 역행. 서한비 rear down8→lower5→down6, down11→lower6→down13, down7→lower8→lower7→down14. cat lower0→down1/lower5→down14. yeoni front down11→lower0 체적증가. 이 결함 아직 수정 전. 전체 완료 선언 금지.
-- 다음 접근: raw그림 보존, 불필요한48장전부사용계약폐기(사용자요구아님), down 한source 하강→충분히낮은lower만1회연결→같은하강pose역순회복 검토. counter BOW_CLIP/CYCLE_MS 타이밍은 변경하지 말고 별도 presentation selector로 처리. visual_check agent가 all-poses PNG에서 경로선정 검토 중.
+- 운영 재현: 전면75ms CSS+행동220ms CSS/key remount 중첩. old/new .551248/.448752에서 겹침알파약.753, ready reset으로 still재등장, previous제거시new .856. 이전후면70ms lighter도 이중윤곽을 남김.
+- 공통 AtlasSprite/canvas 한 장 유지. decoded 다음그림을 동기 clear+draw, fade/독립rAF 제거. stale decode 무시, fallback 동시제거, 실패/StrictMode/컨텍스트재시도, 모션감소현재pose유지/재개. 선택 이미지 캐시12장.
+- down/lower 높이정렬만으로 만든48장교대는 몸체적/손/상체를 역행시켰다. 비슷한자세에서 seam한번만 연결하고 같은그림을 역순회복. raw48장 모두보존하되 매주기전부강제하지 않음.
+- 연이front down0..10→lower2..15, rear down0..6→lower1..15 중 상향셀제외. cat down0..5→lower3..15, hanbi down0..6→lower6..15. 나머지12종도 단일 seam과 상향셀제외, 동일그림역순.
+- bow-drawing.ts는 기존elapsed만 읽음. BOW_CLIP/CYCLE_MS/use-private-bow/private-store는 수정하지 않음. 초기/최저/기립 기존시간창 유지. 그림·렌더종료사건으로 횟수계산하지 않음.
 
-## 검증과 증거
+## 단계와 검증
 
-- 외부 폴더 `D:/CodeDestiny-Build/moonlit-lotus/flicker-v2/`: before/after, asset-cells1296개(빈0,alpha>16 edge0), characters-ui(15종×5행동75경로canvasremount0), native-pixel-detail(15종 alpha 차0/불투명색차0,반투명RGB premultiply차<1), stepped-bows1120 nativeCharacter commits(15종front/rear,blank0/remount0).
-- retransition.json+strip: 실제컴포넌트 33개timed샘플32~754ms(20ms timer), cold decode 지연/재전환,blank0/faded0/mount0. visual agent 잔상/중간still없음확인.
-- walk-stepped152제어rAF표본: max dx .64%, middle x78 y84, start46/82,end50/86,opacity1,mount0. walk-boundaries.png.
-- boundary/pairs/all-poses PNG: visual agent가 원본 체적 역행 발견. 현재 연락 대상 `/root/visual_check`.
-- npm check:fast 최초 lint test 변수명module규칙 실패 수정. 다음 실행 Node5142 중5141pass/오늘운세파일누락1실패. 외부API0인 npm fortune:build-data로 ignored data 준비. 최종 check:fast 진행 중 exec10075, 로그 check-fast-final.log (Node5142pass,현재 Jest). npm verify:release exec60347 exit0, 로그verify-release.log. 추가 targeted18pass. impeccable detect [] 완료.
-- SEO: 개인공간 noindex/기능스위치 유지, publicmeta/URL/canonical 변경없음. 관련 기존회귀pass.
+- [x] 운영 실제 겹침·희미해짐·still재등장 재현
+- [x] renderer 구현 및 자세 역행 수정, 작은 커밋
+- [x] 15종×5개 UI미리보기75경로 canvas교체0
+- [x] raw1,296셀 빈0/alpha>16 edge잘림0, 원본바이트변경없음
+- [x] 최종 실제Character 전후면834단계 commit 빈0/mount0
+- [x] visual_check:16개seam(연이front+15rear),주요3종반복경계,재전환33timed샘플,걷기152제어스텝 최종통과
+- [x] 360/390/430/1440 안정viewport 가로넘침0, 음악제어/사진dialog1536x1024 확인
+- [x] 실제mock37/107 pause/resume/reload(마지막완료복원),synthetic hidden listener pause, 경량surface유지
+- [x] 엔진/정책 회귀:9/27/108정확종료,37/107,중복완료,소유권/오래된revision,speed경계/시간gap
+- [x] 최종 check:fast exit0 Node5143/Jest8012pass(기존skip1); verify:release exit0; pre-push 병합트리exit0; impeccable detect []
+- [x] main CI43937690547 CI required 포함 success
+- [x] 운영 release43940997422 success, 승격·smoke·양쪽SHA검증통과
+- [x] 로컬 verify:deployed-sha --sha=c3f94ec1d659db473a4ca4009735a781afb2faf1 exit0, 공개Pages/Worker둘다동일
+- [x] 배포후 운영브라우저검수미실시 범위를 사용자명시수용
 
-## 단계
+실기기Android/iOS/WebView·기기RAM/실시간고주사율성능은 미검증(adb devices0). 실제두탭숨김은 도구가document.hidden=false로유지해 수치증거로쓰지않음. synthetic hidden과실제정책엔진테스트를 구분한다. 작은 원본필선/음영차이는 보존된다.
 
-- [x] 운영 실제 페이드/정지그림 재현
-- [x] 공통 renderer 구현·targeted 검사·중간커밋
-- [x] 전체15종 자산 및 UI/결정적전후면검수
-- [x] 원본 자세 타임라인 불연속 수정 + 다시 경계짝 시각판정
-- [ ] 필요한새회귀 + check:fast 계획/실행(전단계full결과 재사용여부판단)
-- [ ] 360/390/430/desktop 최종화면·freeze/복귀·음악/사진기능확인
-- [x] 검증한 변경 commit, main 일반merge, pre-push/push (CI 진행 중; 문서done은운영후)
-- [ ] production workflow 정확한checkout/SHA 대조·운영시각검수
-- [ ] 브라우저finish,자기서버정리,워크트리배수,최종한국어보고/rollback
+## 롤백
 
-## 최신 정본 — 자세 수정 및 main 전달 이후
-
-- 1008fe3 renderer + de7ed4416197664d50755d31609963fe8e8d0a94 posture 커밋 완료. main의 다른 음성문서3f9ceb02a/bc3367542 보존해 일반병합 c3f94ec1d659db473a4ca4009735a781afb2faf1 후 push 완료. worktree도 그 main으로 ff 동기화.
-- 최종 자세: 연이front down0..10→lower2..15, rear down0..6→lower1..15(높이상향lower4생략); cat rear down0..5→lower3..15, hanbi down0..6→lower6..15. 전부하강과동일한그림역순회복. 다른12종은down0..5→높이맞는lower첫셀 1seam, 작은상향셀제외. bow-drawing.ts만기존elapsed를읽으며BOW_CLIP/CYCLE_MS/세션엔진 미변경. 원본자산48셀모두보존하되전부매주기강제하지않음.
-- 최종 native actualCharacter 15종전후면834커밋 blank0/remount0(final-stepped-bows.json). final-seams.png16쌍과primary경계/재전환/걷기/mobile자료 visual_check 최종통과. 원본필선/음영의작은차이는남음.
-- check:fast renderer단계exit0 Node5142/Jest8012pass(기존skip1). 최종timeline check:fast exec36074 진행중(check-fast-timeline.log): Node5143pass, type/lint/criticalguards pass, 마지막 Jest 전체중. 첫3종upward셀회귀는수정후targeted4pass 확인. 새코드미커밋없음.
-- verify:release exec60347 exit0, pre-push-merged exit0. CI43937690547 user요청완료목적단일watch exec46707(로그ci-watch.log)추적. CLIwatch에의존하고sleep+runlist반복하지말것. CI현재Risk/Typecheck성공, Static/Critical/Build진행중(19:20 UTC표본).
-- 실제mock107 UI pause/resume: elapsed68.7pause→199synthetichiddenlistenerpause,350ms후동일, reload107/elapsed0(session-107.json). 실제탭전환document.hiddenfalse환경이라실탭정지확인으로쓰지않음. 37restore/quality/rereload는browser-session첫출력(별도JSON미저장).
-- 안정화후viewports-final.json:360/390/430의캐릭터138.75px,1440에서339px,overflow모두false. 앞선360staleDOM은쓰지않음. 음악 play-state(false paused)와사진dialog1536x1024/33controls실제mockUI확인(features.json),실제음악청취보장아님.
-- 외부 최종보고 draft report.md가현재정본. 운영전달결과/SHA아직없음. main실제운영은기존376b32d로추정만하며배포후검증명령필수. 운영workflow modeproduction/target_sha비움/pages_onlyfalse,원격main c3확인하고실행. run.headSha만믿지말고checkout+공개version.json/api/version대조.
-- 끝나면repohandoff statusdone+commit/mainmerge/push(문서커밋만이라운영SHAc3와차이있을수있음),최종문서CI확인,ego46finishkeep[],자기서버48231/74621종료,worktree배수. 외부JSON/PNG/report는증거보존,자기스크래치mjs/tsx/js/css/log정리. 타untracked .claude/skills/fire-your-seo-agency/보존.
-
-## 운영 실행 정본 — 중복 발행 금지
-
-- 최종 check:fast exec36074 exit0: Node5143/Jest8012pass(기존skip1), pre-push-merged exit0, verify:release exit0.
-- main CI43937690547은CI required까지success(Static17m15s/Critical10m46s/Build8m4s). exec46707 종료0.
-- 원격main c3f94ec1d659db473a4ca4009735a781afb2faf1 확인 후 gh workflow run cloudflare-pages-deploy.yml --ref main -f mode=production 을 **이미 실행했다**. 실행43940997422, headc3, override비움/pages_onlyfalse. watch exec49335, 외부release-watch.log. release preflight모두pass, Deploy Pages and Worker at exact SHA 진행중. 새dispatch하지말고이실행결과부터읽을것.
-- 배포전 공개Pages/Worker376b32d 일치실측. 성공후 npm run verify:deployed-sha -- --sha=c3f94ec1d659db473a4ca4009735a781afb2faf1, checkout로그target대조필수.
-- 운영후브라우저script D:/CodeDestiny-Build/moonlit-lotus/flicker-v2/browser-production.mjs 준비됨: ego46p1, 기존실제counter/선택저장건드리지않고시점·활동·폭만변경. 실세션start/seed/리셋 금지(프로필공유가능). version둘다c3검증후진행.
-- 자기local mock/harness 서버exec48231/74621은CtrlC로종료됨. Listen19416/19418없음확인. 다른root20780server보존. mock자기합성record37/107만삭제, 실제운영저장미변경.
-- adb devices -l 실기기0. 최종responsive viewport 360/390/430/1440 안정측정 viewports-final.json, 원본/캐시12장실기기RAM미측정.
-- 이worktree문서진행커밋은아직main에push안함: 운영대상c3고정을위해운영후done문서와함께mainffmerge/push. 소스코드는이미모두main/운영대상에포함되어있음.
+git revert de7ed4416197664d50755d31609963fe8e8d0a94 1008fe3d92c714c237961c776011d989c7e6e074 후 같은CI·GitHub릴리스절차. 다른음성문서보존, DB/저장schema마이그레이션없음.
