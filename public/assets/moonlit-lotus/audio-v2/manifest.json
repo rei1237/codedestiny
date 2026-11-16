@@ -1,0 +1,35 @@
+{
+  "version": 2,
+  "file": "moktak-chant.mp3",
+  "license": "CC0-1.0",
+  "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+  "accessed": "2026-11-16",
+  "bytes": 4900940,
+  "sha256": "696aa42b1410d5931a25209824a626bed8727ec151d4113549c03b30e27e1ac7",
+  "format": {
+    "codec": "MP3",
+    "channels": 1,
+    "sampleRate": 32000,
+    "bitrate": 64000
+  },
+  "sources": [
+    {
+      "title": "Mokugyo.wav",
+      "creator": "jonopodmore",
+      "source": "https://freesound.org/people/jonopodmore/sounds/607215/",
+      "download": "https://cdn.freesound.org/previews/607/607215_541139-hq.mp3",
+      "license": "CC0-1.0",
+      "changes": "Pitch x0.72, low-pass 1600 Hz, tail fade, repeat every 2.4 seconds."
+    },
+    {
+      "title": "Thai Chanting.flac",
+      "creator": "razajac",
+      "source": "https://freesound.org/people/razajac/sounds/275676/",
+      "download": "https://cdn.freesound.org/previews/275/275676_5287858-hq.mp3",
+      "license": "CC0-1.0",
+      "changes": "Full public HQ preview, 90–6500 Hz band limitation, mono mix, opening/closing fade. Thai Buddhist monastery field recording, not Korean chanting."
+    }
+  ],
+  "mix": "Chant gain .75 + softened moktak .6, unnormalized mix, limiter .85, mono 64 kbps. Looped by one HTMLAudioElement; on-demand loading. Original audio-v1 preserved.",
+  "rollback": "Revert the audio change commit; audio-v1 and its original license manifest remain available."
+}
