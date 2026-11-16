@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-17
-next: 시각 검수에서 발견한 atlas 간 자세 체적 역행을 presentation 타임라인 재선정으로 수정한 뒤 CI와 운영까지 전달.
+next: main CI 43937690547(c3f94ec) 통과 확인 후 production workflow를 실행하고 실제 Pages/Worker SHA와 운영 화면을 검수.
 ---
 
 ## 첫 행동
@@ -51,9 +51,21 @@ next: 시각 검수에서 발견한 atlas 간 자세 체적 역행을 presentati
 - [x] 운영 실제 페이드/정지그림 재현
 - [x] 공통 renderer 구현·targeted 검사·중간커밋
 - [x] 전체15종 자산 및 UI/결정적전후면검수
-- [ ] 원본 자세 타임라인 불연속 수정 + 다시 경계짝 시각판정
+- [x] 원본 자세 타임라인 불연속 수정 + 다시 경계짝 시각판정
 - [ ] 필요한새회귀 + check:fast 계획/실행(전단계full결과 재사용여부판단)
 - [ ] 360/390/430/desktop 최종화면·freeze/복귀·음악/사진기능확인
-- [ ] 검증한 변경 commit, 문서done, main ffmerge, pre-push/push,CI
+- [x] 검증한 변경 commit, main 일반merge, pre-push/push (CI 진행 중; 문서done은운영후)
 - [ ] production workflow 정확한checkout/SHA 대조·운영시각검수
 - [ ] 브라우저finish,자기서버정리,워크트리배수,최종한국어보고/rollback
+
+## 최신 정본 — 자세 수정 및 main 전달 이후
+
+- 1008fe3 renderer + de7ed4416197664d50755d31609963fe8e8d0a94 posture 커밋 완료. main의 다른 음성문서3f9ceb02a/bc3367542 보존해 일반병합 c3f94ec1d659db473a4ca4009735a781afb2faf1 후 push 완료. worktree도 그 main으로 ff 동기화.
+- 최종 자세: 연이front down0..10→lower2..15, rear down0..6→lower1..15(높이상향lower4생략); cat rear down0..5→lower3..15, hanbi down0..6→lower6..15. 전부하강과동일한그림역순회복. 다른12종은down0..5→높이맞는lower첫셀 1seam, 작은상향셀제외. bow-drawing.ts만기존elapsed를읽으며BOW_CLIP/CYCLE_MS/세션엔진 미변경. 원본자산48셀모두보존하되전부매주기강제하지않음.
+- 최종 native actualCharacter 15종전후면834커밋 blank0/remount0(final-stepped-bows.json). final-seams.png16쌍과primary경계/재전환/걷기/mobile자료 visual_check 최종통과. 원본필선/음영의작은차이는남음.
+- check:fast renderer단계exit0 Node5142/Jest8012pass(기존skip1). 최종timeline check:fast exec36074 진행중(check-fast-timeline.log): Node5143pass, type/lint/criticalguards pass, 마지막 Jest 전체중. 첫3종upward셀회귀는수정후targeted4pass 확인. 새코드미커밋없음.
+- verify:release exec60347 exit0, pre-push-merged exit0. CI43937690547 user요청완료목적단일watch exec46707(로그ci-watch.log)추적. CLIwatch에의존하고sleep+runlist반복하지말것. CI현재Risk/Typecheck성공, Static/Critical/Build진행중(19:20 UTC표본).
+- 실제mock107 UI pause/resume: elapsed68.7pause→199synthetichiddenlistenerpause,350ms후동일, reload107/elapsed0(session-107.json). 실제탭전환document.hiddenfalse환경이라실탭정지확인으로쓰지않음. 37restore/quality/rereload는browser-session첫출력(별도JSON미저장).
+- 안정화후viewports-final.json:360/390/430의캐릭터138.75px,1440에서339px,overflow모두false. 앞선360staleDOM은쓰지않음. 음악 play-state(false paused)와사진dialog1536x1024/33controls실제mockUI확인(features.json),실제음악청취보장아님.
+- 외부 최종보고 draft report.md가현재정본. 운영전달결과/SHA아직없음. main실제운영은기존376b32d로추정만하며배포후검증명령필수. 운영workflow modeproduction/target_sha비움/pages_onlyfalse,원격main c3확인하고실행. run.headSha만믿지말고checkout+공개version.json/api/version대조.
+- 끝나면repohandoff statusdone+commit/mainmerge/push(문서커밋만이라운영SHAc3와차이있을수있음),최종문서CI확인,ego46finishkeep[],자기서버48231/74621종료,worktree배수. 외부JSON/PNG/report는증거보존,자기스크래치mjs/tsx/js/css/log정리. 타untracked .claude/skills/fire-your-seo-agency/보존.
