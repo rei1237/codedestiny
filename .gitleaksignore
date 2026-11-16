@@ -417,3 +417,8 @@ de32d6db0837a3d9129b47df91f66e97f3abc31c:__tests__/ui/saju-crystal-flow.test.mjs
 de32d6db0837a3d9129b47df91f66e97f3abc31c:__tests__/ui/saju-crystal-flow.test.mjs:generic-api-key:60
 de32d6db0837a3d9129b47df91f66e97f3abc31c:__tests__/worker/profile.saju-crystal.test.js:generic-api-key:68
 de32d6db0837a3d9129b47df91f66e97f3abc31c:__tests__/worker/profile.saju-crystal.test.js:generic-api-key:69
+# 2026-11-16 오탐: 홈 팝업의 공개 sessionStorage 키 cd_signature_consult_seen_v2, 원본과 미러.
+2688bf925cba2625ce2128e9997dd3072902970d:js/core/home-funnel.js:generic-api-key:237
+2688bf925cba2625ce2128e9997dd3072902970d:public/js/core/home-funnel.js:generic-api-key:237
+# 2026-11-16 오탐: 생성 런타임의 말레이어 번역 키 sajuQuantum.sq_8978_prop_label(Taman Emas).
+9bbc65bbf88d5c7f6701df89efe4f41d3e1d24ee:worker/lib/saju-section/runtime.generated.mjs:generic-api-key:9
