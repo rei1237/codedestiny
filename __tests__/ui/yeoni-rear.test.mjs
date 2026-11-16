@@ -8,7 +8,14 @@ const data=s=>'data:text/javascript;base64,'+Buffer.from(s).toString('base64');
 const clips=data(compile(readFileSync('app/moonlit-lotus/model-review/sprite-clips.ts','utf8')));
 const {BOW_CLIP}=await import(clips);
 const source=compile(readFileSync('app/moonlit-lotus/_lib/yeoni-rear.ts','utf8')).replace(/(['"])\.\.\/model-review\/sprite-clips\1/,JSON.stringify(clips));
-const {rearPoseAt}=await import(data(source));
+const {rearPoseAt,REAR_DOWN,REAR_UP}=await import(data(source));
+test('registered silhouettes never rise during descent or drop during recovery',()=>{
+ const manifest=JSON.parse(readFileSync('public/assets/moonlit-lotus/yeoni/rear-v3/manifest.json','utf8'));
+ for(const [sequence,direction] of [[REAR_DOWN,-1],[REAR_UP,1]]){
+  const heights=sequence.map(p=>manifest.sheets[p.sheet].frames[p.frame].height);
+  for(let i=1;i<heights.length;i++){assert((heights[i]-heights[i-1])*direction>=0);assert(Math.abs(heights[i]-heights[i-1])<=18);}
+ }
+});
 test('rear timeline is bounded, visits all 48 drawings, and returns to original prayer before completion',()=>{
  const cycle=BOW_CLIP.reduce((sum,p)=>sum+p.ms,0),seen=new Set();
  for(let t=0;t<=cycle;t+=10){const p=rearPoseAt(t);assert(['down','lower','up'].includes(p.sheet));assert(p.frame>=0&&p.frame<16);seen.add(p.sheet+':'+p.frame);}
