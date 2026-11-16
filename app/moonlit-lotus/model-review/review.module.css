@@ -64,8 +64,3 @@
 @media(prefers-reduced-motion:reduce) { .page *, .page *::before,.page *::after { animation:none; transition:none; scroll-behavior:auto; } }
 
 .spriteLayer { position:absolute; inset:0; background-size:400% 400%; background-repeat:no-repeat; }
-.departing { animation:frameOut 75ms linear forwards; }
-.arriving { animation:frameIn 75ms linear both; }
-@keyframes frameOut { to { opacity:0; } }
-@keyframes frameIn { from { opacity:0; } to { opacity:1; } }
-@media (prefers-reduced-motion:reduce) { .departing { display:none; } .arriving { animation:none; } }

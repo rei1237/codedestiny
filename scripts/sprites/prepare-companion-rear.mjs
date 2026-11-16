@@ -10,21 +10,13 @@ const selected=process.argv[3]?.split(',')||ids;
 if(selected.some(id=>!ids.includes(id)))throw Error('Unknown companion');
 const catalog=process.argv[3]?JSON.parse(await readFile('app/moonlit-lotus/_lib/companion-rear-timelines.json','utf8')):{};
 function timeline(manifest){
- const all=Object.entries(manifest.sheets).flatMap(([sheet,v])=>v.frames.map(f=>({sheet,frame:f.index,height:f.height})));
- const descending=all.filter(f=>f.sheet!=='up'&&!(f.sheet==='down'&&f.frame===0)).sort((a,b)=>b.height-a.height);
- const rising=all.filter(f=>f.sheet==='up').sort((a,b)=>a.height-b.height);
- const bridge=all.filter(f=>f.sheet==='lower'&&f.height<rising[0].height).sort((a,b)=>a.height-b.height);
- const recovery=[...bridge];
- for(const next of rising){
-  let last=recovery.at(-1);
-  while(last&&next.height-last.height>20){
-   const between=all.filter(f=>f.height>last.height&&f.height<=last.height+20&&f.height<next.height).sort((a,b)=>b.height-a.height)[0];
-   if(!between)break;recovery.push(between);last=between;
-  }
-  recovery.push(next);
- }
- const pose=({sheet,frame})=>({sheet,frame});
- return {down:[{sheet:'down',frame:0},...descending.map(pose)],up:[...recovery.map(pose),{sheet:'down',frame:0}]};
+ // A single matched seam avoids alternating sheets with different body volumes.
+ const end=manifest.character==='hanbi'?6:5,down=Array.from({length:end+1},(_,frame)=>({sheet:'down',frame}));
+ let height=Infinity;for(let i=down.length-1;i>=1;i--)if(manifest.sheets.down.frames[down[i].frame].height>manifest.sheets.down.frames[down[i-1].frame].height)down.splice(i,1);
+ height=manifest.sheets.down.frames[down.at(-1).frame].height;
+ const first=manifest.character==='cat'?3:manifest.character==='hanbi'?6:manifest.sheets.lower.frames.findIndex(f=>f.height<=height);
+ for(let frame=first;frame<16;frame++)if(manifest.sheets.lower.frames[frame].height<=height){down.push({sheet:'lower',frame});height=manifest.sheets.lower.frames[frame].height;}
+ return {down,up:[...down].reverse()};
 }
 // An atlas can contain a tiny edge of the next row in a gutter. Register the
 // character's connected silhouette, not that unrelated row fragment.

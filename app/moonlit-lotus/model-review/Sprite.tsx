@@ -1,18 +1,14 @@
 "use client";
-import {memo,useLayoutEffect,useState,type CSSProperties} from 'react';
+import {memo,type CSSProperties} from 'react';
 import {ASSET_BASE,type Sheet} from './sprite-clips';
+import {rearBase,companionRearPoseAt} from '../_lib/companion-rear';
+import {frontBowPoseAt} from '../_lib/bow-drawing';
+import AtlasSprite from '../_components/AtlasSprite';
 import styles from './review.module.css';
 export function spriteStyle(sheet: Sheet,frame:number):CSSProperties {
-  return {backgroundImage:`url(${ASSET_BASE}/${sheet}.webp)`,backgroundPosition:`${frame%4/3*100}% ${Math.floor(frame/4)/3*100}%`};
+ return {backgroundImage:'url('+ASSET_BASE+'/'+sheet+'.webp)',backgroundPosition:frame%4/3*100+'% '+Math.floor(frame/4)/3*100+'%'};
 }
-type Drawing={sheet:Sheet;frame:number};
-const same=(a:Drawing,b:Drawing)=>a.sheet===b.sheet&&a.frame===b.frame;
-export default memo(function Sprite({sheet,frame,label,reduced=false}:{sheet:Sheet;frame:number;label:string;reduced?:boolean}) {
-  const [pair,setPair]=useState(()=>({previous:{sheet,frame},current:{sheet,frame}}));
-  useLayoutEffect(()=>setPair(last=>same(last.current,{sheet,frame})?last:{previous:last.current,current:{sheet,frame}}),[sheet,frame]);
-  const moving=!reduced&&!same(pair.previous,pair.current);
-  return <div className={styles.sprite} role="img" aria-label={label} data-sheet={sheet} data-frame={frame}>
-    {moving&&<div key={`${sheet}-${frame}-previous`} className={`${styles.spriteLayer} ${styles.departing}`} style={spriteStyle(pair.previous.sheet,pair.previous.frame)} aria-hidden="true" />}
-    <div key={`${sheet}-${frame}-current`} className={`${styles.spriteLayer} ${moving?styles.arriving:''}`} style={spriteStyle(pair.current.sheet,pair.current.frame)} aria-hidden="true" />
-  </div>;
+export default memo(function Sprite({sheet,frame,label,rear=false,bowing=false,elapsed=0}:{sheet:Sheet;frame:number;label:string;reduced?:boolean;rear?:boolean;bowing?:boolean;elapsed?:number}) {
+ const base=rear?rearBase('yeoni'):ASSET_BASE,pose=rear?companionRearPoseAt('yeoni',elapsed):bowing?frontBowPoseAt(elapsed):{sheet,frame};
+ return <AtlasSprite className={styles.sprite} identity={rear?'yeoni-preview-rear':'yeoni-preview-front'} drawing={{url:base+'/'+pose.sheet+'.webp',frame:pose.frame}} label={label} fallback={ASSET_BASE+'/still.webp'}/>;
 });

@@ -1,6 +1,6 @@
 "use client";
 import Link from 'next/link';
-import {useCallback,useEffect,useRef,useState,type CSSProperties} from 'react';
+import {useCallback,useEffect,useRef,useState} from 'react';
 import {ArrowLeft,ArrowRight,BookOpen,Flower2,Heart,HandHeart,CircleDot,Moon,Music2,Settings2,Eye,Drum,MapPin,Volume2,VolumeX,X} from 'lucide-react';
 import {useLocale} from '@/lib/i18n/useT';
 import {MOONLIT_ENTRY_COPY} from './_lib/entry-copy';
@@ -9,10 +9,8 @@ import MusicPlayer from './_components/MusicPlayer';
 import ImmersionControl from './_components/ImmersionControl';
 import PhotoStudio from './_components/PhotoStudio';
 import ActivityTransition from './_components/ActivityTransition';
-import YeoniRear from './_components/YeoniRear';
 import {rearCharacterId} from './_lib/companion-rear';
 import CharacterChooser from './_components/CharacterChooser';
-import {HANBI_ART,COMPANION_ART,speciesOf,isZodiac,zodiacStill} from './_lib/companions';
 import WalkingYeoni from './_components/WalkingYeoni';
 import PrivateRecords from './_components/PrivateRecords';
 import {useSpaceProfile} from './_lib/use-space-profile';
@@ -123,7 +121,6 @@ function PrivateSpace({profile}:{profile:ReturnType<typeof useSpaceProfile>}){
  const rearId=rearCharacterId(character,profile.avatar,profile.image);
  const active=bow.session.status==='running'||bow.session.status==='paused';
  const ended=bow.session.status==='complete'||bow.session.status==='stopped';
- const characterPosition:CSSProperties={left:scene==='hall'?'50%':'46%',top:scene==='hall'?'86%':'82%'};
  const leaveQuiet=()=>{setImmersive(false);requestAnimationFrame(()=>{if(panel)panelHeading.current?.focus({preventScroll:true});else zenTrigger.current?.focus();});};
  const activateSpot=(spot:(typeof HOTSPOTS)[Scene][number])=>spot.scene?changeScene(spot.scene):spot.panel?open(spot.panel):void effects.strike();
  return <main className={styles.page} lang="ko" data-cd-no-trans data-immersive={quiet} data-panel-open={!!panel} data-scene-name={scene}>
@@ -136,9 +133,9 @@ function PrivateSpace({profile}:{profile:ReturnType<typeof useSpaceProfile>}){
     <div className={styles.worldViewport} ref={worldViewport} tabIndex={0} aria-label="나만의 사찰 풍경">
      <div className={styles.world} data-scene={scene}>
       {!sceneError?<picture><source media="(max-width:700px)" srcSet={ART+'/'+scene+'-768.webp'}/>{/* eslint-disable-next-line @next/next/no-img-element */}<img className={styles.scenery} key={scene+retry} src={ART+'/'+scene+'-1536.webp'} width={1536} height={1024} alt={SCENES[scene]+'의 달빛과 연꽃, 꽃돼지 불상과 조용한 참배 자리'} onError={()=>setSceneError(true)} fetchPriority="high"/></picture>:<div className={styles.artFallback}><Flower2 size={48}/><p>풍경을 불러오지 못했어요.<br/>아래 버튼으로 명상과 108배를 계속 이용할 수 있어요.</p><button onClick={()=>{setSceneError(false);setRetry(v=>v+1);}}>풍경 다시 불러오기</button></div>}
-      {journey?<WalkingYeoni kind={character} look={profile.avatar} image={profile.image} portrait={profile.portrait} key={journey.from+'-'+journey.to} fromX={journey.from==='hall'?50:46} fromY={journey.from==='hall'?86:82} toX={journey.to==='hall'?50:46} toY={journey.to==='hall'?86:82} onCross={()=>setScene(journey.to)} onDone={()=>navigate(journey.panel,journey.to)}/>:<div className={styles.character} data-photo-character style={characterPosition}>
-       {!characterError&&(!light||character==='custom')?<ActivityTransition identity={character+activity+(profile.avatar.species||'profile')} reduced={noMotion}>{scene==='hall'&&rearView&&['bow','prayer'].includes(activity)?<YeoniRear key={rearId+retry} id={rearId} elapsed={bow.session.elapsed} bowing={activity==='bow'} reduced={noMotion} onFailure={()=>setCharacterError(true)}/>:<Character key={retry} kind={character} activity={activity} elapsed={bow.session.elapsed} reduced={noMotion} look={profile.avatar} image={profile.image} portrait={profile.portrait} onFailure={()=>setCharacterError(true)}/>}</ActivityTransition>:<div className={styles.still}>{/* eslint-disable-next-line @next/next/no-img-element */}<img src={character==='custom'&&profile.avatar.species==='hanbi'?HANBI_ART+'-still.webp':character==='custom'&&isZodiac(speciesOf(profile.avatar,profile.image))?zodiacStill(speciesOf(profile.avatar,profile.image) as import('./_lib/companions').ZodiacSpecies):character==='cat'?COMPANION_ART+'/cat-still.webp':'/assets/moonlit-lotus/yeoni/2d-v2/still.webp'} width={384} height={384} alt="동작을 줄인 정지 캐릭터"/>{characterError&&<button onClick={()=>{setCharacterError(false);setRetry(v=>v+1);}}>동작 다시 불러오기</button>}</div>}
-      </div>}
+      <WalkingYeoni journey={journey} kind={character} look={profile.avatar} image={profile.image} x={scene==='hall'?50:46} y={scene==='hall'?86:82} onCross={()=>{if(journey)setScene(journey.to);}} onDone={()=>{if(journey)navigate(journey.panel,journey.to);}}>
+       {walking=><><ActivityTransition><Character kind={character} activity={activity} elapsed={bow.session.elapsed} reduced={noMotion} look={profile.avatar} image={profile.image} portrait={profile.portrait} rearId={scene==='hall'&&rearView&&['bow','prayer'].includes(activity)?rearId:undefined} walking={walking} holding={!!journey&&!walking} attempt={retry} onFailure={()=>setCharacterError(true)}/></ActivityTransition>{characterError&&<button className={styles.characterRetry} onClick={()=>{setCharacterError(false);setRetry(v=>v+1);}}>동작 다시 불러오기</button>}</>}
+      </WalkingYeoni>
       {!quiet&&<div className={styles.hotspots} data-photo-hide>{HOTSPOTS[scene].map(spot=><button key={spot.label} style={{left:spot.x+'%',top:spot.y+'%'}} onClick={()=>activateSpot(spot)} aria-pressed={spot.strike ? effects.playing || effects.loading : undefined} aria-label={spot.strike && (effects.playing || effects.loading) ? '목탁·염불 멈추기' : spot.label}>{spot.strike?<Drum size={18} aria-hidden="true"/>:spot.scene?<MapPin size={18} aria-hidden="true"/>:<Flower2 size={18} aria-hidden="true"/>}<span>{spot.strike && (effects.playing || effects.loading) ? '목탁·염불 멈추기' : spot.label}</span></button>)}</div>}
      </div>
     </div>
