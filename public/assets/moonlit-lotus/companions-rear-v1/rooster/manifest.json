@@ -1,0 +1,416 @@
+{
+  "version": "companions-rear-v1",
+  "character": "rooster",
+  "columns": 4,
+  "rows": 4,
+  "cell": 384,
+  "baseline": 354,
+  "authoredFrames": 48,
+  "sheets": {
+    "down": {
+      "url": "/assets/moonlit-lotus/companions-rear-v1/rooster/down.webp",
+      "bytes": 454294,
+      "sourceSha256": "d8dadefd3e3e2cbc2ee1078c5ef0115955a72e50151417668c1b6771f84275ad",
+      "frames": [
+        {
+          "index": 0,
+          "width": 214,
+          "height": 300,
+          "x": 85,
+          "y": 54,
+          "baseline": 354
+        },
+        {
+          "index": 1,
+          "width": 219,
+          "height": 288,
+          "x": 83,
+          "y": 66,
+          "baseline": 354
+        },
+        {
+          "index": 2,
+          "width": 223,
+          "height": 272,
+          "x": 81,
+          "y": 82,
+          "baseline": 354
+        },
+        {
+          "index": 3,
+          "width": 227,
+          "height": 254,
+          "x": 79,
+          "y": 100,
+          "baseline": 354
+        },
+        {
+          "index": 4,
+          "width": 231,
+          "height": 257,
+          "x": 77,
+          "y": 97,
+          "baseline": 354
+        },
+        {
+          "index": 5,
+          "width": 236,
+          "height": 244,
+          "x": 74,
+          "y": 110,
+          "baseline": 354
+        },
+        {
+          "index": 6,
+          "width": 238,
+          "height": 236,
+          "x": 73,
+          "y": 118,
+          "baseline": 354
+        },
+        {
+          "index": 7,
+          "width": 238,
+          "height": 225,
+          "x": 73,
+          "y": 129,
+          "baseline": 354
+        },
+        {
+          "index": 8,
+          "width": 237,
+          "height": 216,
+          "x": 74,
+          "y": 138,
+          "baseline": 354
+        },
+        {
+          "index": 9,
+          "width": 237,
+          "height": 209,
+          "x": 74,
+          "y": 145,
+          "baseline": 354
+        },
+        {
+          "index": 10,
+          "width": 237,
+          "height": 200,
+          "x": 74,
+          "y": 154,
+          "baseline": 354
+        },
+        {
+          "index": 11,
+          "width": 237,
+          "height": 191,
+          "x": 74,
+          "y": 163,
+          "baseline": 354
+        },
+        {
+          "index": 12,
+          "width": 241,
+          "height": 186,
+          "x": 72,
+          "y": 168,
+          "baseline": 354
+        },
+        {
+          "index": 13,
+          "width": 251,
+          "height": 179,
+          "x": 67,
+          "y": 175,
+          "baseline": 354
+        },
+        {
+          "index": 14,
+          "width": 262,
+          "height": 168,
+          "x": 61,
+          "y": 186,
+          "baseline": 354
+        },
+        {
+          "index": 15,
+          "width": 273,
+          "height": 158,
+          "x": 56,
+          "y": 196,
+          "baseline": 354
+        }
+      ]
+    },
+    "lower": {
+      "url": "/assets/moonlit-lotus/companions-rear-v1/rooster/lower.webp",
+      "bytes": 416392,
+      "sourceSha256": "3668715b41403b6bd0fc5f3da6fb9d60d09bac11af9da510b11e92e6290b3d4d",
+      "frames": [
+        {
+          "index": 0,
+          "width": 219,
+          "height": 300,
+          "x": 83,
+          "y": 54,
+          "baseline": 354
+        },
+        {
+          "index": 1,
+          "width": 225,
+          "height": 283,
+          "x": 80,
+          "y": 71,
+          "baseline": 354
+        },
+        {
+          "index": 2,
+          "width": 226,
+          "height": 267,
+          "x": 79,
+          "y": 87,
+          "baseline": 354
+        },
+        {
+          "index": 3,
+          "width": 230,
+          "height": 248,
+          "x": 77,
+          "y": 106,
+          "baseline": 354
+        },
+        {
+          "index": 4,
+          "width": 229,
+          "height": 247,
+          "x": 78,
+          "y": 107,
+          "baseline": 354
+        },
+        {
+          "index": 5,
+          "width": 234,
+          "height": 227,
+          "x": 75,
+          "y": 127,
+          "baseline": 354
+        },
+        {
+          "index": 6,
+          "width": 241,
+          "height": 210,
+          "x": 72,
+          "y": 144,
+          "baseline": 354
+        },
+        {
+          "index": 7,
+          "width": 247,
+          "height": 193,
+          "x": 69,
+          "y": 161,
+          "baseline": 354
+        },
+        {
+          "index": 8,
+          "width": 251,
+          "height": 192,
+          "x": 67,
+          "y": 162,
+          "baseline": 354
+        },
+        {
+          "index": 9,
+          "width": 261,
+          "height": 183,
+          "x": 62,
+          "y": 171,
+          "baseline": 354
+        },
+        {
+          "index": 10,
+          "width": 267,
+          "height": 173,
+          "x": 59,
+          "y": 181,
+          "baseline": 354
+        },
+        {
+          "index": 11,
+          "width": 268,
+          "height": 166,
+          "x": 58,
+          "y": 188,
+          "baseline": 354
+        },
+        {
+          "index": 12,
+          "width": 270,
+          "height": 162,
+          "x": 57,
+          "y": 192,
+          "baseline": 354
+        },
+        {
+          "index": 13,
+          "width": 273,
+          "height": 154,
+          "x": 56,
+          "y": 200,
+          "baseline": 354
+        },
+        {
+          "index": 14,
+          "width": 273,
+          "height": 146,
+          "x": 56,
+          "y": 208,
+          "baseline": 354
+        },
+        {
+          "index": 15,
+          "width": 273,
+          "height": 135,
+          "x": 56,
+          "y": 219,
+          "baseline": 354
+        }
+      ]
+    },
+    "up": {
+      "url": "/assets/moonlit-lotus/companions-rear-v1/rooster/up.webp",
+      "bytes": 495406,
+      "sourceSha256": "57bb59a2dfae1f87a76b36c501329e6cf4c21ce82f5a7740e6e91c83bd690a9d",
+      "frames": [
+        {
+          "index": 0,
+          "width": 264,
+          "height": 171,
+          "x": 60,
+          "y": 183,
+          "baseline": 354
+        },
+        {
+          "index": 1,
+          "width": 257,
+          "height": 193,
+          "x": 64,
+          "y": 161,
+          "baseline": 354
+        },
+        {
+          "index": 2,
+          "width": 248,
+          "height": 215,
+          "x": 68,
+          "y": 139,
+          "baseline": 354
+        },
+        {
+          "index": 3,
+          "width": 247,
+          "height": 237,
+          "x": 69,
+          "y": 117,
+          "baseline": 354
+        },
+        {
+          "index": 4,
+          "width": 250,
+          "height": 246,
+          "x": 67,
+          "y": 108,
+          "baseline": 354
+        },
+        {
+          "index": 5,
+          "width": 243,
+          "height": 256,
+          "x": 71,
+          "y": 98,
+          "baseline": 354
+        },
+        {
+          "index": 6,
+          "width": 239,
+          "height": 270,
+          "x": 73,
+          "y": 84,
+          "baseline": 354
+        },
+        {
+          "index": 7,
+          "width": 237,
+          "height": 279,
+          "x": 74,
+          "y": 75,
+          "baseline": 354
+        },
+        {
+          "index": 8,
+          "width": 235,
+          "height": 278,
+          "x": 75,
+          "y": 76,
+          "baseline": 354
+        },
+        {
+          "index": 9,
+          "width": 235,
+          "height": 283,
+          "x": 75,
+          "y": 71,
+          "baseline": 354
+        },
+        {
+          "index": 10,
+          "width": 235,
+          "height": 291,
+          "x": 75,
+          "y": 63,
+          "baseline": 354
+        },
+        {
+          "index": 11,
+          "width": 234,
+          "height": 295,
+          "x": 75,
+          "y": 59,
+          "baseline": 354
+        },
+        {
+          "index": 12,
+          "width": 233,
+          "height": 296,
+          "x": 76,
+          "y": 58,
+          "baseline": 354
+        },
+        {
+          "index": 13,
+          "width": 234,
+          "height": 299,
+          "x": 75,
+          "y": 55,
+          "baseline": 354
+        },
+        {
+          "index": 14,
+          "width": 234,
+          "height": 299,
+          "x": 75,
+          "y": 55,
+          "baseline": 354
+        },
+        {
+          "index": 15,
+          "width": 237,
+          "height": 300,
+          "x": 74,
+          "y": 54,
+          "baseline": 354
+        }
+      ]
+    }
+  }
+}
