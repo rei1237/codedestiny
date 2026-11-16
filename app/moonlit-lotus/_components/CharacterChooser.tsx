@@ -1,6 +1,6 @@
 "use client";
 import Image from 'next/image';
-import {useEffect,useState} from 'react';
+import {useEffect,useRef,useState} from 'react';
 import Character,{type Activity} from './Character';
 import type {useSpaceProfile} from '../_lib/use-space-profile';
 import {COMPANIONS,COMPANION_ART,HANBI_ART,isZodiac,speciesOf,zodiacStill,walkDrawing} from '../_lib/companions';
@@ -21,26 +21,22 @@ export default function CharacterChooser({profile,reduced,onChange}:Props){
   ...COMPANIONS.map(([id,name])=>({id,name,image:zodiacStill(id)}))];
  const name=choices.find(c=>c.id===selected)?.name||(selected==='yeongnyangi'?'영냥이':'꽃돼지 연이');
  useEffect(()=>{setMode('idle');setElapsed(0);setFailed(false);},[selected]);
+ const savedMotion=useRef({key:'',time:0});
  useEffect(()=>{
-  setElapsed(0);if(reduced||!['bow','walk'].includes(mode))return;
-  let raf=0,last=0,time=0;
+  const key=selected+'-'+mode+'-'+play;
+  if(savedMotion.current.key!==key){savedMotion.current={key,time:0};setElapsed(0);}
+  if(reduced||!['bow','walk'].includes(mode))return;
+  let raf=0,last=0,time=savedMotion.current.time;
   const tick=(now:number)=>{
-   if(document.hidden){last=0;raf=requestAnimationFrame(tick);return;}
+   if(document.hidden){last=0;return;}
    if(last)time+=Math.min(100,now-last);last=now;
-   setElapsed(mode==='bow'?Math.min(time,CYCLE_MS):time%1600);
+   savedMotion.current.time=time;setElapsed(mode==='bow'?Math.min(time,CYCLE_MS):time%1600);
    if(mode==='walk'||time<CYCLE_MS)raf=requestAnimationFrame(tick);
   };
-  raf=requestAnimationFrame(tick);return()=>cancelAnimationFrame(raf);
+  const visibility=()=>{cancelAnimationFrame(raf);last=0;if(!document.hidden)raf=requestAnimationFrame(tick);};
+  visibility();document.addEventListener('visibilitychange',visibility);return()=>{cancelAnimationFrame(raf);document.removeEventListener('visibilitychange',visibility);};
  },[mode,play,reduced,selected]);
  const walk=walkDrawing(profile.character||'yeoni',profile.avatar,profile.image);
- const [walkReady,setWalkReady]=useState(false);
- const still=choices.find(c=>c.id===selected)?.image||choices[0].image;
- useEffect(()=>{
-  setWalkReady(false);if(mode!=='walk'||reduced)return;
-  let alive=true;const img=new window.Image();img.src=walk.url;
-  img.decode().then(()=>{if(alive)setWalkReady(true);}).catch(()=>{if(alive)setFailed(true);});
-  return()=>{alive=false;};
- },[mode,walk.url,reduced]);
  const frame=walk.offset+Math.floor(elapsed/1600*walk.frames)%walk.frames;
  const choose=(id:string)=>{
   onChange();setFailed(false);
@@ -57,8 +53,7 @@ export default function CharacterChooser({profile,reduced,onChange}:Props){
   </div>
   <section className={styles.companionPreview} aria-label="선택한 친구 동작 미리보기">
    <div className={styles.companionStage}>
-    {mode==='walk'?<div className={styles.characterDrawing} role="img" aria-label={name+' 걷기 미리보기'} style={{backgroundImage:`url(${walkReady&&!reduced?walk.url:still})`,backgroundSize:walkReady&&!reduced?'400%':'100%',backgroundPosition:`${frame%4/3*100}% ${Math.floor(frame/4)/3*100}%`}}/>:
-     <Character kind={profile.character||'yeoni'} activity={mode} elapsed={elapsed} reduced={reduced} look={profile.avatar} image={profile.image} portrait="" onFailure={()=>setFailed(true)}/>}
+    <Character kind={profile.character||'yeoni'} activity={mode==='walk'?'idle':mode} elapsed={elapsed} reduced={reduced} look={profile.avatar} image={profile.image} portrait="" walking={mode==='walk'?{url:walk.url,frame,rows:walk.rows}:null} onFailure={()=>setFailed(true)}/>
    </div>
    <h3>{name}와 함께 쉬어가요</h3>
    <div className={styles.previewActions} aria-label="동작 선택">{actions.map(([id,label])=><button type="button" key={id} aria-pressed={mode===id} onClick={()=>{setFailed(false);setMode(id);setPlay(v=>v+1);}}>{label}</button>)}</div>
