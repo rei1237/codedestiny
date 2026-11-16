@@ -59,7 +59,13 @@ assert.ok(heukwol&&!heukwol.hidden&&!heukwol.closest('details'));
 assert.equal(heukwol.getAttribute('href'),'/heukwol/');
 assert.equal(heukwol.hasAttribute('data-pvw-paid'),false,'흑월은 자체 상세·입력 페이지로 이동하며 공용 미리보기 시트가 가로채지 않는다');
 assert.equal(heukwol.querySelector('.cd-sig-card__price').textContent,'50,000원');
-assert.ok(homeDocument.querySelector('[data-signature-open]'));
+const signatureLetter=homeDocument.querySelector('[data-signature-letter]');
+assert.ok(signatureLetter,'대표 상담은 팝업이 아니라 홈 안의 상담 편지로 보여야 합니다');
+assert.equal(signatureLetter.querySelectorAll('[data-signature-letter-slide]').length,6);
+assert.equal(signatureLetter.querySelectorAll('[data-signature-letter-slide]:not([hidden])').length,1);
+assert.equal(homeDocument.querySelector('[data-signature-open],.cd-signature-popup'),null,'대표 상담 팝업 진입과 팝업 표면을 남기지 않습니다');
+assert.equal(signatureLetter.querySelectorAll('[data-signature-letter-dot]').length,6);
+assert.equal(signatureLetter.querySelector('[data-signature-letter-position]').textContent,'1 / 6');
 
 const signatureSection = homeDocument.querySelector('#cdSignatureConsult')?.outerHTML || '';
 assert.ok(homeDocument.querySelector('#cdSignatureConsult #cdConcernPick'), 'Concern selection belongs to the consultation section');
@@ -71,9 +77,9 @@ assert.doesNotMatch(template, /음악으로 쉬어가기/);
 assert.ok(signatureSection, '대표 운명 상담 섹션을 찾지 못했습니다');
 assert.ok(homeDocument.querySelector('#cdSignatureConsult .cd-picker-links a[href="/consultation-samples/"]'),'complete sample guide remains');
 assert.deepEqual(
-  [...signatureSection.matchAll(/data-cd-service-id="([^"]+)"/g)].map((match) => match[1]).sort(),
-  ['heukwol', 'fortune-tea-house', 'life-book-ai', 'new-year-ai', 'love-secret-ai', 'neo-operation-room', 'master-love-codex'].sort(),
-  '기존 여섯 상품을 한 번씩 유지합니다',
+  [...homeDocument.querySelectorAll('#cdSigGrid [data-cd-service-id]')].map(node => node.dataset.cdServiceId).sort(),
+  ['fortune-tea-house', 'life-book-ai', 'new-year-ai', 'love-secret-ai', 'neo-operation-room', 'master-love-codex'].sort(),
+  '기존 대표 상담 여섯 상품을 한 번씩 유지합니다',
 );
 assert.deepEqual([...signatureSection.matchAll(/data-cd-signature-id="([^"]+)"/g)].map(match => match[1]), ['fortune-chat', 'yeongnyangi-question']);
 assert.doesNotMatch(signatureSection,/data-sig-next|data-sig-pause/,'comparison does not move automatically');
@@ -82,6 +88,8 @@ assert.equal(curated.length,8);
 assert.ok(curated.every(card=>card.querySelector('img')&&card.querySelector('.cd-picker-action')),'all eight established entries retain art and CTA');
 assert.equal(homeDocument.querySelectorAll('#cdSigGrid [data-cd-service-id] .cd-sig-card__price').length,6);
 assert.equal(homeDocument.querySelector('#cdSigGrid [data-cd-service-id="life-book-ai"] .cd-sig-card__price').textContent,'30,000원');
+assert.equal(signatureLetter.querySelector('[data-cd-service="life-book-ai"] .cd-consult-letter__price').textContent,'30,000원');
+assert.ok([...signatureLetter.querySelectorAll('[data-signature-letter-slide]')].every(slide=>slide.querySelector('img')&&slide.querySelector('dl')&&slide.querySelector('.cd-consult-letter__result')&&slide.querySelector('.cd-consult-letter__action>a')),'각 상담 편지는 그림·맞는 고민·받는 결과·행동을 함께 설명합니다');
 assert.doesNotMatch(home, /id="cdhSamples"/, '중복 결과 샘플 카드 묶음은 홈에 다시 만들지 않습니다');
 
 for (const entry of [

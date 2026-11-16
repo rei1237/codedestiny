@@ -34,12 +34,12 @@ for (const channel of ['chrome', 'msedge']) {
       // 홈: 히어로 버튼 하나 → 대표 상담 덱 → 초융합 시그니처 → 무료로 먼저 → 꿀방울 → 1:1 상담 → 영냥이 배너 → 질문 카테고리 → 이용권 → 뮤직비디오 → 모든 운세 보기 → 링크 → 달빛 이야기.
       assert.equal(await main.locator('.yh-hero .yh-free-start').getAttribute('href'), '/?action=cdOneStepFreeSajuEntry');
       assert.equal(await page.locator('#cdhMore').count(), 0, 'no folded catalog on home');
-      const order = await page.evaluate(() => ['.yh-hero','.cdh-free','#cdSignatureConsult','.yh-links','#cdhPass','.cd-help-entry','#cdhMoonlightMv','#cdhFusionSignature','#cdhYeongnyangiSlot','.cdh-story'].map(sel => document.querySelector(sel)).filter(item => item.closest('.yh-secondary:not([open])') || item.getClientRects().length).map(item => { /* 700px 미만에서 숨긴 무료로 먼저는 화면 순서에서 뺀다 */ return (item.closest('.yh-secondary:not([open])') || item).getBoundingClientRect().top + scrollY; }));
+      const order = await page.evaluate(() => ['.yh-hero','.cdh-free','#cdSignatureConsult','.yh-links','#cdhPass','.cd-help-entry','#cdhMoonlightMv','#cdhFusionSignature','#cdhYeongnyangiSlot','.cdh-story'].map(sel => document.querySelector(sel)).filter(Boolean).filter(item => item.closest('.yh-secondary:not([open])') || item.getClientRects().length).map(item => { /* 700px 미만에서 숨긴 무료로 먼저는 화면 순서에서 뺀다 */ return (item.closest('.yh-secondary:not([open])') || item).getBoundingClientRect().top + scrollY; }));
       assert(order.every((top,i) => i===0 || top>order[i-1]), JSON.stringify(order));
       await assertHomePicker(page, width);
       const letter = main.locator('.cd-consult-letter');
       await letter.waitFor({ state: 'visible' });
-      assert.equal(await letter.evaluate(node => node.open && getComputedStyle(node).position !== 'fixed'), true);
+      assert.equal(await letter.evaluate(node => !node.matches('dialog,details') && getComputedStyle(node).position !== 'fixed'), true, 'consultation letter is inline and never a popup');
       const pass = main.locator('.pb--honey');
       assert(await pass.isVisible(), 'pass is inline on both mobile and desktop');
       const dialogue = pass.locator('cd-pass-duet');
@@ -110,21 +110,17 @@ for (const channel of ['chrome', 'msedge']) {
       await letter.waitFor({ state: 'visible' });
       const cookie = page.locator('#cdCookieEssentialBtn');
       if (await cookie.isVisible()) await cookie.click();
-      const first = await letter.locator('a').getAttribute('href');
-      await letter.locator('[data-next]').click();
-      assert.notEqual(await letter.locator('a').getAttribute('href'), first);
-      await letter.locator('[data-prev]').click();
-      assert.equal(await letter.locator('a').getAttribute('href'), first);
-      await letter.locator('summary').click();
-      assert.equal(await letter.locator('a').isVisible(), false);
-      await letter.locator('summary').press('Enter');
-      assert.equal(await letter.locator('a').isVisible(), true);
-      await letter.locator('[data-hide]').click();
-      const midnight = await page.evaluate(() => new Date().setHours(24,0,0,0));
-      assert.equal(await page.evaluate(() => Number(localStorage.getItem('cd_signature_consult_hide_until_v1'))), midnight);
-      await page.goto(base + '/ggulggul/', { waitUntil: 'load' });
-      await page.waitForFunction(() => typeof window.__cdOpenGarden === 'function', null, { timeout: 60000 });
-      assert.equal(await letter.count(), 0);
+      const active = () => letter.locator('[data-signature-letter-slide]:not([hidden])');
+      const first = await active().locator('.cd-consult-letter__action>a').getAttribute('href');
+      await letter.locator('[data-signature-letter-next]').click();
+      assert.notEqual(await active().locator('.cd-consult-letter__action>a').getAttribute('href'), first);
+      assert.equal(await letter.locator('[data-signature-letter-position]').textContent(), '2 / 6');
+      await letter.locator('[data-signature-letter-prev]').click();
+      assert.equal(await active().locator('.cd-consult-letter__action>a').getAttribute('href'), first);
+      await letter.locator('[data-signature-letter-stage]').press('End');
+      assert.equal(await letter.locator('[data-signature-letter-position]').textContent(), '6 / 6');
+      assert.equal(await page.locator('dialog.cd-signature-popup,[data-signature-open]').count(), 0);
+      assert.equal(await page.evaluate(() => localStorage.getItem('cd_signature_consult_hide_until_v1')), null);
       assert.equal(await page.locator('[data-sig-next],[data-sig-pause]').count(), 0);
       await context.close();
 
@@ -141,11 +137,11 @@ for (const channel of ['chrome', 'msedge']) {
       const desktopCookie = desktopPage.locator('#cdCookieConsent');
       await desktopPage.waitForTimeout(1100);
       if (await desktopCookie.evaluate(node => node.classList.contains('is-visible'))) await desktopPage.locator('#cdCookieEssentialBtn').evaluate(button => button.click());
-      const desktopLetter = desktopPage.locator('#cdSignatureConsult + .cd-consult-letter');
+      const desktopLetter = desktopPage.locator('#cdSignatureConsult .cd-consult-letter');
       await desktopLetter.waitFor({ state: 'visible' });
-      await desktopLetter.locator('summary').focus();
-      await desktopPage.keyboard.press('Shift+Tab');
-      assert.equal(await desktopLetter.evaluate(node => node.contains(document.activeElement)), false);
+      await desktopLetter.locator('[data-signature-letter-stage]').focus();
+      await desktopPage.keyboard.press('ArrowRight');
+      assert.equal(await desktopLetter.locator('[data-signature-letter-position]').textContent(), '2 / 6');
       rows.push({ channel: 'chrome', width: 1440, inlineLetter: true });
       await desktopContext.close();
     }

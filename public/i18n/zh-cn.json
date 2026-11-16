@@ -2129,7 +2129,7 @@
       "honeyAttend": "签到",
       "honeyUses": "查看使用范围",
       "retry": "重新确认",
-      "signatureTitle": "选择此刻需要的咨询",
+      "signatureTitle": "逐一了解此刻适合你的咨询",
       "signatureLead": "以共同的解读标准，阅读针对各主题的AI解说。请先查看内容与示例。",
       "coMasters": "共同导师",
       "loveNames": "Yeoni · Seo Hanbi",
@@ -2527,7 +2527,7 @@
       "description": "挑选延伊的寄语、花语、今日运势或护身符。"
     },
     "typographyPicker": {
-      "lead": "选择心中的烦恼，再比较咨询方式与结果内容。",
+      "lead": "不必着急，先了解每项咨询关注的烦恼与提供的内容，再作选择。",
       "allConsultations": "全部咨询",
       "specific": "具体烦恼",
       "all": "全部",

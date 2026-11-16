@@ -1978,7 +1978,7 @@
       "honeyAttend": "출석 체크 하기",
       "honeyUses": "사용처 보기",
       "retry": "다시 확인하기",
-      "signatureTitle": "지금 필요한 상담을 골라보세요",
+      "signatureTitle": "지금 마음에 필요한 상담을 한 편씩 만나보세요",
       "signatureLead": "같은 풀이 기준으로, 주제에 맞춘 AI 해설을 읽어요. 구성과 예시를 먼저 살펴보세요.",
       "coMasters": "공동 마스터",
       "loveNames": "연이 · 서한비",
@@ -2376,7 +2376,7 @@
       "description": "연이의 한마디, 꽃말, 오늘의 운세와 부적을 골라 보세요."
     },
     "typographyPicker": {
-      "lead": "마음에 남은 고민을 고르고, 상담 방식과 받을 결과를 비교해 보세요.",
+      "lead": "서두르지 말고, 각 상담이 어떤 고민을 다루고 무엇을 전해 주는지 읽어 본 뒤 선택해 보세요.",
       "allConsultations": "전체 상담",
       "specific": "구체적인 고민",
       "all": "모두",

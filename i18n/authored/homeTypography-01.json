@@ -1,17 +1,17 @@
 {
   "home.typographyPicker.lead": {
-    "ko":"마음에 남은 고민을 고르고, 상담 방식과 받을 결과를 비교해 보세요.",
-    "en":"Choose what is on your mind, then compare the consultation styles and results.",
-    "ja":"気になる悩みを選び、相談の方法と受け取れる内容を比べてみましょう。",
-    "zh-CN":"选择心中的烦恼，再比较咨询方式与结果内容。",
-    "zh-TW":"選擇心中的煩惱，再比較諮詢方式與結果內容。",
-    "vi":"Chọn điều bạn đang băn khoăn, rồi so sánh cách tư vấn và nội dung nhận được.",
-    "hi":"अपनी चिंता चुनें, फिर परामर्श के तरीके और मिलने वाली सामग्री की तुलना करें।",
-    "es":"Elige lo que te preocupa y compara las formas de consulta y sus resultados.",
-    "fr":"Choisissez ce qui vous préoccupe, puis comparez les consultations et leur contenu.",
-    "de":"Wähle dein Anliegen und vergleiche Beratungsformen und Ergebnisse.",
-    "nl":"Kies wat je bezighoudt en vergelijk de consultvormen en resultaten.",
-    "ms":"Pilih perkara yang merisaukan anda, kemudian bandingkan cara konsultasi dan hasilnya."
+    "ko":"서두르지 말고, 각 상담이 어떤 고민을 다루고 무엇을 전해 주는지 읽어 본 뒤 선택해 보세요.",
+    "en":"Take your time. Read what each consultation covers and what it offers before choosing.",
+    "ja":"急がずに、それぞれの相談が扱う悩みと受け取れる内容を読んでから選んでください。",
+    "zh-CN":"不必着急，先了解每项咨询关注的烦恼与提供的内容，再作选择。",
+    "zh-TW":"不必著急，先了解每項諮詢關注的煩惱與提供的內容，再作選擇。",
+    "vi":"Hãy thong thả đọc từng tư vấn giải quyết điều gì và mang lại nội dung nào trước khi chọn.",
+    "hi":"जल्दी न करें। चुनने से पहले पढ़ें कि हर सलाह किन चिंताओं और नतीजों पर केंद्रित है।",
+    "es":"Tómate tu tiempo: lee qué aborda y qué ofrece cada consulta antes de elegir.",
+    "fr":"Prenez votre temps : découvrez ce que chaque consultation aborde et propose avant de choisir.",
+    "de":"Nimm dir Zeit und lies vor der Wahl, welche Themen und Ergebnisse jede Beratung bietet.",
+    "nl":"Neem je tijd en lees wat elke consultatie behandelt en biedt voordat je kiest.",
+    "ms":"Luangkan masa untuk membaca fokus dan hasil setiap konsultasi sebelum memilih."
   },
   "home.typographyPicker.allConsultations": {
     "ko":"전체 상담","en":"All consultations","ja":"すべての相談","zh-CN":"全部咨询","zh-TW":"全部諮詢","vi":"Tất cả tư vấn","hi":"सभी परामर्श","es":"Todas las consultas","fr":"Toutes les consultations","de":"Alle Beratungen","nl":"Alle consulten","ms":"Semua konsultasi"

@@ -2129,7 +2129,7 @@
       "honeyAttend": "Check in",
       "honeyUses": "Where to use them",
       "retry": "Check again",
-      "signatureTitle": "Choose the reading you need now",
+      "signatureTitle": "Explore the consultation you need, one at a time",
       "signatureLead": "Read AI interpretations tailored to each topic using our shared approach. Explore the contents and examples first.",
       "coMasters": "Your guides",
       "loveNames": "Yeoni · Seo Hanbi",
@@ -2527,7 +2527,7 @@
       "description": "Choose a note from Yeoni, a flower meaning, a daily reading or a talisman."
     },
     "typographyPicker": {
-      "lead": "Choose what is on your mind, then compare the consultation styles and results.",
+      "lead": "Take your time. Read what each consultation covers and what it offers before choosing.",
       "allConsultations": "All consultations",
       "specific": "Specific concerns",
       "all": "All",

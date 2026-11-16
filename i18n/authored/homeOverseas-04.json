@@ -1,17 +1,17 @@
 {
   "home.guideCopy.signatureTitle": {
-    "ko": "지금 필요한 상담을 골라보세요",
-    "en": "Choose the reading you need now",
-    "ja": "今のあなたに合う相談を選んでください",
-    "zh-CN": "选择此刻需要的咨询",
-    "zh-TW": "選擇此刻需要的諮詢",
-    "vi": "Chọn tư vấn bạn cần lúc này",
-    "hi": "अभी अपनी ज़रूरत की सलाह चुनें",
-    "es": "Elige la consulta que necesitas ahora",
-    "fr": "Choisissez la consultation dont vous avez besoin",
-    "de": "Wähle die Beratung, die du gerade brauchst",
-    "nl": "Kies de begeleiding die je nu nodig hebt",
-    "ms": "Pilih konsultasi yang anda perlukan sekarang"
+    "ko": "지금 마음에 필요한 상담을 한 편씩 만나보세요",
+    "en": "Explore the consultation you need, one at a time",
+    "ja": "今の心に必要な相談を、一つずつご覧ください",
+    "zh-CN": "逐一了解此刻适合你的咨询",
+    "zh-TW": "逐一了解此刻適合你的諮詢",
+    "vi": "Khám phá từng tư vấn phù hợp với bạn lúc này",
+    "hi": "अभी अपने लिए सही सलाह को एक-एक करके देखें",
+    "es": "Descubre cada consulta, una a una",
+    "fr": "Découvrez chaque consultation, une à la fois",
+    "de": "Entdecke jede passende Beratung in Ruhe",
+    "nl": "Ontdek elke passende consultatie één voor één",
+    "ms": "Terokai setiap konsultasi satu demi satu"
   },
   "home.guideCopy.signatureLead": {
     "ko": "같은 풀이 기준으로, 주제에 맞춘 AI 해설을 읽어요. 구성과 예시를 먼저 살펴보세요.",

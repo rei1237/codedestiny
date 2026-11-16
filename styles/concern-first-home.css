@@ -295,34 +295,36 @@ html.cdh-input-open body .cdh-input-return:focus-visible{outline:3px solid var(-
 }
 @media(prefers-reduced-motion:reduce){#cdHomeFunnel .cd-choice .cd-sig__viewport{scroll-behavior:auto}}
 
-/* 대표 상담 6종 안내 — 기존 상담 카드의 이미지·가격·경로를 읽는 한국어 홈의 달빛 추천 편지. */
-
-/* Dialog is in the browser top layer; no ancestor clipping or z-index race. */
-.cd-signature-popup {
- width:min(720px,calc(100% - 32px)); max-width:100%; max-height:85dvh; margin:auto; padding:0; box-sizing:border-box;
- border:1px solid #b3935b; border-radius:24px; background:#fffdf8; color:#242139;
- box-shadow:0 24px 70px rgba(24,16,40,.3); overflow:hidden;
- font:400 16px/1.6 var(--font-body,Pretendard,sans-serif);
-}
-.cd-signature-popup[open] {display:flex;flex-direction:column;}
-.cd-signature-popup::backdrop {background:rgba(30,21,43,.5);}
-.cd-signature-popup__head {display:flex;align-items:flex-start;gap:12px;justify-content:space-between;padding:22px 24px 16px;border-bottom:1px solid #dfd1b9;flex:none;}
-.cd-signature-popup h2 {margin:0;color:#242139;font:400 28px/1.4 var(--font-display,Jua,sans-serif);word-break:keep-all;}
-.cd-signature-popup__head p {margin:6px 0 0;color:#635b70;font-size:15px;word-break:keep-all;}
-.cd-signature-popup button {min-height:48px;min-width:48px;border:0;background:transparent;color:#72324f;font:600 15px/1.5 var(--font-body,sans-serif);cursor:pointer;}
-.cd-signature-popup [data-signature-close] {font-size:30px;line-height:1;flex:none;border-radius:12px;background:#ede7f5;}
-.cd-signature-popup__list {min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:8px 24px;scrollbar-width:thin;scrollbar-color:#b3935b #fffdf8;}
-.cd-signature-popup__list > a {display:grid;grid-template-columns:144px minmax(0,1fr);align-items:center;gap:18px;padding:18px 0;border-bottom:1px solid #e5dac8;color:#242139;text-decoration:none;}
-.cd-signature-popup__list img {display:block;width:100%;height:auto;aspect-ratio:3/2;object-fit:contain;border-radius:12px;}
-.cd-signature-popup__copy {display:flex;flex-direction:column;gap:6px;min-width:0;}
-.cd-signature-popup__copy strong {font:400 23px/1.4 var(--font-display,Jua,sans-serif);}
-.cd-signature-popup__copy > span {font-size:15px;color:#635b70;word-break:keep-all;}
-.cd-signature-popup__copy .cd-signature-popup__price {color:#72324f;font-weight:600;font-variant-numeric:tabular-nums;}
-.cd-signature-popup__copy .cd-signature-popup__action {color:#72324f;text-decoration:underline;text-underline-offset:4px;}
-.cd-signature-popup footer {display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 24px calc(8px + env(safe-area-inset-bottom));border-top:1px solid #dfd1b9;flex:none;}
-.cd-signature-popup footer span {font-size:13px;color:#635b70;}
-.cd-signature-popup :focus-visible {outline:3px solid #72324f;outline-offset:2px;}
-#cdHomeFunnel .cd-signature-open {display:inline-flex;align-items:center;justify-content:center;min-height:48px;margin-top:14px;padding:10px 20px;background:#ede7f5;color:#543048;border:1px solid #b3935b;border-radius:12px;font:600 16px/1.5 var(--font-body,sans-serif);}
+/* 대표 상담 6종 — 팝업 없이 한 편씩 읽는 달빛 예화 상담 편지. */
+#cdHomeFunnel .cd-consult-letter {position:relative;z-index:1;width:min(100%,960px);margin:26px auto 32px;color:var(--cd-text);font:400 16px/1.65 var(--font-body,Pretendard,sans-serif);}
+#cdHomeFunnel .cd-consult-letter__stage {border:1px solid color-mix(in srgb,var(--cd-accent) 28%,var(--cd-line));border-radius:var(--cd-r-section);background:var(--cd-surface);box-shadow:0 18px 44px color-mix(in srgb,var(--cd-accent) 15%,transparent);overflow:hidden;}
+#cdHomeFunnel .cd-consult-letter__slide {display:grid;grid-template-columns:minmax(0,1.08fr) minmax(340px,.92fr);min-height:420px;}
+#cdHomeFunnel .cd-consult-letter__slide[hidden] {display:none;}
+#cdHomeFunnel .cd-consult-letter__visual {position:relative;min-height:420px;overflow:hidden;background:color-mix(in srgb,var(--cd-accent) 18%,var(--cd-bg));}
+#cdHomeFunnel .cd-consult-letter__visual img {display:block;width:100%;height:100%;object-fit:cover;object-position:center;}
+#cdHomeFunnel .cd-consult-letter__visual::after {content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent 62%,color-mix(in srgb,var(--cd-accent) 16%,transparent));pointer-events:none;}
+#cdHomeFunnel .cd-consult-letter__visual > span {position:absolute;z-index:1;top:20px;left:20px;display:inline-flex;align-items:center;min-height:36px;padding:7px 14px;border:1px solid color-mix(in srgb,var(--cd-surface) 72%,transparent);border-radius:var(--cd-r-pill);background:color-mix(in srgb,var(--cd-accent) 88%,transparent);color:var(--cd-primary-ink);font-size:13px;font-weight:700;box-shadow:0 8px 22px color-mix(in srgb,var(--cd-text) 20%,transparent);}
+#cdHomeFunnel .cd-consult-letter__copy {display:flex;flex-direction:column;min-width:0;padding:34px 32px 28px;}
+#cdHomeFunnel .cd-consult-letter__copy h3 {margin:0;color:var(--cd-accent);font:700 clamp(24px,3vw,30px)/1.35 var(--cdh-serif);letter-spacing:-.03em;word-break:keep-all;}
+#cdHomeFunnel .cd-consult-letter__description {margin:12px 0 19px;color:var(--cd-text-muted);font-size:15px;line-height:1.78;word-break:keep-all;}
+#cdHomeFunnel .cd-consult-letter__copy dl {margin:0;padding:17px 0;border-block:1px solid var(--cd-line);}
+#cdHomeFunnel .cd-consult-letter__copy dt,#cdHomeFunnel .cd-consult-letter__result span {margin:0 0 8px;color:color-mix(in srgb,var(--cd-gold) 72%,var(--cd-text));font-size:13px;font-weight:800;}
+#cdHomeFunnel .cd-consult-letter__copy dd {margin:0;color:var(--cd-text);font-size:14px;line-height:1.7;word-break:keep-all;}
+#cdHomeFunnel .cd-consult-letter__result {display:flex;flex-direction:column;margin:16px 0 0;color:var(--cd-text-muted);font-size:14px;line-height:1.65;word-break:keep-all;}
+#cdHomeFunnel .cd-consult-letter__action {display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-top:auto;padding-top:22px;}
+#cdHomeFunnel .cd-consult-letter__price {color:var(--cd-accent);font-size:16px;font-weight:800;font-variant-numeric:tabular-nums;white-space:nowrap;}
+#cdHomeFunnel .cd-consult-letter__action > a {display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:48px;padding:0 20px;border-radius:var(--cd-r-pill);background:var(--cd-accent);color:var(--cd-primary-ink);font-size:14px;font-weight:800;text-decoration:none;box-shadow:0 9px 24px color-mix(in srgb,var(--cd-accent) 24%,transparent);}
+#cdHomeFunnel .cd-consult-letter__action > a:hover {background:color-mix(in srgb,var(--cd-accent) 88%,var(--cd-text));}
+#cdHomeFunnel .cd-consult-letter__controls {display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:14px;margin-top:18px;}
+#cdHomeFunnel .cd-consult-letter__controls > button {display:inline-flex;align-items:center;gap:8px;justify-self:start;min-height:44px;min-width:44px;padding:0;border:0;background:transparent;color:var(--cd-accent);font:700 14px/1.4 var(--font-body,sans-serif);cursor:pointer;}
+#cdHomeFunnel .cd-consult-letter__controls > button:last-child {justify-self:end;}
+#cdHomeFunnel .cd-consult-letter__controls svg {width:34px;height:34px;padding:8px;border:1px solid var(--cd-line);border-radius:50%;background:var(--cd-surface);fill:none;stroke:currentColor;stroke-width:1.6;}
+#cdHomeFunnel .cd-consult-letter__position {display:flex;align-items:center;gap:9px;color:var(--cd-text-muted);font-size:12px;font-variant-numeric:tabular-nums;}
+#cdHomeFunnel .cd-consult-letter__dots {display:flex;align-items:center;gap:0;}
+#cdHomeFunnel .cd-consult-letter__dots button {display:grid;place-items:center;width:32px;height:44px;min-width:32px;min-height:44px;padding:0;border:0;background:transparent;cursor:pointer;}
+#cdHomeFunnel .cd-consult-letter__dots button::before {content:"";width:26px;height:8px;border-radius:var(--cd-r-pill);background:color-mix(in srgb,var(--cd-accent) 30%,var(--cd-surface));transform:scaleX(.31);transition:transform .18s ease-out,background-color .18s ease-out;}
+#cdHomeFunnel .cd-consult-letter__dots button[aria-pressed="true"]::before {background:var(--cd-accent);transform:scaleX(1);}
+#cdHomeFunnel .cd-consult-letter :focus-visible {outline:3px solid var(--cd-accent);outline-offset:3px;}
 .cd-signature-featured {margin:8px 0 28px;}
 .cd-signature-featured .cd-picker-main {display:grid;grid-template-columns:1fr 1.25fr;gap:24px;padding:16px;background:#242139;color:#fffdf8;}
 .cd-signature-featured .cd-picker-main > img {aspect-ratio:3/2;}
@@ -330,12 +332,17 @@ html.cdh-input-open body .cdh-input-return:focus-visible{outline:3px solid var(-
 .cd-signature-featured .cd-picker-copy p {color:#ede7f5;}
 #cdHomeFunnel .cd-signature-featured .cd-sig-card__price,.cd-signature-featured .cd-picker-action {color:#f4d69f;}
 @media(max-width:699px){
- .cd-signature-popup {width:100%;max-height:85dvh;margin:auto 0 0;border-radius:22px 22px 0 0;}
- .cd-signature-popup__head {padding:16px;}
- .cd-signature-popup h2 {font-size:21px;}
- .cd-signature-popup__list {padding:4px 16px;}
- .cd-signature-popup__list > a {grid-template-columns:80px minmax(0,1fr);gap:12px;align-items:start;}
- .cd-signature-popup__copy strong {font-size:22px;}
- .cd-signature-popup footer {padding-inline:16px;}
+ #cdHomeFunnel .cd-consult-letter {margin:20px auto 28px;}
+ #cdHomeFunnel .cd-consult-letter__stage {border-radius:var(--cd-r-card);}
+ #cdHomeFunnel .cd-consult-letter__slide {grid-template-columns:1fr;min-height:0;}
+ #cdHomeFunnel .cd-consult-letter__visual {min-height:0;aspect-ratio:16/10;}
+ #cdHomeFunnel .cd-consult-letter__copy {padding:24px 21px 22px;}
+ #cdHomeFunnel .cd-consult-letter__copy h3 {font-size:24px;}
+ #cdHomeFunnel .cd-consult-letter__description {font-size:14px;}
+ #cdHomeFunnel .cd-consult-letter__action {align-items:flex-end;}
+ #cdHomeFunnel .cd-consult-letter__action > a {padding-inline:16px;}
+ #cdHomeFunnel [data-signature-letter-position] {position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;}
+ #cdHomeFunnel .cd-consult-letter__controls > button span {position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;}
  .cd-signature-featured .cd-picker-main {grid-template-columns:1fr;gap:0;}
 }
+@media(prefers-reduced-motion:reduce){#cdHomeFunnel .cd-consult-letter__dots button::before{transition:none;}}

@@ -2129,7 +2129,7 @@
       "honeyAttend": "Valider ma visite",
       "honeyUses": "Où les utiliser",
       "retry": "Vérifier à nouveau",
-      "signatureTitle": "Choisissez la consultation dont vous avez besoin",
+      "signatureTitle": "Découvrez chaque consultation, une à la fois",
       "signatureLead": "Lisez des interprétations IA par thème selon notre approche commune. Découvrez d'abord le contenu et les exemples.",
       "coMasters": "Vos guides",
       "loveNames": "Yeoni · Seo Hanbi",
@@ -2527,7 +2527,7 @@
       "description": "Choisissez un mot de Yeoni, une fleur, la lecture du jour ou un talisman."
     },
     "typographyPicker": {
-      "lead": "Choisissez ce qui vous préoccupe, puis comparez les consultations et leur contenu.",
+      "lead": "Prenez votre temps : découvrez ce que chaque consultation aborde et propose avant de choisir.",
       "allConsultations": "Toutes les consultations",
       "specific": "Préoccupations précises",
       "all": "Tout",

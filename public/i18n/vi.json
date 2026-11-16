@@ -2129,7 +2129,7 @@
       "honeyAttend": "Điểm danh",
       "honeyUses": "Xem nơi sử dụng",
       "retry": "Kiểm tra lại",
-      "signatureTitle": "Chọn tư vấn bạn cần lúc này",
+      "signatureTitle": "Khám phá từng tư vấn phù hợp với bạn lúc này",
       "signatureLead": "Đọc luận giải AI theo từng chủ đề trên cùng nền tảng diễn giải. Xem nội dung và ví dụ trước.",
       "coMasters": "Hai người hướng dẫn",
       "loveNames": "Yeoni · Seo Hanbi",
@@ -2527,7 +2527,7 @@
       "description": "Chọn lời nhắn của Yeoni, ý nghĩa loài hoa, vận trình hôm nay hoặc bùa may mắn."
     },
     "typographyPicker": {
-      "lead": "Chọn điều bạn đang băn khoăn, rồi so sánh cách tư vấn và nội dung nhận được.",
+      "lead": "Hãy thong thả đọc từng tư vấn giải quyết điều gì và mang lại nội dung nào trước khi chọn.",
       "allConsultations": "Tất cả tư vấn",
       "specific": "Băn khoăn cụ thể",
       "all": "Tất cả",
