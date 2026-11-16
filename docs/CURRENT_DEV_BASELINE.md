@@ -1,6 +1,6 @@
 # Current Dev Baseline
 
-Last curated: `2026-11-01`
+Last curated: `2026-11-16`
 
 ## Curation Rules
 
@@ -23,7 +23,14 @@ Last curated: `2026-11-01`
 
 ## Current Focus
 
-### Latest verified delivery — 2026-11-01
+### Latest verified delivery — 2026-11-16 (앱인토스 범위)
+
+- 앱인토스 진입은 `apps/toss/src/main.tsx` → `AppEntry.tsx` → `App.tsx`이며 네이티브 서비스는 `worker/toss/`에서 처리한다. 현재 출시 승인 범위는 무료 기능·기존 구매 기록이다. `lib/toss-release.mjs`의 서비스 활성화와 신규 판매 차단을 유지한다.
+- QR21 `20261116-21`(AIT 소스 `324b95f47`)은 콘솔 재확인 시 검토 중이다. 검토 취소·재제출·신규 판매·실결제를 하지 않으며, 승인 후 같은 범위의 공개 출시는 이미 사용자 승인을 받았다. 현재 승인·검증 정본: [출시 후보 기록](toss/launch-candidate-20261116.md).
+- 후속 저장 안내 수정 `543a13020`의 main CI [43762290829](https://github.com/rei1237/codedestiny/actions/runs/43762290829)와 최신 main `ac1ed9a3c`의 CI [43764040772](https://github.com/rei1237/codedestiny/actions/runs/43764040772)는 성공했다. 후속 소스가 검토 중 AIT나 운영 Worker에 자동 포함되는 것은 아니다.
+- 이번 큐레이션은 실행 계약·토스 출시 상태·관련 소스를 대조한 범위다. 아래 날짜가 붙은 타 서비스 실측·운영 기록은 당시 근거이며 이번에 다시 검증한 것으로 취급하지 않는다.
+
+### Prior verified delivery — 2026-11-01
 
 - SNULIFE 검수 코드·정식 코드 분리의 정본은 `worker/lib/snulife-code.js`, `worker/lib/snu-campus.js`다. 정식 1,000계정 모집은 게시일 확정 전 비활성이다. 검수는 별도 최대 3계정이며 기존 수량·수령 권리와 결제 정책을 보존한다.
 - 운영 릴리스 `4d58f3dc58e66bfd04dc265bf9dbf7392cab1c81`: 공식 CI [41209939007](https://github.com/rei1237/codedestiny/actions/runs/41209939007) 440 suites / 7,210 tests 성공, 공식 운영 [41213033014](https://github.com/rei1237/codedestiny/actions/runs/41213033014)에서 Worker·Pages SHA 일치 확인. 전용 계정의 검수 해금·재로그인·접근 조회 검증 후 제휴 검토 메일 1회 발송 완료. 상세는 [전달 기록](handoff/yeoni-activation-snu-2026-10-31.md).
