@@ -1,0 +1,40 @@
+{
+  "week": "2026-11-16",
+  "tool": "image_gen.imagegen",
+  "reference": "docs/design/character-references/yeoni-profile-v1.png",
+  "format": "WebP",
+  "width": 1200,
+  "height": 800,
+  "images": [
+    {
+      "slug": "lemon-broccoli-couscous",
+      "prompt": "Create one landscape 3:2 1200x800 illustration for a Korean recipe page. Warm hand-drawn storybook 2D ink outlines and watercolor flat fills, absolutely no photography or 3D render. Use the supplied sheet ONLY as reference for Yeoni's identity: round light pink pig, small snout, round dark eyes, pink lotus on head, lavender scarf tied like ribbon. Add white chef hat behind lotus and cream apron. lemon broccoli couscous salad with fluffy pale tiny couscous grains, broccoli florets, diced red bell pepper, sliced almonds. Yeoni gently tossing the salad with wooden spoons. Large finished salad bowl foreground. Cozy pastel kitchen, inviting food detail, clear readable food composition. No words, numbers, letters, watermarks, logos, text or buttons. Keep all key subjects inside 10% margins.",
+      "source": "C:\\Users\\user\\.codex\\generated_images\\01a12b74-17e4-7352-bc59-4440069b68f3\\exec-c2b85758-3784-4e6f-b927-550bbc0eb94a.png",
+      "output": "public/images/five-elements/lemon-broccoli-couscous-2d.webp"
+    },
+    {
+      "slug": "chicory-mushroom-pasta",
+      "prompt": "Create one landscape 3:2 1200x800 illustration for a Korean recipe page. Warm hand-drawn storybook 2D ink outlines and watercolor flat fills, absolutely no photography or 3D render. Use the supplied sheet ONLY as reference for Yeoni's identity: round light pink pig, small snout, round dark eyes, pink lotus on head, lavender scarf tied like ribbon. Add white chef hat behind lotus and cream apron. spaghetti with sauteed oyster mushrooms and fresh chicory leaves, olive oil garlic sauce, not cream. Yeoni twirling spaghetti with wooden tongs, finished two pasta nests in a ceramic plate foreground. Cozy pastel kitchen, inviting food detail, clear readable food composition. No words, numbers, letters, watermarks, logos, text or buttons. Keep all key subjects inside 10% margins.",
+      "source": "C:\\Users\\user\\.codex\\generated_images\\01a12b74-17e4-7352-bc59-4440069b68f3\\exec-adfadbd4-647f-4f4e-87e4-a4cd18a32c8e.png",
+      "output": "public/images/five-elements/chicory-mushroom-pasta-2d.webp"
+    },
+    {
+      "slug": "banana-oat-muffins",
+      "prompt": "Create one landscape 3:2 1200x800 illustration for a Korean recipe page. Warm hand-drawn storybook 2D ink outlines and watercolor flat fills, absolutely no photography or 3D render. Use the supplied sheet ONLY as reference for Yeoni's identity: round light pink pig, small snout, round dark eyes, pink lotus on head, lavender scarf tied like ribbon. Add white chef hat behind lotus and cream apron. three banana oat mini muffins with diced banana visible, no icing, no added decorative sugar. Yeoni spooning batter into a muffin tin, baked golden muffins on a small cooling rack foreground. Cozy pastel kitchen, inviting food detail, clear readable food composition. No words, numbers, letters, watermarks, logos, text or buttons. Keep all key subjects inside 10% margins.",
+      "source": "C:\\Users\\user\\.codex\\generated_images\\01a12b74-17e4-7352-bc59-4440069b68f3\\exec-b67a89f8-9b6f-4876-b988-e66df9a52574.png",
+      "output": "public/images/five-elements/banana-oat-muffins-2d.webp"
+    },
+    {
+      "slug": "pepper-cabbage-tofu-soup",
+      "prompt": "Create one landscape 3:2 1200x800 illustration for a Korean recipe page. Warm hand-drawn storybook 2D ink outlines and watercolor flat fills, absolutely no photography or 3D render. Use the supplied sheet ONLY as reference for Yeoni's identity: round light pink pig, small snout, round dark eyes, pink lotus on head, lavender scarf tied like ribbon. Add white chef hat behind lotus and cream apron. clear soup with tofu cubes, cabbage strips, carrot matchsticks and black pepper flecks. Yeoni stirring a little soup pot, large ceramic bowl of finished clear soup foreground. Cozy pastel kitchen, inviting food detail, clear readable food composition. No words, numbers, letters, watermarks, logos, text or buttons. Keep all key subjects inside 10% margins.",
+      "source": "C:\\Users\\user\\.codex\\generated_images\\01a12b74-17e4-7352-bc59-4440069b68f3\\exec-e42ff20c-6070-4f5b-84bb-7f92cad6a4e3.png",
+      "output": "public/images/five-elements/pepper-cabbage-tofu-soup-2d.webp"
+    },
+    {
+      "slug": "nori-sesame-rice-gratin",
+      "prompt": "Create one landscape 3:2 1200x800 illustration for a Korean recipe page. Warm hand-drawn storybook 2D ink outlines and watercolor flat fills, absolutely no photography or 3D render. Use the supplied sheet ONLY as reference for Yeoni's identity: round light pink pig, small snout, round dark eyes, pink lotus on head, lavender scarf tied like ribbon. Add white chef hat behind lotus and cream apron. baked rice gratin in an oval ceramic dish with broccoli florets, torn nori seaweed and a thin lightly browned cheese topping. Yeoni holding an oven mitt beside the dish on wooden trivet, little bowl of sesame seeds. Cozy pastel kitchen, inviting food detail, clear readable food composition. No words, numbers, letters, watermarks, logos, text or buttons. Keep all key subjects inside 10% margins.",
+      "source": "C:\\Users\\user\\.codex\\generated_images\\01a12b74-17e4-7352-bc59-4440069b68f3\\exec-e8f31658-6808-4b96-b9a6-4f4f4dedf00e.png",
+      "output": "public/images/five-elements/nori-sesame-rice-gratin-2d.webp"
+    }
+  ]
+}
