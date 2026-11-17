@@ -8,6 +8,12 @@ export default function MusicPlayer({scope,open}:{scope:string;open:boolean}){
  const [query,setQuery]=useState(''),[error,setError]=useState(''),[deadline,setDeadline]=useState(0),[minutes,setMinutes]=useState(0),[retry,setRetry]=useState(0);
  const track=tracks[index];
  useEffect(()=>{
+  const pause=()=>{audio.current?.pause();token.current++;setPlaying(false);};
+  const visibility=()=>{if(document.hidden)pause();};
+  document.addEventListener('visibilitychange',visibility);window.addEventListener('pagehide',pause);
+  return()=>{document.removeEventListener('visibilitychange',visibility);window.removeEventListener('pagehide',pause);};
+ },[]);
+ useEffect(()=>{
   setPlaying(false);setDeadline(0);setError('');
   if(typeof BroadcastChannel!=='undefined'){
    const bus=new BroadcastChannel('cd:moonlit-audio');channel.current=bus;bus.onmessage=()=>setPlaying(false);
@@ -35,7 +41,7 @@ export default function MusicPlayer({scope,open}:{scope:string;open:boolean}){
   setIndex(current=>shuffle&&tracks.length>1?(current+1+Math.floor(Math.random()*(tracks.length-1)))%tracks.length:(current+1)%tracks.length);setError('');
  };
  const play=(selected=index)=>{setError('');setIndex(selected);setPlaying(true);setRetry(value=>value+1);};
- return <section className={styles.music} data-open={open} aria-label="명상 음악" hidden={!open&&!playing&&!error}>
+ return <section className={styles.music} data-open={open} aria-label="명상 음악" hidden={!open}>
   <audio ref={audio} preload="none" onEnded={()=>{if(repeat){if(audio.current){audio.current.currentTime=0;setRetry(v=>v+1);}}else next();}} onError={()=>{setPlaying(false);setError('음원을 불러오지 못했어요. 다른 곡을 선택하거나 다시 시도해 주세요.');}} />
   <div className={styles.musicNow}><div><small>{playing?'지금 흐르는 음악':'선택한 음악'}</small><strong>{track.title}</strong></div><button className={styles.primary} onClick={()=>playing?setPlaying(false):play()}>{playing?'음악 멈추기':'음악 재생'}</button><button onClick={next}>다음 곡</button></div>
   {error&&<p role="alert">{error}<button onClick={()=>play()}>음악 다시 시도</button></p>}
