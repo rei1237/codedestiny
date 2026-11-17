@@ -38,6 +38,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
+import { stripComments } from "./lib/js-source-slice.mjs";
 
 import {
   CHANG_SHENG,
@@ -277,14 +278,6 @@ ok("② 표본이 0이 아니다", comparedKeys >= 216, `대조 키 ${comparedKe
     }
     return out;
   }
-  function stripComments(source) {
-    return source
-      .replace(/\/\*[\s\S]*?\*\//g, "")
-      .split("\n")
-      // 🔴 `$` 앵커를 쓰지 않는다 — CRLF 파일에서 행 끝 \r 이 `.` 에 안 잡혀 앵커가 막힌다.
-      .map((line) => line.replace(/(^|[^:])\/\/.*/, "$1"))
-      .join("\n");
-  }
 
   const found = [];
   let scanned = 0;
@@ -393,14 +386,6 @@ let compareHiddenStemTable = null;
       else if (SCAN_EXTENSIONS.has(path.extname(entry.name))) out.push(full);
     }
     return out;
-  }
-  function stripComments(source) {
-    return source
-      .replace(/\/\*[\s\S]*?\*\//g, "")
-      .split("\n")
-      // 🔴 `$` 앵커를 쓰지 않는다 — CRLF 파일에서 행 끝 \r 이 `.` 에 안 잡혀 앵커가 막힌다.
-      .map((line) => line.replace(/(^|[^:])\/\/.*/, "$1"))
-      .join("\n");
   }
 
   const KEY_PATTERNS = BRANCHES.map((branch, index) => new RegExp(
@@ -569,6 +554,10 @@ if (SELF_TEST) {
 
   const clean = findHiddenStemTables(asSource(canonicalRows));
   cases.push(["⑦ 합성 지장간 표를 실제로 발견한다", clean.length === 1 && clean[0].identifier === "T"]);
+  // 생성 파일 머리말의 경로 glob을 블록 주석 시작으로 오독하면 다음 PURE 주석까지 표가 사라진다.
+  const generated = stripComments(`// Generated from lib/saju/natal-core/*.mjs.\r\n${asSource(canonicalRows)}\nconst tail = /* @__PURE__ */ Object.freeze({});`);
+  cases.push(["⑦ 생성 머리말의 glob과 뒤쪽 PURE 주석 사이 표를 보존한다",
+    findHiddenStemTables(generated).some(table => table.identifier === "T")]);
   cases.push(["⑦ 정본 그대로면 어긋남이 없다",
     clean.length === 1 && compareHiddenStemTable(clean[0].values, { order: "main-first" }).length === 0]);
 
