@@ -70,6 +70,11 @@ try {
       window.dpOpenList();
     });
     await page.locator('#dpMasterCardHost .cdh-honey').waitFor({state:'visible'});
+    // Profile now keeps secondary sections collapsed until the reader opens them.
+    // Opening the sheet must not submit attendance on the reader's behalf.
+    assert.equal(await honeyDetails.evaluate(element => element.open), false);
+    assert.equal(requests.filter(r => r.path === '/api/honey/attendance' && r.method === 'POST').length, 0);
+    await honeyDetails.locator('summary').click();
     assert.equal(await honeyDetails.evaluate(element => element.open), true);
     await honeyDetails.locator('summary').click();
     assert.equal(await honeyDetails.evaluate(element => element.open), false);
@@ -80,6 +85,7 @@ try {
     assert.equal(await attendance.textContent(),'출석 체크 하기');
     await attendance.click();
     await page.waitForFunction(()=>document.querySelector('[data-cd-honey-attend]').textContent==='오늘 출석 체크 완료');
+    assert.equal(requests.filter(r => r.path === '/api/honey/attendance' && r.method === 'POST').length, 1);
     for (const width of [360,390,430,1280]) {
       await page.setViewportSize({width,height:900});
       await page.locator('.cdh-honey').scrollIntoViewIfNeeded();
