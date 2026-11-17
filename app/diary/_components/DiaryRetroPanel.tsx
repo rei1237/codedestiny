@@ -47,7 +47,7 @@ export default function DiaryRetroPanel({
 }) {
   const { updateEntry } = useDiaryWriter();
   const note = useDiaryDraft(entry?.reviewNote || "", (next) => {
-    updateEntry(ymd, writeRetroNote(next));
+    return updateEntry(ymd, writeRetroNote(next));
   });
   const rate = Number(entry?.reviewRate) || 0;
 

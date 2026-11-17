@@ -15,6 +15,7 @@ import {
   type DiaryExtStore,
 } from "./ext-snapshot";
 import { parseYmd } from "./kst-date";
+import { plannerRecordDays } from "./planner";
 import { readAchievement, readStoredEntry, type DiaryLegacyStore } from "./today-snapshot";
 
 /** 하루치를 목록·검색이 쓰는 형태로 편 것. 빈 하루는 여기까지 오지 않는다. */
@@ -47,6 +48,7 @@ export function buildDiaryRecordRows(
   store: DiaryLegacyStore,
   ext: DiaryExtStore,
 ): DiaryRecordRow[] {
+  ext = plannerRecordDays(ext);
   const ymds = new Set([...Object.keys(store || {}), ...Object.keys(ext || {})]);
   const rows: DiaryRecordRow[] = [];
 

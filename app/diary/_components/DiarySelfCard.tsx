@@ -7,7 +7,7 @@ import { useDiaryDraft } from "../_lib/use-diary-draft";
 import styles from "../_styles/diary.module.css";
 
 /**
- * 홈 ② 오늘의 나. 기분과 한 줄 메모를 여기서 바로 쓴다(PR-E).
+ * 오늘의 나. 일기와 공유하는 메모는 줄바꿈을 유지한다.
  *
  * 🔴 저장 버튼이 없다 — 메모는 입력이 멈추면 저장한다(`../_lib/use-diary-draft.ts`).
  * 기분 목록과 저장 필드는 `DiaryMoodPicker` 하나가 들고 있다(셸과 같은 6개).
@@ -22,7 +22,7 @@ const DIARY_SELF_CARD_TEXT = {
     todo: "미완료",
     moodLabel: "오늘의 기분",
     moodEmpty: "아직 고르지 않았습니다.",
-    memoPlaceholder: "한 줄 메모",
+    memoPlaceholder: "오늘의 메모",
   },
   en: {
     title: "Today's self",
@@ -32,7 +32,7 @@ const DIARY_SELF_CARD_TEXT = {
     todo: "Not yet",
     moodLabel: "Today's mood",
     moodEmpty: "Not chosen yet.",
-    memoPlaceholder: "One line memo",
+    memoPlaceholder: "Today's memo",
   },
 } as const;
 
@@ -44,8 +44,8 @@ export default function DiarySelfCard() {
   const affirmation = entry?.iAmAffirmation?.trim() || "";
   const mood = entry?.moodEmoji || "";
   const memo = useDiaryDraft(entry?.memoNote || "", (next) => {
-    updateEntry(ymd, writeMemo(next));
-  });
+    return updateEntry(ymd, writeMemo(next));
+  }, ymd + ":memo");
 
   return (
     <section className={styles.card} aria-label={copy.title}>
@@ -70,9 +70,9 @@ export default function DiarySelfCard() {
           <DiaryMoodPicker ymd={ymd} mood={mood} label={copy.moodLabel} />
           {!mood ? <p className={styles.emptySmall}>{copy.moodEmpty}</p> : null}
 
-          <input
+          <textarea
             className={styles.input}
-            type="text"
+            rows={3}
             value={memo.value}
             onChange={(event) => memo.onChange(event.target.value)}
             onBlur={memo.flush}

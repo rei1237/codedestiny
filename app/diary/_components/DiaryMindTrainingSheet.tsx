@@ -106,16 +106,16 @@ export default function DiaryMindTrainingSheet({ onClose }: { onClose: () => voi
   const keyword = trainingKeywordOf(dayGroupOf(chart, ymd));
 
   const scene = useDiaryDraft(entry?.satsScene || "", (next) => {
-    updateEntry(ymd, writeSatsScene(next));
+    return updateEntry(ymd, writeSatsScene(next));
   });
   const original = useDiaryDraft(entry?.revisionOriginal || "", (next) => {
-    updateEntry(ymd, writeRevision("original", next));
+    return updateEntry(ymd, writeRevision("original", next));
   });
   const imagined = useDiaryDraft(entry?.revisionImagined || "", (next) => {
-    updateEntry(ymd, writeRevision("imagined", next));
+    return updateEntry(ymd, writeRevision("imagined", next));
   });
   const affirmation = useDiaryDraft(entry?.iAmAffirmation || "", (next) => {
-    updateEntry(ymd, writeIamAffirmation(next));
+    return updateEntry(ymd, writeIamAffirmation(next));
   });
 
   const revisionCount = Number(entry?.revisionDoneCount) || 0;

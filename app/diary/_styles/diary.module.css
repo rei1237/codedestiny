@@ -19,6 +19,7 @@
  */
 
 .shell {
+  --dy-color-scheme: light;
   /* 🔴 transform / filter / backdrop-filter / contain 금지 —
      시트를 포털 없이 position:fixed 로 덮으려면 조상에 containing block 이 없어야 한다. */
 
@@ -98,6 +99,7 @@
 :global(html.neo-mode) .shell,
 :global(body.neo-mode) .shell,
 html[data-cd-theme="neo"] .shell {
+  --dy-color-scheme: dark;
   --dy-bg: #251e38;
   --dy-surface: #372940;
   --dy-surface-2: #372940;
@@ -147,6 +149,8 @@ html[data-cd-theme="neo"] .shell {
   /* 하단 고정물 자리 자체 공급. `verify:app-bottom-clearance` 는 /diary 를 보지 않으므로
      이 값은 __tests__/ui/diary-route-chrome.test.js 가 지킨다. */
   padding-bottom: calc(var(--dy-bottom-offset) + var(--cd-sp-lg));
+  max-width: 1220px;
+  margin-inline: auto;
 }
 
 /* ── 상단바 ─────────────────────────────────────────────────────────── */
@@ -2163,11 +2167,18 @@ html[data-cd-theme="neo"] .shell {
 .recordEmbedded .achieveFill { background:var(--dc-honey-deep, var(--dy-accent)); }
 
 .moreToday { width: min(100%, 720px); margin: 0 auto; }
-.moreToday > summary { display:flex; align-items:center; justify-content:space-between; min-height:48px; padding:12px 16px; border:1px solid var(--cd-border); border-radius:var(--cd-r-control); background:var(--cd-surface); color:var(--cd-text); font-weight:700; cursor:pointer; }
+.moreToday > summary { display:flex; align-items:center; justify-content:space-between; min-height:48px; padding:12px 16px; border:1px solid var(--dy-line-ui); border-radius:var(--cd-r-control); background:var(--dy-surface); color:var(--dy-text); font-weight:700; cursor:pointer; }
 .moreToday > summary::after { content:"+"; font-size:1.2rem; }
 .moreToday[open] > summary::after { content:"−"; }
-.moreToday > summary:focus-visible { outline:2px solid var(--cd-focus-ring); outline-offset:3px; }
+.moreToday > summary:focus-visible { outline:2px solid var(--dy-focus); outline-offset:3px; }
 .moreToday > .card { margin-top:12px; }
+.todayLayout{display:grid;align-items:start;gap:var(--cd-sp-lg);width:100%;max-width:1180px;margin-inline:auto}
+.todayLayout>.card{width:100%;max-width:none;min-width:0;margin:0}
+.draftStatus{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;font:400 14px/1.7 var(--font-body);color:var(--dy-muted);margin:8px 0}
+.draftStatus button{min-height:44px;border:1px solid var(--dy-line-ui);border-radius:var(--cd-r-control);padding:8px 12px;background:var(--dy-surface);color:var(--dy-accent);font:600 14px/1.5 var(--font-body);cursor:pointer}
+.journal textarea{min-height:180px;resize:vertical;line-height:1.8}
+@media(min-width:1000px){.todayLayout{grid-template-columns:minmax(0,1.1fr) minmax(0,1fr)}}
+@media(max-width:430px){.main{padding-inline:12px}}
 
 .drawCard { display:grid; grid-template-columns:clamp(76px,19vw,112px) 1fr; align-items:center; gap:16px; padding:18px; border-radius:24px; background:var(--dy-surface); border:1px solid var(--dy-line); color:var(--dy-text); }
 .drawCard > img,.journalCrest img { width:100%; height:auto; aspect-ratio:1; object-fit:cover; border-radius:22px; }

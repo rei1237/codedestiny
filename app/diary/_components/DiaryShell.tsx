@@ -24,9 +24,11 @@ export default function DiaryShell({ children }: { children: ReactNode }) {
   // 저장소·운기 스냅샷은 같은 이유로 `DiaryStoreProvider` 가 이펙트에서 한 번만 읽는다.
   const [today, setToday] = useState("");
   const [embedded, setEmbedded] = useState(false);
+  const [returnToProfile, setReturnToProfile] = useState(false);
   useEffect(() => {
     const refreshDate = () => setToday(formatKoreanDate(kstTodayYmd()));
     refreshDate();
+    setReturnToProfile(new URLSearchParams(window.location.search).get('from') === 'profile');
     try {
       const insideGarden = window.frameElement?.getAttribute('data-profile-diary') === 'true';
       setEmbedded(insideGarden);
@@ -51,7 +53,7 @@ export default function DiaryShell({ children }: { children: ReactNode }) {
     <div className={`${styles.shell} cd-yehwa-scope`} data-garden-embedded={embedded || undefined}>
       {/* 🔴 하단바도 provider 안이다 — ＋ 퀵캡처가 오늘 스냅샷과 저장 함수를 쓴다(PR-E). */}
       <DiaryStoreProvider>
-        <DiaryTopBar subtitle={today || undefined} embedded={embedded} />
+        <DiaryTopBar subtitle={today || undefined} embedded={embedded} returnToProfile={returnToProfile} />
         {/* 🔴 명상 오디오도 셸 레벨이다 — 시트 안에 두면 시트를 닫는 순간 재생이 끊긴다.
             저장(들은 분)을 위해 provider 안쪽이어야 한다. */}
         <DiaryAudioProvider>

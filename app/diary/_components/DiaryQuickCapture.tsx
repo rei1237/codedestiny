@@ -1,64 +1,36 @@
 "use client";
-
-import { useEffect } from "react";
-
+import { useEffect, useState } from "react";
+import { CalendarPlus, ListTodo, NotebookPen, X } from "lucide-react";
 import DiaryEntryFields from "./DiaryEntryFields";
+import DiaryScheduleList from "./DiaryScheduleList";
+import DiaryTodoList from "./DiaryTodoList";
 import { useDiaryToday } from "./DiaryStoreProvider";
-import { formatKoreanDate } from "../_lib/kst-date";
+import { readStoredEntry } from "../_lib/today-snapshot";
+import { formatKoreanDate, parseYmd } from "../_lib/kst-date";
 import styles from "../_styles/diary.module.css";
+import planner from "../_styles/planner.module.css";
 
-/**
- * 하단바 ＋ 가 여는 퀵캡처 시트. **오늘 하루**에만 쓴다 — 다른 날에 쓰는 자리는 달력의 Day View 다.
- *
- * 🔴 Day View 와 같은 규칙으로 만든다 — 스크림도 바디 스크롤 락도 걸지 않는다
- * (`app/_lib/body-scroll-lock.ts` 가 이 레포의 락 정본이고, 여기에 두 번째 락을 만들지 않는다).
- * 🔴 저장 버튼이 없으므로 닫기는 취소가 아니다 — 적은 것은 이미 저장되어 있다.
- */
-
-const DIARY_QUICK_CAPTURE_TEXT = {
-  ko: { title: "기록 추가", close: "닫기", loading: "오늘의 기록을 불러오는 중입니다." },
-  en: { title: "Add entry", close: "Close", loading: "Loading today's entry." },
-} as const;
-
-const copy = DIARY_QUICK_CAPTURE_TEXT.ko;
-
-export default function DiaryQuickCapture({ onClose }: { onClose: () => void }) {
-  const { hydrated, ymd, entry } = useDiaryToday();
-
-  // 🔴 여는 순간 첫 칸에 초점이 간다(`DiaryEntryFields autoFocus`) — 닫기 버튼으로 초점을
-  // 옮기면 열자마자 쓰려던 사람이 한 번 더 눌러야 한다.
-  useEffect(() => {
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") onClose();
-    };
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, [onClose]);
-
-  return (
-    <aside className={styles.sheet} aria-label={copy.title}>
-      <span className={styles.sheetHandle} aria-hidden="true" />
-      <header className={styles.sheetHead}>
-        <h2 className={styles.sheetTitle}>
-          {hydrated && ymd ? formatKoreanDate(ymd) : copy.title}
-        </h2>
-        <button
-          type="button"
-          className={styles.iconButton}
-          onClick={onClose}
-          aria-label={copy.close}
-        >
-          ✕
-        </button>
-      </header>
-
-      <div className={styles.dvPanel}>
-        {hydrated && ymd ? (
-          <DiaryEntryFields ymd={ymd} entry={entry} autoFocus />
-        ) : (
-          <p className={styles.empty}>{copy.loading}</p>
-        )}
+export default function DiaryQuickCapture({ onClose, ymd, initialKind = "schedule" }: { onClose:()=>void; ymd?:string; initialKind?:"entry"|"schedule"|"todo" }) {
+  const {hydrated,ymd:today,store}=useDiaryToday();
+  const [date,setDate]=useState(ymd||today);
+  const [kind,setKind]=useState(initialKind);
+  useEffect(()=>{setDate(ymd||today);},[ymd,today]);
+  useEffect(()=>{const close=(event:KeyboardEvent)=>{if(event.key==="Escape")onClose();};window.addEventListener("keydown",close);return()=>window.removeEventListener("keydown",close);},[onClose]);
+  return <aside className={styles.sheet} aria-label="새로 추가">
+    <span className={styles.sheetHandle} aria-hidden="true"/>
+    <header className={styles.sheetHead}><h2 className={styles.sheetTitle}>{date?formatKoreanDate(date):"새로 추가"}</h2><button type="button" className={styles.iconButton} onClick={onClose} aria-label="추가 화면 닫기"><X size={20}/></button></header>
+    <div className={styles.dvPanel}>
+      <div className={planner.captureTabs} role="group" aria-label="추가할 내용">
+        <button type="button" aria-pressed={kind==="schedule"} onClick={()=>setKind("schedule")}><CalendarPlus size={17} aria-hidden="true"/>일정</button>
+        <button type="button" aria-pressed={kind==="todo"} onClick={()=>setKind("todo")}><ListTodo size={17} aria-hidden="true"/>할 일</button>
+        <button type="button" aria-pressed={kind==="entry"} onClick={()=>setKind("entry")}><NotebookPen size={17} aria-hidden="true"/>일기</button>
       </div>
-    </aside>
-  );
+      <label className={planner.field}>기록 날짜<input type="date" value={date} onChange={event=>{if(parseYmd(event.target.value))setDate(event.target.value);}}/></label>
+      {hydrated&&date?<div key={date+":"+kind}>
+        {kind==="schedule"&&<DiaryScheduleList ymd={date} initialOpen/>}
+        {kind==="todo"&&<DiaryTodoList ymd={date} initialOpen/>}
+        {kind==="entry"&&<DiaryEntryFields ymd={date} entry={readStoredEntry(store,date)} autoFocus showTags/>}
+      </div>:<p role="status">기록을 펼치고 있어요.</p>}
+    </div>
+  </aside>;
 }

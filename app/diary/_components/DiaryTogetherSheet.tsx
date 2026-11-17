@@ -154,10 +154,10 @@ export default function DiaryTogetherSheet({ onClose }: { onClose: () => void })
   const shared = pickSharedDay(days);
 
   const name = useDiaryDraft(String(entry?.partnerName || partner?.name || ""), (next) => {
-    updateEntry(ymd, writePartnerName(next.trim()));
+    return updateEntry(ymd, writePartnerName(next.trim()));
   });
   const note = useDiaryDraft(readPartnerNote(readExtDay(ext, ymd)), (next) => {
-    updateExtDay(ymd, writePartnerNote(next));
+    return updateExtDay(ymd, writePartnerNote(next));
   });
 
   const birthDate = partner?.birthDate || "";

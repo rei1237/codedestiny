@@ -2,10 +2,11 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { SunMoon, CalendarDays, NotebookPen, Ellipsis, Plus } from "lucide-react";
 
 import DiaryQuickCapture from "./DiaryQuickCapture";
+import { parseYmd } from "../_lib/kst-date";
 import styles from "../_styles/diary.module.css";
 
 /**
@@ -23,7 +24,7 @@ const DIARY_NAV_TEXT = {
   ko: {
     home: "오늘",
     calendar: "달력",
-    capture: "기록 추가",
+    capture: "새로 추가",
     records: "기록",
     more: "더보기",
     pending: "준비 중입니다",
@@ -69,6 +70,17 @@ export default function DiaryBottomNav() {
   const pathname = usePathname() || "/diary";
   const current = stripSlash(pathname);
   const [capture, setCapture] = useState(false);
+  const [captureDate, setCaptureDate] = useState<string | undefined>();
+  const captureTrigger = useRef<HTMLButtonElement>(null);
+  const closeCapture = () => {
+    setCapture(false);
+    requestAnimationFrame(() => captureTrigger.current?.focus({ preventScroll:true }));
+  };
+  const toggleCapture = () => {
+    const selected = new URLSearchParams(window.location.search).get('d') || '';
+    setCaptureDate(parseYmd(selected) ? selected : undefined);
+    setCapture(open => !open);
+  };
 
   const renderTab = (tab: DiaryNavTab) => {
     const isCurrent =
@@ -110,9 +122,10 @@ export default function DiaryBottomNav() {
       <nav className={styles.bottomNav} aria-label={copy.home}>
         {DIARY_NAV_TABS.slice(0, 2).map(renderTab)}
         <button
+          ref={captureTrigger}
           type="button"
           className={`${styles.navItem} ${styles.navCapture}`}
-          onClick={() => setCapture((open) => !open)}
+          onClick={toggleCapture}
           aria-expanded={capture}
           aria-label={copy.capture}
         >
@@ -122,7 +135,7 @@ export default function DiaryBottomNav() {
         </button>
         {DIARY_NAV_TABS.slice(2).map(renderTab)}
       </nav>
-      {capture ? <DiaryQuickCapture onClose={() => setCapture(false)} /> : null}
+      {capture ? <DiaryQuickCapture ymd={captureDate} onClose={closeCapture} /> : null}
     </>
   );
 }

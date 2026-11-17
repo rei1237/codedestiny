@@ -24,8 +24,8 @@ const DIARY_ENTRY_FIELDS_TEXT = {
     mood: "기분",
     oneLine: "오늘 한 줄",
     oneLinePlaceholder: "오늘을 한 줄로 남겨 보세요",
-    memo: "메모",
-    memoPlaceholder: "짧게 덧붙일 말",
+    memo: "오늘의 일기",
+    memoPlaceholder: "마음에 남은 장면을 편하게 적어 보세요.",
   },
   en: {
     mood: "Mood",
@@ -51,11 +51,11 @@ export default function DiaryEntryFields({
 }) {
   const { updateEntry } = useDiaryWriter();
   const oneLine = useDiaryDraft(entry?.practiceNote || entry?.nightLog || "", (next) => {
-    updateEntry(ymd, writeOneLine(next));
-  });
+    return updateEntry(ymd, writeOneLine(next));
+  }, ymd + ":oneLine");
   const memo = useDiaryDraft(entry?.memoNote || "", (next) => {
-    updateEntry(ymd, writeMemo(next));
-  });
+    return updateEntry(ymd, writeMemo(next));
+  }, ymd + ":memo");
 
   return (
     <>
@@ -76,15 +76,20 @@ export default function DiaryEntryFields({
       />
 
       <p className={styles.fieldLabel}>{copy.memo}</p>
-      <input
+      <textarea
         className={styles.input}
-        type="text"
         value={memo.value}
+        rows={6}
         onChange={(event) => memo.onChange(event.target.value)}
         onBlur={memo.flush}
         placeholder={copy.memoPlaceholder}
         aria-label={copy.memo}
       />
+
+      <p className={styles.draftStatus} role="status">
+        {oneLine.status === "error" || memo.status === "error" ? "저장하지 못했어요. 글은 남겨 두었어요." : oneLine.status === "pending" || memo.status === "pending" ? "입력 중 · 잠시 후 저장해요" : oneLine.status === "saved" || memo.status === "saved" ? "이 브라우저에 저장했어요" : "입력을 멈추면 이 브라우저에 저장해요"}
+        {(oneLine.status === "error" || memo.status === "error") && <button type="button" onClick={() => { oneLine.flush(); memo.flush(); }}>다시 저장하기</button>}
+      </p>
 
       {showTags ? <DiaryTagField ymd={ymd} /> : null}
     </>

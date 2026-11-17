@@ -20,6 +20,7 @@ import {
 import { readLastBackupAt, writeLastBackupAt } from "@/lib/diary/diary-ext-store";
 
 import { kstTodayYmd } from "./kst-date";
+import { clearRecoveredDrafts } from "./draft-recovery";
 
 /** 파일 하나가 들고 오는 것. 화면은 이 요약만 보고 「반영」 버튼을 열지 말지 정한다. */
 export interface DiaryBackupPreview {
@@ -182,7 +183,9 @@ export function clearDiaryDataOnDevice(): boolean {
   const store = storage();
   if (!store) return false;
   try {
-    return clearDiaryData(store).ok;
+    const ok = clearDiaryData(store).ok;
+    if (ok) clearRecoveredDrafts();
+    return ok;
   } catch {
     return false;
   }

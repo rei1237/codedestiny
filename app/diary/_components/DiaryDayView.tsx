@@ -95,6 +95,10 @@ interface DiaryDayViewProps {
 
 export default function DiaryDayView({ ymd, fortune, group, entry, onClose }: DiaryDayViewProps) {
   const closeRef = useRef<HTMLButtonElement | null>(null);
+  useEffect(() => {
+    const previous = document.activeElement;
+    return () => { if (previous instanceof HTMLElement && previous.isConnected) previous.focus({ preventScroll:true }); };
+  }, []);
   const [tab, setTab] = useState<DiaryDayTab>("summary");
   const detail = buildDiaryDayDetail(fortune, group);
   const marks = readDayMarks(entry);

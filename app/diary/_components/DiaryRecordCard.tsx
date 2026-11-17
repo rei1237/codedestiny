@@ -1,6 +1,7 @@
 "use client";
 
-import { readExtDay, readTags } from "../_lib/ext-snapshot";
+import { readTags } from "../_lib/ext-snapshot";
+import { plannedDay } from "../_lib/planner";
 import { readAchievement } from "../_lib/today-snapshot";
 import { useDiaryToday, useDiaryWriter } from "./DiaryStoreProvider";
 import { writeOneLine } from "../_lib/entry-writes";
@@ -45,9 +46,9 @@ export default function DiaryRecordCard({ embedded = false }: { embedded?: boole
   const { hydrated, ymd, entry, ext } = useDiaryToday();
   const { updateEntry } = useDiaryWriter();
   const note = useDiaryDraft(entry?.practiceNote || entry?.nightLog || "", (next) => {
-    updateEntry(ymd, writeOneLine(next));
+    return updateEntry(ymd, writeOneLine(next));
   });
-  const extDay = readExtDay(ext, ymd);
+  const extDay = plannedDay(ext, ymd);
   const tags = readTags(extDay);
   const { done, total } = readAchievement(entry, extDay);
   const percent = total > 0 ? Math.round((Math.min(done, total) / total) * 100) : 0;

@@ -4,7 +4,7 @@ import DiaryRoutineList from "./DiaryRoutineList";
 import DiaryScheduleList from "./DiaryScheduleList";
 import DiaryTodoList from "./DiaryTodoList";
 import { useDiaryToday } from "./DiaryStoreProvider";
-import { readExtDay } from "../_lib/ext-snapshot";
+import { plannedDay } from "../_lib/planner";
 import { readAchievement } from "../_lib/today-snapshot";
 import styles from "../_styles/diary.module.css";
 
@@ -49,7 +49,7 @@ const copy = DIARY_PLAN_CARD_TEXT.ko;
 
 export default function DiaryPlanCard() {
   const { hydrated, ymd, entry, ext } = useDiaryToday();
-  const { done, total } = readAchievement(entry, readExtDay(ext, ymd));
+  const { done, total } = readAchievement(entry, plannedDay(ext, ymd));
 
   return (
     <section className={styles.card} aria-label={copy.title}>

@@ -1,106 +1,58 @@
 "use client";
-
-import { useState, type FormEvent } from "react";
-
+import { useEffect, useRef, useState, type FormEvent } from "react";
+import { Check, Pencil, Plus, X } from "lucide-react";
 import { useDiaryToday, useDiaryWriter } from "./DiaryStoreProvider";
-import { readExtDay, readTodos } from "../_lib/ext-snapshot";
 import { addTodo, normalizePlanText, removeTodo, toggleTodo } from "../_lib/ext-writes";
+import { resolveTodos, type PlannedTodo } from "../_lib/planner";
+import { parseYmd } from "../_lib/kst-date";
 import { DIARY_EXT_TEXT_MAX } from "@/lib/diary/diary-ext-store";
-import styles from "../_styles/diary.module.css";
+import styles from "../_styles/planner.module.css";
 
-/**
- * 그날의 할 일 — **오늘 끝낼 것**. 완료 토글 방식은 루틴 목록(`DiaryRoutineList`)과 같게 두어
- * 한 카드 안에서 누르는 법이 갈리지 않게 한다.
- *
- * 🔴 루틴과 저장 자리가 다르다 — 루틴은 셸과 공유하는 v2 의 `challenges`/`challengeCatalog` 이고
- * 할 일은 `/diary` 전용 확장 키다. 목업 승인본대로 **시간축(일정)·완료축(할 일)·연속축(루틴)** 이
- * 소제목과 저장 필드 양쪽에서 갈려 있어야 한다.
- *
- * 🔴 완료한 줄을 아래로 내리지 않는다 — 누른 순간 줄이 움직이면 다음 항목을 잘못 누른다.
- */
-
-const DIARY_TODO_TEXT = {
-  ko: {
-    empty: "적어 둔 할 일이 아직 없습니다.",
-    textLabel: "할 일 내용",
-    placeholder: "오늘 끝낼 것 하나",
-    add: "할 일 추가",
-    remove: "삭제",
-  },
-  en: {
-    empty: "No to-do noted yet.",
-    textLabel: "To do",
-    placeholder: "One thing to finish today",
-    add: "Add to do",
-    remove: "Delete",
-  },
-} as const;
-
-const copy = DIARY_TODO_TEXT.ko;
-
-export default function DiaryTodoList({ ymd }: { ymd: string }) {
-  const { ext } = useDiaryToday();
-  const { updateExtDay } = useDiaryWriter();
-  const [text, setText] = useState("");
-
-  const items = readTodos(readExtDay(ext, ymd));
-
-  const onSubmit = (event: FormEvent<HTMLFormElement>) => {
+export default function DiaryTodoList({ ymd, initialOpen = false }: { ymd:string; initialOpen?:boolean }) {
+  const {ext} = useDiaryToday();
+  const {updateExtDay} = useDiaryWriter();
+  const [editing,setEditing] = useState<PlannedTodo | null | undefined>(initialOpen ? null : undefined);
+  const [text,setText] = useState("");
+  const [date,setDate] = useState(ymd);
+  const [error,setError] = useState("");
+  const [message,setMessage] = useState("");
+  const [deleting,setDeleting] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const addRef = useRef<HTMLButtonElement>(null);
+  const lastTrigger = useRef<HTMLElement | null>(null);
+  const wasOpen = useRef(false);
+  const open=editing !== undefined;
+  useEffect(()=>{if(open)inputRef.current?.focus();else if(wasOpen.current)(lastTrigger.current?.isConnected?lastTrigger.current:addRef.current)?.focus();wasOpen.current=open;},[open]);
+  const start=(item:PlannedTodo|null,trigger:HTMLElement)=>{lastTrigger.current=trigger;setEditing(item);setText(item?.text||"");setDate(item?.date||ymd);setError("");setDeleting(false);setMessage("");};
+  const save=(event:FormEvent)=>{
     event.preventDefault();
-    if (!normalizePlanText(text)) return;
-    if (!updateExtDay(ymd, addTodo(text))) return;
-    setText("");
+    const value=normalizePlanText(text);
+    if(!value||!parseYmd(date)){setError("할 일과 날짜를 확인해 주세요.");return;}
+    const saved=editing?.id ? updateExtDay(editing.sourceYmd,day=>{day.todos=(day.todos||[]).map(item=>item.id===editing.id?{...item,text:value,date}:item);})
+      : updateExtDay(ymd,day=>{addTodo(value)(day);const item=day.todos?.[day.todos.length-1];if(item)item.date=date;});
+    if(!saved){setError("저장하지 못했어요. 입력을 확인하고 다시 저장해 주세요.");return;}
+    setEditing(undefined);setMessage(date===ymd?"할 일을 저장했어요.":date+"에 할 일을 저장했어요.");
   };
-
-  return (
-    <>
-      {items.length ? (
-        <ul className={styles.planList}>
-          {items.map((item) => {
-            const done = item.done === true;
-            return (
-              <li key={item.id} className={styles.planRow}>
-                <button
-                  type="button"
-                  className={done ? styles.routineDone : styles.routineItem}
-                  aria-pressed={done}
-                  onClick={() => item.id && updateExtDay(ymd, toggleTodo(item.id))}
-                >
-                  <span className={styles.routineMark} aria-hidden="true">
-                    {done ? "✓" : "○"}
-                  </span>
-                  <span>{item.text}</span>
-                </button>
-                <button
-                  type="button"
-                  className={styles.planRemove}
-                  aria-label={`${item.text} ${copy.remove}`}
-                  onClick={() => item.id && updateExtDay(ymd, removeTodo(item.id))}
-                >
-                  <span aria-hidden="true">✕</span>
-                </button>
-              </li>
-            );
-          })}
-        </ul>
-      ) : (
-        <p className={styles.emptySmall}>{copy.empty}</p>
-      )}
-
-      <form className={styles.planAdd} onSubmit={onSubmit}>
-        <input
-          className={styles.input}
-          type="text"
-          value={text}
-          maxLength={DIARY_EXT_TEXT_MAX}
-          onChange={(event) => setText(event.target.value)}
-          placeholder={copy.placeholder}
-          aria-label={copy.textLabel}
-        />
-        <button type="submit" className={styles.planAddButton} disabled={!text.trim()}>
-          {copy.add}
-        </button>
-      </form>
-    </>
-  );
+  const remove=()=>{
+    if(!editing?.id)return;
+    if(!updateExtDay(editing.sourceYmd,removeTodo(editing.id))){setError("삭제하지 못했어요. 다시 시도해 주세요.");return;}
+    setEditing(undefined);setMessage("할 일을 삭제했어요.");
+  };
+  return <div className={styles.scheduleSection}>
+    {resolveTodos(ext,ymd).length ? <ul className={styles.agendaList}>{resolveTodos(ext,ymd).map(item=><li key={item.sourceYmd+":"+item.id} className={styles.todoRow}>
+      <button type="button" className={styles.todoToggle} aria-pressed={item.done===true} aria-label={item.text+(item.done?" 완료 취소":" 완료하기")} disabled={!item.id} onClick={()=>item.id&&updateExtDay(item.sourceYmd,toggleTodo(item.id))}><span className={styles.checkMark}>{item.done&&<Check size={16} aria-hidden="true"/>}</span><span className={item.done?styles.doneText:undefined}>{item.text}</span></button>
+      <button type="button" className={styles.iconButton} onClick={event=>start(item,event.currentTarget)} disabled={!item.id} aria-label={item.text+" 할 일 수정"}><Pencil size={17} aria-hidden="true"/></button>
+    </li>)}</ul>:!open&&<p className={styles.empty}>오늘 끝내고 싶은 일 하나를 적어 보세요.</p>}
+    {!open&&<button ref={addRef} type="button" className={styles.addButton} onClick={event=>start(null,event.currentTarget)}><Plus size={18} aria-hidden="true"/>할 일 추가</button>}
+    {open&&<form className={styles.editor} onSubmit={save} aria-label={editing?"할 일 수정":"새 할 일"}>
+      <header className={styles.editorHead}><h3>{editing?"할 일 수정":"새 할 일"}</h3><button type="button" className={styles.iconButton} onClick={()=>setEditing(undefined)} aria-label="할 일 편집 닫기"><X size={20}/></button></header>
+      <label className={styles.field}>할 일 내용<input ref={inputRef} value={text} onChange={event=>setText(event.target.value)} maxLength={DIARY_EXT_TEXT_MAX} required placeholder="차근차근, 한 가지씩"/></label>
+      <label className={styles.field}>날짜<input type="date" value={date} onChange={event=>setDate(event.target.value)} required/></label>
+      {error&&<p role="alert" className={styles.error}>{error}</p>}
+      <div className={styles.editorActions}><button type="button" className={styles.secondaryButton} onClick={()=>setEditing(undefined)}>취소</button><button type="submit" className={styles.primaryButton}>할 일 저장하기</button></div>
+      {editing&&!deleting&&<button type="button" className={styles.deleteButton} onClick={()=>setDeleting(true)}>이 할 일 삭제하기</button>}
+      {deleting&&<div className={styles.deleteConfirm}><p>이 할 일을 삭제할까요?</p><button type="button" className={styles.secondaryButton} onClick={()=>setDeleting(false)}>유지하기</button><button type="button" className={styles.deleteButton} onClick={remove}>삭제하기</button></div>}
+    </form>}
+    {message&&<p className={styles.hint} role="status">{message}</p>}
+  </div>;
 }

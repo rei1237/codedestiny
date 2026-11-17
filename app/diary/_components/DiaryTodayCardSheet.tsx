@@ -12,7 +12,7 @@ import {
   type DiaryCardTheme,
 } from "../_lib/entry-writes";
 import { buildDiaryDayDetail } from "../_lib/day-copy";
-import { readExtDay } from "../_lib/ext-snapshot";
+import { plannedDay } from "../_lib/planner";
 import { formatKoreanDate } from "../_lib/kst-date";
 import { saveDiaryShareCard } from "../_lib/share-card";
 import { readAchievement } from "../_lib/today-snapshot";
@@ -98,10 +98,10 @@ export default function DiaryTodayCardSheet({ onClose }: { onClose: () => void }
   }, [onClose]);
 
   const nickname = useDiaryDraft(entry?.shareNickname || "", (next) => {
-    updateEntry(ymd, writeCardNickname(next));
+    return updateEntry(ymd, writeCardNickname(next));
   });
   const caption = useDiaryDraft(entry?.shareCaption || "", (next) => {
-    updateEntry(ymd, writeCardCaption(next));
+    return updateEntry(ymd, writeCardCaption(next));
   });
 
   const detail = buildDiaryDayDetail(fortune, dayGroupOf(chart, ymd));
@@ -112,7 +112,7 @@ export default function DiaryTodayCardSheet({ onClose }: { onClose: () => void }
   const useSticker = entry?.shareUseSticker !== false;
   const useBadge = entry?.shareUseBadge !== false;
 
-  const progress = readAchievement(entry, readExtDay(ext, ymd));
+  const progress = readAchievement(entry, plannedDay(ext, ymd));
   const achievement = progress.total > 0 ? `${copy.achievement} ${progress.done}/${progress.total}` : "";
 
   const onSave = () => {

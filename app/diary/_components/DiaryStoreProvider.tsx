@@ -23,8 +23,8 @@ import {
   type DiaryExtStore,
 } from "../_lib/ext-snapshot";
 import { kstTodayYmd } from "../_lib/kst-date";
-import { updateDiaryEntry } from "@/lib/diary/diary-store";
-import { updateExtDay as updateExtDayInStore } from "@/lib/diary/diary-ext-store";
+import { updateDiaryEntry, DIARY_STORAGE_KEY } from "@/lib/diary/diary-store";
+import { updateExtDay as updateExtDayInStore, DIARY_EXT_DAY_KEY_PREFIX } from "@/lib/diary/diary-ext-store";
 import styles from "../_styles/diary.module.css";
 
 /**
@@ -127,7 +127,13 @@ export default function DiaryStoreProvider({ children, storage }: { children: Re
       refresh();
     };
     window.addEventListener('cd:diary-open', revisit);
-    return () => window.removeEventListener('cd:diary-open', revisit);
+    const onStorage = (event: StorageEvent) => {
+      if (event.key === DIARY_STORAGE_KEY || event.key?.startsWith(DIARY_EXT_DAY_KEY_PREFIX)) revisit();
+    };
+    window.addEventListener('storage', onStorage);
+    const onVisible = () => { if (!document.hidden) revisit(); };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => { window.removeEventListener('cd:diary-open', revisit); window.removeEventListener('storage', onStorage); document.removeEventListener('visibilitychange', onVisible); };
   }, [refresh]);
 
   const updateEntry = useCallback((ymd: string, mutate: DiaryEntryMutate) => {

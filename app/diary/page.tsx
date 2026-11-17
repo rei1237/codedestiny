@@ -16,13 +16,15 @@ export default function DiaryHomePage() {
   return (
     <>
       <DiaryFlowCard />
-      <DiaryFortuneDraw />
-      <DiaryJournalCard />
+      <div className={styles.todayLayout}>
+        <DiaryPlanCard />
+        <DiaryJournalCard />
+      </div>
       <details className={styles.moreToday}>
-        <summary>오늘의 실천과 계획 보기</summary>
+        <summary>작은 실천과 나를 위한 시간</summary>
+        <DiaryFortuneDraw />
         <DiaryDailyQuest />
         <DiarySelfCard />
-        <DiaryPlanCard />
       </details>
     </>
   );
