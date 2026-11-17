@@ -1384,9 +1384,10 @@
       if (!document.body) return;
       var offline = window.navigator && window.navigator.onLine === false;
       var existing = document.getElementById("cdAppOfflineNotice");
-      // This local reader owns unavailable daily results and keeps public cards readable.
-      // The fixed shell banner otherwise covers its flower/source footer on small screens.
-      var localReader = /^\/lock-screen-fortune(?:\/index\.html)?\/?$/.test(window.location.pathname);
+      // Bundled readers own unavailable server results while local content stays usable.
+      // The fixed banner otherwise covers the reader footer or temple activity controls.
+      var localReader = /^\/lock-screen-fortune(?:\/index\.html)?\/?$/.test(window.location.pathname)
+        || /^\/moonlit-lotus(?:\/(?:story|model-review))?(?:\/index\.html)?\/?$/.test(window.location.pathname);
       if (!offline || localReader) {
         if (existing) existing.remove();
         return;
