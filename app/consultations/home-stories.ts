@@ -32,7 +32,7 @@ export const homeStories = [
   {
     "id": "heukwol",
     "title": "흑월의 경고",
-    "lead": "흑월은 이 문을 열면 끝이라고 했다. 연이는 문 너머에서 대답을 들었다."
+    "lead": "길을 잃은 손님에게 흑월이 경고하고, 연이와 네오가 함께 방향을 찾아요."
   },
   {
     "id": "ziwei",

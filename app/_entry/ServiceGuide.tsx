@@ -43,7 +43,7 @@ export default function ServiceGuide() {
     <aside className={styles.afterword}>
       <h3>읽고 나서, 나의 이야기로</h3>
       <p>상담을 고른 뒤 해당 화면에서 필요한 출생 정보나 질문을 준비해요. 이용권·월정석·단건 결제의 적용 여부와 조건은 각 상담 화면에서 확인해 주세요.</p>
-      <a href="/heukwol/">흑월의 경고 · 불안을 대비로 바꾸는 이야기 <span aria-hidden="true">→</span></a>
+      <a href="/heukwol/">흑월의 주의 시기 · 월별 흐름과 대비 <span aria-hidden="true">→</span></a>
       <a href="/consultations/">상담의 정원에서 비교하기 <span aria-hidden="true">→</span></a>
       <a href="#entry-record">이 상담은 어디에서 시작됐을까요? <span aria-hidden="true">↓</span></a>
     </aside>

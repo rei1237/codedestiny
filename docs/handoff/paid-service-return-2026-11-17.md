@@ -1,43 +1,49 @@
 ---
-status: in-progress
-updated: 2026-11-17
-next: 결제 복귀 수정의 check-fast 완료 확인 후 main 병합·push·CI·운영 배포와 새 SHA 검증을 끝낸다.
+status: done
+updated: 2026-11-18
+next: 완료. 운영 배포와 실제 파일·계산 검증을 마쳤다.
 ---
 
 # 유료 서비스 결제 후 화면 전달
 
 ## 첫 행동
 
-작업 디렉터리 .tmp/paid-delivery/state.json과 check-fast-final2.log를 확인한다. 현재 check:fast 세션은 35126이다.
+완료 기록이다. 운영 배포: https://github.com/rei1237/codedestiny/actions/runs/44107530122 (success).
 
 ## 승인 상태
 
-2026-11-17 사용자: “결제 완료 UI가 뜬 이후에 모든 유료 서비스는 결과 화면이나 생성 화면 후 결과를 볼 수 있도록 최적화시켜줘”, “정확하게 수정해서 운영에 배포해줘”, 배포 완료까지 확인 요청. 운영 배포는 재승인을 묻지 않는다. 실결제·유료 LLM·운영 DB 쓰기 검증은 하지 않는다.
+2026-11-17 사용자: “결제 완료 UI가 뜬 이후에 모든 유료 서비스는 결과 화면이나 생성 화면 후 결과를 볼 수 있도록 최적화시켜줘”, “정확하게 수정해서 운영에 배포해줘”, 배포 완료까지 확인 요청. 운영 배포는 이미 승인·실행했다. 실결제·유료 LLM·운영 DB 쓰기 검증은 하지 않는다.
 
 ## 지금 상태
 
-- 워크트리 D:/Development/codedestiny-worktrees/neo-paid-delivery-20261117-222153, 브랜치 wt/neo-paid-delivery-20261117-222153. 현재 수정은 이 세션 소유. main의 다른 세션 변경은 보존한다.
-- 시작 커밋 2bbcccbd2514b76af9685172b546422a94ef181a. main은 별도 흑월 결제 복귀 수정 93c371660 및 문서 d13cc7506으로 전진했다.
-- 기존 사주 운영 배포 44089215244 성공, Pages/Worker 모두 시작 SHA 일치. 운영 순수 계산에서 오행 8/시주 미상 6, 용신 입묘 adverse/기신 beneficial, 축미의 실제 존재 지장간만 판단 확인. 영냥이 새 청크도 확인.
+- 워크트리 D:/Development/codedestiny-worktrees/neo-paid-delivery-20261117-222153, 브랜치 wt/neo-paid-delivery-20261117-222153. 코드 변경은 main에 병합·push 완료.
+- 운영 Pages·Worker SHA 모두 cc15b4595bc8ac8d540884e359fc1b79f7700912로 검증 완료. 코드 커밋 97eaaec79, 가드 cc15b4595, 중간 병합 ea7b94af0. 별도 흑월 수정 93c371660도 포함한다.
+- CI required 44102846580 성공. production 44107530122를 23:50 KST에 main/production, 다른 옵션 모두 기본값으로 실행했다. 2026-11-18 완료 판정 success를 확인했다.
 
-## 설계와 검증
+## 설계와 실측
 
-공용 usePaidResume에서 인증 복원 후 실행한다. 실제 계정 변경은 기존 scope로 차단한다. 네오는 최초 인증 복원을 허용하고, PG 복귀에서 생성 화면을 인트로가 가리지 않으며 결과를 인트로 진입 여부와 무관하게 표시한다. 결제 확정 뒤 완료 안내를 한 번 띄우고 생성 후에는 재표시하지 않는다. rAF 중단 시 100ms 안에 전달을 진행한다. 숙요는 준비된 모달만 펼쳐 입력을 초기화하지 않는다.
+공용 usePaidResume에서 인증 복원 후 실행하며 실제 계정 변경은 차단한다. 네오는 PG 복귀에서 인트로가 생성/결과를 가리지 않는다. 완료 안내는 승인 검증 뒤 한 번 표시하며 생성 뒤에는 재표시하지 않는다. rAF 정지 시 100ms 내 전달 진행. 숙요는 기존 모달만 펼쳐 입력을 보존한다. 가격·이용권·월정석·단건 정책은 유지했다.
 
-- 연결 검사: React 45/45, 정적 49/49, 사주 2/2, kind 47. 카탈로그 172개 매핑 누락 없음. 모든 실구매 검증이라는 뜻은 아니다.
-- mock 네오 브라우저: 생성 요청 1회 → 결과 자동 표시. 390px/1280px 시각 검수 통과, 가로 넘침 없음.
-- check:fast: 결제 가드 77/77, lint, sitemap, typecheck 통과. test:node에서 새 워크트리의 오늘자 운세 산출물 누락 1건; fortune:build-data 후 sky-and-range 7/7 재검증 통과. 남은 공식 검사 별도 세션 63212 진행 중.
+- 연결: React 45/45, 정적 49/49, 사주 2/2. 카탈로그 172개 매핑 누락 없음; 모든 실구매 검증을 뜻하지 않는다.
+- 로컬 mock 네오: 요청 1회 → 생성 → 결과 자동 표시. 390px/1280px 시각 검수 통과.
+- 결제 가드 77/77, lint/typecheck, sitemap, pre-push 통과. Node 5204/5205에서 유일한 실패는 새 워크트리의 날짜 산출물 누락; fortune:build-data 뒤 해당 파일 7/7 재검증 통과. 서버 Jest 479묶음/8012개 통과(기존 skip 1개). 흑월 통합 35/35 통과.
+- GitHub 영냥이 브라우저 44102846397: 114개 모두 통과, 실 PG·LLM·운영 쓰기 0. 공개 유료 진입 주소 34/34 정상 응답.
+- 기존 사주 배포 44089215244 성공(2bbcccbd2). 운영 순수 계산에서 오행 8/시주 미상 6, 용신 입묘 adverse/기신 beneficial, 실제 존재하는 축미 지장간만 판단 확인. 영냥이 새 청크도 확인.
 
 ## 단계
 
-- [x] 결함 수정과 mock 화면 재현 검수
-- [ ] check:fast 완료, 커밋
-- [ ] main 병합(사이트맵 충돌은 재생성), pre-push, push와 CI required 확인
-- [ ] GitHub 공식 production workflow 실행, 완료까지 확인, Pages/Worker SHA 대조
-- [ ] 운영 새 결제 스크립트·Neo 청크 확인, 문서 done 및 본인 임시파일·워크트리 정리
+- [x] 수정·mock·화면 검수·main push·공식 CI
+- [x] 운영 배포 실행
+- [x] production 성공 및 Pages/Worker 배포 SHA 대조
+- [x] 새 결제 스크립트와 네오 청크 운영 반영 확인
+- [x] 완료 문서 기록과 검수 브라우저 종료. 본인 임시 워크트리는 main 전달 뒤 제거한다.
 
-## 함정과 불확실성
+## 함정과 남은 확인
 
-해당 주문은 22:17 결제, 22:21 관리자 취소로 전액 환불; 연결된 Neo 세션이 없었다. 재생성·권한 변경 금지. 당시 브라우저 로그가 없어 과거 장애의 단일 원인 단정은 하지 않는다.
+제공된 주문은 22:17 결제, 22:21 관리자 취소로 전액 환불; 연결 Neo 세션 없음. 재생성·권한 변경 금지. 당시 브라우저 로그가 없어 과거 장애의 단일 원인은 단정하지 않는다.
 
-공용 resume에서 action을 무조건 다시 실행하면 타로·사주 입력을 초기화하므로 금지. GitHub CLI는 로그아웃; ego-browser task59/p1 로그인으로 공식 배포 UI를 사용한다. target_sha는 pages_only 전용이므로 일반 운영 배포는 main을 사용한다. 브라우저 task를 완료 전에 finish하지 않는다. 임시 mock 서버는 종료했다.
+공용 resume의 action을 무조건 재실행하면 입력을 초기화하므로 금지. GitHub CLI 로그아웃; ego-browser task59/p1 로그인 세션 사용. task.finish는 모든 브라우저 작업 마지막에 한 번. mock 서버는 종료했다. p4는 CI 로그 페이지다. 배포/확인은 공식 워크플로만 사용하며 로컬 배포하지 않는다. main의 기존 .claude/skills/fire-your-seo-agency 및 다른 세션 파일은 보존한다.
+
+## 최종 운영 검증
+
+`node scripts/verify-deployed-sha.mjs --sha=cc15b4595bc8ac8d540884e359fc1b79f7700912 --attempts=1`: Pages PASS / Worker PASS. 결제 공용·인라인 런타임·숙요·사주 코어 4개 파일이 로컬 원본 또는 동일 minify 결과와 바이트 단위로 일치했다. 운영 꿀꿀 브라우저에서 8/6개, 용신 adverse·기신 beneficial, 승인 전 완료 표시 false를 확인했다. 영냥이 60개 청크 중 오행·입묘 근거 청크와 네오 새 page 청크가 200으로 로드됐다. 네오 실제 유료 생성은 mock 검증이며 운영에서 실결제·LLM 실행은 하지 않았다.
