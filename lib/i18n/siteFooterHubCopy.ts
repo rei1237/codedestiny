@@ -211,7 +211,7 @@ export const SITE_FOOTER_HUB_COPY: Record<Locale, SiteFooterHubCopy> = {
       "/saju-guardian/": "사주 가디언 수호 인장",
       "/saju/crystals/": "사주 원석 추천",
       "/fortune-tea-house/": "운명 찻집 상담",
-      "/heukwol/": "흑월의 경고 상담",
+      "/heukwol/": "흑월의 주의 시기 상담",
       "/karma-destiny-ai/": "운명의 업 전문가 상담",
       "/new-year-ai-consultation/": "신년운세 전문가 상담",
       "/yeon-star-hug/": "연이 별빛 포옹",

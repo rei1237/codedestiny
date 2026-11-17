@@ -53,7 +53,7 @@ window.__cdServiceRegistryMeta = {
 
 window.__cdServiceRegistry = [
   {
-    id: "heukwol", name: "흑월의 경고", href: "/heukwol/",
+    id: "heukwol", name: "흑월의 주의 시기", href: "/heukwol/",
     featureKey: "heukwol-warning-consultation", price: "50,000원",
     image: "/images/service-introductions/heukwol-320.webp",
     imageAlt: "금빛 테두리의 어두운 달 아래 펼쳐진 운세책과 별자리",

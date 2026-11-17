@@ -1146,7 +1146,7 @@
         "category": "사주 × 자미두수",
         "ctaLabel": "내가 주의할 시기 보기",
         "ctaNote": "상담 화면에서 프로필과 질문을 준비하고 이용 조건을 확인해요.",
-        "fallbackTitle": "흑월의 경고",
+        "fallbackTitle": "흑월의 주의 시기",
         "faq": [],
         "feats": [],
         "featureId": "heukwol-warning-consultation",
@@ -1159,7 +1159,7 @@
           "살펴볼 연도와 질문"
         ],
         "subheadline": "사주와 자미두수의 근거를 함께 읽고, 선택한 연도의 월별 흐름과 대응 방향을 살펴봐요.",
-        "title": "흑월의 경고",
+        "title": "흑월의 주의 시기",
         "trustNotes": [
           "해석은 미래를 확정하지 않으며, 중요한 선택을 위한 참고로 읽어 주세요."
         ],
@@ -7332,7 +7332,7 @@
         "category": "사주 × 자미두수",
         "ctaLabel": "내가 주의할 시기 보기",
         "ctaNote": "상담 화면에서 프로필과 질문을 준비하고 이용 조건을 확인해요.",
-        "fallbackTitle": "흑월의 경고",
+        "fallbackTitle": "흑월의 주의 시기",
         "faq": [],
         "feats": [],
         "featureId": "heukwol-warning-consultation",
@@ -7345,7 +7345,7 @@
           "살펴볼 연도와 질문"
         ],
         "subheadline": "사주와 자미두수의 근거를 함께 읽고, 선택한 연도의 월별 흐름과 대응 방향을 살펴봐요.",
-        "title": "흑월의 경고",
+        "title": "흑월의 주의 시기",
         "trustNotes": [
           "해석은 미래를 확정하지 않으며, 중요한 선택을 위한 참고로 읽어 주세요."
         ],
