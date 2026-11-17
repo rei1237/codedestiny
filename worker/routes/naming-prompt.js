@@ -1482,8 +1482,8 @@ async function markNamingGenerationFailed(env, executionId, error, userId, lease
   );
 }
 
-// 월정석만 하드 환불한다(love-secret-ai.js와 동일 전략). 단건/이용권은 환불하지 않고 재시도로 회복 —
-// 같은 결제/이용권 증거로 /generate를 다시 호출하면 재생성된다(추가 차감 없음).
+// 월정석은 여기서 하드 환불한다(love-secret-ai.js와 동일 전략). 이용권은 restoreNamingAccessOnFailure 가
+// (기능, requestId) 증빙으로 한도를 되돌린다. 단건은 환불하지 않는다.
 async function refundNamingMonthlyCredit(env, auth, access) {
   const evidence = access?.evidence;
   if (!evidence?.evidenceId) return { refunded: false };
@@ -1559,6 +1559,21 @@ async function refundNamingMonthlyCredit(env, auth, access) {
 async function restoreNamingAccessOnFailure(env, auth, access) {
   if (access?.accessMethod === "monthly") {
     return refundNamingMonthlyCredit(env, auth, access).catch(() => ({ refunded: false }));
+  }
+  // 이용권: 결제 화면(pass-check)이나 접근 판정이 이 requestId 로 차감한 한도를 증빙으로 되돌린다.
+  // 결제 화면이 예전 기능 키로 차감했을 수 있어, 새 키에 증빙이 없을 때만 예전 키를 본다.
+  const requestId = clean(access?.requestId, 180);
+  if (["pass", "family"].includes(access?.accessMethod) && requestId) {
+    try {
+      const { refundPassUseEvidence } = await import("../lib/pass-consumption.js");
+      const refund = featureKey => refundPassUseEvidence({ userId: String(auth.userId), featureKey, requestId,
+        refundId: `naming-prompt:${requestId}` });
+      const result = await refund(FEATURE_KEY);
+      return result?.reason === "PASS_EVIDENCE_NOT_FOUND" ? await refund(LEGACY_FEATURE_KEY) : result;
+    } catch (error) {
+      console.warn("[naming-prompt] pass restore failed", clean(error?.message || error, 200));
+      return { refunded: false };
+    }
   }
   return { refunded: false };
 }

@@ -2,10 +2,13 @@
 import { jest } from '@jest/globals';
 const userId = '64b7f2a1c3d4e5f601234567';
 const evidenceId = '64b7f2a1c3d4e5f600000009';
-let restore, history, find, mark, credit, create, external, eligibility;
+let restore, history, find, mark, credit, create, external, eligibility, passRefund;
 const query = value => ({ lean: async () => value });
 beforeAll(async () => {
  eligibility = jest.fn(async () => true);
+ passRefund = jest.fn(async () => ({ refunded: true }));
+ const pass = await import('../../worker/lib/pass-consumption.js');
+ jest.unstable_mockModule('../../worker/lib/pass-consumption.js', () => ({ ...pass, refundPassUseEvidence: (...args) => passRefund(...args) }));
  jest.unstable_mockModule('../../worker/lib/sukuyo-refund-eligibility.js', () => ({ canRestoreSukuyoDebit: (...args) => eligibility(...args) }));
  const models = await import('../../worker/lib/models.js');
  const paymentDb = await import('../../worker/payments/db.js');
@@ -25,7 +28,7 @@ beforeAll(async () => {
 });
 beforeEach(() => {
  history = { _id: evidenceId, delta: 0, metadata: {} };
- eligibility.mockReset(); eligibility.mockResolvedValue(true);
+ eligibility.mockReset(); eligibility.mockResolvedValue(true); passRefund.mockClear();
  find = jest.fn(() => query(history));
  mark = jest.fn(async () => ({ modifiedCount: 1 }));
  credit = jest.fn(() => ({ points: 12 })); create = jest.fn(async () => ({}));
@@ -51,6 +54,12 @@ test('only the actual negative deduction amount is restored', async () => {
 test.each([{ accessType:'pass',paymentId:evidenceId },{ accessType:'paid',paymentId:'cd-cash-order' }])('pass and direct payment do not enter legacy coin restoration: %j',async access=>{
  expect(await restore({}, { userId }, access, new Error('generation failed'))).toBe(false);
  expect(find).not.toHaveBeenCalled();expect(mark).not.toHaveBeenCalled();expect(credit).not.toHaveBeenCalled();
+});
+
+test('a pass deducted for the failed request is restored once from its usage evidence', async () => {
+ expect(await restore({}, { userId }, { accessType: 'pass' }, new Error('generation failed'), 'failed-request')).toBe(true);
+ expect(passRefund).toHaveBeenCalledWith(expect.objectContaining({ userId, featureKey: 'sukuyo-compatibility-ai', requestId: 'failed-request' }));
+ expect(find).not.toHaveBeenCalled(); expect(credit).not.toHaveBeenCalled();
 });
 
 test('missing original deduction is never treated as a refund', async () => {

@@ -15,7 +15,7 @@ import { restoreMonthlyCreditLot } from "../lib/monthly-credit-store.js";
 import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
 import { normalizeConsultAccessType, resolveCanonicalEntitlement, resolveFeatureAccessPolicy } from "../lib/entitlement-policy.js";
-import { consumePassForFeature, passDenialCode } from "../lib/pass-consumption.js";
+import { consumePassForFeature, passDenialCode, refundPassUseEvidence } from "../lib/pass-consumption.js";
 import { callGeminiText } from "../lib/gemini.js";
 import { getAmbientAiLocale, runWithAiLocale, storedAiLocale } from "../lib/ai-locale-context.js";
 import { toAiLocale } from "../../lib/i18n/ai-locale.js";
@@ -1237,6 +1237,12 @@ async function restoreBillingGateAccessOnFailure({ env = {}, userId, access = {}
   if (access.accessSource === 'toss') return { restored: false };
   // 본문을 못 받은 최종 실패다 — 증빙 claim 을 풀어 결제한 사용자가 새 시도로 다시 받게 한다.
   await releaseRequestBillingEvidence(env, { userId: clean(userId), requestId: idempotencyKey, evidenceIds: access.claimEvidenceIds }).catch(() => null);
+  // 이용권: 결제 화면(pass-check)이 이 키로 미리 차감한 한도를 증빙으로 되돌린다(증빙이 없으면 아무것도 하지 않는다).
+  if (access.accessSource === "billing_gate_pass" || access.accessType === "pass") {
+    const result = await refundPassUseEvidence({ userId: clean(userId), featureKey: FEATURE_KEY, requestId: idempotencyKey,
+      refundId: `love-secret-ai:${idempotencyKey}` });
+    return { restored: result?.refunded === true, reason: result?.reason || "" };
+  }
   const evidence = objectOf(access.billingEvidence);
   const failureMessage = clean(error?.message || error || "love secret ai generation failed", 500);
   const now = new Date();

@@ -289,7 +289,13 @@ async function refundExecution(env, auth, input, reportId, reasonMessage) {
     console.error("[destiny-compass-ai] execution guard refund failed", { message: clean(error?.message || error, 300) });
     return null;
   });
-  return Boolean(result?.ok);
+  // 결제 화면(pass-check)이 이 키로 미리 차감한 이용권은 실행 건이 없을 수 있다 — 증빙으로 되돌린다.
+  // 실행 가드가 먼저 되돌렸으면 증빙에 환불 표시가 있어 다시 되돌리지 않는다.
+  const pass = await import("../lib/pass-consumption.js")
+    .then(({ refundPassUseEvidence }) => refundPassUseEvidence({ userId: auth.userId, featureKey: FEATURE_KEY,
+      requestId: input.idempotencyKey, refundId: `destiny-compass-ai:${input.idempotencyKey}` }))
+    .catch((error) => { console.error("[destiny-compass-ai] pass restore failed", { message: clean(error?.message || error, 300) }); return null; });
+  return Boolean(result?.ok) || pass?.refunded === true;
 }
 
 // ── 영속화 ─────────────────────────────────────────────────────

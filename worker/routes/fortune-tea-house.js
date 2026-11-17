@@ -4986,7 +4986,7 @@ async function settleFortuneTeaHouseGeneration({ env, access, resultId, generati
     // 재시도의 멱등 재생은 passRefund 를 돌려주지 않으므로, 최종 실패 환불은 문서에 남긴 값을 쓴다.
     await results.updateOne(
       { userId, resultId, "generationLock.token": generation.lockToken },
-      { $set: { passSettlement: { source: settled.source, cycleKey: settled.passRefund.cycleKey, cost: settled.passRefund.cost, at: new Date() } } },
+      { $set: { passSettlement: { source: settled.source, featureKey: access.featureKey, cycleKey: settled.passRefund.cycleKey, cost: settled.passRefund.cost, at: new Date() } } },
     );
   }
   return { ok: true };
@@ -5000,7 +5000,9 @@ async function refundFortuneTeaHousePassSettlement({ auth, resultId }) {
   const settlement = doc?.passSettlement;
   if (!settlement?.cycleKey || doc?.passRefund?.refundedAt) return;
   const { refundPassCoverage } = await loadPassConsumption();
-  const refunded = await refundPassCoverage({ userId, cycleKey: settlement.cycleKey, cost: settlement.cost, refundId: resultId });
+  // 기능 키를 남긴 정산은 같은 사용 증빙(featureKey·resultId)에 환불 표시를 남겨, 다른 복구 경로가 두 번 돌려주지 않게 한다.
+  const refunded = await refundPassCoverage({ userId, cycleKey: settlement.cycleKey, cost: settlement.cost, refundId: resultId,
+    ...(settlement.featureKey ? { sourceFeatureKey: settlement.featureKey, sourceRequestId: resultId } : {}) });
   // 차감 마커는 환불 뒤에도 남는다. refundedAt 이 없으면 같은 결과의 재시도가 무료로 다시 생성된다.
   await results.updateOne({ userId, resultId }, { $set: { passRefund: { refundedAt: new Date(), refunded: Boolean(refunded?.refunded), reason: refunded?.reason || "" } } });
 }

@@ -4,7 +4,7 @@ import { jest } from "@jest/globals";
 // jest 는 TS 를 못 읽으므로 여기서는 service.ts 를 손 가짜로 바꾸고, 라우트의 판 선택·저장·직렬화·무료 경로만 본다.
 
 const uid="64b7f2a1c3d4e5f601234567";
-let route,docs,provider,userId,authCalls,fetchBlock,candidateCount;
+let route,docs,provider,userId,authCalls,fetchBlock,candidateCount,passRefund;
 const clone=v=>v==null?v:structuredClone(v);
 const get=(d,k)=>k.split('.').reduce((v,p)=>v?.[p],d);
 function set(d,k,v){const keys=k.split('.');const end=keys.pop();let o=d;for(const key of keys)o=o[key]??={};o[end]=clone(v);}
@@ -54,6 +54,8 @@ const engine={
 
 beforeAll(async()=>{
  const db=await import('../../worker/lib/db.js'),auth=await import('../../worker/lib/auth.js'),models=await import('../../worker/lib/models.js'),gemini=await import('../../worker/lib/gemini.js');
+ const passConsumption=await import('../../worker/lib/pass-consumption.js');
+ jest.unstable_mockModule('../../worker/lib/pass-consumption.js',()=>({...passConsumption,refundPassUseEvidence:(...args)=>passRefund(...args)}));
  jest.unstable_mockModule('../../worker/lib/db.js',()=>({...db,connectDb:async()=>{},withMongoRetry:async(_e,fn)=>fn()}));
  jest.unstable_mockModule('../../worker/lib/auth.js',()=>({...auth,requireAuth:async()=>{authCalls++;return {userId};}}));
  jest.unstable_mockModule('../../worker/lib/models.js',()=>({...models,PaidExecutionRecord:model,
@@ -66,7 +68,7 @@ beforeAll(async()=>{
  jest.unstable_mockModule('../../worker/naming-engine/service.ts',()=>engine);
  ({handleNamingPromptRoutes:route}=await import('../../worker/routes/naming-prompt.js'));
 });
-beforeEach(()=>{docs=[];userId=uid;authCalls=0;candidateCount=12;
+beforeEach(()=>{docs=[];userId=uid;authCalls=0;candidateCount=12;passRefund=jest.fn(async()=>({refunded:true}));
  for(const fn of [engine.prepareNamingV2,engine.namingBasisV2,engine.buildNamingV2Prompt])fn.mockClear();
  provider=jest.fn(async(_env,prompt,options)=>{
   expect(options.timeoutMs).toBe(45000);expect(options.fallbackToWorkersAI).toBe(false);
@@ -161,4 +163,12 @@ it.each([
 ])('v2 입력 %j 는 결제 전에 400 %s',async(extra,code)=>{
  const res=await post('/checkout',{input:{...BASE,...extra}});
  expect(res.status).toBe(400);expect((await res.json()).code).toBe(code);expect(engine.prepareNamingV2).not.toHaveBeenCalled();
+});
+
+it('본문을 끝내 받지 못한 이용권 회차는 결제 화면에서 차감한 한도를 증빙으로 되돌린다',async()=>{
+ provider.mockImplementation(async()=>({ok:true,text:'{}'}));
+ const res=await runToCompletion(()=>start());
+ expect(res.status).toBe(503);
+ expect(passRefund).toHaveBeenCalledTimes(1);
+ expect(passRefund).toHaveBeenCalledWith(expect.objectContaining({featureKey:'premium-naming-prompt',requestId:'original-paid'}));
 });

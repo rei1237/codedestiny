@@ -33,7 +33,7 @@ jest.unstable_mockModule('../../worker/lib/sync-llm-timeout.js', () => ({ ...tim
 const USER_ID = '64b7f2a1c3d4e5f601234567';
 const ENV = {};
 
-let docs, route, provider, refundMock, completeMock, accessMock, startCalls, prompts, storageFault;
+let docs, route, provider, refundMock, completeMock, accessMock, startCalls, prompts, storageFault,passRefund;
 
 const clone = (value) => (value == null ? value : structuredClone(value));
 const get = (doc, key) => key.split('.').reduce((v, f) => v?.[f], doc);
@@ -89,6 +89,8 @@ beforeAll(async () => {
   const auth = await import('../../worker/lib/auth.js');
   const models = await import('../../worker/lib/models.js');
 
+  const passConsumption = await import('../../worker/lib/pass-consumption.js');
+  jest.unstable_mockModule('../../worker/lib/pass-consumption.js',()=>({...passConsumption,refundPassUseEvidence:(...args)=>passRefund(...args)}));
   jest.unstable_mockModule('../../worker/lib/db.js', () => ({ ...db, connectDb: async () => {} }));
   jest.unstable_mockModule('../../worker/lib/auth.js', () => ({ ...auth, requireAuth: async () => ({ userId: USER_ID }) }));
   jest.unstable_mockModule('../../worker/lib/models.js', () => ({
@@ -122,6 +124,7 @@ function sectionText(key) {
 }
 
 beforeEach(() => {
+passRefund=jest.fn(async()=>({refunded:false,skipped:true}));
   docs = []; startCalls = []; prompts = []; storageFault = false;
   refundMock = jest.fn(async () => ({ ok: true }));
   completeMock = jest.fn(async () => ({}));

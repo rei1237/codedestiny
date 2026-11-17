@@ -127,7 +127,7 @@ import { resolveCanonicalEntitlement } from "../lib/entitlement-policy.js";
 // 🔴 이용권 무료 통과는 **차감을 동반해야** 한도가 존재한다. 이 파일의 두 통과 지점
 // (AI 프롬프트 이용권 증빙 · SUBSCRIPTION_INCLUDED)은 coin-gate 를 거치지 않아 지금까지
 // monthlySpendCoin 을 한 번도 올리지 않았다. 판정·소비 정본은 worker/payments/passes.js.
-import { consumePassForFeature, hasConsumedPassFeature, passDenialCode, refundPassCoverage } from "../lib/pass-consumption.js";
+import { consumePassForFeature, hasConsumedPassFeature, passDenialCode, refundPassCoverage, refundPassUseEvidence } from "../lib/pass-consumption.js";
 import { calculateKrwAmountFromCoins, calculateMembershipCreditCost } from "../lib/billing-policy.js";
 import { autoRefundSinglePaymentDeliveryFailure } from "../lib/payment-refund.js";
 import { EDGE_RESPONSE_DEADLINE_MS, clampSyncLlmTimeoutMs } from "../lib/sync-llm-timeout.js";
@@ -1583,7 +1583,28 @@ function readSajuAIPromptPointRefundContext(consumePayload = {}, body = {}) {
   // 409 로 실패하므로 PortOne 취소 경로로 보내야 한다.
   const isCardSpend = !isPointSpend
     && (paymentMode === "DIRECT_KRW" || accessMethod === "CARD" || String(consume?.transactionType || "").trim().toLowerCase() === "single_purchase");
-  return { isPointSpend, isCardSpend, chargedCoins, sourceTransactionId };
+  // 이용권(PASS·FAMILY) 커버. 결제 화면(/coin-gate/pass-check)에서 미리 깎인 요청은 passRefund 가
+  // 비어 있어 이 표시로 사용 증빙 환불(restoreAIPromptPassOnFailure)을 연다.
+  const isPassSpend = !isPointSpend && !isCardSpend
+    && (paymentMode === "MEMBERSHIP_PASS" || accessMethod === "PASS" || accessMethod === "FAMILY");
+  return { isPointSpend, isCardSpend, isPassSpend, chargedCoins, sourceTransactionId };
+}
+
+// 이용권 커버로 깎인 한도를 생성 실패 때 되돌린다. 이번 요청에서 새로 깎였으면 passRefund 로,
+// 결제 화면에서 미리 깎였으면(passRefund 없음) 같은 featureKey·requestId 의 사용 증빙으로 되돌린다.
+// 두 경로 모두 그 증빙에 환불 표시를 남겨 같은 사용을 두 번 돌려주지 않는다.
+async function restoreAIPromptPassOnFailure({ auth, featureKey, requestId, passRefund, label }) {
+  const refundId = `${label}:${requestId}`;
+  try {
+    const result = passRefund
+      ? await refundPassCoverage({ userId: auth.userId, cycleKey: passRefund.cycleKey, cost: passRefund.cost,
+        refundId, sourceFeatureKey: featureKey, sourceRequestId: requestId })
+      : await refundPassUseEvidence({ userId: auth.userId, featureKey, requestId, refundId });
+    return result?.refunded === true;
+  } catch (refundError) {
+    console.error(`[fortune][${label}] pass refund failed:`, refundError);
+    return false;
+  }
 }
 
 // 카드 단건 결제로 연 유료 생성이 실패했을 때의 자동 환불. 지급 실패 자동환불의 정본
@@ -3868,6 +3889,7 @@ async function handleVedicPrashnaGenerate(request, auth, env) {
   // 기록돼 카드 환불 경로를 가린다. 사주 경로(readSajuAIPromptPointRefundContext)가 쓰던 가드와 동일.
   let isPointSpend = false;
   let isCardSpend = false;
+  let isPassSpend = false;
   const skipPaymentConsume = storedResult?.order?.paymentStatus === "PAID"
     && (["generation_failed", "delivery_pending"].includes(existing.status) || staleGenerating);
 
@@ -3899,7 +3921,7 @@ async function handleVedicPrashnaGenerate(request, auth, env) {
       return mapVedicPrashnaConsumeFailure(consumeResponse, consumePayload);
     }
     chargedCoins = Math.max(0, Number(consumePayload?.chargedCoins || consumePayload?.consume?.chargedCoins || 0));
-    ({ isPointSpend, isCardSpend } = readSajuAIPromptPointRefundContext(consumePayload, body));
+    ({ isPointSpend, isCardSpend, isPassSpend } = readSajuAIPromptPointRefundContext(consumePayload, body));
     // 다른 5개 AI 프롬프트 라우트(사주·점성술·베다AI·자미두수·숙요)와 동일하게 handlePigCoinConsume 의
     // 2xx 여부만을 결제 완료 판정으로 쓴다. 이전에는 여기서 accessMethod!=="single" 과
     // chargedCoins<PRICE 를 추가로 요구해, 이용권/월정석으로 정당하게 통과한 사용자를 402 로 되돌렸다
@@ -4082,6 +4104,11 @@ async function handleVedicPrashnaGenerate(request, auth, env) {
         reasonMessage: "Prashna prompt generation failed auto-refund",
       });
       refundOk = cardRefund.refunded === true;
+    } else if (isPassSpend || consumePayload?.passRefund) {
+      // 이용권 커버로 깎인 한도를 되돌린다(결제 화면에서 미리 깎였으면 사용 증빙으로).
+      refundAttempted = true;
+      refundOk = await restoreAIPromptPassOnFailure({ auth, featureKey: VEDIC_PRASHNA_PROMPT_FEATURE_KEY, requestId,
+        passRefund: consumePayload?.passRefund && typeof consumePayload.passRefund === "object" ? consumePayload.passRefund : null, label: "vedic-prashna" });
     }
     await withMongoRetry(env, () => PaidExecutionRecord.updateOne(
       { executionId, userId: String(auth.userId), status: "generating", "result.leaseToken": leaseToken },
@@ -4530,6 +4557,8 @@ async function handleAstrologyAIPrompt(request, auth, env) {
   let sourceTransactionId = "";
   let isPointSpend = false;
   let isCardSpend = false;
+  let isPassSpend = false;
+  let passRefund = null;
 
   try {
     const delegatedRequest = new Request(request.url, {
@@ -4564,16 +4593,17 @@ async function handleAstrologyAIPrompt(request, auth, env) {
 
     chargedCoins = Math.max(0, Number(consumePayload?.chargedCoins || 0));
     sourceTransactionId = String(consumePayload?.transactionId || "").trim();
-    ({ isPointSpend, isCardSpend } = readSajuAIPromptPointRefundContext(consumePayload, body));
+    ({ isPointSpend, isCardSpend, isPassSpend } = readSajuAIPromptPointRefundContext(consumePayload, body));
+    passRefund = consumePayload?.passRefund && typeof consumePayload.passRefund === "object" ? consumePayload.passRefund : null;
     const balanceAfterRaw = Number(consumePayload?.user?.points);
     const balanceAfter = Number.isFinite(balanceAfterRaw) ? balanceAfterRaw : undefined;
 
     return await deliverFeatureQuestion(request, env, auth, { ...body, requestId }, {
       featureKey: ASTROLOGY_AI_PROMPT_FEATURE_KEY,
-      verify: async () => ({ chargedCoins, sourceTransactionId, isPointSpend, isCardSpend, passRefund: null, balanceAfter }),
+      verify: async () => ({ chargedCoins, sourceTransactionId, isPointSpend, isCardSpend, isPassSpend, passRefund, balanceAfter }),
       prepare: async () => ({ built: builtPrompt, factsInput: { astrologyResult, compatibilityResult } }),
       refund: async proof => {
-        ({ chargedCoins, sourceTransactionId, isPointSpend, isCardSpend } = proof);
+        ({ chargedCoins, sourceTransactionId, isPointSpend, isCardSpend, isPassSpend, passRefund } = proof);
         return refundGeneration(Object.assign(new Error('Generation attempts exhausted'), { code: 'LLM_GENERATION_RETRYABLE' }));
       },
     });
@@ -4616,6 +4646,12 @@ async function handleAstrologyAIPrompt(request, auth, env) {
         reasonMessage: "Astrology AI consultation generation failed auto-refund",
       });
       refundOk = cardRefund.refunded === true;
+    } else if (passRefund || isPassSpend) {
+      // 이용권 커버로 monthlySpendCoin 이 이미 깎인 뒤 생성이 실패했다 — 되돌린다. 결제 화면에서
+      // 미리 깎여 passRefund 가 비었으면 사용 증빙으로 되돌린다(restoreAIPromptPassOnFailure).
+      // 실패해도 로그만 남기고 원래 실패 응답(500/503)을 가리지 않는다.
+      refundAttempted = true;
+      refundOk = await restoreAIPromptPassOnFailure({ auth, featureKey: ASTROLOGY_AI_PROMPT_FEATURE_KEY, requestId, passRefund, label: "astrology-ai-prompt" });
     }
 
     console.error("[fortune][astrology-ai-prompt] request failed:", error);
@@ -4692,6 +4728,7 @@ async function handleVedicAIPrompt(request, auth, env) {
   let sourceTransactionId = "";
   let isPointSpend = false;
   let isCardSpend = false;
+  let isPassSpend = false;
   let passRefund = null;
 
   try {
@@ -4727,18 +4764,18 @@ async function handleVedicAIPrompt(request, auth, env) {
 
     chargedCoins = Math.max(0, Number(consumePayload?.chargedCoins || 0));
     sourceTransactionId = String(consumePayload?.transactionId || "").trim();
-    ({ isPointSpend, isCardSpend } = readSajuAIPromptPointRefundContext(consumePayload, body));
+    ({ isPointSpend, isCardSpend, isPassSpend } = readSajuAIPromptPointRefundContext(consumePayload, body));
     passRefund = consumePayload?.passRefund && typeof consumePayload.passRefund === "object" ? consumePayload.passRefund : null;
     const balanceAfterRaw = Number(consumePayload?.user?.points);
     const balanceAfter = Number.isFinite(balanceAfterRaw) ? balanceAfterRaw : undefined;
 
     return await deliverFeatureQuestion(request, env, auth, { ...body, requestId }, {
       featureKey: VEDIC_AI_PROMPT_FEATURE_KEY,
-      verify: async () => ({ chargedCoins, sourceTransactionId, isPointSpend, isCardSpend, passRefund, balanceAfter }),
+      verify: async () => ({ chargedCoins, sourceTransactionId, isPointSpend, isCardSpend, isPassSpend, passRefund, balanceAfter }),
       // House rulers first: they must survive the 100-fact cap that a full chart reaches (B7).
       prepare: async () => ({ built: builtPrompt, factsInput: { houseRulers: builtPrompt.houseRulers, vedicResult, compatibilityResult } }),
       refund: async proof => {
-        ({ chargedCoins, sourceTransactionId, isPointSpend, isCardSpend, passRefund } = proof);
+        ({ chargedCoins, sourceTransactionId, isPointSpend, isCardSpend, isPassSpend, passRefund } = proof);
         return refundGeneration(Object.assign(new Error('Generation attempts exhausted'), { code: 'LLM_GENERATION_RETRYABLE' }));
       },
     });
@@ -4781,21 +4818,12 @@ async function handleVedicAIPrompt(request, auth, env) {
         reasonMessage: "Vedic AI consultation generation failed auto-refund",
       });
       refundOk = cardRefund.refunded === true;
-    } else if (passRefund) {
-      // 이용권 커버로 monthlySpendCoin 이 이미 깎인 뒤 생성이 실패했다 — 되돌린다.
+    } else if (passRefund || isPassSpend) {
+      // 이용권 커버로 monthlySpendCoin 이 이미 깎인 뒤 생성이 실패했다 — 되돌린다. 결제 화면에서
+      // 미리 깎여 passRefund 가 비었으면 사용 증빙으로 되돌린다(restoreAIPromptPassOnFailure).
       // 실패해도 로그만 남기고 원래 실패 응답(500/503)을 가리지 않는다.
       refundAttempted = true;
-      try {
-        const passRefundResult = await refundPassCoverage({
-          userId: auth.userId,
-          cycleKey: passRefund.cycleKey,
-          refundId: `vedic-ai-prompt:${requestId}`,
-          cost: passRefund.cost,
-        });
-        refundOk = passRefundResult.refunded === true;
-      } catch (refundError) {
-        console.error("[fortune][vedic-ai-prompt] pass refund failed:", refundError);
-      }
+      refundOk = await restoreAIPromptPassOnFailure({ auth, featureKey: VEDIC_AI_PROMPT_FEATURE_KEY, requestId, passRefund, label: "vedic-ai-prompt" });
     }
 
     console.error("[fortune][vedic-ai-prompt] request failed:", error);
@@ -5338,6 +5366,10 @@ async function handleSajuAIPrompt(request, auth, env, ctx = null) {
         reasonMessage: "Saju AI prompt generation failed auto-refund",
       });
       pointRefund = { attempted: true, refundOk: cardRefund.refunded === true };
+    } else if (pointRefundContext.isPassSpend || consumePayload?.passRefund) {
+      // 이용권 커버로 깎인 한도를 되돌린다(결제 화면에서 미리 깎였으면 사용 증빙으로).
+      pointRefund = { attempted: true, refundOk: await restoreAIPromptPassOnFailure({ auth, featureKey: SAJU_AI_PROMPT_FEATURE_KEY,
+        requestId, passRefund: consumePayload?.passRefund && typeof consumePayload.passRefund === "object" ? consumePayload.passRefund : null, label: "saju-ai-prompt" }) };
     }
     console.error("[fortune][saju-ai-prompt] request failed:", error);
     logSajuAIPromptStage("LLM_JOB_FAILED", {
@@ -5751,6 +5783,7 @@ async function handleZiweiAIPrompt(request, auth, env) {
   let sourceTransactionId = "";
   let isPointSpend = false;
   let isCardSpend = false;
+  let isPassSpend = false;
   let passRefund = null;
 
   try {
@@ -5793,17 +5826,17 @@ async function handleZiweiAIPrompt(request, auth, env) {
 
     chargedCoins = Math.max(0, Number(consumePayload?.chargedCoins || 0));
     sourceTransactionId = String(consumePayload?.transactionId || "").trim();
-    ({ isPointSpend, isCardSpend } = readSajuAIPromptPointRefundContext(consumePayload, body));
+    ({ isPointSpend, isCardSpend, isPassSpend } = readSajuAIPromptPointRefundContext(consumePayload, body));
     passRefund = consumePayload?.passRefund && typeof consumePayload.passRefund === "object" ? consumePayload.passRefund : null;
     const balanceAfterRaw = Number(consumePayload?.user?.points);
     const balanceAfter = Number.isFinite(balanceAfterRaw) ? balanceAfterRaw : undefined;
 
     return await deliverFeatureQuestion(request, env, auth, { ...body, requestId }, {
       featureKey: ZIWEI_AI_PROMPT_FEATURE_KEY,
-      verify: async () => ({ chargedCoins, sourceTransactionId, isPointSpend, isCardSpend, passRefund, balanceAfter }),
+      verify: async () => ({ chargedCoins, sourceTransactionId, isPointSpend, isCardSpend, isPassSpend, passRefund, balanceAfter }),
       prepare: async () => ({ built: builtPrompt, factsInput: chartResult }),
       refund: async proof => {
-        ({ chargedCoins, sourceTransactionId, isPointSpend, isCardSpend, passRefund } = proof);
+        ({ chargedCoins, sourceTransactionId, isPointSpend, isCardSpend, isPassSpend, passRefund } = proof);
         return refundGeneration(Object.assign(new Error('Generation attempts exhausted'), { code: 'LLM_GENERATION_RETRYABLE' }));
       },
     });
@@ -5846,21 +5879,12 @@ async function handleZiweiAIPrompt(request, auth, env) {
         reasonMessage: "Ziwei AI consultation generation failed auto-refund",
       });
       refundOk = cardRefund.refunded === true;
-    } else if (passRefund) {
-      // 이용권 커버로 monthlySpendCoin 이 이미 깎인 뒤 생성이 실패했다 — 되돌린다.
+    } else if (passRefund || isPassSpend) {
+      // 이용권 커버로 monthlySpendCoin 이 이미 깎인 뒤 생성이 실패했다 — 되돌린다. 결제 화면에서
+      // 미리 깎여 passRefund 가 비었으면 사용 증빙으로 되돌린다(restoreAIPromptPassOnFailure).
       // 실패해도 로그만 남기고 원래 실패 응답(500/503)을 가리지 않는다.
       refundAttempted = true;
-      try {
-        const passRefundResult = await refundPassCoverage({
-          userId: auth.userId,
-          cycleKey: passRefund.cycleKey,
-          refundId: `ziwei-ai-prompt:${requestId}`,
-          cost: passRefund.cost,
-        });
-        refundOk = passRefundResult.refunded === true;
-      } catch (refundError) {
-        console.error("[fortune][ziwei-ai-prompt] pass refund failed:", refundError);
-      }
+      refundOk = await restoreAIPromptPassOnFailure({ auth, featureKey: ZIWEI_AI_PROMPT_FEATURE_KEY, requestId, passRefund, label: "ziwei-ai-prompt" });
     }
 
     console.error("[fortune][ziwei-ai-prompt] request failed:", error);
@@ -5974,6 +5998,7 @@ async function handleSukuyoAIPrompt(request, auth, env) {
   let sourceTransactionId = "";
   let isPointSpend = false;
   let isCardSpend = false;
+  let isPassSpend = false;
   let passRefund = null;
 
   try {
@@ -6047,18 +6072,18 @@ async function handleSukuyoAIPrompt(request, auth, env) {
 
     chargedCoins = Math.max(0, Number(consumePayload?.chargedCoins || 0));
     sourceTransactionId = String(consumePayload?.transactionId || "").trim();
-    ({ isPointSpend, isCardSpend } = readSajuAIPromptPointRefundContext(consumePayload, body));
+    ({ isPointSpend, isCardSpend, isPassSpend } = readSajuAIPromptPointRefundContext(consumePayload, body));
     passRefund = consumePayload?.passRefund && typeof consumePayload.passRefund === "object" ? consumePayload.passRefund : null;
     const balanceAfterRaw = Number(consumePayload?.user?.points);
     const balanceAfter = Number.isFinite(balanceAfterRaw) ? balanceAfterRaw : undefined;
 
     return await deliverFeatureQuestion(request, env, auth, { ...body, requestId }, {
       featureKey: SUKUYO_AI_PROMPT_FEATURE_KEY,
-      verify: async () => ({ chargedCoins, sourceTransactionId, isPointSpend, isCardSpend, passRefund, balanceAfter }),
+      verify: async () => ({ chargedCoins, sourceTransactionId, isPointSpend, isCardSpend, isPassSpend, passRefund, balanceAfter }),
       // daily is today's date-seeded signal, not a natal fact; B5 cited it as career evidence.
       prepare: async () => ({ built: builtPrompt, factsInput: { basicResult: { ...basicResult, daily: undefined }, compatibilityResult } }),
       refund: async proof => {
-        ({ chargedCoins, sourceTransactionId, isPointSpend, isCardSpend, passRefund } = proof);
+        ({ chargedCoins, sourceTransactionId, isPointSpend, isCardSpend, isPassSpend, passRefund } = proof);
         return refundGeneration(Object.assign(new Error('Generation attempts exhausted'), { code: 'LLM_GENERATION_RETRYABLE' }));
       },
     });
@@ -6101,21 +6126,12 @@ async function handleSukuyoAIPrompt(request, auth, env) {
         reasonMessage: "Sukuyo AI consultation generation failed auto-refund",
       });
       refundOk = cardRefund.refunded === true;
-    } else if (passRefund) {
-      // 이용권 커버로 monthlySpendCoin 이 이미 깎인 뒤 생성이 실패했다 — 되돌린다.
+    } else if (passRefund || isPassSpend) {
+      // 이용권 커버로 monthlySpendCoin 이 이미 깎인 뒤 생성이 실패했다 — 되돌린다. 결제 화면에서
+      // 미리 깎여 passRefund 가 비었으면 사용 증빙으로 되돌린다(restoreAIPromptPassOnFailure).
       // 실패해도 로그만 남기고 원래 실패 응답(500/503)을 가리지 않는다.
       refundAttempted = true;
-      try {
-        const passRefundResult = await refundPassCoverage({
-          userId: auth.userId,
-          cycleKey: passRefund.cycleKey,
-          refundId: `sukuyo-ai-prompt:${requestId}`,
-          cost: passRefund.cost,
-        });
-        refundOk = passRefundResult.refunded === true;
-      } catch (refundError) {
-        console.error("[fortune][sukuyo-ai-prompt] pass refund failed:", refundError);
-      }
+      refundOk = await restoreAIPromptPassOnFailure({ auth, featureKey: SUKUYO_AI_PROMPT_FEATURE_KEY, requestId, passRefund, label: "sukuyo-ai-prompt" });
     }
 
     console.error("[fortune][sukuyo-ai-prompt] request failed:", error);
@@ -7308,6 +7324,7 @@ export const __fortuneAccessTestUtils = {
   buildPigCoinRefundDeductQueries,
   buildAIPromptCardRefundPaymentQuery,
   readAIPromptRefundContext: readSajuAIPromptPointRefundContext,
+  restoreAIPromptPassOnFailure,
   isSajuAIPromptStaleGeneratingExecution,
   resolveSajuAIPromptFailureBilling,
   mapSajuAIExecutionStatus,

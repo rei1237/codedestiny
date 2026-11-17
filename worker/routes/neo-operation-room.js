@@ -1349,6 +1349,19 @@ async function failRefundableExecution(env, auth, idempotencyKey, sessionId, err
   });
 }
 
+// 결제 화면(pass-check)·접근 판정이 이 키로 차감한 이용권 한도를 생성 실패 때 증빙으로 되돌린다.
+// 실행 가드(failServiceExecution)가 먼저 되돌렸으면 증빙에 환불 표시가 있어 다시 되돌리지 않는다.
+async function restorePassOnFailure(auth, idempotencyKey) {
+  try {
+    const { refundPassUseEvidence } = await import("../lib/pass-consumption.js");
+    return await refundPassUseEvidence({ userId: clean(auth.userId), featureKey: FEATURE_KEY, requestId: idempotencyKey,
+      refundId: `neo-operation-room:${idempotencyKey}` });
+  } catch (error) {
+    console.error("[neo-operation-room] pass restore failed", { message: clean(error?.message || error, 300) });
+    return { refunded: false };
+  }
+}
+
 // 카드 단건 결제로 연 브리핑이 실패했을 때의 자동 환불. 위 실행 가드로는 닿지 않는다 —
 // startRefundableExecution 이 billing-gate(월정석·이용권) 전용이라 카드는 실행 문서 자체가 없고,
 // 설령 등록하더라도 정산기의 카드 갈래(service-execution-task.js runPaymentCancel)는 결제 상태를
@@ -1840,6 +1853,7 @@ async function handleStart(request, env, ctx = null, recoveryAuth = null) {
     await saveNeoDelivery(filter, { status: "generation_failed", generationError: { code: clean(error?.code || "LLM_FAILED", 80), message: clean(error?.message, 500) } }, sessionId);
     await releaseRequestBillingEvidence(env, { userId: clean(auth.userId), requestId: idempotencyKey, evidenceIds });
     await failRefundableExecution(env, auth, idempotencyKey, sessionId, error);
+    if (!nativeTossContext(request) && access?.accessType === "pass") await restorePassOnFailure(auth, idempotencyKey);
     const refund = await refundCardPaymentOnFailure(env, auth, access, error);
     return json({ ok: false, reason: "LLM_ERROR", message: refund.refunded ? CARD_REFUNDED_MESSAGE : LLM_ERROR_MESSAGE }, { status: 503 });
   } finally {

@@ -10,7 +10,7 @@ jest.unstable_mockModule('../../worker/lib/sync-llm-timeout.js', () => ({ ...tim
 
 const uid = "64b7f2a1c3d4e5f601234567";
 const body = { idempotencyKey: "original-paid-request", selectedMethod: "saju", topic: "relationship", intensity: "standard", question: "반복되는 관계 선택을 구체적으로 살펴보고 싶습니다.", birthInput: { name: "검사", gender: "female", birthDate: "1993-07-21", birthTime: "09:00", calendarType: "solar" } };
-let recoveryBind, resumeNeo, utils, route, docs, provider, chart, fault, blocked, mode, userId, usage, refund, fetchBlock, lostConfirmation;
+let recoveryBind, resumeNeo, utils, route, docs, provider, chart, fault, blocked, mode, userId, usage, refund, fetchBlock, lostConfirmation, passRefund;
 const clone = value => value == null ? value : structuredClone(value);
 function query(value) { const result = Promise.resolve(value); result.lean = async () => clone(value); result.select = result.sort = () => result; return result; }
 const get = (doc, key) => key.split(".").reduce((value, field) => value?.[field], doc);
@@ -67,6 +67,8 @@ function prose(seed, length) {
 }
 let definitions, refinedDefinitions;
 beforeAll(async () => {
+  const passConsumption = await import("../../worker/lib/pass-consumption.js");
+  jest.unstable_mockModule("../../worker/lib/pass-consumption.js", () => ({ ...passConsumption, refundPassUseEvidence: (...args) => passRefund(...args) }));
   jest.unstable_mockModule('../../worker/toss/native-neo.js',()=>({bindNativeNeoRecovery:(...args)=>recoveryBind(...args)}));
   const db = await import("../../worker/lib/db.js");
   const auth = await import("../../worker/lib/auth.js");
@@ -111,7 +113,7 @@ function fixture(section) {
   return walk(shape,'','',true);
 }
 beforeEach(() => {
- docs=[];fault=null;lostConfirmation=false;blocked=-1;mode='pass';userId=uid;usage=jest.fn();refund=jest.fn(async()=>({}));chart=jest.fn(async()=>({}));
+ docs=[];fault=null;lostConfirmation=false;blocked=-1;mode='pass';userId=uid;usage=jest.fn();refund=jest.fn(async()=>({}));passRefund=jest.fn(async()=>({refunded:true}));chart=jest.fn(async()=>({}));
  provider=jest.fn(async(_env,prompt,options)=>{
    expect(options.timeoutMs).toBeLessThanOrEqual(45000);expect(options.fallbackToWorkersAI).toBe(false);
    const section=[...definitions,...refinedDefinitions].find(row=>prompt.includes(`제목: ${row.title}\n`));
@@ -132,7 +134,7 @@ for(const status of ['delivery_pending','completed']) for(const kind of ['null',
 });
 for(const store of [0,1,2,3]) it(`revoked store ${store} rejects resume`,async()=>{await start();blocked=store;const count=provider.mock.calls.length;expect((await start()).status).toBe(402);expect(provider).toHaveBeenCalledTimes(count)});
 it('bookkeeping failure does not hide completed delivery',async()=>{usage.mockImplementation(()=>{throw new Error('ledger unavailable')});for(let i=0;i<3;i++)await start();expect((await start()).status).toBe(200);expect(docs[0].status).toBe('completed')});
-it('short generation has a cumulative limit and no completion reward',async()=>{provider.mockImplementation(async()=>({ok:true,text:'{"short":"empty"}'}));for(let i=0;i<2;i++)expect((await start()).status).toBe(202);expect((await start()).status).toBe(503);expect(provider).toHaveBeenCalledTimes(8);expect(usage).not.toHaveBeenCalled()});
+it('short generation has a cumulative limit and no completion reward',async()=>{provider.mockImplementation(async()=>({ok:true,text:'{"short":"empty"}'}));for(let i=0;i<2;i++)expect((await start()).status).toBe(202);expect((await start()).status).toBe(503);expect(provider).toHaveBeenCalledTimes(8);expect(usage).not.toHaveBeenCalled();expect(passRefund).toHaveBeenCalledTimes(1);expect(passRefund).toHaveBeenCalledWith(expect.objectContaining({featureKey:"neo-operation-room-consultation",requestId:"original-paid-request"}))});
 it.each([
   ['unsupported-location token count', { ok: false, error: 'LLM_INPUT_TOKEN_COUNT_UNAVAILABLE', providerCode: 'GEMINI_PRECONDITION_FAILED', status: 400, retryable: false }, 5],
   ['generation timeout', { ok: false, error: 'LLM_GENERATION_TIMEOUT' }, 2],

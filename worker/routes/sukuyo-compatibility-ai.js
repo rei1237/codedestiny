@@ -1905,7 +1905,21 @@ function executionAccessMethod(accessType) {
 // vedic-ai.js의 restorePrepaidAccessOnFailure와 동일한 멱등 환급 규약을 따른다.
 async function restorePrepaidAccessOnFailure(env, auth, access, error, requestId = "") {
   const accessType = clean(access?.accessType).toLowerCase();
-  // 이용권/월정석 커버(pass/family/license)·관리자·토큰 접근은 차감이 없으므로 환급 대상 아님.
+  // 이용권 커버: 결제 화면(pass-check)이나 접근 판정이 이 requestId 로 차감한 한도를 증빙으로 되돌린다.
+  // 증빙(delta 0, PASS/FAMILY)이 없으면 아무것도 하지 않으므로 관리자·토큰 접근은 그대로 제외된다.
+  if (accessType === "pass" && requestId) {
+    try {
+      const { refundPassUseEvidence } = await import("../lib/pass-consumption.js");
+      const result = await refundPassUseEvidence({ userId: String(auth?.userId || ""), featureKey: FEATURE_KEY,
+        requestId, refundId: `sukuyo-compatibility-ai:${requestId}` });
+      return result?.refunded === true;
+    } catch (restoreError) {
+      logSukyoAi("[Sukyo AI LLM Refund Failed]", { route: "/api/sukuyo-compatibility-ai/generate", accessType, requestId,
+        errorMessage: clean(restoreError?.message || restoreError, 300) }, restoreError, env);
+      return false;
+    }
+  }
+  // 월정석 이외 커버(family/license)·관리자·토큰 접근은 차감이 없으므로 환급 대상 아님.
   if (!["paid", "subscription"].includes(accessType)) return false;
   const evidenceId = clean(access?.paymentId, 160);
   if (!isObjectIdLike(evidenceId)) return false; // PG 직접결제(merchantUid 문자열)는 재시도로 자가복구되므로 제외.

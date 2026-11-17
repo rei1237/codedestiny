@@ -57,7 +57,7 @@ test("이용권 허용은 resultId 로 100코인을 정산하고 환불 정보�
   expect(outcome).toEqual({ ok: true });
   // requestId 가 아니라 resultId 로 묶어야 requestId 를 고정한 채 resultId 만 바꾼 새 상담이 다시 차감된다.
   expect(calls.settle).toEqual([expect.objectContaining({ requestId: RESULT_ID, coinPrice: 100, userId: "user-1", profileId: "card-a" })]);
-  expect(stored().passSettlement).toMatchObject({ source: "pass", cycleKey: "cycle-1", cost: 100 });
+  expect(stored().passSettlement).toMatchObject({ source: "pass", featureKey: "fortune-tea-house-saju-consultation", cycleKey: "cycle-1", cost: 100 });
 });
 
 test("정산이 거부되면 이번 요청이 만든 문서를 지우고 402 를 준다", async () => {
@@ -91,6 +91,13 @@ test("최종 실패는 차감을 한 번만 환불하고 refundedAt 을 남긴�
   await state.refundFortuneTeaHousePassSettlement({ auth: { userId: "user-1" }, resultId: RESULT_ID });
   expect(calls.refund).toEqual([{ userId: "user-1", cycleKey: "cycle-1", cost: 100, refundId: RESULT_ID }]);
   expect(stored().passRefund.refundedAt).toBeInstanceOf(Date);
+});
+
+test("기능 키를 남긴 정산의 환불은 같은 사용 증빙을 표시한다(중복 환불 방지)", async () => {
+  const { state, calls } = boot({ doc: { passSettlement: { featureKey: "fortune-tea-house-saju-consultation", cycleKey: "cycle-1", cost: 100 } } });
+  await state.refundFortuneTeaHousePassSettlement({ auth: { userId: "user-1" }, resultId: RESULT_ID });
+  expect(calls.refund).toEqual([{ userId: "user-1", cycleKey: "cycle-1", cost: 100, refundId: RESULT_ID,
+    sourceFeatureKey: "fortune-tea-house-saju-consultation", sourceRequestId: RESULT_ID }]);
 });
 
 test("환불된 결과는 같은 요청으로 다시 생성하지 못한다(차감 마커가 남아 무료가 되므로)", () => {

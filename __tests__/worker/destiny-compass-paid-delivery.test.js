@@ -5,7 +5,7 @@ import { jest } from '@jest/globals';
 const timeoutPolicy = jest.requireActual('../../worker/lib/sync-llm-timeout.js');
 jest.unstable_mockModule('../../worker/lib/sync-llm-timeout.js', () => ({ ...timeoutPolicy, PAID_LLM_PARTS_PER_REQUEST: 4 }));
 
-let docs,fault,lostConfirmation,route,provider,refund,owner,fetchBlock,revokedSource,specs,access,complete,realContract;
+let docs,fault,lostConfirmation,route,provider,refund,owner,fetchBlock,revokedSource,specs,access,complete,realContract,passRefund;
 const uid='64b7f2a1c3d4e5f601234567';
 const clone = value => value == null ? value : structuredClone(value);
 function query(value) { const result = Promise.resolve(value); result.lean = async () => clone(value); result.select = result.sort = () => result; return result; }
@@ -66,6 +66,8 @@ const model = {
 
 beforeAll(async()=>{
  const db=await import('../../worker/lib/db.js'); const auth=await import('../../worker/lib/auth.js'); const models=await import('../../worker/lib/models.js'); const contract=await import('../../worker/lib/destiny-compass-report-contract.js'); specs=contract.COMPASS_SECTIONS;realContract=contract;
+  const passConsumption = await import('../../worker/lib/pass-consumption.js');
+  jest.unstable_mockModule('../../worker/lib/pass-consumption.js',()=>({...passConsumption,refundPassUseEvidence:(...args)=>passRefund(...args)}));
  jest.unstable_mockModule('../../worker/lib/db.js',()=>({...db,connectDb:async()=>{}}));
  jest.unstable_mockModule('../../worker/lib/auth.js',()=>({...auth,requireAuth:async()=>({userId:owner})}));
  jest.unstable_mockModule('../../worker/lib/models.js',()=>({...models,DestinyCompassReport:model,
@@ -82,7 +84,7 @@ const requestInput=()=>({idempotencyKey:'original-request',requestId:'original-r
   // 체계 섹션(사주·자미·숙요·타로)의 근거는 다 있어야 한다 — 하나라도 비면 라우트가 생성 전에 끊는다.
   {system:'ziwei',items:[{id:'ziwei.ming',term:'명궁',detail:'자미'}]},{system:'sukuyo',items:[{id:'sukuyo.mansion',term:'본명숙',detail:'각수'}]},
   {system:'tarot',items:[{id:'tarot.card',term:'태양',detail:'정위'}]},{system:'vedic',items:[{id:'vedic.vara',term:'바라',detail:'수요일'}]}]}});
-beforeEach(()=>{owner=uid;fault=null;lostConfirmation=false;revokedSource=-1;refund=jest.fn(async()=>({ok:true}));complete=jest.fn(async()=>({}));access=jest.fn(async()=>({ok:true,accessType:'pass',matchedTransactionId:'original-receipt'}));
+beforeEach(()=>{owner=uid;passRefund=jest.fn(async()=>({refunded:false,skipped:true}));fault=null;lostConfirmation=false;revokedSource=-1;refund=jest.fn(async()=>({ok:true}));complete=jest.fn(async()=>({}));access=jest.fn(async()=>({ok:true,accessType:'pass',matchedTransactionId:'original-receipt'}));
  docs=[{id:'saved-compass',userId:uid,idempotencyKey:'original-request',status:'generating',lock:null,sections:[],llmMeta:{attempts:{},failures:{}},...requestInput()}];
  provider=jest.fn(async(_env,key,options)=>{expect(options.timeoutMs).toBe(42000);expect(options.fallbackToWorkersAI).toBe(false);const spec=specs.find(row=>row.key===key);let text='';for(let i=0;text.replace(/\s/g,'').length<spec.minChars+100;i++)text+=`${key}의 ${i}번째 계산 근거와 생활 선택을 살펴보며 반대 조건과 구체적인 행동을 함께 설명합니다.\n`;return{ok:true,text}});
  fetchBlock=jest.spyOn(globalThis,'fetch').mockImplementation(()=>{throw Error('External fetch blocked')});
@@ -103,6 +105,7 @@ it('historical completion bypasses new quality limits',async()=>{docs[0].status=
 it('null initial storage never starts a provider call',async()=>{docs=[];const original=model.updateOne;model.updateOne=async()=>null;try{const response=await route(new Request('https://mock.test/api/destiny-compass-ai/report',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(requestInput())}),{});expect(response.status).toBe(503);expect(await response.json()).toMatchObject({reason:'RESULT_STORAGE_UNAVAILABLE'});expect(provider).not.toHaveBeenCalled()}finally{model.updateOne=original}});
 it('completion bookkeeping failure does not hide the saved result',async()=>{complete.mockRejectedValueOnce(Error('bookkeeping offline'));await generate();await generate();expect((await generate()).status).toBe(200);expect(docs[0].status).toBe('completed');expect(refund).not.toHaveBeenCalled()});
 it('known empty failures use the original bounded failure refund',async()=>{docs[0].llmMeta={attempts:{[specs[0].key]:3},failures:{[specs[0].key]:3}};expect((await generate()).status).toBe(503);expect(refund).toHaveBeenCalledTimes(1);expect(provider).not.toHaveBeenCalled()});
+it('known empty failures also restore a pass pre-deducted at checkout without an execution',async()=>{refund.mockResolvedValueOnce(null);passRefund.mockResolvedValueOnce({refunded:true});docs[0].llmMeta={attempts:{[specs[0].key]:3},failures:{[specs[0].key]:3}};const response=await generate();expect(response.status).toBe(503);expect(await response.json()).toMatchObject({refunded:true});expect(passRefund).toHaveBeenCalledWith(expect.objectContaining({featureKey:'destiny-compass-deep-report',requestId:'original-request'}))});
 function p3Text(key, size) { return key + Array.from({ length: size - key.length }, (_, i) => String.fromCharCode(0xac00 + i % 11172)).join(''); }
 for (const repair of ['shorter', 'empty', 'truncated', 'repeat']) it(`P3 retains the longest short draft after ${repair} reinforcement`, async () => {
  docs[0].sections=specs.map((spec,i)=>({key:spec.key,title:spec.title,order:spec.order,body:p3Text(spec.key,i?2300:500),status:'ok'}));

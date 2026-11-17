@@ -41,14 +41,16 @@ describe("AI 프롬프트 실패 시 결제수단 분류", () => {
     expect(coin.isCardSpend).toBe(false);
   });
 
-  test("이용권·월정석은 어느 환불 경로에도 들어가지 않는다", () => {
+  test("이용권은 이용권 환불로만, 월정석은 코인·카드·이용권 환불 어디에도 들어가지 않는다", () => {
     const pass = readAIPromptRefundContext({ paymentMode: "MEMBERSHIP_PASS", accessMethod: "PASS" }, {});
     expect(pass.isPointSpend).toBe(false);
     expect(pass.isCardSpend).toBe(false);
+    expect(pass.isPassSpend).toBe(true);
 
     const monthly = readAIPromptRefundContext({ paymentMode: "MOONLIGHT_STONE", accessMethod: "MONTHLY" }, {});
     expect(monthly.isPointSpend).toBe(false);
     expect(monthly.isCardSpend).toBe(false);
+    expect(monthly.isPassSpend).toBe(false);
   });
 });
 

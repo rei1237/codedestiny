@@ -43,7 +43,7 @@ import { canUseByPass, normalizeHoneyPassEntitlement, resolvePremiumQuota } from
 import { resolveCanonicalEntitlement } from "../lib/entitlement-policy.js";
 // 🔴 이 라우트는 coin-gate 를 거치지 않는 자체 게이트라, 이용권 통과를 내주면서 누적 사용량을
 // 아무도 차감하지 않았다(한도가 존재하지 않았다). 판정·소비 정본은 worker/payments/passes.js.
-import { consumePassForFeature, hasConsumedPassFeature, refundPassCoverage } from "../lib/pass-consumption.js";
+import { consumePassForFeature, hasConsumedPassFeature, refundPassCoverage, refundPassUseEvidence } from "../lib/pass-consumption.js";
 // 🔴 코인·월정석·카드 환급은 결제 축의 정본 3종을 그대로 쓴다. 여기에 자체 환불기를 만들면
 // 멱등 마커가 갈라져(metadata.refundedForServiceExecution 등) 이중 환불이 열린다.
 import { runCoinRefund, runMonthlyCreditRefund, runPaymentCancel } from "../lib/service-execution-task.js";
@@ -1302,11 +1302,23 @@ export async function acquireBatchLock(sessionId, userId) {
  */
 async function refundSessionPassIfNeeded(sessionId, userId, doc, existingChapters, dependencies = {}) {
   const refund = doc?.passRefund;
-  if (!refund || refund.refundedAt || existingChapters.length > 0) return;
+  if (refund?.refundedAt || existingChapters.length > 0) return;
+  // 차감 증빙 (기능, requestId): 실어 보내야 증빙에 환불 표시가 남아 다른 환불 경로와 겹치지 않는다.
+  const sourceFeatureKey = resolveMode(doc?.mode).featureKey;
+  const sourceRequestId = clean(doc?.billingRequestId || doc?.idempotencyKey, 180);
+  if (!refund) {
+    // 결제 화면(pass-check)이 미리 차감한 이용권은 세션에 passRefund 가 없다 — 증빙으로 되돌린다.
+    if (!sourceRequestId || doc?.deliveryMeta?.tossIntentId) return;
+    const evidenceFn = dependencies.refundPassUseEvidence || refundPassUseEvidence;
+    await evidenceFn({ userId, featureKey: sourceFeatureKey, requestId: sourceRequestId, refundId: `master-love-codex:${sessionId}` })
+      .catch(error => console.error("[master-love-codex] pass evidence refund", clean(error?.message, 300)));
+    return;
+  }
   const refundFn = dependencies.refundPassCoverage || refundPassCoverage;
   const SessionModel = dependencies.MasterLoveCodexSession || MasterLoveCodexSession;
   try {
-    const result = await refundFn({ userId, cycleKey: refund.cycleKey, cost: refund.cost, refundId: `master-love-codex:${sessionId}` });
+    const result = await refundFn({ userId, cycleKey: refund.cycleKey, cost: refund.cost, refundId: `master-love-codex:${sessionId}`,
+      ...(sourceRequestId ? { sourceFeatureKey, sourceRequestId } : {}) });
     if (result.refunded) {
       await SessionModel.updateOne(
         { id: sessionId, userId, "passRefund.refundedAt": { $exists: false } },

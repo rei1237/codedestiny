@@ -19,9 +19,13 @@ const CYCLE_KEY = "2026-09-30T00:00:00.000Z";
 
 const consumePassForFeatureMock = jest.fn();
 const hasConsumedPassFeatureMock = jest.fn();
+const refundPassCoverageMock = jest.fn();
+const refundPassUseEvidenceMock = jest.fn();
 
 let findAIPromptPaidAccessEvidence;
 let buildAIPromptVerifiedConsumePayload;
+let readAIPromptRefundContext;
+let restoreAIPromptPassOnFailure;
 let User;
 
 function query(result) {
@@ -54,18 +58,21 @@ beforeAll(async () => {
     hasConsumedPassFeature: (...args) => hasConsumedPassFeatureMock(...args),
     consumePassForFeature: (...args) => consumePassForFeatureMock(...args),
     passDenialCode: (reason) => (reason ? "MONTHLY_PASS_LIMIT_EXCEEDED" : ""),
-    refundPassCoverage: jest.fn(),
+    refundPassCoverage: (...args) => refundPassCoverageMock(...args),
+    refundPassUseEvidence: (...args) => refundPassUseEvidenceMock(...args),
   }));
 
   ({ User } = await import("../../worker/lib/models.js"));
   jest.spyOn(User, "findById");
 
-  ({ findAIPromptPaidAccessEvidence, buildAIPromptVerifiedConsumePayload } =
+  ({ findAIPromptPaidAccessEvidence, buildAIPromptVerifiedConsumePayload, readAIPromptRefundContext, restoreAIPromptPassOnFailure } =
     (await import("../../worker/routes/fortune.js")).__fortuneAccessTestUtils);
 });
 
 beforeEach(() => {
   User.findById.mockReset().mockReturnValue(query(familyUser));
+  refundPassCoverageMock.mockReset().mockResolvedValue({ refunded: true });
+  refundPassUseEvidenceMock.mockReset().mockResolvedValue({ refunded: true });
   hasConsumedPassFeatureMock.mockReset().mockResolvedValue(false);
   consumePassForFeatureMock.mockReset().mockResolvedValue({
     covered: true, reason: "", replayed: false, coverage: { cycleKey: CYCLE_KEY, budgetApplies: true },
@@ -148,5 +155,50 @@ describe("buildAIPromptVerifiedConsumePayload — passRefund 최상위 승격", 
       subscriptionUser: familyUser,
     });
     expect(payload.passRefund).toBeNull();
+  });
+});
+
+describe("restoreAIPromptPassOnFailure — 생성 실패 때 이용권 한도 복구", () => {
+  test("결제 화면에서 미리 깎인 요청(passRefund 없음)은 이용권으로 분류돼 사용 증빙으로 한 번 되돌린다", async () => {
+    hasConsumedPassFeatureMock.mockResolvedValue(true);
+    const evidence = await findAIPromptPaidAccessEvidence({
+      auth: { userId: USER_ID }, featureKey: FEATURE_KEY, body: { freeBySubscription: true }, requestId: "req-1", cost: COST, consume: true,
+    });
+    const payload = buildAIPromptVerifiedConsumePayload({
+      auth: { userId: USER_ID }, featureKey: FEATURE_KEY, reason: "test", requestId: "req-1", cost: COST,
+      body: { freeBySubscription: true }, evidence, subscriptionUser: familyUser,
+    });
+    expect(payload.passRefund).toBeNull();
+    expect(readAIPromptRefundContext(payload, {}).isPassSpend).toBe(true);
+
+    await expect(restoreAIPromptPassOnFailure({
+      auth: { userId: USER_ID }, featureKey: FEATURE_KEY, requestId: "req-1", passRefund: null, label: "ziwei-ai-prompt",
+    })).resolves.toBe(true);
+    expect(refundPassUseEvidenceMock).toHaveBeenCalledTimes(1);
+    expect(refundPassUseEvidenceMock).toHaveBeenCalledWith({
+      userId: USER_ID, featureKey: FEATURE_KEY, requestId: "req-1", refundId: "ziwei-ai-prompt:req-1",
+    });
+    expect(refundPassCoverageMock).not.toHaveBeenCalled();
+  });
+
+  test("이번 요청에서 깎인 한도는 passRefund 로 되돌리되 같은 증빙을 표시해 중복 환불을 막는다", async () => {
+    await expect(restoreAIPromptPassOnFailure({
+      auth: { userId: USER_ID }, featureKey: FEATURE_KEY, requestId: "req-1",
+      passRefund: { cycleKey: CYCLE_KEY, cost: COST }, label: "ziwei-ai-prompt",
+    })).resolves.toBe(true);
+    expect(refundPassCoverageMock).toHaveBeenCalledWith(expect.objectContaining({
+      userId: USER_ID, cycleKey: CYCLE_KEY, cost: COST, refundId: "ziwei-ai-prompt:req-1",
+      sourceFeatureKey: FEATURE_KEY, sourceRequestId: "req-1",
+    }));
+    expect(refundPassUseEvidenceMock).not.toHaveBeenCalled();
+  });
+
+  test("복구가 실패해도 원래 실패 응답을 가리지 않고 false 를 돌려준다", async () => {
+    refundPassUseEvidenceMock.mockRejectedValue(new Error("db down"));
+    const spy = jest.spyOn(console, "error").mockImplementation(() => {});
+    await expect(restoreAIPromptPassOnFailure({
+      auth: { userId: USER_ID }, featureKey: FEATURE_KEY, requestId: "req-1", passRefund: null, label: "ziwei-ai-prompt",
+    })).resolves.toBe(false);
+    spy.mockRestore();
   });
 });

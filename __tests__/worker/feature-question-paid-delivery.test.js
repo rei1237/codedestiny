@@ -53,9 +53,10 @@ function handler(){
   enrichAstrologyPromptResultWithSwiss:async value=>value,primePromptTemplateOverrides:async()=>{},
   sha256Hex:async()=> 'a'.repeat(64),readAIPromptRequestId:(body,fallback)=>body.requestId||fallback,
   handlePigCoinConsume:(...args)=>consume(...args),handlePigCoinRefund:(...args)=>refund(...args),
-  readSajuAIPromptPointRefundContext:()=>({isPointSpend:mode==='monthly',isCardSpend:mode==='single'}),
+  readSajuAIPromptPointRefundContext:()=>({isPointSpend:mode==='monthly',isCardSpend:mode==='single',isPassSpend:mode==='prepass'}),
   refundAIPromptCardPaymentOnFailure:async()=>{await refund();return {refunded:true};},
   refundPassCoverage:async()=>{await refund();return {refunded:true};},
+  restoreAIPromptPassOnFailure:async()=>{await refund();return true;},
   withMongoRetry:async(_env,fn)=>fn(),findAIPromptPaidAccessEvidence:async()=>({ok:true}),
   isAIPromptTransientDbError:()=>true,buildAIPromptRetryMessage:()=> '다시 확인해 주세요.',
   buildAIPromptRetryDetails:value=>({...value,paymentRetainedForRetry:!value.refundOk}),
@@ -104,7 +105,7 @@ test.each(['short','hash','claim','truncated'])('%s is repaired locally when the
 });
 test('rejected access, wrong owner and revocation prevent provider calls',async()=>{consume.mockResolvedValueOnce(new Response('{}',{status:402}));expect((await start()).status).toBe(402);expect(provider).not.toHaveBeenCalled();await start();userId='other-owner';expect((await resume()).status).toBe(404);userId=owner;revoked=true;expect((await resume()).status).toBe(403);expect(provider).toHaveBeenCalledTimes(4);});
 test('same input key cannot substitute new calculations',async()=>{await start();expect((await post({...original(),question:'다른 질문으로 바꾸었습니다.'})).status).toBe(409);expect(provider).toHaveBeenCalledTimes(4);});
-test.each([['monthly','Astrology'],['single','Astrology'],['pass','Ziwei'],['pass','Sukuyo'],['pass','Vedic']])('exhausted %s %s refund runs once despite a repeated request',async(access,type)=>{kind=type;mode=access;provider.mockResolvedValue({ok:false});await start();expect((await finish()).status).toBe(500);expect((await resume()).status).toBe(500);expect(refund).toHaveBeenCalledTimes(1);});
+test.each([['monthly','Astrology'],['single','Astrology'],['pass','Ziwei'],['pass','Sukuyo'],['pass','Vedic'],['prepass','Astrology'],['prepass','Vedic']])('exhausted %s %s refund runs once despite a repeated request',async(access,type)=>{kind=type;mode=access;provider.mockResolvedValue({ok:false});await start();expect((await finish()).status).toBe(500);expect((await resume()).status).toBe(500);expect(refund).toHaveBeenCalledTimes(1);});
 test.each(['Astrology','Vedic','Ziwei','Sukuyo'].flatMap(type=>['pass','monthly','single'].map(access=>[type,access])))('%s %s preserves saved parts when a later part exhausts',async(type,access)=>{
  kind=type;mode=access;expect((await start()).status).toBe(202);
  const before=clone(docs[0].metadata.paidNarrative.parts);expect(Object.keys(before)).toHaveLength(4);

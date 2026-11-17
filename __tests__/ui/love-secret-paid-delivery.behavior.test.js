@@ -380,6 +380,16 @@ test('Toss generation failure never releases or refunds web payment evidence',as
  assert.equal((await f.post()).status,422);assert.equal(f.calls,0);assert.equal(f.refunds,0);
 });
 
+test('이용권 결제 화면에서 미리 차감한 한도는 생성 실패 때 증빙으로 한 번 되돌린다',async()=>{
+ const f=fixture('pass');const calls=[];
+ f.ctx.resolveStartAccess=async()=>({ok:true,accessType:'pass',accessSource:'billing_gate_pass'});
+ f.ctx.calculateLoveSecretAiSaju=()=>{throw Error('mock calculation failure');};
+ f.ctx.refundPassUseEvidence=async args=>{calls.push(args);return {refunded:true};};
+ load(f.ctx,'worker/routes/love-secret-ai.js',['restoreBillingGateAccessOnFailure']);
+ assert.equal((await f.post()).status,422);assert.equal(f.calls,0);assert.equal(calls.length,1);
+ assert.equal(calls[0].featureKey,'love-secret-ai-consultation');assert.equal(calls[0].requestId,'original-paid-request');
+});
+
 test('new love-secret facts stay pinned across OFF resume without regenerating grounding facts', async () => {
  const f=fixture('paid');const helper=await import('../../worker/lib/representative-consumer-facts.js');Object.assign(f.ctx,helper);
  await f.post({}, {SAJU_CONSUMER_FACTS_V1:'true'});assert.ok(f.doc.sajuResult.consumerFactIdentity);

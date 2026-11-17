@@ -38,6 +38,7 @@ describe("refundSessionPassIfNeeded", () => {
   function deps({ refunded = true } = {}) {
     return {
       refundPassCoverage: jest.fn(async () => (refunded ? { refunded: true, amount: 300 } : { refunded: false, skipped: true })),
+      refundPassUseEvidence: jest.fn(async () => ({ refunded: true, amount: 300 })),
       MasterLoveCodexSession: { updateOne: jest.fn(() => Promise.resolve({ matchedCount: 1 })) },
     };
   }
@@ -62,6 +63,21 @@ describe("refundSessionPassIfNeeded", () => {
     const d = deps();
     await refundSessionPassIfNeeded(sessionId, userId, { passRefund: null }, [], d);
     expect(d.refundPassCoverage).not.toHaveBeenCalled();
+    expect(d.refundPassUseEvidence).not.toHaveBeenCalled();
+  });
+
+  test("결제 화면이 미리 차감한 이용권(passRefund 없음)은 (기능, requestId) 증빙으로 되돌린다", async () => {
+    const d = deps();
+    await refundSessionPassIfNeeded(sessionId, userId, { passRefund: null, mode: "solo", idempotencyKey: "req-1" }, [], d);
+    expect(d.refundPassUseEvidence).toHaveBeenCalledWith(expect.objectContaining({ userId, requestId: "req-1", refundId: `master-love-codex:${sessionId}` }));
+    expect(d.refundPassCoverage).not.toHaveBeenCalled();
+    expect(d.MasterLoveCodexSession.updateOne).not.toHaveBeenCalled();
+  });
+
+  test("passRefund 환불도 차감 증빙 (기능, requestId)를 실어 다른 환불 경로와 겹치지 않게 한다", async () => {
+    const d = deps();
+    await refundSessionPassIfNeeded(sessionId, userId, { passRefund: refund, mode: "solo", billingRequestId: "req-2" }, [], d);
+    expect(d.refundPassCoverage).toHaveBeenCalledWith(expect.objectContaining({ sourceRequestId: "req-2", sourceFeatureKey: expect.any(String) }));
   });
 
   test("이미 refundedAt 이 찍힌 세션은 재시도해도 다시 환불하지 않는다(멱등)", async () => {
