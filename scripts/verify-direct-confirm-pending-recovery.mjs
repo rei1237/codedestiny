@@ -166,7 +166,7 @@ for (const file of ["js/destiny-profile.js", "public/js/destiny-profile.js"]) {
     `${file}: 자동 재개에 성공했으면 영수증을 소비해야 한다 — 안 그러면 1회 결제로 자동 개방 + 다음 클릭 무료가 되어 두 번 열린다`,
   );
   // Confirmed payment hands off before generation, never over its completed result.
-  const handoff = resume.indexOf("if (canResume) _dpShowPaymentCompleteOverlay(");
+  const handoff = resume.indexOf("_dpShowPaymentCompleteOverlay(");
   const confirmAccepted = resume.indexOf("if (!confirmRes.ok)");
   const resumeCall = resume.indexOf("? await _dpRunPaidResume(");
   assert.ok(handoff > confirmAccepted && resumeCall > handoff,
@@ -181,7 +181,7 @@ for (const file of ["js/destiny-profile.js", "public/js/destiny-profile.js"]) {
     !resume.includes("WaitText("),
     `${file}: 복귀 단계에서 directPayMethodWaitText("…자동으로 돌아옵니다")는 이미 돌아온 사용자에게 거짓이다`,
   );
-  assert.ok(resume.includes("'GRANT_PENDING'"), `${file}: 복귀 confirm 은 GRANT_PENDING(200+code) 을 완료로 표시하면 안 된다 — PENDING 분기 필요`);
+  assert.ok(resume.includes("_dpIsConfirmationPending(confirmRes)"), `${file}: 복귀 confirm 은 GRANT_PENDING(200+code) 을 완료로 표시하면 안 된다 — PENDING 분기 필요`);
   const resumePendingBranch = sliceFunction(resume, "if (resumePending) {", `${file} resume PENDING`);
   assert.ok(
     !resumePendingBranch.includes("_dpClearDirectResumeTicket()") && !resumePendingBranch.includes("_dpStripDirectResumeQuery()")

@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-18
-next: main CI와 스테이징의 최신 SHA를 한 번 확인하고, 반영된 화면 검수 후 승인된 운영 승격을 진행한다.
+next: 최신 main CI와 스테이징 SHA를 한 번 확인하고, 함께 배포될 다른 세션 변경의 승인 범위를 확인한 뒤 운영 승격을 진행한다.
 ---
 
 ## 첫 행동
@@ -40,5 +40,14 @@ D:\Development\code-destiny에서 이 문서를 읽고 git status와 origin/main
 - [ ] main CI를 최종 보고 전 1회 확인하고 실패나 미완료를 정직하게 보고한다.
 - [ ] `npm run verify:staging -- --sha=<현재 main 전체 SHA>`를 한 번 실행하여 Pages와 Worker가 같은 커밋인지 확인한다. 준비되지 않았거나 실패하면 운영 승격을 하지 않는다.
 - [ ] 스테이징 또는 안전하게 격리된 mock 로컬 화면에서 390px과 데스크톱의 12컷, 새 8컷의 팔·손, 제목·버튼·가로 넘침을 확인한다. 브라우저 검수는 운영 계정·결제·LLM 호출 없이 수행한다.
-- [ ] 모든 게이트가 통과하고 main HEAD가 검수 대상과 같으면 `gh workflow run "Release Cloudflare Pages and Worker" --ref main -f mode=production`을 한 번 실행한다. 릴리스 실행 후 폴링하지 않고 런 URL을 전달한다.
+- [ ] 모든 게이트가 통과하고 main HEAD가 검수 대상과 같으며 함께 배포되는 다른 세션 변경의 범위가 승인되면 `gh workflow run "Release Cloudflare Pages and Worker" --ref main -f mode=production`을 한 번 실행한다. 릴리스 실행 후 폴링하지 않고 런 URL을 전달한다.
 - [ ] 완료되면 이 문서 status를 done으로 바꾸고 정리·검증·커밋·푸시한다. 다른 세션 파일은 건드리지 않는다.
+
+## 2026-11-18 손 수정 후 상태
+
+- 사용자가 팔과 손을 다시 수정해 달라고 요청해 이미지 08-arm-v3을 새로 생성했다. 기존 원본·v2는 보존했다. 손가락을 펼치고 손목과 팔의 연결을 다시 정리했다.
+- 그림 커밋 637a6eadb, main 병합 29ac90d7bfdae07abbd77502e99e3649474ca3cb까지 push했다. 작업용 워크트리는 제거했다.
+- 분리된 mock 서버에서 390px·1440px 실제 웹툰의 새 이미지와 12컷, 제목 및 가로 넘침을 확인했다. check:fast와 네트워크 차단 verify:release, check:pre-push 통과. Jest 479 묶음·8,012 테스트 통과, 각 1개 skip.
+- 새 worktree에는 무시된 운세 데이터가 없어 최초 Node 테스트가 실패했고, 오프라인 fortune:build-data 후 해당 테스트와 전체 검증이 통과했다.
+- 29ac90d7bfdae07abbd77502e99e3649474ca3cb 스테이징 검증 당시 Pages는 이전 ab68a2238501을 반환해 반복 확인을 중단했다. 실제 최신 main SHA로 다시 한 번 확인하기 전에는 운영 승격하지 않는다.
+- 운영 Pages는 cc15b4595bc8ac8d540884e359fc1b79f7700912였고, 현재 main과의 차이에는 흑월 외 다른 세션의 달빛 공간 움직임과 앱 오프라인 화면 변경이 포함된다. 기존 승인은 흑월 운영 반영에 대한 것이므로, main 전체 승격 시 다른 작업까지 배포되는 범위를 사용자에게 구체적으로 확인받기 전에는 임의 승격하지 않는다.

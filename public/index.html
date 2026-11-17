@@ -56,7 +56,7 @@
      🔴 defer 금지 — 아래 부팅 게이트(cd-early-runtime-class-hoist)가 파싱 시점에 isApp() 을 부른다. -->
       <script src="/js/core/app-context.js?v=build-bcd47d1d364b"></script>
       <script src="/js/core/play-display-price.js" defer></script>
-      <script src="/js/core/checkout-entry.js?v=build-988868d8aee1" defer></script>
+      <script src="/js/core/checkout-entry.js?v=build-4ca6e3c69001" defer></script>
 <!-- GA4 측정 ID. 값을 채우면 그 즉시 계측이 켜지고, 비어 있으면 analytics.js 가 통째로 no-op 이다
      (플레이스홀더가 배포돼도 안전하다). 공개 식별자라 소스에 그대로 두어도 된다.
      Next 라우트는 app/layout.js 가 NEXT_PUBLIC_GA_MEASUREMENT_ID 로 같은 전역을 주입한다. -->
@@ -976,7 +976,7 @@ html:not(.cd-mobile-runtime) .cd-home-guide { content-visibility: auto; contain-
 <meta property="og:description" content="꿀꿀 운세는 대통령 운세를 미리 짚은 명리학자 박병하(네오)가 만든 운세 서비스예요. 사주·자미두수·베다점·숙요점·타로·휴먼 디자인·MBTI를 만나보세요.">
 <meta property="og:url" content="https://code-destiny.com/">
 <meta property="og:locale" content="ko_KR">
-<meta property="og:image" content="https://code-destiny.com/og/code-destiny-og-vvip.png?v=build-0e86c564a930">
+<meta property="og:image" content="https://code-destiny.com/og/code-destiny-og-vvip.png?v=build-b80d30d6d1d5">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="꿀꿀운세 HONEY FORTUNE — 꽃돼지 연이 카메오와 서비스 소개가 담긴 CODE DESTINY 명함 카드">
@@ -985,7 +985,7 @@ html:not(.cd-mobile-runtime) .cd-home-guide { content-visibility: auto; contain-
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="대통령 운세를 미리 짚은 명리학자가 만든 운세 | 꿀꿀 운세">
 <meta name="twitter:description" content="꿀꿀 운세는 대통령 운세를 미리 짚은 명리학자 박병하(네오)가 만든 운세 서비스예요. 사주·자미두수·베다점·숙요점·타로·휴먼 디자인·MBTI를 만나보세요.">
-<meta name="twitter:image" content="https://code-destiny.com/og/code-destiny-og-vvip.png?v=build-0e86c564a930">
+<meta name="twitter:image" content="https://code-destiny.com/og/code-destiny-og-vvip.png?v=build-b80d30d6d1d5">
 <meta name="twitter:image:alt" content="꿀꿀운세 HONEY FORTUNE — 꽃돼지 연이 카메오와 서비스 소개가 담긴 CODE DESTINY 명함 카드">
 <script type="application/ld+json">
 {
@@ -1107,7 +1107,7 @@ html:not(.cd-mobile-runtime) .cd-home-guide { content-visibility: auto; contain-
     {
       "@type": "ImageObject",
       "@id": "https://code-destiny.com/#primaryimage",
-      "url": "https://code-destiny.com/og/code-destiny-og-vvip.png?v=build-0e86c564a930",
+      "url": "https://code-destiny.com/og/code-destiny-og-vvip.png?v=build-b80d30d6d1d5",
       "width": 1200,
       "height": 630
     },
@@ -1785,282 +1785,7 @@ body.neo-mode .pf-showcase{--pf-title-color:#fff7dd;--pf-sub-color:rgba(233,224,
 
   <!-- ─── PERF: 라이브러리 로딩 스켈레톤 + reduced-motion (TASK 2·5) ─── -->
 
-  <style id="cd-pass-pig-overlay-restore-v20260626">
-#sajuLoaderOverlay[data-marker~="honey-fortune-logo-payment-ux-v20260618"] .saju-loader-payment-core,
-#sajuLoaderOverlay[data-marker~="honey-fortune-logo-payment-ux-v20260618"] .saju-loader-pass-moon {
-  display: none !important;
-}
-#sajuLoaderOverlay[data-marker~="honey-fortune-logo-payment-ux-v20260618"] .saju-loader-visual {
-  position: relative;
-  isolation: isolate;
-}
-#sajuLoaderOverlay[data-marker~="honey-fortune-logo-payment-ux-v20260618"] .saju-loader-visual::before,
-#sajuLoaderOverlay[data-marker~="honey-fortune-logo-payment-ux-v20260618"] .saju-loader-visual::after {
-  content: '';
-  position: absolute;
-  pointer-events: none;
-}
-#sajuLoaderOverlay[data-marker~="honey-fortune-logo-payment-ux-v20260618"] .saju-loader-visual::before {
-  inset: -18px;
-  z-index: -1;
-  border-radius: 999px;
-  background:
-    radial-gradient(circle at 50% 50%, rgba(255, 244, 210, 0.44), transparent 58%),
-    conic-gradient(from 120deg, rgba(251, 191, 36, 0.14), rgba(216, 180, 254, 0.28), rgba(125, 211, 252, 0.18), rgba(251, 191, 36, 0.14));
-  filter: blur(1px);
-  animation: sajuLoaderHoneyLogoAura 3.8s ease-in-out infinite;
-  -webkit-animation: sajuLoaderHoneyLogoAura 3.8s ease-in-out infinite;
-}
-#sajuLoaderOverlay[data-marker~="honey-fortune-logo-payment-ux-v20260618"] .saju-loader-visual::after {
-  inset: -6px;
-  z-index: -1;
-  border-radius: 999px;
-  border: 1px solid rgba(254, 243, 199, 0.44);
-  box-shadow: 0 0 36px rgba(251, 191, 36, 0.22), inset 0 1px 0 rgba(255,255,255,.2);
-}
-#sajuLoaderOverlay[data-marker~="honey-fortune-logo-payment-ux-v20260618"] .saju-loader-yeon-sprite {
-  display: block !important;
-  position: absolute;
-  inset: 0;
-  overflow: visible;
-  border: 0;
-  border-radius: 999px;
-  background: transparent;
-  box-shadow: none;
-  opacity: 1;
-  visibility: visible;
-  contain: paint;
-  isolation: isolate;
-  transform: translateZ(0);
-  -webkit-transform: translateZ(0);
-}
-#sajuLoaderOverlay[aria-hidden="false"][data-marker~="honey-fortune-logo-payment-ux-v20260618"] .saju-loader-yeon-sprite::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  border-radius: 999px;
-  /* 메인 서비스 로고(부팅 게이트 로고와 동일 자산). head 에 rel=preload fetchpriority=high 로 이미
-     선언돼 있어 결제 클릭 시점에는 워엄 캐시다 — 클릭 임계경로에 추가 네트워크가 0 이다. */
-  background-image: url("/icons/app-logo-512.webp");
-  background-repeat: no-repeat;
-  background-size: contain;
-  background-position: center;
-  opacity: 1;
-  filter: drop-shadow(0 22px 30px rgba(86, 47, 21, 0.22)) drop-shadow(0 0 22px rgba(251, 191, 36, 0.18));
-  animation: sajuLoaderHoneyLogoFloat 2.6s ease-in-out infinite;
-  -webkit-animation: sajuLoaderHoneyLogoFloat 2.6s ease-in-out infinite;
-}
-#sajuLoaderOverlay[data-mode=payment][data-marker~="honey-fortune-logo-payment-ux-v20260618"],
-#sajuLoaderOverlay[data-mode=checkout][data-marker~="honey-fortune-logo-payment-ux-v20260618"],
-#sajuLoaderOverlay[data-mode=card][data-marker~="honey-fortune-logo-payment-ux-v20260618"],
-#sajuLoaderOverlay[data-mode=confirm][data-marker~="honey-fortune-logo-payment-ux-v20260618"],
-#sajuLoaderOverlay[data-mode=monthly][data-marker~="honey-fortune-logo-payment-ux-v20260618"],
-#sajuLoaderOverlay[data-mode=subscription][data-marker~="honey-fortune-logo-payment-ux-v20260618"],
-#sajuLoaderOverlay[data-mode=pass][data-marker~="honey-fortune-logo-payment-ux-v20260618"],
-#sajuLoaderOverlay[data-mode=unlock-saving][data-marker~="honey-fortune-logo-payment-ux-v20260618"] {
-  background:
-    radial-gradient(circle at 50% 40%, rgba(255, 245, 214, 0.18), transparent 44%),
-    linear-gradient(150deg, rgba(21, 12, 34, 0.72), rgba(5, 8, 20, 0.8));
-  backdrop-filter: blur(14px) saturate(1.08);
-  -webkit-backdrop-filter: blur(14px) saturate(1.08);
-}
-#sajuLoaderOverlay[data-mode=payment][data-marker~="honey-fortune-logo-payment-ux-v20260618"] .saju-loader-card,
-#sajuLoaderOverlay[data-mode=checkout][data-marker~="honey-fortune-logo-payment-ux-v20260618"] .saju-loader-card,
-#sajuLoaderOverlay[data-mode=card][data-marker~="honey-fortune-logo-payment-ux-v20260618"] .saju-loader-card,
-#sajuLoaderOverlay[data-mode=confirm][data-marker~="honey-fortune-logo-payment-ux-v20260618"] .saju-loader-card,
-#sajuLoaderOverlay[data-mode=monthly][data-marker~="honey-fortune-logo-payment-ux-v20260618"] .saju-loader-card,
-#sajuLoaderOverlay[data-mode=subscription][data-marker~="honey-fortune-logo-payment-ux-v20260618"] .saju-loader-card,
-#sajuLoaderOverlay[data-mode=pass][data-marker~="honey-fortune-logo-payment-ux-v20260618"] .saju-loader-card,
-#sajuLoaderOverlay[data-mode=unlock-saving][data-marker~="honey-fortune-logo-payment-ux-v20260618"] .saju-loader-card {
-  width: auto;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  box-shadow: none;
-  gap: 12px;
-}
-#sajuLoaderOverlay[data-mode=payment][data-marker~="honey-fortune-logo-payment-ux-v20260618"] .saju-loader-visual,
-#sajuLoaderOverlay[data-mode=checkout][data-marker~="honey-fortune-logo-payment-ux-v20260618"] .saju-loader-visual,
-#sajuLoaderOverlay[data-mode=card][data-marker~="honey-fortune-logo-payment-ux-v20260618"] .saju-loader-visual,
-#sajuLoaderOverlay[data-mode=confirm][data-marker~="honey-fortune-logo-payment-ux-v20260618"] .saju-loader-visual,
-#sajuLoaderOverlay[data-mode=monthly][data-marker~="honey-fortune-logo-payment-ux-v20260618"] .saju-loader-visual,
-#sajuLoaderOverlay[data-mode=subscription][data-marker~="honey-fortune-logo-payment-ux-v20260618"] .saju-loader-visual,
-#sajuLoaderOverlay[data-mode=pass][data-marker~="honey-fortune-logo-payment-ux-v20260618"] .saju-loader-visual,
-#sajuLoaderOverlay[data-mode=unlock-saving][data-marker~="honey-fortune-logo-payment-ux-v20260618"] .saju-loader-visual {
-  width: 176px;
-  height: 176px;
-  margin: 0 auto;
-}
-#sajuLoaderOverlay[data-marker~="honey-fortune-logo-payment-ux-v20260618"] .saju-loader-eyebrow,
-#sajuLoaderOverlay[data-marker~="honey-fortune-logo-payment-ux-v20260618"] .saju-loader-title,
-#sajuLoaderOverlay[data-marker~="honey-fortune-logo-payment-ux-v20260618"] .saju-loader-text,
-#sajuLoaderOverlay[data-marker~="honey-fortune-logo-payment-ux-v20260618"] .saju-loader-meta {
-  position: relative !important;
-  z-index: 4;
-  width: 100% !important;
-  height: auto !important;
-  padding: 0 !important;
-  margin-left: auto !important;
-  margin-right: auto !important;
-  overflow: visible !important;
-  clip: auto !important;
-  white-space: normal !important;
-  word-break: keep-all;
-  overflow-wrap: break-word;
-  border: 0 !important;
-  text-align: center;
-  text-shadow: 0 2px 14px rgba(0, 0, 0, 0.42);
-}
-#sajuLoaderOverlay[data-marker~="honey-fortune-logo-payment-ux-v20260618"] .saju-loader-visual {
-  position: relative;
-  z-index: 2;
-}
-#sajuLoaderOverlay[data-marker~="honey-fortune-logo-payment-ux-v20260618"] .saju-loader-progress {
-  position: relative;
-  z-index: 4;
-}
-#sajuLoaderOverlay[data-mode=payment][data-marker~="honey-fortune-logo-payment-ux-v20260618"] .saju-loader-progress,
-#sajuLoaderOverlay[data-mode=checkout][data-marker~="honey-fortune-logo-payment-ux-v20260618"] .saju-loader-progress,
-#sajuLoaderOverlay[data-mode=card][data-marker~="honey-fortune-logo-payment-ux-v20260618"] .saju-loader-progress,
-#sajuLoaderOverlay[data-mode=confirm][data-marker~="honey-fortune-logo-payment-ux-v20260618"] .saju-loader-progress,
-#sajuLoaderOverlay[data-mode=monthly][data-marker~="honey-fortune-logo-payment-ux-v20260618"] .saju-loader-progress,
-#sajuLoaderOverlay[data-mode=subscription][data-marker~="honey-fortune-logo-payment-ux-v20260618"] .saju-loader-progress,
-#sajuLoaderOverlay[data-mode=pass][data-marker~="honey-fortune-logo-payment-ux-v20260618"] .saju-loader-progress,
-#sajuLoaderOverlay[data-mode=unlock-saving][data-marker~="honey-fortune-logo-payment-ux-v20260618"] .saju-loader-progress {
-  display: none;
-}
-#sajuLoaderOverlay[data-mode=pass][data-marker~="honey-fortune-logo-payment-ux-v20260618"] .saju-loader-card {
-  width: min(360px, calc(100vw - 36px));
-  padding: 0 18px;
-  gap: 7px;
-  text-align: center;
-}
-#sajuLoaderOverlay[data-mode=pass][data-marker~="honey-fortune-logo-payment-ux-v20260618"] .saju-loader-visual {
-  margin: 0 auto 8px;
-}
-#sajuLoaderOverlay[data-mode=pass][data-marker~="honey-fortune-logo-payment-ux-v20260618"] .saju-loader-eyebrow {
-  font-size: 10px;
-  font-weight: 800;
-  color: rgba(254, 240, 138, 0.82);
-  letter-spacing: 0;
-}
-#sajuLoaderOverlay[data-mode=pass][data-marker~="honey-fortune-logo-payment-ux-v20260618"] .saju-loader-title {
-  margin: 0;
-  font-size: 20px;
-  font-weight: 900;
-  line-height: 1.28;
-  color: #fff7ed;
-  letter-spacing: 0;
-}
-#sajuLoaderOverlay[data-mode=pass][data-marker~="honey-fortune-logo-payment-ux-v20260618"] .saju-loader-text {
-  margin: 0 auto;
-  max-width: 300px;
-  font-size: 13px;
-  line-height: 1.55;
-  color: rgba(255, 247, 237, 0.84);
-  letter-spacing: 0;
-}
-#sajuLoaderOverlay[data-mode=pass][data-marker~="honey-fortune-logo-payment-ux-v20260618"] .saju-loader-meta {
-  margin-top: 1px;
-  font-size: 11.5px;
-  line-height: 1.45;
-  color: rgba(253, 224, 71, 0.84);
-  letter-spacing: 0;
-}
-#sajuLoaderOverlay[data-mode=pass-applied][data-marker~="honey-fortune-logo-payment-ux-v20260618"],
-#sajuLoaderOverlay[data-mode=payment-complete][data-marker~="honey-fortune-logo-payment-ux-v20260618"] {
-  background:
-    radial-gradient(circle at 50% 18%, rgba(255, 245, 214, 0.22), transparent 36%),
-    radial-gradient(circle at 16% 72%, rgba(244, 114, 182, 0.14), transparent 46%),
-    radial-gradient(circle at 84% 70%, rgba(125, 211, 252, 0.16), transparent 48%),
-    rgba(4, 6, 18, 0.78);
-  backdrop-filter: blur(18px) saturate(1.12);
-  -webkit-backdrop-filter: blur(18px) saturate(1.12);
-}
-#sajuLoaderOverlay[data-mode=pass-applied][data-marker~="honey-fortune-logo-payment-ux-v20260618"] .saju-loader-card,
-#sajuLoaderOverlay[data-mode=payment-complete][data-marker~="honey-fortune-logo-payment-ux-v20260618"] .saju-loader-card {
-  width: min(420px, calc(100vw - 32px));
-  padding: 26px 24px 24px;
-  border-radius: 28px;
-  border-color: rgba(254, 243, 199, 0.42);
-  background:
-    radial-gradient(circle at 50% -12%, rgba(255, 247, 217, 0.28), transparent 42%),
-    linear-gradient(156deg, rgba(48, 30, 60, 0.92), rgba(19, 12, 35, 0.96) 48%, rgba(9, 13, 26, 0.96));
-  box-shadow: 0 30px 90px rgba(0,0,0,.6), 0 0 54px rgba(251,191,36,.18), inset 0 1px 0 rgba(255,255,255,.18);
-}
-#sajuLoaderOverlay[data-mode=pass-applied][data-marker~="honey-fortune-logo-payment-ux-v20260618"] .saju-loader-visual,
-#sajuLoaderOverlay[data-mode=payment-complete][data-marker~="honey-fortune-logo-payment-ux-v20260618"] .saju-loader-visual {
-  width: 132px;
-  height: 132px;
-  margin: 0 auto 6px;
-}
-#sajuLoaderOverlay[data-mode=pass-applied][data-marker~="honey-fortune-logo-payment-ux-v20260618"] .saju-loader-visual::after,
-#sajuLoaderOverlay[data-mode=payment-complete][data-marker~="honey-fortune-logo-payment-ux-v20260618"] .saju-loader-visual::after {
-  inset: auto;
-  right: -2px;
-  bottom: 2px;
-  width: 34px;
-  height: 34px;
-  z-index: 2;
-  border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.7);
-  background: linear-gradient(145deg, #fff7d7, #facc15);
-  box-shadow: 0 10px 24px rgba(91, 55, 14, 0.22), 0 0 20px rgba(250, 204, 21, 0.28);
-}
-#sajuLoaderOverlay[data-mode=pass-applied][data-marker~="honey-fortune-logo-payment-ux-v20260618"] .saju-loader-yeon-sprite::after,
-#sajuLoaderOverlay[data-mode=payment-complete][data-marker~="honey-fortune-logo-payment-ux-v20260618"] .saju-loader-yeon-sprite::after {
-  content: '';
-  position: absolute;
-  right: 10px;
-  bottom: 18px;
-  z-index: 3;
-  width: 16px;
-  height: 9px;
-  border-left: 4px solid #5b3414;
-  border-bottom: 4px solid #5b3414;
-  border-radius: 2px;
-  transform: rotate(-45deg);
-}
-#sajuLoaderOverlay[data-mode=pass-applied][data-marker~="honey-fortune-logo-payment-ux-v20260618"] .saju-loader-eyebrow,
-#sajuLoaderOverlay[data-mode=payment-complete][data-marker~="honey-fortune-logo-payment-ux-v20260618"] .saju-loader-eyebrow {
-  margin: 0;
-  color: #fde68a;
-  font-size: 11px;
-  font-weight: 900;
-  letter-spacing: .16em;
-}
-#sajuLoaderOverlay[data-mode=pass-applied][data-marker~="honey-fortune-logo-payment-ux-v20260618"] .saju-loader-title,
-#sajuLoaderOverlay[data-mode=payment-complete][data-marker~="honey-fortune-logo-payment-ux-v20260618"] .saju-loader-title {
-  margin: 0;
-  color: #fff7db;
-  font-size: 24px;
-  line-height: 1.22;
-  font-weight: 950;
-  letter-spacing: 0;
-  text-shadow: 0 0 24px rgba(251, 191, 36, 0.22);
-}
-#sajuLoaderOverlay[data-mode=pass-applied][data-marker~="honey-fortune-logo-payment-ux-v20260618"] .saju-loader-text,
-#sajuLoaderOverlay[data-mode=payment-complete][data-marker~="honey-fortune-logo-payment-ux-v20260618"] .saju-loader-text {
-  margin: 2px 0 0;
-  color: rgba(255, 247, 237, 0.92);
-  font-size: 14px;
-  line-height: 1.65;
-  white-space: pre-line;
-}
-#sajuLoaderOverlay[data-mode=pass-applied][data-marker~="honey-fortune-logo-payment-ux-v20260618"] .saju-loader-meta,
-#sajuLoaderOverlay[data-mode=payment-complete][data-marker~="honey-fortune-logo-payment-ux-v20260618"] .saju-loader-meta {
-  margin: 2px 0 0;
-  color: rgba(254, 243, 199, 0.86);
-  font-size: 12px;
-  line-height: 1.5;
-}
-#sajuLoaderOverlay[data-mode=pass-applied][data-marker~="honey-fortune-logo-payment-ux-v20260618"] .saju-loader-progress,
-#sajuLoaderOverlay[data-mode=payment-complete][data-marker~="honey-fortune-logo-payment-ux-v20260618"] .saju-loader-progress {
-  display: none;
-}
-  </style>
+  <!-- Common payment presentation is owned by styles/payment-moonlight.css. -->
 
   <script>
   (function () {
@@ -7168,6 +6893,7 @@ html.neo-mode #cdHomeFunnel .cdh-scene-art #honeypigLogo{box-shadow:none!importa
 <script defer src="/js/core/astro/section-client.js"></script>
 <script defer src="/js/core/astro/transits.js?v=build-196d96085efb"></script>
 <script defer src="/js/core/astro/transit-reading.js?v=build-60879c33988d"></script>
+<link rel="stylesheet" href="/styles/payment-moonlight.css?v=build-6b077ba86611">
 </head>
 <body>
 <script data-marker="cd-body-theme-stamp-v20260721">/* 첫 페인트 전에 body 테마 클래스를 확정한다.
@@ -21197,7 +20923,7 @@ html:not(.neo-mode) #resultPage .pf-showcase__yeoni{display:block;width:96px;hei
      DCL 이고, 하는 일은 첫 페인트가 아니라 프로필 카드 강화다. high 로 두면 그 다운로드가 LCP
      히어로 이미지 preload 와 같은 우선순위 슬롯을 놓고 경쟁해 LCP 를 늦춘다. low 도 쓰지 않는다 —
      DCL 이 defer 실행을 기다리므로 지나치게 내리면 DCL 자체가 밀린다. 기본값이 맞다. -->
-<script defer src="/js/destiny-profile.js?v=build-6ce1ac6badfd" data-marker="profile-card-date-input-v20260624"></script>
+<script defer src="/js/destiny-profile.js?v=build-ccc2b4101c71" data-marker="profile-card-date-input-v20260624"></script>
 <!-- 오늘의 운세 허브 계산 코어. 히어로 직후 첫 화면이라 지연 로더(data-cd-noncritical-src)에 태우지 않는다.
      defer 라 DOMContentLoaded 전에 실행이 끝나고, destiny-profile.js 뒤에 두어 dpGetDataForVedic() 이 먼저 준비된다. -->
 <script defer src="/js/fortune-gateway.js?v=build-4bc5b80fb7f9" data-marker="fortune-gateway-v1"></script>
@@ -21217,12 +20943,12 @@ html:not(.neo-mode) #resultPage .pf-showcase__yeoni{display:block;width:96px;hei
 <script type="module" src="/js/signup-benefit-exit.js?v=build-b8853b9326c5"></script>
 <link rel="stylesheet" href="/styles/activation-entry.css?v=build-a4cadd7842d3">
 <script type="module" src="/js/activation-entry.mjs?v=build-b32b169ed9aa"></script>
-<script defer src="/js/mobile-interaction-patch.js?v=build-3cfaf6eefee2" data-marker="mobile-touch-route-modal-guard-v20260701 mobile-perf-media-guard-v20260701"></script>
+<script defer src="/js/mobile-interaction-patch.js?v=build-c8c3863ecd41" data-marker="mobile-touch-route-modal-guard-v20260701 mobile-perf-media-guard-v20260701"></script>
 <script data-cd-lazy-src="/js/services/sajuService.js" data-cd-mobile-delay="1"></script>
 <script data-cd-lazy-src="/js/core/saju/basicFortunePresentation.js?v=build-2625c92ed995" data-cd-mobile-delay="1"></script>
 <script data-cd-lazy-src="/js/core/saju/modalProfileState.js" data-cd-mobile-delay="1"></script>
 <script data-cd-noncritical-src="/js/core/premium-chapter-orchestrator.js?v=build-ba2380db1771" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
-<script defer src="/js/core/index-inline-runtime.js?v=build-d6c95bdf1224" data-cd-saju-prompt-marker="saju-ai-consultation-flow-v20260706 saju-ai-calibration-v20260706 saju-ai-llm-result-v20260625 sukuyo-guardian-drawing-v20260625 sukuyo-pastlife-v2-20260621" data-cd-kemet-ai-prompt-marker="kemet-ai-prompt-generator-v20260619"></script>
+<script defer src="/js/core/index-inline-runtime.js?v=build-428e76a7ada8" data-cd-saju-prompt-marker="saju-ai-consultation-flow-v20260706 saju-ai-calibration-v20260706 saju-ai-llm-result-v20260625 sukuyo-guardian-drawing-v20260625 sukuyo-pastlife-v2-20260621" data-cd-kemet-ai-prompt-marker="kemet-ai-prompt-generator-v20260619"></script>
 <script defer src="/js/pwa-install-prompt.js?v=build-1c2525b7d8f2"></script>
 <script data-cd-lazy-src="/js/admin-flower.js" data-cd-mobile-delay="2"></script>
 <div class="share-toast" id="shareToast" role="status" aria-live="polite"></div>
@@ -21342,7 +21068,7 @@ html:not(.neo-mode) #resultPage .pf-showcase__yeoni{display:block;width:96px;hei
     if (!shareUrl) return Promise.reject(new Error('share_url_missing'));
     // 지금 보고 있는 언어의 셸·미리보기 카드로 공유한다(js/share.js). 아직 안 실렸으면 서버 URL 그대로.
     if (typeof window.cdLocalizeShareUrl === 'function') shareUrl = window.cdLocalizeShareUrl(shareUrl);
-    var shareImageUrl = 'https://code-destiny.com/og/code-destiny-og-vvip.png?v=build-0e86c564a930';
+    var shareImageUrl = 'https://code-destiny.com/og/code-destiny-og-vvip.png?v=build-b80d30d6d1d5';
     if (typeof window.cdLocalizeShareImage === 'function') shareImageUrl = window.cdLocalizeShareImage(shareImageUrl);
     renderShareUrl(shareUrl, tr('kakaoReferral.rewardReady', '초대 링크가 준비됐어요. 친구 가입 완료 시 추천 보상이 지급됩니다.'));
     return loadKakaoSdk(payload.kakaoJavascriptKey).then(function(ok){
@@ -22991,6 +22717,8 @@ html:not(.neo-mode) #resultPage .pf-showcase__yeoni{display:block;width:96px;hei
       _cdClearSelectedDirectPayMethod();
       window.__cdDirectPaymentChoiceActive = { modal: modal, startedAt: Date.now() };
       _cdPublishChoiceModalToSharedLock(modal);
+      var themeEntry = _cdCheckoutEntry();
+      if (themeEntry && typeof themeEntry.applyPaymentChoiceTheme === 'function') themeEntry.applyPaymentChoiceTheme(modal);
       // 퍼널 시작점. 여기부터 checkout_option_click / checkout_dismissed 까지가 한 세션이다.
       _cdTrackCheckoutEvent('checkout_opened', {
         featureKey: featureKey || opts.featureKey,
@@ -24514,7 +24242,8 @@ html:not(.neo-mode) #resultPage .pf-showcase__yeoni{display:block;width:96px;hei
     // 코드가 재제안 목록에 없으므로 결제창도 다시 열리지 않는다(_cdShouldReofferPaymentChoice).
     if (typeof window.cdTrackConfirmedPurchase === 'function') window.cdTrackConfirmedPurchase(confirmRes.payload);
     var _cdConfirmPendingCode = String((confirmRes.payload && (confirmRes.payload.code || (confirmRes.payload.error && confirmRes.payload.error.code))) || '').toUpperCase();
-    if (_cdConfirmPendingCode === 'PENDING_CONFIRMATION' || _cdConfirmPendingCode === 'GRANT_PENDING' || (confirmRes.payload && confirmRes.payload.recoveryRequired === true)) {
+    if ((_cdCheckoutEntry() && typeof _cdCheckoutEntry().isPaymentConfirmationPending === 'function' && _cdCheckoutEntry().isPaymentConfirmationPending(confirmRes)) || Number(confirmRes.status) === 202 || _cdConfirmPendingCode === 'PENDING_CONFIRMATION' || _cdConfirmPendingCode === 'GRANT_PENDING' || (confirmRes.payload && confirmRes.payload.recoveryRequired === true)) {
+      if (window.__cdDirectOrderPollHook) window.__cdDirectOrderPollHook.start(merchantUid);
       var _cdConfirmPendingError = new Error(String((confirmRes.payload && confirmRes.payload.message) || '결제는 완료됐어요. 콘텐츠 준비가 끝나는 대로 자동으로 열립니다. 다시 결제하지 말아 주세요.'));
       _cdConfirmPendingError.code = 'PENDING_CONFIRMATION';
       _cdConfirmPendingError.status = Number(confirmRes.status || 202);
@@ -26609,15 +26338,15 @@ html:not(.neo-mode) #resultPage .pf-showcase__yeoni{display:block;width:96px;hei
       if (txt) txt.textContent = copy.message;
       if (meta) meta.textContent = copy.meta;
       overlay.setAttribute('aria-hidden', 'false');
-      if (copy.mode === 'pass-applied') {
-        overlay.setAttribute('role', 'dialog');
-        overlay.setAttribute('aria-modal', 'true');
-      } else {
-        overlay.removeAttribute('role');
-        overlay.removeAttribute('aria-modal');
-      }
+      var completionNotice = copy.mode === 'pass-applied' || copy.mode === 'payment-complete';
+      overlay.classList.toggle('is-payment-notice', completionNotice);
+      overlay.setAttribute('role', 'status');
+      overlay.setAttribute('aria-live', 'polite');
+      overlay.removeAttribute('aria-modal');
       overlay.style.position = 'fixed';
-      overlay.style.inset = '0';
+      overlay.style.inset = completionNotice ? 'auto 16px max(16px, env(safe-area-inset-bottom))' : '0';
+      overlay.style.background = completionNotice ? 'transparent' : '';
+      overlay.style.backdropFilter = completionNotice ? 'none' : '';
       // 🔴 'card'(단건 결제창 준비 중)만 PG 결제창보다 **아래**에 둔다. 이 오버레이의 목적은
       // 클릭~결제창 사이를 채우는 것이라, 결제창(body 직속 #imp-iframe-wrapper, position:fixed;
       // z-index:99999 — 2026-07-31 Playwright 실측)이 그려지는 순간 자연히 덮이면 그만이다.
@@ -26628,7 +26357,7 @@ html:not(.neo-mode) #resultPage .pf-showcase__yeoni{display:block;width:96px;hei
       overlay.style.zIndex = copy.mode === 'card' ? '99998' : '2147483647';
       overlay.style.visibility = 'visible';
       overlay.style.opacity = '1';
-      overlay.style.pointerEvents = 'auto';
+      overlay.style.pointerEvents = completionNotice ? 'none' : 'auto';
       overlay.style.display = 'flex';
       try {
         if (shouldRestartAnimation) {
@@ -26641,7 +26370,10 @@ html:not(.neo-mode) #resultPage .pf-showcase__yeoni{display:block;width:96px;hei
           el.style.webkitAnimationPlayState = 'running';
         });
       } catch (_) {}
-      if (typeof window.__cdLockBodyScroll === 'function') window.__cdLockBodyScroll('coin-gate-overlay');
+      if (completionNotice) {
+        if (typeof window.__cdUnlockBodyScroll === 'function') window.__cdUnlockBodyScroll('coin-gate-overlay');
+        else document.body.style.overflow = '';
+      } else if (typeof window.__cdLockBodyScroll === 'function') window.__cdLockBodyScroll('coin-gate-overlay');
       else document.body.style.overflow = 'hidden';
     } else {
       var completeHoldRemaining = _cdPaymentCompleteOverlayHoldUntil - Date.now();
@@ -34917,7 +34649,7 @@ function updateBadge() {
 <!-- jsPDF removed from initial bundle; load on demand only if a feature requires it -->
 <script data-cd-noncritical-src="/js/sibyl-system.js?v=build-b753941981e2" data-cd-mobile-delay="2" data-cd-lowend-skip="1"></script>
 <script src="/js/cd-lazy-feature-loader.js" defer></script>
-<script type="module" src="/js/app.js?v=build-d8b96e0a62c2"></script>
+<script type="module" src="/js/app.js?v=build-b04454c17d1d"></script>
 <!-- Feature Preview Panel v2 -->
 <template id="tilePvwOverlayTemplate" data-component="MobileFeatureBottomSheetTemplate">
 <div id="tilePvwOverlay" class="tile-pvw-overlay cd-detail-overlay MobileFeatureBottomSheet" data-cd-detail-overlay="" data-component="MobileFeatureBottomSheet" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="tilePvwTitle" data-marker="main-overlay-dedupe-v20260625 mobile-feature-bottom-sheet-v20260701 feature-marketing-detail-v20260702">
@@ -35341,7 +35073,7 @@ function updateBadge() {
 (function(){
   'use strict';
   var D={
-    '#destinyCardForm':{cat:'사주 · 무료 운명 카드',fallbackTitle:'🌙 나의 달빛 운명 카드',tagline:'생년월일과 출생시간을 바탕으로 사주, 오늘의 흐름, 궁합, 별자리 서비스로 이어지는 기본 프로필을 만듭니다.',feats:['이름·생년월일·출생시간 기반 기본 운명 카드 생성','출생시간을 모를 때 낮 12시 기준으로 보수 계산','사주 결과와 주요 운세 서비스 바로가기 자동 연결','저장한 프로필로 무료·프리미엄 리딩을 더 빠르게 시작'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/%EC%82%AC%EC%A3%BC%EB%B3%B4%EB%8A%94%20%EC%97%B0%EC%9D%B4.webp?v=build-0e86c564a930',fallbackCta:'운명 카드 만들기'},
+    '#destinyCardForm':{cat:'사주 · 무료 운명 카드',fallbackTitle:'🌙 나의 달빛 운명 카드',tagline:'생년월일과 출생시간을 바탕으로 사주, 오늘의 흐름, 궁합, 별자리 서비스로 이어지는 기본 프로필을 만듭니다.',feats:['이름·생년월일·출생시간 기반 기본 운명 카드 생성','출생시간을 모를 때 낮 12시 기준으로 보수 계산','사주 결과와 주요 운세 서비스 바로가기 자동 연결','저장한 프로필로 무료·프리미엄 리딩을 더 빠르게 시작'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/%EC%82%AC%EC%A3%BC%EB%B3%B4%EB%8A%94%20%EC%97%B0%EC%9D%B4.webp?v=build-b80d30d6d1d5',fallbackCta:'운명 카드 만들기'},
     gotoZiweiPremium:{cat:'프리미엄 · 자미두수 전문가 상담',fallbackTitle:'자미두수 전문가 상담',tagline:'명궁·신궁·12궁·사화·대운·세운 흐름을 바탕으로 지금의 질문에 답합니다.',feats:['입력은 무료 — 상담 생성 버튼을 누를 때 30,000원 단건 결제 또는 이용권·월정석 확인','결제 확인이 끝나면 상담문이 바로 생성','명궁·재백·관록·부부·질액궁을 질문에 맞춰 연결 해석','상담 결과를 화면에서 바로 확인하고 추가 질문 이어가기'],cost:'30,000원 · 전문가 상담',ct:'paid',img:"/images/service-introductions/ziwei-ai.webp",fallbackCta:'자미두수 상담 받기'},
     '/neo-operation-room':{cat:'프리미엄 · 운명 작전실',fallbackTitle:'네오의 팩폭 운명 작전실',tagline:'사주·자미두수·베다점·점성술의 지도를 한 장의 전략처럼 펼쳐, 지금 밀리는 전선과 다시 잡아야 할 기준을 또렷하게 짚습니다.',feats:['30,000원 상담 이용권 확인','결제 완료 후 네오의 작전실로 바로 이동','사주와 별자리 흐름을 함께 비추는 종합 상담','현재 고민에 맞춘 선택 기준과 다음 행동 정리'],cost:'30,000원 · 전문가 상담',ct:'paid',img:"/images/service-introductions/neo-operation-room.webp",fallbackCta:'작전실 열기'},
     openNamingPromptModal:{cat:'작명 · 전문가 상담',fallbackTitle:'훈민정음 작명소',tagline:'생년월일시와 원하는 이름 조건을 바탕으로 용신·소리오행·한자 의미·수리 풀이를 종합해 전문가가 직접 이름을 짓고, 그 결과를 만든 프롬프트 원문까지 함께 드립니다.',feats:['입력과 무료 초안 추천은 무료로 열립니다','프리미엄 작명 시작 시 30,000원 단건 결제 또는 이용권·월정석 확인이 진행됩니다','사주 보완, 인명용 한자, 소리오행, 자원오행, 원형이정 수리를 종합한 완성형 결과 제공','결제 검증 후 전문가 작명 결과와 PDF 저장, 생성에 사용된 프롬프트 원문까지 다시 확인할 수 있습니다'],cost:'30,000원 · 이용권/월정석 가능',ct:'paid',img:"/images/service-introductions/naming-ai.webp",fallbackCta:'작명 시작하기'},
@@ -43163,55 +42895,7 @@ html.neo-mode .tile-pvw-overlay.pvw-prem .tile-pvw-cta-sticky,body.neo-mode .til
     background: color-mix(in srgb,var(--cd-surface) 90%,var(--cd-yehwa-line) 10%) !important;
   }
 </style>
-<style id="cd-payment-wait-logo-emblem-v20260704">
-/* 결제 대기 오버레이 UX 정돈: 기존 꿀꿀(Honey Fortune) 로고를 골드 프레임 엠블럼으로
-   감싸 다크 배경 위 흰 사각형 노출을 없애고, 카드 세로 여백을 축소한다. */
-#sajuLoaderOverlay[data-marker~="honey-fortune-logo-payment-ux-v20260618"] .saju-loader-card{
-  display:flex !important;
-  flex-direction:column !important;
-  align-items:center !important;
-  justify-content:flex-start !important;
-  gap:13px !important;
-  max-width:340px !important;
-  margin:0 auto !important;
-  padding:24px 20px 26px !important;
-  /* 🔴 문구가 긴 로케일에서 카드가 잘렸다 — 부모 #sajuLoaderOverlay 가 overflow:hidden 에
-     세로 중앙정렬이라, 높이 제한도 스크롤도 없으면 카드 위아래가 화면 밖으로 나가 사라진다.
-     React 결제 오버레이(app/components/PaymentProcessingContext.tsx)와 같은 규격을 쓴다.
-     앞줄 vh 는 svh/dvh 를 모르는 구형 웹뷰용 폴백이다(뒷줄이 무효 선언이 되어 버려진다). */
-  max-height:88vh !important;
-  max-height:min(88svh,88dvh) !important;
-  overflow-y:auto !important;
-}
-#sajuLoaderOverlay[data-marker~="honey-fortune-logo-payment-ux-v20260618"] .saju-loader-visual{
-  width:150px !important;
-  height:150px !important;
-  min-height:0 !important;
-  margin:0 auto 2px !important;
-  flex:0 0 auto !important;
-}
-#sajuLoaderOverlay[data-marker~="honey-fortune-logo-payment-ux-v20260618"] .saju-loader-yeon-sprite{
-  position:absolute !important;
-  inset:0 !important;
-  border-radius:28px !important;
-  background:linear-gradient(158deg,#fffaf0,#f7e8c8 58%,#efd6a8) !important;
-  border:1px solid rgba(255,226,150,.72) !important;
-  box-shadow:0 20px 44px rgba(16,10,36,.5),0 0 34px rgba(251,191,36,.26),inset 0 1px 0 rgba(255,255,255,.75) !important;
-  overflow:hidden !important;
-}
-#sajuLoaderOverlay[aria-hidden="false"][data-marker~="honey-fortune-logo-payment-ux-v20260618"] .saju-loader-yeon-sprite::before{
-  inset:0 !important;
-  width:100% !important;
-  height:100% !important;
-  border-radius:28px !important;
-  background-size:cover !important;
-  background-position:center !important;
-  filter:drop-shadow(0 6px 12px rgba(86,47,21,.14)) !important;
-}
-@media (prefers-reduced-motion: reduce){
-  #sajuLoaderOverlay[data-marker~="honey-fortune-logo-payment-ux-v20260618"] .saju-loader-yeon-sprite::before{animation:none !important;-webkit-animation:none !important}
-}
-</style>
+<!-- Common payment presentation is owned by styles/payment-moonlight.css. -->
 <style id="sukuyo-basic-calendar-style">
                   #sukuyoCalendarParking{width:100%}
                   .sy-basic-calendar{--moon-bg:#070a18;--moon-surface:#0d1126;--moon-card:#171b38;--moon-card-soft:#202546;--moon-card-strong:#2b3159;--moon-border:rgba(218,228,255,0.3);--moon-today:#b9c8ff;--moon-inauspicious:#171327;--moon-inauspicious-border:#846da8;--moon-text-primary:#f7f9ff;--moon-text-secondary:#dce6ff;--moon-text-muted:#aebce5;--moon-text-faint:#7884aa;--moon-star:#fff2c2;--moon-auspicious:#ffe6a4;--moon-accent-border:rgba(246,242,223,0.72);width:100%;max-width:640px;margin:18px auto 0;background:radial-gradient(circle at 84% 0%,rgba(252,244,213,0.28),rgba(252,244,213,0.08) 16%,transparent 38%),radial-gradient(circle at 14% 96%,rgba(129,221,214,0.12),transparent 30%),linear-gradient(165deg,#050712 0%,var(--moon-bg) 42%,#11142b 72%,#1b1730 100%);border:1px solid var(--moon-border);border-radius:18px;overflow:hidden;color:var(--moon-text-primary);font-family:system-ui,-apple-system,BlinkMacSystemFont,"Pretendard",sans-serif;box-shadow:0 22px 64px rgba(0,0,0,0.52),0 0 46px rgba(201,216,255,0.14);position:relative}

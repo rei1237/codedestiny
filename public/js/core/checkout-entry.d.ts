@@ -213,6 +213,7 @@ declare const checkoutEntry: {
   /** 결제창을 열 권리. 이미 열려 있으면 null(호출부는 기존 모달에 포커스를 주고 'cancel'). */
   acquirePaymentChoiceLock(owner: string): PaymentChoiceLockToken | null;
   /** 결제창 노드가 실제로 붙은 뒤 락에 연결한다(스윕이 살려둘 노드로 인식). */
+  applyPaymentChoiceTheme(node: Element | null): void;
   attachPaymentChoiceNode(token: PaymentChoiceLockToken | null, node: Element | null): boolean;
   releasePaymentChoiceLock(token: PaymentChoiceLockToken | null): boolean;
   getPaymentChoiceLockNode(): Element | null;
@@ -420,6 +421,7 @@ declare const checkoutEntry: {
    * 문서가 이 티켓으로 스스로 확정을 재개한다. 저장은 localStorage(새 탭 복귀를 견딘다),
    * 읽기는 localStorage → sessionStorage 폴백, 회수는 두 저장소 모두.
    */
+  isPaymentConfirmationPending(result: { status?: number; payload?: Record<string, unknown> }): boolean;
   DIRECT_RESUME_KEY: string;
   DIRECT_RESUME_TTL_MS: number;
   saveDirectPaymentResumeTicket(ticket: DirectPaymentResumeTicket): boolean;

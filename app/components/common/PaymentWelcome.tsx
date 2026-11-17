@@ -1,22 +1,13 @@
 "use client";
-import { useLayoutEffect, useRef } from "react";
-import { PaymentPigVisual } from "./PaymentPigVisual";
+import { MeditatingYeongnyangi } from "./MeditatingYeongnyangi";
 import styles from "./payment-welcome.module.css";
-
-/** Presentation only: callers must already hold a confirmed server grant. */
+/** A verified receipt notice. Never captures focus, locks scrolling or covers the result. */
 export function PaymentWelcome({ title, description }: { title: string; description: string }) {
-  const card = useRef<HTMLDivElement>(null);
-  useLayoutEffect(() => {
-    const previous = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-    const focusedCard = card.current;
-    focusedCard?.focus({ preventScroll: true });
-    return () => { if (previous?.isConnected && document.activeElement === focusedCard) previous.focus({ preventScroll: true }); };
-  }, []);
-  return <div className={styles.backdrop} data-ggulggul-welcome="true">
-    <div ref={card} tabIndex={-1} role="status" aria-live="polite" onKeyDown={event => { if (event.key === "Tab") event.preventDefault(); }} className={styles.card}>
-      <PaymentPigVisual tone="pass" />
-      <h2>{title}</h2><p>{description}</p>
-      <span className={styles.petals} aria-hidden="true" />
+  const night = typeof window !== 'undefined' && /^\/(yeongnyangi|checkout)(\/|$)/.test(window.location.pathname);
+  return <div className={styles.backdrop} data-ggulggul-welcome="true" data-yn-night={night ? '' : undefined}>
+    <div role="status" aria-live="polite" className={styles.card}>
+      <MeditatingYeongnyangi compact />
+      <div><h2>{title}</h2><p>{description}</p></div>
     </div>
   </div>;
 }

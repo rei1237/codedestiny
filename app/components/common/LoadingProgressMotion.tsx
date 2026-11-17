@@ -1,7 +1,7 @@
 "use client";
 
 export type LoadingMotionPhase = "fresh" | "warming" | "slow";
-export type LoadingMotionTone = "payment" | "pass" | "result";
+export type LoadingMotionTone = "payment" | "pass" | "result" | "moonlight";
 type LoadingMotionStepLabels = readonly [string, string, string];
 
 type LoadingProgressMotionProps = {
@@ -26,6 +26,13 @@ const TONE_STYLES: Record<
     rail: string;
   }
 > = {
+  moonlight: {
+    chipActive: "border-[var(--pl-gold)] bg-[var(--pl-paper)] text-[var(--pl-ink)]",
+    chipIdle: "border-[var(--pl-muted)] bg-transparent text-[var(--pl-muted)]",
+    numberActive: "border-[var(--pl-ink)] bg-[var(--pl-ink)] text-[var(--pl-paper)]",
+    numberIdle: "border-[var(--pl-muted)] bg-transparent text-[var(--pl-muted)]",
+    rail: "bg-[var(--pl-gold)]",
+  },
   payment: {
     chipActive: "border-cyan-200/30 bg-cyan-200/14 text-cyan-50 shadow-[0_0_0_1px_rgba(125,211,252,.08)]",
     chipIdle: "border-white/10 bg-white/5 text-slate-400",
@@ -84,14 +91,14 @@ export default function LoadingProgressMotion({
           return (
             <div
               key={`${stepLabel}-${index}`}
-              className={`flex min-w-0 items-center justify-center gap-1.5 rounded-full border px-2 py-2 text-[10px] font-black leading-none transition-colors duration-300 sm:px-3 ${isActive ? styles.chipActive : styles.chipIdle}`}
+              className={`flex min-w-0 items-center justify-center gap-1.5 rounded-full border px-2 py-2 ${tone === "moonlight" ? "min-h-12 text-xs" : "text-[10px]"} font-black leading-none transition-colors duration-300 sm:px-3 ${isActive ? styles.chipActive : styles.chipIdle}`}
             >
               <span
                 className={`grid h-4 w-4 shrink-0 place-items-center rounded-full border text-[9px] leading-none ${isActive ? styles.numberActive : styles.numberIdle} ${isCurrent ? "motion-safe:animate-pulse motion-reduce:animate-none" : ""}`}
               >
                 {index + 1}
               </span>
-              <span className="truncate">{stepLabel}</span>
+              <span className={tone === "moonlight" ? "whitespace-normal text-center leading-snug" : "truncate"}>{stepLabel}</span>
             </div>
           );
         })}
@@ -108,7 +115,7 @@ export default function LoadingProgressMotion({
         />
       </div>
 
-      <p className="m-0 text-center text-[11px] font-extrabold text-white/70">{activeLabel}</p>
+      <p className={`m-0 text-center font-extrabold ${tone === "moonlight" ? "text-xs text-[var(--pl-muted)]" : "text-[11px] text-white/70"}`}>{activeLabel}</p>
     </div>
   );
 }

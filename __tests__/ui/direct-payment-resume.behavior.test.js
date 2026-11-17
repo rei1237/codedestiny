@@ -61,7 +61,7 @@ function boot(options) {
   if (typeof window.AbortController === "undefined") window.AbortController = AbortController;
   if (typeof window.CSS === "undefined") window.CSS = { escape: (s) => String(s) };
 
-  const calls = { confirm: [], pass: [], report: [], alert: [], overlay: [], refresh: 0, scroll: 0, events: [], navigations };
+  const calls = { status: [], confirm: [], pass: [], report: [], alert: [], overlay: [], refresh: 0, scroll: 0, events: [], navigations };
   window.Element.prototype.scrollIntoView = function () { calls.scroll += 1; };
   window.alert = (msg) => { calls.alert.push(String(msg)); };
   window._cdSetCoinGateOverlay = (open, message, mode) => { calls.overlay.push({ open: !!open, message: String(message || ""), mode: String(mode || "") }); };
@@ -73,6 +73,10 @@ function boot(options) {
     const target = String(url);
     if (/\/api\/payments\/orders\/[^/]+\/resume/.test(target)) {
       return Promise.resolve(jsonResponse({ ok: true, context: opts.serverContext || null }));
+    }
+    if (/\/api\/payments\/orders\/[^/]+$/.test(target)) {
+      calls.status.push(target);
+      return Promise.resolve(jsonResponse({ ok: true, order: opts.order || { status: 'paid' } }));
     }
     if (target.indexOf('/api/billing/coin-gate') >= 0) {
       calls.pass.push(JSON.parse(String(init.body)));
@@ -665,4 +669,50 @@ test('confirmed payment hands off before long generation and never reopens compl
     assert.equal(calls.overlay.filter(c => c.open && c.mode === 'payment-complete').length, 1);
     assert.equal(window.localStorage.getItem(RESUME_KEY), null);
   } finally {finish(); window.close();}
+});
+
+
+test('new-tab pending grant recovers automatically even when both storage APIs reject writes', async () => {
+  let confirmed = 0, opened = 0;
+  const { window, calls } = boot({
+    url: 'https://code-destiny.com/neo-operation-room/?portone_redirect=1&paymentId=ord_1', ticket: null,
+    serverContext: { at: Date.now(), merchantUid: 'ord_1', confirmBody: { featureKey: 'neo-operation-room-consultation', requestId: 'original', merchantUid: 'ord_1' }, resume: { kind: 'pending-new-tab', action: '', args: { question: 'original question' } } },
+    confirmResponse: () => jsonResponse(++confirmed === 1 ? { ok: true, code: 'GRANT_PENDING', recoveryRequired: true } : { ok: true, unlocked: true }),
+    beforeProfile(win) {
+      win.Storage.prototype.setItem = () => { throw new Error('storage blocked'); };
+      const timer = win.setTimeout.bind(win);
+      win.setTimeout = (fn, ms, ...args) => timer(fn, ms === 3000 ? 10 : ms, ...args);
+      win.__cdCheckoutEntry.registerPaidResumeHandler('pending-new-tab', (descriptor, grant) => {
+        assert.equal(descriptor.args.question, 'original question'); assert.equal(grant.requestId, 'original'); opened++; return true;
+      });
+    },
+  });
+  try {
+    await waitFor(() => opened === 1, 'pending grant automatically resumed');
+    await new Promise(r => setTimeout(r, 60));
+    assert.equal(calls.confirm.length, 2); assert.equal(opened, 1);
+    assert.equal(calls.alert.length, 0); assert.equal(resumeCard(window), null);
+    assert.doesNotMatch(window.location.search, /paymentId/);
+  } finally { window.close(); }
+});
+
+test('already-paid redirect verifies the original order instead of destroying recovery', async () => {
+  let opened = 0;
+  const { window, calls } = boot({ url: HOME_RETURN_URL + '&code=PAYMENT_ALREADY_PAID',
+    ticket: { resume: { kind: 'duplicate-return', action: '', args: {} } },
+    beforeProfile(win) { win.__cdCheckoutEntry.registerPaidResumeHandler('duplicate-return', () => { opened++; return true; }); },
+  });
+  try {
+    await waitFor(() => opened === 1, 'duplicate return resumed');
+    assert.equal(calls.confirm.length, 1); assert.equal(calls.alert.length, 0); assert.equal(calls.report.length, 0);
+  } finally { window.close(); }
+});
+
+test('temporary confirmation failure retains input and retries the same paid order', async () => {
+ let count=0,opened=0;
+ const {window,calls}=boot({url:HOME_RETURN_URL,ticket:{resume:{kind:'transient-confirm',action:'',args:{question:'kept'}}},
+  confirmResponse:()=>++count===1?jsonResponse({ok:false,code:'SERVICE_UNAVAILABLE'},503):jsonResponse({ok:true,unlocked:true}),
+  beforeProfile(win){const timer=win.setTimeout.bind(win);win.setTimeout=(fn,ms,...args)=>timer(fn,ms===3000?10:ms,...args);win.__cdCheckoutEntry.registerPaidResumeHandler('transient-confirm',descriptor=>{assert.equal(descriptor.args.question,'kept');opened++;return true;});}
+ });
+ try{await waitFor(()=>opened===1,'transient confirmation recovered');assert.equal(calls.confirm.length,2);assert.equal(calls.alert.length,0);assert.equal(resumeCard(window),null);}finally{window.close();}
 });

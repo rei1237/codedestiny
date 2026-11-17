@@ -422,3 +422,7 @@ de32d6db0837a3d9129b47df91f66e97f3abc31c:__tests__/worker/profile.saju-crystal.t
 2688bf925cba2625ce2128e9997dd3072902970d:public/js/core/home-funnel.js:generic-api-key:237
 # 2026-11-16 오탐: 생성 런타임의 말레이어 번역 키 sajuQuantum.sq_8978_prop_label(Taman Emas).
 9bbc65bbf88d5c7f6701df89efe4f41d3e1d24ee:worker/lib/saju-section/runtime.generated.mjs:generic-api-key:9
+
+# 2026-11-18 false positive: public sessionStorage key cd_signature_consult_seen_v3, source and generated mirror.
+c4d928dd8628c8f38ca3e293419440094b32c6c1:js/core/home-funnel.js:generic-api-key:227
+c4d928dd8628c8f38ca3e293419440094b32c6c1:public/js/core/home-funnel.js:generic-api-key:227

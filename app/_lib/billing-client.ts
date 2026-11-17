@@ -465,7 +465,7 @@ const BILLING_FETCH_DEFAULT_TIMEOUT_MS = 20000;
 const BILLING_FETCH_CHECKOUT_TIMEOUT_MS = 40000;
 const BILLING_FETCH_CONFIRM_TIMEOUT_MS = 60000;
 const PAYMENT_CHOICE_IN_FLIGHT_TTL_MS = 45000;
-export const PAID_SERVICE_RUNTIME_SRC = "/js/destiny-profile.js?v=build-8b359701e46f";
+export const PAID_SERVICE_RUNTIME_SRC = "/js/destiny-profile.js?v=build-9ec778558a7a";
 // 🔴 이용권 스냅샷의 상수·읽기·쓰기·판정은 전부 js/core/pass-verdict.js 가 소유한다.
 // 셸(index.html)·독립 정적(js/destiny-profile.js)과 **같은 localStorage 키**를 공유하므로 값이 갈리면
 // 같은 사용자가 어느 런타임에서 클릭했느냐에 따라 판정이 달라지고, 한쪽이 만료로 보고 지운 캐시가
@@ -1633,6 +1633,7 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
     // 이전 결제 시도가 남긴 결제수단 선택은 여기서 비운다(checkout-entry TTL 과 이중 방어).
     checkoutEntry.clearSelectedDirectPayMethod();
     checkoutEntry.sweepOrphanChoiceModals(modal);
+    checkoutEntry.applyPaymentChoiceTheme(modal);
     emitPaymentLoadingState(false);
     document.body.appendChild(modal);
     // 🔴 환불 동의 잠금(셸·독립 정적과 같은 자리·같은 계약). 미체크 상태에서는

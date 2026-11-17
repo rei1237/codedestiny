@@ -33,6 +33,7 @@ import { sanitizeAuthReturnPath } from "@/app/_lib/auth-return";
 import { usePaidResume } from "@/app/hooks/usePaidResume";
 import { resolveServerFeaturePricing } from "@/lib/payment/server-feature-pricing";
 import "../yeongnyangi/night-tokens.css";
+import "../yeongnyangi/yehwa-night.generated.css";
 import { products } from "@/worker/yeongnyangi/payments/catalog";
 import { depthDescriptions } from "@/worker/yeongnyangi/fortune/reading-policy";
 import {consultationLocaleCopy,localizedSystem,localizedTier} from '../yeongnyangi/_lib/consultation-locale-copy';

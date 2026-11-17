@@ -897,7 +897,14 @@ function runPreCheckoutWaitUiAndArtWeightTests() {
   const heavyPig = "https://assets.code-destiny.com/DestinyCafe/nobackground/%EA%BD%83%EB%8F%BC%EC%A7%803-Photoroom.png";
   assertNotContains(indexSource, `background-image: url("${heavyPig}")`, "payment overlay art must not load the 725KB PNG");
   assertNotContains(indexSource, `background-image:url("${heavyPig}")`, "paid-gate sprite must not load the 725KB PNG");
-  assertContains(indexSource, `background-image: url("${paymentArt}")`, "payment overlay art must use the preloaded same-origin logo");
+  const moonlightCss = readFileSync(resolve(root, "styles/payment-moonlight.css"), "utf8");
+  const meditatingSource = readFileSync(resolve(root, "app/components/common/MeditatingYeongnyangi.tsx"), "utf8");
+  const meditatingArt = "/images/brand/yeongnyangi-meditating-v2.webp";
+  assertContains(moonlightCss, meditatingArt, "payment overlay uses the shared same-origin meditating character");
+  assertContains(meditatingSource, meditatingArt, "React and shell share the same waiting character");
+  assertContains(meditatingSource, 'decoding="async"', "character decoding must not block result handoff");
+  assert.ok(readFileSync(resolve(root, "public" + meditatingArt)).byteLength < 65536, "waiting character must stay under 64 KiB");
+  assertNotContains(moonlightCss, heavyPig, "shared payment art must not load the heavy PNG");
   assertContains(indexSource, `background-image:url("${paymentArt}")`, "paid-gate sprite must use the preloaded same-origin logo");
   assertContains(indexSource, '<link rel="preload" as="image" href="/icons/app-logo-512.webp"', "payment art must stay preloaded so the click path costs no network");
   // 🔴 React 쪽에도 같은 규칙이 필요하다 — #136 이 셸 3곳만 고쳐서 React 는 742KB 외부 PNG 를
