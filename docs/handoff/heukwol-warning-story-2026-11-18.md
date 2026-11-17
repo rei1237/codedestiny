@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-18
-next: 최신 main CI와 스테이징 SHA를 한 번 확인하고, 함께 배포될 다른 세션 변경의 승인 범위를 확인한 뒤 운영 승격을 진행한다.
+next: 최신 main CI와 스테이징 SHA를 한 번 확인한 뒤, 이미 승인된 운영 승격을 진행한다.
 ---
 
 ## 첫 행동
@@ -39,8 +39,8 @@ D:\Development\code-destiny에서 이 문서를 읽고 git status와 origin/main
 - [x] 초안 승인, 이미지와 문구 수정, 자동 검증, 코드 커밋 및 push.
 - [ ] main CI를 최종 보고 전 1회 확인하고 실패나 미완료를 정직하게 보고한다.
 - [ ] `npm run verify:staging -- --sha=<현재 main 전체 SHA>`를 한 번 실행하여 Pages와 Worker가 같은 커밋인지 확인한다. 준비되지 않았거나 실패하면 운영 승격을 하지 않는다.
-- [ ] 스테이징 또는 안전하게 격리된 mock 로컬 화면에서 390px과 데스크톱의 12컷, 새 8컷의 팔·손, 제목·버튼·가로 넘침을 확인한다. 브라우저 검수는 운영 계정·결제·LLM 호출 없이 수행한다.
-- [ ] 모든 게이트가 통과하고 main HEAD가 검수 대상과 같으며 함께 배포되는 다른 세션 변경의 범위가 승인되면 `gh workflow run "Release Cloudflare Pages and Worker" --ref main -f mode=production`을 한 번 실행한다. 릴리스 실행 후 폴링하지 않고 런 URL을 전달한다.
+- [x] 안전하게 격리된 mock 로컬 화면에서 390px과 데스크톱의 12컷, 새 8컷의 팔·손, 제목·버튼·가로 넘침을 확인했다.
+- [ ] 모든 게이트가 통과하고 main HEAD가 검수 대상과 같으면 `gh workflow run "Release Cloudflare Pages and Worker" --ref main -f mode=production`을 한 번 실행한다. 릴리스 실행 후 폴링하지 않고 런 URL을 전달한다.
 - [ ] 완료되면 이 문서 status를 done으로 바꾸고 정리·검증·커밋·푸시한다. 다른 세션 파일은 건드리지 않는다.
 
 ## 2026-11-18 손 수정 후 상태
@@ -50,4 +50,11 @@ D:\Development\code-destiny에서 이 문서를 읽고 git status와 origin/main
 - 분리된 mock 서버에서 390px·1440px 실제 웹툰의 새 이미지와 12컷, 제목 및 가로 넘침을 확인했다. check:fast와 네트워크 차단 verify:release, check:pre-push 통과. Jest 479 묶음·8,012 테스트 통과, 각 1개 skip.
 - 새 worktree에는 무시된 운세 데이터가 없어 최초 Node 테스트가 실패했고, 오프라인 fortune:build-data 후 해당 테스트와 전체 검증이 통과했다.
 - 29ac90d7bfdae07abbd77502e99e3649474ca3cb 스테이징 검증 당시 Pages는 이전 ab68a2238501을 반환해 반복 확인을 중단했다. 실제 최신 main SHA로 다시 한 번 확인하기 전에는 운영 승격하지 않는다.
-- 운영 Pages는 cc15b4595bc8ac8d540884e359fc1b79f7700912였고, 현재 main과의 차이에는 흑월 외 다른 세션의 달빛 공간 움직임과 앱 오프라인 화면 변경이 포함된다. 기존 승인은 흑월 운영 반영에 대한 것이므로, main 전체 승격 시 다른 작업까지 배포되는 범위를 사용자에게 구체적으로 확인받기 전에는 임의 승격하지 않는다.
+- 운영 Pages는 cc15b4595bc8ac8d540884e359fc1b79f7700912였고, 현재 main과의 차이에는 흑월 외 다른 세션의 달빛 공간 움직임과 앱 오프라인 화면 변경이 포함된다. 당시에는 다른 세션 변경의 승인 범위가 불명확했으나 아래 추가 승인으로 해소되었다.
+
+## 2026-11-18 전체 운영 반영 승인과 스테이징 대기
+
+- 사용자 명시 승인: “스테이징 확인하고 다른 변경 사항도 함께 운영에 반영해줘.” 흑월과 현재 main의 다른 변경을 함께 운영에 배포하도록 승인했다. 이 승인에 대해 다시 묻지 않는다. 실결제·운영 DB 쓰기·실 LLM 테스트 승인은 아니다.
+- 네트워크 차단 mock 환경의 npm run verify:release는 f2edfc6dd43de0e6d7e076410524ab0f88ffaf10에서 통과했다. 결제 대기 이미지 관련 최초 검사 실패는 다른 세션의 b8dcd772b에서 이미 수정되었고 이후 전체 릴리스 검증이 통과했다. 별도 수정 작업 공간은 정리했다.
+- 최종 확인 당시 main CI https://github.com/rei1237/codedestiny/actions/runs/44136917699 는 진행 중이었다. 스테이징 릴리스 https://github.com/rei1237/codedestiny/actions/runs/44137168754 는 pending이었고 스테이징 Pages는 이전 b8dcd772b242를 반환해 SHA 검증을 중단했다. 운영 배포는 실행하지 않았다.
+- 이 문서 기록을 포함한 최신 main을 확인하고, 완료된 CI와 스테이징 Pages·Worker의 정확한 SHA를 한 번 확인한다. 검증 중 최신 main이 바뀌면 그 SHA와 승인 범위를 다시 확인한다. 모두 통과한 경우 사용자가 승인한 production 워크플로를 한 번 실행하며 배포 뒤 폴링하지 않는다.
