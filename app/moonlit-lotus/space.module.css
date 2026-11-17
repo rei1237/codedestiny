@@ -256,7 +256,7 @@
 .page[data-immersive=true] :is(.header,.dock,.side,.viewControls,.sceneMessage) { display:none; }
 .page[data-immersive=true] .experience { grid-template-columns:1fr; grid-template-rows:minmax(280px,1fr); grid-template-areas:'scene'; }
 @media(max-width:900px) {
- .experience { grid-template-columns:minmax(0,1fr); grid-template-areas:'scene' 'view' 'message' 'side' 'dock'; grid-template-rows:minmax(260px,1fr) auto auto auto auto; }
+ .experience { grid-template-columns:minmax(0,1fr); grid-template-areas:'scene' 'view' 'message' 'side' 'dock'; grid-template-rows:minmax(0,1fr) auto auto auto auto; }
  .side { width:auto; height:clamp(220px,32dvh,340px); padding:0; border:0; }
  .panel,.musicPanel { border-inline:0; border-radius:0; }
  .panelBody { padding:10px 16px 18px; }
@@ -270,7 +270,7 @@
  .world { width:min(100%,calc(100cqh * 2 / 3)); aspect-ratio:2/3; }
 }
 @media(orientation:landscape) and (max-height:600px) {
- .experience { grid-template-columns:minmax(0,1fr) auto; grid-template-areas:'scene side' 'view side' 'message side' 'dock side'; grid-template-rows:minmax(220px,1fr) auto auto auto; }
+ .experience { grid-template-columns:minmax(0,1fr) auto; grid-template-areas:'scene side' 'view side' 'message side' 'dock side'; grid-template-rows:minmax(0,1fr) auto auto auto; }
  .side { width:330px; height:auto; }
 }
 
