@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-18
-next: 진행 중인 Gradle release60 빌드를 마치고 서명·자산·API36 에뮬레이터 APK 검수 후 Play 내부 테스트 및 프로덕션 심사를 제출한다. 코드 main push는 완료했으며 새 CI는 다음 push 또는 최종 보고 직전 한 번 확인한다.
+next: 61 패키징·native 검수·공개 출시는 보류 상태다. 재개 요청이 오면 외부 verification의 source-delivery-61.json과 실제 origin/main을 확인하고, 오프라인 수정이 포함된61 후보를 빌드해 native 검수부터 이어간다.
 ---
 
 # 연화당 다각도 UI와 Android 출시 준비
@@ -10,6 +10,17 @@ next: 진행 중인 Gradle release60 빌드를 마치고 서명·자산·API36 �
 `D:\Development\code-destiny`에서 이 문서와 `docs/design/moonlit-lotus-views.md`, `docs/design/moonlit-lotus-android-release-plan.md`를 읽고 현재 git 상태를 확인한다. 미완료 검증은 아래 상태에 따라 이어간다. 다른 사용자의 `.claude/skills/fire-your-seo-agency/`는 별도 저장소이므로 보존한다.
 
 ## 지금 상태
+- **오프라인 최소 수정 검증 완료**: 코드 커밋 `de7e79189`(app/components/OfflineOverlay.tsx, scripts/app-native-bridge.js, __tests__/ui/app-offline-reader.test.js). check:fast 세션20717 exit0: paid-gate77/77, Node5,216/5,216, Jest479suites·8,012tests 통과(기존1suite/test skipped), 타입/lint/정책/Worker dry-run 통과. 대상5/5·UI감지0·6로케일노트500자이하·handoff계약259문서통과. 최종 검사로그는 `D:/Development/releases/codedestiny/1.0.60/verification/check-fast-release61.log`에 보존했다. 기존60 sync/Gradle/check:fast로그도 같은폴더에 있다.
+- **보존·재개 경계**: 61 APK/AAB는 생성하지 않았고 새 링크의 native 시각·기도/참배 보존 검수는 아직 남았다. 대규모 최적화/Play공개출시는 하지 않는다. 자기AVD·taskSpace60·완료Gradle daemon33056은 종료했다. 워크트리는61 재빌드/검수 재개 근거와 캐시를 위해 보존하며 다른세션프로세스·main미커밋변경은 건드리지 않는다. 전달 최종SHA/push/CI는 같은 verification의 `source-delivery-61.json`과 실제Git상태를 함께 확인한다.
+- **2026-11-18 00:38 KST 사용자 steering**: “너무 용량이 큰거 아니야? 최적화는 어려운거야? 성능은 좋게 하면서 용량은 최적화하는거고 어렵다면 그냥 하지마”. 원래 출시 작업의 취소는 아니며 61 전체 재빌드·공개 출시만 용량 검토 동안 보류한다. root는 패키지의 명백한 불필요·중복 자산을 읽기 전용 분석 중이다. 큰 구조 변경·추가 다운로드 설계는 무리하게 진행하지 않는다.
+- **용량 분석 결론**: 전체 이미지의 바이트 동일 중복은4그룹/223,516bytes뿐. 상담웹툰40.5MB는AVIF22.6/WebP17.9MB의반응형대체본이며기존해상도·지원범위를보존한다. 큰절감에는온라인화/형식정책변경이필요하므로사용자시간의사를존중해대규모최적화는하지않는다. root는오프라인최소수정의검증·커밋·안전통합·push까지만진행하고새빌드/공개출시는계속보류하도록정했다.
+- **최종 Console 관측·브라우저 정리**: 비교 선택은 정상 적용돼60다운로드324MB/59다운로드290MB를확인했다. 지원기기19,523·권한11·API24+/target36·보호설정동일. 결과와ASO초안/휴대전화8장보존은 `D:/Development/releases/codedestiny/1.0.60/verification/play-console-final-state.json`에저장했다. 용량분석정본은같은폴더의 `size-assessment-2026-11-18.md`. 이후taskSpace60만 `finish({keep:[]})`로종료했으므로아래예전p2/p3라벨은재사용하지않는다. 다른space는건드리지않았다.
+- **60 빌드·내부 출시 완료**: Gradle 세션7961 exit0, 21분25초, 195 tasks(122실행/73cache). AAB 327,641,459bytes(`fbde2c3054863e28428e71f4be7928080a8df9d79e85c4d1b34f01c36d72e208`), APK326,275,687bytes(`d54cbbc755cb1c6013b90adc1a9e3fa4e642a191092eaf95b48c7c6760a5b6c8`), min24/target36, 업로드키 v2/AAB 서명 통과, 풍경27+정면3+atlas6 바이트 일치, native .so 없음/zipalign16KB 통과. 증거는 `D:/Development/releases/codedestiny/1.0.60/verification/package.json`. sync 생성 Gradle2파일은 원복했다.
+- **Play60**: 기존내부초안17에 업로드·저장및출시, 00:24KST `내부 테스터에게 제공됨` 확인. 증거 `play-internal-release.txt`. 신규 설치324MB·예상2분58초, 내부이전49대비+94.4MB/+52초 경고1개, 지원기기 감소0. 프로덕션59는 유지하며60은 프로덕션으로 올리지 않는다. 사전출시보고서는 아직 없었다. taskSpace60 p2=App Bundle60 비교 탭의59선택 팝업(적용 뒤 닫힘 wait가 timeout, 현재 상태부터 관측), p3=KO스토어초안. 최신 스크립트 store-resume-22~38.mjs. 앱서명/국가/가격/보호설정 변경 없음.
+- **실제 APK의 offline 차단 발견**: 전용AVD에 로컬60설치성공. 처음의 host qemu-headless0xc0000005 종료는 Windows 이벤트로 확인했고 `-gpu swiftshader`로 같은AVD 재시작해 앱 실행 성공. `/root/temple_visual_review`가 actual screenshot `native60-courtyard-default.png`를 판독해 전역 OfflineOverlay가 홈을 전부 덮음·시스템바와 안내 겹침없음으로 확인했다. 링크탭은 가려져 실제연화당 진입 미검증이다. 네트워크/보호설정/DOM은 우회하지 않았다. ownAVD는 검증 메모리 확보를 위해 이름 확인 후 정상 종료했고 데이터는 유지했다.
+- **61 최소 수정 구현**: `app/components/OfflineOverlay.tsx`는 앱빌드만12개언어 연화당 실링크를 제공하고 연화당/웹툰/동작보기의 정확한경로·index.html만 기존독자예외로 추가. 홈·결제·로그인·유사경로는 여전히차단. `scripts/app-native-bridge.js`는 같은연화당경로에서만 작은offline배너 제외. `__tests__/ui/app-offline-reader.test.js` 실제컴포넌트렌더·배너경계5/5, impeccable detector0. `apps/mobile/release-notes/1.0.61.txt` 6로케일 모두500자이하. 출시계획문서에60증거와61전환 기록. 61후보 빌드 시작 전.
+- **main 동시 상태**: 다음push준비로1회확인한 mainCI `44112044041`, SHA `106c43bb155df0e1ab54091613aecebcbda09d98`, success. 1c9이후paid-delivery문서통합. main에는다른세션의서비스가이드·흑월·사이트맵등다수미커밋변경과 `.claude/skills/fire-your-seo-agency/`가있으니보존한다. 본인워크트리HEAD0351628b7, main에미push인기존문서커밋2개와위신규수정이있다.
+- 아래는 이 재개 전의 누적 기록이다.
 - **2026-11-18 출시 재개**: `handoff` 절차로 동일 워크트리를 이어받았다. 선행 main CI `44102846580`(cc15)은 success 확인 후 main을 `1c9fce81733ffc34147bf5db2120f457f2e2b894`로 FF, `check:pre-push` 통과, `git push origin main` 완료했다. 타인 미추적 `.claude/skills/fire-your-seo-agency/`는 보존했다.
 - **모바일 sync 완료**: `.tmp/ambient/mobile-sync-release60.log`, exit 0. 1,925 정적 화면 생성, 실제 번들 1,055 HTML의 결제 가드·보관함·기능 링크 검증 통과, Capacitor sync 완료. 새 풍경 27개 포함, 앞면 캐릭터 6시트는 1,080×1,080/각 270×270 프레임/alpha 유지. 결과·크롭 contact sheet는 `D:/Development/releases/codedestiny/1.0.60/verification/`에 보존한다.
 - **Gradle 진행 중**: `:app:bundleRelease :app:assembleRelease :app:testReleaseUnitTest`, versionCode 60/name 1.0.60. 첫 명령의 PowerShell 비인용 버전 인자가 `.0.60` task로 갈라져 실패했고, 전체 문자열 인자 배열로 정정했다. 실제 실행 로그는 `.tmp/ambient/gradle-release60-quoted.log`(세션 7961). sync 생성물의 `capacitor.settings.gradle`은 격리 정션 실제 경로를 가리키므로 빌드 완료 뒤 이 세션의 생성 변경 2개만 원복하고 커밋하지 않는다.
