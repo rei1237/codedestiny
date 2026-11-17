@@ -236,16 +236,10 @@ const ACCEPTED = new Map([
     { why: "꽃돼지 일러스트 — 이미지라 팽창하지 않는다." },
   ],
   [".cd-direct-payment-guide__pig|flex-rigid", { why: "위와 같은 일러스트." }],
+  [".cd-direct-payment-dialog::after|fixed-height", { why: "빈 content 의 예화 가지 장식 — 글자를 담지 않고 pointer-events:none 이다." }],
+  [".cd-direct-payment-dialog::after|fixed-width", { why: "위와 같은 72×60px 예화 장식이며 결제 문구의 크기를 제한하지 않는다." }],
   [".cd-direct-payment-hairline|fixed-height", { why: "구분선 장식 — 글자를 담지 않는다." }],
-  [".cd-direct-payment-hairline::after|fixed-height", { why: "구분선 장식의 의사요소." }],
-  [".cd-direct-payment-hairline::after|fixed-width", { why: "구분선 장식의 의사요소." }],
-  [
-    ".cd-direct-payment-modal.is-open::before|fixed-height",
-    { why: "모달 진입 장식(빛 번짐) 의사요소 — 글자를 담지 않는다." },
-  ],
-  [".cd-direct-payment-modal.is-open::before|fixed-width", { why: "위와 같은 장식 의사요소." }],
-  [".cd-direct-payment-modal.is-open::after|fixed-height", { why: "위와 같은 장식 의사요소." }],
-  [".cd-direct-payment-modal.is-open::after|fixed-width", { why: "위와 같은 장식 의사요소." }],
+
   [".cd-mnav__icon|fixed-height", { why: "탭 아이콘 24x24 — 글자를 담지 않는다." }],
   [".cd-mnav__icon|fixed-width", { why: "탭 아이콘 24x24." }],
   [".cd-mnav__handle|fixed-height", { why: "접기 손잡이는 텍스트를 담지 않는 조작 영역이다." }],
@@ -268,17 +262,6 @@ const ACCEPTED = new Map([
   [".saju-loader-progress|fixed-height", { why: "진행 막대 — 글자를 담지 않는다." }],
   [".saju-loader-visual|fixed-height", { why: "로고·연이 스프라이트 자리 — 이미지다." }],
   [".saju-loader-visual|fixed-width", { why: "로고·연이 스프라이트 자리 — 이미지다." }],
-  [".saju-loader-visual|flex-rigid", { why: "로고·연이 스프라이트 자리 — 이미지다." }],
-  [
-    ".saju-loader-visual::after|fixed-height",
-    { why: "결제 완료 시 로고 우하단에 붙는 34px 금색 원형 뱃지 장식 — content:'' 이라 글자가 없다." },
-  ],
-  [".saju-loader-visual::after|fixed-width", { why: "위와 같은 원형 뱃지 장식." }],
-  [
-    ".saju-loader-yeon-sprite::after|fixed-height",
-    { why: "연이 스프라이트에 붙는 같은 계열의 원형 뱃지 장식 — content:'' 이라 글자가 없다." },
-  ],
-  [".saju-loader-yeon-sprite::after|fixed-width", { why: "위와 같은 원형 뱃지 장식." }],
 
   // --- 전제가 살아있는 동안만 유효한 예외 ---
   [
