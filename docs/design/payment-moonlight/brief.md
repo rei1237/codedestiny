@@ -27,3 +27,9 @@
 - 모바일 mock 복귀 시나리오 114건(Chromium 71건, WebKit 43건) 통과. critical 검사에서 Jest 479개 suite·8,012개 test 통과. Node 검사는 최초 5,221/5,222 통과였으며, 누락된 daily 데이터는 mock 빌드 후 관련 7/7 재검사로 확인했다. 이를 Node 전체 재실행 통과로 표현하지 않는다.
 - 실결제·실 LLM·운영 DB 쓰기는 검증하지 않았다. UI 검수와 mock 테스트 결과는 운영 결제 성공 또는 운영 배포 완료의 증거가 아니다.
 - SEO: 결제/생성 상태 UI만 변경하며 title/canonical/robots/sitemap 정책 영향 없음. 장식 이미지는 빈 alt, 상태는 별도 텍스트.
+
+## 운영 반영 확인 · 2026-11-18
+
+- [production44140519314](https://github.com/rei1237/codedestiny/actions/runs/44140519314) SUCCESS. Pages와 Worker 모두 ecc91dab65194247677875c260a02a210a5c9d01 확인.
+- 공통 셸 운영390px 실측 완료 알림82.89px, pointer-events:none, body position:static/overflow-y:auto, 가로 넘침 없음. 새 이미지와 공식 압축 CSS가 검증한 원본과 일치했다.
+- 최종 코드 CI required, Paid Flow90/90, 영냥이 브라우저 PASS. 이 운영 확인은 공개 자산·표시 상태·순수 계산 검증이며 실결제나 유료 LLM 생성은 수행하지 않았다.
