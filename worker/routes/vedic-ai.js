@@ -23,6 +23,7 @@ import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
 import { normalizeConsultAccessType, resolveCanonicalEntitlement, resolveFeatureAccessPolicy } from "../lib/entitlement-policy.js";
 import { consumePassForFeature, hasConsumedPassFeature, passDenialCode, refundPassUseEvidence } from "../lib/pass-consumption.js";
+import { lateUsageSettlementFailure } from "../lib/late-usage-settlement.js";
 import { cmsPromptModelConfig, cmsPromptText } from "../lib/cms-prompts.js";
 import { tokensRequiredForChars } from "../lib/llm-budget.js";
 import { callGeminiJsonWithRetry } from "../lib/structured-consultation.js";
@@ -1732,8 +1733,13 @@ async function generateConsultation({ request, env, auth, body, normalized, idem
     }
     const fresh = await resolveStartAccess({ request, env, auth, body, normalized, idempotencyKey, pricing });
     if (!fresh) return paymentVerifyFailed();
-    if(!nativeTossContext(request))await applyUsageOnce({ userId: auth.userId, sessionId, accessType: fresh.accessType, pricing });
-    doc = await saveVedicDelivery(locked, { status: "completed", generationLease: "", usageAppliedAt: doc.usageAppliedAt || now }, sessionId);
+    // 늦은 이용권 차감이 한도·자격 사유로 거절돼도 만든 결과는 전달한다. 일시 장애는 그대로 던져 재시도시킨다.
+    let usageSettlement = null;
+    if(!nativeTossContext(request)) await applyUsageOnce({ userId: auth.userId, sessionId, accessType: fresh.accessType, pricing }).catch(settleError => {
+      usageSettlement = lateUsageSettlementFailure(settleError, { service: "vedic-ai", sessionId, accessType: fresh.accessType });
+      if (!usageSettlement) throw settleError;
+    });
+    doc = await saveVedicDelivery(locked, { status: "completed", generationLease: "", usageAppliedAt: doc.usageAppliedAt || now, ...(usageSettlement ? { llmMeta: { ...doc.llmMeta, ...usageSettlement } } : {}) }, sessionId);
     if (!nativeTossContext(request) && fresh.source === "direct-payment" && fresh.paymentDocId) {
       await Payment.updateOne({ _id: new mongoose.Types.ObjectId(fresh.paymentDocId), userId: objectId(auth.userId), featureKey: FEATURE_KEY, status: { $in: ["paid", "success", "fulfilled"] } }, { $set: { status: "fulfilled", sessionId, orderState: "UNLOCKED" } }).catch(error => logVedicAi("Usage bookkeeping failed", { code: error?.code }, "warn"));
     }
@@ -1742,6 +1748,8 @@ async function generateConsultation({ request, env, auth, body, normalized, idem
     if (['EXPERT_CALCULATION_MISMATCH', 'ENGINE_FACT_SNAPSHOT_INVALID'].includes(error?.code)) return json({ ok: false, reason: error.code }, { status: 409 });
     if (error?.code === "RESULT_STORAGE_UNAVAILABLE") return json(resultStorageFailurePayload(error), { status: 503 });
     if(nativeTossContext(request)&&error?.status)return json({ok:false,reason:error.code||'ACCESS_DENIED'},{status:error.status});
+    // 완성 본문이 있으면(delivery_pending) 일시 장애로 덮거나 환불하지 않는다 — 같은 전달을 다시 시도한다.
+    if (doc?.status === "delivery_pending") return json(resultStorageFailurePayload(resultStorageUnavailable(sessionId)), { status: 503 });
     await saveVedicDelivery(locked, { status: "generation_failed", generationError: { code: error?.code || "LLM_FAILED", message: clean(error?.message, 500) } }, sessionId);
     if(!nativeTossContext(request))await releaseRequestBillingEvidence(env, { userId: String(auth.userId), requestId: idempotencyKey, evidenceIds });
     if(!nativeTossContext(request))await restorePrepaidAccessOnFailure({ userId: auth.userId, access, idempotencyKey, pricing, error, env });

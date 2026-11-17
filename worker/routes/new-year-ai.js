@@ -26,6 +26,7 @@ import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
 import { normalizeConsultAccessType, resolveCanonicalEntitlement, resolveFeatureAccessPolicy } from "../lib/entitlement-policy.js";
 import { consumePassForFeature, passDenialCode } from "../lib/pass-consumption.js";
+import { lateUsageSettlementFailure, usageSettlementSetFields } from "../lib/late-usage-settlement.js";
 import { callGeminiText } from "../lib/gemini.js";
 import { safeGeminiFailure } from "../../lib/gemini-provider-errors.mjs";
 import { reserveSupportRecoveryAttempt, supportRecoveryGenerationOptions, assertSupportRecoveryPreserved } from "../lib/support-recovery-budget.js";
@@ -2791,17 +2792,21 @@ async function saveNewYearState({ id, userId, lockToken, status = 'generating', 
 }
 
 async function finishNewYearDelivery({ request, env, auth, access, pending }) {
+  let usageSettlement = null;
   try {
     if (nativeTossContext(request)) await nativeTossContext(request).assertStored(pending);
     else if (access.deferredUsage) await callDeferredUsageRoute({ request, env, auth, path: 'apply', idempotencyKey: pending.idempotencyKey, sessionId: pending.id });
     else if (!access.usageAlreadyApplied && access.accessType === 'subscription') throw new Error('MONTHLY_CREDIT_GATE_REQUIRED');
-    else await applyUsageOnce({ userId: auth.userId, sessionId: pending.id, accessType: access.accessType });
+    else await applyUsageOnce({ userId: auth.userId, sessionId: pending.id, accessType: access.accessType }).catch(error => {
+      usageSettlement = lateUsageSettlementFailure(error, { service: "new-year-ai", sessionId: pending.id, accessType: access.accessType });
+      if (!usageSettlement) throw error;
+    });
   } catch (cause) {
     if (nativeTossContext(request) && cause?.status) throw cause;
     throw Object.assign(new Error('이용 처리 확인 중입니다. 같은 상담에서 다시 시도해 주세요.'), { code: 'RESULT_DELIVERY_PENDING', resultId: pending.id, cause });
   }
   const completed = await saveNewYearState({ id: pending.id, userId: auth.userId, lockToken: pending.llmMeta.lockToken || '', status: 'delivery_pending', values: {
-    status: 'completed', usageAppliedAt: new Date(),
+    status: 'completed', usageAppliedAt: new Date(), ...usageSettlementSetFields(usageSettlement),
     ...(pending.llmMeta?.supportRecovery ? { 'llmMeta.supportRecovery.active': false, 'llmMeta.supportRecovery.finishedAt': new Date().toISOString() } : {}),
   } });
   logNewYearAi("Generate Success", { requestId: pending.idempotencyKey, sessionId: pending.id, totalChars: pending.llmMeta?.quality?.totalChars, qualityStatus: 'passed', persisted: true });

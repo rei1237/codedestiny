@@ -3,7 +3,7 @@ import { jest } from "@jest/globals";
 
 const uid = "64b7f2a1c3d4e5f601234567";
 const body = { name: "검사", gender: "female", birthDate: "1993-07-21", birthTime: "09:00", birthPlace: { city: "서울", country: "KR", latitude: 37.5665, longitude: 126.978, timezone: "Asia/Seoul" }, topic: "전체 흐름", calendarType: "solar", focusArea: "overall", accessType: "pass" };
-let utils, route, docs, provider, chart, fault, blocked, mode, userId, usage, refund, fetchBlock, lostConfirmation, passReceipt, passRefund;
+let utils, route, docs, provider, chart, fault, blocked, mode, userId, usage, refund, fetchBlock, lostConfirmation, passReceipt, passRefund, consume;
 const clone = value => value == null ? value : structuredClone(value);
 function query(value) { const result = Promise.resolve(value); result.lean = async () => clone(value); result.select = result.sort = () => result; return result; }
 function matches(doc, filter) {
@@ -51,7 +51,7 @@ function prose(seed, length) {
 beforeAll(async () => {
   const pass = await import("../../worker/lib/pass-consumption.js");
   jest.unstable_mockModule("../../worker/lib/pass-consumption.js", () => ({ ...pass,
-    consumePassForFeature: async () => ({ covered: true }), hasConsumedPassFeature: async () => passReceipt,
+    consumePassForFeature: (...args) => consume(...args), hasConsumedPassFeature: async () => passReceipt,
     refundPassUseEvidence: (...args) => passRefund(...args) }));
   const db = await import("../../worker/lib/db.js");
   const auth = await import("../../worker/lib/auth.js");
@@ -77,7 +77,7 @@ beforeAll(async () => {
   ({ handleVedicAiRoutes: route, __vedicAiTestUtils: utils } = await import("../../worker/routes/vedic-ai.js"));
 });
 beforeEach(() => {
-  docs = []; fault = null; lostConfirmation = false; blocked = -1; mode = "pass"; userId = uid; usage = jest.fn(); refund = jest.fn(async () => ({})); passReceipt = false; passRefund = jest.fn(async () => ({ refunded: true }));
+  docs = []; fault = null; lostConfirmation = false; blocked = -1; mode = "pass"; userId = uid; usage = jest.fn(); refund = jest.fn(async () => ({})); passReceipt = false; passRefund = jest.fn(async () => ({ refunded: true })); consume = jest.fn(async () => ({ covered: true }));
   provider = jest.fn(async (_env, _prompt, options) => {
     expect(options.attempts).toBe(1); expect(options.timeoutMs).toBeLessThanOrEqual(45000); expect(options.fallbackToWorkersAI).toBe(false);
     const group = utils.VEDIC_SECTION_GROUPS.find(group => group.key === options.logContext.group);
@@ -110,6 +110,26 @@ for (const status of ["delivery_pending", "completed"]) for (const kind of ["nul
   expect(await response.json()).toMatchObject({ reason: "RESULT_STORAGE_UNAVAILABLE", retryable: true });
   expect(refund).not.toHaveBeenCalled(); expect(usage).not.toHaveBeenCalled();
   expect((await start()).status).toBe(200); expect(provider).toHaveBeenCalledTimes(5);
+});
+it("delivers the finished body when the late pass settlement hits the monthly limit", async () => {
+  const warn = jest.spyOn(console, "warn").mockImplementation(() => {});
+  for (let i = 0; i < 4; i++) expect((await start()).status).toBe(202);
+  consume.mockResolvedValue({ covered: false, reason: "monthly_pass_limit_exceeded" });
+  const response = await start(); expect(response.status).toBe(200);
+  expect(await response.json()).toMatchObject({ consultation: { status: "completed" } });
+  expect(docs[0]).toMatchObject({ status: "completed", llmMeta: { usageSettlement: "failed", usageSettlementReason: "MONTHLY_PASS_LIMIT_EXCEEDED" } });
+  expect(consume).toHaveBeenCalledTimes(1); expect(refund).not.toHaveBeenCalled(); expect(passRefund).not.toHaveBeenCalled(); expect(provider).toHaveBeenCalledTimes(5);
+  expect(warn).toHaveBeenCalledWith("paid_delivery_usage_settlement_failed", expect.objectContaining({ service: "vedic-ai", reason: "MONTHLY_PASS_LIMIT_EXCEEDED" }));
+  warn.mockRestore();
+});
+it("keeps a finished body pending when the late pass settlement hits a transient error", async () => {
+  for (let i = 0; i < 4; i++) expect((await start()).status).toBe(202);
+  consume.mockRejectedValueOnce(new Error("mock pass db down"));
+  const response = await start(); expect(response.status).toBe(503);
+  expect(await response.json()).toMatchObject({ reason: "RESULT_STORAGE_UNAVAILABLE", retryable: true });
+  expect(docs[0].status).toBe("delivery_pending"); expect(refund).not.toHaveBeenCalled(); expect(passRefund).not.toHaveBeenCalled();
+  expect((await start()).status).toBe(200);
+  expect(docs[0].status).toBe("completed"); expect(docs[0].llmMeta.usageSettlement).toBeUndefined(); expect(provider).toHaveBeenCalledTimes(5);
 });
 it("stops after two unusable group attempts", async () => {
   provider.mockImplementation(async () => ({ ok: true, text: "짧은 결과", provider: "gemini" }));

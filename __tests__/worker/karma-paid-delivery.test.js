@@ -8,7 +8,7 @@ jest.unstable_mockModule('../../worker/lib/sync-llm-timeout.js', () => ({ ...tim
 
 const uid = "64b7f2a1c3d4e5f601234567";
 const body = { name: "검사", gender: "female", birthDate: "1993-07-21", birthTime: "09:00", birthPlace: { city: "서울", country: "KR", latitude: 37.5665, longitude: 126.978, timezone: "Asia/Seoul" }, topic: "전체 운명의 업", calendarType: "solar", focusArea: "overall", accessType: "pass" };
-let utils, route, docs, provider, chart, fault, blocked, mode, userId, usage, refund, fetchBlock, lostConfirmation, passRefund;
+let utils, route, docs, provider, chart, fault, blocked, mode, userId, usage, refund, fetchBlock, lostConfirmation, passRefund, consume;
 const clone = value => value == null ? value : structuredClone(value);
 function query(value) { const result = Promise.resolve(value); result.lean = async () => clone(value); result.select = result.sort = () => result; return result; }
 const get = (doc, key) => key.split(".").reduce((value, field) => value?.[field], doc);
@@ -59,7 +59,7 @@ function prose(seed, length) {
 beforeAll(async () => {
   const pass = await import("../../worker/lib/pass-consumption.js");
   jest.unstable_mockModule("../../worker/lib/pass-consumption.js", () => ({ ...pass,
-    consumePassForFeature: async () => ({ covered: true }), refundPassUseEvidence: async (...args) => passRefund(...args) }));
+    consumePassForFeature: (...args) => consume(...args), refundPassUseEvidence: async (...args) => passRefund(...args) }));
   const db = await import("../../worker/lib/db.js");
   const auth = await import("../../worker/lib/auth.js");
   const models = await import("../../worker/lib/models.js");
@@ -86,7 +86,7 @@ beforeAll(async () => {
   ({ handleKarmaDestinyAiRoutes: route, __karmaDestinyAiTestUtils: utils } = await import("../../worker/routes/karma-destiny-ai.js"));
 });
 beforeEach(() => {
-  docs = []; fault = null; lostConfirmation = false; blocked = -1; mode = "pass"; userId = uid; usage = jest.fn(); refund = jest.fn(async () => ({})); passRefund = jest.fn(async () => ({ refunded: true }));
+  docs = []; fault = null; lostConfirmation = false; blocked = -1; mode = "pass"; userId = uid; usage = jest.fn(); refund = jest.fn(async () => ({})); passRefund = jest.fn(async () => ({ refunded: true })); consume = jest.fn(async () => ({ covered: true }));
   provider = jest.fn(async (_env, prompt, options) => {
     expect(options.timeoutMs).toBe(45000); expect(options.fallbackToWorkersAI).toBe(false);
     const id = options.cache.keyExtra.match(/chapter-(chapter-\d+)/)[1];
@@ -124,6 +124,20 @@ for(const store of [0,1,2,3]) it(`revoked store ${store} blocks resume before pr
 it("short valid output is delivered on the last attempt instead of failing",async()=>{await start(); provider.mockImplementation(async(_env,_prompt,options)=>({ok:true,text:JSON.stringify({content:`${options.cache.keyExtra.slice(-10)} 짧은 본문입니다.`})}));for(let i=0;i<12&&docs[0].status!=='completed';i++) expect((await batch()).status).not.toBe(503);expect(docs[0].status).toBe('completed');expect(provider).toHaveBeenCalledTimes(34);expect(refund).not.toHaveBeenCalled();});
 // 본문이 세 번 다 오지 않으면 그때만 실패·미과금으로 끝난다.
 it("a chapter that never returns text fails after three attempts and is never charged",async()=>{await start(); provider.mockImplementation(async()=>({ok:false}));for(let i=0;i<2;i++) expect((await batch()).status).toBe(202);expect((await batch()).status).toBe(503);expect(provider).toHaveBeenCalledTimes(12);expect(usage).not.toHaveBeenCalled();expect(passRefund).toHaveBeenCalledTimes(1);expect(passRefund).toHaveBeenCalledWith(expect.objectContaining({featureKey:"karma-destiny-ai-consultation",requestId:"original-paid-request"}));});
+it("late pass settlement denial still delivers the finished report",async()=>{
+  const warn=jest.spyOn(console,"warn").mockImplementation(()=>{});
+  mode="pass"; await start(); for(let i=0;i<3;i++) await batch(); consume.mockResolvedValue({covered:false,reason:"monthly_pass_limit_exceeded"});
+  expect((await batch()).status).toBe(200);
+  expect(docs[0]).toMatchObject({status:"completed",llmMeta:{usageSettlement:"failed",usageSettlementReason:"MONTHLY_PASS_LIMIT_EXCEEDED"}});
+  expect(refund).not.toHaveBeenCalled(); expect(passRefund).not.toHaveBeenCalled(); expect(provider).toHaveBeenCalledTimes(16);
+  expect(warn).toHaveBeenCalledWith("paid_delivery_usage_settlement_failed",expect.objectContaining({service:"karma-destiny-ai",reason:"MONTHLY_PASS_LIMIT_EXCEEDED"}));
+  warn.mockRestore();
+});
+it("late pass settlement transient error leaves delivery_pending",async()=>{
+  mode="pass"; await start(); for(let i=0;i<3;i++) await batch(); consume.mockRejectedValueOnce(new Error("mock pass db down"));
+  expect((await batch()).status).toBe(503); expect(docs[0].status).toBe("delivery_pending"); expect(refund).not.toHaveBeenCalled();
+  expect((await batch()).status).toBe(200); expect(docs[0].status).toBe("completed"); expect(docs[0].llmMeta.usageSettlement).toBeUndefined();
+});
 it("apply response loss leaves delivery_pending and retries the same key",async()=>{mode="deferred";await start();for(let i=0;i<3;i++)await batch();usage.mockImplementationOnce(()=>{throw new Error('response lost')});expect((await batch()).status).toBe(503);const calls=provider.mock.calls.length;expect(docs[0].status).toBe('delivery_pending');expect((await batch()).status).toBe(200);expect(provider).toHaveBeenCalledTimes(calls);expect(usage.mock.calls.map(c=>c[0].requestId)).toEqual(['original-paid-request','original-paid-request']);expect(refund).not.toHaveBeenCalled();});
 
 it("server discovery is account-scoped, preserves old completed results, and blocks them after cancellation",async()=>{await start();const id=docs[0].id;let response=await route(new Request('https://mock.test/api/karma-destiny-ai/result'),{});expect(response.status).toBe(202);expect((await response.json()).sessionId).toBe(id);userId='64b7f2a1c3d4e5f601234568';expect((await batch()).status).toBe(404);userId=uid;docs[0].status='completed';docs[0].chapters=[];expect((await route(new Request(`https://mock.test/api/karma-destiny-ai/result?sessionId=${id}`),{})).status).toBe(200);blocked=0;expect((await route(new Request(`https://mock.test/api/karma-destiny-ai/result?sessionId=${id}`),{})).status).toBe(403);});

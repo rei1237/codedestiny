@@ -16,6 +16,7 @@ import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
 import { normalizeConsultAccessType, resolveCanonicalEntitlement, resolveFeatureAccessPolicy } from "../lib/entitlement-policy.js";
 import { consumePassForFeature, passDenialCode, refundPassUseEvidence } from "../lib/pass-consumption.js";
+import { lateUsageSettlementFailure, usageSettlementSetFields } from "../lib/late-usage-settlement.js";
 import { callGeminiText } from "../lib/gemini.js";
 import { getAmbientAiLocale, runWithAiLocale, storedAiLocale } from "../lib/ai-locale-context.js";
 import { toAiLocale } from "../../lib/i18n/ai-locale.js";
@@ -1578,10 +1579,16 @@ async function saveLoveSecretCheckpoint(userId, id, delivery) {
 
 async function confirmLoveSecretDelivery(userId, pending) {
   try {
-    await applyUsageOnce({ userId, sessionId: pending.id });
+    // 늦은 이용권 차감이 한도·자격 사유로 거절돼도 만든 결과는 전달한다. 일시 장애는 delivery_pending 으로 재시도시킨다.
+    let usageSettlement = null;
+    try { await applyUsageOnce({ userId, sessionId: pending.id }); }
+    catch (error) {
+      usageSettlement = lateUsageSettlementFailure(error, { service: "love-secret-ai", sessionId: pending.id, accessType: pending.accessType });
+      if (!usageSettlement) throw error;
+    }
     const saved = await LoveSecretAiConsultation.findOneAndUpdate(
       { id: pending.id, userId: clean(userId), status: "delivery_pending", "llmMeta.delivery.lease": pending.llmMeta?.delivery?.lease },
-      { $set: { status: "completed" } }, { new: true },
+      { $set: { status: "completed", ...usageSettlementSetFields(usageSettlement) } }, { new: true },
     ).lean();
     if (!saved) throw resultStorageUnavailable(pending.id);
     const confirmed = await LoveSecretAiConsultation.findOne({ id: pending.id, userId: clean(userId) }).lean();

@@ -37,6 +37,7 @@ function fixture(accessType = 'pass') {
     // 증빙 claim 은 billing-evidence-claim.test.js 가 따로 검증한다 — 여기서는 통과로 둔다.
     claimRequestBillingEvidence: async () => ({ ok: true, skipped: true }), releaseRequestBillingEvidence: async () => ({ released: 0 }), evidenceClaimErrorBody: result => result, FEATURE_KEY: 'love-secret-ai-consultation',
     console: { warn() {}, error() {} }, nativeTossContext:()=>null, nativeLoveSecretStoredState:async()=>null,
+    normalizeConsultAccessType: value => value, PASS_SETTLEMENT_DENIAL_CODES: new Set(['MONTHLY_PASS_LIMIT_EXCEEDED', 'PAYMENT_REQUIRED', 'PRICE_EXCEEDS_PASS_LIMIT']),
     fetch: async () => { throw new Error('EXTERNAL_FETCH_BLOCKED'); },
     clean: (v, max = 100000) => String(v || '').trim().slice(0, max), objectOf: v => v || {}, randomToken: () => 'fixture',
     readJson: request => request.json(), json: (body, init) => new Response(JSON.stringify(body), init),
@@ -55,6 +56,7 @@ function fixture(accessType = 'pass') {
     applyUsageOnce: async () => {
       assert.equal(doc.status, 'delivery_pending');
       if (fault === 'usage') { fault = null; throw new Error('USAGE_UNAVAILABLE'); }
+      if (fault === 'usage-limit') { fault = null; throw Object.assign(new Error('limit'), { code: 'MONTHLY_PASS_LIMIT_EXCEEDED' }); }
       if (!doc.usageAppliedAt) { usage++; doc.usageAppliedAt = new Date().toISOString(); }
     },
     LoveSecretAiConsultation: {
@@ -81,6 +83,7 @@ function fixture(accessType = 'pass') {
   });
   load(ctx, 'worker/lib/representative-consumer-facts.js', ['pinRepresentativeFacts', 'readRepresentativeFacts']);
   load(ctx, 'worker/lib/result-storage.js', ['resultStorageUnavailable', 'resultStorageFailurePayload']);
+  load(ctx, 'worker/lib/late-usage-settlement.js', ['lateUsageSettlementFailure', 'usageSettlementSetFields']);
   load(ctx, 'worker/routes/love-secret-ai.js', ['handleStart', 'saveLoveSecretCheckpoint', 'confirmLoveSecretDelivery']);
   const post = (body = {}, env = {}) => ctx.handleStart(new Request('https://mock.test/api/love-secret-ai/generate', {
     method: 'POST', headers: { 'Content-Type': 'application/json', 'idempotency-key': 'original-paid-request' }, body: JSON.stringify(body),
@@ -137,6 +140,15 @@ test('이용 확정 실패는 완료로 표시하지 않고 저장한 여섯 묶
   assert.equal((await f.post()).status, 503);
   assert.equal(f.doc.status, 'delivery_pending'); assert.equal(f.usage, 0); assert.equal(f.calls, 6);
   assert.equal((await f.post()).status, 200); assert.equal(f.usage, 1); assert.equal(f.calls, 6);
+});
+test('늦은 이용권 차감이 한도로 거절돼도 저장한 여섯 묶음을 완료로 전달하고 미차감을 표시한다', async () => {
+  const f = fixture();
+  for (let index = 0; index < 5; index++) await f.post();
+  f.fault('usage-limit');
+  assert.equal((await f.post()).status, 200);
+  assert.equal(f.doc.status, 'completed'); assert.equal(f.doc.llmMeta.usageSettlement, 'failed');
+  assert.equal(f.doc.llmMeta.usageSettlementReason, 'MONTHLY_PASS_LIMIT_EXCEEDED');
+  assert.equal(f.usage, 0); assert.equal(f.calls, 6); assert.equal(f.refunds, 0);
 });
 test('체크포인트 저장 실패는 LLM 호출 전에 중단하며 환불로 흐르지 않는다', async () => {
   const f = fixture(); f.fault('checkpoint');

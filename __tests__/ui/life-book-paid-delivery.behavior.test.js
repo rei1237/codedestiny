@@ -37,7 +37,7 @@ function load(ctx, file, names) {
 }
 
 function fixture(accessType = 'pass', env = {}) {
-  let doc = null, calls = [], fault = null, owner = 'owner', permitted = true, applyLost = false, charges = 0, refunds = 0;
+  let doc = null, calls = [], fault = null, owner = 'owner', permitted = true, applyLost = false, applyDenied = false, charges = 0, refunds = 0;
   let tick = 0;
   const chain = value => ({ lean: async () => clone(value), select: () => chain(value), sort: () => chain(value) });
   const model = {
@@ -84,10 +84,12 @@ function fixture(accessType = 'pass', env = {}) {
     applyUsageOnce: async ({ idempotencyKey }) => {
       assert.equal(doc.status, 'delivery_pending'); assert.equal(idempotencyKey, 'original-paid-request');
       assert.equal(Object.keys(doc.llmMeta.sections).length, 15);
+      if (applyDenied) { applyDenied = false; throw Object.assign(new Error('limit'), { code: 'MONTHLY_PASS_LIMIT_EXCEEDED' }); }
       if (!doc.usageAppliedAt) { charges++; doc.usageAppliedAt = 'applied'; }
       if (applyLost) { applyLost = false; throw new Error('lost apply reply'); }
     },
     nativeTossContext: () => null, bindNativeTossRequest: () => {},
+    normalizeConsultAccessType: value => value, PASS_SETTLEMENT_DENIAL_CODES: new Set(['MONTHLY_PASS_LIMIT_EXCEEDED', 'PAYMENT_REQUIRED', 'PRICE_EXCEEDS_PASS_LIMIT']), console: { warn() {}, error() {}, log() {} },
     nativeLifeBookStoredState: async () => clone(doc),
     LifeBookAiConsultation: model,
     buildSectionPlan: () => plan, buildSectionDigest: () => '', buildSectionPrompt: () => 'mock', pickSajuSlice: v => v,
@@ -104,12 +106,13 @@ function fixture(accessType = 'pass', env = {}) {
     reportTotalContentChars: () => 25000, extractTitle: () => 'mock report', extractKeywords: () => [],
   });
   load(ctx, 'worker/lib/result-storage.js', ['resultStorageUnavailable', 'resultStorageFailurePayload']);
+  load(ctx, 'worker/lib/late-usage-settlement.js', ['lateUsageSettlementFailure', 'usageSettlementSetFields']);
   load(ctx, 'worker/routes/life-book-ai.js', ['handleStart', 'runWithConcurrency', 'reserveProviderCallOnce', 'releaseSectionLock', 'saveLifeBookState', 'finishLifeBookDelivery', 'lifeBookLengthOptions', 'isLifeBookLengthOnlyIssue', 'lifeBookLengthBoostTarget', 'generationWaveCap', 'buildPriorHalfExcerpt', 'lifeBookV3HasChapterBody', 'lifeBookV3DeliverableSections', 'dropPriorHalfRepeats']);
   const post = (body = {}) => ctx.handleStart(new Request('https://mock.test/api/life-book-ai/generate', {
     method: 'POST', headers: { 'Content-Type': 'application/json', 'idempotency-key': 'original-paid-request' }, body: JSON.stringify(body),
   }), env);
   return { ctx, post, get doc() { return doc; }, get calls() { return calls; }, get charges() { return charges; }, get refunds() { return refunds; },
-    fault: value => { fault = value; }, permitted: value => { permitted = value; }, owner: value => { owner = value; }, loseApply: () => { applyLost = true; } };
+    fault: value => { fault = value; }, permitted: value => { permitted = value; }, owner: value => { owner = value; }, loseApply: () => { applyLost = true; }, denyApply: () => { applyDenied = true; } };
 }
 
 for (const accessType of ['pass', 'subscription', 'paid']) test(`${accessType}: approved authority survives concurrent start, payment return, OFF resume and completed reread`, async () => {
@@ -287,6 +290,12 @@ test('차감 응답 유실은 저장된 본문을 유지하고 같은 멱등키�
   const f = fixture(); for (let i = 0; i < 3; i++) await f.post(); f.loseApply();
   assert.equal((await f.post()).status, 503); assert.equal(f.doc.status, 'delivery_pending');
   assert.equal((await f.post()).status, 200); assert.equal(f.charges, 1); assert.equal(f.calls.length, 15); assert.equal(f.refunds, 0);
+});
+test('늦은 이용권 차감이 한도로 거절돼도 저장된 본문을 완료로 전달하고 미차감을 표시한다', async () => {
+  const f = fixture(); for (let i = 0; i < 3; i++) await f.post(); f.denyApply();
+  assert.equal((await f.post()).status, 200); assert.equal(f.doc.status, 'completed');
+  assert.equal(f.doc.llmMeta.usageSettlement, 'failed'); assert.equal(f.doc.llmMeta.usageSettlementReason, 'MONTHLY_PASS_LIMIT_EXCEEDED');
+  assert.equal(f.charges, 0); assert.equal(f.calls.length, 15); assert.equal(f.refunds, 0);
 });
 test('체크포인트 저장 null은 실패 환불 없이 503, 성공한 다른 섹션은 보존한다', async () => {
   const f = fixture(); f.fault('checkpoint');

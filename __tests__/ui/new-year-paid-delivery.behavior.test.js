@@ -52,7 +52,8 @@ function fixture(accessType = 'pass', currentSections = null) {
     updateOne: async (filter, update) => { if (doc && matches(doc, filter)) for (const [key, value] of Object.entries(update.$set || {})) set(doc, key, value); },
   };
   const plan = currentSections || ['overview', 'wealth', 'romance', 'monthly', 'health'].map(key => ({ key, label: key, minChars: 4000, maxChars: 5000 }));
-  const ctx = vm.createContext({ ...require('../../worker/lib/consultation-answer-contract.js'), nativeTossContext: () => null, nativeNewYearStoredState: async () => clone(doc), sajuAuthorityOn: () => false, runWithAiLocale, getAmbientAiLocale, storedAiLocale, toAiLocale, URL, Request, Response, Headers, Date, JSON, Map, crypto: webcrypto, console: { error() {} },
+  const ctx = vm.createContext({ ...require('../../worker/lib/consultation-answer-contract.js'), nativeTossContext: () => null, nativeNewYearStoredState: async () => clone(doc), sajuAuthorityOn: () => false, runWithAiLocale, getAmbientAiLocale, storedAiLocale, toAiLocale, URL, Request, Response, Headers, Date, JSON, Map, crypto: webcrypto, console: { error() {}, warn() {} }, normalizeConsultAccessType: value => value,
+    PASS_SETTLEMENT_DENIAL_CODES: new Set(['MONTHLY_PASS_LIMIT_EXCEEDED', 'PAYMENT_REQUIRED', 'PRICE_EXCEEDS_PASS_LIMIT']),
     // 증빙 claim 은 billing-evidence-claim.test.js 가 따로 검증한다 — 여기서는 통과로 둔다.
     claimRequestBillingEvidence: async () => ({ ok: true, skipped: true }), releaseRequestBillingEvidence: async () => ({ released: 0 }), evidenceClaimErrorBody: result => result, FEATURE_KEY: 'new-year-ai-consultation',
     reserveSupportRecoveryAttempt: async () => {},
@@ -96,6 +97,7 @@ function fixture(accessType = 'pass', currentSections = null) {
   });
   load(ctx, 'worker/lib/representative-consumer-facts.js', ['connectNewYearTiming', 'readRepresentativeFacts']);
   load(ctx, 'worker/lib/result-storage.js', ['resultStorageUnavailable', 'resultStorageFailurePayload']);
+  load(ctx, 'worker/lib/late-usage-settlement.js', ['lateUsageSettlementFailure', 'usageSettlementSetFields']);
   load(ctx, 'worker/lib/paid-report-quality.js', ['paidReportBody', 'countPaidReportBodyChars', 'reportSentenceKey', 'hasRepeatedReportPassage']);
   load(ctx, 'worker/lib/master-love-codex-quality.js', ['dedupeCodexBody']);
   load(ctx, 'worker/lib/paid-report-length.js', ['trimPaidReportText', 'lastSentenceBoundary']);
@@ -229,6 +231,21 @@ test('apply 응답 유실 후 원래 요청과 보존된 본문으로 완료한�
   const f = fixture(); for (let i = 0; i < 4; i++) await f.post(); f.loseApply();
   const response = await f.post(); assert.equal(response.status, 503); assert.equal((await response.json()).reason, 'RESULT_DELIVERY_PENDING');
   assert.equal((await f.post()).status, 200); assert.equal(f.charges, 1); assert.equal(f.calls, 5); assert.equal(f.refunds, 0);
+});
+test('늦은 이용권 차감이 한도로 거절돼도 보존된 본문을 완료로 전달하고 미차감을 표시한다', async () => {
+  const f = fixture('pass'); let applied = 0;
+  f.ctx.resolveStartAccess = async () => ({ ok: true, accessType: 'pass', paymentId: '', usageAlreadyApplied: false });
+  f.ctx.applyUsageOnce = async () => {
+    applied++;
+    throw applied === 1 ? new Error('db timeout') : Object.assign(new Error('limit'), { code: 'MONTHLY_PASS_LIMIT_EXCEEDED' });
+  };
+  for (let i = 0; i < 4; i++) assert.equal((await f.post()).status, 202);
+  const pending = await f.post(); assert.equal(pending.status, 503); assert.equal((await pending.json()).reason, 'RESULT_DELIVERY_PENDING');
+  assert.equal(f.doc.status, 'delivery_pending');
+  const response = await f.post(); assert.equal(response.status, 200, await response.text());
+  assert.equal(f.doc.status, 'completed'); assert.equal(f.doc.llmMeta.usageSettlement, 'failed');
+  assert.equal(f.doc.llmMeta.usageSettlementReason, 'MONTHLY_PASS_LIMIT_EXCEEDED');
+  assert.equal(applied, 2); assert.equal(f.charges, 0); assert.equal(f.calls, 5); assert.equal(f.refunds, 0);
 });
 test('분야 저장이 실패해도 이전 분야를 지우거나 환불하지 않는다', async () => {
   const f = fixture(); await f.post(); f.fault('checkpoint'); assert.equal((await f.post()).status, 503);

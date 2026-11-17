@@ -24,6 +24,7 @@ import {
 import { findMoonstoneSpendEvidence } from "../lib/moonstone-spend-proof.js";
 import { resolveCanonicalEntitlement } from "../lib/entitlement-policy.js";
 import { consumePassForFeature, hasConsumedPassFeature, passDenialCode, refundPassUseEvidence } from "../lib/pass-consumption.js";
+import { lateUsageSettlementFailure } from "../lib/late-usage-settlement.js";
 import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
 import { canAccessPaidFeature, PAID_FEATURE_ACCESS_USER_PROJECTION } from "../lib/paid-feature-access.js";
@@ -1912,9 +1913,14 @@ async function handleStart(request, env, _routeContext = null, recoveryAuth = nu
     // 결과 저장 장애는 생성 실패 환불 대상이 아니다. 원래 결제 증빙은 완료 직전 다시 확인한다.
     const fresh = await resolveStartAccess({ request, env, auth, body, normalized, pricing, idempotencyKey });
     if (!fresh.ok) return json({ ok: false, reason: "PAYMENT_VERIFY_FAILED" }, { status: 402 });
+    // 늦은 이용권 차감이 한도·자격 사유로 거절돼도 만든 결과는 전달한다. 일시 장애는 delivery_pending 으로 재시도시킨다.
+    let usageSettlement = null;
     try { if(!nativeTossContext(request)) await applyUsageOnce({ userId: auth.userId, sessionId, accessType: fresh.accessType, pricing, source: fresh.source }); }
-    catch { throw resultStorageUnavailable(sessionId); }
-    doc = await saveAstrologyDelivery(locked, { status: "completed", generationLease: "" }, sessionId);
+    catch (settleError) {
+      usageSettlement = lateUsageSettlementFailure(settleError, { service: "astrology-ai", sessionId, accessType: fresh.accessType });
+      if (!usageSettlement) throw resultStorageUnavailable(sessionId);
+    }
+    doc = await saveAstrologyDelivery(locked, { status: "completed", generationLease: "", ...(usageSettlement ? { llmMeta: { ...doc.llmMeta, ...usageSettlement } } : {}) }, sessionId);
     if(!nativeTossContext(request)) await recordSuccessfulUsage(auth, idempotencyKey, fresh, sessionId, pricing).catch(error => console.warn("[astrology-ai] usage bookkeeping failed", { code: error?.code }));
     if(!nativeTossContext(request)) await completeRefundableExecution(env, auth, idempotencyKey, sessionId);
     return json(publicSession(doc));

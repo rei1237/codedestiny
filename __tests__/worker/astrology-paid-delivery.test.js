@@ -8,7 +8,7 @@ jest.unstable_mockModule('../../worker/lib/sync-llm-timeout.js', () => ({ ...tim
 
 const uid = "64b7f2a1c3d4e5f601234567";
 const body = { name: "검사", gender: "female", birthDate: "1993-07-21", birthTime: "09:00", birthPlace: { city: "서울", country: "KR", latitude: 37.5665, longitude: 126.978, timezone: "Asia/Seoul" }, topic: "전체 차트 해석" };
-let route, docs, provider, chart, fault, blocked, mode, userId, usage, refund, fetchBlock, lostConfirmation, passReceipt, passRefund;
+let route, docs, provider, chart, fault, blocked, mode, userId, usage, refund, fetchBlock, lostConfirmation, passReceipt, passRefund, consume;
 const clone = value => value == null ? value : structuredClone(value);
 function query(value) { const result = Promise.resolve(value); result.lean = async () => clone(value); result.select = result.sort = () => result; return result; }
 function matches(doc, filter) {
@@ -55,7 +55,7 @@ function prose(seed, length = 3650) {
 beforeAll(async () => {
   const pass = await import("../../worker/lib/pass-consumption.js");
   jest.unstable_mockModule("../../worker/lib/pass-consumption.js", () => ({ ...pass,
-    consumePassForFeature: async () => ({ covered: true }), hasConsumedPassFeature: async () => passReceipt,
+    consumePassForFeature: (...args) => consume(...args), hasConsumedPassFeature: async () => passReceipt,
     refundPassUseEvidence: async (...args) => passRefund(...args) }));
   const db = await import("../../worker/lib/db.js");
   const auth = await import("../../worker/lib/auth.js");
@@ -82,7 +82,7 @@ beforeAll(async () => {
   ({ handleAstrologyAiRoutes: route } = await import("../../worker/routes/astrology-ai.js"));
 });
 beforeEach(() => {
-  docs = []; fault = null; lostConfirmation = false; blocked = -1; mode = "pass"; userId = uid; usage = jest.fn(); refund = jest.fn(async () => ({})); passReceipt = false; passRefund = jest.fn(async () => ({ refunded: true }));
+  docs = []; fault = null; lostConfirmation = false; blocked = -1; mode = "pass"; userId = uid; usage = jest.fn(); refund = jest.fn(async () => ({})); passReceipt = false; passRefund = jest.fn(async () => ({ refunded: true })); consume = jest.fn(async () => ({ covered: true }));
   let count = 0;
   provider = jest.fn(async (_env, _prompt, options) => {
     expect(options.attempts).toBe(1); expect(options.timeoutMs).toBeLessThanOrEqual(45000);
@@ -161,6 +161,20 @@ it("serializes concurrent requests with the stored lease", async () => {
 it("returns a saved result when usage bookkeeping fails", async () => {
   await start(); await start(); usage.mockImplementation(() => { throw new Error("bookkeeping unavailable"); });
   expect((await start()).status).toBe(200); expect(docs[0].status).toBe("completed"); expect(refund).not.toHaveBeenCalled();
+});
+it("delivers the finished body when the late pass settlement exceeds the pass price limit", async () => {
+  const warn = jest.spyOn(console, "warn").mockImplementation(() => {});
+  await start(); await start(); consume.mockResolvedValue({ covered: false, reason: "price_exceeds_pass_limit" });
+  expect((await start()).status).toBe(200);
+  expect(docs[0]).toMatchObject({ status: "completed", llmMeta: { usageSettlement: "failed", usageSettlementReason: "PRICE_EXCEEDS_PASS_LIMIT" } });
+  expect(refund).not.toHaveBeenCalled(); expect(passRefund).not.toHaveBeenCalled(); expect(provider).toHaveBeenCalledTimes(6);
+  expect(warn).toHaveBeenCalledWith("paid_delivery_usage_settlement_failed", expect.objectContaining({ service: "astrology-ai", reason: "PRICE_EXCEEDS_PASS_LIMIT" }));
+  warn.mockRestore();
+});
+it("keeps a finished body pending when the late pass settlement hits a transient error", async () => {
+  await start(); await start(); consume.mockRejectedValueOnce(new Error("mock pass db down"));
+  expect((await start()).status).toBe(503); expect(docs[0].status).toBe("delivery_pending"); expect(refund).not.toHaveBeenCalled();
+  expect((await start()).status).toBe(200); expect(docs[0].status).toBe("completed"); expect(docs[0].llmMeta.usageSettlement).toBeUndefined();
 });
 it("discovers the owned pending result after a new login", async () => {
   const payload = await (await start()).json();

@@ -20,6 +20,7 @@ import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
 import { normalizeConsultAccessType, resolveCanonicalEntitlement, resolveFeatureAccessPolicy } from "../lib/entitlement-policy.js";
 import { consumePassForFeature, passDenialCode } from "../lib/pass-consumption.js";
+import { lateUsageSettlementFailure, usageSettlementSetFields } from "../lib/late-usage-settlement.js";
 import { canAccessPaidFeature, PAID_FEATURE_ACCESS_USER_PROJECTION } from "../lib/paid-feature-access.js";
 import { callGeminiText } from "../lib/gemini.js";
 import { appendExpertPersona, expertPersonaText } from "../lib/expert-character-personas.js";
@@ -2648,13 +2649,16 @@ async function saveLifeBookState({ userId, id, lockToken, status = "generating",
 }
 
 async function finishLifeBookDelivery({ request, env, auth, access, pending, pricing, orderName }) {
+  // 늦은 이용권 차감이 한도·자격 사유로 거절돼도 만든 결과는 전달한다. 일시 장애는 delivery_pending 으로 재시도시킨다.
+  let usageSettlement = null;
   try {
     await applyUsageOnce({ request, env, auth, userId: auth.userId, sessionId: pending.id, access, idempotencyKey: pending.idempotencyKey, pricing, orderName });
   } catch (cause) {
-    throw Object.assign(new Error("이용 처리 확인 중입니다. 같은 상담에서 다시 시도해 주세요."), { code: "RESULT_DELIVERY_PENDING", status: 503, resultId: pending.id, cause });
+    usageSettlement = lateUsageSettlementFailure(cause, { service: "life-book-ai", sessionId: pending.id, accessType: access?.accessType });
+    if (!usageSettlement) throw Object.assign(new Error("이용 처리 확인 중입니다. 같은 상담에서 다시 시도해 주세요."), { code: "RESULT_DELIVERY_PENDING", status: 503, resultId: pending.id, cause });
   }
   return saveLifeBookState({ userId: auth.userId, id: pending.id, lockToken: pending.llmMeta?.lockToken || "", status: "delivery_pending", values: {
-    status: "completed", ...(pending.llmMeta?.supportRecovery ? { "llmMeta.supportRecovery.active": false, "llmMeta.supportRecovery.finishedAt": new Date().toISOString() } : {}),
+    status: "completed", ...usageSettlementSetFields(usageSettlement), ...(pending.llmMeta?.supportRecovery ? { "llmMeta.supportRecovery.active": false, "llmMeta.supportRecovery.finishedAt": new Date().toISOString() } : {}),
   } });
 }
 

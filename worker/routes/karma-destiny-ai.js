@@ -20,6 +20,7 @@ import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
 import { normalizeConsultAccessType, resolveCanonicalEntitlement, resolveFeatureAccessPolicy } from "../lib/entitlement-policy.js";
 import { consumePassForFeature, passDenialCode, refundPassUseEvidence } from "../lib/pass-consumption.js";
+import { lateUsageSettlementFailure } from "../lib/late-usage-settlement.js";
 import { callGeminiText } from "../lib/gemini.js";
 import { deliverExpertFollowUp, recoverSavedExpertFollowUps, expertFollowUpNarrativeAdapter } from '../lib/expert-follow-up-delivery.js';
 import { compactFollowupMessages } from '../lib/followup-context.js';
@@ -2454,7 +2455,13 @@ async function applyUsageAfterSuccessfulGeneration({ request, env, auth, consult
       sessionId: consultation.id,
     });
   } else if (!billingState.usageAlreadyApplied && consultation.accessType === "pass") {
-    await applyUsageOnce({ userId: auth.userId, sessionId: consultation.id, accessType: consultation.accessType, pricing });
+    // 늦은 이용권 차감이 한도·자격 사유로 거절돼도 만든 결과는 전달한다(미차감 표시를 돌려준다). 일시 장애는 그대로 던진다.
+    try { await applyUsageOnce({ userId: auth.userId, sessionId: consultation.id, accessType: consultation.accessType, pricing }); }
+    catch (error) {
+      const settlement = lateUsageSettlementFailure(error, { service: "karma-destiny-ai", sessionId: consultation.id, accessType: consultation.accessType });
+      if (!settlement) throw error;
+      return settlement;
+    }
   } else if (!billingState.usageAlreadyApplied && isMonthlyCreditAccess(consultation.accessType)) {
     const gateError = new Error("monthly credit must be confirmed by common billing gate");
     gateError.code = "MONTHLY_CREDIT_GATE_REQUIRED";
@@ -3114,9 +3121,9 @@ async function handleGenerateBatch(request, env, recoveryAuth = null) {
       consultation = await saveKarmaDelivery(filter, { status: "delivery_pending", chapters, ...(after.salvaged ? { llmMeta: { ...consultation.llmMeta, attempts: finalAttempts } } : {}), qualityCheck: finalQuality, totalCharCount: finalQuality.totalCharCount, finalLetter: clean(chapters.find(row => row.id === FINAL_LETTER_CHAPTER_ID)?.content, 14000), messages: [{ role: "user", content: consultation.userQuestion || consultation.topic, createdAt }, { role: "assistant", content: formatChaptersAsConsultationText(chapters), createdAt }] }, consultation.id);
     }
     if (!(await checkAccess()).ok) return paymentVerifyFailed();
-    await applyUsageAfterSuccessfulGeneration({ request, env, auth, consultation, pricing });
+    const usageSettlement = await applyUsageAfterSuccessfulGeneration({ request, env, auth, consultation, pricing });
     const now = new Date();
-    consultation = await saveKarmaDelivery(filter, { status: "completed", generatedAt: now, usageAppliedAt: consultation.usageAppliedAt || now, generationProgress: buildGenerationProgress(consultation, { status: "completed", lockToken: "", lockedAt: null, percent: 100 }), generationError: null }, consultation.id);
+    consultation = await saveKarmaDelivery(filter, { status: "completed", generatedAt: now, usageAppliedAt: consultation.usageAppliedAt || now, ...(usageSettlement ? { llmMeta: { ...consultation.llmMeta, ...usageSettlement } } : {}), generationProgress: buildGenerationProgress(consultation, { status: "completed", lockToken: "", lockedAt: null, percent: 100 }), generationError: null }, consultation.id);
     return json(publicSession(consultation));
   } catch (error) {
     if (nativeTossContext(request) && error?.status) throw error;

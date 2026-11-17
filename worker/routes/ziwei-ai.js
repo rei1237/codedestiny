@@ -28,6 +28,7 @@ import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
 import { claimRequestBillingEvidence, evidenceClaimErrorBody, releaseRequestBillingEvidence } from "../lib/billing-evidence-claim.js";
 import { isAllowedConsultTokenAccessType, normalizeConsultAccessType, resolveCanonicalEntitlement, resolveFeatureAccessPolicy } from "../lib/entitlement-policy.js";
 import { consumePassForFeature, passDenialCode, refundPassUseEvidence } from "../lib/pass-consumption.js";
+import { lateUsageSettlementFailure } from "../lib/late-usage-settlement.js";
 import { getPortOnePublicConfig } from "../lib/portone.js";
 import { verifyPgPayment } from "../payments/pg.js";
 import { callGeminiText } from "../lib/gemini.js";
@@ -2840,8 +2841,13 @@ async function handleStart(request, env, route = "/api/ziwei-ai/generate", recov
     }
     const fresh = await resolveZiweiRequestAccess({ request, env, auth, body: doc.llmMeta.resumeBody, normalized, pricing, idempotencyKey });
     if (!fresh.ok) return paymentVerifyFailed();
-    if (!nativeTossContext(request)) await applyUsageOnce({ userId: auth.userId, sessionId, accessType: access.accessType, paymentId: access.paymentId || "", pricing, prepaid: access.prepaid === true, requestId: idempotencyKey });
-    doc = await saveZiweiDelivery(locked, { status: "completed", generationLease: "", generationError: null }, sessionId);
+    // 늦은 이용권 차감이 한도·자격 사유로 거절돼도 만든 결과는 전달한다. 일시 장애는 그대로 던져 재시도시킨다.
+    let usageSettlement = null;
+    if (!nativeTossContext(request)) await applyUsageOnce({ userId: auth.userId, sessionId, accessType: access.accessType, paymentId: access.paymentId || "", pricing, prepaid: access.prepaid === true, requestId: idempotencyKey }).catch(settleError => {
+      usageSettlement = lateUsageSettlementFailure(settleError, { service: "ziwei-ai", sessionId, accessType: access.accessType });
+      if (!usageSettlement) throw settleError;
+    });
+    doc = await saveZiweiDelivery(locked, { status: "completed", generationLease: "", generationError: null, ...(usageSettlement ? { llmMeta: { ...doc.llmMeta, ...usageSettlement } } : {}) }, sessionId);
     if (!nativeTossContext(request) && access.accessType === "paid" && access.paymentId) await Payment.updateOne({ userId: auth.userId, featureKey: FEATURE_KEY, merchantUid: access.paymentId, status: { $in: ["paid", "success", "fulfilled"] } }, { $set: { status: "fulfilled", sessionId, reportId: sessionId, orderState: "UNLOCKED" } }).catch(() => {});
     return json(publicConsultation(doc));
   } catch (error) {

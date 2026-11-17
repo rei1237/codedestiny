@@ -41,6 +41,7 @@ import { countPaidReportBodyChars, hasRepeatedReportPassage } from "../lib/paid-
 import { findMoonstoneSpendEvidence } from "../lib/moonstone-spend-proof.js";
 import { resolveCanonicalEntitlement } from "../lib/entitlement-policy.js";
 import { consumePassForFeature, hasConsumedPassFeature, passDenialCode, refundPassUseEvidence } from "../lib/pass-consumption.js";
+import { lateUsageSettlementFailure } from "../lib/late-usage-settlement.js";
 import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
 import { canAccessPaidFeature, PAID_FEATURE_ACCESS_USER_PROJECTION } from "../lib/paid-feature-access.js";
@@ -992,9 +993,14 @@ async function advanceGeneration({ request, env, auth, sessionId, idempotencyKey
       access = await resolveStartAccess({ request, env, auth, body: session.llmMeta?.resumeBody || { paymentId: session.paymentId }, normalized: { inputHash: session.inputHash }, pricing, idempotencyKey });
     } catch { throw resultStorageUnavailable(sessionId); }
     if (!access.ok) return json({ ok: false, reason: "PAYMENT_VERIFY_FAILED" }, { status: 402 });
+    // 늦은 이용권 차감이 한도·자격 사유로 거절돼도 만든 결과는 전달한다. 일시 장애는 delivery_pending 으로 재시도시킨다.
+    let usageSettlement = null;
     try { if(!nativeTossContext(request))await applyUsageOnce({ userId: auth.userId, sessionId, accessType: access.accessType, pricing, source: access.source }); }
-    catch { throw resultStorageUnavailable(sessionId); }
-    session = await saveNakshatraDelivery(filter, { status: "completed", generationError: null,
+    catch (settleError) {
+      usageSettlement = lateUsageSettlementFailure(settleError, { service: "nakshatra-ai", sessionId, accessType: access.accessType });
+      if (!usageSettlement) throw resultStorageUnavailable(sessionId);
+    }
+    session = await saveNakshatraDelivery(filter, { status: "completed", generationError: null, ...(usageSettlement ? { llmMeta: { ...session.llmMeta, ...usageSettlement } } : {}),
       generationProgress: { completed: NAKSHATRA_SECTIONS.length, total: NAKSHATRA_SECTIONS.length, phase: "done", lockToken: "", lockedAt: null },
       messages: [{ role: "user", content: session.question || "(자유 상담)", createdAt: new Date() }, { role: "assistant", content: JSON.stringify(completion.decks), createdAt: new Date() }] }, sessionId);
     if(!nativeTossContext(request))await recordSuccessfulUsage(auth, idempotencyKey, access, sessionId, pricing).catch(error => console.warn("[nakshatra-ai] usage record", clean(error?.message, 120)));

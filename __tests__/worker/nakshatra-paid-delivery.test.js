@@ -9,7 +9,7 @@ jest.unstable_mockModule('../../worker/lib/sync-llm-timeout.js', () => ({ ...tim
 
 const uid = "64b7f2a1c3d4e5f601234567";
 const body = { idempotencyKey: "original-paid-request", birthInfo: { year:1993,month:7,day:21,hour:9,minute:0,timezone:9,lat:37.5665,lon:126.978,gender:"female" }, question: "나의 관계와 선택을 자세히 살펴보고 싶어요." };
-let utils, route, docs, provider, chart, fault, blocked, mode, userId, usage, refund, fetchBlock, lostConfirmation, passReceipt, passRefund;
+let utils, route, docs, provider, chart, fault, blocked, mode, userId, usage, refund, fetchBlock, lostConfirmation, passReceipt, passRefund, consume;
 const clone = value => value == null ? value : structuredClone(value);
 function query(value) { const result = Promise.resolve(value); result.lean = async () => clone(value); result.select = result.sort = () => result; return result; }
 const get = (doc, key) => key.split(".").reduce((value, field) => value?.[field], doc);
@@ -68,7 +68,7 @@ let definitions;
 beforeAll(async () => {
   const pass = await import("../../worker/lib/pass-consumption.js");
   jest.unstable_mockModule("../../worker/lib/pass-consumption.js", () => ({ ...pass,
-    consumePassForFeature: async () => ({ covered: true }), hasConsumedPassFeature: async () => passReceipt,
+    consumePassForFeature: (...args) => consume(...args), hasConsumedPassFeature: async () => passReceipt,
     refundPassUseEvidence: async (...args) => passRefund(...args) }));
   const db = await import("../../worker/lib/db.js");
   const auth = await import("../../worker/lib/auth.js");
@@ -94,7 +94,7 @@ beforeAll(async () => {
 });
 
 beforeEach(()=>{
- docs=[];fault=null;lostConfirmation=false;blocked=-1;mode='pass';userId=uid;usage=jest.fn();refund=jest.fn(async()=>({}));passReceipt=false;passRefund=jest.fn(async()=>({refunded:true}));chart=jest.fn(async()=>({planets:{Moon:10}}));
+ docs=[];fault=null;lostConfirmation=false;blocked=-1;mode='pass';userId=uid;usage=jest.fn();refund=jest.fn(async()=>({}));passReceipt=false;passRefund=jest.fn(async()=>({refunded:true}));consume=jest.fn(async()=>({covered:true}));chart=jest.fn(async()=>({planets:{Moon:10}}));
  provider=jest.fn(async(_env,prompt,options)=>{expect(options.timeoutMs).toBe(45000);expect(options.fallbackToWorkersAI).toBe(false);const section=definitions.find(row=>prompt.includes(`[이 장: ${row.title}]`));const identity=docs[0].factSummary.identity;return{ok:true,provider:'gemini',model:'fixture',text:JSON.stringify({keyInsight:section.title,vedicEvidence:identity.nakshatraKo+'의 실제 계산값',sukuyoEvidence:identity.sukuyoKo+'의 실제 계산값',body:prose(section.title.replace(/[?!]/g,""),section.minChars+100)})}});
  fetchBlock=jest.spyOn(globalThis,'fetch').mockImplementation(()=>{throw new Error('External fetch blocked')});
 });
@@ -164,6 +164,20 @@ it.each(AI_OUTPUT_LOCALES)('preserves %s when later batches use another UI langu
 });
 for(const paid of ['pass','monthly','paid'])it(`${paid}: three waves preserve all nine chapters and paid evidence`,async()=>{mode=paid;const first=await start();expect(await first.clone().json()).toMatchObject({ok:true});expect(first.status).toBe(202);expect(docs[0].sections).toHaveLength(4);expect(usage).not.toHaveBeenCalled();expect((await batch()).status).toBe(202);expect(docs[0].sections).toHaveLength(8);expect((await batch()).status).toBe(200);expect(docs[0].totalCharCount).toBeGreaterThanOrEqual(20000);expect(provider).toHaveBeenCalledTimes(9);expect(chart).toHaveBeenCalledTimes(1);expect((await batch()).status).toBe(200);expect(provider).toHaveBeenCalledTimes(9)});
 for(const status of ['delivery_pending','completed'])for(const kind of ['null','throw','confirm'])it(`${status} ${kind} preserves generated chapters without refund`,async()=>{await start();await batch();fault={status,kind};const response=await batch();expect(response.status).toBe(503);expect(await response.json()).toMatchObject({reason:'RESULT_STORAGE_UNAVAILABLE',retryable:true});expect(refund).not.toHaveBeenCalled();const calls=provider.mock.calls.length;expect((await batch()).status).toBe(200);expect(provider).toHaveBeenCalledTimes(calls)});
+it('delivers finished chapters when the late pass settlement hits the monthly limit',async()=>{
+  const warn=jest.spyOn(console,'warn').mockImplementation(()=>{});
+  await start();await batch();consume.mockResolvedValue({covered:false,reason:'monthly_pass_limit_exceeded'});
+  expect((await batch()).status).toBe(200);
+  expect(docs[0]).toMatchObject({status:'completed',llmMeta:{usageSettlement:'failed',usageSettlementReason:'MONTHLY_PASS_LIMIT_EXCEEDED'}});
+  expect(refund).not.toHaveBeenCalled();expect(passRefund).not.toHaveBeenCalled();
+  expect(warn).toHaveBeenCalledWith('paid_delivery_usage_settlement_failed',expect.objectContaining({service:'nakshatra-ai',reason:'MONTHLY_PASS_LIMIT_EXCEEDED'}));
+  warn.mockRestore();
+});
+it('keeps finished chapters pending when the late pass settlement hits a transient error',async()=>{
+  await start();await batch();consume.mockRejectedValueOnce(new Error('mock pass db down'));
+  expect((await batch()).status).toBe(503);expect(docs[0].status).toBe('delivery_pending');expect(refund).not.toHaveBeenCalled();
+  expect((await batch()).status).toBe(200);expect(docs[0].status).toBe('completed');expect(docs[0].llmMeta.usageSettlement).toBeUndefined();
+});
 
 async function read(id = docs[0]?.id) { return route(new Request('https://mock.test/api/nakshatra-ai/result'+(id ? '?attemptId='+id : '')),{}); }
 it('restores partial chapters from the account server record',async()=>{await start();const res=await read('');expect(res.status).toBe(202);expect(await res.json()).toMatchObject({sessionId:docs[0].id,requestId:body.idempotencyKey,progress:{completed:4}})});

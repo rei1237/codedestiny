@@ -3,7 +3,7 @@ import { jest } from "@jest/globals";
 
 const uid = "64b7f2a1c3d4e5f601234567";
 const body = { name: "검사", gender: "female", birthDate: "1993-07-21", birthTime: "09:00", birthPlace: { city: "서울", country: "KR", latitude: 37.5665, longitude: 126.978, timezone: "Asia/Seoul" }, topic: "전체 명반 해석", calendarType: "solar", focusArea: "overall", accessType: "pass" };
-let utils, route, docs, provider, chart, fault, blocked, mode, userId, usage, refund, fetchBlock, lostConfirmation, passRefund;
+let utils, route, docs, provider, chart, fault, blocked, mode, userId, usage, refund, fetchBlock, lostConfirmation, passRefund, consumeResult;
 const clone = value => value == null ? value : structuredClone(value);
 function query(value) { const result = Promise.resolve(value); result.lean = async () => clone(value); result.select = result.sort = () => result; return result; }
 function matches(doc, filter) {
@@ -65,7 +65,7 @@ beforeAll(async () => {
     MonthlyCreditLedger: { findOne: () => query(blocked === 3 ? {} : null), updateOne: (...args) => refund(...args) },
   }));
   jest.unstable_mockModule("../../worker/lib/entitlement-policy.js", () => ({ ...entitlement, resolveFeatureAccessPolicy: () => ({ allowed: mode === "pass", accessType: "pass" }) }));
-  jest.unstable_mockModule("../../worker/lib/pass-consumption.js", () => ({ consumePassForFeature: async (...args) => { usage(...args); return { covered: true }; }, passDenialCode: () => "",
+  jest.unstable_mockModule("../../worker/lib/pass-consumption.js", () => ({ consumePassForFeature: async (...args) => { usage(...args); return consumeResult; }, passDenialCode: () => "",
     refundPassUseEvidence: (...args) => passRefund(...args) }));
   jest.unstable_mockModule("../../worker/lib/portone.js", () => ({ fetchPortOnePayment: () => { throw new Error("PG blocked"); }, getPortOnePublicConfig: () => { throw new Error("PG blocked"); }, getPortOneConfig: () => { throw new Error("PG blocked"); } }));
   jest.unstable_mockModule("../../worker/lib/moonstone-spend-proof.js", () => ({ findMoonstoneSpendEvidence: async () => mode === "monthly" ? { ledgerId: uid } : null }));
@@ -77,7 +77,7 @@ beforeAll(async () => {
   ({ handleZiweiAiRoutes: route, __ziweiAiTestUtils: utils } = await import("../../worker/routes/ziwei-ai.js"));
 });
 beforeEach(() => {
-  docs = []; fault = null; lostConfirmation = false; blocked = -1; mode = "pass"; userId = uid; usage = jest.fn(); refund = jest.fn(async () => ({})); passRefund = jest.fn(async () => ({ refunded: true }));
+  docs = []; fault = null; lostConfirmation = false; blocked = -1; mode = "pass"; userId = uid; usage = jest.fn(); refund = jest.fn(async () => ({})); passRefund = jest.fn(async () => ({ refunded: true })); consumeResult = { covered: true };
   provider = jest.fn(async (_env, _prompt, options) => {
     expect(options.attempts).toBe(1); expect(options.timeoutMs).toBeLessThanOrEqual(45000); expect(options.fallbackToWorkersAI).toBe(false);
     const group = utils.SECTION_GROUP_SPECS.find(group => group.id === options.logContext.sectionGroup);
@@ -135,6 +135,16 @@ it("apply response loss retries the original key without regenerating", async ()
   expect((await start()).status).toBe(503); expect(docs[0].status).toBe("delivery_pending"); const calls = provider.mock.calls.length;
   expect((await start()).status).toBe(200); expect(provider).toHaveBeenCalledTimes(calls);
   expect(usage.mock.calls.map(call => call[0].requestId)).toEqual(["original-paid-request", "original-paid-request"]); expect(refund).not.toHaveBeenCalled();
+});
+it("delivers the finished body when the late pass settlement is denied", async () => {
+  const warn = jest.spyOn(console, "warn").mockImplementation(() => {});
+  for (let i = 0; i < 6; i++) expect((await start()).status).toBe(202);
+  consumeResult = { covered: false, reason: "pass_access_conflict" };
+  expect((await start()).status).toBe(200);
+  expect(docs[0]).toMatchObject({ status: "completed", llmMeta: { usageSettlement: "failed", usageSettlementReason: "PAYMENT_REQUIRED" } });
+  expect(refund).not.toHaveBeenCalled(); expect(passRefund).not.toHaveBeenCalled(); expect(provider).toHaveBeenCalledTimes(7);
+  expect(warn).toHaveBeenCalledWith("paid_delivery_usage_settlement_failed", expect.objectContaining({ service: "ziwei-ai", reason: "PAYMENT_REQUIRED" }));
+  warn.mockRestore();
 });
 
 it("missing optional grounding does not purchase an extra group", async () => {
