@@ -9,6 +9,7 @@ const indexSource = readFileSync(resolve(root, "index.html"), "utf8");
 // 결제 선택창 CSS 규칙 정본(2026-08-21 부터 js/core/checkout-entry.js 의 PAYMENT_CHOICE_CSS_RULES) —
 // pass-store/direct 카드의 CSS 선언 순서 검사는 이 파일을 봐야 한다.
 const checkoutEntrySource = readFileSync(resolve(root, "js/core/checkout-entry.js"), "utf8");
+const paymentMoonlightCss = readFileSync(resolve(root, "styles/payment-moonlight.css"), "utf8");
 const staticIndexSource = readFileSync(resolve(root, "public/static/index.html"), "utf8");
 const homeFunnelCssSource = readFileSync(resolve(root, "styles/home-funnel.css"), "utf8");
 const billingClientSource = readFileSync(resolve(root, "app/_lib/billing-client.ts"), "utf8");
@@ -179,11 +180,11 @@ assertAllBefore(indexSource, "_cdHasVerifiedServerAccess", "sessionStorage.setIt
 assertContains(indexSource, "paymentFailed", "payment failed state");
 assertContains(indexSource, "결제 검증에 실패했습니다.", "main shell payment verification failure message");
 assertContains(indexSource, "honey-fortune-logo-payment-ux-v20260618", "honey fortune logo payment ux marker");
-// 자산이 부팅 게이트와 같은 /icons/app-logo-512.webp 로 통합되면서(#200) 이 단언이 낡았고,
-// 같은 잡의 앞 단계(verify:security-hardening)가 먼저 죽어 있어 실패가 드러나지 않았다.
-// 가드의 의도는 "결제/이용권 대기 오버레이가 브랜드 로고를 쓴다"이므로 현재 정본 경로로 맞춘다.
-assertContains(indexSource, 'background-image: url("/icons/app-logo-512.webp")', "payment/pass overlay uses brand logo asset");
-assertContains(indexSource, "sajuLoaderHoneyLogoFloat", "payment/pass waiting logo float animation");
+// 공통 대기·완료는 공유 명상 영냥이 자산과 비차단 알림 스타일을 사용한다.
+assertContains(indexSource, '/styles/payment-moonlight.css?', 'payment shell loads shared presentation');
+assertContains(paymentMoonlightCss, '/images/brand/yeongnyangi-meditating-v2.webp', 'payment/pass overlay uses meditating character');
+assertContains(paymentMoonlightCss, 'cdCatMeditation', 'shared waiting character breathing animation');
+assertContains(paymentMoonlightCss, 'grid-template-columns:48px minmax(0,1fr)', 'completion remains a compact status card');
 assertContains(indexSource, "HONEY FORTUNE PASS", "pass applied success copy");
 assertContains(indexSource, "HONEY FORTUNE PAID", "payment complete success copy");
 assertContains(indexSource, "saju-payment-copy-front-v20260619", "payment/pass waiting copy front marker");
@@ -230,7 +231,7 @@ assertNotContains(billingClientSource, "BILLING_FETCH_MUTATION_TIMEOUT_MS", "Rea
 // 키가 3종(build-a300cf84f0f5 · build-4b96ba87f36f · 셸 키)으로 갈라져 있었고, destiny-profile.js
 // 를 고쳐도 그 참조들은 엣지 캐시(/*.js max-age 7일)의 옛 파일을 계속 받았다.
 // 지금은 셋을 셸 키로 통일했다. destiny-profile.js 를 고치면 이 값도 함께 올려야 한다.
-assertContains(billingClientSource, 'PAID_SERVICE_RUNTIME_SRC = "/js/destiny-profile.js?v=build-8b359701e46f"', "React paid runtime cache key carries the current profile runtime");
+assertContains(billingClientSource, 'PAID_SERVICE_RUNTIME_SRC = "/js/destiny-profile.js?v=build-9ec778558a7a"', "React paid runtime cache key carries the current profile runtime");
 assertNotContains(billingClientSource, "build-20260622-inicis-phone", "React paid runtime must not load stale Inicis phone runtime");
 assertContains(billingClientSource, "function isMonthlyCreditAccessType", "React billing has monthly-credit access resolver");
 assertContains(billingClientSource, "function resolveAppliedBillingPayment", "React billing resolves applied payment method from server response");

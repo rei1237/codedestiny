@@ -84,12 +84,14 @@
       // 🔴 복귀 단계는 아무것도 자동으로 열지 않으므로 paymentCompleteOverlay("여는 중")를 쓰지 않는다.
       directResumeConfirming: '{method} 결제 결과를 확인하고 열람 권한을 저장하고 있어요.\n중복 결제를 시도하지 말아 주세요.',
       directResumeConfirmingGeneric: '결제 결과를 확인하고 열람 권한을 저장하고 있어요.\n중복 결제를 시도하지 말아 주세요.',
-      directResumePending: '결제는 승인되었고 열람 권한 반영을 기다리고 있어요.\n잠시 후 이 화면을 새로고침하면 다시 확인합니다.',
+      directResumePending: '결제 상태와 열람 권한을 확인하고 있어요.\n확인이 끝나면 상담을 이어갑니다.',
       directResumeComplete: '{method} 결제가 확인되었습니다.\n콘텐츠를 다시 누르면 추가 결제 없이 바로 열립니다.',
       directResumeCompleteGeneric: '결제가 확인되었습니다.\n콘텐츠를 다시 누르면 추가 결제 없이 바로 열립니다.',
       // 자동 재개가 없거나 실패했을 때 남는 지속 카드. 사용자가 누를 때까지 사라지지 않는다 —
       // 4초 안내는 복귀 직후 화면을 보고 있지 않은 사용자에게는 없는 것과 같았다.
       directResumeCardTitle: '결제가 완료되었습니다',
+      directResumeRecoveryTitle: "결제 상태를 확인하고 있어요",
+      directResumeRecoveryOpen: "같은 주문 다시 확인하기",
       directResumeCardDesc: '추가 결제 없이 바로 열 수 있어요.',
       directResumeCardOpen: '「{feature}」 지금 열기',
       directResumeCardOpenGeneric: '지금 열기',
@@ -104,7 +106,7 @@
       birthClaimFailed: '열람 권한을 적용하지 못했어요. 잠시 후 다시 시도해 주세요.',
       directResumeFailed: '{method} 결제가 완료되지 않았습니다. 다시 시도해 주세요.',
       directResumeFailedGeneric: '결제가 완료되지 않았습니다. 다시 시도해 주세요.',
-      directResumeError: '결제 확인 중 오류가 발생했습니다.\n잠시 후 이 화면을 새로고침하면 다시 확인합니다.',
+      directResumeError: '결제 상태를 확인하지 못했어요.\n다시 확인하기를 눌러 같은 주문으로 이어가 주세요.',
       subscriptionIncluded: '이용권으로 추가 결제 없이 이용합니다.',
       serviceTermDisclaimer: '결제 완료 후 즉시 서비스가 제공됩니다. 구매한 서비스는 결제가 확인되는 순간부터 이용이 시작됩니다.',
       openProfileList: '프로필 목록 열기',
@@ -135,10 +137,12 @@
       paymentCompleteOverlay: 'Payment complete.\nOpening your content now.\nPlease wait a moment.',
       directResumeConfirming: 'Confirming your {method} payment and saving your access.\nPlease do not pay again.',
       directResumeConfirmingGeneric: 'Confirming your payment and saving your access.\nPlease do not pay again.',
-      directResumePending: 'Your payment was approved and access is being applied.\nRefresh this page in a moment to check again.',
+      directResumePending: 'We are checking your payment and access.\nYour consultation will resume once confirmed.',
       directResumeComplete: 'Your {method} payment is confirmed.\nTap the content again to open it with no extra charge.',
       directResumeCompleteGeneric: 'Your payment is confirmed.\nTap the content again to open it with no extra charge.',
       directResumeCardTitle: 'Payment complete',
+      directResumeRecoveryTitle: "Checking your payment",
+      directResumeRecoveryOpen: "Check this order again",
       directResumeCardDesc: 'You can open it right away at no extra charge.',
       directResumeCardOpen: 'Open “{feature}” now',
       directResumeCardOpenGeneric: 'Open now',
@@ -152,7 +156,7 @@
       birthClaimFailed: 'Could not apply access. Please try again shortly.',
       directResumeFailed: 'Your {method} payment was not completed. Please try again.',
       directResumeFailedGeneric: 'Your payment was not completed. Please try again.',
-      directResumeError: 'Something went wrong while confirming your payment.\nRefresh this page in a moment to check again.',
+      directResumeError: 'We could not confirm your payment status.\nSelect Check again to resume the same order.',
       subscriptionIncluded: 'Using your pass with no additional payment.',
       serviceTermDisclaimer: 'The service is provided immediately upon payment completion. Your purchased service begins the moment payment is confirmed.',
       openProfileList: 'Open profile list',
@@ -183,10 +187,12 @@
       paymentCompleteOverlay: '決済が完了しました。\nコンテンツを開いています。\n少々お待ちください。',
       directResumeConfirming: '{method}の決済結果を確認し、閲覧権限を保存しています。\n二重決済はしないでください。',
       directResumeConfirmingGeneric: '決済結果を確認し、閲覧権限を保存しています。\n二重決済はしないでください。',
-      directResumePending: '決済は承認され、閲覧権限の反映を待っています。\nしばらくしてこの画面を再読み込みすると再確認します。',
+      directResumePending: '決済状況と閲覧権限を確認しています。\n確認が終わると相談を再開します。',
       directResumeComplete: '{method}の決済が確認されました。\nコンテンツをもう一度押すと追加決済なしで開きます。',
       directResumeCompleteGeneric: '決済が確認されました。\nコンテンツをもう一度押すと追加決済なしで開きます。',
       directResumeCardTitle: '決済が完了しました',
+      directResumeRecoveryTitle: "お支払いを確認しています",
+      directResumeRecoveryOpen: "同じ注文を再確認",
       directResumeCardDesc: '追加決済なしですぐに開けます。',
       directResumeCardOpen: '「{feature}」を今すぐ開く',
       directResumeCardOpenGeneric: '今すぐ開く',
@@ -200,7 +206,7 @@
       birthClaimFailed: '閲覧権限を適用できませんでした。しばらくしてから再度お試しください。',
       directResumeFailed: '{method}の決済が完了しませんでした。もう一度お試しください。',
       directResumeFailedGeneric: '決済が完了しませんでした。もう一度お試しください。',
-      directResumeError: '決済確認中にエラーが発生しました。\nしばらくしてこの画面を再読み込みすると再確認します。',
+      directResumeError: '決済状況を確認できませんでした。\n再確認ボタンから同じ注文で続けてください。',
       subscriptionIncluded: '利用券で追加決済なしに利用します。',
       serviceTermDisclaimer: '決済完了後、サービスが即座に提供されます。購入したサービスは、決済が確認された時点から利用が開始されます。',
       openProfileList: 'プロフィール一覧を開く',
@@ -231,10 +237,12 @@
       paymentCompleteOverlay: '支付完成。\n正在为您开启内容。\n请稍候。',
       directResumeConfirming: '正在确认{method}支付结果并保存访问权限。\n请勿重复支付。',
       directResumeConfirmingGeneric: '正在确认支付结果并保存访问权限。\n请勿重复支付。',
-      directResumePending: '支付已获批准，正在等待访问权限生效。\n请稍后刷新此页面再次确认。',
+      directResumePending: '正在确认支付状态和访问权限。\n确认后将继续咨询。',
       directResumeComplete: '{method}支付已确认。\n再次点击内容即可直接打开，无需额外付费。',
       directResumeCompleteGeneric: '支付已确认。\n再次点击内容即可直接打开，无需额外付费。',
       directResumeCardTitle: '支付已完成',
+      directResumeRecoveryTitle: "正在确认支付状态",
+      directResumeRecoveryOpen: "重新确认此订单",
       directResumeCardDesc: '无需额外付费，可以立即打开。',
       directResumeCardOpen: '立即打开「{feature}」',
       directResumeCardOpenGeneric: '立即打开',
@@ -248,7 +256,7 @@
       birthClaimFailed: '未能授予查看权限，请稍后再试。',
       directResumeFailed: '{method}支付未完成。请重试。',
       directResumeFailedGeneric: '支付未完成。请重试。',
-      directResumeError: '确认支付时发生错误。\n请稍后刷新此页面再次确认。',
+      directResumeError: '暂时无法确认支付状态。\n请点击再次确认，继续处理同一订单。',
       subscriptionIncluded: '使用券已生效，无需额外付款。',
       serviceTermDisclaimer: '付款完成后，服务将立即提供。购买的服务在付款确认的那一刻开始使用。',
       openProfileList: '打开个人资料列表',
@@ -279,10 +287,12 @@
       paymentCompleteOverlay: '付款完成。\n正在為您開啟內容。\n請稍候。',
       directResumeConfirming: '正在確認{method}付款結果並儲存閱覽權限。\n請勿重複付款。',
       directResumeConfirmingGeneric: '正在確認付款結果並儲存閱覽權限。\n請勿重複付款。',
-      directResumePending: '付款已獲核准，正在等待閱覽權限生效。\n請稍後重新整理此頁面再次確認。',
+      directResumePending: '正在確認付款狀態與閱覽權限。\n確認後將繼續諮詢。',
       directResumeComplete: '{method}付款已確認。\n再次點擊內容即可直接開啟，無需額外付費。',
       directResumeCompleteGeneric: '付款已確認。\n再次點擊內容即可直接開啟，無需額外付費。',
       directResumeCardTitle: '付款已完成',
+      directResumeRecoveryTitle: "正在確認付款狀態",
+      directResumeRecoveryOpen: "重新確認此訂單",
       directResumeCardDesc: '無需額外付費，可以立即開啟。',
       directResumeCardOpen: '立即開啟「{feature}」',
       directResumeCardOpenGeneric: '立即開啟',
@@ -296,7 +306,7 @@
       birthClaimFailed: '未能授予檢視權限，請稍後再試。',
       directResumeFailed: '{method}付款未完成。請重試。',
       directResumeFailedGeneric: '付款未完成。請重試。',
-      directResumeError: '確認付款時發生錯誤。\n請稍後重新整理此頁面再次確認。',
+      directResumeError: '暫時無法確認付款狀態。\n請點選再次確認，繼續處理同一訂單。',
       subscriptionIncluded: '使用券已生效，無需額外付款。',
       serviceTermDisclaimer: '付款完成後，服務將立即提供。購買的服務在付款確認的那一刻開始使用。',
       openProfileList: '開啟個人資料列表',
@@ -2750,6 +2760,11 @@
     if (document.getElementById('cdStandalonePaymentOverlayStyle')) return;
     var style = document.createElement('style');
     style.id = 'cdStandalonePaymentOverlayStyle';
+    if (!document.querySelector('link[href*="/styles/payment-moonlight.css"]')) {
+      var moonlight = document.createElement('link');
+      moonlight.rel = 'stylesheet'; moonlight.href = '/styles/payment-moonlight.css?v=meditation-v2';
+      document.head.appendChild(moonlight);
+    }
     style.textContent = [
       '#cdStandalonePaymentOverlay:is([data-mode=pass-applied],[data-mode=payment-complete]) .cd-standalone-payment-card {background:var(--cd-welcome-paper);color:var(--cd-welcome-ink);border-color:var(--cd-welcome-gold);}',
       '@keyframes cdStandalonePaymentSpin {',
@@ -2837,7 +2852,7 @@
     overlay.id = 'cdStandalonePaymentOverlay';
     overlay.innerHTML = [
       '<div class="cd-standalone-payment-card" role="alertdialog" aria-modal="true" aria-live="assertive">',
-      '  <img class="cd-standalone-payment-yeon" src="/images/fortune-tea-house/flower-pig-honey-hug.webp" alt="이용권을 확인하는 꽃돼지 연이">',
+      '  <img class="cd-standalone-payment-yeon" src="/images/brand/yeongnyangi-meditating-v2.webp" alt="이용권을 확인하는 꽃돼지 연이">',
       '  <div class="cd-standalone-payment-spinner" id="cdStandalonePaymentOverlaySpinner" aria-hidden="true"></div>',
       '  <p class="cd-standalone-payment-title" id="cdStandalonePaymentOverlayTitle">이용권 확인 중</p>',
       '  <p class="cd-standalone-payment-desc" id="cdStandalonePaymentOverlayDesc">보유 이용권으로 바로 열 수 있는지 확인하고 있어요.</p>',
@@ -2891,6 +2906,9 @@
     if (!overlay) return;
     var copy = _dpResolveStandaloneOverlayCopy(mode);
     overlay.setAttribute('data-mode', String(mode || 'payment'));
+    overlay.classList.toggle('is-payment-notice', copy.done);
+    var dialog = overlay.querySelector('.cd-standalone-payment-card');
+    if (dialog) { dialog.setAttribute('role', 'status'); dialog.setAttribute('aria-live', 'polite'); dialog.removeAttribute('aria-modal'); }
     var titleEl = document.getElementById('cdStandalonePaymentOverlayTitle');
     var descEl = document.getElementById('cdStandalonePaymentOverlayDesc');
     var spinnerEl = document.getElementById('cdStandalonePaymentOverlaySpinner');
@@ -4316,6 +4334,23 @@
   // redirectUrl 에 심는 portone_redirect=1 의 소비자가 /points 하나뿐이어서 유료 기능은 방치됐다.
   // 이 파일은 정적 셸(defer)과 React 유료 화면 양쪽에 로드되는 공통 런타임이라 복귀 처리를 여기 한 곳에 둔다.
   var _DP_DIRECT_RESUME_KEY = 'cd_direct_payment_resume';
+  // A fresh app-return tab may reject both storage APIs. Keep only this document's owned contexts.
+  var _dpDirectResumeMemory = Object.create(null);
+  var _dpDirectResumeMemoryId = '';
+  function _dpRememberDirectResume(ticket) {
+    if (!ticket || !ticket.merchantUid) return;
+    var id = String(ticket.merchantUid);
+    _dpDirectResumeMemory[id] = { ticket: ticket, at: Date.now() };
+    _dpDirectResumeMemoryId = id;
+  }
+  function _dpIsConfirmationPending(result) {
+    var entry = _dpCheckoutEntry();
+    if (entry && typeof entry.isPaymentConfirmationPending === 'function') return entry.isPaymentConfirmationPending(result);
+    // Older cached runtime: never turn a pending response into completion.
+    var payload = (result && result.payload) || {};
+    return Number(result && result.status) === 202 || payload.recoveryRequired === true
+      || /^(GRANT_PENDING|PENDING_CONFIRMATION)$/.test(String(payload.code || '').toUpperCase());
+  }
   var _DP_DIRECT_RESUME_TTL_MS = 30 * 60 * 1000;
   // PointsClient.tsx의 PENDING_SUBSCRIPTION_BOOT_RETRY_MIN_AGE_MS와 같은 값·같은 이유 —
   // 결제창이 아직 열려 있을 수 있는 직후에는 조용한 폴백이 미결제 주문을 섣불리 확정하지 않는다.
@@ -4324,6 +4359,7 @@
   // 🔴 티켓 저장소 정본도 checkout-entry 다(saveDirectPaymentResumeTicket 머리주석에 localStorage 인 이유).
   // 모듈이 아직 안 붙었을 때만 종전 sessionStorage 경로로 떨어진다 — 결제 흐름을 죽이지 않는다.
   function _dpWriteDirectResumeTicket(ticket) {
+    _dpRememberDirectResume(ticket);
     var api = _dpCheckoutEntry();
     if (api && typeof api.saveDirectPaymentResumeTicket === 'function') {
       api.saveDirectPaymentResumeTicket(ticket);
@@ -4335,6 +4371,9 @@
   }
 
   function _dpClearDirectResumeTicket(paymentId) {
+    var id = String(paymentId || _dpDirectResumeMemoryId || '');
+    delete _dpDirectResumeMemory[id];
+    if (_dpDirectResumeMemoryId === id) _dpDirectResumeMemoryId = '';
     var api = _dpCheckoutEntry();
     if (api && typeof api.clearDirectPaymentResumeTicket === 'function') {
       api.clearDirectPaymentResumeTicket(paymentId);
@@ -4344,6 +4383,13 @@
   }
 
   function _dpReadDirectResumeTicket(paymentId) {
+    var stored = _dpReadStoredDirectResumeTicket(paymentId);
+    if (stored) return stored;
+    var cached = _dpDirectResumeMemory[String(paymentId || _dpDirectResumeMemoryId || '')];
+    return cached && Date.now() - cached.at <= _DP_DIRECT_RESUME_TTL_MS ? cached.ticket : null;
+  }
+
+  function _dpReadStoredDirectResumeTicket(paymentId) {
     var api = _dpCheckoutEntry();
     if (api && typeof api.readDirectPaymentResumeTicket === 'function') return api.readDirectPaymentResumeTicket(paymentId);
     var raw = '';
@@ -4407,6 +4453,7 @@
   // 재진입 폴백과 재조정 크론이 맡는다. 열어 둔 탭에서 무한히 도는 타이머를 남기지 않기 위함이다.
   var _DP_ORDER_POLL_MAX_MS = 5 * 60 * 1000;
   var _dpOrderPollTimer = 0;
+  var _dpOrderPollStartedAt = Object.create(null);
 
   function _dpStopDirectOrderPoll() {
     if (!_dpOrderPollTimer) return;
@@ -4449,6 +4496,14 @@
     try { window.sessionStorage.removeItem(_DP_DIRECT_RESUME_ATTEMPTS_PREFIX + paymentId); } catch (_) {}
   }
 
+  function _dpShowDirectRecoveryCard(paymentId, message) {
+    _dpShowDirectResumeCard('', function () {
+      delete _dpDirectResumeSettled[paymentId];
+      delete _dpOrderPollStartedAt[paymentId];
+      _dpResumeDirectPaymentAfterRedirect({ pollingPaymentId: paymentId, userInitiated: true });
+    }, message || _dpText('directResumeError'), true);
+  }
+
   function _dpStartDirectOrderPoll(paymentId) {
     var orderId = String(paymentId || '').trim();
     if (!orderId || typeof window === 'undefined') return;
@@ -4456,21 +4511,44 @@
     if (_dpShouldUseAppStoreEntry()) return;
     if (_dpDirectResumeSettled[orderId]) return;
     _dpStopDirectOrderPoll();
-    var startedAt = Date.now();
+    var startedAt = _dpOrderPollStartedAt[orderId] || Date.now();
+    _dpOrderPollStartedAt[orderId] = startedAt;
 
     function tick() {
       _dpOrderPollTimer = 0;
       if (_dpDirectResumeSettled[orderId]) return;
-      if (Date.now() - startedAt > _DP_ORDER_POLL_MAX_MS) return;
+      if (Date.now() - startedAt > _DP_ORDER_POLL_MAX_MS) {
+        _dpDirectResumeSettled[orderId] = true;
+        _dpSetPaymentPending(false);
+        _dpShowDirectRecoveryCard(orderId);
+        return;
+      }
+      if (document.hidden || (typeof navigator !== 'undefined' && navigator.onLine === false)) return schedule();
       // 티켓이 사라졌다는 것은 다른 경로가 이미 이 주문을 확정했다는 뜻이다.
       var ticket = _dpReadDirectResumeTicket(orderId);
       if (!ticket || String(ticket.merchantUid || '') !== orderId) return;
 
       _dpPaymentFetchJson('/api/payments/orders/' + encodeURIComponent(orderId), { method: 'GET' }, { retryOn401: true, refreshOn401: true })
         .then(function (res) {
-          if (!res || !res.ok) return schedule();
+          if (!res || !res.ok) {
+            if (res && [401, 403, 404].indexOf(Number(res.status)) >= 0) {
+              _dpDirectResumeSettled[orderId] = true;
+              _dpSetPaymentPending(false);
+              _dpShowDirectRecoveryCard(orderId, _dpText('directResumeError'));
+              return;
+            }
+            return schedule();
+          }
           var payload = res.payload || {};
-          if (!_dpOrderLooksPaid(payload.order || payload)) return schedule();
+          var order = payload.order || payload;
+          if (/^(cancelled|refunded|failed)$/i.test(String(order.status || ''))) {
+            _dpDirectResumeSettled[orderId] = true;
+            _dpClearDirectResumeTicket(orderId);
+            _dpSetPaymentPending(false);
+            _dpDismissDirectResumeCard();
+            return;
+          }
+          if (!_dpOrderLooksPaid(order)) return schedule();
           // 승인이 확인됐다 — 리다이렉트 복귀와 **같은** 확정·재개 본문을 탄다.
           return _dpResumeDirectPaymentAfterRedirect({ pollingPaymentId: orderId });
         })
@@ -4602,7 +4680,7 @@
 
   // featureLabel 이 있으면 '「{기능명}」 지금 열기', 없으면 '지금 열기'. onOpen 이 없으면 열기 버튼을
   // 그리지 않는다(영수증만으로 재클릭이 무료가 되는 경우 — 안내와 닫기만 남는다).
-  function _dpShowDirectResumeCard(featureLabel, onOpen, descText) {
+  function _dpShowDirectResumeCard(featureLabel, onOpen, descText, pending) {
     if (typeof document === 'undefined' || !document.body) return;
     _dpDismissDirectResumeCard();
     _dpEnsureDirectResumeCardStyle();
@@ -4612,7 +4690,7 @@
     card.setAttribute('aria-live', 'polite');
     var title = document.createElement('p');
     title.className = 'cd-direct-resume-title';
-    title.textContent = _dpText('directResumeCardTitle');
+    title.textContent = _dpText(pending ? 'directResumeRecoveryTitle' : 'directResumeCardTitle');
     var desc = document.createElement('p');
     desc.className = 'cd-direct-resume-desc';
     desc.textContent = String(descText || '').trim() || _dpText('directResumeCardDesc');
@@ -4625,7 +4703,7 @@
       openBtn.type = 'button';
       openBtn.className = 'cd-direct-resume-open';
       // 🔴 textContent 로만 넣는다 — 기능명은 주문 reason 에서 오므로 innerHTML 로 넣지 않는다.
-      openBtn.textContent = featureLabel
+      openBtn.textContent = pending ? _dpText('directResumeRecoveryOpen') : featureLabel
         ? _dpInterpolateText(_dpText('directResumeCardOpen'), { feature: featureLabel })
         : _dpText('directResumeCardOpenGeneric');
       openBtn.addEventListener('click', function () {
@@ -4842,11 +4920,16 @@
     if (paymentId && (isPassReturn || !ticket || !ticket.resume)) {
       try {
         var restored = await _dpPaymentFetchJson('/api/payments/orders/' + encodeURIComponent(paymentId) + '/resume', { method: 'GET' }, { retryOn401: true, refreshOn401: true });
-        if (restored.ok && restored.payload && restored.payload.context) ticket = restored.payload.context;
+        if (restored.ok && restored.payload && restored.payload.context) {
+          ticket = restored.payload.context;
+          _dpRememberDirectResume(ticket);
+        }
       } catch (_resumeContextError) { /* 주문 확정은 계속하고, 입력 없는 실행은 하지 않는다. */ }
     }
     // 폴링 진입은 서버가 paid 라고 답한 상태다 — 이 문서에 남아 있던 옛 PG 쿼리로 실패 처리하지 않는다.
-    var failed = !pollingPaymentId
+    var duplicateReturn = _dpIsPortOneDuplicatePaymentCode(query.get('code'), query.get('message'))
+      && !_dpIsPortOneUserCancelCode(query.get('code'));
+    var failed = !pollingPaymentId && !duplicateReturn
       && (String(query.get('code') || '').trim() !== ''
         || String(query.get('imp_success') || '').toLowerCase() === 'false');
     // 수단은 **티켓**에서 읽는다 — 선택 슬롯(setSelectedDirectPayMethod, TTL 120s)은 카카오톡을 다녀오는
@@ -4929,9 +5012,7 @@
          이걸 "결제 완료"로 표시하면 열람 권한이 없는데 완료 안내가 뜨고, 실패로 닫으면 사용자가
          다시 결제한다. 티켓·URL 을 그대로 두어 새로고침이 멱등 재시도가 되게 하고, access-state
          갱신도 하지 않는다(아직 열람 권한이 없어 무효화할 것이 없다). */
-      var resumeCode = String(resumePayload.code || (resumePayload.error && resumePayload.error.code) || '').toUpperCase();
-      var resumePending = resumeCode === 'GRANT_PENDING' || resumeCode === 'PENDING_CONFIRMATION'
-        || resumePayload.recoveryRequired === true || Number(confirmRes.status) === 202;
+      var resumePending = _dpIsConfirmationPending(confirmRes);
       if (resumePending) {
         // 생년월일을 몰라 지급이 보류된 주문 — 새로고침으로는 풀리지 않는다. 프로필 선택 카드를 바로 연다.
         if (resumePayload.profileSelectionRequired === true) {
@@ -4940,14 +5021,21 @@
           void _dpProbeBirthProfilePending(true);
           return;
         }
+        _dpStartDirectOrderPoll(paymentId);
         if (!isQuietRetry) {
           var resumePendingMessage = resumePayload.message ? String(resumePayload.message) : _dpText('directResumePending');
           _dpShowDirectResumeNotice(resumePendingMessage, 'unlock-saving', 4000);
+          _dpShowDirectRecoveryCard(paymentId, resumePendingMessage);
         }
         return;
       }
       _dpSetPaymentPending(false);
       if (!confirmRes.ok) {
+        if (Number(confirmRes.status) >= 500 || Number(confirmRes.status) === 429) {
+          _dpStartDirectOrderPoll(paymentId);
+          if (!isQuietRetry) _dpShowDirectRecoveryCard(paymentId);
+          return;
+        }
         // 조용한 폴백에서의 실패는 대부분 "결제 안 하고 이탈"이다 — 알림 없이 티켓만 남겨
         // TTL 안에서 다음 진입 때 다시 시도하게 둔다(진짜 실패라도 재조정 크론이 정산한다).
         if (!isSilentTicketFallback && !isQuietRetry) {
@@ -5037,7 +5125,10 @@
          서버에 실어 보내는** 것이 있다(AI 상담 프롬프트·인연 레이더 아카이브 쓰기). 안 넘기면 그쪽은
          화면만 열리고 서버 기록이 없어, 다음에 같은 것을 또 결제하게 된다. */
       var canResume = resumeDescriptor && (isUserInitiated || _dpBeginDirectResumeAttempt(paymentId));
-      if (canResume) _dpShowPaymentCompleteOverlay(_dpText('paymentCompleteOverlay'));
+      if (canResume) {
+        _dpDismissDirectResumeCard();
+        _dpShowPaymentCompleteOverlay(_dpText('paymentCompleteOverlay'));
+      }
       var resumeOpened = canResume
         ? await _dpRunPaidResume(resumeDescriptor, {
           featureKey: resumeFeatureKey,
@@ -5092,10 +5183,11 @@
         }));
       } catch (_) {}
     } catch (error) {
-      // 5xx·네트워크 — 티켓·URL 을 그대로 둔다. 새로고침이 곧 재시도다.
+      // 네트워크 오류도 같은 주문·입력으로 제한된 폴링을 이어 간다.
       _dpSetPaymentPending(false);
       console.error('[direct-payment-resume]', error);
-      if (!isQuietRetry) window.alert(_dpText('directResumeError'));
+      _dpStartDirectOrderPoll(paymentId);
+      if (!isQuietRetry) _dpShowDirectRecoveryCard(paymentId);
     }
   }
 
@@ -6083,8 +6175,15 @@
         dpConfirmError.status = Number(confirmRes.status || 0);
         throw dpConfirmError;
       }
+      if (_dpIsConfirmationPending(confirmRes)) {
+        _dpStartDirectOrderPoll(merchantUid);
+        var pendingError = new Error(_dpReadBillingMessage(confirmRes.payload, _dpText('directResumePending')));
+        pendingError.code = 'PENDING_CONFIRMATION';
+        pendingError.status = Number(confirmRes.status || 202);
+        throw pendingError;
+      }
       // 확정됐으니 이제 복귀 티켓을 회수한다.
-      _dpClearDirectResumeTicket();
+      _dpClearDirectResumeTicket(merchantUid);
       // 🔴 셸(index.html _cdRefreshAccessStateAfterPayment)과 같은 자리·같은 조건이다 — 서버가 확정을
       //    검증한 뒤에만 /api/me/access-state 의 60초 스냅샷을 강제 무효화한다. 안 하면 방금 산
       //    기능이 최대 60초간 잠긴 채로 보인다. 실패·PENDING 갈래는 위에서 이미 throw 로 빠졌다.
@@ -12505,6 +12604,8 @@
           policyLinksHtml +
           '<div class="cd-direct-payment-actions"><button type="button" class="cd-direct-payment-cancel" data-mode="cancel">' + esc(_dpCheckoutText('common.cancel', '취소')) + '</button></div>' +
         '</div>';
+      var themeEntry = _dpCheckoutEntry();
+      if (themeEntry && typeof themeEntry.applyPaymentChoiceTheme === 'function') themeEntry.applyPaymentChoiceTheme(root);
       var modalOpenedAt = Date.now();
       // 이용권 상점으로 떠날 때도 finish('cancel') 로 닫는다(호출부 계약 유지) — 그건 이탈이 아니므로
       // 계측에서 제외한다. pass_store_entered 가 그 전이를 이미 남긴다.

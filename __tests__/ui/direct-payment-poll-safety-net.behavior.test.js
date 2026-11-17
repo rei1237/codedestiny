@@ -218,3 +218,38 @@ test('bfcache, visibility and online activation recover without browser back or 
     assert.equal(calls.resumed.length, 1);
   } finally { window.close(); }
 });
+
+function fastPoll(win) {
+  const later = win.setTimeout.bind(win);
+  win.setTimeout = (fn, ms, ...args) => later(fn, ms === 3000 ? 10 : ms, ...args);
+}
+
+test('hidden and offline documents pause order requests and resume the same ticket', async () => {
+  const {window,calls}=boot({order:{status:'paid'},beforeProfile:fastPoll});
+  try {
+    Object.defineProperty(window.document,'hidden',{configurable:true,value:true});
+    window.__cdDirectOrderPollHook.start(ORDER_ID);
+    await new Promise(r=>setTimeout(r,60));assert.equal(calls.status.length,0);
+    Object.defineProperty(window.document,'hidden',{configurable:true,value:false});
+    Object.defineProperty(window.navigator,'onLine',{configurable:true,value:false});
+    await new Promise(r=>setTimeout(r,60));assert.equal(calls.status.length,0);
+    Object.defineProperty(window.navigator,'onLine',{configurable:true,value:true});
+    await waitFor(()=>calls.resumed.length===1,'visible online resume');
+    assert.equal(calls.confirm.length,1);
+  }finally{window.close();}
+});
+
+test('pending timeout keeps the order and exposes a same-order recovery action', async () => {
+  const {window,calls}=boot({order:{status:'paid'},beforeProfile:fastPoll});
+  try {
+    await new Promise(r=>setTimeout(r,20)); // Let the initial young-ticket fallback finish before advancing time.
+    let now=Date.now();window.Date.now=()=>now;
+    window.__cdDirectOrderPollHook.start(ORDER_ID);now+=300001;
+    await waitFor(()=>window.document.getElementById('cdDirectResumeCard'),'recovery card');
+    assert.equal(calls.confirm.length,0);
+    assert.ok(window.localStorage.getItem(RESUME_KEY));
+    window.document.querySelector('#cdDirectResumeCard button').click();
+    await waitFor(()=>calls.resumed.length===1,'manual recovery');
+    assert.equal(calls.confirm[0].merchantUid,ORDER_ID);
+  }finally{window.close();}
+});

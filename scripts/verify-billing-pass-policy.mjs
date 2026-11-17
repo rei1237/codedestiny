@@ -801,7 +801,7 @@ assertContains(
   "if (path.indexOf('/api/billing/confirm') === 0 || path.indexOf('/api/payments/confirm') === 0) return null;",
   "automatic fetch tracking must not announce payment completion before confirmation",
 );
-assertContains(destinyProfileSource, "if (canResume) _dpShowPaymentCompleteOverlay(_dpText('paymentCompleteOverlay'));", "verified redirect recovery shows completion before starting content");
+assert.ok(/if \(canResume\)\s*\{\s*_dpDismissDirectResumeCard\(\);\s*_dpShowPaymentCompleteOverlay\(_dpText\('paymentCompleteOverlay'\)\);/.test(destinyProfileSource), "verified redirect recovery clears the recovery card and shows completion before starting content");
 assertContains(indexSource, "if (bodyMode === 'MEMBERSHIP_PASS') return { type: 'payment', mode: 'pass'", "membership pass check keeps its own wait overlay");
 // checkout POST는 결제수단 모달에서 발급하지 않고 명시적인 단건 클릭에서만 한 번 실행한다.
 // 🔴 이용권 선검사가 '미커버'로 결론난 뒤에 대기 화면을 한 번 더 띄우지 않는다. 예전에는 React

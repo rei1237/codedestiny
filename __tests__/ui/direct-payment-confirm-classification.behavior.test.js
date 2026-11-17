@@ -47,3 +47,25 @@ test('unclassified SDK/runtime exception is distinct from a payment refusal',()=
  const context=vm.createContext({Error,asRecord:v=>v,toText:v=>String(v||''),billingClientText:()=>''});vm.runInContext(caught,context);
  const result=context.caught(new Error('SDK exception'));assert.equal(result.error.code,'PAYMENT_RUNTIME_ERROR');assert.equal(result.status,500);
 });
+
+
+const checkoutEntry = require('../../js/core/checkout-entry.js');
+for (const pending of [
+  {status:200,payload:{code:'GRANT_PENDING',recoveryRequired:true}},
+  {status:202,payload:{}},
+  {status:200,payload:{data:{code:'PENDING_CONFIRMATION'}}},
+]) {
+ test('standalone confirmation keeps a pending order recoverable: '+JSON.stringify(pending), async () => {
+  const source=fs.readFileSync(path.join(__dirname,'../../js/destiny-profile.js'),'utf8');
+  const start=source.indexOf('      var dpConfirmBody =');
+  const end=source.indexOf('      return confirmRes.payload;',start)+'      return confirmRes.payload;'.length;
+  let cleared=0,complete=0,polls=0;
+  const context=vm.createContext({_dpDirectConfirmBody:{},paymentId:'order',merchantUid:'order',dpDuplicateConfirm:false,opts:{},checkoutPayload:{},window:{},
+   _dpPaymentFetchJson:async()=>({ok:true,...pending}),_dpIsConfirmationPending:checkoutEntry.isPaymentConfirmationPending,
+   _dpStartDirectOrderPoll:id=>{assert.equal(id,'order');polls++;},_dpClearDirectResumeTicket:()=>cleared++,
+   _dpShowPaymentCompleteOverlay:()=>complete++,_dpWaitForPaymentOverlayPaint:()=>Promise.resolve(),_dpReadBillingMessage:()=>'',_dpText:()=>''});
+  await assert.rejects(vm.runInContext('(async()=>{'+source.slice(start,end)+'})()',context),e=>e.code==='PENDING_CONFIRMATION');
+  assert.equal(cleared,0);assert.equal(complete,0);assert.equal(polls,1);
+ });
+}
+test('a confirmed response is not classified as pending',()=>assert.equal(checkoutEntry.isPaymentConfirmationPending({status:200,payload:{ok:true,accessGrant:{ok:true}}}),false));

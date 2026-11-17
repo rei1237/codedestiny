@@ -1827,7 +1827,7 @@
       '  #sajuLoaderOverlay[aria-hidden="true"] .saju-loader-yeon-sprite::before {',
       '    background-image: none !important;',
       '  }',
-      '  #sajuLoaderOverlay[aria-hidden="false"][data-marker~="honey-fortune-logo-payment-ux-v20260618"],',
+      '  #sajuLoaderOverlay[aria-hidden="false"][data-marker~="honey-fortune-logo-payment-ux-v20260618"]:not(.is-payment-notice),',
       '  #cdPaidFeatureGate {',
       '    backdrop-filter: blur(6px) saturate(1.02) !important;',
       '    -webkit-backdrop-filter: blur(6px) saturate(1.02) !important;',
