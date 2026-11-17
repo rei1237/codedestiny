@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-17
-next: 로컬 check:fast의 마지막 Jest 결과와 main CI를 확인한 뒤, 모두 통과한 수정 SHA로 운영 릴리스 워크플로를 실행하고 실제 Pages/Worker 및 흑월 번들을 검증한다.
+next: main CI 44096970429의 성공을 확인하고 원격 main d13cc7506e01704512b9433b718c34f6827513da로 운영 릴리스 워크플로(mode=production)를 실행한 뒤 실제 Pages/Worker 및 흑월 번들을 검증한다.
 ---
 
 # 흑월 결제 후 전달 긴급 수정
@@ -11,8 +11,9 @@ next: 로컬 check:fast의 마지막 Jest 결과와 main CI를 확인한 뒤, �
 
 ## 지금 상태
 - 브랜치 `wt/android-temple-release60-20261117-220709`, 기준 `2bbcccbd2514b76af9685172b546422a94ef181a`(main과 origin/main 동일). 이 워크트리는 앞선 Android 격리 빌드 공간이며 현재 그 빌드는 중단됐다.
-- 검증된 코드 커밋: CI 검사기 `87371bb04`, 흑월 `93c371660`. 흑월 클라이언트·요청 시간 제한·회귀 테스트 2개 및 공식 생성기로 갱신한 사이트맵 5개가 포함된다. 아직 main 푸시 전이다.
-- 최종 check:fast 실행 세션 **97498**. 로그: `D:\Development\code-destiny\.tmp\android-temple-release\heukwol-check-fast-final.log`. 결제 관련 77개, lint, 타입, Node **5,202/5,202**, 결제 정책, Worker dry-run까지 통과. 마지막 Jest 진행 중. 최초 완주 시도는 sitemap drift에서 멈췄고 공식 생성기로 갱신·확인 후 재실행했다. 표 검사기는 별도 self-test 30개/대조 216키 및 verify:guard-wiring 통과.
+- 검증된 코드 커밋: CI 검사기 `87371bb04`, 흑월 `93c371660` 및 문서 `d13cc7506e01704512b9433b718c34f6827513da`까지 **main에 fast-forward 통합·push 완료**. 흑월 클라이언트·요청 시간 제한·회귀 테스트 2개 및 공식 생성기로 갱신한 사이트맵 5개가 포함된다. 원격 main은 d13cc7506이며 이 후속 상태 갱신은 아직 원격에 올리지 않는다.
+- 최종 check:fast **exit 0**(세션 97498 종료). 로그: `D:\Development\code-destiny\.tmp\android-temple-release\heukwol-check-fast-final.log`. 결제 관련 77개, lint, 타입, Node **5,202/5,202**, Jest **479 suites·8,012 tests 통과 / 기존 1 skipped**, 결제 정책, Worker dry-run까지 통과. 첫 완주 시도는 sitemap drift에서 멈췄고 공식 생성기로 갱신·확인 후 재실행했다. 표 검사기는 별도 self-test 30개/대조 216키 및 verify:guard-wiring 통과. main check:pre-push exit 0도 확인했다.
+- main CI: https://github.com/rei1237/codedestiny/actions/runs/44096970429 . 운영 릴리스 선행 검사이므로 `gh run watch --interval 60 --exit-status`를 백그라운드 세션 **35392**로 실행했다. 루트 `.tmp/android-temple-release/heukwol-main-ci-watch.log`에 결과가 쌓인다. CI 완료를 확인한 뒤 배포한다. **아직 운영 dispatch하지 않았다.**
 - 직전 main CI 44088994952는 명리 표 발견 가드 실패. 타입/lint·빌드·critical 성공. 이 실패도 아래 수정으로 해결한다.
 
 ## 승인 상태
@@ -33,7 +34,7 @@ next: 로컬 check:fast의 마지막 Jest 결과와 main CI를 확인한 뒤, �
 - [x] 운영 읽기 전용 근거 및 실제 컴포넌트 mock 재현: 변경 전 4개 실패
 - [x] 최종 UI/요청 제한 회귀 24/24 통과
 - [x] CI 표 검사기 실패 로컬 재현, 수정 후 self-test 30개 통과
-- [ ] check:fast 완료 → 독립 커밋 2개 → main 머지 → check:pre-push → push
+- [x] check:fast 완료 → 독립 커밋 2개 → main 머지 → check:pre-push → push
 - [ ] main CI 성공 확인 후 `.github/workflows/cloudflare-pages-deploy.yml` mode=production 실행
 - [ ] 릴리스 결과·운영 Pages/Worker SHA와 흑월 페이지 확인
 - [ ] 이 문서를 done으로 닫고 절 몰입 효과·Android 60 출시 재개(기존 moonlit handoff 참고)
