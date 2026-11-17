@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-18
-next: 61 패키징·native 검수·공개 출시는 보류 상태다. 재개 요청이 오면 외부 verification의 source-delivery-61.json과 실제 origin/main을 확인하고, 오프라인 수정이 포함된61 후보를 빌드해 native 검수부터 이어간다.
+next: 61 출시 보류는 사용자 정정으로 해제됐다. 오프라인 수정 포함61을 sync·서명 빌드하고 실제 APK 검수 후 내부 테스트와 프로덕션 심사 제출을 진행한다.
 ---
 
 # 연화당 다각도 UI와 Android 출시 준비
@@ -10,6 +10,7 @@ next: 61 패키징·native 검수·공개 출시는 보류 상태다. 재개 요
 `D:\Development\code-destiny`에서 이 문서와 `docs/design/moonlit-lotus-views.md`, `docs/design/moonlit-lotus-android-release-plan.md`를 읽고 현재 git 상태를 확인한다. 미완료 검증은 아래 상태에 따라 이어간다. 다른 사용자의 `.claude/skills/fire-your-seo-agency/`는 별도 저장소이므로 보존한다.
 
 ## 지금 상태
+- **2026-11-18 명시 재개·이전 보류 해석 취소**: 사용자 “최적화가 어려우면 무리하지 말라는 거지 출시를 멈추라는 건 아니야. 61 버전 빌드하고 실제 앱 동작과 성능 검증한 뒤 스토어 출시까지 계속 진행해줘.” 대규모 최적화는 하지 않으며61 빌드·실제APK 검수·스토어 심사/출시를 계속한다. 기준은 main/origin `0c272c367fd9784148284735c37c7b688974423c`, 오프라인 수정의 기존 check:fast 통과 결과를 재사용한다. 빌드 전 CI1회 관측은 `44121789902` in_progress였다. 이후 결과는 출시 제출 전 의미 있는 단계에서 확인한다. 새 증거 경로는 `D:/Development/releases/codedestiny/1.0.61/verification`.
 - **오프라인 최소 수정 검증 완료**: 코드 커밋 `de7e79189`(app/components/OfflineOverlay.tsx, scripts/app-native-bridge.js, __tests__/ui/app-offline-reader.test.js). check:fast 세션20717 exit0: paid-gate77/77, Node5,216/5,216, Jest479suites·8,012tests 통과(기존1suite/test skipped), 타입/lint/정책/Worker dry-run 통과. 대상5/5·UI감지0·6로케일노트500자이하·handoff계약259문서통과. 최종 검사로그는 `D:/Development/releases/codedestiny/1.0.60/verification/check-fast-release61.log`에 보존했다. 기존60 sync/Gradle/check:fast로그도 같은폴더에 있다.
 - **보존·재개 경계**: 61 APK/AAB는 생성하지 않았고 새 링크의 native 시각·기도/참배 보존 검수는 아직 남았다. 대규모 최적화/Play공개출시는 하지 않는다. 자기AVD·taskSpace60·완료Gradle daemon33056은 종료했다. 워크트리는61 재빌드/검수 재개 근거와 캐시를 위해 보존하며 다른세션프로세스·main미커밋변경은 건드리지 않는다. 전달 최종SHA/push/CI는 같은 verification의 `source-delivery-61.json`과 실제Git상태를 함께 확인한다.
 - **2026-11-18 00:38 KST 사용자 steering**: “너무 용량이 큰거 아니야? 최적화는 어려운거야? 성능은 좋게 하면서 용량은 최적화하는거고 어렵다면 그냥 하지마”. 원래 출시 작업의 취소는 아니며 61 전체 재빌드·공개 출시만 용량 검토 동안 보류한다. root는 패키지의 명백한 불필요·중복 자산을 읽기 전용 분석 중이다. 큰 구조 변경·추가 다운로드 설계는 무리하게 진행하지 않는다.
