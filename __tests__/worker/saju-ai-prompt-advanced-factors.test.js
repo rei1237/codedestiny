@@ -527,7 +527,15 @@ test("generation JSON preserves all computed opening rows while sending shared s
   expect(restored).toEqual(built.factSnapshot.majorStructures.earthStorageOpenings);
   for (const [key, value] of Object.entries(built.advancedFactors)) {
     if (key === 'tombAnalysis') {
-      expect(sent.factSnapshot.majorStructures.tombAnalysis.events.map(row => [row.period, row.status, row.role, row.verdict])).toEqual(value.events.map(row => [row.period.label, row.status, row.role, row.verdict]));
+      const table = sent.factSnapshot.majorStructures.tombAnalysis;
+      expect(table.eventColumns[5]).toBe('작용 방향');
+      const emitted = table.events.flatMap(row => row.values[0].map(target =>
+        JSON.stringify([target, row.values[1], row.period, row.values[2], row.values[3], row.values[5]])));
+      const calculated = value.events.map(row => JSON.stringify([
+        row.target.label + ' ' + (row.target.origin === 'hidden' ? '지장간 ' : '') + row.target.stem,
+        row.tomb.label + ' ' + row.tomb.branch, row.period.label, row.status, row.role, row.verdict,
+      ]));
+      expect(emitted.sort()).toEqual(calculated.sort());
     } else if (key === 'periods') {
       expect(sent.factSnapshot.majorStructures.periods).toEqual(value.map(({ period, doChung }) => ({ period, doChung })));
     } else expect(sent.advancedFactors[key] ?? built.factSnapshot.majorStructures[key]).toEqual(value);
