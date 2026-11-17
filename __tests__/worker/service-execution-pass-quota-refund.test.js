@@ -258,3 +258,36 @@ test("사이클이 넘어간 뒤에는 다음 달 한도를 잘못 건드리지 
   expect(executions[0].compensation.passQuotaRefunded).toBe(false);
   expect(result.settlement.status).toBe("failed");
 });
+
+describe("passRefund 를 싣지 않은 실행 — 결제 화면 pass-check 가 먼저 차감한 경로", () => {
+  async function withEvidenceLookup(run) {
+    const { PointHistory } = await import("../../worker/lib/models.js");
+    const source = refundDb.rows[1];
+    Object.assign(source, { delta: 0 });
+    source.metadata.accessMethod = "PASS";
+    const lookup = jest.spyOn(PointHistory, "findOne").mockImplementation(filter => thenableWithLean(
+      String(filter._id) === String(source._id) && source.featureKey === filter.featureKey
+        && source.metadata.refundedForServiceExecution !== true ? source : null));
+    try { return await run(source); } finally { lookup.mockRestore(); }
+  }
+  const input = { executionKey: `human-design-premium-report:${REQUEST_ID}`, reasonCode: "generation_failed", forceRefundOnClose: true };
+
+  test("같은 (기능, requestId) 의 이용권 사용 증빙에서 금액·사이클을 읽어 되돌린다", async () => {
+    delete executions[0].metadata.passRefund;
+    await withEvidenceLookup(async () => {
+      const result = await failServiceExecution({}, USER_ID, input);
+      expect(result.settlement.status).toBe("refunded");
+      expect(users[0].profileSubscription.monthlySpendCoin).toBe(0);
+      expect(executions[0].compensation.passQuotaRefundAmount).toBe(30);
+    });
+  });
+
+  test("한도 차감이 없는 증빙(passBudgetExempt)은 되돌리지 않는다", async () => {
+    delete executions[0].metadata.passRefund;
+    await withEvidenceLookup(async source => {
+      source.metadata.passBudgetExempt = true;
+      await failServiceExecution({}, USER_ID, input);
+      expect(users[0].profileSubscription.monthlySpendCoin).toBe(30);
+    });
+  });
+});

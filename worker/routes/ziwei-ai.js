@@ -27,7 +27,7 @@ import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
 import { claimRequestBillingEvidence, evidenceClaimErrorBody, releaseRequestBillingEvidence } from "../lib/billing-evidence-claim.js";
 import { isAllowedConsultTokenAccessType, normalizeConsultAccessType, resolveCanonicalEntitlement, resolveFeatureAccessPolicy } from "../lib/entitlement-policy.js";
-import { consumePassForFeature, passDenialCode } from "../lib/pass-consumption.js";
+import { consumePassForFeature, passDenialCode, refundPassUseEvidence } from "../lib/pass-consumption.js";
 import { getPortOnePublicConfig } from "../lib/portone.js";
 import { verifyPgPayment } from "../payments/pg.js";
 import { callGeminiText } from "../lib/gemini.js";
@@ -2337,8 +2337,12 @@ async function restorePrepaidAccessOnFailure({ userId, access = {}, idempotencyK
   const evidenceId = clean(access.evidenceId || access.paymentId, 160);
   const failureMessage = clean(error?.message || error || "service execution failed", 500);
   const now = new Date();
+  // 결제 화면 pass-check 가 미리 차감한 이용권은 같은 (기능, requestId) 의 사용 증빙으로 한도를 되돌린다.
+  const refundPass = async () => (await refundPassUseEvidence({ userId, featureKey: FEATURE_KEY, requestId: idempotencyKey,
+    refundId: `ziwei-ai:${idempotencyKey}` }))?.refunded === true;
 
   try {
+    if (evidenceType === "pass") return await refundPass();
     if (evidenceType === "coin" && mongoose.Types.ObjectId.isValid(evidenceId)) {
       const history = await PointHistory.findOne({
         _id: evidenceId,
@@ -2348,6 +2352,8 @@ async function restorePrepaidAccessOnFailure({ userId, access = {}, idempotencyK
         "metadata.refundedForServiceExecution": { $ne: true },
       }).lean();
       if (!history) return false;
+      // 이용권 사용 증빙(delta 0)은 코인 차감이 아니다 — 코인으로 환급하지 않고 이용권 한도를 되돌린다.
+      if (!Number(history.delta || 0) && ["PASS", "FAMILY"].includes(String(history.metadata?.accessMethod || "").toUpperCase())) return await refundPass();
 
       const refundCoins = Math.max(0, Math.floor(Math.abs(Number(history.delta || access.amount || pricing.coinPrice || 0))));
       if (!refundCoins) return false;

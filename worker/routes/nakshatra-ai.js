@@ -40,7 +40,7 @@ import { isStoredPaidResultRevoked } from "../lib/paid-result-revocation.js";
 import { countPaidReportBodyChars, hasRepeatedReportPassage } from "../lib/paid-report-quality.js";
 import { findMoonstoneSpendEvidence } from "../lib/moonstone-spend-proof.js";
 import { resolveCanonicalEntitlement } from "../lib/entitlement-policy.js";
-import { consumePassForFeature, hasConsumedPassFeature, passDenialCode } from "../lib/pass-consumption.js";
+import { consumePassForFeature, hasConsumedPassFeature, passDenialCode, refundPassUseEvidence } from "../lib/pass-consumption.js";
 import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
 import { canAccessPaidFeature, PAID_FEATURE_ACCESS_USER_PROJECTION } from "../lib/paid-feature-access.js";
@@ -1005,6 +1005,9 @@ async function advanceGeneration({ request, env, auth, sessionId, idempotencyKey
     await saveNakshatraDelivery(filter, { status: "generation_failed", generationError: { code: clean(error?.code || "LLM_FAILED"), message: clean(error?.message, 500) } }, sessionId);
     if(!nativeTossContext(request))await releaseRequestBillingEvidence(env, { userId: clean(auth.userId), requestId: idempotencyKey, evidenceIds: session.llmMeta?.evidenceIds });
     if(!nativeTossContext(request))await failRefundableExecution(env, auth, idempotencyKey, sessionId, error);
+    // 결제 화면 pass-check 가 미리 차감한 이용권은 실행 문서가 없다 — 같은 (기능, requestId) 증빙으로 되돌린다.
+    if(!nativeTossContext(request) && (access?.source || session?.accessSource) === "pass-receipt") await refundPassUseEvidence({ userId: auth.userId, featureKey: FEATURE_KEY, requestId: idempotencyKey, refundId: `nakshatra-ai:${idempotencyKey}` })
+      .catch(refundError => console.error("[nakshatra-ai] pass refund failed", clean(refundError?.message, 120)));
     return json({ ok: false, reason: "LLM_ERROR", message: LLM_ERROR_MESSAGE }, { status: 503 });
   } finally {
     await NakshatraAiConsultation.updateOne(filter, { $set: { "generationProgress.lockToken": "", "generationProgress.lockedAt": null } }).catch(() => {});

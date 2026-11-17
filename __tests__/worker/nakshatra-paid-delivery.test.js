@@ -9,7 +9,7 @@ jest.unstable_mockModule('../../worker/lib/sync-llm-timeout.js', () => ({ ...tim
 
 const uid = "64b7f2a1c3d4e5f601234567";
 const body = { idempotencyKey: "original-paid-request", birthInfo: { year:1993,month:7,day:21,hour:9,minute:0,timezone:9,lat:37.5665,lon:126.978,gender:"female" }, question: "나의 관계와 선택을 자세히 살펴보고 싶어요." };
-let utils, route, docs, provider, chart, fault, blocked, mode, userId, usage, refund, fetchBlock, lostConfirmation;
+let utils, route, docs, provider, chart, fault, blocked, mode, userId, usage, refund, fetchBlock, lostConfirmation, passReceipt, passRefund;
 const clone = value => value == null ? value : structuredClone(value);
 function query(value) { const result = Promise.resolve(value); result.lean = async () => clone(value); result.select = result.sort = () => result; return result; }
 const get = (doc, key) => key.split(".").reduce((value, field) => value?.[field], doc);
@@ -68,7 +68,8 @@ let definitions;
 beforeAll(async () => {
   const pass = await import("../../worker/lib/pass-consumption.js");
   jest.unstable_mockModule("../../worker/lib/pass-consumption.js", () => ({ ...pass,
-    consumePassForFeature: async () => ({ covered: true }), hasConsumedPassFeature: async () => false }));
+    consumePassForFeature: async () => ({ covered: true }), hasConsumedPassFeature: async () => passReceipt,
+    refundPassUseEvidence: async (...args) => passRefund(...args) }));
   const db = await import("../../worker/lib/db.js");
   const auth = await import("../../worker/lib/auth.js");
   const models = await import("../../worker/lib/models.js");
@@ -93,7 +94,7 @@ beforeAll(async () => {
 });
 
 beforeEach(()=>{
- docs=[];fault=null;lostConfirmation=false;blocked=-1;mode='pass';userId=uid;usage=jest.fn();refund=jest.fn(async()=>({}));chart=jest.fn(async()=>({planets:{Moon:10}}));
+ docs=[];fault=null;lostConfirmation=false;blocked=-1;mode='pass';userId=uid;usage=jest.fn();refund=jest.fn(async()=>({}));passReceipt=false;passRefund=jest.fn(async()=>({refunded:true}));chart=jest.fn(async()=>({planets:{Moon:10}}));
  provider=jest.fn(async(_env,prompt,options)=>{expect(options.timeoutMs).toBe(45000);expect(options.fallbackToWorkersAI).toBe(false);const section=definitions.find(row=>prompt.includes(`[이 장: ${row.title}]`));const identity=docs[0].factSummary.identity;return{ok:true,provider:'gemini',model:'fixture',text:JSON.stringify({keyInsight:section.title,vedicEvidence:identity.nakshatraKo+'의 실제 계산값',sukuyoEvidence:identity.sukuyoKo+'의 실제 계산값',body:prose(section.title.replace(/[?!]/g,""),section.minChars+100)})}});
  fetchBlock=jest.spyOn(globalThis,'fetch').mockImplementation(()=>{throw new Error('External fetch blocked')});
 });
@@ -170,7 +171,8 @@ it('rejects another account without provider calls',async()=>{await start();user
 for(const source of [0,1,2,3])it(`rejects revoked evidence source ${source}`,async()=>{await start();blocked=source;expect((await batch()).status).toBe(402);expect(provider).toHaveBeenCalledTimes(4);expect(usage).not.toHaveBeenCalled()});
 it('concurrent retries share one wave',async()=>{await start();const responses=await Promise.all([batch(),batch()]);expect(responses.map(r=>r.status)).toEqual([202,202]);expect(provider).toHaveBeenCalledTimes(8);expect(docs[0].sections).toHaveLength(8)});
 it('keeps successful siblings when one checkpoint is unavailable',async()=>{fault={chapterCount:1,kind:'null'};expect((await start()).status).toBe(503);expect(docs[0].sections).toHaveLength(3);expect(refund).not.toHaveBeenCalled();await batch();await batch();expect(docs[0].status).toBe('completed');expect(provider).toHaveBeenCalledTimes(10)});
-it('does not complete or consume for short output',async()=>{provider.mockImplementation(async()=>({ok:true,text:JSON.stringify({keyInsight:'짧음',body:'짧은 결과',vedicEvidence:'근거',sukuyoEvidence:'근거'})}));expect((await start()).status).toBe(202);expect(docs[0].sections).toHaveLength(0);expect((await batch()).status).toBe(202);expect((await batch()).status).toBe(503);expect(provider).toHaveBeenCalledTimes(8);expect(usage).not.toHaveBeenCalled()});
+it('does not complete or consume for short output',async()=>{provider.mockImplementation(async()=>({ok:true,text:JSON.stringify({keyInsight:'짧음',body:'짧은 결과',vedicEvidence:'근거',sukuyoEvidence:'근거'})}));expect((await start()).status).toBe(202);expect(docs[0].sections).toHaveLength(0);expect((await batch()).status).toBe(202);expect((await batch()).status).toBe(503);expect(provider).toHaveBeenCalledTimes(8);expect(usage).not.toHaveBeenCalled();expect(passRefund).not.toHaveBeenCalled()});
+it('restores a pass pre-deducted at checkout when short output exhausts attempts',async()=>{passReceipt=true;provider.mockImplementation(async()=>({ok:true,text:JSON.stringify({keyInsight:'짧음',body:'짧은 결과',vedicEvidence:'근거',sukuyoEvidence:'근거'})}));await start();await batch();expect((await batch()).status).toBe(503);expect(passRefund).toHaveBeenCalledTimes(1);expect(passRefund.mock.calls[0][0]).toMatchObject({featureKey:'nakshatra-ai-consultation',requestId:'original-paid-request'})});
 it('does not replace historical short completed results',async()=>{await start();docs[0].status='completed';docs[0].decks={sukuyo:[{body:'과거 결과'}]};docs[0].totalCharCount=5;mode='none';expect((await read()).status).toBe(200);expect((await batch()).status).toBe(200);expect(provider).toHaveBeenCalledTimes(4)});
 it('delivers saved result when usage bookkeeping fails',async()=>{await start();await batch();usage.mockImplementation(()=>{throw new Error('bookkeeping unavailable')});expect((await batch()).status).toBe(200);expect(docs[0].status).toBe('completed');expect(refund).not.toHaveBeenCalled()});
 it('retries only the chapter with contradictory calculated evidence',async()=>{const normal=provider.getMockImplementation();provider.mockImplementationOnce(async(...args)=>{const result=await normal(...args);const value=JSON.parse(result.text);value.vedicEvidence='잘못된 별자리';return{...result,text:JSON.stringify(value)}});await start();expect(docs[0].sections).toHaveLength(3);await batch();await batch();expect(docs[0].status).toBe('completed');expect(provider).toHaveBeenCalledTimes(10)});

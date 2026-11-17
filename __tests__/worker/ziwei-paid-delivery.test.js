@@ -3,7 +3,7 @@ import { jest } from "@jest/globals";
 
 const uid = "64b7f2a1c3d4e5f601234567";
 const body = { name: "검사", gender: "female", birthDate: "1993-07-21", birthTime: "09:00", birthPlace: { city: "서울", country: "KR", latitude: 37.5665, longitude: 126.978, timezone: "Asia/Seoul" }, topic: "전체 명반 해석", calendarType: "solar", focusArea: "overall", accessType: "pass" };
-let utils, route, docs, provider, chart, fault, blocked, mode, userId, usage, refund, fetchBlock, lostConfirmation;
+let utils, route, docs, provider, chart, fault, blocked, mode, userId, usage, refund, fetchBlock, lostConfirmation, passRefund;
 const clone = value => value == null ? value : structuredClone(value);
 function query(value) { const result = Promise.resolve(value); result.lean = async () => clone(value); result.select = result.sort = () => result; return result; }
 function matches(doc, filter) {
@@ -65,7 +65,8 @@ beforeAll(async () => {
     MonthlyCreditLedger: { findOne: () => query(blocked === 3 ? {} : null), updateOne: (...args) => refund(...args) },
   }));
   jest.unstable_mockModule("../../worker/lib/entitlement-policy.js", () => ({ ...entitlement, resolveFeatureAccessPolicy: () => ({ allowed: mode === "pass", accessType: "pass" }) }));
-  jest.unstable_mockModule("../../worker/lib/pass-consumption.js", () => ({ consumePassForFeature: async (...args) => { usage(...args); return { covered: true }; }, passDenialCode: () => "" }));
+  jest.unstable_mockModule("../../worker/lib/pass-consumption.js", () => ({ consumePassForFeature: async (...args) => { usage(...args); return { covered: true }; }, passDenialCode: () => "",
+    refundPassUseEvidence: (...args) => passRefund(...args) }));
   jest.unstable_mockModule("../../worker/lib/portone.js", () => ({ fetchPortOnePayment: () => { throw new Error("PG blocked"); }, getPortOnePublicConfig: () => { throw new Error("PG blocked"); }, getPortOneConfig: () => { throw new Error("PG blocked"); } }));
   jest.unstable_mockModule("../../worker/lib/moonstone-spend-proof.js", () => ({ findMoonstoneSpendEvidence: async () => mode === "monthly" ? { ledgerId: uid } : null }));
   jest.unstable_mockModule("../../worker/lib/structured-consultation.js", () => ({ ...structured, callGeminiJsonWithRetry: (...args) => provider(...args) }));
@@ -76,7 +77,7 @@ beforeAll(async () => {
   ({ handleZiweiAiRoutes: route, __ziweiAiTestUtils: utils } = await import("../../worker/routes/ziwei-ai.js"));
 });
 beforeEach(() => {
-  docs = []; fault = null; lostConfirmation = false; blocked = -1; mode = "pass"; userId = uid; usage = jest.fn(); refund = jest.fn(async () => ({}));
+  docs = []; fault = null; lostConfirmation = false; blocked = -1; mode = "pass"; userId = uid; usage = jest.fn(); refund = jest.fn(async () => ({})); passRefund = jest.fn(async () => ({ refunded: true }));
   provider = jest.fn(async (_env, _prompt, options) => {
     expect(options.attempts).toBe(1); expect(options.timeoutMs).toBeLessThanOrEqual(45000); expect(options.fallbackToWorkersAI).toBe(false);
     const group = utils.SECTION_GROUP_SPECS.find(group => group.id === options.logContext.sectionGroup);
@@ -109,6 +110,9 @@ it("unusable groups consume only two attempts and cannot become completed", asyn
   provider.mockImplementation(async () => ({ ok: true, text: JSON.stringify({ sections: {} }) }));
   expect((await start()).status).toBe(202); expect((await start()).status).toBe(503);
   expect(docs[0].status).toBe("generation_failed"); expect(usage).not.toHaveBeenCalled(); expect((await start()).status).toBe(409); expect(provider).toHaveBeenCalledTimes(2);
+  // 결제 화면에서 미리 차감한 이용권은 같은 (기능, requestId) 증빙으로 한 번 되돌린다(코인으로 환급하지 않는다).
+  expect(passRefund).toHaveBeenCalledTimes(1);
+  expect(passRefund.mock.calls[0][0]).toMatchObject({ featureKey: "ziwei-ai-consultation", requestId: "original-paid-request" });
 });
 for (const store of [0, 1, 2, 3]) it(`revoked evidence ${store} stops even a pass fallback`, async () => {
   await start(); const calls = provider.mock.calls.length; blocked = store;

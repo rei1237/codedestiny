@@ -486,9 +486,26 @@ export async function runCoinRefund({ env, userId, featureKey, sourceTransaction
  */
 async function runPassQuotaRefund({ userId, executionId, execution }) {
   const passRefund = execution?.metadata?.passRefund;
-  const cost = Math.max(0, Math.floor(Number(passRefund?.cost) || 0));
-  const cycleKey = cleanMetadataText(passRefund?.cycleKey, 160);
-  if (!userId || cost <= 0 || !cycleKey) {
+  let cost = Math.max(0, Math.floor(Number(passRefund?.cost) || 0));
+  let cycleKey = cleanMetadataText(passRefund?.cycleKey, 160);
+  const featureKey = cleanMetadataText(execution?.featureKey, 120);
+  const requestId = cleanMetadataText(execution?.idempotencyKey, 180);
+  if (!userId) return { refunded: false, skipped: true };
+  // passRefund 를 싣지 않은 실행(결제 화면 pass-check 가 먼저 차감한 경로)은 같은 (기능, requestId) 의
+  // 이용권 사용 증빙에서 금액·사이클을 읽는다. 증빙이 없거나 이미 환불됐으면 되돌릴 차감이 없다.
+  if ((cost <= 0 || !cycleKey) && featureKey && requestId && !featureKey.startsWith("yeongnyangi-")) {
+    const { passUsageEvidenceId } = await import("../payments/passes.js");
+    const evidenceId = passUsageEvidenceId(userId, featureKey, requestId);
+    const evidence = evidenceId ? await refundModels.PointHistory.findOne({ _id: evidenceId, featureKey,
+      "metadata.refundedForServiceExecution": { $ne: true } }).lean() : null;
+    const meta = evidence?.metadata || {};
+    if (evidence && Number(evidence.delta || 0) === 0 && ["PASS", "FAMILY"].includes(String(meta.accessMethod || "").toUpperCase())
+      && meta.passBudgetExempt !== true) {
+      cost = Math.max(0, Math.floor(Number(meta.coinCost) || 0));
+      cycleKey = cleanMetadataText(meta.passCycleKey, 160);
+    }
+  }
+  if (cost <= 0 || !cycleKey) {
     return { refunded: false, skipped: true };
   }
   // 멱등: 재시도로 이 함수가 다시 불려도 두 번 복구하지 않는다.
@@ -496,8 +513,6 @@ async function runPassQuotaRefund({ userId, executionId, execution }) {
     return { refunded: true, idempotent: true, amount: cost };
   }
 
-  const featureKey = cleanMetadataText(execution?.featureKey, 120);
-  const requestId = cleanMetadataText(execution?.idempotencyKey, 180);
   if (!featureKey || !requestId) return { refunded: false, skipped: true, reason: "PASS_SOURCE_REVIEW_REQUIRED", adminReviewRequired: true };
   const { passUsageEvidenceId } = await import("../payments/passes.js");
   const sourcePointHistoryId = passUsageEvidenceId(userId, featureKey, requestId);

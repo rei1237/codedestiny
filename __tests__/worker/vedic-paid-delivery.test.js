@@ -3,7 +3,7 @@ import { jest } from "@jest/globals";
 
 const uid = "64b7f2a1c3d4e5f601234567";
 const body = { name: "검사", gender: "female", birthDate: "1993-07-21", birthTime: "09:00", birthPlace: { city: "서울", country: "KR", latitude: 37.5665, longitude: 126.978, timezone: "Asia/Seoul" }, topic: "전체 흐름", calendarType: "solar", focusArea: "overall", accessType: "pass" };
-let utils, route, docs, provider, chart, fault, blocked, mode, userId, usage, refund, fetchBlock, lostConfirmation;
+let utils, route, docs, provider, chart, fault, blocked, mode, userId, usage, refund, fetchBlock, lostConfirmation, passReceipt, passRefund;
 const clone = value => value == null ? value : structuredClone(value);
 function query(value) { const result = Promise.resolve(value); result.lean = async () => clone(value); result.select = result.sort = () => result; return result; }
 function matches(doc, filter) {
@@ -51,7 +51,8 @@ function prose(seed, length) {
 beforeAll(async () => {
   const pass = await import("../../worker/lib/pass-consumption.js");
   jest.unstable_mockModule("../../worker/lib/pass-consumption.js", () => ({ ...pass,
-    consumePassForFeature: async () => ({ covered: true }), hasConsumedPassFeature: async () => false }));
+    consumePassForFeature: async () => ({ covered: true }), hasConsumedPassFeature: async () => passReceipt,
+    refundPassUseEvidence: (...args) => passRefund(...args) }));
   const db = await import("../../worker/lib/db.js");
   const auth = await import("../../worker/lib/auth.js");
   const models = await import("../../worker/lib/models.js");
@@ -76,7 +77,7 @@ beforeAll(async () => {
   ({ handleVedicAiRoutes: route, __vedicAiTestUtils: utils } = await import("../../worker/routes/vedic-ai.js"));
 });
 beforeEach(() => {
-  docs = []; fault = null; lostConfirmation = false; blocked = -1; mode = "pass"; userId = uid; usage = jest.fn(); refund = jest.fn(async () => ({}));
+  docs = []; fault = null; lostConfirmation = false; blocked = -1; mode = "pass"; userId = uid; usage = jest.fn(); refund = jest.fn(async () => ({})); passReceipt = false; passRefund = jest.fn(async () => ({ refunded: true }));
   provider = jest.fn(async (_env, _prompt, options) => {
     expect(options.attempts).toBe(1); expect(options.timeoutMs).toBeLessThanOrEqual(45000); expect(options.fallbackToWorkersAI).toBe(false);
     const group = utils.VEDIC_SECTION_GROUPS.find(group => group.key === options.logContext.group);
@@ -171,6 +172,20 @@ for (const paid of ["pass", "monthly"]) it(`${paid}: does not attempt a card ref
   for (let i = 0; i < 2; i++) expect((await start()).status).toBe(202);
   expect((await start()).status).toBe(503);
   expect(refund).not.toHaveBeenCalled();
+});
+it("restores a pass pre-deducted at checkout once quality attempts are exhausted", async () => {
+  passReceipt = true;
+  provider.mockImplementation(async () => ({ ok: true, text: "짧은 결과", provider: "gemini" }));
+  for (let i = 0; i < 2; i++) expect((await start()).status).toBe(202);
+  expect((await start()).status).toBe(503);
+  expect(passRefund).toHaveBeenCalledTimes(1);
+  expect(passRefund.mock.calls[0][0]).toMatchObject({ userId: uid, featureKey: "vedic-ai-consultation", requestId: "original-paid-request" });
+  expect(refund).not.toHaveBeenCalled();
+});
+it("does not restore a pass when access came from the live entitlement (no checkout deduction)", async () => {
+  provider.mockImplementation(async () => ({ ok: true, text: "짧은 결과", provider: "gemini" }));
+  for (let i = 0; i < 3; i++) await start();
+  expect(passRefund).not.toHaveBeenCalled();
 });
 it("rechecks cancellation after generation and before completing delivery", async () => {
   for (let i = 0; i < 4; i++) await start();

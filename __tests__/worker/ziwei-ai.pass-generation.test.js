@@ -255,6 +255,7 @@ beforeAll(async () => {
   jest.unstable_mockModule("../../worker/lib/pass-consumption.js", () => ({
     consumePassForFeature: (...args) => consumePassForFeatureMock(...args),
     passDenialCode: jest.fn(() => ""),
+    refundPassUseEvidence: jest.fn(async () => ({ refunded: false, skipped: true })),
   }));
   jest.unstable_mockModule("../../worker/lib/portone.js", () => ({
     fetchPortOnePayment: (...args) => fetchPortOnePaymentMock(...args),

@@ -8,7 +8,7 @@ jest.unstable_mockModule('../../worker/lib/sync-llm-timeout.js', () => ({ ...tim
 
 const uid = "64b7f2a1c3d4e5f601234567";
 const body = { name: "검사", gender: "female", birthDate: "1993-07-21", birthTime: "09:00", birthPlace: { city: "서울", country: "KR", latitude: 37.5665, longitude: 126.978, timezone: "Asia/Seoul" }, topic: "전체 차트 해석" };
-let route, docs, provider, chart, fault, blocked, mode, userId, usage, refund, fetchBlock, lostConfirmation;
+let route, docs, provider, chart, fault, blocked, mode, userId, usage, refund, fetchBlock, lostConfirmation, passReceipt, passRefund;
 const clone = value => value == null ? value : structuredClone(value);
 function query(value) { const result = Promise.resolve(value); result.lean = async () => clone(value); result.select = result.sort = () => result; return result; }
 function matches(doc, filter) {
@@ -55,7 +55,8 @@ function prose(seed, length = 3650) {
 beforeAll(async () => {
   const pass = await import("../../worker/lib/pass-consumption.js");
   jest.unstable_mockModule("../../worker/lib/pass-consumption.js", () => ({ ...pass,
-    consumePassForFeature: async () => ({ covered: true }), hasConsumedPassFeature: async () => false }));
+    consumePassForFeature: async () => ({ covered: true }), hasConsumedPassFeature: async () => passReceipt,
+    refundPassUseEvidence: async (...args) => passRefund(...args) }));
   const db = await import("../../worker/lib/db.js");
   const auth = await import("../../worker/lib/auth.js");
   const models = await import("../../worker/lib/models.js");
@@ -81,7 +82,7 @@ beforeAll(async () => {
   ({ handleAstrologyAiRoutes: route } = await import("../../worker/routes/astrology-ai.js"));
 });
 beforeEach(() => {
-  docs = []; fault = null; lostConfirmation = false; blocked = -1; mode = "pass"; userId = uid; usage = jest.fn(); refund = jest.fn(async () => ({}));
+  docs = []; fault = null; lostConfirmation = false; blocked = -1; mode = "pass"; userId = uid; usage = jest.fn(); refund = jest.fn(async () => ({})); passReceipt = false; passRefund = jest.fn(async () => ({ refunded: true }));
   let count = 0;
   provider = jest.fn(async (_env, _prompt, options) => {
     expect(options.attempts).toBe(1); expect(options.timeoutMs).toBeLessThanOrEqual(45000);
@@ -126,6 +127,15 @@ it("stops after two unusable section attempts", async () => {
   for (let i = 0; i < 2; i++) expect((await start()).status).toBe(202);
   expect((await start()).status).toBe(503); expect(provider).toHaveBeenCalledTimes(4);
   expect((await start()).status).toBe(409);
+  expect(passRefund).not.toHaveBeenCalled();
+});
+it("restores a pass pre-deducted at checkout when generation fails", async () => {
+  passReceipt = true;
+  provider.mockImplementation(async () => ({ ok: true, text: "짧은 결과", provider: "gemini" }));
+  for (let i = 0; i < 2; i++) await start();
+  expect((await start()).status).toBe(503);
+  expect(passRefund).toHaveBeenCalledTimes(1);
+  expect(passRefund.mock.calls[0][0]).toMatchObject({ featureKey: "astrology-ai-consultation", requestId: "original-paid-request" });
 });
 for (const index of [0, 1, 2, 3]) it(`rejects revoked proof source ${index}`, async () => {
   await start(); blocked = index;

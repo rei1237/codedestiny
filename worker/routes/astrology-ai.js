@@ -23,7 +23,7 @@ import {
 } from "../lib/models.js";
 import { findMoonstoneSpendEvidence } from "../lib/moonstone-spend-proof.js";
 import { resolveCanonicalEntitlement } from "../lib/entitlement-policy.js";
-import { consumePassForFeature, hasConsumedPassFeature, passDenialCode } from "../lib/pass-consumption.js";
+import { consumePassForFeature, hasConsumedPassFeature, passDenialCode, refundPassUseEvidence } from "../lib/pass-consumption.js";
 import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
 import { canAccessPaidFeature, PAID_FEATURE_ACCESS_USER_PROJECTION } from "../lib/paid-feature-access.js";
@@ -1925,6 +1925,9 @@ async function handleStart(request, env, _routeContext = null, recoveryAuth = nu
     await saveAstrologyDelivery(locked, { status: "generation_failed", generationError: { code: clean(error?.code || "GENERATION_FAILED", 80) } }, sessionId);
     if(!nativeTossContext(request)) await releaseRequestBillingEvidence(env, { userId: clean(auth.userId), requestId: idempotencyKey, evidenceIds });
     if(!nativeTossContext(request)) await failRefundableExecution(env, auth, idempotencyKey, sessionId, error);
+    // 결제 화면 pass-check 가 미리 차감한 이용권은 실행 문서가 없다 — 같은 (기능, requestId) 증빙으로 되돌린다.
+    if(!nativeTossContext(request) && access?.source === "pass-receipt") await refundPassUseEvidence({ userId: auth.userId, featureKey: FEATURE_KEY, requestId: idempotencyKey, refundId: `astrology-ai:${idempotencyKey}` })
+      .catch(refundError => console.error("[astrology-ai] pass refund failed", { message: clean(refundError?.message || refundError, 300) }));
     const refund = nativeTossContext(request) ? {refunded:false} : await refundCardPaymentOnFailure(env, auth, access, error);
     const calculationError = clean(error?.code).startsWith("ASTRO_") || Number(error?.status) === 400;
     return json({ ok: false, reason: calculationError ? "CALCULATION_ERROR" : "LLM_ERROR", message: refund.refunded ? CARD_REFUNDED_MESSAGE : calculationError ? CALCULATION_ERROR_MESSAGE : LLM_ERROR_MESSAGE }, { status: calculationError ? 422 : 503 });

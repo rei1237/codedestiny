@@ -208,3 +208,60 @@ describe("환불 뒤 같은 requestId 재시도는 무료 재생이 아니라 �
     expect(user.profileSubscription.monthlySpendCoin).toBe(0);
   });
 });
+
+describe("refundPassUseEvidence — 결제 화면 pass-check 가 미리 차감한 이용권을 생성 실패 때 되돌린다", () => {
+  const FEATURE = "vedic-ai-consultation";
+  const REQUEST = "pass-check-request";
+  let consumePassForFeature, refundPassUseEvidence;
+  beforeAll(async () => {
+    ({ consumePassForFeature, refundPassUseEvidence } = await import("../../worker/lib/pass-consumption.js"));
+  });
+  function seedConsumed(db) {
+    const at = new Date(Date.now() + 10 * 86_400_000);
+    const user = { _id: USER, recentConsumeRequestIds: [], profileSubscription: { tier: "family", passTier: "family",
+      isActive: true, expiresAt: at, premiumUseCycleKey: at.toISOString(), monthlySpendCoin: 0, monthlyLimitCoin: 0 } };
+    db.rows.push(user);
+    const entitlement = { tier: "family", passTier: "family", isActive: true, expiresAt: at };
+    return { user, at, consume: () => consumePassForFeature({ db, user, entitlement, userId: USER,
+      featureKey: FEATURE, requestId: REQUEST, coinCost: 300 }) };
+  }
+
+  test("증빙의 금액·사이클로 한 번만 되돌리고, 다시 불러도 두 번 되돌리지 않는다", async () => {
+    const db = makeFakePaymentDb();
+    const { user, consume } = seedConsumed(db);
+    await consume();
+    expect(user.profileSubscription.monthlySpendCoin).toBe(300);
+
+    expect(await refundPassUseEvidence({ db, userId: USER, featureKey: FEATURE, requestId: REQUEST }))
+      .toMatchObject({ refunded: true, amount: 300 });
+    expect(user.profileSubscription.monthlySpendCoin).toBe(0);
+    expect(user.recentConsumeRequestIds).not.toContain(`tier-pass:${FEATURE}:${REQUEST}`);
+    expect(await refundPassUseEvidence({ db, userId: USER, featureKey: FEATURE, requestId: REQUEST }))
+      .toMatchObject({ refunded: false, skipped: true });
+    expect(user.profileSubscription.monthlySpendCoin).toBe(0);
+  });
+
+  test("다른 영수증 id 의 (기능, requestId) 환불이 먼저 되돌렸으면 건너뛴다(이중 환불 없음)", async () => {
+    const db = makeFakePaymentDb();
+    const { user, at, consume } = seedConsumed(db);
+    await consume();
+    await consume(); // 다른 요청이 같은 사이클 사용액을 올려 둔다 — 이중 환불이면 0 아래로 내려간다.
+    user.profileSubscription.monthlySpendCoin = 600;
+    await refundPassCoverage({ db, userId: USER, cycleKey: at.toISOString(), cost: 300, refundId: `route:${REQUEST}`,
+      sourceFeatureKey: FEATURE, sourceRequestId: REQUEST });
+    expect(await refundPassUseEvidence({ db, userId: USER, featureKey: FEATURE, requestId: REQUEST }))
+      .toMatchObject({ refunded: false, skipped: true });
+    expect(await refundPassCoverage({ db, userId: USER, cycleKey: at.toISOString(), cost: 300, refundId: `other:${REQUEST}`,
+      sourceFeatureKey: FEATURE, sourceRequestId: REQUEST })).toMatchObject({ refunded: false, reason: "PASS_EVIDENCE_ALREADY_REFUNDED" });
+    expect(user.profileSubscription.monthlySpendCoin).toBe(300);
+  });
+
+  test("이용권 증빙이 없으면(코인·카드 결제) 아무것도 건드리지 않는다", async () => {
+    const db = makeFakePaymentDb();
+    const { user } = seedConsumed(db);
+    user.profileSubscription.monthlySpendCoin = 300;
+    expect(await refundPassUseEvidence({ db, userId: USER, featureKey: FEATURE, requestId: "card-paid" }))
+      .toMatchObject({ refunded: false, skipped: true, reason: "PASS_EVIDENCE_NOT_FOUND" });
+    expect(user.profileSubscription.monthlySpendCoin).toBe(300);
+  });
+});

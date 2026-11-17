@@ -19,7 +19,7 @@ import { findMoonstoneSpendEvidence } from "../lib/moonstone-spend-proof.js";
 import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
 import { normalizeConsultAccessType, resolveCanonicalEntitlement, resolveFeatureAccessPolicy } from "../lib/entitlement-policy.js";
-import { consumePassForFeature, passDenialCode } from "../lib/pass-consumption.js";
+import { consumePassForFeature, passDenialCode, refundPassUseEvidence } from "../lib/pass-consumption.js";
 import { callGeminiText } from "../lib/gemini.js";
 import { deliverExpertFollowUp, recoverSavedExpertFollowUps, expertFollowUpNarrativeAdapter } from '../lib/expert-follow-up-delivery.js';
 import { compactFollowupMessages } from '../lib/followup-context.js';
@@ -2877,6 +2877,7 @@ async function handleStart(request, env, recoveryAuth = null) {
       },
     ).catch(() => {});
     if (!nativeTossContext(request)) await releaseRequestBillingEvidence(env, { userId: clean(auth.userId), requestId: idempotencyKey, evidenceIds });
+    if (!nativeTossContext(request)) await restoreCheckoutPassOnFailure(auth, idempotencyKey);
     logKarmaAi("LLM Error", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: access.accessType, env, error }), "error");
     if (access.deferredUsage) {
       await cancelDeferredUsageIfNeeded({
@@ -3123,10 +3124,18 @@ async function handleGenerateBatch(request, env, recoveryAuth = null) {
     consultation = await saveKarmaDelivery(filter, { status: "generation_failed", generationError: { code: clean(error?.code || "LLM_FAILED", 80), message: clean(error?.message, 500) } }, consultation.id);
     if (!nativeTossContext(request)) await releaseRequestBillingEvidence(env, { userId: clean(auth.userId), requestId: clean(consultation.idempotencyKey || consultation.attemptId, 180), evidenceIds: startEvidenceIds(consultation) });
     await cancelDeferredUsageIfNeeded({ request, env, auth, consultation, error });
+    if (!nativeTossContext(request)) await restoreCheckoutPassOnFailure(auth, clean(consultation.idempotencyKey, 180));
     return json({ ok: false, reason: "LLM_ERROR", message: LLM_ERROR_MESSAGE }, { status: 503 });
   } finally {
     await KarmaDestinyAiConsultation.updateOne({ ...owner, "generationProgress.lockToken": lockToken }, { $set: { "generationProgress.lockToken": "", "generationProgress.lockedAt": null } }).catch(() => {});
   }
+}
+
+// 결제 화면 pass-check 가 미리 차감한 이용권을 생성 실패 때 되돌린다. 증빙이 없으면(코인·카드·미차감) 아무것도 하지 않는다.
+async function restoreCheckoutPassOnFailure(auth, requestId) {
+  if (!requestId) return;
+  await refundPassUseEvidence({ userId: auth.userId, featureKey: FEATURE_KEY, requestId, refundId: `karma-destiny-ai:${requestId}` })
+    .catch(error => logKarmaAi("LLM Refund Or Restore", { requestId, passRefundError: clean(error?.message, 200) }, "warn"));
 }
 
 async function handleResult(request, env, path) {

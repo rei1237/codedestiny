@@ -22,7 +22,7 @@ import { autoRefundSinglePaymentDeliveryFailure } from "../lib/payment-refund.js
 import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
 import { normalizeConsultAccessType, resolveCanonicalEntitlement, resolveFeatureAccessPolicy } from "../lib/entitlement-policy.js";
-import { consumePassForFeature, hasConsumedPassFeature, passDenialCode } from "../lib/pass-consumption.js";
+import { consumePassForFeature, hasConsumedPassFeature, passDenialCode, refundPassUseEvidence } from "../lib/pass-consumption.js";
 import { cmsPromptModelConfig, cmsPromptText } from "../lib/cms-prompts.js";
 import { tokensRequiredForChars } from "../lib/llm-budget.js";
 import { callGeminiJsonWithRetry } from "../lib/structured-consultation.js";
@@ -710,6 +710,11 @@ async function restorePrepaidAccessOnFailure({ userId, access = {}, idempotencyK
   const now = new Date();
 
   try {
+    // 결제 화면 pass-check 가 미리 차감한 이용권: 같은 (기능, requestId) 의 사용 증빙으로 한도를 되돌린다.
+    if (evidenceType === "pass" && access.source === "pass-receipt") {
+      const result = await refundPassUseEvidence({ userId, featureKey: FEATURE_KEY, requestId: idempotencyKey, refundId: `vedic-ai:${idempotencyKey}` });
+      return result?.refunded === true;
+    }
     if (evidenceType === "coin" && mongoose.Types.ObjectId.isValid(evidenceId)) {
       const history = await PointHistory.findOne({
         _id: new mongoose.Types.ObjectId(evidenceId),

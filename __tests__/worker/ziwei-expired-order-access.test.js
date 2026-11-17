@@ -71,7 +71,8 @@ beforeAll(async () => {
   jest.unstable_mockModule("../../worker/lib/models.js", () => ({ ...models, ZiweiAiConsultation: consultations, ZiweiCalculationPreparation: { findById: () => query(null) }, Payment: collection(() => payments),
     User: { findById: () => query({ _id: uid, role: "user" }), updateOne: (...args) => refund(...args) }, PaidExecutionRecord: none, PointHistory: none, MonthlyCreditLedger: none }));
   jest.unstable_mockModule("../../worker/lib/entitlement-policy.js", () => ({ ...entitlement, resolveFeatureAccessPolicy: () => ({ allowed: false }) }));
-  jest.unstable_mockModule("../../worker/lib/pass-consumption.js", () => ({ consumePassForFeature: async () => ({ covered: false }), passDenialCode: () => "PASS_NOT_EXPECTED" }));
+  jest.unstable_mockModule("../../worker/lib/pass-consumption.js", () => ({ consumePassForFeature: async () => ({ covered: false }), passDenialCode: () => "PASS_NOT_EXPECTED",
+    refundPassUseEvidence: async () => ({ refunded: false, skipped: true }) }));
   jest.unstable_mockModule("../../worker/lib/portone.js", () => ({ fetchPortOnePayment: () => { throw new Error("PG blocked"); }, getPortOnePublicConfig: () => { throw new Error("PG blocked"); }, getPortOneConfig: () => { throw new Error("PG blocked"); } }));
   jest.unstable_mockModule("../../worker/lib/moonstone-spend-proof.js", () => ({ findMoonstoneSpendEvidence: async () => null }));
   jest.unstable_mockModule("../../worker/lib/structured-consultation.js", () => ({ ...structured, callGeminiJsonWithRetry: (...args) => provider(...args) }));

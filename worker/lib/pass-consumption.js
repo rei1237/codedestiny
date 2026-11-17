@@ -315,6 +315,10 @@ export async function refundPassCoverage({ userId, cycleKey, cost, refundId, res
         'metadata.passQuotaRefundReceiptId': String(receiptId), 'metadata.refundedForServiceExecution': true }))) throw sourceFailure();
       return { refunded: true, idempotent: true, amount: receipt.metadata.amount };
     }
+    // (기능, requestId) 로 온 환불: 증빙이 이미 다른 영수증으로 환불됐으면 두 번 되돌리지 않는다.
+    if (evidenceId && evidence?.metadata?.refundedForServiceExecution === true) {
+      return { refunded: false, skipped: true, reason: "PASS_EVIDENCE_ALREADY_REFUNDED" };
+    }
     if (sourcePointHistoryId) {
       if (!sourceId) throw sourceFailure();
       const claimed = unwrapUser(await tx.findOneAndUpdate(PointHistory, { _id: sourceId, userId: uid, kind: 'deduct',
@@ -364,9 +368,11 @@ export async function refundPassCoverage({ userId, cycleKey, cost, refundId, res
     }
     // 행 id 없이 (기능, requestId) 로 온 환불도 증빙을 환불됨으로 표시한다 — 그래야 증빙 조회가 "이미 차감"으로 재생하지 않는다.
     if (evidenceId && evidence && evidence.metadata?.refundedForServiceExecution !== true) {
-      await tx.updateOne(PointHistory, { _id: evidenceId, userId: uid, 'metadata.refundedForServiceExecution': { $ne: true } },
+      const marked = await tx.findOneAndUpdate(PointHistory, { _id: evidenceId, userId: uid, 'metadata.refundedForServiceExecution': { $ne: true } },
         { $set: { 'metadata.refundedForServiceExecution': true, 'metadata.refundedAt': new Date(),
-          'metadata.passQuotaRefundReceiptId': String(receiptId) } });
+          'metadata.passQuotaRefundReceiptId': String(receiptId) } }, { returnDocument: 'after' });
+      // 동시에 다른 환불이 먼저 표시했다 — 이 트랜잭션의 한도 복원을 되돌려 이중 환불을 막는다.
+      if (!unwrapUser(marked)) throw sourceFailure();
     }
     // The durable receipt and quota restoration commit together. A lost response
     // or a later session-marker failure cannot restore another request's quota.
@@ -380,4 +386,29 @@ export async function refundPassCoverage({ userId, cycleKey, cost, refundId, res
   });
   if (result.refunded) invalidatePassUsageReadCaches(userId);
   return result;
+}
+
+/**
+ * 결제 화면 pass-check(/coin-gate/pass-check) 가 미리 차감한 이용권을, 라우트의 AI 생성이 실패했을 때 되돌린다.
+ * 금액·사이클은 같은 (기능, requestId) 의 사용 증빙에서 읽고, 환불은 refundPassCoverage 의 (기능, requestId)
+ * 경로 하나로 한다 — 증빙을 환불됨으로 표시하고 멱등 마커를 지우므로 다른 환불 경로와 겹쳐도 한 번만 되돌린다.
+ * 증빙이 없거나(이용권 미사용) 이미 환불됐거나 한도 차감이 없는 라이트 운세면 건너뛴다.
+ * 영냥이 기능은 자체 환불(repository.js)을 쓰므로 다루지 않는다.
+ *
+ * @returns {Promise<{refunded:boolean, skipped?:boolean, idempotent?:boolean, amount?:number, reason?:string}>}
+ */
+export async function refundPassUseEvidence({ userId, featureKey, requestId, refundId = "", db = nativeDb }) {
+  const key = String(featureKey || "");
+  const rid = String(requestId || "");
+  if (!userId || !key || !rid) return { refunded: false, skipped: true, reason: "PASS_SOURCE_MISSING" };
+  if (key.startsWith("yeongnyangi-")) return { refunded: false, skipped: true, reason: "YEONGNYANGI_OWN_REFUND" };
+  const { findPassUsageEvidence } = await loadPassPolicy();
+  const row = await findPassUsageEvidence(db, userId, key, rid);
+  const meta = row?.metadata || {};
+  if (!row || Number(row.delta || 0) !== 0 || !["PASS", "FAMILY"].includes(String(meta.accessMethod || "").toUpperCase())) {
+    return { refunded: false, skipped: true, reason: "PASS_EVIDENCE_NOT_FOUND" };
+  }
+  if (meta.passBudgetExempt === true) return { refunded: false, skipped: true, reason: "PASS_BUDGET_EXEMPT" };
+  return refundPassCoverage({ userId, cycleKey: meta.passCycleKey, cost: meta.coinCost, db,
+    refundId: refundId || `pass-use:${key}:${rid}`, sourceFeatureKey: key, sourceRequestId: rid });
 }

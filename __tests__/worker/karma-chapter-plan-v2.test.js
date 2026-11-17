@@ -58,7 +58,7 @@ function prose(seed, length) {
 beforeAll(async () => {
   const pass = await import("../../worker/lib/pass-consumption.js");
   jest.unstable_mockModule("../../worker/lib/pass-consumption.js", () => ({ ...pass,
-    consumePassForFeature: async () => ({ covered: true }) }));
+    consumePassForFeature: async () => ({ covered: true }), refundPassUseEvidence: async () => ({ refunded: false, skipped: true }) }));
   const db = await import("../../worker/lib/db.js");
   const auth = await import("../../worker/lib/auth.js");
   const models = await import("../../worker/lib/models.js");
