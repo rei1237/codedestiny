@@ -1,7 +1,7 @@
 ---
 status: in-progress
-updated: 2026-11-17
-next: 검증된 절 몰입 효과를 포함해 격리 워크트리에서 Android 60/1.0.60을 빌드하고, main CI 상태 확인 후 통합·push·새 CI 확인과 APK 검수·Play 내부 테스트 및 출시를 진행한다.
+updated: 2026-11-18
+next: 진행 중인 Gradle release60 빌드를 마치고 서명·자산·API36 에뮬레이터 APK 검수 후 Play 내부 테스트 및 프로덕션 심사를 제출한다. 코드 main push는 완료했으며 새 CI는 다음 push 또는 최종 보고 직전 한 번 확인한다.
 ---
 
 # 연화당 다각도 UI와 Android 출시 준비
@@ -10,6 +10,11 @@ next: 검증된 절 몰입 효과를 포함해 격리 워크트리에서 Android
 `D:\Development\code-destiny`에서 이 문서와 `docs/design/moonlit-lotus-views.md`, `docs/design/moonlit-lotus-android-release-plan.md`를 읽고 현재 git 상태를 확인한다. 미완료 검증은 아래 상태에 따라 이어간다. 다른 사용자의 `.claude/skills/fire-your-seo-agency/`는 별도 저장소이므로 보존한다.
 
 ## 지금 상태
+- **2026-11-18 출시 재개**: `handoff` 절차로 동일 워크트리를 이어받았다. 선행 main CI `44102846580`(cc15)은 success 확인 후 main을 `1c9fce81733ffc34147bf5db2120f457f2e2b894`로 FF, `check:pre-push` 통과, `git push origin main` 완료했다. 타인 미추적 `.claude/skills/fire-your-seo-agency/`는 보존했다.
+- **모바일 sync 완료**: `.tmp/ambient/mobile-sync-release60.log`, exit 0. 1,925 정적 화면 생성, 실제 번들 1,055 HTML의 결제 가드·보관함·기능 링크 검증 통과, Capacitor sync 완료. 새 풍경 27개 포함, 앞면 캐릭터 6시트는 1,080×1,080/각 270×270 프레임/alpha 유지. 결과·크롭 contact sheet는 `D:/Development/releases/codedestiny/1.0.60/verification/`에 보존한다.
+- **Gradle 진행 중**: `:app:bundleRelease :app:assembleRelease :app:testReleaseUnitTest`, versionCode 60/name 1.0.60. 첫 명령의 PowerShell 비인용 버전 인자가 `.0.60` task로 갈라져 실패했고, 전체 문자열 인자 배열로 정정했다. 실제 실행 로그는 `.tmp/ambient/gradle-release60-quoted.log`(세션 7961). sync 생성물의 `capacitor.settings.gradle`은 격리 정션 실제 경로를 가리키므로 빌드 완료 뒤 이 세션의 생성 변경 2개만 원복하고 커밋하지 않는다.
+- **native 준비**: own AVD `cd-temple-release60`/emulator-5556/PID37492 재시작 완료, API36 google_apis, airplane=1/wifi=0/data=0. 실제 release APK 검수는 에뮬레이터 증거이며 물리 실기기 검수로 기재하지 않는다. Play59 라이선스 보호를 우회하지 않는다. 간단한 adb UI 도구는 root `.tmp/android-temple-release/native60.mjs`(dump/tap/capture)다.
+- **Play 최신 변경**: taskSpace60 p2 초안17에 `1.0.60 · 달빛 연화당` 이름과 6개 언어 노트 저장 성공. AAB는 아직 없다. p3는 앱 콘텐츠의 조치됨 탭이며 완료 선언13개/주의 필요 없음. 프로덕션59에는 기존 edge-to-edge·폐기 API 경고2개가 보였으며 60 업로드 결과와 혼동하지 않는다. 새 browser scripts는 root `.tmp/android-temple-release/store-resume-11~21.mjs`다.
 - **흑월 긴급 수정 완료**: 공식 production 44100476082 success, 23:30:17 KST Pages·Worker 모두 d13cc7506 및 실제 흑월 번들 확인. 상세는 `heukwol-delivery-hotfix-2026-11-17.md`(done). Android 출시 우선 대기 조건은 해제됐다.
 - **몰입 효과 구현 완료**: 커밋 `879c38e17`, 정면 등불·연못 잔물결과 모든 시점 빛 입자 3개. 새 CSS/컴포넌트이며 최대 5개 transform/opacity 애니메이션(12~27초). 메뉴 `풍경 움직임`, 기존 가볍게 보기·reduced motion으로 제거, offscreen/visibility/pagehide에서 정지. 사진에서는 제외. 390/1440 × 3장소 시각 검수 통과, 360/430/가로 overflow 0. UI detector 0개. 참배/기록/인증/결제/noindex 경계 무변경.
 - **검증 완료**: 이 워크트리 `.tmp/ambient/check-fast.log`, check:fast 세션 32143 exit 0. 타입/lint·Node 5,203/5,203·Jest 479 suites/8,012 tests(기존 1 skipped)·정책·Worker dry-run 통과. `moonlit-scene-views` 5/5. 공식 mock 브라우저에서 CSS animation 5개가 pagehide 시 모두 paused, 복귀·가볍게 보기·사용자 끄기·reduced-motion·화면 밖 중지 확인.
