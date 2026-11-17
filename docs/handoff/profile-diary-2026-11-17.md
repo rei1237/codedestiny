@@ -1,79 +1,60 @@
 ---
 status: in-progress
 updated: 2026-11-17
-next: mock 브라우저의 새 프로필 페이지에서 캐릭터·꿀방울 정상 표시를 확인하고 화면 캡처와 독립 검토를 완료한다.
+next: 기존 main CI 실패가 해소된 원격 커밋인지 1회 확인하고, 정상일 때 로컬 main을 통합·pre-push 검증 후 push한다.
 ---
 
-# 프로필·꿀방울·달빛 다이어리 구현
+# 프로필·꿀방울·달빛 다이어리 전달
 
 ## 첫 행동
-- 작업 디렉터리 D:\Development\codedestiny-worktrees\profile-diary-20261117-074709 에서 이 문서와 .tmp/profile-diary-state.md를 읽는다.
-- 이어받을 때 handoff, impeccable, ego-browser 스킬을 따른다. 이미 승인된 계획을 재질문하지 않는다.
-- 기존 main 체크아웃 D:\Development\code-destiny 의 다른 세션 변경을 보존한다.
+- D:\Development\code-destiny 에서 이 문서를 읽고 현재 main의 추적 파일 변경과 origin/main을 확인한다. 이미 구현한 화면을 다시 설계하지 않는다.
+- 재개는 handoff 스킬을 사용한다. 기존 CI가 여전히 빨간 상태이면 그 위에 push하지 않는다.
 
 ## 지금 상태
-- 브랜치 wt/profile-diary-20261117-074709, 베이스 c4d928dd8628c8f38ca3e293419440094b32c6c1.
-- 마지막 구현 커밋 0b38ddf4ab462f6b222b0f2da287548c76afc910: feat(diary): add local recurring schedule model.
-- 다수의 프로필 UI/다이어리 UI/초안/테스트/캐시 참조/미러 변경은 아직 미커밋이며 전부 이 작업 소유다. git status와 diff로 확인한다.
-- main 에는 다른 세션 소유의 .claude/skills/fire-your-seo-agency/가 있으므로 삭제·커밋 금지.
-- push하지 않았다. 기준 main CI c4d928dd8은 이미 실패: https://github.com/rei1237/codedestiny/actions/runs/43973468383 .
-  원인은 홈의 기존 cdSignatureConsultPopup이 CI 클릭을 가림. 이 작업과 별개다. 빨간 main 위에 push하지 말고, 전달 직전에 원격 main이 새 커밋/초록 CI로 바뀌었는지 확인한다.
+- 구현과 mock 기능·시각 검수는 완료했고 로컬 main에 fast-forward 병합했다. PR은 없다.
+- 기준 원격 main: c4d928dd8628c8f38ca3e293419440094b32c6c1.
+- 주요 커밋: 0b38ddf4a(반복 모델), 66aa7c514(다이어리 UI/초안), 23ed6e79e(프로필/꿀방울/캐시·미러), 2d5f7455a(mock), 010955ffa(표면 문서).
+- 이 문서 갱신 전 마지막 커밋: 010955ffa. push하지 않았다.
+- main의 다른 세션 소유 .claude/skills/fire-your-seo-agency/는 보존했고 커밋하지 않았다.
+- 작업 워크트리와 wt/profile-diary-20261117-074709 브랜치는 로컬 main 병합 확인 후 배수했다. 저장소 removeWorktree의 baseRef=main 확인을 사용해 정션을 먼저 끊었으며 main node_modules는 유지했다.
 
 ## 승인 상태
 - 2026-11-17 사용자: "Please implement the plan."
-- 프로필 운세 이용 중심, 꿀방울 기존 사용처 연결 개선, 다이어리 월·주·일/반복 일정 일상 플래너, 현재 기기 저장 유지, 프로필에서 전체 화면 앱으로 열기까지 승인됨.
-- 실 LLM·실결제·운영 DB·프로덕션 승격 승인은 없다. 모든 검증은 mock만.
-- 최종은 한국어로 수정 파일/의도/유지 정책/검증 명령·결과/남은 확인을 보고한다.
+- 프로필 운세 이용 중심 개편, 기존 꿀방울 사용처 연결, 달빛 예화의 전체 화면 다이어리와 월·주·일/반복 일정/할 일/일기 개선을 승인했다.
+- 실 LLM·실결제·운영 DB·프로덕션 승격 승인은 없다. 모든 기능 검증은 로컬 mock이다.
 
 ## 작업 규칙과 함정
-- 큰 변경이므로 테스트 추가가 critical로 자동 승격된다. 공식 로컬 진입은 check:fast, 전체 lint/test/build를 임의로 반복하지 않는다.
-- sync:public은 생성 미러와 loader hash도 바꾼다. public 사본을 손으로 고치지 않는다.
-- js/destiny-profile.js를 바꾸면 독립 HTML 10개와 public 미러, app/_lib/billing-client.ts의 PAID_SERVICE_RUNTIME_SRC 상수,
-  scripts/verify-paid-gate-ui-regression.mjs의 핀 검사, config/payment-freeze.json 해시도 함께 갱신해야 한다.
-  현재 derivePinKey는 build-b272a0842522. 결제 파일은 URL 캐시 상수만 변경했고 정책·결제 로직은 변경하지 않았다.
-  핀 유도법은 scripts/verify-payment-choice-parity.mjs:783. freeze --update는 의도된 캐시 상수 변경에 한해 이미 실행했다.
-- npm run sitemap:generate 완료: 1086 URLs, 원장 879 중 유지873/갱신6. 캐시 참조 HTML 수정에 따른 요구된 lastmod 산출물이다.
-- ego-browser space 50, p1 다이어리(주 보기·일정 편집 중), p2 프로필(옛 fetch 주입 fixture가 실패 상태). p2의 fetch 가짜 주입을 고치려 반복하지 말 것.
-- mock API를 새로 확장했으므로 새 페이지(p3)를 열어 실제 mock 서버 응답으로 프로필을 확인하는 것이 다음 단계다.
-  own mock dev: exec session 68717, frontend http://127.0.0.1:22026 , API 22027. --watch로 mock API 코드 수정 시 서버 상태가 초기화된다.
-  테스트 로그인과 프로필을 /api/auth/login 및 /api/profile POST에 로컬로 seed하면 된다(health.mock 검증 후).
-  브라우저 인증 저장 키는 fortune_auth_token + fortune_auth_user (fortune_user가 아님).
-  새 page의 Page.addScriptToEvaluateOnNewDocument에는 fake auth 키와 fortune_api_base_url=location.origin만 넣으면 충분하다.
-- ego high-level snapshot/evaluate/click이 viewport를 데스크톱으로 재설정한다.
-  모바일 캡처는 page.cdp Emulation.setDeviceMetricsOverride → Runtime.evaluate(실측 innerWidth) → Page.captureScreenshot을 연속 사용한다.
-  Browser.getWindowForTarget은 "No web contents in the target"로 실패했으므로 재시도하지 않는다.
-- 초기 dev HMR 중 SSR 로딩 화면에서 effect가 실행되지 않았지만 한 번 reload 후 정상. 프로덕션 결함으로 단정하지 않는다.
-- 스크래치/스크린샷은 .tmp/에 둔다. 종료 시 own dev 세션 Ctrl-C, task.finish, own .tmp 파일 정리, 자기 워크트리 배수까지 한다.
-- 현재 컨텍스트의 visual_checker는 계획 이미지 검토만 완료했다. 구현 완료 시 fresh fork_turns=none의 독립 finish reviewer와 documenter가 필요하다(impeccable 지시).
+- 원격 기준 main CI가 이미 실패했다: https://github.com/rei1237/codedestiny/actions/runs/43973468383 .
+  c4d928dd8의 기존 홈 cdSignatureConsultPopup이 브라우저 검사 클릭을 가린다. 이번 변경의 회귀가 아니며 범위 밖이므로 수정하지 않았다. 최종 확인에서도 같은 실패였다.
+- 전달 시 이 실패가 해소됐는지 1회 확인한다. 새로운 origin/main이 있으면 로컬 main에 통합하고 관련 충돌·회귀를 검증한다. 실패한 main 위에 push하지 않는다. CI/스테이징 폴링 금지.
+- 런타임 최종 핀 build-3aef8b273ca0. billing-client.ts는 PAID_SERVICE_RUNTIME_SRC URL 상수만 바꿨고 같은 커밋의 payment-freeze 해시를 갱신했다. 정책·가격·결제 실행 로직은 그대로다.
+- 정적 소스 → sync:public 미러를 유지한다. 생성 결과·사이트맵 1086 URL·repo hygiene는 pre-push 검사를 통과했다.
+- 브라우저 자동화의 native date fill은 React change 미반영을 보였다. 날짜 세그먼트 ArrowUp 입력은 날짜/폼/실제 저장 모두 동기화됐다. 고정 하단바에 자동 스크롤된 클릭은 키보드 포커스/Enter로 확인했다. 이 도구 현상 때문에 CSS 보정이나 인증 우회를 추가하지 않았다.
 
-## 설계와 구현
-- 일반 프로필에서도 preview 조회/일주 스프라이트/오행을 표시. 펫 garden API는 my 진입만 유지.
-- 로딩/실패/프로필 보완/재시도 상태 분리. 늦은 응답은 소유자·연결 상태로 차단.
-- 재렌더 전에 live honey widget을 돌려놓는 cd:profile-card-before-render 이벤트. close 시도 위젯 복원보다 먼저 abort.
-- 프로필 카드 순서: 이름·캐릭터/프로필 바꾸기 → 운세 보기 → 출석·꿀방울 및 catalog 사용처 → 다이어리 → 성장/출생 정보.
-- 꿀방울 제안은 CdHoney.getCatalog/getState와 기존 확인·해금 경로만 사용. 실제 가격/보유량을 지어내지 않음.
-- 다이어리 기본 진입은 /diary/?from=profile, legacy embedded=true 모드는 보존.
-- 월·주·일 플래너, 일정 편집/종일/시간 범위/반복(일·선택요일 주·매월)/한 건·전체 수정삭제, 할 일 수정·날짜 이동.
-- 데이터는 기존 월 shard의 원본 anchor에 남음. date/endAt/allDay/note/repeat/exceptions 선택 필드. 반복은 화면 범위에서 계산.
-- 검색은 반복 series를 한 번, 편집된 occurrence를 별도로 인덱스. 생성 날짜가 반복 요일이 아니어도 실제 첫 발생일을 찾음.
-- 자동 저장는 600ms. boolean commit 성공 후에만 saved 표시. 실패 초안은 앱 메모리에 남고 재방문 시 복구하며 명시적 전체 삭제 시 recovery도 비움.
-- 계정 동기화/알림/외부 캘린더는 범위 밖. noindex 유지.
-- scripts/mock-dev-api.mjs에 character-preview와 honey catalog/attendance GET만 추가. 순수 계산/정본 카탈로그/지급 상수 사용,
-  spend와 attendance POST는 계속 501. 실제 DB/LLM/PG 폴백 없음.
+## 설계
+- 프로필 일주 preview를 일반 진입에서도 실행한다. 오래된 카드 요청과 실패/정보 부족/모듈 실패를 분리하고 재확인을 제공한다. 출생 미입력을 확정값으로 표시하지 않는다.
+- 기존 꿀방울 지갑 한 벌을 이동·복귀하고 카탈로그 가격과 실제 잔액으로 사용처/부족분을 표시한다. 서버 unlock만 소유로 표시하며 무료 접근 캠페인을 구매로 표시하지 않는다.
+- 프로필 기본 다이어리는 /diary/?from=profile 전체 화면이다. 셸 수명 동안 탭을 옮겨도 프로필 복귀 상태를 유지한다. embedded 책 모달은 opt-in 보조 경로로 남긴다.
+- 일정은 월주일, 시간/종일, 매일/선택요일 매주/매월, 종료일, 이번만/전체 편집·이동·삭제를 제공한다. 원본 날짜/ID를 유지하고 범위에서만 반복을 계산한다.
+- 할 일 수정/이동/완료, 여러 줄 일기, 날짜별 빠른 추가와 기존 검색/백업을 제공한다. 로컬 저장·noindex 유지, 계정 동기화·알림은 추가하지 않았다.
+- 초안 저장은 실제 쓰기 성공 이후에만 저장됨을 표시한다. 실패 글은 유지·재시도하며 앱 내 이동 복구는 메모리 전용이다. 새로고침 후 실패 글 복구를 약속하지 않는다.
+- 표면 정본: docs/design/profile-diary.md, .impeccable/surfaces/profile-diary.md. 전역 DESIGN/PRODUCT는 바꾸지 않았다.
 
-## 단계
-- [x] 버그 재현/계획·사용자 선택 확정
-- [x] 캐릭터·꿀방울·프로필 UI 구현
-- [x] 플래너 데이터 모델 및 테스트 (0b38ddf4a 커밋)
-- [x] 달력/일정/할 일/일기/초안/전체화면 연결
-- [x] targeted tests: 프로필15 → 추가 꿀방울2 포함6개 summary, planner8 + mock5=13, draft3, 기존 저장/백업/noindex/copy50 통과
-- [x] typecheck 1회와 관련 ESLint 통과(이후 작은 변경 있으므로 최종 gate 필요)
-- [x] check:fast의 paid gate 77개 통과
-- [ ] check:fast 전체 완료: 첫 실행 핀 실패→수정, 둘째 테스트 변수 module ESLint 실패→bundleModule/cardModule로 수정,
-      셋째 sitemap drift 실패→sitemap:generate 완료. 마지막 로그 .tmp/check-fast-pass.log. 다음 최종 실행은 --base=c4d928dd8628c8f38ca3e293419440094b32c6c1로 작업 전체 포함.
-- [ ] 프로필 mock 정상 표시, 월주일/편집/날짜 이동/빠른 추가/일기 저장 실제 조작 마무리
-- [ ] 360/390/430/1440 및 연이/네오 캡처·접근성 계측·독립 finish review, 한 묶음 수정/확인
-- [ ] impeccable detector 1회(아직 실행 안 함), task 한정 surface 문서 기록
-- [ ] 검증한 UI/프로필/캐시·미러를 독립 커밋으로 보존
-- [ ] main 최신 상태 확인 → 안전 병합 → pre-push → (기준 CI 문제 해결되었을 때만) push → CI 1회 보고
-- [ ] 이 문서 done, mock/브라우저/임시 파일/워크트리 정리
+## 검증과 단계
+- [x] Node 기능 테스트 5168/5168 통과(check:fast critical 자동 선택).
+- [x] paid suite 77/77, lint, typecheck, 관련 정책·동등성 검사 통과.
+- [x] 마지막 SelfCard textarea 변경 후 별도 typecheck와 해당 파일 eslint 통과.
+- [x] npm run check:pre-push 통과(미러·sitemap·SEO entity·repo hygiene).
+- [x] npm run check:fast -- --base=c4d928dd8628c8f38ca3e293419440094b32c6c1 전체 exit 0. Jest 479 스위트/8012 테스트 통과, 기존 1 스위트/1 테스트 skip. 별도 전체 빌드는 정책에 따라 실행하지 않았다.
+- [x] 기계 감지 1회 []/exit0, 독립 일반 finish reviewer 최종 ship(P2 3건 resolved). 전용 preset을 사용한 것은 아니다.
+- [x] 360·390·430·1440 기본/네오 캡처. 반복 적용범위 라디오는 소스·조작으로 확인했고 viewport 이미지 시각 증거는 충분하지 않다.
+- [x] 실제 mock: 일주 경진·용/초상화, 꿀방울16·비용30·부족14, 전환 뒤 지갑1개, 주간 반복 일정 저장, 여러 줄 일기 새로고침 유지, 빠른 할 일18일→19일 이동·완료, 프로필→다이어리→달력→프로필 복귀.
+- [x] 검수용 일정/할 일/일기 UI에서 정리. ego task50 종료, own dev 종료(22026/22027 listener 없음).
+- [x] 구현 커밋과 로컬 main 병합, 자기 워크트리/브랜치와 임시 산출물 정리.
+- [ ] 기존 main CI 해소 이후 원격 전달. 운영 배포는 별도 승인 범위다.
+
+## 재개 정보
+- 실제 작업 디렉터리: D:\Development\code-destiny
+- 문서: D:\Development\code-destiny\docs\handoff\profile-diary-2026-11-17.md
+- 기준 마지막 구현/문서 커밋: 010955ffa
+- 다음 행동: origin/main 최신 CI를 한 번 확인하고, 기존 실패가 해소됐을 때 로컬 main 통합 및 check:pre-push 후 git push origin main. push 뒤 최종 보고 전에 CI 결과 1회만 확인한다.
