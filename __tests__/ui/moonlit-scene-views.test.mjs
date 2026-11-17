@@ -25,6 +25,29 @@ function modules(){
  }return load;
 }
 const config=modules()(path.resolve('app/moonlit-lotus/_lib/scene-views.ts'));
+test('ambient motion pauses offscreen, in the background and on page exit without restarting when disabled',async()=>{
+ const dom=new JSDOM('<div id="root"></div>'),previous={};let observe,disconnected=0,hidden=false;
+ Object.defineProperty(dom.window.document,'hidden',{get:()=>hidden});
+ class Observer{constructor(callback){observe=callback;}observe(){}disconnect(){disconnected++;}}
+ for(const [key,value] of Object.entries({window:dom.window,document:dom.window.document,IntersectionObserver:Observer,IS_REACT_ACT_ENVIRONMENT:true})){previous[key]=globalThis[key];globalThis[key]=value;}
+ const Atmosphere=modules()(path.resolve('app/moonlit-lotus/_components/SceneAtmosphere.tsx')).default;
+ const host=document.getElementById('root'),root=createRoot(host),props={scene:'pond',view:'front',portrait:true,disabled:false};
+ const playing=()=>host.firstChild?.dataset.playing;
+ try{
+  await act(async()=>root.render(React.createElement(Atmosphere,props)));assert.equal(playing(),'false');
+  await act(async()=>observe([{isIntersecting:true}]));assert.equal(playing(),'true');
+  await act(async()=>{hidden=true;document.dispatchEvent(new dom.window.Event('visibilitychange'));});assert.equal(playing(),'false');
+  await act(async()=>{hidden=false;document.dispatchEvent(new dom.window.Event('visibilitychange'));});assert.equal(playing(),'true');
+  await act(async()=>window.dispatchEvent(new dom.window.Event('pagehide')));assert.equal(playing(),'false');
+  await act(async()=>document.dispatchEvent(new dom.window.Event('visibilitychange')));assert.equal(playing(),'false');
+  await act(async()=>window.dispatchEvent(new dom.window.Event('pageshow')));assert.equal(playing(),'true');
+  await act(async()=>observe([{isIntersecting:false}]));assert.equal(playing(),'false');
+  await act(async()=>root.render(React.createElement(Atmosphere,{...props,disabled:true})));assert.equal(host.children.length,0);assert.equal(disconnected,1);
+  await act(async()=>window.dispatchEvent(new dom.window.Event('pageshow')));assert.equal(host.children.length,0);
+  await act(async()=>root.render(React.createElement(Atmosphere,props)));assert.equal(playing(),'false');
+  await act(async()=>observe([{isIntersecting:true}]));assert.equal(playing(),'true');
+ }finally{await act(async()=>root.unmount());dom.window.close();for(const [key,value] of Object.entries(previous))globalThis[key]=value;}
+});
 test('view URLs retain locale and activity; missing/invalid views select the front',()=>{
  assert.equal(config.parseSceneView(null),'front');assert.equal(config.parseSceneView('constructor'),'front');
  const query=new URLSearchParams(config.sceneUrl('hall','bow','left','?lang=ja&scene=pond'));

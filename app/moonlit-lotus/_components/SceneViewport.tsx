@@ -3,8 +3,9 @@ import {useRef,type CSSProperties,type ReactNode,type PointerEvent,type RefObjec
 import {Flower2} from 'lucide-react';
 import {SCENES,VIEW_LABELS,nextSceneView,swipeDirection,viewImage,viewPlacement,type Scene,type SceneView} from '../_lib/scene-views';
 import styles from '../space.module.css';
+import SceneAtmosphere from './SceneAtmosphere';
 
-export default function SceneViewport({scene,view,portrait,quiet,reduced,loading,error,retry,onError,onRetry,onView,children,viewportRef}:{scene:Scene;view:SceneView;portrait:boolean;quiet:boolean;reduced:boolean;loading:boolean;error:boolean;retry:number;onError:()=>void;onRetry:()=>void;onView:(view:SceneView)=>void;children:ReactNode;viewportRef:RefObject<HTMLDivElement>}){
+export default function SceneViewport({scene,view,portrait,quiet,reduced,ambient=true,loading,error,retry,onError,onRetry,onView,children,viewportRef}:{scene:Scene;view:SceneView;portrait:boolean;quiet:boolean;reduced:boolean;ambient?:boolean;loading:boolean;error:boolean;retry:number;onError:()=>void;onRetry:()=>void;onView:(view:SceneView)=>void;children:ReactNode;viewportRef:RefObject<HTMLDivElement>}){
  const start=useRef<{id:number;x:number;y:number;localX:number;width:number}|null>(null);
  const placement=viewPlacement(scene,view,portrait);
  const pointerDown=(event:PointerEvent<HTMLDivElement>)=>{
@@ -26,6 +27,7 @@ export default function SceneViewport({scene,view,portrait,quiet,reduced,loading
     {/* eslint-disable-next-line @next/next/no-img-element */}
     <img className={styles.scenery} src={viewImage(scene,view,false)} width={1536} height={1024} alt={`${SCENES[scene]}의 ${VIEW_LABELS[view]} 풍경. 달빛과 연꽃, 꽃돼지 불상과 조용한 참배 자리`} onError={onError} loading="eager" decoding="async" draggable={false}/>
    </picture>:<div className={styles.artFallback}><Flower2 size={48}/><p>풍경을 불러오지 못했어요.<br/>명상과 108배는 계속 이용할 수 있어요.</p><button onClick={onRetry}>풍경 다시 불러오기</button></div>}
+   <SceneAtmosphere scene={scene} view={view} portrait={portrait} disabled={!ambient||reduced||error}/>
    {children}
   </div>
  </div>;

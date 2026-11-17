@@ -1,0 +1,26 @@
+.atmosphere {
+ position:absolute; inset:0; z-index:1; overflow:hidden; pointer-events:none; contain:layout paint;
+ --ml-lamp-left-x:18%; --ml-lamp-right-x:61%; --ml-lamp-y:25%;
+ --ml-water-x:80%; --ml-water-y:55%;
+}
+.atmosphere[data-portrait=true] { --ml-lamp-left-x:20%; --ml-lamp-right-x:73%; --ml-lamp-y:27%; --ml-water-x:83%; --ml-water-y:41%; }
+.atmosphere[data-atmosphere-scene=hall] { --ml-lamp-left-x:20%; --ml-lamp-right-x:80%; --ml-lamp-y:20%; }
+.atmosphere[data-atmosphere-scene=hall][data-portrait=true] { --ml-lamp-left-x:18%; --ml-lamp-right-x:82%; --ml-lamp-y:25%; }
+.lampLeft,.lampRight {
+ position:absolute; top:var(--ml-lamp-y); left:var(--ml-lamp-left-x); width:16%; aspect-ratio:1;
+ border-radius:50%; background:radial-gradient(ellipse,var(--ml-gold),transparent 70%);
+ transform:translate(-50%,-50%); opacity:.06; animation:lamp-breathe 12s ease-in-out infinite;
+}
+.lampRight { left:var(--ml-lamp-right-x); animation-delay:-5s; }
+.water { position:absolute; left:var(--ml-water-x); top:var(--ml-water-y); width:21%; height:7%; transform:translate(-50%,-50%); }
+.water i { position:absolute; inset:20% 0; border:1px solid var(--ml-ink); border-radius:50%; opacity:0; animation:water-spread 14s ease-out infinite; }
+.water i:nth-child(2) { animation-delay:-7s; }
+.motes i { position:absolute; left:9%; top:53%; width:3px; height:3px; border-radius:50%; background:var(--ml-gold); opacity:0; animation:mote-drift 22s ease-in-out infinite; }
+.motes i:nth-child(2) { left:87%; top:29%; animation-duration:27s; animation-delay:-9s; }
+.motes i:nth-child(3) { left:78%; top:65%; width:2px; height:2px; animation-duration:25s; animation-delay:-16s; }
+.atmosphere[data-atmosphere-scene=pond] .motes i { background:var(--ml-jade); }
+.atmosphere[data-playing=false] * { animation-play-state:paused; }
+@keyframes lamp-breathe { 50% { opacity:.19; transform:translate(-50%,-50%) scale(1.12); } }
+@keyframes water-spread { 0% { opacity:0; transform:scale(.55); } 25% { opacity:.24; } 100% { opacity:0; transform:scale(1); } }
+@keyframes mote-drift { 0%,100% { opacity:0; transform:translate(0,9px); } 30% { opacity:.5; } 70% { opacity:.3; transform:translate(9px,-18px); } }
+@media(prefers-reduced-motion:reduce) { .atmosphere { display:none; } .atmosphere * { animation:none; } }
