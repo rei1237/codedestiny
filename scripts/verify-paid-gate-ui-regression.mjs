@@ -633,9 +633,10 @@ for (const path of ["/api/billing/checkout", "/api/payments/prepare"]) {
     `주문 발급은 대기 UI를 켜지 않아야 한다: ${path}`,
   );
 }
-// 승인 검증(confirm)은 결제창을 통과한 뒤라 그대로 추적한다 — 위 예외가 과하게 넓어지지 않게 고정.
-assert.equal(shouldTrackPaymentRequest("/api/billing/confirm", "POST"), true, "승인 검증은 계속 추적한다");
-assert.equal(shouldTrackPaymentRequest("/api/payments/confirm", "POST"), true, "승인 검증은 계속 추적한다");
+// 승인 응답 전에 완료로 표시하지 않는다. 검증된 호출부가 완료 UI와 생성 화면을 연결한다.
+for (const path of ["/api/billing/confirm", "/api/payments/confirm", "/api/payments/subscription/confirm"]) {
+  assert.equal(shouldTrackPaymentRequest(path, "POST"), false, "승인 전 완료 안내를 띄우면 안 된다: " + path);
+}
 
 const waitUiAllowLists = [
   { label: "shell", source: indexSource, name: "CD_WAIT_UI_ALLOWED_MODE_RE" },
