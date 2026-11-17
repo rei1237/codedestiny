@@ -89,6 +89,22 @@ export function createMockApiServer() {
         return send(200, { ok: true, offers: listCurrentPassOffers(url.searchParams.get('channel') === 'googlePlay' ? 'googlePlay' : 'web') });
       }
       if (route === 'GET /api/health') return send(200, { ok: true, mode: 'mock' });
+      if (route === 'POST /api/rpg/character-preview') {
+        const { profileCharacterPreview } = await import('../worker/lib/profile-character-preview.js');
+        try { return send(200, { ok: true, ...profileCharacterPreview(body) }); }
+        catch (error) { return send(400, { ok:false, code:error.code || 'PROFILE_INCOMPLETE', message:error.message }); }
+      }
+      if (route === 'GET /api/honey/catalog') {
+        const { HONEY_UNLOCK_PRODUCTS } = await import('../worker/lib/honey-unlock-catalog.js');
+        const { HONEY_ATTENDANCE_EVERY, HONEY_STREAK_EVERY, HONEY_STREAK_BONUS, PROMPT_HUB_HONEY_COST } = await import('../worker/lib/honey-wallet.js');
+        return send(200, { ok:true, products:HONEY_UNLOCK_PRODUCTS, otherUses:[], attendance:{attendanceEvery:HONEY_ATTENDANCE_EVERY,streakEvery:HONEY_STREAK_EVERY,streakBonus:HONEY_STREAK_BONUS,promptCost:PROMPT_HUB_HONEY_COST} });
+      }
+      if (route === 'GET /api/honey/attendance') {
+        if (!loggedIn) return send(401, { ok:false, reason:'LOGIN_REQUIRED' });
+        const { HONEY_ATTENDANCE_EVERY, HONEY_STREAK_EVERY, HONEY_STREAK_BONUS, PROMPT_HUB_HONEY_COST, kstDay } = await import('../worker/lib/honey-wallet.js');
+        return send(200, { ok:true, balance:16, attended:false, streak:2, day:kstDay(), nextBonusIn:HONEY_STREAK_EVERY-2, monthDays:[], attendanceEvery:HONEY_ATTENDANCE_EVERY, streakEvery:HONEY_STREAK_EVERY, streakBonus:HONEY_STREAK_BONUS, promptCost:PROMPT_HUB_HONEY_COST });
+      }
+      if (route === 'GET /api/honey/unlocks') return send(loggedIn ? 200 : 401, loggedIn ? {ok:true,featureKeys:[]} : {ok:false,reason:'LOGIN_REQUIRED'});
       if (route === 'POST /api/auth/login') loggedIn = true;
       if (route === 'POST /api/auth/logout') { loggedIn = false; return send(200, { ok: true }); }
       if (route === 'POST /api/auth/login' || route === 'GET /api/auth/me') {

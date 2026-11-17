@@ -93,3 +93,25 @@ test('mock Next rewrites intercept app API routes and CSP blocks remote browser 
     if (previous.port === undefined) delete process.env.LOCAL_DEV_AUTH_API_PORT; else process.env.LOCAL_DEV_AUTH_API_PORT = previous.port;
   }
 });
+
+test('profile review uses pure character calculation and catalog data while every spend route stays unsupported', async()=>{
+  const server=createMockApiServer();
+  await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
+  const base='http://127.0.0.1:'+server.address().port;
+  const post=(path,body={})=>fetch(base+path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+  try{
+    const catalog=await(await fetch(base+'/api/honey/catalog')).json();
+    assert.equal(catalog.mock,true);assert.ok(catalog.products.length>0);
+    assert.ok(catalog.products.every(item=>item.serviceScope==='GGULGGUL'&&item.honeyCost>0));
+    assert.equal((await fetch(base+'/api/honey/attendance')).status,401);
+    await post('/api/auth/login');
+    const attendance=await(await fetch(base+'/api/honey/attendance')).json();
+    assert.equal(attendance.mock,true);assert.equal(attendance.balance,16);
+    const preview=await(await post('/api/rpg/character-preview',{birthDate:'1990-01-15',birthTimeUnknown:true,gender:'male',calendarType:'solar'})).json();
+    assert.equal(preview.ok,true);assert.ok(preview.character.ganji);assert.ok(preview.character.element);
+    const incomplete=await post('/api/rpg/character-preview');
+    assert.equal(incomplete.status,400);assert.equal((await incomplete.json()).code,'PROFILE_INCOMPLETE');
+    assert.equal((await post('/api/honey/unlocks')).status,501);
+    assert.equal((await post('/api/honey/attendance')).status,501);
+  }finally{server.closeAllConnections();await new Promise(resolve=>server.close(resolve));}
+});
