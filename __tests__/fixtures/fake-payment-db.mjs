@@ -5,7 +5,7 @@
  * CAS 필터에 실려 있다. 그 필터가 맞는지는 인프라가 아니라 **연산자 의미**를 확인해야 알 수 있으므로,
  * 여기서는 실제로 쓰는 연산자를 전부 구현한다. 통과시켜 주는 스텁이면 검증하는 게 없다.
  *
- * 지원: $nin · $in · $ne · $lt · $exists · $or · $and · $nor · $set · $inc · $unset · $setOnInsert · $addToSet($each)
+ * 지원: $nin · $in · $ne · $lt · $exists · $or · $and · $nor · $set · $inc · $unset · $setOnInsert · $addToSet($each) · $pull(값 일치)
  *       · $push($each/$slice) · upsert · returnDocument(before|after) · dot notation(필터·$set·$inc·$push)
  * 미구현 연산자를 만나면 **조용히 통과시키지 않고 던진다** — 조용한 통과가 가짜 초록불을 만든다.
  */
@@ -118,7 +118,7 @@ function applyPush(doc, key, spec) {
 
 export function applyUpdate(doc, update) {
   for (const op of Object.keys(update)) {
-    if (!["$set", "$inc", "$unset", "$setOnInsert", "$addToSet", "$push"].includes(op)) {
+    if (!["$set", "$inc", "$unset", "$setOnInsert", "$addToSet", "$push", "$pull"].includes(op)) {
       throw new Error(`fake-payment-db: 미구현 갱신 연산자 ${op}`);
     }
   }
@@ -142,6 +142,12 @@ export function applyUpdate(doc, update) {
     }
   }
   if (update.$push) for (const [k, spec] of Object.entries(update.$push)) applyPush(doc, k, spec);
+  // $pull 은 값 일치만 지원한다(이용권 멱등 마커 제거). 조건식 $pull 은 조용히 통과시키지 않고 던진다.
+  if (update.$pull) for (const [k, v] of Object.entries(update.$pull)) {
+    if (isOperatorMap(v)) throw new Error("fake-payment-db: 미구현 $pull 조건식");
+    const list = getPath(doc, k);
+    if (Array.isArray(list)) setPath(doc, k, list.filter((item) => item !== v));
+  }
   return doc;
 }
 

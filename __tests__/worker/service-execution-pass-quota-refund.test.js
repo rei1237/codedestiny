@@ -14,7 +14,7 @@ import mongoose from "mongoose";
 import { refundPassCoverage as restoreQuota } from "../../worker/lib/pass-consumption.js";
 import { toObjectId } from "../../worker/payments/db.js";
 import { makeFakePaymentDb } from "../fixtures/fake-payment-db.mjs";
-import { passUsageEvidenceId } from "../../worker/payments/passes.js";
+import { passUsageEvidenceId, buildPassConsumeMarker } from "../../worker/payments/passes.js";
 
 const USER_ID = "64b7f2a1c3d4e5f601234567";
 const EXECUTION_ID = "64b7f2a1c3d4e5f6012345aa";
@@ -58,7 +58,7 @@ function applySet(target, update) {
 
 beforeAll(async () => {
   jest.unstable_mockModule('../../worker/payments/db.js', () => ({toObjectId, createPaymentContext:x=>x,withPaymentDb:async(_e,_c,fn)=>fn({transaction:async cb=>cb({findOne:async()=>null})})}));
-  jest.unstable_mockModule("../../worker/payments/passes.js", () => ({ passUsageEvidenceId }));
+  jest.unstable_mockModule("../../worker/payments/passes.js", () => ({ passUsageEvidenceId, buildPassConsumeMarker }));
   jest.unstable_mockModule("../../worker/lib/pass-consumption.js", () => ({ refundPassCoverage: input => { refundDb.rows.splice(0, users.length, ...users); return restoreQuota({ ...input, db: refundDb }); } }));
   jest.unstable_mockModule("../../worker/lib/db.js", () => ({
     connectDb: jest.fn(async () => {}),

@@ -133,3 +133,78 @@ test("cost 가 0 이하이거나 cycleKey 가 없으면 DB 를 건드리지 않�
   expect(await refundPassCoverage({ userId: USER, refundId: "test-request", cycleKey: "", cost: 300, db })).toMatchObject({ refunded: false, skipped: true });
   expect(db.rows[0].profileSubscription.monthlySpendCoin).toBe(300);
 });
+
+describe("환불 뒤 같은 requestId 재시도는 무료 재생이 아니라 재차감이다", () => {
+  const FEATURE = "vedic-ai-consultation";
+  const REQUEST = "retry-after-refund";
+  const DAY_MS = 86_400_000;
+  let consumePassForFeature, hasConsumedPassFeature, passUsageEvidenceId;
+  beforeAll(async () => {
+    ({ consumePassForFeature, hasConsumedPassFeature } = await import("../../worker/lib/pass-consumption.js"));
+    ({ passUsageEvidenceId } = await import("../../worker/payments/passes.js"));
+  });
+
+  function seedActive(db) {
+    const at = new Date(Date.now() + 10 * DAY_MS);
+    const user = {
+      _id: USER,
+      profileSubscription: { tier: "family", passTier: "family", isActive: true, expiresAt: at,
+        premiumUseCycleKey: at.toISOString(), monthlySpendCoin: 0, monthlyLimitCoin: 0 },
+      recentConsumeRequestIds: [],
+    };
+    db.rows.push(user);
+    return { user, at, entitlement: { tier: "family", passTier: "family", isActive: true, expiresAt: at } };
+  }
+  const consume = (db, user, entitlement) => consumePassForFeature({ db, user, entitlement, userId: USER,
+    featureKey: FEATURE, requestId: REQUEST, coinCost: 300 });
+  const evidenceRow = db => db.rows.find(row => String(row._id) === String(passUsageEvidenceId(USER, FEATURE, REQUEST)));
+
+  test("소스 식별자로 환불하면 멱등 마커를 지우고 사용 증빙을 환불됨으로 표시한다", async () => {
+    const db = makeFakePaymentDb();
+    const { user, at, entitlement } = seedActive(db);
+    expect(await consume(db, user, entitlement)).toMatchObject({ covered: true, replayed: false });
+    expect(user.recentConsumeRequestIds).toContain(`tier-pass:${FEATURE}:${REQUEST}`);
+
+    const refunded = await refundPassCoverage({ db, userId: USER, cycleKey: at.toISOString(), cost: 300,
+      refundId: `vedic:${REQUEST}`, sourceFeatureKey: FEATURE, sourceRequestId: REQUEST });
+
+    expect(refunded).toMatchObject({ refunded: true, amount: 300 });
+    expect(user.profileSubscription.monthlySpendCoin).toBe(0);
+    expect(user.recentConsumeRequestIds).not.toContain(`tier-pass:${FEATURE}:${REQUEST}`);
+    expect(evidenceRow(db).metadata.refundedForServiceExecution).toBe(true);
+    expect(await hasConsumedPassFeature(user, FEATURE, REQUEST, db)).toBe(false);
+  });
+
+  test("sourcePointHistoryId 로 환불해도 그 증빙의 마커를 지운다", async () => {
+    const db = makeFakePaymentDb();
+    const { user, at, entitlement } = seedActive(db);
+    await consume(db, user, entitlement);
+    await refundPassCoverage({ db, userId: USER, cycleKey: at.toISOString(), cost: 300, refundId: `consultation:${REQUEST}`,
+      sourcePointHistoryId: passUsageEvidenceId(USER, FEATURE, REQUEST) });
+    expect(user.recentConsumeRequestIds).not.toContain(`tier-pass:${FEATURE}:${REQUEST}`);
+    expect(await hasConsumedPassFeature(user, FEATURE, REQUEST, db)).toBe(false);
+  });
+
+  test("환불 뒤 재시도는 다시 차감하고, 그 재차감이 또 실패하면 다시 환불된다", async () => {
+    const db = makeFakePaymentDb();
+    const { user, at, entitlement } = seedActive(db);
+    const refund = () => refundPassCoverage({ db, userId: USER, cycleKey: at.toISOString(), cost: 300,
+      refundId: `vedic:${REQUEST}`, sourceFeatureKey: FEATURE, sourceRequestId: REQUEST });
+    await consume(db, user, entitlement);
+    await refund();
+
+    const again = await consume(db, user, entitlement);
+    expect(again).toMatchObject({ covered: true, replayed: false });
+    expect(user.profileSubscription.monthlySpendCoin).toBe(300);
+    expect(evidenceRow(db).metadata.refundedForServiceExecution).not.toBe(true);
+    expect(await hasConsumedPassFeature(user, FEATURE, REQUEST, db)).toBe(true);
+
+    const second = await refund();
+    expect(second).toMatchObject({ refunded: true });
+    expect(second.idempotent).not.toBe(true);
+    expect(user.profileSubscription.monthlySpendCoin).toBe(0);
+    // 같은 실패를 다시 정산해도 두 번 돌려주지 않는다.
+    expect(await refund()).toMatchObject({ refunded: true, idempotent: true });
+    expect(user.profileSubscription.monthlySpendCoin).toBe(0);
+  });
+});

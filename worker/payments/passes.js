@@ -624,10 +624,32 @@ export async function consumePassCoverage(db, { userId, coverage, marker, existi
  * 모든 등급에 남긴다(감사 추적이 생기고, 위 지연차감 연결이 등급과 무관하게 성립한다).
  * delta 0 이라 잔액에 영향이 없다(구 recordPassAccessIfNeeded 와 같은 형태).
  */
+function passUsageEvidenceMetadata({ product, requestId, profileId = "", coverage = {}, user = null }) {
+  const isFamily = String(coverage.tier || "") === "family";
+  return {
+    accessType: isFamily ? "family" : "membership_pass",
+    accessMethod: isFamily ? "FAMILY" : "PASS",
+    paymentMethod: isFamily ? "FAMILY" : "PASS",
+    requestId: String(requestId),
+    purchaseId: String(requestId),
+    profileId: String(profileId || ""),
+    featureKey: String(product?.featureKey || ""),
+    coinCost: Number(product?.priceCoins || 0),
+    coinPrice: Number(product?.priceCoins || 0),
+    passTier: coverage.tier || null,
+    passCycleKey: String(coverage.cycleKey || ""),
+    passBudgetCoin: Number(coverage.budgetCoin || 0),
+    passPolicyVersion: String(user?.profileSubscription?.passPolicyVersion || ""),
+    passProfileLimit: Number(user?.profileSubscription?.profileLimit || 0),
+    passLimit: Number(coverage.perItemLimit || 0),
+    monthlySpendUsed: Number(coverage.usedCoin || 0) + (coverage.budgetExempt ? 0 : Number(coverage.coinCost || 0)),
+    ...(coverage.budgetExempt ? { passBudgetExempt: true } : {}),
+  };
+}
+
 export async function recordPassUsageEvidence(db, { userId, product, requestId, profileId = "", coverage = {}, user = null }) {
   const uid = toObjectId(userId);
   if (!uid || !requestId) return null;
-  const isFamily = String(coverage.tier || "") === "family";
   const now = new Date();
   const _id = passUsageEvidenceId(userId, product?.featureKey, requestId);
   await db.findOneAndUpdate(PointHistory, { _id }, { $setOnInsert: {
@@ -638,29 +660,35 @@ export async function recordPassUsageEvidence(db, { userId, product, requestId, 
       balanceAfter: Math.max(0, Math.floor(Number(user?.points || 0))),
       reason: String(product?.label || "pass_access"),
       featureKey: String(product?.featureKey || ""),
-      metadata: {
-        accessType: isFamily ? "family" : "membership_pass",
-        accessMethod: isFamily ? "FAMILY" : "PASS",
-        paymentMethod: isFamily ? "FAMILY" : "PASS",
-        requestId: String(requestId),
-        purchaseId: String(requestId),
-        profileId: String(profileId || ""),
-        featureKey: String(product?.featureKey || ""),
-        coinCost: Number(product?.priceCoins || 0),
-        coinPrice: Number(product?.priceCoins || 0),
-        passTier: coverage.tier || null,
-        passCycleKey: String(coverage.cycleKey || ""),
-        passBudgetCoin: Number(coverage.budgetCoin || 0),
-        passPolicyVersion: String(user?.profileSubscription?.passPolicyVersion || ""),
-        passProfileLimit: Number(user?.profileSubscription?.profileLimit || 0),
-        passLimit: Number(coverage.perItemLimit || 0),
-        monthlySpendUsed: Number(coverage.usedCoin || 0) + (coverage.budgetExempt ? 0 : Number(coverage.coinCost || 0)),
-        ...(coverage.budgetExempt ? { passBudgetExempt: true } : {}),
-      },
+      metadata: passUsageEvidenceMetadata({ product, requestId, profileId, coverage, user }),
       createdAt: now,
       updatedAt: now,
     } }, { upsert: true, returnDocument: "after" });
   return true;
+}
+
+/**
+ * 환불된 사용 증빙을 같은 requestId 의 **새 차감**으로 다시 쓴다.
+ * 증빙 _id 는 (사용자, 기능, requestId) 결정적이라 환불 뒤 재차감하면 같은 행을 만난다.
+ * $setOnInsert 만으로는 환불됨 표시가 남아 다음 실패의 환불 근거가 사라지므로, 새 차감 내용으로 덮고
+ * 세대(passConsumeGeneration)를 올린다 — 환불 영수증 id 가 세대를 포함해 두 번째 환불도 성립한다.
+ * 환불되지 않은 행은 건드리지 않는다(필터가 refundedForServiceExecution:true 일 때만 맞는다).
+ */
+export async function rearmRefundedPassUsageEvidence(db, { userId, product, requestId, profileId = "", coverage = {}, user = null }) {
+  const uid = toObjectId(userId);
+  if (!uid || !requestId) return null;
+  const now = new Date();
+  const metadata = passUsageEvidenceMetadata({ product, requestId, profileId, coverage, user });
+  return db.updateOne(PointHistory, {
+    _id: passUsageEvidenceId(userId, product?.featureKey, requestId), userId: uid,
+    "metadata.refundedForServiceExecution": true,
+  }, {
+    $set: { ...Object.fromEntries(Object.entries(metadata).map(([key, value]) => [`metadata.${key}`, value])),
+      "metadata.refundedForServiceExecution": false, "metadata.reconsumedAt": now, updatedAt: now },
+    $unset: { "metadata.passQuotaRefundReceiptId": "", "metadata.refundedAt": "",
+      ...(metadata.passBudgetExempt ? {} : { "metadata.passBudgetExempt": "" }) },
+    $inc: { "metadata.passConsumeGeneration": 1 },
+  });
 }
 
 export function passUsageEvidenceId(userId, featureKey, requestId) {

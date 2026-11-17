@@ -165,14 +165,23 @@ export async function hasConsumedPassFeature(user, featureKey, requestId, db = n
 
 export async function consumePassForFeature({ user, entitlement, userId, featureKey, requestId = "", coinCost = 0, profileId = "", db = nativeDb }) {
   if(String(featureKey || '').startsWith('yeongnyangi-'))return consumeYeongnyangiPass({user,entitlement,userId,featureKey,requestId,coinCost,db});
-  const { buildPassConsumeMarker, consumePassCoverage, evaluatePassCoverage, recordPassUsageEvidence } = await loadPassPolicy();
+  const { buildPassConsumeMarker, consumePassCoverage, evaluatePassCoverage, recordPassUsageEvidence, rearmRefundedPassUsageEvidence, passUsageEvidenceId } = await loadPassPolicy();
   const cost = Math.max(0, Math.floor(Number(coinCost) || 0));
   const coverage = evaluatePassCoverage({ user, entitlement, coinCost: cost, lightFortune: isLightFortuneFeatureKey(featureKey) });
   // 멱등: 같은 (기능, requestId) 재시도가 예산을 두 번 깎지 않는다.
   // 정본과 같은 마커·같은 배열을 쓰므로 coin-gate 경로와도 서로 중복 차감하지 않는다.
   const markers = Array.isArray(user?.recentConsumeRequestIds) ? user.recentConsumeRequestIds : [];
   const marker = buildPassConsumeMarker(featureKey, requestId);
-  if (await hasConsumedPassFeature(user, featureKey, requestId, db)) {
+  // hasConsumedPassFeature 와 같은 판정이되, 환불된 증빙 행도 함께 읽어 재차감 때 되살릴지 안다(읽기 1회 유지).
+  let refundedEvidence = false;
+  let consumed = Boolean(marker && markers.includes(marker));
+  if (!consumed && userId && featureKey && requestId) {
+    const { toObjectId } = await loadPaymentDb();
+    const row = await db.findOne(PointHistory, { _id: passUsageEvidenceId(userId, featureKey, requestId), userId: toObjectId(userId), featureKey });
+    consumed = Boolean(row && row.metadata?.refundedForServiceExecution !== true);
+    refundedEvidence = row?.metadata?.refundedForServiceExecution === true;
+  }
+  if (consumed) {
     await recordPassUsageEvidence(db, { userId, product: { featureKey, priceCoins: cost }, requestId, profileId, coverage, user });
     return {
       covered: true,
@@ -191,6 +200,8 @@ export async function consumePassForFeature({ user, entitlement, userId, feature
   const updated = await db.transaction(async tx => {
     const result = await consumePassCoverage(tx, { userId, coverage, marker, existingMarkers: markers });
     // profileId 는 결제 기록(어느 카드로 썼는가)용이다 — 열람 판정에는 쓰지 않는다.
+    // 환불된 같은 requestId 를 다시 차감하면 그 증빙 행을 새 차감으로 되살린다(아래 refundPassCoverage 세대 참고).
+    if (result && refundedEvidence) await rearmRefundedPassUsageEvidence(tx, { userId, product: { featureKey, priceCoins: cost }, requestId, profileId, coverage, user: result });
     if (result) await recordPassUsageEvidence(tx, { userId, product: { featureKey, priceCoins: cost }, requestId, profileId, coverage, user: result });
     return result;
   });
@@ -283,10 +294,21 @@ export async function refundPassCoverage({ userId, cycleKey, cost, refundId, res
   const { toObjectId } = await loadPaymentDb();
   const uid = toObjectId(userId);
   if (!uid) return { refunded: false, skipped: true };
-  const receiptId = toObjectId(createHash("sha256").update(JSON.stringify(["pass-quota-refund", String(userId), key, String(refundId)])).digest("hex").slice(0, 24));
+  const { buildPassConsumeMarker, passUsageEvidenceId } = await loadPassPolicy();
+  // 사용 증빙: 호출부가 행 id 를 주면 그 행, (기능, requestId) 를 주면 결정적 id 의 행.
+  const evidenceId = sourcePointHistoryId ? null
+    : (sourceFeatureKey && sourceRequestId ? passUsageEvidenceId(userId, sourceFeatureKey, sourceRequestId) : null);
   const result = await db.transaction(async tx => {
     const sourceId = sourcePointHistoryId ? toObjectId(sourcePointHistoryId) : null;
     const sourceFailure = () => Object.assign(new Error('PASS_REFUND_SOURCE_REVIEW'), { code: 'REFUND_PASS_REVIEW' });
+    const evidence = sourceId || evidenceId ? await tx.findOne(PointHistory, { _id: sourceId || evidenceId, userId: uid }) : null;
+    // 환불 뒤 같은 requestId 를 다시 차감하면 세대가 오른다. 세대별 영수증이라야 재차감분의 실패도 환불된다.
+    const generation = Math.max(0, Math.floor(Number(evidence?.metadata?.passConsumeGeneration) || 0));
+    const receiptId = toObjectId(createHash("sha256").update(JSON.stringify(["pass-quota-refund", String(userId), key, String(refundId),
+      ...(generation ? [generation] : [])])).digest("hex").slice(0, 24));
+    // 환불한 차감의 멱등 마커를 지워야 같은 requestId 재시도가 무료 재생(covered)이 아니라 재차감이 된다.
+    const marker = buildPassConsumeMarker(sourceFeatureKey || evidence?.featureKey || evidence?.metadata?.featureKey,
+      sourceRequestId || evidence?.metadata?.requestId);
     const receipt = await tx.findOne(PointHistory, { _id: receiptId, userId: uid });
     if (receipt) {
       if (sourcePointHistoryId && (!sourceId || !await tx.findOne(PointHistory, { _id: sourceId, userId: uid,
@@ -332,12 +354,19 @@ export async function refundPassCoverage({ userId, cycleKey, cost, refundId, res
       "profileSubscription.premiumUseCycleKey": key,
       "profileSubscription.monthlySpendCoin": { $gte: amount },
     },
-    { $inc: { "profileSubscription.monthlySpendCoin": -amount }, ...(shouldRestore ? { $set: restoreSet } : {}) },
+    { $inc: { "profileSubscription.monthlySpendCoin": -amount }, ...(shouldRestore ? { $set: restoreSet } : {}),
+      ...(marker ? { $pull: { recentConsumeRequestIds: marker } } : {}) },
     { returnDocument: "after" },
   ));
     if (!updated) {
       if (sourcePointHistoryId) throw sourceFailure();
       return { refunded: false, skipped: true, reason: "PASS_QUOTA_CYCLE_MISMATCH_OR_INSUFFICIENT" };
+    }
+    // 행 id 없이 (기능, requestId) 로 온 환불도 증빙을 환불됨으로 표시한다 — 그래야 증빙 조회가 "이미 차감"으로 재생하지 않는다.
+    if (evidenceId && evidence && evidence.metadata?.refundedForServiceExecution !== true) {
+      await tx.updateOne(PointHistory, { _id: evidenceId, userId: uid, 'metadata.refundedForServiceExecution': { $ne: true } },
+        { $set: { 'metadata.refundedForServiceExecution': true, 'metadata.refundedAt': new Date(),
+          'metadata.passQuotaRefundReceiptId': String(receiptId) } });
     }
     // The durable receipt and quota restoration commit together. A lost response
     // or a later session-marker failure cannot restore another request's quota.
