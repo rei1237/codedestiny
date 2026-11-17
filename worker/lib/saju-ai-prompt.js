@@ -23,6 +23,7 @@ import { legacyJongShape } from "../../lib/saju/natal-core/index.mjs";
 import { gyeokgukClaimFact, gyeokgukPromptRules } from "../../lib/saju/gyeokguk-claim-guard.mjs";
 import { consumerPillars, selectSajuAuthority, readSajuAuthority, SAJU_AUTHORITY_PROMPT_RULES } from './saju-authority-consumer.js';
 import { authorityText } from '../../lib/saju/gyeokguk-authority-copy.mjs';
+import { sajuLuckPeriods, SAJU_PERIOD_VERSION } from '../../lib/saju/luck-periods.mjs';
 
 export function selectSajuPromptAuthority(sajuResult, options = {}) {
   return selectSajuAuthority(consumerPillars(normalizeSajuPillarRows(sajuResult)), options);
@@ -701,6 +702,10 @@ function buildLuckRow(raw, fallbackScope) {
     branch,
     age,
     year,
+    startYear: Number(row.startYear) || undefined,
+    endYear: Number(row.endYear) || undefined,
+    startDate: row.startDate || undefined,
+    endDate: row.endDate || undefined,
     label: `${labelPrefix}${label}`.trim(),
   };
 }
@@ -754,14 +759,13 @@ function normalizeSajuLuckRows(sajuResult, engineContext) {
   const hasAnnual = rows.some((row) => row.scope === "sewoon");
   if (!hasAnnual) {
     const explicitYear = Number(result.targetYear || result.currentYear || result.engineContext?.currentYear || 0);
-    const currentYear = Number.isFinite(explicitYear) && explicitYear > 0 ? explicitYear : new Date().getUTCFullYear();
-    const annual = buildSexagenaryYearPillar(currentYear);
+    const annual = explicitYear > 0 ? buildSexagenaryYearPillar(explicitYear) : null;
     if (annual) rows.push(annual);
   }
 
   const seen = new Set();
   return rows.filter((row) => {
-    const key = `${row.scope}:${row.stem}:${row.branch}:${row.age || ""}:${row.year || ""}`;
+    const key = `${row.scope}:${row.stem}:${row.branch}:${row.age || ""}:${row.year || ""}:${row.startDate || row.startYear || ""}:${row.endDate || row.endYear || ""}`;
     if (seen.has(key)) return false;
     seen.add(key);
     return true;
@@ -971,53 +975,6 @@ function buildEarthStorageOpenings({ pillarRows, luckRows, dayStem, power, confi
   });
 }
 
-function normalizeExistingDoChungPayload(sajuResult) {
-  const result = sajuResult && typeof sajuResult === "object" ? sajuResult : {};
-  const candidates = [
-    result.advancedFactors?.doChung,
-    result.doChung,
-    result.dochung,
-    result.do_chung,
-    result.doChungAnalysis,
-    result.dochungAnalysis,
-    result.natalAnalysis?.doChungAnalysis,
-    result.natalAnalysis?.dochungAnalysis,
-    result.engineContext?.advancedFactors?.doChung,
-    result.interactions?.doChung,
-  ].filter((item) => item && typeof item === "object");
-
-  for (const payload of candidates) {
-    const rows = Array.isArray(payload.candidates) ? payload.candidates : [];
-    const strongest = payload.strongest && typeof payload.strongest === "object" ? payload.strongest : rows[0];
-    const row = strongest && typeof strongest === "object" ? strongest : payload;
-    const repeatedBranch = normalizeBranch(row.repeatedBranch || row.branch);
-    const repeatedCount = Number(row.repeatedCount || row.totalCount || row.count || 0) || 0;
-    const inducedOppositeBranch = normalizeBranch(row.inducedOppositeBranch || row.impliedOpposite || row.inducedBranch);
-    const exists = payload.exists === true || payload.activated === true || rows.length > 0 || repeatedCount >= 3;
-    if (!exists && !repeatedBranch && !inducedOppositeBranch) continue;
-    const summary = toText(
-      payload.summaryForPrompt
-        || row.summaryForPrompt
-        || row.requiredPhrase
-        || row.lifeEvent
-        || row.interpretation
-        || (Array.isArray(row.requiredSentences) ? row.requiredSentences.join(" ") : ""),
-      exists ? "도충 후보가 감지되었으나 상담에서는 원국과 운의 질문 연결 지점에서만 다룹니다." : "도충 조건은 뚜렷하지 않습니다.",
-    );
-    return {
-      exists,
-      repeatedBranch: repeatedBranch || undefined,
-      repeatedCount: repeatedCount || undefined,
-      inducedOppositeBranch: inducedOppositeBranch || undefined,
-      reason: toText(payload.principle || row.classification || row.reason, ""),
-      affectedAreas: uniqueTexts(asArray(row.affectedAreas).concat(row.lifeEvents || [])).slice(0, 6),
-      strength: repeatedCount >= 4 ? "strong" : (repeatedCount >= 3 || exists ? "medium" : "weak"),
-      summaryForPrompt: summary,
-    };
-  }
-  return null;
-}
-
 function buildComputedDoChungAnalysis(pillarRows, luckRows) {
   const branchRows = [];
   pillarRows.forEach((row) => {
@@ -1135,19 +1092,25 @@ function buildSajuHiddenStemExposures(hiddenStems, pillarRows, luckRows, power) 
 export function buildSajuAdvancedFactors(sajuResult, engineContext, options = {}) {
   const pillarRows = normalizeSajuPillarRows(sajuResult);
   const dayStem = pillarRows.find((row) => row.position === "day")?.stem || engineContext?.quantum?.dayStem || "";
-  // Explicit rows let a caller compare one simultaneous period (or natal only).
-  // Existing callers retain normalization and its current-year fallback.
   const luckRows = options.luckRows ?? normalizeSajuLuckRows(sajuResult, engineContext);
+  const periods = sajuLuckPeriods(luckRows, { simultaneous: options.luckRows !== undefined });
   const promptConfig = normalizeSajuPromptConfig(sajuResult);
   const hiddenStems = buildSajuHiddenStemItems(pillarRows, dayStem);
   const hiddenStemExposures = buildSajuHiddenStemExposures(hiddenStems, pillarRows, luckRows, sajuResult?.power);
-  const doChung = normalizeExistingDoChungPayload(sajuResult) || buildComputedDoChungAnalysis(pillarRows, luckRows);
-  const earthStorageOpenings = buildEarthStorageOpenings({
-    pillarRows,
-    luckRows,
-    dayStem,
-    power: sajuResult?.power,
-    config: promptConfig,
+  const periodFactors = periods.map(period => ({
+    period: { id: period.id, label: period.label },
+    doChung: buildComputedDoChungAnalysis(pillarRows, period.rows),
+    earthStorageOpenings: buildEarthStorageOpenings({ pillarRows, luckRows: period.rows, dayStem, power: sajuResult?.power, config: promptConfig }),
+  }));
+  const chosenDoChung = periodFactors.find(row => row.doChung.exists) || periodFactors[0];
+  const doChung = { ...chosenDoChung.doChung, period: chosenDoChung.period };
+  const openingKeys = new Set();
+  const earthStorageOpenings = periodFactors.flatMap(({ period, earthStorageOpenings: openings }) => openings.map(row => ({
+    ...row, period: row.timingType === 'natal' ? { id: 'natal', label: '원국' } : period,
+  }))).filter(row => {
+    const key = [row.period.id, row.sourcePosition, row.sourceBranch, row.triggerPosition, row.triggerBranch, row.relationType].join(':');
+    if (openingKeys.has(key)) return false;
+    openingKeys.add(key); return true;
   });
   const twelveLifeStages = buildTwelveLifeStagesForPillars(pillarRows, dayStem);
   const gyeokguk = buildGyeokgukAnalysis({
@@ -1169,6 +1132,8 @@ export function buildSajuAdvancedFactors(sajuResult, engineContext, options = {}
     twelveLifeStages,
     gyeokguk,
     promptConfig,
+    periodVersion: SAJU_PERIOD_VERSION,
+    periods: periodFactors,
   };
 }
 
