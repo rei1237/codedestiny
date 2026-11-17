@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-17
-next: 검증된 커밋을 main으로 푸시한 뒤 mobile:android:sync로 60/1.0.60을 빌드하고, CI·릴리스 APK를 검증해 Play 내부 테스트와 프로덕션 심사로 진행한다.
+next: 긴급 흑월 결제 전달 오류를 먼저 운영 배포(heukwol-delivery-hotfix-2026-11-17.md)한 뒤, 절의 차분한 대기 효과를 구현하고 Android 60 빌드·검증·Play 출시를 재개한다.
 ---
 
 # 연화당 다각도 UI와 Android 출시 준비
@@ -10,6 +10,11 @@ next: 검증된 커밋을 main으로 푸시한 뒤 mobile:android:sync로 60/1.0
 `D:\Development\code-destiny`에서 이 문서와 `docs/design/moonlit-lotus-views.md`, `docs/design/moonlit-lotus-android-release-plan.md`를 읽고 현재 git 상태를 확인한다. 미완료 검증은 아래 상태에 따라 이어간다. 다른 사용자의 `.claude/skills/fire-your-seo-agency/`는 별도 저장소이므로 보존한다.
 
 ## 지금 상태
+- **우선순위 변경**: 2026-11-17 흑월 결제 후 전달 오류 긴급 수정·운영 배포를 먼저 승인받았다. 상세는 `heukwol-delivery-hotfix-2026-11-17.md`. 절의 새 대기 효과는 아직 구현 전이다.
+- 긴급 수정의 로컬 검사 동안 메모리를 확보하기 위해 자기 AVD `cd-temple-release60`임을 adb로 확인하고 emulator-5556을 정상 종료했다. 기기 데이터는 보존했으며 Android 검수 재개 시 이 AVD를 다시 시작한다.
+- 사용자 추가 요청: “절 기능에서 가만히 있어도 지루하지 않도록 어느정도 몰입감있는 효과도 주도록하고 그 이후에 완벽하게 안드로이드 앱에 이식해서 새로운 버전으로 론칭해줘”. 차분한 달빛/물결/연꽃 움직임, reduced-motion·가볍게 보기·백그라운드 정지를 반영한 뒤 빌드한다.
+- **격리 빌드 공간**: `D:\Development\codedestiny-worktrees\android-temple-release60-20261117-220709`, 브랜치 `wt/android-temple-release60-20261117-220709`, 기준 `2bbcccbd2514b76af9685172b546422a94ef181a`까지 main push 완료. node_modules는 정션, 모바일 이미지 캐시는 일반 복사본. 서명 속성 파일은 main과 하드링크이며 비밀값을 읽거나 변경하지 않는다.
+- 기존 main 개발 서버 34052 때문에 루트 빌드는 중단했다. 격리 `.next`임을 확인하고 `ALLOW_DEV_SERVER_DURING_BUILD=1`로 워크트리 빌드를 진행했으나 새 몰입 효과 요청 시 Next 빌드 전에 자기 프로세스 PID 11540만 종료했다. 최종 효과 반영 후 새로 빌드해야 한다. 로그는 루트 `.tmp/android-temple-release/mobile-isolated.log`.
 - **최신 검증**: CI 수정 커밋 `5ce2aac1b`. `check:fast` exit 0, Node 5,195/5,195, Jest 479 suites·8,012 tests 통과(기존 1 suite/test skipped), 타입/lint/계약/Worker dry-run 통과. 한국어·영어 4개 지역·일본어 ASO 모두 Console 임시보관함 저장 확인, 아직 심사 제출 안 함. 현재 ego p1은 기존 빈 내부 테스트 초안 17의 prepare 화면(다른 버전·문구 없음)이며 업로드 전이다.
 - **출시 재개 (2026-11-17 저녁)**: `scripts/verify-sukuyo-reading-house.mjs`의 오래된 자동 펼침 기대를 기본 접힘·사용자 토글로 수정했다. `23ed6e79e`가 의도적으로 자동 펼침을 제거한 것이 원인이다. 수정 전 line 73 실패 재현, 수정 후 27숙요/25글/4화면 폭·콘솔 오류 0 통과. 출석 POST는 진입 시 0회/버튼 누르면 1회 검증을 추가했다. check:fast 전체 실행 중이며 Node 5,195개 통과, Jest 진행 중이다.
 - Play Console 모든 번들 최대 코드 59 확인: 후보 60/1.0.60. 현재 프로덕션은 1.0.59이며 실제 국가 설정은 **19개국**이다(이전 8개국 기록 정정, 목록은 출시 계획). 한국어 ASO를 임시보관함에 저장했다. 영어 4개 로케일·일본어도 같은 초안으로 반영 중이며 아직 심사 제출하지 않았다. ego-browser taskSpace **56**, p1=스토어 기본 등록정보 수정. 작업 스크립트는 `.tmp/android-temple-release/round-*.mjs`.
