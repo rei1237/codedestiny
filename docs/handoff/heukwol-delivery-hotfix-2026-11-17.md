@@ -1,7 +1,7 @@
 ---
-status: in-progress
+status: done
 updated: 2026-11-17
-next: main CI 44096970429의 성공을 확인하고 원격 main d13cc7506e01704512b9433b718c34f6827513da로 운영 릴리스 워크플로(mode=production)를 실행한 뒤 실제 Pages/Worker 및 흑월 번들을 검증한다.
+next: 흑월 수정·운영 배포 완료. moonlit-views-android-2026-11-17.md에서 검증된 절 몰입 효과의 Android 빌드·출시를 이어간다.
 ---
 
 # 흑월 결제 후 전달 긴급 수정
@@ -10,6 +10,8 @@ next: main CI 44096970429의 성공을 확인하고 원격 main d13cc7506e017045
 `D:\Development\codedestiny-worktrees\android-temple-release60-20261117-220709`에서 git 상태와 아래 검증 로그를 확인한다. 루트의 기존 개발 서버를 중단하지 않는다.
 
 ## 지금 상태
+- **완료**: main CI 44096970429 success → 공식 production 릴리스 https://github.com/rei1237/codedestiny/actions/runs/44100476082 success(2026-11-17 23:29:24 KST). 23:30:17 KST에 `/version.json`과 `/api/version` 모두 `d13cc7506e01704512b9433b718c34f6827513da`, `/heukwol/` HTTP 200, 실제 `/_next/static/chunks/app/heukwol/page-0c45cac2d80d81b0.js`의 새 공유 전달 안내를 확인했다. `verify-heukwol-live.mjs <SHA>` exit 0. 실결제·실 LLM·운영 DB 쓰기는 하지 않았다.
+- 아래는 수정 당시 기록이다. 후속 main은 다른 세션의 공용 결제 복귀 수정 `cc15b4595`까지 전진했고, Android 워크트리에 충돌 없이 합쳤다. 병합 후 흑월·요청 제한·인증 복귀 조합 35/35 통과. 운영 릴리스는 고정 SHA로 완료했고 다른 운영 릴리스와 순서 충돌이 없었다.
 - 브랜치 `wt/android-temple-release60-20261117-220709`, 기준 `2bbcccbd2514b76af9685172b546422a94ef181a`(main과 origin/main 동일). 이 워크트리는 앞선 Android 격리 빌드 공간이며 현재 그 빌드는 중단됐다.
 - 검증된 코드 커밋: CI 검사기 `87371bb04`, 흑월 `93c371660` 및 문서 `d13cc7506e01704512b9433b718c34f6827513da`까지 **main에 fast-forward 통합·push 완료**. 흑월 클라이언트·요청 시간 제한·회귀 테스트 2개 및 공식 생성기로 갱신한 사이트맵 5개가 포함된다. 원격 main은 d13cc7506이며 이 후속 상태 갱신은 아직 원격에 올리지 않는다.
 - 최종 check:fast **exit 0**(세션 97498 종료). 로그: `D:\Development\code-destiny\.tmp\android-temple-release\heukwol-check-fast-final.log`. 결제 관련 77개, lint, 타입, Node **5,202/5,202**, Jest **479 suites·8,012 tests 통과 / 기존 1 skipped**, 결제 정책, Worker dry-run까지 통과. 첫 완주 시도는 sitemap drift에서 멈췄고 공식 생성기로 갱신·확인 후 재실행했다. 표 검사기는 별도 self-test 30개/대조 216키 및 verify:guard-wiring 통과. main check:pre-push exit 0도 확인했다.
@@ -35,8 +37,8 @@ next: main CI 44096970429의 성공을 확인하고 원격 main d13cc7506e017045
 - [x] 최종 UI/요청 제한 회귀 24/24 통과
 - [x] CI 표 검사기 실패 로컬 재현, 수정 후 self-test 30개 통과
 - [x] check:fast 완료 → 독립 커밋 2개 → main 머지 → check:pre-push → push
-- [ ] main CI 성공 확인 후 `.github/workflows/cloudflare-pages-deploy.yml` mode=production 실행
-- [ ] 릴리스 결과·운영 Pages/Worker SHA와 흑월 페이지 확인
-- [ ] 이 문서를 done으로 닫고 절 몰입 효과·Android 60 출시 재개(기존 moonlit handoff 참고)
+- [x] main CI 성공 확인 후 `.github/workflows/cloudflare-pages-deploy.yml` mode=production 실행
+- [x] 릴리스 결과·운영 Pages/Worker SHA와 흑월 페이지 확인
+- [x] 이 문서를 done으로 닫고 절 몰입 효과·Android 60 출시 재개(기존 moonlit handoff 참고)
 
 롤백: 수정 커밋만 revert하고 공식 Actions rollback으로 이전 Pages/Worker 버전을 복구한다. 로컬 Wrangler 배포 금지. 로그·스모크는 개인정보 없는 상태만 확인한다.

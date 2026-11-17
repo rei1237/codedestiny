@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-17
-next: 긴급 흑월 결제 전달 오류를 먼저 운영 배포(heukwol-delivery-hotfix-2026-11-17.md)한 뒤, 절의 차분한 대기 효과를 구현하고 Android 60 빌드·검증·Play 출시를 재개한다.
+next: 검증된 절 몰입 효과를 포함해 격리 워크트리에서 Android 60/1.0.60을 빌드하고, main CI 상태 확인 후 통합·push·새 CI 확인과 APK 검수·Play 내부 테스트 및 출시를 진행한다.
 ---
 
 # 연화당 다각도 UI와 Android 출시 준비
@@ -10,7 +10,15 @@ next: 긴급 흑월 결제 전달 오류를 먼저 운영 배포(heukwol-deliver
 `D:\Development\code-destiny`에서 이 문서와 `docs/design/moonlit-lotus-views.md`, `docs/design/moonlit-lotus-android-release-plan.md`를 읽고 현재 git 상태를 확인한다. 미완료 검증은 아래 상태에 따라 이어간다. 다른 사용자의 `.claude/skills/fire-your-seo-agency/`는 별도 저장소이므로 보존한다.
 
 ## 지금 상태
-- **우선순위 변경**: 2026-11-17 흑월 결제 후 전달 오류 긴급 수정·운영 배포를 먼저 승인받았다. 상세는 `heukwol-delivery-hotfix-2026-11-17.md`. 절의 새 대기 효과는 아직 구현 전이다.
+- **흑월 긴급 수정 완료**: 공식 production 44100476082 success, 23:30:17 KST Pages·Worker 모두 d13cc7506 및 실제 흑월 번들 확인. 상세는 `heukwol-delivery-hotfix-2026-11-17.md`(done). Android 출시 우선 대기 조건은 해제됐다.
+- **몰입 효과 구현 완료**: 커밋 `879c38e17`, 정면 등불·연못 잔물결과 모든 시점 빛 입자 3개. 새 CSS/컴포넌트이며 최대 5개 transform/opacity 애니메이션(12~27초). 메뉴 `풍경 움직임`, 기존 가볍게 보기·reduced motion으로 제거, offscreen/visibility/pagehide에서 정지. 사진에서는 제외. 390/1440 × 3장소 시각 검수 통과, 360/430/가로 overflow 0. UI detector 0개. 참배/기록/인증/결제/noindex 경계 무변경.
+- **검증 완료**: 이 워크트리 `.tmp/ambient/check-fast.log`, check:fast 세션 32143 exit 0. 타입/lint·Node 5,203/5,203·Jest 479 suites/8,012 tests(기존 1 skipped)·정책·Worker dry-run 통과. `moonlit-scene-views` 5/5. 공식 mock 브라우저에서 CSS animation 5개가 pagehide 시 모두 paused, 복귀·가볍게 보기·사용자 끄기·reduced-motion·화면 밖 중지 확인.
+- **동시 작업 통합**: 다른 세션의 `cc15b4595bc8ac8d540884e359fc1b79f7700912`(공용 결제 복귀/Neo)을 worktree에 충돌 없이 merge한 커밋 `029b142e8ede56abada3605020895527a44ae2e6`. 흑월/95초 제한/인증 복귀 관련 4개 테스트 파일 35/35 통과. main은 cc15이며 CI 44102846580은 23:30 전후 진행 중이었다. 그 작업의 CI/운영 승격을 끊지 않도록 Android 빌드 중에 진행시키고 다음 main push 직전 결과를 확인한다. main에 이번 효과는 아직 전달 전이다.
+- **브라우저 재개**: 이전 ego taskSpace 56은 사라졌고 inventory 확인 후 새 **60**을 만들었다. 현재 p2=기존 빈 내부 테스트 초안17 prepare, p3=한국어 스토어 등록정보 수정. p1 mock QA는 종료했다. 스크립트는 루트 `.tmp/android-temple-release/ambient-qa-01~04.mjs`, `store-resume-01~10.mjs`. 기존 다른 task57/59는 건드리지 않는다. Windows 인라인 `-e` 복잡한 문자열은 반복 파싱 오류가 있으므로 반드시 UTF-8 .mjs 작성 후 import로 실행한다.
+- **스토어 재확인**: 모든 번들 최대 59, 내부 초안17에 AAB·출시명·사용자 입력 노트 없음. 한국어 ASO 17/30·67/80·1016/4000, 기존 아이콘·그래픽·휴대전화8/8·태블릿 이미지 유지 확인. 최초 로드의 0/8은 로딩 중 표시이므로 바로 빈 상태로 판단하지 않는다. 6개 로케일 출시 노트에 실제 몰입 효과를 추가했고 모두 500자 이하(한국어151·영어357·일본어167). 스토어 업로드/심사 제출은 아직 안 했다.
+- **서명 참고**: Play 서명 페이지는 `/keymanagement`. 앱 서명 SHA256은 8C:7A:CE:8C:BB:98:35:78:81:FE:F0:E6:49:EB:D3:94:51:86:4A:4A:31:F4:0E:ED:7F:86:B4:27:E0:3D:53:E0. 업로드 인증서는 별도이며 다운로드 버튼의 download event가 30초 timeout돼 아직 비교하지 못했다. 보호 설정 변경/우회 금지. AAB 업로드 시 Play 서명 검증 결과도 확인한다.
+- **개발 서버 정리**: 자기 mock 34062/34063 PID33772/19140의 명령줄 확인 후 종료했다. `.tmp/ambient/dev-server.mjs`의 conf distDir와 달리 `.next`가 생성되어 있었으므로 빌드 전에 이 서버를 종료한 상태다. 다른 세션 main 34052/34053은 보존했다. 격리 worktree의 실제 `.next`가 정션이 아님을 확인했으며 main 서버와 출력이 분리된 빌드에만 ALLOW_DEV_SERVER_DURING_BUILD=1을 쓴다.
+- 아래는 앞선 준비 단계 기록이다.
 - 긴급 수정의 로컬 검사 동안 메모리를 확보하기 위해 자기 AVD `cd-temple-release60`임을 adb로 확인하고 emulator-5556을 정상 종료했다. 기기 데이터는 보존했으며 Android 검수 재개 시 이 AVD를 다시 시작한다.
 - 사용자 추가 요청: “절 기능에서 가만히 있어도 지루하지 않도록 어느정도 몰입감있는 효과도 주도록하고 그 이후에 완벽하게 안드로이드 앱에 이식해서 새로운 버전으로 론칭해줘”. 차분한 달빛/물결/연꽃 움직임, reduced-motion·가볍게 보기·백그라운드 정지를 반영한 뒤 빌드한다.
 - **격리 빌드 공간**: `D:\Development\codedestiny-worktrees\android-temple-release60-20261117-220709`, 브랜치 `wt/android-temple-release60-20261117-220709`, 기준 `2bbcccbd2514b76af9685172b546422a94ef181a`까지 main push 완료. node_modules는 정션, 모바일 이미지 캐시는 일반 복사본. 서명 속성 파일은 main과 하드링크이며 비밀값을 읽거나 변경하지 않는다.
