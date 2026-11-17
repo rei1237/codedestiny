@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-18
-next: 최신 main CI·PaidFlow 성공 확인 후 ego space64의 준비된 production 실행과 운영 검수
+next: production44140519314 완료 확인 후 ecc91dab6 Pages·Worker SHA 및 .tmp/kakaopay/verify-live.mjs 검증
 ---
 # 카카오페이 복귀와 달빛 예화
 
@@ -17,7 +17,7 @@ D:/Development/codedestiny-worktrees/kakaopay-moonlight-return-20261118-005343 �
 - 사용자 2026-11-18: “Please implement the plan.”
 - 선행 승인: “실제 문제가 있다면 수정 후 운영에 반영시켜”, “결제 완료가 나온 이후에 바로 결과 화면 또는 생성 중 화면을 보여주도록하고 결제 ui/ux에도 고급스러운 달빛 예화 스타일을 적용해줘”. 운영 배포 완료까지 확인 요청을 유지한다. 재승인 불필요.
 - 명상 영냥이는 기존 캐릭터 재활용 가능. 공통 대기·영냥이 생성만, 연이/네오 전용 장면 유지. 미사용 파생 이미지 삭제 허용.
-- 실제 결제·실 LLM·운영 DB 쓰기는 금지, 모든 개발 검증 mock. 기존 주문 cd4da72b9c76407fd268d3cfb024511c040342b3 은 이미 환불된 과거 사례, 재생성/주문 변경 금지.
+- 실제 결제·실 LLM·운영 DB 쓰기는 금지, 모든 개발 검증 mock. 사용자가 제시한 기존 주문은 이미 환불된 과거 사례, 재생성/주문 변경 금지.
 
 ## 작업 규칙과 함정
 - 최신 CLAUDE.md, payment-gating, delivery-and-ci 준수. main CI 뒤 승인된 production workflow 실행, Pages/Worker 같은 SHA 확인. 로컬 wrangler 배포 금지.
@@ -66,3 +66,11 @@ D:/Development/codedestiny-worktrees/kakaopay-moonlight-return-20261118-005343 �
 - .tmp/kakaopay/verify-live.mjs <SHA>: 배포공개JS4개 로컬/동일minify 비교, CSS/이미지byte비교, 실제공개natal-core 순수계산8/6 및 harmful-beneficial/useful-adverse/축미hidden 검증, 영냥이/네오 공개청크 점검. 아직실행전. syntax check PASS.
 
 - ac9 static가드 후반 locale-text-fit에서 제거된 후광의 예외11건 및 새글자없는 가지장식2건 불일치가 발견됨. f5ec26f75에서 목록만 정리, verify:locale-text-fit PASS(45위험선언,12로케일,예산초과0). 실제제품코드 추가변경 없음. 최초 pre-push는 이 인수인계문서가 미커밋이라 중단, 문서커밋 후 재실행할 것.
+
+## 승인된 운영 배포 실행
+- 최종 코드 f2edfc6dd43de0e6d7e076410524ab0f88ffaf10: CI44136917699 모든 lane/CI required SUCCESS. 코드 런의 Node5225/5225, Jest8012, mock 모바일114 통과.
+- PaidFlow44134665182 전체90/90 SUCCESS. 브라우저44132391407 SUCCESS, Secret44136917678 SUCCESS.
+- 공유 main에 문서 한 파일만 추가된 ecc91dab65194247677875c260a02a210a5c9d01로 운영 dispatch됨. diff는 docs/handoff/heukwol-warning-story-2026-11-18.md뿐, 제품코드는 f2와 동일. ecc CI44139865467 SUCCESS. 자기worktree도 ecc로 ff완료.
+- production workflow44140519314: main/production, 나머지옵션false/empty. 2026-11-18 02:45KST 실행, release의 Deploy Pages and Worker at the exact SHA 단계 진행중. 아직 운영완료라고 보고하지 않았다.
+- ego space64 p1=workflow,p2=완료된 PaidFlow로그. 완료 뒤 task.finish({keep:[]}) 필요. local staticserver59551 port3108 살아 있음.
+- 남은 작업: workflow완료 → node scripts/verify-deployed-sha.mjs --sha=ecc91dab65194247677875c260a02a210a5c9d01 --attempts=1 → node .tmp/kakaopay/verify-live.mjs <동일SHA> → 실제운영브라우저 DOM/순수계산 확인 → 자기handoff done/문서commit·mainpush·CI확인 → server종료·ego finish·공식worktree:remove.
