@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-18
-next: 검증된 변경 커밋 후 최신 origin/main 병합·main CI 및 승인된 운영 배포 완료 확인
+next: 최신 main CI·PaidFlow 성공 확인 후 ego space64의 준비된 production 실행과 운영 검수
 ---
 # 카카오페이 복귀와 달빛 예화
 
@@ -57,3 +57,12 @@ D:/Development/codedestiny-worktrees/kakaopay-moonlight-return-20261118-005343 �
 - React/영냥이20captures SHIP. 공통8captures HOLD3건(284px 완료 높이/이전후광/청색킥커)을 한배치 수정, fresh reviewer 재판정 전부 resolved. 완료82.89px, 네폭 모두 pointer-events none/bodyUnlocked/noOverflow.
 - 최신 origin/main 2a08acd1161d63ee27a5c95ae8c6c4e5b79f29f1: required CI PASS. 다른 작업의 release44131036784 진행 중, 취소하지 않는다.
 - ego space64 p1 로그인 유지. 아직 이 작업 production dispatch 안 함. 정적server59551 port3108 실행중.
+
+## main 전달과 CI 후속
+- 구현83de5571b, 미사용파생삭제7347b4f3e, main병합c4d53a4ee, 디자인문서ac9d43af6 모두 main push.
+- ac9 CI: 타입/lint/build/critical테스트 성공, 브라우저44132391407 성공. PaidFlow44132390412의89중1실패는 verify-portone-single-payment의 옛 로고경로 assert였음. 서비스동작 수정 없이 새공유자산/64KiB미만/async decoding 검증으로 교체. targeted PASS(기존가짜DB 로그2회 timeout 경고만), pre-push PASS.
+- 수정 b8dcd772b242fb6f309539bfea9ddfc25b4125ff main push. 최신 CI44134665370(critical은 검사수정만이라 skip), PaidFlow44134665182, SecretScan44134665089 확인 필요. ac9 SecretScan44132390461 PASS.
+- ego space64 p1 Run workflow dialog: main/production 선택됨, 나머지 boolean false·text empty. 아직 dispatch하지 않았다. CI green 후 submit.
+- .tmp/kakaopay/verify-live.mjs <SHA>: 배포공개JS4개 로컬/동일minify 비교, CSS/이미지byte비교, 실제공개natal-core 순수계산8/6 및 harmful-beneficial/useful-adverse/축미hidden 검증, 영냥이/네오 공개청크 점검. 아직실행전. syntax check PASS.
+
+- ac9 static가드 후반 locale-text-fit에서 제거된 후광의 예외11건 및 새글자없는 가지장식2건 불일치가 발견됨. f5ec26f75에서 목록만 정리, verify:locale-text-fit PASS(45위험선언,12로케일,예산초과0). 실제제품코드 추가변경 없음. 최초 pre-push는 이 인수인계문서가 미커밋이라 중단, 문서커밋 후 재실행할 것.
