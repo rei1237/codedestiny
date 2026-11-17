@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-18
-next: 최종 APK49e216f0의 남은 참배·화면·성능 검수를 완료한 뒤 AAB9beddcda를 내부 테스트에 올리고 프로덕션100% 심사 제출·가능한 공개까지 진행한다. IME 실제 저장은 통과했으며 CI 게이트는 런타임 동일 후속main 성공으로 해소됐다.
+next: 최종 실기 QA는 통과했다(verification/final-native-qa.json status=pass). AAB9beddcda를 Play 내부 초안18에 올려 내부 출시하고, 스토어 폰 마지막 2장을 store-1080x1920-*로 교체한 뒤 프로덕션100% 심사 제출·공개 확인까지 진행한다.
 ---
 
 # 연화당 다각도 UI와 Android 출시 준비
@@ -10,6 +10,8 @@ next: 최종 APK49e216f0의 남은 참배·화면·성능 검수를 완료한 �
 `D:\Development\code-destiny`에서 이 문서와 `docs/design/moonlit-lotus-views.md`, `docs/design/moonlit-lotus-android-release-plan.md`를 읽고 현재 git 상태를 확인한다. 미완료 검증은 아래 상태에 따라 이어간다. 다른 사용자의 `.claude/skills/fire-your-seo-agency/`는 별도 저장소이므로 보존한다.
 
 ## 지금 상태
+- **2026-11-18 04시 최종 실기 QA 통과(Claude 세션)**: 설치 APK SHA 49e216f0 재확인. 냉시작 5회 TTID 2153/1469/1432/1446/1596ms. 108배는 호스트 크래시·냉시작 5회 뒤에도 53/108 보존, 홈·잠금 시 멈추고 숨은 동안·중복 기록 0, 03:33 108/108 완료. 메모리: 완료 시 앱 PSS 93.9MB/WebView 191.7MB, 5분 idle 95.8/203.7MB로 안정. crash 버퍼 0. ANR 1건은 후보60 첫 설치 12초 뒤(기본 GPU 에뮬 불안정기)이며 61에서는 재현되지 않음. 3장소×5시점 실탭 정상. 오디오는 사용자 탭 뒤에만 재생되고 백그라운드에서 멈추며 복귀 시 자동 재생하지 않음. 뒤로가기는 다이얼로그·패널을 먼저 닫음. 사진 편집 정상. 태블릿 800dp(1080×1728/216)·글자 200%에서 장소 선택 3개 실탭 정상, 가로 넘침 없음. 정본 `verification/final-native-qa.json`. 후속(차단 아님): 글자 200%에서 헤더 장소 선택 텍스트가 말줄임 없이 잘림·제목 2줄, 냉시작 5회차가 오프라인 오버레이 대신 영어 토스트만 표시(탭바와 약간 겹침), 글꼴 배율 변경 시 액티비티가 재생성되어 홈으로 재로드. 미검증: 물리 기기, Play 서명 59→61 업데이트.
+- 🔴 **에뮬레이터 함정**: `wm size` 전환이 호스트 qemu를 0xc0000005/139로 세 번 종료시켰다(1600×2560, 1728→reset, →1920). 앱 결함이 아니다. 복구: `emulator -avd cd-temple-release60 -port 5556 -gpu swangle_indirect -no-window -no-snapshot`. override는 재부팅 후에도 유지되므로, 해상도를 바꿀 때는 미리 설정해 두고 재부팅 뒤 캡처한다. 명상 패널은 1920 높이에서 호흡 원이 잘려 스토어용에서 뺐다(`rejected-store-*`).
 - **2026-11-18 03시 최종 후보**: 소스 `24f12f9071229d611b5efb3cd16fd73f9567eaeb` main 통합·pre-push·push 완료. 최종 sync exit0(HTML1055가드), Gradle exit0/22분10초/195tasks(26실행12cache157기존). AAB327,923,322B SHA256`9beddcdafbf1879b17217a253fcd7fc0827b185e9f9c0d5552bae63286947c1f`, APK326,557,650B SHA256`49e216f090d10fb2b25625c1d9567edd065b17c875a27c6dc8d49cafca9618be`. 최종 산출물과 package.json은 `D:/Development/releases/codedestiny/1.0.61/` 및 verification에 있다. version61/min24/target36/APKv2/AAB서명/자산36개/16KB/native.so0 통과. 생성Gradle2파일은 원복했고 완료한 자기daemon11132는 종료했다.
 - **실제 최종 설치와 IME**: ownAVD cd-temple-release60/emulator-5556를 SwiftShader로 재시작해1080×2400/density420/font1/rotation0 복원,비행기1/wifi0/data0 유지. `adb install -r` 성공 후 설치base.apk SHA가 위 최종APK와 일치(installed-final-artifact.json). 실제오프라인링크진입·기도입력 Release61-IME-final·키보드열린채저장성공·나의기록조회 확인. visual reviewer는 final-02-prayer-ime.png에서저장/닫기/하단메뉴와IME비겹침통과. 기존기도 Release61-local-prayer도목록에보존. 5/9참배사전기준은before-final-install-state.json,최종보존캡처final-06-preserved-bow.png의판독진행중. 9완료·27/108제어·화면폭/태블릿·시점/성능/오디오/사진은남음.
 - **CI 게이트 해소**: source24f의PR CI44136535569는삭제된장식선택자를찾던locale검사때문에실패. 타세션 f5ec26f75가검사만정리했다. root가 f2edfc6dd43de0e6d7e076410524ab0f88ffaf10의44136917699와ecc91dab65194247677875c260a02a210a5c9d01의44139865467 SUCCESS를확인. 24f..ecc차이는scripts/verify-locale-text-fit.mjs와타세션handoff2개뿐,앱런타임차이0이므로재빌드불필요. 근거verification/ci-release-gate-review.json. 최종문서전달때최신main을안전통합한다.
@@ -101,5 +103,7 @@ next: 최종 APK49e216f0의 남은 참배·화면·성능 검수를 완료한 �
 - [x] 실패 decode/경쟁 요청/Canvas 보존 단위 검증, 브라우저 시점 왕복·참배·음악·사진 검증
 - [x] 스토어 초안과 Android 출시 상세 계획
 - [x] 로컬 check:fast 최종 통과·자산/UI/출시 계획 별도 커밋
-- [ ] 선행 main CI 실패 해소 후 pre-push와 push 및 CI 1회 확인
+- [x] 선행 main CI 실패 해소 후 pre-push와 push 및 CI 1회 확인
+- [x] 최종 후보 61 빌드(AAB 9beddcda/APK 49e216f0)와 에뮬레이터 실기 QA 통과(2026-11-18 04시)
+- [ ] Play 내부 61 → 스토어 캡처 교체 → 프로덕션 100% 심사 제출 → 공개 확인
 - [ ] 실제 Android 확대/IME/edge-to-edge/시작 성능·장시간 메모리·업데이트 보존 검증, AAB 빌드·심사·출시 (후속 릴리스 단계)

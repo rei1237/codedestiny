@@ -55,6 +55,14 @@
 
 `node scripts/measure-android-startup.mjs --package com.codedestiny.app.benchmark --serial <기기> --runs 5`는 mock 전용 별도 패키지만 허용하며 Activity 시작 시간을 측정한다. 출시 APK에 이 명령을 그대로 적용하지 않는다. 풍경이 준비되는 WebView 시간과 별도로 기록한다. 개발 서버의 요청 속도를 출시 성능으로 사용하지 않는다. JS heap과 디코딩 이미지·GPU 메모리도 구분한다.
 
+**2026-11-18 최종 61 결과: 통과.** 정본은 `D:/Development/releases/codedestiny/1.0.61/verification/final-native-qa.json`이다.
+- 냉시작 TTID: 1432–2153ms (5회).
+- 108배 완료 시 메모리: 앱 PSS 94MB, WebView 192MB. 5분 idle 뒤 96MB, 204MB.
+- crash 버퍼 0, 61 실행 중 ANR 0.
+- 참배·시점·오디오·뒤로가기·사진·태블릿 800dp·글자 200% 통과.
+- 화면 높이 669dp에서는 108배·명상 패널 하단이 스크롤 영역이다. 108배 설정 줄은 스크롤하면 도달한다.
+- 미검증: 물리 기기, Play 서명 59→61 업데이트.
+
 ## 4. 검색·스토어 준비
 
 정본 초안은 `apps/mobile/store-listings.json`이며 status=draft를 유지한다. 한국어 제목은 **꿀꿀운세 - 사주·자미두수·타로**(17자), 짧은 설명은 67자다. 사주·자미두수 명반·베다점·점성술·연애운·신년운세를 기능 설명에 자연스럽게 분산했다. 영어·일본어 설명에는 자미두수와 연화당을 추가하고 연화당 조작이 현재 한국어임을 명시했다. 제공하지 않는 무료·무제한 혜택이나 결과 보장은 추가하지 않는다.
