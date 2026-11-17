@@ -1,0 +1,30 @@
+<ko-KR>
+달빛 연화당의 마당·법당·연못을 여러 각도에서 둘러보세요.
+108배·기도·명상 버튼을 정리하고 풍경을 넓게 볼 수 있도록 개선했습니다.
+사주 입묘 해석과 프로필 화면을 다듬고 앱의 이미지 로딩을 최적화했습니다.
+</ko-KR>
+<en-US>
+Explore the courtyard, hall and pond of Moonlit Lotus from multiple illustrated viewpoints.
+Updated bow, prayer and meditation controls leave more room for the scenery.
+Refined Saju readings and profile screens, with improved image loading. Temple controls are currently in Korean.
+</en-US>
+<en-GB>
+Explore the courtyard, hall and pond of Moonlit Lotus from multiple illustrated viewpoints.
+Updated bow, prayer and meditation controls leave more room for the scenery.
+Refined Saju readings and profile screens, with improved image loading. Temple controls are currently in Korean.
+</en-GB>
+<en-AU>
+Explore the courtyard, hall and pond of Moonlit Lotus from multiple illustrated viewpoints.
+Updated bow, prayer and meditation controls leave more room for the scenery.
+Refined Saju readings and profile screens, with improved image loading. Temple controls are currently in Korean.
+</en-AU>
+<en-CA>
+Explore the courtyard, hall and pond of Moonlit Lotus from multiple illustrated viewpoints.
+Updated bow, prayer and meditation controls leave more room for the scenery.
+Refined Saju readings and profile screens, with improved image loading. Temple controls are currently in Korean.
+</en-CA>
+<ja-JP>
+月明かりの蓮華堂の庭、本堂、蓮の池を、複数の視点のイラストで散策できるようになりました。
+礼拝・祈り・瞑想のボタンを整理し、風景を広く見渡せるように改善しました。
+四柱推命の解釈とプロフィール画面を見直し、画像の読み込みを最適化しました。蓮華堂の操作画面は現在韓国語です。
+</ja-JP>
