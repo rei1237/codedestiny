@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-18
-next: 최종 실기 QA는 통과했다(verification/final-native-qa.json status=pass). AAB9beddcda를 Play 내부 초안18에 올려 내부 출시하고, 스토어 폰 마지막 2장을 store-1080x1920-*로 교체한 뒤 프로덕션100% 심사 제출·공개 확인까지 진행한다.
+next: 2026-11-18 04:40 Play 프로덕션 1.0.61(100%, 19개국)과 스토어 등록정보 9건을 심사 제출했다(게시 개요 "검토 중인 변경사항", 아직 공개 아님). 게시 개요에서 승인·공개를 확인하고 Play 공개 페이지 버전이 1.0.61인지 본 뒤 이 문서를 done으로 닫고 워크트리를 배수한다. 거절 시 사유를 기록하고 사용자에게 보고한다.
 ---
 
 # 연화당 다각도 UI와 Android 출시 준비
@@ -105,5 +105,8 @@ next: 최종 실기 QA는 통과했다(verification/final-native-qa.json status=
 - [x] 로컬 check:fast 최종 통과·자산/UI/출시 계획 별도 커밋
 - [x] 선행 main CI 실패 해소 후 pre-push와 push 및 CI 1회 확인
 - [x] 최종 후보 61 빌드(AAB 9beddcda/APK 49e216f0)와 에뮬레이터 실기 QA 통과(2026-11-18 04시)
-- [ ] Play 내부 61 → 스토어 캡처 교체 → 프로덕션 100% 심사 제출 → 공개 확인
+- [x] Play 내부 61 출시(11-18 04:04, 내부 테스터에게 제공됨, 지원 기기 변화 0)
+- [x] 스토어 등록정보: ko-KR 폰 스크린샷 07·08을 store-1080x1920-01-temple/02-bow로 교체(AI 라벨 기존 6장과 같이 지정, 연화당 그림이 image_gen 산출물). 초안 텍스트(KO 이름·간단·전체, EN4/JA 전체)는 store-listings.json과 일치 확인
+- [x] 프로덕션 새 버전 1.0.61 · 달빛 연화당, 출시율 100%, 모든 대상 국가(19), 출시 노트 6로케일은 내부 61에서 복사, 지원 기기 변화 0, 신규 설치 325MB. 게시 개요 변경 10건 심사 제출(11-18 04:40경, 관리형 게시 꺼짐 → 승인 즉시 공개). 증거 verification/play-production-61-submitted.png
+- [ ] 심사 승인·공개 확인(Play 공개 페이지 버전 1.0.61) → 문서 done, 워크트리 배수
 - [ ] 실제 Android 확대/IME/edge-to-edge/시작 성능·장시간 메모리·업데이트 보존 검증, AAB 빌드·심사·출시 (후속 릴리스 단계)
