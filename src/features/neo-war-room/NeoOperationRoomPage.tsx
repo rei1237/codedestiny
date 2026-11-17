@@ -1109,7 +1109,7 @@ export default function NeoOperationRoomPage({ paymentSurface = "web", TossPrice
     accessEpoch.current += 1;
     setBriefing(null); setSessionId(""); setRefinedOrder(null); setFlowPhase("idle");
     setRecoveryEpoch(value => value + 1);
-  });
+  }, { survivesAuthRestore: true });
   const captureOwner = useCallback(() => { const account = captureAccount(), epoch = accessEpoch.current; return () => account() && epoch === accessEpoch.current; }, [captureAccount]);
   useEffect(() => {
     const isCurrent = captureOwner();
@@ -1315,7 +1315,8 @@ export default function NeoOperationRoomPage({ paymentSurface = "web", TossPrice
     trimmedQuestion,
   ]);
   const hasActiveWarRoomEntry = hasEnteredWarRoom && entryRevision === NEO_OPERATION_ROOM_ENTRY_REVISION;
-  const showCommandDeck = hasActiveWarRoomEntry && hasCompletedPrologue;
+  // PG 복귀 문서에는 인트로 진입 상태가 없지만, 전달받은 결과는 바로 열어야 한다.
+  const showCommandDeck = (hasActiveWarRoomEntry && hasCompletedPrologue) || showBriefingPanel || showRefinedPanel;
   const isPrologueActive = hasActiveWarRoomEntry && !hasCompletedPrologue;
   const isLastPrologueStep = prologueStep >= neoPrologueDialogues.length - 1;
   const activePrologueLine = isPrologueActive
@@ -2205,7 +2206,7 @@ export default function NeoOperationRoomPage({ paymentSurface = "web", TossPrice
         <em>{bgmStatusLabel}</em>
       </button>
 
-      {!showCommandDeck ? (
+      {!showCommandDeck && !showOperationMap && !displayBriefing && !displayRefinedOrder ? (
       <section
         className={styles.heroSection}
         data-entered={hasActiveWarRoomEntry ? "true" : "false"}

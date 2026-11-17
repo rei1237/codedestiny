@@ -153,8 +153,8 @@ for (const file of ["js/destiny-profile.js", "public/js/destiny-profile.js"]) {
   );
   assert.ok(resume.includes("'unlock-saving'"), `${file}: 복귀 confirm 대기는 3렌더러 공통 허용 mode 'unlock-saving' 이어야 한다`);
   /* 2026-09-06: "아무것도 안 열면서 '여는 중' 이라고 말한다" 를 **문구를 금지**하는 대신
-     **정말 열도록** 고쳤다. 그래서 계약이 뒤집혔다 — 완료 문구는 자동 재개에 성공한 분기
-     안에서만 쓸 수 있고, 실패·미배선 분기는 사라지는 오버레이가 아니라 지속 카드로 떨어진다. */
+     **정말 열도록** 고쳤다. 그래서 계약이 뒤집혔다 — 완료 문구는 서버 확정 뒤 재개 직전에 표시하고,
+     실행 실패·미배선은 영수증을 보존한 지속 카드로 이어진다. 결과 위에 완료 안내를 다시 띄우지 않는다. */
   assert.ok(resume.includes("_dpRunPaidResume("), `${file}: 복귀 경로가 재개 서술자를 실행하지 않는다 — 결제해도 기능이 안 열린다`);
   assert.ok(
     resume.includes("_dpSavePaidGrantReceipt("),
@@ -165,18 +165,15 @@ for (const file of ["js/destiny-profile.js", "public/js/destiny-profile.js"]) {
     resumedBranch.includes("_dpConsumePaidGrantReceipt("),
     `${file}: 자동 재개에 성공했으면 영수증을 소비해야 한다 — 안 그러면 1회 결제로 자동 개방 + 다음 클릭 무료가 되어 두 번 열린다`,
   );
-  assert.ok(
-    resumedBranch.includes("_dpShowPaymentCompleteOverlay("),
-    `${file}: 자동 재개 성공 분기에서만 완료 오버레이를 쓴다 — 그 호출이 사라졌다`,
-  );
-  const completeCalls = (resume.match(/_dpShowPaymentCompleteOverlay\(/g) || []).length;
-  const completeCallsInResumed = (resumedBranch.match(/_dpShowPaymentCompleteOverlay\(/g) || []).length;
-  assert.equal(
-    completeCalls,
-    completeCallsInResumed,
-    `${file}: 재개에 성공하지 않은 분기에서 "콘텐츠를 여는 중" 문구(paymentCompleteOverlay)를 쓰면 거짓 안내다 — _dpShowDirectResumeCard 로 떨어뜨릴 것`,
-  );
-  assert.ok(
+  // Confirmed payment hands off before generation, never over its completed result.
+  const handoff = resume.indexOf("if (canResume) _dpShowPaymentCompleteOverlay(");
+  const confirmAccepted = resume.indexOf("if (!confirmRes.ok)");
+  const resumeCall = resume.indexOf("? await _dpRunPaidResume(");
+  assert.ok(handoff > confirmAccepted && resumeCall > handoff,
+    file + ': 완료 안내는 서버 확정 뒤·기능 재개 전에 한 번만 표시해야 한다');
+  assert.equal((resume.match(/_dpShowPaymentCompleteOverlay\(/g) || []).length, 1);
+  assert.ok(!resumedBranch.includes("_dpShowPaymentCompleteOverlay("),
+    file + ': 생성 완료된 결과 위에 결제 완료 안내를 다시 덮으면 안 된다');  assert.ok(
     resume.includes("_dpShowDirectResumeCard("),
     `${file}: 재개 실패·미배선 분기의 지속 카드가 사라졌다 — 사라지는 오버레이로 되돌리면 "결제했는데 메인 화면"이 재발한다`,
   );

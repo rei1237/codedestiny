@@ -111,3 +111,14 @@ test('mobile resume awaits the actual result and reports failure without consumi
   assert.equal(done, false, 'must not report success before the server result');
   complete(false); assert.equal(await pending, false);
 });
+
+test('already-loaded paid resumes reveal a closed Sukuyo surface without resetting inputs or reopening checkout', async () => {
+  const dom = new JSDOM('<div id="sukuyoModalOverlay" style="display:none"><input id="sy3BirthY" value="1992"></div>');
+  const opened = [], window = {_cdBasicFortuneModalOpened: (kind, node) => opened.push({kind, node})};
+  const ctx = fixture(['syRevealPaidResumeSurface', 'syWaitForCompatForm'], {window, document:dom.window.document, getComputedStyle:dom.window.getComputedStyle, setTimeout, SY_COMPAT_FORM_POLL_MS:1});
+  assert.equal(await ctx.syWaitForCompatForm(10), true);
+  assert.equal(dom.window.document.getElementById('sukuyoModalOverlay').style.display, 'flex');
+  assert.equal(dom.window.document.getElementById('sy3BirthY').value, '1992');
+  assert.equal(await ctx.syWaitForCompatForm(10), true); assert.equal(opened.length, 1);
+  dom.window.close();
+});

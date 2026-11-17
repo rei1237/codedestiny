@@ -230,7 +230,7 @@ assertNotContains(billingClientSource, "BILLING_FETCH_MUTATION_TIMEOUT_MS", "Rea
 // 키가 3종(build-a300cf84f0f5 · build-4b96ba87f36f · 셸 키)으로 갈라져 있었고, destiny-profile.js
 // 를 고쳐도 그 참조들은 엣지 캐시(/*.js max-age 7일)의 옛 파일을 계속 받았다.
 // 지금은 셋을 셸 키로 통일했다. destiny-profile.js 를 고치면 이 값도 함께 올려야 한다.
-assertContains(billingClientSource, 'PAID_SERVICE_RUNTIME_SRC = "/js/destiny-profile.js?v=build-3aef8b273ca0"', "React paid runtime cache key carries the current profile runtime");
+assertContains(billingClientSource, 'PAID_SERVICE_RUNTIME_SRC = "/js/destiny-profile.js?v=build-8b359701e46f"', "React paid runtime cache key carries the current profile runtime");
 assertNotContains(billingClientSource, "build-20260622-inicis-phone", "React paid runtime must not load stale Inicis phone runtime");
 assertContains(billingClientSource, "function isMonthlyCreditAccessType", "React billing has monthly-credit access resolver");
 assertContains(billingClientSource, "function resolveAppliedBillingPayment", "React billing resolves applied payment method from server response");
@@ -633,9 +633,10 @@ for (const path of ["/api/billing/checkout", "/api/payments/prepare"]) {
     `주문 발급은 대기 UI를 켜지 않아야 한다: ${path}`,
   );
 }
-// 승인 검증(confirm)은 결제창을 통과한 뒤라 그대로 추적한다 — 위 예외가 과하게 넓어지지 않게 고정.
-assert.equal(shouldTrackPaymentRequest("/api/billing/confirm", "POST"), true, "승인 검증은 계속 추적한다");
-assert.equal(shouldTrackPaymentRequest("/api/payments/confirm", "POST"), true, "승인 검증은 계속 추적한다");
+// 승인 응답 전에 완료로 표시하지 않는다. 검증된 호출부가 완료 UI와 생성 화면을 연결한다.
+for (const path of ["/api/billing/confirm", "/api/payments/confirm", "/api/payments/subscription/confirm"]) {
+  assert.equal(shouldTrackPaymentRequest(path, "POST"), false, "승인 전 완료 안내를 띄우면 안 된다: " + path);
+}
 
 const waitUiAllowLists = [
   { label: "shell", source: indexSource, name: "CD_WAIT_UI_ALLOWED_MODE_RE" },

@@ -98,3 +98,34 @@ test("unmount invalidates", () => {
   page.unmount();
   assert.equal(isCurrent(), false);
 });
+
+test('Neo payment captures survive the initial auth restore but never an actual account switch', () => {
+  const neo = readFileSync('src/features/neo-war-room/NeoOperationRoomPage.tsx', 'utf8');
+  const ast = ts.createSourceFile('neo.tsx', neo, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
+  let options;
+  function visit(node) {
+    if (ts.isVariableDeclaration(node) && node.name.getText(ast) === 'captureAccount') options = node.initializer.arguments[1];
+    ts.forEachChild(node, visit);
+  }
+  visit(ast); assert.ok(options, 'Neo must opt into the shared auth restore contract');
+  const page = mount({}, vm.runInNewContext('(' + options.getText(ast) + ')'));
+  const isCurrent = page.scope();
+  page.set({user: {id: 'buyer'}, authReady: true}); assert.equal(isCurrent(), true);
+  page.set({user: {id: 'another-buyer'}}); assert.equal(isCurrent(), false);
+});
+
+test('Neo completed paid results are visible in a fresh return document without replaying the prologue', () => {
+  const neo = readFileSync('src/features/neo-war-room/NeoOperationRoomPage.tsx', 'utf8');
+  const ast = ts.createSourceFile('neo.tsx', neo, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
+  let expression;
+  function visit(node) {
+    if (ts.isVariableDeclaration(node) && node.name.getText(ast) === 'showCommandDeck') expression = node.initializer.getText(ast);
+    ts.forEachChild(node, visit);
+  }
+  visit(ast); assert.ok(expression);
+  const freshReturn = {hasActiveWarRoomEntry: false, hasCompletedPrologue: false, showBriefingPanel: false, showRefinedPanel: false};
+  assert.equal(vm.runInNewContext(expression, freshReturn), false);
+  assert.equal(vm.runInNewContext(expression, {...freshReturn, showBriefingPanel: true}), true);
+  assert.equal(vm.runInNewContext(expression, {...freshReturn, showRefinedPanel: true}), true);
+  assert.equal(vm.runInNewContext(expression, {...freshReturn, hasActiveWarRoomEntry: true, hasCompletedPrologue: true}), true);
+});

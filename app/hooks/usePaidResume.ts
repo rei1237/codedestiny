@@ -22,6 +22,7 @@
  */
 
 import { useCallback, useEffect, useRef } from "react";
+import { getAuthState, refreshAuth } from "@/app/_lib/auth-store";
 import { detectLocale } from "@/lib/i18n/dictionary";
 import checkoutEntry, {
   type PaidResumeDescriptor,
@@ -62,8 +63,14 @@ export function usePaidResume(kind: string, run: PaidResumeRunner, options: { le
     try {
       const kinds = Array.from(new Set([kind, ...(options.legacyKinds || [])].filter(Boolean)));
       for (const resumeKind of kinds) {
-        const handler = (descriptor: PaidResumeDescriptor, grant: PaidResumeGrant | null) => {
+        const handler = async (descriptor: PaidResumeDescriptor, grant: PaidResumeGrant | null) => {
           if (!alive) return false;
+          // Resolve the original account before a feature captures its delivery scope.
+          // Hydration is not an account switch; a real switch still invalidates that scope.
+          if (!getAuthState().authReady) {
+            try { await refreshAuth({ silent: true }); } catch { return false; }
+          }
+          if (!alive || !getAuthState().user) return false;
           const args =
             descriptor && descriptor.args && typeof descriptor.args === "object"
               ? (descriptor.args as PaidResumeArgs)
