@@ -14,6 +14,7 @@ next: 선행 main CI의 숙요/출석 검사 실패를 해결한 뒤 연화당 �
 - 자산 커밋: `88b2f03af7254bf6ed12bd0c7a330ece4966205d`, 아직 push하지 않았다. 실제 시점 그림 27개, 6.34MiB.
 - UI 커밋 `f0128e649`, ASO·출시 계획 커밋 `37515015b2312ec0419163837920eb25375642f3`까지 로컬 구현을 완료했다. 아직 push하지 않았다.
 - `npm run check:fast` 통과(exit 0): 타입/lint, Node 5,195/5,195, Jest 479 suites·8,012 tests 통과(기존 1 suite/test skipped), 계약 검사와 Worker dry-run. 새 시점 테스트 4개는 별도 재확인도 통과했다. 첫 실행의 새 테스트 변수명 module lint 오류는 loaded로 수정했다. 프런트 프로덕션 빌드는 공식 CI에 맡긴다.
+- `npm run check:pre-push`와 `npm run verify:handoff-contract`도 통과했다. 원격 실패 커밋 위에 push하지 않는 규칙에 따라 코드·문서 커밋은 모두 로컬에 보존했다.
 - 선행 main CI **실패**: https://github.com/rei1237/codedestiny/actions/runs/44064192958 . Static guards의 `scripts/verify-sukuyo-reading-house.mjs:73`에서 honeyDetails.open이 false였다. 타입/lint와 빌드는 성공. 연화당 변경 전 실패이며 이 위에 새 push를 쌓지 않는 저장소 규칙을 따른다. 숙요/프로필 구현은 이번에 수정하지 않았다.
 - 스토어 현재 1.0.59 프로덕션 100%를 읽기 전용으로 확인했다. 이번 단계에서는 AAB/APK 빌드·스토어 변경·실출시를 수행하지 않았다.
 
@@ -25,7 +26,8 @@ next: 선행 main CI의 숙요/출석 검사 실패를 해결한 뒤 연화당 �
 - UI/테스트만 mock에서 검증. 결제·인증·API·DB·기존 구매 결과·private IndexedDB 계약은 변경하지 않는다. noindex 유지.
 - 공식 CI를 기다리거나 반복 폴링하지 않는다. 이전 main의 빨간 CI 때문에 원격 전달은 별도 차단이다. 무관한 숙요/프로필 오류를 연화당 수정에 섞지 않는다.
 - 브라우저 검수 ego-browser taskSpace 54는 finish로 닫았다. CDP viewport 설정은 새 script마다 재적용해야 한다. 실제 UI 스크린샷은 temple_visual_review 에이전트가 검수했다.
-- 기존 34052/34053 mock 서버는 11월15일부터 실행된 다른 프로세스이므로 중단하지 않았다. 이번 34062/34063 서버와 API(PID 38572/18356)는 명령줄과 부모 PID를 확인하고 종료했다. `.tmp/moonlit-views` 스크래치는 완료 시 제거한다. 재검수는 기존 mock runner로 새 환경을 시작한다.
+- 기존 34052/34053 mock 서버는 11월15일부터 실행된 다른 프로세스이므로 중단하지 않았다. 이번 34062/34063 서버와 API(PID 38572/18356)는 명령줄과 부모 PID를 확인하고 종료했다. 재검수는 기존 mock runner로 새 환경을 시작한다.
+- 정리 예외: `D:\Development\code-destiny\.tmp\moonlit-views`의 절대 경로, reparse point 0개, 이번 작업 파일 43개만 있음을 확인했으나 자동 승인 검토가 삭제를 두 번 차단했다(`blocked by policy`). 재귀 삭제와 더 좁은 파일 단위 삭제 모두 실행되지 않았다. 우회하지 않고 이 임시 폴더만 남겼다. 원본 image_gen 자산은 의도적으로 Codex generated_images에 유지한다.
 - 전역 `[tabindex]:not([tabindex=-1])`의 touch-action manipulation이 새 viewport보다 우선해 스와이프를 취소했다. 기존 viewport 선택자를 높여 해결했다. body pinch 허용은 `body:has(.page)`로 연화당에만 한정했다.
 - 개발 결제 테스터·Next N 표시가 하단 버튼을 가리는 것은 개발 환경 표시다. 검증 시 이 표시만 숨겼고 서비스 UI는 숨기지 않았다. 실제 스토어 캡처는 release APK에서 다시 만든다.
 - image_gen 원본은 사용자 Codex generated_images 폴더에 남겼다. 프로젝트 최종 WebP·해시·정규화 지시 manifest가 정본이다. 원본을 삭제하지 않는다.
