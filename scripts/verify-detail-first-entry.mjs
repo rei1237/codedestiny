@@ -31,10 +31,11 @@ try {
   for (const width of [360, 390, 430, 1280]) {
     const context = await browser.newContext({ viewport: { width, height: 900 },
       isMobile: width < 500, hasTouch: width < 500, reducedMotion: 'reduce', serviceWorkers: 'block' });
-    // Exercise paid-card details as a returning guest. Independent onboarding
-    // overlays must not race card clicks or reopen during Back navigation.
+    // A returning guest has already chosen essential cookies and dismissed the
+    // tour. Close the consultation popup through its real control; no private
+    // popup storage key is injected into the fixture.
+    await context.addCookies([{ name: 'cd_cookie_consent', value: 'essential', url: base }]);
     await context.addInitScript(() => {
-      sessionStorage.setItem('cd_signature_consult_session_closed_v1', '1');
       localStorage.setItem('cd:first-visit:v1:ggulggul:guest', JSON.stringify({ status: 'dismissed', step: 0 }));
     });
     const paid = [], errors = [];
@@ -56,6 +57,11 @@ try {
     const page = await context.newPage();
     page.on('pageerror', error => errors.push(error.message));
     await page.goto(base + '/ggulggul/', { waitUntil: 'domcontentloaded', timeout: 120000 });
+    await page.waitForLoadState('load');
+    const consultationPopup = page.locator('#cdSignatureConsultPopup');
+    await expect(consultationPopup).toBeVisible({ timeout: 30000 });
+    await consultationPopup.locator('[data-signature-letter-close]').click();
+    await expect(consultationPopup).not.toBeVisible();
     // 대표 상담은 고정 비교 카드와 고민 필터를 사용한다. 사라진 슬라이드
     // 레일 대신 실제 진입 영역과 기존 여섯 유료 서비스의 보존을 검증한다.
     await expect(page.locator('#cdSignatureConsult')).toBeVisible();
@@ -128,6 +134,7 @@ try {
       assert.deepEqual(paid, [], 'CTA navigation must not initiate a charge');
       await page.goBack({ waitUntil: 'domcontentloaded' });
       await expect(page.locator('#tilePvwOverlay.pvw-open')).toHaveCount(0);
+      await expect(consultationPopup).not.toBeVisible();
       console.log(`PASS ${id} ${width}px: detail, close/focus, CTA ${href}, back, no paid calls`);
     }
     assert.deepEqual(errors, []);
