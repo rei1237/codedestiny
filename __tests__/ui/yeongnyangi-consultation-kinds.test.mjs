@@ -35,7 +35,7 @@ test('new tuna timing and ask purchases deliver every stored cycle with private 
    const facts=sent.calculatedData.facts.filter(f=>f.label==='majorLuck');
    const actual=facts.flatMap(f=>f.value.cycles||[f.value.cycle]);
    assert.deepEqual(actual.map(c=>c.index),chapter.counsel.cycleIndexes);
-   assert.ok(actual.every(c=>c.interpretation?.version==='saju-cycle-evidence-v1'));
+   assert.ok(actual.every(c=>c.interpretation?.version==='saju-cycle-evidence-v2-tomb'));
    assert.ok(JSON.parse(sent.domainRules).counselPurpose.writing);
   }
   const visible=presentFortune(row);

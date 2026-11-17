@@ -318,11 +318,11 @@ export function buildGyeokgukAnalysis({
     }
   }
   if (doChung && doChung.exists) {
-    breakFactors.push({ type: "도충", detail: `${doChung.repeatedBranch || ""} 반복으로 유도된 충(${doChung.inducedOppositeBranch || "미상"})이 격에 사건성을 더합니다.` });
+    breakFactors.push({ type: "도충", period: doChung.period, detail: `${doChung.period?.label || "해당 시기"}: ${doChung.repeatedBranch || ""} 반복으로 유도된 충(${doChung.inducedOppositeBranch || "미상"})을 검토합니다.` });
   }
   if (Array.isArray(earthStorageOpenings) && earthStorageOpenings.length) {
     const opening = earthStorageOpenings[0];
-    breakFactors.push({ type: "개고", detail: `${opening.sourceBranch || ""}-${opening.triggerBranch || ""} ${opening.relationType || ""}로 창고가 열려 격의 재료가 드러납니다.` });
+    breakFactors.push({ type: "개고", period: opening.period, detail: `${opening.period?.label || opening.timingLabel || "해당 시기"}: ${opening.sourceBranch || ""}-${opening.triggerBranch || ""} ${opening.relationType || ""}의 개고 후보입니다. 지장간의 입묘·통근을 함께 살피며 격의 성패를 단정하지 않습니다.` });
   }
 
   const luckTiming = buildLuckTiming(luckRows, power, jong, day);

@@ -34,7 +34,8 @@ const TAROT_WHOLE=['summary','combinations','combinationReading','finalReading',
 const TAROT_READING_EXCLUDED=['title','spreadId','topSummary','quality','levelUpGuide','levelUpQuests','questionType'];
 // Labels the design excludes (aliases, metadata, birth data). Any label in neither list is reported as unclassified.
 export const V7_EXCLUDED_LABELS:Record<DomainId,string[]>={
-  saju:['calculationMeta'],
+  // tombAnalysis is the stored UI alias of advancedFactors.tombAnalysis, not a second chapter fact.
+  saju:['calculationMeta','tombAnalysis'],
   ziwei:['lunar','yearlyLuck'],
   vedic:['calculationConfig','ayanamsa','ayanamsaDegree','calculationMeta','rashis','grahas','rahuKetu','bhavas','moonNakshatra','dasha','transits'],
   astrology:['houseSystem','source','engineQuality','fallbackUsed'],

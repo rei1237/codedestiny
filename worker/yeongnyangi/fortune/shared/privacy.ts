@@ -1,3 +1,4 @@
+import { SAJU_TOMB_VERSION, tombPromptFacts } from '../../../../lib/saju/natal-core/index.mjs';
 import { SAJU_TEMPERAMENT_VERSION, sajuTemperamentPromptLines } from '../../../lib/saju-temperament.js';
 
 // Metadata and raw dates/coordinates never cross the explanation-provider boundary.
@@ -15,6 +16,8 @@ export function explanationFacts(value: unknown): unknown {
       )
       .map(explanationFacts);
   if (!value || typeof value !== "object") return value;
+  if ('version' in value && value.version === SAJU_TOMB_VERSION && 'events' in value && Array.isArray(value.events) && value.events.every((event: any) => event.target && typeof event.target === 'object'))
+    return tombPromptFacts(value);
   // Keep the full profile in calculated facts, but send the same compact reading lens
   // used by other consultations. Both ask evidence and chapter facts pass here, so
   // matching values can still be referenced once instead of being sent twice.
@@ -26,9 +29,15 @@ export function explanationFacts(value: unknown): unknown {
     return { schema: pin.schema, system: pin.system, engineVersion: pin.engineVersion,
       interpretationVersion: pin.interpretationVersion, support: pin.support, digest: pin.digest };
   }
-  const rawMoment = "solarYear" in value || "birthTimeContext" in value;
+  let data: object = value;
+  // Drop duplicate frame openings/exposures; the top-level rows and tomb facts retain their periods.
+  if ('periodVersion' in value && 'periods' in value && Array.isArray(value.periods)) {
+    const { periods, ...rest } = value as Record<string, any>;
+    data = { ...rest, periodFrames: periods.map((frame: any) => ({period:frame.period,doChung:frame.doChung})) };
+  }
+  const rawMoment = "solarYear" in data || "birthTimeContext" in data;
   return Object.fromEntries(
-    Object.entries(value)
+    Object.entries(data)
       .filter(
         ([key]) =>
           !forbidden.test(key) && !['residence','originalCalendar','original','civil','instant','termClock','corrected','dayPillarCivilDate'].includes(key) &&

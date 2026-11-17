@@ -99,7 +99,7 @@ function assertBasis(name, payload, { minGroups = 2, minStages = 2 } = {}) {
   assert(built.generatedPrompt.includes("분야별 분석"), "saju: 프롬프트 답변 형식에 분야별 분석이 없음");
 }
 
-// 오행 가중치가 빠진 명식에서는 해당 항목을 아예 빼야 한다(계산 실패처럼 보이는 줄 방지).
+// 가중치가 없어도 실제 원국 글자에서 8개를 센다. 근거 자체가 없으면 0 분포를 만들지 않는다.
 {
   const { buildSajuAIPrompt } = await import("../worker/lib/saju-ai-prompt.js");
   const built = buildSajuAIPrompt({
@@ -107,7 +107,10 @@ function assertBasis(name, payload, { minGroups = 2, minStages = 2 } = {}) {
     sajuResult: { pillars: { y: { ganji: "癸酉" }, m: { ganji: "己未" }, d: { ganji: "丙子" }, h: { ganji: "壬辰" } } },
   });
   const elements = built.analysisBasis.groups.find((group) => group.key === "elements");
-  assert(!elements.items.some((item) => item.label === "오행 분포"), "saju: 가중치가 없는데도 오행 분포 항목이 남음");
+  assert(elements.items.some((item) => item.label === "오행 분포" && item.value === "목 0 · 화 1 · 토 3 · 금 1 · 수 3"), "saju: 원국 8글자와 오행 개수가 다름");
+  const { buildSajuAnalysisBasis } = await import("../worker/lib/saju-ai-prompt.js");
+  const empty = buildSajuAnalysisBasis({ elementDistribution: {} });
+  assert(!empty.groups.find((group) => group.key === "elements")?.items.some((item) => item.label === "오행 분포"), "saju: 글자가 없는데 0 분포를 만듦");
 }
 
 // ── 1c. 숙요 궁합 (두 사람 → 근거, 실제 계산) ───────────

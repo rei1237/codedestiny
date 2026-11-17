@@ -17350,6 +17350,21 @@ html body #resultPage #sajuCard .pillar .ten-god-badge.day {
   line-height: 1.55;
 }
 #resultPage #sajuCard .manse-shinsal__empty { margin: 0; }
+#resultPage #sajuCard .manse-evidence { margin-top: 24px; color: var(--mx-ink); }
+#resultPage #sajuCard .manse-evidence h4 { margin: 0 0 8px; font-family: var(--mx-label); font-size: var(--cd-t-card); }
+#resultPage #sajuCard .manse-evidence p { max-width: 38rem; margin: 8px 0; font-size: 1rem; line-height: 1.8; word-break: keep-all; overflow-wrap: anywhere; }
+#resultPage #sajuCard .manse-evidence .manse-evidence__note { color: var(--mx-muted); font-size: var(--cd-t-body); }
+#resultPage #sajuCard .manse-evidence__counts { display: grid; grid-template-columns: repeat(5,minmax(0,1fr)); gap: 8px; margin: 16px 0 24px; padding: 12px 0; border-block: 1px solid var(--mx-gold-line); text-align: center; }
+#resultPage #sajuCard .manse-evidence__counts dt { color: var(--mx-muted); font-size: var(--cd-t-body); }
+#resultPage #sajuCard .manse-evidence__counts dd { margin: 4px 0 0; font-size: 1.5rem; font-variant-numeric: tabular-nums; }
+#resultPage #sajuCard .manse-evidence__counts dd span { margin-left: 3px; font-size: var(--cd-t-body); }
+#resultPage #sajuCard .manse-evidence__tombs summary { min-height: 48px; padding: 12px 0; cursor: pointer; font-weight: 700; line-height: 1.5; }
+#resultPage #sajuCard .manse-evidence__tombs summary:focus-visible { outline: 2px solid var(--mx-rose); outline-offset: 4px; border-radius: var(--cd-r-sm); }
+#resultPage #sajuCard .manse-evidence__tombs ul { list-style: none; margin: 16px 0; padding: 0; }
+#resultPage #sajuCard .manse-evidence__tombs li { padding: 16px 0; border-top: 1px solid var(--mx-gold-line); }
+#resultPage #sajuCard .manse-evidence__tombs strong { line-height: 1.6; overflow-wrap: anywhere; }
+#resultPage #sajuCard .manse-pillar-unknown p { color: var(--mx-muted); font-size: var(--cd-t-body); line-height: 1.7; }
+#resultPage #sajuCard .manse-pillar-unknown .manse-pillar-unknown__label { margin: 48px 0 16px; color: var(--mx-ink); font-size: 1.25rem; }
 /* 네오(다크): 같은 구조를 달밤 톤으로. 타일은 짙은 오행 틴트 + 파스텔 글자, 테두리는 옅은 금빛. */
 body.neo-mode #resultPage #sajuCard {
   --mx-ink: #f4eeff;

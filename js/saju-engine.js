@@ -592,7 +592,7 @@ var SAJU_ENGINE_TEXT_TRANSLATIONS = {
     "se_26658_prop_label": "홍염살(일주",
     "se_27494_attr_aria_label": "' + _sajuVillainEscapeHtml(profile.comicAlias || profile.koreanName) + ' 실루엣",
     "se_28691_attr_aria_label": "기존 결제로 잠금 해제됨",
-    "se_5146_attr_aria_label": "진태양시 자동 변환 적용",
+    "se_5146_attr_aria_label": "지역 평균시 보정 적용",
     "se_6277_attr_placeholder": "예: 올해 이직을 앞둔 제 사주에서 잡아야 할 기회와 피해야 할 선택은 무엇인가요?",
     "se_7940_attr_title": "에너지 절약 모드. 내면 지향적, 신중함.",
     "se_7941_attr_title": "풀 가동 모드. 외향적, 열정적.",
@@ -3864,7 +3864,8 @@ function calcNatalElement(p){
   var ratios={};for(var k in cnt)ratios[k]=cnt[k]/total*100;
   var dominant='wood',max=0;
   for(var k2 in cnt){if(cnt[k2]>max){max=cnt[k2];dominant=k2;}}
-  return{dominant:dominant,ratios:ratios,counts:cnt};
+  var core = typeof SajuNatalCore !== 'undefined' ? SajuNatalCore : window.SajuNatalCore;
+  return{dominant:dominant,ratios:ratios,counts:cnt,countBasis:'weighted',surface:core.surfaceElementCounts(p)};
 }
 
 /* ─ 퀀텀 오행 평가 함수 (조후 우선, 종격/억부 반영) ─ */
@@ -5044,7 +5045,7 @@ async function calculate(run){
     standardMeridian: stdLong
   });
   if (!correction) {
-    setSajuFormStatus('진태양시 보정 계산에 실패했습니다. 입력값을 확인해 주세요.', 'error', 'birthDate');
+    setSajuFormStatus('지역 평균시 보정을 마치지 못했어요. 출생 날짜·시간·장소를 확인해 주세요.', 'error', 'birthDate');
     return;
   }
 
@@ -5316,7 +5317,7 @@ async function calculate(run){
     document.getElementById('heroName').textContent=USER_NAME;
 
     var timeCorrectionStr = "";
-    if(correctionMsg) {
+    if(correctionMsg && !_birthTimeUnknown) {
       timeCorrectionStr = `<section class="hero-correction-card" aria-label="${_sajuEngineText("se_5146_attr_aria_label")}">
                             <h4 class="hero-correction-title"><i class="fa fa-clock-o" aria-hidden="true"></i> 지역 평균시 보정</h4>
                             <ul class="hero-correction-list">${correctionMsg}</ul>
@@ -5345,7 +5346,7 @@ async function calculate(run){
     var countryText = document.getElementById('birthCountry').options[document.getElementById('birthCountry').selectedIndex].text;
     document.getElementById('heroSub').innerHTML=
       '<div class="hero-sub-grid">'
-      + '<div class="hero-meta-row hero-meta-row--birth">'+year+'년 '+month+'월 '+day+'일 '+hour+'시 '+minute+'분 <span class="hero-meta-place">(' + countryText + ')</span></div>'
+      + '<div class="hero-meta-row hero-meta-row--birth">'+year+'년 '+month+'월 '+day+'일 '+(_birthTimeUnknown?'출생시간 미상':hour+'시 '+minute+'분')+' <span class="hero-meta-place">(' + countryText + ')</span></div>'
       + (lunarInfo ? ('<div class="hero-divider"></div><div class="hero-lunar-wrap">'+lunarInfo+'</div>') : '')
       + '<div class="hero-divider"></div>'
       + '<div class="hero-meta-row hero-meta-row--identity">'+(GENDER==='M'?'남성':'여성')+' · '+animal+'띠 · 일지 '+dz+'('+dayAnimal+') · 만 '+(CURRENT_AGE-1)+'세</div>'
@@ -9409,8 +9410,8 @@ function renderIlju(p){
   if (animalEl) animalEl.innerText = animal[0];
   if (animalLabelEl) animalLabelEl.innerText = animal[1] + ' 상징';
 
-  // 막대는 본문(원국 오행 비율)과 같은 정본 calcNatalElement 비율을 쓴다 — 월지 가중 포함.
-  var scores = calcNatalElement(p).ratios;
+  // 보이는 글자 비율. 월령 가중치는 강약 계산에 남기고 화면의 개수와 섞지 않는다.
+  var scores = calcNatalElement(p).surface.ratios;
   iljuSetBar('iljuWoodBar', 'iljuWoodVal', scores.wood);
   iljuSetBar('iljuFireBar', 'iljuFireVal', scores.fire);
   iljuSetBar('iljuEarthBar', 'iljuEarthVal', scores.earth);
@@ -9889,6 +9890,10 @@ function renderManse(p){
   shinsalData.twelve.forEach(function(row){twelveByKey[row.key]=row.name;});
   var h='';
   cols.forEach(function(c,index){
+    if(!GAN[c.g] || !JI[c.j]){
+      h+='<div class="pillar manse-pillar-unknown" data-pillar="'+c.l+'"><div class="pillar-head"><span>'+c.l+'</span><small>'+c.han+'</small></div><p class="manse-pillar-unknown__label">미상</p><p>시주 제외</p></div>';
+      return;
+    }
     var gd=GAN[c.g]||{e:'metal',y:'+',n:'?'},jd=JI[c.j]||{e:'water',y:'+',a:'?'};
     var gGod=c.l==='일주'?'일간':getTenGod(p.d.g,c.g);
     var jGod=getTenGod(p.d.g,c.j);
@@ -9926,10 +9931,24 @@ function renderManse(p){
   }
   var shinsalBasis=document.getElementById('manseShinsalBasis');
   if(shinsalBasis) shinsalBasis.textContent=shinsalData.basis||'';
+  renderManseEvidence(p);
   var manseSlot = document.querySelector('#sajuCard .saju-manse-slot');
   var manseSk = document.getElementById('sajuManseSkeleton');
   if (manseSlot) manseSlot.classList.add('saju-manse-slot--ready');
   if (manseSk) manseSk.setAttribute('hidden', '');
+}
+
+// 새로 계산한 무료 명식의 근거만 표시한다. 저장된 유료 리포트는 재계산하지 않는다.
+function renderManseEvidence(p){
+  var target=document.getElementById('manseEvidence');
+  if(!target)return;
+  var core=_sajuNatalCore(),surface=core.surfaceElementCounts(p),tomb=core.analyzeSajuTombs(p);
+  var rows=core.tombReadingRows(tomb),names={wood:'목',fire:'화',earth:'토',metal:'금',water:'수'};
+  target.innerHTML='<h4>눈에 보이는 오행</h4><p class="manse-evidence__note">'+surface.visibleCharacters+'글자를 한 번씩 세었어요. 지장간은 별도로 읽고, 월령의 무게는 강약 판단에 반영해요.</p>'
+    +'<dl class="manse-evidence__counts">'+Object.keys(names).map(function(key){return '<div><dt>'+names[key]+'</dt><dd>'+surface.counts[key]+'<span>개</span></dd></div>';}).join('')+'</dl>'
+    +'<details class="manse-evidence__tombs"><summary>입묘의 작용과 근거 살펴보기</summary><p>입묘는 어떤 기운의 작용이 제한될 수 있다는 해석이에요. 충이 있다는 이유만으로 단정하지 않고, 뿌리·계절·합과 희기를 함께 살펴요.</p>'
+    +(rows.length?'<ul>'+rows.map(function(row){return '<li><strong>'+escapeManseAttr(row.title)+'</strong><p>'+escapeManseAttr(row.description)+'</p>'+(row.conditions.length?'<p class="manse-evidence__note">'+escapeManseAttr(row.conditions.join(' · '))+'</p>':'')+'</li>';}).join('')+'</ul>':'<p>원국에서 살필 입묘 후보가 없어요. 이것만으로 길흉이 정해지지는 않아요.</p>')
+    +(tomb.limitations.length?'<p class="manse-evidence__note">'+escapeManseAttr(tomb.limitations.join(' '))+'</p>':'')+'</details>';
 }
 
 function renderTenshin(p){

@@ -1,4 +1,5 @@
 import { buildHiddenStemDetails } from "../../../lib/life-book-ai-saju.js";
+import { surfaceElementCounts } from "../../../../lib/saju/natal-core/index.mjs";
 
 // calcNatalElement counts the month branch twice (월령 가중), so its total is 9 and the chart and the prose
 // disagree with the eight characters a customer can count. The counts here are the visible characters only;
@@ -15,13 +16,7 @@ const PILLARS = [["y", "year"], ["m", "month"], ["d", "day"], ["h", "hour"]] as 
 type Pillar = { g: string; j: string };
 
 export function surfaceElements(p: Record<string, Pillar>, weightedDominant: string) {
-  const counts = Object.fromEntries(ORDER.map((e) => [e, 0])) as Record<(typeof ORDER)[number], number>;
-  let visibleCharacters = 0;
-  for (const [k] of PILLARS) for (const c of [p[k].g, p[k].j]) if (ELEMENT[c]) { counts[ELEMENT[c]]++; visibleCharacters++; }
-  const total = visibleCharacters || 1;
-  const ratios = Object.fromEntries(ORDER.map((e) => [e, (counts[e] / total) * 100]));
-  // Same tie order as calcNatalElement: the first element in 목→수 order with the highest count.
-  const dominant = ORDER.reduce((best, e) => (counts[e] > counts[best] ? e : best), ORDER[0]);
+  const { counts, ratios, dominant, visibleCharacters } = surfaceElementCounts(p);
   const hiddenStems = PILLARS.filter(([k]) => p[k].j).map(([k, pillar]) => ({ pillar, branch: p[k].j, stems: buildHiddenStemDetails(p.d.g, p[k].j) }));
   // Only what the 월령 weighting changes; its own counts (total 9) are left out so they cannot be quoted as counts.
   const weighted = { monthBranch: p.m.j, monthElement: ELEMENT[p.m.j] || null, dominant: weightedDominant };

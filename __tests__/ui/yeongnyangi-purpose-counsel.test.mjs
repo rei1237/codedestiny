@@ -184,3 +184,15 @@ test('thermal/moisture axes and confirmed or rejected special structure preserve
   // 격국은 원국 기둥으로만 판정한다. 넘겨받은 jong(설문을 거쳤을 수 있음)은 격국을 바꾸지 않는다.
   assert.equal(gyeokguk.size,1);assert.ok(!gyeokguk.has('종왕격'));
 });
+
+test('compact tomb and hidden-stem tables survive repeated projection and the ask evidence boundary',()=>{
+  const raw=api.buildSajuAdvancedFactors({pillars:{y:{g:'辛',j:'亥'},m:{g:'乙',j:'巳'},d:{g:'壬',j:'辰'},h:{g:'戊',j:'戌'}}});
+  const projected=api.projectAdvancedFactors(raw);
+  assert.deepEqual(api.projectAdvancedFactors(projected),projected);
+  assert.equal(projected.hiddenStems.rows.length,raw.hiddenStems.length);
+  const p=api.buildEvidencePacket({contexts:{saju:context({advancedFactors:projected})},today:date,tier:'tuna',birthTimeKnown:true,includeSajuCycles:true});
+  const tomb=p.facts.find(f=>f.label==='advancedFactors').value.tombAnalysis;
+  assert.deepEqual(tomb,projected.tombAnalysis);
+  assert.ok(tomb.events.some(row=>row.values[2]==='activated'));
+  assert.ok(tomb.events.every(row=>['beneficial','adverse','undetermined'].includes(row.values[5])));
+});

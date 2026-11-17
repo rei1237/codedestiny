@@ -1,5 +1,6 @@
 import type {ChartView} from '@/worker/yeongnyangi/fortune/charts';
 import styles from './natal-chart-table.module.css';
+import SajuTombEvidence from './SajuTombEvidence';
 
 /** Display only: every cell comes from the stored chart; never calculate in UI. */
 export default function NatalChartTable({chart}:{chart:ChartView}){
@@ -10,5 +11,5 @@ export default function NatalChartTable({chart}:{chart:ChartView}){
   <caption>사주 만세력 <span>태어난 순간의 네 기둥</span></caption>
   <thead><tr><th scope="col">구분</th>{pillars.map(p=><th scope="col" key={p!.label}>{p!.label}</th>)}</tr></thead>
   <tbody>{rows.map((label,index)=><tr key={label}><th scope="row">{label}</th>{pillars.map(p=><td className={index===0?styles.pillar:undefined} key={p!.label}>{p!.items.find(i=>i.label===label)?.value||'미상'}</td>)}</tr>)}</tbody>
- </table></div>;
+  </table><SajuTombEvidence evidence={chart.sajuTombs}/></div>;
 }

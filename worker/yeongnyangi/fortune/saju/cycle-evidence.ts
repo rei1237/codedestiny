@@ -2,21 +2,31 @@ import {buildSajuAdvancedFactors} from '../../../lib/saju-ai-prompt.js';
 import {explanationFacts} from '../shared/privacy';
 import type {DomainContext} from '../shared/contracts';
 import {cycleTag} from './major-luck';
+import {sajuPeriodIncludesYear} from '../../../../lib/saju/luck-periods.mjs';
 
-export const SAJU_CYCLE_VERSION='saju-cycle-evidence-v1';
+export const SAJU_CYCLE_VERSION='saju-cycle-evidence-v2-tomb';
 type Row=Record<string,any>;
 const pick=(row:Row,keys:string[])=>Object.fromEntries(keys.filter(key=>row?.[key]!==undefined).map(key=>[key,row[key]]));
 const GYEOKGUK_JUDGMENT=['finalGyeokguk','finalType','judgmentReason','confident','monthBranch','monthHiddenStems','candidates'];
 const luckRow=(row:Row,scope:string)=>({scope,stem:row.heavenlyStem||row.pillar?.[0],branch:row.earthlyBranch||row.pillar?.[1],
-  age:row.startDate?undefined:row.startAge,year:row.year,label:scope==='daewoon'?(row.startDate?cycleTag(row):`${row.startYear}–${row.endYear} ${row.pillar}`):`${row.year} ${row.pillar}`});
+  age:row.startDate?undefined:row.startAge,startDate:row.startDate,endDate:row.endDate,startYear:row.startYear,endYear:row.endYear,year:row.year,label:scope==='daewoon'?(row.startDate?cycleTag(row):`${row.startYear}–${row.endYear} ${row.pillar}`):`${row.year} ${row.pillar}`});
 
 /** Fixed projection, no prompt prose/config or raw birth data in cycle evidence. */
 export function projectAdvancedFactors(raw:Row):Row {
   return explanationFacts({
-    hiddenStems:raw.hiddenStems,
+    hiddenStems:Array.isArray(raw.hiddenStems) ? {
+      columns:['지지','지지 독음','천간','천간 독음','자리','층','분석 가중치','오행','십성'],
+      rows:raw.hiddenStems.map((r:Row)=>[r.branch,r.branchKorean,r.hiddenStem,r.hiddenStemKorean,r.position,r.layer,r.weight,r.element,r.tenGodFromDayMaster]),
+    } : raw.hiddenStems,
     hiddenStemExposures:raw.hiddenStemExposures?.map((r:Row)=>pick(r,['hiddenStem','sourceBranches','exposedInNatalHeavenlyStem','exposedNatalPositions','exposedByLuckStem','exposedLuckPositions','interpretationLevel','favorable'])),
     doChung:pick(raw.doChung,['exists','repeatedBranch','repeatedCount','inducedOppositeBranch','strength','affectedAreas']),
-    earthStorageOpenings:raw.earthStorageOpenings?.map((r:Row)=>pick(r,['sourceBranch','sourcePosition','triggerBranch','triggerPosition','relationType','openingStrength','openedHiddenStems','mainActivatedTenGods','affectedAreas','timingType','timingLabel','isFavorableOverall'])),
+    earthStorageOpenings:raw.earthStorageOpenings?.map((r:Row)=>({
+      ...pick(r,['sourceBranch','sourcePosition','triggerBranch','triggerPosition','relationType','openingStrength','mainActivatedTenGods','affectedAreas','timingType','timingLabel','isFavorableOverall']),
+      // Full conditional judgments live in tombAnalysis. Their frame IDs must not make
+      // an otherwise identical natal opening look like a new event in every year.
+      openedHiddenStems:r.openedHiddenStems?.map(({tombEvidence:_tombEvidence,...hidden}:Row)=>hidden),
+    })),
+    tombAnalysis: raw.tombAnalysis?.eventColumns ? raw.tombAnalysis : raw.tombAnalysis ? {version:raw.tombAnalysis.version,rule:raw.tombAnalysis.rule,events:raw.tombAnalysis.events?.map((r:Row)=>pick(r,['id','target','tomb','period','status','role','roleBasis','verdict','reasons','mitigations']))} : null,
     gyeokguk:pick(raw.gyeokguk,['finalGyeokguk','finalType','judgmentReason','confident','monthBranch','monthHiddenStems','candidates','breakFactors','luckTiming']),
   }) as Row;
 }
@@ -28,6 +38,14 @@ function periodFactors(raw:Row,baseline:Row):Row {
     hiddenStemExposures:changed(raw.hiddenStemExposures,baseline.hiddenStemExposures),
     doChung:JSON.stringify(raw.doChung)===JSON.stringify(baseline.doChung)?{exists:raw.doChung?.exists,unchangedFromBaseline:true}:raw.doChung,
     earthStorageOpenings:changed(raw.earthStorageOpenings,baseline.earthStorageOpenings),
+    tombAnalysis: raw.tombAnalysis ? {
+      version:raw.tombAnalysis.version,rule:raw.tombAnalysis.rule,eventColumns:raw.tombAnalysis.eventColumns,
+      baseline:'원국 또는 직전 대운의 입묘 판정 중 달라진 항목만 표시',
+      events:(raw.tombAnalysis.events||[]).filter((row:Row)=>(baseline.tombAnalysis?.events||[]).every((old:Row)=>{
+        const {period:_period,...current}=row,{period:_oldPeriod,...previous}=old;
+        return JSON.stringify(current)!==JSON.stringify(previous);
+      })),
+    } : null,
     structureConditions:{breakFactors:changed(raw.gyeokguk?.breakFactors,baseline.gyeokguk?.breakFactors),luckTiming:raw.gyeokguk?.luckTiming},
   };
 }
@@ -52,7 +70,7 @@ export function withSajuCycleEvidence(context:DomainContext,asOf:string):DomainC
     // Natal identity remains authoritative; period helpers may report pressure/activation, not a new natal chart.
     return {...cycle,interpretation:{version:SAJU_CYCLE_VERSION,asOf,
       ...periodFactors(advanced,natal),
-      annual:annual.filter((y:Row)=>y.year>=cycle.startYear&&y.year<=cycle.endYear).map((y:Row)=>{
+      annual:annual.filter((y:Row)=>sajuPeriodIncludesYear(cycle,y.year)).map((y:Row)=>{
         const joint=calculate([luckRow(cycle,'daewoon'),luckRow(y,'sewoon')]);
         return {year:y.year,pillar:y.pillar,...periodFactors(joint,advanced)};
       })}};

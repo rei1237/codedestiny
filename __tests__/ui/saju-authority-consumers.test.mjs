@@ -61,14 +61,26 @@ function load(ctx, file, names, constants = []) {
   }
 }
 
-test('OFF preserves complete legacy prompt, life-book and guardian outputs across 24 charts', async () => {
+test('OFF preserves calendar, life-book and guardian outputs while new prompts version their added tomb interpretation across 24 charts', async () => {
   for (const year of [1960, 1988, 2000]) for (const month of ['02', '05', '08', '11']) for (const birthTime of ['08:30', '']) {
     const birth = { ...sample, birthDate: `${year}-${month}-15`, birthTime, birthTimeUnknown: !birthTime };
     const current = api.calculateLifeBookAiSaju(birth), previous = old.calculateLifeBookAiSaju(birth);
-    assert.deepEqual(clone(current), clone(previous));
+    const {advancedFactors: currentAdvanced, ...currentCalendar} = current;
+    const {advancedFactors: previousAdvanced, ...previousCalendar} = previous;
+    assert.deepEqual(clone(currentCalendar), clone(previousCalendar));
+    for (const key of ['hiddenStems','hiddenStemExposures','promptConfig']) {
+      assert.deepEqual(clone(currentAdvanced[key]), clone(previousAdvanced[key]));
+    }
+    assert.equal(currentAdvanced.tombAnalysis.version, 'saju-tomb-conditional-v1');
+    assert.equal(currentAdvanced.periodVersion, 'saju-periods-v1');
+    assert.equal(currentAdvanced.periods[0].period.id, 'natal');
     assert.equal(api.connectLifeBookSajuAuthority(current), current);
     const request = { ...args, sajuResult: promptInput(current) };
-    assert.deepEqual(clone(api.buildSajuAIPromptWithDomain(request)), clone(old.buildSajuAIPromptWithDomain(request)));
+    const nextPrompt=api.buildSajuAIPromptWithDomain(request),previousPrompt=old.buildSajuAIPromptWithDomain(request);
+    for(const key of ['pillars','dayMaster','fixedTenGodTable']) assert.deepEqual(clone(nextPrompt.factSnapshot[key]),clone(previousPrompt.factSnapshot[key]));
+    assert.notEqual(nextPrompt.promptVersion,previousPrompt.promptVersion);
+    assert.equal(nextPrompt.advancedFactors.tombAnalysis.version,'saju-tomb-conditional-v1');
+    assert.equal(nextPrompt.factSnapshot.elementDistribution.visibleCharacters,birthTime?8:6);
     const guardianInput = { ...birth, hasBirthTime: Boolean(birthTime) };
     assert.deepEqual(clone(await api.buildSajuAdapter(guardianInput)), clone(await old.buildSajuAdapter(guardianInput)));
   }

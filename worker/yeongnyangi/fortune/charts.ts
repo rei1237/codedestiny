@@ -1,6 +1,18 @@
 import { getTarotCardImageUrl } from '../../../src/features/fortune-tea-house/lib/tarotCardImageMap';
 import {validateDomainFacts} from './shared/consumer-facts';
 import type {DomainContext,DomainId} from './shared/contracts';
+import {tombReadingRows} from '../../../lib/saju/natal-core/tomb.mjs';
+
+export interface SajuTombEvidence {
+  version: string;
+  rows: {id:string;status:string;verdict:string;title:string;period:string;description:string;conditions:string[]}[];
+  limitations: string[];
+}
+/** Project stored natal evidence only. Missing evidence in an older purchase stays missing. */
+export function storedSajuTombs(value:any):SajuTombEvidence|undefined {
+  if(!value || typeof value.version!=='string' || !Array.isArray(value.events))return undefined;
+  return {version:value.version,rows:tombReadingRows({events:value.events.filter((row:any)=>row.period?.id==='natal')}),limitations:Array.isArray(value.limitations)?value.limitations:[]};
+}
 
 export interface ChartView {
   domain: DomainId;
@@ -8,6 +20,7 @@ export interface ChartView {
   groups: { label: string; image?:string; reversed?:boolean; items: { label: string; value: string }[] }[];
   limitations: string[];
   source: string;
+  sajuTombs?: SajuTombEvidence;
 }
 export interface Snapshot {
   id: string;
@@ -187,5 +200,6 @@ export function chartView(c: DomainContext, source = "local"): ChartView {
     groups,
     limitations: c.limitations,
     source,
+    ...(c.domain==='saju'&&f.tombAnalysis?{sajuTombs:storedSajuTombs(f.tombAnalysis)}:{}),
   };
 }

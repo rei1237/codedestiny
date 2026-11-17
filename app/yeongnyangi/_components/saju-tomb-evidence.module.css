@@ -1,0 +1,8 @@
+.details{margin-top:1.5rem;border-top:1px solid var(--yn-line);color:var(--yn-ivory);max-width:38rem}
+.details summary{min-height:48px;padding:1rem 0;cursor:pointer;font-weight:700;line-height:1.5;color:var(--yn-gold)}
+.details summary:focus-visible{outline:2px solid var(--yn-gold);outline-offset:4px;border-radius:var(--yn-btn-radius)}
+.details p{margin:.5rem 0;font-size:1rem;line-height:1.8;word-break:keep-all;overflow-wrap:anywhere}
+.details ul{list-style:none;margin:1rem 0;padding:0}
+.details li{padding:1rem 0;border-top:1px solid var(--yn-line)}
+.details strong{line-height:1.6;overflow-wrap:anywhere}
+.details .note{font-size:.875rem;color:var(--yn-muted)}

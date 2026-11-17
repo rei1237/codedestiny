@@ -6,6 +6,7 @@ import { getTarotCardByAnyId } from '../../../lib/tarot/tarot-cards.mjs';
 import { yeongnyangiCardArt } from '../../../lib/tarot/yeongnyangi-deck';
 import type { ChapterSpec, MasterAnalysis } from './book-contracts';
 import type { ChartView } from './charts';
+import {storedSajuTombs} from './charts';
 import type { DomainContext, DomainId } from './shared/contracts';
 import { selectChapterFacts } from './chapter-facts';
 import { starStrength } from '../../../lib/ziwei-star-strength.js';
@@ -65,7 +66,7 @@ export function readingCharts(analysis:MasterAnalysis,manifest:ChapterSpec[]):Re
     if(d==='saju'){
       // Surface counts leave the hidden stems out, so the board shows them under each pillar instead.
       const hidden=f.fiveElements?.countBasis==='surface'?Object.fromEntries((f.fiveElements.hiddenStems || []).map((h:any)=>[h.pillar,(h.stems || []).map((s:any)=>s.stem).join('·')])):{};
-      for(const [key,label] of Object.entries({year:'년주',month:'월주',day:'일주',hour:'시주'}))add('pillars',label,[{label:'천간·지지',value:text(f.pillars?.[key])},{label:'천간 십성',value:text(f.tenGodsByPillar?.[key]?.stemTenGod)},...(hidden[key]?[{label:'지장간',value:hidden[key]}]:[])]);
+      for(const [key,label] of Object.entries({year:'년주',month:'월주',day:'일주',hour:'시주'}))add('pillars',label,[{label:'천간·지지',value:f.pillars?.[key]?text(f.pillars[key]):'미상'},{label:'천간 십성',value:f.pillars?.[key]?text(f.tenGodsByPillar?.[key]?.stemTenGod):'미상'},...(hidden[key]?[{label:'지장간',value:hidden[key]}]:[])]);
       add('fiveElements',f.fiveElements?.countBasis==='surface'?'오행 분포 · 보이는 글자 기준':'오행 분포 · 월령 가중치 포함',Object.entries(f.fiveElements?.counts || f.fiveElements || {}).filter(([,v])=>typeof v==='number').map(([k,v])=>({label:text(k),value:text(v)})));
       if(f.partnerChart){for(const [key,label] of Object.entries({year:'상대 년주',month:'상대 월주',day:'상대 일주',hour:'상대 시주'}))add('partnerChart',label,[{label:'천간·지지',value:text(f.partnerChart.pillars?.[key])}]);}
     }else if(d==='ziwei'){
@@ -108,6 +109,6 @@ export function readingCharts(analysis:MasterAnalysis,manifest:ChapterSpec[]):Re
         ...(key==='yearlyLuck'&&r.year&&!start&&!end?[{label:'연도',value:text(r.year)}]:[{label:'시작',value:text(start)},{label:'끝',value:text(end)}])],{kind:'timing'});
       }
     }
-    return {domain:d,title:titles[d],groups,limitations:d!=='saju'?context.limitations:context.engineVersion!==SAJU_ENGINE_VERSION?[...context.limitations,'이 보고서는 이전 계산 기준으로 작성되었습니다. 원국과 관련 해석의 정정 여부를 확인해야 합니다.']:context.natalCore?.version!==NATAL_CORE_VERSION?[...context.limitations,NATAL_BASIS_NOTE]:context.limitations,...(f.spreadId==='yeongnyangi_compatibility_six'?{relationship:true}:{}),source:d==='tarot'?'서버에 저장된 카드 배열':'구매 당시 저장된 계산 근거',...(d==='astrology'?{cusps:Array.isArray(f.houseCusps)?f.houseCusps.filter((n:unknown)=>typeof n==='number'):[]}: {})};
+    return {domain:d,title:titles[d],groups,...(d==='saju'&&f.tombAnalysis?{sajuTombs:storedSajuTombs(f.tombAnalysis)}:{}),limitations:d!=='saju'?context.limitations:context.engineVersion!==SAJU_ENGINE_VERSION?[...context.limitations,'이 보고서는 이전 계산 기준으로 작성되었습니다. 원국과 관련 해석의 정정 여부를 확인해야 합니다.']:context.natalCore?.version!==NATAL_CORE_VERSION?[...context.limitations,NATAL_BASIS_NOTE]:context.limitations,...(f.spreadId==='yeongnyangi_compatibility_six'?{relationship:true}:{}),source:d==='tarot'?'서버에 저장된 카드 배열':'구매 당시 저장된 계산 근거',...(d==='astrology'?{cusps:Array.isArray(f.houseCusps)?f.houseCusps.filter((n:unknown)=>typeof n==='number'):[]}: {})};
   });
 }

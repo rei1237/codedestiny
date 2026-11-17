@@ -526,7 +526,11 @@ test("generation JSON preserves all computed opening rows while sending shared s
   const restored = packed.rows.map(row => Object.fromEntries(packed.columns.map((key, i) => [key, row[i]])));
   expect(restored).toEqual(built.factSnapshot.majorStructures.earthStorageOpenings);
   for (const [key, value] of Object.entries(built.advancedFactors)) {
-    expect(sent.advancedFactors[key] ?? built.factSnapshot.majorStructures[key]).toEqual(value);
+    if (key === 'tombAnalysis') {
+      expect(sent.factSnapshot.majorStructures.tombAnalysis.events.map(row => [row.period, row.status, row.role, row.verdict])).toEqual(value.events.map(row => [row.period.label, row.status, row.role, row.verdict]));
+    } else if (key === 'periods') {
+      expect(sent.factSnapshot.majorStructures.periods).toEqual(value.map(({ period, doChung }) => ({ period, doChung })));
+    } else expect(sent.advancedFactors[key] ?? built.factSnapshot.majorStructures[key]).toEqual(value);
   }
   expect(JSON.stringify(input)).toBe(original);
   expect(built.factSnapshot.luck.daewun[0].score).toBe(81);

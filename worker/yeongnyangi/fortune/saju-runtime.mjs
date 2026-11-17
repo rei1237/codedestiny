@@ -90,7 +90,8 @@ function calcNatalElement(p){
   var ratios={};for(var k in cnt)ratios[k]=cnt[k]/total*100;
   var dominant='wood',max=0;
   for(var k2 in cnt){if(cnt[k2]>max){max=cnt[k2];dominant=k2;}}
-  return{dominant:dominant,ratios:ratios,counts:cnt};
+  var core = typeof SajuNatalCore !== 'undefined' ? SajuNatalCore : window.SajuNatalCore;
+  return{dominant:dominant,ratios:ratios,counts:cnt,countBasis:'weighted',surface:core.surfaceElementCounts(p)};
 }
 
 function analyzeJohu(p){

@@ -4,6 +4,8 @@ import {visualCopy,chartTerm} from '../_lib/reading-chart-copy';
 import {artSrc,expressionSrc,sceneSrc,type Art,type Expression,type Scene,type TimingRow,type ElementRow,type YearFocusRow} from '../_lib/reading-visuals';
 import {Divider,ElementIcon,Paw,ThemeIcon,elementColor} from './ReadingIcons';
 import styles from './reading-visuals.module.css';
+import SajuTombEvidence from './SajuTombEvidence';
+import type {SajuTombEvidence as TombEvidence} from '@/worker/yeongnyangi/fortune/charts';
 
 // Static presentation for long readings, drawn only from the saved chapters and calculation snapshot.
 export function AtAGlance({manifest,chapters,title,locale}:{manifest:ChapterSpec[];chapters:ChapterBody[];title:(i:number)=>string;locale?:ReadingLocale}){
@@ -57,7 +59,7 @@ export function ElementDistribution({elements,locale}:{elements:ElementRow[];loc
  </li>)}</ul>;
 }
 
-export function SajuBoard({pillars,elements,surface,locale}:{pillars:{label:string;ganji:string;tenGod:string;hidden?:string}[];elements:ElementRow[];surface?:boolean;locale?:ReadingLocale}){
+export function SajuBoard({pillars,elements,surface,tombs,locale}:{pillars:{label:string;ganji:string;tenGod:string;hidden?:string}[];elements:ElementRow[];surface?:boolean;tombs?:TombEvidence;locale?:ReadingLocale}){
  const copy=visualCopy(locale);
  return <section className={styles.panel} aria-labelledby="reading-saju-board">
   <div className={styles.panelHead}><h3 id="reading-saju-board" className={styles.panelTitle}><ElementIcon element="토" size={20}/>{copy.pillars}</h3>
@@ -70,6 +72,7 @@ export function SajuBoard({pillars,elements,surface,locale}:{pillars:{label:stri
   </table></div>}
   {elements.length>0&&<><h4 className={styles.subTitle}>{copy.elements}</h4><p className={styles.caption}>{surface?copy.elementsSurfaceCaption:copy.elementsCaption}</p>
    <ElementDistribution elements={elements} locale={locale}/></>}
+   <SajuTombEvidence evidence={tombs} locale={locale}/>
  </section>;
 }
 

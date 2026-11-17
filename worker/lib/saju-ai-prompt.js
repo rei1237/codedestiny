@@ -19,11 +19,13 @@ import {
   buildTwelveLifeStagesForPillars,
   natalCoreFromPillarRows,
 } from "./saju-gyeokguk.js";
-import { legacyJongShape } from "../../lib/saju/natal-core/index.mjs";
+import { legacyJongShape, analyzeSajuTombs, surfaceElementCounts, TOMB_READING_RULE, tombPromptFacts } from "../../lib/saju/natal-core/index.mjs";
 import { gyeokgukClaimFact, gyeokgukPromptRules } from "../../lib/saju/gyeokguk-claim-guard.mjs";
 import { consumerPillars, selectSajuAuthority, readSajuAuthority, SAJU_AUTHORITY_PROMPT_RULES } from './saju-authority-consumer.js';
 import { authorityText } from '../../lib/saju/gyeokguk-authority-copy.mjs';
 import { sajuLuckPeriods, SAJU_PERIOD_VERSION } from '../../lib/saju/luck-periods.mjs';
+
+const corePillars = rows => Object.fromEntries(rows.map(row => [({ year: 'y', month: 'm', day: 'd', hour: 'h' })[row.position], { g: row.stem, j: row.branch }]));
 
 export function selectSajuPromptAuthority(sajuResult, options = {}) {
   return selectSajuAuthority(consumerPillars(normalizeSajuPillarRows(sajuResult)), options);
@@ -49,7 +51,7 @@ function buildPinnedSajuPrompt({ question, sajuResult, domain, mode }, snapshot)
   const factSnapshot = { calculationVersion: pinned.calculationVersion, natalAnalysisId: analysis.evidence.natalAnalysisId,
     domain: resolvedDomain, pillars, dayMaster: { ...analysis.dayMaster },
     fixedTenGodTable: buildFixedTenGodTable(pillars.day.stem),
-    majorStructures: { gyeokguk: analysis.gyeokgukAnalysis, yongshin: analysis.yongshinAnalysis },
+    majorStructures: { gyeokguk: analysis.gyeokgukAnalysis, yongshin: analysis.yongshinAnalysis, ...(analysis.earthStorageAnalysis?.tombAnalysis ? { tombAnalysis: tombPromptFacts(analysis.earthStorageAnalysis.tombAnalysis) } : {}) },
     usefulElements: analysis.usefulElements, interpretation: analysis.evidence.reading,
     limitations: analysis.evidence.limitations, interpretationRules: SAJU_AUTHORITY_PROMPT_RULES };
   const categoryRubric = getSajuAICategoryRubric(resolvedDomain);
@@ -73,7 +75,7 @@ const DEFAULT_TEXT = "제공되지 않음";
 
 export const SAJU_AI_PROMPT_FEATURE_KEY = "saju_ai_prompt_generator";
 export const SAJU_AI_PROMPT_PRICE = FEATURE_KEY_PRICE_TABLE[normalizePaidFeatureKey(SAJU_AI_PROMPT_FEATURE_KEY)].cost;
-export const SAJU_AI_PROMPT_VERSION = "saju-myeongsik-ai-v18-temperament";
+export const SAJU_AI_PROMPT_VERSION = "saju-myeongsik-ai-v19-tomb-periods";
 export { SAJU_PROMPT_TEMPLATES, getSajuPromptTemplate, classifyQuestionToSajuDomain };
 
 // ── 상담문을 나눠 쓰는 단위 ────────────────────────────────────────────────
@@ -332,7 +334,7 @@ const SAJU_AI_PROMPT_MASTERY_ANGLES = Object.freeze([
   "월지·일지 지장간과 일간 기준 십성을 질문 주제의 숨은 작동점으로 반영",
   "원국 천간 투간과 대운·세운 투출을 구분하고 각각의 시기 해석에 성립·완화 조건을 붙이며 실제 사건을 단정하지 않기",
   "도충 exists=true일 때 반복 지지와 유도되는 반대 충 지지를 질문 주제에 맞춰 절제해서 반영",
-  "辰·戌·丑·未 토 지지가 형충해파로 열리는 개고는 열린 지장간과 시기성을 분리해 반영",
+  "辰·戌·丑·未 형충해파는 개고 후보이며 입묘·통근·투간 근거와 해당 시기를 함께 검토",
   "투간·투출·도충·개고를 서로 섞지 않고 각각의 작동 원리로 상담 흐름을 세우기",
   "확정 근거와 추정 영역을 나누어 단정 대신 확인 질문과 선택지로 돌리기",
   "AI 답변이 사주 전용 상담 흐름으로 열리도록 금지할 단정과 원하는 답변 구조를 분명히 남기기",
@@ -695,7 +697,7 @@ function buildLuckRow(raw, fallbackScope) {
   const age = Number(row.age || row.startAge || row.startAgeYears || 0) || null;
   const year = Number(row.year || row.targetYear || 0) || null;
   const labelPrefix = scope === "daewoon" && age ? `${age}세 ` : (scope === "sewoon" && year ? `${year}년 ` : "");
-  const label = toText(row.label || row.ganji || row.pillar || `${stem}${branch}`, `${stem}${branch}`);
+  const label = toText(stripSajuPromptEvaluationFields(row).label || row.ganji || row.pillar || `${stem}${branch}`, `${stem}${branch}`);
   return {
     scope,
     stem,
@@ -877,12 +879,7 @@ function buildEarthStorageOpeningSummary(opening) {
   const timing = opening.timingType === "natal"
     ? "원국 안에서 이미 압력이 머뭅니다"
     : `${opening.timingLabel || opening.triggerPosition}에 시기성이 열립니다`;
-  const favorableText = opening.isFavorableOverall === true
-    ? "용신·희신성 지장간이 함께 열려 기회로 쓰일 여지가 큽니다"
-    : opening.isFavorableOverall === false
-      ? "기신성 지장간이 열릴 수 있어 부담과 갈등을 낮추어 다뤄야 합니다"
-      : "희기 판단은 단정하지 말고 질문 주제와 함께 살펴야 합니다";
-  return `${opening.sourceBranch} ${opening.storageType || "토 창고"}가 ${opening.triggerBranch} ${opening.relationType} 자극을 받아 개고됩니다. 열린 지장간은 ${opened || "지장간 미상"}이며, ${timing}. ${favorableText}.`;
+  return `${opening.sourceBranch} ${opening.storageType || "토 창고"}가 ${opening.triggerBranch} ${opening.relationType} 자극을 받는 개고 후보입니다. 살필 지장간은 ${opened || "지장간 미상"}이며, ${timing}. 모든 지장간이 풀려난다는 뜻은 아닙니다. 입묘·통근·투간 근거와 함께 판단하고 희기를 지장간 수의 다수결로 정하지 않습니다.`;
 }
 
 function buildOpenedHiddenStemsForStorage(branch, dayStem, power) {
@@ -930,11 +927,6 @@ function buildEarthStorageOpenings({ pillarRows, luckRows, dayStem, power, confi
       const storage = EARTH_STORAGE_INFO[source.branch];
       const openedHiddenStems = buildOpenedHiddenStemsForStorage(source.branch, dayStem, power);
       const mainActivatedTenGods = uniqueTexts(openedHiddenStems.map((row) => row.tenGodFromDayMaster));
-      const favorableRows = openedHiddenStems.filter((row) => row.favorable === true).length;
-      const unfavorableRows = openedHiddenStems.filter((row) => row.favorable === false).length;
-      const isFavorableOverall = favorableRows > unfavorableRows
-        ? true
-        : (unfavorableRows > favorableRows ? false : null);
       const timingType = source.timingType !== "natal" ? source.timingType : trigger.timingType;
       const timingLabel = timingType === "natal"
         ? "원국 내부"
@@ -959,7 +951,8 @@ function buildEarthStorageOpenings({ pillarRows, luckRows, dayStem, power, confi
         affectedAreas: affectedAreasFromTenGods(mainActivatedTenGods, source.position, relationType),
         timingType,
         timingLabel,
-        isFavorableOverall,
+        isFavorableOverall: null,
+        status: 'candidate',
         summaryForPrompt: "",
       };
       opening.summaryForPrompt = buildEarthStorageOpeningSummary(opening);
@@ -1094,13 +1087,24 @@ export function buildSajuAdvancedFactors(sajuResult, engineContext, options = {}
   const dayStem = pillarRows.find((row) => row.position === "day")?.stem || engineContext?.quantum?.dayStem || "";
   const luckRows = options.luckRows ?? normalizeSajuLuckRows(sajuResult, engineContext);
   const periods = sajuLuckPeriods(luckRows, { simultaneous: options.luckRows !== undefined });
+  const tombPillars = corePillars(pillarRows);
+  const tombAnalysis = analyzeSajuTombs(tombPillars, { luckRows, simultaneous: options.luckRows !== undefined });
   const promptConfig = normalizeSajuPromptConfig(sajuResult);
   const hiddenStems = buildSajuHiddenStemItems(pillarRows, dayStem);
   const hiddenStemExposures = buildSajuHiddenStemExposures(hiddenStems, pillarRows, luckRows, sajuResult?.power);
   const periodFactors = periods.map(period => ({
     period: { id: period.id, label: period.label },
     doChung: buildComputedDoChungAnalysis(pillarRows, period.rows),
-    earthStorageOpenings: buildEarthStorageOpenings({ pillarRows, luckRows: period.rows, dayStem, power: sajuResult?.power, config: promptConfig }),
+    hiddenStemExposures: buildSajuHiddenStemExposures(hiddenStems, pillarRows, period.rows, sajuResult?.power),
+    earthStorageOpenings: buildEarthStorageOpenings({ pillarRows, luckRows: period.rows, dayStem, power: sajuResult?.power, config: promptConfig }).map(opening => ({
+      ...opening,
+      openedHiddenStems: opening.openedHiddenStems.map(hidden => ({
+        ...hidden, activation: 'candidate',
+        tombEvidence: tombAnalysis.events.filter(event => event.period.id === period.id && event.target.origin === 'hidden' && event.target.stem === hidden.stem
+          && (event.target.position === ({ year: 'y', month: 'm', day: 'd', hour: 'h' })[opening.sourcePosition] || event.target.position.startsWith(opening.sourcePosition + ':')))
+          .map(event => ({ id: event.id, status: event.status, verdict: event.verdict, tombBranch: event.tomb.branch })),
+      })),
+    })),
   }));
   const chosenDoChung = periodFactors.find(row => row.doChung.exists) || periodFactors[0];
   const doChung = { ...chosenDoChung.doChung, period: chosenDoChung.period };
@@ -1134,6 +1138,8 @@ export function buildSajuAdvancedFactors(sajuResult, engineContext, options = {}
     promptConfig,
     periodVersion: SAJU_PERIOD_VERSION,
     periods: periodFactors,
+    tombAnalysis,
+    surfaceElements: surfaceElementCounts(tombPillars),
   };
 }
 
@@ -1320,7 +1326,7 @@ function buildSajuMyeongsikFactCard(factSnapshot, question) {
     `- ${formatHidden("day")}`,
     `- ${formatHidden("hour")}`,
     "",
-    "5. 오행 분포",
+    "5. 오행 분포 — 보이는 원국 글자 기준 (시주 미상은 6글자)",
     `- 목: ${elements.wood || 0}, 화: ${elements.fire || 0}, 토: ${elements.earth || 0}, 금: ${elements.metal || 0}, 수: ${elements.water || 0}`,
     "",
     "6. 십성 분포",
@@ -1333,7 +1339,7 @@ function buildSajuMyeongsikFactCard(factSnapshot, question) {
     "",
     "8. 주요 구조",
     `- 지장간 투간/투출: ${Array.isArray(major.hiddenStemExposures) && major.hiddenStemExposures.length ? major.hiddenStemExposures.slice(0, 8).map((row) => `${row.hiddenStem}:${row.interpretationLevel}`).join(" | ") : DEFAULT_TEXT}`,
-    `- 도충: ${doChung}`,
+    `- 도충: ${doChung}${major.doChung?.period ? ` (${major.doChung.period.label})` : ""}`,
     `- 개고/형충해파: ${openings}`,
     `- 기타 관계: ${Array.isArray(major.interactions) && major.interactions.length ? major.interactions.map((row) => JSON.stringify(row)).join(" | ") : DEFAULT_TEXT}`,
     "",
@@ -1367,7 +1373,6 @@ export function buildSajuMyeongsikFactSnapshot({
   questionType,
   engineContext,
   advancedFactors,
-  weights,
   johu,
   power,
   jong,
@@ -1385,6 +1390,7 @@ export function buildSajuMyeongsikFactSnapshot({
   const heavenlyCounts = emptyTenGodCounts();
   const hiddenWeightedCounts = emptyTenGodCounts();
   const combinedCounts = emptyTenGodCounts();
+  const surface = surfaceElementCounts(corePillars(pillarRows));
   const pillarsByPosition = {};
   const heavenlyStemTenGods = {};
   const hiddenStemsByBranch = {};
@@ -1448,12 +1454,10 @@ export function buildSajuMyeongsikFactSnapshot({
     heavenlyStemTenGods,
     hiddenStemsByBranch,
     elementDistribution: {
-      wood: Number(weights?.wood || 0),
-      fire: Number(weights?.fire || 0),
-      earth: Number(weights?.earth || 0),
-      metal: Number(weights?.metal || 0),
-      water: Number(weights?.water || 0),
-      dominant: weights?.dominant || DEFAULT_TEXT,
+      ...surface.counts,
+      countBasis: 'surface',
+      visibleCharacters: surface.visibleCharacters,
+      dominant: surface.dominant,
     },
     tenGodDistribution: {
       heavenlyStems: heavenlyCounts,
@@ -1465,6 +1469,8 @@ export function buildSajuMyeongsikFactSnapshot({
       hiddenStemExposures: Array.isArray(advancedFactors?.hiddenStemExposures) ? advancedFactors.hiddenStemExposures : [],
       doChung: advancedFactors?.doChung || { exists: false },
       earthStorageOpenings: Array.isArray(advancedFactors?.earthStorageOpenings) ? advancedFactors.earthStorageOpenings : [],
+      tombAnalysis: tombPromptFacts(advancedFactors?.tombAnalysis),
+      periods: advancedFactors?.periods?.map(({ period, doChung }) => ({ period, doChung })),
       twelveLifeStages: twelveLifeStageRows,
       gyeokguk: advancedFactors?.gyeokguk || buildGyeokgukAnalysis({
         pillarRows,
@@ -1528,15 +1534,14 @@ export function buildSajuAnalysisBasis(factSnapshot) {
   const elementItems = [
     basisItem("일간", `${day.stem || ""}${day.stemKorean ? `(${day.stemKorean})` : ""} · ${day.elementKo || ""} · ${day.yinYangKo || ""}`.trim(), { term: "일간" }),
     pillars.month?.branch ? basisItem("월지", `${pillars.month.branch}${pillars.month.branchElementKo ? ` · ${pillars.month.branchElementKo}` : ""}`, { term: "월지" }) : null,
-    // 오행 가중치는 클라이언트 명식(natal.counts)에서 온다. 없으면 전부 0으로 보이므로 아예 항목을 빼
-    // "목 0 · 화 0 …"처럼 계산이 실패한 듯한 줄이 화면에 남지 않게 한다.
+    // 원국의 실제 글자 개수. 명식이 비었으면 0 분포를 만들어 표시하지 않는다.
     ["wood", "fire", "earth", "metal", "water"].some((key) => Number(elements[key] || 0) > 0)
       ? basisItem("오행 분포", ["목", "화", "토", "금", "수"].map((ko, index) => {
         const key = ["wood", "fire", "earth", "metal", "water"][index];
         return `${ko} ${Number(elements[key] || 0)}`;
       }).join(" · "), { term: "오행" })
       : null,
-    elements.dominant && elements.dominant !== DEFAULT_TEXT ? basisItem("가장 강한 기운", String(elements.dominant)) : null,
+    elements.dominant && elements.dominant !== DEFAULT_TEXT ? basisItem("가장 많은 오행", ELEMENT_KO_BY_KEY[elements.dominant] || String(elements.dominant)) : null,
   ];
 
   const tenGodItems = Object.entries(tenGods)
@@ -2049,11 +2054,14 @@ function buildSajuAdvancedFactorLines(advancedFactors, questionType) {
   return [
     "[사주 상담 계산 사용 규칙]",
     "사주 계산을 새로 세우지 말고 아래 canonical JSON과 계산 근거만 붙잡습니다.",
+    "오행 개수는 factSnapshot.elementDistribution의 surface 기준만 사용합니다. 원본 natal.counts와 분석용 가중치를 글자 개수로 읽거나 지장간을 합산하지 않습니다.",
     "지장간·투간·투출·도충·개고·합충형파해는 질문 주제와 맞닿은 항목만 상담 문장 속에 녹입니다.",
     "JSON에 없는 신살, 격국, 용신, 도충, 개고는 새로 만들지 않습니다.",
     doChungExists ? "도충 exists=true이며 질문 주제와 맞닿으면 한 문단 이상 자연스럽게 반영합니다." : "도충 exists=false이면 도충을 핵심 사건으로 쓰지 않습니다.",
-    earthStorageExists ? "토 지지 개고가 있으며 질문 주제와 맞닿으면 열린 지장간과 시기성을 한 문단 이상 자연스럽게 반영합니다." : "개고 조건이 없으면 辰戌丑未만 보고 개고를 만들지 않습니다.",
-    "투간은 원국 천간, 투출은 운의 천간, 도충은 반복 지지의 반대 충 유도, 개고는 辰戌丑未가 형충해파로 열리는 구조로 구분합니다.",
+    earthStorageExists ? "토 지지 개고 후보가 있으며 질문 주제와 맞닿으면 지장간의 작용·입묘의 반대 근거·해당 시기를 함께 설명합니다." : "개고 조건이 없으면 辰戌丑未만 보고 개고를 만들지 않습니다.",
+    "투간은 원국 천간, 투출은 해당 운의 천간, 도충은 같은 시기 반복 지지의 반대 충 유도입니다. 개고 후보를 모든 지장간의 해방으로 단정하지 않습니다.",
+    TOMB_READING_RULE,
+    "서로 다른 대운·세운의 근거를 합쳐 충·입묘·도충을 만들지 않습니다. 입묘 결과의 period와 status를 그대로 따릅니다.",
     "",
     "[고급 명리 계산 근거]",
     "1. 지장간 분석",
@@ -2086,7 +2094,7 @@ function buildSajuAdvancedFactorLines(advancedFactors, questionType) {
     `- 개고 존재 여부: ${earthStorageExists ? "있음" : "없음"}`,
     `- 개고 상세: ${formatEarthStorageOpeningRows(earthStorageOpenings, questionType)}`,
     "- 충에 의한 개고는 가장 강하고, 형은 내부 압력, 파는 균열, 해는 은근한 손상과 문제 표면화로 봅니다.",
-    "- 개고로 열린 지장간은 일간 기준 십성, 희신/기신 여부, 원국·대운·세운 시기성을 함께 봅니다.",
+    "- 개고 후보의 지장간은 일간 기준 십성, 입묘·통근·투간과 원국·대운·세운 시기를 함께 봅니다. 지장간 전체가 풀려난 것으로 쓰지 않습니다.",
     "",
     "6. 합충형파해 연결",
     "- 지장간이 충·형·합·파·해 또는 도충과 닿으면 안에 머물던 기운이 특정 운에서 표면으로 떠오르는 흐름으로 봅니다.",
@@ -2099,7 +2107,7 @@ function buildSajuPromptBindingLines({ pillars, weights, johu, power, jong, engi
   return [
     `명식 고정선: 이 질문문은 연주 ${pillars.yearPillar}, 월주 ${pillars.monthPillar}, 일주 ${pillars.dayPillar}, 시주 ${pillars.hourPillar}와 일간 ${pillars.dayStem}에 묶입니다.`,
     `재사용 경계: 다른 명식에는 그대로 옮기지 말고 일간·월지·조후·용신·기신·대운 퀀텀 흐름을 새로 맞춘 뒤 다시 세우세요.`,
-    `핵심 결속값: 오행 목${weights.wood}/화${weights.fire}/토${weights.earth}/금${weights.metal}/수${weights.water}, 조후 ${toText(johu.type)}, 용신 ${toArrayText(power.yongshin)}, 기신 ${toArrayText(power.kijishin)}, 종격 ${jong.isJong ? toText(jong.name, "종격") : "일반격"}, 격국 ${gyeokText}.`,
+    `핵심 결속값: 분석용 오행 가중치(글자 개수 아님) 목${weights.wood}/화${weights.fire}/토${weights.earth}/금${weights.metal}/수${weights.water}, 조후 ${toText(johu.type)}, 용신 ${toArrayText(power.yongshin)}, 기신 ${toArrayText(power.kijishin)}, 종격 ${jong.isJong ? toText(jong.name, "종격") : "일반격"}, 격국 ${gyeokText}.`,
     `엔진 표식: ${marker}`,
   ];
 }
@@ -2260,7 +2268,7 @@ export function buildSajuAIPromptWithDomain({
   // 사실 스냅샷에 이미 실린 동일 구조는 생성용 JSON에서 한 번만 보낸다.
   // 반환하는 advancedFactors/저장 factSnapshot은 그대로 두며, 값이 다르면 둘 다 보존한다.
   const promptAdvancedFactors = Object.fromEntries(Object.entries(advancedFactors)
-    .filter(([key, value]) => JSON.stringify(value) !== JSON.stringify(factSnapshot.majorStructures?.[key]))
+    .filter(([key, value]) => key !== "tombAnalysis" && key !== "periods" && JSON.stringify(value) !== JSON.stringify(factSnapshot.majorStructures?.[key]))
     .map(([key, value]) => [key, key === "gyeokguk" ? buildSajuPromptFactSnapshot({ majorStructures: { gyeokguk: value } }).majorStructures.gyeokguk : value]));
   const promptSafeFactSnapshot = buildSajuPromptFactSnapshot(factSnapshot);
   // 개고 행의 반복 필드명은 열 이름으로 한 번만 보낸다. 값/행 순서는 모두 보존한다.
@@ -2329,7 +2337,7 @@ export function buildSajuAIPromptWithDomain({
     `생년월일/시간: ${normalizedProfile.birthDate} ${normalizedProfile.birthTime}`,
     `사주 원국: 연주 ${pillars.yearPillar}, 월주 ${pillars.monthPillar}, 일주 ${pillars.dayPillar}, 시주 ${pillars.hourPillar}`,
     `일간/일간오행: ${pillars.dayStem} / ${pillars.dayStemElement}`,
-    `오행 분포: 목 ${weights.wood}, 화 ${weights.fire}, 토 ${weights.earth}, 금 ${weights.metal}, 수 ${weights.water}`,
+    `오행 개수(보이는 글자): 목 ${factSnapshot.elementDistribution.wood}, 화 ${factSnapshot.elementDistribution.fire}, 토 ${factSnapshot.elementDistribution.earth}, 금 ${factSnapshot.elementDistribution.metal}, 수 ${factSnapshot.elementDistribution.water}`,
     `우세 오행: ${weights.dominant}`,
     `조후: ${toText(johu.type)}`,
     `신강/신약: ${typeof power.isStrong === "boolean" ? (power.isStrong ? "신강" : "신약") : DEFAULT_TEXT}`,

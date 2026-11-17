@@ -90,6 +90,23 @@ test('surface element counts show the hidden stems under each pillar; legacy cha
  assert.equal(month(groups({...five,countBasis:undefined})).some(i=>i.label==='지장간'),false);
 });
 
+test('stored tomb evidence is projected without inventing legacy judgments or exposing unselected luck periods',()=>{
+ const saved={version:'saju-tomb-conditional-v1',limitations:['시주 미상'],events:[
+  {id:'saved-natal',target:{label:'년주',origin:'stem',stem:'辛',element:'metal'},period:{id:'natal',label:'원국'},status:'pending',verdict:'undetermined',reasons:['저장 당시 근거'],mitigations:['저장 당시 보류 조건']},
+  {id:'unselected-decade',target:{label:'대운',origin:'stem',stem:'辛',element:'metal'},period:{id:'decade:2030',label:'선택되지 않은 대운'},status:'activated',verdict:'adverse',reasons:['비공개 시기'],mitigations:[]},
+ ]};
+ const source={...context,facts:[...context.facts,{id:'saju.tombAnalysis',label:'tombAnalysis',value:saved}]};
+ const before=JSON.stringify(source);
+ const chart=m.readingCharts({contexts:{saju:source}},[chapter])[0];
+ assert.deepEqual(chart.sajuTombs.rows.map(r=>r.id),['saved-natal']);
+ assert.match(chart.sajuTombs.rows[0].description,/저장 당시 근거/);
+ assert.deepEqual(chart.sajuTombs.rows[0].conditions,['저장 당시 보류 조건']);
+ assert.equal(JSON.stringify(source),before);
+ assert.equal(m.readingCharts({contexts:{saju:context}},[chapter])[0].sajuTombs,undefined);
+ assert.equal(chart.groups.find(g=>g.label==='시주').items[0].value,'미상');
+ assert.doesNotMatch(JSON.stringify(chart),/비공개 시기|선택되지 않은 대운/);
+});
+
 test('calculated periods fill empty cells only: 대운 before the first 교운, dated 대운 labels, one-year 세운 and dasha start/end',()=>{
  const cycles=[{index:0,startYear:1997,endYear:1997,startAge:1,endAge:1},...[1,2,3].map(i=>({index:i,pillar:['癸卯','甲辰','乙巳'][i-1],startYear:1988+i*10,endYear:1997+i*10,startAge:i*10-8,endAge:i*10+1}))];
  const major=m.withDatedMajorLuck({available:true,startSolarDate:'1998-05-10',startAfterBirth:{years:1,months:3,days:0},cycles,currentCycle:cycles[3]},new Date('2026-10-23T00:00:00Z'));

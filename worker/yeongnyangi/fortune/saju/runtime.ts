@@ -23,6 +23,7 @@ import { BirthProfile } from "../shared/contracts";
 import { kstWall, sexagenaryYearAt } from './sexagenary-year';
 import { cycleTag, withDatedMajorLuck } from './major-luck';
 import { surfaceElements } from './element-counts';
+import { analyzeSajuTombs } from '../../../../lib/saju/natal-core/index.mjs';
 
 export function calculateScreenSaju(profile: BirthProfile, now: Date) {
   const natalChart = calculateNatalSaju(profile);
@@ -94,9 +95,13 @@ export function calculateScreenSaju(profile: BirthProfile, now: Date) {
     power,
     jong,
     // A dated tag instead of the counting-age "32세" prefix buildLuckRow adds from startAge.
-    daewoon: r.majorLuck?.cycles?.map((c: any) => c.startDate ? { pillar: c.pillar, heavenlyStem: c.heavenlyStem, earthlyBranch: c.earthlyBranch, label: cycleTag(c) } : c),
-    yearlyLuck: r.yearlyLuck,
+    daewoon: profile.birthTime ? r.majorLuck?.cycles?.map((c: any) => c.startDate ? {
+      pillar: c.pillar, heavenlyStem: c.heavenlyStem, earthlyBranch: c.earthlyBranch,
+      startDate: c.startDate, endDate: c.endDate, startYear: c.startYear, endYear: c.endYear, label: cycleTag(c),
+    } : c) : [],
+    yearlyLuck: profile.birthTime ? r.yearlyLuck : [],
   });
+  const natalTombs = analyzeSajuTombs(p);
   return {
     ...r,
     monthlyLuck,
@@ -104,7 +109,9 @@ export function calculateScreenSaju(profile: BirthProfile, now: Date) {
     fiveElements: surfaceElements(p, natal.dominant),
     strength: power,
     usefulGod: power?.yongshin,
-    advancedFactors: advanced,
+    // The base context carries natal tombs; preparation attaches each dated frame to its own cycle.
+    advancedFactors: { ...advanced, tombAnalysis: natalTombs },
+    tombAnalysis: natalTombs,
     jong,
     shinsal: buildLoveShinsal({
       pillars: Object.fromEntries(

@@ -1,6 +1,6 @@
 {
   "sourcePath": "js/saju-engine.js",
-  "sha256": "29e2e7ce93b91370f7ab4e04b5796a7ee40a4815dc83bdc7ea468f8b2ac2602d",
+  "sha256": "b0f52b1a16b6437a0a14891035ba76345cc11ce10c2c80f86600ba08183e1371",
   "symbols": [
     {
       "name": "_applyTrueSolarTimeCorrection",
@@ -28,7 +28,7 @@
     },
     {
       "name": "calcNatalElement",
-      "sha256": "1f055bfba6aa5bc81b8c787efbe66dfb453ff5fde7c45fb1ab880968cb9aad3c"
+      "sha256": "bea8018e4319b7831e89cf2253fda77953e9920e695911e6526ee36cc0726dd2"
     },
     {
       "name": "analyzeJohu",

@@ -805,6 +805,11 @@ var SajuReadingDepth = (() => {
   // lib/saju/natal-core/version.mjs
   var NATAL_CORE_VERSION = "natal-core-v1";
 
+  // lib/saju/natal-core/tomb.mjs
+  var TOMB_BRANCH = Object.freeze({ 甲: "未", 乙: "戌", 丙: "戌", 丁: "丑", 戊: "戌", 己: "丑", 庚: "丑", 辛: "辰", 壬: "辰", 癸: "未" });
+  var TOMB_STATUS_KO = Object.freeze({ candidate: "입묘 후보", activated: "입묘 작용", mitigated: "완화 조건 있음", pending: "판단 보류" });
+  var TOMB_VERDICT_KO = Object.freeze({ beneficial: "부담을 덜 수 있는 흐름", adverse: "도움이 약해질 수 있는 흐름", mixed: "도움과 주의가 함께 있는 흐름", undetermined: "길흉 판단 보류" });
+
   // lib/saju/natal-core/index.mjs
   var NATAL_RULE_PROFILE = Object.freeze({
     id: "rok-yangin-strictjong-v1",
@@ -1299,11 +1304,11 @@ var SajuReadingDepth = (() => {
       }
     }
     if (doChung && doChung.exists) {
-      breakFactors.push({ type: "도충", detail: `${doChung.repeatedBranch || ""} 반복으로 유도된 충(${doChung.inducedOppositeBranch || "미상"})이 격에 사건성을 더합니다.` });
+      breakFactors.push({ type: "도충", period: doChung.period, detail: `${doChung.period?.label || "해당 시기"}: ${doChung.repeatedBranch || ""} 반복으로 유도된 충(${doChung.inducedOppositeBranch || "미상"})을 검토합니다.` });
     }
     if (Array.isArray(earthStorageOpenings) && earthStorageOpenings.length) {
       const opening = earthStorageOpenings[0];
-      breakFactors.push({ type: "개고", detail: `${opening.sourceBranch || ""}-${opening.triggerBranch || ""} ${opening.relationType || ""}로 창고가 열려 격의 재료가 드러납니다.` });
+      breakFactors.push({ type: "개고", period: opening.period, detail: `${opening.period?.label || opening.timingLabel || "해당 시기"}: ${opening.sourceBranch || ""}-${opening.triggerBranch || ""} ${opening.relationType || ""}의 개고 후보입니다. 지장간의 입묘·통근을 함께 살피며 격의 성패를 단정하지 않습니다.` });
     }
     const luckTiming = buildLuckTiming(luckRows, power, jong, day);
     return {
@@ -1775,7 +1780,7 @@ var SajuReadingDepth = (() => {
   var MONTH_ORDER = [..."寅卯辰巳午未申酉戌亥子丑"];
   var GOD_KO = { 比肩: "비견", 劫财: "겁재", 食神: "식신", 伤官: "상관", 偏财: "편재", 正财: "정재", 七杀: "편관", 正官: "정관", 偏印: "편인", 正印: "정인" };
   var POS = { y: "year", m: "month", d: "day", h: "hour" };
-  var POS_KO = { y: "년주", m: "월주", d: "일주", h: "시주" };
+  var POS_KO2 = { y: "년주", m: "월주", d: "일주", h: "시주" };
   var STEM_NAME = { 甲: "갑목", 乙: "을목", 丙: "병화", 丁: "정화", 戊: "무토", 己: "기토", 庚: "경금", 辛: "신금", 壬: "임수", 癸: "계수" };
   var MONTH_NAME = { 寅: "인", 卯: "묘", 辰: "진", 巳: "사", 午: "오", 未: "미", 申: "신", 酉: "유", 戌: "술", 亥: "해", 子: "자", 丑: "축" };
   function monthTitle(stem, month) {
@@ -1789,7 +1794,7 @@ var SajuReadingDepth = (() => {
     const hiddenStems = pillarRows.flatMap((row) => (ZHI_HIDE_GAN[row.branch] || []).map((hiddenStem, i) => ({ position: row.position, branch: row.branch, hiddenStem, layer: ["정기", "중기", "여기"][i], tenGodFromDayMaster: GOD_KO[SHI_SHEN[p.d.g + hiddenStem]] })));
     const hiddenStemExposures = hiddenStems.map((row) => ({ ...row, exposedInNatalHeavenlyStem: pillarRows.some((pillar) => pillar.stem === row.hiddenStem) }));
     const gyeokguk = facts.gyeokguk || buildGyeokgukAnalysis({ pillarRows, dayStem: p.d.g, hiddenStems, hiddenStemExposures, power: facts.power, jong: facts.jong });
-    const roots = keys.filter((k) => (ZHI_HIDE_GAN[p[k].j] || []).some((s) => WU_XING_GAN[s] === WU_XING_GAN[p.d.g])).map((k) => `${POS_KO[k]} ${p[k].j}`);
+    const roots = keys.filter((k) => (ZHI_HIDE_GAN[p[k].j] || []).some((s) => WU_XING_GAN[s] === WU_XING_GAN[p.d.g])).map((k) => `${POS_KO2[k]} ${p[k].j}`);
     return { month: monthOf(p.d.g, p.m.j), gyeokguk, roots, unknown: !!facts.unknown };
   }
   function buildDepthFacts(facts) {

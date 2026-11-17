@@ -11,3 +11,20 @@ export const profileLoadError=(locale?:ReadingLocale)=>({
  ko:'프로필을 불러오지 못했어요. 다시 확인해 주세요.',en:'Could not load this profile. Please check your profiles again.',ja:'プロフィールを読み込めませんでした。もう一度確認してください。',
  'zh-CN':'无法加载档案，请重试。','zh-TW':'無法載入檔案，請重試。',vi:'Không tải được hồ sơ. Vui lòng thử lại.',hi:'प्रोफ़ाइल लोड नहीं हो सकी। कृपया फिर कोशिश करें।',es:'No se pudo cargar el perfil. Inténtalo de nuevo.',fr:'Impossible de charger le profil. Réessayez.',de:'Das Profil konnte nicht geladen werden. Bitte erneut versuchen.',nl:'Het profiel kon niet worden geladen. Probeer het opnieuw.',ms:'Profil tidak dapat dimuatkan. Sila cuba lagi.',
 }[locale||'ko']);
+
+// Calendar and place notes describe the shared saju calculation, not purchase eligibility.
+const birthNotes:Record<ReadingLocale,[string,string]>={
+ ko:['음력 생일은 평달·윤달을 구분해 주세요. 같은 날짜라도 양력 변환 결과가 달라질 수 있어요.','사주는 출생지의 경도·표준시를 반영해 지역 평균시로 보정해요. 출생지를 비우면 서울을 기준으로 계산해요.'],
+ en:['For lunar birthdays, distinguish a regular month from a leap month. The converted solar date can differ.','Saju uses local mean time corrected for birthplace longitude and time zone. If no place is entered, Seoul is used.'],
+ ja:['旧暦の誕生日は平月と閏月を区別してください。新暦への換算日が変わる場合があります。','四柱推命は出生地の経度・標準時を反映した地方平均時で計算します。出生地が空欄の場合はソウルを使用します。'],
+ 'zh-CN':['农历生日请区分平月与闰月，换算后的公历日期可能不同。','四柱推命按出生地经度和时区校正为地方平太阳时。未填写出生地时，以首尔为准。'],
+ 'zh-TW':['農曆生日請區分平月與閏月，換算後的國曆日期可能不同。','四柱推命依出生地經度和時區校正為地方平太陽時。未填寫出生地時，以首爾為準。'],
+ vi:['Với ngày sinh âm lịch, hãy phân biệt tháng thường và tháng nhuận. Ngày dương lịch quy đổi có thể khác nhau.','Saju dùng giờ mặt trời trung bình địa phương, hiệu chỉnh theo kinh độ và múi giờ nơi sinh. Nếu bỏ trống nơi sinh, hệ thống dùng Seoul.'],
+ hi:['चंद्र जन्मतिथि के लिए सामान्य और अधिक मास में अंतर करें। परिवर्तित सौर तिथि अलग हो सकती है।','साजू में जन्मस्थान के देशांतर और समय क्षेत्र के अनुसार स्थानीय औसत सौर समय लिया जाता है। स्थान खाली होने पर सियोल का उपयोग होता है।'],
+ es:['En fechas lunares, distingue el mes regular del intercalar. La fecha solar convertida puede cambiar.','Saju usa la hora solar media local corregida por longitud y zona horaria del lugar de nacimiento. Si lo dejas vacío, se usa Seúl.'],
+ fr:['Pour une naissance selon le calendrier lunaire, distinguez le mois ordinaire du mois intercalaire. La date solaire convertie peut changer.','Le saju utilise le temps solaire moyen local corrigé selon la longitude et le fuseau du lieu de naissance. Sans lieu indiqué, Séoul est utilisé.'],
+ de:['Bei einem Mondkalenderdatum bitte normalen Monat und Schaltmonat unterscheiden. Das umgerechnete Sonnendatum kann abweichen.','Saju verwendet die mittlere Ortszeit, korrigiert nach Längengrad und Zeitzone des Geburtsorts. Ohne Ortsangabe wird Seoul verwendet.'],
+ nl:['Maak bij een geboortedatum volgens de maankalender onderscheid tussen een gewone maand en een schrikkelmaand. De omgerekende zonnedatum kan verschillen.','Saju gebruikt de plaatselijke gemiddelde zonnetijd, aangepast aan lengtegraad en tijdzone van de geboorteplaats. Zonder plaats wordt Seoul gebruikt.'],
+ ms:['Untuk tarikh lahir kalendar lunar, bezakan bulan biasa dengan bulan lompat. Tarikh suria yang ditukar mungkin berbeza.','Saju menggunakan waktu suria min tempatan yang dilaraskan mengikut longitud dan zon waktu tempat lahir. Jika tempat dikosongkan, Seoul digunakan.'],
+};
+export function birthCalculationCopy(locale?:ReadingLocale){const [calendarHint,placeHint]=birthNotes[locale||'ko'];return {calendarHint,placeHint};}

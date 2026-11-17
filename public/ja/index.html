@@ -824,10 +824,10 @@ button, .tog-btn, .btn-main, .btn-sub, .dw-item, .feature-card, .fortune-tab, .m
 .feature-card__launch, .feature-card__cta, .mystic-summon-btn, .btn-subscribe, .membership-recap-cta__btn, .villain-copy-btn, .lotto-draw-btn { font-weight: 800; word-break: keep-all; overflow-wrap: break-word; font-family: var(--font-body) !important; letter-spacing: 0px !important; }
  </style>
  <link rel="preload" as="style" href="/styles/fortune-ui-home.css?v=build-ba2590734dae" onload="this.onload=null;this.rel='stylesheet'">
- <link data-cd-noncritical-style-src="/styles/fortune-ui.css?v=build-013f2fe9e24f" data-cd-mobile-delay="1" media="print">
+ <link data-cd-noncritical-style-src="/styles/fortune-ui.css?v=build-f94217eed803" data-cd-mobile-delay="1" media="print">
  <!-- JS 가 꺼져 있으면 위 두 줄은 모두 적용되지 않는다(preload 의 rel 교체도, 지연 로더도 JS 다).
       그때는 부분집합이 아니라 전체 시트를 그냥 받는다 — 상위집합이라 한 줄로 둘 다 덮는다. -->
- <noscript><link rel="stylesheet" href="/styles/fortune-ui.css?v=build-013f2fe9e24f"></noscript>
+ <noscript><link rel="stylesheet" href="/styles/fortune-ui.css?v=build-f94217eed803"></noscript>
  <!-- fortune-gateway.css 는 렌더 블로킹에서 뺀다 — 이 시트가 칠하는 4개 호스트가 전부 폴드보다
       아래다(2026-09-11 재실측, dist·networkidle — #cdFinder 를 무료 카드 바로 아래로 승격하며
       갱신): .cd-quick__grid 825 / #cdFinder 1322 / #cdDiaryPlannerEntry 5113 /
@@ -976,7 +976,7 @@ html:not(.cd-mobile-runtime) .cd-home-guide { content-visibility: auto; contain-
 <meta property="og:description" content="韓国式四柱推命の命式、宿曜の本命宿と相性、紫微斗数の十二宮を日本語で。占術ごとの見方と必要な入力を確認し、今の悩みに合う占いを選べます。">
 <meta property="og:url" content="https://code-destiny.com/ja/">
 <meta property="og:locale" content="ja_JP">
-<meta property="og:image" content="https://code-destiny.com/og/code-destiny-og-ja.png?v=build-890fa65ebef9">
+<meta property="og:image" content="https://code-destiny.com/og/code-destiny-og-ja.png?v=build-1d5cee4e26a4">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="꿀꿀운세 HONEY FORTUNE — 花豚ヨニのカメオとサービス紹介を収めた CODE DESTINY の名刺カード">
@@ -985,7 +985,7 @@ html:not(.cd-mobile-runtime) .cd-home-guide { content-visibility: auto; contain-
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="四柱推命・宿曜・タロット占い｜꿀꿀 운세">
 <meta name="twitter:description" content="韓国式四柱推命の命式、宿曜の本命宿と相性、紫微斗数の十二宮を日本語で。占術ごとの見方と必要な入力を確認し、今の悩みに合う占いを選べます。">
-<meta name="twitter:image" content="https://code-destiny.com/og/code-destiny-og-ja.png?v=build-890fa65ebef9">
+<meta name="twitter:image" content="https://code-destiny.com/og/code-destiny-og-ja.png?v=build-1d5cee4e26a4">
 <meta name="twitter:image:alt" content="꿀꿀운세 HONEY FORTUNE — 花豚ヨニのカメオとサービス紹介を収めた CODE DESTINY の名刺カード">
 <script type="application/ld+json">
 {
@@ -1150,7 +1150,7 @@ html:not(.cd-mobile-runtime) .cd-home-guide { content-visibility: auto; contain-
     {
       "@type": "ImageObject",
       "@id": "https://code-destiny.com/#primaryimage",
-      "url": "https://code-destiny.com/og/code-destiny-og-vvip.png?v=build-890fa65ebef9",
+      "url": "https://code-destiny.com/og/code-destiny-og-vvip.png?v=build-1d5cee4e26a4",
       "width": 1200,
       "height": 630
     },
@@ -7226,7 +7226,7 @@ html.neo-mode #cdHomeFunnel .cdh-scene-art #honeypigLogo{box-shadow:none!importa
 <link rel="stylesheet" href="/styles/fortune-consultation-entry.css?v=build-e4608387ba94">
 <script src="/js/core/fortune-consultation-ui.js?v=build-09442fbaae91" defer></script>
 <link rel="stylesheet" href="/styles/fortune-consultation.css?v=build-8e7494d44cd9">
-<script defer src="/js/core/saju/reading-depth.generated.js?v=build-b0b7baf2944e"></script>
+<script defer src="/js/core/saju/reading-depth.generated.js?v=build-050c54897f2b"></script>
 <script defer src="/js/core/saju/reading-rich.js?v=build-4c1abb74ec86"></script>
 <script defer src="/js/core/saju/reading-rich-intl.js?v=build-a286db621403"></script>
 <script defer src="/js/core/saju/reading-personas.js?v=build-fb05b10d9a8c"></script>
@@ -11812,6 +11812,7 @@ html body .dp-destiny-panel__toggle[aria-expanded="true"] .dp-destiny-panel__che
             <label><input type="radio" name="calType" value="lunar_leap" data-change-action="updateLunarPreview" data-change-args="birthDate,calType,lunarPreview"><span data-cd-trans data-key="home.input.lunarLeap">음력(윤달)</span></label>
           </div>
           <div id="lunarPreview" class="form-lunar-preview" aria-live="polite"></div>
+          <p class="destiny-field-hint" lang="ko">음력 생일은 평달·윤달을 구분해 주세요. 생일이 같아도 양력 변환 날짜가 달라질 수 있어요.</p>
         </div>
       </div>
 
@@ -11840,6 +11841,7 @@ html body .dp-destiny-panel__toggle[aria-expanded="true"] .dp-destiny-panel__che
           </select>
         </div>
         <button type="button" class="birth-time-tip moon-time-unknown" id="birthTimeTip" data-cd-set-unknown-time aria-label="출생 시간을 모를 때 낮 12시 기준으로 설정" data-cd-trans-attr="aria-label:home.input.birthTimeUnknownAria" data-cd-trans data-key="home.input.birthTimeUnknown">출생 시간을 모르면 낮 12시 기준으로 보수 분석합니다</button>
+        <p class="destiny-field-hint" lang="ko">사주에서는 시간을 모르면 시주를 비워 두고, 확인되는 여섯 글자만 읽어요.</p>
       </div>
 
       <div class="moon-form-divider" aria-hidden="true"><svg width="84" height="18" viewBox="0 0 84 18"><ellipse cx="30" cy="9" rx="4" ry="7" fill="currentColor" opacity="0.35" transform="rotate(-28 30 9)"></ellipse><ellipse cx="38" cy="9" rx="4" ry="7" fill="currentColor" opacity="0.55" transform="rotate(-12 38 9)"></ellipse><ellipse cx="46" cy="9" rx="4" ry="7" fill="currentColor" opacity="0.55" transform="rotate(12 46 9)"></ellipse><ellipse cx="54" cy="9" rx="4" ry="7" fill="currentColor" opacity="0.35" transform="rotate(28 54 9)"></ellipse></svg></div>
@@ -11856,6 +11858,7 @@ html body .dp-destiny-panel__toggle[aria-expanded="true"] .dp-destiny-panel__che
           <input type="text" class="inp form-country-select moon-input" id="birthCountryInput" role="combobox" aria-expanded="false" aria-haspopup="listbox" aria-controls="birthCountryListbox" aria-autocomplete="list" aria-describedby="timeCorrectionInfo" autocomplete="off" inputmode="text" enterkeyhint="search" data-cd-trans-attr="aria-label:home.input.birthCountryAria,placeholder:home.input.birthPlaceLoading" aria-label="출생 국가" placeholder="출생지를 불러오는 중...">
           <ul class="moon-country-listbox" id="birthCountryListbox" role="listbox" aria-label="출생지 검색 결과" hidden data-cd-trans-attr="aria-label:shell.birthCountryComboWrap.kefdlj6.ariaLabel"></ul>
         </div>
+        <p class="destiny-field-hint" lang="ko">출생지의 경도·표준시를 반영한 지역 평균시로 보정해요. 보정 후 23시부터 다음 날의 일주를 사용해요.</p>
         <details class="moon-correction-preview" open>
           <summary>
             <span class="moon-correction-preview__dot" aria-hidden="true"></span>
@@ -20262,6 +20265,7 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
         </div>
         <div class="manse-grid" id="manseGrid"></div>
       </div>
+      <section id="manseEvidence" class="manse-evidence" aria-label="오행 개수와 입묘 근거"></section>
       <section class="manse-shinsal" aria-labelledby="manseShinsalTitle">
         <div class="manse-shinsal__heading">
           <h4 id="manseShinsalTitle"><svg class="saju-section-icon" data-saju-icon="shinsal" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m12 3 2.3 6.7L21 12l-6.7 2.3L12 21l-2.3-6.7L3 12l6.7-2.3Z"/><path d="m18 3 3 3M3 18l3 3"/></svg>명식에 머문 신살</h4>
@@ -21290,7 +21294,7 @@ html:not(.neo-mode) #resultPage .pf-showcase__yeoni{display:block;width:96px;hei
 <script data-cd-lazy-src="/js/core/saju/basicFortunePresentation.js?v=build-2625c92ed995" data-cd-mobile-delay="1"></script>
 <script data-cd-lazy-src="/js/core/saju/modalProfileState.js" data-cd-mobile-delay="1"></script>
 <script data-cd-noncritical-src="/js/core/premium-chapter-orchestrator.js?v=build-ba2380db1771" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
-<script defer src="/js/core/index-inline-runtime.js?v=build-ec758febdd09" data-cd-saju-prompt-marker="saju-ai-consultation-flow-v20260706 saju-ai-calibration-v20260706 saju-ai-llm-result-v20260625 sukuyo-guardian-drawing-v20260625 sukuyo-pastlife-v2-20260621" data-cd-kemet-ai-prompt-marker="kemet-ai-prompt-generator-v20260619"></script>
+<script defer src="/js/core/index-inline-runtime.js?v=build-1e905d2ed2a2" data-cd-saju-prompt-marker="saju-ai-consultation-flow-v20260706 saju-ai-calibration-v20260706 saju-ai-llm-result-v20260625 sukuyo-guardian-drawing-v20260625 sukuyo-pastlife-v2-20260621" data-cd-kemet-ai-prompt-marker="kemet-ai-prompt-generator-v20260619"></script>
 <script defer src="/js/pwa-install-prompt.js?v=build-1c2525b7d8f2"></script>
 <script data-cd-lazy-src="/js/admin-flower.js" data-cd-mobile-delay="2"></script>
 <div class="share-toast" id="shareToast" role="status" aria-live="polite"></div>
@@ -21410,7 +21414,7 @@ html:not(.neo-mode) #resultPage .pf-showcase__yeoni{display:block;width:96px;hei
     if (!shareUrl) return Promise.reject(new Error('share_url_missing'));
     // 지금 보고 있는 언어의 셸·미리보기 카드로 공유한다(js/share.js). 아직 안 실렸으면 서버 URL 그대로.
     if (typeof window.cdLocalizeShareUrl === 'function') shareUrl = window.cdLocalizeShareUrl(shareUrl);
-    var shareImageUrl = 'https://code-destiny.com/og/code-destiny-og-vvip.png?v=build-890fa65ebef9';
+    var shareImageUrl = 'https://code-destiny.com/og/code-destiny-og-vvip.png?v=build-1d5cee4e26a4';
     if (typeof window.cdLocalizeShareImage === 'function') shareImageUrl = window.cdLocalizeShareImage(shareImageUrl);
     renderShareUrl(shareUrl, tr('kakaoReferral.rewardReady', '초대 링크가 준비됐어요. 친구 가입 완료 시 추천 보상이 지급됩니다.'));
     return loadKakaoSdk(payload.kakaoJavascriptKey).then(function(ok){
@@ -35405,7 +35409,7 @@ function updateBadge() {
 (function(){
   'use strict';
   var D={
-    '#destinyCardForm':{cat:'사주 · 무료 운명 카드',fallbackTitle:'🌙 나의 달빛 운명 카드',tagline:'생년월일과 출생시간을 바탕으로 사주, 오늘의 흐름, 궁합, 별자리 서비스로 이어지는 기본 프로필을 만듭니다.',feats:['이름·생년월일·출생시간 기반 기본 운명 카드 생성','출생시간을 모를 때 낮 12시 기준으로 보수 계산','사주 결과와 주요 운세 서비스 바로가기 자동 연결','저장한 프로필로 무료·프리미엄 리딩을 더 빠르게 시작'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/%EC%82%AC%EC%A3%BC%EB%B3%B4%EB%8A%94%20%EC%97%B0%EC%9D%B4.webp?v=build-890fa65ebef9',fallbackCta:'운명 카드 만들기'},
+    '#destinyCardForm':{cat:'사주 · 무료 운명 카드',fallbackTitle:'🌙 나의 달빛 운명 카드',tagline:'생년월일과 출생시간을 바탕으로 사주, 오늘의 흐름, 궁합, 별자리 서비스로 이어지는 기본 프로필을 만듭니다.',feats:['이름·생년월일·출생시간 기반 기본 운명 카드 생성','출생시간을 모를 때 낮 12시 기준으로 보수 계산','사주 결과와 주요 운세 서비스 바로가기 자동 연결','저장한 프로필로 무료·프리미엄 리딩을 더 빠르게 시작'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/%EC%82%AC%EC%A3%BC%EB%B3%B4%EB%8A%94%20%EC%97%B0%EC%9D%B4.webp?v=build-1d5cee4e26a4',fallbackCta:'운명 카드 만들기'},
     gotoZiweiPremium:{cat:'프리미엄 · 자미두수 전문가 상담',fallbackTitle:'자미두수 전문가 상담',tagline:'명궁·신궁·12궁·사화·대운·세운 흐름을 바탕으로 지금의 질문에 답합니다.',feats:['입력은 무료 — 상담 생성 버튼을 누를 때 30,000원 단건 결제 또는 이용권·월정석 확인','결제 확인이 끝나면 상담문이 바로 생성','명궁·재백·관록·부부·질액궁을 질문에 맞춰 연결 해석','상담 결과를 화면에서 바로 확인하고 추가 질문 이어가기'],cost:'30,000원 · 전문가 상담',ct:'paid',img:"/images/service-introductions/ziwei-ai.webp",fallbackCta:'자미두수 상담 받기'},
     '/neo-operation-room':{cat:'프리미엄 · 운명 작전실',fallbackTitle:'네오의 팩폭 운명 작전실',tagline:'사주·자미두수·베다점·점성술의 지도를 한 장의 전략처럼 펼쳐, 지금 밀리는 전선과 다시 잡아야 할 기준을 또렷하게 짚습니다.',feats:['30,000원 상담 이용권 확인','결제 완료 후 네오의 작전실로 바로 이동','사주와 별자리 흐름을 함께 비추는 종합 상담','현재 고민에 맞춘 선택 기준과 다음 행동 정리'],cost:'30,000원 · 전문가 상담',ct:'paid',img:"/images/service-introductions/neo-operation-room.webp",fallbackCta:'작전실 열기'},
     openNamingPromptModal:{cat:'작명 · 전문가 상담',fallbackTitle:'훈민정음 작명소',tagline:'생년월일시와 원하는 이름 조건을 바탕으로 용신·소리오행·한자 의미·수리 풀이를 종합해 전문가가 직접 이름을 짓고, 그 결과를 만든 프롬프트 원문까지 함께 드립니다.',feats:['입력과 무료 초안 추천은 무료로 열립니다','프리미엄 작명 시작 시 30,000원 단건 결제 또는 이용권·월정석 확인이 진행됩니다','사주 보완, 인명용 한자, 소리오행, 자원오행, 원형이정 수리를 종합한 완성형 결과 제공','결제 검증 후 전문가 작명 결과와 PDF 저장, 생성에 사용된 프롬프트 원문까지 다시 확인할 수 있습니다'],cost:'30,000원 · 이용권/월정석 가능',ct:'paid',img:"/images/service-introductions/naming-ai.webp",fallbackCta:'작명 시작하기'},

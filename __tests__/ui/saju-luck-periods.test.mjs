@@ -34,3 +34,12 @@ test('natal plus the current decade still produces the real clash, with a period
   const result = buildSajuAdvancedFactors({ pillars: { ...pillars, h: { g: '戊', j: '戌' } }, daewoon: [{ pillar: '壬辰', startAge: 30 }] });
   assert.ok(result.earthStorageOpenings.some(row => row.sourceBranch === '戌' && row.triggerBranch === '辰' && row.period.id.includes('daewoon')));
 });
+
+test('dated handover takes precedence over coarse endYear when the same year spans two decades', () => {
+  const before = {scope:'daewoon',stem:'壬',branch:'辰',startYear:2020,endYear:2029,startDate:'2020-05-10',endDate:'2030-05-09'};
+  const after = {scope:'daewoon',stem:'癸',branch:'巳',startYear:2030,endYear:2039,startDate:'2030-05-10',endDate:'2040-05-09'};
+  const year = {scope:'sewoon',stem:'庚',branch:'戌',year:2030};
+  const frames = sajuLuckPeriods([before,after,year]).filter(p => p.rows.includes(year));
+  assert.deepEqual(frames.map(p => p.rows), [[before,year],[after,year]]);
+  assert.doesNotThrow(() => sajuLuckPeriods([before,year], {simultaneous:true}));
+});

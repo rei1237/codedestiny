@@ -3248,7 +3248,7 @@ var SAJU_ENGINE_TEXT_TRANSLATIONS = {
     "se_26658_prop_label": "홍염살(일주",
     "se_27494_attr_aria_label": "' + _sajuVillainEscapeHtml(profile.comicAlias || profile.koreanName) + ' 실루엣",
     "se_28691_attr_aria_label": "기존 결제로 잠금 해제됨",
-    "se_5146_attr_aria_label": "진태양시 자동 변환 적용",
+    "se_5146_attr_aria_label": "지역 평균시 보정 적용",
     "se_6277_attr_placeholder": "예: 올해 이직을 앞둔 제 사주에서 잡아야 할 기회와 피해야 할 선택은 무엇인가요?",
     "se_7940_attr_title": "에너지 절약 모드. 내면 지향적, 신중함.",
     "se_7941_attr_title": "풀 가동 모드. 외향적, 열정적.",
