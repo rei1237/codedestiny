@@ -2731,17 +2731,17 @@
   }
 
   function _dpWaitForPaymentOverlayPaint() {
+    // PG 앱 전환 중 rAF가 멈춰도 결제 증빙 전달은 계속한다.
     return new Promise(function(resolve) {
-      if (typeof window === 'undefined') {
+      if (typeof window === 'undefined' || typeof window.requestAnimationFrame !== 'function') { resolve(); return; }
+      var frame = 0;
+      var timer = window.setTimeout(done, 100);
+      function done() {
+        window.clearTimeout(timer);
+        if (frame && typeof window.cancelAnimationFrame === 'function') window.cancelAnimationFrame(frame);
         resolve();
-        return;
       }
-      // 단일 rAF. 중첩 rAF는 호출마다 프레임을 2개 먹어, 결제창 진입 경로에서만 6프레임이 쌓였다
-      // (정적 셸 _cdWaitForPaymentOverlayPaint 도 단일 rAF로 충분히 페인트를 보장한다).
-      var raf = typeof window.requestAnimationFrame === 'function'
-        ? window.requestAnimationFrame.bind(window)
-        : function(callback) { return setTimeout(callback, 16); };
-      raf(resolve);
+      frame = window.requestAnimationFrame(done);
     });
   }
 
@@ -5036,7 +5036,9 @@
       /* 🔴 확정 응답을 증빙 재료로 함께 넘긴다. 핸들러 중에는 열기만 하는 것이 아니라 **그 증빙을 다시
          서버에 실어 보내는** 것이 있다(AI 상담 프롬프트·인연 레이더 아카이브 쓰기). 안 넘기면 그쪽은
          화면만 열리고 서버 기록이 없어, 다음에 같은 것을 또 결제하게 된다. */
-      var resumeOpened = resumeDescriptor && (isUserInitiated || _dpBeginDirectResumeAttempt(paymentId))
+      var canResume = resumeDescriptor && (isUserInitiated || _dpBeginDirectResumeAttempt(paymentId));
+      if (canResume) _dpShowPaymentCompleteOverlay(_dpText('paymentCompleteOverlay'));
+      var resumeOpened = canResume
         ? await _dpRunPaidResume(resumeDescriptor, {
           featureKey: resumeFeatureKey,
           contentKey: resumeConfirmBody.contentKey || resumeConfirmBody.contentId || '',
@@ -5060,8 +5062,7 @@
             profileId: resumeConfirmBody.profileId || resumeConfirmBody.selectedProfileId || '',
           });
         }
-        // 실제로 콘텐츠가 열리는 중이므로 여기서만 '여는 중' 문구를 쓴다.
-        _dpShowPaymentCompleteOverlay(_dpText('paymentCompleteOverlay'));
+        // 생성/결과 화면이 이미 열렸다. 완료 안내를 다시 덮어 띄우지 않는다.
       } else {
         _dpDirectResumeSettled[paymentId] = true;
         var resumeFeatureLabel = String(resumeConfirmBody.reason || resumeConfirmBody.title || '').trim();

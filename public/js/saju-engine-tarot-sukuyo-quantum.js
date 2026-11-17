@@ -7177,13 +7177,22 @@ function syBuildUnlockResumeDescriptor(kind, action, args) {
 }
 
 // 딥링크가 표면을 연 직후에도 코어·상태는 아직 안 걸려 있다 — 상한을 두고 기다린다.
+function syRevealPaidResumeSurface() {
+  var overlay = document.getElementById('sukuyoModalOverlay');
+  if (!overlay) return false;
+  if (overlay.style.display !== 'none' && getComputedStyle(overlay).display !== 'none') return true;
+  overlay.style.display = 'flex';
+  if (typeof window._cdBasicFortuneModalOpened === 'function') window._cdBasicFortuneModalOpened('sukuyo', overlay);
+  return true;
+}
+
 function syWaitForUnlockResumeTarget(isReady) {
   return new Promise(function(resolve) {
     var deadline = Date.now() + SY_UNLOCK_RESUME_WAIT_MS;
     (function poll() {
       var ready = false;
       try { ready = !!isReady(); } catch (_syUnlockReadyError) { ready = false; }
-      if (ready) { resolve(true); return; }
+      if (ready) { resolve(syRevealPaidResumeSurface()); return; }
       if (Date.now() >= deadline) { resolve(false); return; }
       setTimeout(poll, SY_UNLOCK_RESUME_POLL_MS);
     })();
@@ -13924,7 +13933,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
     return new Promise(function(resolve) {
       var deadline = Date.now() + limitMs;
       (function poll() {
-        if (document.getElementById('sy3BirthY')) { resolve(true); return; }
+        if (document.getElementById('sy3BirthY')) { resolve(syRevealPaidResumeSurface()); return; }
         if (Date.now() >= deadline) { resolve(false); return; }
         setTimeout(poll, SY_COMPAT_FORM_POLL_MS);
       })();
@@ -14077,7 +14086,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
     return new Promise(function(resolve) {
       var deadline = Date.now() + limitMs;
       (function poll() {
-        if (document.querySelector('[data-sy-bond-form]') && typeof window._syRunSukuyoBondReportCore === 'function') { resolve(true); return; }
+        if (document.querySelector('[data-sy-bond-form]') && typeof window._syRunSukuyoBondReportCore === 'function') { resolve(syRevealPaidResumeSurface()); return; }
         if (Date.now() >= deadline) { resolve(false); return; }
         setTimeout(poll, SY_COMPAT_FORM_POLL_MS);
       })();

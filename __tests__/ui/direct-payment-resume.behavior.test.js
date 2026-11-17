@@ -647,3 +647,22 @@ test("한국어 복귀: 수단 이름을 그대로 보여 준다", async () => {
     assert.match(resumeCard(window).textContent, /신용카드 · 간편결제 결제가 확인/);
   } finally { window.close(); }
 });
+
+// A long generator must not delay the handoff or receive another success screen after its result.
+test('confirmed payment hands off before long generation and never reopens completion over the result', async () => {
+  let finish, started = false;
+  const pending = new Promise(resolve => { finish = resolve; });
+  const {window, calls} = boot({
+    url: 'https://code-destiny.com/neo-operation-room/?portone_redirect=1&paymentId=ord_1',
+    ticket: {resume: {kind: 'long-generation', action: '', args: {requestId: 'original'}}},
+    beforeProfile: win => win.__cdCheckoutEntry.registerPaidResumeHandler('long-generation', async () => {started = true; await pending; return true;}),
+  });
+  try {
+    await waitFor(() => started, 'generation starts');
+    assert.equal(calls.overlay.filter(c => c.open && c.mode === 'payment-complete').length, 1);
+    assert.ok(window.localStorage.getItem(RESUME_KEY), 'keep the original recovery ticket until delivered');
+    finish(); await waitFor(() => calls.events.length === 1, 'result delivered');
+    assert.equal(calls.overlay.filter(c => c.open && c.mode === 'payment-complete').length, 1);
+    assert.equal(window.localStorage.getItem(RESUME_KEY), null);
+  } finally {finish(); window.close();}
+});
