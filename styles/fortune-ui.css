@@ -11525,6 +11525,8 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
         touch-action: manipulation; -webkit-tap-highlight-color: transparent;
       }
       .dp-sheet-foot__link:active { background: rgba(255,215,0,0.18); }
+      .dp-sheet-foot__details summary { display:flex;align-items:center;justify-content:center;min-height:44px;cursor:pointer;color:var(--dp-gold);font:600 14px/1.5 var(--font-body); }
+      .dp-sheet-foot__details[open] .dp-sheet-foot__link { margin-top:8px; }
 
       @media (max-width: 768px) {
         .dp-sheet {

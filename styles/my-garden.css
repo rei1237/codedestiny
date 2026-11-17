@@ -62,6 +62,8 @@ html body #cdAccountSheet #authQuickLinks .auth-btn{min-height:44px;margin:0;pad
 #dpListSheet .dp-mc-empty-title{color:var(--mg-ink)}
 #dpListSheet .dp-sheet-foot{border-color:var(--mg-line)}
 #dpListSheet .dp-sheet-foot__link{background:var(--mg-surface);border-color:var(--mg-line);color:var(--mg-accent)}
+#dpListSheet .dp-sheet-foot__details summary{color:var(--mg-accent)}
+#dpListSheet .dp-sheet-foot :is(a,summary):focus-visible{outline:2px solid var(--mg-accent);outline-offset:3px}
 #dpListSheet :is(.dp-list-item,.dp-list-add,.dp-list-empty-cta){background:var(--mg-bg);border-color:var(--mg-line);color:var(--mg-accent);box-shadow:none;backdrop-filter:none}
 #dpListSheet :is(.dp-list-add,.dp-list-empty-cta){min-height:48px;margin-block:12px;padding:10px 22px;border:0;border-radius:var(--cd-r-control);background:var(--cd-cta-primary-bg);color:var(--cd-cta-primary-ink);font:inherit;font-weight:700;cursor:pointer}
 .dp-forest-card #dpListSheet{inset:0;width:100%;height:100%;max-width:none;max-height:none;transform:none;border-radius:0}

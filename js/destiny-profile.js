@@ -7211,6 +7211,16 @@
     if (!_dpProfileMenuSyntheticEvent && event && event.type === 'click' && (Date.now() - _dpProfileMenuLastTouchAt < 700 || _dpWasProfileMenuPointerRecentlyHandled(btn))) return;
     if (!_dpProfileMenuSyntheticEvent && event && event.type === 'touchend' && _dpWasProfileMenuPointerRecentlyHandled(btn)) return;
     if (source === 'touch') _dpProfileMenuLastTouchAt = Date.now();
+    var openSheet = btn && btn.closest('#dpListSheet.dp-sheet--open');
+    if (openSheet) {
+      var list = openSheet.querySelector('#dpListInner');
+      if (list) {
+        list.scrollIntoView({ block: 'start', behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+        var choice = list.querySelector('button, [tabindex="0"]');
+        if (choice) choice.focus({ preventScroll: true });
+      }
+      return;
+    }
     _dpCloseProfileMenu();
     if (btn && btn.setAttribute) btn.setAttribute('aria-expanded', 'false');
     if (typeof window.dpOpenList === 'function') window.dpOpenList();
@@ -8746,6 +8756,7 @@
   function renderMasterCard(profile) {
     var el = document.getElementById('dpMasterCard');
     if (!el) return;
+    window.dispatchEvent(new CustomEvent('cd:profile-card-before-render', { detail: { root: el } }));
     el.__profileCharacterProfile = profile;
     var restoreGrowthView = _dpPreserveGrowthView(el);
     _dpEnsureProfileActionMenuStyles();
@@ -8762,23 +8773,24 @@
     var genderLabel = ['m','male','남성'].indexOf(gender) >= 0 ? '남성' : ['f','female','여성'].indexOf(gender) >= 0 ? '여성' : '성별 미입력';
     var calendar = b.calType === 'solar' ? '양력' : b.calType === 'lunar_leap' ? '음력 · 윤달' : '음력';
     var birthLabel = b.year && b.month && b.day ? calendar + ' ' + b.year + '.' + b.month + '.' + b.day : '생년월일 미입력';
-    var timeLabel = b.timeUnknown ? '생시 모름' : b.hour != null && b.minute != null ? String(b.hour).padStart(2,'0') + ':' + String(b.minute).padStart(2,'0') : '생시 미입력';
+    var timeLabel = b.timeUnknown || profile.birthTimeUnknown ? '생시 모름' : b.hour != null && b.minute != null ? String(b.hour).padStart(2,'0') + ':' + String(b.minute).padStart(2,'0') : '생시 미입력';
     el.className = 'dp-master-card dp-master-card--active pc-game-card';
     el.innerHTML = '<div class="pc-game-inner">'
       + '<header class="pc-game-hero">'
+        + '<div class="pc-profile-portrait" data-pc-portrait aria-busy="true"></div>'
         + '<div class="pc-game-identity"><h2 class="dp-mc-name">' + _esc(profile.name) + '</h2><p data-pc-title>일주 캐릭터를 확인하고 있어요.</p><div data-pc-element></div><span class="pc-profile-gender">' + _esc(genderLabel) + '</span></div>'
-        + '<div class="dp-mc-action-wrap"><button type="button" class="dp-mc-list-btn dp-mc-menu-btn" aria-label="' + _esc(_dpText('openProfileList')) + '" aria-expanded="false" aria-controls="dpListSheet"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M5 7h14M5 12h14M5 17h14"/></svg></button></div>'
+        + '<div class="dp-mc-action-wrap"><button type="button" class="dp-mc-list-btn dp-mc-menu-btn" aria-label="' + _esc(_dpText('openProfileList')) + '" aria-controls="dpListInner">프로필 바꾸기<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="m7 10 5 5 5-5"/></svg></button></div>'
       + '</header>'
+      + '<button type="button" class="dp-mc-load-btn pc-fortune-action">이 프로필로 운세 보기<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="m9 5 7 7-7 7"/></svg></button>'
       + '<div class="pc-panel" data-profile-character></div>'
       + '<details class="pc-growth-details"><summary>레벨 · 성장 미션 · 보상</summary>' + _dpBuildLevelStrip() + '</details>'
-      + '<button type="button" class="dp-mc-load-btn pc-fortune-action">이 프로필로 운세 보기<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="m9 5 7 7-7 7"/></svg></button>'
       + '<details class="pc-birth-details"><summary>출생 정보</summary><p>' + _esc(birthLabel + ' · ' + timeLabel) + '</p><p>' + _esc(l.label || l.name || '출생지 미입력') + '</p></details>'
       + '</div>';
     _dpBindMasterCardMenuEvents(el); _dpBindLevelEvents(el); restoreGrowthView(el);
     if (!el.closest('#dpListSheet')) return;
     import('/js/core/profile-character-card.mjs').then(function(module) {
       if (!el.isConnected || el.__profileCharacterProfile !== profile || !el.querySelector('[data-profile-character]')) return;
-      module.mountCharacterCard(el, profile, {
+      return module.mountCharacterCard(el, profile, {
         onQuestExp: function(exp) {
           if (el.dataset.profileQuestExp === String(exp)) return;
           el.dataset.profileQuestExp = String(exp); _dpRefreshLevelStrip();
@@ -8787,8 +8799,18 @@
         request: _dpProfileCharacterRequest
       });
     }).catch(function() {
+      if (!el.isConnected || el.__profileCharacterProfile !== profile) return;
+      var title = el.querySelector('[data-pc-title]');
+      if (title) title.textContent = '일주 캐릭터를 불러오지 못했어요.';
+      var portrait = el.querySelector('[data-pc-portrait]');
+      if (portrait) portrait.setAttribute('aria-busy', 'false');
       var panel = el.querySelector('[data-profile-character]');
-      if (panel) panel.textContent = '캐릭터를 불러오지 못했어요. 잠시 후 다시 확인해 주세요.';
+      if (panel && !panel.querySelector('[data-pc-retry]')) {
+        var retry = document.createElement('button');
+        retry.type = 'button'; retry.textContent = '캐릭터 다시 확인하기';
+        retry.onclick = function() { renderMasterCard(profile); };
+        panel.prepend(retry);
+      }
     });
   }
 
@@ -9374,6 +9396,13 @@
      6. UI — Profile Constellation List (바텀 시트)
   ────────────────────────────────────────── */
 
+  function _dpProfileListTimeLabel(profile, correctedTime) {
+    var birth = profile && profile.birth || {};
+    if (birth.timeUnknown === true || profile && profile.birthTimeUnknown === true) return '생시 모름';
+    if (birth.hour == null || birth.minute == null) return '생시 미입력';
+    return '진태양시 ' + correctedTime;
+  }
+
   function renderProfileList() {
     _dpRenderBirthProfileChoices();
     var list = DPStorage.list();
@@ -9430,8 +9459,12 @@
                 var tso = calcTrueSolarOffset(safeLng, tzResolved.tzOffsetHours);
           var corrected = applyTrueSolarOffset(safeHour, safeMinute, tso);
           var tsStr = String(corrected.h).padStart(2,'0') + ':' + String(corrected.m).padStart(2,'0');
+          var timeLabel = _dpProfileListTimeLabel(safe, tsStr);
+          var genderKey = String(safe.gender || '').toLowerCase();
+          var profileGender = ['m', 'male', '남성'].indexOf(genderKey) >= 0 ? '남성' : ['f', 'female', '여성'].indexOf(genderKey) >= 0 ? '여성' : '성별 미입력';
           var zodiac = _zodiacEmoji(safeYear);
           var calLabel = b.calType === 'solar' ? '양' : (b.calType === 'lunar_leap' ? '윤' : '음');
+          var birthLabel = b.year && b.month && b.day ? '[' + calLabel + '] ' + b.year + '.' + b.month + '.' + b.day : '생년월일 미입력';
           var pid = safe.id || ('broken_' + idx);
           var pname = safe.name || '이름 없음';
           var locLabel = l.label || '출생지 미지정';
@@ -9448,12 +9481,10 @@
                   + (lockedProfileId && pid === lockedProfileId
                     ? ' <span style="font-size:0.62rem;color:#34d399;background:rgba(52,211,153,0.12);border:1px solid rgba(52,211,153,0.3);padding:1px 6px;border-radius:10px;">확정</span>'
                     : '')
-                  + (safe.gender === 'M'
-                    ? ' <span style="font-size:0.65rem;color:#93c5fd;background:rgba(96,165,250,0.15);border:1px solid rgba(96,165,250,0.3);padding:1px 6px;border-radius:10px;">&#9794;</span>'
-                    : ' <span style="font-size:0.65rem;color:#f9a8d4;background:rgba(244,114,182,0.15);border:1px solid rgba(244,114,182,0.3);padding:1px 6px;border-radius:10px;">&#9792;</span>')
+                  + ' <span class="dp-li-gender">' + _esc(profileGender) + '</span>'
                 + '</div>'
-                + '<div class="dp-li-meta">[' + calLabel + '] ' + safeYear + '.' + safeMonth + '.' + safeDay
-                  + ' · 진태양시 ' + tsStr + '</div>'
+                + '<div class="dp-li-meta">' + _esc(birthLabel)
+                  + ' · ' + _esc(timeLabel) + '</div>'
                 + '<div class="dp-li-loc">📍 ' + _esc(locLabel) + '</div>'
               + '</div>'
             + '</div>'
@@ -9906,13 +9937,12 @@
       _dpAttendanceHomeAnchor = { parent: attendance.parentNode, next: attendance.nextSibling };
       host.appendChild(attendance);
       attendance.hidden = false;
-      var details = attendance.querySelector('details');
-      if (details) details.open = true;
     }
     return true;
   }
 
   function _dpReturnMasterCardHome() {
+    window.dispatchEvent(new CustomEvent('cd:profile-sheet-close'));
     var attendanceAnchor = _dpAttendanceHomeAnchor;
     var attendance = document.querySelector('[data-cd-honey-widget]');
     if (attendanceAnchor && attendance) {
@@ -9927,7 +9957,6 @@
     var card = document.getElementById('dpMasterCard');
     if (!card || !anchor.parent) return;
     var before = (anchor.next && anchor.next.parentNode === anchor.parent) ? anchor.next : null;
-    window.dispatchEvent(new CustomEvent('cd:profile-sheet-close'));
     anchor.parent.insertBefore(card, before);
   }
 

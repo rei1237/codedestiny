@@ -1,7 +1,7 @@
 // Reuse the existing diary app and its shared legacy store, in a persistent book.
 // Keeping the frame alive when closed preserves drafts and the selected diary tab.
 const diaryMounts = new WeakMap();
-export function mountProfileDiary(host, { profileId, signal }) {
+export function mountProfileDiary(host, { profileId, signal, embedded = false }) {
   const doc = host.ownerDocument;
   const notify = (frame, type) => {
     try {
@@ -12,6 +12,15 @@ export function mountProfileDiary(host, { profileId, signal }) {
   host.className = 'pc-diary-entry';
   host.innerHTML = '<button type="button" class="pc-diary-open"><svg viewBox="0 0 32 32" fill="none" aria-hidden="true"><path d="M7 5h17a3 3 0 0 1 3 3v19H9a4 4 0 0 1-4-4V7a2 2 0 0 1 2-2Z" fill="currentColor" fill-opacity=".12" stroke="currentColor" stroke-width="1.5"/><path d="M9 5v18m4-11h9m-9 5h6M5 23h22M19 4v5l2-1 2 1V4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg><span><strong>달빛 다이어리</strong><small>오늘의 마음 · 달력 · 나의 기록</small></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M6 18 18 6M7 6h11v11"/></svg></button>';
   host.dataset.profileId = String(profileId || '');
+  if (!embedded) {
+    const link = doc.createElement('a');
+    link.href = '/diary/?from=profile';
+    link.className = 'pc-diary-open';
+    link.innerHTML = host.firstElementChild.innerHTML;
+    link.querySelector('small').textContent = '일정과 할 일 · 오늘의 마음 · 나의 기록';
+    host.replaceChildren(link);
+    return;
+  }
   diaryMounts.set(host, signal);
   const direct = doc.createElement('a');
   direct.href = '/diary/'; direct.textContent = '다이어리 전체 화면으로 열기';

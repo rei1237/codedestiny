@@ -21,6 +21,11 @@ if (typeof window !== 'undefined' && typeof document !== 'undefined') {
     previews.clear();
     if (activeMount?.root.isConnected) mountCharacterCard(activeMount.root, activeMount.profile, activeMount.options);
   });
+  window.addEventListener('cd:profile-card-before-render', event => {
+    if (activeMount?.root !== event.detail?.root) return;
+    mounts.get(activeMount.root)?.controller.abort();
+    activeMount = null;
+  });
 }
 const escape = value => String(value ?? '').replace(/[&<>"']/g, ch => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[ch]));
 const pad = value => String(value).padStart(2, '0');
@@ -72,6 +77,7 @@ export async function mountCharacterCard(root, profile, options) {
   }
   const panel = root.querySelector('[data-profile-character]');
   if (!panel) return;
+  root.querySelector('[data-pc-portrait]')?.setAttribute('aria-busy', 'true');
   mounts.get(root)?.controller.abort();
   const target = document.createElement('div');
   const honeyHost = document.createElement('div');
@@ -87,11 +93,8 @@ export async function mountCharacterCard(root, profile, options) {
   options.onQuestExp?.(15);
   const token = { controller: new AbortController() }; mounts.set(root, token);
   mountProfileDiary(diaryHost, { profileId: profile.profileId || profile.id, signal: token.controller.signal });
-  if (!root.closest('#dpListSheet.dp-sheet--open[data-pet-entry="my"]')) {
-    target.remove(); honeyHost.remove();
-    return;
-  }
-  adoptHoneyManager(honeyHost, token.controller.signal);
+  const gardenEntry = !!root.closest('#dpListSheet.dp-sheet--open[data-pet-entry="my"]');
+  if (!document.documentElement.classList.contains('dp-forest-card')) adoptHoneyManager(honeyHost, token.controller.signal);
   const owner = options.owner();
   const current = () => mounts.get(root) === token && target.isConnected && options.owner() === owner;
   const api = async (path, body) => {
@@ -106,7 +109,10 @@ export async function mountCharacterCard(root, profile, options) {
     if (!current()) return;
   } catch (error) {
     if (!current()) return;
+    root.querySelector('[data-pc-portrait]')?.setAttribute('aria-busy', 'false');
     const incomplete = error.code === 'PROFILE_INCOMPLETE' || error.code === 'CHARACTER_UNAVAILABLE';
+    const title = root.querySelector('[data-pc-title]');
+    if (title) title.textContent = incomplete ? '출생 정보를 보완하면 일주 캐릭터를 만날 수 있어요.' : '일주 캐릭터를 불러오지 못했어요.';
     target.innerHTML = `<p role="status">${escape(error.message)}</p><button type="button" data-pc-retry>${incomplete ? '프로필 완성하기' : '다시 확인하기'}</button>`;
     target.querySelector('[data-pc-retry]').onclick = () => incomplete ? window.dpEditProfile?.(profile.id || profile.profileId) : mountCharacterCard(root, profile, options);
     return;
@@ -116,6 +122,12 @@ export async function mountCharacterCard(root, profile, options) {
   if (elementSlot) elementSlot.innerHTML = elementBadgeMarkup(character.element);
   const title = root.querySelector('[data-pc-title]');
   if (title) { title.textContent = `${character.ganji} · ${character.name}`; title.classList.add('pc-summary'); }
+  const portrait = root.querySelector('[data-pc-portrait]');
+  if (portrait) { portrait.innerHTML = spriteMarkup(character.id, character.name, false); portrait.setAttribute('aria-busy', 'false'); }
+  if (!gardenEntry) {
+    target.remove();
+    return;
+  }
   function drawAvatar() {
     const spirit = findSpirit(state?.equippedId);
     options.onQuestExp?.(spiritExp('quest', 15, state?.ownedIds || [], state?.equippedId));

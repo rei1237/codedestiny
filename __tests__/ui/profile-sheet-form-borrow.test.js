@@ -97,7 +97,7 @@ async function boot(options) {
 const nextFrame = (window) =>
   new Promise((resolve) => window.requestAnimationFrame(() => resolve()));
 
-test("출석은 마이 프로필에서 같은 노드로 열리고 시트가 제거돼도 보존된다", async () => {
+test("출석은 같은 노드를 유지하고 펼침 선택도 다음 프로필 열기에 보존된다", async () => {
   const { window, doc } = await boot();
   const attendance = doc.querySelector('[data-cd-honey-widget]');
   const home = attendance.parentNode;
@@ -107,7 +107,10 @@ test("출석은 마이 프로필에서 같은 노드로 열리고 시트가 제�
     window.dpOpenList();
     assert.equal(attendance.parentNode.id, 'dpMasterCardHost');
     assert.equal(attendance.hidden, false);
-    assert.equal(attendance.querySelector('details').open, true);
+    const details = attendance.querySelector('details');
+    assert.equal(details.open, i > 0, '첫 화면은 접고, 사용자가 펼친 상태는 다음 열기에도 유지한다');
+    if (!details.open) details.querySelector('summary').click();
+    assert.equal(details.open, true);
     attendance.querySelector('button').click();
     window.dpCloseList();
     await new Promise(resolve => setTimeout(resolve, 320));

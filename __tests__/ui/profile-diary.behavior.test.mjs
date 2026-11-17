@@ -9,7 +9,7 @@ test('diary opens from the garden, preserves one live frame on close, restores f
   window.HTMLDialogElement.prototype.showModal=function(){this.open=true;};
   window.HTMLDialogElement.prototype.close=function(){this.open=false;this.dispatchEvent(new window.Event('close'));};
   const host=doc.querySelector('[data-pc-diary-host]'), controller=new window.AbortController();
-  mountProfileDiary(host,{profileId:'one',signal:controller.signal});
+  mountProfileDiary(host,{profileId:'one',signal:controller.signal,embedded:true});
   host.querySelector('button').click();
   const book=doc.querySelector('dialog'), frame=book.querySelector('iframe');
   assert.ok(book.open); assert.equal(new URL(frame.src).pathname,'/diary/');
@@ -33,9 +33,19 @@ test('diary opens from the garden, preserves one live frame on close, restores f
   controller.abort(); await Promise.resolve(); assert.equal(book.open,false);
   let flushed=0; frame.contentWindow.addEventListener('cd:diary-flush',()=>flushed++);
   const second=new window.AbortController();
-  mountProfileDiary(host,{profileId:'two',signal:second.signal});
+  mountProfileDiary(host,{profileId:'two',signal:second.signal,embedded:true});
   host.querySelector('button').click();
   assert.equal(flushed,1); assert.equal(frame.dataset.profileId,'two');
   assert.equal(doc.querySelectorAll('iframe').length,1);
   second.abort(); dom.window.close();
+});
+
+test('profile diary opens the full app in the same tab without creating a nested frame', () => {
+  const dom = new JSDOM('<div id="host"></div>', { url:'https://example.test/ggulggul/' });
+  const host = dom.window.document.getElementById('host');
+  mountProfileDiary(host, { profileId:'one', signal:new dom.window.AbortController().signal });
+  assert.equal(host.querySelector('a').getAttribute('href'), '/diary/?from=profile');
+  assert.equal(host.querySelector('a').target, '');
+  assert.equal(host.querySelector('button,iframe,dialog'), null);
+  dom.window.close();
 });

@@ -61,6 +61,13 @@
     });
   }
   function product(key) { return catalog?.products.find(function (item) { return item.featureKey === key; }); }
+  async function getUnlockedFeatureKeys() {
+    var pid = profileId(), version = revision;
+    if (!pid || state?.guest) return [];
+    var data = await api('/api/honey/unlocks?profileId=' + encodeURIComponent(pid));
+    if (version !== revision || pid !== profileId()) throw new Error('PROFILE_CHANGED');
+    return Array.isArray(data.featureKeys) ? data.featureKeys.slice() : [];
+  }
   function render() {
     var widget = document.querySelector('[data-cd-honey-widget]'); if (!widget) return;
     var button = widget.querySelector('[data-cd-honey-attend]');
@@ -302,7 +309,7 @@
     try {
       var data = await getCatalog(), owned = [], ownershipError = false;
       if (!state?.guest && pid) {
-        try { owned = (await api('/api/honey/unlocks?profileId=' + encodeURIComponent(pid))).featureKeys; }
+        try { owned = await getUnlockedFeatureKeys(); }
         catch (_) { ownershipError = true; }
       }
       if (version !== revision) return;
@@ -379,5 +386,6 @@
   root.addEventListener('focus', function () { void refresh(false); });
   root.CdHoney = { unlockUse: async function (button, featureKey, input, requestId) { await getCatalog(); var item = product(featureKey); if (!item || item.serviceScope !== 'GGULGGUL' || item.billingType !== 'per_use') return false; return unlock(button, item, { input: input, requestId: requestId }); }, getCatalog: getCatalog, refresh: refresh, refreshLabels: refreshLabels, getProduct: product };
   root.CdHoney.getState = function () { return state ? { balance: state.balance, attended: state.attended, guest: state.guest, error: state.error } : null; };
+  root.CdHoney.getUnlockedFeatureKeys = getUnlockedFeatureKeys;
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot, { once: true }); else boot();
 })(window);

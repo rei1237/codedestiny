@@ -35,14 +35,14 @@
 #dpMasterCard.pc-game-card:before,#dpMasterCard.pc-game-card:after{content:"";display:block;position:absolute;inset:auto;pointer-events:none;z-index:0;width:150px;height:125px;background:var(--pc-gold);opacity:.18;mask:var(--cd-yehwa-mask-branch-corner) center/contain no-repeat;-webkit-mask:var(--cd-yehwa-mask-branch-corner) center/contain no-repeat;box-shadow:none;border:0;transform:none}
 #dpMasterCard.pc-game-card:before{top:0;left:0;transform:scaleX(-1)}
 #dpMasterCard.pc-game-card:after{bottom:0;right:0;transform:rotate(180deg)}
-body.neo-mode #dpMasterCard.pc-game-card,html.neo-mode #dpMasterCard.pc-game-card,html[data-cd-theme="neo"] #dpMasterCard.pc-game-card,body.neo-mode .pc-diary-book,html.neo-mode .pc-diary-book,html[data-cd-theme="neo"] .pc-diary-book{
+body.neo-mode #dpMasterCard.pc-game-card,html.neo-mode #dpMasterCard.pc-game-card,html[data-cd-theme="neo"] #dpMasterCard.pc-game-card,:is(body.neo-mode,html.neo-mode,html[data-cd-theme="neo"]) #dpListSheet #dpMasterCard.pc-game-card,body.neo-mode .pc-diary-book,html.neo-mode .pc-diary-book,html[data-cd-theme="neo"] .pc-diary-book{
   --pc-night:#251e38;--pc-ink:#fff1df;--pc-muted:#d6c3d7;--pc-gold:#e7c88b;--pc-line:#776176;
   --cd-surface:#372940;--cd-surface-2:#49334f;
   --pg-feed-bg:#503441;--pg-feed-ink:#ffe0bf;--pg-play-bg:#4d2d48;--pg-play-ink:#ffd5e7;--pg-sleep-bg:#37304e;--pg-sleep-ink:#e3d8ff;--pg-fortune-bg:#4b3c35;--pg-fortune-ink:#ffe4aa;
 }
 .pc-game-inner{position:relative;z-index:1;padding:24px;min-width:0}
 .pc-diary-entry{margin:18px 0;padding:16px 0;border-block:1px solid var(--pc-line)}
-.pc-panel .pc-diary-open{display:flex;align-items:center;gap:12px;width:100%;padding:16px;border-radius:24px;background:var(--pg-sleep-bg);color:var(--pg-sleep-ink);border-color:var(--pc-line);text-align:left}
+.pc-panel .pc-diary-open{display:flex;align-items:center;gap:12px;width:100%;padding:16px;border:1px solid var(--pc-line);border-radius:var(--cd-r-card);background:var(--pg-sleep-bg);color:var(--pg-sleep-ink);text-align:left;text-decoration:none}
 .pc-diary-open>svg{width:22px;height:22px;flex-shrink:0}
 .pc-diary-open>svg:first-child{width:42px;height:42px}
 .pc-diary-open>span:nth-child(2){flex:1;min-width:0}
@@ -63,12 +63,15 @@ body.neo-mode #dpMasterCard.pc-game-card,html.neo-mode #dpMasterCard.pc-game-car
 .pc-diary-book>a{display:flex;justify-content:center;align-items:center;min-height:44px;font:400 13px/1.6 var(--font-body);color:var(--pc-gold);text-underline-offset:3px;border-top:1px solid var(--pc-line)}
 .pc-diary-book :is(a,button):focus-visible{outline:3px solid var(--pc-gold);outline-offset:-4px}
 html:has(.pc-diary-book[open]){overflow:hidden}
-.pc-game-hero{display:grid;grid-template-columns:minmax(0,1fr) 44px;gap:14px;align-items:center;padding-bottom:14px;border-bottom:1px solid var(--pc-line)}
+.pc-game-hero{display:grid;grid-template-columns:80px minmax(0,1fr);gap:14px;align-items:center;padding-bottom:16px;border-bottom:1px solid var(--pc-line)}
+.pc-profile-portrait{display:grid;place-items:center;min-width:0;width:80px;height:80px;border:1px solid var(--pc-line);border-radius:var(--cd-r-card);background:var(--cd-surface)}
+.pc-profile-portrait .pc-sprite{width:72px;height:72px}
+.pc-profile-portrait[aria-busy="true"]:empty::after{content:"";width:24px;height:24px;border:2px solid var(--pc-line);border-top-color:var(--pc-gold);border-radius:50%}
 .pc-portrait{display:flex;flex-direction:column;align-items:center;justify-content:center;background:#fff1de;border:1px solid var(--pc-gold);border-radius:24px 24px 16px 16px;padding:4px 0 8px;color:#62422e}
 .pc-portrait>[data-pc-equipment]{font-size:10px;font-weight:700;letter-spacing:.04em}
 .pc-game-identity{min-width:0}
-#dpMasterCard.pc-game-card .pc-game-identity h2{font:700 22px/1.35 var(--font-playful,var(--font-display));margin:0 0 8px;color:var(--pc-ink);overflow-wrap:anywhere;word-break:keep-all;letter-spacing:-.025em}
-.pc-game-identity p{font-size:12px;line-height:1.65;color:var(--pc-gold);margin:0}
+#dpMasterCard.pc-game-card .pc-game-identity h2{font:400 22px/1.35 var(--font-display);margin:0 0 8px;color:var(--pc-ink);overflow-wrap:anywhere;word-break:keep-all;letter-spacing:-.025em}
+.pc-game-identity p{font-size:14px;line-height:1.65;color:var(--pc-gold);margin:0}
 .pc-game-identity>[data-pc-element]{display:inline-block;vertical-align:middle;margin-right:12px}
 .pc-profile-gender{display:inline-block;color:var(--pc-muted);font:400 12px/1.5 var(--font-body);margin-top:7px}
 .pc-element-badge{display:inline-flex;align-items:center;gap:8px;margin-top:8px;color:var(--pc-ink);vertical-align:middle}
@@ -80,8 +83,8 @@ html:has(.pc-diary-book[open]){overflow:hidden}
 .pc-element-cheek{fill:var(--pc-element-shade);opacity:.2}
 .pc-element-caption{display:block;color:var(--pc-muted);font:400 11px/1.4 var(--font-body)}
 .pc-element-badge strong{display:block;font:600 13px/1.5 var(--font-body);color:var(--pc-ink);white-space:nowrap}
-#dpMasterCard.pc-game-card .dp-mc-action-wrap{align-self:start;position:relative}
-#dpMasterCard.pc-game-card .dp-mc-menu-btn{display:grid;place-items:center;width:44px;height:44px;min-height:44px;border:1px solid var(--pc-line);border-radius:12px;background:transparent;color:var(--pc-gold);padding:0;box-shadow:none}
+#dpMasterCard.pc-game-card .dp-mc-action-wrap{grid-column:1/-1;justify-self:end;position:relative}
+#dpMasterCard.pc-game-card .dp-mc-menu-btn{display:flex;align-items:center;justify-content:center;gap:8px;min-height:44px;width:auto;height:auto;border:1px solid var(--pc-line);border-radius:var(--cd-r-control);background:transparent;color:var(--pc-gold);padding:8px 12px;box-shadow:none;font:600 14px/1.5 var(--font-body)}
 #dpMasterCard.pc-game-card .dp-mc-action-menu{color:#3c1830}
 #dpListSheet #dpMasterCard.pc-game-card .dp-lvl,#dpMasterCard.pc-game-card .dp-lvl{position:relative;padding:18px 0 0;margin:0;border:0;border-radius:0;background:none;box-shadow:none;color:var(--pc-ink)}
 #dpMasterCard.pc-game-card .dp-lvl__bloom{display:none}
@@ -108,12 +111,21 @@ html:has(.pc-diary-book[open]){overflow:hidden}
 .pc-game-card .pc-details>summary{color:var(--pc-gold);font-size:13px;padding-block:12px}
 .pc-game-card .pc-description{color:var(--pc-muted)}
 .pc-game-card .pc-details button{border-radius:var(--cd-r-control)}
-#dpListSheet #dpMasterCard.pc-game-card .pc-fortune-action,#dpMasterCard.pc-game-card .pc-fortune-action{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:48px;padding:12px 16px;width:100%;border:1px solid var(--pc-line);border-radius:18px;background:var(--pg-fortune-bg);color:var(--pg-fortune-ink);box-shadow:0 4px 10px #6b3b4110;font:600 14px/1.5 var(--font-body);letter-spacing:0}
+#dpListSheet #dpMasterCard.pc-game-card .pc-fortune-action,#dpMasterCard.pc-game-card .pc-fortune-action{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:48px;margin:16px 0;padding:12px 16px;width:100%;border:1px solid var(--pc-line);border-radius:var(--cd-r-control);background:var(--pg-fortune-bg);color:var(--pg-fortune-ink);box-shadow:0 4px 10px #6b3b4110;font:600 16px/1.5 var(--font-body);letter-spacing:0}
 .pc-game-card .pc-fortune-action:before{display:none}
 .pc-birth-details{color:var(--pc-muted);font-size:11px;margin-top:10px}
 .pc-birth-details summary{display:flex;align-items:center;justify-content:center;min-height:44px;cursor:pointer;text-decoration:underline;text-underline-offset:4px}
 .pc-birth-details p{margin:4px 0;text-align:center;line-height:1.6}
 .pc-game-card :is(button,a,summary):focus-visible{outline:2px solid var(--pc-gold);outline-offset:3px}
 .pc-game-card ::selection{background:var(--pc-gold);color:var(--pc-night)}
+.pc-honey-suggestions{padding:16px 0;border-block:1px solid var(--pc-line);margin:16px 0}
+.pc-honey-suggestions h3{font:400 18px/1.5 var(--font-display);color:var(--pc-ink);margin:0 0 12px}
+.pc-honey-suggestions ul{padding:0;margin:0 0 10px;list-style:none}
+.pc-panel .pc-honey-suggestion{display:grid;gap:3px;padding:12px 0;min-height:48px;border-bottom:1px solid var(--pc-line);color:var(--pc-ink);text-decoration:none}
+.pc-honey-suggestion strong{font-size:15px}
+.pc-honey-suggestion span,.pc-honey-suggestion small{font-size:13px;color:var(--pc-muted);line-height:1.6}
+.pc-honey-suggestion:hover strong{text-decoration:underline;text-underline-offset:4px}
+.pc-honey-suggestions>button{width:100%;min-height:48px}
+#dpListSheet .dp-li-gender{display:inline-block;font:400 13px/1.5 var(--font-body);color:var(--cd-text-muted);margin-inline-start:6px}
 @media(max-width:480px){.pc-sprite{background-image:var(--pc-sprite-mobile,var(--pc-sprite))}}
 @media(max-width:430px){.pc-game-inner{padding:20px 16px}.pc-game-hero{gap:10px}#dpMasterCard.pc-game-card .pc-game-identity h2{font-size:20px}}
