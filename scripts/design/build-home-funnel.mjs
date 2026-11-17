@@ -162,7 +162,7 @@ for (const question of QUESTION_CATEGORIES.flatMap(category => category.question
 const storySlugByProduct = {'love-secret-ai':'love-secret','new-year-ai':'new-year','life-book-ai':'life-book','neo-operation-room':'neo','fortune-tea-house':'tea','master-love-codex':'codex'};
 const signatureProducts = [
   {
-    id: 'heukwol', href: '/heukwol/', title: '흑월의 경고',
+    id: 'heukwol', href: '/heukwol/', title: '흑월의 주의 시기',
     question: '주의가 필요한 시기를 미리 살피고, 나에게 맞는 대비 방향을 확인하세요',
     popupCopy: '주의가 필요한 시기를 미리 살피고, 나에게 맞는 대비 방향을 확인하세요',
     featureKey: 'heukwol-warning-consultation', cta: '내가 주의할 시기 보기',

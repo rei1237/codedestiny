@@ -2390,7 +2390,7 @@
     "moonlit": {
       "manseStart": "무료로 내 만세력 확인하기",
       "signatureOpen": "대표 상담 모아보기",
-      "heukwolTitle": "흑월의 경고",
+      "heukwolTitle": "흑월의 주의 시기",
       "heukwolDescription": "주의가 필요한 시기를 미리 살피고, 나에게 맞는 대비 방향을 확인하세요",
       "heukwolFormat": "사주 × 자미두수 · 월별 흐름과 대응 조언",
       "heukwolCta": "내가 주의할 시기 보기",
@@ -13361,7 +13361,7 @@
       "premiumOutcomes": [
         "해석은 미래를 확정하지 않으며, 중요한 선택을 위한 참고로 읽어 주세요."
       ],
-      "fallbackTitle": "흑월의 경고",
+      "fallbackTitle": "흑월의 주의 시기",
       "premiumRequired": [
         "저장된 프로필",
         "살펴볼 연도와 질문"
