@@ -58,7 +58,7 @@ test('직접 쓴 질문과 선택한 예시 질문을 모두 질문으로 표시
   assert.equal(sections.isGenuineCustomQuestion(' '), false);
 });
 
-async function submit({ failAccessOnce = false, generationError = false, denied = false } = {}) {
+async function submit({ failAccessOnce = false, generationError = false, denied = false, billing = false } = {}) {
   const source = fs.readFileSync('app/new-year-ai-consultation/NewYearAiClient.tsx', 'utf8');
   const ast = ts.createSourceFile('client.tsx', source, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
   let declaration;
@@ -67,7 +67,7 @@ async function submit({ failAccessOnce = false, generationError = false, denied 
     ts.forEachChild(node, visit);
   }
   visit(ast);
-  const calls = { checks: [], starts: [], failed: [] };
+  const calls = { checks: [], starts: [], failed: [], errors: [] };
   const ctx = vm.createContext({
     paymentSurface: 'web',
     setTimeout, clearTimeout,
@@ -76,7 +76,9 @@ async function submit({ failAccessOnce = false, generationError = false, denied 
     validateConsultationForm: () => '', form: {}, idempotencyKeyRef: { current: 'saved-request' },
     buildConsultationPayload: () => ({ question: '이직해도 될까요?' }),
     buildBillingGateInput: () => ({}), primePaymentEligibility: async () => {},
-    setError: () => {}, setNotice: () => {}, setStatus: () => {},
+    setError: value => calls.errors.push(value), setNotice: () => {}, setStatus: () => {},
+    PAYMENT_REQUIRED_MESSAGE: 'payment required', asRecord: value => value || {}, packPaidResumeArg: value => value, buildResume: () => ({}),
+    runBillingCoinGate: async () => ({ ok: true, data: { receipt: 'paid' } }),
     friendlyErrorMessage: load('app/_lib/friendly-error').friendlyErrorMessage,
     beginPaidFeatureGateCheck: () => {}, completePaidFeatureGateCheck: () => {},
     failPaidFeatureGateCheck: event => calls.failed.push(event),
@@ -86,10 +88,11 @@ async function submit({ failAccessOnce = false, generationError = false, denied 
     postJson: async (url, payload, key) => {
       calls.checks.push({ url, payload, key });
       if (failAccessOnce && calls.checks.length === 1) throw new Error('network interrupted');
+      if (billing) return { response: { status: 402 }, payload: { ok: false, reason: 'PAYMENT_REQUIRED', paymentPayload: {} } };
       return { response: { status: denied ? 401 : 200 }, payload: denied
         ? { ok: false, reason: 'LOGIN_REQUIRED' } : { ok: true, accessToken: 'saved-grant' } };
     },
-    startConsultation: async (...args) => { calls.starts.push(args); if (generationError) throw new Error('generation failed'); },
+    startConsultation: async (...args) => { calls.starts.push(args); if (generationError) throw new Error(billing ? '상담 생성 연결이 끊겼어요.' : 'generation failed'); },
   });
   const retry = load('app/_lib/consultationResultPolling').runAccessCheckWithTransientRetry;
   ctx.runAccessCheckWithTransientRetry = attempt => retry(attempt, { baseDelayMs: 0 });
@@ -114,5 +117,13 @@ test('확정 인증 실패는 재시도하거나 생성을 시작하지 않는�
 });
 test('이용권 확인 후 생성 실패를 이용권 오류로 안내하지 않는다', async () => {
   const calls = await submit({ generationError: true });
+  assert.equal(calls.failed[0].title, '상담 생성이 잠시 중단됐어요');
+});
+test('결제가 확인된 뒤 생성이 끊기면 결제 확인 실패로 안내하지 않는다', async () => {
+  const calls = await submit({ billing: true, generationError: true });
+  assert.equal(calls.starts.length, 1);
+  assert.equal(JSON.stringify(calls.starts[0][2]), JSON.stringify({ billingGate: { receipt: 'paid' } }));
+  assert.notEqual(calls.errors.at(-1), 'payment failed');
+  assert.equal(calls.errors.at(-1), '상담 생성 연결이 끊겼어요.');
   assert.equal(calls.failed[0].title, '상담 생성이 잠시 중단됐어요');
 });

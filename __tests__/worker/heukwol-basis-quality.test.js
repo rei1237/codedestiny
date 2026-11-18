@@ -4,7 +4,7 @@ import { buildHeukwolAnalysis, heukwolProfileBirth } from '../../worker/lib/heuk
 import { calculateLifeBookAiSaju } from '../../worker/lib/life-book-ai-saju.js';
 import { calculateZiweiConsumerChart } from '../../worker/lib/ziwei-consumer-chart.js';
 import { buildNeoBasisPayload } from '../../worker/lib/neo-operation-room-basis.js';
-import { HEUKWOL_CHAPTERS, HEUKWOL_PROMPT_PREFIX, heukwolPrompt, chapterEvidence, generateHeukwolChapter } from '../../worker/lib/heukwol-report.js';
+import { HEUKWOL_CHAPTERS, HEUKWOL_CHAPTER_MIN_CHARS, HEUKWOL_PROMPT_PREFIX, heukwolPrompt, chapterEvidence, generateHeukwolChapter } from '../../worker/lib/heukwol-report.js';
 
 const now = new Date('2026-11-06T00:00:00Z');
 const card = {
@@ -154,6 +154,13 @@ describe('delivery plan v2 chapter acceptance', () => {
     expect(prompts[0]).toBe(heukwolPrompt(analysis, HEUKWOL_CHAPTERS[0], '질문', []));
     expect(prompts[1].startsWith(prompts[0])).toBe(true);
     expect(prompts[1]).toContain('보완 요청:');
+  });
+  // 원칙 17: 폴백 하한은 장 하한의 30%. 하한과 같으면 정상 폴백 답변까지 버려 결과가 안 나온다.
+  test('Workers AI fallback floor is 30% of the chapter minimum, not the minimum itself', async () => {
+    let seen;
+    await generateHeukwolChapter({}, analysis, HEUKWOL_CHAPTERS[0], '질문', [], async (_env, _prompt, options) => { seen = options; return { ok: true, text: JSON.stringify(shortValue) }; }, v2({ finalAttempt: true }));
+    expect(seen.fallbackToWorkersAI).toBe(true);
+    expect(seen.fallbackMinChars).toBe(Math.round(HEUKWOL_CHAPTER_MIN_CHARS * 0.3));
   });
   test('without the v2 option the v1 validator still rejects short chapters', async () => {
     await expect(generateHeukwolChapter({}, analysis, HEUKWOL_CHAPTERS[0], '질문', [], providerOf(shortValue)))

@@ -96,4 +96,17 @@ describe('delivery plan v2 (new sessions only)',()=>{
   failGeneration=true;const data=await (await post('start')).json();
   const done=await drive(data.id);expect(done.code).toBe('HEUKWOL_DELIVERY_FAILED');expect(rows.get('owner:'+data.id).status).toBe('failed');expect(refunds).toBe(1);expect(calls).toBe(3);
  });
+ // 종결 실패 뒤 결과 조회는 본문 없이 환불 진행 상태를 알려 준다. 환불로 접근이 회수돼도 404 대신 같은 안내를 준다.
+ test('a closed failure reports its refund state on result reads, even after the refund revokes access',async()=>{
+  failGeneration=true;const data=await (await post('start')).json();
+  expect((await drive(data.id)).code).toBe('HEUKWOL_DELIVERY_FAILED');
+  const row=rows.get('owner:'+data.id);Object.assign(row,{generationFailedAt:new Date(),refundStatus:'pending'});
+  const read=async()=>(await handleHeukwolRoutes(new Request(`https://test.invalid/api/heukwol/result?id=${encodeURIComponent(data.id)}`),testEnv)).json();
+  expect(await read()).toMatchObject({status:'failed',refundStatus:'pending'});
+  row.refundStatus='refund_failed';expect((await read()).refundStatus).toBe('manual_review');
+  Object.assign(row,{status:'refunded',refundStatus:'refunded'});revoked=true;
+  const refunded=await read();expect(refunded).toMatchObject({status:'failed',refundStatus:'refunded'});expect(refunded.report).toBeUndefined();
+  expect((await (await advanceHeukwol({},'owner',data.id)).json()).refundStatus).toBe('refunded');
+  expect(calls).toBe(3);
+ });
 });

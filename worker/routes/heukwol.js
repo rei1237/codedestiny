@@ -15,11 +15,14 @@ const digest = value=>createHash('sha256').update(JSON.stringify(value)).digest(
 const executionKey = requestId=>`heukwol:${digest(requestId)}`;
 const error = (status,code,message)=>json({ok:false,code,message},{status});
 const mayGenerate = doc=>doc.status==='pending'&&(!doc.refundStatus||doc.refundStatus==='none')&&(doc.metadata.attempts||0)<3;
+// 실패로 닫힌 상담의 자동 환불 진행 상태. 화면은 이 값으로 환불 안내를 고른다.
+const refundState = doc=>doc.status==='refunded'||doc.refundStatus==='refunded'?'refunded':doc.refundStatus==='refund_failed'?'manual_review':'pending';
 function visible(doc) {
-  const m=doc.metadata;
-  return {ok:true,id:doc.executionKey,status:doc.status==='success'?'completed':mayGenerate(doc)?'generating':'failed',
+  const m=doc.metadata,status=doc.status==='success'?'completed':mayGenerate(doc)?'generating':'failed';
+  return {ok:true,id:doc.executionKey,status,
     completedChapters:m.chapters.length,totalChapters:HEUKWOL_CHAPTERS.length,year:m.input.year,
     ...(doc.status==='success'?{report:m.archive}:{}),
+    ...(status==='failed'?{refundStatus:refundState(doc)}:{}),
     recordsHref:`/heukwol/?result=${encodeURIComponent(doc.executionKey)}`};
 }
 async function readOwned(env,userId,id) {
@@ -27,6 +30,11 @@ async function readOwned(env,userId,id) {
   const doc=await ServiceExecutionTransaction.findOne({userId,executionKey:id,featureKey:HEUKWOL_FEATURE_KEY}).lean();
   if(doc && await isStoredPaidResultRevoked(userId,HEUKWOL_FEATURE_KEY,doc)) return null;
   return doc;
+}
+// 생성 실패로 환불된 상담은 결과 접근이 회수돼 readOwned 가 비운다. 본문 없이 실패·환불 상태만 알려 404 대신 환불 안내를 보이게 한다.
+async function closedFailure(userId,id,message) {
+  const doc=await ServiceExecutionTransaction.findOne({userId,executionKey:id,featureKey:HEUKWOL_FEATURE_KEY}).lean();
+  return doc?.generationFailedAt&&doc.status!=='success'?json(visible(doc)):error(404,'RESULT_NOT_AVAILABLE',message);
 }
 // 2판(새 세션만): 장 하나가 3번 다 실패하면 그 장만 비워 두고 다음 장으로 간다. 비운 장이 이만큼 쌓이면 있는 장으로 완료한다.
 export const HEUKWOL_V2_MAX_SKIPPED_CHAPTERS = 3;
@@ -44,7 +52,7 @@ async function completeHeukwol(env,userId,id,meta,chapters) {
 /** One bounded chapter per request, checkpointed before the next wave. */
 export async function advanceHeukwol(env,userId,id) {
   const doc=await readOwned(env,userId,id);
-  if(!doc)return error(404,'RESULT_NOT_AVAILABLE','리포트를 찾을 수 없어요.');
+  if(!doc)return closedFailure(userId,id,'리포트를 찾을 수 없어요.');
   if(!mayGenerate(doc))return json(visible(doc));
   const now=new Date(),token=crypto.randomUUID();
   const owned={userId,executionKey:id,featureKey:HEUKWOL_FEATURE_KEY,status:'pending','lock.token':token};
@@ -127,7 +135,7 @@ export async function handleHeukwolRoutes(request,env) {
     if(path==='/api/heukwol/result' && request.method==='GET') {
       const id=new URL(request.url).searchParams.get('id')||'';
       const doc=await readOwned(env,userId,id);
-      return doc?json(visible(doc)):error(404,'RESULT_NOT_AVAILABLE','리포트를 찾을 수 없어요.');
+      return doc?json(visible(doc)):closedFailure(userId,id,'리포트를 찾을 수 없어요.');
     }
     if(request.method!=='POST')return error(405,'METHOD_NOT_ALLOWED','지원하지 않는 요청이에요.');
     const body=await readJson(request);
@@ -141,7 +149,7 @@ export async function handleHeukwolRoutes(request,env) {
     await connectDb(env);
     const existing=await ServiceExecutionTransaction.findOne({userId,executionKey:id,featureKey:HEUKWOL_FEATURE_KEY}).lean();
     if(existing) {
-      if(await isStoredPaidResultRevoked(userId,HEUKWOL_FEATURE_KEY,existing))return error(404,'RESULT_NOT_AVAILABLE','리포트를 찾을 수 없어요.');
+      if(await isStoredPaidResultRevoked(userId,HEUKWOL_FEATURE_KEY,existing))return closedFailure(userId,id,'리포트를 찾을 수 없어요.');
       if(existing.metadata.inputHash!==inputHash)return error(409,'INPUT_CHANGED','이미 시작한 상담의 프로필·연도·질문은 바꿀 수 없어요.');
       return path.endsWith('/prepare')?json({...visible(existing),pricing:getBillingFeaturePricing({featureKey:HEUKWOL_FEATURE_KEY}).pricing}):advanceHeukwol(env,userId,id);
     }
