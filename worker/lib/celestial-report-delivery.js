@@ -26,6 +26,10 @@ const boundedSetting = (value, fallback, min, max) => {
 export function celestialDeliveryComplete(delivery) {
   return PART_IDS.every(id=>accepted(delivery,id));
 }
+// No part is left to try: every unsaved part already used both attempts.
+export function celestialDeliveryExhausted(delivery) {
+  return !celestialDeliveryComplete(delivery) && !pendingParts(delivery).length;
+}
 
 function validateCard(value, card) {
   if (!value || countPaidReportBodyChars(CARD_FIELDS.map(field => typeof value[field] === "string" ? value[field] : "").join("\n")) < 120) return null;
@@ -106,5 +110,6 @@ export function celestialReadingFromDelivery(snapshot) {
   const state=snapshot.delivery;
   return {...snapshot.reading,cards:snapshot.reading.cards.map((card,index)=>({...card,...(state.parts[String(index)] || Object.fromEntries(CARD_FIELDS.map(field=>[field,""])))})),
     summary:{...snapshot.reading.summary,...(state.parts.summary||Object.fromEntries(SUMMARY_FIELDS.map(field=>[field,""])))},
-    meta:{...snapshot.reading.meta,apiUsed:true,deliveryStatus:celestialDeliveryComplete(state)?"delivery_pending":"partial",completedParts:Object.keys(state.parts),totalParts:12}};
+    meta:{...snapshot.reading.meta,apiUsed:true,deliveryStatus:celestialDeliveryComplete(state)?"delivery_pending":"partial",completedParts:Object.keys(state.parts),totalParts:12,
+      ...(celestialDeliveryExhausted(state)?{skippedParts:PART_IDS.filter(id=>!accepted(state,id))}:{})}};
 }

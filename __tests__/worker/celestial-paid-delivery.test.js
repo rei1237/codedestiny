@@ -5,7 +5,7 @@ import { jest } from '@jest/globals';
 const timeoutPolicy = jest.requireActual('../../worker/lib/sync-llm-timeout.js');
 jest.unstable_mockModule('../../worker/lib/sync-llm-timeout.js', () => ({ ...timeoutPolicy, PAID_LLM_PARTS_PER_REQUEST: 4 }));
 
-let route, docs, provider, accessMode, revoked, userId, fault, fetchBlock, calls, lost;
+let route, docs, provider, accessMode, revoked, userId, fault, fetchBlock, calls, lost, failExecution;
 const user='64b7f2a1c3d4e5f601234567';
 const clone=value=>structuredClone(value);
 const get=(doc,key)=>key.split('.').reduce((value,key)=>value?.[key],doc);
@@ -35,7 +35,9 @@ beforeAll(async()=>{
  const db=await import('../../worker/lib/db.js'),auth=await import('../../worker/lib/auth.js'),models=await import('../../worker/lib/models.js'),gemini=await import('../../worker/lib/gemini.js');
  jest.unstable_mockModule('../../worker/lib/db.js',()=>({...db,connectDb:async()=>{},withMongoRetry:async(_env,fn)=>fn()}));
  jest.unstable_mockModule('../../worker/lib/auth.js',()=>({...auth,requireAuth:async()=>({userId})}));
- jest.unstable_mockModule('../../worker/lib/access-control.js',()=>({requirePremiumReportAccess:async()=>({ok:true,accessType:accessMode})}));
+ jest.unstable_mockModule('../../worker/lib/access-control.js',()=>({requirePremiumReportAccess:async()=>({ok:true,accessType:accessMode,matchedTransactionId:'64b7f2a1c3d4e5f60123abcd'})}));
+ const execution=await import('../../worker/lib/service-execution-task.js');
+ jest.unstable_mockModule('../../worker/lib/service-execution-task.js',()=>({...execution,failServiceExecution:(...args)=>failExecution(...args)}));
  jest.unstable_mockModule('../../worker/lib/models.js',()=>({...models,ServiceExecutionTransaction:model,
   PaidExecutionRecord:{findOne:()=>query(revoked?{}:null)},Payment:{findOne:()=>query(null)},PointHistory:{findOne:()=>query(null)},MonthlyCreditLedger:{findOne:()=>query(null)},
  }));
@@ -43,6 +45,7 @@ beforeAll(async()=>{
  ({handleCelestialHarmonyRoutes:route}=await import('../../worker/routes/celestial-harmony.js'));
 });
 beforeEach(()=>{docs=[];accessMode='pass';revoked=false;userId=user;fault=null;calls=[];lost=false;
+ failExecution=jest.fn(async(_env,_user,payload)=>{const doc=docs.find(item=>item.executionKey===payload.executionKey);if(doc.lock?.token)throw Error('settlement needs a released lock');doc.status='refunded';return {ok:true,status:200,execution:{status:'refunded'},settlement:{ok:true,status:'refunded'}};});
  provider=jest.fn(async(_env,prompt,options)=>{
   expect(options.timeoutMs).toBe(45000);expect(options.fallbackToWorkersAI).toBe(false);const id=options.logContext.sectionGroup;calls.push(id);
   let value;
@@ -210,4 +213,38 @@ test('Toss uses the full web provider contract, checkpoints and original saved c
   const before=calls.length;
   expect((await generateTarotLibraryResult(featureId,input,options)).presentation).toEqual(result.presentation);
   expect(calls).toHaveLength(before);
+});
+
+// 2026-11-18 S3-K: 파트가 두 번 다 실패해도 partial 202 로 영구히 남지 않는다.
+// 저장된 파트가 있으면 빈 파트를 건너뛰고 전달하고, 하나도 없을 때만 생성 실패로 닫으며 자동 환불한다.
+const until=async(stop,limit=40)=>{const replies=[];let reply=await start();for(let n=0;n<limit;n++){const data=await reply.clone().json();replies.push({status:reply.status,data});if(stop(reply.status))break;reply=await resume();}return replies;};
+test('a part that fails both attempts is skipped and the saved parts are delivered without a refund',async()=>{
+ const base=provider.getMockImplementation();provider.mockImplementation(async(...args)=>args[2].logContext.sectionGroup==='5'?{ok:false,provider:'gemini',text:''}:base(...args));
+ const replies=await until(status=>status!==202);
+ expect(replies.filter(reply=>reply.status===202).every(reply=>reply.data.retryable===true)).toBe(true);
+ expect(replies.at(-1)).toMatchObject({status:200,data:{ok:true,archiveSaved:true}});
+ expect(replies.at(-1).data.result.meta).toMatchObject({deliveryStatus:'completed',skippedParts:['5']});
+ expect(docs[0].premiumStatus).toBe('completed');expect(provider).toHaveBeenCalledTimes(13);expect(failExecution).not.toHaveBeenCalled();
+});
+test('when no part could be generated the request closes as generation_failed with an automatic refund',async()=>{
+ accessMode='single';provider.mockImplementation(async()=>({ok:false,provider:'gemini',text:''}));
+ const replies=await until(status=>status!==202);
+ expect(replies.slice(0,-1).every(reply=>reply.status===202&&reply.data.retryable===true)).toBe(true);
+ expect(replies.at(-1)).toMatchObject({status:503,data:{ok:false,retryable:false,code:'CELESTIAL_GENERATION_FAILED',refunded:true,resultId:docs[0].executionKey}});
+ expect(provider).toHaveBeenCalledTimes(24);expect(failExecution).toHaveBeenCalledTimes(1);
+ expect(failExecution.mock.calls[0][2]).toMatchObject({executionKey:docs[0].executionKey,forceRefundOnClose:true});
+ expect(docs[0]).toMatchObject({sourceTransactionId:'64b7f2a1c3d4e5f60123abcd',cost:50,metadata:{billing:{requestId:body.requestId,reportId:body.reportId}}});
+ const again=await resume();expect(again.status).toBe(503);expect(await again.json()).toMatchObject({code:'CELESTIAL_GENERATION_FAILED',refunded:true});
+ const restored=await route(new Request('https://mock.test/api/celestial-harmony?resumeResultId='+encodeURIComponent(docs[0].executionKey)),{});
+ expect(restored.status).toBe(503);expect(await restored.json()).toMatchObject({code:'CELESTIAL_GENERATION_FAILED',retryable:false});
+ expect(provider).toHaveBeenCalledTimes(24);expect(failExecution).toHaveBeenCalledTimes(1);
+});
+test('a refund that could not settle is retried by the next request instead of staying open',async()=>{
+ provider.mockImplementation(async()=>({ok:false,provider:'gemini',text:''}));const settle=failExecution.getMockImplementation();
+ failExecution.mockImplementationOnce(async()=>{throw Error('settlement storage');});
+ const replies=await until(status=>status!==202);
+ expect(replies.at(-1)).toMatchObject({status:503,data:{code:'CELESTIAL_GENERATION_FAILED',refunded:false}});expect(docs[0].status).toBe('pending');
+ failExecution.mockImplementation(settle);
+ const retried=await resume();expect(await retried.json()).toMatchObject({code:'CELESTIAL_GENERATION_FAILED',refunded:true});
+ expect(failExecution).toHaveBeenCalledTimes(2);expect(provider).toHaveBeenCalledTimes(24);
 });
