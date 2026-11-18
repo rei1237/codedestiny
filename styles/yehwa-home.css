@@ -24,7 +24,8 @@ html:not([lang="ko"]) .yh-trust{display:none}
 .yh-situations{margin-top:16px}
 /* 2026-11-18 카드 공통 규격: 3:2 아트 → 배지 → 제목 → 설명 → 받는 결과 → CTA. 무료=채움 버튼, 유료=테두리 버튼+가격 알약. */
 .yh-block__title{margin:0 0 10px;font-family:var(--font-display);font-size:1.125rem;font-weight:400;line-height:1.4;color:var(--cd-text)}
-.yh-block__title--paid{margin-top:34px}
+.yh-home .yh-block__title{margin:0 0 10px}
+.yh-home .yh-block__title--paid{margin-top:34px}
 .yh-situations__list{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:0;padding:0;list-style:none}
 .yh-situations__list--paid{grid-template-columns:minmax(0,1fr)}
 .yh-situations__list--free .yh-situation--featured{grid-column:span 2}
@@ -202,3 +203,29 @@ html.neo-mode .yh-hero{--yh-garden:url("/images/home/illustrated/yeoni-moon-gard
 .yh-supplement a:focus-visible{outline:2px solid var(--cd-focus-ring,var(--cd-text));outline-offset:3px}
 @media(max-width:699px){.yh-light-saju{grid-template-columns:96px minmax(0,1fr);align-items:start}.yh-light-saju__art{width:96px}.yh-light-saju__buy{grid-column:1/-1}.yh-basic-masters ul{grid-template-columns:repeat(2,minmax(0,1fr))}}
 html:not([lang="ko"]) .yh-supplement{display:none}
+/* 2026-11-18 신뢰 띠(.yh-trustbar) + 비교(.yh-compare): 근거 있는 사실 배지와 일반 방식 대비. 토큰만 사용. */
+.yh-trustbar{margin-top:16px;min-width:0}
+.yh-trustbar__list{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:0;padding:0;list-style:none}
+.yh-trustbar__item>a,.yh-trustbar__item>div{display:flex;align-items:center;gap:10px;height:100%;min-height:56px;padding:10px 12px;border:1px solid var(--cd-line);border-radius:var(--cd-r-control);background:color-mix(in srgb,var(--cd-surface) 88%,transparent);color:var(--cd-text);text-decoration:none;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+.yh-trustbar__mark{flex:none;width:10px;height:10px;border-radius:50%;background:var(--cd-yehwa-line-deep)}
+.yh-trustbar__text{display:flex;flex-direction:column;min-width:0;line-height:1.4}
+.yh-trustbar__text strong{font-size:15px;font-weight:700}
+.yh-trustbar__text span{font-size:14px;color:var(--cd-text-muted)}
+.yh-trustbar__item>a:hover{border-color:var(--cd-yehwa-line-deep)}
+.yh-trustbar__item>a:focus-visible{outline:2px solid var(--cd-focus-ring,var(--cd-text));outline-offset:3px}
+.yh-compare{margin-top:28px;min-width:0}
+.yh-compare__grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.yh-compare__col{padding:16px;border:1px solid var(--cd-line);border-radius:var(--cd-r-card);background:var(--cd-surface);box-shadow:var(--cd-shadow)}
+.yh-compare__col h3{margin:0 0 10px;font-size:16px;font-weight:700;color:var(--cd-text)}
+.yh-compare__col--old{background:color-mix(in srgb,var(--cd-line) 18%,var(--cd-surface));box-shadow:none}
+.yh-compare__col--old h3,.yh-compare__col--old li>span:last-child{color:var(--cd-text-muted)}
+.yh-compare__col--new{border-color:var(--cd-yehwa-line-deep);border-width:2px}
+.yh-compare__list{display:grid;gap:10px;margin:0;padding:0;list-style:none}
+.yh-compare__list li{display:flex;gap:10px;align-items:flex-start;font-size:15px;line-height:1.55;color:var(--cd-text)}
+.yh-compare__icon{flex:none;display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;font-size:14px;font-weight:700;line-height:1}
+.yh-compare__col--old .yh-compare__icon{border:1px solid var(--cd-line-strong);color:var(--cd-text-muted)}
+.yh-compare__col--new .yh-compare__icon{background:var(--cd-cta-primary-bg);color:var(--cd-cta-primary-ink)}
+@media(max-width:900px){.yh-trustbar__list{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:699px){.yh-compare__grid{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:no-preference){.yh-trustbar__item{animation:yhTrustIn 480ms ease both}.yh-trustbar__item:nth-child(2){animation-delay:60ms}.yh-trustbar__item:nth-child(3){animation-delay:120ms}.yh-trustbar__item:nth-child(4){animation-delay:180ms}@keyframes yhTrustIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}}
+html:not([lang="ko"]) .yh-trustbar,html:not([lang="ko"]) .yh-compare{display:none}
