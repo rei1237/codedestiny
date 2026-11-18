@@ -294,3 +294,21 @@ ${assembled.sections[1].title}
     expect(dedupeLoveSecretSections(assembled)).toBe(assembled);
   });
 });
+
+describe("S15 사주 운 판정 연결(V2 만)", () => {
+  test("V2 timing 은 현재 대운·가까운 세운 판정과 규칙을 받고, partner·V1 은 받지 않는다", async () => {
+    const { calculateLoveSecretAiSaju, normalizeLoveSecretAiInput } = await import("../../worker/lib/love-secret-ai-calculation.js");
+    const { SAJU_LUCK_JUDGEMENT_RULE } = await import("../../worker/lib/saju-temperament.js");
+    const normalized = normalizeLoveSecretAiInput({ myInfo: { gender: "female", birthDate: "1990-03-15", birthTime: "10:30", calendarType: "solar" }, relationshipStatus: "솔로", topic: "전체 연애 흐름" });
+    const sajuResult = calculateLoveSecretAiSaju(normalized, { nowMs: Date.UTC(2026, 10, 18) });
+    const byKey = Object.fromEntries(LOVE_SECRET_AI_GROUPS.map((g) => [g.key, buildLoveSecretGroupPrompt(normalized.input, sajuResult, g)]));
+    const years = sajuResult.myChart.yearlyLuck.slice(0, 3).map((row) => `"${row.year}년"`);
+    years.forEach((label) => expect(byKey.timing).toContain(label));
+    expect(byKey.timing).toContain(SAJU_LUCK_JUDGEMENT_RULE);
+    expect(byKey.core).toContain(SAJU_LUCK_JUDGEMENT_RULE);
+    expect(byKey.partner).not.toContain(SAJU_LUCK_JUDGEMENT_RULE);
+    expect(byKey.self).not.toContain(years[1]);
+    const v1 = LOVE_SECRET_AI_GROUPS_V1.map((g) => buildLoveSecretGroupPrompt(normalized.input, sajuResult, g)).join("\n");
+    expect(v1).not.toContain(SAJU_LUCK_JUDGEMENT_RULE);
+  });
+});

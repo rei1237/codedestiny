@@ -1,7 +1,8 @@
 import { salvageTruncatedJsonObject } from "../../lib/llm-text.js";
 import { jsonSchemaFromExample } from "./json-text-repair.js";
 import { countPaidReportBodyChars, dropRepeatedReportSentences, hasRepeatedReportPassage } from "./paid-report-quality.js";
-import { buildLoveSecretGroupFacts, compactSajuForFollowUp } from "./love-secret-ai-facts.js";
+import { buildLoveSecretGroupFacts, buildLoveSecretLuckJudgement, compactSajuForFollowUp } from "./love-secret-ai-facts.js";
+import { SAJU_LUCK_JUDGEMENT_RULE } from "./saju-temperament.js";
 import { expertSubchapterPromptLines } from "./expert-subchapter-prompt.js";
 import { followupSolutionPromptLines } from "./followup-solution-prompt.js";
 import { compactFollowupMessages } from "./followup-context.js";
@@ -477,6 +478,8 @@ export function buildLoveSecretGroupPrompt(input = {}, sajuResult = {}, group, o
   const partnerMode = sajuResult?.partnerChart ? "상대 포함 연애 상담 모드" : "단독 연애 상담 모드";
   const facts = Array.isArray(sajuResult?.facts) ? sajuResult.facts : [];
   const groupFacts = buildLoveSecretGroupFacts(sajuResult, group.key);
+  // S15: V2(관점이 있는 그룹)만. V1 프롬프트는 바이트 단위로 동결돼 있다.
+  const luckJudgement = group.perspective ? buildLoveSecretLuckJudgement(sajuResult, group.key) : null;
 
   const lines = [
     "[상담 모드]",
@@ -497,6 +500,12 @@ export function buildLoveSecretGroupPrompt(input = {}, sajuResult = {}, group, o
     "[이 부분에서 쓸 계산 데이터]",
     safeJson(groupFacts),
     "",
+    ...(luckJudgement ? [
+      "[운 판정 — 최종 용신·조후·십간 짝과 이 부분이 다루는 시기의 판정]",
+      safeJson(luckJudgement),
+      SAJU_LUCK_JUDGEMENT_RULE,
+      "",
+    ] : []),
     `[이번에 쓸 항목 — "${group.label}"]`,
     ...group.sections.map((section) => `- ${section.title}: ${section.guide}`),
     "",
