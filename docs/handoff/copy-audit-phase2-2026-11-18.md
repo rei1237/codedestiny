@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-18
-next: A4 — A-novel-04.md 적용(원고 수정과 번역 갱신을 같은 커밋에)
+next: A5 — A-novel-05.md 적용(원고 수정과 번역 갱신을 같은 커밋에)
 ---
 
 # 문장 교정 Phase 2 (sepia) — 진행 문서
@@ -64,6 +64,7 @@ next: A4 — A-novel-04.md 적용(원고 수정과 번역 갱신을 같은 커�
   - Conventional Commits 형식: `copy(novel): ...`, `copy(service): ...`, `copy(paid): ...`
   - 트레일러: `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`
 - 공유 체크아웃이다. `git reset --hard`, `stash`, `checkout --`를 쓰지 않는다. 남의 미추적 파일을 건드리지 않는다.
+- 🔴 `verify:story-sync`는 화마다 한글 1,800자 미만이면 실패한다(색인 하한). 짧은 화(외전·A화)에서 삭제 위주 수정을 몰아 적용하면 걸린다. A4에서 EP.32A가 1,818→1,761자로 떨어져 P3 세 행을 보류했다. 적용 전에 화별 한글 수를 재고 남는 여유 안에서 고른다.
 - 각 리포트 파일 끝에 "## Phase 2 적용 결과" 절을 추가하고 같은 커밋에 넣는다. 내용
   - 적용 행 수
   - 건너뛴 행과 이유
@@ -77,7 +78,7 @@ next: A4 — A-novel-04.md 적용(원고 수정과 번역 갱신을 같은 커�
 - [x] T1 A1(c3ae3dffd)에서 바뀐 비트의 4개 언어 번역 갱신 — 78비트 × 4언어(authored 행 234개, 문장 수정 291건; 문장부호·어미만 바뀐 5비트와 뜻이 이미 맞던 en 2·ja 1건은 원문 대조 후 번역 유지). 4개 언어 missing 0, 바뀐 비트 밖 출력 차이 0. `public/data/novel/manifest.json` availableLocales = ko·en·ja·zh-CN·zh-TW 복구
 - [x] A2 `A-novel-02.md` — 65행 적용(65비트, ep-14a:11 화자 neo→yun 포함), 건너뜀 3, 미적용(구조) 2. 번역 65비트 × 4언어 같은 커밋(authored 행 195, 번역문 수정 168), missing 0·범위 밖 차이 0, availableLocales ko+4
 - [x] A3 `A-novel-03.md` — 69행 적용(75비트, 화자 변경 없음), 건너뜀 0, 미적용(구조) 2(ep-27:neo-nickname 재배치, ep-24:38 글자판 위치 설정). 번역 75비트 × 4언어 같은 커밋(authored 행 225, 번역문 수정 278), missing 0·범위 밖 차이 0, availableLocales ko+4. EP.19·25·26 본문 4,000자 미만 경고(빌드 통과)
-- [ ] A4 `A-novel-04.md`
+- [x] A4 `A-novel-04.md` — 83행 적용(83비트, 화자 변경 없음), 보류 3(32A 색인 하한 1,800자: 32a:21·34·41), 유지 6, 건너뜀 2, 미적용(구조) 6. 번역 83비트 × 4언어 같은 커밋(authored 행 249, 번역문 수정 308), missing 0·범위 밖 차이 0, availableLocales ko+4. check:fast PASS(481 suites)
 - [ ] A5 `A-novel-05.md`
 - [ ] A6 `A-novel-06.md`
 - [x] B1 `B-service-characters.md` (네오 츤데레, design-canon 2절 갱신 포함) — 적용 70·보류 6·구조 2, 번역 동기화 18키(+네오 en/ja/zh 표). 결과는 리포트 "Phase 2 적용 결과" 절

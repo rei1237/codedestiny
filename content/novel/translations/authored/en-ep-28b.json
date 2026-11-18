@@ -10,15 +10,15 @@
   "beats": [
     {
       "id": "ep-28b:1",
-      "source": "불운 없는 날이 일주일째 계속되었다. 연이는 조금 무서워지기 시작했다.",
-      "sourceHash": "41f18d324c4ccbcc2f712fcb2aa02b3ac078fd9e3674a0acef35461093d9d20d",
-      "t": "A week had passed without misfortune. Yeoni was beginning to feel a little afraid."
+      "source": "불운 없는 날이 일주일째 계속되었다. 연이는 슬슬 무서워졌다.",
+      "sourceHash": "b12ad0b257ed995f58fbccbe4a6e20864a7e9ee9178fd355bba027a07ac638b2",
+      "t": "A week had passed without misfortune. Yeoni was starting to get scared."
     },
     {
       "id": "ep-28b:2",
-      "source": "장학금 서류가 고칠 데 없이 통과됐다. 운동화는 제값이었지만 사이즈가 남아 있었다. 엘리베이터는 고장 없이 제때 왔다.",
-      "sourceHash": "0ca58d1ea71a3f924dbf11ab9d2a66dcad9c07f57ebe047bf726e91977d097f4",
-      "t": "Her scholarship paperwork passed without revisions. The shoes weren't discounted, but her size was available. The elevator arrived on time without breaking down."
+      "source": "장학금 서류가 고칠 데 없이 통과됐다. 운동화는 할인은 없었지만 맞는 사이즈가 남아 있었다. 엘리베이터는 고장 없이 제때 왔다.",
+      "sourceHash": "4b97a6c6976efafd5c690e939356fd96b897e8715e46bc629f356af9e745fc99",
+      "t": "Her scholarship paperwork passed without revisions. The shoes weren't on sale, but her size was still in stock. The elevator arrived on time without breaking down."
     },
     {
       "id": "ep-28b:3",
@@ -262,9 +262,9 @@
     },
     {
       "id": "ep-28b:41",
-      "source": "싫죠. 근데 남이 골라 준 안전한 길로만 가면, 그건 제 내일이 아니잖아요.",
-      "sourceHash": "06fae264934ed8c194ff04ba3dd3a32b55efcf85ef7a47b5acb619b0487d914c",
-      "t": "I don't. But if I only take safe paths someone else chooses, that isn't my tomorrow."
+      "source": "싫죠. 근데 다칠지 말지는 제가 고를래요.",
+      "sourceHash": "b119a93fb43ac14777a6dfcca7b9487808c800e6a3acceba38c0e89d300ab9c6",
+      "t": "I don't. But I'd rather choose for myself whether I get hurt."
     },
     {
       "id": "ep-28b:42",
@@ -324,9 +324,9 @@
     },
     {
       "id": "ep-28b:51",
-      "source": "연이는 그 기억을 붙잡으려 했다. 검은 털, 금장 고리, 이마로 밀던 감촉. 그러나 기억은 젖은 종이처럼 번졌다.",
-      "sourceHash": "7bbd0042e92e0494dd9ab517e87e7305a2a39ff6f08841a25a29f77f9502a085",
-      "t": "Yeoni tried to catch the memory. Black fur, golden ring, the feel of pushing with their forehead. But it blurred like wet paper."
+      "source": "연이는 그 기억을 붙잡으려 했다. 검은 털, 금장 고리, 이마로 밀던 감촉. 그러나 기억은 금세 흐려졌다.",
+      "sourceHash": "f036210ab42a26e42e1934969f0f205acf755a11258f2a601977a03014510c76",
+      "t": "Yeoni tried to catch the memory. Black fur, golden ring, the feel of pushing with their forehead. But it soon faded."
     },
     {
       "id": "ep-28b:52",
@@ -386,9 +386,9 @@
     },
     {
       "id": "ep-28b:61",
-      "source": "「경고인지 협박인지 모르겠네.」 네오가 의자 팔걸이를 짚었다. 손마디에 힘이 들어갔다.",
-      "sourceHash": "d8b7cc88386c9a33d57faade22a243a4ddeb0673b835bd9e32a8ace47da27f5a",
-      "t": "“Can't tell if that's a warning or a threat.” Neo braced against the chair's armrest, his knuckles tense."
+      "source": "「경고인지 협박인지 모르겠네.」 네오가 소파 팔걸이를 짚었다. 손마디에 힘이 들어갔다.",
+      "sourceHash": "bce423aaeacc31851f035510a0cc6b6d5f3a525c1f0d03693ba8cad96724aad3",
+      "t": "“Can't tell if that's a warning or a threat.” Neo braced against the sofa's armrest, his knuckles tense."
     },
     {
       "id": "ep-28b:62",

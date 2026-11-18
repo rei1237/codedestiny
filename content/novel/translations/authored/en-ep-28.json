@@ -100,9 +100,9 @@
     },
     {
       "id": "ep-28:16",
-      "source": "「모습은 그대로네. 신분증까지 생긴 건 아니지만. 설명할 게 좀 많겠어.」",
-      "sourceHash": "43624d4441fa4f5960d37106b4da12dfde8ac0747bae641ee2efea29be689e79",
-      "t": "“Still the same form. Though that doesn't mean I have an ID. Quite a lot to explain.”"
+      "source": "「모습은 그대로네. 신분증까지 생긴 건 아니지만. 설명할 게 좀 많겠어.」 네오가 제 손을 내려다보았다.",
+      "sourceHash": "05b5e885b944779e41b5d76bdfa6873be8ed0ebd71ad1ab718ddab8e53c3eab8",
+      "t": "“Still the same form. Though that doesn't mean I have an ID. Quite a lot to explain.” Neo looked down at his own hands."
     },
     {
       "id": "ep-28:17",
@@ -124,9 +124,9 @@
     },
     {
       "id": "ep-28:20",
-      "source": "그러니까 아프면 말해. 사람 됐다고 약속까지 바뀌는 건 아니야.",
-      "sourceHash": "d6d1162c2408017060272897c394d976f87a710d93b5618ef43de04b703407ae",
-      "t": "So tell me if it hurts. Becoming human doesn't change the promise."
+      "source": "아프면 꼭 말해. 사람 됐다고 약속까지 바뀌는 건 아니야.",
+      "sourceHash": "02644ce6239b0e414931d90a57fdabfbef154ef87dd597607fe84189ef6983c1",
+      "t": "Tell me if it hurts, okay? Becoming human doesn't change the promise."
     },
     {
       "id": "ep-28:21",
@@ -172,9 +172,9 @@
     },
     {
       "id": "ep-28:28",
-      "source": "연이는 카드를 뒤집으려 했다. 손끝에서 카드가 미끄러졌다. 몇 번을 해도 뒤집히지 않았다. 아직 때가 아니라는 듯이.",
-      "sourceHash": "476adcbcf5f5b4db21d094bab891b8c88a611b3c66d77d2c05895c4b01a3b0ac",
-      "t": "Yeoni tried turning it over. It slipped from their fingers. No matter how often they tried, it would not turn. As though the time had not yet come."
+      "source": "연이는 카드를 뒤집으려 했다. 손끝에서 카드가 미끄러졌다. 몇 번을 해도 끝내 뒤집히지 않았다.",
+      "sourceHash": "35a987432463477d30c31db5ce1a348bcc102151fb5d50f102d05f9254bd933f",
+      "t": "Yeoni tried turning it over. It slipped from their fingers. No matter how often they tried, it would not turn."
     },
     {
       "id": "ep-28:29",
@@ -334,9 +334,9 @@
     },
     {
       "id": "ep-28:55",
-      "source": "연이의 불운은 원래 성실했다. 하루도 빠짐없이 출근했다. 그런데 오늘은 연락도 없이 결근이었다.",
-      "sourceHash": "b93d71a9be573310f382b7a76e6c09021169a4568e24bc1ec785ea47b265fd10",
-      "t": "Yeoni's bad luck had always been diligent. Showed up to work every day without fail. Today, it was absent without notice."
+      "source": "연이의 불운은 원래 성실했다. 하루도 빠짐없이 찾아왔다. 오늘은 오지 않았다.",
+      "sourceHash": "eee44a43600ce785b350c1062bb5bf68aff4ea09cc307397c6667390568f5013",
+      "t": "Yeoni's bad luck had always been diligent. It came every day without fail. Today, it didn't come."
     },
     {
       "id": "ep-28:56",
@@ -388,9 +388,9 @@
     },
     {
       "id": "ep-28:64",
-      "source": "연이는 남겨 둔 빵 반쪽을 다시 봉지에 넣었다. 누구에게 줄지는 몰랐다. 그냥, 반은 누군가의 몫 같았다.",
-      "sourceHash": "0a47a97a50fdb02fd5530870987286c256ec4348b862852e1fbfe0c2814fad89",
-      "t": "Yeoni returned the remaining half-roll to the bag. They didn't know who it was for. Half simply felt like someone's share."
+      "source": "연이는 남겨 둔 빵 반쪽을 다시 봉지에 넣었다. 누구에게 줄지는 몰랐다.",
+      "sourceHash": "499ee9a54f16ea13af1b4571747c62dd8b591cca7d41fde5e3b18531ddeaa59e",
+      "t": "Yeoni returned the remaining half-roll to the bag. They didn't know who it was for."
     },
     {
       "id": "ep-28:65",
@@ -534,9 +534,9 @@
     },
     {
       "id": "ep-28:88",
-      "source": "연이는 이불을 끌어당겼다. 그 말이 무서웠다. 루나의 웃음, 모카의 독설, 호랑이의 붉은 눈. 벌써 가장자리가 번지고 있었다.",
-      "sourceHash": "ca0f503dbc40b1341d0377cd086d3a45fba041b856acbaee9be81f84b0b8192c",
-      "t": "Yeoni pulled up the blanket. The words were frightening. Luna's smile, Moka's sharp tongue, the tiger's red eyes. Their edges were already blurring."
+      "source": "연이는 이불을 끌어당겼다. 루나의 웃음, 모카의 독설, 호랑이의 붉은 눈. 벌써 가장자리가 번지고 있었다.",
+      "sourceHash": "809afff5ddeacdec2e81090eb932249cbb4d1564e29926a3eca912b6e71cc3f8",
+      "t": "Yeoni pulled up the blanket. Luna's smile, Moka's sharp tongue, the tiger's red eyes. Their edges were already blurring."
     },
     {
       "id": "ep-28:89",

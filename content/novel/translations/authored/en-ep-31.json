@@ -70,9 +70,9 @@
     },
     {
       "id": "ep-31:11",
-      "source": "모카는 거기서 말을 멈췄다. 무언가 더 하려다 삼킨 얼굴이었다. 연이는 묻지 않았다. 묻지 않아도 언젠가 꺼낼 얼굴이었다.",
-      "sourceHash": "b1d112291f85eff98d5f06c34d3c110c0be54249704d53024b0c24e2229e1823",
-      "t": "Moka stopped. His face held something more, swallowed back. Yeoni didn't ask. It was a face that would speak someday without being asked."
+      "source": "모카는 거기서 말을 멈췄다. 무언가 더 하려다 삼켰다. 연이는 묻지 않았다. 묻지 않아도 언젠가 꺼낼 말이었다.",
+      "sourceHash": "6decd76e5bb4166933fa752b1d584b48ab79d5f5c1fe228f3306731aac721701",
+      "t": "Moka stopped there. He was about to say more, then swallowed it. Yeoni didn't ask. It was something he would bring up someday without being asked."
     },
     {
       "id": "ep-31:12",
@@ -292,8 +292,8 @@
     },
     {
       "id": "ep-31:48",
-      "source": "윤달이 작전을 냈다. 회색 얼굴로 위장해서 줄에 섞이자는 것이었다. 장갑을 벗은 오른손을 연이 앞에 내밀었다.",
-      "sourceHash": "652850aab9ade3b8a52284aeac514013c33c117f000fcae0e9584bf9b82ba0c4",
+      "source": "윤달이 작전을 냈다. 회색 얼굴로 위장해서 줄에 섞이자고 했다. 장갑을 벗은 오른손을 연이 앞에 내밀었다.",
+      "sourceHash": "25a9d7dd6dda836e37ef2ff24b20240ff028a2b5f9f14e87b6dd92aa7ae4df8c",
       "t": "Yundal proposed a plan. Disguise themselves as gray faces and join the line. He removed his glove and offered his right hand to Yeoni."
     },
     {
@@ -562,9 +562,9 @@
     },
     {
       "id": "ep-31:93",
-      "source": "거짓말이었다. 네오의 목 위로 잿빛이 더 번져 있었다. 연이는 말 대신 주먹을 쥐었다. 손톱이 손바닥을 파고들었다.",
-      "sourceHash": "c151f6aa22299f5f48d7274ad94138fae8d01de30362199a0ae4e6229cc21d00",
-      "t": "A lie. More gray had spread over Neo's neck. Instead of speaking, Yeoni clenched their fists. Nails dug into palms."
+      "source": "거짓말이었다. 네오의 목 위로 잿빛이 더 번져 있었다. 연이는 말 대신 주먹을 쥐었다.",
+      "sourceHash": "807cabb04f40efa69223b288f7cf2eca00813e15698c06c12464a72f4666afba",
+      "t": "A lie. More gray had spread over Neo's neck. Instead of speaking, Yeoni clenched their fists."
     },
     {
       "id": "ep-31:94",
@@ -616,9 +616,9 @@
     },
     {
       "id": "ep-31:102",
-      "source": "그때 모카가 앞으로 나섰다. 잿빛이 풀린 얼굴이었다. 윤달이 빛을 돌려준 것이 아니었다. 모카가 스스로 털어낸 것이었다.",
-      "sourceHash": "9315eb62204c651fc50c3884a7ca7709eb064a58278b57cb2ce813bf7b7f2a1d",
-      "t": "Then Moka stepped forward. The gray had left his face. Not because Yundal returned his light. Moka had shaken it off himself."
+      "source": "그때 모카가 앞으로 나섰다. 잿빛이 풀린 얼굴이었다. 윤달이 돌려준 빛이 아니었다. 모카가 스스로 털어냈다.",
+      "sourceHash": "49d14b8ab3214db20c97b65b638aa37663f18945cd25855388d36f4693fc37b3",
+      "t": "Then Moka stepped forward. The gray had left his face. It wasn't light Yundal had returned. Moka had shaken it off himself."
     },
     {
       "id": "ep-31:103",
