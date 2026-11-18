@@ -5,7 +5,7 @@
 ## AI & API
 
 - **Pro 사용 범위(2026-10-13)**: `lib/gemini-model-policy.js`가 모델 선택의 정본이다. 일반 본문·후속 설명은 Flash를 사용하며, Pro 환경값도 일반 호출에서는 Flash로 제한한다. 서버가 지정한 `fusion-integration`·`fusion-verdict`·`tuna-synthesis`만 Pro를 사용한다. 사용자 질문이나 상품 가격으로 Pro 사용을 결정하지 않는다. 참치의 종합 장도 실행 계획만 정리하는 `action` 장은 제외한다. 실제 명식·천문 계산은 기존 계산 엔진을 유지한다. 재시도는 같은 분류를 따르고, 명시적 컨텍스트 캐시는 모델별로 생성·해제한다. 기존 저장 결과와 본문 분량·품질 기준은 유지한다.
-- 🔴🔴 **검증은 mock 기본, 실호출은 사전 허락 필수** — 절대 규칙 1번(LLM 실호출 금지, 최우선)이 이 섹션 전체에 적용된다. 프롬프트·분량·폴백을 고쳤다고 실제 Gemini/Workers AI 를 부르지 말 것. mock 정본은 `scripts/verify-mindscan-reading.mjs`(`fetchImpl` 주입)·`scripts/verify-workers-ai-fallback.mjs`(키 제거), 실호출은 `--live` + **사용자 허락 1회 한정**.
+- 🔴🔴 **검증은 mock 기본, 실호출은 사전 허락 필수** — 절대 규칙 1번(LLM 실호출 금지, 최우선)이 이 섹션 전체에 적용된다. 프롬프트·분량·폴백을 고쳤다고 실제 Gemini/Workers AI 를 부르지 말 것. mock 정본은 `scripts/verify-mindscan-reading.mjs`(`fetchImpl` 주입)·`scripts/verify-workers-ai-fallback.mjs`(키 제거), 실호출은 `--live` + **사용자 허락 1회 한정**. 스테이징 허용 계정 실경로(2026-11-18)는 아래 [스테이징 허용 계정 실호출](#스테이징-허용-계정-실호출-2026-11-18-사용자-결정) 절을 따르며, 그 검증 실행도 회차마다 1회 승인이다.
 - **Gemini 호출**: `lib/llm-client.ts` (실제 구현체, `worker/lib/gemini.js`·`gemini-client.js`는 얇은 래퍼). 모델 `gemini-2.5-flash`, REST `generateContent` 엔드포인트 직접 호출(SDK 미사용). API 키는 `GEMINIF_API_KEY` 단일 키만 사용(다른 키 이름 참조는 제거됨).
 - 🔴 **Gemini 입력은 생성 전에 50,000토큰으로 하드 차단**한다 — 정본 `lib/gemini-input-token-limit.mjs`가 비과금 `models.countTokens`로 전체 `GenerateContentRequest`(시스템 지시·멀티모달 포함)를 확인한다. 50,000 초과는 다른 공급자로도 우회하지 않고, 계산 실패는 Gemini 생성만 막은 뒤 기존 Workers AI 폴백 계약을 따른다. 공통 `llm-client`뿐 아니라 직접 REST를 쓰는 love-reading·mindscan·oracle 3경로에도 같은 정본을 사용한다. 환경값으로 상한을 올리는 우회는 두지 않는다.
 - 🔴 **Workers AI 입력도 `env.AI.run()` 전에 50,000토큰 보수 상한으로 하드 차단**한다 — 정본 `lib/workers-ai-input-token-limit.mjs`는 모델 공통 `countTokens` API가 없는 제약 때문에 실제 content의 UTF-8 바이트 수에 채팅 템플릿 여유 512를 더한 값을 토큰 상한으로 사용한다. 기본 GLM/Llama는 공식 컨텍스트 창에서 요청 출력·예약분을 뺀 값이 더 작으면 그 상한을 쓴다. 초과하면 폴백 체인의 첫 모델도 호출하지 않으며, 환경값으로 상한을 올리지 않는다. 공급자 응답에 `usage` 토큰이 있으면 실제 값을 기록하고, 없을 때만 문자 수 추정을 `estimated` 값으로 남긴다.
@@ -126,3 +126,36 @@ DB 연산 2회  /api/reviews         3,450ms   (+  718ms)
   - 🔴 **분량 미달은 단독 실패 사유가 아니다 (2026-09-27, 사용자 원문: "모든 LLM 기능들이 분량 기준이 아니라 내용이 좋아야해 분량 실패로 생성 실패해서 고객에게 전달안되는 일이 없도록 최적화해주길 바란다").** 분량이 모자라면 기존 재시도 예산 안에서 보강을 한 번 요청한다. 보강본이나 마지막 시도는 분량으로 다시 거부하지 않고, 구조(파싱·필수 섹션·빈 본문)·안전·근거·반복만 판정한다. 상한 초과는 거부하지 않고 결정적으로 자른다. 영냥이는 `LENGTH_FAILURES` + `validateReadingQuality(..., {lengthRepair})` 로 적용 완료했다(a7a439b43). 나머지 유료 LLM 약 30곳의 단계 계획은 [llm-length-never-fatal](../handoff/2026-09-27-llm-length-never-fatal.md)에 있다.
   - 새 거부 조건을 넣기 전에 재시도(자동 3회 + 수동 복구 2회)로 회복 가능한 실패인지 확인한다. 같은 입력에서 결정적으로 되풀이되는 거부는 재시도로 회복되지 않는다.
   - 검증은 여전히 mock 이다. 실제 통과율 확인을 위한 과금 실호출은 위 승인 규칙을 따른다.
+
+## 스테이징 허용 계정 실호출 (2026-11-18 사용자 결정)
+
+- **요청(원문)**: "스테이징에서도 llm 기능이 운영과 동일하게 잘되도록해줘야할것 같다. 테스트를 제대로 못하고 운영 반영되어서 이런 문제가 반복되고 명시적으로 승인할때 운영 승격되도록해". 선택(AskUserQuestion): "허용 계정만 실호출 (추천)", "운영과 같은 키".
+- **동작**: 정본은 `worker/lib/staging-real-llm.js`이고, `worker/index.js`가 `withEngineRollout(withStagingLlmRouting(withDbScopes(app)))`로 fetch·queue·scheduled 진입을 모두 감싼다.
+  - 스테이징 진입마다 `process.env`에 든 LLM 키 사본(nodejs_compat)을 `""`로 지운다. 이렇게 해야 `getEnv`·`readProcessEnv` 폴백과 `installProcessEnv`가 키를 다시 꺼내지 못한다.
+  - fetch는 JWT를 DB 없이 확인한다(`peekAccessTokenUserId`). 계정이 시크릿 `STAGING_REAL_LLM_USER_IDS`(쉼표 구분 ObjectId)에 있으면 운영 LLM 플래그와 키가 든 view를 받는다. 플래그는 `PRODUCTION_LLM_FLAGS`: `STAGING_LLM_MOCK_ENABLED=false`, `WORKERS_AI_ENABLED=true`, `GUARDIAN_FORTUNE_LLM_PROVIDER=gemini`, `ENABLE_FUSION_FORTUNE_MOCK_FLOW=false`.
+  - 다음 경우는 LLM 키(`STAGING_MASKED_LLM_KEY_NAMES`)와 허용목록을 뺀 view를 받는다. 그래서 키가 워커에 있어도 기존 staging mock이 그대로 돈다.
+    - 허용목록 밖 계정, 게스트, 토스 토큰
+    - JWT 확인 실패
+    - OPTIONS 요청
+    - queue, scheduled
+  - 허용 view도 `APP_ENV=staging`이다. 따라서 테스트 결제 금액·스테이징 DB·결제 잠금은 스테이징 그대로다. 운영 워커에서는 env를 그대로 넘긴다(no-op).
+  - 허용목록에 형식이 틀린 항목이 하나라도 있으면 목록 전체를 무시한다(전원 mock). 키가 없는 스테이징에서는 허용 계정도 mock이다. 운영 플래그만 켜면 전부 과금 Workers AI로 떨어지기 때문이다.
+  - 관리자 역할만으로는 허용되지 않는다. 허용목록에 명시한 계정만 허용된다.
+- **영냥이 큐**: 배치 단위 queue는 가린 view로 돈다. 장 생성까지 실경로로 보려면 `consumeConsultationQueue`가 행마다 `stagingLlmEnvForUser(env, String(row.userId))`로 env를 바꿔야 한다. 이 훅은 worker/yeongnyangi 소유 세션이 적용한다. 적용 전에는 첫 응답만 실경로이고 큐 장은 mock이다.
+- **가드**: 아래 검사가 이 동작을 고정한다.
+  - `__tests__/ui/staging-real-llm.test.mjs`: 파싱, 가림, process.env 정리, 진입 라우팅, export 배선
+  - `npm run verify:staging-llm-mock`: 허용 밖 mock, 허용 view의 Gemini 경로(stub), 운영 no-op
+  - 같은 verify가 두 toml `[vars]` 중 운영과 다른 LLM 변수가 `PRODUCTION_LLM_FLAGS` 또는 양쪽 off 목록에 분류됐는지도 본다. 미분류면 실패한다.
+  - 같은 verify가 허용목록이 `[vars]`에 들어가면 실패시킨다.
+- **런북**: 키와 허용목록은 스테이징 워커에만 넣는다. 운영 시크릿은 건드리지 않는다.
+  1. 키(운영과 같은 값). 일괄 동기화에서는 계속 제외되며(`scripts/lib/staging-secret-policy.mjs`) `--only-key`로만 올린다.
+     - `npm run secrets:cf:worker:dry -- --target=staging --only-key=GEMINIF_API_KEY`: 대상 워커가 `code-destiny-web-staging`인지, 출력에 값 없이 `wrangler secret put GEMINIF_API_KEY --name code-destiny-web-staging --config worker/wrangler.staging.toml` 한 줄만 나오는지 확인한다.
+     - 확인되면 `npm run secrets:cf:worker -- --target=staging --only-key=GEMINIF_API_KEY`
+  2. 허용목록. 동기화 스크립트의 `SECRET_KEYS`에 없으므로 `--only-key`로는 못 올린다. 운영 동기화로 새지 않도록 일부러 넣지 않았다. 직접 올린다: `npx wrangler secret put STAGING_REAL_LLM_USER_IDS --name code-destiny-web-staging --config worker/wrangler.staging.toml`. 값은 프롬프트나 stdin으로 넣고 채팅·파일·커밋에 남기지 않는다. 회원 ID는 스테이징 DB의 `users._id`(24자리 hex)다.
+  3. `wrangler secret put`은 새 버전을 바로 배포하므로 재배포가 필요 없다. 동기화 스크립트가 Versions 가드 때문에 `versions secret put`으로 바꿨다면 그 버전 배포는 따로 필요하다.
+  4. 확인: 허용 계정으로 로그인해 생성한다. 워커 로그에 `[llm provider_call] provider: 'gemini'`가 찍히는지 본다. 같은 화면을 비허용 계정으로 열면 `staging-mock`이어야 한다.
+  5. 끝: 허용목록을 비우거나(`wrangler secret delete STAGING_REAL_LLM_USER_IDS …`) 키를 지우면 즉시 전원 mock으로 돌아간다.
+- 🔴 **비용·승인**
+  - 운영과 같은 키라 쿼터와 결제 예산을 공유한다. 사용량 계량(`recordGeminiUsage`)은 스테이징 DB에 쓰므로 운영 월 예산 경보는 스테이징 지출을 세지 않는다.
+  - 실호출 검증 실행은 여전히 회차마다 사용자 1회 승인이 필요하고, 생성 원문을 전달해야 한다(절대 규칙 1).
+  - 스테이징 결제 채널이 실승인일 수 있으므로 실호출 테스트는 관리자 무료 접근이나 이용권 경로로 하고 실결제는 하지 않는다.

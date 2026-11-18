@@ -363,3 +363,11 @@ PR 생성 후 필수 검사와 최신 base 충돌을 확인하고 에이전트�
 ## 2026-11-14 인수인계 진행 상태 호환
 
 사용자가 제공한 AGENTS 지침은 `status: in-progress`를 요구하지만 기존 프론트매터 검사는 `active`만 허용해 main CI 43547532590이 실패했다. 사용자 지침을 우선하여 in-progress를 허용하고 기존 active·blocked·done과 누락·오타 거절을 유지한다. 검사를 생략하지 않으며 self-test에 정상 호환과 오타 거절을 각각 둔다.
+
+## 2026-11-18 스테이징 허용 계정 실호출 ↔ 절대 규칙 1 "과금 LLM 검증 금지, mock 기본"
+
+- **요청(원문)**: "스테이징에서도 llm 기능이 운영과 동일하게 잘되도록해줘야할것 같다. 테스트를 제대로 못하고 운영 반영되어서 이런 문제가 반복되고 명시적으로 승인할때 운영 승격되도록해". 선택(AskUserQuestion): "허용 계정만 실호출 (추천)", "운영과 같은 키".
+- **충돌**: 절대 규칙 1과 `worker/wrangler.staging.toml`의 잠금 ①은 스테이징을 키 없는 mock 전용으로 두었다. 그래서 운영과 같은 생성 경로를 승격 전에 볼 수 없었다.
+- **해소**: 사용자 결정을 따른다. 운영과 같은 `GEMINIF_API_KEY`를 스테이징 워커에만 `--only-key`로 둘 수 있다. 시크릿 `STAGING_REAL_LLM_USER_IDS`에 있는 계정의 요청만 운영 LLM 플래그와 키를 받고, 나머지는 키를 가린 mock이다(`worker/lib/staging-real-llm.js`). mock 기본은 그대로다. 실호출 검증 실행은 여전히 회차마다 1회 승인이 필요하고, 원문을 전달해야 한다. 운영 승격은 명시적 1회 승인 때만 한다.
+- **가드**: `__tests__/ui/staging-real-llm.test.mjs`, `npm run verify:staging-llm-mock`(허용 밖 mock, 허용 view의 Gemini 경로, 운영 no-op, toml LLM 변수 분류 fail-closed, 허용목록 `[vars]` 금지). 상세와 런북은 [ai-and-db](context/ai-and-db.md#스테이징-허용-계정-실호출-2026-11-18-사용자-결정).
+- **롤백**: 즉시 차단은 스테이징 워커에서 `STAGING_REAL_LLM_USER_IDS` 또는 `GEMINIF_API_KEY`를 지우는 것이다(전원 mock). 코드는 `worker/index.js` 래핑 커밋을 `git revert`한다.
