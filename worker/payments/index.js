@@ -1053,6 +1053,11 @@ async function grantOrderEntitlement(db, order, { rethrow = false } = {}) {
       const granted = await grantPassOrderEntitlement(db, order);
       // 구독 활성화는 잔액 스냅샷의 subscription/membership 블록을 바꾼다 — 45s TTL 이라 필수.
       if (granted) invalidateBalanceSnapshot(order?.userId);
+      // 🔴 /api/auth/me 엣지 캐시(purgeCredentialCache)는 여기서 지우지 않는다 — 지울 수 없다. 키가 구매자
+      // 본인 요청의 Authorization+Cookie 해시라, 웹훅(PortOne)·정산 크론·리플레이에는 그 자격증명이 없다
+      // (넣어도 hasCredentials 에서 빠지는 no-op). 사용자 요청 경로(handlePassConfirm·/orders/:id/confirm·
+      // pass-check)는 지급 주체와 무관하게 자기 요청으로 지운다. 남는 낡음은 TTL 30초 + 클라이언트가
+      // stale 'none' 을 미보유 확정으로 쓰지 않는 규칙(js/core/pass-verdict.js, 2026-11-18)이 흡수한다.
       return granted;
     }
     const snapshot = order.pricingSnapshot || {};
