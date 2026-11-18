@@ -107,11 +107,19 @@ function luckPillar(entry) {
   return `${entry?.pillar || ""}${entry?.stemTenGod ? `(${entry.stemTenGod})` : ""}`;
 }
 
+// S15: 운 판정 한 줄 = "간지 판정 — 바탕 문장 / 크게 움직인 작용".
+function luckJudgementLine(entry) {
+  if (!entry?.pillar) return "";
+  return `${entry.pillar} ${entry.verdict || ""} — ${asArray(entry.reasons).filter(Boolean).join(" / ")}`.trim();
+}
+
 function sajuGroups(summary) {
   const pillars = summary.pillars || {};
   const majorLuck = summary.majorLuck || {};
   const current = majorLuck.currentCycle || null;
   const yearly = asArray(summary.yearlyLuck);
+  const judgement = summary.luckJudgement || {};
+  const natal = judgement.natal || null;
   return [
     group("core", [
       // 네 기둥을 다 실으면 본문이 연·월·일·시주를 그대로 나열한다(R2). 해석의 축인 일주만 둔다.
@@ -122,12 +130,15 @@ function sajuGroups(summary) {
       item("격국 판단", summary.gyeokgukReason),
       item("용신", summary.usefulGod),
       item("기신", summary.unfavorableGod),
+      item("용신 판단", natal?.yongsin ? `${natal.yongsin.method} → ${natal.yongsin.yongsin}${natal.yongsin.reason ? ` (${natal.yongsin.reason})` : ""}` : ""),
     ]),
     group("strength", [
       item("오행 분포", countLine(summary.fiveElements) || summary.fiveElements),
       item("십성 분포", countLine(summary.tenGods) || summary.tenGods),
       item("조후", seasonLine(summary.seasonalBalance)),
       item("원국 합충", interactionLine(summary.natalInteractions)),
+      item("온도·습도 판정", natal?.climate ? `${natal.climate.type}${natal.climate.severity ? `(${natal.climate.severity})` : ""}: ${natal.climate.summary || ""}` : ""),
+      item("천간 짝", asArray(natal?.stemPairs).join(" · ")),
     ]),
     group("topic", [
       item("가장 강한 십성", asArray(summary.strongestTenGods).map((entry) => valuesOf(entry)).filter(Boolean).join(" · ")),
@@ -138,6 +149,8 @@ function sajuGroups(summary) {
       item("대운 흐름", asArray(majorLuck.cycles).filter((cycle) => cycle?.pillar).map((cycle) => `${cycle.pillar}(${cycle.startAge ?? "?"}세~${cycle.stemTenGod ? `, ${cycle.stemTenGod}` : ""})`).join(" · ")),
       item("올해 세운", yearly[0] ? `${yearly[0].year || ""}년 ${yearly[0].pillar || ""}${yearly[0].stemTenGod ? ` (${yearly[0].stemTenGod})` : ""}`.trim() : ""),
       item("다가오는 세운", yearly.slice(1).filter((entry) => entry?.pillar).map((entry) => `${entry.year || ""}년 ${luckPillar(entry)}`.trim()).join(" · ")),
+      item("현재 대운 판정", luckJudgementLine(judgement.daeun)),
+      item("올해 운 판정", luckJudgementLine(judgement.year)),
     ]),
     compatGroup("saju", summary.compat),
   ];

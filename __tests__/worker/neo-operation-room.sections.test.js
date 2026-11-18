@@ -295,3 +295,28 @@ describe("R2 어조 단일화", () => {
     expect(prompt).toContain("습니다");
   });
 });
+
+describe("S15 사주 운 판정 연결", () => {
+  test("summarizeSaju 는 원국 판정과 현재 대운·올해 판정만 싣고, 규칙은 사주 프롬프트에만 들어간다", async () => {
+    const { __neoOperationRoomTestUtils } = await import("../../worker/routes/neo-operation-room.js");
+    const { calculateLifeBookAiSaju } = await import("../../worker/lib/life-book-ai-saju.js");
+    const { SAJU_LUCK_JUDGEMENT_RULE } = await import("../../worker/lib/saju-temperament.js");
+    const chart = calculateLifeBookAiSaju({ birthDate: "1990-03-15", birthTime: "10:30", gender: "male", calendarType: "solar" });
+    const summary = __neoOperationRoomTestUtils.summarizeSaju(chart);
+    const lj = summary.luckJudgement;
+    expect(lj.natal.yongsin.reason).toBeTruthy();
+    expect(lj.daeun.pillar).toBe(summary.majorLuck.currentCycle.pillar.slice(0, 2));
+    expect(lj.year.pillar).toBe(summary.yearlyLuck[0].pillar.slice(0, 2));
+    expect(Object.keys(lj).sort()).toEqual(["daeun", "natal", "year"]);
+    const ctx = { ...sajuCtx, methodSummary: summary };
+    const items = (key) => buildNeoBasisPayload(summary).groups.find((g) => g.key === key).items.map((i) => i.label);
+    expect(items("core")).toContain("용신 판단");
+    expect(items("timing")).toEqual(expect.arrayContaining(["현재 대운 판정", "올해 운 판정"]));
+    expect(items("core")).not.toContain("올해 운 판정");
+    const timing = buildNeoInitialSectionPrompt(NEO_INITIAL_SECTIONS.find((s) => s.id === "topicTiming"), ctx);
+    expect(timing).toContain(SAJU_LUCK_JUDGEMENT_RULE);
+    expect(timing).toContain(lj.year.verdict);
+    const ziwei = buildNeoInitialSectionPrompt(NEO_INITIAL_SECTIONS.find((s) => s.id === "topicTiming"), { ...input, methodSummary: { method: "ziwei" } });
+    expect(ziwei).not.toContain(SAJU_LUCK_JUDGEMENT_RULE);
+  });
+});

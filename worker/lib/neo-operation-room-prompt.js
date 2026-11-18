@@ -8,7 +8,10 @@ import { REASONING_OUTPUT_RULE_LINES } from "./fortune-reasoning-contract.js";
 import { escapeRawControlCharsInJsonStrings } from "./json-text-repair.js";
 import { buildZiweiPersonalityContextLines } from "./ziwei-personality-context.js";
 import { neoRelationshipStatusFocus, normalizeTopicKey } from "./neo-operation-room-compat.js";
-import { sajuTemperamentPromptLines } from './saju-temperament.js';
+import { sajuTemperamentPromptLines, SAJU_LUCK_JUDGEMENT_RULE } from './saju-temperament.js';
+
+// S15: 운 판정(luckJudgement)이 실린 사주 확정값에만 공통 전달 규칙을 붙인다.
+const sajuLuckRuleLines = (summary) => (summary?.luckJudgement ? [SAJU_LUCK_JUDGEMENT_RULE] : []);
 import { followupSolutionPromptLines } from './followup-solution-prompt.js';
 
 const METHOD_LABELS = Object.freeze({
@@ -264,7 +267,7 @@ export function buildNeoOperationRoomInitialPrompt(input, methodSummary) {
     "",
     "[계산 확정값]",
     JSON.stringify(methodSummary || {}),
-    ...(selectedMethod === 'saju' ? sajuTemperamentPromptLines(methodSummary) : []),
+    ...(selectedMethod === 'saju' ? [...sajuTemperamentPromptLines(methodSummary), ...sajuLuckRuleLines(methodSummary)] : []),
     "",
     "[선택 술수 작성 지침]",
     JSON.stringify(writingGuide),
@@ -517,7 +520,7 @@ export function buildNeoOperationRoomRefinedPrompt(consultation, realityCheck, p
     "",
     "[계산 확정값]",
     JSON.stringify(consultation?.methodSummary || {}),
-    ...(selectedMethod === 'saju' ? sajuTemperamentPromptLines(consultation?.methodSummary) : []),
+    ...(selectedMethod === 'saju' ? [...sajuTemperamentPromptLines(consultation?.methodSummary), ...sajuLuckRuleLines(consultation?.methodSummary)] : []),
     "",
     "[선택 술수 작성 지침]",
     JSON.stringify(writingGuide),
@@ -825,6 +828,8 @@ function neoBasisLines(section, ctx) {
       ? [...sajuTemperamentPromptLines(ctx.methodSummary),
         ...(ctx.methodSummary?.compat?.partnerDigest
           ? ['[상대의 성향: 상대 명식의 제공 범위만 사용]',...sajuTemperamentPromptLines(ctx.methodSummary.compat.partnerDigest)] : [])] : []),
+    ...(ctx.selectedMethod === 'saju' && (section.basisGroups === '*' || ['core', 'timing'].some((key) => safeArray(section.basisGroups).includes(key)))
+      ? sajuLuckRuleLines(ctx.methodSummary) : []),
     ...(hidesTiming ? ["이 챕터에는 시기 흐름 표가 없다. 대운·세운·유년·다샤·트랜짓의 간지나 십성, 날짜를 새로 꺼내거나 추측하지 않는다. 시기 판단은 '주제 시기 흐름' 챕터가 맡는다."] : []),
     ...(labels.length ? ["", `[인용 가능한 항목명] ${labels.join(", ")}`] : []),
   ];
