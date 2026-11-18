@@ -10,6 +10,7 @@ export type NeoResultCopyKey =
   | "loginRequiredError"
   | "notFoundError"
   | "pollTimeoutError"
+  | "generationFailedRefundError"
   | "refineMissingAnswerError"
   | "refineGenericError"
   | "refinePendingError"
@@ -97,6 +98,7 @@ const NEO_RESULT_COPY_KO: NeoResultCopyTable = {
   loginRequiredError: "로그인이 필요하다.",
   notFoundError: "작전 명령서를 찾지 못했다.",
   pollTimeoutError: "작전 브리핑 생성이 평소보다 오래 걸리고 있다. 이용권은 그대로 유지되니, 잠시 후 새로고침해라.",
+  generationFailedRefundError: "작전 브리핑을 끝내 완성하지 못했다. 이번에 쓴 이용권·월정석은 자동으로 복구되고, 카드로 결제했다면 결제 금액이 자동으로 환불된다. 확인하고 다시 시도해라.",
   refineMissingAnswerError: "체크 답변을 고르거나 현재 상황을 조금 더 적어라.",
   refineGenericError: "수정 작전 명령서 작성에 실패했다.",
   refinePendingError: "수정 작전 명령서를 아직 작성 중이다. 잠시 후 새로고침해라.",
@@ -183,6 +185,7 @@ const NEO_RESULT_COPY_EN: NeoResultCopyTable = {
   loginRequiredError: "You need to log in.",
   notFoundError: "Couldn't find the operation order.",
   pollTimeoutError: "The operation briefing is taking longer than usual to generate. Your pass stays intact — refresh shortly.",
+  generationFailedRefundError: "NEO could not finish the operation briefing. The pass or Moonstones you used are restored automatically, and a card payment is refunded automatically. Check, then try again.",
   refineMissingAnswerError: "Pick a reality-check answer, or write a bit more about your situation.",
   refineGenericError: "Writing the revised operation order failed.",
   refinePendingError: "The revised operation order is still being written. Refresh shortly.",
@@ -269,6 +272,7 @@ const NEO_RESULT_COPY_JA: NeoResultCopyTable = {
   loginRequiredError: "ログインが必要だ。",
   notFoundError: "作戦命令書が見つからなかった。",
   pollTimeoutError: "作戦ブリーフィングの生成にいつもより時間がかかっている。利用券はそのまま維持されるので、しばらくして更新しろ。",
+  generationFailedRefundError: "作戦ブリーフィングを最後まで完成できなかった。使った利用券・月光石は自動で復元され、カード決済なら決済金額が自動で返金される。確認してもう一度試せ。",
   refineMissingAnswerError: "チェック回答を選ぶか、今の状況をもう少し書け。",
   refineGenericError: "修正作戦命令書の作成に失敗した。",
   refinePendingError: "修正作戦命令書はまだ作成中だ。しばらくして更新しろ。",
@@ -355,6 +359,7 @@ const NEO_RESULT_COPY_ZH_CN: NeoResultCopyTable = {
   loginRequiredError: "需要登录。",
   notFoundError: "未能找到作战命令书。",
   pollTimeoutError: "作战简报生成耗时比平时更长。通行券会照常保留，请稍后刷新。",
+  generationFailedRefundError: "未能完成作战简报。本次使用的通行券、月光石会自动恢复；若用银行卡付款，款项会自动退还。请确认后重试。",
   refineMissingAnswerError: "请选择检验答案，或再写一些现在的情况。",
   refineGenericError: "修正作战命令书撰写失败。",
   refinePendingError: "修正作战命令书仍在撰写中，请稍后刷新。",
@@ -441,6 +446,7 @@ const NEO_RESULT_COPY_ZH_TW: NeoResultCopyTable = {
   loginRequiredError: "需要登入。",
   notFoundError: "未能找到作戰命令書。",
   pollTimeoutError: "作戰簡報產生耗時比平時更長。通行券會照常保留，請稍後重新整理。",
+  generationFailedRefundError: "未能完成作戰簡報。本次使用的通行券、月光石會自動恢復；若以信用卡付款，款項會自動退還。請確認後重試。",
   refineMissingAnswerError: "請選擇檢驗答案，或再寫一些現在的狀況。",
   refineGenericError: "修正作戰命令書撰寫失敗。",
   refinePendingError: "修正作戰命令書仍在撰寫中，請稍後重新整理。",

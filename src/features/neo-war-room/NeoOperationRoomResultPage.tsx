@@ -495,6 +495,7 @@ export default function NeoOperationRoomResultPage({ availability, paymentSurfac
       }
       setError("");
       if (paymentSurface === "toss") { setSession(null); setLoading(true); }
+      let phase: "briefing" | "refinement" = "briefing";
       try {
         let data = await receiveNeoBriefing<NeoResultSession>(attemptId, partial => {
           if (!isCurrent()) return;
@@ -504,6 +505,7 @@ export default function NeoOperationRoomResultPage({ availability, paymentSurfac
         if (!isCurrent()) return;
         setSession(data);
         if (data.refinementStatus === "generating" && data.sessionId) {
+          phase = "refinement";
           data = await receiveNeoBriefing<NeoResultSession>(data.sessionId, partial => { if (isCurrent()) setSession(partial); }, isCurrent, "", "refinement", paymentSurface === "toss" ? "toss" : "web");
           if (!isCurrent()) return;
           setSession(data);
@@ -518,12 +520,16 @@ export default function NeoOperationRoomResultPage({ availability, paymentSurfac
         const accessDenied = ["ORDER_REFUNDED", "ORDER_MISMATCH", "REQUEST_INPUT_MISMATCH"].includes(code);
         const tossDenied = paymentSurface === "toss" && neoTossAccessError(caught);
         if (paymentSurface === "toss") { accessEpoch.current += 1; setSession(null); setSelectedChecks([]); setFreeform(""); setShowRealityForm(false); setRefining(false); setPdfLoading(false); setExportExpand(false); }
-        setError(code === "LOGIN_REQUIRED" || tossDenied === "LOGIN_REQUIRED" ? resultCopy.loginRequiredError : tossDenied ? getNeoBookCopy(dialogueLocale).unavailable : accessDenied ? getNeoErrorCopy("PAYMENT_VERIFY_FAILED", dialogueLocale) : resultCopy.pollTimeoutError);
+        // 2026-11-18 S3-H: 1차 브리핑이 서버에서 실패로 종결되면(generation_failed — 서버가 이용권·월정석·카드 결제를 자동으로 되돌린다)
+        // '오래 걸린다'가 아니라 실패·환불 안내를 띄우고 부분 본문을 거둔다. 진행 중(GENERATION_PENDING)·2차 점검 실패·토스 표면은 기존 안내 그대로.
+        const generationEnded = phase === "briefing" && paymentSurface !== "toss" && ["LLM_ERROR", "CALCULATION_ERROR"].includes(code);
+        if (generationEnded) { setSession(null); setShowRealityForm(false); }
+        setError(code === "LOGIN_REQUIRED" || tossDenied === "LOGIN_REQUIRED" ? resultCopy.loginRequiredError : tossDenied ? getNeoBookCopy(dialogueLocale).unavailable : accessDenied ? getNeoErrorCopy("PAYMENT_VERIFY_FAILED", dialogueLocale) : generationEnded ? resultCopy.generationFailedRefundError : resultCopy.pollTimeoutError);
       }
     }
     void loadResult();
     return () => { cancelled = true; };
-  }, [attemptId, localPreviewMode, recoveryEpoch, captureAccess, resultCopy.loginRequiredError, resultCopy.pollTimeoutError, availability, dialogueLocale, paymentSurface]);
+  }, [attemptId, localPreviewMode, recoveryEpoch, captureAccess, resultCopy.loginRequiredError, resultCopy.pollTimeoutError, resultCopy.generationFailedRefundError, availability, dialogueLocale, paymentSurface]);
 
   async function handleRefine() {
     const isCurrent = captureAccess();

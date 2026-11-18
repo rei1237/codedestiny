@@ -86,3 +86,52 @@ test('actual neo input-page recover effect redirects an abandoned pending sessio
   assert.ok(assigned.every(url => url === '/neo-operation-room/result?attemptId=abandoned-neo-session'));
   cleanup(); assert.equal(handlers.size, 0);
 });
+
+// 2026-11-18 S3-H: 1차 브리핑 생성이 서버에서 실패로 종결되면(자동 환불) '오래 걸린다' 대신 실패·환불 안내를 띄우고
+// 부분 본문을 거둔다. 아직 진행 중(GENERATION_PENDING)·2차 점검 실패·토스 표면은 기존 안내를 유지한다.
+function resultLoadHarness(script, surface = 'web') {
+  const effect = extractEffect('src/features/neo-war-room/NeoOperationRoomResultPage.tsx', 'receiveNeoBriefing<NeoResultSession>(attemptId');
+  const errors = [], sessions = [];
+  let call = 0;
+  const context = {
+    availability: null, localPreviewMode: '', paymentSurface: surface, attemptId: 'neo-1', accessEpoch: { current: 0 },
+    captureAccess: () => () => true,
+    receiveNeoBriefing: async (_id, onProgress) => { const step = script[call++]; onProgress(step.progress); if (step.fail) throw new (vm.runInContext('Error', context))(step.fail); return step.result; },
+    neoTossAccessError: () => '',
+    getNeoBookCopy: () => ({ unavailable: 'toss-unavailable' }),
+    getNeoErrorCopy: code => `error:${code}`,
+    resultCopy: { loginRequiredError: 'login', pollTimeoutError: 'pending-delay', generationFailedRefundError: 'failed-refund' },
+    dialogueLocale: 'ko',
+    window: { history: { replaceState() {} } },
+    setError: value => errors.push(value), setSession: value => sessions.push(value), setLoading: () => {},
+    setSelectedChecks() {}, setFreeform() {}, setShowRealityForm() {}, setRefining() {}, setPdfLoading() {}, setExportExpand() {},
+  };
+  const transpiled = ts.transpileModule('(' + effect + ')()', { compilerOptions: { target: ts.ScriptTarget.ES2022 } }).outputText;
+  vm.runInNewContext(transpiled, context);
+  return { errors: () => errors.filter(Boolean), sessions, settle: async () => { for (let i = 0; i < 10; i++) await new Promise(resolve => setImmediate(resolve)); } };
+}
+const partial = { ok: true, sessionId: 'neo-1', status: 'partial', initialBriefing: { operationTitle: '부분' } };
+for (const code of ['LLM_ERROR', 'CALCULATION_ERROR']) test(`neo result page shows the failure and automatic refund notice when the initial briefing ends ${code}, and withdraws the partial`, async () => {
+  const h = resultLoadHarness([{ progress: partial, fail: code }]);
+  await h.settle();
+  assert.deepEqual(h.errors(), ['failed-refund']);
+  assert.equal(h.sessions.at(-1), null);
+});
+test('neo result page keeps the partial and the delay notice while the server is still generating', async () => {
+  const h = resultLoadHarness([{ progress: partial, fail: 'GENERATION_PENDING' }]);
+  await h.settle();
+  assert.deepEqual(h.errors(), ['pending-delay']);
+  assert.equal(h.sessions.at(-1), partial);
+});
+test('neo reality-check failure never withdraws the delivered briefing or promises a refund', async () => {
+  const delivered = { ok: true, sessionId: 'neo-1', status: 'completed', refinementStatus: 'generating', initialBriefing: { operationTitle: '완료' } };
+  const h = resultLoadHarness([{ progress: delivered, result: delivered }, { progress: delivered, fail: 'LLM_ERROR' }]);
+  await h.settle();
+  assert.deepEqual(h.errors(), ['pending-delay']);
+  assert.notEqual(h.sessions.at(-1), null);
+});
+test('neo Toss surface does not promise the web refund on a failed briefing', async () => {
+  const h = resultLoadHarness([{ progress: partial, fail: 'LLM_ERROR' }], 'toss');
+  await h.settle();
+  assert.equal(h.errors().includes('failed-refund'), false);
+});

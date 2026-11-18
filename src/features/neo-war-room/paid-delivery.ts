@@ -63,7 +63,7 @@ export async function receiveNeoBriefing<T extends { ok?: boolean; sessionId?: s
     } catch (error) {
       const denied = paymentSurface === "toss" ? neoTossAccessError(error) : "";
       if (denied) throw new Error(denied);
-      if (error instanceof Error && ["ACCOUNT_CHANGED", "GENERATION_PENDING", "LOGIN_REQUIRED", "PAYMENT_VERIFY_FAILED", "RESULT_NOT_FOUND", "LLM_ERROR", "ORDER_REFUNDED", "ORDER_MISMATCH", "REQUEST_INPUT_MISMATCH", ...(paymentSurface === "toss" ? ["ACCESS_DENIED", "TOSS_ACCESS_DENIED", "ORDER_NOT_PAID", "ORDER_OWNERSHIP_MISMATCH", "PAYMENT_REVOKED", "RESULT_NOT_AVAILABLE"] : [])].includes(error.message)) throw error;
+      if (error instanceof Error && ["ACCOUNT_CHANGED", "GENERATION_PENDING", "LOGIN_REQUIRED", "PAYMENT_VERIFY_FAILED", "RESULT_NOT_FOUND", "LLM_ERROR", "CALCULATION_ERROR", "ORDER_REFUNDED", "ORDER_MISMATCH", "REQUEST_INPUT_MISMATCH", ...(paymentSurface === "toss" ? ["ACCESS_DENIED", "TOSS_ACCESS_DENIED", "ORDER_NOT_PAID", "ORDER_OWNERSHIP_MISMATCH", "PAYMENT_REVOKED", "RESULT_NOT_AVAILABLE"] : [])].includes(error.message)) throw error;
       failures += 1;
     }
     if (failures >= 6) throw new Error("GENERATION_PENDING");
