@@ -40,3 +40,24 @@ test("payment runtime gate is prewarmed from the app-wide provider (covers scree
   assert.match(prewarmSection, /focusin/);
   assert.doesNotMatch(prewarmSection, /requestIdleCallback|setTimeout/);
 });
+
+// S6(2026-11-18 실측): 모바일 PG 는 결제를 시작한 React 화면 URL 로 되돌아오는데, 런타임이 클릭 때만
+// 실행돼 /life-book-ai/ 복귀 문서에서 destiny-profile.js 요청이 0건이었다 — 주문 확정·결과 재개가 멈춘다.
+const returnStart = providerSource.indexOf("const PAYMENT_RETURN_QUERY_RE");
+const returnEnd = providerSource.indexOf("export function PaymentProcessingProvider", returnStart);
+const returnHelper = providerSource.slice(returnStart, returnEnd);
+const returnEffectStart = providerSource.indexOf("if (!isPaymentReturnDocument()) return;");
+const returnEffect = providerSource.slice(returnEffectStart, providerSource.indexOf("}, [profileOnly]);", returnEffectStart));
+
+test("PG return documents execute the payment runtime immediately; ordinary visits and /points do not", () => {
+  assert.ok(returnStart >= 0 && returnEffectStart >= 0, "payment-return runtime loader not found");
+  const returnQuery = /const PAYMENT_RETURN_QUERY_RE = \/(.+)\/;/.exec(providerSource);
+  assert.ok(returnQuery, "return query pattern not found");
+  const pattern = new RegExp(returnQuery[1]);
+  for (const search of ["?portone_redirect=1&paymentId=a", "?paid_pass_resume=1", "?x=1&imp_uid=b"]) assert.match(search, pattern);
+  for (const search of ["", "?utm_source=x", "?attemptId=abc"]) assert.doesNotMatch(search, pattern);
+  assert.ok(returnHelper.includes("/^\\/points(?:\\/|$)/.test(window.location.pathname)) return false;"), "/points must stay excluded");
+  assert.match(returnHelper, /cd_direct_payment_resume/);
+  assert.match(returnHelper, /merchantUid && ticket\?\.confirmBody/);
+  assert.match(returnEffect, /loadPaidServiceRuntimeGate\(\)/);
+});

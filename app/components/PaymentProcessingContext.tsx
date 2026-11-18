@@ -1151,6 +1151,26 @@ function PaidFeatureGateProvider({ children }: PaymentProcessingProviderProps) {
   );
 }
 
+const PAYMENT_RETURN_QUERY_RE = /[?&](?:portone_redirect|paid_pass_resume|paymentId|payment_id|imp_uid)=/;
+const DIRECT_PAYMENT_RESUME_KEY = "cd_direct_payment_resume";
+const DIRECT_PAYMENT_RESUME_TTL_MS = 30 * 60 * 1000;
+
+// js/destiny-profile.js 의 복귀 판정(쿼리 신호 또는 TTL 안의 단건 티켓)과 같은 조건이다.
+function isPaymentReturnDocument(): boolean {
+  if (/^\/points(?:\/|$)/.test(window.location.pathname)) return false;
+  if (PAYMENT_RETURN_QUERY_RE.test(window.location.search)) return true;
+  const stores: Storage[] = [];
+  try { stores.push(window.sessionStorage); } catch { /* storage blocked */ }
+  try { stores.push(window.localStorage); } catch { /* storage blocked */ }
+  return stores.some(store => {
+    try {
+      const ticket = JSON.parse(store.getItem(DIRECT_PAYMENT_RESUME_KEY) || "null");
+      const age = Date.now() - (Number(ticket?.at) || 0);
+      return Boolean(ticket?.merchantUid && ticket?.confirmBody) && age >= 0 && age <= DIRECT_PAYMENT_RESUME_TTL_MS;
+    } catch { return false; }
+  });
+}
+
 export function PaymentProcessingProvider({
   children,
 }: PaymentProcessingProviderProps) {
@@ -1225,6 +1245,23 @@ export function PaymentProcessingProvider({
         idleWindow.cancelIdleCallback(idleHandle);
       }
     };
+  }, [profileOnly]);
+
+  // 모바일 PG 는 결제를 시작한 화면 URL(+portone_redirect=1)로 상위 프레임을 되돌린다. React 기능 화면은
+  // 결제 런타임을 클릭 때만 실행하므로, 복귀 문서에서 아무도 런타임을 실행하지 않으면 주문 확정과
+  // usePaidResume 핸들러가 돌지 않아 결제 직후 입력 폼만 보인다(2026-11-18 실측: /life-book-ai/ 복귀 시
+  // destiny-profile.js 요청 0건). 복귀 쿼리나 살아 있는 단건 티켓이 있을 때만 즉시 실행한다 — 확정·재개·
+  // /points 제외 판정은 런타임이 스스로 한다.
+  useEffect(() => {
+    if (typeof window === "undefined" || profileOnly) return;
+    if (!isPaymentReturnDocument()) return;
+    let cancelled = false;
+    void import("../_lib/billing-client")
+      .then(({ loadPaidServiceRuntimeGate }) => (cancelled ? null : loadPaidServiceRuntimeGate()))
+      .catch(() => {
+        // 로드 실패 시에도 서버 재조정 크론과 다음 방문의 티켓 폴백이 확정을 이어 간다.
+      });
+    return () => { cancelled = true; };
   }, [profileOnly]);
 
   // First-paint resources take priority over the optional payment runtime download.
