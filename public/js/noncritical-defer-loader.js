@@ -146,6 +146,9 @@
   function isFeatureIntentEvent(event) {
     var target = event && event.target;
     if (!target || !(target instanceof Element)) return false;
+    // This checkout owns its styles; do not activate unrelated feature CSS on mobile.
+    // Result calculation prepares fortune-ui explicitly, and the idle fallback stays intact.
+    if (target.closest('.cd-bundle-offer__pay[data-action="unlockPremiumFeature"][data-unlock-key="saju_lifetime_bundle"]')) return false;
     return !!target.closest('[data-action], [data-touchend-action], .tarot-tile, .feature-card, .feat-collection-toggle, .fc-toggle-btn, #dpMasterCard');
   }
 
