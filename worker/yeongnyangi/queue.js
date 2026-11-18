@@ -42,6 +42,18 @@ export async function enqueueConsultation(env, row) {
   }
 }
 
+// Waiting for a backoff or another worker's lease is not a failure: ack and publish a delayed copy so it never
+// spends max_retries (S9-Y). Without the binding or when publishing fails, the old retry keeps the message.
+const MAX_QUEUE_DELAY_SECONDS = 43200;
+async function deferUntilDue(env, message, id, due) {
+  const delaySeconds = Math.min(MAX_QUEUE_DELAY_SECONDS, Math.max(1, Math.ceil((due-Date.now())/1000)));
+  if (env?.YEONGNYANGI_QUEUE) {
+    try { await env.YEONGNYANGI_QUEUE.send({requestId:id}, {delaySeconds}); message.ack(); return; }
+    catch { console.warn('[yeongnyangi-queue]', JSON.stringify({requestId:id,outcome:'defer_send_failed'})); }
+  }
+  message.retry({delaySeconds});
+}
+
 export async function consumeConsultationQueue(batch, env, dependencies = {}) {
   const service = dependencies.service || await import('./service');
   const read = dependencies.read || (async id => {
@@ -58,7 +70,7 @@ export async function consumeConsultationQueue(batch, env, dependencies = {}) {
       if (!hasRequestAccess(row)) row = await service.activateFortune(env,String(row.userId),id);
       if (terminal(row)) { message.ack(); continue; }
       const due = Math.max(new Date(row.nextAttemptAt || 0).getTime(), new Date(row.leaseUntil || 0).getTime());
-      if (due > Date.now()) { message.retry({delaySeconds:Math.max(1,Math.ceil((due-Date.now())/1000))}); continue; }
+      if (due > Date.now()) { await deferUntilDue(env, message, id, due); continue; }
       row = await service.generateNextChapter(env,String(row.userId),id,'queue');
       if (!terminal(row)) {
         // Requeue after *every* saved chapter. No single invocation owns a book.

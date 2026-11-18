@@ -139,7 +139,7 @@ test('recovery plan preserves legacy delivered content and fails closed on payme
  assert.equal(JSON.stringify(row),before);
 });
 
-test('a summary restating an earlier chapter is caught, replaced by the chapter\'s own opening, and regenerated only when nothing new is left',()=>{
+test('a summary restating an earlier chapter is caught, replaced by the chapter\'s own opening, and falls back to that opening when nothing new is left',()=>{
  // T rerun 2026-10-10 ch3/ch4: the same conclusion reworded (whole 0.70).
  const earlier='지금 회사에 남아 사내 이동을 노리는 게 너의 핵심 가치와 현실적인 제약에 더 잘 맞아. 이직은 새로운 가능성이 있지만, 준비 과정에서 예상치 못한 복잡함에 휘말리거나 고립될 위험이 더 크다고 해.';
  const restated='지금 회사에 남아 사내 이동을 노리는 게 너의 핵심 가치와 현실적인 제약에 더 잘 맞을 수 있어. 이직은 새로운 가능성이 있지만, 혼자 감당해야 할 부담과 고립될 위험이 더 크다고 해.';
@@ -169,7 +169,43 @@ test('a summary restating an earlier chapter is caught, replaced by the chapter\
  const lifted=m.deliverChapter(joined,{...input,previous});
  assert.doesNotMatch(lifted.summary,/^하지만/);
  assert.ok(lifted.blocks.flatMap(b=>b.paragraphs).some(p=>p===`하지만 ${lifted.summary}`||p.startsWith(`하지만 ${lifted.summary}`)),'the connective is the only edit');
- assert.throws(()=>m.deliverChapter(raw,{...input,previous:[...previous,...paragraphs.map(summary=>({summary,example:'',topics:[]}))]}),{code:'CHAPTER_SUMMARY_REPEATED'});
+ // S9-Y: a summary is a format detail, never a reason to withhold or regenerate a paid chapter (principle 17).
+ const exhausted=m.deliverChapter(raw,{...input,previous:[...previous,...paragraphs.map(summary=>({summary,example:'',topics:[]}))]});
+ assert.equal(exhausted.complete,true);assert.ok(exhausted.summary);
+ assert.ok(paragraphs.some(p=>p.startsWith(exhausted.summary)),'the fallback is still this chapter\'s own opening');
+ assert.equal(chapterDeliveryFailure(exhausted,input.chapter),'');
+});
+
+test('S9-Y: misordered or split section blocks are put back in section order instead of buying another call',()=>{
+ const raw=complete(),[a,b,...rest]=raw.blocks,sections=input.chapter.sections.map(s=>s.id);
+ const extra='이 소절에서 덧붙일 점은 지금 맡은 역할의 우선순위를 다시 정하고 한 주 단위로 달라진 점을 적어 두는 일입니다.';
+ const swapped=m.deliverChapter({...raw,blocks:[b,a,...rest]},input);
+ assert.deepEqual(swapped.blocks.map(x=>x.id),sections);assert.deepEqual(swapped.blocks,raw.blocks);
+ const split=m.deliverChapter({...raw,blocks:[a,b,...rest,{id:a.id,title:'',paragraphs:[extra],sources:[]},
+  {id:'stray',title:'남는 소절',paragraphs:['정해진 소절이 아닌 곳에 쓴 문단은 배치할 곳이 없어 전달하지 않습니다.'],sources:[]}]},input);
+ assert.deepEqual(split.blocks.map(x=>x.id),sections);
+ assert.deepEqual(split.blocks[0].paragraphs,[...a.paragraphs,extra]);
+ assert.equal(chapterDeliveryFailure(split,input.chapter),'');
+ assert.equal(raw.blocks[0],a,'alignment does not mutate the provider response');
+ // A missing section is still never invented.
+ assert.throws(()=>m.deliverChapter({...raw,blocks:[b,a,...rest].slice(1)},input));
+});
+
+test('S9-Y: pruning copies of earlier chapters never empties a section; its first paragraph stays',()=>{
+ const raw=complete(),copied=raw.blocks[4].paragraphs;
+ const previous=[{summary:'앞 장',example:'',topics:[],blocks:[{id:'x',title:'t',paragraphs:copied}]}];
+ const delivered=m.deliverChapter(raw,{...input,previous});
+ assert.deepEqual(delivered.blocks.map(b=>b.id),input.chapter.sections.map(s=>s.id));
+ assert.deepEqual(delivered.blocks[4].paragraphs,copied);
+ assert.equal(chapterDeliveryFailure(delivered,input.chapter),'');
+});
+
+test('S9-Y: near-copy pruning looks back six chapters; older chapters keep only the exact-copy check',()=>{
+ const raw=complete(),near=p=>p.split('. ').slice(0,-1).join('. ')+'.';
+ const old={summary:'오래된 장의 결론',example:'',topics:[],blocks:[{id:'x',title:'t',paragraphs:raw.blocks[0].paragraphs.map(near)}]};
+ const filler=Array.from({length:6},(_,i)=>({summary:`중간 장 ${i}의 결론`,example:'',topics:[],blocks:[]}));
+ assert.deepEqual(m.deliverChapter(raw,{...input,previous:[old,...filler]}).blocks[0].paragraphs,raw.blocks[0].paragraphs);
+ assert.ok(m.deliverChapter(raw,{...input,previous:[...filler,old]}).blocks[0].paragraphs.length<raw.blocks[0].paragraphs.length);
 });
 
 test('D8: tier timeouts and leases follow the delivery table only for orders carrying the timeout policy',()=>{

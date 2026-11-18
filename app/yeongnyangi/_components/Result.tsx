@@ -9,7 +9,7 @@ import {friendlyErrorMessage} from '@/app/_lib/friendly-error';
 import {chromeCopy} from '../_lib/chrome-copy';
 import {resolveCheckoutPolicyHrefs} from '@/app/checkout/checkout-copy';
 import {readingCopy} from '../_lib/reading-copy';
-import {resultStateCopy,deliveryRefundCopy} from '../_lib/result-state-copy';
+import {resultStateCopy,deliveryRefundCopy,autoRefundCopy,heldRefundHint} from '../_lib/result-state-copy';
 import {readingLanguageNames} from '@/worker/yeongnyangi/fortune/reading-locale';
 import {formatAskRange} from '@/worker/yeongnyangi/fortune/ask/period';
 import ReadingBook from './ReadingBook';
@@ -90,6 +90,10 @@ const RESULT_POLL_MS=1500;
 const PAY_CHECK_LIMIT=Math.ceil(180000/RESULT_POLL_MS);
 // 멈춤·보류 주문은 서버(크론·운영자)가 이어서 완성한다. 창을 열어 둔 구매자도 새로고침 없이 넘어가도록 느리게 계속 확인한다.
 const HELD_POLL_MS=30000;
+// A generating order that shows no new chapter backs off to this interval; any progress resets it to RESULT_POLL_MS.
+const IDLE_POLL_MAX_MS=6000;
+// The server keeps these holds moving on its own (stored draft, one final retry, then the automatic refund) (S9-Y).
+const heldRefundable=(row:FortuneRecord)=>['GENERATION_REVIEW_REQUIRED','AUTOMATIC_RECOVERY_STOPPED'].includes(row.errorCode||'');
 function sameRequest(fortune:FortuneRecord,id:string){
  if(fortune.id!==id||(fortune.recovery?.requestId&&fortune.recovery.requestId!==id))throw new FortuneApiError('RECOVERY_ID_MISMATCH','원래 상담과 복구 응답이 일치하지 않아요. 다시 결제하지 말고 주문번호와 함께 문의해 주세요.',409,false);
  return fortune;
@@ -98,7 +102,7 @@ export default function Result({paymentSurface}:{paymentSurface?:"toss"}={}){
  const {siteLocale}=useReadingLanguage();
  const siteLanguage=useRef(siteLocale);siteLanguage.current=siteLocale;
  const [row,setRow]=useState<FortuneRecord|null>(null),[error,setError]=useState(''),[busy,setBusy]=useState(false);
- const lock=useRef(false),mounted=useRef(true),permissionEpoch=useRef(0);
+ const lock=useRef(false),mounted=useRef(true),permissionEpoch=useRef(0),idlePolls=useRef({key:'',count:0});
  const [reload,setReload]=useState(0);
  const [ritualGate,setRitualGate]=useState<{id:string;done:boolean}|null>(null);
  const requestId=useRef('');
@@ -177,13 +181,15 @@ export default function Result({paymentSurface}:{paymentSurface?:"toss"}={}){
   if(!row?.paid || ['COMPLETED','REFUNDED','AWAITING_FOLLOWUP'].includes(row.state) || row.errorCode==='PAYMENT_NOT_ACTIVE')return;
   const held=['GENERATION_REVIEW_REQUIRED','AUTOMATIC_RECOVERY_STOPPED','ASK_LIMITED_REVIEW_REQUIRED','DELIVERY_REFUND_PENDING'].includes(row.errorCode || '');
   let cancelled=false;
+  const progress=`${row.state}:${row.chapters.length}:${row.errorCode||''}`,idle=idlePolls.current;
+  idle.count=idle.key===progress?idle.count+1:0;idle.key=progress;
   const timer=setTimeout(async()=>{
    const permission=paymentSurface==='toss'?++permissionEpoch.current:0;
    try{
     const {fortune}=await fortuneApi<{fortune:FortuneRecord}>(`requests/${row.id}`);
     if(!cancelled&&(paymentSurface!=='toss'||permission===permissionEpoch.current)){setRow(sameRequest(fortune,row.id));setError('');}
    }catch(e){if(!cancelled&&(paymentSurface!=='toss'||permission===permissionEpoch.current)){if(hideDeniedTossResult(e)){if(e instanceof FortuneApiError&&e.status===401)loginForCurrentPage();}else if(e instanceof FortuneApiError&&e.status===401)loginForCurrentPage();else {setError(resultStateCopy(row.locale).pollFailed);setRow({...row});}}}
-  },held?HELD_POLL_MS:RESULT_POLL_MS);
+  },held?HELD_POLL_MS:Math.min(IDLE_POLL_MAX_MS,RESULT_POLL_MS*2**Math.min(idle.count,2)));
   return ()=>{cancelled=true;clearTimeout(timer);};
  },[row]);
  useEffect(()=>{
@@ -234,8 +240,8 @@ export default function Result({paymentSurface}:{paymentSurface?:"toss"}={}){
   {loading}
   <SpiritResult row={row} onRow={setRow} paymentSurface={paymentSurface} {...(paymentSurface === "toss" ? {onFollowupStart:startTossFollowup,onFollowupResult:finishTossFollowup,onFollowupError:failTossFollowup} : {})}/>
   {row.state==='COMPLETED'&&<>{shouldInvitePaidReview(row)&&<ReviewRewardBanner afterResult brand="yeongnyangi" locale={row.locale||'ko'} reviewProductId="yeongnyangi"/>}<ResultBenefits requestId={row.id} locale={row.locale||'ko'}/><ResultBridge row={row} locale={row.locale} paymentSurface={paymentSurface}/><ImageReport key={`report-${row.id}`} row={row}/><ResultSharing key={row.id} row={row}/><RecommendationResult service={row.product.id} locale={row.locale} brand="yeongnyangi" practiceTags={chapterAdviceTopics(row.chapters)}/></>}
-  {row.state==='REFUNDED'?<p>{stateCopy.refunded}</p>:!row.paid?<><p>{stateCopy.paymentRequired}</p>{payWatching&&<p role="status">{stateCopy.paymentWaiting}</p>}<button onClick={()=>window.location.reload()}>{stateCopy.checkPayment}</button>{!error&&<a className={styles.primaryAction} href={checkoutPath(row,siteLocale)}>{copy.checkout}</a>}</>:!['COMPLETED','AWAITING_FOLLOWUP'].includes(row.state)&&<>
-    {row.errorCode==='DELIVERY_REFUND_PENDING'?<p role="status">{deliveryRefundCopy(row.locale)}</p>:row.recovery?.canRetryNow?<><p role="alert">{copy.recoveryStopped}</p><button className={styles.retryButton} disabled={busy} onClick={()=>void generate(row.id)}><PawPrint size={18} aria-hidden="true"/>{copy.recovery}</button></>:['GENERATION_REVIEW_REQUIRED','AUTOMATIC_RECOVERY_STOPPED','ASK_LIMITED_REVIEW_REQUIRED','DELIVERY_REFUND_PENDING'].includes(row.errorCode||'')?<p role="status">{copy.held}</p>:row.errorCode==='PAYMENT_NOT_ACTIVE'?<p role="alert">{copy.support}</p>:<p>{stateCopy.serverResume}</p>}
+  {row.state==='REFUNDED'?<p>{autoRefundCopy(row.locale,row.errorCode)||stateCopy.refunded}</p>:!row.paid?<><p>{stateCopy.paymentRequired}</p>{payWatching&&<p role="status">{stateCopy.paymentWaiting}</p>}<button onClick={()=>window.location.reload()}>{stateCopy.checkPayment}</button>{!error&&<a className={styles.primaryAction} href={checkoutPath(row,siteLocale)}>{copy.checkout}</a>}</>:!['COMPLETED','AWAITING_FOLLOWUP'].includes(row.state)&&<>
+    {row.errorCode==='DELIVERY_REFUND_PENDING'?<p role="status">{deliveryRefundCopy(row.locale)}</p>:row.recovery?.canRetryNow?<><p role="alert">{copy.recoveryStopped}</p><button className={styles.retryButton} disabled={busy} onClick={()=>void generate(row.id)}><PawPrint size={18} aria-hidden="true"/>{copy.recovery}</button></>:['GENERATION_REVIEW_REQUIRED','AUTOMATIC_RECOVERY_STOPPED','ASK_LIMITED_REVIEW_REQUIRED','DELIVERY_REFUND_PENDING'].includes(row.errorCode||'')?<><p role="status">{copy.held}</p>{paymentSurface!=='toss'&&heldRefundable(row)&&<p role="note">{heldRefundHint(row.locale)}</p>}</>:row.errorCode==='PAYMENT_NOT_ACTIVE'?<p role="alert">{copy.support}</p>:<p>{stateCopy.serverResume}</p>}
   </>}
   {supportLink}
   {error&&<><p role="alert">{row.locale&&row.locale!=='ko'?stateCopy.loadFailed:error} {stateCopy.paidWarning}</p><button className={styles.retryButton} disabled={busy} onClick={()=>void generate(row.id)}><PawPrint size={18} aria-hidden="true"/>{stateCopy.retry}</button></>}<OrderReference id={row.id} locale={row.locale}/>
@@ -260,8 +266,8 @@ export default function Result({paymentSurface}:{paymentSurface?:"toss"}={}){
    <div id="reading-progress" className={styles.progress} data-state={row.state}>
      <div>{row.correction&&<p role="status">{row.correction.reason}</p>}{!unpaid&&!interpreting&&<p>{row.state==='COMPLETED'?copy.complete:askReading?stateCopy.answering:stateCopy.saved(row.chapters.length,row.manifest.length)}</p>}
       {!unpaid&&<progress value={row.chapters.length+(row.state==='COMPLETED'?1:0)} max={row.manifest.length+1} aria-label={askReading?stateCopy.answerProgress:stateCopy.progress}/>}
-     {row.paid&&!interpreting&&row.state!=='REFUNDED'&&row.state!=='COMPLETED'&&(row.errorCode==='DELIVERY_REFUND_PENDING'?<p role="status">{deliveryRefundCopy(row.locale)}</p>:row.recovery?.canRetryNow?<><p role="alert">{stateCopy.recoveryStopped}</p><button className={styles.retryButton} disabled={busy} onClick={()=>void generate(row.id)}><PawPrint size={18} aria-hidden="true"/>{busy?stateCopy.recovering:copy.recovery}</button></>:['GENERATION_REVIEW_REQUIRED','AUTOMATIC_RECOVERY_STOPPED','ASK_LIMITED_REVIEW_REQUIRED','DELIVERY_REFUND_PENDING'].includes(row.errorCode||'')?<p role="status">{stateCopy.reviewRequired}</p>:<p role="status">{row.errorCode==='PAYMENT_NOT_ACTIVE'?copy.support:row.chapters.length===row.manifest.length?copy.reviewing:copy.generating}</p>)}
-     {row.state==='REFUNDED'&&<p>{stateCopy.refunded}</p>}
+     {row.paid&&!interpreting&&row.state!=='REFUNDED'&&row.state!=='COMPLETED'&&(row.errorCode==='DELIVERY_REFUND_PENDING'?<p role="status">{deliveryRefundCopy(row.locale)}</p>:row.recovery?.canRetryNow?<><p role="alert">{stateCopy.recoveryStopped}</p><button className={styles.retryButton} disabled={busy} onClick={()=>void generate(row.id)}><PawPrint size={18} aria-hidden="true"/>{busy?stateCopy.recovering:copy.recovery}</button></>:['GENERATION_REVIEW_REQUIRED','AUTOMATIC_RECOVERY_STOPPED','ASK_LIMITED_REVIEW_REQUIRED','DELIVERY_REFUND_PENDING'].includes(row.errorCode||'')?<><p role="status">{stateCopy.reviewRequired}</p>{paymentSurface!=='toss'&&heldRefundable(row)&&<p role="note">{heldRefundHint(row.locale)}</p>}</>:<p role="status">{row.errorCode==='PAYMENT_NOT_ACTIVE'?copy.support:row.chapters.length===row.manifest.length?copy.reviewing:copy.generating}</p>)}
+     {row.state==='REFUNDED'&&<p>{autoRefundCopy(row.locale,row.errorCode)||stateCopy.refunded}</p>}
      {!row.paid&&row.state!=='REFUNDED'&&<><p>{stateCopy.unpaid}</p>{payWatching&&<p role="status">{stateCopy.paymentWaiting}</p>}<button onClick={()=>window.location.reload()}>{stateCopy.checkPayment}</button>{!error&&<a className={styles.primaryAction} href={checkoutPath(row,siteLocale)}>{copy.checkout}</a>}</>}
     </div>
    </div>

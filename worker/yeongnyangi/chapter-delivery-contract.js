@@ -30,8 +30,9 @@ export function deliveredCharacterCount(body) {
   return [...new Set(passages.map(normalize))].reduce((sum, text) => sum + Array.from(text).length, 0);
 }
 
-// Return diagnostic tokens only, never the customer's text. Local formatting is
-// allowed before this gate; inventing missing sections or salvaging truncation is not.
+// Return diagnostic tokens only, never the customer's text. Local formatting (section order, a reply cut
+// at the token cap) is allowed before this gate; inventing a missing section is not. Salvaged text passes here
+// in full: every section present and non-empty, no continuation marker (S9-Y).
 export function chapterDeliveryFailure(body, chapter, requireEnvelope = true) {
   if (!body || typeof body !== 'object' || Array.isArray(body)) return 'INVALID_CHAPTER';
   if (requireEnvelope && (body.chapterId !== chapter.id || body.complete !== true)) return 'CHAPTER_INCOMPLETE';

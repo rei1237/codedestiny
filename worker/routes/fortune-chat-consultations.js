@@ -50,6 +50,7 @@ const messages = {
   HONEY_NOT_AVAILABLE: '꿀방울은 연이 기본 상담에서만 쓸 수 있어요. 결제나 이용권을 선택해 주세요.',
   HONEY_ALREADY_RESTORED: '이 상담의 꿀방울은 이미 돌려드렸어요. 새 상담을 시작해 주세요.',
   HONEY_RESTORED: '상담을 완료하지 못해 사용한 꿀방울 30개를 돌려드렸어요.',
+  COIN_RESTORED: '상담을 완료하지 못해 사용한 코인을 돌려드렸어요.',
   PAYMENT_NOT_ACTIVE:'결제 또는 환불 상태 확인이 필요해요. 다시 결제하지 말고 결제 내역을 확인해 주세요.',
   PRICE_CHANGED: '상담 가격이 바뀌었어요. 처음 화면에서 가격을 확인한 뒤 다시 시작해 주세요.',
   LLM_NOT_CONFIGURED: '지금은 상담을 준비하고 있어요. 결제는 진행되지 않아요.',

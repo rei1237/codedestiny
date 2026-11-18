@@ -1,7 +1,8 @@
 import { jsonSchemaFromExample } from "../../lib/json-text-repair.js";
 import {CONCISE_READING_VERSION,CONCISE_MIN_OUTPUT_TOKENS} from '../fortune/concise-reading';
 import { callGeminiText } from '../../lib/gemini.js';
-import { GEMINI_PROSE_MODEL, proFallbackCause, selectGeminiModel } from '../../../lib/gemini-model-policy.js';
+import { GEMINI_PROSE_MODEL, isGeminiProModel, proFallbackCause, selectGeminiModel } from '../../../lib/gemini-model-policy.js';
+import { isUnbilledGeminiFailure } from '../../../lib/gemini-provider-errors.mjs';
 import { tokensRequiredForChars } from '../../lib/llm-budget.js';
 import { FortuneError, type FortuneLLMRequest, type LLMProvider } from '../fortune/shared/contracts';
 import { messages } from '../fortune/shared/prompt';
@@ -22,6 +23,9 @@ function providerSchema(value: any): any {
 export const CHAPTER_THINKING_BUDGET=1024;
 // A Flash call needs at least this much of the attempt's time to be worth sending after a Pro refusal.
 const PRO_FALLBACK_MIN_MS=60000;
+// A Pro call stops this long before the attempt's timeout, so a Pro timeout still leaves Flash a full call in
+// the same attempt (S9-Y). 240s tiers: Pro 150s (above TUNA_PRO_MIN_CALL_MS), then Flash up to 90s.
+const PRO_FLASH_RESERVE_MS=90000;
 
 export function chapterOutputTokenBudget(requested?: number, version?: string): number {
   const declared=Number(requested);
@@ -35,7 +39,7 @@ export function chapterOutputTokenBudget(requested?: number, version?: string): 
 }
 
 export class CodeDestinyProvider implements LLMProvider {
-  receipt?: {provider:string;model:string;finishReason:string;inputTokens:number|null;outputTokens:number|null;estimated:boolean|null;thinkingTokens:number|null;durationMs:number;maxOutputTokens:number;status:number|null;modelFallback?:string};
+  receipt?: {provider:string;model:string;finishReason:string;inputTokens:number|null;outputTokens:number|null;estimated:boolean|null;thinkingTokens:number|null;durationMs:number;maxOutputTokens:number;status:number|null;modelFallback?:string;unbilled?:true};
   constructor(private env: Record<string, unknown>, private logContext: Record<string, unknown> = {},
     private cacheContext: {owner?:string;skipRead?:boolean}={},
     // The order's tier timeout (chapterTimeoutMs); orders without the policy marker keep CHAPTER_TIMEOUT_MS.
@@ -87,12 +91,14 @@ export class CodeDestinyProvider implements LLMProvider {
       cache:chapterResponseCache(this.env,this.cacheContext.owner,this.logContext.requestId,String(this.logContext.sectionGroup),this.cacheContext.skipRead),
       logContext:this.logContext,
     });
-    let response=await send(this.model,this.reasoningTask,this.timeoutMs);
-    // Pro refused before writing (retired 404, 429, 5xx): the same attempt sends the prompt to Flash.
-    // A Pro timeout has spent the time; its receipt moves the next attempt (tunaProUnavailable).
+    const pro=isGeminiProModel(selectGeminiModel(this.model,this.reasoningTask));
+    const firstTimeoutMs=pro&&this.timeoutMs-PRO_FLASH_RESERVE_MS>=PRO_FALLBACK_MIN_MS?this.timeoutMs-PRO_FLASH_RESERVE_MS:this.timeoutMs;
+    let response=await send(this.model,this.reasoningTask,firstTimeoutMs);
+    // Pro refused before writing (retired 404, 429, 5xx) or timed out inside its reserve-capped call: the same
+    // attempt sends the prompt to Flash. The receipt still moves later attempts to Flash (tunaProUnavailable).
     const cause=proFallbackCause(selectGeminiModel(this.model,this.reasoningTask),response);
     const remaining=this.timeoutMs-(Date.now()-startedAt);
-    const modelFallback=cause&&cause!=='LLM_GENERATION_TIMEOUT'&&remaining>=PRO_FALLBACK_MIN_MS?cause:'';
+    const modelFallback=cause&&remaining>=PRO_FALLBACK_MIN_MS?cause:'';
     if(modelFallback){
       console.warn('[yeongnyangi-model-fallback]',JSON.stringify({requestId:this.logContext.requestId,sectionGroup:this.logContext.sectionGroup,cause}));
       response=await send(GEMINI_PROSE_MODEL,undefined,remaining);
@@ -102,7 +108,9 @@ export class CodeDestinyProvider implements LLMProvider {
     this.receipt={provider:response.provider || 'gemini',model:response.model || model || 'gemini-2.5-flash',
       finishReason:response.finishReason || '',inputTokens:response.usage?.inputTokens ?? null,outputTokens:response.usage?.outputTokens ?? null,
       estimated:response.usage?Boolean(response.usage.estimated):null,thinkingTokens:response.usage?.thinkingTokens ?? null,
-      durationMs:Date.now()-startedAt,maxOutputTokens:cap,status:'status' in response?response.status:null,...(modelFallback?{modelFallback}:{})};
+      durationMs:Date.now()-startedAt,maxOutputTokens:cap,status:'status' in response?response.status:null,...(modelFallback?{modelFallback}:{}),
+      // Gemini refused before writing (429, 5xx, retired 404): failChapter hands the attempt back (capped).
+      ...(!response.ok&&isUnbilledGeminiFailure(response)?{unbilled:true as const}:{})};
     if (!response.ok || response.isMock || !response.text) {
       const code='error' in response ? String(response.error) : '';
       // Spend-cap and billing outages travel as the audit detail so the hold alert names the cause.
@@ -110,7 +118,9 @@ export class CodeDestinyProvider implements LLMProvider {
       console.warn('[yeongnyangi-provider]',JSON.stringify({code:code.replace(/[^A-Za-z0-9_]/g,'').slice(0,80),status:'status' in response?response.status:null,...(outage?{outage}:{})}));
       throw new FortuneError(/timeout|deadline/i.test(code)?'FORTUNE_PROVIDER_TIMEOUT':'FORTUNE_PROVIDER_FAILED',502,outage||undefined);
     }
-    if(response.truncated || /^(MAX_TOKENS|LENGTH)$/i.test(response.finishReason || ''))throw new FortuneError('CHAPTER_TRUNCATED',502);
+    // The cut text travels with the error: the service delivers it only when every section survives (S9-Y).
+    if(response.truncated || /^(MAX_TOKENS|LENGTH)$/i.test(response.finishReason || ''))
+      throw Object.assign(new FortuneError('CHAPTER_TRUNCATED',502),{truncatedText:response.text});
     return {result:response.text,provider:response.provider || 'gemini',model:response.model || model || 'gemini-2.5-flash'};
   }
 }

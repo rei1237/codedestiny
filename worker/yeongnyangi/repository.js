@@ -1,6 +1,6 @@
 import {CHAPTER_DELIVERY_VERSION,chapterDeliveryFailure,chapterLeaseMs,hasChapterDeliveryContract} from './chapter-delivery-contract.js';
-import {AUTOMATIC_CHAPTER_ATTEMPTS,MANUAL_CHAPTER_RECOVERY_LIMIT,SYSTEM_CHAPTER_RETRY_GRANT} from './chapter-retry-policy.js';
-export {AUTOMATIC_CHAPTER_ATTEMPTS,MANUAL_CHAPTER_RECOVERY_LIMIT,SYSTEM_CHAPTER_RETRY_GRANT};
+import {AUTOMATIC_CHAPTER_ATTEMPTS,MANUAL_CHAPTER_RECOVERY_LIMIT,SYSTEM_CHAPTER_RETRY_GRANT,UNBILLED_ATTEMPT_RETURNS} from './chapter-retry-policy.js';
+export {AUTOMATIC_CHAPTER_ATTEMPTS,MANUAL_CHAPTER_RECOVERY_LIMIT,SYSTEM_CHAPTER_RETRY_GRANT,UNBILLED_ATTEMPT_RETURNS};
 import { storedChapterDraft } from './stored-chapter.js';
 import { deliveryRefundPending, terminalRestoreFilter } from './terminal-refund-policy.js';
 import { mongoose, mongoTransactionOptions, withMongoRetry } from '../lib/db.js';
@@ -385,6 +385,44 @@ async function refundChatHoney(env,userId,requestId) {
   });
 }
 
+// Coins spent on a consultation that delivered nothing come back once, with the request, in one transaction (S9-Y).
+// The receipt has runCoinRefund's shape (refundForPointHistoryId) and the spend carries both refund markers, so
+// per-use access, paid-result revocation and the coin audits read it as refunded. A membership-credit or pass
+// use (delta 0) is not a coin spend and keeps its own path.
+async function refundChatCoin(env,userId,requestId) {
+  const owner=ownerId(userId);
+  const [{PointHistory,User},{moonstoneSpendRefundFilter}]=await Promise.all([loadFamilyIdentity(),import('../lib/moonstone-spend-proof.js')]);
+  return withMongoRetry(env,async()=>{
+    const session=await (scopeConnection() || mongoose).startSession();
+    try{
+      let restored=false;
+      await session.withTransaction(async()=>{
+        restored=false;
+        const now=new Date();
+        const request=await YeongnyangiRequest.findOneAndUpdate({_id:requestId,userId:owner,accessMethod:'PER_USE',perUseSource:'point',
+          state:'FORTUNE_FAILED',...terminalRestoreFilter(false)},
+        {$set:{state:'REFUNDED',errorCode:'COIN_RESTORED',leaseToken:'',leaseUntil:null}},{new:true,session}).lean();
+        if(!request)return;
+        const spend=await PointHistory.findOneAndUpdate({_id:String(request.perUseEvidenceId || ''),userId:owner,featureKey:request.featureKey,
+          kind:'deduct',delta:{$lt:0},'metadata.accessType':{$ne:'membership_credit'},...moonstoneSpendRefundFilter(),
+          'metadata.coinRefundedForUnlockFailure':{$ne:true}},
+        {$set:{'metadata.refundedForServiceExecution':true,'metadata.coinRefundedForUnlockFailure':true,'metadata.refundedAt':now,
+          'metadata.refundExecutionId':`yeongnyangi:${requestId}`}},{new:true,session}).lean();
+        const amount=-Number(spend?.delta);
+        if(!spend||!Number.isSafeInteger(amount)||amount<=0)throw failure(409,'COIN_NOT_RESTORED');
+        const user=await User.findOneAndUpdate({_id:owner},{$inc:{points:amount}},{new:true,session}).select('points').lean();
+        if(!user||!Number.isFinite(Number(user.points)))throw failure(409,'COIN_NOT_RESTORED');
+        await PointHistory.create([{userId:owner,kind:'refund',delta:amount,balanceAfter:Number(user.points),featureKey:request.featureKey,
+          reason:'상담 결과 미완성 코인 환불',metadata:{source:'yeongnyangi.per-use-coin-refund',requestId:chatPaymentRequestId(requestId),
+            executionId:`yeongnyangi:${requestId}`,refundForPointHistoryId:String(spend._id),sourceTransactionId:String(spend._id)},createdAt:now,updatedAt:now}],{session});
+        restored=true;
+      },mongoTransactionOptions());
+      return restored;
+    }catch(error){if(error?.code==='COIN_NOT_RESTORED')return false;throw error;}
+    finally{await session.endSession();}
+  });
+}
+
 // A free consultation that delivered nothing gives the account's free use back, exactly once.
 async function restoreFreeTrial(env,userId,requestId,terminal=false) {
   const {restoreGuardianFortuneFreeTrial}=await import('../lib/guardian-fortune-usage.js');
@@ -676,8 +714,10 @@ export async function finishChapter(env, userId, requestId, token, ordinal, body
         }
         const isLast=ordinal+1===total;
         const awaitingFollowup=request.snapshot?.questionSkyStage?.version==='question-sky-flounder-3'&&ordinal===0&&total===2;
+        // The committed chapter's draft is no longer read (stored-chapter, recovery and refund filters only look at
+        // the next ordinal or chapters.0), so a long order does not carry every chapter twice (S9-Y).
         result = await YeongnyangiRequest.findOneAndUpdate(filter,
-          {$push:{chapters:body},$set:{...(ordinal===0?{firstContentAt:new Date()}:{}),completedChapters:ordinal+1,
+          {$push:{chapters:body},$unset:{[`generationCheckpoint.chapterDrafts.${ordinal}`]:''},$set:{...(ordinal===0?{firstContentAt:new Date()}:{}),completedChapters:ordinal+1,
             // Keep the last chapter's lease until the saved document has been
             // read back. A late writer must not race the completion marker.
             ...(isLast?{}:awaitingFollowup?{state:'AWAITING_FOLLOWUP',leaseToken:'',leaseUntil:null,
@@ -717,8 +757,8 @@ async function refundTerminalFamilyQuota(env,userId,requestId) {
     const refunded=await withMongoRetry(env,()=>refundYeongnyangiMoonstone({userId,requestId}));
     return Boolean(refunded.refunded);
   }
-  // A paid fortune-chat consultation gives back only what the server can restore without cash: pass quota,
-  // moonlight stones and honey drops. Card and coin spends stay with support review, as the Yeongnyangi card path does.
+  // A paid fortune-chat consultation that delivered nothing gives back what the server restores itself: pass quota,
+  // moonlight stones, honey drops and coins (S9-Y). A card payment needs a PG cancel and stays with support review.
   const perUse=await withMongoRetry(env,()=>YeongnyangiRequest.findOne({_id:requestId,userId:owner,accessMethod:'PER_USE',
     $or:[{state:'FORTUNE_FAILED',errorCode:'GENERATION_REVIEW_REQUIRED',completedChapters:0},
       {state:'REFUNDED',errorCode:'MONTHLY_CREDIT_RESTORED'}]}).lean(),readOptions);
@@ -732,6 +772,7 @@ async function refundTerminalFamilyQuota(env,userId,requestId) {
     return restorePassQuota(env,userId,requestId,{accessMethod:'PER_USE',perUseSource:'point'},{cycleKey:perUse.perUsePassRefund.cycleKey,
       cost:perUse.perUsePassRefund.cost,evidenceId:perUse.perUseEvidenceId});
   }
+  if(perUse?.perUseSource==='point'&&!perUse.perUsePassRefund?.cycleKey&&perUse.state==='FORTUNE_FAILED')return refundChatCoin(env,userId,requestId);
   if(perUse)return false;
   const row=await withMongoRetry(env,()=>YeongnyangiRequest.findOne({_id:requestId,userId:owner,accessMethod:{$in:['FAMILY']},
     state:'FORTUNE_FAILED',errorCode:'GENERATION_REVIEW_REQUIRED',completedChapters:0}).lean(),readOptions);
@@ -797,6 +838,17 @@ export async function failChapter(env, userId, requestId, token, code, attempt =
   // A stored fact snapshot fails the same way on every attempt, so it holds at once and never offers a buyer retry.
   const permanent=['GENERATION_REVIEW_REQUIRED','INVALID_MANIFEST','LLM_CONTENT_BLOCKED'].includes(code)||String(code).startsWith('ENGINE_FACT_');
   const stopped=attempt>=allowedAttempts&&!permanent&&!limited;
+  // Gemini refused before billing: give the claimed attempt back (capped per chapter) and retry after the
+  // normal backoff, so a rate-limit burst never exhausts a paid order's chapter budget (S9-Y).
+  if(receipt?.unbilled===true&&Number.isInteger(ordinal)&&!permanent&&!limited){
+    const returns=`unbilledReturns.${ordinal}`, at=new Date();
+    const returned=await withMongoRetry(env, () => YeongnyangiRequest.updateOne({_id:requestId,userId:ownerId(userId),leaseToken:token,state:'GENERATING',
+      attempts:{$gt:0},[`chapterAttempts.${ordinal}`]:{$gt:0},$or:[{[returns]:{$exists:false}},{[returns]:{$lt:UNBILLED_ATTEMPT_RETURNS}}]},
+      {$set:{state:'FORTUNE_FAILED',leaseToken:'',leaseUntil:null,errorCode:String(code).slice(0,80),lastFailure:{code:String(code).slice(0,80),stage,at},nextAttemptAt:new Date(Date.now()+120000)},
+        $inc:{attempts:-1,[`chapterAttempts.${ordinal}`]:-1,[returns]:1},
+        $push:{recoveryAudit:{kind:'retryable_failure',source:'generation',chapter:ordinal,at,code:String(code).slice(0,80),attemptReturned:true,...(detail?{detail:String(detail).slice(0,80)}:{}),receipt}}}));
+    if(returned?.modifiedCount)return returned;
+  }
   const result=await withMongoRetry(env, () => YeongnyangiRequest.updateOne({_id:requestId,userId:ownerId(userId),leaseToken:token,state:'GENERATING'},
     {$set:{state:'FORTUNE_FAILED',leaseToken:'',leaseUntil:null,errorCode:limited?'ASK_LIMITED_REVIEW_REQUIRED':permanent?'GENERATION_REVIEW_REQUIRED':stopped?'AUTOMATIC_RECOVERY_STOPPED':String(code).slice(0,80),lastFailure:{code:String(code).slice(0,80),stage,at:new Date()},nextAttemptAt:limited||permanent||stopped?null:new Date(Date.now()+(stage==='quality'?QUALITY_RETRY_MS:attempt===1?30000:120000)),
       ...(limited||permanent?holdSet(code,Number.isInteger(ordinal)?ordinal:null,new Date()):{})},

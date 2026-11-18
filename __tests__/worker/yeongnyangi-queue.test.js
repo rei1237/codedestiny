@@ -29,6 +29,19 @@ test('held lease and persistent backoff never invoke provider',async()=>{
   expect(generateNextChapter).not.toHaveBeenCalled();expect(m.retry).toHaveBeenCalledWith({delaySeconds:expect.any(Number)});
  }
 });
+test('S9-Y: a row not yet due is acked and re-sent with a delay, so waiting never spends max_retries',async()=>{
+ for(const field of ['leaseUntil','nextAttemptAt']){
+  const r={...row(),[field]:new Date(Date.now()+120000)},m=message(),generateNextChapter=jest.fn(),send=jest.fn().mockResolvedValue(undefined);
+  await consumeConsultationQueue({messages:[m]},{YEONGNYANGI_QUEUE:{send}},{read:async()=>r,service:{generateNextChapter}});
+  expect(generateNextChapter).not.toHaveBeenCalled();expect(m.retry).not.toHaveBeenCalled();expect(m.ack).toHaveBeenCalled();
+  expect(send).toHaveBeenCalledWith({requestId:id},{delaySeconds:expect.any(Number)});
+  expect(send.mock.calls[0][1].delaySeconds).toBeGreaterThanOrEqual(119);
+ }
+ // A failed re-send keeps the old retry so the message is never lost.
+ const r={...row(),nextAttemptAt:new Date(Date.now()+120000)},m=message(),send=jest.fn().mockRejectedValue(new Error('unavailable'));
+ await consumeConsultationQueue({messages:[m]},{YEONGNYANGI_QUEUE:{send}},{read:async()=>r,service:{generateNextChapter:jest.fn()}});
+ expect(m.ack).not.toHaveBeenCalled();expect(m.retry).toHaveBeenCalledWith({delaySeconds:expect.any(Number)});
+});
 test('failure after checkpoint registration retries delivery without losing saved result',async()=>{
  const r={...row(),chapters:[{summary:'saved'}]},m=message();
  const generateNextChapter=jest.fn().mockResolvedValue(r);

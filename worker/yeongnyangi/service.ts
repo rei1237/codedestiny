@@ -68,6 +68,7 @@ import { CodeDestinyProvider } from './providers/code-destiny';
 import {TUNA_PRO_MIN_CALL_MS,TUNA_QUALITY_POLICY,TUNA_REVIEW_MAX_REWRITES,auditTunaChapter,tunaProUnavailable,tunaChapterModel,tunaReasoningTask,tunaRoadmapEnd,tunaQualityApplies,tunaRewritesUsed} from './fortune/tuna-quality';
 import { StructuredChapterProvider, type ChatPersona } from './providers/chapter';
 import { deliverChapter } from './providers/delivery';
+import { salvageTruncatedJsonObject } from '../../lib/llm-text.js';
 import { createRequest, commitTarotDraw, readRequest, attachPayment, claimChapter, finishChapter, failChapter, ownerId, saveAskAnalysis, saveChapterDraft, allowedChapterAttempts, holdAutoResumes, userCanRetry, reserveQuestionSkyFollowup } from './repository.js';
 import { hasRequestAccess } from './access-methods.js';
 
@@ -516,16 +517,25 @@ export async function generateNextChapter(env: Record<string, unknown>, userId: 
       // A length-only shortfall that passed every other check. The repair after it, or the last attempt,
       // delivers the longest such draft instead of holding the paid order for length (D8, principle 17).
       const kept=row.generationCheckpoint?.shortDrafts?.[ordinal];
-      let generated:unknown,short:any;
+      let generated:unknown,short:any,truncated:FortuneError|undefined;
       try {
-        generated=await provider.generateChapter(input);
+        try { generated=await provider.generateChapter(input); }
+        catch(error:any) {
+          // S9-Y: a reply cut at the token cap keeps what it finished. It passes the same delivery checks
+          // (every section present, no cutoff marker) or the attempt still ends CHAPTER_TRUNCATED, whose retry doubles the cap.
+          const salvaged=error?.code==='CHAPTER_TRUNCATED'&&typeof error.truncatedText==='string'?salvageTruncatedJsonObject(error.truncatedText):null;
+          if(!salvaged)throw error;
+          generated=salvaged;truncated=error;
+        }
         stage='quality';
         try { result=deliverChapter(generated,input); }
-        catch(error:any) { if(!error?.shortCandidate)throw error; short=error.shortCandidate; }
+        catch(error:any) { if(!error?.shortCandidate)throw truncated||error; short=error.shortCandidate; }
+        if(truncated&&result)console.info('[yeongnyangi-generation]',JSON.stringify({requestId,chapter:ordinal,code:'CHAPTER_TRUNCATION_SALVAGED'}));
         // chapter.ts corrects the reader's pillars first; a claim left here keeps a quality code so the one repair can name it.
         if(natalFacts)try{assertSajuPillarClaims(result||short,natalFacts);}catch{throw new FortuneError('SAJU_PILLAR_CONTRADICTION');}
       } catch(error) {
-        if(!kept?.body || (error instanceof FortuneError && error.code==='LLM_CONTENT_BLOCKED'))throw error;
+        // Safety and engine-fact failures stay fatal; any other failure delivers the kept draft.
+        if(!kept?.body || (error instanceof FortuneError && (error.code==='LLM_CONTENT_BLOCKED'||error.code.startsWith('ENGINE_FACT_'))))throw error;
         result=undefined;short=undefined;
       }
       if(!result){
@@ -534,7 +544,7 @@ export async function generateNextChapter(env: Record<string, unknown>, userId: 
           stage='storage';
           await saveChapterDraft(env,userId,requestId,token,ordinal,{raw:generated,body:short,receipt:sharedProvider.receipt},'shortDrafts');
           stage='quality';
-          throw new FortuneError('CHAPTER_TOO_SHORT');
+          throw truncated||new FortuneError('CHAPTER_TOO_SHORT');
         }
         generated=best.raw;result={...best.body,shortDelivery:true};
         console.info('[yeongnyangi-generation]',JSON.stringify({requestId,chapter:ordinal,code:'CHAPTER_SHORT_DELIVERED',

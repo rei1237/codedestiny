@@ -51,12 +51,17 @@ function set(row,key,value) {
   for(const part of keys.slice(0,-1))current=current[part]??=( {} );
   current[keys.at(-1)]=value;
 }
+function unset(row,key) {
+  const keys=key.split('.'),parent=keys.length>1?get(row,keys.slice(0,-1).join('.')):row;
+  if(parent&&typeof parent==='object')delete parent[keys.at(-1)];
+}
 function query(fn) {
   const chain={session:()=>chain,select:()=>chain,sort:()=>chain,limit:()=>chain,lean:async()=>fn(),then:(a,b)=>Promise.resolve().then(fn).then(a,b)};
   return chain;
 }
 function model(source,kind) {
   return {
+    create:async docs=>{const list=Array.isArray(docs)?docs:[docs];source().push(...list.map(doc=>({...doc})));return list;},
     find:filter=>query(()=>source().filter(row=>matches(row,filter))),
     findOne:filter=>query(()=>{
       if(kind==='request'&&failFinalRead&&filter.completedChapters!==undefined){failFinalRead=false;throw new Error('final reread failed');}
@@ -75,6 +80,7 @@ function model(source,kind) {
       for(const [key,value] of Object.entries(update.$push||{}))(row[key]??=[]).push(value);
       for(const [key,value] of Object.entries(update.$addToSet||{}))if(!(row[key]??=[]).includes(value))row[key].push(value);
       for(const [key,value] of Object.entries(update.$pull||{}))row[key]=(row[key]||[]).filter(item=>item!==value);
+      for(const key of Object.keys(update.$unset||{}))unset(row,key);
       return {...row,chapters:row.chapters?[...row.chapters]:undefined};
     }),
     updateOne:(filter,update)=>query(()=>{
@@ -100,7 +106,12 @@ const honeyCollection=name=>{
     rows().push({...doc});return {insertedId:doc._id};
   }};
 };
-const User={findById:()=>query(()=>familyUser),findOne:filter=>query(()=>familyUser&&matches(familyUser,filter)?familyUser:null),collection:{}}, PointHistory=model(()=>evidences,'history');
+const User={findById:()=>query(()=>familyUser),findOne:filter=>query(()=>familyUser&&matches(familyUser,filter)?familyUser:null),
+  findOneAndUpdate:(filter,update)=>query(()=>{
+    if(!familyUser||!matches(familyUser,filter))return null;
+    for(const [key,value] of Object.entries(update.$inc||{}))set(familyUser,key,(get(familyUser,key)||0)+value);
+    return {...familyUser};
+  }),collection:{}}, PointHistory=model(()=>evidences,'history');
 const txOptions={maxCommitTimeMS:12000};
 const startSession=async()=>{
   expect(activeOperations).toBeGreaterThan(0);
@@ -924,6 +935,37 @@ describe('fortune-chat per-use access',()=>{
     expect(refundPass).not.toHaveBeenCalled();
   });
 
+  const coinSpend={_id:'507f1f77bcf86cd799439077',userId:owner,featureKey:chat.featureKey,kind:'deduct',delta:-50,metadata:{requestId:'fc-id'}};
+  const coinRequest=extra=>({_id:'id',userId:owner,...chat,state:'GENERATING',accessMethod:'PER_USE',perUseSource:'point',perUseEvidenceId:coinSpend._id,
+    completedChapters:0,chapters:[],leaseToken:'lease',...extra});
+  test('S9-Y: a coin consultation that delivered nothing gives the coins back once, with a refund receipt',async()=>{
+    familyUser={_id:owner,points:10};
+    evidences.push({...coinSpend,metadata:{...coinSpend.metadata}});
+    requests.push(coinRequest());
+    await repo.failChapter({},owner,'id','lease','GENERATION_REVIEW_REQUIRED',1,'provider');
+    expect(requests[0]).toMatchObject({state:'REFUNDED',errorCode:'COIN_RESTORED',perUseSource:'point'});
+    expect(familyUser.points).toBe(60);
+    expect(evidences[0].metadata).toMatchObject({refundedForServiceExecution:true,coinRefundedForUnlockFailure:true});
+    expect(evidences.filter(row=>row.kind==='refund')).toEqual([expect.objectContaining({delta:50,balanceAfter:60,featureKey:chat.featureKey,
+      metadata:expect.objectContaining({refundForPointHistoryId:coinSpend._id,requestId:'fc-id'})})]);
+    expect(refundPass).not.toHaveBeenCalled();expect(refundMoonstone).not.toHaveBeenCalled();
+    await expect(repo.claimChapter({},owner,'id')).rejects.toMatchObject({status:409});
+  });
+
+  test('S9-Y: a coin consultation keeps the coins once a chapter was delivered, and a membership-credit spend stays for review',async()=>{
+    familyUser={_id:owner,points:10};
+    evidences.push({...coinSpend,metadata:{...coinSpend.metadata}});
+    requests.push(coinRequest({completedChapters:1,chapters:[{summary:'delivered'}]}));
+    await repo.failChapter({},owner,'id','lease','GENERATION_REVIEW_REQUIRED',1,'provider');
+    expect(requests[0]).toMatchObject({state:'FORTUNE_FAILED',errorCode:'GENERATION_REVIEW_REQUIRED'});
+    requests=[];evidences=[{...coinSpend,metadata:{requestId:'fc-id',accessType:'membership_credit'}}];
+    requests.push(coinRequest());
+    await repo.failChapter({},owner,'id','lease','GENERATION_REVIEW_REQUIRED',1,'provider');
+    expect(requests[0]).toMatchObject({state:'FORTUNE_FAILED',errorCode:'GENERATION_REVIEW_REQUIRED'});
+    expect(familyUser.points).toBe(10);
+    expect(evidences.filter(row=>row.kind==='refund')).toHaveLength(0);
+  });
+
   test.each(['payment','admin'])('a %s consultation that delivered nothing stays for support review',async source=>{
     requests.push({_id:'id',userId:owner,...chat,state:'GENERATING',accessMethod:'PER_USE',perUseSource:source,perUseEvidenceId:'pay-fc',
       completedChapters:0,chapters:[],leaseToken:'lease'});
@@ -1138,4 +1180,38 @@ test('Family ownership alone does not automatically consume a benefit',async()=>
   await repo.createRequest({},owner,'id',values);
   await expect(repo.attachPayment({},owner,'id',1000)).rejects.toMatchObject({status:402});
   expect(consumePass).not.toHaveBeenCalled();expect(evidences).toHaveLength(0);
+});
+
+test('S9-Y: a refusal Gemini never billed hands the chapter attempt back, at most three times per chapter',async()=>{
+  await repo.createRequest({},owner,'id',values);await repo.attachPayment({},owner,'id',1000);
+  const unbilled={provider:'gemini',model:'gemini-2.5-flash',status:429,unbilled:true};
+  for(let i=0;i<repo.UNBILLED_ATTEMPT_RETURNS;i++){
+    const claim=await repo.claimChapter({},owner,'id');expect(claim.token).toBeTruthy();
+    await repo.failChapter({},owner,'id',claim.token,'FORTUNE_PROVIDER_FAILED',3,'provider',3,'',0,unbilled);
+    expect(requests[0]).toMatchObject({state:'FORTUNE_FAILED',errorCode:'FORTUNE_PROVIDER_FAILED',attempts:0,chapterAttempts:{0:0}});
+    expect(requests[0].nextAttemptAt.getTime()).toBeGreaterThan(Date.now()+60000);
+    requests[0].nextAttemptAt=new Date(Date.now()-1);
+  }
+  expect(requests[0].recoveryAudit.filter(e=>e.attemptReturned)).toHaveLength(3);
+  // Past the cap, and for any billed failure, the attempt is spent as before.
+  const capped=await repo.claimChapter({},owner,'id');
+  await repo.failChapter({},owner,'id',capped.token,'FORTUNE_PROVIDER_FAILED',1,'provider',3,'',0,unbilled);
+  expect(requests[0].chapterAttempts[0]).toBe(1);
+  requests[0].nextAttemptAt=new Date(Date.now()-1);
+  const billed=await repo.claimChapter({},owner,'id');
+  await repo.failChapter({},owner,'id',billed.token,'FORTUNE_PROVIDER_TIMEOUT',2,'provider',3,'',0,{provider:'gemini',model:'gemini-2.5-flash',status:null});
+  expect(requests[0]).toMatchObject({attempts:2,chapterAttempts:{0:2}});
+});
+test('S9-Y: a committed chapter drops its own stored draft, so a 45-chapter order does not carry every draft twice',async()=>{
+  await repo.createRequest({},owner,'id',values);await repo.attachPayment({},owner,'id',1000);
+  const first=await repo.claimChapter({},owner,'id');
+  await repo.saveChapterDraft({},owner,'id',first.token,0,{raw:'{}',body:{summary:'first'}});
+  expect(requests[0].generationCheckpoint.chapterDrafts[0].body).toEqual({summary:'first'});
+  await repo.finishChapter({},owner,'id',first.token,0,{summary:'first'},3);
+  expect(requests[0].chapters).toEqual([{summary:'first'}]);
+  expect(requests[0].generationCheckpoint.chapterDrafts[0]).toBeUndefined();
+  // The next ordinal's draft is untouched until that chapter commits.
+  const second=await repo.claimChapter({},owner,'id');
+  await repo.saveChapterDraft({},owner,'id',second.token,1,{raw:'{}',body:{summary:'second'}});
+  expect(requests[0].generationCheckpoint.chapterDrafts[1].body).toEqual({summary:'second'});
 });

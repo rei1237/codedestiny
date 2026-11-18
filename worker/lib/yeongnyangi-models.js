@@ -47,6 +47,8 @@ const schema = new mongoose.Schema({
   chapterAttempts: { type: mongoose.Schema.Types.Mixed, default: {} },
   manualRecoveryGrants: { type: mongoose.Schema.Types.Mixed, default: {} },
   systemRecoveryGrants: { type: mongoose.Schema.Types.Mixed, default: {} },
+  // Chapter attempts handed back after a refusal Gemini never billed: {ordinal: count} (UNBILLED_ATTEMPT_RETURNS cap).
+  unbilledReturns: { type: mongoose.Schema.Types.Mixed, default: undefined },
   // Held order: {reason, chapter, epoch, alertPending, at, resumes}. Never set to null (dotted writes).
   hold: { type: mongoose.Schema.Types.Mixed, default: undefined },
   nextAttemptAt: { type: Date, default: null },
