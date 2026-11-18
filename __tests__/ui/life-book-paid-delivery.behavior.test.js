@@ -194,6 +194,30 @@ test('life book transient provider failure keeps the same chapter within its exi
   assert.equal(calls, 2); assert.equal(f.refunds, 1);
 });
 
+// 2026-11-18 Gemini 우선: 섹션의 마지막 시도만 보조 모델(Workers AI) 폴백을 허용한다.
+test('life book lets only the final section attempt fall back to the auxiliary model', async () => {
+  const f = fixture(); const seen = [];
+  f.ctx.SECTION_BATCH_SIZE = 1; f.ctx.SECTION_CONCURRENCY = 1; f.ctx.LIFE_BOOK_MAX_SECTION_ATTEMPTS = 2;
+  f.ctx.generateSectionOnce = async (_env, _section, _prompt, options) => { seen.push(options.finalProviderAttempt); return { ok: false, body: null, error: 'LLM_PROVIDER_UNAVAILABLE',
+    failure: { code: 'LLM_PROVIDER_UNAVAILABLE', status: 503, providerCode: 'GEMINI_UNAVAILABLE', retryable: true, message: 'Provider request failed.' } }; };
+  await f.post(); await f.post();
+  assert.deepEqual(seen, [false, true]);
+});
+
+test('life book section call forwards finalProviderAttempt to the provider wrapper', async () => {
+  const f = fixture(); const seen = [];
+  Object.assign(f.ctx, {
+    appendExpertPersona: async () => '', buildSystemPrompt: () => '', jsonSchemaFromExample: () => ({}), buildSectionSchema: () => ({}),
+    tokensRequiredForChars: () => 1000, resolveSectionTimeoutMs: () => 52000, isStagingLlmMockEnabled: () => false,
+    callGeminiText: async (_env, _prompt, supplied) => { seen.push(supplied.finalProviderAttempt); return { ok: false, error: 'LLM_PROVIDER_UNAVAILABLE', retryable: true }; },
+  });
+  load(f.ctx, 'worker/routes/life-book-ai.js', ['generateSectionOnce']);
+  const section = { kind: 'chapter', targetChars: 2600, maxOutputTokens: 7000, minChars: 2000 };
+  await f.ctx.generateSectionOnce({}, section, 'fixture', { finalProviderAttempt: false });
+  await f.ctx.generateSectionOnce({}, section, 'fixture', { finalProviderAttempt: true });
+  assert.deepEqual(seen, [false, true]);
+});
+
 const approvedSupportRecovery = () => ({ active: true, approvedProvider: 'gemini', approvedModel: 'gemini-2.5-flash', maxOutputTokens: 12000 });
 
 test('life book support recovery passes only approved provider options and caps output before calling the wrapper', async () => {
