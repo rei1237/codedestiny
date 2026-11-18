@@ -8,7 +8,7 @@ jest.unstable_mockModule('../../worker/lib/sync-llm-timeout.js', () => ({ ...tim
 
 const uid = "64b7f2a1c3d4e5f601234567";
 const body = { name: "검사", gender: "female", birthDate: "1993-07-21", birthTime: "09:00", birthPlace: { city: "서울", country: "KR", latitude: 37.5665, longitude: 126.978, timezone: "Asia/Seoul" }, topic: "전체 차트 해석" };
-let route, docs, provider, chart, fault, blocked, mode, userId, usage, refund, fetchBlock, lostConfirmation, passReceipt, passRefund, consume;
+let route, docs, provider, chart, fault, accessFault, blocked, mode, userId, usage, refund, fetchBlock, lostConfirmation, passReceipt, passRefund, consume;
 const clone = value => value == null ? value : structuredClone(value);
 function query(value) { const result = Promise.resolve(value); result.lean = async () => clone(value); result.select = result.sort = () => result; return result; }
 function matches(doc, filter) {
@@ -71,7 +71,7 @@ beforeAll(async () => {
     PointHistory: { findOne: () => query(blocked === 2 ? {} : null) },
     MonthlyCreditLedger: { findOne: () => query(blocked === 3 ? {} : null) },
   }));
-  jest.unstable_mockModule("../../worker/lib/paid-feature-access.js", () => ({ ...access, canAccessPaidFeature: async () => ({ allowed: mode === "pass", accessType: "pass" }) }));
+  jest.unstable_mockModule("../../worker/lib/paid-feature-access.js", () => ({ ...access, canAccessPaidFeature: async () => { if (accessFault?.()) throw new Error("mock access outage"); return { allowed: mode === "pass", accessType: "pass" }; } }));
   jest.unstable_mockModule("../../worker/lib/moonstone-spend-proof.js", () => ({ findMoonstoneSpendEvidence: async () => mode === "monthly" ? {} : null }));
   jest.unstable_mockModule("../../worker/lib/gemini.js", () => ({ ...gemini, callGeminiText: (...args) => provider(...args) }));
   jest.unstable_mockModule("../../worker/lib/swiss-ephemeris.js", () => ({ ...swiss, getSwissWesternChart: (...args) => chart(...args) }));
@@ -82,7 +82,7 @@ beforeAll(async () => {
   ({ handleAstrologyAiRoutes: route } = await import("../../worker/routes/astrology-ai.js"));
 });
 beforeEach(() => {
-  docs = []; fault = null; lostConfirmation = false; blocked = -1; mode = "pass"; userId = uid; usage = jest.fn(); refund = jest.fn(async () => ({})); passReceipt = false; passRefund = jest.fn(async () => ({ refunded: true })); consume = jest.fn(async () => ({ covered: true }));
+  docs = []; fault = null; accessFault = null; lostConfirmation = false; blocked = -1; mode = "pass"; userId = uid; usage = jest.fn(); refund = jest.fn(async () => ({})); passReceipt = false; passRefund = jest.fn(async () => ({ refunded: true })); consume = jest.fn(async () => ({ covered: true }));
   let count = 0;
   provider = jest.fn(async (_env, _prompt, options) => {
     expect(options.attempts).toBe(1); expect(options.timeoutMs).toBeLessThanOrEqual(45000);
@@ -121,6 +121,16 @@ for (const status of ["delivery_pending", "completed"]) for (const kind of ["nul
   expect(await response.json()).toMatchObject({ reason: "RESULT_STORAGE_UNAVAILABLE", retryable: true });
   expect(refund).not.toHaveBeenCalled(); expect(usage).not.toHaveBeenCalled();
   expect((await start()).status).toBe(200); expect(provider).toHaveBeenCalledTimes(6);
+});
+it("keeps a finished delivery_pending body when the pre-delivery access check throws", async () => {
+  await start(); await start();
+  accessFault = () => docs[0]?.status === "delivery_pending";
+  const response = await start(); expect(response.status).toBe(503);
+  expect(await response.json()).toMatchObject({ reason: "RESULT_STORAGE_UNAVAILABLE", retryable: true });
+  expect(docs[0].status).toBe("delivery_pending");
+  expect(refund).not.toHaveBeenCalled(); expect(passRefund).not.toHaveBeenCalled();
+  accessFault = null;
+  expect((await start()).status).toBe(200); expect(docs[0].status).toBe("completed"); expect(provider).toHaveBeenCalledTimes(6);
 });
 it("stops after two unusable section attempts", async () => {
   provider.mockImplementation(async () => ({ ok: true, text: "짧은 결과", provider: "gemini" }));

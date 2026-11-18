@@ -1928,6 +1928,8 @@ async function handleStart(request, env, _routeContext = null, recoveryAuth = nu
     if (['EXPERT_CALCULATION_MISMATCH', 'ENGINE_FACT_SNAPSHOT_INVALID'].includes(error?.code)) return json({ ok: false, reason: error.code }, { status: 409 });
     if (error?.code === "RESULT_STORAGE_UNAVAILABLE") return json(resultStorageFailurePayload(error), { status: 503 });
     if(nativeTossContext(request) && (error?.status === 401 || error?.status === 403)) return json({ok:false,reason:error.code||"ACCESS_DENIED"},{status:error.status});
+    // 완성 본문이 있으면(delivery_pending) 일시 장애로 덮거나 환불하지 않는다 — 같은 전달을 다시 시도한다.
+    if (doc?.status === "delivery_pending") return json(resultStorageFailurePayload(resultStorageUnavailable(sessionId)), { status: 503 });
     await saveAstrologyDelivery(locked, { status: "generation_failed", generationError: { code: clean(error?.code || "GENERATION_FAILED", 80) } }, sessionId);
     if(!nativeTossContext(request)) await releaseRequestBillingEvidence(env, { userId: clean(auth.userId), requestId: idempotencyKey, evidenceIds });
     if(!nativeTossContext(request)) await failRefundableExecution(env, auth, idempotencyKey, sessionId, error);
