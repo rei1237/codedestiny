@@ -9,3 +9,6 @@
 .notes{margin-top:3rem}.notes details{border-bottom:1px solid var(--yn-line)}.notes h3{color:var(--yn-gold);font-size:1.05rem;margin:1.5rem 0 .5rem}.notes p{white-space:pre-wrap;word-break:keep-all}
 .extras :is(button,input,summary):focus-visible,.introduction a:focus-visible{outline:3px solid var(--yn-gold);outline-offset:4px}
 @media(max-width:430px){.introduction{gap:.7rem}.exportBody{padding-inline:1rem}.export button{width:100%}.export>summary{padding:1rem}}
+.exportActions{display:flex;flex-wrap:wrap;gap:.75rem}.openPdf{box-sizing:border-box;display:flex;justify-content:center;align-items:center;gap:.65rem;min-height:48px;border:1px solid var(--yn-gold);border-radius:.65rem;padding:.85rem 1.2rem;color:var(--yn-gold);font-weight:700;text-decoration:none}.openPdf:hover{border-color:var(--yn-gold-hover);color:var(--yn-gold-hover)}.openPdf:focus-visible{outline:3px solid var(--yn-gold);outline-offset:4px}
+.progress{height:.5rem;margin-top:1rem;border-radius:999px;background:var(--yn-raised);overflow:hidden}.progress span{display:block;height:100%;background:var(--yn-gold);border-radius:inherit}.exportError{border-left:3px solid var(--yn-gold);padding-left:.75rem}.exportBody p{word-break:keep-all;overflow-wrap:anywhere}
+@media(max-width:430px){.exportActions>*{width:100%}}
