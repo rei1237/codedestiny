@@ -297,7 +297,9 @@ test('실제 신년 화면은 부분 결과를 완료로 오인하지 않고 결
   visit(ast); assert.ok(callback);
   const requests = [], states = [], pendingGenerationRef = { current: null };
   const ctx = vm.createContext({ document: { hidden: false }, captureDeliveryScope: () => () => true, READING_SECTION_TOTAL: 6,
-    setStatus() {}, setNotice() {}, pendingGenerationRef, applyResult: result => states.push(result.status),
+    setStatus() {}, setNotice() {}, setError() {}, pendingGenerationRef, applyResult: result => states.push(result.status),
+    window: { clearTimeout() {} }, autoResumeRef: { current: { timer: 0, rounds: 0, best: 0 } }, rememberNewYearSession() {},
+    isRetriableResultPollFailure: () => false, scheduleAutoResume: () => false,
     postJson: async (_path, payload, key) => {
       requests.push({ payload, key });
       return { response: { status: requests.length === 5 ? 200 : 202, ok: true }, payload: {
@@ -511,4 +513,157 @@ test('new-year actual major luck survives mock partial persistence and OFF resum
  const saved=clone(f.doc.llmMeta.fortuneData);assert.deepEqual(saved.majorLuck,clone(actual.majorLuck));f.ctx.calculateNewYearFortuneData=()=>{throw Error('RECALC_BLOCKED')};
  for(let i=0;i<20&&f.doc.status!=='completed';i++)await f.post({resumeSessionId:f.doc.id});
  assert.equal(f.doc.status,'completed');assert.deepEqual(f.doc.llmMeta.fortuneData,saved);assert.equal(f.charges,1);
+});
+
+// ── 결제 뒤 신년 생성 화면: 일시 장애·숨은 탭·긴 생성에서 멈추지 않고, 종결 실패면 환불 안내 ──
+const NY_CLIENT = 'app/new-year-ai-consultation/NewYearAiClient.tsx';
+// 파일에서 이름으로 최상위 함수·상수와 컴포넌트 안 useCallback 본문을 꺼내 `var 이름 = …` 으로 싣는다.
+function newYearSource(file, names) {
+  const ast = ts.createSourceFile(file, fs.readFileSync(file, 'utf8'), ts.ScriptTarget.Latest, true, file.endsWith('x') ? ts.ScriptKind.TSX : ts.ScriptKind.TS);
+  const found = new Map();
+  function visit(node) {
+    if (ts.isFunctionDeclaration(node) && node.name && names.includes(node.name.text) && !found.has(node.name.text)) found.set(node.name.text, node.getText(ast).replace(/^export\s+/, ''));
+    else if (ts.isVariableDeclaration(node) && ts.isIdentifier(node.name) && names.includes(node.name.text) && node.initializer && !found.has(node.name.text)) {
+      const init = node.initializer;
+      const body = ts.isCallExpression(init) && init.expression.getText(ast) === 'useCallback' ? init.arguments[0] : init;
+      found.set(node.name.text, `var ${node.name.text} = ${body.getText(ast)};`);
+    }
+    ts.forEachChild(node, visit);
+  }
+  visit(ast);
+  for (const name of names) assert.ok(found.has(name), name);
+  return ts.transpileModule(names.map(name => found.get(name)).join('\n'), { compilerOptions: { target: ts.ScriptTarget.ES2022 } }).outputText;
+}
+const POLLING_SOURCE = () => newYearSource('app/_lib/consultationResultPolling.ts', ['RETRYABLE_POLL_REASONS', 'isRetriableResultPollFailure']);
+const NY_COPY = ['SERVER_ERROR_MESSAGE', 'LLM_ERROR_MESSAGE', 'NEW_YEAR_PAUSED_NOTICE', 'NEW_YEAR_SLOW_NOTICE', 'NEW_YEAR_STALLED_MESSAGE'];
+const friendly = (caught, fallback) => caught && /[가-힣]/.test(caught.message || '') ? caught.message : fallback;
+function trail() {
+  const log = { status: [], notice: [], error: [], events: [], requests: [], scheduled: 0, remembered: [] };
+  const last = key => log[key][log[key].length - 1];
+  const setter = key => value => { const next = typeof value === 'function' ? value(last(key)) : value; log[key].push(next); log.events.push(`${key}:${next}`); };
+  return { log, last, setStatus: setter('status'), setNotice: setter('notice'), setError: setter('error') };
+}
+function newYearStart({ responses, hidden = () => false, poll } = {}) {
+  const t = trail(), pendingGenerationRef = { current: null };
+  const ctx = vm.createContext({
+    document: { get hidden() { return hidden(t.log); } },
+    captureDeliveryScope: () => () => true, READING_SECTION_TOTAL: 6, pendingGenerationRef,
+    autoResumeRef: { current: { timer: 0, rounds: 0, best: 0 } }, window: { clearTimeout() {} },
+    setStatus: t.setStatus, setNotice: t.setNotice, setError: t.setError,
+    applyResult: result => { t.setNotice(''); t.setError(''); t.setStatus(result.status && result.status !== 'completed' ? 'reading' : 'ready'); },
+    sleep: async () => {}, rememberNewYearSession: id => t.log.remembered.push(id),
+    scheduleAutoResume: () => { t.log.scheduled += 1; t.setStatus('reading'); return false; },
+    pollNewYearResult: poll || (async () => { throw new Error('unexpected poll'); }),
+    postJson: async (path, payload, key) => {
+      t.log.requests.push({ path, payload, key }); t.log.events.push('post');
+      const next = responses.shift(); assert.ok(next, 'unexpected request');
+      if (next instanceof Error) throw next;
+      return { response: { status: next.status, ok: next.status >= 200 && next.status < 300 }, payload: next.body };
+    },
+  });
+  vm.runInContext(POLLING_SOURCE() + newYearSource(NY_CLIENT, [...NY_COPY, 'startConsultation']), ctx);
+  return { ctx, ...t, pendingGenerationRef, run: () => ctx.startConsultation({ birth: 'original' }, 'paid-request', { billingGate: { receipt: 'paid' } }) };
+}
+const partial = (completed = 1) => ({ status: 202, body: { ok: true, status: 'partial', sessionId: 'ny-1', progress: { completed, total: 6 } } });
+const completedResult = { status: 200, body: { ok: true, status: 'completed', saved: true, sessionId: 'ny-1' } };
+
+test('신년 결제 뒤 18번을 넘겨도 생성 화면을 멈추지 않고 같은 상담 자동 이어쓰기로 넘긴다', async () => {
+  const h = newYearStart({ responses: Array.from({ length: 18 }, (_, i) => partial(Math.min(i, 5))) });
+  assert.equal(await h.run(), false);
+  assert.equal(h.log.scheduled, 1);
+  assert.ok(!h.log.status.includes('ready'));
+  assert.equal(h.last('status'), 'reading');
+  assert.equal(h.pendingGenerationRef.current.payload.resumeSessionId, 'ny-1');
+  assert.equal(h.pendingGenerationRef.current.key, 'paid-request');
+});
+test('신년 결제 뒤 일시 503 이 이어져도 오류로 끝내지 않고 저장된 상담을 자동으로 이어 간다', async () => {
+  const busy = { status: 503, body: { ok: false, reason: 'LLM_PROVIDER_UNAVAILABLE', retryable: true, sessionId: 'ny-1' } };
+  const h = newYearStart({ responses: [busy, busy, busy] });
+  assert.equal(await h.run(), false);
+  assert.equal(h.log.requests.length, 3);
+  assert.equal(h.log.scheduled, 1);
+  assert.ok(!h.log.status.includes('error'));
+  assert.deepEqual([...new Set(h.log.remembered)], ['ny-1']);
+  assert.equal(h.pendingGenerationRef.current.payload.resumeSessionId, 'ny-1');
+});
+test('신년 결제 뒤 네트워크가 연달아 끊겨도 예외로 끝내지 않고 자동 이어쓰기를 건다', async () => {
+  const h = newYearStart({ responses: [new Error('Failed to fetch'), new Error('Failed to fetch'), new Error('Failed to fetch')] });
+  assert.equal(await h.run(), false);
+  assert.equal(h.log.scheduled, 1);
+  assert.equal(h.pendingGenerationRef.current.access.billingGate.receipt, 'paid');
+});
+test('신년 생성 중 탭이 숨으면 생성 화면을 유지한 채 멈추고 복귀 때 이어 쓸 상담을 주소에 남긴다', async () => {
+  const h = newYearStart({ responses: [partial(2)], hidden: log => log.requests.length >= 1 });
+  assert.equal(await h.run(), false);
+  assert.equal(h.log.requests.length, 1);
+  assert.ok(!h.log.status.includes('ready'));
+  assert.equal(h.last('status'), 'reading');
+  assert.equal(h.last('notice'), vm.runInContext('NEW_YEAR_PAUSED_NOTICE', h.ctx));
+  assert.ok(h.log.remembered.includes('ny-1'));
+});
+test('신년 결제 직후 상담이 아직 없으면 탭이 숨어 있어도 시작 요청은 보낸다', async () => {
+  const h = newYearStart({ responses: [completedResult], hidden: () => true });
+  assert.equal(await h.run(), true);
+  assert.equal(h.log.requests.length, 1);
+});
+test('신년 생성 대기 조회가 실패해도 같은 상담 시작을 다시 불러 서버 상태를 이어받는다', async () => {
+  const h = newYearStart({ responses: [{ status: 202, body: { ok: true, status: 'generating', sessionId: 'ny-1' } }, completedResult], poll: async () => { throw new Error('상담 생성이 평소보다 오래 걸리고 있어요'); } });
+  assert.equal(await h.run(), true);
+  assert.equal(h.log.requests.length, 2);
+  assert.equal(h.log.requests[1].payload.resumeSessionId, 'ny-1');
+  assert.equal(h.pendingGenerationRef.current, null);
+});
+
+function newYearScheduler() {
+  const t = trail(), timers = [];
+  let fired = 0;
+  const ctx = vm.createContext({
+    autoResumeRef: { current: { timer: 0, rounds: 0, best: 0 } }, resumeGenerationRef: { current: () => { fired += 1; } },
+    window: { setTimeout: (fn, ms) => { timers.push({ fn, ms }); return timers.length; }, clearTimeout() {} },
+    setStatus: t.setStatus, setNotice: t.setNotice, setError: t.setError,
+  });
+  vm.runInContext(newYearSource(NY_CLIENT, [...NY_COPY, 'NEW_YEAR_AUTO_RESUME_ROUNDS', 'NEW_YEAR_AUTO_RESUME_DELAY_MS', 'scheduleAutoResume']), ctx);
+  return { ctx, ...t, timers, fired: () => fired };
+}
+test('신년 자동 이어쓰기는 간격을 늘려 몇 번 더 잇고, 한도를 넘으면 저장 보존 안내와 다시 시도 버튼으로 바꾼다', () => {
+  const h = newYearScheduler();
+  const rounds = vm.runInContext('NEW_YEAR_AUTO_RESUME_ROUNDS', h.ctx);
+  for (let i = 0; i < rounds; i += 1) { assert.equal(h.ctx.scheduleAutoResume(), false); assert.equal(h.last('status'), 'reading'); }
+  assert.equal(h.timers.length, rounds);
+  assert.ok(h.timers.every((row, i) => i === 0 || row.ms > h.timers[i - 1].ms));
+  assert.equal(h.last('notice'), vm.runInContext('NEW_YEAR_SLOW_NOTICE', h.ctx));
+  h.timers[0].fn(); assert.equal(h.fired(), 1);
+  assert.equal(h.ctx.scheduleAutoResume(), false);
+  assert.equal(h.timers.length, rounds);
+  assert.equal(h.last('status'), 'error');
+  assert.equal(h.last('error'), vm.runInContext('NEW_YEAR_STALLED_MESSAGE', h.ctx));
+  assert.match(h.last('error'), /다시 결제되지 않/);
+});
+
+function newYearLoad({ status, body, pending = null, before = 'reading' }) {
+  const t = trail(), starts = [];
+  t.setStatus(before);
+  const ctx = vm.createContext({
+    startLockRef: { current: false }, resultLoadScopeRef: { current: null }, captureDeliveryScope: () => () => true,
+    idempotencyKeyRef: { current: 'paid-request' }, pendingGenerationRef: { current: pending },
+    authFetch: async () => ({ status, ok: status >= 200 && status < 300, json: async () => body }),
+    applyResult: () => {}, startConsultation: async (...args) => { starts.push(args); return true; },
+    setStatus: t.setStatus, setNotice: t.setNotice, setError: t.setError, friendlyErrorMessage: friendly,
+    scheduleAutoResume: () => { t.log.scheduled += 1; return false; },
+  });
+  vm.runInContext(POLLING_SOURCE() + newYearSource(NY_CLIENT, [...NY_COPY, 'loadSession']), ctx);
+  return { ctx, ...t, starts, run: () => ctx.loadSession('ny-1') };
+}
+test('신년 생성 상태 조회가 일시 장애면 진행 중 상담을 자동 이어쓰기로 넘긴다', async () => {
+  const h = newYearLoad({ status: 503, body: { ok: false, reason: 'DB_DEGRADED', retryable: true }, pending: { payload: { resumeSessionId: 'ny-1' }, key: 'paid-request', access: {} } });
+  assert.equal(await h.run(), false);
+  assert.equal(h.log.scheduled, 1);
+  assert.ok(!h.log.status.includes('error'));
+});
+test('신년 생성 상태 조회가 확정 실패하면 생성 중 스피너에 묶어 두지 않는다', async () => {
+  const h = newYearLoad({ status: 404, body: { ok: false, reason: 'NOT_FOUND', message: '상담을 찾지 못했어요.' } });
+  assert.equal(await h.run(), false);
+  assert.equal(h.last('status'), 'error');
+  assert.equal(h.last('error'), '상담을 찾지 못했어요.');
+  assert.equal(h.log.scheduled, 0);
 });

@@ -609,6 +609,27 @@ function DomainConsultationCards({ bodies, monthly }: { bodies: Map<string, stri
 // 토스는 다시 열어도 자동으로 이어 쓰지 않고 '구매한 상담 이어보기' 버튼으로 이어 가므로 그 사실만 말한다.
 const NEW_YEAR_TOSS_LEAVE_NOTICE = "다 쓴 분야는 그때그때 저장돼요. 이 상담을 다시 열면 저장된 분야부터 이어서 받을 수 있고, 다시 결제되지 않아요.";
 
+// 결제 뒤 생성(웹): 숨은 탭·일시 장애·긴 생성에서도 생성 화면을 지킨다. 같은 상담(resumeSessionId)·같은 요청 키로만
+// 이어 쓰므로 다시 결제되지 않는다. 자동 이어쓰기는 간격을 늘려 몇 번 더 잇고(저장 분야가 늘면 횟수를 되돌린다),
+// 그래도 멈추면 저장 보존 안내와 버튼을 보인다. 그동안에도 복구 크론(new-year-ai)이 서버에서 마저 완성한다.
+const NEW_YEAR_PAUSED_NOTICE = "화면을 벗어나 생성을 잠시 멈췄어요. 돌아오면 저장된 분야부터 이어서 준비합니다. 다시 결제되지 않습니다.";
+const NEW_YEAR_SLOW_NOTICE = "생성이 길어지고 있어요. 저장된 분야는 그대로 두고 잠시 뒤 자동으로 이어 갑니다. 다시 결제되지 않습니다.";
+const NEW_YEAR_STALLED_MESSAGE = "생성이 예상보다 오래 멈춰 있어요. 저장된 분야는 그대로 남아 있고 다시 결제되지 않아요. 아래 버튼을 누르면 같은 상담을 이어서 받고, 서버에서도 마저 완성해 기록 보관함에 남겨 둡니다.";
+const NEW_YEAR_AUTO_RESUME_ROUNDS = 4;
+const NEW_YEAR_AUTO_RESUME_DELAY_MS = 15000;
+
+// 새로고침·탭 복귀·결제 리다이렉트 뒤에도 같은 상담을 다시 열도록 ?sid= 를 남긴다(loadSession 이 읽는다).
+function rememberNewYearSession(sessionId: string) {
+  if (!sessionId || typeof window === "undefined") return;
+  try {
+    const url = new URL(window.location.href);
+    url.searchParams.set("sid", sessionId);
+    window.history.replaceState(null, "", url.toString());
+  } catch {
+    // URL 갱신 실패는 무시
+  }
+}
+
 function NewYearGenerationPanel({ count, toss }: { count: { completed: number; total: number } | null; toss: boolean }) {
   const copy = useNewYearAiCopy();
   return (
@@ -1540,12 +1561,15 @@ export default function NewYearAiConsultationPage({paymentSurface="web",ProfileP
   const resultLoadScopeRef = useRef<(() => boolean) | null>(null);
   const idempotencyKeyRef = useRef(createIdempotencyKey());
   const pendingGenerationRef = useRef<{ payload: Record<string, unknown>; key: string; access: Record<string, unknown> } | null>(null);
+  const autoResumeRef = useRef({ timer: 0, rounds: 0, best: 0 });
+  const resumeGenerationRef = useRef<() => void>(() => {});
   const [reloadEpoch, setReloadEpoch] = useState(0);
   const [tossRecovery,setTossRecovery]=useState<'none'|'checking'|'allowed'|'denied'|'error'>(()=>paymentSurface==='toss'&&typeof window!=='undefined'&&Boolean(new URLSearchParams(window.location.search).get('sid'))?'checking':'none');
   const [tossFailureCode,setTossFailureCode]=useState('');
   const tossRevision=useRef(0),tossBusy=useRef(false),tossViewedId=useRef('');
   const captureDeliveryScope = usePaidDeliveryScope(() => {
     pendingGenerationRef.current = null; startLockRef.current = false; resultLoadScopeRef.current = null;
+    window.clearTimeout(autoResumeRef.current.timer); autoResumeRef.current = { timer: 0, rounds: 0, best: 0 };
     idempotencyKeyRef.current = createIdempotencyKey();
     if(paymentSurface==='toss'){tossRevision.current++;tossBusy.current=false;tossViewedId.current='';setForm(defaultForm());setTossFailureCode('');setTossRecovery(typeof window!=='undefined'&&new URLSearchParams(window.location.search).get('sid')?'checking':'none');}
     setMessages([]); setServerSections([]); setSajuProfile(null); setMonthlyFlow([]); setTargetYearInfo(null); setRecentSessions([]);
@@ -1583,16 +1607,27 @@ export default function NewYearAiConsultationPage({paymentSurface="web",ProfileP
     setNotice("");
     setError("");
     setStatus(result.status && result.status !== "completed" ? "reading" : "ready");
-    if (paymentSurface !== "toss" && result.sessionId && typeof window !== "undefined") {
-      try {
-        const url = new URL(window.location.href);
-        url.searchParams.set("sid", result.sessionId);
-        window.history.replaceState(null, "", url.toString());
-      } catch {
-        // URL 갱신 실패는 무시
-      }
-    }
+    if (paymentSurface !== "toss" && result.sessionId) rememberNewYearSession(result.sessionId);
   }, [paymentSurface]);
+
+  // 이번 호출로 생성을 끝내지 못하면 오류로 닫지 않고 같은 상담을 잠시 뒤 이어 쓴다. 한도를 넘으면 저장 보존 안내와 버튼으로 바꾼다.
+  const scheduleAutoResume = useCallback(() => {
+    const state = autoResumeRef.current;
+    window.clearTimeout(state.timer);
+    const rounds = state.rounds + 1;
+    if (rounds > NEW_YEAR_AUTO_RESUME_ROUNDS) {
+      autoResumeRef.current = { ...state, rounds, timer: 0 };
+      setNotice(""); setError(NEW_YEAR_STALLED_MESSAGE); setStatus("error");
+      return false;
+    }
+    const timer = window.setTimeout(() => {
+      autoResumeRef.current = { ...autoResumeRef.current, timer: 0 };
+      resumeGenerationRef.current();
+    }, NEW_YEAR_AUTO_RESUME_DELAY_MS * rounds);
+    autoResumeRef.current = { ...state, rounds, timer };
+    setError(""); setNotice(NEW_YEAR_SLOW_NOTICE); setStatus("reading");
+    return false;
+  }, []);
 
   const startConsultation = useCallback(async (
     payload: Record<string, unknown>, idempotencyKey: string, access: Record<string, unknown>,
@@ -1600,38 +1635,61 @@ export default function NewYearAiConsultationPage({paymentSurface="web",ProfileP
     const isCurrent = captureDeliveryScope();
     pendingGenerationRef.current = { payload, key: idempotencyKey, access };
     setStatus("reading");
-    let transientFailures = 0;
+    let transientFailures = 0, pollFailures = 0;
     for (let wave = 0; wave < 18; wave += 1) {
       if (!isCurrent()) return false;
-      if (document.hidden) { setStatus("ready"); return false; }
       const pending = pendingGenerationRef.current;
       if (!pending) return false;
+      // 숨은 탭: 상담이 이미 있으면 생성 화면을 그대로 두고 멈춘다. 복귀하면 ?sid= 로 저장된 분야부터 이어 쓴다(loadSession).
+      // 결제 직후 상담이 아직 없으면 시작 요청은 보내 서버에 상담을 만든다(그 뒤로는 복구 크론도 이어 쓴다).
+      const knownSession = typeof pending.payload.resumeSessionId === "string" ? pending.payload.resumeSessionId : "";
+      if (document.hidden && knownSession) { rememberNewYearSession(knownSession); setNotice(NEW_YEAR_PAUSED_NOTICE); return false; }
       let response: Response, result: ConsultationResult;
       try {
         const started = await postJson<ConsultationResult>("/api/new-year-ai/start", { ...pending.payload, ...pending.access }, pending.key);
         response = started.response; result = started.payload;
-      } catch (error) {
+      } catch {
         if (!isCurrent()) return false;
-        if (++transientFailures > 2) throw error;
+        // 연결이 거듭 끊겨도 오류로 닫지 않고 같은 요청 키로 자동 이어쓰기에 넘긴다.
+        if (++transientFailures > 2) return scheduleAutoResume();
         await sleep(1500 * transientFailures); continue;
       }
       if (!isCurrent()) return false;
       const sessionId = result.sessionId || result.resultId;
-      if (sessionId) pendingGenerationRef.current = { payload: { resumeSessionId: sessionId }, key: idempotencyKey, access: {} };
-      if (response.status === 503 && ++transientFailures <= 2) { await sleep(1500 * transientFailures); continue; }
-      if (!response.ok || !result.ok) throw new Error(result.message || SERVER_ERROR_MESSAGE);
+      if (sessionId) {
+        pendingGenerationRef.current = { payload: { resumeSessionId: sessionId }, key: idempotencyKey, access: {} };
+        rememberNewYearSession(sessionId);
+      }
+      if (!response.ok || !result.ok) {
+        if (!isRetriableResultPollFailure(response.status, result)) throw new Error(result.message || SERVER_ERROR_MESSAGE);
+        if (++transientFailures > 2) return scheduleAutoResume();
+        await sleep(1500 * transientFailures); continue;
+      }
       transientFailures = 0;
-      if (result.status === "generating" && result.sessionId) result = await pollNewYearResult(result.sessionId, isCurrent);
+      if (result.status === "generating" && result.sessionId) {
+        try {
+          result = await pollNewYearResult(result.sessionId, isCurrent);
+        } catch {
+          if (!isCurrent()) return false;
+          // 대기 조회가 끝내 실패해도 같은 상담 시작을 다시 불러 서버의 현재 상태를 이어받는다.
+          if (++pollFailures > 2) return scheduleAutoResume();
+          await sleep(1500 * pollFailures); continue;
+        }
+      }
       if (!isCurrent()) return false;
       if (result.status === "completed" && result.saved === true) {
-        applyResult(result); pendingGenerationRef.current = null; return true;
+        applyResult(result); pendingGenerationRef.current = null;
+        window.clearTimeout(autoResumeRef.current.timer); autoResumeRef.current = { timer: 0, rounds: 0, best: 0 };
+        return true;
       }
       applyResult(result);
-      setNotice(`저장된 분야 ${result.progress?.completed || 0}/${result.progress?.total || READING_SECTION_TOTAL} · 이어서 준비하고 있습니다.`);
+      const saved = result.progress?.completed || 0;
+      if (saved > autoResumeRef.current.best) autoResumeRef.current = { ...autoResumeRef.current, best: saved, rounds: 0 };
+      setNotice(`저장된 분야 ${saved}/${result.progress?.total || READING_SECTION_TOTAL} · 이어서 준비하고 있습니다.`);
     }
-    setStatus("ready");
-    return false;
-  }, [applyResult, captureDeliveryScope]);
+    // 한 번에 끝내지 못한 긴 생성도 멈춘 채 두지 않는다.
+    return scheduleAutoResume();
+  }, [applyResult, captureDeliveryScope, scheduleAutoResume]);
 
   const loadSession = useCallback(async (sessionId: string) => {
     // A discarded mount must not keep a read lock alive on the next mount.
@@ -1649,7 +1707,12 @@ export default function NewYearAiConsultationPage({paymentSurface="web",ProfileP
         return await startConsultation({ resumeSessionId: sessionId }, idempotencyKeyRef.current, {});
       }
       if (response.ok && result.ok && result.status === "completed") { applyResult(result); return true; }
-      if (!response.ok) setError(result.message || SERVER_ERROR_MESSAGE);
+      if (!response.ok) {
+        // 진행 중인 결제 생성의 일시 장애는 생성 화면을 지킨 채 자동 이어쓰기로 넘긴다.
+        if (pendingGenerationRef.current && isRetriableResultPollFailure(response.status, result)) return scheduleAutoResume();
+        setError(result.message || SERVER_ERROR_MESSAGE);
+        setStatus(current => current === "reading" ? "error" : current);
+      }
     } catch (caught) {
       if (isCurrent()) { setError(friendlyErrorMessage(caught, SERVER_ERROR_MESSAGE)); setStatus("error"); }
     } finally {
@@ -1659,7 +1722,28 @@ export default function NewYearAiConsultationPage({paymentSurface="web",ProfileP
       }
     }
     return false;
-  }, [applyResult, captureDeliveryScope, startConsultation]);
+  }, [applyResult, captureDeliveryScope, scheduleAutoResume, startConsultation]);
+
+  // 멈춘 결제 생성을 같은 상담·같은 요청 키로 잇는다(자동 이어쓰기 타이머와 '다시 시도' 버튼이 함께 쓴다).
+  const continuePendingGeneration = useCallback(async () => {
+    const pending = pendingGenerationRef.current;
+    if (!pending || startLockRef.current) return false;
+    const isCurrent = captureDeliveryScope();
+    startLockRef.current = true;
+    try {
+      return await startConsultation(pending.payload, pending.key, pending.access);
+    } catch (caught) {
+      if (isCurrent()) { setError(friendlyErrorMessage(caught, SERVER_ERROR_MESSAGE)); setStatus("error"); }
+      return false;
+    } finally {
+      if (isCurrent()) startLockRef.current = false;
+    }
+  }, [captureDeliveryScope, startConsultation]);
+  useEffect(() => { resumeGenerationRef.current = () => { void continuePendingGeneration(); }; }, [continuePendingGeneration]);
+  useEffect(() => {
+    const autoResume = autoResumeRef;
+    return () => window.clearTimeout(autoResume.current.timer);
+  }, []);
 
   // 재열람: ?sid= 복원 + 지난 상담 목록
   useEffect(() => {
@@ -1856,12 +1940,11 @@ export default function NewYearAiConsultationPage({paymentSurface="web",ProfileP
     event.preventDefault();
     const isCurrent = captureDeliveryScope();
     if (startLockRef.current || isBusy) return;
-    const pending = pendingGenerationRef.current;
-    if (pending) {
-      startLockRef.current = true;
-      try { await startConsultation(pending.payload, pending.key, pending.access); }
-      catch (caught) { if (!isCurrent()) return; setError(friendlyErrorMessage(caught, SERVER_ERROR_MESSAGE)); setStatus("error"); }
-      finally { if (isCurrent()) startLockRef.current = false; }
+    if (pendingGenerationRef.current) {
+      // 사용자가 직접 다시 누르면 자동 이어쓰기 횟수를 새로 센다.
+      window.clearTimeout(autoResumeRef.current.timer);
+      autoResumeRef.current = { ...autoResumeRef.current, timer: 0, rounds: 0 };
+      await continuePendingGeneration();
       return;
     }
     const previewState = readDevPreviewState();
