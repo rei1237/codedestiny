@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "locale": "en",
-  "sourceHash": "e88ef3154aa9d6349929cf0928b5b4785cf3f0a441ee32e3ec396afc26bffd5c",
+  "sourceHash": "943871f1b1598f7aac2fe036ea1e0b26bdbf74739367df253875b6c3f8fcbe99",
   "episodes": [
     {
       "id": "prologue",
@@ -22800,7 +22800,7 @@
         },
         {
           "id": "ep-36:59",
-          "t": "Yundal stopped smiling. Below Neo's wrist was empty space. Starlight passed straight through his hand."
+          "t": "Yundal stopped smiling. Below Neo's wrist was empty space. Starlight passed straight through that hand."
         },
         {
           "id": "ep-36:60",
@@ -22852,7 +22852,7 @@
         },
         {
           "id": "ep-36:72",
-          "t": "After Neo returned to the cabin, Yundal remained at the bow. A faint moon hung at the edge of the sky, as though leaving a place open for him."
+          "t": "After Neo returned to the cabin, Yundal remained at the bow. A faint moon hung at the edge of the sky."
         },
         {
           "id": "ep-36:73",
@@ -22980,7 +22980,7 @@
         },
         {
           "id": "ep-36:104",
-          "t": "Yeoni pressed their stomach. It felt empty inside, like a vessel waiting to be filled."
+          "t": "Yeoni pressed their stomach. It felt empty inside."
         },
         {
           "id": "ep-36:105",
@@ -22992,7 +22992,7 @@
         },
         {
           "id": "ep-36:107",
-          "t": "The voice didn't answer. Instead, every thread in the floor pulled taut. Something below was tugging on them."
+          "t": "Every thread in the floor pulled taut at once, like an answer. Something below was tugging on them."
         },
         {
           "id": "ep-36:108",
@@ -23056,7 +23056,7 @@
         },
         {
           "id": "ep-36a:8",
-          "t": "A bus stop. That child offered an umbrella at a bus stop last time too. Near our apartments, on that rainy day."
+          "t": "A bus stop. That child offered an umbrella at a bus stop last time too. In the next neighborhood over, on that rainy day."
         },
         {
           "id": "ep-36a:9",
@@ -23128,7 +23128,7 @@
         },
         {
           "id": "ep-36a:26",
-          "t": "The tiger read those words aloud. Its throat tightened afterward, as though these weren't words in a ledger but words it had heard from someone long ago."
+          "t": "The tiger read those words in the ledger aloud. Its throat tightened afterward, as though these weren't words in a ledger but words it had heard from someone long ago."
         },
         {
           "id": "ep-36a:27",
@@ -23164,7 +23164,7 @@
         },
         {
           "id": "ep-36a:35",
-          "t": "She was strange that day. She always had a nickname for me, yet she didn't call me by name."
+          "t": "She was strange that day. She always had a nickname for me, but that day she used my full name, surname and all."
         },
         {
           "id": "ep-36a:36",
@@ -23236,7 +23236,7 @@
         },
         {
           "id": "ep-36a:53",
-          "t": "There was no answer from above. The tiger held the soaked ledger closer. An unfamiliar feeling stirred beneath the ring around its neck. A feeling called doubt."
+          "t": "There was no answer from above. The tiger held the soaked ledger closer. Something unfamiliar stirred beneath the ring around its neck."
         },
         {
           "id": "ep-36a:54",
@@ -23360,7 +23360,7 @@
         },
         {
           "id": "ep-37:28",
-          "t": "Neo sat alone beside a stone well, his outer coat covering his right arm."
+          "t": "Neo sat alone beside a stone well, his outer coat covering his right arm. The sky toward Rohini was still dark."
         },
         {
           "id": "ep-37:29",
@@ -23624,7 +23624,7 @@
         },
         {
           "id": "ep-37:wick-2",
-          "t": "I'll check that flame first when we return. If it's smaller, we'll know something happened while we were down there."
+          "t": "I'll check that flame first when we get back. If it's smaller, we'll know something happened while we were down there."
         },
         {
           "id": "ep-37:87",
@@ -23892,7 +23892,7 @@
         },
         {
           "id": "ep-38:41",
-          "t": "The tiger's breath stopped. The black dot in its eye wavered. It began to grow, then halted."
+          "t": "The tiger caught its breath. The black dot in its eye wavered. It began to grow, then halted."
         },
         {
           "id": "ep-38:42",
@@ -24048,7 +24048,7 @@
         },
         {
           "id": "ep-38:80",
-          "t": "Yeoni dropped to their knees. Their stomach felt hollow, as though the place that had held something had collapsed all at once."
+          "t": "Yeoni dropped to their knees. Everything inside their stomach caved in at once."
         },
         {
           "id": "ep-38:81",
@@ -24064,7 +24064,7 @@
         },
         {
           "id": "ep-38:84",
-          "t": "One short word. The room fell silent. Even the rain seemed to stop."
+          "t": "One short word. The room fell silent."
         },
         {
           "id": "ep-38:85",
@@ -24160,7 +24160,7 @@
         },
         {
           "id": "ep-38:108",
-          "t": "Then it can eat us together. Half each, remember? You said it."
+          "t": "Then it can eat us together. Half each, remember? We said it."
         },
         {
           "id": "ep-38:109",
@@ -24248,7 +24248,7 @@
         },
         {
           "id": "ep-38a:15",
-          "t": "Yeoni held out a little finger. Seo Hanbi hooked hers around it. Their fingers were cold. Both laughed."
+          "t": "Yeoni held out a little finger. Seo Hanbi hooked hers around it. Their cold fingers still linked, both laughed."
         },
         {
           "id": "ep-38a:16",
@@ -24380,7 +24380,7 @@
         },
         {
           "id": "ep-38a:failed-future",
-          "t": "Hanbi stood beside the umbrella a long time. Only rain kept sounding from the direction where the man had vanished."
+          "t": "Only rain kept sounding from the direction where the man had vanished."
         },
         {
           "id": "ep-38a:regression-price",
@@ -24392,7 +24392,7 @@
         },
         {
           "id": "ep-38a:hanbi-companion",
-          "t": "The thread gathered light again. The bus stop's rain receded."
+          "t": "The thread gathered light again."
         },
         {
           "id": "ep-38a:48",
@@ -24440,7 +24440,7 @@
         },
         {
           "id": "ep-38a:59",
-          "t": "Those words hurt most. Seo Hanbi laughed for a long time. It sounded like crying."
+          "t": "Seo Hanbi laughed for a long time. The end of it was wet."
         },
         {
           "id": "ep-38a:60",
@@ -24496,7 +24496,7 @@
         },
         {
           "id": "ep-38a:73",
-          "t": "It wasn't Halfie. Still, the tiger smiled. The Yeoni of this spring was calling her properly by name."
+          "t": "It wasn't Halfie. Still, the tiger smiled. The Yeoni of this spring was calling her name, and calling it warmly."
         },
         {
           "id": "ep-38a:74",
@@ -24544,7 +24544,7 @@
         },
         {
           "id": "ep-39:6",
-          "t": "Let go. That ring is your body. Break it, and your power and road home break with it."
+          "t": "Let go. That ring is your body."
         },
         {
           "id": "ep-39:7",
@@ -24572,7 +24572,7 @@
         },
         {
           "id": "ep-39:13",
-          "t": "Above, beside the well among the twenty-seven lunar mansions, the thread suddenly grew heavy. Yeoni pitched forward, knees striking stone."
+          "t": "Above, in the round chamber beneath the temple, the thread suddenly grew heavy. Yeoni pitched forward, knees striking stone."
         },
         {
           "id": "ep-39:14",
@@ -24584,7 +24584,7 @@
         },
         {
           "id": "ep-39:16",
-          "t": "Neo lowered his head to bite the thread. His foreleg passed straight through it. Transparent to the shoulder, it couldn't grasp anything."
+          "t": "Neo reached out to grab the thread. His fingers passed straight through it. Transparent to the shoulder, his arm couldn't grasp anything."
         },
         {
           "id": "ep-39:17",
@@ -24608,7 +24608,7 @@
         },
         {
           "id": "ep-39:22",
-          "t": "A wet hand rose from the well. A ring-shaped scar circled its right wrist. Yeoni seized it. It was cold."
+          "t": "A wet hand rose from the crack in the floor. A ring-shaped scar circled its right wrist. Yeoni seized it. It was cold."
         },
         {
           "id": "ep-39:23",
@@ -24632,7 +24632,7 @@
         },
         {
           "id": "ep-39:28",
-          "t": "The rain stopped. Five sat around the well. Or rather, four and one. Seo Hanbi sat a little apart."
+          "t": "The rain stopped. They climbed back up to the well above the temple, and five sat around it. Or rather, four and one. Seo Hanbi sat a little apart."
         },
         {
           "id": "ep-39:29",
@@ -24692,7 +24692,7 @@
         },
         {
           "id": "ep-39:42",
-          "t": "That spring, I was deceived. Black Moon came wearing your face and took my envelope. I believed you'd abandoned me."
+          "t": "You know about that spring now. I believed you'd abandoned me."
         },
         {
           "id": "ep-39:43",
@@ -24712,11 +24712,11 @@
         },
         {
           "id": "ep-39:47",
-          "t": "No one spoke. Only water dripped at the bottom of the well. Drip. Drip."
+          "t": "No one spoke. Only water dripped at the bottom of the well."
         },
         {
           "id": "ep-39:48",
-          "t": "Thank you. For saving me earlier. And for not making excuses now."
+          "t": "Thank you. For saving me earlier. And for not making excuses about the drummer."
         },
         {
           "id": "ep-39:49",
@@ -24876,11 +24876,11 @@
         },
         {
           "id": "ep-39:88",
-          "t": "Seohanbi looked down at Neo’s arm. The well’s stonework showed through his sleeve. Her faint smile vanished."
+          "t": "Seohanbi looked down at Neo’s arm. The well’s stonework showed through his sleeve. She pressed her lips shut."
         },
         {
           "id": "ep-39:89",
-          "t": "Does she know?"
+          "t": "Does she know too?"
         },
         {
           "id": "ep-39:90",
@@ -24904,7 +24904,7 @@
         },
         {
           "id": "ep-39:95",
-          "t": "An enormous head descended from the black circle. A head without a body: Rahu. Each time its mouth opened, starlight was sucked inside."
+          "t": "An enormous head descended from the black circle. A head without a body. Rahu had returned. Each time its mouth opened, starlight was sucked inside."
         },
         {
           "id": "ep-39:96",
@@ -24980,7 +24980,7 @@
         },
         {
           "id": "ep-40:3",
-          "t": "It is you, my lady. Look at your palm."
+          "t": "No, Ms. Seo Hanbi, you're the one doing it. Look at your palm."
         },
         {
           "id": "ep-40:4",
@@ -25108,7 +25108,7 @@
         },
         {
           "id": "ep-40:35",
-          "t": "The water flows now. Gyeong gives birth to Im, and Im nourishes Eul. Officer and Resource in Mutual Generation. Instead of cutting Wood, Metal nourishes it through Water."
+          "t": "The water flows now. Gyeong gives birth to Im, and Im nourishes Eul. Officer and Resource in Mutual Generation."
         },
         {
           "id": "ep-40:36",
@@ -25148,7 +25148,7 @@
         },
         {
           "id": "ep-40:45",
-          "t": "The rain eased. Then Seo Hanbi dropped to her knees. Her face was white as paper. The water rising from her palm had stopped."
+          "t": "The rain eased. Then Seo Hanbi dropped to her knees. The color had drained from her face. The water rising from her palm had stopped."
         },
         {
           "id": "ep-40:46",
@@ -25296,7 +25296,7 @@
         },
         {
           "id": "ep-40:82",
-          "t": "Laughter burst out. It rang around the well after the rain like a sound heard for the first time. Seo Hanbi didn't laugh. She pressed her lips together, holding back tears."
+          "t": "Laughter burst out. It rang around the well after the rain like a sound heard for the first time. Seo Hanbi didn't laugh. Instead, she pressed her lips together hard."
         },
         {
           "id": "ep-40:83",
@@ -25312,7 +25312,7 @@
         },
         {
           "id": "ep-40:86",
-          "t": "Only me. My lady was busy picking up cards."
+          "t": "Only me. My lady was busy reading the note."
         },
         {
           "id": "ep-40:87",
@@ -25352,7 +25352,7 @@
         },
         {
           "id": "ep-40:96",
-          "t": "Yeoni looked at their wrist. The red thread leading to Neo. At some point, two strands had become one. Even that last strand was fraying."
+          "t": "Yeoni looked at their wrist. The red thread leading to Neo. Even the one strand left was fraying."
         },
         {
           "id": "ep-40:97",
@@ -25436,7 +25436,7 @@
         },
         {
           "id": "ep-41:10",
-          "t": "(He keeps sitting down. Maybe it isn't only his hand that hurts.)"
+          "t": "(He keeps falling behind. Maybe it isn't only his hand that hurts.)"
         },
         {
           "id": "ep-41:11",
@@ -25512,7 +25512,7 @@
         },
         {
           "id": "ep-41:29",
-          "t": "Yeoni fought a laugh at Yundal's face. Seo Hanbi offered him paper and a pen. He scribbled: Ladies' birth dates and times."
+          "t": "Yeoni fought a laugh at Yundal's face. Seo Hanbi offered him paper and a pen. He scribbled: Requesting ladies' birth dates and times."
         },
         {
           "id": "ep-41:30",
@@ -25692,7 +25692,7 @@
         },
         {
           "id": "ep-41:74",
-          "t": "Neo tried to stand, then sank down. It wasn't only his legs that were transparent now. Light showed through his chest."
+          "t": "Neo tried to stand, then sank down. It wasn't only his arm that was transparent now. Light showed through his chest."
         },
         {
           "id": "ep-41:75",
@@ -25780,7 +25780,7 @@
         },
         {
           "id": "ep-41:96",
-          "t": "That's the trouble. Each door makes you read one thing: whatever hurts most."
+          "t": "That's the trouble. From the sixth door on, each one makes you read one thing: whatever hurts most."
         },
         {
           "id": "ep-41:97",
@@ -25928,7 +25928,7 @@
         },
         {
           "id": "ep-41a:29",
-          "t": "Seo Hanbi's other hand drifted unconsciously inside her coat, where the ledger lay. It had shrunk to palm size. Every night, one line was coming undone."
+          "t": "Seo Hanbi's other hand drifted unconsciously inside her coat, where the ledger lay. It had shrunk to palm size. Each time it rained, one line came undone."
         },
         {
           "id": "ep-41a:30",
@@ -26028,7 +26028,7 @@
         },
         {
           "id": "ep-41a:54",
-          "t": "Seo Hanbi lifted her head, eyes widening. She tried to speak, but only her lips moved. Wet lashes glittered in the firelight."
+          "t": "Seo Hanbi lifted her head. She tried to speak, but only her lips moved. Her wet lashes glittered."
         },
         {
           "id": "ep-41a:55",
@@ -26056,7 +26056,7 @@
         },
         {
           "id": "ep-41a:61",
-          "t": "A little rain fell beyond the high windows. It wasn't cold. Dust settled on the cathedral floor, and the air cleared."
+          "t": "A little rain fell beyond the high windows. It wasn't cold. Dust settled on the cathedral floor."
         },
         {
           "id": "ep-41a:62",
@@ -26236,7 +26236,7 @@
         },
         {
           "id": "ep-42:25",
-          "t": "Seo Hanbi fell silent. It was true. No one knew better how a spring spent only waiting had ended."
+          "t": "Seo Hanbi kept her mouth shut and couldn't answer."
         },
         {
           "id": "ep-42:26",
@@ -26344,7 +26344,7 @@
         },
         {
           "id": "ep-42:failed-future",
-          "t": "Even after Yeoni disappeared, he came to the stop every day. His socks were always mismatched."
+          "t": "Even after Yeoni disappeared, he came to the stop every day. I went every day too, so I saw. His socks were always mismatched."
         },
         {
           "id": "ep-42:identity-reveal",
@@ -26756,7 +26756,7 @@
         },
         {
           "id": "ep-42a:36",
-          "t": "He rested his head against the window and watched them. Their counting mingled with the rain. Ten thousand, twenty thousand, thirty thousand. Dull, ordinary numbers. Their ordinariness dazzled him."
+          "t": "He rested his head against the window and watched them. Their counting mingled with the rain. Ten thousand, twenty thousand, thirty thousand. Dull, ordinary numbers."
         },
         {
           "id": "ep-42a:37",
@@ -26776,7 +26776,7 @@
         },
         {
           "id": "ep-42a:41",
-          "t": "As he said it, he knew. This was a spring he had never reached. This bus would never arrive at the sea. The dream would end first. Still, he didn't get off. He wanted even one more stop."
+          "t": "As he said it, he looked out the window. This bus would never arrive at the sea. The dream would end first. Still, he didn't get off. He wanted even one more stop."
         },
         {
           "id": "ep-42a:42",
@@ -27072,7 +27072,7 @@
         },
         {
           "id": "ep-43:44",
-          "t": "Yeoni's mouth closed. They couldn't deny it. He had hidden things: his wounds, his name, the first spring."
+          "t": "Yeoni's mouth closed. On that one point, they couldn't argue. He had hidden things: his wounds, his name, the first spring."
         },
         {
           "id": "ep-43:45",
@@ -27092,7 +27092,7 @@
         },
         {
           "id": "ep-43:49",
-          "t": "Neo gathered the power remaining in his name. His transparent body became clear one final time. A long golden blade formed at his fingertips. The very power he had used to protect Yeoni."
+          "t": "Neo gathered the power remaining in his name. His transparent body became clear one final time. A long golden blade formed at his fingertips."
         },
         {
           "id": "ep-43:50",
@@ -27136,7 +27136,7 @@
         },
         {
           "id": "ep-43:60",
-          "t": "Yeoni fell through the collapsed floor. Neo kicked off the wall and caught them around the waist. Both their weights hung on one arm."
+          "t": "Yeoni fell through the collapsed floor. Neo kicked off the wall and reached toward them."
         },
         {
           "id": "ep-43:61",
@@ -27164,7 +27164,7 @@
         },
         {
           "id": "ep-43:67",
-          "t": "Yeoni called only that name. No other. Two syllables of the three-syllable name rose to their lips; they clenched their teeth and swallowed them."
+          "t": "Yeoni called only that name. No other. A three-syllable name rose to their lips; they clenched their teeth and swallowed it."
         },
         {
           "id": "ep-43:68",
@@ -27180,7 +27180,7 @@
         },
         {
           "id": "ep-43:71",
-          "t": "Silence. Half the tower remained. The others lay tangled at the end of the broken stairs. The black sun was gone, withdrawn somewhere like a beast with a full belly."
+          "t": "Silence. Half the tower remained. The others lay tangled at the end of the broken stairs. The black sun was gone. Like a beast with a full belly."
         },
         {
           "id": "ep-43:72",
@@ -27224,7 +27224,7 @@
         },
         {
           "id": "ep-43:82",
-          "t": "Moka sniffled. Tears without a known reason. But the tears knew before the reason did: someone was missing."
+          "t": "Moka sniffled. Tears without a known reason."
         },
         {
           "id": "ep-43:83",
@@ -27248,7 +27248,7 @@
         },
         {
           "id": "ep-43:88",
-          "t": "Yundal clenched and opened his gloved hand. The Void in his palm was very slightly warm. A thread of gold had caught inside it. He didn't mention it yet."
+          "t": "Yundal clenched and opened his gloved hand. The Void in his palm was very slightly warm. A thread of gold had caught inside it."
         },
         {
           "id": "ep-43:89",
@@ -27264,7 +27264,7 @@
         },
         {
           "id": "ep-43:92",
-          "t": "Yeoni traced the words with a finger. The paper was deeply indented, nearly torn by the force of writing. Something they had wanted that badly not to forget."
+          "t": "Yeoni traced the words with a finger. The paper was deeply indented, nearly torn by the force of writing."
         },
         {
           "id": "ep-43:93",
@@ -27328,7 +27328,7 @@
         },
         {
           "id": "ep-44:11",
-          "t": "Yes. A cat at first, then human. We kept calling him Mr. Cat out of habit."
+          "t": "Yes. We kept calling him Mr. Cat out of habit."
         },
         {
           "id": "ep-44:12",
@@ -27452,11 +27452,11 @@
         },
         {
           "id": "ep-44:42",
-          "t": "The night they first opened destiny's door returned to mind. The bus card they'd given one star, the inside-out umbrella, cards scattered on the floor."
+          "t": "The night they first opened destiny's door returned to mind. The app they'd given one star, the inside-out umbrella, cards scattered on the floor."
         },
         {
           "id": "ep-44:43",
-          "t": "Among them, the Star. That memory remained unerased."
+          "t": "Among them, the Star."
         },
         {
           "id": "ep-44:44",
@@ -27548,7 +27548,7 @@
         },
         {
           "id": "ep-44:66",
-          "t": "The hand they had kept clenched since the tower. Something glittered between their fingers."
+          "t": "The hand they kept clenching, again and again, since the tower. Something glittered between their fingers."
         },
         {
           "id": "ep-44:67",
@@ -27604,7 +27604,7 @@
         },
         {
           "id": "ep-44:80",
-          "t": "Black Moon called you a vessel. If Mr. Cat is already inside that vessel, there's no room for Black Moon."
+          "t": "Black Moon called you a vessel. If Mr. Cat is already in that place, there's no room for Black Moon."
         },
         {
           "id": "ep-44:81",

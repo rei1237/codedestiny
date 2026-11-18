@@ -358,9 +358,9 @@
     },
     {
       "id": "ep-36:59",
-      "source": "윤달의 웃음이 멎었다. 손목 아래가 비어 있었다. 별빛이 네오의 손을 그냥 통과했다.",
-      "sourceHash": "f80cbd160e873c978631ae0ea8e8ea461513608f48e13c94c44233c58a3c860b",
-      "t": "Yundal stopped smiling. Below Neo's wrist was empty space. Starlight passed straight through his hand."
+      "source": "윤달의 웃음이 멎었다. 네오의 손목 아래가 비어 있었다. 별빛이 그 손을 그냥 통과했다.",
+      "sourceHash": "8e4b1e237eb6bf521c0efb2f98a12f77f0a10a05b178a26dbfa6088769ad1d25",
+      "t": "Yundal stopped smiling. Below Neo's wrist was empty space. Starlight passed straight through that hand."
     },
     {
       "id": "ep-36:60",
@@ -436,9 +436,9 @@
     },
     {
       "id": "ep-36:72",
-      "source": "네오가 선실로 돌아간 뒤에도 윤달은 뱃머리에 남았다. 희미한 달 하나가 하늘 가장자리에 걸려 있었다. 그가 들어갈 자리를 비워 둔 것 같았다.",
-      "sourceHash": "52fd15ae72b68fd9d2848979b220b64d8f3a3dd990691ef87abb03fb598b94d3",
-      "t": "After Neo returned to the cabin, Yundal remained at the bow. A faint moon hung at the edge of the sky, as though leaving a place open for him."
+      "source": "네오가 선실로 돌아간 뒤에도 윤달은 뱃머리에 남았다. 희미한 달 하나가 하늘 가장자리에 걸려 있었다.",
+      "sourceHash": "2921b4677b5caa7073006c1c7f570ad119778790b1a5da7e00d3db0d6abc4157",
+      "t": "After Neo returned to the cabin, Yundal remained at the bow. A faint moon hung at the edge of the sky."
     },
     {
       "id": "ep-36:73",
@@ -628,9 +628,9 @@
     },
     {
       "id": "ep-36:104",
-      "source": "연이는 배를 꾹 눌렀다. 안쪽이 텅 비어 있는 느낌이었다. 무언가를 담으려고 기다리는 그릇처럼.",
-      "sourceHash": "2687ba6b866e8c9454495271b80853cecd53ccecab3bd5ada6711a974aed7e87",
-      "t": "Yeoni pressed their stomach. It felt empty inside, like a vessel waiting to be filled."
+      "source": "연이는 배를 꾹 눌렀다. 안쪽이 텅 비어 있는 느낌이었다.",
+      "sourceHash": "4018f3fb7a3c96a99d523e006d640ad2077ce72602f9b4b9a374f580be661ae9",
+      "t": "Yeoni pressed their stomach. It felt empty inside."
     },
     {
       "id": "ep-36:105",
@@ -646,9 +646,9 @@
     },
     {
       "id": "ep-36:107",
-      "source": "목소리는 대답하지 않았다. 대신 바닥의 실들이 한꺼번에 팽팽해졌다. 무언가 아래에서 그 실을 잡아당기고 있었다.",
-      "sourceHash": "07b1833b820b85c517bcbdd085efeb632ef85125feb70eaf7d3f43685d14696a",
-      "t": "The voice didn't answer. Instead, every thread in the floor pulled taut. Something below was tugging on them."
+      "source": "바닥의 실들이 대답처럼 한꺼번에 팽팽해졌다. 무언가 아래에서 그 실을 잡아당기고 있었다.",
+      "sourceHash": "f94b60c6ab1d12830056080123f60e50562690f499a78212897911818d5af2ef",
+      "t": "Every thread in the floor pulled taut at once, like an answer. Something below was tugging on them."
     },
     {
       "id": "ep-36:108",

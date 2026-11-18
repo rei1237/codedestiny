@@ -178,9 +178,9 @@
     },
     {
       "id": "ep-41a:29",
-      "source": "서한비의 다른 손이 저도 모르게 코트 안쪽으로 갔다. 장부가 있던 자리였다. 장부는 이제 손바닥만 하게 줄어 있었다. 밤마다 한 줄씩 풀려 나가는 중이었다.",
-      "sourceHash": "f52b74dd91d2253dea9c670aad01ca81d4a498cd7bae00eb95393b00718962c9",
-      "t": "Seo Hanbi's other hand drifted unconsciously inside her coat, where the ledger lay. It had shrunk to palm size. Every night, one line was coming undone."
+      "source": "서한비의 다른 손이 저도 모르게 코트 안쪽으로 갔다. 장부가 있던 자리였다. 장부는 이제 손바닥만 하게 줄어 있었다. 비가 올 때마다 한 줄씩 풀려 나가는 중이었다.",
+      "sourceHash": "bb5a9363356fd5f046af6c6254ef7db3ac73b2f65608968661a3c01d97b88ab7",
+      "t": "Seo Hanbi's other hand drifted unconsciously inside her coat, where the ledger lay. It had shrunk to palm size. Each time it rained, one line came undone."
     },
     {
       "id": "ep-41a:30",
@@ -328,9 +328,9 @@
     },
     {
       "id": "ep-41a:54",
-      "source": "서한비가 고개를 들었다. 눈이 커졌다. 무언가를 말하려다 입술만 움직였다. 불빛 속에서 젖은 속눈썹이 반짝였다.",
-      "sourceHash": "efd25ce8bf669ec5ebd4ec4fdeaea071039fff0da5a971b99208671738af7125",
-      "t": "Seo Hanbi lifted her head, eyes widening. She tried to speak, but only her lips moved. Wet lashes glittered in the firelight."
+      "source": "서한비가 고개를 들었다. 무언가를 말하려다 입술만 움직였다. 젖은 속눈썹이 반짝였다.",
+      "sourceHash": "43e567eb6a1c7379c213d2707c120eaded485849d485cb786c59619ed2193fcd",
+      "t": "Seo Hanbi lifted her head. She tried to speak, but only her lips moved. Her wet lashes glittered."
     },
     {
       "id": "ep-41a:55",
@@ -370,9 +370,9 @@
     },
     {
       "id": "ep-41a:61",
-      "source": "높은 창 밖으로 비가 조금 내렸다. 차갑지 않은 비였다. 성당 바닥의 먼지가 가라앉고 공기가 맑아졌다.",
-      "sourceHash": "d3364712b18982c7aa642d3d99744fa89011d0a1aeb3caff37de2eda55f289ee",
-      "t": "A little rain fell beyond the high windows. It wasn't cold. Dust settled on the cathedral floor, and the air cleared."
+      "source": "높은 창 밖으로 비가 조금 내렸다. 차갑지 않은 비였다. 성당 바닥의 먼지가 가라앉았다.",
+      "sourceHash": "30bb6ea3e6a510daeb05fcbbdc95da1a89ae1412705b7b54ad02418855cff661",
+      "t": "A little rain fell beyond the high windows. It wasn't cold. Dust settled on the cathedral floor."
     },
     {
       "id": "ep-41a:62",
