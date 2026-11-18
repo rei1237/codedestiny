@@ -8,7 +8,7 @@ jest.unstable_mockModule('../../worker/lib/sync-llm-timeout.js', () => ({ ...tim
 
 const uid = "64b7f2a1c3d4e5f601234567";
 const body = { name: "검사", gender: "female", birthDate: "1993-07-21", birthTime: "09:00", birthPlace: { city: "서울", country: "KR", latitude: 37.5665, longitude: 126.978, timezone: "Asia/Seoul" }, topic: "전체 운명의 업", calendarType: "solar", focusArea: "overall", accessType: "pass" };
-let utils, route, docs, provider, chart, fault, blocked, mode, userId, usage, refund, fetchBlock, lostConfirmation, passRefund, consume;
+let utils, route, docs, provider, chart, fault, blocked, mode, userId, usage, refund, fetchBlock, lostConfirmation, passRefund, consume, accessQueue, passOrder, withdrawn;
 const clone = value => value == null ? value : structuredClone(value);
 function query(value) { const result = Promise.resolve(value); result.lean = async () => clone(value); result.select = result.sort = () => result; return result; }
 const get = (doc, key) => key.split(".").reduce((value, field) => value?.[field], doc);
@@ -68,14 +68,14 @@ beforeAll(async () => {
   jest.unstable_mockModule("../../worker/lib/db.js", () => ({ ...db, connectDb: async () => {}, withMongoRetry: async (_env, work) => work() }));
   jest.unstable_mockModule("../../worker/lib/auth.js", () => ({ ...auth, getOptionalUserFromRequest: async () => ({ userId }) }));
   jest.unstable_mockModule("../../worker/lib/models.js", () => ({ ...models, KarmaDestinyAiConsultation: model,
-    User: { findById: () => query({ _id: uid, role: "user" }), updateOne: (...args) => refund(...args) },
+    User: { findById: () => query({ _id: uid, role: "user" }), findOne: () => query({ _id: uid, role: "user", status: withdrawn ? "withdrawn" : "active" }), updateOne: (...args) => refund(...args) },
     ServiceExecutionTransaction: { find: () => ({ sort() { return this; }, limit() { return this; }, lean: async () => [] }) },
     PaidExecutionRecord: { findOne: filter => query(blocked === 0 ? {} : mode === "deferred" && filter.status.$in.includes("generating") ? { _id: uid, requestId: "original-paid-request", status: "generating", accessMethod: "pass" } : null) },
-    Payment: { findOne: filter => query(blocked === 1 ? {} : mode === "paid" && filter.status.$in.includes("paid") ? { _id: uid, merchantUid: "payment" } : null), updateOne: async (...args) => usage(...args) },
+    Payment: { findOne: filter => query(filter.paymentType === "membership_pass" ? passOrder : blocked === 1 ? {} : mode === "paid" && filter.status.$in.includes("paid") ? { _id: uid, merchantUid: "payment" } : null), updateOne: async (...args) => usage(...args) },
     PointHistory: { findOne: () => query(blocked === 2 ? {} : null), updateOne: (...args) => refund(...args) },
     MonthlyCreditLedger: { findOne: () => query(blocked === 3 ? {} : null), updateOne: (...args) => refund(...args) },
   }));
-  jest.unstable_mockModule("../../worker/lib/entitlement-policy.js", () => ({ ...entitlement, resolveFeatureAccessPolicy: () => ({ allowed: mode === "pass", accessType: "pass" }) }));
+  jest.unstable_mockModule("../../worker/lib/entitlement-policy.js", () => ({ ...entitlement, resolveFeatureAccessPolicy: () => ({ allowed: accessQueue.length ? accessQueue.shift() : mode === "pass", accessType: "pass" }) }));
   jest.unstable_mockModule("../../worker/lib/moonstone-spend-proof.js", () => ({ findMoonstoneSpendEvidence: async () => mode === "monthly" ? { ledgerId: uid } : null }));
   jest.unstable_mockModule("../../worker/lib/gemini.js", () => ({ callGeminiText: (...args) => provider(...args) }));
   const calc = await import("../../worker/lib/karma-destiny-ai-calculations.js");
@@ -86,7 +86,7 @@ beforeAll(async () => {
   ({ handleKarmaDestinyAiRoutes: route, __karmaDestinyAiTestUtils: utils } = await import("../../worker/routes/karma-destiny-ai.js"));
 });
 beforeEach(() => {
-  docs = []; fault = null; lostConfirmation = false; blocked = -1; mode = "pass"; userId = uid; usage = jest.fn(); refund = jest.fn(async () => ({})); passRefund = jest.fn(async () => ({ refunded: true })); consume = jest.fn(async () => ({ covered: true }));
+  accessQueue = []; passOrder = null; withdrawn = false; docs = []; fault = null; lostConfirmation = false; blocked = -1; mode = "pass"; userId = uid; usage = jest.fn(); refund = jest.fn(async () => ({})); passRefund = jest.fn(async () => ({ refunded: true })); consume = jest.fn(async () => ({ covered: true }));
   provider = jest.fn(async (_env, prompt, options) => {
     expect(options.timeoutMs).toBe(45000); expect(options.fallbackToWorkersAI).toBe(false);
     const id = options.cache.keyExtra.match(/chapter-(chapter-\d+)/)[1];
@@ -132,6 +132,28 @@ it("late pass settlement denial still delivers the finished report",async()=>{
   expect(refund).not.toHaveBeenCalled(); expect(passRefund).not.toHaveBeenCalled(); expect(provider).toHaveBeenCalledTimes(16);
   expect(warn).toHaveBeenCalledWith("paid_delivery_usage_settlement_failed",expect.objectContaining({service:"karma-destiny-ai",reason:"MONTHLY_PASS_LIMIT_EXCEEDED"}));
   warn.mockRestore();
+});
+it("delivers the finished report when the pass recheck before delivery is denied by the pass limit",async()=>{
+  const warn=jest.spyOn(console,"warn").mockImplementation(()=>{});
+  mode="pass"; await start(); for(let i=0;i<3;i++) await batch(); accessQueue=[true,false];
+  expect((await batch()).status).toBe(200);
+  expect(docs[0]).toMatchObject({status:"completed",llmMeta:{usageSettlement:"failed",usageSettlementReason:"PAYMENT_REQUIRED"}});
+  expect(consume).not.toHaveBeenCalled(); expect(refund).not.toHaveBeenCalled(); expect(passRefund).not.toHaveBeenCalled();
+  expect(warn).toHaveBeenCalledWith("paid_delivery_usage_settlement_failed",expect.objectContaining({service:"karma-destiny-ai",stage:"access_recheck"}));
+  warn.mockRestore();
+});
+async function karmaPendingAfterStorageLoss(){mode="pass";await start();for(let i=0;i<3;i++)await batch();fault={status:"completed",kind:"null"};expect((await batch()).status).toBe(503);expect(docs[0].status).toBe("delivery_pending");fault=null;mode="none";}
+it("resumes a delivery_pending pass report when the pass is now exhausted",async()=>{
+  const warn=jest.spyOn(console,"warn").mockImplementation(()=>{});
+  await karmaPendingAfterStorageLoss(); const calls=provider.mock.calls.length; const consumed=consume.mock.calls.length;
+  expect((await batch()).status).toBe(200);
+  expect(docs[0]).toMatchObject({status:"completed",llmMeta:{usageSettlement:"failed"}});
+  expect(provider).toHaveBeenCalledTimes(calls); expect(consume).toHaveBeenCalledTimes(consumed); expect(refund).not.toHaveBeenCalled();
+  warn.mockRestore();
+});
+for(const [label,setup] of [["refunded pass order",()=>{passOrder={}}],["withdrawn member",()=>{withdrawn=true}],["refunded use marker",()=>{blocked=2}]])it(`does not deliver a delivery_pending pass report after ${label}`,async()=>{
+  await karmaPendingAfterStorageLoss(); setup();
+  expect((await batch()).status).toBe(402); expect(docs[0].status).toBe("delivery_pending"); expect(docs[0].llmMeta.usageSettlement).toBeUndefined();
 });
 it("late pass settlement transient error leaves delivery_pending",async()=>{
   mode="pass"; await start(); for(let i=0;i<3;i++) await batch(); consume.mockRejectedValueOnce(new Error("mock pass db down"));

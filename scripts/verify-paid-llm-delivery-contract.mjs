@@ -9,7 +9,10 @@
 //   3. CONSULTATION_RECOVERY_ADAPTERS 의 서비스, 카탈로그의 LLM 판매 키(buildPaidDeliveryInventory)가
 //      계약에서 빠지면 실패.
 //   4. 자동 환불 구멍(gap)은 KNOWN_REFUND_GAPS 와 정확히 같아야 한다 — 새 구멍은 실패, 메운 구멍은 목록에서 지운다.
-//   5. 자기 변이 검사: 계약 항목을 하나씩 뺀 판정이 매번 실패해야 한다(도는 가드가 아니라 무는 가드).
+//   5. 계약 테스트(__tests__/worker/paid-llm-delivery-contract.test.js)가 있고 레지스트리를 import 해야 하며,
+//      PAID_LLM_DELIVERY_TESTS 가 계약 서비스 전부를 덮고 그 테스트 파일이 실재해야 한다.
+//   6. 정체 감시: 복구 어댑터 중 STUCK_SETTLERS(자동 확정) 밖의 서비스는 KNOWN_STUCK_SETTLE_GAPS 와 정확히 같아야 한다.
+//   7. 자기 변이 검사: 계약 항목을 하나씩 뺀 판정이 매번 실패해야 한다(도는 가드가 아니라 무는 가드).
 import fs from "node:fs";
 import path from "node:path";
 import { execFileSync } from "node:child_process";
@@ -54,6 +57,16 @@ export const KNOWN_REFUND_GAPS = Object.freeze([
   "tarot-oracle", "love-tarot", "mindscan", "dream", "yoga-guru", "saju-compat-basic", "pet-saju-ai",
   "geomancy-oracle", "animal-totem", "guardian-fortune", "palm", "toss-native",
 ]);
+
+// 정체 감시가 자동 확정하지 않고 경보(paid_delivery_stuck_unsettled)만 내는 복구 어댑터(정확히 일치해야 한다).
+// 이 서비스들은 환불을 핸들러 실패 경로 안에서 인라인으로 하므로 바깥에서 상태만 바꾸면 "차감됐는데 환불 없음"이 생긴다.
+export const KNOWN_STUCK_SETTLE_GAPS = Object.freeze([
+  "astrology-ai", "vedic-ai", "ziwei-ai", "sukuyo-compatibility-ai", "love-secret-ai", "neo-operation-room",
+  "nakshatra-ai", "human-design-report", "destiny-compass-ai", "relationship-boundary-test", "naming-prompt",
+  "heukwol", "celestial-harmony", "fortune", "karma-destiny-ai", "fortune-tea-house",
+]);
+export const CONTRACT_TEST_FILE = "__tests__/worker/paid-llm-delivery-contract.test.js";
+const TEST_FILE_RE = /^__tests__\/(worker|ui)\/.+\.test\.m?js$/;
 
 const PAY_RE = /\b(applyUsageOnce|consumePassForFeature|hasConsumedPassFeature|verifyPerUsePayment|startServiceExecution|claimRequestBillingEvidence|claimBillingEvidence|findVerifiedDeferredBillingEvidence|findDeferredBillingEvidenceWithSettleWindow|requirePremiumReportAccess|runPaidNarrativeDelivery|settlePerUseAccessDecision|loadPerUsePaidAccess|proveChatAccess|grantVerifiedOrder)\b/;
 const LLM_RE = /\b(callGemini[A-Za-z]*|callCloudflareWorkersAI|callRealGeminiText|callMindscanGemini|generateWithGemini|generate(?:Guardian|Fusion)FortuneWith[A-Za-z]*LLM)\b|env\.AI\.run|generativelanguage\.googleapis/;
@@ -106,8 +119,15 @@ export function discoverPaidLlmFiles(src) {
 
 const keyMatches = (pattern, key) => pattern.endsWith("*") ? key.startsWith(pattern.slice(0, -1)) : pattern === key;
 
-export function checkContract({ contract, adapters, llmFeatureKeys, src, discovered, knownGaps = KNOWN_REFUND_GAPS, exempt = EXEMPT_FILES, shared = SHARED_REFUND_PATHS }) {
+export function checkContract({ contract, adapters, llmFeatureKeys, src, discovered, tests, testFiles, stuckSettlers, knownGaps = KNOWN_REFUND_GAPS, knownStuckGaps = KNOWN_STUCK_SETTLE_GAPS, exempt = EXEMPT_FILES, shared = SHARED_REFUND_PATHS }) {
   const errors = [];
+  // 필수 입력이 비면 통과가 아니라 실패(fail-closed).
+  if (!tests || typeof tests !== "object") errors.push("PAID_LLM_DELIVERY_TESTS 를 읽지 못했다 — 레지스트리에 서비스→전달 테스트 표가 있어야 한다");
+  if (!testFiles || typeof testFiles !== "object") errors.push("테스트 파일 목록을 읽지 못했다");
+  if (!Array.isArray(stuckSettlers) || !stuckSettlers.length) errors.push("STUCK_SETTLERS 를 읽지 못했다 — worker/lib/paid-delivery-stuck.js");
+  const contractTest = testFiles?.[CONTRACT_TEST_FILE];
+  if (contractTest === undefined) errors.push(`계약 테스트가 없다: ${CONTRACT_TEST_FILE}`);
+  else if (!/consultation-recovery-registry/.test(contractTest)) errors.push(`계약 테스트가 레지스트리(consultation-recovery-registry)를 import 하지 않는다: ${CONTRACT_TEST_FILE}`);
   const services = new Set();
   const covered = new Set();
   for (const entry of contract) {
@@ -135,6 +155,23 @@ export function checkContract({ contract, adapters, llmFeatureKeys, src, discove
   for (const g of gaps) if (!expectedGaps.includes(g)) errors.push(`${g}: 새 자동 환불 구멍(gap) — KNOWN_REFUND_GAPS 밖이다. 환불 경로를 붙여라`);
   for (const g of expectedGaps) if (!gaps.includes(g)) errors.push(`${g}: KNOWN_REFUND_GAPS 에 있지만 계약 gap 이 없다 — 메웠다면 목록에서 지운다`);
   for (const [route] of adapters) if (!services.has(route)) errors.push(`복구 어댑터 '${route}' 가 전달 계약에 없다`);
+  if (tests && typeof tests === "object") {
+    for (const id of services) {
+      const file = tests[id];
+      if (!file) errors.push(`${id}: PAID_LLM_DELIVERY_TESTS 에 전달 테스트가 없다`);
+      else if (!TEST_FILE_RE.test(file)) errors.push(`${id}: 전달 테스트 경로가 __tests__/(worker|ui)/*.test.(m)js 가 아니다 — ${file}`);
+      else if (testFiles?.[file] === undefined) errors.push(`${id}: 전달 테스트 파일이 없다 — ${file}`);
+    }
+    for (const id of Object.keys(tests)) if (!services.has(id)) errors.push(`PAID_LLM_DELIVERY_TESTS 의 '${id}' 가 전달 계약에 없다(낡은 항목)`);
+  }
+  if (Array.isArray(stuckSettlers) && stuckSettlers.length) {
+    const adapterIds = adapters.map(([route]) => route);
+    for (const s of stuckSettlers) if (!adapterIds.includes(s)) errors.push(`STUCK_SETTLERS '${s}' 가 복구 어댑터가 아니다`);
+    const stuckGaps = adapterIds.filter(r => !stuckSettlers.includes(r)).sort();
+    const expected = [...knownStuckGaps].sort();
+    for (const g of stuckGaps) if (!expected.includes(g)) errors.push(`${g}: 정체 자동 확정이 없는 새 복구 어댑터 — STUCK_SETTLERS 에 설정자를 붙이거나 KNOWN_STUCK_SETTLE_GAPS 에 사유와 함께 올린다`);
+    for (const g of expected) if (!stuckGaps.includes(g)) errors.push(`${g}: KNOWN_STUCK_SETTLE_GAPS 에 있지만 정체 확정 구멍이 아니다 — 메웠다면 목록에서 지운다`);
+  }
   for (const key of llmFeatureKeys) {
     if (!contract.some(e => e?.featureKeys?.some(p => keyMatches(p, key)))) errors.push(`LLM 판매 키 '${key}' 가 전달 계약에 없다`);
   }
@@ -150,7 +187,9 @@ export function mutationCheck(input) {
   const survivors = [];
   input.contract.forEach((entry, index) => {
     const contract = input.contract.filter((_, i) => i !== index);
-    if (checkContract({ ...input, contract }).length === 0) survivors.push(entry.service);
+    // 테스트 표 행도 같이 빼야 "표에 남은 낡은 행" 오류가 아니라 판매 키·파일 근거로 잡히는지 본다.
+    const tests = input.tests && Object.fromEntries(Object.entries(input.tests).filter(([id]) => id !== entry.service));
+    if (checkContract({ ...input, contract, tests }).length === 0) survivors.push(entry.service);
   });
   return survivors;
 }
@@ -162,7 +201,16 @@ export async function loadInputs(root = ROOT) {
   const rows = inventory.rows || inventory.products || inventory;
   const llmFeatureKeys = rows.filter(r => LLM_DELIVERY_KINDS.includes(r.deliveryKind)).map(r => r.featureKey);
   const src = loadSources(root);
-  return { contract: registry.PAID_LLM_DELIVERY_CONTRACT, adapters: registry.CONSULTATION_RECOVERY_ADAPTERS, llmFeatureKeys, src, discovered: discoverPaidLlmFiles(src) };
+  const { STUCK_SETTLERS } = await import(pathToFileURL(path.join(root, "worker/lib/paid-delivery-stuck.js")).href);
+  // 테스트 파일은 작업 트리 실재로 판정한다(미추적 새 테스트도 존재로 본다; 지우면 실패).
+  const tests = registry.PAID_LLM_DELIVERY_TESTS;
+  const wanted = new Set([CONTRACT_TEST_FILE, ...Object.values(tests || {})]);
+  const testFiles = {};
+  for (const f of wanted) {
+    const abs = path.join(root, f);
+    if (typeof f === "string" && fs.existsSync(abs)) testFiles[f] = fs.readFileSync(abs, "utf8");
+  }
+  return { contract: registry.PAID_LLM_DELIVERY_CONTRACT, adapters: registry.CONSULTATION_RECOVERY_ADAPTERS, llmFeatureKeys, src, discovered: discoverPaidLlmFiles(src), tests, testFiles, stuckSettlers: STUCK_SETTLERS };
 }
 
 async function main() {
@@ -178,7 +226,7 @@ async function main() {
     process.exit(1);
   }
   const gaps = input.contract.filter(e => e.gap);
-  console.log(`verify:paid-llm-delivery ok — 계약 ${input.contract.length}개, LLM 판매 키 ${input.llmFeatureKeys.length}개, 결제+LLM 파일 ${input.discovered.length}개, 변이 ${input.contract.length}/${input.contract.length} 탐지`);
+  console.log(`verify:paid-llm-delivery ok — 계약 ${input.contract.length}개, LLM 판매 키 ${input.llmFeatureKeys.length}개, 결제+LLM 파일 ${input.discovered.length}개, 전달 테스트 ${Object.keys(input.tests).length}개, 정체 자동 확정 ${input.stuckSettlers.length}개(경보만 ${KNOWN_STUCK_SETTLE_GAPS.length}개), 변이 ${input.contract.length}/${input.contract.length} 탐지`);
   if (gaps.length) console.log(`  알려진 자동 환불 구멍 ${gaps.length}개: ${gaps.map(e => e.service).join(", ")}`);
 }
 

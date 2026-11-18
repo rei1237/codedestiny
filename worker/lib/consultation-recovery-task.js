@@ -3,6 +3,7 @@ import { connectDb, withMongoRetry } from './db.js';
 import * as models from './models.js';
 import { runWithAiLocale, storedAiLocale } from './ai-locale-context.js';
 import { runPendingConsultationRefunds } from './consultation-delivery-refund.js';
+import { STUCK_SETTLERS, shouldSettleStuck, settleStuckConsultation, recordDeliveryWatch, logStuckUnsettled } from './paid-delivery-stuck.js';
 
 // Each adapter resumes an existing owner-scoped record through its normal
 // payment, lease, persistence and per-part budget checks. No insert or grant here.
@@ -53,10 +54,18 @@ export async function runConsultationRecovery(env, options = {}) {
       const adapter = options.loadAdapter ? await options.loadAdapter(route) : await loadAdapters[route]();
       const model = (options.models || models)[modelName];
       const docs = !modelName ? await adapter.findRecoverableConsultations(env, consultationRecoveryFilter(now, extra)) : await withMongoRetry(env, () => model.find(consultationRecoveryFilter(now, extra))
-        .sort({ updatedAt: 1, _id: 1 }).limit(1).select('id executionId executionKey userId updatedAt locale llmMeta.locale llmMeta.resumeBody.locale llmMeta.delivery.resumeBody.locale result.resumeBody.locale').lean());
+        .sort({ updatedAt: 1, _id: 1 }).limit(1).select('id executionId executionKey userId status createdAt updatedAt deliveryWatch locale llmMeta.locale llmMeta.resumeBody.locale llmMeta.delivery.resumeBody.locale result.resumeBody.locale').lean());
       if (adapter.recoverUnstartedNativeConsultations) outcomes.push(...await adapter.recoverUnstartedNativeConsultations(env, {now,deadline}));
       for (const doc of docs) {
         if (!doc.userId || !(doc.id || doc._id || doc.resultId)) continue;
+        // 정체 감시: 진전 없는 복구가 쌓이면 이어쓰기 대신 확정한다(같은 1건이라 처리량 불변).
+        if (shouldSettleStuck(doc, now)) {
+          if (model && STUCK_SETTLERS.includes(route)) {
+            const settled = await settleStuckConsultation(env, { service: route, model, doc, now, refund: options.settleRefund });
+            outcomes.push({ service: route, stuck: settled.outcome, ...(settled.refundStatus ? { refundStatus: settled.refundStatus } : {}) });
+            if (settled.outcome !== 'leased') continue;
+          } else logStuckUnsettled(route, doc);
+        }
         try {
         const response = await runWithAiLocale(storedAiLocale(doc),
           () => adapter.resumeConsultationOnServer(env, doc));
@@ -72,6 +81,7 @@ export async function runConsultationRecovery(env, options = {}) {
           } else if (adapter.deferUnchangedConsultation) {
             await adapter.deferUnchangedConsultation(env, doc, now);
           }
+          if (model) await recordDeliveryWatch(model, doc, now).catch(() => null);
         }
       }
     } catch (error) {

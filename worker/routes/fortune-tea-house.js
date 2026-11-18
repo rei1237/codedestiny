@@ -5024,6 +5024,27 @@ async function refundFortuneTeaHousePassSettlement({ auth, resultId }) {
   await results.updateOne({ userId, resultId }, { $set: { passRefund: { refundedAt: new Date(), refunded: restored, reason: refunded?.reason || "" } } });
 }
 
+// S13-L2: 대기 표식(passRefund.pendingAt)은 같은 결과의 다음 claim 에서만 재시도됐다. 사용자가 돌아오지 않아도
+// 환불 크론(runPendingConsultationRefunds)이 같은 멱등 함수로 마저 돌려준다. 실패하면 pendingAt 이 갱신돼 뒤로 돈다.
+export async function retryPendingFortuneTeaHousePassRefunds(env, { limit = 2 } = {}) {
+  const { results } = honeyCollections();
+  const docs = await withMongoRetry(env, () => results.find({
+    _id: { $gte: "fortune-tea-house-result:", $lt: "fortune-tea-house-result;" }, serviceScope: FORTUNE_TEA_HOUSE_SCOPE,
+    "passRefund.pendingAt": { $exists: true }, "passRefund.refundedAt": { $exists: false },
+  }).sort({ "passRefund.pendingAt": 1 }).limit(limit).project({ userId: 1, resultId: 1 }).toArray());
+  const outcomes = [];
+  for (const doc of docs) {
+    if (!doc?.userId || !doc.resultId) continue;
+    try {
+      await refundFortuneTeaHousePassSettlement({ auth: { userId: String(doc.userId) }, resultId: doc.resultId });
+      outcomes.push({ service: "fortune-tea-house", refundStatus: "refunded" });
+    } catch {
+      outcomes.push({ service: "fortune-tea-house", refundStatus: "pending" });
+    }
+  }
+  return outcomes;
+}
+
 async function markFortuneTeaHouseGenerationFailed({ env, auth, resultId, code, message, lockToken }) {
   if (!auth?.userId) return { marked: false, retryable: false };
   const userId = String(auth.userId);

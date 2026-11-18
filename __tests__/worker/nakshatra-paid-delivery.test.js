@@ -9,7 +9,7 @@ jest.unstable_mockModule('../../worker/lib/sync-llm-timeout.js', () => ({ ...tim
 
 const uid = "64b7f2a1c3d4e5f601234567";
 const body = { idempotencyKey: "original-paid-request", birthInfo: { year:1993,month:7,day:21,hour:9,minute:0,timezone:9,lat:37.5665,lon:126.978,gender:"female" }, question: "나의 관계와 선택을 자세히 살펴보고 싶어요." };
-let utils, route, docs, provider, chart, fault, blocked, mode, userId, usage, refund, fetchBlock, lostConfirmation, passReceipt, passRefund, consume;
+let utils, route, docs, provider, chart, fault, blocked, mode, userId, usage, refund, fetchBlock, lostConfirmation, passReceipt, passRefund, consume, accessQueue, passOrder, withdrawn;
 const clone = value => value == null ? value : structuredClone(value);
 function query(value) { const result = Promise.resolve(value); result.lean = async () => clone(value); result.select = result.sort = () => result; return result; }
 const get = (doc, key) => key.split(".").reduce((value, field) => value?.[field], doc);
@@ -76,13 +76,13 @@ beforeAll(async () => {
   jest.unstable_mockModule("../../worker/lib/db.js", () => ({ ...db, connectDb: async () => {}, withMongoRetry: async (_env, fn) => fn() }));
   jest.unstable_mockModule("../../worker/lib/auth.js", () => ({ ...auth, getOptionalUserFromRequest: async () => ({ userId, role: "user" }) }));
   jest.unstable_mockModule("../../worker/lib/models.js", () => ({ ...models, NakshatraAiConsultation: model,
-    User: { findById: () => query({ role: "user" }) },
+    User: { findById: () => query({ role: "user" }), findOne: () => query({ _id: uid, role: "user", status: withdrawn ? "withdrawn" : "active" }) },
     PaidExecutionRecord: { findOne: () => query(blocked === 0 ? {} : null), findOneAndUpdate: (...args) => { usage(...args); return query({}); } },
-    Payment: { findOne: filter => query(filter.status?.$in?.includes("refunded") ? (blocked === 1 ? {} : null) : mode === "paid" ? { _id: uid, merchantUid: "paid-original" } : null) },
+    Payment: { findOne: filter => query(filter.paymentType === "membership_pass" ? passOrder : filter.status?.$in?.includes("refunded") ? (blocked === 1 ? {} : null) : mode === "paid" ? { _id: uid, merchantUid: "paid-original" } : null) },
     PointHistory: { findOne: () => query(blocked === 2 ? {} : null) },
     MonthlyCreditLedger: { findOne: () => query(blocked === 3 ? {} : null) },
   }));
-  jest.unstable_mockModule("../../worker/lib/paid-feature-access.js", () => ({ canAccessPaidFeature: async () => ({ allowed: mode === "pass", accessSource: "family_pass" }), PAID_FEATURE_ACCESS_USER_PROJECTION: "id" }));
+  jest.unstable_mockModule("../../worker/lib/paid-feature-access.js", () => ({ canAccessPaidFeature: async () => ({ allowed: accessQueue.length ? accessQueue.shift() : mode === "pass", accessSource: "family_pass" }), PAID_FEATURE_ACCESS_USER_PROJECTION: "id" }));
   jest.unstable_mockModule("../../worker/lib/moonstone-spend-proof.js", () => ({ findMoonstoneSpendEvidence: async () => mode === "monthly" ? {} : null }));
   jest.unstable_mockModule("../../worker/lib/gemini.js", () => ({ callGeminiText: (...args) => provider(...args) }));
   jest.unstable_mockModule("../../worker/lib/swiss-ephemeris.js", () => ({ getSwissVedicPlanets: (...args) => chart(...args) }));
@@ -94,7 +94,7 @@ beforeAll(async () => {
 });
 
 beforeEach(()=>{
- docs=[];fault=null;lostConfirmation=false;blocked=-1;mode='pass';userId=uid;usage=jest.fn();refund=jest.fn(async()=>({}));passReceipt=false;passRefund=jest.fn(async()=>({refunded:true}));consume=jest.fn(async()=>({covered:true}));chart=jest.fn(async()=>({planets:{Moon:10}}));
+ accessQueue=[];passOrder=null;withdrawn=false;docs=[];fault=null;lostConfirmation=false;blocked=-1;mode='pass';userId=uid;usage=jest.fn();refund=jest.fn(async()=>({}));passReceipt=false;passRefund=jest.fn(async()=>({refunded:true}));consume=jest.fn(async()=>({covered:true}));chart=jest.fn(async()=>({planets:{Moon:10}}));
  provider=jest.fn(async(_env,prompt,options)=>{expect(options.timeoutMs).toBe(45000);expect(options.fallbackToWorkersAI).toBe(false);const section=definitions.find(row=>prompt.includes(`[이 장: ${row.title}]`));const identity=docs[0].factSummary.identity;return{ok:true,provider:'gemini',model:'fixture',text:JSON.stringify({keyInsight:section.title,vedicEvidence:identity.nakshatraKo+'의 실제 계산값',sukuyoEvidence:identity.sukuyoKo+'의 실제 계산값',body:prose(section.title.replace(/[?!]/g,""),section.minChars+100)})}});
  fetchBlock=jest.spyOn(globalThis,'fetch').mockImplementation(()=>{throw new Error('External fetch blocked')});
 });
@@ -179,6 +179,28 @@ it('keeps finished chapters pending when the late pass settlement hits a transie
   expect((await batch()).status).toBe(200);expect(docs[0].status).toBe('completed');expect(docs[0].llmMeta.usageSettlement).toBeUndefined();
 });
 
+it('delivers finished chapters when the pass recheck after the last wave is denied by the pass limit',async()=>{
+  const warn=jest.spyOn(console,'warn').mockImplementation(()=>{});
+  await start();await batch();accessQueue=[true,false];
+  expect((await batch()).status).toBe(200);
+  expect(docs[0]).toMatchObject({status:'completed',llmMeta:{usageSettlement:'failed',usageSettlementReason:'PAYMENT_REQUIRED'}});
+  expect(consume).not.toHaveBeenCalled();expect(refund).not.toHaveBeenCalled();expect(passRefund).not.toHaveBeenCalled();
+  expect(warn).toHaveBeenCalledWith('paid_delivery_usage_settlement_failed',expect.objectContaining({service:'nakshatra-ai',stage:'access_recheck'}));
+  warn.mockRestore();
+});
+async function pendingAfterStorageLoss(){await start();await batch();fault={status:'completed',kind:'null'};expect((await batch()).status).toBe(503);expect(docs[0].status).toBe('delivery_pending');mode='none';}
+it('resumes a delivery_pending pass consultation when the pass is now exhausted',async()=>{
+  const warn=jest.spyOn(console,'warn').mockImplementation(()=>{});
+  await pendingAfterStorageLoss();const calls=provider.mock.calls.length;const consumed=consume.mock.calls.length;
+  expect((await batch()).status).toBe(200);
+  expect(docs[0]).toMatchObject({status:'completed',llmMeta:{usageSettlement:'failed'}});
+  expect(provider).toHaveBeenCalledTimes(calls);expect(consume).toHaveBeenCalledTimes(consumed);expect(refund).not.toHaveBeenCalled();
+  warn.mockRestore();
+});
+for(const [label,setup] of [['refunded pass order',()=>{passOrder={}}],['withdrawn member',()=>{withdrawn=true}],['refunded use marker',()=>{blocked=2}]])it(`does not deliver a delivery_pending pass consultation after ${label}`,async()=>{
+  await pendingAfterStorageLoss();setup();
+  expect((await batch()).status).toBe(402);expect(docs[0].status).toBe('delivery_pending');expect(docs[0].llmMeta.usageSettlement).toBeUndefined();
+});
 async function read(id = docs[0]?.id) { return route(new Request('https://mock.test/api/nakshatra-ai/result'+(id ? '?attemptId='+id : '')),{}); }
 it('restores partial chapters from the account server record',async()=>{await start();const res=await read('');expect(res.status).toBe(202);expect(await res.json()).toMatchObject({sessionId:docs[0].id,requestId:body.idempotencyKey,progress:{completed:4}})});
 it('rejects another account without provider calls',async()=>{await start();userId='other-account';expect((await batch()).status).toBe(404);expect((await read()).status).toBe(404);expect(provider).toHaveBeenCalledTimes(4)});

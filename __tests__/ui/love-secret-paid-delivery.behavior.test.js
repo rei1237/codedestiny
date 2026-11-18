@@ -6,6 +6,7 @@ const ts = require('typescript');
 const { webcrypto } = require('node:crypto');
 const { runWithAiLocale, getAmbientAiLocale, storedAiLocale } = require('../../worker/lib/ai-locale-context.js');
 const { toAiLocale, AI_OUTPUT_LOCALES } = require('../../lib/i18n/ai-locale.js');
+const { consultationRefundState } = require('../../worker/lib/consultation-refund-state.js');
 const clone = value => value == null ? value : JSON.parse(JSON.stringify(value));
 const get = (value, key) => key.split('.').reduce((at, part) => at?.[part], value);
 function set(value, key, data) {
@@ -32,6 +33,7 @@ function load(ctx, file, names) {
 }
 function fixture(accessType = 'pass') {
   let doc = null, providerCalls = 0, refunds = 0, usage = 0, fault = null, permitted = true, owner = 'owner';
+  const accessQueue = []; let passOrder = null, withdrawn = false, revokedUse = false;
   const chain = value => ({ lean: async () => clone(value), select: () => chain(value), sort:()=>chain(value) });
   const ctx = vm.createContext({ ...require('../../worker/lib/consultation-answer-contract.js'), sajuAuthorityOn: () => false, nativeTossContext:()=>null, runWithAiLocale, getAmbientAiLocale, storedAiLocale, toAiLocale, Request, Response, Headers, URL, Date, JSON, Map, crypto: webcrypto,
     // 증빙 claim 은 billing-evidence-claim.test.js 가 따로 검증한다 — 여기서는 통과로 둔다.
@@ -45,7 +47,12 @@ function fixture(accessType = 'pass') {
     getOptionalUserFromRequest: async () => ({ userId: owner }), connectDb: async () => {}, withMongoRetry: async (_env, fn) => fn(),
     readIdempotencyKey: (request, body) => body.idempotencyKey || request.headers.get('idempotency-key'),
     normalizeRequestBody: body => ({ ok: true, inputHash: body.inputHash || 'same-input', input: { myInfo: {}, relationshipStatus: 'single', topic: '관계', userQuestion: '질문' } }),
-    resolveStartAccess: async () => ({ ok: permitted, accessType }),
+    resolveStartAccess: async () => ((accessQueue.length ? accessQueue.shift() : permitted) ? { ok: true, accessType } : { ok: false, reason: 'PAYMENT_REQUIRED' }),
+    consultationRefundState,
+    User: { findOne: () => chain({ _id: owner, status: withdrawn ? 'withdrawn' : 'active' }) },
+    Payment: { findOne: filter => chain(filter.paymentType === 'membership_pass' ? passOrder : null) },
+    PaidExecutionRecord: { findOne: () => chain(null) }, MonthlyCreditLedger: { findOne: () => chain(null) },
+    PointHistory: { findOne: () => chain(revokedUse ? { metadata: { refundedForServiceExecution: true } } : null) },
     calculateLoveSecretAiSaju: () => ({ dayMaster: '壬' }), buildLoveSecretGroundingFacts: () => ({}),
     loginRequired: () => new Response('', { status: 401 }), invalidInput: (_message, status = 422) => new Response('', { status }),
     paymentVerifyFailed: () => new Response('', { status: 402 }), calculationFailed: () => new Response('', { status: 422 }),
@@ -68,7 +75,11 @@ function fixture(accessType = 'pass') {
         for (const [key, value] of Object.entries(update.$set || {})) set(doc, key, value);
         doc.updatedAt = new Date().toISOString(); return clone(doc);
       } }),
-      updateOne: async (filter, update) => { if (doc && matches(doc, filter)) Object.assign(doc, clone(update.$set)); },
+      updateOne: async (filter, update) => {
+        if (fault === 'mark' && update.$set?.status === 'generation_failed') { fault = null; throw new Error('MARK_WRITE_FAILED'); }
+        if (!doc || !matches(doc, filter)) return { matchedCount: 0 };
+        Object.assign(doc, clone(update.$set)); return { matchedCount: 1 };
+      },
     },
     generateFirstConsultation: async (_env, _input, _saju, _log, options) => {
       const groups = clone(options.savedGroups);
@@ -83,13 +94,14 @@ function fixture(accessType = 'pass') {
   });
   load(ctx, 'worker/lib/representative-consumer-facts.js', ['pinRepresentativeFacts', 'readRepresentativeFacts']);
   load(ctx, 'worker/lib/result-storage.js', ['resultStorageUnavailable', 'resultStorageFailurePayload']);
-  load(ctx, 'worker/lib/late-usage-settlement.js', ['lateUsageSettlementFailure', 'usageSettlementSetFields']);
+  load(ctx, 'worker/lib/late-usage-settlement.js', ['lateUsageSettlementFailure', 'usageSettlementSetFields', 'lateAccessDenialSettlement']);
   load(ctx, 'worker/routes/love-secret-ai.js', ['handleStart', 'saveLoveSecretCheckpoint', 'confirmLoveSecretDelivery']);
   const post = (body = {}, env = {}) => ctx.handleStart(new Request('https://mock.test/api/love-secret-ai/generate', {
     method: 'POST', headers: { 'Content-Type': 'application/json', 'idempotency-key': 'original-paid-request' }, body: JSON.stringify(body),
   }), env);
   return { ctx, post, get doc() { return doc; }, get calls() { return providerCalls; }, get refunds() { return refunds; }, get usage() { return usage; },
-    fault: value => { fault = value; }, permitted: value => { permitted = value; }, owner: value => { owner = value; } };
+    fault: value => { fault = value; }, permitted: value => { permitted = value; }, owner: value => { owner = value; },
+    accessSequence: (...values) => { accessQueue.push(...values); }, passOrder: value => { passOrder = value; }, withdrawn: value => { withdrawn = value; }, revokedUse: value => { revokedUse = value; } };
 }
 
 for (const accessType of ['pass', 'subscription', 'paid']) test(`${accessType}: 브라우저 종료 뒤 서버가 저장된 상담만 이어 완성하고 재열람은 재생성·중복 차감하지 않는다`, async () => {
@@ -150,6 +162,36 @@ test('늦은 이용권 차감이 한도로 거절돼도 저장한 여섯 묶음�
   assert.equal(f.doc.llmMeta.usageSettlementReason, 'MONTHLY_PASS_LIMIT_EXCEEDED');
   assert.equal(f.usage, 0); assert.equal(f.calls, 6); assert.equal(f.refunds, 0);
 });
+test('전달 직전 이용권 재확인이 한도로 거절돼도 이용권으로 만든 여섯 묶음을 완료로 전달하고 미차감을 표시한다', async () => {
+  const f = fixture();
+  for (let index = 0; index < 5; index++) await f.post();
+  f.accessSequence(true, false);
+  assert.equal((await f.post()).status, 200);
+  assert.equal(f.doc.status, 'completed'); assert.equal(f.doc.llmMeta.usageSettlement, 'failed');
+  assert.equal(f.doc.llmMeta.usageSettlementReason, 'PAYMENT_REQUIRED');
+  assert.equal(f.usage, 0); assert.equal(f.calls, 6); assert.equal(f.refunds, 0);
+});
+async function pendingLoveSecretAfterStorageLoss() {
+  const f = fixture();
+  for (let index = 0; index < 5; index++) await f.post();
+  f.fault('completed');
+  assert.equal((await f.post()).status, 503); assert.equal(f.doc.status, 'delivery_pending');
+  f.permitted(false);
+  return f;
+}
+test('이용권이 소진된 뒤 재개해도 delivery_pending 상담은 재생성 없이 완료로 전달한다', async () => {
+  const f = await pendingLoveSecretAfterStorageLoss(); const consumed = f.usage;
+  assert.equal((await f.post()).status, 200);
+  assert.equal(f.doc.status, 'completed'); assert.equal(f.doc.llmMeta.usageSettlement, 'failed');
+  assert.equal(f.calls, 6); assert.equal(f.usage, consumed); assert.equal(f.refunds, 0);
+});
+for (const [label, setup] of [['이용권 주문 환불', f => f.passOrder({ status: 'refunded' })], ['회원 탈퇴', f => f.withdrawn(true)], ['이용권 사용 환불 증빙', f => f.revokedUse(true)]]) {
+  test(`${label} 뒤에는 delivery_pending 상담을 전달하지 않는다`, async () => {
+    const f = await pendingLoveSecretAfterStorageLoss(); setup(f);
+    assert.equal((await f.post()).status, 402);
+    assert.equal(f.doc.status, 'delivery_pending'); assert.equal(f.doc.llmMeta.usageSettlement, undefined); assert.equal(f.calls, 6);
+  });
+}
 test('체크포인트 저장 실패는 LLM 호출 전에 중단하며 환불로 흐르지 않는다', async () => {
   const f = fixture(); f.fault('checkpoint');
   assert.equal((await f.post()).status, 503); assert.equal(f.calls, 0); assert.equal(f.refunds, 0);
@@ -300,6 +342,39 @@ for (const revoked of ['execution', 'payment', 'points']) {
     assert.equal(access.ok, false); assert.equal(fallback, 0);
   });
 }
+
+test('실패 표시 저장이 실패하면 기록을 남기고, 환불 뒤 같은 키 재시도는 다시 생성하지 않는다', async () => {
+  const f = fixture('paid'); const logs = [];
+  f.ctx.logLoveSecretAi = (event, payload, level) => { logs.push({ event, payload, level }); };
+  f.ctx.generateFirstConsultation = async () => { throw Object.assign(new Error('provider down'), { code: 'LLM_GENERATION_FAILED' }); };
+  f.fault('mark');
+  assert.equal((await f.post()).status, 503);
+  assert.equal(f.refunds, 1); assert.equal(f.doc.status, 'generating');
+  const marked = logs.find(row => row.event === 'LLM Failure Mark Failed');
+  assert.ok(marked, logs.map(row => row.event).join(','));
+  assert.equal(marked.level, 'error'); assert.equal(marked.payload.sessionId, f.doc.id); assert.equal(marked.payload.restored, true);
+  // 환불 증빙이 접근 재확인을 거절시키면 잘려 남은 "generating" 문서도 재생성하지 않는다.
+  f.doc.updatedAt = new Date(Date.now() - 600000).toISOString(); f.permitted(false);
+  assert.equal((await f.post()).status, 402); assert.equal(f.calls, 0); assert.equal(f.refunds, 1);
+});
+
+test('코인 생성 실패 환급 표식은 같은 요청 키의 재시작을 거절한다(무료 재생성 차단)', async () => {
+  let fallback = 0;
+  const ctx = vm.createContext({ nativeTossContext: () => null, Promise,
+    clean: value => String(value || ''), FEATURE_KEY: 'love-secret-ai-consultation',
+    collectBillingEvidenceIds: () => ['original', 'coin-history'],
+    buildPaidExecutionEvidenceQuery: () => [{ requestId: 'original' }], buildPaymentEvidenceQuery: () => [{ merchantUid: 'coin-history' }], buildPointHistoryEvidenceQuery: () => [{ 'metadata.requestId': 'original' }],
+    PaidExecutionRecord: { findOne: () => ({ lean: async () => null }) },
+    Payment: { findOne: () => ({ lean: async () => null }) },
+    PointHistory: { findOne: filter => ({ lean: async () => JSON.stringify(filter).includes('"metadata.refundedForLoveSecretAiFailure":true')
+      ? { kind: 'deduct', metadata: { refundedForLoveSecretAiFailure: true, refundedForServiceExecution: true } } : null }) },
+    withMongoRetry: async (_env, fn) => fn(), resolveBillingUsageEvidence: async () => { fallback++; return { ok: true, accessType: 'paid' }; },
+  });
+  load(ctx, 'worker/routes/love-secret-ai.js', ['resolveStartAccess']);
+  const access = await ctx.resolveStartAccess({ request: { headers: { get: () => '' } }, env: {}, auth: { userId: 'owner' },
+    body: {}, normalized: { inputHash: 'hash' }, idempotencyKey: 'original', pricing: {} });
+  assert.equal(access.ok, false); assert.equal(access.reason, 'PAYMENT_REQUIRED'); assert.equal(fallback, 0);
+});
 
 for (const locale of AI_OUTPUT_LOCALES) test(`${locale}: resumes in the purchased language after the UI changes`, async () => {
   const f = fixture();
