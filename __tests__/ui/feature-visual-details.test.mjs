@@ -223,10 +223,10 @@ test('restored hero artwork, catalog reuse, and collection previews stay in sync
     'new-year-ai': '/images/home/new-year-neo-v1-1200.webp',
     'life-book-ai': '/images/home/life-book-yun-v2-1200.webp',
   };
-  const expectedSignature=Object.fromEntries(Object.keys(signatureArtwork).map(id=>[id,introductionArt[id].image.replace('.webp','-640.webp')]));
-  assert.deepEqual(signatureSources, { ...expectedSignature, 'fusion-fortune': '' });
+  const expectedSignature=Object.fromEntries([...Object.keys(signatureArtwork), 'fusion-fortune'].map(id=>[id,introductionArt[id].image.replace('.webp', id === 'fusion-fortune' ? '-320.webp' : '-640.webp')]));
+  assert.deepEqual(signatureSources, expectedSignature);
   assert.equal(fragment.querySelectorAll('[data-picker-fusion-featured]').length, 1);
-  assert.equal(fragment.querySelector('[data-picker-fusion-featured] img'), null, 'moved fusion summary deliberately stays compact; popup retains artwork');
+  assert.equal(fragment.querySelector('[data-picker-fusion-featured] img')?.getAttribute('loading'), 'lazy', 'compact fusion art does not block initial rendering');
   for (const [id, source] of Object.entries(expectedSignature)) {
     assert.ok(fs.existsSync(`public${source}`), `${id}: referenced signature artwork is missing`);
   }
