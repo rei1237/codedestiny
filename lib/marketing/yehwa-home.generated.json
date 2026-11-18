@@ -420,6 +420,10 @@
     "question": "운세마다 말이 다를 때, 무엇을 따를까?",
     "desc": "여섯 체계가 겹치는 신호와 엇갈리는 신호를 함께 짚는 최종 교차 판정",
     "href": "/fusion-fortune/",
+    "roles": [
+      "recommended"
+    ],
+    "recommendedHref": "/fusion-fortune/?from=home_signature",
     "featureKey": "fusion-fortune-consultation",
     "price": "50,000원",
     "purposes": [

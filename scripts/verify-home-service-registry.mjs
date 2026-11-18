@@ -323,7 +323,7 @@ for (const { role, sectionIds, label } of PLACEMENTS) {
     const href = attrOf(head, "href");
     const promo = role === "quick" ? FREE_PROMO_FEATURED.find(feature => feature.serviceId === id) : null;
     const collection = role === "quick" && !promo ? item.quickCollection : null;
-    const expectedHref = promo ? freePromoItemHref(promo) : role === "quick" && item.quickHref ? item.quickHref : collection ? `#${collection}` : item.href;
+    const expectedHref = promo ? freePromoItemHref(promo) : role === "quick" && item.quickHref ? item.quickHref : collection ? `#${collection}` : role === "recommended" && item.recommendedHref ? item.recommendedHref : item.href;
     if (promo && (promo.action || item.action || attrOf(head, "data-action"))) {
       if (!promo.action || promo.action !== item.action || promo.action !== attrOf(head, "data-action")) {
         fail(`${label} 카드 "${id}": 무료 캠페인·레지스트리·화면 action 이 일치해야 한다`);
@@ -337,6 +337,10 @@ for (const { role, sectionIds, label } of PLACEMENTS) {
     }
     if (collection && (!/^[A-Za-z][A-Za-z0-9]*$/.test(collection) || !shell.includes(`id="${collection}"`) || attrOf(head, "data-cd-open-collection") !== collection || attrOf(head, "data-action"))) {
       fail(`${label} 카드 "${id}": 컬렉션 대상·열기 속성이 없거나 개별 카드 뽑기 동작이 섞였다`);
+    }
+    if (role === "recommended" && item.recommendedHref) {
+      const target = new URL(item.recommendedHref, "https://code-destiny.com");
+      if (target.origin !== "https://code-destiny.com" || target.pathname !== item.href || target.search !== "?from=home_signature" || target.hash) fail("recommended destination must retain canonical route and exact home attribution: " + id);
     }
     if (href && expectedHref && href !== expectedHref) {
       fail(`${label} 카드 "${id}": href "${href}" / 레지스트리 "${expectedHref}"`);
