@@ -94,3 +94,24 @@ for(const horizon of ['transition','current'])for(const productId of ['saju_mack
  });
 }
 
+
+test('input ladder compacts 대운 interpretation after the fact rungs and never drops the fact or a cycle name',()=>{
+ const cycle=(index,isCurrent,size)=>({index,pillar:'乙巳',startYear:2014+index*10,endYear:2023+index*10,isCurrent,
+  interpretation:{tombAnalysis:{events:'t'.repeat(size)},annual:[{year:2026,note:'a'.repeat(size)}]}});
+ const facts={facts:[
+  {id:'saju.pillars',label:'pillars',value:'p'},
+  {id:'saju.questionTiming',label:'questionTiming',value:{rule:'r',requestedPeriod:'앞으로 5년',periods:[cycle(0,false,30000),cycle(1,true,30000),cycle(2,false,30000)]}},
+ ]};
+ const build=f=>({system:'s',domainRules:'{}',calculatedData:f,outputSchema:{}});
+ const fitted=m.fitChapterFacts(facts,build);
+ assert.deepEqual(fitted.dropped,['saju.questionTiming#pastAndFutureCycleInterpretation']);
+ const periods=fitted.request.calculatedData.facts.find(f=>f.label==='questionTiming').value.periods;
+ assert.deepEqual(periods.map(p=>[p.index,p.pillar,p.startYear,p.endYear]),[[0,'乙巳',2014,2023],[1,'乙巳',2024,2033],[2,'乙巳',2034,2043]]);
+ assert.deepEqual(periods[1].interpretation,facts.facts[1].value.periods[1].interpretation,'the current cycle keeps its interpretation');
+ assert.ok(fitted.estimatedTokens<=m.CHAPTER_INPUT_TOKEN_TARGET);
+ // A current cycle still too large loses its 세운 rows next, not the fact.
+ const huge={facts:[facts.facts[0],{...facts.facts[1],value:{...facts.facts[1].value,periods:[cycle(1,true,120000)]}}]};
+ const second=m.fitChapterFacts(huge,build);
+ assert.deepEqual(second.dropped,['saju.questionTiming#cycleAnnual']);
+ assert.equal(second.request.calculatedData.facts.find(f=>f.label==='questionTiming').value.periods[0].interpretation.tombAnalysis.events.length,120000);
+});
