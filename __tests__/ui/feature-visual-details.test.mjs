@@ -224,7 +224,9 @@ test('restored hero artwork, catalog reuse, and collection previews stay in sync
     'life-book-ai': '/images/home/life-book-yun-v2-1200.webp',
   };
   const expectedSignature=Object.fromEntries(Object.keys(signatureArtwork).map(id=>[id,introductionArt[id].image.replace('.webp','-640.webp')]));
-  assert.deepEqual(signatureSources, expectedSignature);
+  assert.deepEqual(signatureSources, { ...expectedSignature, 'fusion-fortune': '' });
+  assert.equal(fragment.querySelectorAll('[data-picker-fusion-featured]').length, 1);
+  assert.equal(fragment.querySelector('[data-picker-fusion-featured] img'), null, 'moved fusion summary deliberately stays compact; popup retains artwork');
   for (const [id, source] of Object.entries(expectedSignature)) {
     assert.ok(fs.existsSync(`public${source}`), `${id}: referenced signature artwork is missing`);
   }
