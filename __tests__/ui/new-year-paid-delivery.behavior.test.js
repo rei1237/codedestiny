@@ -535,7 +535,7 @@ function newYearSource(file, names) {
   return ts.transpileModule(names.map(name => found.get(name)).join('\n'), { compilerOptions: { target: ts.ScriptTarget.ES2022 } }).outputText;
 }
 const POLLING_SOURCE = () => newYearSource('app/_lib/consultationResultPolling.ts', ['RETRYABLE_POLL_REASONS', 'isRetriableResultPollFailure']);
-const NY_COPY = ['SERVER_ERROR_MESSAGE', 'LLM_ERROR_MESSAGE', 'NEW_YEAR_PAUSED_NOTICE', 'NEW_YEAR_SLOW_NOTICE', 'NEW_YEAR_STALLED_MESSAGE', 'NEW_YEAR_REFUND_NOTICE', 'newYearRefundNotice'];
+const NY_COPY = ['SERVER_ERROR_MESSAGE', 'LLM_ERROR_MESSAGE', 'NEW_YEAR_PAUSED_NOTICE', 'NEW_YEAR_SLOW_NOTICE', 'NEW_YEAR_STALLED_MESSAGE', 'NEW_YEAR_REFUND_NOTICE', 'NEW_YEAR_PAID_NOTICE', 'newYearRefundNotice'];
 const friendly = (caught, fallback) => caught && /[가-힣]/.test(caught.message || '') ? caught.message : fallback;
 function trail() {
   const log = { status: [], notice: [], error: [], events: [], requests: [], scheduled: 0, remembered: [] };
@@ -702,4 +702,39 @@ test('신년 환불 안내는 결제·이용권 자동 환불과 확인 위치�
   assert.match(ctx.NEW_YEAR_REFUND_NOTICE, /기록 보관함|결제 내역/);
   assert.equal(ctx.newYearRefundNotice({ ok: false, reason: 'DB_DEGRADED', retryable: true }), '');
   assert.equal(ctx.newYearRefundNotice({ ok: true, status: 'partial' }), '');
+});
+
+// 결제 완료 직후: 결제 안내를 지우고 생성 화면으로 바로 넘어간다.
+test('신년 결제가 확인되면 첫 생성 요청 전에 결제 안내를 생성 시작 안내로 바꾼다', async () => {
+  const h = newYearStart({ responses: [completedResult] });
+  assert.equal(await h.run(), true);
+  const post = h.log.events.indexOf('post');
+  const before = h.log.events.slice(0, post);
+  assert.ok(before.includes('error:'));
+  assert.ok(before.includes(`notice:${vm.runInContext('NEW_YEAR_PAID_NOTICE', h.ctx)}`));
+  assert.ok(before.includes('status:reading'));
+  assert.match(vm.runInContext('NEW_YEAR_PAID_NOTICE', h.ctx), /확인이 끝났어요/);
+});
+test('신년 같은 상담 이어쓰기는 결제 확인 안내를 다시 띄우지 않는다', async () => {
+  const h = newYearStart({ responses: [completedResult] });
+  assert.equal(await h.ctx.startConsultation({ resumeSessionId: 'ny-1' }, 'paid-request', {}), true);
+  const before = h.log.events.slice(0, h.log.events.indexOf('post'));
+  assert.ok(before.includes('notice:'));
+  assert.ok(!before.includes(`notice:${vm.runInContext('NEW_YEAR_PAID_NOTICE', h.ctx)}`));
+});
+test('신년 화면은 생성이 시작되면 생성 중 패널로, 생성이 오류로 닫히면 안내·버튼으로 화면을 옮긴다', () => {
+  const ctx = vm.createContext({});
+  vm.runInContext(newYearSource(NY_CLIENT, ['newYearScrollTarget']), ctx);
+  assert.equal(ctx.newYearScrollTarget('payment', 'reading', 'web'), 'chat');
+  assert.equal(ctx.newYearScrollTarget('preparing', 'reading', 'web'), 'chat');
+  assert.equal(ctx.newYearScrollTarget('idle', 'reading', 'web'), 'chat');
+  assert.equal(ctx.newYearScrollTarget('reading', 'reading', 'web'), '');
+  assert.equal(ctx.newYearScrollTarget('reading', 'error', 'web'), 'error');
+  assert.equal(ctx.newYearScrollTarget('reading', 'ready', 'web'), '');
+  assert.equal(ctx.newYearScrollTarget('idle', 'error', 'web'), '');
+  assert.equal(ctx.newYearScrollTarget('payment', 'reading', 'toss'), '');
+  const source = fs.readFileSync(NY_CLIENT, 'utf8');
+  assert.match(source, /<section ref=\{chatRef\} className="nyai-chat nyai-panel"/);
+  assert.match(source, /<p ref=\{errorRef\} role="alert" className="nyai-error">/);
+  assert.match(source, /newYearScrollTarget\(shownStatusRef\.current, status, paymentSurface\)/);
 });

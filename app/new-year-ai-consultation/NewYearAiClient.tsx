@@ -619,6 +619,8 @@ const NEW_YEAR_SLOW_NOTICE = "생성이 길어지고 있어요. 저장된 분야
 const NEW_YEAR_STALLED_MESSAGE = "생성이 예상보다 오래 멈춰 있어요. 저장된 분야는 그대로 남아 있고 다시 결제되지 않아요. 아래 버튼을 누르면 같은 상담을 이어서 받고, 서버에서도 마저 완성해 기록 보관함에 남겨 둡니다.";
 // 생성이 실패로 닫히면 서버가 결제·이용권을 자동으로 되돌린다(settleNewYearFailureRefund·consultationRefundResponse).
 const NEW_YEAR_REFUND_NOTICE = "새해 상담문을 완성하지 못해 결제·이용권을 자동으로 되돌리고 있어요. 처리 상태는 기록 보관함과 결제 내역에서 확인할 수 있어요.";
+// 결제(단건·월정석·PG 복귀)·이용권 확인이 끝나 생성을 시작할 때 결제 안내를 이 문구로 바꾼다.
+const NEW_YEAR_PAID_NOTICE = "결제·이용권 확인이 끝났어요. 새해 상담문을 쓰기 시작했어요. 다 쓴 분야는 바로 저장돼요.";
 const NEW_YEAR_AUTO_RESUME_ROUNDS = 4;
 const NEW_YEAR_AUTO_RESUME_DELAY_MS = 15000;
 
@@ -628,6 +630,13 @@ function newYearRefundNotice(result: ConsultationResult) {
   if (result.ok) return "";
   if (result.reason === "PAYMENT_REFUNDED" || result.reason === "REFUND_PENDING") return result.message || NEW_YEAR_REFUND_NOTICE;
   return result.reason === "LLM_ERROR" || result.reason === "GENERATION_FAILED" ? NEW_YEAR_REFUND_NOTICE : "";
+}
+
+// 생성이 시작되면(결제창·이용권 확인 뒤 포함) 생성 중 패널로, 생성이 오류로 닫히면 안내·버튼이 있는 폼으로 화면을 옮긴다.
+function newYearScrollTarget(previous: FlowStatus, next: FlowStatus, surface: string): "chat" | "error" | "" {
+  if (surface === "toss" || previous === next) return "";
+  if (next === "reading") return "chat";
+  return next === "error" && previous === "reading" ? "error" : "";
 }
 
 // 새로고침·탭 복귀·결제 리다이렉트 뒤에도 같은 상담을 다시 열도록 ?sid= 를 남긴다(loadSession 이 읽는다).
@@ -1647,6 +1656,9 @@ export default function NewYearAiConsultationPage({paymentSurface="web",ProfileP
     const isCurrent = captureDeliveryScope();
     pendingGenerationRef.current = { payload, key: idempotencyKey, access };
     setStatus("reading");
+    // 결제창의 "이용권이 필요합니다" 안내를 생성 시작 안내로 바꾼다. 같은 상담 이어쓰기(access 없음)는 비운다.
+    setError("");
+    setNotice(access.billingGate || access.accessToken ? NEW_YEAR_PAID_NOTICE : "");
     let transientFailures = 0, pollFailures = 0;
     for (let wave = 0; wave < 18; wave += 1) {
       if (!isCurrent()) return false;
@@ -1769,6 +1781,15 @@ export default function NewYearAiConsultationPage({paymentSurface="web",ProfileP
     const autoResume = autoResumeRef;
     return () => window.clearTimeout(autoResume.current.timer);
   }, []);
+  const chatRef = useRef<HTMLElement | null>(null);
+  const errorRef = useRef<HTMLParagraphElement | null>(null);
+  const shownStatusRef = useRef<FlowStatus>(status);
+  useEffect(() => {
+    const target = newYearScrollTarget(shownStatusRef.current, status, paymentSurface);
+    shownStatusRef.current = status;
+    const node = target === "chat" ? chatRef.current : target === "error" ? errorRef.current : null;
+    node?.scrollIntoView?.({ block: target === "chat" ? "start" : "center" });
+  }, [status, paymentSurface]);
 
   // 재열람: ?sid= 복원 + 지난 상담 목록
   useEffect(() => {
@@ -2074,7 +2095,7 @@ export default function NewYearAiConsultationPage({paymentSurface="web",ProfileP
           || message === PAYMENT_CANCELLED_MESSAGE
           || message === LLM_ERROR_MESSAGE
           ? message
-          : paymentAttempted
+          : paymentAttempted && !accessConfirmed
             ? PAYMENT_VERIFY_FAILED_MESSAGE
           : message.includes("payment")
             ? PAYMENT_VERIFY_FAILED_MESSAGE
@@ -2379,7 +2400,7 @@ export default function NewYearAiConsultationPage({paymentSurface="web",ProfileP
           </div>
           </fieldset>
           {notice && <p className="nyai-notice">{notice}</p>}
-          {error && <p role="alert" className="nyai-error">{error}</p>}
+          {error && <p ref={errorRef} role="alert" className="nyai-error">{error}</p>}
           {paymentSurface==='toss'&&tossRecovery==='checking'&&<p role="status">{tossCopy.checking}</p>}
           {paymentSurface==='toss'&&tossRecovery==='allowed'&&status!=='ready'&&<button type="button" style={{minHeight:44}} disabled={isBusy} onClick={()=>void retryTossNewYear()}>{tossCopy.resume}</button>}
           {paymentSurface==='toss'&&error&&new URLSearchParams(typeof window!=='undefined'?window.location.search:'').get('sid')&&<button type="button" style={{minHeight:44}} disabled={isBusy} onClick={()=>setReloadEpoch(value=>value+1)}>{tossCopy.retryAuthority}</button>}
@@ -2397,7 +2418,7 @@ export default function NewYearAiConsultationPage({paymentSurface="web",ProfileP
         {/* 다른 대표 상담 두 곳과 같은 규칙 — 폼이 아직 아래에 있을 때만, 제출 버튼과 같은 라벨로 뜬다. 폼(.nyai-panel)은 backdrop-filter 라 fixed 기준 상자가 되므로 폼 밖에 둔다. */}
         {!isBusy && (paymentSurface!=='toss'||tossRecovery==='none') && (clientReady && (<ExpertStickyCta theme="newYear" targetId="new-year-form" label={tossJapanese?.start||"신년운세 전문가 상담 받기"} price={paymentSurface==='toss'?null:<PriceBadge featureKey="new-year-ai-consultation" prefix="상담 이용 가격 " />} />))}
 
-        <section className="nyai-chat nyai-panel" aria-live="polite">
+        <section ref={chatRef} className="nyai-chat nyai-panel" aria-live="polite">
           <div className="nyai-chat-head">
             <div className="nyai-chat-title">
               <Sparkles size={18} />
@@ -2418,6 +2439,7 @@ export default function NewYearAiConsultationPage({paymentSurface="web",ProfileP
           </div>
           <div className="nyai-messages" ref={resultRef}>
             {status === "reading" ? <NewYearGenerationPanel count={readingCount} toss={paymentSurface === 'toss'} /> : null}
+            {status === "reading" && notice && paymentSurface !== 'toss' ? <p className="nyai-notice">{notice}</p> : null}
             {assistantMessages.length === 0 ? (
               status === "reading" ? null : (
               <div className="nyai-empty">
