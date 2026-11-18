@@ -1,6 +1,6 @@
 /**
- * 앱 전용 결제 가드 — Android 빌드에만 주입된다(scripts/build-mobile-app.mjs).
- * 웹 번들에는 절대 포함되지 않는다.
+ * 앱 전용 결제 가드 — 앱 번들(dist, Android·iOS 공용)에만 주입된다(scripts/build-mobile-app.mjs).
+ * 웹 번들에는 절대 포함되지 않는다. iOS 는 Play Billing 대신 아래 iOS 분기(R2)를 탄다.
  *
  * 목적: Google Play 정책상 앱 안에서는 외부 결제(PortOne/이니시스)가 열려선 안 된다.
  * 정적 페이지는 js/destiny-profile.js(웹·앱 공용, 수정 금지)의 결제 런타임을 쓰므로,
@@ -44,7 +44,7 @@
     return override > 0 ? override : APP_STORE_FETCH_TIMEOUT_MS;
   }
 
-  async function postJson(path, body) {
+  async function requestJson(method, path, body) {
     var controller = typeof AbortController === "function" ? new AbortController() : null;
     var timedOut = false;
     var timer = setTimeout(function () {
@@ -55,11 +55,11 @@
     var payload;
     try {
       response = await fetch(apiBase() + path, {
-        method: "POST",
+        method: method,
         headers: authHeaders(),
         credentials: "include",
         cache: "no-store",
-        body: JSON.stringify(body || {}),
+        body: method === "GET" ? undefined : JSON.stringify(body || {}),
         signal: controller ? controller.signal : undefined,
       });
       // 본문 읽기도 같은 상한 안에 둔다 — 헤더만 오고 본문이 안 오는 연결도 같은 무한 대기다.
@@ -74,6 +74,10 @@
       clearTimeout(timer);
     }
     return { ok: response.ok && payload && payload.ok !== false, status: response.status, payload: payload };
+  }
+
+  function postJson(path, body) {
+    return requestJson("POST", path, body);
   }
 
   function nativeBilling() {
@@ -96,22 +100,10 @@
    * destiny-profile.js의 원본과 동일하게 "결제 확인 응답 payload"를 반환해야
    * 이후 콘텐츠 지급 흐름이 그대로 이어진다.
    */
-  async function runPlayBillingCheckoutCore(options) {
-    if (window.Capacitor && window.Capacitor.getPlatform && window.Capacitor.getPlatform() === "ios") {
-      throw failure("IOS_BILLING_NOT_CONFIGURED", document.documentElement.lang === "ja"
-        ? "iPhoneでの新規購入は準備中です。購入済みの内容は同じアカウントで確認できます。"
-        : "iPhone의 새 구매 기능은 준비 중이에요. 기존 구매 내역은 같은 계정으로 확인할 수 있어요.");
-    }
-    var opts = options || {};
-    var featureKey = readFeatureKey(opts);
-    var native = nativeBilling();
-    if (!native || typeof native.purchase !== "function") {
-      throw failure("NATIVE_BILLING_UNAVAILABLE", "앱 결제 연결이 준비되지 않았습니다. 앱을 다시 시작해 주세요.");
-    }
-
+  function buildIntentBody(opts) {
     var requestId = String(opts.requestId || opts.idempotencyKey || "").trim();
-    var intentBody = {
-      featureKey: featureKey,
+    return {
+      featureKey: readFeatureKey(opts),
       categoryKey: opts.categoryKey,
       subFeatureKey: opts.subFeatureKey,
       reason: opts.reason || opts.title,
@@ -122,6 +114,82 @@
       reportId: opts.reportId,
       sessionId: opts.sessionId || opts.reportSessionId,
     };
+  }
+
+  // --- iOS(R2, 2026-11-18 승인) ----------------------------------------------
+  // iOS 는 StoreKit 가격만 보여 주고 웹 결제를 안내하지 않는다(App Store 3.1.1·3.1.3).
+  // StoreKit 브리지(Phase 6) 전에는 Google Play 의도·결제·검증을 보내지 않고, 서버 가격표가
+  // 앱 무료(freeInApp)로 정한 콘텐츠만 무료 지급한다. 나머지는 중립 문구로 끝낸다.
+  // React 경로(app/_lib/billing-client.ts runPaidServiceRuntimePayment)와 같은 순서다.
+  // 문구는 app/app/_lib/native-billing.ts iosPurchasePreparationMessage 와 같아야 한다
+  // (verify-app-store-billing-policy 가 두 문구의 동일성을 단언한다).
+  var IOS_PREPARATION_MESSAGE_KO = "iPhone의 새 구매 기능은 준비 중이에요. 기존 구매 내역은 같은 계정으로 확인할 수 있어요.";
+  var IOS_PREPARATION_MESSAGE_JA = "iPhoneでの新規購入は準備中です。購入済みの内容は同じアカウントで確認できます。";
+
+  function iosPreparationMessage() {
+    return document.documentElement.lang === "ja" ? IOS_PREPARATION_MESSAGE_JA : IOS_PREPARATION_MESSAGE_KO;
+  }
+
+  // 판별은 명시적으로 "ios" 일 때만. 모르면 기존 가정(Play)을 유지한다 — js/core/app-context.js getPlatform 과 같다.
+  function isIosApp() {
+    try {
+      var capacitor = window.Capacitor;
+      return !!(capacitor && typeof capacitor.getPlatform === "function"
+        && String(capacitor.getPlatform() || "").toLowerCase() === "ios");
+    } catch (e) {
+      return false;
+    }
+  }
+
+  // 서버 가격표가 앱 무료로 정한 콘텐츠인가. 조회 실패는 무료가 아닌 것으로 본다(fail-closed).
+  async function readIosFreeInApp(opts) {
+    var featureKey = readFeatureKey(opts);
+    if (!featureKey) return false;
+    var params = [];
+    [["featureKey", featureKey], ["categoryKey", opts.categoryKey], ["subFeatureKey", opts.subFeatureKey],
+      ["reason", opts.reason || opts.title], ["productType", opts.productType]].forEach(function (pair) {
+      var value = String(pair[1] == null ? "" : pair[1]).trim();
+      if (value) params.push(encodeURIComponent(pair[0]) + "=" + encodeURIComponent(value));
+    });
+    try {
+      var products = await requestJson("GET", APP_STORE_BASE + "/products?" + params.join("&"));
+      var product = products.ok && products.payload && products.payload.data && products.payload.data.product;
+      return !!(product && product.freeInApp === true);
+    } catch (e) {
+      return false;
+    }
+  }
+
+  async function runIosCheckout(opts) {
+    if (await readIosFreeInApp(opts)) {
+      var free = await postJson(APP_STORE_BASE + "/free-grant", buildIntentBody(opts));
+      if (!free.ok) throw failure("APP_STORE_FREE_GRANT_FAILED", String((free.payload && free.payload.message) || "콘텐츠를 열지 못했습니다."));
+      return free.payload;
+    }
+    throw failure("IOS_BILLING_NOT_CONFIGURED", iosPreparationMessage());
+  }
+
+  // 결제창 렌더러 3종(셸 _cdChooseServicePaymentMode·독립 _dpRenderStandalonePaymentChoice·React)이
+  // iOS 에서 결제창을 그리는 대신 부른다. 앱 무료면 'direct'(→ 고정된 _cdRunDirectKrwCheckout →
+  // runIosCheckout 이 무료 지급), 아니면 중립 문구를 보이고 'cancel'. 서버 원화·웹 결제 안내를 그리지 않는다.
+  async function resolveIosPaymentChoice(options) {
+    var opts = options || {};
+    if (await readIosFreeInApp(opts)) return "direct";
+    try { window.alert(iosPreparationMessage()); } catch (e) { /* noop */ }
+    return "cancel";
+  }
+
+  async function runPlayBillingCheckoutCore(options) {
+    var opts = options || {};
+    if (isIosApp()) return runIosCheckout(opts);
+    var featureKey = readFeatureKey(opts);
+    var native = nativeBilling();
+    if (!native || typeof native.purchase !== "function") {
+      throw failure("NATIVE_BILLING_UNAVAILABLE", "앱 결제 연결이 준비되지 않았습니다. 앱을 다시 시작해 주세요.");
+    }
+
+    var intentBody = buildIntentBody(opts);
+    var requestId = intentBody.requestId;
 
     var intent = await postJson(APP_STORE_BASE + "/google/intent", intentBody);
 
@@ -482,6 +550,7 @@
   window.__cdAppPaymentGuard = {
     installed: true,
     runPlayBillingCheckout: runPlayBillingCheckout,
+    resolveIosPaymentChoice: resolveIosPaymentChoice,
     openAppStore: openAppStore,
     prunedRoutes: PRUNED_ROUTES,
     applyPrunedRouteCleanup: applyPrunedRouteCleanup,

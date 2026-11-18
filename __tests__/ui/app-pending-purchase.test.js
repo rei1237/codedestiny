@@ -9,17 +9,56 @@ const root = path.resolve(__dirname, '../..');
 const guardSource = fs.readFileSync(path.join(root, 'scripts/app-payment-guard.js'), 'utf8');
 const bridgeSource = fs.readFileSync(path.join(root, 'scripts/app-native-bridge.js'), 'utf8');
 
-test('iOS는 Google Play 의도·결제·검증을 요청하지 않는다', async () => {
+function iosDom(product, alerts) {
   const dom = new JSDOM('<!doctype html><html lang="ja"><body></body></html>', { url: 'capacitor://localhost/', runScripts: 'outside-only' });
+  const calls = [];
+  dom.window.fetch = async (url, init) => {
+    calls.push(`${(init && init.method) || 'GET'} ${String(url)}`);
+    if (product === 'offline') throw new Error('network forbidden');
+    if (/\/products\?/.test(String(url))) return { ok: true, status: 200, json: async () => ({ ok: true, data: { product } }) };
+    if (/\/free-grant$/.test(String(url))) return { ok: true, status: 200, json: async () => ({ ok: true, granted: true }) };
+    throw new Error('unexpected request ' + url);
+  };
+  dom.window.alert = (message) => { alerts.push(String(message)); };
+  dom.window.Capacitor = { getPlatform: () => 'ios' };
+  dom.window.CodeDestinyNative = { purchase: async () => { throw new Error('Play must not open on iOS'); } };
+  dom.window.eval(guardSource);
+  return { dom, calls };
+}
+
+for (const product of ['offline', { amountKRW: 3900, freeInApp: false }]) {
+  test(`iOS는 Google Play 의도·결제·검증을 요청하지 않는다(${product === 'offline' ? '조회 실패' : '유료'})`, async () => {
+    const { dom, calls } = iosDom(product, []);
+    try {
+      await assert.rejects(dom.window.__cdAppPaymentGuard.runPlayBillingCheckout({ featureKey: 'test' }), { code: 'IOS_BILLING_NOT_CONFIGURED' });
+      assert.deepEqual(calls.filter((call) => /\/google\//.test(call)), []);
+      assert.deepEqual(calls.filter((call) => /free-grant/.test(call)), []);
+    } finally { dom.window.close(); }
+  });
+}
+
+test('iOS 앱 무료 콘텐츠는 Play 없이 무료 지급만 한다', async () => {
+  const { dom, calls } = iosDom({ amountKRW: 0, freeInApp: true }, []);
   try {
-    let requests = 0;
-    dom.window.fetch = async () => { requests++; throw new Error('network forbidden'); };
-    dom.window.Capacitor = { getPlatform: () => 'ios' };
-    dom.window.CodeDestinyNative = { purchase: async () => { throw new Error('Play must not open on iOS'); } };
-    dom.window.eval(guardSource);
-    await assert.rejects(dom.window.__cdAppPaymentGuard.runPlayBillingCheckout({ featureKey: 'test' }), { code: 'IOS_BILLING_NOT_CONFIGURED' });
-    assert.equal(requests, 0);
+    const payload = await dom.window.__cdAppPaymentGuard.runPlayBillingCheckout({ featureKey: 'test', requestId: 'r1' });
+    assert.equal(payload.granted, true);
+    assert.deepEqual(calls.map((call) => call.replace(/\?.*$/, '')), ['GET /api/app-store/products', 'POST /api/app-store/free-grant']);
   } finally { dom.window.close(); }
+});
+
+test('iOS 결제창 대체: 무료면 direct, 아니면 중립 문구 뒤 cancel(서버 원화·웹 결제 안내 없음)', async () => {
+  const alerts = [];
+  const paid = iosDom({ amountKRW: 3900, freeInApp: false }, alerts);
+  try {
+    assert.equal(await paid.dom.window.__cdAppPaymentGuard.resolveIosPaymentChoice({ featureKey: 'test' }), 'cancel');
+    assert.equal(alerts.length, 1);
+    assert.doesNotMatch(alerts[0], /원|웹|Google|3,?900/);
+  } finally { paid.dom.window.close(); }
+  const free = iosDom({ amountKRW: 0, freeInApp: true }, alerts);
+  try {
+    assert.equal(await free.dom.window.__cdAppPaymentGuard.resolveIosPaymentChoice({ featureKey: 'test' }), 'direct');
+    assert.equal(alerts.length, 1);
+  } finally { free.dom.window.close(); }
 });
 
 for (const state of [2, 0, undefined]) {
