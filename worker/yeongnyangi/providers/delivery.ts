@@ -34,6 +34,7 @@ export function deliverChapter(raw:unknown,input:ChapterRequest):ChapterBody {
   // sectioned books; normalize the new response before duplicate/shape checks.
   if(candidate && Array.isArray(candidate.blocks) && candidate.blocks.length && hasReadingSections(input.chapter.version))
     candidate={...candidate,analysis:[],example:'',advice:''};
+  candidate=alignSectionBlocks(candidate,input.chapter);
   // Completion is a server decision, not the model's prediction before it writes
   // the body. Validate every section even when a legacy response says false or
   // omits the marker; persisted chapters still require the server-owned true.
@@ -51,6 +52,30 @@ export function deliverChapter(raw:unknown,input:ChapterRequest):ChapterBody {
   return delivered;
 }
 
+// S9-Y: blocks out of section order, or one section split across repeated ids, are a format problem, not
+// missing content. Put them back in section order (repeated ids merged in arrival order); a block under an
+// id that is no section has nowhere to go and is dropped. A missing section is never invented: unchanged.
+function alignSectionBlocks(candidate:any,chapter:ChapterRequest['chapter']){
+  const sections=chapter.sections;
+  if(!sections?.length||!candidate||typeof candidate!=='object'||!Array.isArray(candidate.blocks))return candidate;
+  const merged=new Map<string,any>(),items=(v:unknown)=>Array.isArray(v)?v:[];
+  for(const block of candidate.blocks){
+    if(!block||typeof block!=='object'||typeof block.id!=='string')continue;
+    const prior=merged.get(block.id);
+    merged.set(block.id,!prior?block:{...prior,title:prose(prior.title)?prior.title:block.title,
+      paragraphs:[...items(prior.paragraphs),...items(block.paragraphs)],sources:[...items(prior.sources),...items(block.sources)]});
+  }
+  if(sections.some(s=>!merged.has(s.id)))return candidate;
+  const blocks=sections.map(s=>merged.get(s.id));
+  if(blocks.length===candidate.blocks.length&&blocks.every((b,i)=>b===candidate.blocks[i]))return candidate;
+  console.warn('[yeongnyangi-block-alignment]',JSON.stringify({chapter:chapter.ordinal,received:candidate.blocks.length,sections:sections.length}));
+  return {...candidate,blocks};
+}
+
+// Near copies are looked for in the last six chapters; exact copies in every chapter. A 45-chapter book
+// otherwise prunes ever more of each new chapter and pays for every earlier paragraph again (S9-Y).
+const NEAR_DUPLICATE_WINDOW=6;
+
 function deliverChapterBody(raw:unknown,input:ChapterRequest):ChapterBody {
   try { return validateChapter(raw,input); } catch(error) {
     if(!(error instanceof FortuneError))throw error;
@@ -62,8 +87,9 @@ function deliverChapterBody(raw:unknown,input:ChapterRequest):ChapterBody {
     try{value=JSON.parse(value);}catch{value=salvageTruncatedJsonObject(value);}
   }
   if(!value||typeof value!=='object'||Array.isArray(value))throw new FortuneError('INVALID_CHAPTER');
-  const distinct=input.previous.flatMap(p=>[...(p.blocks?.flatMap(b=>b.paragraphs)||p.analysis||[])]);
-  const seen=new Set(distinct.map(p=>p.replace(/\s/gu,'')));
+  const earlier=input.previous.map(p=>[...(p.blocks?.flatMap(b=>b.paragraphs)||p.analysis||[])]);
+  const seen=new Set(earlier.flat().map(p=>p.replace(/\s/gu,'')));
+  const distinct=earlier.slice(-NEAR_DUPLICATE_WINDOW).flat();
   const gramCache=new Map<string,Set<string>>();
   const edit=(text:unknown)=>{
     const clean=prose(text);
@@ -80,8 +106,11 @@ function deliverChapterBody(raw:unknown,input:ChapterRequest):ChapterBody {
   const allowed=new Set(Object.values(input.analysis.contexts).flatMap(c=>selectChapterFacts(c,input.chapter,input.analysis.topicId).map(f=>f.id)));
   if(input.ask)for(const item of [...input.ask.evidence.facts,...input.ask.evidence.timing])allowed.add(item.source.factId);
   const sources=(items:unknown)=>[...new Set(list(items).filter(id=>allowed.has(id)))];
+  // Pruning never empties a section the model wrote: its first paragraph stays even when it repeats an earlier chapter.
+  const sectionParagraphs=(items:unknown)=>{const kept=paragraphs(items);
+    return kept.length?kept:list(items).map(edit).filter(Boolean).slice(0,1).flatMap(p=>splitSectionParagraph(p));};
   const blocks:NonNullable<ChapterBody['blocks']>=(Array.isArray(value.blocks)?value.blocks:[]).filter((b:any)=>b&&typeof b==='object').map((b:any)=>({
-    ...(typeof b.id==='string'?{id:b.id}:{}),title:prose(b.title)||input.chapter.title,paragraphs:paragraphs(b.paragraphs),sources:sources(b.sources),
+    ...(typeof b.id==='string'?{id:b.id}:{}),title:prose(b.title)||input.chapter.title,paragraphs:sectionParagraphs(b.paragraphs),sources:sources(b.sources),
     ...Object.fromEntries((['palaces','pillars','astroPoints','vedicPoints','mansions'] as const).filter(k=>Array.isArray(b[k])).map(k=>[k,b[k]])),
   })).filter((b:any)=>b.paragraphs.length);
   const analysis=paragraphs(value.analysis);
@@ -94,14 +123,17 @@ function deliverChapterBody(raw:unknown,input:ChapterRequest):ChapterBody {
   // A question must still have a substantive provider-authored answer. Citation
   // completeness and the optional timing/reason subdivisions do not buy retries.
   if(expected.some(q=>!answers.some(a=>a.questionId===q.id&&a.answer.length>=10)))throw new FortuneError('QUESTION_ANSWER_INCOMPLETE');
-  // A summary that restates an earlier chapter's is replaced by this chapter's
-  // own opening sentences; a regeneration is bought only when none is new.
+  // A summary that restates an earlier chapter's is replaced by this chapter's own opening sentences. When
+  // none is new the first opening is still delivered: a summary never withholds a paid chapter (S9-Y).
   const fresh=(text:string)=>Boolean(text)&&!input.previous.some(p=>repeatedSummary(text,String(p.summary||'')));
   const opening=(paragraph:string)=>paragraph.split(/(?<=[.!?。])\s+/u).slice(0,2).join(' ');
   // Body text lifted into the summary loses the sentence its leading connective pointed back to.
   const standalone=(text:string)=>text.replace(/^(?:하지만|그러나|그런데|그래서|그리고|또한|게다가|반면에?|따라서|그러니까?|그럼에도)(?:,\s*|\s+)/u,'');
-  const summary=[edit(value.summary),...[actual[0],...actual.map(opening)].map(standalone)].find(fresh);
-  if(!summary)throw new FortuneError('CHAPTER_SUMMARY_REPEATED');
+  let summary=[edit(value.summary),...[actual[0],...actual.map(opening)].map(standalone)].find(fresh);
+  if(!summary){
+    summary=standalone(opening(actual[0]));
+    console.warn('[yeongnyangi-summary-fallback]',JSON.stringify({chapter:input.chapter.ordinal}));
+  }
   let body:ChapterBody=sanitizeQuestionSkyBody({summary,analysis,example:edit(value.example),advice:edit(value.advice),
     persona:edit(value.persona),highlights:list(value.highlights).map(edit).filter(Boolean),topics:list(value.topics),blocks,
     sources:[...new Set([...sources(value.sources),...blocks.flatMap(b=>b.sources||[])])],questionAnswers:answers,
