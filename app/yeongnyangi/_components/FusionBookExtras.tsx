@@ -21,12 +21,15 @@ const percent=(phase:ReadingPdfPhase,progress?:ReadingPdfProgress)=>phase==='pre
 type Built=ReadingPdfResult&{key:string;url:string};
 function FusionBookContent({row}:{row:FortuneRecord}){
  const [includeQuestion,setIncludeQuestion]=useState(false),[includeFollowups,setIncludeFollowups]=useState(false),[phase,setPhase]=useState<ReadingPdfPhase|null>(null),[progress,setProgress]=useState<ReadingPdfProgress>(),[message,setMessage]=useState(''),[failed,setFailed]=useState(false),[built,setBuilt]=useState<Built|null>(null);
- const lock=useRef(false);
- // A finished book is kept only for the options it was made with, and its preview URL is released when replaced or left.
- const optionKey=`${includeQuestion}|${includeFollowups}`,current=built?.key===optionKey?built:null;
- useEffect(()=>()=>{if(built)URL.revokeObjectURL(built.url);},[built]);
+ const lock=useRef(false),mounted=useRef(false),previewUrl=useRef<string|null>(null);
  const appendices=useMemo(()=>readingReportAppendices(row),[row]);
  const plan=useMemo(()=>buildYeongnyangiReportPlan(row,{includeQuestion,includeFollowups}),[row,includeQuestion,includeFollowups]);
+ // Include rendered content: a new follow-up can arrive on the same record.
+ const optionKey=useMemo(()=>JSON.stringify([includeQuestion,includeFollowups,plan,row.product.name,row.createdAt,row.consultation?.asOf]),[includeQuestion,includeFollowups,plan,row.product.name,row.createdAt,row.consultation?.asOf]);
+ const latestKey=useRef(optionKey);latestKey.current=optionKey;
+ const current=built?.key===optionKey?built:null;
+ useEffect(()=>{mounted.current=true;return ()=>{mounted.current=false;if(previewUrl.current)URL.revokeObjectURL(previewUrl.current);previewUrl.current=null;};},[]);
+ useEffect(()=>{if(previewUrl.current)URL.revokeObjectURL(previewUrl.current);previewUrl.current=null;setBuilt(null);},[optionKey]);
  if((row.product.readingKind==='single'&&row.product.fishId!=='tuna')||row.locale&&row.locale!=='ko')return null;
  const ready=row.state==='COMPLETED'&&row.chapters.length===row.manifest.length&&row.chapters.length>0;
  const fileName=`영냥이-개인상담서-${row.createdAt.slice(0,10)}.pdf`;
@@ -34,15 +37,21 @@ function FusionBookContent({row}:{row:FortuneRecord}){
  const savedMessage=(result:ReadingPdfResult)=>`${result.pages}쪽 · ${megabytes(result.bytes)} PDF를 저장했어요. 다운로드 목록에 없으면 'PDF 열어 보기'로 연 뒤 공유·저장해 주세요.`;
  async function download(){
   if(lock.current||!ready)return;
-  if(current){const {saveReportBlob}=await loadExporter();saveReportBlob(current.blob,fileName);setMessage(savedMessage(current));return;}
   lock.current=true;setFailed(false);setMessage('');setProgress(undefined);setPhase('preparing');
-  try{const {exportYeongnyangiReportPdf}=await loadExporter();
-   const result=await exportYeongnyangiReportPdf({row,includeQuestion,includeFollowups,fileName,onProgress:(next,count)=>{setPhase(next);if(count)setProgress(count);}});
-   setBuilt({...result,key:optionKey,url:URL.createObjectURL(result.blob)});setMessage(savedMessage(result));
-  }catch(error){setFailed(true);setMessage(error instanceof Error&&error.name==='PdfFontError'
+  const active=()=>mounted.current&&latestKey.current===optionKey;
+  try{const {exportYeongnyangiReportPdf,saveReportBlob}=await loadExporter();
+   if(!active())return;
+   if(current){saveReportBlob(current.blob,fileName);setMessage(savedMessage(current));return;}
+   const result=await exportYeongnyangiReportPdf({row,includeQuestion,includeFollowups,fileName,save:false,onProgress:(next,count)=>{if(active()){setPhase(next);if(count)setProgress(count);}}});
+   if(!active())return;
+   saveReportBlob(result.blob,fileName);
+   if(previewUrl.current)URL.revokeObjectURL(previewUrl.current);
+   const url=URL.createObjectURL(result.blob);previewUrl.current=url;
+   setBuilt({...result,key:optionKey,url});setMessage(savedMessage(result));
+  }catch(error){if(!active())return;setFailed(true);setMessage(error instanceof Error&&error.name==='PdfFontError'
    ?'한글 글꼴을 내려받지 못했어요. 연결을 확인한 뒤 다시 만들어 주세요. 상담 내용은 그대로 보관되어 있어요.'
    :'PDF를 만들지 못했어요. 잠시 뒤 다시 만들어 주세요. 상담 내용은 그대로 보관되어 있어요.');}
-  finally{lock.current=false;setPhase(null);}
+  finally{lock.current=false;if(mounted.current)setPhase(null);}
  }
  return <section className={styles.extras} aria-label="개인 상담서와 실천 노트">
   <details id="fusion-book-export" className={styles.export} onToggle={event=>{if(ready&&event.currentTarget.open)void loadExporter().then(m=>m.prefetchYeongnyangiReportPdf()).catch(()=>undefined);}}>
