@@ -31,22 +31,32 @@ export function usageSettlementSetFields(settlement) {
 export async function lateAccessDenialSettlement({ fresh, doc, userId, idempotencyKey = "", service = "", models = {} } = {}) {
   // 상수는 함수 안에 둔다 — 라우트 동작 테스트가 함수 선언만 떼어 vm 에 싣는다.
   const REVOKED_STATUSES = ["refunded", "cancelled", "canceled", "REFUNDED", "CANCELLED"];
-  const REVOKED_USE_MARKERS = ["refundedForServiceExecution", "refundedForUnlockFailure", "coinRefundedForUnlockFailure", "monthlyCreditRefundedForServiceExecution"];
+  const REVOKED_USE_MARKERS = ["refundedForServiceExecution", "refundedForUnlockFailure", "coinRefundedForUnlockFailure", "monthlyCreditRefundedForServiceExecution", "monthlyCreditRefundedForUnlockFailure", "monthlyCreditRefundedForLedgerFailure"];
   try {
     if (fresh && (fresh.ok !== false || !PASS_SETTLEMENT_DENIAL_CODES.has(String(fresh.reason || "").trim()))) return null;
     if (doc?.status !== "delivery_pending" || normalizeConsultAccessType(doc.accessType) !== "pass") return null;
     if (consultationRefundState(doc)) return null;
     const key = String(idempotencyKey || doc.idempotencyKey || "").trim();
     if (!key || !userId) return null;
-    const { User, Payment, PaidExecutionRecord, PointHistory } = models;
+    const { User, Payment, PaidExecutionRecord, PointHistory, MonthlyCreditLedger } = models;
     const user = await User.findOne({ _id: userId }).select("status withdrawnAt").lean();
     if (!user || user.status === "withdrawn" || user.withdrawnAt) return null;
     const startedAt = doc.createdAt ? new Date(doc.createdAt) : new Date(0);
     const since = Number.isNaN(startedAt.getTime()) ? new Date(0) : startedAt;
+    // 이 요청에 묶인 모든 결제 식별자(요청 키·저장된 결제 ID·재개 본문의 결제 ID)로 취소·환불 증빙을 찾는다.
+    const resumeBody = doc.llmMeta?.resumeBody || doc.llmMeta?.delivery?.resumeBody || {};
+    const tokens = [...new Set([key, doc.paymentId, resumeBody.paymentId, resumeBody.merchantUid, resumeBody.merchant_uid, resumeBody.impUid, resumeBody.imp_uid, resumeBody.transactionId, resumeBody.purchaseId]
+      .map(value => String(value || "").trim()).filter(Boolean))];
+    const orderClauses = tokens.flatMap(token => [{ requestId: token }, { idempotencyKey: token }, { merchantUid: token }, { impUid: token }]);
+    const executionClauses = tokens.flatMap(token => [{ requestId: token }, { executionId: token }, { idempotencyKey: token }]);
+    const metadataClauses = tokens.flatMap(token => ["requestId", "idempotencyKey", "purchaseId", "orderId", "transactionId"].map(field => ({ [`metadata.${field}`]: token })));
+    const markerClauses = REVOKED_USE_MARKERS.map(marker => ({ [`metadata.${marker}`]: true }));
     const revoked = await Promise.all([
-      PaidExecutionRecord.findOne({ userId: String(userId), status: { $in: REVOKED_STATUSES }, $or: [{ requestId: key }, { executionId: key }, { idempotencyKey: key }] }).lean(),
-      PointHistory.findOne({ userId, $and: [{ $or: [{ "metadata.requestId": key }, { "metadata.idempotencyKey": key }] }, { $or: REVOKED_USE_MARKERS.map(marker => ({ [`metadata.${marker}`]: true })) }] }).lean(),
+      PaidExecutionRecord.findOne({ userId: String(userId), status: { $in: REVOKED_STATUSES }, $or: executionClauses }).lean(),
+      PointHistory.findOne({ userId, $and: [{ $or: metadataClauses }, { $or: markerClauses }] }).lean(),
+      Payment.findOne({ userId, status: { $in: REVOKED_STATUSES }, $or: orderClauses }).lean(),
       Payment.findOne({ userId, paymentType: "membership_pass", status: { $in: REVOKED_STATUSES }, updatedAt: { $gte: since } }).lean(),
+      MonthlyCreditLedger ? MonthlyCreditLedger.findOne({ userId, $and: [{ $or: metadataClauses }, { $or: markerClauses }] }).lean() : null,
     ]);
     if (revoked.some(Boolean)) return null;
     const reason = String(fresh?.reason || "PAYMENT_REQUIRED").trim();

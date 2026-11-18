@@ -5,12 +5,13 @@ import { lateAccessDenialSettlement } from "../../worker/lib/late-usage-settleme
 // 전달 직전 재확인 거절을 전달로 바꾸는 판정은 fail-closed 다 — 하나라도 어긋나거나 조회가 실패하면 null.
 const lean = value => ({ lean: async () => value, select: () => ({ lean: async () => value }) });
 function setup(over = {}) {
-  const state = { user: { _id: "u1", status: "active" }, execution: null, pointUse: null, passOrder: null, fail: false, ...over };
+  const state = { user: { _id: "u1", status: "active" }, execution: null, pointUse: null, passOrder: null, requestOrder: null, ledgerUse: null, fail: false, ...over };
   const models = {
     User: { findOne: () => { if (state.fail) throw new Error("db down"); return lean(state.user); } },
     PaidExecutionRecord: { findOne: () => lean(state.execution) },
     PointHistory: { findOne: () => lean(state.pointUse) },
-    Payment: { findOne: filter => lean(filter.paymentType === "membership_pass" ? state.passOrder : null) },
+    Payment: { findOne: filter => lean(filter.paymentType === "membership_pass" ? state.passOrder : filter.$or?.some(row => ["k1", "pay-1"].includes(row.merchantUid) || row.requestId === "k1") ? state.requestOrder : null) },
+    MonthlyCreditLedger: { findOne: () => lean(state.ledgerUse) },
   };
   const doc = { id: "s1", status: "delivery_pending", accessType: "pass", idempotencyKey: "k1", createdAt: "2026-11-18T00:00:00.000Z", llmMeta: {}, ...over.doc };
   return { models, doc };
@@ -43,6 +44,8 @@ test("취소·환불·탈퇴·다른 접근·다른 사유·조회 실패는 전
     "요청 실행 기록 환불": [{ execution: { status: "refunded" } }],
     "이용권 사용 환불 표시": [{ pointUse: { metadata: { refundedForServiceExecution: true } } }],
     "이용권 주문 환불": [{ passOrder: { merchantUid: "pass-1", status: "refunded" } }],
+    "이 요청 결제 환불": [{ requestOrder: { merchantUid: "pay-1", status: "refunded" }, doc: { llmMeta: { resumeBody: { paymentId: "pay-1" } } } }],
+    "월정석 사용 환불 표시": [{ ledgerUse: { metadata: { monthlyCreditRefundedForServiceExecution: true } } }],
     "조회 실패": [{ fail: true }],
   };
   for (const [label, [over, fresh]] of Object.entries(blocked)) {

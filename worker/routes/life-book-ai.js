@@ -2899,7 +2899,7 @@ async function handleStart(request, env, route = "/api/life-book-ai/generate", r
       if (access.reason === "LOGIN_REQUIRED") return loginRequired();
       if (access.reason === "INVALID_INPUT") return invalidInput(access.message, 409);
       // 이용권으로 시작해 본문까지 만든 상담은 그 뒤 한도 소진으로 재확인이 거절돼도 전달한다(환불·탈퇴·취소 증빙은 제외, fail-closed).
-      const settlement = await lateAccessDenialSettlement({ fresh: access, doc: existing, userId: auth.userId, idempotencyKey, service: "life-book-ai", models: { User, Payment, PaidExecutionRecord, PointHistory } });
+      const settlement = await lateAccessDenialSettlement({ fresh: access, doc: existing, userId: auth.userId, idempotencyKey, service: "life-book-ai", models: { User, Payment, PaidExecutionRecord, PointHistory, MonthlyCreditLedger } });
       if (settlement) return json(publicSession(await finishLifeBookDelivery({ request, env, auth, access: { accessType: existing.accessType }, pending: existing, pricing, orderName, settlement })));
       return paymentVerifyFailed();
     }
@@ -3362,7 +3362,7 @@ async function handleStart(request, env, route = "/api/life-book-ai/generate", r
                 generationError: null,
           } });
           const freshAccess = await resolveStartAccess({ request, env, auth, body, normalized, idempotencyKey }).catch(() => { throw resultStorageUnavailable(sessionId); });
-          const settlement = freshAccess.ok ? null : await lateAccessDenialSettlement({ fresh: freshAccess, doc: delivery, userId: auth.userId, idempotencyKey, service: "life-book-ai", models: { User, Payment, PaidExecutionRecord, PointHistory } });
+          const settlement = freshAccess.ok ? null : await lateAccessDenialSettlement({ fresh: freshAccess, doc: delivery, userId: auth.userId, idempotencyKey, service: "life-book-ai", models: { User, Payment, PaidExecutionRecord, PointHistory, MonthlyCreditLedger } });
           if (!freshAccess.ok && !settlement) return paymentVerifyFailed();
           const completed = await finishLifeBookDelivery({ request, env, auth, access: freshAccess.ok ? freshAccess : { accessType: delivery.accessType }, pending: delivery, pricing, orderName, settlement });
           logLifeBookAction("wave_complete", {

@@ -1845,7 +1845,7 @@ async function handleStart(request, env, _routeContext = null, recoveryAuth = nu
   if (existing?.status === "generation_failed" && !nativeTossContext(request)) return json({ ok: false, reason: "GENERATION_FAILED", message: LLM_ERROR_MESSAGE }, { status: 409 });
   if (existing?.status === "generating" && !existing.llmMeta?.resumeBody && Date.now() - new Date(existing.updatedAt || existing.createdAt).getTime() < 120000) return json({ ...publicSession(existing), retryable: true }, { status: 202 });
   const pricing = getPricing();
-  const settlementModels = { User, Payment, PaidExecutionRecord, PointHistory };
+  const settlementModels = { User, Payment, PaidExecutionRecord, PointHistory, MonthlyCreditLedger };
   const startAccess = await resolveStartAccess({ request, env, auth, body, normalized, pricing, idempotencyKey });
   // 이용권으로 시작해 본문까지 만든 상담(delivery_pending)은 그 뒤 한도 소진으로 재확인이 거절돼도 전달한다(환불·탈퇴·취소 증빙은 제외, fail-closed).
   const resumeSettlement = !startAccess.ok && !nativeTossContext(request) ? await lateAccessDenialSettlement({ fresh: startAccess, doc: existing, userId: auth.userId, idempotencyKey, service: "astrology-ai", models: settlementModels }) : null;
