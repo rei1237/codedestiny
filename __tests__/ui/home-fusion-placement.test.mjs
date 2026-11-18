@@ -28,3 +28,18 @@ test('fusion lives in both existing consultation section and popup without stand
  assert.equal(d.querySelector('#cdhFusionSignatureSlot').querySelectorAll('a').length,0);
  assert.equal(d.querySelectorAll('.yh-situation').length,3);
 });
+
+test('featured fusion keeps existing lightweight decorative art without changing popup artwork',()=>{
+ const card=d.querySelector('[data-picker-fusion-featured] [data-picker-service-id="fusion-fortune"]');
+ const image=card.querySelector('img');
+ assert.ok(image, 'Fusion illustration must survive the home generator');
+ assert.equal(image.getAttribute('src'),'/images/service-introductions/fusion-fortune-masters-v3-320.webp');
+ assert.equal(image.getAttribute('alt'),'');
+ assert.equal(image.getAttribute('loading'),'lazy');
+ assert.equal(image.getAttribute('decoding'),'async');
+ assert.equal(image.getAttribute('width'),'320');
+ assert.equal(image.getAttribute('height'),'213');
+ const popup=d.querySelector('[data-signature-letter-slide][data-cd-service="fusion-fortune"] img');
+ assert.ok(popup.getAttribute('srcset').includes(image.getAttribute('src')));
+ assert.equal(popup.getAttribute('loading'),'lazy');
+});
