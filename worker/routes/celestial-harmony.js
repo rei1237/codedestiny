@@ -390,6 +390,7 @@ async function handleGenerate(request, env, recoveryAuth = null) {
     legacy: original => readCelestialArchive(env,auth.userId,original),
     buildReading: (original,access) => buildCelestialMelodyReading({cards:original.cards,payment:{...original.payment,...extractPaymentEvidence(original),coinCharged:true,accessType:access.accessType},version:CELESTIAL_RESULT_VERSION}).reading,
     buildPrompt: buildCelestialHarmonyPrompt,
+    cost: CELESTIAL_COST,
   });
 }
 

@@ -20,7 +20,7 @@ import {
 } from "../lib/models.js";
 import { resultStorageUnavailable, resultStorageFailurePayload } from "../lib/result-storage.js";
 import { isStoredPaidResultRevoked } from "../lib/paid-result-revocation.js";
-import { countPaidReportBodyChars, hasRepeatedReportPassage } from "../lib/paid-report-quality.js";
+import { countPaidReportBodyChars, dropRepeatedReportSentences, hasRepeatedReportPassage } from "../lib/paid-report-quality.js";
 import { findMoonstoneSpendEvidence } from "../lib/moonstone-spend-proof.js";
 import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
@@ -1081,7 +1081,9 @@ async function generateNeoSectionOnce(env, section, prompt, cacheConfig, deadlin
         // Workers AI 폴백이 이 챕터 최소 분량의 30% 미만이면 실패로 돌린다.
         // 아래 40자 게이트는 목적이 다르다 — 전 provider 대상 "렌더 가능한 응답" 하한.
         fallbackMinChars: Math.round((section.minChars || 500) * 0.3),
-        ...(singleAttempt ? { fallbackToWorkersAI: false } : {}),
+        // 2026-11-18 S3-H: 체크포인트는 첫 시도만 Gemini 단독이다. 마지막(retry) 시도까지 폴백을 막으면
+        // Gemini 가 두 번 흔들린 챕터 하나 때문에 상담 전체가 환불된다 — 마지막 시도는 위 30% 하한을 건 폴백을 허용한다.
+        ...(singleAttempt && !retry ? { fallbackToWorkersAI: false } : {}),
         ...(useCache ? { cache: cacheConfig } : {}),
       });
       // Gemini 는 truncated(MAX_TOKENS)로, Workers AI 는 finishReason("length")로만 잘림을 알린다.
@@ -1652,6 +1654,24 @@ function neoBody(value, key = "") {
   if (value && typeof value === "object") return Object.entries(value).map(([name, item]) => neoBody(item, name)).filter(Boolean).join("\n");
   return "";
 }
+// 2026-11-18 S3-H: 마지막 시도의 초안이 되풀이 문장 때문에만 반려될 때, 같은 문장의 뒤 사본만 결정적으로 지운다.
+// priorText = 이미 저장된 다른 챕터 본문(챕터 간 되풀이). 제목류 키는 건드리지 않고, 호출부가 분량·되풀이를 다시 검사한다.
+function dedupeNeoSectionRow(row, priorText = "") {
+  if (!row?.ok || !row.parsed) return row;
+  let seen = String(priorText || "");
+  const walk = (value, key = "") => {
+    if (typeof value === "string") {
+      if (!neoBody(value, key)) return value;
+      const next = dropRepeatedReportSentences(value, seen);
+      seen += "\n" + next;
+      return next;
+    }
+    if (Array.isArray(value)) return value.map(item => walk(item));
+    if (value && typeof value === "object") return Object.fromEntries(Object.entries(value).map(([name, item]) => [name, walk(item, name)]));
+    return value;
+  };
+  return { ...row, parsed: walk(row.parsed), deduped: true };
+}
 function neoShape(value, schema) {
   if (Array.isArray(schema)) return Array.isArray(value) && value.length > 0 && value.every(item => neoShape(item, schema[0]));
   if (schema && typeof schema === "object") return value && typeof value === "object" && Object.entries(schema).every(([key, item]) => neoShape(value[key], item));
@@ -1792,7 +1812,9 @@ async function handleStart(request, env, ctx = null, recoveryAuth = null) {
           drifted(previousDraft) ? "\n[어조 보강] 이전 초안이 존댓말(습니다·세요·당신)로 쓰였다. 처음부터 끝까지 해라체 반말로 쓰고, 사용자는 너로 부른다." : "",
         ].join("") : "";
         const prompt = buildNeoInitialSectionPrompt(section, context) + repairNotes + `\n[완료 기준] 제목·목차·공백을 제외한 본문 최소 ${section.minChars}자, 목표 ${Math.ceil(section.minChars / 0.8)}자. 계산값 → 생활 패턴 → 반대 조건 → 행동 조언으로 전개한다. 반복으로 채우지 않는다.`;
-        const row = await runWithAiLocale(locale, () => generateNeoSectionOnce(env, section, prompt, null, Date.now() + 45000, true, attempts[section.id] > 1));
+        let row = await runWithAiLocale(locale, () => generateNeoSectionOnce(env, section, prompt, null, Date.now() + 45000, true, attempts[section.id] > 1));
+        // 마지막 시도(2회 상한)의 초안은 되풀이 문장만 걸러 살린다 — 실패 확정(전액 환불)보다 축소 없는 전달이 낫다.
+        const finalAttempt = Number(attempts[section.id]) >= 2;
         if (row.unbilled) {
           // 생성 전에 거절된 호출은 이 챕터의 예약(과 길이 보강 표시)을 돌려준다. 잠금 소유자만, 챕터당 상한까지.
           // 돌려주기 저장이 실패하면 시도는 쓴 채로 둔다 — 예약보다 많이 부르는 일은 없다.
@@ -1810,15 +1832,24 @@ async function handleStart(request, env, ctx = null, recoveryAuth = null) {
           await write;
           return;
         }
+        if (finalAttempt && row.ok && !usable(section, row)) row = dedupeNeoSectionRow(row);
         if (!usable(section, row)) return;
         const write = queue.catch(() => {}).then(async () => {
+          let picked = row;
+          const mergedBody = rows => neoBody(mergeNeoInitialSections(Object.values(rows), normalized.input, doc.methodSummary));
+          if (finalAttempt && hasRepeatedReportPassage(mergedBody({ ...doc.llmMeta.sections, [section.id]: row }))) {
+            const others = { ...doc.llmMeta.sections };
+            delete others[section.id];
+            const deduped = dedupeNeoSectionRow(row, mergedBody(others));
+            if (usable(section, deduped)) picked = deduped;
+          }
           const previous = doc.llmMeta.sections?.[section.id];
           if (usable(section, previous)) {
-            const rowComplete = complete(section, row), previousComplete = complete(section, previous);
+            const rowComplete = complete(section, picked), previousComplete = complete(section, previous);
             if (previousComplete && !rowComplete) return;
-            if (previousComplete === rowComplete && sectionChars(previous) >= sectionChars(row)) return;
+            if (previousComplete === rowComplete && sectionChars(previous) >= sectionChars(picked)) return;
           }
-          const candidate = { ...doc.llmMeta.sections, [section.id]: row };
+          const candidate = { ...doc.llmMeta.sections, [section.id]: picked };
           const briefing = mergeNeoInitialSections(Object.values(candidate), normalized.input, doc.methodSummary);
           if (hasRepeatedReportPassage(neoBody(briefing))) return;
           doc = await saveNeoDelivery(filter, { status: "partial", initialBriefing: briefing, llmMeta: { ...doc.llmMeta, sections: candidate } }, sessionId);

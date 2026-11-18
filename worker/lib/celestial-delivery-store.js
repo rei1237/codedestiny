@@ -4,7 +4,8 @@ import { connectDb } from "./db.js";
 import { json } from "./http.js";
 import { getAmbientAiLocale } from "./ai-locale-context.js";
 import { isPaidResultRevoked } from "./paid-result-revocation.js";
-import { celestialDeliveryComplete, celestialReadingFromDelivery, generateCelestialWave } from "./celestial-report-delivery.js";
+import { celestialDeliveryComplete, celestialDeliveryExhausted, celestialReadingFromDelivery, generateCelestialWave } from "./celestial-report-delivery.js";
+import { failServiceExecution } from "./service-execution-task.js";
 
 const FEATURE="tarot-celestial-harmony";
 const hash=value=>createHash("sha256").update(JSON.stringify(value)).digest("hex");
@@ -29,14 +30,27 @@ async function save(filter,fields) {
 }
 export function celestialPending(doc) {
   const snapshot=doc.metadata.celestialDelivery;
-  return json({ok:true,retryable:!snapshot.limited,resultId:doc.executionKey,resumeBody:{resumeResultId:doc.executionKey},
+  return json({ok:true,retryable:true,resultId:doc.executionKey,resumeBody:{resumeResultId:doc.executionKey},
     status:snapshot.delivery.parts && Object.keys(snapshot.delivery.parts).length?"partial":"generating",completedParts:Object.keys(snapshot.delivery.parts),totalParts:12,
     result:celestialReadingFromDelivery(snapshot),archiveSaved:false},{status:202});
+}
+// 2026-11-18 S3-K: 저장된 파트가 하나도 없이 시도를 다 쓴 요청의 종결. 같은 결제 실행 문서를 자동 환불로 닫는다.
+// 정산기는 잠금이 풀린 실행만 환불하고, 쿠폰·월정석은 sourceTransactionId, 이용권은 (기능, idempotencyKey) 증빙,
+// 카드는 paymentRef 로 원 결제를 찾는다. 정산이 실패하면 pending 으로 남아 다음 요청·복구 cron 이 다시 닫는다.
+const celestialFailed=(doc,refunded)=>json({ok:false,retryable:false,code:"CELESTIAL_GENERATION_FAILED",resultId:doc.executionKey,refunded,
+  message:"리딩을 완성하지 못했습니다. 결제한 금액·이용권·월정석은 자동으로 환불됩니다."},{status:503});
+const refundedDoc=doc=>doc?.status==="refunded";
+async function closeCelestialFailure(env,userId,doc) {
+  if(doc.status!=="pending")return celestialFailed(doc,refundedDoc(doc));
+  const closed=await failServiceExecution(env,userId,{executionKey:doc.executionKey,reasonCode:"CELESTIAL_GENERATION_FAILED",
+    reasonMessage:"천체의 선율 리딩을 완성하지 못했습니다.",failureStage:"generation",forceRefundOnClose:true}).catch(error=>{
+    console.error("[celestial-harmony] generation failure refund failed",{message:String(error?.message||error).slice(0,300)});return null;});
+  return celestialFailed(doc,closed?.execution?.status==="refunded"||closed?.settlement?.status==="refunded");
 }
 async function revoked(userId,doc,body) {
   return ["refunded","cancelled"].includes(doc?.status) || await isPaidResultRevoked(userId,FEATURE,[doc?.executionKey,body.requestId,body.transactionId,body.paymentId,body.purchaseId,body.payment?.paymentId,body.payment?.requestId]);
 }
-export async function runCelestialDelivery(request,env,auth,supplied,{verify,legacy,buildReading,buildPrompt}) {
+export async function runCelestialDelivery(request,env,auth,supplied,{verify,legacy,buildReading,buildPrompt,cost=0}) {
   const id=supplied.resumeResultId || `celestial-checkpoint:${hash([String(auth.userId),supplied.requestId||supplied.reportId||supplied.transactionId||supplied.sessionId])}`;
   if(typeof id!=="string" || id.length>120)return json({ok:false,code:"INVALID_RESULT_ID"},{status:422});
   let stored=await findCelestialDelivery(env,auth.userId,id);
@@ -44,6 +58,7 @@ export async function runCelestialDelivery(request,env,auth,supplied,{verify,leg
   const body=stored?.metadata?.celestialDelivery?.body || supplied;
   if(![body.requestId,body.reportId,body.transactionId,body.sessionId].some(Boolean))return json({ok:false,code:"REQUEST_ID_REQUIRED"},{status:422});
   if(stored && supplied.cards && hash(supplied.cards)!==hash(body.cards))return json({ok:false,code:"INPUT_HASH_MISMATCH"},{status:409});
+  if(stored?.metadata?.celestialDelivery?.failed)return closeCelestialFailure(env,auth.userId,stored);
   const access=await verify(body);
   if(!access?.ok)return json({ok:false,code:access?.code||"PAYMENT_REQUIRED"},{status:Number(access?.status)||402});
   if(await revoked(auth.userId,stored,body))return json({ok:false,code:"PAYMENT_REVOKED",retryable:false},{status:403});
@@ -81,7 +96,21 @@ export async function runCelestialDelivery(request,env,auth,supplied,{verify,leg
       snapshot={...snapshot,delivery:wave.delivery,limited:wave.limited};
       stored=await save(filter,{metadata:{...stored.metadata,celestialDelivery:snapshot}});
     }
-    if(!celestialDeliveryComplete(snapshot.delivery))return celestialPending(stored);
+    if(!celestialDeliveryComplete(snapshot.delivery)) {
+      if(!celestialDeliveryExhausted(snapshot.delivery))return celestialPending(stored);
+      // 저장된 파트가 있으면 빈 파트를 건너뛰고(meta.skippedParts) 아래에서 전달한다.
+      if(!Object.keys(snapshot.delivery.parts).length) {
+        snapshot={...snapshot,failed:true};
+        stored=await save(filter,{metadata:{...stored.metadata,celestialDelivery:snapshot,
+          billing:{requestId:body.requestId||"",purchaseId:body.purchaseId||"",sessionId:body.sessionId||"",reportId:body.reportId||""}},
+          sourceTransactionId:String(access.matchedTransactionId||"").slice(0,120),cost,
+          paymentRef:{paymentId:String(body.payment?.paymentId||body.paymentId||""),merchantUid:String(body.payment?.merchantUid||body.merchantUid||"")}});
+        // 정산기는 잠긴 실행을 환불하지 않는다(settleExecutionById lockClauses).
+        await ServiceExecutionTransaction.updateOne(filter,{$set:{"lock.token":"","lock.until":null}});
+        stored={...stored,lock:{token:"",until:null}};
+        return await closeCelestialFailure(env,auth.userId,stored);
+      }
+    }
     const result=celestialReadingFromDelivery(snapshot);
     result.meta.deliveryStatus="completed";
     stored=await save(filter,{metadata:{...stored.metadata,result},premiumStatus:"generating"});
@@ -105,6 +134,7 @@ export async function restoreCelestialDelivery(env,auth,bindings,verify) {
     } catch { throw failure(bindings.resumeResultId||bindings.reportId||bindings.requestId||"pending"); }
   }
   if(!doc)return bindings.resumeResultId?json({ok:false,code:"RESULT_NOT_FOUND"},{status:404}):null;
+  if(doc.metadata.celestialDelivery.failed)return closeCelestialFailure(env,auth.userId,doc);
   const body=doc.metadata.celestialDelivery.body;
   const access=await verify(body);
   if(!access?.ok)return json({ok:false,code:access?.code||"PAYMENT_REQUIRED"},{status:Number(access?.status)||402});

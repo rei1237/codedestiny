@@ -246,7 +246,8 @@ async function refundExecution(env, userId, requestId, reportId, reasonMessage) 
     console.error("[human-design-report] execution refund failed", clean(error?.message || error, 200));
     return null;
   });
-  return Boolean(result);
+  // 응답이 왔다는 것만으로 환불이 아니다(404·이미 완료·정산 보류·환불할 것 없음) — 실제 환불만 알린다.
+  return result?.execution?.status === "refunded" || result?.settlement?.status === "refunded";
 }
 
 // ── 생성 ─────────────────────────────────────────────────────────────────────

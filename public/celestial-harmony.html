@@ -1865,6 +1865,14 @@ button,input,select,textarea{font-family:var(--font-body)!important}
       return await continueCelestialDelivery(savedResumeBody || requestPayload);
     }
 
+    // 2026-11-18 S3-K: 서버가 저장된 파트 없이 시도를 다 써 생성 실패로 닫은 요청(503 CELESTIAL_GENERATION_FAILED).
+    // '결제 권한은 유지' 대신 실패·자동 환불을 알리고, 다시 열 수 없는 이어 쓰기 표식을 지운다.
+    function showCelestialGenerationFailed(refunded){
+      savedResumeBody=null;recoverablePaymentSession=false;try{localStorage.removeItem(sessionNamespace()+'resume');}catch(_){}
+      $('resumeStoredReading').hidden=true;setLoading(false,'');
+      updatePremiumStatus('premium issue',refunded?'리딩을 끝내 완성하지 못했습니다. 결제한 금액·이용권·월정석은 자동으로 환불되었습니다.':'리딩을 끝내 완성하지 못했습니다. 결제한 금액·이용권·월정석은 자동으로 환불됩니다. 보관함에서 처리 상태를 확인해 주세요.','payment',['draw']);
+    }
+
     async function continueCelestialDelivery(initial){
       var owner=deliveryAccount,epoch=deliveryEpoch;
       return window.CDCelestialPaidReader.run(initial,{
@@ -2019,6 +2027,10 @@ button,input,select,textarea{font-family:var(--font-body)!important}
           // 사용자가 결제창을 닫은 경우 — 실패가 아니라 취소이므로 중립 안내 후 종료.
           setLoading(false,'');
           updatePremiumStatus('premium ready','결제를 취소했습니다. 준비되면 다시 리딩을 열 수 있습니다.','payment',['draw']);
+          return false;
+        }
+        if(code==='CELESTIAL_GENERATION_FAILED'){
+          showCelestialGenerationFailed(Boolean(err && err.refunded));
           return false;
         }
         if(code==='PAYMENT_GATE_UNAVAILABLE'){
@@ -2258,6 +2270,7 @@ button,input,select,textarea{font-family:var(--font-body)!important}
       if(!deliveryAccount||deliveryRecoveryRunning||paymentInFlight||document.visibilityState==='hidden'||navigator.onLine===false)return false;
       deliveryRecoveryRunning=true;$('resumeStoredReading').hidden=true;var owner=deliveryAccount,epoch=deliveryEpoch;
       try{var lookup=savedResumeBody&&savedResumeBody.resumeResultId?'resumeResultId='+encodeURIComponent(savedResumeBody.resumeResultId):'pending=1';var response=await fetch('/api/celestial-harmony?'+lookup,{credentials:'include',headers:buildAuthHeaders()});var data=await response.json();if(owner!==deliveryAccount||epoch!==deliveryEpoch)return false;
+        if(data.code==='CELESTIAL_GENERATION_FAILED'){showCelestialGenerationFailed(data.refunded===true);return false;}
         if(response.status!==202&&!(response.status===200&&data.ok&&data.result))return false;
         if(response.status===202&&data.result){renderResults(data.result);updatePremiumStatus('premium generating',(data.completedParts||[]).length+'/12 부분 저장 · 이어서 작성 중입니다.','generate',['draw','payment']);}
         var recovered=response.status===200?data.result:await continueCelestialDelivery(data.resumeBody);if(owner!==deliveryAccount||epoch!==deliveryEpoch)return false;
@@ -2265,7 +2278,7 @@ button,input,select,textarea{font-family:var(--font-body)!important}
         currentReportId=clean(recovered.payment&&recovered.payment.reportId);currentRequestId=clean(recovered.payment&&recovered.payment.requestId);currentSessionId=clean(recovered.payment&&recovered.payment.sessionId);
         persistSession({reportId:currentReportId,requestId:currentRequestId,sessionId:currentSessionId,transactionId:clean(recovered.payment&&recovered.payment.transactionId),reading:recovered,paid:true});
         localStorage.removeItem(sessionNamespace()+'resume');updatePremiumStatus('premium complete','저장된 리딩 결과를 복구했습니다.','complete',['draw','payment','generate','complete']);return true;
-      }catch(error){if(owner===deliveryAccount&&epoch===deliveryEpoch){$('resumeStoredReading').hidden=false;updatePremiumStatus('premium recover','저장된 부분을 보존했습니다. 같은 결과를 이어서 열 수 있습니다.','generate',['draw','payment']);}return false;}
+      }catch(error){if(owner===deliveryAccount&&epoch===deliveryEpoch&&error&&error.code==='CELESTIAL_GENERATION_FAILED'){showCelestialGenerationFailed(error.refunded===true);return false;}if(owner===deliveryAccount&&epoch===deliveryEpoch){$('resumeStoredReading').hidden=false;updatePremiumStatus('premium recover','저장된 부분을 보존했습니다. 같은 결과를 이어서 열 수 있습니다.','generate',['draw','payment']);}return false;}
       finally{deliveryRecoveryRunning=false;}
     }
     window.addEventListener('online',function(){void recoverCelestialAfterReturn();});

@@ -169,25 +169,30 @@ test('동시 요청은 같은 문서를 잠그고 한 묶음만 생성한다', a
   assert.equal(f.calls, 1); assert.equal(f.refunds, 0);
 });
 
-function clientFixture({ storageFailure = false, switchAccount = false } = {}) {
+function clientFixture({ storageFailure = false, switchAccount = false, hidden = false, respond = null } = {}) {
   const ast = ts.createSourceFile('client.tsx', fs.readFileSync('app/love-secret-ai/LoveSecretAiClient.tsx', 'utf8'), ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
   let fn;
   function visit(node) { if (ts.isFunctionDeclaration(node) && node.name?.text === 'startConsultation') fn = node; ts.forEachChild(node, visit); }
   visit(ast); assert.ok(fn);
-  const calls = [], groupProgress = []; let completed = 0, current = true;
+  const calls = [], groupProgress = [], resultUrls = [], moved = []; let completed = 0, current = true;
   const pendingGenerationRef = { current: null };
-  const ctx = vm.createContext({ nativeTossContext:()=>null, document: { hidden: false },
+  const listeners = new Set();
+  const document = { hidden,
+    addEventListener(type, listener) { if (type === 'visibilitychange') listeners.add(listener); },
+    removeEventListener(type, listener) { if (type === 'visibilitychange') listeners.delete(listener); } };
+  const ctx = vm.createContext({ nativeTossContext:()=>null, document,
     paymentSurface: 'web', paymentNotice: undefined, permissionFailure: '권한 오류', serverFailure: '서버 오류', generationFailure: '생성 오류',
     captureDeliveryScope: () => () => current, pendingGenerationRef,
     setPhase() {}, releasePaidFeatureGate() {}, setGroupProgress(value) { groupProgress.push(JSON.stringify(value)); }, markPaidAttemptGenerationStarted() {},
     activeAttemptId: () => 'paid-attempt', pollResult: async () => { throw new Error('UNEXPECTED_POLL'); },
-    setResultUrl() {}, setNotice() {}, setError() {}, moveResultWindow() {},
+    setResultUrl(url) { resultUrls.push(url); }, setNotice() {}, setError() {}, moveResultWindow(url) { moved.push(url); },
     buildResultUrl: ({ sessionId }) => `/result/${sessionId}`,
     markPaidAttemptGenerationCompleted: () => { completed++; },
-    copy: { errorMessages: { serverError: '서버 오류', llmError: '생성 오류', paymentVerifyFailed: '증빙 오류' } },
+    copy: { errorMessages: { serverError: '서버 오류', llmError: '생성 오류', paymentVerifyFailed: '증빙 오류', resultTimeout: '지연 안내' } },
     postJson: async (path, body, key) => {
       calls.push({ path, body, key });
       if (switchAccount) current = false;
+      if (respond) return respond(calls.length);
       return { response: { status: 200 }, payload: storageFailure ? { ok: false, reason: 'RESULT_STORAGE_UNAVAILABLE' } : {
         ok: true, sessionId: 'stored-session', status: calls.length === 6 ? 'completed' : 'partial', saved: calls.length === 6,
         messages: [{ role: 'assistant', content: '부분 본문' }], completedGroups: Array(calls.length).fill('group'), totalGroups: 7,
@@ -195,8 +200,36 @@ function clientFixture({ storageFailure = false, switchAccount = false } = {}) {
     },
   });
   vm.runInContext(ts.transpileModule(fn.getText(ast), { compilerOptions: { target: ts.ScriptTarget.ES2022 } }).outputText, ctx);
-  return { ctx, calls, groupProgress, pendingGenerationRef, get completed() { return completed; } };
+  const show = () => { document.hidden = false; [...listeners].forEach((listener) => listener()); };
+  return { ctx, calls, groupProgress, resultUrls, moved, listeners, show, pendingGenerationRef, get completed() { return completed; } };
 }
+const partialReply = (n) => ({ response: { status: 202 }, payload: { ok: true, sessionId: 'stored-session', status: 'partial', saved: false, completedGroups: Array(Math.min(n, 7)).fill('group'), totalGroups: 7 } });
+const completedReply = () => ({ response: { status: 200 }, payload: { ok: true, sessionId: 'stored-session', status: 'completed', saved: true } });
+// 2026-11-18 S3-F: 서버는 요청마다 남은 그룹을 쓰거나 축소 전달·환불로 끝낸다. 화면은 그동안 생성 중을 유지한다.
+test('연애 화면은 이어 쓰기가 8번을 넘어도 서버가 진행하는 동안 생성 중을 유지하고 완료까지 받는다', async () => {
+  const f = clientFixture({ respond: (n) => (n < 15 ? partialReply(n) : completedReply()) });
+  assert.equal(await f.ctx.startConsultation({ question: 'original' }, 'paid-request', {}), true);
+  assert.equal(f.calls.length, 15); assert.equal(f.completed, 1);
+});
+test('연애 화면은 탭이 숨으면 오류로 끊지 않고 돌아올 때까지 기다렸다가 이어 쓴다', async () => {
+  const f = clientFixture({ hidden: true, respond: (n) => (n < 3 ? partialReply(n) : completedReply()) });
+  const run = f.ctx.startConsultation({ question: 'original' }, 'paid-request', {});
+  await new Promise((resolve) => setImmediate(resolve));
+  assert.equal(f.calls.length, 1); assert.equal(f.listeners.size, 1);
+  f.show();
+  assert.equal(await run, true);
+  assert.equal(f.calls.length, 3); assert.equal(f.listeners.size, 0);
+});
+test('연애 화면은 생성 실패 종결(LLM_ERROR)을 자동 복구 안내 문구로 알린다', async () => {
+  const f = clientFixture({ respond: (n) => (n < 2 ? partialReply(n) : { response: { status: 503 }, payload: { ok: false, status: 'generation_failed', reason: 'LLM_ERROR', message: '서버 문구' } }) });
+  await assert.rejects(f.ctx.startConsultation({ question: 'original' }, 'paid-request', {}), /생성 오류/);
+});
+test('연애 화면은 안전 상한까지 부분 상태면 결과 페이지로 넘기고 지연 안내로 끝낸다(일반 서버 오류 아님)', async () => {
+  const f = clientFixture({ respond: (n) => partialReply(n) });
+  await assert.rejects(f.ctx.startConsultation({ question: 'original' }, 'paid-request', {}), /지연 안내/);
+  assert.ok(f.calls.length > 16, `calls ${f.calls.length}`);
+  assert.deepEqual(f.moved, ['/result/stored-session']);
+});
 test('연애 화면은 부분 본문을 완료 처리하지 않고 결제 없이 같은 상담을 이어받는다', async () => {
   const f = clientFixture();
   assert.equal(await f.ctx.startConsultation({ question: 'original' }, 'paid-request', { transactionId: 'receipt' }), true);

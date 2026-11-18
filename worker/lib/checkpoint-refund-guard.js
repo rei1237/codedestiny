@@ -24,7 +24,7 @@ export async function inspectCheckpointBeforeTimeoutRefund(execution, { includeR
   // persisted narrative checkpoints. Never infer a match from reportType alone.
   if ((includeResumable || Object.keys(execution.metadata?.paidNarrative?.parts || {}).length > 0) && execution.metadata?.paidNarrative?.tasks
     && PAID_NARRATIVE_SERVER_RESUME_KEYS.includes(`${execution.featureKey}|${execution.reportType}`)) return "recoverable";
-  if (execution.featureKey === "tarot-celestial-harmony" && execution.metadata?.celestialDelivery?.delivery && (includeResumable || Object.keys(execution.metadata.celestialDelivery.delivery.parts || {}).length > 0)) return "recoverable";
+  if (execution.featureKey === "tarot-celestial-harmony" && execution.metadata?.celestialDelivery?.delivery && !execution.metadata.celestialDelivery.failed && (includeResumable || Object.keys(execution.metadata.celestialDelivery.delivery.parts || {}).length > 0)) return "recoverable";
   if (["pet-saju-ai-consultation", "pet-compatibility-ai", "animal-totem-basic", "animal-totem-deep", "dream-psycho-analysis", "geomancy", "yoga-guru-per-use", "compat-saju-compatibility", "tarot-prompt-maker", "tarot-prompt-maker-standard", "tarot-prompt-maker-deep", "tarot-prompt-maker-master", "tarot-mindscan", "tarot-love-relationship"].includes(execution.featureKey) && execution.metadata?.paidNarrative?.tasks) return "recoverable";
   const modelName = RESULT_MODELS[execution.featureKey];
   if (!modelName) return "unmanaged";

@@ -72,6 +72,8 @@ const LOVE_SECRET_AI_REPAIR_MIN_REMAINING_MS = 22000;
 // handleStart 진입 시각 기준 총예산. 인증·DB 변동분을 LLM 예산이 흡수한다.
 const LOVE_SECRET_AI_LLM_DEADLINE_MS = 86000;
 const LOVE_SECRET_AI_MIN_USABLE_GROUPS = LOVE_SECRET_AI_GROUPS.length;
+// 그룹 시도가 다 끝났을 때 축소 전달할 최소 그룹 수(신년 NEW_YEAR_AI_MIN_USABLE_SECTIONS 와 같은 기준). 아래면 환불로 끝낸다.
+const LOVE_SECRET_AI_MIN_DELIVERABLE_GROUPS = 2;
 // 생성이 요청 안에서 끝나므로 엣지 컷보다 오래된 "generating"은 진행이 아니라 잘린 시체다.
 const LOVE_SECRET_AI_GENERATING_FRESH_MS = EDGE_RESPONSE_DEADLINE_MS + 20000;
 const ACCESS_TOKEN_TYPE = "love-secret-ai-access";
@@ -844,12 +846,13 @@ async function generateLoveSecretGroup(env, {
     const model = clean(ai?.model);
     const isMock = (/mock/i.test(provider) || /mock/i.test(model) || ai?.isMock === true) && !isStagingLlmMockEnabled(env);
     // 끊긴 응답은 문장 중간이라 받지 않는다. 대신 truncated 표시로 다음 시도의 예산을 늘린다.
+    // 단, 마지막 시도(scrubUnsafe)는 다음이 없으므로 끝난 문장까지 살려 받는다(2026-11-18 S3-F).
     const cutOff = Boolean(ai?.ok) && (ai.truncated === true || /^(MAX_TOKENS|length)$/i.test(clean(ai.finishReason)));
-    if (!ai?.ok || cutOff || isMock || !clean(ai.text)) {
+    if (!ai?.ok || (cutOff && !scrubUnsafe) || isMock || !clean(ai.text)) {
       return { ...fail(clean(ai?.error || ai?.message || "LLM_FAILED", 60)), provider, model, ...(cutOff && { truncated: true }) };
     }
 
-    const parsed = parseLoveSecretGroupResponse(ai.text, group, { lengthRepair: true, scrubUnsafe });
+    const parsed = parseLoveSecretGroupResponse(ai.text, group, { lengthRepair: true, scrubUnsafe, salvage: scrubUnsafe });
     if (!parsed.ok) {
       // 🔴 사유를 버리지 않는다 — 섹션은 읽혔지만 이슈로 반려된 경우 parsed.reason 은 빈 문자열이다.
       const reason = clean(parsed.reason || parsed.issues?.[0] || "PARSE_FAILED", 60);
@@ -867,7 +870,7 @@ async function generateLoveSecretGroup(env, {
         ...(parsed.flagged?.length && { flagged: parsed.flagged.slice(0, 4) }),
         provider,
         model,
-        ...(ai.recoveredLocally === true && { truncated: true }),
+        ...((cutOff || ai.recoveredLocally === true) && { truncated: true }),
       };
     }
     // 말투 점검(V2 그룹만). 전달을 막지 않는다 — 로그를 남기고, 이 그룹이 어차피 다시 쓰일 때 수리 지시에 싣는다.
@@ -881,7 +884,10 @@ async function generateLoveSecretGroup(env, {
     if (parsed.scrubbed) {
       logLoveSecretAi("Group Scrubbed", { ...logContext, groupKey: group.key, droppedSentences: parsed.scrubbed, excerpt: clean(parsed.flagged?.[0]?.excerpt, 120) }, "warn");
     }
-    return { ...parsed, key: group.key, provider, model, startedAt, endedAt: Date.now() };
+    if (parsed.salvaged) {
+      logLoveSecretAi("Group Salvaged", { ...logContext, groupKey: group.key, chars: Number(parsed.chars || 0), issues: parsed.salvageIssues || [], truncated: cutOff }, "warn");
+    }
+    return { ...parsed, key: group.key, provider, model, startedAt, endedAt: Date.now(), ...(cutOff && { truncated: true }) };
   } catch (error) {
     logLoveSecretAi("Group Generation Error", {
       ...logContext,
@@ -953,16 +959,19 @@ async function generateFirstConsultation(env, input, sajuResult, logContext = {}
       .filter(row => (attempts[row.key] || 0) < 2 && !attempts[`length:${row.key}`] && row.chars < LOVE_SECRET_AI_GROUP_MIN_CHARS)
       .sort((a, b) => a.chars - b.chars)[0]?.key || "";
   };
+  // 체크포인트 모드에서 다음에 쓸 그룹: 빈 그룹 → 품질 이슈 책임 그룹 → 분량 수리 후보. 그룹당 2회가 한도.
+  // 🔴 빈 문자열이면 더 쓸 그룹이 없다 — 미완료로 두면 세션이 partial 로 영구히 남으므로 종결 판정으로 넘긴다.
+  const nextCheckpointKey = (rows, quality) => {
+    const repairKeys = mapLoveSecretIssuesToGroups({ ...quality, issues: contentIssues(quality) }, rows);
+    const available = key => (attempts[key] || 0) < 2;
+    const key = rows.find(row => !row.ok && available(row.key))?.key || [...repairKeys.keys()].find(available);
+    if (key) return { key, repairKeys, lengthRepairKey: "" };
+    const lengthRepairKey = lengthRepairCandidate(rows, quality) || "";
+    return { key: lengthRepairKey, repairKeys, lengthRepairKey };
+  };
   if (checkpointed) {
     const priorQuality = validateLoveSecretConsultation(assembleLoveSecretConsultation(results, { input, sajuResult }), { sajuResult, groundingTerms: buildLoveSecretGroundingTerms(sajuResult) });
-    const repairKeys = mapLoveSecretIssuesToGroups({ ...priorQuality, issues: contentIssues(priorQuality) }, results);
-    const available = key => (attempts[key] || 0) < 2;
-    let key = results.find(row => !row.ok && available(row.key))?.key || [...repairKeys.keys()].find(available);
-    let lengthRepairKey = "";
-    if (!key && lengthRepairCandidate) {
-      key = lengthRepairCandidate(results, priorQuality);
-      lengthRepairKey = key || "";
-    }
+    const { key, repairKeys, lengthRepairKey } = nextCheckpointKey(results, priorQuality);
     selected = planGroups.filter(group => group.key === key);
     if (selected.length) {
       const key = selected[0].key;
@@ -1095,7 +1104,21 @@ async function generateFirstConsultation(env, input, sajuResult, logContext = {}
   const completionIssues = contentIssues(quality);
   // 분량은 치명적이지 않다: 아직 분량 수리 후보가 남아 있을 때만 다음 요청으로 미룬다.
   const lengthPending = checkpointed && Boolean(lengthRepairCandidate(results, quality));
-  const complete = usableGroups === minUsableGroups && renderable && completionIssues.length === 0 && !lengthPending;
+  let complete = usableGroups === minUsableGroups && renderable && completionIssues.length === 0 && !lengthPending;
+  // 종결 판정(2026-11-18 S3-F): 더 쓸 그룹이 없는데 미완료로 두면 세션이 partial 로 영구히 남는다.
+  // 남은 그룹이 하한(신년 축소 전달과 같은 2개) 이상이고 금지·위험 표현이 없으면 그 그룹을 뺀 채 전달하고,
+  // 아니면 LLM_GENERATION_FAILED 로 던져 handleStart 의 catch 가 generation_failed + 전 결제수단 복구를 하게 한다.
+  if (checkpointed && !complete && !nextCheckpointKey(results, quality).key) {
+    const unsafe = completionIssues.filter(issue => issue === "FORBIDDEN_RESULT_TEXT" || issue === "UNSAFE_RELATIONSHIP_ADVICE");
+    if (usableGroups < LOVE_SECRET_AI_MIN_DELIVERABLE_GROUPS || !renderable || unsafe.length) {
+      logLoveSecretAi("Generation Exhausted", { ...logContext, usableGroups, totalChars, unsafe, missing: results.filter(row => !row.ok).map(row => row.key) }, "warn");
+      const error = new Error(`love secret generation exhausted (groups ${usableGroups}/${results.length}, chars ${totalChars})`);
+      error.code = "LLM_GENERATION_FAILED";
+      throw error;
+    }
+    complete = true;
+    logLoveSecretAi("Delivered Degraded", { ...logContext, usableGroups, totalChars, missing: results.filter(row => !row.ok).map(row => row.key), residualIssues: completionIssues }, "warn");
+  }
   if (!checkpointed && !complete) {
     const error = new Error(`love secret generation incomplete (groups ${usableGroups}/${results.length}, chars ${totalChars})`);
     error.code = "LLM_GENERATION_FAILED";
@@ -1314,7 +1337,6 @@ async function restoreBillingGateAccessOnFailure({ env = {}, userId, access = {}
 function publicSession(doc) {
   const raw = typeof doc?.toObject === "function" ? doc.toObject() : doc;
   const storedMeta = raw?.llmMeta || {};
-  const pendingGroups = mapLoveSecretIssuesToGroups({ issues: storedMeta.residualIssues || [] }, storedMeta.delivery?.groups || []);
   // groupPlanVersion 이 없는 예전 세션은 V1(6개 그룹) 계획이다.
   const planGroups = loveSecretGroupsForPlan(storedMeta.delivery?.groupPlanVersion);
   const meta = !["generating", "partial", "delivery_pending"].includes(raw?.status) ? storedMeta : {
@@ -1330,9 +1352,8 @@ function publicSession(doc) {
     accessType: clean(raw?.accessType),
     status: clean(raw?.status),
     saved: clean(raw?.status) === "completed",
-    retryable: ["partial", "delivery_pending", "generating"].includes(raw?.status)
-      && (raw?.status !== "partial" || planGroups.some(group => (!(storedMeta.delivery?.groups || []).some(row => row.key === group.key && row.ok) || pendingGroups.has(group.key))
-        && (storedMeta.delivery?.attempts?.[group.key] || 0) < 2)),
+    // partial 은 늘 이어 쓸 수 있다: 다음 요청이 남은 그룹을 쓰거나, 더 쓸 그룹이 없으면 축소 전달·환불로 종결한다(2026-11-18 S3-F).
+    retryable: ["partial", "delivery_pending", "generating"].includes(raw?.status),
     resumeSessionId: clean(raw?.id),
     completedGroups: (meta.delivery?.groups || []).filter(row => row.ok).map(row => row.key),
     totalGroups: planGroups.length,

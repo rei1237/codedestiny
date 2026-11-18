@@ -4887,7 +4887,7 @@ async function beginFortuneTeaHouseGeneration({ auth, resultId, consultRequest, 
   }
   // 복구가 끝난 요청은 다시 claim하지 않는다. 오류 원인과 실패 상태도 보존한다.
   if (existing?.passRefund?.refundedAt) {
-    return { ok: false, passRefundedAt: existing.passRefund.refundedAt };
+    return { ok: false, passRefundedAt: existing.passRefund.refundedAt, passRefunded: existing.passRefund.refunded === true };
   }
   if (isFreshFortuneTeaGeneration(existing)) {
     return { ok: false, inProgress: true, doc: existing };
@@ -5004,7 +5004,9 @@ async function refundFortuneTeaHousePassSettlement({ auth, resultId }) {
   const refunded = await refundPassCoverage({ userId, cycleKey: settlement.cycleKey, cost: settlement.cost, refundId: resultId,
     ...(settlement.featureKey ? { sourceFeatureKey: settlement.featureKey, sourceRequestId: resultId } : {}) });
   // 차감 마커는 환불 뒤에도 남는다. refundedAt 이 없으면 같은 결과의 재시도가 무료로 다시 생성된다.
-  await results.updateOne({ userId, resultId }, { $set: { passRefund: { refundedAt: new Date(), refunded: Boolean(refunded?.refunded), reason: refunded?.reason || "" } } });
+  // refundedAt 은 종결 표식이라 돌려줄 것이 없어도 남긴다. 환불 여부(refunded)는 실제로 돌려줬거나 다른 복구 경로가 같은 증빙을 이미 돌려준 때만 참이다.
+  const restored = refunded?.refunded === true || refunded?.reason === "PASS_EVIDENCE_ALREADY_REFUNDED";
+  await results.updateOne({ userId, resultId }, { $set: { passRefund: { refundedAt: new Date(), refunded: restored, reason: refunded?.reason || "" } } });
 }
 
 async function markFortuneTeaHouseGenerationFailed({ env, auth, resultId, code, message, lockToken }) {
@@ -6355,8 +6357,11 @@ async function handleConsult(request, env, ctx = null, recoveryAuth = null) {
       }, { status: 202 });
     }
     if (generation.passRefundedAt) {
-      return json({ ok: false, reason: "PASS_ALREADY_REFUNDED", resultId,
-        message: "이 상담은 생성에 실패해 이용권 한도를 돌려드렸어요. 새 상담으로 다시 신청해 주세요." }, { status: 409 });
+      // reason 은 클라이언트가 이 시도를 끝내는 신호라 유지하고, 환불 안내는 실제 환불이 기록된 때만 싣는다.
+      return json({ ok: false, reason: "PASS_ALREADY_REFUNDED", resultId, refunded: generation.passRefunded === true,
+        message: generation.passRefunded === true
+          ? "이 상담은 생성에 실패해 이용권 한도를 돌려드렸어요. 새 상담으로 다시 신청해 주세요."
+          : "이 상담은 생성에 실패해 종료됐어요. 새 상담으로 다시 신청해 주세요." }, { status: 409 });
     }
     if (access.requiresPerUseSettlement) {
       let settlement;

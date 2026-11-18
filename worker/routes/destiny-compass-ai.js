@@ -295,7 +295,8 @@ async function refundExecution(env, auth, input, reportId, reasonMessage) {
     .then(({ refundPassUseEvidence }) => refundPassUseEvidence({ userId: auth.userId, featureKey: FEATURE_KEY,
       requestId: input.idempotencyKey, refundId: `destiny-compass-ai:${input.idempotencyKey}` }))
     .catch((error) => { console.error("[destiny-compass-ai] pass restore failed", { message: clean(error?.message || error, 300) }); return null; });
-  return Boolean(result?.ok) || pass?.refunded === true;
+  // ok:true 는 처리됐다는 뜻일 뿐이다(이미 완료·정산 보류·환불할 것 없음도 ok) — 실행 건이 실제로 환불됐을 때만 알린다.
+  return result?.execution?.status === "refunded" || result?.settlement?.status === "refunded" || pass?.refunded === true;
 }
 
 // ── 영속화 ─────────────────────────────────────────────────────

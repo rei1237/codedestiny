@@ -19,3 +19,15 @@ test('failed save, revoked payment and exhausted provider attempts never return 
  }
  const lost=harness(Array.from({length:4},()=>new Error('offline')));await assert.rejects(run({},lost.options),/offline/);assert.equal(lost.calls.length,4);
 });
+// 2026-11-18 S3-K: 한 요청에 한 파트씩 쓰므로 파트 12개에 재시도가 끼면 12번을 넘는다. 서버가 진행하는 동안 계속 받는다.
+test('keeps following the server past twelve waves while it still reports progress',async()=>{
+ const replies=Array.from({length:20},()=>({status:202,data:{retryable:true,resumeBody:{resumeResultId:'stored'},result:{}}}));
+ const h=harness([...replies,{status:200,data:{ok:true,archiveSaved:true,result:{meta:{deliveryStatus:'completed'}}}}]);
+ assert.equal((await run({},h.options)).meta.deliveryStatus,'completed');assert.equal(h.calls.length,21);
+});
+// 생성 실패 종결은 화면이 실패·자동 환불 안내를 고를 수 있게 서버 코드를 그대로 싣는다.
+test('a generation failure close carries the server code and is not retried',async()=>{
+ const h=harness([{status:503,data:{ok:false,retryable:false,code:'CELESTIAL_GENERATION_FAILED',refunded:true}}]);
+ await assert.rejects(run({},h.options),error=>error.code==='CELESTIAL_GENERATION_FAILED'&&error.refunded===true&&error.status===503);
+ assert.equal(h.calls.length,1);
+});

@@ -38,3 +38,13 @@ for(const phase of ['briefing','refinement'])for(const boundary of ['read','resu
  assert.equal(calls.length,boundary==='read'?1:2);
  assert.equal(f.progress.length,boundary==='read'?0:1);
 });
+
+// 2026-11-18 S3-H: 서버가 생성 실패를 종결(generation_failed, 결제 자동 환불)하면 읽기는 409 로 원인을 알린다.
+// 계산 오류도 일시 장애가 아니므로 재시도 6회 뒤 '오래 걸린다' 안내로 바꾸지 않고 바로 멈춘다.
+for (const code of ['LLM_ERROR', 'CALCULATION_ERROR']) test(`terminal generation_failed read (${code}) stops at once without retries or a new request`, async () => {
+  const f = fixture(), calls = [];
+  f.ctx.require = () => ({ authFetch: async (url, init) => { calls.push({ url, init }); return { ok: false, status: 409, json: async () => ({ ok: false, reason: code }) }; } });
+  vm.runInNewContext(ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText, { ...f.ctx });
+  await assert.rejects(f.run, new RegExp(code));
+  assert.equal(calls.length, 1);
+});

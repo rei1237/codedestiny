@@ -1340,13 +1340,14 @@ function dropPriorHalfRepeats(plan, sections, section, result) {
   }
 }
 
-// V3 배달 판단: 장 본문이 한 글자라도 있으면 배달, 완전히 비었을 때만 실패(환불). V1/V2 는 항상 false.
+// 판 2(인생의 책)·판 3(인생 총운) 배달 판단: 장 본문이 한 글자라도 있으면 배달, 완전히 비었을 때만 실패(환불).
+// 2026-11-18 S3-G: 판 2 도 포함한다(장 하나의 실패가 책 전체 환불로 번지던 결함). V1(구판)은 항상 false.
 function lifeBookV3HasChapterBody(plan = [], sections = {}) {
-  if (!plan.some(section => section.planVersion >= 3)) return false;
+  if (!plan.some(section => Number(section.planVersion) >= 2)) return false;
   return plan.some(section => section.kind === "chapter" && countPaidReportBodyChars(clean(sections[section.id]?.body?.content, 20000)) > 0);
 }
 
-// V3 저하 배달용 섹션: 통과 못 한 본문 중 금지어·반복 구절이 든 것은 뺀다.
+// V2·V3 저하 배달용 섹션: 통과 못 한 본문 중 금지어·반복 구절이 든 것은 뺀다.
 function lifeBookV3DeliverableSections(plan = [], sections = {}) {
   const out = {};
   for (const [id, row] of Object.entries(sections)) {
@@ -3104,7 +3105,7 @@ async function handleStart(request, env, route = "/api/life-book-ai/generate", r
         const blockedRows = plan.filter(section => !preserved.has(section.id) && sections[section.id]?.failure && !sections[section.id]?.ok
           && (sections[section.id].failure.retryable === false || Number(sections[section.id].attempts || 0) >= LIFE_BOOK_MAX_SECTION_ATTEMPTS));
         if (blockedRows.length) {
-          // V3 는 장 본문이 하나라도 있으면 그 섹션만 포기하고 나머지를 이어 쓴다. 본문이 없으면 예전처럼 실패(환불).
+          // V2·V3 는 장 본문이 하나라도 있으면 그 섹션만 포기하고 나머지를 이어 쓴다. 본문이 없으면 예전처럼 실패(환불).
           if (!lifeBookV3HasChapterBody(plan, sections)) {
             const blocked = blockedRows[0];
             throw Object.assign(new Error(sections[blocked.id].failure.message), sections[blocked.id].failure, { code: "LLM_PROVIDER_UNAVAILABLE", retryable: false });
@@ -3183,7 +3184,7 @@ async function handleStart(request, env, route = "/api/life-book-ai/generate", r
             if (result.failure && !keepPrior) {
               const terminal = !result.failure.retryable || attempt >= LIFE_BOOK_MAX_SECTION_ATTEMPTS;
               if (terminal && lifeBookV3HasChapterBody(plan, sections)) {
-                // V3: 이 섹션만 포기하고(시도 소진) 나머지 섹션과 배달을 이어 간다.
+                // V2·V3: 이 섹션만 포기하고(시도 소진) 나머지 섹션과 배달을 이어 간다.
                 const given = { ...checkpoint, attempts: LIFE_BOOK_MAX_SECTION_ATTEMPTS };
                 await saveLifeBookState({ userId: auth.userId, id: sessionId, lockToken: lock.lockToken, values: { [`llmMeta.sections.${section.id}`]: given } });
                 sections[section.id] = given;
@@ -3305,7 +3306,7 @@ async function handleStart(request, env, route = "/api/life-book-ai/generate", r
           let finalIssues = issues.length ? issues : getLifeBookReportQualityIssues(finalText, normalized.input, lifeBookLengthOptions(plan, sections));
           let degraded = false;
 
-          // V3: 분량 밖의 결손이 남아도 장 본문이 있으면 배달한다. 금지어가 든 미통과 본문만 빼고 다시 조립한다.
+          // V2·V3: 분량 밖의 결손이 남아도 장 본문이 있으면 배달한다. 금지어가 든 미통과 본문만 빼고 다시 조립한다.
           if (finalIssues.some(issue => !isLifeBookLengthOnlyIssue(issue)) && lifeBookV3HasChapterBody(plan, sections)) {
             const deliverable = lifeBookV3DeliverableSections(plan, sections);
             if (lifeBookV3HasChapterBody(plan, deliverable)) {

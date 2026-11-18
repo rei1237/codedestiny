@@ -89,6 +89,30 @@ describe("반려 사유와 걸린 문맥을 남기고 표적 수리 지시로 �
     expect(parsed.scrubbed).toBe(1);
     expect(parsed.sections.map((section) => section.body).join("\n")).not.toContain("감시하면서");
   });
+
+  // 2026-11-18 S3-F: 마지막 시도가 되풀이 문장·빈 섹션으로 또 반려되면 그룹이 통째로 비어 세션이 멈췄다.
+  test("마지막 시도(salvage)는 되풀이 문장을 덜어 내고 빈 섹션을 빼고 남은 본문으로 그룹을 살린다", () => {
+    const repeated = "같은 위로 문장이 두 번 나오면 반복 문장으로 걸리는 긴 문장이에요.";
+    const text = groupJson(risk, (index) => (index === 1 ? "" : `${prose(index === 0 ? 2400 : 500)}${repeated} ${prose(100)}${repeated} `));
+    const strict = parseLoveSecretGroupResponse(text, risk, { lengthRepair: true, scrubUnsafe: true });
+    expect(strict.ok).toBe(false);
+    expect(strict.issues).toEqual(expect.arrayContaining(["REPEATED_PASSAGE", "REQUIRED_SECTIONS_INCOMPLETE"]));
+    const parsed = parseLoveSecretGroupResponse(text, risk, { lengthRepair: true, scrubUnsafe: true, salvage: true });
+    expect(parsed.ok).toBe(true);
+    expect(parsed.salvaged).toBe(true);
+    expect(parsed.salvageIssues).toEqual(expect.arrayContaining(["REPEATED_PASSAGE", "REQUIRED_SECTIONS_INCOMPLETE"]));
+    const body = parsed.sections.map((section) => section.body).join("\n");
+    expect(body.split(repeated).length - 1).toBe(1);
+    expect(parsed.sections.every((section) => section.body.trim())).toBe(true);
+    expect(parsed.chars).toBeGreaterThanOrEqual(1500);
+  });
+
+  test("salvage 여도 금지·위험 표현이 남거나 본문이 너무 적으면 살리지 않는다", () => {
+    const unsafe = groupJson(risk, () => `${prose(900)}그 사람을 감시하면서 기다리세요. `);
+    expect(parseLoveSecretGroupResponse(unsafe, risk, { lengthRepair: true, salvage: true }).ok).toBe(false);
+    const thin = groupJson(risk, (index) => (index === 0 ? prose(300) : ""));
+    expect(parseLoveSecretGroupResponse(thin, risk, { lengthRepair: true, scrubUnsafe: true, salvage: true }).ok).toBe(false);
+  });
 });
 
 describe("V2 프롬프트 보정과 V1 보존", () => {

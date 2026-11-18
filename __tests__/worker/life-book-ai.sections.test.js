@@ -476,13 +476,16 @@ ${sections["chapter-2-b"].body.content}`);
     expect(untouched.body.content).toBe(first);
   });
 
-  test("본문이 하나라도 있으면 V3는 배달 가능, 비었거나 V2면 아니다", () => {
+  test("본문이 하나라도 있으면 V2·V3는 배달 가능, 비었거나 V1이면 아니다", () => {
     const plan = planV3();
     const sections = buildSectionsAtTarget(plan);
     expect(lifeBookV3HasChapterBody(plan, { "chapter-5-b": sections["chapter-5-b"] })).toBe(true);
     expect(lifeBookV3HasChapterBody(plan, { frame: sections.frame })).toBe(false);
     const v2 = buildSectionPlan(lifeFortuneInput);
-    expect(lifeBookV3HasChapterBody(v2, buildSectionsAtTarget(v2))).toBe(false);
+    expect(lifeBookV3HasChapterBody(v2, buildSectionsAtTarget(v2))).toBe(true);
+    expect(lifeBookV3HasChapterBody(v2, {})).toBe(false);
+    const v1 = v2.map(({ planVersion, ...section }) => section);
+    expect(lifeBookV3HasChapterBody(v1, buildSectionsAtTarget(v2))).toBe(false);
   });
 });
 
