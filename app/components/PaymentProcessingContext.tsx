@@ -19,6 +19,7 @@ import LoadingProgressMotion, {
   type LoadingMotionTone,
 } from "./common/LoadingProgressMotion";
 import { PaymentPigVisual } from "./common/PaymentPigVisual";
+import { isPaymentReturnDocument } from "../_lib/payment-return-document";
 
 type PaymentLoadingVariant = NonNullable<PaymentLoadingProps["variant"]>;
 type LoadingStage = "pg_processing" | "result_loading" | "access_check";
@@ -1149,26 +1150,6 @@ function PaidFeatureGateProvider({ children }: PaymentProcessingProviderProps) {
       ) : null}
     </PaidFeatureGateContext.Provider>
   );
-}
-
-const PAYMENT_RETURN_QUERY_RE = /[?&](?:portone_redirect|paid_pass_resume|paymentId|payment_id|imp_uid)=/;
-const DIRECT_PAYMENT_RESUME_KEY = "cd_direct_payment_resume";
-const DIRECT_PAYMENT_RESUME_TTL_MS = 30 * 60 * 1000;
-
-// js/destiny-profile.js 의 복귀 판정(쿼리 신호 또는 TTL 안의 단건 티켓)과 같은 조건이다.
-function isPaymentReturnDocument(): boolean {
-  if (/^\/points(?:\/|$)/.test(window.location.pathname)) return false;
-  if (PAYMENT_RETURN_QUERY_RE.test(window.location.search)) return true;
-  const stores: Storage[] = [];
-  try { stores.push(window.sessionStorage); } catch { /* storage blocked */ }
-  try { stores.push(window.localStorage); } catch { /* storage blocked */ }
-  return stores.some(store => {
-    try {
-      const ticket = JSON.parse(store.getItem(DIRECT_PAYMENT_RESUME_KEY) || "null");
-      const age = Date.now() - (Number(ticket?.at) || 0);
-      return Boolean(ticket?.merchantUid && ticket?.confirmBody) && age >= 0 && age <= DIRECT_PAYMENT_RESUME_TTL_MS;
-    } catch { return false; }
-  });
 }
 
 export function PaymentProcessingProvider({

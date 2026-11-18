@@ -12,6 +12,7 @@ import {passUpgradeNameForAmount} from '@/lib/payment/pass-fish-coverage.js';
 import {defaultCheckoutMethod,passMethodNote,passRemainingCoin,readSavedCheckoutMethod,type CheckoutMethod} from './checkout-method-order';
 import {consumeServicePack,quoteServicePack,readPackWallet,ServicePackError,type OwnedServicePack} from '@/app/components/service-packs/service-pack-client';
 import {loginForCurrentPage,resultPath,checkoutPath,type FortuneRecord} from '../yeongnyangi/_lib/api';
+import {openYeongnyangiResultFromResume,YEONGNYANGI_RESULT_RESUME_KIND} from '../yeongnyangi/_lib/result-resume';
 import MoonstoneDiscountBalance from './MoonstoneDiscountBalance';
 import {resolveCheckoutPolicyHrefs} from './checkout-copy';
 import type {Product} from '@/worker/yeongnyangi/payments/catalog';
@@ -45,11 +46,7 @@ export default function YeongnyangiCheckout({draft}:{draft:ConsultationCheckoutD
  const native=isMobileAppRuntime(),quantity=Number(discount);
  const amount=pricing?pricing.amountKRW-quantity*(pricing.amountKRW/pricing.membershipCreditCost):0;
  const validDiscount=Number.isSafeInteger(quantity)&&quantity>=0&&Number.isSafeInteger(amount)&&amount>=1000;
- const buildResume=usePaidResume('yeongnyangi-checkout',args=>{
-  const target=typeof args.returnTo==='string'?args.returnTo:'';
-  if(!/^\/yeongnyangi\/result\/\?id=[a-f0-9]{64}(?:&lang=[a-z-]+)?$/.test(target))return false;
-  window.location.replace(target);return true;
- });
+ const buildResume=usePaidResume(YEONGNYANGI_RESULT_RESUME_KIND,args=>openYeongnyangiResultFromResume(args));
  useEffect(()=>{
   let active=true;setMethod('direct');setDiscount('0');setMessage('');
   setBenefits({owner,key:draft.product.cdFeatureKey,loading:signedIn,eligibility:null,packs:[],error:false});
