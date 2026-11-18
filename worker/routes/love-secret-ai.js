@@ -10,6 +10,7 @@ import { signJwt, verifyJwt } from "../lib/jwt.js";
 import { EDGE_RESPONSE_DEADLINE_MS, clampSyncLlmTimeoutMs } from "../lib/sync-llm-timeout.js";
 import { connectDb, isTransientMongoError, mongoose, withMongoRetry } from "../lib/db.js";
 import { LoveSecretAiConsultation, MonthlyCreditLedger, PaidExecutionRecord, Payment, PointHistory, User } from "../lib/models.js";
+import { autoRefundSinglePaymentDeliveryFailure } from "../lib/payment-refund.js";
 import { findMoonstoneSpendEvidence } from "../lib/moonstone-spend-proof.js";
 import { restoreMonthlyCreditLot } from "../lib/monthly-credit-store.js";
 import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
@@ -1257,6 +1258,27 @@ async function refundBillingGateMonthlyCredit({ userId, evidence = {}, reason = 
   return { refunded: true };
 }
 
+// S5: 카드 단건(Payment)으로 연 상담이 본문 없이 최종 실패하면 공용 단건 자동 환불(멱등 키 PG 취소·접근 회수)로 돌려준다.
+// 카드 결제를 못 찾으면 null — 코인 경로가 이어서 판단한다. PG 미확인은 결제가 refund_failed 로 남아 지원 검토.
+async function refundBillingGateCardPayment({ env = {}, userId, evidence = {}, error = null }) {
+  const keys = [evidence.paymentId, evidence.merchantUid, evidence.impUid].map((value) => clean(value, 160)).filter(Boolean);
+  const or = keys.flatMap((key) => [...(mongoose.Types.ObjectId.isValid(key) ? [{ _id: key }] : []), { merchantUid: key }, { impUid: key }]);
+  if (!or.length) return null;
+  const payment = await Payment.findOne({
+    userId,
+    paymentType: "digital_content",
+    status: { $in: ["paid", "success", "fulfilled"] },
+    $and: [
+      { $or: or },
+      { $or: [{ featureKey: FEATURE_KEY }, { "pricingSnapshot.featureKey": FEATURE_KEY }, { "metadata.featureKey": FEATURE_KEY }] },
+    ],
+  }).lean();
+  if (!payment) return null;
+  const result = await autoRefundSinglePaymentDeliveryFailure(env, payment, clean(error?.code || "love_secret_ai_generation_failed", 80),
+    "연애 비책 결과를 전달하지 못해 자동 환불했습니다.", "love_secret_ai_generation");
+  return { restored: result?.refunded === true, refunded: result?.refunded === true, refundFailed: result?.refundFailed === true };
+}
+
 async function restoreBillingGateAccessOnFailure({ env = {}, userId, access = {}, idempotencyKey = "", pricing = getPricing(), error = null }) {
   if (access.accessSource === 'toss') return { restored: false };
   // 본문을 못 받은 최종 실패다 — 증빙 claim 을 풀어 결제한 사용자가 새 시도로 다시 받게 한다.
@@ -1274,6 +1296,10 @@ async function restoreBillingGateAccessOnFailure({ env = {}, userId, access = {}
     return refundBillingGateMonthlyCredit({ userId, evidence, reason: LLM_ERROR_MESSAGE });
   }
 
+  if (access.accessSource === "billing_gate_paid" && !clean(evidence.pointHistoryId, 160)) {
+    const card = await refundBillingGateCardPayment({ env, userId, evidence, error });
+    if (card) return card;
+  }
   const pointHistoryId = clean(evidence.pointHistoryId || access.paymentId, 160);
   if (access.accessSource !== "billing_gate_paid" || !mongoose.Types.ObjectId.isValid(pointHistoryId)) {
     return { restored: false };
