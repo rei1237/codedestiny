@@ -403,7 +403,7 @@
     var description = accountSheet.querySelector('[data-my-profile-description]');
     var growth = accountSheet.querySelector('[data-my-growth]');
     if (name) name.textContent = profile && profile.name ? profile.name : gardenText('garden', '나의 달빛 정원');
-    if (description) description.textContent = profile ? gardenText('profileDescription', '내 프로필과 함께, 오늘의 좋은 흐름을 가꿔요.') : gardenText('emptyDescription', '프로필을 만들고 나를 알아가는 여정을 시작해요.');
+    if (description) description.textContent = profile ? gardenText('profileDescription', '내 프로필과 함께, 오늘의 좋은 흐름을 가꿔요.') : gardenText('emptyDescription', '프로필을 만들면 내 사주 풀이가 여기에 모여요.');
     if (!growth) return;
     var snap = window.CDLevel && window.CDLevel.snapshot();
     growth.hidden = !snap;

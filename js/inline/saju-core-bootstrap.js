@@ -471,7 +471,7 @@ var FAMOUS_DATA=[
    fallbackPillars:{y:{g:'庚',j:'戌',gE:'metal',jE:'earth'},m:{g:'壬',j:'亥',gE:'water',jE:'water'},d:{g:'甲',j:'午',gE:'wood',jE:'fire'}},
    mainStar:'편관',dominantEl:'water',
    fiveAnalysis:'수(Water) 기운이 풍부한 가운데 갑(甲)목 일간이 힘차게 뻗어나가 창조적 성장을 상징합니다. 화(火)와 토(土)의 균형이 감성적 균형을 만들어냅니다.',
-   tenStarAnalysis:'편관(偏官)이 주성으로 체제와 인간 폭력성에 대한 날카로운 통찰이 특징입니다.',
+   tenStarAnalysis:'편관(偏官)이 주성으로 체제와 인간의 폭력성을 날카롭게 꿰뚫어 봅니다.',
    personality:'탐구·치유형: 인간의 폭력과 슬픔을 섬세한 언어로 치유하는 아시아 첫 여성 노벨문학상 수상자.',
    careerFit:'문학·예술·철학 분야 최적 적성.',
    careerTags:['노벨문학상 수상','채식주의자·소년이 온다','아시아 첫 여성 수상','인간 폭력성 탐구'],

@@ -118,7 +118,7 @@ const LOCAL_SAJU_CALCULATOR_TEXT_TRANSLATIONS = {
     "lsc_4958_prop_label": "합화로 바뀌는 지점",
     "lsc_4959_prop_label": "도충 가능성",
     "lsc_4960_prop_label": "지금 가장 중요한 선택",
-    "lsc_4961_prop_label": "놓치면 안 되는 기회",
+    "lsc_4961_prop_label": "눈여겨볼 기회",
     "lsc_4962_prop_label": "피해야 할 위험",
     "lsc_4963_prop_label": "실제 행동 처방",
     "lsc_4966_prop_label": "직업",

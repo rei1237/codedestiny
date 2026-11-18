@@ -1095,7 +1095,7 @@ function renderSajuFourCutContent() {
     + '    <div class="s4c-variant-row" aria-label=_reportDashboardText("rd.aria-label.001")>' + _s4cRenderVariantButtons(activeId) + '</div>'
     + '    <div class="s4c-capture' + (data.rare ? ' s4c-capture--rare' : '') + '" data-s4c-capture="1" data-s4c-variant="' + _s4cEscapeHtml(activeId) + '">'
     + '      <div class="s4c-capture-head"><div class="s4c-brand">CODE DESTINY · SAJU 4CUT</div><div class="s4c-live-badge">' + _s4cEscapeHtml(variant.label) + '</div></div>'
-    + (data.rare ? '<div class="s4c-rare-card">✨ 대운 프리패스 카드 등장! 오늘 폼 미쳤다 ✨</div>' : '')
+    + (data.rare ? '<div class="s4c-rare-card">대운 프리패스 카드가 나왔어요!</div>' : '')
     + '      <div class="s4c-stage">'
     + '        <aside class="s4c-photo-strip" aria-hidden="true"><div class="s4c-photo-cell">' + _s4cEscapeHtml(variant.icons[0]) + '</div><div class="s4c-photo-cell">' + _s4cEscapeHtml(variant.icons[1]) + '</div><div class="s4c-photo-cell">' + _s4cEscapeHtml(variant.icons[2]) + '</div><div class="s4c-photo-cell">' + _s4cEscapeHtml(variant.icons[3]) + '</div><span class="s4c-photo-ticket">' + _s4cEscapeHtml(data.theme.name) + ' FILTER</span></aside>'
     + '        <div class="s4c-grid">' + _s4cRenderFourPanels(panels, data) + '</div>'
@@ -1526,7 +1526,7 @@ function renderReportDashboard() {
     if (b.tags && b.tags.length) {
       gridHtml += '<p style="margin:2px 0 0;color:#f8d67f;font-size:.73rem;line-height:1.45;">' + b.tags.map(function(tag) { return '#' + tag; }).join(' · ') + '</p>';
     }
-    gridHtml += '<p class="rpt-v2-note">' + (b.note || '지금 내 흐름과 맞는 인사이트를 펼쳐 확인해보세요.') + '</p>';
+    gridHtml += '<p class="rpt-v2-note">' + (b.note || '지금 내 운에 맞는 풀이를 펼쳐 보세요.') + '</p>';
     var lockKey = b.lockKey || ('rpt_' + b.target);
     // selfGated 기능은 라우트 안의 실행 CTA가 직접 공용 게이트를 연다. 진입점에도 게이트를 걸면
     // 사용자가 아무것도 실행하기 전에 결제가 돌거나(회당) 라우트 게이트와 이중으로 걸린다.
