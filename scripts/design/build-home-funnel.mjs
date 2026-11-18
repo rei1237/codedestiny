@@ -241,10 +241,10 @@ const signatureProducts = [
   },
   {
     id: 'fusion-fortune', href: '/fusion-fortune/?from=home_signature', title: '초융합 운세',
-    question: '운세마다 말이 다를 때, 여섯 체계의 흐름을 함께 살펴봐요.',
+    question: '다섯 마스터가 여섯 체계로 교차해 읽는 한 권. 타고난 성향부터 시기·연애·결혼·재물까지 영역별로 짚어 드려요.',
     popupCopy: '다섯 마스터가 사주·자미두수·숙요·베다·점성술·타로를 교차해 읽어요.',
-    featureKey: 'fusion-fortune-consultation', cta: '초융합 운세 살펴보기',
-    resultFormat: '타고난 성향과 시기 · 연애·결혼·재물·직업·건강·인간관계의 영역별 풀이'
+    featureKey: 'fusion-fortune-consultation', cta: '상담 살펴보기',
+    resultFormat: '여섯 체계의 개별 해석 · 겹치는 흐름과 다른 관점 · 생활 영역별 실천 방향'
   },
 ];
 for (const product of signatureProducts) {
