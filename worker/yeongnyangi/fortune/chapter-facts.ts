@@ -7,6 +7,7 @@ import {preventionFacts,hasPrevention} from './prevention';
 import type {ChapterSpecV7} from './reading-v7';
 import {enrichZiweiContext,ziweiPalaceRelationTable} from './ziwei/reading-facts';
 import {buildLuckOverlap} from './saju/luck-overlap';
+import {sajuLuckJudgementFact} from './saju/luck-judgement';
 import {enrichTarotTimeFrames} from './tarot/time-frame';
 
 export function relationshipSignals(value:unknown) {
@@ -183,7 +184,11 @@ function selectBaseChapterFacts(context:DomainContext,chapter:ChapterSpec,topic=
 }
 
 export function selectChapterFacts(context:DomainContext,chapter:ChapterSpec,topic='general'){
- const selected=selectBaseChapterFacts(context,chapter,topic);
+ const base=selectBaseChapterFacts(context,chapter,topic);
+ // S15-6: the shared saju judgement for exactly the periods this chapter selected (saju/luck-judgement.ts).
+ const premium=chapter.version===READING_V7_VERSION?chapter.tier==='tuna':Boolean(chapter.questionPolicy)||['tuna','assorted','omakase'].includes(chapter.tier||'');
+ const judgement=sajuLuckJudgementFact(context,base,premium);
+ const selected=judgement?[...base,judgement]:base;
  const natal=context.facts.find(f=>f.label==='natalProfile');
  return natal&&!selected.some(f=>f.id===natal.id)?[...selected,natal]:selected;
 }

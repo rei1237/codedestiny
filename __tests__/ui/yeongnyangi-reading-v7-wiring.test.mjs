@@ -49,7 +49,8 @@ test('selectChapterFacts routes a v7 chapter to the ledger instead of the v6 sel
  const seen=[];
  for(const [tier,chapters] of Object.entries(resolved))for(const chapter of chapters){
   const where=`${tier}/${chapter.key}`;
-  const ids=m.selectChapterFacts(sajuContext,chapter).map(f=>f.id);
+  // S15-6: the shared luck judgement is derived at the fact boundary after the ledger, never a ledger id.
+  const ids=m.selectChapterFacts(sajuContext,chapter).map(f=>f.id).filter(id=>id!=='saju.luckJudgement');
   assert.deepEqual(ids,m.selectV7Facts(sajuContext,chapter).map(f=>f.id),where);
   assert.ok(ids.length,where);
   assert.ok(ids.every(id=>[...chapter.owns,...chapter.refs].includes(id)),where);
@@ -60,7 +61,7 @@ test('selectChapterFacts routes a v7 chapter to the ledger instead of the v6 sel
  assert.ok(seen.some(id=>id.split('.').length>2));
  // A v6 chapter on the same context still takes the selector path.
  const v6=m.consultationManifest(productOf('saju','flounder'),undefined)[1];
- const v6Ids=m.selectChapterFacts(sajuContext,v6).map(f=>f.id);
+ const v6Ids=m.selectChapterFacts(sajuContext,v6).map(f=>f.id).filter(id=>id!=='saju.luckJudgement');
  assert.ok(v6Ids.length&&v6Ids.every(id=>sajuContext.facts.some(f=>f.id===id)));
 });
 

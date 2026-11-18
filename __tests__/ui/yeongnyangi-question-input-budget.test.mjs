@@ -115,3 +115,20 @@ test('input ladder compacts 대운 interpretation after the fact rungs and never
  assert.deepEqual(second.dropped,['saju.questionTiming#cycleAnnual']);
  assert.equal(second.request.calculatedData.facts.find(f=>f.label==='questionTiming').value.periods[0].interpretation.tombAnalysis.events.length,120000);
 });
+
+test('the luck judgement gives way — headlines, then period rows, then the fact — before a monthlyLuck row is dropped',()=>{
+ const monthly={id:'saju.monthlyLuck',label:'monthlyLuck',value:[{pillar:'丙子',note:'m'.repeat(50000)}]};
+ const judged=value=>({facts:[{id:'saju.pillars',label:'pillars',value:'p'},monthly,{id:'saju.luckJudgement',label:'luckJudgement',value}]});
+ const build=f=>({system:'s',domainRules:'{}',calculatedData:f,outputSchema:{}});
+ const judgementOf=fitted=>fitted.request.calculatedData.facts.find(f=>f.label==='luckJudgement')?.value;
+ const row=(label,headline)=>({label,verdict:'조심할 흐름',...(headline?{headline}:{})});
+ const first=m.fitChapterFacts(judged({natal:{climate:{summary:'c'}},months:[row('2026-12',`h${'h'.repeat(60000)}`)]}),build);
+ assert.deepEqual(first.dropped,['saju.luckJudgement#judgementVerdicts']);
+ assert.deepEqual(judgementOf(first).months,[row('2026-12')]);
+ const second=m.fitChapterFacts(judged({natal:{climate:{summary:'c'}},months:[row('x'.repeat(60000))]}),build);
+ assert.deepEqual(second.dropped,['saju.luckJudgement#judgementPeriods']);
+ assert.deepEqual(judgementOf(second),{natal:{climate:{summary:'c'}}});
+ const third=m.fitChapterFacts(judged({natal:{climate:{summary:'c'.repeat(60000)}}}),build);
+ assert.deepEqual(third.dropped,['saju.luckJudgement']);
+ for(const fitted of [first,second,third])assert.ok(fitted.request.calculatedData.facts.some(f=>f.label==='monthlyLuck'));
+});

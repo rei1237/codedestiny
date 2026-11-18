@@ -16,6 +16,23 @@ const CYCLE_RUNGS:{name:string;cycle:(c:Cycle,current:boolean)=>Cycle}[]=[
  {name:'cycleAnnual',cycle:c=>{if(!c.interpretation?.annual)return c;const {annual:_omit,...interpretation}=c.interpretation;return {...c,interpretation};}},
 ];
 
+// S15-6: the shared luck judgement (saju/luck-judgement.ts) is newer than every stored fact, so it gives way first —
+// reasons, then headlines, then the period rows, then the fact itself — before the ladder drops any calculated row
+// (a monthlyLuck row is worth more than its verdict). Dropping the fact also drops the delivery rule with it.
+type Judged=Record<string,unknown>&{daeun?:Record<string,unknown>[];years?:Record<string,unknown>[];months?:Record<string,unknown>[]};
+const JUDGEMENT_PERIODS=['daeun','years','months'] as const;
+const rows=(rung:(r:Record<string,unknown>)=>Record<string,unknown>)=>(v:Judged)=>{const out:Judged={...v};for(const key of JUDGEMENT_PERIODS)if(Array.isArray(v[key]))out[key]=v[key]!.map(r=>r&&typeof r==='object'?rung(r):r);return out;};
+const JUDGEMENT_RUNGS:{name:string;apply:(v:Judged)=>Judged|null}[]=[
+ {name:'judgementReasons',apply:rows(({reasons:_omit,...r})=>r)},
+ {name:'judgementVerdicts',apply:rows(({label,verdict})=>({label,verdict}))},
+ {name:'judgementPeriods',apply:({daeun:_d,years:_y,months:_m,...natal})=>natal},
+ {name:'judgement',apply:()=>null},
+];
+function compactJudgement(value:unknown,rung:typeof JUDGEMENT_RUNGS[number]):unknown{
+ if(!value||typeof value!=='object'||Array.isArray(value))return value;
+ const out=rung.apply(value as Judged);
+ return out&&JSON.stringify(out)===JSON.stringify(value)?value:out;
+}
 type Sized={system:string;domainRules:string;calculatedData:unknown;outputSchema:unknown;userQuestion?:string};
 export const estimateRequestTokens=(request:Sized)=>Math.ceil((request.system.length+request.domainRules.length
  +JSON.stringify(request.calculatedData).length+JSON.stringify(request.outputSchema).length+(request.userQuestion||'').length)*TOKENS_PER_CHAR);
@@ -31,6 +48,18 @@ function compactCycles(value:unknown,rung:typeof CYCLE_RUNGS[number]):unknown{
 export function fitChapterFacts<T extends Sized>(facts:DomainContext,build:(facts:DomainContext)=>T,limit=CHAPTER_INPUT_TOKEN_TARGET):{request:T;dropped:string[];estimatedTokens:number}{
  let current=facts,request=build(current);
  const dropped:string[]=[];
+ for(const rung of JUDGEMENT_RUNGS){
+  if(estimateRequestTokens(request)<=limit)break;
+  let changed=false;
+  const next=current.facts.flatMap(f=>{
+   if(f.label!=='luckJudgement')return [f];
+   const value=compactJudgement(f.value,rung);
+   if(value===f.value)return [f];
+   changed=true;dropped.push(value===null?f.id:`${f.id}#${rung.name}`);
+   return value===null?[]:[{...f,value} as typeof f];
+  });
+  if(changed){current={...current,facts:next};request=build(current);}
+ }
  const systemOf=(id:string)=>id.split('.')[0];
  for(const rung of FACT_LADDER){
   if(estimateRequestTokens(request)<=limit)break;
