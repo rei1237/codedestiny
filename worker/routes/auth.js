@@ -2065,6 +2065,14 @@ function validateCsrfFromRequest(request, env) {
   const cookieToken = cookieMatch ? decodeURIComponent(cookieMatch[1]) : "";
   const headerToken = request.headers.get(CSRF_HEADER_NAME) || "";
 
+  // 앱(https://localhost)은 SameSite=Strict CSRF 쿠키를 주고받지 못해 double-submit 이 성립하지 않는다.
+  // 앱 출처+앱 런타임 헤더가 둘 다 맞고 쿠키가 없을 때만, 인증된 GET 이 발급한 헤더 토큰의
+  // 서명·만료를 단독으로 검증한다. 앱은 Bearer 인증이라 앰비언트 쿠키 세션이 없다(isMobileAppAuthRequest 주석).
+  // 쿠키가 있으면 언제나 아래 double-submit 경로를 탄다 — 웹 경로는 바뀌지 않는다.
+  if (!cookieToken && headerToken && isMobileAppAuthRequest(request)) {
+    return verifyCsrfToken(headerToken, env);
+  }
+
   if (!cookieToken || !headerToken) {
     return { valid: false, reason: "csrf_token_missing" };
   }

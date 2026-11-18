@@ -5,7 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import {Fragment,useCallback,useEffect,useRef,useState} from 'react';
 import {useAuthStore} from '@/app/_lib/auth-store';
-import {readSubscriptionSnapshotForUser,type SubscriptionSnapshot} from '@/app/_lib/billing-client';
+import {isIosAppRuntime,readSubscriptionSnapshotForUser,type SubscriptionSnapshot} from '@/app/_lib/billing-client';
 import HoneyPassArtwork from '@/components/yeon/HoneyPassArtwork';
 import {getPassTierLabel} from '@/lib/payment/pass-eligibility';
 import {isMobileAppRuntime} from '@/app/_lib/auth-client';
@@ -104,7 +104,7 @@ export function OwnedServicePacks({locale,onWalletChange,context=null}:{context?
    const granted=await resumePendingPackPurchase(ownerId,resumeConsent,()=>scope.current===ownerId);
    if(scope.current!==ownerId)return;
    if(granted){savePendingPack(ownerId,null);setPendingOrder('');setMessage('');setCompleted({orderId:stored?.orderId||pendingOrder,planId:stored?.planId||'',context:stored?.context?readConsultationContext(new URLSearchParams(stored.context)):context});await refreshWallet();}
-  }catch(error){if(scope.current===ownerId&&!releaseUnpaid(pendingOrder,error)){loginIfNeeded(error);setMessage(error instanceof ServicePackError&&error.code==='APP_PACK_NOT_AVAILABLE'?copy.webOnly:copy.confirm);}}
+  }catch(error){if(scope.current===ownerId&&!releaseUnpaid(pendingOrder,error)){loginIfNeeded(error);setMessage(error instanceof ServicePackError&&error.code==='APP_PACK_NOT_AVAILABLE'?(isIosAppRuntime()?copy.appUnavailable:copy.webOnly):copy.confirm);}}
   finally{lock.current=false;setBusy(false);setResumeConsent(false);}
  };
  const pending=ownerId&&pendingOrder?readPendingPack(ownerId):null;

@@ -20,7 +20,7 @@ import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
 import { normalizeConsultAccessType, resolveCanonicalEntitlement, resolveFeatureAccessPolicy } from "../lib/entitlement-policy.js";
 import { consumePassForFeature, passDenialCode } from "../lib/pass-consumption.js";
-import { lateUsageSettlementFailure, usageSettlementSetFields } from "../lib/late-usage-settlement.js";
+import { lateAccessDenialSettlement, lateUsageSettlementFailure, usageSettlementSetFields } from "../lib/late-usage-settlement.js";
 import { canAccessPaidFeature, PAID_FEATURE_ACCESS_USER_PROJECTION } from "../lib/paid-feature-access.js";
 import { callGeminiText } from "../lib/gemini.js";
 import { appendExpertPersona, expertPersonaText } from "../lib/expert-character-personas.js";
@@ -2651,10 +2651,11 @@ async function saveLifeBookState({ userId, id, lockToken, status = "generating",
   } catch { throw resultStorageUnavailable(id); }
 }
 
-async function finishLifeBookDelivery({ request, env, auth, access, pending, pricing, orderName }) {
+async function finishLifeBookDelivery({ request, env, auth, access, pending, pricing, orderName, settlement = null }) {
   // 늦은 이용권 차감이 한도·자격 사유로 거절돼도 만든 결과는 전달한다. 일시 장애는 delivery_pending 으로 재시도시킨다.
-  let usageSettlement = null;
-  try {
+  // settlement 가 오면 전달 직전 재확인이 이미 한도 거절을 판정한 것이다 — 차감을 다시 시도하지 않는다.
+  let usageSettlement = settlement;
+  if (!usageSettlement) try {
     await applyUsageOnce({ request, env, auth, userId: auth.userId, sessionId: pending.id, access, idempotencyKey: pending.idempotencyKey, pricing, orderName });
   } catch (cause) {
     usageSettlement = lateUsageSettlementFailure(cause, { service: "life-book-ai", sessionId: pending.id, accessType: access?.accessType });
@@ -2897,6 +2898,9 @@ async function handleStart(request, env, route = "/api/life-book-ai/generate", r
     if (!access.ok) {
       if (access.reason === "LOGIN_REQUIRED") return loginRequired();
       if (access.reason === "INVALID_INPUT") return invalidInput(access.message, 409);
+      // 이용권으로 시작해 본문까지 만든 상담은 그 뒤 한도 소진으로 재확인이 거절돼도 전달한다(환불·탈퇴·취소 증빙은 제외, fail-closed).
+      const settlement = await lateAccessDenialSettlement({ fresh: access, doc: existing, userId: auth.userId, idempotencyKey, service: "life-book-ai", models: { User, Payment, PaidExecutionRecord, PointHistory, MonthlyCreditLedger } });
+      if (settlement) return json(publicSession(await finishLifeBookDelivery({ request, env, auth, access: { accessType: existing.accessType }, pending: existing, pricing, orderName, settlement })));
       return paymentVerifyFailed();
     }
     logLifeBookAi("LLM Access Check Success", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, validation: "passed", access: access.accessType, env }));
@@ -3358,8 +3362,9 @@ async function handleStart(request, env, route = "/api/life-book-ai/generate", r
                 generationError: null,
           } });
           const freshAccess = await resolveStartAccess({ request, env, auth, body, normalized, idempotencyKey }).catch(() => { throw resultStorageUnavailable(sessionId); });
-          if (!freshAccess.ok) return paymentVerifyFailed();
-          const completed = await finishLifeBookDelivery({ request, env, auth, access: freshAccess, pending: delivery, pricing, orderName });
+          const settlement = freshAccess.ok ? null : await lateAccessDenialSettlement({ fresh: freshAccess, doc: delivery, userId: auth.userId, idempotencyKey, service: "life-book-ai", models: { User, Payment, PaidExecutionRecord, PointHistory, MonthlyCreditLedger } });
+          if (!freshAccess.ok && !settlement) return paymentVerifyFailed();
+          const completed = await finishLifeBookDelivery({ request, env, auth, access: freshAccess.ok ? freshAccess : { accessType: delivery.accessType }, pending: delivery, pricing, orderName, settlement });
           logLifeBookAction("wave_complete", {
             route,
             requestId: idempotencyKey,

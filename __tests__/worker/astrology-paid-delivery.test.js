@@ -8,7 +8,7 @@ jest.unstable_mockModule('../../worker/lib/sync-llm-timeout.js', () => ({ ...tim
 
 const uid = "64b7f2a1c3d4e5f601234567";
 const body = { name: "검사", gender: "female", birthDate: "1993-07-21", birthTime: "09:00", birthPlace: { city: "서울", country: "KR", latitude: 37.5665, longitude: 126.978, timezone: "Asia/Seoul" }, topic: "전체 차트 해석" };
-let route, docs, provider, chart, fault, blocked, mode, userId, usage, refund, fetchBlock, lostConfirmation, passReceipt, passRefund, consume;
+let route, docs, provider, chart, fault, accessFault, accessQueue, passOrder, withdrawn, blocked, mode, userId, usage, refund, fetchBlock, lostConfirmation, passReceipt, passRefund, consume;
 const clone = value => value == null ? value : structuredClone(value);
 function query(value) { const result = Promise.resolve(value); result.lean = async () => clone(value); result.select = result.sort = () => result; return result; }
 function matches(doc, filter) {
@@ -65,13 +65,13 @@ beforeAll(async () => {
   const swiss = await import("../../worker/lib/swiss-ephemeris.js");
   jest.unstable_mockModule("../../worker/lib/db.js", () => ({ ...db, connectDb: async () => {}, withMongoRetry: async (_env, work) => work() }));
   jest.unstable_mockModule("../../worker/lib/auth.js", () => ({ ...auth, getOptionalUserFromRequest: async () => ({ userId, authUserDoc: { _id: userId } }) }));
-  jest.unstable_mockModule("../../worker/lib/models.js", () => ({ ...models, AstrologyAiConsultation: model, User: { findById: () => query({ _id: uid }) },
+  jest.unstable_mockModule("../../worker/lib/models.js", () => ({ ...models, AstrologyAiConsultation: model, User: { findById: () => query({ _id: uid }), findOne: () => query({ _id: uid, status: withdrawn ? "withdrawn" : "active" }) },
     PaidExecutionRecord: { findOne: () => query(blocked === 0 ? {} : null), findOneAndUpdate: (...args) => { usage(...args); return query({}); } },
-    Payment: { findOne: filter => query(blocked === 1 ? {} : mode === "paid" && filter.status.$in.includes("paid") ? { _id: uid, merchantUid: "payment" } : null) },
+    Payment: { findOne: filter => query(filter.paymentType === "membership_pass" ? passOrder : blocked === 1 ? {} : mode === "paid" && filter.status.$in.includes("paid") ? { _id: uid, merchantUid: "payment" } : null) },
     PointHistory: { findOne: () => query(blocked === 2 ? {} : null) },
     MonthlyCreditLedger: { findOne: () => query(blocked === 3 ? {} : null) },
   }));
-  jest.unstable_mockModule("../../worker/lib/paid-feature-access.js", () => ({ ...access, canAccessPaidFeature: async () => ({ allowed: mode === "pass", accessType: "pass" }) }));
+  jest.unstable_mockModule("../../worker/lib/paid-feature-access.js", () => ({ ...access, canAccessPaidFeature: async () => { if (accessFault?.()) throw new Error("mock access outage"); return { allowed: accessQueue.length ? accessQueue.shift() : mode === "pass", accessType: "pass" }; } }));
   jest.unstable_mockModule("../../worker/lib/moonstone-spend-proof.js", () => ({ findMoonstoneSpendEvidence: async () => mode === "monthly" ? {} : null }));
   jest.unstable_mockModule("../../worker/lib/gemini.js", () => ({ ...gemini, callGeminiText: (...args) => provider(...args) }));
   jest.unstable_mockModule("../../worker/lib/swiss-ephemeris.js", () => ({ ...swiss, getSwissWesternChart: (...args) => chart(...args) }));
@@ -82,7 +82,7 @@ beforeAll(async () => {
   ({ handleAstrologyAiRoutes: route } = await import("../../worker/routes/astrology-ai.js"));
 });
 beforeEach(() => {
-  docs = []; fault = null; lostConfirmation = false; blocked = -1; mode = "pass"; userId = uid; usage = jest.fn(); refund = jest.fn(async () => ({})); passReceipt = false; passRefund = jest.fn(async () => ({ refunded: true })); consume = jest.fn(async () => ({ covered: true }));
+  docs = []; fault = null; accessFault = null; accessQueue = []; passOrder = null; withdrawn = false; lostConfirmation = false; blocked = -1; mode = "pass"; userId = uid; usage = jest.fn(); refund = jest.fn(async () => ({})); passReceipt = false; passRefund = jest.fn(async () => ({ refunded: true })); consume = jest.fn(async () => ({ covered: true }));
   let count = 0;
   provider = jest.fn(async (_env, _prompt, options) => {
     expect(options.attempts).toBe(1); expect(options.timeoutMs).toBeLessThanOrEqual(45000);
@@ -121,6 +121,16 @@ for (const status of ["delivery_pending", "completed"]) for (const kind of ["nul
   expect(await response.json()).toMatchObject({ reason: "RESULT_STORAGE_UNAVAILABLE", retryable: true });
   expect(refund).not.toHaveBeenCalled(); expect(usage).not.toHaveBeenCalled();
   expect((await start()).status).toBe(200); expect(provider).toHaveBeenCalledTimes(6);
+});
+it("keeps a finished delivery_pending body when the pre-delivery access check throws", async () => {
+  await start(); await start();
+  accessFault = () => docs[0]?.status === "delivery_pending";
+  const response = await start(); expect(response.status).toBe(503);
+  expect(await response.json()).toMatchObject({ reason: "RESULT_STORAGE_UNAVAILABLE", retryable: true });
+  expect(docs[0].status).toBe("delivery_pending");
+  expect(refund).not.toHaveBeenCalled(); expect(passRefund).not.toHaveBeenCalled();
+  accessFault = null;
+  expect((await start()).status).toBe(200); expect(docs[0].status).toBe("completed"); expect(provider).toHaveBeenCalledTimes(6);
 });
 it("stops after two unusable section attempts", async () => {
   provider.mockImplementation(async () => ({ ok: true, text: "짧은 결과", provider: "gemini" }));
@@ -289,4 +299,27 @@ it("sends the Yundal persona at the end of every section's system prompt", async
     expect(prompt).toMatch(/\[상담자 페르소나 — 윤달\][\s\S]*$/u);
     expect(prompt).not.toMatch(/\d+년 경력/u);
   }
+});
+
+// 전달 직전 재확인은 실제 resolveStartAccess 로 돈다 — 이용권 판정만 거절(한도 소진)로 바꾼다.
+it("delivers a finished pass body when only the pre-delivery recheck is denied by the pass limit", async () => {
+  await start(); await start(); accessQueue = [true, false];
+  const response = await start();
+  expect(response.status).toBe(200); expect(accessQueue).toHaveLength(0);
+  expect(docs[0].status).toBe("completed"); expect(docs[0].llmMeta.usageSettlement).toBe("failed");
+  expect(refund).not.toHaveBeenCalled(); expect(passRefund).not.toHaveBeenCalled(); expect(consume).not.toHaveBeenCalled();
+});
+it("delivers a stored delivery_pending pass body on resume after the pass limit is exhausted", async () => {
+  await start(); await start(); fault = { status: "completed", kind: "null" };
+  expect((await start()).status).toBe(503); expect(docs[0].status).toBe("delivery_pending");
+  mode = "none";
+  const response = await start();
+  expect(response.status).toBe(200); expect(docs[0].status).toBe("completed"); expect(docs[0].llmMeta.usageSettlement).toBe("failed");
+  expect(refund).not.toHaveBeenCalled(); expect(passRefund).not.toHaveBeenCalled();
+});
+for (const [label, deny] of [["a refunded pass order", () => { passOrder = { merchantUid: "pass-order", status: "refunded" }; }], ["a withdrawn member", () => { withdrawn = true; }], ["revoked pass use evidence", () => { blocked = 2; }]]) it(`keeps the 402 for ${label}`, async () => {
+  await start(); await start(); fault = { status: "completed", kind: "null" };
+  expect((await start()).status).toBe(503);
+  mode = "none"; deny();
+  expect((await start()).status).toBe(402); expect(docs[0].status).toBe("delivery_pending"); expect(docs[0].llmMeta.usageSettlement).toBeUndefined();
 });

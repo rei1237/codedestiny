@@ -22,7 +22,7 @@ export async function handleRecommendationRoutes(request, env) {
   try {
     if (path === '/events') {
       const origin = request.headers.get('Origin');
-      if (!['https://code-destiny.com', 'https://staging.code-destiny.com', 'https://localhost'].includes(origin)) return new Response(null, { status: 403 });
+      if (!['https://code-destiny.com', 'https://staging.code-destiny.com', 'https://localhost', 'capacitor://localhost'].includes(origin)) return new Response(null, { status: 403 });
       if (/bot|crawler|spider|headless/i.test(request.headers.get('User-Agent') || '') || request.headers.get('Purpose') || request.headers.get('Sec-Purpose')?.includes('prefetch')) return new Response(null, { status: 204 });
       if (Number(request.headers.get('Content-Length') || 0) > 1024) return new Response(null, { status: 413 });
       const raw = await request.text();

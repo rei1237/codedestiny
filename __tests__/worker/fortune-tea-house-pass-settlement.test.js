@@ -8,10 +8,10 @@ const ts = require("typescript");
 
 const source = fs.readFileSync(path.join(__dirname, "../../worker/routes/fortune-tea-house.js"), "utf8");
 const ast = ts.createSourceFile("fortune-tea-house.js", source, ts.ScriptTarget.Latest, true, ts.ScriptKind.JS);
-const functions = ["fortuneTeaCoinPrice", "settleFortuneTeaHouseGeneration", "refundFortuneTeaHousePassSettlement"].map((name) => {
+const functions = ["fortuneTeaCoinPrice", "settleFortuneTeaHouseGeneration", "refundFortuneTeaHousePassSettlement", "retryPendingFortuneTeaHousePassRefunds"].map((name) => {
   const node = ast.statements.find((item) => ts.isFunctionDeclaration(item) && item.name?.text === name);
   if (!node) throw new Error(name);
-  return node.getText(ast);
+  return node.getText(ast).replace(/^export /, "");
 }).join("\n");
 
 const RESULT_ID = "fortune-tea-house:attempt-1";
@@ -24,10 +24,13 @@ function boot({ settled = { allowed: true, source: "pass", passRefund: { cycleKe
     deleteOne: async (filter) => { calls.deleteOne.push(filter); return { deletedCount: 1 }; },
     updateOne: async (filter, update) => { calls.updateOne.push({ filter, update }); stored = { ...stored, ...update.$set }; return { matchedCount: 1 }; },
     findOne: async () => stored,
+    find: (filter) => { calls.find = filter; return { sort: () => ({ limit: () => ({ project: () => ({ toArray: async () => (stored ? [{ userId: "user-1", resultId: RESULT_ID }] : []) }) }) }) }; },
   };
   const state = {
     Date,
     cleanText: (value) => String(value ?? "").trim(),
+    withMongoRetry: async (_env, fn) => fn(),
+    FORTUNE_TEA_HOUSE_SCOPE: "FORTUNE_TEA_HOUSE",
     honeyCollections: () => ({ results }),
     loadPerUsePaidAccess: async () => ({
       settlePerUseAccessDecision: async (_env, args) => { calls.settle.push(args); return settled; },
@@ -142,4 +145,21 @@ test("S5: 환불이 실패하면 대기 표식을 남기고 다음 claim 은 생
   const block = source.slice(source.indexOf("async function beginFortuneTeaHouseGeneration"), source.indexOf("const pending = existing?.status === \"delivery_pending\""));
   expect(block).toMatch(/existing\?\.passRefund\?\.pendingAt && !existing\.passRefund\.refundedAt[\s\S]{0,300}refundFortuneTeaHousePassSettlement\(/);
   expect(block.indexOf("passRefund?.pendingAt")).toBeLessThan(block.indexOf("isFreshFortuneTeaGeneration(existing)"));
+});
+
+// S13-L2: 대기 표식은 같은 결과의 다음 claim 에서만 재시도됐다 — 사용자가 돌아오지 않으면 이용권 한도가 영영 묶였다.
+test("S13: 환불 크론은 대기 중인 이용권 환불을 같은 멱등 함수로 마저 돌려주고 종결 표식을 남긴다", async () => {
+  const { state, calls, stored } = boot({ doc: { passSettlement: { cycleKey: "cycle-1", cost: 100 }, passRefund: { pendingAt: new Date(0), lastError: "MONGO_DOWN" } } });
+  const outcomes = await state.retryPendingFortuneTeaHousePassRefunds({});
+  expect(calls.find).toMatchObject({ serviceScope: "FORTUNE_TEA_HOUSE", "passRefund.pendingAt": { $exists: true }, "passRefund.refundedAt": { $exists: false } });
+  expect(calls.refund).toEqual([{ userId: "user-1", cycleKey: "cycle-1", cost: 100, refundId: RESULT_ID }]);
+  expect(stored().passRefund.refundedAt).toBeInstanceOf(Date);
+  expect(outcomes).toEqual([{ service: "fortune-tea-house", refundStatus: "refunded" }]);
+});
+
+test("S13: 크론 재시도도 실패하면 대기로 남기고 다음 주기로 넘긴다", async () => {
+  const { state, stored } = boot({ doc: { passSettlement: { cycleKey: "cycle-1", cost: 100 }, passRefund: { pendingAt: new Date(0) } } });
+  state.loadPassConsumption = async () => ({ refundPassCoverage: async () => { throw new Error("MONGO_DOWN"); } });
+  expect(await state.retryPendingFortuneTeaHousePassRefunds({})).toEqual([{ service: "fortune-tea-house", refundStatus: "pending" }]);
+  expect(stored().passRefund?.refundedAt).toBeUndefined();
 });

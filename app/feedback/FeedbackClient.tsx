@@ -63,6 +63,14 @@ export default function FeedbackClient() {
     });
   }, []);
 
+  // 결과 화면의 AI 결과 신고 링크(?category=ai-quality)처럼 카테고리를 미리 고른 채 들어올 수 있다.
+  // 모르는 값은 무시한다(getFeedbackCategory 가 null).
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const categoryParam = new URLSearchParams(window.location.search).get("category");
+    if (categoryParam && getFeedbackCategory(categoryParam, copy)) setCategory(categoryParam as FeedbackCategoryId);
+  }, [copy]);
+
   // 제보 대상 URL 자동 입력: ?from= → 동일 출처 referrer → 빈 값.
   useEffect(() => {
     if (typeof window === "undefined") return;

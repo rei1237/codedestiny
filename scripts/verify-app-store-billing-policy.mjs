@@ -156,6 +156,14 @@ check(
   "결제 가드가 없으면 결제를 열지 않는다 (PortOne 누출 차단)",
   runtimePaymentFn.includes("APP_PAYMENT_GUARD_MISSING"),
 );
+// iOS(R2): 서버 원화·웹 결제 안내(APP_SKU_NOT_VERIFIED 문구)보다 먼저 iOS 를 중립 실패로 끝낸다.
+const iosBranchAt = runtimePaymentFn.indexOf("IOS_BILLING_NOT_CONFIGURED");
+check(
+  "iOS 는 서버 원화·웹 결제 안내 전에 중립 문구로 끝난다 (App Store 3.1.1·3.1.3)",
+  iosBranchAt > 0 && runtimePaymentFn.includes("isIosAppRuntime()")
+    && iosBranchAt < runtimePaymentFn.indexOf("APP_SKU_NOT_VERIFIED")
+    && iosBranchAt < runtimePaymentFn.indexOf("amountKRW = appAmountKRW"),
+);
 
 console.log("\n[8] 이용권 커버 금액이 앱 기준으로 파생되는가");
 for (const [tier, expectedKRW] of [["standard", 5000], ["premium", 10000], ["vvip", 20000]]) {

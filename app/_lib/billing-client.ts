@@ -32,6 +32,7 @@ import appContext from "@/js/core/app-context.js";
 import checkoutEntry, { type PaidResumeDescriptor } from "@/js/core/checkout-entry.js";
 import bundledPaymentService from "@/js/core/payment-service.js";
 import { openTransientBackSurface } from "@/lib/navigation/transientBack";
+import { iosPurchasePreparationMessage } from "@/app/app/_lib/native-billing";
 
 // 🔴 payment-service.js 는 classic script(window.CodeDestinyPaymentService)와 webpack import 두 경로로
 // 로드돼 **인스턴스가 둘**이다. 각 인스턴스는 자기만의 paymentWindowRenderer / commandInFlight 클로저를
@@ -2510,6 +2511,14 @@ async function runPaidServiceRuntimePayment(input: BillingCoinGateInput, context
     }
 
     const appAmountKRW = await fetchAppStoreAmountKRW(input, featureKey);
+    // iOS(R2, 2026-11-18 승인): 서버 원화는 StoreKit 가격이 아니고, 웹 결제 안내는 App Store 3.1.1·3.1.3
+    // 위반이다. StoreKit 가격 브리지(Phase 6) 전에는 결제창을 열지 않고 중립 문구로 끝낸다.
+    // 앱 무료 전환(0)만 지금처럼 연다. 대가: 스냅샷 없는 이용권 보유자의 결제창 [이용권] 카드와
+    // 월정석 선택이 iOS 에서 빠진다 — Phase 6 이 StoreKit displayPrice 로 결제창을 다시 연다.
+    if (isIosAppRuntime()) {
+      if (appAmountKRW === 0) return runAppStoreFreeGrant(input, featureKey, context.requestId);
+      return nativeAppStoreFailure("IOS_BILLING_NOT_CONFIGURED", iosPurchasePreparationMessage());
+    }
     // fail-closed: 앱가를 확인 못 했으면 웹가를 띄우지 않는다. 틀린 금액을 보여주느니
     // 재시도를 안내하는 편이 낫다(사용자가 3,000원인 줄 알고 눌렀는데 3,900원이 청구된다).
     if (appAmountKRW === null) {
@@ -2756,6 +2765,11 @@ function toQuery(input: Record<string, unknown>) {
  */
 export function isMobileAppRuntime() {
   return appContext.isApp();
+}
+
+/** iOS 앱(Capacitor) 여부. 판별 정본은 js/core/app-context.js getPlatform(). */
+export function isIosAppRuntime() {
+  return appContext.getPlatform() === "ios";
 }
 
 /**

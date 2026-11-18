@@ -8,6 +8,7 @@ import { recordsCopy } from '@/lib/records/copy';
 import RecordFrame, { recordButton } from '../RecordFrame';
 import type { SavedRecord } from '../RecordsClient';
 import StoredReading from './StoredReading';
+import AiResultReportLink from '@/components/fortune/AiResultReportLink';
 import { RecommendationResult } from '@/app/components/recommendations/RecommendationResult';
 import { savedRecommendation } from '@/lib/records/recommendations.mjs';
 import { readingView } from '@/lib/records/reading-registry';
@@ -67,6 +68,7 @@ export default function SavedRecordClient() {
         {detail.record.question && <p className={styles.readingQuestion}>{detail.record.question}</p>}
         {!['completed', 'saved', 'conversation'].includes(detail.record.status) && <section role="status" className="mb-6 space-y-3 rounded-[var(--cd-r-card)] border border-[var(--cd-border)] p-4"><p className="font-semibold">{(c as Record<string,string>)[detail.record.status] || c.saved}</p><p>{detail.record.status==='refund_pending'?c.refundLead:c.partialLead}</p><a className={recordButton} href={detail.record.recoveryHref || '/points/history/'}>{c.recover}</a></section>}
         <StoredReading source={source} serviceId={detail.record.serviceId} status={detail.record.status} value={detail.content} />
+        <AiResultReportLink />
         <div className={styles.readingActions}><a className={recordButton} href="/records/">{c.back}</a>{complete && <a className={recordButton} href="/reviews/?write=1">{c.review}</a>}<a className={recordButton} href={detail.record.startHref}>{c.newConsult}</a></div>
         {complete && <section className={styles.readingNext} data-cd-cross-sell="/records/view/"><p>{c.reopenNote}</p>{freeFeature && <a className={recordButton} href={freeFeature.href} data-cd-cta-placement="free_result" data-cd-target-service={freeFeature.service} aria-label={`${c.freeNext}: ${freeFeature.label}`}>{freeFeature.label}</a>}</section>}
         {recommendation && <RecommendationResult key={`${source}:${id}`} {...recommendation} />}
