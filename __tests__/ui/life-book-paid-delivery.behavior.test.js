@@ -6,7 +6,7 @@ const ts = require('typescript');
 const { connectLifeBookSajuAuthority, readSajuAuthority, lifeBookPillars } = require('../../worker/lib/saju-authority-consumer.js');
 const { webcrypto } = require('node:crypto');
 const { supportRecoveryGenerationOptions, assertSupportRecoveryPreserved, supportRecoveryPartHash } = require('../../worker/lib/support-recovery-budget.js');
-const { consultationRefundResponse } = require('../../worker/lib/consultation-refund-state.js');
+const { consultationRefundResponse, consultationRefundState } = require('../../worker/lib/consultation-refund-state.js');
 const { runWithAiLocale, getAmbientAiLocale, storedAiLocale } = require('../../worker/lib/ai-locale-context.js');
 const { toAiLocale, AI_OUTPUT_LOCALES } = require('../../lib/i18n/ai-locale.js');
 const clone = value => value == null ? value : JSON.parse(JSON.stringify(value));
@@ -68,7 +68,7 @@ function fixture(accessType = 'pass', env = {}) {
     claimRequestBillingEvidence: async () => ({ ok: true, skipped: true }), releaseRequestBillingEvidence: async () => ({ released: 0 }), evidenceClaimErrorBody: result => result,
     reserveSupportRecoveryAttempt: async () => {},
     supportRecoveryGenerationOptions, assertSupportRecoveryPreserved,
-    consultationRefundResponse,
+    consultationRefundResponse, consultationRefundState, User: {}, Payment: {}, PaidExecutionRecord: {}, PointHistory: {}, MonthlyCreditLedger: {},
     isStoredPaidResultRevoked: async () => false,
     settleLifeBookFailureRefund: async () => { assert.equal(doc.status, 'generation_failed'); assert.equal(doc.llmMeta.lockedAt, null); refunds++; return { ok: true, refundStatus: 'refunded' }; },
     normalizeConsultationInput: body => ({ ok: true, inputHash: body.inputHash || 'same-input', input: { birthInfo: { name: 'mock' }, consultationType: 'lifeBook', topic: '일생' } }),
@@ -106,7 +106,7 @@ function fixture(accessType = 'pass', env = {}) {
     reportTotalContentChars: () => 25000, extractTitle: () => 'mock report', extractKeywords: () => [],
   });
   load(ctx, 'worker/lib/result-storage.js', ['resultStorageUnavailable', 'resultStorageFailurePayload']);
-  load(ctx, 'worker/lib/late-usage-settlement.js', ['lateUsageSettlementFailure', 'usageSettlementSetFields']);
+  load(ctx, 'worker/lib/late-usage-settlement.js', ['lateUsageSettlementFailure', 'usageSettlementSetFields', 'lateAccessDenialSettlement']);
   load(ctx, 'worker/routes/life-book-ai.js', ['handleStart', 'runWithConcurrency', 'reserveProviderCallOnce', 'releaseSectionLock', 'saveLifeBookState', 'finishLifeBookDelivery', 'lifeBookLengthOptions', 'isLifeBookLengthOnlyIssue', 'lifeBookLengthBoostTarget', 'generationWaveCap', 'buildPriorHalfExcerpt', 'lifeBookV3HasChapterBody', 'lifeBookV3DeliverableSections', 'dropPriorHalfRepeats']);
   const post = (body = {}) => ctx.handleStart(new Request('https://mock.test/api/life-book-ai/generate', {
     method: 'POST', headers: { 'Content-Type': 'application/json', 'idempotency-key': 'original-paid-request' }, body: JSON.stringify(body),
@@ -320,6 +320,59 @@ test('늦은 이용권 차감이 한도로 거절돼도 저장된 본문을 완�
   assert.equal((await f.post()).status, 200); assert.equal(f.doc.status, 'completed');
   assert.equal(f.doc.llmMeta.usageSettlement, 'failed'); assert.equal(f.doc.llmMeta.usageSettlementReason, 'MONTHLY_PASS_LIMIT_EXCEEDED');
   assert.equal(f.charges, 0); assert.equal(f.calls.length, 15); assert.equal(f.refunds, 0);
+});
+// 전달 직전 재확인을 실제 판정 경로(resolveStartAccess → resolveServerAccess)로 돌려 이용권 한도 소진 402 를 만든다.
+function denyPassByLimit(f, { refundedPass = null, withdrawn = false, revokedEvidence = false } = {}) {
+  const ctx = f.ctx;
+  Object.assign(ctx, {
+    getAcceptedFeatureKeys: () => ['life-book-ai'], collectBillingEvidenceIds: () => [], objectIdLike: () => false,
+    paymentEvidenceClauses: ids => ids.map(id => ({ requestId: id })), pointHistoryEvidenceClauses: ids => ids.map(id => ({ 'metadata.requestId': id })),
+    withMongoRetry: (_env, run) => run(), resolveBillingGateAccess: async () => ({ ok: false }),
+    loadBillingUser: async () => ({ _id: 'owner', role: 'user' }), getPricing: () => ({ coinPrice: 300 }), isAdmin: () => false,
+    findPaidPayment: async () => null, mapPaidDecision: () => null,
+    resolveFeatureAccessPolicy: () => ({ allowed: false, reason: 'MONTHLY_PASS_LIMIT_EXCEEDED' }),
+    canAccessPaidFeature: async () => ({ allowed: false, reason: 'MONTHLY_PASS_LIMIT_EXCEEDED' }),
+    PaidExecutionRecord: { findOne: () => ({ lean: async () => null }) }, MonthlyCreditLedger: { findOne: () => ({ lean: async () => null }) },
+    PointHistory: { findOne: () => ({ lean: async () => (revokedEvidence ? { id: 'refunded-use' } : null) }) },
+    Payment: { findOne: filter => ({ lean: async () => (filter.paymentType === 'membership_pass' ? refundedPass : null) }) },
+    User: { findOne: () => ({ select: () => ({ lean: async () => ({ _id: 'owner', status: withdrawn ? 'withdrawn' : 'active' }) }) }) },
+  });
+  load(ctx, 'worker/routes/life-book-ai.js', ['resolveStartAccess', 'resolveServerAccess']);
+}
+test('본문 완성 직후 재확인이 이용권 한도 소진으로 402 여도 완료로 전달하고 미정산을 표시한다', async () => {
+  const f = fixture(); for (let i = 0; i < 3; i++) await f.post();
+  // 요청 시작 확인은 통과하고, 마지막 웨이브 동안 한도가 소진돼 완료 직전 재확인만 402 가 된다.
+  denyPassByLimit(f); const realAccess = f.ctx.resolveStartAccess; let checks = 0;
+  f.ctx.resolveStartAccess = args => (checks++ === 0 ? { ok: true, accessType: 'pass', paymentId: 'original-receipt' } : realAccess(args));
+  const response = await f.post(); assert.equal(checks, 2);
+  assert.equal(response.status, 200); assert.equal(f.doc.status, 'completed');
+  assert.equal(f.doc.llmMeta.usageSettlement, 'failed'); assert.equal(f.doc.llmMeta.usageSettlementReason, 'PAYMENT_REQUIRED');
+  assert.equal(f.charges, 0); assert.equal(f.refunds, 0); assert.equal(f.calls.length, 15);
+});
+test('delivery_pending 재개 요청의 재확인이 이용권 한도 소진으로 402 여도 저장 본문을 완료로 전달한다', async () => {
+  const f = fixture(); for (let i = 0; i < 3; i++) await f.post();
+  f.fault('completed'); assert.equal((await f.post()).status, 503); assert.equal(f.doc.status, 'delivery_pending');
+  denyPassByLimit(f);
+  const response = await f.post({ resumeSessionId: f.doc.id });
+  assert.equal(response.status, 200); assert.equal(f.doc.status, 'completed');
+  assert.equal(f.doc.llmMeta.usageSettlement, 'failed'); assert.equal(f.calls.length, 15); assert.equal(f.refunds, 0);
+});
+for (const [label, denial] of [
+  ['상담 시작 뒤 이용권 주문 환불', { refundedPass: { merchantUid: 'pass-order', status: 'refunded' } }],
+  ['회원 탈퇴', { withdrawn: true }],
+  ['이 상담의 이용권 사용 환불 증빙', { revokedEvidence: true }],
+]) test(`${label}이면 재확인 402 를 전달로 바꾸지 않는다`, async () => {
+  const f = fixture(); for (let i = 0; i < 3; i++) await f.post();
+  f.fault('completed'); assert.equal((await f.post()).status, 503);
+  denyPassByLimit(f, denial);
+  assert.equal((await f.post({ resumeSessionId: f.doc.id })).status, 402);
+  assert.equal(f.doc.status, 'delivery_pending'); assert.equal(f.doc.llmMeta.usageSettlement, undefined);
+});
+for (const accessType of ['paid', 'subscription']) test(`${accessType} 시작 상담은 재확인 402 를 전달로 바꾸지 않는다`, async () => {
+  const f = fixture(accessType); for (let i = 0; i < 3; i++) await f.post();
+  f.fault('completed'); assert.equal((await f.post()).status, 503);
+  denyPassByLimit(f);
+  assert.equal((await f.post({ resumeSessionId: f.doc.id })).status, 402); assert.equal(f.doc.status, 'delivery_pending');
 });
 test('체크포인트 저장 null은 실패 환불 없이 503, 성공한 다른 섹션은 보존한다', async () => {
   const f = fixture(); f.fault('checkpoint');

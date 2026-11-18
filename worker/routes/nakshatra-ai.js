@@ -41,7 +41,7 @@ import { countPaidReportBodyChars, hasRepeatedReportPassage } from "../lib/paid-
 import { findMoonstoneSpendEvidence } from "../lib/moonstone-spend-proof.js";
 import { resolveCanonicalEntitlement } from "../lib/entitlement-policy.js";
 import { consumePassForFeature, hasConsumedPassFeature, passDenialCode, refundPassUseEvidence } from "../lib/pass-consumption.js";
-import { lateUsageSettlementFailure } from "../lib/late-usage-settlement.js";
+import { lateAccessDenialSettlement, lateUsageSettlementFailure } from "../lib/late-usage-settlement.js";
 import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
 import { canAccessPaidFeature, PAID_FEATURE_ACCESS_USER_PROJECTION } from "../lib/paid-feature-access.js";
@@ -291,6 +291,8 @@ async function resolveResultUserIdFromToken(request, env) {
     return "";
   }
 }
+
+const SETTLEMENT_MODELS = { User, Payment, PaidExecutionRecord, PointHistory, MonthlyCreditLedger };
 
 async function loadUser(userId) {
   if (!mongoose.Types.ObjectId.isValid(String(userId || ""))) return null;
@@ -928,7 +930,7 @@ async function saveNakshatraDelivery(filter, fields, resultId) {
     return confirmed;
   } catch { throw resultStorageUnavailable(resultId); }
 }
-async function advanceGeneration({ request, env, auth, sessionId, idempotencyKey, access, pricing }) {
+async function advanceGeneration({ request, env, auth, sessionId, idempotencyKey, access, pricing, settlement = null }) {
   let lock;
   try { lock = await acquireBatchLock(env, sessionId, auth.userId); } catch { throw resultStorageUnavailable(sessionId); }
   if (!lock.ok) {
@@ -989,13 +991,19 @@ async function advanceGeneration({ request, env, auth, sessionId, idempotencyKey
     const completion = buildCompletion(readSections(session), attempts);
     if (session.status !== "delivery_pending") session = await saveNakshatraDelivery(filter, { status: "delivery_pending", decks: completion.decks, totalCharCount: completion.totalCharCount,
       llmMeta: { ...session.llmMeta, provider: completion.provider, model: completion.model, topInsights: completion.topInsights } }, sessionId);
-    try {
-      access = await resolveStartAccess({ request, env, auth, body: session.llmMeta?.resumeBody || { paymentId: session.paymentId }, normalized: { inputHash: session.inputHash }, pricing, idempotencyKey });
-    } catch { throw resultStorageUnavailable(sessionId); }
-    if (!access.ok) return json({ ok: false, reason: "PAYMENT_VERIFY_FAILED" }, { status: 402 });
+    // 재개 때 이미 한도 거절로 정산(settlement)된 상담은 재확인·차감을 다시 하지 않는다.
+    let recheck = null;
+    if (!settlement) {
+      try {
+        recheck = await resolveStartAccess({ request, env, auth, body: session.llmMeta?.resumeBody || { paymentId: session.paymentId }, normalized: { inputHash: session.inputHash }, pricing, idempotencyKey });
+      } catch { throw resultStorageUnavailable(sessionId); }
+    }
+    // 이용권으로 시작해 본문까지 만든 상담은 재확인이 한도·자격 사유로 거절돼도 전달한다(환불·탈퇴·취소 증빙은 제외, fail-closed).
+    let usageSettlement = settlement || (recheck.ok || nativeTossContext(request) ? null : await lateAccessDenialSettlement({ fresh: recheck, doc: session, userId: auth.userId, idempotencyKey, service: "nakshatra-ai", models: SETTLEMENT_MODELS }));
+    if (!recheck?.ok && !usageSettlement) return json({ ok: false, reason: "PAYMENT_VERIFY_FAILED" }, { status: 402 });
+    if (recheck?.ok) access = recheck;
     // 늦은 이용권 차감이 한도·자격 사유로 거절돼도 만든 결과는 전달한다. 일시 장애는 delivery_pending 으로 재시도시킨다.
-    let usageSettlement = null;
-    try { if(!nativeTossContext(request))await applyUsageOnce({ userId: auth.userId, sessionId, accessType: access.accessType, pricing, source: access.source }); }
+    try { if(!nativeTossContext(request) && !usageSettlement)await applyUsageOnce({ userId: auth.userId, sessionId, accessType: access.accessType, pricing, source: access.source }); }
     catch (settleError) {
       usageSettlement = lateUsageSettlementFailure(settleError, { service: "nakshatra-ai", sessionId, accessType: access.accessType });
       if (!usageSettlement) throw resultStorageUnavailable(sessionId);
@@ -1041,9 +1049,12 @@ async function handleGenerate(request, env, recoveryAuth = null) {
   const pricing = getPricing();
   const originalKey = clean(session.idempotencyKey);
   if (idempotencyKey && idempotencyKey !== originalKey) return invalidInput(INVALID_INPUT_MESSAGE, 409);
-  const access = await resolveStartAccess({ request, env, auth, body: session.llmMeta?.resumeBody || { paymentId: session.paymentId }, normalized: { inputHash: session.inputHash }, pricing, idempotencyKey: originalKey });
-  if (!access.ok) return json({ ok: false, reason: "PAYMENT_VERIFY_FAILED" }, { status: 402 });
-  return advanceGeneration({ request, env, auth, sessionId, idempotencyKey: originalKey, access, pricing });
+  const startAccess = await resolveStartAccess({ request, env, auth, body: session.llmMeta?.resumeBody || { paymentId: session.paymentId }, normalized: { inputHash: session.inputHash }, pricing, idempotencyKey: originalKey });
+  // 이용권으로 본문까지 만든 delivery_pending 상담은 재개 시점 한도 소진만으로 막지 않는다(환불·탈퇴·취소 증빙은 제외, fail-closed).
+  const settlement = !startAccess.ok && !nativeTossContext(request) ? await lateAccessDenialSettlement({ fresh: startAccess, doc: session, userId: auth.userId, idempotencyKey: originalKey, service: "nakshatra-ai", models: SETTLEMENT_MODELS }) : null;
+  if (!startAccess.ok && !settlement) return json({ ok: false, reason: "PAYMENT_VERIFY_FAILED" }, { status: 402 });
+  const access = startAccess.ok ? startAccess : { ok: true, accessType: clean(session.accessType), paymentId: clean(session.paymentId, 160), source: "late-access-settlement" };
+  return advanceGeneration({ request, env, auth, sessionId, idempotencyKey: originalKey, access, pricing, settlement });
 
 }
 

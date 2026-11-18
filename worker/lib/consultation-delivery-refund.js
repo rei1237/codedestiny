@@ -279,5 +279,10 @@ export async function runPendingConsultationRefunds(env, options = {}) {
       outcomes.push({ service, refundStatus: result.refundStatus });
     }
   }
+  // 찻집 이용권 환불 대기는 별도 저장소(passRefund.pendingAt)라 SERVICES 밖이다. 같은 주기에 찻집의 멱등 환불로 마저 돌려준다.
+  try {
+    const retryTea = options.teaHousePassRefunds || (await import('../routes/fortune-tea-house.js')).retryPendingFortuneTeaHousePassRefunds;
+    outcomes.push(...await retryTea(env));
+  } catch { outcomes.push({ service: 'fortune-tea-house', refundStatus: 'pending' }); }
   return { outcomes };
 }
