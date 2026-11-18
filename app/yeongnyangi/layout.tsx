@@ -1,6 +1,9 @@
 "use client";
-import {useEffect,type ReactNode} from 'react';
+import {useEffect,useState,type ReactNode} from 'react';
 import {usePathname} from 'next/navigation';
+import dynamic from 'next/dynamic';
+import {isPaymentReturnDocument} from '@/app/_lib/payment-return-document';
+const ResultPaymentResume=dynamic(()=>import('./_components/ResultPaymentResume'),{ssr:false});
 import styles from './yeongnyangi.module.css';
 import './_home/original.css';
 import {useReadingLanguage} from './_lib/use-reading-language';
@@ -40,7 +43,11 @@ export default function Layout({children}:{children:ReactNode}){
  const {siteLocale}=useReadingLanguage();
  const copy=chromeCopy(siteLocale);
  const pagePath=(pathname || '').replace(/\/index\.html$/, '/');
+ // PG 복귀 문서에서만 상담 결제 재개 핸들러를 건다(일반 방문은 결제 모듈을 내려받지 않는다).
+ const [paymentReturn,setPaymentReturn]=useState(false);
+ useEffect(()=>{setPaymentReturn(isPaymentReturnDocument());},[]);
+ const resume=paymentReturn?<ResultPaymentResume/>:null;
  // 프롤로그 웹툰은 리더가 화면 전체를 쓰므로 공통 내비·푸터를 두르지 않는다.
- if(['/yeongnyangi','/yeongnyangi/','/yeongnyangi/room','/yeongnyangi/room/','/yeongnyangi/season-1/prologue','/yeongnyangi/season-1/prologue/'].includes(pagePath))return children;
- return <main className={styles.page} data-yn-night lang={siteLocale}><nav className={styles.nav} aria-label={copy.home}><a href={`/yeongnyangi/?lang=${siteLocale}`}>{copy.home}</a><div><a href={`/yeongnyangi/library/?lang=${siteLocale}`}>{copy.library}</a><a href={`/?lang=${siteLocale}`}>꿀꿀운세</a><LocaleSwitcher preservePath locale={siteLocale}/></div></nav>{children}<footer className={styles.footer}><p>Yeongnyangi · 꿀꿀운세</p><a href={`/terms/?lang=${siteLocale}`}>{copy.terms}</a> · <a href={`/privacy-policy/?lang=${siteLocale}`}>{copy.privacy}</a> · <a href={`/refund-policy/?lang=${siteLocale}`}>{copy.refund}</a> · <a href={`/contact/?lang=${siteLocale}`}>{copy.contact}</a></footer></main>;
+ if(['/yeongnyangi','/yeongnyangi/','/yeongnyangi/room','/yeongnyangi/room/','/yeongnyangi/season-1/prologue','/yeongnyangi/season-1/prologue/'].includes(pagePath))return <>{resume}{children}</>;
+ return <main className={styles.page} data-yn-night lang={siteLocale}>{resume}<nav className={styles.nav} aria-label={copy.home}><a href={`/yeongnyangi/?lang=${siteLocale}`}>{copy.home}</a><div><a href={`/yeongnyangi/library/?lang=${siteLocale}`}>{copy.library}</a><a href={`/?lang=${siteLocale}`}>꿀꿀운세</a><LocaleSwitcher preservePath locale={siteLocale}/></div></nav>{children}<footer className={styles.footer}><p>Yeongnyangi · 꿀꿀운세</p><a href={`/terms/?lang=${siteLocale}`}>{copy.terms}</a> · <a href={`/privacy-policy/?lang=${siteLocale}`}>{copy.privacy}</a> · <a href={`/refund-policy/?lang=${siteLocale}`}>{copy.refund}</a> · <a href={`/contact/?lang=${siteLocale}`}>{copy.contact}</a></footer></main>;
 }
