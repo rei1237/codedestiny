@@ -62,7 +62,7 @@ export async function lateAccessDenialSettlement({ fresh, doc, userId, idempoten
     const reason = String(fresh?.reason || "PAYMENT_REQUIRED").trim();
     console.warn("paid_delivery_usage_settlement_failed", { service, sessionId: String(doc.id || doc._id || ""), reason, stage: "access_recheck" });
     return { usageSettlement: "failed", usageSettlementReason: reason, usageSettlementFailedAt: new Date().toISOString() };
-  } catch (_) {
+  } catch {
     return null;
   }
 }
