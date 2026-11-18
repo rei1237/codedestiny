@@ -103,8 +103,15 @@ CODE_DESTINY_ANDROID_KEY_PASSWORD=your-key-password
 
 ```powershell
 npm.cmd install
+# Gradle 이 읽는 Capacitor 네이티브 라이브러리는 루트가 아니라 앱 전용 설치본이다
+# (apps/mobile/android/capacitor.settings.gradle → ../node_modules, 버전은 apps/mobile/package.json 고정값).
+# 이 단계를 빼면 Gradle 이 없는 경로를 읽어 실패하거나, 다른 체크아웃의 낡은 버전을 쓴다.
+npm.cmd install --prefix apps/mobile --no-package-lock --ignore-scripts
 npm.cmd run mobile:android:sync
 ```
+
+네이티브 라이브러리(.so): 2026-11-18 디버그 AAB 실측 0개(릴리스 전용 네이티브 의존성 없음) — Google Play 16KB 페이지 정렬 요건은 해당 없음.
+새 플러그인·SDK 를 추가하면 `unzip -l <aab> | grep '[.]so$'` 로 다시 확인한다.
 
 Capacitor 명령만 다시 실행해야 할 때:
 

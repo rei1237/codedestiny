@@ -1,4 +1,4 @@
-@import "./home-consultation-picker.css";
+/* Picker CSS is linked first with its own content hash in the legacy shell. */
 /* First visit: one consultation entry, with the full catalogue available on demand. */
 .cdh-start-links{display:flex;flex-wrap:wrap;gap:4px 20px;margin-top:12px}
 .cdh-start-links a{display:inline-flex;align-items:center;min-height:44px;color:var(--cdh-ink);font-size:14px;text-decoration:underline;text-underline-offset:4px}

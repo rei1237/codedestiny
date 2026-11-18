@@ -8,8 +8,11 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.os.SystemClock;
 import android.view.View;
 import android.view.WindowManager;
+import android.webkit.RenderProcessGoneDetail;
+import android.webkit.WebView;
 
 import androidx.core.splashscreen.SplashScreen;
 import androidx.core.view.WindowCompat;
@@ -24,6 +27,7 @@ import com.getcapacitor.Bridge;
 import com.getcapacitor.BridgeActivity;
 import com.getcapacitor.ProcessedRoute;
 import com.getcapacitor.RouteProcessor;
+import com.getcapacitor.WebViewListener;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -98,6 +102,7 @@ public class MainActivity extends BridgeActivity {
         // BridgeActivity.onCreate 가 bridgeBuilder.create() 로 브리지를 만들어 버린다.
         installRouteProcessor();
         super.onCreate(savedInstanceState);
+        installRendererRecovery();
 
         // Draw edge-to-edge so the WebView receives real system-bar/display-cutout insets.
         // This is what makes CSS env(safe-area-inset-*) resolve to non-zero values at first
@@ -332,12 +337,53 @@ public class MainActivity extends BridgeActivity {
      * 숫자 비교 하나로 충분하다.
      *
      * 🔴 쓰지 않는 것: WebView.onPause()/pauseTimers() 는 배경 음악·잠금화면 FGS 의 타이머를 멎게 하고,
-     * setRendererPriorityPolicy(WAIVED) 는 렌더러가 죽으면 Capacitor 의 onRenderProcessGone 이 false 를
-     * 돌려 프로세스가 통째로 죽는다. freeMemory() 는 deprecated(시스템 압박 시 자동 해제).
+     * setRendererPriorityPolicy(WAIVED) 는 렌더러가 자주 회수되게 만든다 — installRendererRecovery 가
+     * 액티비티를 재생성해 복구하지만, 그때마다 화면이 처음부터 다시 그려진다. freeMemory() 는 deprecated(시스템 압박 시 자동 해제).
      *
      * 웹에는 "cd:app-memory-trim" 창 이벤트({level})를 보낸다. 현재 리스너는 없다 — 셸이 메모리 캐시를
      * 들고 있는 지점이 생기면 그때 붙인다.
      */
+    /** 렌더러 복구 연속 상한 — 이 창 안에서 이 횟수를 넘으면 복구를 포기한다(크래시 루프 방지). */
+    private static final long RENDERER_RECOVERY_WINDOW_MS = 60_000L;
+    private static final int RENDERER_RECOVERY_MAX = 2;
+    /** 액티비티 재생성을 넘어 유지돼야 하므로 프로세스 단위(static)로 센다. */
+    private static long rendererRecoveryWindowStart = 0L;
+    private static int rendererRecoveryCount = 0;
+
+    /**
+     * WebView 렌더러 프로세스가 죽었을 때(메모리 압박 회수·크래시) 앱 전체가 종료되지 않게 한다.
+     *
+     * Capacitor 의 BridgeWebViewClient.onRenderProcessGone 은 WebViewListener 중 하나라도 true 를
+     * 돌려주면 시스템에 "처리했다"고 알린다. 아무도 처리하지 않으면(false) 시스템이 앱 프로세스를 죽인다.
+     * 죽은 렌더러의 WebView 는 다시 쓸 수 없으므로 액티비티를 재생성해 새 WebView·브리지를 띄운다.
+     * 옛 WebView 는 창에서 떨어질 때 Bridge.onDetachedFromWindow 가 파기한다.
+     *
+     * 짧은 시간 안에 반복되면(같은 페이지가 렌더러를 계속 죽이는 경우) 무한 재시작 대신 기존 동작
+     * (false → 프로세스 종료)으로 돌아간다. 로그인 토큰·이용권 스냅샷은 localStorage 에 있어 재생성 뒤에도 유지된다.
+     */
+    private void installRendererRecovery() {
+        Bridge bridge = getBridge();
+        if (bridge == null) return;
+        bridge.addWebViewListener(new WebViewListener() {
+            @Override
+            public boolean onRenderProcessGone(WebView webView, RenderProcessGoneDetail detail) {
+                long now = SystemClock.elapsedRealtime();
+                if (now - rendererRecoveryWindowStart > RENDERER_RECOVERY_WINDOW_MS) {
+                    rendererRecoveryWindowStart = now;
+                    rendererRecoveryCount = 0;
+                }
+                rendererRecoveryCount++;
+                if (rendererRecoveryCount > RENDERER_RECOVERY_MAX || isFinishing() || isDestroyed()) {
+                    return false;
+                }
+                new Handler(Looper.getMainLooper()).post(() -> {
+                    if (!isFinishing() && !isDestroyed()) recreate();
+                });
+                return true;
+            }
+        });
+    }
+
     @Override
     public void onTrimMemory(int level) {
         super.onTrimMemory(level);

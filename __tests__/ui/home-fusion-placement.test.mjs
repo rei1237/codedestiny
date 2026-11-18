@@ -2,6 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {JSDOM} from 'jsdom';
+import {fileURLToPath} from 'node:url';
+import {createAssetCacheKeys} from '../../scripts/lib/asset-cache-keys.mjs';
 import {FEATURE_KEY_PRICE_TABLE} from '../../worker/lib/paid-feature-registry.js';
 const html=readFileSync(new URL('../../index.html',import.meta.url),'utf8');
 const d=new JSDOM(html).window.document;
@@ -34,6 +36,12 @@ test('featured fusion keeps existing lightweight decorative art without changing
  const image=card.querySelector('img');
  assert.ok(image, 'Fusion illustration must survive the home generator');
  assert.equal(image.getAttribute('src'),'/images/service-introductions/fusion-fortune-masters-v3-320.webp');
+ const source=image.parentElement.querySelector('source');
+ assert.equal(image.parentElement.tagName,'PICTURE');
+ assert.equal(source.getAttribute('media'),'(min-width: 700px)');
+ assert.equal(source.getAttribute('srcset'),'/images/service-introductions/fusion-fortune-masters-v3-640.webp 640w, /images/service-introductions/fusion-fortune-masters-v3-960.webp 960w');
+ assert.equal(source.getAttribute('sizes'),'320px');
+ assert.equal(image.hasAttribute('srcset'),false,'mobile keeps one compact asset even at high DPR');
  assert.equal(image.getAttribute('alt'),'');
  assert.equal(image.getAttribute('loading'),'lazy');
  assert.equal(image.getAttribute('decoding'),'async');
@@ -42,4 +50,19 @@ test('featured fusion keeps existing lightweight decorative art without changing
  const popup=d.querySelector('[data-signature-letter-slide][data-cd-service="fusion-fortune"] img');
  assert.ok(popup.getAttribute('srcset').includes(image.getAttribute('src')));
  assert.equal(popup.getAttribute('loading'),'lazy');
+});
+
+test('deployable shells version the picker stylesheet directly before its parent, never via a bare immutable import',()=>{
+ const css=readFileSync(new URL('../../styles/home-consultation-picker.css',import.meta.url),'utf8');
+ const parent=readFileSync(new URL('../../styles/concern-first-home.css',import.meta.url),'utf8');
+ assert.ok(!/@import[^;]*home-consultation-picker/.test(parent));
+ assert.match(css,/data-picker-fusion-featured/);
+ for(const file of ['index.html','public/index.html','public/ggulggul/index.html','public/en/index.html','public/ja/index.html','public/zh/index.html','public/zh-tw/index.html']){
+  const shell=readFileSync(new URL('../../'+file,import.meta.url),'utf8');
+  const picker=shell.match(/<link[^>]+href="(\/styles\/home-consultation-picker\.css\?v=build-[a-f0-9]{12})"[^>]*>/);
+  assert.ok(picker,file+': independently versioned picker link');
+  assert.equal(picker[1],'/styles/home-consultation-picker.css?v='+createAssetCacheKeys(fileURLToPath(new URL('../../',import.meta.url))).resolve('/styles/home-consultation-picker.css','index.html').key,file+': actual content hash');
+  assert.ok(shell.indexOf(picker[0])<shell.indexOf('<link rel="stylesheet" href="/styles/concern-first-home.css'),file+': preserve cascade order');
+ }
+ assert.equal(readFileSync(new URL('../../public/styles/home-consultation-picker.css',import.meta.url),'utf8'),css);
 });

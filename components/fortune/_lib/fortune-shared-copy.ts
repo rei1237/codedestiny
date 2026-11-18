@@ -35,6 +35,8 @@ export type FortuneSharedCopy = {
   glossaryAria: (term: string) => string;
   /** 연이 스프라이트 기본 대체 텍스트 */
   yeonSpriteAlt: string;
+  /** AI 결과 신고 링크(Google Play AI 생성 콘텐츠 정책) */
+  aiReportLabel: string;
 };
 
 const SHARED_KO: FortuneSharedCopy = {
@@ -53,6 +55,7 @@ const SHARED_KO: FortuneSharedCopy = {
   basisLoadingDetail: "잠시만 기다려 주세요",
   glossaryAria: (term) => `${term} 용어 설명`,
   yeonSpriteAlt: "연이 스프라이트",
+  aiReportLabel: "AI 결과가 틀렸거나 불쾌한가요? 신고하기",
 };
 
 const SHARED_EN: FortuneSharedCopy = {
@@ -71,6 +74,7 @@ const SHARED_EN: FortuneSharedCopy = {
   basisLoadingDetail: "This will take a moment",
   glossaryAria: (term) => `What ${term} means`,
   yeonSpriteAlt: "Yeoni sprite",
+  aiReportLabel: "Something wrong or offensive in this AI reading? Report it",
 };
 
 const SHARED_JA: FortuneSharedCopy = {
@@ -89,6 +93,7 @@ const SHARED_JA: FortuneSharedCopy = {
   basisLoadingDetail: "少しだけお待ちください",
   glossaryAria: (term) => `${term}の用語説明`,
   yeonSpriteAlt: "ヨニのスプライト",
+  aiReportLabel: "AIの結果に誤りや不快な内容がありますか？報告する",
 };
 
 const SHARED_ZH_CN: FortuneSharedCopy = {
@@ -107,6 +112,7 @@ const SHARED_ZH_CN: FortuneSharedCopy = {
   basisLoadingDetail: "请稍候片刻",
   glossaryAria: (term) => `${term}的术语说明`,
   yeonSpriteAlt: "缘伊的精灵图",
+  aiReportLabel: "AI 结果有误或令人不适？举报",
 };
 
 const SHARED_ZH_TW: FortuneSharedCopy = {
@@ -125,6 +131,7 @@ const SHARED_ZH_TW: FortuneSharedCopy = {
   basisLoadingDetail: "請稍候片刻",
   glossaryAria: (term) => `${term}的術語說明`,
   yeonSpriteAlt: "緣伊的精靈圖",
+  aiReportLabel: "AI 結果有誤或令人不適？檢舉",
 };
 
 /** 🔴 ko·en·ja·zh-CN·zh-TW 만 채운다. 나머지 일곱은 영어로 폴백. */

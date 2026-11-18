@@ -19,7 +19,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useT } from "../../lib/i18n/useT";
-import { getApiBaseUrl } from "../_lib/api-config";
+import { authFetch, clearClientAuthState } from "../_lib/auth-client";
 import { useBodyScrollLock } from "../_lib/body-scroll-lock";
 
 // ─────────────────────────────────────────────────────────────────
@@ -65,7 +65,6 @@ function clearClientStorage() {
  */
 export default function WithdrawModal({ isOpen, onClose, hasLocalAuth = true }) {
   const t = useT();
-  const apiBase = getApiBaseUrl();
   useBodyScrollLock(Boolean(isOpen));
   // 입력 상태
   const [password, setPassword]         = useState("");
@@ -88,14 +87,15 @@ export default function WithdrawModal({ isOpen, onClose, hasLocalAuth = true }) 
   // ── CSRF 토큰 발급 ─────────────────────────────────────────────
   const fetchCsrfToken = useCallback(async () => {
     try {
-      const res = await fetch(`${apiBase}/api/auth/withdraw`, { method: "GET" });
+      // authFetch: 앱(Capacitor)에서는 Bearer·앱 런타임 헤더를 붙이고, 웹에서는 쿠키를 함께 보낸다.
+      const res = await authFetch("/api/auth/withdraw", { method: "GET", cache: "no-store" });
       if (!res.ok) throw new Error("CSRF 토큰 발급 실패");
       const data = await res.json();
       csrfTokenRef.current = data.csrfToken || "";
     } catch (e) {
       setError(t("withdrawModal.csrfFetchError"));
     }
-  }, [apiBase, t]);
+  }, [t]);
 
   // 모달 오픈 시 상태 초기화 + CSRF 토큰 발급
   useEffect(() => {
@@ -154,7 +154,7 @@ export default function WithdrawModal({ isOpen, onClose, hasLocalAuth = true }) 
     setIsSubmitting(true);
 
     try {
-      const res = await fetch(`${apiBase}/api/auth/withdraw`, {
+      const res = await authFetch("/api/auth/withdraw", {
         method: "POST",
         headers: {
           "Content-Type":  "application/json",
@@ -183,6 +183,13 @@ export default function WithdrawModal({ isOpen, onClose, hasLocalAuth = true }) 
       // ── 탈퇴 성공 처리 ─────────────────────────────────────────
       // 클라이언트 저장소 초기화 (서버 쿠키는 응답으로 이미 만료됨)
       clearClientStorage();
+      try {
+        // 앱 리프레시 토큰·이용권 스냅샷까지 지우고, 앱 기기에 저장된 로그인 자격증명도 지운다.
+        clearClientAuthState();
+        window.CodeDestinyNative?.credentials?.clear?.();
+      } catch (cleanupError) {
+        // 정리 실패가 탈퇴 완료 안내를 막지 않는다.
+      }
 
       if (data.partialFailure) {
         // 부분 실패: 처리는 완료되었으나 일부 단계 오류 발생
