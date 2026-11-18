@@ -15,9 +15,10 @@ import styles from './heukwol.module.css';
 const FEATURE='heukwol-warning-consultation';
 type Input={profileId:string;year:number;question:string;requestId:string};
 type Pricing={cost:number;amountKRW:number;displayPrice:string};
+type ApiError=Error&{code?:string;status?:number};
 async function api(path:string,body?:unknown){
  const response=await authFetch(`/api/heukwol/${path}`,body?{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}:{});
- const data=await response.json();if(!response.ok)throw new Error(data.message||'상담 정보를 확인하지 못했어요. 잠시 후 다시 시도해 주세요.');return data;
+ const data=await response.json();if(!response.ok)throw Object.assign(new Error(data.message||'상담 정보를 확인하지 못했어요. 잠시 후 다시 시도해 주세요.'),{code:String(data.code||''),status:response.status});return data;
 }
 export default function HeukwolClient(){
  const [year,setYear]=useState(()=>Number(new Intl.DateTimeFormat('en',{timeZone:'Asia/Seoul',year:'numeric'}).format(new Date())));
@@ -25,20 +26,33 @@ export default function HeukwolClient(){
  const [state,setState]=useState<HeukwolState|null>(null),[busy,setBusy]=useState(false),[message,setMessage]=useState(''),[showForm,setShowForm]=useState(false);
  const [adding,setAdding]=useState(false);
  const operation=useRef(0),mounted=useRef(true),pending=useRef<Input|null>(null),owner=useRef(''),flight=useRef(false),authEpoch=useRef(0);
+ // latest: 화면에 보인 마지막 상태. looping/following: 이어쓰기 루프와 그 직전 상태 조회가 하나만 돌게 하는 가드.
+ const latest=useRef<HeukwolState|null>(null),looping=useRef(0),following=useRef(false);
  const delivery=useRef<{requestId:string;account:string;epoch:number;promise:Promise<boolean>}|null>(null);
  const capture=()=>{const account=readDestinyProfileAccountId(),epoch=authEpoch.current;return ()=>mounted.current&&epoch===authEpoch.current&&account===readDestinyProfileAccountId();};
  const validOwner=useCallback(()=>mounted.current && owner.current===readDestinyProfileAccountId(),[]);
  const receive=useCallback(async(initial:HeukwolState)=>{
-  const ticket=++operation.current;let current=initial;
+  const ticket=++operation.current;let current=initial,misses=0;
   const isCurrent=()=>validOwner() && ticket===operation.current;
-  while(isCurrent()){
-   setState(current);setShowForm(true);
-   if(current.id){const url=new URL(location.href);url.searchParams.set('result',current.id);history.replaceState(history.state,'',url);}
-   if(current.status!=='generating')break;
-   if(document.visibilityState==='hidden'||!navigator.onLine){setMessage('완성된 장은 저장했어요. 화면으로 돌아와 이어서 작성할 수 있어요.');break;}
-   await new Promise(resolve=>setTimeout(resolve,1200));if(!isCurrent())return;
-   current=await api('continue',{id:current.id});
-  }
+  looping.current=ticket;
+  try{
+   while(isCurrent()){
+    latest.current=current;setState(current);setShowForm(true);
+    if(current.id){const url=new URL(location.href);url.searchParams.set('result',current.id);history.replaceState(history.state,'',url);}
+    if(current.status!=='generating')break;
+    if(document.visibilityState==='hidden'||!navigator.onLine){setMessage('완성된 장은 저장했어요. 화면으로 돌아오면 이어서 작성해요.');break;}
+    await new Promise(resolve=>setTimeout(resolve,1200*(misses+1)));if(!isCurrent())return;
+    try{current=await api('continue',{id:current.id});if(misses)setMessage('');misses=0;}
+    catch(e){
+     const {code,status}=e as ApiError;
+     // 종결 실패는 서버가 닫고 환불한 상태를 다시 읽어 실패·환불 안내로 바꾼다.
+     if(code==='HEUKWOL_DELIVERY_FAILED'){const id=current.id;current=await api(`result?id=${encodeURIComponent(id)}`).catch(()=>({...current,status:'failed' as const}));continue;}
+     // 일시 장애(5xx·네트워크·진행 상태 경합)는 생성 화면을 유지한 채 몇 번 더 이어 간다. 서버 복구 cron 도 같은 상담을 이어 쓴다.
+     if(status&&status<500&&code!=='EXECUTION_CHANGED'||++misses>3)throw e;
+     setMessage('연결을 다시 확인하고 있어요. 완성된 장은 보관돼 있어요.');
+    }
+   }
+  }finally{if(looping.current===ticket)looping.current=0;}
  },[validOwner]);
  // 승인된 주문 복구는 PG 창 응답을 기다리는 start()와 독립적으로 시작한다.
  // 복구 폴링·수동 재개·뒤늦은 PG 콜백은 같은 요청의 실행 하나를 공유한다.
@@ -53,15 +67,35 @@ export default function HeukwolClient(){
   })().catch(error=>{if(delivery.current?.promise===promise)delivery.current=null;throw error;});
   delivery.current={requestId:input.requestId,account,epoch,promise};return promise;
  },[receive]);
+ // 탭 복귀·재방문·이어서 작성하기: 서버의 현재 상태를 읽고 생성 중이면 같은 루프로 이어 쓴다. 이미 돌고 있으면 새로 시작하지 않는다.
+ const follow=useCallback(async(id:string)=>{
+  if(following.current||looping.current)return;following.current=true;const current=capture();setBusy(true);setMessage('');
+  try{const data=await api(`result?id=${encodeURIComponent(id)}`);if(current())await receive(data);}
+  catch(e){if(current())setMessage((e as Error).message);}
+  finally{following.current=false;if(current()&&!flight.current)setBusy(false);}
+ // eslint-disable-next-line react-hooks/exhaustive-deps
+ },[receive]);
  useEffect(()=>{
   mounted.current=true;owner.current=readDestinyProfileAccountId();
   api('pricing').then(data=>{if(mounted.current)setPricing(data.pricing);}).catch(()=>setMessage('가격을 확인하지 못했어요. 새로고침 후 다시 확인해 주세요.'));
-  const current=capture();const id=new URL(location.href).searchParams.get('result');
-  if(id){setShowForm(true);setBusy(true);api(`result?id=${encodeURIComponent(id)}`).then(data=>{if(current())setState(data);}).catch(e=>{if(current())setMessage(e.message);}).finally(()=>{if(current())setBusy(false);});}
-  const changed=()=>{if(owner.current!==readDestinyProfileAccountId()){operation.current++;authEpoch.current++;owner.current=readDestinyProfileAccountId();pending.current=null;delivery.current=null;flight.current=false;setState(null);setProfileId('');setQuestion('');setBusy(false);setMessage('계정이 변경되었어요. 프로필을 다시 선택해 주세요.');}};
+  // 새로고침·뒤로 가기·결제 리다이렉트 뒤 재방문: 완성본은 그대로 보여 주고, 생성 중이면 자동으로 이어 쓴다.
+  const id=new URL(location.href).searchParams.get('result');
+  if(id){setShowForm(true);void follow(id);}
+  const changed=()=>{if(owner.current!==readDestinyProfileAccountId()){operation.current++;authEpoch.current++;owner.current=readDestinyProfileAccountId();pending.current=null;delivery.current=null;flight.current=false;latest.current=null;looping.current=0;following.current=false;setState(null);setProfileId('');setQuestion('');setBusy(false);setMessage('계정이 변경되었어요. 프로필을 다시 선택해 주세요.');}};
   window.addEventListener('storage',changed);window.addEventListener('focus',changed);window.addEventListener('cd:auth-changed',changed);
   return()=>{mounted.current=false;operation.current++;authEpoch.current++;window.removeEventListener('storage',changed);window.removeEventListener('focus',changed);window.removeEventListener('cd:auth-changed',changed);};
- },[validOwner]);
+ },[follow]);
+ useEffect(()=>{
+  // 숨은 탭·오프라인에서 멈춘 생성을 복귀·온라인·bfcache 복원 때 이어 쓴다(네오 결과 화면과 같은 이벤트).
+  const wake=(event:Event)=>{
+   if(event.type==='pageshow'&&!(event as PageTransitionEvent).persisted)return;
+   const shown=latest.current;
+   if(document.visibilityState==='hidden'||!navigator.onLine||flight.current||shown?.status!=='generating'||!shown.id)return;
+   void follow(shown.id);
+  };
+  document.addEventListener('visibilitychange',wake);window.addEventListener('online',wake);window.addEventListener('pageshow',wake);
+  return()=>{document.removeEventListener('visibilitychange',wake);window.removeEventListener('online',wake);window.removeEventListener('pageshow',wake);};
+ },[follow]);
  useEffect(()=>{
   const handler=async(descriptor:{args?:Record<string,unknown>})=>{
    const raw=descriptor.args?.payload;if(typeof raw!=='string')return false;
@@ -87,7 +121,7 @@ export default function HeukwolClient(){
    await deliver(input);
   }catch(e){if(current())setMessage((e as Error).message);}finally{if(current()){flight.current=false;setBusy(false);}}
  }
- async function resume(){if(!state||flight.current)return;flight.current=true;const current=capture();setBusy(true);setMessage('');try{const data=await api(`result?id=${encodeURIComponent(state.id)}`);if(current())await receive(data);}catch(e){if(current())setMessage((e as Error).message);}finally{if(current()){flight.current=false;setBusy(false);}}}
+ async function resume(){if(!state||flight.current)return;await follow(state.id);}
  return <main className={styles.page} lang="ko" data-cd-no-trans>
   <link rel="stylesheet" href="/styles/service-intro-fonts.css"/>
   <nav className={styles.nav}><a href="/">꿀꿀 운세</a><button onClick={()=>{setShowForm(true);document.getElementById('heukwol-profile')?.scrollIntoView();}}>이야기 건너뛰기</button></nav>

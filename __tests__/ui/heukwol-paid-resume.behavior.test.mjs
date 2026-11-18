@@ -23,13 +23,18 @@ const compiled={exports:{}};new Function('require','module','exports',bundled.ou
 const price={cost:500,amountKRW:50000,displayPrice:'50,000원'};
 const completed={ok:true,id:'heukwol:saved',status:'completed',completedChapters:27,totalChapters:27,report:{}};
 const deferred=()=>{let resolve,reject;const promise=new Promise((yes,no)=>{resolve=yes;reject=no;});return {promise,resolve,reject};};
-async function fixture(){
- const dom=new JSDOM('<div id="root"></div>',{url:'https://mock.test/heukwol/'});
+// respond(url,body) 가 값을 주면 그 응답({status,data})을 쓰고, 없으면 기본 응답을 쓴다.
+async function fixture({url='https://mock.test/heukwol/',respond=null,hidden=false}={}){
+ const dom=new JSDOM('<div id="root"></div>',{url});
  for(const name of ['window','document','location','history'])globalThis[name]=name==='window'?dom.window:dom.window[name];
+ Object.defineProperty(globalThis,'navigator',{configurable:true,value:dom.window.navigator});
+ let visibility=hidden?'hidden':'visible';Object.defineProperty(dom.window.document,'visibilityState',{configurable:true,get:()=>visibility});
  globalThis.IS_REACT_ACT_ENVIRONMENT=true;
  const gate=deferred(),start=deferred(),calls=[];
- const runtime={account:'owner',handler:null,input:null,gateCalls:0,gate(input){this.input=input;this.gateCalls++;return gate.promise;},fetch:async(url,init)=>{
+ const runtime={account:'owner',handler:null,input:null,gateCalls:0,setVisible(value){visibility=value?'visible':'hidden';},gate(input){this.input=input;this.gateCalls++;return gate.promise;},fetch:async(url,init)=>{
   calls.push({url,body:init?.body?JSON.parse(init.body):null});
+  const custom=respond&&await respond(url,init?.body?JSON.parse(init.body):null);
+  if(custom){const status=custom.status||200;return {ok:status<300,status,json:async()=>custom.data};}
   const data=url.endsWith('/start')?await start.promise:url.endsWith('/prepare')||url.endsWith('/pricing')?{ok:true,pricing:price}:completed;
   return {ok:true,json:async()=>data};
  }};globalThis.__heukwolTest=runtime;
@@ -92,5 +97,48 @@ test('a failed delivery can retry the same paid request without another gate',as
   await act(async()=>f.gate.resolve({ok:true}));
   assert.equal(retryCalls.length,1);assert.equal(retryCalls[0].body.requestId,f.runtime.input.requestId);
   assert.equal(f.runtime.gateCalls,1);assert.match(document.body.textContent,/저장된 상담 본문/);
+ }finally{await f.close();}
+});
+
+const generating=(n,id='heukwol:paid')=>({ok:true,id,status:'generating',completedChapters:n,totalChapters:27});
+const resultUrl='https://mock.test/heukwol/?result=heukwol%3Apaid';
+async function until(check,ms=9000){const end=Date.now()+ms;while(!check()){if(Date.now()>end)throw new Error('timed out: '+document.body.textContent.slice(0,200));await act(async()=>{await new Promise(r=>setTimeout(r,40));});}}
+
+test('a generation paused in a background tab resumes on return with a single loop, however many wake events fire',async()=>{
+ let continues=0,active=0,peak=0;
+ const f=await fixture({url:resultUrl,hidden:true,respond:async url=>{
+  if(url.includes('/result?'))return {data:generating(continues+1)};
+  if(url.endsWith('/continue')){continues++;active++;peak=Math.max(peak,active);await new Promise(r=>setTimeout(r,30));active--;return {data:continues>=2?completed:generating(2)};}
+ }});
+ try{
+  await until(()=>document.body.textContent.includes('1 / 27장 저장'));
+  await act(async()=>{await new Promise(r=>setTimeout(r,1500));});
+  assert.equal(continues,0,'a hidden tab must not keep writing');
+  f.runtime.setVisible(true);
+  await act(async()=>{document.dispatchEvent(new window.Event('visibilitychange'));document.dispatchEvent(new window.Event('visibilitychange'));window.dispatchEvent(new window.Event('online'));window.dispatchEvent(new window.PageTransitionEvent('pageshow',{persisted:true}));});
+  await until(()=>/저장된 상담 본문/.test(document.body.textContent));
+  assert.equal(peak,1,'continue requests must never overlap');
+  assert.equal(continues,2);
+ }finally{await f.close();}
+});
+
+test('revisiting ?result= of an unfinished paid generation continues it without a click',async()=>{
+ const f=await fixture({url:resultUrl,respond:async url=>url.includes('/result?')?{data:generating(3)}:url.endsWith('/continue')?{data:completed}:null});
+ try{
+  await until(()=>/저장된 상담 본문/.test(document.body.textContent));
+  assert.equal(f.calls.filter(c=>c.url.endsWith('/continue')).length,1);
+  assert.equal(f.runtime.gateCalls,0);
+ }finally{await f.close();}
+});
+
+test('a transient continue failure keeps the generating screen and retries on its own',async()=>{
+ let continues=0;
+ const f=await fixture({url:resultUrl,respond:async url=>{
+  if(url.includes('/result?'))return {data:generating(1)};
+  if(url.endsWith('/continue'))return ++continues===1?{status:503,data:{ok:false,code:'HEUKWOL_RETRYABLE',message:'완성된 장은 보관했어요. 이어서 작성하기를 눌러 주세요.'}}:{data:completed};
+ }});
+ try{
+  await until(()=>/저장된 상담 본문/.test(document.body.textContent));
+  assert.equal(continues,2);
  }finally{await f.close();}
 });
