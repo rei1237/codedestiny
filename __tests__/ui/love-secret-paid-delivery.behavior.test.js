@@ -6,6 +6,7 @@ const ts = require('typescript');
 const { webcrypto } = require('node:crypto');
 const { runWithAiLocale, getAmbientAiLocale, storedAiLocale } = require('../../worker/lib/ai-locale-context.js');
 const { toAiLocale, AI_OUTPUT_LOCALES } = require('../../lib/i18n/ai-locale.js');
+const { consultationRefundState } = require('../../worker/lib/consultation-refund-state.js');
 const clone = value => value == null ? value : JSON.parse(JSON.stringify(value));
 const get = (value, key) => key.split('.').reduce((at, part) => at?.[part], value);
 function set(value, key, data) {
@@ -32,6 +33,7 @@ function load(ctx, file, names) {
 }
 function fixture(accessType = 'pass') {
   let doc = null, providerCalls = 0, refunds = 0, usage = 0, fault = null, permitted = true, owner = 'owner';
+  const accessQueue = []; let passOrder = null, withdrawn = false, revokedUse = false;
   const chain = value => ({ lean: async () => clone(value), select: () => chain(value), sort:()=>chain(value) });
   const ctx = vm.createContext({ ...require('../../worker/lib/consultation-answer-contract.js'), sajuAuthorityOn: () => false, nativeTossContext:()=>null, runWithAiLocale, getAmbientAiLocale, storedAiLocale, toAiLocale, Request, Response, Headers, URL, Date, JSON, Map, crypto: webcrypto,
     // 증빙 claim 은 billing-evidence-claim.test.js 가 따로 검증한다 — 여기서는 통과로 둔다.
@@ -45,7 +47,12 @@ function fixture(accessType = 'pass') {
     getOptionalUserFromRequest: async () => ({ userId: owner }), connectDb: async () => {}, withMongoRetry: async (_env, fn) => fn(),
     readIdempotencyKey: (request, body) => body.idempotencyKey || request.headers.get('idempotency-key'),
     normalizeRequestBody: body => ({ ok: true, inputHash: body.inputHash || 'same-input', input: { myInfo: {}, relationshipStatus: 'single', topic: '관계', userQuestion: '질문' } }),
-    resolveStartAccess: async () => ({ ok: permitted, accessType }),
+    resolveStartAccess: async () => ((accessQueue.length ? accessQueue.shift() : permitted) ? { ok: true, accessType } : { ok: false, reason: 'PAYMENT_REQUIRED' }),
+    consultationRefundState,
+    User: { findOne: () => chain({ _id: owner, status: withdrawn ? 'withdrawn' : 'active' }) },
+    Payment: { findOne: filter => chain(filter.paymentType === 'membership_pass' ? passOrder : null) },
+    PaidExecutionRecord: { findOne: () => chain(null) }, MonthlyCreditLedger: { findOne: () => chain(null) },
+    PointHistory: { findOne: () => chain(revokedUse ? { metadata: { refundedForServiceExecution: true } } : null) },
     calculateLoveSecretAiSaju: () => ({ dayMaster: '壬' }), buildLoveSecretGroundingFacts: () => ({}),
     loginRequired: () => new Response('', { status: 401 }), invalidInput: (_message, status = 422) => new Response('', { status }),
     paymentVerifyFailed: () => new Response('', { status: 402 }), calculationFailed: () => new Response('', { status: 422 }),
@@ -83,13 +90,14 @@ function fixture(accessType = 'pass') {
   });
   load(ctx, 'worker/lib/representative-consumer-facts.js', ['pinRepresentativeFacts', 'readRepresentativeFacts']);
   load(ctx, 'worker/lib/result-storage.js', ['resultStorageUnavailable', 'resultStorageFailurePayload']);
-  load(ctx, 'worker/lib/late-usage-settlement.js', ['lateUsageSettlementFailure', 'usageSettlementSetFields']);
+  load(ctx, 'worker/lib/late-usage-settlement.js', ['lateUsageSettlementFailure', 'usageSettlementSetFields', 'lateAccessDenialSettlement']);
   load(ctx, 'worker/routes/love-secret-ai.js', ['handleStart', 'saveLoveSecretCheckpoint', 'confirmLoveSecretDelivery']);
   const post = (body = {}, env = {}) => ctx.handleStart(new Request('https://mock.test/api/love-secret-ai/generate', {
     method: 'POST', headers: { 'Content-Type': 'application/json', 'idempotency-key': 'original-paid-request' }, body: JSON.stringify(body),
   }), env);
   return { ctx, post, get doc() { return doc; }, get calls() { return providerCalls; }, get refunds() { return refunds; }, get usage() { return usage; },
-    fault: value => { fault = value; }, permitted: value => { permitted = value; }, owner: value => { owner = value; } };
+    fault: value => { fault = value; }, permitted: value => { permitted = value; }, owner: value => { owner = value; },
+    accessSequence: (...values) => { accessQueue.push(...values); }, passOrder: value => { passOrder = value; }, withdrawn: value => { withdrawn = value; }, revokedUse: value => { revokedUse = value; } };
 }
 
 for (const accessType of ['pass', 'subscription', 'paid']) test(`${accessType}: 브라우저 종료 뒤 서버가 저장된 상담만 이어 완성하고 재열람은 재생성·중복 차감하지 않는다`, async () => {
@@ -150,6 +158,36 @@ test('늦은 이용권 차감이 한도로 거절돼도 저장한 여섯 묶음�
   assert.equal(f.doc.llmMeta.usageSettlementReason, 'MONTHLY_PASS_LIMIT_EXCEEDED');
   assert.equal(f.usage, 0); assert.equal(f.calls, 6); assert.equal(f.refunds, 0);
 });
+test('전달 직전 이용권 재확인이 한도로 거절돼도 이용권으로 만든 여섯 묶음을 완료로 전달하고 미차감을 표시한다', async () => {
+  const f = fixture();
+  for (let index = 0; index < 5; index++) await f.post();
+  f.accessSequence(true, false);
+  assert.equal((await f.post()).status, 200);
+  assert.equal(f.doc.status, 'completed'); assert.equal(f.doc.llmMeta.usageSettlement, 'failed');
+  assert.equal(f.doc.llmMeta.usageSettlementReason, 'PAYMENT_REQUIRED');
+  assert.equal(f.usage, 0); assert.equal(f.calls, 6); assert.equal(f.refunds, 0);
+});
+async function pendingLoveSecretAfterStorageLoss() {
+  const f = fixture();
+  for (let index = 0; index < 5; index++) await f.post();
+  f.fault('completed');
+  assert.equal((await f.post()).status, 503); assert.equal(f.doc.status, 'delivery_pending');
+  f.permitted(false);
+  return f;
+}
+test('이용권이 소진된 뒤 재개해도 delivery_pending 상담은 재생성 없이 완료로 전달한다', async () => {
+  const f = await pendingLoveSecretAfterStorageLoss(); const consumed = f.usage;
+  assert.equal((await f.post()).status, 200);
+  assert.equal(f.doc.status, 'completed'); assert.equal(f.doc.llmMeta.usageSettlement, 'failed');
+  assert.equal(f.calls, 6); assert.equal(f.usage, consumed); assert.equal(f.refunds, 0);
+});
+for (const [label, setup] of [['이용권 주문 환불', f => f.passOrder({ status: 'refunded' })], ['회원 탈퇴', f => f.withdrawn(true)], ['이용권 사용 환불 증빙', f => f.revokedUse(true)]]) {
+  test(`${label} 뒤에는 delivery_pending 상담을 전달하지 않는다`, async () => {
+    const f = await pendingLoveSecretAfterStorageLoss(); setup(f);
+    assert.equal((await f.post()).status, 402);
+    assert.equal(f.doc.status, 'delivery_pending'); assert.equal(f.doc.llmMeta.usageSettlement, undefined); assert.equal(f.calls, 6);
+  });
+}
 test('체크포인트 저장 실패는 LLM 호출 전에 중단하며 환불로 흐르지 않는다', async () => {
   const f = fixture(); f.fault('checkpoint');
   assert.equal((await f.post()).status, 503); assert.equal(f.calls, 0); assert.equal(f.refunds, 0);

@@ -17,7 +17,7 @@ import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
 import { normalizeConsultAccessType, resolveCanonicalEntitlement, resolveFeatureAccessPolicy } from "../lib/entitlement-policy.js";
 import { consumePassForFeature, passDenialCode, refundPassUseEvidence } from "../lib/pass-consumption.js";
-import { lateUsageSettlementFailure, usageSettlementSetFields } from "../lib/late-usage-settlement.js";
+import { lateAccessDenialSettlement, lateUsageSettlementFailure, usageSettlementSetFields } from "../lib/late-usage-settlement.js";
 import { callGeminiText } from "../lib/gemini.js";
 import { getAmbientAiLocale, runWithAiLocale, storedAiLocale } from "../lib/ai-locale-context.js";
 import { toAiLocale } from "../../lib/i18n/ai-locale.js";
@@ -1624,11 +1624,12 @@ async function saveLoveSecretCheckpoint(userId, id, delivery) {
   } catch { throw resultStorageUnavailable(id); }
 }
 
-async function confirmLoveSecretDelivery(userId, pending) {
+async function confirmLoveSecretDelivery(userId, pending, settlement = null) {
   try {
     // 늦은 이용권 차감이 한도·자격 사유로 거절돼도 만든 결과는 전달한다. 일시 장애는 delivery_pending 으로 재시도시킨다.
-    let usageSettlement = null;
-    try { await applyUsageOnce({ userId, sessionId: pending.id }); }
+    // 접근 재확인이 이미 한도 거절로 정산(settlement)됐으면 차감을 다시 시도하지 않는다.
+    let usageSettlement = settlement;
+    if (!usageSettlement) try { await applyUsageOnce({ userId, sessionId: pending.id }); }
     catch (error) {
       usageSettlement = lateUsageSettlementFailure(error, { service: "love-secret-ai", sessionId: pending.id, accessType: pending.accessType });
       if (!usageSettlement) throw error;
@@ -1689,7 +1690,13 @@ async function handleStart(request, env, route = "/api/love-secret-ai/generate",
   if (!access.ok) {
     if (access.reason === "LOGIN_REQUIRED") return loginRequired();
     if (access.reason === "INVALID_INPUT") return invalidInput(access.message, 409);
-    return paymentVerifyFailed();
+    // 이용권으로 본문까지 만든 delivery_pending 상담은 재개 시점 한도 소진만으로 막지 않는다(환불·탈퇴·취소 증빙은 제외, fail-closed).
+    const pending = nativeTossContext(request) ? null : await withMongoRetry(env, () => LoveSecretAiConsultation.findOne({ userId: clean(auth.userId), idempotencyKey }).lean());
+    const settlement = pending && pending.accessSource !== "toss" && clean(pending.inputHash) === normalized.inputHash
+      ? await lateAccessDenialSettlement({ fresh: access, doc: pending, userId: auth.userId, idempotencyKey, service: "love-secret-ai", models: { User, Payment, PaidExecutionRecord, PointHistory, MonthlyCreditLedger } })
+      : null;
+    if (!settlement) return paymentVerifyFailed();
+    return json(publicSession(await confirmLoveSecretDelivery(auth.userId, pending, settlement)));
   }
   logLoveSecretAi("LLM Access Check Success", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: access.accessType, env }));
   logLoveSecretAi("LLM Payment Guard Passed", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: access.accessType, env }));
@@ -1867,9 +1874,12 @@ async function handleStart(request, env, route = "/api/love-secret-ai/generate",
     if (!completed) throw resultStorageUnavailable(sessionId);
     const finalAccess = await resolveStartAccess({ request, env, auth, body, normalized, pricing, idempotencyKey })
       .catch(() => { throw resultStorageUnavailable(sessionId); });
-    if (!finalAccess.ok) return paymentVerifyFailed();
+    // 이용권으로 여섯 묶음을 다 만든 뒤의 재확인이 한도·자격 사유로 거절되면 결과는 전달하고 미차감을 표시한다(증빙 확인은 공용 판정).
+    const finalSettlement = finalAccess.ok || !generated.complete || nativeTossContext(request) ? null
+      : await lateAccessDenialSettlement({ fresh: finalAccess, doc: completed, userId: auth.userId, idempotencyKey, service: "love-secret-ai", models: { User, Payment, PaidExecutionRecord, PointHistory, MonthlyCreditLedger } });
+    if (!finalAccess.ok && !finalSettlement) return paymentVerifyFailed();
     const finalDoc = generated.complete
-      ? await confirmLoveSecretDelivery(auth.userId, completed)
+      ? await confirmLoveSecretDelivery(auth.userId, completed, finalSettlement)
       : await LoveSecretAiConsultation.findOne({ id: sessionId, userId: clean(auth.userId) }).lean().catch(() => { throw resultStorageUnavailable(sessionId); });
     if (!finalDoc || finalDoc.status !== (generated.complete ? "completed" : "partial")) throw resultStorageUnavailable(sessionId);
     logLoveSecretAi("LLM Generate Success", {
