@@ -178,9 +178,9 @@
     },
     {
       "id": "ep-45:29",
-      "source": "서한비의 우산 끝이 떨렸다. 대답하려는 입술이 움직였지만 소리가 나오지 않았다. 그 말은 서한비가 매일 밤 장부에 적던 말이었다.",
-      "sourceHash": "41484a20986248c18222d1bafa678fef07f865ebb308e8eb7ccb062aa6266e2b",
-      "t": "Seo Hanbi's umbrella tip trembled. Her lips moved to answer, but no sound emerged. Those were the words she wrote in her ledger every night."
+      "source": "서한비의 우산 끝이 떨렸다. 대답하려는 입술이 움직였지만 소리가 나오지 않았다.",
+      "sourceHash": "21655d8c6dcf0d03ee00bca486ba403dc8bc063089e3fd40c517a58e3273eb9b",
+      "t": "Seo Hanbi's umbrella tip trembled. Her lips moved to answer, but no sound emerged."
     },
     {
       "id": "ep-45:30",
@@ -238,9 +238,9 @@
     },
     {
       "id": "ep-45:39",
-      "source": "서한비가 둘을 번갈아 보았다. 마른 연이의 웃음이 익숙했다. 너무 익숙해서 숨이 막혔다.",
-      "sourceHash": "cd00a61359f6084d7209cb56c4320471bf96a29dc5de1ae6ccb824f1222f1689",
-      "t": "Seo Hanbi looked between them. Dry Yeoni's smile was familiar. So familiar she couldn't breathe."
+      "source": "서한비가 둘을 번갈아 보았다. 마른 연이의 웃음이 익숙했다. 너무 익숙해서 눈을 돌렸다.",
+      "sourceHash": "7cb5e4ab6135676bfb5b7aa6a50f78e66c8763b787b6b014a30d3ba3ed147928",
+      "t": "Seo Hanbi looked between them. Dry Yeoni's smile was familiar. So familiar she looked away."
     },
     {
       "id": "ep-45:40",
@@ -310,8 +310,8 @@
     },
     {
       "id": "ep-45:51",
-      "source": "그때는 못 골랐어요. 이번엔 고를 수 있어요.",
-      "sourceHash": "35908f76aea7e9c89bd019f1ccb3ee5819a511fefe365159e8b2f7851b828a51",
+      "source": "그때는 못 골랐어요. 지금은 고를 수 있어요.",
+      "sourceHash": "03323f78296567c8d11f32c52ea126fbc3e8137bda0f25b9d103e01cd9157672",
       "t": "I couldn't then. I can now."
     },
     {
@@ -412,9 +412,9 @@
     },
     {
       "id": "ep-45:68",
-      "source": "이름이 먼저 입 밖으로 나왔다. 누구인지 떠올릴 수 없는데, 은빛 외투 자락을 보자 손끝이 떨렸다.",
-      "sourceHash": "f79f08bb2cb45ae9990c371578a0fce0b7bf99a8212a6b52964d6688f623c6b2",
-      "t": "The name escaped first. Yeoni couldn't recall who he was, but at the sight of the silver coat hem, their fingertips trembled."
+      "source": "이름이 먼저 입 밖으로 나왔다. 누구인지 떠올릴 수 없는데, 은빛 외투 자락을 보자 발이 먼저 그쪽으로 갔다.",
+      "sourceHash": "4d1384e0db266324ff135a0bb510c73e406fa7705b288727f71e52cff9872ffa",
+      "t": "The name escaped first. Yeoni couldn't recall who he was, but at the sight of the silver coat hem, their feet moved toward him first."
     },
     {
       "id": "ep-45:69",
@@ -508,9 +508,9 @@
     },
     {
       "id": "ep-45:84",
-      "source": "젖은 쪽이요. 연이 씨는 늘 젖은 쪽이에요.",
-      "sourceHash": "91d3b83ac690cdb243f248e9fdb227f1d3720c3a9b43ce2609678f48fd4718c5",
-      "t": "The wet one. You're always the wet one, Yeoni."
+      "source": "젖은 쪽이요.",
+      "sourceHash": "3c48b2e3901eed6282c3461203a53395b2c337e390aee6e2a0b1c4c2620aec40",
+      "t": "The wet one."
     },
     {
       "id": "ep-45:85",
@@ -610,9 +610,9 @@
     },
     {
       "id": "ep-45:101",
-      "source": "이번엔 문패가 비었네요. 읽을 것도 없어요.",
-      "sourceHash": "e09c1a1d0610d5d987cb5a5c99a7c6d3ccccd354074bd174ae0a8b23e0aec308",
-      "t": "An empty nameplate this time. Nothing to read."
+      "source": "문패가 비었네요. 읽을 것도 없어요.",
+      "sourceHash": "d05ad946999d2e2134613b03b9f49bcd1efebabc492a429b60ad99cba2b31062",
+      "t": "An empty nameplate. Nothing to read."
     },
     {
       "id": "ep-45:102",
@@ -670,9 +670,9 @@
     },
     {
       "id": "ep-45:111",
-      "source": "연이의 손이 손잡이 위에서 굳었다. 누구의 목소리인지 몰랐다. 그런데 눈물이 먼저 났다. 연이는 자기 발을 내려다보았다. 짝이 다른 양말이었다.",
-      "sourceHash": "68023046c20c6f757b2f4fdcc511c4b7d677aa127b05962de6c60451d597d08e",
-      "t": "Yeoni's hand froze on the handle. They didn't know whose voice it was. But the tears came first. They looked down at their feet. Mismatched socks."
+      "source": "연이의 손이 손잡이 위에서 굳었다. 누구의 목소리인지 몰랐다. 그런데 대답하려고 입이 먼저 열렸다. 연이는 자기 발을 내려다보았다. 짝이 다른 양말이었다.",
+      "sourceHash": "677644fa16af479b6b3cef2f254d2d8765794f70aa686f2c4167e2e72ed8906f",
+      "t": "Yeoni's hand froze on the handle. They didn't know whose voice it was. But their mouth opened to answer first. They looked down at their feet. Mismatched socks."
     }
   ]
 }

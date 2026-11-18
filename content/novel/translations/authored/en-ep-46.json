@@ -232,9 +232,9 @@
     },
     {
       "id": "ep-46:38",
-      "source": "그리고 박수는 빌리는 거 아니야. 받는 거지. 그 차이 모르면 공연하지 마.",
-      "sourceHash": "0038ad33469b040c5ca003e358addbf6b2ebcd582b73a124b6ed5234fdcc1291",
-      "t": "And applause isn't borrowed. It's received. If you don't know the difference, don't perform."
+      "source": "그리고 박수는 빌려서 치는 거 아니야. 그것도 모르면 공연하지 마.",
+      "sourceHash": "0b28858b1de317c83dd39ea718649393a9fa5e0dc8a7029e295836e6a3f1d19d",
+      "t": "And you don't borrow applause to clap with. If you don't even know that, don't perform."
     },
     {
       "id": "ep-46:39",
@@ -292,9 +292,9 @@
     },
     {
       "id": "ep-46:48",
-      "source": "서한비의 숨이 멎었다. 정류장의 빗소리가 너무 진짜 같았다. 봉투에 적힌 글씨가 보였다. 같이 바다 가기.",
-      "sourceHash": "05329583b8196c57ad04571beab8f7b68fc96790ac7f335cf36a5baa4b19cb79",
-      "t": "Seo Hanbi stopped breathing. The rain sounded too real. She could read the envelope: Go to the sea together."
+      "source": "서한비가 한 걸음 물러섰다. 정류장의 빗소리가 너무 진짜 같았다. 봉투에 적힌 글씨가 보였다. 같이 바다 가기.",
+      "sourceHash": "24b39f952a1a3a6e1bdc767b1c1a4252414fa8b695cf960cd75f746645c5e91c",
+      "t": "Seo Hanbi took a step back. The rain sounded too real. She could read the envelope: Go to the sea together."
     },
     {
       "id": "ep-46:49",
@@ -328,9 +328,9 @@
     },
     {
       "id": "ep-46:54",
-      "source": "서한비가 정류장을 손으로 덮었다. 조용히, 오래 쥐고 있던 것을 내려놓듯이. 작은 정류장이 빗물이 되어 흘러내렸다.",
-      "sourceHash": "db65196e852a189d3e4f2a68705b7b0601f157128a3ef8022a2385b50eb080c5",
-      "t": "Seo Hanbi covered the bus stop with her hand, quietly, as though setting down something held for a long time. The little bus stop dissolved into rainwater."
+      "source": "서한비가 정류장을 손으로 덮었다. 작은 정류장이 빗물이 되어 흘러내렸다.",
+      "sourceHash": "c7b7d5858d1f2dfacb522eb0f343b4d12adfea680ad023d2d3dbda9152f97972",
+      "t": "Seo Hanbi covered the bus stop with her hand. The little bus stop dissolved into rainwater."
     },
     {
       "id": "ep-46:55",
@@ -454,9 +454,9 @@
     },
     {
       "id": "ep-46:75",
-      "source": "연이는 금빛이 새는 왼손을 가슴에 안았다. 이것마저 건네면 저 사람에게 돌아갈 길이 사라진다. 이유는 몰라도 그것만은 알았다.",
-      "sourceHash": "7317c200f770d2641abe2c3ebee45b57270eb25aaa95a4fe812f57c38abe47d0",
-      "t": "Yeoni held their golden left hand against their chest. If they gave up even this, the road back to that person would vanish. They didn't know why, but they knew that."
+      "source": "연이는 금빛이 새는 왼손을 가슴에 안았다. 이것마저 건네면 저 사람에게 돌아갈 길이 사라진다.",
+      "sourceHash": "14cefdc481ff2c3c78068f15062c972bd01ca5c985cb5989a824249fafc6fd21",
+      "t": "Yeoni held their golden left hand against their chest. If they gave up even this, the road back to that person would vanish."
     },
     {
       "id": "ep-46:76",
@@ -544,9 +544,9 @@
     },
     {
       "id": "ep-46:90",
-      "source": "안 놔. 너 아까 나 골라 줬잖아. 이번엔 내가 골라.",
-      "sourceHash": "06fa642bb267350e875286d52d035b3f408b2758e78728edc67fc6dd3bd581af",
-      "t": "No. You chose me earlier. This time, I choose."
+      "source": "안 놔. 너 아까 나 골라 줬잖아. 지금은 내가 골라.",
+      "sourceHash": "7d0d1653f242931ed1737e656c1250a31da20bd991e794cf664d48c45dff0fae",
+      "t": "No. You chose me earlier. Now I choose."
     },
     {
       "id": "ep-46:91",
@@ -580,9 +580,9 @@
     },
     {
       "id": "ep-46:96",
-      "source": "웃기지 마. 내 메모에 써 있어. 내 편이라고. 내 편은 네 것이 아니야.",
-      "sourceHash": "f20fca1ed75409bdb921217a5899ba708bf71e7f123b8b428d73c2f1c3bb81e1",
-      "t": "Don't be ridiculous. It's written in my note. On my side. The person on my side isn't yours."
+      "source": "웃기지 마. 내 메모에 써 있어. 내 편이라고. 내 편은 내가 정해.",
+      "sourceHash": "1a0c9aea8f1cca9359bd8176b8536cbf579bcf47e68094ab5abfd621f45b6dff",
+      "t": "Don't be ridiculous. It's written in my note. On my side. I decide who's on my side."
     }
   ]
 }

@@ -49,9 +49,9 @@
     },
     {
       "id": "ep-53s:extra-38",
-      "source": "둘의 혼인 서약은 거창한 예언 대신 짧은 약속들로 채워졌다. 식사를 거르지 않기, 우산을 혼자 들지 않기, 기억이 흐려지면 메모부터 함께 읽기.",
-      "sourceHash": "33505dbf16bbe150672681378b0f9681eabd11b39b5155bcccc765ebd64a1938",
-      "t": "Instead of grand prophecies, their wedding vows filled with small promises. Don't skip meals. Don't hold the umbrella alone. If memories grow hazy, start by reading the notes together."
+      "source": "둘의 혼인 서약은 짧은 약속들로 채워졌다. 식사를 거르지 않기, 우산을 혼자 들지 않기, 기억이 흐려지면 메모부터 함께 읽기.",
+      "sourceHash": "1d0d0e54ea063624d1a43c7f15938682a196894807964f77819720cbb0555508",
+      "t": "Their wedding vows filled with small promises. Don't skip meals. Don't hold the umbrella alone. If memories grow hazy, start by reading the notes together."
     },
     {
       "id": "ep-53s:extra-39",
@@ -157,9 +157,9 @@
     },
     {
       "id": "ep-53s:extra-48",
-      "source": "세계수 아래에는 여행에서 만난 사람들의 자리가 모두 있었다. 기억을 잃었던 이, 이름을 빼앗겼던 이, 용서를 고르지 않았지만 함께 다음을 준비한 이들의 자리였다.",
-      "sourceHash": "04fdae630cb520ef05d96fafcc1452c26af7e85d74820ee38e172d0819d50aaf",
-      "t": "Beneath the World Tree, there were seats for everyone they had met on the journey. For those who had lost their memories, those whose names had been stolen, and those who had not chosen forgiveness but were preparing what came next together."
+      "source": "세계수 아래에는 여행에서 만난 사람들의 자리가 모두 있었다. 맨 앞줄의 바람 요정은 식이 시작되기도 전에 손수건부터 꺼내 들었다.",
+      "sourceHash": "b125c0c3ce276e948818cc560c26c2395e640f30673c9088f4a984343fe6ff7d",
+      "t": "Beneath the World Tree, there were seats for everyone they had met on the journey. In the front row, the wind fairy had her handkerchief out before the ceremony even began."
     },
     {
       "id": "ep-53s:extra-49",
@@ -313,9 +313,9 @@
     },
     {
       "id": "ep-53s:32",
-      "source": "응. 평범하진 않지만, 내가 고른 봄이야. 그러니까 나한테는 충분히 평범해.",
-      "sourceHash": "dc7fc9b07fbd46e826009e841074c166147536a43dfa66659c3cb7a9c026f018",
-      "t": "Yes. It isn't ordinary, but it's the spring I chose. So to me, it's ordinary enough."
+      "source": "응. 내가 고른 봄이야.",
+      "sourceHash": "4c081cb6a2e79b398baaaf2ca33449e8981ea9dbe9b2a09eec7ef336e624a17a",
+      "t": "Yes. It's the spring I chose."
     },
     {
       "id": "ep-53s:33",

@@ -28,9 +28,9 @@
     },
     {
       "id": "ep-51s:4",
-      "source": "그럼 나도 남는다. 규정 말고, 박병하로서 고른다.",
-      "sourceHash": "5962a48c7ad63e383341fb72aee3c873ee003e0595e9d3bac19d9cd59a894362",
-      "t": "Then I stay too. Not a rule. Park Byeongha's choice."
+      "source": "그럼 나도 남는다. 박병하로서 고른다.",
+      "sourceHash": "4f4b5fb7d0ffd2d1ab2603a70880ce1de1c5540c504568fbafe772d8fce83142",
+      "t": "Then I stay too. As Park Byeongha, I choose it."
     },
     {
       "id": "ep-51s:5",
@@ -202,9 +202,9 @@
     },
     {
       "id": "ep-51s:24",
-      "source": "모두가 웃었다. 세계수 잎사귀 사이로 달빛이 내렸고, 연이는 그 빛 아래서 처음으로 여기를 집이라고 불렀다.",
-      "sourceHash": "88637c21c5b170448f9dae739a6de644403619ff2aa047da6e24377780d46022",
-      "t": "Everyone laughed. Moonlight fell through the World Tree's leaves. Beneath it, Yeoni called this place home for the first time."
+      "source": "모두가 웃었다. 세계수 잎사귀 사이로 달빛이 내렸고, 연이는 그 빛 아래서 여기를 집이라고 불렀다.",
+      "sourceHash": "b667728be9d84ad9e69ebf9c975c1f40d2cf7b4e2e116d298c17df5748f3c3ee",
+      "t": "Everyone laughed. Moonlight fell through the World Tree's leaves. Beneath it, Yeoni called this place home."
     },
     {
       "id": "ep-51s:extra-25",
@@ -262,9 +262,9 @@
     },
     {
       "id": "ep-51s:extra-34",
-      "source": "밤이 깊어지자 함께 걸었던 섬들에서 소식이 도착했다. 일식은 물러갔고, 멈춘 축제는 다시 열렸으며, 잊힌 이름들은 하나씩 주인을 찾았다.",
-      "sourceHash": "c5fe83df557e7feafe5d70062ba2d3b15452673ba7e185511d5cb295eb757a67",
-      "t": "As night deepened, news arrived from the islands they had crossed together. The eclipse had retreated. Stopped festivals resumed. Forgotten names found their owners one by one."
+      "source": "밤이 깊어지자 함께 걸었던 섬들에서 소식이 도착했다. 축제가 멈췄던 섬에서는 다음 보름밤에 골목마다 등불을 다시 단다고 했다.",
+      "sourceHash": "9fb7dcfb7874027a926335edf3f4d9594dc5a4afaf1b40645f5829f9c40c91f0",
+      "t": "As night deepened, news arrived from the islands they had crossed together. On the island where the festival had stopped, they would hang lanterns in every alley again at the next full moon."
     },
     {
       "id": "ep-51s:extra-35",

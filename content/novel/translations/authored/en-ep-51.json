@@ -142,9 +142,9 @@
     },
     {
       "id": "ep-51:23",
-      "source": "흙 치우는 데까지 혼자 하겠다는 건 고집이에요. 갚는 거랑 고집은 달라요.",
-      "sourceHash": "71c4b79ab513a4d6c4456b7f19cc9a3dc56eab1d8a645b75894c0e2819562e96",
-      "t": "Insisting on cleaning the dirt alone is stubbornness. Repayment and stubbornness are different."
+      "source": "흙 치우는 데까지 혼자 하겠다는 건 고집이에요.",
+      "sourceHash": "d5022b0983f8a698ed5dfe9f0472a4d1a89089e6e93e5c0cf0d4a8dfd64efab2",
+      "t": "Insisting on cleaning the dirt alone is stubbornness."
     },
     {
       "id": "ep-51:24",
@@ -214,9 +214,9 @@
     },
     {
       "id": "ep-51:35",
-      "source": "이상한 사람이라고 하셨어요. 그런데 받아 주셨어요. 세상엔 이상한 사람을 받아 주는 사람이 생각보다 많더라고요.",
-      "sourceHash": "7c06ee0e3869fd192591040e0603100ba18ba3081be6eefc7b20a05d84c34f2a",
-      "t": "He called me strange. But he took me on. There are more people willing to accept strange people than I expected."
+      "source": "이상한 사람이라고 하셨어요. 그런데 받아 주셨어요. 저도요.",
+      "sourceHash": "c850780f7ce927ffa85578a87f68f52f916a307c514491e1ecb9bfa941e31a80",
+      "t": "He called me strange. But he took me on. Me too."
     },
     {
       "id": "ep-51:36",
@@ -508,9 +508,9 @@
     },
     {
       "id": "ep-51:80",
-      "source": "연이는 흙 묻은 한비의 손과 우물가에서 끊어진 고리를 떠올렸다. 그 손이 한 일을 잊은 것은 아니었다. 다만 지금도 돌려주려 애쓰는 손을 계속 밀어내고 싶지는 않았다.",
-      "sourceHash": "cb7c515ec46c297d6809fa6ac4de53bd0f21025cf54087e26089a3f93e7c47c2",
-      "t": "Yeoni remembered Hanbi’s earth-stained hands and the ring broken by the well. She hadn’t forgotten what those hands had done. But she no longer wanted to keep pushing away hands that were still trying to give things back."
+      "source": "연이는 흙 묻은 한비의 손을 내려다보았다. 그리고 그 손을 잡았다.",
+      "sourceHash": "b44f8bc6f82ab6851e957c2cd4b6dbf8cbf4671fe16c904554a5655481bf075a",
+      "t": "Yeoni looked down at Hanbi’s earth-stained hand. Then she took it."
     },
     {
       "id": "ep-51:81",
@@ -532,9 +532,9 @@
     },
     {
       "id": "ep-51:84",
-      "source": "서한비가 연이를 보았다. 무슨 뜻인지 모르는 사람처럼. 그리고 알게 된 사람처럼. 숨을 한 번 길게 들이쉬었다.",
-      "sourceHash": "c7a7755f64243799380771281da06f781f470dfa5c10c55f1e4ad478d2ce1fbb",
-      "t": "Seo Hanbi looked at Yeoni like someone who didn't understand, then someone who did. She took one long breath."
+      "source": "서한비가 연이를 보았다. 처음엔 모르는 얼굴이었다가, 곧 알아들었다. 숨을 한 번 길게 들이쉬었다.",
+      "sourceHash": "e1ef191d3b3b55b7544a12c86b33cd03880da9d05a3a5f323de60fa786416855",
+      "t": "Seo Hanbi looked at Yeoni. At first her face was blank; then she understood. She took one long breath."
     },
     {
       "id": "ep-51:85",
@@ -562,15 +562,15 @@
     },
     {
       "id": "ep-51:89",
-      "source": "서한비가 웃었다. 젖은 얼굴로, 소리를 내서. 연이는 서한비가 소리 내어 웃는 것을 그때 처음 들었다.",
-      "sourceHash": "6cd0ceaf955db1b54f37d9712c33bf19ea8ee95ed93f76cb7a356b26a2aa880d",
-      "t": "Seo Hanbi laughed aloud with a wet face. It was the first time Yeoni heard her laugh aloud then."
+      "source": "서한비가 웃었다. 젖은 얼굴로, 소리를 내서. 연이는 서한비가 그렇게 크게 웃는 것을 처음 들었다.",
+      "sourceHash": "889db8bc87a4ce7f02056a9b511b6d2b39c4b5d41dffe3beb0f1458d602fb9ed",
+      "t": "Seo Hanbi laughed aloud with a wet face. Yeoni had never heard her laugh that loudly before."
     },
     {
       "id": "ep-51:90",
-      "source": "빗줄기가 가늘어졌다. 구름 사이로 노을빛이 새어 나왔다. 젖은 아스팔트가 주황색으로 반짝였다.",
-      "sourceHash": "93d2a303648cb387b3ea4cfbb7d69196c6f020cc80796c2131b95082ca830d3c",
-      "t": "The rain thinned. Sunset leaked between the clouds. Wet asphalt glittered orange."
+      "source": "빗줄기는 그대로였다. 둘은 한 우산 아래로 어깨를 붙였다. 젖은 아스팔트에 가로등 불빛이 번졌다.",
+      "sourceHash": "b1352c346c78c8c2976a58d71809a053df05f5beea78abfc7b39ecce9c405b2f",
+      "t": "The rain kept falling. The two of them pressed shoulder to shoulder under one umbrella. Streetlight spread across the wet asphalt."
     },
     {
       "id": "ep-51:91",
