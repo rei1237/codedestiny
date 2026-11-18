@@ -1,0 +1,325 @@
+[
+  {
+    "chart": "壬子 壬子 乙丑 丙子",
+    "method": "johu",
+    "climate": "한습",
+    "legacyClimate": "cold/wet",
+    "next": {
+      "yongsin": "fire",
+      "useful": [
+        "fire",
+        "earth"
+      ],
+      "avoid": [
+        "water",
+        "metal",
+        "wood"
+      ]
+    },
+    "runtime": {
+      "yongsin": "fire",
+      "useful": [
+        "fire",
+        "earth",
+        "metal"
+      ],
+      "avoid": [
+        "water",
+        "wood"
+      ]
+    }
+  },
+  {
+    "chart": "丙午 甲午 庚戌 癸未",
+    "method": "johu",
+    "climate": "조열",
+    "legacyClimate": "hot/dry",
+    "next": {
+      "yongsin": "water",
+      "useful": [
+        "water",
+        "metal",
+        "earth"
+      ],
+      "avoid": [
+        "fire",
+        "wood"
+      ]
+    },
+    "runtime": {
+      "yongsin": "metal",
+      "useful": [
+        "metal",
+        "earth"
+      ],
+      "avoid": [
+        "fire",
+        "wood",
+        "water"
+      ]
+    }
+  },
+  {
+    "chart": "丙寅 甲午 壬午 丁未",
+    "method": "jong",
+    "climate": "조열",
+    "legacyClimate": "hot/balanced",
+    "next": {
+      "yongsin": "fire",
+      "useful": [
+        "fire",
+        "wood"
+      ],
+      "avoid": [
+        "water"
+      ]
+    },
+    "runtime": {
+      "yongsin": "fire",
+      "useful": [
+        "fire",
+        "wood",
+        "water",
+        "metal"
+      ],
+      "avoid": []
+    }
+  },
+  {
+    "chart": "丁卯 丙午 甲午 己巳",
+    "method": "jong",
+    "climate": "조열",
+    "legacyClimate": "hot/dry",
+    "next": {
+      "yongsin": "fire",
+      "useful": [
+        "fire",
+        "earth"
+      ],
+      "avoid": [
+        "water"
+      ]
+    },
+    "runtime": {
+      "yongsin": "fire",
+      "useful": [
+        "fire",
+        "earth",
+        "water",
+        "metal",
+        "wood"
+      ],
+      "avoid": []
+    }
+  },
+  {
+    "chart": "甲申 丙子 庚辰 丁亥",
+    "method": "eokbu",
+    "climate": "균형",
+    "legacyClimate": "cool/balanced",
+    "next": {
+      "yongsin": "earth",
+      "useful": [
+        "earth",
+        "metal"
+      ],
+      "avoid": [
+        "water",
+        "fire",
+        "wood"
+      ]
+    },
+    "runtime": {
+      "yongsin": "metal",
+      "useful": [
+        "metal",
+        "earth"
+      ],
+      "avoid": [
+        "water",
+        "fire",
+        "wood"
+      ]
+    }
+  },
+  {
+    "chart": "甲寅 壬午 庚戌 癸未",
+    "method": "eokbu",
+    "climate": "균형",
+    "legacyClimate": "warm/balanced",
+    "next": {
+      "yongsin": "earth",
+      "useful": [
+        "earth",
+        "metal"
+      ],
+      "avoid": [
+        "water",
+        "fire",
+        "wood"
+      ]
+    },
+    "runtime": {
+      "yongsin": "metal",
+      "useful": [
+        "metal",
+        "earth"
+      ],
+      "avoid": [
+        "fire",
+        "wood",
+        "water"
+      ]
+    }
+  },
+  {
+    "chart": "己丑 戊辰 乙卯 丁巳",
+    "method": "eokbu",
+    "climate": "열",
+    "legacyClimate": "hot/balanced",
+    "next": {
+      "yongsin": "wood",
+      "useful": [
+        "wood",
+        "water"
+      ],
+      "avoid": [
+        "fire",
+        "metal",
+        "earth"
+      ]
+    },
+    "runtime": {
+      "yongsin": "water",
+      "useful": [
+        "water",
+        "wood"
+      ],
+      "avoid": [
+        "fire",
+        "metal",
+        "earth"
+      ]
+    }
+  },
+  {
+    "chart": "癸巳 丁酉 癸丑 癸丑",
+    "method": "eokbu",
+    "climate": "한",
+    "legacyClimate": "cool/balanced",
+    "next": {
+      "yongsin": "metal",
+      "useful": [
+        "metal",
+        "water"
+      ],
+      "avoid": [
+        "wood",
+        "earth",
+        "fire"
+      ]
+    },
+    "runtime": {
+      "yongsin": "water",
+      "useful": [
+        "water",
+        "metal"
+      ],
+      "avoid": [
+        "wood",
+        "earth",
+        "fire"
+      ]
+    }
+  },
+  {
+    "chart": "癸亥 甲子 丙子 戊子",
+    "method": "johu",
+    "climate": "한습",
+    "legacyClimate": "cold/wet",
+    "next": {
+      "yongsin": "fire",
+      "useful": [
+        "fire",
+        "earth",
+        "wood"
+      ],
+      "avoid": [
+        "water",
+        "metal"
+      ]
+    },
+    "runtime": {
+      "yongsin": "fire",
+      "useful": [
+        "fire",
+        "wood"
+      ],
+      "avoid": [
+        "water",
+        "metal",
+        "earth"
+      ]
+    }
+  },
+  {
+    "chart": "辛丑 庚子 庚申 戊子",
+    "method": "johu",
+    "climate": "한",
+    "legacyClimate": "cold/balanced",
+    "next": {
+      "yongsin": "fire",
+      "useful": [
+        "fire",
+        "wood"
+      ],
+      "avoid": [
+        "water",
+        "metal",
+        "earth"
+      ]
+    },
+    "runtime": {
+      "yongsin": "fire",
+      "useful": [
+        "fire",
+        "wood",
+        "water"
+      ],
+      "avoid": [
+        "metal",
+        "earth"
+      ]
+    }
+  },
+  {
+    "chart": "甲辰 戊辰 壬子 辛亥",
+    "method": "eokbu",
+    "climate": "한습",
+    "legacyClimate": "cool/wet",
+    "next": {
+      "yongsin": "metal",
+      "useful": [
+        "metal",
+        "water"
+      ],
+      "avoid": [
+        "wood",
+        "earth",
+        "fire"
+      ]
+    },
+    "runtime": {
+      "yongsin": "water",
+      "useful": [
+        "water",
+        "metal"
+      ],
+      "avoid": [
+        "wood",
+        "earth",
+        "fire"
+      ]
+    }
+  }
+]
