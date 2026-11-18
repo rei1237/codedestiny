@@ -753,6 +753,222 @@ var SajuReadingDepth = (() => {
       legacyScore: { score: base.temp, diff: base.diff, moistCnt: base.moist, dryCnt: base.dry, ...base.counts }
     };
   }
+  var CLIMATE_V2_VERSION = "climate-v2";
+  var r2 = (n) => Math.round(n * 100) / 100;
+  var STEM_VECTORS = {
+    甲: { moist: 2, temp: 0.5, note: "목은 습하다. 양목이라 乙보다 덜 습하고, 화가 있으면 더 줄인다" },
+    乙: { moist: 3, temp: 0, note: "음목·화초. 매우 습하다. 화가 있어도 줄이지 않는다" },
+    丙: { moist: -2.5, temp: 3, note: "태양. 건조하고 뜨겁다" },
+    丁: { moist: -2, temp: 2.5, note: "등불. 건조하고 뜨겁다" },
+    戊: { moist: -1, temp: 0.5, note: "양토·마른 흙. 조토 쪽" },
+    己: { moist: 1.5, temp: 0, note: "음토·젖은 논밭흙. 습토" },
+    庚: { moist: 0, temp: -1.5, note: "금은 차다. 습도는 중립" },
+    辛: { moist: 0, temp: -1.5, note: "금은 차다. 습도는 중립" },
+    壬: { moist: 2.5, temp: -2, note: "큰물. 습하고 차다" },
+    癸: { moist: 3, temp: -2, note: "비·이슬. 가장 적시고 차다" }
+  };
+  var HIDDEN_DAYS = {
+    子: [["壬", 10], ["癸", 20]],
+    丑: [["癸", 9], ["辛", 3], ["己", 18]],
+    寅: [["戊", 7], ["丙", 7], ["甲", 16]],
+    卯: [["甲", 10], ["乙", 20]],
+    辰: [["乙", 9], ["癸", 3], ["戊", 18]],
+    巳: [["戊", 7], ["庚", 7], ["丙", 16]],
+    午: [["丙", 10], ["己", 9], ["丁", 11]],
+    未: [["丁", 9], ["乙", 3], ["己", 18]],
+    申: [["戊", 7], ["壬", 7], ["庚", 16]],
+    酉: [["庚", 10], ["辛", 20]],
+    戌: [["辛", 9], ["丁", 3], ["戊", 18]],
+    亥: [["戊", 7], ["甲", 7], ["壬", 16]]
+  };
+  var SEASON_TERMS = {
+    子: { moist: 0.5, temp: -2, note: "한겨울, 얼어 있는 물기" },
+    丑: { moist: 0.5, temp: -2, note: "늦겨울, 언 땅의 물기" },
+    寅: { moist: 0.5, temp: -0.5, note: "이른 봄, 남은 추위와 녹는 물기" },
+    卯: { moist: 1, temp: 0.5, note: "봄비" },
+    辰: { moist: 1, temp: 1, note: "늦봄, 물을 머금은 땅(水庫)" },
+    巳: { moist: -1, temp: 1.5, note: "초여름, 마르기 시작하는" },
+    午: { moist: -1, temp: 2, note: "한여름 열기" },
+    未: { moist: -2, temp: 2, note: "늦여름, 열에 마른 흙" },
+    申: { moist: -0.5, temp: 0.5, note: "초가을, 남은 더위" },
+    酉: { moist: -0.5, temp: -0.5, note: "가을의 건조함" },
+    戌: { moist: -1, temp: -1, note: "늦가을, 마른 흙" },
+    亥: { moist: 0.5, temp: -1.5, note: "초겨울 물기" }
+  };
+  function branchVector(branch) {
+    const rows = HIDDEN_DAYS[branch];
+    const total = rows.reduce((sum, [, days]) => sum + days, 0);
+    const season = SEASON_TERMS[branch];
+    const moist = rows.reduce((sum, [stem, days]) => sum + STEM_VECTORS[stem].moist * days, 0) / total + season.moist;
+    const temp = rows.reduce((sum, [stem, days]) => sum + STEM_VECTORS[stem].temp * days, 0) / total + season.temp;
+    return { moist: r2(moist), temp: r2(temp), note: `지장간 ${rows.map(([s, d]) => s + d).join("·")}일 가중 평균 + 계절(${season.note})` };
+  }
+  var FIRE_CHARS = ["丙", "丁", "巳", "午"];
+  var BRANCH_VECTORS = Object.fromEntries(Object.keys(HIDDEN_DAYS).map((b) => [b, branchVector(b)]));
+  function expected(axis) {
+    const mean = (rows) => rows.reduce((s, v) => s + v[axis], 0) / rows.length;
+    const stemW = 1 + 1.5 + 1 + 1.5, branchW = 1 + 2 + 1.5 + 1;
+    return r2((mean(Object.values(STEM_VECTORS)) * stemW + mean(Object.values(BRANCH_VECTORS)) * branchW) / (stemW + branchW));
+  }
+  var CLIMATE_VECTORS = Object.freeze({
+    version: CLIMATE_V2_VERSION,
+    stems: STEM_VECTORS,
+    hiddenDays: HIDDEN_DAYS,
+    seasonTerms: SEASON_TERMS,
+    branches: BRANCH_VECTORS,
+    baseline: { moist: expected("moist"), temp: expected("temp"), note: "여덟 글자가 고르게 나올 때의 기대 가중 평균. 등급은 (평균 - 기준점)으로 매긴다" },
+    weights: { monthBranch: 2, adjacentToDayStem: 1.5, other: 1, luck: 1, note: "월지 2배. 일간에 붙은 월간·시간·일지 1.5배. 운의 글자는 1배" },
+    fireDampening: { chars: ["甲", "寅"], fireChars: FIRE_CHARS, factor: 0.5, note: "원국(또는 원국+운)에 丙丁巳午가 있으면 甲·寅의 습기만 절반으로 본다. 乙·卯는 줄이지 않는다" },
+    // (축별 가중 평균 - 기준점)의 절댓값 기준.
+    levels: { mild: 0.5, strong: 1, extreme: 1.6 }
+  });
+  var LEVELS = ["balanced", "mild", "strong", "extreme"];
+  var levelOf = (avg) => {
+    const a = Math.abs(avg), t = CLIMATE_VECTORS.levels;
+    return a >= t.extreme ? "extreme" : a >= t.strong ? "strong" : a >= t.mild ? "mild" : "balanced";
+  };
+  var rank = (level) => LEVELS.indexOf(level);
+  var CHAR_KO = { 甲: "갑", 乙: "을", 丙: "병", 丁: "정", 戊: "무", 己: "기", 庚: "경", 辛: "신", 壬: "임", 癸: "계", 子: "자", 丑: "축", 寅: "인", 卯: "묘", 辰: "진", 巳: "사", 午: "오", 未: "미", 申: "신", 酉: "유", 戌: "술", 亥: "해" };
+  var ko = (c) => `${c}(${CHAR_KO[c]})`;
+  var NEED_CHARS = { fire: ["丙", "丁", "巳", "午"], water: ["壬", "癸", "亥", "子"], wood: ["甲", "乙", "寅", "卯"], dryEarth: ["戊", "未", "戌"], wetEarth: ["己", "辰", "丑"] };
+  function positionWeight(pos, kind) {
+    const w = CLIMATE_VECTORS.weights;
+    if (pos === "m" && kind === "j") return w.monthBranch;
+    if (pos === "m" && kind === "g" || pos === "h" && kind === "g" || pos === "d" && kind === "j") return w.adjacentToDayStem;
+    return w.other;
+  }
+  var URGENT_MONTHS = { hot: ["巳", "午", "未"], cold: ["亥", "子", "丑"] };
+  function rawClimate(chart, luck) {
+    const items = [];
+    for (const pos of ["y", "m", "d", "h"]) for (const kind of ["g", "j"]) {
+      const char = chart[pos][kind];
+      if (char) items.push({ pos, kind, char, weight: positionWeight(pos, kind) });
+    }
+    for (const row of luck) {
+      if (STEM_VECTORS[row.stem]) items.push({ pos: row.scope || "luck", kind: "g", char: row.stem, weight: CLIMATE_VECTORS.weights.luck });
+      if (HIDDEN_DAYS[row.branch]) items.push({ pos: row.scope || "luck", kind: "j", char: row.branch, weight: CLIMATE_VECTORS.weights.luck });
+    }
+    const fireContext = items.some((i) => FIRE_CHARS.includes(i.char));
+    const contributions = items.map((i) => {
+      const v = STEM_VECTORS[i.char] || CLIMATE_VECTORS.branches[i.char];
+      const dampened = fireContext && CLIMATE_VECTORS.fireDampening.chars.includes(i.char) && v.moist > 0;
+      const moist2 = (dampened ? v.moist * CLIMATE_VECTORS.fireDampening.factor : v.moist) * i.weight;
+      return { ...i, moist: r2(moist2), temp: r2(v.temp * i.weight), dampened };
+    });
+    const weight = items.reduce((s, i) => s + i.weight, 0);
+    const totals = { moist: r2(contributions.reduce((s, c) => s + c.moist, 0)), temp: r2(contributions.reduce((s, c) => s + c.temp, 0)), weight };
+    const average = { moist: r2(totals.moist / (weight || 1)), temp: r2(totals.temp / (weight || 1)) };
+    const deviation = { moist: r2(average.moist - CLIMATE_VECTORS.baseline.moist), temp: r2(average.temp - CLIMATE_VECTORS.baseline.temp) };
+    const temp = { dir: deviation.temp < 0 ? "cold" : "hot", level: levelOf(deviation.temp) };
+    const moist = { dir: deviation.moist < 0 ? "dry" : "wet", level: levelOf(deviation.moist) };
+    const t = temp.level === "balanced" ? "" : temp.dir === "cold" ? "한" : "열";
+    const m = moist.level === "balanced" ? "" : moist.dir === "wet" ? "습" : "조";
+    const type = !t && !m ? "균형" : t === "열" && m === "조" ? "조열" : t === "열" && m === "습" ? "습열" : t + m;
+    const severity = LEVELS[Math.max(rank(temp.level), rank(moist.level))];
+    const urgent = temp.level === "extreme" || rank(temp.level) >= rank("strong") && URGENT_MONTHS[temp.dir].includes(chart.m.j) || moist.level === "extreme";
+    return { fireContext, contributions, totals, average, deviation, classification: { type, severity, temp, moist }, urgent };
+  }
+  function needsOf({ temp, moist }) {
+    const elements2 = [], avoid = [], chars = [];
+    const add = (list, v) => {
+      if (!list.includes(v)) list.push(v);
+    };
+    const axes = [
+      { ...temp, r: rank(temp.level) },
+      { ...moist, r: rank(moist.level) }
+    ].filter((a) => a.level !== "balanced").sort((a, b) => b.r - a.r);
+    const wetToo = moist.level !== "balanced" && moist.dir === "wet";
+    const hotToo = temp.level !== "balanced" && temp.dir === "hot";
+    for (const a of axes) {
+      const want = a.dir === "cold" ? wetToo ? ["fire"] : ["fire", "wood"] : a.dir === "hot" ? ["water", "metal"] : a.dir === "wet" ? ["fire", "earth"] : hotToo ? ["water"] : ["water", "wood"];
+      const not = a.dir === "cold" ? ["water", "metal"] : a.dir === "hot" ? ["fire"] : a.dir === "wet" ? ["water"] : ["fire"];
+      for (const el of want) if (!avoid.includes(el)) add(elements2, el);
+      for (const el of not) if (!elements2.includes(el)) add(avoid, el);
+      const c = a.dir === "cold" ? NEED_CHARS.fire : a.dir === "hot" ? [...NEED_CHARS.water, ...NEED_CHARS.wetEarth] : a.dir === "wet" ? [...NEED_CHARS.fire, ...NEED_CHARS.dryEarth] : [...NEED_CHARS.water, ...NEED_CHARS.wetEarth];
+      for (const ch of c) add(chars, ch);
+    }
+    return { elements: elements2, avoid, chars };
+  }
+  var TYPE_TEXT = {
+    한습: "전체적으로 차고 축축한 사주라, 따뜻하고 보송하게 해 주는 불(火) 기운이 먼저 필요해요.",
+    조열: "전체적으로 뜨겁고 메마른 사주라, 열을 식히고 적셔 주는 물(水) 기운이 먼저 필요해요.",
+    한조: "차고 메마른 편이라, 따뜻한 기운과 적당한 물기를 함께 채워 주면 좋아요.",
+    습열: "덥고 눅눅한 편이라, 열과 습기를 함께 덜어 주는 쪽이 편해요.",
+    한: "차가운 편이라, 따뜻한 불(火) 기운이 힘이 돼요.",
+    열: "뜨거운 편이라, 식혀 주는 물(水)·금(金) 기운이 힘이 돼요.",
+    습: "습기가 많은 편이라, 말려 주는 불(火)·마른 흙 기운이 힘이 돼요.",
+    조: "건조한 편이라, 적셔 주는 물(水)·나무(木) 기운이 힘이 돼요.",
+    균형: "온도와 습도가 크게 치우치지 않아, 조후보다 다른 균형을 먼저 봐요."
+  };
+  function reasonsOf(chart, raw) {
+    const out = [];
+    const mj = chart.m.j;
+    out.push(`태어난 달 ${ko(mj)}은 ${SEASON_TERMS[mj].note} 기운이 바탕이에요.`);
+    const c = raw.classification;
+    const dominant = c.moist.level !== "balanced" && rank(c.moist.level) >= rank(c.temp.level) ? "moist" : c.temp.level !== "balanced" ? "temp" : "";
+    if (dominant) {
+      const sign = dominant === "moist" ? c.moist.dir === "wet" ? 1 : -1 : c.temp.dir === "hot" ? 1 : -1;
+      const top = [...new Set(raw.contributions.filter((r) => !(r.pos === "m" && r.kind === "j") && r[dominant] * sign > 0).sort((a, b) => b[dominant] * sign - a[dominant] * sign).map((r) => r.char))].slice(0, 2);
+      const word = dominant === "moist" ? sign > 0 ? "습기를 더해요" : "메마르게 해요" : sign > 0 ? "열기를 더해요" : "차가움을 더해요";
+      if (top.length) out.push(`${top.map(ko).join("·")} 같은 글자가 ${word}.`);
+    }
+    if (raw.contributions.some((r) => r.dampened)) out.push("불 기운(丙·丁·巳·午)이 있어 甲·寅의 습기는 덜하게 봤어요. 乙·卯는 그래도 많이 습해요.");
+    if (raw.contributions.some((r) => r.char === "午")) out.push("午(오)는 불이지만 안에 己土를 품고 있어 약간의 물기가 있어요.");
+    out.push(TYPE_TEXT[c.type]);
+    return out;
+  }
+  function climateV2(p, context2 = {}) {
+    const chart = normalizeChart(p);
+    const luck = Array.isArray(context2.luck) ? context2.luck : [];
+    const base = { version: CLIMATE_V2_VERSION, hourKnown: chart.hourKnown };
+    if (!chart.monthKnown || !chart.dayKnown || !(chart.m.j in HIDDEN_DAYS)) {
+      return {
+        ...base,
+        complete: false,
+        status: "insufficient",
+        fireContext: false,
+        totals: null,
+        average: null,
+        deviation: null,
+        classification: { type: "insufficient", severity: "unknown" },
+        urgent: false,
+        needs: { elements: [], avoid: [], chars: [] },
+        reasons: ["태어난 달이나 날을 몰라 온도·습도를 판단하지 않아요."],
+        contributions: []
+      };
+    }
+    const raw = rawClimate(chart, luck);
+    let classification = raw.classification, urgent = raw.urgent, status = "ok", note = "";
+    if (!chart.hourKnown) {
+      const variants = possibleHourPillars(chart.d.g).map((h) => rawClimate({ ...chart, h }, luck));
+      const types = [...new Set(variants.map((v) => v.classification.type))];
+      if (types.length > 1) {
+        status = "insufficient";
+        classification = { type: "insufficient", severity: "unknown", possible: types };
+        urgent = false;
+      } else {
+        classification = variants[0].classification;
+        urgent = variants.every((v) => v.urgent);
+        note = "시주 미상: 가능한 12개 시주 모두 같은 판정";
+      }
+    }
+    const ok = status === "ok";
+    return {
+      ...base,
+      complete: chart.hourKnown,
+      status,
+      ...note ? { note } : {},
+      fireContext: raw.fireContext,
+      totals: raw.totals,
+      average: raw.average,
+      deviation: raw.deviation,
+      classification,
+      urgent,
+      needs: ok ? needsOf(classification) : { elements: [], avoid: [], chars: [] },
+      reasons: ok ? reasonsOf(chart, { ...raw, classification }) : ["태어난 시를 몰라 시주에 따라 온도·습도 판정이 갈려서 단정하지 않아요."],
+      contributions: raw.contributions
+    };
+  }
 
   // lib/saju/natal-core/strength.mjs
   var elOf = (c) => STEM_EL[c] || BRANCH_EL[c] || "";
@@ -849,6 +1065,109 @@ var SajuReadingDepth = (() => {
     const controlled = controller === a ? b : a;
     return { status: "candidate", elements: [GENERATES[controller]], note: `${EL_KO[controller]}·${EL_KO[controlled]}이 맞서 ${EL_KO[GENERATES[controller]]}이 잇는다` };
   }
+  var YONGSIN_METHODS_VERSION = "yongsin-methods-v1";
+  var elList = (els) => els.map((el) => `${EL_KO[el]}(${{ wood: "木", fire: "火", earth: "土", metal: "金", water: "水" }[el]})`).join("·");
+  var uniq = (list) => [...new Set(list.filter(Boolean))];
+  function byeongyak(counts, avoid) {
+    const sick = avoid.filter((el) => counts.byEl[el] >= 4).sort((a, b) => counts.byEl[b] - counts.byEl[a])[0];
+    if (!sick) return { status: "none", useful: [], reason: "한쪽으로 지나치게 몰린 꺼리는 기운이 없어요." };
+    const medicine = [controllerOf(sick), GENERATES[sick]].find((el) => el && !avoid.includes(el));
+    if (!medicine) return { status: "none", disease: sick, useful: [], reason: `${elList([sick])} 기운이 많지만 눌러 줄 기운도 꺼리는 쪽이라 병약으로 고르지 않아요.` };
+    const how = medicine === controllerOf(sick) ? "눌러 주는" : "흘려보내는";
+    return { status: "candidate", disease: sick, useful: [medicine], reason: `${elList([sick])} 기운이 지나치게 많아(${counts.byEl[sick]}칸) 병이 되니, 그것을 ${how} ${elList([medicine])} 기운이 약이에요.` };
+  }
+  function eokbuOrder(strength, counts) {
+    const byRel = counts.byRel || {};
+    const order = [...strength.yongshin];
+    const relOf = (el) => relationOf(strength.dayEl, el);
+    const pickFirst = (rel) => {
+      const i = order.findIndex((el) => relOf(el) === rel);
+      if (i > 0) order.unshift(order.splice(i, 1)[0]);
+    };
+    let why;
+    if (!strength.isStrong) {
+      const heaviest = ["officer", "output", "wealth"].sort((a, b) => (byRel[b] || 0) - (byRel[a] || 0))[0];
+      if (heaviest === "wealth") {
+        pickFirst("self");
+        why = "재성(재물·현실 부담)에 눌려 약하니, 같은 편이 되어 주는";
+      } else {
+        pickFirst("parent");
+        why = heaviest === "officer" ? "관살(책임·압박)에 눌려 약하니, 압박을 받아 힘으로 바꿔 주는" : "식상(표현·소모)으로 힘이 새어 약하니, 다시 채워 주는";
+      }
+    } else if ((byRel.parent || 0) > (byRel.self || 0) - 1) {
+      pickFirst("wealth");
+      why = "인성(도움·생각)이 많아 강하니, 넘치는 생각을 현실로 묶어 주는";
+    } else why = "같은 편 기운이 많아 강하니, 힘을 밖으로 흘려 주는";
+    return { order, why };
+  }
+  function yongsinMethods({ chart, strength, special, counts, candidates }) {
+    const adopted = special.decision === "special" ? special.adopted : null;
+    const eo = strength && eokbuOrder(strength, counts);
+    const eokbu = strength ? {
+      status: "ok",
+      useful: eo.order,
+      avoid: [...strength.kijishin],
+      isStrong: strength.isStrong,
+      score: strength.score,
+      applies: !adopted,
+      reason: `일간 기운이 ${strength.isStrong ? "강한" : "약한"} 편(${strength.score}점)이에요. ${eo.why} ${elList(eo.order.slice(0, 1))} 기운이 먼저 필요해요.`
+    } : { status: "insufficient", useful: [], avoid: [], applies: false, reason: "일간 강약을 판단할 수 없어요." };
+    const climate = climateV2(chart);
+    const johu = climate.status === "ok" ? { status: "ok", type: climate.classification.type, severity: climate.classification.severity, urgent: climate.urgent, useful: [...climate.needs.elements], avoid: [...climate.needs.avoid], chars: [...climate.needs.chars], reason: climate.reasons[climate.reasons.length - 1], climate } : { status: "insufficient", urgent: false, useful: [], avoid: [], reason: climate.reasons[0], climate };
+    const tg = tonggwan(counts);
+    const tong = tg.status === "candidate" ? { status: "candidate", useful: [...tg.elements], reason: `${elList([parentOf(tg.elements[0]), CONTROLS[parentOf(tg.elements[0])]])} 기운이 서로 맞서 있어, 그 사이를 ${elList(tg.elements)} 기운이 이어 줘요.` } : { status: "none", useful: [], reason: tg.note };
+    const sick = byeongyak(counts, eokbu.avoid);
+    const pick = adopted && candidates.find((c) => c.id === adopted.id) || adopted;
+    const jong = special.decision === "special" && pick ? {
+      status: "adopted",
+      name: pick.name,
+      useful: uniq([pick.dominant, pick.second]),
+      avoid: [controllerOf(pick.dominant)],
+      reason: `기운이 ${elList([pick.dominant])} 쪽으로 크게 쏠린 ${pick.name}이라, 억지로 균형을 맞추기보다 그 흐름을 따르는 편이 좋아요.`
+    } : { status: special.decision === "pending" ? "pending" : "none", useful: [], avoid: [], reason: special.decision === "pending" ? "특수격인지 판단이 갈려 보류해요." : "한 기운을 따라가야 할 만큼 쏠린 사주는 아니에요." };
+    let method, useful, avoid, reason;
+    if (jong.status === "adopted") {
+      method = "jong";
+      useful = jong.useful;
+      avoid = jong.avoid;
+      reason = `기운이 한쪽으로 크게 쏠린 사주라, 그 흐름을 따르는 ${elList(jong.useful)} 기운이 가장 힘이 돼요.`;
+    } else if (johu.status === "ok" && johu.urgent && johu.useful.length) {
+      method = "johu";
+      useful = uniq([...johu.useful, ...eokbu.useful.filter((el) => !johu.avoid.includes(el))]);
+      avoid = uniq([...johu.avoid, ...eokbu.avoid]).filter((el) => !useful.includes(el));
+      reason = `${{ 한습: "차고 축축한", 조열: "뜨겁고 메마른", 한조: "차고 메마른", 습열: "덥고 눅눅한", 한: "차가운", 열: "뜨거운", 습: "습기가 많은", 조: "건조한" }[johu.type] || "한쪽으로 치우친"} 사주라 온도·습도를 먼저 맞춰 주는 ${elList(johu.useful)} 기운이 가장 급해요.`;
+    } else if (eokbu.status === "ok") {
+      method = "eokbu";
+      useful = eokbu.useful;
+      avoid = eokbu.avoid;
+      reason = `${eo.why} ${elList(useful.slice(0, 1))} 기운이 균형을 잡아 줘요.`;
+    } else {
+      method = "insufficient";
+      useful = [];
+      avoid = [];
+      reason = "태어난 정보가 부족해 용신을 정하지 않아요.";
+    }
+    const supplements = [];
+    for (const [name, m] of [["tonggwan", tong], ["byeongyak", sick]]) {
+      if (m.status !== "candidate") continue;
+      const conflict = m.useful.some((el) => avoid.includes(el));
+      supplements.push({ method: name, elements: m.useful, conflict, reason: conflict ? `${m.reason} 다만 최종 판단에서는 꺼리는 기운이라 참고만 해요.` : m.reason });
+    }
+    if (method !== "johu" && johu.status === "ok" && johu.useful.length && johu.severity !== "balanced") {
+      const conflict = johu.useful.some((el) => avoid.includes(el));
+      supplements.push({ method: "johu", elements: johu.useful, conflict, reason: johu.reason });
+    }
+    return {
+      version: YONGSIN_METHODS_VERSION,
+      eokbu,
+      johu,
+      tonggwan: tong,
+      byeongyak: sick,
+      jong,
+      final: { method, yongsin: useful[0] || null, heesin: useful[1] || null, useful, avoid, supplements, reason },
+      order: ["jong", "johu(urgent)", "eokbu"]
+    };
+  }
   function yongshinBreakdown({ strength, climate, month, special, counts, profile }) {
     const adopted = special.decision === "special" ? special.adopted : null;
     const johu = {
@@ -917,7 +1236,8 @@ var SajuReadingDepth = (() => {
       strength,
       climate,
       yongshin: yongshinBreakdown({ strength, climate, month, special, counts, profile }),
-      limitations
+      limitations,
+      yongsinMethods: yongsinMethods({ chart, strength, special, counts, candidates })
     });
   }
 
@@ -1167,8 +1487,8 @@ var SajuReadingDepth = (() => {
     const text = String(value == null ? "" : value).trim().toLowerCase();
     if (!text) return "";
     if (ELEMENT_KO_BY_KEY[text]) return text;
-    for (const [ko, key] of Object.entries(ELEMENT_KEY_BY_KO)) {
-      if (text.includes(ko)) return key;
+    for (const [ko2, key] of Object.entries(ELEMENT_KEY_BY_KO)) {
+      if (text.includes(ko2)) return key;
     }
     for (const key of ["wood", "fire", "earth", "metal", "water"]) {
       if (text.includes(key)) return key;

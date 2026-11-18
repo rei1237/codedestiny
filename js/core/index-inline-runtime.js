@@ -2287,7 +2287,7 @@ function __cdEnsureSajuCoreLoaded() {
      * 중국 표준시 기준 음력이 섞여 자미두수 명반이 하루 밀린다). 로컬 파일이라 CDN 보다 안전하다. */
     '/js/core/korean-calendar.js?v=build-55e45c115f71',
     /* 원국 판정 정본(전역 SajuNatalCore). saju-engine 의 detectJong 이 이것 없이는 던진다. */
-    '/js/core/saju/natal-core.generated.js?v=build-890ac39292c1',
+    '/js/core/saju/natal-core.generated.js?v=build-8a9c0f9afe96',
     '/js/core/kasi-calendar-service.js?v=build-2004797c0450',
     '/js/compat-llm-prompts.js?v=build-f4b380e036d0',
     '/js/core/saju/manse-shinsal.js',
@@ -9150,7 +9150,7 @@ function __cdEnsureSukuyoZiweiCoreLoaded() {
      * 중국 표준시 기준 음력이 섞여 자미두수 명반이 하루 밀린다). 로컬 파일이라 CDN 보다 안전하다. */
     '/js/core/korean-calendar.js?v=build-55e45c115f71',
     /* 원국 판정 정본(전역 SajuNatalCore). saju-engine 의 detectJong 이 이것 없이는 던진다. */
-    '/js/core/saju/natal-core.generated.js?v=build-890ac39292c1',
+    '/js/core/saju/natal-core.generated.js?v=build-8a9c0f9afe96',
     '/js/compat-llm-prompts.js?v=build-f4b380e036d0',
       '/js/core/saju/manse-shinsal.js',
       '/js/saju-engine.js?v=build-b0f52b1a16b6',
