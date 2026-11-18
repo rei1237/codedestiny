@@ -1,7 +1,7 @@
 {
   "_comment": "Four consultation/report descriptions directly translated from canonical shell copy into EN/JA/zh-CN/zh-TW; seven other locales intentionally use English. No translation API.",
   "featureMarketing.fortune_tea_house.badge": {
-    "ko": "대화형 상담",
+    "ko": "질문 상담",
     "en": "Conversational consultation",
     "ja": "対話型の相談",
     "zh-CN": "对话式咨询",
@@ -15,7 +15,7 @@
     "ms": "Conversational consultation"
   },
   "featureMarketing.fortune_tea_house.headline": {
-    "ko": "마음에 남은 이야기를 들려주세요. 카드가 비추는 감정과 지금의 선택을 함께 살펴봐요.",
+    "ko": "고민 하나를 들려주세요. 타로·사주·궁합 중 골라 답과 근거를 함께 살펴봐요.",
     "en": "Tell us the story that still weighs on your heart. Together, we will explore the feelings reflected in the cards and the choices before you.",
     "ja": "心に残る物語を聞かせてください。カードが映す感情と、今の選択を一緒に見つめましょう。",
     "zh-CN": "说说仍留在心里的故事吧。一起看看牌面映出的感受，以及此刻的选择。",
@@ -29,7 +29,7 @@
     "ms": "Tell us the story that still weighs on your heart. Together, we will explore the feelings reflected in the cards and the choices before you."
   },
   "featureMarketing.fortune_tea_house.tagline": {
-    "ko": "연이가 이야기를 먼저 듣고, 타로와 사주 상징을 섞어 지금 마음의 자리와 다음 한 걸음을 정리해 주는 대화형 상담입니다.",
+    "ko": "타로·사주·궁합·숙요 중 상담 하나를 골라 질문하면 연이가 답과 근거를 정리해 드려요. 결과 뒤 추가 질문 1회도 할 수 있어요.",
     "en": "Yeoni listens first, then draws on tarot and Four Pillars symbols in a conversational consultation to help you understand where your heart is and find your next step.",
     "ja": "Yeoniがまず話を聞き、タロットと四柱推命の象徴を合わせて、今の気持ちと次の一歩を整理する対話型の相談です。",
     "zh-CN": "Yeoni先倾听你的故事，再结合塔罗与四柱八字的象征，通过对话整理当下心境与下一步。",
@@ -71,7 +71,7 @@
     "ms": "When you need to untangle your thoughts before reaching a conclusion"
   },
   "featureMarketing.fortune_tea_house.feats.2": {
-    "ko": "조언이 아니라 들어줄 상대가 필요할 때",
+    "ko": "고민에 근거 있는 답이 필요할 때",
     "en": "When you need someone to listen, rather than more advice",
     "ja": "助言より、話を聞いてくれる相手がほしいとき",
     "zh-CN": "比起建议，更需要有人倾听时",
@@ -239,7 +239,7 @@
     "ms": "Choose a three- or five-card spread"
   },
   "featureMarketing.fortune_tea_house.receives.1.detail": {
-    "ko": "빠르게 핵심만 보는 3카드(5,000원)와 더 깊게 보는 5카드(5,000원) 중 고를 수 있습니다.",
+    "ko": "빠르게 핵심만 보는 3카드(5,000원)와 더 깊게 보는 5카드(7,000원) 중 고를 수 있습니다.",
     "en": "Choose three cards for a quick focus on the essentials (KRW 5,000) or five cards for a deeper reading (KRW 5,000).",
     "ja": "要点を手早く見る3枚（5,000ウォン）と、より深く見る5枚（5,000ウォン）から選べます。",
     "zh-CN": "可选择快速聚焦重点的三张牌（5,000韩元），或更深入解读的五张牌（5,000韩元）。",
@@ -771,7 +771,7 @@
     "ms": "An answer to one question"
   },
   "featureMarketing.fortune_chat.receives.2.detail": {
-    "ko": "로그인 후 질문과 필요한 정보를 준비하고 기존 화면에서 이용 조건을 확인합니다.",
+    "ko": "질문 하나에 1회 5,000원, 깊이를 고르는 질문 상담은 10,000원부터예요.",
     "en": "After signing in, prepare your question and the required information, and check the usage conditions on the existing screen.",
     "ja": "ログイン後、質問と必要な情報を用意し、現在の画面で利用条件を確認します。",
     "zh-CN": "登录后准备问题及所需资料，并在现有页面确认使用条件。",

@@ -418,3 +418,95 @@ git grep -n -e "30일 이용권" -e "30일권" -e "30일 동안" -e "한 달 이
 - 영냥이 오마카세는 "생선 오마카세", 모둠은 "{A}·{B} 모둠"으로 통일해요.
 - 이용권 상위 이름은 문라이트 패스 / 달빛 이용권 / 꿀단지 이용권 중 하나로 정해야 해요(브랜드 결정).
 - "바람끼" → "바람기".
+
+## Phase 2 적용 결과
+
+2026-11-19 적용. 가격은 바꾸지 않았고, 문구를 코드의 실제 가격에 맞췄어요. 기준: `worker/lib/paid-feature-registry.js` 실측(tarot-five 7,000원, fortune-chat-consultation 5,000원, 질문 상담 고등어 10,000~참치 30,000원, human-design-report 5,000원). 결제 수단은 `getPaidFeaturePaymentPolicy`로 확인했어요(찻집 타로는 이용권·단건만, 사주·궁합·숙요·공동은 월정석 허용).
+
+집계: 적용 29행(부분 적용 2행 포함), 보류 20행, 유지 4행, 보고만 13행.
+
+### 적용 (29)
+
+- P1 찻집 팝업 가격(`index.html` `/fortune-tea-house/` receives): Before "빠르게 핵심만 보는 3카드(5,000원)와 더 깊게 보는 5카드(5,000원) 중 고를 수 있습니다." → After "…3카드(5,000원)와 더 깊게 보는 5카드(7,000원) 중 고를 수 있습니다."
+- 찻집 팝업 badge "대화형 상담"→"질문 상담", headline "고민 하나를 들려주세요. 타로·사주·궁합 중 골라 답과 근거를 함께 살펴봐요."(±20% 안으로 다시 씀), subheadline "타로·사주·궁합·숙요 중 상담 하나를 골라 질문하면 연이가 답과 근거를 정리해 드려요. 결과 뒤 추가 질문 1회도 할 수 있어요.", painPoint "고민에 근거 있는 답이 필요할 때"
+- `/fortune-chat/` 팝업 receives detail: "로그인 후 … 기존 화면에서 이용 조건을 확인합니다." → "질문 하나에 1회 5,000원, 깊이를 고르는 질문 상담은 10,000원부터예요." 무료 횟수는 라우트에 "신규 무료 상담은 종료됐어요"(FREE_TRIAL_USED) 분기가 있어 숫자를 넣지 않았어요
+- `js/core/service-registry.js` fortune-chat price "5,000원"→"5,000원~30,000원", 찻집 desc "타로·사주·궁합으로 질문에 답하는 상담", 꿈 심리 desc "세 가지 심리 관점의 꿈 분석 보고서"
+- alt 중복: `index.html` "연이의 운명 찻집 상담 장면", 찻집 매니페스트 5종 "연이의 {사주 상담·사주 궁합 상담·숙요점 상담·타로 상담} 장면"(원본+public 미러)
+- tea-tarot-three hook "카드 세 장으로 고민의 답과 근거를 읽는 타로"(원문 대비 약 −45%, 수정안 그대로)
+- 찻집 priceNote "단건 기준 · 추가 질문 1회 포함 · 타로는 월정석 없이, 사주·궁합·숙요는 월정석도 쓸 수 있어요."(숙요도 월정석 허용이라 추가, ±20% 안)
+- TeaConsultConfirmation policy 앞부분 "타로는 월정석을 쓸 수 없고, 이용권 적용은 다음 단계에서 확인해요."(뒤 추가 질문 1회 문장 유지)
+- 숙요 결과 버튼 "숙요 궁합 결과 보기"
+- 영냥이: 단계명 '모듬회'→'모둠', consultationTitle '오마카세 초융합 운세'→'생선 오마카세', Guide 링크 "생선 오마카세 상담", FishReceipt "냐앙! 고마워!", depthDescriptions 광어·참치·오마카세 3행(UI 전용 확인: CheckoutClient·product-offers·1000-won-fortune·Consultation만 사용, 프롬프트 미사용)
+- 매니페스트 제목: astrology·sukuyo 참치 "… 참치 상담", 융합 "영냥이 서양 점성술·타로 모둠 상담"(manifest·panels·한글-원고·public 미러)
+- 이용권 P1 `/points/` 팝업 subheadline: "정해진 기간 동안 …" → "달빛 이용권은 기간 제한 없이 정해진 이용 한도만큼 유료 기능을 여는 이용권이에요." **부분 적용**: 이름은 브랜드 결정 전이라 "달빛 이용권" 유지
+- passMini chipIncluded "이용권 범위 안 무료"→"이용권 한도로 바로 열기"
+- `/human-design/` 팝업: "18개 장 리포트 (5,000원)", PDF 항목 "완성된 리포트(5,000원)를 …"(badge "무료 계산"은 차트 기준이라 유지)
+- dream-psycho 안내 띄어쓰기 "실제 5챕터 / 별도 꿈 상품 / 단건 결제"(manifest·panels·미러)
+- 결정 4 "바람끼"→"바람기"(**부분 적용**): 페이지 title, H1 2곳, reportDashboard label·shortTitle, records 서비스명, 리뷰 카탈로그 name, 매니페스트·panels·editable-layout·한글-원고·미러. 단언 갱신: `luck-sync-diary-planner.static.test.js:82`, `verify-relationship-inline-browser.mjs:18`, `verify-guard-wiring.mjs:101` 설명. registry reason과 `worker/routes/relationship-boundary-test.js:21` ORDER_NAME(주문·영수증명)은 그대로, 정규식 가드·테스트 픽스처·주석도 그대로
+- 결정 4의 흑월 '경고'→'주의 시기', 나크샤트라 '결정판' 삭제는 이 리포트 대상이 아니고 C1에서 다뤘어요(C-paid-signature.md 참고)
+
+### 보류 (20)
+
+- 찻집 receives "결과 저장·PDF·공유": PDF 지원 미확인
+- 찻집 receives "추가 질문 1회" 새 항목: 새 키가 필요해 보류(subheadline에 한 문장으로 반영)
+- `/fortune-chat/` receives 운명 상담·질문 상담 나눠 적기: 구조 변경 제안
+- consultPricing 공동 사주 버튼 "공동 사주 결과 보기": mode 분기를 새로 만들어야 해요
+- TeaConsult scope 공동 사주 추가: 새 키
+- `index.html:9101` 홈 picker "영냥이 고민 상담": 확인 필요(상담자 표기 결정)
+- 융합 매니페스트 "28개 챕터"→35, 오마카세 "36개 챕터"→45: 코드 `fusion-book.ts` FUSION_BOOK_CHAPTERS={assorted:35, omakase:45}로 다시 확인했지만, 이미지 패널의 번호 붙은 챕터 지도(v2 구성)와 숫자만 어긋나게 돼요. 목차 재구성이 필요(C1 선례와 같음)
+- 개요 패널 07 참치·광어 라벨 2행: 구운 webp 이미지 텍스트라 다시 렌더링해야 해요
+- 생선 매니페스트 공통 안내 "{가격}원 · {N}챕터": 제안 수준, 매니페스트 16종 구조 변경
+- ziwei-tuna 패널 09 "자동 결제되지 않아요": 이미지 패널 텍스트
+- palm-reading 팝업 category '사주'→'손금': 카테고리 표(categoryKeyByKo)에 '손금'이 없어 11개 로케일에 한국어 칩이 노출돼요(feature-marketing-modal-i18n 테스트 실패로 확인). 새 키·번역이 필요해 되돌림
+- passMini guideTitle, about-copy pass30.body: 수정안의 "한도를 다 써도 라이트 운세는 계속"이 payment-gating.md 2026-11-13 정책("기간 제한 없음 · 이용 한도 소진 시 종료 · 자동결제 아님")과 맞지 않아 확인 필요
+- passMini guideText "꿀단지" / 이용권 상위 이름 통일: 브랜드 결정 필요
+- shellRuntime f3303·f3394, gift-policy.js:13·refund-policy-rows.js:22: 약관·환불 문구라 법무 확인 필요(f3303 수정안도 정책과 충돌)
+
+### 유지 (4)
+
+- 찻집 사주·궁합·숙요 editorial-1 제목: 이미 상품별 제목
+- chat-neo·chat-engine-neo "정리해라/골라라": 결정 1(친절한 츤데레, 대사 반말 허용)
+- 토스 "다섯 가지 상담": 실제 버튼 5개(saju·tarot·sukuyo·compat·joint)라 사실과 맞음
+- PointsClient notAutoBilling: 리포트 판정이 유지
+
+### 보고만 (13)
+
+- registry reason 5행(융합 3종 "생선 모둠 세트", ziwei/astrology/vedic `_ai_prompt_generator`, saju_ai_question_prompt, mindscan·celestial·geomancy·yoga-guru, sukuyo_ai_prompt_generator)과 relationship-boundary-test reason "그 사람의 바람끼 테스트 1회"
+- `/points` 결제 화면(PointsClient) 6행: planBadges.family, :2526 "연장하기", :2302 보너스 설명, 월정석 영역 새 문구, lowerTierBlocked, planBadges.vvip
+- 상세 페이지 신설 2행(tea-saju-joint, sukuyo-monthly 등 4종)
+- methodDirect·checkout-copy policyLine은 결제 파일이라 손대지 않았어요
+
+### registry reason
+
+변경 0건. 확인 필요: 위 보고만 reason 전부(결제창·주문명·환불 사유가 같은 문자열을 공유하는지 경로별 확인 전).
+
+### 번역 동기화 필요 (12키)
+
+ko만 바꿨어요(키 이름 그대로, 새 키 없음).
+- `featureMarketing.fortune_tea_house.badge` · `.headline` · `.tagline` · `.feats.2` · `.receives.1.detail`
+- `featureMarketing.fortune_chat.receives.2.detail`
+- `featureMarketing.points.tagline`
+- `home.passMini.chipIncluded`
+- `home.svcDesc.fortune-tea-house` · `home.svcDesc.dream-psycho-analysis`
+- `fortuneTeaHouse.homeV2.priceNote` · `fortuneTeaHouse.confirmation.policy`
+- 🔴 우선: `featureMarketing.fortune_tea_house.receives.1.detail`의 en·ja·zh-CN·zh-TW는 아직 5카드를 5,000원으로 적고 있어요(가격 사실 오류)
+- `public/i18n/ko.json`은 해당 6개 값만 직접 고쳤어요. `i18n-merge-authored --core --file`은 다른 언어 사전 12개를 1,500줄 넘게 바꿔서 되돌렸어요(병합기와 사전 사이에 이번 작업과 무관한 차이가 쌓여 있어요)
+- 하드코딩(키 없음): 서비스 레지스트리 price, `/human-design/` receives, 영냥이 locale copy 등은 다른 로케일 셸·사전에 같은 표기가 있는지 확인 필요
+
+### ±20% 초과
+
+- tea-tarot-three hook 약 −45%(수정안 그대로)
+- `/fortune-chat/` receives detail 약 −5%, 찻집 headline 약 −10%, subheadline 약 +5%, points subheadline 약 −5%: 안
+- 영냥이 '오마카세 초융합 운세'→'생선 오마카세' −20% 경계
+
+### SEO 점검
+
+- `/relationship-boundary-test/` title "그 사람의 바람기는? | 관계 경계 사주 테스트", H1 같은 단어로 교체. canonical·robots·description 변화 없음. `scripts/seo/keyword-research.mjs`는 이미 바람기|바람끼 둘 다 매칭
+- `/fortune-tea-house/`·`/fortune-chat/`·`/human-design/`·`/points/` 팝업은 홈 셸 안의 마케팅 팝업이라 title/description·canonical 영향 없음
+- 사이트맵: `app/**` 편집으로 `npm run sitemap:generate` 실행(lastmod 원장 갱신), URL 집합 변화 없음
+- robots·hreflang·이미지·광고: 영향 없음(alt 중복 제거만)
+
+### 범위 밖 발견(보고만)
+
+- 런타임 템플릿 `home.guideCopy.sceneAlt` `{name}의 {title} 상담 장면`이 이름이 들어간 title과 만나 같은 중복을 다시 만들 수 있어요
+- tea-tarot-three `panels.cjs` hook("78장 중 세 …")과 manifest hook이 서로 달라요(렌더 스크립트가 레포에 없어 manifest·미러만 고쳤어요)

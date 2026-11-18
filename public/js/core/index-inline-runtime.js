@@ -2298,7 +2298,7 @@ function __cdEnsureSajuCoreLoaded() {
       '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-a150de26add3',
     '/js/core/saju/basicFortunePresentation.js?v=build-2625c92ed995',
     '/js/core/saju/modalProfileState.js?v=build-70bc2c91ff63',
-    '/js/core/saju/reportDashboard.js?v=build-8269d728ab99',
+    '/js/core/saju/reportDashboard.js?v=build-21e2a9a7819a',
     '/js/saju-engine-continuation.js?v=build-f4d87e14c1c7',
     '/js/entertain-engine.js?v=build-59f95bf8647d',
     /* 체인은 순차 reduce라 앞에 끼우면 이 파일의 실패가 뒤쪽 전체를 죽인다 — 신규 카드 스크립트는 맨 뒤에 둔다. */

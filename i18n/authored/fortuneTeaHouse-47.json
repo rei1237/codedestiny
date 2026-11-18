@@ -421,7 +421,7 @@
     "ms": "Saju compatibility readings are also available"
   },
   "fortuneTeaHouse.homeV2.priceNote": {
-    "ko": "단건 기준 · 추가 질문 1회 포함 · 이용권과 월정석 적용 여부는 상담 확인 단계에서 안내해요.",
+    "ko": "단건 기준 · 추가 질문 1회 포함 · 타로는 월정석 없이, 사주·궁합·숙요는 월정석도 쓸 수 있어요.",
     "en": "Single-reading price · 1 follow-up question included. Pass and Moonstone eligibility is checked when you confirm the reading.",
     "ja": "単発料金・追加質問1回付きです。利用券・月晶石の適用は相談確認の段階でご案内します。",
     "zh-CN": "此为单次价格，含 1 次追问。咨询确认阶段会检查通行证与月晶石资格。",
@@ -757,7 +757,7 @@
     "ms": "Jawapan utama · asas tafsiran · langkah tindakan · surat Yeoni · 1 soalan susulan"
   },
   "fortuneTeaHouse.confirmation.policy": {
-    "ko": "이용권·월정석 적용 여부는 다음 단계에서 확인해요. 결과를 받은 뒤 같은 상담 근거(명식·카드·본명숙)로 추가 질문 1회를 추가 비용 없이 할 수 있어요.",
+    "ko": "타로는 월정석을 쓸 수 없고, 이용권 적용은 다음 단계에서 확인해요. 결과를 받은 뒤 같은 상담 근거(명식·카드·본명숙)로 추가 질문 1회를 추가 비용 없이 할 수 있어요.",
     "en": "Pass and Moonstone eligibility is checked next. After your reading arrives, you can ask 1 follow-up question on the same basis (birth chart, cards or natal lunar mansion) at no extra charge.",
     "ja": "利用券・月晶石の適用は次の段階で確認します。結果を受け取ったあと、同じ鑑定の根拠(命式・カード・本命宿)で追加質問を1回、追加料金なしでできます。",
     "zh-CN": "下一步检查通行证与月晶石资格。收到结果后，可依据同一份咨询依据（命盘、牌面或本命宿）免费追问 1 次。",

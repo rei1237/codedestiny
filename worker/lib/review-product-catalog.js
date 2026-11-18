@@ -122,7 +122,7 @@ export const REVIEW_PRODUCTS = Object.freeze([
   },
   {
     productId: "relationship-boundary-test",
-    name: "그 사람의 바람끼는?",
+    name: "그 사람의 바람기는?",
     summary: "대상자의 사주를 바탕으로 관계 경계와 외부 자극의 흐름을 웹툰형 리포트로 읽는 상담",
     href: "/relationship-boundary-test",
     featureKeys: Object.freeze([

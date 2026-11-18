@@ -15,7 +15,7 @@ try {
  await page.locator('#nameInput').fill('회귀검증');await page.locator('#birthDate').fill('1990-05-15');await page.locator('#run-btn').click();
  const block=page.locator('#rpt-v2-section-relationshipBoundaryTestEntry');await block.waitFor();
  assert.equal(await page.locator('#relationshipTemptationCard').count(),0);
- assert.equal(await page.getByRole('heading',{name:'그 사람의 바람끼는?',exact:true}).count(),1);
+ assert.equal(await page.getByRole('heading',{name:'그 사람의 바람기는?',exact:true}).count(),1);
  await block.locator('.rpt-v2-toggle-btn').click();
  const frame=page.frameLocator('[data-relationship-card-frame]');
  await frame.locator('#target-birth-date').waitFor({state:'visible'});

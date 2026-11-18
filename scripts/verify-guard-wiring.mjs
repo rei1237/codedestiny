@@ -98,7 +98,7 @@ const UNWIRED_BY_DESIGN = [
   ],
   [
     "verify:relationship-inline-browser",
-    "playwright 실렌더 + 로컬 dev 서버 필요 — 「그 사람의 바람끼는?」 인라인 임베드 높이 계약과 결과 화면 장면 배치를 본다. 그 결과 화면이나 reportDashboard 의 iframe 높이 계약을 고쳤으면 손으로 돌린다. 게이트 승격은 사용자 승인 사항",
+    "playwright 실렌더 + 로컬 dev 서버 필요 — 「그 사람의 바람기는?」 인라인 임베드 높이 계약과 결과 화면 장면 배치를 본다. 그 결과 화면이나 reportDashboard 의 iframe 높이 계약을 고쳤으면 손으로 돌린다. 게이트 승격은 사용자 승인 사항",
   ],
   ["verify:r2-fonts", "R2 실요청 — 네트워크 필요"],
   ["verify:r2-public-cache", "R2 실요청 — 네트워크 필요"],

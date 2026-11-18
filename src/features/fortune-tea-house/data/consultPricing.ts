@@ -68,7 +68,7 @@ export function getFortuneTeaHouseResultButtonLabel(
 ) {
   priceLabel = priceLabel ?? getFortuneTeaHouseConsultPriceLabel(mode, tarotSpread);
   if (mode === "tarot") return `타로 결과 보기 · ${priceLabel}`;
-  if (mode === "sukuyo") return `숙요점 궁합 결과 보기 · ${priceLabel}`;
+  if (mode === "sukuyo") return `숙요 궁합 결과 보기 · ${priceLabel}`;
   if (mode === "sajuCompatibility") return `사주 궁합 결과 보기 · ${priceLabel}`;
   return `사주 결과 보기 · ${priceLabel}`;
 }

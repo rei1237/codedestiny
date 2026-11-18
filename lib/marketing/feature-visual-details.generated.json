@@ -2283,7 +2283,7 @@
               "src": "/images/service-introductions/tea-saju.webp",
               "width": 1536,
               "height": 1024,
-              "alt": "연이의 연이 사주 상담 상담 장면",
+              "alt": "연이의 사주 상담 장면",
               "variants": [
                 {
                   "src": "/images/service-introductions/tea-saju-320.webp",
@@ -2447,7 +2447,7 @@
               "src": "/images/service-introductions/tea-saju-compat.webp",
               "width": 1536,
               "height": 1024,
-              "alt": "연이의 연이 사주 궁합 상담 장면",
+              "alt": "연이의 사주 궁합 상담 장면",
               "variants": [
                 {
                   "src": "/images/service-introductions/tea-saju-compat-320.webp",
@@ -2603,7 +2603,7 @@
               "src": "/images/service-introductions/tea-sukuyo.webp",
               "width": 1536,
               "height": 1024,
-              "alt": "연이의 연이 숙요점 상담 상담 장면",
+              "alt": "연이의 숙요점 상담 장면",
               "variants": [
                 {
                   "src": "/images/service-introductions/tea-sukuyo-320.webp",
@@ -2706,7 +2706,7 @@
           "id": "tea-tarot-three",
           "featureKey": "fortune-tea-house-tarot-consultation",
           "title": "운명의 찻집 · 타로 3장",
-          "hook": "마음에 남은 이야기를 들려주세요. 카드가 비추는 감정과 지금의 선택을 함께 살펴봐요.",
+          "hook": "카드 세 장으로 고민의 답과 근거를 읽는 타로",
           "badge": "추가 질문 1회 포함",
           "chapters": [
             {
@@ -2755,7 +2755,7 @@
               "src": "/images/service-introductions/tea-tarot.webp",
               "width": 1536,
               "height": 1024,
-              "alt": "연이의 연이 타로 상담 상담 장면",
+              "alt": "연이의 타로 상담 장면",
               "variants": [
                 {
                   "src": "/images/service-introductions/tea-tarot-320.webp",
@@ -2907,7 +2907,7 @@
               "src": "/images/service-introductions/tea-tarot.webp",
               "width": 1536,
               "height": 1024,
-              "alt": "연이의 연이 타로 상담 상담 장면",
+              "alt": "연이의 타로 상담 장면",
               "variants": [
                 {
                   "src": "/images/service-introductions/tea-tarot-320.webp",
@@ -10113,7 +10113,7 @@
       ],
       "category": "사주·심층 상담",
       "headline": "유료 기능을 자주 본다면 매번 결제하지 않아도 됩니다.",
-      "description": "달빛 이용권은 정해진 기간 동안 유료 기능을 이용할 수 있게 해 주는 이용권입니다. 보유 현황과 사용 내역을 여기서 확인할 수 있어요.",
+      "description": "달빛 이용권은 기간 제한 없이 정해진 이용 한도만큼 유료 기능을 여는 이용권이에요. 보유 현황과 사용 내역을 여기서 확인할 수 있어요.",
       "panels": [
         {
           "title": "이런 질문에 도움이 됩니다",
