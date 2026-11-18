@@ -1,7 +1,7 @@
 ---
-status: in-progress
+status: done
 updated: 2026-11-19
-next: 마무리 — 금지 표현 grep, 불변 파일 diff 0 확인, check:pre-push, push, 최종 보고
+next: 없음 — 완료. 후속은 각 리포트 "Phase 2 적용 결과"의 보류·확인 필요 목록
 ---
 
 # 문장 교정 Phase 2 (sepia) — 진행 문서
@@ -85,4 +85,4 @@ next: 마무리 — 금지 표현 grep, 불변 파일 diff 0 확인, check:pre-p
 - [x] B2 `B-service-stats.md` 대표 예시 행 — 적용 20, 골든 보류 3(24114·grade.S=saju-compat 골든, rich-card 1321=영냥이 불변성), 보고만·보류 3(f3378·aiFeats.title 고아, fortuneTeaHouse-28 낡은 authored), 유지 4. 번역 동기화 11키(skeleton 2 포함). sync:public·sitemap:generate 재생성. 결과는 리포트 "Phase 2 적용 결과" 절 check:fast PASS
 - [x] C1 `C-paid-signature.md` — 적용 33·부분 3·보류 6(+적용 행 일부 2)·보고만 1, registry reason 변경 0(확인 필요 4), 번역 동기화 2키, check:fast PASS
 - [x] C2 `C-paid-catalog.md` — 적용 29(부분 2: /points 이름 유지, 바람기 reason·ORDER_NAME 제외)·보류 20(palm 손금 카테고리는 새 번역 키 필요)·유지 4·보고만 13, registry reason 변경 0, 번역 동기화 12키(🔴 tea receives.1.detail en·ja·zh 5카드 5,000원 잔존), ko.json 6값 직접 수정(merge-authored --core 는 12개 사전 대량 변경이라 되돌림). 결과는 리포트 "Phase 2 적용 결과" 절 check:fast PASS
-- [ ] 마무리: 금지 표현 grep, 불변 파일 diff 0 확인, check:pre-push, push, 최종 보고(요청서 7절 형식)
+- [x] 마무리 — 금지 표현 추가 0(내 커밋 11개의 추가 줄 grep), payment-freeze 통과, 엔진 계산 코드·sajuAdapter·normalizeSaju·결제 실행 파일·registry diff 0(엔진 파일 안 사용자 노출 문구 리터럴만 B2에서 5곳 수정), origin/main 머지 c511702ea(생성물 충돌은 origin 채택 후 sync:public·sitemap:generate 재생성), novel-i18n·story-sync·sitemap 검증 OK, check:pre-push PASS, push 0cbdc2095..c511702ea (2026-11-19)
