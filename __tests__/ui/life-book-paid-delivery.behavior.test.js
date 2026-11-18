@@ -634,3 +634,41 @@ test('6e: V3 terminal provider failure after a body gives up only that section; 
   for (let i = 0; i < 4 && !['completed', 'generation_failed'].includes(early.doc?.status); i++) await early.post();
   assert.equal(early.doc.status, 'generation_failed'); assert.equal(early.refunds, 1);
 });
+
+// 2026-11-18 S3-G: 인생의 책(판 2)도 장 하나가 끝내 실패했다고 책 전체를 환불하지 않는다. 장 본문이 하나라도 있으면
+// 그 장만 포기하고 축소 배달하며, 장 본문이 전혀 없을 때만 실패(환불)한다.
+function v2Fixture() {
+  const f = fixture();
+  f.ctx.buildSectionPlan = () => Array.from({ length: 15 }, (_, i) => ({ id: `section${i}`, kind: 'chapter', planVersion: 2, evidenceRefs: [], minChars: 2000, targetChars: 4000 }));
+  return f;
+}
+
+test('S3-G: V2 structural final issues still deliver (degraded) while a chapter body exists', async () => {
+  const f = v2Fixture();
+  f.ctx.getLifeBookReportQualityIssues = () => ['chapter_3_summary_missing'];
+  for (let i = 0; i < 40 && !['completed', 'generation_failed'].includes(f.doc?.status); i++) await f.post();
+  assert.equal(f.doc.status, 'completed'); assert.equal(f.doc.llmMeta.degraded, true);
+  assert.equal(f.charges, 1); assert.equal(f.refunds, 0);
+});
+
+test('S3-G: V2 terminal provider failure after a body gives up only that chapter; with no body it still refunds', async () => {
+  const late = v2Fixture(); const base = late.ctx.generateSectionOnce;
+  late.ctx.generateSectionOnce = async (env, section) => section.id === 'section5' ? (late.calls.push(section.id), terminalFailure) : base(env, section);
+  for (let i = 0; i < 40 && !['completed', 'generation_failed'].includes(late.doc?.status); i++) await late.post();
+  assert.equal(late.doc.status, 'completed'); assert.equal(late.refunds, 0); assert.equal(late.charges, 1);
+  assert.equal(late.calls.filter(id => id === 'section5').length, 1);
+  const early = v2Fixture();
+  early.ctx.generateSectionOnce = async () => terminalFailure;
+  for (let i = 0; i < 4 && !['completed', 'generation_failed'].includes(early.doc?.status); i++) await early.post();
+  assert.equal(early.doc.status, 'generation_failed'); assert.equal(early.refunds, 1);
+});
+
+test('S3-G: V2 chapter that keeps failing transiently is dropped after its retries instead of refunding the whole book', async () => {
+  const f = v2Fixture(); const base = f.ctx.generateSectionOnce; f.ctx.LIFE_BOOK_MAX_SECTION_ATTEMPTS = 2;
+  const transient = { ok: false, body: null, error: 'LLM_INPUT_TOKEN_COUNT_UNAVAILABLE',
+    failure: { code: 'LLM_INPUT_TOKEN_COUNT_UNAVAILABLE', status: 503, providerCode: 'GEMINI_UNAVAILABLE', retryable: true, message: 'Provider request failed.' } };
+  f.ctx.generateSectionOnce = async (env, section) => section.id === 'section9' ? (f.calls.push(section.id), transient) : base(env, section);
+  for (let i = 0; i < 40 && !['completed', 'generation_failed'].includes(f.doc?.status); i++) await f.post();
+  assert.equal(f.doc.status, 'completed'); assert.equal(f.refunds, 0); assert.equal(f.charges, 1);
+  assert.equal(f.calls.filter(id => id === 'section9').length, 2);
+});
