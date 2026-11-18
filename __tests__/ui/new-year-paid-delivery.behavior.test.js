@@ -299,7 +299,7 @@ test('실제 신년 화면은 부분 결과를 완료로 오인하지 않고 결
   const ctx = vm.createContext({ document: { hidden: false }, captureDeliveryScope: () => () => true, READING_SECTION_TOTAL: 6,
     setStatus() {}, setNotice() {}, setError() {}, pendingGenerationRef, applyResult: result => states.push(result.status),
     window: { clearTimeout() {} }, autoResumeRef: { current: { timer: 0, rounds: 0, best: 0 } }, rememberNewYearSession() {},
-    isRetriableResultPollFailure: () => false, scheduleAutoResume: () => false,
+    isRetriableResultPollFailure: () => false, scheduleAutoResume: () => false, newYearRefundNotice: () => '',
     postJson: async (_path, payload, key) => {
       requests.push({ payload, key });
       return { response: { status: requests.length === 5 ? 200 : 202, ok: true }, payload: {
@@ -535,7 +535,7 @@ function newYearSource(file, names) {
   return ts.transpileModule(names.map(name => found.get(name)).join('\n'), { compilerOptions: { target: ts.ScriptTarget.ES2022 } }).outputText;
 }
 const POLLING_SOURCE = () => newYearSource('app/_lib/consultationResultPolling.ts', ['RETRYABLE_POLL_REASONS', 'isRetriableResultPollFailure']);
-const NY_COPY = ['SERVER_ERROR_MESSAGE', 'LLM_ERROR_MESSAGE', 'NEW_YEAR_PAUSED_NOTICE', 'NEW_YEAR_SLOW_NOTICE', 'NEW_YEAR_STALLED_MESSAGE'];
+const NY_COPY = ['SERVER_ERROR_MESSAGE', 'LLM_ERROR_MESSAGE', 'NEW_YEAR_PAUSED_NOTICE', 'NEW_YEAR_SLOW_NOTICE', 'NEW_YEAR_STALLED_MESSAGE', 'NEW_YEAR_REFUND_NOTICE', 'newYearRefundNotice'];
 const friendly = (caught, fallback) => caught && /[가-힣]/.test(caught.message || '') ? caught.message : fallback;
 function trail() {
   const log = { status: [], notice: [], error: [], events: [], requests: [], scheduled: 0, remembered: [] };
@@ -666,4 +666,40 @@ test('신년 생성 상태 조회가 확정 실패하면 생성 중 스피너에
   assert.equal(h.last('status'), 'error');
   assert.equal(h.last('error'), '상담을 찾지 못했어요.');
   assert.equal(h.log.scheduled, 0);
+});
+
+// 종결 실패(생성 실패로 닫힘·환불 진행·환불 완료)는 자동 이어쓰기 대신 자동 환불 안내로 끝낸다.
+const terminalCases = [
+  ['생성 실패(LLM_ERROR 503)', { status: 503, body: { ok: false, reason: 'LLM_ERROR', message: '권한은 보존되었으니 다시 시도해 주세요.' } }, 'notice'],
+  ['이미 실패로 닫힌 상담(GENERATION_FAILED 409)', { status: 409, body: { ok: false, reason: 'GENERATION_FAILED', message: '권한은 보존되었으니 다시 시도해 주세요.' } }, 'notice'],
+  ['환불 진행(REFUND_PENDING 409)', { status: 409, body: { ok: false, reason: 'REFUND_PENDING', refundStatus: 'pending', retryable: true, message: '환불을 진행하고 있어요.' } }, '환불을 진행하고 있어요.'],
+  ['환불 완료(PAYMENT_REFUNDED 403)', { status: 403, body: { ok: false, reason: 'PAYMENT_REFUNDED', refundStatus: 'refunded', retryable: false, message: '결제가 환불됐어요.' } }, '결제가 환불됐어요.'],
+];
+for (const [label, response, expected] of terminalCases) {
+  test(`신년 결제 생성이 종결 실패면 자동 환불 안내로 끝낸다: ${label}`, async () => {
+    const h = newYearStart({ responses: [response] });
+    assert.equal(await h.run(), false);
+    assert.equal(h.log.requests.length, 1);
+    assert.equal(h.log.scheduled, 0);
+    assert.equal(h.last('status'), 'error');
+    assert.equal(h.last('error'), expected === 'notice' ? vm.runInContext('NEW_YEAR_REFUND_NOTICE', h.ctx) : expected);
+    assert.equal(h.pendingGenerationRef.current, null);
+  });
+  test(`신년 상담을 다시 열었을 때 종결 실패면 이어 쓰지 않고 환불 안내를 보인다: ${label}`, async () => {
+    const h = newYearLoad({ status: response.status, body: response.body, pending: { payload: { resumeSessionId: 'ny-1' }, key: 'paid-request', access: {} } });
+    assert.equal(await h.run(), false);
+    assert.equal(h.starts.length, 0);
+    assert.equal(h.log.scheduled, 0);
+    assert.equal(h.last('status'), 'error');
+    assert.equal(h.last('error'), expected === 'notice' ? vm.runInContext('NEW_YEAR_REFUND_NOTICE', h.ctx) : expected);
+    assert.equal(h.ctx.pendingGenerationRef.current, null);
+  });
+}
+test('신년 환불 안내는 결제·이용권 자동 환불과 확인 위치를 알린다', () => {
+  const ctx = vm.createContext({});
+  vm.runInContext(newYearSource(NY_CLIENT, NY_COPY), ctx);
+  assert.match(ctx.NEW_YEAR_REFUND_NOTICE, /자동으로 되돌/);
+  assert.match(ctx.NEW_YEAR_REFUND_NOTICE, /기록 보관함|결제 내역/);
+  assert.equal(ctx.newYearRefundNotice({ ok: false, reason: 'DB_DEGRADED', retryable: true }), '');
+  assert.equal(ctx.newYearRefundNotice({ ok: true, status: 'partial' }), '');
 });

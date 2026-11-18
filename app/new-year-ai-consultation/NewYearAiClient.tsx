@@ -326,6 +326,8 @@ type ConsultationResult = {
   targetYear?: TargetYearInfo | null;
   reason?: string;
   message?: string;
+  refundStatus?: string;
+  retryable?: boolean;
 };
 
 async function readTossNewYearResponse(response:Response):Promise<ConsultationResult> {
@@ -615,8 +617,18 @@ const NEW_YEAR_TOSS_LEAVE_NOTICE = "다 쓴 분야는 그때그때 저장돼요.
 const NEW_YEAR_PAUSED_NOTICE = "화면을 벗어나 생성을 잠시 멈췄어요. 돌아오면 저장된 분야부터 이어서 준비합니다. 다시 결제되지 않습니다.";
 const NEW_YEAR_SLOW_NOTICE = "생성이 길어지고 있어요. 저장된 분야는 그대로 두고 잠시 뒤 자동으로 이어 갑니다. 다시 결제되지 않습니다.";
 const NEW_YEAR_STALLED_MESSAGE = "생성이 예상보다 오래 멈춰 있어요. 저장된 분야는 그대로 남아 있고 다시 결제되지 않아요. 아래 버튼을 누르면 같은 상담을 이어서 받고, 서버에서도 마저 완성해 기록 보관함에 남겨 둡니다.";
+// 생성이 실패로 닫히면 서버가 결제·이용권을 자동으로 되돌린다(settleNewYearFailureRefund·consultationRefundResponse).
+const NEW_YEAR_REFUND_NOTICE = "새해 상담문을 완성하지 못해 결제·이용권을 자동으로 되돌리고 있어요. 처리 상태는 기록 보관함과 결제 내역에서 확인할 수 있어요.";
 const NEW_YEAR_AUTO_RESUME_ROUNDS = 4;
 const NEW_YEAR_AUTO_RESUME_DELAY_MS = 15000;
+
+// 종결 실패면 이어 쓰지 않고 환불 안내로 끝낸다. 환불 상태 응답은 서버 문구(진행·확인 중·완료)를 그대로 쓴다.
+// REFUND_PENDING 은 retryable 일 수 있어 일시 장애 판정보다 먼저 본다.
+function newYearRefundNotice(result: ConsultationResult) {
+  if (result.ok) return "";
+  if (result.reason === "PAYMENT_REFUNDED" || result.reason === "REFUND_PENDING") return result.message || NEW_YEAR_REFUND_NOTICE;
+  return result.reason === "LLM_ERROR" || result.reason === "GENERATION_FAILED" ? NEW_YEAR_REFUND_NOTICE : "";
+}
 
 // 새로고침·탭 복귀·결제 리다이렉트 뒤에도 같은 상담을 다시 열도록 ?sid= 를 남긴다(loadSession 이 읽는다).
 function rememberNewYearSession(sessionId: string) {
@@ -1660,6 +1672,13 @@ export default function NewYearAiConsultationPage({paymentSurface="web",ProfileP
         pendingGenerationRef.current = { payload: { resumeSessionId: sessionId }, key: idempotencyKey, access: {} };
         rememberNewYearSession(sessionId);
       }
+      const refund = newYearRefundNotice(result);
+      if (refund) {
+        pendingGenerationRef.current = null;
+        window.clearTimeout(autoResumeRef.current.timer); autoResumeRef.current = { timer: 0, rounds: 0, best: 0 };
+        setNotice(""); setError(refund); setStatus("error");
+        return false;
+      }
       if (!response.ok || !result.ok) {
         if (!isRetriableResultPollFailure(response.status, result)) throw new Error(result.message || SERVER_ERROR_MESSAGE);
         if (++transientFailures > 2) return scheduleAutoResume();
@@ -1707,6 +1726,12 @@ export default function NewYearAiConsultationPage({paymentSurface="web",ProfileP
         return await startConsultation({ resumeSessionId: sessionId }, idempotencyKeyRef.current, {});
       }
       if (response.ok && result.ok && result.status === "completed") { applyResult(result); return true; }
+      const refund = newYearRefundNotice(result);
+      if (refund) {
+        pendingGenerationRef.current = null;
+        setNotice(""); setError(refund); setStatus("error");
+        return false;
+      }
       if (!response.ok) {
         // 진행 중인 결제 생성의 일시 장애는 생성 화면을 지킨 채 자동 이어쓰기로 넘긴다.
         if (pendingGenerationRef.current && isRetriableResultPollFailure(response.status, result)) return scheduleAutoResume();
