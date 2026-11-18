@@ -11425,7 +11425,7 @@ function renderSummary(p,johu,natal){
      공감 → 성향 → 최종 용신 → 시기 → 실천 순서다. 덧붙인 장이라 saju-ext 로 감싸고,
      box() 가 장 번호를 세므로 기존 장(①~⑬)이 모두 나온 뒤에만 둔다.
   ─────────────────────────────── */
-  (function(){
+  (function(){try{
     var api=window.SajuNatalCore,chart=_sajuCoreChart();
     if(!api||!chart)return;
     var ym;
@@ -11484,7 +11484,7 @@ function renderSummary(p,johu,natal){
         (f.supplements||[]).map(function(s){
           return '<br>· '+(s.conflict
             ?T(SHORT[s.method]+' 쪽에서는 '+els(s.elements)+' 기운을 권하지만, 최종 판단과 부딪혀 참고만 해요.',SHORT[s.method]+' 쪽에선 '+els(s.elements)+' 기운을 권하는데, 최종 판단이랑 부딪혀서 참고만 해.')
-            :T(SHORT[s.method]+' 쪽에서도 '+els(s.elements)+' 기운을 권해서 방향이 같아요.',SHORT[s.method]+' 쪽에서도 '+els(s.elements)+' 기운을 권해서 방향이 같아.'));
+            :T(SHORT[s.method]+' 쪽에서는 '+els(s.elements)+' 기운을 권하는데, 꺼리는 기운이 아니라서 함께 챙겨도 괜찮아요.',SHORT[s.method]+' 쪽에선 '+els(s.elements)+' 기운을 권하는데, 꺼리는 기운이 아니라 같이 챙겨도 괜찮아.'));
         }).join('')+
         (f.avoid&&f.avoid.length?'<br>· '+T(els(f.avoid)+' 기운이 한꺼번에 몰리는 때는 무리하지 말고 한 템포 쉬어 가요.',els(f.avoid)+' 기운이 한꺼번에 몰릴 땐 무리하지 말고 한 템포 쉬어 가.'):'');
     }
@@ -11517,7 +11517,7 @@ function renderSummary(p,johu,natal){
       subHead(T('오늘부터 할 수 있는 것','오늘부터 해 볼 것'),'#2e7d32')+
       para('saju-yongsin-practice',practice),
       '#5E35B1','rgba(237,231,246,.7)')+'<!--/saju-ext-->';
-  })();
+  }catch(e){console.warn('[saju] yongsin chapter skipped',e);}})();
 
   /* ───────────────────────────────
      12-1. 올해·내년 처방 — 세운은 대운 풀이의 연도별 세운과 같은 경로(_sajuSeunYearReading)로 읽는다
