@@ -75,7 +75,11 @@ function fixture(accessType = 'pass') {
         for (const [key, value] of Object.entries(update.$set || {})) set(doc, key, value);
         doc.updatedAt = new Date().toISOString(); return clone(doc);
       } }),
-      updateOne: async (filter, update) => { if (doc && matches(doc, filter)) Object.assign(doc, clone(update.$set)); },
+      updateOne: async (filter, update) => {
+        if (fault === 'mark' && update.$set?.status === 'generation_failed') { fault = null; throw new Error('MARK_WRITE_FAILED'); }
+        if (!doc || !matches(doc, filter)) return { matchedCount: 0 };
+        Object.assign(doc, clone(update.$set)); return { matchedCount: 1 };
+      },
     },
     generateFirstConsultation: async (_env, _input, _saju, _log, options) => {
       const groups = clone(options.savedGroups);
@@ -338,6 +342,39 @@ for (const revoked of ['execution', 'payment', 'points']) {
     assert.equal(access.ok, false); assert.equal(fallback, 0);
   });
 }
+
+test('실패 표시 저장이 실패하면 기록을 남기고, 환불 뒤 같은 키 재시도는 다시 생성하지 않는다', async () => {
+  const f = fixture('paid'); const logs = [];
+  f.ctx.logLoveSecretAi = (event, payload, level) => { logs.push({ event, payload, level }); };
+  f.ctx.generateFirstConsultation = async () => { throw Object.assign(new Error('provider down'), { code: 'LLM_GENERATION_FAILED' }); };
+  f.fault('mark');
+  assert.equal((await f.post()).status, 503);
+  assert.equal(f.refunds, 1); assert.equal(f.doc.status, 'generating');
+  const marked = logs.find(row => row.event === 'LLM Failure Mark Failed');
+  assert.ok(marked, logs.map(row => row.event).join(','));
+  assert.equal(marked.level, 'error'); assert.equal(marked.payload.sessionId, f.doc.id); assert.equal(marked.payload.restored, true);
+  // 환불 증빙이 접근 재확인을 거절시키면 잘려 남은 "generating" 문서도 재생성하지 않는다.
+  f.doc.updatedAt = new Date(Date.now() - 600000).toISOString(); f.permitted(false);
+  assert.equal((await f.post()).status, 402); assert.equal(f.calls, 0); assert.equal(f.refunds, 1);
+});
+
+test('코인 생성 실패 환급 표식은 같은 요청 키의 재시작을 거절한다(무료 재생성 차단)', async () => {
+  let fallback = 0;
+  const ctx = vm.createContext({ nativeTossContext: () => null, Promise,
+    clean: value => String(value || ''), FEATURE_KEY: 'love-secret-ai-consultation',
+    collectBillingEvidenceIds: () => ['original', 'coin-history'],
+    buildPaidExecutionEvidenceQuery: () => [{ requestId: 'original' }], buildPaymentEvidenceQuery: () => [{ merchantUid: 'coin-history' }], buildPointHistoryEvidenceQuery: () => [{ 'metadata.requestId': 'original' }],
+    PaidExecutionRecord: { findOne: () => ({ lean: async () => null }) },
+    Payment: { findOne: () => ({ lean: async () => null }) },
+    PointHistory: { findOne: filter => ({ lean: async () => JSON.stringify(filter).includes('"metadata.refundedForLoveSecretAiFailure":true')
+      ? { kind: 'deduct', metadata: { refundedForLoveSecretAiFailure: true, refundedForServiceExecution: true } } : null }) },
+    withMongoRetry: async (_env, fn) => fn(), resolveBillingUsageEvidence: async () => { fallback++; return { ok: true, accessType: 'paid' }; },
+  });
+  load(ctx, 'worker/routes/love-secret-ai.js', ['resolveStartAccess']);
+  const access = await ctx.resolveStartAccess({ request: { headers: { get: () => '' } }, env: {}, auth: { userId: 'owner' },
+    body: {}, normalized: { inputHash: 'hash' }, idempotencyKey: 'original', pricing: {} });
+  assert.equal(access.ok, false); assert.equal(access.reason, 'PAYMENT_REQUIRED'); assert.equal(fallback, 0);
+});
 
 for (const locale of AI_OUTPUT_LOCALES) test(`${locale}: resumes in the purchased language after the UI changes`, async () => {
   const f = fixture();

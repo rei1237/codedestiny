@@ -1599,8 +1599,11 @@ async function resolveStartAccess({ request, env, auth, body, normalized, pricin
       status: { $in: ["cancelled", "refunded", "canceled"] }, $or: buildPaidExecutionEvidenceQuery(ids) }).lean(),
     Payment.findOne({ userId: clean(auth.userId), featureKey: FEATURE_KEY,
       status: { $in: ["cancelled", "refunded", "canceled", "CANCELLED", "REFUNDED"] }, $or: buildPaymentEvidenceQuery(ids) }).lean(),
-    PointHistory.findOne({ userId: clean(auth.userId), featureKey: FEATURE_KEY,
-      "metadata.monthlyCreditRefundedForLoveSecretAiFailure": true, $or: buildPointHistoryEvidenceQuery(ids) }).lean(),
+    // 월정석·코인 생성 실패 환급 표식 모두 회수 증빙이다(코인은 환급 뒤 같은 키로 무료 재생성되던 구멍).
+    PointHistory.findOne({ userId: clean(auth.userId), featureKey: FEATURE_KEY, $and: [
+      { $or: buildPointHistoryEvidenceQuery(ids) },
+      { $or: [{ "metadata.monthlyCreditRefundedForLoveSecretAiFailure": true }, { "metadata.refundedForLoveSecretAiFailure": true }] },
+    ] }).lean(),
   ]);
   if (revokedExecution || revokedPayment || refundedPoints) return { ok: false, reason: "PAYMENT_REQUIRED" };
 
@@ -1899,7 +1902,7 @@ async function handleStart(request, env, route = "/api/love-secret-ai/generate",
       ...safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: access.accessType, env }),
       restored,
     }, restored?.restored || restored?.refunded ? "info" : "warn");
-    await LoveSecretAiConsultation.updateOne(
+    const marked = await LoveSecretAiConsultation.updateOne(
       { id: sessionId, userId: clean(auth.userId), status: "generating", "llmMeta.delivery.lease": seed.llmMeta.delivery.lease },
       {
         $set: {
@@ -1911,7 +1914,17 @@ async function handleStart(request, env, route = "/api/love-secret-ai/generate",
           },
         },
       },
-    ).catch(() => {});
+    ).catch((markError) => ({ markError }));
+    // 실패 표시를 못 남기면 문서가 "generating" 으로 남는다. 조용히 넘기지 않고 남긴다 — 환불된 상담의 재시작은
+    // resolveStartAccess 의 환불 증빙(카드 취소·월정석/코인 환급 표식)이 막고, 이용권은 되돌린 뒤 다시 차감된다.
+    if (marked?.markError || Number(marked?.matchedCount) === 0) {
+      logLoveSecretAi("LLM Failure Mark Failed", {
+        ...safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: access.accessType, env }),
+        sessionId,
+        restored: Boolean(restored?.restored || restored?.refunded),
+        error: clean(marked?.markError?.message || "generation_failed mark matched no document", 300),
+      }, "error");
+    }
     return json({ ok: false, reason: "LLM_ERROR", message: LLM_ERROR_MESSAGE }, { status: 503 });
   }
   };
