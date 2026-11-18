@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useCallback, useEffect, useRef, useState, type KeyboardEvent, type PointerEvent, type ReactNode } from "react";
 import styles from "./paged-result-viewer.module.css";
 import { currentFortuneSharedCopy } from "./_lib/fortune-shared-copy";
+import AiResultReportLink from "./AiResultReportLink";
 
 // 🔴 이 껍데기가 한국어면, 본문이 일본어인 작명첩에서도 넘김 버튼만 한국어로 남는다.
 //    언어 전환은 경로 이동이라 렌더 시점에 한 번 읽으면 충분하다(_lib/fortune-shared-copy.ts 주석).
@@ -192,6 +193,7 @@ export default function PagedResultViewer({
           </button>
         </nav>
       ) : null}
+      {!expandForExport ? <AiResultReportLink /> : null}
     </div>
   );
 }
