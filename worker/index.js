@@ -7,6 +7,7 @@ import { readBoundedText } from "./lib/request-body.js";
 import { resolveAiLocaleForRequest, runWithAiLocale } from "./lib/ai-locale-context.js";
 import { withDbScopes } from "./lib/db-scope.js";
 import { withEngineRollout } from "./lib/engine-rollout.js";
+import { withStagingLlmRouting } from "./lib/staging-real-llm.js";
 // 지오코딩 좌표의 시간대 판정. 경도만 보면 서울이 "UTC+8" 로 나와 차트가 1시간 어긋난다.
 import { geocodePlace } from "./lib/geocode.js";
 
@@ -2165,4 +2166,6 @@ const app = {
 // 요청 범위 DB 스코프(설계안 C1·C4). fetch 1건·queue 배치 1건·scheduled 1회가 각각 스코프 하나이고,
 // 그 id 가 db.js 계측([db-conn-open]·[db-cmd])에 찍힌다. 결제 레인 연결은 스코프마다 따로 열고, 핸들러와
 // 그 요청의 ctx.waitUntil 작업이 끝나면 닫는다(C4) — worker/lib/db-scope.js.
-export default withEngineRollout(withDbScopes(app));
+// 스테이징 LLM 라우팅(2026-11-18): 스테이징에서만 허용 계정 요청은 운영과 같은 LLM 경로, 나머지는 키를 지운 mock view.
+// /api/toss/·OPTIONS·queue·scheduled 까지 모든 진입을 덮으려고 fetch 본문이 아니라 여기서 감싼다 — worker/lib/staging-real-llm.js.
+export default withEngineRollout(withStagingLlmRouting(withDbScopes(app)));
