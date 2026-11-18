@@ -35,6 +35,7 @@ import { isStagingLlmMockEnabled } from "../lib/staging-llm-mock.js";
 import {SYNC_LLM_TIMEOUT_CEILING_MS, PAID_LLM_PARTS_PER_REQUEST } from "../lib/sync-llm-timeout.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
 import { calculateLifeBookAiSaju } from "../lib/life-book-ai-saju.js";
+import { buildLuckJudgement, buildNatalJudgementFacts } from "../lib/saju-luck-judgement.js";
 import { approvedSajuLabels, lifeBookPillars, overlayApprovedLifeBookChart, sajuAuthorityOn } from "../lib/saju-authority-consumer.js";
 import { calculateZiweiConsumerChart } from "../lib/ziwei-consumer-chart.js";
 import { describeBrightness, formatStarWithBrightness } from "../lib/ziwei-ai-chart.js";
@@ -660,12 +661,26 @@ function summarizeSajuMajorLuck(majorLuck) {
   }, 6);
 }
 
+// S15: 원국 판정 + 지금 다루는 시기(현재 대운, 올해 — 대운을 바탕으로)만 판정한다. 평생 표는 싣지 않는다.
+function neoSajuLuckJudgement(chart, currentCycle, thisYear) {
+  const pillars = { year: chart.yearPillar, month: chart.monthPillar, day: chart.dayPillar, hour: chart.hourPillar };
+  const timeUnknown = chart.calculationMeta?.timeUnknown === true;
+  const natal = buildNatalJudgementFacts(pillars, { timeUnknown });
+  if (!natal) return null;
+  const daeun = currentCycle?.pillar
+    ? buildLuckJudgement(pillars, { daeun: currentCycle.pillar, label: `대운 ${currentCycle.startAge ?? "?"}~${currentCycle.endAge ?? "?"}세`, timeUnknown }) : null;
+  const year = thisYear?.pillar
+    ? buildLuckJudgement(pillars, { daeun: currentCycle?.pillar || null, seun: thisYear.pillar, label: `${thisYear.year || ""}년`, timeUnknown }) : null;
+  return { natal, ...(daeun ? { daeun } : {}), ...(year ? { year } : {}) };
+}
+
 function summarizeSaju(chart) {
   const approved = chart.approvedSaju || null;
   const majorLuck = summarizeSajuMajorLuck(chart.majorLuck);
   const currentCycle = majorLuck?.currentCycle || null;
   const yearlyLuck = safeArray(chart.yearlyLuck).slice(0, 4);
   const thisYear = yearlyLuck[0] || null;
+  const luckJudgement = neoSajuLuckJudgement(chart, currentCycle, thisYear);
   return {
     method: "saju",
     summary: `사주 엔진이 산출한 사주팔자, 일간, 오행 분포, 십성 분포, ${approved ? "격국, 용신 후보" : "용신"}, 합충, 대운과 세운 흐름을 근거로 삼는다.`,
@@ -697,6 +712,7 @@ function summarizeSaju(chart) {
     strongestTenGods: safeArray(chart.fortuneFacts?.strongestTenGods).slice(0, 5),
     majorLuck,
     yearlyLuck,
+    ...(luckJudgement ? { luckJudgement } : {}),
     evidenceTokens: buildEvidenceTokens([
       chart.yearPillar,
       chart.monthPillar,

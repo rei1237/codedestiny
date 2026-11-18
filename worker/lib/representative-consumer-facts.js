@@ -1,6 +1,7 @@
 import { calculateLifeBookAiSaju } from './life-book-ai-saju.js';
 import { lifeBookPillars } from './saju-authority-consumer.js';
 import { engineFactDigest } from './engine-fact-snapshot.js';
+import { buildLuckJudgement } from './saju-luck-judgement.js';
 
 // Integrity metadata, not a new calculation rule. Raw stored reports remain unchanged.
 export function pinRepresentativeFacts(value, env, kind) {
@@ -22,8 +23,17 @@ export function connectNewYearTiming(value, birth, env) {
   const current = majorLuck?.currentCycle;
   const background = current ? `대운 배경: ${current.pillar}, ${current.startAge}~${current.endAge}세. 제공된 원국·세운과 함께 조건부로 해석합니다.`
     : majorLuck?.reason || '현재 대운 구간이 없어 대운의 영향을 추정하지 않습니다.';
+  // 대운이 확인되면 올해 판정을 대운 바탕 위에서 다시 내리고, 현재 대운 판정도 함께 싣는다(S15-6).
+  const judgement = value.advancedSajuSummary?.luckJudgement;
+  const pillars = { year: value.saju?.yearPillar, month: value.saju?.monthPillar, day: value.saju?.dayPillar, hour: value.saju?.hourPillar };
+  const timeUnknown = value.calculationMeta?.timeUnknown === true;
+  const luckJudgement = judgement && current?.pillar ? {
+    ...judgement,
+    daeun: buildLuckJudgement(pillars, { daeun: current.pillar, label: `대운 ${current.startAge}~${current.endAge}세`, timeUnknown }),
+    year: buildLuckJudgement(pillars, { daeun: current.pillar, seun: value.targetYear.pillar, label: `${value.targetYear.year}년`, timeUnknown }) || judgement.year,
+  } : judgement;
   return pinRepresentativeFacts({ ...value, majorLuck,
     advancedSajuSummary: { ...value.advancedSajuSummary, daewoonSewoon: {
       ...value.advancedSajuSummary.daewoonSewoon, majorLuck, integratedReading: background,
-    } } }, env, 'new-year');
+    }, ...(luckJudgement ? { luckJudgement } : {}) } }, env, 'new-year');
 }

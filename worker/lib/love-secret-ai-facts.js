@@ -9,6 +9,7 @@
 // (new-year-ai.js:1243 buildCanonicalNewYearFacts 선례), 날짜 날조를 막는 유일한 근거다.
 
 import { sajuTemperamentPromptLines } from './saju-temperament.js';
+import { buildLuckJudgementRows, buildNatalJudgementFacts } from './saju-luck-judgement.js';
 
 const ELEMENT_KO = Object.freeze({ wood: "목", fire: "화", earth: "토", metal: "금", water: "수" });
 
@@ -299,6 +300,30 @@ const GROUP_FACT_BUILDERS = Object.freeze({
     };
   },
 });
+
+// S15: 그룹이 다루는 시기만 판정한다. 원국 판정은 성향·전략을 다루는 그룹에, 시기 판정은 core(현재 대운·올해)와
+//      timing(현재 대운·가까운 세운 3년)에만 싣는다. partner·risk 는 받지 않는다.
+const LUCK_JUDGEMENT_NATAL_GROUPS = Object.freeze(["nature", "core", "self", "timing", "action"]);
+const LUCK_JUDGEMENT_YEARS = Object.freeze({ core: 1, timing: 3 });
+
+/** V2 그룹 프롬프트용 운 판정. 실을 것이 없으면 null. */
+export function buildLoveSecretLuckJudgement(sajuResult = {}, groupKey = "core") {
+  if (!LUCK_JUDGEMENT_NATAL_GROUPS.includes(groupKey)) return null;
+  const my = sajuResult.myChart || {};
+  const pillars = { year: my.yearPillar, month: my.monthPillar, day: my.dayPillar, hour: my.hourPillar };
+  const timeUnknown = my.calculationMeta?.timeUnknown === true || !clean(my.hourPillar);
+  const natal = buildNatalJudgementFacts(pillars, { timeUnknown });
+  if (!natal) return null;
+  const yearCount = LUCK_JUDGEMENT_YEARS[groupKey] || 0;
+  const current = my.majorLuck?.currentCycle || null;
+  const periods = yearCount ? [
+    ...(current?.pillar ? [{ label: `대운 ${current.startAge}~${current.endAge}세`, daeun: current.pillar }] : []),
+    ...(my.yearlyLuck || []).slice(0, yearCount).filter((row) => row?.pillar)
+      .map((row) => ({ label: `${row.year}년`, daeun: row.majorLuckPillar || current?.pillar || null, seun: row.pillar })),
+  ] : [];
+  const rows = buildLuckJudgementRows(pillars, periods, { timeUnknown });
+  return { natal, ...(rows.length ? { periods: rows } : {}) };
+}
 
 /** 그룹이 실제로 쓰는 계산 데이터만 투영한다. JSON 3,500자 이하를 목표로 한다. */
 export function buildLoveSecretGroupFacts(sajuResult = {}, groupKey = "core") {

@@ -122,7 +122,7 @@ test('life-book, guardian and fusion prompt projections retain the same ID and c
   ctx.isLifeFortuneInput = () => false;
   ctx.expertSubchapterPromptLines = expertSubchapterPromptLines;
   ctx.sajuTemperamentPromptLines =() => { throw Error('LEGACY_REJUDGEMENT'); };
-  load(ctx, 'worker/routes/life-book-ai.js', ['buildSectionSchema', 'buildSectionPrompt']);
+  load(ctx, 'worker/routes/life-book-ai.js', ['buildSectionSchema', 'lifeBookLuckJudgement', 'buildSectionPrompt']);
   const chapter = ctx.buildSectionPrompt({ birthInfo: sample }, slice, { kind: 'chapter', index: 0, title: '일의 방향', minChars: 100, targetChars: 150, minAdvice: 1 });
   assert.match(chapter, /후보는 확정 용신이 아닙니다/);
   assert.match(chapter, new RegExp(pin.analysis.evidence.natalAnalysisId));

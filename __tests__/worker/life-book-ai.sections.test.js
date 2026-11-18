@@ -9,6 +9,7 @@ import { __lifeBookAiTestUtils, nativeLifeBookContract } from "../../worker/rout
 import { calculateLifeBookAiSaju } from "../../worker/lib/life-book-ai-saju.js";
 import { tokensRequiredForChars } from "../../worker/lib/llm-budget.js";
 import { createHash } from "node:crypto";
+import { SAJU_LUCK_JUDGEMENT_RULE } from "../../worker/lib/saju-temperament.js";
 
 const {
   lifeBookLengthOptions,
@@ -508,6 +509,27 @@ test("판 1·2 프롬프트 바이트는 바뀌지 않는다(sha256 고정)", ()
   expect(hashOf(lifeFortuneInput, 1)).toBe("1b17be70daa352e82c8b79b2ca92f2ec1ba628a8cbbf99863292f020cb80d3f4");
   expect(hashOf(lifeFortuneInput, 2)).toBe("00c5ef4bf5ab9a59179aea0d9b8b1caaff8f7e08df09028402f896a7dd18be5c");
   expect(hashOf(lifeBookInput, 1)).toBe("08b293fa86449c64a5d8f902989d08ec851b18e0083e651a9e4af7777472c3f3");
+});
+
+test("현재 판(총운 V3·인생의 책 V2)은 장이 다루는 시기의 운 판정과 공통 전달 규칙을 싣는다", () => {
+  const saju = calculateLifeBookAiSaju(birthInfo);
+  const promptFor = (input, version, pick) => {
+    const section = buildSectionPlan(input, { version }).find(pick);
+    return buildSectionPrompt(input, pickSajuSlice(saju, section.evidenceRefs), section, "");
+  };
+  const judgementOf = (prompt) => JSON.parse(prompt.split("[운 판정 — luckJudgement")[1].split("\n")[1]);
+  const yearly = promptFor(lifeFortuneInput, 3, (s) => s.kind === "chapter" && s.index === 8);
+  expect(yearly).toContain(SAJU_LUCK_JUDGEMENT_RULE);
+  const yearlyJudgement = judgementOf(yearly);
+  expect(yearlyJudgement.natal.yongsin.reason).toBeTruthy();
+  expect(yearlyJudgement.periods.filter((row) => /년$/.test(row.label)).map((row) => row.pillar))
+    .toEqual(saju.yearlyLuck.map((row) => row.pillar));
+  // 대운은 지금과 다음 두 개만 — 평생 대운표를 싣지 않는다.
+  expect(yearlyJudgement.periods.filter((row) => /^대운/.test(row.label)).length).toBeLessThanOrEqual(2);
+  const natalOnly = judgementOf(promptFor(lifeFortuneInput, 3, (s) => s.kind === "chapter" && s.index === 0));
+  expect(natalOnly.periods).toBeUndefined();
+  expect(promptFor(lifeBookInput, 2, (s) => s.kind === "chapter" && s.index === 7)).toContain(SAJU_LUCK_JUDGEMENT_RULE);
+  expect(promptFor(lifeBookInput, 2, (s) => s.kind === "frame")).not.toContain(SAJU_LUCK_JUDGEMENT_RULE);
 });
 
 test('native life-book orders keep original validation, mode pricing keys and normalized input identity', () => {

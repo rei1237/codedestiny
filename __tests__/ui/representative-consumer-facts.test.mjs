@@ -9,6 +9,7 @@ import * as natal from '../../worker/lib/saju-natal-analysis.js';
 import * as temperament from '../../worker/lib/saju-temperament.js';
 import * as life from '../../worker/lib/life-book-ai-saju.js';
 import * as prevention from '../../worker/lib/fortune-prevention.js';
+import * as judgement from '../../worker/lib/saju-luck-judgement.js';
 import {connectNewYearTiming,pinRepresentativeFacts,readRepresentativeFacts} from '../../worker/lib/representative-consumer-facts.js';
 const source=fs.readFileSync('worker/routes/new-year-ai.js','utf8');
 const ast=ts.createSourceFile('new-year.js',source,ts.ScriptTarget.Latest,true);
@@ -20,7 +21,7 @@ for(const n of ast.statements){
 const selected=new Set();
 function select(name){const n=declarations.get(name);if(!n||selected.has(n))return;selected.add(n);function visit(child){if(ts.isIdentifier(child))select(child.text);ts.forEachChild(child,visit)}ts.forEachChild(n,visit)}
 select('calculateNewYearFortuneData');select('buildCanonicalNewYearFacts');
-const context=vm.createContext({...calendar,...natal,...temperament,...life,...prevention,console,Date,JSON});
+const context=vm.createContext({...calendar,...natal,...temperament,...life,...prevention,...judgement,console,Date,JSON});
 vm.runInContext(ast.statements.filter(n=>selected.has(n)).map(n=>n.getText(ast)).join('\n'),context);
 const birth={birthDate:'2000-05-15',birthTime:'08:30',calendarType:'solar',gender:'male'};
 for(const variant of [birth,{...birth,gender:'female'},{...birth,timeUnknown:true,birthTime:''},{...birth,calendarType:'lunar'}]){

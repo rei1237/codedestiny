@@ -5,11 +5,13 @@ import { solarToLunar, STEM_HANGUL } from '../../lib/korean-calendar/index.js';
 import { lunarMonthStemIndex } from '../../lib/ziwei-month-stem.js';
 import { buildNeoBasisPayload } from './neo-operation-room-basis.js';
 import { profileCardSolarBirth } from './paid-content-read-access.js';
+import { buildLuckJudgement, buildNatalJudgementFacts, compactLuckJudgement, luckDynamicsFor } from './saju-luck-judgement.js';
 
 export const HEUKWOL_VERSION = 'heukwol-monthly-v2';
 const pad = n => String(n).padStart(2, '0');
 const boundary = (year, month) => `${year}-${pad(month)}-01 00:00`;
 const palacesByDomain = { money:['재백궁','전택궁'], love:['부부궁'], relationships:['형제궁','노복궁'], work:['관록궁','천이궁'] };
+const PILLAR_KEYS = { 년주:'year', 연주:'year', 월주:'month', 일주:'day', 시주:'hour' };
 
 /** Only the account-owned card supplies civil birth time and location. */
 export function heukwolProfileBirth(card) {
@@ -54,12 +56,21 @@ export function buildHeukwolAnalysis(birth, requestedYear, now = new Date(), { e
       }
     }
   }
+  // S15: 원국 판정과 이 해·대운·절입 구간별 월 판정. 월 판정의 바탕은 그 구간이 속한 사주 해의 세운이다.
+  const natalPillars = Object.fromEntries(years[1].pillars.map(p => [PILLAR_KEYS[p.label], p.pillar]).filter(([k]) => k));
+  const natalJudgement = buildNatalJudgementFacts(natalPillars);
+  const monthJudgement = (pillar, annual) => natalJudgement ? compactLuckJudgement(luckDynamicsFor(natalPillars, { seun: annual?.pillar, wolun: pillar })) : null;
+  const daeunPillar = years[1].major?.pillar || null;
+  const luckJudgement = natalJudgement ? { natal: natalJudgement,
+    ...(daeunPillar ? { daeun: buildLuckJudgement(natalPillars, { daeun: daeunPillar, label: '대운' }) } : {}),
+    year: buildLuckJudgement(natalPillars, { daeun: daeunPillar, seun: years[1].annual.pillar, label: `${year}년` }) } : null;
   const months = Array.from({length:12}, (_,i) => {
     const start = boundary(year,i+1), end = i===11 ? boundary(year+1,1) : boundary(year,i+2);
-    const saju = years.flatMap(a => a.months.filter(m => m.start<end && m.end>start).map(m => ({
-      ...m, id:`saju-${a.year}-${m.id}`, start:m.start<start?start:m.start, end:m.end>end?end:m.end,
-      annual:a.annual, major:a.major,
-    })));
+    const saju = years.flatMap(a => a.months.filter(m => m.start<end && m.end>start).map(m => {
+      const judgement = monthJudgement(m.pillar, a.annual);
+      return { ...m, id:`saju-${a.year}-${m.id}`, start:m.start<start?start:m.start, end:m.end>end?end:m.end,
+        annual:a.annual, major:a.major, ...(judgement ? { luckJudgement: judgement } : {}) };
+    }));
     const ziwei = lunarSegments.filter(m=>m.start<end && m.end>start).map(m=>({...m,
       id:`ziwei-${m.key}`, start:m.start<start?start:m.start, end:m.end>end?end:m.end }));
     const domains = years[1].domains.map(d => {
@@ -81,6 +92,7 @@ export function buildHeukwolAnalysis(birth, requestedYear, now = new Date(), { e
       sanFangSiZheng:{core:chart.sanFangSiZheng.core,lifePalace:chart.sanFangSiZheng.byPalace[chart.lifePalace]}}),
   };
   return {version:HEUKWOL_VERSION,year,months,pillars:years[1].pillars,natal:years[1].natal,chart,neoBasis,
+    ...(luckJudgement ? { luckJudgement } : {}),
     limitation:'사주 점검 우선순위와 자미두수 사화 근거를 구분한 전통 해석 지표입니다. 사고·손실의 발생 확률이 아니며 두 체계의 수치를 임의로 합산하지 않습니다.',
     uncertainty:years[1].uncertainty,timezone:'Asia/Seoul',
     method:'사주: 시빌라 annual-v1의 합충형파해·십성·대운·세운. 자미두수: 원국의 별 위치와 음력 유월 사화 대조. 유월 명궁 이동을 계산했다고 표현하지 않습니다.'};

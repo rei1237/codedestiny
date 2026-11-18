@@ -3,6 +3,7 @@ import { callGeminiJsonWithRetry } from './structured-consultation.js';
 import { hasRepeatedReportPassage, dropRepeatedReportSentences } from './paid-report-quality.js';
 import { sliceNeoBasisPayload } from './neo-operation-room-basis.js';
 import { banmalRegisterDrift, hapnidaDrift } from './expert-character-persona-text.js';
+import { SAJU_LUCK_JUDGEMENT_RULE } from './saju-temperament.js';
 
 export const HEUKWOL_FEATURE_KEY = "heukwol-warning-consultation";
 export const HEUKWOL_TARGET_CHARS = 50000;
@@ -27,17 +28,29 @@ export const HEUKWOL_CHAPTERS = Object.freeze([
   {key:'closing',title:'당신이 쓰는 다음 장',focus:'연간 실행 일정과 재점검 체크리스트. 앞 장 반복 없이 통합'},
 ]);
 
+// S15: 장이 다루는 시기만 판정을 싣는다. 원국 판정은 성향 총론·여는 장에만, 해·대운 판정은 시기를 다루는 장에.
+//      12개월을 모두 다루는 주제 장은 구간별 판정·한 줄만 남겨 입력을 늘리지 않는다.
+function chapterLuckJudgement(lj, chapter) {
+  if (!lj) return null;
+  if (chapter.phase === 'natal') return chapter.key === 'temperament' ? { natal: lj.natal } : null;
+  const periods = { ...(lj.daeun ? { daeun: lj.daeun } : {}), year: lj.year };
+  return chapter.key === 'opening' ? { natal: lj.natal, ...periods } : chapter.month ? periods : { year: lj.year };
+}
+const briefSegmentLuck = s => s.luckJudgement ? { ...s, luckJudgement: { verdict: s.luckJudgement.verdict, headline: s.luckJudgement.headline } } : s;
+
 export function chapterEvidence(analysis, chapter) {
   const months = chapter.phase==='natal'?[]:chapter.month ? analysis.months.filter(m=>m.month===chapter.month) : analysis.months;
   const topic=chapter.key.replace('nature-','');
   const palaceNames={love:['명궁','복덕궁','부부궁'],money:['명궁','재백궁','전택궁'],relationships:['명궁','형제궁','노복궁'],safety:['명궁','천이궁','질액궁'],health:['명궁','복덕궁','질액궁'],work:['명궁','관록궁','천이궁']}[topic];
   const palaces=analysis.chart.palaces.filter(p=>!palaceNames?chapter.key==='temperament'||p.name==='명궁':palaceNames.includes(p.name));
+  const luckJudgement=chapterLuckJudgement(analysis.luckJudgement,chapter);
   return {version:analysis.version,year:analysis.year,timezone:analysis.timezone,
     limitation:analysis.limitation,method:analysis.method,uncertainty:analysis.uncertainty,
     neoBasis:Object.fromEntries(Object.entries(analysis.neoBasis||{}).map(([method,payload])=>[method,
       sliceNeoBasisPayload(payload,chapter.phase==='natal'?'*':['core'])])),
     natalEvidence:[{id:'natal-saju',pillars:analysis.pillars,natal:analysis.natal},{id:'natal-ziwei',palaces,fourTransformations:analysis.chart.fourTransformations}],
-    pillars:analysis.pillars,natal:analysis.natal,months:months.map(m=>({...m,
+    pillars:analysis.pillars,natal:analysis.natal,...(luckJudgement?{luckJudgement}:{}),months:months.map(m=>({...m,
+      ...(chapter.month?{}:{saju:m.saju.map(briefSegmentLuck)}),
       domains:['money','love','relationships','work'].includes(chapter.key)?m.domains.filter(d=>d.id===chapter.key):m.domains})),
     // Whole natal chart is reserved for the temperament chapter; monthly passages use their actual marks.
     ...(chapter.key==='temperament'?{chart:analysis.chart}:{})};
@@ -53,6 +66,7 @@ ${CONSULTATION_COUNSEL_GUIDE}
 사주와 자미두수 근거를 분리하세요. 달력월 안에서도 절입/음력 경계가 다릅니다. 제공된 구간 밖 날짜·점수·확률·유월궁을 만들지 마세요. 별 강약은 길흉 확률이 아닙니다.
 오행 개수는 신강·신약이나 특정 오행의 우세 판정이 아닙니다. 같은 개수의 오행 중 하나만 강하다고 쓰지 마세요. 지장간이 포함된 십성 항목이 있으면 표면 오행 개수 0을 해당 십성의 부재로 해석하지 마세요.
 사화는 제공된 별에만 적용합니다. 같은 궁의 다른 별에 화록·화권·화과·화기를 옮기지 마세요. 생년 사화·자화·월별 사화를 구분하고, 월별 해석에는 해당 구간과 별·궁을 함께 확인하세요.
+${SAJU_LUCK_JUDGEMENT_RULE}
 네오 작전실의 근거 어댑터로 정리된 한글 항목명을 우선 인용하세요. 내부 JSON 키나 evidence ID를 본문에 노출하지 마세요.
 전체 27장 약 오만 자입니다. 이번 장은 본문 1,900~2,200자를 목표로 합니다. 흑월 100~200자, 연이 약 900자, 네오 약 900자와 점검 기준으로 배분하되 설명에 필요한 분량은 조절합니다. 반복·목차 복제·상투 문장으로 분량을 채우지 않습니다.
 흑월은 어떤 근거에서 어떤 조건이 겹치면 문제가 생기기 쉬운지 짧고 날카롭게 짚습니다. 연이는 그 성향의 강점과 그림자, 실제 경험과 가능한 상황을 구분합니다. 네오는 지금 할 행동·피할 선택·확인할 조건·판단을 바꿀 신호를 제시합니다. 마지막에는 이 장만의 실천 점검 기준 3개를 씁니다.

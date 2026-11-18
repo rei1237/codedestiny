@@ -7,6 +7,7 @@ import {preventionFacts,hasPrevention} from './prevention';
 import type {ChapterSpecV7} from './reading-v7';
 import {enrichZiweiContext,ziweiPalaceRelationTable} from './ziwei/reading-facts';
 import {buildLuckOverlap} from './saju/luck-overlap';
+import {sajuLuckJudgementFact} from './saju/luck-judgement';
 import {enrichTarotTimeFrames} from './tarot/time-frame';
 
 export function relationshipSignals(value:unknown) {
@@ -56,6 +57,29 @@ function monthsInScope<T extends {start?:any}>(rows:T[],chapter:ChapterSpec,firs
  const years=scopeYears(chapter,first);
  return years?rows.filter(r=>years.includes(r.start?.year)):rows;
 }
+type SajuCycle={index:number;isCurrent?:boolean;startYear?:number;endYear?:number;interpretation?:{annual?:unknown[]}};
+type QuestionTiming={periods?:SajuCycle[];rule?:string;requestedPeriod?:unknown};
+const withoutInterpretation=({interpretation:_omit,...cycle}:SajuCycle)=>cycle;
+// 2026-11-18: an unparsed period ("앞으로 5년") selects all ten 대운 with their interpretation, about 20k input tokens.
+// Every period keeps its calculated name and dates; the interpretation stays on the current cycle and on cycles that
+// carry calculated 세운 rows, which are the years a question can reach. A short, explicit selection stays whole.
+const QUESTION_TIMING_WHOLE_LIMIT=3;
+function focusCycle(cycle:SajuCycle,current:number|undefined){
+ return cycle.index===current||Boolean(cycle.interpretation?.annual?.length);
+}
+function currentCycleIndex(context:DomainContext){
+ return (context.facts.find(x=>x.label==='majorLuck')?.value as {currentCycle?:{index:number}}|undefined)?.currentCycle?.index;
+}
+function compactQuestionTiming(value:QuestionTiming,context:DomainContext):QuestionTiming{
+ if(!Array.isArray(value.periods)||value.periods.length<=QUESTION_TIMING_WHOLE_LIMIT)return value;
+ const current=currentCycleIndex(context);
+ return {...value,periods:value.periods.map(p=>focusCycle(p,current)?p:withoutInterpretation(p)),
+  rule:`${value.rule||''} 현재 대운과 세운이 계산된 대운만 interpretation을 가진다. 나머지 대운은 이름·기간만 있으므로 그 주기의 세부 해석을 만들지 않는다.`.trim()};
+}
+function questionTimingHolds(context:DomainContext,index:number){
+ const timing=context.facts.find(x=>x.label==='questionTiming')?.value as QuestionTiming|undefined;
+ return Boolean(timing?.periods?.some(p=>p.index===index&&p.interpretation));
+}
 function selectedFacts(context:DomainContext,chapter:ChapterSpec) {
  const premium=Boolean(chapter.questionPolicy)||['tuna','assorted','omakase'].includes(chapter.tier||'');
  const selectors=chapter.factSelectors?.[context.domain]||[];
@@ -90,7 +114,7 @@ function selectedFacts(context:DomainContext,chapter:ChapterSpec) {
    const asOf=context.calculatedAt.slice(0,10);
    value={...data,periods:data.periods.filter(p=>typeof p.startDate==='string'&&p.startDate>asOf).slice(0,2)};
   }
-  if(!chapter.questionPolicy&&f.label==='majorLuck'&&context.domain==='saju'&&value&&typeof value==='object'){
+  if(f.label==='majorLuck'&&context.domain==='saju'&&value&&typeof value==='object'){
    const data=value as {currentCycle?:{index:number};cycles?:{index:number}[];direction?:string;ageRule?:string;daeunNumber?:number;transition?:unknown};
    // Dated charts (saju/major-luck.ts) keep the naming rule, 대운수 and this year's 교운 with every projection.
    const head={direction:data.direction,...(data.ageRule?{ageRule:data.ageRule,daeunNumber:data.daeunNumber,...(data.transition?{transition:data.transition}:{})}:{})};
@@ -98,7 +122,11 @@ function selectedFacts(context:DomainContext,chapter:ChapterSpec) {
    // 4: 10년 주기 장은 지금의 10년과 다음 10년을 함께 읽는다.
    const compare=chapter.version===READING_V6_VERSION&&['alternatives','limits'].includes(chapter.key||'')||chapter.key==='life-decade';
    value=chapter.counsel?.cycleIndexes?{...head,cycles:data.cycles?.filter(c=>chapter.counsel!.cycleIndexes!.includes(c.index))}:next||compare?{...head,...(compare?{currentCycle:data.currentCycle}:{}),cycles:data.currentCycle?data.cycles?.filter(c=>c.index>data.currentCycle!.index).slice(0,1):[],limitation:data.currentCycle?undefined:'현재 주기를 확인할 수 없어 다음 전환을 특정하지 않는다.'}:{...head,currentCycle:data.currentCycle};
+   // 2026-11-18: a question chapter that also reads questionTiming gets the current cycle's interpretation there once.
+   if(chapter.questionPolicy&&allowed.has('questionTiming')&&data.currentCycle&&(value as {currentCycle?:unknown}).currentCycle&&questionTimingHolds(context,data.currentCycle.index))
+    value={...(value as object),currentCycle:withoutInterpretation(data.currentCycle),currentCycleInterpretation:'questionTiming의 같은 index 주기에 있다.'};
   }
+  if(f.label==='questionTiming'&&context.domain==='saju'&&value&&typeof value==='object')value=compactQuestionTiming(value as QuestionTiming,context);
   if(!chapter.questionPolicy&&context.domain==='saju'&&['yearlyLuck','monthlyLuck','luckOverlap'].includes(f.label)){
    const yearly=context.facts.find(x=>x.label==='yearlyLuck')?.value,first=Array.isArray(yearly)?yearly[0]?.year:undefined;
    const years=scopeYears(chapter,first);
@@ -156,7 +184,11 @@ function selectBaseChapterFacts(context:DomainContext,chapter:ChapterSpec,topic=
 }
 
 export function selectChapterFacts(context:DomainContext,chapter:ChapterSpec,topic='general'){
- const selected=selectBaseChapterFacts(context,chapter,topic);
+ const base=selectBaseChapterFacts(context,chapter,topic);
+ // S15-6: the shared saju judgement for exactly the periods this chapter selected (saju/luck-judgement.ts).
+ const premium=chapter.version===READING_V7_VERSION?chapter.tier==='tuna':Boolean(chapter.questionPolicy)||['tuna','assorted','omakase'].includes(chapter.tier||'');
+ const judgement=sajuLuckJudgementFact(context,base,premium);
+ const selected=judgement?[...base,judgement]:base;
  const natal=context.facts.find(f=>f.label==='natalProfile');
  return natal&&!selected.some(f=>f.id===natal.id)?[...selected,natal]:selected;
 }
