@@ -124,8 +124,8 @@
     },
     {
       "id": "ep-10:20",
-      "source": "정오가 되면 레시피를 읽어. 멀리까지 들리게.",
-      "sourceHash": "3387caca6e5f2e6c585fb55f28fd6854964ea0bc848162a49b94dffbbdc7e54e",
+      "source": "정오가 되면 레시피를 읽어라. 멀리까지 들리게.",
+      "sourceHash": "d80bedb2d61f52ef36962c2b90c44146d2007f0b06b640584bf2059177af0a08",
       "t": "Read the recipe at noon. Loud enough to carry."
     },
     {
@@ -238,8 +238,8 @@
     },
     {
       "id": "ep-10:39",
-      "source": "빚으로 묶인 줄을 끊은 자국이야. 그런데 이름도 같이 끊겨 있어.",
-      "sourceHash": "997de464cfdc086ee71eed22b2e9c9d36fc1d2785e18a37e846e94ffc09a8d51",
+      "source": "빚으로 묶인 줄을 끊은 자국이다. 그런데 이름도 같이 끊겼다.",
+      "sourceHash": "0e2d54bf4c75271f5e6ff6b1c3139fad223c4bc011608da37d548be47e4aec86",
       "t": "The mark of a debt-binding thread being cut. But his name was cut away with it."
     },
     {
@@ -280,9 +280,9 @@
     },
     {
       "id": "ep-10:46",
-      "source": "불을 쓰는 법 두 가지. 하나는 식신, 하나는 상관.",
-      "sourceHash": "cfbed9fc09c44b24e7bfd80d756b2fcb474585c4d976bd9f8375725086bc1d88",
-      "t": "Two ways to use fire. Eating God and Hurting Officer."
+      "source": "말로는 들었지. 이제 손으로 해 본다.",
+      "sourceHash": "35dc90c9751f8d817cc6ae9b74dd9b21a505872157a5fedf082d73bdbb5c4e1c",
+      "t": "You've heard it in words. Now we do it by hand."
     },
     {
       "id": "ep-10:47",
@@ -358,9 +358,9 @@
     },
     {
       "id": "ep-10:59",
-      "source": "같은 불이다. 마음이 어디를 보고 있느냐만 다르다. 다시.",
-      "sourceHash": "b8cdc65bd07ae32f49dc47ced3a057275ed64fac8e71daec26bcc650a0cae5f9",
-      "t": "The same fire. Only where your heart is looking differs. Again."
+      "source": "같은 불이다. 꼬치를 보느냐, 모카를 보느냐만 다르다. 다시.",
+      "sourceHash": "ab809ff0b2081f579e9d06aaef932d426cfc55dae3acf4237afaa31b56276d32",
+      "t": "The same fire. The only difference is whether you're looking at the skewer or at Moka. Again."
     },
     {
       "id": "ep-10:60",
@@ -574,8 +574,8 @@
     },
     {
       "id": "ep-10:95",
-      "source": "해 질 녘이 조금도 움직이지 않는 저녁. 연이는 홍보 전단을 품에 안고 골목을 돌았다. 전단에는 그림만 그렸다. 해와 꼬치와 웃는 얼굴.",
-      "sourceHash": "7f819b7e646ed46076cff3b8e8b328d1a745e5e46ebc889e89f1abe593f7eae0",
+      "source": "해 질 녘에서 조금도 움직이지 않는 저녁. 연이는 홍보 전단을 품에 안고 골목을 돌았다. 전단에는 그림만 그렸다. 해와 꼬치와 웃는 얼굴.",
+      "sourceHash": "76061ea05dfdc08b85a290214009cabe95cfbe320e0bbd8a813159053fce8c2c",
       "t": "On an evening whose sunset never moved, Yeoni toured the alleys with flyers against their chest. Only pictures on the flyers: a sun, a skewer, a smiling face."
     },
     {
@@ -760,9 +760,9 @@
     },
     {
       "id": "ep-10:126",
-      "source": "연이는 해시계 무대 쪽을 바라보며 콧노래를 불렀다. 솔에서 미로. 그물 속 재판정에서 비웃음을 산 그 음정이었다. 이상하게 기분이 좋았다.",
-      "sourceHash": "65375fcb42ab9ee66b1ff0eb9280b7d31bc52ceba1784a33513ebe50065ea737",
-      "t": "Looking toward the Sundial Stage, Yeoni hummed. Sol to mi. The notes that had earned ridicule in the courtroom net. Strangely, it felt good."
+      "source": "연이는 해시계 무대 쪽을 바라보며 콧노래를 불렀다. 솔에서 미로. 그물 속 재판정에서 증거가 된 그 음정이었다. 이상하게 기분이 좋았다.",
+      "sourceHash": "48a2dfbe1f92f1ab91a7675e4c0efdb5c8b7cee072c44aa6e78c4186b06ffb4e",
+      "t": "Looking toward the Sundial Stage, Yeoni hummed. Sol to mi. The notes that had become evidence in the courtroom net. Strangely, it felt good."
     },
     {
       "id": "ep-10:127",
