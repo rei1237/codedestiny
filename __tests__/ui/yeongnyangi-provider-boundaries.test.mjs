@@ -3,7 +3,7 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {build} from 'esbuild';
 const compiled=await build({stdin:{contents:"export {CodeDestinyProvider,chapterOutputTokenBudget,CHAPTER_THINKING_BUDGET} from './worker/yeongnyangi/providers/code-destiny'; export {tokensRequiredForChars} from './worker/lib/llm-budget.js'; export {products} from './worker/yeongnyangi/payments/catalog'; export {consultationManifest,consultationKinds,consultationDomain,supportsKind} from './worker/yeongnyangi/fortune/consultation-kinds'; export {v7OutputTokens} from './worker/yeongnyangi/fortune/reading-v7-prompt'; export {conciseReadingManifest,conciseOutputTokens,CONCISE_READING_VERSION} from './worker/yeongnyangi/fortune/concise-reading'; export {setResponse,getOptions,getPrompt} from 'mock-gemini.js';",resolveDir:process.cwd(),loader:'ts'},bundle:true,platform:'node',format:'esm',write:false,
- plugins:[{name:'mock-provider-transport',setup(b){b.onResolve({filter:/llm-cache-store\.js$/},()=>({path:"cache",namespace:"cache-fixture"}));b.onLoad({filter:/.*/,namespace:"cache-fixture"},()=>({contents:"export const createLlmCacheStore=()=>({get:async()=>null,set:async()=>{}});"}));b.onResolve({filter:/gemini\.js$/},()=>({path:'gemini',namespace:'fixture'}));b.onLoad({filter:/.*/,namespace:'fixture'},()=>({contents:'let response,options,payload; export function setResponse(value){response=value;} export function getOptions(){return options;} export function getPrompt(){return payload;} export async function callGeminiText(env,prompt,opts){options=opts;payload=prompt;return response;}'}));}}]});
+ plugins:[{name:'mock-provider-transport',setup(b){b.onResolve({filter:/llm-cache-store\.js$/},()=>({path:"cache",namespace:"cache-fixture"}));b.onLoad({filter:/.*/,namespace:"cache-fixture"},()=>({contents:"export const createLlmCacheStore=()=>({get:async()=>null,set:async()=>{}});"}));b.onResolve({filter:/gemini\.js$/},()=>({path:'gemini',namespace:'fixture'}));b.onLoad({filter:/.*/,namespace:'fixture'},()=>({contents:'let response,options,payload; export function setResponse(value){response=value;} export function getOptions(){return options;} export function getPrompt(){return payload;} export async function callGeminiText(env,prompt,opts){options=opts;payload=prompt;return typeof response=="function"?response(opts):response;}'}));}}]});
 const {CodeDestinyProvider,chapterOutputTokenBudget,CHAPTER_THINKING_BUDGET,tokensRequiredForChars,products,consultationManifest,consultationKinds,consultationDomain,supportsKind,v7OutputTokens,conciseReadingManifest,conciseOutputTokens,CONCISE_READING_VERSION,setResponse,getOptions,getPrompt}=await import('data:text/javascript;base64,'+Buffer.from(compiled.outputFiles[0].text).toString('base64'));
 const provider=new CodeDestinyProvider({GEMINIF_API_KEY:'fixture-not-used',LLM_DRY_RUN:'false'});
 const request={system:'fixture',domainRules:'fixture',userQuestion:'fixture',calculatedData:{},outputSchema:{},sectionTitles:[]};
@@ -232,4 +232,20 @@ test('S9-Y: the receipt marks only a refusal Gemini never billed; timeouts, fina
   setResponse({ok:false,...failure});await assert.rejects(provider.generate(request));assert.equal(provider.receipt.unbilled,undefined);
  }
  setResponse({ok:true,text:'{}',finishReason:'MAX_TOKENS'});await assert.rejects(provider.generate(request),e=>e.code==='CHAPTER_TRUNCATED');assert.equal(provider.receipt.unbilled,undefined);
+});
+test('S9-Y: a Pro synthesis call leaves Flash a full call in the same attempt, and a Pro timeout falls back to it',async()=>{
+ const realNow=Date.now;let now=realNow();Date.now=()=>now;const calls=[];
+ try{
+  // The mocked clock spends each Pro call's whole timeout, as a real Pro timeout would.
+  setResponse(opts=>{calls.push({model:opts.model,timeoutMs:opts.timeoutMs});if(opts.reasoningTask==='tuna-synthesis'){now+=opts.timeoutMs;return {ok:false,error:'LLM_GENERATION_TIMEOUT'};}return {ok:true,text:'{}',finishReason:'STOP'};});
+  const pro=new CodeDestinyProvider({GEMINIF_API_KEY:'fixture-not-used',LLM_DRY_RUN:'false'},{},{},240000,'gemini-2.5-pro','tuna-synthesis');
+  assert.equal((await pro.generate(request)).model,'gemini-2.5-flash');
+  assert.deepEqual(calls,[{model:'gemini-2.5-pro',timeoutMs:150000},{model:'gemini-2.5-flash',timeoutMs:90000}]);
+  assert.equal(pro.receipt.modelFallback,'LLM_GENERATION_TIMEOUT');
+  // Too little of the attempt for a reserve: Pro keeps the whole timeout and a timeout ends the attempt.
+  calls.length=0;const short=new CodeDestinyProvider({GEMINIF_API_KEY:'fixture-not-used',LLM_DRY_RUN:'false'},{},{},120000,'gemini-2.5-pro','tuna-synthesis');
+  await assert.rejects(short.generate(request),e=>e.code==='FORTUNE_PROVIDER_TIMEOUT');assert.deepEqual(calls,[{model:'gemini-2.5-pro',timeoutMs:120000}]);
+  // Flash chapters keep the whole tier timeout.
+  calls.length=0;await provider.generate(request);assert.deepEqual(calls,[{model:undefined,timeoutMs:240000}]);
+ }finally{Date.now=realNow;}
 });

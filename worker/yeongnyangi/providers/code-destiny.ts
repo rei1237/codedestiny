@@ -1,7 +1,7 @@
 import { jsonSchemaFromExample } from "../../lib/json-text-repair.js";
 import {CONCISE_READING_VERSION,CONCISE_MIN_OUTPUT_TOKENS} from '../fortune/concise-reading';
 import { callGeminiText } from '../../lib/gemini.js';
-import { GEMINI_PROSE_MODEL, proFallbackCause, selectGeminiModel } from '../../../lib/gemini-model-policy.js';
+import { GEMINI_PROSE_MODEL, isGeminiProModel, proFallbackCause, selectGeminiModel } from '../../../lib/gemini-model-policy.js';
 import { isUnbilledGeminiFailure } from '../../../lib/gemini-provider-errors.mjs';
 import { tokensRequiredForChars } from '../../lib/llm-budget.js';
 import { FortuneError, type FortuneLLMRequest, type LLMProvider } from '../fortune/shared/contracts';
@@ -23,6 +23,9 @@ function providerSchema(value: any): any {
 export const CHAPTER_THINKING_BUDGET=1024;
 // A Flash call needs at least this much of the attempt's time to be worth sending after a Pro refusal.
 const PRO_FALLBACK_MIN_MS=60000;
+// A Pro call stops this long before the attempt's timeout, so a Pro timeout still leaves Flash a full call in
+// the same attempt (S9-Y). 240s tiers: Pro 150s (above TUNA_PRO_MIN_CALL_MS), then Flash up to 90s.
+const PRO_FLASH_RESERVE_MS=90000;
 
 export function chapterOutputTokenBudget(requested?: number, version?: string): number {
   const declared=Number(requested);
@@ -88,12 +91,14 @@ export class CodeDestinyProvider implements LLMProvider {
       cache:chapterResponseCache(this.env,this.cacheContext.owner,this.logContext.requestId,String(this.logContext.sectionGroup),this.cacheContext.skipRead),
       logContext:this.logContext,
     });
-    let response=await send(this.model,this.reasoningTask,this.timeoutMs);
-    // Pro refused before writing (retired 404, 429, 5xx): the same attempt sends the prompt to Flash.
-    // A Pro timeout has spent the time; its receipt moves the next attempt (tunaProUnavailable).
+    const pro=isGeminiProModel(selectGeminiModel(this.model,this.reasoningTask));
+    const firstTimeoutMs=pro&&this.timeoutMs-PRO_FLASH_RESERVE_MS>=PRO_FALLBACK_MIN_MS?this.timeoutMs-PRO_FLASH_RESERVE_MS:this.timeoutMs;
+    let response=await send(this.model,this.reasoningTask,firstTimeoutMs);
+    // Pro refused before writing (retired 404, 429, 5xx) or timed out inside its reserve-capped call: the same
+    // attempt sends the prompt to Flash. The receipt still moves later attempts to Flash (tunaProUnavailable).
     const cause=proFallbackCause(selectGeminiModel(this.model,this.reasoningTask),response);
     const remaining=this.timeoutMs-(Date.now()-startedAt);
-    const modelFallback=cause&&cause!=='LLM_GENERATION_TIMEOUT'&&remaining>=PRO_FALLBACK_MIN_MS?cause:'';
+    const modelFallback=cause&&remaining>=PRO_FALLBACK_MIN_MS?cause:'';
     if(modelFallback){
       console.warn('[yeongnyangi-model-fallback]',JSON.stringify({requestId:this.logContext.requestId,sectionGroup:this.logContext.sectionGroup,cause}));
       response=await send(GEMINI_PROSE_MODEL,undefined,remaining);
