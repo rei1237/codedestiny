@@ -24,7 +24,7 @@ import {
 import { findMoonstoneSpendEvidence } from "../lib/moonstone-spend-proof.js";
 import { resolveCanonicalEntitlement } from "../lib/entitlement-policy.js";
 import { consumePassForFeature, hasConsumedPassFeature, passDenialCode, refundPassUseEvidence } from "../lib/pass-consumption.js";
-import { lateUsageSettlementFailure } from "../lib/late-usage-settlement.js";
+import { lateAccessDenialSettlement, lateUsageSettlementFailure } from "../lib/late-usage-settlement.js";
 import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
 import { canAccessPaidFeature, PAID_FEATURE_ACCESS_USER_PROJECTION } from "../lib/paid-feature-access.js";
@@ -1845,8 +1845,12 @@ async function handleStart(request, env, _routeContext = null, recoveryAuth = nu
   if (existing?.status === "generation_failed" && !nativeTossContext(request)) return json({ ok: false, reason: "GENERATION_FAILED", message: LLM_ERROR_MESSAGE }, { status: 409 });
   if (existing?.status === "generating" && !existing.llmMeta?.resumeBody && Date.now() - new Date(existing.updatedAt || existing.createdAt).getTime() < 120000) return json({ ...publicSession(existing), retryable: true }, { status: 202 });
   const pricing = getPricing();
-  const access = await resolveStartAccess({ request, env, auth, body, normalized, pricing, idempotencyKey });
-  if (!access.ok) return json({ ok: false, reason: "PAYMENT_VERIFY_FAILED", message: PAYMENT_VERIFY_FAILED_MESSAGE }, { status: 402 });
+  const settlementModels = { User, Payment, PaidExecutionRecord, PointHistory };
+  const startAccess = await resolveStartAccess({ request, env, auth, body, normalized, pricing, idempotencyKey });
+  // 이용권으로 시작해 본문까지 만든 상담(delivery_pending)은 그 뒤 한도 소진으로 재확인이 거절돼도 전달한다(환불·탈퇴·취소 증빙은 제외, fail-closed).
+  const resumeSettlement = !startAccess.ok && !nativeTossContext(request) ? await lateAccessDenialSettlement({ fresh: startAccess, doc: existing, userId: auth.userId, idempotencyKey, service: "astrology-ai", models: settlementModels }) : null;
+  if (!startAccess.ok && !resumeSettlement) return json({ ok: false, reason: "PAYMENT_VERIFY_FAILED", message: PAYMENT_VERIFY_FAILED_MESSAGE }, { status: 402 });
+  const access = startAccess.ok ? startAccess : { ok: true, accessType: existing.accessType, paymentId: clean(existing.paymentId, 160), source: "late-access-settlement" };
   // 결제 증빙 1건 = 상담 1건(2026-10-16). 서버가 찾은 결제 문서·월정석 원장 ID 만 묶는다(이용권·관리자는 건너뜀).
   const evidenceIds = [access.paymentDocId, access.claimEvidenceId];
   if (!nativeTossContext(request)) {
@@ -1911,11 +1915,13 @@ async function handleStart(request, env, _routeContext = null, recoveryAuth = nu
       if (!generated.complete) return json({ ...publicSession(doc), retryable: true }, { status: 202 });
     }
     // 결과 저장 장애는 생성 실패 환불 대상이 아니다. 원래 결제 증빙은 완료 직전 다시 확인한다.
-    const fresh = await resolveStartAccess({ request, env, auth, body, normalized, pricing, idempotencyKey });
-    if (!fresh.ok) return json({ ok: false, reason: "PAYMENT_VERIFY_FAILED" }, { status: 402 });
+    const recheck = resumeSettlement ? null : await resolveStartAccess({ request, env, auth, body, normalized, pricing, idempotencyKey });
+    let usageSettlement = resumeSettlement || (recheck.ok || nativeTossContext(request) ? null : await lateAccessDenialSettlement({ fresh: recheck, doc, userId: auth.userId, idempotencyKey, service: "astrology-ai", models: settlementModels }));
+    if (!recheck?.ok && !usageSettlement) return json({ ok: false, reason: "PAYMENT_VERIFY_FAILED" }, { status: 402 });
+    const fresh = recheck?.ok ? recheck : access;
     // 늦은 이용권 차감이 한도·자격 사유로 거절돼도 만든 결과는 전달한다. 일시 장애는 delivery_pending 으로 재시도시킨다.
-    let usageSettlement = null;
-    try { if(!nativeTossContext(request)) await applyUsageOnce({ userId: auth.userId, sessionId, accessType: fresh.accessType, pricing, source: fresh.source }); }
+    // 재확인이 이미 한도 거절로 정산(usageSettlement)됐으면 차감을 다시 시도하지 않는다.
+    try { if(!nativeTossContext(request) && !usageSettlement) await applyUsageOnce({ userId: auth.userId, sessionId, accessType: fresh.accessType, pricing, source: fresh.source }); }
     catch (settleError) {
       usageSettlement = lateUsageSettlementFailure(settleError, { service: "astrology-ai", sessionId, accessType: fresh.accessType });
       if (!usageSettlement) throw resultStorageUnavailable(sessionId);
