@@ -3,8 +3,8 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {build} from 'esbuild';
 import {RUNTIME_LOCALES} from '../../lib/i18n/locale-normalize.js';
-const built=await build({stdin:{contents:"export {chartCopy,chartTerm,chartLimitation} from './app/yeongnyangi/_lib/reading-chart-copy'; export {consultationInputCopy} from './app/yeongnyangi/_lib/consultation-input-copy'; export {resultStateCopy} from './app/yeongnyangi/_lib/result-state-copy'; export {readingCopy} from './app/yeongnyangi/_lib/reading-copy'; export {askPhase5Copy} from './app/yeongnyangi/_lib/ask-phase5-copy'; export {experienceCopy} from './app/yeongnyangi/_lib/experience-copy';",resolveDir:process.cwd(),loader:'ts'},bundle:true,platform:'node',format:'esm',write:false});
-const {chartCopy,chartTerm,chartLimitation,consultationInputCopy,resultStateCopy,readingCopy,askPhase5Copy,experienceCopy}=await import('data:text/javascript;base64,'+Buffer.from(built.outputFiles[0].text).toString('base64'));
+const built=await build({stdin:{contents:"export {chartCopy,chartTerm,chartLimitation} from './app/yeongnyangi/_lib/reading-chart-copy'; export {consultationInputCopy} from './app/yeongnyangi/_lib/consultation-input-copy'; export {resultStateCopy,autoRefundCopy,heldRefundHint} from './app/yeongnyangi/_lib/result-state-copy'; export {readingCopy} from './app/yeongnyangi/_lib/reading-copy'; export {askPhase5Copy} from './app/yeongnyangi/_lib/ask-phase5-copy'; export {experienceCopy} from './app/yeongnyangi/_lib/experience-copy';",resolveDir:process.cwd(),loader:'ts'},bundle:true,platform:'node',format:'esm',write:false});
+const {chartCopy,chartTerm,chartLimitation,consultationInputCopy,resultStateCopy,autoRefundCopy,heldRefundHint,readingCopy,askPhase5Copy,experienceCopy}=await import('data:text/javascript;base64,'+Buffer.from(built.outputFiles[0].text).toString('base64'));
 test('chart display translates known evidence while retaining saved source values',()=>{
  assert.equal(chartTerm('오행 분포 · 월령 가중치 포함','en'),'Five elements · adjusted for birth month');
  assert.equal(chartTerm('오행 분포 · 보이는 글자 기준','ja'),'五行の分布・見える文字のみ');
@@ -68,4 +68,31 @@ test('past-experience survey is authored in every site language',()=>{
  for(const copy of authored)assert.doesNotMatch(JSON.stringify(copy),/정확도|적중|검증되|accuracy|verified/i);
  assert.equal(experienceCopy('ko').year(2022),'2022년');
  assert.equal(experienceCopy('en').year(2022),'2022');
+});
+test('an automatic refund or restore after a failed delivery is announced in every site language (S9-Y)',async()=>{
+ const refunds=new Set(),restores=new Set(),hints=new Set();
+ for(const locale of RUNTIME_LOCALES){
+  const refund=autoRefundCopy(locale,'DELIVERY_REFUNDED'),hint=heldRefundHint(locale);
+  assert.ok(refund.length>20&&hint.length>20,locale);
+  for(const code of ['PASS_QUOTA_RESTORED','MONTHLY_CREDIT_RESTORED','SERVICE_PACK_USE_RESTORED','FREE_TRIAL_RESTORED','COIN_RESTORED','HONEY_RESTORED']){
+   const restore=autoRefundCopy(locale,code);assert.ok(restore.length>20&&restore!==refund,locale+code);restores.add(restore);
+  }
+  refunds.add(refund);hints.add(hint);
+  // A refund the support team issues by hand keeps the generic refunded copy.
+  assert.equal(autoRefundCopy(locale,''),'');
+  assert.equal(autoRefundCopy(locale,'ORDER_REFUNDED'),'');
+ }
+ assert.equal(refunds.size,RUNTIME_LOCALES.length);
+ assert.equal(hints.size,RUNTIME_LOCALES.length);
+ assert.match(autoRefundCopy('ko','DELIVERY_REFUNDED'),/자동으로 환불/);
+ assert.match(autoRefundCopy('ko','PASS_QUOTA_RESTORED'),/자동으로 돌려/);
+ assert.match(heldRefundHint('ko'),/자동으로 돌려/);
+ const {readFileSync}=await import('node:fs');
+ const source=readFileSync('app/yeongnyangi/_components/Result.tsx','utf8');
+ // Both the spirit and the chapter result screens show the automatic notice, and a held paid order names the refund
+ // fallback outside the Toss surface (Toss in-app purchases are refunded by support, not automatically).
+ const count=text=>source.split(text).length-1;
+ assert.equal(count('autoRefundCopy(row.locale,row.errorCode)||stateCopy.refunded'),2);
+ assert.equal(count('heldRefundHint(row.locale)'),2);
+ assert.equal(count("paymentSurface!=='toss'&&heldRefundable(row)"),2);
 });
