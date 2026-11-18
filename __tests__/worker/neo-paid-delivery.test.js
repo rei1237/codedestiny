@@ -115,7 +115,10 @@ function fixture(section) {
 beforeEach(() => {
  docs=[];fault=null;lostConfirmation=false;blocked=-1;mode='pass';userId=uid;usage=jest.fn();refund=jest.fn(async()=>({}));passRefund=jest.fn(async()=>({refunded:true}));chart=jest.fn(async()=>({}));
  provider=jest.fn(async(_env,prompt,options)=>{
-   expect(options.timeoutMs).toBeLessThanOrEqual(45000);expect(options.fallbackToWorkersAI).toBe(false);
+   expect(options.timeoutMs).toBeLessThanOrEqual(45000);
+   // 2026-11-18 S3-H: 체크포인트의 첫 시도는 Gemini 만, 마지막(두 번째) 시도만 Workers AI 폴백을 허용한다(하한 = 챕터 최소의 30%).
+   if(options.maxOutputTokens>8192){expect(options.fallbackToWorkersAI).toBeUndefined();expect(options.fallbackMinChars).toBeGreaterThan(0);}
+   else expect(options.fallbackToWorkersAI).toBe(false);
    const section=[...definitions,...refinedDefinitions].find(row=>prompt.includes(`제목: ${row.title}\n`));
    return {ok:true,provider:'gemini',model:'fixture',text:JSON.stringify(fixture(section))};
  });
@@ -153,6 +156,45 @@ it('checkpoint null keeps successful siblings',async()=>{fault={chapterCount:2,k
 it('apply response loss resumes the saved result without another generation',async()=>{for(let i=0;i<3;i++)await start();fault={kind:'usage'};expect((await start()).status).toBe(503);expect(docs[0].status).toBe('delivery_pending');expect(refund).not.toHaveBeenCalled();const count=provider.mock.calls.length;expect((await start()).status).toBe(200);expect(provider).toHaveBeenCalledTimes(count)});
 it('truncated output keeps the other sections and retries only the missing one',async()=>{const original=provider.getMockImplementation();provider.mockImplementation(async(...args)=>{const value=await original(...args);return args[1].includes(`제목: ${definitions[1].title}\n`)?{...value,truncated:true}:value});expect((await start()).status).toBe(202);expect(Object.keys(docs[0].llmMeta.sections)).toEqual(['opening','innateStrength','topicStyle']);provider.mockImplementation(original);expect((await start()).status).toBe(202);expect(provider.mock.calls.filter(call=>call[1].includes(`제목: ${definitions[0].title}\n`))).toHaveLength(1)});
 it('a truncated section retries with double the output budget instead of failing at the same cap',async()=>{const original=provider.getMockImplementation();const title=`제목: ${definitions[1].title}\n`;let cut=0;provider.mockImplementation(async(...args)=>{const value=await original(...args);return args[1].includes(title)&&!cut++?{...value,truncated:true}:value});for(let i=0;i<2;i++)expect((await start()).status).toBe(202);const budgets=calls=>calls.map(call=>call[2].maxOutputTokens);expect(budgets(provider.mock.calls.filter(call=>call[1].includes(title)))).toEqual([8192,16384]);expect(new Set(budgets(provider.mock.calls.filter(call=>!call[1].includes(title))))).toEqual(new Set([8192]));expect(docs[0].llmMeta.sections[definitions[1].id]).toBeTruthy()});
+// 2026-11-18 S3-H: 마지막 시도는 Workers AI 폴백(하한 30%)을 열고, 되풀이 문장 때문에 초안 전체를 버리지 않는다.
+it('only the final checkpoint attempt allows the Workers AI fallback, gated by 30% of the chapter minimum', async () => {
+  const normal = provider.getMockImplementation(); const section = definitions[0]; let tries = 0;
+  provider.mockImplementation(async (...args) => {
+    if (!args[1].includes(`제목: ${section.title}\n`)) return normal(...args);
+    tries++;
+    return tries === 1 ? { ok: true, provider: 'gemini', text: '{}' } : normal(...args);
+  });
+  for (let i = 0; i < 7 && docs[0]?.status !== 'completed'; i++) await start();
+  expect(docs[0].status).toBe('completed');
+  const options = provider.mock.calls.filter(call => call[1].includes(`제목: ${section.title}\n`)).map(call => call[2]);
+  expect(options).toHaveLength(2);
+  expect(options[0]).toMatchObject({ fallbackToWorkersAI: false, maxOutputTokens: 8192 });
+  expect(options[1].fallbackToWorkersAI).toBeUndefined();
+  expect(options[1].fallbackMinChars).toBe(Math.round(section.minChars * 0.3));
+  expect(refund).not.toHaveBeenCalled(); expect(passRefund).not.toHaveBeenCalled();
+});
+const REPEATED = '같은 문장이 되풀이되면 보고서 전체가 반려되던 결함을 확인하는 고정 문장이다.';
+const firstBodyKey = section => Object.keys(section.schema)[0] === 'operationTitle' ? ['neoOpening'] : [Object.keys(section.schema)[0], 'description'];
+function withRepeat(section, parsed, copies) {
+  const path = firstBodyKey(section); let target = parsed;
+  for (const key of path.slice(0, -1)) target = target[key];
+  target[path.at(-1)] = `${Array(copies).fill(REPEATED).join(' ')} ${target[path.at(-1)]}`;
+  return parsed;
+}
+const countRepeated = value => JSON.stringify(value).split(REPEATED).length - 1;
+for (const kind of ['inside one section', 'across sections']) it(`a final-attempt draft repeating a sentence ${kind} is delivered with the copy dropped instead of refunding`, async () => {
+  const normal = provider.getMockImplementation(); const targets = kind === 'inside one section' ? [definitions[0]] : [definitions[0], definitions[1]];
+  provider.mockImplementation(async (...args) => {
+    const section = targets.find(row => args[1].includes(`제목: ${row.title}\n`));
+    if (!section) return normal(...args);
+    return { ok: true, provider: 'gemini', text: JSON.stringify(withRepeat(section, fixture(section), kind === 'inside one section' ? 2 : 1)) };
+  });
+  for (let i = 0; i < 7 && docs[0]?.status !== 'completed'; i++) await start();
+  expect(docs[0].status).toBe('completed');
+  expect(countRepeated(docs[0].initialBriefing)).toBe(1);
+  expect(refund).not.toHaveBeenCalled(); expect(passRefund).not.toHaveBeenCalled();
+  expect(usage).toHaveBeenCalledTimes(1);
+});
 it('server discovery is owned and historical completed reports bypass new quality rules',async()=>{await start();let response=await route(new Request('https://mock.test/api/neo-operation-room/result'),{});expect(response.status).toBe(202);expect((await response.json()).initialBriefing).toBeTruthy();const id=docs[0].id;userId='other';expect((await route(new Request(`https://mock.test/api/neo-operation-room/result?attemptId=${id}`),{})).status).toBe(404);userId=uid;docs[0].status='completed';docs[0].initialBriefing={old:'short'};blocked=1;expect((await start()).status).toBe(200);expect(provider).toHaveBeenCalledTimes(4)});
 it('cancellation after generation prevents completion bookkeeping',async()=>{for(let i=0;i<3;i++)await start();const original=provider.getMockImplementation();provider.mockImplementation(async(...args)=>{const value=await original(...args);blocked=0;return value});expect((await start()).status).toBe(402);expect(docs[0].status).toBe('delivery_pending');expect(usage).not.toHaveBeenCalled()});
 it('overlapping requests acquire only one generation lease',async()=>{let release;const gate=new Promise(resolve=>{release=resolve});const original=provider.getMockImplementation();let enter;const entered=new Promise(resolve=>{enter=resolve});provider.mockImplementation(async(...args)=>{enter();await gate;return original(...args)});const first=start();await entered;expect((await start()).status).toBe(202);expect(provider).toHaveBeenCalledTimes(4);release();expect((await first).status).toBe(202);expect(provider).toHaveBeenCalledTimes(4)});
