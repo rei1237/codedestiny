@@ -46,6 +46,7 @@ import { getCurrentLoadingLocale, INTL_LOCALE_BY_LOADING_LOCALE, type LoadingLoc
 
 type LoveSecretResultCopy = {
   genResultTimeoutError: string;
+  genFailedRefundError: string;
   loadResultFailedError: string;
   myNameFallback: string;
   partnerNameFallback: string;
@@ -88,6 +89,7 @@ type LoveSecretResultCopy = {
 
 const LOVE_SECRET_RESULT_EN: LoveSecretResultCopy = {
   genResultTimeoutError: "The reading is taking longer than expected. Please try again shortly.",
+  genFailedRefundError: "Something went wrong while generating the expert reading. If anything was charged, it will be automatically restored.",
   loadResultFailedError: "Couldn't load your saved reading.",
   myNameFallback: "Me",
   partnerNameFallback: "Partner",
@@ -130,6 +132,7 @@ const LOVE_SECRET_RESULT_EN: LoveSecretResultCopy = {
 const LOVE_SECRET_RESULT_COPY: Partial<Record<LoadingLocale, LoveSecretResultCopy>> = {
   ko: {
     genResultTimeoutError: "상담 결과 생성이 지연되고 있습니다. 잠시 후 다시 시도해 주세요.",
+    genFailedRefundError: "전문가 상담문을 생성하는 중 문제가 발생했어요. 차감된 내역이 있다면 자동으로 복구됩니다.",
     loadResultFailedError: "저장된 상담 결과를 불러오지 못했습니다.",
     myNameFallback: "나",
     partnerNameFallback: "상대방",
@@ -171,6 +174,7 @@ const LOVE_SECRET_RESULT_COPY: Partial<Record<LoadingLocale, LoveSecretResultCop
   en: LOVE_SECRET_RESULT_EN,
   ja: {
     genResultTimeoutError: "鑑定結果の生成に時間がかかっています。しばらくしてからもう一度お試しください。",
+    genFailedRefundError: "専門家相談文を生成中に問題が発生しました。差し引かれた分があれば自動的に復旧されます。",
     loadResultFailedError: "保存された鑑定結果を読み込めませんでした。",
     myNameFallback: "私",
     partnerNameFallback: "相手",
@@ -211,6 +215,7 @@ const LOVE_SECRET_RESULT_COPY: Partial<Record<LoadingLocale, LoveSecretResultCop
   },
   "zh-CN": {
     genResultTimeoutError: "咨询结果生成较慢，请稍后重试。",
+    genFailedRefundError: "生成专家咨询内容时发生了问题。如有扣除，将自动恢复。",
     loadResultFailedError: "无法加载已保存的咨询结果。",
     myNameFallback: "我",
     partnerNameFallback: "对方",
@@ -251,6 +256,7 @@ const LOVE_SECRET_RESULT_COPY: Partial<Record<LoadingLocale, LoveSecretResultCop
   },
   "zh-TW": {
     genResultTimeoutError: "諮詢結果生成較慢，請稍後重試。",
+    genFailedRefundError: "生成專家諮詢內容時發生了問題。如有扣除，將自動恢復。",
     loadResultFailedError: "無法載入已儲存的諮詢結果。",
     myNameFallback: "我",
     partnerNameFallback: "對方",
@@ -291,6 +297,7 @@ const LOVE_SECRET_RESULT_COPY: Partial<Record<LoadingLocale, LoveSecretResultCop
   },
   vi: {
     genResultTimeoutError: "Kết quả tư vấn đang được tạo hơi lâu. Vui lòng thử lại sau.",
+    genFailedRefundError: "Đã xảy ra sự cố khi tạo nội dung tư vấn chuyên gia. Nếu có khoản đã bị trừ, nó sẽ được khôi phục tự động.",
     loadResultFailedError: "Không thể tải kết quả tư vấn đã lưu.",
     myNameFallback: "Tôi",
     partnerNameFallback: "Đối phương",
@@ -330,6 +337,7 @@ const LOVE_SECRET_RESULT_COPY: Partial<Record<LoadingLocale, LoveSecretResultCop
   },
   hi: {
     genResultTimeoutError: "परामर्श परिणाम बनने में थोड़ा समय लग रहा है। कृपया थोड़ी देर बाद पुनः प्रयास करें।",
+    genFailedRefundError: "विशेषज्ञ परामर्श सामग्री बनाते समय समस्या हुई। यदि कुछ काटा गया है, तो वह स्वतः बहाल हो जाएगा।",
     loadResultFailedError: "सहेजे गए परामर्श परिणाम लोड नहीं हो सके।",
     myNameFallback: "मैं",
     partnerNameFallback: "साथी",
@@ -369,6 +377,7 @@ const LOVE_SECRET_RESULT_COPY: Partial<Record<LoadingLocale, LoveSecretResultCop
   },
   es: {
     genResultTimeoutError: "La lectura está tardando más de lo esperado. Inténtalo de nuevo en unos momentos.",
+    genFailedRefundError: "Ocurrió un problema al generar el contenido de la consulta experta. Si se cobró algo, se restaurará automáticamente.",
     loadResultFailedError: "No se pudo cargar tu lectura guardada.",
     myNameFallback: "Yo",
     partnerNameFallback: "Pareja",
@@ -408,6 +417,7 @@ const LOVE_SECRET_RESULT_COPY: Partial<Record<LoadingLocale, LoveSecretResultCop
   },
   fr: {
     genResultTimeoutError: "La lecture met plus de temps que prévu. Veuillez réessayer dans un instant.",
+    genFailedRefundError: "Un problème est survenu lors de la génération du contenu de la consultation experte. Si quelque chose a été débité, il sera automatiquement restauré.",
     loadResultFailedError: "Impossible de charger votre lecture enregistrée.",
     myNameFallback: "Moi",
     partnerNameFallback: "Partenaire",
@@ -447,6 +457,7 @@ const LOVE_SECRET_RESULT_COPY: Partial<Record<LoadingLocale, LoveSecretResultCop
   },
   de: {
     genResultTimeoutError: "Die Erstellung der Lesung dauert länger als erwartet. Bitte versuchen Sie es später erneut.",
+    genFailedRefundError: "Bei der Erstellung des Expertenberatungsinhalts ist ein Problem aufgetreten. Falls etwas abgebucht wurde, wird es automatisch wiederhergestellt.",
     loadResultFailedError: "Ihre gespeicherte Lesung konnte nicht geladen werden.",
     myNameFallback: "Ich",
     partnerNameFallback: "Partner",
@@ -486,6 +497,7 @@ const LOVE_SECRET_RESULT_COPY: Partial<Record<LoadingLocale, LoveSecretResultCop
   },
   nl: {
     genResultTimeoutError: "Het genereren van de lezing duurt iets langer. Probeer het later opnieuw.",
+    genFailedRefundError: "Er is een probleem opgetreden bij het genereren van de expertconsultinhoud. Als er iets is afgeschreven, wordt dit automatisch hersteld.",
     loadResultFailedError: "Je opgeslagen lezing kon niet worden geladen.",
     myNameFallback: "Ik",
     partnerNameFallback: "Partner",
@@ -525,6 +537,7 @@ const LOVE_SECRET_RESULT_COPY: Partial<Record<LoadingLocale, LoveSecretResultCop
   },
   ms: {
     genResultTimeoutError: "Penjanaan hasil perundingan mengambil masa lebih lama. Sila cuba lagi sebentar lagi.",
+    genFailedRefundError: "Masalah berlaku semasa menjana kandungan perundingan pakar. Jika ada yang ditolak, ia akan dipulihkan secara automatik.",
     loadResultFailedError: "Tidak dapat memuatkan hasil perundingan yang disimpan.",
     myNameFallback: "Saya",
     partnerNameFallback: "Pasangan",
@@ -862,6 +875,14 @@ export default function LoveSecretAiResultClient({ paymentSurface }: { paymentSu
     // 생성은 요청 안에서 끝나지만(최대 ~90초) 네트워크·재시도 여지를 두고 상한을 넉넉히 잡는다.
     // 2.5s 간격이라 CF rate-limit(10초당 100회)에는 여유가 크다.
     const maxAttempts = 140;
+    // 서버는 이어 쓰기 요청마다 남은 그룹을 쓰거나 축소 전달·환불로 끝낸다(2026-11-18 S3-F). 상한은 그보다 넉넉한 안전장치다.
+    const maxResumes = 24;
+    // 생성 실패 종결은 일시 장애(503 재폴링)가 아니다. 부분 본문을 거두고 실패·자동 복구 안내를 바로 보여 준다.
+    const isGenerationFailed = (body: Consultation) => body?.status === "generation_failed" || (body?.ok === false && body?.reason === "LLM_ERROR");
+    const showGenerationFailed = () => {
+      setConsultation(null); setPending(false);
+      setError(paymentSurface === "toss" ? "상담 생성에 실패했어요. 결제가 완료되었다면 다시 결제하지 말고 구매 복구 또는 고객지원에서 확인해 주세요." : copy.genFailedRefundError);
+    };
     async function loadResult() {
       setError("");
       try {
@@ -872,11 +893,13 @@ export default function LoveSecretAiResultClient({ paymentSurface }: { paymentSu
         const payload = await response.json().catch(() => ({})) as Consultation;
         if (!alive || !isCurrent()) return;
         if (paymentSurface === "toss" && [401,402,403,409].includes(response.status)) { setConsultation(null); setPending(false); setError(response.status === 401 ? "상담을 확인하려면 토스 로그인이 필요해요." : "구매 내역에 접근할 권한을 확인할 수 없어요. 구매한 계정과 주문 내역을 확인해 주세요."); return; }
+        if (isGenerationFailed(payload)) { showGenerationFailed(); return; }
         const resumeId = payload.sessionId || payload.resultId;
         if ((payload.status === "partial" || payload.reason === "RESULT_STORAGE_UNAVAILABLE") && resumeId) {
           if (payload.status === "partial") setConsultation(payload);
           setPending(true); setLoading(false);
-          if (!document.hidden && resumes < 8) {
+          if (!document.hidden && resumes >= maxResumes) { setPending(false); setError(copy.genResultTimeoutError); return; }
+          if (!document.hidden) {
             resumes += 1;
             const resumed = await authFetch("/api/love-secret-ai/generate", {
               method: "POST", headers: { "Content-Type": "application/json" },
@@ -886,6 +909,7 @@ export default function LoveSecretAiResultClient({ paymentSurface }: { paymentSu
             const next = await resumed.json().catch(() => ({})) as Consultation;
             if (!alive || !isCurrent()) return;
             if (paymentSurface === "toss" && [401,402,403,409].includes(resumed.status)) { setConsultation(null); setPending(false); setError(resumed.status === 401 ? "상담을 확인하려면 토스 로그인이 필요해요." : "구매 내역에 접근할 권한을 확인할 수 없어요. 구매한 계정과 주문 내역을 확인해 주세요."); return; }
+            if (isGenerationFailed(next)) { showGenerationFailed(); return; }
             if (!resumed.ok) throw new Error(next.message || copy.loadResultFailedError);
             if (next.status === "completed" && next.saved === true) {
               setConsultation(next); setPending(false); return;

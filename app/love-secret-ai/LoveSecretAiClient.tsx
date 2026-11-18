@@ -2154,15 +2154,29 @@ export default function LoveSecretAiPage({ paymentNotice, TossPrice, paymentSurf
 
     if (paymentNotice && generationResponse.status === 403) throw new Error(permissionFailure);
 
-    for (let cycle = 0; cycle < 8; cycle += 1) {
+    // 서버는 이어 쓰기 요청마다 남은 그룹을 하나 쓰거나, 더 쓸 그룹이 없으면 축소 전달·환불로 끝낸다(2026-11-18 S3-F).
+    // 그래서 부분 상태인 동안은 생성 중 화면을 유지하고, 탭이 숨으면 끊지 않고 돌아올 때까지 기다린다.
+    // 상한은 서버가 낼 수 있는 이어 쓰기 수(7그룹×2회+분량 보강 2회)보다 넉넉한 안전장치다.
+    let partialUrl = "";
+    for (let cycle = 0; cycle < 24; cycle += 1) {
       if (result.status === "completed" && result.saved === true) break;
       if (result.status === "generating") result = await pollResult(result.sessionId || idempotencyKey);
       if (!isCurrent()) return false;
       if (result.status !== "partial" || !result.sessionId) break;
       setGroupProgress({ completed: result.completedGroups?.length || 0, total: result.totalGroups || 0 });
-      const partialUrl = buildResultUrl({ sessionId: result.sessionId, requestId: idempotencyKey, pending: true }, paymentSurface);
+      partialUrl = buildResultUrl({ sessionId: result.sessionId, requestId: idempotencyKey, pending: true }, paymentSurface);
       setResultUrl(partialUrl);
-      if (document.hidden) break;
+      if (document.hidden) {
+        await new Promise<void>((resolve) => {
+          const onVisible = () => {
+            if (document.hidden) return;
+            document.removeEventListener("visibilitychange", onVisible);
+            resolve();
+          };
+          document.addEventListener("visibilitychange", onVisible);
+        });
+        if (!isCurrent()) return false;
+      }
       ({ response: generationResponse, payload: result } = await postJson<ConsultationResult>("/api/love-secret-ai/generate", { resumeSessionId: result.sessionId }, idempotencyKey));
       if (!isCurrent()) return false;
       if (paymentNotice && generationResponse.status === 403) throw new Error(permissionFailure);
@@ -2181,7 +2195,12 @@ export default function LoveSecretAiPage({ paymentNotice, TossPrice, paymentSurf
     }
 
     if (result.reason === "PAYMENT_VERIFY_FAILED") throw new Error(copy.errorMessages.paymentVerifyFailed);
-    if (result.reason === "LLM_ERROR") throw new Error(generationFailure);
+    if (result.reason === "LLM_ERROR" || result.status === "generation_failed") throw new Error(generationFailure);
+    if (result.status === "partial" && partialUrl) {
+      // 안전 상한에 닿아도 결과 페이지가 같은 상담을 이어 받는다. 일반 서버 오류 대신 지연 안내로 넘긴다.
+      moveResultWindow(partialUrl);
+      throw new Error(copy.errorMessages.resultTimeout);
+    }
     throw new Error(result.message || serverFailure);
   }
 

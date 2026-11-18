@@ -781,7 +781,7 @@ function trimToLastCompleteSentence(text) {
 /**
  * 그룹 응답 파싱. **절대 throw 하지 않는다** — 실패는 값으로 돌려 한 그룹이 나머지를 죽이지 못하게 한다.
  */
-export function parseLoveSecretGroupResponse(text, group, { lengthRepair = false, scrubUnsafe = false } = {}) {
+export function parseLoveSecretGroupResponse(text, group, { lengthRepair = false, scrubUnsafe = false, salvage = false } = {}) {
   const base = { key: group?.key || "", ok: false, sections: [], extras: {}, chars: 0, issues: [], reason: "" };
   const raw = clean(text);
   if (!raw) return { ...base, reason: "EMPTY_RESPONSE", issues: ["EMPTY_LLM_RESPONSE"] };
@@ -877,7 +877,28 @@ export function parseLoveSecretGroupResponse(text, group, { lengthRepair = false
     });
   }
 
-  const result = { ...base, ok: requiredSectionsPresent && issues.length === 0, sections: trimmed, extras, chars, issues, lengthShort };
+  const ok = requiredSectionsPresent && issues.length === 0;
+  if (!ok && salvage && !issues.some(textFlag)) {
+    // 마지막 시도(2026-11-18 S3-F): 그룹을 통째로 비우면 세션이 멈추거나 환불로 끝난다. 되풀이 문장은 뒤 사본만 덜고,
+    // 빈 섹션은 빼고, 같은 제목은 합친 뒤 남은 본문이 그룹 하한의 30%(Workers AI 폴백 하한과 같다) 이상이면 받는다.
+    const kept = [];
+    trimmed.forEach((section) => {
+      const body = dropRepeatedReportSentences(section.body, kept.map((item) => item.body).join("\n"));
+      if (!countPaidReportBodyChars(body)) return;
+      const same = kept.find((item) => item.title === section.title);
+      if (same) same.body = `${same.body}\n\n${body}`;
+      else kept.push({ title: section.title, body });
+    });
+    const keptText = kept.map((section) => section.body).join("\n");
+    const keptChars = countSectionBodyChars(kept);
+    if (keptChars >= Math.round(LOVE_SECRET_AI_GROUP_MIN_CHARS * 0.3) && !hasRepeatedReportPassage(keptText) && !scanConsultationTextIssues(keptText).length) {
+      const salvaged = { ...base, ok: true, salvaged: true, salvageIssues: issues.slice(0, 6), sections: kept, extras, chars: keptChars, issues: [], lengthShort: true };
+      if (flagged.length) salvaged.flagged = flagged;
+      if (scrubbed) salvaged.scrubbed = scrubbed;
+      return salvaged;
+    }
+  }
+  const result = { ...base, ok, sections: trimmed, extras, chars, issues, lengthShort };
   if (flagged.length) result.flagged = flagged;
   if (scrubbed) result.scrubbed = scrubbed;
   return result;

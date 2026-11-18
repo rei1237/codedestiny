@@ -187,12 +187,13 @@ test("love public progress includes groups that have not been generated yet", ()
   load(ctx, "../../worker/routes/love-secret-ai.js", ["publicSession"]);
   const groups = [loveRow("core", 5500)];
   expect(ctx.publicSession({ status: "partial", llmMeta: { delivery: { groups, attempts: { core: 2 } }, residualIssues: ["SECTION_EMPTY:timing"] } }).retryable).toBe(true);
+  // 2026-11-18 S3-F: 시도를 다 쓴 partial 도 이어 쓸 수 있다 — 다음 요청이 축소 전달이나 환불로 종결한다(예전엔 false 로 영구 정체).
   const attempts = Object.fromEntries(lovePrompt.LOVE_SECRET_AI_GROUPS.map(group => [group.key, 4]));
-  expect(ctx.publicSession({ status: "partial", llmMeta: { delivery: { groups, attempts } } }).retryable).toBe(false);
-  // 버전 없는 예전 세션은 V1(6개) 계획이라 nature 가 없어도 다시 쓸 그룹이 없다. V2 세션은 nature 를 기다린다.
+  expect(ctx.publicSession({ status: "partial", llmMeta: { delivery: { groups, attempts } } }).retryable).toBe(true);
+  // 버전 없는 예전 세션은 V1(6개) 계획이다. V2 세션은 nature 를 기다린다.
   const v1Rows = lovePrompt.LOVE_SECRET_AI_GROUPS_V1.map(group => loveRow(group.key, 5500));
   const legacy = ctx.publicSession({ status: "partial", llmMeta: { delivery: { groups: v1Rows, attempts: {} } } });
-  expect(legacy.retryable).toBe(false);
+  expect(legacy.retryable).toBe(true);
   expect(legacy.totalGroups).toBe(6);
   const current = ctx.publicSession({ status: "partial", llmMeta: { delivery: { groups: v1Rows, attempts: {}, groupPlanVersion: 2 } } });
   expect(current.retryable).toBe(true);
