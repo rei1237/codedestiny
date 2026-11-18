@@ -113,3 +113,27 @@ test('대표 사주의 해마다 판정·이유를 스냅숏으로 고정한다'
   const verdicts = new Set(rows.flatMap((row) => row.years.map((y) => y.verdict)));
   assert.deepEqual([...verdicts].sort(), ['caution', 'good', 'mixed'], '세 판정이 모두 나온다');
 });
+
+// 월운(S15-6): 신년운세 월별 신호가 같은 판정을 쓰도록 달 단위 진입점을 둔다. 올해(세운)가 바탕이다.
+test('월운도 용신 달이 원국 글자에 합거되면 좋은 달로 단정하지 않는다', () => {
+  const r = run('壬辰 辛酉 丙申 癸未', '戊戌', { wolun: '丙寅' });
+  assert.equal(r.scope, 'wolun');
+  assert.equal(r.target, '丙寅');
+  assert.equal(r.seun, '戊戌');
+  assert.match(r.headline, /^이 달은 /);
+  assert.ok(r.modifiers.some((m) => m.kind === 'hap' && m.delta < 0 && /합거/.test(m.text)), JSON.stringify(r.modifiers));
+  assert.notEqual(r.verdict, 'good');
+  const backdrop = r.modifiers.find((m) => m.kind === 'daeun');
+  if (backdrop) assert.match(backdrop.text, /^올해 흐름\(戊戌\)/);
+});
+
+test('월운 진입점이 생겨도 세운·대운 판정은 그대로다', () => {
+  const chart = '壬辰 辛酉 丙申 癸未';
+  const seun = run(chart, '丙寅', { daeun: '戊戌' });
+  assert.equal(seun.scope, 'seun');
+  assert.equal('seun' in seun, false);
+  const month = run(chart, '丙寅', { daeun: '戊戌', wolun: '庚子' });
+  assert.equal(month.scope, 'wolun');
+  assert.equal(month.daeun, '戊戌');
+  assert.equal(month.seun, '丙寅');
+});
