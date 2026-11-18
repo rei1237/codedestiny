@@ -676,8 +676,10 @@ export async function finishChapter(env, userId, requestId, token, ordinal, body
         }
         const isLast=ordinal+1===total;
         const awaitingFollowup=request.snapshot?.questionSkyStage?.version==='question-sky-flounder-3'&&ordinal===0&&total===2;
+        // The committed chapter's draft is no longer read (stored-chapter, recovery and refund filters only look at
+        // the next ordinal or chapters.0), so a long order does not carry every chapter twice (S9-Y).
         result = await YeongnyangiRequest.findOneAndUpdate(filter,
-          {$push:{chapters:body},$set:{...(ordinal===0?{firstContentAt:new Date()}:{}),completedChapters:ordinal+1,
+          {$push:{chapters:body},$unset:{[`generationCheckpoint.chapterDrafts.${ordinal}`]:''},$set:{...(ordinal===0?{firstContentAt:new Date()}:{}),completedChapters:ordinal+1,
             // Keep the last chapter's lease until the saved document has been
             // read back. A late writer must not race the completion marker.
             ...(isLast?{}:awaitingFollowup?{state:'AWAITING_FOLLOWUP',leaseToken:'',leaseUntil:null,

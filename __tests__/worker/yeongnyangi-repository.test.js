@@ -51,6 +51,10 @@ function set(row,key,value) {
   for(const part of keys.slice(0,-1))current=current[part]??=( {} );
   current[keys.at(-1)]=value;
 }
+function unset(row,key) {
+  const keys=key.split('.'),parent=keys.length>1?get(row,keys.slice(0,-1).join('.')):row;
+  if(parent&&typeof parent==='object')delete parent[keys.at(-1)];
+}
 function query(fn) {
   const chain={session:()=>chain,select:()=>chain,sort:()=>chain,limit:()=>chain,lean:async()=>fn(),then:(a,b)=>Promise.resolve().then(fn).then(a,b)};
   return chain;
@@ -75,6 +79,7 @@ function model(source,kind) {
       for(const [key,value] of Object.entries(update.$push||{}))(row[key]??=[]).push(value);
       for(const [key,value] of Object.entries(update.$addToSet||{}))if(!(row[key]??=[]).includes(value))row[key].push(value);
       for(const [key,value] of Object.entries(update.$pull||{}))row[key]=(row[key]||[]).filter(item=>item!==value);
+      for(const key of Object.keys(update.$unset||{}))unset(row,key);
       return {...row,chapters:row.chapters?[...row.chapters]:undefined};
     }),
     updateOne:(filter,update)=>query(()=>{
@@ -1159,4 +1164,17 @@ test('S9-Y: a refusal Gemini never billed hands the chapter attempt back, at mos
   const billed=await repo.claimChapter({},owner,'id');
   await repo.failChapter({},owner,'id',billed.token,'FORTUNE_PROVIDER_TIMEOUT',2,'provider',3,'',0,{provider:'gemini',model:'gemini-2.5-flash',status:null});
   expect(requests[0]).toMatchObject({attempts:2,chapterAttempts:{0:2}});
+});
+test('S9-Y: a committed chapter drops its own stored draft, so a 45-chapter order does not carry every draft twice',async()=>{
+  await repo.createRequest({},owner,'id',values);await repo.attachPayment({},owner,'id',1000);
+  const first=await repo.claimChapter({},owner,'id');
+  await repo.saveChapterDraft({},owner,'id',first.token,0,{raw:'{}',body:{summary:'first'}});
+  expect(requests[0].generationCheckpoint.chapterDrafts[0].body).toEqual({summary:'first'});
+  await repo.finishChapter({},owner,'id',first.token,0,{summary:'first'},3);
+  expect(requests[0].chapters).toEqual([{summary:'first'}]);
+  expect(requests[0].generationCheckpoint.chapterDrafts[0]).toBeUndefined();
+  // The next ordinal's draft is untouched until that chapter commits.
+  const second=await repo.claimChapter({},owner,'id');
+  await repo.saveChapterDraft({},owner,'id',second.token,1,{raw:'{}',body:{summary:'second'}});
+  expect(requests[0].generationCheckpoint.chapterDrafts[1].body).toEqual({summary:'second'});
 });
