@@ -968,38 +968,25 @@ describe('fortune-chat per-use access',()=>{
     expect(evidences.filter(row=>row.kind==='refund')).toHaveLength(0);
   });
 
-  test('S5: a card consultation that delivered nothing is cancelled at the PG once and closed as refunded',async()=>{
-    payments.push({...chatPayment});
-    cardRefund.mockImplementation(async(_env,payment)=>{payments.find(p=>p._id===payment._id).status='cancelled';return {refunded:true};});
-    requests.push({_id:'id',userId:owner,...chat,state:'GENERATING',accessMethod:'PER_USE',perUseSource:'payment',perUseEvidenceId:'pay-fc',
-      completedChapters:0,chapters:[],leaseToken:'lease'});
-    await repo.failChapter({},owner,'id','lease','GENERATION_REVIEW_REQUIRED',1,'provider');
-    expect(cardRefund).toHaveBeenCalledTimes(1);
-    expect(cardRefund.mock.calls[0][1]).toMatchObject({_id:'pay-fc',userId:owner,featureKey:chat.featureKey});
-    expect(requests[0]).toMatchObject({state:'REFUNDED',errorCode:'DELIVERY_REFUNDED',perUseSource:'payment'});
-    await expect(repo.claimChapter({},owner,'id')).rejects.toMatchObject({status:409});
-  });
 
-  test('S5: a card refund the PG has not confirmed keeps the request for support, and a delivered chapter keeps the payment',async()=>{
+  test('S5 safety: a preserved first-chapter draft must block PG cancellation before any external side effect',async()=>{
     payments.push({...chatPayment});
-    cardRefund.mockResolvedValue({refunded:false,refundFailed:true});
+    cardRefund.mockResolvedValue({refunded:true});
     requests.push({_id:'id',userId:owner,...chat,state:'GENERATING',accessMethod:'PER_USE',perUseSource:'payment',perUseEvidenceId:'pay-fc',
-      completedChapters:0,chapters:[],leaseToken:'lease'});
-    await repo.failChapter({},owner,'id','lease','GENERATION_REVIEW_REQUIRED',1,'provider');
-    expect(cardRefund).toHaveBeenCalledTimes(1);
-    expect(requests[0]).toMatchObject({state:'FORTUNE_FAILED',errorCode:'GENERATION_REVIEW_REQUIRED'});
-    requests=[];cardRefund.mockReset();
-    requests.push({_id:'id',userId:owner,...chat,state:'GENERATING',accessMethod:'PER_USE',perUseSource:'payment',perUseEvidenceId:'pay-fc',
-      completedChapters:1,chapters:[{summary:'delivered'}],leaseToken:'lease'});
+      completedChapters:0,chapters:[],leaseToken:'lease',generationCheckpoint:{chapterDrafts:[{text:'Preserved recoverable chapter draft'}]}});
     await repo.failChapter({},owner,'id','lease','GENERATION_REVIEW_REQUIRED',1,'provider');
     expect(cardRefund).not.toHaveBeenCalled();
     expect(requests[0]).toMatchObject({state:'FORTUNE_FAILED',errorCode:'GENERATION_REVIEW_REQUIRED'});
+    expect(requests[0].generationCheckpoint.chapterDrafts).toEqual([{text:'Preserved recoverable chapter draft'}]);
+    expect(payments.find(payment=>payment._id==='pay-fc').status).toBe('paid');
   });
 
-  test.each(['admin'])('a %s consultation that delivered nothing stays for support review',async source=>{
+
+  test.each(['payment','admin'])('a %s consultation that delivered nothing stays for support review',async source=>{
     requests.push({_id:'id',userId:owner,...chat,state:'GENERATING',accessMethod:'PER_USE',perUseSource:source,perUseEvidenceId:'pay-fc',
       completedChapters:0,chapters:[],leaseToken:'lease'});
     await repo.failChapter({},owner,'id','lease','GENERATION_REVIEW_REQUIRED',1,'provider');
+    expect(cardRefund).not.toHaveBeenCalled();
     expect(refundPass).not.toHaveBeenCalled();expect(refundMoonstone).not.toHaveBeenCalled();
     expect(requests[0]).toMatchObject({state:'FORTUNE_FAILED',errorCode:'GENERATION_REVIEW_REQUIRED'});
   });

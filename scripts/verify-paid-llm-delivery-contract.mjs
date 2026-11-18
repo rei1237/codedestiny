@@ -48,7 +48,9 @@ export const EXEMPT_FILES = Object.freeze({
 });
 
 // 자동 환불 경로가 아직 없는 서비스(정확히 일치해야 한다).
+// 2026-11-18 release review: retain the pre-existing fortune-chat card support-review gap; unsafe new auto-refund excluded.
 export const KNOWN_REFUND_GAPS = Object.freeze([
+  "fortune-chat-question",
   "tarot-oracle", "love-tarot", "mindscan", "dream", "yoga-guru", "saju-compat-basic", "pet-saju-ai",
   "geomancy-oracle", "animal-totem", "guardian-fortune", "palm", "toss-native",
 ]);

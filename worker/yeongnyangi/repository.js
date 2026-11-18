@@ -423,24 +423,6 @@ async function refundChatCoin(env,userId,requestId) {
   });
 }
 
-// S5: a card-paid consultation that delivered nothing is cancelled through the shared single-payment auto refund
-// (PG cancel with an idempotency key, access revoked, Payment cancelled), then closed. An unconfirmed cancel leaves
-// the request on support review with the Payment marked refund_failed; a later terminal pass retries the same key.
-async function refundChatCard(env,userId,request) {
-  const owner=ownerId(userId),requestId=String(request._id);
-  const payment=await withMongoRetry(env,()=>Payment.findOne({_id:String(request.perUseEvidenceId || ''),userId:owner,
-    featureKey:request.featureKey,status:{$in:['paid','success','fulfilled','cancelled']},refundLock:null}).lean(),readOptions);
-  if(!payment)return false;
-  const {autoRefundSinglePaymentDeliveryFailure}=await import('../lib/payment-refund.js');
-  const result=await autoRefundSinglePaymentDeliveryFailure(env,payment,'YEONGNYANGI_CHAT_UNDELIVERED',
-    '영냥이 상담 결과 미제공 자동 환불','yeongnyangi_fortune_chat_generation');
-  if(!result?.refunded)return false;
-  const closed=await withMongoRetry(env,()=>YeongnyangiRequest.updateOne({_id:requestId,userId:owner,accessMethod:'PER_USE',
-    perUseSource:'payment',state:'FORTUNE_FAILED',...terminalRestoreFilter(false)},
-  {$set:{state:'REFUNDED',errorCode:'DELIVERY_REFUNDED',leaseToken:'',leaseUntil:null}}));
-  return Boolean(closed?.modifiedCount);
-}
-
 // A free consultation that delivered nothing gives the account's free use back, exactly once.
 async function restoreFreeTrial(env,userId,requestId,terminal=false) {
   const {restoreGuardianFortuneFreeTrial}=await import('../lib/guardian-fortune-usage.js');
@@ -776,7 +758,7 @@ async function refundTerminalFamilyQuota(env,userId,requestId) {
     return Boolean(refunded.refunded);
   }
   // A paid fortune-chat consultation that delivered nothing gives back what the server restores itself: pass quota,
-  // moonlight stones, honey drops and coins (S9-Y); a card payment is cancelled at the PG (S5). Admin access stays with support.
+  // moonlight stones, honey drops and coins (S9-Y). A card payment needs a PG cancel and stays with support review.
   const perUse=await withMongoRetry(env,()=>YeongnyangiRequest.findOne({_id:requestId,userId:owner,accessMethod:'PER_USE',
     $or:[{state:'FORTUNE_FAILED',errorCode:'GENERATION_REVIEW_REQUIRED',completedChapters:0},
       {state:'REFUNDED',errorCode:'MONTHLY_CREDIT_RESTORED'}]}).lean(),readOptions);
@@ -791,7 +773,6 @@ async function refundTerminalFamilyQuota(env,userId,requestId) {
       cost:perUse.perUsePassRefund.cost,evidenceId:perUse.perUseEvidenceId});
   }
   if(perUse?.perUseSource==='point'&&!perUse.perUsePassRefund?.cycleKey&&perUse.state==='FORTUNE_FAILED')return refundChatCoin(env,userId,requestId);
-  if(perUse?.perUseSource==='payment'&&perUse.state==='FORTUNE_FAILED')return refundChatCard(env,userId,perUse);
   if(perUse)return false;
   const row=await withMongoRetry(env,()=>YeongnyangiRequest.findOne({_id:requestId,userId:owner,accessMethod:{$in:['FAMILY']},
     state:'FORTUNE_FAILED',errorCode:'GENERATION_REVIEW_REQUIRED',completedChapters:0}).lean(),readOptions);
