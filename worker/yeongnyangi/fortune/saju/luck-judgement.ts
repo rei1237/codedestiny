@@ -16,6 +16,7 @@ const rows=(v:unknown):Row[]=>Array.isArray(v)?v:v&&typeof v==='object'?[v as Ro
 // The 丑 month starts at 소한, before 입춘, so it still belongs to the previous saju year.
 const sajuYearOf=(row:Row)=>Number(row.start?.year)-(String(row.pillar||'')[1]==='丑'?1:0);
 const brief=({label,verdict,headline}:Row)=>({label,verdict,headline});
+const present=<T,>(row:T|null):row is T=>row!==null;
 
 function cycleFor(cycles:Row[],year:number){
  return cycles.find(c=>Number(c.startYear)<=year&&year<=Number(c.endYear))?.pillar||null;
@@ -34,7 +35,9 @@ export function sajuLuckJudgementFact(context:DomainContext,selected:Fact[],prem
  const readsLuck=LUCK_LABELS.some(l=>labels.has(l));
  if(!readsLuck&&!NATAL_LABELS.some(l=>labels.has(l)))return null;
  const timeUnknown=!pillars.hour;
- const natal:Row=buildNatalJudgementFacts(pillars,{timeUnknown});
+ const built=buildNatalJudgementFacts(pillars,{timeUnknown});
+ if(!built)return null;
+ const natal:Row={...built};
  delete natal.version;
  if(!premium)delete natal.yongsin;
  const value:Row={version:SAJU_LUCK_JUDGEMENT_VERSION,natal};
@@ -47,14 +50,15 @@ export function sajuLuckJudgementFact(context:DomainContext,selected:Fact[],prem
   const chosen=new Map<number,Row>();
   for(const v of pick('majorLuck'))for(const c of [v.currentCycle,v.cycle,...rows(v.cycles)])if(c?.pillar&&!chosen.has(c.index))chosen.set(c.index,c);
   const daeun=[...chosen.values()].slice(0,MAX_CYCLES).map(c=>buildLuckJudgement(pillars,{daeun:c.pillar,timeUnknown,
-   label:`대운 ${c.startYear}~${c.endYear}${c.isCurrent||c.index===(all.find(f=>f.label==='majorLuck')?.value as Row|undefined)?.currentCycle?.index?' (지금)':''}`}));
+   label:`대운 ${c.startYear}~${c.endYear}${c.isCurrent||c.index===(all.find(f=>f.label==='majorLuck')?.value as Row|undefined)?.currentCycle?.index?' (지금)':''}`})).filter(present);
   const years=[...new Set([...pick('yearlyLuck'),...rows(pick('luckOverlap').flatMap(o=>rows(o.years)))].map(r=>Number(r.year)).filter(Number.isInteger))]
-   .map(year=>buildLuckJudgement(pillars,{seun:yearly.find(r=>r.year===year)?.pillar||yearPillar(year),daeun:daeunOf(year),label:`${year}년`,timeUnknown}));
+   .map(year=>buildLuckJudgement(pillars,{seun:yearly.find(r=>r.year===year)?.pillar||yearPillar(year),daeun:daeunOf(year),label:`${year}년`,timeUnknown})).filter(present);
   const months=pick('monthlyLuck').filter(r=>r.pillar&&Number.isInteger(r.start?.year)).map(r=>{
    const y=sajuYearOf(r);
-   return brief(buildLuckJudgement(pillars,{wolun:r.pillar,seun:yearly.find(x=>x.year===y)?.pillar||yearPillar(y),daeun:daeunOf(y),
-    label:`${r.start.year}-${String(r.start.month).padStart(2,'0')} 절입(${r.pillar})`,timeUnknown}));
-  });
+   const row=buildLuckJudgement(pillars,{wolun:r.pillar,seun:yearly.find(x=>x.year===y)?.pillar||yearPillar(y),daeun:daeunOf(y),
+    label:`${r.start.year}-${String(r.start.month).padStart(2,'0')} 절입(${r.pillar})`,timeUnknown});
+   return row&&brief(row);
+  }).filter(present);
   const tier=(list:Row[])=>premium?list:list.map(({label,verdict})=>({label,verdict}));
   if(daeun.length)value.daeun=tier(daeun);
   if(years.length)value.years=tier(years);
