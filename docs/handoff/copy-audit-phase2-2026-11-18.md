@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-18
-next: A2 — A-novel-02.md 추천안 적용
+next: T1 — A1에서 바뀐 비트의 4개 언어 authored 번역 갱신
 ---
 
 # 문장 교정 Phase 2 (sepia) — 진행 문서
@@ -12,6 +12,7 @@ next: A2 — A-novel-02.md 추천안 적용
 ## 승인 상태 (원문)
 - 2026-11-18 사용자: "네오는 좀 그런 컨셉인데 그래도 친절한 츤데레로 바꿔주면 좋겠고 나머지는 모두 추천안으로 진행해주면 될것 같다"
 - Phase 1 리포트: `docs/copy-audit/2026-11-18/` (커밋 6e50305f6). 각 표의 "수정안"이 추천안이다.
+- 2026-11-18 사용자 결정(번역 질문 답): "번역도 함께 갱신 (Recommended)" — 원고에서 바뀐 비트만 en·ja·zh-CN·zh-TW authored 번역을 오프라인 직접 수정하고 source/sourceHash를 새 원문으로 맞춘다. 요청서의 '다른 언어 파일 수정 금지'에 대한 소설 번역 한정 예외다(서비스 i18n 번역은 여전히 수정하지 않는다).
 - 이 승인은 문구 수정까지다. 운영 승격·실결제·과금 LLM 실호출은 포함하지 않는다.
 
 ## 결정
@@ -48,7 +49,7 @@ next: A2 — A-novel-02.md 추천안 적용
   - 다른 언어 값은 수정하지 않는다. 의미가 바뀐 ko 키는 "번역 동기화 필요" 목록에 남긴다.
   - 글자 수는 ±20% 안으로 맞춘다. 넘으면 기록한다.
   - 금지 표현을 넣지 않는다.
-- 원고: `content/novel/episodes.source.json`을 수정한 뒤 `npm run novel:build`로 생성물(`public/data/novel/`, `lib/stories/vn/episodes.generated.json` 등)을 만들어 함께 커밋한다. `content/novel/translations/`는 수정하지 않는다. 번역이 소스 해시로 낡음 판정을 받으면 기록만 한다.
+- 원고: `content/novel/episodes.source.json`을 수정한 뒤 `npm run novel:build`로 생성물(`public/data/novel/`, `lib/stories/vn/episodes.generated.json` 등)을 만들어 함께 커밋한다. 번역은 위 결정대로 함께 갱신한다: 바뀐 비트의 `content/novel/translations/authored/<locale>-ep-XX.json` 행을 새 원문에 맞춰 직접 번역(번역 API·과금 LLM 금지)하고 `source`·`sourceHash`를 갱신한다. 해시만 다시 찍고 번역문을 그대로 두는 것은 금지(계약 위반). 절차는 `content/novel/translations/README.md`를 따른다. 검증: `node scripts/verify-novel-locale-completeness.mjs`, `npm run novel:build` 뒤 4개 로케일이 다시 게시되는지(availableLocales) 확인, `npm run verify:story-sync`. A2~A6은 원고 수정과 번역 갱신을 같은 커밋에 넣는다.
 - `index.html`을 고치면 `npm run sync:public`을 돌리고, 생성된 미러를 함께 커밋한다.
 - i18n authored를 고치면 merge 스크립트(`scripts/i18n-merge-authored.mjs`, 또는 package.json의 해당 npm 스크립트)로 생성물을 갱신한다.
 - 검증: `npm run check:fast` 1회. 실패하면 원인을 고친다. 회귀가 나면 덧대지 말고 되돌린다.
@@ -67,6 +68,7 @@ next: A2 — A-novel-02.md 추천안 적용
 
 ## 단계
 - [x] A1 `A-novel-01.md` — 73행 적용, 건너뜀 8, 미적용(구조) 7. 🔴 원고 수정으로 번역 4개 언어가 stale 판정(availableLocales=[ko]) — push 전 번역 재조립 필요 여부 결정. novel:build 뒤 sitemap:generate 필요(소설 URL lastmod). check:fast는 범위 밖 기존 실패 `__tests__/ui/feature-visual-details.test.mjs`(fusion-fortune 이미지 기대값, 29022710f 이후)로 test:node에서 BLOCKED — 보고만
+- [ ] T1 A1(c3ae3dffd)에서 바뀐 비트의 4개 언어 번역 갱신 → availableLocales 4개 복구 확인, 커밋 `copy(novel): sync translations for prologue–EP.06A fixes`
 - [ ] A2 `A-novel-02.md`
 - [ ] A3 `A-novel-03.md`
 - [ ] A4 `A-novel-04.md`
