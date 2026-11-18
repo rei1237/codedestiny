@@ -17,7 +17,7 @@ const functions = ["fortuneTeaCoinPrice", "settleFortuneTeaHouseGeneration", "re
 const RESULT_ID = "fortune-tea-house:attempt-1";
 const LOCK = "lock-1";
 
-function boot({ settled = { allowed: true, source: "pass", passRefund: { cycleKey: "cycle-1", cost: 100 } }, doc = null } = {}) {
+function boot({ settled = { allowed: true, source: "pass", passRefund: { cycleKey: "cycle-1", cost: 100 } }, doc = null, refundResult = { refunded: true } } = {}) {
   const calls = { settle: [], deleteOne: [], updateOne: [], release: [], refund: [] };
   let stored = doc;
   const results = {
@@ -33,7 +33,7 @@ function boot({ settled = { allowed: true, source: "pass", passRefund: { cycleKe
       settlePerUseAccessDecision: async (_env, args) => { calls.settle.push(args); return settled; },
     }),
     loadPassConsumption: async () => ({
-      refundPassCoverage: async (args) => { calls.refund.push(args); return { refunded: true }; },
+      refundPassCoverage: async (args) => { calls.refund.push(args); return refundResult; },
     }),
     releaseFortuneTeaDelivery: async (args) => { calls.release.push(args); },
     buildFortuneTeaAccessDegradedResponse: () => ({ status: 503 }),
@@ -107,4 +107,27 @@ test("환불된 결과는 같은 요청으로 다시 생성하지 못한다(차�
   const settleAt = source.indexOf("await settleFortuneTeaHouseGeneration(");
   expect(settleAt).toBeGreaterThan(source.indexOf("generation = await beginFortuneTeaHouseGeneration({"));
   expect(settleAt).toBeLessThan(source.indexOf("const runGeneration = async () => {"));
+});
+
+// 2026-11-18 S3-M: 종결 표식(refundedAt)은 무료 재생성을 막으려 늘 남기지만, 실제로 돌려준 것이 없으면 '돌려드렸어요'라고 알리지 않는다.
+test("돌려줄 차감이 없던 최종 실패는 종결만 표시하고 환불로 기록하지 않는다", async () => {
+  const { state, stored } = boot({ doc: { passSettlement: { cycleKey: "cycle-1", cost: 100 } }, refundResult: { refunded: false, skipped: true, reason: "PASS_BUDGET_EXEMPT" } });
+  await state.refundFortuneTeaHousePassSettlement({ auth: { userId: "user-1" }, resultId: RESULT_ID });
+  expect(stored().passRefund).toMatchObject({ refunded: false, reason: "PASS_BUDGET_EXEMPT" });
+  expect(stored().passRefund.refundedAt).toBeInstanceOf(Date);
+});
+
+test("다른 복구 경로가 이미 같은 증빙을 돌려줬으면 환불된 것으로 기록한다", async () => {
+  const { state, stored } = boot({ doc: { passSettlement: { featureKey: "fortune-tea-house-saju-consultation", cycleKey: "cycle-1", cost: 100 } },
+    refundResult: { refunded: false, skipped: true, reason: "PASS_EVIDENCE_ALREADY_REFUNDED" } });
+  await state.refundFortuneTeaHousePassSettlement({ auth: { userId: "user-1" }, resultId: RESULT_ID });
+  expect(stored().passRefund.refunded).toBe(true);
+});
+
+test("종결된 요청의 409 는 실제 환불이 기록된 때만 refunded 와 '돌려드렸어요' 안내를 싣는다", () => {
+  expect(source).toMatch(/passRefunded: existing\.passRefund\.refunded === true/);
+  const block = source.slice(source.indexOf("if (generation.passRefundedAt)"), source.indexOf("if (generation.passRefundedAt)") + 600);
+  expect(block).toMatch(/reason: "PASS_ALREADY_REFUNDED"/);
+  expect(block).toMatch(/refunded: generation\.passRefunded === true/);
+  expect(block).toMatch(/generation\.passRefunded === true\s*\?\s*"이 상담은 생성에 실패해 이용권 한도를 돌려드렸어요/);
 });
