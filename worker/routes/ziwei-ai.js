@@ -2782,10 +2782,11 @@ async function handleStart(request, env, route = "/api/ziwei-ai/generate", recov
   } catch (error) {
     return preparationFailed(error);
   }
-  const settlementModels = { User, Payment, PaidExecutionRecord, PointHistory, MonthlyCreditLedger };
+  // 거절 분기에서만 만든다 — 정상 경로는 모델 참조를 늘리지 않는다.
+  const settlementModels = () => ({ User, Payment, PaidExecutionRecord, PointHistory, MonthlyCreditLedger });
   const startAccess = await resolveZiweiRequestAccess({ request, env, auth, body, normalized, pricing, idempotencyKey });
   // 이용권으로 시작해 본문까지 만든 상담(delivery_pending)은 그 뒤 한도 소진으로 재확인이 거절돼도 전달한다(환불·탈퇴·취소 증빙은 제외, fail-closed).
-  const resumeSettlement = !startAccess.ok && !nativeTossContext(request) ? await lateAccessDenialSettlement({ fresh: startAccess, doc: existing, userId: auth.userId, idempotencyKey, service: "ziwei-ai", models: settlementModels }) : null;
+  const resumeSettlement = !startAccess.ok && !nativeTossContext(request) ? await lateAccessDenialSettlement({ fresh: startAccess, doc: existing, userId: auth.userId, idempotencyKey, service: "ziwei-ai", models: settlementModels() }) : null;
   if (!startAccess.ok && !resumeSettlement) return paymentVerifyFailed();
   const access = startAccess.ok ? startAccess : { ok: true, accessType: existing.accessType, paymentId: clean(existing.paymentId, 160), source: "late-access-settlement" };
   logZiweiAi("Payment Guard Passed", { route, requestId: idempotencyKey, access: access.accessType });
@@ -2846,7 +2847,7 @@ async function handleStart(request, env, route = "/api/ziwei-ai/generate", recov
     const fresh = resumeSettlement ? null : await resolveZiweiRequestAccess({ request, env, auth, body: doc.llmMeta.resumeBody, normalized, pricing, idempotencyKey });
     // 늦은 이용권 차감이 한도·자격 사유로 거절돼도 만든 결과는 전달한다. 일시 장애는 그대로 던져 재시도시킨다.
     // 재확인이 이미 한도 거절로 정산(usageSettlement)됐으면 차감을 다시 시도하지 않는다.
-    let usageSettlement = resumeSettlement || (fresh.ok || nativeTossContext(request) ? null : await lateAccessDenialSettlement({ fresh, doc, userId: auth.userId, idempotencyKey, service: "ziwei-ai", models: settlementModels }));
+    let usageSettlement = resumeSettlement || (fresh.ok || nativeTossContext(request) ? null : await lateAccessDenialSettlement({ fresh, doc, userId: auth.userId, idempotencyKey, service: "ziwei-ai", models: settlementModels() }));
     if (!fresh?.ok && !usageSettlement) return paymentVerifyFailed();
     if (!nativeTossContext(request) && !usageSettlement) await applyUsageOnce({ userId: auth.userId, sessionId, accessType: access.accessType, paymentId: access.paymentId || "", pricing, prepaid: access.prepaid === true, requestId: idempotencyKey }).catch(settleError => {
       usageSettlement = lateUsageSettlementFailure(settleError, { service: "ziwei-ai", sessionId, accessType: access.accessType });
