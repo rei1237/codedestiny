@@ -22,16 +22,35 @@
 html:not([lang="ko"]) .yh-trust{display:none}
 /* 2026-11-16 상황형 첫 화면: 질문 1·결과 1·버튼 1, 그림은 작게. 한국어 화면에만 보인다. */
 .yh-situations{margin-top:16px}
+/* 2026-11-18 카드 공통 규격: 3:2 아트 → 배지 → 제목 → 설명 → 받는 결과 → CTA. 무료=채움 버튼, 유료=테두리 버튼+가격 알약. */
+.yh-block__title{margin:0 0 10px;font-family:var(--font-display);font-size:1.125rem;font-weight:400;line-height:1.4;color:var(--cd-text)}
+.yh-block__title--paid{margin-top:34px}
 .yh-situations__list{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:0;padding:0;list-style:none}
-.yh-situation{display:grid;grid-template-columns:minmax(0,1fr) 56px;grid-template-areas:"copy art" "cta cta";align-items:start;gap:12px;padding:16px;border:1px solid var(--cd-line);border-radius:var(--cd-r-card);background:var(--cd-surface)}
-.yh-situation__art{grid-area:art;display:block;width:56px;height:56px;border-radius:var(--cd-r-sm);object-fit:cover}
-.yh-situation__copy{grid-area:copy;min-width:0}
-.yh-situation__q{color:var(--cd-text);font-size:1rem;font-weight:600;line-height:1.5}
-.yh-situation__result{margin-top:4px;color:var(--cd-text-muted);font-size:.875rem;line-height:1.55}
-.yh-home .yh-situation__cta{grid-area:cta;width:100%;white-space:normal}
+.yh-situations__list--paid{grid-template-columns:minmax(0,1fr)}
+.yh-situations__list--free .yh-situation--featured{grid-column:span 2}
+@media(min-width:901px){.yh-situations__list--free .yh-situation--featured .yh-situation__art-wrap{aspect-ratio:2/1}}
+.yh-situation{position:relative;overflow:hidden;display:flex;flex-direction:column;gap:12px;padding:14px;border:1px solid var(--cd-line);border-radius:var(--cd-r-card);background:var(--cd-surface);box-shadow:var(--cd-shadow)}
+.yh-situation__art-wrap,.yh-basic-masters__art-wrap{position:relative;aspect-ratio:3/2;overflow:hidden;border-radius:var(--cd-r-control);background:color-mix(in srgb,var(--cd-yehwa-line) 16%,transparent)}
+.yh-situation__art,.yh-basic-masters__art-wrap img{display:block;width:100%;height:100%;object-fit:contain;padding:8px;box-sizing:border-box}
+.yh-situation--paid .yh-situation__art{object-fit:cover;padding:0}
+.yh-badge{position:absolute;top:8px;left:8px;z-index:1;padding:2px 10px;border:1px solid transparent;border-radius:999px;font-size:14px;font-weight:700;line-height:1.5}
+.yh-badge--free{background:var(--cd-cta-primary-bg);color:var(--cd-cta-primary-ink)}
+.yh-badge--paid{background:var(--cd-surface);border-color:var(--cd-line-strong);color:var(--cd-text)}
+.yh-badge--pick{left:auto;right:8px;background:var(--cd-surface);border-color:var(--cd-yehwa-line-deep);color:var(--cd-text)}
+.yh-situation__copy{min-width:0;flex:1}
+.yh-situation__q{color:var(--cd-text);font-size:1.0625rem;font-weight:700;line-height:1.45}
+.yh-situation__desc{margin-top:4px;color:var(--cd-text-muted);font-size:15px;line-height:1.55}
+.yh-situation__result{margin-top:8px;color:var(--cd-text);font-size:15px;line-height:1.55}
+.yh-situation__result strong{display:block;color:var(--cd-text-muted);font-size:14px;font-weight:700}
+.yh-home .yh-situation__cta{width:100%;white-space:normal}
 .yh-home .yh-situation__cta.cd-yehwa-button--primary{color:var(--cd-cta-primary-ink)}
-.yh-situation__price{white-space:nowrap}
-@media(max-width:900px){.yh-situations__list{grid-template-columns:1fr}}
+.yh-situation__cta::before{content:"";position:absolute;top:-1200px;right:-14px;bottom:-14px;left:-14px}
+.yh-situation__price{margin-inline-start:8px;padding:0 10px;border:1px solid var(--cd-line-strong);border-radius:999px;white-space:nowrap}
+@media(hover:hover){.yh-situation:hover{border-color:var(--cd-yehwa-line-deep)}}
+@media(prefers-reduced-motion:no-preference){.yh-situation{transition:border-color 180ms ease,transform 120ms ease}.yh-situation:active{transform:scale(.99)}}
+.yh-situation[aria-disabled="true"],.yh-situation[aria-busy="true"]{opacity:.6;pointer-events:none}
+@media(min-width:700px){.yh-situation--paid{display:grid;grid-template-columns:200px minmax(0,1fr) minmax(220px,260px);align-items:center;gap:16px}}
+@media(max-width:900px){.yh-situations__list{grid-template-columns:1fr}.yh-situations__list--free .yh-situation--featured{grid-column:auto}.yh-situation--featured .yh-situation__art-wrap{aspect-ratio:16/9}.yh-situation--free:not(.yh-situation--featured){display:grid;grid-template-columns:104px minmax(0,1fr);grid-template-areas:"art copy" "cta cta";align-items:start}.yh-situation--free:not(.yh-situation--featured) .yh-situation__art-wrap{grid-area:art;aspect-ratio:1/1}.yh-situation--free:not(.yh-situation--featured) .yh-situation__copy{grid-area:copy}.yh-situation--free:not(.yh-situation--featured) .yh-situation__cta{grid-area:cta}.yh-situation--free:not(.yh-situation--featured) .yh-badge{top:4px;left:4px;font-size:14px;padding:0 8px}}
 html:not([lang="ko"]) .yh-situations{display:none}
 .yh-free-start svg{width:1.0625rem;height:1.0625rem;flex:none}
 .yh-home .yh-guide-open{display:block;padding:0;min-height:44px;margin-top:8px;border:0;background:transparent;text-decoration:underline;text-underline-offset:5px;font-size:14px;color:var(--cd-accent)}
@@ -156,14 +175,30 @@ html.neo-mode .yh-hero{--yh-garden:url("/images/home/illustrated/yeoni-moon-gard
 
 /* Supplemental links, not a replacement for the approved home cards. */
 .yh-supplement{margin-top:12px;min-width:0}
-.yh-light-saju{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px;border:1px solid var(--cd-line);border-radius:var(--cd-r-card);background:var(--cd-surface)}
-.yh-light-saju h2{font-family:var(--font-display);font-size:1.25rem;color:var(--cd-text)}
-.yh-light-saju p,.yh-basic-masters__note{font-size:1rem;line-height:1.6;color:var(--cd-text-muted)}
-.yh-light-saju__facts{margin-top:4px}
-.yh-light-saju>.cd-yehwa-button{flex-shrink:0;white-space:normal;min-height:48px}
-.yh-basic-masters{margin-top:12px}.yh-basic-masters ul{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;padding:0;margin:8px 0 0;list-style:none}
-.yh-basic-masters a{display:flex;flex-direction:column;gap:6px;height:100%;padding:12px;border:1px solid var(--cd-line);border-radius:var(--cd-r-control);background:var(--cd-surface);color:var(--cd-text);text-decoration:none;font-size:1rem;line-height:1.55;min-height:48px}
-.yh-basic-masters strong{font-family:var(--font-display);font-weight:400}.yh-basic-masters__cta{margin-top:auto;font-weight:600}
-.yh-supplement a:focus-visible{outline:2px solid var(--cd-text);outline-offset:3px}
-@media(max-width:699px){.yh-light-saju{align-items:stretch;flex-direction:column}.yh-basic-masters ul{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.yh-light-saju{display:grid;grid-template-columns:120px minmax(0,1fr) minmax(220px,260px);align-items:center;gap:16px;padding:14px;border:1px solid var(--cd-line);border-radius:var(--cd-r-card);background:var(--cd-surface);box-shadow:var(--cd-shadow)}
+.yh-light-saju__art{display:block;width:120px;aspect-ratio:1/1;object-fit:contain;padding:8px;box-sizing:border-box;border-radius:var(--cd-r-control);background:color-mix(in srgb,var(--cd-yehwa-line) 16%,transparent)}
+.yh-light-saju h3{font-family:var(--font-display);font-size:1.25rem;font-weight:400;color:var(--cd-text)}
+.yh-light-saju__body>p{margin-top:4px;font-size:1rem;line-height:1.6;color:var(--cd-text-muted)}
+.yh-light-saju__facts{display:grid;gap:4px;margin:10px 0 0;padding:0;list-style:none}
+.yh-light-saju__facts li{position:relative;padding-inline-start:24px;color:var(--cd-text);font-size:15px;line-height:1.55}
+.yh-light-saju__facts li::before{content:"\2713";position:absolute;inset-inline-start:2px;font-weight:700}
+.yh-light-saju__buy{display:grid;gap:8px}
+.yh-light-saju__price{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px;margin:0}
+.yh-light-saju__price .yh-badge{position:static}
+.yh-light-saju__price strong{font-family:var(--font-display);font-size:1.5rem;font-weight:400;color:var(--cd-text)}
+.yh-light-saju__price small{font-size:14px;color:var(--cd-text-muted)}
+.yh-light-saju__hint{margin:0;font-size:14px;line-height:1.5;color:var(--cd-text-muted);text-align:center}
+.yh-light-saju .cd-yehwa-button{width:100%;white-space:normal;min-height:48px}
+.yh-basic-masters{margin-top:22px}
+.yh-basic-masters__note{display:flex;flex-wrap:wrap;gap:4px 8px;margin:0 0 12px;padding:12px 14px;border:1px solid var(--cd-yehwa-line-deep);border-radius:var(--cd-r-control);background:color-mix(in srgb,var(--cd-yehwa-line) 14%,var(--cd-surface));color:var(--cd-text);font-size:1rem;line-height:1.55}
+.yh-basic-masters__note strong{font-weight:700}
+.yh-basic-masters ul{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;padding:0;margin:0;list-style:none}
+.yh-basic-masters a{display:flex;flex-direction:column;gap:8px;height:100%;padding:12px;border:1px solid var(--cd-line);border-radius:var(--cd-r-card);background:var(--cd-surface);box-shadow:var(--cd-shadow);color:var(--cd-text);text-decoration:none;font-size:1rem;line-height:1.5;min-height:48px}
+@media(hover:hover){.yh-basic-masters a:hover{border-color:var(--cd-yehwa-line-deep)}}
+.yh-basic-masters strong{font-family:var(--font-display);font-weight:400}
+.yh-basic-masters__line{font-size:14px;line-height:1.5;color:var(--cd-text)}
+.yh-basic-masters__line b{display:block;color:var(--cd-text-muted);font-weight:700}
+.yh-basic-masters__cta{margin-top:auto;padding-top:4px;font-weight:700}
+.yh-supplement a:focus-visible{outline:2px solid var(--cd-focus-ring,var(--cd-text));outline-offset:3px}
+@media(max-width:699px){.yh-light-saju{grid-template-columns:96px minmax(0,1fr);align-items:start}.yh-light-saju__art{width:96px}.yh-light-saju__buy{grid-column:1/-1}.yh-basic-masters ul{grid-template-columns:repeat(2,minmax(0,1fr))}}
 html:not([lang="ko"]) .yh-supplement{display:none}
