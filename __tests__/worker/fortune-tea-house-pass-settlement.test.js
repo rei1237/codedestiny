@@ -131,3 +131,15 @@ test("종결된 요청의 409 는 실제 환불이 기록된 때만 refunded 와
   expect(block).toMatch(/refunded: generation\.passRefunded === true/);
   expect(block).toMatch(/generation\.passRefunded === true\s*\?\s*"이 상담은 생성에 실패해 이용권 한도를 돌려드렸어요/);
 });
+
+// S5: 환불 호출이 던지면 종결 표식이 없어 같은 결과가 다시 생성되거나 환불이 영영 안 됐다. 대기 표식을 남기고 다음 claim 이 생성 대신 환불을 다시 시도한다.
+test("S5: 환불이 실패하면 대기 표식을 남기고 다음 claim 은 생성하지 않고 환불을 다시 시도한다", async () => {
+  const { state, calls, stored } = boot({ doc: { passSettlement: { cycleKey: "cycle-1", cost: 100 } } });
+  state.loadPassConsumption = async () => ({ refundPassCoverage: async () => { throw new Error("MONGO_DOWN"); } });
+  await expect(state.refundFortuneTeaHousePassSettlement({ auth: { userId: "user-1" }, resultId: RESULT_ID })).rejects.toThrow("MONGO_DOWN");
+  expect(calls.updateOne.at(-1).update.$set["passRefund.pendingAt"]).toBeInstanceOf(Date);
+  expect(stored().passRefund?.refundedAt).toBeUndefined();
+  const block = source.slice(source.indexOf("async function beginFortuneTeaHouseGeneration"), source.indexOf("const pending = existing?.status === \"delivery_pending\""));
+  expect(block).toMatch(/existing\?\.passRefund\?\.pendingAt && !existing\.passRefund\.refundedAt[\s\S]{0,300}refundFortuneTeaHousePassSettlement\(/);
+  expect(block.indexOf("passRefund?.pendingAt")).toBeLessThan(block.indexOf("isFreshFortuneTeaGeneration(existing)"));
+});
