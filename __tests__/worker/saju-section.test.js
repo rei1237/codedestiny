@@ -315,6 +315,112 @@ test("the summary adds this and next year's prescription from the same seun read
   expect(chapter).toContain(daewunRow.g + daewunRow.j + " 대운(" + daewunRow.startYear + "–" + daewunRow.endYear + "년)");
 });
 
+// ── 라이트 풀이: 연운 배지·흐름은 luck-dynamics 판정, 용신은 여러 용신법의 최종 선택(2026-11-18 사용자 결정 "배지도 새 판정으로") ──
+// 스냅샷 사주(__tests__/fixtures/saju-luck-dynamics-snapshot.json)와 같은 원국이 나오는 실제 출생(모두 남성·양년 → 순행).
+const LIGHT_BIRTHS = [
+  { kind: "한습", chart: "壬子 壬子 乙丑 丙子", calendarDate: "1912-12-15", hour: 0 },
+  { kind: "조열", chart: "丙午 甲午 庚戌 癸未", calendarDate: "1966-06-20", hour: 14 },
+  { kind: "종격", chart: "丙寅 甲午 壬午 丁未", calendarDate: "1986-06-07", hour: 14 },
+  { kind: "통관", chart: "庚申 甲申 甲寅 丙寅", calendarDate: "1980-08-09", hour: 4 },
+  { kind: "병약", chart: "甲寅 丁丑 戊辰 己未", calendarDate: "1975-01-22", hour: 14 },
+];
+const lightBase = ({ calendarDate, hour }) => ({ birth: { calendarDate, calType: "solar", hour, minute: 30, timeKnown: true }, gender: "M", name: "테스트", mode: "pig", now: new Date(PARITY.now) });
+const chartOf = (text) => {
+  const a = text.replace(/\s/g, "").match(/../g);
+  return Object.fromEntries(["y", "m", "d", "h"].map((k, i) => [k, { g: a[i][0], j: a[i][1] }]));
+};
+const BADGE = { good: ["lb-good", "좋은 흐름"], mixed: ["lb-ok", "섞인 흐름"], caution: ["lb-bad", "조심할 흐름"] };
+// 대운 풀이의 연도별 줄: 연도·세운·배지(판정·참고 점수)·이 해의 흐름 칸.
+const yearRows = (html) => [...html.matchAll(/<div class="year-title">(\d{4})년 · (\S\S)[\s\S]*?<span class="luck-badge ([\w-]+)" data-luck-verdict="(\w+)" data-legacy-score="([\d.-]+)">([^<]+)<\/span>[\s\S]*?<div class="yr-label">⚖️ 이 해의 흐름<\/div><div class="yr-content">([\s\S]*?)<\/div><\/div>/g)]
+  .map((m) => ({ year: Number(m[1]), seun: m[2], cls: m[3], verdict: m[4], legacy: Number(m[5]), label: m[6], flow: m[7] }));
+// 첫 대운: 순행이라 월주 바로 다음 간지다(시작 나이만 찾는다).
+function firstDaewun(base, chart) {
+  const GAN = "甲乙丙丁戊己庚辛壬癸", ZHI = "子丑寅卯辰巳午未申酉戌亥";
+  const month = chartOf(chart).m;
+  const gan = GAN[(GAN.indexOf(month.g) + 1) % 10], zhi = ZHI[(ZHI.indexOf(month.j) + 1) % 12];
+  for (let age = 0; age <= 11; age += 1) {
+    try { buildSajuSectionHtml({ ...base, featureKey: "section_daewun", daewun: { age, gan, zhi } }); return { age, gan, zhi }; } catch { /* 다음 나이 */ }
+  }
+  throw new Error("first daewun not found");
+}
+
+test.each(LIGHT_BIRTHS.map((b) => [b.kind, b]))("%s: every seun badge and flow line in the daewun reading is the luck-dynamics verdict", async (_kind, b) => {
+  const { evaluateLuckDynamics } = await import("../../lib/saju/luck-dynamics.mjs");
+  const base = lightBase(b);
+  const rows = mapRows(buildSajuSectionHtml({ ...base, featureKey: "section_daewun", daewun: firstDaewun(base, b.chart) }).html);
+  expect(rows.length).toBeGreaterThan(3);
+  for (const row of rows.slice(0, 4)) {
+    const html = buildSajuSectionHtml({ ...base, featureKey: "section_daewun", daewun: { age: row.age, gan: row.g, zhi: row.j } }).html;
+    const years = yearRows(html);
+    expect(years).toHaveLength(10);
+    for (const y of years) {
+      const want = evaluateLuckDynamics({ natal: chartOf(b.chart), daeun: row.g + row.j, seun: y.seun, legacyScore: y.legacy });
+      expect([y.year, y.verdict]).toEqual([y.year, want.verdict]);
+      expect([y.cls, y.label]).toEqual(want.status === "ok" ? BADGE[want.verdict] : ["lb-ok", "판정 보류"]);
+      expect(y.flow).toContain(want.headline);
+      expect(y.flow).toContain(want.reasons[0]);
+    }
+    expect(html).not.toContain("보완 오행 운");
+    expect(html).not.toMatch(/undefined|NaN/);
+  }
+});
+
+test.each(LIGHT_BIRTHS.map((b) => [b.kind, b]))("%s: the summary explains the needed energy (용신) by method, the final pick and the climate temperament", async (_kind, b) => {
+  const { analyzeNatalCore } = await import("../../lib/saju/natal-core/index.mjs");
+  const methods = analyzeNatalCore(chartOf(b.chart)).yongsinMethods;
+  const summary = buildSajuSectionHtml({ ...lightBase(b), featureKey: "section_summary" }).html;
+  const chapter = summary.match(/<article id="sajuSummaryChapter-yongsin"[\s\S]*?<\/article>/)?.[0] || "";
+  expect(summary).toContain('href="#sajuSummaryChapter-yongsin"');
+  expect(chapter).toContain("나에게 필요한 기운 쉽게 보기");
+  // 운영 문구 정책(docs/engine-audit/29-production-rollout.md): 고객 문장에 용신·희신 같은 단일 판정 용어를 쓰지 않는다.
+  expect(chapter).not.toMatch(/용신|희신|(?<![가-힣])기신/);
+  // 덧붙인 장이다 — 패리티가 보는 본문에는 없다.
+  expect(withoutExtensions(summary)).not.toContain("sajuSummaryChapter-yongsin");
+  expect(chapter).toContain(methods.final.reason);
+  expect(chapter).toContain(methods.eokbu.reason);
+  expect(chapter).toContain(methods.johu.reason);
+  for (const key of ["tonggwan", "byeongyak", "jong"]) {
+    if (methods[key].status === "none") expect(chapter).not.toContain(methods[key].reason);
+    else expect(chapter).toContain(methods[key].reason);
+  }
+  // 조습으로 본 성향 한두 문장. 순서는 공감 → 성향 → 최종 용신 → 시기 → 실천.
+  const climate = chapter.match(/<p class="saju-climate-trait"[^>]*>([\s\S]*?)<\/p>/)?.[1] || "";
+  expect(climate.length).toBeGreaterThan(30);
+  expect(chapter).toContain('data-climate="' + methods.johu.climate.classification.type + '"');
+  const order = ["saju-yongsin-empathy", "saju-climate-trait", "saju-yongsin-final", "saju-yongsin-timing", "saju-yongsin-practice"].map((c) => chapter.indexOf(c));
+  expect(order.every((at) => at > 0)).toBe(true);
+  expect([...order].sort((x, y) => x - y)).toEqual(order);
+  // 용신 기운이 온다고 그 해가 좋은 것은 아니다 — 합·충·입묘를 함께 본다는 안내.
+  expect(chapter).toMatch(/\(합\)[\s\S]*\(충\)[\s\S]*\(입묘\)/);
+  expect(summary).not.toContain("보완 오행 운");
+  expect(summary).not.toMatch(/undefined|NaN/);
+});
+
+// 실제 사주로 고정한 두 사례: 예전 점수(evalDaewun)는 참고값으로 남고, 배지는 합·충까지 따진 판정을 따른다.
+test.each([
+  // 필요한 기운(丁火)이 들어와도 원국 壬 두 개와 합하려 다투면(쟁합) 예전 점수 100점이어도 '섞인 흐름'이다.
+  ["한습", 19, "甲寅", 1937, 100, ["lb-ok", "섞인 흐름"], "丁이 원국의 壬·壬 여럿과 합하려 다퉈(쟁합) 힘이 조금 흩어져요."],
+  // 부담이던 화 기운을 子午충으로 덜어 주는 해는 예전 점수 47점이어도 '좋은 흐름'이다.
+  ["조열", 17, "丙申", 1984, 47, ["lb-good", "좋은 흐름"], "子가 년지 午를 쳐서(충) 부담이던 화 기운을 덜어 줘요."],
+])("%s %s세 %s 대운의 %s년: legacy %s → %j", (kind, age, ganzhi, year, legacy, badge, reason) => {
+  const b = LIGHT_BIRTHS.find((row) => row.kind === kind);
+  const html = buildSajuSectionHtml({ ...lightBase(b), featureKey: "section_daewun", daewun: { age, gan: ganzhi[0], zhi: ganzhi[1] } }).html;
+  const row = yearRows(html).find((y) => y.year === year);
+  expect([row.legacy, row.cls, row.label]).toEqual([legacy, ...badge]);
+  expect(row.flow).toContain(reason);
+});
+
+test("the summary's this-year label and flow come from the same luck-dynamics verdict as the daewun year row", () => {
+  const base = { birth: CARD_BIRTH, gender: "M", name: "테스트", mode: "pig", now: new Date(PARITY.now) };
+  const rows = mapRows(buildSajuSectionHtml({ ...base, featureKey: "section_daewun", daewun: DAEWUN }).html);
+  const row = rows.find((r) => r.startYear <= 2026 && 2026 <= r.endYear);
+  const year = yearRows(buildSajuSectionHtml({ ...base, featureKey: "section_daewun", daewun: { age: row.age, gan: row.g, zhi: row.j } }).html).find((y) => y.year === 2026);
+  const chapter = buildSajuSectionHtml({ ...base, featureKey: "section_summary" }).html.match(/<article id="sajuSummaryChapter-olhae"[\s\S]*?<\/article>/)[0];
+  expect(chapter).toContain("올해 2026년 · " + year.seun + " 세운 — " + year.label);
+  expect(chapter).toContain(year.flow);
+  expect(chapter).not.toContain("억부 판단");
+});
+
 test.each(["pig", "neo"])("the daewun %s reading adds grounded choices and recovery without replacing existing chapters", (mode) => {
   const html = buildSajuSectionHtml({ birth: CARD_BIRTH, gender: "M", name: "테스트", mode, now: new Date(PARITY.now), featureKey: "section_daewun", daewun: DAEWUN }).html;
   const guide = html.match(/<section class="saju-cycle-guide"[\s\S]*?<\/section>/)?.[0] || "";

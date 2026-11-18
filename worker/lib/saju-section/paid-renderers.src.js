@@ -1089,7 +1089,7 @@ function renderSummary(p,johu,natal){
     '<a href="#sajuSummaryChapter-ohaeng">오행과 십성</a>'+
     '<a href="#sajuSummaryChapter-seonggyeok">성격과 관계</a>'+
     (_isNeoSaju?'<a href="#sajuSummaryChapter-jeollyak">앞으로의 길</a>':'<a href="#sajuSummaryChapter-jeollyak">현실 전략</a>')+
-    '<!--saju-ext--><a href="#sajuSummaryChapter-olhae">올해·내년 처방</a><!--/saju-ext-->'+
+    '<!--saju-ext--><a href="#sajuSummaryChapter-yongsin">필요한 기운</a><a href="#sajuSummaryChapter-olhae">올해·내년 처방</a><!--/saju-ext-->'+
     '</nav>';
 
   /* ───────────────────────────────
@@ -1614,6 +1614,105 @@ function renderSummary(p,johu,natal){
     '#9C27B0','rgba(243,229,245,.7)');
 
   /* ───────────────────────────────
+     12-0. 나에게 필요한 기운(용신) 쉽게 보기 — natal-core 용신법(억부·조후·통관·병약·종격)의 결과와 최종 선택, 조습으로 본 성향.
+     공감 → 성향 → 최종 용신 → 시기 → 실천 순서다. 덧붙인 장이라 saju-ext 로 감싸고,
+     box() 가 장 번호를 세므로 기존 장(①~⑬)이 모두 나온 뒤에만 둔다.
+  ─────────────────────────────── */
+  (function(){
+    var api=window.SajuNatalCore,chart=_sajuCoreChart();
+    if(!api||!chart)return;
+    var ym;
+    try{ym=api.analyzeNatalCore(chart).yongsinMethods;}catch(e){console.warn('[saju] natal-core failed',e);return;}
+    if(!ym||!ym.final)return;
+    var N=_isNeoSaju;
+    function T(pig,neo){return N?neo:pig;}
+    var EL={wood:'목(木)',fire:'화(火)',earth:'토(土)',metal:'금(金)',water:'수(水)'};
+    function els(list){return (list||[]).map(function(e){return EL[e]||e;}).join('·');}
+    // 용어 설명은 처음 한 번만 괄호로 붙인다(목록). 그 뒤 문장은 짧은 이름만 쓴다.
+    var NAME={eokbu:'억부(힘의 균형)',johu:'조후(온도·습도)',tonggwan:'통관(맞선 기운 이어 주기)',byeongyak:'병약(넘치는 기운 덜기)',jong:'종격(한 흐름 따르기)'};
+    var SHORT={eokbu:'억부',johu:'조후',tonggwan:'통관',byeongyak:'병약',jong:'종격'};
+    var OBJ={eokbu:'억부를',johu:'조후를',jong:'종격을'};
+
+    var empathy=T('사주를 보다 보면 결국 \'그래서 나한테 뭐가 필요한데?\'가 제일 궁금하죠. 같은 사주라도 어떤 눈으로 보느냐에 따라 필요한 기운이 조금씩 달라져요. 그래서 여러 방법으로 살펴본 다음, 지금 가장 급한 것을 하나 골랐어요.',
+      '사주 보다 보면 결국 \'그래서 나한테 뭐가 필요한데?\'가 제일 궁금하잖아. 같은 사주도 어떤 눈으로 보느냐에 따라 필요한 기운이 조금씩 달라. 그래서 여러 방법으로 살펴보고, 지금 너한테 제일 급한 걸 하나 골랐어.');
+
+    var cl=ym.johu&&ym.johu.climate, cls=cl&&cl.classification||{}, ctype=cls.type||'insufficient';
+    var lv={extreme:'아주 강하게 ',strong:'뚜렷하게 ',mild:'살짝 '}[cls.severity]||'';
+    var TRAIT={
+      '한습':['차고 촉촉한 기운이 '+lv+'깔려 있어서, 겉으로는 차분하고 조심스럽지만 속으로는 생각과 감정을 오래 품는 편이에요. 몸과 마음을 데워 주는 사람과 활동이 곁에 있을 때 훨씬 생기가 돌아요.',
+        '차고 촉촉한 기운이 '+lv+'깔려 있어서, 겉으론 차분하고 조심스러운데 속으론 생각이랑 감정을 오래 품는 편이야. 몸과 마음을 데워 주는 사람, 데워 주는 활동이 곁에 있으면 훨씬 생기가 돌아.'],
+      '조열':['뜨겁고 메마른 기운이 '+lv+'깔려 있어서, 열정과 추진력은 금방 붙지만 마음이 조급해지거나 쉽게 지치는 편이에요. 잠깐 멈춰 열을 식히는 시간이 있을 때 판단이 훨씬 정확해져요.',
+        '뜨겁고 메마른 기운이 '+lv+'깔려 있어서, 열정이랑 추진력은 금방 붙는데 마음이 조급해지거나 쉽게 지치는 편이야. 잠깐 멈춰서 열을 식히는 시간이 있으면 판단이 훨씬 정확해져.'],
+      '한조':['차고 메마른 기운이 '+lv+'깔려 있어서, 맺고 끊음이 분명하고 이성적이지만 마음을 드러내기까지 시간이 걸리는 편이에요. 따뜻한 관계와 촉촉한 휴식이 마음을 부드럽게 풀어 줘요.',
+        '차고 메마른 기운이 '+lv+'깔려 있어서, 맺고 끊는 게 분명하고 이성적인데 마음을 드러내기까진 시간이 걸리는 편이야. 따뜻한 관계랑 촉촉한 휴식이 마음을 부드럽게 풀어 줘.'],
+      '습열':['덥고 눅눅한 기운이 '+lv+'깔려 있어서, 정이 많고 감정의 온도가 높지만 답답함이 쌓이면 한꺼번에 터지기 쉬운 편이에요. 공기를 바꾸듯 자주 정리하고 털어 내는 습관이 잘 맞아요.',
+        '덥고 눅눅한 기운이 '+lv+'깔려 있어서, 정 많고 감정 온도가 높은데 답답한 게 쌓이면 한꺼번에 터지기 쉬운 편이야. 공기 바꾸듯 자주 정리하고 털어 내는 습관이 잘 맞아.'],
+      '한':['차가운 기운이 '+lv+'도는 사주라, 신중하고 속이 깊지만 시작이 느리게 느껴질 때가 있어요. 몸을 데우고 사람과 어울리는 작은 활동이 시동을 걸어 줘요.',
+        '차가운 기운이 '+lv+'도는 사주라, 신중하고 속이 깊은데 시작이 느리게 느껴질 때가 있어. 몸 데우고 사람이랑 어울리는 작은 활동이 시동을 걸어 줘.'],
+      '열':['뜨거운 기운이 '+lv+'도는 사주라, 반응이 빠르고 표현이 시원하지만 쉽게 과열되는 편이에요. 하루 중 열을 식히는 시간을 꼭 남겨 두세요.',
+        '뜨거운 기운이 '+lv+'도는 사주라, 반응 빠르고 표현도 시원한데 쉽게 과열되는 편이야. 하루 중에 열 식히는 시간은 꼭 남겨 둬.'],
+      '습':['습한 기운이 '+lv+'도는 사주라, 공감이 깊고 분위기를 잘 읽지만 감정이 쉽게 고이는 편이에요. 몸을 움직이고 공간을 환기하는 습관이 기분을 가볍게 해 줘요.',
+        '습한 기운이 '+lv+'도는 사주라, 공감이 깊고 분위기를 잘 읽는데 감정이 쉽게 고이는 편이야. 몸 움직이고 공간 환기하는 습관이 기분을 가볍게 해 줘.'],
+      '조':['건조한 기운이 '+lv+'도는 사주라, 핵심을 빨리 잡고 깔끔하게 정리하지만 말이나 태도가 딱딱해 보일 때가 있어요. 여유 있는 대화와 충분한 휴식이 균형을 잡아 줘요.',
+        '건조한 기운이 '+lv+'도는 사주라, 핵심을 빨리 잡고 깔끔하게 정리하는데 말이나 태도가 딱딱해 보일 때가 있어. 여유 있는 대화랑 충분한 휴식이 균형을 잡아 줘.'],
+      '균형':['온도와 습도가 크게 치우치지 않아서, 상황에 맞춰 스스로 온도를 조절하는 편이에요. 그래서 이 사주는 계절보다 힘의 균형을 먼저 봐요.',
+        '온도랑 습도가 크게 치우치지 않아서, 상황에 맞춰 알아서 온도를 조절하는 편이야. 그래서 이 사주는 계절보다 힘의 균형을 먼저 봐.']
+    };
+    var trait=(TRAIT[ctype]||[
+      '태어난 시각에 따라 온도와 습도 판단이 갈려서, 성향은 앞의 다른 장을 더 참고해 주세요.',
+      '태어난 시각에 따라 온도랑 습도 판단이 갈려서, 성향은 앞의 다른 장을 더 참고해 줘.'])[N?1:0];
+
+    var methodRows=['eokbu','johu','tonggwan','byeongyak','jong'].filter(function(k){
+      var m=ym[k];return m&&m.reason&&(k==='eokbu'||k==='johu'||m.status!=='none');
+    }).map(function(k){return '<b>'+NAME[k]+'</b> — '+ym[k].reason;});
+
+    var f=ym.final, finalHtml;
+    if(f.method==='insufficient'||!f.yongsin){
+      finalHtml=T('태어난 정보가 모자라 가장 필요한 기운을 하나로 정하지 않았어요. 위 방법별 결과를 참고로만 봐 주세요.','태어난 정보가 모자라서 제일 필요한 기운을 하나로 정하진 않았어. 위 방법별 결과는 참고로만 봐 줘.');
+    }else{
+      finalHtml=T('그래서 최종으로는 <b>'+OBJ[f.method]+'</b> 먼저 따라, <b>'+EL[f.yongsin]+'</b> 기운을 가장 필요한 기운으로 봤어요'+(f.heesin?' <b>'+EL[f.heesin]+'</b> 기운은 그 곁에서 함께 돕는 기운이에요.':'.'),
+          '그래서 최종으로는 <b>'+OBJ[f.method]+'</b> 먼저 따라서, <b>'+EL[f.yongsin]+'</b> 기운을 제일 필요한 기운으로 봤어'+(f.heesin?' <b>'+EL[f.heesin]+'</b> 기운은 그 곁에서 같이 돕는 기운이야.':'.'))
+        .replace('기운으로 봤어요 ','기운으로 봤어요. ').replace('기운으로 봤어 ','기운으로 봤어. ')+
+        '<br>'+T('이유','이유')+': '+f.reason+
+        (f.supplements||[]).map(function(s){
+          return '<br>· '+(s.conflict
+            ?T(SHORT[s.method]+' 쪽에서는 '+els(s.elements)+' 기운을 권하지만, 최종 판단과 부딪혀 참고만 해요.',SHORT[s.method]+' 쪽에선 '+els(s.elements)+' 기운을 권하는데, 최종 판단이랑 부딪혀서 참고만 해.')
+            :T(SHORT[s.method]+' 쪽에서도 '+els(s.elements)+' 기운을 권해서 방향이 같아요.',SHORT[s.method]+' 쪽에서도 '+els(s.elements)+' 기운을 권해서 방향이 같아.'));
+        }).join('')+
+        (f.avoid&&f.avoid.length?'<br>· '+T(els(f.avoid)+' 기운이 한꺼번에 몰리는 때는 무리하지 말고 한 템포 쉬어 가요.',els(f.avoid)+' 기운이 한꺼번에 몰릴 땐 무리하지 말고 한 템포 쉬어 가.'):'');
+    }
+
+    var timing=T('다만 이 기운이 들어오는 해라고 해서 저절로 좋은 해가 되지는 않아요. 들어온 기운이 내 사주의 다른 글자와 묶이거나(합), 부딪히거나(충), 창고에 들어가 잠기면(입묘) 힘을 제대로 못 쓰고, 반대로 부담이던 기운이 충으로 덜어지면 오히려 편해지는 해도 있어요. 그래서 아래 올해·내년 처방과 대운 풀이의 해마다 판정은 이런 움직임까지 함께 따져서 정했어요.',
+      '근데 이 기운이 들어오는 해라고 저절로 좋은 해가 되는 건 아니야. 들어온 기운이 내 사주의 다른 글자랑 묶이거나(합), 부딪히거나(충), 창고에 들어가 잠기면(입묘) 힘을 제대로 못 쓰고, 반대로 부담이던 기운이 충으로 덜어지면 오히려 편해지는 해도 있어. 그래서 아래 올해·내년 처방이랑 대운 풀이의 해마다 판정은 이런 움직임까지 같이 따져서 정했어.');
+
+    var DO={
+      wood:['아침 산책이나 새로운 걸 배우는 시간처럼 조금씩 자라나는 일','아침 산책이나 새로운 걸 배우는 시간처럼 조금씩 자라나는 일'],
+      fire:['햇볕 아래 걷기, 사람들과 웃으며 이야기 나누기처럼 마음을 데우는 일','햇볕 아래 걷기, 사람들이랑 웃으며 수다 떨기처럼 마음을 데우는 일'],
+      earth:['같은 시간에 먹고 자는 생활 리듬, 작은 약속을 지키는 습관처럼 중심을 잡아 주는 일','같은 시간에 먹고 자는 리듬, 작은 약속 지키는 습관처럼 중심을 잡아 주는 일'],
+      metal:['책상과 일정 정리, 마감과 기준을 정해 두는 습관처럼 맺고 끊는 일','책상이랑 일정 정리, 마감이랑 기준 정해 두는 습관처럼 맺고 끊는 일'],
+      water:['충분한 잠과 혼자 생각을 정리하는 조용한 시간처럼 쉬어 가는 일','충분한 잠, 혼자 생각 정리하는 조용한 시간처럼 쉬어 가는 일']
+    };
+    var practice=f.yongsin&&DO[f.yongsin]
+      ?T('생활에서는 '+DO[f.yongsin][0]+'이 '+EL[f.yongsin]+' 기운을 채우는 가장 쉬운 방법이에요. 거창하게 바꾸기보다 이번 주에 하나만 골라 꾸준히 해 보세요.',
+         '생활에선 '+DO[f.yongsin][1]+'이 '+EL[f.yongsin]+' 기운을 채우는 제일 쉬운 방법이야. 거창하게 바꾸려 하지 말고 이번 주에 하나만 골라서 꾸준히 해 봐.')
+      :T('정해진 기운이 없을 때는 잘 자고, 잘 먹고, 무리하지 않는 생활 리듬부터 지켜 보세요.','정해진 기운이 없을 땐 잘 자고, 잘 먹고, 무리 안 하는 리듬부터 지켜 봐.');
+
+    function para(cls,txt,attr){return '<p class="'+cls+'"'+(attr||'')+' style="font-size:.85rem;line-height:1.8;margin:6px 0">'+txt+'</p>';}
+    html+='<!--saju-ext-->'+box('yongsin','🧭 나에게 필요한 기운 쉽게 보기',
+      para('saju-yongsin-empathy',empathy)+
+      subHead(T('내 사주의 온도와 습도','내 사주의 온도랑 습도'),'#00796B')+
+      para('saju-climate-trait',trait,' data-climate="'+ctype+'"')+
+      subHead(T('여러 방법으로 본 필요한 기운','여러 방법으로 본 필요한 기운'),'#5E35B1')+
+      li(methodRows)+
+      para('saju-yongsin-final',finalHtml)+
+      subHead(T('필요한 기운이 오는 해 = 좋은 해일까?','필요한 기운이 오는 해 = 좋은 해일까?'),'#c62828')+
+      para('saju-yongsin-timing',timing)+
+      subHead(T('오늘부터 할 수 있는 것','오늘부터 해 볼 것'),'#2e7d32')+
+      para('saju-yongsin-practice',practice),
+      '#5E35B1','rgba(237,231,246,.7)')+'<!--/saju-ext-->';
+  })();
+
+  /* ───────────────────────────────
      12-1. 올해·내년 처방 — 세운은 대운 풀이의 연도별 세운과 같은 경로(_sajuSeunYearReading)로 읽는다
   ─────────────────────────────── */
   (function(){
@@ -1629,10 +1728,10 @@ function renderSummary(p,johu,natal){
       var sameAreas=sy.gaeun===prevGaeun;
       prevGaeun=sy.gaeun;
       var dwRow=(window.G_DAEWUN||[]).find(function(row){return yr>=row.startYear&&yr<=row.endYear;});
-      body+=(body?'<br>':'')+subHead((i?'내년 ':'올해 ')+yr+'년 · '+sy.yg+sy.yz+' 세운 — '+sy.ev.label,i?'#00838f':'#c62828')+
+      body+=(body?'<br>':'')+subHead((i?'내년 ':'올해 ')+yr+'년 · '+sy.yg+sy.yz+' 세운 — '+sy.badge.label,i?'#00838f':'#c62828')+
         kv('세운의 십성','천간 '+godMeaning(getTenGod(dg,sy.yg))+' · 지지 '+godMeaning(getTenGod(dg,sy.yz)))+
         (dwRow?kv('함께 흐르는 대운',dwRow.g+dwRow.j+' 대운('+dwRow.startYear+'–'+dwRow.endYear+'년)'):'')+
-        (sy.ukbu?kv('억부 판단',sy.ukbu):'')+(sy.johu?kv('조후',sy.johu):'')+
+        (sy.flow?kv('이 해의 흐름',sy.flow):'')+(sy.johu?kv('조후',sy.johu):'')+
         (sameAreas
           ?kv('영역별 처방',_isNeoSaju?('올해랑 같은 '+EL_K[sy.ygd.e]+' 기운의 흐름이 이어져서 연애·돈·일·관계·건강 습관 처방도 올해랑 같아. 올해 정한 습관, 그대로 이어 가 봐.'):('올해와 같은 '+EL_K[sy.ygd.e]+' 기운의 흐름이 이어져 연애·돈·일·관계·건강 습관 처방은 올해와 같습니다. 올해 정한 습관을 그대로 이어 가세요.'))
           :kv('연애',sy.gaeun.love)+kv('돈',sy.gaeun.wealth)+kv('일',sy.gaeun.career)+kv('관계',sy.gaeun.relationship)+
@@ -1882,8 +1981,35 @@ function buildDaewunReadingGuide(age, gan, zhi, ev) {
     next:(window.G_DAEWUN||[]).find(function(row){return Number(row.age)>Number(age);})
   },document.body.classList.contains('neo-mode')?'neo':'pig');
 }
+// natal-core·luck-dynamics 가 읽는 원국({y,m,d,h}: {g,j}). 시각을 모르면 시주는 빈 글자다.
+function _sajuCoreChart(){
+  var p=G_PILLARS;if(!p||!p.y||!p.m||!p.d)return null;
+  var unknown=!!window.__cdSajuTimeUnknown;
+  return {y:{g:p.y.g,j:p.y.j},m:{g:p.m.g,j:p.m.j},d:{g:p.d.g,j:p.d.j},h:unknown||!p.h?{g:'',j:''}:{g:p.h.g,j:p.h.j}};
+}
+// 세운 한 해의 판정(2026-11-18 사용자 결정 "배지도 새 판정으로"): 용신 오행이 들어온다고 좋은 해로 보지 않고,
+// 합·충·입묘·조후까지 따진 luck-dynamics 판정을 쓴다. evalDaewun 점수는 참고값(data-legacy-score)으로만 남긴다.
+function _sajuLuckDynamics(yg,yz,daeun,legacyScore){
+  var api=window.SajuLuckDynamics,chart=_sajuCoreChart();
+  if(!api||!chart)return null;
+  try{return api.evaluateLuckDynamics({natal:chart,daeun:daeun||null,seun:yg+yz,legacyScore:legacyScore});}
+  catch(e){console.warn('[saju] luck-dynamics failed',e);return null;}
+}
+function _sajuLuckBadge(dyn,yEv){
+  if(!dyn)return {cls:yEv.score>=80?'lb-best':yEv.score>=60?'lb-good':yEv.score>=40?'lb-ok':'lb-bad',label:yEv.label,verdict:'legacy'};
+  if(dyn.status!=='ok')return {cls:'lb-ok',label:'판정 보류',verdict:dyn.verdict};
+  var b={good:['lb-good','좋은 흐름'],mixed:['lb-ok','섞인 흐름'],caution:['lb-bad','조심할 흐름']}[dyn.verdict]||['lb-ok','섞인 흐름'];
+  return {cls:b[0],label:b[1],verdict:dyn.verdict};
+}
+// 이 해의 흐름: 한 줄 결론 → 들어오는 기운의 역할 → 점수를 가장 크게 움직인 작용 두 가지(합·충·입묘·조후 등).
+function _sajuLuckFlowHtml(dyn){
+  var mods=(dyn.modifiers||[]).slice().sort(function(a,b){return Math.abs(b.delta)-Math.abs(a.delta);}).slice(0,2);
+  return '<b>'+dyn.headline+'</b>'+(dyn.reasons&&dyn.reasons[0]?'<br>· '+dyn.reasons[0]:'')+
+    mods.map(function(m){return '<br>· '+m.text;}).join('');
+}
 // 세운 한 해의 간지·판정·영역 문구. 대운 풀이의 10년 세운과 종합의 올해·내년 처방이 이 한 경로로 읽는다.
-function _sajuSeunYearReading(yr){
+// daeun(간지 두 글자)을 주지 않으면 그 해가 속한 대운을 대운표에서 찾는다.
+function _sajuSeunYearReading(yr,daeun){
   var jg=G_JONG,pw=window.__cdShownPower||G_POWER,jh=G_JOHU;
   var yBazi=_coreEightChar(yr,6,15,12,0);
 
@@ -1898,10 +2024,18 @@ function _sajuSeunYearReading(yr){
   var yg2=yBazi.getYearGan(),yz2=yBazi.getYearZhi();
   var ygd=GAN[yg2]||{e:'earth',n:'?'},yzd=JI[yz2]||{e:'water',a:'?'};
   var yEv=evalDaewun(yg2,yz2);
+  if(!daeun){
+    var dwRow=(window.G_DAEWUN||[]).find(function(row){return yr>=row.startYear&&yr<=row.endYear;});
+    daeun=dwRow?dwRow.g+dwRow.j:null;
+  }
+  var dyn=_sajuLuckDynamics(yg2,yz2,daeun,yEv.score);
+  var badge=_sajuLuckBadge(dyn,yEv);
+  // 영역 문구: 새 판정이 '좋은 흐름'일 때만 좋은 해 문구, 섞인·조심할 흐름은 조심 문구다. 엔진이 없으면 예전 점수 기준.
+  var isGood=dyn?(dyn.status==='ok'&&dyn.verdict==='good'):yEv.score>=60;
   var neo=(typeof NEO_MODE!=='undefined'&&NEO_MODE)
     ||(document.documentElement&&document.documentElement.classList.contains('neo-mode'))
     ||document.body.classList.contains('neo-mode');
-  var yGaeun=neo&&NEO_GAEUN_DB[ygd.e]?NEO_GAEUN_DB[ygd.e][yEv.score>=60?'good':'bad']:getDetailedGaeun(ygd.e,yEv.score>=60);
+  var yGaeun=neo&&NEO_GAEUN_DB[ygd.e]?NEO_GAEUN_DB[ygd.e][isGood?'good':'bad']:getDetailedGaeun(ygd.e,isGood);
   var johuYText='';
   if(jh){
     if((jh.type==='hot'||jh.type==='warm')&&(ygd.e==='water'||yzd.e==='water'))
@@ -1934,7 +2068,7 @@ function _sajuSeunYearReading(yr){
     ukbuYText += '<br><span style="color:#D32F2F;font-size:0.85rem;font-weight:bold;margin-top:4px;display:inline-block;">' + ypText + '</span>';
   }
 
-  return {yg:yg2,yz:yz2,ygd:ygd,yzd:yzd,ev:yEv,gaeun:yGaeun,johu:johuYText,ukbu:ukbuYText};
+  return {yg:yg2,yz:yz2,ygd:ygd,yzd:yzd,ev:yEv,gaeun:yGaeun,johu:johuYText,ukbu:ukbuYText,dyn:dyn,badge:badge,flow:dyn?_sajuLuckFlowHtml(dyn):ukbuYText};
 }
 // #dwDetail 본문(대운 풀이 + 10년 세운). 서버 대운 풀이(worker/lib/saju-section)와 같은 HTML 이다.
 function buildDaewunDetailHtml(age,gan,zhi){
@@ -1946,8 +2080,8 @@ function buildDaewunDetailHtml(age,gan,zhi){
   var yearHTML='';
   for(var yr=startYear;yr<=startYear+9;yr++){
     try{
-      var sy=_sajuSeunYearReading(yr);
-      var yg2=sy.yg,yz2=sy.yz,ygd=sy.ygd,yzd=sy.yzd,yEv=sy.ev,yGaeun=sy.gaeun,johuYText=sy.johu,ukbuYText=sy.ukbu;
+      var sy=_sajuSeunYearReading(yr,gan+zhi);
+      var yg2=sy.yg,yz2=sy.yz,ygd=sy.ygd,yzd=sy.yzd,yEv=sy.ev,yGaeun=sy.gaeun,johuYText=sy.johu;
       var cycleRelations=_getDwHapResults(yg2,yz2,{d:{g:gan,j:zhi}});
       var cycleContext=document.body.classList.contains('neo-mode')?gan+zhi+' 대운 속 '+yg2+yz2+' 세운이야. '+(cycleRelations.length?cycleRelations.map(function(row){return row.src+'·'+row.partner+' '+(row.type.indexOf('간')===0?'천간':'지지')+(row.isChung?'충':'합');}).join(', ')+' 관계를 원국의 작용과 같이 살펴볼게.':'대운과 직접적인 천간합·충 또는 육합·지지충이 없어서, 각 운의 십성과 원국 관계를 중심으로 읽을게.'):gan+zhi+' 대운 속 '+yg2+yz2+' 세운입니다. '+(cycleRelations.length?cycleRelations.map(function(row){return row.src+'·'+row.partner+' '+(row.type.indexOf('간')===0?'천간':'지지')+(row.isChung?'충':'합');}).join(', ')+' 관계를 원국의 작용과 함께 살핍니다.':'대운과 직접적인 천간합·충 또는 육합·지지충이 없어 각 운의 십성과 원국 관계를 중심으로 읽습니다.');
 
@@ -1955,11 +2089,11 @@ function buildDaewunDetailHtml(age,gan,zhi){
         '<div class="year-top">'+
         '<div style="flex:1">'+
         '<div class="year-title">'+yr+'년 · '+yg2+yz2+' <span style="font-size:.78rem;color:#999;font-weight:400">('+ygd.n+' '+yzd.a+')</span></div>'+
-        '<span class="luck-badge '+(yEv.score>=80?'lb-best':yEv.score>=60?'lb-good':yEv.score>=40?'lb-ok':'lb-bad')+'">'+yEv.label+'</span></div>'+
+        '<span class="luck-badge '+sy.badge.cls+'" data-luck-verdict="'+sy.badge.verdict+'" data-legacy-score="'+yEv.score+'">'+sy.badge.label+'</span></div>'+
         '<span style="color:var(--pink-l);font-size:1rem">▼</span></div>'+
         '<div class="year-sub">'+
         '<div class="yr-section"><div class="yr-label">대운과 세운의 연결</div><div class="yr-content">'+cycleContext+'</div></div>'+
-        '<div class="yr-section"><div class="yr-label">⚖️ 억부 판단</div><div class="yr-content">'+ukbuYText+'</div></div>'+
+        '<div class="yr-section"><div class="yr-label">⚖️ 이 해의 흐름</div><div class="yr-content">'+sy.flow+'</div></div>'+
         '<div class="yr-section"><div class="yr-label">🌡️ 조후 분석</div><div class="yr-content">'+johuYText+'</div></div>'+
         '<div class="yr-section"><div class="yr-label">💘 연애운</div><div class="yr-content">'+yGaeun.love+'</div></div>'+
         '<div class="yr-section"><div class="yr-label">💰 재물운</div><div class="yr-content">'+yGaeun.wealth+'</div></div>'+
