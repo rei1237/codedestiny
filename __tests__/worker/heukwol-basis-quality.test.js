@@ -176,3 +176,23 @@ describe('delivery plan v2 chapter acceptance', () => {
       .rejects.toThrow('HEUKWOL_CHAPTER_QUALITY');
   });
 });
+
+test('S15 luck judgement: natal once, month chapters get scoped month verdicts, the rule lives in the shared prefix', async () => {
+  const { SAJU_LUCK_JUDGEMENT_RULE } = await import('../../worker/lib/saju-temperament.js');
+  expect(HEUKWOL_PROMPT_PREFIX).toContain(SAJU_LUCK_JUDGEMENT_RULE);
+  expect(analysis.luckJudgement.natal.yongsin.reason).toBeTruthy();
+  expect(analysis.luckJudgement.year.label).toBe('2027년');
+  const byKey = key => chapterEvidence(analysis, HEUKWOL_CHAPTERS.find(c => c.key === key));
+  expect(byKey('temperament').luckJudgement.natal).toBeDefined();
+  expect(byKey('nature-love').luckJudgement).toBeUndefined();
+  const may = byKey('month-5');
+  expect(may.luckJudgement.natal).toBeUndefined();
+  expect(may.luckJudgement.year.pillar).toBe(analysis.luckJudgement.year.pillar);
+  may.months[0].saju.forEach(seg => {
+    expect(seg.luckJudgement.pillar).toBe(seg.pillar);
+    expect(seg.luckJudgement.reasons.length).toBeGreaterThan(0);
+  });
+  const money = byKey('money');
+  expect(money.months).toHaveLength(12);
+  money.months.flatMap(m => m.saju).forEach(seg => expect(Object.keys(seg.luckJudgement).sort()).toEqual(['headline', 'verdict']));
+});
