@@ -379,3 +379,15 @@ PR 생성 후 필수 검사와 최신 base 충돌을 확인하고 에이전트�
 - **해소**: 사용자의 새 요청이 우선한다. 단, 새 판정은 덧붙이는 층으로만 둔다. `lib/saju/natal-core/stem-pairs.mjs`(stem-pairs-v1), `climate.mjs` 의 `climateV2`(climate-v2), natal-core 출력의 `yongsinMethods`(yongsin-methods-v1), `lib/saju/luck-dynamics.mjs`(luck-dynamics-v1)는 추가 필드·모듈이다. 기존 `analyzeClimate`·`yongshin`·강약·종격 출력과 저장 계약, 영냥이 ask 의 근거 투영(cycle-evidence)은 바꾸지 않는다. yeongnyangi-ask 41행은 기존 계산기 투영에 대한 규칙으로 계속 유효하다. `evalDaewun`/`evaluateDaewun` 점수식은 동결이며 새 판정에는 `legacyScore` 로 그대로 넘긴다. 라이트 렌더러·LLM 사실 빌더·프롬프트 연결은 이번 범위 밖이다.
 - **가드**: `__tests__/ui/saju-stem-pairs.test.mjs`, `saju-climate-v2.test.mjs`(기존 analyzeClimate 해시 고정), `saju-yongsin-methods.test.mjs`(기존 natal-core 필드 해시 고정 + 런타임 병합 차이 픽스처), `saju-luck-dynamics.test.mjs`(합거·충·입묘 규칙 + 대표 6명식×10년 스냅숏), 기존 `saju-luck-rules`(8,640건 패리티)·`saju-tomb`·`saju-natal-core`.
 - **롤백**: 각 층이 독립 커밋이다. 역순(luck-dynamics → yongsinMethods → climate v2 → stem-pairs)으로 `git revert` 하고, natal-core 를 되돌리면 `node scripts/build-saju-natal-core.mjs` 로 번들을 다시 만든 뒤 public 미러를 맞춘다.
+
+## 2026-11-18 사주 운 판정의 LLM 연결(S15-6) ↔ 원칙 17 "분량·여유를 줄이지 않는다"·영냥이 등급별 용신 비공개
+
+- **요청**: 위 항목의 사용자 원문 중 "라이트 사주 풀이부터 서비스 전반에 좋은 품질로 적용 … 결제 이후에 제대로 전달 … 쉽게 풀어서". 6개 유료 서비스(영냥이·인생의 책/총운·흑월·네오·연애 비책 V2·신년운세 v2)의 사주 입력에 `worker/lib/saju-luck-judgement.js` 판정(최종 용신·이유, 조습 v2 요약, 십간 짝, 장·질문이 다루는 대운·세운·월운만의 판정)과 공용 `SAJU_LUCK_JUDGEMENT_RULE` 을 붙였다. 기존 "용신 오행 일치" 신호는 판정으로 교체했다(신년 `buildMonthlyDomainSignals`·예방 판정).
+- **충돌 1**: 입력이 늘면 영냥이 장 입력 목표 40k 토큰(실패 50k)에 닿아 기존 사실이 사다리에서 떨어질 수 있다. 원칙 17은 출력 토큰·분량·하한·게이트를 낮추지 않는다.
+- **해소 1**: 출력 쪽은 바꾸지 않았다. 입력 사다리(`providers/input-budget.ts`)에서 새 판정이 가장 먼저 양보한다 — 이유 → 한 줄 요약 → 시기 행 → 판정 사실 전체(이때 전달 규칙도 함께 빠진다) 순서이며, 그다음에야 기존 FACT_LADDER 가 돈다. 실측(tuna-sim, mock): 전환기 고등어·연어 질문 장은 판정이 통째로 빠져 기존 monthlyLuck 을 지킨다. 모든 등급 완료, 최대 39,991 토큰.
+- **충돌 2**: 영냥이는 참치(v7)·v6 프리미엄 등급 아래에서 용신 원소를 숨긴다(`PREMIUM_KEY`). 판정의 요약·이유는 용신 원소를 말한다.
+- **해소 2**: 프리미엄 아래 등급은 조습 요약과 시기별 `{label, verdict}` 만 받고 `natal.yongsin`·요약·이유는 받지 않는다. v7 장부(ledger) id 는 바꾸지 않고 판정은 장부 뒤에서 덧붙이는 파생 사실이다.
+- **동결 유지**: 연애 비책 V1·인생의 책 V1/V2·인생 총운 V2 프롬프트 해시는 그대로다.
+- **가드**: `__tests__/ui/yeongnyangi-luck-judgement.test.mjs`·`yeongnyangi-question-input-budget.test.mjs`(판정 양보 순서), `saju-luck-judgement.test.mjs`, 서비스별 jest(`life-book-ai.sections`·`neo-operation-room.sections`·`love-secret-ai-prompt.gate`·`heukwol-basis-quality`·new-year). 영냥이 불변식 스냅숏은 requests·validated 열만 갱신했다(id·prepare·manifests 불변).
+- **남은 범위 밖**: 연애 비책 달력의 용신 원소 일자 가점(`love-secret-ai-calendar.js`), 영냥이 `experience.ts` analyzePeriods 의 `strength.yongshin`, 정적 라이트 사주 풀이(`saju_lifetime_bundle`, 비 LLM), 무료·멸치 `shared/prompt.ts`.
+- **롤백**: 서비스별 독립 커밋이므로 해당 커밋만 `git revert`. 영냥이 커밋을 되돌리면 불변식 스냅숏도 함께 돌아간다.
