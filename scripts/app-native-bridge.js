@@ -119,6 +119,28 @@
     document.documentElement.dataset.runtimeTarget = "mobile-app";
   } catch (e) { /* noop */ }
 
+  // <html data-platform="ios|android"> — 플랫폼 한정 CSS 용(예: iOS 입력 확대 방지 16px).
+  // Capacitor 주입이 이 스크립트보다 늦을 수 있으므로 확정값("ios"/"android")일 때만 찍고,
+  // 아니면 DOMContentLoaded·load 에서 다시 본다. 추정 폴백값은 찍지 않는다.
+  function stampPlatform() {
+    try {
+      var root = document.documentElement;
+      if (root.dataset.platform) return true;
+      var capacitor = window.Capacitor;
+      var platform = capacitor && typeof capacitor.getPlatform === "function"
+        ? String(capacitor.getPlatform() || "").trim().toLowerCase() : "";
+      if (platform !== "ios" && platform !== "android") return false;
+      root.dataset.platform = platform;
+      return true;
+    } catch (e) { return false; }
+  }
+  if (!stampPlatform()) {
+    try {
+      document.addEventListener("DOMContentLoaded", stampPlatform, { once: true });
+      window.addEventListener("load", stampPlatform, { once: true });
+    } catch (e) { /* noop */ }
+  }
+
   // ── 앱 /api/* 리타게팅 (2026-08-29) ─────────────────────────────────────────────
   // 앱 번들은 https://localhost 출처에서 서빙되고 그 출처엔 서버가 없다(scripts/build-mobile-app.mjs).
   // 상대 경로 '/api/*' 를 그대로 두면 죽은 출처로 나가 인증·이용권·결제 확인이 통째로 실패한다.
