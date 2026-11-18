@@ -27,7 +27,7 @@ import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
 import { normalizeConsultAccessType, resolveCanonicalEntitlement, resolveFeatureAccessPolicy } from "../lib/entitlement-policy.js";
 import { consumePassForFeature, passDenialCode } from "../lib/pass-consumption.js";
-import { lateUsageSettlementFailure, usageSettlementSetFields } from "../lib/late-usage-settlement.js";
+import { lateAccessDenialSettlement, lateUsageSettlementFailure, usageSettlementSetFields } from "../lib/late-usage-settlement.js";
 import { callGeminiText } from "../lib/gemini.js";
 import { safeGeminiFailure } from "../../lib/gemini-provider-errors.mjs";
 import { reserveSupportRecoveryAttempt, supportRecoveryGenerationOptions, assertSupportRecoveryPreserved } from "../lib/support-recovery-budget.js";
@@ -2798,10 +2798,12 @@ async function saveNewYearState({ id, userId, lockToken, status = 'generating', 
   } catch { throw resultStorageUnavailable(id); }
 }
 
-async function finishNewYearDelivery({ request, env, auth, access, pending }) {
-  let usageSettlement = null;
+async function finishNewYearDelivery({ request, env, auth, access, pending, settlement = null }) {
+  // settlement: 재확인이 이용권 한도로 거절돼 이미 미정산으로 판정된 전달 — 차감을 다시 시도하지 않는다.
+  let usageSettlement = settlement;
   try {
     if (nativeTossContext(request)) await nativeTossContext(request).assertStored(pending);
+    else if (usageSettlement) { /* 미정산 전달 */ }
     else if (access.deferredUsage) await callDeferredUsageRoute({ request, env, auth, path: 'apply', idempotencyKey: pending.idempotencyKey, sessionId: pending.id });
     else if (!access.usageAlreadyApplied && access.accessType === 'subscription') throw new Error('MONTHLY_CREDIT_GATE_REQUIRED');
     else await applyUsageOnce({ userId: auth.userId, sessionId: pending.id, accessType: access.accessType }).catch(error => {
@@ -2871,7 +2873,13 @@ async function handleStart(request, env, _routeContext = null, recoveryAuth = nu
   if (existing?.status === 'generation_failed') return json({ ok: false, reason: 'GENERATION_FAILED', message: LLM_ERROR_MESSAGE }, { status: 409 });
   const pricing = getPricing();
   const access = await resolveNewYearRequestAccess({ request, env, auth, body, normalized, pricing, idempotencyKey });
-  if (!access.ok) return access.reason === 'LOGIN_REQUIRED' ? loginRequired() : paymentVerifyFailed();
+  if (!access.ok && access.reason === 'LOGIN_REQUIRED') return loginRequired();
+  if (!access.ok) {
+    // 이용권으로 시작해 본문까지 만든 상담(delivery_pending)은 그 뒤 한도 소진으로 거절돼도 전달한다(환불·탈퇴·취소 증빙은 제외, fail-closed).
+    const settlement = nativeTossContext(request) ? null : await lateAccessDenialSettlement({ fresh: access, doc: existing, userId: auth.userId, idempotencyKey, service: 'new-year-ai', models: { User, Payment, PaidExecutionRecord, PointHistory } });
+    if (!settlement) return paymentVerifyFailed();
+    return json(publicSession(await finishNewYearDelivery({ request, env, auth, access: { accessType: existing.accessType }, pending: existing, settlement })));
+  }
   const evidenceIds = startEvidenceIds(access);
   if (!nativeTossContext(request)) {
     const evidenceClaim = await claimRequestBillingEvidence(env, { userId: clean(auth.userId), requestId: idempotencyKey, evidenceIds, featureKey: FEATURE_KEY });
@@ -2962,8 +2970,9 @@ async function handleStart(request, env, _routeContext = null, recoveryAuth = nu
     } });
     if (!generated.complete) return json({ ...publicSession(stored), retryable: generated.retryable }, { status: 202 });
     const freshAccess = await resolveNewYearRequestAccess({ request, env, auth, body, normalized, pricing, idempotencyKey }).catch(error => { if (nativeTossContext(request) && error?.status) throw error; throw resultStorageUnavailable(sessionId); });
-    if (!freshAccess.ok) return paymentVerifyFailed();
-    return json(publicSession(await finishNewYearDelivery({ request, env, auth, access: freshAccess, pending: stored })));
+    const settlement = freshAccess.ok || nativeTossContext(request) ? null : await lateAccessDenialSettlement({ fresh: freshAccess, doc: stored, userId: auth.userId, idempotencyKey, service: 'new-year-ai', models: { User, Payment, PaidExecutionRecord, PointHistory } });
+    if (!freshAccess.ok && !settlement) return paymentVerifyFailed();
+    return json(publicSession(await finishNewYearDelivery({ request, env, auth, access: freshAccess.ok ? freshAccess : { accessType: stored.accessType }, pending: stored, settlement })));
   } catch (error) {
     if (nativeTossContext(request) && error?.status) throw error;
     if (['RESULT_STORAGE_UNAVAILABLE', 'RESULT_DELIVERY_PENDING'].includes(error?.code)) throw error;

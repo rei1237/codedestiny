@@ -159,3 +159,47 @@ DB 연산 2회  /api/reviews         3,450ms   (+  718ms)
   - 운영과 같은 키라 쿼터와 결제 예산을 공유한다. 사용량 계량(`recordGeminiUsage`)은 스테이징 DB에 쓰므로 운영 월 예산 경보는 스테이징 지출을 세지 않는다.
   - 실호출 검증 실행은 여전히 회차마다 사용자 1회 승인이 필요하고, 생성 원문을 전달해야 한다(절대 규칙 1).
   - 스테이징 결제 채널이 실승인일 수 있으므로 실호출 테스트는 관리자 무료 접근이나 이용권 경로로 하고 실결제는 하지 않는다.
+
+## 유료 LLM 전달 계약 (2026-11-18 S5)
+
+- **요청(원문)**: "확실하게 모든 llm 서비스가 제대로 결제 후 제공되어야하고 계속 이런 문제가 생기는데 재발 방지도 준비해줘", "결과가 제공되지 않으면 자동 환불이 되도록해주고".
+- 🔴 **보장**: 결제(단건 카드·이용권·월정석·코인)된 유료 LLM 요청은 둘 중 하나로 끝난다 — 본문이 있는 `completed` 로 전달되거나, `generation_failed` + 자동 환불. 금지 상태 3가지:
+  1. `partial`·`generating`·`delivery_pending` 에서 영원히 대기
+  2. 차감됐는데 결과도 환불도 없음
+  3. 결과가 저장됐는데 볼 수 없음(완료 결과 재열람은 저장 원본으로, 추가 결제·차감·LLM 없이 — 보관함 규칙)
+- **우선순위**(위에서부터 시도):
+  1. Gemini 재시도 — 뒤에 Gemini 시도가 남은 호출은 보조 모델로 내려가지 않는다.
+  2. Workers AI 는 **마지막 시도에만**(`lib/llm-client.ts` `finalProviderAttempt`; `finalAttempt === false` 면 Gemini 오류를 그대로 던진다).
+  3. 구제 전달 — 본문이 이미 있으면(`delivery_pending`, 저장된 장) 환불·재생성하지 않고 그 본문을 전달한다. 늦은 이용권 차감 거절은 `worker/lib/late-usage-settlement.js` 로 `completed` + `llmMeta.usageSettlement='failed'` 표시.
+  4. 확정 실패 + 자동 환불 — 모든 결제수단. 공용 환불 경로는 `scripts/verify-paid-llm-delivery-contract.mjs` 의 `SHARED_REFUND_PATHS`.
+- **새 유료 LLM 서비스 등록 의무**(빠지면 `npm run verify:paid-llm-delivery` 실패, `run-paid-gate-suite` 배선):
+  - `worker/lib/consultation-recovery-registry.js` `PAID_LLM_DELIVERY_CONTRACT` 에 service·files·featureKeys·refunds(공용 환불 기호). 결제 원시함수+LLM 을 함께 쓰는 worker 파일이 미등록이면 실패한다.
+  - 같은 파일 `PAID_LLM_DELIVERY_TESTS` 에 서비스 → 전달 테스트(`__tests__/(worker|ui)/*.test.(m)js`, 실재해야 함).
+  - 공통 시나리오(정상·모든 시도 실패·늦은 차감 거절·이용권 선차감 후 실패·정체)는 `__tests__/worker/paid-llm-delivery-contract.test.js` 가 실제 이용권 차감·환불 함수와 메모리 DB 로 단언한다(이용권 함수 스텁 금지).
+  - 환불 경로가 아직 없는 서비스는 `KNOWN_REFUND_GAPS` 와 정확히 같아야 한다 — 새 구멍은 실패, 메운 구멍은 목록에서 지운다.
+- **정체 감시**(`worker/lib/paid-delivery-stuck.js`, 복구 cron `consultation-recovery-task.js` 배선):
+  - 시도마다 진전 크기(휘발 필드 제외 문서 JSON 길이)를 기록하고, 1,000자 이상 늘지 않은 시도가 6회 쌓이거나 문서 나이가 6일(7일 복구 창 전)이 되면 정체로 본다.
+  - 자동 확정(`STUCK_SETTLERS`)은 `new-year-ai`·`life-book-ai` 둘뿐이다: `delivery_pending` → 구제 전달(`usageSettlementReason: 'DELIVERY_STUCK'`), `generating|partial` → `generation_failed` + `llmMeta.refundEligibleAt` + `settleFailedConsultationRefund`(실패하면 cron 이 이어서 환불). 로그 `paid_delivery_stuck_settled`.
+  - 나머지 복구 어댑터는 경보 로그 `paid_delivery_stuck_unsettled` 만 내고 상태를 바꾸지 않는다. 이 서비스들은 환불을 핸들러 실패 경로 안에서 인라인으로 하므로, 바깥에서 상태만 `generation_failed` 로 바꾸면 "차감됐는데 환불 없음"을 새로 만든다. 목록은 검증기 `KNOWN_STUCK_SETTLE_GAPS` 와 정확히 같아야 한다.
+
+  | 정체 자동 확정 없음(경보만) | 핸들러 자체 종결 경로(근거) |
+  |---|---|
+  | astrology-ai | catch → `generation_failed` + 카드·실행·이용권 환불 (`worker/routes/astrology-ai.js` 1931) |
+  | vedic-ai | catch → `generation_failed` + 이용권 복원·카드 환불 (`vedic-ai.js` 1753) |
+  | ziwei-ai | catch → `generation_failed` + 이용권 복원 (`ziwei-ai.js` 2860) |
+  | sukuyo-compatibility-ai | 본문 없음 → `generation_failed` + 복원 (2301). 저장 본문 있음 → `partial` + `recoveryReviewRequired`(수동 검토), 선결제 복원 실패 → `REFUND_REVIEW_REQUIRED` |
+  | love-secret-ai | catch → 복원·환불 후 `generation_failed` (`love-secret-ai.js` 1896) |
+  | neo-operation-room | catch → `generation_failed` + 실행·이용권·카드 환불 (`neo-operation-room.js` 1886) |
+  | nakshatra-ai | catch → `generation_failed` + 실행·이용권 환불 (`nakshatra-ai.js` 1011) |
+  | human-design-report | 분량 미달·빈 본문 → `generation_failed` + `failServiceExecution` (`human-design-report.js` 746·766, 237) |
+  | destiny-compass-ai | `generation_failed` + `failServiceExecution`·이용권 (`destiny-compass-ai.js` 373·570, 280) |
+  | relationship-boundary-test | `READING_INCOMPLETE` → `generation_failed` + `failServiceExecution` (`worker/lib/relationship-delivery-store.js` 106) |
+  | naming-prompt | `markNamingGenerationFailed` + 월정석·이용권 환불 (`naming-prompt.js` 1479) |
+  | heukwol | 3회 소진 → 저장 장 없으면 `failServiceExecution`(환불), 있으면 그 장을 비우고 다음 장으로 (`heukwol.js` 90·118) |
+  | celestial-harmony | 파트 시도 소진 → 축소 전달 또는 `failServiceExecution` 환불 (`worker/lib/celestial-delivery-store.js` 45, S3-K f60489b5b) |
+  | fortune | `generation_failed` + 카드·이용권 환불 (`fortune.js` 1700, 1600·1643) |
+  | karma-destiny-ai | catch → `generation_failed` + 이용권 복원·지연 차감 취소 (`karma-destiny-ai.js` 3131) |
+  | fortune-tea-house | 재시도 예산(그룹당 2회, 저장된 체크포인트 기준) 안이면 `partial`, 소진 → `generation_failed` + 이용권 환불 (`fortune-tea-house.js` 5045·5013) |
+
+  공통 예외: `RESULT_STORAGE_UNAVAILABLE`·`delivery_pending` 은 환불하지 않고 503 으로 같은 전달을 다시 시도한다. 저장 장애가 계속되면 경보만 남으므로 서비스별 정체 설정자를 붙이는 것이 후속 과제다.
+- **스테이징 실호출 확인**: 위 [스테이징 허용 계정 실호출](#스테이징-허용-계정-실호출-2026-11-18-사용자-결정) 절을 따른다(회차마다 1회 승인, 원문 전달).

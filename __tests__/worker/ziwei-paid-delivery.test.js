@@ -3,7 +3,7 @@ import { jest } from "@jest/globals";
 
 const uid = "64b7f2a1c3d4e5f601234567";
 const body = { name: "검사", gender: "female", birthDate: "1993-07-21", birthTime: "09:00", birthPlace: { city: "서울", country: "KR", latitude: 37.5665, longitude: 126.978, timezone: "Asia/Seoul" }, topic: "전체 명반 해석", calendarType: "solar", focusArea: "overall", accessType: "pass" };
-let utils, route, docs, provider, chart, fault, blocked, mode, userId, usage, refund, fetchBlock, lostConfirmation, passRefund, consumeResult;
+let utils, route, docs, provider, chart, fault, blocked, mode, userId, usage, refund, fetchBlock, lostConfirmation, passRefund, consumeResult, accessQueue, passOrder, withdrawn;
 const clone = value => value == null ? value : structuredClone(value);
 function query(value) { const result = Promise.resolve(value); result.lean = async () => clone(value); result.select = result.sort = () => result; return result; }
 function matches(doc, filter) {
@@ -58,13 +58,13 @@ beforeAll(async () => {
   jest.unstable_mockModule("../../worker/lib/db.js", () => ({ ...db, connectDb: async () => {}, withMongoRetry: async (_env, work) => work() }));
   jest.unstable_mockModule("../../worker/lib/auth.js", () => ({ ...auth, getOptionalUserFromRequest: async () => ({ userId }) }));
   jest.unstable_mockModule("../../worker/lib/models.js", () => ({ ...models, ZiweiAiConsultation: model, ZiweiCalculationPreparation: { findById: () => query(null) },
-    User: { findById: () => query({ _id: uid, role: "user" }), updateOne: (...args) => refund(...args) },
+    User: { findById: () => query({ _id: uid, role: "user" }), findOne: () => query({ _id: uid, status: withdrawn ? "withdrawn" : "active" }), updateOne: (...args) => refund(...args) },
     PaidExecutionRecord: { findOne: () => query(blocked === 0 ? {} : null) },
-    Payment: { findOne: filter => query(blocked === 1 ? {} : mode === "paid" && filter.status.$in.includes("paid") ? { _id: uid, merchantUid: "payment" } : null), updateOne: async (...args) => usage(...args) },
+    Payment: { findOne: filter => query(filter.paymentType === "membership_pass" ? passOrder : blocked === 1 ? {} : mode === "paid" && filter.status.$in.includes("paid") ? { _id: uid, merchantUid: "payment" } : null), updateOne: async (...args) => usage(...args) },
     PointHistory: { findOne: () => query(blocked === 2 ? {} : null), updateOne: (...args) => refund(...args) },
     MonthlyCreditLedger: { findOne: () => query(blocked === 3 ? {} : null), updateOne: (...args) => refund(...args) },
   }));
-  jest.unstable_mockModule("../../worker/lib/entitlement-policy.js", () => ({ ...entitlement, resolveFeatureAccessPolicy: () => ({ allowed: mode === "pass", accessType: "pass" }) }));
+  jest.unstable_mockModule("../../worker/lib/entitlement-policy.js", () => ({ ...entitlement, resolveFeatureAccessPolicy: () => ({ allowed: accessQueue.length ? accessQueue.shift() : mode === "pass", accessType: "pass" }) }));
   jest.unstable_mockModule("../../worker/lib/pass-consumption.js", () => ({ consumePassForFeature: async (...args) => { usage(...args); return consumeResult; }, passDenialCode: () => "",
     refundPassUseEvidence: (...args) => passRefund(...args) }));
   jest.unstable_mockModule("../../worker/lib/portone.js", () => ({ fetchPortOnePayment: () => { throw new Error("PG blocked"); }, getPortOnePublicConfig: () => { throw new Error("PG blocked"); }, getPortOneConfig: () => { throw new Error("PG blocked"); } }));
@@ -77,7 +77,7 @@ beforeAll(async () => {
   ({ handleZiweiAiRoutes: route, __ziweiAiTestUtils: utils } = await import("../../worker/routes/ziwei-ai.js"));
 });
 beforeEach(() => {
-  docs = []; fault = null; lostConfirmation = false; blocked = -1; mode = "pass"; userId = uid; usage = jest.fn(); refund = jest.fn(async () => ({})); passRefund = jest.fn(async () => ({ refunded: true })); consumeResult = { covered: true };
+  docs = []; fault = null; lostConfirmation = false; blocked = -1; mode = "pass"; userId = uid; usage = jest.fn(); refund = jest.fn(async () => ({})); passRefund = jest.fn(async () => ({ refunded: true })); consumeResult = { covered: true }; accessQueue = []; passOrder = null; withdrawn = false;
   provider = jest.fn(async (_env, _prompt, options) => {
     expect(options.attempts).toBe(1); expect(options.timeoutMs).toBeLessThanOrEqual(45000); expect(options.fallbackToWorkersAI).toBe(false);
     const group = utils.SECTION_GROUP_SPECS.find(group => group.id === options.logContext.sectionGroup);
@@ -147,6 +147,33 @@ it("delivers the finished body when the late pass settlement is denied", async (
   warn.mockRestore();
 });
 
+it("delivers a finished pass body when only the pre-delivery recheck is denied by the pass limit", async () => {
+  const warn = jest.spyOn(console, "warn").mockImplementation(() => {});
+  for (let i = 0; i < 6; i++) expect((await start()).status).toBe(202);
+  accessQueue = [true, false];
+  expect((await start()).status).toBe(200);
+  expect(accessQueue).toEqual([]);
+  expect(docs[0]).toMatchObject({ status: "completed", llmMeta: { usageSettlement: "failed", usageSettlementReason: "PAYMENT_REQUIRED" } });
+  expect(usage).not.toHaveBeenCalled(); expect(refund).not.toHaveBeenCalled(); expect(passRefund).not.toHaveBeenCalled(); expect(provider).toHaveBeenCalledTimes(7);
+  expect(warn).toHaveBeenCalledWith("paid_delivery_usage_settlement_failed", expect.objectContaining({ service: "ziwei-ai", stage: "access_recheck" }));
+  warn.mockRestore();
+});
+it("delivers a stored delivery_pending pass body on resume after the pass limit is exhausted", async () => {
+  const warn = jest.spyOn(console, "warn").mockImplementation(() => {});
+  for (let i = 0; i < 6; i++) await start(); fault = { status: "completed", kind: "null" };
+  expect((await start()).status).toBe(503); expect(docs[0].status).toBe("delivery_pending");
+  mode = "none"; const calls = provider.mock.calls.length;
+  expect((await start()).status).toBe(200);
+  expect(docs[0]).toMatchObject({ status: "completed", llmMeta: { usageSettlement: "failed" } });
+  expect(provider).toHaveBeenCalledTimes(calls); expect(refund).not.toHaveBeenCalled(); expect(passRefund).not.toHaveBeenCalled();
+  warn.mockRestore();
+});
+for (const [label, setup] of [["a refunded pass order", () => { passOrder = { status: "refunded" }; }], ["a withdrawn member", () => { withdrawn = true; }], ["revoked pass use evidence", () => { blocked = 2; }]]) it(`keeps the 402 for ${label} when the pass limit recheck is denied`, async () => {
+  for (let i = 0; i < 6; i++) await start(); fault = { status: "completed", kind: "null" };
+  expect((await start()).status).toBe(503);
+  mode = "none"; setup();
+  expect((await start()).status).toBe(402); expect(docs[0].status).toBe("delivery_pending"); expect(docs[0].llmMeta.usageSettlement).toBeUndefined();
+});
 it("missing optional grounding does not purchase an extra group", async () => {
   chart.mockImplementation(() => ({ palaces: ["명궁", "형제궁", "부부궁"].map(name => ({ name, mainStars: ["자미"], earthlyBranch: "자" })), fourTransformations: {} }));
   for(let i=0;i<7;i++)await start();

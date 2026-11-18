@@ -5,7 +5,7 @@ const vm = require('node:vm');
 const ts = require('typescript');
 const { webcrypto } = require('node:crypto');
 const { supportRecoveryGenerationOptions, assertSupportRecoveryPreserved } = require('../../worker/lib/support-recovery-budget.js');
-const { consultationRefundResponse } = require('../../worker/lib/consultation-refund-state.js');
+const { consultationRefundResponse, consultationRefundState } = require('../../worker/lib/consultation-refund-state.js');
 const { runWithAiLocale, getAmbientAiLocale, storedAiLocale } = require('../../worker/lib/ai-locale-context.js');
 const { toAiLocale, AI_OUTPUT_LOCALES } = require('../../lib/i18n/ai-locale.js');
 const clone = value => value == null ? value : JSON.parse(JSON.stringify(value));
@@ -58,7 +58,7 @@ function fixture(accessType = 'pass', currentSections = null) {
     claimRequestBillingEvidence: async () => ({ ok: true, skipped: true }), releaseRequestBillingEvidence: async () => ({ released: 0 }), evidenceClaimErrorBody: result => result, FEATURE_KEY: 'new-year-ai-consultation',
     reserveSupportRecoveryAttempt: async () => {},
     supportRecoveryGenerationOptions, assertSupportRecoveryPreserved,
-    consultationRefundResponse,
+    consultationRefundResponse, consultationRefundState, User: {}, Payment: {}, PaidExecutionRecord: {}, PointHistory: {},
     isStoredPaidResultRevoked: async () => false,
     settleNewYearFailureRefund: async () => { assert.equal(doc.status, 'generation_failed'); assert.equal(doc.llmMeta.lockedAt, null); return { ok: true, refundStatus: 'refunded' }; },
     fetch: async () => { throw new Error('EXTERNAL_FETCH_BLOCKED'); },
@@ -97,7 +97,7 @@ function fixture(accessType = 'pass', currentSections = null) {
   });
   load(ctx, 'worker/lib/representative-consumer-facts.js', ['connectNewYearTiming', 'readRepresentativeFacts']);
   load(ctx, 'worker/lib/result-storage.js', ['resultStorageUnavailable', 'resultStorageFailurePayload']);
-  load(ctx, 'worker/lib/late-usage-settlement.js', ['lateUsageSettlementFailure', 'usageSettlementSetFields']);
+  load(ctx, 'worker/lib/late-usage-settlement.js', ['lateUsageSettlementFailure', 'usageSettlementSetFields', 'lateAccessDenialSettlement']);
   load(ctx, 'worker/lib/paid-report-quality.js', ['paidReportBody', 'countPaidReportBodyChars', 'reportSentenceKey', 'hasRepeatedReportPassage']);
   load(ctx, 'worker/lib/master-love-codex-quality.js', ['dedupeCodexBody']);
   load(ctx, 'worker/lib/paid-report-length.js', ['trimPaidReportText', 'lastSentenceBoundary']);
@@ -247,6 +247,42 @@ test('늦은 이용권 차감이 한도로 거절돼도 보존된 본문을 완�
   assert.equal(f.doc.llmMeta.usageSettlementReason, 'MONTHLY_PASS_LIMIT_EXCEEDED');
   assert.equal(applied, 2); assert.equal(f.charges, 0); assert.equal(f.calls, 5); assert.equal(f.refunds, 0);
 });
+// 실제 resolveStartAccess·resolveServerAccess 를 싣고 이용권 한도만 소진시킨다 — 라우트가 진짜 402(PAYMENT_REQUIRED)를 낸다.
+function denyPassByLimit(f, { refundedPass = null, withdrawn = false, revokedEvidence = false } = {}) {
+  Object.assign(f.ctx, {
+    collectBillingTokens: (_body, key) => [key], deferredTokenClauses: ids => ids.map(id => ({ requestId: id })), paymentTokenClauses: ids => ids.map(id => ({ merchantUid: id })),
+    pointHistoryTokenClauses: ids => ids.map(id => ({ 'metadata.requestId': id })), withMongoRetry: (_env, run) => run(), isAdmin: () => false,
+    loadBillingUser: async () => ({ _id: 'owner', role: 'user' }), resolveBillingGateAccess: async () => ({ ok: false }),
+    resolveFeatureAccessPolicy: () => ({ allowed: false, reason: 'MONTHLY_PASS_LIMIT_EXCEEDED' }), getPricing: () => ({ coinPrice: 300 }),
+    PaidExecutionRecord: { findOne: () => ({ lean: async () => null }) },
+    PointHistory: { findOne: () => ({ lean: async () => (revokedEvidence ? { id: 'refunded-use' } : null) }) },
+    Payment: { findOne: filter => ({ lean: async () => (filter.paymentType === 'membership_pass' ? refundedPass : null) }) },
+    User: { findOne: () => ({ select: () => ({ lean: async () => ({ _id: 'owner', status: withdrawn ? 'withdrawn' : 'active' }) }) }) },
+  });
+  load(f.ctx, 'worker/routes/new-year-ai.js', ['resolveStartAccess', 'resolveServerAccess']);
+}
+test('본문 완성 직후 재확인이 이용권 한도 소진으로 402 여도 완료로 전달하고 미정산을 표시한다', async () => {
+  const f = fixture('pass'); for (let i = 0; i < 4; i++) assert.equal((await f.post()).status, 202);
+  const allowed = f.ctx.resolveStartAccess; denyPassByLimit(f); const denied = f.ctx.resolveStartAccess; let checks = 0;
+  f.ctx.resolveStartAccess = async args => (++checks === 1 ? allowed(args) : denied(args));
+  const response = await f.post(); assert.equal(response.status, 200, await response.text()); assert.equal(checks, 2);
+  assert.equal(f.doc.status, 'completed'); assert.equal(f.doc.llmMeta.usageSettlement, 'failed'); assert.equal(f.doc.llmMeta.usageSettlementReason, 'PAYMENT_REQUIRED');
+  assert.equal(f.charges, 0); assert.equal(f.refunds, 0); assert.equal(f.calls, 5);
+});
+test('전달 대기 상담을 이어받을 때 이용권 한도가 소진돼 402 여도 보존된 본문을 완료로 전달한다', async () => {
+  const f = fixture('pass'); for (let i = 0; i < 4; i++) await f.post(); f.fault('completed');
+  assert.equal((await f.post()).status, 503); assert.equal(f.doc.status, 'delivery_pending');
+  denyPassByLimit(f); const response = await f.post(); assert.equal(response.status, 200, await response.text());
+  assert.equal(f.doc.status, 'completed'); assert.equal(f.doc.llmMeta.usageSettlement, 'failed'); assert.equal(f.calls, 5); assert.equal(f.refunds, 0);
+});
+for (const [label, opts] of [['이용권 주문 환불', { refundedPass: { status: 'refunded' } }], ['회원 탈퇴', { withdrawn: true }], ['이용권 사용 환불 증빙', { revokedEvidence: true }]]) {
+  test(`${label}이면 한도 거절 재확인을 전달로 바꾸지 않는다`, async () => {
+    const f = fixture('pass'); for (let i = 0; i < 4; i++) await f.post(); f.fault('completed');
+    assert.equal((await f.post()).status, 503);
+    denyPassByLimit(f, opts); assert.equal((await f.post()).status, 402);
+    assert.equal(f.doc.status, 'delivery_pending'); assert.equal(f.doc.llmMeta.usageSettlement, undefined);
+  });
+}
 test('분야 저장이 실패해도 이전 분야를 지우거나 환불하지 않는다', async () => {
   const f = fixture(); await f.post(); f.fault('checkpoint'); assert.equal((await f.post()).status, 503);
   assert.equal(f.doc.llmMeta.savedSections.filter(row => row.ok).length, 1); assert.equal(f.refunds, 0);

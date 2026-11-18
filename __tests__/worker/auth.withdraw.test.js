@@ -127,16 +127,21 @@ function buildWithdrawRequest(overrides = {}) {
     token = accessToken,
     body = { agreeIrreversible: true, confirmText: "회원탈퇴", password: "correct-horse" },
     ip,
+    origin,
+    runtime,
+    sendTokenCookie = true,
   } = overrides;
 
   const cookies = [];
-  if (token) cookies.push(`fortune_auth_token=${token}`);
+  if (token && sendTokenCookie) cookies.push(`fortune_auth_token=${token}`);
   if (csrfCookie) cookies.push(`${CSRF_COOKIE_NAME}=${csrfCookie}`);
 
   const headers = new Headers({ "content-type": "application/json" });
   if (cookies.length) headers.set("cookie", cookies.join("; "));
   if (csrfHeader) headers.set(CSRF_HEADER_NAME, csrfHeader);
   if (token) headers.set("authorization", `Bearer ${token}`);
+  if (origin) headers.set("origin", origin);
+  if (runtime) headers.set("x-code-destiny-runtime", runtime);
   // 레이트리밋은 IP 기준이다. 케이스마다 다른 IP 를 써야 서로를 오염시키지 않는다.
   headers.set("cf-connecting-ip", ip || `203.0.113.${(ipCounter += 1)}`);
 
@@ -217,6 +222,25 @@ describe("탈퇴 거부 조건", () => {
     const expired = makeCsrfToken(Date.now() - (3 * 60 * 60 * 1000));
     const { status } = await callWithdraw({ csrfCookie: expired });
     expect(status).toBe(403);
+  });
+
+  // 앱(Capacitor)은 https://localhost 출처라 Strict CSRF 쿠키가 왕복하지 않는다 — 헤더 토큰만 온다.
+  const APP = { origin: "https://localhost", runtime: "mobile-app", csrfCookie: "", sendTokenCookie: false };
+
+  test("앱 요청은 쿠키 없이 유효한 헤더 CSRF 토큰으로 통과한다", async () => {
+    const { status } = await callWithdraw({ ...APP, csrfHeader: makeCsrfToken() });
+    expect(status).toBe(200);
+  });
+
+  test("앱 요청이라도 헤더 CSRF 토큰이 없거나 만료·위조면 403", async () => {
+    expect((await callWithdraw({ ...APP, csrfHeader: "" })).status).toBe(403);
+    expect((await callWithdraw({ ...APP, csrfHeader: makeCsrfToken(Date.now() - 3 * 60 * 60 * 1000) })).status).toBe(403);
+    expect((await callWithdraw({ ...APP, csrfHeader: `${makeCsrfToken().slice(0, -4)}0000` })).status).toBe(403);
+  });
+
+  test("앱 런타임 헤더나 앱 출처 중 하나라도 빠지면 쿠키 없는 헤더 토큰은 403", async () => {
+    expect((await callWithdraw({ ...APP, runtime: "", csrfHeader: makeCsrfToken() })).status).toBe(403);
+    expect((await callWithdraw({ ...APP, origin: "https://evil.example", csrfHeader: makeCsrfToken() })).status).toBe(403);
   });
 
   test("되돌릴 수 없음에 동의하지 않으면 400", async () => {
