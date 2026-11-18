@@ -142,3 +142,24 @@ test('a transient continue failure keeps the generating screen and retries on it
   assert.equal(continues,2);
  }finally{await f.close();}
 });
+
+test('a terminal failure ends the generating screen with an automatic refund notice',async()=>{
+ let reads=0;
+ const f=await fixture({url:resultUrl,respond:async url=>{
+  if(url.includes('/result?'))return {data:++reads===1?generating(2):{...generating(2),status:'failed',refundStatus:'refunded'}};
+  if(url.endsWith('/continue'))return {status:503,data:{ok:false,code:'HEUKWOL_DELIVERY_FAILED',message:'리포트를 완성하지 못했어요.'}};
+ }});
+ try{
+  await until(()=>/결제·이용권을 자동으로 되돌렸어요/.test(document.body.textContent));
+  assert.ok(![...document.querySelectorAll('button')].some(b=>b.textContent==='이어서 작성하기'),'a closed failure must not offer to keep writing');
+  assert.equal(f.calls.filter(c=>c.url.endsWith('/continue')).length,1);
+ }finally{await f.close();}
+});
+
+test('revisiting a failed paid generation shows the refund in progress without writing again',async()=>{
+ const f=await fixture({url:resultUrl,respond:async url=>url.includes('/result?')?{data:{...generating(0),status:'failed',refundStatus:'pending'}}:null});
+ try{
+  await until(()=>/자동 환불을 진행하고 있어요/.test(document.body.textContent));
+  assert.equal(f.calls.filter(c=>c.url.endsWith('/continue')).length,0);
+ }finally{await f.close();}
+});
