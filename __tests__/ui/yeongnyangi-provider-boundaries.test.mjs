@@ -78,7 +78,7 @@ test('only the synthesis chapter forwards Pro intent; question classification re
 });
 test('output truncation is never accepted as a complete paid chapter',async()=>{
  for(const flags of [{truncated:true},{finishReason:'MAX_TOKENS'}]){
-  setResponse({ok:true,text:'{}',...flags});await assert.rejects(provider.generate(request),e=>e.code==='CHAPTER_TRUNCATED');assert.equal(getOptions().preserveTermination,true);
+  setResponse({ok:true,text:'{}',...flags});await assert.rejects(provider.generate(request),e=>e.code==='CHAPTER_TRUNCATED'&&e.truncatedText==='{}');assert.equal(getOptions().preserveTermination,true);
  }
 });
 test('timeout and provider failure remain distinct recoverable errors',async()=>{

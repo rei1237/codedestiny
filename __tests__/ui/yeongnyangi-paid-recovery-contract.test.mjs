@@ -21,7 +21,10 @@ function assertOrdinal(actual,expected){if(actual!==expected)throw new Error('or
   'worker/yeongnyangi/providers/code-destiny':`export class CodeDestinyProvider{constructor(env,log,cache,timeoutMs){this.env=env;globalThis.__paidRecovery.timeoutMs=timeoutMs}async analyzeQuestion(){const f=globalThis.__paidRecovery;f.analysisCalls=(f.analysisCalls||0)+1;return JSON.stringify({questions:[{questionId:"q1",category:"career",needsTiming:false}]});}}`,
   'worker/yeongnyangi/providers/delivery':`export {validateChapter as deliverChapter} from './chapter';`,
   'worker/yeongnyangi/providers/chapter':`
-export class StructuredChapterProvider{async generateChapter(input){const f=globalThis.__paidRecovery,n=input.previous.length;f.lastInput=input;f.providerCalls.push(n);if(f.failOnce){f.failOnce=false;throw new Error('temporary provider failure')}return {summary:'generated-'+n,analysis:'analysis',example:'example',advice:'advice',persona:'persona',highlights:[],topics:[],blocks:[],sources:[]};}}
+import {FortuneError} from '../fortune/shared/contracts';
+// S9-Y: truncated queues replies cut at the token cap (their partial text); throwCode is a coded provider failure.
+export class StructuredChapterProvider{async generateChapter(input){const f=globalThis.__paidRecovery,n=input.previous.length;f.lastInput=input;f.providerCalls.push(n);if(f.failOnce){f.failOnce=false;throw new Error('temporary provider failure')}
+const cut=f.truncated?.shift();if(cut!==undefined)throw Object.assign(new FortuneError('CHAPTER_TRUNCATED',502),{truncatedText:cut});if(f.throwCode)throw new FortuneError(f.throwCode);return {summary:'generated-'+n,analysis:'analysis',example:'example',advice:'advice',persona:'persona',highlights:[],topics:[],blocks:[],sources:[]};}}
 export const validateChapter=value=>{const f=globalThis.__paidRecovery;if(f.rejectQuality>0){f.rejectQuality--;throw new Error('invalid answer evidence');}
 // D8: shortChars queues each reply's outcome: 0 full, -1 empty/cut-off, n a length-only shortfall of n characters.
 const n=f.shortChars?.shift();if(n===-1)throw new Error('empty reply');if(n>0)throw Object.assign(new Error('CHAPTER_TOO_SHORT'),{shortCandidate:{...value,blocks:[{id:'b',title:'t',paragraphs:['흐'.repeat(n)]}]}});return value;};
@@ -214,5 +217,34 @@ test('D8: the chapter call gets the tier timeout only when the order carries the
   const f=reset([]);f.row.snapshot.product.fishId=fishId;if(policy)f.row.snapshot.chapterTimeoutPolicy=policy;
   await generateNextChapter(env,'owner',f.row._id);
   assert.equal(f.timeoutMs,ms,fishId);
+ }
+});
+
+test('S9-Y: a reply cut at the token cap is delivered when its sections survived; otherwise the retry still carries the truncation code',async()=>{
+ const whole=JSON.stringify({summary:'salvaged',analysis:'analysis',example:'example',advice:'advice',persona:'persona',highlights:[],topics:[],blocks:[],sources:['s1','s2']});
+ let f=reset(prior());f.truncated=[whole.slice(0,-8)];
+ assert.equal((await generateNextChapter(env,'owner',f.row._id)).state,'COMPLETED');
+ assert.equal(f.row.chapters[2].summary,'salvaged');assert.deepEqual(f.failures,[]);assert.equal(f.providerCalls.length,1);
+ // Unparseable, or rejected by the delivery checks: the attempt ends CHAPTER_TRUNCATED so the retry doubles the token cap.
+ for(const setup of [g=>{g.truncated=['cut before any value'];},g=>{g.truncated=[whole.slice(0,-8)];g.rejectQuality=1;}]){
+  f=reset(prior());setup(f);
+  await assert.rejects(generateNextChapter(env,'owner',f.row._id),e=>e.code==='CHAPTER_TRUNCATED');
+  assert.deepEqual(f.failures.map(x=>[x.code,x.stage]),[['CHAPTER_TRUNCATED','quality']]);
+  await generateNextChapter(env,'owner',f.row._id);
+  assert.equal(f.lastInput.repair.code,'CHAPTER_TRUNCATED');assert.equal(f.row.state,'COMPLETED');
+ }
+ // A short salvage is kept as the best draft, and the retry still asks for the larger cap.
+ f=reset(prior());f.truncated=[whole.slice(0,-8)];f.shortChars=[400];
+ await assert.rejects(generateNextChapter(env,'owner',f.row._id),e=>e.code==='CHAPTER_TRUNCATED');
+ assert.equal(kept(f),400);
+});
+
+test('S9-Y: a kept draft is never delivered over a content block or an engine-fact failure',async()=>{
+ for(const code of ['LLM_CONTENT_BLOCKED','ENGINE_FACT_SNAPSHOT_INVALID']){
+  const f=reset(prior());f.shortChars=[650];
+  await assert.rejects(generateNextChapter(env,'owner',f.row._id));
+  f.throwCode=code;
+  await assert.rejects(generateNextChapter(env,'owner',f.row._id),e=>e.code===code);
+  assert.equal(f.row.chapters.length,2);assert.equal(f.finishes.length,0);
  }
 });

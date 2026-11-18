@@ -110,7 +110,9 @@ export class CodeDestinyProvider implements LLMProvider {
       console.warn('[yeongnyangi-provider]',JSON.stringify({code:code.replace(/[^A-Za-z0-9_]/g,'').slice(0,80),status:'status' in response?response.status:null,...(outage?{outage}:{})}));
       throw new FortuneError(/timeout|deadline/i.test(code)?'FORTUNE_PROVIDER_TIMEOUT':'FORTUNE_PROVIDER_FAILED',502,outage||undefined);
     }
-    if(response.truncated || /^(MAX_TOKENS|LENGTH)$/i.test(response.finishReason || ''))throw new FortuneError('CHAPTER_TRUNCATED',502);
+    // The cut text travels with the error: the service delivers it only when every section survives (S9-Y).
+    if(response.truncated || /^(MAX_TOKENS|LENGTH)$/i.test(response.finishReason || ''))
+      throw Object.assign(new FortuneError('CHAPTER_TRUNCATED',502),{truncatedText:response.text});
     return {result:response.text,provider:response.provider || 'gemini',model:response.model || model || 'gemini-2.5-flash'};
   }
 }
