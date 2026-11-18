@@ -1,7 +1,7 @@
 {
   "_comment": "운명의 찻집 UI 크롬 배치 3 — 대사 상자·도입/흐름/재회 씬·타로 카드. 한국어 원문의 정본은 각 컴포넌트의 KO 상수이고, 사전은 그 위에 덮는 층이다. 🔴 speakerIcon 은 아바타 원 안에 한 글자로 들어가므로 번역도 1~2자로 유지한다(길면 원을 넘친다). 🔴 {name}·{title} 은 런타임에 치환되는 자리이므로 모든 로케일에서 그대로 남긴다. 타로 방향은 업계 표준 표기를 쓴다(Upright/Reversed · 正位置/逆位置 · 正位/逆位). 캐릭터 '꽃돼지?' 는 물음표까지가 이름이다. 🔴 vi/hi/es/fr/de/nl/ms 는 사용자 지시대로 영어를 그대로 채운다 — 실번역이 아니라 나중에 일괄 처리할 대상이다.",
   "fortuneTeaHouse.dialogueBox.speakerLabel.narration": {
-    "ko": "나레이션",
+    "ko": "내레이션",
     "en": "Narration",
     "ja": "ナレーション",
     "zh-CN": "旁白",
@@ -29,7 +29,7 @@
     "ms": "Yeoni"
   },
   "fortuneTeaHouse.dialogueBox.speakerLabel.pig": {
-    "ko": "꽃돼지?",
+    "ko": "작은 꽃돼지",
     "en": "Flower Pig?",
     "ja": "花豚？",
     "zh-CN": "花猪？",
@@ -85,7 +85,7 @@
     "ms": "M"
   },
   "fortuneTeaHouse.dialogueBox.waiting": {
-    "ko": "달빛이 피어오르는 중...",
+    "ko": "차를 우리는 중...",
     "en": "Moonlight is rising…",
     "ja": "月あかりが立ちのぼっています…",
     "zh-CN": "月光正在升起…",

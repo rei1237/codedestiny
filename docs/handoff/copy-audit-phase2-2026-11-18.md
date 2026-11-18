@@ -72,7 +72,7 @@ next: A2 — A-novel-02.md 추천안 적용
 - [ ] A4 `A-novel-04.md`
 - [ ] A5 `A-novel-05.md`
 - [ ] A6 `A-novel-06.md`
-- [ ] B1 `B-service-characters.md` (네오 츤데레, design-canon 2절 갱신 포함)
+- [x] B1 `B-service-characters.md` (네오 츤데레, design-canon 2절 갱신 포함) — 적용 70·보류 6·구조 2, 번역 동기화 18키(+네오 en/ja/zh 표). 결과는 리포트 "Phase 2 적용 결과" 절
 - [ ] B2 `B-service-stats.md` 대표 예시 행
 - [ ] C1 `C-paid-signature.md`
 - [ ] C2 `C-paid-catalog.md`

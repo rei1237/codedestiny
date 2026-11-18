@@ -47,7 +47,7 @@ export const yeoniCharacter: ExpertCharacter = {
     ["loading.delivering", "thinking", "읽은 내용을 정리해서 건네 드릴게요."],
     ["error", "error", "여기서 잠깐 멈췄어요. 아래 안내를 먼저 봐 주세요."],
     ["result.open", "reveal", "사진 속 선을 하나씩 짚어 봤어요. 천천히 같이 읽어요."],
-    ["result.close", "comfort", "손금은 지금의 흐름을 비춰 보는 거울이에요. 마음이 가는 것부터 하나 해 봐요."],
+    ["result.close", "comfort", "손금은 지금 습관이 남긴 자국이에요. 마음이 가는 것부터 하나 해 봐요."],
   ]),
   linesEn: {
     hero: "Welcome. Open your palm for me and we'll trace the lines together, one by one.",

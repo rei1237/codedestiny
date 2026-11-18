@@ -179,3 +179,82 @@ FAQ와 본문은 대체로 좋다. "결과를 그대로 믿어도 되나요" 답
 
 - 총 78행(표 1: 23, 표 2: 8, 표 3: 25, 표 4: 8, 표 5: 10, 표 6: 4). 보이스 비교 표는 집계에서 뺐다.
 - 우선순위: P1 6행, P2 36행, P3 36행.
+
+## Phase 2 적용 결과
+
+2026-11-18 B1 적용. 기준: 사용자 결정 1(네오 = 친절한 츤데레), 나머지는 추천안대로.
+
+### 적용한 행 — 70행 (78행 중, 부분 적용 1행 포함)
+
+- 네오 전략실(표 1, 23행): 23행 모두 반영. 단, 존댓말 수정안은 결정 1에 따라 "퉁명한 반말 + 결론 먼저 + 끝은 챙김"으로 바꿔 적용했다. 비하, 공포("망한다"), 작전·전쟁 비유("전선", "지휘선", "작전 지도")는 제거했다. 오류 문구(`error.*`)는 해요체로 바꿨다. `dialogues.ts`는 30개 키를 고쳤다. `welcome.ts`는 장면 4개, `NeoOperationRoomPage.tsx` method.intro는 6줄을 고쳤다.
+- 마스터 프로필·나침반(표 2): 5행 반영. 내용은 `master-profiles.ts:97`·`:99`·`:156`, `copy.ts:811`, `story-masters.ts:14`다. `:149`·`:156` 행은 `:156`만 고쳐 부분 적용이다.
+- 찻집·연이(표 3): 23행 반영. 내용은 다음과 같다.
+  - 텍스트의 "꽃돼지?" 제거, 화자 라벨을 "작은 꽃돼지"로 변경, "내레이션", "차를 우리는 중..."
+  - 프롤로그 :94·:100·:103·:104
+  - 꽃돼지 대사를 존댓말로 통일
+  - door-4 맥락 보강
+  - :312/:319 중복 정리
+  - :398
+  - entryScenes eyebrow를 장면 번호로 변경
+  - idle line 존댓말 통일과 주제 설명 삭제
+  - 구신 "조심할 손님"
+  - 연이 role·approach·tea·손금 마무리
+- 세계관·과장(표 4): 6행 반영. `world-data.js:14`, `master-profiles.ts:84`·`:48`·`:55`, `story-masters.ts`의 해요/합니다 혼용 정리, "나크샤트라로".
+- 나침반 단정·보장(표 5): 10행 모두 반영.
+- 마스터 인연의 서(표 6): 3행 반영. `page.tsx:173` "연애 고수 서한비", `:123` "추가 결제 없이", `:93`.
+
+### 보류한 행 — 6행
+
+| 위치 | 이유 |
+|---|---|
+| `master-profiles.ts:96` neoNewYear.signature | 결정 1에 따르면 이미 허용 범위의 츤데레 반말이다. |
+| `master-profiles.ts:138` karma | 결정 1에 따라 반말을 유지한다. 결함이 없다. |
+| `master-profiles.ts:149` "운명 사령관" | 표 2 `:149`·`:156` 행 중 이 부분만 보류했다. 이름·호칭 성격이라 후속 제안으로 돌린다. |
+| `copy.ts:689` neoValidLine | 결정 1에 따르면 이미 츤데레 반말이다("방향은 내가 잡아줄게. 눌러."). |
+| `copy.ts:844` pigFaceAlt | 결정 3(연이와 꽃돼지는 같은 인물)에 따르면 "꽃돼지로 변신한 연이"는 맞는 표현이다. |
+| `world-data.js:28` "영냥이 네오" | 소설 설정 표기다. 정식 이름은 설정 결정 사항이다. |
+| `world-data.js:15` "네 개의 섬" | STORY_MAP과 섬 개수를 맞추려면 설정 확인이 필요하다. |
+
+`:149`는 부분 적용 행이라 보류 6행 집계에는 넣지 않았다.
+
+### 구조 변경이라 적용하지 않음 — 2행
+
+- `story.ts:83–104` 프롤로그 21문단을 절반으로 줄이는 안: 장면 구조 변경이다. 문장 단위 결함(:94·:96/:103·:100·:104)만 고쳤다.
+- `page.tsx:166–183` 소개 본문 일부를 해요체로 바꾸는 안: 이 블록은 합니다체로 일관되어 있다. 섞으면 이번 단계의 톤 일관 원칙과 충돌한다.
+
+### 번역 동기화가 필요한 키 — i18n 18개(ko만 수정함, 다른 로케일은 손대지 않음)
+
+- `fortuneTeaHouse-03`: `speakerLabel.narration`, `speakerLabel.pig`, `waiting` (3)
+- `fortuneTeaHouse-28`: `entryIdleLines.0`–`7` (8)
+- `fortuneTeaHouse-46`: `guests.grades.gu` (1)
+- `fortuneTeaHouse-48`: `entryScenes.0`–`5.eyebrow` (6)
+- 별도 사항: 네오 ko 대사(`dialogues.ts`, `welcome.ts`, method.intro)는 의미가 바뀌었다. 하지만 en/ja/zh 표(`NEO_DIALOGUE_TEXT` 등)는 그대로 두었다. 다음 번역 동기화 때 함께 맞춰야 한다.
+
+### ±20%를 넘은 행
+
+- `story.ts:94`(-29%, 첫 문장 삭제), `:100`(-31%, 추상어 제거)
+- `story.ts` door-4(+42%, 받는 말이 없던 대사에 질문을 보강)
+- `entryStory.ts` idle line 3(-38%, 주제 설명 문장 삭제)
+- entryScenes eyebrow 일부(-21~-24%, 장면 번호로 교체)
+- 네오 대사는 모두 ±20% 안이다.
+
+### Before / After
+
+1. 네오 `dialogues.ts` entrance.room
+   - Before: "여긴 네가 망친 선택, 모른 척한 패턴, 계속 반복한 회피를 찾는 작전실이다."
+   - After: "여긴 네가 미뤄 온 선택, 모른 척한 패턴, 반복한 회피를 짚는 전략실이야."
+2. 네오 `dialogues.ts` closing.one
+   - Before: "흥. 그래도 여기서 끝날 사람은 아니다. 그러니까 하나만 제대로 해라."
+   - After: "여기서 끝날 사람은 아니잖아, 너. 하나만 제대로 해. …걱정돼서 하는 말은 아니고."
+
+### 함께 바뀐 생성물
+
+- `master-profiles.ts` 수정에 맞춰 `npm run sync:marketing-copy`를 돌렸다. 바뀐 파일: `lib/marketing/feature-visual-details.generated.json`, `public/feature-details/**`
+- `app/**` 수정으로 lastmod 원장이 낡아 `npm run sitemap:generate`를 돌렸다. 시그니처 26개가 갱신됐다.
+- `public/i18n/ko.json`은 바뀐 18개 ko 값만 반영했다.
+
+### 후속 제안(이번에 고치지 않음)
+
+- `persona/neo.ts` 말투 지시: LLM 본문의 존댓말은 유지 결정이다. 다만 대본 츤데레와 경계 문구를 맞출지 검토가 필요하다.
+- FEATURE_TITLE "네오의 팩폭 작전실", `master-profiles.ts:149` "운명 사령관", story-masters "작전으로 정리합니다"
+- i18n -02/-05/-28 alt 텍스트, `talkingPig.pigName`, entryStory 장면 본문, `_comment`에 남은 "꽃돼지?"

@@ -658,12 +658,12 @@ const DESTINY_COMPASS_COPY: Partial<Record<LoadingLocale, DestinyCompassCopy>> =
     lunarLeapCheckbox: "윤달이에요",
     journeyCtaButton: "이 정보로 나침반 맞추기",
     journeyHeroTitle: "운명의 나침반",
-    journeyGreetingStreak: (streak) => `${streak}일째 이어진 운명의 기록이 있어요. 오늘은 방향이 조금 더 선명하게 잡힙니다.`,
+    journeyGreetingStreak: (streak) => `${streak}일째 이어진 운명의 기록이 있어요. 오늘도 방향을 한 번 더 짚어 봐요.`,
     journeyGreetingReturning: (streak) => `${streak}일 연속으로 나침반을 열었어요. 오늘의 바늘도 차분히 맞춰볼게요.`,
     journeyGreetingFirst: "지금 당신의 마음은 어느 방향을 향하고 있을까요?",
     journeyMicrocopy: "나침반을 움직여 지금 마음이 먼저 향하는 쪽을 골라보세요. 실제 결과는 생년 정보와 오늘의 질문을 함께 읽어 다시 계산합니다.",
     journeyReadingLabel: "지금 바늘",
-    journeyStatusAriaLabel: "운명 여정 상태",
+    journeyStatusAriaLabel: "운명 기록 상태",
     journeyStreakSuffix: (n) => `${n}일 연속`,
     journeyDexSuffix: (n) => `도감 ${n}개`,
     mapDefaultTitle: "운명의 나침반",
@@ -698,7 +698,7 @@ const DESTINY_COMPASS_COPY: Partial<Record<LoadingLocale, DestinyCompassCopy>> =
     },
     sectionTitle: {
       coordinate: "오늘의 운명 좌표", flow: "현재의 흐름", cause: "운명의 원인", change: "앞으로 다가오는 변화",
-      opportunity: "반드시 잡아야 하는 기회", avoid: "피해야 하는 선택", action: "행동 가이드", advice: "종합 조언", compass: "운명의 나침반",
+      opportunity: "놓치지 말 기회", avoid: "피해야 하는 선택", action: "행동 가이드", advice: "종합 조언", compass: "운명의 나침반",
     },
     sectionTeaser: {
       coordinate: "지금 서 있는 자리를 한 문장으로.",
@@ -785,7 +785,7 @@ const DESTINY_COMPASS_COPY: Partial<Record<LoadingLocale, DestinyCompassCopy>> =
     },
     lifeVoyageTitle: "삶의 항로",
     lifeVoyageRevealedPigLine: "여기서부터는 제가 항로를 짚어드릴게요. 날씨는 바뀌어요 — 지금 흐린 구간도 결국 지나가요.",
-    lifeVoyageNotRevealedPigLine: "앞으로의 항로를 30일·90일·1년·3년으로 짚어드릴게요. 날씨는 바뀌어요 — 지금 흐린 구간도 결국 지나가니까요.",
+    lifeVoyageNotRevealedPigLine: "앞으로의 항로를 30일·90일·1년·3년으로 짚어드릴게요. 날씨는 바뀌어요 — 흐린 구간에도 준비할 길이 있어요.",
     voyagePeriodLabel: { d30: "30일", d90: "90일", y1: "1년", y3: "3년" },
     voyagePeriodSuffix: " 뒤",
     lifeVoyageLockText: "30일 · 90일 · 1년 · 3년, 네 구간의 순항도와 날씨를 항해 지도로 펼쳐드려요.",
@@ -808,14 +808,14 @@ const DESTINY_COMPASS_COPY: Partial<Record<LoadingLocale, DestinyCompassCopy>> =
     },
     todayQuestTitle: "오늘의 퀘스트",
     neoAlt: "전략실의 네오",
-    neoIntroLine: "고민은 결정을 미루는 가장 세련된 방법이야. 방향은 나왔으니, 오늘 움직일 건 아래 세 가지. 하나라도 해.",
+    neoIntroLine: "고민이 길면 결정만 밀려. 방향은 나왔으니, 오늘 움직일 건 아래 세 가지. 하나라도 해. 작은 걸로 골라도 돼.",
     questTag: "오늘의 퀘스트",
-    questExpNote: "완료하면 오늘의 성장에 기록돼요 — 매일의 한 걸음이 쌓입니다.",
+    questExpNote: "완료하면 오늘의 성장에 기록돼요 — 매일 기록이 쌓여요.",
     arriveButton: "목적지 도착 →",
     arrivalTitle: "목적지에 도착했어요",
     arrivalLead: (destLabel) => `오늘의 항해를 마쳤어요. ${destLabel}의 문이 열렸어요.`,
     arrivalStamp: "오늘의 항해 완료 · +10 EXP",
-    radarSummaryLabel: "여정 요약 · 운명 레이더",
+    radarSummaryLabel: "기록 요약 · 운명 레이더",
     arrivalNote: (primaryLabel) => `가장 열린 방향은 ${primaryLabel}. 이 레이더는 오늘 당신의 기운 지도를 담고 있어요.`,
     shareCoordinateSuffix: " 도착",
     restartQuestButton: "새 고민 시작하기",
@@ -823,7 +823,7 @@ const DESTINY_COMPASS_COPY: Partial<Record<LoadingLocale, DestinyCompassCopy>> =
     insightTitle: "나침반이 먼저 짚은 세 가지",
     insightCards: {
       current: { label: "현재 방향", body: (area) => `지금 가장 자연스럽게 열리는 길은 ${area} 쪽이에요. 먼저 힘을 모을 지점을 좁혀보세요.` },
-      caution: { label: "주의할 점", body: (area) => `${area} 쪽은 속도를 늦춰야 합니다. 밀어붙이기보다 조건을 정리할 때예요.` },
+      caution: { label: "주의할 점", body: (area) => `${area} 쪽은 속도를 늦추는 편이 좋아요. 밀어붙이기보다 조건을 정리할 때예요.` },
       opportunity: { label: "기회", body: (area) => `${area}의 기세가 살아 있어요. 작은 실행을 오늘 안에 하나만 남겨도 흐름이 붙습니다.` },
     },
     insightRevealButton: "다음 카드 열기",
@@ -839,7 +839,7 @@ const DESTINY_COMPASS_COPY: Partial<Record<LoadingLocale, DestinyCompassCopy>> =
     pdfSuccessNotice: "PDF로 저장했어요.",
     pdfFailNotice: "PDF 저장에 실패했어요. 잠시 후 다시 시도해 주세요.",
     shareTitle: (coordinate) => `운명의 나침반 — ${coordinate}`,
-    shareDescriptionWithQuestion: (question) => `"${question}" 에 대한 다섯 체계의 읽기`,
+    shareDescriptionWithQuestion: (question) => `"${question}", 다섯 체계로 읽기`,
     shareDescriptionDefault: "사주·자미두수·숙요·타로·베다가 함께 읽은 오늘의 방향",
     pigFaceAlt: "꽃돼지로 변신한 연이",
     fogErrorMessage: "운명의 안개가 짙어요. 잠시 후 다시 시도해 주세요.",
@@ -850,10 +850,10 @@ const DESTINY_COMPASS_COPY: Partial<Record<LoadingLocale, DestinyCompassCopy>> =
     reportFailedMessage: "리포트를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.",
     connectionLostMessage: "연결이 끊겼어요. 잠시 후 다시 시도해 주세요.",
     pigCommentaryStrong: (dir, ally) => [
-      `지금은 '${dir}' 쪽으로 길이 활짝 열려 있어요. 크게 밀어붙이기보다, 이번 주에 딱 한 걸음만 가볍게 내디뎌 보면 그 문이 더 크게 열려요.`,
+      `지금은 '${dir}' 쪽으로 길이 활짝 열려 있어요. 크게 밀어붙이기보다, 이번 주에 딱 한 걸음만 가볍게 내디뎌 보면 그 문을 더 넓힐 수 있어요.`,
       `'${dir}'의 문이 지금 활짝 열려 있어요. 준비해온 걸 믿고, 오늘 아주 작은 시작 하나만 만들어 보세요. 완벽하지 않아도 괜찮아요 — 시작이 방향을 확인시켜 줘요.`,
       ally
-        ? `'${dir}' 쪽 바람이 순하게 불어와요. 든든한 '${ally}'의 힘까지 곁들이면, 지금 손대는 한 가지가 생각보다 멀리 데려다줄 거예요.`
+        ? `'${dir}' 쪽 바람이 순하게 불어와요. 든든한 '${ally}'의 힘까지 곁들이면, 지금 손대는 한 가지가 생각보다 멀리 이어질 수 있어요.`
         : `'${dir}' 쪽 바람이 순하게 불어와요. 조급함은 잠시 내려놓고, 지금 할 수 있는 한 가지부터 손대면 그 흐름을 그대로 탈 수 있어요.`,
       `'${dir}'는 지금이 밀어줄 때예요. 미뤄뒀던 일이 있다면 오늘 그 첫 문장·첫 연락·첫 정리 하나만 해두세요. 그거면 충분해요.`,
     ],
@@ -861,8 +861,8 @@ const DESTINY_COMPASS_COPY: Partial<Record<LoadingLocale, DestinyCompassCopy>> =
       `'${blocked}' 쪽은 지금 잠시 안개가 짙어요. 억지로 밀지 말고, 대신 '${dir}' 쪽으로 향하는 작은 시도 하나에 마음을 실어 보면 흐름이 살며시 바뀌어요.`,
       `지금 '${blocked}'는 잠깐 쉬어가도 괜찮아요. 힘을 아꼈다가, 오늘은 '${dir}' 쪽으로 가벼운 한 걸음만 내디뎌 보세요. 마음이 한결 가벼워질 거예요.`,
       ally
-        ? `'${blocked}' 쪽 안개는 곧 걷혀요. 그때까지는 '${dir}'과 든든한 '${ally}' 쪽에 힘을 모아, 오늘 할 수 있는 작은 일 하나에만 집중해요.`
-        : `'${blocked}' 쪽 안개는 곧 걷혀요. 무리하지 말고, 오늘은 '${dir}' 쪽으로 향하는 작은 일 하나에만 마음을 실어 봐요.`,
+        ? `'${blocked}' 쪽은 아직 흐려요. 그때까지는 '${dir}'과 든든한 '${ally}' 쪽에 힘을 모아, 오늘 할 수 있는 작은 일 하나에만 집중해요.`
+        : `'${blocked}' 쪽은 아직 흐려요. 무리하지 말고, 오늘은 '${dir}' 쪽으로 향하는 작은 일 하나에만 마음을 실어 봐요.`,
       `'${blocked}'에서 자꾸 애쓰다 지치셨죠. 잠깐 내려놓아도 돼요. 그 힘을 '${dir}' 쪽 한 걸음에 옮겨 두면, 오히려 막힌 곳이 스르르 풀리기도 해요.`,
     ],
     pigCommentarySteady: (dir, ally) => [
