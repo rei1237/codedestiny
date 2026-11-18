@@ -39,13 +39,14 @@ const cross=homeDocument.querySelector('[data-cd-question="futureCross"]');
 assert.equal(cross.getAttribute('href'),'/fusion-fortune/?from=home_question');
 assert.equal(cross.dataset.cdPriceKey,'fusion-fortune-consultation');
 
-const fusionBand = home.match(/<section class="cdh-fusion-sig"[\s\S]*?<\/section>/)?.[0] || "";
-assert.match(fusionBand, /href="\/fusion-fortune\/\?from=home_signature"/, "초융합 시그니처 띠는 초융합 페이지로 갑니다");
-assert.equal([...fusionBand.matchAll(/\/images\/master-profiles\/avatars\/(\w+)\.webp/g)].map(m => m[1]).join(','), 'neo,yeoni,hanbi,yun,musung');
-assert.equal([...fusionBand.matchAll(/data-cd-question="(?:neo|yeoni|hanbi|yun|musung)"/g)].length,5,'Each fusion master opens their individual consultation');
-assert.match(fusionBand,/cdh-fusion-sig__chips/,'Preserve the original fusion composition');
-assert.doesNotMatch(fusionBand,/cdh-fusion-sig__hint/,'Do not add another visible instruction');
-assert.equal([...fusionBand.matchAll(/title="[^"]+에게 물어보기"[^>]*><img/g)].length,5,'Only the existing portrait icons become consultation links');
+// 2026-11-18: the standalone entry moves into the existing section and popup.
+assert.equal(homeDocument.querySelectorAll('.cdh-fusion-sig').length,0);
+assert.ok(homeDocument.querySelector('#cdhFusionSignature'));
+for(const selector of ['[data-picker-fusion-featured] [data-picker-service-id="fusion-fortune"]', '[data-signature-letter-slide][data-cd-service="fusion-fortune"] .cd-consult-letter__action a']) {
+ const link=homeDocument.querySelector(selector);assert.ok(link);
+ assert.equal(link.getAttribute('href'),'/fusion-fortune/?from=home_signature');
+ assert.equal(link.dataset.featureKey,'fusion-fortune-consultation');
+}
 
 const quickSection = home.match(/id="cdQuickServices"[\s\S]*?<\/section>/)?.[0] || "";
 assert.ok(quickSection, "홈 무료 바로 시작 섹션을 찾지 못했습니다");
@@ -63,13 +64,13 @@ const signatureLetter=homeDocument.querySelector('[data-signature-letter]');
 assert.ok(signatureLetter,'대표 상담 달빛 편지를 찾지 못했습니다');
 assert.equal(signatureLetter.tagName,'DIALOG','대표 상담 편지는 실제 팝업 대화상자로 표시합니다');
 assert.ok(signatureLetter.classList.contains('cd-signature-popup'));
-assert.equal(signatureLetter.querySelectorAll('[data-signature-letter-slide]').length,6);
+assert.equal(signatureLetter.querySelectorAll('[data-signature-letter-slide]').length,7);
 assert.equal(signatureLetter.querySelectorAll('[data-signature-letter-slide]:not([hidden])').length,1);
 assert.ok(homeDocument.querySelector('[data-signature-open][aria-haspopup="dialog"]'),'닫은 상담 편지를 다시 여는 버튼을 유지합니다');
 assert.ok(signatureLetter.querySelector('[data-signature-letter-close]'));
 assert.ok(signatureLetter.querySelector('[data-signature-letter-today]'));
-assert.equal(signatureLetter.querySelectorAll('[data-signature-letter-dot]').length,6);
-assert.equal(signatureLetter.querySelector('[data-signature-letter-position]').textContent,'1 / 6');
+assert.equal(signatureLetter.querySelectorAll('[data-signature-letter-dot]').length,7);
+assert.equal(signatureLetter.querySelector('[data-signature-letter-position]').textContent,'1 / 7');
 
 const signatureSection = homeDocument.querySelector('#cdSignatureConsult')?.outerHTML || '';
 assert.ok(homeDocument.querySelector('#cdSignatureConsult #cdConcernPick'), 'Concern selection belongs to the consultation section');

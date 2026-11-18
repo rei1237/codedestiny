@@ -40,6 +40,7 @@
 #cdHomeFunnel .cd-picker-heading h3 { color: var(--cdh-ink); font: 600 1rem/1.5 var(--font-body); letter-spacing: 0; }
 .cd-picker-heading [role="status"] { color: var(--cdh-muted); font-size: .875rem; }
 .cd-picker-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.cd-picker-card[data-picker-fusion-featured] { margin-top: 16px; }
 .cd-picker-card {
   display: flex; flex-direction: column; min-width: 0; overflow: hidden;
   border: 1px solid var(--cdh-line); border-radius: var(--cd-r-card);

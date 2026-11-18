@@ -75,8 +75,6 @@ for (const fish of ['mackerel', 'salmon', 'flounder', 'tuna']) {
 
 // 초융합의 기존 소개·구성은 유지하고, 전문가 초상만 개별 상담 입구로 연결한다.
 // 마스터 배정은 components/fortune/master-profiles.ts productMasters.fusion(결과 화면 화자)과 같다.
-const fusionPrice = Number(FEATURE_KEY_PRICE_TABLE['fusion-fortune-consultation']?.amountKRW);
-if (fusionPrice !== 50000) throw new Error('Fusion signature band copy says 50,000원; registry amount changed: ' + fusionPrice);
 const won = value => Number(value).toLocaleString('ko-KR') + '원';
 const FUSION_MASTERS = [
   { id: 'neo', role: '사주 · 재물 · 일' },
@@ -87,17 +85,8 @@ const FUSION_MASTERS = [
 ].map(({ id, role }) => ({ ...CONSULTATION_MASTERS.find(master => master.id === id), role }));
 const FUSION_SYSTEMS = ['사주', '자미두수', '숙요', '베다', '점성술', '타로'];
 const FUSION_AREAS = ['타고난 성향', '인생의 시기', '연애', '결혼', '재물', '직업', '건강', '인간관계'];
-vars.fusionSignature = `<section class="cdh-fusion-sig" id="cdhFusionSignature" data-cd-funnel-section="fusion_signature" data-marker="cdh-fusion-signature-v20261017" aria-labelledby="cdhFusionSigTitle" lang="ko">
-  <a class="cdh-fusion-sig__art" href="/fusion-fortune/?from=home_signature" tabindex="-1" aria-hidden="true" data-cd-service-id="fusion-fortune"><img src="/images/service-introductions/fusion-fortune-masters-v3-960.webp" srcset="/images/service-introductions/fusion-fortune-masters-v3-640.webp 640w, /images/service-introductions/fusion-fortune-masters-v3-960.webp 960w" sizes="(max-width: 860px) calc(100vw - 32px), 640px" width="1200" height="800" loading="lazy" decoding="async" alt=""></a>
-  <div class="cdh-fusion-sig__body">
-    <p class="cdh-fusion-sig__eyebrow">여섯 체계 종합 상담</p>
-    <h2 class="cdh-fusion-sig__title" id="cdhFusionSigTitle">초융합 운세</h2>
-    <p class="cdh-fusion-sig__lead">다섯 마스터가 여섯 체계로 교차해 읽는 한 권. 타고난 성향부터 시기·연애·결혼·재물까지 영역별로 짚어 드려요.</p>
-    <ul class="cdh-fusion-sig__masters" role="list">${FUSION_MASTERS.map(master => `<li><a href="${master.href}" aria-label="${master.name}에게 물어보기 · ${master.text}" title="${master.name}에게 물어보기" data-cd-question="${master.id}"><img src="${master.image}" width="44" height="44" alt="" loading="lazy" decoding="async"></a><span><b>${master.name}</b><small>${master.role}</small></span></li>`).join('')}</ul>
-    <div class="cdh-fusion-sig__chips"><p><span class="cdh-fusion-sig__chip-label">여섯 체계</span>${FUSION_SYSTEMS.map(name => `<span class="cdh-fusion-sig__chip">${name}</span>`).join('')}</p><p><span class="cdh-fusion-sig__chip-label">영역별 8장</span>${FUSION_AREAS.map(name => `<span class="cdh-fusion-sig__chip cdh-fusion-sig__chip--area">${name}</span>`).join('')}</p></div>
-    <a class="cdh-fusion-sig__cta" href="/fusion-fortune/?from=home_signature" data-cd-service-id="fusion-fortune" data-pvw-paid="true"><span>초융합 운세 받기</span><b>${won(fusionPrice)}</b><i aria-hidden="true">→</i></a>
-  </div>
-</section>`;
+// Preserve old fragment targets without a second visible standalone entry.
+vars.fusionSignature = '<span id="cdhFusionSignature" aria-hidden="true"></span>';
 // 다른 재밌는 운세 — 질문 카테고리(2026-10-17 복구). e76391603 에서 빠진 #cdConcernPick 을 데이터로 다시 그린다.
 // DOM 계약(카드·패널·질문 링크 속성)과 home.concernPick.* i18n 키는 예전 그대로 — index.html 의 토글 스크립트·계측(analytics.js)을 재사용한다.
 // 카테고리마다 핵심 질문 셋, 보조 링크는 무료인 것만 남긴다. price 는 i18n 가격 키(w5000 / from5000 / free)이고 레지스트리 금액과 대조한다.
@@ -249,6 +238,13 @@ const signatureProducts = [
     master: { caption: '인연의 서', names: '마스터', avatars: ['master'] },
     priceSuffix: '~',
     cta: '인연의 서 펼치기',
+  },
+  {
+    id: 'fusion-fortune', href: '/fusion-fortune/?from=home_signature', title: '초융합 운세',
+    question: '운세마다 말이 다를 때, 여섯 체계의 흐름을 함께 살펴봐요.',
+    popupCopy: '다섯 마스터가 사주·자미두수·숙요·베다·점성술·타로를 교차해 읽어요.',
+    featureKey: 'fusion-fortune-consultation', cta: '초융합 운세 살펴보기',
+    resultFormat: '타고난 성향과 시기 · 연애·결혼·재물·직업·건강·인간관계의 영역별 풀이'
   },
 ];
 for (const product of signatureProducts) {
