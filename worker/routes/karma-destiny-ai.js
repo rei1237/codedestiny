@@ -20,7 +20,7 @@ import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
 import { normalizeConsultAccessType, resolveCanonicalEntitlement, resolveFeatureAccessPolicy } from "../lib/entitlement-policy.js";
 import { consumePassForFeature, passDenialCode, refundPassUseEvidence } from "../lib/pass-consumption.js";
-import { lateUsageSettlementFailure } from "../lib/late-usage-settlement.js";
+import { lateAccessDenialSettlement, lateUsageSettlementFailure } from "../lib/late-usage-settlement.js";
 import { callGeminiText } from "../lib/gemini.js";
 import { deliverExpertFollowUp, recoverSavedExpertFollowUps, expertFollowUpNarrativeAdapter } from '../lib/expert-follow-up-delivery.js';
 import { compactFollowupMessages } from '../lib/followup-context.js';
@@ -2974,7 +2974,12 @@ async function handleGenerateBatch(request, env, recoveryAuth = null) {
   const checkAccess = () => nativeTossContext(request)
     ? nativeTossContext(request).access(resumeBody, normalized, consultation.idempotencyKey)
     : resolveStartAccess({ request, env, auth, body: resumeBody, normalized, pricing, idempotencyKey: consultation.idempotencyKey });
-  if (!(await checkAccess()).ok) return paymentVerifyFailed();
+  // 이용권으로 본문까지 만든 delivery_pending 리포트는 재확인이 한도·자격 사유로 거절돼도 전달한다(환불·탈퇴·취소 증빙은 제외, fail-closed).
+  const settleDenied = async fresh => fresh.ok || nativeTossContext(request) ? null
+    : lateAccessDenialSettlement({ fresh, doc: consultation, userId: auth.userId, idempotencyKey: consultation.idempotencyKey, service: "karma-destiny-ai", models: { User, Payment, PaidExecutionRecord, PointHistory, MonthlyCreditLedger } });
+  const entryAccess = await checkAccess();
+  let accessSettlement = await settleDenied(entryAccess);
+  if (!entryAccess.ok && !accessSettlement) return paymentVerifyFailed();
   const owner = { id: consultation.id, userId: clean(auth.userId) };
   const lockToken = randomToken(12);
   const pending = doc => json(publicSession(doc), { status: 202 });
@@ -3120,8 +3125,13 @@ async function handleGenerateBatch(request, env, recoveryAuth = null) {
       const createdAt = new Date();
       consultation = await saveKarmaDelivery(filter, { status: "delivery_pending", chapters, ...(after.salvaged ? { llmMeta: { ...consultation.llmMeta, attempts: finalAttempts } } : {}), qualityCheck: finalQuality, totalCharCount: finalQuality.totalCharCount, finalLetter: clean(chapters.find(row => row.id === FINAL_LETTER_CHAPTER_ID)?.content, 14000), messages: [{ role: "user", content: consultation.userQuestion || consultation.topic, createdAt }, { role: "assistant", content: formatChaptersAsConsultationText(chapters), createdAt }] }, consultation.id);
     }
-    if (!(await checkAccess()).ok) return paymentVerifyFailed();
-    const usageSettlement = await applyUsageAfterSuccessfulGeneration({ request, env, auth, consultation, pricing });
+    if (!accessSettlement) {
+      const recheck = await checkAccess();
+      accessSettlement = await settleDenied(recheck);
+      if (!recheck.ok && !accessSettlement) return paymentVerifyFailed();
+    }
+    // 재확인이 한도 거절로 정산됐으면 차감을 다시 시도하지 않는다.
+    const usageSettlement = accessSettlement || await applyUsageAfterSuccessfulGeneration({ request, env, auth, consultation, pricing });
     const now = new Date();
     consultation = await saveKarmaDelivery(filter, { status: "completed", generatedAt: now, usageAppliedAt: consultation.usageAppliedAt || now, ...(usageSettlement ? { llmMeta: { ...consultation.llmMeta, ...usageSettlement } } : {}), generationProgress: buildGenerationProgress(consultation, { status: "completed", lockToken: "", lockedAt: null, percent: 100 }), generationError: null }, consultation.id);
     return json(publicSession(consultation));
