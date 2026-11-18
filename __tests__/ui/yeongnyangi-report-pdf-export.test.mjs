@@ -18,7 +18,7 @@ const browserStubs={name:'browser-stubs',setup(b){
 }};
 globalThis.__pdfCalls=calls;
 const m=await load("export * from './lib/pdf/export-yeongnyangi-report-pdf';",[browserStubs]);
-const fonts=await load("export {registerPdfFontsSafely} from './lib/pdf/export-result-pdf';");
+const fonts=await load("export {prefetchPdfFonts,registerPdfFontsSafely} from './lib/pdf/export-result-pdf';");
 const row=n=>({createdAt:'2026-11-18T01:00:00.000Z',product:{name:'Omakase reading',readingKind:'fusion'},consultation:{question:'What next?'},
  manifest:Array.from({length:n},(_,i)=>({id:'c'+i,title:'Chapter '+(i+1),part:'Part '+(1+(i>>2))})),
  chapters:Array.from({length:n},(_,i)=>({chapterId:'c'+i,title:'Chapter '+(i+1),summary:'Summary '+i,blocks:[{id:'b',title:'Flow',paragraphs:['Body text for chapter '+(i+1)+'. '.repeat(1).padEnd(600,'x ')]}]}))});
@@ -50,5 +50,8 @@ test('only the requested font files are downloaded, while other PDF features kee
   assert.deepEqual(seen.sort(),['Mulmaru.ttf','Paperlogy-5Medium.ttf']);
   // A failed download is not cached: the next save asks again.
   seen.length=0;await fonts.registerPdfFontsSafely({},{only:['body']});assert.deepEqual(seen,['Paperlogy-5Medium.ttf']);
+  // A warm-up that failed while the panel opened does not doom the later save tap.
+  seen.length=0;fonts.prefetchPdfFonts(['body']);await new Promise(resolve=>setTimeout(resolve,0));
+  await fonts.registerPdfFontsSafely({},{only:['body']});assert.deepEqual(seen,['Paperlogy-5Medium.ttf','Paperlogy-5Medium.ttf']);
  }finally{globalThis.fetch=original;console.warn=warn;}
 });

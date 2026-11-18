@@ -71,9 +71,13 @@ async function loadFontBase64Map(keys: readonly PdfFontKey[]): Promise<Partial<P
   return Object.fromEntries(entries) as Partial<PdfFontMap>;
 }
 
-/** 저장 버튼보다 먼저 글꼴 내려받기를 시작한다. 실패는 여기서 삼키고, 등록 때 같은 실패로 드러나 캐시에서 지워진다. */
+/** 저장 버튼보다 먼저 글꼴 내려받기를 시작한다. 실패는 캐시에서 지워, 나중의 저장이 실패를 물려받지 않고 다시 받는다. */
 export function prefetchPdfFonts(keys: readonly PdfFontKey[]): void {
-  void loadFontBase64Map(keys).catch(() => undefined);
+  for (const key of keys) {
+    const load = loadFontBase64Map([key]); // 캐시 항목은 이 호출 안에서 동기로 채워진다.
+    const cached = fontBase64Promises[key];
+    load.catch(() => { if (fontBase64Promises[key] === cached) delete fontBase64Promises[key]; });
+  }
 }
 
 /**
