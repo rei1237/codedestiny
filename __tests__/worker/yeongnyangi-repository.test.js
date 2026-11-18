@@ -61,6 +61,7 @@ function query(fn) {
 }
 function model(source,kind) {
   return {
+    create:async docs=>{const list=Array.isArray(docs)?docs:[docs];source().push(...list.map(doc=>({...doc})));return list;},
     find:filter=>query(()=>source().filter(row=>matches(row,filter))),
     findOne:filter=>query(()=>{
       if(kind==='request'&&failFinalRead&&filter.completedChapters!==undefined){failFinalRead=false;throw new Error('final reread failed');}
@@ -105,7 +106,12 @@ const honeyCollection=name=>{
     rows().push({...doc});return {insertedId:doc._id};
   }};
 };
-const User={findById:()=>query(()=>familyUser),findOne:filter=>query(()=>familyUser&&matches(familyUser,filter)?familyUser:null),collection:{}}, PointHistory=model(()=>evidences,'history');
+const User={findById:()=>query(()=>familyUser),findOne:filter=>query(()=>familyUser&&matches(familyUser,filter)?familyUser:null),
+  findOneAndUpdate:(filter,update)=>query(()=>{
+    if(!familyUser||!matches(familyUser,filter))return null;
+    for(const [key,value] of Object.entries(update.$inc||{}))set(familyUser,key,(get(familyUser,key)||0)+value);
+    return {...familyUser};
+  }),collection:{}}, PointHistory=model(()=>evidences,'history');
 const txOptions={maxCommitTimeMS:12000};
 const startSession=async()=>{
   expect(activeOperations).toBeGreaterThan(0);
@@ -927,6 +933,37 @@ describe('fortune-chat per-use access',()=>{
     await repo.failChapter({},owner,'id','lease','GENERATION_REVIEW_REQUIRED',1,'provider');
     expect(refundMoonstone).toHaveBeenCalledWith({userId:owner,requestId:'id',perUse:true});
     expect(refundPass).not.toHaveBeenCalled();
+  });
+
+  const coinSpend={_id:'507f1f77bcf86cd799439077',userId:owner,featureKey:chat.featureKey,kind:'deduct',delta:-50,metadata:{requestId:'fc-id'}};
+  const coinRequest=extra=>({_id:'id',userId:owner,...chat,state:'GENERATING',accessMethod:'PER_USE',perUseSource:'point',perUseEvidenceId:coinSpend._id,
+    completedChapters:0,chapters:[],leaseToken:'lease',...extra});
+  test('S9-Y: a coin consultation that delivered nothing gives the coins back once, with a refund receipt',async()=>{
+    familyUser={_id:owner,points:10};
+    evidences.push({...coinSpend,metadata:{...coinSpend.metadata}});
+    requests.push(coinRequest());
+    await repo.failChapter({},owner,'id','lease','GENERATION_REVIEW_REQUIRED',1,'provider');
+    expect(requests[0]).toMatchObject({state:'REFUNDED',errorCode:'COIN_RESTORED',perUseSource:'point'});
+    expect(familyUser.points).toBe(60);
+    expect(evidences[0].metadata).toMatchObject({refundedForServiceExecution:true,coinRefundedForUnlockFailure:true});
+    expect(evidences.filter(row=>row.kind==='refund')).toEqual([expect.objectContaining({delta:50,balanceAfter:60,featureKey:chat.featureKey,
+      metadata:expect.objectContaining({refundForPointHistoryId:coinSpend._id,requestId:'fc-id'})})]);
+    expect(refundPass).not.toHaveBeenCalled();expect(refundMoonstone).not.toHaveBeenCalled();
+    await expect(repo.claimChapter({},owner,'id')).rejects.toMatchObject({status:409});
+  });
+
+  test('S9-Y: a coin consultation keeps the coins once a chapter was delivered, and a membership-credit spend stays for review',async()=>{
+    familyUser={_id:owner,points:10};
+    evidences.push({...coinSpend,metadata:{...coinSpend.metadata}});
+    requests.push(coinRequest({completedChapters:1,chapters:[{summary:'delivered'}]}));
+    await repo.failChapter({},owner,'id','lease','GENERATION_REVIEW_REQUIRED',1,'provider');
+    expect(requests[0]).toMatchObject({state:'FORTUNE_FAILED',errorCode:'GENERATION_REVIEW_REQUIRED'});
+    requests=[];evidences=[{...coinSpend,metadata:{requestId:'fc-id',accessType:'membership_credit'}}];
+    requests.push(coinRequest());
+    await repo.failChapter({},owner,'id','lease','GENERATION_REVIEW_REQUIRED',1,'provider');
+    expect(requests[0]).toMatchObject({state:'FORTUNE_FAILED',errorCode:'GENERATION_REVIEW_REQUIRED'});
+    expect(familyUser.points).toBe(10);
+    expect(evidences.filter(row=>row.kind==='refund')).toHaveLength(0);
   });
 
   test.each(['payment','admin'])('a %s consultation that delivered nothing stays for support review',async source=>{

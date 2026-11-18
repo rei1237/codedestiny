@@ -385,6 +385,44 @@ async function refundChatHoney(env,userId,requestId) {
   });
 }
 
+// Coins spent on a consultation that delivered nothing come back once, with the request, in one transaction (S9-Y).
+// The receipt has runCoinRefund's shape (refundForPointHistoryId) and the spend carries both refund markers, so
+// per-use access, paid-result revocation and the coin audits read it as refunded. A membership-credit or pass
+// use (delta 0) is not a coin spend and keeps its own path.
+async function refundChatCoin(env,userId,requestId) {
+  const owner=ownerId(userId);
+  const [{PointHistory,User},{moonstoneSpendRefundFilter}]=await Promise.all([loadFamilyIdentity(),import('../lib/moonstone-spend-proof.js')]);
+  return withMongoRetry(env,async()=>{
+    const session=await (scopeConnection() || mongoose).startSession();
+    try{
+      let restored=false;
+      await session.withTransaction(async()=>{
+        restored=false;
+        const now=new Date();
+        const request=await YeongnyangiRequest.findOneAndUpdate({_id:requestId,userId:owner,accessMethod:'PER_USE',perUseSource:'point',
+          state:'FORTUNE_FAILED',...terminalRestoreFilter(false)},
+        {$set:{state:'REFUNDED',errorCode:'COIN_RESTORED',leaseToken:'',leaseUntil:null}},{new:true,session}).lean();
+        if(!request)return;
+        const spend=await PointHistory.findOneAndUpdate({_id:String(request.perUseEvidenceId || ''),userId:owner,featureKey:request.featureKey,
+          kind:'deduct',delta:{$lt:0},'metadata.accessType':{$ne:'membership_credit'},...moonstoneSpendRefundFilter(),
+          'metadata.coinRefundedForUnlockFailure':{$ne:true}},
+        {$set:{'metadata.refundedForServiceExecution':true,'metadata.coinRefundedForUnlockFailure':true,'metadata.refundedAt':now,
+          'metadata.refundExecutionId':`yeongnyangi:${requestId}`}},{new:true,session}).lean();
+        const amount=-Number(spend?.delta);
+        if(!spend||!Number.isSafeInteger(amount)||amount<=0)throw failure(409,'COIN_NOT_RESTORED');
+        const user=await User.findOneAndUpdate({_id:owner},{$inc:{points:amount}},{new:true,session}).select('points').lean();
+        if(!user||!Number.isFinite(Number(user.points)))throw failure(409,'COIN_NOT_RESTORED');
+        await PointHistory.create([{userId:owner,kind:'refund',delta:amount,balanceAfter:Number(user.points),featureKey:request.featureKey,
+          reason:'상담 결과 미완성 코인 환불',metadata:{source:'yeongnyangi.per-use-coin-refund',requestId:chatPaymentRequestId(requestId),
+            executionId:`yeongnyangi:${requestId}`,refundForPointHistoryId:String(spend._id),sourceTransactionId:String(spend._id)},createdAt:now,updatedAt:now}],{session});
+        restored=true;
+      },mongoTransactionOptions());
+      return restored;
+    }catch(error){if(error?.code==='COIN_NOT_RESTORED')return false;throw error;}
+    finally{await session.endSession();}
+  });
+}
+
 // A free consultation that delivered nothing gives the account's free use back, exactly once.
 async function restoreFreeTrial(env,userId,requestId,terminal=false) {
   const {restoreGuardianFortuneFreeTrial}=await import('../lib/guardian-fortune-usage.js');
@@ -719,8 +757,8 @@ async function refundTerminalFamilyQuota(env,userId,requestId) {
     const refunded=await withMongoRetry(env,()=>refundYeongnyangiMoonstone({userId,requestId}));
     return Boolean(refunded.refunded);
   }
-  // A paid fortune-chat consultation gives back only what the server can restore without cash: pass quota,
-  // moonlight stones and honey drops. Card and coin spends stay with support review, as the Yeongnyangi card path does.
+  // A paid fortune-chat consultation that delivered nothing gives back what the server restores itself: pass quota,
+  // moonlight stones, honey drops and coins (S9-Y). A card payment needs a PG cancel and stays with support review.
   const perUse=await withMongoRetry(env,()=>YeongnyangiRequest.findOne({_id:requestId,userId:owner,accessMethod:'PER_USE',
     $or:[{state:'FORTUNE_FAILED',errorCode:'GENERATION_REVIEW_REQUIRED',completedChapters:0},
       {state:'REFUNDED',errorCode:'MONTHLY_CREDIT_RESTORED'}]}).lean(),readOptions);
@@ -734,6 +772,7 @@ async function refundTerminalFamilyQuota(env,userId,requestId) {
     return restorePassQuota(env,userId,requestId,{accessMethod:'PER_USE',perUseSource:'point'},{cycleKey:perUse.perUsePassRefund.cycleKey,
       cost:perUse.perUsePassRefund.cost,evidenceId:perUse.perUseEvidenceId});
   }
+  if(perUse?.perUseSource==='point'&&!perUse.perUsePassRefund?.cycleKey&&perUse.state==='FORTUNE_FAILED')return refundChatCoin(env,userId,requestId);
   if(perUse)return false;
   const row=await withMongoRetry(env,()=>YeongnyangiRequest.findOne({_id:requestId,userId:owner,accessMethod:{$in:['FAMILY']},
     state:'FORTUNE_FAILED',errorCode:'GENERATION_REVIEW_REQUIRED',completedChapters:0}).lean(),readOptions);

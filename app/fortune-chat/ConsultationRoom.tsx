@@ -59,7 +59,8 @@ const DOMAINS: { id: ChatDomain; label: string }[] = [
 const STATE_LABEL: Record<string, string> = {
   CREATED: "열기 전", PAID: "준비 중", GENERATING: "쓰는 중", PARTIAL: "이어 쓰는 중", COMPLETED: "완료", REFUNDED: "환불됨",
 };
-const stateLabel = (state: string, errorCode?: string) => (state === "REFUNDED" && errorCode === "HONEY_RESTORED" ? "꿀방울 반환" : STATE_LABEL[state] || state);
+const RESTORED_LABEL: Record<string, string> = { HONEY_RESTORED: "꿀방울 반환", COIN_RESTORED: "코인 반환" };
+const stateLabel = (state: string, errorCode?: string) => (state === "REFUNDED" && errorCode && RESTORED_LABEL[errorCode]) || STATE_LABEL[state] || state;
 // 기록 배지: 무엇으로 연 상담인지. 꿀방울만 따로 알리고 나머지 유료 열기는 한데 묶는다.
 const accessBadge = (h: ChatConsultationSummary) => (h.perUseSource === "honey" ? "꿀방울" : h.paid ? "결제·이용권" : "");
 
@@ -483,6 +484,9 @@ export default function ConsultationRoom({ initialId = "", initialPersona = "yeo
             )}
             {row.state === "REFUNDED" && row.errorCode === "HONEY_RESTORED" && (
               <p className={styles.restored} role="status">상담을 완료하지 못해 사용한 꿀방울 {HONEY_COST}개를 돌려드렸어요.</p>
+            )}
+            {row.state === "REFUNDED" && row.errorCode === "COIN_RESTORED" && (
+              <p className={styles.restored} role="status">상담을 완료하지 못해 사용한 코인을 돌려드렸어요.</p>
             )}
 
             {!row.paid && !offerCheckout && row.state !== "REFUNDED" && (
