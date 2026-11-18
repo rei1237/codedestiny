@@ -29,7 +29,8 @@ import { isStagingLlmMockEnabled } from "../lib/staging-llm-mock.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
 import { calculateLifeBookAiSaju } from "../lib/life-book-ai-saju.js";
 import { connectLifeBookSajuAuthority, readSajuAuthority, lifeBookPillars, SAJU_AUTHORITY_PROMPT_RULES } from '../lib/saju-authority-consumer.js';
-import { sajuTemperamentPromptLines } from '../lib/saju-temperament.js';
+import { sajuTemperamentPromptLines, SAJU_LUCK_JUDGEMENT_RULE } from '../lib/saju-temperament.js';
+import { buildNatalJudgementFacts, buildLuckJudgementRows } from '../lib/saju-luck-judgement.js';
 import { expertSubchapterPromptLines } from '../lib/expert-subchapter-prompt.js';
 import { canStripForbiddenText } from "../lib/llm-leak-guard.js";
 import {clampSyncLlmTimeoutMs, PAID_LLM_PARTS_PER_REQUEST } from "../lib/sync-llm-timeout.js";
@@ -1439,8 +1440,33 @@ function lifeBookV2LengthLines(section) {
   ];
 }
 
+// 운 판정(S15-6)은 현재 판(인생 총운 V3·인생의 책 V2)의 장·판독에만 싣는다. 이전 판 프롬프트 바이트는 해시로 고정돼 있다.
+// 시기는 이 조각의 evidenceRefs 가 다루는 것만: majorLuck → 지금·다음 대운, yearlyLuck → 계산된 가까운 해들.
+function lifeBookLuckJudgement(sajuSlice, section, lifeFortune) {
+  if (!sajuSlice || section.kind === "frame" || !(Number(section.planVersion) >= (lifeFortune ? 3 : 2))) return null;
+  const pillars = { year: sajuSlice.yearPillar, month: sajuSlice.monthPillar, day: sajuSlice.dayPillar, hour: sajuSlice.hourPillar };
+  const timeUnknown = sajuSlice.calculationMeta?.timeUnknown === true || sajuSlice.calculationMeta?.birthTimeUnknown === true;
+  const natal = buildNatalJudgementFacts(pillars, { timeUnknown });
+  if (!natal) return null;
+  const roots = new Set((section.evidenceRefs || []).map(evidenceRefRoot));
+  const luck = sajuSlice.majorLuck;
+  const current = luck?.currentCycle;
+  const periods = [];
+  if (roots.has("majorLuck") && Array.isArray(luck?.cycles)) {
+    const cycles = luck.cycles.filter((cycle) => cycle?.pillar);
+    const at = Math.max(0, cycles.findIndex((cycle) => cycle.pillar === current?.pillar));
+    for (const cycle of cycles.slice(at, at + 2)) periods.push({ label: `대운 ${cycle.startAge}~${cycle.endAge}세`, daeun: cycle.pillar });
+  }
+  if (roots.has("yearlyLuck") && Array.isArray(sajuSlice.yearlyLuck)) {
+    for (const row of sajuSlice.yearlyLuck) periods.push({ label: `${row.year}년`, daeun: row.majorLuckPillar || current?.pillar || null, seun: row.pillar });
+  }
+  const rows = buildLuckJudgementRows(pillars, periods, { timeUnknown });
+  return { natal, ...(rows.length ? { periods: rows } : {}) };
+}
+
 function buildSectionPrompt(input, sajuSlice, section, digest = "", { priorHalf = "" } = {}) {
   const lifeFortune = isLifeFortuneInput(input);
+  const luckJudgement = lifeBookLuckJudgement(sajuSlice, section, lifeFortune);
   const birth = input.birthInfo || {};
   const reportName = lifeFortune ? "인생 총운 상담문" : "인생의 책 상담문";
   const lines = [
@@ -1458,6 +1484,8 @@ function buildSectionPrompt(input, sajuSlice, section, digest = "", { priorHalf 
     "[계산 가능한 사주 명리 데이터]",
     JSON.stringify(sajuSlice),
     ...(sajuSlice?.sajuAuthority ? SAJU_AUTHORITY_PROMPT_RULES : sajuTemperamentPromptLines(sajuSlice)),
+    ...(luckJudgement ? ["[운 판정 — luckJudgement: 최종 용신·조후·십간 짝과 이 조각이 다루는 시기의 판정. 설명 근거로 쓰고 evidenceRefs 경로로는 적지 않는다]",
+      JSON.stringify(luckJudgement), SAJU_LUCK_JUDGEMENT_RULE] : []),
     "",
     "[이번에 쓸 조각]",
   ];
