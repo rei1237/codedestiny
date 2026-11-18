@@ -116,6 +116,15 @@ describe('delivery plan v2 chapter acceptance', () => {
   const v2 = (extra = {}) => ({ deliveryPlanVersion: 2, ...extra });
   const shortValue = { ...value, interpretation: '연이는 이 조건을 천천히 살펴보길 권해요.', strategy: '네오는 오늘 할 일 하나만 정해.' };
   const providerOf = v => async () => ({ ok: true, text: JSON.stringify(v) });
+  test('only the final chapter attempt lets the provider fall back to the auxiliary model (Gemini first)', async () => {
+    const seen = [];
+    const capture = async (_env, _prompt, options) => { seen.push(options.finalProviderAttempt); return { ok: true, text: JSON.stringify(value) }; };
+    await generateHeukwolChapter({}, analysis, HEUKWOL_CHAPTERS[0], '질문', [], capture, v2()).catch(() => {});
+    await generateHeukwolChapter({}, analysis, HEUKWOL_CHAPTERS[0], '질문', [], capture, v2({ finalAttempt: true })).catch(() => {});
+    await generateHeukwolChapter({}, analysis, HEUKWOL_CHAPTERS[0], '질문', [], capture, { finalAttempt: false }).catch(() => {});
+    await generateHeukwolChapter({}, analysis, HEUKWOL_CHAPTERS[0], '질문', [], capture).catch(() => {});
+    expect(seen).toEqual([false, true, false, undefined]);
+  });
   test('non-final short draft is a soft issue; the final attempt delivers it as-is', async () => {
     await expect(generateHeukwolChapter({}, analysis, HEUKWOL_CHAPTERS[0], '질문', [], providerOf(shortValue), v2()))
       .rejects.toMatchObject({ heukwolIssue: 'HEUKWOL_CHAPTER_SHORT' });

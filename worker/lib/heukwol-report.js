@@ -147,6 +147,7 @@ export async function generateHeukwolChapter(env, analysis, chapter, question, p
     attempts:1,baseTokens:16000,capTokens:16000,temperature:0.4,taskType:'fortune',
     // 원칙 17: 폴백 하한은 장 하한의 30%. 장 하한과 같게 두면 쓸 만한 폴백 답변까지 버려 장이 비어 버린다.
     timeoutMs:60000,fallbackToWorkersAI:true,fallbackMinChars:Math.round(HEUKWOL_CHAPTER_MIN_CHARS*0.3),
+    ...(v2 || typeof options.finalAttempt === 'boolean' ? { finalProviderAttempt: options.finalAttempt === true } : {}),
   });
   if (!result?.ok) throw new Error('HEUKWOL_GENERATION_UNAVAILABLE');
   const value = JSON.parse(result.text);
