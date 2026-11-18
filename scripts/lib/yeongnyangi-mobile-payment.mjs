@@ -482,7 +482,9 @@ export async function verifyMobilePayments({base,products,systemNames}){
         state:refunded?'REFUNDED':'FORTUNE_FAILED',errorCode:refunded?'DELIVERY_REFUNDED':'DELIVERY_REFUND_PENDING',
         chapters:[{summary:'QA 저장된 부분 상담',analysis:[savedText],example:'QA 사례',advice:'QA 조언',persona:'QA 메시지',internalBasis:{fixture:true}}]});
        const persisted=JSON.stringify(f.row.chapters);
-       const message=refunded?'환불된 상담이에요. 결제 내역에서 처리 상태를 확인해 주세요.':'복구 후에도 전체 상담을 제공하지 못해 환불을 확인하고 있어요. 다시 결제하지 말고 결제 내역에서 처리 상태를 확인해 주세요.';
+       // DELIVERY_REFUNDED proves automatic settlement; pending must never claim it has completed.
+       const automaticRefundMessage='결과를 끝까지 전달하지 못해 결제 금액을 자동으로 환불했어요. 다시 결제하지 않아도 되고, 결제 내역에서 환불을 확인할 수 있어요.';
+       const message=refunded?automaticRefundMessage:'복구 후에도 전체 상담을 제공하지 못해 환불을 확인하고 있어요. 다시 결제하지 말고 결제 내역에서 처리 상태를 확인해 주세요.';
        for(const reload of [false,true]){
         const response=f.page.waitForResponse(r=>new URL(r.url()).pathname===`/api/yeongnyangi/requests/${f.row.id}`&&r.request().method()==='GET'&&r.status()===200);
         if(reload)await f.page.reload({waitUntil:'domcontentloaded'});
@@ -495,9 +497,11 @@ export async function verifyMobilePayments({base,products,systemNames}){
         await f.page.getByRole('heading',{name:`${f.row.product.name} · ${f.row.product.fishName}`,exact:true}).waitFor();
         await f.page.getByText(message,{exact:true}).waitFor();
         if(refunded){
+         assert.equal(await f.page.getByText('환불된 상담이에요. 결제 내역에서 처리 상태를 확인해 주세요.',{exact:true}).count(),0,'Automatic settlement must use the explicit completed-refund notice');
          assert.deepEqual(fortune.chapters,[]);assert.equal(await f.page.getByText(savedText,{exact:true}).count(),0);
          assert.equal(await f.page.getByRole('status',{name:`${f.row.product.fishName} 수령 리액션`,exact:true}).count(),0);
         }else{
+         assert.equal(await f.page.getByText(automaticRefundMessage,{exact:true}).count(),0,'Pending refunds must not claim the payment was refunded');
          assert.equal(fortune.chapters[0].internalBasis,undefined);
          await f.page.getByText(savedText,{exact:true}).waitFor();
          await f.page.getByText(`1 / ${f.row.manifest.length}개 챕터 저장됨`,{exact:true}).waitFor();
