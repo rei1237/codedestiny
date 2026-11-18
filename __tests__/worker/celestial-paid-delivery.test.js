@@ -215,6 +215,35 @@ test('Toss uses the full web provider contract, checkpoints and original saved c
   expect(calls).toHaveLength(before);
 });
 
+// 2026-11-18 S5: 토스 경로도 한 파트가 두 번 실패했다고 검수 보류로 멈추지 않는다.
+// 남은 파트를 끝까지 시도하고, 저장된 파트가 있으면 건너뛴 채 전달, 하나도 없을 때만 생성 실패로 닫는다.
+const tossRun=async()=>{
+ const {generateTarotLibraryResult}=await import('../../worker/toss/tarot-library-generator.js');
+ const input={question:'',cards:body.cards,goldenCardId:'M00'},featureId='tarot-celestial-harmony';
+ const execution={orderId:'01900000-1111-7111-8111-000000000043',requestId:'toss-tarot:01900000-1111-7111-8111-000000000043',featureId};
+ const options={env:{TAROT_CONSUMER_FACTS_V1:'true'},execution,owner:userId,verify:async()=>{},checkpoint:async state=>{execution.tossTarotCheckpoint=structuredClone(state);}};
+ const replies=[];
+ for(let wave=0;wave<20;wave++){
+  try{const result=await generateTarotLibraryResult(featureId,input,options);replies.push(result);if(!result.pending)break;}
+  catch(error){replies.push({error});break;}
+ }
+ return replies;
+};
+test('Toss: a part failing both attempts is skipped and the saved parts are delivered',async()=>{
+ const base=provider.getMockImplementation();provider.mockImplementation(async(...args)=>args[2].logContext.sectionGroup==='5'?{ok:false,provider:'gemini',text:''}:base(...args));
+ const replies=await tossRun();
+ expect(replies.slice(0,-1).every(reply=>reply.pending===true&&reply.retryable===true)).toBe(true);
+ const last=replies.at(-1);expect(last.error).toBeUndefined();expect(last.pending).toBeUndefined();
+ expect(last.reading.meta).toMatchObject({deliveryStatus:'completed',skippedParts:['5']});
+ expect(provider).toHaveBeenCalledTimes(13);
+});
+test('Toss: when no part could be generated the delivery fails instead of pausing for review',async()=>{
+ provider.mockImplementation(async()=>({ok:false,provider:'gemini',text:''}));
+ const replies=await tossRun();
+ expect(replies.slice(0,-1).every(reply=>reply.pending===true&&reply.retryable===true)).toBe(true);
+ expect(replies.at(-1).error?.code).toBe('CELESTIAL_GENERATION_FAILED');
+ expect(provider).toHaveBeenCalledTimes(24);
+});
 // 2026-11-18 S3-K: 파트가 두 번 다 실패해도 partial 202 로 영구히 남지 않는다.
 // 저장된 파트가 있으면 빈 파트를 건너뛰고 전달하고, 하나도 없을 때만 생성 실패로 닫으며 자동 환불한다.
 const until=async(stop,limit=40)=>{const replies=[];let reply=await start();for(let n=0;n<limit;n++){const data=await reply.clone().json();replies.push({status:reply.status,data});if(stop(reply.status))break;reply=await resume();}return replies;};

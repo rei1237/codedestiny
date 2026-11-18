@@ -15,7 +15,7 @@ const chartSummary={strongestPlanetSignal:'가장 선명한 행성의 신호',de
 const prose=value=>typeof value==='string'?value:Object.values(value||{}).map(prose).filter(Boolean).join('\n\n');
 
 async function celestial(flow,input,{env,execution,checkpoint,celestialEngine}){
-  const {advance,complete,render,prompt}=celestialEngine||await defaultCelestial();
+  const {advance,complete,exhausted,render,prompt}=celestialEngine||await defaultCelestial();
   const reading=buildCelestialMelodyReading({cards:cardRows(input),payment:{requestId:execution.requestId,transactionId:execution.orderId,accessType:'toss'}}).reading;
   const golden=getTarotCardByAnyId(input.goldenCardId);
   if(!golden)throw Error('TAROT_GOLDEN_CARD_REQUIRED');
@@ -23,7 +23,10 @@ async function celestial(flow,input,{env,execution,checkpoint,celestialEngine}){
   if(!complete(snapshot.delivery)){
     const wave=await advance(env,snapshot,async delivery=>checkpoint({...snapshot,delivery}));
     snapshot.delivery=wave.delivery;
-    if(!complete(wave.delivery))return {pending:true,retryable:!wave.limited};
+    // 2026-11-18 S5: 웹 경로와 같다. 남은 파트가 있으면 계속 재시도하고, 다 소진되면
+    // 저장된 파트로 전달(meta.skippedParts)하거나 하나도 없을 때만 생성 실패로 닫는다.
+    if(!complete(wave.delivery)&&!exhausted(wave.delivery))return {pending:true,retryable:true};
+    if(!complete(wave.delivery)&&!Object.keys(wave.delivery.parts||{}).length)throw Object.assign(Error('CELESTIAL_GENERATION_FAILED'),{code:'CELESTIAL_GENERATION_FAILED'});
   }
   const full=render(snapshot);
   full.meta.deliveryStatus='completed';
@@ -34,9 +37,9 @@ async function celestial(flow,input,{env,execution,checkpoint,celestialEngine}){
   return result(flow,input,full,cardRows(input),chapters,full.summary.overallTheme);
 }
 async function defaultCelestial(){
-  const {generateCelestialWave:advance,celestialDeliveryComplete:complete,celestialReadingFromDelivery:render}=await import('../lib/celestial-report-delivery.js');
+  const {generateCelestialWave:advance,celestialDeliveryComplete:complete,celestialDeliveryExhausted:exhausted,celestialReadingFromDelivery:render}=await import('../lib/celestial-report-delivery.js');
   const {buildCelestialHarmonyPrompt:prompt}=await import('../routes/celestial-harmony.js');
-  return {advance,complete,render,prompt};
+  return {advance,complete,exhausted,render,prompt};
 }
 
 async function runNarrative(env,owner,featureKey,body,verify){
