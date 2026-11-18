@@ -37,7 +37,7 @@ export const PAID_LLM_DELIVERY_CONTRACT = Object.freeze([
   { service: 'new-year-ai', files: ['worker/routes/new-year-ai.js'], featureKeys: ['new-year-ai-consultation'], refunds: ['settleFailedConsultationRefund'] },
   { service: 'life-book-ai', files: ['worker/routes/life-book-ai.js'], featureKeys: ['life-book-ai-consultation', 'life-fortune-ai-consultation'], refunds: ['settleFailedConsultationRefund'] },
   { service: 'love-secret-ai', files: ['worker/routes/love-secret-ai.js'], featureKeys: ['love-secret-ai-consultation'], refunds: ['autoRefundSinglePaymentDeliveryFailure', 'refundPassUseEvidence'] },
-  { service: 'neo-operation-room', files: ['worker/routes/neo-operation-room.js'], featureKeys: ['neo-operation-room-consultation'], refunds: ['failServiceExecution', 'autoRefundSinglePaymentDeliveryFailure'] },
+  { service: 'neo-operation-room', files: ['worker/routes/neo-operation-room.js'], featureKeys: ['neo-operation-room-consultation'], refunds: ['failServiceExecution', 'autoRefundSinglePaymentDeliveryFailure', 'refundPassUseEvidence'] },
   { service: 'nakshatra-ai', files: ['worker/routes/nakshatra-ai.js'], featureKeys: ['nakshatra-ai-consultation'], refunds: ['failServiceExecution', 'refundPassUseEvidence'] },
   { service: 'human-design-report', files: ['worker/routes/human-design-report.js'], featureKeys: ['human-design-report'], refunds: ['failServiceExecution'] },
   { service: 'destiny-compass-ai', files: ['worker/routes/destiny-compass-ai.js'], featureKeys: ['destiny-compass-deep-report'], refunds: ['failServiceExecution'] },
