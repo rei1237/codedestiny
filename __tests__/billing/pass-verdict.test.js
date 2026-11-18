@@ -159,12 +159,31 @@ describe("readSnapshot — active 는 만료일이 유효기간이다", () => {
 });
 
 describe("readSnapshot — none 은 SWR", () => {
-  it("TTL 을 넘겨도 allowStaleNone 이면 미보유 확정으로 쓴다", () => {
+  // 🔴 2026-11-18 결함 D: 이 자리는 예전에 "stale none → cannotCover:true" 를 고정했다. 그런데 이용권
+  // 지급은 웹훅·정산 크론·리플레이로도 일어나고 그 경로는 이 기기의 스냅샷을 고칠 수 없다. 그래서 실제
+  // 구매자가 최대 24시간 '미보유 확정'(= 결제창 직행 + "이용권으로는 열리지 않는다" 안내)을 받아 단건
+  // 이중 결제로 갔다. stale none 은 보존(SWR 갱신 대상)만 하고 판정은 "아직 모름" 으로 낸다.
+  it("TTL 을 넘긴 none 은 allowStaleNone 으로 보존하되 미보유 확정으로 쓰지 않는다", () => {
     seed(storage, { state: "none", tier: "free", expiresAt: null, checkedAt: Date.now() - HOUR });
     const snapshot = passVerdict.readSnapshot(USER_ID, { allowStaleNone: true });
     expect(snapshot.stale).toBe(true);
-    expect(passVerdict.resolveVerdict(snapshot, 30).cannotCover).toBe(true);
+    const verdict = passVerdict.resolveVerdict(snapshot, 30);
+    expect(verdict.cannotCover).toBe(false);
+    expect(verdict.coversNow).toBe(false);
+    expect(verdict.reason).toBe("");
+    // 판정할 수 없는 스냅샷은 스냅샷 부재와 같다 — 셸은 canUseByPass===false 를 확정 거부로 읽는다.
+    expect(passVerdict.coverageFromSnapshot(snapshot, 30)).toBeNull();
     expect(storage.has(passVerdict.snapshotKey(USER_ID))).toBe(true);
+  });
+
+  it("TTL 안의 none 은 종전대로 미보유 확정이다", () => {
+    seed(storage, { state: "none", tier: "free", expiresAt: null, checkedAt: Date.now() - 10 * 1000 });
+    const snapshot = passVerdict.readSnapshot(USER_ID, { allowStaleNone: true });
+    expect(snapshot.stale).toBe(false);
+    const verdict = passVerdict.resolveVerdict(snapshot, 30);
+    expect(verdict.cannotCover).toBe(true);
+    expect(verdict.reason).toBe(passVerdict.REASON_NONE);
+    expect(passVerdict.coverageFromSnapshot(snapshot, 30).canUseByPass).toBe(false);
   });
 
   it("allowStaleNone 이 없으면 종전대로 폐기한다", () => {

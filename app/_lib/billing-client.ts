@@ -2362,7 +2362,8 @@ export function resolveSnapshotPassVerdict(input: BillingCoinGateInput): Snapsho
   const explicitPassMode = requestedMode === "MEMBERSHIP_PASS" && !passDisabled;
   const directKrwUsesNativeBilling = requestedMode === "DIRECT_KRW" && isMobileAppRuntime();
   const explicitPaymentMode = explicitPassMode || requestedMode === "MOONLIGHT_STONE" || (requestedMode === "DIRECT_KRW" && !directKrwUsesNativeBilling);
-  // 미보유 확정은 stale 스냅샷으로도 내린다(SWR). 커버 확정도 이용권 만료일이 남아 있으면 stale 로 낸다.
+  // stale 'none' 도 읽어 갱신을 예약하지만 미보유 확정은 신선한 'none' 만 낸다(pass-verdict, 2026-11-18).
+  // 커버 확정은 이용권 만료일이 남아 있으면 stale 로도 낸다.
   const snapshot = readSubscriptionSnapshotForUser(undefined, { allowStaleNone: true });
   // stale 을 읽었으면 이번 판정은 그대로 쓰고 다음 클릭을 위해 백그라운드로만 갱신한다.
   // (warmSubscriptionSnapshotOnEntry 는 in-flight dedup + 신선 스냅샷 조기반환을 이미 갖고 있다.)

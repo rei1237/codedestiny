@@ -3364,7 +3364,8 @@
     if (!(cost > 0)) return '';
     // (1) 미로그인 — 자격증명이 없으면 서버는 반드시 401이고, 이 집합에 이용권 보유자는 0명이다.
     if (!_dpHasSessionHint()) return 'signed_out';
-    // 미보유 확정은 stale 'none' 으로도 내린다(SWR) — TTL 60초 만료마다 차단형 왕복이 되살아나던 지점이다.
+    // stale 'none' 도 읽어 갱신을 예약하지만 미보유 확정은 신선한 'none' 만이다(pass-verdict 가 판정, 2026-11-18).
+    // 확정이 아니어도 여기서 서버를 기다리지 않는다 — 아래 경로는 곧바로 결제창을 연다.
     var snapshot = _dpReadSubscriptionSnapshot({ allowStaleNone: true });
     if (!snapshot) return '';
     if (snapshot.stale === true) _dpRevalidateSubscriptionSnapshot();

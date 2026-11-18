@@ -25,8 +25,8 @@
   var KEY_PREFIX = "cd_subscription_snapshot_v2::";
   var NONE_TTL_MS = 60000;
   var ACTIVE_TTL_MS = 5 * 60 * 1000;
-  // 🔴 stale-while-revalidate 상한. TTL 을 넘긴 'none' 은 삭제하지 않고 이 상한까지 '미보유 확정'
-  // 판정에 그대로 쓰고(= 결제창 직행, 서버 왕복 0) 백그라운드로만 갱신한다.
+  // 🔴 stale-while-revalidate 상한. TTL 을 넘긴 'none' 은 삭제하지 않고 이 상한까지 보존하며
+  // 백그라운드로만 갱신한다. 🔴 단 '미보유 확정' 근거로는 쓰지 않는다(2026-11-18, resolveVerdict 주석).
   var NONE_STALE_MAX_MS = 24 * 60 * 60 * 1000;
   // 🔴 만료일을 모르는 'active' 의 상한. 서버 응답에 expiresAt 이 없어도 isActive:true 하나로
   // state:'active' 가 만들어지는 경로가 있어서(구 unlock-status?scope=pass 등), 이 밸브가 없으면
@@ -617,6 +617,11 @@
     };
     if (!snapshot || !(cost > 0)) return result;
     if (snapshot.state === "none") {
+      // 🔴 TTL(60초)을 넘긴 'none' 은 "아직 모름" 이다(2026-11-18). 이용권 지급은 웹훅·정산 크론·리플레이로도
+      // 일어나는데 그 경로는 이 기기의 스냅샷을 고칠 수 없다. 이걸 미보유 확정으로 쓰면 실제 구매자가 최대
+      // 24시간 '이용권으로는 열리지 않는다'는 결제창을 받아 단건으로 이중 결제한다. 모름이어도 진입은 서버
+      // 왕복 없이 결제창을 열고(2026-08 정책), 결제창의 이용권 카드가 그 자리에서 서버 pass-check 를 한다.
+      if (snapshot.stale) return result;
       result.cannotCover = true;
       result.reason = REASON_NONE;
       return result;
@@ -657,6 +662,8 @@
   // 판정 결과 → 기존 런타임들이 주고받던 membershipCoverage 모양. 호출부를 바꾸지 않기 위한 어댑터다.
   function coverageFromSnapshot(snapshot, coinCost, sourceLabel, featureKey) {
     if (!snapshot) return null;
+    // stale 'none' 은 판정할 수 없는 스냅샷이라 부재와 같다. 셸은 canUseByPass===false 를 확정 거부로 읽는다.
+    if (snapshot.state === "none" && snapshot.stale) return null;
     var verdict = resolveVerdict(snapshot, coinCost, featureKey);
     var cost = Math.max(0, Math.floor(Number(coinCost || 0)));
     return {
