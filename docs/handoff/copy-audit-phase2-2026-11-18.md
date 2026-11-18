@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-18
-next: A1 — A-novel-01.md 추천안 적용
+next: A2 — A-novel-02.md 추천안 적용
 ---
 
 # 문장 교정 Phase 2 (sepia) — 진행 문서
@@ -66,7 +66,7 @@ next: A1 — A-novel-01.md 추천안 적용
   - Before/After 대표 2쌍
 
 ## 단계
-- [ ] A1 `A-novel-01.md`
+- [x] A1 `A-novel-01.md` — 73행 적용, 건너뜀 8, 미적용(구조) 7. 🔴 원고 수정으로 번역 4개 언어가 stale 판정(availableLocales=[ko]) — push 전 번역 재조립 필요 여부 결정. novel:build 뒤 sitemap:generate 필요(소설 URL lastmod). check:fast는 범위 밖 기존 실패 `__tests__/ui/feature-visual-details.test.mjs`(fusion-fortune 이미지 기대값, 29022710f 이후)로 test:node에서 BLOCKED — 보고만
 - [ ] A2 `A-novel-02.md`
 - [ ] A3 `A-novel-03.md`
 - [ ] A4 `A-novel-04.md`
