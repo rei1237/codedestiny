@@ -4,15 +4,21 @@ import {drawElementChart} from './element-chart';
 import {loadYeongnyangiArt,type ReportArt} from './report-art';
 import {planLinkedContents,drawLinkedContents} from './linked-contents';
 import type {jsPDF as Pdf} from 'jspdf';
-import {registerPdfFontsSafely} from './export-result-pdf';
+import {prefetchPdfFonts,registerPdfFontsSafely} from './export-result-pdf';
 import {drawFooters,paintPaper,PdfFontError,type PdfFonts} from './typeset-writer';
 import {CONTENT_WIDTH_MM,MARGIN_X_MM,PAGE_WIDTH_MM,PAGE_HEIGHT_MM} from './typeset-metrics';
 import {buildYeongnyangiReportPlan,type ReadingReportInput} from './yeongnyangi-report-plan';
 export type ReadingPdfPhase='preparing'|'typesetting'|'saving';
-type Options={row:ReadingReportInput;fileName:string;includeQuestion?:boolean;includeFollowups?:boolean;onProgress?:(phase:ReadingPdfPhase)=>void};
+/** done/total counts typeset chapters, so the reader sees a real bar on a 43-chapter omakase book. */
+export type ReadingPdfProgress={done:number;total:number};
+export type ReadingPdfResult={blob:Blob;pages:number;bytes:number};
+type Options={row:ReadingReportInput;fileName:string;includeQuestion?:boolean;includeFollowups?:boolean;onProgress?:(phase:ReadingPdfPhase,progress?:ReadingPdfProgress)=>void;save?:boolean};
+
+/** Hands the main thread back between chapters so a phone keeps scrolling and painting the progress bar. */
+const yieldToBrowser=()=>new Promise<void>(resolve=>setTimeout(resolve,0));
 
 /** Reserve a measured, multi-page TOC before writing the body so destinations remain stable. */
-export function typesetYeongnyangiReport(pdf:Pdf,fonts:PdfFonts,options:Options,art:ReportArt[]=[]){
+export async function typesetYeongnyangiReport(pdf:Pdf,fonts:PdfFonts,options:Options,art:ReportArt[]=[]){
  fonts={title:fonts.body,body:fonts.body};
  const chapters=buildYeongnyangiReportPlan(options.row,{includeQuestion:options.includeQuestion,includeFollowups:options.includeFollowups});
  if(!chapters.length)throw new Error('저장할 상담 내용이 없어요.');
@@ -46,18 +52,42 @@ export function typesetYeongnyangiReport(pdf:Pdf,fonts:PdfFonts,options:Options,
    }
   }
   if(illustration&&!illustrated)writer.image(illustration.dataUrl,CONTENT_WIDTH_MM,CONTENT_WIDTH_MM*illustration.ratio);
+  options.onProgress?.('typesetting',{done:i+1,total:chapters.length});
+  await yieldToBrowser();
  }
  drawLinkedContents(pdf,fonts,toc);
  drawFooters(pdf,fonts,'꿀꿀운세 · 영냥이 개인 상담서',contentsPages+2);
  pdf.setProperties({title:'영냥이 개인 상담서',author:'꿀꿀운세',subject:options.row.product.name});
  return pdf;
 }
-export async function exportYeongnyangiReportPdf(options:Options){
+
+/** The same anchor download jsPDF's save() performs, kept separate so a finished book can be saved again without re-typesetting. */
+export function saveReportBlob(blob:Blob,fileName:string){
+ const url=URL.createObjectURL(blob),a=document.createElement('a');
+ a.href=url;a.download=fileName;a.rel='noopener';document.body.append(a);a.click();a.remove();
+ setTimeout(()=>URL.revokeObjectURL(url),40000);
+}
+
+const BODY_ONLY=['body'] as const;
+/** Warms the PDF engine and the body font when the export panel opens, so the save tap only typesets. */
+export function prefetchYeongnyangiReportPdf(){
+ void import('jspdf').catch(()=>undefined);
+ prefetchPdfFonts(BODY_ONLY);
+}
+
+export async function exportYeongnyangiReportPdf(options:Options):Promise<ReadingPdfResult>{
  options.onProgress?.('preparing');
- const {jsPDF}=await import('jspdf');const pdf=new jsPDF('p','mm','a4');
- const fonts=await registerPdfFontsSafely(pdf);if(!fonts)throw new PdfFontError();
- options.onProgress?.('typesetting');await new Promise<void>(resolve=>setTimeout(resolve,0));
- const art=await loadYeongnyangiArt();
- typesetYeongnyangiReport(pdf,fonts,options,art);
- options.onProgress?.('saving');await new Promise<void>(resolve=>setTimeout(resolve,0));pdf.save(options.fileName);
+ // Font, artwork and the PDF engine are independent downloads; start them together instead of one after another.
+ prefetchYeongnyangiReportPdf();
+ const [{jsPDF},art]=await Promise.all([import('jspdf'),loadYeongnyangiArt()]);
+ // compress: Flate for page content and the embedded font subset (~2/3 of the bytes uncompressed, 2026-11-18 실측).
+ const pdf=new jsPDF({orientation:'p',unit:'mm',format:'a4',compress:true});
+ // The book is set in the body face only; never download or embed the unused title font.
+ const fonts=await registerPdfFontsSafely(pdf,{only:BODY_ONLY});if(!fonts)throw new PdfFontError();
+ options.onProgress?.('typesetting',{done:0,total:0});await yieldToBrowser();
+ await typesetYeongnyangiReport(pdf,fonts,options,art);
+ options.onProgress?.('saving');await yieldToBrowser();
+ const blob=pdf.output('blob');
+ if(options.save!==false)saveReportBlob(blob,options.fileName);
+ return {blob,pages:pdf.getNumberOfPages(),bytes:blob.size};
 }

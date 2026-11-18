@@ -45,7 +45,8 @@ export type ExportResultPdfOptions = {
   prepareCapture?: (document: Document, element: HTMLElement) => void;
 };
 
-let fontBase64Promise: Promise<PdfFontMap> | null = null;
+// 글꼴별로 캐시한다: 본문만 쓰는 조판이 제목 글꼴까지 내려받지 않게.
+const fontBase64Promises: Partial<Record<PdfFontKey, Promise<string>>> = {};
 
 function arrayBufferToBase64(buffer: ArrayBuffer): string {
   const bytes = new Uint8Array(buffer);
@@ -57,21 +58,22 @@ function arrayBufferToBase64(buffer: ArrayBuffer): string {
   return btoa(binary);
 }
 
-async function loadFontBase64Map(): Promise<PdfFontMap> {
-  fontBase64Promise ??= (async () => {
-    const entries = await Promise.all(
-      (Object.entries(PDF_FONT_FILES) as [PdfFontKey, (typeof PDF_FONT_FILES)[PdfFontKey]][]).map(
-        async ([key, { file }]) => {
-          const response = await fetch(buildAssetsPublicUrl(file), { cache: "force-cache" });
-          if (!response.ok) throw new Error(`font fetch failed: ${file}`);
-          const buffer = await response.arrayBuffer();
-          return [key, arrayBufferToBase64(buffer)] as const;
-        },
-      ),
-    );
-    return Object.fromEntries(entries) as PdfFontMap;
-  })();
-  return fontBase64Promise;
+async function loadFontBase64Map(keys: readonly PdfFontKey[]): Promise<Partial<PdfFontMap>> {
+  const entries = await Promise.all(keys.map(async key => {
+    const { file } = PDF_FONT_FILES[key];
+    fontBase64Promises[key] ??= (async () => {
+      const response = await fetch(buildAssetsPublicUrl(file), { cache: "force-cache" });
+      if (!response.ok) throw new Error(`font fetch failed: ${file}`);
+      return arrayBufferToBase64(await response.arrayBuffer());
+    })();
+    return [key, await fontBase64Promises[key]!] as const;
+  }));
+  return Object.fromEntries(entries) as Partial<PdfFontMap>;
+}
+
+/** 저장 버튼보다 먼저 글꼴 내려받기를 시작한다. 실패는 여기서 삼키고, 등록 때 같은 실패로 드러나 캐시에서 지워진다. */
+export function prefetchPdfFonts(keys: readonly PdfFontKey[]): void {
+  void loadFontBase64Map(keys).catch(() => undefined);
 }
 
 /**
@@ -79,17 +81,24 @@ async function loadFontBase64Map(): Promise<PdfFontMap> {
  *
  * 🔴 export 인 이유: 텍스트 조판 PDF(lib/pdf/export-fusion-report-pdf.ts)가 같은 R2 폰트를
  *    같은 방식으로 실어야 한다. 로더를 복제하면 두 벌이 서로 다른 파일명·캐시 정책으로 갈라진다.
+ *
+ * `only: ['body']` 는 제목 글꼴을 쓰지 않는 조판(영냥이 상담서)용이다. 안 쓰는 Mulmaru(1.6MB)를
+ * 내려받지도, PDF 에 싣지도 않는다(빈 서브셋도 약 250KB 를 차지한다, 2026-11-18 실측). 이때
+ * title 은 본문 글꼴 이름을 돌려줘 호출부가 같은 모양을 유지한다.
  */
-export async function registerPdfFontsSafely(pdf: JsPDFInstance): Promise<{ title: string; body: string } | null> {
+export async function registerPdfFontsSafely(pdf: JsPDFInstance, { only }: { only?: readonly PdfFontKey[] } = {}): Promise<{ title: string; body: string } | null> {
+  const keys = only?.length ? only : (Object.keys(PDF_FONT_FILES) as PdfFontKey[]);
   try {
-    const base64Map = await loadFontBase64Map();
-    for (const [key, { file, family }] of Object.entries(PDF_FONT_FILES) as [PdfFontKey, (typeof PDF_FONT_FILES)[PdfFontKey]][]) {
-      pdf.addFileToVFS(file, base64Map[key]);
+    const base64Map = await loadFontBase64Map(keys);
+    for (const key of keys) {
+      const { file, family } = PDF_FONT_FILES[key];
+      pdf.addFileToVFS(file, base64Map[key]!);
       pdf.addFont(file, family, "normal");
     }
-    return { title: PDF_FONT_FILES.title.family, body: PDF_FONT_FILES.body.family };
+    const body = keys.includes("body") ? PDF_FONT_FILES.body.family : PDF_FONT_FILES.title.family;
+    return { title: keys.includes("title") ? PDF_FONT_FILES.title.family : body, body };
   } catch (error) {
-    fontBase64Promise = null; // 실패한 요청을 캐시하지 않아 다음 저장에서 다시 시도할 수 있다.
+    for (const key of keys) delete fontBase64Promises[key]; // 실패한 요청을 캐시하지 않아 다음 저장에서 다시 시도할 수 있다.
     console.warn("[exportResultPdf] Korean font embedding failed, falling back to default font", error);
     return null;
   }
