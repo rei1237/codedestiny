@@ -178,9 +178,9 @@
     },
     {
       "id": "ep-21a:29",
-      "source": "지붕 끝에 검은 호랑이가 앉아 있었다. 마치 처음부터 그를 기다린 것처럼.",
-      "sourceHash": "c35dadb3d76c5027e1bd22559c76146ebcf572b504661c7554055817b1ce47a3",
-      "t": "The black tiger sat at the roof's edge, as though it had been waiting for him all along."
+      "source": "지붕 끝에 검은 호랑이가 앉아 있었다.",
+      "sourceHash": "ff39b6f4c31ed5a3af63e13a1115dfadc1c3ec9dfd878227b8d81db3286d2819",
+      "t": "The black tiger sat at the roof's edge."
     },
     {
       "id": "ep-21a:30",
@@ -202,9 +202,9 @@
     },
     {
       "id": "ep-21a:33",
-      "source": "돼지한테는 반말, 나한테도 반말. 존댓말은 누구한테 쓰지.",
-      "sourceHash": "a9a4967bcf16c7ad455c6f55181e3a52b517bc869b7fee3baa59c9e02dbb0dfb",
-      "t": "No politeness for the pig, none for me. Who do you speak politely to?"
+      "source": "돼지한테도 존댓말, 나한테도 존댓말. 진심은 누구한테 쓰지.",
+      "sourceHash": "df36ce291d595d88777f955534399fd146e19bb67eb153ca36bc9b44a5488bff",
+      "t": "Polite to the pig, polite to me. So who gets your honesty?"
     },
     {
       "id": "ep-21a:34",
@@ -268,9 +268,9 @@
     },
     {
       "id": "ep-21a:44",
-      "source": "영냥이는 대답하지 않았다. 반박할 말이 없다는 것을 둘 다 알고 있었다.",
-      "sourceHash": "47b0e108530468b59a31416d7ff0e3e1e96c781d923e55acefdc1836a42fb3b7",
-      "t": "Yeongnyangi said nothing. They both knew he had no answer."
+      "source": "영냥이는 대답하지 않았다.",
+      "sourceHash": "927dd778ba8bf8892a64a0c6b331f815d618cf7a2c66fafe68ffdf4bf6fa0c7d",
+      "t": "Yeongnyangi said nothing."
     },
     {
       "id": "ep-21a:45",
@@ -382,9 +382,9 @@
     },
     {
       "id": "ep-21a:63",
-      "source": "영냥이의 앞발이 움찔했다. 녹이 번진 자리가 갑자기 화끈거렸다. 회장님이라는 말이 나올 때마다 녹이 쑤셨다.",
-      "sourceHash": "84d5a190d0e351fcc6a2c327f0574a20243a6b9dd588d148ee666182988f8748",
-      "t": "His paw twitched. The rusted place suddenly burned. Every mention of the Chairman made it ache."
+      "source": "영냥이의 앞발이 움찔했다. 녹이 번진 자리가 갑자기 화끈거렸다. 회장님이라는 말에 녹이 쑤셨다.",
+      "sourceHash": "3c77a52ce81642c4f6152128575ee050b551ddcb8ab386afc564fdb4505de2fb",
+      "t": "His paw twitched. The rusted place suddenly burned. At the word Chairman, the rust ached."
     },
     {
       "id": "ep-21a:64",
@@ -412,9 +412,9 @@
     },
     {
       "id": "ep-21a:68",
-      "source": "바람이 불었다. 영냥이의 눈 깊은 곳에서 금빛이 번쩍 일었다가 사라졌다. 자기도 모르게 일어난 빛이었다.",
-      "sourceHash": "b24d3335254fc8eba75466fff968e240aa5a6c64465de70c5ef1ebb9b83becb0",
-      "t": "The wind blew. Deep in Yeongnyangi's eyes, gold flashed and vanished. A light that came without his knowing."
+      "source": "바람이 불었다. 영냥이의 눈 깊은 곳에서 금빛이 번쩍 일었다가 사라졌다.",
+      "sourceHash": "1e4ff45724979363004c3b0084e37bf48b78d38dba61987de25e1bdb4c3f7ff3",
+      "t": "The wind blew. Deep in Yeongnyangi's eyes, gold flashed and vanished."
     },
     {
       "id": "ep-21a:69",
@@ -430,9 +430,9 @@
     },
     {
       "id": "ep-21a:71",
-      "source": "빈칸 앞에서도 그 눈이셨지요. 모르시는 건가요, 아니면 모르는 척하시는 건가요.",
-      "sourceHash": "c69779f5ed0bd39d4b67f50d01f2ce3f951d0a2d3ef075ea1e83aabd2c7af460",
-      "t": "You wore it before the empty space too. Do you not know, or only pretend not to?"
+      "source": "빈칸 앞에서도 그 눈이셨다고 들었습니다. 모르시는 건가요, 아니면 모르는 척하시는 건가요.",
+      "sourceHash": "f688c4a7fda4932c974f87dec177689e068e6cfc8580b0d9798245df92b16356",
+      "t": "I heard you wore it before the empty space too. Do you not know, or only pretend not to?"
     },
     {
       "id": "ep-21a:72",

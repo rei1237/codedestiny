@@ -28,9 +28,9 @@
     },
     {
       "id": "ep-19:4",
-      "source": "계단 끝의 문이 저절로 열렸다. 안쪽 공기는 차갑고 맑았다. 마치 아직 아무도 숨 쉬어 본 적 없는 공기 같았다.",
-      "sourceHash": "d6146c22774777f20e38d530e49f8c098b26b8b62c2e56bdb9065a95a0f34847",
-      "t": "The door at the bottom opened by itself. The air inside was cold and clear, as though nobody had ever breathed it before."
+      "source": "계단 끝의 문이 저절로 열렸다. 안쪽 공기는 차갑고 맑았다. 아직 아무도 숨 쉬어 본 적 없는 공기였다.",
+      "sourceHash": "1f8d9394df37fd7a7a78da13bec91c9e5ce6e48194435c5e4f8a16e18a20a57d",
+      "t": "The door at the bottom opened by itself. The air inside was cold and clear. Air nobody had ever breathed."
     },
     {
       "id": "ep-19:5",
@@ -166,9 +166,9 @@
     },
     {
       "id": "ep-19:27",
-      "source": "윤달은 웃었다. 이번에는 장난이 하나도 섞이지 않은 웃음이었다.",
-      "sourceHash": "425aac7ee18721791586a04b289423dfeacfae16756c7bed81b3cb155a688a5d",
-      "t": "Yundal smiled. This time, there wasn't a trace of teasing in it."
+      "source": "윤달은 웃었다. 장난기 없는 웃음이었다.",
+      "sourceHash": "55ea3512ec616d092cacac3cf4c216f963a07d050c2396fbe07f6b5d8acd0ab9",
+      "t": "Yundal smiled. There was no teasing in it."
     },
     {
       "id": "ep-19:28",
@@ -274,9 +274,9 @@
     },
     {
       "id": "ep-19:45",
-      "source": "연이의 가슴이 쿵 하고 울렸다. 명식판의 빈칸, 年 자리가 그 두 글자를 향해 끌려가는 것 같았다.",
-      "sourceHash": "6f069e4b833a3eae9b95458eb33f036f05955c1f394260674caa7d979c7c4d78",
-      "t": "Yeoni's heart thudded. The empty Year space on their chart seemed to pull toward those two characters."
+      "source": "연이가 걸음을 멈췄다. 명식판의 빈칸, 年 자리가 그 두 글자를 향해 끌려가는 것 같았다.",
+      "sourceHash": "0393166b0b688cb42bc455f66697965d0d514ec8834ab5b7ad009034b94e0786",
+      "t": "Yeoni stopped walking. The empty Year space on their chart seemed to pull toward those two characters."
     },
     {
       "id": "ep-19:46",
@@ -340,9 +340,9 @@
     },
     {
       "id": "ep-19:56",
-      "source": "연이는 웃었다. 그런데 웃는 앞발 끝이 조금 떨렸다. 바로 눈앞에 있는데 손댈 수 없는 봄이었다.",
-      "sourceHash": "d51fd448858612c0c855a4c6305b7658c3a10096d2ea9862b6824b3317b26754",
-      "t": "Yeoni smiled. Yet the tips of their hooves trembled a little. Their spring was right before their eyes, beyond their reach."
+      "source": "연이는 웃었다. 그런데 앞발 끝이 조금 떨렸다.",
+      "sourceHash": "b5be6d140a95884424323f29314290449b45af8f5a9ca6bd8bba07f0dce31b59",
+      "t": "Yeoni smiled. Yet the tips of their hooves trembled a little."
     },
     {
       "id": "ep-19:57",
@@ -691,9 +691,9 @@
     },
     {
       "id": "ep-19:114",
-      "source": "대출 카드 위의 검은 칸 세 개가 빗물에 젖어 조금씩 번지고 있었다. 마치 그 아래 이름 석 자가 떠오르려는 것처럼.",
-      "sourceHash": "d693467f720d0fb388b9f7feeccc797ce78e365f80d8fbcae7fc13c6dd7bcc21",
-      "t": "The three black squares on the borrowing card blurred little by little in the rain, as though a three-syllable name were about to rise from beneath them."
+      "source": "대출 카드 위의 검은 칸 세 개가 빗물에 젖어 조금씩 번지고 있었다. 그 아래 이름 석 자가 떠오르려는 듯이.",
+      "sourceHash": "f3cd7e0d07163a6749a4059b17a31c1c5f8e16df618adce4c38372b0ad37b930",
+      "t": "The three black squares on the borrowing card blurred little by little in the rain, as if a three-syllable name were about to rise from beneath them."
     }
   ]
 }

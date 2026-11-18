@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-18
-next: A3 — A-novel-03.md 적용(원고 수정과 번역 갱신을 같은 커밋에)
+next: A4 — A-novel-04.md 적용(원고 수정과 번역 갱신을 같은 커밋에)
 ---
 
 # 문장 교정 Phase 2 (sepia) — 진행 문서
@@ -76,7 +76,7 @@ next: A3 — A-novel-03.md 적용(원고 수정과 번역 갱신을 같은 커�
 - [x] A1 `A-novel-01.md` — 73행 적용, 건너뜀 8, 미적용(구조) 7. 🔴 원고 수정으로 번역 4개 언어가 stale 판정(availableLocales=[ko]) — push 전 번역 재조립 필요 여부 결정. novel:build 뒤 sitemap:generate 필요(소설 URL lastmod). check:fast는 범위 밖 기존 실패 `__tests__/ui/feature-visual-details.test.mjs`(fusion-fortune 이미지 기대값, 29022710f 이후)로 test:node에서 BLOCKED — 보고만
 - [x] T1 A1(c3ae3dffd)에서 바뀐 비트의 4개 언어 번역 갱신 — 78비트 × 4언어(authored 행 234개, 문장 수정 291건; 문장부호·어미만 바뀐 5비트와 뜻이 이미 맞던 en 2·ja 1건은 원문 대조 후 번역 유지). 4개 언어 missing 0, 바뀐 비트 밖 출력 차이 0. `public/data/novel/manifest.json` availableLocales = ko·en·ja·zh-CN·zh-TW 복구
 - [x] A2 `A-novel-02.md` — 65행 적용(65비트, ep-14a:11 화자 neo→yun 포함), 건너뜀 3, 미적용(구조) 2. 번역 65비트 × 4언어 같은 커밋(authored 행 195, 번역문 수정 168), missing 0·범위 밖 차이 0, availableLocales ko+4
-- [ ] A3 `A-novel-03.md`
+- [x] A3 `A-novel-03.md` — 69행 적용(75비트, 화자 변경 없음), 건너뜀 0, 미적용(구조) 2(ep-27:neo-nickname 재배치, ep-24:38 글자판 위치 설정). 번역 75비트 × 4언어 같은 커밋(authored 행 225, 번역문 수정 278), missing 0·범위 밖 차이 0, availableLocales ko+4. EP.19·25·26 본문 4,000자 미만 경고(빌드 통과)
 - [ ] A4 `A-novel-04.md`
 - [ ] A5 `A-novel-05.md`
 - [ ] A6 `A-novel-06.md`
