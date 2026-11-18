@@ -78,3 +78,15 @@ test('a rejected draft retries within seconds; provider failures and stale quali
   expect(delaySeconds).toBeGreaterThanOrEqual(floor);expect(delaySeconds).toBeLessThanOrEqual(Math.max(floor,5));expect(m.ack).not.toHaveBeenCalled();
  }
 });
+test('staging queue picks the LLM env per row owner: allowlisted owner gets production flags, others stay masked',async()=>{
+ const allowed='0123456789abcdef01234567',other='89abcdef0123456789abcdef';
+ const env={APP_ENV:'staging',STAGING_LLM_MOCK_ENABLED:'true',GEMINIF_API_KEY:'k',STAGING_REAL_LLM_USER_IDS:allowed};
+ const seen=[];
+ for (const owner of [allowed,other]) {
+  const r={...row(),userId:owner},m=message();
+  const generateNextChapter=jest.fn(async e=>{seen.push(e);return {...r,state:'COMPLETED'};});
+  await consumeConsultationQueue({messages:[m]},env,{read:async()=>r,service:{generateNextChapter}});
+ }
+ expect(seen[0].STAGING_LLM_MOCK_ENABLED).toBe('false');expect(seen[0].GEMINIF_API_KEY).toBe('k');
+ expect(seen[1].GEMINIF_API_KEY||'').toBe('');expect(seen[1].STAGING_LLM_MOCK_ENABLED).toBe('true');
+});

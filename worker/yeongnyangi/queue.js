@@ -3,6 +3,7 @@ import { connectDb, withMongoRetry } from '../lib/db.js';
 import { YeongnyangiRequest } from './repository.js';
 import { hasRequestAccess } from './access-methods.js';
 import {deliveryRefundPending} from './terminal-refund-policy.js';
+import { stagingLlmEnvForUser } from '../lib/staging-real-llm.js';
 
 const terminal = row => !row || deliveryRefundPending(row) || ['COMPLETED','REFUNDED','AWAITING_FOLLOWUP','AWAITING_DRAW'].includes(row.state) || ['PAYMENT_NOT_ACTIVE','GENERATION_REVIEW_REQUIRED','ASK_LIMITED_REVIEW_REQUIRED'].includes(row.errorCode) ||
   (row.errorCode==='AUTOMATIC_RECOVERY_STOPPED' && !(row.snapshot?.manifest?.length && row.chapters.length===row.snapshot.manifest.length));
@@ -67,14 +68,16 @@ export async function consumeConsultationQueue(batch, env, dependencies = {}) {
     try {
       let row = await read(id);
       if (terminal(row)) { message.ack(); continue; }
-      if (!hasRequestAccess(row)) row = await service.activateFortune(env,String(row.userId),id);
+      // Staging only: allowlisted owners get the production LLM view; production is a no-op.
+      const rowEnv = stagingLlmEnvForUser(env, String(row.userId));
+      if (!hasRequestAccess(row)) row = await service.activateFortune(rowEnv,String(row.userId),id);
       if (terminal(row)) { message.ack(); continue; }
       const due = Math.max(new Date(row.nextAttemptAt || 0).getTime(), new Date(row.leaseUntil || 0).getTime());
       if (due > Date.now()) { await deferUntilDue(env, message, id, due); continue; }
-      row = await service.generateNextChapter(env,String(row.userId),id,'queue');
+      row = await service.generateNextChapter(rowEnv,String(row.userId),id,'queue');
       if (!terminal(row)) {
         // Requeue after *every* saved chapter. No single invocation owns a book.
-        if (!await enqueue(env,row)) { message.retry({delaySeconds:30}); continue; }
+        if (!await enqueue(rowEnv,row)) { message.retry({delaySeconds:30}); continue; }
       }
       message.ack();
     } catch (error) {
