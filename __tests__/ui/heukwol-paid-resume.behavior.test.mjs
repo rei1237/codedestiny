@@ -163,3 +163,29 @@ test('revisiting a failed paid generation shows the refund in progress without w
   assert.equal(f.calls.filter(c=>c.url.endsWith('/continue')).length,0);
  }finally{await f.close();}
 });
+
+test('once payment is confirmed a generating screen replaces the form, and a failed start retries there without another gate',async()=>{
+ const f=await fixture();try{
+  await f.begin();
+  await act(async()=>f.gate.resolve({ok:true}));
+  assert.match(document.body.textContent,/결제를 확인했어요/);
+  assert.equal(document.querySelector('textarea'),null,'a paid user must not see the question form again');
+  await act(async()=>f.start.reject(new Error('상담 연결을 다시 확인해 주세요.')));
+  assert.equal(document.querySelector('textarea'),null);
+  const retry=[...document.querySelectorAll('button')].find(b=>b.textContent==='다시 시도하기');assert.ok(retry,'the retry must stay on the generating screen');
+  f.runtime.fetch=async()=>({ok:true,json:async()=>completed});
+  await act(async()=>retry.click());
+  await until(()=>/저장된 상담 본문/.test(document.body.textContent));
+  assert.equal(f.runtime.gateCalls,1);
+ }finally{await f.close();}
+});
+
+test('a paid start the user must fix (4xx) returns to the form with the reason',async()=>{
+ const f=await fixture();try{
+  await f.begin();
+  f.runtime.fetch=async url=>url.endsWith('/start')?{ok:false,status:400,json:async()=>({ok:false,code:'BIRTH_TIME_REQUIRED',message:'출생 시각이 기록된 프로필이 필요해요.'})}:{ok:true,json:async()=>completed};
+  await act(async()=>f.gate.resolve({ok:true}));
+  await until(()=>/출생 시각이 기록된 프로필이 필요해요/.test(document.body.textContent));
+  assert.ok(document.querySelector('textarea'));
+ }finally{await f.close();}
+});
