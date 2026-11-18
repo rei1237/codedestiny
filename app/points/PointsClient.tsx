@@ -3620,6 +3620,30 @@ export default function PointsPage() {
 
     try {
       const data = await confirmSubscriptionWithServer(pending.payload);
+      // 🔴 지급 대기 → 지급 완료도 다른 확정 경로(리다이렉트 복귀·결제창 확정)와 같이 상태·캐시를 쓴다.
+      //    빠지면 셸·독립 정적이 읽는 구독 스냅샷과 레거시 캐시가 '미보유'로 남아 산 이용권이 안 보인다.
+      if (data.subscription) {
+        const newSub: SubscriptionStatus = {
+          tier: data.subscription?.tier || "free",
+          source: data.subscription?.source || "pass",
+          isActive: !!data.subscription?.isActive,
+          startedAt: data.subscription?.startedAt || null,
+          expiresAt: data.subscription?.expiresAt || null,
+          profileLimit: typeof data.subscription?.profileLimit === "number"
+            ? data.subscription.profileLimit
+            : getSubscriptionPolicyProfileLimit(data.subscription?.tier || pending.payload.tier),
+          durationMonths: normalizeSubscriptionDurationMonths(data.subscription?.durationMonths ?? pending.payload.durationMonths) ?? pending.payload.durationMonths,
+          lowBalanceWarning: false,
+          cancelAtPeriodEnd: !!data.subscription?.cancelAtPeriodEnd,
+          cancelRequestedAt: data.subscription?.cancelRequestedAt || null,
+          freeLimit: getSubscriptionPolicyFreeLimit(
+            data.subscription?.tier || pending.payload.tier,
+            data.subscription?.passPolicyVersion || CURRENT_PASS_POLICY_VERSION,
+          ),
+        };
+        setSubscription((prev) => mergeSubscriptionState(prev, newSub));
+        persistSubscriptionCache(newSub);
+      }
       pendingSubscriptionConfirmRef.current = null;
       clearPendingSubscriptionOrder();
       optimisticPassBackupRef.current = null;
@@ -3650,6 +3674,7 @@ export default function PointsPage() {
     confirmSubscriptionWithServer,
     discardPendingSubscriptionPass,
     markSubscriptionPaymentUnknown,
+    persistSubscriptionCache,
     pushToast,
     setProcessingAction,
     setProcessingStage,

@@ -34,3 +34,18 @@ test('grant check precedes access refresh and consumes no return ticket', () => 
   assert.match(pending, /setSubscription\(backup\)/);
   assert.doesNotMatch(pending, /clearPendingSubscriptionOrder|scheduleCheckoutReturn/);
 });
+// 🔴 2026-11-18 결함 E: '결제 상태 다시 확인'(지급 대기 → 지급 완료) 경로만 이용권 캐시를 쓰지 않아,
+// 지급이 끝나도 셸·독립 정적이 읽는 구독 스냅샷·레거시 캐시가 '미보유'로 남았다. 다른 확정 경로와 같이 쓴다.
+test('pending grant recheck persists the granted pass like the other confirm paths', () => {
+  const recheck = source.slice(
+    source.indexOf('const checkPendingSubscriptionPayment ='),
+    source.indexOf('subscriptionStatusCheckHandlerRef.current = checkPendingSubscriptionPayment;'),
+  );
+  const confirmAt = recheck.indexOf('await confirmSubscriptionWithServer(pending.payload)');
+  const persistAt = recheck.indexOf('persistSubscriptionCache(');
+  assert.ok(confirmAt > 0, 'recheck must still confirm with the server first');
+  assert.ok(persistAt > confirmAt, 'granted pass must be persisted after the server confirm');
+  assert.ok(persistAt < recheck.indexOf('await syncSubscriptionAppliedStage('), 'persist before announcing the pass as applied');
+  assert.match(recheck.slice(confirmAt, persistAt), /setSubscription\(\(prev\) => mergeSubscriptionState\(prev, /);
+  assert.match(recheck.slice(recheck.lastIndexOf('}, [')), /\bpersistSubscriptionCache,/);
+});
