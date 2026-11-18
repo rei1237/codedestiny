@@ -146,6 +146,8 @@ export async function callGeminiText(env, prompt, options = {}) {
         ? options.geminiParts
         : undefined,
       fallbackToWorkersAI: options.fallbackToWorkersAI === false ? false : undefined,
+      // Gemini 우선(lib/llm-client.ts LLMRequest.finalProviderAttempt). 호출부가 마지막 시도를 알 때만 싣는다.
+      finalProviderAttempt: typeof options.finalProviderAttempt === "boolean" ? options.finalProviderAttempt : undefined,
       logContext: { ...getPaidGenerationContext(), ...(options.logContext && typeof options.logContext === "object" ? options.logContext : {}) },
       cache: options.cache && typeof options.cache === "object" ? options.cache : undefined,
       // Gemini 명시적 컨텍스트 캐시 핸들(createGeminiContextCache 반환값). 위 `cache`(응답 캐시)와
