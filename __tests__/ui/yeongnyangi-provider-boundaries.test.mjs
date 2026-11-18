@@ -224,3 +224,12 @@ test('every concise catalog chapter preserves sections, evidence ownership and f
  }
  assert.ok(cases>2000);
 });
+test('S9-Y: the receipt marks only a refusal Gemini never billed; timeouts, final refusals and answered calls stay billed',async()=>{
+ for(const failure of [{error:'LLM_INPUT_TOKEN_COUNT_UNAVAILABLE',status:429,providerCode:'GEMINI_RATE_LIMITED'},{error:'GEMINI_UNAVAILABLE',status:503,providerCode:'GEMINI_UNAVAILABLE'},{error:'GEMINI_REQUEST_FAILED',status:404,providerCode:'GEMINI_MODEL_UNAVAILABLE'}]){
+  setResponse({ok:false,...failure});await assert.rejects(provider.generate(request),e=>e.code==='FORTUNE_PROVIDER_FAILED');assert.equal(provider.receipt.unbilled,true);
+ }
+ for(const failure of [{error:'LLM_GENERATION_TIMEOUT'},{error:'GEMINI_REQUEST_FAILED',status:429,providerCode:'GEMINI_RATE_LIMITED',retryable:false},{error:'GEMINI_REQUEST_FAILED',status:400,providerCode:'GEMINI_INVALID_REQUEST'}]){
+  setResponse({ok:false,...failure});await assert.rejects(provider.generate(request));assert.equal(provider.receipt.unbilled,undefined);
+ }
+ setResponse({ok:true,text:'{}',finishReason:'MAX_TOKENS'});await assert.rejects(provider.generate(request),e=>e.code==='CHAPTER_TRUNCATED');assert.equal(provider.receipt.unbilled,undefined);
+});

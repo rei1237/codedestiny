@@ -1,6 +1,6 @@
 import {CHAPTER_DELIVERY_VERSION,chapterDeliveryFailure,chapterLeaseMs,hasChapterDeliveryContract} from './chapter-delivery-contract.js';
-import {AUTOMATIC_CHAPTER_ATTEMPTS,MANUAL_CHAPTER_RECOVERY_LIMIT,SYSTEM_CHAPTER_RETRY_GRANT} from './chapter-retry-policy.js';
-export {AUTOMATIC_CHAPTER_ATTEMPTS,MANUAL_CHAPTER_RECOVERY_LIMIT,SYSTEM_CHAPTER_RETRY_GRANT};
+import {AUTOMATIC_CHAPTER_ATTEMPTS,MANUAL_CHAPTER_RECOVERY_LIMIT,SYSTEM_CHAPTER_RETRY_GRANT,UNBILLED_ATTEMPT_RETURNS} from './chapter-retry-policy.js';
+export {AUTOMATIC_CHAPTER_ATTEMPTS,MANUAL_CHAPTER_RECOVERY_LIMIT,SYSTEM_CHAPTER_RETRY_GRANT,UNBILLED_ATTEMPT_RETURNS};
 import { storedChapterDraft } from './stored-chapter.js';
 import { deliveryRefundPending, terminalRestoreFilter } from './terminal-refund-policy.js';
 import { mongoose, mongoTransactionOptions, withMongoRetry } from '../lib/db.js';
@@ -797,6 +797,17 @@ export async function failChapter(env, userId, requestId, token, code, attempt =
   // A stored fact snapshot fails the same way on every attempt, so it holds at once and never offers a buyer retry.
   const permanent=['GENERATION_REVIEW_REQUIRED','INVALID_MANIFEST','LLM_CONTENT_BLOCKED'].includes(code)||String(code).startsWith('ENGINE_FACT_');
   const stopped=attempt>=allowedAttempts&&!permanent&&!limited;
+  // Gemini refused before billing: give the claimed attempt back (capped per chapter) and retry after the
+  // normal backoff, so a rate-limit burst never exhausts a paid order's chapter budget (S9-Y).
+  if(receipt?.unbilled===true&&Number.isInteger(ordinal)&&!permanent&&!limited){
+    const returns=`unbilledReturns.${ordinal}`, at=new Date();
+    const returned=await withMongoRetry(env, () => YeongnyangiRequest.updateOne({_id:requestId,userId:ownerId(userId),leaseToken:token,state:'GENERATING',
+      attempts:{$gt:0},[`chapterAttempts.${ordinal}`]:{$gt:0},$or:[{[returns]:{$exists:false}},{[returns]:{$lt:UNBILLED_ATTEMPT_RETURNS}}]},
+      {$set:{state:'FORTUNE_FAILED',leaseToken:'',leaseUntil:null,errorCode:String(code).slice(0,80),lastFailure:{code:String(code).slice(0,80),stage,at},nextAttemptAt:new Date(Date.now()+120000)},
+        $inc:{attempts:-1,[`chapterAttempts.${ordinal}`]:-1,[returns]:1},
+        $push:{recoveryAudit:{kind:'retryable_failure',source:'generation',chapter:ordinal,at,code:String(code).slice(0,80),attemptReturned:true,...(detail?{detail:String(detail).slice(0,80)}:{}),receipt}}}));
+    if(returned?.modifiedCount)return returned;
+  }
   const result=await withMongoRetry(env, () => YeongnyangiRequest.updateOne({_id:requestId,userId:ownerId(userId),leaseToken:token,state:'GENERATING'},
     {$set:{state:'FORTUNE_FAILED',leaseToken:'',leaseUntil:null,errorCode:limited?'ASK_LIMITED_REVIEW_REQUIRED':permanent?'GENERATION_REVIEW_REQUIRED':stopped?'AUTOMATIC_RECOVERY_STOPPED':String(code).slice(0,80),lastFailure:{code:String(code).slice(0,80),stage,at:new Date()},nextAttemptAt:limited||permanent||stopped?null:new Date(Date.now()+(stage==='quality'?QUALITY_RETRY_MS:attempt===1?30000:120000)),
       ...(limited||permanent?holdSet(code,Number.isInteger(ordinal)?ordinal:null,new Date()):{})},

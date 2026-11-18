@@ -1139,3 +1139,24 @@ test('Family ownership alone does not automatically consume a benefit',async()=>
   await expect(repo.attachPayment({},owner,'id',1000)).rejects.toMatchObject({status:402});
   expect(consumePass).not.toHaveBeenCalled();expect(evidences).toHaveLength(0);
 });
+
+test('S9-Y: a refusal Gemini never billed hands the chapter attempt back, at most three times per chapter',async()=>{
+  await repo.createRequest({},owner,'id',values);await repo.attachPayment({},owner,'id',1000);
+  const unbilled={provider:'gemini',model:'gemini-2.5-flash',status:429,unbilled:true};
+  for(let i=0;i<repo.UNBILLED_ATTEMPT_RETURNS;i++){
+    const claim=await repo.claimChapter({},owner,'id');expect(claim.token).toBeTruthy();
+    await repo.failChapter({},owner,'id',claim.token,'FORTUNE_PROVIDER_FAILED',3,'provider',3,'',0,unbilled);
+    expect(requests[0]).toMatchObject({state:'FORTUNE_FAILED',errorCode:'FORTUNE_PROVIDER_FAILED',attempts:0,chapterAttempts:{0:0}});
+    expect(requests[0].nextAttemptAt.getTime()).toBeGreaterThan(Date.now()+60000);
+    requests[0].nextAttemptAt=new Date(Date.now()-1);
+  }
+  expect(requests[0].recoveryAudit.filter(e=>e.attemptReturned)).toHaveLength(3);
+  // Past the cap, and for any billed failure, the attempt is spent as before.
+  const capped=await repo.claimChapter({},owner,'id');
+  await repo.failChapter({},owner,'id',capped.token,'FORTUNE_PROVIDER_FAILED',1,'provider',3,'',0,unbilled);
+  expect(requests[0].chapterAttempts[0]).toBe(1);
+  requests[0].nextAttemptAt=new Date(Date.now()-1);
+  const billed=await repo.claimChapter({},owner,'id');
+  await repo.failChapter({},owner,'id',billed.token,'FORTUNE_PROVIDER_TIMEOUT',2,'provider',3,'',0,{provider:'gemini',model:'gemini-2.5-flash',status:null});
+  expect(requests[0]).toMatchObject({attempts:2,chapterAttempts:{0:2}});
+});

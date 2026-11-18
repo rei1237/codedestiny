@@ -2,6 +2,7 @@ import { jsonSchemaFromExample } from "../../lib/json-text-repair.js";
 import {CONCISE_READING_VERSION,CONCISE_MIN_OUTPUT_TOKENS} from '../fortune/concise-reading';
 import { callGeminiText } from '../../lib/gemini.js';
 import { GEMINI_PROSE_MODEL, proFallbackCause, selectGeminiModel } from '../../../lib/gemini-model-policy.js';
+import { isUnbilledGeminiFailure } from '../../../lib/gemini-provider-errors.mjs';
 import { tokensRequiredForChars } from '../../lib/llm-budget.js';
 import { FortuneError, type FortuneLLMRequest, type LLMProvider } from '../fortune/shared/contracts';
 import { messages } from '../fortune/shared/prompt';
@@ -35,7 +36,7 @@ export function chapterOutputTokenBudget(requested?: number, version?: string): 
 }
 
 export class CodeDestinyProvider implements LLMProvider {
-  receipt?: {provider:string;model:string;finishReason:string;inputTokens:number|null;outputTokens:number|null;estimated:boolean|null;thinkingTokens:number|null;durationMs:number;maxOutputTokens:number;status:number|null;modelFallback?:string};
+  receipt?: {provider:string;model:string;finishReason:string;inputTokens:number|null;outputTokens:number|null;estimated:boolean|null;thinkingTokens:number|null;durationMs:number;maxOutputTokens:number;status:number|null;modelFallback?:string;unbilled?:true};
   constructor(private env: Record<string, unknown>, private logContext: Record<string, unknown> = {},
     private cacheContext: {owner?:string;skipRead?:boolean}={},
     // The order's tier timeout (chapterTimeoutMs); orders without the policy marker keep CHAPTER_TIMEOUT_MS.
@@ -102,7 +103,9 @@ export class CodeDestinyProvider implements LLMProvider {
     this.receipt={provider:response.provider || 'gemini',model:response.model || model || 'gemini-2.5-flash',
       finishReason:response.finishReason || '',inputTokens:response.usage?.inputTokens ?? null,outputTokens:response.usage?.outputTokens ?? null,
       estimated:response.usage?Boolean(response.usage.estimated):null,thinkingTokens:response.usage?.thinkingTokens ?? null,
-      durationMs:Date.now()-startedAt,maxOutputTokens:cap,status:'status' in response?response.status:null,...(modelFallback?{modelFallback}:{})};
+      durationMs:Date.now()-startedAt,maxOutputTokens:cap,status:'status' in response?response.status:null,...(modelFallback?{modelFallback}:{}),
+      // Gemini refused before writing (429, 5xx, retired 404): failChapter hands the attempt back (capped).
+      ...(!response.ok&&isUnbilledGeminiFailure(response)?{unbilled:true as const}:{})};
     if (!response.ok || response.isMock || !response.text) {
       const code='error' in response ? String(response.error) : '';
       // Spend-cap and billing outages travel as the audit detail so the hold alert names the cause.
