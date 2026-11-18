@@ -1753,6 +1753,8 @@ async function generateSectionOnce(env, section, prompt, options = {}) {
       fallbackMinChars: Math.round(section.minChars * 0.3),
       logContext: options.logContext,
       cache: options.cache,
+      // Gemini 우선(2026-11-18): 섹션의 마지막 시도만 Gemini 실패 뒤 보조 모델로 내려간다. 지원 복구는 아래가 이긴다.
+      ...(typeof options.finalProviderAttempt === "boolean" ? { finalProviderAttempt: options.finalProviderAttempt } : {}),
       ...recoveryOptions,
     });
     base.durationMs = Date.now() - startedAt;
@@ -3160,6 +3162,7 @@ async function handleStart(request, env, route = "/api/life-book-ai/generate", r
               birthInfo: normalized.input.birthInfo,
               supportRecovery: recovery,
               truncatedRetry: stored?.error === "SECTION_TRUNCATED",
+              finalProviderAttempt: attempt >= LIFE_BOOK_MAX_SECTION_ATTEMPTS,
               // 재시도는 캐시를 우회해야 같은 짧은 응답을 다시 받지 않는다.
               cache: attempt > 1 ? null : {
                 store: createLlmCacheStore(env),

@@ -168,8 +168,10 @@ it('only the final checkpoint attempt allows the Workers AI fallback, gated by 3
   expect(docs[0].status).toBe('completed');
   const options = provider.mock.calls.filter(call => call[1].includes(`제목: ${section.title}\n`)).map(call => call[2]);
   expect(options).toHaveLength(2);
-  expect(options[0]).toMatchObject({ fallbackToWorkersAI: false, maxOutputTokens: 8192 });
+  // S11 Gemini 우선: 첫 시도는 Gemini 만(finalProviderAttempt:false), 마지막 시도만 Gemini 실패 뒤 보조 모델.
+  expect(options[0]).toMatchObject({ fallbackToWorkersAI: false, finalProviderAttempt: false, maxOutputTokens: 8192 });
   expect(options[1].fallbackToWorkersAI).toBeUndefined();
+  expect(options[1].finalProviderAttempt).toBe(true);
   expect(options[1].fallbackMinChars).toBe(Math.round(section.minChars * 0.3));
   expect(refund).not.toHaveBeenCalled(); expect(passRefund).not.toHaveBeenCalled();
 });

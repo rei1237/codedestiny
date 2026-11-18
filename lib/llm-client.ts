@@ -17,6 +17,17 @@ import { recordGeminiUsage } from "../worker/lib/llm-usage-meter.js";
 export interface LLMRequest {
   /** Total generation attempts across Gemini, cache recovery and Workers AI. */
   maxProviderAttempts?: number;
+  /**
+   * Gemini 우선 정책(2026-11-18 사용자 요청: "보조 모델보다도 제미나이로 생성되도록해줘 정 안되면
+   * 보조 모델을 쓰도록하고"). 호출부가 아는 "이 작업 단위(장·소절·파트)의 마지막 시도" 여부다.
+   * - false: 뒤에 Gemini 시도(재시도·웨이브·재개·큐 재전달)가 남아 있다. Workers AI 로 내려가지
+   *   않고 실패를 던져 다음 시도가 Gemini 를 다시 부르게 한다(토큰 계수 장애 포함).
+   * - true: 마지막 시도다. Gemini 일시 오류(429·5xx·과부하)에 한 번 더 Gemini 를 쓰고, 그래도
+   *   실패하면 별도 1회 몫으로 Workers AI 를 쓴다. 시간 초과·안전 차단·입력 상한 초과는 폴백하지 않는다.
+   * - 미지정: 종전 동작.
+   * `fallbackToWorkersAI: false` 는 언제나 우선한다(비전 입력 등).
+   */
+  finalProviderAttempt?: boolean;
   prompt: string;
   systemPrompt?: string;
   /**
@@ -1190,6 +1201,24 @@ function isTransientGeminiError(error: unknown): boolean {
 
 const GEMINI_RETRY_BACKOFF_MS = [400, 900] as const;
 
+// countTokens 는 과금 생성이 아니다. 일시 오류(429·5xx)로 계수가 막혔다고 곧장 Gemini 를 건너뛰고
+// 보조 모델로 내려가지 않도록, 같은 시계 안에서 백오프 재시도한다. 시간 초과·한도 장애·설정 오류는
+// 재시도하지 않는다(isTransientGeminiError 와 같은 기준).
+async function assertGeminiInputTokenLimitWithRetry(count: () => Promise<unknown>, deadlineAt: number): Promise<void> {
+  for (let attempt = 0; ; attempt += 1) {
+    try {
+      await count();
+      return;
+    } catch (error) {
+      if (String((error as { code?: string })?.code || "") !== "LLM_INPUT_TOKEN_COUNT_UNAVAILABLE") throw error;
+      if (attempt >= GEMINI_RETRY_BACKOFF_MS.length || !isTransientGeminiError(error)) throw error;
+      const backoffMs = GEMINI_RETRY_BACKOFF_MS[attempt];
+      if (deadlineAt - Date.now() - backoffMs <= 0) throw error;
+      await new Promise((resolve) => setTimeout(resolve, backoffMs));
+    }
+  }
+}
+
 // deadlineAt 이 없으면(직접 호출 등) request.timeoutMs 기준으로 새로 계산한다 — callLLMUncached
 // 를 거치는 정상 경로에서는 항상 공유 deadlineAt 이 전달되므로 이 분기는 방어적 기본값이다.
 async function callGeminiWithRetry(
@@ -1227,8 +1256,14 @@ async function callLLMUncached(
   env?: CloudflareEnv,
 ): Promise<LLMResponse> {
   const requestModel = resolveGeminiModel(request, env);
+  const finalAttempt = request.finalProviderAttempt;
+  // 마지막 시도는 Gemini 일시 오류 재시도 1회를 보장한다(유료 컨텍스트가 1로 묶어도). 이 몫은
+  // isTransientGeminiError 일 때만 쓰이므로 정상 응답·시간 초과에서 생성을 더 사지 않는다.
+  const geminiRequest: LLMRequest = finalAttempt === true
+    ? { ...request, maxProviderAttempts: Math.max(2, Math.floor(request.maxProviderAttempts || 2)) }
+    : request;
   // One ledger for every generation transport; tokenizer/cache CRUD are not generation.
-  const budget: GenerationBudget = { remaining: Math.min(2, Math.max(1, Math.floor(request.maxProviderAttempts || 2))) };
+  const budget: GenerationBudget = { remaining: Math.min(2, Math.max(1, Math.floor(geminiRequest.maxProviderAttempts || 2))) };
   // Gemini 시도(재시도 포함) + Workers AI 폴백 전체가 이 하나의 시계를 공유한다 — 각 단계가
   // timeoutMs 를 독자적으로 다시 배정하면 총 소요시간이 호출자가 준 예산을 넘어 엣지 실행
   // 한도에 걸리고, 그 경우 앱 자체 에러 응답도 환불 처리도 돌지 못한 채 연결이 끊긴다.
@@ -1244,12 +1279,12 @@ async function callLLMUncached(
     geminiError = new Error("Gemini API key is not configured.");
   } else {
     try {
-      await assertGeminiInputTokenLimit({
+      await assertGeminiInputTokenLimitWithRetry(() => assertGeminiInputTokenLimit({
         apiKey,
         model: requestModel,
         generateContentRequest: buildGeminiGenerateContentRequest(normalized),
         timeoutMs: Math.max(1, deadlineAt - Date.now()),
-      });
+      }), deadlineAt);
       geminiInputVerified = true;
     } catch (error) {
       // 실제로 상한을 넘은 입력은 다른 공급자로 우회하지 않는다. tokenizer 자체가 일시적으로
@@ -1261,7 +1296,7 @@ async function callLLMUncached(
 
   if (geminiInputVerified) {
     try {
-      return await callGeminiWithRetry(request, env, deadlineAt, budget);
+      return await callGeminiWithRetry(geminiRequest, env, deadlineAt, budget);
     } catch (error) {
       if (error instanceof ProviderContentBlocked) throw error;
       if (isGenerationTimeout(error)) throw generationTimeoutFailure(error);
@@ -1275,7 +1310,7 @@ async function callLLMUncached(
   //    fallbackMinChars 게이트에 걸려 상담 전체가 실패한다. 같은 deadlineAt 을 쓰므로
   //    예산이 남아 있지 않으면 이 시도는 즉시 실패하고 벽시계를 늘리지 않는다.
   if (budget.remaining > 0 && request.geminiCachedContent && geminiInputVerified) {
-    const withoutContextCache: LLMRequest = { ...request };
+    const withoutContextCache: LLMRequest = { ...geminiRequest };
     delete withoutContextCache.geminiCachedContent;
     console.warn("[llm context_cache] reference failed; retrying without the cache.", {
       error: getErrorMessage(geminiError),
@@ -1295,7 +1330,14 @@ async function callLLMUncached(
   const outageCode = geminiOutageCode(geminiError);
   if (outageCode) await reportProviderOutage(env, outageCode);
 
-  if (budget.remaining <= 0 || request.fallbackToWorkersAI === false) {
+  // Gemini 우선: 뒤에 Gemini 시도가 남은 호출은 보조 모델로 내려가지 않는다.
+  if (request.fallbackToWorkersAI === false || finalAttempt === false) {
+    throw geminiError;
+  }
+  // 마지막 시도의 Workers AI 는 Gemini 몫과 별도의 원장이다. 미지정 호출은 종전 원장을 그대로 쓴다.
+  // 2회인 것은 첫 모델이 폐기·빈 응답일 때 체인의 다음 모델을 쓰게 하려는 것이다(시간 초과는 즉시 끝).
+  const fallbackBudget: GenerationBudget = finalAttempt === true ? { remaining: 2 } : budget;
+  if (fallbackBudget.remaining <= 0) {
     throw geminiError;
   }
 
@@ -1307,7 +1349,7 @@ async function callLLMUncached(
   });
 
   try {
-    return await callCloudflareWorkersAI(request, env, deadlineAt, budget);
+    return await callCloudflareWorkersAI(request, env, deadlineAt, fallbackBudget);
   } catch (cloudflareError) {
     if (cloudflareError instanceof ProviderContentBlocked) throw cloudflareError;
     if (isGenerationTimeout(cloudflareError)) throw cloudflareError;

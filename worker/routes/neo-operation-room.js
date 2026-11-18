@@ -1083,7 +1083,9 @@ async function generateNeoSectionOnce(env, section, prompt, cacheConfig, deadlin
         fallbackMinChars: Math.round((section.minChars || 500) * 0.3),
         // 2026-11-18 S3-H: 체크포인트는 첫 시도만 Gemini 단독이다. 마지막(retry) 시도까지 폴백을 막으면
         // Gemini 가 두 번 흔들린 챕터 하나 때문에 상담 전체가 환불된다 — 마지막 시도는 위 30% 하한을 건 폴백을 허용한다.
-        ...(singleAttempt && !retry ? { fallbackToWorkersAI: false } : {}),
+        // 2026-11-18 S11 Gemini 우선: 마지막 시도라도 Gemini(일시 오류 재시도 포함)를 먼저 쓰고, 실패했을 때만 보조 모델.
+        // finalProviderAttempt 를 싣지 않으면 llm-client 시도 원장(1회)이 Gemini 실패 뒤 폴백을 막아 위 허용이 무력해진다.
+        ...(singleAttempt ? (retry ? { finalProviderAttempt: true } : { fallbackToWorkersAI: false, finalProviderAttempt: false }) : {}),
         ...(useCache ? { cache: cacheConfig } : {}),
       });
       // Gemini 는 truncated(MAX_TOKENS)로, Workers AI 는 finishReason("length")로만 잘림을 알린다.
