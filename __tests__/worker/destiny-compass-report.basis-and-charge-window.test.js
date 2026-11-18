@@ -126,7 +126,8 @@ function sectionText(key) {
 beforeEach(() => {
 passRefund=jest.fn(async()=>({refunded:false,skipped:true}));
   docs = []; startCalls = []; prompts = []; storageFault = false;
-  refundMock = jest.fn(async () => ({ ok: true }));
+  // failServiceExecution 이 실제로 환불을 끝냈을 때의 응답 모양(ok 만으로는 환불로 알리지 않는다).
+  refundMock = jest.fn(async () => ({ ok: true, status: 200, idempotent: false, execution: { status: 'refunded' }, settlement: { ok: true, status: 'refunded' } }));
   completeMock = jest.fn(async () => ({}));
   accessMock = jest.fn(async () => ({ ok: true, accessType: 'paid', matchedTransactionId: 'original-receipt' }));
   provider = jest.fn(async (_env, prompt, options) => {
