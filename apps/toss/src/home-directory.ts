@@ -81,7 +81,7 @@ const reports:DirectoryItem[]=[
   {title:"지오맨시 흙점", href:"/geomancy/"},
   {title:"사주 작명첩", href:"/naming-ai/"},
   {title:"정신분석 해몽", href:"/dream/psycho/"},
-  {title:"흑월의 경고 상담", href:"/heukwol/?consult=1"},
+  {title:"흑월의 주의 시기 상담", href:"/heukwol/?consult=1"},
   {title:"초융합 운세 둘러보기", room:"fusion"},
   {title:"인생의 책 둘러보기", room:"life-book"},
   {title:"인생 총운", href:"/life-book-ai/?mode=lifeFortune",body:"탄생부터 노년까지 긴 흐름을 읽는 사주 리포트"},

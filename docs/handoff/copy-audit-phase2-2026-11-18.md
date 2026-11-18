@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-19
-next: C1 — C-paid-signature.md
+next: C2 — C-paid-catalog.md
 ---
 
 # 문장 교정 Phase 2 (sepia) — 진행 문서
@@ -83,6 +83,6 @@ next: C1 — C-paid-signature.md
 - [x] A6 `A-novel-06.md` — 81행 적용(79비트, 화자 변경 없음; P1 8건 포함), 유지 2, 건너뜀 1(45:58 화자 변경 필요), 참고 3, 미적용(구조) 5, 보류 16(51S·52S·53S 1,800자 게이트). 번역 79비트 × 4언어 같은 커밋(authored 행 237, 번역문 수정 296), missing 0·범위 밖 차이 0, availableLocales ko+4. 사이드 엔딩 한글 1,800~1,802자. check:fast PASS(481 suites)
 - [x] B1 `B-service-characters.md` (네오 츤데레, design-canon 2절 갱신 포함) — 적용 70·보류 6·구조 2, 번역 동기화 18키(+네오 en/ja/zh 표). 결과는 리포트 "Phase 2 적용 결과" 절
 - [x] B2 `B-service-stats.md` 대표 예시 행 — 적용 20, 골든 보류 3(24114·grade.S=saju-compat 골든, rich-card 1321=영냥이 불변성), 보고만·보류 3(f3378·aiFeats.title 고아, fortuneTeaHouse-28 낡은 authored), 유지 4. 번역 동기화 11키(skeleton 2 포함). sync:public·sitemap:generate 재생성. 결과는 리포트 "Phase 2 적용 결과" 절
-- [ ] C1 `C-paid-signature.md`
+- [x] C1 `C-paid-signature.md` — 적용 33·부분 3·보류 6(+적용 행 일부 2)·보고만 1, registry reason 변경 0(확인 필요 4), 번역 동기화 2키, check:fast PASS
 - [ ] C2 `C-paid-catalog.md`
 - [ ] 마무리: 금지 표현 grep, 불변 파일 diff 0 확인, check:pre-push, push, 최종 보고(요청서 7절 형식)

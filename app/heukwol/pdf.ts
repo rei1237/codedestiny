@@ -14,6 +14,6 @@ export async function exportHeukwolPdf(report:HeukwolReport,isCurrent:()=>boolea
   for(const z of m.ziwei)writer.body(`${z.start} ~ ${z.end} KST · 음력 ${z.leap?'윤':''}${z.lunarMonth}월\n${z.marks.map(mark=>`${({huaLu:'화록',huaQuan:'화권',huaKe:'화과',huaJi:'화기'} as Record<string,string>)[mark.type]}: ${mark.star} (${mark.palaces.join('·')})`).join('\n')}`);
  }
 
- writer.body(report.analysis.method);drawFooters(pdf,fonts,'꿀꿀 운세 · 흑월의 경고',1);
+ writer.body(report.analysis.method);drawFooters(pdf,fonts,'꿀꿀 운세 · 흑월의 주의 시기',1);
  if(isCurrent())pdf.save(`흑월의-경고-${report.year}.pdf`);
 }

@@ -224,8 +224,8 @@
   ],
   "outcomes": [
     {
-      "title": "연애 성공 체크리스트",
-      "text": "실천 비책마다 오늘·이번 주 같은 시기와 근거가 붙어요. 해낸 항목에 체크하면 이 기기에서 상담별로 기억해요.",
+      "title": "연애 점검 목록",
+      "text": "행동 계획마다 오늘·이번 주 같은 시기와 근거가 붙어요. 해낸 항목에 체크하면 이 기기에서 상담별로 기억해요.",
       "evidence": "app/love-secret-ai/result/LoveSecretChecklist.tsx"
     },
     {

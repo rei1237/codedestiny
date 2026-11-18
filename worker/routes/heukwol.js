@@ -44,7 +44,7 @@ async function completeHeukwol(env,userId,id,meta,chapters) {
   const totalChars=chapters.reduce((n,c)=>n+c.totalChars,0);
   // 1판만 전체 40,000자 관문을 둔다. 2판에서 분량은 치명이 아니다.
   if(!isV2(meta)&&totalChars<HEUKWOL_MIN_CHARS)throw new Error('HEUKWOL_REPORT_TOO_SHORT');
-  const archive={title:`${meta.input.year} 흑월의 경고`,year:meta.input.year,analysis:meta.analysis,chapters,totalChars,
+  const archive={title:`${meta.input.year} 흑월의 주의 시기`,year:meta.input.year,analysis:meta.analysis,chapters,totalChars,
     reportId:id,generatedAt:new Date().toISOString(),question:meta.input.question};
   const completed=await completeServiceExecution(env,userId,{executionKey:id,reportId:id,result:archive,metadata:{...meta,chapters,archive}});
   if(!completed.ok)throw new Error('HEUKWOL_SAVE_UNCONFIRMED');
@@ -169,7 +169,7 @@ export async function handleHeukwolRoutes(request,env) {
       timeoutSeconds:3600,metadata:{input,inputHash,analysis,chapters:[],attempts:0,accessType:proof.source,
         // 새 세션만 2판. 진행 중인 1판 세션은 옛 동작으로 끝난다. 되돌리기: HEUKWOL_DELIVERY_V2_ENABLED=false
         ...(heukwolDeliveryV2Enabled(env)?{deliveryPlanVersion:HEUKWOL_DELIVERY_PLAN_VERSION,skippedChapters:[],lastIssue:''}:{}),
-        archive:{title:`${input.year} 흑월의 경고`,year:input.year,reportId:id,status:'generating'},
+        archive:{title:`${input.year} 흑월의 주의 시기`,year:input.year,reportId:id,status:'generating'},
         ...(passEvidence?{passRefund:{cycleKey:passEvidence.metadata?.passCycleKey,cost:passEvidence.metadata?.coinCost||0}}:{})}});
     if(!started.ok)return error(503,'RESULT_STORAGE_UNAVAILABLE','상담 저장을 확인하지 못했어요. 같은 요청으로 다시 시도해 주세요.');
     // Check the winner after an insert race, before any generation.

@@ -292,7 +292,7 @@ window.__cdServiceRegistry = [
     id: "karma-destiny-ai",
     name: "네오와 서한비의 붉은 실",
     question: "나는 왜 비슷한 사람에게 계속 끌릴까?",
-    desc: "네오와 서한비가 반복되는 선택과 관계의 매듭을 읽는 상담",
+    desc: "운명의 업 — 네오와 서한비가 반복되는 선택과 관계의 매듭을 읽는 상담",
     href: "/karma-destiny-ai/",
     featureKey: "karma-destiny-ai-consultation",
     price: "30,000원",
