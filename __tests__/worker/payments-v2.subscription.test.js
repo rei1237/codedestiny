@@ -411,6 +411,53 @@ describe("confirm — 활성화·멱등·경계", () => {
   );
 });
 
+/* 구매 → 실제 사용 연결. 각 구간(confirm 활성화·스냅샷 판정·pass-check 커버)은 따로 검증돼 있지만
+   이어 붙인 검사가 없었다 — 구매는 됐는데 유료 상담 진입에서 이용권이 안 먹는 회귀는 구간 사이에서 난다. */
+describe("구매 직후 이용권으로 유료 상담 열기 (구매 → 스냅샷 → 판정 → pass-check)", () => {
+  test("🔴 confirm 응답으로 쓴 스냅샷이 커버를 확정하고, 같은 사용자의 pass-check 가 접근권을 준다", async () => {
+    const { listProducts } = await import("../../worker/payments/catalog.js");
+    const { getPaidFeatureBillingType } = await import("../../worker/lib/paid-feature-registry.js");
+    const { PASS_LIMITS } = await import("../../worker/lib/profile-limits.js");
+    const passVerdict = (await import("../../js/core/pass-verdict.js")).default;
+    const product = listProducts().filter((p) => !p.passExcluded && !p.lightFortune && !p.familyPassOnly
+      && Number(p.priceCoins) > 0 && Number(p.priceCoins) <= PASS_LIMITS.standard
+      && getPaidFeatureBillingType(p.featureKey) === "per_use")
+      .sort((a, b) => Number(a.priceCoins) - Number(b.priceCoins))[0];
+    expect(product).toBeTruthy();
+
+    const db = makeFakePaymentDb();
+    const user = seedUser(db);
+    const order = await prepareOrder(db, "standard", "sub-buy-then-use");
+    mockPortOnePayment({ paymentId: order.merchantUid, amount: 9900 });
+    const confirmed = await post(db, "/api/payments/subscription/confirm", passBody("standard", {
+      impUid: order.merchantUid, merchantUid: order.merchantUid, customerUid: order.customerUid,
+    }));
+    expect(confirmed.response.status).toBe(200);
+
+    // 결제 페이지가 confirm 응답으로 쓰는 스냅샷(saveSubscriptionSnapshotForUser → storeStatus)을 셸·React 판정이 읽는다.
+    const map = new Map();
+    const previousStorage = global.localStorage;
+    global.localStorage = { getItem: (k) => (map.has(k) ? map.get(k) : null), setItem: (k, v) => map.set(k, String(v)), removeItem: (k) => map.delete(k) };
+    try {
+      passVerdict.storeStatus(USER, confirmed.payload.subscription, "points-page");
+      const verdict = passVerdict.resolveVerdict(passVerdict.readSnapshot(USER), Number(product.priceCoins), product.featureKey);
+      expect(verdict).toMatchObject({ hasActivePass: true, coversNow: true, cannotCover: false, tier: "standard" });
+    } finally {
+      global.localStorage = previousStorage;
+    }
+
+    // 결제창 이용권 카드·진입의 서버 확인: 방금 산 이용권으로 200 + 접근권, 월 예산에 이번 건이 쌓인다.
+    const used = await post(db, "/api/payments/coin-gate/pass-check", {
+      featureKey: product.featureKey, paymentMode: "MEMBERSHIP_PASS", requestId: "buy-then-use-1",
+    });
+    expect(used.response.status).toBe(200);
+    expect(used.payload.data.consume.accessType).toBe("membership_pass");
+    expect(used.payload.data.consume.chargedCoins).toBe(0);
+    expect(used.payload.data.accessGrant.featureKey).toBe(product.featureKey);
+    expect(user.profileSubscription.monthlySpendCoin).toBe(Number(product.priceCoins));
+  });
+});
+
 describe("webhook·크론 주체 — grantOrderEntitlement 이용권 분기", () => {
   test("무인증 confirmOrder(웹훅 경로)도 이용권을 활성화한다 — 카탈로그 지급 경로로 빠지면 안 된다", async () => {
     const db = makeFakePaymentDb();
