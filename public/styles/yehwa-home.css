@@ -153,3 +153,17 @@ html.neo-mode .yh-hero{--yh-garden:url("/images/home/illustrated/yeoni-moon-gard
 }
 .yh-webtoon-link img { border-radius: 50%; object-fit: cover; }
 .yh-webtoon-link span:last-child { margin-inline-start: auto; }
+
+/* Supplemental links, not a replacement for the approved home cards. */
+.yh-supplement{margin-top:12px;min-width:0}
+.yh-light-saju{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px;border:1px solid var(--cd-line);border-radius:var(--cd-r-card);background:var(--cd-surface)}
+.yh-light-saju h2{font-family:var(--font-display);font-size:1.25rem;color:var(--cd-text)}
+.yh-light-saju p,.yh-basic-masters__note{font-size:1rem;line-height:1.6;color:var(--cd-text-muted)}
+.yh-light-saju__facts{margin-top:4px}
+.yh-light-saju>.cd-yehwa-button{flex-shrink:0;white-space:normal;min-height:48px}
+.yh-basic-masters{margin-top:12px}.yh-basic-masters ul{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;padding:0;margin:8px 0 0;list-style:none}
+.yh-basic-masters a{display:flex;flex-direction:column;gap:6px;height:100%;padding:12px;border:1px solid var(--cd-line);border-radius:var(--cd-r-control);background:var(--cd-surface);color:var(--cd-text);text-decoration:none;font-size:1rem;line-height:1.55;min-height:48px}
+.yh-basic-masters strong{font-family:var(--font-display);font-weight:400}.yh-basic-masters__cta{margin-top:auto;font-weight:600}
+.yh-supplement a:focus-visible{outline:2px solid var(--cd-text);outline-offset:3px}
+@media(max-width:699px){.yh-light-saju{align-items:stretch;flex-direction:column}.yh-basic-masters ul{grid-template-columns:repeat(2,minmax(0,1fr))}}
+html:not([lang="ko"]) .yh-supplement{display:none}

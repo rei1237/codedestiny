@@ -192,7 +192,12 @@
 
   function close() {
     var el = root.document && root.document.getElementById(OVERLAY_ID);
-    if (el) el.hidden = true;
+    if (el) {
+      var homeEntry = el.getAttribute('data-source') === 'home-light-saju' && el.contains(root.document.activeElement)
+        ? root.document.querySelector('[data-cd-light-saju-details]') : null;
+      el.hidden = true;
+      if (homeEntry) homeEntry.focus();
+    }
   }
 
   // 프로필 저장 뒤 안내로 돌아오기 위한 대기 상태. 저장 흐름은 기존 dpSaveProfile(프로필 카드 저장)을 그대로 쓴다.
@@ -382,4 +387,17 @@
     removeInline: removeInline,
     handleBillingError: handleBillingError
   };
+  // The home link opens existing detail/profile guidance, never checkout. Owned results use the existing result entry.
+  if (root.document && root.document.addEventListener) root.document.addEventListener('click', function (event) {
+    var link = event.target && event.target.closest && event.target.closest('[data-cd-light-saju-details]');
+    if (!link || event.defaultPrevented || event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
+    if (isOpen()) {
+      if (typeof root.cdOneStepFreeSajuEntry !== 'function') return; // Native link retains the existing entry fallback.
+      event.preventDefault();
+      root.cdOneStepFreeSajuEntry();
+      return;
+    }
+    event.preventDefault();
+    open({ source: 'home-light-saju' });
+  });
 })(typeof window !== 'undefined' ? window : globalThis);
