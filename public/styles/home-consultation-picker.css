@@ -48,11 +48,11 @@
 }
 .cd-picker-main { position:relative; display: flex; flex: 1; flex-direction: column; min-width: 0; padding: 12px; text-decoration: none; }
 .cd-picker-main > .cd-yehwa-seal { position:absolute; top:18px; right:18px; width:28px; height:28px; pointer-events:none; }
-.cd-picker-main > img { display: block; width: 100%; height: auto; aspect-ratio: 16/9; object-fit: cover; border-radius: var(--cd-r-control); }
-.cd-picker-card[data-picker-fusion-featured] .cd-picker-main > img { max-width: 320px; aspect-ratio: 320/213; align-self: center; }
+.cd-picker-main > img, .cd-picker-fusion-art > img { display: block; width: 100%; height: auto; aspect-ratio: 16/9; object-fit: cover; border-radius: var(--cd-r-control); }
+.cd-picker-card[data-picker-fusion-featured] .cd-picker-main img { max-width: 320px; aspect-ratio: 320/213; align-self: center; }
 @media (min-width: 700px) {
   .cd-picker-card[data-picker-fusion-featured] .cd-picker-main { flex-direction: row; align-items: center; gap: 16px; }
-  .cd-picker-card[data-picker-fusion-featured] .cd-picker-main > img { width: 32%; flex: 0 0 32%; }
+  .cd-picker-card[data-picker-fusion-featured] .cd-picker-main img { width: 32%; flex: 0 0 32%; }
 }
 .cd-picker-copy { display: flex; flex: 1; flex-direction: column; gap: 10px; padding: 16px 4px 4px; }
 #cdHomeFunnel .cd-picker-copy h3 { margin: 0; color: var(--cdh-ink); font: 400 1.25rem/1.4 var(--font-display); letter-spacing: 0; }
@@ -81,3 +81,6 @@
   .cd-choice--unified .cd-choice__branch { width: 88px; opacity: .6; }
   .cd-picker-grid { grid-template-columns: minmax(0,1fr); }
 }
+
+/* A picture source changes resolution, never the existing flex geometry. */
+.cd-picker-fusion-art { display: contents; }
