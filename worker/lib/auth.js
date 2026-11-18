@@ -17,17 +17,14 @@ export const APP_REFRESH_TOKEN_HEADER = "x-code-destiny-refresh-token";
 // 앱 런타임 헤더가 **둘 다** 맞을 때만 헤더 자격증명을 인정한다 — CSRF 는 브라우저가 자동으로 싣는
 // 쿠키 세션을 악용하는 공격인데 이 조합에는 앰비언트 크리덴셜이 없다. 웹 오리진은 손대지 않는다.
 // 🔴 정본은 여기 하나다 — worker/routes/auth.js 가 이걸 import 해서 쓴다. 사본을 만들지 말 것.
-const MOBILE_APP_REQUEST_ORIGINS = new Set(["https://localhost"]);
+// Android 는 https://localhost, iOS 는 capacitor://localhost 다. iOS 출처는 특수 스킴이 아니라
+// new URL(...).origin 이 "null" 이 되므로 Origin 헤더 원문을 정확히 비교한다(포트·접미사·"null" 거부).
+const MOBILE_APP_REQUEST_ORIGINS = new Set(["https://localhost", "capacitor://localhost"]);
 
 export function isMobileAppAuthRequest(request) {
   const runtime = String(request?.headers?.get("x-code-destiny-runtime") || "").trim().toLowerCase();
   if (runtime !== "mobile-app") return false;
-  let origin = "";
-  try {
-    origin = new URL(String(request.headers.get("origin") || "").trim()).origin;
-  } catch (e) {
-    return false;
-  }
+  const origin = String(request.headers.get("origin") || "").trim();
   return MOBILE_APP_REQUEST_ORIGINS.has(origin);
 }
 

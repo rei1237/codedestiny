@@ -93,6 +93,7 @@ const ENV = {
 };
 
 const APP_ORIGIN = "https://localhost";
+const IOS_APP_ORIGIN = "capacitor://localhost";
 const WEB_ORIGIN = "https://code-destiny.com";
 
 let authRoutes;
@@ -168,6 +169,39 @@ describe("앱 폴백은 런타임 헤더 + 앱 출처가 모두 맞을 때만 �
     expect(status).toBe(401);
     // 'missing'이 아니라는 것이 곧 헤더를 읽었다는 증거다.
     expect(message).toBe("Refresh token is invalid or expired.");
+  });
+
+  test("iOS 출처(capacitor://localhost)도 앱 폴백을 연다", async () => {
+    const { message } = await readRefreshMessage(buildRefreshRequest({
+      origin: IOS_APP_ORIGIN,
+      runtime: "mobile-app",
+      refreshHeader: "app-supplied-token",
+    }));
+    expect(message).toBe("Refresh token is invalid or expired.");
+  });
+
+  test.each([
+    "null",
+    "capacitor://localhost:3000",
+    "capacitor://localhost.evil.example",
+    "capacitor://other",
+    "https://localhost:9191",
+    "http://localhost",
+  ])("허용 목록 밖 출처 %s 는 폴백을 열지 않는다", async (origin) => {
+    const { message } = await readRefreshMessage(buildRefreshRequest({
+      origin,
+      runtime: "mobile-app",
+      refreshHeader: "attacker-supplied-token",
+    }));
+    expect(message).toBe("Refresh token is missing.");
+  });
+
+  test("iOS 출처라도 런타임 헤더가 없으면 폴백이 열리지 않는다", async () => {
+    const { message } = await readRefreshMessage(buildRefreshRequest({
+      origin: IOS_APP_ORIGIN,
+      refreshHeader: "some-token",
+    }));
+    expect(message).toBe("Refresh token is missing.");
   });
 
   test("조건이 맞아도 헤더 자체가 없으면 'missing'", async () => {
