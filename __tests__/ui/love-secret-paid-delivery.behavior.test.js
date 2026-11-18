@@ -459,3 +459,23 @@ test('새 상담은 7개 그룹 계획(V2)으로, 버전 없는 예전 상담은
   await legacy.post({ resumeSessionId: legacy.doc.id });
   assert.equal(legacy.doc.llmMeta.delivery.groupPlanVersion, 1);
 });
+
+test('S5: 카드 단건으로 연 상담이 본문 없이 실패하면 공용 단건 자동 환불로 PG 취소한다', async () => {
+  const refunds = [], lookups = [];
+  const card = { _id: '507f1f77bcf86cd799439055', userId: 'owner', merchantUid: 'm-1', status: 'paid', featureKey: 'love-secret-ai-consultation' };
+  const ctx = vm.createContext({ FEATURE_KEY: 'love-secret-ai-consultation', LLM_ERROR_MESSAGE: 'mock', clean: (v, max = 1000) => String(v || '').trim().slice(0, max),
+    objectOf: v => v || {}, getPricing: () => ({}), releaseRequestBillingEvidence: async () => ({ released: 1 }),
+    mongoose: { Types: { ObjectId: { isValid: v => /^[a-f0-9]{24}$/.test(String(v)) } } },
+    Payment: { findOne: filter => { lookups.push(filter); return { lean: async () => card }; } },
+    PointHistory: { findOne: () => { throw new Error('COIN_PATH_USED'); } },
+    autoRefundSinglePaymentDeliveryFailure: async (...args) => { refunds.push(args); return { refunded: true }; } });
+  load(ctx, 'worker/routes/love-secret-ai.js', ['restoreBillingGateAccessOnFailure', 'refundBillingGateCardPayment']);
+  const access = { accessSource: 'billing_gate_paid', accessType: 'paid', paymentId: 'm-1',
+    billingEvidence: { paymentId: card._id, merchantUid: 'm-1', impUid: '', requestId: 'req' } };
+  const result = await ctx.restoreBillingGateAccessOnFailure({ env: {}, userId: 'owner', access, idempotencyKey: 'req', error: new Error('boom') });
+  assert.equal(result.restored, true); assert.equal(refunds.length, 1); assert.equal(refunds[0][1]._id, card._id);
+  assert.equal(lookups[0].userId, 'owner'); assert.equal(JSON.stringify(lookups[0].status), JSON.stringify({ $in: ['paid', 'success', 'fulfilled'] }));
+  // PG 가 취소를 확인하지 않으면 복원으로 보고하지 않는다(결제는 refund_failed 로 남아 지원 검토).
+  ctx.autoRefundSinglePaymentDeliveryFailure = async () => ({ refunded: false, refundFailed: true });
+  assert.equal((await ctx.restoreBillingGateAccessOnFailure({ env: {}, userId: 'owner', access, idempotencyKey: 'req' })).restored, false);
+});

@@ -4885,6 +4885,13 @@ async function beginFortuneTeaHouseGeneration({ auth, resultId, consultRequest, 
     });
     if (result) return { ok: false, completed: true, result, doc: existing };
   }
+  // S5: 환불이 실패해 대기 중인 요청은 다시 생성하지 않는다. 환불을 다시 시도하고, 끝나면 종결 응답, 아니면 진행 중으로 둔다.
+  if (existing?.passRefund?.pendingAt && !existing.passRefund.refundedAt) {
+    await refundFortuneTeaHousePassSettlement({ auth, resultId }).catch(() => null);
+    const settled = await results.findOne({ userId, resultId }).catch(() => null);
+    if (settled?.passRefund?.refundedAt) return { ok: false, passRefundedAt: settled.passRefund.refundedAt, passRefunded: settled.passRefund.refunded === true };
+    return { ok: false, inProgress: true, doc: existing };
+  }
   // 복구가 끝난 요청은 다시 claim하지 않는다. 오류 원인과 실패 상태도 보존한다.
   if (existing?.passRefund?.refundedAt) {
     return { ok: false, passRefundedAt: existing.passRefund.refundedAt, passRefunded: existing.passRefund.refunded === true };
@@ -5001,8 +5008,16 @@ async function refundFortuneTeaHousePassSettlement({ auth, resultId }) {
   if (!settlement?.cycleKey || doc?.passRefund?.refundedAt) return;
   const { refundPassCoverage } = await loadPassConsumption();
   // 기능 키를 남긴 정산은 같은 사용 증빙(featureKey·resultId)에 환불 표시를 남겨, 다른 복구 경로가 두 번 돌려주지 않게 한다.
-  const refunded = await refundPassCoverage({ userId, cycleKey: settlement.cycleKey, cost: settlement.cost, refundId: resultId,
-    ...(settlement.featureKey ? { sourceFeatureKey: settlement.featureKey, sourceRequestId: resultId } : {}) });
+  let refunded;
+  try {
+    refunded = await refundPassCoverage({ userId, cycleKey: settlement.cycleKey, cost: settlement.cost, refundId: resultId,
+      ...(settlement.featureKey ? { sourceFeatureKey: settlement.featureKey, sourceRequestId: resultId } : {}) });
+  } catch (error) {
+    // S5: 환불 호출이 던져도 대기 표식을 남긴다. 다음 claim 은 생성 대신 같은 refundId 로 환불을 다시 시도한다(멱등).
+    await results.updateOne({ userId, resultId, "passRefund.refundedAt": { $exists: false } },
+      { $set: { "passRefund.pendingAt": new Date(), "passRefund.lastError": cleanText(error?.code || error?.message || "PASS_REFUND_FAILED").slice(0, 80) } }).catch(() => {});
+    throw error;
+  }
   // 차감 마커는 환불 뒤에도 남는다. refundedAt 이 없으면 같은 결과의 재시도가 무료로 다시 생성된다.
   // refundedAt 은 종결 표식이라 돌려줄 것이 없어도 남긴다. 환불 여부(refunded)는 실제로 돌려줬거나 다른 복구 경로가 같은 증빙을 이미 돌려준 때만 참이다.
   const restored = refunded?.refunded === true || refunded?.reason === "PASS_EVIDENCE_ALREADY_REFUNDED";

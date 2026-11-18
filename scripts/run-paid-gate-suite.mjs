@@ -135,6 +135,7 @@ const SUITE = [
   { run: "npm run verify:no-secret-leak", why: "비밀정보 노출." },
   { run: "npm run verify:llm-token-usage", why: "AI 상담 가드는 어느 워크플로에도 걸려 있지 않아 조용히 낡았다 — 결제창 라벨이 'AI 상담' → '전문가 상담' 으로 바뀐 뒤 ziwei·karma 가드가 오래 빨간불이었는데 CI 가 안 돌리니 아무도 몰랐다." },
   { run: "npm run verify:llm-generation-resilience", why: "LLM 생성 내성." },
+  { run: "npm run verify:paid-llm-delivery", why: "유료 LLM 전달 계약(S5): 결제+LLM 을 쓰는 worker 파일이 계약 밖이거나, 계약 서비스가 공용 환불 경로를 참조하지 않거나, LLM 판매 키·복구 어댑터가 빠지면 실패. 결제 후 결과 미전달·미환불이 반복된 2026-11 사고의 재발 방지." },
   { run: "npm run verify:workers-ai-fallback", why: "Workers AI 폴백 체인." },
   { run: "npm run verify:analysis-basis-contract", why: "분석 근거 계약." },
   { run: "npm run verify:astrology-sectioned", why: "점성술 섹션 생성." },
