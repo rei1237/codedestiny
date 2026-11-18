@@ -23,7 +23,7 @@ import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
 import { normalizeConsultAccessType, resolveCanonicalEntitlement, resolveFeatureAccessPolicy } from "../lib/entitlement-policy.js";
 import { consumePassForFeature, hasConsumedPassFeature, passDenialCode, refundPassUseEvidence } from "../lib/pass-consumption.js";
-import { lateUsageSettlementFailure } from "../lib/late-usage-settlement.js";
+import { lateAccessDenialSettlement, lateUsageSettlementFailure } from "../lib/late-usage-settlement.js";
 import { cmsPromptModelConfig, cmsPromptText } from "../lib/cms-prompts.js";
 import { tokensRequiredForChars } from "../lib/llm-budget.js";
 import { callGeminiJsonWithRetry } from "../lib/structured-consultation.js";
@@ -1675,8 +1675,13 @@ async function generateConsultation({ request, env, auth, body, normalized, idem
   if (existing && existing.inputHash !== normalized.inputHash) return invalidInput("같은 요청 키로 다른 상담 정보를 사용할 수 없습니다.");
   if (existing?.status === "completed") return json({ ok: true, consultation: consultationPayload(existing) });
   if (existing?.status === "generation_failed" && !nativeTossContext(request)) return json({ ok: false, reason: "GENERATION_FAILED" }, { status: 409 });
-  const access = await resolveStartAccess({ request, env, auth, body, normalized, idempotencyKey, pricing });
-  if (!access) return paymentVerifyFailed();
+  const settlementModels = { User, Payment, PaidExecutionRecord, PointHistory, MonthlyCreditLedger };
+  const startAccess = await resolveStartAccess({ request, env, auth, body, normalized, idempotencyKey, pricing });
+  // 이용권으로 시작해 본문까지 만든 상담(delivery_pending)은 그 뒤 한도 소진으로 거절돼도 전달한다(환불·탈퇴·취소 증빙은 제외, fail-closed).
+  // vedic 의 접근 판정은 거절 사유 없이 null 을 돌려주므로 증빙은 판정 함수가 직접 다시 확인한다.
+  const resumeSettlement = !startAccess && !nativeTossContext(request) ? await lateAccessDenialSettlement({ fresh: null, doc: existing, userId: auth.userId, idempotencyKey, service: "vedic-ai", models: settlementModels }) : null;
+  if (!startAccess && !resumeSettlement) return paymentVerifyFailed();
+  const access = startAccess || { accessType: existing.accessType, paymentId: "", source: "late-access-settlement" };
   // 결제 증빙 1건 = 상담 1건(2026-10-16). 이용권·관리자는 paymentId 가 없어 건너뛴다.
   const evidenceIds = [access.paymentId];
   if(!nativeTossContext(request)){
@@ -1731,11 +1736,13 @@ async function generateConsultation({ request, env, auth, body, normalized, idem
       doc = await saveVedicDelivery(locked, { status: generated.complete ? "delivery_pending" : "partial", llmMeta: { ...doc.llmMeta, ...generated.meta } }, sessionId);
       if (!generated.complete) return pendingResponse(doc);
     }
-    const fresh = await resolveStartAccess({ request, env, auth, body, normalized, idempotencyKey, pricing });
-    if (!fresh) return paymentVerifyFailed();
+    const recheck = resumeSettlement ? null : await resolveStartAccess({ request, env, auth, body, normalized, idempotencyKey, pricing });
     // 늦은 이용권 차감이 한도·자격 사유로 거절돼도 만든 결과는 전달한다. 일시 장애는 그대로 던져 재시도시킨다.
-    let usageSettlement = null;
-    if(!nativeTossContext(request)) await applyUsageOnce({ userId: auth.userId, sessionId, accessType: fresh.accessType, pricing }).catch(settleError => {
+    // 재확인이 이미 한도 거절로 정산(usageSettlement)됐으면 차감을 다시 시도하지 않는다.
+    let usageSettlement = resumeSettlement || (recheck || nativeTossContext(request) ? null : await lateAccessDenialSettlement({ fresh: null, doc, userId: auth.userId, idempotencyKey, service: "vedic-ai", models: settlementModels }));
+    if (!recheck && !usageSettlement) return paymentVerifyFailed();
+    const fresh = recheck || access;
+    if(!nativeTossContext(request) && !usageSettlement) await applyUsageOnce({ userId: auth.userId, sessionId, accessType: fresh.accessType, pricing }).catch(settleError => {
       usageSettlement = lateUsageSettlementFailure(settleError, { service: "vedic-ai", sessionId, accessType: fresh.accessType });
       if (!usageSettlement) throw settleError;
     });
