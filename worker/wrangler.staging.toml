@@ -12,7 +12,9 @@
 # 결제 재조정이 이중으로 실행된다(DB 는 갈라져 있지만 PortOne 테스트 채널 조회는 겹친다).
 #
 # 🔴 AI 실호출 차단에는 두 축이 있고, 한쪽만으로는 못 막는다.
-#   ① Gemini — 스테이징 워커에 GEMINIF_API_KEY 를 넣지 않는 것이 잠금이다.
+#   ① Gemini — 2026-11-18 부터 키는 워커에 있어도 된다(--only-key 로만 올린다). 잠금은
+#      worker/lib/staging-real-llm.js 가 진입마다 키를 가린 env view 와 process.env 정리다.
+#      STAGING_REAL_LLM_USER_IDS(시크릿) 허용 계정 요청만 키가 보인다.
 #   ② Workers AI — WORKERS_AI_ENABLED = "false" 가 잠금이다.
 # 🔴 ②가 없으면 ①이 잠금이 아니라 그 반대가 된다. lib/llm-client.ts 의 폴백은 Gemini 가
 # 실패하기만 하면(키 없음 포함) 무조건 env.AI.run 으로 내려가므로, 키를 빼면 스테이징의
@@ -24,8 +26,10 @@
 # 차단 수단으로 세지 말 것 — 2026-08-24 에 [vars] 에서 제거했고, 빌드/CI 는 종전대로
 # scripts/check-changed.mjs·deploy-safe.mjs 가 process.env 로 넘긴다.
 #
-# 생성 품질을 봐야 할 때만 키를 넣고 위 값들(WORKERS_AI_ENABLED·GUARDIAN_FORTUNE_LLM_PROVIDER
-# ·ENABLE_FUSION_FORTUNE_MOCK_FLOW)을 프로덕션과 같게 되돌린 뒤 재배포하고, 확인이 끝나면 되돌린다.
+# 생성 품질 확인에 이 값들을 뒤집어 재배포하지 않는다. 허용 계정 요청은 staging-real-llm.js 의
+# PRODUCTION_LLM_FLAGS(WORKERS_AI_ENABLED·GUARDIAN_FORTUNE_LLM_PROVIDER·ENABLE_FUSION_FORTUNE_MOCK_FLOW
+# ·STAGING_LLM_MOCK_ENABLED)를 운영 값으로 받는다. 운영과 다른 LLM 변수가 새로 생기면
+# verify:staging-llm-mock 이 분류를 요구한다. 절차: docs/context/ai-and-db.md.
 name = "code-destiny-web-staging"
 main = "index.js"
 compatibility_date = "2026-05-02"

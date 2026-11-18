@@ -32,7 +32,13 @@ export function stagingDeferralReason(key) {
   if (/^PORTONE_/.test(name) || /^INI/.test(name) || name === "MID") {
     return "결제는 PortOne 테스트 채널 값으로만 채운다 — 프로덕션 자격증명이 들어가면 실제 카드가 승인된다";
   }
-  if (name === "GEMINIF_API_KEY" || name === "ANTHROPIC_API_KEY") {
+  // 2026-11-18 사용자 결정("허용 계정만 실호출", "운영과 같은 키"): GEMINIF_API_KEY 는 스테이징
+  // 워커에 둘 수 있다. 다만 일괄 동기화로는 여전히 넣지 않는다 — --only-key 로만 올리고, 워커가
+  // 요청마다 키를 가리므로(worker/lib/staging-real-llm.js) STAGING_REAL_LLM_USER_IDS 계정만 본다.
+  if (name === "GEMINIF_API_KEY") {
+    return "일괄 동기화 제외 — 스테이징에는 --only-key 로만 올린다(2026-11-18). 키는 허용 계정(STAGING_REAL_LLM_USER_IDS)만 보고 나머지는 mock(worker/lib/staging-real-llm.js)";
+  }
+  if (name === "ANTHROPIC_API_KEY") {
     return "과금 LLM 키는 스테이징에 넣지 않는다 — 필요할 때만 --only-key 로 넣고 되돌린다";
   }
   if (name === "MONGO_DB_NAME" || name === "MONGO_NAME") {

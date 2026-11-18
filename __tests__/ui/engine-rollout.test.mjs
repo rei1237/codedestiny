@@ -20,5 +20,5 @@ test('approved flags reach every entry point, an explicit var wins and env ident
 
 test('unverified astronomy systems stay off and the worker export is wired', () => {
   for (const key of ['ASTROLOGY_CONSUMER_FACTS_V1', 'VEDIC_CONSUMER_FACTS_V1', 'SUKUYO_CONSUMER_FACTS_V1']) assert.equal(key in ENGINE_ROLLOUT_FLAGS, false);
-  assert.match(fs.readFileSync('worker/index.js', 'utf8'), /export default withEngineRollout\(withDbScopes\(app\)\);/);
+  assert.match(fs.readFileSync('worker/index.js', 'utf8'), /export default withEngineRollout\(withStagingLlmRouting\(withDbScopes\(app\)\)\);/);
 });
