@@ -694,6 +694,75 @@ var SajuNatalCore = (() => {
       legacyScore: { score: base.temp, diff: base.diff, moistCnt: base.moist, dryCnt: base.dry, ...base.counts }
     };
   }
+  var CLIMATE_V2_VERSION = "climate-v2";
+  var r2 = (n) => Math.round(n * 100) / 100;
+  var STEM_VECTORS = {
+    甲: { moist: 2, temp: 0.5, note: "목은 습하다. 양목이라 乙보다 덜 습하고, 화가 있으면 더 줄인다" },
+    乙: { moist: 3, temp: 0, note: "음목·화초. 매우 습하다. 화가 있어도 줄이지 않는다" },
+    丙: { moist: -2.5, temp: 3, note: "태양. 건조하고 뜨겁다" },
+    丁: { moist: -2, temp: 2.5, note: "등불. 건조하고 뜨겁다" },
+    戊: { moist: -1, temp: 0.5, note: "양토·마른 흙. 조토 쪽" },
+    己: { moist: 1.5, temp: 0, note: "음토·젖은 논밭흙. 습토" },
+    庚: { moist: 0, temp: -1.5, note: "금은 차다. 습도는 중립" },
+    辛: { moist: 0, temp: -1.5, note: "금은 차다. 습도는 중립" },
+    壬: { moist: 2.5, temp: -2, note: "큰물. 습하고 차다" },
+    癸: { moist: 3, temp: -2, note: "비·이슬. 가장 적시고 차다" }
+  };
+  var HIDDEN_DAYS = {
+    子: [["壬", 10], ["癸", 20]],
+    丑: [["癸", 9], ["辛", 3], ["己", 18]],
+    寅: [["戊", 7], ["丙", 7], ["甲", 16]],
+    卯: [["甲", 10], ["乙", 20]],
+    辰: [["乙", 9], ["癸", 3], ["戊", 18]],
+    巳: [["戊", 7], ["庚", 7], ["丙", 16]],
+    午: [["丙", 10], ["己", 9], ["丁", 11]],
+    未: [["丁", 9], ["乙", 3], ["己", 18]],
+    申: [["戊", 7], ["壬", 7], ["庚", 16]],
+    酉: [["庚", 10], ["辛", 20]],
+    戌: [["辛", 9], ["丁", 3], ["戊", 18]],
+    亥: [["戊", 7], ["甲", 7], ["壬", 16]]
+  };
+  var SEASON_TERMS = {
+    子: { moist: 0.5, temp: -2, note: "한겨울, 얼어 있는 물기" },
+    丑: { moist: 0.5, temp: -2, note: "늦겨울, 언 땅의 물기" },
+    寅: { moist: 0.5, temp: -0.5, note: "이른 봄, 남은 추위와 녹는 물기" },
+    卯: { moist: 1, temp: 0.5, note: "봄비" },
+    辰: { moist: 1, temp: 1, note: "늦봄, 물을 머금은 땅(水庫)" },
+    巳: { moist: -1, temp: 1.5, note: "초여름, 마르기 시작하는" },
+    午: { moist: -1, temp: 2, note: "한여름 열기" },
+    未: { moist: -2, temp: 2, note: "늦여름, 열에 마른 흙" },
+    申: { moist: -0.5, temp: 0.5, note: "초가을, 남은 더위" },
+    酉: { moist: -0.5, temp: -0.5, note: "가을의 건조함" },
+    戌: { moist: -1, temp: -1, note: "늦가을, 마른 흙" },
+    亥: { moist: 0.5, temp: -1.5, note: "초겨울 물기" }
+  };
+  function branchVector(branch) {
+    const rows = HIDDEN_DAYS[branch];
+    const total = rows.reduce((sum, [, days]) => sum + days, 0);
+    const season = SEASON_TERMS[branch];
+    const moist = rows.reduce((sum, [stem, days]) => sum + STEM_VECTORS[stem].moist * days, 0) / total + season.moist;
+    const temp = rows.reduce((sum, [stem, days]) => sum + STEM_VECTORS[stem].temp * days, 0) / total + season.temp;
+    return { moist: r2(moist), temp: r2(temp), note: `지장간 ${rows.map(([s, d]) => s + d).join("·")}일 가중 평균 + 계절(${season.note})` };
+  }
+  var FIRE_CHARS = ["丙", "丁", "巳", "午"];
+  var BRANCH_VECTORS = Object.fromEntries(Object.keys(HIDDEN_DAYS).map((b) => [b, branchVector(b)]));
+  function expected(axis) {
+    const mean = (rows) => rows.reduce((s, v) => s + v[axis], 0) / rows.length;
+    const stemW = 1 + 1.5 + 1 + 1.5, branchW = 1 + 2 + 1.5 + 1;
+    return r2((mean(Object.values(STEM_VECTORS)) * stemW + mean(Object.values(BRANCH_VECTORS)) * branchW) / (stemW + branchW));
+  }
+  var CLIMATE_VECTORS = Object.freeze({
+    version: CLIMATE_V2_VERSION,
+    stems: STEM_VECTORS,
+    hiddenDays: HIDDEN_DAYS,
+    seasonTerms: SEASON_TERMS,
+    branches: BRANCH_VECTORS,
+    baseline: { moist: expected("moist"), temp: expected("temp"), note: "여덟 글자가 고르게 나올 때의 기대 가중 평균. 등급은 (평균 - 기준점)으로 매긴다" },
+    weights: { monthBranch: 2, adjacentToDayStem: 1.5, other: 1, luck: 1, note: "월지 2배. 일간에 붙은 월간·시간·일지 1.5배. 운의 글자는 1배" },
+    fireDampening: { chars: ["甲", "寅"], fireChars: FIRE_CHARS, factor: 0.5, note: "원국(또는 원국+운)에 丙丁巳午가 있으면 甲·寅의 습기만 절반으로 본다. 乙·卯는 줄이지 않는다" },
+    // (축별 가중 평균 - 기준점)의 절댓값 기준.
+    levels: { mild: 0.5, strong: 1, extreme: 1.6 }
+  });
 
   // lib/saju/natal-core/strength.mjs
   var elOf = (c) => STEM_EL[c] || BRANCH_EL[c] || "";
