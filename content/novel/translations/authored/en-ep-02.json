@@ -268,9 +268,9 @@
     },
     {
       "id": "ep-02:35",
-      "source": "연이가 몸을 이리저리 돌리자 꼬리가 같이 살랑였다. 그게 또 귀여워서 짜증이 났다.",
-      "sourceHash": "c1c12779c468df51dcb8c7c581130d97aa098e4394bbbe15d63504d7496ac1aa",
-      "t": "She turned this way and that, and her tail swayed with her. Its cuteness only irritated her more."
+      "source": "연이가 몸을 이리저리 돌리자 꼬리가 같이 살랑였다.",
+      "sourceHash": "d492822aee4db10310c8de02e3e6af8f04b0c68e3f6a816a703577cea93e6434",
+      "t": "She turned this way and that, and her tail swayed with her."
     },
     {
       "id": "ep-02:36",
@@ -370,15 +370,15 @@
     },
     {
       "id": "ep-02:52",
-      "source": "사람의 손. 사람의 다리. 사람의 눈. 연이가 잃어버린 것들이 거울 한 겹 너머에 전부 있었다.",
-      "sourceHash": "1e31b71a9c7af1449840a8afea673b244a2c11a4130ceaa6399a8a371bea2ee5",
-      "t": "Human hands. Human legs. Human eyes. Everything she had lost was there, one thin pane away."
+      "source": "사람의 손. 사람의 다리. 사람의 눈.",
+      "sourceHash": "bcc50f0705aa0d91ae7d2446587b2448a5e9b2b49eec61f97885b0c52b4554b8",
+      "t": "Human hands. Human legs. Human eyes."
     },
     {
       "id": "ep-02:53",
-      "source": "연이는 제 앞발을 내려다봤다가 다시 거울을 봤다. 가슴 한구석이 조여 왔다.",
-      "sourceHash": "dc697a13228622dc267a725791b093711e57285bebb73fd2f4eb08733cb43e41",
-      "t": "She looked down at her forelegs, then back at the mirror. Something tightened in her chest."
+      "source": "연이는 제 앞발을 내려다봤다가 다시 거울을 봤다. 거울에서 눈을 떼지 못했다.",
+      "sourceHash": "686444e90de46e93acce6a6544404ac11f0446c563bdeef6883f706607e734d6",
+      "t": "She looked down at her forelegs, then back at the mirror. She couldn't look away."
     },
     {
       "id": "ep-02:54",
@@ -400,9 +400,9 @@
     },
     {
       "id": "ep-02:57",
-      "source": "젖은 양말을 벗어 던지던 짜증. 날아간 과제 파일 앞에서 멍해지던 허탈함. 그 사소한 전부가 아득히 멀어져 있었다.",
-      "sourceHash": "9202e2edc54407862192b313044b2cacd83a1c2087e03fb6d21f03c38ce655a3",
-      "t": "The irritation of throwing off wet socks. The blank despair before a ruined assignment file. All those little things had become impossibly far away."
+      "source": "젖은 양말을 벗어 던지던 짜증. 날아간 과제 파일 앞에서 멍해지던 허탈함. 그 사소한 전부가 손 닿지 않는 데 있었다.",
+      "sourceHash": "b1b190ad2561a12c6ad0f2d51ed933965f574019e696b7172dd185f41caa041b",
+      "t": "The irritation of throwing off wet socks. The blank despair before a ruined assignment file. All those little things were now out of reach."
     },
     {
       "id": "ep-02:58",
@@ -418,9 +418,9 @@
     },
     {
       "id": "ep-02:60",
-      "source": "방금까지만 해도 집에 갈래는 반쯤 농담이었다. 지금은 그 말이 진짜가 되어 있었다.",
-      "sourceHash": "dfbb6fdcf0642352f5684fa298e9f9ed8d312a50acb675a7a5a18d70aad62a9a",
-      "t": "Until a moment ago, wanting to go home had been half a joke. Now it was real."
+      "source": "방금까지만 해도 집에 갈래는 반쯤 농담이었다.",
+      "sourceHash": "566a052f183cbb40a58438399c888d12b6cdc31589538ff0eac4902557ac14cf",
+      "t": "Until a moment ago, wanting to go home had been half a joke."
     },
     {
       "id": "ep-02:61",
@@ -436,8 +436,8 @@
     },
     {
       "id": "ep-02:63",
-      "source": "듣고 있어. 계속해.",
-      "sourceHash": "e9288541723578163fc83c7a956842ce7c2d09f892bebb524af6826b6797e7f0",
+      "source": "듣고 있다. 계속해라.",
+      "sourceHash": "11a515838bd45e7f2fb277e697017bc8875683c0e1bc8ca10cbb8567e8e3c5b8",
       "t": "I'm listening. Go on."
     },
     {
@@ -706,9 +706,9 @@
     },
     {
       "id": "ep-02:108",
-      "source": "그게 쌓이니까 자꾸 밀려나는 기분이었다. 조금씩 밀리고 늦고 놓치다가 결국 없는 사람이 될 것 같았다.",
-      "sourceHash": "13fb5e9353d9e840b5e6891b9a4e553a523eb3e8f049c7fd74aa7ccf03bdb57d",
-      "t": "Together, they felt like being pushed aside. A little later, a little farther back, missing things until eventually she'd be no one at all."
+      "source": "그게 쌓이니 자리가 좁아졌다. 조금씩 밀리고 늦고 놓치다가 결국 없는 사람이 될 것 같았다.",
+      "sourceHash": "c0436769b12d7d7c2779568a7222c14acd951a3ac7b27261270e43c4e4e88fad",
+      "t": "Together, they squeezed her space smaller and smaller. A little later, a little farther back, missing things until eventually she'd be no one at all."
     },
     {
       "id": "ep-02:109",
@@ -868,9 +868,9 @@
     },
     {
       "id": "ep-02:133",
-      "source": "연이의 심장이 철렁 내려앉았다.",
-      "sourceHash": "dae30c3c1061645f6a20593622ba3d6b5ea6ac7febae8781308f4b38b2dbcecf",
-      "t": "Yeoni's heart plunged."
+      "source": "연이는 한 발 물러섰다.",
+      "sourceHash": "bb73db8c42d9f0f9a9e46d5612d781f395e55c4491d488a7e975e150951dd9ef",
+      "t": "Yeoni took a step back."
     },
     {
       "id": "ep-02:134",

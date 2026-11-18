@@ -108,11 +108,11 @@
     },
     {
       "id": "prologue:10",
-      "source": "연이는 긍정적으로 생각하기로 했다. 긍정은 연이가 불운을 견디는 유일한 방법이었다.",
-      "sourceHash": "634d68060781cfd8d85d49ab3fb66ee3c1cb33b72803c1ba8081bc156f25d5a0",
+      "source": "연이는 긍정적으로 생각하기로 했다.",
+      "sourceHash": "1ca0a65cc079ae6b2f8e71a90ec68a29add30483978afc1271859119484b76c3",
       "translations": {
-        "zh-CN": "Yeoni决定往好处想。乐观是她熬过坏运气的唯一办法。",
-        "zh-TW": "Yeoni決定往好處想。樂觀是她熬過壞運氣的唯一辦法。"
+        "zh-CN": "Yeoni决定往好处想。",
+        "zh-TW": "Yeoni決定往好處想。"
       }
     },
     {
@@ -231,11 +231,11 @@
     },
     {
       "id": "prologue:23",
-      "source": "그런데 며칠 뒤부터는 웃기지 않았다.",
-      "sourceHash": "68f61aa57c4702c3347eff574a460d053a8f40e608d3f612d7834ed80ef5caef",
+      "source": "생각해 보면 며칠 전부터 웃기지 않았다.",
+      "sourceHash": "f3b3bb2d850c8ff1d25ff5bf26b06ac0d6ab28dc173093a6e16904aae1168b96",
       "translations": {
-        "zh-CN": "可是几天之后，就笑不出来了。",
-        "zh-TW": "可是幾天之後，就笑不出來了。"
+        "zh-CN": "仔细想想，从几天前起就笑不出来了。",
+        "zh-TW": "仔細想想，從幾天前起就笑不出來了。"
       }
     },
     {
@@ -276,11 +276,11 @@
     },
     {
       "id": "prologue:28",
-      "source": "엎어 놓은 휴대폰 위로 방 안의 어둠이 내려앉았다. 연이는 이불을 코끝까지 끌어올렸다. 누구 탓도 아닌데 자꾸 미안해지는 밤이었다.",
-      "sourceHash": "4f3a35d5c301c21d19a641607465feedccd110c485e1b961eb926359082f346b",
+      "source": "엎어 놓은 휴대폰은 다시 켜지지 않았다. 연이는 이불을 코끝까지 끌어올렸다. 누구 탓도 아닌데 자꾸 미안했다.",
+      "sourceHash": "c6aa963d32d8cc7f9ac2d0d8316816a91536321e8b1047367dce1a21bc11a8fe",
       "translations": {
-        "zh-CN": "屋里的黑暗落在扣着的手机上。她把被子拉到鼻尖。明明谁都没有错，却总觉得抱歉的一夜。",
-        "zh-TW": "屋裡的黑暗落在扣著的手機上。她把被子拉到鼻尖。明明誰都沒有錯，卻總覺得抱歉的一夜。"
+        "zh-CN": "扣着的手机没有再亮起。她把被子拉到鼻尖。明明谁都没有错，却总觉得抱歉。",
+        "zh-TW": "扣著的手機沒有再亮起。她把被子拉到鼻尖。明明誰都沒有錯，卻總覺得抱歉。"
       }
     },
     {
@@ -294,20 +294,20 @@
     },
     {
       "id": "prologue:30",
-      "source": "처음엔 우연이라 웃어넘겼다. 그런데 우연도 며칠씩 겹치면 등 뒤에 누가 서 있는 것처럼 목덜미가 서늘해진다. 웃자고 시작한 하루가 자꾸 변명거리를 찾는 하루로 바뀌어 있었다.",
-      "sourceHash": "6bb3c858aa34de31588e194cf604cccc39d00456a6b8079cb585397970d2f347",
+      "source": "처음엔 우연이라 웃어넘겼다. 그런데 우연도 며칠씩 겹치면 괜히 방문을 한 번 돌아보게 된다. 웃자고 시작한 하루가 자꾸 변명거리를 찾는 하루로 바뀌어 있었다.",
+      "sourceHash": "c04c3b778e6277a7979fe97c11ad027efb6110106143a65eddb450f4be0a5a1d",
       "translations": {
-        "zh-CN": "起初她笑着说是巧合。可巧合接连几天，后颈也会发凉，像背后站了个人。本来想笑着过的一天，总在寻找解释中结束。",
-        "zh-TW": "起初她笑著說是巧合。可巧合接連幾天，後頸也會發涼，像背後站了個人。本來想笑著過的一天，總在尋找解釋中結束。"
+        "zh-CN": "起初她笑着说是巧合。可巧合接连几天，就会莫名回头看一眼房门。本来想笑着过的一天，总在寻找解释中结束。",
+        "zh-TW": "起初她笑著說是巧合。可巧合接連幾天，就會莫名回頭看一眼房門。本來想笑著過的一天，總在尋找解釋中結束。"
       }
     },
     {
       "id": "prologue:31",
-      "source": "그래도 연이는 운명 같은 걸 믿고 싶지 않았다. 운명은 너무 편한 말이었다.",
-      "sourceHash": "1cb60218d7afd58d35406ea3630e6be9cbe3fe79a4fef0149b856c9ef74180dc",
+      "source": "그래도 연이는 운명 같은 걸 믿고 싶지 않았다.",
+      "sourceHash": "98ccbbb9172f55ac8842070010af89dea8879b22b0157717ad2ff0a58044e56a",
       "translations": {
-        "zh-CN": "可她还是不愿相信命运之类的话。命运这个说法，太省事了。",
-        "zh-TW": "可她還是不願相信命運之類的話。命運這個說法，太省事了。"
+        "zh-CN": "可她还是不愿相信命运之类的话。",
+        "zh-TW": "可她還是不願相信命運之類的話。"
       }
     },
     {
@@ -330,13 +330,13 @@
     },
     {
       "id": "prologue:34",
-      "source": "그날 밤, 연이는 젖은 양말을 벗어 던지고 침대에 쓰러졌다. 오늘 일은 더 생각하고 싶지 않았다.",
-      "sourceHash": "b29508ea6c29f98d73164827d869605651734d82fd0200ec072f4754e32cc87b",
+      "source": "그날 밤, 연이는 비에 젖은 양말을 벗어 던지고 침대에 쓰러졌다. 오늘 일은 더 생각하고 싶지 않았다.",
+      "sourceHash": "5ca1948b59e33f02dda832453a00659bc3def81f3210b5ee869fd2a4a89d6942",
       "translations": {
-        "en": "That night, Yeoni peeled off the wet socks, tossed them aside, and collapsed onto the bed. Enough thinking about today.",
-        "ja": "その夜、Yeoniは濡れた靴下を脱ぎ捨て、ベッドに倒れ込んだ。今日のことは、もう考えたくなかった。",
-        "zh-CN": "那天晚上，Yeoni脱下湿袜子扔到一边，倒在床上。今天的事，一点也不想再想了。",
-        "zh-TW": "那天晚上，Yeoni脫下濕襪子扔到一邊，倒在床上。今天的事，一點也不想再想了。"
+        "en": "That night, Yeoni peeled off the rain-soaked socks, tossed them aside, and collapsed onto the bed. Enough thinking about today.",
+        "ja": "その夜、Yeoniは雨に濡れた靴下を脱ぎ捨て、ベッドに倒れ込んだ。今日のことは、もう考えたくなかった。",
+        "zh-CN": "那天晚上，Yeoni脱下被雨淋湿的袜子扔到一边，倒在床上。今天的事，一点也不想再想了。",
+        "zh-TW": "那天晚上，Yeoni脫下被雨淋濕的襪子扔到一邊，倒在床上。今天的事，一點也不想再想了。"
       }
     },
     {
@@ -614,8 +614,8 @@
     },
     {
       "id": "prologue:60",
-      "source": "이건 선택지가 아니라, 납치 예고잖아.",
-      "sourceHash": "cdf344b8ff7adbe0f4e745121ba4871626e4212cce5edddad58f9e89f915c1c8",
+      "source": "이건 선택지가 아니라 납치 예고잖아.",
+      "sourceHash": "e560c61c153da412e37594d34e437da6b6855960c5bd04c5ea96ac97a30060ca",
       "translations": {
         "en": "That isn’t a choice. That’s a kidnapping notice.",
         "ja": "これ、選択肢じゃなくて誘拐予告でしょ。",

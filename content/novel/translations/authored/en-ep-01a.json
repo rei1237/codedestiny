@@ -50,9 +50,9 @@
     },
     {
       "id": "ep-01a:7",
-      "source": "연이는 내민 앞발을 멈췄다. 돌아갈 몸도 이름도 아직 확실하지 않았다. 그런데 호랑이가 숨을 쉴 때마다 고리가 조여드는 게 보였다. 저 발 하나를 두고 배를 돌리는 편이 더 무서웠다.",
-      "sourceHash": "b1e85d692c2ae307878205d64283a53ab18b1a85bc80a23caa28762e4e886472",
-      "t": "Yeoni stopped her outstretched hoof. Neither the body nor the name she could return to was certain yet. But she could see the ring tighten with every breath the tiger took. Leaving that one paw behind felt more frightening than stopping."
+      "source": "연이는 내민 앞발을 멈췄다. 돌아갈 몸도 길도 아직 확실하지 않았다. 그런데 호랑이가 숨을 쉴 때마다 고리가 조여드는 게 보였다. 저 발 하나를 두고 배를 돌리는 편이 더 무서웠다.",
+      "sourceHash": "2addd1ed42e491e6de7292101a9661557298b61277827ba04d73ec339e0567a2",
+      "t": "Yeoni stopped her outstretched hoof. Neither the body she could return to nor the way back was certain yet. But she could see the ring tighten with every breath the tiger took. Leaving that one paw behind felt more frightening than stopping."
     },
     {
       "id": "ep-01a:8",
@@ -62,15 +62,15 @@
     },
     {
       "id": "ep-01a:8b",
-      "source": "어려운 얘기는 나중에 해. 나도 무서우니까.",
-      "sourceHash": "3cffa486f5e841caf594d4dab2bc626d153549592697049484468896237d4583",
-      "t": "The complicated stuff can wait. I'm scared too."
+      "source": "어려운 얘기는 나중에. 지금은 발밑만 봐.",
+      "sourceHash": "a3d41f182f5e6d189cbb31548dbd25d628cdb3fb635efaef6998ae590e0fb753",
+      "t": "The complicated stuff can wait. For now, just watch your feet."
     },
     {
       "id": "ep-01a:9",
-      "source": "연이는 배 가장자리에 떨어져 있던 마른 잎자루를 입에 물었다. 고리와 털 사이에 밀어 넣자 검은 물이 솟았다. 호랑이가 반사적으로 연이의 코를 할퀴려다 멈췄다. 잎자루가 부러졌다. 고리는 여전히 조여 있었다.",
-      "sourceHash": "e421d707cc7e12280a9f5e7cb3315f9e7580964adad45666d44660395e2542e4",
-      "t": "Yeoni picked up a dry leaf stalk from the boat's edge in their mouth. Black water spurted as they pushed it between the ring and the fur. The tiger reflexively lashed at Yeoni's nose, then stopped. The stalk snapped. The ring was still tight."
+      "source": "연이는 배 가장자리에 떨어져 있던 마른 잎자루를 입에 물었다. 고리와 털 사이에 밀어 넣자 검은 물이 솟았다. 호랑이가 반사적으로 연이의 코를 할퀴었다가 멈칫했다. 잎자루가 부러졌다. 고리는 여전히 조여 있었다.",
+      "sourceHash": "ab14272047dc17ed8f8b447cef0534c5ef850c2d758089e84d13b59acf0dc81e",
+      "t": "Yeoni picked up a dry leaf stalk from the boat's edge in their mouth. Black water spurted as they pushed it between the ring and the fur. The tiger reflexively clawed Yeoni's nose, then faltered. The stalk snapped. The ring was still tight."
     },
     {
       "id": "ep-01a:10",
@@ -248,9 +248,9 @@
     },
     {
       "id": "ep-01a:27",
-      "source": "연이가 웃었다. 호랑이는 함께 웃는 대신 귀를 낮췄다. 붉어진 귀 안쪽을 망토로 감추자 연이는 목소리를 더 부드럽게 낮췄다. 호랑이의 꼬리 끝이 또 한 번 까딱였다. 뭔가를 받아 적는 사람처럼, 웃음 하나까지 빠짐없이 세어 두는 것 같았다.",
-      "sourceHash": "b61f3fd0908536577ff762c01d285d9b23c57318f77cb73d892cfb6e9cd1207a",
-      "t": "Yeoni laughed. Rather than join in, the tiger lowered her ears, hiding their flushed insides under her cloak. Yeoni softened her voice. The tiger's tail twitched again, as though taking notes and counting even each laugh."
+      "source": "연이가 웃었다. 호랑이는 함께 웃는 대신 귀를 낮췄다. 붉어진 귀 안쪽을 망토로 감추자 연이는 목소리를 더 부드럽게 낮췄다. 호랑이의 꼬리 끝이 또 한 번 까딱였다.",
+      "sourceHash": "a7c2e2b0643cf9382058030875ac0571664f856095ca642ea6738495b35c4198",
+      "t": "Yeoni laughed. Rather than join in, the tiger lowered her ears, hiding their flushed insides under her cloak. Yeoni softened her voice. The tiger's tail twitched again."
     },
     {
       "id": "ep-01a:28",
@@ -314,9 +314,9 @@
     },
     {
       "id": "ep-01a:36",
-      "source": "연이는 코에 남은 붉은 망토의 실오라기를 떼어 앞발 위에 올렸다. 어쩐지 버릴 수가 없었다. 섬의 안개 너머에서 검은 호랑이가 돌아보았다. 웃음은 사라졌고, 붉은 눈만 물 위에 두 점 남았다.",
-      "sourceHash": "2a85cb177e26b97fc14a930818b51952373a6ea9fc3fc2b2394a7995f89e07c3",
-      "t": "Yeoni pulled a red strand from the cloak off their nose and laid it on a hoof. Somehow, they could not throw it away. Beyond the island mist, the black tiger looked back. Its smile was gone. Only two red points remained above the water."
+      "source": "연이는 코에 남은 붉은 망토의 실오라기를 떼어 앞발 위에 올렸다. 어쩐지 버릴 수가 없었다. 섬의 안개 너머에서 검은 호랑이가 돌아보았다. 표정은 사라졌고, 붉은 눈만 물 위에 두 점 남았다.",
+      "sourceHash": "63d0d280e270807a94d19d3454e269131c05fcd20ffb3aa6db2d11d17f1218c0",
+      "t": "Yeoni pulled a red strand from the cloak off their nose and laid it on a hoof. Somehow, they could not throw it away. Beyond the island mist, the black tiger looked back. Its face had gone blank. Only two red points remained above the water."
     },
     {
       "id": "ep-01a:37",

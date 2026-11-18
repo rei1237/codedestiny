@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-18
-next: T1 — A1에서 바뀐 비트의 4개 언어 authored 번역 갱신
+next: A2 — A-novel-02.md 적용(원고 수정과 번역 갱신을 같은 커밋에)
 ---
 
 # 문장 교정 Phase 2 (sepia) — 진행 문서
@@ -50,6 +50,12 @@ next: T1 — A1에서 바뀐 비트의 4개 언어 authored 번역 갱신
   - 글자 수는 ±20% 안으로 맞춘다. 넘으면 기록한다.
   - 금지 표현을 넣지 않는다.
 - 원고: `content/novel/episodes.source.json`을 수정한 뒤 `npm run novel:build`로 생성물(`public/data/novel/`, `lib/stories/vn/episodes.generated.json` 등)을 만들어 함께 커밋한다. 번역은 위 결정대로 함께 갱신한다: 바뀐 비트의 `content/novel/translations/authored/<locale>-ep-XX.json` 행을 새 원문에 맞춰 직접 번역(번역 API·과금 LLM 금지)하고 `source`·`sourceHash`를 갱신한다. 해시만 다시 찍고 번역문을 그대로 두는 것은 금지(계약 위반). 절차는 `content/novel/translations/README.md`를 따른다. 검증: `node scripts/verify-novel-locale-completeness.mjs`, `npm run novel:build` 뒤 4개 로케일이 다시 게시되는지(availableLocales) 확인, `npm run verify:story-sync`. A2~A6은 원고 수정과 번역 갱신을 같은 커밋에 넣는다.
+- 번역 갱신 실제 절차(T1에서 확인)
+  - 바뀐 비트 추출: 부모·대상 커밋의 `episodes.source.json`을 비트 id로 비교해 `t`가 다른 비트를 뽑는다. 🔴 Windows에서 node `execSync('git show X^:...')`는 cmd가 `^`를 먹어 부모가 자기 자신이 된다(변경 0건). `X~1`을 쓴다.
+  - 각 비트는 `authored/en-*.json`(`beats[].t`), `ja-*.json`·`zh-*.json`(`rows[].translations.{ja|zh-CN,zh-TW}`) 세 파일에 한 행씩 있다. `prologue-00x.json`·`prologue-metadata.json`은 조립에서 빠지는 옛 공용 파일이라 고치지 않는다(이미 일부 stale). `zh-prologue.json` 일부 행에는 en·ja 키도 있으니 같은 문장으로 맞춘다.
+  - 행마다 `source`=새 원문, `sourceHash`=sha256(새 원문). 파일 형식은 `JSON.stringify(d,null,2)+'\n'`(LF)로 바이트 왕복 일치.
+  - 로케일 파일(`translations/<locale>.json`)은 실행기가 없다. 스크래치 스크립트에서 `scripts/lib/novel-authored-merge.mjs`의 `assembleNovelAuthored(sourceRaw, 해당 접두사(en-/ja-/zh-) authored 문서들, locale, content/novel/ui-copy.json)`로 조립하고, 기존 파일과 비트별로 비교해 바뀐 비트 밖 차이 0·missing 0일 때만 같은 형식으로 쓴다. 파일 sourceHash는 조립 결과가 원고 전체 sha256으로 넣는다.
+  - 그다음 `node scripts/verify-novel-locale-completeness.mjs` → `npm run novel:build`(locale 에피소드 292개·manifest 갱신) → `public/data/novel/manifest.json`의 availableLocales 확인 → `npm run verify:story-sync` → `npm run sitemap:generate`(`config/sitemap-lastmod.json` signature만 바뀔 수 있음, 함께 커밋).
 - `index.html`을 고치면 `npm run sync:public`을 돌리고, 생성된 미러를 함께 커밋한다.
 - i18n authored를 고치면 merge 스크립트(`scripts/i18n-merge-authored.mjs`, 또는 package.json의 해당 npm 스크립트)로 생성물을 갱신한다.
 - 검증: `npm run check:fast` 1회. 실패하면 원인을 고친다. 회귀가 나면 덧대지 말고 되돌린다.
@@ -68,7 +74,7 @@ next: T1 — A1에서 바뀐 비트의 4개 언어 authored 번역 갱신
 
 ## 단계
 - [x] A1 `A-novel-01.md` — 73행 적용, 건너뜀 8, 미적용(구조) 7. 🔴 원고 수정으로 번역 4개 언어가 stale 판정(availableLocales=[ko]) — push 전 번역 재조립 필요 여부 결정. novel:build 뒤 sitemap:generate 필요(소설 URL lastmod). check:fast는 범위 밖 기존 실패 `__tests__/ui/feature-visual-details.test.mjs`(fusion-fortune 이미지 기대값, 29022710f 이후)로 test:node에서 BLOCKED — 보고만
-- [ ] T1 A1(c3ae3dffd)에서 바뀐 비트의 4개 언어 번역 갱신 → availableLocales 4개 복구 확인, 커밋 `copy(novel): sync translations for prologue–EP.06A fixes`
+- [x] T1 A1(c3ae3dffd)에서 바뀐 비트의 4개 언어 번역 갱신 — 78비트 × 4언어(authored 행 234개, 문장 수정 291건; 문장부호·어미만 바뀐 5비트와 뜻이 이미 맞던 en 2·ja 1건은 원문 대조 후 번역 유지). 4개 언어 missing 0, 바뀐 비트 밖 출력 차이 0. `public/data/novel/manifest.json` availableLocales = ko·en·ja·zh-CN·zh-TW 복구
 - [ ] A2 `A-novel-02.md`
 - [ ] A3 `A-novel-03.md`
 - [ ] A4 `A-novel-04.md`
