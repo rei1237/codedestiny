@@ -49,3 +49,23 @@ test('공통 전달 규칙은 용신 단정 금지·쉬운 말·사실 일치를
   assert.match(SAJU_LUCK_JUDGEMENT_RULE, /처음 한 번만 괄호/);
   assert.match(SAJU_LUCK_JUDGEMENT_RULE, /성향 풀이와 특정 시기의 운은 제공된 계산 사실과 맞게/);
 });
+
+test('신년운세: 용신 달이라도 합거되면 총운 +1 을 주지 않고 판정을 기회·주의에 그대로 쓴다', async () => {
+  const { __newYearAiTestUtils: u } = await import('../../worker/routes/new-year-ai.js');
+  const input = { targetYear: 2027, year: 2027, focusArea: 'overall', birthInfo: { birthDate: '1985-04-15', birthTime: '08:30', birthTimeUnknown: false, calendarType: 'solar', gender: 'female' } };
+  const data = u.calculateNewYearFortuneData(input);
+  const may = data.monthlyFlow[4];
+  assert.ok(data.advancedSajuSummary.yongshin.yongshinElementsKo.includes(may.element), '5월은 용신 오행 달이어야 한다');
+  assert.equal(may.luck.verdict, '조심할 흐름');
+  assert.ok(may.luck.reasons.some((r) => /합거/.test(r)));
+  assert.notEqual(may.domains.overall.level, '강');
+  assert.equal(may.domains.overall.basis, may.luck.headline);
+  assert.ok(!may.timing.includes('기회'), may.timing);
+  const judgement = data.advancedSajuSummary.luckJudgement;
+  assert.ok(judgement.natal.yongsin.reason);
+  assert.equal(judgement.year.pillar, '丁未');
+  const facts = u.buildCanonicalNewYearFacts(data).join('\n');
+  assert.match(facts, /- 5월 을사 .*운 판정 조심할 흐름/);
+  const monthly = u.newYearSectionsForPlan(2).find((s) => s.key === 'monthly');
+  assert.ok(u.buildFirstPrompt(input, data, monthly).includes(SAJU_LUCK_JUDGEMENT_RULE));
+});

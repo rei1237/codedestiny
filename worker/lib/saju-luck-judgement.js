@@ -81,7 +81,11 @@ export function buildNatalJudgementFacts(pillars, { timeUnknown = false } = {}) 
  * reasons 는 바탕 문장 + 판정을 가장 크게 움직인 작용 두 개까지.
  */
 export function buildLuckJudgement(pillars, { daeun = null, seun = null, wolun = null, label = '', timeUnknown = false } = {}) {
-  const r = luckDynamicsFor(pillars, { daeun, seun, wolun, timeUnknown });
+  return compactLuckJudgement(luckDynamicsFor(pillars, { daeun, seun, wolun, timeUnknown }), label);
+}
+
+/** luckDynamicsFor 결과를 프롬프트용으로 줄인다(이미 계산한 결과를 다시 계산하지 않을 때). */
+export function compactLuckJudgement(r, label = '') {
   if (!r?.target) return null;
   const top = [...(r.modifiers || [])].sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta)).slice(0, MAX_MODIFIER_REASONS).map((m) => m.text);
   return {

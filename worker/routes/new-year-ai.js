@@ -3,7 +3,8 @@ import { runWithAiLocale, storedAiLocale } from '../lib/ai-locale-context.js';
 import {calculateNatalSaju} from "../../lib/korean-calendar/index.js";
 import { buildSajuNatalAnalysis, SAJU_ELEMENT_KO } from "../lib/saju-natal-analysis.js";
 import { approvedSajuLabels, overlayApprovedNatalAnalysis, sajuAuthorityOn } from "../lib/saju-authority-consumer.js";
-import { sajuTemperamentPromptLines } from '../lib/saju-temperament.js';
+import { sajuTemperamentPromptLines, SAJU_LUCK_JUDGEMENT_RULE } from '../lib/saju-temperament.js';
+import { buildNatalJudgementFacts, buildLuckJudgement, compactLuckJudgement, luckDynamicsFor } from '../lib/saju-luck-judgement.js';
 import { buildLuckNatalInteractions } from '../lib/life-book-ai-saju.js';
 import { PREVENTION_VERSION, PREVENTION_RULES, buildSajuPrevention, preventionPillarDetails, canonicalPreventionPillar, preventionTiming, hasUnsupportedPreventionClaim } from '../lib/fortune-prevention.js';
 import { trimPaidReportText } from "../lib/paid-report-length.js";
@@ -704,7 +705,7 @@ function buildDomainSignals({ annualTenGod, yongshin, johu, monthlyFlow }) {
     career: `${annualTenGod || "세운"}은 ${domain}을 통해 일의 방향을 드러냅니다.`,
     money: approved
       ? "도움이 되는 기운은 후보로만 봅니다. 재성이 움직이는 달의 수입과 지출을 나란히 적어 보며 판단하는 쪽이 안정적입니다."
-      : `${yongshin.coreYongshinKo}이 살아나는 달에는 수입의 숨통이 열리고, ${yongshin.gisinKo}이 과한 달에는 지출을 줄이는 쪽이 안정적입니다.`,
+      : "월별 운 판정이 좋은 흐름인 달에는 수입의 숨통을 넓혀 보고, 조심할 흐름인 달에는 지출을 줄이는 쪽이 안정적입니다.",
     love: "합이 드는 달에는 관계가 가까워지고, 충이 드는 달에는 오래 미룬 대화가 표면으로 올라옵니다.",
     health: approved
       ? "한난과 조습을 함께 살피며 수면과 호흡의 리듬을 먼저 다듬는 편이 좋습니다."
@@ -712,7 +713,7 @@ function buildDomainSignals({ annualTenGod, yongshin, johu, monthlyFlow }) {
     relationship: `${domain}과 맞닿은 인간관계 신호가 강해, 오래된 인연은 ${annualTenGod || "세운"}의 흐름 속에서 다시 정비되고 새 인연은 조직·모임을 통해 이어지기 쉽습니다.`,
     study: approved
       ? "후보 기운이 드는 시기를 확정된 길운으로 보지 말고, 집중이 잘 된 시기를 기록하며 리듬을 찾는 편이 낫습니다."
-      : `${yongshin.coreYongshinKo}을 채우는 시기에 집중력과 몰입도가 오르고, ${johu.urgentElementKo}이 흐트러지는 시기엔 무리한 목표보다 리듬 회복을 먼저 다루는 편이 낫습니다.`,
+      : `월별 운 판정이 좋은 흐름인 시기에 집중을 몰아 쓰고, ${johu.urgentElementKo}이 흐트러지는 시기엔 무리한 목표보다 리듬 회복을 먼저 다루는 편이 낫습니다.`,
     opportunityMonths,
     cautionMonths,
   };
@@ -734,10 +735,10 @@ function officerElementOf(dayElement) {
 
 // 한 달의 간지·십신·일지 관계를 명식(용신/기신/조후)과 대조해 5개 도메인의 강약과 근거를 확정한다.
 // 조언 문장이 아니라 사실 진술(근거)만 만든다 — 조언 서술은 LLM 상담문이 담당한다.
-function buildMonthlyDomainSignals({ element, branch, tenGod, relationToDayBranch }, ctx) {
+// 총운은 운 판정(luck-dynamics: 합거·합화·충·형·입묘·올해 바탕까지 본 결과)을 그대로 옮긴다.
+// 🔴 "용신 오행 달이면 +1"을 다시 넣지 않는다 — 용신이 묶이는(합거) 달도 +1 이 되던 신호를 이것으로 대체했다(S15-6).
+function buildMonthlyDomainSignals({ element, branch, tenGod, relationToDayBranch, luck = null }, ctx) {
   const { dayElement, yongshin, johu, targetTenGod, gender } = ctx;
-  const core = yongshin.coreYongshinKo;
-  const heesin = yongshin.heesinKo;
   const gisin = yongshin.gisinKo;
   const urgent = johu.urgentElementKo;
   const branchElement = BRANCH_ELEMENT[branch] || "";
@@ -746,26 +747,11 @@ function buildMonthlyDomainSignals({ element, branch, tenGod, relationToDayBranc
   const wealthElement = CONTROLS[dayElement] || "";
   const officerElement = officerElementOf(dayElement);
   const approved = Boolean(yongshin.calculationVersion);
-  // 승인 판정에는 단일 용신이 없다. 후보 오행과 맞닿는지만 보고, 기신 감점은 하지 않는다.
-  const supportsYongshin = approved
-    ? yongshin.yongshinElementsKo.includes(element) || yongshin.yongshinElementsKo.includes(branchElement)
-    : element === core || element === heesin || branchElement === core;
   const feedsGisin = Boolean(gisin) && (element === gisin || branchElement === gisin);
 
-  let overall = 0;
-  if (supportsYongshin) overall += 1;
-  if (feedsGisin) overall -= 1;
-  if (hasHap) overall += 1;
-  if (hasChung) overall -= 1;
-  const overallBasis = supportsYongshin
-    ? (approved ? "월의 기운이 도움 후보 오행과 맞닿아 흐름을 살펴볼 달" : `월지 기운이 용신 ${core}을 살려 흐름이 트이는 달`)
-    : feedsGisin
-      ? `기신 ${gisin}이 강해져 속도를 조절할 달`
-      : hasChung
-        ? "일지와 부딪혀 변화·정비가 잦은 달"
-        : hasHap
-          ? "일지와 어울려 관계·협력이 매끄러운 달"
-          : "큰 굴곡 없이 기존 리듬을 다지는 달";
+  const verdict = luck?.status === 'ok' ? luck.verdict : '';
+  const overall = verdict === 'good' ? 1 : verdict === 'caution' ? -1 : 0;
+  const overallBasis = verdict && luck.headline ? luck.headline : "큰 굴곡 없이 기존 리듬을 다지는 달";
 
   const moneyStar = tenGod === "정재" || tenGod === "편재";
   const moneyElementLive = element === wealthElement || branchElement === wealthElement;
@@ -913,7 +899,8 @@ function calculateNewYearFortuneData(input, { authorityEnabled = false } = {}) {
   const dominantElement = pickElement(fiveElements, "dominant");
   const balancingElement = pickElement(fiveElements, "weak");
   const targetYear = Number(input.targetYear || input.year);
-  const targetPillar = toKoreanGanzi(coreSexagenaryYear(targetYear));
+  const coreTargetPillar = coreSexagenaryYear(targetYear);
+  const targetPillar = toKoreanGanzi(coreTargetPillar);
   const targetStem = pillarStem(targetPillar);
   const targetBranch = pillarBranch(targetPillar);
   const targetTenGod = tenGodFor(dayMaster, targetStem);
@@ -936,14 +923,18 @@ function calculateNewYearFortuneData(input, { authorityEnabled = false } = {}) {
   };
   const monthlyFlow = Array.from({ length: 12 }, (_, index) => {
     const month = index + 1;
-    const monthPillar = toKoreanGanzi(coreMonthPillar(targetYear, month));
+    const coreMonth = coreMonthPillar(targetYear, month);
+    const monthPillar = toKoreanGanzi(coreMonth);
+    // 그 달의 운 판정(올해 세운이 바탕). 기회·주의와 총운 강약이 모두 이 판정을 따른다.
+    const luck = luckDynamicsFor(corePillars, { seun: coreTargetPillar, wolun: coreMonth, timeUnknown });
+    const verdict = luck?.status === 'ok' ? luck.verdict : '';
     const stem = pillarStem(monthPillar);
     const branch = pillarBranch(monthPillar);
     const element = STEM_ELEMENT[stem] || BRANCH_ELEMENT[branch] || "";
     const tenGod = tenGodFor(dayMaster, stem);
     const branchRelation = describeBranchRelation(dayBranch, branch);
     const interactions = buildLuckNatalInteractions(canonicalPreventionPillar(monthPillar), preventionDetails, {includeGroups:true});
-    const timing = preventionTiming(interactions, yongshin.yongshinElementsKo.includes(element), yongshin.kijishinElementsKo.includes(element));
+    const timing = preventionTiming(interactions, verdict === 'good', verdict === 'caution');
     return {
       month,
       pillar: monthPillar,
@@ -956,7 +947,8 @@ function calculateNewYearFortuneData(input, { authorityEnabled = false } = {}) {
       relationToDayBranch: branchRelation,
       timing,
       interactions,
-      domains: buildMonthlyDomainSignals({ element, branch, tenGod, relationToDayBranch: branchRelation }, domainContext),
+      domains: buildMonthlyDomainSignals({ element, branch, tenGod, relationToDayBranch: branchRelation, luck }, domainContext),
+      ...(verdict ? { luck: compactLuckJudgement(luck) } : {}),
     };
   });
   const daewoonSewoon = buildDaewoonSewoonSummary({
@@ -1011,6 +1003,11 @@ function calculateNewYearFortuneData(input, { authorityEnabled = false } = {}) {
       annualInteractions,
       daewoonSewoon,
       domainSignals,
+      // 원국 판정(최종 용신·조후·십간 짝)과 올해 판정. 대운 바탕은 connectNewYearTiming 이 대운을 붙일 때 다시 계산한다.
+      luckJudgement: {
+        natal: buildNatalJudgementFacts(corePillars, { timeUnknown }),
+        year: buildLuckJudgement(corePillars, { seun: coreTargetPillar, label: `${targetYear}년`, timeUnknown }),
+      },
     },
     focus: {
       focusArea: input.focusArea,
@@ -1574,6 +1571,13 @@ function buildCanonicalNewYearFacts(fortuneData = {}) {
   if (target.pillar) {
     lines.push(`세운: ${target.year}년 ${target.pillar} (천간 ${target.stem}=${target.stemElement}, 지지 ${target.branch}=${target.branchElement}, 일간 기준 십신 ${target.tenGodToDayMaster || "미산출"})`);
   }
+  const luckJudgement = fortuneData.advancedSajuSummary?.luckJudgement;
+  if (luckJudgement?.year?.verdict) {
+    lines.push(`올해 운 판정: ${luckJudgement.year.verdict} — ${luckJudgement.year.headline}`);
+  }
+  if (luckJudgement?.daeun?.verdict) {
+    lines.push(`현재 대운 판정: ${luckJudgement.daeun.pillar} ${luckJudgement.daeun.verdict} — ${luckJudgement.daeun.headline}`);
+  }
   if (trigger) {
     lines.push(`세운이 가장 강하게 닿는 원국 자리: ${trigger.pillar} ${trigger.ganji} — 천간 ${trigger.heavenlyStem} / 지지 ${trigger.earthlyBranch}`);
   }
@@ -1586,7 +1590,8 @@ function buildCanonicalNewYearFacts(fortuneData = {}) {
         .filter(Boolean)
         .join("·");
       const domainPart = domainDigest ? ` | ${domainDigest}` : "";
-      lines.push(`- ${row.month}월 ${row.pillar} · ${row.tenGod || "십신 미산출"} · ${row.timing} · ${row.relationToDayBranch}${domainPart}`);
+      const luckPart = row.luck?.verdict ? ` | 운 판정 ${row.luck.verdict}` : "";
+      lines.push(`- ${row.month}월 ${row.pillar} · ${row.tenGod || "십신 미산출"} · ${row.timing} · ${row.relationToDayBranch}${domainPart}${luckPart}`);
     });
   }
   return lines;
@@ -1821,6 +1826,8 @@ function buildFirstPrompt(input, fortuneData, section = null) {
       '월별 판정의 기회와 주의는 함께 존재할 수 있다. 기회와 주의로 표시된 달은 양쪽 조건을 모두 설명한다. 합은 자동 길운·합화가 아니고 형충파해는 자동 흉운이 아니다. 요청한 대상 연도와 계산된 월운만 사용한다.',
       '신살·오행·명식으로 호르몬, 질환이나 장기의 상태를 판단하지 않는다. 건강 해석은 관찰 가능한 생활 리듬·휴식·과부하 예방에 한정한다.',
     ] : []),
+    // 운 판정이 계산된 상담에만 붙인다(이전에 계산해 둔 세션의 프롬프트는 그대로).
+    ...(fortuneData.advancedSajuSummary?.luckJudgement ? [SAJU_LUCK_JUDGEMENT_RULE] : []),
     "",
     ...(section ? buildSectionLengthLines(section) : [
       "완성 상담문 전체 본문 합계는 공백을 제외하고 20,000자 이상 33,000자 이하로 맞추세요.",
