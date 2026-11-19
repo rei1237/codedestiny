@@ -40,6 +40,7 @@ export default function QuestionConversation({row,onRow,request,advisor='영냥�
   try{
    const data=request?await request('/conversation/continue',{id:c.continuation.id}):await fortuneApi<{fortune:FortuneRecord}>(`requests/${row.id}/conversation/continue`,{id:c.continuation.id},{timeoutMs:25000});
    onRow(data.fortune);setQuestion(data.fortune.conversation?.draft?.question||'');intent.current=null;
+   if(data.fortune.conversation?.continuation){setError('새 대화를 준비하지 못했어요. 잠시 뒤 다시 눌러 주세요. 기존 상담과 남은 질문 횟수는 그대로예요.');return;}
    const thread=data.fortune.conversation?.thread?.id;
    if(thread&&typeof window!=='undefined'){const url=new URL(window.location.href);url.searchParams.set('thread',thread);window.history.replaceState(null,'',url);}
   }catch(e){setError(e instanceof Error?e.message:'새 대화를 준비하지 못했어요. 기존 상담은 그대로 보관되어 있어요.');}
