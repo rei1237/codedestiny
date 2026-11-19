@@ -579,8 +579,10 @@ export function aiActionFromPath(path = "", serviceKey = "", method = "GET") {
   if (/\/(generate-batch|continue)$/.test(normalized)) return "batch";
   // 생성 진입점. `/report`·`/compat`·`/generate-image`·`/image-prompt` 는 `/start` 와 같은 급이다(1건 = 1리포트).
   // `/image-prompt`(사주 가디언)는 버튼 1회에 1번 부르는 결정론 프롬프트라 예전 `/generate-image` 와 같은 상한을 쓴다.
-  if (/\/(start|create|consult|report|compat|generate-image|image-prompt)$/.test(normalized)) return "start";
-  if (/\/(prepare|ensure-access|access|checkout|verify-payment)$/.test(normalized)) return "ensure";
+  // `/retry`(2026-11-19 다시 시도 우선, 인생의 책·신년)는 버튼 1회에 1번 — 실패 건을 다시 열고 `/start` 한 웨이브를 돈다.
+  if (/\/(start|create|consult|report|compat|generate-image|image-prompt|retry)$/.test(normalized)) return "start";
+  // `/refund-request` 는 다시 시도 대신 환불을 고르는 단발 POST(버튼 1회 1번)라 결제 확인과 같은 급이다.
+  if (/\/(prepare|ensure-access|access|checkout|verify-payment|refund-request)$/.test(normalized)) return "ensure";
   if (/\/(message|refine|chat)$/.test(normalized)) return "message";
   if (/\/basis$/.test(normalized)) return "basis";
   if (/\/(unlock|unlock-benefits)$/.test(normalized)) return "unlock";
