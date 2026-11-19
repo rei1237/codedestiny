@@ -371,6 +371,23 @@ let compareHiddenStemTable = null;
       allowExtraResidual: true,
       divergent: ["丑", "辰", "未", "戌"],
     }],
+    // 조습(climateV2) 지장간 월률 일수 표. 위 HIDDEN 과 같은 글자·같은 순서에 일수만 붙였다.
+    // 아래 두 생성 번들은 natal-core 를 import 해 climate.mjs 를 싣는 사본이다.
+    ["lib/saju/natal-core/climate.mjs::HIDDEN_DAYS", {
+      order: "residual-first",
+      allowExtraResidual: true,
+      divergent: ["丑", "辰", "未", "戌"],
+    }],
+    ["js/core/saju/natal-core.generated.js::HIDDEN_DAYS", {
+      order: "residual-first",
+      allowExtraResidual: true,
+      divergent: ["丑", "辰", "未", "戌"],
+    }],
+    ["js/core/saju/reading-depth.generated.js::HIDDEN_DAYS", {
+      order: "residual-first",
+      allowExtraResidual: true,
+      divergent: ["丑", "辰", "未", "戌"],
+    }],
     // 🔴 이 표만 층 가중치가 **자리로** 정해져 있다(0.6/0.25/0.15). 그래서 巳 를 정본 순서로
     // 고치는 것이 곧 庚 0.15→0.25 · 戊 0.25→0.15 이고, 신강약·통근·격국이 함께 움직였다
     // (실측 2026-08-28, 표본 1,032건: 巳 포함 304건 중 신강약 6건 1.97% · 격국 11건 3.62%).
