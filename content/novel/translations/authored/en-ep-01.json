@@ -110,9 +110,9 @@
     },
     {
       "id": "ep-01:18",
-      "source": "연이는 연잎 위에 털썩 주저앉았다. 말랑한 몸이 살짝 눌렸다 되돌아왔다. 그 감각이 너무 생생해서 오히려 싫었다.",
-      "sourceHash": "fba6a2644a42357d38d95e05a43e473d9684af95624eda959110ef7685c4276c",
-      "t": "She plopped onto the leaf. Her soft body squished, then sprang back. The sensation was so vivid it made things worse."
+      "source": "연이는 연잎 위에 털썩 주저앉았다. 말랑한 몸이 살짝 눌렸다 되돌아왔다. 그 감각이 생생해서 더 싫었다.",
+      "sourceHash": "dead74ccdefab6e7e952b7f11465b8dbb669b648f2b34c781dd7f621296882c6",
+      "t": "She plopped onto the leaf. Her soft body squished, then sprang back. The sensation was vivid, which only made it worse."
     },
     {
       "id": "ep-01:19",
@@ -446,8 +446,8 @@
     },
     {
       "id": "ep-01:74",
-      "source": "연이는 깊게 숨을 들이마셨다. 작은 콧김이 나왔다. 꿀. 제 입에서 그런 소리가 났다는 사실에 갑자기 화가 치밀었다.",
-      "sourceHash": "fb05e5d423fa42c4bdb3b1ecd2ef0d596573fc758c66e7953c88c84b99c062ed",
+      "source": "연이는 깊게 숨을 들이마셨다. 작은 콧김이 나왔다. 꿀. 제 입에서 그런 소리가 났다는 데 갑자기 화가 치밀었다.",
+      "sourceHash": "3516be4592bd71bbb2387b03d394efa7f0279941b59a60739a31e8fda3775eec",
       "t": "Yeoni drew a deep breath. A little snort escaped. Oink. Hearing that come from her own mouth suddenly made her furious."
     },
     {
@@ -530,9 +530,9 @@
     },
     {
       "id": "ep-01:88",
-      "source": "연이는 입을 다물었다. 반박할 말이 하나도 떠오르지 않았다.",
-      "sourceHash": "061a02c6ff3187d5e4f95bdf25ab4bd09b33078a5883b226426c7ece501b52ce",
-      "t": "Yeoni fell silent. She couldn't think of a single argument."
+      "source": "연이는 입을 다물었다.",
+      "sourceHash": "d8e89cc77313a048c9f633cf34b5beaafa0712aaff5edb3b125883530ee0aa3e",
+      "t": "Yeoni fell silent."
     },
     {
       "id": "ep-01:89",
@@ -584,9 +584,9 @@
     },
     {
       "id": "ep-01:97",
-      "source": "전부 농담처럼 넘겼지만 마음 한구석에선 계속 걸렸다. 왜 이렇게까지 꼬이지. 왜 나만 매번 비껴가듯 어긋나지.",
-      "sourceHash": "22cc7311cc0af4b624f9e37db7a5e5fe677fa63638788f839ff3768beb305108",
-      "t": "She'd laughed them all off, but they kept catching somewhere inside her. Why this much bad luck? Why did everything keep missing her by a fraction?"
+      "source": "왜 이렇게까지 꼬이지.",
+      "sourceHash": "76cb0f3ee7b9e7e9af7a351ac0e109638e6103b46dd09d359679b70485ef33e6",
+      "t": "Why was everything going this wrong?"
     },
     {
       "id": "ep-01:98",
@@ -620,9 +620,9 @@
     },
     {
       "id": "ep-01:103",
-      "source": "연이는 얼어붙었다. 억지로 붙들던 농담이 머릿속에서 싹 사라졌다. 저건 꿈의 장식이 아니었다. 무언가가 자신을 잡으러 오고 있었다.",
-      "sourceHash": "9130ad0759f695474f6b42aa08afa33499ce16887e58af2cf914c40b6adb63e9",
-      "t": "Yeoni froze. Every joke she'd been forcing herself to hold onto vanished. This wasn't dream scenery. Something was coming to take her."
+      "source": "연이는 그대로 굳었다. 억지로 붙들던 농담이 머릿속에서 싹 사라졌다. 저건 꿈의 장식이 아니었다. 무언가가 자신을 잡으러 온다.",
+      "sourceHash": "e8dc2c6a808eecd9083f1ea77ac6eb296185a49eb131ad07445df0cd3b35b43e",
+      "t": "Yeoni went rigid where she stood. Every joke she'd been forcing herself to hold onto vanished. This wasn't dream scenery. Something was coming to take her."
     },
     {
       "id": "ep-01:104",
@@ -722,9 +722,9 @@
     },
     {
       "id": "ep-01:120",
-      "source": "그럼 영냥이, 영험한 냥이니까. 작명 센스는 별 하나 걸게.",
-      "sourceHash": "a9b4c002ea047842d19b5bc9ebad6066de0390be9ef55274accc9447f4af0b9c",
-      "t": "Then Yeongnyangi. A mystical little kitty. I'll stake one star on my naming skills."
+      "source": "그럼 영냥이, 영험한 냥이니까.",
+      "sourceHash": "d34e1de9678ffcc86dcaba41d06c0699b4ce459cbdfd9ce24b12a2bfd1b791b7",
+      "t": "Then Yeongnyangi. A mystical little kitty."
     },
     {
       "id": "ep-01:121",
@@ -836,9 +836,9 @@
     },
     {
       "id": "ep-01:139",
-      "source": "연이는 네 개의 빛을 바라봤다. 꿈이라기엔 손에 잡힐 듯 선명했고 게임이라기엔 등골이 서늘했다. 그런데 저 빛들이 자신을 부르는 것 같았다.",
-      "sourceHash": "729ee5e794316590378a4d14ce286aab4b6dc44f5bb2b6d957920d749cc4b3c0",
-      "t": "Yeoni watched them. Too vivid for a dream, too chilling for a game. Yet the lights seemed to be calling her."
+      "source": "연이는 네 개의 빛을 바라봤다. 꿈이라기엔 손에 잡힐 듯 선명했고 게임이라기엔 너무 진짜 같았다. 그런데도 저 빛들이 자신을 부르는 것 같았다.",
+      "sourceHash": "2360f3c9ec0347078a60bcc4542928d713c9709a882555aba47dd6ea15e2bf78",
+      "t": "Yeoni watched them. Too vivid for a dream, too real for a game. Even so, the lights seemed to be calling her."
     },
     {
       "id": "ep-01:140",

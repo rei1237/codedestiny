@@ -195,3 +195,109 @@
 - 각 매치가 실제로 화면에 노출되는지(죽은 코드 여부)는 확인하지 않았다.
 - `ja`·`en` 등 다른 로케일 값: 대상 밖이다.
 - `.json` 데이터 파일 가운데 i18n 밖에 있는 것(`public/data/*` 외 앱 내부 JSON)은 보지 않았다.
+
+## Phase 2 적용 결과
+
+2026-11-19 B2 적용. 범위는 4장 "유형별 대표 예시" 중 수정안이 있는 행이다. 통계 수치를 줄이려는 일괄 치환은 하지 않았다. 4장 30행 집계: 적용 20, 엔진 골든 보류 3, 보고만·보류 3, 유지 4.
+
+### 적용한 행 — 20행
+
+- 번역투(5): `f3300`, `f3185`, `saju-core-bootstrap.js:474`, `saju-engine.js:18926`(같은 문구 `:19367`도 함께 적용).
+  - `f3300`은 하드코딩 원본도 함께 고쳤다: `TermsContent.jsx`, `public/static/policies/{terms,refund}/index.html`.
+- 추상어(4): `home.myGarden.emptyDescription`, `f42`, `quantum.js:661`, `reportDashboard.js:1529`.
+  - `emptyDescription`: `index.html:8884`, `home-funnel.js:406`도 함께 고쳤다.
+  - `f42`: `SiteFooterHub.jsx`, `siteFooterHubCopy.ts`, `.footer-strings.json`도 함께 고쳤다.
+- 과장·보장(2): `quantum.js:5785`, `oracle-kcg.js:622`.
+  - `5785`: 서버 사본 `lib/sukuyo-engine-server.ts:320`을 함께 고쳤다. worker 런타임은 재생성했다.
+- 불안 자극(2): `localSajuCalculator.ts:121`, `numerology-tarot.mjs:590`.
+- 이모지 장식(4): `s111`, `confirm.006`, `share.js:567`, `saju-engine.js:9067`.
+  - `s111`: `reportDashboard.js:1098`도 함께 고쳤다.
+  - `share.js`: 5곳, `animal-totem-experience.js:170`도 함께 고쳤다.
+- 어미 반복(4): `f976`, `f2111`, `f3555`, `f2585`(문장 병합).
+
+| 문체 조정 | 행 |
+|---|---|
+| 해요체 수정안을 합니다체로 바꿔 적용(주변 문단이 합니다체) | `f2111`, `f3555`, `f2585`, `quantum.js:661`, `quantum.js:5785`, `numerology:590` |
+
+> 유형별 합계: 번역투 4 + 추상어 4 + 과장 2 + 불안 자극 2 + 이모지 4 + 어미 반복 4 = 20. 각 유형 표의 나머지 행은 아래 골든 보류, 보고만·보류, 유지 중 하나다.
+
+### 엔진 골든이 깨져 되돌린 행(보류) — 3행
+
+| 위치 | 깨진 테스트 |
+|---|---|
+| `saju-engine.js:24114` "안정감은 최고조에 달합니다" | `__tests__/ui/saju-compat-golden-master.test.mjs`(궁합 출력 해시) |
+| `sajuCompat.grade.S` "🌟 전생의 은인" | 같은 골든. `saju-engine.js` gradeLabel이 출력에 들어간다. `saju-compat-render.mjs` 단독 변경은 통과했지만 한 행이라 함께 되돌렸다. |
+| `rich-card-meanings.mjs:1321` caution | `__tests__/ui/yeongnyangi-reading-invariance.test.mjs`(tarot_mackerel prepare 매니페스트). `numerology:590`은 단독 재검사에서 통과해 유지했다. |
+
+골든 기준값 갱신은 문구 변경 승인과 별도 결정이 필요하다.
+
+### 보고만·보류 — 3행
+
+| 위치 | 이유 |
+|---|---|
+| `shellRuntime-62` `f3378` "초과분에 대한 결제수단이 안내됩니다" | i18n 밖 소스 사용처가 0건이다(`git grep`). 결제 고지 문구다. 수정안의 "다른"은 의미를 바꾼다. 보고만 한다. |
+| `shellCopy-02` `home.aiFeats.title` | 소스·셸 어디에서도 쓰이지 않는다(`git grep`). 고칠 대상이 화면에 없다. |
+| `fortuneTeaHouse-28` `entryScenes.0.lines.1.text` | authored 값이 낡았다. 실제 ko 화면 정본은 `src/features/fortune-tea-house/data/entryStory.ts`("문패에는 ‘운명의 찻집’…")이고, core ko도 TS와 같다. authored만 고치면 화면은 그대로이고 다른 로케일 core만 흔들린다. 그래서 되돌리고 보류했다. |
+
+### 유지(오탐 확인) — 4행
+
+`billing-client.ts:3066`(결제 파일, 100% 환불), `f1426`, `DailyCard.tsx:265`, `musicLyrics.ts`. 리포트 판정 그대로 손대지 않았다.
+
+### 구조 변경이라 적용하지 않음
+
+없음. 5장 '비책·비법·비결' 사용처는 이번 단계 범위(4장 대표 예시) 밖이다.
+
+### 번역 동기화가 필요한 키 — 11개(ko만 수정함, 다른 로케일은 손대지 않음)
+
+- `shellRuntime`: `f3185`, `f3300`, `f42`, `s111`, `f976`, `f2111`, `f3555`, `f2585` (8)
+- `home.myGarden.emptyDescription` (1)
+- `_moduleCopy-skeleton`(스테이징 파일, 병합 대상 아님): `moduleCopy.indexRuntime2.indexRuntime.confirm.006`, `moduleCopy.animalTotem.share.copied` (2)
+- 하드코딩만 바뀐 행(474, 18926, 661, 1529, 5785, oracle, 121, 590, 9067)에는 i18n 키가 없다.
+
+### ±20%를 넘은 행
+
+모두 짧은 문자열이다. 수정안대로 이모지·불안 자극·추상어를 걷어내 줄었다.
+
+| 행 | 변화 |
+|---|---|
+| `saju-engine.js:18926` | 13→10자, -23% |
+| `reportDashboard.js:1529` | 22→16자, -27% |
+| `localSajuCalculator.ts:121` | 8→6자, -25% |
+| `s111` | 19→14자, -26%, 이모지 2개·"폼 미쳤다" 삭제 |
+| `confirm.006` 첫 문장 | 15→9자, -40% |
+
+나머지는 ±20% 안이다. 예: `5785` +19%, `f976` -16%, `f3555` -13%.
+
+### Before / After
+
+1. `js/core/saju/reportDashboard.js:1529`
+   - Before: "지금 내 흐름과 맞는 인사이트를 펼쳐 확인해보세요."
+   - After: "지금 내 운에 맞는 풀이를 펼쳐 보세요."
+2. `js/saju-engine-tarot-sukuyo-quantum.js:5785`
+   - Before: "이동과 여행, 해외 교류를 통해 부가 확산됩니다."
+   - After: "이동·여행·해외 교류에서 재물 기회가 생기기 쉽습니다."
+3. `shellRuntime.f3300`
+   - Before: "고객센터를 통해 환불 요청이 가능합니다."
+   - After: "고객센터에서 환불을 요청할 수 있습니다."
+
+### 함께 바뀐 생성물
+
+- `public/i18n/ko.json`: 바뀐 ko 값 1개(emptyDescription)만 반영했다.
+- `index.html` 홈 퍼널 블록의 원본은 `templates/home-funnel.html`이라 함께 고쳤다.
+- `public/i18n/ko/shellRuntime.json`: 바뀐 ko 값 8개만 반영했다.
+- 그 밖의 로케일 파일은 HEAD와 같다.
+- `worker/lib/saju-section/runtime.generated.mjs`: `extract-saju-section-runtime.mjs --write`로 재생성했다.
+- `npm run sync:public`을 돌렸다. 바뀐 파일:
+  - `public/{,en,ja,zh,zh-tw,ggulggul}/index.html`, `public/static/policies/**`
+  - `public/js/**` 미러
+  - 캐시 버스트(`js/app.js`, `js/core/init.js`, `js/core/uiBindings.js`)
+- `npm run sitemap:generate`를 돌렸다. `app/**` 편집으로 lastmod 원장이 낡아서다. 바뀐 파일: `config/sitemap-lastmod.json`, `sitemap*.xml`, `public/sitemap*.xml`.
+
+### 후속 제안(이번에 고치지 않음)
+
+- `sajuCompat.grade.A/B/C` 라벨에도 GRADE_ICON과 겹치는 이모지가 남아 있다.
+- `destiny-poker.html`에 비슷한 공유 토스트("클립보드에 복사했어요! 카카오톡에 붙여넣기 하세요")가 있다. 문자열이 달라 이번에는 고치지 않았다.
+- 고아·낡은 i18n 항목 정리 여부를 결정해야 한다: `f3378`, `home.aiFeats.title`, `fortuneTeaHouse-28` entryScenes. 정본 TS와 어긋나 있다.
+- `indexRuntime.confirm.*`의 `\n`이 이스케이프가 겹친 채 저장돼 있다. 화면에 리터럴로 보이는지 확인해야 한다(기존 문제).
+- 이용약관·환불정책 문구 1곳이 바뀌었다(의미 동일). 법무 문서 개정 이력이 필요한지 확인한다.
+- 5장 '비책·비법·비결' 사용처는 C 단계 또는 별도 결정으로 다룬다.

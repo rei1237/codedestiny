@@ -8,7 +8,7 @@ const fusionDescriptions:Record<string,string>={
  fusion_all:'여섯 체계를 한 권에 펼쳐줄게. 같은 이야기는 연결하고, 다른 해석은 선택의 조건으로 정리할게.',
 };
 export function consultationTitle(product:Product){
- return product.readingKind==='all'?'오마카세 초융합 운세':product.name;
+ return product.readingKind==='all'?'생선 오마카세':product.name;
 }
 export function fusionDescription(product:Product){return fusionDescriptions[product.id];}
 

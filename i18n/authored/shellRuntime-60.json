@@ -85,7 +85,7 @@
     "ms": "If no result was provided after payment, or normal use was impossible due to a system error, we check the fault record and handle it in whichever way is appropriate — regeneration, adjustment of the usage period, a partial refund or a full refund."
   },
   "shellRuntime.f3300": {
-    "ko": "결제 완료 전에는 언제든 취소할 수 있습니다. 결제 완료 후에도 결과 생성, PDF 렌더링, 유료 리딩 열람, 이용권 혜택 사용이 시작되지 않았다면 고객센터를 통해 환불 요청이 가능합니다.",
+    "ko": "결제 완료 전에는 언제든 취소할 수 있습니다. 결제 완료 후에도 결과 생성, PDF 렌더링, 유료 리딩 열람, 이용권 혜택 사용이 시작되지 않았다면 고객센터에서 환불을 요청할 수 있습니다.",
     "en": "You may cancel at any time before payment completes. Even after payment completes, if result generation, PDF rendering, viewing of a paid reading or use of pass benefits has not begun, you may request a refund through customer support.",
     "ja": "決済完了前はいつでも取り消せます。決済完了後であっても、結果の生成、PDFレンダリング、有料リーディングの閲覧、利用券特典の使用が始まっていなければ、カスタマーセンターを通じて返金を請求できます。",
     "zh-CN": "付款完成前可随时取消。即使付款已完成，只要尚未开始生成结果、渲染PDF、阅览付费解读或使用使用券权益，仍可透过客服申请退款。",

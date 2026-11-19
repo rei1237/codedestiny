@@ -47,7 +47,7 @@ export type TeaHouseEntrySceneData = {
 export const teaHouseEntryScenes: TeaHouseEntrySceneData[] = [
   {
     "stage": "doorOpened",
-    "eyebrow": "달빛 골목의 마지막 불빛",
+    "eyebrow": "첫 번째 장면",
     "title": "달빛 골목의 마지막 불빛",
     "actor": "none",
     "background": "interior1",
@@ -81,7 +81,7 @@ export const teaHouseEntryScenes: TeaHouseEntrySceneData[] = [
   },
   {
     "stage": "pigGreeting",
-    "eyebrow": "꽃을 단 작은 문지기",
+    "eyebrow": "두 번째 장면",
     "title": "꽃을 단 작은 문지기",
     "actor": "pig",
     "background": "interior1",
@@ -117,7 +117,7 @@ export const teaHouseEntryScenes: TeaHouseEntrySceneData[] = [
   },
   {
     "stage": "pigDialogue",
-    "eyebrow": "아직 이름 붙이지 못한 마음",
+    "eyebrow": "세 번째 장면",
     "title": "아직 이름 붙이지 못한 마음",
     "actor": "pig",
     "background": "interior1",
@@ -154,7 +154,7 @@ export const teaHouseEntryScenes: TeaHouseEntrySceneData[] = [
   },
   {
     "stage": "transformPreview",
-    "eyebrow": "찻잔에 달이 닿는 순간",
+    "eyebrow": "네 번째 장면",
     "title": "찻잔에 달이 닿는 순간",
     "actor": "transform",
     "background": "interior2",
@@ -189,7 +189,7 @@ export const teaHouseEntryScenes: TeaHouseEntrySceneData[] = [
   },
   {
     "stage": "yeoniReveal",
-    "eyebrow": "마주 앉은 연이",
+    "eyebrow": "다섯 번째 장면",
     "title": "마주 앉은 연이",
     "actor": "yeoni",
     "background": "interior2",
@@ -227,7 +227,7 @@ export const teaHouseEntryScenes: TeaHouseEntrySceneData[] = [
   },
   {
     "stage": "teaIntro",
-    "eyebrow": "오늘의 마음을 담을 여섯 잔",
+    "eyebrow": "여섯 번째 장면",
     "title": "오늘의 마음을 담을 여섯 잔",
     "actor": "tea",
     "background": "interior2",
@@ -268,42 +268,42 @@ export const teaHouseEntryScenes: TeaHouseEntrySceneData[] = [
 export const flowerPigIdleLines: TeaHouseEntryLine[] = [
   {
     speaker: "꽃돼지?",
-    text: "기다리는 동안에도 찻잔은 조금씩 밝아져.\n마음이 천천히 도착하는 속도라면, 그 속도도 오늘의 답에 가까워.",
+    text: "기다리는 동안에도 찻잔은 조금씩 밝아져요.\n마음이 천천히 도착하는 속도라면, 그 속도도 오늘의 답에 가까워요.",
     mood: "comfort",
   },
   {
     speaker: "꽃돼지?",
-    text: "방금 달빛이 살짝 흔들렸어.\n누군가 꺼내지 못한 말을 마음속으로 만지작거릴 때, 찻집은 먼저 알아차리거든.",
+    text: "방금 달빛이 살짝 흔들렸어요.\n누군가 꺼내지 못한 말을 마음속으로 만지작거릴 때, 찻집은 먼저 알아차리거든요.",
     mood: "thinking",
   },
   {
     speaker: "꽃돼지?",
-    text: "오래 남아 있는 고민은 대체로 마음이 아직 포기하지 않았다는 뜻이야.\n나는 그런 마음을 꽤 좋아해. 이 찻집은 바로 그런 진심을 억지로 밀어내지 않고, 천천히 읽어 주는 곳이거든.",
+    text: "오래 남아 있는 고민은 대체로 마음이 아직 포기하지 않았다는 뜻이에요.\n저는 그런 마음을 꽤 좋아해요.",
     mood: "playful",
   },
   {
     speaker: "꽃돼지?",
-    text: "말을 고르지 못해도 괜찮아.\n이곳에서는 침묵도 찻잎처럼 천천히 우러나와. 급하게 삼키면 향을 놓치거든.",
+    text: "말을 고르지 못해도 괜찮아요.\n이곳에서는 침묵도 찻잎처럼 천천히 우러나요. 급하게 삼키면 향을 놓치거든요.",
     mood: "comfort",
   },
   {
     speaker: "꽃돼지?",
-    text: "저 문 너머에는 답보다 먼저 온기가 있어.\n차가 식기 전에, 네 마음도 조금은 덜 단단해졌으면 좋겠어.",
+    text: "저 문 너머에는 답보다 먼저 온기가 있어요.\n차가 식기 전에, 당신 마음도 조금은 덜 단단해졌으면 좋겠어요.",
     mood: "welcome",
   },
   {
     speaker: "꽃돼지?",
-    text: "가끔은 아주 작은 망설임 하나가 큰 방향을 바꿔.\n그래서 나는 손님의 첫 숨을 오래 듣는 편이야. 숨은 거짓말을 잘 못하거든.",
+    text: "가끔은 아주 작은 망설임 하나가 큰 방향을 바꿔요.\n그래서 저는 손님의 첫 숨을 오래 듣는 편이에요. 숨은 거짓말을 잘 못하거든요.",
     mood: "thinking",
   },
   {
     speaker: "꽃돼지?",
-    text: "지금 반짝인 찻잔 봤어?\n아직 고르지 않았는데도, 너를 알아보려는 빛이 먼저 움직였어. 꽤 예의 바른 빛이지?",
+    text: "지금 반짝인 찻잔 보셨어요?\n아직 고르지 않았는데도, 당신을 알아보려는 빛이 먼저 움직였어요. 꽤 예의 바른 빛이죠?",
     mood: "surprised",
   },
   {
     speaker: "꽃돼지?",
-    text: "오늘의 밤은 조금 다정해.\n그래도 너무 빨리 괜찮아지려고 애쓰지는 마. 마음도 데우는 시간이 필요해.",
+    text: "오늘의 밤은 조금 다정해요.\n그래도 너무 빨리 괜찮아지려고 애쓰지는 마세요. 마음도 데우는 시간이 필요해요.",
     mood: "comfort",
   },
 ];

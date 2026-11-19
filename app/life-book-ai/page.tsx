@@ -9,7 +9,7 @@ import { buildKrwOffer } from "@/lib/seo/paid-offer";
 import { ROBOTS_META } from "../../lib/seo/index-policy.mjs";
 
 const PAGE_PATH = "/life-book-ai/";
-const PAGE_TITLE = "인생 총운 | 사주로 보는 평생 운세 리포트 — 인생의 책";
+const PAGE_TITLE = "인생의 책 | 사주로 보는 평생 운세 리포트";
 const PAGE_DESCRIPTION = "내 인생의 황금기는 언제일까? 사주 명식으로 일·관계·재물의 방향과 시기를 짚는 평생 운세 리포트입니다.";
 
 export const metadata: Metadata = {

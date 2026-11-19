@@ -511,7 +511,7 @@ function shareKakao(){
     var encoded=encodeURIComponent(text);
     var a=document.createElement('a');a.href='kakaotalk://send?text='+encoded;a.click();
     setTimeout(function(){
-      copyToClipboard(text,'카카오톡 앱이 없거나 PC에서는 링크를 복사했어요! 카카오톡에 붙여넣기 하세요 💬');
+      copyToClipboard(text,'카카오톡 앱이 없거나 PC에서는 링크를 복사했어요! 카카오톡에 붙여 넣어 주세요.');
     },800);
   },'saju');
 }
@@ -564,7 +564,7 @@ function shareAstroKakao() {
     a.href = 'kakaotalk://send?text=' + encodeURIComponent(text);
     a.click();
     setTimeout(function() {
-      copyToClipboard(text, '카카오톡 앱이 없거나 PC에서는 링크를 복사했어요! 카카오톡에 붙여넣기 하세요 💬');
+      copyToClipboard(text, '카카오톡 앱이 없거나 PC에서는 링크를 복사했어요! 카카오톡에 붙여 넣어 주세요.');
     }, 800);
   }, 'astro');
 }
@@ -653,7 +653,7 @@ function shareZiweiKakao() {
     a.href = 'kakaotalk://send?text=' + encodeURIComponent(text);
     a.click();
     setTimeout(function() {
-      copyToClipboard(text, '카카오톡 앱이 없거나 PC에서는 링크를 복사했어요! 카카오톡에 붙여넣기 하세요 💬');
+      copyToClipboard(text, '카카오톡 앱이 없거나 PC에서는 링크를 복사했어요! 카카오톡에 붙여 넣어 주세요.');
     }, 800);
   }, 'ziwei');
 }
@@ -696,7 +696,7 @@ function shareLoveSecretKakao() {
     a.href = 'kakaotalk://send?text=' + encodeURIComponent(text);
     a.click();
     setTimeout(function () {
-      copyToClipboard(text, '카카오톡 앱이 없거나 PC에서는 링크를 복사했어요! 카카오톡에 붙여넣기 하세요 💬');
+      copyToClipboard(text, '카카오톡 앱이 없거나 PC에서는 링크를 복사했어요! 카카오톡에 붙여 넣어 주세요.');
     }, 800);
   }, 'lovesecret');
 }
@@ -919,7 +919,7 @@ function cdShareFortuneKakao(options){
     var a = document.createElement('a');
     a.href = 'kakaotalk://send?text=' + encodeURIComponent(text);
     a.click();
-    setTimeout(function(){ copyToClipboard(text, '카카오톡 앱이 없거나 PC에서는 링크를 복사했어요! 카카오톡에 붙여넣기 하세요 💬'); }, 800);
+    setTimeout(function(){ copyToClipboard(text, '카카오톡 앱이 없거나 PC에서는 링크를 복사했어요! 카카오톡에 붙여 넣어 주세요.'); }, 800);
   }, contentId);
 }
 

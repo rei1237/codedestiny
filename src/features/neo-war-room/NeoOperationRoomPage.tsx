@@ -339,7 +339,7 @@ const methodIntroDialogues = [
   {
     key: "method.intro.front",
     category: "methodSelect",
-    text: "어떤 전선부터 볼 거냐.",
+    text: "어떤 고민부터 볼 거냐.",
     emotionState: "curious",
     spriteFrame: 1,
   },
@@ -360,7 +360,7 @@ const methodIntroDialogues = [
   {
     key: "method.intro.sharpKindness",
     category: "methodSelect",
-    text: "내 말이 조금 날카롭게 들릴 수 있다. 그래도 방향만 잡히면, 그 날카로움은 꽤 쓸 만한 등불이 된다.",
+    text: "내 말이 조금 날카롭게 들릴 수 있다. 그래도 방향만 잡히면, 그 날카로움도 꽤 쓸모가 된다.",
     emotionState: "encouragement",
     spriteFrame: 4,
   },
@@ -374,14 +374,14 @@ const methodIntroDialogues = [
   {
     key: "method.intro.gaze",
     category: "methodSelect",
-    text: "숨기려는 표정까지 다 보인다. 그러니까 괜히 멋있는 척하지 말고, 지금 흔들리는 자리부터 골라라.",
+    text: "숨기려는 표정까지 다 보인다. 그러니까 괜히 혼자 버티지 말고, 지금 흔들리는 자리부터 골라.",
     emotionState: "curious",
     spriteFrame: 2,
   },
   {
     key: "method.intro.promise",
     category: "methodSelect",
-    text: "괜찮다. 흐트러진 기록도 지도 위에 올리면 다음 길이 된다. 내가 그 선을 같이 짚어주겠다.",
+    text: "괜찮다. 흐트러진 기록도 지도 위에 올리면 다음 길이 된다. 그 선은 내가 같이 짚어 줄게.",
     emotionState: "encouragement",
     spriteFrame: 1,
   },
@@ -402,14 +402,14 @@ const methodIntroDialogues = [
   {
     key: "method.intro.ziwei",
     category: "methodSelect",
-    text: "자미두수를 고르면 명궁의 지휘선을 본다. 반복되는 장면이 어디서 시작되는지 잡는다.",
+    text: "자미두수를 고르면 명궁을 중심으로 본다. 반복되는 장면이 어디서 시작되는지 잡는다.",
     emotionState: "idle",
     spriteFrame: 5,
   },
   {
     key: "method.intro.vedic",
     category: "methodSelect",
-    text: "베다점을 고르면 카르마의 압력을 본다. 익숙한 불안과 진짜 신호를 나눈다.",
+    text: "베다점을 고르면 지금 시기의 부담을 본다. 익숙한 불안과 진짜 신호를 나눈다.",
     emotionState: "curious",
     spriteFrame: 6,
   },

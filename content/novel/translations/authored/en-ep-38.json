@@ -250,9 +250,9 @@
     },
     {
       "id": "ep-38:41",
-      "source": "호랑이의 숨이 멎었다. 눈 안의 검은 점이 흔들렸다. 커지려다가 멈췄다.",
-      "sourceHash": "40bcc6f195c4ae6bd50204ccb23a04ba8cbdff1a3952fc63fec3ee4e43118bc0",
-      "t": "The tiger's breath stopped. The black dot in its eye wavered. It began to grow, then halted."
+      "source": "호랑이가 숨을 삼켰다. 눈 안의 검은 점이 흔들렸다. 커지려다가 멈췄다.",
+      "sourceHash": "2e11a1888113aa72a59ffaf490b40e4353af9041269f510515f253c41ac38cca",
+      "t": "The tiger caught its breath. The black dot in its eye wavered. It began to grow, then halted."
     },
     {
       "id": "ep-38:42",
@@ -484,9 +484,9 @@
     },
     {
       "id": "ep-38:80",
-      "source": "연이는 무릎을 꿇었다. 배 안쪽이 텅 비었다. 무언가를 품고 있던 자리가 한꺼번에 꺼진 느낌이었다.",
-      "sourceHash": "8903efada4325aab8ad8dbf424b52380ce742bac0d76e2cc211c35a9fe56c2c7",
-      "t": "Yeoni dropped to their knees. Their stomach felt hollow, as though the place that had held something had collapsed all at once."
+      "source": "연이는 무릎을 꿇었다. 배 안쪽이 한꺼번에 꺼졌다.",
+      "sourceHash": "a7906beccaa46e77f9224bb78293b16096ab41f67bbba52bfa63de63c60f368f",
+      "t": "Yeoni dropped to their knees. Everything inside their stomach caved in at once."
     },
     {
       "id": "ep-38:81",
@@ -508,9 +508,9 @@
     },
     {
       "id": "ep-38:84",
-      "source": "짧은 말이었다. 방 안이 조용해졌다. 빗소리마저 멈춘 것 같았다.",
-      "sourceHash": "f6308acb46d8711c71656846bd11aa16ef43474c1a1fee60783f54d99b276d45",
-      "t": "One short word. The room fell silent. Even the rain seemed to stop."
+      "source": "짧은 말이었다. 방 안이 조용해졌다.",
+      "sourceHash": "2a713dce8341e67055c8faa01458ae07c96a7d76ed6a75bad6bc205b96968dd4",
+      "t": "One short word. The room fell silent."
     },
     {
       "id": "ep-38:85",
@@ -652,9 +652,9 @@
     },
     {
       "id": "ep-38:108",
-      "source": "그럼 같이 먹히지 뭐. 반반이라며. 네가 한 말이야.",
-      "sourceHash": "5b5a7b689c8166e9be728c8bf8e1b24d73c7d130166847f8fda77b7059906a09",
-      "t": "Then it can eat us together. Half each, remember? You said it."
+      "source": "그럼 같이 먹히지 뭐. 반반이라며. 우리가 한 말이야.",
+      "sourceHash": "411f6fb6947686e5ac5c1b6574153df5131d8b423b86562d361e0b74fed5b543",
+      "t": "Then it can eat us together. Half each, remember? We said it."
     },
     {
       "id": "ep-38:109",

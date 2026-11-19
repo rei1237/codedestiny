@@ -40,9 +40,9 @@
     },
     {
       "id": "ep-39:6",
-      "source": "놓아라. 그 고리가 네 몸이다. 끊으면 네 힘도, 돌아갈 길도 함께 끊긴다.",
-      "sourceHash": "1d338f0462765076b3f2567367f4ca267705215c8a08485feb0dfde6ac4b12da",
-      "t": "Let go. That ring is your body. Break it, and your power and road home break with it."
+      "source": "놓아라. 그 고리가 네 몸이다.",
+      "sourceHash": "f547b88df85c03f2437f87834cb39c345beaa9ecedc0daf288aee9fac1e4de49",
+      "t": "Let go. That ring is your body."
     },
     {
       "id": "ep-39:7",
@@ -82,9 +82,9 @@
     },
     {
       "id": "ep-39:13",
-      "source": "위쪽, 스물일곱 달집의 우물가. 실이 갑자기 무거워졌다. 연이가 앞으로 고꾸라졌다. 무릎이 돌바닥에 찧혔다.",
-      "sourceHash": "435cbb0b6e9a60c273a5e4971ec9818a3e5df34a499bd6295fa2d57dc11ca642",
-      "t": "Above, beside the well among the twenty-seven lunar mansions, the thread suddenly grew heavy. Yeoni pitched forward, knees striking stone."
+      "source": "위쪽, 사원 아래의 둥근 방. 실이 갑자기 무거워졌다. 연이가 앞으로 고꾸라졌다. 무릎이 돌바닥에 찧혔다.",
+      "sourceHash": "6f67f85b20b5399b2d6464836042caea89effc3ce271637b0b844f22e946800f",
+      "t": "Above, in the round chamber beneath the temple, the thread suddenly grew heavy. Yeoni pitched forward, knees striking stone."
     },
     {
       "id": "ep-39:14",
@@ -100,9 +100,9 @@
     },
     {
       "id": "ep-39:16",
-      "source": "네오가 실을 물려고 고개를 숙였다. 앞다리가 실을 그대로 통과했다. 어깨까지 맑아진 다리는 아무것도 붙잡지 못했다.",
-      "sourceHash": "fa9aecc51c57dffc01f3262d93fcc1aebbcad8d84e8ca6e9139b1e7caab07657",
-      "t": "Neo lowered his head to bite the thread. His foreleg passed straight through it. Transparent to the shoulder, it couldn't grasp anything."
+      "source": "네오가 실을 잡으려고 손을 뻗었다. 손가락이 실을 그대로 통과했다. 어깨까지 맑아진 팔은 아무것도 붙잡지 못했다.",
+      "sourceHash": "0dfa363e20708035e10982e2c4268ed4755837e42425e1c9fabadf7490f8392b",
+      "t": "Neo reached out to grab the thread. His fingers passed straight through it. Transparent to the shoulder, his arm couldn't grasp anything."
     },
     {
       "id": "ep-39:17",
@@ -136,9 +136,9 @@
     },
     {
       "id": "ep-39:22",
-      "source": "우물 아래에서 젖은 손 하나가 올라왔다. 오른 손목에 고리 모양의 흉터가 있었다. 연이가 그 손목을 잡았다. 차가웠다.",
-      "sourceHash": "fdc866733e857d164445c967e8525c99b390c1163478b678a9df501b21719240",
-      "t": "A wet hand rose from the well. A ring-shaped scar circled its right wrist. Yeoni seized it. It was cold."
+      "source": "바닥 틈 아래에서 젖은 손 하나가 올라왔다. 오른 손목에 고리 모양의 흉터가 있었다. 연이가 그 손목을 잡았다. 차가웠다.",
+      "sourceHash": "bbd96107a411cc82270a5c4f91c8f9a81ad8ba08c452e33f19583aa47bd0a920",
+      "t": "A wet hand rose from the crack in the floor. A ring-shaped scar circled its right wrist. Yeoni seized it. It was cold."
     },
     {
       "id": "ep-39:23",
@@ -172,9 +172,9 @@
     },
     {
       "id": "ep-39:28",
-      "source": "비가 그쳤다. 우물가에 다섯이 둘러앉았다. 아니, 넷과 하나. 서한비만 조금 떨어져 앉아 있었다.",
-      "sourceHash": "5a34629d81bb8fad0a545fc2e08fd028202ddb248bc247a9e9b90dbf71848a0d",
-      "t": "The rain stopped. Five sat around the well. Or rather, four and one. Seo Hanbi sat a little apart."
+      "source": "비가 그쳤다. 사원 위 우물가로 올라와 다섯이 둘러앉았다. 아니, 넷과 하나. 서한비만 조금 떨어져 앉아 있었다.",
+      "sourceHash": "ff72ec7fb8c708befc6308c16484c180f4afd2d4292470a66f5752d9da42fe1c",
+      "t": "The rain stopped. They climbed back up to the well above the temple, and five sat around it. Or rather, four and one. Seo Hanbi sat a little apart."
     },
     {
       "id": "ep-39:29",
@@ -262,9 +262,9 @@
     },
     {
       "id": "ep-39:42",
-      "source": "그 봄에, 저는 속았어요. 흑월이 당신 얼굴로 와서 제 봉투를 가져갔어요. 저는 당신이 날 버렸다고 믿었어요.",
-      "sourceHash": "4382b66afc355f794dc4486a84476bdb4b530f6d0e12000e446bdcf1a8a15c84",
-      "t": "That spring, I was deceived. Black Moon came wearing your face and took my envelope. I believed you'd abandoned me."
+      "source": "그 봄 얘기는 이제 아시죠. 저는 당신이 날 버렸다고 믿었어요.",
+      "sourceHash": "9d84c5e0f7171a57b692ca34c766a06808368e1813bac97906b8ec2bbbc2951d",
+      "t": "You know about that spring now. I believed you'd abandoned me."
     },
     {
       "id": "ep-39:43",
@@ -292,15 +292,15 @@
     },
     {
       "id": "ep-39:47",
-      "source": "아무도 말하지 않았다. 우물 바닥에서 물 떨어지는 소리만 났다. 똑. 똑.",
-      "sourceHash": "8673efd84ef1798e2a3101b67f7b79dd915cccb1608bec6fc6b8fcc8004614f8",
-      "t": "No one spoke. Only water dripped at the bottom of the well. Drip. Drip."
+      "source": "아무도 말하지 않았다. 우물 바닥에서 물 떨어지는 소리만 났다.",
+      "sourceHash": "3c69dce8dc6c6b9eeb93ed5d294736e5ebda70c2368d9b1e52fea8970203c619",
+      "t": "No one spoke. Only water dripped at the bottom of the well."
     },
     {
       "id": "ep-39:48",
-      "source": "고마워. 아까 구해 준 거. 그리고 지금 변명 안 한 거.",
-      "sourceHash": "26ff16d1cac2c8f23ac9ac01ba8d34c649e07b19aff0cfff44bc112816773eda",
-      "t": "Thank you. For saving me earlier. And for not making excuses now."
+      "source": "고마워. 아까 구해 준 거. 그리고 박수 일은 변명 안 한 거.",
+      "sourceHash": "589b838e7c7c0b6539fa113a14cd3a6178b432e95ffc15547ad0f9c7acc1017a",
+      "t": "Thank you. For saving me earlier. And for not making excuses about the drummer."
     },
     {
       "id": "ep-39:49",
@@ -418,8 +418,8 @@
     },
     {
       "id": "ep-39:68",
-      "source": "윤달. 그 정류장에 혹시 윤달도 있었어요?",
-      "sourceHash": "4854151fc772835fc4e8b329e95a8a0b2f45809c2548bba3467d687854130ff8",
+      "source": "윤달 씨. 그 정류장에 혹시 윤달 씨도 있었어요?",
+      "sourceHash": "3daa0db4ed3d387bbbcb0d8fcf6fd30143a203f753dc761c51a64c55f89618c4",
       "t": "Yundal. Were you at that bus stop too, by any chance?"
     },
     {
@@ -538,15 +538,15 @@
     },
     {
       "id": "ep-39:88",
-      "source": "서한비가 네오의 팔을 내려다보았다. 소매 아래로 우물의 돌무늬가 비쳤다. 그녀의 입가에서 웃음기가 사라졌다.",
-      "sourceHash": "2451b0173402ea4e7065f7c58b7753b1ba0d67d87dc3b2c09acfae9a36afcb7a",
-      "t": "Seohanbi looked down at Neo’s arm. The well’s stonework showed through his sleeve. Her faint smile vanished."
+      "source": "서한비가 네오의 팔을 내려다보았다. 소매 아래로 우물의 돌무늬가 비쳤다. 그녀가 입술을 다물었다.",
+      "sourceHash": "b187b8dfb5527dc0457ceaa019b4831a720fd5a4ad3418649e30e3e26cd39f73",
+      "t": "Seohanbi looked down at Neo’s arm. The well’s stonework showed through his sleeve. She pressed her lips shut."
     },
     {
       "id": "ep-39:89",
-      "source": "그 애, 알아요?",
-      "sourceHash": "0a88ef992e3db839cca7947635679d334733bcfcbeaec45b1d7b496c605113f0",
-      "t": "Does she know?"
+      "source": "그 애도 알아요?",
+      "sourceHash": "a6875c73a284ef067892cccf517350aee9bb586f091fd1387a869b89b5773070",
+      "t": "Does she know too?"
     },
     {
       "id": "ep-39:90",
@@ -580,9 +580,9 @@
     },
     {
       "id": "ep-39:95",
-      "source": "검은 원 안에서 거대한 머리가 내려왔다. 몸이 없는 머리. 라후였다. 입을 벌릴 때마다 별빛이 빨려 들어갔다.",
-      "sourceHash": "18365053e14b3079b37ac81e1f705f7f6979c364cc35a881dc5f0a27bf2ca884",
-      "t": "An enormous head descended from the black circle. A head without a body: Rahu. Each time its mouth opened, starlight was sucked inside."
+      "source": "검은 원 안에서 거대한 머리가 내려왔다. 몸이 없는 머리. 라후가 다시 나타났다. 입을 벌릴 때마다 별빛이 빨려 들어갔다.",
+      "sourceHash": "fe71a3380eb372d31175ee8b78b03a8c58e7bc4d4e499d83c25203fa7bd60115",
+      "t": "An enormous head descended from the black circle. A head without a body. Rahu had returned. Each time its mouth opened, starlight was sucked inside."
     },
     {
       "id": "ep-39:96",

@@ -88,9 +88,9 @@
     },
     {
       "id": "ep-26:14",
-      "source": "그런데 한쪽 구석에 무언가가 남아 있었다. 운이 아니었다. 장부가 가져갈 수 없는 것. 몸에 붙은 버릇 같은 것.",
-      "sourceHash": "7d09357e90b0097aa3ac8874f128ef2bf3995024663631cdf76aa20ff7a8d1e4",
-      "t": "Yet in one corner, something remained. Not fortune. Something the ledger could not take. Something like a habit rooted in the body."
+      "source": "그런데 한쪽 구석에 무언가가 남아 있었다. 장부가 가져갈 수 없는, 몸에 붙은 버릇이었다.",
+      "sourceHash": "96a9734e89247f0353ce51f1b5eced82f1dd3c68744d47fbacd0baa0c3166f3d",
+      "t": "Yet in one corner, something remained. Something the ledger could not take: a habit rooted in the body."
     },
     {
       "id": "ep-26:15",
@@ -118,9 +118,9 @@
     },
     {
       "id": "ep-26:19",
-      "source": "연이가 일어섰다. 어깨로 스며들던 검은 손이 멈칫했다. 그릇이 움직일 줄은 몰랐다는 듯이.",
-      "sourceHash": "b78395e73fd9993acdf841d3d2aa6aeed2db551ab8c531039a5afbdd91db8fb5",
-      "t": "Yeoni stood. The black hand seeping into their shoulder faltered, as though it had never expected the vessel to move."
+      "source": "연이가 일어섰다. 어깨로 스며들던 검은 손이 멈칫했다.",
+      "sourceHash": "62404d4a861c78d7a3b4ea3dea19087622beb9d4ddd9d6feb24fabe1cca44405",
+      "t": "Yeoni stood. The black hand seeping into their shoulder faltered."
     },
     {
       "id": "ep-26:20",
@@ -208,9 +208,9 @@
     },
     {
       "id": "ep-26:34",
-      "source": "호랑이의 붉은 눈이 크게 흔들렸다. 그 말을 어디서 들었는지, 그녀는 알고 있었다. 이 아이가 그 말을 기억하지 못한다는 것도.",
-      "sourceHash": "413445d07654364e11d67aefc9514f7be8f6a337e7b016a08e0491bf10edc799",
-      "t": "The tiger's red eyes shook. It knew where it had heard those words. And that this child no longer remembered saying them."
+      "source": "호랑이의 붉은 눈이 크게 흔들렸다. 그 말을 어디서 들었는지, 그녀는 알고 있었다.",
+      "sourceHash": "daa43de32f455f69ce2074183cf03bd1799cd6cf76a120cb9534edf38d068b73",
+      "t": "The tiger's red eyes shook. It knew where it had heard those words."
     },
     {
       "id": "ep-26:35",
@@ -388,9 +388,9 @@
     },
     {
       "id": "ep-26:64",
-      "source": "연이의 덩굴이 비로소 움직였다. 친구들의 숨을 한 가닥씩 받아 감았다. 불, 바람, 쇠. 텅 빈 그릇에 가장 먼저 담긴 것은 흑월이 아니었다.",
-      "sourceHash": "085f114719a712ef924f6f4ba1452170c67a7d40aff66692f4d7bc870a01f74e",
-      "t": "At last, Yeoni's vines moved. They received and wound around their friends' breaths, one strand at a time. Fire, wind, metal. The first thing to fill the empty vessel was not Black Moon."
+      "source": "연이의 덩굴이 비로소 움직였다. 친구들의 숨을 한 가닥씩 받아 감았다. 불, 바람, 쇠. 텅 빈 그릇에 가장 먼저 담긴 것은 모카의 숨이었다.",
+      "sourceHash": "628388291cc63bfa4f13a919b8d301f59aea575af537ddda5c079950031d5440",
+      "t": "At last, Yeoni's vines moved. They received and wound around their friends' breaths, one strand at a time. Fire, wind, metal. The first thing to fill the empty vessel was Moka's breath."
     },
     {
       "id": "ep-26:65",
@@ -412,9 +412,9 @@
     },
     {
       "id": "ep-26:68",
-      "source": "연이의 눈에 빛이 들어왔다. 아주 작은 빛이었다. 운이 아니었다. 빌려 받은 숨이 비추는 빛이었다.",
-      "sourceHash": "5ee2806888e6f02c967b2c3477c8fa7fbab9042d680d11172e0bac690394aa58",
-      "t": "A light entered Yeoni's eyes. Very small. Not fortune. A light shining from borrowed breath."
+      "source": "연이의 눈에 빛이 들어왔다. 아주 작은 빛이었다. 빌려 받은 숨이 비추는 빛이었다.",
+      "sourceHash": "694b49a5fbae1c01eb80f213fdac452c898d33cb82685fd94ec0cb53822f3453",
+      "t": "A light entered Yeoni's eyes. Very small. A light shining from borrowed breath."
     },
     {
       "id": "ep-26:69",
@@ -610,9 +610,9 @@
     },
     {
       "id": "ep-26:101",
-      "source": "호랑이는 대답하지 않았다. 다만 아주 잠깐, 사람이 된 연이의 얼굴을 오래 바라보았다. 처음 보는 얼굴을 보는 눈이 아니었다.",
-      "sourceHash": "a697e2bf4892c712a9d4b1269e1bb1cf4987050bb43c55d3c3d424868a96e1b3",
-      "t": "The tiger did not answer. For a brief but lingering moment, it looked at Yeoni's human face. Those were not eyes seeing a face for the first time."
+      "source": "호랑이는 대답하지 않았다. 다만 아주 잠깐, 사람이 된 연이의 얼굴을 오래 바라보았다.",
+      "sourceHash": "16d04c62f174e670fe470f321ebf98051183721adb47a1ca5489387a7f524f5f",
+      "t": "The tiger did not answer. For a brief but lingering moment, it looked at Yeoni's human face."
     },
     {
       "id": "ep-26:102",

@@ -514,9 +514,9 @@
     },
     {
       "id": "ep-24:80",
-      "source": "해가 왜 저래. 축제 섬 때랑 똑같은데.",
-      "sourceHash": "608e5f17ea1c55a1c51e0d35e9f58d2cb7f98d6cde75965680fdd19a4b8631b4",
-      "t": "What's wrong with the sun? Just like on the festival island."
+      "source": "해가 또 저래. 축제 섬 때보다 더 먹혔어.",
+      "sourceHash": "4df8fa68e5d905612de0faa57543b48a461a80eb9ad33f35173de2ebbe2a02df",
+      "t": "The sun's like that again. It's eaten more than on the festival island."
     },
     {
       "id": "ep-24:81",
@@ -649,9 +649,9 @@
     },
     {
       "id": "ep-24:102",
-      "source": "하얀 고양이는 아무 소리도 내지 않고 검은 물속으로 끌려 들어갔다. 물결이 한 번 크게 일었다가, 거짓말처럼 잔잔해졌다.",
-      "sourceHash": "2d1fcfd2b1a6e27e3fc5e67c95acd992b10cefd9d0f7a490b913053c930b2748",
-      "t": "Without another sound, the white cat was dragged into black water. One great ripple rose, then the river grew impossibly calm."
+      "source": "하얀 고양이는 아무 소리도 내지 않고 검은 물속으로 끌려 들어갔다. 물결이 한 번 크게 일었다가, 금세 잔잔해졌다.",
+      "sourceHash": "24ae438d27a4761c4c2dc221592698ce3a81a0f4f1c02a85eabcc0bea459c913",
+      "t": "Without another sound, the white cat was dragged into black water. One great ripple rose, then the river quickly grew calm."
     },
     {
       "id": "ep-24:103",
@@ -727,9 +727,9 @@
     },
     {
       "id": "ep-24:115",
-      "source": "윤달이 숨을 헐떡이며 뛰어왔다. 장갑을 벗은 손바닥의 구멍이 저 혼자 소용돌이치고 있었다. 무언가 큰 것이 가까이 왔다 갔다는 듯이.",
-      "sourceHash": "3537408b9b28cbd2bafa7dfca4ab007a958f68535c3bb52d0efa979f841e85c5",
-      "t": "Yundal ran up, panting. With his glove off, the hole in his palm swirled on its own, as though something enormous had just passed nearby."
+      "source": "윤달이 숨을 헐떡이며 뛰어왔다. 장갑을 벗은 손바닥의 구멍이 저 혼자 소용돌이치고 있었다.",
+      "sourceHash": "b15fee4e6027c3a0b1cfe21bd40cb4d08df9a0dec43aca7625c039ff9befc9a7",
+      "t": "Yundal ran up, panting. With his glove off, the hole in his palm swirled on its own."
     },
     {
       "id": "ep-24:116",

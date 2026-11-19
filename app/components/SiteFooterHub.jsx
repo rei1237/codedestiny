@@ -121,7 +121,7 @@ export const SEO_LINK_GROUPS = [
   {
     title: siteFooterHubText("siteFooter.004"),
     links: [
-      { href: "/insights/", text: "운명 인사이트 허브" },
+      { href: "/insights/", text: "운세 읽을거리 모음" },
       { href: "/guides/", text: "하이밸류 아카이브" },
       { href: "/guides/complete-guide-to-saju/", text: "사주 완전 가이드" },
       { href: "/guides/how-tarot-actually-works/", text: "타로 리딩 구조 이해" },

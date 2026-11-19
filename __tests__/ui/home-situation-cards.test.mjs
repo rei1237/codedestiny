@@ -4,6 +4,7 @@ import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
 import { JSDOM } from 'jsdom';
 import { renderSituationCards } from '../../lib/marketing/yehwa-home.mjs';
+import { hc } from '../../lib/marketing/home-card-copy.mjs';
 import { FREE_PROMO_FEATURED } from '../../lib/marketing/free-promo.mjs';
 
 // 2026-11-16 상황형 첫 화면: /ggulggul/ 히어로 아래 카드 3장, 무료 카드 6장은 결과별 버튼명.
@@ -26,16 +27,19 @@ test('situation cards: one question, one result and one button each, destination
     assert.equal(card.querySelectorAll('a').length, 1);
   }
   const [saju, tarot, paid] = cards.map(card => card.querySelector('a'));
-  assert.equal(saju.textContent, '무료 만세력 보기');
+  assert.equal(saju.textContent, hc('homeCards.natal.cta'));
   assert.equal(saju.getAttribute('href'), '/ggulggul/?action=cdOneStepFreeSajuEntry&section=sajuCard');
   assert.equal(saju.dataset.action, 'cdOneStepFreeSajuEntry');
-  assert.equal(tarot.textContent, '카드 세 장 뽑기');
+  assert.equal(tarot.textContent, hc('homeCards.tarot.cta'));
   assert.equal(tarot.getAttribute('href'), '/ggulggul/?action=cdHomeTarotEntry');
   assert.equal(tarot.dataset.action, 'cdHomeTarotEntry');
   assert.equal(paid.getAttribute('href'), '/heukwol/');
-  assert.equal(paid.textContent, '주의할 시기 보기·' + heukwol.price);
+  assert.equal(paid.textContent, hc('homeCards.heukwol.cta') + heukwol.price);
   assert.equal(paid.querySelector('[data-cd-play-price]').dataset.cdPlayFeature, heukwol.featureKey);
-  assert.match(cards[2].querySelector('.yh-situation__result').textContent, /유료$/);
+  assert.deepEqual(cards.map(card => card.querySelector('.yh-badge--free, .yh-badge--paid').textContent), ['무료', '무료', '유료']);
+  assert.ok(cards[0].querySelector('.yh-badge--pick'), 'first free card is the featured entry');
+  assert.equal(doc.querySelectorAll('.yh-block__title').length, 2);
+  assert.equal(doc.querySelectorAll('.yh-situation__art[width][height]').length, 3);
   assert.throws(() => renderSituationCards([]), /heukwol/);
 });
 

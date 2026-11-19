@@ -52,9 +52,9 @@
     },
     {
       "id": "ep-36a:8",
-      "source": "정류장. 지난번 그 아이도 정류장에서 우산을 내밀었지요. 옆집 동네의, 그 비 오는 날.",
-      "sourceHash": "98795b8b61eaceee37689a599cdac43afeafe69210ee02786a9f02bd9ad1c1d1",
-      "t": "A bus stop. That child offered an umbrella at a bus stop last time too. Near our apartments, on that rainy day."
+      "source": "정류장. 지난번 그 아이도 정류장에서 우산을 내밀었지요. 이웃 동네의, 그 비 오는 날.",
+      "sourceHash": "f7d9f4910a82601001cec80b96d0d9e7033f1c4992574b1114c95b3f732b1079",
+      "t": "A bus stop. That child offered an umbrella at a bus stop last time too. In the next neighborhood over, on that rainy day."
     },
     {
       "id": "ep-36a:9",
@@ -94,8 +94,8 @@
     },
     {
       "id": "ep-36a:15",
-      "source": "젖은 아이는 아무 말도 못 했다. 누군가 아무것도 바라지 않고 무언가를 건넨 건, 그 아이의 기억 속에 그날이 전부였다.",
-      "sourceHash": "78a90bd95326ea8066c1f0e4c2c1bebf7619d11a3d91f28d3b7143302afd8d98",
+      "source": "젖은 아이는 아무 말도 못 했다. 누군가 아무것도 바라지 않고 무언가를 건넨 날은, 그 아이 기억 속에 그날뿐이었다.",
+      "sourceHash": "330fc7844c51f22a2a075b1ac99661ac36c3f9c5fdd5ee0c2ba6f02df51f245f",
       "t": "The drenched girl couldn't speak. In all her memory, that was the only day someone had offered her something without wanting anything back."
     },
     {
@@ -160,9 +160,9 @@
     },
     {
       "id": "ep-36a:26",
-      "source": "호랑이는 그 문장을 소리 내어 읽었다. 읽고 나니 목이 메었다. 장부에 적힌 말이 아니라, 오래전 누군가에게서 직접 들은 말처럼.",
-      "sourceHash": "ec902b20e0461c25ef58c50645c1d769097001a25046445decd47286282108f2",
-      "t": "The tiger read those words aloud. Its throat tightened afterward, as though these weren't words in a ledger but words it had heard from someone long ago."
+      "source": "호랑이는 장부의 그 문장을 소리 내어 읽었다. 읽고 나니 목이 메었다. 장부에 적힌 말이 아니라, 오래전 누군가에게서 직접 들은 말처럼.",
+      "sourceHash": "a10f400211a8ece798358bcba97ee581917c5122a83bf46bfccad57d55647698",
+      "t": "The tiger read those words in the ledger aloud. Its throat tightened afterward, as though these weren't words in a ledger but words it had heard from someone long ago."
     },
     {
       "id": "ep-36a:27",
@@ -214,9 +214,9 @@
     },
     {
       "id": "ep-36a:35",
-      "source": "그날 그 애는 이상했어요. 늘 부르던 별명이 있었는데 제 이름을 부르지 않았어요.",
-      "sourceHash": "0e2d6cec1ec91165c9426d2b5eb3e45bfbe3aa48809b8e9823121208f66ba107",
-      "t": "She was strange that day. She always had a nickname for me, yet she didn't call me by name."
+      "source": "그날 그 애는 이상했어요. 늘 부르던 별명이 있었는데 그날은 성까지 붙여 불렀어요.",
+      "sourceHash": "1e54cdbd2434d14f4303a20fd9a0d860435732b97fff1a30de7c02abd44d8a02",
+      "t": "She was strange that day. She always had a nickname for me, but that day she used my full name, surname and all."
     },
     {
       "id": "ep-36a:36",
@@ -322,9 +322,9 @@
     },
     {
       "id": "ep-36a:53",
-      "source": "위에서 대답이 없었다. 호랑이는 젖은 장부를 더 깊이 품었다. 처음 보는 감정이 목의 고리 아래에서 꿈틀거렸다. 의심이라는 이름의.",
-      "sourceHash": "e4ef7737bf1ed13e5ec93e81c90e803cff87f06491f24b6283a47fd4972a4f63",
-      "t": "There was no answer from above. The tiger held the soaked ledger closer. An unfamiliar feeling stirred beneath the ring around its neck. A feeling called doubt."
+      "source": "위에서 대답이 없었다. 호랑이는 젖은 장부를 더 깊이 품었다. 처음 보는 무언가가 목의 고리 아래에서 꿈틀거렸다.",
+      "sourceHash": "fb09b335d567f0476ec12f9dea270afbf8ff23f1e81ae86582e338d43eefc40e",
+      "t": "There was no answer from above. The tiger held the soaked ledger closer. Something unfamiliar stirred beneath the ring around its neck."
     },
     {
       "id": "ep-36a:54",

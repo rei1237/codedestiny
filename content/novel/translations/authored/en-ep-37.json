@@ -172,9 +172,9 @@
     },
     {
       "id": "ep-37:28",
-      "source": "돌우물 옆에 네오가 홀로 앉아 있었다. 오른팔을 겉옷으로 덮고 있었다.",
-      "sourceHash": "e57d2a207c3fa5b81e250749c1c0bbfa5601af9b2f9d1a3cfec67bebe9232b5f",
-      "t": "Neo sat alone beside a stone well, his outer coat covering his right arm."
+      "source": "돌우물 옆에 네오가 홀로 앉아 있었다. 오른팔을 겉옷으로 덮고 있었다. 로히니 쪽 하늘은 아직 어두웠다.",
+      "sourceHash": "49a6ed9314a8d19268490936de19e603852317db53d0da2ebbc7c4e9af6fcf01",
+      "t": "Neo sat alone beside a stone well, his outer coat covering his right arm. The sky toward Rohini was still dark."
     },
     {
       "id": "ep-37:29",
@@ -568,9 +568,9 @@
     },
     {
       "id": "ep-37:wick-2",
-      "source": "돌아올 때 저 불부터 볼 거예요. 더 줄었으면, 내려간 동안 무슨 일이 있었는지 알 수 있잖아요.",
-      "sourceHash": "9d465cc3857acc69b360174d9edef686411cb779746f7fc0c03af59f394a0e1c",
-      "t": "I'll check that flame first when we return. If it's smaller, we'll know something happened while we were down there."
+      "source": "돌아올 때 저 불부터 볼게. 더 줄었으면, 내려간 동안 무슨 일이 있었는지 알 수 있잖아.",
+      "sourceHash": "2a45d8bc00c5b62993091ad8a9e4a05ef8a7f151901c39e514f800645e6b513c",
+      "t": "I'll check that flame first when we get back. If it's smaller, we'll know something happened while we were down there."
     },
     {
       "id": "ep-37:87",

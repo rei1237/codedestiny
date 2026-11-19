@@ -85,8 +85,8 @@
     },
     {
       "id": "ep-14:13",
-      "source": "그 구멍, 쓸 때마다 커지는 거야?",
-      "sourceHash": "384c2744987d8a4d7cbd7d5bb574cfdf47189f858a20b1b77233608635e059e5",
+      "source": "그 구멍, 쓸 때마다 커지나?",
+      "sourceHash": "a913267255e664fa706f2629e09ee8cd8b44ca5f1d85ce7c56e67ddc007196a9",
       "t": "Does that hole get bigger every time you use it?"
     },
     {
@@ -307,8 +307,8 @@
     },
     {
       "id": "ep-14:50",
-      "source": "지금 그 표정은 별 다섯 개네.",
-      "sourceHash": "d80689398894437f71f028053dda0a02cb98a8c762ec855081605d8393cbe04f",
+      "source": "지금 그 표정은 별 다섯 개다.",
+      "sourceHash": "1d52ce1262dbd18c8e0eccd2dce94d5bf245908a4213bee0bc475c16978dc1a2",
       "t": "That expression deserves five stars."
     },
     {
@@ -379,15 +379,15 @@
     },
     {
       "id": "ep-14:62",
-      "source": "어머, 눈치 빠른 고양이님. 저는 회장님 손 중에서 최약체랍니다~",
-      "sourceHash": "1df1a57c551a9590589238ee534b09cf135dc53744ce4587cb2cf36207313bf8",
-      "t": "Oh my, what a perceptive cat. I'm the weakest of the Chairman's hands!"
+      "source": "어머, 눈치 빠른 고양이님. 저는 그냥 최약체랍니다~",
+      "sourceHash": "fe10bb37665f7a7b52ef352633bcf5430bd2670654712e778b9d4c180238940b",
+      "t": "Oh my, what a perceptive cat. I'm just the weakest one!"
     },
     {
       "id": "ep-14:63",
-      "source": "손가락으로 치면 새끼손가락쯤? 그래도 이 섬 하나쯤은 혼자 굴려요.",
-      "sourceHash": "9c8da9137de13289d56431a96a92ed68078b089836bb9c21781bf06121d7b2a6",
-      "t": "If we were fingers, I'd be the little one. Still, I can run an island like this all by myself."
+      "source": "회장님 일을 거들 뿐이에요. 그래도 이 섬 하나쯤은 혼자 굴려요.",
+      "sourceHash": "9eb269a4afb8ec5540a7473507bb983e18baf0485c22a37d0b19017d686d2504",
+      "t": "I just help out with the Chairman's business. Still, I can run an island like this all by myself."
     },
     {
       "id": "ep-14:64",
@@ -505,8 +505,8 @@
     },
     {
       "id": "ep-14:83",
-      "source": "금이라면 내가 다룰 수 있어. 엉킨 결부터 끊을게.",
-      "sourceHash": "9e357aa67be216b7a4c4b08d7f84c33b4376dbcdd8f65735dcb072d1298ef474",
+      "source": "금이라면 내가 다룬다. 엉킨 결부터 끊는다.",
+      "sourceHash": "34d649940288a9393e5cbf57fc37f8011ffeadacacff326a8efb886d7b429280",
       "t": "Metal, I can handle. I'll cut through the tangled grain first."
     },
     {
@@ -805,9 +805,9 @@
     },
     {
       "id": "ep-14:133",
-      "source": "숫자가 한 칸 내려갔다. 내일을 빼앗긴 사람의 오늘이 소리 없이 줄어들고 있었다.",
-      "sourceHash": "e9f88f3578a4fc75e240eb7b3dc242dddfc4b08a10519e96ed86c2833a76f13e",
-      "t": "The number dropped by one. The today of someone whose tomorrow had been stolen was silently running out."
+      "source": "숫자가 한 칸 내려갔다.",
+      "sourceHash": "cca062c4e21de0101ba9ec22edeb83667abe8e12121deb209553082159c32d0c",
+      "t": "The number dropped by one."
     },
     {
       "id": "ep-14:134",

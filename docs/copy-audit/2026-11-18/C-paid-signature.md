@@ -320,3 +320,79 @@ Phase 1 진단 전용 문서다. 소스는 한 글자도 바꾸지 않았다. �
 - `lib/i18n/native-home-copy.json:37` (Love Insights), `:149` (네오 작전 결정서)
 - master-love-codex EN 4종
 - `index.html` 팝업 문구는 하드코딩이다. i18n으로 옮기지 않으며, 다른 언어판에 같은 숫자가 있는지는 확인 필요.
+
+## Phase 2 적용 결과
+
+2026-11-19 C1 단계. 수치는 리포트가 아니라 코드에서 다시 확인했다(괄호 안 근거).
+
+**집계** — 44행 중 적용 33, 부분 적용 3, 보류 6, 보고만 1, 번역 동기화 2.
+
+### 적용 (33)
+
+- love-secret 팝업: 7부 30개 섹션(미리보기 "연애 기질부터 실천까지 일곱 부, 서른 개 섹션"), 칩 목표 35,000자, "연애 비책과 7일 치" → "행동 계획과 7일 치", 버튼 "연애 비책 받기" (`LOVE_SECRET_AI_GROUPS` 7묶음·30섹션 실측)
+- love-secret 상세(`panels.cjs`·`manifest.json`): 연애 성공 체크리스트 → 연애 점검 목록, 실천 비책마다 → 행동 계획마다
+- new-year 팝업: 7개 섹션·목표 40,000자·"7개 섹션 신년 리포트"·"재물, 직업" / 상세 notice "7부분"
+- life-book 팝업: 목표 40,000자, ctaNote "패밀리 이용권·월정석·단건 결제 중에서 고를 수 있어요."
+- life-book 페이지 title: "인생의 책 | 사주로 보는 평생 운세 리포트" (리포트 수정안 대신 "사주·평생 운세 리포트" 검색어를 남긴 형태)
+- `premiumUnlock.deliverable.guarantee` ko: "분량이 기준에 못 미치는 장은 자동으로 한 번 더 보강해 써요. 보강한 뒤에도 짧으면 그 상태 그대로 보내 드려요." (`life-book-ai.js` 보강 최대 2회, 짧아도 전달)
+- life-fortune: "가까운 5년 세운을 한 장으로 정리"(세운 데이터 `nextYears` 5년치, 장은 "가까운 세운의 흐름" 1장), "문장마다" → "장마다" 근거 표기
+- vedic: 주제당 5,500자, 본문 목표 22,000자(4주제 × 5,500, 코드 전체 15,000~30,000) — 리포트는 주제당만 고쳤으나 합계가 맞지 않아 함께 고침
+- sukuyo: 목표 22,000자 / 카드 제목 이모지 삭제
+- nakshatra: 목표 21,000자 세 곳
+- astrology: 목표 20,000자 다섯 곳, "자으로" → "자로"
+- ziwei: 상담 주제 열다섯 가지(`ZiweiAiClient.tsx` `FOCUS_OPTIONS` 15개 실측), 카드 "추가 질문 이어가기" → "PDF로 저장"
+- karma: 16개 장(팝업 7곳·상세 notice "타고난 기질 … 최종 편지까지 16장"·`karmaDestiny.deliverable.chaptersValue` ko), 목록 desc에 "운명의 업" 병기
+- neo-op 팝업·카드: 고른 점술 하나(사주·자미두수·베다·점성술), 목표 26,000자, FAQ "점술은 어떻게 고르나요?", "PDF·편지 — 휘장 5개를 모으면 열려요"
+- master: 칩 25,000자(개인)·50,000자(궁합)
+- naming: 목표 24,000자로 나와요, 카드 "사주에 맞춰 이름 후보를 짓고"
+- neo-email: "질문별로 자미두수 해석(+20,000원)을 더할 수 있어요."
+- heukwol 팝업: 칩 27개 장·목표 50,000자(reportScale). 전용 페이지 문구 "약 5만 자"에 맞춤(코드 하한 40,000)
+- fusion: 14개 세부 항목, 여섯 체계와 여덟 분야 · 목표 60,000자(`FUSION_DOMAIN_CHAPTERS` 8, `FUSION_PREMIUM_LENGTH_V2.targetMin` 60,000)
+
+### 부분 적용 (3)
+
+- neo-op 이름 → "네오의 팩폭 전략실": 카드·페이지(title·안내 label·h2)·상세 manifest/panels 제목만. 남긴 곳: 목록 "팩폭 전략소"(`index.html:10776`, `service-registry.js:198`, i18n 해시 키 5개, `verify-ziwei-personality-context.mjs`·`home-service-finder.test.js` 단언), route `TITLE`·프롬프트 페르소나·`review-product-catalog.js`, registry reason
+- neo-email 이름: `app/neo-consultation/page.tsx` title만 "네오에게 물어봐"로. `native-home-copy.json:149`는 키가 한국어 문장 자체라 키 불변 규칙으로 보류
+- heukwol 이름 → "흑월의 주의 시기": `SavedHeukwol.tsx` 기본 제목, `pdf.ts` 바닥글, `worker/routes/heukwol.js` 보관함 제목 2곳, `apps/toss/src/home-directory.ts`. 웹툰 제목 "흑월의 경고"(`home.guideCopy.webtoonTitle`, `FateWarningEpisode`)는 작품명이라 유지
+
+### 보류 (6행 + 적용 행의 일부 2건)
+
+- naming 이름 "사주 맞춤 작명" — `전문가 작명소`·`훈민정음 작명소`가 i18n 키(`homeOverseas-103`, `legacyTitles-01`)에 묶여 있어 바꾸면 해외 로케일 홈에 한국어가 남음(`home-overseas-runtime.test.mjs` 실패 실측). 번역 동기화와 함께 처리
+- love-secret 상세 장 제목 "관계 단계별 실행 비책" — 생성 코드 `LOVE_SECRET_AI_GROUPS` 섹션 제목과 같아야 함(`signature-detail-chapters.test.mjs`). 코드 제목을 바꾸는 별도 작업 필요
+- love-secret 팝업에 "타고난 연애 기질" 부 추가, heukwol 팝업 받는 것 3줄 — 새 목록 항목은 11개 로케일 키가 필요(`feature-marketing-modal-i18n.static.test.js`). 번역 동기화와 함께 처리
+
+- love-secret "10년 경력 상담사·명리학자" — 근거 확인 필요
+- new-year 상세 manifest V1 목차 → V2 7섹션 재구성 — 목차·레이아웃 재구성이라 별도 작업
+- nakshatra 이름 통일 — "결정판"은 registry reason(:287)과 route `TITLE`(`nakshatra-ai.js:86`)에만 있음, 확인 필요
+- neo-op 상세 12개 목차 → 14장 — 목차 재구성
+- `MasterLoveCodexRouteClient.tsx` META — 노출 여부 확인 필요
+
+### 보고만 (1) / registry reason 변경 없음
+
+- `paid-feature-registry.js` reason 변경 0건. 확인 필요 목록: :339 "네오의 팩폭 작전실", :340 "흑월의 경고", :287 "나크샤트라 결정판 전문가 심화 상담", :402 "사주 맞춤 작명 프롬프트 생성". 이유: 클라이언트·라우트가 같은 문자열을 따로 보낸다(`HeukwolClient.tsx:136`, `NamingAiClient.tsx:345`, `naming-prompt.js:836`), 라우트 `TITLE`·자동 환불 사유도 같은 이름을 쓴다(`neo-operation-room.js:81,92`, `nakshatra-ai.js:86`). 결제 경로 여러 곳을 함께 바꿔야 해서 이 단계에서 판단하지 않았다.
+- 토스 결제 흐름 파일(`apps/toss/service/LifeBook.jsx:10` "인생 총운 — …", `TossHeukwol.tsx:21,85`, `LoveSecret.jsx:9`)은 수정하지 않음
+
+### 번역 동기화 필요
+
+- 이번에 ko만 바꾼 키 2개: `karmaDestiny.deliverable.chaptersValue`, `premiumUnlock.deliverable.guarantee`(en 등은 "실패로 처리" 문구 그대로)
+- 기존 항목(이번 미처리): love-secret EN "Love strategy"/"Love Insights", master-love-codex EN 4종
+- `index.html` 팝업·카드는 하드코딩 한국어. 다른 로케일 셸에 같은 숫자가 있는지는 여전히 확인 필요
+
+### ±20% 초과
+
+- `premiumUnlock.deliverable.guarantee` 약 −32%(보장 문구 삭제)
+- life-book 페이지 title 약 −23%
+- neo-op 카드 feats 약 +35%, recommendedFor 약 +40%(점술 4종 나열)
+- karma 목록 desc 약 +26%("운명의 업 —" 병기)
+- 추가: heukwol reportScale 칩(목록 항목 아님)
+
+### SEO 점검
+
+- 바뀐 title: `/life-book-ai/`(색인, "사주·평생 운세 리포트" 유지, H1·description·canonical 변화 없음), `/neo-operation-room/`(이름만 교체), `/neo-consultation/`(noindex, 영향 없음)
+- 사이트맵: `app/**` 편집으로 lastmod 원장 갱신(`npm run sitemap:generate`), URL 집합 변화 없음
+- robots·hreflang·이미지·광고: 영향 없음
+
+### 범위 밖 발견(보고만)
+
+- 이미지 alt 단어 중복 "네오의 네오의 팩폭 작전실", "네오·서한비의 네오와 서한비의 붉은 실" — `lib/marketing/service-introduction-art.json:45,75` 등
+- 결정 4의 "바람끼" → "바람기"는 `/relationship-boundary-test/`(C2 카탈로그 대상)에만 있어 C1에서 다루지 않음. 테스트 `luck-sync-diary-planner.static.test.js:82`가 단언함

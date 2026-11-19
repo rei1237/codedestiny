@@ -1,7 +1,7 @@
 {
   "_comment": "Moonlit novel. KO/EN/JA/ZH authored; secondary locales follow the existing English fallback policy. Story choices never alter consultation inputs.",
   "fortuneTeaHouse.entryScenes.0.eyebrow": {
-    "ko": "달빛 골목의 마지막 불빛",
+    "ko": "첫 번째 장면",
     "en": "The last light in the moonlit lane",
     "ja": "月夜の路地、最後の灯り",
     "zh-CN": "月下小巷的最后一盏灯",
@@ -113,7 +113,7 @@
     "ms": "Of course. Just close the door gently. Tonight the wind wants to come in before the moonlight."
   },
   "fortuneTeaHouse.entryScenes.1.eyebrow": {
-    "ko": "꽃을 단 작은 문지기",
+    "ko": "두 번째 장면",
     "en": "A little keeper wearing a flower",
     "ja": "花をつけた小さな門番",
     "zh-CN": "戴花的小小守门人",
@@ -225,7 +225,7 @@
     "ms": "“Yeoni.” Her ribbon stirred when you said it. The unfamiliar room began to feel a little less strange."
   },
   "fortuneTeaHouse.entryScenes.2.eyebrow": {
-    "ko": "아직 이름 붙이지 못한 마음",
+    "ko": "세 번째 장면",
     "en": "A feeling without a name",
     "ja": "まだ名前のない気持ち",
     "zh-CN": "还没说出口的心事",
@@ -337,7 +337,7 @@
     "ms": "What would you like to set down here tonight?"
   },
   "fortuneTeaHouse.entryScenes.3.eyebrow": {
-    "ko": "찻잔에 달이 닿는 순간",
+    "ko": "네 번째 장면",
     "en": "When moonlight touches the cup",
     "ja": "月が茶碗に触れるとき",
     "zh-CN": "月光落进茶杯的那一刻",
@@ -449,7 +449,7 @@
     "ms": "Yeoni reached for a high tea tin. “This shape does have its uses.” You found yourself smiling."
   },
   "fortuneTeaHouse.entryScenes.4.eyebrow": {
-    "ko": "마주 앉은 연이",
+    "ko": "다섯 번째 장면",
     "en": "Across the table from Yeoni",
     "ja": "向かいに座るヨニ",
     "zh-CN": "与妍妮相对而坐",
@@ -561,7 +561,7 @@
     "ms": "Whatever we read, there will still be choices that belong to you. Shall we meet tonight’s teas?"
   },
   "fortuneTeaHouse.entryScenes.5.eyebrow": {
-    "ko": "오늘의 마음을 담을 여섯 잔",
+    "ko": "여섯 번째 장면",
     "en": "Six cups for tonight’s thoughts",
     "ja": "今夜の心を入れる六つの茶碗",
     "zh-CN": "盛放心事的六杯茶",

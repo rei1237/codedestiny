@@ -52,9 +52,9 @@
     },
     {
       "id": "ep-52s:8",
-      "source": "그날부터 연이는 운명 찻집의 작은 상담 테이블을 맡았다. 정답을 줄 대신, 사람들이 자신의 문장을 찾게 돕는 자리였다.",
-      "sourceHash": "91b87789984c4b36f9ae6db70b9476fdfeb71208455ee8adbef85447d6656fe1",
-      "t": "From that day on, Yeoni took charge of a small consultation table at the Destiny Teahouse. It was a place to help people find their own sentences, rather than hand them answers."
+      "source": "그날부터 연이는 운명 찻집의 작은 상담 테이블을 맡았다. 손님이 고른 카드를 같이 읽어 주는 자리였다.",
+      "sourceHash": "91ac3cff8dc247522da05529b07cc383a4ee036db5039a9d664c58533cb5a68b",
+      "t": "From that day on, Yeoni took charge of a small consultation table at the Destiny Teahouse. It was a place to read the cards a guest had chosen, together."
     },
     {
       "id": "ep-52s:9",
@@ -208,9 +208,9 @@
     },
     {
       "id": "ep-52s:extra-31",
-      "source": "연이는 상담에서 예언을 하지 않았다. 오행의 흐름을 보여 주고, 그 안에서 고를 수 있는 길을 손님과 같이 비췄다.",
-      "sourceHash": "96ee57cf28132ad70dbf57f6faef0d27774e313be4be8ceeeea169cf4d07d43e",
-      "t": "She didn't prophesy in consultations. She showed the flow of the Five Elements and explored possible paths with each guest."
+      "source": "한 손님이 날짜를 콕 집어 달라고 했다. 연이는 날짜 대신 오행의 흐름을 펼쳐 보이고, 고를 수 있는 길을 손님과 같이 짚었다.",
+      "sourceHash": "ff9cbc61d2095477e6b2a411eb6fb6b97c5c37e5a36cc942fd3b980459b3660d",
+      "t": "One guest asked her to name the exact date. Instead of a date, Yeoni laid out the flow of the Five Elements and traced the paths they could choose, together with the guest."
     },
     {
       "id": "ep-52s:extra-32",
@@ -250,9 +250,9 @@
     },
     {
       "id": "ep-52s:extra-38",
-      "source": "다만 연이는 그 말이 싫지 않았다. 돌이킬 수 없는 날을 버리지 않고 다음 날의 재료로 삼는 법을, 모두가 이미 배우고 있었다.",
-      "sourceHash": "31e19a7d642f594b040fdcff2a48f32dffbe3070a4e9b887f261a5662f514fd1",
-      "t": "Yet Yeoni did not dislike what he had said. They were all already learning how to use an irreversible day as an ingredient for the next, instead of throwing it away."
+      "source": "다만 연이는 그 말이 싫지 않았다.",
+      "sourceHash": "cdc3b6dee5d583502ced2f4b85fd87eedf020f6495f8df410277b0d6efce4434",
+      "t": "Yet Yeoni did not dislike what he had said."
     },
     {
       "id": "ep-52s:extra-39",

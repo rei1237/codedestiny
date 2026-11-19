@@ -81,5 +81,22 @@
     return false;
   }
 
-  return { isApp: isApp };
+  /**
+   * 실행 플랫폼: "android" | "ios" | "web". isApp() 의 의미는 바꾸지 않고 그 위에 얹는다.
+   * 앱이면 Capacitor.getPlatform() 으로 고른다. UA 스니핑은 쓰지 않는다.
+   * 앱인데 플랫폼을 알 수 없으면(주입 전·SSR) "android" — iOS 이전부터의 기존 가정(iOS 가 아니면 Play)과 같다.
+   * 결과는 캐시하지 않는다. 폴백값을 캐시하면 늦게 주입되는 iOS 를 android 로 굳힌다.
+   */
+  function getPlatform() {
+    if (!isApp()) return "web";
+    try {
+      var capacitor = typeof window !== "undefined" ? window.Capacitor : null;
+      var platform = capacitor && typeof capacitor.getPlatform === "function"
+        ? text(capacitor.getPlatform()).toLowerCase() : "";
+      if (platform === "ios" || platform === "android") return platform;
+    } catch (_platformError) { /* 판별 불가는 기존 가정으로 */ }
+    return "android";
+  }
+
+  return { isApp: isApp, getPlatform: getPlatform };
 });

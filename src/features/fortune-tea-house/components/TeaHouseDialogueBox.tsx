@@ -36,10 +36,10 @@ function getSpeakerIcon(speaker: TeaHouseSpeaker | TeaHouseEntrySpeaker, copy: t
 
 /** 화면에 보이는 한국어 원문. 사전에 같은 경로의 값이 있으면 그것이 이긴다. */
 const KO = {
-  speakerLabel: { narration: "나레이션", yeoni: "연이", pig: "꽃돼지?" },
+  speakerLabel: { narration: "내레이션", yeoni: "연이", pig: "작은 꽃돼지" },
   // 아바타 자리에 한 글자로 들어간다 — 번역도 짧게 유지할 것.
   speakerIcon: { yeoni: "연", pig: "꿀", moon: "달" },
-  waiting: "달빛이 피어오르는 중...",
+  waiting: "차를 우리는 중...",
   next: "다음 ▾",
 };
 

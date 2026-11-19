@@ -160,9 +160,9 @@
     },
     {
       "id": "ep-47:26",
-      "source": "당기면 먹히고, 밀면 낳아요. 오행이 원래 그래요.",
-      "sourceHash": "c66fb6139841ff5b9a22711c83009f4c10919d5844e5be7ce2f4b1e2bfff4317",
-      "t": "Pull, and it devours. Push, and it generates. That's how the Five Elements work."
+      "source": "당기면 먹히고, 밀면 낳아요.",
+      "sourceHash": "7d81abecfd6a08594c22005d204ef25b4a6b0f3bbbfebd2d6af2f6e63b7505b7",
+      "t": "Pull, and it devours. Push, and it generates."
     },
     {
       "id": "ep-47:33",
@@ -274,9 +274,9 @@
     },
     {
       "id": "ep-47:51",
-      "source": "연이의 얼굴이 빨개졌다. 자기가 왜 아직이라고 했는지 알 수 없었다. 서한비가 작게 소리 내어 웃었다.",
-      "sourceHash": "7ae4df29ce8e36d468752fb425de38e26281e86b37b684d6167ce40c514b13eb",
-      "t": "Yeoni's face reddened. She didn't know why she'd said yet. Hanbi gave a small laugh aloud."
+      "source": "연이의 얼굴이 빨개졌다. 자기가 왜 아직이라고 했는지 알 수 없었다. 서한비가 입을 가리고 웃었다.",
+      "sourceHash": "418d8d22623ffc027715ecebfb3a2db24ed3e58c8b0f94bfd5b01e9087414428",
+      "t": "Yeoni's face reddened. She didn't know why she'd said yet. Hanbi laughed behind her hand."
     },
     {
       "id": "ep-47:52",
@@ -580,9 +580,9 @@
     },
     {
       "id": "ep-47:92",
-      "source": "알아. 근데 저 안에 들어갈 수 있는 건 그릇뿐이잖아. 내가 그릇이면, 그것도 쓸모가 있는 거지.",
-      "sourceHash": "b0391cb8f40e1a8d1f6c6af6b83747a4ef356d5d4c58b7bdeb0c4362f8707fca",
-      "t": "I know. But only a vessel can go in there, right? If I'm a vessel, that can be useful too."
+      "source": "알아. 근데 저 안에 들어갈 수 있는 건 그릇뿐이잖아. 내가 그릇이면, 들어가면 되지.",
+      "sourceHash": "8b6367aa5557e7cfe2f05ffd31e3c945f6bb674d77962b0a9b325f05f59ea5ce",
+      "t": "I know. But only a vessel can go in there, right? If I'm a vessel, then I'll just go in."
     },
     {
       "id": "ep-47:93",
@@ -622,9 +622,9 @@
     },
     {
       "id": "ep-47:98",
-      "source": "이번 한 번만요.",
-      "sourceHash": "65a8b4c07f0cbf11bc9669b1f6d56e37823028fc433344dfd12f66c0f58ceebe",
-      "t": "Just this once."
+      "source": "딱 한 번만요.",
+      "sourceHash": "549f3c71f12566d569b8bb16300ff3ec28289cef14e1644dc08e46a81bdbbe68",
+      "t": "Just once."
     },
     {
       "id": "ep-47:99",

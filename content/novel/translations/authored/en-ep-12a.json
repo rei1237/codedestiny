@@ -126,9 +126,9 @@
     },
     {
       "id": "ep-12a:20",
-      "source": "깃털 하나를 잃었다. 그 아이는 쓸 만한 그릇이었는데.",
-      "sourceHash": "2ffcc75e533cf31afb89fb4ab07f45174352e5a9b743466bd7f944f082d6eaed",
-      "t": "I lost a feather. That child was a useful vessel.",
+      "source": "깃털 하나를 잃었다. 그 아이는 쓸 만한 도구였는데.",
+      "sourceHash": "3cd2bea8f00d0e3dd47f43b3f31dfd19e5d82c24b2fef3309881156ad376082e",
+      "t": "I lost a feather. That child was a useful tool.",
       "nm": "Voice"
     },
     {
@@ -146,9 +146,9 @@
     },
     {
       "id": "ep-12a:23",
-      "source": "호랑이의 수염이 아주 조금 움직였다. 장부 위에 올린 앞발에 힘이 들어갔다.",
-      "sourceHash": "b57253f32bb4588c098b1c53a6551171e0d8fd6252cecf0259c7725fac030764",
-      "t": "The tiger's whiskers moved slightly. Its paw pressed harder against the ledger."
+      "source": "호랑이의 수염이 움직였다. 장부 위에 올린 앞발에 힘이 들어갔다.",
+      "sourceHash": "67b5aa262f3f8f23051389b684740f3abe1cae832af4ea613bb8c351a6441fdc",
+      "t": "The tiger's whiskers moved. Its paw pressed harder against the ledger."
     },
     {
       "id": "ep-12a:24",
@@ -189,8 +189,8 @@
     },
     {
       "id": "ep-12a:30",
-      "source": "너는 약속을 지키는 짐승이지. 그래서 골랐다. 잊지 마라, 네가 왜 여기 있는지.",
-      "sourceHash": "4c154665f26f98c7d23609d8cbd829faf129cae9b265330edd4eff6a71a6e948",
+      "source": "너는 약속을 지키는 짐승이니라. 그래서 골랐다. 잊지 마라, 네가 왜 여기 있는지.",
+      "sourceHash": "aca2a01e94a2eecb3b24b90b33bfe3af865aa0378d167400921f363907141e2b",
       "t": "You are a beast that keeps promises. That is why I chose you. Do not forget why you are here.",
       "nm": "Voice"
     },
@@ -444,8 +444,8 @@
     },
     {
       "id": "ep-12a:72",
-      "source": "호랑이는 제가 한 말에 놀란 듯 입을 다물었다. 무엇을 그랬다는 건지 자신도 기억나지 않았다.",
-      "sourceHash": "4b31dfadff9ce4cb128b8914ceb9b8084942b7303f4be056bb11d0af96f3f4ea",
+      "source": "호랑이는 제가 한 말에 놀란 듯 입을 다물었다. 무엇을 그랬다는 건지 자신도 기억하지 못했다.",
+      "sourceHash": "ffb97c7bf8acc66683d1bfc2dcbf1ce57f1acab9e51d0283c2614e7e84dbc0fd",
       "t": "The tiger shut its mouth, startled by its own words. It could not remember what it meant."
     },
     {

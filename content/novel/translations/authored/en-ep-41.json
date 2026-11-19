@@ -64,9 +64,9 @@
     },
     {
       "id": "ep-41:10",
-      "source": "(아까부터 계속 앉아 있네. 손만 아픈 게 아닌가.)",
-      "sourceHash": "faf8b51c5928199a78def1535bc3c92ea613653d3ff06738e2703c630d2405f3",
-      "t": "(He keeps sitting down. Maybe it isn't only his hand that hurts.)"
+      "source": "(아까부터 계속 뒤처지네. 손만 아픈 게 아닌가.)",
+      "sourceHash": "5847404195137e010d50d4e57dd4d1054d62e3e58d0dd836d0e3d2f9b648fc8d",
+      "t": "(He keeps falling behind. Maybe it isn't only his hand that hurts.)"
     },
     {
       "id": "ep-41:11",
@@ -178,9 +178,9 @@
     },
     {
       "id": "ep-41:29",
-      "source": "연이는 윤달의 얼굴을 보며 웃음을 참았다. 서한비가 윤달 앞에 종이와 펜을 내밀었다. 윤달이 휘갈겨 썼다. 숙녀분들 생년월일시.",
-      "sourceHash": "72d6d289daa65f3e3326dbfbd737b817280f7029b79a4b3a6345fb221304a561",
-      "t": "Yeoni fought a laugh at Yundal's face. Seo Hanbi offered him paper and a pen. He scribbled: Ladies' birth dates and times."
+      "source": "연이는 윤달의 얼굴을 보며 웃음을 참았다. 서한비가 윤달 앞에 종이와 펜을 내밀었다. 윤달이 휘갈겨 썼다. 숙녀분들 생년월일시 요청.",
+      "sourceHash": "4a026272cbad49b090545a975833eef34884c49b77b62a7f24a9b6510391d074",
+      "t": "Yeoni fought a laugh at Yundal's face. Seo Hanbi offered him paper and a pen. He scribbled: Requesting ladies' birth dates and times."
     },
     {
       "id": "ep-41:30",
@@ -190,8 +190,8 @@
     },
     {
       "id": "ep-41:31",
-      "source": "방을 나서자마자 윤달이 숨을 크게 쉬었다. 이 분 참은 사람치고는 너무 큰 숨이었다.",
-      "sourceHash": "30c183d179a2af46465ff3878efc46f81e4c1efa8d692ba123605542cbc2156c",
+      "source": "방을 나서자마자 윤달이 숨을 크게 쉬었다. 2분 참은 사람치고는 너무 큰 숨이었다.",
+      "sourceHash": "3a5b95e173ebe81c1d11ef4f730c44cdcb71ce8dcf6eb8eeaee34c48521478d1",
       "t": "The moment they left, Yundal took an enormous breath. Far too enormous for someone who'd held back for two minutes."
     },
     {
@@ -448,9 +448,9 @@
     },
     {
       "id": "ep-41:74",
-      "source": "네오가 일어서려다 주저앉았다. 투명한 것은 이제 다리만이 아니었다. 가슴께까지 빛이 비쳐 보였다.",
-      "sourceHash": "b5fab2f29fe33a231cc1a6ade259fc7b7a19ce8da1187faab60d8c8d28086fbd",
-      "t": "Neo tried to stand, then sank down. It wasn't only his legs that were transparent now. Light showed through his chest."
+      "source": "네오가 일어서려다 주저앉았다. 투명한 것은 이제 팔만이 아니었다. 가슴께까지 빛이 비쳐 보였다.",
+      "sourceHash": "0624c2a25009192b3b97c9f78581e7b42195094d45964179fc58b2bd5812f524",
+      "t": "Neo tried to stand, then sank down. It wasn't only his arm that was transparent now. Light showed through his chest."
     },
     {
       "id": "ep-41:75",
@@ -580,9 +580,9 @@
     },
     {
       "id": "ep-41:96",
-      "source": "그게 문제예요. 문마다 꼭 하나씩, 제일 아픈 걸 읽게 해요.",
-      "sourceHash": "bbdc741a19e03001a5237b7284e30c9d61aa7d16601c04ea4550132b8a54ee59",
-      "t": "That's the trouble. Each door makes you read one thing: whatever hurts most."
+      "source": "그게 문제예요. 6번부터는 문마다 꼭 하나씩, 제일 아픈 걸 읽게 해요.",
+      "sourceHash": "d059284658a550fc2c22e96ee8e8fe39c2d9df2af1ae6b1b167ce23f409b111e",
+      "t": "That's the trouble. From the sixth door on, each one makes you read one thing: whatever hurts most."
     },
     {
       "id": "ep-41:97",

@@ -112,9 +112,9 @@
     },
     {
       "id": "ep-30:18",
-      "source": "윤달은 그 한 줄을 한참 보았다. 장갑 낀 손가락으로 글씨를 따라 그었다. 궁합 사기라는 대목에서 그의 입꼬리가 무너지듯 올라갔다.",
-      "sourceHash": "a81525b61272402e1670fe8beb876c710352a6db36e21049333721ee2bcca76c",
-      "t": "Yundal stared at the line, tracing the letters with a gloved finger. At compatibility scams, his mouth lifted as though collapsing."
+      "source": "윤달은 그 한 줄을 한참 보았다. 장갑 낀 손가락으로 글씨를 따라 그었다. 궁합 사기라는 대목에서 그의 입꼬리가 비죽 올라갔다.",
+      "sourceHash": "98297c7f641da9fe1e9d1d260b80320ef754ea57e021ee05deef5d8796c0e6cf",
+      "t": "Yundal stared at the line, tracing the letters with a gloved finger. At compatibility scams, the corner of his mouth twitched up."
     },
     {
       "id": "ep-30:19",
@@ -136,9 +136,9 @@
     },
     {
       "id": "ep-30:22",
-      "source": "벌써 갔어. 손님 놓친 걸 내 탓 하진 마.",
-      "sourceHash": "6b7978620103b25982dc5e1935f6805f9183f985b16ecd9a12bd8fd8e7ffc332",
-      "t": "She's already gone. Don't blame me for losing your customer."
+      "source": "저 손님, 가려나 본데. 놓친 걸 내 탓 하진 마.",
+      "sourceHash": "f6b6938658bc34987734ec8e289f1070a6b65dfd4741b4e0df90628538034e38",
+      "t": "Looks like your customer's leaving. Don't blame me for losing her."
     },
     {
       "id": "ep-30:23",
@@ -196,9 +196,9 @@
     },
     {
       "id": "ep-30:32",
-      "source": "꼬치 서른 개면 큰돈이야. 근데 너 사람 된 거, 아직도 적응 안 돼.",
-      "sourceHash": "1b0d8a769463dd636bb6c3bfccbc7880ec8d606eaeafc14f85363fa6dd443a1d",
-      "t": "Thirty skewers is serious money. And I'm still not used to you being human."
+      "source": "꼬치 서른 개면 큰돈이야. 근데 너 사람 된 거, 아직 적응 안 돼.",
+      "sourceHash": "9472ef3f491b20d2b7168c102963b9c644441eb007d5deff29ce46d9d8c43f3a",
+      "t": "Thirty skewers is serious money. And I'm not used to you being human yet."
     },
     {
       "id": "ep-30:33",
@@ -214,9 +214,9 @@
     },
     {
       "id": "ep-30:35",
-      "source": "모카는 투덜거리면서 꼬치 하나를 연이 손에 쥐여 주었다. 별빛 버섯과 이름 모를 열매가 꿰어 있었다. 맛이 났다. 따뜻했다.",
-      "sourceHash": "ace87550727ac5e5eee17825f7b7d92601b339310e22689e16fe0f611c090200",
-      "t": "Grumbling, Moka pushed one into Yeoni's hand. Starlight mushrooms and unknown fruit on a stick. Flavor. Warmth."
+      "source": "모카는 투덜거리면서 꼬치 하나를 연이 손에 쥐여 주었다. 별빛 버섯과 이름 모를 열매가 꿰어 있었다. 짭짤했다. 따뜻했다.",
+      "sourceHash": "cc0b7abbb9d90a01460cd83e9b96185805c636fa6ce03aa8a64ad1e1ffb3b093",
+      "t": "Grumbling, Moka pushed one into Yeoni's hand. Starlight mushrooms and unknown fruit on a stick. Salty. Warm."
     },
     {
       "id": "ep-30:36",
@@ -496,9 +496,9 @@
     },
     {
       "id": "ep-30:petal-1",
-      "source": "거울 속 연이들도 모두 머리에 꽃핀을 꽂고 있었다. 다섯 잎이 다 붉은 건 작년의 연이뿐이었다.",
-      "sourceHash": "5af6c6ff34a9c91065216e224a24450b7a83b05b8215228fdafb144b765497d3",
-      "t": "Every mirror Yeoni wore a flower pin too. Only last year's Yeoni had all five petals red."
+      "source": "거울 속 연이들은 모두 머리에 꽃핀을 꽂고 있었다. 다섯 잎이 다 붉은 건 작년의 연이뿐이었다.",
+      "sourceHash": "0e9a399e3ddffd9841ea2ad936904d50538506c30861bdaa0b79c6465e69092b",
+      "t": "Every mirror Yeoni wore a flower pin. Only last year's Yeoni had all five petals red."
     },
     {
       "id": "ep-30:82",
@@ -544,9 +544,9 @@
     },
     {
       "id": "ep-30:89",
-      "source": "「좋다. 가둘 줄 아는 불은 남을 태우지 않는다. 하지만 기억해라. 가두기만 한 불은 썩는다.」",
-      "sourceHash": "709a31822cea47ecb8e55c8426c16dd0f0e398776e4bd827cd819cb03b7ddb4a",
-      "t": "“Good. Fire that knows confinement doesn't burn others. But remember: fire only confined will rot.”"
+      "source": "「좋다. 가둘 줄 아는 불은 남을 태우지 않는다. 하지만 기억해라. 가두기만 한 불은 안에서 탄다.」",
+      "sourceHash": "e49d714bbed1e3f525be0e6f0698f267df2a6e2502bb40aa41694f7825a8c4ad",
+      "t": "“Good. Fire that knows confinement doesn't burn others. But remember: fire that is only confined burns from within.”"
     },
     {
       "id": "ep-30:94",
@@ -610,9 +610,9 @@
     },
     {
       "id": "ep-30:104",
-      "source": "연이가 고개를 돌렸다. 네오가 거울 앞에 서 있었다. 거울 속 얼룩은 팔꿈치까지 올라와 있었다. 실제로는 아직 손목 아래였다.",
-      "sourceHash": "442c09011d0248275e830b5118ba34f34d1d7d4ae24deb82cfc44f5bca4fc2ee",
-      "t": "Yeoni turned. Neo stood before a mirror. In the reflection, the stain reached his elbow. In reality, it was still below the wrist."
+      "source": "연이가 고개를 돌렸다. 네오가 거울 앞에 서 있었다. 거울 속 얼룩은 팔꿈치까지 올라와 있었다. 실제로는 아직 손목을 조금 넘은 정도였다.",
+      "sourceHash": "43d176e9e9f9b1217b79169a96e951f98324ff24a0c80822eb80a782f2adbece",
+      "t": "Yeoni turned. Neo stood before a mirror. In the reflection, the stain reached his elbow. In reality, it had only just passed the wrist."
     },
     {
       "id": "ep-30:105",
@@ -694,9 +694,9 @@
     },
     {
       "id": "ep-30:room-4",
-      "source": "忌가 祿으로 돌아서는 길이 저거예요. 누가 받아 주면 막힌 자리가 흘러요.",
-      "sourceHash": "4da5a6eea72de27624734865434ff6ce0822ac9f1deed82aaff12a6bb0ba29c7",
-      "t": "That's how Obstruction turns toward Prosperity. When someone receives it, the blocked place flows."
+      "source": "忌가 祿으로 돌아서는 길이 저거예요.",
+      "sourceHash": "634bcccde5d32ff3e080ff1084c7cf1226a5b6773988a13e8b5914b153580c41",
+      "t": "That's how Obstruction turns toward Prosperity."
     },
     {
       "id": "ep-30:room-5",
@@ -718,8 +718,8 @@
     },
     {
       "id": "ep-30:111",
-      "source": "등불 속 염정이 무언가 말하려다 말았다. 연이는 그 침묵이 이상하게 무거웠다.",
-      "sourceHash": "e4c21e0c1714eddc17e4a4ee51bfba3dd2c53ac8fd1cb447b0b75ea63ac5a8f5",
+      "source": "등불 속 염정이 무언가 말하려다 말았다. 연이에게는 그 침묵이 이상하게 무거웠다.",
+      "sourceHash": "7039ea026bbb0aaba66077b76f9d2a3e11f3a25f801faf4be584f4bdb8feb0bd",
       "t": "Inside the lantern, Lian Zhen seemed about to speak, then stopped. That silence felt strangely heavy to Yeoni."
     },
     {

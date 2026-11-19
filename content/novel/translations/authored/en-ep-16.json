@@ -148,9 +148,9 @@
     },
     {
       "id": "ep-16:24",
-      "source": "정재다. 제 손으로 번 것은 무겁다. 이 섬에서 가장.",
-      "sourceHash": "7516e4056f292ac14bf2302afe1f26e6261702aecec133277781f242f4971937",
-      "t": "Direct Wealth. What you earn by your own hands is heavy. The heaviest thing on this island."
+      "source": "정재다.",
+      "sourceHash": "1945e87d2836454fd2f3205a5b0df79e9586c701e9f472328027f8db9c0f67b6",
+      "t": "Direct Wealth."
     },
     {
       "id": "ep-16:25",
@@ -268,8 +268,8 @@
     },
     {
       "id": "ep-16:44",
-      "source": "그녀는 비어 있지 않다.",
-      "sourceHash": "a045d571e65015272483da154b13da04d64c1f04fc398b7c251545a2544e993f",
+      "source": "연이는 비어 있지 않다.",
+      "sourceHash": "4fceab91f6fe052df86a4827108cd080115bbc691d6318e7b084bbda15acc8d5",
       "t": "Yeoni is not empty."
     },
     {
@@ -418,9 +418,9 @@
     },
     {
       "id": "ep-16:69",
-      "source": "호랑이는 한참 동안 말이 없었다. 그 사이 입에 문 알이 아주 작게, 그러나 분명히 금 가는 소리를 냈다.",
-      "sourceHash": "077f31c8037f2d9d8906b026653dd05e408d6a37323dabee938e5f8b8dda25e4",
-      "t": "The tiger said nothing for a long time. Then the egg in its mouth made a tiny but unmistakable cracking sound."
+      "source": "호랑이는 한참 동안 말이 없었다. 그 사이 입에 문 알이 분명히 금 가는 소리를 냈다.",
+      "sourceHash": "a0fa7fcae60c95ad606ee1e0a15f7b6490880a5226aa5468bd2364682ff4029c",
+      "t": "The tiger said nothing for a long time. Then the egg in its mouth made an unmistakable cracking sound."
     },
     {
       "id": "ep-16:70",
@@ -556,8 +556,8 @@
     },
     {
       "id": "ep-16:92",
-      "source": "그 말이 전부라고 믿지는 마. 길을 고를 때 참고만 해.",
-      "sourceHash": "e8f1cbef237ce99aed7ddf70f1d6cff3a187b21083a1b08a5631648ebbd51ba5",
+      "source": "그 말이 전부라고 믿지는 마라. 길을 고를 때 참고만 해라.",
+      "sourceHash": "78d923d9c55d0445e922533be49c3b72f7e1743cfcf78de333a73f2208faa9a3",
       "t": "Don't believe that's the whole story. Just use it as a guide when choosing your path."
     },
     {
@@ -574,9 +574,9 @@
     },
     {
       "id": "ep-16:95",
-      "source": "윤달이 잠깐 말을 잃었다. 3년 만에 누군가 그 가명을 웃으면서 부른 모양이었다.",
-      "sourceHash": "d6c7d9731bea088b414e852aa4468d59587d7158320509c39ccb23272cbba3d1",
-      "t": "For a moment, Yundal lost his words. Apparently, it had been three years since someone had spoken that alias with a smile."
+      "source": "윤달이 잠깐 말을 잃었다. 누가 그 가명을 웃으며 부른 건 3년 만이었다.",
+      "sourceHash": "de2891fa822c95db0bd3aa07cdeef7cdfc4e3dec99c2704cf583689da294b8d1",
+      "t": "For a moment, Yundal lost his words. It had been three years since anyone had spoken that alias with a smile."
     },
     {
       "id": "ep-16:96",

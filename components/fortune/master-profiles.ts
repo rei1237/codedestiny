@@ -29,9 +29,9 @@ export const masterProfiles = {
     sheet: `${base}/neo-strategy-profile.webp`, sheetWidth: 1536, sheetHeight: 1024, theme: "neo",
   },
   yeoni: {
-    name: "연이", role: "운명 찻집 마스터 · 따뜻한 공감으로 여는 상담",
+    name: "연이", role: "운명 찻집 마스터 · 근거부터 짚는 따뜻한 상담",
     description: "마음을 먼저 듣고, 흐름의 근거와 작은 실천을 함께 전하는 운명 찻집 마스터예요. 쉽게 꺼내지 못했던 이야기도 천천히 들려주세요.",
-    approach: "사주는 삶의 흐름을, 타로는 지금의 선택을, 숙요점은 관계의 거리감을 살펴봐요. 따뜻한 차 한 잔처럼 마음을 보듬으며, 오늘 할 수 있는 작은 행동을 함께 찾아요.",
+    approach: "사주는 삶의 흐름을, 타로는 지금의 선택을, 숙요점은 관계의 거리감을 살펴봐요. 근거를 먼저 짚고 마음을 살피며, 오늘 할 수 있는 작은 행동을 함께 찾아요.",
     portrait: `${base}/yeoni-teahouse-portrait.webp`, portraitAlt: "분홍빛 한복을 입고 찻잔을 건네는 운명 찻집 마스터 연이",
     sheet: `${base}/yeoni-teahouse-profile.webp`, sheetWidth: 1536, sheetHeight: 1024, theme: "yeoni",
   },
@@ -45,14 +45,14 @@ export const masterProfiles = {
   },
   yun: {
     name: "윤달", role: "생시부터 묻는 점성술사 · 서양 점성술·베다점",
-    description: "누구에게나 태어난 시각부터 묻는 점성술사예요. 분까지 맞추면 상승궁과 열두 하우스가 또렷해지고, 태양·달과 함께 기질의 중심을 정확히 잡을 수 있어요.",
+    description: "누구에게나 태어난 시각부터 묻는 점성술사예요. 분까지 맞추면 상승궁과 열두 하우스가 또렷해지고, 태양·달과 함께 기질의 중심이 더 또렷해져요.",
     approach: "서양 점성술은 행성·사인·하우스·애스펙트로, 베다점은 라시·나크샤트라·다샤로 읽어요. 두 체계의 근거를 구분하고, 비유는 쉽게 하나만 곁들여요. 생시를 모르면 상승궁 해석의 한계부터 말씀드리고, 읽을 수 있는 하늘부터 차근차근 풀어 드려요.",
     portrait: `${base}/yun-astrology-portrait.webp`, portraitAlt: "남색 두루마기에 은빛 초승달 귀걸이를 하고 접부채를 든 점성술사 윤달",
     sheet: `${base}/yun-astrology-profile.webp`, sheetWidth: 1536, sheetHeight: 1024, theme: "yun",
   },
   musung: {
     name: "무성", role: "막힌 별을 녹으로 바꾸는 판결 · 자미두수",
-    description: "명반에서 막힌 자리(화기·化忌)를 먼저 짚고, 그 자리를 풀어 갈 길(화록·化祿)을 처방하는 자미두수 판결자입니다.",
+    description: "명반에서 막힌 자리(화기·化忌)를 먼저 짚고, 그 자리를 풀어 갈 길(화록·化祿)을 제시하는 자미두수 판결자입니다.",
     approach: "짧고 분명한 판결로 시작해, 처방은 오늘 해 볼 수 있는 구체적인 행동으로 이어 드려요. 명궁과 열두 궁, 대운의 근거를 함께 보여 드리고, 미래를 단정하지 않습니다.",
     portrait: `${base}/musung-ziwei-portrait.webp`, portraitAlt: "후드를 내리고 먹색 학자 도포를 입은 채 금빛 깃털을 든 자미두수 판결자 무성",
     sheet: `${base}/musung-ziwei-profile.webp`, sheetWidth: 1536, sheetHeight: 1024, theme: "musung",
@@ -81,7 +81,7 @@ export const masterProfiles = {
   },
   hanbiLove: {
     name: "서한비", epithet: "연애 비책 공동 마스터 · 관계의 장", role: "두 사람 사이의 거리를 재는 사람",
-    signature: "엇갈림은 누구의 잘못이 아니라 관계에 쌓인 빚입니다. 언제, 어떻게 갚을지 정확히 셈해 드리겠습니다.",
+    signature: "엇갈림은 누구의 잘못이 아니라 관계에 쌓인 빚입니다. 언제, 어떻게 갚을지 차근차근 셈해 드리겠습니다.",
     description: "연애 비책의 가운데 장들을 맡습니다. 상대의 기운과 두 분 사이의 거리, 반복되는 다툼과 재회의 조건, 그리고 다가갈 때를 차례로 재어 드립니다. 서두르지 않되, 흐려 두지도 않겠습니다.",
     dossier: [
       { label: "전문 영역", text: "상대와 궁합, 갈등과 재회의 조건, 연락·고백·관계 진전의 시기" },
@@ -94,9 +94,9 @@ export const masterProfiles = {
   neoNewYear: {
     name: "네오", epithet: "신년운세 마스터", role: "한 해의 판세를 짜는 운명 사령관",
     signature: "올해 판세, 내가 먼저 읽어 주지. 넌 움직이기만 하면 된다.",
-    description: "새해 작전 회의는 내가 연다. 네 명식과 올해의 흐름을 맞대어 밀어붙일 달과 숨 고를 달을 가르고, 일·재물·관계·건강을 장마다 바로 쓸 수 있는 작전으로 정리해 넘긴다.",
+    description: "새해 전략 회의는 내가 연다. 네 명식과 올해의 흐름을 맞대어 밀어붙일 달과 숨 고를 달을 가르고, 일·재물·관계·건강을 장마다 바로 쓸 수 있는 전략으로 정리해 넘긴다.",
     dossier: [
-      { label: "전문 영역", text: "한 해의 총운과 열두 달의 판세, 일·재물·관계·건강의 작전" },
+      { label: "전문 영역", text: "한 해의 총운과 열두 달의 판세, 일·재물·관계·건강의 전략" },
       { label: "읽는 근거", text: "네 명식의 격국·용신·조후, 대운 위에 올해 세운이 닿는 자리, 달마다 바뀌는 월별 흐름" },
       { label: "이 상담에서 맡는 부분", text: "질문과 타고난 성향 · 올해의 총운 · 재물과 직업 · 애정과 대인관계 · 1월~12월 월별 흐름 · 건강과 개운법 — 여섯 장 전부" },
     ],
@@ -153,7 +153,7 @@ export const productMasters = {
   ],
   // 초융합 v2 — 체계 장과 영역별 장을 나눠 맡는 다섯 화자(lib/fusion-premium-report.js FUSION_NARRATOR_BY_KEY).
   fusion: [
-    { name: "네오", role: "사주 · 재물 · 일", avatar: masterAvatars.neo, line: "판은 내가 읽는다. 너는 밀 때와 멈출 때만 정하면 돼." },
+    { name: "네오", role: "사주 · 재물 · 일", avatar: masterAvatars.neo, line: "돈이랑 일은 흐름부터 본다. 무리수는 내가 먼저 말릴게." },
     { name: "연이", role: "타로 · 연애", avatar: masterAvatars.yeoni, line: "마음이 먼저 움직이는 자리부터 같이 볼게요." },
     { name: "서한비", role: "숙요 · 결혼 · 인간관계", avatar: masterAvatars.hanbi, line: "사람 사이에 쌓이는 것과 갚는 법을 차분히 짚어 드리겠습니다." },
     { name: "윤달", role: "베다 · 점성술 · 시기 · 생활 리듬", avatar: masterAvatars.yun, line: "별길이 바뀌는 계절을 같이 짚어 볼게요." },

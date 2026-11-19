@@ -1,10 +1,12 @@
 "use client";
 import { requestPortOneSinglePayment } from '@/lib/payment/portone';
-import { isMobileAppRuntime } from '@/app/_lib/billing-client';
+import { isIosAppRuntime, isMobileAppRuntime } from '@/app/_lib/billing-client';
 import { neoCall } from './api';
 import type { NeoOrder } from './types';
 
 export async function openNeoCheckout(order: NeoOrder) {
+  // iOS 는 웹 결제를 안내하지 않는다(App Store 3.1.3). Android 문구는 그대로 둔다.
+  if (isIosAppRuntime()) throw new Error('앱 안에서는 이 상담의 새 신청을 아직 지원하지 않아요.');
   if (isMobileAppRuntime()) throw new Error('이 상담은 현재 웹 브라우저에서만 신청할 수 있습니다. 앱 안에서는 결제를 진행하지 않습니다.');
   const prepared = await neoCall('/'+order.id+'/checkout',{});
   const checkout = prepared.checkout;

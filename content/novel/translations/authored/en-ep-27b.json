@@ -28,15 +28,15 @@
     },
     {
       "id": "ep-27b:4",
-      "source": "손님은 없었다. 사람들이 그를 자꾸 잊어버린 뒤로 윤달이 하는 말의 절반은 혼잣말이었고, 그는 그 일에 익숙했다.",
-      "sourceHash": "b020acea65d12fce7aff0002af81747e730969406a26fcf6d9475c1842947c04",
-      "t": "No customers. Since people had begun forgetting him, half his speech was to himself. He was used to it."
+      "source": "손님은 없었다. 사람들이 그를 자꾸 잊어버린 뒤로 윤달이 하는 말의 절반은 혼잣말이었고, 그는 혼잣말에 익숙했다.",
+      "sourceHash": "a4c0c140d802800ac9134848ac3fcf8a56ae874f4fdd8d9d2aed92a7867c0fca",
+      "t": "No customers. Since people had begun forgetting him, half his speech was to himself, and he was used to talking to himself."
     },
     {
       "id": "ep-27b:5",
-      "source": "붓끝이 종이 위를 지나가며 숙녀분의 일주인 乙亥를 적었다. 그 둘레에 작은 별 여덟 개를 그리고, 마지막 별 하나는 비워 두었다.",
-      "sourceHash": "9434eac66b866f601dd272394b74a22c057e186099bbc84ffe38b36ad87a6bdd",
-      "t": "His brush wrote the lady's Day Pillar, 乙亥. He drew eight little stars around it and left the last one empty."
+      "source": "붓끝이 종이 위를 지나가며 숙녀분의 일주인 乙亥를 적었다. 그 둘레에 작은 별 일곱 개를 그리고, 여덟 번째 자리는 비워 두었다.",
+      "sourceHash": "7a7f958fd4e336fd17adbd579e81349b1dbb61d60994418c4f7684255858d504",
+      "t": "His brush wrote the lady's Day Pillar, 乙亥. He drew seven little stars around it and left the eighth place empty."
     },
     {
       "id": "ep-27b:6",
@@ -208,9 +208,9 @@
     },
     {
       "id": "ep-27b:32",
-      "source": "문은 다시 낡은 창고 문이 되었다. 그 일은 생각보다 금방 끝났다. 윤달은 창고 문 앞에 한참 서 있다가 문고리를 한 번 쓸어 보았는데, 아직 따뜻했다.",
-      "sourceHash": "53a5616d5f327e4e20eb6751ec5164b40d895df972ee6402a6d0677a98f60320",
-      "t": "It became an old storeroom door again. Over sooner than expected. Yundal stood there a long time, then brushed the handle once. Still warm."
+      "source": "문은 다시 낡은 창고 문이 되었다. 윤달은 창고 문 앞에 한참 서 있다가 문고리를 한 번 쓸어 보았는데, 아직 따뜻했다.",
+      "sourceHash": "f6e559990b3fb365bf3d37e8cb5cf70800f10ecdea230b7c4618ce3925a58b80",
+      "t": "It became an old storeroom door again. Yundal stood there a long time, then brushed the handle once. Still warm."
     },
     {
       "id": "ep-27b:33",
@@ -304,9 +304,9 @@
     },
     {
       "id": "ep-27b:47",
-      "source": "정말로 괜찮은지는 그도 몰랐다. 다만 3년 동안 그 말을 하는 법은 아주 잘 익혀 두었다.",
-      "sourceHash": "908dad8fdffa2f28c1b375d880a871b9a8824925d16d71c26b491d249939a4af",
-      "t": "He didn't know whether it really was all right. But over three years, he had learned very well how to say it."
+      "source": "3년 동안 그 말을 하는 법은 아주 잘 익혀 두었다.",
+      "sourceHash": "7c8e1518e979de5849f0cc524146ffa03cf9293fbffdd0b3a7ad481cdedceb34",
+      "t": "Over three years, he had learned very well how to say it."
     },
     {
       "id": "ep-27b:48",
@@ -364,15 +364,15 @@
     },
     {
       "id": "ep-27b:56",
-      "source": "윤달은 빵집 문을 열고 골목으로 나서서 하늘을 올려다보았다. 흑월이 밀려난 자리에서 하늘의 금은 닫혀 있었지만 완전히 닫히지는 않았다.",
-      "sourceHash": "c7e948aa989588cd14a172961d630af679519415e0af2e372bca615e18d99a8f",
-      "t": "He went into the alley and looked up. Where Black Moon had been driven away, the sky's crack was closed, but not completely."
+      "source": "윤달은 빵집 문을 열고 골목으로 나서서 하늘을 올려다보았다. 흑월이 밀려난 자리에서 하늘의 금은 거의 닫혀 있었다.",
+      "sourceHash": "3188598844f0019e69e6c948f222574883be056ed3969e43380d12e6b909980b",
+      "t": "He went into the alley and looked up. Where Black Moon had been driven away, the sky's crack was almost closed."
     },
     {
       "id": "ep-27b:57",
-      "source": "닫힌 금 사이로 이 세계의 것이 아닌 별빛이 새어 나왔다. 열두 줄로 늘어선 낯선 별들 가운데, 줄마다 이름 모를 큰 별이 하나씩 박혀 있었다.",
-      "sourceHash": "b1ed81aa1bf1dd0c15a545c032f195b0c09dcb20050506d7960af886492b64d7",
-      "t": "Starlight from another world leaked through. Strange stars stood in twelve rows, each row holding one great star whose name he didn't know."
+      "source": "남은 틈 사이로 이 세계의 것이 아닌 별빛이 새어 나왔다. 열두 줄로 늘어선 낯선 별들 가운데, 줄마다 이름 모를 큰 별이 하나씩 박혀 있었다.",
+      "sourceHash": "ca6281a08beaa147a5fc90499a8dc1f6037d23e50fef840b064f8e0ade25d106",
+      "t": "Starlight from another world leaked through the remaining gap. Strange stars stood in twelve rows, each row holding one great star whose name he didn't know."
     },
     {
       "id": "ep-27b:58",
@@ -430,9 +430,9 @@
     },
     {
       "id": "ep-27b:67",
-      "source": "루나 언니는 종이를 접어 서랍에 넣었다. 버리지는 않았다. 왜 그런지는 자기도 몰랐다.",
-      "sourceHash": "686ba996c1f34ad139d2041a46f8e5a27c5ca61de41a1a1f8a9ff8d5403b96da",
-      "t": "Luna's sister folded it and put it in a drawer. She did not throw it away. She didn't know why, either."
+      "source": "루나 언니는 종이를 접어 서랍에 넣었다. 버리지는 않았다.",
+      "sourceHash": "01b20e5369484084d9df76445f87dbf676f0beba55bce17815feffff6a3f718b",
+      "t": "Luna's sister folded it and put it in a drawer. She did not throw it away."
     }
   ]
 }

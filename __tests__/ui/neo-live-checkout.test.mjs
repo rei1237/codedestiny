@@ -9,15 +9,15 @@ const output=await build({stdin:{contents:source,loader:'ts'},bundle:true,write:
     b.onResolve({filter:/.*/},args=>({path:args.path,namespace:'fixture'}));
     b.onLoad({filter:/.*/,namespace:'fixture'},args=>({contents:
       args.path.endsWith('/portone') ? 'export const requestPortOneSinglePayment=o=>globalThis.neoCheckoutFixture.sdk(o);' :
-      args.path.endsWith('/billing-client') ? 'export const isMobileAppRuntime=()=>globalThis.neoCheckoutFixture.app;' :
+      args.path.endsWith('/billing-client') ? 'export const isMobileAppRuntime=()=>globalThis.neoCheckoutFixture.app;export const isIosAppRuntime=()=>globalThis.neoCheckoutFixture.ios===true;' :
       'export const neoCall=(p,b)=>globalThis.neoCheckoutFixture.api(p,b);',loader:'js'}));
   },
 }]});
 const {openNeoCheckout}=await import('data:text/javascript;base64,'+Buffer.from(output.outputFiles[0].text).toString('base64'));
 const order={id:'consultation',email:'official@example.invalid',payment:{id:'existing-payment'},quote:{totalKRW:20000}};
-function fixture({amount=20000,app=false,sdkOk=true}={}){
+function fixture({amount=20000,app=false,ios=false,sdkOk=true}={}){
   const calls=[];
-  globalThis.neoCheckoutFixture={app,
+  globalThis.neoCheckoutFixture={app,ios,
     sdk:async request=>{calls.push({sdk:request});return sdkOk?{ok:true,paymentId:'existing-payment'}:{ok:false,message:'취소'};},
     api:async path=>{calls.push({path});return path.endsWith('/checkout')?{checkout:{merchantUid:'existing-payment',paymentAmount:amount,customer:{fullName:'테스트'},storeId:'mock',channelKey:'mock'}}:{order:{...order,state:'received',payment:{...order.payment,status:'paid'}}};},
   };
@@ -32,7 +32,8 @@ test('결제창은 서버 주문 ID·총액만 쓰며 성공 표시는 서버 �
 });
 test('변조된 견적은 PG를 열지 않으며 앱에서는 웹 결제를 우회 실행하지 않는다',async()=>{
   let calls=fixture({amount:1});await assert.rejects(openNeoCheckout(order),/다릅니다/);assert.equal(calls.length,1);
-  calls=fixture({app:true});await assert.rejects(openNeoCheckout(order),/앱 안에서는/);assert.equal(calls.length,0);
+  calls=fixture({app:true});await assert.rejects(openNeoCheckout(order),/웹 브라우저에서만/);assert.equal(calls.length,0);
+  calls=fixture({app:true,ios:true});await assert.rejects(openNeoCheckout(order),e=>/앱 안에서는/.test(e.message)&&!/웹/.test(e.message));assert.equal(calls.length,0);
 });
 test('결제창 취소를 결제 완료로 표시하거나 새 주문 발급으로 바꾸지 않는다',async()=>{
   const calls=fixture({sdkOk:false});await assert.rejects(openNeoCheckout(order),/취소/);

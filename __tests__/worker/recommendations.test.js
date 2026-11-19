@@ -120,6 +120,14 @@ test.each(['draft', 'paused', 'missing', 'disabled-provider'])('unpublished prod
   expect((await handleRecommendationRoutes(eventRequest(impression), {})).status).toBe(400);
   expect(metric.updateOne).not.toHaveBeenCalled();
 });
+test.each([
+  ['https://localhost', 204], ['capacitor://localhost', 204],
+  ['capacitor://localhost:3000', 403], ['capacitor://other', 403], ['null', 403],
+])('event origin %s -> %i (app shells only by exact match)', async (origin, status) => {
+  enableMetrics();
+  const req = new Request('https://code-destiny.com/api/recommendations/events', { method: 'POST', headers: { Origin: origin }, body: JSON.stringify(impression) });
+  expect((await handleRecommendationRoutes(req, {})).status).toBe(status);
+});
 test('event budget and byte limit stay enforced', async () => {
   enableMetrics();
   expect((await handleRecommendationRoutes(eventRequest({ ...impression, extra: '가'.repeat(400) }), {})).status).toBe(413);

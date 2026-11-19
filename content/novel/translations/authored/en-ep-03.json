@@ -286,9 +286,9 @@
     },
     {
       "id": "ep-03:45",
-      "source": "그런 중요한 걸 왜 이제 말해?",
-      "sourceHash": "0016f9f1f1e806f978966de8ce1d3d6c957820cfc51abdf3309a7537704ebedd",
-      "t": "Why are you only telling me something that important now?"
+      "source": "그걸 왜 지금 또 말해?",
+      "sourceHash": "87b169f9577f82cdf52af4b1d63040241993450fb105ee5e326b09ad85def714",
+      "t": "Why are you bringing that up again now?"
     },
     {
       "id": "ep-03:46",
@@ -322,9 +322,9 @@
     },
     {
       "id": "ep-03:51",
-      "source": "거울 속에 연이의 현실이 비쳤다. 아침 알람이 울리지 않던 날. 개찰구에서 교통카드만 세 번 오류가 나던 순간.",
-      "sourceHash": "5227aa375c0d1fd46774d119f67862aba2a9da5ec11b81cedc04c86c34da1f70",
-      "t": "Yeoni's real life appeared in the mirror. The morning the alarm did not ring. The moment their transit card failed three times at the gate."
+      "source": "거울 속에 연이의 현실이 비쳤다. 아침 알람이 울리지 않던 날. 버스 단말기에서 교통카드가 세 번 튕기던 순간.",
+      "sourceHash": "759dfd81f192e5d81120f728b1815453721a64c764999da8d7863ff82caa9de9",
+      "t": "Yeoni's real life appeared in the mirror. The morning the alarm did not ring. The moment their transit card got rejected three times at the bus reader."
     },
     {
       "id": "ep-03:52",
@@ -334,9 +334,9 @@
     },
     {
       "id": "ep-03:53",
-      "source": "연이는 입술을 다물었다. 장면 하나하나는 별것도 아니었다. 그런데 그게 한꺼번에 밀려오자, 가슴 안쪽 어딘가가 손으로 꾹 눌린 것처럼 답답해졌다.",
-      "sourceHash": "6484e5e3c6dd18efc492d54e701631c5a7cdfd6d6d275cc5a1bfb57325320afe",
-      "t": "Yeoni closed their mouth. Each scene was nothing much on its own. But when they arrived together, something inside their chest felt pressed hard beneath a hand."
+      "source": "연이는 입술을 다물었다. 장면 하나하나는 별것도 아니었다. 그런데 그게 한꺼번에 밀려왔다.",
+      "sourceHash": "47241d59ca28c5426514a4fedd8110d6a8ca11904924d6bc0a31c77e2995d380",
+      "t": "Yeoni closed their mouth. Each scene was nothing much on its own. But they all came rushing in at once."
     },
     {
       "id": "ep-03:54",
@@ -424,8 +424,8 @@
     },
     {
       "id": "ep-03:68",
-      "source": "거울 속 연이의 표정이, 아주 살짝 굳었다. 완벽했던 보고서에 처음으로 오타가 하나 난 것처럼.",
-      "sourceHash": "a7111137e984cfe9b760e1161e98dba4dbe1cd3fd315d3ede0e7150806e35834",
+      "source": "거울 속 연이의 표정이 아주 살짝 굳었다. 완벽했던 보고서에 처음으로 오타가 하나 난 것처럼.",
+      "sourceHash": "cb4684ef641c2b60dbebb278507553cfed759fbe3d10d756acd2767a9c67b8bc",
       "t": "The reflected Yeoni's face tightened, ever so slightly. As though the flawless report had acquired its first typo."
     },
     {
@@ -688,8 +688,8 @@
     },
     {
       "id": "ep-03:112",
-      "source": "나와 같은 기운. 하지만 내 것을 빼앗아 가는 힘. 형제 같은 얼굴을 하고, 내 몫을 나눠 가지려 든다.",
-      "sourceHash": "2fb64b6334980f5919b5c5436bb5b6431b9eddcd90b692505664e333b1d87dbc",
+      "source": "너와 같은 기운. 하지만 네 것을 빼앗아 가는 힘. 형제 같은 얼굴을 하고, 네 몫을 나눠 가지려 든다.",
+      "sourceHash": "fb3b8eb42d1711fa91d4061dc36ab44b4dfe5e8d4d8f99ccdb0e9ddf991a684f",
       "t": "Energy like your own. Yet a force that takes what belongs to you. It wears a sibling's face and tries to claim a share of what is yours."
     },
     {
@@ -718,8 +718,8 @@
     },
     {
       "id": "ep-03:117",
-      "source": "나는 길을 열 수는 있다! 하지만 네 글자를 대신 지켜줄 수는 없어!",
-      "sourceHash": "df3cc6815081180f163fbf081e1e4ca61c8d4e6f03f156b3417f49a1b981c111",
+      "source": "나는 길을 열 수는 있다! 하지만 네 글자를 대신 지켜줄 수는 없다!",
+      "sourceHash": "a4e3e081066c7cef3c35be986731f7adb2cd57db800cf1e80173bba4ac4989cf",
       "t": "I can open a path! But I cannot protect your characters in your place!"
     },
     {
@@ -916,9 +916,9 @@
     },
     {
       "id": "ep-03:150",
-      "source": "연이는 몸을 굳혔다. 아까 강에서 쫓아오던 검은 손들과는 결이 달랐다. 밖에서 덮쳐오는 적이 아니라, 안쪽에서 조용히 부르는 무언가였다. 깊고, 차갑고, 자꾸만 외면하고 싶은 감정.",
-      "sourceHash": "2bfb2e8ebeec68fd72e3a17da700944ce545af82fa902483dd42236d8724099a",
-      "t": "Yeoni stiffened. This was unlike the black hands that had chased them across the river. Not an enemy attacking from outside, but something quietly calling from within. Deep, cold feelings they kept wanting to avoid."
+      "source": "연이는 몸을 굳혔다. 아까 강에서 쫓아오던 검은 손들과는 결이 달랐다. 밖에서 오는 적이 아니었다. 연이가 오래 외면해 온 것이었다.",
+      "sourceHash": "ae6f22c5dc83fd0cd61783042537e54b66fca21c078e5cfc9c73378383bc2021",
+      "t": "Yeoni stiffened. This was unlike the black hands that had chased them across the river. It was no enemy from outside. It was something Yeoni had long refused to look at."
     },
     {
       "id": "ep-03:151",
@@ -994,9 +994,9 @@
     },
     {
       "id": "ep-03:163",
-      "source": "연이는 앞발에 힘을 줬다. 여전히 손가락은 없었다. 하지만 이제 조금은 알 것 같았다. 무언가를 붙잡는 건 손가락만으로 하는 게 아니라는 걸.",
-      "sourceHash": "3228b6350135bdf596597cde39ff396bdbbc0202a975fcb1ec6fa01ca98e7821",
-      "t": "Yeoni tightened their hooves. Still no fingers. But now they thought they understood a little. Fingers were not the only way to hold on to something."
+      "source": "연이는 앞발에 힘을 줬다. 여전히 손가락은 없었다.",
+      "sourceHash": "8b7b9ef8ab03b09f49b82c166ccba5f8a8fd71301f6b4f595152f8a0818b6563",
+      "t": "Yeoni tightened their hooves. Still no fingers."
     },
     {
       "id": "ep-03:164",
@@ -1174,9 +1174,9 @@
     },
     {
       "id": "ep-03:193",
-      "source": "연이는 그 광경을 보며 숨을 삼켰다. 작았다. 약해 보였다. 그런데 살아 있었다. 꼭, 지금의 자기 자신처럼.",
-      "sourceHash": "029791f5d1ab133ce553f1878a4c85357d4e994b4892f1e0a4ffd2be5bcb06af",
-      "t": "Yeoni caught their breath at the sight. Small. Apparently weak. Yet alive. Just like Yeoni right now."
+      "source": "연이는 그 광경을 보며 숨을 삼켰다. 작았다. 약해 보였다. 그런데 살아 있었다.",
+      "sourceHash": "f36dfafa788df956ef1f83303b1056ee2a7af6a0ec444cc70ca1d125bd13de96",
+      "t": "Yeoni caught their breath at the sight. Small. Apparently weak. Yet alive."
     },
     {
       "id": "ep-03:194",
@@ -1228,9 +1228,9 @@
     },
     {
       "id": "ep-03:202",
-      "source": "거울 속 연이가 처음으로 소리쳤다. 그 목소리엔 더 이상, 여유가 없었다.",
-      "sourceHash": "70f8d6c6e14acce094b39aca61affe49e0668e18bbaea4f49949af1686bf364a",
-      "t": "The reflected Yeoni shouted for the first time. There was no ease left in that voice."
+      "source": "거울 속 연이가 처음으로 소리쳤다.",
+      "sourceHash": "4aabce931400cf61cdd89ff775f47c64a88df74c100bd2b979aba9f75d8afc7a",
+      "t": "The reflected Yeoni shouted for the first time."
     },
     {
       "id": "ep-03:203",
@@ -1288,9 +1288,9 @@
     },
     {
       "id": "ep-03:212",
-      "source": "빨려 들어가기 직전, 거울 밖에 선 인간 연이가 마지막으로 눈에 들어왔다. 그녀는 웃고 있었다. 하지만 그 웃음엔, 이제 여유가 남아 있지 않았다.",
-      "sourceHash": "53ba01119065a928dd9ccb11c7c078fbdb2b0dad64dc2b91df5a9383df57bc6c",
-      "t": "Just before being pulled under, Yeoni caught one last glimpse of the human standing outside the mirror. The reflection was smiling. But there was no confidence left in that smile."
+      "source": "빨려 들어가기 직전, 거울 밖에 선 인간 연이가 마지막으로 눈에 들어왔다. 그녀는 웃고 있었다. 하지만 그 웃음은 조금 떨리고 있었다.",
+      "sourceHash": "2b1617041eea710edf0c7cf2370a56f2f2cabca9ef3d21df96450589b5a787ba",
+      "t": "Just before being pulled under, Yeoni caught one last glimpse of the human standing outside the mirror. The reflection was smiling. But the smile trembled a little."
     },
     {
       "id": "ep-03:213",
@@ -1324,9 +1324,9 @@
     },
     {
       "id": "ep-03:218",
-      "source": "[ 해수의 심연이 열리고 있었다. ]",
-      "sourceHash": "8e3b5a2e8ff4b867d88fd9e3d9dc05c1e2e7189e1dd1d29b8967f12ddbaf4214",
-      "t": "[ The Abyss of Hae Water was opening. ]"
+      "source": "[ 해수의 심연이 열립니다. ]",
+      "sourceHash": "a757435cfc553e0ea8d76b43a182f84f589336f525f5c34c75e7c0e89fcc9659",
+      "t": "[ The Abyss of Hae Water opens. ]"
     }
   ]
 }

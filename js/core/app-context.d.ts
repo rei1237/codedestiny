@@ -8,6 +8,12 @@ declare const appContext: {
    * SSR/프리렌더에서는 NEXT_PUBLIC_RUNTIME_TARGET 만 본다.
    */
   isApp(): boolean;
+  /**
+   * 실행 플랫폼. 앱이 아니면 "web", 앱이면 Capacitor.getPlatform() 의 "ios"/"android".
+   * 앱인데 판별할 수 없으면 "android"(기존 가정). 웹 브라우저가 옛 캐시 파일을 쓸 수 있으니
+   * classic script 전역(`__cdAppContext`)으로 부를 때는 존재 여부를 먼저 확인한다.
+   */
+  getPlatform(): "android" | "ios" | "web";
 };
 
 export default appContext;

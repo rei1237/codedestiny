@@ -10,7 +10,7 @@ const receiptMessages:Record<Product['fishId'],string>={
  flounder:'광어 잘 받았다냥! 네 선택의 흐름까지 꼼꼼히 보자.',
  tuna:'참치 품에 안고 힘냈다냥. 긴 이야기는 목차부터 천천히 읽어봐.',
  assorted:'모둠 잘 받았다냥! 두 체계의 공통점과 다른 점을 나란히 펼쳐볼게.',
- omakase:'오마카세라니, 냐아앙! 고맙다냥! 여섯 시선을 모은 네 운명서를 펼쳐볼게!',
+ omakase:'오마카세라니, 냐앙! 고마워! 여섯 시선을 모은 네 운명서를 펼쳐볼게!',
 };
 
 export default function FishReceipt({product,locale='ko'}:{product:Product;locale?:ReadingLocale}){

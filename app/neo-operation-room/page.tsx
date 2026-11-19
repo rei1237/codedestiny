@@ -8,7 +8,7 @@ import { pageOpenGraph } from "../../lib/seo/page-open-graph";
 const PAGE_URL = "https://code-destiny.com/neo-operation-room";
 
 export const metadata: Metadata = {
-  title: "네오의 팩폭 작전실 | 꿀꿀 운세",
+  title: "네오의 팩폭 전략실 | 꿀꿀 운세",
   description: "위로보다 진단, 감정보다 기준. 네오가 막힌 흐름을 읽고 반복된 선택을 현실적인 행동 전략으로 정리한다.",
   referrer: "no-referrer",
   // 2026-08-24 에 색인 대상으로 되돌렸다(본문을 서버에서 렌더하도록 고친 뒤). robots 를
@@ -33,8 +33,8 @@ export default function NeoOperationRoomRoute() {
           2026-08-30: sr-only 였던 본문을 ServiceIntroSection 으로 가시화했다(성장 계획 1-D) — 본문 전체를
           숨긴 형태는 Google 의 Hidden text 정책 소지가 있고 AdSense 검수자에게도 보이지 않는다. 배치는 앱 아래. */}
       <ResultSamples ids={['neo']}/>
-      <ServiceIntroSection label="네오의 팩폭 작전실 안내">
-        <h2>네오의 팩폭 작전실 — 위로 대신 진단으로 여는 상담</h2>
+      <ServiceIntroSection label="네오의 팩폭 전략실 안내">
+        <h2>네오의 팩폭 전략실 — 위로 대신 진단으로 여는 상담</h2>
         <p>
           운세를 보고 나서 마음은 풀렸는데 상황은 그대로인 경우가 많습니다. 작전실은 그 지점을 바꾸려고
           만들었습니다. 좋게 말해 주는 대신 지금 어디가 새고 있는지를 먼저 짚고, 반복된 선택을 현실에서

@@ -70,9 +70,9 @@
     },
     {
       "id": "ep-14a:11",
-      "source": "일곱째 칸에서 자꾸 넘어지고 있어. 거기만 시간이 거의 멈춰 있거든.",
-      "sourceHash": "aa4e9df24e7123818a1c098a7271182f2b32f14f78ff466bc8cad52ebc03a9f1",
-      "t": "I keep stumbling at the seventh chamber. Time has almost stopped there."
+      "source": "일곱째 칸에서 자꾸 넘어지세요. 거기만 시간이 거의 멈춰 있거든요.",
+      "sourceHash": "3f01ebdbf435a568b69ff44c56c823c175dfad885985915194d0e6a5c63eedf8",
+      "t": "People keep stumbling at the seventh chamber. Time has almost stopped there."
     },
     {
       "id": "ep-14a:12",
@@ -118,9 +118,9 @@
     },
     {
       "id": "ep-14a:19",
-      "source": "모카의 수염이 축 처졌다가 다시 섰다. 맛을 잃었던 식상의 섬 사람들 얼굴이 스친 모양이었다.",
-      "sourceHash": "2e84ecd355f62f7e3b16441eb837bfcf64ac7c63e9a8c9cbfd375022fddaabbe",
-      "t": "Moka's whiskers drooped, then rose again. He seemed to be remembering the faces of the people on the Island of Expression who had lost their sense of taste."
+      "source": "모카의 수염이 축 처졌다가 다시 섰다.",
+      "sourceHash": "1f24caa812d52dd5c3796f597f627b80028a8a4c44cec756115045e723b661d5",
+      "t": "Moka's whiskers drooped, then rose again."
     },
     {
       "id": "ep-14a:20",
@@ -238,15 +238,15 @@
     },
     {
       "id": "ep-14a:39",
-      "source": "내 기운은 금이야. 나무를 벨 수 있는 힘이지.",
-      "sourceHash": "1e6fb0b9266510047c7c03bf1c91e697f75e1cd3482cf1baaa7ac89649fc4e59",
+      "source": "내 기운은 금이다. 나무를 벨 수 있는 힘이지.",
+      "sourceHash": "b2db8070694c64dbd4e4d0e42c9b659aed258eb471ca24d6286561af0c2f26a3",
       "t": "My energy is Metal. A power that can cut Wood."
     },
     {
       "id": "ep-14a:40",
-      "source": "기억해 둬라. 나는 너를 다치게 하는 기운이야. 가까이 붙을수록 더.",
-      "sourceHash": "10f86f8fee4041ebc23a67d8123d12f4c56b9fdc9f6cf38a5c1e51c1279df4dc",
-      "t": "Remember that. Mine is an energy that hurts you. The closer you get, the more it does."
+      "source": "기억해 둬라. 가까이 붙을수록 더 벤다.",
+      "sourceHash": "d82e227d6a847b19148f1eaa6a96e94400d977fc7247bdf3cd052876548bfd6e",
+      "t": "Remember that. The closer you get, the deeper it cuts."
     },
     {
       "id": "ep-14a:41",
@@ -358,9 +358,9 @@
     },
     {
       "id": "ep-14a:59",
-      "source": "말 안 하면 언젠가 터져요. 상처는 숨긴다고 작아지지 않거든요.",
-      "sourceHash": "b234d91f87a73a82ac46439076e8437542f73b00ec5a743e5ca54c3f6bf147cc",
-      "t": "If you don't say it, it'll all come out someday. Hiding a wound doesn't make it smaller."
+      "source": "말 안 하면 언젠가 터져요.",
+      "sourceHash": "2cdd016fbadaa533cc9843dd0fe0b98573b33874c96d4d6a5fb933a0cf5f5143",
+      "t": "If you don't say it, it'll all come out someday."
     },
     {
       "id": "ep-14a:60",
@@ -472,9 +472,9 @@
     },
     {
       "id": "ep-14a:78",
-      "source": "윤달이 장갑을 고쳐 끼었다. 손가락 끝이 아주 조금 떨렸다.",
-      "sourceHash": "59d31d88d85862197b0f402cc40a51de01508656b88459f906cc89e31733039d",
-      "t": "Yundal adjusted his glove. His fingertips trembled ever so slightly."
+      "source": "윤달이 장갑을 고쳐 끼었다. 손가락 끝이 떨렸다.",
+      "sourceHash": "47affd773c3f89e7334a7a21904ff3b4b00d7965f92ad4e9e759fed1a6184cca",
+      "t": "Yundal adjusted his glove. His fingertips trembled."
     },
     {
       "id": "ep-14a:79",

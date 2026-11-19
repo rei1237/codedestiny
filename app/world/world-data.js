@@ -11,7 +11,7 @@
 export const CHARACTER_GROUPS = [
   {
     id: "companions",
-    title: "여정의 동행",
+    title: "함께 걷는 사람들",
     intro: "사주의 강과 네 개의 섬을 연이와 함께 건너는 사람들입니다.",
     characters: [
       {

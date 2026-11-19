@@ -1,7 +1,7 @@
 {
   "id": "neo-operation-room",
   "featureKey": "neo-operation-room-consultation",
-  "title": "네오의 팩폭 작전실",
+  "title": "네오의 팩폭 전략실",
   "hook": "지금 막힌 지점부터 정리하자. 반복되는 선택을 짚고, 다음 행동을 세워보세요.",
   "badge": "현실 점검 질문 2회 포함",
   "chaptersLabel": "받게 될 작전 브리핑 목차",

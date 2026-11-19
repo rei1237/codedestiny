@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {JSDOM} from 'jsdom';
 import {renderLightSajuAndMasters} from '../../lib/marketing/yehwa-home.mjs';
+import {hc} from '../../lib/marketing/home-card-copy.mjs';
 import {SAJU_BUNDLE_DECISION_FACTS} from '../../lib/marketing/decision-facts.mjs';
 import {FREE_PROMO_FEATURED,freePromoItemHref} from '../../lib/marketing/free-promo.mjs';
 const read=p=>readFileSync(new URL('../../'+p,import.meta.url),'utf8');
@@ -16,8 +17,12 @@ test('supplement uses canonical price and existing free basic destinations witho
   const item=FREE_PROMO_FEATURED.find(x=>x.id===id);
   assert.equal(links[i].getAttribute('href'),freePromoItemHref(item));
   assert.equal(links[i].dataset.action,item.action);
-  assert.ok(links[i].textContent.includes(item.description));
+  assert.ok(links[i].textContent.includes(hc('homeCards.'+id+'.look'))&&links[i].textContent.includes(hc('homeCards.'+id+'.get')));
  }
+ assert.equal(d.querySelectorAll('.yh-light-saju__facts li').length,3);
+ assert.equal(d.querySelector('.yh-light-saju__price [data-cd-play-price]').textContent,SAJU_BUNDLE_DECISION_FACTS.priceLabel);
+ assert.equal(d.querySelector('[data-cd-light-saju-details] [data-cd-play-price]'),null,'price lives in its own area, not the button');
+ assert.ok(d.querySelector('.yh-basic-masters__note').textContent.includes('유료'));
  assert.equal(d.querySelector('[data-action="unlockPremiumFeature"]'),null);
  assert.equal(d.querySelector('[href*="checkout"]'),null);
 });

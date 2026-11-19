@@ -163,7 +163,7 @@ var REPORT_CARDS = [
   { id:'vilun',      label:_reportDashboardText("rd.label.009"),        desc:'내 인생을 흔드는 위험 유형을 분석합니다.',               note:'유난히 소모되는 관계의 패턴을 파악하고, 피해야 할 시그널을 정리해드립니다.', cta:_reportDashboardText("rd.cta.012"),          accent:'#f87171', thumb:'vilun-new.webp', glow:'rgba(248,113,113,.55)', target:'villainCard',         coinCost:50  },
   { id:'lotto',      thumb:'사주 로또.webp', label:_reportDashboardText("rd.label.010"),       desc:'번호와 번호별 해석, 금전 루틴을 담은 달빛 럭키 리추얼 리포트입니다. 무료로 읽을 수 있어요.', note:'오늘 운의 파동을 상징 번호와 작은 금전 루틴으로 살펴봅니다.', cta:_reportDashboardText("rd.cta.013"), accent:'#fde047', glow:'rgba(253,224,71,.55)', target:'lottoCard', coinCost:10 },
   { id:'4CUT',       thumb:'사주 네컷.webp', label:_reportDashboardText("rd.label.012"),   desc:'사주 데이터를 인생네컷 감성으로 재해석해 한 장에 담아보세요.', note:'네 컷에 담긴 내 기질과 오늘의 작은 실천을 살펴보세요.', cta:_reportDashboardText("rd.cta.015"),            accent:'#f97316', glow:'rgba(249,115,22,.45)',  target:'sajuFourCutCard', lockKey:'saju_fun_shared', coinCost:0   },
-  { id:'relationshipTemptation', thumb:'saju-relationship-temptation-768.webp', label:'그 사람의 바람끼는?', shortTitle:'그 사람의 바람끼는?', desc:'상대의 관계 성향을 살펴보고, 본인 정보를 더하면 두 사람의 연애 궁합까지 읽습니다.', note:'도화 하나로 단정하지 않고 계산된 사주 근거와 현실적인 관계 기준을 함께 읽어드려요.', cta:'관계 성향·궁합 확인하기', accent:'#b31955', glow:'rgba(179,25,85,.38)', target:'relationshipBoundaryTestEntry', coinCost:50, selfGated:true, badge:'NEW' },
+  { id:'relationshipTemptation', thumb:'saju-relationship-temptation-768.webp', label:'그 사람의 바람기는?', shortTitle:'그 사람의 바람기는?', desc:'상대의 관계 성향을 살펴보고, 본인 정보를 더하면 두 사람의 연애 궁합까지 읽습니다.', note:'도화 하나로 단정하지 않고 계산된 사주 근거와 현실적인 관계 기준을 함께 읽어드려요.', cta:'관계 성향·궁합 확인하기', accent:'#b31955', glow:'rgba(179,25,85,.38)', target:'relationshipBoundaryTestEntry', coinCost:50, selfGated:true, badge:'NEW' },
   { id:'dopamine',   thumb:'도파민 중독.webp', label:_reportDashboardText("rd.label.018"), shortTitle:'도파민·집중력과 공부법', desc:'자극에 끌리는 성향부터 집중 환경과 공부법까지, 오행과 사주 원국으로 읽어보세요.', note:'자극 지수와 등급, 자극 레이더 8축을 무료로 확인해요.', cta:_reportDashboardText("rd.cta.017"), accent:'#e879f9', glow:'rgba(232,121,249,.5)', target:'dopamineCard', lockKey:'saju_fun_shared', coinCost:0 },
   { id:'secretHouse', thumb:'시크릿 하우스.webp', label:_reportDashboardText("rd.label.013"), desc:'선택형 사주 연애 리얼리티로 엔딩 루트를 체험해보세요.', note:'일간과 선택이 만나는 다중 엔딩 이야기입니다. 엔딩 문구와 링크를 공유할 수 있어요.', cta:_reportDashboardText("rd.cta.016"), accent:'#f43f5e', glow:'rgba(244,63,94,.45)', target:'secretHouseEntryCard', action:'openSecretHouseRoute', coinCost:50 },
   { id: SAJU_ANIMAL_TEST_FEATURE.id, thumb: SAJU_ANIMAL_TEST_FEATURE.thumb, label: SAJU_ANIMAL_TEST_FEATURE.title, shortTitle: SAJU_ANIMAL_TEST_FEATURE.shortTitle, desc: SAJU_ANIMAL_TEST_FEATURE.description, note:'열두 운성의 기세를 동물 캐릭터로 매핑해 "왜 이 관계에서 힘든지"와 "지금 바로 써먹을 한 줄 행동"까지 재밌고 현실적으로 제시합니다.', cta: SAJU_ANIMAL_TEST_FEATURE.cta, accent:'#f59e0b', glow:'rgba(245,158,11,.45)', target: SAJU_ANIMAL_TEST_FEATURE.target, action: SAJU_ANIMAL_TEST_FEATURE.action, lockKey: SAJU_ANIMAL_TEST_FEATURE.lockKey, coinCost: SAJU_ANIMAL_TEST_FEATURE.coinCost, badge: SAJU_ANIMAL_TEST_FEATURE.badge, tags: SAJU_ANIMAL_TEST_FEATURE.tags, group: SAJU_ANIMAL_TEST_FEATURE.group },
@@ -1095,7 +1095,7 @@ function renderSajuFourCutContent() {
     + '    <div class="s4c-variant-row" aria-label=_reportDashboardText("rd.aria-label.001")>' + _s4cRenderVariantButtons(activeId) + '</div>'
     + '    <div class="s4c-capture' + (data.rare ? ' s4c-capture--rare' : '') + '" data-s4c-capture="1" data-s4c-variant="' + _s4cEscapeHtml(activeId) + '">'
     + '      <div class="s4c-capture-head"><div class="s4c-brand">CODE DESTINY · SAJU 4CUT</div><div class="s4c-live-badge">' + _s4cEscapeHtml(variant.label) + '</div></div>'
-    + (data.rare ? '<div class="s4c-rare-card">✨ 대운 프리패스 카드 등장! 오늘 폼 미쳤다 ✨</div>' : '')
+    + (data.rare ? '<div class="s4c-rare-card">대운 프리패스 카드가 나왔어요!</div>' : '')
     + '      <div class="s4c-stage">'
     + '        <aside class="s4c-photo-strip" aria-hidden="true"><div class="s4c-photo-cell">' + _s4cEscapeHtml(variant.icons[0]) + '</div><div class="s4c-photo-cell">' + _s4cEscapeHtml(variant.icons[1]) + '</div><div class="s4c-photo-cell">' + _s4cEscapeHtml(variant.icons[2]) + '</div><div class="s4c-photo-cell">' + _s4cEscapeHtml(variant.icons[3]) + '</div><span class="s4c-photo-ticket">' + _s4cEscapeHtml(data.theme.name) + ' FILTER</span></aside>'
     + '        <div class="s4c-grid">' + _s4cRenderFourPanels(panels, data) + '</div>'
@@ -1526,7 +1526,7 @@ function renderReportDashboard() {
     if (b.tags && b.tags.length) {
       gridHtml += '<p style="margin:2px 0 0;color:#f8d67f;font-size:.73rem;line-height:1.45;">' + b.tags.map(function(tag) { return '#' + tag; }).join(' · ') + '</p>';
     }
-    gridHtml += '<p class="rpt-v2-note">' + (b.note || '지금 내 흐름과 맞는 인사이트를 펼쳐 확인해보세요.') + '</p>';
+    gridHtml += '<p class="rpt-v2-note">' + (b.note || '지금 내 운에 맞는 풀이를 펼쳐 보세요.') + '</p>';
     var lockKey = b.lockKey || ('rpt_' + b.target);
     // selfGated 기능은 라우트 안의 실행 CTA가 직접 공용 게이트를 연다. 진입점에도 게이트를 걸면
     // 사용자가 아무것도 실행하기 전에 결제가 돌거나(회당) 라우트 게이트와 이중으로 걸린다.

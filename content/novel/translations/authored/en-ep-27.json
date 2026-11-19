@@ -226,9 +226,9 @@
     },
     {
       "id": "ep-27:10",
-      "source": "네오 씨까지 사람이 됐네요. 놀라는 건 나중에 하고 팔이랑 꼬리부터 보여 줘요.",
-      "sourceHash": "549f1fb3015aef71af32f5b6c6504dda3201bb1a9213c4ba270435e03c22fa17",
-      "t": "Even Neo is human now. I'll be surprised later. Show me your arms and tails first."
+      "source": "네오 씨까지 사람이 됐네요. 놀라는 건 나중에 하고 네오 씨는 팔, 모카는 꼬리부터 보여 줘요.",
+      "sourceHash": "1e22415a6b822fd2e0d9ecdb00965f1e770b3d9fd7703f506093a6a41eb3e21f",
+      "t": "So you've become a person too, Neo. Be surprised later. Neo, show me your arm; Moka, your tail."
     },
     {
       "id": "ep-27:neo-nickname",
@@ -334,15 +334,15 @@
     },
     {
       "id": "ep-27:23",
-      "source": "운은 가져가도 입맛은 못 가져가요. 그건 몸에 붙은 거라서.",
-      "sourceHash": "b7db984799c09a7073127acff054d924f48f82673f1047d83c6b6a53f55b6f7f",
-      "t": "It can take your fortune, but not your appetite. That belongs to your body."
+      "source": "운은 가져가도 입맛은 못 가져가요.",
+      "sourceHash": "8272975664a7018873fec34f47aee8b271814351b7bba25f7e83d12e3b8c75d5",
+      "t": "It can take your fortune, but not your appetite."
     },
     {
       "id": "ep-27:24",
-      "source": "루나 언니는 그렇게 말하고 화덕 쪽으로 돌아갔다. 그 등은 예전보다 조금 굽어 있었다. 팔아 버린 시간이 아직 다 돌아오지 않은 등이었다.",
-      "sourceHash": "61e1cf1568bdbe21241b5380bb6180995a317c219c9a57f761fd612b88b69233",
-      "t": "Then Luna's sister returned to the oven. Her back was a little more bent than before. Not all the time she'd sold had come back."
+      "source": "루나 언니는 그렇게 말하고 화덕 쪽으로 돌아갔다. 그 등은 예전보다 조금 굽어 있었다.",
+      "sourceHash": "48a90c68ed8d92387fd2b711c5af5c38b50a975265f31617b4ffece36cec0c79",
+      "t": "Then Luna's sister returned to the oven. Her back was a little more bent than before."
     },
     {
       "id": "ep-27:25",
@@ -382,9 +382,9 @@
     },
     {
       "id": "ep-27:31",
-      "source": "네오는 잠시 망설이다 소매를 걷었다. 녹빛은 어깨 아래에서 멈춰 있었다. 모습이 바뀌어도 상처까지 사라지지는 않았다.",
-      "sourceHash": "81482e6facc19cfa5aafb50d132ebbc1a5c4e074738da667b6af373df29d9baf",
-      "t": "Neo hesitated, then rolled up his sleeve. The rust stopped below his shoulder. A changed form hadn't erased the wounds."
+      "source": "네오는 잠시 망설이다 소매를 걷었다. 녹빛은 어깨 아래에서 멈춰 있었다.",
+      "sourceHash": "a6d7b909493130eb3565394169773f2b8a68a04c47089dc80a96cdbe2ebad1af",
+      "t": "Neo hesitated, then rolled up his sleeve. The rust stopped below his shoulder."
     },
     {
       "id": "ep-27:32",
@@ -430,9 +430,9 @@
     },
     {
       "id": "ep-27:39",
-      "source": "그러지. 너도 불은 끄지 마라, 물이 녹을 때까지 같이 버티자.",
-      "sourceHash": "f27bf86ace27d41317c794d65c0ae4510f4ed90bbe9a31e6f9c2b6cc4fc494fb",
-      "t": "Agreed. Don't put out your fire either. We'll hold on together until the water thaws."
+      "source": "그러지. 너도 불은 끄지 마라, 얼음이 녹을 때까지 같이 버티자.",
+      "sourceHash": "4a43de0b7eab506249d5a1812ed71d0f0caf0a98e4bc702d79793294be6b44a2",
+      "t": "Agreed. Don't put out your fire either. We'll hold on together until the ice melts."
     },
     {
       "id": "ep-27:40",
@@ -556,9 +556,9 @@
     },
     {
       "id": "ep-27:53",
-      "source": "루나 언니가 빵을 내밀었다. 호랑이는 빵을 보고, 그다음 루나 언니의 얼굴을 보았다. 무엇을 얼마에 사는지, 언제 갚아야 하는지 셈하는 눈이었다.",
-      "sourceHash": "69daf0d7eeb3b4871f8a67a17d0682da81c5bd0767f08be85d96dfcbce57bf26",
-      "t": "Luna's sister offered bread. The tiger looked at it, then at her face, eyes calculating what she was buying, at what price, and when it must be repaid."
+      "source": "루나 언니가 빵을 내밀었다. 호랑이는 빵을 보고, 그다음 루나 언니의 얼굴을 보았다. 값을 셈하는 눈이었다.",
+      "sourceHash": "ca6322deb8fb6c755d0c19e088a67af3768bc2ea54352f268c383dd629e3b8af",
+      "t": "Luna's sister offered bread. The tiger looked at it, then at her face, with eyes that counted the price."
     },
     {
       "id": "ep-27:54",
@@ -604,9 +604,9 @@
     },
     {
       "id": "ep-27:61",
-      "source": "호랑이는 오래 그 자리에 서 있었다. 앞발 안의 빵이 따뜻했고, 검은 고리는 조이는 것을 잊은 것처럼 가만히 있었다.",
-      "sourceHash": "ceb69e433e566ca968eef4e79d2a7dfaaf18f86cade5e82f07ca7dc8f7f5e52b",
-      "t": "The tiger stood there a long time. The bread was warm in her paw. The black ring stayed still, as though it had forgotten to tighten."
+      "source": "호랑이는 오래 그 자리에 서 있었다. 앞발 안의 빵이 따뜻했고, 검은 고리는 조이지 않고 가만히 있었다.",
+      "sourceHash": "e5f3b3216fa87e746d3f89ac1d4887f130c403a9c45e9af0ba1c18e894df2e76",
+      "t": "The tiger stood there a long time. The bread was warm in her paw. The black ring stayed still and did not tighten."
     },
     {
       "id": "ep-27:62",
@@ -724,9 +724,9 @@
     },
     {
       "id": "ep-27:80",
-      "source": "[ 年 □□ · 月 □□ · 日 □□ · 時 ■■ · 7/8 · 통과 불가 ]",
-      "sourceHash": "2c547ddcbeaaec7dd2da35e20440fff484cdd4d079fed49c31b042b407156640",
-      "t": "[ Year □□ · Month □□ · Day □□ · Hour ■■ · 7/8 · Entry denied ]"
+      "source": "[ 年 □□ · 月 □□ · 日 □□ · 時 ■□ · 7/8 · 통과 불가 ]",
+      "sourceHash": "43b34068ce173d30ce4043961a55aee0d1c226f2e96e420842a311f643e64779",
+      "t": "[ Year □□ · Month □□ · Day □□ · Hour ■□ · 7/8 · Entry denied ]"
     },
     {
       "id": "ep-27:81",
@@ -814,9 +814,9 @@
     },
     {
       "id": "ep-27:94",
-      "source": "모카는 그렇게 말하면서 불씨 단지를 옆구리에 낀 채 연이의 손등에 이마를 한 번 박았다. 숨을 나눠 주던 그날처럼.",
-      "sourceHash": "3d27250cdbfe7cc2444ab40a162c1550f896f0c9eca0a6b825034684cfd0a8c0",
-      "t": "Saying that, Moka tucked the ember jar under one arm and bumped a forehead against Yeoni's hand, as on the day they'd shared breath."
+      "source": "모카는 그렇게 말하면서 불씨 단지를 옆구리에 낀 채 연이의 손등에 이마를 한 번 박았다.",
+      "sourceHash": "ec7540b3bf429347279345a58ae5ab36e1ac04fc85f8c178a7e88db0f879ee6b",
+      "t": "Saying that, Moka tucked the ember jar under one arm and bumped a forehead against Yeoni's hand."
     },
     {
       "id": "ep-27:95",
@@ -862,8 +862,8 @@
     },
     {
       "id": "ep-27:choice-1",
-      "source": "문의 금빛이 대답을 기다리듯 낮아졌다. 가겠다고 하면 이 사람들과 헤어져야 했고, 남겠다고 하면 방에 두고 온 하루가 그대로 멈춰 있을 것이었다.",
-      "sourceHash": "fe566ad5f913ded29c4d13aa29b33e70e7586636fa9d21e83bee83d2c1392da7",
+      "source": "문의 금빛이 대답을 기다리듯 낮아졌다. 가겠다고 하면 이 사람들과 헤어져야 했고, 남겠다고 하면 방에 두고 온 하루가 그대로 멈춰 있을 터였다.",
+      "sourceHash": "09d021aa64fae993c89a1231750bc8fc9b44459bd4d80ae416304542861377c2",
       "t": "The door's golden light lowered, awaiting her answer. Going meant leaving these people. Staying meant the day left in her room would remain suspended."
     },
     {
@@ -886,9 +886,9 @@
     },
     {
       "id": "ep-27:102",
-      "source": "이튿날 아침 연이와 네오가 창고 문 앞에 섰다. 루나가 빵 봉지를 연이 품에 안겨 주었고, 루나 언니는 화덕 앞에서 손만 흔들었다.",
-      "sourceHash": "bf3290e1237eb0044a350f72711ec60caca1f0f2e60ee18d9937da929a686a62",
-      "t": "Next morning, Yeoni and Neo stood before the door. Luna pressed a bread bag into her arms; her sister only waved from the oven."
+      "source": "이튿날 아침 연이와 네오가 창고 문 앞에 섰다. 루나가 빵 봉지를 연이 품에 안겨 주었고, 모카는 불씨 단지를 끌어안은 채 턱만 한 번 들어 보였다. 루나 언니는 화덕 앞에서 손만 흔들었다.",
+      "sourceHash": "4827caef1279880a01d14cf79886bc79269fcb12fbb5c837ff77411258cbc0f0",
+      "t": "Next morning, Yeoni and Neo stood before the door. Luna pressed a bread bag into her arms. Moka, hugging the ember jar, just lifted his chin once. Her sister only waved from the oven."
     },
     {
       "id": "ep-27:103",

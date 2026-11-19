@@ -232,9 +232,9 @@
     },
     {
       "id": "ep-15:38",
-      "source": "한 걸음을 떼자 발이 무거워졌다. 두 걸음째에는 귀에서 제 심장 소리가 천둥처럼 울렸다.",
-      "sourceHash": "15f33e37a11acf55c834768fe3430c6ea21c51692155b56f7a70bfaa1e1bc99e",
-      "t": "After one step, Yeoni's feet grew heavy. At the second, their own heartbeat thundered in their ears."
+      "source": "한 걸음을 떼자 발이 무거워졌다. 두 걸음째에는 앞발이 바닥에서 떨어지지 않았다.",
+      "sourceHash": "c2aa6b507788bf08e7cc02d4237a813b75300b06b4518bc995c1899c17676ced",
+      "t": "After one step, Yeoni's feet grew heavy. At the second, their front hooves would not leave the floor."
     },
     {
       "id": "ep-15:39",
@@ -268,8 +268,8 @@
     },
     {
       "id": "ep-15:44",
-      "source": "길은 열었어. 저 문은 네가 열어야 해.",
-      "sourceHash": "a0b287ff2fb8cb1075f47635ae5b7b19b4ed0464453dbe7ad6a45ecce246ca04",
+      "source": "길은 열었다. 저 문은 네가 열어라.",
+      "sourceHash": "b762df96976445d327a3e5a8996377bbfdfbbb90a600062a58ca9efba835cee0",
       "t": "The way's clear. You need to open that door."
     },
     {
@@ -310,9 +310,9 @@
     },
     {
       "id": "ep-15:51",
-      "source": "셋째 층에서 루나와 헤어졌다. 루나는 문 앞에 쪼그려 앉아 손가락 다섯 개를 펴 보였다. 다섯 시간 안에 와.",
-      "sourceHash": "68ed9defa4dd2d27871ffd1c567397f231c3d6c79f15798d7e72f1841f26c31b",
-      "t": "They parted with Luna on the third level. She crouched by the door and spread five fingers. Come back within five hours."
+      "source": "셋째 층에서 루나와 헤어졌다. 루나는 문 앞에 쪼그려 앉아 손가락 네 개를 펴 보였다. 네 시간 안에 와.",
+      "sourceHash": "2916d10b933429ee321f63e252ccc39a8e2320264af11764204d82eb67c11ab3",
+      "t": "They parted with Luna on the third level. She crouched by the door and held up four fingers. Come back within four hours."
     },
     {
       "id": "ep-15:52",
@@ -388,9 +388,9 @@
     },
     {
       "id": "ep-15:64",
-      "source": "너무 오래 듣진 마. 남의 하루를 따라가다 네 발이 묶일 수 있어.",
-      "sourceHash": "d7cf46ab3ccb5e487ae955e2551253d0e7408c1b42567e6df8962dda0dba3d58",
-      "t": "Don't listen too long. Follow someone else's day, and you could find yourself stuck in it."
+      "source": "너무 오래 듣지 마라. 남의 하루를 따라가다 네 발이 묶인다.",
+      "sourceHash": "fb40cbe16b5136a7e2376792e6f2f87bbaf4fc4af55c7c81b34d483d6a30b000",
+      "t": "Don't listen too long. Follow someone else's day, and your own feet get caught."
     },
     {
       "id": "ep-15:65",
@@ -538,9 +538,9 @@
     },
     {
       "id": "ep-15:89",
-      "source": "(저 알… 왜 이렇게 낯익지. 내 안에서 뭔가가 부르는 것 같아.)",
-      "sourceHash": "352cc1278e39a0cb99b48b8459c821dd594d1633eafc44e32ac082906a3cabd6",
-      "t": "(That egg... why does it seem so familiar? It's like something inside me is calling.)"
+      "source": "(저 알… 왜 이렇게 낯익지.)",
+      "sourceHash": "d8e2bfb0976a761b645975178639a70be61eb2a50fd95e5316ad12d1f466f7c7",
+      "t": "(That egg... why does it seem so familiar?)"
     },
     {
       "id": "ep-15:90",
@@ -562,9 +562,9 @@
     },
     {
       "id": "ep-15:93",
-      "source": "알은 연이를 알아보기라도 한 듯 아주 작게 흔들렸다. 금빛 껍질 아래로 무언가 꿈틀거렸다.",
-      "sourceHash": "2e07ceac777d48199107226902272482f811aacf771e0e62a0b3744d74b475e1",
-      "t": "As though it recognized Yeoni, the egg trembled very slightly. Something stirred beneath its golden shell."
+      "source": "알이 흔들렸다. 금빛 껍질 아래로 무언가 꿈틀거렸다.",
+      "sourceHash": "ae1dfa166ec44add5e856aab84eb27a86f99223c2df6a392b532a218a6dc18cc",
+      "t": "The egg trembled. Something stirred beneath its golden shell."
     },
     {
       "id": "ep-15:94",

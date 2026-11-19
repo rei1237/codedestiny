@@ -94,9 +94,9 @@
     },
     {
       "id": "ep-38a:15",
-      "source": "연이가 새끼손가락을 내밀었다. 서한비가 그 손가락을 걸었다. 손가락이 차가웠다. 둘 다 웃었다.",
-      "sourceHash": "e508a2a557f117cf70519cb05bece352ff3e365fdfa49463dea43df3a67eb034",
-      "t": "Yeoni held out a little finger. Seo Hanbi hooked hers around it. Their fingers were cold. Both laughed."
+      "source": "연이가 새끼손가락을 내밀었다. 서한비가 그 손가락을 걸었다. 차가운 손가락을 건 채 둘 다 웃었다.",
+      "sourceHash": "79fc6c279bd9bb03c71a52ea1940ea16828d07b3d339803cdf48e25eca4e3c05",
+      "t": "Yeoni held out a little finger. Seo Hanbi hooked hers around it. Their cold fingers still linked, both laughed."
     },
     {
       "id": "ep-38a:16",
@@ -292,9 +292,9 @@
     },
     {
       "id": "ep-38a:failed-future",
-      "source": "서한비는 우산 옆에 오래 서 있었다. 남자가 사라진 쪽에서 빗소리만 계속 들려왔다.",
-      "sourceHash": "f6264411ea22fb8abdad4a8fb86dbf0ef71a6415155a11ad1b4d402074d416e7",
-      "t": "Hanbi stood beside the umbrella a long time. Only rain kept sounding from the direction where the man had vanished."
+      "source": "남자가 사라진 쪽에서 빗소리만 계속 들려왔다.",
+      "sourceHash": "1d6e748c61642df88499f3f27b490bb3577598e943938b5ec3c268ac31d40ada",
+      "t": "Only rain kept sounding from the direction where the man had vanished."
     },
     {
       "id": "ep-38a:regression-price",
@@ -310,9 +310,9 @@
     },
     {
       "id": "ep-38a:hanbi-companion",
-      "source": "실이 다시 빛을 모았다. 정류장의 빗소리가 멀어졌다.",
-      "sourceHash": "ce586b8486429a2fc20edb0f4eca8cd611b9c07a7488a1e9a8c9299eba05845a",
-      "t": "The thread gathered light again. The bus stop's rain receded."
+      "source": "실이 다시 빛을 모았다.",
+      "sourceHash": "8873b94f72cbc6df1540e0501ca6f20864567864c44755c15033c47dfca38444",
+      "t": "The thread gathered light again."
     },
     {
       "id": "ep-38a:48",
@@ -382,9 +382,9 @@
     },
     {
       "id": "ep-38a:59",
-      "source": "그 말이 가장 아팠다. 서한비는 오래 웃었다. 울음처럼 들리는 웃음이었다.",
-      "sourceHash": "165eeafd529834c1ace92b6a909885badb8c3288481a0420b3ff0112902a1099",
-      "t": "Those words hurt most. Seo Hanbi laughed for a long time. It sounded like crying."
+      "source": "서한비는 오래 웃었다. 끝이 젖어 있었다.",
+      "sourceHash": "c14fb84fd23fbce70dbda3b0ffa9eb47e1bce7f316eb1553ff1c1f096cb2de37",
+      "t": "Seo Hanbi laughed for a long time. The end of it was wet."
     },
     {
       "id": "ep-38a:60",
@@ -466,9 +466,9 @@
     },
     {
       "id": "ep-38a:73",
-      "source": "반쪽아, 가 아니었다. 그래도 호랑이는 웃었다. 이번 봄의 그 애가, 자기 이름을 제대로 부르고 있었다.",
-      "sourceHash": "33cf86894c0d63d41732abeea01492261bb3720eb47c1e76bc9cd27ce9f48911",
-      "t": "It wasn't Halfie. Still, the tiger smiled. The Yeoni of this spring was calling her properly by name."
+      "source": "반쪽아, 가 아니었다. 그래도 호랑이는 웃었다. 이번 봄의 그 애가, 자기 이름을 다정하게 부르고 있었다.",
+      "sourceHash": "6cc38a2ce856c27af8173f137d8d4864976cc83c0c32dcda02928c60ee2f8c5b",
+      "t": "It wasn't Halfie. Still, the tiger smiled. The Yeoni of this spring was calling her name, and calling it warmly."
     },
     {
       "id": "ep-38a:74",

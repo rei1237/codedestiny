@@ -22,9 +22,9 @@
     },
     {
       "id": "ep-40:3",
-      "source": "아니요, 숙녀분이 하는 거예요. 손바닥 보세요.",
-      "sourceHash": "3b1bd58f958c7fe851a61548f284dc0fc51c6c01d5aab1cf9a8f8606a87a9eb2",
-      "t": "It is you, my lady. Look at your palm."
+      "source": "아니요, 서한비 씨가 하는 거예요. 손바닥 보세요.",
+      "sourceHash": "a8dfa9d53c979fc876edf6045f3f7005c1a651c819b9a0813a640cfcf22470ef",
+      "t": "No, Ms. Seo Hanbi, you're the one doing it. Look at your palm."
     },
     {
       "id": "ep-40:4",
@@ -214,9 +214,9 @@
     },
     {
       "id": "ep-40:35",
-      "source": "이제 물이 흘러요. 庚이 壬을 낳고, 壬이 乙을 키워요. 관인상생. 금이 나무를 베는 게 아니라 물을 거쳐서 나무를 먹이는 거죠.",
-      "sourceHash": "907695c2e12d306d9584403deb003c88e0b2e34a78b198eb472a79009874616d",
-      "t": "The water flows now. Gyeong gives birth to Im, and Im nourishes Eul. Officer and Resource in Mutual Generation. Instead of cutting Wood, Metal nourishes it through Water."
+      "source": "이제 물이 흘러요. 庚이 壬을 낳고, 壬이 乙을 키워요. 관인상생.",
+      "sourceHash": "849dd76a0e770364502ccd97eff8ef06aae167770579dec044ded29e44ec491c",
+      "t": "The water flows now. Gyeong gives birth to Im, and Im nourishes Eul. Officer and Resource in Mutual Generation."
     },
     {
       "id": "ep-40:36",
@@ -274,9 +274,9 @@
     },
     {
       "id": "ep-40:45",
-      "source": "비가 잦아들었다. 그때 서한비가 무릎을 꿇었다. 얼굴이 종이처럼 하얬다. 손바닥에서 솟던 물이 멈춰 있었다.",
-      "sourceHash": "b98d0ff2b166f71df73ce0cad1c776b3c8fb905c77ec037aed7575a813781e45",
-      "t": "The rain eased. Then Seo Hanbi dropped to her knees. Her face was white as paper. The water rising from her palm had stopped."
+      "source": "비가 잦아들었다. 그때 서한비가 무릎을 꿇었다. 얼굴에서 핏기가 빠져 있었다. 손바닥에서 솟던 물이 멈춰 있었다.",
+      "sourceHash": "7e4b3c50293986709dcc82cc13987eac4ce824b107c7ad0dea8d089085a003f8",
+      "t": "The rain eased. Then Seo Hanbi dropped to her knees. The color had drained from her face. The water rising from her palm had stopped."
     },
     {
       "id": "ep-40:46",
@@ -496,9 +496,9 @@
     },
     {
       "id": "ep-40:82",
-      "source": "웃음이 터졌다. 비 그친 우물가에 처음 듣는 소리처럼 울렸다. 서한비는 웃지 않았다. 대신 입술을 꾹 물었다. 우는 걸 참는 얼굴이었다.",
-      "sourceHash": "01d7b1fef70173ed4f92901e671bca8bea69096417560b7693943ee357651c3b",
-      "t": "Laughter burst out. It rang around the well after the rain like a sound heard for the first time. Seo Hanbi didn't laugh. She pressed her lips together, holding back tears."
+      "source": "웃음이 터졌다. 비 그친 우물가에 처음 듣는 소리처럼 울렸다. 서한비는 웃지 않았다. 대신 입술을 꾹 물었다.",
+      "sourceHash": "c2349a7683d0cd32d17ad954fdd568ffd4723d6a4a08c07e9e5362b338c59c1b",
+      "t": "Laughter burst out. It rang around the well after the rain like a sound heard for the first time. Seo Hanbi didn't laugh. Instead, she pressed her lips together hard."
     },
     {
       "id": "ep-40:83",
@@ -520,9 +520,9 @@
     },
     {
       "id": "ep-40:86",
-      "source": "저만 봤어요. 숙녀분은 카드 줍느라 바빴고요.",
-      "sourceHash": "6d8f102030842e36d3794b6393cbeb73a50b7888fde932ce6c2aba8019c26665",
-      "t": "Only me. My lady was busy picking up cards."
+      "source": "저만 봤어요. 숙녀분은 쪽지 읽느라 바빴고요.",
+      "sourceHash": "49fe75f4ac5ed727b508dd1a314f6dd1017ca8fee791b444f93b252f0dffc2a8",
+      "t": "Only me. My lady was busy reading the note."
     },
     {
       "id": "ep-40:87",
@@ -580,9 +580,9 @@
     },
     {
       "id": "ep-40:96",
-      "source": "연이는 손목을 보았다. 네오에게 이어진 붉은 실. 두 가닥이던 것이 언제부터인가 한 가닥이었다. 그 한 가닥마저 실밥이 일어나 있었다.",
-      "sourceHash": "2718a6e786efe373cdbe30db7c6651c23873800f5f83398e19882d43027f1d80",
-      "t": "Yeoni looked at their wrist. The red thread leading to Neo. At some point, two strands had become one. Even that last strand was fraying."
+      "source": "연이는 손목을 보았다. 네오에게 이어진 붉은 실. 남은 한 가닥마저 실밥이 일어나 있었다.",
+      "sourceHash": "3abae2405d6189d43c66abfecc04dc8e33771e64472c4379e9783e63fe235ba3",
+      "t": "Yeoni looked at their wrist. The red thread leading to Neo. Even the one strand left was fraying."
     },
     {
       "id": "ep-40:97",

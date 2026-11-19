@@ -28,10 +28,10 @@ export const readingPolicies = {
 export const depthDescriptions: Record<PackageId, string> = {
   mackerel: '핵심 특징과 이유, 생활 사례와 첫 행동',
   salmon: '반복되는 원인과 상황별 차이까지',
-  flounder: '여러 근거와 선택지를 비교하는 심층 해석',
-  tuna: '전문 주제와 상충 신호, 조건별 실행 전략',
+  flounder: '여러 근거로 선택지를 비교해 줘요',
+  tuna: '상충 신호까지 따져 조건별 전략을 줘요',
   assorted: '두 체계의 근거와 차이를 살피는 전문 상담',
-  omakase: '여섯 체계로 읽는 분야별 심층 상담과 실행 계획',
+  omakase: '여섯 체계로 분야별 해석과 실행 계획을 줘요',
 };
 export function readingChapterCount(domain: DomainId, tier: PackageId, version = READING_V5_VERSION): number {
   if (version === FUSION_READING_VERSION && ['assorted','omakase'].includes(tier)) return tier === 'assorted' ? 9 : 12;

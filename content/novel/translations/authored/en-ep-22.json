@@ -166,9 +166,9 @@
     },
     {
       "id": "ep-22:27",
-      "source": "庚 자는 빛나다가 깜빡였다. 영냥이가 숨을 들이쉴 때 밝아지고, 내쉴 때 흐려졌다. 꼭 영냥이와 같이 숨을 쉬는 것처럼.",
-      "sourceHash": "b8d5eaef32334eedf1ec91dd15df344aec6e99dcfa17edecda37dc40a342c285",
-      "t": "The character 庚 shone, then flickered. It brightened when Yeongnyangi breathed in and dimmed when he breathed out. As though breathing with him."
+      "source": "庚 자는 빛나다가 깜빡였다. 영냥이가 숨을 들이쉴 때 밝아지고, 내쉴 때 흐려졌다.",
+      "sourceHash": "49bebbeee0bdb75cf85af41a2f7a7028de12bb871dc2989b40020bb31f620848",
+      "t": "The character 庚 shone, then flickered. It brightened when Yeongnyangi breathed in and dimmed when he breathed out."
     },
     {
       "id": "ep-22:28",
@@ -250,9 +250,9 @@
     },
     {
       "id": "ep-22:41",
-      "source": "윤달은 글자판과 영냥이를 번갈아 보았다. 그리고 장갑 낀 손으로 입을 가렸다. 웃음을 참는 손이었다.",
-      "sourceHash": "8914efc030170c08f9e883d6a8d343463ddf2bef3f7864ef799cddf220e956ab",
-      "t": "Yundal looked between the chart and Yeongnyangi. Then he covered his mouth with his gloved hand, holding back a smile."
+      "source": "윤달은 글자판과 영냥이를 번갈아 보았다. 그리고 장갑 낀 손으로 입을 가렸다.",
+      "sourceHash": "a12bc8ca27c80d599363a96fce81762801e2b45ab5d85863569c641a9ee01402",
+      "t": "Yundal looked between the chart and Yeongnyangi. Then he covered his mouth with his gloved hand."
     },
     {
       "id": "ep-22:42",
@@ -292,9 +292,9 @@
     },
     {
       "id": "ep-22:48",
-      "source": "정확히는 세 명과 한 마리였다. 아기 용은 연이의 손목에서 내려와 책상 한가운데에 판사처럼 똬리를 틀었다.",
-      "sourceHash": "ec3365f16da10bf54712ce774a8fce167e9e86cdf9a86a01ac9c27bd5fa59f32",
-      "t": "To be precise, three people and one animal. The baby dragon left Yeoni's wrist and coiled at the center of the desk like a judge."
+      "source": "정확히는 네 명과 용 한 마리였다. 아기 용은 연이의 손목에서 내려와 책상 한가운데에 판사처럼 똬리를 틀었다.",
+      "sourceHash": "a732eb44cde866a99d44320f1015924d3599892358e25e2ded614be222327313",
+      "t": "To be precise, four people and one dragon. The baby dragon left Yeoni's wrist and coiled at the center of the desk like a judge."
     },
     {
       "id": "ep-22:49",
@@ -598,9 +598,9 @@
     },
     {
       "id": "ep-22:99",
-      "source": "乙목은 혼자서는 휘어져요. 庚금이 옆에 있으면 똑바로 서요. 그게 정관이에요. 나를 세워 주는 기운.",
-      "sourceHash": "ddf2eb88b5a88ddc6949300987b51bdcb82e6f035ea4160c1e395ee75c26d162",
-      "t": "Eul Wood bends alone. With Gyeong Metal beside it, it stands straight. That's Direct Officer. The energy that helps you stand."
+      "source": "乙목은 혼자서는 휘어져요. 庚금이 옆에 있으면 똑바로 서요. 그게 정관이에요.",
+      "sourceHash": "4922b055d512b61455f99c3fe845b510ef34ea48da783a1f085aefe670750702",
+      "t": "Eul Wood bends alone. With Gyeong Metal beside it, it stands straight. That's Direct Officer."
     },
     {
       "id": "ep-22:100",
@@ -622,8 +622,8 @@
     },
     {
       "id": "ep-22:103",
-      "source": "연이가 한 걸음 떨어지자 덩굴이 다시 힘없이 휘어졌다. 영냥이의 어깨에서 힘이 빠졌다. 숨을 참고 있었던 것이다.",
-      "sourceHash": "c23a8698c9e17177d2f6051e25b7fd3aa1a52cd9fb4bfec282f52187cd285f8c",
+      "source": "연이가 한 걸음 떨어지자 덩굴이 다시 힘없이 휘어졌다. 영냥이의 어깨에서 힘이 빠졌다. 숨을 참고 있었다.",
+      "sourceHash": "9140bb99cadfc5286b15715ccb43c37f1e97c897ab120287d3251340fa7924de",
       "t": "When Yeoni stepped away, the vine sagged again. Tension left Yeongnyangi's shoulders. He had been holding his breath."
     },
     {
@@ -634,9 +634,9 @@
     },
     {
       "id": "ep-22:105",
-      "source": "영냥이는 대답하지 않았다. 대답하지 않는 것이 대답이었다.",
-      "sourceHash": "6f103e6202ca74a089f0eddd35737432f004ce69d1390002368734cccb3ac761",
-      "t": "Yeongnyangi did not answer. His silence was the answer."
+      "source": "영냥이는 대답하지 않았다.",
+      "sourceHash": "927dd778ba8bf8892a64a0c6b331f815d618cf7a2c66fafe68ffdf4bf6fa0c7d",
+      "t": "Yeongnyangi did not answer."
     },
     {
       "id": "ep-22:106",

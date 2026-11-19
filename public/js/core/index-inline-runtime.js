@@ -28,7 +28,7 @@ const INDEX_RUNTIME_TEXT_TRANSLATIONS = {
     "indexRuntime.confirm.004": "저장된 운명의 꽃 기록을 모두 삭제할까요?",
     "indexRuntime.title.001": "애니멀 토템 리딩 결과",
     "indexRuntime.confirm.005": "🔒 로그인이 필요한 서비스입니다.\\\\n로그인 후 이용해 주세요.",
-    "indexRuntime.confirm.006": "🔒 로그인이 필요한 서비스입니다.\\\\n로그인 후 이용해 주세요.",
+    "indexRuntime.confirm.006": "로그인이 필요해요.\\\\n로그인 후 이용해 주세요.",
     "indexRuntime.confirm.007": "🔒 로그인이 필요한 서비스입니다.\\\\n로그인 후 이용해 주세요.",
   },
 };

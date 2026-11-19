@@ -246,7 +246,7 @@ export const SITE_FOOTER_HUB_COPY: Record<Locale, SiteFooterHubCopy> = {
       "/flower/astrology/": "점성술 운명의 꽃",
       "/flower/jamidusu/": "자미두수 운명의 꽃",
       "/flower/sukuyo/": "숙요 운명의 꽃",
-      "/insights/": "운명 인사이트 허브",
+      "/insights/": "운세 읽을거리 모음",
       "/guides/complete-guide-to-saju/": "사주 완전 가이드",
       "/guides/how-tarot-actually-works/": "타로 리딩 구조 이해",
       "/guides/understanding-your-destiny/": "운명 해석 프레임",

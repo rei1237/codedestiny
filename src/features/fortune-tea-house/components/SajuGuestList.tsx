@@ -10,7 +10,7 @@ const SKIP = ["id", "colorTone"];
 const KO = {
   title: "이번 상담의 십성 손님", more: "자리와 근거 펼치기",
   scopes: { natal: "단골 손님", daewoon: "한동안 머무는 손님", sewoon: "해마다 찾아오는 손님" },
-  grades: { yong: "귀한 손님", hee: "반가운 손님", gi: "주의가 필요한 손님", gu: "함께 살필 손님", han: "지나가는 손님", unavailable: "등급 정보 없음" },
+  grades: { yong: "귀한 손님", hee: "반가운 손님", gi: "주의가 필요한 손님", gu: "조심할 손님", han: "지나가는 손님", unavailable: "등급 정보 없음" },
   positions: { year: "연주", month: "월주", day: "일주", hour: "시주" },
   stem: "천간", hidden: "지장간", current: "현재 대운",
   nature: { auspicious: "전통 성정: 길신", challenging: "전통 성정: 흉신", neutral: "전통 성정: 중립" },

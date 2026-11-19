@@ -2,7 +2,7 @@
   "id": "tea-tarot-three",
   "featureKey": "fortune-tea-house-tarot-consultation",
   "title": "운명의 찻집 · 타로 3장",
-  "hook": "마음에 남은 이야기를 들려주세요. 카드가 비추는 감정과 지금의 선택을 함께 살펴봐요.",
+  "hook": "카드 세 장으로 고민의 답과 근거를 읽는 타로",
   "badge": "추가 질문 1회 포함",
   "chapters": [
     {
@@ -51,7 +51,7 @@
       "src": "/images/service-introductions/tea-tarot.webp",
       "width": 1536,
       "height": 1024,
-      "alt": "연이의 연이 타로 상담 상담 장면",
+      "alt": "연이의 타로 상담 장면",
       "variants": [
         {
           "src": "/images/service-introductions/tea-tarot-320.webp",
@@ -134,11 +134,11 @@
     {
       "key": "yeoni",
       "name": "연이",
-      "epithet": "운명 찻집 마스터 · 따뜻한 공감으로 여는 상담",
+      "epithet": "운명 찻집 마스터 · 근거부터 짚는 따뜻한 상담",
       "signature": "마음을 먼저 듣고, 흐름의 근거와 작은 실천을 함께 전하는 운명 찻집 마스터예요. 쉽게 꺼내지 못했던 이야기도 천천히 들려주세요.",
-      "role": "운명 찻집 마스터 · 따뜻한 공감으로 여는 상담",
-      "part": "사주는 삶의 흐름을, 타로는 지금의 선택을, 숙요점은 관계의 거리감을 살펴봐요. 따뜻한 차 한 잔처럼 마음을 보듬으며, 오늘 할 수 있는 작은 행동을 함께 찾아요.",
-      "basis": "사주는 삶의 흐름을, 타로는 지금의 선택을, 숙요점은 관계의 거리감을 살펴봐요. 따뜻한 차 한 잔처럼 마음을 보듬으며, 오늘 할 수 있는 작은 행동을 함께 찾아요.",
+      "role": "운명 찻집 마스터 · 근거부터 짚는 따뜻한 상담",
+      "part": "사주는 삶의 흐름을, 타로는 지금의 선택을, 숙요점은 관계의 거리감을 살펴봐요. 근거를 먼저 짚고 마음을 살피며, 오늘 할 수 있는 작은 행동을 함께 찾아요.",
+      "basis": "사주는 삶의 흐름을, 타로는 지금의 선택을, 숙요점은 관계의 거리감을 살펴봐요. 근거를 먼저 짚고 마음을 살피며, 오늘 할 수 있는 작은 행동을 함께 찾아요.",
       "avatar": "/images/master-profiles/avatars/yeoni.webp",
       "portrait": "/images/master-profiles/yeoni-teahouse-portrait.webp"
     }

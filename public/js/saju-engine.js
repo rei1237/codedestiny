@@ -9064,7 +9064,7 @@ function _bindSajuQuestionPromptCard(rootEl) {
         '<span class="prem-title" style="color:#BE123C;">🧬 전생의 나 — 고대 판타지 캐릭터</span>'+
         '<p style="font-size:0.8rem;color:#555;margin-bottom:10px;">내 사주 기운을 전생 캐릭터 초상화로 상상하는 프롬프트입니다.</p>'+
         '<div style="background:rgba(255,255,255,.84);padding:12px;border-radius:10px;font-size:0.85rem;border:1px dashed #F43F5E;word-break:break-all;color:#555;">'+pastLifePrompt+'</div>'+
-        '<button class="btn-sub" style="margin-top:10px;padding:10px;font-size:0.8rem;background:#F43F5E;color:white;border:none;border-radius:8px;" onclick="navigator.clipboard.writeText(\''+safePastLifePrompt+'\').then(function(){alert(\'✨ 전생 캐릭터 프롬프트가 복사되었습니다!\');})">📋 전생 캐릭터 프롬프트 복사</button>'+
+        '<button class="btn-sub" style="margin-top:10px;padding:10px;font-size:0.8rem;background:#F43F5E;color:white;border:none;border-radius:8px;" onclick="navigator.clipboard.writeText(\''+safePastLifePrompt+'\').then(function(){alert(\'전생 캐릭터 프롬프트를 복사했어요.\');})">📋 전생 캐릭터 프롬프트 복사</button>'+
       '</div>'+
       '<div class="prem-box" style="background:linear-gradient(135deg,#EEF2FF,#E0E7FF);margin-top:12px;border:1.5px solid #6366F1;">'+
         '<span class="prem-title" style="color:#4338CA;">⚔️ 운명 RPG 직업 — 게임 캐릭터 시트</span>'+
@@ -18923,7 +18923,7 @@ function renderZiwei(p, natal, targetId) {
     <div class="zw-detail-panel" id="zwDetailPanel">
        <div class="zw-empty-state">
         <div class="zw-empty-icon">🌌</div>
-        궁(宮)을 클릭하시면<br>각 궁에 대한 해석이 나옵니다.
+        궁(宮)을 클릭하시면<br>궁마다 풀이가 열려요.
       </div>
     </div>
     <div id="zwDestinyPortfolioMount" class="zw-portfolio-mount"></div>
@@ -19364,7 +19364,7 @@ function renderZiwei(p, natal, targetId) {
       panel.innerHTML =
         '<div class="zw-empty-state">'
         + '<div class="zw-empty-icon">🌌</div>'
-        + '궁(宮)을 클릭하시면<br>각 궁에 대한 해석이 나옵니다.'
+        + '궁(宮)을 클릭하시면<br>궁마다 풀이가 열려요.'
         + '</div>';
     };
 
