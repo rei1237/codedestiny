@@ -20356,6 +20356,18 @@ html:not(.neo-mode) #resultPage .pf-showcase__yeoni{display:block;width:96px;hei
       _cdAlertBirthScopeProfileRequired(_cdResolvePaidGateFeatureKey(opts, String(opts.title || opts.reason || '')));
       return 'cancel';
     }
+    // iOS(R2, 2026-11-18 승인): 결제창(서버 원화 coin×100·Google Play 배지)을 그리지 않는다. 앱 무료면 'direct',
+    // 아니면 중립 문구 뒤 'cancel' — scripts/app-payment-guard.js resolveIosPaymentChoice 가 정한다(React 와 같은 순서).
+    // 이용권 스냅샷 판정은 호출부가 이 앞에서 끝낸다. 대가: 결제창 [이용권] 카드·월정석 선택은 Phase 6 까지 빠진다.
+    var iosAppCtx = window.__cdAppContext;
+    var iosApp = iosAppCtx && typeof iosAppCtx.getPlatform === 'function'
+      ? iosAppCtx.getPlatform() === 'ios'
+      : !!(window.Capacitor && typeof window.Capacitor.getPlatform === 'function' && window.Capacitor.getPlatform() === 'ios');
+    if (iosApp) {
+      var iosGuard = window.__cdAppPaymentGuard;
+      if (!iosGuard || typeof iosGuard.resolveIosPaymentChoice !== 'function') return 'cancel';
+      return iosGuard.resolveIosPaymentChoice(Object.assign({}, opts, { featureKey: _cdResolvePaidGateFeatureKey(opts, String(opts.title || opts.reason || '')) }));
+    }
     // 🔴 여기부터 결제창이 실제로 화면에 붙을 때까지는 어떤 대기 화면도 띄우지 않는다.
     // 사용자가 "이용권 없음 확인 후 결제창 뜨기 전에 나오는 화면"이라고 반복 지적한 바로 그 구간이다.
     _cdBeginPreCheckoutWaitUiSuppression();

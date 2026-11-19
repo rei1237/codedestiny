@@ -12380,6 +12380,16 @@
   function _dpRenderStandalonePaymentChoice(options) {
     if (typeof document === 'undefined') return Promise.resolve('cancel');
     var opts = options || {};
+    // iOS(R2, 2026-11-18 승인): 셸 _cdChooseServicePaymentMode 와 같은 분기 — 결제창(서버 원화·Google Play 배지)을
+    // 그리지 않고 scripts/app-payment-guard.js resolveIosPaymentChoice 에 맡긴다(앱 무료면 'direct', 아니면 'cancel').
+    var iosAppCtx = window.__cdAppContext;
+    var iosApp = iosAppCtx && typeof iosAppCtx.getPlatform === 'function'
+      ? iosAppCtx.getPlatform() === 'ios'
+      : !!(window.Capacitor && typeof window.Capacitor.getPlatform === 'function' && window.Capacitor.getPlatform() === 'ios');
+    if (iosApp) {
+      var iosGuard = window.__cdAppPaymentGuard;
+      return Promise.resolve(iosGuard && typeof iosGuard.resolveIosPaymentChoice === 'function' ? iosGuard.resolveIosPaymentChoice(opts) : 'cancel');
+    }
     var cost = Math.max(0, Math.floor(Number(opts.coinPrice || opts.cost || 0)));
     var amountKrw = Math.max(0, Math.floor(Number(opts.amountKrw || (cost * 100)))) - Math.max(0, Number(opts.directDiscountKRW) || 0);
     // 월정석 필요분 = 코인 × MEMBERSHIP_CREDIT_PER_COIN(10). *10이 빠지면 500석짜리를 50석으로 표시하고

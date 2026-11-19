@@ -182,6 +182,18 @@ check(
   iosMessages(guardSource) !== "" && iosMessages(guardSource) === iosMessages(nativeBillingSource),
   `guard=${iosMessages(guardSource)} native=${iosMessages(nativeBillingSource)}`,
 );
+// iOS(R2) 결제창 렌더러 3종: 서버 원화·"Google Play 결제" 배지(pgBadgeApp)를 그리기 전에 iOS 분기로 빠진다.
+const rendererSources = [
+  ["셸 index.html _cdChooseServicePaymentMode", await fs.readFile(path.join(ROOT, "index.html"), "utf8"), "function _cdChooseServicePaymentMode"],
+  ["독립 js/destiny-profile.js _dpRenderStandalonePaymentChoice", await fs.readFile(path.join(ROOT, "js", "destiny-profile.js"), "utf8"), "function _dpRenderStandalonePaymentChoice"],
+  ["React billing-client.ts openReactPaymentChoiceModalInner", billingClient, "async function openReactPaymentChoiceModalInner"],
+];
+for (const [label, source, marker] of rendererSources) {
+  const fnAt = source.indexOf(marker);
+  const iosAt = fnAt >= 0 ? source.indexOf(".resolveIosPaymentChoice(", fnAt) : -1;
+  const badgeAt = fnAt >= 0 ? source.indexOf("pgBadgeApp", fnAt) : -1;
+  check(`${label}: iOS 분기(resolveIosPaymentChoice)가 Google Play 배지보다 먼저다`, fnAt >= 0 && iosAt > fnAt && badgeAt > iosAt);
+}
 
 console.log("\n[8] 이용권 커버 금액이 앱 기준으로 파생되는가");
 for (const [tier, expectedKRW] of [["standard", 5000], ["premium", 10000], ["vvip", 20000]]) {
