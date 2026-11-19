@@ -17,7 +17,7 @@ import { usageSettlementSetFields } from './late-usage-settlement.js';
 export const STUCK_SETTLE_STALLS = 6;            // 크론 10분 × 6 ≈ 1시간
 export const STUCK_SETTLE_AGE_MS = 6 * 86400000; // 복구 창(7일) 전에 반드시 확정
 export const STUCK_PROGRESS_CHARS = 1000;        // 장 하나는 수천 자, 오류·시도 기록은 수백 자 미만
-// 복구 크론이 문서를 보는 창(생성 시각 기준)과 다시 시도 창(다시 시도 가능 전환 시각 기준)은 같은 7일이다.
+// 복구 크론이 문서를 보는 창과 다시 시도 창은 같은 7일이고, 둘 다 생성(결제·생성 시작) 시각부터 센다(2026-11-19 사용자 결정).
 export const RECOVERY_WINDOW_MS = 7 * 86400000;
 export const RETRY_REFUND_AFTER_MS = RECOVERY_WINDOW_MS;
 const LIVE_LEASE_MS = 120000;
@@ -48,6 +48,12 @@ function docCreatedAt(doc) {
   if (doc?.createdAt) return new Date(doc.createdAt).getTime();
   try { if (doc?._id && Types.ObjectId.isValid(doc._id) && typeof doc._id !== 'string') return new Types.ObjectId(doc._id).getTimestamp().getTime(); } catch {}
   return NaN;
+}
+
+/** 다시 시도 가능 건의 환불 시각: 생성 시각 + 7일. 생성 시각을 알 수 없으면(_id 도 아님) 지금 + 7일. */
+export function retryRefundAt(doc, now = Date.now()) {
+  const created = docCreatedAt(doc);
+  return new Date((Number.isFinite(created) ? created : now) + RETRY_REFUND_AFTER_MS);
 }
 
 export function shouldSettleStuck(doc, now) {
@@ -99,11 +105,12 @@ export async function settleStuckConsultation(env, { service, model, doc, now, r
   }
   const failed = { status: 'generation_failed', ...closeSupport, generationError: { code: 'DELIVERY_STUCK', message: 'recovery made no progress', at } };
   const prev = fresh.llmMeta?.retryable;
+  // 처음 정한 환불 시각(생성 + 7일)을 다시 정체돼도 늘리지 않는다.
   const prevRefundAt = ms(prev?.refundAt);
-  // 다시 시도 창 안(또는 처음): 환불하지 않고 다시 시도 가능으로 둔다. 다시 정체돼도 처음 정한 환불 시각을 늘리지 않는다.
-  if (!(prevRefundAt <= now)) {
+  const refundAt = Number.isFinite(prevRefundAt) ? new Date(prevRefundAt) : retryRefundAt(fresh, now);
+  // 다시 시도 창 안: 환불하지 않고 다시 시도 가능으로 둔다.
+  if (refundAt.getTime() > now) {
     const since = prev?.since ? new Date(prev.since) : new Date(now);
-    const refundAt = Number.isFinite(prevRefundAt) ? new Date(prevRefundAt) : new Date(now + RETRY_REFUND_AFTER_MS);
     const retryable = { ...(prev || {}), since, refundAt, code: 'DELIVERY_STUCK' };
     const result = await model.updateOne(cas, { $set: { ...failed, ...llmMetaFields(fresh, { ...unlock, 'llmMeta.retryable': retryable }) } });
     if (!result?.modifiedCount) return { outcome: 'progressed' };

@@ -73,7 +73,8 @@ test('partial 이 진전 없이 6번 복구되면 다음 크론에서 다시 시
   expect(model.doc.generationError.code).toBe('DELIVERY_STUCK');
   const settledAt = START + 6 * 600000;
   expect(new Date(model.doc.llmMeta.retryable.since).getTime()).toBe(settledAt);
-  expect(new Date(model.doc.llmMeta.retryable.refundAt).getTime()).toBe(settledAt + stuck.RETRY_REFUND_AFTER_MS);
+  // 환불 시각은 생성(결제·생성 시작) 시각 + 7일이다(2026-11-19 사용자 결정) — 다시 시도 가능 전환 시각이 아니다.
+  expect(new Date(model.doc.llmMeta.retryable.refundAt).getTime()).toBe(START + stuck.RETRY_REFUND_AFTER_MS);
   expect(model.doc.llmMeta.savedSections[0]).toHaveLength(3000); // 완성된 장은 그대로
   expect(refund).not.toHaveBeenCalled();
   expect(warns).toContain('paid_delivery_stuck_settled');
@@ -137,7 +138,7 @@ test('완성 판정을 통과하지 못한 delivery_pending 정체는 구제 전
   const refund = jest.fn(async () => ({ refundStatus: 'refunded' }));
   const now = START + 3600000;
   const out = await stuck.settleStuckConsultation({}, { service: 'life-book-ai', model, doc: model.doc, now, refund, isComplete: () => false });
-  expect(out).toEqual({ outcome: 'retryable', refundAt: new Date(now + stuck.RETRY_REFUND_AFTER_MS).toISOString() });
+  expect(out).toEqual({ outcome: 'retryable', refundAt: new Date(START + stuck.RETRY_REFUND_AFTER_MS).toISOString() });
   expect(model.doc.status).toBe('generation_failed');
   expect(refund).not.toHaveBeenCalled();
 });
@@ -151,6 +152,21 @@ test('다시 정체돼도 처음 정한 환불 시각을 늘리지 않는다', a
   expect(new Date(model.doc.llmMeta.retryable.refundAt).getTime()).toBe(refundAt.getTime());
   expect(new Date(model.doc.llmMeta.retryable.since).getTime()).toBe(START);
   expect(model.doc.llmMeta.retryable.reopens).toBe(1);
+});
+
+test('환불 시각은 생성 시각 + 7일이다: 6일 넘어 정체돼도 남은 기간만 주고, 생성 시각을 모르면 _id 시각, 그것도 없으면 지금 + 7일', () => {
+  expect(stuck.retryRefundAt({ createdAt: new Date(START) }, START + 6.5 * 86400000).getTime()).toBe(START + 7 * 86400000);
+  expect(stuck.retryRefundAt({ _id: Types.ObjectId.createFromTime(Math.floor(START / 1000)) }, START + 86400000).getTime()).toBe(START + 7 * 86400000);
+  expect(stuck.retryRefundAt({}, START).getTime()).toBe(START + 7 * 86400000);
+});
+
+test('생성 7일이 이미 지난 뒤 처음 정체되면 다시 시도 가능으로 두지 않고 바로 환불로 넘긴다', async () => {
+  const model = memoryModel(baseDoc('partial', { deliveryWatch: { baseline: 1, stalls: 6 } }));
+  const refund = jest.fn(async () => ({ refundStatus: 'refunded' }));
+  const out = await stuck.settleStuckConsultation({}, { service: 'life-book-ai', model, doc: model.doc, now: START + 7 * 86400000 + 1000, refund });
+  expect(out).toEqual({ outcome: 'generation_failed', refundStatus: 'refunded' });
+  expect(model.doc.llmMeta.refundEligibleAt).toBeTruthy();
+  expect(refund).toHaveBeenCalledTimes(1);
 });
 
 // 공용 다시 시도 헬퍼: 같은 결제 건(소유자·문서 id)만, 환불 전, 창 안에서만 빠진 장 이어쓰기로 되돌린다.
