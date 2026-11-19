@@ -1,0 +1,36 @@
+{
+  "guidedFlow": {
+    "back": "上一步",
+    "next": "下一步",
+    "skip": "跳過",
+    "progress": "第 {current} / {total} 步",
+    "slowLine": "請再稍等一下，正在仔細查看。",
+    "demo": {
+      "eyebrow": "開發示範",
+      "title": "三步完成的引導流程",
+      "subtitle": "此頁面用於檢查通用步驟引擎，不會產生真實的占卜結果。",
+      "cta": "開始",
+      "freeHint": "無需登入即可體驗。",
+      "trustLine": "輸入的內容只暫存在目前的瀏覽器分頁。",
+      "aboutTitle": "這是什麼？",
+      "aboutBody": "選擇主題並寫下一句話，稍作查看後顯示結果。",
+      "guideTitle": "流程如下",
+      "guide1Title": "選擇主題",
+      "guide1Body": "選擇後稍等片刻會自動進入下一步。",
+      "guide2Title": "寫一句話",
+      "guide2Body": "簡單寫下你現在在意的事。",
+      "guide3Title": "查看結果",
+      "guide3Body": "重新整理後結果仍會保留。",
+      "topicTitle": "你最想了解什麼？",
+      "topicLove": "戀愛",
+      "topicMoney": "財運",
+      "topicCareer": "工作",
+      "detailTitle": "請用一句話描述",
+      "detailLabel": "目前的煩惱",
+      "readingTitle": "正在查看",
+      "readingBody": "點按即可直接跳過。",
+      "resultTitle": "示範結果",
+      "resultBody": "主題：{topic} · 內容：{detail}"
+    }
+  }
+}

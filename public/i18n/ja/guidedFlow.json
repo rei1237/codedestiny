@@ -1,0 +1,36 @@
+{
+  "guidedFlow": {
+    "back": "戻る",
+    "next": "次へ",
+    "skip": "スキップ",
+    "progress": "ステップ {current} / {total}",
+    "slowLine": "もう少しだけお待ちください。じっくり見ています。",
+    "demo": {
+      "eyebrow": "開発用デモ",
+      "title": "3ステップで終わるガイド",
+      "subtitle": "共通ステップエンジンの動作を確認する画面です。実際の占い結果は出ません。",
+      "cta": "はじめる",
+      "freeHint": "ログインなしで試せます。",
+      "trustLine": "入力内容はこのブラウザタブにだけ一時保存されます。",
+      "aboutTitle": "この機能は？",
+      "aboutBody": "テーマを選んで一行書くと、少し見てから結果を表示します。",
+      "guideTitle": "このように進みます",
+      "guide1Title": "テーマを選ぶ",
+      "guide1Body": "選ぶと少しして自動で進みます。",
+      "guide2Title": "一行書く",
+      "guide2Body": "気になっていることを短く書いてください。",
+      "guide3Title": "結果を見る",
+      "guide3Body": "更新しても結果はそのまま残ります。",
+      "topicTitle": "いちばん気になることは？",
+      "topicLove": "恋愛",
+      "topicMoney": "お金",
+      "topicCareer": "仕事",
+      "detailTitle": "一行で書いてください",
+      "detailLabel": "今の悩み",
+      "readingTitle": "見ています",
+      "readingBody": "タップするとすぐ進めます。",
+      "resultTitle": "デモ結果",
+      "resultBody": "テーマ: {topic} · メモ: {detail}"
+    }
+  }
+}

@@ -1,0 +1,263 @@
+/* 공통 스텝 플로우 골격. 색·간격·시간은 --cd-* 토큰만 읽고, 이 모듈 전용 값은 --gf-* 로 둔다. */
+.flow {
+  --gf-max: 40rem;
+  --gf-shift: var(--cd-sp-lg);
+  --gf-track: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--cd-sp-md);
+  width: 100%;
+  max-width: var(--gf-max);
+  margin: 0 auto;
+  padding: var(--cd-sp-md) var(--cd-sp-md) 0;
+  color: var(--cd-text);
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ── 진행 표시 ── */
+.topBar {
+  display: flex;
+  align-items: center;
+  gap: var(--cd-sp-sm);
+}
+.back {
+  flex: none;
+  min-height: var(--cd-btn-h);
+}
+.progress {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--cd-sp-xs);
+  min-width: 0;
+}
+.progressText {
+  font-size: var(--cd-t-caption);
+  color: var(--cd-text-muted);
+  text-align: right;
+}
+.progressTrack {
+  display: block;
+  height: var(--gf-track);
+  border-radius: var(--cd-r-pill);
+  background: var(--cd-accent-soft);
+  overflow: hidden;
+}
+.progressFill {
+  display: block;
+  height: 100%;
+  background: var(--cd-accent);
+  transform-origin: left center;
+  transition: transform var(--cd-dur-base) var(--cd-ease-out);
+}
+
+/* ── 단계 본문: 220ms, transform/opacity 만 ── */
+.step {
+  display: flex;
+  flex-direction: column;
+  gap: var(--cd-sp-md);
+  animation: gf-enter var(--cd-dur-base) var(--cd-ease-out) both;
+}
+.step[data-dir='back'] {
+  --gf-shift: calc(var(--cd-sp-lg) * -1);
+}
+.flow[data-reduced='true'] .step,
+.flow[data-reduced='true'] .progressFill {
+  animation: none;
+  transition: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .step,
+  .progressFill {
+    animation: none;
+    transition: none;
+  }
+}
+@keyframes gf-enter {
+  from {
+    opacity: 0;
+    transform: translateX(var(--gf-shift));
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.title {
+  margin: 0;
+  font-size: var(--cd-t-section);
+  line-height: 1.35;
+  outline: none;
+}
+.title:focus-visible {
+  outline: 2px solid var(--cd-focus-ring);
+  outline-offset: 4px;
+  border-radius: var(--cd-r-sm);
+}
+.slowLine {
+  margin: 0;
+  color: var(--cd-text-muted);
+  font-size: var(--cd-t-body);
+}
+
+/* ── 단일 선택 칩 ── */
+.choices {
+  display: grid;
+  gap: var(--cd-sp-sm);
+}
+.choice {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--cd-sp-xs);
+  min-height: var(--cd-btn-h);
+  padding: var(--cd-sp-sm) var(--cd-sp-md);
+  border: 1px solid var(--cd-border);
+  border-radius: var(--cd-r-control);
+  background: var(--cd-surface);
+  color: var(--cd-text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.choice[aria-pressed='true'] {
+  border-color: var(--cd-accent);
+  box-shadow: inset 0 0 0 1px var(--cd-accent);
+}
+.choice:focus-visible {
+  outline: 2px solid var(--cd-focus-ring);
+  outline-offset: 2px;
+}
+.choiceLabel {
+  font-weight: 600;
+}
+.choiceHint {
+  font-size: var(--cd-t-caption);
+  color: var(--cd-text-muted);
+}
+
+/* ── 하단 고정 CTA: safe-area, 48px 이상 ── */
+.cta {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: var(--cd-sp-xs);
+  margin: 0 calc(var(--cd-sp-md) * -1);
+  padding: var(--cd-sp-sm) var(--cd-sp-md) calc(var(--cd-sp-sm) + env(safe-area-inset-bottom));
+  background: var(--cd-surface);
+  border-top: 1px solid var(--cd-border);
+}
+:global(body.cd-mnav-mounted) .cta {
+  bottom: var(--cd-mnav-offset);
+}
+.ctaHint {
+  margin: 0;
+  font-size: var(--cd-t-caption);
+  color: var(--cd-text-muted);
+  text-align: center;
+}
+
+/* ── 랜딩 ── */
+.landing {
+  display: flex;
+  flex-direction: column;
+  gap: var(--cd-sp-lg);
+}
+.hero {
+  display: flex;
+  flex-direction: column;
+  gap: var(--cd-sp-sm);
+  padding-top: var(--cd-sp-md);
+}
+.eyebrow {
+  margin: 0;
+  font-size: var(--cd-t-caption);
+  color: var(--cd-accent);
+  font-weight: 600;
+}
+.heroTitle {
+  margin: 0;
+  font-size: var(--cd-t-display);
+  line-height: 1.3;
+}
+.heroSub {
+  margin: 0;
+  color: var(--cd-text-muted);
+}
+.block {
+  display: flex;
+  flex-direction: column;
+  gap: var(--cd-sp-sm);
+  padding: var(--cd-sp-md);
+  border: 1px solid var(--cd-border);
+  border-radius: var(--cd-r-card);
+  background: var(--cd-surface);
+}
+.blockTitle {
+  margin: 0;
+  font-size: var(--cd-t-card);
+}
+.blockBody {
+  margin: 0;
+}
+.guide {
+  display: grid;
+  gap: var(--cd-sp-sm);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.guideItem {
+  display: flex;
+  gap: var(--cd-sp-sm);
+  align-items: flex-start;
+}
+.guideNo {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  width: var(--cd-sp-lg);
+  height: var(--cd-sp-lg);
+  border-radius: var(--cd-r-pill);
+  background: var(--cd-accent-soft);
+  color: var(--cd-text);
+  font-size: var(--cd-t-caption);
+  font-weight: 700;
+}
+.guideTitle {
+  display: block;
+}
+.guideBody {
+  display: block;
+  font-size: var(--cd-t-body);
+  color: var(--cd-text-muted);
+}
+
+/* 데모·입력 단계 공통 */
+.field {
+  width: 100%;
+  min-height: var(--cd-btn-h);
+  padding: var(--cd-sp-sm) var(--cd-sp-md);
+  border: 1px solid var(--cd-border);
+  border-radius: var(--cd-r-control);
+  background: var(--cd-surface);
+  color: var(--cd-text);
+  font: inherit;
+}
+.field:focus-visible {
+  outline: 2px solid var(--cd-focus-ring);
+  outline-offset: 2px;
+}

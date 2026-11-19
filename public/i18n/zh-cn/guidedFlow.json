@@ -1,0 +1,36 @@
+{
+  "guidedFlow": {
+    "back": "上一步",
+    "next": "下一步",
+    "skip": "跳过",
+    "progress": "第 {current} / {total} 步",
+    "slowLine": "请再稍等一下，正在仔细查看。",
+    "demo": {
+      "eyebrow": "开发演示",
+      "title": "三步完成的引导流程",
+      "subtitle": "此页面用于检查通用步骤引擎，不会生成真实的占卜结果。",
+      "cta": "开始",
+      "freeHint": "无需登录即可体验。",
+      "trustLine": "输入的内容只暂存在当前浏览器标签页。",
+      "aboutTitle": "这是什么？",
+      "aboutBody": "选择主题并写下一句话，稍作查看后显示结果。",
+      "guideTitle": "流程如下",
+      "guide1Title": "选择主题",
+      "guide1Body": "选择后稍等片刻会自动进入下一步。",
+      "guide2Title": "写一句话",
+      "guide2Body": "简单写下你现在在意的事。",
+      "guide3Title": "查看结果",
+      "guide3Body": "刷新后结果仍会保留。",
+      "topicTitle": "你最想了解什么？",
+      "topicLove": "恋爱",
+      "topicMoney": "财运",
+      "topicCareer": "工作",
+      "detailTitle": "请用一句话描述",
+      "detailLabel": "目前的烦恼",
+      "readingTitle": "正在查看",
+      "readingBody": "点按即可直接跳过。",
+      "resultTitle": "演示结果",
+      "resultBody": "主题：{topic} · 内容：{detail}"
+    }
+  }
+}

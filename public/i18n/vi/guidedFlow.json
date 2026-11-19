@@ -1,0 +1,36 @@
+{
+  "guidedFlow": {
+    "back": "Back",
+    "next": "Next",
+    "skip": "Skip",
+    "progress": "Step {current} of {total}",
+    "slowLine": "Just a moment more. I am looking closely.",
+    "demo": {
+      "eyebrow": "Developer demo",
+      "title": "A guided flow in three steps",
+      "subtitle": "This screen checks the shared step engine. It does not produce a real reading.",
+      "cta": "Start",
+      "freeHint": "No sign-in needed.",
+      "trustLine": "What you enter stays only in this browser tab.",
+      "aboutTitle": "What is this?",
+      "aboutBody": "Pick a topic, write one line, and after a short look you get a result.",
+      "guideTitle": "How it works",
+      "guide1Title": "Pick a topic",
+      "guide1Body": "It moves on by itself a moment after you pick.",
+      "guide2Title": "Write one line",
+      "guide2Body": "Briefly note what is on your mind.",
+      "guide3Title": "See the result",
+      "guide3Body": "The result stays even if you refresh.",
+      "topicTitle": "What are you most curious about?",
+      "topicLove": "Love",
+      "topicMoney": "Money",
+      "topicCareer": "Work",
+      "detailTitle": "Tell me in one line",
+      "detailLabel": "Your worry",
+      "readingTitle": "Taking a look",
+      "readingBody": "Tap to skip ahead.",
+      "resultTitle": "Demo result",
+      "resultBody": "Topic: {topic} · Your note: {detail}"
+    }
+  }
+}
