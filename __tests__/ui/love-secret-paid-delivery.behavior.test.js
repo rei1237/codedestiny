@@ -245,6 +245,8 @@ function clientFixture({ storageFailure = false, switchAccount = false, hidden =
     activeAttemptId: () => 'paid-attempt', pollResult: async () => { throw new Error('UNEXPECTED_POLL'); },
     setResultUrl(url) { resultUrls.push(url); }, setNotice() {}, setError() {}, moveResultWindow(url) { moved.push(url); },
     buildResultUrl: ({ sessionId }) => `/result/${sessionId}`,
+    loveSecretRetryOffer: (body) => (body && body.ok !== true && body.retry?.available === true ? String(body.retry.sessionId || body.sessionId || '') : ''),
+    getLoveSecretRetryCopy: () => ({ offer: '무료 다시 시도 안내' }),
     markPaidAttemptGenerationCompleted: () => { completed++; },
     copy: { errorMessages: { serverError: '서버 오류', llmError: '생성 오류', paymentVerifyFailed: '증빙 오류', resultTimeout: '지연 안내' } },
     postJson: async (path, body, key) => {
@@ -281,6 +283,47 @@ test('연애 화면은 탭이 숨으면 오류로 끊지 않고 돌아올 때까
 test('연애 화면은 생성 실패 종결(LLM_ERROR)을 자동 복구 안내 문구로 알린다', async () => {
   const f = clientFixture({ respond: (n) => (n < 2 ? partialReply(n) : { response: { status: 503 }, payload: { ok: false, status: 'generation_failed', reason: 'LLM_ERROR', message: '서버 문구' } }) });
   await assert.rejects(f.ctx.startConsultation({ question: 'original' }, 'paid-request', {}), /생성 오류/);
+  assert.deepEqual(f.moved, []);
+});
+// 2026-11-19 다시 시도 우선(웹): 무료 다시 시도가 열린 실패는 결과 화면(다시 시도·환불 요청)으로 안내하고 새 결제로 보내지 않는다.
+test('연애 화면은 무료 다시 시도가 열린 생성 실패를 결과 화면으로 넘기고 다시 시도 안내로 알린다', async () => {
+  const f = clientFixture({ respond: (n) => (n < 2 ? partialReply(n) : { response: { status: 503 }, payload: { ok: false, sessionId: 'stored-session', status: 'generation_failed', reason: 'LLM_ERROR', refunded: false, retry: { available: true, sessionId: 'stored-session', refundAt: '2026-11-26T00:00:00.000Z' } } }) });
+  await assert.rejects(f.ctx.startConsultation({ question: 'original' }, 'paid-request', {}), /무료 다시 시도 안내/);
+  assert.deepEqual(f.moved, ['/result/stored-session']);
+  assert.equal(f.completed, 0);
+});
+test('연애 다시 시도 문구는 12개 로케일 모두 채워져 있고 기한(일수·날짜)을 약속하지 않는다', () => {
+  const ast = ts.createSourceFile('retry.ts', fs.readFileSync('app/love-secret-ai/love-secret-retry.ts', 'utf8'), ts.ScriptTarget.Latest, true, ts.ScriptKind.TS);
+  const js = ts.transpileModule(ast.getText().replace(/^import .*$/m, 'const getCurrentLoadingLocale = () => "ko";'), { compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.CommonJS } }).outputText;
+  const mod = { exports: {} }; vm.runInNewContext(js, { module: mod, exports: mod.exports });
+  const copy = mod.exports.LOVE_SECRET_RETRY_COPY;
+  const locales = ['ko', 'en', 'ja', 'zh-CN', 'zh-TW', 'vi', 'hi', 'es', 'fr', 'de', 'nl', 'ms'];
+  assert.deepEqual(Object.keys(copy).sort(), [...locales].sort());
+  const keys = Object.keys(copy.ko);
+  for (const locale of locales) for (const key of keys) {
+    assert.ok(String(copy[locale][key] || '').trim(), `${locale}.${key}`);
+    assert.doesNotMatch(copy[locale][key], /[0-9０-９]|七|7/, `${locale}.${key} must not promise a deadline`);
+  }
+  assert.equal(mod.exports.loveSecretRetryOffer({ ok: false, sessionId: 's', retry: { available: true } }), 's');
+  assert.equal(mod.exports.loveSecretRetryOffer({ ok: false, sessionId: 's', retryable: true }), '');
+  assert.equal(mod.exports.loveSecretRetryOffer({ ok: true, retry: { available: true, sessionId: 's' } }), '');
+  assert.equal(mod.exports.loveSecretRetryClosed({ reason: 'RETRY_WINDOW_EXPIRED' }), true);
+  assert.equal(mod.exports.loveSecretRetryClosed({ reason: 'CONFLICT' }), false);
+});
+test('연애 결과 화면의 다시 시도·환불 요청 버튼은 상담 id 만 보내고 결제·코인·포인트로 보내지 않으며 토스에서는 쓰지 않는다', () => {
+  const source = fs.readFileSync('app/love-secret-ai/result/LoveSecretAiResultClient.tsx', 'utf8');
+  const ast = ts.createSourceFile('result.tsx', source, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
+  const fns = {};
+  (function visit(node) { if (ts.isFunctionDeclaration(node) && node.name) fns[node.name.text] = node.getText(ast); ts.forEachChild(node, visit); })(ast);
+  for (const [name, route] of [['handleLoveSecretRetry', '/api/love-secret-ai/retry'], ['handleLoveSecretRefundRequest', '/api/love-secret-ai/refund-request']]) {
+    const body = fns[name]; assert.ok(body, name);
+    assert.ok(body.includes(`"${route}"`), name);
+    assert.ok(body.includes('JSON.stringify({ sessionId })'), name);
+    assert.ok(body.includes('paymentSurface === "toss"'), name);
+    assert.doesNotMatch(body, /\/points|coin|checkout|requestPayment|PaymentGate|location\.(href|assign|replace)/i, name);
+  }
+  assert.match(source, /\{!retryOffer && <a\s+href="\/love-secret-ai\/"/);
+  assert.match(source, /paymentSurface !== "toss" && retryOffer \?/);
 });
 test('연애 화면은 안전 상한까지 부분 상태면 결과 페이지로 넘기고 지연 안내로 끝낸다(일반 서버 오류 아님)', async () => {
   const f = clientFixture({ respond: (n) => partialReply(n) });

@@ -113,7 +113,7 @@ test('actual love-secret-ai result-screen polling effect re-fetches on every for
 // 생성 실패 종결(generation_failed)은 지연 안내가 아니라 실패·자동 복구 안내로 바로 보여 준다.
 function resultEffectHarness(reply) {
   const effect = extractEffect('app/love-secret-ai/result/LoveSecretAiResultClient.tsx', 'setReloadEpoch(value => value + 1)');
-  const timers = [], gets = [], posts = [], errors = [], pending = [], consultations = [], progress = [];
+  const timers = [], gets = [], posts = [], errors = [], pending = [], consultations = [], progress = [], offers = [];
   const respond = (status, body) => ({ ok: status >= 200 && status < 300, status, json: async () => body });
   const context = {
     paymentSurface: undefined,
@@ -133,6 +133,9 @@ function resultEffectHarness(reply) {
     toText: (value) => (value == null ? '' : String(value)),
     friendlyErrorMessage: (err, fallback) => err?.message || fallback,
     copy: { loadResultFailedError: 'load-failed', genResultTimeoutError: 'timeout', genFailedRefundError: '생성 실패·자동 복구 안내' },
+    retryCopy: { offer: '무료 다시 시도 안내' },
+    loveSecretRetryOffer: (body) => (body && body.ok !== true && body.retry?.available === true ? String(body.retry.sessionId || body.sessionId || '') : ''),
+    setRetryOffer: (value) => offers.push(value),
     setError: (value) => errors.push(value),
     setPending: (value) => pending.push(value),
     setLoading: () => {},
@@ -144,7 +147,7 @@ function resultEffectHarness(reply) {
   vm.runInNewContext(transpiled, context);
   const settle = async () => { for (let i = 0; i < 20; i += 1) await new Promise(resolve => setImmediate(resolve)); };
   const drain = async (limit = 60) => { await settle(); for (let i = 0; i < limit && timers.length; i += 1) { timers.shift()(); await settle(); } };
-  return { timers, gets, posts, errors: () => errors.filter(Boolean), pending, consultations, progress, drain };
+  return { timers, gets, posts, errors: () => errors.filter(Boolean), pending, consultations, progress, offers, drain };
 }
 const failedBody = { ok: false, sessionId: 's1', status: 'generation_failed', reason: 'LLM_ERROR', message: '서버 문구' };
 const partialBody = (n) => ({ ok: true, sessionId: 's1', status: 'partial', saved: false, completedGroups: Array(Math.min(n, 7)).fill('g'), totalGroups: 7 });
@@ -154,6 +157,16 @@ test('연애 결과 화면은 생성 실패 종결(generation_failed 503)을 재
   await h.drain();
   assert.equal(h.gets.length, 1, 'generation_failed 는 일시 장애가 아니므로 다시 부르지 않는다');
   assert.deepEqual(h.errors(), ['생성 실패·자동 복구 안내']);
+  assert.equal(h.pending.at(-1), false);
+  assert.equal(h.offers.at(-1), '');
+});
+// 2026-11-19 다시 시도 우선(웹): 무료 다시 시도가 열린 실패는 환불 안내 대신 다시 시도 버튼을 연다.
+test('연애 결과 화면은 무료 다시 시도가 열린 생성 실패면 다시 시도를 먼저 권하고 재폴링하지 않는다', async () => {
+  const h = resultEffectHarness(() => [503, { ...failedBody, refunded: false, retry: { available: true, sessionId: 's1', refundAt: '2026-11-26T00:00:00.000Z' } }]);
+  await h.drain();
+  assert.equal(h.gets.length, 1);
+  assert.deepEqual(h.offers, ['s1']);
+  assert.deepEqual(h.errors(), ['무료 다시 시도 안내']);
   assert.equal(h.pending.at(-1), false);
 });
 test('연애 결과 화면은 이어 쓰기 응답이 생성 실패 종결이면 부분 본문을 거두고 실패·자동 복구 안내를 보여 준다', async () => {

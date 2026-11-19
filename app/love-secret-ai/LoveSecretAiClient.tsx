@@ -57,6 +57,7 @@ import {
 } from "@/app/_lib/paid-attempt-session";
 import { detectLocale } from "@/lib/i18n/dictionary";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
+import { getLoveSecretRetryCopy, loveSecretRetryOffer } from "./love-secret-retry";
 
 type AccessType = "pass" | "paid" | "subscription" | "admin";
 type CalendarType = "solar" | "lunar";
@@ -1615,6 +1616,9 @@ type ConsultationResult = {
   messages?: ChatMessage[];
   reason?: string;
   message?: string;
+  // 2026-11-19 다시 시도 우선(웹): 같은 결제 건의 무료 다시 시도. 최상위 retryable(계속 폴링)과 다르다.
+  retry?: { available?: boolean; refundAt?: string; sessionId?: string };
+  refunded?: boolean;
 };
 
 const SERVICE_TYPE = "love-secret-ai-consultation";
@@ -2195,7 +2199,15 @@ export default function LoveSecretAiPage({ paymentNotice, TossPrice, paymentSurf
     }
 
     if (result.reason === "PAYMENT_VERIFY_FAILED") throw new Error(copy.errorMessages.paymentVerifyFailed);
-    if (result.reason === "LLM_ERROR" || result.status === "generation_failed") throw new Error(generationFailure);
+    if (result.reason === "LLM_ERROR" || result.status === "generation_failed") {
+      // 다시 시도 우선(웹): 무료 다시 시도가 열린 실패면 결과 화면(다시 시도·환불 요청 버튼)으로 안내한다. 새 결제로 보내지 않는다.
+      const retrySessionId = paymentSurface === "toss" ? "" : loveSecretRetryOffer(result);
+      if (retrySessionId) {
+        moveResultWindow(buildResultUrl({ sessionId: retrySessionId, requestId: idempotencyKey }, paymentSurface));
+        throw new Error(getLoveSecretRetryCopy().offer);
+      }
+      throw new Error(generationFailure);
+    }
     if (result.status === "partial" && partialUrl) {
       // 안전 상한에 닿아도 결과 페이지가 같은 상담을 이어 받는다. 일반 서버 오류 대신 지연 안내로 넘긴다.
       moveResultWindow(partialUrl);

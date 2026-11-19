@@ -43,6 +43,7 @@ import { groupLoveSections, loveChapterKicker, resolveLoveSpeaker, splitLoveSecr
 import LoveSecretResultSection, { LoveSpeakerChip } from "./LoveReadingChapter";
 import { ANSWER_FIRST_LAYOUT_V1 } from "@/lib/result-layout";
 import { getCurrentLoadingLocale, INTL_LOCALE_BY_LOADING_LOCALE, type LoadingLocale } from "@/constants/loadingMessages";
+import { getLoveSecretRetryCopy, loveSecretRetryClosed, loveSecretRetryOffer } from "../love-secret-retry";
 
 type LoveSecretResultCopy = {
   genResultTimeoutError: string;
@@ -701,6 +702,10 @@ type Consultation = {
   message?: string;
   reason?: string;
   retryable?: boolean;
+  // 2026-11-19 다시 시도 우선(웹): 같은 결제 건의 무료 다시 시도. 최상위 retryable(계속 폴링)과 다르다.
+  retry?: { available?: boolean; refundAt?: string; sessionId?: string };
+  refunded?: boolean;
+  refundStatus?: string;
 };
 
 const TOSS_LOVE_FOLLOW: Record<LoadingLocale, [string,string,string,string,string]> = {
@@ -861,6 +866,11 @@ export default function LoveSecretAiResultClient({ paymentSurface }: { paymentSu
   const progressRef = useRef<HTMLDivElement | null>(null);
   const authorityRevisionRef = useRef(0);
   const [reloadEpoch, setReloadEpoch] = useState(0);
+  // 서버가 연 무료 다시 시도의 상담 id(웹 전용). 있으면 새 상담·결제 대신 다시 시도·환불 요청만 보여 준다.
+  const [retryOffer, setRetryOffer] = useState("");
+  const [retryBusy, setRetryBusy] = useState(false);
+  const [refundRequestNotice, setRefundRequestNotice] = useState("");
+  const retryCopy = getLoveSecretRetryCopy();
   const captureDeliveryScope = usePaidDeliveryScope(() => {
     authorityRevisionRef.current++;
     setConsultation(null); setPending(false); setFollowQuestion(""); setFollowError(""); setFollowSending(false); followLockRef.current = null; setReloadEpoch(value => value + 1);
@@ -882,9 +892,13 @@ export default function LoveSecretAiResultClient({ paymentSurface }: { paymentSu
     const maxResumes = 100;
     // 생성 실패 종결은 일시 장애(503 재폴링)가 아니다. 부분 본문을 거두고 실패·자동 복구 안내를 바로 보여 준다.
     const isGenerationFailed = (body: Consultation) => body?.status === "generation_failed" || (body?.ok === false && body?.reason === "LLM_ERROR");
-    const showGenerationFailed = () => {
+    const showGenerationFailed = (body?: Consultation) => {
       setConsultation(null); setPending(false);
-      setError(paymentSurface === "toss" ? "상담 생성에 실패했어요. 결제가 완료되었다면 다시 결제하지 말고 구매 복구 또는 고객지원에서 확인해 주세요." : copy.genFailedRefundError);
+      if (paymentSurface === "toss") { setError("상담 생성에 실패했어요. 결제가 완료되었다면 다시 결제하지 말고 구매 복구 또는 고객지원에서 확인해 주세요."); return; }
+      // 다시 시도 우선: 무료 다시 시도가 열린 실패면 환불 안내 대신 다시 시도를 먼저 권한다.
+      const offer = loveSecretRetryOffer(body);
+      setRetryOffer(offer);
+      setError(offer ? retryCopy.offer : copy.genFailedRefundError);
     };
     async function loadResult() {
       setError("");
@@ -896,7 +910,7 @@ export default function LoveSecretAiResultClient({ paymentSurface }: { paymentSu
         const payload = await response.json().catch(() => ({})) as Consultation;
         if (!alive || !isCurrent()) return;
         if (paymentSurface === "toss" && [401,402,403,409].includes(response.status)) { setConsultation(null); setPending(false); setError(response.status === 401 ? "상담을 확인하려면 토스 로그인이 필요해요." : "구매 내역에 접근할 권한을 확인할 수 없어요. 구매한 계정과 주문 내역을 확인해 주세요."); return; }
-        if (isGenerationFailed(payload)) { showGenerationFailed(); return; }
+        if (isGenerationFailed(payload)) { showGenerationFailed(payload); return; }
         const resumeId = payload.sessionId || payload.resultId;
         if ((payload.status === "partial" || payload.reason === "RESULT_STORAGE_UNAVAILABLE") && resumeId) {
           // 완료 전에는 본문을 그리지 않는다(S16). 생성 중 화면에 완성 갈래 수만 보여 준다.
@@ -914,7 +928,7 @@ export default function LoveSecretAiResultClient({ paymentSurface }: { paymentSu
             const next = await resumed.json().catch(() => ({})) as Consultation;
             if (!alive || !isCurrent()) return;
             if (paymentSurface === "toss" && [401,402,403,409].includes(resumed.status)) { setConsultation(null); setPending(false); setError(resumed.status === 401 ? "상담을 확인하려면 토스 로그인이 필요해요." : "구매 내역에 접근할 권한을 확인할 수 없어요. 구매한 계정과 주문 내역을 확인해 주세요."); return; }
-            if (isGenerationFailed(next)) { showGenerationFailed(); return; }
+            if (isGenerationFailed(next)) { showGenerationFailed(next); return; }
             if (!resumed.ok) throw new Error(next.message || copy.loadResultFailedError);
             if (next.status === "completed" && next.saved === true) {
               setConsultation(next); setGroupProgress(null); setPending(false); return;
@@ -967,6 +981,58 @@ export default function LoveSecretAiResultClient({ paymentSurface }: { paymentSu
     // (copy.* 는 에러 메시지 문구일 뿐 재요청 트리거가 아니다).
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [reloadEpoch, paymentSurface]);
+
+  // 무료 다시 시도(웹): 같은 결제 건을 남은 부분 이어 쓰기로 되돌린 뒤 결과 폴링을 다시 시작한다. 새 결제·차감은 없다.
+  async function handleLoveSecretRetry() {
+    const sessionId = retryOffer;
+    if (paymentSurface === "toss" || !sessionId || retryBusy) return;
+    const owner = captureDeliveryScope();
+    setRetryBusy(true); setRefundRequestNotice("");
+    try {
+      const response = await authFetch("/api/love-secret-ai/retry", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sessionId }),
+      });
+      const body = await response.json().catch(() => ({})) as Consultation;
+      if (!owner()) return;
+      const again = loveSecretRetryOffer(body);
+      if (again) { setRetryOffer(again); setError(retryCopy.retryFailed); return; }
+      if (loveSecretRetryClosed(body)) { setRetryOffer(""); setError(retryCopy.refundClosed); return; }
+      if (response.ok || response.status === 202 || body.reason === "GENERATION_IN_PROGRESS") {
+        setRetryOffer(""); setError(""); setConsultation(null); setPending(true); setLoading(true);
+        setReloadEpoch(value => value + 1);
+        return;
+      }
+      setError(retryCopy.retryFailed);
+    } catch {
+      if (owner()) setError(retryCopy.retryFailed);
+    } finally {
+      setRetryBusy(false);
+    }
+  }
+
+  // 다시 시도 대신 환불 요청(웹): 서버가 공용 환불로 넘기고 바로 정산을 시도한다.
+  async function handleLoveSecretRefundRequest() {
+    const sessionId = retryOffer;
+    if (paymentSurface === "toss" || !sessionId || retryBusy) return;
+    const owner = captureDeliveryScope();
+    setRetryBusy(true); setRefundRequestNotice("");
+    try {
+      const response = await authFetch("/api/love-secret-ai/refund-request", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sessionId }),
+      });
+      const body = await response.json().catch(() => ({})) as Consultation;
+      if (!owner()) return;
+      if (body.ok === true) { setRetryOffer(""); setError(body.refunded === true ? retryCopy.refunded : retryCopy.refundRequested); return; }
+      if (loveSecretRetryClosed(body)) { setRetryOffer(""); setError(retryCopy.refundClosed); return; }
+      setRefundRequestNotice(retryCopy.refundRequestFailed);
+    } catch {
+      if (owner()) setRefundRequestNotice(retryCopy.refundRequestFailed);
+    } finally {
+      setRetryBusy(false);
+    }
+  }
 
   async function sendTossFollowUp(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -1096,14 +1162,14 @@ export default function LoveSecretAiResultClient({ paymentSurface }: { paymentSu
 
       <section className={styles.readingShell}>
         <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
-          <a
+          {!retryOffer && <a
             href="/love-secret-ai/"
             aria-label={copy.backToInputAria}
             className={`${theme.focusRing} inline-flex min-h-11 items-center gap-2 rounded-full border border-[var(--ls-line-control)] bg-[var(--ls-surface)] px-4 text-sm font-bold text-[var(--ls-text)] transition hover:bg-[var(--ls-surface-sunken)]`}
           >
             <ArrowLeft className="h-4 w-4" aria-hidden="true" />
             {copy.retryConsultLabel}
-          </a>
+          </a>}
           {consultation && (
             <div className="flex flex-wrap items-center gap-2">
               {paymentSurface !== "toss" && (
@@ -1154,6 +1220,28 @@ export default function LoveSecretAiResultClient({ paymentSurface }: { paymentSu
               <AlertCircle className="mx-auto h-10 w-10 text-[var(--ls-accent)]" aria-hidden="true" />
               <h1 className="mt-5 text-2xl font-black text-[var(--ls-text)]">{copy.resultUnavailableHeading}</h1>
               <p className="mt-3 text-sm leading-7 text-[var(--ls-text-muted)]">{error}</p>
+              {paymentSurface !== "toss" && retryOffer ? (
+                <div className="mt-5 flex flex-col items-center gap-3">
+                  <button
+                    type="button"
+                    disabled={retryBusy}
+                    onClick={() => void handleLoveSecretRetry()}
+                    className={`${theme.focusRing} inline-flex min-h-11 items-center gap-2 rounded-full bg-[image:var(--ls-cta)] px-4 text-sm font-black text-[var(--ls-cta-ink)] transition hover:-translate-y-0.5 disabled:opacity-60`}
+                  >
+                    {retryBusy ? <Loader2 className="h-4 w-4 animate-spin motion-reduce:animate-none" aria-hidden="true" /> : <RefreshCw className="h-4 w-4" aria-hidden="true" />}
+                    {retryCopy.retryLabel}
+                  </button>
+                  <button
+                    type="button"
+                    disabled={retryBusy}
+                    onClick={() => void handleLoveSecretRefundRequest()}
+                    className={`${theme.focusRing} inline-flex min-h-11 items-center rounded-full border border-[var(--ls-line-control)] bg-[var(--ls-surface)] px-4 text-sm font-bold text-[var(--ls-text)] transition hover:bg-[var(--ls-surface-sunken)] disabled:opacity-60`}
+                  >
+                    {retryCopy.refundRequestLabel}
+                  </button>
+                  {refundRequestNotice && <p role="status" className="text-sm text-[var(--ls-text-muted)]">{refundRequestNotice}</p>}
+                </div>
+              ) : (
               <button
                 type="button"
                 onClick={() => window.location.reload()}
@@ -1162,6 +1250,7 @@ export default function LoveSecretAiResultClient({ paymentSurface }: { paymentSu
                 <RefreshCw className="h-4 w-4" aria-hidden="true" />
                 {copy.retryCheckLabel}
               </button>
+              )}
             </div>
           </div>
         )}
