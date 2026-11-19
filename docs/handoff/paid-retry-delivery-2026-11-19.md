@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-20
-next: "R7 찻집 · 마스터 인연의 서 다시 시도 우선(서비스마다 paid-gate-auditor·regression-scout → TDD → 체인) → R7b 보관함 "다시 시도 가능" 표시(사용자 요청 2026-11-20). R1·R2b·R3·R4·R5·R6 묶음은 준비됨(체인 결과는 실측 절)이나 머지·push 는 R9 에서"
+next: "R7 마스터 인연의 서 다시 시도 우선(먼저 master-love-codex-recovery-task.js planCodexReopen:114 / reopenClosedSessions:187 재개방이 retry 보류와 충돌하는지 확인 → paid-gate-auditor·regression-scout → TDD → 체인) → R7b 보관함 \"다시 시도 가능\" 표시(사용자 요청 2026-11-20). R1·R2b·R3·R4·R5·R6·R7 찻집 묶음은 준비됨(체인 결과는 실측 절)이나 머지·push 는 R9 에서"
 ---
 
 # 유료 LLM "다시 시도로 반드시 결과 받기" 인수인계
@@ -20,7 +20,7 @@ next: "R7 찻집 · 마스터 인연의 서 다시 시도 우선(서비스마다
 ## 지금 상태
 - main = `b3b77221c` 시점에 작성. 운영 = `25d9bc034`(2026-11-19 Release run 44501694109 성공, S13·S15·S16 반영).
 - 워크트리 `D:\Development\codedestiny-worktrees\paid-retry-20261119-195316`, 브랜치 `wt/paid-retry-20261119-195316`, 기점 `bcce826eb`.
-- 커밋(push·main 머지 안 함): `e11840bf4` R1 · `e62ce85fd` R2 수정 라운드 · `89c05a3bc` sitemap 원장(네오 결과 화면 서명) · `3915323c7` 7일=생성 시각 · `9f725b7a3`+`39fcbd4a0` R3 · `14a12f0d1`+`d7eea47b5` R4 · `7ed35229a` 보안 버킷(R3·R4 공통) · `0a3f1942d` Toss 하네스 · `b402a1ef7` 문서 · R2b `e86b0c779`·`d113288d1`·`e89217af9`·`4e5eae70d`·`d7be2c558` · R5 `4c81511e5`(워커)·`3926da828`(클라이언트)·`1968b0488`(sitemap 원장) · R6 `4d13f4692`(워커)·`35caa1280`(클라이언트)·`8e0f4eb51`(sitemap 원장) · 이 문서 갱신 커밋.
+- 커밋(push·main 머지 안 함): `e11840bf4` R1 · `e62ce85fd` R2 수정 라운드 · `89c05a3bc` sitemap 원장(네오 결과 화면 서명) · `3915323c7` 7일=생성 시각 · `9f725b7a3`+`39fcbd4a0` R3 · `14a12f0d1`+`d7eea47b5` R4 · `7ed35229a` 보안 버킷(R3·R4 공통) · `0a3f1942d` Toss 하네스 · `b402a1ef7` 문서 · R2b `e86b0c779`·`d113288d1`·`e89217af9`·`4e5eae70d`·`d7be2c558` · R5 `4c81511e5`(워커)·`3926da828`(클라이언트)·`1968b0488`(sitemap 원장) · R6 `4d13f4692`(워커)·`35caa1280`(클라이언트)·`8e0f4eb51`(sitemap 원장) · R7 찻집 `1cec195b8`(워커)·`dd51e5355`(클라이언트)·`6759ad789`(sitemap 원장) · 이 문서 갱신 커밋.
 - R2b 의 `d113288d1`(환불 크론)은 `e89217af9`(라우트의 `settleDueNeoRetryRefunds`)와 함께 머지해야 한다 — 단독이면 try/catch 로 막히지만 네오 창 경과 환불이 돌지 않는다. R1·R2b·R3·R4 를 한 묶음으로.
 - 🔴 R1 은 단독으로 머지·push 하지 않는다 — 신년·인생의 책에 다시 시도 UI·재개 엔드포인트(R3·R4)가 없어, 그 상태로 나가면 고객은 최대 7일간 실패 화면만 보고 환불도 받지 못한다. → 2026-11-19 R3·R4 완료로 R1·R3·R4 는 한 묶음으로 머지 가능(R9 에서, 묶음째로만).
 
@@ -63,6 +63,8 @@ next: "R7 찻집 · 마스터 인연의 서 다시 시도 우선(서비스마다
 - [x] R5 연애 비책 — `4c81511e5`(워커·환불 크론·테스트) + `3926da828`(웹 다시 시도·환불 요청 UI, 12로케일) + `1968b0488`(sitemap 원장). 상세·검사는 실측 "R5 연애 비책".
 - [x] R6 흑월 — `4d13f4692`(워커·가드·환불 크론·복구 레지스트리·테스트) + `35caa1280`(웹 다시 시도·환불 요청 UI) + `8e0f4eb51`(sitemap 원장). Toss 네이티브(`worker/toss/native-heukwol.js`)는 변경 없음(아래 가정). 상세·검사는 실측 "R6 흑월".
 - [ ] R7 찻집 · 마스터 인연의 서
+  - [x] R7 찻집 — `1cec195b8`(워커·환불 크론·테스트) + `dd51e5355`(웹 다시 시도·환불 요청 UI) + `6759ad789`(sitemap 원장). 상세·검사는 실측 "R7 찻집".
+  - [ ] R7 마스터 인연의 서 — 착수 전 운영 스크립트 충돌 확인: `worker/lib/master-love-codex-recovery-task.js` `planCodexReopen`(:114)·`reopenClosedSessions`(:187, 호출 :235)가 닫힌 세션을 다시 여는데, 다시 시도 보류 건(retry 표지)을 재개방·환불 대상으로 집지 않게 필터를 좁혀야 하는지 본다.
 - [ ] R7b 보관함(사용자 요청 2026-11-20): 꿀꿀운세 `/records` 에서 다시 시도 가능한 상담(retry 표지, 창 안)을 일반 '실패'가 아니라 별도 상태 "다시 시도 가능"으로 표시하고, 서비스별 다시 시도 진입(결과 화면 링크 또는 버튼)을 단다. `/yeongnyangi/library/` 분리 규칙 유지(영냥이 기록 섞지 않음), 완성 결과는 숨기거나 지우지 않는다. 참고: 흑월 보류 건은 지금 pending 이라 "생성 중"으로 보이고(record-library.js:35,49), 연애 비책·인생의 책·신년·네오는 '실패'로 보인다 — 서비스마다 retry 표지 위치가 다르다(흑월 `metadata.retryable`, 나머지 `llmMeta.retryable`).
 - [ ] R8 검증기: 계약 목록 각 서비스가 "실패 시 retryable + 다시 시도 경로 + 7일 환불"을 갖는지 fail-closed 로 검사(`scripts/verify-paid-llm-delivery-contract.mjs` 확장, 변이 1종으로 무는지 확인). 문서 `docs/context/ai-and-db.md` 유료 LLM 전달 계약 절 갱신.
 - [ ] R9 대표 7종 머지 → `npm test --prefix apps/toss` → `npm run check:fast -- --base=<origin/main SHA>` → `node scripts/run-paid-gate-suite.mjs --base=<SHA>` → `node scripts/verify-myeongri-tables.mjs` → `npm run check:pre-push` → push → main CI(PR CI·Paid Flow Gates) 녹색.
@@ -231,6 +233,25 @@ S15 품질: 한자 증가, 연애 비책 용신 데이터("금") vs 판정(토) 
 - 대상 실행: jest 8 스위트 243/243(checkpoint-timeout-refund 46 · heukwol 27 · paid-llm-delivery-contract · consultation-recovery-task · paid-delivery-stuck · security.ai-route-buckets · record-library · cron-shared-connection-teardown), node --test consultation-delivery-refund 54/54 · heukwol-paid-resume 13/13. 변이: DETERMINISTIC 정규식을 바꾸면 2건 실패(무는 가드). verify paid-llm-delivery-contract(36 계약·변이 36/36)·worker-security-guards·no-nested-retry·payment-freeze 통과.
 - 체인(베이스 `bcce826eb`, HEAD `8e0f4eb51`, 2026-11-20 실측, 전부 exit 0): ① `check:fast -- --base=bcce826eb` — critical, jest 483 스위트 8294 통과(1 skip). 첫 회는 sitemap 원장 드리프트로 막힘 → `8e0f4eb51` ② `run-paid-gate-suite --base=bcce826eb` 91/91(1453s). 첫 회 exit 1: `npm test` 안 yeongnyangi-reading-v7-golden·yeongnyangi-v7-checkpoint-import 2건이 자식 프로세스 시간 초과(status null, 60s·258s). 이 브랜치는 영냥이 파일 변경 0, 단독 재실행 3/3(174s) → 부하 플레이크, 재실행 통과 ③ `npm test --prefix apps/toss`(정션) 1765/1765(109s), 정션 제거 확인 ④ verify-myeongri-tables OK(29건·잔차 0).
 - 위험·가정(최종 보고): 흑월 카드 환불에 paymentRef 가 없어 refund_failed/manual_review 로 끝날 수 있음(범위 밖, 기존) · 창 만료 환불 경로가 스위퍼·settleDue 둘 — settleExecutionById 멱등에 기댐 · 월정석 환불 경로 미실측 · 보관함(/records)은 보류 건을 "생성 중"으로 표시(record-library.js:35,49) · `scripts/fixtures/mock-heukwol.mjs` 에 retry·refund-request 없음(낮음).
+
+### R7 찻집 (2026-11-20, 워크트리 커밋 `1cec195b8`·`dd51e5355`·`6759ad789`)
+- 사전 감사: paid-gate-auditor 실행 뒤 착수, 구현 뒤 재감사. 위반 1(보류 건 재제출 시 결제 증빙 해제)·경미 2건(환불 실패를 정산 완료로 표시, 고객 환불 요청 뒤 문구) 수정. 경미 3(재개방 횟수 상한 없음)은 승인 범위 밖이라 보고만. payment-freeze 통과(--update 불필요), 본문 노출 없음, `/retry` CAS 건전, 이중 환불은 `refundPassCoverage` refundId(=resultId) 멱등에 기댐(코드 미검증).
+- 저장소: 찻집은 원시 컬렉션 `honeyCollections().results`(`_id` `fortune-tea-house-result:…`, scope `FORTUNE_TEA_HOUSE`).
+- 보류 방식(`markFortuneTeaHouseGenerationFailed`): 종결 실패(라운드 상한 등)·정체를 `generation_failed` + `llmMeta.retryable={since, refundAt(생성+7일, retryRefundAt, 연장 없음), code, evidenceIds, reopens}` + `deliveryWatch:null` 로 저장하고 409 `RETRY_AVAILABLE`(`refunded:false`, `retry:{available, refundAt, resultId}`, 본문 없음)을 돌려준다. 환불·증빙 해제·지연 취소를 하지 않는다.
+- 즉시 환불 유지(가정): 결정적 실패 `/BASIS_MISSING|INVALID_INPUT/` · checkpoint 없는 옛 문서(`generationCheckpoint.requestBody` 없음) · Toss 네이티브(`auth.tossNative` 또는 `doc.tossNative`) · 창 밖 실패.
+- 재제출(`/consult` 같은 resultId): 보류 중이면 증빙을 해제하지 않고 409 보류 본문(표지의 evidenceIds 가 비었으면 현재 증빙을 기록). 이미 닫힌 보류(환불 요청·만료)면 정산 후 409 `GENERATION_FAILED`(환불 요청 건은 "환불을 요청하신 상담이에요…").
+- POST `/api/fortune-tea-house/retry`: 소유자 → 보류 없음 409, 창 만료면 정산 후 409, 아니면 CAS 로 generating 재개 + round=1 · 열린 그룹(`teaGroupNeedsWork`) attempts=0 · reopens+1. 결제 확인·차감 없음, 클라이언트가 같은 질문으로 `/consult` 재제출(같은 checkpoint 이어 쓰기).
+- POST `/api/fortune-tea-house/refund-request`: refundAt=now·refundRequestedAt CAS → `settleTeaRetryRefund`.
+- `settleTeaRetryRefund` 순서: 이용권 환불(`refundFortuneTeaHousePassSettlement`, refundId=resultId) → 실패하면 문서를 다시 읽어 `passRefund.pendingAt`·`refundedAt` 둘 다 없으면 'pending' 으로 두고 정산 표시 안 함(fail-closed, 크론이 재시도) → 표지 evidenceIds 해제 → 내부 Request 로 지연 취소 → `llmMeta.retryable.settledAt`·`refundReason`.
+- 정체(`settleStuckDelivery`): delivery_pending 이 아니고 창 안이면 retryable 보류(`outcome:'retryable'`). 아니면 기존 실패·환불, 표지가 있으면 `settledAt`·`RETRY_WINDOW_EXPIRED` 를 함께 쓰고 표지 증빙 해제.
+- `/pending`: 보류 건은 202 + 진행 + 보류 본문 + requestPayload, 닫힌 generation_failed 는 404.
+- 환불 크론: `consultation-delivery-refund.js` 흑월 블록 뒤 `options.teaHouseRetryRefunds || settleDueTeaHouseRetryRefunds`(limit 5) + try/catch(`{service:'fortune-tea-house', refundStatus:'pending'}`).
+- 복구 레지스트리: 변경 없음 — `consultationRecoveryFilter` 상태 목록(generating·partial·delivery_pending)에 generation_failed 가 없어 보류 건을 자동 재개하지 않는다.
+- 클라이언트(`src/features/fortune-tea-house/FortuneTeaHousePage.tsx`): `/pending` 탐침·제출 실패의 `RETRY_AVAILABLE` 이면 "상담문 작성이 잠시 멈췄어요" 카드 + "다시 시도 · 추가 결제·차감 없음" · "다시 시도 대신 환불 요청" · 내 상담함 링크(일수·날짜 약속 없음). 환불 요청 성공 시 복구 상태·attemptId 초기화 + 안내. 새 import 없음 → Toss 하네스 스텁 불필요. 🔴 app/** 를 안 고쳐도 원장 서명은 `src/features/**` 를 따라 바뀐다 → 체인 첫 회가 sitemap 드리프트로 막혀 `6759ad789` 로 재생성(/fortune-tea-house/ 서명 1건).
+- 테스트: 새 `__tests__/worker/fortune-tea-house-retry-hold.test.js`(정체 보류·/retry·/refund-request·settleDue), `fortune-tea-checkpoint-failure`(보류 재제출이 증빙을 해제하지 않음), `fortune-tea-house-tarot-cardwise`(라운드 상한 → RETRY_AVAILABLE·refunded:false 로 기대 변경), UI `fortune-tea-house-recovery.behavior`(다시 시도·환불 요청 2건), `consultation-delivery-refund`(크론 1건), 픽스처 `fortune-tea-result-store.cjs`(비교 연산자·$or·project).
+- 대상 실행: jest 찻집 관련 21 스위트 406 통과 · node --test 찻집 UI 41/41 · consultation-delivery-refund 55/55 · tsc 0 · verify paid-llm-delivery(36 계약·변이 36/36)·tea perf budget·paid-gate-ui-regression 통과.
+- 체인(베이스 `bcce826eb`, HEAD `6759ad789`, 2026-11-20 실측, 전부 exit 0): ① `check:fast -- --base=bcce826eb` — critical(typecheck 포함), jest 484 스위트 8308 통과(1 skip). 첫 회는 sitemap 원장 드리프트로 막힘 → `6759ad789` ② `run-paid-gate-suite --base=bcce826eb` 91/91(764.8s, 플레이크 없음. `dd51e5355` 기준 앞 회차도 91/91·1562s) ③ `npm test --prefix apps/toss`(정션) 1765/1765(58s), 정션 제거·원본 node_modules 무사 확인 ④ verify-myeongri-tables OK(29건·잔차 0).
+- 위험·가정(최종 보고): 이용권 구매의 `deliveryAccessKey` 가 재개 때 바뀔 수 있음 · 증빙 재청구 멱등(replayed) 가정 · 지연 사용(deferred usage) TTL 없음 가정 · 보류 건은 일반 환불을 막으므로 환불은 `/refund-request`·크론으로만 · 보류 건 `/pending` 접근 확인 유지 · 감사 미검증: 해제된 증빙이 다른 resultId 에 재사용될 수 있는지, 이용권 만료 뒤 재제출이 정산 재생인지 402 인지, `refundPassCoverage` 동시 호출 멱등 · `consultation-delivery-refund.js` 가 paid-flow-gates·deep tier 에 없음(기존, 보고만) · 보관함(/records) 표시는 R7b.
 
 ### R5 연애 비책 (2026-11-20, 워크트리 커밋 `4c81511e5`·`3926da828`·`1968b0488`)
 - 사전 감사: paid-gate-auditor · regression-scout 실행 뒤 착수(앞 세션).
