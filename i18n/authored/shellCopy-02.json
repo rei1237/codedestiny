@@ -688,17 +688,17 @@
   },
   "home.passMini.primaryAction": {
     "ko": "꿀단지 이용권 살펴보기",
-    "en": "Find the pass that fits me",
-    "ja": "自分に合ったパスを見つける",
-    "zh-CN": "找到适合我的通行证",
-    "zh-TW": "找到適合我的通行證",
-    "vi": "Tìm pass phù hợp với tôi",
-    "hi": "वह पास ढूंढें जो मेरे लिए उपयुक्त हो",
-    "es": "Encuentra el pase que me conviene",
-    "fr": "Trouver le pass qui me convient",
-    "de": "Finden Sie den Pass, der zu mir passt",
-    "nl": "Vind de pas die bij mij past",
-    "ms": "Cari pas yang sesuai dengan saya"
+    "en": "Explore the Honey Jar Pass",
+    "ja": "はちみつ壺利用券を見てみる",
+    "zh-CN": "查看蜜罐通行证",
+    "zh-TW": "查看蜜罐通行證",
+    "vi": "Xem Vé Hũ Mật Ong",
+    "hi": "शहद जार पास देखें",
+    "es": "Ver el Pase Tarro de Miel",
+    "fr": "Découvrir le Pass Pot de Miel",
+    "de": "Honigglas-Pass ansehen",
+    "nl": "Honingpot-pas bekijken",
+    "ms": "Lihat Pas Balang Madu"
   },
   "home.passMini.chipsAria": {
     "ko": "이용권 핵심 혜택",
