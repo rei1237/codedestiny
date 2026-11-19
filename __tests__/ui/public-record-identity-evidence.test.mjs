@@ -38,3 +38,12 @@ test('visible official source labels and Article citations use the same row data
   assert.match(c.description, /2025년 윤석열 탄핵 가능성/);
   assert.match(c.answer, /정확한 날짜를 예고한 기록은 아닙니다/);
 });
+
+test('webtoon links the two illustrated records to the canonical comparison once in server markup', async () => {
+  const { entryCuts } = await import('../../lib/brand/entry-webtoon.mjs');
+  assert.deepEqual(entryCuts().filter(cut => cut.kind === 'record').map(cut => cut.id), ['record-first', 'record-second']);
+  const webtoon = readFileSync(new URL('../../app/_entry/EntryWebtoon.tsx', import.meta.url), 'utf8');
+  assert.match(webtoon, /import \{ PUBLIC_RECORD_PATH \} from '@\/lib\/seo\/public-record-copy\.mjs'/);
+  assert.equal(webtoon.split('href={PUBLIC_RECORD_PATH}').length - 1, 1);
+  assert.match(webtoon, /case 'record':[\s\S]*?<RecordCard[\s\S]*?cut\.id === 'record-second' && <a [^>]*href=\{PUBLIC_RECORD_PATH\}>공개 원문과 실제 사건 비교 보기<\/a>/);
+});

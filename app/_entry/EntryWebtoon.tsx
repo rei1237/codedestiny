@@ -1,6 +1,7 @@
 import { ENTRY_WEBTOON, entryCuts } from '@/lib/brand/entry-webtoon.mjs';
 import { Fragment } from 'react';
 import { SERVICE_GUIDE_LABEL } from '@/lib/brand/service-guide-webtoon.mjs';
+import { PUBLIC_RECORD_PATH } from '@/lib/seo/public-record-copy.mjs';
 import { cmsRecordFlat } from '@/lib/cms/build-text';
 import { homeCopyDefaults, HOME_COPY_BANNED, HOME_COPY_MAX_LENGTH } from '@/lib/cms/home-copy.mjs';
 import { HOME_CONCERNS, freeEntryHref } from '@/lib/marketing/home-concerns.mjs';
@@ -95,7 +96,11 @@ function CutBody({ cut, prices, firstImageId, entryHref }: { cut: EntryCut; pric
       </figure>;
     case 'record': {
       const record = cut.recordIndex === undefined ? undefined : trustStories.PRESIDENTIAL_RECORDS[cut.recordIndex];
-      return <><Lines cutId={cut.id} lines={cut.lines} />{record && <RecordCard record={record} />}</>;
+      return <>
+        <Lines cutId={cut.id} lines={cut.lines} />
+        {record && <RecordCard record={record} />}
+        {cut.id === 'record-second' && <a className={styles.textLink} href={PUBLIC_RECORD_PATH}>공개 원문과 실제 사건 비교 보기</a>}
+      </>;
     }
     case 'reviews':
       return <><Lines cutId={cut.id} lines={cut.lines} />
