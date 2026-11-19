@@ -62,7 +62,7 @@ function cronModel(db) {
   const rows = () => db.rows(NewYearAiConsultation);
   const lean = value => ({ lean: async () => value, sort() { return this; }, limit() { return this; }, select() { return this; } });
   return {
-    find: () => lean(rows().filter(row => ['generating', 'partial', 'delivery_pending'].includes(row.status)).map(row => structuredCloneKeepId(row))),
+    find: filter => lean(rows().filter(row => (filter?.status?.$in || ['generating', 'partial', 'delivery_pending']).includes(row.status)).map(row => structuredCloneKeepId(row))),
     findOne: filter => lean(db.findOne(NewYearAiConsultation, filter)),
     updateOne: async (filter, update) => {
       const out = await db.updateOne(NewYearAiConsultation, filter, update);
@@ -136,13 +136,25 @@ describe('(a) 실동작: 결제된 new-year-ai 생성의 종결', () => {
     expect(spend(db)).toBe(COST);
   });
 
-  test('② 모든 시도 실패: 복구가 진전 없이 반복되면 정체 감시가 확정 실패 + 이용권 실복원으로 끝낸다', async () => {
+  test('② 모든 시도 실패: 정체 감시가 다시 시도 가능 실패로 두고(차감 유지), 7일 안에 못 받으면 이용권을 실복원한다', async () => {
     const db = memoryDb(); seedUser(db);
     await payWithPass(db, 'req-partial');
     seedConsultation(db, 'partial', { llmMeta: { savedSections: [{ key: 'opening', text: '초안' }] } });
     const resume = jest.fn(async () => new Response('{}', { status: 503 }));
     for (let i = 0; i < 7; i += 1) await runCron(db, START + i * 600000, resume);
     expect(resume).toHaveBeenCalledTimes(6);
+    // 다시 시도 창: 결과는 숨긴 채 무료 다시 시도를 열어 두고 환불하지 않는다.
+    const failed = consultation(db);
+    expect(failed.status).toBe('generation_failed');
+    expect(failed.llmMeta.retryable).toBeTruthy();
+    expect(failed.llmMeta.deliveryRefund).toBeUndefined();
+    expect((await runPendingConsultationRefunds({}, refundDeps(db))).outcomes).not.toEqual(expect.arrayContaining([expect.objectContaining({ service: SERVICE })]));
+    expect(spend(db)).toBe(COST);
+    // 창이 지나면 복구 크론이 환불 대상으로 넘기고, 기존 환불 크론이 실제 복원한다.
+    const due = new Date(failed.llmMeta.retryable.refundAt).getTime();
+    await runCron(db, due, resume);
+    expect(consultation(db).llmMeta.refundEligibleAt).toBe(new Date(due).toISOString());
+    await runPendingConsultationRefunds({}, { ...refundDeps(db), now: due + 60000 });
     expect(expectDelivered(db)).toBe('refunded');
     expect(spend(db)).toBe(0);
     expect(consultation(db).llmMeta.savedSections[0].text).toBe('초안'); // 초안은 보존

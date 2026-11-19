@@ -3,7 +3,8 @@ import { connectDb, withMongoRetry } from './db.js';
 import * as models from './models.js';
 import { runWithAiLocale, storedAiLocale } from './ai-locale-context.js';
 import { runPendingConsultationRefunds } from './consultation-delivery-refund.js';
-import { STUCK_SETTLERS, GENERIC_STUCK_SETTLERS, shouldSettleStuck, settleStuckConsultation, recordDeliveryWatch, logStuckUnsettled } from './paid-delivery-stuck.js';
+import { STUCK_SETTLERS, GENERIC_STUCK_SETTLERS, RECOVERY_WINDOW_MS, shouldSettleStuck, settleStuckConsultation, recordDeliveryWatch, logStuckUnsettled,
+  expireRetryableConsultations } from './paid-delivery-stuck.js';
 
 // Each adapter resumes an existing owner-scoped record through its normal
 // payment, lease, persistence and per-part budget checks. No insert or grant here.
@@ -30,7 +31,7 @@ const loadAdapters = {
   'karma-destiny-ai': () => import('../routes/karma-destiny-ai.js'),
   'fortune-tea-house': () => import('../routes/fortune-tea-house.js'),
 };
-const IDLE_MS = 300000, MAX_AGE_MS = 7 * 86400000, TASK_MS = 240000, WAVE_MS = 65000;
+const IDLE_MS = 300000, MAX_AGE_MS = RECOVERY_WINDOW_MS, TASK_MS = 240000, WAVE_MS = 65000;
 export function consultationRecoveryFilter(now, extra) {
   return { ...extra, _id: { $gte: Types.ObjectId.createFromTime(Math.floor((now - MAX_AGE_MS) / 1000)) },
     status: { $in: ['generating', 'partial', 'delivery_pending', ...(['tarot-celestial-harmony','heukwol-warning-consultation'].includes(extra.featureKey) ? ['pending'] : [])] },
@@ -39,11 +40,20 @@ export function consultationRecoveryFilter(now, extra) {
 export async function runConsultationRecovery(env, options = {}) {
   const now = options.now || Date.now(), deadline = now + TASK_MS;
   await (options.connectDb || connectDb)(env);
+  const catalog = options.adapters || CONSULTATION_RECOVERY_ADAPTERS;
+  // 다시 시도 창(7일)이 지난 공용 설정자 건을 먼저 환불 대상으로 넘겨 같은 크론의 환불 정산이 바로 고르게 한다.
+  const expired = [];
+  for (const [route, modelName] of catalog) {
+    if (!modelName || !GENERIC_STUCK_SETTLERS.includes(route)) continue;
+    try {
+      const out = await expireRetryableConsultations((options.models || models)[modelName], now);
+      if (out.expired) expired.push({ service: route, expired: out.expired });
+    } catch { expired.push({ service: route, code: 'RETRY_EXPIRE_PENDING' }); }
+  }
   // Financial obligations outlive the generation window and do not wait for LLM.
   let refunds;
   try { refunds = await (options.refundRecovery || runPendingConsultationRefunds)(env); }
   catch { refunds = { outcomes: [{ refundStatus: 'pending' }] }; }
-  const catalog = options.adapters || CONSULTATION_RECOVERY_ADAPTERS;
   // Rotate first service so a slow provider cannot permanently starve later ones.
   const offset = Math.floor(now / 600000) % catalog.length;
   const adapters = [...catalog.slice(offset), ...catalog.slice(0, offset)];
@@ -94,6 +104,6 @@ export async function runConsultationRecovery(env, options = {}) {
       outcomes.push({ service: route, code: String(error?.code || 'RECOVERY_PENDING').slice(0, 80) });
     }
   }
-  console.log('[consultation-recovery]', JSON.stringify({ outcomes, refunds }));
-  return { ok: true, outcomes, refunds };
+  console.log('[consultation-recovery]', JSON.stringify({ outcomes, refunds, ...(expired.length ? { expired } : {}) }));
+  return { ok: true, outcomes, refunds, ...(expired.length ? { expired } : {}) };
 }
