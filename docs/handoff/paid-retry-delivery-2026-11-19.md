@@ -1,7 +1,7 @@
 ---
 status: in-progress
-updated: 2026-11-19
-next: "R2b 네오 첫 브리핑 다시 시도 우선(승인됨) → R5~R7. R1·R3·R4 묶음은 준비됨(R4 체인 통과)이나 머지·push 는 R9 에서"
+updated: 2026-11-20
+next: "R5 연애 비책 다시 시도 우선 → R6·R7. R1·R2b·R3·R4 묶음은 준비됨(R2b 체인 결과는 실측 절)이나 머지·push 는 R9 에서"
 ---
 
 # 유료 LLM "다시 시도로 반드시 결과 받기" 인수인계
@@ -20,7 +20,8 @@ next: "R2b 네오 첫 브리핑 다시 시도 우선(승인됨) → R5~R7. R1·R
 ## 지금 상태
 - main = `b3b77221c` 시점에 작성. 운영 = `25d9bc034`(2026-11-19 Release run 44501694109 성공, S13·S15·S16 반영).
 - 워크트리 `D:\Development\codedestiny-worktrees\paid-retry-20261119-195316`, 브랜치 `wt/paid-retry-20261119-195316`, 기점 `bcce826eb`.
-- 커밋(push·main 머지 안 함): `e11840bf4` R1 · `e62ce85fd` R2 수정 라운드 · `89c05a3bc` sitemap 원장(네오 결과 화면 서명) · `3915323c7` 7일=생성 시각 · `9f725b7a3`+`39fcbd4a0` R3 · `14a12f0d1`+`d7eea47b5` R4 · `7ed35229a` 보안 버킷(R3·R4 공통) · `0a3f1942d` Toss 하네스 · 이 문서 갱신 커밋.
+- 커밋(push·main 머지 안 함): `e11840bf4` R1 · `e62ce85fd` R2 수정 라운드 · `89c05a3bc` sitemap 원장(네오 결과 화면 서명) · `3915323c7` 7일=생성 시각 · `9f725b7a3`+`39fcbd4a0` R3 · `14a12f0d1`+`d7eea47b5` R4 · `7ed35229a` 보안 버킷(R3·R4 공통) · `0a3f1942d` Toss 하네스 · `b402a1ef7` 문서 · R2b `e86b0c779`·`d113288d1`·`e89217af9`·`4e5eae70d`·`d7be2c558` · 이 문서 갱신 커밋.
+- R2b 의 `d113288d1`(환불 크론)은 `e89217af9`(라우트의 `settleDueNeoRetryRefunds`)와 함께 머지해야 한다 — 단독이면 try/catch 로 막히지만 네오 창 경과 환불이 돌지 않는다. R1·R2b·R3·R4 를 한 묶음으로.
 - 🔴 R1 은 단독으로 머지·push 하지 않는다 — 신년·인생의 책에 다시 시도 UI·재개 엔드포인트(R3·R4)가 없어, 그 상태로 나가면 고객은 최대 7일간 실패 화면만 보고 환불도 받지 못한다. → 2026-11-19 R3·R4 완료로 R1·R3·R4 는 한 묶음으로 머지 가능(R9 에서, 묶음째로만).
 
 ## 승인 상태
@@ -50,9 +51,9 @@ next: "R2b 네오 첫 브리핑 다시 시도 우선(승인됨) → R5~R7. R1·R
 
 - [x] R0 지도: 대표 7종마다 실패·정체 시 상태/환불 호출 위치/클라이언트 표시/재시도 진입점(API·버튼)을 `파일:줄` 표로. 이 문서 아래 "실측"에 붙인다.
 - [x] R1 공용: `paid-delivery-stuck.js` 정체 → `retryable` 전환, 7일 뒤 환불로 이동. 공용 "다시 시도" 헬퍼(빠진 장만 재생성 대기로 되돌림, 결제 건 소유 확인). 테스트 먼저(TDD). — `e11840bf4`
-- [ ] R2 네오(첫 브리핑 + 수정 라운드 버튼 확인) — **부분 완료.** 수정 라운드 '같은 답변으로 다시 시도'는 완료(`e62ce85fd`). 첫 브리핑 다시 시도 우선은 기존 환불 장치와 충돌해 멈춤(실측 "R2 네오 첫 브리핑 차단 근거", 사용자 결정 대기).
+- [x] R2 네오(첫 브리핑 + 수정 라운드 버튼 확인) — 수정 라운드 '같은 답변으로 다시 시도'(`e62ce85fd`), 첫 브리핑은 R2b 에서 완료.
   - [x] R1 기한 정정(사용자 결정 2): 생성 + 7일, 연장 없음, 생성 7일 지난 첫 정체는 바로 환불. — `3915323c7`
-- [ ] R2b 네오 첫 브리핑 다시 시도 우선(사용자 승인 2026-11-19 "다시 시도 먼저로 변경 (추천)"). 차단 요소를 함께 고친다:
+- [x] R2b 네오 첫 브리핑 다시 시도 우선(사용자 승인 2026-11-19 "다시 시도 먼저로 변경 (추천)") — `e86b0c779`+`d7be2c558` 가드 · `d113288d1` 환불 크론 · `e89217af9` 라우트·클라이언트·테스트 · `4e5eae70d` sitemap 원장. 상세·검사는 실측 "R2b 네오 첫 브리핑". 아래는 고친 차단 요소(당시 줄 번호):
   - `worker/lib/checkpoint-refund-guard.js:41` — `generation_failed` 를 '결과 없음'으로 분류해 `service-execution-task.js` `settleExecutionById`(:846)·`sweepStaleServiceExecutions`(:1484/:1502)가 약 10분 뒤 자동 환불한다. retryable 표지가 있고 창 안이면 결과 없음이 아니라 보류로 분류해야 한다.
   - 네오가 `consultation-delivery-refund.js` `SERVICES` 에 없다 → 7일 뒤/고객 요청 환불 수집기가 없다(추가 또는 네오 전용 수집기).
   - 핸들러 catch 의 즉시 환불 `refundNeoGenerationFailure`(:1957), 장당 8회 상한(:1070, :1864), 시작·재개 409 차단(:1801, GET /result :2006-2013).
@@ -198,7 +199,21 @@ S15 품질: 한자 증가, 연애 비책 용신 데이터("금") vs 판정(토) 
 - (a) 새 상태 enum 을 추가하지 않고 `generation_failed` + `llmMeta.retryable` 표지로 '다시 시도 가능'을 나타낸다. 기존 화면·크론이 `generation_failed` 를 실패로 다루는 경로를 그대로 쓴다.
 - (b) ~~7일은 다시 시도 가능으로 바뀐 시각부터 센다~~ → **사용자 결정(2026-11-19 "결제(생성 시작) 후 7일 (추천)")으로 생성 시각 + 7일**(`retryRefundAt(doc)`: createdAt → `_id` 시각 → now 순). 기존 `refundAt` 은 늘리지 않는다. `3915323c7`.
 - (c) 🔴 R1 단독 배포 금지(위 '지금 상태').
-- (d) 네오 첫 브리핑은 이번 묶음에서는 기존 즉시 환불을 유지한다. 사용자가 '다시 시도 먼저'를 승인했으므로 R2b 에서 바꾼다.
+- (d) 네오 첫 브리핑은 이번 묶음에서는 기존 즉시 환불을 유지한다. 사용자가 '다시 시도 먼저'를 승인했으므로 R2b 에서 바꾼다. → R2b 완료.
+
+### R2b 네오 첫 브리핑 (2026-11-19~20, 워크트리 커밋 `e86b0c779`·`d113288d1`·`e89217af9`·`4e5eae70d`·`d7be2c558`)
+- 사전 감사: paid-gate-auditor · regression-scout(공용 스위퍼 `service-execution-task.js`·`checkpoint-refund-guard.js`) 실행 뒤 착수.
+- 가드: `checkpoint-refund-guard.js` 가 `neo-operation-room-consultation` 의 `generation_failed` 중 retryable 표지가 있고 창(생성+7일) 안·환불 전(deliveryRefund·refundEligibleAt·billingCleanupPending 없음)인 것만 `recoverable`. 그 밖의 서비스·창 경과·환불 시작·`includeResumable:false` 는 기존 `missing`. 🔴 함정: 처음엔 `paid-delivery-stuck.js` 의 `publicRetryState` 를 import 했는데 그 모듈이 mongoose `Types` 를 끌어와 `cron-shared-connection-teardown` jest 2건이 깨졌다(mongoose 모의에 Types 없음) → 같은 판정을 가드 안에 인라인(`d7be2c558`).
+- 환불 크론: `runPendingConsultationRefunds` 끝에 `settleDueNeoRetryRefunds`(옵션 `neoRetryRefunds` 로 주입 가능, try/catch 로 격리 — 실패는 `{service:'neo-operation-room', refundStatus:'pending'}`). 직접 호출 테스트(`paid-llm-delivery-contract`)는 스텁 주입 필요 — 안 하면 실제 라우트 DB 대기로 5s 타임아웃.
+- 라우트(`worker/routes/neo-operation-room.js`): handleStart catch → `neoRetryMeta` 가 null 이 아니면 `generation_failed` + `llmMeta.retryable` 저장, 503 `{reason:'LLM_ERROR', refunded:false, retry:{available, refundAt, sessionId}}`. 시작 409·GET /result 409 에도 같은 retry 표지(계산 오류 제외). POST `/retry`(소유자 CAS reopen + `neoRetryReset`: 8회 상한에 닿은 장 시도 수 0·`:lengthRepair` 삭제 → `handleStart` 한 웨이브) · POST `/refund-request`(`markRetryableRefundDue` → `settleNeoRetryRefund`). `settleDueNeoRetryRefunds`: 창 경과 건을 `expireRetryableConsultations` 로 환불 예약 → 예약 건을 `refundNeoGenerationFailure`(증빙 해제·실행 실패·이용권 복원·카드 환불, 단계별 멱등)로 정산, 카드 환불 'failed' 면 표지를 남겨 다음 크론에서 재시도. 정체(`settleStuckDelivery`)도 창 안이면 retryable 로, 창 밖이면 기존 환불.
+- 즉시 환불 유지(가정): Toss 네이티브(요청·저장 문서), 계산 오류(`/BIRTH|CHART|CALCULATION/`), 결정론적 조립 실패(반복 문단·완성 판정 실패 — `noRetry`), 결제 취소(revoked) 정체.
+- 클라이언트: `paid-delivery.ts` `readNeoRetryOffer` + 1차 브리핑 오류에 `retryOffer` 를 실음. 결과 화면 실패 카드에 "다시 시도 · 추가 결제·차감 없음"·"다시 시도 대신 환불 요청"(웹 전용), 그동안 '작전 다시 짜기' 버튼 숨김. 두 버튼은 sessionId 만 보내고 결제·충전으로 가지 않는다. 문구 7키 × 5로케일(`result-copy.ts`), 일수 약속 없음. 기한 경과·환불 시작 응답이면 기존 자동 환불 안내로 닫는다.
+- 보안 버킷: `/retry`·`/refund-request` 는 R4 의 접미 정규식(`7ed35229a`)이 이미 덮는다 — 변경 없음, `verify-worker-security-guards` 통과.
+- Toss 하네스: `apps/toss/test/neo-result-permissions.test.mjs` vm 컨텍스트에 `setRetryOffer` 스텁. 웹 UI `neo-wake-recovery` 도 같은 스텁.
+- 대상 실행: 네오·가드 jest 129/129(teardown 포함), contract·recovery-task·stuck·guard·neo 198/198, UI collector node 52/52, 네오 UI node 42/42. verify paid-llm-delivery·payment-legal-copy·no-nested-retry·llm-generation-resilience·payment-service-boundary·worker-security-guards·payment-freeze(--update 없이) 통과, build:worker + worker-size OK(6.18 MiB gzip).
+- 체인(베이스 `bcce826eb`, HEAD `d7be2c558`, 2026-11-20 실측, 전부 exit 0): ① check:fast — critical, jest 483 스위트 8280 통과(1 skip), 내부 paid-gate 78/78 ② `run-paid-gate-suite` 단독 91/91(749s) ③ `npm test --prefix apps/toss`(정션) 1765/1765 ④ verify-myeongri-tables OK(29건·잔차 0). 첫 check:fast 는 sitemap 드리프트, 두 번째는 위 teardown 2건으로 막혔다가 고친 뒤 통과.
+- sitemap: 원장 재생성(`4e5eae70d`) — 실제 변경은 네오 결과 화면 서명 1건, 나머지 376줄은 KST 자정 lastmod 롤링(11-19→11-20). R9 머지 때 main 원장과 다시 맞춘다.
+- 위험·가정(최종 보고): 창 안 이용권 만료 시 다시 시도가 402 가 될 수 있음(미검증) · 일반 실패에 붙는 관리자 검토 표지는 아직 읽는 곳 없음 · 스위퍼 일일 30건 한도에서 다른 건 지연 가능성 · 환불 요청과 크론 동시 실행은 단계별 멱등에 기댄다 · Paid Flow Gates CI 는 이 파일들로 트리거되지 않을 수 있음.
 
 ### R3·R4 최종 검사 (워크트리 HEAD `7ed35229a` + `0a3f1942d`, --base=`bcce826eb`)
 - 대상 실행: 신년 UI·관련 node --test 150/150, 신년 워커 jest 34/34, paid-delivery-stuck·consultation-recovery-task jest 32/32, 보안 jest 79/79, tsc --noEmit 0. verify new-year-ai-flow·llm-generation-resilience·paid-gate-ui-regression·payment-freeze·payment-legal-copy·no-nested-retry·paid-gate-no-dead-end·static-paid-gate-failsafe·report-paid-delivery-inventory 통과.
@@ -215,7 +230,7 @@ S15 품질: 한자 증가, 연애 비책 용신 데이터("금") vs 판정(토) 
 - `POST /api/life-book-ai/retry {sessionId}`: 소유자 확인 → reopen(reset) → 기존 재개(`handleStart` + `resumeSessionId`) 한 웨이브. 새 차감 없음(차감은 전달 시 `applyUsageOnce` 1회, 같은 멱등 키).
 - `POST /api/life-book-ai/refund-request {sessionId}`: `markRetryableRefundDue` → 즉시 `settleLifeBookFailureRefund`(크론은 예비).
 - 금지(감사): 새 `resolveBillingGateAccess`·`applyUsageOnce`·`claim*BillingEvidence` 호출 금지, 클라이언트 다시 시도가 결제창·/points 로 가지 않음, 환불 문구에 'N일 이내 환불 가능' 약속 금지, `restoreAccessBeforeGenerationFailure`·`cancelDeferredBillingUsage`·`settleFailedConsultationRefund` 참조 유지(검증기). worker 와 클라이언트를 한 커밋에(Paid Flow Gates 트리거).
-- (e) `expireRetryableConsultations` 는 공용 설정자(new-year-ai·life-book-ai)에만 걸려 있다. 전용 `settleStuckDelivery` 를 쓰는 5종(흑월·네오·찻집·코덱스·연애 비책)은 아직 즉시 환불이다(R5~R7 대상).
+- (e) `expireRetryableConsultations` 는 공용 설정자(new-year-ai·life-book-ai)에만 걸려 있다. 전용 `settleStuckDelivery` 를 쓰는 5종(흑월·네오·찻집·코덱스·연애 비책)은 아직 즉시 환불이다(R5~R7 대상). → 네오는 R2b 에서 전용 `settleStuckDelivery` 안에 retryable 분기 + `settleDueNeoRetryRefunds` 크론으로 처리했다. R5~R7 도 같은 모양(서비스 라우트에 settleDue…, `consultation-delivery-refund.js` 에 주입 가능한 옵션 + try/catch, 가드는 서비스 featureKey 로 좁혀 인라인)을 참고한다.
 
 ### R0~R2 최종 검사 (워크트리 HEAD `89c05a3bc`, --base=`bcce826eb`)
 - `npm run check:fast -- --base=bcce826eb` → exit 0 (critical 자동 승격, typecheck·lint·sitemap-drift·verify 다수 통과, jest 483 스위트 · 8261 통과 / 1 skip).
