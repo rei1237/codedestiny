@@ -1,5 +1,5 @@
 import { PUBLIC_RECORD_PATH } from './seo/public-record-copy.mjs';
-import { PRESS_COVERAGE } from './seo/press-coverage.mjs';
+import { PRESS_ARTICLES } from './seo/press-coverage.mjs';
 import { toAbsoluteUrl } from "./seo";
 import { siteSeo } from "./seo/siteSeo";
 import { FUSION_FORTUNE_PROFILE } from "./seo/entity-registry.mjs";
@@ -104,7 +104,7 @@ export function buildOrganizationJsonLd() {
       { "@type": "Thing", name: "서양 점성술" },
       { "@type": "Thing", name: "타로" },
     ],
-    subjectOf: { "@type": "NewsArticle", url: PRESS_COVERAGE.url, headline: PRESS_COVERAGE.headline, datePublished: PRESS_COVERAGE.datePublished },
+    subjectOf: PRESS_ARTICLES.map(({ url, headline, datePublished, publisher }) => ({ "@type": "NewsArticle", url, headline, datePublished, publisher: { "@type": "Organization", name: publisher } })),
     sameAs: siteSeo.sameAs,
   };
 }
