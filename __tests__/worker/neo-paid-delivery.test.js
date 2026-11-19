@@ -24,6 +24,7 @@ function matches(doc, filter) {
       if ("$in" in value) return value.$in.includes(get(doc, key));
       if ("$exists" in value) return (get(doc, key) !== undefined) === value.$exists;
       if ("$lt" in value) return new Date(get(doc, key)) < value.$lt;
+      if ("$lte" in value) return new Date(get(doc, key)) <= value.$lte;
     }
     return String(get(doc, key)) === String(value);
   });
@@ -125,6 +126,7 @@ beforeEach(() => {
  fetchBlock=jest.spyOn(globalThis,'fetch').mockImplementation(()=>{throw new Error('External fetch blocked')});
 });
 afterEach(()=>{expect(fetchBlock).not.toHaveBeenCalled();fetchBlock.mockRestore()});
+async function post(path, payload) { return route(new Request(`https://mock.test/api/neo-operation-room/${path}`,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(payload || {sessionId:docs[0].id})}),{}); }
 async function start(extra) { return route(new Request('https://mock.test/api/neo-operation-room/start',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(extra || (docs[0] ? {sessionId:docs[0].id}:body))}),{}); }
 for(const paid of ['pass','monthly','paid']) it(`${paid}: four waves save and reuse all fourteen sections`,async()=>{
  mode=paid;
@@ -137,19 +139,22 @@ for(const status of ['delivery_pending','completed']) for(const kind of ['null',
 });
 for(const store of [0,1,2,3]) it(`revoked store ${store} rejects resume`,async()=>{await start();blocked=store;const count=provider.mock.calls.length;expect((await start()).status).toBe(402);expect(provider).toHaveBeenCalledTimes(count)});
 it('bookkeeping failure does not hide completed delivery',async()=>{usage.mockImplementation(()=>{throw new Error('ledger unavailable')});for(let i=0;i<3;i++)await start();expect((await start()).status).toBe(200);expect(docs[0].status).toBe('completed')});
-// 2026-11-19 S16: 챕터 시도 상한은 라운드 4회 × 2라운드 = 8회. 소진되면 축소 전달 없이 generation_failed + 전액 환불.
-it('short generation has a cumulative limit and no completion reward',async()=>{provider.mockImplementation(async()=>({ok:true,text:'{"short":"empty"}'}));for(let i=0;i<8;i++)expect((await start()).status).toBe(202);expect((await start()).status).toBe(503);expect(provider).toHaveBeenCalledTimes(32);expect(docs[0].status).toBe('generation_failed');expect(usage).not.toHaveBeenCalled();expect(passRefund).toHaveBeenCalledTimes(1);expect(passRefund).toHaveBeenCalledWith(expect.objectContaining({featureKey:"neo-operation-room-consultation",requestId:"original-paid-request"}))});
+// 2026-11-19 S16: 챕터 시도 상한은 라운드 4회 × 2라운드 = 8회. 소진되면 축소 전달 없이 generation_failed.
+// 2026-11-19 R2b 다시 시도 우선: 웹 첫 브리핑 실패는 바로 환불하지 않고 무료 다시 시도를 연다. 환불은 고객 요청 때 한 번.
+it('short generation has a cumulative limit and no completion reward',async()=>{provider.mockImplementation(async()=>({ok:true,text:'{"short":"empty"}'}));for(let i=0;i<8;i++)expect((await start()).status).toBe(202);const failed=await start();expect(failed.status).toBe(503);expect(await failed.json()).toMatchObject({reason:'LLM_ERROR',refunded:false,retry:{available:true,sessionId:docs[0].id}});expect(provider).toHaveBeenCalledTimes(32);expect(docs[0].status).toBe('generation_failed');expect(docs[0].llmMeta.retryable.refundAt).toBeTruthy();expect(usage).not.toHaveBeenCalled();expect(passRefund).not.toHaveBeenCalled();expect(refund).not.toHaveBeenCalled();
+ const asked=await post('refund-request');expect(asked.status).toBe(200);expect(await asked.json()).toMatchObject({ok:true,sessionId:docs[0].id});expect(passRefund).toHaveBeenCalledTimes(1);expect(passRefund).toHaveBeenCalledWith(expect.objectContaining({featureKey:"neo-operation-room-consultation",requestId:"original-paid-request"}));expect(docs[0].llmMeta.refundEligibleAt).toBeTruthy();expect(docs[0].llmMeta.retryable.refundSettledAt).toBeTruthy();
+ expect((await post('refund-request')).status).not.toBe(500);expect(passRefund).toHaveBeenCalledTimes(1);expect((await post('retry')).status).toBe(409);expect(provider).toHaveBeenCalledTimes(32)});
 it.each([
   ['unsupported-location token count', { ok: false, error: 'LLM_INPUT_TOKEN_COUNT_UNAVAILABLE', providerCode: 'GEMINI_PRECONDITION_FAILED', status: 400, retryable: false }, 11],
   ['generation timeout', { ok: false, error: 'LLM_GENERATION_TIMEOUT' }, 8],
 ])('%s: only a call Gemini never billed hands its chapter attempt back (2026-10-30 HKG refund)', async (_name, failure, pendingWaves) => {
   mode = 'paid'; provider.mockImplementation(async () => failure);
   for (let i = 0; i < pendingWaves; i++) expect((await start()).status).toBe(202);
-  expect((await start()).status).toBe(503);
+  const failed = await start();
+  expect(failed.status).toBe(503);
+  expect(await failed.json()).toMatchObject({ refunded: false, retry: { available: true } });
   expect(provider).toHaveBeenCalledTimes(pendingWaves * 4);
-  const refunds = refund.mock.calls.filter(call => call[4] === 'neo_operation_room_generation');
-  expect(refunds).toHaveLength(1);
-  expect(refunds[0][3]).not.toMatch(/보존/);
+  expect(refund.mock.calls.filter(call => call[4] === 'neo_operation_room_generation')).toHaveLength(0);
   expect(usage).not.toHaveBeenCalled();
 });
 it('lease and ownership prevent concurrent and cross-account calls',async()=>{await start();const count=provider.mock.calls.length;docs[0].llmMeta.lockToken='other';docs[0].llmMeta.lockedAt=new Date();expect((await start()).status).toBe(202);expect(provider).toHaveBeenCalledTimes(count);userId='other';expect((await start()).status).toBe(404);userId=uid;docs[0].llmMeta.lockedAt=new Date(Date.now()-121000);expect((await start()).status).toBe(202);expect(provider).toHaveBeenCalledTimes(count+4)});
@@ -224,7 +229,7 @@ it('an in-progress response carries progress and ids only; completion delivers t
   expect(done.status).toBe('completed'); expect(JSON.stringify(done.initialBriefing)).toContain('번째 관찰은');
   expect(isNeoOperationRoomComplete(docs[0])).toBe(true);
 });
-it('one exhausted section never completes as a reduced report: retried to the cap, then generation_failed with one full refund and no body', async () => {
+it('one exhausted section never completes as a reduced report: retried to the cap, then a free retry completes it with no refund and one usage', async () => {
   mode = 'paid'; const normal = provider.getMockImplementation(); const section = definitions[5];
   provider.mockImplementation(async (...args) => args[1].includes(`제목: ${section.title}\n`) ? { ok: true, provider: 'gemini', text: '{}' } : normal(...args));
   let response;
@@ -236,9 +241,70 @@ it('one exhausted section never completes as a reduced report: retried to the ca
   expect(JSON.stringify(payload)).not.toContain('번째 관찰은');
   for (const key of NEO_BODY_KEYS) expect(payload).not.toHaveProperty(key);
   const cardRefunds = () => refund.mock.calls.filter(call => call[4] === 'neo_operation_room_generation');
-  expect(cardRefunds()).toHaveLength(1); expect(usage).not.toHaveBeenCalled();
-  const again = await start(); expect(again.status).not.toBe(200); expect(JSON.stringify(await again.json())).not.toContain('번째 관찰은');
-  expect(cardRefunds()).toHaveLength(1);
+  expect(cardRefunds()).toHaveLength(0); expect(usage).not.toHaveBeenCalled();
+  const again = await start(); expect(again.status).toBe(409); const blockedBody = await again.json();
+  expect(blockedBody).toMatchObject({ reason: 'LLM_ERROR', retry: { available: true, sessionId: docs[0].id } }); expect(JSON.stringify(blockedBody)).not.toContain('번째 관찰은');
+  const polled = await route(new Request(`https://mock.test/api/neo-operation-room/result?attemptId=${docs[0].id}`), {});
+  expect(polled.status).toBe(409); expect(await polled.json()).toMatchObject({ retry: { available: true } });
+  provider.mockImplementation(normal);
+  response = await post('retry');
+  for (let i = 0; i < 5 && response.status === 202; i++) response = await start();
+  expect(response.status).toBe(200); expect(docs[0].status).toBe('completed');
+  expect(cardRefunds()).toHaveLength(0); expect(refund).not.toHaveBeenCalled(); expect(usage).toHaveBeenCalledTimes(1);
+  expect(docs[0].llmMeta.retryable.reopens).toBe(1);
+});
+it('a retry is closed to other accounts, to native Toss and after the window', async () => {
+  provider.mockImplementation(async () => ({ ok: true, text: '{"short":"empty"}' }));
+  for (let i = 0; i < 9; i++) await start();
+  expect(docs[0].status).toBe('generation_failed'); const calls = provider.mock.calls.length;
+  userId = 'other'; expect((await post('retry')).status).toBe(404); expect((await post('refund-request')).status).toBe(404); userId = uid;
+  docs[0].llmMeta.retryable.refundAt = new Date(Date.now() - 1000);
+  const expired = await post('retry'); expect(expired.status).toBe(409); expect(await expired.json()).toMatchObject({ reason: 'RETRY_WINDOW_EXPIRED' });
+  expect(provider).toHaveBeenCalledTimes(calls); expect(docs[0].status).toBe('generation_failed'); expect(passRefund).not.toHaveBeenCalled();
+});
+it('a stored native Toss record keeps the immediate refund on terminal failure', async () => {
+  provider.mockImplementation(async () => ({ ok: true, text: '{"short":"empty"}' }));
+  expect((await start()).status).toBe(202); docs[0].llmMeta.tossNative = true;
+  let response; for (let i = 0; i < 8; i++) response = await start();
+  expect(response.status).toBe(503); expect(await response.json()).not.toHaveProperty('retry');
+  expect(docs[0].status).toBe('generation_failed'); expect(docs[0].llmMeta.retryable).toBeUndefined();
+  expect(passRefund).toHaveBeenCalledTimes(1);
+});
+describe('settleDueNeoRetryRefunds (recovery cron, retry window expiry)', () => {
+  let due, realFind;
+  beforeAll(async () => { ({ settleDueNeoRetryRefunds: due } = await import('../../worker/routes/neo-operation-room.js')); });
+  beforeEach(() => { realFind = model.find; model.find = filter => { const rows = docs.filter(doc => matches(doc, filter)); const chain = { sort: () => chain, limit: () => chain, select: () => chain, lean: async () => clone(rows) }; return chain; }; });
+  afterEach(() => { model.find = realFind; });
+  const fail = async () => { provider.mockImplementation(async () => ({ ok: true, text: '{"short":"empty"}' })); for (let i = 0; i < 9; i++) await start(); expect(docs[0].status).toBe('generation_failed'); };
+  it('nothing is refunded inside the window', async () => {
+    await fail();
+    expect(await due({}, { model })).toEqual([]);
+    expect(passRefund).not.toHaveBeenCalled(); expect(docs[0].llmMeta.refundEligibleAt).toBeUndefined();
+  });
+  it('after the window the failure is refunded once and never again', async () => {
+    await fail(); const after = new Date(docs[0].llmMeta.retryable.refundAt).getTime() + 1000;
+    expect(await due({}, { now: after, model })).toEqual([{ service: 'neo-operation-room', refundStatus: 'refunded' }]);
+    expect(passRefund).toHaveBeenCalledTimes(1);
+    expect(docs[0].llmMeta).toMatchObject({ refundEligibleAt: expect.any(String), retryable: { refundReason: 'RETRY_WINDOW_EXPIRED', refundStatus: 'refunded' } });
+    expect(await due({}, { now: after, model })).toEqual([]);
+    expect(passRefund).toHaveBeenCalledTimes(1);
+    expect((await post('retry')).status).toBe(409);
+  });
+  it('a reopened retry abandoned past the window is closed and refunded', async () => {
+    await fail(); expect((await post('retry')).status).toBe(202); expect(docs[0].status).toBe('partial');
+    const after = new Date(docs[0].llmMeta.retryable.refundAt).getTime() + 1000;
+    expect(await due({}, { now: after, model })).toEqual([{ service: 'neo-operation-room', refundStatus: 'refunded' }]);
+    expect(docs[0].status).toBe('generation_failed'); expect(passRefund).toHaveBeenCalledTimes(1);
+  });
+  it('a failed refund stays due for the next cron run', async () => {
+    mode = 'paid'; await fail(); refund.mockImplementation(async () => { throw new Error('pg down'); });
+    const after = new Date(docs[0].llmMeta.retryable.refundAt).getTime() + 1000;
+    expect(await due({}, { now: after, model })).toEqual([{ service: 'neo-operation-room', refundStatus: 'failed' }]);
+    expect(docs[0].llmMeta.retryable.refundSettledAt).toBeUndefined();
+    refund.mockImplementation(async () => ({ refunded: true }));
+    expect(await due({}, { now: after, model })).toEqual([{ service: 'neo-operation-room', refundStatus: 'refunded' }]);
+    expect(await due({}, { now: after, model })).toEqual([]);
+  });
 });
 it('a second attempt at 0.6x of the chapter minimum is accepted and delivered', async () => {
   const normal = provider.getMockImplementation(); const section = definitions[0]; let tries = 0;
@@ -255,9 +321,20 @@ describe('settleStuckDelivery (recovery cron stuck settlement)', () => {
   let settle;
   beforeAll(async () => { ({ settleStuckDelivery: settle } = await import('../../worker/routes/neo-operation-room.js')); });
   const later = () => Date.now() + 10 * 60 * 1000;
-  it('settles a stalled paid generation as generation_failed with one card refund, never twice and never with a body', async () => {
+  // 이 대역의 Payment 조회는 paid 모드에서 늘 회수됨으로 보이므로(회수 건은 기존 확정) 이용권으로 본다.
+  it('inside the retry window a stalled pass generation becomes a free retry, not a refund', async () => {
+    expect((await start()).status).toBe(202);
+    const result = await settle({}, { doc: { id: docs[0].id, userId: uid }, now: later(), model });
+    expect(result).toEqual({ outcome: 'retryable', refundAt: expect.any(String) });
+    expect(docs[0]).toMatchObject({ status: 'generation_failed', generationError: { code: 'DELIVERY_STUCK' } });
+    expect(docs[0].llmMeta.retryable.code).toBe('DELIVERY_STUCK');
+    expect(refund).not.toHaveBeenCalled(); expect(passRefund).not.toHaveBeenCalled();
+    expect(await settle({}, { doc: { id: docs[0].id, userId: uid }, now: later(), model })).toEqual({ outcome: 'progressed' });
+  });
+  it('after the retry window a stalled paid generation is generation_failed with one card refund, never twice and never with a body', async () => {
     mode = 'paid'; refund.mockImplementation(async () => ({ refunded: true }));
     expect((await start()).status).toBe(202);
+    docs[0].createdAt = new Date(Date.now() - 8 * 86400000);
     const result = await settle({}, { doc: { id: docs[0].id, userId: uid }, now: later(), model });
     expect(result).toEqual({ outcome: 'generation_failed', refundStatus: 'refunded' });
     expect(docs[0].status).toBe('generation_failed');
@@ -281,13 +358,21 @@ describe('settleStuckDelivery (recovery cron stuck settlement)', () => {
     expect(docs[0].status).toBe('completed'); expect(provider).toHaveBeenCalledTimes(calls);
     expect(passRefund).not.toHaveBeenCalled();
   });
-  it('an incomplete delivery_pending record is not rescued: generation_failed and the pass is restored', async () => {
+  it('an incomplete delivery_pending record is not rescued: retryable inside the window, the pass is restored after it', async () => {
     for (let i = 0; i < 3; i++) await start();
     fault = { kind: 'usage' }; await start();
     const sections = docs[0].llmMeta.sections; docs[0].llmMeta.sections = Object.fromEntries(Object.entries(sections).slice(0, 4));
+    expect((await settle({}, { doc: { id: docs[0].id, userId: uid }, now: later(), model })).outcome).toBe('retryable');
+    expect(passRefund).not.toHaveBeenCalled();
+    docs[0].status = 'delivery_pending'; delete docs[0].llmMeta.retryable; docs[0].createdAt = new Date(Date.now() - 8 * 86400000);
     const result = await settle({}, { doc: { id: docs[0].id, userId: uid }, now: later(), model });
     expect(result.outcome).toBe('generation_failed');
     expect(docs[0].status).toBe('generation_failed'); expect(passRefund).toHaveBeenCalledTimes(1);
+  });
+  it('a native Toss stall keeps the existing immediate settlement', async () => {
+    expect((await start()).status).toBe(202); docs[0].llmMeta.tossNative = true;
+    expect((await settle({}, { doc: { id: docs[0].id, userId: uid }, now: later(), model })).outcome).toBe('generation_failed');
+    expect(docs[0].llmMeta.retryable).toBeUndefined();
   });
 });
 

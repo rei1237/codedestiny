@@ -20,7 +20,8 @@ import {
 } from "../lib/models.js";
 import { resultStorageUnavailable, resultStorageFailurePayload } from "../lib/result-storage.js";
 import { isStoredPaidResultRevoked } from "../lib/paid-result-revocation.js";
-import { STUCK_LIVE_LEASE_MS, logStuckSettled } from "../lib/paid-delivery-stuck.js";
+import { STUCK_LIVE_LEASE_MS, logStuckSettled, retryableFailureMeta, publicRetryState, reopenRetryableConsultation,
+  markRetryableRefundDue, expireRetryableConsultations } from "../lib/paid-delivery-stuck.js";
 import { countPaidReportBodyChars, dropRepeatedReportSentences, hasRepeatedReportPassage } from "../lib/paid-report-quality.js";
 import { findMoonstoneSpendEvidence } from "../lib/moonstone-spend-proof.js";
 import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
@@ -1441,6 +1442,33 @@ async function refundNeoGenerationFailure(env, auth, { access, idempotencyKey, s
   return { refund, pass };
 }
 
+// 2026-11-19 R2b 다시 시도 우선(사용자 승인 "다시 시도 먼저로 변경 (추천)", 환불 시각 = 생성 + 7일):
+// 웹 첫 브리핑의 요청 중 종결 실패는 바로 환불하지 않고 창 안에서 무료 다시 시도를 연다(결제·이용권 증빙은 그대로).
+// Toss 네이티브·계산 오류·결정적 조립 실패(noRetry — 같은 장으로 다시 조립해도 같은 결과)는 기존 즉시 환불을 유지한다.
+// 창이 지났거나 환불이 시작됐으면 retryableFailureMeta 가 null 이라 기존 즉시 환불로 간다(fail-closed).
+function neoRetryMeta(request, doc, error) {
+  if (nativeTossContext(request) || doc?.llmMeta?.tossNative === true || error?.noRetry) return null;
+  const code = clean(error?.code || "LLM_FAILED", 40);
+  if (/BIRTH|CHART|CALCULATION/.test(code)) return null;
+  return retryableFailureMeta(doc || {}, Date.now(), code);
+}
+// 응답용 다시 시도 상태. 최상위 retryable 은 클라이언트에서 "자동으로 계속 조회"라는 뜻이라 쓰지 않는다.
+function neoRetryPayload(request, doc) {
+  if (nativeTossContext(request) || doc?.llmMeta?.tossNative === true) return {};
+  const state = publicRetryState(doc, Date.now());
+  const sessionId = String(doc?.id || "");
+  return state ? { sessionId, refunded: false, retry: { available: true, refundAt: state.refundAt, sessionId } } : {};
+}
+// 다시 시도는 상한(8회)을 다 쓴 장만 시도 수를 새로 연다. 통과한 장·진행 중인 장의 기록은 그대로 둔다.
+function neoRetryReset(fresh) {
+  const attempts = { ...(fresh?.llmMeta?.attempts || {}) }, unbilled = { ...(fresh?.llmMeta?.unbilledFailures || {}) };
+  for (const [key, value] of Object.entries(attempts)) {
+    if (key.includes(":") || Number(value || 0) < NEO_SECTION_MAX_ATTEMPTS) continue;
+    attempts[key] = 0; delete attempts[`${key}:lengthRepair`]; delete unbilled[key];
+  }
+  return { "llmMeta.attempts": attempts, "llmMeta.unbilledFailures": unbilled };
+}
+
 // 2026-11-19 S16 "전체 완료 후 한 번에": completed 전에는 진행 수·식별자·입력 메타만 내보낸다.
 // 브리핑·근거 요약·현실 점검·수정 명령서·대화 등 본문 필드는 completed 일 때만 싣고, 작성 중인 수정본(pendingRefinedOrder)은
 // 완료 전 본문이므로 어떤 상태에서도 싣지 않는다. 저장 문서는 바꾸지 않는다(재열람은 그대로 원본).
@@ -1798,7 +1826,7 @@ async function handleStart(request, env, ctx = null, recoveryAuth = null) {
   const pricing = getPricing();
   let access = await resolveStartAccess({ request, env, auth, body, normalized, pricing, idempotencyKey });
   if (!access.ok) return json({ ok: false, reason: "PAYMENT_VERIFY_FAILED", message: PAYMENT_VERIFY_FAILED_MESSAGE }, { status: 402 });
-  if (existing?.status === "generation_failed") return json({ ok: false, reason: "LLM_ERROR", message: LLM_ERROR_MESSAGE }, { status: 409 });
+  if (existing?.status === "generation_failed") return json({ ok: false, reason: "LLM_ERROR", message: LLM_ERROR_MESSAGE, ...neoRetryPayload(request, existing) }, { status: 409 });
   // 결제 증빙 1건 = 상담 1건(2026-10-16). 서버가 찾은 결제 문서·월정석 원장 ID 만 묶는다(이용권·관리자는 건너뜀).
   const evidenceIds = [access.paymentDocId, access.claimEvidenceId];
   const evidenceClaim = await claimRequestBillingEvidence(env, { userId: clean(auth.userId), requestId: idempotencyKey, evidenceIds, featureKey: FEATURE_KEY });
@@ -1933,9 +1961,9 @@ async function handleStart(request, env, ctx = null, recoveryAuth = null) {
     const allRows = Object.values(doc.llmMeta.sections || {});
     const briefing = mergeNeoInitialSections(allRows, normalized.input, doc.methodSummary);
     if (sections.some(section => !accepted(section))) return pendingNeo(doc);
-    if (hasRepeatedReportPassage(neoBody(briefing))) throw Object.assign(new Error(LLM_ERROR_MESSAGE), { code: "LLM_FAILED" });
+    if (hasRepeatedReportPassage(neoBody(briefing))) throw Object.assign(new Error(LLM_ERROR_MESSAGE), { code: "LLM_FAILED", noRetry: true });
     // 완결 판정(fail-closed): 필수 챕터·필드가 하나라도 비면 전달하지 않는다.
-    if (!isNeoOperationRoomComplete({ ...doc, initialBriefing: briefing })) throw Object.assign(new Error(LLM_ERROR_MESSAGE), { code: "LLM_FAILED" });
+    if (!isNeoOperationRoomComplete({ ...doc, initialBriefing: briefing })) throw Object.assign(new Error(LLM_ERROR_MESSAGE), { code: "LLM_FAILED", noRetry: true });
     if (doc.status !== "delivery_pending") doc = await saveNeoDelivery(filter, { status: "delivery_pending", initialBriefing: briefing,
       messages: [{ role: "user", content: normalized.input.question, createdAt: new Date() }, { role: "assistant", content: JSON.stringify(briefing), createdAt: new Date() }] }, sessionId);
     try { access = await resolveStartAccess({ request, env, auth, body: resumeBody, normalized, pricing, idempotencyKey }); }
@@ -1953,7 +1981,13 @@ async function handleStart(request, env, ctx = null, recoveryAuth = null) {
   } catch (error) {
     if (error?.code === "RESULT_STORAGE_UNAVAILABLE") throw error;
     if(nativeTossContext(request)&&error instanceof TossError)throw error;
-    await saveNeoDelivery(filter, { status: "generation_failed", generationError: { code: clean(error?.code || "LLM_FAILED", 80), message: clean(error?.message, 500) } }, sessionId);
+    const generationError = { code: clean(error?.code || "LLM_FAILED", 80), message: clean(error?.message, 500) };
+    const retryable = neoRetryMeta(request, doc, error);
+    if (retryable) {
+      const saved = await saveNeoDelivery(filter, { status: "generation_failed", generationError, llmMeta: { ...doc.llmMeta, retryable } }, sessionId);
+      return json({ ok: false, reason: "LLM_ERROR", message: LLM_ERROR_MESSAGE, ...neoRetryPayload(request, saved) }, { status: 503 });
+    }
+    await saveNeoDelivery(filter, { status: "generation_failed", generationError }, sessionId);
     const { refund } = await refundNeoGenerationFailure(env, auth, { access, idempotencyKey, sessionId, evidenceIds, error, native: Boolean(nativeTossContext(request)) });
     return json({ ok: false, reason: "LLM_ERROR", message: refund.refunded ? CARD_REFUNDED_MESSAGE : LLM_ERROR_MESSAGE }, { status: 503 });
   } finally {
@@ -2010,6 +2044,7 @@ async function handleResult(request, env, pathId = "") {
       ok: false,
       reason: isCalculationError ? "CALCULATION_ERROR" : "LLM_ERROR",
       message: isCalculationError ? CALCULATION_ERROR_MESSAGE : LLM_ERROR_MESSAGE,
+      ...(isCalculationError ? {} : neoRetryPayload(request, consultation)),
     }, { status: 409 });
   }
   if (!nativeTossContext(request)&&await isStoredPaidResultRevoked(auth.userId, FEATURE_KEY, consultation)) {
@@ -2150,6 +2185,92 @@ async function handleRefine(request, env) {
   }
 }
 
+// 다시 시도(무료): 같은 소유자의 다시 시도 가능 실패만 빠진 장 이어쓰기(partial)로 되돌리고 기존 시작 경로로 한 웨이브를 돈다.
+// 새 결제·차감·증빙 청구를 하지 않는다 — 시작 경로가 같은 멱등 키로 기존 접근을 재확인하고, 차감은 전달 때 한 번뿐이다.
+async function handleRetry(request, env, ctx) {
+  const auth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true });
+  if (!auth) return loginRequired();
+  if (nativeTossContext(request) || auth.tossNative) return json({ ok: false, reason: "RETRY_NOT_AVAILABLE", message: LLM_ERROR_MESSAGE }, { status: 409 });
+  const body = await readJson(request);
+  const sessionId = clean(body?.sessionId || body?.resultId, 120);
+  if (!sessionId) return invalidInput(INVALID_INPUT_MESSAGE);
+  await connectDb(env);
+  const owner = { id: sessionId, userId: clean(auth.userId) };
+  const reopened = await reopenRetryableConsultation(NeoOperationRoomConsultation, owner, Date.now(), { reset: neoRetryReset });
+  if (!reopened.ok && reopened.reason !== "CONFLICT") {
+    const stored = await NeoOperationRoomConsultation.findOne(owner).lean().catch(() => null);
+    if (!stored || stored.llmMeta?.tossNative === true) return notFound();
+    if (stored.status === "completed") return json(publicSession(stored));
+    return json({ ok: false, reason: reopened.reason, message: LLM_ERROR_MESSAGE, ...neoRetryPayload(request, stored) }, { status: 409 });
+  }
+  const headers = new Headers(request.headers);
+  headers.set("content-type", "application/json");
+  return handleStart(new Request(request.url, { method: "POST", headers, body: JSON.stringify({ sessionId }) }), env, ctx);
+}
+
+// 다시 시도 가능 실패의 환불 1건(고객 요청·창 만료 공용). refundEligibleAt 이 붙은 건만, 정산 표시 전까지만 처리한다.
+// 단계마다 같은 키로 멱등이다(refundNeoGenerationFailure). 카드 환불이 실패하면 표시하지 않아 다음 크론이 다시 시도한다.
+async function settleNeoRetryRefund(env, { id, userId }, model = NeoOperationRoomConsultation, now = Date.now()) {
+  const owner = { id: clean(id, 120), userId: String(userId || "") };
+  const fresh = await model.findOne(owner).lean();
+  const meta = fresh?.llmMeta;
+  if (!fresh || fresh.status !== "generation_failed" || !meta?.retryable || !meta.refundEligibleAt || meta.tossNative === true) return { refundStatus: "skipped" };
+  if (meta.retryable.refundSettledAt) return { refundStatus: clean(meta.retryable.refundStatus) || "requested" };
+  const auth = { userId: owner.userId };
+  const idempotencyKey = clean(fresh.idempotencyKey);
+  const error = Object.assign(new Error("retry closed without delivery"), { code: clean(meta.retryable.refundReason || "RETRY_REFUND", 80) });
+  const access = await storedNeoRefundAccess(env, auth, fresh);
+  const { refund, pass } = await refundNeoGenerationFailure(env, auth, { access, idempotencyKey, sessionId: owner.id, error, native: false });
+  let refundStatus = "requested";
+  if (refund?.refunded || pass?.refunded) refundStatus = "refunded";
+  else if (refund?.refundFailed) refundStatus = "failed";
+  else if (access.accessType === "admin") refundStatus = "not_required";
+  if (refundStatus === "failed") return { refundStatus };
+  await model.updateOne({ ...owner, status: "generation_failed" }, { $set: {
+    "llmMeta.retryable.refundSettledAt": new Date(now).toISOString(), "llmMeta.retryable.refundStatus": refundStatus } });
+  logStuckSettled({ service: "neo-operation-room", sessionId: owner.id, outcome: "retry_refund", refundStatus });
+  return { refundStatus };
+}
+
+// 고객 환불 요청: 다시 시도 가능 실패를 환불 대상으로 넘기고 바로 정산을 시도한다(실패해도 복구 크론이 이어 정산).
+async function handleRefundRequest(request, env) {
+  const auth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true });
+  if (!auth) return loginRequired();
+  if (nativeTossContext(request) || auth.tossNative) return json({ ok: false, reason: "REFUND_REQUEST_NOT_AVAILABLE" }, { status: 409 });
+  const body = await readJson(request);
+  const sessionId = clean(body?.sessionId || body?.resultId, 120);
+  if (!sessionId) return invalidInput(INVALID_INPUT_MESSAGE);
+  await connectDb(env);
+  const owner = { id: sessionId, userId: clean(auth.userId) };
+  const marked = await markRetryableRefundDue(NeoOperationRoomConsultation, owner, Date.now(), "CUSTOMER_REQUEST");
+  if (!marked.ok) {
+    const stored = await NeoOperationRoomConsultation.findOne(owner).lean().catch(() => null);
+    if (!stored || stored.llmMeta?.tossNative === true) return notFound();
+    return json({ ok: false, reason: marked.reason || "NOT_RETRYABLE" }, { status: 409 });
+  }
+  let refundStatus = "pending";
+  try { refundStatus = (await settleNeoRetryRefund(env, owner)).refundStatus; }
+  catch (error) { console.error("[neo-operation-room] retry refund failed", { message: clean(error?.message || error, 300) }); }
+  return json({ ok: true, sessionId, refunded: refundStatus === "refunded", refundStatus });
+}
+
+// 복구 크론(공용 환불 정산 뒤): 창이 지난 다시 시도 가능 건을 닫고, 환불 대상으로 넘어간 건을 한 번씩 정산한다.
+// 다시 연 뒤 방치된 partial·generating 도 창이 지나면 닫힌다(expireRetryableConsultations — 살아 있는 lease 는 제외).
+export async function settleDueNeoRetryRefunds(env, { now = Date.now(), model = NeoOperationRoomConsultation, limit = 5 } = {}) {
+  await connectDb(env);
+  const outcomes = [];
+  try { await expireRetryableConsultations(model, now); }
+  catch { outcomes.push({ service: "neo-operation-room", refundStatus: "pending" }); }
+  const due = await model.find({ status: "generation_failed", "llmMeta.retryable": { $exists: true }, "llmMeta.refundEligibleAt": { $exists: true },
+    "llmMeta.retryable.refundSettledAt": { $exists: false }, "llmMeta.tossNative": { $ne: true }, userId: { $exists: true, $ne: null } })
+    .sort({ updatedAt: 1 }).limit(limit).select("id userId").lean();
+  for (const doc of due) {
+    try { outcomes.push({ service: "neo-operation-room", refundStatus: (await settleNeoRetryRefund(env, doc, model, now)).refundStatus }); }
+    catch { outcomes.push({ service: "neo-operation-room", refundStatus: "pending" }); }
+  }
+  return outcomes;
+}
+
 export async function handleNeoOperationRoomRoutes(request, env = {}, ctx = null) {
   const method = request.method.toUpperCase();
   const path = getRoutePath(request, "/api/neo-operation-room");
@@ -2160,6 +2281,8 @@ export async function handleNeoOperationRoomRoutes(request, env = {}, ctx = null
     if (method === "POST" && path === "/ensure-access") return await handleEnsureAccess(request, env);
     if (method === "POST" && path === "/start") return await handleStart(request, env, ctx);
     if (method === "POST" && path === "/refine") return await handleRefine(request, env);
+    if (method === "POST" && path === "/retry") return await handleRetry(request, env, ctx);
+    if (method === "POST" && path === "/refund-request") return await handleRefundRequest(request, env);
     if (method === "GET" && (path === "/badges" || path === "/badges/balance")) {
       return json({ ok: true, badge: await readNeoBadgeState(request, env) });
     }
@@ -2273,8 +2396,19 @@ export async function settleStuckDelivery(env, { doc, now = Date.now(), model = 
     return { outcome: "rescued" };
   }
   const error = Object.assign(new Error("recovery made no progress"), { code: "DELIVERY_STUCK" });
-  const result = await model.updateOne(cas, { $set: { status: "generation_failed", ...unlock,
-    generationError: { code: "DELIVERY_STUCK", message: "recovery made no progress", at: at.toISOString() } } });
+  const generationError = { code: "DELIVERY_STUCK", message: "recovery made no progress", at: at.toISOString() };
+  // 2026-11-19 R2b: 웹 결제 건은 창(생성 + 7일) 안이면 환불하지 않고 다시 시도 가능으로 둔다. 회수된 결제·네이티브는 기존 확정.
+  const retryable = !native && !revoked ? retryableFailureMeta(fresh, now, "DELIVERY_STUCK") : null;
+  if (retryable) {
+    const marked = await model.updateOne(cas, { $set: { status: "generation_failed", ...unlock, generationError, "llmMeta.retryable": retryable } });
+    if (!marked?.modifiedCount) return { outcome: "progressed" };
+    logStuckSettled({ service: "neo-operation-room", sessionId, outcome: "retryable", stalls });
+    return { outcome: "retryable", refundAt: retryable.refundAt.toISOString() };
+  }
+  // 다시 시도 표지가 있던 건(창 만료)은 여기서 바로 환불하므로 창 만료 정산(settleDueNeoRetryRefunds)이 다시 고르지 않게 표시한다.
+  const closeRetry = fresh.llmMeta?.retryable ? { "llmMeta.refundEligibleAt": at.toISOString(), "llmMeta.retryable.refundSettledAt": at.toISOString(),
+    "llmMeta.retryable.refundReason": "RETRY_WINDOW_EXPIRED" } : {};
+  const result = await model.updateOne(cas, { $set: { status: "generation_failed", ...unlock, generationError, ...closeRetry } });
   if (!result?.modifiedCount) return { outcome: "progressed" };
   let refundStatus = "requested";
   try {

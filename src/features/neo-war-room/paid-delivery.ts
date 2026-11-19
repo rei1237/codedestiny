@@ -15,6 +15,17 @@ export function neoRefinementRetryable(session: { status?: string; refinementSta
   return Boolean(session && session.status === "completed" && session.refinementStatus === "generation_failed" && session.refinementAllowance?.remaining !== 0);
 }
 
+export type NeoRetryOffer = { sessionId: string };
+
+/** 1차 브리핑 실패에 서버가 무료 다시 시도(같은 결제 건·추가 결제·차감 없음)를 열었으면 그 상담 id 를 돌려준다(2026-11-19 R2b). 최상위 retryable(일시 오류)과 다르다. */
+export function readNeoRetryOffer(data: unknown): NeoRetryOffer | null {
+  if (!data || typeof data !== "object") return null;
+  const value = data as { sessionId?: unknown; retry?: { available?: unknown; sessionId?: unknown } | null };
+  if (value.retry?.available !== true) return null;
+  const sessionId = String(value.retry.sessionId || value.sessionId || "");
+  return sessionId ? { sessionId } : null;
+}
+
 export async function receiveNeoBriefing<T extends { ok?: boolean; sessionId?: string; status?: string; refinementStatus?: string }>(
   resultId: string,
   onProgress: (data: T) => void,
@@ -62,7 +73,7 @@ export async function receiveNeoBriefing<T extends { ok?: boolean; sessionId?: s
       }
       if (!response.ok) {
         if (response.status === 401) throw new Error("LOGIN_REQUIRED");
-        if (!data.retryable) throw new Error(data.reason || "LLM_ERROR");
+        if (!data.retryable) throw Object.assign(new Error(data.reason || "LLM_ERROR"), { retryOffer: phase === "briefing" ? readNeoRetryOffer(data) : null });
         failures += 1;
       }
     } catch (error) {

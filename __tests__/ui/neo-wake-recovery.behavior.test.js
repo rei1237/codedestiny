@@ -104,7 +104,7 @@ function resultLoadHarness(script, surface = 'web') {
     dialogueLocale: 'ko',
     window: { history: { replaceState() {} } },
     setError: value => errors.push(value), setSession: value => sessions.push(value), setLoading: () => {},
-    setSelectedChecks() {}, setFreeform() {}, setShowRealityForm() {}, setRefining() {}, setPdfLoading() {}, setExportExpand() {},
+    setSelectedChecks() {}, setFreeform() {}, setShowRealityForm() {}, setRetryOffer() {}, setRefining() {}, setPdfLoading() {}, setExportExpand() {},
   };
   const transpiled = ts.transpileModule('(' + effect + ')()', { compilerOptions: { target: ts.ScriptTarget.ES2022 } }).outputText;
   vm.runInNewContext(transpiled, context);

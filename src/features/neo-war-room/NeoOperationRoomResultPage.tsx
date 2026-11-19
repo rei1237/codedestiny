@@ -8,7 +8,7 @@ import { useSearchParams } from "next/navigation";
 import { BookOpen, Download, Loader2, Lock } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { usePaidDeliveryScope } from "@/app/hooks/usePaidDeliveryScope";
-import { neoRefinementRetryable, neoTossAccessError, receiveNeoBriefing } from "./paid-delivery";
+import { neoRefinementRetryable, neoTossAccessError, receiveNeoBriefing, type NeoRetryOffer } from "./paid-delivery";
 import { authFetch } from "@/app/_lib/auth-client";
 import { toDisplayText } from "@/lib/llm-text";
 import { buildResizedAssetUrl } from "@/lib/r2-public-url";
@@ -430,6 +430,9 @@ export default function NeoOperationRoomResultPage({ availability, paymentSurfac
   const [session, setSession] = useState<NeoResultSession | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  // 2026-11-19 R2b 다시 시도 우선: 1차 브리핑 실패에 서버가 연 무료 다시 시도(같은 결제 건). 있으면 '작전 다시 짜기'(새 결제) 대신 다시 시도·환불 요청만 보여 준다.
+  const [retryOffer, setRetryOffer] = useState<NeoRetryOffer | null>(null);
+  const [retryBusy, setRetryBusy] = useState(false);
   const [showRealityForm, setShowRealityForm] = useState(false);
   const [selectedChecks, setSelectedChecks] = useState<string[]>([]);
   const [freeform, setFreeform] = useState("");
@@ -493,7 +496,7 @@ export default function NeoOperationRoomResultPage({ availability, paymentSurfac
         const previewSession = buildLocalPreviewSession(localPreviewMode);
         setSession(previewSession); setLoading(false); return;
       }
-      setError("");
+      setError(""); setRetryOffer(null);
       if (paymentSurface === "toss") { setSession(null); setLoading(true); }
       let phase: "briefing" | "refinement" = "briefing";
       try {
@@ -526,12 +529,51 @@ export default function NeoOperationRoomResultPage({ availability, paymentSurfac
         // '오래 걸린다'가 아니라 실패·환불 안내를 띄우고 부분 본문을 거둔다. 진행 중(GENERATION_PENDING)·2차 점검 실패·토스 표면은 기존 안내 그대로.
         const generationEnded = phase === "briefing" && paymentSurface !== "toss" && ["LLM_ERROR", "CALCULATION_ERROR"].includes(code);
         if (generationEnded) { setSession(null); setShowRealityForm(false); }
-        setError(code === "LOGIN_REQUIRED" || tossDenied === "LOGIN_REQUIRED" ? resultCopy.loginRequiredError : tossDenied ? getNeoBookCopy(dialogueLocale).unavailable : accessDenied ? getNeoErrorCopy("PAYMENT_VERIFY_FAILED", dialogueLocale) : generationEnded ? resultCopy.generationFailedRefundError : resultCopy.pollTimeoutError);
+        // 다시 시도가 열린 실패는 환불이 아직 일어나지 않았다 — 자동 환불 안내 대신 다시 시도·환불 요청 안내를 띄운다.
+        const offer = generationEnded && code === "LLM_ERROR" ? (caught as { retryOffer?: NeoRetryOffer | null }).retryOffer || null : null;
+        setRetryOffer(offer);
+        setError(code === "LOGIN_REQUIRED" || tossDenied === "LOGIN_REQUIRED" ? resultCopy.loginRequiredError : tossDenied ? getNeoBookCopy(dialogueLocale).unavailable : accessDenied ? getNeoErrorCopy("PAYMENT_VERIFY_FAILED", dialogueLocale) : offer ? resultCopy.briefingRetryAvailable : generationEnded ? resultCopy.generationFailedRefundError : resultCopy.pollTimeoutError);
       }
     }
     void loadResult();
     return () => { cancelled = true; };
-  }, [attemptId, localPreviewMode, recoveryEpoch, captureAccess, resultCopy.loginRequiredError, resultCopy.pollTimeoutError, resultCopy.generationFailedRefundError, availability, dialogueLocale, paymentSurface]);
+  }, [attemptId, localPreviewMode, recoveryEpoch, captureAccess, resultCopy.loginRequiredError, resultCopy.pollTimeoutError, resultCopy.generationFailedRefundError, resultCopy.briefingRetryAvailable, availability, dialogueLocale, paymentSurface]);
+
+  // 무료 다시 시도: 서버가 같은 결제 건을 다시 열고 한 웨이브를 돈다. 결과는 기존 수신 경로(recoveryEpoch)로 이어 받는다 — 결제창·월정석 충전으로 보내지 않는다.
+  async function handleBriefingRetry() {
+    const sessionId = retryOffer?.sessionId;
+    if (!sessionId || retryBusy) return;
+    setRetryBusy(true);
+    try {
+      const response = await authFetch("/api/neo-operation-room/retry", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ sessionId }) });
+      const data = await response.json().catch(() => ({})) as { reason?: string };
+      if (data.reason === "RETRY_WINDOW_EXPIRED" || data.reason === "REFUND_STARTED") { setRetryOffer(null); setError(resultCopy.generationFailedRefundError); return; }
+      setRetryOffer(null); setError(""); setLoading(true); setRecoveryEpoch(value => value + 1);
+    } catch {
+      setError(resultCopy.briefingRetryFailed);
+    } finally {
+      setRetryBusy(false);
+    }
+  }
+
+  // 다시 시도 대신 환불 요청: 서버가 공용 환불 절차로 넘기고 바로 정산을 시도한다.
+  async function handleBriefingRefundRequest() {
+    const sessionId = retryOffer?.sessionId;
+    if (!sessionId || retryBusy) return;
+    setRetryBusy(true);
+    try {
+      const response = await authFetch("/api/neo-operation-room/refund-request", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ sessionId }) });
+      const data = await response.json().catch(() => ({})) as { ok?: boolean; refunded?: boolean; reason?: string };
+      if (response.ok && data.ok) { setRetryOffer(null); setError(data.refunded === true ? resultCopy.briefingRefunded : resultCopy.briefingRefundRequested); return; }
+      // 기한이 지났거나 이미 환불이 시작된 건은 서버가 자동으로 되돌린다.
+      if (data.reason === "RETRY_WINDOW_EXPIRED" || data.reason === "REFUND_STARTED") { setRetryOffer(null); setError(resultCopy.generationFailedRefundError); return; }
+      setError(resultCopy.briefingRefundRequestFailed);
+    } catch {
+      setError(resultCopy.briefingRefundRequestFailed);
+    } finally {
+      setRetryBusy(false);
+    }
+  }
 
   // 서버가 수정 라운드 실패를 확정했다: 세션을 실패로 표시해 다시 시도 안내를 띄운다(새로고침 뒤 GET 응답과 같은 모양).
   function markRefinementFailed() {
@@ -824,6 +866,12 @@ export default function NeoOperationRoomResultPage({ availability, paymentSurfac
           <h2 id="neo-result-state-title">{availability?.title || resultCopy.failedTitle}</h2>
           <p>{error || session?.generationError?.message || resultCopy.failedDefaultMessage}</p>
           {availability?.action ? <Link href={availability.action.href}>{availability.action.label}</Link>
+            : retryOffer && paymentSurface !== "toss" ? (
+              <>
+                <button type="button" disabled={retryBusy} onClick={() => void handleBriefingRetry()}>{retryBusy ? <Loader2 size={16} aria-hidden="true" /> : null}{resultCopy.briefingRetryLabel}</button>
+                <button type="button" disabled={retryBusy} onClick={() => void handleBriefingRefundRequest()}>{resultCopy.briefingRefundRequestLabel}</button>
+              </>
+            )
             : <button type="button" onClick={() => setRecoveryEpoch(value => value + 1)}>{resultCopy.retryLink}</button>}
         </section>
       ) : null}

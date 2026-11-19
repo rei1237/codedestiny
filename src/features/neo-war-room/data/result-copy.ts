@@ -11,6 +11,13 @@ export type NeoResultCopyKey =
   | "notFoundError"
   | "pollTimeoutError"
   | "generationFailedRefundError"
+  | "briefingRetryAvailable"
+  | "briefingRetryLabel"
+  | "briefingRetryFailed"
+  | "briefingRefundRequestLabel"
+  | "briefingRefundRequested"
+  | "briefingRefunded"
+  | "briefingRefundRequestFailed"
   | "refineMissingAnswerError"
   | "refineGenericError"
   | "refinePendingError"
@@ -101,6 +108,13 @@ const NEO_RESULT_COPY_KO: NeoResultCopyTable = {
   notFoundError: "작전 명령서를 찾지 못했다.",
   pollTimeoutError: "작전 브리핑 생성이 평소보다 오래 걸리고 있다. 이용권은 그대로 유지되니, 잠시 후 새로고침해라.",
   generationFailedRefundError: "작전 브리핑을 끝내 완성하지 못했다. 이번에 쓴 이용권·월정석은 자동으로 복구되고, 카드로 결제했다면 결제 금액이 자동으로 환불된다. 확인하고 다시 시도해라.",
+  briefingRetryAvailable: "작전 브리핑을 이번에 완성하지 못했다. 같은 결제 건으로 다시 시도할 수 있다. 추가 결제·차감 없음. 다시 시도하지 않으려면 환불을 요청해라.",
+  briefingRetryLabel: "다시 시도 · 추가 결제·차감 없음",
+  briefingRetryFailed: "다시 시도를 시작하지 못했다. 잠시 뒤 다시 눌러라. 추가 결제·차감 없음.",
+  briefingRefundRequestLabel: "다시 시도 대신 환불 요청",
+  briefingRefundRequested: "환불 요청을 받았다. 처리가 끝나면 이용권·월정석과 결제가 되돌아간다.",
+  briefingRefunded: "이용권·월정석과 결제를 되돌렸다.",
+  briefingRefundRequestFailed: "환불 요청을 전하지 못했다. 잠시 뒤 다시 눌러라.",
   refineMissingAnswerError: "체크 답변을 고르거나 현재 상황을 조금 더 적어라.",
   refineGenericError: "수정 작전 명령서 작성에 실패했다.",
   refinePendingError: "수정 작전 명령서를 아직 작성 중이다. 잠시 후 새로고침해라.",
@@ -190,6 +204,13 @@ const NEO_RESULT_COPY_EN: NeoResultCopyTable = {
   notFoundError: "Couldn't find the operation order.",
   pollTimeoutError: "The operation briefing is taking longer than usual to generate. Your pass stays intact — refresh shortly.",
   generationFailedRefundError: "NEO could not finish the operation briefing. The pass or Moonstones you used are restored automatically, and a card payment is refunded automatically. Check, then try again.",
+  briefingRetryAvailable: "NEO could not finish the operation briefing this time. You can retry on the same payment — no extra charge or deduction. If you do not want to retry, request a refund.",
+  briefingRetryLabel: "Retry · no extra charge or deduction",
+  briefingRetryFailed: "The retry could not start. Tap again shortly — no extra charge or deduction.",
+  briefingRefundRequestLabel: "Request a refund instead of retrying",
+  briefingRefundRequested: "Refund request received. Your pass, Moonstones and payment are returned once it is processed.",
+  briefingRefunded: "Your pass, Moonstones and payment have been returned.",
+  briefingRefundRequestFailed: "The refund request could not be sent. Tap again shortly.",
   refineMissingAnswerError: "Pick a reality-check answer, or write a bit more about your situation.",
   refineGenericError: "Writing the revised operation order failed.",
   refinePendingError: "The revised operation order is still being written. Refresh shortly.",
@@ -279,6 +300,13 @@ const NEO_RESULT_COPY_JA: NeoResultCopyTable = {
   notFoundError: "作戦命令書が見つからなかった。",
   pollTimeoutError: "作戦ブリーフィングの生成にいつもより時間がかかっている。利用券はそのまま維持されるので、しばらくして更新しろ。",
   generationFailedRefundError: "作戦ブリーフィングを最後まで完成できなかった。使った利用券・月光石は自動で復元され、カード決済なら決済金額が自動で返金される。確認してもう一度試せ。",
+  briefingRetryAvailable: "今回は作戦ブリーフィングを完成できなかった。同じ決済でもう一度試せる。追加決済・差し引きなし。試さないなら返金を申請しろ。",
+  briefingRetryLabel: "もう一度試す · 追加決済・差し引きなし",
+  briefingRetryFailed: "もう一度試すのを開始できなかった。少ししてからもう一度押せ。追加決済・差し引きなし。",
+  briefingRefundRequestLabel: "もう一度試す代わりに返金を申請",
+  briefingRefundRequested: "返金申請を受け付けた。処理が終わると利用券と決済が元に戻る。",
+  briefingRefunded: "利用券と決済を元に戻した。",
+  briefingRefundRequestFailed: "返金申請を送れなかった。少ししてからもう一度押せ。",
   refineMissingAnswerError: "チェック回答を選ぶか、今の状況をもう少し書け。",
   refineGenericError: "修正作戦命令書の作成に失敗した。",
   refinePendingError: "修正作戦命令書はまだ作成中だ。しばらくして更新しろ。",
@@ -368,6 +396,13 @@ const NEO_RESULT_COPY_ZH_CN: NeoResultCopyTable = {
   notFoundError: "未能找到作战命令书。",
   pollTimeoutError: "作战简报生成耗时比平时更长。通行券会照常保留，请稍后刷新。",
   generationFailedRefundError: "未能完成作战简报。本次使用的通行券、月光石会自动恢复；若用银行卡付款，款项会自动退还。请确认后重试。",
+  briefingRetryAvailable: "这次未能完成作战简报。可以用同一笔付款重试，不会额外付款或扣除。若不想重试，请申请退款。",
+  briefingRetryLabel: "重试 · 不额外付款或扣除",
+  briefingRetryFailed: "未能开始重试。请稍后再点一次，不会额外付款或扣除。",
+  briefingRefundRequestLabel: "不重试，申请退款",
+  briefingRefundRequested: "已收到退款申请。处理完成后，通行券与付款会退回。",
+  briefingRefunded: "通行券与付款已退回。",
+  briefingRefundRequestFailed: "未能发送退款申请。请稍后再点一次。",
   refineMissingAnswerError: "请选择检验答案，或再写一些现在的情况。",
   refineGenericError: "修正作战命令书撰写失败。",
   refinePendingError: "修正作战命令书仍在撰写中，请稍后刷新。",
@@ -457,6 +492,13 @@ const NEO_RESULT_COPY_ZH_TW: NeoResultCopyTable = {
   notFoundError: "未能找到作戰命令書。",
   pollTimeoutError: "作戰簡報產生耗時比平時更長。通行券會照常保留，請稍後重新整理。",
   generationFailedRefundError: "未能完成作戰簡報。本次使用的通行券、月光石會自動恢復；若以信用卡付款，款項會自動退還。請確認後重試。",
+  briefingRetryAvailable: "這次未能完成作戰簡報。可以用同一筆付款重試，不會額外付款或扣除。若不想重試，請申請退款。",
+  briefingRetryLabel: "重試 · 不額外付款或扣除",
+  briefingRetryFailed: "未能開始重試。請稍後再點一次，不會額外付款或扣除。",
+  briefingRefundRequestLabel: "不重試，申請退款",
+  briefingRefundRequested: "已收到退款申請。處理完成後，通行券與付款會退回。",
+  briefingRefunded: "通行券與付款已退回。",
+  briefingRefundRequestFailed: "未能送出退款申請。請稍後再點一次。",
   refineMissingAnswerError: "請選擇檢驗答案，或再寫一些現在的狀況。",
   refineGenericError: "修正作戰命令書撰寫失敗。",
   refinePendingError: "修正作戰命令書仍在撰寫中，請稍後重新整理。",
