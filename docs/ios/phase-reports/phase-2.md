@@ -44,8 +44,8 @@
 | e1c1971d5 | R2 CheckoutClient "Google Play" 표기·보류 팩 원화 숨김 | `app/checkout/CheckoutClient.tsx`, `ServicePacks.tsx`, `pass-consolidation-shop.test.mjs` |
 | c8eb35672 | R3 서버: 웹 SIWA(form_post 콜백, JWKS 검증, 자동 연결 없음) | `worker/lib/apple-signin.js`, `worker/routes/auth.js`, `worker/lib/models.js`(`socialAccounts.apple` + 부분 인덱스), `config/env.contract.json`(APPLE_* 4개), `verify-auth-p0p1-regression.mjs`, `__tests__/worker/auth.apple-signin.test.js` |
 | 7b7cb8e81 | R3 UI: Apple 버튼(앱 런타임 숨김), 콜백 페이지, 계정 연결 페이지(noindex) | `app/components/auth/AuthShell.tsx`, `app/auth/apple/callback/page.tsx`, `app/account/apple/*` |
-| (이번 묶음) 08cc2a633 | 단계 3 공통 bridge client | `js/core/native-bridge-client.js`(+`.d.ts`, public 미러), `__tests__/ui/native-bridge-client.test.js`, `docs/native-bridge-contract.md` 7절, 셸 build 키·`.ignore` |
-| (이번 묶음) a1966b793 | 개인정보처리방침 Apple 추가 | `app/privacy-policy/PrivacyPolicyContent.jsx:39`, `lib/legal/legalContent.ts`(en·ja·zh·zh-TW 2절 첫 문단), `public/static/policies/privacy/index.html`, 사이트맵 원장(법률 페이지 13 URL lastmod) |
+| (이번 묶음) 31653b455 | 단계 3 공통 bridge client | `js/core/native-bridge-client.js`(+`.d.ts`, public 미러), `__tests__/ui/native-bridge-client.test.js`, `docs/native-bridge-contract.md` 7절, 셸 build 키·`.ignore` |
+| (이번 묶음) 54e00a4ec | 개인정보처리방침 Apple 추가 | `app/privacy-policy/PrivacyPolicyContent.jsx:39`, `lib/legal/legalContent.ts`(en·ja·zh·zh-TW 2절 첫 문단), `public/static/policies/privacy/index.html`, 사이트맵 원장(법률 페이지 13 URL lastmod) |
 | (이번 묶음) 이 커밋 | 이 보고서, 인수인계 닫기 | `docs/ios/phase-reports/phase-2.md`, `docs/handoff/ios-phase2-2026-11-18.md` |
 
 ## 4. 검증 결과
