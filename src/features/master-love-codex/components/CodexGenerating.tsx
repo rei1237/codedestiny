@@ -53,6 +53,11 @@ interface CodexGeneratingProps {
   error?: string;
   /** 결제·이용권 확인을 다시 타지 않고 생성만 이어서 돌린다 */
   onRetry?: () => void;
+  /** R7: 다시 시도 보류면 버튼 문구를 바꾸고(추가 결제·차감 없음), 환불 요청 버튼을 함께 둔다 */
+  retryLabel?: string;
+  onRefundRequest?: () => void;
+  /** 다시 시도·환불 요청을 보내는 중 — 두 버튼을 잠근다 */
+  actionBusy?: boolean;
   /** 지금까지 쓰인 장이 있을 때만 준다 — 없으면 보여줄 것이 없다 */
   onOpenStored?: () => void;
 }
@@ -67,6 +72,9 @@ export default function CodexGenerating({
   accessType = "",
   error = "",
   onRetry,
+  retryLabel,
+  onRefundRequest,
+  actionBusy = false,
   onOpenStored,
 }: CodexGeneratingProps) {
   const locale = useMasterLoveCodexLocale();
@@ -209,7 +217,12 @@ export default function CodexGenerating({
         {error ? (
           <div className="mt-10 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
             {onRetry ? (
-              <button type="button" className={styles.cta} onClick={onRetry}>{copy.retryButton}</button>
+              <button type="button" className={styles.cta} onClick={onRetry} disabled={actionBusy}>{retryLabel || copy.retryButton}</button>
+            ) : null}
+            {onRefundRequest ? (
+              <button type="button" className={`${styles.quiet} inline-flex min-h-[44px] items-center px-4 underline`} onClick={onRefundRequest} disabled={actionBusy}>
+                {copy.refundRequestButton}
+              </button>
             ) : null}
             {/* .quiet 는 텍스트 링크용이라 높이가 없다 — 공용 클래스를 고치지 않고 여기서만 탭 타깃을 채운다. */}
             {onOpenStored ? (

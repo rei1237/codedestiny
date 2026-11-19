@@ -83,6 +83,8 @@ export type CodexSessionPayload = {
   /** 문서가 마지막으로 바뀐 시각 — 늦게 도착한 옛 응답이 새 상태를 되돌리지 않게 비교한다 */
   updatedAt?: string | null;
   paymentPayload?: Record<string, unknown>;
+  /** R7: 다시 시도 보류(reason RETRY_AVAILABLE)일 때만. refundAt 까지 추가 결제·차감 없이 POST /retry 로 다시 연다. */
+  retry?: { available?: boolean; refundAt?: string; sessionId?: string } | null;
 };
 
 export async function postCodexJson(url: string, body: Record<string, unknown>, idempotencyKey?: string) {

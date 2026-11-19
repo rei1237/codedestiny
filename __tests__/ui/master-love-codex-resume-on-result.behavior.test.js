@@ -296,6 +296,12 @@ test("최종 실패·자동 환불 응답은 재시도 없는 환불 안내 상�
 test("완료 전에는 생성 중 화면만 — 닫힌 실패는 재시도 버튼 없이 안내만 보인다", () => {
   const source = readFileSync(resolve(__dirname, "..", "..", RESULT_CLIENT), "utf8");
   assert.match(source, /if \(session\.status !== "completed" && !\(session\.status === "generation_failed" && session\.chapters\.length\)\)/);
-  assert.match(source, /onRetry=\{closedFailure \? undefined : retryResume\}/);
+  // 다시 시도 보류(R7)가 아닌 닫힌 실패는 여전히 재시도 버튼이 없다.
+  assert.match(source, /onRetry=\{heldRetry \? \(\) => \{ void sendHeldAction\("retry"\); \} : closedFailure \? undefined : retryResume\}/);
   assert.match(source, /copy\.errorText\.GENERATION_FAILED_REFUNDED/);
+  // R7: 서버 표식(reason RETRY_AVAILABLE + retry.available)일 때만 두 버튼을 보이고, 결제창 없이 전용 엔드포인트만 부른다.
+  assert.match(source, /const heldRetry = closedFailure && session\.reason === "RETRY_AVAILABLE" && Boolean\(session\.retry\?\.available\)/);
+  assert.match(source, /onRefundRequest=\{heldRetry \? \(\) => \{ void sendHeldAction\("refund-request"\); \} : undefined\}/);
+  assert.match(source, /postCodexJson\(`\/api\/master-love-codex\/\$\{path\}`, \{ sessionId: session\.sessionId \}\)/);
+  assert.match(source, /copy\.errorText\.RETRY_AVAILABLE/);
 });

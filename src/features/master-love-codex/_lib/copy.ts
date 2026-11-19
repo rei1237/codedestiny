@@ -23,6 +23,8 @@ export interface MasterLoveCodexErrorText {
   GENERATION_BUDGET_EXCEEDED: string;
   /** S16: 최종 실패 + 자동 환불(본문 없음, 재시도 없음) */
   GENERATION_FAILED_REFUNDED: string;
+  /** R7: 최종 실패를 환불 대신 무료 다시 시도로 보류(본문 없음, 다시 시도·환불 요청 버튼) */
+  RETRY_AVAILABLE: string;
   DB_DEGRADED: string;
   EDGE_TIMEOUT: string;
   SERVER_ERROR: string;
@@ -119,6 +121,9 @@ export interface MasterLoveCodexCopy {
   generatingNamelessLine: string;
   generatingCompletedTitlesAriaLabel: string;
   retryButton: string;
+  /** R7 다시 시도 보류의 두 버튼 */
+  retryHeldButton: string;
+  refundRequestButton: string;
   openStoredButton: string;
   generatingFooterNote: string;
 
@@ -276,6 +281,7 @@ const MASTER_LOVE_CODEX_COPY_EN: MasterLoveCodexCopy = {
     GENERATION_IN_PROGRESS: "This is already being continued in another window. Please try again shortly.",
     GENERATION_BUDGET_EXCEEDED: "Generation is taking longer than expected. The chapters written so far are kept, so you can continue.",
     GENERATION_FAILED_REFUNDED: "We could not finish the whole book, so your payment is being refunded automatically. We are sorry for the trouble.",
+    RETRY_AVAILABLE: "We couldn't finish the whole book. The chapters written so far are kept, and you can try again with no extra payment or deduction. If you prefer, you can request a refund instead.",
     DB_DEGRADED: "The connection is briefly unstable. Please try again shortly.",
     EDGE_TIMEOUT: "The server took too long to respond. The chapters written so far are kept, so you can continue.",
     SERVER_ERROR: "Something went wrong while preparing your Codex of Fate.",
@@ -378,6 +384,8 @@ const MASTER_LOVE_CODEX_COPY_EN: MasterLoveCodexCopy = {
   generatingNamelessLine: "Writing your Codex of Fate",
   generatingCompletedTitlesAriaLabel: "Completed chapters",
   retryButton: "Keep writing",
+  retryHeldButton: "Try again · no extra charge",
+  refundRequestButton: "Request a refund instead",
   openStoredButton: "Open the codex written so far",
   generatingFooterNote: "Even if you close this window, the chapters written so far are kept. Come back and pick up where you left off.",
 
@@ -514,6 +522,7 @@ const MASTER_LOVE_CODEX_COPY: Partial<Record<LoadingLocale, MasterLoveCodexCopy>
       GENERATION_IN_PROGRESS: "이미 다른 창에서 이어 쓰는 중입니다. 잠시 후 다시 시도해 주세요.",
       GENERATION_BUDGET_EXCEEDED: "생성이 지연되고 있습니다. 지금까지 쓰인 장은 보관돼 있으니 이어서 쓸 수 있습니다.",
       GENERATION_FAILED_REFUNDED: "이야기를 끝까지 완성하지 못해 결제를 자동으로 환불해 드립니다. 불편을 드려 죄송합니다.",
+      RETRY_AVAILABLE: "이야기를 끝까지 완성하지 못했어요. 쓰인 장은 보관돼 있고, 추가 결제·차감 없이 다시 시도할 수 있어요. 원하시면 다시 시도 대신 환불을 요청할 수 있어요.",
       DB_DEGRADED: "연결이 잠시 불안정합니다. 잠시 후 다시 시도해 주세요.",
       EDGE_TIMEOUT: "서버가 응답할 시간을 넘겼습니다. 지금까지 쓰인 장은 보관돼 있으니 이어서 쓸 수 있습니다.",
       SERVER_ERROR: "인연의 서를 준비하는 중 문제가 발생했습니다.",
@@ -616,6 +625,8 @@ const MASTER_LOVE_CODEX_COPY: Partial<Record<LoadingLocale, MasterLoveCodexCopy>
     generatingNamelessLine: "당신의 인연의 서를 쓰는 중입니다",
     generatingCompletedTitlesAriaLabel: "완성된 장",
     retryButton: "이어서 쓰기",
+    retryHeldButton: "다시 시도 · 추가 결제·차감 없음",
+    refundRequestButton: "다시 시도 대신 환불 요청",
     openStoredButton: "지금까지 쓰인 서 열기",
     generatingFooterNote: "창을 닫아도 지금까지 쓰인 장은 보관됩니다. 다시 들어오면 이어서 완성할 수 있습니다.",
 
@@ -752,6 +763,7 @@ const MASTER_LOVE_CODEX_COPY: Partial<Record<LoadingLocale, MasterLoveCodexCopy>
       GENERATION_IN_PROGRESS: "すでに別のウィンドウで続きを書いています。しばらくしてからもう一度お試しください。",
       GENERATION_BUDGET_EXCEEDED: "生成に時間がかかっています。ここまで書かれた章は保存されているので、続きを書けます。",
       GENERATION_FAILED_REFUNDED: "物語を最後まで完成できなかったため、お支払いは自動で返金されます。ご不便をおかけして申し訳ありません。",
+      RETRY_AVAILABLE: "物語を最後まで書き上げられませんでした。書かれた章は保管されており、追加のお支払い・差し引きなしでもう一度お試しいただけます。ご希望なら、再試行の代わりに返金をご依頼いただけます。",
       DB_DEGRADED: "接続が一時的に不安定です。しばらくしてからもう一度お試しください。",
       EDGE_TIMEOUT: "サーバーの応答時間を超えました。ここまで書かれた章は保存されているので、続きを書けます。",
       SERVER_ERROR: "縁の書を準備中に問題が発生しました。",
@@ -854,6 +866,8 @@ const MASTER_LOVE_CODEX_COPY: Partial<Record<LoadingLocale, MasterLoveCodexCopy>
     generatingNamelessLine: "あなたの縁の書を書いています",
     generatingCompletedTitlesAriaLabel: "完成した章",
     retryButton: "続きを書く",
+    retryHeldButton: "もう一度試す · 追加料金なし",
+    refundRequestButton: "再試行の代わりに返金を依頼",
     openStoredButton: "ここまで書かれた書を開く",
     generatingFooterNote: "ウィンドウを閉じても、ここまで書かれた章は保存されます。また戻ってきて続きを仕上げられます。",
 
@@ -988,6 +1002,7 @@ const MASTER_LOVE_CODEX_COPY: Partial<Record<LoadingLocale, MasterLoveCodexCopy>
       GENERATION_IN_PROGRESS: "已在另一个窗口中继续撰写，请稍后再试。",
       GENERATION_BUDGET_EXCEEDED: "生成正在延迟。目前已写好的章节已保存，可以继续撰写。",
       GENERATION_FAILED_REFUNDED: "未能完整写完这本书，费用将自动退还。给您带来不便，深表歉意。",
+      RETRY_AVAILABLE: "未能写完整本书。已写成的章节已保留，您可以再次尝试，无需额外付款或扣除。如您愿意，也可以改为申请退款。",
       DB_DEGRADED: "连接暂时不稳定，请稍后再试。",
       EDGE_TIMEOUT: "服务器响应超时。目前已写好的章节已保存，可以继续撰写。",
       SERVER_ERROR: "准备情缘之书时发生了问题。",
@@ -1090,6 +1105,8 @@ const MASTER_LOVE_CODEX_COPY: Partial<Record<LoadingLocale, MasterLoveCodexCopy>
     generatingNamelessLine: "正在为您撰写情缘之书",
     generatingCompletedTitlesAriaLabel: "已完成的章节",
     retryButton: "继续撰写",
+    retryHeldButton: "再试一次 · 不额外收费",
+    refundRequestButton: "改为申请退款",
     openStoredButton: "打开目前已写好的书",
     generatingFooterNote: "即使关闭窗口，目前已写好的章节仍会保存。再次进入即可继续完成。",
 
@@ -1224,6 +1241,7 @@ const MASTER_LOVE_CODEX_COPY: Partial<Record<LoadingLocale, MasterLoveCodexCopy>
       GENERATION_IN_PROGRESS: "已在另一個視窗中繼續撰寫，請稍後再試。",
       GENERATION_BUDGET_EXCEEDED: "生成正在延遲。目前已寫好的章節已保存，可以繼續撰寫。",
       GENERATION_FAILED_REFUNDED: "未能完整寫完這本書，費用將自動退還。造成不便，深感抱歉。",
+      RETRY_AVAILABLE: "未能寫完整本書。已寫成的章節已保留，您可以再次嘗試，無需額外付款或扣除。如您願意，也可以改為申請退款。",
       DB_DEGRADED: "連線暫時不穩定，請稍後再試。",
       EDGE_TIMEOUT: "伺服器回應逾時。目前已寫好的章節已保存，可以繼續撰寫。",
       SERVER_ERROR: "準備情緣之書時發生了問題。",
@@ -1326,6 +1344,8 @@ const MASTER_LOVE_CODEX_COPY: Partial<Record<LoadingLocale, MasterLoveCodexCopy>
     generatingNamelessLine: "正在為您撰寫情緣之書",
     generatingCompletedTitlesAriaLabel: "已完成的章節",
     retryButton: "繼續撰寫",
+    retryHeldButton: "再試一次 · 不額外收費",
+    refundRequestButton: "改為申請退款",
     openStoredButton: "打開目前已寫好的書",
     generatingFooterNote: "即使關閉視窗，目前已寫好的章節仍會保存。再次進入即可繼續完成。",
 

@@ -16,7 +16,7 @@ import { usePaidDeliveryScope } from "@/app/hooks/usePaidDeliveryScope";
 import { isRetriableResultPollFailure } from "@/app/_lib/consultationResultPolling";
 // 🔴 이어쓰기 루프의 정본. 진입 화면(MasterLoveCodexPage)과 **같은 함수**를 쓴다 — 여기에
 //    사본을 만들면 두 화면의 재시도·정체 예산이 갈라진다.
-import { runCodexBatches, fetchCodexSession, type CodexGenerationProgress } from "@/src/features/master-love-codex/_lib/runCodexBatches";
+import { runCodexBatches, fetchCodexSession, postCodexJson, type CodexGenerationProgress } from "@/src/features/master-love-codex/_lib/runCodexBatches";
 import { MASTER_LOVE_CODEX_TOTAL_CHAPTERS } from "@/src/features/master-love-codex/constants";
 import CodexAmbience from "@/src/features/master-love-codex/components/CodexAmbience";
 import CodexReader, { type CodexChapter, type CodexLoveDna } from "@/src/features/master-love-codex/components/CodexReader";
@@ -59,6 +59,8 @@ type SessionState = {
   message?: string;
   /** 닫힌 세션의 사유. GENERATION_FAILED_REFUNDED = 최종 실패 + 자동 환불(S16, 본문 없음) */
   reason?: string;
+  /** R7: 다시 시도 보류(reason RETRY_AVAILABLE)일 때만 온다. refundAt 까지 추가 결제·차감 없이 다시 시도할 수 있다. */
+  retry?: { available: boolean; refundAt?: string } | null;
   birthInfo: {
     name?: string;
     gender?: string;
@@ -111,6 +113,9 @@ export default function MasterLoveCodexResultClient() {
   // 이어쓰기 상태. `error` 와 섞지 않는다 — 여긴 이미 열린 책이고, 실패해도 지금까지의 장은 읽힌다.
   const [resuming, setResuming] = useState(false);
   const [resumeError, setResumeError] = useState("");
+  /** R7 다시 시도·환불 요청 전송 상태와 그 실패 안내 */
+  const [heldBusy, setHeldBusy] = useState(false);
+  const [heldError, setHeldError] = useState("");
   /** 이어쓰기를 이미 건 세션. StrictMode 이중 마운트에서 루프 두 개가 락을 서로 뺏는 것을 막는다. */
   const resumeStartedForRef = useRef("");
   /** 화면을 떠나면 루프를 멈춘다 — 언마운트 뒤 setState 와 유령 /generate 왕복을 남기지 않는다. */
@@ -184,6 +189,7 @@ export default function MasterLoveCodexResultClient() {
         updatedAt: payload.updatedAt ? String(payload.updatedAt) : undefined,
         retryable: payload.retryable, retryAfterMs: payload.retryAfterMs, message: payload.message,
         reason: payload.reason ? String(payload.reason) : undefined,
+        retry: payload.retry?.available ? { available: true, refundAt: payload.retry.refundAt ? String(payload.retry.refundAt) : undefined } : null,
         birthInfo: payload.birthInfo || null,
         consultation: payload.consultation || null,
       };
@@ -293,6 +299,28 @@ export default function MasterLoveCodexResultClient() {
     } finally { recoveryInFlightRef.current = false; }
   }, [resume, load]);
 
+  /**
+   * R7: 보류된 책을 고객이 다시 연다(retry) 또는 환불을 고른다(refund-request). 결제창·이용권 확인을 타지 않는다 —
+   * 서버가 소유자·창·환불 마커를 판정한다. 결과와 상관없이 세션을 다시 읽어 서버가 정한 상태를 그대로 보인다.
+   */
+  const sendHeldAction = useCallback(async (path: "retry" | "refund-request") => {
+    if (!session || heldBusy || runningRef.current) return;
+    const isCurrent = captureOwner();
+    setHeldBusy(true);
+    setHeldError("");
+    try {
+      const { status, data } = await postCodexJson(`/api/master-love-codex/${path}`, { sessionId: session.sessionId });
+      if (!isCurrent()) return;
+      if (status >= 400 && data?.reason !== "RETRY_WINDOW_EXPIRED") setHeldError(String(data?.message || "") || copy.errorText.SERVER_ERROR);
+      resumeStartedForRef.current = "";
+      await retryResume();
+    } catch {
+      if (isCurrent()) setHeldError(copy.errorText.NETWORK_ERROR);
+    } finally {
+      if (isCurrent()) setHeldBusy(false);
+    }
+  }, [session, heldBusy, captureOwner, copy, retryResume]);
+
   useEffect(() => {
     const recover = () => { if (!document.hidden && navigator.onLine) retryResume(); };
     window.addEventListener("online", recover);
@@ -354,15 +382,19 @@ export default function MasterLoveCodexResultClient() {
   // 🔴 S16 (2026-11-19): 완료 전에는 본문을 보여 주지 않는다 — 생성 중 화면만. 서버도 완료 전 본문을 싣지 않는다.
   //    예외는 S16 이전 규칙으로 부분 전달된 채 닫힌 옛 책(generation_failed + 받은 장)뿐이다.
   const closedFailure = session.retryable === false;
+  const heldRetry = closedFailure && session.reason === "RETRY_AVAILABLE" && Boolean(session.retry?.available);
   if (session.status !== "completed" && !(session.status === "generation_failed" && session.chapters.length)) {
     return <>{ambience}<CodexShell ariaLabel={copy.generatingAriaLabel(Boolean(resumeError))}>
       <CodexGenerating completed={session.generationProgress?.completed || 0} total={MASTER_LOVE_CODEX_TOTAL_CHAPTERS}
         progress={session.generationProgress}
         latestTitles={[]} name={session.birthInfo?.name || ""} mode={session.mode} accessType={session.accessType}
-        error={closedFailure
+        error={heldRetry ? heldError || copy.errorText.RETRY_AVAILABLE : closedFailure
           ? (session.reason === "GENERATION_FAILED_REFUNDED" ? copy.errorText.GENERATION_FAILED_REFUNDED : session.message || copy.resultResumeFailedNotice)
           : resumeError || (!resuming ? copy.resultIncompleteNotice : "")}
-        onRetry={closedFailure ? undefined : retryResume} />
+        onRetry={heldRetry ? () => { void sendHeldAction("retry"); } : closedFailure ? undefined : retryResume}
+        retryLabel={heldRetry ? copy.retryHeldButton : undefined}
+        onRefundRequest={heldRetry ? () => { void sendHeldAction("refund-request"); } : undefined}
+        actionBusy={heldBusy} />
     </CodexShell></>;
   }
 
