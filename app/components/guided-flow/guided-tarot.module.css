@@ -102,6 +102,15 @@
   grid-template-columns: repeat(var(--gt-count, 3), minmax(0, 1fr));
   gap: var(--cd-sp-sm);
 }
+/* 4장(힐링): 모바일 2×2, 넓은 화면 한 줄. */
+.spread[data-count='4'] {
+  --gt-count: 2;
+}
+@media (min-width: 720px) {
+  .spread[data-count='4'] {
+    --gt-count: 4;
+  }
+}
 .slot {
   display: flex;
   flex-direction: column;

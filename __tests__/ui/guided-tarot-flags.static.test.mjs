@@ -26,3 +26,12 @@ test('/today/ 는 플래그로 공통 플로우판과 원본 DailyTarot 사이�
   assert.match(hub, /:\s*dynamic\(\(\) => import\("\.\/DailyTarot"\)/);
   assert.match(read('app/today/DailyTarotGuided.tsx'), /DAILY_TAROT_KEY/);
 });
+
+test('/tarot/healing/ 은 플래그로 공통 플로우판과 원본 SunHealingTarot 사이를 고른다', () => {
+  const client = read('app/tarot/healing/TarotHealingClient.tsx');
+  assert.match(client, /GUIDED_HEALING_TAROT_ENABLED\s*\?\s*dynamic\(\(\) => import\("\.\.\/\.\.\/components\/SunHealingTarotGuided"\)/);
+  assert.match(client, /:\s*dynamic\(\(\) => import\("\.\.\/\.\.\/components\/SunHealingTarot"\)/);
+  // 토스 코어 로더가 원본 파일의 Tailwind 클래스를 읽으므로 결과 본문은 원본 파일에 남는다.
+  assert.match(read('app/components/SunHealingTarot.tsx'), /export function SunHealingResultBody/);
+  assert.match(read('app/components/SunHealingTarotGuided.tsx'), /SunHealingResultBody/);
+});

@@ -1,6 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import { GUIDED_HEALING_TAROT_ENABLED } from "@/lib/guided-flow/flags.mjs";
 
 const TAROT_HEALING_LOCALES = ["ko", "en", "ja", "zh-CN", "zh-TW", "vi", "hi", "es", "fr", "de", "nl", "ms"] as const;
 type LoadingLocale = (typeof TAROT_HEALING_LOCALES)[number];
@@ -45,9 +46,8 @@ const HEALING_LOADING_COPY: Record<LoadingLocale, string> = {
   ms: "Memuatkan skrin tarot matahari yang hangat…",
 };
 
-const SunHealingTarot = dynamic(() => import("../../components/SunHealingTarot"), {
-  ssr: false,
-  loading: () => (
+function HealingLoading() {
+  return (
     <div
       className="flex min-h-[50vh] items-center justify-center bg-gradient-to-b from-amber-50 via-orange-50/80 to-amber-100/90 text-[15px] font-medium text-orange-950/75"
       role="status"
@@ -55,8 +55,13 @@ const SunHealingTarot = dynamic(() => import("../../components/SunHealingTarot")
     >
       {HEALING_LOADING_COPY[getCurrentTarotHealingLocale()] || HEALING_LOADING_COPY.ko}
     </div>
-  ),
-});
+  );
+}
+
+// 공통 스텝 플로우 판(3c-A1). 롤백은 lib/guided-flow/flags.mjs 를 false 로(원본 SunHealingTarot 그대로).
+const SunHealingTarot = GUIDED_HEALING_TAROT_ENABLED
+  ? dynamic(() => import("../../components/SunHealingTarotGuided"), { ssr: false, loading: HealingLoading })
+  : dynamic(() => import("../../components/SunHealingTarot"), { ssr: false, loading: HealingLoading });
 
 export default function TarotHealingClient() {
   return <SunHealingTarot />;
