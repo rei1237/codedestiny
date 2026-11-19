@@ -22,6 +22,25 @@
   if (window.__cdAppNativeBridgeInstalled) return;
   window.__cdAppNativeBridgeInstalled = true;
 
+  // 주소의 "/index.html" 꼬리를 하이드레이션 전에 떼어 낸다(2026-11-20).
+  //
+  // 앱은 파일 경로로 문서를 연다(appStartPath "/index.html", 빌드가 바꾼 "/route/index.html" 링크).
+  // Next 는 usePathname 을 location 에서 읽으므로 "/" 로 프리렌더된 홈이 클라이언트에서는
+  // "/index.html" 이 되고, AppChrome 의 hideChrome 판정이 서버와 어긋나 React #418 이 난다.
+  // 루트 전체가 클라이언트 렌더로 다시 잡히면서 <html> 속성이 props 로 초기화돼
+  // data-platform·data-runtime-target 까지 사라졌다(iOS CI 실측, 웹 빌드로 재현).
+  // 웹은 워커가 /index.html 을 301 하므로 이 꼬리를 볼 일이 없다. 문서는 그대로 두고 주소만 바꾼다.
+  try {
+    var bootPath = window.location.pathname || "";
+    if (/\/index\.html$/i.test(bootPath)) {
+      window.history.replaceState(
+        window.history.state,
+        "",
+        bootPath.replace(/index\.html$/i, "") + window.location.search + window.location.hash
+      );
+    }
+  } catch (e) { /* noop */ }
+
   // Set the app API origin before any page or payment script runs.
   window.CODE_DESTINY_API_BASE_URL = window.CODE_DESTINY_API_BASE_URL || "https://code-destiny.com";
 
