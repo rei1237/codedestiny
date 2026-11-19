@@ -2607,7 +2607,7 @@
       "monthlyTitle": "월정석으로 열기",
       "requiredMonthly": "필요 월정석",
       "currentMonthly": "현재 잔여",
-      "musicTrackSub": "달빛 이용권이 있으면 전곡을 바로 들을 수 있어요. MP3 다운로드는 단건 결제 또는 월정석으로 구매한 곡만 가능합니다.",
+      "musicTrackSub": "꿀단지 이용권이 있으면 전곡을 바로 들을 수 있어요. MP3 다운로드는 단건 결제 또는 월정석으로 구매한 곡만 가능합니다.",
       "defaultTitle": "유료 서비스",
       "passApplyFailed": "이용권 적용에 실패했습니다.",
       "passAppliedUiFailed": "이용권은 적용됐지만 화면 반영에 실패했어요. 결제하지 마시고 이 카드를 한 번 더 눌러 주세요.",
@@ -2631,7 +2631,7 @@
         "passMiss": "보유하신 이용권으로는 이 콘텐츠가 무료로 열리지 않아 결제 방법을 고르는 창을 열었어요.",
         "passMonthlyExhausted": "이용 한도를 모두 사용해 이용권이 종료되었어요. 결제 방법을 안내해 드릴게요."
       },
-      "passBadge": "달빛 이용권",
+      "passBadge": "꿀단지 이용권",
       "passStoreTitle": "꿀단지 이용권 상점",
       "passRetryTitle": "이용권 다시 확인",
       "passHint": {

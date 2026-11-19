@@ -7,7 +7,7 @@
       "file": "index.html",
       "marker": "  async function _cdChooseServicePaymentMode(options) {",
       "why": "결제수단 선택창의 정본 렌더러. 3벌 중 이것이 기준이고 나머지 2벌이 여기에 맞춰진다.",
-      "sha256": "7918549e317b5d6d"
+      "sha256": "c7c8bfb54e1d7521"
     },
     {
       "file": "index.html",
@@ -25,14 +25,14 @@
       "file": "js/destiny-profile.js",
       "marker": "  function _dpRenderStandalonePaymentChoice(options) {",
       "why": "독립 정적 폴백 렌더러. 셸 정본과 CSS·문구가 같아야 한다(verify:payment-choice-parity).",
-      "sha256": "b9ac00792eb3e91d"
+      "sha256": "17e200df6684451c"
     }
   ],
   "wholeFiles": [
     {
       "file": "app/_lib/billing-client.ts",
       "why": "React 결제 코어. 낙관 이용권 grant 와 결제창 렌더러가 여기 있다.",
-      "sha256": "345392eb36e1321f"
+      "sha256": "02deb300aa9a0d95"
     },
     {
       "file": "app/hooks/useCoinGate.ts",

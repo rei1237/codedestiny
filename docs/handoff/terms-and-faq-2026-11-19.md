@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-19
-next: "U1b — 결제 동결 문구 payment.directModal.passBadge·musicTrackSub 의 달빛 이용권 → 꿀단지 이용권 (payment-freeze 절차)"
+next: "U2 — 번역 용어 통일(Moonstone·月精石·꿀단지 이용권 번역) + glossary"
 ---
 
 # 용어 통일(꿀단지 이용권·월정석) + 처음 온 사람용 FAQ·서비스 설명 다듬기
@@ -60,7 +60,7 @@ next: "U1b — 결제 동결 문구 payment.directModal.passBadge·musicTrackSub
 
 ## 단계
 - [x] U1 한국어 용어 통일(꿀단지 이용권). 바꾼 파일·건수, 보고만 목록(결제 동결)을 아래 "결과"에.
-- [ ] U1b 결제 동결 문구 라벨만 교체: `payment.directModal.passBadge`·`musicTrackSub` 의 "달빛 이용권" → "꿀단지 이용권". 렌더러 3종(`app/_lib/billing-client.ts`, `index.html` `_cdChooseServicePaymentMode`, `js/destiny-profile.js`)과 `public/i18n/ko.json` 을 한 커밋에, `verify-payment-freeze --update` 로 매니페스트 갱신. 결제 로직·정규식·금액·순서는 바꾸지 않는다. 다른 로케일 값은 U2. 2026-11-19 사용자 요청 "용어 통일" 범위로 진행(위험: 결제창 라벨만, 롤백은 커밋 revert 1회).
+- [x] U1b 결제 동결 문구 라벨만 교체: `payment.directModal.passBadge`·`musicTrackSub` 의 "달빛 이용권" → "꿀단지 이용권". 렌더러 3종(`app/_lib/billing-client.ts`, `index.html` `_cdChooseServicePaymentMode`, `js/destiny-profile.js`)과 `public/i18n/ko.json` 을 한 커밋에, `verify-payment-freeze --update` 로 매니페스트 갱신. 결제 로직·정규식·금액·순서는 바꾸지 않는다. 다른 로케일 값은 U2. 2026-11-19 사용자 요청 "용어 통일" 범위로 진행(위험: 결제창 라벨만, 롤백은 커밋 revert 1회).
 - [ ] U2 번역 용어 통일(Moonstone·月精石·꿀단지 이용권 번역) + glossary.
 - [ ] U3 FAQ·서비스 설명 개편(+ 해당 로케일 번역 동기화, SEO 점검).
 - [ ] U4 마무리: 남은 옛 이름 grep(문서 역사 기록 제외) 0 확인, 금지 표현 grep, `npm run check:pre-push`, origin/main 머지(충돌 생성물은 theirs → `sync:public`·`sitemap:generate`), push, main CI 1회 확인, 이 문서 `status: done`, 최종 보고. 운영 승격은 하지 않는다.
@@ -73,3 +73,9 @@ next: "U1b — 결제 동결 문구 payment.directModal.passBadge·musicTrackSub
 - 보고만(로직·주석): billing-client.ts:2926·index.html 대기 종류 정규식 `달빛 이용권 결제|이용권 결제`(옛 문구 호환, 동결) 와 그 설명 주석(index.html, verify-paid-gate-ui-regression.mjs:406 — passBadge 가 아직 달빛 이용권이라 사실), billing-client.ts:1168 주석(동결 파일), worker/payments/passes.js:2 JSDoc(결제 실행 파일), public/_redirects:66 주석(라우팅 파일).
 - 역사·스냅샷이라 둠: docs/ 의 감사·인벤토리·SEO 기록·adsense baseline·toss 인벤토리·inicis 신청 사실 문서, payment-gating:345·349 와 payment-policy-flow:123(날짜 결정), shellCopy-04 `_comment`, 미참조 잔재 `i18n/.rest.json`·`i18n/.w1-strings.json`.
 - 다른 로케일 값(Moonlight Pass 등)은 U2.
+
+### U1b (2026-11-19, 커밋은 이 문서를 담은 커밋)
+- passBadge 폴백 4곳(billing-client.ts:1175 · index.html 20498-20499 · destiny-profile.js:12425)·musicTrackSub 폴백(billing-client.ts:1134, React 전용 키)·ko.json 2값을 "꿀단지 이용권"으로. 대기 종류 정규식·주석·금액·순서·다른 로케일은 그대로.
+- destiny-profile.js 내용이 바뀌어 손으로 관리하는 런타임 핀 build-2179916719ec → build-8bac2dd89013(billing-client.ts PAID_SERVICE_RUNTIME_SRC, verify-paid-gate-ui-regression.mjs:234, 독립 정적 페이지 10 + public 미러 10). parity 가 요구한 값.
+- payment-freeze --update: _cdChooseServicePaymentMode·_dpRenderStandalonePaymentChoice region, billing-client.ts 해시 3개 갱신. sync:public(셸 미러 7·캐시 키)·sitemap:generate(lastmod 원장 42) 산출물 포함.
+- 검증: verify:payment-freeze·payment-choice-parity·payment-copy-dictionary·paid-gate-ui·locale-text-fit(카드 헤드 최대 272.1/290px) 통과, check:fast(paid-gate-suite 78/0 포함) 통과.

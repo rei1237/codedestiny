@@ -12422,7 +12422,7 @@
     var passStoreFirst = recommendedOption === 'pass';
     // 🔴 결제창 문구는 셸·React 와 **같은 i18n 키**를 쓴다(js/core/checkout-entry.js 의 text()).
     // 한국어 인자는 ko 정본 폴백이며 public/i18n/*.json 12개와 함께 유지된다.
-    var passBadgeLabel = _dpCheckoutText('payment.directModal.passBadge', '달빛 이용권');
+    var passBadgeLabel = _dpCheckoutText('payment.directModal.passBadge', '꿀단지 이용권');
     var passBadge = hasActivePassTier ? (tierName.toUpperCase() + ' ' + passBadgeLabel) : passBadgeLabel;
     var passTitle = hasActivePassTier
       ? _dpCheckoutText('payment.directModal.passUpgradeTitle', '이용권 등급 올리기')
