@@ -100,7 +100,43 @@ class CodeDestinyViewController: CAPBridgeViewController {
             uiDelegateProxy = proxy
             webView.uiDelegate = proxy
         }
+        #if DEBUG
+        scheduleSelfTest()
+        #endif
     }
+
+    #if DEBUG
+    // Debug-only, opt-in with the launch argument -cdSelfTest (ios-shell-build.yml). Logs the values the
+    // Mac checklist reads by hand in Web Inspector. Release builds never contain this code.
+    private func scheduleSelfTest() {
+        guard ProcessInfo.processInfo.arguments.contains("-cdSelfTest") else { return }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 15) { [weak self] in
+            guard let webView = self?.webView else { NSLog("%@", "[cd-selftest] no webView"); return }
+            let script = """
+            const root = document.documentElement;
+            const client = globalThis.__cdNativeBridgeClient;
+            let info = "missing";
+            if (client && typeof client.getInfo === "function") {
+              try { info = await client.getInfo(); } catch (e) { info = "error: " + e; }
+            }
+            return JSON.stringify({
+              href: location.href,
+              ua: navigator.userAgent,
+              platform: root.dataset.platform || null,
+              runtimeTarget: root.dataset.runtimeTarget || null,
+              capacitorPlatform: globalThis.Capacitor && globalThis.Capacitor.getPlatform ? globalThis.Capacitor.getPlatform() : null,
+              info: info
+            });
+            """
+            webView.callAsyncJavaScript(script, arguments: [:], in: nil, in: .page) { result in
+                switch result {
+                case .success(let value): NSLog("%@", "[cd-selftest] \(value)")
+                case .failure(let error): NSLog("%@", "[cd-selftest] error \(error.localizedDescription)")
+                }
+            }
+        }
+    }
+    #endif
 }
 
 // Replaces Capacitor's UI delegate: localized dialog buttons, completion handlers that always fire,
