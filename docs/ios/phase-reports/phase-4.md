@@ -66,8 +66,12 @@
 | AASA 경로가 지금 리다이렉트 없이 응답하는지 | `curl -sI https://code-destiny.com/.well-known/apple-app-site-association` | `404`, Location 없음(파일이 없으니 정상) |
 | www | `curl -sI https://www.code-destiny.com/.well-known/apple-app-site-association` | `301` → apex. 그래서 entitlements에서 뺐다 |
 | 변경 기반 검사 | `npm run check:fast -- --committed-head` | test:node 에서 영냥이 v7 골든 3파일만 BLOCKED(하위 프로세스 exit 143, 약 120초 타임아웃). 단독 재실행 4/4 통과 → 동시 부하 타임아웃, 이번 변경과 무관 |
-| macOS CI 컴파일·시뮬레이터 | `ios-shell-build.yml` | **CI 재빌드 대기(push 보류)**. pbxproj가 바뀌어 push 하면 `paths:` 필터로 자동 실행된다 |
-| 유니버설 링크 실수신(콜드·웜) | 실기기 | 미검증. Team ID·서명·AASA 배포가 모두 필요하다. 시뮬레이터 `openurl`은 확인창에서 멈춰(Phase 3 실측) 수신 확인 수단이 아니다 |
+| macOS CI 컴파일·시뮬레이터 | `ios-shell-build.yml` | 통과(2026-11-20, [44574289524](https://github.com/rei1237/codedestiny/actions/runs/44574289524), [44585851632](https://github.com/rei1237/codedestiny/actions/runs/44585851632)) |
+| 커스텀 스킴 전달(OS 경유) | DEBUG `-cdSelfTest`가 앱 안에서 `UIApplication.shared.open(com.codedestiny.app://cd-selftest?probe=scheme)` → CI "Assert link delivery" | **실측 통과**. 앱이 자기 스킴을 열면 확인창 없이 LaunchServices → `AppDelegate` → `CapacitorOpenURLNotification` → `appUrlOpen` 리스너까지 도착(trace `appUrlOpen` 기록). 바깥 `simctl openurl`은 여전히 `Open in "꿀꿀운세"?` 확인창에서 멈추며, 스킴 등록 확인용으로만 남겼다 |
+| 유니버설 링크 앱 내 처리 | 같은 셀프 테스트가 `NSUserActivityTypeBrowsingWeb`(webpageURL `https://code-destiny.com/about/?cd_selftest=universal`)을 `AppDelegate.application(_:continue:…)`에 전달 | **실측 통과**. `CapacitorOpenUniversalLinkNotification` → `appUrlOpen` → 브리지 `universalLink /about/` → 웹뷰 `capacitor://localhost/about/?cd_selftest=universal&lang=en`(제목 "꿀꿀 운세 소개 …") |
+| 유니버설 링크 실수신(콜드·웜) | 실기기 | 미검증. Team ID·서명·AASA 배포가 모두 필요해 OS의 도메인 연결 단계는 시뮬레이션으로 대신했다(위 행) |
+| 콜드 스타트 경합 | 실행 [44562306732](https://github.com/rei1237/codedestiny/actions/runs/44562306732) | 첫 페이지 로드가 끝나기 전에 유니버설 링크가 오면 "Frame load interrupted" 뒤 index.html 로 다시 로드돼 이동이 사라졌다. 셀프 테스트는 페이지 안정 뒤 보내도록 고쳤고, 제품 동작(콜드 스타트 링크 유실 가능성)은 후속 과제 |
+| 상단 safe area(레이아웃 측정) | 셀프 테스트 layout probe, 실행 44585851632 | 홈: `env(safe-area-inset-top)` 62px, body padding 62px, 헤더 top 62 → 정상. `/about/`(정적 `public/static/policies/about/index.html`, `header.policy-site-header` sticky): `env()` **0px**, body padding 0, 헤더 top 0 → 스크린샷에서도 상태바와 겹침. 원인: 이 정적 페이지의 viewport 메타에 `viewport-fit=cover`가 없다(`width=device-width,initial-scale=1`). GlobalHeader CSS(6c9dfb1f3)와는 무관. 미수정(후속 과제) |
 
 ## 5. 레드팀: 지금 제출하면 반려될 사유
 
