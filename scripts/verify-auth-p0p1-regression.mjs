@@ -116,6 +116,18 @@ assert.equal(
   "both OAuth callbacks must create the account only when the provider settled the age",
 );
 
+// 🔴 Apple(2026-11-19 R3)은 연령을 주지 않으므로 콜백에서 계정을 절대 만들지 않는다 —
+//    신규는 늘 가입 마무리 화면(생년 확인)으로 간다. 위 두 분기 셈에 넣지 않고 따로 고정한다.
+{
+  const start = authRouteSource.indexOf("async function handleAppleOAuthCallback(");
+  assert.ok(start >= 0, "handleAppleOAuthCallback must exist");
+  const end = authRouteSource.indexOf("\nasync function ", start + 1);
+  const body = authRouteSource.slice(start, end < 0 ? undefined : end);
+  assert.ok(body.includes("createIfMissing: false"), "🔴 Apple callback must never auto-create an account");
+  assert.ok(!body.includes("createIfMissing: autoSignup"), "🔴 Apple callback must not reuse the age-settled auto-create switch");
+  assert.ok(body.includes("buildSocialSignupTicket"), "Apple new users must go through the signup ticket (birth year)");
+}
+
 // 🔴 미성년은 티켓조차 받지 못해야 한다. 티켓을 주면 가입 마무리 화면에서 생년을 다시 적어
 //    우회할 수 있고, 그러면 공급자가 알려 준 나이를 우리가 스스로 버리는 셈이다.
 //    그래서 "!socialUser.user 직후"라는 **위치**까지 고정한다 — 뒤로 밀리면 티켓이 먼저 나간다.

@@ -94,3 +94,11 @@ v1 공통 형식은 `CodeDestinyNative.call(method, params)`로 하고, 응답�
 - `store.purchase`의 경계: 네이티브가 verify까지 할지, 웹 가드가 계속 할지
 - 이벤트 이름: v0 Capacitor 이벤트를 `cdnative:*` CustomEvent로 다시 내보낼지
 - 기본 타임아웃(§4-1의 15초)을 Android의 결제 서버 25초와 어떻게 맞출지
+
+## 7. 웹 공통 client (2026-11-19, iOS Phase 2 단계 3)
+
+- 파일: `js/core/native-bridge-client.js`(+ `.d.ts`), 테스트 `__tests__/ui/native-bridge-client.test.js`. 전역 `__cdNativeBridgeClient`, require 도 가능하다.
+- 모양: `getPlatform()`(app-context 위임) · `getBridge()` · `has(method)`(점 경로 허용) · `call(method, params)` · `getInfo()` → `{platform, bridgeVersion: 0, available}`.
+- `call` 은 v0 메서드 이름(1–2절)을 그대로 받고 3절의 v1 응답 형식으로 돌려준다. throw 하지 않는다. 웹이거나 메서드가 없으면 `E_UNSUPPORTED`, `NATIVE_*_UNAVAILABLE` → `E_UNSUPPORTED`, `APP_STORE_REQUEST_TIMEOUT` → `E_TIMEOUT`(retryable), 그 밖의 코드는 그대로, 코드 없는 예외는 `E_NATIVE`.
+- 아직 소비자는 없다. 기존 호출부(`scripts/app-native-bridge.js`, `scripts/app-payment-guard.js`, `app/app/_lib/native-billing.ts`, `js/core/play-display-price.js` 등)는 바꾸지 않았다. Android 동작은 그대로다.
+- v1 이름(`store.*`, `auth.*`, `app.getInfo` 네이티브 구현)과 StoreKit 구매 배선은 Phase 4·6에서 이 client 위에 얹는다. 소비자를 옮길 때는 기존 래퍼의 재시도·폴백과 이중으로 감싸지 않는지 확인한다.

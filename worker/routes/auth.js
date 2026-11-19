@@ -1,5 +1,14 @@
 import { ACTIVATION_REWARD_VERSION } from '../../js/core/activation-reward-policy.mjs';
 import { mapSocialProfile, normalizeKoreanPhoneNumber } from "../lib/social-profile.js";
+import {
+  APPLE_AUTHORIZE_ENDPOINT,
+  deriveAppleNonce,
+  exchangeAppleAuthorizationCode,
+  isAppleSiwaConfigured,
+  mapAppleProfile,
+  readAppleSiwaConfig,
+  verifyAppleIdToken,
+} from "../lib/apple-signin.js";
 import { connectDb, mongoose, requestPoolRecovery, resolveMongoDbName, withMongoRetry } from "../lib/db.js";
 import { IdempotencyKey, MonthlyCreditLedger, PointHistory, RESTORE_CREDENTIAL_CAP, RefreshTokenSession, User } from "../lib/models.js";
 import { MONTHLY_CREDIT_TTL_MS } from "../lib/monthly-credit-lots.js";
@@ -59,7 +68,7 @@ import {
 import { Buffer } from "node:buffer";
 import { createHmac, createHash, randomBytes, timingSafeEqual } from "node:crypto";
 
-const OAUTH_PROVIDERS = ["google", "naver", "kakao"];
+const OAUTH_PROVIDERS = ["google", "naver", "kakao", "apple"];
 const SOCIAL_GRANT_EXPIRES_IN_SEC = 180;
 const CSRF_COOKIE_NAME = "cd_csrf_token";
 const CSRF_HEADER_NAME = "x-csrf-token";
@@ -1867,6 +1876,10 @@ async function findExistingSocialUser(provider, profile, socialField, env, signu
     user = await User.findOne({ email: profile.email });
     if (user) {
       if (isWithdrawnAuthUser(user)) throw new Error(`${provider}_account_withdrawn`);
+      // 🔴 Apple 은 이메일이 같아도 자동으로 붙이지 않는다(2026-11-18 R3 승인안). 사용자가 기존
+      // 방법으로 로그인한 뒤 /account/apple/ 의 "기존 계정 연결"로 직접 잇는다. 구글·네이버·카카오의
+      // 이메일 자동 연결(아래)은 그대로 둔다(R4).
+      if (provider === "apple") throw new Error("apple_link_required");
       if (profile.emailVerified !== true) {
         throw new Error(`${provider}_email_unverified`);
       }
@@ -4185,6 +4198,7 @@ async function handleWithdraw(request, env) {
             google: { id: "", connectedAt: null },
             naver: { id: "", connectedAt: null },
             kakao: { id: "", connectedAt: null },
+            apple: { id: "", connectedAt: null },
           },
           // 🔴 복원 키를 남기면 탈퇴한 계정이 새 기기에서 그대로 되살아난다(/restore-credential/assert
           // 는 비인증 경로다). 로그아웃 때는 반대로 유지한다 — 다른 기기의 복원 키까지 죽으면 안 된다.
@@ -4356,6 +4370,7 @@ async function handleOAuthStart(request, env, provider) {
   if (!OAUTH_PROVIDERS.includes(provider)) {
     return json({ message: "Unsupported social login provider." }, { status: 400 });
   }
+  if (provider === "apple") return await handleAppleOAuthStart(request, env);
 
   try {
     const cfg = buildProviderConfig(provider, request, env);
@@ -4608,12 +4623,304 @@ async function handlePhoneConsentCallback({ request, env, provider, code, stateR
   return buildPhoneConsentResultPage(frontendBase, { ok: true, reason: saved.outcome });
 }
 
+// ─── Sign in with Apple (웹, Services ID) ─────────────────────────────────────────────
+// 구글·네이버·카카오와 같은 state·브라우저 묶음 쿠키·이중 콜백 가드를 쓰되, 세 가지가 다르다.
+//  ① Apple 은 response_mode=form_post 로 **사이트 간 POST** 콜백을 보낸다. SameSite=Lax 쿠키는
+//     그 요청에 실리지 않으므로 묶음 쿠키만 SameSite=None; Secure 로 굽는다. 로그인 세션 쿠키는
+//     콜백에서 읽지 않는다(링크 모드의 사용자는 start 시점에 확인해 서명된 state 에 싣는다).
+//  ② id_token 은 우리가 토큰 엔드포인트에서 직접 받은 것만 쓰고, JWKS 서명·iss·aud·exp·nonce 를
+//     모두 확인한다. nonce 는 묶음 쿠키에서 유도한다(deriveAppleNonce).
+//  ③ 이메일이 같은 기존 계정에 자동으로 붙이지 않는다(R3). 그 경우 로그인 화면이 기존 방법으로
+//     로그인한 뒤 /account/apple/ 에서 연결하라고 안내한다(apple_link_required).
+// 앱(Capacitor)에서는 버튼을 숨기므로 appRedirect 를 받지 않는다 — 네이티브 SIWA 는 다음 단계다.
+const APPLE_PROVIDER = "apple";
+const APPLE_LINK_MODE = "link";
+const APPLE_ACCOUNT_PATH = "/account/apple/";
+const APPLE_BINDING_COOKIE = `cd_oauth_browser_${APPLE_PROVIDER}`;
+
+function appleNotConfiguredResponse() {
+  return json({
+    ok: false,
+    code: "apple_signin_not_configured",
+    message: "Apple 로그인이 아직 준비되지 않았어요.",
+  }, { status: 503 });
+}
+
+function buildAppleAccountRedirect(frontendBase, result) {
+  const target = new URL(APPLE_ACCOUNT_PATH, buildOAuthFrontendUrl(frontendBase, "/"));
+  target.searchParams.set("appleLink", String(result || "failed").slice(0, 60));
+  return redirect(target.toString());
+}
+
+function buildAppleLinkRequiredRedirect(frontendBase) {
+  const loginUrl = new URL("/login", buildOAuthFrontendUrl(frontendBase, "/"));
+  loginUrl.searchParams.set("authError", APPLE_PROVIDER);
+  loginUrl.searchParams.set("social_error", "apple_link_required");
+  loginUrl.searchParams.set("next", APPLE_ACCOUNT_PATH);
+  return redirect(loginUrl.toString());
+}
+
+// 토큰 교환(POST)은 재시도하지 않는다 — 같은 code 를 두 번 내면 Apple 이 invalid_grant 로 거절한다.
+function appleProviderFetch(url, init = {}) {
+  const method = String(init?.method || "GET").toUpperCase();
+  return fetchOAuthProvider(url, init, { retries: method === "POST" ? 0 : OAUTH_PROVIDER_FETCH_RETRIES });
+}
+
+async function handleAppleOAuthStart(request, env) {
+  const provider = APPLE_PROVIDER;
+  if (!isAppleSiwaConfigured(env)) return appleNotConfiguredResponse();
+
+  try {
+    const config = readAppleSiwaConfig(env);
+    const redirectUri = resolveProviderCallbackUrl(provider, request, env);
+    const url = new URL(request.url);
+    const callbackOrigin = new URL(redirectUri).origin;
+    if (url.origin !== callbackOrigin) {
+      return redirect(`${callbackOrigin}${url.pathname}${url.search}`);
+    }
+    const frontendBase = getOAuthFrontendBaseUrl(request, env);
+    const mode = String(url.searchParams.get("mode") || "").trim().toLowerCase() === APPLE_LINK_MODE ? APPLE_LINK_MODE : "";
+    let linkUserId = "";
+    if (mode === APPLE_LINK_MODE) {
+      // 🔴 연결은 로그인한 본인에게만 붙인다. 신원은 여기서 확인해 서명된 state 에 싣는다.
+      const linkAuth = await resolvePaidRouteAuth(request, env);
+      if (!linkAuth?.userId) {
+        const loginUrl = new URL("/login", buildOAuthFrontendUrl(frontendBase, "/"));
+        loginUrl.searchParams.set("next", APPLE_ACCOUNT_PATH);
+        return redirect(loginUrl.toString());
+      }
+      linkUserId = String(linkAuth.userId);
+    }
+    const nextPath = mode ? APPLE_ACCOUNT_PATH : sanitizeOAuthNextPath(url.searchParams.get("next") || "");
+    const flow = sanitizeAuthFlow(url.searchParams.get("flow"));
+    const referralCapture = extractReferralCapture({
+      referralCode: url.searchParams.get("referralCode") || url.searchParams.get("ref"),
+      referralShareToken: url.searchParams.get("referralShareToken") || url.searchParams.get("rs"),
+      referralSource: url.searchParams.get("referralSource") || url.searchParams.get("via"),
+    });
+    const existingBinding = cookieValue(request, APPLE_BINDING_COOKIE);
+    const browserBinding = /^[a-f0-9]{64}$/.test(existingBinding) ? existingBinding : randomBytes(32).toString("hex");
+    const stateToken = await signSocialState({
+      provider,
+      browserBindingHash: createHash("sha256").update(browserBinding).digest("hex"),
+      nextPath,
+      frontendBase,
+      appRedirect: "",
+      flow,
+      redirectUri,
+      referralCode: referralCapture.referralCode,
+      referralShareToken: referralCapture.referralShareToken,
+      referralSource: referralCapture.referralSource,
+      ...(mode ? { mode, linkUserId } : {}),
+    }, env);
+
+    const params = new URLSearchParams({
+      client_id: config.servicesId,
+      redirect_uri: redirectUri,
+      response_type: "code",
+      response_mode: "form_post",
+      scope: "name email",
+      state: stateToken,
+      nonce: await deriveAppleNonce(browserBinding),
+    });
+    const response = redirect(`${APPLE_AUTHORIZE_ENDPOINT}?${params.toString()}`);
+    const secure = resolveCookieSecure(request, env);
+    response.headers.append("Set-Cookie", buildCookieValue(APPLE_BINDING_COOKIE, browserBinding, {
+      // SameSite=None 은 Secure 일 때만 브라우저가 받는다. 로컬 http 개발에서는 Lax 로 둔다.
+      httpOnly: true, secure, sameSite: secure ? "None" : "Lax", maxAge: 600,
+    }));
+    return response;
+  } catch (error) {
+    logAuthDiagnostic(request, env, "/api/auth/oauth/start", provider, "oauth_start_failed", error);
+    return json({ ok: false, message: "Social login start failed.", code: "oauth_start_failed" }, { status: 500 });
+  }
+}
+
+async function readAppleFormPost(request) {
+  const fields = { code: "", state: "", error: "", user: "" };
+  const contentType = String(request.headers.get("content-type") || "").toLowerCase();
+  if (!contentType.includes("application/x-www-form-urlencoded") && !contentType.includes("multipart/form-data")) {
+    return fields;
+  }
+  try {
+    const form = await request.formData();
+    const limits = { code: 1024, state: 4096, error: 120, user: 2048 };
+    for (const key of Object.keys(fields)) {
+      fields[key] = String(form.get(key) || "").slice(0, limits[key]);
+    }
+  } catch (error) {
+    // 깨진 본문은 빈 값으로 두고 아래에서 missing_oauth_params 로 끊는다.
+  }
+  return fields;
+}
+
+/**
+ * 링크 모드: 로그인한 사용자(state.linkUserId)에 Apple 신원을 붙인다.
+ * 🔴 다른 계정에 이미 붙은 Apple 신원은 옮기지 않는다 — 옮기면 그 계정의 로그인 수단을 빼앗는다.
+ */
+async function linkAppleAccountToUser(env, userId, socialProfile) {
+  if (!mongoose.Types.ObjectId.isValid(userId)) return "invalid_state";
+  const timeoutMs = getAuthOpTimeoutMs(env);
+  const dbMaxTimeMs = Math.max(1000, timeoutMs - 1000);
+  const providerId = String(socialProfile?.providerId || "");
+  if (!providerId) return "provider_error";
+
+  const owner = await withAuthOpTimeout(
+    User.findOne({ "socialAccounts.apple.id": providerId }).select("_id").maxTimeMS(dbMaxTimeMs).lean(),
+    timeoutMs,
+    "auth_apple_link_find_owner",
+  );
+  if (owner && String(owner._id) !== userId) return "apple_already_linked";
+
+  const user = await withAuthOpTimeout(
+    User.findById(userId).select("socialAccounts status").maxTimeMS(dbMaxTimeMs).lean(),
+    timeoutMs,
+    "auth_apple_link_find_user",
+  );
+  if (!user || isWithdrawnAuthUser(user)) return "user_not_found";
+  const currentAppleId = String(user?.socialAccounts?.apple?.id || "");
+  if (currentAppleId === providerId) return "linked";
+  if (currentAppleId) return "apple_link_conflict";
+
+  const result = await withAuthOpTimeout(
+    User.updateOne(
+      { _id: userId, "socialAccounts.apple.id": { $in: ["", null] } },
+      { $set: { "socialAccounts.apple.id": providerId, "socialAccounts.apple.connectedAt": new Date() } },
+    ),
+    timeoutMs,
+    "auth_apple_link_update",
+  );
+  if (!Number(result?.matchedCount ?? result?.n ?? 0)) return "apple_link_conflict";
+  return "linked";
+}
+
+async function handleAppleOAuthCallback(request, env) {
+  const provider = APPLE_PROVIDER;
+  const frontendBase = getFrontendBaseUrl(env);
+  if (!isAppleSiwaConfigured(env)) return buildOAuthFailureRedirect(frontendBase, provider, "apple_signin_not_configured");
+
+  let fail = (reason) => buildOAuthFailureRedirect(frontendBase, provider, reason);
+  try {
+    const form = await readAppleFormPost(request);
+    if (!form.state) return fail(form.error ? "provider_error" : "missing_oauth_params");
+
+    let statePayload = null;
+    try {
+      statePayload = await verifySocialState(form.state, env);
+    } catch (error) {
+      return fail("invalid_oauth_state");
+    }
+    if (statePayload.provider !== provider) return fail("provider_mismatch");
+
+    const linkMode = statePayload.mode === APPLE_LINK_MODE;
+    const safeFrontendBase = String(statePayload.frontendBase || frontendBase).replace(/\/+$/, "");
+    fail = linkMode
+      ? (reason) => buildAppleAccountRedirect(safeFrontendBase, reason)
+      : (reason) => buildOAuthFailureRedirect(safeFrontendBase, provider, reason);
+
+    if (form.error) return fail(form.error === "user_cancelled_authorize" ? "cancelled" : "provider_error");
+    if (!form.code) return fail("missing_oauth_params");
+
+    const browserBinding = cookieValue(request, APPLE_BINDING_COOKIE);
+    const expectedBinding = String(statePayload.browserBindingHash || "");
+    if (!/^[a-f0-9]{64}$/.test(browserBinding) || !/^[a-f0-9]{64}$/.test(expectedBinding)
+      || !timingSafeEqual(Buffer.from(createHash("sha256").update(browserBinding).digest("hex")), Buffer.from(expectedBinding))) {
+      return fail("oauth_browser_mismatch");
+    }
+
+    const flow = sanitizeAuthFlow(statePayload.flow);
+    const nextPath = sanitizeOAuthNextPath(statePayload.nextPath);
+    const exchangeGuard = beginOAuthCodeExchange(provider, form.code, form.state, env);
+    if (exchangeGuard.blocked) {
+      return buildOAuthDuplicateCallbackResponse(safeFrontendBase, nextPath, "", flow);
+    }
+
+    try {
+      const config = readAppleSiwaConfig(env);
+      const tokens = await exchangeAppleAuthorizationCode({
+        code: form.code,
+        redirectUri: String(statePayload.redirectUri || ""),
+        config,
+        fetchImpl: appleProviderFetch,
+      });
+      const claims = await verifyAppleIdToken(tokens.id_token, {
+        clientId: config.servicesId,
+        nonce: await deriveAppleNonce(browserBinding),
+        fetchImpl: appleProviderFetch,
+      });
+      const socialProfile = mapAppleProfile(claims, form.user);
+
+      await connectDb(env);
+
+      if (linkMode) {
+        const outcome = await linkAppleAccountToUser(env, String(statePayload.linkUserId || ""), socialProfile);
+        return buildAppleAccountRedirect(safeFrontendBase, outcome);
+      }
+
+      // Apple 은 연령을 주지 않으므로 콜백에서 계정을 만들지 않는다 — 신규는 늘 가입 마무리(생년 확인)로 간다.
+      let socialUser;
+      try {
+        socialUser = await resolveSocialUserWithRetry(provider, socialProfile, env, {
+          createIfMissing: false,
+          signupProfile: null,
+        });
+      } catch (error) {
+        if (String(error?.message || "") === "apple_link_required") return buildAppleLinkRequiredRedirect(safeFrontendBase);
+        throw error;
+      }
+
+      const appleUser = socialUser.user;
+      if (!appleUser) {
+        // 가입 마무리 화면이 생년을 직접 묻는다(구글과 같다). 만 14세 미만은 거기서 막힌다.
+        const ticket = await buildSocialSignupTicket(provider, socialProfile, statePayload, env, {
+          nextPath,
+          flow,
+          appRedirect: "",
+        });
+        return redirect(buildSocialSignupRedirectUrl(safeFrontendBase, ticket, {
+          nextPath,
+          flow,
+          hasPhoneNumber: false,
+          name: socialProfile?.name,
+          ageVerifiedByProvider: false,
+        }));
+      }
+
+      const user = appleUser;
+      if (isGuardianConsentBlocked(user)) {
+        return buildSocialGuardianConsentRedirect(safeFrontendBase, provider, user.guardianConsent);
+      }
+      const grant = await signSocialGrant({
+        userId: String(user._id),
+        provider,
+        nextPath,
+        flow,
+        isNewUser: !!socialUser.created,
+        referralCode: normalizeReferralCode(statePayload.referralCode),
+        referralShareToken: normalizeReferralShareToken(statePayload.referralShareToken),
+        referralSource: String(statePayload.referralSource || "").trim().toLowerCase(),
+      }, env);
+      const redirectParams = new URLSearchParams({ social_grant: grant, flow });
+      if (nextPath !== "/") redirectParams.set("next", nextPath);
+      return redirect(`${safeFrontendBase}/auth/${provider}/callback?${redirectParams.toString()}`);
+    } finally {
+      markOAuthCodeExchangeComplete(exchangeGuard.key);
+    }
+  } catch (error) {
+    logAuthDiagnostic(request, env, "/api/auth/oauth/callback", provider, "oauth_callback_failed", error);
+    const reason = String(error?.message || "oauth_callback_failed").trim() || "oauth_callback_failed";
+    return fail(reason.startsWith("apple_") ? reason : "oauth_callback_failed");
+  }
+}
+
 async function handleOAuthCallback(request, env, provider) {
   const frontendBase = getFrontendBaseUrl(env);
 
   if (!OAUTH_PROVIDERS.includes(provider)) {
     return buildOAuthFailureRedirect(frontendBase, provider, "unsupported_provider");
   }
+  // Apple 은 response_mode=form_post 라 POST 콜백(handleAppleOAuthCallback)만 받는다.
+  if (provider === "apple") return buildOAuthFailureRedirect(frontendBase, provider, "invalid_callback");
 
   let exchangeFailureLogged = false;
   // 앱(Capacitor) 플로우인지 catch 블록에서도 알아야 한다. state 검증 후에 채워진다.
@@ -5129,6 +5436,15 @@ async function handleOAuthCompleteSignup(request, env) {
       { createIfMissing: true, signupProfile },
     );
   } catch (error) {
+    if (String(error?.message || "") === "apple_link_required") {
+      return signupErrorResponse(
+        request,
+        env,
+        409,
+        "apple_link_required",
+        "같은 이메일로 가입한 계정이 있어요. 기존 방법으로 로그인한 뒤 계정 설정에서 Apple 을 연결해 주세요.",
+      );
+    }
     return signupErrorResponse(request, env, 503, "db_write_failed", toErrorMessage(error) || "Failed to create user.");
   }
 
@@ -5586,6 +5902,14 @@ export async function handleAuthRoutes(request, env, ctx) {
       return await handleOAuthStart(request, env, String(startMatch[1] || "").toLowerCase());
     }
 
+    // Apple 은 form_post 라 POST 로 돌아온다. 사이트 간 POST 이므로 위 같은 출처 가드에 넣지 않는다 —
+    // 대신 서명된 state·브라우저 묶음 쿠키·id_token nonce 가 이 요청을 시작한 브라우저를 확인한다.
+    if (method === "POST" && path === "/oauth/apple/callback") return await handleAppleOAuthCallback(request, env);
+    // 로그인 화면이 Apple 버튼을 그릴지 정한다. 키 값은 싣지 않고 준비 여부만 돌려준다.
+    if (method === "GET" && path === "/oauth/providers") {
+      return json({ ok: true, providers: { apple: isAppleSiwaConfigured(env) } });
+    }
+
     const callbackMatch = path.match(/^\/oauth\/([^/]+)\/callback$/);
     if (method === "GET" && callbackMatch) {
       return await handleOAuthCallback(request, env, String(callbackMatch[1] || "").toLowerCase());
@@ -5628,6 +5952,7 @@ export const __authTestUtils = {
   handlePaymentPhoneStatus,
   handleOAuthStart,
   handleOAuthCallback,
+  handleAppleOAuthCallback,
   handleOAuthCompleteSignup,
   resolveSocialAutoSignup,
   findOrCreateSocialUser,
