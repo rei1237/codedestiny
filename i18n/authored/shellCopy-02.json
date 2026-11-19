@@ -716,17 +716,17 @@
   },
   "home.passMini.chipIncluded": {
     "ko": "이용권 한도로 바로 열기",
-    "en": "Free within pass range",
-    "ja": "合格範囲内でフリー",
-    "zh-CN": "在通过范围内自由",
-    "zh-TW": "在通過範圍內自由",
-    "vi": "Miễn phí trong phạm vi vượt qua",
-    "hi": "पास सीमा के भीतर निःशुल्क",
-    "es": "Libre dentro del rango de pase",
-    "fr": "Gratuit à portée du laissez-passer",
-    "de": "Frei innerhalb der Passreichweite",
-    "nl": "Vrij binnen pasbereik",
-    "ms": "Percuma dalam julat hantaran"
+    "en": "Open now with your pass",
+    "ja": "利用券の上限ですぐ開く",
+    "zh-CN": "用通行证额度直接开启",
+    "zh-TW": "用通行證額度直接開啟",
+    "vi": "Mở ngay bằng hạn mức Pass",
+    "hi": "पास की सीमा से तुरंत खोलें",
+    "es": "Ábrelo ya con tu pase",
+    "fr": "Ouvrir avec votre pass",
+    "de": "Sofort mit dem Pass öffnen",
+    "nl": "Direct openen met je pas",
+    "ms": "Buka terus dengan pas"
   },
   "home.passMini.standardName": {
     "ko": "작은 꿀단지",

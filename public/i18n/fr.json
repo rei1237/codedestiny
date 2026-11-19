@@ -855,7 +855,7 @@
       "balanceHint": "Vérification de votre solde de pierres mensuel. Le partage sur KakaoTalk ajoute plus de pierres mensuelles.",
       "primaryAction": "Trouver le pass qui me convient",
       "chipsAria": "Avantages du pass de base",
-      "chipIncluded": "Gratuit à portée du laissez-passer",
+      "chipIncluded": "Ouvrir avec votre pass",
       "chipThirtyDays": "Pass",
       "chipShareReward": "Paiement à l'unité hors du forfait",
       "plansAria": "Cartes récapitulatives du plan Pass",
@@ -1550,7 +1550,7 @@
     },
     "svcDesc": {
       "master-love-codex": "Lecture amoureuse approfondie sur le flux du lien et le moment des rencontres",
-      "fortune-tea-house": "Une consultation chaleureuse et intime avec Yeoni",
+      "fortune-tea-house": "Consultation qui répond à votre question par le tarot, les Quatre Piliers ou la compatibilité",
       "love-secret-ai": "Une consultation IA sur l'état actuel de votre vie amoureuse",
       "compatibility": "Une compatibilité qui superpose deux destins",
       "fortune-chat": "Une conversation sur le destin avec Yeoni et Neo",
@@ -1586,7 +1586,7 @@
       "neville-meditation": "Guide de concentration pour la création imaginale",
       "yoga-guru": "Routine personnelle de méditation et yoga",
       "tarot-numerology": "Lecture de 5 cartes du nombre de vie et du nombre du jour",
-      "dream-psycho-analysis": "Un rapport d'analyse des rêves selon la perspective freudienne",
+      "dream-psycho-analysis": "Un rapport d'analyse des rêves selon trois perspectives psychologiques",
       "animal-totem": "Lecture de cartes de l'animal gardien",
       "mbti-animal-compat": "16 voies de compatibilité totem",
       "luck-sync-diary": "Un journal du flux du jour et un agenda mensuel",
@@ -1837,7 +1837,7 @@
       "settings": "Account settings",
       "garden": "My moonlit garden",
       "profileDescription": "Explore your profile and nurture everyday habits.",
-      "emptyDescription": "Create a profile and begin learning about yourself.",
+      "emptyDescription": "Create a profile, and your Saju readings will be collected here.",
       "next": "{exp} EXP to the next level",
       "today": "Today’s practices {done}/{total}",
       "max": "You reached the highest level. Keep nurturing your daily habits.",
@@ -9211,7 +9211,7 @@
       "chaptersValue": "10 chapitres · plus de 2 400 caractères chacun",
       "keepLabel": "Conservation",
       "keepValue": "Enregistrez en PDF et gardez-le à vie",
-      "guarantee": "Si le texte n'atteint pas cette longueur, il est réécrit automatiquement. S'il n'y parvient toujours pas, la demande échoue au lieu d'être livrée — la relance et le remboursement restent donc possibles."
+      "guarantee": "Tout chapitre qui n'atteint pas la longueur prévue est automatiquement renforcé une fois de plus. S'il reste court ensuite, il est livré tel quel."
     }
   },
   "karmaDestiny": {
@@ -9220,7 +9220,7 @@
       "volumeLabel": "Longueur",
       "volumeValue": "Consultation détaillée",
       "chaptersLabel": "Structure",
-      "chaptersValue": "15 chapitres · lectures thématiques et lettre finale",
+      "chaptersValue": "16 chapitres · lectures thématiques et lettre finale",
       "keepLabel": "Conservation",
       "keepValue": "Enregistrer en PDF · copier un chapitre",
       "guarantee": "La portée dépend des informations de naissance et des données de calcul disponibles. Le contenu terminé reste consultable dans la consultation enregistrée."
@@ -16119,11 +16119,11 @@
       }
     },
     "fortune_tea_house": {
-      "tagline": "Yeoni listens first, then draws on tarot and Four Pillars symbols in a conversational consultation to help you understand where your heart is and find your next step.",
+      "tagline": "Choose one consultation — tarot, Four Pillars, compatibility or Sukuyo — and ask your question; Yeoni sets out the answer and its reasoning. You can also ask 1 follow-up question after the result.",
       "feats": [
         "When it is hard to share what you truly feel",
         "When you need to untangle your thoughts before reaching a conclusion",
-        "When you need someone to listen, rather than more advice"
+        "When you need a well-grounded answer to your worry"
       ],
       "premiumIntro": "Rather than giving a definitive answer, we begin by exploring where your heart feels caught.",
       "premiumAudience": [
@@ -16144,7 +16144,7 @@
         },
         "1": {
           "title": "Choose a three- or five-card spread",
-          "detail": "Choose three cards for a quick focus on the essentials (KRW 5,000) or five cards for a deeper reading (KRW 5,000)."
+          "detail": "Choose three cards for a quick focus on the essentials (KRW 5,000) or five cards for a deeper reading (KRW 7,000)."
         },
         "2": {
           "title": "A reading tailored to your question",
@@ -16216,7 +16216,7 @@
         },
         "2": {
           "title": "An answer to one question",
-          "detail": "After signing in, prepare your question and the required information, and check the usage conditions on the existing screen."
+          "detail": "Each question costs KRW 5,000 per use; question consultations where you choose the depth start from KRW 10,000."
         },
         "3": {
           "title": "Records by adviser",
@@ -16961,7 +16961,7 @@
       "badge": "Free serial"
     },
     "points": {
-      "tagline": "A moonlight pass lets you use paid features for a set period. You can check what you hold and how you've used it here.",
+      "tagline": "A Moonlight Pass opens paid features up to a set usage limit, with no time limit. You can check what you hold and how you've used it here.",
       "feats": [
         "When paying every single time is a nuisance",
         "When you don't know how much of your pass is left",
@@ -17783,14 +17783,14 @@
       "speakerLabel": {
         "narration": "Narration",
         "yeoni": "Yeoni",
-        "pig": "Flower Pig?"
+        "pig": "Little Flower Pig"
       },
       "speakerIcon": {
         "yeoni": "Y",
         "pig": "H",
         "moon": "M"
       },
-      "waiting": "Moonlight is rising…",
+      "waiting": "Brewing the tea…",
       "next": "Next ▾"
     },
     "storyIntro": {
@@ -19049,7 +19049,7 @@
     },
     "entryScenes": {
       "0": {
-        "eyebrow": "The last light in the moonlit lane",
+        "eyebrow": "Scene One",
         "title": "The last light in the moonlit lane",
         "lines": {
           "0": {
@@ -19075,7 +19075,7 @@
         }
       },
       "1": {
-        "eyebrow": "A little keeper wearing a flower",
+        "eyebrow": "Scene Two",
         "title": "A little keeper wearing a flower",
         "lines": {
           "0": {
@@ -19102,7 +19102,7 @@
         }
       },
       "2": {
-        "eyebrow": "A feeling without a name",
+        "eyebrow": "Scene Three",
         "title": "A feeling without a name",
         "lines": {
           "0": {
@@ -19130,7 +19130,7 @@
         }
       },
       "3": {
-        "eyebrow": "When moonlight touches the cup",
+        "eyebrow": "Scene Four",
         "title": "When moonlight touches the cup",
         "lines": {
           "0": {
@@ -19156,7 +19156,7 @@
         }
       },
       "4": {
-        "eyebrow": "Across the table from Yeoni",
+        "eyebrow": "Scene Five",
         "title": "Across the table from Yeoni",
         "lines": {
           "0": {
@@ -19184,7 +19184,7 @@
         }
       },
       "5": {
-        "eyebrow": "Six cups for tonight’s thoughts",
+        "eyebrow": "Scene Six",
         "title": "Six cups for tonight’s thoughts",
         "lines": {
           "0": {
@@ -19219,7 +19219,7 @@
         "text": "The moonlight just swayed a little.\nWhen someone turns an unsaid word over in their heart, the tea house notices before anyone else."
       },
       "2": {
-        "text": "A worry that stays a long time usually means the heart has not given up yet.\nI rather like hearts like that. This tea house is exactly the place that reads such sincerity slowly, instead of pushing it away."
+        "text": "A worry that stays a long time usually means the heart has not given up yet.\nI rather like hearts like that."
       },
       "3": {
         "text": "It is fine if you cannot find the words.\nHere even silence steeps slowly, like tea leaves. Swallow it too fast and you miss the scent."
@@ -20982,7 +20982,7 @@
         "yong": "Invité d'honneur",
         "hee": "Invité bienvenu",
         "gi": "Invité à accueillir avec soin",
-        "gu": "Invité à considérer ensemble",
+        "gu": "Invité avec qui rester prudent",
         "han": "Invité de passage",
         "unavailable": "Classement indisponible"
       },
@@ -21037,7 +21037,7 @@
       "sukuyoLine": "The space between two people",
       "sukuyoInfo": "Use both people's birth details to explore lunar mansions and relationship direction, including attraction, misunderstandings, and conversation.",
       "compat": "Saju compatibility readings are also available",
-      "priceNote": "Prix pour une consultation · 1 question complémentaire incluse. L'éligibilité Pass et Moonstone est indiquée lors de la confirmation.",
+      "priceNote": "Prix pour une consultation · 1 question complémentaire incluse · Le tarot n'accepte pas les Moonstone ; les Quatre Piliers, la compatibilité et le Sukuyo, si.",
       "previewTitle": "A reading you can return to",
       "example": "Format example — not a real customer's reading",
       "exampleQuestion": "Should I continue this work?",
@@ -21068,7 +21068,7 @@
       "question": "My question",
       "price": "Single-reading price",
       "scope": "Réponse essentielle · fondements de l'interprétation · actions · lettre de Yeoni · 1 question complémentaire",
-      "policy": "L'éligibilité Pass et Moonstone est vérifiée à l'étape suivante. Une fois votre consultation reçue, vous pouvez poser 1 question complémentaire sans frais supplémentaires, sur la même base (thème de naissance, cartes ou demeure lunaire natale).",
+      "policy": "Le tarot n'accepte pas les Moonstone, et l'éligibilité Pass est vérifiée à l'étape suivante. Une fois votre consultation reçue, vous pouvez poser 1 question complémentaire sans frais supplémentaires, sur la même base (thème de naissance, cartes ou demeure lunaire natale).",
       "edit": "Edit question",
       "continue": "Check access and start",
       "prepare": "Prepare cards for this question",
