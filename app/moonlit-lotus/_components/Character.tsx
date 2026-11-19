@@ -44,6 +44,6 @@ export default memo(function Character({kind,activity,elapsed,reduced,look,image
   if(savedClock.current.key!==clockKey)setClock({key:clockKey,step:0});schedule();document.addEventListener('visibilitychange',visibility);
   return()=>{clearTimeout(timer);document.removeEventListener('visibilitychange',visibility);};
  },[activity,reduced,kind,hanbi,zodiac,sequence,clockKey,rearId,!!walking]); // eslint-disable-line react-hooks/exhaustive-deps
- const label=(rearId?rearLabel(rearId):hanbi?'서한비':zodiac?companionName(zodiac):kind==='cat'?'영냥이':'연이')+' · '+(walking?'천천히 걸어가는 중':activity==='bow'?bow.phase:activity==='meditation'?'명상 중':'함께 쉬는 중');
+ const label=(rearId?rearLabel(rearId):hanbi?'서한비':zodiac?companionName(zodiac):kind==='cat'?'영냥이':'연이')+' · '+(walking?'천천히 걸어가는 중':activity==='bow'?(rearId?'불상을 바라보는 뒷모습':'앞모습')+' · '+bow.phase:activity==='meditation'?'명상 중':'함께 쉬는 중');
  return <AtlasSprite className={styles.characterDrawing} identity={id+'-'+(walking?'walk':rearId?'rear':'front')+'-'+activity} drawing={drawing} label={label} fallback={fallback} preload={preload} frozen={reduced} holding={holding} attempt={attempt} onFailure={onFailure}/>;
 });
