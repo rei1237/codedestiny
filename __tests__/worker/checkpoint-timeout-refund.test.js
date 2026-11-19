@@ -108,3 +108,27 @@ test('celestial card checkpoints in the execution collection remain recoverable'
  execution.featureKey='tarot-celestial-harmony';execution.metadata={celestialDelivery:{delivery:{parts:{0:{archetypeReading:'saved'}}}}};
  expect(await inspect(execution)).toBe('recoverable');expect(queries).toHaveLength(0);
 });
+
+// 2026-11-19 R2b 다시 시도 우선: 네오 첫 브리핑의 다시 시도 가능 실패는 창(생성 + 7일) 안에서만 타임아웃 환불을 미룬다.
+describe('neo retryable first-briefing failure',()=>{
+ const future=()=>new Date(Date.now()+86400000), past=()=>new Date(Date.now()-1000);
+ beforeEach(()=>{execution.featureKey='neo-operation-room-consultation';report.status='generation_failed';report.llmMeta={retryable:{since:new Date(),refundAt:future(),code:'LLM_FAILED'}};});
+ test('inside the retry window the timeout sweep keeps the execution pending',async()=>{
+  const result=await sweep({}, {limit:1});
+  expect(result).toMatchObject({scanned:1,refunded:0,pending:1});expect(execution.status).toBe('pending');
+  expect(execution.nextRetryAt.getTime()).toBeGreaterThan(Date.now());expect(execution.lock.token).toBe('');
+ });
+ test.each([
+  ['the window has passed',meta=>{meta.retryable.refundAt=past();}],
+  ['a refund is already due',meta=>{meta.refundEligibleAt=new Date().toISOString();}],
+  ['there is no retry marker',meta=>{delete meta.retryable;}],
+ ])('falls back to the existing timeout policy when %s',async(_name,edit)=>{
+  edit(report.llmMeta);expect(await inspect(execution)).toBe('missing');
+ });
+ test('only the timeout sweep defers: an explicit close still sees a missing result',async()=>{
+  expect(await inspect(execution,{includeResumable:false})).toBe('missing');
+ });
+ test('other services with a retry marker keep the existing policy',async()=>{
+  execution.featureKey='nakshatra-ai-consultation';expect(await inspect(execution)).toBe('missing');
+ });
+});
