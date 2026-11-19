@@ -132,6 +132,7 @@ ${CONSULTATION_COUNSEL_GUIDE}
 사화는 제공된 별에만 적용합니다. 같은 궁의 다른 별에 화록·화권·화과·화기를 옮기지 마세요. 생년 사화·자화·월별 사화를 구분하고, 월별 해석에는 해당 구간과 별·궁을 함께 확인하세요.
 ${SAJU_LUCK_JUDGEMENT_RULE}
 네오 작전실의 근거 어댑터로 정리된 한글 항목명을 우선 인용하세요. 내부 JSON 키나 evidence ID를 본문에 노출하지 마세요.
+evidenceIds에는 natal-saju·natal-ziwei와 계산 근거에 적힌 id 값(saju-로 시작하는 값, ziwei-로 시작하는 값)만 넣으세요. 장 이름이나 항목 이름(luckJudgement·domainGuides·periodLuck·relationships 등)은 ID가 아닙니다.
 전체 27장 약 오만 자입니다. 이번 장은 본문 1,900~2,200자를 목표로 합니다. 흑월 100~200자, 연이 약 900자, 네오 약 900자와 점검 기준으로 배분하되 설명에 필요한 분량은 조절합니다. 반복·목차 복제·상투 문장으로 분량을 채우지 않습니다.
 흑월은 어떤 근거에서 어떤 조건이 겹치면 문제가 생기기 쉬운지 짧고 날카롭게 짚습니다. 연이는 그 성향의 강점과 그림자, 실제 경험과 가능한 상황을 구분합니다. 네오는 지금 할 행동·피할 선택·확인할 조건·판단을 바꿀 신호를 제시합니다. 마지막에는 이 장만의 실천 점검 기준 3개를 씁니다.
 타고난 성향 장에서는 특정 월의 운을 대신 설명하지 마세요. 월별 장에서는 앞서 분석한 성향을 재서술하지 말고 그 달의 구간과 조건 변화에 집중하세요. 주제별 작전 장은 구체적인 대화 예시·확인 순서·우선순위에 집중하세요.
@@ -184,6 +185,7 @@ export const HEUKWOL_REPAIR_HINTS = Object.freeze({
 const HEUKWOL_UNSUPPORTED = /100\s*[%％]|반드시\s*(?:사고|불행|재앙)|결제하면.{0,20}(?:막|해결)|사고\s*(?:발생\s*)?확률\s*[:：]?\s*\d/;
 const scrubUnsupported = text => String(text||'').split(/(?<=[.!?。？！]["'”’)\]」』]*)\s+/u)
   .filter(sentence=>!HEUKWOL_UNSUPPORTED.test(sentence)).join(' ').trim();
+const HEUKWOL_EVIDENCE_ID_SHAPE = /^(?:natal-saju|natal-ziwei|saju-|ziwei-)/;
 const heukwolSoft = code => Object.assign(new Error(code),{heukwolIssue:code});
 // S16 완화 수용(2번째 시도부터): 분량은 장 하한의 60%, 확정 표현은 문장만 덜고, 근거 ID는 거르고, 점검 기준 수·반복 구절은 묻지 않는다.
 // 말투는 마지막 시도 전까지 계속 고친다. 세 칸(warning·interpretation·strategy)은 어느 시도든 모두 있어야 받는다.
@@ -204,7 +206,9 @@ export function validateHeukwolChapterV2(value, analysis, chapter, {finalAttempt
     for(const k of fields)texts[k]=scrubUnsupported(texts[k]);
     checkpoints=checkpoints.filter(v=>!HEUKWOL_UNSUPPORTED.test(v));
   }
-  const rawIds=Array.isArray(value?.evidenceIds)?value.evidenceIds:[];
+  // R6c: 모델이 장 키·항목 이름(relationships·luckJudgement·domainGuides)을 ID 칸에 넣어 strict 시도가 탈락했다.
+  // ID 모양이 아닌 값은 형식 실수이므로 어느 시도든 결정적으로 걸러 낸다. ID 모양인데 근거에 없는 값(지어낸 구간)은 strict 에서 계속 다시 쓴다.
+  const rawIds=(Array.isArray(value?.evidenceIds)?value.evidenceIds:[]).filter(id=>typeof id==='string'&&HEUKWOL_EVIDENCE_ID_SHAPE.test(id));
   const evidenceIds=[...new Set(rawIds.filter(id=>allowed.has(id)))];
   if(!lenient) {
     if(!rawIds.length||evidenceIds.length!==new Set(rawIds).size)throw heukwolSoft('HEUKWOL_EVIDENCE_INVALID');
