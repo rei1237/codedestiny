@@ -8,7 +8,7 @@ export const policyPageClass = styles.page;
 const GUIDES = {
   terms: [
     ["이용 기준", "서비스 범위와 이용자의 권리", "#service"],
-    ["유료 이용", "이용권·월정석·단건 결제", "#free-trial"],
+    ["유료 이용", "단건 결제·꿀단지 이용권·월정석", "#free-trial"],
     ["환불·취소", "청약철회와 환불 기준", "#refund-policy"],
   ],
   privacy: [
@@ -18,12 +18,12 @@ const GUIDES = {
   ],
   refund: [
     ["단건 결제", "제공·사용 상태별 기준", "#refund-policy"],
-    ["이용권", "한도와 사용 내역 확인", "#refund-policy"],
+    ["꿀단지 이용권", "한도와 사용 내역 확인", "#refund-policy"],
     ["결제 오류", "반영 지연과 복귀 안내", "#payment-help"],
   ],
   contact: [
     ["서비스 문의", "이용 방법과 오류 신고", "#support-contact"],
-    ["결제 문의", "이용권·단건 결제와 환불", "/refund-policy"],
+    ["결제 문의", "꿀단지 이용권·단건 결제와 환불", "/refund-policy"],
     ["개인정보", "권리 행사와 삭제 안내", "/privacy#user-rights"],
   ],
   about: [
@@ -33,7 +33,7 @@ const GUIDES = {
   ],
   faq: [
     ["질문 찾아보기", "시작 방법부터 결과 확인까지", "#faq-list"],
-    ["유료 이용", "이용권과 단건 결제", "/refund-policy"],
+    ["환불 기준", "꿀단지 이용권과 단건 결제", "/refund-policy"],
     ["도움이 필요할 때", "결제·프로필·개인정보", "/contact"],
   ],
 };

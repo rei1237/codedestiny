@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-19
-next: "U3 — FAQ·서비스 설명 개편(+ 해당 로케일 번역 동기화, SEO 점검)"
+next: "U4 — 마무리(옛 이름·금지 표현 grep, check:pre-push, origin/main 머지, push, CI 1회 확인, status: done)"
 ---
 
 # 용어 통일(꿀단지 이용권·월정석) + 처음 온 사람용 FAQ·서비스 설명 다듬기
@@ -62,7 +62,7 @@ next: "U3 — FAQ·서비스 설명 개편(+ 해당 로케일 번역 동기화, 
 - [x] U1 한국어 용어 통일(꿀단지 이용권). 바꾼 파일·건수, 보고만 목록(결제 동결)을 아래 "결과"에.
 - [x] U1b 결제 동결 문구 라벨만 교체: `payment.directModal.passBadge`·`musicTrackSub` 의 "달빛 이용권" → "꿀단지 이용권". 렌더러 3종(`app/_lib/billing-client.ts`, `index.html` `_cdChooseServicePaymentMode`, `js/destiny-profile.js`)과 `public/i18n/ko.json` 을 한 커밋에, `verify-payment-freeze --update` 로 매니페스트 갱신. 결제 로직·정규식·금액·순서는 바꾸지 않는다. 다른 로케일 값은 U2. 2026-11-19 사용자 요청 "용어 통일" 범위로 진행(위험: 결제창 라벨만, 롤백은 커밋 revert 1회).
 - [x] U2 번역 용어 통일(Moonstone·月精石·꿀단지 이용권 번역) + glossary.
-- [ ] U3 FAQ·서비스 설명 개편(+ 해당 로케일 번역 동기화, SEO 점검).
+- [x] U3 FAQ·서비스 설명 개편(+ 해당 로케일 번역 동기화, SEO 점검).
 - [ ] U4 마무리: 남은 옛 이름 grep(문서 역사 기록 제외) 0 확인, 금지 표현 grep, `npm run check:pre-push`, origin/main 머지(충돌 생성물은 theirs → `sync:public`·`sitemap:generate`), push, main CI 1회 확인, 이 문서 `status: done`, 최종 보고. 운영 승격은 하지 않는다.
 
 ## 결과
@@ -90,3 +90,28 @@ next: "U3 — FAQ·서비스 설명 개편(+ 해당 로케일 번역 동기화, 
 - 보고만: ko `home.passMini.toggle` "달빛 혜택 펼치기"(ja オープンムーンライト特典)·`heroAria` "달빛 흐름", index.html 월정석 폴백 "달빛의 결|달빛 잔량" — U3/U4 판단. en `home.passMini.primaryAction` 이 ko 와 뜻이 다름(기존). ko/shellRuntime f3376 은 소스 문자열이 없어 낡은 항목으로 보임.
 - 검증: verify:payment-freeze·payment-choice-parity·payment-copy-dictionary 통과, check:fast(결과 아래).
 - check:fast(standard 자동) exit 0 — jest 483 suites/8254 passed, 1 skipped. 그 뒤 손댄 public 사전 5값(passCheckingNote es·vi·fr·ms·nl)은 JSON 파싱·결제 verify 3종 재실행 통과.
+
+### U3 (2026-11-19, 커밋은 이 문서를 담은 커밋)
+- 구조: `/faq` 는 `mergeOfficialInformation` 이 공식 문항 10개(`lib/brand/official-information.mjs`)를 항상 먼저 놓고 `FAQS_DEFAULT` 를 뒤에 붙인다. 공식 문항 순서(무엇인지 → 영냥이 → 기준 → 차이 → 체계 → 무료 → 유료 세 가지·가격 → 다시 보기 → 직접 검수 → 공식 사이트·문의)는 테스트가 index 로 단언해 유지했다. 그래서 "문의"(공식 10번)가 자세한 환불 문항보다 앞에 온다 — 공용 병합 로직을 바꾸지 않으려고 받아들인 차이이며, 환불 답변 끝에 /contact/ 를 넣었다.
+- 유료 세 가지 정의는 공식 7번 한 곳에만 둔다(ko/en/ja): 단건 결제 = 상담 하나씩 원화 결제, 꿀단지 이용권 = 한 번 결제·기간 제한 없음·자동결제 아님·등급별 상담 한도(총 금액) 안에서 대표 상담(인생의 책·신년운세처럼 한 주제를 깊게)·라이트 운세는 횟수 제한 없음, 월정석 = 가입 혜택·이벤트 보너스·30일·할인 전 1만 원 이상·이용권 구매 불가·현금 교환 불가. 근거: payment-gating 2026-11-13, app/app/_lib/copy.ts:233-234, lib/marketing/pass-benefits.mjs. 가격은 기존 `${prices}`(registry) 그대로, 새 숫자 없음.
+- 공식 문항 바뀐 질문(옛 질문은 CMS 덮어쓰기 대비로 legacy 억제 목록에 추가):
+  - 7번 "유료 상품의 실제 가격과 이용 조건은 어디에서 확인하나요?" → "유료 상담은 어떻게 결제하고, 가격은 얼마인가요?" (en "How do paid options work, and what do they cost?", ja "有料相談の支払い方法と価格は？")
+  - 8번 "분석 결과는 어떻게 전달하고 보관하나요?" → "받은 결과는 어디에서 다시 보나요?"(추가 결제 없음·다른 계정이면 안 보임·검색 비노출을 쉬운 말로) (en "Where can I reopen my results?", ja "受け取った結果はどこで見直せますか？")
+  - 답변만: 2번 "(운세보는 영냥이)" 별칭, 3번 "‘네오사주’로 찾아오셨다면…" 한 문장, 6번 무료 범위 쉬운 말, 10번 오류 문의 요령(결제 일시·화면 문구, ko/en/ja).
+- `app/_content/faq-copy.js`(FAQS_DEFAULT) 합치기·빼기 (전 → 후):
+  - "운세 결과는 확정된 미래를 의미하나요?" + "운세 결과를 바꾸나요?" → "운세 결과는 정해진 미래인가요?" 하나로.
+  - "이용권 한도를 다 쓰면…" → "꿀단지 이용권의 상담 한도를 다 쓰면 어떻게 되나요?"(라이트 운세 계속·재구매는 새 한도·패밀리 외 건당 상한). 필수 문구 '라이트 운세' 유지.
+  - 환불 문항 → "꿀단지 이용권과 단건 결제는 어떻게 취소하거나 환불받나요?"(7일 청약철회·제공 시작분 제한·3개월/30일·'라이트 운세를 이용한 이용권은 자동으로 환불되지 않으며, 고객센터에서 이용 내역을 확인한 뒤 처리합니다.'·월정석 현금 환불 불가·/contact/).
+  - 뺌(공식 문항과 같은 내용): 상담 방식 3문항 `CONSULTATION_METHOD_FAQS`(선생님 기준 상담 위치=공식 3, 영냥이·꿀꿀·네오 고르기=공식 2·9, AI 상담 vs 직접 검수=공식 9), 차별점 "네오사주·꿀꿀운세·운세보는 영냥이는 어떻게 연결되나요?"(=공식 1·2·3, 별칭은 2·3번으로 옮김), "다른 AI 운세 서비스와 무엇이 다른가요?"(=공식 4 + 초융합·챗봇 문항 요약), "로그인이나 결제 페이지가 검색에 노출되나요?"(noindex 설명 → 공식 8번 한 문장), 이미 억제돼 화면에 안 나오던 옛 문항 4개(기본 무료·결제 결과 다시 보기·공식 사이트·문의; 문의 요령은 공식 10번으로).
+  - 원본 모듈(consultation-methods.mjs, differentiation-faqs.mjs)은 홈 셸(build-home-funnel)·llms-full 이 그대로 쓰므로 고치지 않고, faq-copy 에서 필요한 차별점 문항만 골라 쓴다(없는 질문이면 throw — fail-closed).
+- /about: about-copy.js 결제 절(`payment.body` 는 아래 절로 안내, `pass.*` 세 가지를 쉬운 말로·이름 "꿀단지 이용권", `explore.pass.*`, `refund.used.*`). about-intro-copy.js "달빛 선물." → "월정석 선물."(옆 이미지 alt 가 '월정석 선물 상자'), `intro.faq.text7` 은 차이를 FAQ로 안내.
+- ServiceGuide.tsx 맺음말: 결제 방법 반복 대신 FAQ 링크(`/faq/`) 한 줄 추가(기존 afterword 링크와 같은 마크업). PolicyGuide.jsx 라벨 "이용권" → "꿀단지 이용권", faq 가이드 행 "유료 이용" → "환불 기준"(링크가 /refund-policy). HelpDesk.jsx 는 바꿀 것 없음.
+- 달빛 잔재(동결 region 밖): index.html `home.passMini.toggle` "꿀단지 혜택 펼치기", 토글 JS 2곳·닫기 버튼 "꿀단지 혜택 접기", heroAria "꿀단지 이용권으로 볼 수 있는 서비스 확인", 결제 오버레이 월정석 폴백 '달빛의 결이 조용히 맞춰지고 있어요.' → '월정석으로 콘텐츠를 여는 중이에요.'(ko 사전에 키 없음 → 폴백이 화면 문구). authored shellCopy-02 두 키 12로케일, public/i18n 12개 사전의 두 키 + `shell.honeyMembershipDetails.kr1a9l9`(authored 원본 없음, 사전이 원본) 손 번역. 옛 문구 분류 정규식 `달빛의 결|달빛 잔량`(index.html 24154·24833)은 옛 저장 문구 호환이라 유지.
+- U2 누락 수정: lib/i18n/public-trust-copy.mjs ja 月定石 2곳·zh 月光石 3곳 → 月精石.
+- SEO 점검(/faq, /about, /en|/ja|/zh/faq, 정적 정책 페이지):
+  - title·description·H1·canonical·hreflang·robots: 변경 없음, 결함 없음 → 영향 없음.
+  - FAQPage JSON-LD: /faq 는 `buildFaqPageJsonLd(faqs)` 가 화면 목록 그대로 → 일치. 로케일 FAQ 는 공식 문항(en/ja)을 같은 함수로 읽어 화면·구조화 데이터 함께 갱신. zh 는 공식 문항 없음(기존).
+  - 번역 동기화: 공식 문항 en/ja 동기. zh-CN·zh-TW 로케일 FAQ 는 TRUST_COPY 고정 문구라 이번 변경 문항 없음(月精石 오기만 수정). 나머지 7로케일은 /faq 로케일 페이지가 없어 영향 없음.
+  - sitemap: `sitemap:generate` 로 lastmod 갱신(원장 서명 다수 재계산, sitemap.xml 실제 변경 1곳). 내부 링크: ServiceGuide → /faq/ 1개 추가. 이미지·광고 적합성: 영향 없음.
+- 보고만(U4 또는 후속): consultation-methods.mjs 홈 메모의 "이용권·월정석·단건 결제"(홈 셸 인라인 — 재빌드 필요), ja 단독 "利用券" 표기, en/ja 로케일 FAQ "What do paid features add?" 가 공식 7번과 일부 겹침, 운영 CMS 덮어쓰기가 FAQS_DEFAULT 를 가릴 수 있음(옛 질문 억제 목록은 넣어 둠), en passMini primaryAction 뜻 차이(기존), 토글 JS 가 `btn.textContent` 로 i18n span 을 한국어로 덮어씀(기존 버그 — 다른 로케일에서 펼친 뒤 한국어로 바뀜), 차별점·공식 문항의 부정형 "보장되지 않습니다" 고지(기존, 금지 표현 아님).
+- 검증: `node --test scripts/seo/official-information.test.mjs` 3/3 통과. `sync:public`(셸 미러 7·정적 정책 6) → check:fast 1차 BLOCKED(verify:sitemap-drift) → `sitemap:generate` → check:fast(critical 자동) exit 0, jest 483 suites/8254 passed, 1 skipped. 추가한 줄에 금지 표현(보장·비법·비책·반드시·100%·운명이 바뀝) 0건.

@@ -42,7 +42,8 @@ export default function ServiceGuide() {
     </section>)}
     <aside className={styles.afterword}>
       <h3>읽고 나서, 나의 이야기로</h3>
-      <p>상담을 고른 뒤 해당 화면에서 필요한 출생 정보나 질문을 준비해요. 이용권·월정석·단건 결제의 적용 여부와 조건은 각 상담 화면에서 확인해 주세요.</p>
+      <p>상담을 고른 뒤 해당 화면에서 필요한 출생 정보나 질문을 준비해요. 상담마다 쓸 수 있는 결제 방법은 그 상담 화면에서 먼저 보여드리고, 단건 결제·꿀단지 이용권·월정석의 차이는 FAQ에 정리해 두었어요.</p>
+      <a href="/faq/">자주 묻는 질문에서 결제 방법 보기 <span aria-hidden="true">→</span></a>
       <a href="/heukwol/">흑월의 주의 시기 · 월별 흐름과 대비 <span aria-hidden="true">→</span></a>
       <a href="/consultations/">상담의 정원에서 비교하기 <span aria-hidden="true">→</span></a>
       <a href="#entry-record">이 상담은 어디에서 시작됐을까요? <span aria-hidden="true">↓</span></a>

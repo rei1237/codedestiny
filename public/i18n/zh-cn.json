@@ -845,8 +845,8 @@
       "guideLabel": "蜜罐通行证指南",
       "guideTitle": "在额度用完之前，常打开的运势先柔和展开",
       "guideText": "从小蜜罐到家庭蜜罐，在所选的月光范围内，塔罗、神谕与八字解读无需经过付款流程即可优先开启。范围之外的深度解读，仅在需要时才转为韩元单次付款。",
-      "toggle": "开放月光福利",
-      "heroAria": "检查月光流中免费提供的服务",
+      "toggle": "展开蜜罐福利",
+      "heroAria": "查看蜜罐通行证可使用的服务",
       "heroTitle": "查看蜜罐通行证范围",
       "heroSub": "把您常回来看的解读，先放进蜜罐通行证里继续",
       "heroCta": "查看",
@@ -7714,7 +7714,7 @@
       }
     },
     "honeyMembershipDetails": {
-      "kr1a9l9": "收起月光福利"
+      "kr1a9l9": "收起蜜罐福利"
     },
     "honeyMembershipMini": {
       "honeyMembershipMiniHeader": {

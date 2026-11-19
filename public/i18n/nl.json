@@ -845,8 +845,8 @@
       "guideLabel": "HONINGPOT-PASGIDS",
       "guideTitle": "Tot je gebruikslimiet op is, openen de lezingen die je vaak gebruikt eerst zachter",
       "guideText": "Van de Kleine honingpot tot de Gezinshoningpot openen tarot-, orakel- en saju-lezingen eerst binnen je maanlichtbereik zonder betaalstroom. Diepere lezingen buiten dat bereik gaan alleen wanneer nodig door naar een eenmalige KRW-betaling.",
-      "toggle": "Open maanlichtvoordelen",
-      "heroAria": "Bekijk de gratis beschikbare diensten in de maanlichtstroom",
+      "toggle": "Honingpot-voordelen bekijken",
+      "heroAria": "Bekijk wat je met de Honingpot-pas kunt gebruiken",
       "heroTitle": "Bekijk het bereik van de Honingpot-pas",
       "heroSub": "Zet de readings waar je het vaakst naar terugkeert voort binnen je Honingpot-pas",
       "heroCta": "Bekijken",
@@ -7714,7 +7714,7 @@
       }
     },
     "honeyMembershipDetails": {
-      "kr1a9l9": "Maanlichtvoordelen inklappen"
+      "kr1a9l9": "Honingpot-voordelen inklappen"
     },
     "honeyMembershipMini": {
       "honeyMembershipMiniHeader": {

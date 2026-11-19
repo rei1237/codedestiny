@@ -845,8 +845,8 @@
       "guideLabel": "HƯỚNG DẪN VÉ HŨ MẬT ONG",
       "guideTitle": "Cho đến khi dùng hết hạn mức, những lần xem bạn thường mở sẽ được mở trước thật êm dịu",
       "guideText": "Từ Hũ mật ong nhỏ đến Hũ mật ong gia đình, các bài tarot, oracle và saju trong phạm vi ánh trăng bạn chọn sẽ mở trước mà không cần qua luồng thanh toán. Những bài xem sâu hơn ngoài phạm vi đó chỉ chuyển sang thanh toán một lần bằng KRW khi cần.",
-      "toggle": "Mở lợi ích ánh trăng",
-      "heroAria": "Kiểm tra các dịch vụ có sẵn miễn phí dưới ánh trăng",
+      "toggle": "Xem lợi ích Hũ Mật Ong",
+      "heroAria": "Xem các dịch vụ dùng được với Vé Hũ Mật Ong",
       "heroTitle": "Xem phạm vi Vé Hũ Mật Ong",
       "heroSub": "Tiếp tục những bài đọc bạn hay quay lại, ngay trong Vé Hũ Mật Ong",
       "heroCta": "Xem",
@@ -7714,7 +7714,7 @@
       }
     },
     "honeyMembershipDetails": {
-      "kr1a9l9": "Gấp ưu đãi ánh trăng"
+      "kr1a9l9": "Thu gọn lợi ích Hũ Mật Ong"
     },
     "honeyMembershipMini": {
       "honeyMembershipMiniHeader": {

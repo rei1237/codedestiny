@@ -845,8 +845,8 @@
       "guideLabel": "GUÍA DEL PASE TARRO DE MIEL",
       "guideTitle": "Hasta agotar tu límite de uso, las lecturas que abres a menudo se despliegan primero con suavidad",
       "guideText": "Del Tarro de miel pequeño al Tarro de miel familiar, las lecturas de tarot, oráculo y saju se abren primero dentro de tu alcance de luz lunar. Las lecturas más profundas fuera de ese alcance pasan a pago único en KRW solo cuando lo necesitas.",
-      "toggle": "Beneficios abiertos a la luz de la luna",
-      "heroAria": "Consulta los servicios disponibles de forma gratuita en el flujo de luz de la luna.",
+      "toggle": "Ver beneficios del Tarro de Miel",
+      "heroAria": "Ver los servicios disponibles con el Pase Tarro de Miel",
       "heroTitle": "Ver el rango del Pase Tarro de Miel",
       "heroSub": "Continúa dentro de tu Pase Tarro de Miel las lecturas a las que más vuelves",
       "heroCta": "Ver",
@@ -7714,7 +7714,7 @@
       }
     },
     "honeyMembershipDetails": {
-      "kr1a9l9": "Cerrar beneficios de Piedra Lunar"
+      "kr1a9l9": "Ocultar beneficios del Tarro de Miel"
     },
     "honeyMembershipMini": {
       "honeyMembershipMiniHeader": {

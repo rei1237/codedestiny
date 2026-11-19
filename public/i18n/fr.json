@@ -845,8 +845,8 @@
       "guideLabel": "GUIDE DU PASS POT DE MIEL",
       "guideTitle": "Jusqu'à épuisement de votre limite, les lectures que vous ouvrez souvent se dévoilent d'abord en douceur",
       "guideText": "Du Petit pot de miel au Pot de miel familial, les lectures de tarot, d'oracle et de saju s'ouvrent d'abord dans votre portée de clair de lune. Les lectures plus profondes au-delà de cette portée passent au paiement unique en KRW seulement lorsque c'est nécessaire.",
-      "toggle": "Avantages ouverts au clair de lune",
-      "heroAria": "Vérifiez les services disponibles gratuitement dans le flux au clair de lune",
+      "toggle": "Voir les avantages du Pot de Miel",
+      "heroAria": "Voir les services inclus avec le Pass Pot de Miel",
       "heroTitle": "Voir la portée du Pass Pot de Miel",
       "heroSub": "Poursuivez dans votre Pass Pot de Miel les lectures que vous consultez le plus",
       "heroCta": "Afficher",
@@ -7714,7 +7714,7 @@
       }
     },
     "honeyMembershipDetails": {
-      "kr1a9l9": "Réduire les avantages Pierre de Lune"
+      "kr1a9l9": "Masquer les avantages du Pot de Miel"
     },
     "honeyMembershipMini": {
       "honeyMembershipMiniHeader": {

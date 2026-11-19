@@ -845,8 +845,8 @@
       "guideLabel": "HONEY JAR PASS GUIDE",
       "guideTitle": "Until you use up your usage limit, let the fortunes you open often unfold first",
       "guideText": "From the Small Honey Jar to the Family Honey Jar, tarot, oracle, and saju readings open first within your moonlight range. Deeper readings outside that range continue to one-time KRW payment only when needed.",
-      "toggle": "Open moonlight benefits",
-      "heroAria": "Check services available for free in the moonlight flow",
+      "toggle": "Show Honey Jar benefits",
+      "heroAria": "See what you can use with a Honey Jar Pass",
       "heroTitle": "See the Honey Jar Pass range",
       "heroSub": "Keep the readings you return to most within your Honey Jar pass",
       "heroCta": "View",
@@ -7714,7 +7714,7 @@
       }
     },
     "honeyMembershipDetails": {
-      "kr1a9l9": "Collapse Moonlight Benefits"
+      "kr1a9l9": "Hide Honey Jar benefits"
     },
     "honeyMembershipMini": {
       "honeyMembershipMiniHeader": {

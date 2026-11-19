@@ -845,8 +845,8 @@
       "guideLabel": "HONIGGLAS-PASS-GUIDE",
       "guideTitle": "Bis dein Nutzungslimit aufgebraucht ist, öffnen sich oft besuchte Deutungen sanfter zuerst",
       "guideText": "Vom Kleinen Honigglas bis zum Familien-Honigglas öffnen sich Tarot-, Orakel- und Saju-Deutungen innerhalb deines Mondlicht-Rahmens zuerst ohne Zahlungsfluss. Tiefere Deutungen außerhalb dieses Rahmens führen nur bei Bedarf zur einmaligen KRW-Zahlung.",
-      "toggle": "Offene Moonlight-Vorteile",
-      "heroAria": "Überprüfen Sie die im Moonlight Flow kostenlos verfügbaren Dienste",
+      "toggle": "Honigglas-Vorteile anzeigen",
+      "heroAria": "Mit dem Honigglas-Pass nutzbare Dienste ansehen",
       "heroTitle": "Den Umfang des Honigglas-Passes ansehen",
       "heroSub": "Setze die Readings, zu denen du am häufigsten zurückkehrst, in deinem Honigglas-Pass fort",
       "heroCta": "Anzeigen",
@@ -7714,7 +7714,7 @@
       }
     },
     "honeyMembershipDetails": {
-      "kr1a9l9": "Mondlicht-Vorteile einklappen"
+      "kr1a9l9": "Honigglas-Vorteile einklappen"
     },
     "honeyMembershipMini": {
       "honeyMembershipMiniHeader": {

@@ -733,8 +733,8 @@
       "guideLabel": "HONEY JAR PASS GUIDE",
       "guideTitle": "이용 한도를 다 쓸 때까지, 자주 여는 운세를 먼저 부드럽게",
       "guideText": "작은 꿀단지부터 패밀리 꿀단지까지, 선택한 꿀단지 한도 안에서 타로·신탁·사주 리딩이 결제 흐름 없이 먼저 열립니다. 범위 밖의 깊은 리딩은 필요한 순간에만 원화 단건 결제로 이어집니다.",
-      "toggle": "달빛 혜택 펼치기",
-      "heroAria": "달빛 흐름으로 무료 이용 가능 서비스 확인",
+      "toggle": "꿀단지 혜택 펼치기",
+      "heroAria": "꿀단지 이용권으로 볼 수 있는 서비스 확인",
       "heroTitle": "꿀단지 이용권 범위 보기",
       "heroSub": "반복해서 찾는 리딩을 꿀단지 이용권 안에서 먼저 이어가요",
       "heroCta": "살펴보기",
@@ -4700,7 +4700,7 @@
       }
     },
     "honeyMembershipDetails": {
-      "kr1a9l9": "달빛 혜택 접기"
+      "kr1a9l9": "꿀단지 혜택 접기"
     },
     "honeyMembershipMini": {
       "honeyMembershipMiniHeader": {
