@@ -1,7 +1,7 @@
 import { SHELL_HOME_PATH } from "@/lib/navigation/shellHome";
 
 type StaticOAuthCallbackRedirectProps = {
-  provider: "google" | "naver" | "kakao";
+  provider: "google" | "naver" | "kakao" | "apple";
 };
 
 const AUTH_SYNC_CHANNEL = "code-destiny-auth-sync";

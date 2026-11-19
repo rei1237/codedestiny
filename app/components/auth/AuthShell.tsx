@@ -25,7 +25,7 @@ import { AUTH_INPUT, AUTH_LABEL } from "./styles";
 import { SHELL_HOME_PATH } from "@/lib/navigation/shellHome";
 
 type AuthMode = "login" | "signup";
-type SocialProvider = "google" | "naver" | "kakao";
+type SocialProvider = "google" | "naver" | "kakao" | "apple";
 type AuthUser = { role?: string; [key: string]: unknown };
 
 /** worker/lib/validation.js 의 MIN_NEW_PASSWORD_LENGTH 와 같은 값이어야 한다(가입·변경 전용). */
@@ -443,6 +443,17 @@ function withServerDiagnostics(message: string, payload: { code?: string; reques
   const parts = [payload?.code, payload?.requestId].filter(Boolean).map(String);
   return parts.length > 0 ? `${message} (${parts.join(" · ")})` : message;
 }
+// Sign in with Apple(웹, 2026-11-19 iOS Phase 2 R3). 버튼 문구는 Apple HIG 표기("Apple로 계속하기" /
+// "Continue with Apple")를 따른다. 저작 로케일만 따로 두고 나머지는 영어로 둔다.
+// 🔴 이메일이 같은 기존 계정에 자동으로 붙이지 않으므로(서버 apple_link_required), 그 경우 안내 문구를 띄운다.
+const APPLE_COPY: Partial<Record<LoadingLocale, { apple: string; linkRequired: string }>> = {
+  en: { apple: "Continue with Apple", linkRequired: "An account with this email already exists. Log in the way you usually do, then connect Apple in account settings." },
+  ko: { apple: "Apple로 계속하기", linkRequired: "같은 이메일로 가입한 계정이 있어요. 평소 방법으로 로그인한 뒤 계정 설정에서 Apple을 연결해 주세요." },
+  ja: { apple: "Appleで続ける", linkRequired: "このメールアドレスのアカウントが既にあります。いつもの方法でログインし、アカウント設定でAppleを連携してください。" },
+  "zh-CN": { apple: "通过Apple继续", linkRequired: "已有使用此邮箱的账号。请先用原来的方式登录，再在账号设置中关联Apple。" },
+  "zh-TW": { apple: "透過Apple繼續", linkRequired: "已有使用此電子郵件的帳號。請先用原本的方式登入，再到帳號設定中連結Apple。" },
+};
+
 export default function AuthShell({ initialMode }: { initialMode: AuthMode }) {
   const router = useRouter();
   const [mode, setMode] = useState<AuthMode>(initialMode);
@@ -466,6 +477,10 @@ export default function AuthShell({ initialMode }: { initialMode: AuthMode }) {
   // 소셜 가입 마무리 뒤 앱으로 돌려보낼 커스텀 스킴 URL. 자동 이동이 막혔을 때만 화면에 남는다.
   const [appReturnUrl, setAppReturnUrl] = useState("");
   const copy = getCopy(locale);
+  const appleCopy = APPLE_COPY[locale] || APPLE_COPY.en!;
+  // 서버가 키를 다 갖췄을 때만 Apple 버튼을 그린다(GET /api/auth/oauth/providers). 앱 런타임은 웹 SIWA 를
+  // 쓰지 않는다 — 네이티브 SIWA 는 다음 Phase 다.
+  const [appleAvailable, setAppleAvailable] = useState(false);
   const apiBase = useMemo(() => getApiBaseUrl(), []);
 
   useEffect(() => {
@@ -478,8 +493,18 @@ export default function AuthShell({ initialMode }: { initialMode: AuthMode }) {
     const params = new URLSearchParams(window.location.search);
     setTicket(params.get("social_signup") || params.get("socialSignupTicket") || "");
     setSocialAgeVerified(params.get("social_age") === "1");
-    if (params.get("error") || params.get("social_error")) setError(copy.unavailable);
-  }, [copy.unavailable]);
+    if (params.get("social_error") === "apple_link_required") setError(appleCopy.linkRequired);
+    else if (params.get("error") || params.get("social_error")) setError(copy.unavailable);
+  }, [copy.unavailable, appleCopy.linkRequired]);
+  useEffect(() => {
+    if (isMobileAppRuntime()) return undefined;
+    let alive = true;
+    fetch(`${apiBase}/api/auth/oauth/providers`, { credentials: "omit" })
+      .then((response) => (response.ok ? response.json() : null))
+      .then((payload) => { if (alive) setAppleAvailable(payload?.providers?.apple === true); })
+      .catch(() => { if (alive) setAppleAvailable(false); });
+    return () => { alive = false; };
+  }, [apiBase]);
   // 커스텀탭을 인증하지 않고 닫았거나 교환이 실패하면 브릿지가 이 이벤트를 쏜다
   // (scripts/app-native-bridge.js notifyAuthCancelled). 이게 없으면 소셜 버튼 3개가
   // "인증 화면으로 이동 중…" 으로 굳어 다시 누를 수 없다.
@@ -552,7 +577,7 @@ export default function AuthShell({ initialMode }: { initialMode: AuthMode }) {
         openAuth?: (input: { provider: SocialProvider; nextPath?: string; flow?: AuthMode }) => Promise<{ ok?: boolean; code?: string; message?: string }>;
       };
     }).CodeDestinyNative;
-    if (typeof native?.openAuth === "function") {
+    if (provider !== "apple" && typeof native?.openAuth === "function") {
       void native.openAuth({ provider, nextPath: nextPath(), flow: mode }).then((result) => {
         if (result?.ok !== false) return;
         // 커스텀탭 플러그인이 없다고 여기서 멈추면 앱에서 소셜 로그인이 통째로 막힌다.
@@ -669,7 +694,7 @@ export default function AuthShell({ initialMode }: { initialMode: AuthMode }) {
         </header>
         <div className="my-4 min-h-6" aria-live="polite">{error ? <p id="auth-error" role="alert" className="rounded-xl border border-[#ff8ca5]/40 bg-[#421d2a] px-3 py-2.5 text-sm text-[#ffd7df]">{error}</p> : null}</div>
         {appReturnUrl ? <a href={appReturnUrl} className="flex min-h-12 w-full items-center justify-center rounded-xl border border-[#b89ae8]/45 bg-[#7c5cbf] px-4 text-sm font-black text-white shadow-[0_10px_28px_rgba(65,42,116,.36)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#dbc9ff]">{copy.returnToApp}</a> : null}
-        {!ticket && <><section aria-label={copy.socialLabel}><div className="grid gap-3">{(["kakao", "naver", "google"] as const).map((provider) => <button key={provider} type="button" disabled={Boolean(socialBusy) || busy} onClick={() => startSocial(provider)} className={`min-h-12 rounded-xl border px-4 text-sm font-black focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white disabled:opacity-55 ${provider === "google" ? "border-[#d9dce5] bg-white text-[#252735]" : provider === "naver" ? "border-[#03a94d] bg-[#03C75A] text-white" : "border-[#e3cb00] bg-[#FEE500] text-[#191919]"}`}>{socialBusy === provider ? copy.moving : provider === "google" ? copy.google : provider === "naver" ? copy.naver : copy.kakao}</button>)}</div><p className="mt-3 text-center text-xs leading-5 text-[#a99dbd]">{copy.providerPolicy}</p><section aria-label={copy.agreeOnSubmit} className="mt-3 space-y-1.5 rounded-xl border border-[#c9b7f0]/18 bg-[#0d1022] p-3 text-[11px] leading-5 text-[#aa9fbd]"><p className="text-[#cfc4e5]">{copy.agreeOnSubmit}</p><p className="flex flex-wrap items-center gap-x-3"><Link href="/terms" target="_blank" className="min-h-11 py-2.5 font-bold text-[#d7c1ff] underline underline-offset-4">{copy.terms}</Link><Link href="/privacy" target="_blank" className="min-h-11 py-2.5 font-bold text-[#d7c1ff] underline underline-offset-4">{copy.privacy}</Link></p><p>{copy.privacySummary}</p></section></section><div className="my-5 flex items-center gap-3 text-xs text-[#aa9fbd]"><span className="h-px flex-1 bg-[#c9b7f0]/15" /><span>{copy.orEmail}</span><span className="h-px flex-1 bg-[#c9b7f0]/15" /></div></>}
+        {!ticket && <><section aria-label={copy.socialLabel}><div className="grid gap-3">{(["kakao", "naver", "google"] as const).map((provider) => <button key={provider} type="button" disabled={Boolean(socialBusy) || busy} onClick={() => startSocial(provider)} className={`min-h-12 rounded-xl border px-4 text-sm font-black focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white disabled:opacity-55 ${provider === "google" ? "border-[#d9dce5] bg-white text-[#252735]" : provider === "naver" ? "border-[#03a94d] bg-[#03C75A] text-white" : "border-[#e3cb00] bg-[#FEE500] text-[#191919]"}`}>{socialBusy === provider ? copy.moving : provider === "google" ? copy.google : provider === "naver" ? copy.naver : copy.kakao}</button>)}{appleAvailable && <button type="button" disabled={Boolean(socialBusy) || busy} onClick={() => startSocial("apple")} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-black bg-black px-4 text-sm font-black text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white disabled:opacity-55">{socialBusy === "apple" ? copy.moving : <><svg aria-hidden="true" viewBox="0 0 17 20" width="15" height="18" fill="currentColor"><path d="M14.1 10.6c0-2.6 2.1-3.8 2.2-3.9-1.2-1.8-3.1-2-3.7-2-1.6-.2-3.1.9-3.9.9-.8 0-2-.9-3.4-.9-1.7 0-3.3 1-4.2 2.6-1.8 3.1-.5 7.7 1.3 10.2.9 1.2 1.9 2.6 3.2 2.6 1.3-.1 1.8-.8 3.3-.8 1.6 0 2 .8 3.4.8 1.4 0 2.3-1.3 3.1-2.5 1-1.4 1.4-2.8 1.4-2.9-.1 0-2.7-1-2.7-4.1zM11.6 3c.7-.9 1.2-2 1.1-3.2-1 0-2.3.7-3 1.6-.7.8-1.3 2-1.1 3.1 1.1.1 2.3-.6 3-1.5z"/></svg>{appleCopy.apple}</>}</button>}</div><p className="mt-3 text-center text-xs leading-5 text-[#a99dbd]">{copy.providerPolicy}</p><section aria-label={copy.agreeOnSubmit} className="mt-3 space-y-1.5 rounded-xl border border-[#c9b7f0]/18 bg-[#0d1022] p-3 text-[11px] leading-5 text-[#aa9fbd]"><p className="text-[#cfc4e5]">{copy.agreeOnSubmit}</p><p className="flex flex-wrap items-center gap-x-3"><Link href="/terms" target="_blank" className="min-h-11 py-2.5 font-bold text-[#d7c1ff] underline underline-offset-4">{copy.terms}</Link><Link href="/privacy" target="_blank" className="min-h-11 py-2.5 font-bold text-[#d7c1ff] underline underline-offset-4">{copy.privacy}</Link></p><p>{copy.privacySummary}</p></section></section><div className="my-5 flex items-center gap-3 text-xs text-[#aa9fbd]"><span className="h-px flex-1 bg-[#c9b7f0]/15" /><span>{copy.orEmail}</span><span className="h-px flex-1 bg-[#c9b7f0]/15" /></div></>}
         {!appReturnUrl && <form onSubmit={ticket ? finishSocialSignup : submitEmail} className="space-y-4" noValidate aria-describedby={error ? "auth-error" : undefined}>
           {/* 🔴 이름은 받지 않는다(2026-08-25). 소셜은 공급자가 항상 넘겨 주고(mapSocialProfile 이
               없으면 "<provider> user" 로 채운다), 이메일은 서버가 이메일 아이디에서 파생한다.
