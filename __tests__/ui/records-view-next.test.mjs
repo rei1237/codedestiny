@@ -45,3 +45,17 @@ test('payment success copy separates confirmation from result writing', () => {
   assert.match(src, /title: "결제 확인 완료", message: "결제는 끝났어요\\n이제 결과를 작성하고 있어요"/);
   assert.doesNotMatch(src, /창을 닫아도/);
 });
+
+test('R7b: retry_available records get their own label and a link to the original consultation retry', () => {
+  const copy = read('lib/records/copy.ts');
+  assert.equal(copy.match(/retry_available: '/g)?.length, 5);
+  assert.match(copy, /retry_available: '다시 시도 가능'/);
+  assert.match(copy, /retryLead: '[^']*추가 결제·차감 없이/);
+  assert.match(read('app/records/RecordsClient.tsx'), /item\.status === 'retry_available' && item\.recoveryHref && <a className=\{recordButton\} href=\{item\.recoveryHref\}>\{c\.retryAction\}/);
+  const view = read('app/records/view/SavedRecordClient.tsx');
+  assert.match(view, /status==='retry_available'\?c\.retryLead/);
+  assert.match(view, /status==='retry_available'\?c\.retryAction:c\.recover/);
+  // 다시 시도 가능 건은 완료 기록이 아니다 — 무료 다음 단계·완료 조회 이벤트를 붙이지 않는다.
+  assert.equal(savedRecordFreeFeature({ source: 'ziwei', status: 'retry_available' }), null);
+  assert.equal(savedRecordViewEvent({ status: 'retry_available', serviceId: 'neo' }), null);
+});

@@ -23,18 +23,40 @@ export const RECORD_METADATA_PROJECTION = Object.freeze({
   'result.title': 1, 'result.sessionTitle': 1, 'result.question': 1, 'result.questionSummary': 1, 'initialBriefing.operationTitle': 1,
   'inputSummary.topic': 1, 'llmMeta.input.consultationType': 1,
   'llmMeta.deliveryRefund.status': 1,
+  // R7b: 다시 시도 보류 표지(서비스마다 위치가 다르다) — 보관함이 '실패'와 '다시 시도 가능'을 가른다.
+  'llmMeta.retryable': 1, 'llmMeta.refundEligibleAt': 1, 'llmMeta.billingCleanupPending': 1,
+  'metadata.retryable': 1, 'deliveryMeta.retryable': 1, 'deliveryMeta.reviewReason': 1,
 });
 export const readRecordField = (doc, path) => path.split('.').reduce((value, key) => value?.[key], doc);
 const clean = (value, size = 600) => typeof value === 'string' ? value.trim().slice(0, size) : '';
 const questionFields = ['question', 'userQuestion', 'questionSummary', 'selectedTopic', 'snapshot.analysis.consultation.question', 'inputSummary.topic', 'metadata.paidNarrative.body.question', 'metadata.paidNarrative.body.userQuestion', 'result.question', 'result.questionSummary'];
 const titleFields = ['title', 'result.title', 'result.sessionTitle', 'initialBriefing.operationTitle', 'metadata.archive.title', 'metadata.paidNarrative.body.topic', 'topic'];
-export function recordStatus(doc, source) {
+const futureAt = (value, now) => new Date(value ?? NaN).getTime() > now;
+/**
+ * R7b(2026-11-20): 결제 건이 추가 결제·차감 없이 다시 시도할 수 있는 보류 상태인가. 각 서비스 라우트의 판정과 같다 —
+ * 연애 비책·인생의 책·신년·네오·찻집은 generation_failed + llmMeta.retryable, 흑월은 pending + metadata.retryable,
+ * 마스터 인연의 서는 generation_failed + deliveryMeta.reviewReason RETRY_AVAILABLE. 표지 없음·환불 시작·고객 환불 요청·
+ * 닫힘·창(refundAt) 경과는 false(fail-closed: 기존 실패·생성 중·환불 표시로 남는다).
+ */
+function retryHeld(doc, status, now) {
+  const llm = doc.llmMeta, held = llm?.retryable;
+  if (status === 'generation_failed' && held && !llm.deliveryRefund && !llm.refundEligibleAt && !llm.billingCleanupPending &&
+    !held.settledAt && !held.refundRequestedAt && futureAt(held.refundAt, now)) return true;
+  const execution = doc.metadata?.retryable;
+  if (status === 'pending' && execution && (!doc.refundStatus || doc.refundStatus === 'none') &&
+    !execution.refundRequestedAt && futureAt(execution.refundAt, now)) return true;
+  const codex = doc.deliveryMeta?.retryable;
+  return status === 'generation_failed' && doc.deliveryMeta?.reviewReason === 'RETRY_AVAILABLE' && Boolean(codex) &&
+    !codex.closedAt && !codex.refundRequestedAt && futureAt(codex.refundAt, now);
+}
+export function recordStatus(doc, source, now = Date.now()) {
   const refund = doc.llmMeta?.deliveryRefund?.status;
   if (refund === 'refunded') return 'revoked';
   if (['pending', 'manual_review'].includes(refund)) return 'refund_pending';
   const status = clean(doc.state || doc.premiumStatus || doc.generationStatus || doc.status, 40).toLowerCase();
   if (['refunded', 'cancelled', 'canceled', 'revoked'].includes(doc.status)) return 'revoked';
   if(status!=='refunded'&&(doc.refundStatus==='pending'||doc.generationCheckpoint?.deliveryRefund?.status==='pending'))return 'refund_pending';
+  if (retryHeld(doc, status, now)) return 'retry_available';
   if (doc.stage === 1 || ['partial', 'delivery_pending'].includes(status)) return 'partial';
   if (['completed', 'success', 'delivered'].includes(status)) {
     if (source.id === 'codex' && Array.isArray(doc.chapterManifest)) {

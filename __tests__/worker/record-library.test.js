@@ -310,3 +310,38 @@ test('unfinished Heukwol records resume their existing consultation rather than 
  const record=library.recordMetadata({id:'executions',idField:'executionKey',dynamic:true,href:'/ggulggul/',group:'report'},{executionKey:'heukwol:existing',featureKey:'heukwol-warning-consultation',status:'pending',metadata:{archive:{title:'흑월의 경고'}}});
  expect(record.recoveryHref).toBe('/heukwol/?result=heukwol%3Aexisting');
 });
+
+test('R7b: held retries show as retry_available with the service retry entry, never as plain failure',async()=>{
+  const {recordService}=await import('../../lib/records/service-registry.js');
+  const now=Date.parse('2026-11-20T00:00:00Z'),later=new Date(now+86400000),earlier=new Date(now-1000);
+  const heukwol={id:'executions',idField:'executionKey',dynamic:true,href:'/ggulggul/',group:'report'};
+  const llmHeld=extra=>({status:'generation_failed',llmMeta:{retryable:{since:new Date(now-1000),refundAt:later,...extra}}});
+  for(const id of ['new-year','life-book','love-secret','neo','tea']){
+    const source=recordService(id);
+    expect(library.recordStatus(llmHeld(),source,now)).toBe('retry_available');
+    for(const extra of [{refundAt:earlier},{refundRequestedAt:earlier},{settledAt:earlier}])expect(library.recordStatus(llmHeld(extra),source,now)).toBe('failed');
+    for(const meta of [{refundEligibleAt:earlier},{billingCleanupPending:true}]){
+      const doc=llmHeld();Object.assign(doc.llmMeta,meta);expect(library.recordStatus(doc,source,now)).toBe('failed');
+    }
+    const refunding=llmHeld();refunding.llmMeta.deliveryRefund={status:'pending'};expect(library.recordStatus(refunding,source,now)).toBe('refund_pending');
+    expect(library.recordStatus({status:'partial',llmMeta:{retryable:{refundAt:later,reopenedAt:earlier}}},source,now)).toBe('partial');
+  }
+  const pending={executionKey:'heukwol:held',featureKey:'heukwol-warning-consultation',status:'pending',metadata:{archive:{title:'흑월'},retryable:{since:earlier,refundAt:later}}};
+  expect(library.recordStatus(pending,heukwol,now)).toBe('retry_available');
+  expect(library.recordStatus({...pending,metadata:{retryable:{refundAt:earlier,refundRequestedAt:earlier}}},heukwol,now)).toBe('generating');
+  expect(library.recordStatus({...pending,refundStatus:'pending'},heukwol,now)).toBe('refund_pending');
+  const codex=recordService('codex');
+  const codexHeld=extra=>({id:'c1',status:'generation_failed',deliveryMeta:{reviewRequired:true,reviewReason:'RETRY_AVAILABLE',retryable:{since:earlier,refundAt:later,...extra}}});
+  expect(library.recordStatus(codexHeld(),codex,now)).toBe('retry_available');
+  for(const extra of [{refundAt:earlier},{closedAt:earlier},{refundRequestedAt:earlier}])expect(library.recordStatus(codexHeld(extra),codex,now)).toBe('failed');
+  expect(library.recordStatus({...codexHeld(),deliveryMeta:{reviewReason:'DELIVERY_FAILED',retryable:{refundAt:later,closedAt:earlier}}},codex,now)).toBe('failed');
+  // 다시 시도 진입은 각 서비스의 기존 결과·복구 화면이다(결제·결제 내역이 아니다).
+  const realNow=Date.now,clock=now;Date.now=()=>clock;
+  try{
+    expect(library.recordMetadata(codex,codexHeld())).toMatchObject({status:'retry_available',recoveryHref:'/master-love-codex/result/?sessionId=c1',nativeHref:''});
+    expect(library.recordMetadata(heukwol,pending)).toMatchObject({status:'retry_available',recoveryHref:'/heukwol/?result=heukwol%3Aheld'});
+    expect(library.recordMetadata(recordService('tea'),{resultId:'t1',...llmHeld()})).toMatchObject({status:'retry_available',recoveryHref:'/fortune-tea-house/?recoverResultId=t1'});
+    expect(library.recordMetadata(recordService('neo'),{id:'n1',...llmHeld()}).recoveryHref).toBe('/neo-operation-room/result/?attemptId=n1');
+  }finally{Date.now=realNow;}
+  for(const field of ['llmMeta.retryable','llmMeta.refundEligibleAt','llmMeta.billingCleanupPending','metadata.retryable','deliveryMeta.retryable','deliveryMeta.reviewReason'])expect(library.RECORD_METADATA_PROJECTION[field]).toBe(1);
+});
