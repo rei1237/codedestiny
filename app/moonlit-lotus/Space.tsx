@@ -2,17 +2,20 @@
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import {useCallback,useEffect,useRef,useState} from 'react';
-import {ArrowLeft,ArrowRight,Flower2,Heart,HandHeart,Moon,Eye,MapPin,Volume2,VolumeX,X,ChevronLeft,ChevronRight,Menu} from 'lucide-react';
+import {ArrowLeft,ArrowRight,Flower2,Heart,Moon,Eye,MapPin,Volume2,VolumeX,X,ChevronLeft,ChevronRight,Menu} from 'lucide-react';
 import {useLocale} from '@/lib/i18n/useT';
 import {MOONLIT_ENTRY_COPY} from './_lib/entry-copy';
 import Character,{type Activity} from './_components/Character';
 import MusicPlayer from './_components/MusicPlayer';
+import MeditationGuide from './_components/MeditationGuide';
 import ImmersionControl from './_components/ImmersionControl';
 import ActivityTransition from './_components/ActivityTransition';
 import {rearCharacterId} from './_lib/companion-rear';
 import WalkingYeoni from './_components/WalkingYeoni';
 import {useSpaceProfile} from './_lib/use-space-profile';
 import {usePrivateBow} from './_lib/use-private-bow';
+import BowFacingControl from './_components/BowFacingControl';
+import FeatureMenu from './_components/FeatureMenu';
 import {useEffects} from './_lib/use-effects';
 import {writeRecord} from './_lib/private-store';
 import {CYCLE_MS,poseAt} from './model-review/bow-session';
@@ -117,11 +120,12 @@ function PrivateSpace({profile}:{profile:ReturnType<typeof useSpaceProfile>}){
  const noMotion=reduced||light;
  const character=profile.character||'yeoni';
  const rearId=rearCharacterId(character,profile.avatar,profile.image);
+ const changeBowFacing=(rear:boolean)=>{if(rear!==rearView){setCharacterError(false);setRearView(rear);}};
  const active=bow.session.status==='running'||bow.session.status==='paused';
  const ended=bow.session.status==='complete'||bow.session.status==='stopped';
  const leaveQuiet=()=>{setImmersive(false);requestAnimationFrame(()=>{if(panel)panelHeading.current?.focus({preventScroll:true});else zenTrigger.current?.focus();});};
  const activateSpot=(spot:(typeof HOTSPOTS)[Scene][number])=>spot.scene?changeScene(spot.scene):spot.panel?open(spot.panel):void effects.strike();
- return <main className={styles.page} lang="ko" data-cd-no-trans data-immersive={quiet} data-panel-open={!!panel||more} data-scene-name={scene}>
+ return <main className={styles.page} lang="ko" data-cd-no-trans data-immersive={quiet} data-panel-open={!!panel||more} data-scene-name={scene} data-bow-character-view={scene==='hall'&&activity==='bow'?(rearView?'rear':'front'):undefined}>
   <header className={styles.header}><Link href="/" className={styles.home} aria-label="꿀꿀 운세로 돌아가기"><ArrowLeft size={20}/></Link><div className={styles.placePicker}><h1 lang={introLocale}><Moon size={18} aria-hidden="true"/>{intro.title}</h1><label><span className={styles.srOnly}>장소 선택</span><select aria-label="장소 선택" value={scene} onChange={event=>changeScene(event.target.value as Scene)}>{(Object.entries(SCENES) as [Scene,string][]).map(([id,title])=><option key={id} value={id}>{title}</option>)}</select></label></div><button ref={zenTrigger} aria-label="공간 메뉴 열기" aria-expanded={more} aria-controls="moonlit-more" onClick={()=>{setMore(value=>!value);setPanel(null);}}><Menu size={21}/></button></header>
   <div className={styles.experience}>
    <section className={styles.sceneSection} aria-label={SCENES[scene]}>
@@ -139,16 +143,15 @@ function PrivateSpace({profile}:{profile:ReturnType<typeof useSpaceProfile>}){
 
     <div className={panel==='music'?styles.musicPanel:styles.activityPanel} hidden={!panel}>
     {panel?<section className={styles.panel} data-activity={panel} aria-labelledby="space-panel-title"><div className={styles.panelHead}><h2 id="space-panel-title" ref={panelHeading} tabIndex={-1}>{PANELS[panel]}</h2><button aria-label="활동 패널 닫기" onClick={close}><X size={19}/></button></div>
-     {panel==='bow'&&<div className={styles.bowControls}><div className={styles.count}><strong>{bow.session.completed}</strong><span>/ {bow.session.target}배</span></div><div className={styles.row}>{ended?<button onClick={()=>bow.reset(bow.session.target)}>다시 시작하기</button>:bow.session.status==='running'?<button className={styles.primary} onClick={bow.pause}>일시정지</button>:<button className={styles.primary} disabled={!bow.ready||bow.busy} onClick={()=>{setActivity('bow');void bow.start();}}>{bow.session.status==='paused'?'이어서 하기':`${bow.session.target}배 시작하기`}</button>}{active&&<button onClick={bow.stop}>여기까지</button>}</div><progress value={bow.session.completed} max={bow.session.target} aria-label="완료한 큰절 횟수"/></div>}
+     {panel==='bow'&&<div className={styles.bowControls}><div className={styles.count}><strong>{bow.session.completed}</strong><span>/ {bow.session.target}배</span></div><div className={styles.row}>{ended?<button onClick={()=>bow.reset(bow.session.target)}>다시 시작하기</button>:bow.session.status==='running'?<button className={styles.primary} onClick={bow.pause}>일시정지</button>:<button className={styles.primary} disabled={!bow.ready||bow.busy} onClick={()=>{setActivity('bow');void bow.start();}}>{bow.session.status==='paused'?'이어서 하기':`${bow.session.target}배 시작하기`}</button>}{active&&<button onClick={bow.stop}>여기까지</button>}</div><progress value={bow.session.completed} max={bow.session.target} aria-label="완료한 큰절 횟수"/><BowFacingControl rearView={rearView} onChange={changeBowFacing} disabled={!!journey}/></div>}
      <div className={styles.panelBody}>
-     {panel==='meditation'&&<><p>지금은 잘하려고 애쓰지 않아도 괜찮아요.<br/>나의 속도로 들이쉬고, 천천히 내쉬어요.</p><div className={styles.breath} data-moving={!noMotion}><Flower2 size={32} strokeWidth={1.3} aria-hidden="true"/><span>편안하게<br/>머물러요</span></div><div className={styles.row}><button className={styles.primary} onClick={()=>open('music')}>명상 음악 고르기</button><button onClick={()=>{setActivity('idle');setNotice('충분히 쉬었어요. 준비되면 다시 시작해요.');}}>명상 마치기</button></div></>}
+     {panel==='meditation'&&<><MeditationGuide character={character==='custom'&&profile.avatar.species==='yeongnyangi'?'cat':character} onActivityChange={active=>setActivity(current=>active?'meditation':current==='meditation'?'idle':current)}/><div className={styles.breath} data-moving={!noMotion}><Flower2 size={32} strokeWidth={1.3} aria-hidden="true"/><span>편안하게<br/>머물러요</span></div><div className={styles.row}><button className={styles.primary} onClick={()=>open('music')}>명상 음악 고르기</button><button onClick={()=>{setActivity('idle');close();}}>명상 마치기</button></div></>}
      {panel==='prayer'&&<><p>누군가에게 보여주지 않아도 되는 나의 기도예요. 불상 앞에서 마음을 모으고, 바라는 일을 적어보세요.</p><label className={styles.field}>오늘의 기도<textarea maxLength={2000} value={prayer} onChange={event=>setPrayer(event.target.value)} placeholder="지금 내 마음에 가장 필요한 것은…"/></label></>}
      {panel==='affirmation'&&<>{speaking?<div className={styles.affirmationReading}><p>{affirmation}</p><button disabled={savingText} onClick={()=>saveText('affirmation')}>소리 내어 읽었어요</button><button onClick={()=>setSpeaking(false)}>문장 고치기</button></div>:<><p>이곳에서는 나의 목소리로, 나에게 다정한 말을 건네요.</p><label className={`${styles.field} ${styles.affirmationField}`}><span><Heart size={17} aria-hidden="true"/>오늘의 확언</span><textarea maxLength={2000} value={affirmation} onChange={event=>setAffirmation(event.target.value)}/></label><div className={styles.row}><button className={styles.primary} onClick={()=>setSpeaking(true)}>소리 내어 읽기</button><button onClick={()=>{const picked=pickTrainingAffirmation('회복력 강화',affirmIndex);setAffirmIndex(picked.index);setAffirmation(picked.text);}}>다른 문장 만나기</button></div></>}<p className={styles.panelNote}>직접 읽고 ‘읽었어요’를 누르면 나의 기록에 남아요. 마이크를 켜거나 녹음하지 않아요.</p></>}
      {panel==='bow'&&<>
       <p className={styles.phase}>{phase}</p><progress className={styles.cycle} value={bow.session.elapsed} max={CYCLE_MS} aria-label="현재 큰절 동작 진행"/>
-      <details className={styles.bowOptions}><summary>횟수·속도·참배 설정</summary>
+      <details className={styles.bowOptions}><summary>횟수·속도·음량 설정</summary>
       <fieldset className={styles.targets} disabled={active||bow.busy}><legend>오늘의 마음만큼</legend>{[9,27,108].map(target=><button key={target} aria-pressed={bow.session.target===target} onClick={()=>bow.reset(target)}>{target}배</button>)}</fieldset>
-      <div className={styles.row} aria-label="캐릭터 참배 시점"><button aria-pressed={rearView} onClick={()=>setRearView(true)}>불상 바라보기</button><button aria-pressed={!rearView} onClick={()=>setRearView(false)}>앞모습 보기</button></div>
       <button onClick={()=>setImmersive(true)}>참배에 집중하기</button>
       <label className={styles.field}>목탁·염불 음량<input aria-label="목탁·염불 음량" type="range" min="0" max="1" step="0.05" value={effects.volume} onChange={e=>effects.changeVolume(Number(e.target.value))}/></label><p className={styles.small}>태국 사찰의 염불과 목탁을 반복해서 들을 수 있어요. 다시 누르면 멈춰요.</p>
       <label className={styles.field}>동작 속도<select value={bow.session.pendingSpeed} onChange={event=>bow.speed(Number(event.target.value))}><option value={.75}>천천히</option><option value={1}>편안하게</option><option value={1.25}>조금 빠르게</option></select></label>
@@ -169,7 +172,7 @@ function PrivateSpace({profile}:{profile:ReturnType<typeof useSpaceProfile>}){
     <MusicPlayer scope={profile.scope} open={panel==='music'}/>
     </div>
    </div>
-   <nav className={styles.dock} aria-label="주요 활동"><button data-activity="bow" aria-pressed={panel==='bow'} onClick={()=>open('bow')}><HandHeart size={21}/><span>108배</span></button><button data-activity="prayer" aria-pressed={panel==='prayer'} onClick={()=>open('prayer')}><Heart size={21}/><span>기도</span></button><button data-activity="meditation" aria-pressed={panel==='meditation'} onClick={()=>open('meditation')}><Flower2 size={21}/><span>명상</span></button><button aria-expanded={more} aria-controls="moonlit-more" onClick={()=>{setMore(value=>!value);setPanel(null);}}><Menu size={21}/><span>더보기</span></button></nav>
+   <FeatureMenu active={panel} onOpen={open} moreOpen={more} onMore={()=>{setMore(value=>!value);setPanel(null);}} hidden={quiet}/>
   </div>
   {quiet&&<div className={styles.zenControls}><button ref={zenExit} onClick={leaveQuiet}><Eye size={17}/>메뉴 다시 열기</button>{active&&<><span>{bow.session.completed} / {bow.session.target}배</span><button onClick={bow.session.status==='running'?bow.pause:()=>void bow.start()}>{bow.session.status==='running'?'일시정지':'이어서 하기'}</button></>}</div>}
 
