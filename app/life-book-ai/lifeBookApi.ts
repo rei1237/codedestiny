@@ -147,3 +147,42 @@ export async function runGenerateWave(
   }
   throw lastError instanceof Error ? lastError : new Error("life-book generate failed");
 }
+
+// 2026-11-19 다시 시도 우선: 확정 실패 응답의 retry 는 "같은 결제 건으로 무료 다시 시도 가능"이라는 서버 표지다.
+// (최상위 retryable 은 "계속 조회"라는 뜻이라 쓰지 않는다.)
+export type LifeBookRetryOffer = { sessionId: string };
+
+export function readLifeBookRetryOffer(data: unknown): LifeBookRetryOffer | null {
+  const record = data && typeof data === "object" ? data as Record<string, unknown> : {};
+  const retry = record.retry && typeof record.retry === "object" ? record.retry as Record<string, unknown> : null;
+  if (!retry || retry.available !== true) return null;
+  const sessionId = String(retry.sessionId || record.sessionId || "").trim();
+  return sessionId ? { sessionId } : null;
+}
+
+async function postLifeBookAction(path: string, sessionId: string, timeoutMs: number) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const response = await authFetch(path, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ sessionId }),
+      signal: controller.signal,
+    });
+    const data = await response.json().catch(() => ({})) as Record<string, unknown>;
+    return { httpStatus: response.status, ok: response.ok, data };
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+/** 무료 다시 시도: 빠진 장만 같은 결제 건으로 한 웨이브 이어 쓴다. 새 결제·차감 없음. */
+export function requestLifeBookRetry(sessionId: string) {
+  return postLifeBookAction("/api/life-book-ai/retry", sessionId, GENERATE_REQUEST_TIMEOUT_MS);
+}
+
+/** 다시 시도 대신 환불 요청. */
+export function requestLifeBookRefund(sessionId: string) {
+  return postLifeBookAction("/api/life-book-ai/refund-request", sessionId, PREPARE_REQUEST_TIMEOUT_MS * 2);
+}

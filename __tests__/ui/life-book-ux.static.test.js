@@ -125,3 +125,21 @@ test("공유 카드에는 생년월일을 넣지 않는다", () => {
   assert.ok(!card.includes("birthTime"), "공유 이미지에 출생시간이 들어가면 안 된다");
   assert.ok(shareEditor.includes('useState(false)'), "이름 표시의 기본값은 숨김이어야 한다");
 });
+
+// 2026-11-19 다시 시도 우선(R3): 확정 실패에 서버가 무료 다시 시도를 열면 새 결제·새 책 대신 같은 결제 건 이어쓰기와 환불 요청만 보인다.
+test("다시 시도 가능한 실패는 추가 결제 없는 다시 시도와 환불 요청을 보여 주고 새 책(새 결제)으로 보내지 않는다", () => {
+  const copySource = read("app/life-book-ai/lifeBookCopy.ts");
+  assert.match(copySource, /retryFreeLabel: "[^"]*추가 결제·차감 없음[^"]*"/);
+  assert.doesNotMatch(copySource, /retry\w*: "[^"]*\d+\s*일/, "다시 시도 문구가 환불 기한 일수를 약속하면 안 된다");
+  const api = stripComments(read("app/life-book-ai/lifeBookApi.ts"));
+  assert.ok(api.includes('"/api/life-book-ai/retry"') && api.includes('"/api/life-book-ai/refund-request"'));
+  assert.ok(api.includes("retry.available !== true"), "retry.available 이 true 일 때만 다시 시도를 연다");
+  for (const file of ["app/life-book-ai/LifeBookAiClient.tsx", "app/life-book-ai/result/LifeBookAiResultClient.tsx"]) {
+    const source = stripComments(read(file));
+    assert.ok(source.includes("FAILURE_COPY.retryFreeLabel") && source.includes("FAILURE_COPY.refundRequestLabel"), file);
+    assert.ok(source.includes("requestLifeBookRetry(offer.sessionId)") && source.includes("requestLifeBookRefund(offer.sessionId)"), file);
+  }
+  const result = stripComments(read("app/life-book-ai/result/LifeBookAiResultClient.tsx"));
+  const offerAt = result.indexOf("{retryOffer ? (");
+  assert.ok(offerAt >= 0 && result.indexOf('<Link href="/life-book-ai"', offerAt) > result.indexOf(") : (", offerAt), "새 책 링크는 다시 시도가 없을 때만 보인다");
+});

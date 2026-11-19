@@ -149,10 +149,41 @@ function refundStarted(meta) {
   return Boolean(meta?.deliveryRefund || meta?.refundEligibleAt || meta?.billingCleanupPending);
 }
 
+// 다시 시도 reset 은 서비스별 이어쓰기 예산(llmMeta 아래)만 되돌린다. 상태·잠금·다시 시도 표지·환불 필드는 막는다(fail-closed).
+const RESET_BLOCKED = ['llmMeta.retryable', 'llmMeta.lockedAt', 'llmMeta.lockToken', 'llmMeta.refundEligibleAt', 'llmMeta.deliveryRefund', 'llmMeta.billingCleanupPending'];
+function resetFields(fields) {
+  const out = {};
+  for (const [key, value] of Object.entries(fields || {})) {
+    if (!key.startsWith('llmMeta.') || RESET_BLOCKED.some(p => key === p || key.startsWith(`${p}.`))) continue;
+    out[key] = value;
+  }
+  return out;
+}
+
+/** 요청 중 종결 실패를 다시 시도 가능으로 둘 때의 표지. 환불 시각은 생성 + 7일이고 이미 있으면 늘리지 않는다.
+ * 창이 지났거나 환불이 시작됐으면 null — 호출부는 기존 즉시 환불 경로로 간다. */
+export function retryableFailureMeta(doc, now = Date.now(), code = 'LLM_ERROR') {
+  if (!doc || refundStarted(doc.llmMeta)) return null;
+  const prev = doc.llmMeta?.retryable;
+  const prevRefundAt = ms(prev?.refundAt);
+  const refundAt = Number.isFinite(prevRefundAt) ? new Date(prevRefundAt) : retryRefundAt(doc, now);
+  if (!(refundAt.getTime() > now)) return null;
+  return { ...(prev || {}), since: prev?.since ? new Date(prev.since) : new Date(now), refundAt, code: String(code || 'LLM_ERROR').slice(0, 40) };
+}
+
+/** 응답에 싣는 다시 시도 상태. 창 안·환불 전 다시 시도 가능 실패에만 붙는다. */
+export function publicRetryState(doc, now = Date.now()) {
+  const retryable = doc?.llmMeta?.retryable;
+  if (doc?.status !== 'generation_failed' || !retryable || refundStarted(doc.llmMeta)) return null;
+  const refundAt = ms(retryable.refundAt);
+  if (!(refundAt > now)) return null;
+  return { retryable: true, refundAt: new Date(refundAt).toISOString() };
+}
+
 /** 공용 다시 시도. 같은 결제 건(소유자 userId + 문서 id)의 다시 시도 가능 실패만, 환불 전·창 안에서
  * 빠진 장 이어쓰기(partial)로 되돌린다. 완성된 장·결제·이용권 증빙은 건드리지 않는다(추가 결제·차감 없음).
  * 실제 생성은 각 서비스의 기존 이어쓰기 경로(lease·장별 예산)가 맡는다. */
-export async function reopenRetryableConsultation(model, { id, userId } = {}, now = Date.now()) {
+export async function reopenRetryableConsultation(model, { id, userId } = {}, now = Date.now(), { reset } = {}) {
   if (!model || !id || !userId) return { ok: false, reason: 'NOT_FOUND' };
   const fresh = await model.findOne({ id, userId }).lean();
   if (!fresh) return { ok: false, reason: 'NOT_FOUND' };
@@ -160,7 +191,8 @@ export async function reopenRetryableConsultation(model, { id, userId } = {}, no
   if (fresh.status !== 'generation_failed' || !retryable) return { ok: false, reason: 'NOT_RETRYABLE' };
   if (refundStarted(fresh.llmMeta)) return { ok: false, reason: 'REFUND_STARTED' };
   if (!(ms(retryable.refundAt) > now)) return { ok: false, reason: 'RETRY_WINDOW_EXPIRED' };
-  const result = await model.updateOne({ id, userId, status: 'generation_failed', updatedAt: fresh.updatedAt }, { $set: {
+  const extra = typeof reset === 'function' ? resetFields(reset(fresh)) : {};
+  const result = await model.updateOne({ id, userId, status: 'generation_failed', updatedAt: fresh.updatedAt }, { $set: { ...extra,
     status: 'partial', generationError: null, 'llmMeta.lockedAt': null, 'llmMeta.lockToken': '',
     'llmMeta.retryable.reopens': Number(retryable.reopens || 0) + 1, 'llmMeta.retryable.reopenedAt': new Date(now) } });
   if (!result?.modifiedCount) return { ok: false, reason: 'CONFLICT' };

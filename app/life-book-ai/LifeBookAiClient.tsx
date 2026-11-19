@@ -43,7 +43,7 @@ import { readAiProfileSeed, type AiPrefillSeed } from "@/app/_lib/ai-prefill-see
 import { useAiProfileSeed } from "@/app/hooks/useAiProfileSeed";
 import { useRouter } from "next/navigation";
 import { friendlyErrorMessage } from "@/app/_lib/friendly-error";
-import { prepareLifeBook, runGenerateWave } from "./lifeBookApi";
+import { prepareLifeBook, readLifeBookRetryOffer, requestLifeBookRefund, requestLifeBookRetry, runGenerateWave, type LifeBookRetryOffer } from "./lifeBookApi";
 import {
   FAILURE_COPY,
   MODE_FALLBACK_PRICE,
@@ -1453,6 +1453,9 @@ export default function LifeBookAiClient({ paymentNotice, paymentSurface = "web"
   const [resultUrl, setResultUrl] = useState("");
   const [waveProgress, setWaveProgress] = useState<{ completed: number; total: number } | null>(null);
   const [refunded, setRefunded] = useState(false);
+  // 서버가 연 무료 다시 시도(같은 결제 건). 있으면 새 결제 대신 빠진 장 이어쓰기·환불 요청만 보여 준다.
+  const [retryOffer, setRetryOffer] = useState<LifeBookRetryOffer | null>(null);
+  const [refundPending, setRefundPending] = useState(false);
   const startLockRef = useRef(false);
   const retryRef = useRef<{ payload: ReturnType<typeof buildConsultationPayload>; requestId: string; access: Record<string, unknown> | null; mode: LifeBookMode } | null>(null);
   const idempotencyKeyRef = useRef(createIdempotencyKey());
@@ -1495,6 +1498,8 @@ export default function LifeBookAiClient({ paymentNotice, paymentSurface = "web"
     setResultUrl("");
     setWaveProgress(null);
     setRefunded(false);
+    setRetryOffer(null);
+    setRefundPending(false);
     setError("");
     setNotice("");
     setStatus("idle");
@@ -1556,6 +1561,11 @@ export default function LifeBookAiClient({ paymentNotice, paymentSurface = "web"
       if (outcome.status === "failed") {
         const error = new Error(paymentNotice && outcome.httpStatus === 403 ? TOSS_PERMISSION_MESSAGE : paymentNotice && ['SERVER_ERROR','LLM_ERROR','RESULT_EMPTY','SAJU_CALCULATION_FAILED','GENERATION_ALREADY_FAILED','GENERATION_STALLED'].includes(String(outcome.reason || '').toUpperCase()) ? TOSS_UNCERTAIN_DELIVERY_MESSAGE : reasonCopy(outcome.reason, outcome.message || LLM_ERROR_MESSAGE));
         (error as Error & { refunded?: boolean }).refunded = outcome.data?.refunded === true;
+        const offer = readLifeBookRetryOffer(outcome.data);
+        if (offer) {
+          error.message = FAILURE_COPY.retryAvailable;
+          (error as Error & { retryOffer?: LifeBookRetryOffer }).retryOffer = offer;
+        }
         throw error;
       }
       if (outcome.progress) setWaveProgress(outcome.progress);
@@ -1594,6 +1604,7 @@ export default function LifeBookAiClient({ paymentNotice, paymentSurface = "web"
       if (!isCurrent()) return false;
       const message = friendlyErrorMessage(err, paymentNotice ? TOSS_UNCERTAIN_DELIVERY_MESSAGE : SERVER_ERROR_MESSAGE);
       setRefunded((err as { refunded?: boolean })?.refunded === true);
+      setRetryOffer((err as { retryOffer?: LifeBookRetryOffer })?.retryOffer || null);
       setError(message);
       setStatus("error");
       return false;
@@ -1732,6 +1743,7 @@ export default function LifeBookAiClient({ paymentNotice, paymentSurface = "web"
         : friendlyErrorMessage(err, paymentNotice ? TOSS_UNCERTAIN_DELIVERY_MESSAGE : SERVER_ERROR_MESSAGE);
       const paymentCancelled = message === PAYMENT_CANCELLED_MESSAGE;
       setRefunded((err as { refunded?: boolean })?.refunded === true);
+      setRetryOffer((err as { retryOffer?: LifeBookRetryOffer })?.retryOffer || null);
       setError(message);
       setStatus("error");
       failPaidFeatureGateCheck({
@@ -1752,9 +1764,40 @@ export default function LifeBookAiClient({ paymentNotice, paymentSurface = "web"
     if (startLockRef.current || isBusy) return;
     const isCurrent = captureDeliveryScope();
     const stashed = retryRef.current;
+    const offer = retryOffer;
     setRefunded(false);
     setError("");
     setNotice(FAILURE_COPY.retrying);
+    if (offer) {
+      // 무료 다시 시도: 같은 결제 건으로 빠진 장만 이어 쓴다. 결제창·새 키로 가지 않는다.
+      startLockRef.current = true;
+      setRetryOffer(null);
+      setStatus("generating");
+      try {
+        const retried = await requestLifeBookRetry(offer.sessionId);
+        if (!isCurrent()) return false;
+        const reason = String(retried.data?.reason || "");
+        if (retried.httpStatus === 202 || retried.httpStatus === 200 || (retried.httpStatus === 409 && reason === "GENERATION_IN_PROGRESS")) {
+          // 이어쓰기는 결과 화면이 저장된 장 다음부터 받아 이어 간다.
+          goToResult(stashed?.requestId || idempotencyKeyRef.current);
+          return;
+        }
+        setRetryOffer(readLifeBookRetryOffer(retried.data));
+        setRefunded(retried.data?.refunded === true);
+        setNotice("");
+        setError(readLifeBookRetryOffer(retried.data) ? FAILURE_COPY.retryAvailable : reasonCopy(reason, LLM_ERROR_MESSAGE));
+        setStatus("error");
+      } catch (err) {
+        if (!isCurrent()) return false;
+        setRetryOffer(offer);
+        setNotice("");
+        setError(err instanceof TypeError ? NETWORK_ERROR_MESSAGE : FAILURE_COPY.retryAvailable);
+        setStatus("error");
+      } finally {
+        if (isCurrent()) startLockRef.current = false;
+      }
+      return;
+    }
     if (!stashed?.access) {
       // 결제 증거가 없으면 처음부터 다시 — 새 키가 발급된다.
       idempotencyKeyRef.current = createIdempotencyKey();
@@ -1768,12 +1811,38 @@ export default function LifeBookAiClient({ paymentNotice, paymentSurface = "web"
     } catch (err) {
       if (!isCurrent()) return false;
       const message = friendlyErrorMessage(err, paymentNotice ? TOSS_UNCERTAIN_DELIVERY_MESSAGE : SERVER_ERROR_MESSAGE);
+      setRetryOffer((err as { retryOffer?: LifeBookRetryOffer })?.retryOffer || null);
       setError(message);
       setStatus("error");
     } finally {
       if (isCurrent()) startLockRef.current = false;
     }
-  }, [isBusy, runGeneration, submit, captureDeliveryScope]);
+  }, [isBusy, runGeneration, submit, captureDeliveryScope, retryOffer, goToResult]);
+
+  // 다시 시도 대신 환불 요청. 서버가 공용 환불로 넘기고 바로 정산을 시도한다.
+  const handleRefundRequest = useCallback(async () => {
+    const offer = retryOffer;
+    if (!offer || startLockRef.current || isBusy) return;
+    const isCurrent = captureDeliveryScope();
+    startLockRef.current = true;
+    try {
+      const response = await requestLifeBookRefund(offer.sessionId);
+      if (!isCurrent()) return;
+      if (response.data?.ok === true || response.data?.refunded === true) {
+        setRetryOffer(null);
+        const done = response.data?.refunded === true;
+        setRefunded(false);
+        setRefundPending(!done);
+        setError(done ? FAILURE_COPY.refunded : FAILURE_COPY.refundPending);
+        return;
+      }
+      setNotice(FAILURE_COPY.refundRequestFailed);
+    } catch {
+      if (isCurrent()) setNotice(FAILURE_COPY.refundRequestFailed);
+    } finally {
+      if (isCurrent()) startLockRef.current = false;
+    }
+  }, [retryOffer, isBusy, captureDeliveryScope]);
   const statusLabel = useMemo(() => {
     if (status === "generating") return copy.writingStatus;
     return PHASE_COPY[status] || PHASE_COPY.idle;
@@ -1942,6 +2011,27 @@ export default function LifeBookAiClient({ paymentNotice, paymentSurface = "web"
                       <p className="font-semibold text-[#ffd8de]">{FAILURE_COPY.headline}</p>
                       <p className="mt-1 leading-6">{error}</p>
                       {refunded && <p className="mt-1 leading-6 text-[#fecdd3]/85">{FAILURE_COPY.refunded}</p>}
+                      {retryOffer ? (
+                        <div className="mt-3 flex flex-col items-start gap-2">
+                          <button
+                            type="button"
+                            onClick={() => void handleRetry()}
+                            disabled={isBusy}
+                            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-[#fecdd3]/40 bg-[#fecdd3]/10 px-5 font-semibold text-[#ffe4e8] transition hover:bg-[#fecdd3]/20 disabled:cursor-not-allowed disabled:opacity-60"
+                          >
+                            <Sparkles className="h-4 w-4" aria-hidden="true" />
+                            {FAILURE_COPY.retryFreeLabel}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => void handleRefundRequest()}
+                            disabled={isBusy}
+                            className="min-h-11 px-1 text-sm font-semibold text-[#fecdd3]/85 underline underline-offset-4 disabled:cursor-not-allowed disabled:opacity-60"
+                          >
+                            {FAILURE_COPY.refundRequestLabel}
+                          </button>
+                        </div>
+                      ) : !refundPending && (
                       <button
                         type="button"
                         onClick={() => void handleRetry()}
@@ -1952,6 +2042,7 @@ export default function LifeBookAiClient({ paymentNotice, paymentSurface = "web"
                         <Sparkles className="h-4 w-4" aria-hidden="true" />
                         {copy.retryStoryLabel}
                       </button>
+                      )}
                     </>
                   ) : notice}
                 </div>

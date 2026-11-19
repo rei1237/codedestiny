@@ -14,6 +14,7 @@ import AiResultProse from "@/components/fortune/AiResultProse";
 import ConsultationReading from "@/components/fortune/ConsultationReading";
 import { friendlyErrorMessage } from "@/app/_lib/friendly-error";
 import { FAILURE_COPY, reasonCopy } from "../lifeBookCopy";
+import { readLifeBookRetryOffer, requestLifeBookRefund, requestLifeBookRetry, type LifeBookRetryOffer } from "../lifeBookApi";
 import { useTypewriter } from "./useTypewriter";
 import BookOpenCover from "./_components/BookOpenCover";
 import ResultActionDock from "./_components/ResultActionDock";
@@ -1411,6 +1412,10 @@ function LifeBookResultContent({ paymentSurface }: { paymentSurface?: "toss" }) 
   const [result, setResult] = useState<LifeBookResult | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  // 서버가 연 무료 다시 시도(같은 결제 건). 있으면 새 책(새 결제) 대신 이어쓰기·환불 요청을 보여 준다.
+  const [retryOffer, setRetryOffer] = useState<LifeBookRetryOffer | null>(null);
+  const [retryBusy, setRetryBusy] = useState(false);
+  const [refundNotice, setRefundNotice] = useState("");
   const [pdfLoading, setPdfLoading] = useState(false);
   const [pdfError, setPdfError] = useState("");
   const [viewAll, setViewAll] = usePagedViewerMode("lifeBookViewerModeV1");
@@ -1470,6 +1475,8 @@ function LifeBookResultContent({ paymentSurface }: { paymentSurface?: "toss" }) 
             setError(tossResultFailure(resumed.status, next, copy.loadFailed));
             setLoading(false); return;
           }
+          const resumeOffer = readLifeBookRetryOffer(next);
+          if (resumeOffer) { setRetryOffer(resumeOffer); setError(FAILURE_COPY.retryAvailable); return; }
           if (!resumed.ok || next.ok === false) throw new Error(toText(next.message) || copy.loadFailed);
           if (paymentSurface === "toss" && next.status === "completed" && next.saved !== true) { setResult(null); setError(copy.loadFailed); return; }
           payload = next;
@@ -1502,7 +1509,9 @@ function LifeBookResultContent({ paymentSurface }: { paymentSurface?: "toss" }) 
       //    자가 복구 가능한 일시 장애이므로 여기 넣지 않는다.
       const terminalReason = toText(payload?.reason).toUpperCase();
       if (TERMINAL_RESULT_REASONS.has(terminalReason)) {
-        setError(reasonCopy(terminalReason, toText(payload?.message)));
+        const offer = readLifeBookRetryOffer(payload);
+        setRetryOffer(offer);
+        setError(offer ? FAILURE_COPY.retryAvailable : reasonCopy(terminalReason, toText(payload?.message)));
         setLoading(false);
         return;
       }
@@ -1707,6 +1716,50 @@ function LifeBookResultContent({ paymentSurface }: { paymentSurface?: "toss" }) 
     }
   }
 
+  // 무료 다시 시도: 같은 결제 건으로 빠진 장만 이어 쓰고, 성공하면 생성 중 화면으로 돌아가 폴링이 이어받는다.
+  const handleFreeRetry = async () => {
+    const offer = retryOffer;
+    if (!offer || retryBusy) return;
+    setRetryBusy(true); setRefundNotice("");
+    try {
+      const retried = await requestLifeBookRetry(offer.sessionId);
+      const reason = toText(retried.data?.reason);
+      if (retried.httpStatus === 202 || retried.httpStatus === 200 || (retried.httpStatus === 409 && reason === "GENERATION_IN_PROGRESS")) {
+        setRetryOffer(null); setError("");
+        setResult({ status: "generating", message: copy.preparingBook });
+        setPollAttempts(0); resumeCallsRef.current = 0;
+        setReloadEpoch(value => value + 1);
+        return;
+      }
+      const next = readLifeBookRetryOffer(retried.data);
+      setRetryOffer(next);
+      setError(next ? FAILURE_COPY.retryAvailable : reasonCopy(reason, toText(retried.data?.message)));
+    } catch {
+      setRefundNotice(FAILURE_COPY.retryAvailable);
+    } finally {
+      setRetryBusy(false);
+    }
+  };
+
+  const handleRefundRequest = async () => {
+    const offer = retryOffer;
+    if (!offer || retryBusy) return;
+    setRetryBusy(true);
+    try {
+      const response = await requestLifeBookRefund(offer.sessionId);
+      if (response.data?.ok === true || response.data?.refunded === true) {
+        setRetryOffer(null);
+        setRefundNotice(response.data?.refunded === true ? FAILURE_COPY.refunded : FAILURE_COPY.refundPending);
+        return;
+      }
+      setRefundNotice(FAILURE_COPY.refundRequestFailed);
+    } catch {
+      setRefundNotice(FAILURE_COPY.refundRequestFailed);
+    } finally {
+      setRetryBusy(false);
+    }
+  };
+
   if (loading) return <LoadingState message={pending ? copy.loadingPendingWait : copy.loadingDefault} />;
 
   if (error) {
@@ -1716,10 +1769,23 @@ function LifeBookResultContent({ paymentSurface }: { paymentSurface?: "toss" }) 
           <AlertCircle className="mx-auto h-9 w-9 text-rose-200" aria-hidden="true" />
           <h1 className="mt-4 text-2xl font-semibold">{copy.cannotOpenResult}</h1>
           <p className="mt-3 text-sm leading-6 text-rose-100">{error}</p>
+          {refundNotice && <p role="status" className="mt-2 text-sm leading-6 text-rose-100/85">{refundNotice}</p>}
+          {retryOffer ? (
+            <div className="mt-5 flex flex-col items-center gap-2">
+              <button type="button" onClick={() => void handleFreeRetry()} disabled={retryBusy} className="inline-flex min-h-11 items-center gap-2 rounded-full bg-amber-200 px-5 font-semibold text-[#171007] disabled:cursor-not-allowed disabled:opacity-60">
+                {retryBusy ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : null}
+                {FAILURE_COPY.retryFreeLabel}
+              </button>
+              <button type="button" onClick={() => void handleRefundRequest()} disabled={retryBusy} className="min-h-11 px-1 text-sm font-semibold text-rose-100/85 underline underline-offset-4 disabled:cursor-not-allowed disabled:opacity-60">
+                {FAILURE_COPY.refundRequestLabel}
+              </button>
+            </div>
+          ) : (
           <Link href="/life-book-ai" className="mt-5 inline-flex min-h-11 items-center gap-2 rounded-full bg-amber-200 px-5 font-semibold text-[#171007]">
             <ArrowLeft className="h-4 w-4" aria-hidden="true" />
             {copy.newBookCta}
           </Link>
+          )}
         </div>
       </main>
     );

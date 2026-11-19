@@ -7,6 +7,7 @@ import { countPaidReportBodyChars, dropRepeatedReportSentences, hasRepeatedRepor
 import { reserveSupportRecoveryAttempt, supportRecoveryGenerationOptions, assertSupportRecoveryPreserved } from "../lib/support-recovery-budget.js";
 import { safeGeminiFailure } from "../../lib/gemini-provider-errors.mjs";
 import { consultationRefundResponse } from "../lib/consultation-refund-state.js";
+import { markRetryableRefundDue, publicRetryState, reopenRetryableConsultation, retryableFailureMeta } from "../lib/paid-delivery-stuck.js";
 import { tokensRequiredForChars } from "../lib/llm-budget.js";
 import { getRoutePath, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { resolveForbiddenPatterns } from "../lib/llm-leak-guard.js";
@@ -2713,6 +2714,30 @@ async function releaseSectionLock(sessionId, lockToken) {
   ).lean().catch(() => null);
 }
 
+// 2026-11-19 다시 시도 우선: 요청 중 종결 실패는 환불하지 않고 생성 + 7일 안에서 무료 다시 시도를 연다.
+// Toss 네이티브·운영 구제(supportRecovery)·이연 차감 실패 건은 다시 시도 화면·근거가 없어 기존 즉시 환불을 유지한다.
+function lifeBookRetryMeta(request, auth, doc, code) {
+  if (auth?.tossNative || nativeTossContext(request) || doc?.accessSource === "toss" || doc?.llmMeta?.supportRecovery) return null;
+  if (clean(code) === "DEFERRED_USAGE_APPLY_FAILED") return null;
+  return retryableFailureMeta(doc || {}, Date.now(), clean(code || "LLM_GENERATION_FAILED", 40));
+}
+
+// 응답용 다시 시도 상태. 최상위 retryable 은 클라이언트에서 "자동으로 계속 조회"라는 뜻이라 쓰지 않는다.
+function lifeBookRetryPayload(doc) {
+  const state = publicRetryState(doc, Date.now());
+  return state ? { refunded: false, retry: { available: true, refundAt: state.refundAt, sessionId: String(doc.id || "") } } : {};
+}
+
+// 다시 시도는 빠진 장만 다시 쓴다: 통과한 장은 그대로, 실패·보수 대기 장만 시도 수를 새로 연다. 웨이브 예산도 새로 연다.
+function lifeBookRetryReset(fresh) {
+  const stored = fresh?.llmMeta?.sections && typeof fresh.llmMeta.sections === "object" ? fresh.llmMeta.sections : {};
+  const sections = {};
+  for (const [id, row] of Object.entries(stored)) {
+    sections[id] = row && typeof row === "object" && (!row.ok || row.needsRepair) ? { ...row, attempts: 0, failure: null } : row;
+  }
+  return { "llmMeta.sections": sections, "llmMeta.waveCount": 0 };
+}
+
 async function settleLifeBookFailureRefund(env, id, userId) {
   try {
     const { settleFailedConsultationRefund } = await import('../lib/consultation-delivery-refund.js');
@@ -2854,6 +2879,7 @@ async function handleResult(request, env, pathId = "") {
       ok: false,
       reason: "LLM_ERROR",
       message: MESSAGES.llmFailed,
+      ...lifeBookRetryPayload(consultation),
     }, { status: 503 });
   }
 
@@ -2999,6 +3025,7 @@ async function handleStart(request, env, route = "/api/life-book-ai/generate", r
         ok: false,
         reason: "GENERATION_ALREADY_FAILED",
         message: MESSAGES.llmFailed,
+        ...lifeBookRetryPayload(existing),
       }, { status: 409 });
     }
 
@@ -3176,6 +3203,7 @@ async function handleStart(request, env, route = "/api/life-book-ai/generate", r
               ok: false,
               reason: "GENERATION_ALREADY_FAILED",
               message: MESSAGES.llmFailed,
+              ...lifeBookRetryPayload(duplicate),
             }, { status: 409 });
           }
           return json({ ok: true, sessionId: duplicate?.id || sessionId, status: "generating", message: `${orderName}을 완성하는 중입니다.` }, { status: 202 });
@@ -3487,8 +3515,9 @@ async function handleStart(request, env, route = "/api/life-book-ai/generate", r
           return json({ ok: false, reason: error.code, retryable: true, sessionId, message: MESSAGES.llmFailed }, { status: 503 });
         }
         const failedAt = new Date().toISOString();
+        const retry = lifeBookRetryMeta(request, auth, lock.doc || doc, error?.code);
         await saveLifeBookState({ userId: auth.userId, id: sessionId, lockToken: lock.lockToken, values: {
-          status: "generation_failed", "llmMeta.refundEligibleAt": failedAt,
+          status: "generation_failed", ...(retry ? { "llmMeta.retryable": retry } : { "llmMeta.refundEligibleAt": failedAt }),
           ...(recovery ? { "llmMeta.supportRecovery.active": false, "llmMeta.supportRecovery.finishedAt": failedAt } : {}), generationError: {
             code: clean(error?.code || "LLM_GENERATION_FAILED", 80),
             message: clean(error?.message || error, 500), at: new Date().toISOString(),
@@ -3496,11 +3525,12 @@ async function handleStart(request, env, route = "/api/life-book-ai/generate", r
           },
         } });
         error.lifeBookFailureClaimed = true;
+        if (retry) error.lifeBookRetry = retry;
         terminalFailure = error;
         throw error;
       } finally {
         const released = await releaseSectionLock(sessionId, lock.lockToken);
-        if (terminalFailure && released?.status === "generation_failed") terminalFailure.refundSettlement = await settleLifeBookFailureRefund(env, sessionId, auth.userId);
+        if (terminalFailure && !terminalFailure.lifeBookRetry && released?.status === "generation_failed") terminalFailure.refundSettlement = await settleLifeBookFailureRefund(env, sessionId, auth.userId);
       }
       return responsePayload;
     } catch (error) {
@@ -3517,6 +3547,7 @@ async function handleStart(request, env, route = "/api/life-book-ai/generate", r
             ok: false,
             reason: "GENERATION_ALREADY_FAILED",
             message: MESSAGES.llmFailed,
+            ...lifeBookRetryPayload(duplicate),
           }, { status: 409 });
         }
         return json({
@@ -3529,15 +3560,23 @@ async function handleStart(request, env, route = "/api/life-book-ai/generate", r
         }, { status: 409, headers: { "Retry-After": "4" } });
       }
       const failedAt = new Date().toISOString();
+      const retry = error.lifeBookFailureClaimed ? error.lifeBookRetry || null : lifeBookRetryMeta(request, auth,
+        await LifeBookAiConsultation.findOne({ id: sessionId, userId: clean(auth.userId) }).lean().catch(() => null) || existing, error?.code);
       const failedOwner = error.lifeBookFailureClaimed || await LifeBookAiConsultation.findOneAndUpdate(
         { id: sessionId, userId: clean(auth.userId), status: { $in: ["generating", "partial"] }, "llmMeta.lockedAt": null, "llmMeta.waveCount": { $gte: waveCap } },
-        { $set: { status: "generation_failed", "llmMeta.refundEligibleAt": failedAt,
+        { $set: { status: "generation_failed", ...(retry ? { "llmMeta.retryable": retry } : { "llmMeta.refundEligibleAt": failedAt }),
           ...(existing?.llmMeta?.supportRecovery ? { "llmMeta.supportRecovery.active": false, "llmMeta.supportRecovery.finishedAt": failedAt } : {}), generationError: {
           code: clean(error?.code || "LLM_GENERATION_FAILED", 80),
           message: clean(error?.message || error, 500), at: new Date().toISOString(),
         } } }, { new: true },
       ).lean().catch(() => null);
       if (!failedOwner) return json(resultStorageFailurePayload(resultStorageUnavailable(sessionId)), { status: 503 });
+      if (retry) {
+        // 다시 시도 가능: 환불·증빙 해제·차감 취소를 하지 않는다(같은 결제 건으로 이어 쓴다). 결과는 숨긴 채 다시 시도 안내만.
+        logLifeBookAi("LLM Error", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, validation: "passed", access: access.accessType, env, error }), "error");
+        return json({ ok: false, reason: "LLM_ERROR", message: MESSAGES.llmFailed, sessionId, refunded: false,
+          retry: { available: true, refundAt: new Date(retry.refundAt).toISOString(), sessionId } }, { status: 503 });
+      }
       if (!auth?.tossNative) await releaseRequestBillingEvidence(env, { userId: clean(auth.userId), requestId: idempotencyKey, evidenceIds: [clean(access?.claimEvidenceId, 160)] }).catch(() => null);
       const settlement = error.refundSettlement || (!error.lifeBookFailureClaimed ? await settleLifeBookFailureRefund(env, sessionId, auth.userId) : null);
       const restored = settlement?.refundStatus === "refunded";
@@ -3570,6 +3609,54 @@ async function handleStart(request, env, route = "/api/life-book-ai/generate", r
 }
 
 // 🔴 ctx 를 받지 않는다 — waitUntil 백그라운드 생성은 이 레포에서 금지다(요청 간 I/O 격리로 결과 고착).
+// 다시 시도(무료): 같은 소유자의 다시 시도 가능 실패만 빠진 장 이어쓰기로 되돌리고, 기존 재개(resumeSessionId)로 한 웨이브를 돈다.
+// 새 결제·차감·증빙 청구를 하지 않는다 — 재개 경로가 같은 멱등 키로 기존 접근을 재확인하고, 차감은 전달 때 한 번뿐이다.
+async function handleRetry(request, env) {
+  const auth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true });
+  if (!auth) return loginRequired();
+  if (nativeTossContext(request)) return json({ ok: false, reason: "RETRY_NOT_AVAILABLE", message: MESSAGES.llmFailed }, { status: 409 });
+  const body = await readJson(request);
+  const sessionId = clean(body?.sessionId || body?.resumeSessionId, 120);
+  if (!sessionId) return invalidInput(MESSAGES.invalidInput);
+  await connectDb(env);
+  const reopened = await reopenRetryableConsultation(LifeBookAiConsultation, { id: sessionId, userId: clean(auth.userId) }, Date.now(), { reset: lifeBookRetryReset });
+  if (!reopened.ok && reopened.reason !== "CONFLICT") {
+    const stored = await LifeBookAiConsultation.findOne({ id: sessionId, userId: clean(auth.userId) }).lean().catch(() => null);
+    const refund = consultationRefundResponse(stored);
+    if (refund) return json(refund.body, { status: refund.status });
+    if (stored?.status === "completed") return json(publicSession(stored));
+    if (reopened.reason === "NOT_FOUND") return invalidInput(MESSAGES.resultNotFound, 404);
+    return json({ ok: false, reason: reopened.reason, message: MESSAGES.llmFailed, ...lifeBookRetryPayload(stored) }, { status: 409 });
+  }
+  logLifeBookAction("retry_reopened", { route: "/api/life-book-ai/retry", requestId: sessionId, userId: auth.userId, status: reopened.ok ? "partial" : "conflict" });
+  const headers = new Headers(request.headers);
+  headers.set("content-type", "application/json");
+  return handleStart(new Request(request.url, { method: "POST", headers, body: JSON.stringify({ resumeSessionId: sessionId }) }), env, "/api/life-book-ai/retry");
+}
+
+// 고객 환불 요청: 다시 시도 가능 실패를 공용 환불로 넘기고 바로 정산을 시도한다(실패해도 복구 크론이 이어 정산).
+async function handleRefundRequest(request, env) {
+  const auth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true });
+  if (!auth) return loginRequired();
+  if (nativeTossContext(request)) return json({ ok: false, reason: "REFUND_REQUEST_NOT_AVAILABLE" }, { status: 409 });
+  const body = await readJson(request);
+  const sessionId = clean(body?.sessionId, 120);
+  if (!sessionId) return invalidInput(MESSAGES.invalidInput);
+  await connectDb(env);
+  const owner = { id: sessionId, userId: clean(auth.userId) };
+  const marked = await markRetryableRefundDue(LifeBookAiConsultation, owner, Date.now(), "CUSTOMER_REQUEST");
+  if (!marked.ok) {
+    const stored = await LifeBookAiConsultation.findOne(owner).lean().catch(() => null);
+    const refund = consultationRefundResponse(stored);
+    if (refund) return json(refund.body, { status: refund.status });
+    if (marked.reason === "NOT_FOUND") return invalidInput(MESSAGES.resultNotFound, 404);
+    return json({ ok: false, reason: marked.reason || "NOT_RETRYABLE" }, { status: 409 });
+  }
+  const settlement = await settleLifeBookFailureRefund(env, sessionId, auth.userId);
+  const refundStatus = settlement?.refundStatus || "pending";
+  return json({ ok: true, sessionId, refunded: refundStatus === "refunded", refundStatus });
+}
+
 export async function handleLifeBookAiRoutes(request, env = {}) {
   const method = request.method.toUpperCase();
   const path = getRoutePath(request, "/api/life-book-ai");
@@ -3584,6 +3671,8 @@ export async function handleLifeBookAiRoutes(request, env = {}) {
     if (method === "POST" && (path === "/generate" || path === "/start")) {
       return await handleStart(request, env, path === "/generate" ? "/api/life-book-ai/generate" : "/api/life-book-ai/start");
     }
+    if (method === "POST" && path === "/retry") return await handleRetry(request, env);
+    if (method === "POST" && path === "/refund-request") return await handleRefundRequest(request, env);
     if (["GET", "POST"].includes(method)) return notFound();
     return methodNotAllowed();
   } catch (error) {

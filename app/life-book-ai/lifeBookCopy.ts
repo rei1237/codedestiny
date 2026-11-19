@@ -47,6 +47,13 @@ export const FAILURE_COPY = {
   retrying: "다시 한 번 이야기를 이어가겠습니다.",
   exhausted: "오늘은 잉크가 자꾸 번지네요. 잠시 뒤 다시 펼쳐 주세요.",
   refunded: "이용권과 결제는 이미 되돌려 드렸습니다. 새로 한 권을 여시겠어요?",
+  // 2026-11-19 다시 시도 우선: 같은 결제 건으로 빠진 장만 다시 쓴다. 기한(일수)은 약속하지 않는다.
+  retryAvailable: "몇몇 장의 잉크가 번졌습니다. 이미 쓴 장은 그대로 두고 빠진 장만 다시 써 드립니다.",
+  retryFreeLabel: "다시 시도 · 추가 결제·차감 없음",
+  retryFreeNote: "추가 결제·차감 없음",
+  refundRequestLabel: "다시 시도 대신 환불 요청",
+  refundPending: "환불 요청을 받았습니다. 처리가 끝나면 이용권과 결제가 되돌아갑니다.",
+  refundRequestFailed: "환불 요청을 전하지 못했습니다. 잠시 뒤 다시 눌러 주세요.",
 } as const;
 
 // 서버 reason → 세계관 문구. 여기에 없는 reason 은 friendlyErrorMessage 가 걸러 준다.

@@ -216,6 +216,38 @@ test('고객 환불 요청은 다시 시도 가능한 실패에만 환불 대상
   expect(other.doc.llmMeta.refundEligibleAt).toBeUndefined();
 });
 
+test('요청 중 종결 실패의 다시 시도 표지: 창 안이면 생성 + 7일(이전 값 유지), 창이 지났거나 환불이 시작됐으면 null(기존 즉시 환불)', () => {
+  const fresh = baseDoc('partial');
+  expect(stuck.retryableFailureMeta(fresh, START + 1000, 'LLM_ERROR')).toEqual({ since: new Date(START + 1000), refundAt: new Date(START + stuck.RETRY_REFUND_AFTER_MS), code: 'LLM_ERROR' });
+  const again = retryableDoc(START, { status: 'partial' });
+  const kept = stuck.retryableFailureMeta(again, START + 5000, 'LLM_ERROR');
+  expect(kept).toMatchObject({ code: 'LLM_ERROR', since: again.llmMeta.retryable.since, refundAt: again.llmMeta.retryable.refundAt });
+  expect(stuck.retryableFailureMeta(fresh, START + stuck.RETRY_REFUND_AFTER_MS, 'LLM_ERROR')).toBeNull();
+  expect(stuck.retryableFailureMeta(baseDoc('partial', { llmMeta: { refundEligibleAt: 'x' } }), START, 'LLM_ERROR')).toBeNull();
+  expect(stuck.retryableFailureMeta(baseDoc('partial', { llmMeta: { deliveryRefund: { status: 'pending' } } }), START, 'LLM_ERROR')).toBeNull();
+});
+
+test('응답용 다시 시도 상태는 창 안·환불 전 다시 시도 가능 실패에만 붙는다', () => {
+  expect(stuck.publicRetryState(retryableDoc(START), START + 1000)).toEqual({ retryable: true, refundAt: new Date(START + stuck.RETRY_REFUND_AFTER_MS).toISOString() });
+  expect(stuck.publicRetryState(retryableDoc(START), START + stuck.RETRY_REFUND_AFTER_MS)).toBeNull();
+  expect(stuck.publicRetryState(retryableDoc(START, { llmMeta: { refundEligibleAt: 'x' } }), START)).toBeNull();
+  expect(stuck.publicRetryState(retryableDoc(START, { status: 'partial' }), START)).toBeNull();
+  expect(stuck.publicRetryState(baseDoc('generation_failed'), START)).toBeNull();
+});
+
+test('다시 시도 reset 은 같은 CAS 갱신에 실리고 상태·다시 시도 표지는 덮지 못한다', async () => {
+  const model = memoryModel(retryableDoc(START));
+  const reset = jest.fn(fresh => ({ 'llmMeta.waveCount': 0, 'llmMeta.sections': [{ ok: true, attempts: 2 }, { ok: false, attempts: 0, failure: null }], status: 'completed', 'llmMeta.retryable.refundAt': null }));
+  const out = await stuck.reopenRetryableConsultation(model, { id: 'session-1', userId: 'owner' }, START + 60000, { reset });
+  expect(out).toEqual({ ok: true, status: 'partial' });
+  expect(reset).toHaveBeenCalledWith(expect.objectContaining({ id: 'session-1', status: 'generation_failed' }));
+  expect(model.updateOne).toHaveBeenCalledTimes(1);
+  expect(model.doc.status).toBe('partial');
+  expect(model.doc.llmMeta.waveCount).toBe(0);
+  expect(model.doc.llmMeta.sections[1]).toEqual({ ok: false, attempts: 0, failure: null });
+  expect(new Date(model.doc.llmMeta.retryable.refundAt).getTime()).toBe(START + stuck.RETRY_REFUND_AFTER_MS);
+});
+
 test('창이 지난 다시 시도 가능 실패와 다시 연 뒤 방치된 partial 은 환불 대상으로 넘기고, 창 안·살아 있는 lease 는 두지 않는다', async () => {
   const due = START + stuck.RETRY_REFUND_AFTER_MS;
   const expired = memoryModel(retryableDoc(START));
