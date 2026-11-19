@@ -116,8 +116,8 @@ beforeEach(() => {
  docs=[];fault=null;lostConfirmation=false;blocked=-1;mode='pass';userId=uid;usage=jest.fn();refund=jest.fn(async()=>({}));passRefund=jest.fn(async()=>({refunded:true}));chart=jest.fn(async()=>({}));
  provider=jest.fn(async(_env,prompt,options)=>{
    expect(options.timeoutMs).toBeLessThanOrEqual(45000);
-   // 2026-11-18 S3-H: 체크포인트의 첫 시도는 Gemini 만, 마지막(두 번째) 시도만 Workers AI 폴백을 허용한다(하한 = 챕터 최소의 30%).
-   if(options.maxOutputTokens>8192){expect(options.fallbackToWorkersAI).toBeUndefined();expect(options.fallbackMinChars).toBeGreaterThan(0);}
+   // 2026-11-19 S16: 라운드(4회)의 마지막 시도만 Workers AI 폴백을 허용한다(하한 = 챕터 최소의 30%). 그 밖의 시도는 Gemini 만.
+   if(options.finalProviderAttempt){expect(options.fallbackToWorkersAI).toBeUndefined();expect(options.fallbackMinChars).toBeGreaterThan(0);}
    else expect(options.fallbackToWorkersAI).toBe(false);
    const section=[...definitions,...refinedDefinitions].find(row=>prompt.includes(`제목: ${row.title}\n`));
    return {ok:true,provider:'gemini',model:'fixture',text:JSON.stringify(fixture(section))};
@@ -137,10 +137,11 @@ for(const status of ['delivery_pending','completed']) for(const kind of ['null',
 });
 for(const store of [0,1,2,3]) it(`revoked store ${store} rejects resume`,async()=>{await start();blocked=store;const count=provider.mock.calls.length;expect((await start()).status).toBe(402);expect(provider).toHaveBeenCalledTimes(count)});
 it('bookkeeping failure does not hide completed delivery',async()=>{usage.mockImplementation(()=>{throw new Error('ledger unavailable')});for(let i=0;i<3;i++)await start();expect((await start()).status).toBe(200);expect(docs[0].status).toBe('completed')});
-it('short generation has a cumulative limit and no completion reward',async()=>{provider.mockImplementation(async()=>({ok:true,text:'{"short":"empty"}'}));for(let i=0;i<2;i++)expect((await start()).status).toBe(202);expect((await start()).status).toBe(503);expect(provider).toHaveBeenCalledTimes(8);expect(usage).not.toHaveBeenCalled();expect(passRefund).toHaveBeenCalledTimes(1);expect(passRefund).toHaveBeenCalledWith(expect.objectContaining({featureKey:"neo-operation-room-consultation",requestId:"original-paid-request"}))});
+// 2026-11-19 S16: 챕터 시도 상한은 라운드 4회 × 2라운드 = 8회. 소진되면 축소 전달 없이 generation_failed + 전액 환불.
+it('short generation has a cumulative limit and no completion reward',async()=>{provider.mockImplementation(async()=>({ok:true,text:'{"short":"empty"}'}));for(let i=0;i<8;i++)expect((await start()).status).toBe(202);expect((await start()).status).toBe(503);expect(provider).toHaveBeenCalledTimes(32);expect(docs[0].status).toBe('generation_failed');expect(usage).not.toHaveBeenCalled();expect(passRefund).toHaveBeenCalledTimes(1);expect(passRefund).toHaveBeenCalledWith(expect.objectContaining({featureKey:"neo-operation-room-consultation",requestId:"original-paid-request"}))});
 it.each([
-  ['unsupported-location token count', { ok: false, error: 'LLM_INPUT_TOKEN_COUNT_UNAVAILABLE', providerCode: 'GEMINI_PRECONDITION_FAILED', status: 400, retryable: false }, 5],
-  ['generation timeout', { ok: false, error: 'LLM_GENERATION_TIMEOUT' }, 2],
+  ['unsupported-location token count', { ok: false, error: 'LLM_INPUT_TOKEN_COUNT_UNAVAILABLE', providerCode: 'GEMINI_PRECONDITION_FAILED', status: 400, retryable: false }, 11],
+  ['generation timeout', { ok: false, error: 'LLM_GENERATION_TIMEOUT' }, 8],
 ])('%s: only a call Gemini never billed hands its chapter attempt back (2026-10-30 HKG refund)', async (_name, failure, pendingWaves) => {
   mode = 'paid'; provider.mockImplementation(async () => failure);
   for (let i = 0; i < pendingWaves; i++) expect((await start()).status).toBe(202);
@@ -157,22 +158,25 @@ it('apply response loss resumes the saved result without another generation',asy
 it('truncated output keeps the other sections and retries only the missing one',async()=>{const original=provider.getMockImplementation();provider.mockImplementation(async(...args)=>{const value=await original(...args);return args[1].includes(`제목: ${definitions[1].title}\n`)?{...value,truncated:true}:value});expect((await start()).status).toBe(202);expect(Object.keys(docs[0].llmMeta.sections)).toEqual(['opening','innateStrength','topicStyle']);provider.mockImplementation(original);expect((await start()).status).toBe(202);expect(provider.mock.calls.filter(call=>call[1].includes(`제목: ${definitions[0].title}\n`))).toHaveLength(1)});
 it('a truncated section retries with double the output budget instead of failing at the same cap',async()=>{const original=provider.getMockImplementation();const title=`제목: ${definitions[1].title}\n`;let cut=0;provider.mockImplementation(async(...args)=>{const value=await original(...args);return args[1].includes(title)&&!cut++?{...value,truncated:true}:value});for(let i=0;i<2;i++)expect((await start()).status).toBe(202);const budgets=calls=>calls.map(call=>call[2].maxOutputTokens);expect(budgets(provider.mock.calls.filter(call=>call[1].includes(title)))).toEqual([8192,16384]);expect(new Set(budgets(provider.mock.calls.filter(call=>!call[1].includes(title))))).toEqual(new Set([8192]));expect(docs[0].llmMeta.sections[definitions[1].id]).toBeTruthy()});
 // 2026-11-18 S3-H: 마지막 시도는 Workers AI 폴백(하한 30%)을 열고, 되풀이 문장 때문에 초안 전체를 버리지 않는다.
+// 2026-11-19 S16: "마지막 시도"는 라운드(4회)의 마지막이다. 그 전 시도는 Gemini 만, 출력 예산은 줄이지 않는다.
 it('only the final checkpoint attempt allows the Workers AI fallback, gated by 30% of the chapter minimum', async () => {
   const normal = provider.getMockImplementation(); const section = definitions[0]; let tries = 0;
   provider.mockImplementation(async (...args) => {
     if (!args[1].includes(`제목: ${section.title}\n`)) return normal(...args);
     tries++;
-    return tries === 1 ? { ok: true, provider: 'gemini', text: '{}' } : normal(...args);
+    return tries <= 3 ? { ok: true, provider: 'gemini', text: '{}' } : normal(...args);
   });
-  for (let i = 0; i < 7 && docs[0]?.status !== 'completed'; i++) await start();
+  for (let i = 0; i < 10 && docs[0]?.status !== 'completed'; i++) await start();
   expect(docs[0].status).toBe('completed');
   const options = provider.mock.calls.filter(call => call[1].includes(`제목: ${section.title}\n`)).map(call => call[2]);
-  expect(options).toHaveLength(2);
-  // S11 Gemini 우선: 첫 시도는 Gemini 만(finalProviderAttempt:false), 마지막 시도만 Gemini 실패 뒤 보조 모델.
+  expect(options).toHaveLength(4);
+  // S11 Gemini 우선: 첫 시도는 Gemini 만(finalProviderAttempt:false), 라운드 마지막 시도만 Gemini 실패 뒤 보조 모델.
   expect(options[0]).toMatchObject({ fallbackToWorkersAI: false, finalProviderAttempt: false, maxOutputTokens: 8192 });
-  expect(options[1].fallbackToWorkersAI).toBeUndefined();
-  expect(options[1].finalProviderAttempt).toBe(true);
-  expect(options[1].fallbackMinChars).toBe(Math.round(section.minChars * 0.3));
+  for (const retry of options.slice(1, 3)) expect(retry).toMatchObject({ fallbackToWorkersAI: false, finalProviderAttempt: false, maxOutputTokens: 16384 });
+  expect(options[3].fallbackToWorkersAI).toBeUndefined();
+  expect(options[3].finalProviderAttempt).toBe(true);
+  expect(options[3].maxOutputTokens).toBe(16384);
+  expect(options[3].fallbackMinChars).toBe(Math.round(section.minChars * 0.3));
   expect(refund).not.toHaveBeenCalled(); expect(passRefund).not.toHaveBeenCalled();
 });
 const REPEATED = '같은 문장이 되풀이되면 보고서 전체가 반려되던 결함을 확인하는 고정 문장이다.';
@@ -197,9 +201,95 @@ for (const kind of ['inside one section', 'across sections']) it(`a final-attemp
   expect(refund).not.toHaveBeenCalled(); expect(passRefund).not.toHaveBeenCalled();
   expect(usage).toHaveBeenCalledTimes(1);
 });
-it('server discovery is owned and historical completed reports bypass new quality rules',async()=>{await start();let response=await route(new Request('https://mock.test/api/neo-operation-room/result'),{});expect(response.status).toBe(202);expect((await response.json()).initialBriefing).toBeTruthy();const id=docs[0].id;userId='other';expect((await route(new Request(`https://mock.test/api/neo-operation-room/result?attemptId=${id}`),{})).status).toBe(404);userId=uid;docs[0].status='completed';docs[0].initialBriefing={old:'short'};blocked=1;expect((await start()).status).toBe(200);expect(provider).toHaveBeenCalledTimes(4)});
+it('server discovery is owned and historical completed reports bypass new quality rules',async()=>{await start();let response=await route(new Request('https://mock.test/api/neo-operation-room/result'),{});expect(response.status).toBe(202);expect((await response.json()).initialBriefing).toBeUndefined();const id=docs[0].id;userId='other';expect((await route(new Request(`https://mock.test/api/neo-operation-room/result?attemptId=${id}`),{})).status).toBe(404);userId=uid;docs[0].status='completed';docs[0].initialBriefing={old:'short'};blocked=1;expect((await start()).status).toBe(200);expect(provider).toHaveBeenCalledTimes(4)});
 it('cancellation after generation prevents completion bookkeeping',async()=>{for(let i=0;i<3;i++)await start();const original=provider.getMockImplementation();provider.mockImplementation(async(...args)=>{const value=await original(...args);blocked=0;return value});expect((await start()).status).toBe(402);expect(docs[0].status).toBe('delivery_pending');expect(usage).not.toHaveBeenCalled()});
 it('overlapping requests acquire only one generation lease',async()=>{let release;const gate=new Promise(resolve=>{release=resolve});const original=provider.getMockImplementation();let enter;const entered=new Promise(resolve=>{enter=resolve});provider.mockImplementation(async(...args)=>{enter();await gate;return original(...args)});const first=start();await entered;expect((await start()).status).toBe(202);expect(provider).toHaveBeenCalledTimes(4);release();expect((await first).status).toBe(202);expect(provider).toHaveBeenCalledTimes(4)});
+
+// 2026-11-19 S16 "전체 완료 후 한 번에" — 완료 전 응답은 진행 수·식별자만, 완료 때 전체 본문을 한 번에.
+const NEO_BODY_KEYS = ['compatScores','methodSummary','initialBriefing','realityCheck','refinedOrder','refinementHistory','versionHistory','messages'];
+it('an in-progress response carries progress and ids only; completion delivers the full body at once', async () => {
+  const { isNeoOperationRoomComplete } = await import('../../worker/routes/neo-operation-room.js');
+  const first = await start(); expect(first.status).toBe(202);
+  for (const payload of [await first.json(), await (await route(new Request(`https://mock.test/api/neo-operation-room/result?attemptId=${docs[0].id}`), {})).json()]) {
+    for (const key of NEO_BODY_KEYS) expect(payload).not.toHaveProperty(key);
+    expect(payload.pendingRefinedOrder ?? null).toBeNull();
+    expect(payload).toMatchObject({ sessionId: docs[0].id, completedChapters: expect.any(Array), totalChapters: 14 });
+    expect(payload.completedChapters).toHaveLength(4);
+    expect(JSON.stringify(payload)).not.toContain('번째 관찰은');
+  }
+  expect(isNeoOperationRoomComplete(docs[0])).toBe(false);
+  let response; for (let i = 0; i < 3; i++) response = await start();
+  expect(response.status).toBe(200);
+  const done = await response.json();
+  expect(done.status).toBe('completed'); expect(JSON.stringify(done.initialBriefing)).toContain('번째 관찰은');
+  expect(isNeoOperationRoomComplete(docs[0])).toBe(true);
+});
+it('one exhausted section never completes as a reduced report: retried to the cap, then generation_failed with one full refund and no body', async () => {
+  mode = 'paid'; const normal = provider.getMockImplementation(); const section = definitions[5];
+  provider.mockImplementation(async (...args) => args[1].includes(`제목: ${section.title}\n`) ? { ok: true, provider: 'gemini', text: '{}' } : normal(...args));
+  let response;
+  for (let i = 0; i < 20; i++) { response = await start(); expect(docs[0].status).not.toBe('completed'); if (response.status !== 202) break; }
+  expect(response.status).toBe(503);
+  const payload = await response.json();
+  expect(docs[0].status).toBe('generation_failed');
+  expect(provider.mock.calls.filter(call => call[1].includes(`제목: ${section.title}\n`))).toHaveLength(8);
+  expect(JSON.stringify(payload)).not.toContain('번째 관찰은');
+  for (const key of NEO_BODY_KEYS) expect(payload).not.toHaveProperty(key);
+  const cardRefunds = () => refund.mock.calls.filter(call => call[4] === 'neo_operation_room_generation');
+  expect(cardRefunds()).toHaveLength(1); expect(usage).not.toHaveBeenCalled();
+  const again = await start(); expect(again.status).not.toBe(200); expect(JSON.stringify(await again.json())).not.toContain('번째 관찰은');
+  expect(cardRefunds()).toHaveLength(1);
+});
+it('a second attempt at 0.6x of the chapter minimum is accepted and delivered', async () => {
+  const normal = provider.getMockImplementation(); const section = definitions[0]; let tries = 0;
+  provider.mockImplementation(async (...args) => {
+    if (!args[1].includes(`제목: ${section.title}\n`)) return normal(...args);
+    tries++;
+    return { ok: true, provider: 'gemini', text: tries === 1 ? '{}' : JSON.stringify(fixture({ ...section, minChars: section.minChars * 0.6 })) };
+  });
+  for (let i = 0; i < 7 && docs[0]?.status !== 'completed'; i++) await start();
+  expect(docs[0].status).toBe('completed'); expect(tries).toBe(2);
+  expect(refund).not.toHaveBeenCalled(); expect(passRefund).not.toHaveBeenCalled();
+});
+describe('settleStuckDelivery (recovery cron stuck settlement)', () => {
+  let settle;
+  beforeAll(async () => { ({ settleStuckDelivery: settle } = await import('../../worker/routes/neo-operation-room.js')); });
+  const later = () => Date.now() + 10 * 60 * 1000;
+  it('settles a stalled paid generation as generation_failed with one card refund, never twice and never with a body', async () => {
+    mode = 'paid'; refund.mockImplementation(async () => ({ refunded: true }));
+    expect((await start()).status).toBe(202);
+    const result = await settle({}, { doc: { id: docs[0].id, userId: uid }, now: later(), model });
+    expect(result).toEqual({ outcome: 'generation_failed', refundStatus: 'refunded' });
+    expect(docs[0].status).toBe('generation_failed');
+    expect(docs[0].generationError.code).toBe('DELIVERY_STUCK');
+    const cardRefunds = () => refund.mock.calls.filter(call => call[4] === 'neo_operation_room_generation');
+    expect(cardRefunds()).toHaveLength(1);
+    expect(await settle({}, { doc: { id: docs[0].id, userId: uid }, now: later(), model })).toEqual({ outcome: 'progressed' });
+    expect(cardRefunds()).toHaveLength(1);
+  });
+  it('a live lease is left to the running generation', async () => {
+    expect((await start()).status).toBe(202);
+    const status = docs[0].status; docs[0].llmMeta.lockedAt = new Date(); docs[0].llmMeta.lockToken = 'live';
+    expect(await settle({}, { doc: { id: docs[0].id, userId: uid }, model })).toEqual({ outcome: 'leased' });
+    expect(docs[0].status).toBe(status); expect(passRefund).not.toHaveBeenCalled();
+  });
+  it('rescues a complete delivery_pending record without another generation', async () => {
+    for (let i = 0; i < 3; i++) await start();
+    fault = { kind: 'usage' }; expect((await start()).status).toBe(503); expect(docs[0].status).toBe('delivery_pending');
+    const calls = provider.mock.calls.length;
+    expect(await settle({}, { doc: { id: docs[0].id, userId: uid }, now: later(), model })).toEqual({ outcome: 'rescued' });
+    expect(docs[0].status).toBe('completed'); expect(provider).toHaveBeenCalledTimes(calls);
+    expect(passRefund).not.toHaveBeenCalled();
+  });
+  it('an incomplete delivery_pending record is not rescued: generation_failed and the pass is restored', async () => {
+    for (let i = 0; i < 3; i++) await start();
+    fault = { kind: 'usage' }; await start();
+    const sections = docs[0].llmMeta.sections; docs[0].llmMeta.sections = Object.fromEntries(Object.entries(sections).slice(0, 4));
+    const result = await settle({}, { doc: { id: docs[0].id, userId: uid }, now: later(), model });
+    expect(result.outcome).toBe('generation_failed');
+    expect(docs[0].status).toBe('generation_failed'); expect(passRefund).toHaveBeenCalledTimes(1);
+  });
+});
 
 async function refine(extra) { return route(new Request('https://mock.test/api/neo-operation-room/refine',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(extra || {sessionId:docs[0].id})}),{}); }
 async function initialComplete() { for(let i=0;i<4;i++) await start(); expect(docs[0].status).toBe('completed'); }
@@ -317,7 +407,13 @@ it('refinement delivers a valid short draft without a length repair', async () =
 });
 it('refinement saves four sections per request and reuses the same answer',async()=>{await initialComplete();const initial=structuredClone(docs[0].initialBriefing);expect((await refine({sessionId:docs[0].id,freeform:'이제 작은 선택부터 바꿔보겠습니다.'})).status).toBe(202);expect(Object.keys(docs[0].llmMeta.refinement.sections)).toHaveLength(4);const response=await refine();expect(await response.clone().json()).toMatchObject({refinementStatus:'completed'});expect(response.status).toBe(200);expect(provider).toHaveBeenCalledTimes(22);expect(docs[0].initialBriefing).toEqual(initial);expect((await refine()).status).toBe(200);expect(provider).toHaveBeenCalledTimes(22);expect(usage).toHaveBeenCalledTimes(1)});
 for(const kind of ['null','throw','confirm']) it(`refinement final ${kind} preserves the initial report and saved sections`,async()=>{await initialComplete();const initial=structuredClone(docs[0].initialBriefing);await refine({sessionId:docs[0].id,freeform:'우선 작은 선택을 바꾸겠습니다.'});fault={refinementStatus:'completed',kind};const response=await refine();expect(response.status).toBe(503);expect(await response.json()).toMatchObject({reason:'RESULT_STORAGE_UNAVAILABLE',retryable:true});expect(docs[0].status).toBe('completed');expect(docs[0].initialBriefing).toEqual(initial);const calls=provider.mock.calls.length;expect((await refine()).status).toBe(200);expect(provider).toHaveBeenCalledTimes(calls);expect(refund).not.toHaveBeenCalled();expect(docs[0].versionHistory).toHaveLength(1)});
-it('refinement short output is bounded and never changes completed initial delivery',async()=>{await initialComplete();provider.mockImplementation(async()=>({ok:true,text:'{"short":"empty"}'}));expect((await refine({sessionId:docs[0].id,freeform:'작게 바꾸겠습니다.'})).status).toBe(202);for(let i=0;i<1;i++)expect((await refine()).status).toBe(202);expect((await refine()).status).toBe(503);expect(docs[0].status).toBe('completed');expect(docs[0].refinementStatus).toBe('generation_failed');expect(provider).toHaveBeenCalledTimes(22);expect(refund).not.toHaveBeenCalled()});
+// 2026-11-19 S16: 수정 명령서는 포함 상품이다. 상한(8회) 소진은 조용한 실패가 아니라 재요청 안내 + 포함 횟수 보존이고,
+// 같은 답변으로 다시 요청하면 시도 수를 새로 받아 끝까지 완성한다. 첫 브리핑 결제는 회수하지 않는다(재열람 보존).
+it('refinement short output is bounded and never changes completed initial delivery',async()=>{await initialComplete();const normal=provider.getMockImplementation();const initial=structuredClone(docs[0].initialBriefing);provider.mockImplementation(async()=>({ok:true,text:'{"short":"empty"}'}));expect((await refine({sessionId:docs[0].id,freeform:'작게 바꾸겠습니다.'})).status).toBe(202);for(let i=0;i<7;i++)expect((await refine()).status).toBe(202);const failed=await refine();expect(failed.status).toBe(503);expect(await failed.json()).toMatchObject({reason:'LLM_ERROR',retryable:true,refinementStatus:'generation_failed',refinementAllowance:{limit:2,used:0,remaining:2}});expect(docs[0].status).toBe('completed');expect(docs[0].initialBriefing).toEqual(initial);expect(docs[0].refinementStatus).toBe('generation_failed');expect(provider).toHaveBeenCalledTimes(46);expect(refund).not.toHaveBeenCalled();
+ provider.mockImplementation(normal);
+ await refine({sessionId:docs[0].id,freeform:'작게 바꾸겠습니다.'});
+ for(let i=0;i<4&&docs[0].refinementStatus!=='completed';i++)await refine();
+ expect(docs[0].refinementStatus).toBe('completed');expect(docs[0].llmMeta.refinementHistory).toHaveLength(1);expect(docs[0].initialBriefing).toEqual(initial);expect(refund).not.toHaveBeenCalled()});
 it('refinement lease, owner and revoked proof block extra provider calls',async()=>{await initialComplete();await refine({sessionId:docs[0].id,freeform:'작은 선택부터 바꿉니다.'});const calls=provider.mock.calls.length;docs[0].llmMeta.refineLockedAt=new Date();docs[0].llmMeta.refineLockToken='other';expect((await refine()).status).toBe(202);userId='other';expect((await refine()).status).toBe(404);userId=uid;blocked=0;expect((await refine()).status).toBe(402);expect(provider).toHaveBeenCalledTimes(calls)});
 it('saju basis and fallback card name only the day pillar, never all four pillars',async()=>{const {buildNeoBasisPayload}=await import('../../worker/lib/neo-operation-room-basis.js');const summary=utils.summarizeSaju({yearPillar:'갑자',monthPillar:'을축',dayPillar:'병인',hourPillar:'정묘',dayMaster:'병'});const core=buildNeoBasisPayload(summary).groups.find(group=>group.key==='core');const text=[summary.evidenceSummary,...core.items.map(item=>`${item.label} ${item.value}`)].join('\n');expect(text).toContain('병인');expect(text).not.toMatch(/갑자|을축|정묘|네 기둥|연월일시/)});
 

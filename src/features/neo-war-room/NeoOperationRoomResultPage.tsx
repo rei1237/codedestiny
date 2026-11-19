@@ -589,7 +589,9 @@ export default function NeoOperationRoomResultPage({ availability, paymentSurfac
       // 202(이미 같은 답변으로 생성 중)·503(일시 장애)·응답 없음은 결과가 나올 수 있다 → 폴링으로 수렴.
       // 그 외 확정 실패(404·422)만 즉시 끝낸다.
       const retriable = !response || response.status === 202 || response.status === 503;
-      if (!retriable) {
+      // 서버가 수정 실패를 확정했다(시도 상한 소진). 폴링하지 않고 서버 안내(포함 횟수 보존·같은 답변 재요청)를 그대로 보인다.
+      const refinementFailed = response?.status === 503 && (data as { refinementStatus?: string }).refinementStatus === "generation_failed";
+      if (!retriable || refinementFailed) {
         throw new Error(asErrorMessage(data) || resultCopy.refineGenericError);
       }
       const refined = await pollRefinedOrder(session.sessionId);
@@ -709,8 +711,10 @@ export default function NeoOperationRoomResultPage({ availability, paymentSurfac
     }
   }
 
-  const briefing = session?.initialBriefing || null;
-  const refined = session?.refinedOrder || session?.pendingRefinedOrder || null;
+  // 2026-11-19 S16 "전체 완료 후 한 번에": 완료 전에는 진행 수만 보이고, completed 가 되면 브리핑 전체를 한 번에 연다.
+  // 작성 중인 수정본(pendingRefinedOrder)은 서버가 더 내보내지 않으며 화면도 쓰지 않는다.
+  const briefing = session?.status === "completed" ? session?.initialBriefing || null : null;
+  const refined = session?.refinementStatus === "generating" ? null : session?.refinedOrder || null;
   const compatSummary: NeoCompatSummary | null = session?.compatScores
     ? {
         scores: session.compatScores,
@@ -987,7 +991,7 @@ function ResultSummaryCover({ session, methodName, locale }: {
   const copy = getNeoVisualCopy(locale);
   const resultCopy = getNeoResultCopy(locale);
   const briefing = session.initialBriefing;
-  const refined = session.refinedOrder || session.pendingRefinedOrder;
+  const refined = session.refinementStatus === "generating" ? null : session.refinedOrder || null;
   const judgement = toDisplayText(refined?.verdict?.statement || getBriefingFrontline(briefing));
   const firstAction = toDisplayText(refined?.thisWeekFirstStep || refined?.actionAlternatives?.[0]?.action || briefing?.actionOrders?.[0]);
   return (

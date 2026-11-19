@@ -135,3 +135,14 @@ test('neo Toss surface does not promise the web refund on a failed briefing', as
   await h.settle();
   assert.equal(h.errors().includes('failed-refund'), false);
 });
+
+// 2026-11-19 S16 "전체 완료 후 한 번에": 화면은 completed 전에는 브리핑을 그리지 않고, 작성 중인 수정본(pendingRefinedOrder)도 쓰지 않는다.
+test('neo result page renders the briefing only once the session is completed and never a pending refinement', () => {
+  const source = fs.readFileSync('src/features/neo-war-room/NeoOperationRoomResultPage.tsx', 'utf8');
+  const briefing = source.match(/const briefing = (session\?\.status[^;]+);/)?.[1] || '';
+  const run = session => vm.runInNewContext(briefing, { session });
+  assert.equal(run({ status: 'generating', initialBriefing: { title: 'x' } }), null);
+  assert.equal(run({ status: 'delivery_pending', initialBriefing: { title: 'x' } }), null);
+  assert.deepEqual(run({ status: 'completed', initialBriefing: { title: 'x' } }), { title: 'x' });
+  assert.equal(/session\??\.pendingRefinedOrder/.test(source), false);
+});

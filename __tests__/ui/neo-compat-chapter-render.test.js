@@ -108,7 +108,7 @@ test("궁합 챕터의 모든 필드가 결과 화면과 브리핑 패널 양쪽
  */
 test("궁합 계기판이 읽는 응답 키가 서버 응답과 일치한다", () => {
   const routeSource = read("worker/routes/neo-operation-room.js");
-  const publicSessionBody = sliceFunctionBody(routeSource, "function publicSession(doc)");
+  const publicSessionBody = sliceFunctionBody(routeSource, "function publicSessionFields(doc)"); // S16: publicSession 은 완료 전 본문을 걷어내는 감싸개, 키는 여기서 만든다
   const responseKeys = ["relationshipMode", "relationshipStatus", "compatScores", "partnerBirthTimeUnknown"];
   for (const key of responseKeys) {
     assert.ok(

@@ -20,6 +20,7 @@ import {
 } from "../lib/models.js";
 import { resultStorageUnavailable, resultStorageFailurePayload } from "../lib/result-storage.js";
 import { isStoredPaidResultRevoked } from "../lib/paid-result-revocation.js";
+import { STUCK_LIVE_LEASE_MS, logStuckSettled } from "../lib/paid-delivery-stuck.js";
 import { countPaidReportBodyChars, dropRepeatedReportSentences, hasRepeatedReportPassage } from "../lib/paid-report-quality.js";
 import { findMoonstoneSpendEvidence } from "../lib/moonstone-spend-proof.js";
 import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
@@ -88,6 +89,7 @@ const LLM_ERROR_MESSAGE = "작전 브리핑 작성에 실패했다. 이용권이
 // 🔴 카드 단건 결제가 실제로 환불된 경우에만 쓴다 — 위 LLM_ERROR_MESSAGE 의 "결제 권한은 보존"과
 //    정반대의 사실이라, 환불하고도 저 문구를 내보내면 사용자는 재시도가 무료라고 믿고 결제창을 다시 만난다.
 const CARD_REFUNDED_MESSAGE = "브리핑을 완성하지 못했다. 결제한 금액은 자동으로 환불되니 확인하고 다시 시도해라.";
+const REFINEMENT_RETRY_MESSAGE = "수정 명령서를 끝까지 완성하지 못했다. 포함된 현실 점검 횟수는 쓰지 않았으니 같은 답변으로 다시 요청해라. 첫 브리핑은 그대로 열린다.";
 // 🔴 PortOne 취소 사유와 결제 로그에 남는 문구다. LLM_ERROR_MESSAGE("결제 권한은 보존")를 넘기면
 //    실제로 환불한 기록에 정반대 사실이 적힌다(2026-10-30 네오 자동 환불 건).
 const AUTO_REFUND_REASON = "네오의 팩폭 작전실 브리핑을 생성하지 못해 자동 환불";
@@ -1063,6 +1065,12 @@ const NEO_SECTION_TIMEOUT_MS = 45000;
 // 공급자가 생성 전에 거절한 실패(isUnbilledGeminiFailure)는 챕터 시도를 돌려준다 — 챕터당 이 횟수까지.
 // 2026-10-30: 운영 워커가 홍콩에 배치돼 countTokens 가 지역 거절을 냈고, 생성 한 번 없이 시도 2회를 다 써 결제가 자동 환불됐다.
 const NEO_UNBILLED_RETRY_LIMIT = 3;
+// 2026-11-19 S16: 챕터 시도는 한 라운드 4회, 상한 8회(2라운드)다. 라운드 마지막 시도만 Workers AI 폴백(Gemini 우선),
+// 2회째부터 되풀이 문장 걸러 내기·근거 인용 누락 수용, 라운드가 끝나도 실패 확정 대신 다음 웨이브·복구 크론이 다시 시도한다.
+// 상한을 다 써도 빠진 챕터가 있으면 줄인 결과를 전달하지 않고 generation_failed + 기존 전액 환불로 종결한다.
+const NEO_SECTION_ROUND_ATTEMPTS = 4;
+const NEO_SECTION_MAX_ATTEMPTS = 8;
+const neoFinalRoundAttempt = attempt => Number(attempt) > 0 && Number(attempt) % NEO_SECTION_ROUND_ATTEMPTS === 0;
 
 // 챕터 하나 생성 → { id, parsed, provider, model, ok }. 실패해도 parsed={}로 폴백(전체 실패 방지).
 // 잘림(MAX_TOKENS)이나 빈 파싱이면 캐시를 우회해 1회 재시도한다(잘린 문장이 결과에 남는 것 방지).
@@ -1070,7 +1078,7 @@ const NEO_UNBILLED_RETRY_LIMIT = 3;
 // 🔴 이 루프를 공유 헬퍼 callGeminiJsonWithRetry 로 갈아끼우지 말 것. 그쪽은 잘림에만 재시도하고
 // (빈 파싱은 재시도 안 함) 재시도에도 cache 를 그대로 넘긴다 — 여기서 필요한 두 가지를 다 잃는다.
 // deadlineAt 을 주면 남은 예산 안에서만 호출한다(엣지 100s 전에 라우트가 먼저 판정하도록).
-async function generateNeoSectionOnce(env, section, prompt, cacheConfig, deadlineAt = 0, singleAttempt = false, retry = false) {
+async function generateNeoSectionOnce(env, section, prompt, cacheConfig, deadlineAt = 0, singleAttempt = false, retry = false, finalAttempt = retry) {
   try {
     let ai = null, calls = 0;
     for (let attempt = 0; attempt < (singleAttempt ? 1 : 2); attempt += 1) {
@@ -1101,7 +1109,8 @@ async function generateNeoSectionOnce(env, section, prompt, cacheConfig, deadlin
         // Gemini 가 두 번 흔들린 챕터 하나 때문에 상담 전체가 환불된다 — 마지막 시도는 위 30% 하한을 건 폴백을 허용한다.
         // 2026-11-18 S11 Gemini 우선: 마지막 시도라도 Gemini(일시 오류 재시도 포함)를 먼저 쓰고, 실패했을 때만 보조 모델.
         // finalProviderAttempt 를 싣지 않으면 llm-client 시도 원장(1회)이 Gemini 실패 뒤 폴백을 막아 위 허용이 무력해진다.
-        ...(singleAttempt ? (retry ? { finalProviderAttempt: true } : { fallbackToWorkersAI: false, finalProviderAttempt: false }) : {}),
+        // 2026-11-19 S16: 재시도(retry)는 출력 상한만 두 배로 올리고, 폴백은 라운드 마지막 시도(finalAttempt)에서만 연다.
+        ...(singleAttempt ? (finalAttempt ? { finalProviderAttempt: true } : { fallbackToWorkersAI: false, finalProviderAttempt: false }) : {}),
         ...(useCache ? { cache: cacheConfig } : {}),
       });
       // Gemini 는 truncated(MAX_TOKENS)로, Workers AI 는 finishReason("length")로만 잘림을 알린다.
@@ -1422,7 +1431,27 @@ async function refundCardPaymentOnFailure(env, auth, access, error) {
   }
 }
 
+// 실패 확정 뒤의 기존 전액 환불 순서(핸들러 catch·정체 확정 공용). 각 단계는 같은 키로 멱등이다 —
+// 실행 가드는 executionKey, 이용권은 refundId, 카드는 환불 직전 Payment 재조회(이미 취소면 PAYMENT_NOT_FOUND).
+async function refundNeoGenerationFailure(env, auth, { access, idempotencyKey, sessionId, evidenceIds, error, native = false }) {
+  await releaseRequestBillingEvidence(env, { userId: clean(auth.userId), requestId: idempotencyKey, evidenceIds: evidenceIds || [access?.paymentDocId, access?.claimEvidenceId] });
+  await failRefundableExecution(env, auth, idempotencyKey, sessionId, error);
+  const pass = !native && access?.accessType === "pass" ? await restorePassOnFailure(auth, idempotencyKey) : null;
+  const refund = await refundCardPaymentOnFailure(env, auth, access, error);
+  return { refund, pass };
+}
+
+// 2026-11-19 S16 "전체 완료 후 한 번에": completed 전에는 진행 수·식별자·입력 메타만 내보낸다.
+// 브리핑·근거 요약·현실 점검·수정 명령서·대화 등 본문 필드는 completed 일 때만 싣고, 작성 중인 수정본(pendingRefinedOrder)은
+// 완료 전 본문이므로 어떤 상태에서도 싣지 않는다. 저장 문서는 바꾸지 않는다(재열람은 그대로 원본).
+const NEO_BODY_FIELDS = ["compatScores", "methodSummary", "initialBriefing", "realityCheck", "refinedOrder", "refinementHistory", "versionHistory", "messages"];
 function publicSession(doc) {
+  const session = publicSessionFields(doc);
+  if (session.status !== "completed") for (const field of NEO_BODY_FIELDS) delete session[field];
+  return session;
+}
+
+function publicSessionFields(doc) {
   const raw = typeof doc?.toObject === "function" ? doc.toObject() : doc;
   const compat = raw?.methodSummary?.compat || null;
   return {
@@ -1445,7 +1474,7 @@ function publicSession(doc) {
     initialBriefing: raw?.initialBriefing || null,
     realityCheck: raw?.realityCheck || null,
     refinedOrder: raw?.refinementStatus === "generating" ? null : raw?.refinedOrder || null,
-    pendingRefinedOrder: raw?.refinementStatus === "generating" && Object.keys(raw?.llmMeta?.refinement?.sections || {}).length ? mergeNeoRefinedSections(Object.values(raw.llmMeta.refinement.sections), raw) : null,
+    pendingRefinedOrder: null,
     refinementAllowance: neoRefinementAllowance(raw),
     refinementHistory: neoRefinementHistory(raw),
     refinementProgress: Object.keys(raw?.llmMeta?.refinement?.sections || {}),
@@ -1695,7 +1724,8 @@ function neoShape(value, schema) {
   if (schema && typeof schema === "object") return value && typeof value === "object" && Object.entries(schema).every(([key, item]) => neoShape(value[key], item));
   return typeof schema === "number" ? Number.isFinite(Number(value)) : typeof value === "string" && value.trim().length > 0;
 }
-function neoSectionReady(section, row, input, methodSummary, allowShort = false) {
+// skipEvidence: 2회째 시도부터 근거 인용 누락은 반려하지 않는다(S16 — 금칙어·빈 필드·형식은 그대로 하드 규칙).
+function neoSectionReady(section, row, input, methodSummary, allowShort = false, skipEvidence = false) {
   if (!row?.ok || !neoShape(row.parsed, section.schema) || hasForbiddenResultText(row.parsed)) return false;
   for (const [path, count] of Object.entries(section.counts || {})) {
     const list = path.split(".").reduce((value, key) => value?.[key], row.parsed);
@@ -1705,8 +1735,26 @@ function neoSectionReady(section, row, input, methodSummary, allowShort = false)
   const rendered = mergeNeoInitialSections([row], input, { ...methodSummary, evidenceSummary: "", summary: "" });
   const text = neoBody(rendered);
   if (!countPaidReportBodyChars(text) || (!allowShort && countPaidReportBodyChars(text) < section.minChars) || hasRepeatedReportPassage(text)) return false;
-  if (section.id === "methodEvidence" && methodSummary?.evidenceTokens?.length && !briefingCitesEvidence(rendered, methodSummary.evidenceTokens)) return false;
+  if (!skipEvidence && section.id === "methodEvidence" && methodSummary?.evidenceTokens?.length && !briefingCitesEvidence(rendered, methodSummary.evidenceTokens)) return false;
   return true;
+}
+function neoInitialSectionsFor(doc) {
+  return doc?.methodSummary?.compat ? neoCompatInitialSections(doc.selectedMethod) : NEO_INITIAL_SECTIONS;
+}
+// 2026-11-19 S16 완결 판정: 필수 챕터가 모두 저장돼 있고 각 챕터의 필수 필드·목록 개수가 비어 있지 않으며
+// 합친 브리핑이 있다. 분량은 기준이 아니다. completed 로 넘기는 모든 경로(handleStart·정체 구제)가 이 판정을 통과해야 한다.
+export function isNeoOperationRoomComplete(doc) {
+  if (!doc?.initialBriefing || typeof doc.initialBriefing !== "object") return false;
+  const rows = doc.llmMeta?.sections || {};
+  return neoInitialSectionsFor(doc).every(section => {
+    const row = rows[section.id];
+    if (!row?.ok || !neoShape(row.parsed, section.schema) || hasForbiddenResultText(row.parsed)) return false;
+    for (const [path, count] of Object.entries(section.counts || {})) {
+      const list = path.split(".").reduce((value, key) => value?.[key], row.parsed);
+      if (!Array.isArray(list) || list.length < count) return false;
+    }
+    return countPaidReportBodyChars(neoBody(row.parsed)) > 0;
+  });
 }
 function stableNeo(value) {
   if (Object.prototype.toString.call(value) === "[object Date]") return value.toISOString();
@@ -1798,7 +1846,9 @@ async function handleStart(request, env, ctx = null, recoveryAuth = null) {
     const sections = doc.methodSummary?.compat ? neoCompatInitialSections(normalized.input.selectedMethod) : NEO_INITIAL_SECTIONS;
     const sectionText = row => neoBody(mergeNeoInitialSections(row ? [row] : [], normalized.input, { ...doc.methodSummary, evidenceSummary: "", summary: "" }));
     const sectionChars = row => countPaidReportBodyChars(sectionText(row));
-    const usable = (section, row) => neoSectionReady(section, row, normalized.input, doc.methodSummary, true);
+    // 2회째 시도부터 근거 인용 누락은 걸러 받는다(scrub 단계). 시도 수는 저장된 예약 기준이다.
+    const scrubbing = section => Number(doc.llmMeta.attempts?.[section.id] || 0) >= 2;
+    const usable = (section, row) => neoSectionReady(section, row, normalized.input, doc.methodSummary, true, scrubbing(section));
     const drifted = row => neoRegisterDrift(sectionText(row));
     // 완결 = 분량 기준 충족 + 반말 한 어조. 미달이지만 쓸 수 있는 초안은 2회 상한 안에서 한 번만 보강하고
     // (ai-and-db.md: 분량 미달 시 1회 보강 후 확정), 보강 뒤에는 더 나은 쪽을 그대로 전달한다.
@@ -1810,7 +1860,9 @@ async function handleStart(request, env, ctx = null, recoveryAuth = null) {
       return usable(section, row) && Boolean(tries[`${section.id}:lengthRepair`] || Number(tries[section.id] || 0) >= 2);
     };
     const missing = sections.filter(section => !accepted(section));
-    if (missing.some(section => Number(doc.llmMeta.attempts?.[section.id] || 0) >= 2)) throw Object.assign(new Error(LLM_ERROR_MESSAGE), { code: "LLM_FAILED" });
+    // 2026-11-19 S16: 라운드(4회)를 다 써도 빠진 챕터는 다음 웨이브·복구 크론이 다시 시도한다. 나머지만으로 전달(축소 전달)하지 않는다.
+    // 상한(8회)을 다 쓴 챕터가 남으면 실패 확정 → 아래 catch 의 기존 전액 환불. 진전 없는 정체는 settleStuckDelivery 가 확정한다.
+    if (missing.some(section => Number(doc.llmMeta.attempts?.[section.id] || 0) >= NEO_SECTION_MAX_ATTEMPTS)) throw Object.assign(new Error(LLM_ERROR_MESSAGE), { code: "LLM_FAILED" });
     if (missing.length) {
       const selected = missing.slice(0, PAID_LLM_PARTS_PER_REQUEST);
       const reservedFrom = { ...doc.llmMeta.attempts };
@@ -1830,8 +1882,8 @@ async function handleStart(request, env, ctx = null, recoveryAuth = null) {
           drifted(previousDraft) ? "\n[어조 보강] 이전 초안이 존댓말(습니다·세요·당신)로 쓰였다. 처음부터 끝까지 해라체 반말로 쓰고, 사용자는 너로 부른다." : "",
         ].join("") : "";
         const prompt = buildNeoInitialSectionPrompt(section, context) + repairNotes + `\n[완료 기준] 제목·목차·공백을 제외한 본문 최소 ${section.minChars}자, 목표 ${Math.ceil(section.minChars / 0.8)}자. 계산값 → 생활 패턴 → 반대 조건 → 행동 조언으로 전개한다. 반복으로 채우지 않는다.`;
-        let row = await runWithAiLocale(locale, () => generateNeoSectionOnce(env, section, prompt, null, Date.now() + 45000, true, attempts[section.id] > 1));
-        // 마지막 시도(2회 상한)의 초안은 되풀이 문장만 걸러 살린다 — 실패 확정(전액 환불)보다 축소 없는 전달이 낫다.
+        let row = await runWithAiLocale(locale, () => generateNeoSectionOnce(env, section, prompt, null, Date.now() + 45000, true, attempts[section.id] > 1, neoFinalRoundAttempt(attempts[section.id])));
+        // 2회째 시도부터 초안은 되풀이 문장만 걸러 살린다(S16 scrub) — 반려·재생성보다 걸러 받는 쪽이 전달에 낫다.
         const finalAttempt = Number(attempts[section.id]) >= 2;
         if (row.unbilled) {
           // 생성 전에 거절된 호출은 이 챕터의 예약(과 길이 보강 표시)을 돌려준다. 잠금 소유자만, 챕터당 상한까지.
@@ -1882,6 +1934,8 @@ async function handleStart(request, env, ctx = null, recoveryAuth = null) {
     const briefing = mergeNeoInitialSections(allRows, normalized.input, doc.methodSummary);
     if (sections.some(section => !accepted(section))) return pendingNeo(doc);
     if (hasRepeatedReportPassage(neoBody(briefing))) throw Object.assign(new Error(LLM_ERROR_MESSAGE), { code: "LLM_FAILED" });
+    // 완결 판정(fail-closed): 필수 챕터·필드가 하나라도 비면 전달하지 않는다.
+    if (!isNeoOperationRoomComplete({ ...doc, initialBriefing: briefing })) throw Object.assign(new Error(LLM_ERROR_MESSAGE), { code: "LLM_FAILED" });
     if (doc.status !== "delivery_pending") doc = await saveNeoDelivery(filter, { status: "delivery_pending", initialBriefing: briefing,
       messages: [{ role: "user", content: normalized.input.question, createdAt: new Date() }, { role: "assistant", content: JSON.stringify(briefing), createdAt: new Date() }] }, sessionId);
     try { access = await resolveStartAccess({ request, env, auth, body: resumeBody, normalized, pricing, idempotencyKey }); }
@@ -1900,10 +1954,7 @@ async function handleStart(request, env, ctx = null, recoveryAuth = null) {
     if (error?.code === "RESULT_STORAGE_UNAVAILABLE") throw error;
     if(nativeTossContext(request)&&error instanceof TossError)throw error;
     await saveNeoDelivery(filter, { status: "generation_failed", generationError: { code: clean(error?.code || "LLM_FAILED", 80), message: clean(error?.message, 500) } }, sessionId);
-    await releaseRequestBillingEvidence(env, { userId: clean(auth.userId), requestId: idempotencyKey, evidenceIds });
-    await failRefundableExecution(env, auth, idempotencyKey, sessionId, error);
-    if (!nativeTossContext(request) && access?.accessType === "pass") await restorePassOnFailure(auth, idempotencyKey);
-    const refund = await refundCardPaymentOnFailure(env, auth, access, error);
+    const { refund } = await refundNeoGenerationFailure(env, auth, { access, idempotencyKey, sessionId, evidenceIds, error, native: Boolean(nativeTossContext(request)) });
     return json({ ok: false, reason: "LLM_ERROR", message: refund.refunded ? CARD_REFUNDED_MESSAGE : LLM_ERROR_MESSAGE }, { status: 503 });
   } finally {
     await NeoOperationRoomConsultation.updateOne(filter, { $set: { "llmMeta.lockToken": "", "llmMeta.lockedAt": null } }).catch(() => {});
@@ -2021,12 +2072,17 @@ async function handleRefine(request, env) {
     if(neoRefinementAllowance(doc).remaining===0)return json({ok:false,reason:'REFINEMENT_LIMIT_REACHED'},{status:409});
     if(doc.refinementStatus==='generating'&&doc.llmMeta.refinement?.answerHash!==normalized.realityCheck.answerHash)return json({ok:false,reason:'REFINEMENT_IN_PROGRESS'},{status:409});
     const previous = doc.llmMeta.refinement;
-    const state = previous?.answerHash === normalized.realityCheck.answerHash ? previous : { answerHash: normalized.realityCheck.answerHash, realityCheck: normalized.realityCheck, answerVoice: selectAnswerVoice(env), sections: {}, attempts: {} };
+    // 2026-11-19 S16: 수정 명령서는 상담 가격에 포함된 유료 구성이다(현실 점검 2회 포함). 상한을 다 써 실패한 같은 답변을
+    // 다시 요청하면 저장된 챕터는 살리고 시도 수만 새로 연다 — 예전에는 같은 상한에 걸려 즉시 다시 실패했다(막다른 길).
+    const resumeFailed = previous?.answerHash === normalized.realityCheck.answerHash && doc.refinementStatus === "generation_failed";
+    const state = previous?.answerHash === normalized.realityCheck.answerHash
+      ? (resumeFailed ? { ...previous, sections: previous.sections || {}, attempts: {} } : previous)
+      : { answerHash: normalized.realityCheck.answerHash, realityCheck: normalized.realityCheck, answerVoice: selectAnswerVoice(env), sections: {}, attempts: {} };
     const accepted = (section, current) => neoRefinedSectionReady(section, current.sections[section.id], doc,
       true);
     const sectionChars = row => countPaidReportBodyChars(neoBody(mergeNeoRefinedSections(row ? [row] : [], doc)));
     const missing = NEO_REFINED_SECTIONS.filter(section => !accepted(section, state));
-    if (missing.some(section => Number(state.attempts[section.id] || 0) >= 2)) throw Object.assign(new Error(LLM_ERROR_MESSAGE), { code: "LLM_FAILED" });
+    if (missing.some(section => Number(state.attempts[section.id] || 0) >= NEO_SECTION_MAX_ATTEMPTS)) throw Object.assign(new Error(LLM_ERROR_MESSAGE), { code: "LLM_FAILED" });
     if (missing.length) {
       const selected = missing.slice(0, PAID_LLM_PARTS_PER_REQUEST);
       const attempts = { ...state.attempts };
@@ -2041,13 +2097,24 @@ async function handleRefine(request, env) {
       const outcomes = await Promise.allSettled(selected.map(async section => {
         const prompt = buildNeoRefinedSectionPrompt(section, context) + (attempts[`${section.id}:lengthRepair`] ? "\n[분량 보강] 기존 계산 근거를 유지하고 새로운 장면과 행동 조언을 더해 완결된 JSON으로 다시 작성한다. 반복으로 채우지 않는다." : "") + `\n[완료 기준] 제목·공백을 제외한 본문 최소 ${section.minChars}자, 목표 ${Math.ceil(section.minChars / 0.8)}자. 현실 점검 답변과 계산값에 근거하고 앞 영역을 반복하지 않는다.`;
         const locale = toAiLocale(doc.llmMeta?.locale || doc.llmMeta?.resumeBody?.locale || "ko");
-        const row = await runWithAiLocale(locale, () => generateNeoSectionOnce(env, section, prompt, null, Date.now() + 45000, true, attempts[section.id] > 1));
+        let row = await runWithAiLocale(locale, () => generateNeoSectionOnce(env, section, prompt, null, Date.now() + 45000, true, attempts[section.id] > 1, neoFinalRoundAttempt(attempts[section.id])));
+        // 2회째 시도부터 되풀이 문장은 걸러 받는다(S16 scrub). 금칙어·빈 필드·형식은 그대로 반려한다.
+        const scrubAttempt = Number(attempts[section.id]) >= 2;
+        if (scrubAttempt && row.ok && !neoRefinedSectionReady(section, row, doc, true)) row = dedupeNeoSectionRow(row);
         if (!neoRefinedSectionReady(section, row, doc, true)) return;
         const write = queue.catch(() => {}).then(async () => {
           const previous = doc.llmMeta.refinement.sections[section.id];
           if (neoRefinedSectionReady(section, previous, doc, true) && sectionChars(previous) >= sectionChars(row)) return;
-          const sections = { ...doc.llmMeta.refinement.sections, [section.id]: row };
-          if (hasRepeatedReportPassage(neoBody(mergeNeoRefinedSections(Object.values(sections), doc)))) return;
+          let picked = row;
+          const mergedRefined = rows => neoBody(mergeNeoRefinedSections(Object.values(rows), doc));
+          if (scrubAttempt && hasRepeatedReportPassage(mergedRefined({ ...doc.llmMeta.refinement.sections, [section.id]: row }))) {
+            const others = { ...doc.llmMeta.refinement.sections };
+            delete others[section.id];
+            const deduped = dedupeNeoSectionRow(row, mergedRefined(others));
+            if (neoRefinedSectionReady(section, deduped, doc, true)) picked = deduped;
+          }
+          const sections = { ...doc.llmMeta.refinement.sections, [section.id]: picked };
+          if (hasRepeatedReportPassage(mergedRefined(sections))) return;
           doc = await saveNeoDelivery(filter, { llmMeta: { ...doc.llmMeta, refinement: { ...doc.llmMeta.refinement, sections } } }, sessionId);
         });
         queue = write;
@@ -2074,8 +2141,10 @@ async function handleRefine(request, env) {
   } catch (error) {
     if (error?.code === "RESULT_STORAGE_UNAVAILABLE") throw error;
     if(nativeTossContext(request)&&error instanceof TossError)throw error;
-    await saveNeoDelivery(filter, { refinementStatus: "generation_failed", refinementError: { code: clean(error?.code || "LLM_FAILED", 80), message: clean(error?.message, 500) } }, sessionId);
-    return json({ ok: false, reason: "LLM_ERROR", message: LLM_ERROR_MESSAGE }, { status: 503 });
+    const failed = await saveNeoDelivery(filter, { refinementStatus: "generation_failed", refinementError: { code: clean(error?.code || "LLM_FAILED", 80), message: clean(error?.message, 500) } }, sessionId);
+    // 조용한 실패 금지(S16): 이미 전달된 첫 브리핑은 그대로 열리고, 실패한 수정은 포함 횟수를 쓰지 않으며 같은 답변으로 다시 요청할 수 있다고 명시한다.
+    return json({ ok: false, reason: "LLM_ERROR", retryable: true, refinementStatus: "generation_failed",
+      refinementAllowance: neoRefinementAllowance(failed || doc), message: REFINEMENT_RETRY_MESSAGE }, { status: 503 });
   } finally {
     await NeoOperationRoomConsultation.updateOne(filter, { $set: { "llmMeta.refineLockToken": "", "llmMeta.refineLockedAt": null } }).catch(() => {});
   }
@@ -2129,6 +2198,7 @@ export const __neoOperationRoomTestUtils = {
   refundCardPaymentOnFailure,
   CARD_REFUNDED_MESSAGE,
   neoBody, neoSectionReady,
+  NEO_SECTION_ROUND_ATTEMPTS, NEO_SECTION_MAX_ATTEMPTS,
 };
 
 // Internal cron continuation: only a stored owner/id is accepted, never client input.
@@ -2147,6 +2217,78 @@ export async function resumeConsultationOnServer(env, doc) {
     if(!await bindNativeNeoRecovery(request,env,stored))throw new Error("NATIVE_ORDER_NOT_FOUND");
   }
   return handleStart(request, env, undefined, nativeTossContext(request)?.auth||{ userId: String(doc.userId) });
+}
+
+// 2026-11-19 S16 정체 확정(복구 크론 전용). 진전 없는 기록을 소유자 범위로 다시 읽어 updatedAt CAS 로 확정한다.
+//  - 상태가 이미 바뀌었으면 progressed, 살아 있는 잠금이 있으면 leased(크론이 이어쓰기를 계속한다).
+//  - delivery_pending + 완결 판정 통과 + 결제 미회수 → 구제 전달(completed, 핸들러와 같은 사용 기록).
+//  - 그 밖은 generation_failed + 핸들러 catch 와 같은 전액 환불(refundNeoGenerationFailure). 두 번째 호출은 CAS·상태에서 막힌다.
+// 응답·로그에 본문·결제 ID·출생 정보를 싣지 않는다.
+const NEO_STUCK_STATUSES = ["generating", "partial", "delivery_pending"];
+function storedNeoAccessSource(accessType) {
+  if (accessType === "paid") return "payment";
+  if (accessType === "admin") return "server";
+  return "billing-gate";
+}
+async function storedNeoRefundAccess(env, auth, fresh) {
+  const accessType = clean(fresh.accessType);
+  const idempotencyKey = clean(fresh.idempotencyKey);
+  if (accessType === "paid") {
+    const payment = await hasPaidPayment(auth, clean(fresh.paymentId), idempotencyKey).catch(() => null);
+    return { accessType, source: "payment", paymentId: clean(fresh.paymentId), paymentDocId: payment?._id ? clean(payment._id, 64) : "" };
+  }
+  if (accessType === "subscription") {
+    const evidence = await hasMonthlyConsume(env, auth, billingContextFromBody(fresh.llmMeta?.resumeBody || {}), idempotencyKey).catch(() => null);
+    return { accessType, source: "billing-gate", paymentId: clean(fresh.paymentId), claimEvidenceId: clean(evidence?.ledgerId, 160) };
+  }
+  return { accessType, source: storedNeoAccessSource(accessType), paymentId: clean(fresh.paymentId) };
+}
+export async function settleStuckDelivery(env, { doc, now = Date.now(), model = NeoOperationRoomConsultation } = {}) {
+  const sessionId = clean(doc?.id, 120);
+  if (!sessionId || !doc?.userId) return { outcome: "unsupported" };
+  await connectDb(env);
+  const owner = { id: sessionId, userId: String(doc.userId) };
+  const fresh = await model.findOne(owner).lean();
+  if (!fresh || !NEO_STUCK_STATUSES.includes(fresh.status)) return { outcome: "progressed" };
+  if (new Date(fresh.llmMeta?.lockedAt || 0).getTime() > now - STUCK_LIVE_LEASE_MS) return { outcome: "leased" };
+  const stalls = Number(fresh.deliveryWatch?.stalls || 0);
+  const at = new Date(now);
+  const native = fresh.llmMeta?.tossNative === true;
+  const auth = { userId: String(fresh.userId), ...(native ? { tossNative: true } : {}) };
+  const idempotencyKey = clean(fresh.idempotencyKey);
+  const cas = { ...owner, status: fresh.status, updatedAt: fresh.updatedAt };
+  const unlock = { "llmMeta.lockedAt": null, "llmMeta.lockToken": "" };
+  // 판정 조회가 일시 장애로 throw 하면 확정하지 않는다(크론이 다음 회차에 다시 본다).
+  const revoked = !native && await isStoredPaidResultRevoked(fresh.userId, FEATURE_KEY, fresh);
+  if (fresh.status === "delivery_pending" && !revoked && isNeoOperationRoomComplete(fresh)) {
+    const access = { accessType: clean(fresh.accessType), paymentId: clean(fresh.paymentId), source: storedNeoAccessSource(clean(fresh.accessType)) };
+    const result = await model.updateOne(cas, { $set: { status: "completed", generationError: null, ...unlock, "llmMeta.completedAt": at.toISOString() } });
+    if (!result?.modifiedCount) return { outcome: "progressed" };
+    // 사용 표시·실행 완료는 핸들러 완료 경로와 같다(멱등). 실패해도 전달은 되돌리지 않는다.
+    await applyUsageOnce({ userId: auth.userId, sessionId, accessType: access.accessType, pricing: getPricing(), source: access.source })
+      .catch(error => console.warn("[neo-operation-room] stuck usage", clean(error?.code || error?.message, 120)));
+    await recordSuccessfulUsage(auth, idempotencyKey, access, sessionId, getPricing()).catch(error => console.warn("[neo-operation-room] stuck usage record", clean(error?.message, 120)));
+    await completeRefundableExecution(env, auth, idempotencyKey, sessionId);
+    logStuckSettled({ service: "neo-operation-room", sessionId, outcome: "rescued", stalls });
+    return { outcome: "rescued" };
+  }
+  const error = Object.assign(new Error("recovery made no progress"), { code: "DELIVERY_STUCK" });
+  const result = await model.updateOne(cas, { $set: { status: "generation_failed", ...unlock,
+    generationError: { code: "DELIVERY_STUCK", message: "recovery made no progress", at: at.toISOString() } } });
+  if (!result?.modifiedCount) return { outcome: "progressed" };
+  let refundStatus = "requested";
+  try {
+    const access = await storedNeoRefundAccess(env, auth, fresh);
+    const { refund, pass } = await refundNeoGenerationFailure(env, auth, { access, idempotencyKey, sessionId, error, native });
+    if (refund?.refunded || pass?.refunded) refundStatus = "refunded";
+    else if (refund?.refundFailed) refundStatus = "failed";
+    else if (access.accessType === "admin") refundStatus = "not_required";
+  } catch (refundError) {
+    refundStatus = "failed";
+    console.error("[neo-operation-room] stuck refund failed", { message: clean(refundError?.message || refundError, 300) });
+  }
+  logStuckSettled({ service: "neo-operation-room", sessionId, outcome: "generation_failed", refundStatus, stalls });
+  return { outcome: "generation_failed", refundStatus };
 }
 
 // The native app uses the same normalization and price as the original start route.
