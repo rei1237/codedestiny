@@ -45,7 +45,7 @@ describe("refundSessionPassIfNeeded", () => {
 
   test("챕터가 0개인 세션이 실패하면 환불을 시도하고 refundedAt 을 기록한다", async () => {
     const d = deps();
-    await refundSessionPassIfNeeded(sessionId, userId, { passRefund: refund }, [], d);
+    await refundSessionPassIfNeeded(sessionId, userId, { passRefund: refund }, d);
     expect(d.refundPassCoverage).toHaveBeenCalledWith({ userId, cycleKey: refund.cycleKey, cost: refund.cost, refundId: `master-love-codex:${sessionId}` });
     expect(d.MasterLoveCodexSession.updateOne).toHaveBeenCalledWith(
       { id: sessionId, userId, "passRefund.refundedAt": { $exists: false } },
@@ -53,22 +53,24 @@ describe("refundSessionPassIfNeeded", () => {
     );
   });
 
-  test("이미 챕터가 1개 이상 커밋된 세션은 환불하지 않는다(부분 전달 시 무료 재개 동작 보존)", async () => {
+  // S16 (2026-11-19): 부분 전달이 없어졌다 — 저장된 장이 있어도 최종 실패면 되돌린다.
+  test("저장된 장이 있어도 최종 실패 세션의 이용권을 되돌린다", async () => {
     const d = deps();
-    await refundSessionPassIfNeeded(sessionId, userId, { passRefund: refund }, [{ id: "c1" }], d);
-    expect(d.refundPassCoverage).not.toHaveBeenCalled();
+    const result = await refundSessionPassIfNeeded(sessionId, userId, { passRefund: refund, chapters: [{ id: "c1", body: "x" }] }, d);
+    expect(d.refundPassCoverage).toHaveBeenCalled();
+    expect(result).toEqual({ refunded: true });
   });
 
   test("passRefund 가 없는 세션(결제/관리자 접근)은 손대지 않는다", async () => {
     const d = deps();
-    await refundSessionPassIfNeeded(sessionId, userId, { passRefund: null }, [], d);
+    await refundSessionPassIfNeeded(sessionId, userId, { passRefund: null }, d);
     expect(d.refundPassCoverage).not.toHaveBeenCalled();
     expect(d.refundPassUseEvidence).not.toHaveBeenCalled();
   });
 
   test("결제 화면이 미리 차감한 이용권(passRefund 없음)은 (기능, requestId) 증빙으로 되돌린다", async () => {
     const d = deps();
-    await refundSessionPassIfNeeded(sessionId, userId, { passRefund: null, mode: "solo", idempotencyKey: "req-1" }, [], d);
+    await refundSessionPassIfNeeded(sessionId, userId, { passRefund: null, mode: "solo", idempotencyKey: "req-1" }, d);
     expect(d.refundPassUseEvidence).toHaveBeenCalledWith(expect.objectContaining({ userId, requestId: "req-1", refundId: `master-love-codex:${sessionId}` }));
     expect(d.refundPassCoverage).not.toHaveBeenCalled();
     expect(d.MasterLoveCodexSession.updateOne).not.toHaveBeenCalled();
@@ -76,19 +78,19 @@ describe("refundSessionPassIfNeeded", () => {
 
   test("passRefund 환불도 차감 증빙 (기능, requestId)를 실어 다른 환불 경로와 겹치지 않게 한다", async () => {
     const d = deps();
-    await refundSessionPassIfNeeded(sessionId, userId, { passRefund: refund, mode: "solo", billingRequestId: "req-2" }, [], d);
+    await refundSessionPassIfNeeded(sessionId, userId, { passRefund: refund, mode: "solo", billingRequestId: "req-2" }, d);
     expect(d.refundPassCoverage).toHaveBeenCalledWith(expect.objectContaining({ sourceRequestId: "req-2", sourceFeatureKey: expect.any(String) }));
   });
 
   test("이미 refundedAt 이 찍힌 세션은 재시도해도 다시 환불하지 않는다(멱등)", async () => {
     const d = deps();
-    await refundSessionPassIfNeeded(sessionId, userId, { passRefund: { ...refund, refundedAt: new Date() } }, [], d);
+    await refundSessionPassIfNeeded(sessionId, userId, { passRefund: { ...refund, refundedAt: new Date() } }, d);
     expect(d.refundPassCoverage).not.toHaveBeenCalled();
   });
 
   test("사이클 롤오버 등으로 refundPassCoverage 가 skip 하면 DB 마커를 쓰지 않는다", async () => {
     const d = deps({ refunded: false });
-    await refundSessionPassIfNeeded(sessionId, userId, { passRefund: refund }, [], d);
+    await refundSessionPassIfNeeded(sessionId, userId, { passRefund: refund }, d);
     expect(d.refundPassCoverage).toHaveBeenCalled();
     expect(d.MasterLoveCodexSession.updateOne).not.toHaveBeenCalled();
   });
@@ -96,16 +98,15 @@ describe("refundSessionPassIfNeeded", () => {
   test("refundPassCoverage 가 예외를 던져도 삼켜서 원래 실패 흐름을 가리지 않는다", async () => {
     const d = deps();
     d.refundPassCoverage = jest.fn(() => Promise.reject(new Error("mongo down")));
-    await expect(refundSessionPassIfNeeded(sessionId, userId, { passRefund: refund }, [], d)).resolves.toBeUndefined();
+    await expect(refundSessionPassIfNeeded(sessionId, userId, { passRefund: refund }, d)).resolves.toEqual({ refunded: false, error: true });
   });
 });
 
-// 결제 수단(코인·월정석·카드) 환급. 챕터 0장 + 재시도 창이 닫힌 뒤에만 돈다.
+// 결제 수단(코인·월정석·카드) 환급. S16: 최종 실패(generation_failed) 확정 뒤에만 불린다 — 저장된 장·경과 시간과 무관.
 describe("refundSessionBillingIfNeeded", () => {
-  const { refundSessionBillingIfNeeded, BILLING_REFUND_AFTER_MS } = __masterLoveCodexTestUtils;
+  const { refundSessionBillingIfNeeded } = __masterLoveCodexTestUtils;
   const sessionId = "mlc-2";
   const userId = "64b000000000000000000002";
-  const OLD = Date.now() - BILLING_REFUND_AFTER_MS - 1000;
 
   function deps(overrides = {}) {
     return {
@@ -116,40 +117,31 @@ describe("refundSessionBillingIfNeeded", () => {
       ...overrides,
     };
   }
-  const doc = (extra = {}) => ({ accessType: "paid", paymentId: "ord_1", mode: "solo", createdAt: new Date(OLD), ...extra });
+  const doc = (extra = {}) => ({ accessType: "paid", paymentId: "ord_1", mode: "solo", createdAt: new Date(), ...extra });
 
-  test("한 장이라도 커밋됐으면 환불하지 않는다 — 재개가 무료라는 기존 계약", async () => {
-    const d = deps();
-    const result = await refundSessionBillingIfNeeded({}, sessionId, userId, doc(), [{ id: "c1" }], d);
-    expect(result.reason).toBe("PARTIAL_DELIVERY");
-    expect(d.runCoinRefund).not.toHaveBeenCalled();
-  });
-
-  // 🔴 첫 실패에 카드를 취소하면 크론 회수 태스크가 완성시킬 수 있었던 세션을 우리가 닫아버린다.
-  test("재시도 창(30분) 안이면 아직 환불하지 않는다 — 크론이 밀어 올릴 기회를 남긴다", async () => {
-    const d = deps();
-    const result = await refundSessionBillingIfNeeded({}, sessionId, userId, doc({ createdAt: new Date() }), [], d);
-    expect(result.reason).toBe("RETRY_WINDOW_OPEN");
-    expect(d.runPaymentCancel).not.toHaveBeenCalled();
+  test("저장된 장이 있는 방금 만든 세션도 최종 실패면 환급한다 — 부분 전달·재시도 창 건너뛰기 없음", async () => {
+    const d = deps({ runPaymentCancel: jest.fn(async () => ({ cancelled: true })) });
+    const result = await refundSessionBillingIfNeeded({}, sessionId, userId, doc({ chapters: [{ id: "c1", body: "x" }] }), d);
+    expect(result).toMatchObject({ refunded: true, method: "payment" });
   });
 
   test("이용권·관리자 세션은 결제 수단 환급 대상이 아니다", async () => {
     const d = deps();
-    expect((await refundSessionBillingIfNeeded({}, sessionId, userId, doc({ accessType: "pass" }), [], d)).reason).toBe("NOT_BILLED");
-    expect((await refundSessionBillingIfNeeded({}, sessionId, userId, doc({ accessType: "admin" }), [], d)).reason).toBe("NOT_BILLED");
+    expect((await refundSessionBillingIfNeeded({}, sessionId, userId, doc({ accessType: "pass" }), d)).reason).toBe("NOT_BILLED");
+    expect((await refundSessionBillingIfNeeded({}, sessionId, userId, doc({ accessType: "admin" }), d)).reason).toBe("NOT_BILLED");
     expect(d.runCoinRefund).not.toHaveBeenCalled();
   });
 
   test("이미 환급된 세션은 재시도해도 다시 환불하지 않는다(멱등)", async () => {
     const d = deps();
-    const result = await refundSessionBillingIfNeeded({}, sessionId, userId, doc({ billingRefund: { refundedAt: new Date() } }), [], d);
+    const result = await refundSessionBillingIfNeeded({}, sessionId, userId, doc({ billingRefund: { refundedAt: new Date() } }), d);
     expect(result.idempotent).toBe(true);
     expect(d.runCoinRefund).not.toHaveBeenCalled();
   });
 
   test("코인이 돌아가면 거기서 멈춘다 — 카드까지 취소하면 이중 환불이다", async () => {
     const d = deps({ runCoinRefund: jest.fn(async () => ({ refunded: true, amount: 500 })) });
-    const result = await refundSessionBillingIfNeeded({}, sessionId, userId, doc(), [], d);
+    const result = await refundSessionBillingIfNeeded({}, sessionId, userId, doc(), d);
     expect(result).toMatchObject({ refunded: true, method: "coin" });
     expect(d.runMonthlyCreditRefund).not.toHaveBeenCalled();
     expect(d.runPaymentCancel).not.toHaveBeenCalled();
@@ -158,14 +150,14 @@ describe("refundSessionBillingIfNeeded", () => {
 
   test("코인·월정석이 해당 없으면 카드 취소로 넘어간다", async () => {
     const d = deps({ runPaymentCancel: jest.fn(async () => ({ cancelled: true })) });
-    const result = await refundSessionBillingIfNeeded({}, sessionId, userId, doc(), [], d);
+    const result = await refundSessionBillingIfNeeded({}, sessionId, userId, doc(), d);
     expect(result).toMatchObject({ refunded: true, method: "payment" });
     expect(d.runPaymentCancel.mock.calls[0][1]).toEqual({ paymentId: "ord_1", merchantUid: "ord_1" });
   });
 
   test("월정석 결과가 불명확하면 다른 결제 수단을 중복 취소하지 않는다", async () => {
     const d = deps({ runMonthlyCreditRefund: jest.fn(async () => ({ refunded: false, adminReviewRequired: true })) });
-    const result = await refundSessionBillingIfNeeded({}, sessionId, userId, doc(), [], d);
+    const result = await refundSessionBillingIfNeeded({}, sessionId, userId, doc(), d);
     expect(result).toMatchObject({ refunded: false, adminReviewRequired: true });
     expect(d.runPaymentCancel).not.toHaveBeenCalled();
     expect(d.MasterLoveCodexSession.updateOne).not.toHaveBeenCalled();
@@ -176,27 +168,79 @@ describe("refundSessionBillingIfNeeded", () => {
       runMonthlyCreditRefund: jest.fn(async () => ({ refunded: true, idempotent: true })),
       MasterLoveCodexSession: { updateOne: jest.fn(async () => { throw new Error("marker unavailable"); }) },
     });
-    const result = await refundSessionBillingIfNeeded({}, sessionId, userId, doc(), [], d);
+    const result = await refundSessionBillingIfNeeded({}, sessionId, userId, doc(), d);
     expect(result).toMatchObject({ refunded: false, adminReviewRequired: true, reason: "REFUND_SESSION_MARKER_UNCONFIRMED" });
     expect(d.runPaymentCancel).not.toHaveBeenCalled();
   });
 
   test("월정석 세션은 코인 갈래를 태우지 않는다 — 코인 잔액을 잘못 불려 준다", async () => {
     const d = deps({ runMonthlyCreditRefund: jest.fn(async () => ({ refunded: true, amount: 500 })) });
-    const result = await refundSessionBillingIfNeeded({}, sessionId, userId, doc({ accessType: "monthly_credit" }), [], d);
+    const result = await refundSessionBillingIfNeeded({}, sessionId, userId, doc({ accessType: "monthly_credit" }), d);
     expect(d.runCoinRefund).not.toHaveBeenCalled();
     expect(result).toMatchObject({ refunded: true, method: "monthly_credit" });
   });
 
   test("아무 갈래도 성공하지 못하면 마커를 쓰지 않는다 — 다음 기회에 다시 시도한다", async () => {
     const d = deps();
-    const result = await refundSessionBillingIfNeeded({}, sessionId, userId, doc(), [], d);
+    const result = await refundSessionBillingIfNeeded({}, sessionId, userId, doc(), d);
     expect(result.refunded).toBe(false);
     expect(d.MasterLoveCodexSession.updateOne).not.toHaveBeenCalled();
   });
 
   test("환불기가 던져도 삼켜서 원래 실패 흐름을 가리지 않는다", async () => {
     const d = deps({ runCoinRefund: jest.fn(() => Promise.reject(new Error("mongo down"))) });
-    await expect(refundSessionBillingIfNeeded({}, sessionId, userId, doc(), [], d)).resolves.toMatchObject({ refunded: false, error: true });
+    await expect(refundSessionBillingIfNeeded({}, sessionId, userId, doc(), d)).resolves.toMatchObject({ refunded: false, error: true });
+  });
+});
+
+// S16: 최종 실패 정산 — 이용권 → 결제 수단, 끝나면 refundSettledAt 으로 크론 재정산을 멈춘다.
+describe("retryCodexFinalRefund", () => {
+  const { retryCodexFinalRefund } = __masterLoveCodexTestUtils;
+  const failed = (extra = {}) => ({ id: "mlc-3", userId: "64b000000000000000000003", status: "generation_failed", accessType: "paid",
+    paymentId: "ord_3", mode: "solo", passRefund: { cycleKey: "k", cost: 300 }, deliveryMeta: { reviewReason: "DELIVERY_FAILED" }, ...extra });
+  function deps(overrides = {}) {
+    return {
+      refundPassCoverage: jest.fn(async () => ({ refunded: true })),
+      refundPassUseEvidence: jest.fn(async () => ({ refunded: false, skipped: true })),
+      runCoinRefund: jest.fn(async () => ({ refunded: false, skipped: true })),
+      runMonthlyCreditRefund: jest.fn(async () => ({ refunded: false, skipped: true })),
+      runPaymentCancel: jest.fn(async () => ({ cancelled: true })),
+      MasterLoveCodexSession: { updateOne: jest.fn(async () => ({ matchedCount: 1, modifiedCount: 1 })) },
+      syncCodexExecution: jest.fn(async () => true),
+      ...overrides,
+    };
+  }
+  const setCalls = d => d.MasterLoveCodexSession.updateOne.mock.calls.map(([, update]) => Object.keys(update.$set)[0]);
+
+  test("이용권과 결제 수단을 모두 되돌리고 refundSettledAt 을 남긴다", async () => {
+    const d = deps();
+    const result = await retryCodexFinalRefund({}, failed(), d);
+    expect(result.refundStatus).toBe("settled");
+    expect(d.refundPassCoverage).toHaveBeenCalledTimes(1);
+    expect(d.runPaymentCancel).toHaveBeenCalledTimes(1);
+    expect(setCalls(d)).toEqual(["passRefund.refundedAt", "billingRefund", "deliveryMeta.refundSettledAt"]);
+    expect(d.syncCodexExecution).toHaveBeenCalled();
+  });
+
+  test("이미 정산된 세션은 환불기를 다시 부르지 않는다(최대 1회)", async () => {
+    const d = deps();
+    const result = await retryCodexFinalRefund({}, failed({ deliveryMeta: { reviewReason: "DELIVERY_FAILED", refundSettledAt: new Date() } }), d);
+    expect(result).toMatchObject({ refundStatus: "settled", idempotent: true });
+    expect(d.refundPassCoverage).not.toHaveBeenCalled();
+    expect(d.runPaymentCancel).not.toHaveBeenCalled();
+  });
+
+  test("환불기 오류는 pending 으로 남겨 다음 크론이 다시 정산한다", async () => {
+    const d = deps({ runPaymentCancel: jest.fn(() => Promise.reject(new Error("pg down"))) });
+    const result = await retryCodexFinalRefund({}, failed(), d);
+    expect(result.refundStatus).toBe("pending");
+    expect(setCalls(d)).not.toContain("deliveryMeta.refundSettledAt");
+  });
+
+  test("토스 앱 결제는 사람 확인으로 넘기고 정산 완료로 표시하지 않는다", async () => {
+    const d = deps();
+    const result = await retryCodexFinalRefund({}, failed({ passRefund: null, deliveryMeta: { reviewReason: "DELIVERY_FAILED", tossIntentId: "t1" } }), d);
+    expect(result.refundStatus).toBe("admin_review");
+    expect(setCalls(d)).toEqual(["deliveryMeta.refundAdminReviewAt"]);
   });
 });

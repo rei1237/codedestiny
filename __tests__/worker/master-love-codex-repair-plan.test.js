@@ -84,7 +84,7 @@ describe("master-love-codex 복구 계획", () => {
       status: "generation_failed",
       exposed: 1,
       saved: 1,
-      meta: { reviewRequired: true, reviewReason: "chapter_exhausted", attempts: { [second.id]: 3 } },
+      meta: { reviewRequired: true, reviewReason: "chapter_exhausted", attempts: { [second.id]: 4 } },
     }));
     expect(result.set["deliveryMeta.reviewRequired"]).toBe(false);
     expect(result.set.status).toBe("generating");
@@ -127,7 +127,7 @@ describe("master-love-codex 복구 계획", () => {
   });
 
   test("남은 장이 전부 시도 소진이면 --reset-attempts 없이 열지 않는다", () => {
-    const attempts = Object.fromEntries(specsFor("solo").slice(1).map(spec => [spec.id, 3]));
+    const attempts = Object.fromEntries(specsFor("solo").slice(1).map(spec => [spec.id, 4]));
     const doc = makeDoc({ status: "generation_failed", exposed: 1, saved: 1, meta: { reviewRequired: true, attempts } });
     expect(plan(doc).blocked).toBe("exhausted-without-reset");
 

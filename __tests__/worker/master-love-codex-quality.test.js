@@ -243,3 +243,24 @@ test("shared editorial contract leaves the noon-chart limitation to time-unknown
   expect(buildCodexEditorialContract({ minChars: 2600 })).not.toContain("정오");
   expect(buildCodexEditorialContract({ minChars: 2600 }, { cross: { convergence: [] } })).not.toContain("정오");
 });
+
+// S16 (2026-11-19): 완료는 "약속한 장 전부 + 제목 + 본문"이다. 분량은 완료 조건이 아니다.
+describe("isMasterLoveCodexComplete", () => {
+  const expected = [{ id: "a", title: "첫 장" }, { id: "b", title: "둘째 장" }];
+  const row = (id, extra = {}) => ({ id, title: `${id} 제목`, body: "짧아도 내용이 있는 본문입니다.", ok: true, ...extra });
+  test("짧은 본문이라도 전 장이 있으면 완료다", async () => {
+    const { isMasterLoveCodexComplete } = await import("../../worker/lib/master-love-codex-quality.js");
+    expect(isMasterLoveCodexComplete([row("a"), row("b")], expected)).toBe(true);
+    // 제목이 빠진 행은 계획표 제목으로 채워 조립하므로 완료로 본다.
+    expect(isMasterLoveCodexComplete([row("a", { title: "" }), row("b")], expected)).toBe(true);
+  });
+  test("빠진 장·빈 본문·실패 행·빈 계획은 완료가 아니다", async () => {
+    const { isMasterLoveCodexComplete } = await import("../../worker/lib/master-love-codex-quality.js");
+    expect(isMasterLoveCodexComplete([row("a")], expected)).toBe(false);
+    expect(isMasterLoveCodexComplete([row("a"), row("a")], expected)).toBe(false);
+    expect(isMasterLoveCodexComplete([row("a"), row("b", { body: "  \n " })], expected)).toBe(false);
+    expect(isMasterLoveCodexComplete([row("a"), row("b", { ok: false })], expected)).toBe(false);
+    expect(isMasterLoveCodexComplete([row("a"), row("b")], [])).toBe(false);
+    expect(isMasterLoveCodexComplete(null, expected)).toBe(false);
+  });
+});

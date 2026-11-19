@@ -177,7 +177,7 @@ describe("runMasterLoveCodexRecovery", () => {
 describe("중복 판정 불일치로 닫힌 세션 1회 재개", () => {
   const closed = (id, codes, extra = {}) => ({ id, userId: `u-${id}`, status: "generation_failed", ...extra,
     deliveryMeta: { reviewRequired: true, reviewReason: "GENERATION_BUDGET_EXCEEDED", exhaustedChapterIds: Object.keys(codes),
-      attempts: { c1: 1, ...Object.fromEntries(Object.keys(codes).map(k => [k, 3])) },
+      attempts: { c1: 1, ...Object.fromEntries(Object.keys(codes).map(k => [k, 4])) },
       errors: Object.fromEntries(Object.entries(codes).map(([k, code]) => [k, { code }])) } });
 
   test("중복 오류가 있어도 시도 기록을 보존하고 남은 장만 연다", async () => {
@@ -230,5 +230,60 @@ describe("중복 판정 불일치로 닫힌 세션 1회 재개", () => {
     const result = await runMasterLoveCodexRecovery({}, options);
     expect(result.reopened).toEqual([]);
     expect(options.syncCodexExecution).not.toHaveBeenCalled();
+  });
+});
+
+// S16 (2026-11-19): 정체 감시 · 환불 재정산. 진전 없는 복구는 이어쓰기 대신 최종 실패 + 자동 환불(본문 비노출).
+describe("S16 정체 감시와 환불 재정산", () => {
+  const live = (id, extra = {}) => ({ id, userId: `u-${id}`, status: "generating", createdAt: new Date(), deliveryMeta: {}, ...extra });
+
+  test("진전 없는 웨이브가 6번 쌓이면 웨이브 없이 DELIVERY_STUCK 으로 최종 실패를 확정한다", async () => {
+    const doc = live("st", { deliveryMeta: { deliveryWatch: { baseline: 100, stalls: 6, at: new Date() } } });
+    const settle = jest.fn(async () => ({ refundStatus: "settled", session: { ...doc, status: "generation_failed" } }));
+    const { options } = harness([doc], {
+      acquireBatchLock: jest.fn(async () => ({ ok: true, lockToken: "lock-st", doc })),
+      settleCodexFinalFailure: settle,
+    });
+    const result = await runMasterLoveCodexRecovery({}, options);
+    expect(options.runCodexWave).not.toHaveBeenCalled();
+    expect(settle).toHaveBeenCalledTimes(1);
+    const [, args] = settle.mock.calls[0];
+    expect(args).toMatchObject({ sessionId: "st", userId: "u-st", reason: "DELIVERY_STUCK",
+      filter: { id: "st", userId: "u-st", "generationProgress.lockToken": "lock-st", status: { $ne: "completed" } } });
+    expect(result.outcomes).toContainEqual({ sessionId: "st", outcome: "generation_failed", stuck: true, refundStatus: "settled" });
+  });
+
+  test("진전이 없는 웨이브는 정체 횟수를 하나 올리고, 진전이 있으면 0 으로 되돌린다", async () => {
+    const before = live("w", { deliveryMeta: { deliveryWatch: { baseline: 0, stalls: 2, at: new Date() } } });
+    const progressed = { ...before, chapters: [{ id: "c1", body: "가".repeat(5000) }] };
+    for (const [after, stalls] of [[before, 3], [progressed, 0]]) {
+      const { model, options } = harness([before], {
+        acquireBatchLock: jest.fn(async () => ({ ok: true, lockToken: "lock-w", doc: before })),
+        runCodexWave: jest.fn(async () => ({ outcome: "stalled", done: false, session: after })),
+      });
+      await runMasterLoveCodexRecovery({}, options);
+      const call = model.updateOne.mock.calls.find(([, update]) => update.$set?.["deliveryMeta.deliveryWatch"]);
+      expect(call[0]).toMatchObject({ id: "w", userId: "u-w", status: { $in: ["generating", "delivery_pending"] } });
+      expect(call[1].$set["deliveryMeta.deliveryWatch"].stalls).toBe(stalls);
+      expect(call[2]).toEqual({ timestamps: false });
+    }
+  });
+
+  test("정산이 덜 끝난 최종 실패 세션만 다시 정산하고, 미정산은 다음 틱으로 돌린다", async () => {
+    const unsettled = { id: "r1", userId: "u-r1", status: "generation_failed", deliveryMeta: { reviewRequired: true, reviewReason: "DELIVERY_FAILED" } };
+    const settled = { id: "r2", userId: "u-r2", status: "generation_failed", deliveryMeta: { reviewRequired: true, reviewReason: "DELIVERY_FAILED", refundSettledAt: new Date() } };
+    const legacy = { id: "r3", userId: "u-r3", status: "generation_failed", deliveryMeta: { reviewRequired: true, reviewReason: "GENERATION_BUDGET_EXCEEDED" } };
+    const retry = jest.fn(async () => ({ refundStatus: "pending" }));
+    const { model, options } = harness([unsettled, settled, legacy], { retryCodexFinalRefund: retry,
+      diagnoseCodexSession: () => ({ actionable: [] }) });
+    const result = await runMasterLoveCodexRecovery({}, options);
+    expect(retry).toHaveBeenCalledTimes(1);
+    expect(retry.mock.calls[0][1]).toBe(unsettled);
+    expect(result.refundRetries).toEqual([{ sessionId: "r1", refundStatus: "pending" }]);
+    expect(model.updateOne).toHaveBeenCalledWith({ id: "r1", userId: "u-r1", status: "generation_failed" },
+      { $set: { "deliveryMeta.refundRetryAt": expect.any(Date) } });
+    // 최종 실패 세션(reviewRequired)은 다시 열리거나 이어 쓰이지 않는다 — 재개는 GENERATION_BUDGET_EXCEEDED 만, 회수는 reviewRequired 제외.
+    expect(options.syncCodexExecution).not.toHaveBeenCalledWith(expect.objectContaining({ id: "r1", status: "generating" }));
+    expect(buildAbandonedFilter(Date.now())["deliveryMeta.reviewRequired"]).toEqual({ $ne: true });
   });
 });

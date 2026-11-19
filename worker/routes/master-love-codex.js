@@ -31,7 +31,7 @@ import {EDGE_RESPONSE_DEADLINE_MS, PAID_LLM_PARTS_PER_REQUEST } from "../lib/syn
 import { MasterLoveCodexSession, PaidExecutionRecord, Payment, PointHistory, User } from "../lib/models.js";
 import { findMoonstoneSpendEvidence } from "../lib/moonstone-spend-proof.js";
 import { recoverCodexSession, recoverCodexDeliverySession } from "../lib/master-love-codex-session-access.js";
-import { assertCodexChapterQuality, codexChapterRepairFloor, codexDedupedChapterFloor, dedupeCodexBody, qualityCheckedCodexCache, generateCodexChapterResponse, buildCodexChapterMemory, buildCodexStagingChapter, parseChapterJson, detectCodexSoftIssues, codexSoftIssueHint, scrubCodexSoftIssues, scrubCodexCrossRepeats, validateCodexChapterOutline } from "../lib/master-love-codex-quality.js";
+import { assertCodexChapterQuality, codexChapterRepairFloor, codexDedupedChapterFloor, dedupeCodexBody, qualityCheckedCodexCache, generateCodexChapterResponse, buildCodexChapterMemory, buildCodexStagingChapter, parseChapterJson, detectCodexSoftIssues, codexSoftIssueHint, scrubCodexSoftIssues, scrubCodexCrossRepeats, validateCodexChapterOutline, isMasterLoveCodexComplete } from "../lib/master-love-codex-quality.js";
 import { buildCodexEvidence, formatCodexEvidence, stripCodexEvidenceIds, CODEX_EVIDENCE_VERSION } from "../lib/master-love-codex-evidence.js";
 import { isStagingLlmMockEnabled } from "../lib/staging-llm-mock.js";
 import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
@@ -147,7 +147,9 @@ const CHAPTER_TIMEOUT_MS = 45000;
  *    2026-09-19 "1장만 보이는" 장애의 원인 A 였다 — 2장 하나 때문에 나머지 19장이 영영
  *    시도되지 않았다. 세션을 닫는 것은 "미완 장 전부가 소진됐을 때"뿐이다.
  */
-const CHAPTER_ATTEMPT_LIMIT = 2;
+// S16 (2026-11-19): 2 → 4. 2번째 시도부터는 흠 있는 장도 정리(scrub·salvage)해 받아들이고(웨이브의 finalAttempt),
+// Workers AI 폴백은 이 상한 시도에서만 켠다. 상한까지 못 쓴 장이 있으면 책은 최종 실패 + 자동 환불이다.
+const CHAPTER_ATTEMPT_LIMIT = 4;
 
 /** 서버가 내구 상태로 확인할 수 있는 처리 단계. 게이지 문구의 정본이다. */
 const CODEX_STEPS = Object.freeze(["pending", "writing", "validating", "saving", "retrying", "finalizing", "failed", "complete"]);
@@ -178,6 +180,7 @@ const MESSAGES = {
   loginRequired: "마스터 인연의 서를 열려면 로그인이 필요합니다.",
   invalidInput: "생년월일과 태어난 시각(또는 '태어난 시각 모름')을 확인해 주세요.",
   paymentRequired: "마스터 인연의 서는 회당 결제가 필요합니다.",
+  generationFailedRefunded: "이야기를 끝까지 완성하지 못해 결제를 자동으로 환불해 드립니다. 불편을 드려 죄송합니다.",
   paymentVerifyFailed: "결제 확인이 완료되지 않았습니다. 결제가 끝났다면 잠시 후 다시 시도해 주세요.",
   calculationFailed: "명식과 명반을 세우는 중 문제가 발생했습니다. 입력값을 확인한 뒤 다시 시도해 주세요.",
   notFound: "요청하신 인연의 서를 찾을 수 없습니다.",
@@ -705,7 +708,7 @@ function buildChapterLogContext(modeDef, chapter) {
 async function generateChapter(env, {
   mode = "solo", saju, ziweiChart, partnerSaju, partnerZiweiChart, compatibility,
   birthInfo, partnerInfo, chapter, prologueChoice, consultation, memory, previousError = "", snapshotKey, deadlineAt = Infinity, answerVoice = null, locale = "ko",
-  finalAttempt = false, repairHint = "",
+  finalAttempt = false, repairHint = "", providerFallback = false,
 }) {
   // 남은 예산이 한 장을 쓰기에도 모자라면 아예 시작하지 않는다(시작해도 못 끝낸다).
   const remainingMs = deadlineAt - Date.now();
@@ -734,6 +737,10 @@ async function generateChapter(env, {
     : buildMasterLoveCodexChapterPrompt({ saju, ziweiChart, birthInfo, chapter, prologueChoice, memory, evidenceProvided: true });
   const prompt = appendAnswerVoice(`${basePrompt}\n${formatCodexEvidence(evidenceContract)}\n${codexConsultationPrompt(evidenceContract)}`, answerVoice, { master: "master", locale });
   const cache = chapterCache(env, modeDef.mode, chapter, evidenceContract);
+  // S16: Workers AI 폴백은 장의 마지막 시도에서만 켠다. 짧은 폴백은 최소 분량 × 0.3 문턱으로 거른다.
+  const fallback = providerFallback
+    ? { fallbackToWorkersAI: true, fallbackMinChars: Math.ceil((Number(chapter?.minChars) || 2400) * 0.3) }
+    : { fallbackToWorkersAI: false };
   // A reserved repair must reach the provider instead of replaying the short draft.
   if (previousError) cache.store.get = async () => null;
   try {
@@ -742,7 +749,7 @@ async function generateChapter(env, {
       const raced = await withDeadline(generateCodexChapterResponse(
         (text, options) => callGeminiJsonWithRetry(env, text, options), prompt,
         { chapter, metricDefs: modeDef.dnaMetrics, evidenceContract, deadlineAt, minBudgetMs: CHAPTER_MIN_BUDGET_MS, maxAttempts: 1, previousError, allowShort: true, finalAttempt, repairHint,
-          options: { temperature: 0.6, timeoutMs, cache, fallbackToWorkersAI: false, logContext } },
+          options: { temperature: 0.6, timeoutMs, cache, ...fallback, logContext } },
       ), deadlineAt);
       if (raced.deferred) throw Object.assign(new Error("LLM_TIMEOUT_UNCERTAIN"), { code: "LLM_TIMEOUT_UNCERTAIN" });
       if (raced.error) throw raced.error;
@@ -766,7 +773,7 @@ async function generateChapter(env, {
       maxOutputTokens: previousError === "LLM_OUTPUT_TRUNCATED" ? 16000 : 8000,
       maxProviderAttempts: 1,
       temperature: 0.72,
-      fallbackToWorkersAI: false,
+      ...fallback,
       timeoutMs,
       cache,
       logContext,
@@ -892,6 +899,21 @@ export function diagnoseCodexSession(doc) {
   return { expected, saved, ...splitPendingChapters(expected, new Set(saved.keys()), doc?.deliveryMeta?.attempts, saved) };
 }
 
+/** S16 이전 규칙으로 부분 전달된 채 닫힌 옛 책(환불 없음). 이미 받은 장만 그대로 다시 연다. */
+function isLegacyPartialCodex(doc) {
+  return doc?.status === "generation_failed" && doc?.deliveryMeta?.reviewRequired === true
+    && doc.deliveryMeta.reviewReason === "GENERATION_BUDGET_EXCEEDED"
+    && !doc?.passRefund?.refundedAt && !doc?.billingRefund?.refundedAt;
+}
+
+const CODEX_FAILED_REFUNDED_REASON = "GENERATION_FAILED_REFUNDED";
+
+/** 닫힌 세션의 고객 안내. 최종 실패(S16)는 환불 안내, 그 밖의 옛 닫힘은 기존 문구를 유지한다. */
+function codexFailurePayload(doc) {
+  if (doc?.deliveryMeta?.reviewReason === "DELIVERY_FAILED") return { reason: CODEX_FAILED_REFUNDED_REASON, message: MESSAGES.generationFailedRefunded };
+  return { reason: "GENERATION_BUDGET_EXCEEDED", message: "구매한 회차와 저장된 장은 보존되어 있습니다. 이어쓰기 상태의 확인이 필요합니다." };
+}
+
 function publicSession(doc) {
   const modeDef = resolveMode(doc?.mode);
   const expected = expectedChapters(doc);
@@ -900,20 +922,23 @@ function publicSession(doc) {
   //    (2026-09-19 장애의 원인 B). 검증·저장된 장은 중간에 구멍이 있어도 전부 order 순으로
   //    내보낸다 — 목차·탭은 outline 이 채우므로 희소 목록이 안전하다.
   // 완료 세션은 저장된 본문을 그대로 쓴다: 옛 계약으로 전달된 책을 지금의 하한으로 잘라내지 않는다.
-  const chapters = (doc?.status === "completed" ? (doc?.chapters || []) : [...saved.values()])
+  // 🔴 S16 (2026-11-19): 완료 전에는 본문을 싣지 않는다 — 진행 수·상태·장 id 만. 전체가 완성돼야 한 번에 전달한다.
+  //    예외는 S16 이전 규칙으로 부분 전달된 채 닫힌(환불 없는) 옛 책뿐이다: 이미 받은 장을 거둬들이지 않는다.
+  const done = doc?.status === "completed";
+  const legacyPartial = isLegacyPartialCodex(doc);
+  const chapters = (done ? (doc?.chapters || []) : legacyPartial ? [...saved.values()] : [])
     .slice()
     .sort((a, b) => Number(a.order || 0) - Number(b.order || 0))
     .map(({ id, order, symbol, title, body, content, chars, ok }) => ({ id, order, symbol, title, body, content, chars, ok }));
   const retryAfterMs = Math.max(0, new Date(doc?.deliveryMeta?.nextAttemptAt || 0).getTime() - Date.now());
   const attempts = doc?.deliveryMeta?.attempts || {};
   const errors = doc?.deliveryMeta?.errors || {};
-  const readyIds = new Set(chapters.map(row => row.id));
+  const readyIds = new Set(done ? chapters.map(row => row.id) : saved.keys());
   const { pending, actionable, exhausted: blocked } = splitPendingChapters(expected, readyIds, attempts, saved);
   // 락이 살아 있는 동안에만 저장된 step 을 믿는다. 끊긴 웨이브의 낡은 단계가 남지 않는다.
   const lockAlive = new Date(doc?.generationProgress?.lockedAt || 0).getTime() > Date.now() - BATCH_LOCK_TTL_MS;
   const storedStep = clean(doc?.generationProgress?.step);
   const writingIds = new Set(lockAlive ? actionable.slice(0, CHAPTER_BATCH_SIZE).map(spec => spec.id) : []);
-  const done = doc?.status === "completed";
   // K = 검증·저장된 고유 장 수, F = 최종 확정까지 끝난 경우에만 1. 재시도·호출 시작은 K 에 넣지 않는다.
   const validated = readyIds.size;
   const finalized = done ? 1 : 0;
@@ -966,10 +991,10 @@ function publicSession(doc) {
     })),
     retryAfterMs,
     retryable: doc?.deliveryMeta?.reviewRequired ? false : true,
-    ...(doc?.deliveryMeta?.reviewRequired ? { reason: "GENERATION_BUDGET_EXCEEDED", message: "구매한 회차와 저장된 장은 보존되어 있습니다. 이어쓰기 상태의 확인이 필요합니다." } : {}),
-    loveDna: doc?.loveDna || null,
+    ...(doc?.deliveryMeta?.reviewRequired ? codexFailurePayload(doc) : {}),
+    loveDna: done || legacyPartial ? doc?.loveDna || null : null,
     totalChapters: expected.length,
-    totalCharCount: Number(doc?.totalCharCount || 0),
+    totalCharCount: done || legacyPartial ? Number(doc?.totalCharCount || 0) : 0,
     createdAt: doc?.createdAt || null,
     updatedAt: doc?.updatedAt || null,
   };
@@ -1003,7 +1028,7 @@ export async function syncCodexExecution(doc) {
     status: { $in: ["paid_pending_generation", "generating", "generation_failed", "completed"] },
   }, { $set: {
     resultId: doc.id, status: doc.status === "completed" ? "completed" : doc.status === "generation_failed" ? "generation_failed" : "generating",
-    error: doc.deliveryMeta?.reviewRequired ? { code: "GENERATION_BUDGET_EXCEEDED", chapterIds: doc.deliveryMeta.exhaustedChapterIds } : null,
+    error: doc.deliveryMeta?.reviewRequired ? { code: doc.deliveryMeta.reviewReason === "DELIVERY_FAILED" ? "DELIVERY_FAILED" : "GENERATION_BUDGET_EXCEEDED", chapterIds: doc.deliveryMeta.exhaustedChapterIds } : null,
     ...(doc.status === "completed" ? { completedAt: doc.updatedAt, consumedAt: doc.updatedAt } : {}),
   } }).catch(error => console.warn("[master-love-codex] usage record", clean(error?.message, 120)));
   if (saved?.matchedCount && doc.status === "completed" && doc.deliveryMeta?.executionSyncPending) {
@@ -1296,72 +1321,61 @@ export async function acquireBatchLock(sessionId, userId) {
 }
 
 /**
- * 이용권으로 차감된 monthlySpendCoin 을 생성 실패 시 되돌린다. 챕터가 하나라도 이미
- * 커밋된 세션은 대상이 아니다(기존 "부분 전달 시 무료 재개" 동작을 건드리지 않기 위함 —
- * 이번 버그 수정 범위 밖). refundedAt 마커로 재시도 시 이중 환불을 막는다.
+ * 이용권으로 차감된 몫을 최종 실패 때 되돌린다. S16 (2026-11-19): 저장된 장이 있어도 되돌린다 — 부분 전달은 없다.
+ * refundedAt 마커와 refundId(`master-love-codex:<세션>`)로 재시도 시 이중 환불을 막는다.
+ * 반환: { refunded } | { skipped } (되돌릴 몫 없음) | { error } (다음 크론이 다시 시도).
  */
-async function refundSessionPassIfNeeded(sessionId, userId, doc, existingChapters, dependencies = {}) {
+async function refundSessionPassIfNeeded(sessionId, userId, doc, dependencies = {}) {
   const refund = doc?.passRefund;
-  if (refund?.refundedAt || existingChapters.length > 0) return;
+  if (refund?.refundedAt) return { refunded: true, idempotent: true };
   // 차감 증빙 (기능, requestId): 실어 보내야 증빙에 환불 표시가 남아 다른 환불 경로와 겹치지 않는다.
   const sourceFeatureKey = resolveMode(doc?.mode).featureKey;
   const sourceRequestId = clean(doc?.billingRequestId || doc?.idempotencyKey, 180);
   if (!refund) {
     // 결제 화면(pass-check)이 미리 차감한 이용권은 세션에 passRefund 가 없다 — 증빙으로 되돌린다.
-    if (!sourceRequestId || doc?.deliveryMeta?.tossIntentId) return;
+    if (!sourceRequestId || doc?.deliveryMeta?.tossIntentId) return { refunded: false, skipped: true };
     const evidenceFn = dependencies.refundPassUseEvidence || refundPassUseEvidence;
-    await evidenceFn({ userId, featureKey: sourceFeatureKey, requestId: sourceRequestId, refundId: `master-love-codex:${sessionId}` })
-      .catch(error => console.error("[master-love-codex] pass evidence refund", clean(error?.message, 300)));
-    return;
+    try {
+      const result = await evidenceFn({ userId, featureKey: sourceFeatureKey, requestId: sourceRequestId, refundId: `master-love-codex:${sessionId}` });
+      return result?.refunded ? { refunded: true } : { refunded: false, skipped: true };
+    } catch (error) {
+      console.error("[master-love-codex] pass evidence refund", clean(error?.message, 300));
+      return { refunded: false, error: true };
+    }
   }
   const refundFn = dependencies.refundPassCoverage || refundPassCoverage;
   const SessionModel = dependencies.MasterLoveCodexSession || MasterLoveCodexSession;
   try {
     const result = await refundFn({ userId, cycleKey: refund.cycleKey, cost: refund.cost, refundId: `master-love-codex:${sessionId}`,
       ...(sourceRequestId ? { sourceFeatureKey, sourceRequestId } : {}) });
-    if (result.refunded) {
-      await SessionModel.updateOne(
-        { id: sessionId, userId, "passRefund.refundedAt": { $exists: false } },
-        { $set: { "passRefund.refundedAt": new Date() } },
-      ).catch(() => {});
-    }
+    if (!result?.refunded) return { refunded: false, skipped: true };
+    await SessionModel.updateOne(
+      { id: sessionId, userId, "passRefund.refundedAt": { $exists: false } },
+      { $set: { "passRefund.refundedAt": new Date() } },
+    ).catch(() => {});
+    return { refunded: true };
   } catch (error) {
     console.error("[master-love-codex] pass refund", clean(error?.message, 300));
+    return { refunded: false, error: true };
   }
 }
 
 /**
- * 결제 수단 환급이 "확정 실패"로 인정되기까지의 최소 경과 시간.
- *
- * 🔴 첫 웨이브 실패에 곧바로 환불하면 안 된다. 10분 크론 회수 태스크
- *    (worker/lib/master-love-codex-recovery-task.js)가 버려진 세션을 계속 밀어 올리는데,
- *    카드를 취소하는 순간 recoverCodexSession 이 PURCHASE_REFUNDED 로 그 세션을 닫아버린다
- *    — 완성될 수 있었던 책을 우리 손으로 없애는 것이다. 30분이면 크론이 최소 두 번은 재시도한 뒤다.
- */
-const BILLING_REFUND_AFTER_MS = 30 * 60 * 1000;
-
-/**
- * 챕터가 **하나도** 커밋되지 않은 채 확정 실패한 세션의 결제 수단(코인·월정석·카드)을 되돌린다.
+ * 최종 실패(generation_failed)로 확정된 세션의 결제 수단(코인·월정석·카드)을 되돌린다.
  *
  * 🔴 새 환불기를 만들지 않는다. worker/lib/service-execution-task.js 의 정본 3종을 그대로 부른다.
  *    그 함수들이 남기는 멱등 마커(metadata.refundedForServiceExecution 등)를 이 라우트의
- *    findBillingEvidence(:394-398)가 이미 배제하고 있어서, 환급된 결제로는 /start 가 다시 열리지 않는다.
+ *    findBillingEvidence 가 이미 배제하고 있어서, 환급된 결제로는 /start 가 다시 열리지 않는다.
  * 🔴 execution 인자는 ServiceExecutionTransaction 문서가 아니라 필드 가방이다. 코덱스 세션에서
  *    같은 모양을 만들어 넘긴다 — executionId 는 세션 id 라 재시도해도 같은 환급 sourceId 로 수렴한다.
- * 🔴 1장이라도 커밋됐으면 환불하지 않는다(기존 계약). 세션은 영구 보존되고 재개가 무료다.
+ * 🔴 S16 (2026-11-19): 부분 전달(PARTIAL_DELIVERY)·재시도 창(RETRY_WINDOW_OPEN) 건너뛰기를 없앴다.
+ *    이 함수는 settleCodexFinalFailure 가 generation_failed 를 저장한 뒤에만 부른다 — 그 전에는 복구가 계속된다.
  */
-async function refundSessionBillingIfNeeded(env, sessionId, userId, doc, existingChapters, dependencies = {}) {
-  if(doc.deliveryMeta?.tossIntentId)return {refunded:false,adminReviewRequired:true};
-  if (existingChapters.length > 0) return { refunded: false, skipped: true, reason: "PARTIAL_DELIVERY" };
+async function refundSessionBillingIfNeeded(env, sessionId, userId, doc, dependencies = {}) {
+  if (doc?.deliveryMeta?.tossIntentId) return { refunded: false, adminReviewRequired: true };
   if (doc?.billingRefund?.refundedAt) return { refunded: true, idempotent: true };
   const accessType = clean(doc?.accessType);
   if (accessType === "pass" || accessType === "admin") return { refunded: false, skipped: true, reason: "NOT_BILLED" };
-
-  const createdAt = doc?.createdAt ? new Date(doc.createdAt).getTime() : 0;
-  const now = Number(dependencies.now) || Date.now();
-  if (!createdAt || now - createdAt < BILLING_REFUND_AFTER_MS) {
-    return { refunded: false, skipped: true, reason: "RETRY_WINDOW_OPEN" };
-  }
 
   const modeDef = resolveMode(doc?.mode);
   const featureKey = modeDef.featureKey;
@@ -1391,7 +1405,7 @@ async function refundSessionBillingIfNeeded(env, sessionId, userId, doc, existin
 
   // 갈래마다 해당 없는 것은 스스로 skip 한다(코인 갈래는 paymentId 가 PointHistory _id 가
   // 아니면 빠지고, 카드 갈래는 Payment 문서가 없으면 빠진다). 순서는 결제 축의 정본
-  // 오케스트레이터(service-execution-task.js:1180-1250)와 같다.
+  // 오케스트레이터(service-execution-task.js)와 같다.
   const outcome = { coin: null, monthlyCredit: null, payment: null };
   try {
     if (accessType !== "monthly_credit" && accessType !== "membership_credit") {
@@ -1427,6 +1441,69 @@ async function refundSessionBillingIfNeeded(env, sessionId, userId, doc, existin
   return { refunded: true, method };
 }
 
+/**
+ * 최종 실패 세션의 환불을 (다시) 정산한다. 이용권 → 결제 수단 순서, 각 환불기의 멱등 마커가 이중 환불을 막는다.
+ * 전부 끝나면 deliveryMeta.refundSettledAt 을 남겨 크론이 더 이상 줍지 않는다. 사람 확인이 필요한 결제(토스 앱 등)는
+ * refundAdminReviewAt 을 남기고 경보 로그만 쓴다. 본문·결제 ID 는 로그에 남기지 않는다.
+ */
+export async function retryCodexFinalRefund(env, doc, dependencies = {}) {
+  if (!doc?.id || !doc.userId) return { refundStatus: "pending" };
+  if (doc.deliveryMeta?.refundSettledAt) return { refundStatus: "settled", idempotent: true };
+  const sessionId = clean(doc.id, 120);
+  const userId = clean(doc.userId);
+  const SessionModel = dependencies.MasterLoveCodexSession || MasterLoveCodexSession;
+  const pass = await refundSessionPassIfNeeded(sessionId, userId, doc, dependencies);
+  const billing = await refundSessionBillingIfNeeded(env, sessionId, userId, doc, dependencies);
+  const owner = { id: sessionId, userId, status: "generation_failed" };
+  let refundStatus = "pending";
+  if (pass?.error || billing?.error) refundStatus = "pending";
+  else if (billing?.adminReviewRequired) {
+    refundStatus = "admin_review";
+    await SessionModel.updateOne({ ...owner, "deliveryMeta.refundAdminReviewAt": { $exists: false } },
+      { $set: { "deliveryMeta.refundAdminReviewAt": new Date() } }).catch(() => {});
+    console.warn("[master-love-codex] final failure refund needs admin review", { sessionId });
+  } else {
+    refundStatus = "settled";
+    await SessionModel.updateOne({ ...owner, "deliveryMeta.refundSettledAt": { $exists: false } },
+      { $set: { "deliveryMeta.refundSettledAt": new Date() } }).catch(() => { refundStatus = "pending"; });
+  }
+  await Promise.resolve((dependencies.syncCodexExecution || syncCodexExecution)(doc)).catch(() => {});
+  return { refundStatus, pass, billing };
+}
+
+/**
+ * S16 (2026-11-19) 최종 실패 확정: 장을 상한까지 다시 써도 못 채웠거나(웨이브) 복구가 진전 없이 멈췄을 때(크론 정체 감시).
+ * generation_failed 로 닫고 기존 환불 경로를 한 번 돌린다(멱등 마커로 최대 1회). 저장된 장은 DB 에 남지만 고객에게는 내보내지 않는다.
+ * filter 는 호출자가 쥔 락 조건이다 — 그 사이 완료·진전이 있으면 저장이 맞지 않아 확정하지 않는다.
+ */
+export async function settleCodexFinalFailure(env, { sessionId, userId, filter, doc, reason = "SERVICE_GENERATION_FAILED", exhaustedChapterIds = [], dependencies = {} }) {
+  const at = new Date();
+  const session = await saveCodexDelivery({ ...filter, status: { $ne: "completed" } }, {
+    status: "generation_failed",
+    deliveryMeta: { ...doc?.deliveryMeta, reviewRequired: true, reviewReason: "DELIVERY_FAILED", finalFailureAt: at,
+      finalFailureReason: clean(reason, 80), exhaustedChapterIds: exhaustedChapterIds.map(id => clean(id, 80)), nextAttemptAt: null },
+    generationError: { code: clean(reason, 80), message: "final delivery failure", at },
+    generationProgress: { ...doc?.generationProgress, step: "failed", lockedAt: null, lockToken: "" },
+  }, sessionId);
+  let refund;
+  try { refund = await retryCodexFinalRefund(env, session, dependencies); }
+  catch (error) {
+    console.error("[master-love-codex] final failure refund", sessionId, clean(error?.message, 200));
+    refund = { refundStatus: "pending" };
+  }
+  console.warn("[master-love-codex] final failure", { sessionId, userId: Boolean(userId), reason: clean(reason, 80), refundStatus: refund.refundStatus });
+  return { session, refundStatus: refund.refundStatus };
+}
+
+/** 최종 실패로 환불까지 끝난 세션은 접근 판정(PURCHASE_REFUNDED)이 막는다 — 그때도 본문 없이 환불 안내만 돌려준다. */
+async function codexFailedRefundedResponse(sessionId, userId) {
+  const failed = await MasterLoveCodexSession.findOne({ id: sessionId, userId: clean(userId), status: "generation_failed",
+    "deliveryMeta.reviewReason": "DELIVERY_FAILED" }).lean().catch(() => null);
+  if (!failed) return paymentVerifyFailed();
+  return json({ ok: false, sessionId, status: "generation_failed", retryable: false, reason: CODEX_FAILED_REFUNDED_REASON,
+    message: MESSAGES.generationFailedRefunded, chapters: [], loveDna: null }, { status: 503 });
+}
+
 async function handleGenerate(request, env, dependencies = {}) {
   // 예산 시계는 핸들러 진입 시점부터 돈다 — 앞단의 인증·DB 왕복·락 획득이 자동으로 예산에서 빠진다.
   const deadlineAt = Date.now() + BATCH_BUDGET_MS;
@@ -1448,12 +1525,12 @@ async function handleGenerate(request, env, dependencies = {}) {
   await connectDb(env);
   const recovered = await recoverCodexSession({ userId: auth.userId, sessionId });
   if (!recovered) return json({ ok: false, reason: "NOT_FOUND", message: MESSAGES.notFound }, { status: 404 });
-  if (recovered.denied) return paymentVerifyFailed();
+  if (recovered.denied) return codexFailedRefundedResponse(sessionId, auth.userId);
   if (tokenPayload && !tokenMatchesMode(tokenPayload, sessionMode(recovered.session))) return paymentVerifyFailed();
   if (recovered.session.status === "completed") return sessionWithAccessToken(env, recovered.session);
   const waiting = publicSession(recovered.session);
   if (waiting.retryable === false || waiting.retryAfterMs > 0) return json({ ...waiting, ok: false,
-    reason: waiting.retryable === false ? "GENERATION_BUDGET_EXCEEDED" : "LLM_PROVIDER_UNAVAILABLE" }, { status: 503 });
+    reason: waiting.retryable === false ? (waiting.reason || "GENERATION_BUDGET_EXCEEDED") : "LLM_PROVIDER_UNAVAILABLE" }, { status: 503 });
   const lock = await acquireBatchLock(sessionId, clean(auth.userId));
   if (!lock.ok) {
     const current = await MasterLoveCodexSession.findOne({ id: sessionId, userId: clean(auth.userId) }).lean();
@@ -1486,6 +1563,9 @@ async function handleGenerate(request, env, dependencies = {}) {
     case "denied": return paymentVerifyFailed();
     case "completed":
     case "committed": return sessionWithAccessToken(env, wave.session);
+    // S16: 최종 실패 + 자동 환불. 본문 없이 환불 안내만(재시도 없음).
+    case "generation_failed": return json({ ok: false, sessionId, status: "generation_failed", retryable: false,
+      reason: CODEX_FAILED_REFUNDED_REASON, message: MESSAGES.generationFailedRefunded, chapters: [], loveDna: null }, { status: 503 });
     case "lock_lost": return json({ ok: false, reason: "GENERATION_IN_PROGRESS", retryable: true, message: MESSAGES.busy }, { status: 409 });
     case "storage_failed": return json(resultStorageFailurePayload(resultStorageUnavailable(sessionId)), { status: 503 });
     case "stalled": return json({
@@ -1493,7 +1573,7 @@ async function handleGenerate(request, env, dependencies = {}) {
       reason: wave.reason,
       retryable: wave.retryable !== false,
       retryAfterMs: wave.retryAfterMs || 0,
-      message: "생성이 지연되고 있습니다. 지금까지 쓰인 장은 그대로 보관되니 잠시 후 이어서 쓰면 됩니다.",
+      message: "생성이 지연되고 있습니다. 잠시 후 자동으로 이어서 씁니다. 전체가 완성되면 한 번에 보여 드립니다.",
     }, { status: 503 });
     default: return serverError("이야기를 이어 쓰는 중 문제가 생겼습니다. 결제와 지금까지 쓰인 장은 보존되니 잠시 후 다시 시도해 주세요.", 503);
   }
@@ -1580,24 +1660,11 @@ async function runCodexWaveInternal(env, { sessionId, userId, doc, lockToken, de
     const missing = actionable.slice(0, CHAPTER_BATCH_SIZE);
     // 🔴 미완 장 **전부**가 소진됐을 때만 세션을 닫는다. 한 장의 소진으로 닫으면 클라이언트
     //    (retryable:false)·크론(reviewRequired 제외)·락이 모두 건너뛰어 나머지 장이 영구 정지한다.
+    // S16 (2026-11-19): 닫힘은 곧 최종 실패다 — 부분 전달 없이 generation_failed + 자동 환불(1회), 본문 비노출.
     if (!actionable.length && exhausted.length) {
-      if (byId.size === expected.length) {
-        current = await saveCodexDelivery(lockFilter, { deliveryMeta: { ...current.deliveryMeta, savedChapters: [...byId.values()], reviewRequired: true,
-          reviewReason: "REPORT_TOTAL_TOO_SHORT" }, chapters: [...byId.values()],
-          generationProgress: { ...current.generationProgress, step: "failed" } }, sessionId);
-        return { outcome: "stalled", reason: "REPORT_TOTAL_TOO_SHORT", retryable: false, session: current };
-      }
-      const reason = "SERVICE_GENERATION_FAILED";
-      current = await saveCodexDelivery(lockFilter, { status: "generation_failed", deliveryMeta: { ...current.deliveryMeta, reviewRequired: true,
-        reviewReason: "GENERATION_BUDGET_EXCEEDED", exhaustedChapterIds: exhausted.map(row => row.id), savedChapters: [...byId.values()] },
-        generationError: { code: reason, at: new Date() }, generationProgress: { ...current.generationProgress, step: "failed" } }, sessionId);
-      // Uncertain calls/storage are never definitive manuscript failures or refund evidence.
-      if (exhausted.every(chapter => Number(doc.deliveryMeta?.failures?.[chapter.id] || 0) >= CHAPTER_ATTEMPT_LIMIT)) {
-        await refundSessionPassIfNeeded(sessionId, ownerId, current, [...byId.values()], dependencies);
-        await refundSessionBillingIfNeeded(env, sessionId, ownerId, current, [...byId.values()], dependencies);
-      }
-      await syncCodexExecution(current);
-      return { outcome: "stalled", reason: "GENERATION_BUDGET_EXCEEDED", retryable: false };
+      const settled = await settleCodexFinalFailure(env, { sessionId, userId: ownerId, filter: lockFilter, doc: current,
+        reason: "SERVICE_GENERATION_FAILED", exhaustedChapterIds: exhausted.map(row => row.id), dependencies });
+      return { outcome: "generation_failed", reason: CODEX_FAILED_REFUNDED_REASON, retryable: false, refundStatus: settled.refundStatus, session: settled.session };
     }
     if (missing.length) {
       missing.forEach(chapter => {
@@ -1620,8 +1687,10 @@ async function runCodexWaveInternal(env, { sessionId, userId, doc, lockToken, de
           previousError: byId.has(chapter.id) ? (byId.get(chapter.id).lengthDraft !== true && byId.get(chapter.id).softIssues?.length ? "LLM_SOFT_ISSUES" : "LLM_OUTPUT_TOO_SHORT")
             : errors[chapter.id]?.kind === "quality" ? errors[chapter.id].code : "", snapshotKey: snapshotKey(chapter),
           repairHint: byId.has(chapter.id) && byId.get(chapter.id).lengthDraft !== true ? codexSoftIssueHint(detectCodexSoftIssues(byId.get(chapter.id).body, chapter, doc.consultation, codexEarlierBodies(expected, byId, chapter))) : "",
-          // 🔴 마지막 시도는 실패 대신 손질해 저장한다 — 분량·검증 미달로 책이 환불되지 않게(2026-11-08 사용자 규칙).
-          finalAttempt: !byId.has(chapter.id) && Number(attempts[chapter.id] || 0) >= CHAPTER_ATTEMPT_LIMIT,
+          // 🔴 2번째 시도부터는 실패 대신 손질(scrub·salvage)해 저장한다 — 분량·근거·반복 흠으로 책이 멈추지 않게
+          //    (2026-11-08 사용자 규칙, S16 2026-11-19 에서 2번째 시도로 앞당김). 공급자 폴백은 마지막(상한) 시도에서만.
+          finalAttempt: !byId.has(chapter.id) && Number(attempts[chapter.id] || 0) >= 2,
+          providerFallback: !byId.has(chapter.id) && Number(attempts[chapter.id] || 0) >= CHAPTER_ATTEMPT_LIMIT,
           answerVoice: pinAnswerVoice(doc.deliveryMeta || {}, env), locale: doc.deliveryMeta?.locale || "ko",
         }); } catch { result = { status: "retryable", failure: { code: "LLM_TIMEOUT_UNCERTAIN", kind: "uncertain" } }; }
         const write = queue.catch(() => {}).then(async () => {
@@ -1694,7 +1763,8 @@ async function runCodexWaveInternal(env, { sessionId, userId, doc, lockToken, de
     const chapters = expected.map(chapter => {
       const saved = byId.get(chapter.id);
       // 정확한 챕터(2026-11-08, V2 개인판): id·제목·순서·기호는 모델 응답이 아니라 계획표 그대로 싣는다.
-      const row = chapter.compact ? { ...saved, id: chapter.id, order: chapter.order, symbol: chapter.symbol, title: chapter.title } : saved;
+      const row = chapter.compact ? { ...saved, id: chapter.id, order: chapter.order, symbol: chapter.symbol, title: chapter.title }
+        : saved.title ? saved : { ...saved, title: chapter.title };
       // V2 assembly scrub: re-quoted question sentences outside their chapter go, only while ≥85% of the body survives.
       const requoted = chapter.perspective ? scrubCodexSoftIssues(row.body, chapter, doc.consultation) : row.body;
       // V2 개인판 "반복 없이": 앞 장 문장을 거의 그대로 되풀이한 문장도 같은 85% 한도 안에서만 지운다.
@@ -1719,7 +1789,8 @@ async function runCodexWaveInternal(env, { sessionId, userId, doc, lockToken, de
     // 🔴 정확한 챕터 검증: 빠진 장·순서·제목이 계획표와 다르면 완료하지 않는다(빠진 장은 다시 생성, 버리지 않는다).
     const outlineIssues = expected.some(spec => spec.compact) ? validateCodexChapterOutline(chapters, expected) : [];
     if (outlineIssues.length) console.warn("[master-love-codex] outline", outlineIssues.slice(0, 4).join(","));
-    if (outlineIssues.length || !codexTotalReady(expected, byId)) {
+    // S16: 완료는 전 장이 제목·본문을 갖춘 경우뿐이다(분량은 완료 조건이 아니다). 모자라면 완료로 넘기지 않고 다시 쓴다.
+    if (outlineIssues.length || !codexTotalReady(expected, byId) || !isMasterLoveCodexComplete(chapters, expected)) {
       current = await saveCodexDelivery(lockFilter, { chapters, deliveryMeta: { ...current.deliveryMeta, savedChapters: chapters } }, sessionId);
       return { outcome: "committed", session: current, done: false };
     }
@@ -1753,7 +1824,7 @@ async function handleSession(request, env) {
   await connectDb(env);
   const recovered = await recoverCodexSession({ userId: auth.userId, sessionId });
   if (!recovered) return json({ ok: false, reason: "NOT_FOUND", message: MESSAGES.notFound }, { status: 404 });
-  if (recovered.denied) return paymentVerifyFailed();
+  if (recovered.denied) return codexFailedRefundedResponse(sessionId, auth.userId);
   return sessionWithAccessToken(env, recovered.session);
 }
 
@@ -1829,5 +1900,5 @@ export const __masterLoveCodexTestUtils = {
   withDeadline, acquireBatchLock, runCodexWave,
   BATCH_BUDGET_MS, BATCH_LOCK_TTL_MS, CHAPTER_MIN_BUDGET_MS, EDGE_RESPONSE_DEADLINE_MS,
   CHAPTER_ATTEMPT_LIMIT, CHAPTER_TIMEOUT_MS, CHAPTER_BATCH_SIZE, CHAPTER_CONCURRENCY,
-  passRefundFor, refundSessionPassIfNeeded, refundSessionBillingIfNeeded, BILLING_REFUND_AFTER_MS,
+  passRefundFor, refundSessionPassIfNeeded, refundSessionBillingIfNeeded, retryCodexFinalRefund, settleCodexFinalFailure,
 };

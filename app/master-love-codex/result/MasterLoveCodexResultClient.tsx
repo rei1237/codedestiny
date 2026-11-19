@@ -57,6 +57,8 @@ type SessionState = {
   retryable?: boolean;
   retryAfterMs?: number;
   message?: string;
+  /** 닫힌 세션의 사유. GENERATION_FAILED_REFUNDED = 최종 실패 + 자동 환불(S16, 본문 없음) */
+  reason?: string;
   birthInfo: {
     name?: string;
     gender?: string;
@@ -139,6 +141,19 @@ export default function MasterLoveCodexResultClient() {
     try {
       const { status, data: payload } = await fetchCodexSession(sessionId);
       if (!isCurrent()) return;
+      // S16: 최종 실패로 환불까지 끝난 세션은 본문 없이 환불 안내만 온다(503 이지만 재시도 대상이 아니다).
+      if (payload?.reason === "GENERATION_FAILED_REFUNDED" && payload?.status === "generation_failed") {
+        setError("");
+        const failed: SessionState = {
+          sessionId: String(payload.sessionId || sessionId), status: "generation_failed", chapters: [],
+          loveDna: null, totalCharCount: 0, retryable: false, reason: "GENERATION_FAILED_REFUNDED",
+          message: payload.message ? String(payload.message) : undefined, birthInfo: null,
+        };
+        setSession((current) => current && current.sessionId === failed.sessionId
+          ? { ...current, ...failed, birthInfo: current.birthInfo, mode: current.mode, accessType: current.accessType }
+          : failed);
+        return failed;
+      }
       if (status >= 400 || !payload?.ok) {
         if (isRetriableResultPollFailure(status, payload)) {
           setError(copy.resultUnstableRefreshError);
@@ -168,6 +183,7 @@ export default function MasterLoveCodexResultClient() {
         generationProgress: payload.generationProgress,
         updatedAt: payload.updatedAt ? String(payload.updatedAt) : undefined,
         retryable: payload.retryable, retryAfterMs: payload.retryAfterMs, message: payload.message,
+        reason: payload.reason ? String(payload.reason) : undefined,
         birthInfo: payload.birthInfo || null,
         consultation: payload.consultation || null,
       };
@@ -236,6 +252,7 @@ export default function MasterLoveCodexResultClient() {
               generationProgress: next.generationProgress ?? current.generationProgress,
               updatedAt: nextUpdatedAt ?? current.updatedAt,
               retryable: next.retryable, retryAfterMs: next.retryAfterMs, message: next.message,
+              reason: next.reason ? String(next.reason) : undefined,
             };
           });
         },
@@ -247,6 +264,8 @@ export default function MasterLoveCodexResultClient() {
       setResumeError(caught instanceof TypeError
         ? copy.errorText.NETWORK_ERROR
         : caught instanceof Error ? caught.message : copy.errorText.SERVER_ERROR);
+      // S16: 최종 실패(자동 환불)로 닫혔으면 세션을 다시 읽어 재시도 없는 환불 안내로 고정한다.
+      if (caught instanceof Error && caught.message === copy.errorText.GENERATION_FAILED_REFUNDED) void load();
     } finally {
       if (isCurrent()) runningRef.current = false;
       if (document.hidden || !navigator.onLine) resumeStartedForRef.current = "";
@@ -332,12 +351,18 @@ export default function MasterLoveCodexResultClient() {
   const progressPercent = Number.isFinite(rawProgressPercent) ? Math.min(100, Math.max(0, Math.round(rawProgressPercent))) : null;
   const progressStepLabel = codexStepLabel(copy, progressPercent === null ? "" : String(progress?.step || ""));
 
-  if (!session.chapters.length && session.status !== "completed") {
+  // 🔴 S16 (2026-11-19): 완료 전에는 본문을 보여 주지 않는다 — 생성 중 화면만. 서버도 완료 전 본문을 싣지 않는다.
+  //    예외는 S16 이전 규칙으로 부분 전달된 채 닫힌 옛 책(generation_failed + 받은 장)뿐이다.
+  const closedFailure = session.retryable === false;
+  if (session.status !== "completed" && !(session.status === "generation_failed" && session.chapters.length)) {
     return <>{ambience}<CodexShell ariaLabel={copy.generatingAriaLabel(Boolean(resumeError))}>
       <CodexGenerating completed={session.generationProgress?.completed || 0} total={MASTER_LOVE_CODEX_TOTAL_CHAPTERS}
         progress={session.generationProgress}
         latestTitles={[]} name={session.birthInfo?.name || ""} mode={session.mode} accessType={session.accessType}
-        error={resumeError || (!resuming ? copy.resultIncompleteNotice : "")} onRetry={retryResume} />
+        error={closedFailure
+          ? (session.reason === "GENERATION_FAILED_REFUNDED" ? copy.errorText.GENERATION_FAILED_REFUNDED : session.message || copy.resultResumeFailedNotice)
+          : resumeError || (!resuming ? copy.resultIncompleteNotice : "")}
+        onRetry={closedFailure ? undefined : retryResume} />
     </CodexShell></>;
   }
 

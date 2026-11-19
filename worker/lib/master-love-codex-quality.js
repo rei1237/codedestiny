@@ -111,6 +111,22 @@ export function codexDedupedChapterFloor(chapter) {
   return Math.ceil((Number(chapter?.minChars) || 2400) * 0.5);
 }
 
+/**
+ * Delivery completeness (S16, 2026-11-19): every expected chapter is present with a title and a
+ * non-empty body. Length is not part of completeness — a short chapter still counts as delivered.
+ * Every path that sets status "completed" must pass this.
+ */
+export function isMasterLoveCodexComplete(chapters = [], expected = []) {
+  if (!Array.isArray(expected) || !expected.length) return false;
+  const rows = Array.isArray(chapters) ? chapters : [];
+  return expected.every(spec => rows.some(row => {
+    if (!row || row.id !== spec?.id || row.ok === false) return false;
+    const title = row.title || spec.title;
+    if (spec.title && !(typeof title === "string" && title.trim())) return false;
+    return typeof row.body === "string" && countPaidReportBodyChars(row.body) > 0;
+  }));
+}
+
 /** Removes sentences already delivered earlier in the book (or earlier in this body). */
 export function dedupeCodexBody(body, priorBodies = []) {
   const seen = new Set();

@@ -269,3 +269,33 @@ test("StrictMode 재설치 때 무효가 된 첫 조회를 재사용하지 않�
   releaseNew({ sessionId: "saved-book" });
   assert.equal((await fresh).sessionId, "saved-book");
 });
+
+// S16 (2026-11-19): 최종 실패로 자동 환불된 구매본은 503 이어도 재시도 오류가 아니라 환불 안내로 고정된다(본문 없음).
+test("최종 실패·자동 환불 응답은 재시도 없는 환불 안내 상태로 고정한다", async () => {
+  let error = "unset", stored;
+  const context = vm.createContext({ useCallback: fn => fn, captureOwner: () => () => true,
+    window: { location: { search: "?sessionId=failed-book" } }, URLSearchParams,
+    copy: { resultUnstableRefreshError: "temporary", errorText: ERROR_TEXT },
+    setError: value => { error = value; }, setLoading() {},
+    setSession: value => { stored = typeof value === "function" ? value(stored) : value; },
+    isRetriableResultPollFailure: status => status === 503,
+    fetchCodexSession: async () => ({ status: 503, data: { ok: false, sessionId: "failed-book", status: "generation_failed",
+      retryable: false, reason: "GENERATION_FAILED_REFUNDED", message: "refunded", chapters: [], loveDna: null } }),
+  });
+  vm.runInContext(extract(RESULT_CLIENT, "isStaleCodexUpdate"), context);
+  context.isStaleCodexUpdate = context.run;
+  vm.runInContext(extract(RESULT_CLIENT, "loadSession"), context);
+  await context.run();
+  assert.equal(error, "");
+  assert.equal(stored.status, "generation_failed");
+  assert.equal(stored.retryable, false);
+  assert.equal(stored.reason, "GENERATION_FAILED_REFUNDED");
+  assert.equal(stored.chapters.length, 0);
+});
+
+test("완료 전에는 생성 중 화면만 — 닫힌 실패는 재시도 버튼 없이 안내만 보인다", () => {
+  const source = readFileSync(resolve(__dirname, "..", "..", RESULT_CLIENT), "utf8");
+  assert.match(source, /if \(session\.status !== "completed" && !\(session\.status === "generation_failed" && session\.chapters\.length\)\)/);
+  assert.match(source, /onRetry=\{closedFailure \? undefined : retryResume\}/);
+  assert.match(source, /copy\.errorText\.GENERATION_FAILED_REFUNDED/);
+});

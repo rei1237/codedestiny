@@ -93,6 +93,8 @@ beforeEach(()=>{
  fetchBlock=jest.spyOn(globalThis,'fetch').mockImplementation(()=>{throw new Error('External fetch blocked')});
 });
 afterEach(()=>{expect(fetchBlock).not.toHaveBeenCalled();fetchBlock.mockRestore()});
+// 환불 한 바퀴 = 코인 → 월정석 → 결제 취소(같은 모의 함수, 각각 refunded:false 라 셋 다 불린다).
+const REFUND_CHAIN = 3;
 async function generate(extra = {}){return route(new Request('https://mock.test/api/master-love-codex/generate',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({sessionId:'saved-codex'})}),{},{generateChapter:provider,refundPassCoverage:refund,runCoinRefund:refund,runMonthlyCreditRefund:refund,runPaymentCancel:refund,...extra})}
 it('preserves a 19/20 compat book without granting calls beyond its exhausted budget', async () => {
   const { __masterLoveCodexTestUtils: utils, diagnoseCodexSession, isCodexArchiveComplete } = await import('../../worker/routes/master-love-codex.js');
@@ -101,7 +103,7 @@ it('preserves a 19/20 compat book without granting calls beyond its exhausted bu
   for (const chapter of utils.MODES.compat.chapters.filter(row => row.id !== 'self')) chapters.push((await provider({}, { chapter })).chapter);
   provider.mockClear();
   Object.assign(docs[0], { mode: 'compat', status: 'generation_failed', chapters,
-    deliveryMeta: { savedChapters: chapters, attempts: { self: 3 }, failures: { self: 3 }, reviewRequired: true,
+    deliveryMeta: { savedChapters: chapters, attempts: { self: 4 }, failures: { self: 4 }, reviewRequired: true,
       errors: { self: { code: 'LLM_PARTNER_EVIDENCE_MISSING' } }, reviewReason: 'GENERATION_BUDGET_EXCEEDED' } });
   const originalBodies = chapters.map(row => row.body);
   const plan = planCodexReopen(docs[0], diagnoseCodexSession);
@@ -123,7 +125,7 @@ it('concurrent requests cannot generate the same chapters twice',async()=>{const
 it('legacy completed books remain readable without new quality checks',async()=>{docs[0].status='completed';docs[0].chapters=[{id:'old',body:'과거 구매 결과',ok:true}];expect((await generate()).status).toBe(200);expect(provider).not.toHaveBeenCalled()});
 
 for(const source of [0,1,2])it(`rejects refunded execution or balance ledger ${source}`,async()=>{revokedSource=source;expect((await generate()).status).toBe(402);expect(provider).not.toHaveBeenCalled()});
-it('uncertain exhausted calls do not trigger more LLM or a refund',async()=>{await generate();const ids=docs[0].deliveryMeta.savedChapters.map(row=>row.id);const {__masterLoveCodexTestUtils:utils}=await import('../../worker/routes/master-love-codex.js');const next=utils.MODES.solo.chapters.find(row=>!ids.includes(row.id));docs[0].deliveryMeta.attempts[next.id]=3;
+it('uncertain exhausted calls do not trigger more LLM or a refund',async()=>{await generate();const ids=docs[0].deliveryMeta.savedChapters.map(row=>row.id);const {__masterLoveCodexTestUtils:utils}=await import('../../worker/routes/master-love-codex.js');const next=utils.MODES.solo.chapters.find(row=>!ids.includes(row.id));docs[0].deliveryMeta.attempts[next.id]=4;
  // 소진된 장은 다시 호출되지 않지만, 그 한 장이 나머지 장의 생성을 멈추지도 않는다.
  expect((await generate()).status).toBe(202);expect(provider.mock.calls.some(([,input])=>input.chapter.id===next.id)).toBe(false);
  expect(docs[0].deliveryMeta.savedChapters).toHaveLength(8);expect(refund).not.toHaveBeenCalled()});
@@ -146,22 +148,32 @@ for (const state of ['deferred']) it(`${state} confirmed refusals preserve the s
   expect(docs[0].paymentId).toBe('original-payment');
 });
 
-it('provider refusals consume at most two attempts per chapter across resumes', async () => {
+// S16 (2026-11-19): 공급자 거절도 장당 4회 상한 — 소진되면 부분 전달 없이 최종 실패 + 자동 환불(1회).
+it('provider refusals consume at most four attempts per chapter, then close with one refund and no body', async () => {
   provider.mockImplementation(async () => ({ status: 'retryable', failure: { code: 'LLM_PROVIDER_UNAVAILABLE', kind: 'provider_rejected' } }));
-  for (let wave = 0; wave < 15; wave++) { await generate(); docs[0].deliveryMeta.nextAttemptAt = null; }
-  expect(Object.values(docs[0].deliveryMeta.attempts).every(value => value === 2)).toBe(true);
+  for (let wave = 0; wave < 20; wave++) { await generate(); docs[0].deliveryMeta.nextAttemptAt = null; }
+  expect(Object.values(docs[0].deliveryMeta.attempts).every(value => value === 4)).toBe(true);
   const calls = provider.mock.calls.length;
+  expect(calls).toBe(80);
+  const closed = await generate();
+  expect(closed.status).toBe(503);
+  expect(await closed.json()).toMatchObject({ status: 'generation_failed', retryable: false, reason: 'GENERATION_FAILED_REFUNDED', chapters: [], loveDna: null });
+  expect(docs[0].status).toBe('generation_failed');
+  expect(docs[0].deliveryMeta.reviewReason).toBe('DELIVERY_FAILED');
+  expect(refund).toHaveBeenCalledTimes(REFUND_CHAIN);
   await generate();
   expect(provider).toHaveBeenCalledTimes(calls);
-  expect(refund).not.toHaveBeenCalled();
+  expect(refund).toHaveBeenCalledTimes(REFUND_CHAIN);
   expect(docs[0].paymentId).toBe('original-payment');
 });
 
 it('public progress publishes every saved sibling in order and never the lock token', async () => {
   provider.mockImplementationOnce(async () => ({ status: 'fallback' }));
   const payload = await (await generate()).json();
-  expect(payload.chapters.map(row => row.order)).toEqual([2, 3, 4]);
-  expect(payload.generationProgress).toMatchObject({ completed: 3, readable: 3, total: 20, validated: 3, finalized: 0, percent: 14, step: 'retrying' });
+  // S16: 완료 전 응답은 본문 없이 개수·상태만 싣는다.
+  expect(payload.chapters).toEqual([]);
+  expect(payload.loveDna ?? null).toBe(null);
+  expect(payload.generationProgress).toMatchObject({ completed: 3, readable: 0, total: 20, validated: 3, finalized: 0, percent: 14, step: 'retrying' });
   expect(payload.generationProgress.currentChapter.order).toBe(1);
   expect(payload.generationProgress.lockToken).toBeUndefined();
 });
@@ -183,21 +195,22 @@ it('chapter two failure preserves later IDs and passes its correction into the n
   provider.mockImplementation(async (env, input) => input.chapter.order === 2 && !docs[0].deliveryMeta?.errors?.[input.chapter.id]
     ? { status: 'fallback', failure: { code: 'LLM_OUTPUT_TRUNCATED', kind: 'quality' } } : normal(env, input));
   const payload = await (await generate()).json();
-  expect(payload.generationProgress).toMatchObject({ completed: 3, readable: 3 });
+  expect(payload.generationProgress).toMatchObject({ completed: 3, readable: 0 });
   await generate();
   expect(provider.mock.calls.find(([, input], index) => index >= 4 && input.chapter.order === 2)[1].previousError).toBe('LLM_OUTPUT_TRUNCATED');
   expect(provider.mock.calls.filter(([, input]) => input.chapter.order === 3)).toHaveLength(1);
 });
 
-// 불확실 호출의 상한은 이제 "세션당 12회"가 아니라 "장당 3회"다 — 앞 4장이 소진돼도 남은 장을
-// 계속 시도하기 때문이다(그 대가로 전면 장애 시 최대 20×3회를 쓴다. outages 백오프가 간격을 벌린다).
-it('ambiguous provider timeouts stay capped at three attempts a chapter and stop without refund', async () => {
+// 불확실 호출의 상한은 "장당 4회"다(S16) — 앞 장이 소진돼도 남은 장을 계속 시도한다(전면 장애 시 최대 20×4회,
+// outages 백오프가 간격을 벌린다). 전부 소진되면 최종 실패 + 자동 환불(1회), 본문은 내보내지 않는다.
+it('ambiguous provider timeouts stay capped at four attempts a chapter and then refund once', async () => {
   provider.mockImplementation(async () => ({ status: 'retryable', failure: { code: 'LLM_TIMEOUT_UNCERTAIN', kind: 'uncertain' } }));
-  for (let wave = 0; wave < 15; wave++) { expect((await generate()).status).toBe(503); docs[0].deliveryMeta.nextAttemptAt = null; }
-  expect(provider).toHaveBeenCalledTimes(40);
+  for (let wave = 0; wave < 20; wave++) { expect((await generate()).status).toBe(503); docs[0].deliveryMeta.nextAttemptAt = null; }
+  expect(provider).toHaveBeenCalledTimes(80);
   const payload = await (await generate()).json();
-  expect(payload.retryable).toBe(false); expect(payload.reason).toBe('GENERATION_BUDGET_EXCEEDED');
-  await generate(); expect(provider).toHaveBeenCalledTimes(40); expect(refund).not.toHaveBeenCalled();
+  expect(payload.retryable).toBe(false); expect(payload.reason).toBe('GENERATION_FAILED_REFUNDED');
+  expect(payload.chapters).toEqual([]);
+  await generate(); expect(provider).toHaveBeenCalledTimes(80); expect(refund).toHaveBeenCalledTimes(REFUND_CHAIN);
 });
 
 it('expired batch lock resumes without repeating accepted chapters', async () => {
@@ -241,9 +254,10 @@ const utils = async () => (await import('../../worker/routes/master-love-codex.j
 it('publishes every validated chapter while an earlier chapter is still missing', async () => {
   provider.mockImplementationOnce(async () => ({ status: 'fallback', failure: { code: 'LLM_QUALITY_FAILED', kind: 'quality' } }));
   const payload = await (await generate()).json();
-  expect(payload.chapters.map(row => row.order)).toEqual([2, 3, 4]);
+  // S16: 검증된 장은 저장·집계되지만 본문은 완료 뒤에만 나간다.
+  expect(payload.chapters).toEqual([]);
   expect(payload.status).toBe('generating');
-  expect(payload.generationProgress).toMatchObject({ completed: 3, readable: 3, total: 20, validated: 3, finalized: 0, percent: 14, step: 'retrying' });
+  expect(payload.generationProgress).toMatchObject({ completed: 3, readable: 0, total: 20, validated: 3, finalized: 0, percent: 14, step: 'retrying' });
   expect(payload.generationProgress.lockToken).toBeUndefined();
   expect(payload.outline).toHaveLength(20);
   expect(payload.outline.map(row => row.state).slice(0, 5)).toEqual(['retrying', 'ready', 'ready', 'ready', 'pending']);
@@ -256,7 +270,7 @@ it('a book with one stored chapter never reads as complete or 100%', async () =>
   docs[0].chapters = [(await provider({}, { chapter: MODES.solo.chapters[0] })).chapter];
   const payload = await reopen();
   expect(payload.status).toBe('generating');
-  expect(payload.chapters).toHaveLength(1);
+  expect(payload.chapters).toHaveLength(0);
   expect(payload.totalChapters).toBe(20);
   expect(payload.generationProgress).toMatchObject({ validated: 1, finalized: 0, total: 20, percent: 4 });
 });
@@ -268,11 +282,11 @@ it('holds back 100% until the server finalizes completion', async () => {
   expect((await generate()).status).toBe(503);
   const payload = await reopen();
   expect(payload.status).not.toBe('completed');
-  expect(payload.chapters).toHaveLength(20);
+  expect(payload.chapters).toHaveLength(0);
   expect(payload.generationProgress).toMatchObject({ validated: 20, finalized: 0, percent: 95, step: 'finalizing' });
 });
 
-// A·E. 3회를 소진한 장이 나머지 19장의 생성을 막지 않는다(이전 수정이 손대지 않은 구조).
+// A·E. 상한을 소진한 장이 나머지 19장의 생성을 막지 않는다. S16: 남은 장이 전부 끝나면 부분 전달 대신 최종 실패 + 자동 환불.
 it('a chapter that exhausts its attempts does not stop the remaining chapters', async () => {
   const { MODES } = await utils();
   const stuck = MODES.solo.chapters[1];
@@ -280,17 +294,21 @@ it('a chapter that exhausts its attempts does not stop the remaining chapters', 
   provider.mockImplementation(async (env, input) => input.chapter.id === stuck.id
     ? { status: 'fallback', failure: { code: 'LLM_QUALITY_FAILED', kind: 'quality' } } : normal(env, input));
   for (let wave = 0; wave < 6; wave++) expect((await generate()).status).toBe(202);
-  expect(docs[0].deliveryMeta.attempts[stuck.id]).toBe(2);
+  expect(docs[0].deliveryMeta.attempts[stuck.id]).toBe(4);
   expect(docs[0].chapters).toHaveLength(19);
   expect(docs[0].status).toBe('generating');
-  expect((await generate()).status).toBe(503);
+  const closed = await generate();
+  expect(closed.status).toBe(503);
+  expect(await closed.json()).toMatchObject({ status: 'generation_failed', retryable: false, reason: 'GENERATION_FAILED_REFUNDED', chapters: [] });
   expect(docs[0].status).toBe('generation_failed');
+  expect(docs[0].deliveryMeta).toMatchObject({ reviewRequired: true, reviewReason: 'DELIVERY_FAILED', exhaustedChapterIds: [stuck.id] });
+  expect(refund).toHaveBeenCalledTimes(REFUND_CHAIN);
   const payload = await reopen();
-  expect(payload.chapters).toHaveLength(19);
-  expect(payload.generationProgress).toMatchObject({ validated: 19, finalized: 0, total: 20, step: 'failed' });
-  expect(payload.outline.filter(row => row.state === 'blocked').map(row => row.id)).toEqual([stuck.id]);
-  expect(refund).not.toHaveBeenCalled();
-  expect(docs[0].passRefund ?? null).toBe(null);
+  expect(payload.chapters).toEqual([]);
+  expect(payload.status).toBe('generation_failed');
+  expect(payload.retryable).toBe(false);
+  await generate();
+  expect(refund).toHaveBeenCalledTimes(REFUND_CHAIN);
 });
 
 // §4. 구매 시점 구성이 세션에 고정되어, 이후 상품 구성 변경이 진행 중인 책을 바꾸지 못한다.
@@ -324,8 +342,8 @@ it('public progress ignores duplicate IDs, apology text and stale numeric counte
   docs[0].deliveryMeta.savedChapters = [first, first, { ...first, id: 'unknown' }, { ...docs[0].chapters[0], id: 'temperament', ok: false }];
   docs[0].generationProgress.completed = 19;
   const payload = await (await route(new Request('https://mock.test/api/master-love-codex/session?sessionId=saved-codex'), {})).json();
-  expect(payload.generationProgress).toMatchObject({ completed: 1, readable: 1, total: 20, validated: 1, finalized: 0, percent: 4 });
-  expect(payload.chapters).toHaveLength(1);
+  expect(payload.generationProgress).toMatchObject({ completed: 1, readable: 0, total: 20, validated: 1, finalized: 0, percent: 4 });
+  expect(payload.chapters).toHaveLength(0);
 });
 
 // Real chapters share chart facts. Dedupe must cut those repeats without failing the chapter.
@@ -427,8 +445,8 @@ it('resumes a lost final length-repair reservation without another provider call
 });
 
 it('accepts a structurally valid short chapter on its last existing attempt', async () => {
-  const { MODES } = await utils(); const first = MODES.solo.chapters[0];
-  docs[0].deliveryMeta = { attempts: { [first.id]: 1 } };
+  const { MODES, CHAPTER_ATTEMPT_LIMIT } = await utils(); const first = MODES.solo.chapters[0];
+  docs[0].deliveryMeta = { attempts: { [first.id]: CHAPTER_ATTEMPT_LIMIT - 1 } };
   provider.mockImplementationOnce(async () => lengthCandidate(first, 700));
   for (let wave = 0; wave < 5; wave++) await generate();
   expect(docs[0].status).toBe('completed');
@@ -465,8 +483,9 @@ it('keeps draft markers in Mixed delivery metadata while strict chapter persiste
   expect(docs[0].chapters.every(row => !Object.hasOwn(row, 'lengthDraft'))).toBe(true);
   expect(docs[0].deliveryMeta.savedChapters[0].lengthDraft).toBe(true);
   const payload = await reopen();
-  expect(payload.chapters).toHaveLength(4);
-  expect(payload.chapters[0].body).toBe(docs[0].chapters[0].body);
+  // S16: 초안 표식은 저장에만 남고, 완료 전 응답에는 본문이 없다.
+  expect(payload.chapters).toEqual([]);
+  expect(payload.generationProgress.validated).toBe(4);
 });
 
 for (const floor of ['paid body', 'legacy aggregate']) it(`keeps the independent ${floor} total floor after individual repair`, async () => {
@@ -511,4 +530,24 @@ it('resumed waves retain the frozen question snapshot and bind checkpoints to it
  expect(next.consultation).toEqual(consultation);
  expect(next.snapshotKey).not.toBe(keyA);
  expect(refund).not.toHaveBeenCalled();
+});
+
+// S16 (2026-11-19): 완료 전 응답은 본문 0 · 완료 응답은 전 장 본문을 한 번에 싣는다.
+it('withholds every body until completion, then delivers the whole book at once', async () => {
+  for (let wave = 0; wave < 4; wave++) {
+    const payload = await (await generate()).json();
+    expect(payload.status).not.toBe('completed');
+    expect(payload.chapters).toEqual([]);
+    expect(payload.loveDna ?? null).toBe(null);
+    expect((await reopen()).chapters).toEqual([]);
+  }
+  const done = await (await generate()).json();
+  expect(done.status).toBe('completed');
+  const { MODES } = await utils();
+  const payload = await reopen();
+  expect(payload.status).toBe('completed');
+  expect(payload.chapters.map(row => row.id)).toEqual(MODES.solo.chapters.map(row => row.id));
+  expect(payload.chapters.every(row => typeof row.body === 'string' && row.body.length > 0 && row.title)).toBe(true);
+  expect(payload.generationProgress).toMatchObject({ validated: 20, finalized: 1, percent: 100 });
+  expect(refund).not.toHaveBeenCalled();
 });

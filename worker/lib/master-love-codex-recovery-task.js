@@ -1,8 +1,10 @@
 import { connectDb } from "./db.js";
 import { MasterLoveCodexSession } from "./models.js";
 import { recoverCodexDeliverySession } from "./master-love-codex-session-access.js";
-import { acquireBatchLock, runCodexWave, syncCodexExecution, diagnoseCodexSession, __masterLoveCodexTestUtils } from "../routes/master-love-codex.js";
+import { acquireBatchLock, runCodexWave, syncCodexExecution, diagnoseCodexSession, settleCodexFinalFailure, retryCodexFinalRefund,
+  __masterLoveCodexTestUtils } from "../routes/master-love-codex.js";
 import { bootstrapPaidCodexSessions } from "./master-love-codex-paid-bootstrap.js";
+import { shouldSettleStuck, nextDeliveryWatch } from "./paid-delivery-stuck.js";
 
 /**
  * 마스터 인연의 서 — 버려진 생성 세션의 **백스톱**.
@@ -121,6 +123,57 @@ export function planCodexReopen(doc, diagnose) {
   return null;
 }
 
+/** 정체 감시의 진전 크기: 저장된 장 본문 길이 합(장 id 당 가장 긴 것). 시도·오류 기록은 세지 않는다. */
+export function codexSavedBodySize(doc) {
+  const rows = new Map();
+  for (const row of [...(doc?.deliveryMeta?.savedChapters || []), ...(doc?.chapters || [])]) {
+    if (!row?.id || typeof row.body !== "string") continue;
+    rows.set(row.id, Math.max(rows.get(row.id) || 0, row.body.length));
+  }
+  return [...rows.values()].reduce((sum, size) => sum + size, 0);
+}
+
+/** S16: 크론 웨이브가 진전 없이 STUCK_SETTLE_STALLS 번 쌓였거나 복구 창 끝에 가까우면 최종 실패로 확정한다.
+ *  재개된 옛 세션은 재개 시점부터 나이를 잰다 — 오래전 결제라고 시도 없이 바로 환불하지 않는다. */
+export function codexDeliveryStuck(doc, now) {
+  return shouldSettleStuck({ deliveryWatch: doc?.deliveryMeta?.deliveryWatch, createdAt: doc?.deliveryMeta?.codexReopenedAt || doc?.createdAt }, now);
+}
+
+/** S16: 최종 실패로 닫혔지만 환불 정산이 끝나지 않은 세션. 판정은 JS 에서 다시 한다(fail-closed). */
+export function buildCodexRefundRetryFilter() {
+  return { status: "generation_failed", "deliveryMeta.reviewReason": "DELIVERY_FAILED",
+    "deliveryMeta.refundSettledAt": { $exists: false }, "deliveryMeta.refundAdminReviewAt": { $exists: false } };
+}
+
+function needsCodexRefundRetry(doc) {
+  const meta = doc?.deliveryMeta || {};
+  return doc?.status === "generation_failed" && meta.reviewReason === "DELIVERY_FAILED" && !meta.refundSettledAt && !meta.refundAdminReviewAt;
+}
+
+async function retryUnsettledRefunds(env, SessionModel, now, retryFn) {
+  const docs = (await SessionModel.find(buildCodexRefundRetryFilter()).sort({ updatedAt: 1 }).limit(MAX_SESSIONS_PER_TICK).lean()) || [];
+  const results = [];
+  for (const doc of docs) {
+    if (!needsCodexRefundRetry(doc) || !doc.id || !doc.userId) continue;
+    let refundStatus = "pending";
+    try { refundStatus = (await retryFn(env, doc))?.refundStatus || "pending"; }
+    catch (error) { console.error("[master-love-codex-recovery] refund retry", String(doc.id), String(error?.message || error).slice(0, 200)); }
+    // 미정산이면 updatedAt 을 밀어 다음 틱에 다른 세션이 먼저 오게 한다(한 건이 큐를 막지 않게).
+    if (refundStatus === "pending") await SessionModel.updateOne({ id: doc.id, userId: doc.userId, status: "generation_failed" },
+      { $set: { "deliveryMeta.refundRetryAt": new Date(now) } }).catch(() => {});
+    results.push({ sessionId: String(doc.id), refundStatus });
+  }
+  return results;
+}
+
+async function recordCodexDeliveryWatch(SessionModel, before, after, now) {
+  if (!before?.id || !before.userId) return null;
+  const watch = nextDeliveryWatch(before.deliveryMeta?.deliveryWatch, codexSavedBodySize(after || before), now);
+  await SessionModel.updateOne({ id: before.id, userId: before.userId, status: { $in: ["generating", "delivery_pending"] }, deliveryMeta: { $type: "object" } },
+    { $set: { "deliveryMeta.deliveryWatch": watch } }, { timestamps: false });
+  return watch;
+}
+
 async function markRevokedSession(SessionModel, doc, access, now) {
   if (access?.reason !== "PURCHASE_REFUNDED") return;
   // Persist only a terminal generation state; never issue another refund or alter purchase records.
@@ -167,6 +220,8 @@ export async function runMasterLoveCodexRecovery(env, options = {}) {
   const lockFn = options.acquireBatchLock || acquireBatchLock;
   const waveFn = options.runCodexWave || runCodexWave;
   const accessFn = options.recoverCodexSession || (args=>recoverCodexDeliverySession(env,args));
+  const settleFn = options.settleCodexFinalFailure || settleCodexFinalFailure;
+  const refundRetryFn = options.retryCodexFinalRefund || retryCodexFinalRefund;
 
   await (options.connectDb || connectDb)(env);
   const bootstrapped = await (options.bootstrapPaidCodexSessions || bootstrapPaidCodexSessions)(env, { ...options, now, deadlineAt: deadline });
@@ -175,6 +230,8 @@ export async function runMasterLoveCodexRecovery(env, options = {}) {
     const access = await accessFn({ userId: doc.userId, sessionId: doc.id });
     if (access && !access.denied) await (options.syncCodexExecution || syncCodexExecution)(access.session);
   }
+  // 금전 의무는 생성보다 먼저 — 최종 실패로 닫혔는데 환불이 덜 끝난 세션을 다시 정산한다(멱등 마커).
+  const refundRetries = await retryUnsettledRefunds(env, SessionModel, now, refundRetryFn);
   const reopened = await reopenClosedSessions(
     SessionModel, now, options.syncCodexExecution || syncCodexExecution, options.diagnoseCodexSession || diagnoseCodexSession, accessFn,
   );
@@ -211,6 +268,20 @@ export async function runMasterLoveCodexRecovery(env, options = {}) {
         continue;
       }
 
+      // S16 정체 감시: 진전 없는 복구가 쌓이면 이어쓰기 대신 최종 실패 + 자동 환불로 확정한다(본문 비노출).
+      if (codexDeliveryStuck(lock.doc || candidate, now)) {
+        const filter = { id: sessionId, userId, "generationProgress.lockToken": lock.lockToken, status: { $ne: "completed" } };
+        try {
+          const settled = await settleFn(env, { sessionId, userId, filter, doc: lock.doc || candidate, reason: "DELIVERY_STUCK",
+            exhaustedChapterIds: [], dependencies: options.dependencies || {} });
+          outcomes.push({ sessionId, outcome: "generation_failed", stuck: true, refundStatus: settled?.refundStatus || "pending" });
+        } catch (error) {
+          await SessionModel.updateOne(filter, { $set: { "generationProgress.lockedAt": null, "generationProgress.lockToken": "" } }).catch(() => {});
+          throw error;
+        }
+        continue;
+      }
+
       const wave = await waveFn(env, {
         sessionId,
         userId,
@@ -220,6 +291,9 @@ export async function runMasterLoveCodexRecovery(env, options = {}) {
         deadlineAt: Date.now() + WAVE_BUDGET_MS,
       });
       outcomes.push({ sessionId, outcome: wave.outcome, done: Boolean(wave.done) });
+      if (!wave.done && wave.outcome !== "generation_failed" && wave.outcome !== "denied") {
+        await recordCodexDeliveryWatch(SessionModel, lock.doc || candidate, wave.session, now).catch(() => null);
+      }
       const progress = Number(wave.session?.generationProgress?.completed || 0);
       if (wave.outcome === "committed" && !wave.done && progress > saved) queue.push({ candidate: wave.session, saved: progress });
     } catch (error) {
@@ -231,11 +305,12 @@ export async function runMasterLoveCodexRecovery(env, options = {}) {
 
   const reviewNeeded = await SessionModel.countDocuments({ "deliveryMeta.reviewRequired": true, status: "generation_failed" });
   const stalled = await SessionModel.countDocuments(buildCodexStalledFilter(now));
-  console.log("[master-love-codex-recovery]", JSON.stringify({ bootstrapped, reopened, outcomes, reviewNeeded, stalled }));
-  return { ok: true, scanned: candidates.length, bootstrapped, reopened, outcomes, reviewNeeded, stalled };
+  console.log("[master-love-codex-recovery]", JSON.stringify({ bootstrapped, reopened, refundRetries, outcomes, reviewNeeded, stalled }));
+  return { ok: true, scanned: candidates.length, bootstrapped, reopened, refundRetries, outcomes, reviewNeeded, stalled };
 }
 
 export const __masterLoveCodexRecoveryTestUtils = {
   ABANDONED_AFTER_MS, MAX_SESSIONS_PER_TICK, TASK_BUDGET_MS, WAVE_BUDGET_MS,
   buildAbandonedFilter, buildCodexReopenFilter, planCodexReopen,
+  codexSavedBodySize, codexDeliveryStuck, buildCodexRefundRetryFilter,
 };

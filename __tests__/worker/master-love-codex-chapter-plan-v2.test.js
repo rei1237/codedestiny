@@ -138,6 +138,21 @@ describe('delivery never fails on length or repeats', () => {
     expect(other.finalAttempt).toBe(false);
   });
 
+  // S16 (2026-11-19): 손질(salvage·scrub)은 2번째 시도부터, 공급자 폴백(Workers AI)은 상한(4번째) 시도에서만.
+  it('salvages from the second attempt and keeps the provider fallback for the capped attempt only', async () => {
+    docs[0].deliveryMeta.attempts = { gate: 1 };
+    await generate();
+    const second = provider.mock.calls.find(([, input]) => input.chapter.id === 'gate')[1];
+    expect(second).toMatchObject({ finalAttempt: true, providerFallback: false });
+    const first = provider.mock.calls.find(([, input]) => input.chapter.id !== 'gate')[1];
+    expect(first).toMatchObject({ finalAttempt: false, providerFallback: false });
+    provider.mockClear();
+    docs[0] = { ...docs[0], chapters: [], deliveryMeta: { attempts: { gate: 3 } }, generationProgress: null };
+    await generate();
+    const capped = provider.mock.calls.find(([, input]) => input.chapter.id === 'gate')[1];
+    expect(capped).toMatchObject({ finalAttempt: true, providerFallback: true });
+  });
+
   it('a chapter repeating an earlier passage is trimmed and saved, without an extra paid call', async () => {
     const shared = '두 사람은 같은 장면에서 서로 다른 속도로 마음을 열기 때문에 기다림의 길이를 먼저 맞추는 편이 좋습니다.';
     provider.mockImplementation(async (_env, { chapter }) => okChapter(chapter, `${shared}\n${body(chapter)}`));
