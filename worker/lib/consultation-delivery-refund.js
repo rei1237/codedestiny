@@ -302,5 +302,11 @@ export async function runPendingConsultationRefunds(env, options = {}) {
     const retryHeukwol = options.heukwolRetryRefunds || (await import('../routes/heukwol.js')).settleDueHeukwolRetryRefunds;
     outcomes.push(...await retryHeukwol(env));
   } catch { outcomes.push({ service: 'heukwol', refundStatus: 'pending' }); }
+  // 2026-11-19 R7 찻집 다시 시도 보류: 창(생성 + 7일)이 지난 보류(다시 연 뒤 방치된 건 포함)를 찻집의 기존 멱등 환불
+  // (refundId=resultId, 실패하면 passRefund.pendingAt → 위 retryTea)로 1회 정산한다. 실패는 격리하고 다음 주기에 다시 돈다.
+  try {
+    const settleTea = options.teaHouseRetryRefunds || (await import('../routes/fortune-tea-house.js')).settleDueTeaHouseRetryRefunds;
+    outcomes.push(...await settleTea(env));
+  } catch { outcomes.push({ service: 'fortune-tea-house', refundStatus: 'pending' }); }
   return { outcomes };
 }

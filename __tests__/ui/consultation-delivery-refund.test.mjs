@@ -97,7 +97,7 @@ function fixture(method = 'cash') {
     },
   };
   // 찻집 이용권 환불 대기는 별도 저장소다 — 기본 픽스처에서는 비어 있게 두고 아래 전용 테스트가 배선을 확인한다.
-  const deps = { now: Date.parse('2026-10-27T00:00:00Z'), withDb: async (_env, _ctx, work) => work(db), teaHousePassRefunds: async () => [], neoRetryRefunds: async () => [], loveSecretRetryRefunds: async () => [], heukwolRetryRefunds: async () => [],
+  const deps = { now: Date.parse('2026-10-27T00:00:00Z'), withDb: async (_env, _ctx, work) => work(db), teaHousePassRefunds: async () => [], neoRetryRefunds: async () => [], loveSecretRetryRefunds: async () => [], heukwolRetryRefunds: async () => [], teaHouseRetryRefunds: async () => [],
     fetchPayment: async () => ({ status: cancelled || partial ? 'cancelled' : 'paid', amount: 30000, currency: 'KRW',
       rawV2: { status: partial ? 'PARTIAL_CANCELLED' : cancelled ? 'CANCELLED' : 'PAID', currency: 'KRW',
         amount: { total: 30000, paid: 30000, cancelled: partial ? 15000 : cancelled ? 30000 : 0 } } }),
@@ -411,4 +411,14 @@ test('the refund cron also settles due heukwol retry refunds and isolates their 
   const g = fixture();
   g.deps.heukwolRetryRefunds = async () => { throw new Error('HEUKWOL_DB_DOWN'); };
   assert.deepEqual((await runPendingConsultationRefunds({}, g.deps)).outcomes, [{ service: 'heukwol', refundStatus: 'pending' }]);
+});
+// 2026-11-19 R7: 찻집 다시 시도 보류의 창 만료 환불도 같은 크론이 정산하고, 실패는 격리한다.
+test('the refund cron also settles due tea-house retry refunds and isolates their failure', async () => {
+  const f = fixture(); let calls = 0;
+  f.deps.teaHouseRetryRefunds = async () => { calls++; return [{ service: 'fortune-tea-house', refundStatus: 'refunded' }]; };
+  assert.deepEqual((await runPendingConsultationRefunds({}, f.deps)).outcomes, [{ service: 'fortune-tea-house', refundStatus: 'refunded' }]);
+  assert.equal(calls, 1);
+  const g = fixture();
+  g.deps.teaHouseRetryRefunds = async () => { throw new Error('TEA_RETRY_DB_DOWN'); };
+  assert.deepEqual((await runPendingConsultationRefunds({}, g.deps)).outcomes, [{ service: 'fortune-tea-house', refundStatus: 'pending' }]);
 });

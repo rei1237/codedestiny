@@ -56,7 +56,7 @@ import {
 } from "../lib/saju-ai-prompt.js";
 import { canAccessPaidFeature, PAID_FEATURE_ACCESS_USER_PROJECTION } from "../lib/paid-feature-access.js";
 import { countPaidReportBodyChars, dropRepeatedReportSentences, hasRepeatedReportPassage } from "../lib/paid-report-quality.js";
-import { STUCK_LIVE_LEASE_MS, deliveryProgressSize, logStuckSettled, nextDeliveryWatch } from "../lib/paid-delivery-stuck.js";
+import { STUCK_LIVE_LEASE_MS, deliveryProgressSize, logStuckSettled, nextDeliveryWatch, retryRefundAt } from "../lib/paid-delivery-stuck.js";
 import { usageSettlementSetFields } from "../lib/late-usage-settlement.js";
 import { isStoredPaidResultRevoked } from "../lib/paid-result-revocation.js";
 import { hasRenderableLlmText } from "../lib/llm-result-delivery.js";
@@ -4996,6 +4996,11 @@ async function beginFortuneTeaHouseGeneration({ auth, resultId, consultRequest, 
   if (existing?.passRefund?.refundedAt) {
     return { ok: false, passRefundedAt: existing.passRefund.refundedAt, passRefunded: existing.passRefund.refunded === true };
   }
+  // R7: 다시 시도 보류는 같은 요청 재제출로 다시 생성하지 않는다(다시 열기는 /retry 만). 창이 지났으면 종결 응답.
+  if (existing?.status === "generation_failed" && existing.llmMeta?.retryable) {
+    const retry = teaRetryState(existing, now.getTime());
+    return retry ? { ok: false, retryHold: retry, doc: existing } : { ok: false, retryClosed: true, doc: existing };
+  }
   if (isFreshFortuneTeaGeneration(existing)) {
     return { ok: false, inProgress: true, doc: existing };
   }
@@ -5145,7 +5150,173 @@ export async function retryPendingFortuneTeaHousePassRefunds(env, { limit = 2 } 
   return outcomes;
 }
 
-async function markFortuneTeaHouseGenerationFailed({ env, auth, resultId, code, message, lockToken }) {
+// 2026-11-19 R7 다시 시도 먼저: 체크포인트 상담의 종결 실패(라운드 상한·정체)는 바로 환불하지 않고 다시 시도 보류로 둔다.
+// 보류 = status generation_failed + llmMeta.retryable{since, refundAt(생성 + 7일, 다시 시도해도 늘지 않음), code, evidenceIds, reopens}.
+// 고객은 결제 확인·차감 없이 /retry 로 다시 열거나 /refund-request 로 환불을 요청한다. 창이 지나면 환불 cron
+// (settleDueTeaHouseRetryRefunds)이 기존 환불(이용권 refundId=resultId 멱등·증빙 해제·이용 보류 취소)로 1회 정산한다.
+// 결정적 실패(계산 근거 누락·입력 오류), 체크포인트 없는 옛 경로, 토스 네이티브는 기존대로 바로 환불한다.
+const TEA_RETRY_DETERMINISTIC = /BASIS_MISSING|INVALID_INPUT/;
+const TEA_RETRY_HELD_MESSAGE = "연이가 상담문을 끝까지 완성하지 못했어요. 완성된 부분은 보관했고, 추가 결제·차감 없이 다시 시도할 수 있어요.";
+const TEA_RETRY_CLOSED_MESSAGE = "다시 시도 기간이 끝나 이 상담은 종료됐어요. 이번 상담의 이용 권한은 자동으로 돌려드려요. 새 상담으로 다시 신청해 주세요.";
+const TEA_RETRY_OPEN_STATUSES = ["generation_failed", "partial", "generating"];
+/** 보류할 수 있으면 환불 시각(처음 정한 시각 유지), 아니면 null(호출부는 기존 즉시 환불로 간다). */
+function teaRetryHoldAt(doc, code, now) {
+  const marker = doc?.llmMeta?.retryable;
+  if (!doc?.generationCheckpoint?.requestBody || doc.tossNative || marker?.settledAt || marker?.refundRequestedAt) return null;
+  if (TEA_RETRY_DETERMINISTIC.test(String(code || ""))) return null;
+  const refundAt = marker?.refundAt ? new Date(marker.refundAt) : retryRefundAt(doc, now);
+  return refundAt.getTime() > now ? refundAt : null;
+}
+function teaRetryMarker(doc, refundAt, code, evidenceIds, now) {
+  const marker = doc?.llmMeta?.retryable || {};
+  const kept = Array.isArray(marker.evidenceIds) ? marker.evidenceIds : (Array.isArray(evidenceIds) ? evidenceIds.map(String).slice(0, 20) : []);
+  return { ...marker, since: marker.since || new Date(now), refundAt, code: cleanText(code, 80), evidenceIds: kept, reopens: Number(marker.reopens || 0) };
+}
+function teaRetryHeldBody(resultId, refundAt) {
+  return { ok: false, retryable: false, status: "generation_failed", reason: "RETRY_AVAILABLE", resultId, refunded: false,
+    retry: { available: true, refundAt, resultId }, message: TEA_RETRY_HELD_MESSAGE };
+}
+/** 다시 시도 가능한 보류면 { available, refundAt, resultId }, 아니면 null. */
+export function teaRetryState(doc, now = Date.now()) {
+  const marker = doc?.llmMeta?.retryable;
+  if (doc?.status !== "generation_failed" || !marker || marker.settledAt || marker.refundRequestedAt) return null;
+  if (doc.passRefund?.refundedAt || doc.passRefund?.pendingAt || doc.tossNative) return null;
+  const refundAt = new Date(marker.refundAt ?? NaN).getTime();
+  return refundAt > now ? { available: true, refundAt: new Date(refundAt).toISOString(), resultId: doc.resultId } : null;
+}
+/** 창이 지났는데 아직 정산하지 않은 보류(다시 연 뒤 방치된 partial·generating 포함). */
+function teaRetryDue(doc, now) {
+  const marker = doc?.llmMeta?.retryable;
+  if (!marker || marker.settledAt || doc.tossNative || !TEA_RETRY_OPEN_STATUSES.includes(doc.status)) return false;
+  return !(new Date(marker.refundAt ?? NaN).getTime() > now);
+}
+/** 보류 정산: 이용권 환불(멱등, 실패하면 passRefund.pendingAt 으로 기존 cron 이 이어 간다) → 보관한 증빙 해제 → 이용 보류 취소 → 종결 표식. */
+async function settleTeaRetryRefund(env, doc, reason) {
+  const userId = String(doc.userId);
+  let refundStatus = "refunded";
+  try {
+    await refundFortuneTeaHousePassSettlement({ auth: { userId }, resultId: doc.resultId });
+  } catch {
+    refundStatus = "pending";
+    // 대기 표식(passRefund.pendingAt)이 남았을 때만 정산을 이어 간다. 표식조차 못 남겼으면 settledAt 없이 돌아가
+    // 다음 크론 주기가 이 보류를 다시 줍게 한다(fail-closed: 환불이 기록 없이 사라지지 않게).
+    const after = await honeyCollections().results.findOne({ _id: doc._id, userId }, { projection: { passRefund: 1 } }).catch(() => null);
+    if (!after?.passRefund?.pendingAt && !after?.passRefund?.refundedAt) return refundStatus;
+  }
+  const evidenceIds = doc.llmMeta?.retryable?.evidenceIds;
+  if (Array.isArray(evidenceIds) && evidenceIds.length) {
+    await releaseRequestBillingEvidence(env, { userId: cleanText(userId, 120), requestId: doc.resultId, evidenceIds }).catch(() => null);
+  }
+  if (doc.deliveryRequestId && doc.featureKey) {
+    const request = new Request("https://internal.invalid/api/fortune-tea-house/consult", { method: "POST", headers: { "content-type": "application/json" } });
+    await callFortuneTeaDeferredUsageRoute({ request, env, auth: { userId }, path: "cancel", featureKey: doc.featureKey, pricing: doc.pricing || {},
+      requestId: doc.deliveryRequestId, resultId: doc.resultId, code: cleanText(reason, 80), message: "retry hold settled" }).catch(() => null);
+  }
+  await withMongoRetry(env, () => honeyCollections().results.updateOne({ _id: doc._id, userId },
+    { $set: { "llmMeta.retryable.settledAt": new Date(), "llmMeta.retryable.refundReason": cleanText(reason, 40) } })).catch(() => null);
+  return refundStatus;
+}
+
+/** 환불 cron(runPendingConsultationRefunds)이 부른다: 창(생성 + 7일)이 지난 보류를 1회 정산한다. 조건은 조회 뒤 다시 확인하고
+ * 살아 있는 잠금은 건너뛴다(fail-closed). 토스 네이티브는 보류하지 않으므로 제외한다. 실패는 건마다 격리한다. */
+export async function settleDueTeaHouseRetryRefunds(env, { now = Date.now(), limit = 5 } = {}) {
+  await connectDb(env);
+  const { results } = honeyCollections();
+  const at = new Date(now);
+  const docs = await withMongoRetry(env, () => results.find({
+    _id: { $gte: "fortune-tea-house-result:", $lt: "fortune-tea-house-result;" }, serviceScope: FORTUNE_TEA_HOUSE_SCOPE,
+    status: { $in: TEA_RETRY_OPEN_STATUSES }, "llmMeta.retryable.refundAt": { $lte: at },
+    "llmMeta.retryable.settledAt": { $exists: false }, tossNative: { $ne: true },
+  }).sort({ "llmMeta.retryable.refundAt": 1 }).limit(limit).toArray());
+  const outcomes = [];
+  for (const doc of docs) {
+    try {
+      if (!doc?.userId || !doc.resultId || !teaRetryDue(doc, now)) continue;
+      const leaseAt = new Date(doc.generationLock?.startedAt || 0).getTime();
+      if (doc.generationLock?.token && leaseAt > now - STUCK_LIVE_LEASE_MS) continue;
+      if (doc.status !== "generation_failed") {
+        const closed = await withMongoRetry(env, () => results.updateOne(
+          { _id: doc._id, userId: String(doc.userId), status: doc.status, updatedAt: doc.updatedAt ?? null },
+          { $set: { status: "generation_failed", updatedAt: at,
+            generationError: { code: "RETRY_WINDOW_EXPIRED", message: "retry window expired before delivery", at: at.toISOString(), retryable: false } },
+          $unset: { generationLock: "" } }));
+        if (!closed?.modifiedCount) continue;
+      }
+      outcomes.push({ service: "fortune-tea-house", refundStatus: await settleTeaRetryRefund(env, doc, "RETRY_WINDOW_EXPIRED") });
+    } catch {
+      outcomes.push({ service: "fortune-tea-house", refundStatus: "pending" });
+    }
+  }
+  return outcomes;
+}
+
+async function readTeaRetryTarget(request, env) {
+  const auth = await getCurrentUser(request, env);
+  if (!auth?.userId) return { response: json({ ok: false, reason: "AUTH_REQUIRED" }, { status: 401 }) };
+  const body = await request.json().catch(() => ({}));
+  const resultId = cleanText(body?.resultId, 180);
+  const userId = String(auth.userId);
+  await connectDb(env);
+  const doc = resultId ? await withMongoRetry(env, () => honeyCollections().results.findOne({ userId, resultId, serviceScope: FORTUNE_TEA_HOUSE_SCOPE })) : null;
+  if (!doc) return { response: json({ ok: false, reason: "RESULT_NOT_FOUND", resultId }, { status: 404 }) };
+  return { doc, userId, resultId };
+}
+
+/** POST /retry: 보류를 다시 연다. 결제 확인·차감 없이 미완성 그룹에 새 라운드를 주고, 완성된 부분과 환불 시각은 그대로 둔다.
+ * 생성은 클라이언트의 같은 요청 재제출이나 복구 cron(partial)이 이어 간다. */
+async function handleFortuneTeaHouseRetry(request, env) {
+  const target = await readTeaRetryTarget(request, env);
+  if (target.response) return target.response;
+  const { doc, userId, resultId } = target;
+  const now = Date.now();
+  const notAvailable = () => json({ ok: false, reason: "RETRY_NOT_AVAILABLE", resultId,
+    message: "이 상담은 지금 다시 시도할 수 없어요. 내 상담함에서 상태를 확인해 주세요." }, { status: 409 });
+  if (!teaRetryState(doc, now)) {
+    if (doc.status === "generation_failed" && teaRetryDue(doc, now)) {
+      await settleTeaRetryRefund(env, doc, "RETRY_WINDOW_EXPIRED");
+      return json({ ok: false, reason: "RETRY_WINDOW_EXPIRED", resultId, message: TEA_RETRY_CLOSED_MESSAGE }, { status: 409 });
+    }
+    return notAvailable();
+  }
+  const checkpoint = doc.generationCheckpoint || {};
+  const attempts = { ...(checkpoint.attempts || {}) };
+  for (const group of checkpoint.groups || []) if (teaGroupNeedsWork(checkpoint, group)) attempts[group.key] = 0;
+  const at = new Date(now);
+  const reopened = await withMongoRetry(env, () => honeyCollections().results.updateOne(
+    { userId, resultId, serviceScope: FORTUNE_TEA_HOUSE_SCOPE, status: "generation_failed", updatedAt: doc.updatedAt ?? null,
+      "llmMeta.retryable.refundAt": { $gt: at }, "llmMeta.retryable.settledAt": { $exists: false }, "llmMeta.retryable.refundRequestedAt": { $exists: false },
+      "passRefund.pendingAt": { $exists: false }, "passRefund.refundedAt": { $exists: false } },
+    { $set: { status: "partial", generationError: null, updatedAt: at, deliveryWatch: null, "generationCheckpoint.round": 1, "generationCheckpoint.attempts": attempts,
+      "llmMeta.retryable.reopens": Number(doc.llmMeta.retryable.reopens || 0) + 1, "llmMeta.retryable.reopenedAt": at },
+    $unset: { generationLock: "" } }));
+  if (!reopened?.matchedCount) return notAvailable();
+  return json({ ok: true, status: "partial", retryable: true, resultId, message: "다시 시도를 시작했어요. 추가 결제·차감은 없어요." });
+}
+
+/** POST /refund-request: 보류 중 고객이 다시 시도 대신 환불을 고른다. 한 번만 정산하고, 이미 정산한 건은 그 결과를 돌려준다. */
+async function handleFortuneTeaHouseRefundRequest(request, env) {
+  const target = await readTeaRetryTarget(request, env);
+  if (target.response) return target.response;
+  const { doc, userId, resultId } = target;
+  const marker = doc.llmMeta?.retryable;
+  const passStatus = () => (doc.passRefund?.pendingAt && !doc.passRefund?.refundedAt ? "pending" : "refunded");
+  if (marker?.settledAt) return json({ ok: true, resultId, refundStatus: passStatus() });
+  if (doc.status !== "generation_failed" || !marker || doc.tossNative) {
+    return json({ ok: false, reason: "REFUND_NOT_AVAILABLE", resultId, message: "이 상담은 환불 요청 대상이 아니에요. 내 상담함에서 상태를 확인해 주세요." }, { status: 409 });
+  }
+  if (!marker.refundRequestedAt) {
+    const at = new Date();
+    const claimed = await withMongoRetry(env, () => honeyCollections().results.updateOne(
+      { userId, resultId, serviceScope: FORTUNE_TEA_HOUSE_SCOPE, status: "generation_failed", updatedAt: doc.updatedAt ?? null,
+        "llmMeta.retryable.settledAt": { $exists: false }, "llmMeta.retryable.refundRequestedAt": { $exists: false } },
+      { $set: { "llmMeta.retryable.refundRequestedAt": at, updatedAt: at } }));
+    if (!claimed?.matchedCount) return json({ ok: false, reason: "REFUND_NOT_AVAILABLE", resultId, message: "잠시 후 다시 확인해 주세요." }, { status: 409 });
+  }
+  const refundStatus = await settleTeaRetryRefund(env, doc, "CUSTOMER_REQUEST");
+  return json({ ok: true, resultId, refundStatus, message: "환불 요청을 접수했어요. 이번 상담의 이용 권한을 돌려드려요." });
+}
+
+async function markFortuneTeaHouseGenerationFailed({ env, auth, resultId, code, message, lockToken, evidenceIds }) {
   if (!auth?.userId) return { marked: false, retryable: false };
   const userId = String(auth.userId);
   const now = new Date();
@@ -5153,12 +5324,14 @@ async function markFortuneTeaHouseGenerationFailed({ env, auth, resultId, code, 
   const filter = { userId, resultId, status: "generating", ...(lockToken ? { "generationLock.token": lockToken } : {}) };
   // Read the reservation persisted before the provider call, not a stale in-memory
   // attempt count. A retry reuses the same purchase and never resets this budget.
-  const stored = await withMongoRetry(env, () => results.findOne(filter, { projection: { generationCheckpoint: 1 } }));
+  const stored = await withMongoRetry(env, () => results.findOne(filter, { projection: { generationCheckpoint: 1, createdAt: 1, tossNative: 1, llmMeta: 1 } }));
   if (!stored) return { marked: false, retryable: false };
   const checkpoint = stored.generationCheckpoint;
   const progress = checkpoint?.requestBody && checkpoint.groups?.length
     ? teaCheckpointProgress(checkpoint, resultId) : null;
   const retryable = Boolean(progress?.retryable) && !/BASIS_MISSING|INVALID_INPUT|GENERATION_EXHAUSTED/.test(code || "");
+  // R7: 더 이어 갈 수 없는 종결 실패는 창(생성 + 7일) 안이면 환불 대신 다시 시도 보류로 둔다. 토스 네이티브는 즉시 환불.
+  const holdAt = retryable || auth.tossNative ? null : teaRetryHoldAt(stored, code, now.getTime());
   const failed = await results.updateOne(
     filter,
     {
@@ -5171,6 +5344,7 @@ async function markFortuneTeaHouseGenerationFailed({ env, auth, resultId, code, 
           retryable,
         },
         updatedAt: now,
+        ...(holdAt ? { "llmMeta.retryable": teaRetryMarker(stored, holdAt, code, evidenceIds, now.getTime()), deliveryWatch: null } : {}),
       },
       $unset: { generationLock: "" },
     },
@@ -5178,7 +5352,8 @@ async function markFortuneTeaHouseGenerationFailed({ env, auth, resultId, code, 
     console.warn("[fortune-tea-house/consult] generation failure status update failed", error);
     return null;
   });
-  return { marked: Boolean(failed?.matchedCount), retryable, progress };
+  const marked = Boolean(failed?.matchedCount);
+  return { marked, retryable, progress, held: marked && holdAt ? { refundAt: holdAt.toISOString() } : null };
 }
 
 function dateIso(value) {
@@ -5391,16 +5566,21 @@ async function handleFortuneTeaHousePending(request, env) {
     try {
         await connectDb(env);
         const { results } = honeyCollections();
-        doc = await results.find({ userId: String(auth.userId), serviceScope: FORTUNE_TEA_HOUSE_SCOPE, ...(recoverResultId ? { resultId: recoverResultId } : {}), status: { $in: ['generating', 'delivery_pending'] }, 'generationCheckpoint.requestBody': { $exists: true } }).sort({ updatedAt: -1 }).limit(1).next();
+        // R7: 다시 시도 보류(창 안, 미정산·미요청)도 복귀 화면이 다시 시도 안내를 띄우도록 찾는다.
+        const heldBranch = { status: 'generation_failed', 'llmMeta.retryable.refundAt': { $gt: new Date() }, 'llmMeta.retryable.settledAt': { $exists: false }, 'llmMeta.retryable.refundRequestedAt': { $exists: false } };
+        doc = await results.find({ userId: String(auth.userId), serviceScope: FORTUNE_TEA_HOUSE_SCOPE, ...(recoverResultId ? { resultId: recoverResultId } : {}), $or: [{ status: { $in: ['generating', 'delivery_pending'] } }, heldBranch], 'generationCheckpoint.requestBody': { $exists: true } }).sort({ updatedAt: -1 }).limit(1).next();
     }
     catch {
         return fortuneTeaStorageUnavailable('pending');
     }
-    if (!doc)
+    const retry = doc?.status === 'generation_failed' ? teaRetryState(doc) : null;
+    if (!doc || (doc.status === 'generation_failed' && !retry))
         return json({ ok: false, reason: 'RESULT_NOT_FOUND' }, { status: 404 });
     const state = doc.generationCheckpoint, access = await verifyFortuneTeaHouseConsultAccess(request, env, state.requestBody, state.request);
     if (!access.ok)
         return access.response;
+    if (retry)
+        return json({ ...teaCheckpointProgress(state, doc.resultId), ...teaRetryHeldBody(doc.resultId, retry.refundAt), requestPayload: state.requestBody }, { status: 202 });
     return json({ ...teaCheckpointProgress(state, doc.resultId), ...(doc.status === 'delivery_pending' ? { retryable: true } : {}), requestPayload: state.requestBody }, { status: 202 });
 }
 
@@ -6495,6 +6675,24 @@ async function handleConsult(request, env, ctx = null, recoveryAuth = null) {
         message: "결제는 확인되었고 상담문은 아직 생성 중입니다. 잠시 뒤 같은 요청으로 다시 확인해 주세요.",
       }, { status: 202 });
     }
+    if (generation.retryHold) {
+      // 보류 중 재제출: 증빙은 여기서 풀지 않는다(같은 요청의 replay 라 원 결제 증빙일 수 있다 — 풀면 1결제로 2상담이 된다).
+      // 정체 확정으로 보류돼 표식에 증빙이 없으면 이번 요청의 증빙을 표식에 남겨, 정산(환불) 때 함께 풀리게 한다.
+      const kept = generation.doc?.llmMeta?.retryable?.evidenceIds;
+      if ((!Array.isArray(kept) || !kept.length) && Array.isArray(evidenceIds) && evidenceIds.length) {
+        await withMongoRetry(env, () => honeyCollections().results.updateOne(
+          { _id: generation.doc._id, userId: String(access.auth.userId), "llmMeta.retryable.settledAt": { $exists: false } },
+          { $set: { "llmMeta.retryable.evidenceIds": evidenceIds.map(String).slice(0, 20) } })).catch(() => null);
+      }
+      return json(teaRetryHeldBody(resultId, generation.retryHold.refundAt), { status: 409 });
+    }
+    if (generation.retryClosed) {
+      if (!generation.doc?.llmMeta?.retryable?.settledAt) await settleTeaRetryRefund(env, generation.doc, "RETRY_WINDOW_EXPIRED").catch(() => null);
+      await releaseRequestBillingEvidence(env, { userId: cleanText(access.auth.userId, 120), requestId: resultId, evidenceIds }).catch(() => null);
+      const requested = Boolean(generation.doc?.llmMeta?.retryable?.refundRequestedAt);
+      return json({ ok: false, retryable: false, status: "generation_failed", reason: "GENERATION_FAILED", resultId,
+        message: requested ? "환불을 요청하신 상담이에요. 이번 상담의 이용 권한은 돌려드려요. 새 상담으로 다시 신청해 주세요." : TEA_RETRY_CLOSED_MESSAGE }, { status: 409 });
+    }
     if (generation.passRefundedAt) {
       // reason 은 클라이언트가 이 시도를 끝내는 신호라 유지하고, 환불 안내는 실제 환불이 기록된 때만 싣는다.
       return json({ ok: false, reason: "PASS_ALREADY_REFUNDED", resultId, refunded: generation.passRefunded === true,
@@ -6533,9 +6731,14 @@ async function handleConsult(request, env, ctx = null, recoveryAuth = null) {
       resultId,
       code: cleanText(error?.code || "FORTUNE_TEA_HOUSE_GENERATION_FAILED", 80),
       message: cleanText(error?.message || error, 500),
+      evidenceIds,
     });
     if (failedCurrentGeneration.marked && failedCurrentGeneration.retryable) {
       return json({ ...failedCurrentGeneration.progress, status: "partial" }, { status: 202 });
+    }
+    // R7: 보류했으면 환불·증빙 해제·이용 보류 취소를 하지 않는다(창이 끝나거나 고객이 요청할 때 정산).
+    if (failedCurrentGeneration.marked && failedCurrentGeneration.held) {
+      return json(teaRetryHeldBody(resultId, failedCurrentGeneration.held.refundAt), { status: 409 });
     }
     if (failedCurrentGeneration.marked && access.auth?.userId) {
       await refundFortuneTeaHousePassSettlement({ auth: access.auth, resultId }).catch((refundError) => {
@@ -6712,6 +6915,14 @@ export async function handleFortuneTeaHouseRoutes(request, env = {}, ctx = null)
       return await handleEnsureAccess(request, env);
     }
 
+    if (method === "POST" && path === "/retry") {
+      return await handleFortuneTeaHouseRetry(request, env);
+    }
+
+    if (method === "POST" && path === "/refund-request") {
+      return await handleFortuneTeaHouseRefundRequest(request, env);
+    }
+
     if (method === "POST" && path === "/consult") {
       return await handleConsult(request, env, ctx);
     }
@@ -6792,11 +7003,27 @@ export async function settleStuckDelivery(env, { doc, now = Date.now() } = {}) {
     logStuckSettled({ service: "fortune-tea-house", sessionId, outcome: "rescued", stalls });
     return { outcome: "rescued" };
   }
+  const stuckError = { code: "DELIVERY_STUCK", message: "recovery made no progress", at: at.toISOString(), retryable: false };
+  // R7: 창(생성 + 7일) 안의 체크포인트 상담은 환불하지 않고 다시 시도 보류로 닫는다. 토스 네이티브·창 경과는 아래 즉시 환불.
+  const holdAt = fresh.status !== "delivery_pending" ? teaRetryHoldAt(fresh, "DELIVERY_STUCK", now) : null;
+  if (holdAt) {
+    const held = await withMongoRetry(env, () => results.updateOne(cas, {
+      $set: { status: "generation_failed", updatedAt: at, generationError: stuckError, deliveryWatch: null,
+        "llmMeta.retryable": teaRetryMarker(fresh, holdAt, "DELIVERY_STUCK", [], now) },
+      $unset: { generationLock: "" } }));
+    if (!held?.modifiedCount) return { outcome: "progressed" };
+    logStuckSettled({ service: "fortune-tea-house", sessionId, outcome: "retryable", stalls });
+    return { outcome: "retryable", refundAt: holdAt.toISOString() };
+  }
+  const marker = fresh.llmMeta?.retryable;
   const failed = await withMongoRetry(env, () => results.updateOne(cas, {
-    $set: { status: "generation_failed", updatedAt: at,
-      generationError: { code: "DELIVERY_STUCK", message: "recovery made no progress", at: at.toISOString(), retryable: false } },
+    $set: { status: "generation_failed", updatedAt: at, generationError: stuckError,
+      ...(marker ? { "llmMeta.retryable.settledAt": at, "llmMeta.retryable.refundReason": "RETRY_WINDOW_EXPIRED" } : {}) },
     $unset: { generationLock: "" } }));
   if (!failed?.modifiedCount) return { outcome: "progressed" };
+  if (Array.isArray(marker?.evidenceIds) && marker.evidenceIds.length) {
+    await releaseRequestBillingEvidence(env, { userId: cleanText(userId, 120), requestId: fresh.resultId, evidenceIds: marker.evidenceIds }).catch(() => null);
+  }
   let refundStatus = "refunded";
   try {
     await refundFortuneTeaHousePassSettlement({ auth: { userId }, resultId: fresh.resultId });

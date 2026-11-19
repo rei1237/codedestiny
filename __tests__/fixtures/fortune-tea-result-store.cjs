@@ -2,12 +2,25 @@
 module.exports = function createResultStore() {
   const rows = new Map();
   const read = (doc, key) => key.split('.').reduce((value, part) => value?.[part], doc);
+  // 비교 연산자는 날짜·ISO 문자열을 시각으로 비교한다(다시 시도 창 refundAt 질의).
+  const order = value => (Object.prototype.toString.call(value) === '[object Date]' || (typeof value === 'string' && /^\d{4}-\d\d-\d\dT/.test(value)) ? new Date(value).getTime() : value);
+  const compare = (actual, ops) => Object.entries(ops).every(([op, bound]) => {
+    if (op === '$ne') return actual !== bound;
+    if (actual === undefined || actual === null) return false;
+    if (op === '$gt') return order(actual) > order(bound);
+    if (op === '$gte') return order(actual) >= order(bound);
+    if (op === '$lt') return order(actual) < order(bound);
+    if (op === '$lte') return order(actual) <= order(bound);
+    return true;
+  });
   const matches = (doc, query) => Object.entries(query).every(([key, expected]) => {
+    if (key === '$or') return expected.some(branch => matches(doc, branch));
     const actual = read(doc, key);
     if (Object.prototype.toString.call(expected) === '[object Date]') return new Date(actual).getTime() === new Date(expected).getTime();
     if (expected && typeof expected === 'object' && !(expected instanceof Date)) {
       if ('$exists' in expected) return (actual !== undefined) === expected.$exists;
       if ('$in' in expected) return expected.$in.includes(actual);
+      if (['$gt', '$gte', '$lt', '$lte', '$ne'].some(op => op in expected)) return compare(actual, expected);
     }
     if (expected instanceof Date) return new Date(actual).getTime() === expected.getTime();
     return actual === expected;
@@ -25,6 +38,7 @@ module.exports = function createResultStore() {
       const cursor = {
         sort(order) { const [key, direction] = Object.entries(order)[0]; selected.sort((a, b) => direction * (new Date(read(a, key)) - new Date(read(b, key)))); return cursor; },
         limit(count) { selected = selected.slice(0, count); return cursor; },
+        project() { return cursor; },
         async next() { return structuredClone(selected[0] || null); },
         async toArray() { return structuredClone(selected); },
       };

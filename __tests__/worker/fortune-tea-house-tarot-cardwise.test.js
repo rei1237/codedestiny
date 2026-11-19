@@ -183,7 +183,8 @@ describe("운명 찻집 타로 — 카드별 해석", () => {
     expectEveryCardExplained(payload.result, count);
   });
 
-  test("LLM이 카드별 해석을 빠뜨리면 라운드 상한 뒤 본문 없이 generation_failed 로 종결한다", async () => {
+  // R7(2026-11-19): 라운드 상한은 즉시 환불 대신 다시 시도 보류로 닫는다. 같은 요청 재제출은 LLM 을 다시 부르지 않는다.
+  test("LLM이 카드별 해석을 빠뜨리면 라운드 상한 뒤 본문 없이 generation_failed(다시 시도 보류)로 종결한다", async () => {
     const payloadWithoutCards = buildLlmPayload("five");
     delete payloadWithoutCards.tarotCardReadings;
     callGeminiTextMock.mockImplementation(async () => ({
@@ -196,7 +197,7 @@ describe("운명 찻집 타로 — 카드별 해석", () => {
     const { status, payload } = await postConsult(consultBody({ spread: "five", attemptId: "cardwise-missing" }));
 
     expect(status).toBe(409);
-    expect(payload).toMatchObject({ ok: false, retryable: false, status: 'generation_failed', reason: 'GENERATION_FAILED' });
+    expect(payload).toMatchObject({ ok: false, retryable: false, status: 'generation_failed', reason: 'RETRY_AVAILABLE', refunded: false, retry: { available: true } });
     expect(payload.result).toBeUndefined();
     expect(payload.completedSections).toBeUndefined();
     const saved = await fakeDb.collection('fortune_tea_house_results').find({}).next();
