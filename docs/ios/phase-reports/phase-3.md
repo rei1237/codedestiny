@@ -9,7 +9,7 @@
 
 1. 기존 Capacitor 8.4.3 iOS 셸(Q1 결정)에 WKWebView 체크리스트를 채웠다. 흰 화면 방지 배경, UA 토큰, 스와이프 백, 키보드 내리기, 링크 미리보기 끄기, 한국어 대화창, `window.open`·외부 링크를 앱 안 Safari 시트로 여는 처리, 상태바 테마 동기화가 들어갔다.
 2. 네이티브 문자열은 `Localizable.xcstrings`(en·ko·ja·zh-Hans·zh-Hant)에 두었다. 카메라 입력이 있는 화면(손금·문의 첨부) 때문에 `NSCameraUsageDescription`을 추가했고, 배포 타깃을 iOS 17로 올렸다.
-3. Mac이 없어 컴파일은 하지 못했다. Capacitor 8.4.3 원본 소스와 시그니처를 대조했고 plist·JSON·괄호 균형 같은 정적 검사만 통과했다. 기기 검증 전까지 Swift 코드는 **미검증**이다.
+3. 작성 시점에는 Mac이 없어 정적 검사만 했다. 2026-11-19에 macOS CI 러너에서 컴파일(오류 0)과 시뮬레이터 실행·스크린샷까지 확인했다(4절 "CI 시뮬레이터 검증"). 손 조작이 필요한 항목은 여전히 기기 확인 전이다.
 
 ## 2. 결정과 이유
 
@@ -56,14 +56,14 @@
 
 ## 4. WKWebView 체크리스트와 검증 결과
 
-"정적"은 Capacitor 8.4.3 원본 소스 대조와 파일 형식 검사, "기기"는 6절 체크리스트로 사용자 확인이 필요하다는 뜻이다.
+"정적"은 Capacitor 8.4.3 원본 소스 대조와 파일 형식 검사, "CI"는 아래 "CI 시뮬레이터 검증"(macOS 러너 실측), "기기"는 6절 체크리스트로 사람 확인이 여전히 필요하다는 뜻이다.
 
 | 항목 | 구현 | 근거 | 검증 |
 |---|---|---|---|
 | 공유 `WKWebViewConfiguration`, 영속 `WKWebsiteDataStore.default()` | 기존(Capacitor) | `CAPBridgeViewController.webViewConfiguration`이 `WKWebViewConfiguration()` 기본(영속 저장소)을 쓴다 | 정적 ✅ / 기기: 재실행 뒤 로그인 유지 |
-| UA 토큰 | ✅ 신규 | `:68` | 기기: Web Inspector에서 `navigator.userAgent` |
-| `isOpaque=false` + 배경·`underPageBackgroundColor` | ✅ 신규 + config | `:81-93`, `capacitor.config.ts:36` | 기기: 콜드 스타트·오버스크롤 흰 화면 없음 |
-| `contentInsetAdjustmentBehavior = .never` + `viewport-fit=cover` | 기존 | Capacitor 기본 `never`, `index.html:504` | 기기: 노치·홈 인디케이터 여백 |
+| UA 토큰 | ✅ 신규 | `:68` | CI ✅ `…Mobile/15E148 CodeDestinyApp/iOS/1.0.59` |
+| `isOpaque=false` + 배경·`underPageBackgroundColor` | ✅ 신규 + config | `:81-93`, `capacitor.config.ts:36` | CI 부분 ✅ 실행 30초 뒤 흰 화면 아님 / 기기: 콜드 스타트 순간·오버스크롤 |
+| `contentInsetAdjustmentBehavior = .never` + `viewport-fit=cover` | 기존 | Capacitor 기본 `never`, `index.html:504` | CI 부분: 상태바·홈 인디케이터에 가린 콘텐츠 없음. ⚠️ 헤더 위 약 70pt 빈 띠(추정: 상단 safe-area 중복) / 기기 |
 | `keyboardDismissMode`, 핀치 줌 끄기, `allowsLinkPreview=false` | ✅ 신규 / 기존 / ✅ config | `:94`, Capacitor `scrollViewWillBeginZooming`, config | 기기 |
 | `allowsBackForwardNavigationGestures` | ✅ 신규 | `:95` | 기기: 하위 화면에서 왼쪽 가장자리 스와이프 |
 | 내비게이션: 허용 도메인 내부, 그 외 SFSafariViewController, `tel:`·`mailto:`·`kakaotalk:`, `_blank` | ✅ 신규 + 기존 | `:187-212`, 비 http 스킴은 Capacitor가 `UIApplication.open` | 기기 |
@@ -71,7 +71,7 @@
 | 프로세스 종료 복구 | 부분(기존) | Capacitor reload. 스크롤 복원 없음 → 보류 | 기기(어려움): 메모리 압박 |
 | 오프라인 화면 | 보류 | 2절 | — |
 | Dynamic Type | 보류 | 2절 | — |
-| 다크 모드 + 상태바 동기화 | ✅ 신규 | `:218`, 셸 `index.html:38827` | 기기: 연이↔네오 테마 전환 시 아이콘 색 |
+| 다크 모드 + 상태바 동기화 | ✅ 신규 | `:218`, 셸 `index.html:38827` | CI 부분: 홈의 어두운 상단 띠 위 흰 아이콘 / 기기: 테마 전환 시 아이콘 색 |
 | `isInspectable` Debug만 | 기존 | Capacitor는 `#if DEBUG` 또는 `CAPACITOR_DEBUG=true`(debug.xcconfig, Debug 구성만) | 정적 ✅ |
 | `WKDownloadDelegate` | 해당 없음 | 2절 | — |
 
@@ -80,6 +80,31 @@
 - Swift 괄호 균형(문자열·주석 제외) `{}` 86/86, `()` 200/200, `[]` 28/28. 사용한 문자열 키 2개가 모두 카탈로그에 있다
 - 대조한 Capacitor API: `InstanceConfiguration`(NS_SWIFT_NAME), `CAPBridgeViewController.webViewConfiguration(for:)`·`setStatusBarStyle(_:)`·`capacitorDidLoad()`(loadView 안 `prepareWebView` 뒤 호출), `WebViewDelegationHandler`(open, prompt 메서드 open). `bridge`는 `CAPBridgeProtocol`이라 `webViewDelegationHandler`가 보이지 않아, 설치된 `webView.uiDelegate`를 캐스팅해 쓴다
 - `npm run check:fast`: 7절 커밋 기록 참조
+
+### CI 시뮬레이터 검증 (2026-11-19, Mac 없이)
+
+워크플로 [ios-shell-build.yml](../../../.github/workflows/ios-shell-build.yml)이 macOS 러너에서 서명 없이 Debug 빌드하고, 시뮬레이터에서 앱을 띄워 스크린샷·로그·셀프 테스트를 artifact로 남긴다. 게이트가 아니다(`CI required`에 없음). 수동 실행과, iOS 셸 경로를 건드린 main push 때 돈다. 시크릿을 쓰지 않는다. 공개 저장소라 표준 macOS 러너는 무료다.
+
+| 실행 | SHA | 결과 | 시간 |
+|---|---|---|---|
+| [44468925274](https://github.com/rei1237/codedestiny/actions/runs/44468925274) (push) | `4f783670d` | ✅ 첫 컴파일에서 오류 0 | 55m57s. 웹 번들 45분, 그중 앱 이미지 재인코딩 34분(캐시 없음) |
+| [44504839888](https://github.com/rei1237/codedestiny/actions/runs/44504839888) (push) | `b3b77221c` | ✅ 이미지 캐시 저장, 셀프 테스트 항목 확장 | 약 50분 |
+| [44514144887](https://github.com/rei1237/codedestiny/actions/runs/44514144887) (dispatch) | `bcce826eb` | ✅ 캐시 적중 | 약 24분(웹 번들 12분) |
+
+환경: Xcode 26.6(17F113), iPhone 17 Pro 시뮬레이터, iOS 26.5. 시뮬레이터 로케일은 영어라 홈이 영어로 뜬다(`?lang=en`).
+
+자동 확인된 것
+- 빌드: `** BUILD SUCCEEDED **`. 오류 0, `CodeDestinyViewController.swift` 경고 0. 그 밖의 경고는 `appintentsmetadataprocessor` 1건(AppIntents 미사용, 무해)
+- 실행: 30초 뒤와 커스텀 스킴 열기 뒤에도 앱 프로세스가 살아 있다
+- 홈 스크린샷(`visual-checker` 판정, run 44468925274): 흰 화면 아님. 헤더 "꿀꿀 운세", 카드 2장(꽃돼지·영냥이), 하단 탭 4개가 렌더됐다. 상태바 영역은 어두운 남색이고 흰 아이콘이 읽힌다. 홈 인디케이터 위 탭바는 잘리지 않았다
+- 셀프 테스트(Debug 전용, 실행 인자 `-cdSelfTest`, `CodeDestinyViewController.swift` `#if DEBUG`): UA 토큰 있음, `Capacitor.getPlatform()` = `ios`, 바닐라 브리지 `<script src="/js/app-native-bridge.js">` 주입됨, `window.__CODE_DESTINY_RUNTIME_TARGET` = `mobile-app`, `window.CodeDestinyNative` 있음
+- Capacitor 콘솔: 로케일 플러그인 `initialize` 왕복, `@capacitor/app` 리스너 등록, `[CD-APP] boot`
+- 커스텀 스킴 `com.codedestiny.app://`이 이 앱에 등록됐다. 시뮬레이터가 `Open in "꿀꿀운세"?` 확인창을 띄운다. 누르기 전이라 `appUrlOpen` 수신은 확인하지 못했다
+
+CI가 찾은 결함 (이 Phase 범위 밖, 후속)
+- 🔴 **홈 `<html>`에 `data-platform`·`data-runtime-target`이 없다.** 브리지는 실행됐지만(`runtimeGlobal=mobile-app`) 홈에서 React 하이드레이션 오류 #418(`args[]=HTML`)이 나고, 남은 `<html>` 속성은 `lang,dir,class,data-cd-lang`뿐이다. 하이드레이션 실패 뒤 클라이언트 재렌더가 브리지가 찍은 속성을 지운 것으로 추정한다. `html[data-platform="ios"]`에 기대는 CSS(입력 확대 방지 16px 등)가 홈에서 적용되지 않는다. Android도 같은 홈을 쓰므로 같은 증상일 수 있다(미확인)
+- `__cdNativeBridgeClient`는 홈에 로드되지 않는다(`info: "missing"`). `getInfo()` 확인은 그 스크립트를 싣는 화면에서 해야 한다
+- ⚠️ 헤더 위 약 70pt 빈 띠(스크린샷 픽셀 측정, 상단 safe-area 중복 추정). 실기기에서 확인한다
 
 ## 5. 레드팀 (지금 제출하면 반려될 이유)
 
@@ -92,17 +117,19 @@
 
 ## 6. 사용자가 할 일 (Mac 체크리스트)
 
+2026-11-19부터 빌드와 첫 실행은 CI가 대신한다(4절 "CI 시뮬레이터 검증"). 아래에서 "CI ✅"로 표시한 항목은 Mac이 없어도 확인됐다. 나머지는 손 조작·카메라·실제 터치 감각이 필요하다. Mac 없이 할 방법은 둘이다. (1) Apple Developer 등록 뒤 TestFlight로 실기기에 설치해 확인한다(UA·`data-platform`·콘솔 확인은 Debug 빌드 셀프 테스트 로그나 원격 Web Inspector가 없으면 어렵다). (2) 원격 Mac(시간제 대여)에서 Xcode·Safari Web Inspector로 확인한다.
+
 준비
 1. `git pull` → `npm.cmd install --prefix apps/mobile --no-package-lock --ignore-scripts`(Mac에서는 `npm install --prefix apps/mobile --no-package-lock --ignore-scripts`)
 2. `npm run mobile:ios:sync` → `npm run mobile:ios:open`
 3. Xcode 26에서 App 스킴, 서명 팀 선택, iPhone 기기 또는 시뮬레이터(iOS 17+)로 Debug 실행
 
 빌드
-- [ ] 컴파일 오류 0. 오류가 나면 메시지 원문을 그대로 전달
-- [ ] 경고 중 `CodeDestinyViewController.swift` 것만 목록으로 전달
+- [x] 컴파일 오류 0 — CI ✅ (Xcode 26.6, 시뮬레이터 Debug)
+- [x] `CodeDestinyViewController.swift` 경고 0 — CI ✅
 
 WebShell (이번 Phase)
-- [ ] 콜드 스타트에서 흰 화면 없이 보라 배경 → 홈
+- [ ] 콜드 스타트에서 흰 화면 없이 보라 배경 → 홈 (CI: 30초 뒤 홈 렌더 ✅. 실행 직후 전환 순간은 미확인)
 - [ ] 상하 오버스크롤 가장자리가 흰색이 아님
 - [ ] 입력창을 누르면 확대되지 않고, 아래로 끌면 키보드가 내려감
 - [ ] 하위 화면에서 왼쪽 가장자리 스와이프로 뒤로 감
@@ -114,11 +141,11 @@ WebShell (이번 Phase)
 - [ ] 손금: 카메라 버튼 → 카메라 권한 문구가 한국어로 뜨고 촬영 결과가 올라감. 갤러리 선택도 동작
 - [ ] 문의 첨부: 카메라·사진 선택 동작
 - [ ] 연이 ↔ 네오 테마 전환 시 상태바 아이콘이 배경과 대비됨(네오: 흰 아이콘, 연이: 검은 아이콘)
-- [ ] Safari Web Inspector(Debug 빌드)에서 `navigator.userAgent`에 `CodeDestinyApp/iOS/1.0.59`가 붙음
+- [x] `navigator.userAgent`에 `CodeDestinyApp/iOS/1.0.59`가 붙음 — CI 셀프 테스트 ✅
 
 Phase 2 이월 항목 ([phase-2.md](phase-2.md) 7절)
-- [ ] 주입 순서: 첫 화면에서 `html[data-platform="ios"]`
-- [ ] 콘솔 `await __cdNativeBridgeClient.getInfo()` → `{platform:"ios", available:true, ...}`
+- [ ] 주입 순서: 첫 화면에서 `html[data-platform="ios"]` — CI ❌ 홈에서 비어 있음(4절 "CI가 찾은 결함", React #418). 브리지 주입·실행 자체는 ✅
+- [ ] 콘솔 `await __cdNativeBridgeClient.getInfo()` → `{platform:"ios", available:true, ...}` — CI: 홈에는 이 스크립트가 없다. `Capacitor.getPlatform()`=`ios`, `CodeDestinyNative` 있음은 ✅
 - [ ] API 요청 `Origin`이 `capacitor://localhost`이고 서버가 거부하지 않음
 - [ ] 로그인(이메일 등 WebView 안 방식) 뒤 앱 재실행에도 로그인 유지, 토큰 갱신 동작
 - [ ] iOS에서 결제 진입 버튼을 눌러도 체크아웃 창이 열리지 않음, 가격·웹 결제 문구 0건
@@ -126,7 +153,7 @@ Phase 2 이월 항목 ([phase-2.md](phase-2.md) 7절)
 ## 7. 남은 위험과 다음 Phase 승인 요청
 
 남은 위험
-- Swift 코드는 컴파일 전이다. 시그니처는 원본과 대조했지만 오타·타입 추론 오류 가능성이 남는다. 오류가 나면 이 커밋만 되돌리면 이전 셸로 돌아간다(Android 영향 없음, iOS 바이너리 미출시).
+- Swift 코드는 CI에서 컴파일됐다(오류 0, 2026-11-19). 동작은 시뮬레이터 실행까지만 확인했다. 기기에서 회귀가 나면 셸 커밋만 되돌리면 이전 셸로 돌아간다(Android 영향 없음, iOS 바이너리 미출시).
 - `/api/auth/oauth/` 시작은 여전히 Safari 앱으로 나갔다가 `com.codedestiny.app://auth`로 돌아온다. 돌아오는 경로는 기존 `appUrlOpen` 처리에 의존한다(Phase 5에서 교체).
 - 외부 사이트로의 스크립트 이동(`location.assign`)은 Safari 앱으로 나간다(D3).
 
