@@ -4,7 +4,7 @@ const require=createRequire(import.meta.url),ts=require('typescript'),root=path.
 function source(file){return ts.createSourceFile(file,fs.readFileSync(path.join(root,file),'utf8'),ts.ScriptTarget.Latest,true,ts.ScriptKind.TSX);}
 test('Life Book distinguishes Toss delivery uncertainty and permission denial from web messages',()=>{
  const ast=source('app/life-book-ai/LifeBookAiClient.tsx');let branch;function visit(n){if(ts.isIfStatement(n)&&n.expression.getText(ast)==='outcome.status === "failed"')branch=n;ts.forEachChild(n,visit)}visit(ast);assert.ok(branch);
- const ctx=vm.createContext({Error,TOSS_PERMISSION_MESSAGE:'권한 확인',TOSS_UNCERTAIN_DELIVERY_MESSAGE:safe,LLM_ERROR_MESSAGE:'웹 복구',reasonCopy:()=> '웹 기존 안내'});vm.runInContext(ts.transpile(`function inspect(outcome,paymentNotice){${branch.getText(ast)}}`,{target:ts.ScriptTarget.ES2022}),ctx);
+ const ctx=vm.createContext({Error,readLifeBookRetryOffer:d=>d&&d.retry&&d.retry.available===true&&(d.retry.sessionId||d.sessionId)?{sessionId:String(d.retry.sessionId||d.sessionId)}:null,FAILURE_COPY:{retryAvailable:'다시 시도 안내'},TOSS_PERMISSION_MESSAGE:'권한 확인',TOSS_UNCERTAIN_DELIVERY_MESSAGE:safe,LLM_ERROR_MESSAGE:'웹 복구',reasonCopy:()=> '웹 기존 안내'});vm.runInContext(ts.transpile(`function inspect(outcome,paymentNotice){${branch.getText(ast)}}`,{target:ts.ScriptTarget.ES2022}),ctx);
  for(const reason of ['LLM_ERROR','SAJU_CALCULATION_FAILED','GENERATION_ALREADY_FAILED']){const out={status:'failed',reason,data:{}};assert.throws(()=>ctx.inspect(out,'토스'),e=>e.message===safe);assert.throws(()=>ctx.inspect(out,''),e=>e.message==='웹 기존 안내');}
  assert.throws(()=>ctx.inspect({status:'failed',reason:'SERVER_ERROR',httpStatus:403,data:{}},'토스'),e=>e.message==='권한 확인');
 });
