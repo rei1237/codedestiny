@@ -17,6 +17,8 @@ test('trust line claims only what the dated 2024 originals support', () => {
     assert.doesNotMatch(text, /적중|유일|방식까지|보장|정확도|맞힌|맞춘/);
   }
   assert.equal(trustRecordCopy.href, PUBLIC_RECORD_PATH);
+  assert.equal(trustRecordCopy.link, '원문 날짜 확인하기', 'payment label is stable');
+  assert.notEqual(trustRecordCopy.link, trustRecordCopy.publicLink, 'public and payment labels have separate consumers');
   assert.ok(existsSync('app/insights/public-record-article.js'), 'public record article must exist');
 });
 
@@ -27,5 +29,7 @@ test('trust line is rendered on the three first screens', () => {
   const greeting = shell.match(/<div class="yh-greeting">[\s\S]*?<\/p><\/div>/)[0];
   assert.ok(greeting.indexOf('yh-free-start') < greeting.indexOf('yh-trust'), 'trust line stays below the primary CTA');
   assert.ok(greeting.includes(`href="${PUBLIC_RECORD_PATH}"`));
+  assert.ok(greeting.includes(trustRecordCopy.publicLink));
+  assert.ok(readFileSync('app/components/conversion/TrustRecordLine.tsx', 'utf8').includes('trustRecordCopy.publicLink'));
   assert.ok(readFileSync('index.html', 'utf8').includes(trustRecordCopy.full), 'regenerate index.html with npm run sync:public');
 });
