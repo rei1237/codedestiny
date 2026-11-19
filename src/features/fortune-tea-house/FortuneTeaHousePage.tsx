@@ -121,6 +121,9 @@ type FortuneTeaHouseConsultApiResponse = {
   completedCount?: number;
   totalSections?: number;
   requestPayload?: FortuneTeaConsultPostBody;
+  resultId?: string;
+  retry?: { available?: boolean; refundAt?: string; resultId?: string };
+  refundStatus?: string;
   result?: FortuneTeaHouseConsultResponse;
   honeyDrops?: FortuneTeaHouseHoneyDropsState;
   message?: string;
@@ -639,6 +642,9 @@ export default function FortuneTeaHousePage({paymentSurface = "web",TossPrice}: 
   const [honeyRewardMessage, setHoneyRewardMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
+  // R7 다시 시도 먼저: 서버가 종결 실패를 다시 시도 보류로 둔 상담(추가 결제·차감 없이 다시 시도 또는 환불 요청).
+  const [retryOffer, setRetryOffer] = useState<{ resultId: string } | null>(null);
+  const [retryBusy, setRetryBusy] = useState(false);
   const [loadingBgmIndex, setLoadingBgmIndex] = useState(0);
   const [generationProgress, setGenerationProgress] = useState<FortuneTeaGenerationProgress>({
     percent: 5,
@@ -696,7 +702,9 @@ export default function FortuneTeaHousePage({paymentSurface = "web",TossPrice}: 
       setSelectedCup(cup);
       setQuestionInput(input);
       setPartialSections(payload.completedSections || []);
-      setSubmitError("저장된 상담이 있어요. 같은 요청으로 이어서 확인할 수 있어요.");
+      const heldId = payload.retry?.available ? toText(payload.retry.resultId || payload.resultId) : "";
+      setRetryOffer(heldId ? { resultId: heldId } : null);
+      setSubmitError(heldId ? (payload.message || "상담문 작성이 잠시 멈췄어요.") : "저장된 상담이 있어요. 같은 요청으로 이어서 확인할 수 있어요.");
       setStage("questionInput");
     } catch {
       // 복구 조회 실패는 조용히 넘긴다. 사용자는 보던 화면을 그대로 쓴다.
@@ -1133,6 +1141,7 @@ export default function FortuneTeaHousePage({paymentSurface = "web",TossPrice}: 
   async function submitQuestion(nextQuestionInput: FortuneTeaHouseQuestionInput, prepaid?: FortuneTeaPrepaidResume) {
     if (isSubmitting || submitLockRef.current) return;
     logSubmitStep("start");
+    setRetryOffer(null);
 
 
 
@@ -1431,6 +1440,10 @@ export default function FortuneTeaHousePage({paymentSurface = "web",TossPrice}: 
       }
       if (!response.ok || !payload.ok || !payload.result) {
         const submitError = new Error(payload.message || "연이가 상담문을 엮는 중 잠시 멈췄어요. 다시 한 번만 건네주세요.");
+        // R7: 다시 시도 보류는 결제창을 열지 않고 같은 시도를 보관한 채 다시 시도·환불 요청 버튼을 보여 준다.
+        if (payload.reason === "RETRY_AVAILABLE" && payload.retry?.available) {
+          setRetryOffer({ resultId: toText(payload.retry.resultId || payload.resultId) || attemptId });
+        }
         // 서버가 한도 복구를 확정한 요청만 종료한다. 응답 유실·저장 지연은 기존 증빙을 유지한다.
         // S16: 라운드 상한 종결(GENERATION_FAILED)도 서버가 환불을 마친 최종 상태라 같은 시도를 끝낸다.
         if (payload.reason === "PASS_ALREADY_REFUNDED" || payload.reason === "GENERATION_FAILED") {
@@ -1539,6 +1552,55 @@ export default function FortuneTeaHousePage({paymentSurface = "web",TossPrice}: 
     }
   }
 
+  // R7: 보류된 상담을 결제 확인·차감 없이 다시 연 뒤 같은 요청으로 이어서 생성한다.
+  async function retryHeldConsultation() {
+    const offer = retryOffer, saved = unusedPaidAttemptRef.current;
+    if (!offer || !saved || retryBusy) return;
+    setRetryBusy(true);
+    try {
+      const response = await authFetch("/api/fortune-tea-house/retry", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ resultId: offer.resultId }) }, { retryOn401: false });
+      const payload = await response.json().catch(() => ({})) as FortuneTeaHouseConsultApiResponse;
+      if (!response.ok || !payload.ok) {
+        setRetryOffer(null);
+        setSubmitError(payload.message || "지금은 다시 시도할 수 없어요. 내 상담함에서 상태를 확인해 주세요.");
+        return;
+      }
+      setRetryOffer(null);
+      setSubmitError("");
+      void submitQuestion(saved.questionInput);
+    } catch {
+      setSubmitError("연결이 잠시 끊겼어요. 잠시 후 다시 시도해 주세요.");
+    } finally {
+      setRetryBusy(false);
+    }
+  }
+
+  // R7: 다시 시도 대신 환불을 고르면 서버가 한 번만 정산하고, 이 시도의 보관 기록을 지운다.
+  async function requestHeldConsultationRefund() {
+    const offer = retryOffer, saved = unusedPaidAttemptRef.current;
+    if (!offer || !saved || retryBusy) return;
+    setRetryBusy(true);
+    try {
+      const response = await authFetch("/api/fortune-tea-house/refund-request", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ resultId: offer.resultId }) }, { retryOn401: false });
+      const payload = await response.json().catch(() => ({})) as FortuneTeaHouseConsultApiResponse;
+      if (!response.ok || !payload.ok) {
+        setSubmitError(payload.message || "환불 요청을 접수하지 못했어요. 잠시 후 다시 시도해 주세요.");
+        return;
+      }
+      clearFortuneTeaRecovery(saved.ownerId, saved.attemptId);
+      unusedPaidAttemptRef.current = null;
+      setRetryOffer(null);
+      setPartialSections([]);
+      setQuestionInput({ ...saved.questionInput, attemptId: undefined });
+      setSubmitError("");
+      setNotice(payload.message || "환불 요청을 접수했어요. 이번 상담의 이용 권한을 돌려드려요.");
+    } catch {
+      setSubmitError("연결이 잠시 끊겼어요. 잠시 후 다시 시도해 주세요.");
+    } finally {
+      setRetryBusy(false);
+    }
+  }
+
   function renderRecoveryCard(message: string) {
     return (
       <section className={styles.consultErrorScene} aria-labelledby="fortuneTeaRecoveryTitle">
@@ -1610,7 +1672,15 @@ export default function FortuneTeaHousePage({paymentSurface = "web",TossPrice}: 
 
     if (stage === "questionInput" && selectedCup) {
       return (
-        <>{submitError && unusedPaidAttemptRef.current && <section className={styles.consultErrorCard} role="status">
+        <>{retryOffer && unusedPaidAttemptRef.current ? <section className={styles.consultErrorCard} role="status">
+          <h2>상담문 작성이 잠시 멈췄어요</h2>
+          <p>{submitError || "완성된 부분은 보관했어요. 추가 결제·차감 없이 다시 시도할 수 있어요."}</p>
+          <div className={styles.storyActions}>
+            <TeaHouseButton disabled={isSubmitting || retryBusy} onClick={() => void retryHeldConsultation()}>다시 시도 · 추가 결제·차감 없음</TeaHouseButton>
+            <TeaHouseButton variant="ghost" disabled={isSubmitting || retryBusy} onClick={() => void requestHeldConsultationRefund()}>다시 시도 대신 환불 요청</TeaHouseButton>
+            <a href="/fortune-tea-house/?history=1">내 상담함 확인하기</a>
+          </div>
+        </section> : submitError && unusedPaidAttemptRef.current && <section className={styles.consultErrorCard} role="status">
           <h2>이전 상담을 이어갈 수 있어요</h2>
           <p>입력한 내용과 원래 요청을 보관했어요. 같은 상담으로 다시 확인해 주세요.</p>
           <div className={styles.storyActions}>

@@ -80,7 +80,7 @@ test('actual polling survives 503 without changing evidence and remains bounded'
   assert.equal(posts.length,0);
 });
 const cup = { id: "cup-a", name: "찻잔", topic: "진로" };
-function harness({ window = { localStorage: store(), sessionStorage: store() }, failureStatus = 503, failureReason = "RESULT_STORAGE_UNAVAILABLE", paid = true, saved = null, owner = "user-a" } = {}) {
+function harness({ window = { localStorage: store(), sessionStorage: store() }, failureStatus = 503, failureReason = "RESULT_STORAGE_UNAVAILABLE", paid = true, saved = null, owner = "user-a", failureExtra = {} } = {}) {
   const api = recoveryApi(window);
   const posts = [];
   let gateCalls = 0;
@@ -100,7 +100,8 @@ function harness({ window = { localStorage: store(), sessionStorage: store() }, 
     canUseLocalConsultPreview: () => true,
     logSubmitStep() {}, startGenerationProgress() {}, clearGenerationProgressTimer() {}, setQuestionInput(value) { state.input = value; },
     setConsultResult(value) { state.result = value; }, setSubmitError(value) { state.error = value; },
-    setIsSubmitting() {}, setGenerationProgress() {}, setNotice() {}, setHoneyDrops() {},
+    retryOffer: null, retryBusy: false, setRetryOffer(value) { state.retryOffer = value; }, setRetryBusy(value) { state.retryBusy = value; },
+    setIsSubmitting() {}, setGenerationProgress() {}, setNotice(value) { state.notice = value; }, setHoneyDrops() {},
     setHoneyRewardMessage() {}, setHoneyRewardBurstKey() {}, setPartialSections(value) { state.partial = value; },
     authFetch: async () => ({ ok: false }),
     markGenerationComplete() { state.completed = true; }, markGenerationError() {},
@@ -124,7 +125,7 @@ function harness({ window = { localStorage: store(), sessionStorage: store() }, 
       posts.push(JSON.parse(JSON.stringify(body)));
       if (!succeed && failureStatus === 0) throw new Error("MOCK_RESPONSE_LOST");
       return succeed ? { response: { ok: true, status: 200 }, payload: { ok: true, result: { resultId: body.attemptId, body: "SAVED_RESULT" } } }
-        : { response: { ok: false, status: failureStatus }, payload: { ok: false, reason: failureReason, message: "저장 확인 실패" } };
+        : { response: { ok: false, status: failureStatus }, payload: { ok: false, reason: failureReason, message: "저장 확인 실패", ...failureExtra } };
     },
     isFortuneTeaGenerationPending: () => false, normalizeHoneyDropsState: () => null,
     pollFortuneTeaConsultResult: async () => null,
@@ -405,4 +406,39 @@ test("Toss access denial stops before checkout or local preview", async () => {
     assert.equal(h.state.completed, undefined);
     assert.match(h.state.error, message);
   }
+});
+
+// R7(2026-11-19): 다시 시도 보류(409 RETRY_AVAILABLE)는 결제창 없이 같은 시도를 보관하고, 다시 시도는 같은 요청으로, 환불 요청은 시도를 끝낸다.
+function heldHarness(fetchPayload) {
+  const h = harness({ paid: false, failureStatus: 409, failureReason: "RETRY_AVAILABLE", failureExtra: { retry: { available: true, resultId: "held-1" } } });
+  const calls = [];
+  h.state.authFetch = async (url, init) => { calls.push({ url, body: JSON.parse(init.body) }); return { ok: true, json: async () => fetchPayload }; };
+  vm.runInContext(functionSource("retryHeldConsultation"), h.state);
+  vm.runInContext(functionSource("requestHeldConsultationRefund"), h.state);
+  return { ...h, calls };
+}
+test("a held consultation offers a free retry with the same request and no payment gate", async () => {
+  const h = heldHarness({ ok: true, status: "partial" });
+  await h.submit({ ...input, attemptId: "held-attempt" });
+  assert.equal(JSON.stringify(h.state.retryOffer), JSON.stringify({ resultId: "held-1" }));
+  assert.ok(h.state.unusedPaidAttemptRef.current, "the paid attempt stays saved");
+  h.succeed();
+  await h.state.retryHeldConsultation();
+  assert.deepEqual(h.calls, [{ url: "/api/fortune-tea-house/retry", body: { resultId: "held-1" } }]);
+  await new Promise(resolve => setImmediate(resolve));
+  assert.equal(h.posts.length, 2);
+  assert.equal(h.posts[1].attemptId, h.posts[0].attemptId);
+  assert.equal(h.gateCalls(), 0);
+  assert.equal(h.state.completed, true);
+});
+test("choosing a refund instead of retry ends the held attempt without generating", async () => {
+  const h = heldHarness({ ok: true, refundStatus: "refunded", message: "환불 요청을 접수했어요." });
+  await h.submit({ ...input, attemptId: "held-attempt" });
+  await h.state.requestHeldConsultationRefund();
+  assert.deepEqual(h.calls, [{ url: "/api/fortune-tea-house/refund-request", body: { resultId: "held-1" } }]);
+  assert.equal(h.state.retryOffer, null);
+  assert.equal(h.state.unusedPaidAttemptRef.current, null);
+  assert.equal(h.api.readFortuneTeaRecovery("user-a"), null);
+  assert.equal(h.posts.length, 1);
+  assert.equal(h.state.notice, "환불 요청을 접수했어요.");
 });
