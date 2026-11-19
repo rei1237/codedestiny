@@ -47,7 +47,11 @@ export function offerConversationContinuation(c:Conversation,previousCalls:numbe
 }
 export function continueConversation(c:Conversation|undefined,id:string,threadId:string,now:number):Conversation{
  const prev=c||empty();
- if(prev.lastContinuation?.id===id)return prev;
+ if(prev.lastContinuation?.id===id){
+  // 이미 새 대화로 옮긴 뒤 같은 질문에 이어가기가 다시 걸린 상태(2026-11 반복 제안)는 새 묶음을 또 만들지 않고 질문을 초안으로 돌려준다.
+  if(prev.continuation?.id!==id)return prev;
+  return {...prev,revision:prev.revision+1,pending:undefined,continuation:undefined,draft:{id:prev.continuation.id,question:prev.continuation.question}};
+ }
  if(!prev.continuation||prev.continuation.id!==id)throw new FortuneError('QUESTION_FOLLOWUP_BUSY',409);
  const currentId=prev.threadId||'thread-0',currentIndex=prev.threadIndex||0;
  return {...prev,revision:prev.revision+1,closed:false,pending:undefined,continuation:undefined,

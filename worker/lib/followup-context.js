@@ -69,7 +69,14 @@ export function compactFollowupMessages(messages, options = {}) {
   ]).filter((row) => row.content);
 }
 
-export function buildFollowupContextInput(payload, { maxChars = FOLLOWUP_CONTEXT_SAFE_CHARS } = {}) {
+// 이전 상한(11-04 전). 이 크기를 넘는 입력만 지원 안내로 돌린다.
+export const FOLLOWUP_CONTEXT_HARD_CHARS = 120000;
+// 새 대화 묶음은 대화 기록을 비워야 상한 안으로 들어올 때만 제안한다. 기록이 없거나 비워도 넘는 기본 맥락
+// (계산 근거가 큰 상품)은 같은 제안을 되풀이하지 않고 그대로 답한다 — 2026-11 이어가기 무한 반복 장애.
+export function buildFollowupContextInput(payload, { maxChars = FOLLOWUP_CONTEXT_SAFE_CHARS, hardMaxChars = FOLLOWUP_CONTEXT_HARD_CHARS } = {}) {
   const input = JSON.stringify(payload);
-  return { input, chars: input.length, requiresContinuation: input.length > maxChars };
+  const history = Array.isArray(payload?.history) ? payload.history : [];
+  const baseChars = history.length ? JSON.stringify({ ...payload, history: [] }).length : input.length;
+  const requiresContinuation = input.length > maxChars && history.length > 0 && baseChars <= maxChars;
+  return { input, chars: input.length, baseChars, requiresContinuation, tooLarge: !requiresContinuation && input.length > hardMaxChars };
 }
