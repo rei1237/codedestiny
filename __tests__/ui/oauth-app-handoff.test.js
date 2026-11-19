@@ -78,7 +78,7 @@ test('Google invalid_grant is not retried with the same single-use authorization
 });
 
 const bridgeSource = ts.createSourceFile('app-native-bridge.js', fs.readFileSync(path.resolve(__dirname, '../../scripts/app-native-bridge.js'), 'utf8'), ts.ScriptTarget.Latest, true);
-const bridgeNames = ['nativeAppCopy', 'nativeAppText', 'completeMobileOAuth', 'storeAuthSession', 'describeSocialError', 'installAppUrlListener'];
+const bridgeNames = ['nativeAppCopy', 'nativeAppText', 'completeMobileOAuth', 'storeAuthSession', 'describeSocialError', 'installAppUrlListener', 'universalLinkPath', 'isOwnHost', 'OWN_HOSTS'];
 const bridgeFunctions = new Map();
 (function collect(node) {
   if (ts.isFunctionDeclaration(node) && bridgeNames.includes(node.name?.text)) bridgeFunctions.set(node.name.text, node.getText(bridgeSource));
@@ -89,21 +89,21 @@ assert.equal(bridgeFunctions.size, bridgeNames.length);
 
 function bridgeHarness(result) {
   const storage = new Map([['fortune_auth_token', 'existing-session']]);
-  const effects = { requests: [], events: [], toasts: [], cancelled: [], timers: [], moves: [], closes: 0, hidden: 0 };
+  const effects = { requests: [], events: [], toasts: [], cancelled: [], timers: [], moves: [], assigns: [], progress: 0, closes: 0, hidden: 0 };
   let listener;
   const context = vm.createContext({ URL, Date,
     document: { documentElement: { lang: 'ko' } },
     localStorage: { setItem: (key, value) => storage.set(key, value) },
     CustomEvent: class { constructor(type, options) { this.type = type; this.detail = options.detail; } },
     window: {
-      location: { pathname: '/login/', replace: target => effects.moves.push(target) },
+      location: { pathname: '/login/', replace: target => effects.moves.push(target), assign: target => effects.assigns.push(target) },
       setTimeout: fn => effects.timers.push(fn),
       dispatchEvent: event => effects.events.push(event),
     },
     appPlugin: () => ({ addListener: (name, callback) => { assert.equal(name, 'appUrlOpen'); listener = callback; } }),
     browserPlugin: () => ({ close: async () => { effects.closes++; } }),
     postJson: async (...args) => { effects.requests.push(args); return result; },
-    trace: () => {}, showAuthProgress: () => {}, hideAuthProgress: () => { effects.hidden++; },
+    trace: () => {}, showAuthProgress: () => { effects.progress++; }, hideAuthProgress: () => { effects.hidden++; },
     notifyAuthCancelled: reason => effects.cancelled.push(reason), toast: message => effects.toasts.push(message),
     openAuthStartedAt: 1,
   });
@@ -142,4 +142,72 @@ test('Google failure return closes Chrome, removes progress and preserves an exi
   assert.equal(storage.size, 1);
   assert.equal(effects.events.length, 0);
   assert.equal(effects.timers.length, 0);
+});
+
+test('iOS universal links open the same path inside the app bundle without touching the OAuth exchange', async () => {
+  for (const [url, expected] of [
+    ['https://code-destiny.com/records/?tab=saju#latest', '/records/?tab=saju#latest'],
+    ['https://www.code-destiny.com/yeongnyangi/library/', '/yeongnyangi/library/'],
+    ['https://code-destiny.com', '/'],
+  ]) {
+    const { open, effects, storage } = bridgeHarness();
+    await open(url);
+    assert.deepEqual(effects.assigns, [expected]);
+    assert.equal(effects.requests.length, 0);
+    assert.equal(effects.progress, 0);
+    assert.equal(effects.closes, 0);
+    assert.deepEqual(effects.moves, []);
+    assert.equal(storage.get('fortune_auth_token'), 'existing-session');
+  }
+});
+
+test('universal links never navigate to API, API host, foreign hosts or plain http', async () => {
+  for (const url of [
+    'https://code-destiny.com/api/auth/oauth/google/callback?code=x',
+    'https://code-destiny.com/api',
+    'https://api.code-destiny.com/records/',
+    'https://evil.example/records/',
+    'https://code-destiny.com.evil.example/records/',
+    'http://code-destiny.com/records/',
+  ]) {
+    const { open, effects } = bridgeHarness();
+    await open(url);
+    assert.deepEqual(effects.assigns, [], url);
+    assert.equal(effects.requests.length, 0, url);
+    // 우리 링크가 아니면 진행 화면을 걷어 낸다(기존 OAuth 경로의 비처리 분기).
+    assert.equal(effects.hidden, 1, url);
+  }
+});
+
+test('apple-app-site-association is only produced with a well-formed Team ID and keeps API and checkout in Safari', async () => {
+  const mod = await import('../../lib/app-links/apple-app-site-association.mjs');
+  assert.equal(mod.APPLE_TEAM_ID, '', 'Team ID 는 Apple Developer 등록 뒤에만 넣는다');
+  assert.equal(mod.buildAppleAppSiteAssociation(), null);
+  assert.equal(mod.buildAppleAppSiteAssociation(''), null);
+  for (const bad of ['TEAMID', 'abcdefghij', 'ABCDE12345X', 'XXXXXXXXX?']) {
+    assert.throws(() => mod.buildAppleAppSiteAssociation(bad), /APPLE_TEAM_ID/);
+  }
+  const aasa = mod.buildAppleAppSiteAssociation('ABCDE12345');
+  const appID = 'ABCDE12345.com.codedestiny.app';
+  assert.deepEqual(aasa.applinks.details[0].appIDs, [appID]);
+  assert.deepEqual(aasa.webcredentials.apps, [appID]);
+  const components = aasa.applinks.details[0].components;
+  assert.deepEqual(components.at(-1), { '/': '/*' });
+  for (const excluded of ['/api/*', '/admin/*', '/checkout/*', '/share/*', '/fortune/share/*', '/.well-known/*']) {
+    const index = components.findIndex(component => component['/'] === excluded);
+    assert.ok(index >= 0 && components[index].exclude === true && index < components.length - 1, excluded);
+  }
+});
+
+test('Pages serves the AASA path as JSON and the iOS target signs the associated domain', () => {
+  const read = file => fs.readFileSync(path.resolve(__dirname, '../..', file), 'utf8');
+  for (const file of ['_headers', 'public/_headers']) {
+    assert.match(read(file), /^\/\.well-known\/apple-app-site-association\r?\n  Content-Type: application\/json\r?\n/m, file);
+  }
+  const entitlements = read('apps/mobile/ios/App/App/App.entitlements');
+  assert.match(entitlements, /<string>applinks:code-destiny\.com<\/string>/);
+  assert.match(entitlements, /<string>webcredentials:code-destiny\.com<\/string>/);
+  assert.doesNotMatch(entitlements, /applinks:www\./, 'www 는 apex 로 301 이라 AASA 를 낼 수 없다');
+  const pbxproj = read('apps/mobile/ios/App/App.xcodeproj/project.pbxproj');
+  assert.equal((pbxproj.match(/CODE_SIGN_ENTITLEMENTS = App\/App\.entitlements;/g) || []).length, 2);
 });

@@ -769,6 +769,23 @@
     return true;
   }
 
+  // iOS 유니버설 링크(https://code-destiny.com/…)가 앱을 열면 같은 경로를 앱 번들 안에서 연다.
+  // 웹 URL 과 앱 내부 경로는 같은 체계다(정적 export 를 그대로 번들에 싣는다). /api 는 화면이 아니다.
+  // Android 는 App Links 가 없어 https 링크가 이 리스너로 오지 않는다(커스텀 스킴만).
+  function universalLinkPath(appUrl) {
+    var parsed;
+    try {
+      parsed = new URL(appUrl);
+    } catch (e) {
+      return "";
+    }
+    if (parsed.protocol !== "https:" || !isOwnHost(parsed.hostname)) return "";
+    if (String(parsed.hostname).toLowerCase() === "api.code-destiny.com") return "";
+    var path = parsed.pathname || "/";
+    if (/^\/api(?:\/|$)/.test(path)) return "";
+    return path + parsed.search + parsed.hash;
+  }
+
   function installAppUrlListener() {
     var app = appPlugin();
     if (!app || !app.addListener) {
@@ -779,6 +796,15 @@
       var appUrl = String((event && event.url) || "");
       trace("appUrlOpen", { url: appUrl.slice(0, 60) });
       if (!appUrl) return;
+      // 콜드 스타트도 같은 길이다 — @capacitor/app 은 appUrlOpen 을 retainUntilConsumed 로 보내
+      // 첫 페이지가 리스너를 붙일 때 전달한다. 로그인이 필요한 화면은 그 페이지의 기존 로그인 게이트가
+      // /login?next=<원래 경로> 로 보내고, 로그인 복귀(next)가 원래 목적지로 돌려놓는다.
+      var inAppPath = universalLinkPath(appUrl);
+      if (inAppPath) {
+        trace("universalLink", { path: inAppPath.split(/[?#]/)[0].slice(0, 60) });
+        window.location.assign(inAppPath);
+        return;
+      }
       openAuthStartedAt = 0;
       // 딥링크로 돌아온 직후 토큰 교환은 네트워크 왕복이다. 그 사이가 비어 있으면 멈춘 것처럼 보인다.
       showAuthProgress(nativeAppText("authChecking"));
