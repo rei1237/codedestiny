@@ -150,7 +150,9 @@ class CodeDestinyViewController: CAPBridgeViewController {
         safeAreaTop: safeAreaTop,
         bodyPaddingTop: document.body ? getComputedStyle(document.body).paddingTop : null,
         dataPlatform: document.documentElement.dataset.platform || null,
-        header: header ? { className: String(header.className), paddingTop: getComputedStyle(header).paddingTop, rectTop: rect.top, height: rect.height } : null
+        htmlPaddingTop: getComputedStyle(document.documentElement).paddingTop,
+        headerCount: document.querySelectorAll("header").length,
+        header: header ? { className: String(header.className), position: getComputedStyle(header).position, top: getComputedStyle(header).top, paddingTop: getComputedStyle(header).paddingTop, rectTop: rect.top, height: rect.height } : null
       };
     })();
     """
@@ -242,6 +244,16 @@ class CodeDestinyViewController: CAPBridgeViewController {
                 let arrived = value.contains("\"href\":\"capacitor://localhost/about/") && value.contains("\"readyState\":\"complete\"")
                 if arrived || Date() > deadline {
                     NSLog("%@", "[cd-selftest] link-result \(value)")
+                    // Run 44574289524: the probe at arrival put the header 62 px down, but a screenshot 2 s later showed
+                    // it under the status bar. Measure again once the page has had time to finish its own scripts.
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 6) {
+                        webView.callAsyncJavaScript(Self.layoutProbe + "\nreturn JSON.stringify({ href: location.href, layout: layout });", arguments: [:], in: nil, in: .page) { late in
+                            switch late {
+                            case .success(let output): NSLog("%@", "[cd-selftest] link-layout-late \(output)")
+                            case .failure(let error): NSLog("%@", "[cd-selftest] link-layout-late error \(error.localizedDescription)")
+                            }
+                        }
+                    }
                 } else {
                     self.selfTestLinkResult(deadline: deadline)
                 }

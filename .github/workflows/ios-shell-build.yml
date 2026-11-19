@@ -125,7 +125,8 @@ jobs:
           wait_for "\[cd-selftest\] {" 120 || echo "no home snapshot within 120s" >> "$OUT/process.txt"
           xcrun simctl io "$UDID" screenshot "$OUT/home.png"
           wait_for "\[cd-selftest\] link-result" 60 || echo "no link-result within 60s" >> "$OUT/process.txt"
-          sleep 2
+          # 도착 시점 측정과 2초 뒤 스크린샷이 어긋났다(실행 44574289524). 6초 뒤 다시 잰 값과 같은 시점에 찍는다.
+          wait_for "\[cd-selftest\] link-layout-late" 20 || echo "no link-layout-late within 20s" >> "$OUT/process.txt"
           xcrun simctl io "$UDID" screenshot "$OUT/after-links.png"
           if xcrun simctl spawn "$UDID" launchctl list | grep -q "com.codedestiny.app"; then
             echo "running" >> "$OUT/process.txt"
@@ -188,10 +189,15 @@ jobs:
             for (const line of lines.filter((l) => l.includes("[cd-selftest] {"))) {
               try { home = JSON.parse(line.slice(line.indexOf("{", line.indexOf("[cd-selftest]")))); break; } catch (e) { /* next */ }
             }
+            let late = null;
+            for (const line of lines.filter((l) => l.includes("[cd-selftest] link-layout-late {"))) {
+              try { late = JSON.parse(line.slice(line.indexOf("{", line.indexOf("link-layout-late")))); break; } catch (e) { /* next */ }
+            }
             const report = [...checks, `href: ${result ? result.href : "(no link-result)"}`, `title: ${result ? result.title : ""}`,
               `home href: ${home ? home.href : "(no home snapshot)"}`,
               `home layout: ${JSON.stringify(home && home.layout)}`,
-              `about layout: ${JSON.stringify(result && result.layout)}`].join("\n");
+              `about layout: ${JSON.stringify(result && result.layout)}`,
+              `about layout (late): ${JSON.stringify(late)}`].join("\n");
             require("fs").writeFileSync(process.argv[2], report + "\n");
             console.log(report);
             process.exit(checks.every((line) => line.startsWith("PASS")) ? 0 : 1);
