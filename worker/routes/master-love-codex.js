@@ -31,6 +31,7 @@ import {EDGE_RESPONSE_DEADLINE_MS, PAID_LLM_PARTS_PER_REQUEST } from "../lib/syn
 import { MasterLoveCodexSession, PaidExecutionRecord, Payment, PointHistory, User } from "../lib/models.js";
 import { findMoonstoneSpendEvidence } from "../lib/moonstone-spend-proof.js";
 import { recoverCodexSession, recoverCodexDeliverySession } from "../lib/master-love-codex-session-access.js";
+import { retryRefundAt } from "../lib/paid-delivery-stuck.js";
 import { assertCodexChapterQuality, codexChapterRepairFloor, codexDedupedChapterFloor, dedupeCodexBody, qualityCheckedCodexCache, generateCodexChapterResponse, buildCodexChapterMemory, buildCodexStagingChapter, parseChapterJson, detectCodexSoftIssues, codexSoftIssueHint, scrubCodexSoftIssues, scrubCodexCrossRepeats, validateCodexChapterOutline, isMasterLoveCodexComplete } from "../lib/master-love-codex-quality.js";
 import { buildCodexEvidence, formatCodexEvidence, stripCodexEvidenceIds, CODEX_EVIDENCE_VERSION } from "../lib/master-love-codex-evidence.js";
 import { isStagingLlmMockEnabled } from "../lib/staging-llm-mock.js";
@@ -181,6 +182,11 @@ const MESSAGES = {
   invalidInput: "생년월일과 태어난 시각(또는 '태어난 시각 모름')을 확인해 주세요.",
   paymentRequired: "마스터 인연의 서는 회당 결제가 필요합니다.",
   generationFailedRefunded: "이야기를 끝까지 완성하지 못해 결제를 자동으로 환불해 드립니다. 불편을 드려 죄송합니다.",
+  retryAvailable: "이야기를 끝까지 완성하지 못했어요. 쓰인 장은 보관했고, 추가 결제·차감 없이 다시 시도할 수 있어요. 원하시면 다시 시도 대신 환불을 요청할 수 있어요.",
+  retryNotAvailable: "이 인연의 서는 지금 다시 시도할 수 없어요. 보관함에서 상태를 확인해 주세요.",
+  retryWindowExpired: "다시 시도 기간이 끝나 이 인연의 서는 종료됐어요. 결제는 자동으로 환불해 드려요.",
+  refundRequested: "환불 요청을 접수했어요. 이번 결제를 돌려드려요.",
+  refundNotAvailable: "이 인연의 서는 환불 요청 대상이 아니에요. 보관함에서 상태를 확인해 주세요.",
   paymentVerifyFailed: "결제 확인이 완료되지 않았습니다. 결제가 끝났다면 잠시 후 다시 시도해 주세요.",
   calculationFailed: "명식과 명반을 세우는 중 문제가 발생했습니다. 입력값을 확인한 뒤 다시 시도해 주세요.",
   notFound: "요청하신 인연의 서를 찾을 수 없습니다.",
@@ -908,8 +914,71 @@ function isLegacyPartialCodex(doc) {
 
 const CODEX_FAILED_REFUNDED_REASON = "GENERATION_FAILED_REFUNDED";
 
-/** 닫힌 세션의 고객 안내. 최종 실패(S16)는 환불 안내, 그 밖의 옛 닫힘은 기존 문구를 유지한다. */
+// ─── R7 (2026-11-19) 다시 시도 먼저 ──────────────────────────────────────────
+// 웹 결제의 최종 실패(장 상한 소진·크론 정체)는 창(결제·생성 시작 + 7일) 안이면 바로 환불하지 않고 다시 시도 보류로 둔다.
+// 보류 = status generation_failed + reviewRequired + reviewReason RETRY_AVAILABLE + deliveryMeta.retryable{since, refundAt, code,
+// exhaustedChapterIds, reopens}. refundAt 은 처음 정한 시각을 유지한다(다시 시도해도 늘지 않는다). reviewRequired 라 락·크론 회수·
+// 옛 닫힘 재개(GENERATION_BUDGET_EXCEEDED 전용)가 모두 건너뛴다 — 다시 여는 길은 고객의 POST /retry 하나뿐이다.
+// 고객이 환불을 고르면(POST /refund-request) 또는 창이 지나면(회수 크론·/retry) DELIVERY_FAILED 로 닫고 기존 환불(멱등 마커)을 1회 돈다.
+// 토스 네이티브 구매·이미 환불이 시작된 세션은 보류하지 않는다(기존 즉시 정산).
+const CODEX_RETRY_REASON = "RETRY_AVAILABLE";
+
+/** 보류할 수 있으면 환불 시각, 아니면 null(호출부는 기존 즉시 정산으로 간다). */
+function codexRetryHoldAt(doc, now) {
+  const meta = doc?.deliveryMeta || {};
+  const marker = meta.retryable;
+  if (meta.tossIntentId || marker?.refundRequestedAt || marker?.closedAt || meta.refundSettledAt || meta.refundAdminReviewAt
+    || doc?.passRefund?.refundedAt || doc?.billingRefund?.refundedAt) return null;
+  const refundAt = marker?.refundAt ? new Date(marker.refundAt) : retryRefundAt(doc, now);
+  return refundAt.getTime() > now ? refundAt : null;
+}
+
+/** 다시 시도 가능한 보류면 { available, refundAt, sessionId }, 아니면 null. */
+export function codexRetryState(doc, now = Date.now()) {
+  const meta = doc?.deliveryMeta || {};
+  const marker = meta.retryable;
+  if (doc?.status !== "generation_failed" || meta.reviewReason !== CODEX_RETRY_REASON || !marker || marker.refundRequestedAt || marker.closedAt) return null;
+  if (meta.tossIntentId || meta.refundSettledAt || doc.passRefund?.refundedAt || doc.billingRefund?.refundedAt) return null;
+  const refundAt = new Date(marker.refundAt ?? NaN).getTime();
+  return refundAt > now ? { available: true, refundAt: new Date(refundAt).toISOString(), sessionId: clean(doc.id) } : null;
+}
+
+/** 창이 지났는데 아직 닫지 않은 보류. */
+export function codexRetryDue(doc, now = Date.now()) {
+  const meta = doc?.deliveryMeta || {};
+  const marker = meta.retryable;
+  if (doc?.status !== "generation_failed" || meta.reviewReason !== CODEX_RETRY_REASON || !marker || marker.refundRequestedAt || marker.closedAt) return false;
+  return !(new Date(marker.refundAt ?? NaN).getTime() > now);
+}
+
+/**
+ * 보류를 DELIVERY_FAILED 로 닫는다(조건부 원자 갱신 — 그 사이 다시 열렸거나 이미 닫혔으면 null). 환불은 호출부가
+ * retryCodexFinalRefund 로 돈다. CUSTOMER_REQUEST 가 아니면 창이 지난 보류만 닫는다(fail-closed).
+ * 반환값은 갱신을 반영한 문서 사본이다(환불기가 읽는 필드만 바뀐다).
+ */
+export async function closeCodexRetryHold(SessionModel, doc, reason, now = Date.now()) {
+  if (!doc?.id || !doc.userId) return null;
+  const at = new Date(now);
+  const customer = reason === "CUSTOMER_REQUEST";
+  const filter = { id: doc.id, userId: doc.userId, status: "generation_failed", "deliveryMeta.reviewReason": CODEX_RETRY_REASON,
+    "deliveryMeta.retryable.refundRequestedAt": { $exists: false }, "deliveryMeta.retryable.closedAt": { $exists: false },
+    ...(customer ? {} : { "deliveryMeta.retryable.refundAt": { $lte: at } }) };
+  const closing = { closedAt: at, closeReason: clean(reason, 40), ...(customer ? { refundRequestedAt: at } : {}) };
+  const saved = await SessionModel.updateOne(filter, { $set: { "deliveryMeta.reviewRequired": true, "deliveryMeta.reviewReason": "DELIVERY_FAILED",
+    "deliveryMeta.finalFailureAt": at, ...Object.fromEntries(Object.entries(closing).map(([key, value]) => [`deliveryMeta.retryable.${key}`, value])) } });
+  if (!(saved?.matchedCount || saved?.modifiedCount)) return null;
+  return { ...doc, deliveryMeta: { ...doc.deliveryMeta, reviewRequired: true, reviewReason: "DELIVERY_FAILED", finalFailureAt: at,
+    retryable: { ...doc.deliveryMeta?.retryable, ...closing } } };
+}
+
+/** 닫힌 세션의 고객 안내. 최종 실패(S16)는 환불 안내, 다시 시도 보류(R7)는 다시 시도 안내, 그 밖의 옛 닫힘은 기존 문구를 유지한다. */
 function codexFailurePayload(doc) {
+  if (doc?.deliveryMeta?.reviewReason === CODEX_RETRY_REASON) {
+    const retry = codexRetryState(doc);
+    // 창이 지났는데 크론이 아직 닫지 않았으면 환불 안내로 보인다(곧 정산된다).
+    return retry ? { reason: CODEX_RETRY_REASON, message: MESSAGES.retryAvailable, retry }
+      : { reason: CODEX_FAILED_REFUNDED_REASON, message: MESSAGES.generationFailedRefunded };
+  }
   if (doc?.deliveryMeta?.reviewReason === "DELIVERY_FAILED") return { reason: CODEX_FAILED_REFUNDED_REASON, message: MESSAGES.generationFailedRefunded };
   return { reason: "GENERATION_BUDGET_EXCEEDED", message: "구매한 회차와 저장된 장은 보존되어 있습니다. 이어쓰기 상태의 확인이 필요합니다." };
 }
@@ -1028,7 +1097,7 @@ export async function syncCodexExecution(doc) {
     status: { $in: ["paid_pending_generation", "generating", "generation_failed", "completed"] },
   }, { $set: {
     resultId: doc.id, status: doc.status === "completed" ? "completed" : doc.status === "generation_failed" ? "generation_failed" : "generating",
-    error: doc.deliveryMeta?.reviewRequired ? { code: doc.deliveryMeta.reviewReason === "DELIVERY_FAILED" ? "DELIVERY_FAILED" : "GENERATION_BUDGET_EXCEEDED", chapterIds: doc.deliveryMeta.exhaustedChapterIds } : null,
+    error: doc.deliveryMeta?.reviewRequired ? { code: ["DELIVERY_FAILED", CODEX_RETRY_REASON].includes(doc.deliveryMeta.reviewReason) ? doc.deliveryMeta.reviewReason : "GENERATION_BUDGET_EXCEEDED", chapterIds: doc.deliveryMeta.exhaustedChapterIds } : null,
     ...(doc.status === "completed" ? { completedAt: doc.updatedAt, consumedAt: doc.updatedAt } : {}),
   } }).catch(error => console.warn("[master-love-codex] usage record", clean(error?.message, 120)));
   if (saved?.matchedCount && doc.status === "completed" && doc.deliveryMeta?.executionSyncPending) {
@@ -1478,6 +1547,24 @@ export async function retryCodexFinalRefund(env, doc, dependencies = {}) {
  */
 export async function settleCodexFinalFailure(env, { sessionId, userId, filter, doc, reason = "SERVICE_GENERATION_FAILED", exhaustedChapterIds = [], dependencies = {} }) {
   const at = new Date();
+  // R7: 창 안의 웹 결제는 환불 대신 다시 시도 보류. 같은 락 조건으로 저장하고 환불기는 부르지 않는다.
+  const holdAt = codexRetryHoldAt(doc, at.getTime());
+  if (holdAt) {
+    const kept = doc?.deliveryMeta?.retryable || {};
+    const retryable = { ...kept, since: kept.since || at, refundAt: holdAt, code: clean(reason, 80),
+      exhaustedChapterIds: exhaustedChapterIds.map(id => clean(id, 80)), reopens: Number(kept.reopens || 0) };
+    const session = await saveCodexDelivery({ ...filter, status: { $ne: "completed" } }, {
+      status: "generation_failed",
+      deliveryMeta: { ...doc?.deliveryMeta, reviewRequired: true, reviewReason: CODEX_RETRY_REASON, finalFailureAt: at,
+        finalFailureReason: clean(reason, 80), exhaustedChapterIds: exhaustedChapterIds.map(id => clean(id, 80)), nextAttemptAt: null,
+        deliveryWatch: null, retryable },
+      generationError: { code: clean(reason, 80), message: "retry available", at },
+      generationProgress: { ...doc?.generationProgress, step: "failed", lockedAt: null, lockToken: "" },
+    }, sessionId);
+    await Promise.resolve((dependencies.syncCodexExecution || syncCodexExecution)(session)).catch(() => {});
+    console.warn("[master-love-codex] final failure held for retry", { sessionId, reason: clean(reason, 80) });
+    return { session, refundStatus: "held", held: true, retry: codexRetryState(session, at.getTime()) };
+  }
   const session = await saveCodexDelivery({ ...filter, status: { $ne: "completed" } }, {
     status: "generation_failed",
     deliveryMeta: { ...doc?.deliveryMeta, reviewRequired: true, reviewReason: "DELIVERY_FAILED", finalFailureAt: at,
@@ -1563,8 +1650,9 @@ async function handleGenerate(request, env, dependencies = {}) {
     case "denied": return paymentVerifyFailed();
     case "completed":
     case "committed": return sessionWithAccessToken(env, wave.session);
-    // S16: 최종 실패 + 자동 환불. 본문 없이 환불 안내만(재시도 없음).
-    case "generation_failed": return json({ ok: false, sessionId, status: "generation_failed", retryable: false,
+    // R7: 창 안이면 다시 시도 보류 안내(본문 없음, retry 표식). 그 밖은 S16 최종 실패 + 자동 환불 안내.
+    case "generation_failed": if (wave.held) return json({ ...publicSession(wave.session), ok: false }, { status: 503 });
+      return json({ ok: false, sessionId, status: "generation_failed", retryable: false,
       reason: CODEX_FAILED_REFUNDED_REASON, message: MESSAGES.generationFailedRefunded, chapters: [], loveDna: null }, { status: 503 });
     case "lock_lost": return json({ ok: false, reason: "GENERATION_IN_PROGRESS", retryable: true, message: MESSAGES.busy }, { status: 409 });
     case "storage_failed": return json(resultStorageFailurePayload(resultStorageUnavailable(sessionId)), { status: 503 });
@@ -1664,7 +1752,8 @@ async function runCodexWaveInternal(env, { sessionId, userId, doc, lockToken, de
     if (!actionable.length && exhausted.length) {
       const settled = await settleCodexFinalFailure(env, { sessionId, userId: ownerId, filter: lockFilter, doc: current,
         reason: "SERVICE_GENERATION_FAILED", exhaustedChapterIds: exhausted.map(row => row.id), dependencies });
-      return { outcome: "generation_failed", reason: CODEX_FAILED_REFUNDED_REASON, retryable: false, refundStatus: settled.refundStatus, session: settled.session };
+      return { outcome: "generation_failed", reason: settled.held ? CODEX_RETRY_REASON : CODEX_FAILED_REFUNDED_REASON, retryable: false,
+        refundStatus: settled.refundStatus, held: Boolean(settled.held), session: settled.session };
     }
     if (missing.length) {
       missing.forEach(chapter => {
@@ -1828,6 +1917,80 @@ async function handleSession(request, env) {
   return sessionWithAccessToken(env, recovered.session);
 }
 
+async function readCodexRetryTarget(request, env) {
+  const body = asObject(await readJson(request));
+  const sessionId = clean(body.sessionId, 120);
+  if (!sessionId) return { response: invalidInput("세션 정보가 없습니다.") };
+  const auth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true });
+  if (!auth) return { response: loginRequired() };
+  await connectDb(env);
+  return { sessionId, userId: clean(auth.userId) };
+}
+
+/**
+ * R7 POST /retry: 다시 시도 보류를 연다. 결제 확인·차감·증빙 청구 없이 남은 장의 시도 횟수만 새로 주고(:lengthRepair 기록은 유지),
+ * 저장된 장과 환불 시각은 그대로 둔다. 생성은 응답의 accessToken 으로 클라이언트가 /generate 를 이어 밀거나 회수 크론이 잇는다.
+ */
+async function handleRetry(request, env, dependencies = {}) {
+  const target = await readCodexRetryTarget(request, env);
+  if (target.response) return target.response;
+  const { sessionId, userId } = target;
+  const recovered = await recoverCodexSession({ userId, sessionId });
+  if (!recovered) return json({ ok: false, reason: "NOT_FOUND", message: MESSAGES.notFound }, { status: 404 });
+  if (recovered.denied) return codexFailedRefundedResponse(sessionId, userId);
+  const doc = recovered.session;
+  const now = Date.now();
+  const notAvailable = () => json({ ok: false, reason: "RETRY_NOT_AVAILABLE", sessionId, message: MESSAGES.retryNotAvailable }, { status: 409 });
+  const retry = codexRetryState(doc, now);
+  if (!retry) {
+    if (codexRetryDue(doc, now)) {
+      const closed = await closeCodexRetryHold(MasterLoveCodexSession, doc, "RETRY_WINDOW_EXPIRED", now);
+      if (closed) await retryCodexFinalRefund(env, closed, dependencies).catch(() => null);
+      return json({ ok: false, reason: "RETRY_WINDOW_EXPIRED", sessionId, retryable: false, message: MESSAGES.retryWindowExpired }, { status: 409 });
+    }
+    return notAvailable();
+  }
+  const attempts = { ...doc.deliveryMeta?.attempts };
+  for (const spec of diagnoseCodexSession(doc).pending) attempts[spec.id] = 0;
+  const at = new Date(now);
+  const reopened = await MasterLoveCodexSession.updateOne({ id: sessionId, userId, status: "generation_failed",
+    "deliveryMeta.reviewReason": CODEX_RETRY_REASON, "deliveryMeta.retryable.refundAt": { $gt: at },
+    "deliveryMeta.retryable.refundRequestedAt": { $exists: false }, "deliveryMeta.retryable.closedAt": { $exists: false },
+    "deliveryMeta.refundSettledAt": { $exists: false }, "passRefund.refundedAt": { $exists: false }, "billingRefund.refundedAt": { $exists: false } }, {
+    $set: { status: "generating", "deliveryMeta.reviewRequired": false, "deliveryMeta.attempts": attempts, "deliveryMeta.deliveryWatch": null,
+      "deliveryMeta.nextAttemptAt": null, "deliveryMeta.outages": 0, "deliveryMeta.retryable.reopenedAt": at,
+      "deliveryMeta.retryable.reopens": Number(doc.deliveryMeta.retryable.reopens || 0) + 1, generationError: null },
+    $unset: { "deliveryMeta.reviewReason": "" },
+  });
+  if (!(reopened?.matchedCount || reopened?.modifiedCount)) return notAvailable();
+  const fresh = await MasterLoveCodexSession.findOne({ id: sessionId, userId }).lean();
+  if (!fresh) return notAvailable();
+  console.warn("[master-love-codex] retry reopened", { sessionId, reopens: Number(fresh.deliveryMeta?.retryable?.reopens || 0) });
+  return sessionWithAccessToken(env, fresh);
+}
+
+/** R7 POST /refund-request: 보류 중 고객이 다시 시도 대신 환불을 고른다. 한 번만 닫고, 이미 요청한 건은 정산 상태만 돌려준다. */
+async function handleRefundRequest(request, env, dependencies = {}) {
+  const target = await readCodexRetryTarget(request, env);
+  if (target.response) return target.response;
+  const { sessionId, userId } = target;
+  const doc = await MasterLoveCodexSession.findOne({ id: sessionId, userId }).lean();
+  if (!doc) return json({ ok: false, reason: "NOT_FOUND", message: MESSAGES.notFound }, { status: 404 });
+  const meta = doc.deliveryMeta || {};
+  // 이미 요청한 건은 상태만 돌려준다. 미정산 재시도는 회수 크론(retryUnsettledRefunds)이 맡는다 — 요청 반복이 환불을 다시 돌리지 않게.
+  if (doc.status === "generation_failed" && meta.retryable?.refundRequestedAt && meta.reviewReason === "DELIVERY_FAILED") {
+    const refundStatus = meta.refundSettledAt ? "settled" : meta.refundAdminReviewAt ? "admin_review" : "pending";
+    return json({ ok: true, sessionId, refundStatus, message: MESSAGES.refundRequested });
+  }
+  const notAvailable = () => json({ ok: false, reason: "REFUND_NOT_AVAILABLE", sessionId, message: MESSAGES.refundNotAvailable }, { status: 409 });
+  if (doc.status !== "generation_failed" || meta.reviewReason !== CODEX_RETRY_REASON || meta.tossIntentId) return notAvailable();
+  const closed = await closeCodexRetryHold(MasterLoveCodexSession, doc, "CUSTOMER_REQUEST", Date.now());
+  if (!closed) return notAvailable();
+  console.warn("[master-love-codex] refund requested instead of retry", { sessionId });
+  const refund = await retryCodexFinalRefund(env, closed, dependencies).catch(() => null);
+  return json({ ok: true, sessionId, refundStatus: refund?.refundStatus || "pending", message: MESSAGES.refundRequested });
+}
+
 async function handleSessions(request, env) {
   const auth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true });
   if (!auth) return loginRequired();
@@ -1872,6 +2035,8 @@ export async function handleMasterLoveCodexRoutes(request, env = {}, dependencie
     if (method === "POST" && (path === "/ensure-access" || path === "/prepare")) return await handleEnsureAccess(request, env);
     if (method === "POST" && path === "/start") return await handleStart(request, env);
     if (method === "POST" && path === "/generate") return await handleGenerate(request, env, dependencies);
+    if (method === "POST" && path === "/retry") return await handleRetry(request, env, dependencies);
+    if (method === "POST" && path === "/refund-request") return await handleRefundRequest(request, env, dependencies);
     if (["GET", "POST"].includes(method)) return notFound();
     return methodNotAllowed();
   } catch (error) {
@@ -1901,4 +2066,5 @@ export const __masterLoveCodexTestUtils = {
   BATCH_BUDGET_MS, BATCH_LOCK_TTL_MS, CHAPTER_MIN_BUDGET_MS, EDGE_RESPONSE_DEADLINE_MS,
   CHAPTER_ATTEMPT_LIMIT, CHAPTER_TIMEOUT_MS, CHAPTER_BATCH_SIZE, CHAPTER_CONCURRENCY,
   passRefundFor, refundSessionPassIfNeeded, refundSessionBillingIfNeeded, retryCodexFinalRefund, settleCodexFinalFailure,
+  CODEX_RETRY_REASON, codexRetryState, codexRetryDue, closeCodexRetryHold,
 };

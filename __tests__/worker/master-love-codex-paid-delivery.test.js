@@ -34,6 +34,7 @@ function matches(doc, filter) {
       if ("$exists" in value) return (get(doc, key) !== undefined) === value.$exists;
       if ("$lt" in value) return new Date(get(doc, key)) < value.$lt;
       if ("$lte" in value) return new Date(get(doc, key)) <= value.$lte;
+      if ("$gt" in value) return new Date(get(doc, key)) > value.$gt;
     }
     return String(get(doc, key)) === String(value);
   });
@@ -71,7 +72,8 @@ const model = {
     }
     const doc=docs.find(row=>matches(row,filter));
     if(doc) assign(doc,update.$set);
-    return{matchedCount:doc?1:0};
+    if(doc) for(const key of Object.keys(update.$unset||{})){const keys=key.split(".");const parent=keys.slice(0,-1).reduce((v,f)=>v?.[f],doc);if(parent)delete parent[keys.at(-1)];}
+    return{matchedCount:doc?1:0,modifiedCount:doc?1:0};
   },
 };
 
@@ -95,6 +97,8 @@ beforeEach(()=>{
 afterEach(()=>{expect(fetchBlock).not.toHaveBeenCalled();fetchBlock.mockRestore()});
 // 환불 한 바퀴 = 코인 → 월정석 → 결제 취소(같은 모의 함수, 각각 refunded:false 라 셋 다 불린다).
 const REFUND_CHAIN = 3;
+// R7 (2026-11-19) 다시 시도 먼저: 결제(생성 시작) 후 7일 안의 최종 실패는 환불 대신 무료 다시 시도 보류. 즉시 환불을 보는 테스트는 창 밖 세션으로 고정한다.
+const pastRetryWindow = () => new Date(Date.now() - 8 * 86400000);
 async function generate(extra = {}){return route(new Request('https://mock.test/api/master-love-codex/generate',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({sessionId:'saved-codex'})}),{},{generateChapter:provider,refundPassCoverage:refund,runCoinRefund:refund,runMonthlyCreditRefund:refund,runPaymentCancel:refund,...extra})}
 it('preserves a 19/20 compat book without granting calls beyond its exhausted budget', async () => {
   const { __masterLoveCodexTestUtils: utils, diagnoseCodexSession, isCodexArchiveComplete } = await import('../../worker/routes/master-love-codex.js');
@@ -150,6 +154,7 @@ for (const state of ['deferred']) it(`${state} confirmed refusals preserve the s
 
 // S16 (2026-11-19): 공급자 거절도 장당 4회 상한 — 소진되면 부분 전달 없이 최종 실패 + 자동 환불(1회).
 it('provider refusals consume at most four attempts per chapter, then close with one refund and no body', async () => {
+  docs[0].createdAt = pastRetryWindow();
   provider.mockImplementation(async () => ({ status: 'retryable', failure: { code: 'LLM_PROVIDER_UNAVAILABLE', kind: 'provider_rejected' } }));
   for (let wave = 0; wave < 20; wave++) { await generate(); docs[0].deliveryMeta.nextAttemptAt = null; }
   expect(Object.values(docs[0].deliveryMeta.attempts).every(value => value === 4)).toBe(true);
@@ -204,6 +209,7 @@ it('chapter two failure preserves later IDs and passes its correction into the n
 // 불확실 호출의 상한은 "장당 4회"다(S16) — 앞 장이 소진돼도 남은 장을 계속 시도한다(전면 장애 시 최대 20×4회,
 // outages 백오프가 간격을 벌린다). 전부 소진되면 최종 실패 + 자동 환불(1회), 본문은 내보내지 않는다.
 it('ambiguous provider timeouts stay capped at four attempts a chapter and then refund once', async () => {
+  docs[0].createdAt = pastRetryWindow();
   provider.mockImplementation(async () => ({ status: 'retryable', failure: { code: 'LLM_TIMEOUT_UNCERTAIN', kind: 'uncertain' } }));
   for (let wave = 0; wave < 20; wave++) { expect((await generate()).status).toBe(503); docs[0].deliveryMeta.nextAttemptAt = null; }
   expect(provider).toHaveBeenCalledTimes(80);
@@ -288,6 +294,7 @@ it('holds back 100% until the server finalizes completion', async () => {
 
 // A·E. 상한을 소진한 장이 나머지 19장의 생성을 막지 않는다. S16: 남은 장이 전부 끝나면 부분 전달 대신 최종 실패 + 자동 환불.
 it('a chapter that exhausts its attempts does not stop the remaining chapters', async () => {
+  docs[0].createdAt = pastRetryWindow();
   const { MODES } = await utils();
   const stuck = MODES.solo.chapters[1];
   const normal = provider.getMockImplementation();
@@ -550,4 +557,112 @@ it('withholds every body until completion, then delivers the whole book at once'
   expect(payload.chapters.every(row => typeof row.body === 'string' && row.body.length > 0 && row.title)).toBe(true);
   expect(payload.generationProgress).toMatchObject({ validated: 20, finalized: 1, percent: 100 });
   expect(refund).not.toHaveBeenCalled();
+});
+
+// ─── R7 (2026-11-19) 다시 시도 먼저 ───────────────────────────────────────────
+// 웹 결제의 최종 실패는 창(생성 + 7일) 안이면 환불하지 않고 다시 시도 보류로 둔다. 다시 시도는 결제 확인·차감 없이 열리고,
+// 고객이 환불을 고르거나 창이 지나면 기존 환불 경로를 1회 돈다. 토스 네이티브는 기존대로 즉시 정산한다.
+const post = (path, body = { sessionId: 'saved-codex' }) => route(new Request(`https://mock.test/api/master-love-codex/${path}`, { method: 'POST',
+  headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) }), {}, { generateChapter: provider, refundPassCoverage: refund,
+  runCoinRefund: refund, runMonthlyCreditRefund: refund, runPaymentCancel: refund });
+async function holdOneChapter() {
+  const { MODES } = await utils();
+  const stuck = MODES.solo.chapters[1];
+  const normal = provider.getMockImplementation();
+  provider.mockImplementation(async (env, input) => input.chapter.id === stuck.id
+    ? { status: 'fallback', failure: { code: 'LLM_QUALITY_FAILED', kind: 'quality' } } : normal(env, input));
+  for (let wave = 0; wave < 6; wave++) await generate();
+  const closed = await generate();
+  provider.mockImplementation(normal);
+  return { stuck, closed };
+}
+
+it('R7 holds a final failure inside the window for a free retry instead of refunding', async () => {
+  docs[0].createdAt = new Date(Date.now() - 86400000);
+  const { stuck, closed } = await holdOneChapter();
+  expect(closed.status).toBe(503);
+  const body = await closed.json();
+  expect(body).toMatchObject({ status: 'generation_failed', retryable: false, reason: 'RETRY_AVAILABLE', chapters: [], loveDna: null,
+    retry: { available: true, sessionId: 'saved-codex' } });
+  expect(new Date(body.retry.refundAt).getTime()).toBe(docs[0].createdAt.getTime() + 7 * 86400000);
+  expect(docs[0].status).toBe('generation_failed');
+  expect(docs[0].deliveryMeta).toMatchObject({ reviewRequired: true, reviewReason: 'RETRY_AVAILABLE', exhaustedChapterIds: [stuck.id] });
+  expect(refund).not.toHaveBeenCalled();
+  const payload = await reopen();
+  expect(payload).toMatchObject({ status: 'generation_failed', retryable: false, reason: 'RETRY_AVAILABLE', chapters: [], retry: { available: true } });
+  const calls = provider.mock.calls.length;
+  expect((await generate()).status).toBe(503);
+  expect(provider).toHaveBeenCalledTimes(calls);
+  expect(refund).not.toHaveBeenCalled();
+});
+
+it('R7 retry reopens the held book without payment, finishes it and keeps the refund deadline', async () => {
+  docs[0].createdAt = new Date(Date.now() - 86400000);
+  const { stuck } = await holdOneChapter();
+  const refundAt = new Date(docs[0].deliveryMeta.retryable.refundAt).getTime();
+  const reopened = await post('retry');
+  expect(reopened.status).toBe(202);
+  expect(await reopened.json()).toMatchObject({ ok: true, status: 'generating', retryable: true, accessToken: 'test-token' });
+  expect(docs[0].status).toBe('generating');
+  expect(docs[0].deliveryMeta.reviewRequired).toBe(false);
+  expect(docs[0].deliveryMeta.reviewReason).toBeUndefined();
+  expect(docs[0].deliveryMeta.attempts[stuck.id]).toBe(0);
+  expect(docs[0].deliveryMeta.retryable.reopens).toBe(1);
+  expect((await generate()).status).toBe(200);
+  expect(docs[0].status).toBe('completed');
+  expect(new Date(docs[0].deliveryMeta.retryable.refundAt).getTime()).toBe(refundAt);
+  expect(refund).not.toHaveBeenCalled();
+  expect(docs[0].paymentId).toBe('original-payment');
+});
+
+it('R7 refund request settles the hold once and closes retry', async () => {
+  docs[0].createdAt = new Date(Date.now() - 86400000);
+  await holdOneChapter();
+  const requested = await post('refund-request');
+  expect(requested.status).toBe(200);
+  expect(await requested.json()).toMatchObject({ ok: true, sessionId: 'saved-codex' });
+  expect(refund).toHaveBeenCalledTimes(REFUND_CHAIN);
+  expect(docs[0].deliveryMeta).toMatchObject({ reviewRequired: true, reviewReason: 'DELIVERY_FAILED' });
+  expect(docs[0].deliveryMeta.retryable.refundRequestedAt).toBeTruthy();
+  expect((await reopen()).reason).toBe('GENERATION_FAILED_REFUNDED');
+  expect((await post('retry')).status).toBe(409);
+  expect((await post('refund-request')).status).toBe(200);
+  expect(refund).toHaveBeenCalledTimes(REFUND_CHAIN);
+  expect(docs[0].status).toBe('generation_failed');
+});
+
+it('R7 an expired window refunds on retry instead of reopening', async () => {
+  docs[0].createdAt = new Date(Date.now() - 86400000);
+  await holdOneChapter();
+  docs[0].deliveryMeta.retryable.refundAt = new Date(Date.now() - 1000);
+  const res = await post('retry');
+  expect(res.status).toBe(409);
+  expect((await res.json()).reason).toBe('RETRY_WINDOW_EXPIRED');
+  expect(docs[0].status).toBe('generation_failed');
+  expect(docs[0].deliveryMeta.reviewReason).toBe('DELIVERY_FAILED');
+  expect(refund).toHaveBeenCalledTimes(REFUND_CHAIN);
+});
+
+it('R7 another owner cannot retry or request a refund, and a live book has nothing to retry', async () => {
+  docs[0].createdAt = new Date(Date.now() - 86400000);
+  expect((await post('retry')).status).toBe(409);
+  expect((await post('refund-request')).status).toBe(409);
+  await holdOneChapter();
+  owner = 'other';
+  expect((await post('retry')).status).toBe(404);
+  expect((await post('refund-request')).status).toBe(404);
+  owner = uid;
+  expect(docs[0].deliveryMeta.reviewReason).toBe('RETRY_AVAILABLE');
+  expect(refund).not.toHaveBeenCalled();
+});
+
+it('R7 a Toss native session keeps the immediate settlement path', async () => {
+  const { settleCodexFinalFailure } = await utils();
+  Object.assign(docs[0], { createdAt: new Date(), deliveryMeta: { tossIntentId: 'toss-intent' }, generationProgress: { lockToken: 'held' } });
+  const settled = await settleCodexFinalFailure({}, { sessionId: 'saved-codex', userId: uid, filter: { id: 'saved-codex', userId: uid },
+    doc: docs[0], reason: 'SERVICE_GENERATION_FAILED', exhaustedChapterIds: [], dependencies: { refundPassCoverage: refund,
+      runCoinRefund: refund, runMonthlyCreditRefund: refund, runPaymentCancel: refund } });
+  expect(settled.held).toBeFalsy();
+  expect(docs[0].deliveryMeta.reviewReason).toBe('DELIVERY_FAILED');
+  expect(docs[0].deliveryMeta.retryable).toBeUndefined();
 });

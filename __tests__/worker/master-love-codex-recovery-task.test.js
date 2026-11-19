@@ -250,7 +250,7 @@ describe("S16 정체 감시와 환불 재정산", () => {
     const [, args] = settle.mock.calls[0];
     expect(args).toMatchObject({ sessionId: "st", userId: "u-st", reason: "DELIVERY_STUCK",
       filter: { id: "st", userId: "u-st", "generationProgress.lockToken": "lock-st", status: { $ne: "completed" } } });
-    expect(result.outcomes).toContainEqual({ sessionId: "st", outcome: "generation_failed", stuck: true, refundStatus: "settled" });
+    expect(result.outcomes).toContainEqual({ sessionId: "st", outcome: "generation_failed", stuck: true, held: false, refundStatus: "settled" });
   });
 
   test("진전이 없는 웨이브는 정체 횟수를 하나 올리고, 진전이 있으면 0 으로 되돌린다", async () => {
@@ -285,5 +285,50 @@ describe("S16 정체 감시와 환불 재정산", () => {
     // 최종 실패 세션(reviewRequired)은 다시 열리거나 이어 쓰이지 않는다 — 재개는 GENERATION_BUDGET_EXCEEDED 만, 회수는 reviewRequired 제외.
     expect(options.syncCodexExecution).not.toHaveBeenCalledWith(expect.objectContaining({ id: "r1", status: "generating" }));
     expect(buildAbandonedFilter(Date.now())["deliveryMeta.reviewRequired"]).toEqual({ $ne: true });
+  });
+});
+
+// ─── R7 (2026-11-19) 다시 시도 먼저 ───────────────────────────────────────────
+describe("R7 다시 시도 보류", () => {
+  const DAY = 86400000;
+  const held = (id, refundAt, extra = {}) => ({ id, userId: `u-${id}`, status: "generation_failed", deliveryMeta: { reviewRequired: true,
+    reviewReason: "RETRY_AVAILABLE", retryable: { since: new Date(), refundAt, reopens: 0 }, ...extra } });
+
+  test("옛 닫힘 재개는 다시 시도 보류와 그 뒤 닫힌 세션을 열지 않는다", () => {
+    const actionable = () => ({ actionable: [{ id: "c1" }] });
+    expect(planCodexReopen(held("h", new Date(Date.now() + DAY)), actionable)).toBeNull();
+    const closed = held("c", new Date(Date.now() - DAY));
+    closed.deliveryMeta.reviewReason = "GENERATION_BUDGET_EXCEEDED";
+    expect(planCodexReopen(closed, actionable)).toBeNull();
+    expect(planCodexReopen({ status: "generation_failed", deliveryMeta: { reviewRequired: true } }, actionable)).not.toBeNull();
+  });
+
+  test("창이 지난 보류만 DELIVERY_FAILED 로 닫고 환불을 1회 돈다", async () => {
+    const now = Date.now();
+    const expired = held("x", new Date(now - 1000));
+    const live = held("l", new Date(now + DAY));
+    const requested = held("q", new Date(now - 1000));
+    requested.deliveryMeta.retryable.refundRequestedAt = new Date();
+    const retry = jest.fn(async () => ({ refundStatus: "settled" }));
+    const { model, options } = harness([expired, live, requested], { now, retryCodexFinalRefund: retry,
+      diagnoseCodexSession: () => ({ actionable: [{ id: "c1" }] }) });
+    const result = await runMasterLoveCodexRecovery({}, options);
+    expect(result.retryExpired).toEqual([{ sessionId: "x", refundStatus: "settled" }]);
+    expect(retry).toHaveBeenCalledTimes(1);
+    expect(retry.mock.calls[0][1]).toMatchObject({ id: "x", deliveryMeta: { reviewReason: "DELIVERY_FAILED",
+      retryable: { closeReason: "RETRY_WINDOW_EXPIRED" } } });
+    const close = model.updateOne.mock.calls.find(([filter]) => filter.id === "x" && filter["deliveryMeta.reviewReason"] === "RETRY_AVAILABLE");
+    expect(close[0]["deliveryMeta.retryable.refundAt"]).toEqual({ $lte: new Date(now) });
+    expect(close[1].$set["deliveryMeta.reviewReason"]).toBe("DELIVERY_FAILED");
+    expect(model.updateOne.mock.calls.some(([filter]) => ["l", "q"].includes(filter.id))).toBe(false);
+  });
+
+  test("다시 시도로 연 세션은 정체 나이를 다시 연 시점부터 잰다", () => {
+    const { codexDeliveryStuck } = __masterLoveCodexRecoveryTestUtils;
+    const now = Date.now();
+    const doc = { createdAt: new Date(now - 6.9 * DAY), deliveryMeta: {} };
+    expect(codexDeliveryStuck(doc, now)).toBe(true);
+    doc.deliveryMeta.retryable = { reopenedAt: new Date(now - 60000) };
+    expect(codexDeliveryStuck(doc, now)).toBe(false);
   });
 });

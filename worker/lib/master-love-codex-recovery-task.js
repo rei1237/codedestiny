@@ -2,7 +2,7 @@ import { connectDb } from "./db.js";
 import { MasterLoveCodexSession } from "./models.js";
 import { recoverCodexDeliverySession } from "./master-love-codex-session-access.js";
 import { acquireBatchLock, runCodexWave, syncCodexExecution, diagnoseCodexSession, settleCodexFinalFailure, retryCodexFinalRefund,
-  __masterLoveCodexTestUtils } from "../routes/master-love-codex.js";
+  codexRetryDue, closeCodexRetryHold, __masterLoveCodexTestUtils } from "../routes/master-love-codex.js";
 import { bootstrapPaidCodexSessions } from "./master-love-codex-paid-bootstrap.js";
 import { shouldSettleStuck, nextDeliveryWatch } from "./paid-delivery-stuck.js";
 
@@ -116,6 +116,8 @@ export function planCodexReopen(doc, diagnose) {
   // 🔴 닫힌 세션만 연다. DB 필터에만 의존하면 살아 있는 세션을 "재개"하면서 락·진행 상태를
   //    건드릴 수 있다 — 판정은 호출부가 아니라 이 함수가 갖는다(fail-closed).
   if (doc?.status !== "generation_failed" || meta.reviewRequired !== true) return null;
+  // R7: 다시 시도 보류·그 뒤 닫힌 세션은 크론이 열지 않는다. 여는 길은 고객의 POST /retry, 닫는 길은 만료 정산뿐이다.
+  if (meta.reviewReason === "RETRY_AVAILABLE" || meta.retryable) return null;
   // Recovery may reopen remaining work but cannot mint provider attempts.
   if (!meta.codexReopenedAt && diagnose(doc).actionable.length) {
     return { marker: "codexReopenedAt", reason: "stale_close", unset: { "deliveryMeta.reviewReason": "" } };
@@ -136,7 +138,9 @@ export function codexSavedBodySize(doc) {
 /** S16: 크론 웨이브가 진전 없이 STUCK_SETTLE_STALLS 번 쌓였거나 복구 창 끝에 가까우면 최종 실패로 확정한다.
  *  재개된 옛 세션은 재개 시점부터 나이를 잰다 — 오래전 결제라고 시도 없이 바로 환불하지 않는다. */
 export function codexDeliveryStuck(doc, now) {
-  return shouldSettleStuck({ deliveryWatch: doc?.deliveryMeta?.deliveryWatch, createdAt: doc?.deliveryMeta?.codexReopenedAt || doc?.createdAt }, now);
+  const meta = doc?.deliveryMeta || {};
+  // R7: 고객이 다시 시도로 연 세션은 그 시점부터 잰다(다시 시도가 곧바로 정체로 닫히지 않게).
+  return shouldSettleStuck({ deliveryWatch: meta.deliveryWatch, createdAt: meta.retryable?.reopenedAt || meta.codexReopenedAt || doc?.createdAt }, now);
 }
 
 /** S16: 최종 실패로 닫혔지만 환불 정산이 끝나지 않은 세션. 판정은 JS 에서 다시 한다(fail-closed). */
@@ -182,6 +186,31 @@ async function markRevokedSession(SessionModel, doc, access, now) {
     $set: { status: "generation_failed", deliveryMeta: { ...doc.deliveryMeta, reviewRequired: true,
       reviewReason: "PURCHASE_REFUNDED" }, generationError: { code: "PURCHASE_REFUNDED", at: new Date(now) } },
   });
+}
+
+/** R7: 다시 시도 창이 지난 보류. 판정은 JS(codexRetryDue)에서 다시 한다(fail-closed). */
+export function buildCodexRetryExpiryFilter(now) {
+  return { status: "generation_failed", "deliveryMeta.reviewReason": "RETRY_AVAILABLE", "deliveryMeta.retryable.refundAt": { $lte: new Date(now) } };
+}
+
+/** R7: 창이 지난 보류를 DELIVERY_FAILED 로 닫고 기존 환불을 1회 돈다. 덜 끝난 환불은 다음 틱의 retryUnsettledRefunds 가 잇는다. */
+async function expireCodexRetryHolds(env, SessionModel, now, retryFn) {
+  const docs = (await SessionModel.find(buildCodexRetryExpiryFilter(now)).sort({ updatedAt: 1 }).limit(MAX_SESSIONS_PER_TICK).lean()) || [];
+  const results = [];
+  for (const doc of docs) {
+    if (!codexRetryDue(doc, now) || !doc.id || !doc.userId) continue;
+    try {
+      const closed = await closeCodexRetryHold(SessionModel, doc, "RETRY_WINDOW_EXPIRED", now);
+      if (!closed) continue;
+      let refundStatus = "pending";
+      try { refundStatus = (await retryFn(env, closed))?.refundStatus || "pending"; }
+      catch (error) { console.error("[master-love-codex-recovery] retry expiry refund", String(doc.id), String(error?.message || error).slice(0, 200)); }
+      results.push({ sessionId: String(doc.id), refundStatus });
+    } catch (error) {
+      console.error("[master-love-codex-recovery] retry expiry", String(doc.id), String(error?.message || error).slice(0, 200));
+    }
+  }
+  return results;
 }
 
 async function reopenClosedSessions(SessionModel, now, syncFn, diagnose, accessFn) {
@@ -232,6 +261,7 @@ export async function runMasterLoveCodexRecovery(env, options = {}) {
   }
   // 금전 의무는 생성보다 먼저 — 최종 실패로 닫혔는데 환불이 덜 끝난 세션을 다시 정산한다(멱등 마커).
   const refundRetries = await retryUnsettledRefunds(env, SessionModel, now, refundRetryFn);
+  const retryExpired = await expireCodexRetryHolds(env, SessionModel, now, refundRetryFn);
   const reopened = await reopenClosedSessions(
     SessionModel, now, options.syncCodexExecution || syncCodexExecution, options.diagnoseCodexSession || diagnoseCodexSession, accessFn,
   );
@@ -274,7 +304,7 @@ export async function runMasterLoveCodexRecovery(env, options = {}) {
         try {
           const settled = await settleFn(env, { sessionId, userId, filter, doc: lock.doc || candidate, reason: "DELIVERY_STUCK",
             exhaustedChapterIds: [], dependencies: options.dependencies || {} });
-          outcomes.push({ sessionId, outcome: "generation_failed", stuck: true, refundStatus: settled?.refundStatus || "pending" });
+          outcomes.push({ sessionId, outcome: "generation_failed", stuck: true, held: Boolean(settled?.held), refundStatus: settled?.refundStatus || "pending" });
         } catch (error) {
           await SessionModel.updateOne(filter, { $set: { "generationProgress.lockedAt": null, "generationProgress.lockToken": "" } }).catch(() => {});
           throw error;
@@ -305,12 +335,12 @@ export async function runMasterLoveCodexRecovery(env, options = {}) {
 
   const reviewNeeded = await SessionModel.countDocuments({ "deliveryMeta.reviewRequired": true, status: "generation_failed" });
   const stalled = await SessionModel.countDocuments(buildCodexStalledFilter(now));
-  console.log("[master-love-codex-recovery]", JSON.stringify({ bootstrapped, reopened, refundRetries, outcomes, reviewNeeded, stalled }));
-  return { ok: true, scanned: candidates.length, bootstrapped, reopened, refundRetries, outcomes, reviewNeeded, stalled };
+  console.log("[master-love-codex-recovery]", JSON.stringify({ bootstrapped, reopened, refundRetries, retryExpired, outcomes, reviewNeeded, stalled }));
+  return { ok: true, scanned: candidates.length, bootstrapped, reopened, refundRetries, retryExpired, outcomes, reviewNeeded, stalled };
 }
 
 export const __masterLoveCodexRecoveryTestUtils = {
   ABANDONED_AFTER_MS, MAX_SESSIONS_PER_TICK, TASK_BUDGET_MS, WAVE_BUDGET_MS,
   buildAbandonedFilter, buildCodexReopenFilter, planCodexReopen,
-  codexSavedBodySize, codexDeliveryStuck, buildCodexRefundRetryFilter,
+  codexSavedBodySize, codexDeliveryStuck, buildCodexRefundRetryFilter, buildCodexRetryExpiryFilter,
 };
