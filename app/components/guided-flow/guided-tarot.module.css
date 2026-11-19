@@ -225,6 +225,30 @@
   flex-direction: column;
   gap: var(--cd-sp-sm);
 }
+/* 회복 리딩 본문(SunHealingResultBody)은 밝은 바탕용 고정 색을 쓰고, 원본의 bg-white/86 류 배경은
+   여기서 투명으로 계산된다. 밤 셸 위에서 읽히도록 종이 표면을 깔고, 겹 테두리 한 겹을 걷어 360px 본문 폭을 지킨다. */
+.paperBody {
+  margin-inline: calc(var(--cd-sp-sm) * -1);
+  padding: var(--cd-sp-sm);
+  border: 1px solid var(--gf-paper-line);
+  border-radius: var(--cd-r-card);
+  background: var(--gf-paper);
+  color: var(--gf-paper-ink);
+}
+.paperBody > div {
+  padding: 0;
+  border: 0;
+  background: none;
+  box-shadow: none;
+}
+/* 안내 문구(stone-500)는 크림 종이 위 4.34:1 이라 종이 잉크로 올린다. */
+.paperBody :global(.text-stone-500) {
+  color: var(--gf-paper-ink);
+}
+/* 셸 폭(최대 약 640px)에서 루틴 3열은 제목이 한 단어씩 꺾여 한 열로 쌓는다. */
+.paperBody :global(.md\:grid-cols-3) {
+  grid-template-columns: minmax(0, 1fr);
+}
 .sectionTitle {
   margin: 0;
   font-family: var(--font-display);

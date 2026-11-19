@@ -171,7 +171,7 @@ function HealingFlow() {
             <div className={tarot.result}>
               <div className={tarot.verdict}><small>{copy.todayLineLabel}</small><p>{sunLine}</p></div>
               <p className={tarot.note}>{reading.subtitle || copy.resultSubtitleFallback}</p>
-              <SunHealingResultBody reading={reading} cards={cards} copy={copy} />
+              <div className={tarot.paperBody}><SunHealingResultBody reading={reading} cards={cards} copy={copy} /></div>
               <div className={tarot.actions}>
                 <button type="button" className={tarot.actionButton} onClick={() => void share()}>{copy.shareButton}</button>
                 <button type="button" className={tarot.actionButton} onClick={reread}>{copy.rereadButton}</button>
@@ -205,7 +205,7 @@ function Spread({ cards, open, positions, copy, onTap }: { cards: TarotCardDto[]
                 <span className={tarot.flipFace}>{card?.cardId ? <img src={cardImageUrl(card)} alt="" width={240} height={320} decoding="async" /> : null}</span>
               </span>
             </button>
-            <strong className={tarot.slotName}>{isOpen ? `${name} · ${copy.orientationLabel(card?.orientation)}` : ""}</strong>
+            <strong className={tarot.slotName}>{isOpen ? name : ""}</strong>
           </figure>
         );
       })}
