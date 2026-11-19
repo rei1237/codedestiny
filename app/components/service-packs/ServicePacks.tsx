@@ -118,7 +118,8 @@ export function OwnedServicePacks({locale,onWalletChange,context=null}:{context?
  const completedName=completedPack?packName(completedPack,locale):'';
  const footer=<>
   {pendingOrder&&<button type="button" className={`mt-4 ${ghost}`} disabled={busy} onClick={()=>void checkOrder(pendingOrder)}>{copy.recheck}</button>}
-  {resumePlan&&pending&&<div className="moon-plan-card mt-4 rounded-[22px] p-4" data-pack-resume>
+  {/* iOS(R2): 서버 원화 가격이 실린 이어하기 카드는 숨긴다 */}
+  {resumePlan&&pending&&!isIosAppRuntime()&&<div className="moon-plan-card mt-4 rounded-[22px] p-4" data-pack-resume>
    <p>{packScope(resumePlan,locale)}</p><h3 className="text-base font-black text-white">{packName(resumePlan,locale)} · {won(resumePlan.priceKRW,locale)} · {pending.purchaseType==='GIFT'?copy.giftPurchase:copy.selfPurchase}</h3>
    <p className="mt-1 text-sm leading-relaxed text-[color:var(--moon-mist)]">{copy.resumeNotice}</p>
    <label className="mt-3 flex items-start gap-2 rounded-[14px] border border-[color:var(--sp-line)] bg-[color:var(--sp-raised)] px-3.5 py-3 text-[12px] font-bold text-[color:var(--sp-ink)]"><input type="checkbox" className="mt-0.5 h-4 w-4 flex-shrink-0 accent-[color:var(--sp-light)]" checked={resumeConsent} onChange={event=>setResumeConsent(event.target.checked)} disabled={busy}/><span>{copy.resumeConsent}</span></label>
