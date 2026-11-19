@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-20
-next: "R6 흑월(웹 + worker/toss/native-heukwol.js) 다시 시도 우선 → R7. R1·R2b·R3·R4·R5 묶음은 준비됨(체인 결과는 실측 절)이나 머지·push 는 R9 에서"
+next: "R7 찻집 · 마스터 인연의 서 다시 시도 우선(서비스마다 paid-gate-auditor·regression-scout → TDD → 체인) → R7b 보관함 "다시 시도 가능" 표시(사용자 요청 2026-11-20). R1·R2b·R3·R4·R5·R6 묶음은 준비됨(체인 결과는 실측 절)이나 머지·push 는 R9 에서"
 ---
 
 # 유료 LLM "다시 시도로 반드시 결과 받기" 인수인계
@@ -20,7 +20,7 @@ next: "R6 흑월(웹 + worker/toss/native-heukwol.js) 다시 시도 우선 → R
 ## 지금 상태
 - main = `b3b77221c` 시점에 작성. 운영 = `25d9bc034`(2026-11-19 Release run 44501694109 성공, S13·S15·S16 반영).
 - 워크트리 `D:\Development\codedestiny-worktrees\paid-retry-20261119-195316`, 브랜치 `wt/paid-retry-20261119-195316`, 기점 `bcce826eb`.
-- 커밋(push·main 머지 안 함): `e11840bf4` R1 · `e62ce85fd` R2 수정 라운드 · `89c05a3bc` sitemap 원장(네오 결과 화면 서명) · `3915323c7` 7일=생성 시각 · `9f725b7a3`+`39fcbd4a0` R3 · `14a12f0d1`+`d7eea47b5` R4 · `7ed35229a` 보안 버킷(R3·R4 공통) · `0a3f1942d` Toss 하네스 · `b402a1ef7` 문서 · R2b `e86b0c779`·`d113288d1`·`e89217af9`·`4e5eae70d`·`d7be2c558` · R5 `4c81511e5`(워커)·`3926da828`(클라이언트)·`1968b0488`(sitemap 원장) · 이 문서 갱신 커밋.
+- 커밋(push·main 머지 안 함): `e11840bf4` R1 · `e62ce85fd` R2 수정 라운드 · `89c05a3bc` sitemap 원장(네오 결과 화면 서명) · `3915323c7` 7일=생성 시각 · `9f725b7a3`+`39fcbd4a0` R3 · `14a12f0d1`+`d7eea47b5` R4 · `7ed35229a` 보안 버킷(R3·R4 공통) · `0a3f1942d` Toss 하네스 · `b402a1ef7` 문서 · R2b `e86b0c779`·`d113288d1`·`e89217af9`·`4e5eae70d`·`d7be2c558` · R5 `4c81511e5`(워커)·`3926da828`(클라이언트)·`1968b0488`(sitemap 원장) · R6 `4d13f4692`(워커)·`35caa1280`(클라이언트)·`8e0f4eb51`(sitemap 원장) · 이 문서 갱신 커밋.
 - R2b 의 `d113288d1`(환불 크론)은 `e89217af9`(라우트의 `settleDueNeoRetryRefunds`)와 함께 머지해야 한다 — 단독이면 try/catch 로 막히지만 네오 창 경과 환불이 돌지 않는다. R1·R2b·R3·R4 를 한 묶음으로.
 - 🔴 R1 은 단독으로 머지·push 하지 않는다 — 신년·인생의 책에 다시 시도 UI·재개 엔드포인트(R3·R4)가 없어, 그 상태로 나가면 고객은 최대 7일간 실패 화면만 보고 환불도 받지 못한다. → 2026-11-19 R3·R4 완료로 R1·R3·R4 는 한 묶음으로 머지 가능(R9 에서, 묶음째로만).
 
@@ -32,6 +32,7 @@ next: "R6 흑월(웹 + worker/toss/native-heukwol.js) 다시 시도 우선 → R
 - **사용자 결정 2026-11-19 (AskUserQuestion, 원문)**
   1. 네오 첫 브리핑: **"다시 시도 먼저로 변경 (추천)"** → 승인됨. 이번 묶음(R1·R3·R4) 밖이라 R2b 단계로 둔다. 다시 묻지 않는다.
   2. 환불 기한: **"결제(생성 시작) 후 7일 (추천)"** → `refundAt` 은 다시 시도 가능으로 바뀐 시각이 아니라 **상담 생성 시각 + 7일**, 늘리지 않는다. 복구 크론 7일 창과 같다. 반영 `3915323c7`.
+- **사용자 추가 요청 2026-11-20 (원문, 승인된 범위)**: "보관함에서도 다시 시도 가능한 건은 따로 표시해주고 대표 상담, 전문가 상담은 그렇게 가능하도록해" → R7b(보관함 표시) 추가, R10 범위를 전문가 상담 전체로 확대. 다시 묻지 않는다.
 
 ## 설계 (가정 — 최종 보고에 명시하고 사용자 확인을 받는다)
 현재(S16): 대표 6종은 완성본만 전달하고, 진전 없이 약 1시간이면 `generation_failed` + 자동 전액 환불(`worker/lib/paid-delivery-stuck.js` `settleStuckConsultation`). 신년운세는 기존 구제·환불 경로.
@@ -60,11 +61,12 @@ next: "R6 흑월(웹 + worker/toss/native-heukwol.js) 다시 시도 우선 → R
 - [x] R3 인생의 책 — `9f725b7a3`(워커·클라이언트·테스트) + `39fcbd4a0`(sitemap 원장). 종결 실패 → generation_failed + llmMeta.retryable(생성+7일), 본문 비노출 유지. POST /api/life-book-ai/retry(실패·보수 대기 장만 시도 수 0 으로 열고 웨이브 예산 초기화, 같은 CAS) · POST /refund-request(markRetryableRefundDue → settle). 소개·결과 화면에 "다시 시도 · 추가 결제·차감 없음" + "다시 시도 대신 환불 요청", 다시 시도 가능할 때 새 책(새 결제) 링크 숨김. 즉시 환불 유지(가정): Toss 네이티브·supportRecovery·DEFERRED_USAGE_APPLY_FAILED·LIFE_BOOK_RESULT_INCOMPLETE(전달 단계 조립 실패, 다시 시도해도 같은 결과). 다시 시도 경로는 증빙 해제·차감 취소를 하지 않는다(같은 결제 건 이어 쓰기). 검증: life-book behavior 78/78, ux.static 10/10, wake-recovery 등 node --test 94/94, jest stuck·recovery-task·delivery-contract 75/75, verify life-book-flow·paid-llm-delivery·payment-freeze·legal-copy·paid-gate-scope·audit-ai-locale --check 통과, tsc 0.
 - [x] R4 신년운세 — `14a12f0d1`(워커·클라이언트·테스트) + `d7eea47b5`(sitemap 원장) + `7ed35229a`(보안 분류기: `/retry`→start, `/refund-request`→ensure — R3 에서 빠졌던 것도 함께) + `0a3f1942d`(Toss 하네스 스텁). handleStart catch → generation_failed + llmMeta.retryable(생성+7일), 503 `{reason:'LLM_ERROR', refunded:false, retry:{available, refundAt, sessionId}}`(최상위 `retryable` 은 클라이언트에서 "계속 폴링"이라 쓰지 않음). handleStart·handleResult 409 에 같은 retry 표지. POST /api/new-year-ai/retry(소유자 확인 → reopen + `newYearRetryReset`: 받아들여지지 않은 savedSections 의 실패·사유 초기화, 다시 연 섹션 접두 attempts 삭제 → 한 웨이브) · POST /refund-request. 클라이언트: "다시 시도 · 추가 결제·차감 없음" + "다시 시도 대신 환불 요청"(웹 전용), 다시 시도 가능하면 폼 제출도 무료 다시 시도로 보냄(새 결제 없음), LLM_ERROR_MESSAGE 정정. 즉시 환불 유지(가정): Toss 네이티브·supportRecovery·DEFERRED_USAGE_APPLY_FAILED·창 만료.
 - [x] R5 연애 비책 — `4c81511e5`(워커·환불 크론·테스트) + `3926da828`(웹 다시 시도·환불 요청 UI, 12로케일) + `1968b0488`(sitemap 원장). 상세·검사는 실측 "R5 연애 비책".
-- [ ] R6 흑월(웹 + `worker/toss/native-heukwol.js` Toss 경로)
+- [x] R6 흑월 — `4d13f4692`(워커·가드·환불 크론·복구 레지스트리·테스트) + `35caa1280`(웹 다시 시도·환불 요청 UI) + `8e0f4eb51`(sitemap 원장). Toss 네이티브(`worker/toss/native-heukwol.js`)는 변경 없음(아래 가정). 상세·검사는 실측 "R6 흑월".
 - [ ] R7 찻집 · 마스터 인연의 서
+- [ ] R7b 보관함(사용자 요청 2026-11-20): 꿀꿀운세 `/records` 에서 다시 시도 가능한 상담(retry 표지, 창 안)을 일반 '실패'가 아니라 별도 상태 "다시 시도 가능"으로 표시하고, 서비스별 다시 시도 진입(결과 화면 링크 또는 버튼)을 단다. `/yeongnyangi/library/` 분리 규칙 유지(영냥이 기록 섞지 않음), 완성 결과는 숨기거나 지우지 않는다. 참고: 흑월 보류 건은 지금 pending 이라 "생성 중"으로 보이고(record-library.js:35,49), 연애 비책·인생의 책·신년·네오는 '실패'로 보인다 — 서비스마다 retry 표지 위치가 다르다(흑월 `metadata.retryable`, 나머지 `llmMeta.retryable`).
 - [ ] R8 검증기: 계약 목록 각 서비스가 "실패 시 retryable + 다시 시도 경로 + 7일 환불"을 갖는지 fail-closed 로 검사(`scripts/verify-paid-llm-delivery-contract.mjs` 확장, 변이 1종으로 무는지 확인). 문서 `docs/context/ai-and-db.md` 유료 LLM 전달 계약 절 갱신.
 - [ ] R9 대표 7종 머지 → `npm test --prefix apps/toss` → `npm run check:fast -- --base=<origin/main SHA>` → `node scripts/run-paid-gate-suite.mjs --base=<SHA>` → `node scripts/verify-myeongri-tables.mjs` → `npm run check:pre-push` → push → main CI(PR CI·Paid Flow Gates) 녹색.
-- [ ] R10 "다른 기능들": 계약 목록 나머지 서비스에 같은 정책을 묶음별로(서비스마다 커밋). 지도 → TDD → 검사 체인 → push.
+- [ ] R10 "다른 기능들" + 전문가 상담(사용자 요청 2026-11-20으로 범위 확대): 서비스 안내의 전문가 상담 묶음(`#guide-expert` / `/consultations/`)의 유료 LLM 상담 전부 — 예: vedic·ziwei·astrology·nakshatra·karma·sukuyo 등 계약 목록에 있는 전문가 상담 — 에 같은 다시 시도 우선 정책(무료 다시 시도 → 생성 + 7일 또는 고객 요청 시 환불). 🔴 추측하지 말고 정확한 목록을 먼저 지도로 만든다(안내 소스·계약 목록 대조). 그다음 계약 목록 나머지 서비스에 같은 정책을 묶음별로(서비스마다 커밋). 지도 → TDD → 검사 체인 → push.
 - [ ] R11 최종 보고 + 운영 승격 승인 질문(AskUserQuestion, 추천 "CI 녹색 뒤 1회 승격"). 승격 직전 `git log 25d9bc034..origin/main` 으로 다른 세션 커밋을 확인해 질문에 적는다.
 - [ ] R12 정리: 워크트리 배수(`npm run worktree:remove -- <경로>`, 다른 체크아웃에서), 스크래치 삭제, 이 문서 `status: done`.
 
@@ -214,6 +216,21 @@ S15 품질: 한자 증가, 연애 비책 용신 데이터("금") vs 판정(토) 
 - 체인(베이스 `bcce826eb`, HEAD `d7be2c558`, 2026-11-20 실측, 전부 exit 0): ① check:fast — critical, jest 483 스위트 8280 통과(1 skip), 내부 paid-gate 78/78 ② `run-paid-gate-suite` 단독 91/91(749s) ③ `npm test --prefix apps/toss`(정션) 1765/1765 ④ verify-myeongri-tables OK(29건·잔차 0). 첫 check:fast 는 sitemap 드리프트, 두 번째는 위 teardown 2건으로 막혔다가 고친 뒤 통과.
 - sitemap: 원장 재생성(`4e5eae70d`) — 실제 변경은 네오 결과 화면 서명 1건, 나머지 376줄은 KST 자정 lastmod 롤링(11-19→11-20). R9 머지 때 main 원장과 다시 맞춘다.
 - 위험·가정(최종 보고): 창 안 이용권 만료 시 다시 시도가 402 가 될 수 있음(미검증) · 일반 실패에 붙는 관리자 검토 표지는 아직 읽는 곳 없음 · 스위퍼 일일 30건 한도에서 다른 건 지연 가능성 · 환불 요청과 크론 동시 실행은 단계별 멱등에 기댄다 · Paid Flow Gates CI 는 이 파일들로 트리거되지 않을 수 있음.
+
+### R6 흑월 (2026-11-20, 워크트리 커밋 `4d13f4692`·`35caa1280`·`8e0f4eb51`)
+- 사전 감사: paid-gate-auditor · regression-scout(공용 환불 크론·가드·복구 레지스트리) 실행 뒤 착수.
+- 보류 방식: 흑월은 `ServiceExecutionTransaction`(status pending) 위에서 돈다. 종결 실패(v1 3웨이브 실패·v2 장 라운드 상한·정체)는 실패로 닫지 않고 pending 그대로 `metadata.retryable={since, refundAt(생성+7일, retryRefundAt), code}` + attempts=MAX(3, 생성 금지) + 락 해제 + `timeoutAt`·`nextRetryAt`=refundAt + reasonCode `HEUKWOL_RETRY_AVAILABLE`(`holdHeukwolForRetry`, CAS). CAS 실패·창 밖이면 기존 실패·환불 경로(fail-closed). 응답 503 `HEUKWOL_DELIVERY_FAILED` + `retry:{available, refundAt, sessionId}`(그동안 refundStatus 없음, 본문 비노출).
+- 즉시 환불 유지(가정): v1 결정적 실패 `HEUKWOL_REPORT_(TOO_SHORT|INCOMPLETE)`(다시 써도 같은 결과)·정체 시 v1 장 키가 모두 있는 문서·창 만료·Toss 네이티브.
+- 가드(`checkpoint-refund-guard.js`): `includeResumable`(시간 초과 스위퍼) + featureKey 흑월 + 창 안 보류 → "recoverable"(환불 안 함). 명시적 닫기(includeResumable=false)는 그대로 환불. 창이 지나면 스위퍼의 settleExecutionById 가 기존 환불로 닫는다.
+- 복구 레지스트리: 흑월 필터에 `'metadata.retryable': null` — 보류 건을 자동 재개하지 않는다.
+- POST `/api/heukwol/retry`: 소유자(readOwned) → 보류 없음 409 `RETRY_NOT_AVAILABLE`, 창 만료면 환불 정산 후 409 `RETRY_WINDOW_EXPIRED`, 아니면 CAS(`refundAt>now`·락 비어 있음)로 attempts=0·retryable=null·retryReopens+1(v2 는 chapterRounds·lastIssue 초기화)·timeoutAt now+1h → 202 visible. 결제 확인·차감 없음, 완성 장 보존, 같은 이어쓰기 루프.
+- POST `/api/heukwol/refund-request`: 생성 중이면 409 `REFUND_NOT_AVAILABLE`, 이미 닫힌 건은 visible, 아니면 refundAt=now·refundRequestedAt CAS → `settleHeukwolRetryRefund`(`failServiceExecution` forceRefundOnClose).
+- 환불 크론: `consultation-delivery-refund.js` 연애 비책 블록 뒤 `options.heukwolRetryRefunds` 주입 + try/catch → `settleDueHeukwolRetryRefunds`(refundAt≤now·환불 미시작·살아 있는 락 제외, 건별 1회). 보안 버킷은 `7ed35229a` 접미 정규식이 덮음(security.ai-route-buckets 통과).
+- 클라이언트(`app/heukwol/HeukwolClient.tsx`·`types.ts`): retry.available 이면 "상담서 작성이 잠시 멈췄어요" + 안내(일수·날짜 약속 없음) + "N / 27장 보관" + "다시 시도 · 추가 결제·차감 없음" · "다시 시도 대신 환불 요청". 두 버튼은 상담 id 만 보낸다. Toss(`apps/toss/service/TossHeukwol.tsx`)는 타입만 공유(선택 필드) — 하네스 스텁 불필요(Toss 테스트 통과).
+- Toss 네이티브(`worker/toss/native-heukwol.js`, TossNativeConsultation): 변경 없음 — 앞 서비스들과 같이 즉시 처리 유지. 단 이 경로는 원래 `savedResult.failed` 만 남기고 환불 호출·Toss 크론이 없다(기존 결함, 보고만).
+- 대상 실행: jest 8 스위트 243/243(checkpoint-timeout-refund 46 · heukwol 27 · paid-llm-delivery-contract · consultation-recovery-task · paid-delivery-stuck · security.ai-route-buckets · record-library · cron-shared-connection-teardown), node --test consultation-delivery-refund 54/54 · heukwol-paid-resume 13/13. 변이: DETERMINISTIC 정규식을 바꾸면 2건 실패(무는 가드). verify paid-llm-delivery-contract(36 계약·변이 36/36)·worker-security-guards·no-nested-retry·payment-freeze 통과.
+- 체인(베이스 `bcce826eb`, HEAD `8e0f4eb51`, 2026-11-20 실측, 전부 exit 0): ① `check:fast -- --base=bcce826eb` — critical, jest 483 스위트 8294 통과(1 skip). 첫 회는 sitemap 원장 드리프트로 막힘 → `8e0f4eb51` ② `run-paid-gate-suite --base=bcce826eb` 91/91(1453s). 첫 회 exit 1: `npm test` 안 yeongnyangi-reading-v7-golden·yeongnyangi-v7-checkpoint-import 2건이 자식 프로세스 시간 초과(status null, 60s·258s). 이 브랜치는 영냥이 파일 변경 0, 단독 재실행 3/3(174s) → 부하 플레이크, 재실행 통과 ③ `npm test --prefix apps/toss`(정션) 1765/1765(109s), 정션 제거 확인 ④ verify-myeongri-tables OK(29건·잔차 0).
+- 위험·가정(최종 보고): 흑월 카드 환불에 paymentRef 가 없어 refund_failed/manual_review 로 끝날 수 있음(범위 밖, 기존) · 창 만료 환불 경로가 스위퍼·settleDue 둘 — settleExecutionById 멱등에 기댐 · 월정석 환불 경로 미실측 · 보관함(/records)은 보류 건을 "생성 중"으로 표시(record-library.js:35,49) · `scripts/fixtures/mock-heukwol.mjs` 에 retry·refund-request 없음(낮음).
 
 ### R5 연애 비책 (2026-11-20, 워크트리 커밋 `4c81511e5`·`3926da828`·`1968b0488`)
 - 사전 감사: paid-gate-auditor · regression-scout 실행 뒤 착수(앞 세션).
