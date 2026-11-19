@@ -132,3 +132,31 @@ describe('neo retryable first-briefing failure',()=>{
   execution.featureKey='nakshatra-ai-consultation';expect(await inspect(execution)).toBe('missing');
  });
 });
+
+// 2026-11-19 R6 다시 시도 우선: 흑월은 종결 실패를 표지(metadata.retryable)로 보류한다. 창(생성 + 7일) 안에서만 타임아웃 환불을 미룬다.
+describe('heukwol held for a free retry',()=>{
+ const future=()=>new Date(Date.now()+86400000), past=()=>new Date(Date.now()-1000);
+ beforeEach(()=>{execution.featureKey='heukwol-warning-consultation';execution.refundStatus='none';
+  execution.metadata={analysis:{},chapters:[],attempts:3,retryable:{since:new Date(),refundAt:future(),code:'HEUKWOL_GENERATION_FAILED'}};});
+ test('inside the retry window the timeout sweep keeps the execution pending',async()=>{
+  const result=await sweep({}, {limit:1});
+  expect(result).toMatchObject({scanned:1,refunded:0,pending:1});expect(execution.status).toBe('pending');
+  expect(execution.nextRetryAt.getTime()).toBeGreaterThan(Date.now());expect(execution.lock.token).toBe('');
+ });
+ test.each([
+  ['the window has passed',meta=>{meta.retryable.refundAt=past();}],
+  ['there is no retry marker',meta=>{delete meta.retryable;}],
+  ['the marker has no deadline',meta=>{delete meta.retryable.refundAt;}],
+ ])('falls back to the existing refund policy when %s',async(_name,edit)=>{
+  edit(execution.metadata);expect(await inspect(execution)).toBe('unmanaged');
+ });
+ test('only the timeout sweep defers: an explicit close refunds right away',async()=>{
+  expect(await inspect(execution,{includeResumable:false})).toBe('unmanaged');
+ });
+ test('a started refund is never deferred',async()=>{
+  execution.refundStatus='pending';expect(await inspect(execution)).toBe('unmanaged');
+ });
+ test('other services with the same marker keep the existing policy',async()=>{
+  execution.featureKey='geomancy';expect(await inspect(execution)).toBe('unmanaged');
+ });
+});

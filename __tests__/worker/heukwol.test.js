@@ -21,8 +21,8 @@ const CHAPTERS=Array.from({length:27},(_,i)=>({key:`chapter-${i}`,title:`${i}장
 jest.unstable_mockModule('../../worker/lib/heukwol-report.js',()=>({HEUKWOL_FEATURE_KEY:'heukwol-warning-consultation',HEUKWOL_CHAPTERS:CHAPTERS,HEUKWOL_MIN_CHARS:40000,
  HEUKWOL_DELIVERY_PLAN_VERSION:2,heukwolDeliveryV2Enabled:env=>String(env?.HEUKWOL_DELIVERY_V2_ENABLED??'').toLowerCase()!=='false',
  generateHeukwolChapter:async(_env,_analysis,c,_q,_prev,_gen,options)=>{calls++;seenOptions.push({key:c.key,...(options||{})});if(failGeneration||failKeys.has(c.key))throw Object.assign(new Error('mock unavailable'),{heukwolIssue:'HEUKWOL_CHAPTER_SHORT'});return {...c,warning:`경고 ${c.key}`,interpretation:`해석 ${c.key}`,strategy:`대응 ${c.key}`,content:`본문 ${c.key}`,totalChars:chapterChars};}}));
-let handleHeukwolRoutes,advanceHeukwol,settleStuckDelivery;
-beforeAll(async()=>{({handleHeukwolRoutes,advanceHeukwol,settleStuckDelivery}=await import('../../worker/routes/heukwol.js'));});
+let handleHeukwolRoutes,advanceHeukwol,settleStuckDelivery,settleDueHeukwolRetryRefunds;
+beforeAll(async()=>{({handleHeukwolRoutes,advanceHeukwol,settleStuckDelivery,settleDueHeukwolRetryRefunds}=await import('../../worker/routes/heukwol.js'));});
 const input={profileId:'profile',year:new Date().getUTCFullYear()+1,question:'같은 일을 반복하지 않으려면 어떤 조건을 확인할까요?',requestId:'heukwol-test-1234'};
 const post=(path,body=input)=>handleHeukwolRoutes(new Request(`https://test.invalid/api/heukwol/${path}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}),testEnv);
 beforeEach(()=>{rows.clear();account='owner';paid=true;revoked=false;failGeneration=false;calls=0;refunds=0;testEnv={};chapterChars=2000;failKeys=new Set();seenOptions=[];});
@@ -52,7 +52,8 @@ test('held lease prevents duplicate generation; failed wave preserves completed 
 test('existing prepare is read only',async()=>{await post('start');await post('prepare');expect(calls).toBe(1);});
 
 test('revoked prepare cannot reveal a stored report',async()=>{await post('start');revoked=true;expect((await post('prepare')).status).toBe(404);expect(calls).toBe(1);});
-test('three failed waves close delivery once and never regenerate during settlement',async()=>{testEnv=V1;const data=await(await post('start')).json();failGeneration=true;for(let i=0;i<3;i++)await advanceHeukwol({},'owner',data.id);expect(refunds).toBe(1);const before=calls;await advanceHeukwol({},'owner',data.id);expect(calls).toBe(before);const row=rows.get('owner:'+data.id);row.status='pending';row.refundStatus='pending';row.metadata.attempts=0;expect((await(await advanceHeukwol({},'owner',data.id)).json()).status).toBe('failed');expect(calls).toBe(before);});
+// 2026-11-19 R6 다시 시도 우선: 종결 실패는 환불 대신 무료 다시 시도로 보류한다(환불은 고객 요청 또는 생성 + 7일).
+test('three failed waves hold a free retry instead of refunding and never regenerate while held',async()=>{testEnv=V1;const data=await(await post('start')).json();failGeneration=true;for(let i=0;i<3;i++)await advanceHeukwol({},'owner',data.id);expect(refunds).toBe(0);const before=calls;const held=await(await advanceHeukwol({},'owner',data.id)).json();expect(calls).toBe(before);expect(held).toMatchObject({status:'failed',retry:{available:true,sessionId:data.id}});expect(held.refundStatus).toBeUndefined();expect(held.report).toBeUndefined();const row=rows.get('owner:'+data.id);row.status='pending';row.refundStatus='pending';row.metadata.attempts=0;expect((await(await advanceHeukwol({},'owner',data.id)).json()).status).toBe('failed');expect(calls).toBe(before);});
 test('input changes and unowned profiles never start another generation',async()=>{await post('start');expect((await post('start',{...input,question:input.question+'추가 고민'})).status).toBe(409);expect((await post('start',{...input,profileId:'other'})).status).toBe(409);expect((await post('start',{...input,requestId:'heukwol-new-request',profileId:'other'})).status).toBe(400);expect(calls).toBe(1);});
 
 describe('delivery plan v2 (new sessions only)',()=>{
@@ -97,16 +98,17 @@ describe('delivery plan v2 (new sessions only)',()=>{
   expect(done.status).toBe('completed');expect(calls).toBe(2);expect(refunds).toBe(0);
   expect(done.report.chapters.map(c=>c.key)).toEqual(CHAPTERS.map(c=>c.key));expect(done.report.chapters[3].interpretation).toBe('해석 chapter-3');
  });
- test('a total outage after some chapters closes with one refund and no report after the round cap',async()=>{
+ test('a total outage after some chapters is held for a free retry, with no report and no refund, after the round cap',async()=>{
   const data=await (await post('start')).json();failGeneration=true;
   const done=await drive(data.id);
-  expect(done.code).toBe('HEUKWOL_DELIVERY_FAILED');expect(done.report).toBeUndefined();expect(rows.get('owner:'+data.id).status).toBe('failed');expect(refunds).toBe(1);
+  expect(done.code).toBe('HEUKWOL_DELIVERY_FAILED');expect(done.report).toBeUndefined();expect(done.retry).toMatchObject({available:true});
+  const row=rows.get('owner:'+data.id);expect(row.status).toBe('pending');expect(row.metadata.retryable.code).toBe('HEUKWOL_GENERATION_FAILED');expect(refunds).toBe(0);
   expect(calls).toBe(1+3*3);
-  const again=await (await advanceHeukwol({},'owner',data.id)).json();expect(again.report).toBeUndefined();expect(calls).toBe(1+3*3);expect(refunds).toBe(1);
+  const again=await (await advanceHeukwol({},'owner',data.id)).json();expect(again.report).toBeUndefined();expect(again.retry.available).toBe(true);expect(calls).toBe(1+3*3);expect(refunds).toBe(0);
  });
- test('an outage from the first chapter also closes with one refund after the round cap',async()=>{
+ test('an outage from the first chapter is also held for a free retry after the round cap',async()=>{
   failGeneration=true;const data=await (await post('start')).json();
-  const done=await drive(data.id);expect(done.code).toBe('HEUKWOL_DELIVERY_FAILED');expect(rows.get('owner:'+data.id).status).toBe('failed');expect(refunds).toBe(1);expect(calls).toBe(9);
+  const done=await drive(data.id);expect(done.code).toBe('HEUKWOL_DELIVERY_FAILED');expect(rows.get('owner:'+data.id).status).toBe('pending');expect(done.retry.available).toBe(true);expect(refunds).toBe(0);expect(calls).toBe(9);
  });
  // 종결 실패 뒤 결과 조회는 본문 없이 환불 진행 상태를 알려 준다. 환불로 접근이 회수돼도 404 대신 같은 안내를 준다.
  test('a closed failure reports its refund state on result reads, even after the refund revokes access',async()=>{
@@ -130,11 +132,16 @@ describe('settleStuckDelivery',()=>{
  let warn;
  beforeEach(()=>{warn=jest.spyOn(console,'warn').mockImplementation(()=>{});});
  afterEach(()=>warn.mockRestore());
- test('an incomplete stuck session fails once with a refund and never exposes a body',async()=>{
+ test('an incomplete stuck session is held for a free retry, then refunded once after the window, never exposing a body',async()=>{
   const data=await (await post('start')).json(),row=rows.get('owner:'+data.id);const before=calls;
   const settled=await settleStuckDelivery({},{doc:lean(row),now:Date.now(),model:Model});
-  expect(settled).toEqual({outcome:'failed',refundStatus:'pending'});expect(row.status).toBe('failed');expect(refunds).toBe(1);expect(calls).toBe(before);
-  expect(warn).toHaveBeenCalledWith('paid_delivery_stuck_settled',expect.objectContaining({service:'heukwol',outcome:'failed',stalls:6}));
+  expect(settled).toEqual({outcome:'retryable',refundAt:expect.any(Date)});expect(row.status).toBe('pending');expect(refunds).toBe(0);expect(calls).toBe(before);
+  expect(row.metadata).toMatchObject({attempts:3,retryable:{code:'HEUKWOL_DELIVERY_STUCK'}});expect(row.lock.token).toBe('');
+  expect(warn).toHaveBeenCalledWith('paid_delivery_stuck_settled',expect.objectContaining({service:'heukwol',outcome:'retryable',stalls:6}));
+  expect((await settleStuckDelivery({},{doc:lean(row),now:Date.now(),model:Model})).outcome).toBe('retryable');expect(refunds).toBe(0);
+  // 창(생성 + 7일)이 지나면 기존 실패·환불 경로로 1회 닫는다.
+  row.createdAt=new Date(Date.now()-8*86400000);row.metadata.retryable.refundAt=new Date(Date.now()-1000);
+  expect(await settleStuckDelivery({},{doc:lean(row),now:Date.now(),model:Model})).toEqual({outcome:'failed',refundStatus:'pending'});expect(row.status).toBe('failed');expect(refunds).toBe(1);
   expect(await settleStuckDelivery({},{doc:lean(row),now:Date.now(),model:Model})).toEqual({outcome:'progressed'});expect(refunds).toBe(1);
   expect((await (await advanceHeukwol({},'owner',data.id)).json()).report).toBeUndefined();
  });
@@ -151,5 +158,53 @@ describe('settleStuckDelivery',()=>{
   expect(await settleStuckDelivery({},{doc:lean(row),now:Date.now(),model:Model})).toEqual({outcome:'progressed'});
   row.refundStatus='none';row.status='success';
   expect(await settleStuckDelivery({},{doc:lean(row),now:Date.now(),model:Model})).toEqual({outcome:'progressed'});expect(refunds).toBe(0);
+ });
+});
+
+// 2026-11-19 R6: 무료 다시 시도·환불 요청·창 만료 정산. 다시 시도는 결제 확인·차감 없이 빠진 장만 이어 쓴다.
+describe('free retry before refund',()=>{
+ const drive=async(id,limit=60)=>{let data;for(let i=0;i<limit;i++){data=await (await advanceHeukwol({},'owner',id)).json();if(data.status!=='generating')break;}return data;};
+ const held=async()=>{failGeneration=true;const data=await (await post('start')).json();await drive(data.id);failGeneration=false;return {id:data.id,row:rows.get('owner:'+data.id)};};
+ test('retry reopens the held session without a payment check and completes all chapters',async()=>{
+  const {id,row}=await held();const kept=row.metadata.chapters.length;paid=false;
+  const reopened=await post('retry',{id});expect(reopened.status).toBe(202);
+  expect(await reopened.json()).toMatchObject({status:'generating',id});expect(row.metadata).toMatchObject({attempts:0,retryable:null,chapterRounds:{},retryReopens:1});
+  expect(row.metadata.chapters).toHaveLength(kept);
+  const done=await drive(id);expect(done.status).toBe('completed');expect(done.report.chapters).toHaveLength(27);expect(refunds).toBe(0);
+  expect((await post('retry',{id})).status).toBe(409);
+ });
+ test('retry is refused for a session that is still generating or belongs to someone else',async()=>{
+  const data=await (await post('start')).json();const before=calls;
+  const res=await post('retry',{id:data.id});expect(res.status).toBe(409);expect((await res.json()).code).toBe('RETRY_NOT_AVAILABLE');
+  account='intruder';expect((await post('retry',{id:data.id})).status).toBe(404);expect(calls).toBe(before);
+ });
+ test('refund request settles the held session once instead of retrying',async()=>{
+  const {id,row}=await held();
+  const res=await post('refund-request',{id});expect(res.status).toBe(200);expect(refunds).toBe(1);expect(row.status).toBe('failed');
+  expect((await res.json()).retry).toBeUndefined();
+  await post('refund-request',{id});expect(refunds).toBe(1);
+  expect((await post('retry',{id})).status).toBe(409);expect(refunds).toBe(1);
+ });
+ test('refund request is refused while the session is still generating',async()=>{
+  const data=await (await post('start')).json();
+  const res=await post('refund-request',{id:data.id});expect(res.status).toBe(409);expect(refunds).toBe(0);
+ });
+ test('a retry after the window closes refunds instead of reopening',async()=>{
+  const {id,row}=await held();row.metadata.retryable.refundAt=new Date(Date.now()-1000);const before=calls;
+  const res=await post('retry',{id});expect(res.status).toBe(409);expect((await res.json()).code).toBe('RETRY_WINDOW_EXPIRED');
+  expect(refunds).toBe(1);expect(calls).toBe(before);
+ });
+ test('the refund cron settles only expired holds, once each',async()=>{
+  const {row}=await held();
+  const finder=()=>({...Model,find:()=>{const c={sort:()=>c,limit:()=>c,select:()=>c,lean:async()=>[clone(row)]};return c;}});
+  expect(await settleDueHeukwolRetryRefunds({},{model:finder()})).toEqual([]);expect(refunds).toBe(0);
+  row.metadata.retryable.refundAt=new Date(Date.now()-1000);
+  expect(await settleDueHeukwolRetryRefunds({},{model:finder()})).toEqual([{service:'heukwol',refundStatus:'pending'}]);expect(refunds).toBe(1);
+  expect(await settleDueHeukwolRetryRefunds({},{model:finder()})).toEqual([]);expect(refunds).toBe(1);
+ });
+ test('a v1 report that is complete but too short is refunded right away (a retry cannot fix it)',async()=>{
+  testEnv=V1;chapterChars=900;const {id}=await (await post('start')).json();
+  for(let i=1;i<27+3;i++)await advanceHeukwol({},'owner',id);
+  expect(refunds).toBe(1);expect(rows.get('owner:'+id).metadata.retryable).toBeUndefined();
  });
 });

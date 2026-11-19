@@ -12,7 +12,8 @@ export const CONSULTATION_RECOVERY_ADAPTERS = Object.freeze([
   ['destiny-compass-ai', 'DestinyCompassReport', {}],
   ['relationship-boundary-test', 'RelationshipBoundaryTest', {}],
   ['naming-prompt', 'PaidExecutionRecord', { featureId: 'premium-naming-prompt', 'result.namingPrompt': { $exists: true } }],
-  ['heukwol', 'ServiceExecutionTransaction', { featureKey: 'heukwol-warning-consultation', 'metadata.analysis': { $exists: true } }],
+  // R6: 다시 시도 보류(metadata.retryable)는 고객이 다시 시도할 때까지 이어 쓰지 않는다. null 은 필드 없음·null 둘 다 고른다.
+  ['heukwol', 'ServiceExecutionTransaction', { featureKey: 'heukwol-warning-consultation', 'metadata.analysis': { $exists: true }, 'metadata.retryable': null }],
   ['celestial-harmony', 'ServiceExecutionTransaction', { featureKey: 'tarot-celestial-harmony', 'metadata.celestialDelivery': { $exists: true } }],
   ['fortune', 'PaidExecutionRecord', { featureId: 'saju_ai_question_prompt', 'result.resumeBody': { $exists: true } }],
   ['karma-destiny-ai', 'KarmaDestinyAiConsultation', {}],

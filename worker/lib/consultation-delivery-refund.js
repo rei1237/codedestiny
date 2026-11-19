@@ -296,5 +296,11 @@ export async function runPendingConsultationRefunds(env, options = {}) {
     const retryLove = options.loveSecretRetryRefunds || (await import('../routes/love-secret-ai.js')).settleDueLoveSecretRetryRefunds;
     outcomes.push(...await retryLove(env));
   } catch { outcomes.push({ service: 'love-secret-ai', refundStatus: 'pending' }); }
+  // 2026-11-19 R6 흑월 다시 시도 보류: 창(생성 + 7일)이 지난 보류 건을 흑월의 기존 실패·환불 경로(failServiceExecution, 멱등)로 정산한다.
+  // 타임아웃 스위퍼도 같은 시각(timeoutAt=refundAt)에 같은 경로로 닫으므로 이 블록은 그 보강이다. 실패는 격리하고 다음 주기에 다시 돈다.
+  try {
+    const retryHeukwol = options.heukwolRetryRefunds || (await import('../routes/heukwol.js')).settleDueHeukwolRetryRefunds;
+    outcomes.push(...await retryHeukwol(env));
+  } catch { outcomes.push({ service: 'heukwol', refundStatus: 'pending' }); }
   return { outcomes };
 }

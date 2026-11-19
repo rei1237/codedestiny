@@ -10,6 +10,15 @@ function neoRetryWindowOpen(doc, now) {
   return new Date(retryable.refundAt ?? NaN).getTime() > now;
 }
 
+// 2026-11-19 R6: 흑월의 다시 시도 보류 표지(metadata.retryable). heukwol.js 의 heukwolRetryWindowOpen 과 같은 판정을
+// 같은 이유(공용 스위퍼가 읽는 모듈)로 여기서 직접 본다. 표지 없음·환불 시작·마감 없음·창 경과 → false(fail-closed = 환불).
+function heukwolRetryWindowOpen(doc, now) {
+  const retryable = doc?.metadata?.retryable;
+  if (doc?.status !== "pending" || !retryable) return false;
+  if (doc.refundStatus && doc.refundStatus !== "none") return false;
+  return new Date(retryable.refundAt ?? NaN).getTime() > now;
+}
+
 // These routes store the authoritative result before closing the payment execution.
 // A lost close response or a paused checkpoint is not evidence of generation failure.
 const RESULT_MODELS = Object.freeze({
@@ -29,6 +38,9 @@ export async function inspectCheckpointBeforeTimeoutRefund(execution, { includeR
   if (includeResumable && execution.featureKey === "heukwol-warning-consultation"
     && execution.metadata?.analysis && Array.isArray(execution.metadata.chapters)
     && (execution.metadata.attempts || 0) < 3) return "recoverable";
+  // 다시 시도 창 안의 보류 건은 타임아웃 스위프가 환불하지 않는다. 명시적 종결(고객 환불 요청·창 만료 정산)은 includeResumable=false 라 바로 환불한다.
+  if (includeResumable && execution.featureKey === "heukwol-warning-consultation"
+    && heukwolRetryWindowOpen(execution, Date.now())) return "recoverable";
   // Resume adapters define the exact paid product/report pairs that can have
   // persisted narrative checkpoints. Never infer a match from reportType alone.
   if ((includeResumable || Object.keys(execution.metadata?.paidNarrative?.parts || {}).length > 0) && execution.metadata?.paidNarrative?.tasks
